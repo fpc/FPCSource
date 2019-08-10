@@ -156,6 +156,9 @@ interface
     }
     function is_special_array(p : tdef) : boolean;
 
+    {# Returns true, if p points to a normal array, bitpacked arrays are included }
+    function is_normal_array(p : tdef) : boolean;
+
     {# Returns true if p is a bitpacked array }
     function is_packed_array(p: tdef) : boolean;
 
@@ -325,6 +328,9 @@ interface
     { # returns true if the procdef has no parameters and no specified return type }
     function is_bareprocdef(pd : tprocdef): boolean;
 
+    { returns true if the procdef is a C-style variadic function }
+    function is_c_variadic(pd: tabstractprocdef): boolean; {$ifdef USEINLINE}inline;{$endif}
+
     { # returns the smallest base integer type whose range encompasses that of
         both ld and rd; if keep_sign_if_equal, then if ld and rd have the same
         signdness, the result will also get that signdness }
@@ -478,8 +484,8 @@ implementation
                is_ordinal:=dt in [uchar,uwidechar,
                                   u8bit,u16bit,u32bit,u64bit,
                                   s8bit,s16bit,s32bit,s64bit,
-                                  pasbool8,pasbool16,pasbool32,pasbool64,
-                                  bool8bit,bool16bit,bool32bit,bool64bit];
+                                  pasbool1,pasbool8,pasbool16,pasbool32,pasbool64,
+                                  bool8bit,bool16bit,bool32bit,bool64bit,customint];
              end;
            enumdef :
              is_ordinal:=true;
@@ -550,7 +556,8 @@ implementation
       begin
         result:=(def.typ=orddef) and
                     (torddef(def).ordtype in [u8bit,u16bit,u32bit,u64bit,
-                                          s8bit,s16bit,s32bit,s64bit]);
+                                          s8bit,s16bit,s32bit,s64bit,
+                                          customint]);
       end;
 
 
@@ -558,14 +565,14 @@ implementation
     function is_boolean(def : tdef) : boolean;
       begin
         result:=(def.typ=orddef) and
-                    (torddef(def).ordtype in [pasbool8,pasbool16,pasbool32,pasbool64,bool8bit,bool16bit,bool32bit,bool64bit]);
+                    (torddef(def).ordtype in [pasbool1,pasbool8,pasbool16,pasbool32,pasbool64,bool8bit,bool16bit,bool32bit,bool64bit]);
       end;
 
 
     function is_pasbool(def : tdef) : boolean;
       begin
         result:=(def.typ=orddef) and
-                    (torddef(def).ordtype in [pasbool8,pasbool16,pasbool32,pasbool64]);
+                    (torddef(def).ordtype in [pasbool1,pasbool8,pasbool16,pasbool32,pasbool64]);
       end;
 
     { true if def is a C-style boolean (non-zero value = true, zero = false) }
@@ -748,6 +755,14 @@ implementation
                  );
       end;
 
+    { true, if p points to a normal array, bitpacked arrays are included }
+    function is_normal_array(p : tdef) : boolean;
+      begin
+         result:=(p.typ=arraydef) and
+                 ((tarraydef(p).arrayoptions * [ado_IsVariant,ado_IsArrayOfConst,ado_IsConstructor,ado_IsDynamicArray])=[]) and
+                 not(is_open_array(p));
+      end;
+
     { true if p is an ansi string def }
     function is_ansistring(p : tdef) : boolean;
       begin
@@ -902,7 +917,7 @@ implementation
     { true, if def is a 8 bit ordinal type }
     function is_8bit(def : tdef) : boolean;
       begin
-         result:=(def.typ=orddef) and (torddef(def).ordtype in [u8bit,s8bit,pasbool8,bool8bit,uchar])
+         result:=(def.typ=orddef) and (torddef(def).ordtype in [u8bit,s8bit,pasbool1,pasbool8,bool8bit,uchar])
       end;
 
     { true, if def is a 16 bit int type }
@@ -948,8 +963,11 @@ implementation
       begin
         result:=(def1.typ=orddef) and (def2.typ=orddef) and
           (torddef(def1).ordtype in [u8bit,u16bit,u32bit,u64bit,
-                                     s8bit,s16bit,s32bit,s64bit]) and
-          (torddef(def1).ordtype=torddef(def2).ordtype);
+                                     s8bit,s16bit,s32bit,s64bit,customint]) and
+          (torddef(def1).ordtype=torddef(def2).ordtype) and
+          ((torddef(def1).ordtype<>customint) or
+           ((torddef(def1).low=torddef(def2).low) and
+            (torddef(def1).high=torddef(def2).high)));
       end;
 
 
@@ -1050,6 +1068,8 @@ implementation
                1: l := l and $ff;
                2: l := l and $ffff;
                4: l := l and $ffffffff;
+               else
+                 ;
              end;
              {reset sign, i.e. converting -1 to qword changes the value to high(qword)}
              l.signed:=false;
@@ -1060,6 +1080,8 @@ implementation
                   1: l.svalue := shortint(l.svalue);
                   2: l.svalue := smallint(l.svalue);
                   4: l.svalue := longint(l.svalue);
+                  else
+                    ;
                 end;
                 l.signed:=true;
               end;
@@ -1106,6 +1128,8 @@ implementation
                 case tfloatdef(tarraydef(p).elementdef).floattype of
                   s32real:
                     mmx_type:=mmxsingle;
+                  else
+                    ;
                 end
               else
                 case torddef(tarraydef(p).elementdef).ordtype of
@@ -1121,6 +1145,8 @@ implementation
                      mmx_type:=mmxu32bit;
                    s32bit:
                      mmx_type:=mmxs32bit;
+                   else
+                     ;
                 end;
            end;
       end;
@@ -1146,6 +1172,8 @@ implementation
                      range_to_type(torddef(def).low,torddef(def).high,result);
                  end
                else case torddef(def).ordtype of
+                 pasbool1:
+                   result:=pasbool1type;
                  pasbool8:
                    result:=pasbool8type;
                  pasbool16:
@@ -1453,7 +1481,6 @@ implementation
       As of today, both signed and unsigned types from 8 to 64 bits are supported. }
     function is_automatable(p : tdef) : boolean;
       begin
-        result:=false;
         case p.typ of
           orddef:
             result:=torddef(p).ordtype in [u8bit,s8bit,u16bit,s16bit,u32bit,s32bit,
@@ -1466,6 +1493,8 @@ implementation
             result:=true;
           objectdef:
             result:=tobjectdef(p).objecttype in [odt_interfacecom,odt_dispinterface,odt_interfacecorba];
+          else
+            result:=false;
         end;
       end;
 
@@ -1490,6 +1519,12 @@ implementation
                  (pd.proctypeoption = potype_constructor));
       end;
 
+    function is_c_variadic(pd: tabstractprocdef): boolean;
+      begin
+        result:=
+          (po_varargs in pd.procoptions) or
+          (po_variadic in pd.procoptions);
+      end;
 
     function get_common_intdef(ld, rd: torddef; keep_sign_if_equal: boolean): torddef;
       var
@@ -1539,6 +1574,8 @@ implementation
               result:=torddef(s64inttype);
             s64bit:
               result:=torddef(u64inttype);
+            else
+              ;
           end;
       end;
 
@@ -1601,6 +1638,7 @@ implementation
                 result:=tkQWord;
               s64bit:
                 result:=tkInt64;
+              pasbool1,
               pasbool8,
               pasbool16,
               pasbool32,
@@ -1631,8 +1669,6 @@ implementation
                 result:=tkWString;
               st_unicodestring:
                 result:=tkUString;
-              else
-                result:=tkUnknown;
             end;
           enumdef:
             result:=tkEnumeration;

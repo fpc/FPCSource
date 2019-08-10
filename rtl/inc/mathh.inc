@@ -138,18 +138,20 @@ procedure float_raise(i: TFPUExceptionMask);
 {$if defined(SUPPORT_EXTENDED) or defined(FPC_SOFT_FPUX80)}
       TExtended80Rec = packed record
       private
+      const
+        Bias = $3FFF;
         function GetExp : QWord;
         procedure SetExp(e : QWord);
         function GetSign : Boolean;
         procedure SetSign(s : Boolean);
       public
-        function Mantissa : QWord;
+        function Mantissa(IncludeHiddenBit: Boolean = False) : QWord; // unused parameter inserted to have consistent function signature
         function Fraction : Extended;
         function Exponent : Longint;
         property Sign : Boolean read GetSign write SetSign;
         property Exp : QWord read GetExp write SetExp;
         function SpecialType : TFloatSpecial;
-        // procedure BuildUp(const _Sign : Boolean; const _Mantissa : QWord; const Exponent : Longint);
+        procedure BuildUp(const _Sign : Boolean; const _Mantissa : QWord; const _Exponent : Longint);
         case byte of
           0: (Bytes : array[0..9] of Byte);
           1: (Words : array[0..4] of Word);
@@ -169,6 +171,8 @@ procedure float_raise(i: TFPUExceptionMask);
 {$ifdef SUPPORT_DOUBLE}
       TDoubleRec = packed record
       private
+      const
+        Bias = $3FF;
         function GetExp : QWord;
         procedure SetExp(e : QWord);
         function GetSign : Boolean;
@@ -176,13 +180,14 @@ procedure float_raise(i: TFPUExceptionMask);
         function GetFrac : QWord;
         procedure SetFrac(e : QWord);
       public
-        function Mantissa : QWord;
+        function Mantissa(IncludeHiddenBit: Boolean = False) : QWord;
         function Fraction : ValReal;
         function Exponent : Longint;
         property Sign : Boolean read GetSign write SetSign;
         property Exp : QWord read GetExp write SetExp;
         property Frac : QWord read Getfrac write SetFrac;
         function SpecialType : TFloatSpecial;
+        procedure BuildUp(const _Sign : Boolean; const _Mantissa : QWord; const _Exponent : Longint);
         case byte of
           0: (Bytes : array[0..7] of Byte);
           1: (Words : array[0..3] of Word);
@@ -194,6 +199,8 @@ procedure float_raise(i: TFPUExceptionMask);
 {$ifdef SUPPORT_SINGLE}
       TSingleRec = packed record
       private
+      const
+        Bias = $7F;
         function GetExp : QWord;
         procedure SetExp(e : QWord);
         function GetSign : Boolean;
@@ -201,13 +208,14 @@ procedure float_raise(i: TFPUExceptionMask);
         function GetFrac : QWord;
         procedure SetFrac(e : QWord);
       public
-        function Mantissa : QWord;
+        function Mantissa(IncludeHiddenBit: Boolean = False) : QWord;
         function Fraction : ValReal;
         function Exponent : Longint;
         property Sign : Boolean read GetSign write SetSign;
         property Exp : QWord read GetExp write SetExp;
         property Frac : QWord read Getfrac write SetFrac;
         function SpecialType : TFloatSpecial;
+        procedure BuildUp(const _Sign : Boolean; const _Mantissa : QWord; const _Exponent : Longint);
         case byte of
           0: (Bytes : array[0..3] of Byte);
           1: (Words : array[0..1] of Word);

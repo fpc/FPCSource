@@ -11,6 +11,7 @@
   add_cocoaint(ADirectory+IncludeTrailingPathDelimiter('cocoaint'));
   add_dblib(ADirectory+IncludeTrailingPathDelimiter('dblib'));
   add_dbus(ADirectory+IncludeTrailingPathDelimiter('dbus'));
+  add_libmagic(ADirectory+IncludeTrailingPathDelimiter('libmagic'));
   add_dts(ADirectory+IncludeTrailingPathDelimiter('dts'));
   add_fastcgi(ADirectory+IncludeTrailingPathDelimiter('fastcgi'));
   add_fcl_async(ADirectory+IncludeTrailingPathDelimiter('fcl-async'));
@@ -138,5 +139,7 @@
   add_libgc(ADirectory+IncludeTrailingPathDelimiter('libgc'));
   add_libfontconfig(ADirectory+IncludeTrailingPathDelimiter('libfontconfig'));
   add_fcl_report(ADirectory+IncludeTrailingPathDelimiter('fcl-report'));
+  add_webidl(ADirectory+IncludeTrailingPathDelimiter('webidl'));
+  add_gnutls(ADirectory+IncludeTrailingPathDelimiter('gnutls'));
   add_ide(ADirectory+IncludeTrailingPathDelimiter('ide'));
   

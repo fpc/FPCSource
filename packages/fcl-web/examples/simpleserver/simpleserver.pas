@@ -1,6 +1,16 @@
+{$mode objfpc}
+{$h+}
+{ $define USEGNUTLS}
 program simpleserver;
 
-uses sysutils,custhttpapp, fpwebfile;
+uses
+  sysutils,
+{$ifdef USEGNUTLS}
+  gnutlssockets,
+{$else}
+  opensslsockets,
+{$endif}
+  sslbase,custhttpapp, fpwebfile;
 
 Type
 
@@ -44,7 +54,10 @@ begin
   Writeln('-i --indexpage=name Directory index page to use (default: index.html)');
   Writeln('-n --noindexpage    Do not allow index page.');
   Writeln('-p --port=NNNN      TCP/IP port to listen on (default is 3000)');
+  Writeln('-m --mimetypes=file path of mime.types, default under unix: /etc/mime.types');
   Writeln('-q --quiet          Do not write diagnostic messages');
+  Writeln('-s --ssl            Use SSL');
+  Writeln('-H --hostname=NAME  set hostname for self-signed SSL certificate');
   Halt(Ord(Msg<>''));
 end;
 
@@ -54,7 +67,7 @@ Var
   S,IndexPage,D : String;
 
 begin
-  S:=Checkoptions('hqd:ni:p:',['help','quiet','noindexpage','directory:','port:','indexpage:']);
+  S:=Checkoptions('hqd:ni:p:sH:',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:']);
   if (S<>'') or HasOption('h','help') then
     usage(S);
   Quiet:=HasOption('q','quiet');
@@ -63,8 +76,26 @@ begin
   if D='' then
     D:=GetCurrentDir;
   Log(etInfo,'Listening on port %d, serving files from directory: %s',[Port,D]);
+  UseSSL:=HasOption('s','ssl');
+  if HasOption('H','hostname') then
+    HostName:=GetOptionValue('H','hostname');
+  if HasOption('m','mimetypes') then
+    MimeTypesFile:=GetOptionValue('m','mimetypes');
 {$ifdef unix}
-  MimeTypesFile:='/etc/mime.types';
+  if MimeTypesFile='' then
+    begin
+    MimeTypesFile:='/etc/mime.types';
+    if not FileExists(MimeTypesFile) then
+      begin
+      {$ifdef darwin}
+      MimeTypesFile:='/private/etc/apache2/mime.types';
+      if not FileExists(MimeTypesFile) then
+      {$endif}
+        MimeTypesFile:='';
+      end;
+    end;
+  if (MimeTypesFile<>'') and not FileExists(MimeTypesFile) then
+    Log(etWarning,'mimetypes file not found: '+MimeTypesFile);
 {$endif}
   TSimpleFileModule.BaseDir:=IncludeTrailingPathDelimiter(D);
   TSimpleFileModule.OnLog:=@Log;

@@ -14,7 +14,7 @@
 unit Crt;
 
 Interface
-
+{$mode fpc} // Shortstring is assumed
 {$i crth.inc}
 
 Const
@@ -1263,8 +1263,8 @@ Begin
      i:=F.BufPos;
      if i>255 then
       i:=255;
-     Move(F.BufPTR^[idx],Temp[1],i);
      SetLength(Temp,i);
+     Move(F.BufPTR^[idx],Temp[1],i);
      DoWrite(Temp);
      dec(F.BufPos,i);
      inc(idx,i);

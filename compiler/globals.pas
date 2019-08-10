@@ -54,7 +54,8 @@ interface
          [m_delphi,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
           m_out,m_default_para,m_duplicate_names,m_hintdirective,
-          m_property,m_default_inline,m_except,m_advanced_records];
+          m_property,m_default_inline,m_except,m_advanced_records,
+          m_array_operators];
        delphiunicodemodeswitches = delphimodeswitches + [m_systemcodepage,m_default_unicodestring];
        fpcmodeswitches =
          [m_fpc,m_string_pchar,m_nested_comment,m_repeat_forward,
@@ -163,6 +164,8 @@ interface
 
          disabledircache : boolean;
 
+         tlsmodel : ttlsmodel;
+
 {$if defined(i8086)}
          x86memorymodel  : tx86memorymodel;
 {$endif defined(i8086)}
@@ -213,6 +216,15 @@ interface
         property items[I:longint]:TLinkRec read getlinkrec; default;
       end;
 
+      tpendingstateflag = (
+        psf_alignment_changed,
+        psf_verbosity_full_switched,
+        psf_local_switches_changed,
+        psf_packenum_changed,
+        psf_packrecords_changed,
+        psf_setalloc_changed
+      );
+      tpendingstateflags = set of tpendingstateflag;
 
       tpendingstate = record
         nextverbositystr : shortstring;
@@ -221,9 +233,10 @@ interface
         nextcallingstr : shortstring;
         nextmessagerecord : pmessagestaterecord;
         nextalignment : talignmentinfo;
-        alignmentchanged,
-        verbosityfullswitched,
-        localswitcheschanged : boolean;
+        nextpackenum : shortint;
+        nextpackrecords : shortint;
+        nextsetalloc : shortint;
+        flags : tpendingstateflags;
       end;
 
 
@@ -393,6 +406,9 @@ interface
           procalign : 0;
           loopalign : 0;
           jumpalign : 0;
+          jumpalignskipmax    : 0;
+          coalescealign   : 0;
+          coalescealignskipmax: 0;
           constalignmin : 0;
           constalignmax : 0;
           varalignmin : 0;
@@ -518,6 +534,18 @@ interface
         asmcputype : cpu_none;
         fputype : fpu_x87;
   {$endif i8086}
+  {$ifdef riscv32}
+        cputype : cpu_rv32imafd;
+        optimizecputype : cpu_rv32imafd;
+        asmcputype : cpu_none;
+        fputype : fpu_fd;
+  {$endif riscv32}
+  {$ifdef riscv64}
+        cputype : cpu_rv64imafdc;
+        optimizecputype : cpu_rv64imafdc;
+        asmcputype : cpu_none;
+        fputype : fpu_fd;
+  {$endif riscv64}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
 {$ifndef jvm}
@@ -530,6 +558,8 @@ interface
         minfpconstprec : s32real;
 
         disabledircache : false;
+
+        tlsmodel : tlsm_none;
 {$if defined(i8086)}
         x86memorymodel : mm_small;
 {$endif defined(i8086)}
@@ -862,6 +892,30 @@ implementation
          end;
 
 {$endif mswindows}
+{$ifdef openbsd}
+       function GetOpenBSDLocalBase: ansistring;
+         var
+           envvalue: pchar;
+         begin
+           envvalue := GetEnvPChar('LOCALBASE');
+           if assigned(envvalue) then
+             Result:=envvalue
+           else
+             Result:='/usr/local';
+           FreeEnvPChar(envvalue);
+         end;
+       function GetOpenBSDX11Base: ansistring;
+         var
+           envvalue: pchar;
+         begin
+           envvalue := GetEnvPChar('X11BASE');
+           if assigned(envvalue) then
+             Result:=envvalue
+           else
+             Result:='/usr/X11R6';
+           FreeEnvPChar(envvalue);
+         end;
+{$endif openbsd}
        var
          envstr: string;
          envvalue: pchar;
@@ -894,6 +948,10 @@ implementation
          ReplaceSpecialFolder('$PROGRAM_FILES_COMMON',CSIDL_PROGRAM_FILES_COMMON);
          ReplaceSpecialFolder('$PROFILE',CSIDL_PROFILE);
 {$endif mswindows}
+{$ifdef openbsd}
+         Replace(s,'$OPENBSD_LOCALBASE',GetOpenBSDLocalBase);
+         Replace(s,'$OPENBSD_X11BASE',GetOpenBSDX11Base);
+{$endif openbsd}
          { Replace environment variables between dollar signs }
          i := pos('$',s);
          while i>0 do
@@ -1394,7 +1452,7 @@ implementation
        if localexepath='' then
         begin
           hs1 := ExtractFileName(exeName);
-          ChangeFileExt(hs1,source_info.exeext);
+	  hs1 := ChangeFileExt(hs1,source_info.exeext);
 {$ifdef macos}
           FindFile(hs1,GetEnvironmentVariable('Commands'),false,localExepath);
 {$else macos}

@@ -332,7 +332,7 @@ implementation
                      internalerror(200309289);
                    left:=cloadparentfpnode.create(tprocdef(symtable.defowner),lpf_forload);
                    { we can't inline the referenced parent procedure }
-                   exclude(tprocdef(symtable.defowner).procoptions,po_inline);
+                   include(tprocdef(symtable.defowner).implprocoptions,pio_nested_access);
                    { reference in nested procedures, variable needs to be in memory }
                    { and behaves as if its address escapes its parent block         }
                    make_not_regable(self,[ra_different_scope]);
@@ -400,9 +400,6 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_REFERENCE;
-         if (cs_create_pic in current_settings.moduleswitches) and
-           not(symtableentry.typ in [paravarsym,localvarsym]) then
-           include(current_procinfo.flags,pi_needs_got);
 
          case symtableentry.typ of
             absolutevarsym :
@@ -424,12 +421,12 @@ implementation
                 else
                   if (tabstractvarsym(symtableentry).varspez=vs_const) then
                     expectloc:=LOC_CREFERENCE;
-                if (target_info.system=system_powerpc_darwin) and
-                   ([vo_is_dll_var,vo_is_external] * tabstractvarsym(symtableentry).varoptions <> []) then
-                  include(current_procinfo.flags,pi_needs_got);
                 { call to get address of threadvar }
                 if (vo_is_thread_var in tabstractvarsym(symtableentry).varoptions) then
-                  include(current_procinfo.flags,pi_do_call);
+                  begin
+                    include(current_procinfo.flags,pi_do_call);
+                    include(current_procinfo.flags,pi_uses_threadvar);
+                  end;
               end;
             procsym :
                 begin
@@ -514,7 +511,6 @@ implementation
 
       begin
          inherited create(assignn,l,r);
-         l.mark_write;
          assigntype:=at_normal;
          if r.nodetype = typeconvn then
            ttypeconvnode(r).warn_pointer_to_signed:=false;
@@ -584,6 +580,8 @@ implementation
 
         typecheckpass(left);
 
+        left.mark_write;
+
         { PI. This is needed to return correct resultdef of add nodes for ansistrings
           rawbytestring return needs to be replaced by left.resultdef }
         oldassignmentnode:=aktassignmentnode;
@@ -595,6 +593,14 @@ implementation
         set_varstate(left,vs_written,[]);
         if codegenerror then
           exit;
+
+        { just in case the typecheckpass of right optimized something here }
+        if nf_assign_done_in_right in flags then
+          begin
+            result:=right;
+            right:=nil;
+            exit;
+          end;
 
         { tp procvar support, when we don't expect a procvar
           then we need to call the procvar }
@@ -635,7 +641,8 @@ implementation
               (
                 (right.nodetype=arrayconstructorn) and
                 (right.resultdef.typ=arraydef) and
-                (tarraydef(right.resultdef).elementdef=voidtype)
+                (tarraydef(right.resultdef).elementdef=voidtype) and
+                tarrayconstructornode(right).isempty
               )
             ) then
          begin
@@ -1370,9 +1377,6 @@ implementation
       begin
         result:=nil;
         expectloc:=LOC_CREFERENCE;
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) then
-          include(current_procinfo.flags,pi_needs_got);
       end;
 
 

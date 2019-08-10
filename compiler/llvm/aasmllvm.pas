@@ -39,6 +39,9 @@ interface
 
         constructor create_llvm(op: tllvmop);
 
+        { e.g. unreachable }
+        constructor op_none(op : tllvmop);
+
         { e.g. ret void }
         constructor op_size(op : tllvmop; size: tdef);
 
@@ -104,7 +107,7 @@ interface
         constructor getelementptr_reg_size_ref_size_const(dst:tregister;ptrsize:tdef;const ref:treference;indextype:tdef;index1:ptrint;indirect:boolean);
         constructor getelementptr_reg_tai_size_const(dst:tregister;const ai:tai;indextype:tdef;index1:ptrint;indirect:boolean);
 
-        constructor blockaddress(fun, lab: tasmsymbol);
+        constructor blockaddress(size: tdef; fun, lab: tasmsymbol);
         constructor landingpad(dst:tregister;def:tdef;firstclause:taillvm);
         constructor exceptclause(op:tllvmop;def:tdef;kind:TAsmSymbol;nextclause:taillvm);
 
@@ -273,6 +276,8 @@ uses
             _bind:=AB_GLOBAL;
           AB_EXTERNAL_INDIRECT:
             _bind:=AB_INDIRECT;
+          else
+            ;
         end;
         bind:=_bind;
       end;
@@ -329,6 +334,8 @@ uses
             oper[opidx]^.ai.free;
           top_asmlist:
             oper[opidx]^.asmlist.free;
+          else
+            ;
         end;
         inherited;
       end;
@@ -511,7 +518,7 @@ uses
             end;
           la_blockaddress:
             case opnr of
-              0: result:=operand_write
+              1: result:=operand_write
               else
                 result:=operand_read;
             end
@@ -670,13 +677,20 @@ uses
             end;
           la_blockaddress:
             case opnr of
-              0: result:=voidcodepointertype
+              1: result:=voidcodepointertype
               else
                 internalerror(2015111904);
             end
           else
             internalerror(2013103101)
         end;
+      end;
+
+
+    constructor taillvm.op_none(op: tllvmop);
+      begin
+        create_llvm(op);
+        ops:=0;
       end;
 
 
@@ -1027,12 +1041,13 @@ uses
         loadconst(index+1,index1);
       end;
 
-    constructor taillvm.blockaddress(fun, lab: tasmsymbol);
+    constructor taillvm.blockaddress(size: tdef; fun, lab: tasmsymbol);
       begin
         create_llvm(la_blockaddress);
-        ops:=2;
-        loadsymbol(0,fun,0);
-        loadsymbol(1,lab,0);
+        ops:=3;
+        loaddef(0,size);
+        loadsymbol(1,fun,0);
+        loadsymbol(2,lab,0);
       end;
 
 

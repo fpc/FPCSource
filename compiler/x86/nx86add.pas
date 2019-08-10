@@ -79,6 +79,9 @@ unit nx86add;
       ncon,nset,ninl,
       defutil;
 
+{ Range check must be disabled explicitly as the code serves
+  on three different architecture sizes }
+{$R-}
 
 {*****************************************************************************
                                   Helpers
@@ -673,6 +676,8 @@ unit nx86add;
                         op:=A_PADDSW;
                       mmxu16bit:
                         op:=A_PADDUSW;
+                      else
+                       ;
                    end;
                 end
               else
@@ -684,6 +689,8 @@ unit nx86add;
                         op:=A_PADDW;
                       mmxs32bit,mmxu32bit:
                         op:=A_PADDD;
+                      else
+                       ;
                    end;
                 end;
             end;
@@ -694,6 +701,8 @@ unit nx86add;
                     op:=A_PMULLW;
                   mmxfixed16:
                     op:=A_PMULHW;
+                  else
+                   ;
                end;
             end;
           subn :
@@ -709,6 +718,8 @@ unit nx86add;
                         op:=A_PSUBSB;
                       mmxu16bit:
                         op:=A_PSUBUSW;
+                      else
+                       ;
                    end;
                 end
               else
@@ -720,6 +731,8 @@ unit nx86add;
                         op:=A_PSUBW;
                       mmxs32bit,mmxu32bit:
                         op:=A_PSUBD;
+                      else
+                       ;
                    end;
                 end;
             end;

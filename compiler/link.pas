@@ -55,7 +55,8 @@ interface
          ObjectFiles,
          SharedLibFiles,
          StaticLibFiles,
-         FrameworkFiles  : TCmdStrList;
+         FrameworkFiles,
+         OrderedSymbols: TCmdStrList;
          Constructor Create;virtual;
          Destructor Destroy;override;
          procedure AddModuleFiles(hp:tmodule);
@@ -65,6 +66,7 @@ interface
          Procedure AddStaticCLibrary(const S : TCmdStr);
          Procedure AddSharedCLibrary(S : TCmdStr);
          Procedure AddFramework(S : TCmdStr);
+         Procedure AddOrderedSymbol(const s: TCmdStr);
          procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);virtual;
          Procedure InitSysInitUnitName;virtual;
          Function  MakeExecutable:boolean;virtual;
@@ -353,6 +355,7 @@ Implementation
         SharedLibFiles:=TCmdStrList.Create_no_double;
         StaticLibFiles:=TCmdStrList.Create_no_double;
         FrameworkFiles:=TCmdStrList.Create_no_double;
+        OrderedSymbols:=TCmdStrList.Create;
       end;
 
 
@@ -362,6 +365,8 @@ Implementation
         SharedLibFiles.Free;
         StaticLibFiles.Free;
         FrameworkFiles.Free;
+        OrderedSymbols.Free;
+        inherited;
       end;
 
 
@@ -371,25 +376,26 @@ Implementation
         i,j  : longint;
         ImportLibrary : TImportLibrary;
         ImportSymbol  : TImportSymbol;
+        cmdstritem: TCmdStrListItem;
       begin
         with hp do
          begin
-           if (flags and uf_has_resourcefiles)<>0 then
+           if mf_has_resourcefiles in moduleflags then
              HasResources:=true;
-           if (flags and uf_has_exports)<>0 then
+           if mf_has_exports in moduleflags then
              HasExports:=true;
          { link unit files }
-           if (flags and uf_no_link)=0 then
+           if (headerflags and uf_no_link)=0 then
             begin
               { create mask which unit files need linking }
               mask:=link_always;
               { static linking ? }
               if (cs_link_static in current_settings.globalswitches) then
                begin
-                 if (flags and uf_static_linked)=0 then
+                 if (headerflags and uf_static_linked)=0 then
                   begin
                     { if smart not avail then try static linking }
-                    if (flags and uf_smart_linked)<>0 then
+                    if (headerflags and uf_smart_linked)<>0 then
                      begin
                        Message1(exec_t_unit_not_static_linkable_switch_to_smart,modulename^);
                        mask:=mask or link_smart;
@@ -404,10 +410,10 @@ Implementation
 
               if (cs_link_smart in current_settings.globalswitches) then
                begin
-                 if (flags and uf_smart_linked)=0 then
+                 if (headerflags and uf_smart_linked)=0 then
                   begin
                     { if smart not avail then try static linking }
-                    if (flags and uf_static_linked)<>0 then
+                    if (headerflags and uf_static_linked)<>0 then
                      begin
                        { if not create_smartlink_library, then smart linking happens using the
                          regular object files
@@ -425,10 +431,10 @@ Implementation
               { shared linking }
               if (cs_link_shared in current_settings.globalswitches) then
                begin
-                 if (flags and uf_shared_linked)=0 then
+                 if (headerflags and uf_shared_linked)=0 then
                   begin
                     { if shared not avail then try static linking }
-                    if (flags and uf_static_linked)<>0 then
+                    if (headerflags and uf_static_linked)<>0 then
                      begin
                        Message1(exec_t_unit_not_shared_linkable_switch_to_static,modulename^);
                        mask:=mask or link_static;
@@ -468,6 +474,8 @@ Implementation
                      ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
                  end;
              end;
+           { ordered symbols }
+           OrderedSymbols.concatList(linkorderedsymbols);
          end;
       end;
 
@@ -533,6 +541,12 @@ Implementation
           exit;
         { ready to be added }
         FrameworkFiles.Concat(S);
+      end;
+
+
+    procedure TLinker.AddOrderedSymbol(const s: TCmdStr);
+      begin
+        OrderedSymbols.Concat(s);
       end;
 
 
@@ -667,10 +681,20 @@ Implementation
         if cs_link_on_target in current_settings.globalswitches then
           begin
             { If linking on target, don't add any path PM }
-            FindUtil:=ChangeFileExt(s,target_info.exeext);
+            { change extension only on platforms that use an exe extension, otherwise on OpenBSD 'ld.bfd' gets
+              converted to 'ld' }
+            if target_info.exeext<>'' then
+              FindUtil:=ChangeFileExt(s,target_info.exeext)
+            else
+              FindUtil:=s;
             exit;
           end;
-        UtilExe:=ChangeFileExt(s,source_info.exeext);
+        { change extension only on platforms that use an exe extension, otherwise on OpenBSD 'ld.bfd' gets converted
+          to 'ld' }
+        if source_info.exeext<>'' then
+          UtilExe:=ChangeFileExt(s,source_info.exeext)
+        else
+          UtilExe:=s;
         FoundBin:='';
         Found:=false;
         if utilsdirectory<>'' then

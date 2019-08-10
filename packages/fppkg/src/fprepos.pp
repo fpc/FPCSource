@@ -98,6 +98,29 @@ type
     Property Dependencies[Index : Integer] : TFPDependency Read GetDependency Write SetDependency;default;
   end;
 
+
+  { TFPPackageVariant }
+
+  TFPPackageVariant = class(TCollectionItem)
+  private
+    FName: string;
+    FIsInheritable: boolean;
+    FOptions: TStringArray;
+  public
+    property Name: string read FName write FName;
+    property IsInheritable: boolean read FIsInheritable write FIsInheritable;
+    property Options: TStringArray read FOptions write FOptions;
+  end;
+
+  { TFPPackageVariants }
+
+  TFPPackageVariants = class(TCollection)
+  protected
+    function GetItem(Index: Integer): TFPPackageVariant;
+  public
+    property Items[Index: Integer]: TFPPackageVariant read GetItem;
+  end;
+
   { TFPPackage }
 
   TFPPackage = Class(TStreamCollectionItem)
@@ -126,6 +149,7 @@ type
     FChecksum : cardinal;
     FLocalFileName : String;
     FPackagesStructure: TFPCustomPackagesStructure;
+    FPackageVariants: TFPPackageVariants;
     function GetFileName: String;
     function GetRepository: TFPRepository;
     procedure SetName(const AValue: String);
@@ -169,6 +193,8 @@ type
     // Manual package from commandline not in official repository
     Property LocalFileName : String Read FLocalFileName Write FLocalFileName;
     Property PackagesStructure: TFPCustomPackagesStructure read FPackagesStructure write FPackagesStructure;
+    // Read from unit config file, not in official repository
+    Property PackageVariants: TFPPackageVariants read FPackageVariants;
   end;
 
   { TFPPackages }
@@ -325,6 +351,7 @@ const
   KeyFPMakeOptions = 'FPMakeOptions';
   KeyCPU      = 'CPU';
   KeyOS       = 'OS';
+  KeyPkgVar   = 'PackageVariant_';
 
 ResourceString
   SErrInvalidCPU           = 'Invalid CPU name : "%s"';
@@ -357,6 +384,13 @@ begin
     Raise EPackage.CreateFmt(SErrInvalidTarget,[S]);
   CPU:=StringToCPU(Copy(S,1,P-1));
   OS:=StringToOs(Copy(S,P+1,Length(S)-P));
+end;
+
+{ TFPPackageVariants }
+
+function TFPPackageVariants.GetItem(Index: Integer): TFPPackageVariant;
+begin
+  Result := inherited GetItem(Index) as TFPPackageVariant;
 end;
 
 { TFPCustomPackagesStructure }
@@ -482,6 +516,7 @@ begin
   FOSes:=AllOSes;
   FCPUs:=AllCPUs;
   FDependencies:=TFPDependencies.Create(TFPDependency);
+  FPackageVariants:=TFPPackageVariants.Create(TFPPackageVariant);
 end;
 
 
@@ -490,6 +525,7 @@ begin
   FreeAndNil(FDependencies);
   FreeAndNil(FVersion);
   FreeAndNil(FUnusedVersion);
+  FreeAndNil(FPackageVariants);
   inherited Destroy;
 end;
 
@@ -625,7 +661,9 @@ var
   VCPU : TCPU;
   i,k : Integer;
   DepChecksum : Cardinal;
-  DepName : String;
+  DepName: String;
+  PackageVariantStr, PackageVariantName: String;
+  PackageVariant: TFPPackageVariant;
   D : TFPDependency;
 begin
   With AStringList do
@@ -668,6 +706,25 @@ begin
       //NeedLibC:=Upcase(Values[KeyNeedLibC])='Y';
       IsFPMakeAddIn:=Upcase(Values[KeyAddIn])='Y';
       FPMakePluginUnits:=Values[KeyPluginUnits];
+
+      // Read packagevariants
+      i := 1;
+      repeat
+      PackageVariantStr := Values[KeyPkgVar+IntToStr(i)];
+      if PackageVariantStr<>'' then
+        begin
+        PackageVariant := FPackageVariants.Add as TFPPackageVariant;
+        PackageVariantName := Copy(PackageVariantStr, 1, pos(':', PackageVariantStr) -1);
+        if RightStr(PackageVariantName, 1) = '*' then
+          begin
+          PackageVariantName := Copy(PackageVariantName, 1, Length(PackageVariantName) -1);
+          PackageVariant.IsInheritable := True;
+          end;
+        PackageVariant.Name := PackageVariantName;
+        PackageVariant.Options := Copy(PackageVariantStr, pos(':', PackageVariantStr) +1).Split(',');
+        end;
+      inc(i);
+      until PackageVariantStr='';
     end;
 end;
 

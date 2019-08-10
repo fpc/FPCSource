@@ -30,6 +30,7 @@ Type
     FRequestedFileName,
     FMappedFileName : String;
     class procedure HandleSimpleFileRequest(ARequest: TRequest; AResponse: TResponse); static;
+    Function AllowFile(Const AFileName : String) : Boolean; override;
     Function MapFileName(Const AFileName : String) : String; override;
     Function GetRequestFileName(Const ARequest : TRequest) : String; override;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
@@ -79,21 +80,30 @@ end;
                   
 Procedure RegisterFileLocation(Const ALocation,ADirectory : String);
 
+Var
+  D,BaseDir : String;
+
 begin
   if (ALocation='') then
     Raise HTTPError.Create(SErrNoLocation); 
   if Pos('/',ALocation)<>0 then
     Raise HTTPError.Create(SErrInvalidLocation);
-  if not DirectoryExists(ADirectory) then
-    Raise HTTPError.Create(SErrInvalidDirectory);
   if (Locations=Nil) then
     Locations:=TStringList.Create;
   if DefaultFileModuleClass=Nil then
-    DefaultFileModuleClass:=TFPCustomFileModule;  
+    DefaultFileModuleClass:=TFPCustomFileModule;
+  BaseDir:=ExtractFilePath(ParamStr(0));
   if (ADirectory='') then
-    Locations.Values[IncludeHTTPPathDelimiter(ALocation)]:=ExtractFilePath(ParamStr(0))
-  else  
-    Locations.Values[IncludeHTTPPathDelimiter(ALocation)]:=IncludeTrailingPathDelimiter(ADirectory);
+    Locations.Values[IncludeHTTPPathDelimiter(ALocation)]:=BaseDir
+  else
+    begin
+    D:=ADirectory;
+    if Copy(D,1,1)<>'/' then
+      D:=BaseDir+D;
+    if not DirectoryExists(D) then
+      Raise HTTPError.CreateFmt(SErrInvalidDirectory,[D]);
+    Locations.Values[IncludeHTTPPathDelimiter(ALocation)]:=IncludeTrailingPathDelimiter(D);
+    end;
   RegisterHTTPModule(ALocation,DefaultFileModuleClass,true);
 end;
 
@@ -110,13 +120,24 @@ begin
     end;
 end;
 
+function TSimpleFileModule.AllowFile(const AFileName: String): Boolean;
+
+Var
+  FN : String;
+
+begin
+  FN:=ExpandFileName(aFileName);
+  FN:=ExtractRelativepath(IncludeTrailingPathDelimiter(BaseDir),FN);
+  Result:=Pos('..'+PathDelim,FN)=0;
+end;
+
 function TSimpleFileModule.MapFileName(const AFileName: String): String;
 
 begin
   Result:=AFileName;
   While (Result<>'') and (Result[1]='/') do
     Delete(Result,1,1);
-  Result:=IncludeTrailingPathDelimiter(BaseDir)+Result;
+  Result:=ExpandFileName(IncludeTrailingPathDelimiter(BaseDir)+Result);
   FRequestedFileName:=AFileName;
   FMappedFileName:=Result;
 end;
@@ -177,14 +198,28 @@ begin
       begin
       Result:=D+AFileName;
       DoDirSeparators(Result);
+      Result:=ExpandFileName(Result);
       end;
     end;
 end;
 
 Function TFPCustomFileModule.AllowFile(Const AFileName : String) : Boolean;
 
+Var
+  BaseDir,FN : String;
+
 begin
-  Result:=True;
+  FN:=ExpandFileName(aFileName);
+  if (BaseURL='') then
+    BaseDir:=ExtractFilePath(Paramstr(0))
+  else
+    begin
+    BaseDir:=Locations.Values[BaseURL];
+    if (BaseURL='') then
+      BaseDir:=ExtractFilePath(Paramstr(0))
+    end;
+  FN:=ExtractRelativepath(BaseDir,aFileName);
+  Result:=Pos('..'+PathDelim,FN)=0;
 end;
 
 procedure TFPCustomFileModule.SendFile(Const AFileName : String; AResponse : TResponse);
@@ -231,17 +266,17 @@ begin
     exit;
     end;
   FN:=MapFileName(RFN);
-  if (FN='') or not FileExists(FN) then
-    begin
-    AResponse.Code:=404;
-    AResponse.CodeText:='Not found';
-    AResponse.SendContent;
-    exit;
-    end;
-  if not AllowFile(FN) then  
+  if (FN='') or not AllowFile(FN) then  
     begin
     AResponse.Code:=403;
     AResponse.CodeText:='Forbidden';
+    AResponse.SendContent;
+    exit;
+    end;
+  if  not FileExists(FN) then
+    begin
+    AResponse.Code:=404;
+    AResponse.CodeText:='Not found';
     AResponse.SendContent;
     exit;
     end;

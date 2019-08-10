@@ -196,6 +196,14 @@ interface
        oscs_largest
      );
 
+{$ifdef i8086}
+     { allow 32-bit sections on i8086. Useful for the dwarf debug info, as well
+       as to allow linking 32-bit obj modules. }
+     TObjSectionOfs = LongWord;
+{$else i8086}
+     TObjSectionOfs = PUInt;
+{$endif i8086}
+
      TObjSectionGroup = class;
 
      TObjSymbol = class(TFPHashObject)
@@ -209,7 +217,7 @@ interface
        symidx     : longint;
        objsection : TObjSection;
        offset,
-       size       : PUInt;
+       size       : TObjSectionOfs;
        { Used for external and common solving during linking }
        exesymbol  : TExeSymbol;
 
@@ -247,18 +255,18 @@ interface
         procedure SetType(v:TObjRelocationType);
      public
         DataOffset,
-        orgsize    : aword;  { COFF: original size of the symbol to relocate }
-                             { ELF: explicit addend }
+        orgsize    : TObjSectionOfs;  { COFF: original size of the symbol to relocate }
+                                      { ELF: explicit addend }
         symbol     : TObjSymbol;
         objsection : TObjSection; { only used if symbol=nil }
         group      : TObjSectionGroup; { only used if symbol=nil and objsection=nil }
         ftype      : byte;
         size       : byte;
         flags      : byte;
-        constructor CreateSymbol(ADataOffset:aword;s:TObjSymbol;Atyp:TObjRelocationType);
-        constructor CreateSection(ADataOffset:aword;aobjsec:TObjSection;Atyp:TObjRelocationType);
-        constructor CreateGroup(ADataOffset:aword;grp:TObjSectionGroup;Atyp:TObjRelocationType);
-        constructor CreateRaw(ADataOffset:aword;s:TObjSymbol;ARawType:byte);
+        constructor CreateSymbol(ADataOffset:TObjSectionOfs;s:TObjSymbol;Atyp:TObjRelocationType);
+        constructor CreateSection(ADataOffset:TObjSectionOfs;aobjsec:TObjSection;Atyp:TObjRelocationType);
+        constructor CreateGroup(ADataOffset:TObjSectionOfs;grp:TObjSectionGroup;Atyp:TObjRelocationType);
+        constructor CreateRaw(ADataOffset:TObjSectionOfs;s:TObjSymbol;ARawType:byte);
         function TargetName:TSymStr;
         property typ: TObjRelocationType read GetType write SetType;
      end;
@@ -267,8 +275,8 @@ interface
      private
        FData       : TDynamicArray;
        FSecOptions : TObjSectionOptions;
-       FComdatSelection : TObjSectionComdatSelection;
        FCachedFullName : pshortstring;
+       FSizeLimit : TObjSectionOfs;
        procedure SetSecOptions(Aoptions:TObjSectionOptions);
        procedure SectionTooLargeError;
      public
@@ -278,7 +286,7 @@ interface
        SecAlign   : longint;   { alignment of the section }
        { section Data }
        Size,
-       DataPos    : PUInt;
+       DataPos    : TObjSectionOfs;
        MemPos     : qword;
        Group      : TObjSectionGroup;
        AssociativeSection : TObjSection;
@@ -292,30 +300,32 @@ interface
        VTRefList : TFPObjectList;
        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);virtual;
        destructor  destroy;override;
-       function  write(const d;l:PUInt):PUInt;
+       function  write(const d;l:TObjSectionOfs):TObjSectionOfs;
        { writes string plus zero byte }
-       function  writestr(const s:string):PUInt;
-       function  WriteZeros(l:longword):PUInt;
+       function  writestr(const s:string):TObjSectionOfs;
+       function  WriteZeros(l:longword):TObjSectionOfs;
        { writes content of s without null termination }
-       function  WriteBytes(const s:string):PUInt;
+       function  WriteBytes(const s:string):TObjSectionOfs;
        procedure writeReloc_internal(aTarget:TObjSection;offset:aword;len:byte;reltype:TObjRelocationType);virtual;
        function  setmempos(mpos:qword):qword;
-       procedure setDatapos(var dpos:PUInt);
-       procedure alloc(l:PUInt);
-       procedure addsymReloc(ofs:PUInt;p:TObjSymbol;Reloctype:TObjRelocationType);
-       procedure addsectionReloc(ofs:PUInt;aobjsec:TObjSection;Reloctype:TObjRelocationType);
-       procedure addrawReloc(ofs:PUInt;p:TObjSymbol;RawReloctype:byte);
+       procedure setDatapos(var dpos:TObjSectionOfs);
+       procedure alloc(l:TObjSectionOfs);
+       procedure addsymReloc(ofs:TObjSectionOfs;p:TObjSymbol;Reloctype:TObjRelocationType);
+       procedure addsectionReloc(ofs:TObjSectionOfs;aobjsec:TObjSection;Reloctype:TObjRelocationType);
+       procedure addrawReloc(ofs:TObjSectionOfs;p:TObjSymbol;RawReloctype:byte);
        procedure ReleaseData;
        function  FullName:string;
        { string representation for the linker map file }
        function  MemPosStr(AImageBase: qword): string;virtual;
        property  Data:TDynamicArray read FData;
        property  SecOptions:TObjSectionOptions read FSecOptions write SetSecOptions;
+       property  SizeLimit:TObjSectionOfs read FSizeLimit write FSizeLimit;
      end;
      TObjSectionClass = class of TObjSection;
 
      TObjSectionGroup = class(TFPHashObject)
      public
+       index: longword;  { index of group in group headers }
        members: array of TObjSection;
        iscomdat: boolean;
      end;
@@ -393,7 +403,7 @@ interface
        procedure afteralloc;virtual;
        procedure afterwrite;virtual;
        procedure resetsections;
-       procedure layoutsections(var datapos:PUInt);
+       procedure layoutsections(var datapos:TObjSectionOfs);
        property Name:TString80 read FName;
        property CurrObjSec:TObjSection read FCurrObjSec;
        property ObjSymbolList:TObjSymbolList read FObjSymbolList;
@@ -689,20 +699,21 @@ interface
       end;
       TExeOutputClass=class of TExeOutput;
 
+    const
+      SectionDataMaxGrow = 4096;
+
     var
       exeoutput : TExeOutput;
 
     function align_aword(v:aword;a:longword):aword;
     function align_qword(v:qword;a:longword):qword;
+    function align_objsecofs(v:TObjSectionOfs;a:longword):TObjSectionOfs;
 
 implementation
 
     uses
       SysUtils,
       globals,verbose,ogmap;
-
-    const
-      SectionDataMaxGrow = 4096;
 
 {$ifdef MEMDEBUG}
     var
@@ -724,6 +735,15 @@ implementation
 
 
     function align_qword(v:qword;a:longword):qword;
+      begin
+        if a<=1 then
+          result:=v
+        else
+          result:=((v+a-1) div a) * a;
+      end;
+
+
+    function align_objsecofs(v:TObjSectionOfs;a:longword):TObjSectionOfs;
       begin
         if a<=1 then
           result:=v
@@ -818,7 +838,7 @@ implementation
                               TObjRelocation
 ****************************************************************************}
 
-    constructor TObjRelocation.CreateSymbol(ADataOffset:aword;s:TObjSymbol;Atyp:TObjRelocationType);
+    constructor TObjRelocation.CreateSymbol(ADataOffset:TObjSectionOfs;s:TObjSymbol;Atyp:TObjRelocationType);
       begin
         if not assigned(s) then
           internalerror(200603034);
@@ -831,7 +851,7 @@ implementation
       end;
 
 
-    constructor TObjRelocation.CreateSection(ADataOffset:aword;aobjsec:TObjSection;Atyp:TObjRelocationType);
+    constructor TObjRelocation.CreateSection(ADataOffset:TObjSectionOfs;aobjsec:TObjSection;Atyp:TObjRelocationType);
       begin
         if not assigned(aobjsec) then
           internalerror(200603036);
@@ -844,7 +864,7 @@ implementation
       end;
 
 
-    constructor TObjRelocation.CreateGroup(ADataOffset:aword;grp:TObjSectionGroup;Atyp:TObjRelocationType);
+    constructor TObjRelocation.CreateGroup(ADataOffset:TObjSectionOfs;grp:TObjSectionGroup;Atyp:TObjRelocationType);
       begin
         if not assigned(grp) then
           internalerror(2015111201);
@@ -857,7 +877,7 @@ implementation
       end;
 
 
-    constructor TObjRelocation.CreateRaw(ADataOffset:aword;s:TObjSymbol;ARawType:byte);
+    constructor TObjRelocation.CreateRaw(ADataOffset:TObjSectionOfs;s:TObjSymbol;ARawType:byte);
       begin
         { nil symbol is allowed here }
         DataOffset:=ADataOffset;
@@ -909,6 +929,11 @@ implementation
         Datapos:=0;
         mempos:=0;
         FData:=Nil;
+{$ifdef i8086}
+        FSizeLimit:=high(word);
+{$else i8086}
+        FSizeLimit:=high(TObjSectionOfs);
+{$endif i8086}
         { Setting the secoptions allocates Data if needed }
         secoptions:=Aoptions;
         secalign:=Aalign;
@@ -948,7 +973,7 @@ implementation
       end;
 
 
-    function TObjSection.write(const d;l:PUInt):PUInt;
+    function TObjSection.write(const d;l:TObjSectionOfs):TObjSectionOfs;
       begin
         result:=size;
         if assigned(Data) then
@@ -956,7 +981,7 @@ implementation
             if Size<>Data.size then
               internalerror(200602281);
 {$ifndef cpu64bitalu}
-            if (qword(size)+l)>high(size) then
+            if (qword(size)+l)>SizeLimit then
               SectionTooLargeError;
 {$endif}
             Data.write(d,l);
@@ -967,7 +992,7 @@ implementation
       end;
 
 
-    function TObjSection.writestr(const s:string):PUInt;
+    function TObjSection.writestr(const s:string):TObjSectionOfs;
       var
         b: byte;
       begin
@@ -977,13 +1002,13 @@ implementation
       end;
 
 
-    function TObjSection.WriteBytes(const s:string):PUInt;
+    function TObjSection.WriteBytes(const s:string):TObjSectionOfs;
       begin
         result:=Write(s[1],length(s));
       end;
 
 
-    function TObjSection.WriteZeros(l:longword):PUInt;
+    function TObjSection.WriteZeros(l:longword):TObjSectionOfs;
       var
         empty : array[0..1023] of byte;
       begin
@@ -1015,7 +1040,7 @@ implementation
       end;
 
 
-    procedure TObjSection.setDatapos(var dpos:PUInt);
+    procedure TObjSection.setDatapos(var dpos:TObjSectionOfs);
       begin
         if oso_Data in secoptions then
           begin
@@ -1038,10 +1063,10 @@ implementation
       end;
 
 
-    procedure TObjSection.alloc(l:PUInt);
+    procedure TObjSection.alloc(l:TObjSectionOfs);
       begin
 {$ifndef cpu64bitalu}
-        if (qword(size)+l)>high(size) then
+        if (qword(size)+l)>SizeLimit then
           SectionTooLargeError;
 {$endif}
         if oso_sparse_data in SecOptions then
@@ -1051,19 +1076,19 @@ implementation
       end;
 
 
-    procedure TObjSection.addsymReloc(ofs:PUInt;p:TObjSymbol;Reloctype:TObjRelocationType);
+    procedure TObjSection.addsymReloc(ofs:TObjSectionOfs;p:TObjSymbol;Reloctype:TObjRelocationType);
       begin
         ObjRelocations.Add(TObjRelocation.CreateSymbol(ofs,p,reloctype));
       end;
 
 
-    procedure TObjSection.addsectionReloc(ofs:PUInt;aobjsec:TObjSection;Reloctype:TObjRelocationType);
+    procedure TObjSection.addsectionReloc(ofs:TObjSectionOfs;aobjsec:TObjSection;Reloctype:TObjRelocationType);
       begin
         ObjRelocations.Add(TObjRelocation.CreateSection(ofs,aobjsec,reloctype));
       end;
 
 
-    procedure TObjSection.addrawReloc(ofs:PUInt;p:TObjSymbol;RawReloctype:byte);
+    procedure TObjSection.addrawReloc(ofs:TObjSectionOfs;p:TObjSymbol;RawReloctype:byte);
       begin
         ObjRelocations.Add(TObjRelocation.CreateRaw(ofs,p,RawReloctype));
       end;
@@ -1325,6 +1350,9 @@ implementation
       begin
         if assigned(asmsym) then
           begin
+            if asmsym.typ = AT_NONE then
+              InternalError(2018062800);
+
             if not assigned(asmsym.cachedObjSymbol) then
               begin
                 result:=symboldefine(asmsym.name,asmsym.bind,asmsym.typ);
@@ -1419,14 +1447,14 @@ implementation
       begin
         if not assigned(CurrObjSec) then
           internalerror(200402253);
-        CurrObjSec.alloc(align_aword(CurrObjSec.size,len)-CurrObjSec.size);
+        CurrObjSec.alloc(align_objsecofs(CurrObjSec.size,len)-CurrObjSec.size);
       end;
 
 
     procedure TObjData.section_afteralloc(p:TObject;arg:pointer);
       begin
         with TObjSection(p) do
-          alloc(align_aword(size,secalign)-size);
+          alloc(align_objsecofs(size,secalign)-size);
       end;
 
 
@@ -1435,7 +1463,7 @@ implementation
         with TObjSection(p) do
           begin
             if assigned(Data) then
-              writezeros(align_aword(size,secalign)-size);
+              writezeros(align_objsecofs(size,secalign)-size);
           end;
       end;
 
@@ -1518,7 +1546,7 @@ implementation
       end;
 
 
-    procedure TObjData.layoutsections(var DataPos:PUInt);
+    procedure TObjData.layoutsections(var DataPos:TObjSectionOfs);
       var
         i: longint;
       begin
@@ -2602,6 +2630,8 @@ implementation
                           end;
                       end;
                   end;
+                else
+                  internalerror(2019050510);
               end;
             end;
         end;

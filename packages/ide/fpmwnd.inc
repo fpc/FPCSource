@@ -21,7 +21,7 @@ procedure TIDEApp.CloseAll;
   end;
 
 begin
-  Desktop^.ForEach(@SendClose);
+  Desktop^.ForEach(TCallbackProcParam(@SendClose));
 end;
 
 procedure TIDEApp.ResizeApplication(x, y : longint);
@@ -38,6 +38,7 @@ begin
       Mode.col:=x;
       Mode.row:=y;
       SetScreenVideoMode(Mode);
+      UpdateRecentFileList; {ensure file menu not go over screen}
       Redraw;
     end;
 end;
@@ -154,8 +155,8 @@ begin
 end;
 begin
   C^.DeleteAll;
-  VisState:=true; Desktop^.ForEach(@AddIt); { add visible windows to list }
-  VisState:=false; Desktop^.ForEach(@AddIt); { add hidden windows }
+  VisState:=true; Desktop^.ForEach(TCallbackProcParam(@AddIt)); { add visible windows to list }
+  VisState:=false; Desktop^.ForEach(TCallbackProcParam(@AddIt)); { add hidden windows }
   LB^.SetRange(C^.Count);
   UpdateButtons;
   ReDraw;

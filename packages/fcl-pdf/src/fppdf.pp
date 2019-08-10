@@ -65,10 +65,12 @@ type
   TPDFPaperType = (ptCustom, ptA4, ptA5, ptLetter, ptLegal, ptExecutive, ptComm10, ptMonarch, ptDL, ptC5, ptB5);
   TPDFPaperOrientation = (ppoPortrait,ppoLandscape);
   TPDFPenStyle = (ppsSolid,ppsDash,ppsDot,ppsDashDot,ppsDashDotDot);
+  TPDFLineCapStyle = (plcsButtCap, plcsRoundCap, plcsProjectingSquareCap);
   TPDFPageLayout = (lSingle, lTwo, lContinuous);
   TPDFUnitOfMeasure = (uomInches, uomMillimeters, uomCentimeters, uomPixels);
 
-  TPDFOption = (poOutLine, poCompressText, poCompressFonts, poCompressImages, poUseRawJPEG, poNoEmbeddedFonts, poPageOriginAtTop, poSubsetFont);
+  TPDFOption = (poOutLine, poCompressText, poCompressFonts, poCompressImages, poUseRawJPEG, poNoEmbeddedFonts,
+    poPageOriginAtTop, poSubsetFont, poMetadataEntry, poNoTrailerID, poUseImageTransparency);
   TPDFOptions = set of TPDFOption;
 
   EPDF = Class(Exception);
@@ -143,6 +145,7 @@ type
   TPDFDocumentObject = Class(TPDFObject)
   Private
     FDocument : TPDFDocument;
+    FLineCapStyle: TPDFLineCapStyle;
   Public
     Constructor Create(Const ADocument : TPDFDocument); override; overload;
     Procedure SetWidth(AWidth : TPDFFloat; AStream : TStream);
@@ -270,6 +273,17 @@ type
     property    Value: AnsiString read FValue;
   end;
 
+  { TPDFRawHexString }
+
+  TPDFRawHexString = class(TPDFDocumentObject)
+  private
+    FValue: String;
+  protected
+    procedure Write(const AStream: TStream); override;
+  public
+    constructor Create(Const ADocument : TPDFDocument; const AValue: String); overload;
+    property    Value: String read FValue;
+  end;
 
   TPDFUTF8String = class(TPDFAbstractString)
   private
@@ -314,6 +328,7 @@ type
 
   TPDFStream = class(TPDFDocumentObject)
   private
+    FCompressionProhibited: Boolean;
     FItems: TFPObjectList;
   protected
     procedure Write(const AStream: TStream); override;
@@ -321,8 +336,20 @@ type
   public
     constructor Create(Const ADocument : TPDFDocument; OwnsObjects : Boolean = True); overload;
     destructor Destroy; override;
+    property CompressionProhibited: Boolean read FCompressionProhibited write FCompressionProhibited;
   end;
 
+  { TPDFMemoryStream }
+
+  TPDFMemoryStream = class(TPDFDocumentObject)
+  private
+    FBuffer: TMemoryStream;
+  protected
+    procedure Write(const AStream: TStream); override;
+  public
+    constructor Create(Const ADocument : TPDFDocument; AStream: TStream); overload;
+    destructor Destroy; override;
+  end;
 
   TPDFEmbeddedFont = class(TPDFDocumentObject)
   private
@@ -605,6 +632,7 @@ type
     FCreationDate: TDateTime;
     FProducer: String;
     FTitle: String;
+    FKeywords: String;
   public
     constructor Create; virtual;
     Property Author : String Read FAuthor Write FAuthor;
@@ -612,6 +640,7 @@ type
     Property ApplicationName : String Read FApplicationName Write FApplicationName;
     Property Producer : String Read FProducer Write FProducer;
     Property CreationDate : TDateTime Read FCreationDate Write FCreationDate;
+    Property Keywords : String read FKeywords write FKeywords;
   end;
 
 
@@ -853,7 +882,8 @@ type
 
 
   TPDFImageCompression = (icNone, icDeflate, icJPEG);
-
+  TPDFImageStreamOption = (isoCompressed,isoTransparent);
+  TPDFImageStreamOptions = set of TPDFImageStreamOption;
 
   TPDFImageItem = Class(TCollectionItem)
   private
@@ -861,22 +891,33 @@ type
     FOwnsImage: Boolean;
     FStreamed: TBytes;
     FCompression: TPDFImageCompression;
+    FStreamedMask: TBytes;
+    FCompressionMask: TPDFImageCompression;
     FWidth,FHeight : Integer;
+    function GetHasMask: Boolean;
     function GetHeight: Integer;
     function GetStreamed: TBytes;
+    function GetStreamedMask: TBytes;
     function GetWidth: Integer;
     procedure SetImage(AValue: TFPCustomImage);
     procedure SetStreamed(AValue: TBytes);
+  Protected
+    Function WriteStream(const AStreamedData: TBytes; AStream: TStream): int64; virtual;
   Public
     Destructor Destroy; override;
-    Procedure CreateStreamedData(AUseCompression: Boolean);
-    Function WriteImageStream(AStream: TStream): int64; virtual;
+    Procedure CreateStreamedData(AUseCompression: Boolean); overload;
+    Procedure CreateStreamedData(aOptions : TPDFImageStreamOptions); overload;
+    procedure SetStreamedMask(const AValue: TBytes; const ACompression: TPDFImageCompression);
+    Function WriteImageStream(AStream: TStream): int64;
+    Function WriteMaskStream(AStream: TStream): int64;
     function Equals(AImage: TFPCustomImage): boolean; reintroduce;
     Property Image : TFPCustomImage Read FImage Write SetImage;
     Property StreamedData : TBytes Read GetStreamed Write SetStreamed;
+    Property StreamedMask : TBytes Read GetStreamedMask;
     Property OwnsImage : Boolean Read FOwnsImage Write FOwnsImage;
     Property Width : Integer Read GetWidth;
     Property Height : Integer Read GetHeight;
+    Property HasMask : Boolean read GetHasMask;
   end;
 
 
@@ -897,6 +938,9 @@ type
     Property Owner: TPDFDocument read FOwner;
   end;
 
+  TXMPStream = class(TPDFDocumentObject)
+    procedure Write(const AStream: TStream); override;
+  end;
 
   TPDFFontNumBaseObject = class(TPDFDocumentObject)
   protected
@@ -947,12 +991,14 @@ type
     Property Defs[AIndex : Integer] : TPDFLineStyleDef Read GetI; Default;
   end;
 
+  { TPDFDocument }
 
   TPDFDocument = class(TComponent)
   private
     FCatalogue: integer;
     FCurrentColor: string;
     FCurrentWidth: string;
+    FLineCapStyle: TPDFLineCapStyle;
     FDefaultOrientation: TPDFPaperOrientation;
     FDefaultPaperType: TPDFPaperType;
     FFontDirectory: string;
@@ -980,6 +1026,7 @@ type
     procedure SetFonts(AValue: TPDFFontDefs);
     procedure SetInfos(AValue: TPDFInfos);
     procedure SetLineStyles(AValue: TPDFLineStyleDefs);
+    Procedure SetOptions(aValue : TPDFOptions);
   protected
     // Create all kinds of things, virtual so they can be overridden to create descendents instead
     function CreatePDFPages: TPDFPages; virtual;
@@ -1003,6 +1050,8 @@ type
     function CreateContentsEntry(const APageNum: integer): integer;virtual;
     function CreateCatalogEntry: integer;virtual;
     procedure CreateInfoEntry;virtual;
+    procedure CreateMetadataEntry;virtual;
+    procedure CreateTrailerID;virtual;
     procedure CreatePreferencesEntry;virtual;
     function CreatePagesEntry(Parent: integer): integer;virtual;
     function CreatePageEntry(Parent, PageNum: integer): integer;virtual;
@@ -1018,7 +1067,10 @@ type
     procedure CreateToUnicode(const AFontNum: integer);virtual;
     procedure CreateFontFileEntry(const AFontNum: integer);virtual;
     procedure CreateCIDSet(const AFontNum: integer); virtual;
-    procedure CreateImageEntry(ImgWidth, ImgHeight, NumImg: integer);virtual;
+    procedure CreateImageEntry(ImgWidth, ImgHeight, NumImg: integer;
+      out ImageDict: TPDFDictionary);virtual;
+    procedure CreateImageMaskEntry(ImgWidth, ImgHeight, NumImg: integer;
+      ImageDict: TPDFDictionary);virtual;
     function CreateAnnotEntry(const APageNum, AnnotNum: integer): integer; virtual;
     function CreateCIDToGIDMap(const AFontNum: integer): integer; virtual;
     procedure CreatePageStream(APage : TPDFPage; PageNum: integer);
@@ -1029,6 +1081,7 @@ type
     function IndexOfGlobalXRef(const AValue: string): integer;
     Function FindGlobalXRef(Const AName : String) : TPDFXRef;
     Function GlobalXRefByName(Const AName : String) : TPDFXRef;
+    Function ImageStreamOptions : TPDFImageStreamOptions;
     Property GlobalXRefs[AIndex : Integer] : TPDFXRef Read GetX;
     Property GlobalXRefCount : Integer Read GetXC;
     Property CurrentColor: string Read FCurrentColor Write FCurrentColor;
@@ -1061,6 +1114,8 @@ type
     Function AddFont(AName : String) : Integer; overload;
     Function AddFont(AFontFile: String; AName : String) : Integer; overload;
     Function AddLineStyleDef(ALineWidth : TPDFFloat; AColor : TARGBColor = clBlack; APenStyle : TPDFPenStyle = ppsSolid) : Integer;
+    procedure AddOutputIntent(const Subtype, OutputConditionIdentifier, Info: string; ICCProfile: TStream);
+    procedure AddPDFA1sRGBOutputIntent;virtual;
     Property Fonts : TPDFFontDefs Read FFonts Write SetFonts;
     Property Pages : TPDFPages Read FPages;
     Property Images : TPDFImages Read FImages;
@@ -1070,8 +1125,9 @@ type
     Property FontDirectory: string Read FFontDirectory Write FFontDirectory;
     Property Sections : TPDFSectionList Read FSections;
     Property ObjectCount : Integer Read FObjectCount;
+    Property LineCapStyle: TPDFLineCapStyle Read FLineCapStyle Write FLineCapStyle;
   Published
-    Property Options : TPDFOptions Read FOptions Write FOPtions;
+    Property Options : TPDFOptions Read FOptions Write SetOptions;
     Property LineStyles : TPDFLineStyleDefs Read FLineStyleDefs Write SetLineStyles;
     property PageLayout: TPDFPageLayout read FPageLayout write FPageLayout default lSingle;
     Property Infos : TPDFInfos Read FInfos Write SetInfos;
@@ -1090,6 +1146,7 @@ const
   PDF_MAX_GEN_NUM = 65535;
   PDF_UNICODE_HEADER = 'FEFF001B%s001B';
   PDF_LANG_STRING = 'en';
+  PDF_NUMBER_MASK = '0.####';
 
   { Info from http://www.papersizes.org/a-sizes-all-units.htm }
   PDFPaperSizes : Array[TPDFPaperType,0..1] of Integer = (
@@ -1144,6 +1201,7 @@ implementation
 
 uses
   math,
+  md5,
   fpttf;
 
 
@@ -1180,10 +1238,35 @@ const
   // see http://paste.lisp.org/display/1105
   BEZIER: single = 0.5522847498; // = 4/3 * (sqrt(2) - 1);
 
+Var
+  PDFFormatSettings : TFormatSettings;
+
+//Works correctly ony with Now (problem with DST depended on time)
+//Is used only for CreationDate and it is usualy Now
+function GetLocalTZD(ISO8601: Boolean): string;
+var
+  i: Integer;
+  fmt: string;
+begin
+  if ISO8601 then
+    fmt := '%.2d:%.2d'
+  else
+    fmt := '%.2d''%.2d''';
+  i := GetLocalTimeOffset; //min
+  if i < 0 then
+    Result := '+'
+  else if i = 0 then begin
+    Result := 'Z';
+    Exit;
+  end else
+    Result := '-';
+  i := Abs(i);
+  Result := Result + Format(fmt, [i div 60, i mod 60]);
+end;
 
 function DateToPdfDate(const ADate: TDateTime): string;
 begin
-  Result:=FormatDateTime('"D:"yyyymmddhhnnss', ADate);
+  Result:=FormatDateTime('"D:"yyyymmddhhnnss', ADate)+GetLocalTZD(False);
 end;
 
 function FormatPDFInt(const Value: integer; PadLen: integer): string;
@@ -1208,7 +1291,7 @@ begin
   try
     AFrom.Position := 0;
     c.CopyFrom(AFrom, AFrom.Size);
-    c.Flush;
+    //c.Flush; called in c.Free
   finally
     c.Free;
   end;
@@ -1321,6 +1404,138 @@ end;
 function PDFtoInches(APixels: TPDFFloat): single;
 begin
   Result := APixels / cDefaultDPI;
+end;
+
+function XMLEscape(const Data: string): string;
+var
+  iPos, i: Integer;
+
+  procedure Encode(const AStr: string);
+  begin
+    Move(AStr[1], result[iPos], Length(AStr) * SizeOf(Char));
+    Inc(iPos, Length(AStr));
+  end;
+
+begin
+  SetLength(result, Length(Data) * 6);
+  iPos := 1;
+  for i := 1 to length(Data) do
+    case Data[i] of
+      '<': Encode('&lt;');
+      '>': Encode('&gt;');
+      '&': Encode('&amp;');
+      '"': Encode('&quot;');
+    else
+      result[iPos] := Data[i];
+      Inc(iPos);
+    end;
+  SetLength(result, iPos - 1);
+end;
+
+
+{ TPDFMemoryStream }
+
+procedure TPDFMemoryStream.Write(const AStream: TStream);
+begin
+  FBuffer.Position := 0;
+  AStream.CopyFrom(FBuffer, FBuffer.Size);
+end;
+
+constructor TPDFMemoryStream.Create(const ADocument: TPDFDocument; AStream: TStream);
+begin
+  FBuffer := TMemoryStream.Create;
+  FBuffer.LoadFromStream(AStream);
+end;
+
+destructor TPDFMemoryStream.Destroy;
+begin
+  FreeAndNil(FBuffer);
+  inherited Destroy;
+end;
+
+{ TXMPStream }
+
+procedure TXMPStream.Write(const AStream: TStream);
+
+  procedure Add(const Tag, Value: string);
+  begin
+    WriteString('<'+Tag+'>', AStream);
+    WriteString(Value, AStream);
+    WriteString('</'+Tag+'>'+CRLF, AStream);
+  end;
+
+  function DateToISO8601Date(t: TDateTime): string;
+  begin
+    Result := FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', t) + GetLocalTZD(True);
+  end;
+
+var
+  i: integer;
+const
+    NBSP: UnicodeChar = UnicodeChar($FEFF);
+begin
+  WriteString('<?xpacket begin="'+UnicodeCharToString(@NBSP)+'" id="W5M0MpCehiHzreSzNTczkc9d"?>'+CRLF, AStream);
+  WriteString('<x:xmpmeta xmlns:x="adobe:ns:meta/">'+CRLF, AStream);
+  WriteString('<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'+CRLF, AStream);
+
+  WriteString('<rdf:Description rdf:about=""', AStream);
+  WriteString(' xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/"', AStream);
+  WriteString('>'+CRLF, AStream);
+  //PDF/A
+  Add('pdfaid:part', '1');
+  Add('pdfaid:conformance', 'B');
+  WriteString('</rdf:Description>'+CRLF, AStream);
+
+  WriteString('<rdf:Description rdf:about=""', AStream);
+  WriteString(' xmlns:pdf="http://ns.adobe.com/pdf/1.3/"', AStream);
+  WriteString('>'+CRLF, AStream);
+  Add('pdf:Producer', XMLEscape(Document.Infos.Producer));
+  if Document.Infos.Keywords <> '' then
+    Add('pdf:Keywords', XMLEscape(Document.Infos.Keywords));
+  WriteString('</rdf:Description>'+CRLF, AStream);
+
+  WriteString('<rdf:Description rdf:about=""', AStream);
+  WriteString(' xmlns:xmp="http://ns.adobe.com/xap/1.0/"', AStream);
+  WriteString('>'+CRLF, AStream);
+  if Document.Infos.ApplicationName <> '' then
+    Add('xmp:CreatorTool', XMLEscape(Document.Infos.ApplicationName));
+  if Document.Infos.CreationDate <> 0 then
+    Add('xmp:CreateDate', DateToISO8601Date(Document.Infos.CreationDate));
+  WriteString('</rdf:Description>'+CRLF, AStream);
+
+  if (Document.Infos.Title <> '') or (Document.Infos.Author <> '') then
+  begin
+    WriteString('<rdf:Description rdf:about=""', AStream);
+    WriteString(' xmlns:dc="http://purl.org/dc/elements/1.1/"', AStream);
+    WriteString('>'+CRLF, AStream);
+
+    if Document.Infos.Title <> '' then
+      Add('dc:title', '<rdf:Alt><rdf:li xml:lang="x-default">'+XMLEscape(Document.Infos.Title)+'</rdf:li></rdf:Alt>');
+    if Document.Infos.Author <> '' then
+      Add('dc:creator', '<rdf:Seq><rdf:li>'+ XMLEscape(Document.Infos.Author) + '</rdf:li></rdf:Seq>');
+  WriteString('</rdf:Description>'+CRLF, AStream);
+  end;
+
+  WriteString('</rdf:RDF>'+CRLF, AStream);
+  WriteString('</x:xmpmeta>'+CRLF, AStream);
+
+  //Recomended whitespace padding for inplace editing
+  for i := 1 to 21 do
+    WriteString('                                                                                                   '+CRLF, AStream);
+  WriteString('<?xpacket end="w"?>', AStream);
+end;
+
+{ TPDFRawHexString }
+
+procedure TPDFRawHexString.Write(const AStream: TStream);
+begin
+  WriteString('<'+FValue+'>', AStream);
+end;
+
+constructor TPDFRawHexString.Create(const ADocument: TPDFDocument; const AValue: String);
+begin
+  inherited Create(ADocument);
+  FValue := AValue;
 end;
 
 { TPDFMatrix }
@@ -1472,14 +1687,30 @@ var
   s: string;
   lst: TTextMappingList;
   lFont: TTFFileInfo;
+  lWidthIndex: integer;
 begin
   s := '';
   lst := Document.Fonts[EmbeddedFontNum].TextMapping;
   lst.Sort;
   lFont := Document.Fonts[EmbeddedFontNum].FTrueTypeFile;
-  // use decimal values for the output
+
+  {$IFDEF gdebug}
+  System.WriteLn('****** isFixedPitch = ', BoolToStr(lFont.PostScript.isFixedPitch > 0, True));
+  System.WriteLn('****** Head.UnitsPerEm := ', lFont.Head.UnitsPerEm );
+  System.WriteLn('****** HHead.numberOfHMetrics := ', lFont.HHead.numberOfHMetrics );
+  {$ENDIF}
+
+  { NOTE: Monospaced fonts may not have a width for every glyph
+          the last one is for subsequent glyphs.  }
   for i := 0 to lst.Count-1 do
-    s :=  s + Format(' %d [%d]', [ lst[i].GlyphID, TTTFFriendClass(lFont).ToNatural(lFont.Widths[lst[i].GlyphID].AdvanceWidth)]);
+  begin
+    if lst[i].GlyphID < lFont.HHead.numberOfHMetrics then
+      lWidthIndex := lst[i].GlyphID
+    else
+      lWidthIndex := lFont.HHead.numberOfHMetrics-1;
+    s :=  s + Format(' %d [%d]', [lst[i].GlyphID, TTTFFriendClass(lFont).ToNatural(lFont.Widths[lWidthIndex].AdvanceWidth)])
+  end;
+
   WriteString(s, AStream);
 end;
 
@@ -2162,12 +2393,13 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat('0.###;;0', Cos(rad));
-    t2 := FormatFloat('0.###;;0', -Sin(rad));
-    t3 := FormatFloat('0.###;;0', Sin(rad));
+    t1 := FormatFloat(PDF_NUMBER_MASK, Cos(rad), PDFFormatSettings);
+    t2 := FormatFloat(PDF_NUMBER_MASK, -Sin(rad), PDFFormatSettings);
+    t3 := FormatFloat(PDF_NUMBER_MASK, Sin(rad), PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
-    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm', [t1, t2, t3, t1, p1.X, p1.Y]) + CRLF));
+    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
+      [t1, t2, t3, t1, p1.X, p1.Y], PDFFormatSettings) + CRLF));
     // co-ordinates are now based on the newly transformed matrix co-ordinates.
     R := Document.CreateRectangle(0, 0, p2.X, p2.Y, ALineWidth, AFill, AStroke);
   end
@@ -2205,12 +2437,13 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat('0.###;;0', Cos(rad));
-    t2 := FormatFloat('0.###;;0', -Sin(rad));
-    t3 := FormatFloat('0.###;;0', Sin(rad));
+    t1 := FormatFloat(PDF_NUMBER_MASK, Cos(rad), PDFFormatSettings);
+    t2 := FormatFloat(PDF_NUMBER_MASK, -Sin(rad), PDFFormatSettings);
+    t3 := FormatFloat(PDF_NUMBER_MASK, Sin(rad), PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
-    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm', [t1, t2, t3, t1, p1.X, p1.Y]) + CRLF));
+    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
+      [t1, t2, t3, t1, p1.X, p1.Y], PDFFormatSettings) + CRLF));
     // co-ordinates are now based on the newly transformed matrix co-ordinates.
     R := Document.CreateRoundedRectangle(0, 0, p2.X, p2.Y, p3.X, ALineWidth, AFill, AStroke);
   end
@@ -2235,12 +2468,13 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat('0.###;;0', Cos(rad));
-    t2 := FormatFloat('0.###;;0', -Sin(rad));
-    t3 := FormatFloat('0.###;;0', Sin(rad));
+    t1 := FormatFloat(PDF_NUMBER_MASK, Cos(rad), PDFFormatSettings);
+    t2 := FormatFloat(PDF_NUMBER_MASK, -Sin(rad), PDFFormatSettings);
+    t3 := FormatFloat(PDF_NUMBER_MASK, Sin(rad), PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
-    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm', [t1, t2, t3, t1, p1.X, p1.Y]) + CRLF));
+    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
+      [t1, t2, t3, t1, p1.X, p1.Y], PDFFormatSettings) + CRLF));
     // co-ordinates are now based on the newly transformed matrix co-ordinates.
     AddObject(Document.CreateImage(0, 0, APixelWidth, APixelHeight, ANumber));
   end
@@ -2273,12 +2507,13 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat('0.###;;0', Cos(rad));
-    t2 := FormatFloat('0.###;;0', -Sin(rad));
-    t3 := FormatFloat('0.###;;0', Sin(rad));
+    t1 := FormatFloat(PDF_NUMBER_MASK, Cos(rad), PDFFormatSettings);
+    t2 := FormatFloat(PDF_NUMBER_MASK, -Sin(rad), PDFFormatSettings);
+    t3 := FormatFloat(PDF_NUMBER_MASK, Sin(rad), PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
-    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm', [t1, t2, t3, t1, p1.X, p1.Y]) + CRLF));
+    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
+      [t1, t2, t3, t1, p1.X, p1.Y], PDFFormatSettings) + CRLF));
     // co-ordinates are now based on the newly transformed matrix co-ordinates.
     AddObject(Document.CreateImage(0, 0, p2.X, p2.Y, ANumber));
   end
@@ -2311,12 +2546,13 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat('0.###;;0', Cos(rad));
-    t2 := FormatFloat('0.###;;0', -Sin(rad));
-    t3 := FormatFloat('0.###;;0', Sin(rad));
+    t1 := FormatFloat(PDF_NUMBER_MASK, Cos(rad), PDFFormatSettings);
+    t2 := FormatFloat(PDF_NUMBER_MASK, -Sin(rad), PDFFormatSettings);
+    t3 := FormatFloat(PDF_NUMBER_MASK, Sin(rad), PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
-    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm', [t1, t2, t3, t1, p1.X, p1.Y]) + CRLF));
+    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
+      [t1, t2, t3, t1, p1.X, p1.Y], PDFFormatSettings) + CRLF));
     // co-ordinates are now based on the newly transformed matrix co-ordinates.
     AddObject(TPDFEllipse.Create(Document, 0, 0, p2.X, p2.Y, ALineWidth, AFill, AStroke));
   end
@@ -2557,6 +2793,8 @@ constructor TPDFDocumentObject.Create(const ADocument: TPDFDocument);
 begin
   inherited Create(ADocument);
   FDocument:=ADocument;
+  if Assigned(FDocument) then
+    FLineCapStyle := FDocument.LineCapStyle;
 end;
 
 procedure TPDFDocumentObject.SetWidth(AWidth: TPDFFloat; AStream : TStream);
@@ -2567,7 +2805,7 @@ begin
   S:=FloatStr(AWidth)+' w'; // stroke width
   if (S<>Document.CurrentWidth) then
     begin
-    WriteString('1 J'+CRLF, AStream); // line cap set to rounded edge
+    WriteString(IntToStr(Ord(FLineCapStyle))+' J'+CRLF, AStream); //set line cap
     WriteString(S+CRLF, AStream);
     Document.CurrentWidth:=S;
     end;
@@ -2627,15 +2865,27 @@ begin
 end;
 
 function TPDFImageItem.GetStreamed: TBytes;
+
+Var
+  Opts : TPDFImageStreamOptions;
+
 begin
+  Opts:=[];
   if Length(FStreamed)=0 then
-  begin
+    begin
     if Collection.Owner is TPDFDocument then
-      CreateStreamedData(poCompressImages in TPDFDocument(Collection.Owner).Options)
+      Opts:=TPDFDocument(Collection.Owner).ImageStreamOptions
     else
-      CreateStreamedData(True);
-  end;
+      Opts:=[isoCompressed,isoTransparent];
+    CreateStreamedData(Opts);
+    end;
   Result:=FStreamed;
+end;
+
+function TPDFImageItem.GetStreamedMask: TBytes;
+begin
+  GetStreamed; // calls CreateStreamedData
+  Result:=FStreamedMask;
 end;
 
 function TPDFImageItem.GetHeight: Integer;
@@ -2661,6 +2911,25 @@ begin
   FStreamed:=AValue;
 end;
 
+procedure TPDFImageItem.SetStreamedMask(const AValue: TBytes;
+  const ACompression: TPDFImageCompression);
+begin
+  If AValue=FStreamedMask then exit;
+  SetLength(FStreamedMask,0);
+  FStreamedMask:=AValue;
+  FCompressionMask:=ACompression;
+end;
+
+function TPDFImageItem.WriteImageStream(AStream: TStream): int64;
+begin
+  Result:=WriteStream(FStreamed, AStream);
+end;
+
+function TPDFImageItem.WriteMaskStream(AStream: TStream): int64;
+begin
+  Result:=WriteStream(FStreamedMask, AStream);
+end;
+
 destructor TPDFImageItem.Destroy;
 begin
   if FOwnsImage then
@@ -2669,59 +2938,106 @@ begin
 end;
 
 procedure TPDFImageItem.CreateStreamedData(AUseCompression: Boolean);
+
+begin
+  CreateStreamedData([isoCompressed]);
+end;
+
+Procedure TPDFImageItem.CreateStreamedData(aOptions : TPDFImageStreamOptions);
+
+
+  function NeedsTransparency: Boolean;
+  var
+    Y, X: Integer;
+  begin
+    for Y:=0 to FHeight-1 do
+      for X:=0 to FWidth-1 do
+        begin
+        if Image.Colors[x,y].alpha < $FFFF then // has alpha channel
+          Exit(True);
+        end;
+    Result:=False;
+  end;
+
+  procedure CreateStream(out MS: TMemoryStream; out Str: TStream;
+    out Compression: TPDFImageCompression);
+  begin
+    MS := TMemoryStream.Create;
+    if (isoCompressed in aOptions) then
+      begin
+      Compression := icDeflate;
+      Str := Tcompressionstream.create(cldefault, MS);
+      end
+    else
+      begin
+      Compression := icNone;
+      Str := MS;
+      end;
+  end;
+
+  procedure StreamToBuffer(const MS: TMemoryStream; var Str: TStream; out Buffer: TBytes);
+  begin
+    if Str<>MS then
+      Str.Free;
+    Str := nil;
+    SetLength(Buffer, MS.Size);
+    MS.Position := 0;
+    if MS.Size>0 then
+      MS.ReadBuffer(Buffer[0], MS.Size);
+  end;
+
 Var
   X,Y : Integer;
   C : TFPColor;
-  MS : TMemoryStream;
-  Str : TStream;
+  MS,MSMask : TMemoryStream;
+  Str,StrMask : TStream;
   CWhite : TFPColor; // white color
+  CreateMask : Boolean;
 begin
   FillMem(@CWhite, SizeOf(CWhite), $FF);
   FWidth:=Image.Width;
   FHeight:=Image.Height;
+  CreateMask:=(isoTransparent in aOptions) and NeedsTransparency;
+  MS := nil;
   Str := nil;
-  MS := TMemoryStream.Create;
+  MSMask := nil;
+  StrMask := nil;
   try
-    if AUseCompression then
-      begin
-      FCompression := icDeflate;
-      Str := Tcompressionstream.create(cldefault, MS)
-      end
-    else
-      begin
-      FCompression := icNone;
-      Str := MS;
-      end;
+    CreateStream(MS, Str, FCompression);
+    if CreateMask then
+      CreateStream(MSMask, StrMask, FCompressionMask);
     for Y:=0 to FHeight-1 do
       for X:=0 to FWidth-1 do
         begin
         C:=Image.Colors[x,y];
-        if C.alpha < $FFFF then // remove alpha channel - assume white background
+        if CreateMask then
+          StrMask.WriteByte(C.Alpha shr 8)
+        else
+        if (C.alpha < $FFFF) then // remove alpha channel - assume white background
           C := AlphaBlend(CWhite, C);
 
         Str.WriteByte(C.Red shr 8);
         Str.WriteByte(C.Green shr 8);
         Str.WriteByte(C.Blue shr 8);
         end;
-    if Str<>MS then
-      Str.Free;
-    Str := nil;
-    SetLength(FStreamed, MS.Size);
-    MS.Position := 0;
-    if MS.Size>0 then
-      MS.ReadBuffer(FStreamed[0], MS.Size);
+    StreamToBuffer(MS, Str, FStreamed);
+    if CreateMask then
+      StreamToBuffer(MSMask, StrMask, FStreamedMask);
   finally
     Str.Free;
+    StrMask.Free;
     MS.Free;
+    MSMask.Free;
   end;
 end;
 
-function TPDFImageItem.WriteImageStream(AStream: TStream): int64;
+function TPDFImageItem.WriteStream(const AStreamedData: TBytes;
+  AStream: TStream): int64;
 var
   Img : TBytes;
 begin
   TPDFObject.WriteString(CRLF+'stream'+CRLF,AStream);
-  Img:=StreamedData;
+  Img:=AStreamedData;
   Result:=Length(Img);
   AStream.WriteBuffer(Img[0],Result);
   TPDFObject.WriteString(CRLF, AStream);
@@ -2750,6 +3066,11 @@ begin
         Result := False;
         Exit;
       end;
+end;
+
+function TPDFImageItem.GetHasMask: Boolean;
+begin
+  Result := Length(FStreamedMask)>0;
 end;
 
 { TPDFImages }
@@ -2888,7 +3209,7 @@ begin
     IP.Image:=I;
     if Not KeepImage then
       begin
-      IP.CreateStreamedData(poCompressImages in Owner.Options);
+      IP.CreateStreamedData(Owner.ImageStreamOptions);
       IP.FImage:=Nil; // not through property, that would clear the image
       i.Free;
       end;
@@ -3343,8 +3664,8 @@ begin
 
   { line segment is relative to matrix translation coordinate, set above }
   if Underline then
-    WriteString(Format('0 -1.5 m %s -1.5 l S', [FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream)
-  else
+    WriteString(Format('0 -1.5 m %s -1.5 l S', [FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream);
+  if StrikeThrough then
     WriteString(Format('0 %s m %s %0:s l S', [FloatStr(mmToPDF(lTextHeightInMM) / 2), FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream);
 
   { restore graphics state to before the translation matrix adjustment }
@@ -3434,8 +3755,8 @@ begin
 
   { line segment is relative to matrix translation coordinate, set above }
   if Underline then
-    WriteString(Format('0 -1.5 m %s -1.5 l S', [FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream)
-  else
+    WriteString(Format('0 -1.5 m %s -1.5 l S', [FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream);
+  if StrikeThrough then
     WriteString(Format('0 %s m %s %0:s l S', [FloatStr(mmToPDF(lTextHeightInMM) / 2), FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream);
 
   { restore graphics state to before the translation matrix adjustment }
@@ -3851,6 +4172,22 @@ begin
         begin
           if (E.FKey.Name='Name') then
           begin
+            if (TPDFObject(E.Value) is TPDFName) and (TPDFName(E.Value).Name[1]='M') then
+            begin
+              NumImg:=StrToInt(Copy(TPDFName(E.Value).Name, 2, Length(TPDFName(E.Value).Name) - 1));
+              // write image stream length in xobject dictionary
+              ISize:=Length(Document.Images[NumImg].StreamedMask);
+              D:=Document.GlobalXRefs[AObject].Dict;
+              D.AddInteger('Length',ISize);
+              LastElement.Write(AStream);
+              case Document.Images[NumImg].FCompressionMask of
+                icJPEG: WriteString('/Filter /DCTDecode'+CRLF, AStream);
+                icDeflate: WriteString('/Filter /FlateDecode'+CRLF, AStream);
+              end;
+              WriteString('>>', AStream);
+              // write image stream in xobject dictionary
+              Document.Images[NumImg].WriteMaskStream(AStream);
+            end else
             if (TPDFObject(E.Value) is TPDFName) and (TPDFName(E.Value).Name[1]='I') then
             begin
               NumImg:=StrToInt(Copy(TPDFName(E.Value).Name, 2, Length(TPDFName(E.Value).Name) - 1));
@@ -4021,6 +4358,7 @@ constructor TPDFInfos.Create;
 begin
   inherited Create;
   FProducer := 'fpGUI Toolkit 1.4';
+  FKeywords:= '';
 end;
 
 { TPDFFontNumBaseObject }
@@ -4105,12 +4443,12 @@ var
   i: integer;
   cid, gid: uint16;
   ba: TBytes;
-  lMaxCharID: integer;
+  lMaxCID: integer;
 begin
   lst := Document.Fonts[FontNum].TextMapping;
   lst.Sort;
-  lMaxCharID := lst.GetMaxCharID;
-  SetLength(ba, (lMaxCharID * 2)+1);
+  lMaxCID := lst.GetMaxGlyphID;
+  SetLength(ba, (lMaxCID + 1)*2);
   // initialize array to 0's
   for i := 0 to Length(ba)-1 do
     ba[i] := 0;
@@ -4124,7 +4462,7 @@ begin
   end;
 
   AStream.WriteBuffer(ba[0], Length(ba));
-  WriteString(CRLF, AStream);
+  //WriteString(CRLF, AStream);
   SetLength(ba, 0);
 end;
 
@@ -4142,11 +4480,11 @@ var
 begin
   lst := Document.Fonts[FontNum].TextMapping;
   lst.Sort;
-  lSize := (lst.GetMaxCharID div 8) + 1;
+  lSize := (lst.GetMaxGlyphID div 8) + 1;
   SetLength(ba, lSize);
   for i := 0 to lst.Count-1 do
   begin
-    cid := lst[i].CharID;
+    cid := lst[i].GlyphID;
     mask := 1 shl (7 - (cid mod 8));
     if cid = 0 then
       gid := 0
@@ -4155,7 +4493,7 @@ begin
     ba[gid] := ba[gid] or mask;
   end;
   AStream.WriteBuffer(ba[0], Length(ba));
-  WriteString(CRLF, AStream);
+  //WriteString(CRLF, AStream);
   SetLength(ba, 0);
 end;
 
@@ -4165,6 +4503,14 @@ procedure TPDFDocument.SetInfos(AValue: TPDFInfos);
 begin
   if FInfos=AValue then Exit;
   FInfos.Assign(AValue);
+end;
+
+procedure TPDFDocument.SetOptions(AValue: TPDFOptions);
+begin
+  if FOptions=AValue then Exit;
+  if (poNoEmbeddedFonts in  aValue) then
+    Exclude(aValue,poSubsetFont);
+  FOptions:=aValue;
 end;
 
 procedure TPDFDocument.SetLineStyles(AValue: TPDFLineStyleDefs);
@@ -4289,15 +4635,16 @@ begin
     M := TMemoryStream.Create;
     X.FStream.Write(M);
     d := M.Size;
-    X.Dict.AddInteger('Length', M.Size);
 
-    if poCompressText in Options then
+    if (poCompressText in Options) and not X.FStream.CompressionProhibited then
     begin
       MCompressed := TMemoryStream.Create;
       CompressStream(M, MCompressed);
       X.Dict.AddName('Filter', 'FlateDecode');
-      X.Dict.AddInteger('Length1', MCompressed.Size);
+      //X.Dict.AddInteger('Length1', MCompressed.Size); //Missing 'endstream' or incorrect stream length|stream Length incorrect
+      d :=  MCompressed.Size;
     end;
+    X.Dict.AddInteger('Length', d);
 
     X.Dict.Write(AStream);
 
@@ -4305,7 +4652,7 @@ begin
     CurrentColor:='';
     CurrentWidth:='';
     TPDFObject.WriteString(CRLF+'stream'+CRLF, AStream);
-    if poCompressText in Options then
+    if (poCompressText in Options) and not X.FStream.CompressionProhibited  then
     begin
       MCompressed.Position := 0;
       MCompressed.SaveToStream(AStream);
@@ -4319,6 +4666,7 @@ begin
     end;
 
     M.Free;
+    TPDFObject.WriteString(CRLF, AStream);
     TPDFObject.WriteString('endstream', AStream);
   end;
   TPDFObject.WriteString(CRLF+'endobj'+CRLF+CRLF, AStream);
@@ -4367,7 +4715,184 @@ begin
   if Infos.ApplicationName <> '' then
     IDict.AddString('Creator',Infos.ApplicationName);
   IDict.AddString('Producer',Infos.Producer);
-  IDict.AddString('CreationDate',DateToPdfDate(Infos.CreationDate));
+  if Infos.CreationDate <> 0 then
+    IDict.AddString('CreationDate',DateToPdfDate(Infos.CreationDate));
+  if Infos.Keywords <> '' then
+    IDict.AddString('Keywords', Infos.Keywords);
+end;
+
+procedure TPDFDocument.CreateMetadataEntry;
+var
+  lXRef: TPDFXRef;
+begin
+  lXRef := CreateGlobalXRef;
+  lXRef.Dict.AddName('Type','Metadata');
+  lXRef.Dict.AddName('Subtype', 'XML');
+  lXRef.FStream := CreateStream(True);
+  lXRef.FStream.AddItem(TXMPStream.Create(self));
+  lXRef.FStream.CompressionProhibited := True;
+
+  GlobalXRefs[Catalogue].Dict.AddReference('Metadata', GLobalXRefCount-1)
+end;
+
+procedure TPDFDocument.AddOutputIntent(const Subtype, OutputConditionIdentifier, Info: string; ICCProfile: TStream);
+var
+  OutputIntents: TPDFObject;
+  OIDict: TPDFDictionary;
+  OIRef: Integer;
+  Profile: TPDFXRef;
+begin
+  OIRef := GLobalXRefCount;
+  OIDict := CreateGlobalXRef.Dict;
+  OIDict.AddName('Type', 'OutputIntent');
+  OIDict.AddName('S', Subtype);
+  OIDict.AddString('OutputConditionIdentifier', OutputConditionIdentifier);
+  if Info <> '' then
+    OIDict.AddString('Info', Info);
+  if Assigned(ICCProfile) then begin
+    Profile := CreateGlobalXRef;
+    Profile.Dict.AddInteger('N', 3);
+    Profile.FStream := CreateStream(True);
+    Profile.FStream.AddItem(TPDFMemoryStream.Create(self, ICCProfile));
+    OIDict.AddReference('DestOutputProfile', GLobalXRefCount-1);
+  end;
+
+  OutputIntents := GlobalXRefs[Catalogue].Dict.FindValue('OutputIntents');
+  if not Assigned(OutputIntents) then begin
+    OutputIntents := CreateArray;
+    GlobalXRefs[Catalogue].Dict.AddElement('OutputIntents', OutputIntents);
+  end;
+  (OutputIntents as TPDFArray).AddItem(CreateReference(OIRef));
+end;
+
+{ICC v2 sRGB profile http://www.color.org/srgbprofiles.xalter
+This profile is made available by the International Color Consortium, and may be copied, distributed, embedded, made,
+used, and sold without restriction. Altered versions of this profile shall have the original identification and copyright
+information removed and shall not be misrepresented as the original profile.}
+
+const ICC_sRGB2014 : array [1..3024] of byte =
+($00,$00,$0B,$D0,$00,$00,$00,$00,$02,$00,$00,$00,$6D,$6E,$74,$72,$52,$47,$42,$20,$58,$59,$5A,$20,$07,$DF,$00,$02,$00,$0F,$00,$00,
+$00,$00,$00,$00,$61,$63,$73,$70,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$01,$00,$00,$00,$00,
+$00,$00,$00,$00,$00,$00,$F6,$D6,$00,$01,$00,$00,$00,$00,$D3,$2D,$00,$00,$00,$00,$3D,$0E,$B2,$DE,$AE,$93,$97,$BE,$9B,$67,$26,$CE,
+$8C,$0A,$43,$CE,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,
+$00,$00,$00,$10,$64,$65,$73,$63,$00,$00,$01,$44,$00,$00,$00,$63,$62,$58,$59,$5A,$00,$00,$01,$A8,$00,$00,$00,$14,$62,$54,$52,$43,
+$00,$00,$01,$BC,$00,$00,$08,$0C,$67,$54,$52,$43,$00,$00,$01,$BC,$00,$00,$08,$0C,$72,$54,$52,$43,$00,$00,$01,$BC,$00,$00,$08,$0C,
+$64,$6D,$64,$64,$00,$00,$09,$C8,$00,$00,$00,$88,$67,$58,$59,$5A,$00,$00,$0A,$50,$00,$00,$00,$14,$6C,$75,$6D,$69,$00,$00,$0A,$64,
+$00,$00,$00,$14,$6D,$65,$61,$73,$00,$00,$0A,$78,$00,$00,$00,$24,$62,$6B,$70,$74,$00,$00,$0A,$9C,$00,$00,$00,$14,$72,$58,$59,$5A,
+$00,$00,$0A,$B0,$00,$00,$00,$14,$74,$65,$63,$68,$00,$00,$0A,$C4,$00,$00,$00,$0C,$76,$75,$65,$64,$00,$00,$0A,$D0,$00,$00,$00,$87,
+$77,$74,$70,$74,$00,$00,$0B,$58,$00,$00,$00,$14,$63,$70,$72,$74,$00,$00,$0B,$6C,$00,$00,$00,$37,$63,$68,$61,$64,$00,$00,$0B,$A4,
+$00,$00,$00,$2C,$64,$65,$73,$63,$00,$00,$00,$00,$00,$00,$00,$09,$73,$52,$47,$42,$32,$30,$31,$34,$00,$00,$00,$00,$00,$00,$00,$00,
+$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,
+$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,
+$00,$00,$00,$00,$00,$00,$00,$00,$58,$59,$5A,$20,$00,$00,$00,$00,$00,$00,$24,$A0,$00,$00,$0F,$84,$00,$00,$B6,$CF,$63,$75,$72,$76,
+$00,$00,$00,$00,$00,$00,$04,$00,$00,$00,$00,$05,$00,$0A,$00,$0F,$00,$14,$00,$19,$00,$1E,$00,$23,$00,$28,$00,$2D,$00,$32,$00,$37,
+$00,$3B,$00,$40,$00,$45,$00,$4A,$00,$4F,$00,$54,$00,$59,$00,$5E,$00,$63,$00,$68,$00,$6D,$00,$72,$00,$77,$00,$7C,$00,$81,$00,$86,
+$00,$8B,$00,$90,$00,$95,$00,$9A,$00,$9F,$00,$A4,$00,$A9,$00,$AE,$00,$B2,$00,$B7,$00,$BC,$00,$C1,$00,$C6,$00,$CB,$00,$D0,$00,$D5,
+$00,$DB,$00,$E0,$00,$E5,$00,$EB,$00,$F0,$00,$F6,$00,$FB,$01,$01,$01,$07,$01,$0D,$01,$13,$01,$19,$01,$1F,$01,$25,$01,$2B,$01,$32,
+$01,$38,$01,$3E,$01,$45,$01,$4C,$01,$52,$01,$59,$01,$60,$01,$67,$01,$6E,$01,$75,$01,$7C,$01,$83,$01,$8B,$01,$92,$01,$9A,$01,$A1,
+$01,$A9,$01,$B1,$01,$B9,$01,$C1,$01,$C9,$01,$D1,$01,$D9,$01,$E1,$01,$E9,$01,$F2,$01,$FA,$02,$03,$02,$0C,$02,$14,$02,$1D,$02,$26,
+$02,$2F,$02,$38,$02,$41,$02,$4B,$02,$54,$02,$5D,$02,$67,$02,$71,$02,$7A,$02,$84,$02,$8E,$02,$98,$02,$A2,$02,$AC,$02,$B6,$02,$C1,
+$02,$CB,$02,$D5,$02,$E0,$02,$EB,$02,$F5,$03,$00,$03,$0B,$03,$16,$03,$21,$03,$2D,$03,$38,$03,$43,$03,$4F,$03,$5A,$03,$66,$03,$72,
+$03,$7E,$03,$8A,$03,$96,$03,$A2,$03,$AE,$03,$BA,$03,$C7,$03,$D3,$03,$E0,$03,$EC,$03,$F9,$04,$06,$04,$13,$04,$20,$04,$2D,$04,$3B,
+$04,$48,$04,$55,$04,$63,$04,$71,$04,$7E,$04,$8C,$04,$9A,$04,$A8,$04,$B6,$04,$C4,$04,$D3,$04,$E1,$04,$F0,$04,$FE,$05,$0D,$05,$1C,
+$05,$2B,$05,$3A,$05,$49,$05,$58,$05,$67,$05,$77,$05,$86,$05,$96,$05,$A6,$05,$B5,$05,$C5,$05,$D5,$05,$E5,$05,$F6,$06,$06,$06,$16,
+$06,$27,$06,$37,$06,$48,$06,$59,$06,$6A,$06,$7B,$06,$8C,$06,$9D,$06,$AF,$06,$C0,$06,$D1,$06,$E3,$06,$F5,$07,$07,$07,$19,$07,$2B,
+$07,$3D,$07,$4F,$07,$61,$07,$74,$07,$86,$07,$99,$07,$AC,$07,$BF,$07,$D2,$07,$E5,$07,$F8,$08,$0B,$08,$1F,$08,$32,$08,$46,$08,$5A,
+$08,$6E,$08,$82,$08,$96,$08,$AA,$08,$BE,$08,$D2,$08,$E7,$08,$FB,$09,$10,$09,$25,$09,$3A,$09,$4F,$09,$64,$09,$79,$09,$8F,$09,$A4,
+$09,$BA,$09,$CF,$09,$E5,$09,$FB,$0A,$11,$0A,$27,$0A,$3D,$0A,$54,$0A,$6A,$0A,$81,$0A,$98,$0A,$AE,$0A,$C5,$0A,$DC,$0A,$F3,$0B,$0B,
+$0B,$22,$0B,$39,$0B,$51,$0B,$69,$0B,$80,$0B,$98,$0B,$B0,$0B,$C8,$0B,$E1,$0B,$F9,$0C,$12,$0C,$2A,$0C,$43,$0C,$5C,$0C,$75,$0C,$8E,
+$0C,$A7,$0C,$C0,$0C,$D9,$0C,$F3,$0D,$0D,$0D,$26,$0D,$40,$0D,$5A,$0D,$74,$0D,$8E,$0D,$A9,$0D,$C3,$0D,$DE,$0D,$F8,$0E,$13,$0E,$2E,
+$0E,$49,$0E,$64,$0E,$7F,$0E,$9B,$0E,$B6,$0E,$D2,$0E,$EE,$0F,$09,$0F,$25,$0F,$41,$0F,$5E,$0F,$7A,$0F,$96,$0F,$B3,$0F,$CF,$0F,$EC,
+$10,$09,$10,$26,$10,$43,$10,$61,$10,$7E,$10,$9B,$10,$B9,$10,$D7,$10,$F5,$11,$13,$11,$31,$11,$4F,$11,$6D,$11,$8C,$11,$AA,$11,$C9,
+$11,$E8,$12,$07,$12,$26,$12,$45,$12,$64,$12,$84,$12,$A3,$12,$C3,$12,$E3,$13,$03,$13,$23,$13,$43,$13,$63,$13,$83,$13,$A4,$13,$C5,
+$13,$E5,$14,$06,$14,$27,$14,$49,$14,$6A,$14,$8B,$14,$AD,$14,$CE,$14,$F0,$15,$12,$15,$34,$15,$56,$15,$78,$15,$9B,$15,$BD,$15,$E0,
+$16,$03,$16,$26,$16,$49,$16,$6C,$16,$8F,$16,$B2,$16,$D6,$16,$FA,$17,$1D,$17,$41,$17,$65,$17,$89,$17,$AE,$17,$D2,$17,$F7,$18,$1B,
+$18,$40,$18,$65,$18,$8A,$18,$AF,$18,$D5,$18,$FA,$19,$20,$19,$45,$19,$6B,$19,$91,$19,$B7,$19,$DD,$1A,$04,$1A,$2A,$1A,$51,$1A,$77,
+$1A,$9E,$1A,$C5,$1A,$EC,$1B,$14,$1B,$3B,$1B,$63,$1B,$8A,$1B,$B2,$1B,$DA,$1C,$02,$1C,$2A,$1C,$52,$1C,$7B,$1C,$A3,$1C,$CC,$1C,$F5,
+$1D,$1E,$1D,$47,$1D,$70,$1D,$99,$1D,$C3,$1D,$EC,$1E,$16,$1E,$40,$1E,$6A,$1E,$94,$1E,$BE,$1E,$E9,$1F,$13,$1F,$3E,$1F,$69,$1F,$94,
+$1F,$BF,$1F,$EA,$20,$15,$20,$41,$20,$6C,$20,$98,$20,$C4,$20,$F0,$21,$1C,$21,$48,$21,$75,$21,$A1,$21,$CE,$21,$FB,$22,$27,$22,$55,
+$22,$82,$22,$AF,$22,$DD,$23,$0A,$23,$38,$23,$66,$23,$94,$23,$C2,$23,$F0,$24,$1F,$24,$4D,$24,$7C,$24,$AB,$24,$DA,$25,$09,$25,$38,
+$25,$68,$25,$97,$25,$C7,$25,$F7,$26,$27,$26,$57,$26,$87,$26,$B7,$26,$E8,$27,$18,$27,$49,$27,$7A,$27,$AB,$27,$DC,$28,$0D,$28,$3F,
+$28,$71,$28,$A2,$28,$D4,$29,$06,$29,$38,$29,$6B,$29,$9D,$29,$D0,$2A,$02,$2A,$35,$2A,$68,$2A,$9B,$2A,$CF,$2B,$02,$2B,$36,$2B,$69,
+$2B,$9D,$2B,$D1,$2C,$05,$2C,$39,$2C,$6E,$2C,$A2,$2C,$D7,$2D,$0C,$2D,$41,$2D,$76,$2D,$AB,$2D,$E1,$2E,$16,$2E,$4C,$2E,$82,$2E,$B7,
+$2E,$EE,$2F,$24,$2F,$5A,$2F,$91,$2F,$C7,$2F,$FE,$30,$35,$30,$6C,$30,$A4,$30,$DB,$31,$12,$31,$4A,$31,$82,$31,$BA,$31,$F2,$32,$2A,
+$32,$63,$32,$9B,$32,$D4,$33,$0D,$33,$46,$33,$7F,$33,$B8,$33,$F1,$34,$2B,$34,$65,$34,$9E,$34,$D8,$35,$13,$35,$4D,$35,$87,$35,$C2,
+$35,$FD,$36,$37,$36,$72,$36,$AE,$36,$E9,$37,$24,$37,$60,$37,$9C,$37,$D7,$38,$14,$38,$50,$38,$8C,$38,$C8,$39,$05,$39,$42,$39,$7F,
+$39,$BC,$39,$F9,$3A,$36,$3A,$74,$3A,$B2,$3A,$EF,$3B,$2D,$3B,$6B,$3B,$AA,$3B,$E8,$3C,$27,$3C,$65,$3C,$A4,$3C,$E3,$3D,$22,$3D,$61,
+$3D,$A1,$3D,$E0,$3E,$20,$3E,$60,$3E,$A0,$3E,$E0,$3F,$21,$3F,$61,$3F,$A2,$3F,$E2,$40,$23,$40,$64,$40,$A6,$40,$E7,$41,$29,$41,$6A,
+$41,$AC,$41,$EE,$42,$30,$42,$72,$42,$B5,$42,$F7,$43,$3A,$43,$7D,$43,$C0,$44,$03,$44,$47,$44,$8A,$44,$CE,$45,$12,$45,$55,$45,$9A,
+$45,$DE,$46,$22,$46,$67,$46,$AB,$46,$F0,$47,$35,$47,$7B,$47,$C0,$48,$05,$48,$4B,$48,$91,$48,$D7,$49,$1D,$49,$63,$49,$A9,$49,$F0,
+$4A,$37,$4A,$7D,$4A,$C4,$4B,$0C,$4B,$53,$4B,$9A,$4B,$E2,$4C,$2A,$4C,$72,$4C,$BA,$4D,$02,$4D,$4A,$4D,$93,$4D,$DC,$4E,$25,$4E,$6E,
+$4E,$B7,$4F,$00,$4F,$49,$4F,$93,$4F,$DD,$50,$27,$50,$71,$50,$BB,$51,$06,$51,$50,$51,$9B,$51,$E6,$52,$31,$52,$7C,$52,$C7,$53,$13,
+$53,$5F,$53,$AA,$53,$F6,$54,$42,$54,$8F,$54,$DB,$55,$28,$55,$75,$55,$C2,$56,$0F,$56,$5C,$56,$A9,$56,$F7,$57,$44,$57,$92,$57,$E0,
+$58,$2F,$58,$7D,$58,$CB,$59,$1A,$59,$69,$59,$B8,$5A,$07,$5A,$56,$5A,$A6,$5A,$F5,$5B,$45,$5B,$95,$5B,$E5,$5C,$35,$5C,$86,$5C,$D6,
+$5D,$27,$5D,$78,$5D,$C9,$5E,$1A,$5E,$6C,$5E,$BD,$5F,$0F,$5F,$61,$5F,$B3,$60,$05,$60,$57,$60,$AA,$60,$FC,$61,$4F,$61,$A2,$61,$F5,
+$62,$49,$62,$9C,$62,$F0,$63,$43,$63,$97,$63,$EB,$64,$40,$64,$94,$64,$E9,$65,$3D,$65,$92,$65,$E7,$66,$3D,$66,$92,$66,$E8,$67,$3D,
+$67,$93,$67,$E9,$68,$3F,$68,$96,$68,$EC,$69,$43,$69,$9A,$69,$F1,$6A,$48,$6A,$9F,$6A,$F7,$6B,$4F,$6B,$A7,$6B,$FF,$6C,$57,$6C,$AF,
+$6D,$08,$6D,$60,$6D,$B9,$6E,$12,$6E,$6B,$6E,$C4,$6F,$1E,$6F,$78,$6F,$D1,$70,$2B,$70,$86,$70,$E0,$71,$3A,$71,$95,$71,$F0,$72,$4B,
+$72,$A6,$73,$01,$73,$5D,$73,$B8,$74,$14,$74,$70,$74,$CC,$75,$28,$75,$85,$75,$E1,$76,$3E,$76,$9B,$76,$F8,$77,$56,$77,$B3,$78,$11,
+$78,$6E,$78,$CC,$79,$2A,$79,$89,$79,$E7,$7A,$46,$7A,$A5,$7B,$04,$7B,$63,$7B,$C2,$7C,$21,$7C,$81,$7C,$E1,$7D,$41,$7D,$A1,$7E,$01,
+$7E,$62,$7E,$C2,$7F,$23,$7F,$84,$7F,$E5,$80,$47,$80,$A8,$81,$0A,$81,$6B,$81,$CD,$82,$30,$82,$92,$82,$F4,$83,$57,$83,$BA,$84,$1D,
+$84,$80,$84,$E3,$85,$47,$85,$AB,$86,$0E,$86,$72,$86,$D7,$87,$3B,$87,$9F,$88,$04,$88,$69,$88,$CE,$89,$33,$89,$99,$89,$FE,$8A,$64,
+$8A,$CA,$8B,$30,$8B,$96,$8B,$FC,$8C,$63,$8C,$CA,$8D,$31,$8D,$98,$8D,$FF,$8E,$66,$8E,$CE,$8F,$36,$8F,$9E,$90,$06,$90,$6E,$90,$D6,
+$91,$3F,$91,$A8,$92,$11,$92,$7A,$92,$E3,$93,$4D,$93,$B6,$94,$20,$94,$8A,$94,$F4,$95,$5F,$95,$C9,$96,$34,$96,$9F,$97,$0A,$97,$75,
+$97,$E0,$98,$4C,$98,$B8,$99,$24,$99,$90,$99,$FC,$9A,$68,$9A,$D5,$9B,$42,$9B,$AF,$9C,$1C,$9C,$89,$9C,$F7,$9D,$64,$9D,$D2,$9E,$40,
+$9E,$AE,$9F,$1D,$9F,$8B,$9F,$FA,$A0,$69,$A0,$D8,$A1,$47,$A1,$B6,$A2,$26,$A2,$96,$A3,$06,$A3,$76,$A3,$E6,$A4,$56,$A4,$C7,$A5,$38,
+$A5,$A9,$A6,$1A,$A6,$8B,$A6,$FD,$A7,$6E,$A7,$E0,$A8,$52,$A8,$C4,$A9,$37,$A9,$A9,$AA,$1C,$AA,$8F,$AB,$02,$AB,$75,$AB,$E9,$AC,$5C,
+$AC,$D0,$AD,$44,$AD,$B8,$AE,$2D,$AE,$A1,$AF,$16,$AF,$8B,$B0,$00,$B0,$75,$B0,$EA,$B1,$60,$B1,$D6,$B2,$4B,$B2,$C2,$B3,$38,$B3,$AE,
+$B4,$25,$B4,$9C,$B5,$13,$B5,$8A,$B6,$01,$B6,$79,$B6,$F0,$B7,$68,$B7,$E0,$B8,$59,$B8,$D1,$B9,$4A,$B9,$C2,$BA,$3B,$BA,$B5,$BB,$2E,
+$BB,$A7,$BC,$21,$BC,$9B,$BD,$15,$BD,$8F,$BE,$0A,$BE,$84,$BE,$FF,$BF,$7A,$BF,$F5,$C0,$70,$C0,$EC,$C1,$67,$C1,$E3,$C2,$5F,$C2,$DB,
+$C3,$58,$C3,$D4,$C4,$51,$C4,$CE,$C5,$4B,$C5,$C8,$C6,$46,$C6,$C3,$C7,$41,$C7,$BF,$C8,$3D,$C8,$BC,$C9,$3A,$C9,$B9,$CA,$38,$CA,$B7,
+$CB,$36,$CB,$B6,$CC,$35,$CC,$B5,$CD,$35,$CD,$B5,$CE,$36,$CE,$B6,$CF,$37,$CF,$B8,$D0,$39,$D0,$BA,$D1,$3C,$D1,$BE,$D2,$3F,$D2,$C1,
+$D3,$44,$D3,$C6,$D4,$49,$D4,$CB,$D5,$4E,$D5,$D1,$D6,$55,$D6,$D8,$D7,$5C,$D7,$E0,$D8,$64,$D8,$E8,$D9,$6C,$D9,$F1,$DA,$76,$DA,$FB,
+$DB,$80,$DC,$05,$DC,$8A,$DD,$10,$DD,$96,$DE,$1C,$DE,$A2,$DF,$29,$DF,$AF,$E0,$36,$E0,$BD,$E1,$44,$E1,$CC,$E2,$53,$E2,$DB,$E3,$63,
+$E3,$EB,$E4,$73,$E4,$FC,$E5,$84,$E6,$0D,$E6,$96,$E7,$1F,$E7,$A9,$E8,$32,$E8,$BC,$E9,$46,$E9,$D0,$EA,$5B,$EA,$E5,$EB,$70,$EB,$FB,
+$EC,$86,$ED,$11,$ED,$9C,$EE,$28,$EE,$B4,$EF,$40,$EF,$CC,$F0,$58,$F0,$E5,$F1,$72,$F1,$FF,$F2,$8C,$F3,$19,$F3,$A7,$F4,$34,$F4,$C2,
+$F5,$50,$F5,$DE,$F6,$6D,$F6,$FB,$F7,$8A,$F8,$19,$F8,$A8,$F9,$38,$F9,$C7,$FA,$57,$FA,$E7,$FB,$77,$FC,$07,$FC,$98,$FD,$29,$FD,$BA,
+$FE,$4B,$FE,$DC,$FF,$6D,$FF,$FF,$64,$65,$73,$63,$00,$00,$00,$00,$00,$00,$00,$2E,$49,$45,$43,$20,$36,$31,$39,$36,$36,$2D,$32,$2D,
+$31,$20,$44,$65,$66,$61,$75,$6C,$74,$20,$52,$47,$42,$20,$43,$6F,$6C,$6F,$75,$72,$20,$53,$70,$61,$63,$65,$20,$2D,$20,$73,$52,$47,
+$42,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,
+$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,
+$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$58,$59,$5A,$20,$00,$00,$00,$00,$00,$00,$62,$99,$00,$00,$B7,$85,
+$00,$00,$18,$DA,$58,$59,$5A,$20,$00,$00,$00,$00,$00,$00,$00,$00,$00,$50,$00,$00,$00,$00,$00,$00,$6D,$65,$61,$73,$00,$00,$00,$00,
+$00,$00,$00,$01,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$02,$58,$59,$5A,$20,
+$00,$00,$00,$00,$00,$00,$00,$9E,$00,$00,$00,$A4,$00,$00,$00,$87,$58,$59,$5A,$20,$00,$00,$00,$00,$00,$00,$6F,$A2,$00,$00,$38,$F5,
+$00,$00,$03,$90,$73,$69,$67,$20,$00,$00,$00,$00,$43,$52,$54,$20,$64,$65,$73,$63,$00,$00,$00,$00,$00,$00,$00,$2D,$52,$65,$66,$65,
+$72,$65,$6E,$63,$65,$20,$56,$69,$65,$77,$69,$6E,$67,$20,$43,$6F,$6E,$64,$69,$74,$69,$6F,$6E,$20,$69,$6E,$20,$49,$45,$43,$20,$36,
+$31,$39,$36,$36,$2D,$32,$2D,$31,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,
+$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,
+$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$58,$59,$5A,$20,$00,$00,$00,$00,
+$00,$00,$F6,$D6,$00,$01,$00,$00,$00,$00,$D3,$2D,$74,$65,$78,$74,$00,$00,$00,$00,$43,$6F,$70,$79,$72,$69,$67,$68,$74,$20,$49,$6E,
+$74,$65,$72,$6E,$61,$74,$69,$6F,$6E,$61,$6C,$20,$43,$6F,$6C,$6F,$72,$20,$43,$6F,$6E,$73,$6F,$72,$74,$69,$75,$6D,$2C,$20,$32,$30,
+$31,$35,$00,$00,$73,$66,$33,$32,$00,$00,$00,$00,$00,$01,$0C,$44,$00,$00,$05,$DF,$FF,$FF,$F3,$26,$00,$00,$07,$94,$00,$00,$FD,$8F,
+$FF,$FF,$FB,$A1,$FF,$FF,$FD,$A2,$00,$00,$03,$DB,$00,$00,$C0,$75);
+
+procedure TPDFDocument.AddPDFA1sRGBOutputIntent;
+var
+  st: TMemoryStream;
+begin
+  st := TMemoryStream.Create;
+  try
+    st.SetSize(High(ICC_sRGB2014));
+    st.Write(ICC_sRGB2014[1], High(ICC_sRGB2014));
+    AddOutputIntent('GTS_PDFA1', 'Custom', 'sRGB', st); //GTS_PDFA1 required for PDF/A
+  finally
+    st.Free;
+  end;
+end;
+
+procedure TPDFDocument.CreateTrailerID;
+var
+  s: string;
+  ID: TPDFArray;
+begin
+  s := DateToPdfDate(Now) + IntToStr(GLobalXRefCount) +
+    Infos.Title + Infos.Author + Infos.ApplicationName + Infos.Producer + DateToPdfDate(Infos.CreationDate);
+  s := MD5Print(MD5String(s));
+  ID := CreateArray;
+  ID.AddItem(TPDFRawHexString.Create(Self, s));
+  ID.AddItem(TPDFRawHexString.Create(Self, s));
+  Trailer.AddElement('ID', ID);
 end;
 
 procedure TPDFDocument.CreatePreferencesEntry;
@@ -4682,11 +5207,16 @@ end;
 procedure TPDFDocument.CreateFontFileEntry(const AFontNum: integer);
 var
   FDict: TPDFDictionary;
+  Len: Integer;
 begin
   FDict:=CreateGlobalXRef.Dict;
   if poCompressFonts in Options then
     FDict.AddName('Filter','FlateDecode');
-  FDict.AddInteger('Length1 '+IntToStr(AFontNum), Fonts[AFontNum].FTrueTypeFile.OriginalSize);
+  if poSubsetFont in Options then
+    Len := Fonts[AFontNum].SubsetFont.Size
+  else
+    Len := Fonts[AFontNum].FTrueTypeFile.OriginalSize;
+  FDict.AddInteger('Length1 '+IntToStr(AFontNum), Len);
 end;
 
 procedure TPDFDocument.CreateCIDSet(const AFontNum: integer);
@@ -4698,24 +5228,25 @@ begin
   lXRef.FStream.AddItem(TPDFCIDSet.Create(self, AFontNum));
 end;
 
-procedure TPDFDocument.CreateImageEntry(ImgWidth, ImgHeight, NumImg: integer);
+procedure TPDFDocument.CreateImageEntry(ImgWidth, ImgHeight, NumImg: integer;
+  out ImageDict: TPDFDictionary);
 var
   N: TPDFName;
-  IDict,ADict: TPDFDictionary;
+  ADict: TPDFDictionary;
   i: integer;
   lXRef: integer;
 begin
   lXRef := GlobalXRefCount; // reference to be used later
 
-  IDict:=CreateGlobalXRef.Dict;
-  IDict.AddName('Type','XObject');
-  IDict.AddName('Subtype','Image');
-  IDict.AddInteger('Width',ImgWidth);
-  IDict.AddInteger('Height',ImgHeight);
-  IDict.AddName('ColorSpace','DeviceRGB');
-  IDict.AddInteger('BitsPerComponent',8);
+  ImageDict:=CreateGlobalXRef.Dict;
+  ImageDict.AddName('Type','XObject');
+  ImageDict.AddName('Subtype','Image');
+  ImageDict.AddInteger('Width',ImgWidth);
+  ImageDict.AddInteger('Height',ImgHeight);
+  ImageDict.AddName('ColorSpace','DeviceRGB');
+  ImageDict.AddInteger('BitsPerComponent',8);
   N:=CreateName('I'+IntToStr(NumImg)); // Needed later
-  IDict.AddElement('Name',N);
+  ImageDict.AddElement('Name',N);
 
   // now find where we must add the image xref - we are looking for "Resources"
   for i := 1 to GlobalXRefCount-1 do
@@ -4734,6 +5265,27 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TPDFDocument.CreateImageMaskEntry(ImgWidth, ImgHeight,
+  NumImg: integer; ImageDict: TPDFDictionary);
+var
+  N: TPDFName;
+  MDict: TPDFDictionary;
+  lXRef: integer;
+begin
+  lXRef := GlobalXRefCount; // reference to be used later
+
+  MDict:=CreateGlobalXRef.Dict;
+  MDict.AddName('Type','XObject');
+  MDict.AddName('Subtype','Image');
+  MDict.AddInteger('Width',ImgWidth);
+  MDict.AddInteger('Height',ImgHeight);
+  MDict.AddName('ColorSpace','DeviceGray');
+  MDict.AddInteger('BitsPerComponent',8);
+  N:=CreateName('M'+IntToStr(NumImg)); // Needed later
+  MDict.AddElement('Name',N);
+  ImageDict.AddReference('SMask', lXRef);
 end;
 
 function TPDFDocument.CreateAnnotEntry(const APageNum, AnnotNum: integer): integer;
@@ -4839,6 +5391,15 @@ begin
     Raise EPDF.CreateFmt(rsErrNoGlobalDict,[AName]);
 end;
 
+function TPDFDocument.ImageStreamOptions: TPDFImageStreamOptions;
+begin
+  Result:=[];
+  if (poCompressImages in Options) then
+    Include(Result,isoCompressed);
+  if (poUseImageTransparency in Options) then
+    Include(Result,isoTransparent);
+end;
+
 function TPDFDocument.CreateLineStyles: TPDFLineStyleDefs;
 begin
   Result:=TPDFLineStyleDefs.Create(TPDFLineStyleDef);
@@ -4886,6 +5447,7 @@ begin
   FZoomValue:='100';
   FOptions := [poCompressFonts, poCompressImages];
   FUnitOfMeasure:=uomMillimeters;
+  FLineCapStyle := plcsRoundCap;
 end;
 
 procedure TPDFDocument.StartDocument;
@@ -4896,6 +5458,10 @@ begin
   CreateTrailer;
   FCatalogue:=CreateCatalogEntry;
   CreateInfoEntry;
+  if poMetadataEntry in Options then
+    CreateMetadataEntry;
+  if not (poNoTrailerID in Options) then
+    CreateTrailerID;
   CreatePreferencesEntry;
   if (FontDirectory = '') then
     FontDirectory:=ExtractFilePath(ParamStr(0));
@@ -5098,9 +5664,14 @@ end;
 procedure TPDFDocument.CreateImageEntries;
 Var
   I : Integer;
+  IDict : TPDFDictionary;
 begin
   for i:=0 to Images.Count-1 do
-    CreateImageEntry(Images[i].Width,Images[i].Height,i);
+    begin
+    CreateImageEntry(Images[i].Width,Images[i].Height,i,IDict);
+    if Images[i].HasMask then
+      CreateImageMaskEntry(Images[i].Width,Images[i].Height,i,IDict);
+    end;
 end;
 
 procedure TPDFDocument.CreateAnnotEntries(const APageNum: integer; const APageDict: TPDFDictionary);
@@ -5336,6 +5907,11 @@ begin
 end;
 
 
-
+initialization
+  PDFFormatSettings:= DefaultFormatSettings;
+  PDFFormatSettings.DecimalSeparator := '.';
+  PDFFormatSettings.ThousandSeparator := ',';
+  PDFFormatSettings.DateSeparator := '/';
+  PDFFormatSettings.TimeSeparator := ':';
 end.
 

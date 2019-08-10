@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Author := 'Library: (Codegear?), header: ?';
     P.License := 'Library: Interbase License, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -25,6 +25,8 @@ begin
     P.Description := 'Headers for the Interbase/Firebird RDBMS';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
     P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

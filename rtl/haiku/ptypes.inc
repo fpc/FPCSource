@@ -21,20 +21,22 @@
 
 {$i ctypes.inc}
 
+{$packrecords c}
+
 type
   fsblkcnt_t = clonglong;
-  TStatfs = packed record
-    bsize 			: Cardinal;
-    frsize			: Cardinal;
-    blocks			: fsblkcnt_t;
-    bfree			: fsblkcnt_t;
-    bavail			: fsblkcnt_t;
-    files			: fsblkcnt_t;
-    ffree			: fsblkcnt_t;
-    favail			: fsblkcnt_t;
-    fsid			: Cardinal;
-    flag			: Cardinal;
-    namemax			: Cardinal;
+  TStatfs = record
+    bsize   : culong;
+    frsize  : culong;
+    blocks  : fsblkcnt_t;
+    bfree   : fsblkcnt_t;
+    bavail  : fsblkcnt_t;
+    files   : fsblkcnt_t;
+    ffree   : fsblkcnt_t;
+    favail  : fsblkcnt_t;
+    fsid    : culong;
+    flag    : culong;
+    namemax : culong;
   end;
   PStatFS=^TStatFS;
 
@@ -42,20 +44,20 @@ type
     converter : pointer;
     charset : array[0..63] of char;
     count : cuint;
-    data : array[0..1023+8] of char;	{ 1024 bytes for data, 8 for alignment space }
+    data : array[0..1023+8] of char;  { 1024 bytes for data, 8 for alignment space }
   end;
   pmbstate_t = ^mbstate_t;
 
-    dev_t    = cuint32;         { used for device numbers      }
+    dev_t    = cint32;         { used for device numbers      }
     TDev     = dev_t;
     pDev     = ^dev_t;
 
-    gid_t    = cuint32;         { used for group IDs           }
+    gid_t    = cint32;         { used for group IDs           }
     TGid     = gid_t;
     pGid     = ^gid_t;
     TIOCtlRequest = cuLong;
 
-    ino_t    = clonglong;           { used for file serial numbers }
+    ino_t    = cint64;           { used for file serial numbers }
     TIno     = ino_t;
     pIno     = ^ino_t;
 
@@ -75,29 +77,39 @@ type
     TPid     = pid_t;
     pPid     = ^pid_t;
 
-    wint_t	 = cint32;
+{$ifdef cpu64}
+    size_t   = cuint64;         { as definied in the C standard}
+    ssize_t  = cint64;          { used by function for returning number of bytes }
+    time_t   = cint64;           { used for returning the time  }
+{$else}
     size_t   = cuint32;         { as definied in the C standard}
+    ssize_t  = cint32;          { used by function for returning number of bytes }
+    time_t   = clong;           { used for returning the time  }
+{$endif}
+
+    wint_t   = cint32;
     TSize    = size_t;
     pSize    = ^size_t;
-    psize_t   = pSize;		
+    psize_t  = pSize;
 
-    ssize_t  = cint32;          { used by function for returning number of bytes }
     TsSize   = ssize_t;
-    psSize   = ^ssize_t;		
+    psSize   = ^ssize_t;
 
     uid_t    = cuint32;         { used for user ID type        }
     TUid     = Uid_t;
     pUid     = ^Uid_t;
 
-    clock_t  = culong;
+    clock_t  = cint32;
+    suseconds_t = cint32;
+    useconds_t = cuint32;
+
     TClock   = clock_t;
     pClock   = ^clock_t;
 
-    time_t   = clong;           { used for returning the time  }
     // TTime    = time_t;    // Not allowed in system unit, -> unixtype
     pTime    = ^time_t;
     ptime_t =  ^time_t;
-    
+
     wchar_t   = cint32;
     pwchar_t  = ^wchar_t;
 
@@ -105,21 +117,23 @@ type
     TSocklen = socklen_t;
     pSocklen = ^socklen_t;
 
-  timeval  = packed record
-    tv_sec,tv_usec:clong;
-  end;
-  ptimeval = ^timeval;
-  TTimeVal = timeval;
+    timeval  = record
+      tv_sec: time_t;
+      tv_usec: suseconds_t;
+    end;
+    ptimeval = ^timeval;
+    TTimeVal = timeval;
 
-  timespec = packed record
-    tv_sec   : time_t;
-    tv_nsec  : clong;
-  end;
-  ptimespec= ^timespec;
-  Ttimespec= timespec;
-  
+    timespec = record
+      tv_sec   : time_t;
+      tv_nsec  : clong;
+    end;
+
+    ptimespec= ^timespec;
+    Ttimespec= timespec;
+
   pthread_t = culong;
-  
+
   sched_param = record
     __sched_priority: cint;
   end;
@@ -159,7 +173,7 @@ type
     __padding: array[0..48-1-sizeof(_pthread_fastlock)-sizeof(pointer)-sizeof(clonglong)] of byte;
     __align: clonglong;
   end;
-    
+
   pthread_condattr_t = record
     __dummy: cint;
   end;
@@ -186,8 +200,8 @@ type
      __sem_waiting: pointer;
   end;
 
-   rlim_t		= int64;
-   TRlim		= rlim_t;
+   rlim_t = int64;
+   TRlim  = rlim_t;
 
 
 CONST
@@ -212,8 +226,8 @@ CONST
     PATH_MAX = 1024;    {255}   { Maximum number of bytes in pathname }
 
     SYS_NMLN = 32;              {BSD utsname struct limit}
-    
-    SIG_MAXSIG = 32; //128;	// highest signal version  // BeOS  
+
+    SIG_MAXSIG = 64;    { __MAX_SIGNO in signal.h }
 
 const
   { For getting/setting priority }

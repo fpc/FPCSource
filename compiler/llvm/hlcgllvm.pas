@@ -47,6 +47,7 @@ uses
       procedure getcpuregister(list: TAsmList; r: Tregister); override;
       procedure ungetcpuregister(list: TAsmList; r: Tregister); override;
       procedure alloccpuregisters(list: TAsmList; rt: Tregistertype; const r: Tcpuregisterset); override;
+      procedure allocallcpuregisters(list: TAsmList); override;
       procedure deallocallcpuregisters(list: TAsmList); override;
 
       procedure a_bit_test_reg_reg_reg(list: TAsmList; bitnumbersize, valuesize, destsize: tdef; bitnumber, value, destreg: tregister); override;
@@ -86,6 +87,8 @@ uses
       procedure a_cmp_reg_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel); override;
 
       procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
+
+      procedure g_unreachable(list: TAsmList); override;
 
       procedure g_concatcopy(list : TAsmList;size: tdef; const source,dest : treference);override;
 
@@ -230,7 +233,7 @@ implementation
                    construction (the record is build from the paraloc
                    types) }
                  else if userecord then
-                   a_load_ref_reg(list,location^.def,location^.def,tmpref,location^.register)
+                   a_load_ref_reg(list,fielddef,location^.def,tmpref,location^.register)
                  { if the parameter is passed in a single paraloc, the
                    paraloc's type may be different from the declared type
                    -> use the original complete parameter size as source so
@@ -333,6 +336,12 @@ implementation
     end;
 
 
+  procedure thlcgllvm.allocallcpuregisters(list: TAsmList);
+    begin
+      { don't do anything }
+    end;
+
+
   procedure thlcgllvm.deallocallcpuregisters(list: TAsmList);
     begin
       { don't do anything }
@@ -425,6 +434,9 @@ implementation
     callparas:=tfplist.Create;
     for i:=0 to high(paras) do
       begin
+        { skip parameters without data }
+        if paras[i]^.isempty then
+          continue;
         paraloc:=paras[i]^.location;
         while assigned(paraloc) do
           begin
@@ -541,8 +553,14 @@ implementation
 
 
   procedure thlcgllvm.a_load_const_reg(list: TAsmList; tosize: tdef; a: tcgint; register: tregister);
+    var
+      fromsize: tdef;
     begin
-      list.concat(taillvm.op_reg_size_const_size(llvmconvop(ptrsinttype,tosize,false),register,ptrsinttype,a,tosize))
+      if tosize.size<=ptrsinttype.size then
+        fromsize:=ptrsinttype
+      else
+        fromsize:=tosize;
+      list.concat(taillvm.op_reg_size_const_size(llvmconvop(fromsize,tosize,false),register,fromsize,a,tosize))
     end;
 
 
@@ -676,6 +694,8 @@ implementation
             reg1:=tmpreg;
             fromsize:=tmpintdef;
           end;
+        else
+          ;
       end;
       { reg2 = bitcast fromsize reg1 to tosize }
       list.concat(taillvm.op_reg_size_reg_size(op,reg2,fromsize,reg1,tosize));
@@ -760,6 +780,8 @@ implementation
                 a_loadmm_ref_ref(list,fromsize,fromsize,simpleref,tmpref2,firstshuffle);
                 a_loadmm_ref_reg(list,tosize,tosize,tmpref,register,shuffle);
               end;
+            else
+              internalerror(2019051040);
           end;
           tg.ungettemp(list,tmpref);
           result:=true;
@@ -1035,35 +1057,6 @@ implementation
       invert: boolean;
       fallthroughlab, falselab, tmplab: tasmlabel;
     begin
-      { since all comparisons return their results in a register, we'll often
-        get comparisons against true/false -> optimise }
-      if (size=pasbool8type) and
-         (cmp_op in [OC_EQ,OC_NE]) then
-        begin
-          { convert to an llvmbool1type and use directly }
-          tmpreg:=getintregister(list,llvmbool1type);
-          a_load_reg_reg(list,size,llvmbool1type,reg,tmpreg);
-          case cmp_op of
-            OC_EQ:
-              invert:=a=0;
-            OC_NE:
-              invert:=a=1;
-            else
-              { avoid uninitialised warning }
-              internalerror(2015031504);
-            end;
-          current_asmdata.getjumplabel(falselab);
-          fallthroughlab:=falselab;
-          if invert then
-            begin
-              tmplab:=l;
-              l:=falselab;
-              falselab:=tmplab;
-            end;
-          list.concat(taillvm.op_size_reg_lab_lab(la_br,llvmbool1type,tmpreg,l,falselab));
-          a_label(list,fallthroughlab);
-          exit;
-        end;
       tmpreg:=getregisterfordef(list,size);
       a_load_const_reg(list,size,a,tmpreg);
       a_cmp_reg_reg_label(list,size,cmp_op,tmpreg,reg,l);
@@ -1093,6 +1086,11 @@ implementation
       { implement in tcg because required by the overridden a_label; doesn't use
         any high level stuff anyway }
       cg.a_jmp_always(list,l);
+    end;
+
+  procedure thlcgllvm.g_unreachable(list: TAsmList);
+    begin
+      list.Concat(taillvm.op_none(la_unreachable));
     end;
 
 
@@ -1128,9 +1126,7 @@ implementation
       a_load_const_cgpara(list,u64inttype,size.size,sizepara);
       maxalign:=newalignment(max(source.alignment,dest.alignment),min(source.alignment,dest.alignment));
       a_load_const_cgpara(list,u32inttype,maxalign,alignpara);
-      { we don't know anything about volatility here, should become an extra
-        parameter to g_concatcopy }
-      a_load_const_cgpara(list,llvmbool1type,0,volatilepara);
+      a_load_const_cgpara(list,llvmbool1type,ord((vol_read in source.volatility) or (vol_write in dest.volatility)),volatilepara);
       g_call_system_proc(list,pd,[@destpara,@sourcepara,@sizepara,@alignpara,@volatilepara],nil).resetiftemp;
       sourcepara.done;
       destpara.done;
@@ -1383,7 +1379,7 @@ implementation
         internalerror(2015122504);
       current_asmdata.getjumplabel(hl);
       a_cmp_const_loc_label(list,llvmbool1type,OC_EQ,0,ovloc,hl);
-      g_call_system_proc(list,'fpc_overflow',[],nil);
+      g_call_system_proc(list,'fpc_overflow',[],nil).resetiftemp;
       a_label(list,hl);
     end;
 
@@ -1496,7 +1492,7 @@ implementation
                     exit;
                 end;
               if fromsize<>tosize then
-                g_ptrtypecast_ref(list,cpointerdef.create(fromsize),cpointerdef.create(tosize),href);
+                g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize),cpointerdef.getreusable(tosize),href);
               { %reg = load size* %ref }
               list.concat(taillvm.op_reg_size_ref(la_load,reg,cpointerdef.getreusable(tosize),href));
             end;
@@ -1609,8 +1605,12 @@ implementation
 
 
   procedure thlcgllvm.gen_load_loc_function_result(list: TAsmList; vardef: tdef; const l: tlocation);
+    var
+      retlocpara: tcgpara;
     begin
-      gen_load_loc_cgpara(list,vardef,l,get_call_result_cgpara(current_procinfo.procdef,nil));
+      retlocpara:=get_call_result_cgpara(current_procinfo.procdef,nil);
+      gen_load_loc_cgpara(list,vardef,l,retlocpara);
+      retlocpara.resetiftemp;
     end;
 
 
@@ -1788,7 +1788,7 @@ implementation
 
   function thlcgllvm.make_simple_ref(list: TAsmList; const ref: treference; def: tdef): treference;
     begin
-      result:=make_simple_ref_ptr(list,ref,cpointerdef.create(def));
+      result:=make_simple_ref_ptr(list,ref,cpointerdef.getreusable(def));
     end;
 
 
@@ -1910,6 +1910,8 @@ implementation
                   a_loadfpu_reg_ref(list,llvmretdef,llvmretdef,resval,rettemp);
                 R_MMREGISTER:
                   a_loadmm_reg_ref(list,llvmretdef,llvmretdef,resval,rettemp,mms_movescalar);
+                else
+                  ;
               end;
               { the return parameter now contains a value whose type matches the one
                 that the high level code generator expects instead of the llvm shim
@@ -1995,6 +1997,8 @@ implementation
                   list.concat(Tai_comment.Create(strpnew('Var '+vs.realname+' located at %tmp.'+
                      tostr(getsupreg(vs.initialloc.reference.base)))));
               end;
+            else
+              ;
           end;
         end;
       vs.localloc:=vs.initialloc;

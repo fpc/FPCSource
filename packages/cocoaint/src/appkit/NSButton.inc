@@ -56,21 +56,21 @@
     procedure setButtonType(aType: NSButtonType); message 'setButtonType:';
     function state: NSInteger; message 'state';
     procedure setState(value: NSInteger); message 'setState:';
-    function isBordered: Boolean; message 'isBordered';
-    procedure setBordered(flag: Boolean); message 'setBordered:';
-    function isTransparent: Boolean; message 'isTransparent';
-    procedure setTransparent(flag: Boolean); message 'setTransparent:';
+    function isBordered: BOOL; message 'isBordered';
+    procedure setBordered(flag: BOOL); message 'setBordered:';
+    function isTransparent: BOOL; message 'isTransparent';
+    procedure setTransparent(flag: BOOL); message 'setTransparent:';
     procedure setPeriodicDelay_interval(delay: single; interval: single); message 'setPeriodicDelay:interval:';
     procedure getPeriodicDelay_interval(delay: psingle; interval: psingle); message 'getPeriodicDelay:interval:';
     function keyEquivalent: NSString; message 'keyEquivalent';
     procedure setKeyEquivalent(charCode: NSString); message 'setKeyEquivalent:';
     function keyEquivalentModifierMask: NSUInteger; message 'keyEquivalentModifierMask';
     procedure setKeyEquivalentModifierMask(mask: NSUInteger); message 'setKeyEquivalentModifierMask:';
-    procedure highlight(flag: Boolean); message 'highlight:';
-    function performKeyEquivalent(key: NSEvent): Boolean; message 'performKeyEquivalent:';
+    procedure highlight(flag: BOOL); message 'highlight:';
+    function performKeyEquivalent(key: NSEvent): BOOL; message 'performKeyEquivalent:';
 
     { Adopted Protocols }
-    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): Boolean;
+    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): BOOL;
   end;
 
 { NSKeyboardUI_NSButtonCategory }
@@ -94,15 +94,15 @@
 
 { NSButtonMixedStateCategory }
   NSButtonMixedStateCategory = objccategory external (NSButton)
-    procedure setAllowsMixedState(flag: Boolean); message 'setAllowsMixedState:';
-    function allowsMixedState: Boolean; message 'allowsMixedState';
+    procedure setAllowsMixedState(flag: BOOL); message 'setAllowsMixedState:';
+    function allowsMixedState: BOOL; message 'allowsMixedState';
     procedure setNextState; message 'setNextState';
   end;
 
 { NSButtonBorderCategory }
   NSButtonBorderCategory = objccategory external (NSButton)
-    procedure setShowsBorderOnlyWhileMouseInside(show: Boolean); message 'setShowsBorderOnlyWhileMouseInside:';
-    function showsBorderOnlyWhileMouseInside: Boolean; message 'showsBorderOnlyWhileMouseInside';
+    procedure setShowsBorderOnlyWhileMouseInside(show: BOOL); message 'setShowsBorderOnlyWhileMouseInside:';
+    function showsBorderOnlyWhileMouseInside: BOOL; message 'showsBorderOnlyWhileMouseInside';
   end;
 
 { NSButtonSoundExtensionsCategory }

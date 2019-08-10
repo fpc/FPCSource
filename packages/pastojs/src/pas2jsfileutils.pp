@@ -28,6 +28,9 @@ uses
   {$IFDEF Unix}
   BaseUnix,
   {$ENDIF}
+  {$IFDEF Pas2JS}
+  JS, NodeJS, NodeJSFS,
+  {$ENDIF}
   SysUtils, Classes;
 
 function FilenameIsAbsolute(const aFilename: string):boolean;
@@ -35,16 +38,26 @@ function FilenameIsWinAbsolute(const aFilename: string):boolean;
 function FilenameIsUnixAbsolute(const aFilename: string):boolean;
 function FileIsInPath(const Filename, Path: string): boolean;
 function ChompPathDelim(const Path: string): string;
-function ExpandFileNameUTF8(const FileName: string; {const} BaseDir: string = ''): string;
+function ExpandFileNamePJ(const FileName: string; {const} BaseDir: string = ''): string;
 function ExpandDirectory(const aDirectory: string): string;
-function TryCreateRelativePath(const Filename, BaseDirectory: String;
-  UsePointDirectory: boolean; out RelPath: String): Boolean;
+function IsUNCPath(const Path: String): Boolean;
+function ExtractUNCVolume(const Path: String): String;
+function ExtractFileRoot(FileName: String): String;
+function TryCreateRelativePath(
+  const Dest: String; // Filename
+  const Source: String; // Directory
+  UsePointDirectory: boolean; // True = return '.' for the current directory instead of ''
+  AlwaysRequireSharedBaseFolder: Boolean;// true = only shorten if at least one shared folder
+  out RelPath: String): Boolean;
 function ResolveDots(const AFilename: string): string;
 procedure ForcePathDelims(Var FileName: string);
 function GetForcedPathDelims(Const FileName: string): String;
 function ExtractFilenameOnly(const aFilename: string): string;
-function GetCurrentDirUTF8: String;
+function GetCurrentDirPJ: String;
 function CompareFilenames(const File1, File2: string): integer;
+{$IFDEF Pas2js}
+function FilenameToKey(const Filename: string): string;
+{$ENDIF}
 
 function GetPhysicalFilename(const Filename: string;
         ExceptionOnError: boolean): string;
@@ -52,10 +65,11 @@ function ResolveSymLinks(const Filename: string;
                  {%H-}ExceptionOnError: boolean): string; // if a link is broken returns ''
 function MatchGlobbing(Mask, Name: string): boolean;
 function FileIsWritable(const AFilename: string): boolean;
+function FileIsExecutable(const AFilename: string): boolean;
 
-function GetEnvironmentVariableCountUTF8: Integer;
-function GetEnvironmentStringUTF8(Index: Integer): string;
-function GetEnvironmentVariableUTF8(const EnvVar: string): String;
+function GetEnvironmentVariableCountPJ: Integer;
+function GetEnvironmentStringPJ(Index: Integer): string;
+function GetEnvironmentVariablePJ(const EnvVar: string): String;
 
 function GetNextDelimitedItem(const List: string; Delimiter: char;
                               var Position: integer): string;
@@ -65,12 +79,10 @@ const InvalidChangeStamp = low(TChangeStamp);
 procedure IncreaseChangeStamp(var Stamp: TChangeStamp);
 
 const
-  UTF8BOM = #$EF#$BB#$BF;
   EncodingUTF8 = 'UTF-8';
   EncodingSystem = 'System';
 function NormalizeEncoding(const Encoding: string): string;
 function IsNonUTF8System: boolean;// true if system encoding is not UTF-8
-function UTF8CharacterStrictLength(P: PChar): integer;
 function GetDefaultTextEncoding: string;
 function GetConsoleTextEncoding: string;
 {$IFDEF Windows}
@@ -83,6 +95,11 @@ function GetUnixEncoding: string;
 {$ENDIF}
 function IsASCII(const s: string): boolean; inline;
 
+{$IFDEF FPC_HAS_CPSTRING}
+const
+  UTF8BOM = #$EF#$BB#$BF;
+function UTF8CharacterStrictLength(P: PChar): integer;
+
 function UTF8ToUTF16(const s: string): UnicodeString;
 function UTF16ToUTF8(const s: UnicodeString): string;
 
@@ -92,6 +109,7 @@ function SystemCPToUTF8(const s: string): string;
 function ConsoleToUTF8(const s: string): string;
 // converts UTF8 string to console encoding (used by Write, WriteLn)
 function UTF8ToConsole(const s: string): string;
+{$ENDIF FPC_HAS_CPSTRING}
 
 implementation
 
@@ -107,12 +125,12 @@ var
   Lang: string = '';
   {$ENDIF}
   {$ENDIF}
-  NonUTF8System: boolean = false;
+  NonUTF8System: boolean = {$IFDEF FPC_HAS_CPSTRING}false{$ELSE}true{$ENDIF};
 
 function FilenameIsWinAbsolute(const aFilename: string): boolean;
 begin
   Result:=((length(aFilename)>=3) and
-           (aFilename[1] in ['A'..'Z','a'..'z']) and (aFilename[2]=':')  and (aFilename[3]in AllowDirectorySeparators))
+           (aFilename[1] in ['A'..'Z','a'..'z']) and (aFilename[2]=':') and (aFilename[3]in AllowDirectorySeparators))
       or ((length(aFilename)>=2) and (aFilename[1] in AllowDirectorySeparators) and (aFilename[2] in AllowDirectorySeparators));
 end;
 
@@ -136,7 +154,7 @@ begin
   ExpPath:=IncludeTrailingPathDelimiter(Path);
   l:=length(ExpPath);
   Result:=(l>0) and (length(ExpFile)>l) and (ExpFile[l]=PathDelim)
-          and (AnsiCompareFileName(ExpPath,LeftStr(ExpFile,l))=0);
+          and (CompareFileNames(ExpPath,LeftStr(ExpFile,l))=0);
 end;
 
 function ChompPathDelim(const Path: string): string;
@@ -154,12 +172,23 @@ begin
     if (Len >= 2) and (Result[2] in AllowDirectorySeparators) then
       MinLen := 2; // keep UNC '\\', chomp 'a\' to 'a'
     {$ENDIF}
+    {$IFDEF Pas2js}
+    if (Len >= 2) and (Result[2]=Result[1]) and (PathDelim='\') then
+      MinLen := 2; // keep UNC '\\', chomp 'a\' to 'a'
+    {$ENDIF}
   end
   else begin
     MinLen := 0;
     {$IFdef MSWindows}
     if (Len >= 3) and (Result[1] in ['a'..'z', 'A'..'Z'])  and
        (Result[2] = ':') and (Result[3] in AllowDirectorySeparators)
+    then
+      MinLen := 3;
+    {$ENDIF}
+    {$IFdef Pas2js}
+    if (PathDelim='\')
+        and (Len >= 3) and (Result[1] in ['a'..'z', 'A'..'Z'])
+        and (Result[2] = ':') and (Result[3] in AllowDirectorySeparators)
     then
       MinLen := 3;
     {$ENDIF}
@@ -174,13 +203,52 @@ function ExpandDirectory(const aDirectory: string): string;
 begin
   Result:=aDirectory;
   if Result='' then exit;
-  Result:=ExpandFileNameUTF8(Result);
+  Result:=ExpandFileNamePJ(Result);
   if Result='' then exit;
   Result:=IncludeTrailingPathDelimiter(Result);
 end;
 
-function TryCreateRelativePath(const Filename, BaseDirectory: String;
-  UsePointDirectory: boolean; out RelPath: String): Boolean;
+{
+  Returns
+  - DriveLetter + : + PathDelim on Windows (if present) or
+  - UNC Share on Windows if present or
+  - PathDelim if FileName starts with PathDelim on Unix or Wince or
+  - Empty string of non eof the above applies
+}
+function ExtractFileRoot(FileName: String): String;
+var
+  Len: Integer;
+begin
+  Result := '';
+  Len := Length(FileName);
+  if (Len > 0) then
+  begin
+    if IsUncPath(FileName) then
+    begin
+      Result := ExtractUNCVolume(FileName);
+      // is it like \\?\C:\Directory?  then also include the "C:\" part
+      if (Result = '\\?\') and (Length(FileName) > 6) and
+         (FileName[5] in ['a'..'z','A'..'Z']) and (FileName[6] = ':') and (FileName[7] in AllowDirectorySeparators)
+      then
+        Result := Copy(FileName, 1, 7);
+    end
+    else
+    begin
+      {$if defined(unix) or defined(wince)}
+      if (FileName[1] = PathDelim) then Result := PathDelim;
+      {$else}
+        {$ifdef HASAMIGA}
+        if Pos(':', FileName) > 1 then
+          Result := Copy(FileName, 1, Pos(':', FileName));
+        {$else}
+        if (Len > 2) and (FileName[1] in ['a'..'z','A'..'Z']) and (FileName[2] = ':') and (FileName[3] in AllowDirectorySeparators) then
+          Result := UpperCase(Copy(FileName,1,3));
+        {$endif}
+      {$endif}
+    end;
+  end;
+end;
+
 {
   Returns True if it is possible to create a relative path from Source to Dest
   Function must be thread safe, so no expanding of filenames is done, since this
@@ -199,107 +267,178 @@ function TryCreateRelativePath(const Filename, BaseDirectory: String;
     no PathDelimiter is appended to the end of RelPath
 
   Examples:
-  - Filename = /foo/bar BaseDirectory = /foo Result = True RelPath = bar
-  - Filename = /foo///bar BaseDirectory = /foo// Result = True RelPath = bar
-  - Filename = /foo BaseDirectory = /foo/bar Result = True RelPath = ../
-  - Filename = /foo/bar BaseDirectory = /bar Result = False (no shared base directory)
-  - Filename = foo/bar BaseDirectory = foo/foo Result = True RelPath = ../bar
-  - Filename = foo/bar BaseDirectory = bar/foo Result = False (no shared base directory)
-  - Filename = /foo BaseDirectory = bar Result = False (mixed absolute and relative)
+  - Dest = /foo/bar Source = /foo Result = True RelPath = bar
+  - Dest = /foo///bar Source = /foo// Result = True RelPath = bar
+  - Dest = /foo Source = /foo/bar Result = True RelPath = ../
+  - Dest = /foo/bar Source = /bar Result = True RelPath = ../foo/bar
+  - Dest = foo/bar Source = foo/foo Result = True RelPath = ../bar
+  - Dest = foo/bar Source = bar/foo Result = False (no shared base directory)
+  - Dest = /foo Source = bar Result = False (mixed absolute and relative)
+  - Dest = c:foo Source = c:bar Result = False (no expanding)
+  - Dest = c:\foo Source = d:\bar Result is False (different drives)
+  - Dest = \foo Source = foo (Windows) Result is False (too ambiguous to guess what this should mean)
+  - Dest = /foo Source = /bar AlwaysRequireSharedBaseFolder = True Result = False
+  - Dest = /foo Source = /bar AlwaysRequireSharedBaseFolder = False Result = True RelPath = ../foo
 }
+function TryCreateRelativePath(const Dest: String; const Source: String;
+  UsePointDirectory: boolean; AlwaysRequireSharedBaseFolder: Boolean; out
+  RelPath: String): Boolean;
+Type
+  TDirArr =  TStringArray;
 
-  function IsNameChar(c: char): boolean; inline;
+  function SplitDirs(Dir: String; out Dirs: TDirArr): integer;
+  var
+    Start, Stop, Len: Integer;
+    S: String;
   begin
-    Result:=(c<>#0) and not (c in AllowDirectorySeparators);
+    Result := 0;
+    Len := Length(Dir);
+    Dirs:=nil;
+    if (Len = 0) then Exit;
+    Start := 1;
+    Stop := 1;
+
+    While Start <= Len do
+    begin
+      if (Dir[Start] in AllowDirectorySeparators) then
+      begin
+        S := Copy(Dir,Stop,Start-Stop);
+        //ignore empty strings, they are caused by double PathDelims, which we just ignore
+        if (S <> '') then
+        begin
+          Inc(Result);
+          if Result>length(Dirs) then
+            SetLength(Dirs,length(Dirs)*2+10);
+          Dirs[Result-1] := S;
+        end;
+        Stop := Start + 1;
+      end;
+      Inc(Start);
+    end;
+
+    S := Copy(Dir,Stop,Start-Stop);
+    if (S <> '') then
+    begin
+      Inc(Result);
+      if Result>length(Dirs) then
+        SetLength(Dirs,length(Dirs)*2+10);
+      Dirs[Result-1] := S;
+    end;
   end;
 
 var
-  UpDirCount: Integer;
-  ResultPos: Integer;
-  i: Integer;
-  FileNameRestLen, SharedDirs: Integer;
-  FileP, BaseP, FileEndP, BaseEndP: PChar;
+  SourceRoot, DestRoot, CmpDest, CmpSource: String;
+  CmpDestLen, CmpSourceLen, DestCount, SourceCount, i,
+  SharedFolders, LevelsBack, LevelsUp: Integer;
+  SourceDirs, DestDirs: TDirArr;
+  IsAbs: Boolean;
 begin
-  Result:=false;
-  RelPath:=Filename;
-  if (BaseDirectory='') or (Filename='') then exit;
-  // check for different windows file drives
-  if (CompareText(ExtractFileDrive(Filename),
-                     ExtractFileDrive(BaseDirectory))<>0)
-  then
-    exit;
-
-  FileP:=PChar(Filename);
-  BaseP:=PChar(BaseDirectory);
-
-  //writeln('TryCreateRelativePath START File="',FileP,'" Base="',BaseP,'"');
-
-  // skip matching directories
-  SharedDirs:=0;
-  if FileP^ in AllowDirectorySeparators then
+  Result := False;
+  if (Dest = '') or (Source = '') then Exit;
+  if (Pos('..',Dest) > 0) or (Pos('..',Source) > 0) then Exit;
+  SourceRoot := ExtractFileRoot(Source);
+  DestRoot := ExtractFileRoot(Dest);
+  // Root must be same: either both absolute filenames or both relative (and on same drive in Windows)
+  if (CompareFileNames(SourceRoot, DestRoot) <> 0) then Exit;
+  IsAbs := (DestRoot <> '');
+  {$if defined(windows) and not defined(wince)}
+  if not IsAbs then  // relative paths
   begin
-    if not (BaseP^ in AllowDirectorySeparators) then exit;
-    repeat
-      while FileP^ in AllowDirectorySeparators do inc(FileP);
-      while BaseP^ in AllowDirectorySeparators do inc(BaseP);
-      if (FileP^=#0) or (BaseP^=#0) then break;
-      //writeln('TryCreateRelativePath check match .. File="',FileP,'" Base="',BaseP,'"');
-      FileEndP:=FileP;
-      BaseEndP:=BaseP;
-      while IsNameChar(FileEndP^) do inc(FileEndP);
-      while IsNameChar(BaseEndP^) do inc(BaseEndP);
-      if CompareFilenames(copy(Filename,FileP-PChar(Filename)+1,FileEndP-FileP),
-        copy(BaseDirectory,BaseP-PChar(BaseDirectory)+1,BaseEndP-BaseP))<>0
-      then
-        break;
-      FileP:=FileEndP;
-      BaseP:=BaseEndP;
-      inc(SharedDirs);
-    until false;
-  end else if (BaseP^ in AllowDirectorySeparators) then
-    exit;
+    //we cannot handle files like c:foo
+    if ((Length(Dest) > 1) and (UpCase(Dest[1]) in ['A'..'Z']) and (Dest[2] = ':')) or
+       ((Length(Source) > 1) and (UpCase(Source[1]) in ['A'..'Z']) and (Source[2] = ':')) then Exit;
+    //we cannot handle combinations like dest=foo source=\bar or the other way around
+    if ((Dest[1] in AllowDirectorySeparators) and not (Source[1] in AllowDirectorySeparators)) or
+       (not (Dest[1] in AllowDirectorySeparators) and (Source[1] in AllowDirectorySeparators)) then Exit;
+  end;
+  {$endif}
 
-  //writeln('TryCreateRelativePath skipped matches File="',FileP,'" Base="',BaseP,'"');
-  if SharedDirs=0 then exit;
+  CmpSource := Source;
+  CmpDest := Dest;
 
-  // calculate needed '../'
-  UpDirCount:=0;
-  BaseEndP:=BaseP;
-  while IsNameChar(BaseEndP^) do begin
-    inc(UpDirCount);
-    while IsNameChar(BaseEndP^) do inc(BaseEndP);
-    while BaseEndP^ in AllowDirectorySeparators do inc(BaseEndP);
+  CmpDest := ChompPathDelim(Dest);
+  CmpSource := ChompPathDelim(Source);
+  if IsAbs then
+  begin
+    System.Delete(CmpSource,1,Length(SourceRoot));
+    System.Delete(CmpDest,1,Length(DestRoot));
   end;
 
-  //writeln('TryCreateRelativePath UpDirCount=',UpDirCount,' File="',FileP,'" Base="',BaseP,'"');
-  // create relative filename
-  if (FileP^=#0) and (UpDirCount=0) then
+  //Get rid of excessive trailing PathDelims now after (!) we stripped Root
+  while (Length(CmpDest) > 0) and (CmpDest[Length(CmpDest)] in AllowDirectorySeparators) do System.Delete(CmpDest,Length(CmpDest),1);
+  while (Length(CmpSource) > 0) and (CmpSource[Length(CmpSource)] in AllowDirectorySeparators) do System.Delete(CmpSource,Length(CmpSource),1);
+
+  CmpDestLen := Length(CmpDest);
+  CmpSourceLen := Length(CmpSource);
+
+  DestCount := SplitDirs(CmpDest, DestDirs);
+  SourceCount :=  SplitDirs(CmpSource, SourceDirs);
+
+  //writeln('TryCreaterelativePath: DestDirs:');
+  //for i := 1 to DestCount do writeln(i,' "',DestDirs[i-1],'"');
+  //writeln('TryCreaterelativePath: SrcDirs:');
+  //for i := 1 to SourceCount do writeln(i,' "',SourceDirs[i-1],'"');
+
+  i := 0;
+  SharedFolders := 0;
+  while (i < DestCount) and (i < SourceCount) do
   begin
-    // Filename is the BaseDirectory
-    if UsePointDirectory then
-      RelPath:='.'
+    if CompareFilenames(DestDirs[i], SourceDirs[i]) = 0 then
+    begin
+      Inc(SharedFolders);
+      Inc(i);
+    end
     else
-      RelPath:='';
-    exit(true);
+      Break;
   end;
 
-  FileNameRestLen:=length(Filename)-(FileP-PChar(Filename));
-  SetLength(RelPath,3*UpDirCount+FileNameRestLen);
-  ResultPos:=1;
-  for i:=1 to UpDirCount do begin
-    RelPath[ResultPos]:='.';
-    RelPath[ResultPos+1]:='.';
-    RelPath[ResultPos+2]:=PathDelim;
-    inc(ResultPos,3);
+  //writeln('TryCreaterelativePath: SharedFolders = ',SharedFolders);
+  if (SharedFolders = 0) and ((not IsAbs) or AlwaysRequireSharedBaseFolder) and not ((CmpDestLen = 0) or (CmpSourceLen = 0)) then
+  begin
+    //debguln('TryCreaterelativePath: FAIL: IsAbs = ',DbgS(IsAs),' AlwaysRequireSharedBaseFolder = ',DbgS(AlwaysRequireSharedBaseFolder),
+    //' SharedFolders = 0, CmpDestLen = ',DbgS(cmpdestlen),' CmpSourceLen = ',DbgS(CmpSourceLen));
+    Exit;
   end;
-  if FileNameRestLen>0 then
-    Move(FileP^,RelPath[ResultPos],FileNameRestLen);
-  Result:=true;
+  LevelsBack := SourceCount - SharedFolders;
+  LevelsUp := DestCount - SharedFolders;
+  //writeln('TryCreaterelativePath: LevelsBack = ',Levelsback);
+  //writeln('TryCreaterelativePath: LevelsUp   = ',LevelsUp);
+  if (LevelsBack > 0) then
+  begin
+    RelPath := '';
+    for i := 1 to LevelsBack do RelPath := '..' + PathDelim + Relpath;
+
+    for i := LevelsUp downto 1 do
+    begin
+      if (RelPath <> '') and not (RelPath[Length(RelPath)] in AllowDirectorySeparators) then RelPath := RelPath + PathDelim;
+      RelPath := RelPath + DestDirs[DestCount - i];
+    end;
+    RelPath := ChompPathDelim(RelPath);
+  end
+  else
+  begin
+    RelPath := '';
+    for i := LevelsUp downto 1 do
+    begin
+      if (RelPath <> '') then RelPath := RelPath + PathDelim;
+      RelPath := RelPath + DestDirs[DestCount - i];
+    end;
+  end;
+  if UsePointDirectory and (RelPath = '') then
+    RelPath := '.'; // Dest = Source
+
+  //writeln('TryCreateRelativePath RelPath=',RelPath);
+  Result := True;
 end;
 
 function ResolveDots(const AFilename: string): string;
 //trim double path delims and expand special dirs like .. and .
 //on Windows change also '/' to '\' except for filenames starting with '\\?\'
+{$IFDEF Pas2js}
+begin
+  Result:=NJS_Path.resolve(AFilename);
+end;
+{$ELSE}
 
   {$ifdef windows}
   function IsDriveDelim(const Path: string; p: integer): boolean; inline;
@@ -511,25 +650,34 @@ begin
     else
       SetLength(Result,DestPos-1);
 end;
+{$ENDIF}
 
-procedure ForcePathDelims(Var FileName: string);
-var
-  i: Integer;
+procedure ForcePathDelims(var FileName: string);
 begin
-  for i:=1 to length(FileName) do
-    {$IFDEF Windows}
-    if Filename[i]='/' then
-      Filename[i]:='\';
-    {$ELSE}
-    if Filename[i]='\' then
-      Filename[i]:='/';
-    {$ENDIF}
+  Filename:=GetForcedPathDelims(Filename);
 end;
 
 function GetForcedPathDelims(const FileName: string): String;
+var
+  i: Integer;
+  c: Char;
 begin
-  Result:=FileName;
-  ForcePathDelims(Result);
+  Result:=Filename;
+  {$IFDEF Pas2js}
+  if PathDelim='/' then
+    c:='\'
+  else
+    c:='/';
+  {$ELSE}
+  {$IFDEF Windows}
+  c:='/';
+  {$ELSE}
+  c:='/';
+  {$ENDIF}
+  {$ENDIF}
+  for i:=1 to length(Result) do
+    if Result[i]=c then
+      Result[i]:=PathDelim;
 end;
 
 function ExtractFilenameOnly(const aFilename: string): string;
@@ -551,12 +699,70 @@ begin
 end;
 
 function CompareFilenames(const File1, File2: string): integer;
+{$IFDEF Pas2js}
+var
+  a, b: string;
+{$ENDIF}
 begin
+  {$IFDEF Pas2js}
+  a:=FilenameToKey(File1);
+  b:=FilenameToKey(File2);
+  if a<b then
+    exit(-1)
+  else if a>b then
+    exit(1)
+  else
+    exit(0);
+  Result:=0;
+  {$ELSE}
   Result:=AnsiCompareFileName(File1,File2);
+  {$ENDIF}
 end;
+
+{$IFDEF Pas2js}
+function FilenameToKey(const Filename: string): string;
+begin
+  {$IFDEF Pas2js}
+  case NJS_OS.platform of
+  'darwin':
+    {$IF ECMAScript>5}
+    Result:=TJSString(Filename).normalize('NFD');
+    {$ELSE}
+    begin
+    Result:=Filename;
+    raise Exception.Create('pas2jsfileutils FilenameToKey requires ECMAScript6 "normalize" under darwin');
+    end;
+    {$ENDIF}
+  'win32': Result:=lowercase(Filename);
+  else Result:=Filename;
+  end;
+  {$ELSE}
+    {$IFDEF Windows}
+    Result:=AnsiLowerCase(Filename);
+    {$ELSE}
+      {$IFDEF Darwin}
+      todo
+      {$ELSE}
+      Result:=Filename;
+      {$ENDIF}
+    {$ENDIF}
+  {$ENDIF}
+end;
+{$ENDIF}
 
 function MatchGlobbing(Mask, Name: string): boolean;
 // match * and ?
+{$IFDEF Pas2js}
+begin
+  if Mask='' then exit(Name='');
+  if Mask='*' then exit(true);
+  {AllowWriteln}
+  writeln('MatchGlobbing ToDo ',Mask,' Name=',Name);
+  {AllowWriteln-}
+  raise Exception.Create('MatchGlobbing ToDo');
+  Result:=false;
+end;
+{$ELSE}
 
   function IsNameEnd(NameP: PChar): boolean; inline;
   begin
@@ -620,6 +826,7 @@ begin
     exit(false);
   Result:=Check(MaskP,PChar(Name));
 end;
+{$ENDIF}
 
 function GetNextDelimitedItem(const List: string; Delimiter: char;
   var Position: integer): string;
@@ -632,6 +839,7 @@ begin
   Result:=copy(List,StartPos,Position-StartPos);
   if Position<=length(List) then inc(Position); // skip Delimiter
 end;
+
 
 procedure IncreaseChangeStamp(var Stamp: TChangeStamp);
 begin
@@ -646,6 +854,76 @@ begin
   Result:=NonUTF8System;
 end;
 
+function GetDefaultTextEncoding: string;
+begin
+  if EncodingValid then
+  begin
+    Result:=DefaultTextEncoding;
+    exit;
+  end;
+
+  {$IFDEF Pas2js}
+  Result:=EncodingUTF8;
+  {$ELSE}
+    {$IFDEF Windows}
+    Result:=GetWindowsEncoding;
+    {$ELSE}
+      {$IFDEF Darwin}
+      Result:=EncodingUTF8;
+      {$ELSE}
+      // unix
+      Lang := GetEnvironmentVariable('LC_ALL');
+      if Lang='' then
+      begin
+        Lang := GetEnvironmentVariable('LC_MESSAGES');
+        if Lang='' then
+          Lang := GetEnvironmentVariable('LANG');
+      end;
+      Result:=GetUnixEncoding;
+      {$ENDIF}
+    {$ENDIF}
+  {$ENDIF}
+  Result:=NormalizeEncoding(Result);
+
+  DefaultTextEncoding:=Result;
+  EncodingValid:=true;
+end;
+
+function NormalizeEncoding(const Encoding: string): string;
+var
+  i: Integer;
+begin
+  Result:=LowerCase(Encoding);
+  for i:=length(Result) downto 1 do
+    if Result[i]='-' then Delete(Result,i,1);
+end;
+
+function IsASCII(const s: string): boolean; inline;
+{$IFDEF Pas2js}
+var
+  i: Integer;
+begin
+  for i:=1 to length(s) do
+    if s[i]>#127 then exit(false);
+  Result:=true;
+end;
+{$ELSE}
+var
+  p: PChar;
+begin
+  if s='' then exit(true);
+  p:=PChar(s);
+  repeat
+    case p^ of
+    #0: if p-PChar(s)=length(s) then exit(true);
+    #128..#255: exit(false);
+    end;
+    inc(p);
+  until false;
+end;
+{$ENDIF}
+
+{$IFDEF FPC_HAS_CPSTRING}
 function UTF8CharacterStrictLength(P: PChar): integer;
 begin
   if p=nil then exit(0);
@@ -689,60 +967,6 @@ begin
     exit(0);
 end;
 
-function GetDefaultTextEncoding: string;
-begin
-  if EncodingValid then
-  begin
-    Result:=DefaultTextEncoding;
-    exit;
-  end;
-
-  {$IFDEF Windows}
-  Result:=GetWindowsEncoding;
-  {$ELSE}
-  {$IFDEF Darwin}
-  Result:=EncodingUTF8;
-  {$ELSE}
-  Lang := GetEnvironmentVariable('LC_ALL');
-  if Lang='' then
-  begin
-    Lang := GetEnvironmentVariable('LC_MESSAGES');
-    if Lang='' then
-      Lang := GetEnvironmentVariable('LANG');
-  end;
-  Result:=GetUnixEncoding;
-  {$ENDIF}
-  {$ENDIF}
-  Result:=NormalizeEncoding(Result);
-
-  DefaultTextEncoding:=Result;
-  EncodingValid:=true;
-end;
-
-function NormalizeEncoding(const Encoding: string): string;
-var
-  i: Integer;
-begin
-  Result:=LowerCase(Encoding);
-  for i:=length(Result) downto 1 do
-    if Result[i]='-' then Delete(Result,i,1);
-end;
-
-function IsASCII(const s: string): boolean; inline;
-var
-  p: PChar;
-begin
-  if s='' then exit(true);
-  p:=PChar(s);
-  repeat
-    case p^ of
-    #0: if p-PChar(s)=length(s) then exit(true);
-    #128..#255: exit(false);
-    end;
-    inc(p);
-  until false;
-end;
-
 function UTF8ToUTF16(const s: string): UnicodeString;
 begin
   Result:=UTF8Decode(s);
@@ -756,6 +980,7 @@ begin
   // conversion magic
   SetCodePage(RawByteString(Result), CP_ACP, False);
 end;
+{$ENDIF}
 
 {$IFDEF Unix}
   {$I pas2jsfileutilsunix.inc}
@@ -763,9 +988,13 @@ end;
 {$IFDEF Windows}
   {$I pas2jsfileutilswin.inc}
 {$ENDIF}
+{$IFDEF NodeJS}
+  {$I pas2jsfileutilsnodejs.inc}
+{$ENDIF}
 
 procedure InternalInit;
 begin
+  {$IFDEF FPC_HAS_CPSTRING}
   SetMultiByteConversionCodePage(CP_UTF8);
   // SetMultiByteFileSystemCodePage(CP_UTF8); not needed, this is the default under Windows
   SetMultiByteRTLFileSystemCodePage(CP_UTF8);
@@ -776,12 +1005,16 @@ begin
   {$ELSE}
   NonUTF8System:=SysUtils.CompareText(DefaultTextEncoding,'UTF8')<>0;
   {$ENDIF}
+  {$ENDIF}
+
   InitPlatform;
 end;
 
 initialization
   InternalInit;
+{$IFDEF FPC}
 finalization
   FinalizePlatform;
+{$ENDIF}
 end.
 

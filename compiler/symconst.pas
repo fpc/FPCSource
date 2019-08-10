@@ -111,6 +111,9 @@ const
   pfVmt      = 1024;
   pfResult   = 2048;
 
+  riifNonTrivialChild          = 1;
+  riifParentHasNonTrivialChild = 2;
+
   unknown_level         = 0;
   main_program_level    = 1;
   normal_function_level = 2;
@@ -121,18 +124,17 @@ const
   paranr_blockselfpara = 1;
   paranr_parentfp = 2;
   paranr_parentfp_delphi_cc_leftright = 2;
-{$ifndef aarch64}
-  paranr_self = 3;
-  paranr_result = 4;
-{$else aarch64}
-  { on AArch64, the result parameter is passed in a special register, so its
-    order doesn't really matter -- except for LLVM, where the "sret" parameter
+{$if defined(aarch64) and defined(llvm)}
+  { for AArch64 on LLVM, the "sret" parameter
     must always be the first -> give it a higher number; can't do it for other
     platforms, because that would change the register assignment/parameter order
     and the current one is presumably Delphi-compatible }
   paranr_result = 3;
   paranr_self = 4;
-{$endif aarch64}
+{$else}
+  paranr_self = 3;
+  paranr_result = 4;
+{$endif}
   paranr_vmt = 5;
 
   { the implicit parameters for Objective-C methods need to come
@@ -267,9 +269,9 @@ type
     uvoid,
     u8bit,u16bit,u32bit,u64bit,u128bit,
     s8bit,s16bit,s32bit,s64bit,s128bit,
-    pasbool8,pasbool16,pasbool32,pasbool64,
+    pasbool1,pasbool8,pasbool16,pasbool32,pasbool64,
     bool8bit,bool16bit,bool32bit,bool64bit,
-    uchar,uwidechar,scurrency
+    uchar,uwidechar,scurrency,customint
   );
 
   tordtypeset = set of tordtype;
@@ -305,7 +307,8 @@ type
     potype_propsetter,
     potype_exceptfilter,      { SEH exception filter or termination handler }
     potype_mainstub,          { "main" function that calls through to FPC_SYSTEMMAIN }
-    potype_pkgstub            { stub for a package file, that tells OS that all is OK }
+    potype_pkgstub,           { stub for a package file, that tells OS that all is OK }
+    potype_libmainstub        { "main" function for a library that calls through to FPC_LIBMAIN }
   );
   tproctypeoptions=set of tproctypeoption;
 
@@ -411,7 +414,12 @@ type
     { procedure is an automatically generated property getter }
     po_is_auto_getter,
     { procedure is an automatically generated property setter }
-    po_is_auto_setter
+    po_is_auto_setter,
+    { must never be inlined          by auto-inlining }
+    po_noinline,
+    { same as po_varargs, but with an array-of-const parameter instead of with the
+      "varargs" modifier or Mac-Pascal ".." parameter }
+    po_variadic
   );
   tprocoptions=set of tprocoption;
 
@@ -421,7 +429,11 @@ type
     { the routine contains no code }
     pio_empty,
     { the inline body of this routine is available }
-    pio_has_inlininginfo
+    pio_has_inlininginfo,
+    { inline is not possible (has assembler block, etc) }
+    pio_inline_not_possible,
+    { a nested routine accesses a local variable from this routine }
+    pio_nested_access
   );
   timplprocoptions = set of timplprocoption;
 
@@ -635,8 +647,11 @@ type
     sto_has_helper,       { contains at least one helper symbol }
     sto_has_generic,      { contains at least one generic symbol }
     sto_has_operator,     { contains at least one operator overload }
-    sto_needs_init_final  { the symtable needs initialization and/or
+    sto_needs_init_final, { the symtable needs initialization and/or
                             finalization of variables/constants }
+    sto_has_non_trivial_init { contains at least on managed type that is not
+                               initialized to zero (e.g. a record with management
+                               operators }
   );
   tsymtableoptions = set of tsymtableoption;
 
@@ -728,6 +743,7 @@ type
     itp_rtti_set_outer,
     itp_rtti_set_inner,
     itp_init_record_operators,
+    itp_init_mop_offset_entry,
     itp_threadvar_record,
     itp_objc_method_list,
     itp_objc_proto_list,
@@ -867,6 +883,7 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
        '$rtti_set_outer$',
        '$rtti_set_inner$',
        '$init_record_operators$',
+       '$init_mop_offset_entry$',
        '$threadvar_record$',
        '$objc_method_list$',
        '$objc_proto_list$',
@@ -933,6 +950,91 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
 
       { suffix for indirect symbols (AB_INDIRECT) }
       suffix_indirect = '$indirect';
+
+    { TProcTypeOption string identifiers for error messsages }
+    ProcTypeOptionKeywords: array[tproctypeoption] of ShortString = (
+      'potype_none',        {potype_none}
+      'program initialization',{potype_proginit}
+      '"INITIALIZATION"',   {potype_unitinit}
+      '"FINALIZATION"',     {potype_unitfinalize}
+      '"CONSTRUCTOR"',      {potype_constructor}
+      '"DESTRUCTOR"',       {potype_destructor}
+      '"OPERATOR"',         {potype_operator}
+      '"PROCEDURE"',        {potype_procedure}
+      '"FUNCTION"',         {potype_function}
+      '"CLASS CONSTRUCTOR"',{potype_class_constructor}
+      '"CLASS DESTRUCTOR"', {potype_class_destructor}
+      'property getters',   {potype_propgetter}
+      'property setters',   {potype_propsetter}
+      'exception filters',  {potype_exceptfilter}
+      '"main" stub',        {potype_mainstub}
+      'package stub',       {potype_pkgstub}
+      'lib "main" stub'     {potype_libmainstub}
+    );
+
+    { TProcOption string identifiers for error messages }
+    ProcOptionKeywords: array[tprocoption] of ShortString = (
+      'po_none',            {po_none}
+      '"CLASS"',            {po_classmethod}
+      '"VIRTUAL"',          {po_virtualmethod}
+      '"ABSTRACT"',         {po_abstractmethod}
+      '"FINAL"',            {po_finalmethod}
+      '"STATIC"',           {po_staticmethod}
+      '"OVERRIDE"',         {po_overridingmethod}
+      'method pointers',    {po_methodpointer}
+      '"INTERRUPT"',        {po_interrupt}
+      'po_iocheck',         {po_iocheck}
+      '"ASSEMBLER"',        {po_assembler}
+      '"MESSAGE"',          {po_msgstr}
+      '"MESSAGE"',          {po_msgint}
+      '"EXPORT"',           {po_exports}
+      '"EXTERNAL"',         {po_external}
+      '"OVERLOAD"',         {po_overload}
+      'variable argument lists',{po_varargs}
+      'po_internconst',     {po_internconst}
+      'po_addressonly',     {po_addressonly}
+      '"PUBLIC"',           {po_public}
+      'po_hascallingconvention',{po_hascallingconvention}
+      '"REINTRODUCE"',      {po_reintroduce}
+      'po_explicitparaloc', {po_explicitparaloc}
+      '"NOSTACKFRAME"',     {po_nostackframe}
+      'po_has_mangledname', {po_has_mangledname}
+      'po_has_public_name', {po_has_public_name}
+      '"FORWARD"',          {po_forward}
+      'global routines',    {po_global}
+      '"SYSCALL"',          {po_syscall}
+      '"SYSCALL"',          {po_syscall_legacy}
+      '"SYSCALL"',          {po_syscall_basenone}
+      '"SYSCALL"',          {po_syscall_basefirst}
+      '"SYSCALL"',          {po_syscall_baselast}
+      '"SYSCALL"',          {po_syscall_basereg}
+      '"SYSCALL"',          {po_syscall_has_libsym}
+      '"SYSCALL"',          {po_syscall_has_importnr}
+      '"INLINE"',           {po_inline}
+      '"COMPILERPROC"',     {po_compilerproc}
+      'po_has_importdll',   {po_has_importdll}
+      'po_has_importname',  {po_has_importname}
+      'po_kylixlocal',      {po_kylixlocal}
+      '"DISPID"',           {po_dispid}
+      'po_weakexternal',    {po_weakexternal}
+      'po_objc',            {po_objc}
+      'po_enumerator_movenext',{po_enumerator_movenext}
+      'po_optional',        {po_optional}
+      'po_delphi_nested_cc',{po_delphi_nested_cc}
+      'RTL procedures',     {po_rtlproc}
+      'non-virtual Java methods',{po_java_nonvirtual}
+      'po_ignore_for_overload_resolution',{po_ignore_for_overload_resolution}
+      'po_auto_raised_visibility',{po_auto_raised_visibility}
+      '"FAR"',              {po_far}
+      'po_hasnearfarcallmodel',{po_hasnearfarcallmodel}
+      '"NORETURN"',{po_noreturn}
+      'po_is_function_ref',{po_is_function_ref}
+      'C-style blocks',{po_is_block}
+      'po_is_auto_getter',{po_is_auto_getter}
+      'po_is_auto_setter',{po_is_auto_setter}
+      'po_noinline',{po_noinline}
+      'C-style array-of-const' {po_variadic}
+    );
 
 implementation
 

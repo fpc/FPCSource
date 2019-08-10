@@ -277,6 +277,8 @@ unit cgcpu;
           list.insertafter(seh_proc,hitem)
         else
           list.insert(seh_proc);
+        { the directive creates another section }
+        inc(list.section_count);
         templist:=TAsmList.Create;
 
         { We need to record postive offsets from RSP; if registers are saved

@@ -939,7 +939,7 @@ begin
                      ColNameDefaultLength+1, // and its length; we include the #0 terminating any ansistring of Length > 0 in the buffer
                      ColNameLength,          // actual column name length
                      DataType,               // the SQL datatype for the column
-                     ColumnSize,             // column size
+                     ColumnSize,             // column size (in characters)
                      DecimalDigits,          // number of decimal digits
                      Nullable),              // SQL_NO_NULLS, SQL_NULLABLE or SQL_NULLABLE_UNKNOWN
       SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get column properties for column %d.',[i]
@@ -969,8 +969,8 @@ begin
       SQL_CHAR:          begin FieldType:=ftFixedChar;  FieldSize:=ColumnSize; end;
       SQL_VARCHAR:       begin FieldType:=ftString;     FieldSize:=ColumnSize; end;
       SQL_LONGVARCHAR:   begin FieldType:=ftMemo;       FieldSize:=BLOB_BUF_SIZE; end; // is a blob
-      SQL_WCHAR:         begin FieldType:=ftFixedWideChar; FieldSize:=ColumnSize*sizeof(Widechar); end;
-      SQL_WVARCHAR:      begin FieldType:=ftWideString; FieldSize:=ColumnSize*sizeof(Widechar); end;
+      SQL_WCHAR:         begin FieldType:=ftFixedWideChar; FieldSize:=ColumnSize; end;
+      SQL_WVARCHAR:      begin FieldType:=ftWideString; FieldSize:=ColumnSize; end;
       SQL_SS_XML,
       SQL_WLONGVARCHAR:  begin FieldType:=ftWideMemo;   FieldSize:=BLOB_BUF_SIZE; end; // is a blob
       SQL_DECIMAL:       begin FieldType:=ftFloat;      FieldSize:=0; end;
@@ -1120,10 +1120,7 @@ begin
     end;
 
     // add FieldDef
-    with FieldDefs.Add(FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, (Nullable=SQL_NO_NULLS) and (AutoIncAttr=SQL_FALSE), i) do
-    begin
-      if Updatable = SQL_ATTR_READONLY then Attributes := Attributes + [faReadonly];
-    end;
+    AddFieldDef(FieldDefs, i, ColName, FieldType, FieldSize, -1, False, (Nullable=SQL_NO_NULLS) and (AutoIncAttr=SQL_FALSE), Updatable=SQL_ATTR_READONLY);
   end;
 end;
 
@@ -1166,9 +1163,9 @@ begin
   // TODO: finish this
   case FieldDef.DataType of
     ftWideString,ftFixedWideChar: // mapped to TWideStringField
-      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_WCHAR, buffer, FieldDef.Size+sizeof(WideChar), @StrLenOrInd); //buffer must contain space for the null-termination character
+      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_WCHAR, buffer, FieldDef.Size*FieldDef.CharSize+sizeof(WideChar), @StrLenOrInd); //buffer must contain space for the null-termination character
     ftGuid, ftFixedChar,ftString: // are mapped to a TStringField (including TGuidField)
-      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_CHAR, buffer, FieldDef.Size+1, @StrLenOrInd);
+      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_CHAR, buffer, FieldDef.Size*FieldDef.CharSize+1, @StrLenOrInd);
     ftSmallint:           // mapped to TSmallintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SSHORT, buffer, SizeOf(Smallint), @StrLenOrInd);
     ftInteger,ftAutoInc:  // mapped to TLongintField

@@ -109,11 +109,11 @@ interface
 
     function tllvmasmnode.getllvmasmparasym(sym: tabstractnormalvarsym): tasmsymbol;
       begin
-        { these have to be transformed from ^nr into into $nr; we use ^ because
+        { these have to be transformed from `nr into into $nr; we use ` because
           we also have to double all other occurrences of '$' in the assembly
           code, and we can't differentiate between these and other '$'s in
           agllvm }
-        result:=current_asmdata.RefAsmSymbol('^'+tostr(getllvmasmopindexforsym(sym)),AT_DATA,false);
+        result:=current_asmdata.RefAsmSymbol('`'+tostr(getllvmasmopindexforsym(sym)),AT_DATA,false);
       end;
 
 
@@ -175,6 +175,8 @@ interface
                   internalerror(2016101506);
               end;
             end;
+          else
+            ;
         end;
       end;
 

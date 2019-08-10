@@ -53,7 +53,7 @@ type
     function RotateLeft(nod:PNode):PNode;inline;
     procedure FlipColors(nod:PNode);inline;
     function IsRed(nod:PNode):boolean;inline;
-    function Insert(value:T; nod:PNode; var position:PNode):PNode;
+    function Insert(value:T; nod:PNode; out position:PNode):PNode;
     function FixUp(nod:PNode):PNode;inline;
     function MoveRedLeft(nod:PNode):PNode;inline;
     function MoveRedRight(nod:PNode):PNode;inline;
@@ -413,7 +413,7 @@ begin
   InsertAndGetIterator := ret;
 end;
 
-function TSet.Insert(value:T; nod:PNode; var position:PNode):PNode;
+function TSet.Insert(value:T; nod:PNode; out position:PNode):PNode;
 begin
   if(nod=nil) then begin
     nod:=CreateNode(value);

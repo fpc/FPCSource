@@ -15,6 +15,10 @@
 {$I globdir.inc}
 unit WEditor;
 
+{$ifdef cpullvm}
+{$modeswitch nestedprocvars}
+{$endif}
+
 interface
 {tes}
 uses
@@ -1421,7 +1425,7 @@ begin
 end;
 begin
   Count:=LineCount_;
-  if assigned(Childs) then Childs^.ForEach(@AddIt);
+  if assigned(Childs) then Childs^.ForEach(TCallbackProcParam(@AddIt));
   GetLineCount:=Count;
 end;
 
@@ -1592,7 +1596,7 @@ begin
   SearchEditor:=P^.Editor=AEditor;
 end;
 begin
-  SearchBinding:=Bindings^.FirstThat(@SearchEditor);
+  SearchBinding:=Bindings^.FirstThat(TCallbackFunBoolParam(@SearchEditor));
 end;
 
 function TCustomCodeEditorCore.CanDispose: boolean;
@@ -1644,7 +1648,7 @@ begin
   IsClip:=(P^.Editor=Clipboard);
 end;
 begin
-  IsClipBoard:=Bindings^.FirstThat(@IsClip)<>nil;
+  IsClipBoard:=Bindings^.FirstThat(TCallbackFunBoolParam(@IsClip))<>nil;
 end;
 
 function TCustomCodeEditorCore.GetTabSize: integer;
@@ -1716,7 +1720,7 @@ begin
   P^.Editor^.BindingsChanged;
 end;
 begin
-  Bindings^.ForEach(@CallIt);
+  Bindings^.ForEach(TCallbackProcParam(@CallIt));
 end;
 
 procedure TCustomCodeEditorCore.DoLimitsChanged;
@@ -1725,7 +1729,7 @@ begin
   P^.Editor^.DoLimitsChanged;
 end;
 begin
-  Bindings^.ForEach(@CallIt);
+  Bindings^.ForEach(TCallbackProcParam(@CallIt));
 end;
 
 procedure TCustomCodeEditorCore.DoContentsChanged;
@@ -1734,7 +1738,7 @@ begin
   P^.Editor^.ContentsChanged;
 end;
 begin
-  Bindings^.ForEach(@CallIt);
+  Bindings^.ForEach(TCallbackProcParam(@CallIt));
 end;
 
 procedure TCustomCodeEditorCore.DoModifiedChanged;
@@ -1743,7 +1747,7 @@ begin
   P^.Editor^.ModifiedChanged;
 end;
 begin
-  Bindings^.ForEach(@CallIt);
+  Bindings^.ForEach(TCallbackProcParam(@CallIt));
 end;
 
 procedure TCustomCodeEditorCore.DoTabSizeChanged;
@@ -1752,7 +1756,7 @@ begin
   P^.Editor^.TabSizeChanged;
 end;
 begin
-  Bindings^.ForEach(@CallIt);
+  Bindings^.ForEach(TCallbackProcParam(@CallIt));
 end;
 
 procedure TCustomCodeEditorCore.UpdateUndoRedo(cm : word; action : byte);
@@ -1770,7 +1774,7 @@ begin
     end;
 end;
 begin
-  Bindings^.ForEach(@CallIt);
+  Bindings^.ForEach(TCallbackProcParam(@CallIt));
 end;
 
 
@@ -1780,7 +1784,7 @@ begin
   P^.Editor^.StoreUndoChanged;
 end;
 begin
-  Bindings^.ForEach(@CallIt);
+  Bindings^.ForEach(TCallbackProcParam(@CallIt));
 end;
 procedure   TCustomCodeEditorCore.DoSyntaxStateChanged;
 procedure CallIt(P: PEditorBinding);
@@ -1788,7 +1792,7 @@ begin
   P^.Editor^.SyntaxStateChanged;
 end;
 begin
-  Bindings^.ForEach(@CallIt);
+  Bindings^.ForEach(TCallbackProcParam(@CallIt));
 end;
 
 function TCustomCodeEditorCore.GetLastVisibleLine : sw_integer;
@@ -1801,7 +1805,7 @@ begin
 end;
 begin
   y:=0;
-  Bindings^.ForEach(@CallIt);
+  Bindings^.ForEach(TCallbackProcParam(@CallIt));
   GetLastVisibleLine:=y;
 end;
 
@@ -2050,7 +2054,7 @@ begin
 end;
 begin
   MinLine:=-1;
-  Bindings^.ForEach(@CallIt);
+  Bindings^.ForEach(TCallbackProcParam(@CallIt));
   UpdateAttrs:=MinLine;
 end;
 
@@ -2064,7 +2068,7 @@ begin
 end;
 begin
   MinLine:=-1;
-  Bindings^.ForEach(@CallIt);
+  Bindings^.ForEach(TCallbackProcParam(@CallIt));
   UpdateAttrsRange:=MinLine;
 end;
 
@@ -3418,6 +3422,7 @@ var
   E: TEvent;
   OldEvent : PEvent;
   CCAction: TCCAction;
+  LinesScroll : sw_integer;
 begin
   CCAction:=ccClear;
   E:=Event;
@@ -3433,6 +3438,18 @@ begin
   case Event.What of
     evMouseDown :
       if MouseInView(Event.Where) then
+       if (Event.Buttons=mbScrollWheelUp) then { mouse scroll up}
+         begin
+           LinesScroll:=1;
+           if Event.Double then LinesScroll:=LinesScroll+4;
+           ScrollTo(Delta.X, Delta.Y + LinesScroll);
+         end else
+       if (Event.Buttons=mbScrollWheelDown) then  { mouse scroll down }
+         begin
+           LinesScroll:=-1;
+           if Event.Double then LinesScroll:=LinesScroll-4;
+           ScrollTo(Delta.X, Delta.Y + LinesScroll);
+         end else
        if (Event.Buttons=mbRightButton) then
          begin
            MakeLocal(Event.Where,P); Inc(P.X); Inc(P.Y);
@@ -5120,7 +5137,7 @@ begin
   OK:=(S[StartPos] in WordChars);
   if OK then
     begin
-       While (StartPos>0) and (S[StartPos-1] in WordChars) do
+       While (StartPos>1) and (S[StartPos-1] in WordChars) do
          Dec(StartPos);
        While (EndPos<Length(S)) and (S[EndPos+1] in WordChars) do
          Inc(EndPos);
@@ -5974,12 +5991,11 @@ begin
 end;
 
 procedure TCustomCodeEditor.GotoLine;
-var
-  GotoRec: TGotoLineDialogRec;
+const
+  GotoRec: TGotoLineDialogRec = (LineNo:'1';Lines:0);  {keep previous goto line number}
 begin
   with GotoRec do
   begin
-    LineNo:='1';
     Lines:=GetLineCount;
     {Linecount can be 0, but in that case there still is a cursor blinking in top
      of the window, which will become line 1 as soon as sometype hits a key.}

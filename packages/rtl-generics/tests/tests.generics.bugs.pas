@@ -1,7 +1,9 @@
 {
-    This file is part of the Free Pascal run time library.
+    This file is part of the Free Pascal/NewPascal run time library.
     Copyright (c) 2018 by Maciej Izak (hnb),
-    member of the Free Pascal development team
+    member of the NewPascal development team (http://newpascal.org)
+
+    Copyright(c) 2004-2018 DaThoX
 
     It contains tests for the Free Pascal generics library
 
@@ -18,6 +20,7 @@
     many new types, tests and major refactoring of entire library
 
  **********************************************************************}
+
 unit tests.generics.bugs;
 
 {$mode delphi}
@@ -35,6 +38,7 @@ type
   TTestBugs = class(TTestCase)
   published
     procedure Test_QuadraticProbing_InfinityLoop;
+    procedure Test_GetEqualityComparer;
   end;
 
 implementation
@@ -53,6 +57,11 @@ begin
   LMap.Add(#148#159#199#71#198#97#69#201#116#45#195#184#178#129#200, nil);
   CheckEquals(false, LMap.ContainsKey(#$E6'h=fzb'#$E5#$B4#$A0#$C4#$E6'B6r>'));
   LMap.Free;
+end;
+
+procedure TTestBugs.Test_GetEqualityComparer;
+begin
+  TDelphiQuadrupleHashFactory.GetHashService.LookupEqualityComparer(TypeInfo(Integer), SizeOf(Integer));
 end;
 
 begin

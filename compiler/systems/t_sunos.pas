@@ -127,12 +127,12 @@ procedure TLinkersolaris.SetDefaultInfo;
 {$ifdef x86_64}
 const
   gld = 'gld $EMUL ';
-  solaris_ld = '/usr/bin/ld -64 ';
+  solaris_ld = 'ld -64 ';
 {$endif}
 {$ifdef i386}
 const
   gld = 'gld $EMUL';
-  solaris_ld = '/usr/bin/ld ';
+  solaris_ld = 'ld ';
 {$endif }
 {$ifdef sparc}
 const

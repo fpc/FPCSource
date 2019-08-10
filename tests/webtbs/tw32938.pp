@@ -30,6 +30,8 @@ begin
    if b<>10 then
      halt(1);
    write;
+   close(f);
+   erase(f);
    writeln('ok');
 end.
 

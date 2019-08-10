@@ -141,6 +141,9 @@ Const
        EqualsValue = 0;
        LessThanValue = Low(TValueRelationship);
        GreaterThanValue = High(TValueRelationship);
+       
+
+       
 {$push}
 {$R-}
 {$Q-}
@@ -162,6 +165,8 @@ function Max(a, b: Cardinal): Cardinal; overload;
 }
 function Min(a, b: Int64): Int64;inline; overload;
 function Max(a, b: Int64): Int64;inline; overload;
+function Min(a, b: QWord): QWord;inline; overload;
+function Max(a, b: QWord): QWord;inline; overload;
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function Min(a, b: Single): Single;inline; overload;
 function Max(a, b: Single): Single;inline; overload;
@@ -245,7 +250,14 @@ function IsNan(const d : Double): Boolean; overload;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function IsNan(const d : Extended): Boolean; overload;
 {$endif FPC_HAS_TYPE_EXTENDED}
-function IsInfinite(const d : Double): Boolean;
+
+function IsInfinite(const d : Single): Boolean; overload;
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function IsInfinite(const d : Double): Boolean; overload;
+{$endif FPC_HAS_TYPE_DOUBLE}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function IsInfinite(const d : Extended): Boolean; overload;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function SameValue(const A, B: Extended): Boolean;inline; overload;
@@ -1014,8 +1026,8 @@ function lnxp1(x : float) : float;
       end;
   end;
 
-function power(base,exponent : float) : float;
 
+function power(base,exponent : float) : float;
   begin
     if Exponent=0.0 then
       result:=1.0
@@ -1027,6 +1039,7 @@ function power(base,exponent : float) : float;
       result:=exp(exponent * ln (base));
   end;
 
+
 function intpower(base : float;const exponent : Integer) : float;
   var
      i : longint;
@@ -1035,6 +1048,8 @@ function intpower(base : float;const exponent : Integer) : float;
        result:=1
      else
        begin
+         if exponent<0 then
+           base:=1.0/base;
          i:=abs(exponent);
          intpower:=1.0;
          while i>0 do
@@ -1047,8 +1062,6 @@ function intpower(base : float;const exponent : Integer) : float;
               i:=i-1;
               intpower:=intpower*base;
            end;
-         if exponent<0 then
-           intpower:=1.0/intpower;
        end;
   end;
 
@@ -2045,6 +2058,22 @@ begin
     Result := b;
 end;
 
+function Min(a, b: QWord): QWord; inline;
+begin
+  if a < b then
+    Result := a
+  else
+    Result := b;
+end;
+
+function Max(a, b: QWord): Qword;inline;
+begin
+  if a > b then
+    Result := a
+  else
+    Result := b;
+end;
+
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function Min(a, b: Single): Single;inline;
 begin
@@ -2252,7 +2281,13 @@ function IsNan(const d : Extended): Boolean; overload;
   end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-function IsInfinite(const d : Double): Boolean;
+function IsInfinite(const d : Single): Boolean; overload;
+  begin
+    result:=(longword(d) and $7fffffff)=$7f800000;
+  end;
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function IsInfinite(const d : Double): Boolean; overload;
   var
     fraczero, expMaximal: boolean;
   begin
@@ -2267,6 +2302,23 @@ function IsInfinite(const d : Double): Boolean;
 {$endif FPC_BIG_ENDIAN}
     Result:=expMaximal and fraczero;
   end;
+{$endif FPC_HAS_TYPE_DOUBLE}
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function IsInfinite(const d : Extended): Boolean; overload;
+  var
+    fraczero, expMaximal: boolean;
+  begin
+{$ifdef FPC_BIG_ENDIAN}
+  {$error no support for big endian extended type yet}
+{$else FPC_BIG_ENDIAN}
+    expMaximal := (TSplitExtended(d).w and $7fff) = 32767;
+    fraczero := (TSplitExtended(d).cards[0] = 0) and
+                    ((TSplitExtended(d).cards[1] and $7fffffff) = 0);
+{$endif FPC_BIG_ENDIAN}
+    Result:=expMaximal and fraczero;
+  end;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 function copysign(x,y: float): float;
 begin

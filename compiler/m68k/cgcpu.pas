@@ -138,6 +138,9 @@ unit cgcpu;
        symsym,symtable,defutil,paramgr,procinfo,
        rgobj,tgobj,rgcpu,fmodule;
 
+{ Range check must be disabled explicitly as conversions between signed and unsigned
+  32-bit values are done without explicit typecasts }
+{$R-}
 
     const
       { opcode table lookup }
@@ -1826,7 +1829,7 @@ unit cgcpu;
         if not ((def.typ=pointerdef) or
                ((def.typ=orddef) and
                 (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
-                                          pasbool8,pasbool16,pasbool32,pasbool64]))) then
+                                          pasbool1,pasbool8,pasbool16,pasbool32,pasbool64]))) then
           cond:=C_VC
         else
           begin
@@ -2549,7 +2552,7 @@ unit cgcpu;
               cg.a_load_const_reg(list,OS_S32,longint(highvalue),hreg);
               { don't use cg.a_op_const_reg() here, because a possible optimized
                 ADDQ/SUBQ wouldn't set the eXtend bit }
-              list.concat(taicpu.op_const_reg(opcode,S_L,lowvalue,regdst.reglo));
+              list.concat(taicpu.op_const_reg(opcode,S_L,longint(lowvalue),regdst.reglo));
               list.concat(taicpu.op_reg_reg(xopcode,S_L,hreg,regdst.reghi));
             end;
           OP_AND,OP_OR,OP_XOR:

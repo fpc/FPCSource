@@ -26,7 +26,7 @@ unit n68kinl;
 interface
 
     uses
-      node,ninl,ncginl,cpubase;
+      node,ninl,ncginl,symtype,cpubase;
 
     type
       t68kinlinenode = class(tcgInlineNode)
@@ -51,6 +51,8 @@ interface
         procedure second_frac_real; override;
         {procedure second_prefetch; override;
         procedure second_abs_long; override;}
+      protected 
+        function second_incdec_tempregdef: tdef; override;
       private
         procedure second_do_operation(op: TAsmOp);
       end;
@@ -342,6 +344,18 @@ implementation
         eor.l   d1,d2
         sub.l   d1,d2
       }
+
+      function t68kinlinenode.second_incdec_tempregdef: tdef;
+        begin
+          { this kludge results in the increment/decrement value of inc/dec to be loaded
+            always in a datareg, regardless of the target type. This results in significantly
+            better code on m68k, where if the inc/decrement is loaded to an address register
+            for pointers, the compiler will generate a bunch of useless data<->address register
+            shuffling, as it cannot do some operations on address registers (like shifting
+            or multiplication) (KB) }
+          second_incdec_tempregdef:=cgsize_orddef(def_cgsize(left.resultdef));
+        end;
+
 begin
   cinlinenode:=t68kinlinenode;
 end.

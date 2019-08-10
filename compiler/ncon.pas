@@ -234,6 +234,7 @@ implementation
         stringVal: string;
         pWideStringVal: pcompilerwidestring;
       begin
+        stringVal:='';
         if is_constcharnode(p) then
           begin
             SetLength(stringVal,1);
@@ -352,8 +353,6 @@ implementation
              v:=extended(v);
            s128real:
              internalerror(2013102701);
-           else
-             internalerror(2013102702);
          end;
          value_real:=v;
          value_currency:=v;
@@ -453,8 +452,6 @@ implementation
                   if ts128real(value_real)=MathInf.Value then
                     CGMessage(parser_e_range_check_error);
                 end;
-              else
-                internalerror(2016112902);
             end;
           end;
       end;
@@ -464,8 +461,6 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_CREFERENCE;
-         if (cs_create_pic in current_settings.moduleswitches) then
-           include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -867,9 +862,6 @@ implementation
           end
         else
           expectloc:=LOC_CREFERENCE;
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (expectloc <> LOC_CONSTANT) then
-          include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -981,6 +973,7 @@ implementation
                             Message1(option_code_page_not_available,IntToStr(cp1));
                           initwidestring(pw);
                           setlengthwidestring(pw,len);
+                          { returns room for terminating 0 }
                           l:=Utf8ToUnicode(PUnicodeChar(pw^.data),len,value_str,len);
                           if (l<>getlengthwidestring(pw)) then
                             begin
@@ -988,6 +981,7 @@ implementation
                               ReAllocMem(value_str,l);
                             end;
                           unicode2ascii(pw,value_str,cp1);
+                          len:=l-1;
                           donewidestring(pw);
                         end
                       else
@@ -999,6 +993,7 @@ implementation
                           initwidestring(pw);
                           setlengthwidestring(pw,len);
                           ascii2unicode(value_str,len,cp2,pw);
+                          { returns room for terminating 0 }
                           l:=UnicodeToUtf8(nil,0,PUnicodeChar(pw^.data),len);
                           if l<>len then
                             ReAllocMem(value_str,l);
@@ -1156,9 +1151,6 @@ implementation
           expectloc:=LOC_CONSTANT
          else
           expectloc:=LOC_CREFERENCE;
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (expectloc <> LOC_CONSTANT) then
-          include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -1250,9 +1242,6 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_CREFERENCE;
-        if (cs_create_pic in current_settings.moduleswitches) and
-          (tf_pic_uses_got in target_info.flags) then
-          include(current_procinfo.flags,pi_needs_got);
       end;
 
 

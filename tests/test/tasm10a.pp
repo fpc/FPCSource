@@ -1,4 +1,5 @@
 { %cpu=x86_64 }
+{ %skiptarget=android }
 
 {$ifdef FPC}
   {$PIC OFF}

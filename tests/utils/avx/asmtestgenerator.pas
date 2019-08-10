@@ -28,7 +28,7 @@ uses BaseList, Classes;
 
 type
   TOpType = (otUnknown, otXMMReg, otXMMRM, otXMMRM16, otXMMRM8, otYMMReg, otYMMRM, otZMMReg, otZMMRM, otEAX, otRAX, otMem32,
-             otMem8, otMem16, otMem64, otMem128, otMem256, otMem512, otREG64, otREG32, otRM32, otRM64, otIMM8,
+             otMem8, otMem16, otMem64, otMem128, otMem256, otMem512, otREG64, otREG32, otREG16, otRM32, otRM64, otIMM8,
              otXMEM32, otXMEM64, otYMEM32, otYMEM64, otZMEM32, otZMEM64,
              otB32, otB64, otKREG);
 
@@ -1147,6 +1147,7 @@ begin
               end
               else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
+<<<<<<< .working
             else if (AnsiSameText(sl_Operand, 'MEM512')) or
                     (AnsiSameText(sl_Operand, 'MEM512_M')) or
                     (AnsiSameText(sl_Operand, 'MEM512_MZ')) then
@@ -1172,7 +1173,7 @@ begin
             else if AnsiSameText(sl_Operand, 'REG8') then
             begin
               Item.OpNumber := il_Op;
-              Item.OpTyp    := otREG32;
+              Item.OpTyp    := otREG8;
               Item.OpActive := true;
 
               if x64 then
@@ -1184,7 +1185,7 @@ begin
             else if AnsiSameText(sl_Operand, 'REG16') then
             begin
               Item.OpNumber := il_Op;
-              Item.OpTyp    := otREG32;
+              Item.OpTyp    := otREG16;
               Item.OpActive := true;
 
               if x64 then
@@ -1760,6 +1761,7 @@ begin
   FReg8.Add('CL');
   FReg8.Add('DL');
 
+  
   FReg16.Add('AX');
   FReg16.Add('BX');
   FReg16.Add('CX');

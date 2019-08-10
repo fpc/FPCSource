@@ -68,3 +68,5 @@ function WideBytesOf(const Value: UnicodeString): TBytes;
 function WideStringOf(const Value: TBytes): UnicodeString;
 function ByteLength(const S: UnicodeString): Integer;
 function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags): UnicodeString;
+function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags; Out aCount : Integer): UnicodeString;
+

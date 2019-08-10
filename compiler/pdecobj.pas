@@ -49,9 +49,9 @@ implementation
       symbase,symsym,symtable,symcreat,defcmp,
       node,ncon,
       fmodule,scanner,
-      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl,pgenutil,ppu
+      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl,pgenutil,pparautl,ppu
 {$ifdef jvm}
-      ,pjvm;
+      ,jvmdef,pjvm;
 {$else}
       ;
 {$endif}
@@ -72,19 +72,20 @@ implementation
           recorddef:
             begin
               parse_record_proc_directives(pd);
-              // we can't add hidden params here because record is not yet defined
-              // and therefore record size which has influence on paramter passing rules may change too
-              // look at record_dec to see where calling conventions are applied (issue #0021044)
-              handle_calling_convention(pd,[hcc_check]);
             end;
           objectdef:
             begin
               parse_object_proc_directives(pd);
-              handle_calling_convention(pd);
             end
           else
             internalerror(2011040502);
         end;
+        // We can't add hidden params here because record is not yet defined
+        // and therefore record size which has influence on paramter passing rules may change too
+        // look at record_dec to see where calling conventions are applied (issue #0021044).
+        // The same goes for objects/classes due to the calling convention that may only be set
+        // later (mantis #35233).
+        handle_calling_convention(pd,hcc_default_actions_intf_struct);
 
         { add definition to procsym }
         proc_add_definition(pd);
@@ -115,7 +116,7 @@ implementation
           Message(parser_e_no_paras_for_class_constructor);
         consume(_SEMICOLON);
         include(astruct.objectoptions,oo_has_class_constructor);
-        current_module.flags:=current_module.flags or uf_classinits;
+        include(current_module.moduleflags,mf_classinits);
         { no return value }
         pd.returndef:=voidtype;
         constr_destr_finish_head(pd,astruct);
@@ -237,7 +238,7 @@ implementation
           Message(parser_e_no_paras_for_class_destructor);
         consume(_SEMICOLON);
         include(astruct.objectoptions,oo_has_class_destructor);
-        current_module.flags:=current_module.flags or uf_classinits;
+        include(current_module.moduleflags,mf_classinits);
         { no return value }
         pd.returndef:=voidtype;
         constr_destr_finish_head(pd,astruct);
@@ -521,6 +522,8 @@ implementation
           odt_objcclass,odt_objcprotocol,odt_objccategory:
             get_objc_class_or_protocol_external_status(current_objectdef);
           odt_helper: ; // nothing
+          else
+            ;
         end;
       end;
 
@@ -639,6 +642,8 @@ implementation
                          Message(type_e_helper_type_expected);
                          childof:=nil;
                        end;
+                   else
+                     ;
                 end;
               end;
             hasparentdefined:=true;
@@ -662,6 +667,8 @@ implementation
                 { inherit from TObject by default for compatibility }
                 if current_objectdef<>java_jlobject then
                   childof:=class_tobject;
+              else
+                ;
             end;
           end;
 
@@ -745,8 +752,6 @@ implementation
       begin
         if not is_objectpascal_helper(current_structdef) then
           Internalerror(2011021103);
-        if helpertype=ht_none then
-          Internalerror(2011021001);
 
         consume(_FOR);
         single_type(hdef,[stoParseClassParent]);
@@ -759,6 +764,8 @@ implementation
                 Message(type_e_record_type_expected);
               ht_type:
                 Message1(type_e_type_id_expected,hdef.typename);
+              else
+                internalerror(2019050532);
             end;
           end
         else
@@ -804,6 +811,8 @@ implementation
                       parent helper }
                     check_inheritance_record_type_helper(hdef);
                 end;
+              else
+                internalerror(2019050531);
             end;
           end;
 
@@ -923,7 +932,7 @@ implementation
                      is_classdef and not (po_staticmethod in result.procoptions) then
                     MessagePos(result.fileinfo,parser_e_class_methods_only_static_in_records);
 
-                  handle_calling_convention(result);
+                  handle_calling_convention(result,hcc_default_actions_intf_struct);
 
                   { add definition to procsym }
                   proc_add_definition(result);
@@ -935,6 +944,9 @@ implementation
                     include(astruct.objectoptions,oo_has_msgstr);
                   if (po_virtualmethod in result.procoptions) then
                     include(astruct.objectoptions,oo_has_virtual);
+
+                  if result.is_generic then
+                    astruct.symtable.includeoption(sto_has_generic);
 
                   chkcpp(result);
                   chkobjc(result);
@@ -1040,7 +1052,8 @@ implementation
         typedconstswritable: boolean;
         object_member_blocktype : tblock_type;
         hadgeneric,
-        fields_allowed, is_classdef, class_fields, is_final, final_fields: boolean;
+        fields_allowed, is_classdef, class_fields, is_final, final_fields,
+        threadvar_fields : boolean;
         vdoptions: tvar_dec_options;
         fieldlist: tfpobjectlist;
 
@@ -1056,18 +1069,22 @@ implementation
         end;
 
 
-      procedure parse_var;
+      procedure parse_var(isthreadvar:boolean);
         begin
           if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass]) and
              { Java interfaces can contain static final class vars }
              not((current_objectdef.objecttype=odt_interfacejava) and
                  is_final and is_classdef) then
             Message(parser_e_type_var_const_only_in_records_and_classes);
-          consume(_VAR);
+          if isthreadvar then
+            consume(_THREADVAR)
+          else
+            consume(_VAR);
           fields_allowed:=true;
           object_member_blocktype:=bt_general;
           class_fields:=is_classdef;
           final_fields:=is_final;
+          threadvar_fields:=isthreadvar;
           is_classdef:=false;
           is_final:=false;
         end;
@@ -1080,7 +1097,7 @@ implementation
           consume(_CLASS);
           { class modifier is only allowed for procedures, functions, }
           { constructors, destructors, fields and properties          }
-          if not((token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_DESTRUCTOR]) or (token=_CONSTRUCTOR)) then
+          if not((token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_DESTRUCTOR,_THREADVAR]) or (token=_CONSTRUCTOR)) then
             Message(parser_e_procedure_or_function_expected);
 
           { Java interfaces can contain final class vars }
@@ -1114,6 +1131,7 @@ implementation
           fields_allowed:=true;
           is_classdef:=false;
           class_fields:=false;
+          threadvar_fields:=false;
           is_final:=false;
           object_member_blocktype:=bt_general;
         end;
@@ -1136,6 +1154,7 @@ implementation
         is_final:=false;
         final_fields:=false;
         hadgeneric:=false;
+        threadvar_fields:=false;
         object_member_blocktype:=bt_general;
         fieldlist:=tfpobjectlist.create(false);
         repeat
@@ -1149,11 +1168,21 @@ implementation
               end;
             _VAR :
               begin
-                parse_var;
+                parse_var(false);
               end;
             _CONST:
               begin
                 parse_const
+              end;
+            _THREADVAR :
+              begin
+                if not is_classdef then
+                  begin
+                    Message(parser_e_threadvar_must_be_class);
+                    { for error recovery we enforce class fields }
+                    is_classdef:=true;
+                  end;
+                parse_var(true);
               end;
             _ID :
               begin
@@ -1212,6 +1241,7 @@ implementation
                         fields_allowed:=true;
                         is_classdef:=false;
                         class_fields:=false;
+                        threadvar_fields:=false;
                         is_final:=false;
                         final_fields:=false;
                         object_member_blocktype:=bt_general;
@@ -1274,6 +1304,8 @@ implementation
                                   include(vdoptions,vd_canreorder);
                                 if final_fields then
                                   include(vdoptions,vd_final);
+                                if threadvar_fields then
+                                  include(vdoptions,vd_threadvar);
                                 read_record_fields(vdoptions,fieldlist,nil,hadgeneric);
                               end;
                           end
@@ -1424,6 +1456,8 @@ implementation
                       else if (current_objectdef.objname^='FPCBASEPROCVARTYPE') then
                         java_procvarbase:=current_objectdef;
                     end;
+                  else
+                    ;
                 end;
               end;
             if (current_module.modulename^='OBJCBASE') then
@@ -1432,6 +1466,8 @@ implementation
                   odt_objcclass:
                     if (current_objectdef.objname^='Protocol') then
                       objc_protocoltype:=current_objectdef;
+                  else
+                    ;
                 end;
               end;
           end;

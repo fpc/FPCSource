@@ -88,7 +88,7 @@
 
     {$pop}
 
-{$ELSEIF defined(UNIX)}
+{$ELSEIF defined(UNIX) and not defined(android)}
 
   function getTempDir: string;
     var

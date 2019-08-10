@@ -35,30 +35,50 @@ uses
 
 type
 
-  { TOmfLibDictionaryEntry }
-
-  TOmfLibDictionaryEntry=class(TFPHashObject)
-  private
-    FPageNum: Word;
-  public
-    constructor Create(HashObjectList:TFPHashObjectList;const aName:TSymStr;aPageNum:Word);
-    property PageNum: Word read FPageNum write FPageNum;
-  end;
-
   { TOmfLibObjectWriter }
 
   TOmfLibObjectWriter=class(TObjectWriter)
-  private
+  strict private
+    type
+
+      { TOmfLibObjectModule }
+
+      TOmfLibObjectModule=class
+      strict private
+        FObjFileName: string;
+        FObjData: TDynamicArray;
+        FPageNum: Word;
+      public
+        constructor Create(const fn:string);
+        destructor Destroy; override;
+
+        property ObjData: TDynamicArray read FObjData;
+        property PageNum: Word read FPageNum write FPageNum;
+      end;
+
+      { TOmfLibDictionaryEntry }
+
+      TOmfLibDictionaryEntry=class(TFPHashObject)
+      strict private
+        FModuleIndex: Integer;
+      public
+        constructor Create(HashObjectList:TFPHashObjectList;const aName:TSymStr;aModuleIndex:Integer);
+        property ModuleIndex: Integer read FModuleIndex write FModuleIndex;
+      end;
+  strict private
     FPageSize: Integer;
     FLibName: string;
     FLibData: TDynamicArray;
-    FObjFileName: string;
-    FObjData: TDynamicArray;
-    FObjStartPage: Word;
+    FFooterPos: LongWord;
     FDictionary: TFPHashObjectList;
+    FObjectModules: TFPObjectList;
+    FCurrentModule: TOmfLibObjectModule;
+    FCurrentModuleIndex: Integer;
 
     procedure WriteHeader(DictStart: DWord; DictBlocks: Word);
     procedure WriteFooter;
+    function TryPageSize(aPageSize: Integer): Boolean;
+    procedure DeterminePageSize;
     procedure WriteLib;
     function WriteDictionary: Word;
     function TryWriteDictionaryWithSize(nblocks: Word): Boolean;
@@ -75,7 +95,19 @@ type
   { TOmfLibObjectReader }
 
   TOmfLibObjectReader=class(TObjectReader)
-  private
+  strict private
+    type
+
+      { TOmfLibDictionaryEntry }
+
+      TOmfLibDictionaryEntry=class(TFPHashObject)
+      strict private
+        FPageNum: Word;
+      public
+        constructor Create(HashObjectList:TFPHashObjectList;const aName:TSymStr;aPageNum:Word);
+        property PageNum: Word read FPageNum write FPageNum;
+      end;
+  strict private
     LibSymbols : TFPHashObjectList;
     islib: boolean;
     CurrMemberPos : longint;
@@ -101,7 +133,7 @@ implementation
 
     uses
       SysUtils,
-      cstreams,
+      cstreams,cutils,
       verbose,
       omfbase;
 
@@ -122,13 +154,30 @@ implementation
       end;
 
 {*****************************************************************************
-                                TOmfLibDictionaryEntry
+                 TOmfLibObjectWriter.TOmfLibObjectModule
 *****************************************************************************}
 
-    constructor TOmfLibDictionaryEntry.Create(HashObjectList: TFPHashObjectList; const aName: TSymStr; aPageNum: Word);
+    constructor TOmfLibObjectWriter.TOmfLibObjectModule.Create(const fn: string);
+      begin
+        FObjFileName:=fn;
+        FObjData:=TDynamicArray.Create(objbufsize);
+      end;
+
+    destructor TOmfLibObjectWriter.TOmfLibObjectModule.Destroy;
+      begin
+        FObjData.Free;
+        inherited Destroy;
+      end;
+
+{*****************************************************************************
+                 TOmfLibObjectWriter.TOmfLibDictionaryEntry
+*****************************************************************************}
+
+    constructor TOmfLibObjectWriter.TOmfLibDictionaryEntry.Create(
+        HashObjectList: TFPHashObjectList; const aName: TSymStr; aModuleIndex:Integer);
       begin
         inherited Create(HashObjectList,aName);
-        PageNum:=aPageNum;
+        ModuleIndex:=aModuleIndex;
       end;
 
 {*****************************************************************************
@@ -137,7 +186,7 @@ implementation
 
     constructor TOmfLibObjectWriter.createAr(const Aarfn: string);
       begin
-        createAr(Aarfn,512);
+        createAr(Aarfn,-1);
       end;
 
     constructor TOmfLibObjectWriter.createAr(const Aarfn: string;PageSize: Integer);
@@ -146,8 +195,8 @@ implementation
         FLibName:=Aarfn;
         FLibData:=TDynamicArray.Create(libbufsize);
         FDictionary:=TFPHashObjectList.Create;
-        { header is at page 0, so first module starts at page 1 }
-        FObjStartPage:=1;
+        FObjectModules:=TFPObjectList.Create(True);
+        FCurrentModule:=nil;
       end;
 
 
@@ -156,7 +205,7 @@ implementation
         if Errorcount=0 then
           WriteLib;
         FLibData.Free;
-        FObjData.Free;
+        FObjectModules.Free;
         FDictionary.Free;
         inherited destroy;
       end;
@@ -164,9 +213,8 @@ implementation
 
     function TOmfLibObjectWriter.createfile(const fn: string): boolean;
       begin
-        FObjFileName:=fn;
-        FreeAndNil(FObjData);
-        FObjData:=TDynamicArray.Create(objbufsize);
+        FCurrentModule:=TOmfLibObjectModule.Create(fn);
+        FCurrentModuleIndex:=FObjectModules.Add(FCurrentModule);
         createfile:=true;
         fobjsize:=0;
       end;
@@ -177,31 +225,27 @@ implementation
         RawRec: TOmfRawRecord;
         ObjHeader: TOmfRecord_THEADR;
       begin
-        FLibData.seek(FObjStartPage*FPageSize);
-        FObjData.seek(0);
+        FCurrentModule.ObjData.seek(0);
         RawRec:=TOmfRawRecord.Create;
-        repeat
-          RawRec.ReadFrom(FObjData);
-          if RawRec.RecordType=RT_THEADR then
-            begin
-              ObjHeader:=TOmfRecord_THEADR.Create;
-              ObjHeader.DecodeFrom(RawRec);
-              { create a dictionary entry with the module name }
-              TOmfLibDictionaryEntry.Create(FDictionary,ModName2DictEntry(ObjHeader.ModuleName),FObjStartPage);
-              ObjHeader.Free;
-            end;
-          RawRec.WriteTo(FLibData);
-        until RawRec.RecordType in [RT_MODEND,RT_MODEND32];
+        RawRec.ReadFrom(FCurrentModule.ObjData);
+        if RawRec.RecordType<>RT_THEADR then
+          begin
+            RawRec.Free;
+            InternalError(2018060801);
+          end;
+        ObjHeader:=TOmfRecord_THEADR.Create;
+        ObjHeader.DecodeFrom(RawRec);
+        { create a dictionary entry with the module name }
+        TOmfLibDictionaryEntry.Create(FDictionary,ModName2DictEntry(ObjHeader.ModuleName),FCurrentModuleIndex);
+        ObjHeader.Free;
         RawRec.Free;
-        { calculate start page of next module }
-        FObjStartPage:=(FLibData.Pos+FPageSize-1) div FPageSize;
         fobjsize:=0;
       end;
 
 
     procedure TOmfLibObjectWriter.writesym(const sym: string);
       begin
-        TOmfLibDictionaryEntry.Create(FDictionary,sym,FObjStartPage);
+        TOmfLibDictionaryEntry.Create(FDictionary,sym,FCurrentModuleIndex);
       end;
 
 
@@ -209,7 +253,7 @@ implementation
       begin
         inc(fobjsize,len);
         inc(fsize,len);
-        FObjData.write(b,len);
+        FCurrentModule.ObjData.write(b,len);
       end;
 
     procedure TOmfLibObjectWriter.WriteHeader(DictStart: DWord; DictBlocks: Word);
@@ -238,7 +282,7 @@ implementation
         Footer: TOmfRecord_LIBEND;
         RawRec: TOmfRawRecord;
       begin
-        FLibData.seek(FObjStartPage*FPageSize);
+        FLibData.seek(FFooterPos);
         Footer:=TOmfRecord_LIBEND.Create;
         Footer.CalculatePaddingBytes(FLibData.Pos);
         RawRec:=TOmfRawRecord.Create;
@@ -248,18 +292,73 @@ implementation
         RawRec.Free;
       end;
 
+    function TOmfLibObjectWriter.TryPageSize(aPageSize: Integer): Boolean;
+      var
+        I: Integer;
+        CurrentPage: Integer;
+        CurrentPos: LongWord;
+        pow: longint;
+      begin
+        if not IsPowerOf2(aPageSize,pow) then
+          internalerror(2018060701);
+        if (pow<4) or (pow>15) then
+          internalerror(2018060702);
+        FPageSize:=aPageSize;
+        { header is at page 0, so first module starts at page 1 }
+        CurrentPage:=1;
+        for I:=0 to FObjectModules.Count-1 do
+          with TOmfLibObjectModule(FObjectModules[I]) do
+            begin
+              if CurrentPage>high(word) then
+                exit(False);
+              PageNum:=CurrentPage;
+              { calculate next page }
+              CurrentPos:=CurrentPage*FPageSize+ObjData.Size;
+              CurrentPage:=(CurrentPos+FPageSize-1) div FPageSize;
+            end;
+        FFooterPos:=CurrentPage*FPageSize;
+        Result:=True;
+      end;
+
+    procedure TOmfLibObjectWriter.DeterminePageSize;
+      var
+        I: Integer;
+      begin
+        if (FPageSize<>-1) and TryPageSize(FPageSize) then
+          { success }
+          exit;
+        for I:=4 to 15 do
+          if TryPageSize(1 shl I) then
+            exit;
+        internalerror(2018060703);
+      end;
+
     procedure TOmfLibObjectWriter.WriteLib;
       var
         libf: TCCustomFileStream;
-        DictStart: LongWord;
+        DictStart, bytes: LongWord;
         DictBlocks: Word;
+        I: Integer;
+        buf: array [0..1023] of Byte;
       begin
+        DeterminePageSize;
         libf:=CFileStreamClass.Create(FLibName,fmCreate);
         if CStreamError<>0 then
           begin
             Message1(exec_e_cant_create_archivefile,FLibName);
             exit;
           end;
+        for I:=0 to FObjectModules.Count-1 do
+          with TOmfLibObjectModule(FObjectModules[I]) do
+            begin
+              FLibData.seek(PageNum*FPageSize);
+              ObjData.seek(0);
+              while ObjData.Pos<ObjData.size do
+                begin
+                  bytes:=ObjData.read(buf,Min(SizeOf(buf),ObjData.size-ObjData.Pos));
+                  FLibData.write(buf,bytes);
+                end;
+            end;
         WriteFooter;
         DictStart:=FLibData.Pos;
         DictBlocks:=WriteDictionary;
@@ -300,6 +399,7 @@ implementation
         store_at: Integer;
         PageNum: Word;
       begin
+        blocks:=nil;
         SetLength(blocks,nblocks);
         for i:=0 to nblocks-1 do
           begin
@@ -310,7 +410,7 @@ implementation
         for i:=0 to FDictionary.Count-1 do
           begin
             N:=TOmfLibDictionaryEntry(FDictionary[i]).Name;
-            PageNum:=TOmfLibDictionaryEntry(FDictionary[i]).PageNum;
+            PageNum:=TOmfLibObjectModule(FObjectModules[TOmfLibDictionaryEntry(FDictionary[i]).ModuleIndex]).PageNum;
             length_of_string:=Length(N);
             h:=compute_omf_lib_hash(N,nblocks);
             start_block:=h.block_x;
@@ -321,6 +421,9 @@ implementation
             repeat
               pb:=@blocks[h.block_x];
               success:=false;
+	      {$push}
+	      { Disable range check in that part of code }
+	      {$R-}
               repeat
                 if pb^[h.bucket_x]=0 then
                   begin
@@ -340,6 +443,7 @@ implementation
                   end;
                 h.bucket_x:=(h.bucket_x+h.bucket_d) mod nbuckets;
               until h.bucket_x=start_bucket;
+	      {$pop}
               if not success then
                 begin
                   h.block_x:=(h.block_x+h.block_d) mod nblocks;
@@ -352,6 +456,17 @@ implementation
         FLibData.write(blocks[0],nblocks*SizeOf(TBlock));
         Result:=true;
       end;
+
+{*****************************************************************************
+                 TOmfLibObjectReader.TOmfLibDictionaryEntry
+*****************************************************************************}
+
+  constructor TOmfLibObjectReader.TOmfLibDictionaryEntry.Create(
+      HashObjectList: TFPHashObjectList; const aName: TSymStr; aPageNum: Word);
+    begin
+      inherited Create(HashObjectList,aName);
+      PageNum:=aPageNum;
+    end;
 
 {*****************************************************************************
                                 TOmfLibObjectReader
@@ -390,6 +505,8 @@ implementation
       name: string;
       PageNum: Integer;
     begin
+      blocks:=nil;
+      name:='';
       seek(DictionaryOffset);
       SetLength(blocks,DictionarySizeInBlocks);
       read(blocks[0],DictionarySizeInBlocks*SizeOf(TBlock));

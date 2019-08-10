@@ -29,7 +29,7 @@ interface
   uses
     cclasses,globtype,
     fmodule,
-    aasmdata,
+    aasmbase,aasmdata,
     node,nbas,symtype,symsym,symconst,symdef;
 
 
@@ -57,7 +57,7 @@ interface
         all local (static) typed consts }
       class procedure static_syms_finalize(p: TObject; arg: pointer);
       class procedure sym_maybe_finalize(var stat: tstatementnode; sym: tsym);
-      class procedure append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode);
+      class procedure append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode); virtual;
      public
       class procedure procdef_block_add_implicit_initialize_nodes(pd: tprocdef; var stat: tstatementnode);
       class procedure procdef_block_add_implicit_finalize_nodes(pd: tprocdef; var stat: tstatementnode);
@@ -74,7 +74,7 @@ interface
         the value to be returned; replacing it with an absolutevarsym that
         redirects to the field in the parentfpstruct doesn't work, as the code
         generator cannot deal with such symbols }
-       class procedure load_parentfpstruct_nested_funcret(pd: tprocdef; var stat: tstatementnode);
+       class procedure load_parentfpstruct_nested_funcret(ressym: tsym; var stat: tstatementnode);
       { called after parsing a routine with the code of the entire routine
         as argument; can be used to modify the node tree. By default handles
         insertion of code for systems that perform the typed constant
@@ -114,8 +114,8 @@ interface
       class function create_main_procdef(const name: string; potype:tproctypeoption; ps: tprocsym):tdef; virtual;
       class procedure InsertInitFinalTable;
      protected
-      class procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:cardinal); virtual;
-      class procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:cardinal); virtual;
+      class procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:tmoduleflag); virtual;
+      class procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:tmoduleflag); virtual;
 
       class procedure insert_init_final_table(entries:tfplist); virtual;
 
@@ -138,6 +138,14 @@ interface
         info) }
       class procedure InsertObjectInfo; virtual;
 
+      { register that asm symbol sym with type def has to be considered as "used" even if not
+        references to it can be found. If compileronly, this is only for the compiler, otherwise
+        also for the linker }
+      class procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); virtual;
+
+      class procedure RegisterModuleInitFunction(pd: tprocdef); virtual;
+      class procedure RegisterModuleFiniFunction(pd: tprocdef); virtual;
+
      strict protected
       class procedure add_main_procdef_paras(pd: tdef); virtual;
     end;
@@ -152,11 +160,12 @@ implementation
     uses
       verbose,version,globals,cutils,constexp,compinnr,
       systems,procinfo,pparautl,
-      aasmbase,aasmtai,aasmcnst,
+      aasmtai,aasmcnst,
       symbase,symtable,defutil,
       nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nutils,
       ppu,
-      pass_1;
+      pass_1,
+      export;
 
   class function tnodeutils.call_fail_node:tnode;
     var
@@ -408,6 +417,8 @@ implementation
                   pd.localst.SymList.ForEachCall(@static_syms_finalize,arg);
               end;
           end;
+        else
+          ;
       end;
     end;
 
@@ -477,7 +488,7 @@ implementation
                TSymtable(current_module.globalsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
              TSymtable(current_module.localsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
              { insert class constructors  }
-             if (current_module.flags and uf_classinits) <> 0 then
+             if mf_classinits in current_module.moduleflags then
                append_struct_initfinis(current_module, potype_class_constructor, stat);
            end;
          { units have seperate code for initilization and finalization }
@@ -501,7 +512,7 @@ implementation
          potype_unitfinalize:
            begin
              { insert class destructors  }
-             if (current_module.flags and uf_classinits) <> 0 then
+             if mf_classinits in current_module.moduleflags then
                append_struct_initfinis(current_module, potype_class_destructor, stat);
              { this is also used for initialization of variables in a
                program which does not have a globalsymtable }
@@ -579,17 +590,17 @@ implementation
     end;
 
 
-  class procedure tnodeutils.load_parentfpstruct_nested_funcret(pd: tprocdef; var stat: tstatementnode);
+  class procedure tnodeutils.load_parentfpstruct_nested_funcret(ressym: tsym; var stat: tstatementnode);
     var
       target: tnode;
     begin
-      target:=cloadnode.create(pd.funcretsym, pd.funcretsym.owner);
+      target:=cloadnode.create(ressym, ressym.owner);
       { ensure the target of this assignment doesn't translate the
         funcretsym also to its alias in the parentfpstruct }
       include(target.flags, nf_internal);
       addstatement(stat,
         cassignmentnode.create(
-          target, cloadnode.create(pd.funcretsym, pd.funcretsym.owner)
+          target, cloadnode.create(ressym, ressym.owner)
         )
       );
     end;
@@ -599,7 +610,9 @@ implementation
     var
       stat: tstatementnode;
       block: tnode;
+      ressym,
       psym: tsym;
+      resdef: tdef;
     begin
       result:=maybe_insert_trashing(pd,n);
 
@@ -666,19 +679,19 @@ implementation
                       result:=block
                     end
                 end;
+              else
+                ;
             end;
           end;
         end;
-      if target_info.system in systems_fpnestedstruct then
+      if (target_info.system in systems_fpnestedstruct) and
+         pd.getfuncretsyminfo(ressym,resdef) and
+         (tabstractnormalvarsym(ressym).inparentfpstruct) then
         begin
-          if assigned(pd.funcretsym) and
-             tabstractnormalvarsym(pd.funcretsym).inparentfpstruct then
-            begin
-              block:=internalstatements(stat);
-              addstatement(stat,result);
-              load_parentfpstruct_nested_funcret(pd,stat);
-              result:=block;
-            end;
+          block:=internalstatements(stat);
+          addstatement(stat,result);
+          load_parentfpstruct_nested_funcret(ressym,stat);
+          result:=block;
         end;
     end;
 
@@ -938,7 +951,7 @@ implementation
       { the mainstub is generated via a synthetic proc -> parsed via
         psub.read_proc_body() -> that one will insert the mangled name in the
         alias names already }
-      if potype<>potype_mainstub then
+      if not(potype in [potype_mainstub,potype_libmainstub]) then
         pd.aliasnames.insert(pd.mangledname);
       result:=pd;
     end;
@@ -954,17 +967,17 @@ implementation
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do
        begin
-         if (hp.u.flags and (uf_init or uf_finalize))<>0 then
+         if (hp.u.moduleflags * [mf_init,mf_finalize])<>[] then
            begin
              new(entry);
              entry^.module:=hp.u;
              entry^.initpd:=nil;
              entry^.finipd:=nil;
-             if (hp.u.flags and uf_init)<>0 then
+             if mf_init in hp.u.moduleflags then
                entry^.initfunc:=make_mangledname('INIT$',hp.u.globalsymtable,'')
              else
                entry^.initfunc:='';
-             if (hp.u.flags and uf_finalize)<>0 then
+             if mf_finalize in hp.u.moduleflags then
                entry^.finifunc:=make_mangledname('FINALIZE$',hp.u.globalsymtable,'')
              else
                entry^.finifunc:='';
@@ -974,17 +987,17 @@ implementation
        end;
 
       { Insert initialization/finalization of the program }
-      if (current_module.flags and (uf_init or uf_finalize))<>0 then
+      if (current_module.moduleflags * [mf_init,mf_finalize])<>[] then
         begin
           new(entry);
           entry^.module:=current_module;
           entry^.initpd:=nil;
           entry^.finipd:=nil;
-          if (current_module.flags and uf_init)<>0 then
+          if mf_init in current_module.moduleflags then
             entry^.initfunc:=make_mangledname('INIT$',current_module.localsymtable,'')
           else
             entry^.initfunc:='';
-          if (current_module.flags and uf_finalize)<>0 then
+          if mf_finalize in current_module.moduleflags then
             entry^.finifunc:=make_mangledname('FINALIZE$',current_module.localsymtable,'')
           else
             entry^.finifunc:='';
@@ -1160,7 +1173,7 @@ implementation
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do
        begin
-         if (hp.u.flags and uf_threadvars)=uf_threadvars then
+         if mf_threadvars in hp.u.moduleflags then
            begin
              sym:=current_asmdata.RefAsmSymbol(make_mangledname('THREADVARLIST',hp.u.globalsymtable,''),AT_DATA,true);
              tcb.emit_tai(
@@ -1172,7 +1185,7 @@ implementation
          hp:=tused_unit(hp.next);
        end;
       { Add program threadvars, if any }
-      if (current_module.flags and uf_threadvars)=uf_threadvars then
+      if mf_threadvars in current_module.moduleflags then
         begin
           sym:=current_asmdata.RefAsmSymbol(make_mangledname('THREADVARLIST',current_module.localsymtable,''),AT_DATA,true);
           tcb.emit_tai(
@@ -1245,7 +1258,7 @@ implementation
            sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_FORCEINDIRECT,tabledef);
            current_asmdata.asmlists[al_globals].concatlist(
              tcb.get_final_asmlist(sym,tabledef,sec_data,s,sizeof(pint)));
-           current_module.flags:=current_module.flags or uf_threadvars;
+           include(current_module.moduleflags,mf_threadvars);
            current_module.add_public_asmsym(sym);
          end
        else
@@ -1254,7 +1267,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:cardinal);
+  class procedure tnodeutils.InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:tmoduleflag);
     var
       hp: tused_unit;
       tcb: ttai_typedconstbuilder;
@@ -1273,7 +1286,7 @@ implementation
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do
        begin
-         if (hp.u.flags and unitflag)=unitflag then
+         if unitflag in hp.u.moduleflags then
           begin
             tcb.emit_tai(
               Tai_const.Createname(make_mangledname(prefix,hp.u.globalsymtable,''),0),
@@ -1283,7 +1296,7 @@ implementation
          hp:=tused_unit(hp.next);
        end;
       { Add items from program, if any }
-      if (current_module.flags and unitflag)=unitflag then
+      if unitflag in current_module.moduleflags then
        begin
          tcb.emit_tai(
            Tai_const.Createname(make_mangledname(prefix,current_module.localsymtable,''),0),
@@ -1306,7 +1319,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:cardinal);
+  class procedure tnodeutils.InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:tmoduleflag);
     var
       s: string;
       item: TTCInitItem;
@@ -1344,31 +1357,31 @@ implementation
           current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,rawdatadef),
           rawdatadef,sec_data,s,sizeof(pint)));
       tcb.free;
-      current_module.flags:=current_module.flags or unitflag;
+      include(current_module.moduleflags,unitflag);
     end;
 
 
   class procedure tnodeutils.InsertWideInits;
     begin
-      InsertRuntimeInits('WIDEINITS',current_asmdata.WideInits,uf_wideinits);
+      InsertRuntimeInits('WIDEINITS',current_asmdata.WideInits,mf_wideinits);
     end;
 
 
   class procedure tnodeutils.InsertResStrInits;
     begin
-      InsertRuntimeInits('RESSTRINITS',current_asmdata.ResStrInits,uf_resstrinits);
+      InsertRuntimeInits('RESSTRINITS',current_asmdata.ResStrInits,mf_resstrinits);
     end;
 
 
   class procedure tnodeutils.InsertWideInitsTablesTable;
     begin
-      InsertRuntimeInitsTablesTable('WIDEINITS','FPC_WIDEINITTABLES',uf_wideinits);
+      InsertRuntimeInitsTablesTable('WIDEINITS','FPC_WIDEINITTABLES',mf_wideinits);
     end;
 
 
   class procedure tnodeutils.InsertResStrTablesTable;
     begin
-      InsertRuntimeInitsTablesTable('RESSTRINITS','FPC_RESSTRINITTABLES',uf_resstrinits);
+      InsertRuntimeInitsTablesTable('RESSTRINITS','FPC_RESSTRINITTABLES',mf_resstrinits);
     end;
 
 
@@ -1389,7 +1402,7 @@ implementation
       countplaceholder:=tcb.emit_placeholder(sizesinttype);
       while assigned(hp) do
         begin
-          If (hp.flags and uf_has_resourcestrings)=uf_has_resourcestrings then
+          if mf_has_resourcestrings in hp.moduleflags then
             begin
               tcb.emit_tai(Tai_const.Create_sym(
                 ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start('RESSTR',hp.localsymtable,[tcdssso_register_asmsym,tcdssso_use_indirect])),
@@ -1544,6 +1557,26 @@ implementation
   class procedure tnodeutils.InsertObjectInfo;
     begin
       { don't do anything by default }
+    end;
+
+
+  class procedure tnodeutils.RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean);
+    begin
+      { don't do anything by default }
+    end;
+
+
+  class procedure tnodeutils.RegisterModuleInitFunction(pd: tprocdef);
+    begin
+      { setinitname may generate a new section -> don't add to the
+        current list, because we assume this remains a text section }
+      exportlib.setinitname(current_asmdata.AsmLists[al_pure_assembler],pd.mangledname);
+    end;
+
+
+  class procedure tnodeutils.RegisterModuleFiniFunction(pd: tprocdef);
+    begin
+      exportlib.setfininame(current_asmdata.AsmLists[al_pure_assembler],pd.mangledname);
     end;
 
 

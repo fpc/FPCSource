@@ -18,12 +18,27 @@ unit jswriter;
 { $DEFINE DEBUGJSWRITER}
 {AllowWriteln}
 
+{$if defined(fpc) or defined(NodeJS)}
+  {$define HasFileWriter}
+{$endif}
+
 interface
 
 uses
-  SysUtils, jstoken, jsbase, jstree;
+  {$ifdef pas2js}
+  JS,
+  {$endif}
+  SysUtils, jsbase, jstree;
 
 Type
+  {$ifdef pas2js}
+  TJSWriterString = UnicodeString;
+  TJSWriterChar = WideChar;
+  {$else}
+  TJSWriterString = AnsiString;
+  TJSWriterChar = AnsiChar;
+  {$endif}
+
   TTextWriter = class;
 
   TTextWriterWriting = procedure(Sender: TTextWriter) of object;
@@ -37,67 +52,96 @@ Type
     FCurColumn: integer;
     FOnWriting: TTextWriterWriting;
   protected
-    Function DoWrite(Const S : AnsiString) : Integer; virtual; abstract;
+    Function DoWrite(Const S : TJSWriterString) : Integer; virtual; abstract;
+    {$ifdef FPC_HAS_CPSTRING}
     Function DoWrite(Const S : UnicodeString) : Integer; virtual; abstract;
+    {$endif}
     procedure SetCurElement(const AValue: TJSElement); virtual;
     Procedure Writing; virtual; // called before adding new characters
   Public
     // All functions return the number of bytes copied to output stream.
     constructor Create;
+    {$ifdef FPC_HAS_CPSTRING}
     Function Write(Const S : UnicodeString) : Integer;
-    Function Write(Const S : AnsiString) : Integer;
-    Function WriteLn(Const S : AnsiString) : Integer;
-    Function Write(Const Fmt : AnsiString; Args : Array of const) : Integer;
-    Function WriteLn(Const Fmt : AnsiString; Args : Array of const) : Integer;
-    Function Write(Const Args : Array of const) : Integer;
-    Function WriteLn(Const Args : Array of const) : Integer;
+    {$endif}
+    Function Write(Const S : TJSWriterString) : Integer;
+    Function WriteLn(Const S : TJSWriterString) : Integer;
+    Function Write(Const Fmt : TJSWriterString; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif}) : Integer;
+    Function WriteLn(Const Fmt : TJSWriterString; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif}) : Integer;
+    Function Write(Const Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif}) : Integer;
+    Function WriteLn(Const Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif}) : Integer;
     Property CurLine: integer read FCurLine write FCurLine;
     Property CurColumn: integer read FCurColumn write FCurColumn;// char index, not codepoint
     Property CurElement: TJSElement read FCurElement write SetCurElement;
     Property OnWriting: TTextWriterWriting read FOnWriting write FOnWriting;
   end;
 
+  {$ifdef HasFileWriter}
   { TFileWriter }
 
   TFileWriter = Class(TTextWriter)
   Protected
+    {$ifdef NodeJS}
+    {$else}
     FFile : Text;
+    {$endif}
     FFileName : String;
-    Function DoWrite(Const S : AnsiString) : Integer; override;
+    Function DoWrite(Const S : TJSWriterString) : Integer; override;
+    {$ifdef FPC_HAS_CPSTRING}
     Function DoWrite(Const S : UnicodeString) : Integer; override;
+    {$endif}
   Public
-    Constructor Create(Const AFileNAme : String);
+    Constructor Create(Const AFileName : String); reintroduce;
     Destructor Destroy; override;
     Procedure Flush;
     Procedure Close;
     Property FileName : String Read FFileName;
   end;
+  {$endif}
+
+  TBufferWriter_Buffer = Array of {$ifdef fpc}byte{$else}string{$endif};
 
   { TBufferWriter }
 
-  TBytes = Array of byte;
   TBufferWriter = Class(TTextWriter)
+  private type
+    TBuffer = TBufferWriter_Buffer;
   private
     FBufPos,
     FCapacity: Cardinal;
-    FBuffer : TBytes;
-    function GetAsAnsistring: AnsiString;
+    FBuffer: TBuffer;
+    function GetAsString: TJSWriterString;
+    {$ifdef fpc}
     function GetBuffer: Pointer;
+    {$endif}
     function GetBufferLength: Integer;
     function GetCapacity: Cardinal;
+    {$ifdef FPC_HAS_CPSTRING}
     function GetUnicodeString: UnicodeString;
+    {$endif}
+    procedure SetAsString(const AValue: TJSWriterString);
     procedure SetCapacity(AValue: Cardinal);
   Protected
-    Function DoWrite(Const S : AnsiString) : integer; override;
+    Function DoWrite(Const S : TJSWriterString) : integer; override;
+    {$ifdef FPC_HAS_CPSTRING}
     Function DoWrite(Const S : UnicodeString) : integer; override;
+    {$endif}
   Public
-    Constructor Create(Const ACapacity : Cardinal);
+    Constructor Create(Const ACapacity : Cardinal); reintroduce;
+    {$ifdef fpc}
     Procedure SaveToFile(Const AFileName : String);
     Property Buffer : Pointer Read GetBuffer;
+    {$endif}
+    {$ifdef pas2js}
+    Property Buffer: TBufferWriter_Buffer read FBuffer;
+    {$endif}
     Property BufferLength : Integer Read GetBufferLength;
     Property Capacity : Cardinal Read GetCapacity Write SetCapacity;
-    Property AsAnsistring : AnsiString Read GetAsAnsistring;
+    Property AsString : TJSWriterString Read GetAsString Write SetAsString;
+    {$ifdef FPC_HAS_CPSTRING}
+    Property AsAnsiString : AnsiString Read GetAsString; deprecated 'use AsString instead, fpc 3.3.1';
     Property AsUnicodeString : UnicodeString Read GetUnicodeString;
+    {$endif}
   end;
 
   TJSEscapeQuote = (
@@ -109,7 +153,9 @@ Type
   { TJSWriter }
 
   TWriteOption = (woCompact,
+                  {$ifdef FPC_HAS_CPSTRING}
                   woUseUTF8,
+                  {$endif}
                   woTabIndent,
                   woEmptyStatementAsComment,
                   woQuoteElementNames,
@@ -134,13 +180,17 @@ Type
     procedure SetOptions(AValue: TWriteOptions);
   Protected
     // Helper routines
-    Procedure Error(Const Msg : String);
-    Procedure Error(Const Fmt : String; Args : Array of const);
+    Procedure Error(Const Msg : TJSWriterString);
+    Procedure Error(Const Fmt : TJSWriterString; Args : Array of {$ifdef pas2js}jsvalue{$else}const{$endif});
     Procedure WriteIndent; // inline;
+    {$ifdef FPC_HAS_CPSTRING}
     Procedure Write(Const U : UnicodeString);
-    Procedure Write(Const S : AnsiString);
-    Procedure WriteLn(Const S : AnsiString);
+    {$endif}
+    Procedure Write(Const S : TJSWriterString);
+    Procedure WriteLn(Const S : TJSWriterString);
+    {$ifdef FPC_HAS_CPSTRING}
     Procedure WriteLn(Const U : UnicodeString);
+    {$endif}
     // one per type of statement
     Procedure WriteValue(V : TJSValue);  virtual;
     Procedure WriteRegularExpressionLiteral(El: TJSRegularExpressionLiteral);
@@ -179,7 +229,9 @@ Type
   Public
     Function EscapeString(const S: TJSString; Quote: TJSEscapeQuote = jseqDouble): TJSString;
     Constructor Create(AWriter : TTextWriter);
+    {$ifdef HasFileWriter}
     Constructor Create(Const AFileName : String);
+    {$endif}
     Destructor Destroy; override;
     Procedure WriteJS(El : TJSElement);
     Procedure Indent;
@@ -188,11 +240,16 @@ Type
     Property Options : TWriteOptions Read FOptions Write SetOptions;
     Property IndentSize : Byte Read FIndentSize Write FIndentSize;
     Property UseUTF8 : Boolean Read GetUseUTF8;
-    property LastChar: WideChar read FLastChar;
+    Property LastChar: WideChar read FLastChar;
+    Property SkipCurlyBrackets : Boolean read FSkipCurlyBrackets write FSkipCurlyBrackets;
+    Property SkipRoundBrackets : Boolean read FSkipRoundBrackets write FSkipRoundBrackets;
   end;
   EJSWriter = Class(Exception);
 
+{$ifdef FPC_HAS_CPSTRING}
 Function UTF16ToUTF8(const S: UnicodeString): string;
+{$endif}
+Function QuoteJSString(const S: TJSString; Quote: TJSChar = #0): TJSString;
 
 implementation
 
@@ -200,6 +257,7 @@ Resourcestring
   SErrUnknownJSClass = 'Unknown javascript element class : %s';
   SErrNilNode = 'Nil node in Javascript';
 
+{$ifdef FPC_HAS_CPSTRING}
 function HexDump(p: PChar; Count: integer): string;
 var
   i: Integer;
@@ -216,6 +274,36 @@ begin
   // conversion magic
   SetCodePage(RawByteString(Result), CP_ACP, False);
 end;
+{$endif}
+
+function QuoteJSString(const S: TJSString; Quote: TJSChar): TJSString;
+var
+  i, j, Count: Integer;
+begin
+  if Quote=#0 then
+    begin
+    if Pos('"',S)>0 then
+      Quote:=''''
+    else
+      Quote:='"';
+    end;
+  Result := '' + Quote;
+  Count := length(S);
+  i := 0;
+  j := 0;
+  while i < Count do
+    begin
+    inc(i);
+    if S[i] = Quote then
+      begin
+      Result := Result + copy(S, 1 + j, i - j) + Quote;
+      j := i;
+      end;
+    end;
+  if i <> j then
+    Result := Result + copy(S, 1 + j, i - j);
+  Result := Result + Quote;
+end;
 
 { TBufferWriter }
 
@@ -224,23 +312,33 @@ begin
   Result:=FBufPos;
 end;
 
-function TBufferWriter.GetAsAnsistring: AnsiString;
+function TBufferWriter.GetAsString: TJSWriterString;
 begin
+  {$ifdef pas2js}
+  if FBufPos<length(FBuffer) then
+    TJSArray(FBuffer).Length:=FBufPos;
+  Result:=TJSArray(FBuffer).join('');
+  {$else}
+  Result:='';
   SetLength(Result,BufferLength);
   if (BufferLength>0) then
     Move(FBuffer[0],Result[1],BufferLength);
+  {$endif}
 end;
 
+{$ifdef fpc}
 function TBufferWriter.GetBuffer: Pointer;
 begin
   Result:=Pointer(FBuffer);
 end;
+{$endif}
 
 function TBufferWriter.GetCapacity: Cardinal;
 begin
   Result:=Length(FBuffer);
 end;
 
+{$ifdef FPC_HAS_CPSTRING}
 function TBufferWriter.GetUnicodeString: UnicodeString;
 
 Var
@@ -248,9 +346,21 @@ Var
 
 begin
   SL:=BufferLength div SizeOf(UnicodeChar); // Silently ignores last byte
+  Result:='';
   SetLength(Result,SL);
   if (SL>0) then
     Move(FBuffer[0],Result[1],SL*SizeOf(UnicodeChar));
+end;
+{$endif}
+
+procedure TBufferWriter.SetAsString(const AValue: TJSWriterString);
+begin
+  {$ifdef pas2js}
+  SetLength(FBuffer,0);
+  FCapacity:=0;
+  {$endif}
+  FBufPos:=0;
+  DoWrite(AValue);
 end;
 
 procedure TBufferWriter.SetCapacity(AValue: Cardinal);
@@ -261,16 +371,24 @@ begin
     FBufPos:=Capacity;
 end;
 
-Function TBufferWriter.DoWrite(Const S: AnsiString): integer;
-
+function TBufferWriter.DoWrite(const S: TJSWriterString): integer;
+{$ifdef pas2js}
+begin
+  Result:=Length(S)*2;
+  if Result=0 then exit;
+  TJSArray(FBuffer).push(S);
+  inc(FBufPos);
+  FCapacity:=FBufPos;
+end;
+{$else}
 Var
   DesLen,MinLen : Integer;
 
 begin
-  Result:=Length(S)*SizeOf(Char);
+  Result:=Length(S)*SizeOf(TJSWriterChar);
   if Result=0 then exit;
-  MinLen:=Result+FBufPos;
-  If (MinLen>Capacity) then
+  MinLen:=Result+integer(FBufPos);
+  If (MinLen>integer(Capacity)) then
     begin
     DesLen:=(FCapacity*3) div 2;
     if DesLen>MinLen then
@@ -278,10 +396,12 @@ begin
     Capacity:=MinLen;
     end;
   Move(S[1],FBuffer[FBufPos],Result);
-  FBufPos:=FBufPos+Result;
+  FBufPos:=integer(FBufPos)+Result;
 end;
+{$endif}
 
-Function TBufferWriter.DoWrite(Const S: UnicodeString): integer;
+{$ifdef FPC_HAS_CPSTRING}
+function TBufferWriter.DoWrite(const S: UnicodeString): integer;
 
 Var
   DesLen,MinLen : Integer;
@@ -289,8 +409,8 @@ Var
 begin
   Result:=Length(S)*SizeOf(UnicodeChar);
   if Result=0 then exit;
-  MinLen:=Result+FBufPos;
-  If (MinLen>Capacity) then
+  MinLen:=Result+integer(FBufPos);
+  If (MinLen>integer(Capacity)) then
     begin
     DesLen:=(FCapacity*3) div 2;
     if DesLen>MinLen then
@@ -298,17 +418,18 @@ begin
     Capacity:=MinLen;
     end;
   Move(S[1],FBuffer[FBufPos],Result);
-  FBufPos:=FBufPos+Result;
+  FBufPos:=integer(FBufPos)+Result;
 end;
+{$endif}
 
-Constructor TBufferWriter.Create(Const ACapacity: Cardinal);
+constructor TBufferWriter.Create(const ACapacity: Cardinal);
 begin
   inherited Create;
   Capacity:=ACapacity;
 end;
 
-Procedure TBufferWriter.SaveToFile(Const AFileName: String);
-
+{$ifdef fpc}
+procedure TBufferWriter.SaveToFile(const AFileName: String);
 Var
   F : File;
 
@@ -321,6 +442,7 @@ begin
     Close(F);
   end;
 end;
+{$endif}
 
 { TJSWriter }
 
@@ -328,7 +450,7 @@ procedure TJSWriter.SetOptions(AValue: TWriteOptions);
 begin
   if FOptions=AValue then Exit;
   FOptions:=AValue;
-  If woTabIndent in Foptions then
+  If woTabIndent in FOptions then
     FIndentChar:=#9
   else
     FIndentChar:=' ';
@@ -336,15 +458,16 @@ end;
 
 function TJSWriter.GetUseUTF8: Boolean;
 begin
-  Result:=(woUseUTF8 in Options)
+  Result:={$ifdef FPC_HAS_CPSTRING}(woUseUTF8 in Options){$else}false{$endif};
 end;
 
-procedure TJSWriter.Error(const Msg: String);
+procedure TJSWriter.Error(const Msg: TJSWriterString);
 begin
   Raise EJSWriter.Create(Msg);
 end;
 
-procedure TJSWriter.Error(const Fmt: String; Args: array of const);
+procedure TJSWriter.Error(const Fmt: TJSWriterString;
+  Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif});
 begin
   Raise EJSWriter.CreateFmt(Fmt,Args);
 end;
@@ -372,12 +495,14 @@ begin
     FCurIndent:=0;
 end;
 
+{$ifdef FPC_HAS_CPSTRING}
 procedure TJSWriter.Write(const U: UnicodeString);
 
 Var
   S : String;
 
 begin
+  //system.writeln('TJSWriter.Write unicodestring=',U);
   WriteIndent;
   if UseUTF8 then
     begin
@@ -392,12 +517,16 @@ begin
     FLastChar:=U[length(U)];
     end;
 end;
+{$endif}
 
-procedure TJSWriter.Write(const S: AnsiString);
+procedure TJSWriter.Write(const S: TJSWriterString);
 begin
+  //system.writeln('TJSWriter.Write TJSWriterString=',S);
+  {$ifdef FPC_HAS_CPSTRING}
   if Not (woUseUTF8 in Options) then
     Write(UnicodeString(S))
   else
+  {$endif}
     begin
     WriteIndent;
     if s='' then exit;
@@ -406,11 +535,13 @@ begin
     end;
 end;
 
-procedure TJSWriter.WriteLn(const S: AnsiString);
+procedure TJSWriter.WriteLn(const S: TJSWriterString);
 begin
+  {$ifdef FPC_HAS_CPSTRING}
   if Not (woUseUTF8 in Options) then
     Writeln(UnicodeString(S))
   else
+  {$endif}
     begin
     WriteIndent;
     Writer.WriteLn(S);
@@ -419,6 +550,7 @@ begin
     end;
 end;
 
+{$ifdef FPC_HAS_CPSTRING}
 procedure TJSWriter.WriteLn(const U: UnicodeString);
 Var
   S : String;
@@ -438,77 +570,102 @@ begin
     FLinePos:=0;
     end;
 end;
+{$endif}
 
 function TJSWriter.EscapeString(const S: TJSString; Quote: TJSEscapeQuote
   ): TJSString;
 
 Var
   I,J,L : Integer;
-  P : TJSPChar;
   R: TJSString;
-
+  c: WideChar;
 begin
+  //system.writeln('TJSWriter.EscapeString "',S,'"');
   I:=1;
   J:=1;
   R:='';
   L:=Length(S);
-  P:=TJSPChar(S);
   While I<=L do
     begin
-    if (P^ in [#0..#31,'"','''','/','\']) then
+    c:=S[I];
+    if (c in [#0..#31,'"','''','/','\'])
+        or (c>=#$ff00) or ((c>=#$D800) and (c<=#$DFFF)) then
       begin
       R:=R+Copy(S,J,I-J);
-      Case P^ of
+      Case c of
         '\' : R:=R+'\\';
         '/' : R:=R+'\/';
         '"' : if Quote=jseqSingle then R:=R+'"' else R:=R+'\"';
         '''': if Quote=jseqDouble then R:=R+'''' else R:=R+'\''';
-        #0..#7,#11,#14..#31: R:=R+'\x'+TJSString(hexStr(ord(P^),2));
+        #0..#7,#11,#14..#31: R:=R+'\x'+TJSString(hexStr(ord(c),2));
         #8  : R:=R+'\b';
         #9  : R:=R+'\t';
         #10 : R:=R+'\n';
         #12 : R:=R+'\f';
         #13 : R:=R+'\r';
+        #$D800..#$DFFF:
+          begin
+          if (I<L) then
+            begin
+            c:=S[I+1];
+            if (c>=#$D000) and (c<=#$DFFF) then
+              begin
+              inc(I,2); // surrogate, two char codepoint
+              continue;
+              end
+            else
+              // invalid UTF-16, cannot be encoded as UTF-8 -> encode as hex
+              R:=R+'\u'+TJSString(HexStr(ord(c),4));
+            end
+          else
+            // invalid UTF-16 at end of string, cannot be encoded as UTF-8 -> encode as hex
+            R:=R+'\u'+TJSString(HexStr(ord(c),4));
+          end;
+        #$FF00..#$FFFF: R:=R+'\u'+TJSString(HexStr(ord(c),4));
       end;
       J:=I+1;
       end;
     Inc(I);
-    Inc(P);
     end;
   R:=R+Copy(S,J,I-1);
   Result:=R;
+  //system.writeln('TJSWriter.EscapeString Result="',Result,'"');
 end;
 
 procedure TJSWriter.WriteValue(V: TJSValue);
 const
   TabWidth = 4;
 
-  function GetLineIndent(var p: PWideChar): integer;
+  function GetLineIndent(const S: TJSString; var p: integer): integer;
   var
-    h: PWideChar;
+    h, l: integer;
   begin
     h:=p;
+    l:=length(S);
     Result:=0;
-    repeat
-      case h^ of
-      #0: break;
+    while h<=l do
+      begin
+      case S[h] of
       #9: Result:=Result+(TabWidth-Result mod TabWidth);
       ' ': inc(Result);
       else break;
       end;
       inc(h);
-    until false;
+      end;
     p:=h;
   end;
 
-  function SkipToNextLineStart(p: PWideChar): PWideChar;
+  function SkipToNextLineStart(const S: TJSString; p: integer): integer;
+  var
+    l: Integer;
   begin
-    repeat
-      case p^ of
-      #0: break;
+    l:=length(S);
+    while p<=l do
+      begin
+      case S[p] of
       #10,#13:
         begin
-        if (p[1] in [#10,#13]) and (p^<>p[1]) then
+        if (p<l) and (S[p+1] in [#10,#13]) and (S[p]<>S[p+1]) then
           inc(p,2)
         else
           inc(p);
@@ -516,25 +673,25 @@ const
         end
       else inc(p);
       end;
-    until false;
+      end;
     Result:=p;
   end;
 
 Var
   S , S2: String;
   JS: TJSString;
-  p, StartP: PWideChar;
+  p, StartP: Integer;
   MinIndent, CurLineIndent, j, Exp, Code: Integer;
   i: SizeInt;
-  D: TJSNumber;
+  D, AsNumber: TJSNumber;
 begin
   if V.CustomValue<>'' then
     begin
     JS:=V.CustomValue;
     if JS='' then exit;
 
-    p:=SkipToNextLineStart(PWideChar(JS));
-    if p^=#0 then
+    p:=SkipToNextLineStart(JS,1);
+    if p>length(JS) then
       begin
       // simple value
       Write(JS);
@@ -546,21 +703,21 @@ begin
     // find minimum indent
     MinIndent:=-1;
     repeat
-      CurLineIndent:=GetLineIndent(p);
+      CurLineIndent:=GetLineIndent(JS,p);
       if (MinIndent<0) or (MinIndent>CurLineIndent) then
         MinIndent:=CurLineIndent;
-      p:=SkipToNextLineStart(p);
-    until p^=#0;
+      p:=SkipToNextLineStart(JS,p);
+    until p>length(JS);
 
     // write value lines indented
-    p:=PWideChar(JS);
-    GetLineIndent(p); // the first line is already indented, skip
+    p:=1;
+    GetLineIndent(JS,p); // the first line is already indented, skip
     repeat
       StartP:=p;
-      p:=SkipToNextLineStart(StartP);
-      Write(copy(JS,StartP-PWideChar(JS)+1,p-StartP));
-      if p^=#0 then break;
-      CurLineIndent:=GetLineIndent(p);
+      p:=SkipToNextLineStart(JS,StartP);
+      Write(copy(JS,StartP,p-StartP));
+      if p>length(JS) then break;
+      CurLineIndent:=GetLineIndent(JS,p);
       Write(StringOfChar(FIndentChar,FCurIndent+CurLineIndent-MinIndent));
     until false;
 
@@ -581,15 +738,17 @@ begin
       exit;
       end;
     jstNumber :
-      if (Frac(V.AsNumber)=0)
-          and (V.AsNumber>double(low(int64)))
-          and (V.AsNumber<double(high(int64))) then
+      begin
+      AsNumber:=V.AsNumber;
+      if (Frac(AsNumber)=0)
+          and (AsNumber>=double(MinSafeIntDouble))
+          and (AsNumber<=double(MaxSafeIntDouble)) then
         begin
-        Str(Round(V.AsNumber),S);
+        Str(Round(AsNumber),S);
         end
       else
         begin
-        Str(V.AsNumber,S);
+        Str(AsNumber,S);
         if S[1]=' ' then Delete(S,1,1);
         i:=Pos('E',S);
         if (i>2) then
@@ -603,7 +762,7 @@ begin
             if s[j]='.' then inc(j);
             S2:=LeftStr(S,j)+copy(S,i,length(S));
             val(S2,D,Code);
-            if (Code=0) and (D=V.AsNumber) then
+            if (Code=0) and (D=AsNumber) then
               S:=S2;
             end;
           '9':
@@ -641,9 +800,18 @@ begin
                 end;
             until false;
             val(S2,D,Code);
-            if (Code=0) and (D=V.AsNumber) then
+            if (Code=0) and (D=AsNumber) then
               S:=S2;
             end;
+          else
+            if s[i-1]='0' then
+              begin
+              // 1.2340E...
+              S2:=LeftStr(S,i-2)+copy(S,i,length(S));
+              val(S2,D,Code);
+              if (Code=0) and (D=AsNumber) then
+                S:=S2;
+              end;
           end;
           end;
         // chomp default exponent E+000
@@ -658,6 +826,7 @@ begin
               Delete(S,i,length(S))
             else if (Exp>=-6) and (Exp<=6) then
               begin
+              // small exponent -> use notation without E
               Delete(S,i,length(S));
               j:=Pos('.',S);
               if j>0 then
@@ -701,12 +870,16 @@ begin
               end
             else
               begin
-              // e.g. 1.0E+001  -> 1.0E1
+              // e.g. 1.1E+0010  -> 1.1E10
               S:=LeftStr(S,i)+IntToStr(Exp);
+              if (i >= 4) and (s[i-1] = '0') and (s[i-2] = '.') then
+                // e.g. 1.0E22 -> 1E22
+                Delete(S, i-2, 2);
               end
             end;
           end;
         end;
+      end;
     jstObject : ;
     jstReference : ;
     jstCompletion : ;
@@ -723,14 +896,16 @@ constructor TJSWriter.Create(AWriter: TTextWriter);
 begin
   FWriter:=AWriter;
   FIndentChar:=' ';
-  FOptions:=[woUseUTF8];
+  FOptions:=[{$ifdef FPC_HAS_CPSTRING}woUseUTF8{$endif}];
 end;
 
+{$ifdef HasFileWriter}
 constructor TJSWriter.Create(const AFileName: String);
 begin
   Create(TFileWriter.Create(AFileName));
   FFreeWriter:=True;
 end;
+{$endif}
 
 destructor TJSWriter.Destroy;
 begin
@@ -780,10 +955,14 @@ begin
         and (not (A is TJSSourceElements))
         and (not (A is TJSEmptyBlockStatement))
     then
+      begin
+      if FLastChar<>';' then
+        Write(';');
       if C then
-        Write('; ')
+        Write(' ')
       else
-        Writeln(';');
+        Writeln('');
+      end;
     end;
   Writer.CurElement:=LastEl;
   if C then
@@ -843,13 +1022,15 @@ end;
 
 procedure TJSWriter.WriteArrayLiteral(El: TJSArrayLiteral);
 
+type
+  BracketString = string{$ifdef fpc}[2]{$endif};
 Var
-  Chars : Array[Boolean] of string[2] = ('[]','()');
+  Chars : Array[Boolean] of BracketString = ('[]','()');
 
 Var
   i,C : Integer;
   isArgs,WC , MultiLine: Boolean;
-  BC : String[2];
+  BC : BracketString;
 
 begin
   isArgs:=El is TJSArguments;
@@ -894,14 +1075,11 @@ end;
 
 
 procedure TJSWriter.WriteObjectLiteral(El: TJSObjectLiteral);
-
-
 Var
   i,C : Integer;
   QE,WC : Boolean;
   S : TJSString;
   Prop: TJSObjectLiteralElement;
-
 begin
   C:=El.Elements.Count-1;
   QE:=(woQuoteElementNames in Options);
@@ -924,7 +1102,14 @@ begin
    Writer.CurElement:=Prop.Expr;
    S:=Prop.Name;
    if QE or not IsValidJSIdentifier(S) then
-     S:='"'+S+'"';
+     begin
+     if (length(S)>1)
+         and (((S[1]='"') and (S[length(S)]='"'))
+           or ((S[1]='''') and (S[length(S)]=''''))) then
+       // already quoted
+     else
+       S:=QuoteJSString(s);
+     end;
    Write(S+': ');
    Indent;
    FSkipRoundBrackets:=true;
@@ -1027,17 +1212,15 @@ begin
     Write(S);
     end;
   WriteJS(El.A);
-  if (S='') then
+  S:=El.PostFixOperator;
+  if (S<>'') then
     begin
-    S:=El.PostFixOperator;
-    if (S<>'') then
-      begin
-      Writer.CurElement:=El;
-      if ((S='-') and (FLastChar='-'))
-          or ((S='+') and (FLastChar='+')) then
-        Write(' ');
-      Write(S);
-      end;
+    Writer.CurElement:=El;
+    case S[1] of
+    '+': if FLastChar='+' then Write(' ');
+    '-': if FLastChar='-' then Write(' ');
+    end;
+    Write(S);
     end;
 end;
 
@@ -1070,10 +1253,12 @@ begin
       begin
       if not (LastEl is TJSStatementList) then
         begin
+        if FLastChar<>';' then
+          Write(';');
         if C then
-          Write('; ')
+          Write(' ')
         else
-          Writeln(';');
+          Writeln('');
         end;
       FSkipCurlyBrackets:=True;
       WriteJS(El.B);
@@ -1082,11 +1267,14 @@ begin
     if (not C) and not (LastEl is TJSStatementList) then
       writeln(';');
     end
-  else if Assigned(El.B) then
+  else if Assigned(El.B) and not IsEmptyStatement(El.B) then
     begin
     WriteJS(El.B);
     if (not C) and not (El.B is TJSStatementList) then
-      writeln(';');
+      if FLastChar=';' then
+        writeln('')
+      else
+        writeln(';');
     end;
   if B then
     begin
@@ -1126,8 +1314,9 @@ end;
 procedure TJSWriter.WriteBinary(El: TJSBinary);
 
 Var
-  S : AnsiString;
+  S : String;
   AllowCompact, WithBrackets: Boolean;
+  ElC: TClass;
 begin
   {$IFDEF VerboseJSWriter}
   System.writeln('TJSWriter.WriteBinary SkipRoundBrackets=',FSkipRoundBrackets);
@@ -1136,6 +1325,18 @@ begin
   if WithBrackets then
     Write('(');
   FSkipRoundBrackets:=false;
+  ElC:=El.ClassType;
+  if El.A is TJSBinaryExpression then
+    if (El.A.ClassType=ElC)
+        and ((ElC=TJSLogicalOrExpression)
+        or (ElC=TJSLogicalAndExpression)
+        or (ElC=TJSBitwiseAndExpression)
+        or (ElC=TJSBitwiseOrExpression)
+        or (ElC=TJSBitwiseXOrExpression)
+        or (ElC=TJSAdditiveExpressionPlus)
+        or (ElC=TJSAdditiveExpressionMinus)
+        or (ElC=TJSMultiplicativeExpressionMul)) then
+      FSkipRoundBrackets:=true;
   WriteJS(El.A);
   Writer.CurElement:=El;
   AllowCompact:=False;
@@ -1152,6 +1353,13 @@ begin
       S:=' '+S+' ';
     end;
   FSkipRoundBrackets:=false;
+  ElC:=El.ClassType;
+  if El.B is TJSBinaryExpression then
+    if (El.B.ClassType=ElC)
+        and ((ElC=TJSLogicalOrExpression)
+        or (ElC=TJSLogicalAndExpression)) then
+      FSkipRoundBrackets:=true;
+  // Note: a+(b+c) <> a+b+c  e.g. floats, 0+string
   Write(S);
   WriteJS(El.B);
   Writer.CurElement:=El;
@@ -1203,7 +1411,7 @@ end;
 procedure TJSWriter.WriteAssignStatement(El: TJSAssignStatement);
 
 Var
-  S : AnsiString;
+  S : String;
 begin
   WriteJS(El.LHS);
   Writer.CurElement:=El;
@@ -1372,14 +1580,6 @@ procedure TJSWriter.WriteSwitchStatement(El: TJSSwitchStatement);
 
 Var
   C : Boolean;
-
-  Procedure WriteCaseLabel(L : TJSString);
-
-  begin
-    Write(l);
-  end;
-
-Var
   I : Integer;
   EC : TJSCaseElement;
 
@@ -1693,26 +1893,37 @@ begin
   FSkipCurlyBrackets:=False;
 end;
 
+{$ifdef HasFileWriter}
 { TFileWriter }
 
-Function TFileWriter.DoWrite(Const S: AnsiString) : Integer;
+Function TFileWriter.DoWrite(Const S: TJSWriterString) : Integer;
 begin
   Result:=Length(S);
+  {$ifdef NodeJS}
+  system.writeln('TFileWriter.DoWrite ToDo ',S);
+  {$else}
   system.Write(FFile,S);
+  {$endif}
 end;
 
+{$ifdef FPC_HAS_CPSTRING}
 Function TFileWriter.DoWrite(Const S: UnicodeString) : Integer;
 begin
   Result:=Length(S)*SizeOf(UnicodeChar);
   system.Write(FFile,S);
 end;
+{$endif}
 
-Constructor TFileWriter.Create(Const AFileNAme: String);
+Constructor TFileWriter.Create(Const AFileName: String);
 begin
   inherited Create;
   FFileName:=AFileName;
+  {$ifdef NodeJS}
+  system.writeln('TFileWriter.Create ToDo ',AFileName);
+  {$else}
   Assign(FFile,AFileName);
   Rewrite(FFile);
+  {$endif}
 end;
 
 Destructor TFileWriter.Destroy;
@@ -1723,13 +1934,22 @@ end;
 
 Procedure TFileWriter.Flush;
 begin
+  {$ifdef NodeJS}
+  system.writeln('TFileWriter.Flush ToDO');
+  {$else}
   system.Flush(FFile);
+  {$endif}
 end;
 
 Procedure TFileWriter.Close;
 begin
+  {$ifdef NodeJS}
+  system.writeln('TFileWriter.DoWrite ToDo ');
+  {$else}
   system.Close(FFile);
+  {$endif}
 end;
+{$endif}
 
 { TTextWriter }
 
@@ -1750,6 +1970,7 @@ begin
   FCurColumn:=1;
 end;
 
+{$ifdef FPC_HAS_CPSTRING}
 function TTextWriter.Write(const S: UnicodeString): Integer;
 var
   p: PWideChar;
@@ -1782,66 +2003,67 @@ begin
     inc(p);
   until false;
 end;
+{$endif}
 
-function TTextWriter.Write(const S: AnsiString): Integer;
+function TTextWriter.Write(const S: TJSWriterString): Integer;
 var
-  p: PChar;
   c: Char;
+  l, p: Integer;
 begin
   if S='' then exit;
   Writing;
   Result:=DoWrite(S);
-  p:=PChar(S);
-  repeat
-    c:=p^;
+  l:=length(S);
+  p:=1;
+  while p<=l do
+    begin
+    c:=S[p];
     case c of
-    #0:
-      if p-PChar(S)=length(S) then
-        break
-      else
-        inc(FCurColumn);
     #10,#13:
       begin
       FCurColumn:=1;
       inc(FCurLine);
       inc(p);
-      if (p^ in [#10,#13]) and (c<>p^) then inc(p);
-      continue;
+      if (p<=l) and (S[p] in [#10,#13]) and (c<>S[p]) then inc(p);
       end;
     else
-      // ignore UTF-8 multibyte chars, CurColumn is char index, not codepoint
+      // Note about UTF-8 multibyte chars: CurColumn is char index, not codepoint
       inc(FCurColumn);
+      inc(p);
     end;
-    inc(p);
-  until false;
+    end;
 end;
 
-function TTextWriter.WriteLn(const S: AnsiString): Integer;
+function TTextWriter.WriteLn(const S: TJSWriterString): Integer;
 begin
   Result:=Write(S)+Write(sLineBreak);
 end;
 
-function TTextWriter.Write(const Fmt: AnsiString;
-  Args: array of const): Integer;
+function TTextWriter.Write(const Fmt: TJSWriterString;
+  Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}): Integer;
 
 begin
   Result:=Write(Format(Fmt,Args));
 end;
 
-function TTextWriter.WriteLn(const Fmt: AnsiString;
-  Args: array of const): Integer;
+function TTextWriter.WriteLn(const Fmt: TJSWriterString;
+  Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}): Integer;
 begin
   Result:=WriteLn(Format(Fmt,Args));
 end;
 
-function TTextWriter.Write(const Args: array of const): Integer;
+function TTextWriter.Write(const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}): Integer;
 
 Var
   I : Integer;
+  {$ifdef pas2js}
+  V: jsvalue;
+  S: TJSWriterString;
+  {$else}
   V : TVarRec;
   S : String;
   U : UnicodeString;
-
+  {$endif}
 
 begin
   Result:=0;
@@ -1849,6 +2071,21 @@ begin
     begin
     V:=Args[i];
     S:='';
+    {$ifdef pas2js}
+    case jsTypeOf(V) of
+    'boolean':
+      if V then S:='true' else S:='false';
+    'number':
+      if isInteger(V) then
+        S:=str(NativeInt(V))
+      else
+        S:=str(Double(V));
+    'string':
+      S:=String(V);
+    else continue;
+    end;
+    Result:=Result+Write(S);
+    {$else}
     U:='';
     case V.VType of
        vtInteger       : Str(V.VInteger,S);
@@ -1871,10 +2108,12 @@ begin
       Result:=Result+Write(u)
     else if (S<>'') then
       Result:=Result+Write(s);
+    {$endif}
     end;
 end;
 
-function TTextWriter.WriteLn(const Args: array of const): Integer;
+function TTextWriter.WriteLn(
+  const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif}): Integer;
 begin
   Result:=Write(Args)+Writeln('');
 end;

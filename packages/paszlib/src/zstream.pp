@@ -52,7 +52,11 @@ type
           destructor destroy;override;
         end;
 
+        { Tcompressionstream }
+
         Tcompressionstream=class(Tcustomzlibstream)
+        private
+          function ClearOutBuffer: Integer;
         protected
           raw_written,compressed_written: int64;
         public
@@ -176,8 +180,7 @@ end;
 function Tcompressionstream.write(const buffer;count:longint):longint;
 
 var err:smallint;
-    lastavail,
-    written:longint;
+    lastavail:longint;
 
 begin
   Fstream.next_in:=@buffer;
@@ -186,17 +189,9 @@ begin
   while Fstream.avail_in<>0 do
     begin
       if Fstream.avail_out=0 then
-        begin
-          { Flush the buffer to the stream and update progress }
-          written:=source.write(Fbuffer^,bufsize);
-          inc(compressed_written,written);
-          inc(raw_written,lastavail-Fstream.avail_in);
-          lastavail:=Fstream.avail_in;
-          progress(self);
-          { reset output buffer }
-          Fstream.next_out:=Fbuffer;
-          Fstream.avail_out:=bufsize;
-        end;
+        ClearOutBuffer;
+      inc(raw_written,lastavail-Fstream.avail_in);
+      lastavail:=Fstream.avail_in;
       err:=deflate(Fstream,Z_NO_FLUSH);
       if err<>Z_OK then
         raise Ecompressionerror.create(zerror(err));
@@ -211,25 +206,28 @@ begin
   get_compressionrate:=100*compressed_written/raw_written;
 end;
 
+Function TCompressionstream.ClearOutBuffer : Integer;
+
+
+begin
+  { Flush the buffer to the stream and update progress }
+  Result:=source.write(Fbuffer^,bufsize);
+  inc(compressed_written,Result);
+  progress(self);
+  { reset output buffer }
+  Fstream.next_out:=Fbuffer;
+  Fstream.avail_out:=bufsize;
+end;
 
 procedure Tcompressionstream.flush;
 
 var err:smallint;
-    written:longint;
 
 begin
   {Compress remaining data still in internal zlib data buffers.}
   repeat
     if Fstream.avail_out=0 then
-      begin
-        { Flush the buffer to the stream and update progress }
-        written:=source.write(Fbuffer^,bufsize);
-        inc(compressed_written,written);
-        progress(self);
-        { reset output buffer }
-        Fstream.next_out:=Fbuffer;
-        Fstream.avail_out:=bufsize;
-      end;
+      ClearOutBuffer;
     err:=deflate(Fstream,Z_FINISH);
     if err=Z_STREAM_END then
       break;
@@ -241,6 +239,8 @@ begin
       source.writebuffer(FBuffer^,bufsize-Fstream.avail_out);
       inc(compressed_written,bufsize-Fstream.avail_out);
       progress(self);
+      Fstream.next_out:=Fbuffer;
+      Fstream.avail_out:=bufsize;
     end;
 end;
 

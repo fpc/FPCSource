@@ -195,7 +195,8 @@ Type
     fsid    : array[0..1] of cint;          { File system ID }
     namelen : clong; { Maximum name length in system }
     frsize  : clong;
-    spare   : array [0..4] of clong; { For later use }
+    flags   : clong; 
+    spare   : array [0..3] of clong; { For later use }
   end;
   {$else}
   TStatfs = record
@@ -209,7 +210,8 @@ Type
     fsid    : array[0..1] of cint;          { File system ID }
     namelen,           { Maximum name length in system }
     frsize  : cint;
-    spare   : array [0..4] of cint; { For later use }
+    flags   : cint; 
+    spare   : array [0..3] of cint; { For later use }
   end;
   {$endif}
   PStatFS=^TStatFS;

@@ -83,6 +83,10 @@ Implementation
     cgobj,procinfo,
     aasmbase,aasmdata;
 
+{ Range check must be disabled explicitly as conversions between signed and unsigned
+  32-bit values are done without explicit typecasts }
+{$R-}
+
   function CanBeCond(p : tai) : boolean;
     begin
       result:=
@@ -113,7 +117,9 @@ Implementation
         (r1.signindex = r2.signindex) and
         (r1.shiftimm = r2.shiftimm) and
         (r1.addressmode = r2.addressmode) and
-        (r1.shiftmode = r2.shiftmode);
+        (r1.shiftmode = r2.shiftmode) and
+        (r1.volatility=[]) and
+        (r2.volatility=[]);
     end;
 
   function MatchInstruction(const instr: tai; const op: TCommonAsmOps; const cond: TAsmConds; const postfix: TOpPostfixes): boolean;
@@ -235,6 +241,8 @@ Implementation
               instructionLoadsFromReg :=
                 (p.oper[I]^.ref^.base = reg) or
                 (p.oper[I]^.ref^.index = reg);
+            else
+              ;
           end;
           if instructionLoadsFromReg then exit; {Bailout if we found something}
           Inc(I);
@@ -294,6 +302,8 @@ Implementation
         A_POP:
           Result := (getsupreg(reg) in p.oper[0]^.regset^) or
                                    (reg=NR_STACK_POINTER_REG);
+        else
+          ;
       end;
 
       if Result then
@@ -310,6 +320,8 @@ Implementation
           Result :=
             (taicpu(p).oper[0]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
             (taicpu(p).oper[0]^.ref^.base = reg);
+        else
+          ;
       end;
     end;
 
@@ -433,6 +445,19 @@ Implementation
 
               { finally get rid of the mov }
               taicpu(p).loadreg(0,taicpu(movp).oper[0]^.reg);
+              { Remove preindexing and postindexing for LDR in some cases.
+                For example:
+                  ldr	reg2,[reg1, xxx]!
+                  mov reg1,reg2
+                must be translated to:
+                  ldr	reg1,[reg1, xxx]
+
+                Preindexing must be removed there, since the same register is used as the base and as the target.
+                Such case is not allowed for ARM CPU and produces crash. }
+              if (taicpu(p).opcode = A_LDR) and (taicpu(p).oper[1]^.typ = top_ref)
+                and (taicpu(movp).oper[0]^.reg = taicpu(p).oper[1]^.ref^.base)
+              then
+                taicpu(p).oper[1]^.ref^.addressmode:=AM_OFFSET;
               asml.remove(movp);
               movp.free;
             end;
@@ -627,7 +652,6 @@ Implementation
     var
       hp1,hp2,hp3,hp4: tai;
       i, i2: longint;
-      TmpUsedRegs: TAllUsedRegs;
       tempop: tasmop;
       oldreg: tregister;
       dealloc: tai_regalloc;
@@ -913,7 +937,7 @@ Implementation
                           MatchInstruction(hp2, A_STR, [taicpu(p).condition], [PF_H]) and
                           MatchOperand(taicpu(hp2).oper[0]^, taicpu(p).oper[0]^.reg) then
                           begin
-                            CopyUsedRegs(TmpUsedRegs);
+                            TransferUsedRegs(TmpUsedRegs);
                             UpdateUsedRegs(TmpUsedRegs, tai(p.next));
                             UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
                             if not(RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,hp2,TmpUsedRegs)) then
@@ -927,7 +951,6 @@ Implementation
                                 p:=hp2;
                                 Result:=true;
                               end;
-                            ReleaseUsedRegs(TmpUsedRegs);
                           end
                         { fold
                           mov reg1,reg0, shift imm1
@@ -1331,7 +1354,7 @@ Implementation
                         if taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg then
                           taicpu(hp1).oper[1]^.ref^.index := taicpu(p).oper[1]^.reg;
 
-                        dealloc:=FindRegDeAlloc(taicpu(p).oper[1]^.reg, taicpu(p.Next));
+                        dealloc:=FindRegDeAlloc(taicpu(p).oper[1]^.reg, tai(p.Next));
                         if Assigned(dealloc) then
                           begin
                             asml.remove(dealloc);
@@ -1951,6 +1974,7 @@ Implementation
                       strb reg1,[...]
                     }
                     if MatchInstruction(p, taicpu(p).opcode, [C_None], [PF_None]) and
+                      (taicpu(p).ops=2) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_STR, [C_None], [PF_B]) and
                       assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(hp1.Next))) and
@@ -1976,6 +2000,7 @@ Implementation
                       uxtb reg3,reg1
                     }
                     else if MatchInstruction(p, A_UXTB, [C_None], [PF_None]) and
+                      (taicpu(p).ops=2) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_UXTH, [C_None], [PF_None]) and
                       (taicpu(hp1).ops = 2) and
@@ -1999,6 +2024,7 @@ Implementation
                       uxtb reg3,reg1
                     }
                     else if MatchInstruction(p, A_UXTB, [C_None], [PF_None]) and
+                      (taicpu(p).ops=2) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_UXTB, [C_None], [PF_None]) and
                       (taicpu(hp1).ops = 2) and
@@ -2022,8 +2048,8 @@ Implementation
                       uxtb reg3,reg1
                     }
                     else if MatchInstruction(p, A_UXTB, [C_None], [PF_None]) and
-                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       (taicpu(p).ops=2) and
+                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_AND, [C_None], [PF_None]) and
                       (taicpu(hp1).ops=3) and
                       (taicpu(hp1).oper[2]^.typ=top_const) and
@@ -2058,6 +2084,7 @@ Implementation
                       strh reg1,[...]
                     }
                     if MatchInstruction(p, taicpu(p).opcode, [C_None], [PF_None]) and
+                      (taicpu(p).ops=2) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_STR, [C_None], [PF_H]) and
                       RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
@@ -2083,6 +2110,7 @@ Implementation
                       uxth reg3,reg1
                     }
                     else if MatchInstruction(p, A_UXTH, [C_None], [PF_None]) and
+                      (taicpu(p).ops=2) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_UXTH, [C_None], [PF_None]) and
                       (taicpu(hp1).ops=2) and
@@ -2109,6 +2137,7 @@ Implementation
                       uxth reg3,reg1
                     }
                     else if MatchInstruction(p, A_UXTH, [C_None], [PF_None]) and
+                      (taicpu(p).ops=2) and
                       GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                       MatchInstruction(hp1, A_AND, [C_None], [PF_None]) and
                       (taicpu(hp1).ops=3) and
@@ -2229,8 +2258,12 @@ Implementation
                       RemoveSuperfluousVMov(p, hp1, 'VOpVMov2VOp') then
                       Result:=true;
                   end
+                else
+                  ;
               end;
           end;
+        else
+          ;
       end;
     end;
 
@@ -2408,8 +2441,12 @@ Implementation
                                 end;
                            end;
                       end;
+                  else
+                    ;
                 end;
               end;
+            else
+              ;
           end;
           p := tai(p.next)
         end;
@@ -2489,6 +2526,8 @@ Implementation
             for r:=RS_R0 to RS_R15 do
                if r in p.oper[i]^.regset^ then
                  CheckLiveStart(newreg(R_INTREGISTER,r,R_SUBWHOLE));
+          else
+            ;
         end;
 
       { if live of any reg used by hp1 ends at hp1 and p uses this register then
@@ -2508,6 +2547,8 @@ Implementation
             for r:=RS_R0 to RS_R15 do
                if r in hp1.oper[i]^.regset^ then
                  CheckLiveEnd(newreg(R_INTREGISTER,r,R_SUBWHOLE));
+          else
+            ;
         end;
     end;
 
@@ -2516,6 +2557,15 @@ Implementation
 
   { TODO : schedule also forward }
   { TODO : schedule distance > 1 }
+
+    { returns true if p might be a load of a pc relative tls offset }
+    function PossibleTLSLoad(const p: tai) : boolean;
+      begin
+        Result:=(p.typ=ait_instruction) and (taicpu(p).opcode=A_LDR) and (taicpu(p).oper[1]^.typ=top_ref) and (((taicpu(p).oper[1]^.ref^.base=NR_PC) and
+          (taicpu(p).oper[1]^.ref^.index<>NR_NO)) or ((taicpu(p).oper[1]^.ref^.base<>NR_NO) and
+          (taicpu(p).oper[1]^.ref^.index=NR_PC)));
+      end;
+
     var
       hp1,hp2,hp3,hp4,hp5,insertpos : tai;
       list : TAsmList;
@@ -2572,7 +2622,9 @@ Implementation
             ) and
             { if we modify the basereg AND the first instruction used that reg, we can not schedule }
             ((taicpu(hp1).oper[1]^.ref^.addressmode = AM_OFFSET) or
-             not(instructionLoadsFromReg(taicpu(hp1).oper[1]^.ref^.base,p))) then
+             not(instructionLoadsFromReg(taicpu(hp1).oper[1]^.ref^.base,p))) and
+            not(PossibleTLSLoad(p)) and
+            not(PossibleTLSLoad(hp1)) then
             begin
               hp3:=tai(p.Previous);
               hp5:=tai(p.next);
@@ -2693,7 +2745,11 @@ Implementation
                       A_ITETT:
                         if l=4 then taicpu(hp).opcode := A_ITET;
                       A_ITTTT:
-                        if l=4 then taicpu(hp).opcode := A_ITTT;
+                        begin
+                          if l=4 then taicpu(hp).opcode := A_ITTT;
+                        end
+                      else
+                        ;
                     end;
 
                   break;
@@ -2924,8 +2980,12 @@ Implementation
                                 end;
                            end;
                       end;
+                  else
+                    ;
                 end;
               end;
+            else
+              ;
           end;
           p := tai(p.next)
         end;
@@ -3076,6 +3136,8 @@ Implementation
                 SM_LSR: taicpu(p).opcode:=A_LSR;
                 SM_ASR: taicpu(p).opcode:=A_ASR;
                 SM_ROR: taicpu(p).opcode:=A_ROR;
+                else
+                  internalerror(2019050912);
               end;
 
               if taicpu(p).oper[2]^.shifterop^.rs<>NR_NO then

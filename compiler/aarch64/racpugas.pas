@@ -485,8 +485,8 @@ Unit racpugas;
                       useszr:=false;
                       for i:=low(instr.operands) to pred(opnr) do
                         begin
-                          if (instr.operands[1].opr.typ=OPR_REGISTER) then
-                            case getsupreg(instr.operands[1].opr.reg) of
+                          if (instr.operands[i].opr.typ=OPR_REGISTER) then
+                            case getsupreg(instr.operands[i].opr.reg) of
                               RS_XZR:
                                 useszr:=true;
                               RS_SP:
@@ -494,7 +494,10 @@ Unit racpugas;
                             end;
                         end;
                       result:=valid_shifter_operand(instr.opcode,useszr,usessp,instr.Is64bit,sm,instr.operands[opnr].opr.shifterop.shiftimm);
-                    end
+                      if result then
+                        instr.Ops:=opnr;
+                    end;
+                  break;
                 end;
           end;
       end;
@@ -520,6 +523,8 @@ Unit racpugas;
                     end;
                 end;
             end;
+          else
+            ;
         end;
         result:=C_None;;
       end;
@@ -933,7 +938,6 @@ Unit racpugas;
         j  : longint;
         hs : string;
         maxlen : longint;
-        icond : tasmcond;
       Begin
         { making s a value parameter would break other assembler readers }
         hs:=s;

@@ -29,7 +29,7 @@ interface
     uses
       cclasses,
       node,cpubase,
-      symtype,symbase,symdef,symsym,
+      symconst,symtype,symbase,symdef,symsym,
       optloop;
 
     type
@@ -189,15 +189,14 @@ interface
        end;
        ttryexceptnodeclass = class of ttryexceptnode;
 
-       ttryfinallynode = class(tloopnode)
+       ttryfinallynode = class(tbinarynode)
           implicitframe : boolean;
           constructor create(l,r:tnode);virtual;reintroduce;
-          constructor create_implicit(l,r,_t1:tnode);virtual;
+          constructor create_implicit(l,r:tnode);virtual;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
           function simplify(forinline:boolean): tnode;override;
        protected
-          function create_finalizer_procdef: tprocdef;
           procedure adjust_estimated_stack_size; virtual;
        end;
        ttryfinallynodeclass = class of ttryfinallynode;
@@ -243,9 +242,8 @@ implementation
     uses
       globtype,systems,constexp,compinnr,
       cutils,verbose,globals,
-      symconst,symtable,paramgr,defcmp,defutil,htypechk,pass_1,
+      symtable,paramgr,defcmp,defutil,htypechk,pass_1,
       ncal,nadd,ncon,nmem,nld,ncnv,nbas,nutils,ninl,nset,ngenutil,
-      pdecsub,
     {$ifdef state_tracking}
       nstate,
     {$endif}
@@ -472,7 +470,7 @@ implementation
           one }
         hp:=cwhilerepeatnode.create(
           { repeat .. until false }
-          cordconstnode.create(0,pasbool8type,false),innerloop,false,true);
+          cordconstnode.create(0,pasbool1type,false),innerloop,false,true);
         addstatement(outerloopbodystatement,hp);
 
         { create the outer repeat/until and add it to the the main body }
@@ -1105,7 +1103,7 @@ implementation
 
          if not(is_boolean(left.resultdef)) and
            not(is_typeparam(left.resultdef)) then
-             inserttypeconv(left,pasbool8type);
+             inserttypeconv(left,pasbool1type);
 
          { Give warnings for code that will never be executed for
            while false do }
@@ -1339,7 +1337,7 @@ implementation
             end;
         if not is_constboolnode(condition) then
             aktstate.store_fact(condition,
-             cordconstnode.create(byte(checknegate),pasbool8type,true))
+             cordconstnode.create(byte(checknegate),pasbool1type,true))
         else
             condition.destroy;
     end;
@@ -1420,7 +1418,7 @@ implementation
 
          if not(is_boolean(left.resultdef)) and
            not(is_typeparam(left.resultdef)) then
-             inserttypeconv(left,pasbool8type);
+             inserttypeconv(left,pasbool1type);
 
          result:=internalsimplify(not(nf_internal in flags));
       end;
@@ -1773,8 +1771,9 @@ implementation
 
     function texitnode.pass_typecheck:tnode;
       var
-        pd: tprocdef;
         newstatement : tstatementnode;
+        ressym: tsym;
+        resdef: tdef;
       begin
         result:=nil;
         newstatement:=nil;
@@ -1790,16 +1789,13 @@ implementation
           because the code to this that we add in tnodeutils.wrap_proc_body()
           gets inserted before the exit label to which this node will jump }
         if (target_info.system in systems_fpnestedstruct) and
-           not(nf_internal in flags) then
+           not(nf_internal in flags) and
+           current_procinfo.procdef.getfuncretsyminfo(ressym,resdef) and
+           (tabstractnormalvarsym(ressym).inparentfpstruct) then
           begin
-            pd:=current_procinfo.procdef;
-            if assigned(pd.funcretsym) and
-               tabstractnormalvarsym(pd.funcretsym).inparentfpstruct then
-              begin
-                if not assigned(result) then
-                  result:=internalstatements(newstatement);
-                cnodeutils.load_parentfpstruct_nested_funcret(current_procinfo.procdef,newstatement);
-              end;
+            if not assigned(result) then
+              result:=internalstatements(newstatement);
+            cnodeutils.load_parentfpstruct_nested_funcret(ressym,newstatement);
           end;
         if assigned(result) then
           begin
@@ -1973,7 +1969,6 @@ implementation
                     if assigned(labelsym.jumpbuf) then
                       begin
                         labelsym.nonlocal:=true;
-                        exclude(current_procinfo.procdef.procoptions,po_inline);
                         result:=ccallnode.createintern('fpc_longjmp',
                           ccallparanode.create(cordconstnode.create(1,sinttype,true),
                           ccallparanode.create(cloadnode.create(labelsym.jumpbuf,labelsym.jumpbuf.owner),
@@ -2108,12 +2103,6 @@ implementation
 
         include(current_procinfo.flags,pi_has_label);
 
-        if assigned(labsym) and labsym.nonlocal then
-          begin
-            include(current_procinfo.flags,pi_has_interproclabel);
-            exclude(current_procinfo.procdef.procoptions,po_inline);
-          end;
-
         if assigned(left) then
           firstpass(left);
         if (m_non_local_goto in current_settings.modeswitches) and
@@ -2169,11 +2158,14 @@ implementation
                begin
                  { addr }
                  typecheckpass(right);
+                 set_varstate(right,vs_read,[vsf_must_be_valid]);
                  inserttypeconv(right,voidcodepointertype);
+
                  { frame }
                  if assigned(third) then
                   begin
                     typecheckpass(third);
+                    set_varstate(third,vs_read,[vsf_must_be_valid]);
                     inserttypeconv(third,voidpointertype);
                   end;
                end;
@@ -2296,14 +2288,14 @@ implementation
 
     constructor ttryfinallynode.create(l,r:tnode);
       begin
-        inherited create(tryfinallyn,l,r,nil,nil);
+        inherited create(tryfinallyn,l,r);
         implicitframe:=false;
       end;
 
 
-    constructor ttryfinallynode.create_implicit(l,r,_t1:tnode);
+    constructor ttryfinallynode.create_implicit(l,r:tnode);
       begin
-        inherited create(tryfinallyn,l,r,_t1,nil);
+        inherited create(tryfinallyn,l,r);
         implicitframe:=true;
       end;
 
@@ -2320,14 +2312,6 @@ implementation
         typecheckpass(right);
         // "except block" is "used"? (JM)
         set_varstate(right,vs_readwritten,[vsf_must_be_valid]);
-
-        { special finally block only executed when there was an exception }
-        if assigned(t1) then
-          begin
-            typecheckpass(t1);
-            // "finally block" is "used"? (JM)
-            set_varstate(t1,vs_readwritten,[vsf_must_be_valid]);
-          end;
       end;
 
 
@@ -2338,9 +2322,6 @@ implementation
         firstpass(left);
 
         firstpass(right);
-
-        if assigned(t1) then
-          firstpass(t1);
 
         include(current_procinfo.flags,pi_do_call);
 
@@ -2366,53 +2347,6 @@ implementation
            right:=nil;
          end;
      end;
-
-
-    var
-      seq: longint=0;
-
-    function ttryfinallynode.create_finalizer_procdef: tprocdef;
-      var
-        st:TSymTable;
-        checkstack: psymtablestackitem;
-        oldsymtablestack: tsymtablestack;
-        sym:tprocsym;
-      begin
-        { get actual procedure symtable (skip withsymtables, etc.) }
-        st:=nil;
-        checkstack:=symtablestack.stack;
-        while assigned(checkstack) do
-          begin
-            st:=checkstack^.symtable;
-            if st.symtabletype in [staticsymtable,globalsymtable,localsymtable] then
-              break;
-            checkstack:=checkstack^.next;
-          end;
-        { Create a nested procedure, even from main_program_level.
-          Furthermore, force procdef and procsym into the same symtable
-          (by default, defs are registered with symtablestack.top which may be
-          something temporary like exceptsymtable - in that case, procdef can be
-          destroyed before procsym, leaving invalid pointers). }
-        oldsymtablestack:=symtablestack;
-        symtablestack:=nil;
-        result:=cprocdef.create(max(normal_function_level,st.symtablelevel)+1,true);
-        symtablestack:=oldsymtablestack;
-        st.insertdef(result);
-        result.struct:=current_procinfo.procdef.struct;
-        { tabstractprocdef constructor sets po_delphi_nested_cc whenever
-          nested procvars modeswitch is active. We must be independent of this switch. }
-        exclude(result.procoptions,po_delphi_nested_cc);
-        result.proctypeoption:=potype_exceptfilter;
-        handle_calling_convention(result);
-        sym:=cprocsym.create('$fin$'+tostr(seq));
-        st.insert(sym);
-        inc(seq);
-
-        result.procsym:=sym;
-        proc_add_definition(result);
-        result.forwarddef:=false;
-        result.aliasnames.insert(result.mangledname);
-      end;
 
 
     procedure ttryfinallynode.adjust_estimated_stack_size;
@@ -2482,11 +2416,6 @@ implementation
       begin
          result:=nil;
          include(current_procinfo.flags,pi_do_call);
-         { Loads exception class VMT, therefore may need GOT
-           (generic code only; descendants may need to avoid this check) }
-         if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) then
-           include(current_procinfo.flags,pi_needs_got);
          expectloc:=LOC_VOID;
          if assigned(left) then
            firstpass(left);

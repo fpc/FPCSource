@@ -34,6 +34,11 @@
 
 {$define USEEXCEPT}
 
+{$ifdef VER3_0}
+  { fix bootstrapping dfa gives warnings on 3.2+ code due to changed case behaviour }
+  {$OPTIMIZATION NODFA}
+{$endif VER3_0}
+
 { This fake CPU is used to allow incorporation of globtype unit
   into utils/ppudump without any CPU specific code PM }
 {$ifdef generic_cpu}
@@ -68,6 +73,12 @@
   {$define SUPPORT_GET_FRAME}
   {$define cpucg64shiftsupport}
   {$define OMFOBJSUPPORT}
+  {$ifdef go32v2}
+    { go32v2 uses cwsdpmi extender which is incompatible with watcom extender
+      thus we use the internal smartlink sections by default in that case. }
+    {$define I8086_SMARTLINK_SECTIONS}
+    {$define i8086_link_intern_debuginfo}
+  {$endif go32v2}
 {$endif i8086}
 
 {$ifdef i386}
@@ -265,11 +276,34 @@
   {$define cputargethasfixedstack}
   {$define cpurefshaveindexreg}
   {$define SUPPORT_GET_FRAME}
+  {$define SUPPORT_SAFECALL}
 {$endif aarch64}
 
-{$IFDEF MACOS}
-{$DEFINE USE_FAKE_SYSUTILS}
-{$ENDIF MACOS}
+{$ifdef riscv32}
+  {$define riscv}
+  {$define cpu32bit}
+  {$define cpu32bitaddr}
+  {$define cpu32bitalu}
+  {$define cpufpemu}
+  {$define cputargethasfixedstack}
+  {$define cpuneedsmulhelper}
+  {$define cpuneedsdivhelper}
+  {$define cpucapabilities}
+  {$define cpurequiresproperalignment}
+{$endif riscv32}
+
+{$ifdef riscv64}
+  {$define riscv}
+  {$define cpu64bit}
+  {$define cpu64bitaddr}
+  {$define cpu64bitalu}
+  {$define cpufpemu}
+  {$define cputargethasfixedstack}
+  {$define cpuneedsmulhelper}
+  {$define cpuneedsdivhelper}
+  {$define cpucapabilities}
+  {$define cpurequiresproperalignment}
+{$endif riscv64}
 
 { Stabs is not officially supported on 64 bit targets by gdb, except on Mac OS X
   (but there we don't support it)
@@ -291,9 +325,7 @@
 }
 {$ifdef llvm}
   {$undef SUPPORT_MMX}
-  {$undef cpu16bitalu}
-  {$undef cpu32bitalu}
-  {$define cpu64bitalu}
   {$define cpuhighleveltarget}
+  {$define cpucg64shiftsupport}
   {$define symansistr}
 {$endif}

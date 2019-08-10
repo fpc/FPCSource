@@ -16,84 +16,23 @@
 
 unit ports;
 
-{$Calling StdCall}
-
 interface
 
+{ Since this platform has port access built into the System unit, this unit just
+  creates aliases, for compatibility for programs, that already use the ports
+  unit.  }
+
 type
-   tport = object
-      procedure writeport(p : word;data : byte);
-      function  readport(p : word) : byte;
-      property pp[w : word] : byte read readport write writeport;default;
-   end;
+  tport = System.tport;
+  tportw = System.tportw;
+  tportl = System.tportl;
 
-   tportw = object
-      procedure writeport(p : word;data : word);
-      function  readport(p : word) : word;
-      property pp[w : word] : word read readport write writeport;default;
-   end;
-
-   tportl = object
-      procedure writeport(p : word;data : longint);
-      function  readport(p : word) : longint;
-      property pp[w : word] : longint read readport write writeport;default;
-   end;
 var
-{ we don't need to initialize port, because neither member
-  variables nor virtual methods are accessed }
-   port,
-   portb : tport;
-   portw : tportw;
-   portl : tportl;
+   port  : tport absolute System.port;
+   portb : tport absolute System.portb;
+   portw : tportw absolute System.portw;
+   portl : tportl absolute System.portl;
 
-  implementation
-
-{$asmmode ATT}
-
-{ to give easy port access like tp with port[] }
-
-procedure tport.writeport(p : word;data : byte);assembler;
-asm
-        movw    p,%dx
-        movb    data,%al
-        outb    %al,%dx
-end;
-
-
-function tport.readport(p : word) : byte;assembler;
-asm
-        movw    p,%dx
-        inb     %dx,%al
-end;
-
-
-procedure tportw.writeport(p : word;data : word);assembler;
-asm
-        movw    p,%dx
-        movw    data,%ax
-        outw    %ax,%dx
-end;
-
-
-function tportw.readport(p : word) : word;assembler;
-asm
-        movw    p,%dx
-        inw     %dx,%ax
-end;
-
-
-procedure tportl.writeport(p : word;data : longint);assembler;
-asm
-        movw    p,%dx
-        movl    data,%eax
-        outl    %eax,%dx
-end;
-
-
-function tportl.readport(p : word) : longint;assembler;
-asm
-        movw    p,%dx
-        inl     %dx,%eax
-end;
+implementation
 
 end.

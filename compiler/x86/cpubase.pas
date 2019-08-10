@@ -335,6 +335,7 @@ topsize2memsize: array[topsize] of integer =
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
     function dwarf_reg(r:tregister):shortint;
+    function dwarf_reg_no_error(r:tregister):shortint;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
@@ -517,6 +518,8 @@ implementation
                 NR_CS,NR_DS,NR_ES,
                 NR_SS,NR_FS,NR_GS :
                   reg2opsize:=S_W;
+                else
+                  ;
               end;
             end;
           else
@@ -578,11 +581,12 @@ implementation
 
     function is_segment_reg(r:tregister):boolean;
       begin
-        result:=false;
         case r of
           NR_CS,NR_DS,NR_ES,
           NR_SS,NR_FS,NR_GS :
             result:=true;
+          else
+            result:=false;
         end;
       end;
 
@@ -656,6 +660,11 @@ implementation
           internalerror(200603251);
       end;
 
+    function dwarf_reg_no_error(r:tregister):shortint;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+      end;
+
 
     function segment_regs_equal(r1, r2: tregister): boolean;
       begin
@@ -687,8 +696,6 @@ implementation
           mm_compact,mm_large,mm_huge:
             { all segment registers are different in these models }
             exit(false);
-          else
-            internalerror(2013062302);
         end;
 {$elseif defined(i386) or defined(x86_64)}
         { DS=SS=ES }
@@ -841,7 +848,7 @@ implementation
           A_LODS,A_OUTS:
             result:=-1;
           else
-            internalerror(2017101202);
+            internalerror(2017101204);
         end;
       end;
 

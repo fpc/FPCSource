@@ -321,6 +321,7 @@ reg32,memam2              \x17\x04\x50                   ARM32,ARMv4
 reglo,memam3              \x65\x58\x0\2                  THUMB,ARMv4T
 reglo,memam4              \x66\x68\x0\2                  THUMB,ARMv4T
 reglo,memam5              \x67\x98\x0\2                  THUMB,ARMv4T
+reglo,memam2              \x67\x98\x0\2                  THUMB,ARMv4T
 reglo,memam6              \x67\x48\x0\2                  THUMB,ARMv4T
 reg32,memam2              \x88\xF8\x50\x0\x0\0           THUMB32,WIDE,ARMv6T2
 reg32,memam2              \x17\x04\x10                   ARM32,ARMv4
@@ -402,6 +403,7 @@ reg32,regf          \x10\x01\x0F                        ARM32,ARMv4
 regf,reg32          \x96\xF3\x80\x80\x0                 THUMB32,ARMv6
 
 regf,reg32          \x12\x01\x20\xF0                    ARM32,ARMv4
+regs,reg32          \x12\x01\x20\xF0                    ARM32,ARMv4
 regf,immshifter     \x13\x03\x20\xF0                    ARM32,ARMv4
 regs,immshifter     \x13\x03\x20\xF0                    ARM32,ARMv4
 
@@ -428,7 +430,9 @@ reg32,immshifter       \xB\x1\xE0                       ARM32,ARMv4
 
 [VMOVcc]
 vreg,vreg         \x90\xEE\xB0\xA\x40            THUMB32,VFPv2
-vreg,vreg         \x40\xE\xB0\xA\x40            ARM32,VFPv2
+vreg,vreg         \x40\xE\xB0\xA\x40             ARM32,VFPv2
+vreg,immmm         \x90\xEE\xB0\xA\x0             THUMB32,VFPv3
+vreg,immmm         \x40\xE\xB0\xA\x0              ARM32,VFPv3
 
 reg32,vreg        \x90\xEE\x10\xA\x10            THUMB32,VFPv2
 vreg,reg32        \x90\xEE\x00\xA\x10            THUMB32,VFPv2
@@ -540,6 +544,7 @@ reg32,reglist		          \x26\x80			   ARM32,ARMv4
 reglo,memam3                \x65\x50\x0\2                  THUMB,ARMv4T
 reglo,memam4                \x66\x60\x0\2                  THUMB,ARMv4T
 reglo,memam5                \x67\x90\x0\2                  THUMB,ARMv4T
+reglo,memam2                \x67\x90\x0\2                  THUMB,ARMv4T
 reg32,memam2                \x88\xF8\x40\x0\x0\0           THUMB32,WIDE,ARMv6T2
 reg32,memam2                \x17\x04\x00                   ARM32,ARMv4
 

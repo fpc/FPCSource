@@ -64,10 +64,10 @@ const
       end;
     
   public
-    class function expressionForFetch_context_countOnly(fetch: NSExpression; context: NSExpression; countFlag: Boolean): NSExpression; message 'expressionForFetch:context:countOnly:';
+    class function expressionForFetch_context_countOnly(fetch: NSExpression; context: NSExpression; countFlag: BOOL): NSExpression; message 'expressionForFetch:context:countOnly:';
     function requestExpression: NSExpression; message 'requestExpression';
     function contextExpression: NSExpression; message 'contextExpression';
-    function isCountOnlyRequest: Boolean; message 'isCountOnlyRequest';
+    function isCountOnlyRequest: BOOL; message 'isCountOnlyRequest';
   end;
 
 {$endif}

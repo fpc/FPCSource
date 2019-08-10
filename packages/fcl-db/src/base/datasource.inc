@@ -63,8 +63,8 @@ begin
     Result := DataSource.DataSet.FActiveRecord - (FFirstRecord + Index + FBufferCount - 1)
   else if DataSource.DataSet.FActiveRecord < FFirstRecord + Index then
     Result := DataSource.DataSet.FActiveRecord - (FFirstRecord + Index)
-  else Result := 0;
-  
+  else
+    Result := 0;
   Inc(FFirstRecord, Index + Result);
 end;
 
@@ -73,6 +73,12 @@ Procedure TDataLink.CalcRange;
 var
     aMax, aMin: integer;
 begin
+  // During loading, dataset may not be set yet.
+  If (Dataset=Nil) then
+    begin
+    FFirstRecord:=0; 
+    exit;
+    end;
   aMin:= DataSet.FActiveRecord - FBufferCount + 1;
   If aMin < 0 Then aMin:= 0;
   aMax:= Dataset.FBufferCount - FBufferCount;
@@ -580,6 +586,16 @@ begin
     end;
 end;
 
+function TDataSource.GetLink(AIndex : Integer): TDataLink;
+begin
+  Result:=TDataLink(FDataLinks[aindex]);
+end;
+
+function TDataSource.GetLinkCount: Integer;
+begin
+  Result:=FDataLinks.Count;
+end;
+
 procedure TDatasource.RegisterDataLink(DataLink: TDataLink);
 
 begin
@@ -599,8 +615,8 @@ begin
     End;
   If ADataset<>Nil Then
     begin
-    ADataset.RegisterDatasource(Self);
     FDataSet:=ADataset;
+    ADataset.RegisterDatasource(Self);
     ProcessEvent(deUpdateState,0);
     End;
 end;

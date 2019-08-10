@@ -49,13 +49,15 @@ unit cpupi;
           procedure generate_parameter_info;override;
           procedure allocate_got_register(list : TAsmList);override;
           procedure postprocess_code;override;
+
+          procedure allocate_tls_register(list : TAsmList);override;
        end;
 
 
   implementation
 
     uses
-       globals,systems,
+       globals,systems,verbose,
        cpubase,
        tgobj,
        symconst,symtype,symsym,symcpu,paramgr,
@@ -154,6 +156,10 @@ unit cpupi;
             maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
             floatsavesize:=0;
             case current_settings.fputype of
+              fpu_none,
+              fpu_soft,
+              fpu_libgcc:
+                ;
               fpu_fpa,
               fpu_fpa10,
               fpu_fpa11:
@@ -274,6 +280,12 @@ unit cpupi;
       begin
         { because of the limited constant size of the arm, all data access is done pc relative }
         finalizearmcode(aktproccode,aktlocaldata);
+      end;
+
+
+    procedure tcpuprocinfo.allocate_tls_register(list: TAsmList);
+      begin
+        current_procinfo.tlsoffset:=cg.getaddressregister(list);
       end;
 
 begin

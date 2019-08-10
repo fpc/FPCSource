@@ -268,7 +268,7 @@ begin
   {$endif}
 end;
 
-function ExpandFileNameUtf8(const FileName: string; {const} BaseDir: String = ''): String;
+function ExpandFileNamePJ(const FileName: string; {const} BaseDir: String = ''): String;
 var
   IsAbs, StartsWithRoot, CanUseBaseDir : Boolean;
   {$ifndef WinCE}
@@ -277,7 +277,7 @@ var
   {$endif}
   CurDir, Fn: String;
 begin
-  //writeln('LazFileUtils.ExpandFileNameUtf8');
+  //writeln('LazFileUtils.ExpandFileNamePJ');
   //writeln('FileName = "',FileName,'"');
   //writeln('BaseDir  = "',BaseDir,'"');
 
@@ -287,7 +287,7 @@ begin
   //See: http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx
   if (Length(Fn) > 3) and (Fn[1] = PathDelim) and (Fn[2] = PathDelim) and
      (Fn[3] = '?') and (Fn[4] = PathDelim) //Do NOT use AllowDirectorySeparators here!
-     then Exit;
+     then Exit(FN);
   ForcePathDelims(Fn);
   IsAbs := FileNameIsWinAbsolute(Fn);
   if not IsAbs then
@@ -305,11 +305,11 @@ begin
     begin
       FnDrive := UpCase(Fn[1]);
       GetDirUtf8(Byte(FnDrive)-64, CurDir{%H-});
-      CurDrive := UpCase(GetCurrentDirUtf8[1]);
+      CurDrive := UpCase(GetCurrentDirPJ[1]);
     end
     else
     begin
-      CurDir := GetCurrentDirUtf8;
+      CurDir := GetCurrentDirPJ;
       FnDrive := UpCase(CurDir[1]);
       CurDrive := FnDrive;
     end;
@@ -372,12 +372,12 @@ begin
     Fn := ResolveDots(Fn);
     //if BaseDir is something like 'z:foo\' or '\' then this needs to be expanded as well
     if not FileNameIsAbsolute(Fn) then
-      Fn := ExpandFileNameUtf8(Fn, '');
+      Fn := ExpandFileNamePJ(Fn, '');
     Result := Fn;
   end;
 end;
 
-function GetCurrentDirUtf8: String;
+function GetCurrentDirPJ: String;
 {$ifndef WinCE}
 var
   w   : UnicodeString;
@@ -411,6 +411,56 @@ begin
   Result:=Filename;
 end;
 
+function IsUNCPath(const Path: String): Boolean;
+begin
+  Result := (Length(Path) > 2)
+    and (Path[1] in AllowDirectorySeparators)
+    and (Path[2] in AllowDirectorySeparators);
+end;
+
+function ExtractUNCVolume(const Path: String): String;
+var
+  I, Len: Integer;
+
+  // the next function reuses Len variable
+  function NextPathDelim(const Start: Integer): Integer;// inline;
+  begin
+    Result := Start;
+    while (Result <= Len) and not (Path[Result] in AllowDirectorySeparators) do
+      inc(Result);
+  end;
+
+begin
+  if not IsUNCPath(Path) then
+    Exit('');
+  I := 3;
+  Len := Length(Path);
+  if Path[I] = '?' then
+  begin
+    // Long UNC path form like:
+    // \\?\UNC\ComputerName\SharedFolder\Resource or
+    // \\?\C:\Directory
+    inc(I);
+    if not (Path[I] in AllowDirectorySeparators) then
+      Exit('');
+    if UpperCase(Copy(Path, I + 1, 3)) = 'UNC' then
+    begin
+      inc(I, 4);
+      if I < Len then
+        I := NextPathDelim(I + 1);
+      if I < Len then
+        I := NextPathDelim(I + 1);
+    end;
+  end
+  else
+  begin
+    I := NextPathDelim(I);
+    if I < Len then
+      I := NextPathDelim(I + 1);
+  end;
+  Result := Copy(Path, 1, I);
+end;
+
 function FileGetAttrUTF8(const FileName: String): Longint;
 begin
   Result:=Integer(Windows.GetFileAttributesW(PWideChar(UTF8Decode(FileName))));
@@ -421,7 +471,12 @@ begin
   Result:=((FileGetAttrUTF8(AFilename) and faReadOnly) = 0);
 end;
 
-function GetEnvironmentVariableCountUTF8: Integer;
+function FileIsExecutable(const AFilename: string): boolean;
+begin
+  Result:=FileExists(AFilename);
+end;
+
+function GetEnvironmentVariableCountPJ: Integer;
 var
   hp,p : PWideChar;
 begin
@@ -437,7 +492,7 @@ begin
   FreeEnvironmentStringsW(p);
 end;
 
-function GetEnvironmentStringUTF8(Index: Integer): string;
+function GetEnvironmentStringPJ(Index: Integer): string;
 var
   hp,p : PWideChar;
 begin
@@ -455,7 +510,7 @@ begin
   FreeEnvironmentStringsW(p);
 end;
 
-function GetEnvironmentVariableUTF8(const EnvVar: string): String;
+function GetEnvironmentVariablePJ(const EnvVar: string): String;
 begin
   Result:=UTF16ToUTF8(SysUtils.GetEnvironmentVariable(UTF8ToUTF16(EnvVar)));
 end;

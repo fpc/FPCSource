@@ -1041,7 +1041,7 @@ end;
 procedure internal_do_exit; external name 'fpc_do_exit';
 
 
-Procedure lib_exit;[Public,Alias:'FPC_LIB_EXIT'];
+Procedure fpc_lib_exit;[Public,Alias:'FPC_LIB_EXIT'];
 begin
   InternalExit;
 end;

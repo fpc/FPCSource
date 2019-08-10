@@ -9,6 +9,10 @@ program tb0627a;
 
 {$mode objfpc}
 
+{ Explicitly disable overflow and range checks }
+{$Q-}
+{$R-}
+
 var
   SideEffectsHappened: Boolean = False;
 

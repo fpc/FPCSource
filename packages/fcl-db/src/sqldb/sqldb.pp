@@ -213,6 +213,8 @@ type
     function ConstructUpdateSQL(Query: TCustomSQLQuery; Var ReturningClause : Boolean): string; virtual;
     function ConstructDeleteSQL(Query: TCustomSQLQuery): string; virtual;
     function ConstructRefreshSQL(Query: TCustomSQLQuery; UpdateKind : TUpdateKind): string; virtual;
+    // factory function used to create custom statements
+    function CreateCustomQuery(aOwner: TComponent): TCustomSQLQuery; virtual;
     function InitialiseUpdateStatement(Query: TCustomSQLQuery; var qry: TCustomSQLQuery): TCustomSQLQuery;
     procedure ApplyFieldUpdate(C : TSQLCursor; P: TSQLDBParam; F: TField; UseOldValue: Boolean); virtual;
     // This is the call that updates a record, it used to be in TSQLQuery.
@@ -509,6 +511,8 @@ type
     procedure ApplyFilter;
     Function AddFilter(SQLstr : string) : string;
   protected
+    function CreateSQLStatement(aOwner: TComponent): TCustomSQLStatement; virtual;
+    Function CreateParams: TSQLDBParams; virtual;
     Function RefreshLastInsertID(Field: TField): Boolean; virtual;
     Function NeedRefreshRecord (UpdateKind: TUpdateKind): Boolean; virtual;
     Function RefreshRecord (UpdateKind: TUpdateKind) : Boolean; virtual;
@@ -694,6 +698,7 @@ type
     Procedure SetDatabase (Value : TDatabase); virtual;
     Procedure SetTransaction(Value : TDBTransaction); virtual;
     Procedure CheckDatabase;
+    function CreateQuery: TCustomSQLQuery; virtual;
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -1513,9 +1518,10 @@ end;
 
 function TSQLConnection.GetStatementInfo(const ASQL: string): TSQLStatementInfo;
 
-type TParsePart = (ppStart,ppWith,ppSelect,ppTableName,ppFrom,ppWhere,ppGroup,ppOrder,ppBogus);
-     TPhraseSeparator = (sepNone, sepWhiteSpace, sepComma, sepComment, sepParentheses, sepDoubleQuote, sepEnd);
-     TKeyword = (kwWITH, kwSELECT, kwINSERT, kwUPDATE, kwDELETE, kwFROM, kwJOIN, kwWHERE, kwGROUP, kwORDER, kwUNION, kwROWS, kwLIMIT, kwUnknown);
+type
+  TParsePart = (ppStart,ppWith,ppSelect,ppTableName,ppFrom,ppWhere,ppGroup,ppOrder,ppBogus);
+  TPhraseSeparator = (sepNone, sepWhiteSpace, sepComma, sepComment, sepParentheses, sepDoubleQuote, sepEnd);
+  TKeyword = (kwWITH, kwSELECT, kwINSERT, kwUPDATE, kwDELETE, kwFROM, kwJOIN, kwWHERE, kwGROUP, kwORDER, kwUNION, kwROWS, kwLIMIT, kwUnknown);
 
 const
   KeywordNames: array[TKeyword] of string =
@@ -1531,7 +1537,7 @@ var
   Keyword, K              : TKeyword;
 
 begin
-  PSQL:=Pchar(ASQL);
+  PSQL:=PChar(ASQL);
   ParsePart := ppStart;
 
   CurrentP := PSQL-1;
@@ -1543,7 +1549,6 @@ begin
   Result.WhereStopPos := 0;
 
   repeat
-    begin
     inc(CurrentP);
     SavedP := CurrentP;
 
@@ -1577,12 +1582,12 @@ begin
           Separator := sepNone;
     end;
 
-    if (CurrentP > SavedP) and (SavedP > PhraseP) then
-      CurrentP := SavedP;  // there is something before comment or left parenthesis
-
     if Separator <> sepNone then
       begin
-      if ((Separator in [sepWhitespace,sepComment]) and (PhraseP = SavedP)) then
+      if (CurrentP > SavedP) and (SavedP > PhraseP) then
+        CurrentP := SavedP;  // there is something before comment or left parenthesis or double quote
+
+      if (Separator in [sepWhitespace,sepComment]) and (SavedP = PhraseP) then
         PhraseP := CurrentP;  // skip comments (but not parentheses) and white spaces
 
       if (CurrentP-PhraseP > 0) or (Separator = sepEnd) then
@@ -1628,10 +1633,12 @@ begin
                      //  and/or derived tables are also not updateable
                      if Separator in [sepWhitespace, sepComment, sepDoubleQuote, sepEnd] then
                        begin
-                       Result.TableName := s;
+                       Result.TableName := Result.TableName + s;
                        Result.Updateable := True;
                        end;
-                     ParsePart := ppFrom;
+                     // compound delimited classifier like: "schema name"."table name"
+                     if not (CurrentP^ in ['.','"']) then
+                       ParsePart := ppFrom;
                      end;
           ppFrom   : begin
                      if (Keyword in [kwWHERE, kwGROUP, kwORDER, kwLIMIT, kwROWS]) or
@@ -1678,7 +1685,6 @@ begin
         dec(CurrentP);
       PhraseP := CurrentP+1;
       end
-    end;
   until CurrentP^=#0;
 end;
 
@@ -1795,13 +1801,18 @@ begin
     FStatements.Remove(S);
 end;
 
+function TSQLConnection.CreateCustomQuery(aOwner : TComponent) : TCustomSQLQuery;
+
+begin
+  Result:=TCustomSQLQuery.Create(AOwner);
+end;
 
 function TSQLConnection.InitialiseUpdateStatement(Query : TCustomSQLQuery; var qry : TCustomSQLQuery): TCustomSQLQuery;
 
 begin
   if not assigned(qry) then
   begin
-    qry := TCustomSQLQuery.Create(nil);
+    qry := TCustomSQLQuery(TComponentClass(Query.ClassType).Create(Nil));
     qry.ParseSQL := False;
     qry.DataBase := Self;
     qry.Transaction := Query.SQLTransaction;
@@ -2384,19 +2395,33 @@ Type
   TQuerySQLStatement = Class(TCustomSQLStatement)
   protected
     FQuery : TCustomSQLQuery;
+    function CreateParams: TSQLDBParams; override;
     Function CreateDataLink : TDataLink; override;
     Function GetSchemaType : TSchemaType; override;
     Function GetSchemaObjectName : String; override;
     Function GetSchemaPattern: String; override;
     procedure GetStatementInfo(var ASQL: String; out Info: TSQLStatementInfo); override;
     procedure OnChangeSQL(Sender : TObject); override;
+  public
+    constructor Create(AOwner: TComponent); override;
   end;
 
 { TQuerySQLStatement }
 
+constructor TQuerySQLStatement.Create(AOwner: TComponent);
+begin
+  FQuery:=TCustomSQLQuery(AOwner);
+  inherited Create(AOwner);
+end;
+
 function TQuerySQLStatement.CreateDataLink: TDataLink;
 begin
   Result:=TMasterParamsDataLink.Create(FQuery);
+end;
+
+function TQuerySQLStatement.CreateParams: TSQLDBParams;
+begin
+  Result:=FQuery.CreateParams;
 end;
 
 function TQuerySQLStatement.GetSchemaType: TSchemaType;
@@ -2458,16 +2483,17 @@ end;
 
 { TCustomSQLQuery }
 
-constructor TCustomSQLQuery.Create(AOwner : TComponent);
+Function TCustomSQLQuery.CreateSQLStatement(aOwner : TComponent)  : TCustomSQLStatement;
 
-Var
-  F : TQuerySQLStatement;
+begin
+  Result:=TQuerySQLStatement.Create(Self);
+end;
+
+constructor TCustomSQLQuery.Create(AOwner : TComponent);
 
 begin
   inherited Create(AOwner);
-  F:=TQuerySQLStatement.Create(Self);
-  F.FQuery:=Self;
-  FStatement:=F;
+  FStatement:=CreateSQLStatement(Self);
 
   FInsertSQL := TStringList.Create;
   FInsertSQL.OnChange := @OnChangeModifySQL;
@@ -3116,6 +3142,11 @@ begin
     UnPrepareStatement(Cursor);
 end;
 
+function TCustomSQLQuery.CreateParams: TSQLDBParams;
+begin
+  Result:=TSQLDBParams.Create(Nil);
+end;
+
 function TCustomSQLQuery.LogEvent(EventType: TDBEventType): Boolean;
 begin
   Result:=Assigned(Database) and SQLConnection.LogEvent(EventType);
@@ -3319,11 +3350,16 @@ begin
     DatabaseError(SErrNoDatabaseAvailable,Self)
 end;
 
+function TSQLScript.CreateQuery: TCustomSQLQuery;
+begin
+  Result := TCustomSQLQuery.Create(nil);
+  Result.ParamCheck := false; // Do not parse for parameters; breaks use of e.g. select bla into :bla in Firebird procedures
+end;
+
 constructor TSQLScript.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FQuery := TCustomSQLQuery.Create(nil);
-  FQuery.ParamCheck := false; // Do not parse for parameters; breaks use of e.g. select bla into :bla in Firebird procedures
+  FQuery := CreateQuery;
 end;
 
 destructor TSQLScript.Destroy;

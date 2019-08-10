@@ -85,6 +85,7 @@ type
   TFPFontCacheItemArray = Array of TFPFontCacheItem;
 
   { TFPFontCacheList }
+  EFontNotFound = Class(Exception);
 
   TFPFontCacheList = class(TObject)
   private
@@ -97,6 +98,7 @@ type
     { Set any / or \ path delimiters to the OS specific delimiter }
     procedure   FixPathDelimiters;
   protected
+    function    DoFindPostScriptFontName(const AFontName: string; ABold: boolean; AItalic: boolean; Out aBaseFont : TFPFontCacheItem): String;
     function    GetCount: integer; virtual;
     function    GetItem(AIndex: Integer): TFPFontCacheItem; virtual;
     procedure   SetItem(AIndex: Integer; AValue: TFPFontCacheItem); virtual;
@@ -111,6 +113,10 @@ type
     procedure   ReadStandardFonts;
     property    Count: integer read GetCount;
     function    IndexOf(const AObject: TFPFontCacheItem): integer;
+    // Find postscript font name based on fontname and attributes
+    function    FindPostScriptFontName(const AFontName: string; ABold: boolean; AItalic: boolean): String;
+    // Same as Find, but raise exception when not found.
+    function    GetPostScriptFontName(const AFontName: string; ABold: boolean; AItalic: boolean): String;
     function    Find(const AFontCacheItem: TFPFontCacheItem): integer; overload;
     function    Find(const AFamilyName: string; ABold: boolean; AItalic: boolean): TFPFontCacheItem; overload;
     function    Find(const APostScriptName: string): TFPFontCacheItem; overload;
@@ -143,6 +149,7 @@ resourcestring
   rsNoSearchPathDefined = 'No search path was defined';
   rsNoFontFileName = 'The FileName property is empty, so we can''t load font data.';
   rsMissingFontFile = 'The font file <%s> can''t be found.';
+  SErrFontNotFound = 'The font <%s> can''t be found';
 
 var
   uFontCacheList: TFPFontCacheList;
@@ -589,6 +596,56 @@ end;
 function TFPFontCacheList.IndexOf(const AObject: TFPFontCacheItem): integer;
 begin
   Result := FList.IndexOf(AObject);
+end;
+
+function TFPFontCacheList.GetPostScriptFontName(const AFontName: string; ABold: boolean; AItalic: boolean): String;
+
+Var
+  lFC : TFPFontCacheItem;
+  lMissingFontName : String;
+
+begin
+  Result:=DoFindPostScriptFontName(aFontName,aBold,aItalic,lfc);
+  if (Result=aFontName) and (aBold or aItalic) then
+    begin
+    if lFC<>Nil then
+      lMissingFontName := lfc.FamilyName
+    else
+      lMissingFontName := aFontName;
+    if (aBold and AItalic) then
+      lMissingFontName := lMissingFontName + '-BoldItalic'
+    else if aBold then
+      lMissingFontName := lMissingFontName + '-Bold'
+    else if aItalic then
+      lMissingFontName := lMissingFontName + '-Italic';
+    raise EFontNotFound.CreateFmt(SErrFontNotFound, [lMissingFontName]);
+    end;
+end;
+
+function TFPFontCacheList.FindPostScriptFontName(const AFontName: string; ABold: boolean; AItalic: boolean): String;
+
+Var
+  lFC : TFPFontCacheItem;
+
+begin
+  Result:=DoFindPostScriptFontName(aFontName,aBold,aItalic,lfc);
+end;
+
+function  TFPFontCacheList.DoFindPostScriptFontName(const AFontName: string; ABold: boolean; AItalic: boolean; Out aBaseFont : TFPFontCacheItem): String;
+
+Var
+   lNewFC : TFPFontCacheItem;
+
+begin
+  Result:=aFontName;
+  aBaseFont := FindFont(aFontName);
+  if not Assigned(aBaseFont) then
+    exit;
+  // find corresponding font style (bold and/or italic)
+  lNewFC := Find(aBaseFont.FamilyName, aBold, aItalic);
+  if not Assigned(lNewFC) then
+    exit;
+  Result := lNewFC.PostScriptName;
 end;
 
 function TFPFontCacheList.Find(const AFontCacheItem: TFPFontCacheItem): integer;

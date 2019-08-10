@@ -16,6 +16,9 @@ begin
     begin
     P:=AddPackage('utils-pas2fpm');
     p.ShortName:='p2fm';
+    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.Author := 'Free Pascal Team';
     P.License := 'LGPL with modification';
@@ -25,7 +28,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-passrc');
 

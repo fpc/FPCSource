@@ -109,6 +109,8 @@ implementation
               objectdef,
               recorddef:
                 exportabstractrecorddef(tabstractrecorddef(ttypesym(sym).typedef),tsymtable(arg));
+              else
+                ;
             end;
           end;
         procsym:
@@ -122,6 +124,8 @@ implementation
           begin
             varexport(tsym(sym).mangledname);
           end;
+        else
+          ;
       end;
     end;
 
@@ -176,6 +180,8 @@ implementation
         recorddef,
         objectdef:
           exportabstractrecorddef(tabstractrecorddef(def),symtable);
+        else
+          ;
       end;
     end;
 
@@ -235,13 +241,13 @@ implementation
       u.localsymtable.symlist.ForEachCall(@insert_export,u.localsymtable);
 
       { create special exports }
-      if (u.flags and uf_init)<>0 then
+      if mf_init in u.moduleflags then
         procexport(make_mangledname('INIT$',u.globalsymtable,''));
-      if (u.flags and uf_finalize)<>0 then
+      if mf_finalize in u.moduleflags then
         procexport(make_mangledname('FINALIZE$',u.globalsymtable,''));
-      if (u.flags and uf_threadvars)=uf_threadvars then
+      if mf_threadvars in u.moduleflags then
         varexport(make_mangledname('THREADVARLIST',u.globalsymtable,''));
-      if (u.flags and uf_has_resourcestrings)<>0 then
+      if mf_has_resourcestrings in u.moduleflags then
         begin
           varexport(ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start('RESSTR',u.localsymtable,[]).name);
           varexport(ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end('RESSTR',u.localsymtable,[]).name);
@@ -778,7 +784,7 @@ implementation
               end;
             if not assigned(module) then
               internalerror(2014101001);
-            if (uf_in_library and module.flags)=0 then
+            if (uf_in_library and module.headerflags)=0 then
               { unit is not part of a package, so no need to handle it }
               continue;
             { loaded by a package? }

@@ -140,7 +140,7 @@ unit paramgr;
             for the routine that are passed as varargs. It returns
             the size allocated on the stack (including the normal parameters)
           }
-          function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;virtual;abstract;
+          function  create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;virtual;abstract;
 
           function is_stack_paraloc(paraloc: pcgparalocation): boolean;virtual;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);virtual;
@@ -271,6 +271,8 @@ implementation
                       push_size:=def.size;
                   end;
             end;
+          else
+            ;
         end;
       end;
 
@@ -313,7 +315,7 @@ implementation
 
     function tparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
       const
-        inv: array [0..0] of tsuperregister = (RS_INVALID);
+        inv: {$ifndef VER3_0}tcpuregisterarray{$else}array [0..0] of tsuperregister{$endif} = (RS_INVALID);
       begin
         result:=inv;
       end;
@@ -321,7 +323,7 @@ implementation
 
     function tparamanager.get_saved_registers_address(calloption : tproccalloption):tcpuregisterarray;
       const
-        inv: array [0..0] of tsuperregister = (RS_INVALID);
+        inv: {$ifndef VER3_0}tcpuregisterarray{$else}array [0..0] of tsuperregister{$endif} = (RS_INVALID);
       begin
         result:=inv;
       end;
@@ -329,7 +331,7 @@ implementation
 
     function tparamanager.get_saved_registers_fpu(calloption : tproccalloption):tcpuregisterarray;
       const
-        inv: array [0..0] of tsuperregister = (RS_INVALID);
+        inv: {$ifndef VER3_0}tcpuregisterarray{$else}array [0..0] of tsuperregister{$endif} = (RS_INVALID);
       begin
         result:=inv;
       end;
@@ -337,7 +339,7 @@ implementation
 
     function tparamanager.get_saved_registers_mm(calloption : tproccalloption):tcpuregisterarray;
       const
-        inv: array [0..0] of tsuperregister = (RS_INVALID);
+        inv: {$ifndef VER3_0}tcpuregisterarray{$else}array [0..0] of tsuperregister{$endif} = (RS_INVALID);
       begin
         result:=inv;
       end;
@@ -370,6 +372,8 @@ implementation
               if getsupreg(paraloc^.register)<first_mm_imreg then
                 cg.getcpuregister(list,paraloc^.register);
             end;
+          else
+            ;
         end;
       end;
 
@@ -524,6 +528,8 @@ implementation
                       newparaloc^.reference.offset:=href.offset;
                     end;
                 end;
+              else
+                ;
             end;
             paraloc:=paraloc^.next;
           end;
@@ -734,6 +740,7 @@ implementation
       begin
         c:=0;
         tmploc:=paralocs;
+        result:=nil;
         while assigned(tmploc) do
           begin
             inc(c);

@@ -1751,7 +1751,7 @@ end;
 
 procedure propagate_prec(var result, op1, op2: MPFloat);
 begin
-  f_set_prec(result, max(valsint(f_get_prec(op1)), f_get_prec(op2)));
+  f_set_prec(result, max(  int64(f_get_prec(op1)), Int64(f_get_prec(op2)) ) );
 end;
 
 // --- ext bindings ----

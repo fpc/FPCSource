@@ -31,7 +31,8 @@ unit procinfo;
       { global }
       globtype,
       { symtable }
-      symconst,symdef,symsym,
+      symconst,symtype,symdef,symsym,
+      node,
       { aasm }
       cpubase,cgbase,cgutils,
       aasmbase,aasmdata;
@@ -95,6 +96,11 @@ unit procinfo;
           got : tregister;
           CurrGOTLabel : tasmlabel;
 
+          { register containing the tlsoffset }
+          tlsoffset : tregister;
+          { reference label for tls addresses }
+          tlslabel : tasmlabel;
+
           { Holds the reference used to store all saved registers. }
           save_regs_ref : treference;
 
@@ -150,6 +156,9 @@ unit procinfo;
           { Allocate got register }
           procedure allocate_got_register(list: TAsmList);virtual;
 
+          { Allocate tls register }
+          procedure allocate_tls_register(list: TAsmList);virtual;
+
           { get frame pointer }
           procedure init_framepointer; virtual;
 
@@ -159,6 +168,8 @@ unit procinfo;
           function get_first_nestedproc: tprocinfo;
           function has_nestedprocs: boolean;
           function get_normal_proc: tprocinfo;
+
+          function create_for_outlining(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef; entrynodeinfo: tnode): tprocinfo;
 
           { Add to parent's list of nested procedures even if parent is a 'main' procedure }
           procedure force_nested;
@@ -181,7 +192,8 @@ unit procinfo;
 implementation
 
     uses
-      cutils,systems;
+      globals,cutils,systems,
+      procdefutil;
 
 {****************************************************************************
                                  TProcInfo
@@ -265,6 +277,17 @@ implementation
           result:=result.parent;
       end;
 
+    function tprocinfo.create_for_outlining(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef; entrynodeinfo: tnode): tprocinfo;
+      begin
+        result:=cprocinfo.create(self);
+        result.force_nested;
+        result.procdef:=create_outline_procdef(basesymname,astruct,potype,resultdef);
+        result.entrypos:=entrynodeinfo.fileinfo;
+        result.entryswitches:=entrynodeinfo.localswitches;
+        result.exitpos:=current_filepos; // filepos of last node?
+        result.exitswitches:=current_settings.localswitches; // localswitches of last node?
+      end;
+
     procedure tprocinfo.allocate_push_parasize(size:longint);
       begin
         if size>maxpushedparasize then
@@ -287,6 +310,11 @@ implementation
       begin
         { most os/cpu combo's don't use this yet, so not yet abstract }
       end;
+
+    procedure tprocinfo.allocate_tls_register(list : TAsmList);
+      begin
+      end;
+
 
     procedure tprocinfo.init_framepointer;
       begin

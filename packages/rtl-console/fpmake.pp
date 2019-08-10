@@ -36,11 +36,14 @@ begin
     P:=AddPackage('rtl-console');
     P.ShortName:='rtlc';
     P.Directory:=ADirectory;
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Author := 'FPC core team, Pierre Mueller, Peter Vreman';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.OSes:=Rtl_ConsoleOSes;
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Email := '';
     P.Description := 'Rtl-console, console abstraction';
     P.NeedLibC:= false;
@@ -75,6 +78,7 @@ begin
         AddInclude('keyscan.inc',AllUnixOSes);
         AddUnit   ('winevent',[win32,win64]);
         AddInclude('nwsys.inc',[netware]);
+        AddUnit   ('mouse',AllUnixOSes);
         AddUnit   ('video',[win16]);
       end;
 
@@ -84,7 +88,7 @@ begin
        AddInclude('mouseh.inc');
        AddInclude('mouse.inc');
        AddUnit   ('winevent',[win32,win64]);
-       AddUnit   ('video',[go32v2,msdos]);
+       AddUnit   ('video',[go32v2,msdos] + AllUnixOSes);
      end;
 
     T:=P.Targets.AddUnit('video.pp',VideoOSes);

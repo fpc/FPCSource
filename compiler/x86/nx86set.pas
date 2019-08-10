@@ -37,7 +37,7 @@ interface
 
       tx86casenode = class(tcgcasenode)
          function  has_jumptable : boolean;override;
-         procedure genjumptable(hp : pcaselabel;min_,max_ : aint);override;
+         procedure genjumptable(hp : pcaselabel;min_,max_ : int64);override;
          procedure genlinearlist(hp : pcaselabel);override;
          procedure genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt);override;
       end;
@@ -47,7 +47,7 @@ implementation
     uses
       systems,
       verbose,globals,
-      symconst,symdef,defutil,
+      symconst,symdef,defutil,cutils,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,pass_2,tgobj,
       ncon,
@@ -66,7 +66,7 @@ implementation
       end;
 
 
-    procedure tx86casenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
+    procedure tx86casenode.genjumptable(hp : pcaselabel;min_,max_ : int64);
       var
         table : tasmlabel;
         last : TConstExprInt;
@@ -76,25 +76,32 @@ implementation
         opcgsize: tcgsize;
         jumpreg: tregister;
         labeltyp: taiconst_type;
+        AlmostExhaustive: Boolean;
+        lv, hv: TConstExprInt;
+        ExhaustiveLimit, Range, x, oldmin : int64;
+
+      const
+        ExhaustiveLimitBase = 32;
 
         procedure genitem(list:TAsmList;t : pcaselabel);
           var
-            i : aint;
+            i : TConstExprInt;
           begin
             if assigned(t^.less) then
               genitem(list,t^.less);
+
             { fill possible hole }
-            i:=last.svalue+1;
-            while i<=t^._low.svalue-1 do
+            i:=last+1;
+            while i<=t^._low-1 do
               begin
                 list.concat(Tai_const.Create_type_sym(labeltyp,elselabel));
-                inc(i);
+                i:=i+1;
               end;
-            i:=t^._low.svalue;
-            while i<=t^._high.svalue do
+            i:=t^._low;
+            while i<=t^._high do
               begin
                 list.concat(Tai_const.Create_type_sym(labeltyp,blocklabel(t^.blockid)));
-                inc(i);
+                i:=i+1;
               end;
             last:=t^._high;
             if assigned(t^.greater) then
@@ -102,20 +109,51 @@ implementation
           end;
 
       begin
+        lv:=0;
+        hv:=0;
+        oldmin:=0;
         last:=min_;
         { This generates near pointers on i8086 }
         labeltyp:=aitconst_ptr;
         opcgsize:=def_cgsize(opsize);
+
+        AlmostExhaustive := False;
+
         if not(jumptable_no_range) then
           begin
-             { a <= x <= b <-> unsigned(x-a) <= (b-a) }
-             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opcgsize,aint(min_),hregister);
-             { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
-             min_:=0;
-             { do not sign extend when we load the index register, as we applied an offset above }
-             opcgsize:=tcgsize2unsigned[opcgsize];
+
+            getrange(left.resultdef,lv,hv);
+            Range := aint(max_)-aint(min_);
+
+            if (cs_opt_size in current_settings.optimizerswitches) then
+              { Limit size of jump tables for small enumerations so they have
+                to be at least two-thirds full before being considered for the
+                "almost exhaustive" treatment }
+              ExhaustiveLimit := min(ExhaustiveLimitBase, labelcoverage shl 1)
+            else
+              ExhaustiveLimit := ExhaustiveLimitBase;
+
+            { If true, then this indicates that almost every possible value of x is covered by
+              a label.  As such, it's more cost-efficient to remove the initial range check and
+              instead insert the remaining values into the jump table, pointing at elselabel. [Kit] }
+            if ((hv - lv) - Range <= ExhaustiveLimit) then
+              begin
+                oldmin := min_;
+                min_ := lv.svalue;
+                AlmostExhaustive := True;
+              end
+            else
+              begin
+                { a <= x <= b <-> unsigned(x-a) <= (b-a) }
+                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opcgsize,aint(min_),hregister);
+                { case expr greater than max_ => goto elselabel }
+                cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
+                min_:=0;
+                { do not sign extend when we load the index register, as we applied an offset above }
+                opcgsize:=tcgsize2unsigned[opcgsize];
+              end;
           end;
+
         current_asmdata.getglobaldatalabel(table);
         { make it a 32bit register }
         indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
@@ -138,6 +176,7 @@ implementation
             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,jumpreg);
             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,current_procinfo.got,jumpreg);
             emit_reg(A_JMP,S_NO,jumpreg);
+            include(current_procinfo.flags,pi_needs_got);
           end
         else
           emit_ref(A_JMP,S_NO,href);
@@ -148,7 +187,31 @@ implementation
           jtlist:=current_procinfo.aktlocaldata;
         new_section(jtlist,sec_rodata,current_procinfo.procdef.mangledname,sizeof(aint));
         jtlist.concat(Tai_label.Create(table));
-        genitem(jtlist,hp);
+
+        if AlmostExhaustive then
+          begin
+            { Fill the table with the values below _min }
+            x := lv.svalue;
+            while x < oldmin do
+              begin
+                jtlist.concat(Tai_const.Create_type_sym(labeltyp, elselabel));
+                Inc(x);
+              end;
+
+            genitem(jtlist,hp);
+
+            { Fill the table with the values above _max }
+            { Subtracting one from hv and not adding 1 to max averts the risk of an overflow }
+            x := max_;
+            hv := hv - 1;
+            while x <= hv.svalue do
+              begin
+                jtlist.concat(Tai_const.Create_type_sym(labeltyp, elselabel));
+                Inc(x);
+              end;
+          end
+        else
+          genitem(jtlist,hp)
       end;
 
 
@@ -161,6 +224,8 @@ implementation
         opcgsize: tcgsize;
 
         procedure genitem(t : pcaselabel);
+          var
+             range, gap: aint;
           begin
              if assigned(t^.less) then
                genitem(t^.less);
@@ -183,6 +248,7 @@ implementation
                end
              else
                begin
+                  range := aint(t^._high.svalue - t^._low.svalue);
                   { it begins with the smallest label, if the value }
                   { is even smaller then jump immediately to the    }
                   { ELSE-label                                }
@@ -194,6 +260,7 @@ implementation
                     end
                   else
                     begin
+                      gap := aint(t^._low.svalue - last.svalue);
                       { if there is no unused label between the last and the }
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
@@ -201,23 +268,23 @@ implementation
                       { we need to use A_SUB, if cond_lt uses the carry flags
                         because A_DEC does not set the correct flags, therefor
                         using a_op_const_reg(OP_SUB) is not possible }
-                      if (cond_lt in [F_C,F_NC,F_A,F_AE,F_B,F_BE]) and (aint(t^._low.svalue-last.svalue)=1) then
-                        emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize],aint(t^._low.svalue-last.svalue),hregister)
+                      if (gap = 1) and (cond_lt in [F_C,F_NC,F_A,F_AE,F_B,F_BE]) then
+                        emit_const_reg(A_SUB, TCGSize2OpSize[opcgsize], gap, hregister)
                       else
-                        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue-last.svalue), hregister);
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, gap, hregister);
                       { no jump necessary here if the new range starts at
                         at the value following the previous one           }
-                      if ((t^._low-last) <> 1) or
+                      if (gap <> 1) or
                          (not lastrange) then
                         cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
                     end;
                   { we need to use A_SUB, if cond_le uses the carry flags
                     because A_DEC does not set the correct flags, therefor
                     using a_op_const_reg(OP_SUB) is not possible }
-                  if (cond_le in [F_C,F_NC,F_A,F_AE,F_B,F_BE]) and (aint(t^._high.svalue-t^._low.svalue)=1) then
-                    emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize],aint(t^._high.svalue-t^._low.svalue),hregister)
+                  if (cond_le in [F_C,F_NC,F_A,F_AE,F_B,F_BE]) and (range = 1) then
+                    emit_const_reg(A_SUB,TCGSize2OpSize[opcgsize], range, hregister)
                   else
-                    cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._high.svalue-t^._low.svalue), hregister);
+                    cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, range, hregister);
 
                   cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
                   last:=t^._high;
@@ -249,10 +316,24 @@ implementation
              genlinearcmplist(hp)
            else
              begin
-                last:=0;
-                lastrange:=false;
-                first:=true;
-                genitem(hp);
+                if (labelcnt>1) or not(cs_opt_level1 in current_settings.optimizerswitches) then
+                  begin
+                    last:=0;
+                    lastrange:=false;
+                    first:=true;
+                    genitem(hp);
+                  end
+                else
+                  begin
+                    { If only one label exists, we can greatly simplify the checks to a simple comparison }
+                    if hp^._low=hp^._high then
+                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ, tcgint(hp^._low.svalue), hregister, blocklabel(hp^.blockid))
+                    else
+                      begin
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, tcgint(hp^._low.svalue), hregister);
+                        cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_BE, tcgint(hp^._high.svalue - hp^._low.svalue), hregister,blocklabel(hp^.blockid));
+                      end;
+                  end;
                 cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
              end;
         end;
@@ -260,7 +341,6 @@ implementation
       procedure tx86casenode.genjmptreeentry(p : pcaselabel;parentvalue : TConstExprInt);
         var
           lesslabel,greaterlabel : tasmlabel;
-          less,greater : pcaselabel;
           cond_gt: TResFlags;
           cmplow : Boolean;
         begin

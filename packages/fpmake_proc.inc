@@ -72,6 +72,12 @@ begin
 {$include dbus/fpmake.pp}
 end;
 
+procedure add_libmagic(const ADirectory: string);
+begin
+  with Installer do
+{$include libmagic/fpmake.pp}
+end;
+
 procedure add_dts(const ADirectory: string);
 begin
   with Installer do
@@ -535,6 +541,12 @@ begin
 {$include openssl/fpmake.pp}
 end;
 
+procedure add_gnutls(const ADirectory: string);
+begin
+  with Installer do
+{$include gnutls/fpmake.pp}
+end;
+
 procedure add_oracle(const ADirectory: string);
 begin
   with Installer do
@@ -788,5 +800,12 @@ begin
   with Installer do
 {$include fcl-report/fpmake.pp}
 end;
+
+procedure add_webidl(const ADirectory: string);
+begin
+  with Installer do
+{$include webidl/fpmake.pp}
+end;
+
 
 {$include ide/fpmake.pp}

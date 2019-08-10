@@ -431,6 +431,12 @@ TYPE
 {---------------------------------------------------------------------------}
 {                  TGroup OBJECT - GROUP OBJECT ANCESTOR                    }
 {---------------------------------------------------------------------------}
+{$ifndef TYPED_LOCAL_CALLBACKS}
+   TGroupFirstThatCallback = CodePointer;
+{$else}
+   TGroupFirstThatCallback = Function(View: PView): Boolean is nested;
+{$endif}
+
    TGroup = OBJECT (TView)
          Phase   : (phFocused, phPreProcess, phPostProcess);
          EndState: Word;                              { Modal result }
@@ -445,7 +451,7 @@ TYPE
       FUNCTION GetHelpCtx: Word; Virtual;
       FUNCTION DataSize: Sw_Word; Virtual;
       FUNCTION ExecView (P: PView): Word; Virtual;
-      FUNCTION FirstThat (P: CodePointer): PView;
+      FUNCTION FirstThat (P:  TGroupFirstThatCallback): PView;
       FUNCTION Valid (Command: Word): Boolean; Virtual;
       FUNCTION FocusNext (Forwards: Boolean): Boolean;
       PROCEDURE Draw; Virtual;
@@ -457,7 +463,7 @@ TYPE
       PROCEDURE SelectDefaultView;
       PROCEDURE Insert (P: PView);
       PROCEDURE Delete (P: PView);
-      PROCEDURE ForEach (P: CodePointer);
+      PROCEDURE ForEach (P: TCallbackProcParam);
       { ForEach can't be virtual because it generates SIGSEGV }
       PROCEDURE EndModal (Command: Word); Virtual;
       PROCEDURE SelectNext (Forwards: Boolean);
@@ -2102,7 +2108,7 @@ END;
 {--TGroup-------------------------------------------------------------------}
 {  FirstThat -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Jul99 LdB         }
 {---------------------------------------------------------------------------}
-FUNCTION TGroup.FirstThat (P: CodePointer): PView;
+FUNCTION TGroup.FirstThat (P: TGroupFirstThatCallback): PView;
 VAR
   Tp : PView;
 BEGIN
@@ -2111,7 +2117,7 @@ BEGIN
      Tp := Last;                                      { Set temporary ptr }
      Repeat
        Tp := Tp^.Next;                                { Get next view }
-       IF Byte(Longint(CallPointerMethodLocal(P,
+         IF Byte(Longint(CallPointerMethodLocal(TCallbackFunBoolParam(P),
          { On most systems, locals are accessed relative to base pointer,
            but for MIPS cpu, they are accessed relative to stack pointer.
            This needs adaptation for so low level routines,
@@ -2207,7 +2213,7 @@ PROCEDURE TGroup.Awaken;
    END;
 
 BEGIN
-   ForEach(@DoAwaken);                                { Awaken each view }
+   ForEach(TCallbackProcParam(@DoAwaken));            { Awaken each view }
 END;
 
 {--TGroup-------------------------------------------------------------------}
@@ -2300,7 +2306,7 @@ END;
 {--TGroup-------------------------------------------------------------------}
 {  ForEach -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Jul99 LdB           }
 {---------------------------------------------------------------------------}
-PROCEDURE TGroup.ForEach (P: CodePointer);
+PROCEDURE TGroup.ForEach (P: TCallbackProcParam);
 VAR
   Tp,Hp,L0 : PView;
 { Vars Hp and L0 are necessary to hold original pointers in case   }
@@ -2398,7 +2404,7 @@ BEGIN
    Case AState Of
      sfActive, sfDragging: Begin
          Lock;                                        { Lock the view }
-         ForEach(@DoSetState);                        { Set each subview }
+         ForEach(TCallbackProcParam(@DoSetState));    { Set each subview }
          UnLock;                                      { Unlock the view }
        End;
      sfFocused: Begin
@@ -2406,7 +2412,7 @@ BEGIN
            Current^.SetState(sfFocused, Enable);          { Focus current view }
        End;
      sfExposed: Begin
-         ForEach(@DoExpose);                          { Expose each subview }
+         ForEach(TCallbackProcParam(@DoExpose));      { Expose each subview }
        End;
    End;
 END;
@@ -2458,7 +2464,7 @@ BEGIN
    OwnerGroup := @Self;                               { Set as owner group }
    Count := IndexOf(Last);                            { Subview count }
    S.Write(Count, SizeOf(Count));                     { Write the count }
-   ForEach(@DoPut);                                   { Put each in stream }
+   ForEach(TCallbackProcParam(@DoPut));               { Put each in stream }
    PutSubViewPtr(S, Current);                         { Current on stream }
    OwnerGroup := OwnerSave;                           { Restore ownergroup }
 END;
@@ -2502,16 +2508,16 @@ BEGIN
    If (Event.What = evNothing) Then Exit;             { No valid event exit }
    If (Event.What AND FocusedEvents <> 0) Then Begin  { Focused event }
      Phase := phPreProcess;                           { Set pre process }
-     ForEach(@DoHandleEvent);                         { Pass to each view }
+     ForEach(TCallbackProcParam(@DoHandleEvent));     { Pass to each view }
      Phase := phFocused;                              { Set focused }
      DoHandleEvent(Current);                          { Pass to current }
      Phase := phPostProcess;                          { Set post process }
-     ForEach(@DoHandleEvent);                         { Pass to each }
+     ForEach(TCallbackProcParam(@DoHandleEvent));     { Pass to each }
    End Else Begin
      Phase := phFocused;                              { Set focused }
      If (Event.What AND PositionalEvents <> 0) Then   { Positional event }
        DoHandleEvent(FirstThat(@ContainsMouse))       { Pass to first }
-       Else ForEach(@DoHandleEvent);                  { Pass to all }
+       Else ForEach(TCallbackProcParam(@DoHandleEvent)); { Pass to all }
    End;
 END;
 
@@ -2539,7 +2545,7 @@ BEGIN
      SetBounds(Bounds);                               { Set new bounds }
      GetExtent(Clip);                                 { Get new clip extents }
      Lock;                                            { Lock drawing }
-     ForEach(@DoCalcChange);                          { Change each view }
+     ForEach(TCallbackProcParam(@DoCalcChange));      { Change each view }
      UnLock;                                          { Unlock drawing }
    End;
 END;

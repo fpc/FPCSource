@@ -515,7 +515,8 @@ implementation
             end;
 
           in_aligned_x,
-          in_unaligned_x :
+          in_unaligned_x,
+          in_volatile_x:
             begin
               err:=false;
               consume(_LKLAMMER);
@@ -958,6 +959,8 @@ implementation
                  { We are calling a member }
                  maybe_load_methodpointer:=true;
                end;
+             else
+               ;
            end;
          end;
       end;
@@ -1005,7 +1008,7 @@ implementation
           end;
 
          { only need to get the address of the procedure? Check token because
-           in the case of opening parenthesis is possible to get pointer to 
+           in the case of opening parenthesis is possible to get pointer to
            function result (lack of checking for token was the reason of
            tw10933.pp test failure) }
          if getaddr and (token<>_LKLAMMER) then
@@ -1138,7 +1141,7 @@ implementation
                  hp2:=cloadnode.create_procvar(tprocsym(tcallnode(hp).symtableprocentry),currprocdef,tcallnode(hp).symtableproc);
                  if (po_methodpointer in pv.procoptions) then
                    tloadnode(hp2).set_mp(tcallnode(hp).methodpointer.getcopy);
-                 hp.destroy;
+                 hp.free;
                  { replace the old callnode with the new loadnode }
                  hpp^:=hp2;
                end;
@@ -1280,6 +1283,7 @@ implementation
       var
         isclassref:boolean;
         isrecordtype:boolean;
+        isobjecttype:boolean;
       begin
          if sym=nil then
            begin
@@ -1300,11 +1304,13 @@ implementation
                    do_typecheckpass(p1);
                  isclassref:=(p1.resultdef.typ=classrefdef);
                  isrecordtype:=(p1.nodetype=typen) and (p1.resultdef.typ=recorddef);
+                 isobjecttype:=(p1.nodetype=typen) and is_object(p1.resultdef);
                end
               else
                 begin
                   isclassref:=false;
                   isrecordtype:=false;
+                  isobjecttype:=false;
                 end;
 
               if assigned(spezcontext) and not (sym.typ=procsym) then
@@ -1324,16 +1330,47 @@ implementation
                       if (
                             isclassref or
                             (
-                              isrecordtype and
+                              (isobjecttype or
+                               isrecordtype) and
                               not (cnf_inherited in callflags)
                             )
                           ) and
                          (p1.nodetype=calln) and
                          assigned(tcallnode(p1).procdefinition) then
                         begin
-                          if not(po_classmethod in tcallnode(p1).procdefinition.procoptions) and
-                             not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
-                            Message(parser_e_only_class_members_via_class_ref);
+                          if not isobjecttype then
+                            begin
+                              if not(po_classmethod in tcallnode(p1).procdefinition.procoptions) and
+                                 not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
+                                Message(parser_e_only_class_members_via_class_ref);
+                            end
+                          else
+                            begin
+                              { with objects, you can also do this:
+                                  type
+                                    tparent = object
+                                      procedure test;
+                                    end;
+
+                                    tchild = object(tchild)
+                                      procedure test;
+                                    end;
+
+                                    procedure tparent.test;
+                                      begin
+                                      end;
+
+                                    procedure tchild.test;
+                                      begin
+                                        tparent.test;
+                                      end;
+                              }
+                              if (tcallnode(p1).procdefinition.proctypeoption<>potype_constructor) and
+                                 not(po_staticmethod in tcallnode(p1).procdefinition.procoptions) and
+                                 (not assigned(current_structdef) or
+                                  not def_is_related(current_structdef,structh)) then
+                                Message(parser_e_only_static_members_via_object_type);
+                            end;
                           { in Java, constructors are not automatically inherited
                             -> calling a constructor from a parent type will create
                                an instance of that parent type! }
@@ -1351,7 +1388,7 @@ implementation
                               assigned(tcallnode(p1).methodpointer) and
                               (tcallnode(p1).methodpointer.nodetype=loadvmtaddrn) then
                             Message1(type_w_instance_abstract_class,structh.RttiName);
-                        end;
+                        end
                    end;
                  fieldvarsym:
                    begin
@@ -1939,7 +1976,7 @@ implementation
                       not is_objectpascal_helper(tdef(srsymtable.defowner)) then
                     internalerror(2013011401);
                   { convert const node to temp node of the extended type }
-                  if node.nodetype in (nodetype_const+[niln,addrn]) then
+                  if node.nodetype in (nodetype_const+[addrn]) then
                     begin
                       extdef:=tobjectdef(srsymtable.defowner).extendeddef;
                       newstatement:=nil;
@@ -1968,6 +2005,7 @@ implementation
      { shouldn't be used that often, so the extra overhead is ok to save
        stack space }
      dispatchstring : ansistring;
+     autoderef,
      erroroutp1,
      allowspecialize,
      isspecialize,
@@ -2032,9 +2070,11 @@ implementation
                            cpointerdef.getreusable(tfiledef(p1.resultdef).typedfiledef)));
                          typecheckpass(p1);
                        end;
+                     else
+                       internalerror(2019050530);
                    end;
                  end
-               else if (p1.resultdef.typ<>pointerdef) then
+               else if not(p1.resultdef.typ in [pointerdef,undefineddef]) then
                  begin
                     { ^ as binary operator is a problem!!!! (FK) }
                     again:=false;
@@ -2194,6 +2234,7 @@ implementation
                  end
                else
                  isspecialize:=false;
+               autoderef:=false;
                if (p1.resultdef.typ=pointerdef) and
                   (m_autoderef in current_settings.modeswitches) and
                   { don't auto-deref objc.id, because then the code
@@ -2202,6 +2243,7 @@ implementation
                  begin
                    p1:=cderefnode.create(p1);
                    do_typecheckpass(p1);
+                   autoderef:=true;
                  end;
                { procvar.<something> can never mean anything so always
                  try to call it in case it returns a record/object/... }
@@ -2318,8 +2360,6 @@ implementation
                      cst_longstring:
                        { let's see when someone stumbles upon this...}
                        internalerror(201301111);
-                     else
-                       internalerror(2013112903);
                    end;
                    if try_type_helper(p1,strdef) then
                      goto skippointdefcheck;
@@ -2625,7 +2665,20 @@ implementation
                     end;
                   else
                     begin
-                      found:=try_type_helper(p1,nil);
+                      if autoderef then
+                        begin
+                          { always try with the not dereferenced node }
+                          p2:=tderefnode(p1).left;
+                          found:=try_type_helper(p2,nil);
+                          if found then
+                            begin
+                              tderefnode(p1).left:=nil;
+                              p1.destroy;
+                              p1:=p2;
+                            end;
+                        end
+                      else
+                        found:=try_type_helper(p1,nil);
                       if not found then
                         begin
                           if p1.resultdef.typ<>undefineddef then
@@ -2738,7 +2791,7 @@ implementation
                          Factor_read_id
          ---------------------------------------------}
 
-       procedure factor_read_id(out p1:tnode;var again:boolean);
+       procedure factor_read_id(out p1:tnode;out again:boolean);
 
          function findwithsymtable : boolean;
            var
@@ -2767,7 +2820,7 @@ implementation
            wasgenericdummy,
            allowspecialize,
            isspecialize,
-           unit_found : boolean;
+           unit_found, tmpgetaddr: boolean;
            dummypos,
            tokenpos: tfileposinfo;
            spezcontext : tspecializationcontext;
@@ -2837,8 +2890,7 @@ implementation
 
                if isspecialize then
                  begin
-                   if not assigned(srsym) or
-                       (srsym.typ<>typesym) then
+                   if not assigned(srsym) then
                      begin
                        identifier_not_found(orgstoredpattern,tokenpos);
                        srsym:=generrorsym;
@@ -3131,7 +3183,7 @@ implementation
                            { We need to know if this unit uses Variants }
                            if ((hdef=cvarianttype) or (hdef=colevarianttype)) and
                               not(cs_compilesystem in current_settings.moduleswitches) then
-                             current_module.flags:=current_module.flags or uf_uses_variants;
+                             include(current_module.moduleflags,mf_uses_variants);
                            p1:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);
                          end;
                      end;
@@ -3183,8 +3235,13 @@ implementation
                           callflags:=[]
                         else
                           callflags:=[cnf_unit_specified];
-                        do_proc_call(srsym,srsymtable,nil,
-                                     (getaddr and not(token in [_CARET,_POINT,_LECKKLAMMER])),
+                        { TP7 uglyness: @proc^ is parsed as (@proc)^,
+                          but @notproc^ is parsed as @(notproc^) }
+                        if m_tp_procvar in current_settings.modeswitches then
+                          tmpgetaddr:=getaddr and not(token in [_POINT,_LECKKLAMMER])
+                        else
+                          tmpgetaddr:=getaddr and not(token in [_CARET,_POINT,_LECKKLAMMER]);
+                        do_proc_call(srsym,srsymtable,nil,tmpgetaddr,
                                      again,p1,callflags,spezcontext);
                         spezcontext:=nil;
                       end;
@@ -3241,7 +3298,7 @@ implementation
                         if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
                           begin
                             tlabelsym(srsym).nonlocal:=true;
-                            exclude(current_procinfo.procdef.procoptions,po_inline);
+                            include(current_procinfo.flags,pi_has_interproclabel);
                           end;
                         if tlabelsym(srsym).nonlocal and
                           (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
@@ -3358,6 +3415,9 @@ implementation
          filepos    : tfileposinfo;
          callflags  : tcallnodeflags;
          idstr      : tidstring;
+         spezcontext : tspecializationcontext;
+         isspecialize,
+         mightbegeneric,
          useself,
          dopostfix,
          again,
@@ -3372,6 +3432,7 @@ implementation
         filepos:=current_tokenpos;
         again:=false;
         pd:=nil;
+        isspecialize:=false;
         if token=_ID then
          begin
            again:=true;
@@ -3417,6 +3478,11 @@ implementation
                    sub_expr if necessary }
                  dopostfix:=not could_be_generic(idstr);
                end;
+           { TP7 uglyness: @proc^ is parsed as (@proc)^, but @notproc^ is parsed
+             as @(notproc^) }
+           if (m_tp_procvar in current_settings.modeswitches) and (token=_CARET) and
+              getaddr and (p1.nodetype=loadn) and (tloadnode(p1).symtableentry.typ=procsym) then
+             dopostfix:=false;
            { maybe an additional parameter instead of misusing hadspezialize? }
            if dopostfix and not (ef_had_specialize in flags) then
              updatefpos:=postfixoperators(p1,again,getaddr);
@@ -3474,6 +3540,7 @@ implementation
                       hclassdef:=java_fpcbaserecordtype
                     else
                       internalerror(2012012401);
+                    spezcontext:=nil;
                     { if inherited; only then we need the method with
                       the same name }
                     if token <> _ID then
@@ -3499,6 +3566,18 @@ implementation
                      end
                     else
                      begin
+                       if not (m_delphi in current_settings.modeswitches) and
+                           (block_type in inline_specialization_block_types) and
+                           (token=_ID) and
+                           (idtoken=_SPECIALIZE) then
+                         begin
+                           consume(_ID);
+                           if token<>_ID then
+                             message(parser_e_methode_id_expected);
+                           isspecialize:=true;
+                         end
+                       else
+                         isspecialize:=false;
                        hs:=pattern;
                        hsorg:=orgpattern;
                        consume(_ID);
@@ -3508,53 +3587,71 @@ implementation
                          searchsym_in_helper(tobjectdef(current_structdef),tobjectdef(current_structdef),hs,srsym,srsymtable,[ssf_has_inherited])
                        else
                          searchsym_in_class(hclassdef,current_structdef,hs,srsym,srsymtable,[ssf_search_helper]);
+                       if isspecialize and assigned(srsym) then
+                         begin
+                           if not handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) then
+                             srsym:=nil;
+                         end;
                      end;
                     if assigned(srsym) then
                      begin
-                       check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                       mightbegeneric:=(m_delphi in current_settings.modeswitches) and
+                                         (token in [_LT,_LSHARPBRACKET]) and
+                                         (sp_generic_dummy in srsym.symoptions);
                        { load the procdef from the inherited class and
                          not from self }
                        case srsym.typ of
+                         typesym,
                          procsym:
                            begin
-                             useself:=false;
-                             if is_objectpascal_helper(current_structdef) then
+                             { typesym is only a valid choice if we're dealing
+                               with a potential generic }
+                             if (srsym.typ=typesym) and not mightbegeneric then
                                begin
-                                 { for a helper load the procdef either from the
-                                   extended type, from the parent helper or from
-                                   the extended type of the parent helper
-                                   depending on the def the found symbol belongs
-                                   to }
-                                 if (srsym.Owner.defowner.typ=objectdef) and
-                                     is_objectpascal_helper(tobjectdef(srsym.Owner.defowner)) then
-                                   if def_is_related(current_structdef,tdef(srsym.Owner.defowner)) and
-                                       assigned(tobjectdef(current_structdef).childof) then
-                                     hdef:=tobjectdef(current_structdef).childof
-                                   else
-                                     begin
-                                       hdef:=tobjectdef(srsym.Owner.defowner).extendeddef;
-                                       useself:=true;
-                                     end
+                                 Message(parser_e_methode_id_expected);
+                                 p1:=cerrornode.create;
+                               end
+                             else
+                               begin
+                                 useself:=false;
+                                 if is_objectpascal_helper(current_structdef) then
+                                   begin
+                                     { for a helper load the procdef either from the
+                                       extended type, from the parent helper or from
+                                       the extended type of the parent helper
+                                       depending on the def the found symbol belongs
+                                       to }
+                                     if (srsym.Owner.defowner.typ=objectdef) and
+                                         is_objectpascal_helper(tobjectdef(srsym.Owner.defowner)) then
+                                       if def_is_related(current_structdef,tdef(srsym.Owner.defowner)) and
+                                           assigned(tobjectdef(current_structdef).childof) then
+                                         hdef:=tobjectdef(current_structdef).childof
+                                       else
+                                         begin
+                                           hdef:=tobjectdef(srsym.Owner.defowner).extendeddef;
+                                           useself:=true;
+                                         end
+                                     else
+                                       begin
+                                         hdef:=tdef(srsym.Owner.defowner);
+                                         useself:=true;
+                                       end;
+                                   end
+                                 else
+                                   hdef:=hclassdef;
+                                 if (po_classmethod in current_procinfo.procdef.procoptions) or
+                                    (po_staticmethod in current_procinfo.procdef.procoptions) then
+                                   hdef:=cclassrefdef.create(hdef);
+                                 if useself then
+                                   begin
+                                     p1:=ctypeconvnode.create_internal(load_self_node,hdef);
+                                   end
                                  else
                                    begin
-                                     hdef:=tdef(srsym.Owner.defowner);
-                                     useself:=true;
+                                     p1:=ctypenode.create(hdef);
+                                     { we need to allow helpers here }
+                                     ttypenode(p1).helperallowed:=true;
                                    end;
-                               end
-                             else
-                               hdef:=hclassdef;
-                             if (po_classmethod in current_procinfo.procdef.procoptions) or
-                                (po_staticmethod in current_procinfo.procdef.procoptions) then
-                               hdef:=cclassrefdef.create(hdef);
-                             if useself then
-                               begin
-                                 p1:=ctypeconvnode.create_internal(load_self_node,hdef);
-                               end
-                             else
-                               begin
-                                 p1:=ctypenode.create(hdef);
-                                 { we need to allow helpers here }
-                                 ttypenode(p1).helperallowed:=true;
                                end;
                            end;
                          propertysym:
@@ -3565,11 +3662,22 @@ implementation
                              p1:=cerrornode.create;
                            end;
                        end;
-                       callflags:=[cnf_inherited];
-                       include(current_procinfo.flags,pi_has_inherited);
-                       if anon_inherited then
-                         include(callflags,cnf_anon_inherited);
-                       do_member_read(hclassdef,getaddr,srsym,p1,again,callflags,nil);
+                       if mightbegeneric then
+                         begin
+                           p1:=cspecializenode.create_inherited(p1,getaddr,srsym,hclassdef);
+                         end
+                       else
+                         begin
+                           if not isspecialize then
+                             check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                           callflags:=[cnf_inherited];
+                           include(current_procinfo.flags,pi_has_inherited);
+                           if anon_inherited then
+                             include(callflags,cnf_anon_inherited);
+                           do_member_read(hclassdef,getaddr,srsym,p1,again,callflags,spezcontext);
+                         end;
+                       if p1.nodetype=errorn then
+                         spezcontext.free;
                      end
                     else
                      begin
@@ -3613,7 +3721,8 @@ implementation
                      again:=false;
                      p1:=cerrornode.create;
                    end;
-                 postfixoperators(p1,again,getaddr);
+                 if p1.nodetype<>specializen then
+                   postfixoperators(p1,again,getaddr);
                end;
 
              _INTCONST :
@@ -3689,7 +3798,15 @@ implementation
                     postfixoperators(p1,again,getaddr);
                   end
                  else
-                  p1:=ctypenode.create(hdef);
+                   begin
+                     p1:=ctypenode.create(hdef);
+                     if token=_POINT then
+                       begin
+                         again:=true;
+                         { handle type helpers here }
+                         postfixoperators(p1,again,getaddr);
+                       end;
+                   end;
                end;
 
              _FILE :
@@ -3736,7 +3853,10 @@ implementation
 
              _CWSTRING:
                begin
-                 p1:=cstringconstnode.createunistr(patternw);
+                 if getlengthwidestring(patternw)=1 then
+                   p1:=cordconstnode.create(ord(getcharwidestring(patternw,0)),cwidechartype,true)
+                 else
+                   p1:=cstringconstnode.createunistr(patternw);
                  consume(_CWSTRING);
                  if token in postfixoperator_tokens then
                    begin
@@ -3771,7 +3891,15 @@ implementation
                   end
                  else
                   p1:=factor(true,[]);
-                 if token in postfixoperator_tokens then
+                 if (token in postfixoperator_tokens) and
+                   { TP7 uglyness: @proc^ is parsed as (@proc)^, but @notproc^
+                     is parsed as @(notproc^) }
+                    not
+                    (
+                     (m_tp_procvar in current_settings.modeswitches) and
+                     (token=_CARET) and (p1.nodetype=loadn) and (tloadnode(p1).symtableentry.typ=procsym)
+                    )
+                   then
                   begin
                     again:=true;
                     postfixoperators(p1,again,getaddr);
@@ -3787,6 +3915,11 @@ implementation
                  if assigned(getprocvardef) and
                     (taddrnode(p1).left.nodetype = loadn) then
                    taddrnode(p1).getprocvardef:=getprocvardef;
+                 if (token in postfixoperator_tokens) then
+                  begin
+                    again:=true;
+                    postfixoperators(p1,again,getaddr);
+                  end;
                end;
 
              _LKLAMMER :
@@ -4005,6 +4138,8 @@ implementation
             specializen:
               srsym:=tspecializenode(n).sym;
             { TODO : handle const nodes }
+            else
+              ;
           end;
           result:=assigned(srsym);
         end;
@@ -4015,18 +4150,22 @@ implementation
           getaddr : boolean;
           pload : tnode;
           spezcontext : tspecializationcontext;
-          structdef : tabstractrecorddef;
+          structdef,
+          inheriteddef : tabstractrecorddef;
+          callflags : tcallnodeflags;
         begin
           if n.nodetype=specializen then
             begin
               getaddr:=tspecializenode(n).getaddr;
               pload:=tspecializenode(n).left;
+              inheriteddef:=tabstractrecorddef(tspecializenode(n).inheriteddef);
               tspecializenode(n).left:=nil;
             end
           else
             begin
               getaddr:=false;
               pload:=nil;
+              inheriteddef:=nil;
             end;
 
           if assigned(parseddef) and assigned(gensym) and assigned(p2) then
@@ -4074,21 +4213,32 @@ implementation
             begin
               result:=pload;
               typecheckpass(result);
-              structdef:=nil;
-              case result.resultdef.typ of
-                objectdef,
-                recorddef:
-                  begin
-                    structdef:=tabstractrecorddef(result.resultdef);
-                  end;
-                classrefdef:
-                  begin
-                    structdef:=tabstractrecorddef(tclassrefdef(result.resultdef).pointeddef);
-                  end;
-                else
-                  internalerror(2015092703);
-              end;
-              do_member_read(structdef,getaddr,gensym,result,again,[],spezcontext);
+              structdef:=inheriteddef;
+              if not assigned(structdef) then
+                case result.resultdef.typ of
+                  objectdef,
+                  recorddef:
+                    begin
+                      structdef:=tabstractrecorddef(result.resultdef);
+                    end;
+                  classrefdef:
+                    begin
+                      structdef:=tabstractrecorddef(tclassrefdef(result.resultdef).pointeddef);
+                    end;
+                  else
+                    internalerror(2015092703);
+                end;
+              if not (structdef.typ in [recorddef,objectdef]) then
+                internalerror(2018092101);
+              if assigned(inheriteddef) then
+                begin
+                  callflags:=[cnf_inherited];
+                  include(current_procinfo.flags,pi_has_inherited);
+                end
+              else
+                callflags:=[];
+              do_member_read(structdef,getaddr,gensym,result,again,callflags,spezcontext);
+              spezcontext:=nil;
             end
           else
             begin
@@ -4316,6 +4466,8 @@ implementation
                        p1:=casnode.create(p1,p2);
                      _OP_IS:
                        p1:=cisnode.create(p1,p2);
+                     else
+                       internalerror(2019050528);
                    end;
                  end;
                _OP_IN :
@@ -4354,6 +4506,8 @@ implementation
                  p1:=cassignmentnode.create(p1,p2);
                _NE :
                  p1:=caddnode.create(unequaln,p1,p2);
+               else
+                 internalerror(2019050529);
              end;
              p1.fileinfo:=filepos;
            end

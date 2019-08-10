@@ -549,6 +549,8 @@ implementation
                  hlcg.g_finalize(current_asmdata.CurrAsmList,resultdef,location.reference);
                tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
             end;
+          else
+            ;
         end;
       end;
 
@@ -611,7 +613,7 @@ implementation
             case location.loc of
               LOC_REGISTER :
                 begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                   if location.size in [OS_64,OS_S64] then
                     cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,location.register64,funcretnode.location)
                   else
@@ -822,6 +824,10 @@ implementation
                              end;
                            end;
                          end;
+                       LOC_VOID:
+                         ;
+                       else
+                         internalerror(2019050707);
                      end;
                      dec(sizeleft,tcgsize2size[tmpparaloc^.size]);
                      callerparaloc:=callerparaloc^.next;
@@ -1271,6 +1277,10 @@ implementation
 
          { release temps of paras }
          release_para_temps;
+
+         { check for fpu exceptions }
+         if cnf_check_fpu_exceptions in callnodeflags then
+           cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
 
          { perhaps i/o check ? }
          if (cs_check_io in current_settings.localswitches) and

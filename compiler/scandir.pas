@@ -38,6 +38,9 @@ unit scandir;
         verbosity: longint;
         pmessage : pmessagestaterecord;
         alignment : talignmentinfo;
+        setalloc,
+        packenum,
+        packrecords : shortint;
       end;
 
     type
@@ -121,7 +124,7 @@ unit scandir;
       end;
 
 
-    procedure do_moduleflagswitch(flag:cardinal;optional:boolean);
+    procedure do_moduleflagswitch(flag:tmoduleflag;optional:boolean);
       var
         state : char;
       begin
@@ -130,9 +133,9 @@ unit scandir;
         else
           state:=current_scanner.readstate;
         if state='-' then
-          current_module.flags:=current_module.flags and not flag
+          exclude(current_module.moduleflags,flag)
         else
-          current_module.flags:=current_module.flags or flag;
+          include(current_module.moduleflags,flag);
       end;
 
 
@@ -427,6 +430,24 @@ unit scandir;
       end;
 
 
+    procedure dir_excessprecision;
+      begin
+        do_localswitch(cs_excessprecision);
+      end;
+
+
+    procedure dir_checkcasecoverage;
+      begin
+        do_localswitch(cs_check_all_case_coverage);
+      end;
+
+
+    procedure dir_checkfpuexceptions;
+      begin
+        do_localswitch(cs_check_fpu_exceptions);
+      end;
+
+
     procedure dir_objectchecks;
       begin
         do_localswitch(cs_check_object);
@@ -457,7 +478,7 @@ unit scandir;
 
     procedure dir_denypackageunit;
       begin
-        do_moduleflagswitch(uf_package_deny,true);
+        do_moduleflagswitch(mf_package_deny,true);
       end;
 
     procedure dir_description;
@@ -973,8 +994,10 @@ unit scandir;
             current_scanner.skipspace;
             current_scanner.readstring;
             s:=pattern;
-            if c in ['+','-'] then
-              s:=s+current_scanner.readstate;
+            { don't combine the assignments to s as the method call will be
+              done before "pattern" is assigned to s and the method changes
+              "pattern" }
+            s:=s+current_scanner.readoptionalstate('+');
             if not SetCompileModeSwitch(s,false) then
               Message1(scan_w_illegal_switch,s)
           end;
@@ -1178,6 +1201,9 @@ unit scandir;
       recordpendinglocalfullswitch(switchesstatestack[switchesstatestackpos].localsw);
       recordpendingverbosityfullswitch(switchesstatestack[switchesstatestackpos].verbosity);
       recordpendingalignmentfullswitch(switchesstatestack[switchesstatestackpos].alignment);
+      recordpendingpackenum(switchesstatestack[switchesstatestackpos].packenum);
+      recordpendingpackrecords(switchesstatestack[switchesstatestackpos].packrecords);
+      recordpendingsetalloc(switchesstatestack[switchesstatestackpos].setalloc);
       pendingstate.nextmessagerecord:=switchesstatestack[switchesstatestackpos].pmessage;
       { Reset verbosity and forget previous pmeesage }
       RestoreLocalVerbosity(nil);
@@ -1216,6 +1242,9 @@ unit scandir;
       switchesstatestack[switchesstatestackpos].pmessage:= current_settings.pmessage;
       switchesstatestack[switchesstatestackpos].verbosity:=status.verbosity;
       switchesstatestack[switchesstatestackpos].alignment:=current_settings.alignment;
+      switchesstatestack[switchesstatestackpos].setalloc:=current_settings.setalloc;
+      switchesstatestack[switchesstatestackpos].packenum:=current_settings.packenum;
+      switchesstatestack[switchesstatestackpos].packrecords:=current_settings.packrecords;
       Inc(switchesstatestackpos);
     end;
 
@@ -1255,12 +1284,12 @@ unit scandir;
           s:=ChangeFileExt(s,target_info.resext);
         if target_info.res<>res_none then
           begin
-          current_module.flags:=current_module.flags or uf_has_resourcefiles;
-          if (res_single_file in target_res.resflags) and
-                                 not (Current_module.ResourceFiles.Empty) then
-            Message(scan_w_only_one_resourcefile_supported)
-          else
-            current_module.resourcefiles.insert(FixFileName(s));
+            include(current_module.moduleflags,mf_has_resourcefiles);
+            if (res_single_file in target_res.resflags) and
+                                   not (Current_module.ResourceFiles.Empty) then
+              Message(scan_w_only_one_resourcefile_supported)
+            else
+              current_module.resourcefiles.insert(FixFileName(s));
           end
         else
           Message(scan_e_resourcefiles_not_supported);
@@ -1704,7 +1733,7 @@ unit scandir;
       begin
         { old Delphi versions seem to use merely $WEAKPACKAGEUNIT while newer
           Delphis have $WEAPACKAGEUNIT ON... :/ }
-        do_moduleflagswitch(uf_package_weak, true);
+        do_moduleflagswitch(mf_package_weak, true);
       end;
 
     procedure dir_writeableconst;
@@ -1885,6 +1914,8 @@ unit scandir;
         AddDirective('BOOLEVAL',directive_all, @dir_booleval);
         AddDirective('BITPACKING',directive_all, @dir_bitpacking);
         AddDirective('CALLING',directive_all, @dir_calling);
+        AddDirective('CHECKCASECOVERAGE',directive_all, @dir_checkcasecoverage);
+        AddDirective('CHECKFPUEXCEPTIONS',directive_all, @dir_checkfpuexceptions);
         AddDirective('CHECKLOWADDRLOADS',directive_all, @dir_checklowaddrloads);
         AddDirective('CHECKPOINTER',directive_all, @dir_checkpointer);
         AddDirective('CODEALIGN',directive_all, @dir_codealign);
@@ -1898,6 +1929,7 @@ unit scandir;
         AddDirective('ENDREGION',directive_all, @dir_endregion);
         AddDirective('ERROR',directive_all, @dir_error);
         AddDirective('ERRORC',directive_mac, @dir_error);
+        AddDirective('EXCESSPRECISION',directive_all, @dir_excessprecision);
         AddDirective('EXTENDEDSYNTAX',directive_all, @dir_extendedsyntax);
         AddDirective('EXTERNALSYM',directive_all, @dir_externalsym);
         AddDirective('F',directive_all, @dir_forcefarcalls);

@@ -1,7 +1,9 @@
 {
-    This file is part of the Free Pascal run time library.
+    This file is part of the Free Pascal/NewPascal run time library.
     Copyright (c) 2018 by Maciej Izak (hnb),
-    member of the Free Pascal development team
+    member of the NewPascal development team (http://newpascal.org)
+
+    Copyright(c) 2004-2018 DaThoX
 
     It contains tests for the Free Pascal generics library
 
@@ -16,6 +18,9 @@
 
     Thanks to Sphere 10 Software (http://sphere10.com) for sponsoring
     many new types, tests and major refactoring of entire library
+
+    Thanks to Castle Game Engine (https://castle-engine.sourceforge.io)
+    Part of tests for this module was copied from Castle Game Engine tests
 
  **********************************************************************}
 
@@ -65,6 +70,8 @@ type
     procedure Test_ObjectDictionary;
 
     procedure Test_TryAddOrSetOrGetValue;
+    procedure Test_TryGetValueEmpty_xxHash32;
+    procedure Test_TryGetValueEmpty_xxHash32Pascal;
   end;
 
 implementation
@@ -358,6 +365,43 @@ begin
   finally
     FreeAndNil(LObjects)
   end;
+end;
+
+// modified test from Castle Game Engine (https://castle-engine.io/)
+{$DEFINE TEST_TRYGETEMPTYVALUE :=
+  try
+    Map.AddOrSetValue('some key', 'some value');
+
+    B := Map.TryGetValue('some key', V);
+    AssertTrue(B);
+    AssertEquals('some value', V);
+
+    B := Map.TryGetValue('some other key', V);
+    AssertFalse(B);
+
+    B := Map.TryGetValue('', V);
+    AssertFalse(B);
+  finally
+    FreeAndNil(Map)
+  end;
+}
+
+procedure TTestHashMaps.Test_TryGetValueEmpty_xxHash32;
+var
+  Map: TOpenAddressingLP<string, string, TxxHash32HashFactory>;
+  V: String; B: Boolean;
+begin
+  Map := TOpenAddressingLP<string, string, TxxHash32HashFactory>.Create;
+  TEST_TRYGETEMPTYVALUE;
+end;
+
+procedure TTestHashMaps.Test_TryGetValueEmpty_xxHash32Pascal;
+var
+  Map: TOpenAddressingLP<string, string, TxxHash32PascalHashFactory>;
+  V: String; B: Boolean;
+begin
+  Map := TOpenAddressingLP<string, string, TxxHash32PascalHashFactory>.Create;
+  TEST_TRYGETEMPTYVALUE;
 end;
 
 begin

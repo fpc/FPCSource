@@ -418,7 +418,268 @@ interface
     VER_FLG_WEAK = 2;
     VER_FLG_INFO = 4;
 
+    procedure MayBeSwapHeader(var h : telf32header);
+    procedure MayBeSwapHeader(var h : telf64header);
+    procedure MayBeSwapHeader(var h : telf32proghdr);
+    procedure MayBeSwapHeader(var h : telf64proghdr);
+    procedure MaybeSwapSecHeader(var h : telf32sechdr);
+    procedure MaybeSwapSecHeader(var h : telf64sechdr);
+    procedure MaybeSwapElfSymbol(var h : telf32symbol);
+    procedure MaybeSwapElfSymbol(var h : telf64symbol);
+    procedure MaybeSwapElfReloc(var h : telf32reloc);
+    procedure MaybeSwapElfReloc(var h : telf64reloc);
+    procedure MaybeSwapElfDyn(var h : telf32dyn);
+    procedure MaybeSwapElfDyn(var h : telf64dyn);
+    procedure MaybeSwapElfverdef(var h: TElfverdef);
+    procedure MaybeSwapElfverdaux(var h: TElfverdaux);
+    procedure MaybeSwapElfverneed(var h: TElfverneed);
+    procedure MaybeSwapElfvernaux(var h: TElfvernaux);
 
 implementation
+
+    uses
+      systems;
+
+    procedure MayBeSwapHeader(var h : telf32header);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              e_type:=swapendian(e_type);
+              e_machine:=swapendian(e_machine);
+              e_version:=swapendian(e_version);
+              e_entry:=swapendian(e_entry);
+              e_phoff:=swapendian(e_phoff);
+              e_shoff:=swapendian(e_shoff);
+              e_flags:=swapendian(e_flags);
+              e_ehsize:=swapendian(e_ehsize);
+              e_phentsize:=swapendian(e_phentsize);
+              e_phnum:=swapendian(e_phnum);
+              e_shentsize:=swapendian(e_shentsize);
+              e_shnum:=swapendian(e_shnum);
+              e_shstrndx:=swapendian(e_shstrndx);
+            end;
+      end;
+
+
+    procedure MayBeSwapHeader(var h : telf64header);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              e_type:=swapendian(e_type);
+              e_machine:=swapendian(e_machine);
+              e_version:=swapendian(e_version);
+              e_entry:=swapendian(e_entry);
+              e_phoff:=swapendian(e_phoff);
+              e_shoff:=swapendian(e_shoff);
+              e_flags:=swapendian(e_flags);
+              e_ehsize:=swapendian(e_ehsize);
+              e_phentsize:=swapendian(e_phentsize);
+              e_phnum:=swapendian(e_phnum);
+              e_shentsize:=swapendian(e_shentsize);
+              e_shnum:=swapendian(e_shnum);
+              e_shstrndx:=swapendian(e_shstrndx);
+            end;
+      end;
+
+
+    procedure MayBeSwapHeader(var h : telf32proghdr);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              p_align:=swapendian(p_align);
+              p_filesz:=swapendian(p_filesz);
+              p_flags:=swapendian(p_flags);
+              p_memsz:=swapendian(p_memsz);
+              p_offset:=swapendian(p_offset);
+              p_paddr:=swapendian(p_paddr);
+              p_type:=swapendian(p_type);
+              p_vaddr:=swapendian(p_vaddr);
+            end;
+      end;
+
+
+    procedure MayBeSwapHeader(var h : telf64proghdr);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              p_align:=swapendian(p_align);
+              p_filesz:=swapendian(p_filesz);
+              p_flags:=swapendian(p_flags);
+              p_memsz:=swapendian(p_memsz);
+              p_offset:=swapendian(p_offset);
+              p_paddr:=swapendian(p_paddr);
+              p_type:=swapendian(p_type);
+              p_vaddr:=swapendian(p_vaddr);
+            end;
+      end;
+
+
+    procedure MaybeSwapSecHeader(var h : telf32sechdr);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              sh_name:=swapendian(sh_name);
+              sh_type:=swapendian(sh_type);
+              sh_flags:=swapendian(sh_flags);
+              sh_addr:=swapendian(sh_addr);
+              sh_offset:=swapendian(sh_offset);
+              sh_size:=swapendian(sh_size);
+              sh_link:=swapendian(sh_link);
+              sh_info:=swapendian(sh_info);
+              sh_addralign:=swapendian(sh_addralign);
+              sh_entsize:=swapendian(sh_entsize);
+            end;
+      end;
+
+
+    procedure MaybeSwapSecHeader(var h : telf64sechdr);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              sh_name:=swapendian(sh_name);
+              sh_type:=swapendian(sh_type);
+              sh_flags:=swapendian(sh_flags);
+              sh_addr:=swapendian(sh_addr);
+              sh_offset:=swapendian(sh_offset);
+              sh_size:=swapendian(sh_size);
+              sh_link:=swapendian(sh_link);
+              sh_info:=swapendian(sh_info);
+              sh_addralign:=swapendian(sh_addralign);
+              sh_entsize:=swapendian(sh_entsize);
+            end;
+      end;
+
+
+    procedure MaybeSwapElfSymbol(var h : telf32symbol);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              st_name:=swapendian(st_name);
+              st_value:=swapendian(st_value);
+              st_size:=swapendian(st_size);
+              st_shndx:=swapendian(st_shndx);
+            end;
+      end;
+
+
+    procedure MaybeSwapElfSymbol(var h : telf64symbol);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              st_name:=swapendian(st_name);
+              st_value:=swapendian(st_value);
+              st_size:=swapendian(st_size);
+              st_shndx:=swapendian(st_shndx);
+            end;
+      end;
+
+
+    procedure MaybeSwapElfReloc(var h : telf32reloc);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              address:=swapendian(address);
+              info:=swapendian(info);
+              addend:=swapendian(addend);
+            end;
+      end;
+
+
+    procedure MaybeSwapElfReloc(var h : telf64reloc);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              address:=swapendian(address);
+              info:=swapendian(info);
+              addend:=swapendian(addend);
+            end;
+      end;
+
+
+    procedure MaybeSwapElfDyn(var h : telf32dyn);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              d_tag:=swapendian(d_tag);
+              d_val:=swapendian(d_val);
+            end;
+      end;
+
+
+    procedure MaybeSwapElfDyn(var h : telf64dyn);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              d_tag:=swapendian(d_tag);
+              d_val:=swapendian(d_val);
+            end;
+      end;
+
+
+    procedure MaybeSwapElfverdef(var h: TElfverdef);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              vd_version:=swapendian(vd_version);
+              vd_flags:=swapendian(vd_flags);
+              vd_ndx:=swapendian(vd_ndx);
+              vd_cnt:=swapendian(vd_cnt);
+              vd_hash:=swapendian(vd_hash);
+              vd_aux:=swapendian(vd_aux);
+              vd_next:=swapendian(vd_next);
+            end;
+      end;
+
+
+    procedure MaybeSwapElfverdaux(var h: TElfverdaux);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              vda_name:=swapendian(vda_name);
+              vda_next:=swapendian(vda_next);
+            end;
+      end;
+
+
+    procedure MaybeSwapElfverneed(var h: TElfverneed);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              vn_version:=swapendian(vn_version);
+              vn_cnt:=swapendian(vn_cnt);
+              vn_file:=swapendian(vn_file);
+              vn_aux:=swapendian(vn_aux);
+              vn_next:=swapendian(vn_next);
+            end;
+      end;
+
+
+    procedure MaybeSwapElfvernaux(var h: TElfvernaux);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              vna_hash:=swapendian(vna_hash);
+              vna_flags:=swapendian(vna_flags);
+              vna_other:=swapendian(vna_other);
+              vna_name:=swapendian(vna_name);
+              vna_next:=swapendian(vna_next);
+            end;
+      end;
 
 end.

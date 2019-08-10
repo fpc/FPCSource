@@ -1,4 +1,5 @@
 {$mode objfpc}
+{$modeswitch arraytodynarray}
 type
   ta1 = array[0..10] of longint;
 var

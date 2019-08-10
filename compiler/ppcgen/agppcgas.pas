@@ -58,7 +58,7 @@ unit agppcgas;
       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
      protected
       function sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string; override;
-      procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint); override;
+      procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;secflags:TSectionFlags=SF_None;secprogbits:TSectionProgbits=SPB_None); override;
       procedure WriteAsmList; override;
       procedure WriteExtraHeader; override;
       procedure WriteExtraFooter; override;
@@ -259,12 +259,18 @@ unit agppcgas;
         case o of
           A_BCCTR,A_BCCTRL: tempstr := 'ctr';
           A_BCLR,A_BCLRL: tempstr := 'lr';
+          else
+            ;
         end;
         case o of
           A_BL,A_BLA,A_BCL,A_BCLA,A_BCCTRL,A_BCLRL: tempstr := tempstr+'l';
+          else
+            ;
         end;
         case o of
           A_BA,A_BLA,A_BCA,A_BCLA: tempstr:=tempstr+'a';
+          else
+            ;
         end;
         branchmode := tempstr;
       end;
@@ -287,8 +293,6 @@ unit agppcgas;
                 cond2str:=cond2str+'-';
               DH_Plus:
                 cond2str:=cond2str+'+';
-              else
-                internalerror(2003112901);
             end;
             cond2str:=cond2str+#9+tostr(c.bo)+','+tostr(c.bi);
           end;
@@ -310,8 +314,6 @@ unit agppcgas;
                       tempstr:=tempstr+('-'+#9);
                     DH_Plus:
                       tempstr:=tempstr+('+'+#9);
-                    else
-                      internalerror(2003112901);
                   end;
                   case c.cond of
                     C_LT..C_NU:
@@ -484,11 +486,12 @@ unit agppcgas;
            max_alignment[cur_sectype]:=8;
       end;
 
-    procedure TPPCAIXAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint);
+    procedure TPPCAIXAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;
+      secflags:TSectionFlags=SF_None;secprogbits:TSectionProgbits=SPB_None);
 
       begin
         secalign:=max_alignment[atype];
-        Inherited WriteSection(atype,aname,aorder,secalign);
+        Inherited WriteSection(atype,aname,aorder,secalign,secflags,secprogbits);
       end;
 
     procedure TPPCAIXAssembler.WriteAsmList;
@@ -527,7 +530,9 @@ unit agppcgas;
                                +sectionname(tai_section(hp).sectype,'',secorder_default)+' alignment put to '+tostr(tai_section(hp).secalign))),hp);
                            end;
                        end;
-                     end;
+                     else
+                       ;
+                    end;
                     hp:=tai(hp.next);
                   end;
               end;
@@ -729,7 +734,7 @@ unit agppcgas;
          idtxt  : 'CLANG';
          asmbin : 'clang';
          asmcmd : '-c -o $OBJ $EXTRAOPT -arch $ARCH $DARWINVERSION -x assembler $ASM';
-         supported_targets : [system_powerpc_darwin, system_powerpc64_darwin];
+         supported_targets : [system_powerpc_macos, system_powerpc_darwin, system_powerpc64_darwin];
          flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
          labelprefix : 'L';
          comment : '# ';

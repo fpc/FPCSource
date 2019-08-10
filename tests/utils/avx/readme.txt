@@ -22,14 +22,33 @@ x86_64:
 fpc avxtestgenerator
 fpc avxtestfilecmp
 avxtestgenerator -px8664 -ffpc -otmp
-cd tmp
-for %%p in (*.pp) do call fpc -Px86_64 %%p -v0
-cd ..
 avxtestgenerator -px8664 -fnasm -otmp
 cd tmp
-for %%a in (*.asm) do nasm -fwin64 %%a
+for %%p in (*.pp) do call fpc -Px86_64 %%p -v0
+for %a in (*.asm) do nasm -fwin64 %a
 cd ..
 avxtestfilecmp -mtmp\*.obj -dtmp -eexe -s
+
+Linux x86-64:
+mkdir tmp
+fpc avxtestgenerator
+fpc avxtestfilecmp
+./avxtestgenerator -px8664 -ffpc -otmp
+./avxtestgenerator -px8664 -fnasm -otmp
+cd tmp
+echo *.pp | xargs -n 1 fpc -Px86_64 -v0i
+echo *.asm | xargs -n 1 nasm -fwin64
+cd ..
+./avxtestfilecmp -mtmp/*.o -dtmp -s
+
+x86_64 testing by using self testing fpc executables: 
+avxtestgenerator -px8664 -ffpcinc -otmp
+avxtestgenerator -px8664 -fnasm -otmp
+cd tmp
+for %a in (*.asm) do nasm -fbin %a -o %~na.bin
+for %b in (*.bin) do bin2obj -x -c %~nb %b -o%~nb.inc
+for %p in (*.pp) do call fpc -Px86_64 %p -v0i
+for %e in (*.exe) do call %e
 
 ****************************************************************************************************
 Note:

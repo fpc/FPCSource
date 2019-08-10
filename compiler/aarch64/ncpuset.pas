@@ -31,9 +31,9 @@ interface
     type
        taarch64casenode = class(tcgcasenode)
          protected
-           procedure optimizevalues(var max_linear_list: aint; var max_dist: aword);override;
+           procedure optimizevalues(var max_linear_list: int64; var max_dist: qword);override;
            function  has_jumptable: boolean;override;
-           procedure genjumptable(hp: pcaselabel ;min_, max_: aint);override;
+           procedure genjumptable(hp: pcaselabel ;min_, max_: int64);override;
        end;
 
 
@@ -56,7 +56,7 @@ implementation
 *****************************************************************************}
 
 
-    procedure taarch64casenode.optimizevalues(var max_linear_list: aint; var max_dist: aword);
+    procedure taarch64casenode.optimizevalues(var max_linear_list: int64; var max_dist: qword);
       begin
         max_linear_list:=10;
       end;
@@ -68,7 +68,7 @@ implementation
       end;
 
 
-    procedure taarch64casenode.genjumptable(hp: pcaselabel; min_, max_: aint);
+    procedure taarch64casenode.genjumptable(hp: pcaselabel; min_, max_: int64);
       var
         last: TConstExprInt;
         tablelabel: TAsmLabel;
@@ -80,7 +80,7 @@ implementation
 
       procedure genitem(list:TAsmList;t : pcaselabel);
         var
-          i : aint;
+          i : int64;
         begin
           if assigned(t^.less) then
             genitem(list,t^.less);

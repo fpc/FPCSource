@@ -51,11 +51,21 @@ interface
        tspecializenode = class(tunarynode)
           sym:tsym;
           getaddr:boolean;
+          inheriteddef:tdef;
           constructor create(l:tnode;g:boolean;s:tsym);virtual;
+          constructor create_inherited(l:tnode;g:boolean;s:tsym;i:tdef);virtual;
           function pass_1:tnode;override;
           function pass_typecheck:tnode;override;
        end;
        tspecializenodeclass = class of tspecializenode;
+
+       tfinalizetempsnode = class(tnode)
+          constructor create;virtual;
+          function pass_1 : tnode;override;
+          function pass_typecheck:tnode;override;
+          function docompare(p: tnode): boolean; override;
+       end;
+       tfinalizetempsnodeclass = class of tfinalizetempsnode;
 
        tasmnode = class(tnode)
           p_asm : TAsmList;
@@ -287,6 +297,7 @@ interface
        cnothingnode : tnothingnodeclass = tnothingnode;
        cerrornode : terrornodeclass = terrornode;
        cspecializenode : tspecializenodeclass = tspecializenode;
+       cfinalizetempsnode: tfinalizetempsnodeclass = tfinalizetempsnode;
        casmnode : tasmnodeclass = tasmnode;
        cstatementnode : tstatementnodeclass = tstatementnode;
        cblocknode : tblocknodeclass = tblocknode;
@@ -361,7 +372,6 @@ implementation
       end;
 
 
-
 {*****************************************************************************
                              TFIRSTNOTHING
 *****************************************************************************}
@@ -430,6 +440,12 @@ implementation
          getaddr:=g;
       end;
 
+    constructor tspecializenode.create_inherited(l:tnode;g:boolean;s:tsym;i:tdef);
+      begin
+        create(l,g,s);
+        inheriteddef:=i;
+      end;
+
 
     function tspecializenode.pass_typecheck:tnode;
       begin
@@ -445,6 +461,34 @@ implementation
          result:=nil;
          expectloc:=LOC_VOID;
          codegenerror:=true;
+      end;
+
+
+{*****************************************************************************
+                             TFINALIZETEMPSNODE
+*****************************************************************************}
+
+    constructor tfinalizetempsnode.create;
+      begin
+        inherited create(finalizetempsn);
+      end;
+
+    function tfinalizetempsnode.pass_1: tnode;
+      begin
+        result:=nil;
+        expectloc:=LOC_VOID;
+      end;
+
+    function tfinalizetempsnode.pass_typecheck: tnode;
+      begin
+        resultdef:=voidtype;
+        result:=nil;
+      end;
+
+    function tfinalizetempsnode.docompare(p: tnode): boolean;
+      begin
+        { these nodes should never be coalesced }
+        result:=false;
       end;
 
 
@@ -631,6 +675,8 @@ implementation
                   left:=nil;
                   exit;
                 end;
+              else
+                ;
             end;
           end;
       end;
@@ -816,7 +862,6 @@ implementation
           begin
             n.p_asm:=TAsmList.create;
             n.p_asm.concatlistcopy(p_asm);
-            n.p_asm.section_count:=p_asm.section_count;
           end
         else n.p_asm := nil;
         n.currenttai:=currenttai;
@@ -1050,10 +1095,6 @@ implementation
         { temps which are immutable do not need to be initialized/finalized }
         if (tempinfo^.typedef.needs_inittable) and not(ti_const in tempflags) then
           include(current_procinfo.flags,pi_needs_implicit_finally);
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) and
-           is_rtti_managed_type(tempinfo^.typedef) then
-          include(current_procinfo.flags,pi_needs_got);
         if assigned(tempinfo^.withnode) then
           firstpass(tempinfo^.withnode);
         if assigned(tempinfo^.tempinitcode) then
@@ -1342,6 +1383,7 @@ implementation
         tempinfo^.withnode.free;
         tempinfo^.tempinitcode.free;
         dispose(tempinfo);
+        inherited destroy;
       end;
 
     procedure ttempdeletenode.printnodedata(var t:text);

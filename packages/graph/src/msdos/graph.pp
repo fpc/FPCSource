@@ -21,6 +21,8 @@ interface
   {$hugecode on}
 {$endif}
 
+{$define asmgraph}
+
 {$i graphh.inc}
 {$i vesah.inc}
 
@@ -32,27 +34,42 @@ CONST
   { VESA Specific video modes. }
   m320x200x32k      = $10D;
   m320x200x64k      = $10E;
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  m320x200x16m      = $10F;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
   m640x400x256      = $100;
 
   m640x480x256      = $101;
   m640x480x32k      = $110;
   m640x480x64k      = $111;
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  m640x480x16m      = $112;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
   m800x600x16       = $102;
   m800x600x256      = $103;
   m800x600x32k      = $113;
   m800x600x64k      = $114;
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  m800x600x16m      = $115;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
   m1024x768x16      = $104;
   m1024x768x256     = $105;
   m1024x768x32k     = $116;
   m1024x768x64k     = $117;
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  m1024x768x16m     = $118;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
   m1280x1024x16     = $106;
   m1280x1024x256    = $107;
   m1280x1024x32k    = $119;
   m1280x1024x64k    = $11A;
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  m1280x1024x16m    = $11B;
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
 
 { Helpful variable to get save/restore support in IDE PM }
 const
@@ -149,9 +166,19 @@ const
  Procedure CallInt10(val_ax : word); assembler;
    asm
      mov ax,val_ax
+     push ds
      push bp
      int 10h
      pop bp
+     pop ds
+   end;
+
+ Procedure InitInt10hMode(mode : byte);
+   begin
+     if DontClearGraphMemory then
+       CallInt10(mode or $80)
+     else
+       CallInt10(mode);
    end;
 
 {************************************************************************}
@@ -173,10 +200,14 @@ begin
   for I := 0 to 11 do
     PortW[$3B4] := I or (RegValues[I] shl 8);
   Port[$3B8] := 10; { display page 0, graphic mode, display on }
-//  DosMemFillChar($B000, 0, 65536, #0);
   asm
-    mov ax, $B000
+{$ifdef FPC_MM_HUGE}
+    mov ax, SEG SegB000
     mov es, ax
+    mov es, es:[SegB000]
+{$else FPC_MM_HUGE}
+    mov es, [SegB000]
+{$endif FPC_MM_HUGE}
     mov cx, 32768
     xor di, di
     xor ax, ax
@@ -188,7 +219,7 @@ begin
 end;
 
 { compatible with TP7's HERC.BGI }
-procedure SetBkColorHGC720(ColorNum: Word);
+procedure SetBkColorHGC720(ColorNum: ColorType);
 begin
   if ColorNum > 15 then
     exit;
@@ -196,22 +227,22 @@ begin
 end;
 
 { compatible with TP7's HERC.BGI }
-function GetBkColorHGC720: Word;
+function GetBkColorHGC720: ColorType;
 begin
   GetBkColorHGC720 := DummyHGCBkColor;
 end;
 
 procedure SetHGCRGBPalette(ColorNum, RedValue, GreenValue,
-      BlueValue : smallint); {$ifndef fpc}far;{$endif fpc}
+      BlueValue : smallint);
 begin
 end;
 
 procedure GetHGCRGBPalette(ColorNum: smallint; Var
-      RedValue, GreenValue, BlueValue : smallint); {$ifndef fpc}far;{$endif fpc}
+      RedValue, GreenValue, BlueValue : smallint);
 begin
 end;
 
-procedure PutPixelHGC720(X, Y: SmallInt; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
+procedure PutPixelHGC720(X, Y: SmallInt; Pixel: ColorType);
 var
   Offset: Word;
   B, Mask, Shift: Byte;
@@ -239,7 +270,7 @@ begin
   Mem[SegB000:Offset] := B;
 end;
 
-function GetPixelHGC720(X, Y: SmallInt): Word; {$ifndef fpc}far;{$endif fpc}
+function GetPixelHGC720(X, Y: SmallInt): ColorType;
 var
   Offset: Word;
   B, Shift: Byte;
@@ -257,7 +288,7 @@ begin
   GetPixelHGC720 := (B shr Shift) and 1;
 end;
 
-procedure DirectPutPixelHGC720(X, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+procedure DirectPutPixelHGC720(X, Y: SmallInt);
  { x,y -> must be in global coordinates. No clipping. }
 var
   Offset: Word;
@@ -310,7 +341,7 @@ begin
   end;
 end;
 
-procedure HLineHGC720(X, X2, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+procedure HLineHGC720(X, X2, Y: SmallInt);
 var
   Color: Word;
   YOffset, LOffset, ROffset, CurrentOffset, MiddleAreaLength: Word;
@@ -504,7 +535,7 @@ begin
   end;
 end;
 
-procedure SetVisualHGC720(page: word); {$ifndef fpc}far;{$endif fpc}
+procedure SetVisualHGC720(page: word);
 { two page supPort... }
 begin
   if page > HardwarePages then exit;
@@ -515,7 +546,7 @@ begin
   end;
 end;
 
-procedure SetActiveHGC720(page: word); {$ifndef fpc}far;{$endif fpc}
+procedure SetActiveHGC720(page: word);
 { two page supPort... }
 begin
   case page of
@@ -535,26 +566,30 @@ var
 procedure SetCGAPalette(CGAPaletteID: Byte); assembler;
 asm
   mov ax,CGAPaletteID
-  push bp
   mov bl, al
   mov bh, 1
   mov ah, 0Bh
+  push ds
+  push bp
   int 10h
   pop bp
+  pop ds
 end;
 
 procedure SetCGABorder(CGABorder: Byte); assembler;
 asm
   mov ax,CGABorder
-  push bp
   mov bl, al
   mov bh, 0
   mov ah, 0Bh
+  push ds
+  push bp
   int 10h
   pop bp
+  pop ds
 end;
 
-procedure SetBkColorCGA320(ColorNum: Word);
+procedure SetBkColorCGA320(ColorNum: ColorType);
 begin
   if ColorNum > 15 then
     exit;
@@ -562,17 +597,14 @@ begin
   SetCGABorder(CurrentCGABorder);
 end;
 
-function GetBkColorCGA320: Word;
+function GetBkColorCGA320: ColorType;
 begin
   GetBkColorCGA320 := CurrentCGABorder and 15;
 end;
 
 procedure InitCGA320C0;
 begin
-  if DontClearGraphMemory then
-    CallInt10($84)
-  else
-    CallInt10($04);
+  InitInt10hMode($04);
   VideoOfs := 0;
   SetCGAPalette(0);
   SetCGABorder(16);
@@ -581,10 +613,7 @@ end;
 
 procedure InitCGA320C1;
 begin
-  if DontClearGraphMemory then
-    CallInt10($84)
-  else
-    CallInt10($04);
+  InitInt10hMode($04);
   VideoOfs := 0;
   SetCGAPalette(1);
   SetCGABorder(16);
@@ -593,10 +622,7 @@ end;
 
 procedure InitCGA320C2;
 begin
-  if DontClearGraphMemory then
-    CallInt10($84)
-  else
-    CallInt10($04);
+  InitInt10hMode($04);
   VideoOfs := 0;
   SetCGAPalette(2);
   SetCGABorder(0);
@@ -605,17 +631,14 @@ end;
 
 procedure InitCGA320C3;
 begin
-  if DontClearGraphMemory then
-    CallInt10($84)
-  else
-    CallInt10($04);
+  InitInt10hMode($04);
   VideoOfs := 0;
   SetCGAPalette(3);
   SetCGABorder(0);
   CurrentCGABorder := 0;
 end;
 
-procedure PutPixelCGA320(X, Y: SmallInt; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
+procedure PutPixelCGA320(X, Y: SmallInt; Pixel: ColorType);
 var
   Offset: Word;
   B, Mask, Shift: Byte;
@@ -640,7 +663,7 @@ begin
   Mem[SegB800:Offset] := B;
 end;
 
-function GetPixelCGA320(X, Y: SmallInt): Word; {$ifndef fpc}far;{$endif fpc}
+function GetPixelCGA320(X, Y: SmallInt): ColorType;
 var
   Offset: Word;
   B, Shift: Byte;
@@ -655,7 +678,7 @@ begin
   GetPixelCGA320 := (B shr Shift) and $03;
 end;
 
-procedure DirectPutPixelCGA320(X, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+procedure DirectPutPixelCGA320(X, Y: SmallInt);
  { x,y -> must be in global coordinates. No clipping. }
 var
   Offset: Word;
@@ -705,7 +728,7 @@ begin
   end;
 end;
 
-procedure HLineCGA320(X, X2, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+procedure HLineCGA320(X, X2, Y: SmallInt);
 var
   Color: Word;
   YOffset, LOffset, ROffset, CurrentOffset, MiddleAreaLength: Word;
@@ -901,16 +924,13 @@ end;
 
 procedure InitCGA640;
 begin
-  if DontClearGraphMemory then
-    CallInt10($86)
-  else
-    CallInt10($06);
+  InitInt10hMode($06);
   VideoOfs := 0;
   CurrentCGABorder := 0; {yes, TP7 CGA.BGI behaves *exactly* like that}
 end;
 
 {yes, TP7 CGA.BGI behaves *exactly* like that}
-procedure SetBkColorCGA640(ColorNum: Word);
+procedure SetBkColorCGA640(ColorNum: ColorType);
 begin
   if ColorNum > 15 then
     exit;
@@ -920,12 +940,12 @@ begin
   SetCGABorder(CurrentCGABorder);
 end;
 
-function GetBkColorCGA640: Word;
+function GetBkColorCGA640: ColorType;
 begin
   GetBkColorCGA640 := CurrentCGABorder and 15;
 end;
 
-procedure PutPixelCGA640(X, Y: SmallInt; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
+procedure PutPixelCGA640(X, Y: SmallInt; Pixel: ColorType);
 var
   Offset: Word;
   B, Mask, Shift: Byte;
@@ -950,7 +970,7 @@ begin
   Mem[SegB800:Offset] := B;
 end;
 
-function GetPixelCGA640(X, Y: SmallInt): Word; {$ifndef fpc}far;{$endif fpc}
+function GetPixelCGA640(X, Y: SmallInt): ColorType;
 var
   Offset: Word;
   B, Shift: Byte;
@@ -965,7 +985,7 @@ begin
   GetPixelCGA640 := (B shr Shift) and 1;
 end;
 
-procedure DirectPutPixelCGA640(X, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+procedure DirectPutPixelCGA640(X, Y: SmallInt);
  { x,y -> must be in global coordinates. No clipping. }
 var
   Offset: Word;
@@ -1015,7 +1035,7 @@ begin
   end;
 end;
 
-procedure HLineCGA640(X, X2, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+procedure HLineCGA640(X, X2, Y: SmallInt);
 var
   Color: Word;
   YOffset, LOffset, ROffset, CurrentOffset, MiddleAreaLength: Word;
@@ -1212,15 +1232,12 @@ end;
 
 procedure InitMCGA640;
 begin
-  if DontClearGraphMemory then
-    CallInt10($91)
-  else
-    CallInt10($11);
+  InitInt10hMode($11);
   VideoOfs := 0;
   CurrentCGABorder := 0; {yes, TP7 CGA.BGI behaves *exactly* like that}
 end;
 
-procedure SetBkColorMCGA640(ColorNum: Word);
+procedure SetBkColorMCGA640(ColorNum: ColorType);
 begin
   if ColorNum > 15 then
     exit;
@@ -1228,12 +1245,12 @@ begin
   SetCGABorder(CurrentCGABorder);
 end;
 
-function GetBkColorMCGA640: Word;
+function GetBkColorMCGA640: ColorType;
 begin
   GetBkColorMCGA640 := CurrentCGABorder and 15;
 end;
 
-procedure PutPixelMCGA640(X, Y: SmallInt; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
+procedure PutPixelMCGA640(X, Y: SmallInt; Pixel: ColorType);
 var
   Offset: Word;
   B, Mask, Shift: Byte;
@@ -1256,7 +1273,7 @@ begin
   Mem[SegA000:Offset] := B;
 end;
 
-function GetPixelMCGA640(X, Y: SmallInt): Word; {$ifndef fpc}far;{$endif fpc}
+function GetPixelMCGA640(X, Y: SmallInt): ColorType;
 var
   Offset: Word;
   B, Shift: Byte;
@@ -1269,7 +1286,7 @@ begin
   GetPixelMCGA640 := (B shr Shift) and 1;
 end;
 
-procedure DirectPutPixelMCGA640(X, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+procedure DirectPutPixelMCGA640(X, Y: SmallInt);
  { x,y -> must be in global coordinates. No clipping. }
 var
   Offset: Word;
@@ -1317,7 +1334,7 @@ begin
   end;
 end;
 
-procedure HLineMCGA640(X, X2, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+procedure HLineMCGA640(X, X2, Y: SmallInt);
 var
   Color: Word;
   YOffset, LOffset, ROffset, CurrentOffset, MiddleAreaLength: Word;
@@ -1509,44 +1526,34 @@ end;
  {*                     4-bit planar VGA mode routines                   *}
  {************************************************************************}
 
-  Procedure Init640x200x16; {$ifndef fpc}far;{$endif fpc}
+  Procedure Init640x200x16;
     begin
-      if DontClearGraphMemory then
-        CallInt10($8e)
-      else
-        CallInt10($e);
+      InitInt10hMode($e);
       VideoOfs := 0;
     end;
 
 
-   Procedure Init640x350x16; {$ifndef fpc}far;{$endif fpc}
+   Procedure Init640x350x16;
     begin
-      if DontClearGraphMemory then
-        CallInt10($90)
-      else
-        CallInt10($10);
+      InitInt10hMode($10);
       VideoOfs := 0;
     end;
 
 
 
-  Procedure Init640x480x16; {$ifndef fpc}far;{$endif fpc}
+  Procedure Init640x480x16;
     begin
-      if DontClearGraphMemory then
-        CallInt10($92)
-      else
-        CallInt10($12);
+      InitInt10hMode($12);
       VideoOfs := 0;
     end;
 
 
 
 
- Procedure PutPixel16(X,Y : smallint; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
 {$ifndef asmgraph}
+ Procedure PutPixel16(X,Y : smallint; Pixel: ColorType);
  var offset: word;
      dummy: byte;
-{$endif asmgraph}
   Begin
     { verify clipping and then convert to absolute coordinates...}
     if ClipPixels then
@@ -1558,7 +1565,6 @@ end;
     end;
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
-{$ifndef asmgraph}
      offset := y * 80 + (x shr 3) + VideoOfs;
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
      PortW[$3ce] := (Pixel and $ff) shl 8; { Index 00 : Enable correct plane and write color }
@@ -1568,120 +1574,85 @@ end;
      Mem[Sega000: offset] := dummy;  { Write the data into video memory }
      PortW[$3ce] := $ff08;         { Enable all bit planes.           }
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
-{$else asmgraph}
-      asm
- {$ifndef fpc}
-        mov  es, [SegA000]
-        { enable the set / reset function and load the color }
-        mov  dx, 3ceh
-        mov  ax, 0f01h
-        out  dx, ax
-        { setup set/reset register }
-        mov  ax, [Pixel]
-        shl  ax, 8
-        out  dx, ax
-        { setup the bit mask register }
-        mov  al, 8
-        out  dx, al
-        inc  dx
-        { load the bitmask register }
-        mov  cx, [X]
-        and  cx, 0007h
-        mov  al, 80h
-        shr  al, cl
-        out  dx, ax
-        { get the x index and divide by 8 for 16-color }
-        mov  ax,[X]
-        shr  ax,3
-        push ax
-        { determine the address }
-        mov  ax,80
-        mov  bx,[Y]
-        mul  bx
-        pop  cx
-        add  ax,cx
-        mov  di,ax
-        add  di, [VideoOfs]
-        { send the data through the display memory through set/reset }
-        mov  bl,es:[di]
-        mov  es:[di],bl
-
-        { reset for formal vga operation }
-        mov  dx,3ceh
-        mov  ax,0ff08h
-        out  dx,ax
-
-        { restore enable set/reset register }
-        mov  ax,0001h
-        out  dx,ax
- {$else fpc}
-        push eax
-        push ebx
-        push ecx
-        push edx
-        push edi
-        { enable the set / reset function and load the color }
-        mov  dx, 3ceh
-        mov  ax, 0f01h
-        out  dx, ax
-        { setup set/reset register }
-        mov  ax, [Pixel]
-        shl  ax, 8
-        out  dx, ax
-        { setup the bit mask register }
-        mov  al, 8
-        out  dx, al
-        inc  dx
-        { load the bitmask register }
-        mov  cx, [X]
-        and  cx, 0007h
-        mov  al, 80h
-        shr  al, cl
-        out  dx, ax
-        { get the x index and divide by 8 for 16-color }
-        movzx eax,[X]
-        shr  eax,3
-        push eax
-        { determine the address }
-        mov  eax,80
-        mov  bx,[Y]
-        mul  bx
-        pop  ecx
-        add  eax,ecx
-        mov  edi,eax
-        add  edi, [VideoOfs]
-        { send the data through the display memory through set/reset }
-        mov  bl,fs:[edi+$a0000]
-        mov  fs:[edi+$a0000],bl
-
-        { reset for formal vga operation }
-        mov  dx,3ceh
-        mov  ax,0ff08h
-        out  dx,ax
-
-        { restore enable set/reset register }
-        mov  ax,0001h
-        out  dx,ax
-        pop edi
-        pop edx
-        pop ecx
-        pop ebx
-        pop eax
- {$endif fpc}
-      end;
-{$endif asmgraph}
    end;
+{$else asmgraph}
+ Procedure PutPixel16(X,Y : smallint; Pixel: ColorType); assembler;
+  asm
+    mov  si, [X]
+    mov  bx, [Y]
+    cmp  byte ptr [ClipPixels], 0
+    je   @@ClipDone
+
+    test si, si
+    js   @@Done
+    test bx, bx
+    js   @@Done
+    cmp  si, [ViewWidth]
+    jg   @@Done
+    cmp  bx, [ViewHeight]
+    jg   @@Done
+
+@@ClipDone:
+    add  si, [StartXViewPort]
+    add  bx, [StartYViewPort]
+{$ifdef FPC_MM_HUGE}
+    mov  ax, SEG SegA000
+    mov  es, ax
+    mov  es, es:[SegA000]
+{$else FPC_MM_HUGE}
+    mov  es, [SegA000]
+{$endif FPC_MM_HUGE}
+    { enable the set / reset function and load the color }
+    mov  dx, 3ceh
+    mov  ax, 0f01h
+    out  dx, ax
+    { setup set/reset register }
+    mov  ah, byte ptr [Pixel]
+    xor  al, al
+    out  dx, ax
+    { setup the bit mask register }
+    mov  al, 8
+    { load the bitmask register }
+    mov  cx, si
+    and  cl, 07h
+    mov  ah, 80h
+    shr  ah, cl
+    out  dx, ax
+    { get the x index and divide by 8 for 16-color }
+    mov  cl, 3
+    shr  si, cl
+    { determine the address }
+    inc  cx               { CL=4 }
+    shl  bx, cl
+    mov  di, bx
+    shl  di, 1
+    shl  di, 1
+    add  di, bx
+    add  di, si
+    add  di, [VideoOfs]
+    { send the data through the display memory through set/reset }
+    mov  bl,es:[di]
+    stosb
+
+    { reset for formal vga operation }
+    mov  ax,0ff08h
+    out  dx,ax
+
+    { restore enable set/reset register }
+    mov  ax,0001h
+    out  dx,ax
+@@Done:
+  end;
+{$endif asmgraph}
 
 
- Function GetPixel16(X,Y: smallint):word; {$ifndef fpc}far;{$endif fpc}
 {$ifndef asmgraph}
+ Function GetPixel16(X,Y: smallint):ColorType;
  Var dummy, offset: Word;
      shift: byte;
-{$endif asmgraph}
   Begin
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
-{$ifndef asmgraph}
     offset := Y * 80 + (x shr 3) + VideoOfs;
     PortW[$3ce] := $0004;
     shift := 7 - (X and 7);
@@ -1693,155 +1664,87 @@ end;
     Port[$3cf] := 3;
     dummy := dummy or (((Mem[Sega000:offset] shr shift) and 1) shl 3);
     GetPixel16 := dummy;
-{$else asmgraph}
-    asm
-  {$ifndef fpc}
-      mov   ax, [X]          { Get X address                    }
-      push  ax
-      shr   ax, 3
-      push  ax
-
-      mov   ax,80
-      mov   bx,[Y]
-      mul   bx
-      pop   cx
-      add   ax,cx
-      mov   si,ax            { SI = correct offset into video segment }
-
-      mov   es,[SegA000]
-      add   si,[VideoOfs]    { Point to correct page offset... }
-
-      mov   dx,03ceh
-      mov   ax,4
-      out   dx,al
-      inc   dx
-
-      pop   ax
-      and   ax,0007h
-      mov   cl,07
-      sub   cl,al
-      mov   bl,cl
-
-      { read plane 0 }
-      mov   al,0             { Select plane to read }
-      out   dx,al
-      mov   al,es:[si]       { read display memory }
-      shr   al,cl
-      and   al,01h
-      mov   ah,al            { save bit in AH       }
-
-      { read plane 1 }
-      mov   al,1             { Select plane to read }
-      out   dx,al
-      mov   al,es:[si]
-      shr   al,cl
-      and   al,01h
-      shl   al,1
-      or    ah,al            { save bit in AH      }
-
-      { read plane 2 }
-      mov   al,2             { Select plane to read }
-      out   dx,al
-      mov   al,es:[si]
-      shr   al,cl
-      and   al,01h
-      shl   al,2
-      or    ah,al            { save bit in AH       }
-
-      { read plane 3 }
-      mov   al,3             { Select plane to read }
-      out   dx,al
-      mov   al,es:[si]
-      shr   al,cl
-      and   al,01h
-      shl   al,3
-      or    ah,al            { save bit in AH       }
-
-      mov   al,ah            { 16-bit pixel in AX   }
-      xor   ah,ah
-      mov   @Result, ax
-  {$else fpc}
-      push eax
-      push ebx
-      push ecx
-      push edx
-      push esi
-      movzx eax, [X]          { Get X address                    }
-      push  eax
-      shr   eax, 3
-      push  eax
-
-      mov   eax,80
-      mov   bx,[Y]
-      mul   bx
-      pop   ecx
-      add   eax,ecx
-      mov   esi,eax            { SI = correct offset into video segment }
-
-      add   esi,[VideoOfs]    { Point to correct page offset... }
-
-      mov   dx,03ceh
-      mov   ax,4
-      out   dx,al
-      inc   dx
-
-      pop   eax
-      and   eax,0007h
-      mov   cl,07
-      sub   cl,al
-      mov   bl,cl
-
-      { read plane 0 }
-      mov   al,0             { Select plane to read }
-      out   dx,al
-      mov   al,fs:[esi+$a0000]       { read display memory }
-      shr   al,cl
-      and   al,01h
-      mov   ah,al            { save bit in AH       }
-
-      { read plane 1 }
-      mov   al,1             { Select plane to read }
-      out   dx,al
-      mov   al,fs:[esi+$a0000]
-      shr   al,cl
-      and   al,01h
-      shl   al,1
-      or    ah,al            { save bit in AH      }
-
-      { read plane 2 }
-      mov   al,2             { Select plane to read }
-      out   dx,al
-      mov   al,fs:[esi+$a0000]
-      shr   al,cl
-      and   al,01h
-      shl   al,2
-      or    ah,al            { save bit in AH       }
-
-      { read plane 3 }
-      mov   al,3             { Select plane to read }
-      out   dx,al
-      mov   al,fs:[esi+$a0000]
-      shr   al,cl
-      and   al,01h
-      shl   al,3
-      or    ah,al            { save bit in AH       }
-
-      mov   al,ah            { 16-bit pixel in AX   }
-      xor   ah,ah
-      mov   @Result, ax
-      pop esi
-      pop edx
-      pop ecx
-      pop ebx
-      pop eax
-  {$endif fpc}
-    end;
-{$endif asmgraph}
   end;
+{$else asmgraph}
+ Function GetPixel16(X,Y: smallint):ColorType;assembler;
+  asm
+{$ifdef FPC_MM_HUGE}
+    mov   ax, SEG SegA000
+    mov   es, ax
+    mov   es, es:[SegA000]
+{$else FPC_MM_HUGE}
+    mov   es, [SegA000]
+{$endif FPC_MM_HUGE}
+    mov   dx,03ceh
+    mov   ax,0304h
+    out   dx,ax
+    inc   dx
+
+    mov   di, [X]          { Get X address                    }
+    add   di, [StartXViewPort]
+    mov   ax, di
+    mov   cl, 3
+    shr   di, cl
+
+    mov   bx, [Y]
+    add   bx, [StartYViewPort]
+    inc   cx               { CL=4 }
+    shl   bx, cl           { BX=16*(Y+StartYViewPort)*16 }
+    mov   si, bx           { SI=16*(Y+StartYViewPort)*16 }
+    shl   si, 1            { SI=32*(Y+StartYViewPort)*32 }
+    shl   si, 1            { SI=64*(Y+StartYViewPort)*64 }
+    add   si, bx           { SI=(64+16)*(Y+StartYViewPort)=80*(Y+StartYViewPort) }
+    add   si, di           { SI=correct offset into video segment }
+    add   si, [VideoOfs]   { Point to correct page offset... }
+
+    xchg  ax, cx           { 1 byte shorter than 'mov cx, ax' }
+    and   cl,7
+
+    mov   bh, 080h
+    shr   bh, cl
+
+    { read plane 3 }
+    mov   ah,es:[si]       { read display memory }
+    and   ah,bh            { save bit in AH       }
+
+    { read plane 2 }
+    mov   al,2             { Select plane to read }
+    out   dx,al
+    mov   bl,es:[si]
+    and   bl,bh
+    rol   ah,1
+    or    ah,bl            { save bit in AH      }
+
+    { read plane 1 }
+    dec   ax               { Select plane to read }
+    out   dx,al
+    mov   bl,es:[si]
+    and   bl,bh
+    rol   ah,1
+    or    ah,bl            { save bit in AH       }
+
+    { read plane 0 }
+    dec   ax               { Select plane to read }
+    out   dx,al
+    seges lodsb
+    and   al,bh
+    rol   ah,1
+    or    al,ah            { add previous bits from AH into AL }
+
+    inc   cx
+    rol   al,cl            { 16-bit pixel in AX   }
+    { 1 byte shorter than 'xor ah, ah'; will always set ah to 0, because sign(al)=0 }
+    cbw
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+    { 1 byte shorter than 'xor dx, dx'; will always set dx to 0, because sign(ah)=0 }
+    cwd
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  end;
+{$endif asmgraph}
 
 Procedure GetScanLine16(x1, x2, y: smallint; var data);
 
-var dummylong: longint;
+var dummy: word;
     Offset, count, count2, amount, index: word;
     plane: byte;
 Begin
@@ -1854,17 +1757,17 @@ Begin
 {$ifdef logging}
   LogLn('Offset: '+HexStr(offset,4)+' - ' + strf(offset));
 {$Endif logging}
-  { first get enough pixels so offset is 32bit aligned }
+  { first get enough pixels so offset is 16bit aligned }
   amount := 0;
   index := 0;
-  If ((x1 and 31) <> 0) Or
-     ((x2-x1+1) < 32) Then
+  If ((x1 and 15) <> 0) Or
+     ((x2-x1+1) < 16) Then
     Begin
-      If ((x2-x1+1) >= 32+32-(x1 and 31)) Then
-        amount := 32-(x1 and 31)
+      If ((x2-x1+1) >= 16+16-(x1 and 15)) Then
+        amount := 16-(x1 and 15)
       Else amount := x2-x1+1;
 {$ifdef logging}
-      LogLn('amount to align to 32bits or to get all: ' + strf(amount));
+      LogLn('amount to align to 16bits or to get all: ' + strf(amount));
 {$Endif logging}
       For count := 0 to amount-1 do
         WordArray(Data)[Count] := getpixel16(x1-StartXViewPort+Count,y);
@@ -1883,46 +1786,42 @@ Begin
   { first get everything from plane 3 (4th plane) }
   PortW[$3ce] := $0304;
   Count := 0;
-  For Count := 1 to (amount shr 5) Do
+  For Count := 1 to (amount shr 4) Do
     Begin
-      dummylong := MemL[SegA000:offset+(Count-1)*4];
-      dummylong :=
-        ((dummylong and $ff) shl 24) or
-        ((dummylong and $ff00) shl 8) or
-        ((dummylong and $ff0000) shr 8) or
-        ((dummylong and $ff000000) shr 24);
-      For Count2 := 31 downto 0 Do
+      dummy := MemW[SegA000:offset+(Count-1)*2];
+      dummy :=
+        ((dummy and $ff) shl 8) or
+        ((dummy and $ff00) shr 8);
+      For Count2 := 15 downto 0 Do
         Begin
-          WordArray(Data)[index+Count2] := DummyLong and 1;
-          DummyLong := DummyLong shr 1;
+          WordArray(Data)[index+Count2] := Dummy and 1;
+          Dummy := Dummy shr 1;
         End;
-      Inc(Index, 32);
+      Inc(Index, 16);
     End;
 { Now get the data from the 3 other planes }
   plane := 3;
   Repeat
-    Dec(Index,Count*32);
+    Dec(Index,Count*16);
     Dec(plane);
     Port[$3cf] := plane;
     Count := 0;
-    For Count := 1 to (amount shr 5) Do
+    For Count := 1 to (amount shr 4) Do
       Begin
-        dummylong := MemL[SegA000:offset+(Count-1)*4];
-        dummylong :=
-          ((dummylong and $ff) shl 24) or
-          ((dummylong and $ff00) shl 8) or
-          ((dummylong and $ff0000) shr 8) or
-          ((dummylong and $ff000000) shr 24);
-        For Count2 := 31 downto 0 Do
+        dummy := MemW[SegA000:offset+(Count-1)*2];
+        dummy :=
+          ((dummy and $ff) shl 8) or
+          ((dummy and $ff00) shr 8);
+        For Count2 := 15 downto 0 Do
           Begin
             WordArray(Data)[index+Count2] :=
-              (WordArray(Data)[index+Count2] shl 1) or (DummyLong and 1);
-            DummyLong := DummyLong shr 1;
+              (WordArray(Data)[index+Count2] shl 1) or (Dummy and 1);
+            Dummy := Dummy shr 1;
           End;
-        Inc(Index, 32);
+        Inc(Index, 16);
       End;
   Until plane = 0;
-  amount := amount and 31;
+  amount := amount and 15;
   Dec(index);
 {$ifdef Logging}
   LogLn('Last array index written to: '+strf(index));
@@ -1933,32 +1832,32 @@ Begin
     WordArray(Data)[index+Count] := getpixel16(x1+index+Count,y);
 {$ifdef logging}
   inc(x1,startXViewPort);
-  LogLn('First 32 bytes gotten with getscanline16: ');
-  If x2-x1+1 >= 32 Then
-    Count2 := 32
+  LogLn('First 16 bytes gotten with getscanline16: ');
+  If x2-x1+1 >= 16 Then
+    Count2 := 16
   Else Count2 := x2-x1+1;
   For Count := 0 to Count2-1 Do
     Log(strf(WordArray(Data)[Count])+' ');
   LogLn('');
-  If x2-x1+1 >= 32 Then
+  If x2-x1+1 >= 16 Then
     Begin
-      LogLn('Last 32 bytes gotten with getscanline16: ');
-      For Count := 31 downto 0 Do
+      LogLn('Last 16 bytes gotten with getscanline16: ');
+      For Count := 15 downto 0 Do
       Log(strf(WordArray(Data)[x2-x1-Count])+' ');
     End;
   LogLn('');
   GetScanLineDefault(x1-StartXViewPort,x2-StartXViewPort,y,Data);
-  LogLn('First 32 bytes gotten with getscanlinedef: ');
-  If x2-x1+1 >= 32 Then
-    Count2 := 32
+  LogLn('First 16 bytes gotten with getscanlinedef: ');
+  If x2-x1+1 >= 16 Then
+    Count2 := 16
   Else Count2 := x2-x1+1;
   For Count := 0 to Count2-1 Do
     Log(strf(WordArray(Data)[Count])+' ');
   LogLn('');
-  If x2-x1+1 >= 32 Then
+  If x2-x1+1 >= 16 Then
     Begin
-      LogLn('Last 32 bytes gotten with getscanlinedef: ');
-      For Count := 31 downto 0 Do
+      LogLn('Last 16 bytes gotten with getscanlinedef: ');
+      For Count := 15 downto 0 Do
       Log(strf(WordArray(Data)[x2-x1-Count])+' ');
     End;
   LogLn('');
@@ -1966,14 +1865,13 @@ Begin
 {$Endif logging}
 End;
 
- Procedure DirectPutPixel16(X,Y : smallint); {$ifndef fpc}far;{$endif fpc}
+{$ifndef asmgraph}
+ Procedure DirectPutPixel16(X,Y : smallint);
  { x,y -> must be in global coordinates. No clipping. }
   var
    color: word;
-{$ifndef asmgraph}
   offset: word;
   dummy: byte;
-{$endif asmgraph}
  begin
     If CurrentWriteMode <> NotPut Then
       Color := CurrentColor
@@ -1992,7 +1890,6 @@ End;
        else
          PortW[$3ce]:=$0003}
     end;
-{$ifndef asmgraph}
     offset := Y * 80 + (X shr 3) + VideoOfs;
     PortW[$3ce] := $f01;
     PortW[$3ce] := Color shl 8;
@@ -2005,113 +1902,91 @@ End;
        (CurrentWriteMode = ANDPut) or
        (CurrentWriteMode = ORPut) then
       PortW[$3ce] := $0003;
-{$else asmgraph}
-{ note: still needs xor/or/and/notput support !!!!! (JM) }
-    asm
-  {$ifndef fpc}
-      mov  es, [SegA000]
-      { enable the set / reset function and load the color }
-      mov  dx, 3ceh
-      mov  ax, 0f01h
-      out  dx, ax
-      { setup set/reset register }
-      mov  ax, [Color]
-      shl  ax, 8
-      out  dx, ax
-      { setup the bit mask register }
-      mov  al, 8
-      out  dx, al
-      inc  dx
-      { load the bitmask register }
-      mov  cx, [X]
-      and  cx, 0007h
-      mov  al, 80h
-      shr  al, cl
-      out  dx, ax
-      { get the x index and divide by 8 for 16-color }
-      mov  ax,[X]
-      shr  ax,3
-      push ax
-      { determine the address }
-      mov  ax,80
-      mov  bx,[Y]
-      mul  bx
-      pop  cx
-      add  ax,cx
-      mov  di,ax
-      { send the data through the display memory through set/reset }
-      add  di,[VideoOfs]   { add correct page }
-      mov  bl,es:[di]
-      mov  es:[di],bl
-
-      { reset for formal vga operation }
-      mov  dx,3ceh
-      mov  ax,0ff08h
-      out  dx,ax
-
-      { restore enable set/reset register }
-      mov  ax,0001h
-      out  dx,ax
-  {$else fpc}
-      push eax
-      push ebx
-      push ecx
-      push edx
-      push edi
-      { enable the set / reset function and load the color }
-      mov  dx, 3ceh
-      mov  ax, 0f01h
-      out  dx, ax
-      { setup set/reset register }
-      mov  ax, [Color]
-      shl  ax, 8
-      out  dx, ax
-      { setup the bit mask register }
-      mov  al, 8
-      out  dx, al
-      inc  dx
-      { load the bitmask register }
-      mov  cx, [X]
-      and  cx, 0007h
-      mov  al, 80h
-      shr  al, cl
-      out  dx, ax
-      { get the x index and divide by 8 for 16-color }
-      movzx eax,[X]
-      shr  eax,3
-      push eax
-      { determine the address }
-      mov  eax,80
-      mov  bx,[Y]
-      mul  bx
-      pop  ecx
-      add  eax,ecx
-      mov  edi,eax
-      { send the data through the display memory through set/reset }
-      add  edi,[VideoOfs]   { add correct page }
-      mov  bl,fs:[edi+$a0000]
-      mov  fs:[edi+$a0000],bl
-
-      { reset for formal vga operation }
-      mov  dx,3ceh
-      mov  ax,0ff08h
-      out  dx,ax
-
-      { restore enable set/reset register }
-      mov  ax,0001h
-      out  dx,ax
-      pop edi
-      pop edx
-      pop ecx
-      pop ebx
-      pop eax
-  {$endif fpc}
-    end;
-{$endif asmgraph}
  end;
+{$else asmgraph}
+ Procedure DirectPutPixel16(X,Y : smallint); assembler;
+  const
+    DataRotateRegTbl: array [NormalPut..NotPut] of Byte=($00,$18,$10,$08,$00);
+ { x,y -> must be in global coordinates. No clipping. }
+  asm
+{$ifdef FPC_MM_HUGE}
+    mov  ax, SEG SegA000
+    mov  es, ax
+    mov  es, es:[SegA000]
+{$else FPC_MM_HUGE}
+    mov  es, [SegA000]
+{$endif FPC_MM_HUGE}
+    mov  dx, 3ceh
+    xor  ch, ch  { Color mask = 0 }
+    mov  bx, [CurrentWriteMode]
+    test bl, 4   { NotPut? }
+    jz   @@NoNotPut
+
+    { NotPut }
+    mov  ch, 15  { Color mask for NotPut }
+
+@@NoNotPut:
+    mov  ah, byte ptr [DataRotateRegTbl + bx]
+    test ah, ah
+    jz   @@NormalPut
+
+    mov  al, 3
+    out  dx, ax
+
+@@NormalPut:
+    { enable the set / reset function and load the color }
+    mov  ax, 0f01h
+    out  dx, ax
+    { setup set/reset register }
+    mov  ah, byte ptr [CurrentColor]
+    xor  ah, ch  { Maybe apply the NotPut mask }
+    xor  al, al
+    out  dx, ax
+    { setup the bit mask register }
+    mov  al, 8
+    { load the bitmask register }
+    mov  si, [X]
+    mov  cx, si
+    and  cl, 07h
+    mov  ah, 80h
+    shr  ah, cl
+    out  dx, ax
+    { get the x index and divide by 8 for 16-color }
+    mov  cl, 3
+    shr  si, cl
+    { determine the address }
+    mov  bx, [Y]
+    inc  cx               { CL=4 }
+    shl  bx, cl
+    mov  di, bx
+    shl  di, 1
+    shl  di, 1
+    add  di, bx
+    add  di, si
+    add  di, [VideoOfs]   { add correct page }
+    { send the data through the display memory through set/reset }
+    mov  al,es:[di]
+    stosb
+
+    { reset for formal vga operation }
+    mov  ax,0ff08h
+    out  dx,ax
+
+    { restore enable set/reset register }
+    mov  ax,0001h
+    out  dx,ax
+
+    test bl, 3   { NormalPut or NotPut? }
+    jz   @@Done  { If yes, skip }
+
+    mov  ax,0003h
+    out  dx,ax
+@@Done:
+  end;
+{$endif asmgraph}
 
 
-  procedure HLine16(x,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
+  procedure HLine16(x,x2,y: smallint);
 
    var
       xtmp: smallint;
@@ -2199,7 +2074,7 @@ End;
     PortW[$3ce]:=$0003;
    end;
 
-  procedure VLine16(x,y,y2: smallint); {$ifndef fpc}far;{$endif fpc}
+  procedure VLine16(x,y,y2: smallint);
 
    var
      ytmp,i: smallint;
@@ -2260,42 +2135,21 @@ End;
   End;
 
 
- procedure SetVisual200(page: word); {$ifndef fpc}far;{$endif fpc}
-  { four page support... }
+ procedure SetVisual200_350(page: word);
   begin
     if page > HardwarePages then exit;
     asm
-      mov ax,[page]    { only lower byte is supPorted. }
+      mov al, byte ptr [page]    { only lower byte is supported. }
       mov ah,05h
-{$ifdef fpc}
+      push ds
       push bp
-      push si
-      push di
-      push bx
-{$endif fpc}
       int 10h
-{$ifdef fpc}
-      pop bx
-      pop di
-      pop si
       pop bp
-{$endif fpc}
-
-      { read start address }
-      mov dx,3d4h
-      mov al,0ch
-      out dx,al
-      inc dx
-      in  al,dx
-      mov ah,al
-      dec dx
-      mov al,0dh
-      out dx,al
-      in  al,dx
-    end ['DX','AX'];
+      pop ds
+    end ['DX','CX','BX','AX','SI','DI'];
   end;
 
- procedure SetActive200(page: word); {$ifndef fpc}far;{$endif fpc}
+ procedure SetActive200(page: word);
   { four page support... }
   begin
     case page of
@@ -2308,30 +2162,7 @@ End;
     end;
   end;
 
- procedure SetVisual350(page: word); {$ifndef fpc}far;{$endif fpc}
-  { one page supPort... }
-  begin
-    if page > HardwarePages then exit;
-    asm
-      mov ax,[page]    { only lower byte is supPorted. }
-      mov ah,05h
-{$ifdef fpc}
-      push bp
-      push si
-      push di
-      push bx
-{$endif fpc}
-      int 10h
-{$ifdef fpc}
-      pop bx
-      pop di
-      pop si
-      pop bp
-{$endif fpc}
-    end ['AX'];
-  end;
-
- procedure SetActive350(page: word); {$ifndef fpc}far;{$endif fpc}
+ procedure SetActive350(page: word);
   { one page supPort... }
   begin
     case page of
@@ -2350,18 +2181,15 @@ End;
  {*                     320x200x256c Routines                            *}
  {************************************************************************}
 
- Procedure Init320; {$ifndef fpc}far;{$endif fpc}
+ Procedure Init320;
     begin
-      if DontClearGraphMemory then
-        CallInt10($93)
-      else
-        CallInt10($13);
-      VideoOfs := 0;
+      InitInt10hMode($13);
     end;
 
 
 
- Procedure PutPixel320(X,Y : smallint; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
+{$ifndef asmgraph}
+ Procedure PutPixel320(X,Y : smallint; Pixel: ColorType);
  { x,y -> must be in local coordinates. Clipping if required. }
   Begin
     { verify clipping and then convert to absolute coordinates...}
@@ -2374,51 +2202,91 @@ End;
     end;
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
-    asm
-      mov    es, [SegA000]
-      mov    ax, [Y]
-      mov    di, [X]
-      xchg   ah, al            { The value of Y must be in AH }
-      add    di, ax
-      shr    ax, 1
-      shr    ax, 1
-      add    di, ax
-//      add    di, [VideoOfs]    { point to correct page.. }
-      mov    ax, [Pixel]
-      mov    es:[di], al
-    end ['ax','di'];
- end;
+    Mem[SegA000:Y*320+X] := Pixel;
+  end;
+{$else asmgraph}
+ Procedure PutPixel320(X,Y : smallint; Pixel: ColorType); assembler;
+  asm
+    mov    ax, [Y]
+    mov    di, [X]
+    cmp    byte ptr [ClipPixels], 0
+    je     @@ClipDone
+
+    test   ax, ax
+    js     @@Done
+    test   di, di
+    js     @@Done
+    cmp    ax, [ViewHeight]
+    jg     @@Done
+    cmp    di, [ViewWidth]
+    jg     @@Done
+
+@@ClipDone:
+{$ifdef FPC_MM_HUGE}
+    mov    bx, SEG SegA000
+    mov    es, bx
+    mov    es, es:[SegA000]
+{$else FPC_MM_HUGE}
+    mov    es, [SegA000]
+{$endif FPC_MM_HUGE}
+    add    ax, [StartYViewPort]
+    add    di, [StartXViewPort]
+    xchg   ah, al            { The value of Y must be in AH }
+    add    di, ax
+    shr    ax, 1
+    shr    ax, 1
+    add    di, ax
+    mov    al, byte ptr [Pixel]
+    stosb
+@@Done:
+  end;
+{$endif asmgraph}
 
 
- Function GetPixel320(X,Y: smallint):word; {$ifndef fpc}far;{$endif fpc}
+{$ifndef asmgraph}
+ Function GetPixel320(X,Y: smallint):ColorType;
   Begin
    X:= X + StartXViewPort;
    Y:= Y + StartYViewPort;
-   asm
-      mov    es, [SegA000]
-      mov    ax, [Y]
-      mov    di, [X]
-      xchg   ah, al            { The value of Y must be in AH }
-      add    di, ax
-      shr    ax, 1
-      shr    ax, 1
-      add    di, ax
-      xor    ax, ax
-//      add    di, [VideoOfs]   { point to correct gfx page ... }
-      mov    al,es:[di]
-      mov    @Result,ax
-    end ['ax','di'];
+   GetPixel320 := Mem[SegA000:Y*320+X];
   end;
+{$else asmgraph}
+ Function GetPixel320(X,Y: smallint):ColorType; assembler;
+  asm
+{$ifdef FPC_MM_HUGE}
+    mov    ax, SEG SegA000
+    mov    es, ax
+    mov    es, es:[SegA000]
+{$else FPC_MM_HUGE}
+    mov    es, [SegA000]
+{$endif FPC_MM_HUGE}
+    mov    ax, [Y]
+    add    ax, [StartYViewPort]
+    mov    si, [X]
+    add    si, [StartXViewPort]
+    xchg   ah, al            { The value of Y must be in AH }
+    add    si, ax
+    shr    ax, 1
+    shr    ax, 1
+    add    si, ax
+    seges  lodsb
+    xor    ah, ah
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+    { 1 byte shorter than 'xor dx, dx'; will always set dx to 0, because sign(ah)=0 }
+    cwd
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  end;
+{$endif asmgraph}
 
 
- Procedure DirectPutPixel320(X,Y : smallint); {$ifndef fpc}far;{$endif fpc}
- { x,y -> must be in global coordinates. No clipping. }
 {$ifndef asmgraph}
+ Procedure DirectPutPixel320(X,Y : smallint);
+ { x,y -> must be in global coordinates. No clipping. }
  var offset: word;
      dummy: Byte;
  begin
    dummy := CurrentColor;
-   offset := y * 320 + x + VideoOfs;
+   offset := y * 320 + x;
    case CurrentWriteMode of
      XorPut: dummy := dummy xor Mem[Sega000:offset];
      OrPut: dummy := dummy or Mem[Sega000:offset];
@@ -2428,63 +2296,60 @@ End;
    Mem[SegA000:offset] := dummy;
  end;
 {$else asmgraph}
-{ note: still needs or/and/notput support !!!!! (JM) }
-  assembler;
-    asm
-  {$ifndef fpc}
-      mov    es, [SegA000]
-      mov    ax, [Y]
-      mov    di, [X]
-      xchg   ah, al            { The value of Y must be in AH }
-      add    di, ax
-      shr    ax, 2
-      add    di, ax
-{      add    di, [VideoOfs] no multiple pages support in 320*200*256 }
-      mov    ax, [CurrentColor]
-      cmp    [CurrentWriteMode],XORPut   { check write mode   }
-      jne    @MOVMode
-      mov    ah,es:[di]        { read the byte...             }
-      xor    al,ah             { xor it and return value into AL }
-    @MovMode:
-      mov    es:[di], al
-  {$else fpc}
-      push eax
-      push ebx
-      push edi
-{$IFDEF REGCALL}
-      movzx  edi, ax
-      movzx  ebx, dx
-{$ELSE REGCALL}
-      movzx  edi, x
-      movzx  ebx, y
-{$ENDIF REGCALL}
-   {   add    edi, [VideoOfs]       no multiple pages in 320*200*256 }
-      shl    ebx, 6
-      add    edi, ebx
-      mov    ax, [CurrentColor]
-      cmp    [CurrentWriteMode],XORPut   { check write mode   }
-      jne    @MOVMode
-      xor    al, fs:[edi+ebx*4+$a0000]
-     @MovMode:
-      mov    fs:[edi+ebx*4+$a0000], al
-      pop edi
-      pop ebx
-      pop eax
-{$endif fpc}
-  end;
+ Procedure DirectPutPixel320(X,Y : smallint); assembler;
+ asm
+{$ifdef FPC_MM_HUGE}
+   mov    ax, SEG SegA000
+   mov    es, ax
+   mov    es, es:[SegA000]
+{$else FPC_MM_HUGE}
+   mov    es, [SegA000]
+{$endif FPC_MM_HUGE}
+   mov    ax, [Y]
+   mov    di, [X]
+   xchg   ah, al            { The value of Y must be in AH }
+   add    di, ax
+   shr    ax, 1
+   shr    ax, 1
+   add    di, ax
+   mov    al, byte ptr [CurrentColor]
+   { check write mode   }
+   mov    bl, byte ptr [CurrentWriteMode]
+   cmp    bl, NormalPut
+   jne    @@1
+   stosb
+   jmp    @Done
+@@1:
+   cmp    bl, XorPut
+   jne    @@2
+   xor    es:[di], al
+   jmp    @Done
+@@2:
+   cmp    bl, OrPut
+   jne    @@3
+   or     es:[di], al
+   jmp    @Done
+@@3:
+   cmp    bl, AndPut
+   jne    @NotPutMode
+   and    es:[di], al
+   jmp    @Done
+@NotPutMode:
+   not    al
+   stosb
+@Done:
+ end;
 {$endif asmgraph}
 
 
- procedure SetVisual320(page: word); {$ifndef fpc}far;{$endif fpc}
+ procedure SetVisual320(page: word);
   { no page supPort... }
   begin
-    VideoOfs := 0;
   end;
 
- procedure SetActive320(page: word); {$ifndef fpc}far;{$endif fpc}
+ procedure SetActive320(page: word);
   { no page supPort... }
   begin
-    VideoOfs := 0;
   end;
 
  {************************************************************************}
@@ -2492,10 +2357,56 @@ End;
  {************************************************************************}
 const CrtAddress: word = 0;
 
- procedure InitModeX; {$ifndef fpc}far;{$endif fpc}
-  begin
+{$ifndef asmgraph}
+ procedure InitModeX;
+   begin
+     {see if we are using color-/monochrome display}
+     if (Port[$3CC] and 1) <> 0 then
+       CrtAddress := $3D4  { color }
+     else
+       CrtAddress := $3B4; { monochrome }
+
+     InitInt10hMode($13);
+
+     Port[$3C4] := $04;  {select memory-mode-register at sequencer port }
+                         { bit 3 := 0: don't chain the 4 planes         }
+                         { bit 2 := 1: no odd/even mechanism            }
+     Port[$3C5] := (Port[$3C5] and $F7) or $04;
+
+     Port[$3C4] := $02; {s.a.: address sequencer reg. 2 (=map-mask),... }
+     Port[$3C5] := $0F; {...and allow access to all 4 bit maps          }
+
+     { starting with segment A000h, set 8000h logical words = 4*8000h
+       physical words (because of 4 bitplanes) to 0                     }
+     asm
+{$ifdef FPC_MM_HUGE}
+       MOV AX,SEG SegA000
+       MOV ES,AX
+       MOV ES,ES:[SegA000]
+{$else FPC_MM_HUGE}
+       MOV ES, [SegA000]
+{$endif FPC_MM_HUGE}
+       XOR DI,DI
+       XOR AX,AX
+       MOV CX,8000h
+       CLD
+       REP STOSW
+     end ['AX','CX','DI'];
+
+     {address the underline-location-register at the CRT-controller
+      port, read out the according data register:                       }
+     Port[CRTAddress] := $14;
+     {bit 6:=0: no double word addressing scheme in video RAM           }
+     Port[CRTAddress+1] := Port[CRTAddress+1] and $BF;
+
+     Port[CRTAddress] := $17; {select mode control register             }
+     {bit 6 := 1: memory access scheme=linear bit array                 }
+     Port[CRTAddress+1] := Port[CRTAddress+1] or $40;
+   end;
+{$else asmgraph}
+ procedure InitModeX; assembler;
    asm
-     {see if we are using color-/monochorme display}
+     {see if we are using color-/monochrome display}
      MOV DX,3CCh  {use output register:     }
      IN AL,DX
      TEST AL,1    {is it a color display?    }
@@ -2506,24 +2417,15 @@ const CrtAddress: word = 0;
      MOV CRTAddress,DX
 
      MOV  AX, 0013h
-     MOV  BL, DontClearGraphMemory
-     OR   BL,BL
-     JZ   @L2
-     OR   AX, 080h
+     CMP  BYTE PTR [DontClearGraphMemory],0
+     JE   @L2
+     OR   AL, 080h
   @L2:
-{$ifdef fpc}
+     push ds
      push bp
-     push si
-     push di
-     push bx
-{$EndIf fpc}
      INT  10h
-{$ifdef fpc}
-     pop bx
-     pop di
-     pop si
      pop bp
-{$EndIf fpc}
+     pop ds
      MOV DX,03C4h   {select memory-mode-register at sequencer Port    }
      MOV AL,04
      OUT DX,AL
@@ -2532,19 +2434,29 @@ const CrtAddress: word = 0;
      AND AL,0F7h    {bit 3 := 0: don't chain the 4 planes}
      OR  AL,04      {bit 2 := 1: no odd/even mechanism }
      OUT DX,AL      {activate new settings    }
-     MOV DX,03C4h   {s.a.: address sequencer reg. 2 (=map-mask),...   }
+     DEC DX         {s.a.: address sequencer reg. 2 (=map-mask),...   }
      MOV AL,02
      OUT DX,AL
      INC DX
      MOV AL,0Fh     {...and allow access to all 4 bit maps            }
      OUT DX,AL
-     MOV AX,[SegA000]  {starting with segment A000h, set 8000h logical     }
-     MOV ES,AX      {words = 4*8000h physical words (because of 4     }
-     XOR DI,DI      {bitplanes) to 0                                  }
+
+     {starting with segment A000h, set 8000h logical   }
+     {words = 4*8000h physical words (because of 4     }
+     {bitplanes) to 0                                  }
+{$ifdef FPC_MM_HUGE}
+     MOV AX,SEG SegA000
+     MOV ES,AX
+     MOV ES,ES:[SegA000]
+{$else FPC_MM_HUGE}
+     MOV ES, [SegA000]
+{$endif FPC_MM_HUGE}
+     XOR DI,DI
      XOR AX,AX
      MOV CX,8000h
      CLD
      REP STOSW
+
      MOV DX,CRTAddress  {address the underline-location-register at }
      MOV AL,14h         {the CRT-controller Port, read out the according      }
      OUT DX,AL          {data register:                            }
@@ -2559,88 +2471,65 @@ const CrtAddress: word = 0;
      IN  AL,DX
      OR  AL,40h     {bit 6 := 1: memory access scheme=linear bit array      }
      OUT DX,AL
-  end ['DX','BX','CX','AX','DI'];
- end;
-
-
- Function GetPixelX(X,Y: smallint): word; {$ifndef fpc}far;{$endif fpc}
-{$ifndef asmgraph}
- var offset: word;
+  end;
 {$endif asmgraph}
+
+
+{$ifndef asmgraph}
+ function GetPixelX(X,Y: smallint): ColorType;
+  var offset: word;
   begin
-     X:= X + StartXViewPort;
-     Y:= Y + StartYViewPort;
-{$ifndef asmgraph}
-     offset := y * 80 + x shr 2 + VideoOfs;
-     PortW[$3ce] := ((x and 3) shl 8) + 4;
-     GetPixelX := Mem[SegA000:offset];
+    X := X + StartXViewPort;
+    Y := Y + StartYViewPort;
+    offset := y * 80 + x shr 2 + VideoOfs;
+    PortW[$3ce] := ((x and 3) shl 8) + 4;
+    GetPixelX := Mem[SegA000:offset];
+  end;
 {$else asmgraph}
-    asm
-  {$ifndef fpc}
-     mov di,[Y]                   ; (* DI = Y coordinate                 *)
-     (* Multiply by 80 start *)
-     mov bx, di
-     shl di, 6                    ; (* Faster on 286/386/486 machines    *)
-     shl bx, 4
-     add di, bx                   ;  (* Multiply Value by 80             *)
-     (* End multiply by 80  *)
-     mov cx, [X]
-     mov ax, cx
-    {DI = Y * LINESIZE, BX = X, coordinates admissible}
-     shr ax, 1                    ; (* Faster on 286/86 machines         *)
-     shr ax, 1
-     add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
-     add di, [VideoOfs]  ; (* Pointing at start of Active page *)
+ function GetPixelX(X,Y: smallint): ColorType; assembler;
+  asm
+{$ifdef FPC_MM_HUGE}
+    mov ax, SEG SegA000
+    mov es, ax
+    mov es, es:[SegA000]
+{$else FPC_MM_HUGE}
+    mov es, [SegA000]
+{$endif FPC_MM_HUGE}
+    mov si,[Y]                   ; (* SI = Y coordinate                 *)
+    add si,[StartYViewPort]
+    (* Multiply by 80 start *)
+    mov cl, 4
+    shl si, cl
+    mov bx, si
+    shl si, 1
+    shl si, 1
+    add si, bx                   ;  (* Multiply Value by 80             *)
+    (* End multiply by 80  *)
+    mov cx, [X]
+    add cx, [StartXViewPort]
+    mov ax, cx
+    {SI = Y * LINESIZE, CX = X, coordinates admissible}
+    shr ax, 1                    ; (* Faster on 286/86 machines         *)
+    shr ax, 1
+    add si, ax                ; {SI = Y * LINESIZE + (X SHR 2) }
+    add si, [VideoOfs]  ; (* Pointing at start of Active page *)
     (* Select plane to use *)
-    mov dx, 03c4h
-    mov ax, FirstPlane        ; (* Map Mask & Plane Select Register *)
-    and cl, 03h               ; (* Get Plane Bits                   *)
-    shl ah, cl                ; (* Get Plane Select Value           *)
+    mov dx, 03ceh
+    mov al, 4
+    and cl, 03h
+    mov ah, cl
     out dx, ax
-   (* End selection of plane *)
-    mov es,[SegA000]
-    mov al, ES:[DI]
+    (* End selection of plane *)
+    seges lodsb
     xor ah, ah
-    mov @Result, ax
-  {$else fpc}
-     push eax
-     push ebx
-     push ecx
-     push edx
-     push edi
-     movzx edi,[Y]                   ; (* DI = Y coordinate                 *)
-     (* Multiply by 80 start *)
-     mov ebx, edi
-     shl edi, 6                    ; (* Faster on 286/386/486 machines    *)
-     shl ebx, 4
-     add edi, ebx                   ;  (* Multiply Value by 80             *)
-     (* End multiply by 80  *)
-     movzx ecx, [X]
-     movzx eax, [Y]
-    {DI = Y * LINESIZE, BX = X, coordinates admissible}
-     shr eax, 2
-     add edi, eax                ; {DI = Y * LINESIZE + (X SHR 2) }
-     add edi, [VideoOfs]  ; (* Pointing at start of Active page *)
-    (* Select plane to use *)
-    mov dx, 03c4h
-    mov ax, FirstPlane        ; (* Map Mask & Plane Select Register *)
-    and cl, 03h               ; (* Get Plane Bits                   *)
-    shl ah, cl                ; (* Get Plane Select Value           *)
-    out dx, ax
-   (* End selection of plane *)
-    mov ax, fs:[edi+$a0000]
-    mov @Result, ax
-    pop edi
-    pop edx
-    pop ecx
-    pop ebx
-    pop eax
-  {$endif fpc}
-   end;
+{$ifdef FPC_GRAPH_SUPPORTS_TRUECOLOR}
+    { 1 byte shorter than 'xor dx, dx'; will always set dx to 0, because sign(ah)=0 }
+    cwd
+{$endif FPC_GRAPH_SUPPORTS_TRUECOLOR}
+  end;
 {$endif asmgraph}
- end;
 
- procedure SetVisualX(page: word); {$ifndef fpc}far;{$endif fpc}
+ procedure SetVisualX(page: word);
   { 4 page supPort... }
 
    Procedure SetVisibleStart(AOffset: word); Assembler;
@@ -2674,10 +2563,6 @@ const CrtAddress: word = 0;
     { Now Set Display Starting Address                     }
   end;
 
-{$ifdef fpc}
-  {$undef asmgraph}
-{$endif fpc}
-
   begin
     Case page of
       0: SetVisibleStart(0);
@@ -2689,7 +2574,7 @@ const CrtAddress: word = 0;
     end;
   end;
 
- procedure SetActiveX(page: word); {$ifndef fpc}far;{$endif fpc}
+ procedure SetActiveX(page: word);
   { 4 page supPort... }
   begin
    case page of
@@ -2702,10 +2587,9 @@ const CrtAddress: word = 0;
    end;
   end;
 
- Procedure PutPixelX(X,Y: smallint; color:word); {$ifndef fpc}far;{$endif fpc}
 {$ifndef asmgraph}
+ Procedure PutPixelX(X,Y: smallint; color:ColorType);
  var offset: word;
-{$endif asmgraph}
   begin
     { verify clipping and then convert to absolute coordinates...}
     if ClipPixels then
@@ -2717,60 +2601,69 @@ const CrtAddress: word = 0;
     end;
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
-{$ifndef asmgraph}
     offset := y * 80 + x shr 2 + VideoOfs;
     PortW[$3c4] := (hi(word(FirstPlane)) shl 8) shl (x and 3)+ lo(word(FirstPlane));
     Mem[SegA000:offset] := color;
-{$else asmgraph}
-     asm
-      push ax
-      push bx
-      push cx
-      push dx
-      push es
-      push di
-      mov di,[Y]                   ; (* DI = Y coordinate                 *)
-      (* Multiply by 80 start *)
-      mov bx, di
-      shl di, 6                    ; (* Faster on 286/386/486 machines    *)
-      shl bx, 4
-      add di, bx                   ;  (* Multiply Value by 80             *)
-      (* End multiply by 80  *)
-      mov cx, [X]
-      mov ax, cx
-      {DI = Y * LINESIZE, BX = X, coordinates admissible}
-      shr ax, 2
-      add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
-      add di, [VideoOfs]        ; (* Pointing at start of Active page *)
-      (* Select plane to use *)
-      mov dx, 03c4h
-      mov ax, FirstPlane        ; (* Map Mask & Plane Select Register *)
-      and cl, 03h               ; (* Get Plane Bits                   *)
-      shl ah, cl                ; (* Get Plane Select Value           *)
-      out dx, ax
-      (* End selection of plane *)
-      mov es,[SegA000]
-      mov ax,[Color]            ; { only lower byte is used. }
-      cmp [CurrentWriteMode],XORPut   { check write mode   }
-      jne @MOVMode
-      mov ah,es:[di]        { read the byte...             }
-      xor al,ah             { xor it and return value into AL }
-    @MovMode:
-      mov es:[di], al
-      pop di
-      pop es
-      pop dx
-      pop cx
-      pop bx
-      pop ax
-    end;
-{$endif asmgraph}
   end;
+{$else asmgraph}
+ Procedure PutPixelX(X,Y: smallint; color:ColorType); assembler;
+  asm
+    mov ax, [X]
+    mov di, [Y]                  ; (* DI = Y coordinate                 *)
+
+    cmp byte ptr [ClipPixels], 0
+    je @@ClipDone
+
+    test   ax, ax
+    js     @@Done
+    test   di, di
+    js     @@Done
+    cmp    ax, [ViewWidth]
+    jg     @@Done
+    cmp    di, [ViewHeight]
+    jg     @@Done
+
+@@ClipDone:
+{$ifdef FPC_MM_HUGE}
+    mov bx, SEG SegA000
+    mov es, bx
+    mov es, es:[SegA000]
+{$else FPC_MM_HUGE}
+    mov es, [SegA000]
+{$endif FPC_MM_HUGE}
+    add di, [StartYViewPort]
+    (* Multiply by 80 start *)
+    mov cl, 4
+    shl di, cl
+    mov bx, di
+    shl di, 1
+    shl di, 1
+    add di, bx                   ;  (* Multiply Value by 80             *)
+    (* End multiply by 80  *)
+    add ax, [StartXViewPort]
+    mov cx, ax
+    {DI = Y * LINESIZE, CX = X, coordinates admissible}
+    shr ax, 1
+    shr ax, 1
+    add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
+    add di, [VideoOfs]        ; (* Pointing at start of Active page *)
+    (* Select plane to use *)
+    mov dx, 03c4h
+    mov ax, FirstPlane        ; (* Map Mask & Plane Select Register *)
+    and cl, 03h               ; (* Get Plane Bits                   *)
+    shl ah, cl                ; (* Get Plane Select Value           *)
+    out dx, ax
+    (* End selection of plane *)
+    mov al, byte ptr [Color]  ; { only lower byte is used. }
+    stosb
+@@Done:
+  end;
+{$endif asmgraph}
 
 
- Procedure DirectPutPixelX(X,Y: smallint); {$ifndef fpc}far;{$endif fpc}
- { x,y -> must be in global coordinates. No clipping. }
 {$ifndef asmgraph}
+ Procedure DirectPutPixelX(X,Y: smallint);
+ { x,y -> must be in global coordinates. No clipping. }
  Var offset: Word;
      dummy: Byte;
  begin
@@ -2798,31 +2691,29 @@ const CrtAddress: word = 0;
    Mem[Sega000: offset] := Dummy;
  end;
 {$else asmgraph}
-{ note: still needs or/and/notput support !!!!! (JM) }
- Assembler;
+ Procedure DirectPutPixelX(X,Y: smallint); assembler;
  asm
-   push ax
-   push bx
-   push cx
-   push dx
-   push es
-   push di
-{$IFDEF REGCALL}
-   mov cl, al
-   mov di, dx
-{$ELSE REGCALL}
-   mov cx, [X]
-   mov ax, cx
+{$ifdef FPC_MM_HUGE}
+   mov bx, SEG SegA000
+   mov es, bx
+   mov es, es:[SegA000]
+{$else FPC_MM_HUGE}
+   mov es, [SegA000]
+{$endif FPC_MM_HUGE}
    mov di, [Y]                   ; (* DI = Y coordinate                 *)
-{$ENDIF REGCALL}
  (* Multiply by 80 start *)
+   mov cl, 4
+   shl di, cl
    mov bx, di
-   shl di, 6                    ; (* Faster on 286/386/486 machines    *)
-   shl bx, 4
+   shl di, 1
+   shl di, 1
    add di, bx                   ;  (* Multiply Value by 80             *)
  (* End multiply by 80  *)
-  {DI = Y * LINESIZE, BX = X, coordinates admissible}
-   shr ax, 2
+   mov cx, [X]
+   mov ax, cx
+  {DI = Y * LINESIZE, CX = X, coordinates admissible}
+   shr ax, 1
+   shr ax, 1
    add di, ax                ; {DI = Y * LINESIZE + (X SHR 2) }
    add di, [VideoOfs]        ; (* Pointing at start of Active page *)
  (* Select plane to use *)
@@ -2832,20 +2723,52 @@ const CrtAddress: word = 0;
    shl ah, cl                ; (* Get Plane Select Value           *)
    out dx, ax
  (* End selection of plane *)
-   mov es,[SegA000]
-   mov ax,[CurrentColor]     ; { only lower byte is used. }
-   cmp [CurrentWriteMode],XORPut   { check write mode   }
-   jne @MOVMode
-   mov ah,es:[di]        { read the byte...             }
-   xor al,ah             { xor it and return value into AL }
- @MovMode:
-   mov es:[di], al
-   pop di
-   pop es
-   pop dx
-   pop cx
-   pop bx
-   pop ax
+   mov al, byte ptr [CurrentColor] ; { only lower byte is used. }
+   { check write mode   }
+   mov    bl, byte ptr [CurrentWriteMode]
+   cmp    bl, NormalPut
+   jne    @@1
+   { NormalPut }
+   stosb
+   jmp    @Done
+@@1:
+   cmp    bl, XorPut
+   jne    @@2
+   { XorPut }
+   mov    bh, al
+   mov    dx, 03ceh
+   mov    ah, cl
+   mov    al, 4
+   out    dx, ax
+   xor    es:[di], bh
+   jmp    @Done
+@@2:
+   cmp    bl, OrPut
+   jne    @@3
+   { OrPut }
+   mov    bh, al
+   mov    dx, 03ceh
+   mov    ah, cl
+   mov    al, 4
+   out    dx, ax
+   or     es:[di], bh
+   jmp    @Done
+@@3:
+   cmp    bl, AndPut
+   jne    @NotPutMode
+   { AndPut }
+   mov    bh, al
+   mov    dx, 03ceh
+   mov    ah, cl
+   mov    al, 4
+   out    dx, ax
+   and    es:[di], bh
+   jmp    @Done
+@NotPutMode:
+   { NotPut }
+   not    al
+   stosb
+@Done:
  end;
 {$endif asmgraph}
 
@@ -2862,7 +2785,7 @@ const CrtAddress: word = 0;
   SaveSupPorted : Boolean;    { Save/Restore video state supPorted? }
 
 
- Procedure SaveStateVGA; {$ifndef fpc}far;{$endif fpc}
+ Procedure SaveStateVGA;
  var
   regs: Registers;
   begin
@@ -2902,7 +2825,7 @@ const CrtAddress: word = 0;
       end;
   end;
 
- procedure RestoreStateVGA; {$ifndef fpc}far;{$endif fpc}
+ procedure RestoreStateVGA;
   var
    regs:Registers;
    SavePtrCopy: Pointer;
@@ -2926,7 +2849,7 @@ const CrtAddress: word = 0;
   end;
 
 
-   Procedure SetVGARGBAllPalette(const Palette:PaletteType); {$ifndef fpc}far;{$endif fpc}
+   Procedure SetVGARGBAllPalette(const Palette:PaletteType);
     var
       c: byte;
     begin
@@ -2961,7 +2884,7 @@ const CrtAddress: word = 0;
 
    { VGA is never a direct color mode, so no need to check ... }
    Procedure SetVGARGBPalette(ColorNum, RedValue, GreenValue,
-      BlueValue : smallint); {$ifndef fpc}far;{$endif fpc}
+      BlueValue : smallint);
     begin
       { translate the color number for 16 color mode }
       If MaxColor = 16 Then
@@ -3011,7 +2934,7 @@ const CrtAddress: word = 0;
 
    { VGA is never a direct color mode, so no need to check ... }
   Procedure GetVGARGBPalette(ColorNum: smallint; Var
-      RedValue, GreenValue, BlueValue : smallint); {$ifndef fpc}far;{$endif fpc}
+      RedValue, GreenValue, BlueValue : smallint);
    begin
      If MaxColor = 16 Then
        ColorNum := ToRealCols16[ColorNum];
@@ -3123,15 +3046,15 @@ const CrtAddress: word = 0;
       mode.DirectColor := FALSE;
       mode.MaxX := 319;
       mode.MaxY := 199;
-      mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelCGA320;
-      mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelCGA320;
-      mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelCGA320;
-      mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
-      mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
-      mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-      mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
-      mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
-      mode.GetBkColor := {$ifdef fpc}@{$endif}GetBkColorCGA320;
+      mode.DirectPutPixel:=@DirectPutPixelCGA320;
+      mode.PutPixel:=@PutPixelCGA320;
+      mode.GetPixel:=@GetPixelCGA320;
+      mode.SetRGBPalette := @SetVGARGBPalette;
+      mode.GetRGBPalette := @GetVGARGBPalette;
+      mode.SetAllPalette := @SetVGARGBAllPalette;
+      mode.HLine := @HLineCGA320;
+      mode.SetBkColor := @SetBkColorCGA320;
+      mode.GetBkColor := @GetBkColorCGA320;
       mode.XAspect := 8333;
       mode.YAspect := 10000;
     end;
@@ -3144,15 +3067,15 @@ const CrtAddress: word = 0;
       mode.DirectColor := FALSE;
       mode.MaxX := 639;
       mode.MaxY := 199;
-      mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelCGA640;
-      mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelCGA640;
-      mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelCGA640;
-      mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
-      mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
-      mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-      mode.HLine := {$ifdef fpc}@{$endif}HLineCGA640;
-      mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA640;
-      mode.GetBkColor := {$ifdef fpc}@{$endif}GetBkColorCGA640;
+      mode.DirectPutPixel:=@DirectPutPixelCGA640;
+      mode.PutPixel:=@PutPixelCGA640;
+      mode.GetPixel:=@GetPixelCGA640;
+      mode.SetRGBPalette := @SetVGARGBPalette;
+      mode.GetRGBPalette := @GetVGARGBPalette;
+      mode.SetAllPalette := @SetVGARGBAllPalette;
+      mode.HLine := @HLineCGA640;
+      mode.SetBkColor := @SetBkColorCGA640;
+      mode.GetBkColor := @GetBkColorCGA640;
       mode.XAspect := 4167;
       mode.YAspect := 10000;
     end;
@@ -3162,15 +3085,15 @@ const CrtAddress: word = 0;
       mode.MaxColor := 16;
       mode.DirectColor := FALSE;
       mode.PaletteSize := mode.MaxColor;
-      mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16;
-      mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16;
-      mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16;
-      mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
-      mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
-      mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-      mode.HLine := {$ifdef fpc}@{$endif}HLine16;
-      mode.VLine := {$ifdef fpc}@{$endif}VLine16;
-      mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLine16;
+      mode.DirectPutPixel:=@DirectPutPixel16;
+      mode.PutPixel:=@PutPixel16;
+      mode.GetPixel:=@GetPixel16;
+      mode.SetRGBPalette := @SetVGARGBPalette;
+      mode.GetRGBPalette := @GetVGARGBPalette;
+      mode.SetAllPalette := @SetVGARGBAllPalette;
+      mode.HLine := @HLine16;
+      mode.VLine := @VLine16;
+      mode.GetScanLine := @GetScanLine16;
     end;
 
     procedure FillCommonVESA16(var mode: TModeInfo);
@@ -3181,17 +3104,17 @@ const CrtAddress: word = 0;
       mode.HardwarePages := VESAModeInfo.NumberOfPages;
       mode.DirectColor := FALSE;
       mode.PaletteSize := mode.MaxColor;
-      mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA16;
-      mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
-      mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+      mode.DirectPutPixel:=@DirectPutPixVESA16;
+      mode.SetRGBPalette := @SetVESARGBPalette;
+      mode.GetRGBPalette := @GetVESARGBPalette;
 {$ifdef fpc}
       mode.SetAllPalette := @SetVESARGBAllPalette;
 {$endif fpc}
-      mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA16;
-      mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16;
-      mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
-      mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
-      mode.HLine := {$ifdef fpc}@{$endif}HLineVESA16;
+      mode.PutPixel:=@PutPixVESA16;
+      mode.GetPixel:=@GetPixVESA16;
+      mode.SetVisualPage := @SetVisualVESA;
+      mode.SetActivePage := @SetActiveVESA;
+      mode.HLine := @HLineVESA16;
     end;
 
     procedure FillCommonVESA256(var mode: TModeInfo);
@@ -3202,20 +3125,20 @@ const CrtAddress: word = 0;
       mode.HardwarePages := VESAModeInfo.NumberOfPages;
       mode.PaletteSize := mode.MaxColor;
       mode.DirectColor := FALSE;
-      mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA256;
-      mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA256;
-      mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA256;
-      mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
-      mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+      mode.DirectPutPixel:=@DirectPutPixVESA256;
+      mode.PutPixel:=@PutPixVESA256;
+      mode.GetPixel:=@GetPixVESA256;
+      mode.SetRGBPalette := @SetVESARGBPalette;
+      mode.GetRGBPalette := @GetVESARGBPalette;
 {$ifdef fpc}
       mode.SetAllPalette := @SetVESARGBAllPalette;
 {$endif fpc}
-      mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
-      mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
-      mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
-      mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
-      mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLineVESA256;
-      mode.PatternLine := {$ifdef fpc}@{$endif}PatternLineVESA256;
+      mode.SetVisualPage := @SetVisualVESA;
+      mode.SetActivePage := @SetActiveVESA;
+      mode.hline := @HLineVESA256;
+      mode.vline := @VLineVESA256;
+      mode.GetScanLine := @GetScanLineVESA256;
+      mode.PatternLine := @PatternLineVESA256;
     end;
 
     procedure FillCommonVESA32kOr64k(var mode: TModeInfo);
@@ -3224,14 +3147,14 @@ const CrtAddress: word = 0;
       { by the call to SearchVESAMode.                             }
       mode.HardwarePages := VESAModeInfo.NumberOfPages;
       mode.DirectColor := TRUE;
-      mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA32kOr64k;
-      mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA32kOr64k;
-      mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA32kOr64k;
-      mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
-      mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
-      mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
-      mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
-      mode.HLine := {$ifdef fpc}@{$endif}HLineVESA32kOr64k;
+      mode.DirectPutPixel:=@DirectPutPixVESA32kOr64k;
+      mode.PutPixel:=@PutPixVESA32kOr64k;
+      mode.GetPixel:=@GetPixVESA32kOr64k;
+      mode.SetRGBPalette := @SetVESARGBPalette;
+      mode.GetRGBPalette := @GetVESARGBPalette;
+      mode.SetVisualPage := @SetVisualVESA;
+      mode.SetActivePage := @SetActiveVESA;
+      mode.HLine := @HLineVESA32kOr64k;
     end;
 
     procedure FillCommonVESA32k(var mode: TModeInfo);
@@ -3245,6 +3168,52 @@ const CrtAddress: word = 0;
       FillCommonVESA32kOr64k(mode);
       mode.MaxColor := 65536;
       mode.PaletteSize := mode.MaxColor;
+    end;
+
+    procedure FillCommonVESA320x200(var mode: TModeInfo);
+    begin
+      mode.DriverNumber := VESA;
+      mode.ModeName:='320 x 200 VESA';
+      mode.MaxX := 319;
+      mode.MaxY := 199;
+      mode.XAspect := 8333;
+      mode.YAspect := 10000;
+    end;
+    procedure FillCommonVESA640x480(var mode: TModeInfo);
+    begin
+      mode.DriverNumber := VESA;
+      mode.ModeName:='640 x 480 VESA';
+      mode.MaxX := 639;
+      mode.MaxY := 479;
+      mode.XAspect := 10000;
+      mode.YAspect := 10000;
+    end;
+    procedure FillCommonVESA800x600(var mode: TModeInfo);
+    begin
+      mode.DriverNumber := VESA;
+      mode.ModeName:='800 x 600 VESA';
+      mode.MaxX := 799;
+      mode.MaxY := 599;
+      mode.XAspect := 10000;
+      mode.YAspect := 10000;
+    end;
+    procedure FillCommonVESA1024x768(var mode: TModeInfo);
+    begin
+      mode.DriverNumber := VESA;
+      mode.ModeName:='1024 x 768 VESA';
+      mode.MaxX := 1023;
+      mode.MaxY := 767;
+      mode.XAspect := 10000;
+      mode.YAspect := 10000;
+    end;
+    procedure FillCommonVESA1280x1024(var mode: TModeInfo);
+    begin
+      mode.DriverNumber := VESA;
+      mode.ModeName:='1280 x 1024 VESA';
+      mode.MaxX := 1279;
+      mode.MaxY := 1023;
+      mode.XAspect := 10000;
+      mode.YAspect := 10000;
     end;
 
    var
@@ -3362,17 +3331,17 @@ const CrtAddress: word = 0;
          mode.DirectColor := FALSE;
          mode.MaxX := 719;
          mode.MaxY := 347;
-         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelHGC720;
-         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelHGC720;
-         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelHGC720;
-         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetHGCRGBPalette;
-         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetHGCRGBPalette;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualHGC720;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveHGC720;
-         mode.InitMode := {$ifdef fpc}@{$endif}InitHGC720;
-         mode.HLine := {$ifdef fpc}@{$endif}HLineHGC720;
-         mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorHGC720;
-         mode.GetBkColor := {$ifdef fpc}@{$endif}GetBkColorHGC720;
+         mode.DirectPutPixel:=@DirectPutPixelHGC720;
+         mode.PutPixel:=@PutPixelHGC720;
+         mode.GetPixel:=@GetPixelHGC720;
+         mode.SetRGBPalette := @SetHGCRGBPalette;
+         mode.GetRGBPalette := @GetHGCRGBPalette;
+         mode.SetVisualPage := @SetVisualHGC720;
+         mode.SetActivePage := @SetActiveHGC720;
+         mode.InitMode := @InitHGC720;
+         mode.HLine := @HLineHGC720;
+         mode.SetBkColor := @SetBkColorHGC720;
+         mode.GetBkColor := @GetBkColorHGC720;
          mode.XAspect := 7500;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3394,7 +3363,7 @@ const CrtAddress: word = 0;
          mode.DriverNumber := CGA;
          mode.ModeNumber := CGAC0;
          mode.ModeName:='320 x 200 CGA C0';
-         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C0;
+         mode.InitMode := @InitCGA320C0;
          AddMode(mode);
 
          InitMode(mode);
@@ -3402,7 +3371,7 @@ const CrtAddress: word = 0;
          mode.DriverNumber := CGA;
          mode.ModeNumber := CGAC1;
          mode.ModeName:='320 x 200 CGA C1';
-         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C1;
+         mode.InitMode := @InitCGA320C1;
          AddMode(mode);
 
          InitMode(mode);
@@ -3410,7 +3379,7 @@ const CrtAddress: word = 0;
          mode.DriverNumber := CGA;
          mode.ModeNumber := CGAC2;
          mode.ModeName:='320 x 200 CGA C2';
-         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C2;
+         mode.InitMode := @InitCGA320C2;
          AddMode(mode);
 
          InitMode(mode);
@@ -3418,7 +3387,7 @@ const CrtAddress: word = 0;
          mode.DriverNumber := CGA;
          mode.ModeNumber := CGAC3;
          mode.ModeName:='320 x 200 CGA C3';
-         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C3;
+         mode.InitMode := @InitCGA320C3;
          AddMode(mode);
 
          InitMode(mode);
@@ -3426,7 +3395,7 @@ const CrtAddress: word = 0;
          mode.DriverNumber := CGA;
          mode.ModeNumber := CGAHi;
          mode.ModeName:='640 x 200 CGA';
-         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA640;
+         mode.InitMode := @InitCGA640;
          AddMode(mode);
        end;
 
@@ -3449,9 +3418,9 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 199;
          mode.HardwarePages := 3;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual200;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive200;
-         mode.InitMode := {$ifdef fpc}@{$endif}Init640x200x16;
+         mode.SetVisualPage := @SetVisual200_350;
+         mode.SetActivePage := @SetActive200;
+         mode.InitMode := @Init640x200x16;
          mode.XAspect := 4500;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3464,9 +3433,9 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 349;
          mode.HardwarePages := 1;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual350;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive350;
-         mode.InitMode := {$ifdef fpc}@{$endif}Init640x350x16;
+         mode.SetVisualPage := @SetVisual200_350;
+         mode.SetActivePage := @SetActive350;
+         mode.InitMode := @Init640x350x16;
          mode.XAspect := 7750;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3497,7 +3466,7 @@ const CrtAddress: word = 0;
          mode.DriverNumber := MCGA;
          mode.ModeNumber := MCGAC0;
          mode.ModeName:='320 x 200 CGA C0'; { yes, it says 'CGA' even for the MCGA driver; this is TP7 compatible }
-         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C0;
+         mode.InitMode := @InitCGA320C0;
          AddMode(mode);
 
          InitMode(mode);
@@ -3505,7 +3474,7 @@ const CrtAddress: word = 0;
          mode.DriverNumber := MCGA;
          mode.ModeNumber := MCGAC1;
          mode.ModeName:='320 x 200 CGA C1'; { yes, it says 'CGA' even for the MCGA driver; this is TP7 compatible }
-         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C1;
+         mode.InitMode := @InitCGA320C1;
          AddMode(mode);
 
          InitMode(mode);
@@ -3513,7 +3482,7 @@ const CrtAddress: word = 0;
          mode.DriverNumber := MCGA;
          mode.ModeNumber := MCGAC2;
          mode.ModeName:='320 x 200 CGA C2'; { yes, it says 'CGA' even for the MCGA driver; this is TP7 compatible }
-         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C2;
+         mode.InitMode := @InitCGA320C2;
          AddMode(mode);
 
          InitMode(mode);
@@ -3521,7 +3490,7 @@ const CrtAddress: word = 0;
          mode.DriverNumber := MCGA;
          mode.ModeNumber := MCGAC3;
          mode.ModeName:='320 x 200 CGA C3'; { yes, it says 'CGA' even for the MCGA driver; this is TP7 compatible }
-         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C3;
+         mode.InitMode := @InitCGA320C3;
          AddMode(mode);
 
          InitMode(mode);
@@ -3529,7 +3498,7 @@ const CrtAddress: word = 0;
          mode.DriverNumber := MCGA;
          mode.ModeNumber := MCGAMed;
          mode.ModeName:='640 x 200 CGA'; { yes, it says 'CGA' even for the MCGA driver; this is TP7 compatible }
-         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA640;
+         mode.InitMode := @InitCGA640;
          AddMode(mode);
 
          InitMode(mode);
@@ -3542,16 +3511,16 @@ const CrtAddress: word = 0;
          mode.DirectColor := FALSE;
          mode.MaxX := 639;
          mode.MaxY := 479;
-         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelMCGA640;
-         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelMCGA640;
-         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelMCGA640;
-         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
-         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
-         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-         mode.InitMode := {$ifdef fpc}@{$endif}InitMCGA640;
-         mode.HLine := {$ifdef fpc}@{$endif}HLineMCGA640;
-         mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorMCGA640;
-         mode.GetBkColor := {$ifdef fpc}@{$endif}GetBkColorMCGA640;
+         mode.DirectPutPixel:=@DirectPutPixelMCGA640;
+         mode.PutPixel:=@PutPixelMCGA640;
+         mode.GetPixel:=@GetPixelMCGA640;
+         mode.SetRGBPalette := @SetVGARGBPalette;
+         mode.GetRGBPalette := @GetVGARGBPalette;
+         mode.SetAllPalette := @SetVGARGBAllPalette;
+         mode.InitMode := @InitMCGA640;
+         mode.HLine := @HLineMCGA640;
+         mode.SetBkColor := @SetBkColorMCGA640;
+         mode.GetBkColor := @GetBkColorMCGA640;
          mode.XAspect := 10000;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3568,13 +3537,13 @@ const CrtAddress: word = 0;
          mode.DirectColor := FALSE;
          mode.MaxX := 319;
          mode.MaxY := 199;
-         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel320;
-         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel320;
-         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel320;
-         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
-         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
-         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-         mode.InitMode := {$ifdef fpc}@{$endif}Init320;
+         mode.DirectPutPixel:=@DirectPutPixel320;
+         mode.PutPixel:=@PutPixel320;
+         mode.GetPixel:=@GetPixel320;
+         mode.SetRGBPalette := @SetVGARGBPalette;
+         mode.GetRGBPalette := @GetVGARGBPalette;
+         mode.SetAllPalette := @SetVGARGBAllPalette;
+         mode.InitMode := @Init320;
          mode.XAspect := 8333;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3601,15 +3570,15 @@ const CrtAddress: word = 0;
          mode.PaletteSize := mode.MaxColor;
          mode.MaxX := 319;
          mode.MaxY := 199;
-         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelX;
-         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelX;
-         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelX;
-         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
-         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
-         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualX;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveX;
-         mode.InitMode := {$ifdef fpc}@{$endif}InitModeX;
+         mode.DirectPutPixel:=@DirectPutPixelX;
+         mode.PutPixel:=@PutPixelX;
+         mode.GetPixel:=@GetPixelX;
+         mode.SetRGBPalette := @SetVGARGBPalette;
+         mode.GetRGBPalette := @GetVGARGBPalette;
+         mode.SetAllPalette := @SetVGARGBAllPalette;
+         mode.SetVisualPage := @SetVisualX;
+         mode.SetActivePage := @SetActiveX;
+         mode.InitMode := @InitModeX;
          mode.XAspect := 8333;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3622,9 +3591,9 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 199;
          mode.HardwarePages := 3;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual200;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive200;
-         mode.InitMode := {$ifdef fpc}@{$endif}Init640x200x16;
+         mode.SetVisualPage := @SetVisual200_350;
+         mode.SetActivePage := @SetActive200;
+         mode.InitMode := @Init640x200x16;
          mode.XAspect := 4500;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3637,9 +3606,9 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 349;
          mode.HardwarePages := 1;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual350;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive350;
-         mode.InitMode := {$ifdef fpc}@{$endif}Init640x350x16;
+         mode.SetVisualPage := @SetVisual200_350;
+         mode.SetActivePage := @SetActive350;
+         mode.InitMode := @Init640x350x16;
          mode.XAspect := 7750;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3652,7 +3621,7 @@ const CrtAddress: word = 0;
          mode.MaxX := 639;
          mode.MaxY := 479;
          mode.HardwarePages := 0;
-         mode.InitMode := {$ifdef fpc}@{$endif}Init640x480x16;
+         mode.InitMode := @Init640x480x16;
          mode.XAspect := 10000;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3687,28 +3656,18 @@ const CrtAddress: word = 0;
            begin
              InitMode(mode);
              FillCommonVESA32k(mode);
+             FillCommonVESA320x200(mode);
              mode.ModeNumber:=m320x200x32k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='320 x 200 VESA';
-             mode.MaxX := 319;
-             mode.MaxY := 199;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init320x200x32k;
-             mode.XAspect := 8333;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init320x200x32k;
              AddMode(mode);
            end;
          if SearchVESAModes(m320x200x64k) then
            begin
              InitMode(mode);
              FillCommonVESA64k(mode);
+             FillCommonVESA320x200(mode);
              mode.ModeNumber:=m320x200x64k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='320 x 200 VESA';
-             mode.MaxX := 319;
-             mode.MaxY := 199;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init320x200x64k;
-             mode.XAspect := 8333;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init320x200x64k;
              AddMode(mode);
            end;
          if SearchVESAModes(m640x400x256) then
@@ -3720,7 +3679,7 @@ const CrtAddress: word = 0;
              mode.ModeName:='640 x 400 VESA';
              mode.MaxX := 639;
              mode.MaxY := 399;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init640x400x256;
+             mode.InitMode := @Init640x400x256;
              mode.XAspect := 8333;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -3729,210 +3688,135 @@ const CrtAddress: word = 0;
            begin
              InitMode(mode);
              FillCommonVESA256(mode);
+             FillCommonVESA640x480(mode);
              mode.ModeNumber:=m640x480x256;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='640 x 480 VESA';
-             mode.MaxX := 639;
-             mode.MaxY := 479;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init640x480x256;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init640x480x256;
              AddMode(mode);
            end;
          if SearchVESAModes(m640x480x32k) then
            begin
              InitMode(mode);
              FillCommonVESA32k(mode);
+             FillCommonVESA640x480(mode);
              mode.ModeNumber:=m640x480x32k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='640 x 480 VESA';
-             mode.MaxX := 639;
-             mode.MaxY := 479;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init640x480x32k;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init640x480x32k;
              AddMode(mode);
            end;
          if SearchVESAModes(m640x480x64k) then
            begin
              InitMode(mode);
              FillCommonVESA64k(mode);
+             FillCommonVESA640x480(mode);
              mode.ModeNumber:=m640x480x64k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='640 x 480 VESA';
-             mode.MaxX := 639;
-             mode.MaxY := 479;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init640x480x64k;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init640x480x64k;
              AddMode(mode);
            end;
          if SearchVESAModes(m800x600x16) then
            begin
              InitMode(mode);
              FillCommonVESA16(mode);
+             FillCommonVESA800x600(mode);
              mode.ModeNumber:=m800x600x16;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='800 x 600 VESA';
-             mode.MaxX := 799;
-             mode.MaxY := 599;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x16;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init800x600x16;
              AddMode(mode);
            end;
          if SearchVESAModes(m800x600x256) then
            begin
              InitMode(mode);
              FillCommonVESA256(mode);
+             FillCommonVESA800x600(mode);
              mode.ModeNumber:=m800x600x256;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='800 x 600 VESA';
-             mode.MaxX := 799;
-             mode.MaxY := 599;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x256;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init800x600x256;
              AddMode(mode);
            end;
          if SearchVESAModes(m800x600x32k) then
            begin
              InitMode(mode);
              FillCommonVESA32k(mode);
+             FillCommonVESA800x600(mode);
              mode.ModeNumber:=m800x600x32k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='800 x 600 VESA';
-             mode.MaxX := 799;
-             mode.MaxY := 599;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x32k;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init800x600x32k;
              AddMode(mode);
            end;
          if SearchVESAModes(m800x600x64k) then
            begin
              InitMode(mode);
              FillCommonVESA64k(mode);
+             FillCommonVESA800x600(mode);
              mode.ModeNumber:=m800x600x64k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='800 x 600 VESA';
-             mode.MaxX := 799;
-             mode.MaxY := 599;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x64k;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init800x600x64k;
              AddMode(mode);
            end;
          if SearchVESAModes(m1024x768x16) then
            begin
              InitMode(mode);
              FillCommonVESA16(mode);
+             FillCommonVESA1024x768(mode);
              mode.ModeNumber:=m1024x768x16;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='1024 x 768 VESA';
-             mode.MaxX := 1023;
-             mode.MaxY := 767;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x16;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init1024x768x16;
              AddMode(mode);
            end;
          if SearchVESAModes(m1024x768x256) then
            begin
              InitMode(mode);
              FillCommonVESA256(mode);
+             FillCommonVESA1024x768(mode);
              mode.ModeNumber:=m1024x768x256;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='1024 x 768 VESA';
-             mode.MaxX := 1023;
-             mode.MaxY := 767;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x256;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init1024x768x256;
              AddMode(mode);
            end;
          if SearchVESAModes(m1024x768x32k) then
            begin
              InitMode(mode);
              FillCommonVESA32k(mode);
+             FillCommonVESA1024x768(mode);
              mode.ModeNumber:=m1024x768x32k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='1024 x 768 VESA';
-             mode.MaxX := 1023;
-             mode.MaxY := 767;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x32k;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init1024x768x32k;
              AddMode(mode);
            end;
          if SearchVESAModes(m1024x768x64k) then
            begin
              InitMode(mode);
              FillCommonVESA64k(mode);
+             FillCommonVESA1024x768(mode);
              mode.ModeNumber:=m1024x768x64k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='1024 x 768 VESA';
-             mode.MaxX := 1023;
-             mode.MaxY := 767;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x64k;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init1024x768x64k;
              AddMode(mode);
            end;
          if SearchVESAModes(m1280x1024x16) then
            begin
              InitMode(mode);
              FillCommonVESA16(mode);
+             FillCommonVESA1280x1024(mode);
              mode.ModeNumber:=m1280x1024x16;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='1280 x 1024 VESA';
-             mode.MaxX := 1279;
-             mode.MaxY := 1023;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x16;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init1280x1024x16;
              AddMode(mode);
            end;
          if SearchVESAModes(m1280x1024x256) then
            begin
              InitMode(mode);
              FillCommonVESA256(mode);
+             FillCommonVESA1280x1024(mode);
              mode.ModeNumber:=m1280x1024x256;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='1280 x 1024 VESA';
-             mode.MaxX := 1279;
-             mode.MaxY := 1023;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x256;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init1280x1024x256;
              AddMode(mode);
            end;
          if SearchVESAModes(m1280x1024x32k) then
            begin
              InitMode(mode);
              FillCommonVESA32k(mode);
+             FillCommonVESA1280x1024(mode);
              mode.ModeNumber:=m1280x1024x32k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='1280 x 1024 VESA';
-             mode.MaxX := 1279;
-             mode.MaxY := 1023;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x32k;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init1280x1024x32k;
              AddMode(mode);
            end;
          if SearchVESAModes(m1280x1024x64k) then
            begin
              InitMode(mode);
              FillCommonVESA64k(mode);
+             FillCommonVESA1280x1024(mode);
              mode.ModeNumber:=m1280x1024x64k;
-             mode.DriverNumber := VESA;
-             mode.ModeName:='1280 x 1024 VESA';
-             mode.MaxX := 1279;
-             mode.MaxY := 1023;
-             mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x64k;
-             mode.XAspect := 10000;
-             mode.YAspect := 10000;
+             mode.InitMode := @Init1280x1024x64k;
              AddMode(mode);
            end;
        end;
@@ -3941,7 +3825,7 @@ const CrtAddress: word = 0;
 var
   go32exitsave: codepointer;
 
-procedure freeSaveStateBuffer; {$ifndef fpc}far; {$endif}
+procedure freeSaveStateBuffer;
 begin
   if savePtr <> nil then
     begin

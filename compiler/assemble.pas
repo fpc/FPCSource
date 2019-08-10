@@ -418,6 +418,7 @@ Implementation
         s: ansistring;
       begin
         MaybeAddLinePrefix;
+        s:='';
         setlength(s,len);
         move(p^,s[1],len);
         AsmWriteAnsiStringUnfiltered(decorator.LineFilter(s));
@@ -1646,6 +1647,10 @@ Implementation
                      { ai_directive(hp).name can be only 16 or 32, this is checked by the reader }
                      ObjData.ThumbFunc:=tai_directive(hp).name='16';
 {$endif ARM}
+{$ifdef RISCV}
+                   asd_option:
+                     internalerror(2019031701);
+{$endif RISCV}
                    else
                      internalerror(2010011101);
                  end;
@@ -1676,6 +1681,8 @@ Implementation
              ait_cutobject :
                if SmartAsm then
                 break;
+             else
+               ;
            end;
            hp:=Tai(hp.next);
          end;
@@ -1699,6 +1706,13 @@ Implementation
                      { here we must determine the fillsize which is used in pass2 }
                      Tai_align_abstract(hp).fillsize:=align(ObjData.CurrObjSec.Size,Tai_align_abstract(hp).aligntype)-
                        ObjData.CurrObjSec.Size;
+
+                     { maximum number of bytes for alignment exeeded? }
+                     if (Tai_align_abstract(hp).aligntype<>Tai_align_abstract(hp).maxbytes) and
+                       (Tai_align_abstract(hp).fillsize>Tai_align_abstract(hp).maxbytes) then
+                       Tai_align_abstract(hp).fillsize:=align(ObjData.CurrObjSec.Size,Byte(Tai_align_abstract(hp).aligntype div 2))-
+                         ObjData.CurrObjSec.Size;
+
                      ObjData.alloc(Tai_align_abstract(hp).fillsize);
                    end;
                end;
@@ -1792,6 +1806,9 @@ Implementation
                    asd_code:
                      { ignore for now, but should be added}
                      ;
+                   asd_option:
+                     { ignore for now, but should be added}
+                     ;
 {$ifdef OMFOBJSUPPORT}
                    asd_omf_linnum_line:
                      { ignore for now, but should be added}
@@ -1811,6 +1828,8 @@ Implementation
                      internalerror(2010011102);
                  end;
                end;
+             else
+               ;
            end;
            hp:=Tai(hp.next);
          end;
@@ -2077,6 +2096,8 @@ Implementation
                          ));
                      end;
 {$endif OMFOBJSUPPORT}
+                   else
+                     ;
                  end
                end;
              ait_symbolpair:
@@ -2097,6 +2118,8 @@ Implementation
              ait_seh_directive :
                tai_seh_directive(hp).generate_code(objdata);
 {$endif DISABLE_WIN64_SEH}
+             else
+               ;
            end;
            hp:=Tai(hp.next);
          end;

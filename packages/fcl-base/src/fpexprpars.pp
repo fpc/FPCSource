@@ -780,6 +780,7 @@ Type
     Property Identifiers : TFPExprIdentifierDefs Read FIdentifiers Write SetIdentifiers;
     Property BuiltIns : TBuiltInCategories Read FBuiltIns Write SetBuiltIns;
   end;
+  TFPExpressionParserClass = Class of TFPExpressionParser;
 
   { TExprBuiltInManager }
 
@@ -1967,7 +1968,7 @@ begin
     else
       begin
       Val(CurrentToken,X,C);
-      If (I=0) then
+      If (C=0) then
         Result:=TFPConstExpression.CreateFloat(X)
       else
         ParserError(Format(SErrInvalidFloat,[CurrentToken]));

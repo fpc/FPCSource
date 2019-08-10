@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Author := 'Anthony Green and others';
     P.License := 'MIT license';
     P.HomepageURL := 'https://sourceware.org/libffi/';

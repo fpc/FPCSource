@@ -599,11 +599,7 @@ end;
 
 {$ifndef FPC_HAS_UCHAR_TO_SHORTSTR}
 {$define FPC_HAS_UCHAR_TO_SHORTSTR}
-{$ifdef VER2_6}
-procedure fpc_UChar_To_ShortStr(out result : shortstring;const c : WideChar); compilerproc;
-{$else}
 function fpc_UChar_To_ShortStr(const c : WideChar): shortstring; compilerproc;
-{$endif}
 {
   Converts a WideChar to a ShortString;
 }
@@ -959,9 +955,6 @@ Var
   nl,lens, lena : SizeUInt;
 begin
   nl:=l;
-{$IFDEF VER2_6}
-  nl:=nl*2;
-{$ENDIF}
    if (l>0) then
     begin
       if Pointer(S)=nil then
@@ -1842,6 +1835,7 @@ end;
                 //One character US-ASCII, convert it to unicode
                 if IBYTE = 10 then
                   begin
+(*
                     If (PreChar<>13) and FALSE then
                       begin
                         //Expand to crlf, conform UTF-8.
@@ -1862,6 +1856,7 @@ end;
                           end;
                       end
                     else
+*)
                       begin
                         Dest[OutputUnicode]:=WideChar(IBYTE);
                         inc(OutputUnicode);
@@ -1985,6 +1980,7 @@ end;
                 //One character US-ASCII, convert it to unicode
                 if IBYTE = 10 then
                   begin
+(*
                     if (PreChar<>13) and FALSE then
                       begin
                         //Expand to crlf, conform UTF-8.
@@ -1994,6 +1990,7 @@ end;
                         PreChar:=10;
                       end
                     else
+*)
                       begin
                         inc(OutputUnicode);
                         PreChar:=IBYTE;
@@ -2249,7 +2246,7 @@ function UCS4StringToUnicodeString(const s : UCS4String) : UnicodeString;
   begin
     reslen:=0;
     for i:=0 to length(s)-2 do     { skip terminating #0 }
-      Inc(reslen,1+ord((s[i]>$ffff) and (s[i]<=$10ffff)));
+      Inc(reslen,1+ord((s[i]>$ffff) and (cardinal(s[i])<=$10ffff)));
     SetLength(result,reslen);
     UCS4Decode(s,pointer(result));
   end;
@@ -2262,7 +2259,7 @@ function UCS4StringToWideString(const s : UCS4String) : WideString;
   begin
     reslen:=0;
     for i:=0 to length(s)-2 do     { skip terminating #0 }
-      Inc(reslen,1+ord((s[i]>$ffff) and (s[i]<=$10ffff)));
+      Inc(reslen,1+ord((s[i]>$ffff) and (cardinal(s[i])<=$10ffff)));
     SetLength(result,reslen);
     UCS4Decode(s,pointer(result));
   end;
@@ -2316,6 +2313,7 @@ function StringCodePage(const S: UnicodeString): TSystemCodePage; overload;
   end;
 
 
+{$push}
 {$warnings off}
 function StubUnicodeCase(const s : UnicodeString) : UnicodeString;
   begin
@@ -2336,7 +2334,7 @@ function StubCompareWideString(const s1, s2 : WideString; Options : TCompareOpti
   begin
     unimplementedunicodestring;
   end;
-{$warnings on}
+{$pop}
 
 procedure initunicodestringmanager;
   begin

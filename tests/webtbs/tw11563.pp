@@ -12,6 +12,9 @@ program ExecStack;
 {$if defined(cpuaarch64)}
     ret: longint;
 {$endif}
+{$if defined(cpuriscv64)}
+    ret: longint;
+{$endif}
 {$if defined(cpui386) or defined(cpux86_64)}
     ret: Byte;
 {$endif}
@@ -45,6 +48,11 @@ program ExecStack;
 {$endif}
 {$if defined(cpuaarch64)}
     ret := $d65f03c0;
+    DoNothing := proc(@ret);
+    DoNothing;
+{$endif}
+{$if defined(cpuriscv64)}
+    ret := $00008067;
     DoNothing := proc(@ret);
     DoNothing;
 {$endif}

@@ -15,6 +15,7 @@
  **********************************************************************}
 
 const
+  {$I cpuinnr.inc}
   { Always i386 or newer }
   Test8086 : byte = 2;
   { Always 387 or newer. Emulated if needed. }
@@ -25,3 +26,17 @@ const
   has_sse3_support : boolean = false;
   has_mmx_support : boolean = false;
 
+function fpc_x86_inportb(port : word) : byte;[internproc:fpc_in_x86_inportb];
+function fpc_x86_inportw(port : word) : word;[internproc:fpc_in_x86_inportw];
+function fpc_x86_inportl(port : word) : longint;[internproc:fpc_in_x86_inportl];
+procedure fpc_x86_outportb(port : word;data : byte);[internproc:fpc_in_x86_outportb];
+procedure fpc_x86_outportw(port : word;data : word);[internproc:fpc_in_x86_outportw];
+procedure fpc_x86_outportl(port : word;data : longint);[internproc:fpc_in_x86_outportl];
+procedure fpc_x86_cli;[internproc:fpc_in_x86_cli];
+procedure fpc_x86_sti;[internproc:fpc_in_x86_sti];
+function fpc_x86_get_cs:longint;[internproc:fpc_in_x86_get_cs];
+function fpc_x86_get_ss:longint;[internproc:fpc_in_x86_get_ss];
+function fpc_x86_get_ds:longint;[internproc:fpc_in_x86_get_ds];
+function fpc_x86_get_es:longint;[internproc:fpc_in_x86_get_es];
+function fpc_x86_get_fs:longint;[internproc:fpc_in_x86_get_fs];
+function fpc_x86_get_gs:longint;[internproc:fpc_in_x86_get_gs];

@@ -1,5 +1,8 @@
 ; common startup code for all the memory models
 
+; uncomment this, if you want to use i8086 section based smartlinking:
+;%define __I8086_SMARTLINK_SECTIONS__
+
 %ifdef __TINY__
         %define __NEAR_CODE__
         %define __NEAR_DATA__
@@ -780,5 +783,8 @@ __nullarea:
         group DGROUP _NULL _AFTERNULL data bss stack
     %else
         group DGROUP _NULL _AFTERNULL data bss
+    %endif
+    %ifdef __I8086_SMARTLINK_SECTIONS__
+        group CGROUP _TEXT
     %endif
 %endif

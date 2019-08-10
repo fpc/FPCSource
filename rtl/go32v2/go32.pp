@@ -15,6 +15,7 @@
 unit go32;
 
 {$S-,R-,I-,Q-} {no stack check, used by DPMIEXCP !! }
+{$inline ON}
 
 interface
 
@@ -155,6 +156,7 @@ interface
     function unlock_data(var data;size : longint) : boolean;
     function unlock_code(functionaddr : pointer;size : longint) : boolean;
 
+{$ifdef VER3_0}
     { disables and enables interrupts }
     procedure disable;
     procedure enable;
@@ -166,6 +168,19 @@ interface
     procedure outportb(port : word;data : byte);
     procedure outportw(port : word;data : word);
     procedure outportl(port : word;data : longint);
+{$else VER3_0}
+    { disables and enables interrupts }
+    procedure disable;inline;
+    procedure enable;inline;
+
+    function inportb(port : word) : byte;inline;
+    function inportw(port : word) : word;inline;
+    function inportl(port : word) : longint;inline;
+
+    procedure outportb(port : word;data : byte);inline;
+    procedure outportw(port : word;data : word);inline;
+    procedure outportl(port : word;data : longint);inline;
+{$endif VER3_0}
     function get_run_mode : word;
 
     function transfer_buffer : longint;
@@ -447,6 +462,7 @@ interface
            end ['ECX','EAX'];
       end;
 
+{$ifdef VER3_0}
     procedure outportb(port : word;data : byte);
 
       begin
@@ -506,6 +522,37 @@ interface
             movl %eax,__RESULT
          end ['EAX','EDX'];
       end;
+{$else VER3_0}
+    procedure outportb(port : word;data : byte);inline;
+      begin
+	    fpc_x86_outportb(port,data);
+      end;
+
+    procedure outportw(port : word;data : word);inline;
+      begin
+	    fpc_x86_outportw(port,data);
+      end;
+
+    procedure outportl(port : word;data : longint);inline;
+      begin
+	    fpc_x86_outportl(port,data);
+      end;
+
+    function inportb(port : word) : byte;inline;
+      begin
+	    inportb:=fpc_x86_inportb(port);
+      end;
+
+    function inportw(port : word) : word;inline;
+      begin
+	    inportw:=fpc_x86_inportw(port);
+      end;
+
+    function inportl(port : word) : longint;inline;
+      begin
+	    inportl:=fpc_x86_inportl(port);
+      end;
+{$endif VER3_0}
 
 
 
@@ -1121,6 +1168,7 @@ interface
          end;
       end;
 
+{$ifdef VER3_0}
     procedure disable;assembler;
 
       asm
@@ -1132,6 +1180,19 @@ interface
       asm
          sti
       end;
+{$else VER3_0}
+    procedure disable;inline;
+
+      begin
+         fpc_x86_cli;
+      end;
+
+    procedure enable;inline;
+
+      begin
+         fpc_x86_sti;
+      end;
+{$endif VER3_0}
 
 
     var

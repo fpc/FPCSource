@@ -28,7 +28,7 @@ interface
 
     uses
       cclasses,
-      symtable,symsym,symdef;
+      symtable,symsym,symdef,symtype;
 
     type
       tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class,vd_final,vd_canreorder,vd_check_generic);
@@ -44,6 +44,8 @@ interface
 
     procedure try_consume_sectiondirective(var asection: ansistring);
 
+    function check_allowed_for_var_or_const(def:tdef;allowdynarray:boolean):boolean;
+
 implementation
 
     uses
@@ -54,7 +56,7 @@ implementation
        globtype,globals,tokens,verbose,constexp,
        systems,
        { symtable }
-       symconst,symbase,symtype,defutil,defcmp,symcreat,
+       symconst,symbase,defutil,defcmp,symutil,symcreat,
 {$if defined(i386) or defined(i8086)}
        symcpu,
 {$endif}
@@ -66,7 +68,7 @@ implementation
        ngenutil,
        { parser }
        scanner,
-       pbase,pexpr,ptype,ptconst,pdecsub;
+       pbase,pexpr,ptype,ptconst,pdecsub,pparautl;
 
 
     function read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;
@@ -130,6 +132,8 @@ implementation
                      end;
                    _POINT :
                      begin
+                       if not is_object(def) and not is_record(def) then
+                         message(sym_e_type_must_be_rec_or_object);
                        consume(_POINT);
                        if assigned(def) then
                         begin
@@ -256,7 +260,10 @@ implementation
             var
               sym: tprocsym;
             begin
-              handle_calling_convention(pd);
+              if not assigned(astruct) then
+                handle_calling_convention(pd,hcc_default_actions_intf)
+              else
+                handle_calling_convention(pd,hcc_default_actions_intf_struct);
               sym:=cprocsym.create(prefix+lower(p.realname));
               symtablestack.top.insert(sym);
               pd.procsym:=sym;
@@ -535,7 +542,10 @@ implementation
                       begin
                         readprocdef.returndef:=p.propdef;
                         { Insert hidden parameters }
-                        handle_calling_convention(readprocdef);
+                        if assigned(astruct) then
+                          handle_calling_convention(readprocdef,hcc_default_actions_intf_struct)
+                        else
+                          handle_calling_convention(readprocdef,hcc_default_actions_intf);
                       end;
                     p.add_getter_or_setter_for_sym(palt_read,sym,def,readprocdef);
                   end;
@@ -558,7 +568,10 @@ implementation
                         hparavs:=cparavarsym.create('$value',10*paranr,vs_value,p.propdef,[]);
                         writeprocdef.parast.insert(hparavs);
                         { Insert hidden parameters }
-                        handle_calling_convention(writeprocdef);
+                        if not assigned(astruct) then
+                          handle_calling_convention(writeprocdef,hcc_default_actions_intf)
+                        else
+                          handle_calling_convention(writeprocdef,hcc_default_actions_intf_struct);
                       end;
                     p.add_getter_or_setter_for_sym(palt_write,sym,def,writeprocdef);
                   end;
@@ -620,8 +633,11 @@ implementation
                               { same as for _FALSE }
                               exclude(p.propoptions,ppo_stored)
                             else
-                              { same as for _TRUE }
-                              p.default:=longint($80000000);
+                              begin
+                                { same as for _TRUE }
+                                { do nothing - ppo_stored is already set to p.propoptions in "include(p.propoptions,ppo_stored);" above }
+                                { especially do not reset the default value - the stored specifier is independent on the default value! }
+                              end;
                             consume(_ID);
                           end
                        else if parse_symlist(p.propaccesslist[palt_stored],def) then
@@ -634,7 +650,7 @@ implementation
                                  storedprocdef:=cprocvardef.create(normal_function_level);
                                  include(storedprocdef.procoptions,po_methodpointer);
                                  { Return type must be boolean }
-                                 storedprocdef.returndef:=pasbool8type;
+                                 storedprocdef.returndef:=pasbool1type;
                                  { Add index parameter if needed }
                                  if ppo_indexed in p.propoptions then
                                    begin
@@ -643,7 +659,10 @@ implementation
                                    end;
 
                                  { Insert hidden parameters }
-                                 handle_calling_convention(storedprocdef);
+                                 if not assigned(astruct) then
+                                   handle_calling_convention(storedprocdef,hcc_default_actions_intf)
+                                 else
+                                   handle_calling_convention(storedprocdef,hcc_default_actions_intf_struct);
                                  p.propaccesslist[palt_stored].procdef:=Tprocsym(sym).Find_procdef_bypara(storedprocdef.paras,storedprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
                                  if not assigned(p.propaccesslist[palt_stored].procdef) then
                                    message(parser_e_ill_property_storage_sym);
@@ -666,7 +685,7 @@ implementation
                   end;
               end;
            end;
-         if has_implicit_default(p) then
+         if has_implicit_default(p) and not assigned(p.overriddenpropsym) then
            begin
               p.default:=0;
            end;
@@ -707,6 +726,8 @@ implementation
                       p.default:=0;
                     realconstn:
                       p.default:=longint(single(trealconstnode(pt).value_real));
+                    else if not codegenerror then
+                      internalerror(2019050525);
                   end;
                   pt.free;
                 end;
@@ -1452,7 +1473,7 @@ implementation
                  { Add calling convention for procvar }
                  if (hdef.typ=procvardef) and
                     (hdef.typesym=nil) then
-                   handle_calling_convention(tprocvardef(hdef));
+                   handle_calling_convention(tprocvardef(hdef),hcc_default_actions_intf);
                  read_default_value(sc);
                  hasdefaultvalue:=true;
                end
@@ -1470,7 +1491,7 @@ implementation
                  { Parse procvar directives after ; }
                  maybe_parse_proc_directives(hdef);
                  { Add calling convention for procvar }
-                 handle_calling_convention(tprocvardef(hdef));
+                 handle_calling_convention(tprocvardef(hdef),hcc_default_actions_intf);
                  { Handling of Delphi typed const = initialized vars }
                  if (token=_EQ) and
                     not(m_tp7 in current_settings.modeswitches) and
@@ -1538,19 +1559,59 @@ implementation
       end;
 
 
+    function check_allowed_for_var_or_const(def:tdef;allowdynarray:boolean):boolean;
+      var
+        stowner,tmpdef : tdef;
+        st : tsymtable;
+      begin
+        result:=true;
+        st:=symtablestack.top;
+        if not (st.symtabletype in [recordsymtable,objectsymtable]) then
+          exit;
+        stowner:=tdef(st.defowner);
+        while assigned(stowner) and (stowner.typ in [objectdef,recorddef]) do
+          begin
+            if def.typ=arraydef then
+              begin
+                tmpdef:=def;
+                while (tmpdef.typ=arraydef) do
+                  begin
+                    { dynamic arrays are allowed in certain cases }
+                    if allowdynarray and (ado_IsDynamicArray in tarraydef(tmpdef).arrayoptions) then
+                      begin
+                        tmpdef:=nil;
+                        break;
+                      end;
+                    tmpdef:=tarraydef(tmpdef).elementdef;
+                  end;
+              end
+            else
+              tmpdef:=def;
+            if assigned(tmpdef) and
+                (is_object(tmpdef) or is_record(tmpdef)) and
+                is_owned_by(tabstractrecorddef(stowner),tabstractrecorddef(tmpdef)) then
+              begin
+                Message1(type_e_type_is_not_completly_defined,tabstractrecorddef(tmpdef).RttiName);
+                result:=false;
+                break;
+              end;
+            stowner:=tdef(stowner.owner.defowner);
+          end;
+      end;
+
+
     procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc;out had_generic:boolean);
       var
          sc : TFPObjectList;
          i  : longint;
          hs,sorg : string;
-         hdef,casetype,tmpdef : tdef;
+         hdef,casetype : tdef;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
          maxsize, startvarrecsize : longint;
          usedalign,
          maxalignment,startvarrecalign,
          maxpadalign, startpadalign: shortint;
-         stowner : tdef;
          pt : tnode;
          fieldvs   : tfieldvarsym;
          hstaticvs : tstaticvarsym;
@@ -1641,35 +1702,9 @@ implementation
              { allow only static fields reference to struct where they are declared }
              if not (vd_class in options) then
                begin
-                 stowner:=tdef(recst.defowner);
-                 while assigned(stowner) and (stowner.typ in [objectdef,recorddef]) do
-                   begin
-                     if hdef.typ=arraydef then
-                       begin
-                         tmpdef:=hdef;
-                         while (tmpdef.typ=arraydef) do
-                           begin
-                             { dynamic arrays are allowed }
-                             if ado_IsDynamicArray in tarraydef(tmpdef).arrayoptions then
-                               begin
-                                 tmpdef:=nil;
-                                 break;
-                               end;
-                             tmpdef:=tarraydef(tmpdef).elementdef;
-                           end;
-                       end
-                     else
-                       tmpdef:=hdef;
-                     if assigned(tmpdef) and
-                         (is_object(tmpdef) or is_record(tmpdef)) and
-                         is_owned_by(tabstractrecorddef(stowner),tabstractrecorddef(tmpdef)) then
-                       begin
-                         Message1(type_e_type_is_not_completly_defined, tabstractrecorddef(tmpdef).RttiName);
-                         { for error recovery or compiler will crash later }
-                         hdef:=generrordef;
-                       end;
-                     stowner:=tdef(stowner.owner.defowner);
-                   end;
+                 if not check_allowed_for_var_or_const(hdef,true) then
+                   { for error recovery or compiler will crash later }
+                   hdef:=generrordef;
                end;
 
              { Process procvar directives }
@@ -1746,7 +1781,7 @@ implementation
              { Add calling convention for procvar }
              if (hdef.typ=procvardef) and
                 (hdef.typesym=nil) then
-               handle_calling_convention(tprocvardef(hdef));
+               handle_calling_convention(tprocvardef(hdef),hcc_default_actions_intf);
 
              if (vd_object in options) then
                begin
@@ -1785,6 +1820,8 @@ implementation
                      fieldvs:=tfieldvarsym(sc[i]);
                      fieldvs.visibility:=visibility;
                      hstaticvs:=make_field_static(recst,fieldvs);
+                     if vd_threadvar in options then
+                       include(hstaticvs.varoptions,vo_is_thread_var);
                      if not parse_generic then
                        cnodeutils.insertbssdata(hstaticvs);
                      if vd_final in options then

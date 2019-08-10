@@ -70,12 +70,12 @@ const
     class function characterSetWithCharactersInString(aString: NSString): id; message 'characterSetWithCharactersInString:';
     class function characterSetWithBitmapRepresentation(data: NSData): id; message 'characterSetWithBitmapRepresentation:';
     class function characterSetWithContentsOfFile(fName: NSString): id; message 'characterSetWithContentsOfFile:';
-    function characterIsMember(aCharacter: unichar): Boolean; message 'characterIsMember:';
+    function characterIsMember(aCharacter: unichar): BOOL; message 'characterIsMember:';
     function bitmapRepresentation: NSData; message 'bitmapRepresentation';
     function invertedSet: NSCharacterSet; message 'invertedSet';
-    function longCharacterIsMember(theLongChar: UTF32Char): Boolean; message 'longCharacterIsMember:';
-    function isSupersetOfSet(theOtherSet: NSCharacterSet): Boolean; message 'isSupersetOfSet:';
-    function hasMemberInPlane(thePlane: cuint8): Boolean; message 'hasMemberInPlane:';
+    function longCharacterIsMember(theLongChar: UTF32Char): BOOL; message 'longCharacterIsMember:';
+    function isSupersetOfSet(theOtherSet: NSCharacterSet): BOOL; message 'isSupersetOfSet:';
+    function hasMemberInPlane(thePlane: cuint8): BOOL; message 'hasMemberInPlane:';
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;

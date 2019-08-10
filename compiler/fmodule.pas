@@ -128,7 +128,9 @@ interface
         crc,
         interface_crc,
         indirect_crc  : cardinal;
-        flags         : cardinal;  { the PPU flags }
+        headerflags   : cardinal;  { the PPU header flags }
+        longversion   : cardinal;  { longer version than what fits in the ppu header }
+        moduleflags   : tmoduleflags; { ppu flags that do not need to be known by just reading the ppu header }
         islibrary     : boolean;  { if it is a library (win32 dll) }
         IsPackage     : boolean;
         moduleid      : longint;
@@ -167,7 +169,8 @@ interface
         loaded_from   : tmodule;
         _exports      : tlinkedlist;
         dllscannerinputlist : TFPHashList;
-        resourcefiles : TCmdStrList;
+        resourcefiles,
+        linkorderedsymbols : TCmdStrList;
         linkunitofiles,
         linkunitstaticlibs,
         linkunitsharedlibs,
@@ -562,6 +565,7 @@ implementation
         used_units:=TLinkedList.Create;
         dependent_units:=TLinkedList.Create;
         resourcefiles:=TCmdStrList.Create;
+        linkorderedsymbols:=TCmdStrList.Create;
         linkunitofiles:=TLinkContainer.Create;
         linkunitstaticlibs:=TLinkContainer.Create;
         linkunitsharedlibs:=TLinkContainer.Create;
@@ -574,7 +578,9 @@ implementation
         crc:=0;
         interface_crc:=0;
         indirect_crc:=0;
-        flags:=0;
+        headerflags:=0;
+        longversion:=0;
+        moduleflags:=[];
         scanner:=nil;
         unitmap:=nil;
         unitmapsize:=0;
@@ -681,6 +687,7 @@ implementation
         used_units.free;
         dependent_units.free;
         resourcefiles.Free;
+        linkorderedsymbols.Free;
         linkunitofiles.Free;
         linkunitstaticlibs.Free;
         linkunitsharedlibs.Free;
@@ -837,6 +844,8 @@ implementation
         dependent_units:=TLinkedList.Create;
         resourcefiles.Free;
         resourcefiles:=TCmdStrList.Create;
+        linkorderedsymbols.Free;
+        linkorderedsymbols:=TCmdStrList.Create;;
         pendingspecializations.free;
         pendingspecializations:=tfphashobjectlist.create(false);
         if assigned(waitingforunit) and
@@ -886,7 +895,9 @@ implementation
         crc:=0;
         interface_crc:=0;
         indirect_crc:=0;
-        flags:=0;
+        headerflags:=0;
+        longversion:=0;
+        moduleflags:=[];
         mainfilepos.line:=0;
         mainfilepos.column:=0;
         mainfilepos.fileindex:=0;
@@ -1061,7 +1072,7 @@ implementation
                   this is for units with an initialization/finalization }
                 if (unitmap[pu.u.moduleid].refs=0) and
                    pu.in_uses and
-                   ((pu.u.flags and (uf_init or uf_finalize))=0) then
+                   ((pu.u.moduleflags * [mf_init,mf_finalize])=[]) then
                   CGMessagePos2(pu.unitsym.fileinfo,sym_n_unit_not_used,pu.u.realmodulename^,realmodulename^);
               end;
             pu:=tused_unit(pu.next);

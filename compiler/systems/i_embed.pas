@@ -82,6 +82,9 @@ unit i_embed;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 4;
                 varalignmin     : 0;
@@ -146,6 +149,9 @@ unit i_embed;
                 procalign       : 1;
                 loopalign       : 1;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 1;
                 varalignmin     : 0;
@@ -210,6 +216,9 @@ unit i_embed;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 4;
                 varalignmin     : 0;
@@ -274,8 +283,11 @@ unit i_embed;
                 procalign       : 16;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
-                constalignmax   : 8;
+                constalignmax   : 16;
                 varalignmin     : 0;
                 varalignmax     : 16;
                 localalignmin   : 4;
@@ -338,8 +350,11 @@ unit i_embed;
                 procalign       : 16;
                 loopalign       : 8;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
-                constalignmax   : 8;
+                constalignmax   : 16;
                 varalignmin     : 0;
                 varalignmax     : 16;
                 localalignmin   : 4;
@@ -360,8 +375,14 @@ unit i_embed;
             system       : system_i8086_embedded;
             name         : 'Embedded';
             shortname    : 'embedded';
-            flags        : [tf_use_8_3,tf_smartlink_library,
-                            tf_no_objectfiles_when_smartlinking,tf_cld,
+            flags        : [tf_use_8_3,
+{$ifdef I8086_SMARTLINK_SECTIONS}
+                            tf_smartlink_sections,
+{$else I8086_SMARTLINK_SECTIONS}
+                            tf_smartlink_library,
+                            tf_no_objectfiles_when_smartlinking,
+{$endif I8086_SMARTLINK_SECTIONS}
+                            tf_cld,
                             tf_no_generic_stackcheck,tf_emit_stklen];
             cpu          : cpu_i8086;
             unit_env     : '';
@@ -407,6 +428,9 @@ unit i_embed;
                 procalign       : 1;
                 loopalign       : 1;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 2;
                 varalignmin     : 0;
@@ -471,6 +495,9 @@ unit i_embed;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 4;
                 varalignmin     : 0;

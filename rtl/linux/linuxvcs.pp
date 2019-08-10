@@ -82,9 +82,10 @@ end;
 procedure detect_linuxvcs;
 
 var f:text;
-    c:char;
-    pid,ppid,dummy:integer;
-    device:longint;
+    f_open : boolean;
+    c,pc:char;
+    pid,cpid,dummy:longint;
+    device:dword;
     s:string[15];
 
 begin
@@ -92,36 +93,62 @@ begin
    Commander. Idea from the C++ Turbo Vision project, credits go
    to Martynas Kunigelis <algikun@santaka.sc-uni.ktu.lt>.}
   pid:=fpgetpid;
+  f_open:=false;
+  {$push}
+  {$I-}
+  {$R-}
   repeat
+    cpid:=pid;
     str(pid,s);
     assign(f,'/proc/'+s+'/stat');
-    {$I-}
     reset(f);
-    {$I+}
     if ioresult<>0 then
-      break;
+      exit;
+    f_open:=true;
+    { from here we can discard I/O errors, as long as we avoid
+      infinite loops }
+    { first number is pid }
+    dummy:=0;
     read(f,dummy);
-    read(f,c);
+    if dummy<>pid then
+      exit;
+    { after comes the name of the binary within (), look for closing brace followed by space }
+    c:=#0;
+    repeat
+      pc:=c;
+      read(f,c);
+      if ioresult<>0 then
+        break;
+    until (pc=')') and (c=' ');
+    { now comes the state letter }
     repeat
       read(f,c);
+      if ioresult<>0 then
+        break;
     until c=' ';
-    repeat
-      read(f,c);
-    until c=' ';
-    ppid:=pid;
+    { parent pid }
+    pid:=-1;
     read(f,pid);
+    { process group }
     read(f,dummy);
+    { session }
     read(f,dummy);
+    { device number }
+    device:=0;
     read(f,device);
     close(f);
-    if device and $ffffffc0=$00000400 then {/dev/tty*}
+    f_open:=false;
+    if (device and $ffffffc0)=$00000400 then {/dev/tty*}
       begin
         vcs_device:=device and $3f;
         break;
       end;
-   until (device=0) {Not attached to a terminal, i.e. an xterm.}
+  until (device=0) {Not attached to a terminal, i.e. an xterm.}
       or (pid=-1)
-      or (ppid=pid);
+      or (cpid=pid);
+  if f_open then
+    close(f);
+  {$pop}
 end;
 
 begin

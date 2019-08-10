@@ -19,7 +19,7 @@
                            Threadvar support
 *****************************************************************************}
 
-
+{$ifndef FPC_SECTION_THREADVARS}
 type
   pltvInitEntry = ^ltvInitEntry;
   ppltvInitEntry = ^pltvInitEntry;
@@ -100,10 +100,12 @@ begin
       copy_unit_threadvars (tables[i]{$ifndef ver3_0}^{$endif});
   end;
 end;
+{$endif FPC_SECTION_THREADVARS}
 
 procedure InitThreadVars(RelocProc : TRelocateThreadVarHandler);
 
 begin
+{$ifndef FPC_SECTION_THREADVARS}
    { initialize threadvars }
    init_all_unit_threadvars;
    { allocate mem for main thread threadvars }
@@ -112,6 +114,8 @@ begin
    copy_all_unit_threadvars;
    { install threadvar handler }
    fpc_threadvar_relocate_proc:=RelocProc;
+{$endif FPC_SECTION_THREADVARS}
+
 {$ifdef FPC_HAS_FEATURE_HEAP}
 {$ifndef HAS_MEMORYMANAGER}
 {$ifndef FPC_NO_DEFAULT_HEAP}

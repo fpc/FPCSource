@@ -30,10 +30,6 @@ interface
       globtype,
       symconst,symtype,symbase,symdef,symsym;
 
-    { the JVM specs require that you add a default parameterless
-      constructor in case the programmer hasn't specified any }
-    procedure maybe_add_public_default_java_constructor(obj: tabstractrecorddef);
-
     { records are emulated via Java classes. They require a default constructor
       to initialise temps, a deep copy helper for assignments, and clone()
       to initialse dynamic arrays }
@@ -56,136 +52,9 @@ implementation
     verbose,globals,systems,
     fmodule,
     parabase,aasmdata,
-    pdecsub,ngenutil,pparautl,
+    ngenutil,pparautl,
     symtable,symcreat,defcmp,jvmdef,symcpu,nobj,
     defutil,paramgr;
-
-
-    { the JVM specs require that you add a default parameterless
-      constructor in case the programmer hasn't specified any }
-    procedure maybe_add_public_default_java_constructor(obj: tabstractrecorddef);
-      var
-        sym: tsym;
-        ps: tprocsym;
-        pd: tprocdef;
-        topowner: tdefentry;
-        i: longint;
-        sstate: tscannerstate;
-        needclassconstructor: boolean;
-      begin
-        ps:=nil;
-        { if there is at least one constructor for a class, do nothing (for
-           records, we'll always also need a parameterless constructor) }
-        if not is_javaclass(obj) or
-           not (oo_has_constructor in obj.objectoptions) then
-          begin
-            { check whether the parent has a parameterless constructor that we can
-              call (in case of a class; all records will derive from
-              java.lang.Object or a shim on top of that with a parameterless
-              constructor) }
-            if is_javaclass(obj) then
-              begin
-                pd:=nil;
-                { childof may not be assigned in case of a parser error }
-                if not assigned(tobjectdef(obj).childof) then
-                  exit;
-                sym:=tsym(tobjectdef(obj).childof.symtable.find('CREATE'));
-                if assigned(sym) and
-                   (sym.typ=procsym) then
-                  pd:=tprocsym(sym).find_bytype_parameterless(potype_constructor);
-                if not assigned(pd) then
-                  begin
-                    Message(sym_e_no_matching_inherited_parameterless_constructor);
-                    exit
-                  end;
-              end;
-            { we call all constructors CREATE, because they don't have a name in
-              Java and otherwise we can't determine whether multiple overloads
-              are created with the same parameters }
-            sym:=tsym(obj.symtable.find('CREATE'));
-            if assigned(sym) then
-              begin
-                { does another, non-procsym, symbol already exist with that name? }
-                if (sym.typ<>procsym) then
-                  begin
-                    Message1(sym_e_duplicate_id_create_java_constructor,sym.realname);
-                    exit;
-                  end;
-                ps:=tprocsym(sym);
-                { is there already a parameterless function/procedure create? }
-                pd:=ps.find_bytype_parameterless(potype_function);
-                if not assigned(pd) then
-                  pd:=ps.find_bytype_parameterless(potype_procedure);
-                if assigned(pd) then
-                  begin
-                    Message1(sym_e_duplicate_id_create_java_constructor,pd.fullprocname(false));
-                    exit;
-                  end;
-              end;
-            if not assigned(sym) then
-              begin
-                ps:=cprocsym.create('Create');
-                obj.symtable.insert(ps);
-              end;
-            { determine symtable level }
-            topowner:=obj;
-            while not(topowner.owner.symtabletype in [staticsymtable,globalsymtable]) do
-              topowner:=topowner.owner.defowner;
-            { create procdef }
-            pd:=cprocdef.create(topowner.owner.symtablelevel+1,true);
-            if df_generic in obj.defoptions then
-              include(pd.defoptions,df_generic);
-            { method of this objectdef }
-            pd.struct:=obj;
-            { associated procsym }
-            pd.procsym:=ps;
-            { constructor }
-            pd.proctypeoption:=potype_constructor;
-            { needs to be exported }
-            include(pd.procoptions,po_global);
-            { by default do not include this routine when looking for overloads }
-            include(pd.procoptions,po_ignore_for_overload_resolution);
-            { generate anonymous inherited call in the implementation }
-            pd.synthetickind:=tsk_anon_inherited;
-            { public }
-            pd.visibility:=vis_public;
-            { result type }
-            pd.returndef:=obj;
-            { calling convention, self, ... (not for advanced records, for those
-              this is handled later) }
-            if obj.typ=recorddef then
-              handle_calling_convention(pd,[hcc_check])
-            else
-              handle_calling_convention(pd,hcc_all);
-            { register forward declaration with procsym }
-            proc_add_definition(pd);
-          end;
-
-        { also add class constructor if class fields that need wrapping, and
-          if none was defined }
-        if obj.find_procdef_bytype(potype_class_constructor)=nil then
-          begin
-            needclassconstructor:=false;
-            for i:=0 to obj.symtable.symlist.count-1 do
-              begin
-                if (tsym(obj.symtable.symlist[i]).typ=staticvarsym) and
-                   jvmimplicitpointertype(tstaticvarsym(obj.symtable.symlist[i]).vardef) then
-                  begin
-                    needclassconstructor:=true;
-                    break;
-                  end;
-              end;
-            if needclassconstructor then
-              begin
-                replace_scanner('custom_class_constructor',sstate);
-                if str_parse_method_dec('constructor fpc_jvm_class_constructor;',potype_class_constructor,true,obj,pd) then
-                  pd.synthetickind:=tsk_empty
-                else
-                  internalerror(2011040501);
-                restore_scanner(sstate);
-              end;
-          end;
-      end;
 
 
     procedure add_java_default_record_methods_intf(def: trecorddef);
@@ -505,10 +374,8 @@ implementation
 
         { add a method to call the procvar using unwrapped arguments, which
           then wraps them and calls through to JLRMethod.invoke }
-        methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc));
+        methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc,''));
         finish_copied_procdef(methoddef,'invoke',pvclass.symtable,pvclass);
-        insert_self_and_vmt_para(methoddef);
-        insert_funcret_para(methoddef);
         methoddef.synthetickind:=tsk_jvm_procvar_invoke;
         methoddef.calcparas;
 
@@ -540,10 +407,8 @@ implementation
             { add a method prototype matching the procvar (like the invoke
               in the procvarclass itself) }
             symtablestack.push(pvintf.symtable);
-            methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc));
+            methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc,''));
             finish_copied_procdef(methoddef,name+'Callback',pvintf.symtable,pvintf);
-            insert_self_and_vmt_para(methoddef);
-            insert_funcret_para(methoddef);
             { can't be final/static/private/protected, and must be virtual
               since it's an interface method }
             methoddef.procoptions:=methoddef.procoptions-[po_staticmethod,po_finalmethod];
@@ -608,7 +473,7 @@ implementation
         { wrapper is part of the same symtable as the original procdef }
         symtablestack.push(pd.owner);
         { get a copy of the virtual class method }
-        wrapperpd:=tprocdef(pd.getcopy);
+        wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_normal_no_hidden,''));
         { this one is not virtual nor override }
         exclude(wrapperpd.procoptions,po_virtualmethod);
         exclude(wrapperpd.procoptions,po_overridingmethod);
@@ -639,8 +504,8 @@ implementation
         wrapperpd.synthetickind:=tsk_jvm_virtual_clmethod;
         wrapperpd.skpara:=pd;
         { also create procvar type that we can use in the implementation }
-        wrapperpv:=tcpuprocvardef(pd.getcopyas(procvardef,pc_normal));
-        wrapperpv.calcparas;
+        wrapperpv:=tcpuprocvardef(pd.getcopyas(procvardef,pc_normal_no_hidden,''));
+        handle_calling_convention(wrapperpv,hcc_default_actions_intf);
         { no use in creating a callback wrapper here, this procvar type isn't
           for public consumption }
         jvm_create_procvar_class_intern('__fpc_virtualclassmethod_pv_t'+wrapperpd.unique_id_str,wrapperpv,true);
@@ -667,7 +532,7 @@ implementation
         { wrapper is part of the same symtable as the original procdef }
         symtablestack.push(pd.owner);
         { get a copy of the constructor }
-        wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_bareproc));
+        wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_bareproc,''));
         { this one is a class method rather than a constructor }
         include(wrapperpd.procoptions,po_classmethod);
         wrapperpd.proctypeoption:=potype_function;
@@ -682,11 +547,6 @@ implementation
           in callnodes, we will have to replace the calls to virtual
           constructors with calls to the wrappers) }
         finish_copied_procdef(wrapperpd,pd.procsym.realname+'__fpcvirtconstrwrapper__',pd.owner,tabstractrecorddef(pd.owner.defowner));
-        { since it was a bare copy, insert the self parameter (we can't just
-          copy the vmt parameter from the constructor, that's different) }
-        insert_self_and_vmt_para(wrapperpd);
-        insert_funcret_para(wrapperpd);
-        wrapperpd.calcparas;
         { implementation: call through to the constructor
           Exception: if the current class is abstract, do not call the
             constructor, since abstract class cannot be constructed (and the

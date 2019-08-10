@@ -796,6 +796,7 @@ function SplitDateTimeStr(DateTimeStr: AnsiString; const FS: TFormatSettings; ou
 }
 const
   WhiteSpace = [#9,#10,#13,#32];
+  Space : String = #32; // String, to avoid error 'Cannot decide what overload to call'
 
 var
   p: Integer;
@@ -818,7 +819,7 @@ begin
     end;
   p:=1;
   //find separator
-  if (FS.DateSeparator<>#32) then
+  if Pos(Space,FS.DateSeparator)=0 then
     begin  
     while (p<Length(DateTimeStr)) and (not (DateTimeStr[p+1] in WhiteSpace)) do 
       Inc(p);

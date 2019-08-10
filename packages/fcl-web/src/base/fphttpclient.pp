@@ -41,6 +41,7 @@ Type
   TDataEvent   = Procedure (Sender : TObject; Const ContentLength, CurrentPos : Int64) of object;
   // Use this to set up a socket handler. UseSSL is true if protocol was https
   TGetSocketHandlerEvent = Procedure (Sender : TObject; Const UseSSL : Boolean; Out AHandler : TSocketHandler) of object;
+  TSocketHandlerCreatedEvent = Procedure (Sender : TObject; AHandler : TSocketHandler) of object;
 
   TFPCustomHTTPClient = Class;
 
@@ -80,6 +81,7 @@ Type
     FOnRedirect: TRedirectEvent;
     FPassword: String;
     FIOTimeout: Integer;
+    FConnectTimeout: Integer;
     FSentCookies,
     FCookies: TStrings;
     FHTTPVersion: String;
@@ -94,12 +96,14 @@ Type
     FTerminated: Boolean;
     FUserName: String;
     FOnGetSocketHandler : TGetSocketHandlerEvent;
+    FAfterSocketHandlerCreated : TSocketHandlerCreatedEvent;
     FProxy : TProxyData;
     function CheckContentLength: Int64;
     function CheckTransferEncoding: string;
     function GetCookies: TStrings;
     function GetProxy: TProxyData;
     Procedure ResetResponse;
+    procedure SetConnectTimeout(AValue: Integer);
     Procedure SetCookies(const AValue: TStrings);
     procedure SetHTTPVersion(const AValue: String);
     procedure SetKeepConnection(AValue: Boolean);
@@ -273,6 +277,7 @@ Type
   Protected
     // Timeouts
     Property IOTimeout : Integer read FIOTimeout write SetIOTimeout;
+    Property ConnectTimeout : Integer read FConnectTimeout write SetConnectTimeout;
     // Before request properties.
     // Additional headers for request. Host; and Authentication are automatically added.
     Property RequestHeaders : TStrings Read FRequestHeaders Write SetRequestHeaders;
@@ -323,7 +328,8 @@ Type
     Property OnHeaders : TNotifyEvent Read FOnHeaders Write FOnHeaders;
     // Called to create socket handler. If not set, or Nil is returned, a standard socket handler is created.
     Property OnGetSocketHandler : TGetSocketHandlerEvent Read FOnGetSocketHandler Write FOnGetSocketHandler;
-
+    // Called after create socket handler was created, with the created socket handler.
+    Property AfterSocketHandlerCreate : TSocketHandlerCreatedEvent Read FAfterSocketHandlerCreated Write FAfterSocketHandlerCreated;
   end;
 
 
@@ -332,6 +338,7 @@ Type
     Property KeepConnection;
     Property Connected;
     Property IOTimeout;
+    Property ConnectTimeout;
     Property RequestHeaders;
     Property RequestBody;
     Property ResponseHeaders;
@@ -358,9 +365,8 @@ Function EncodeURLElement(S : String) : String;
 Function DecodeURLElement(Const S : String) : String;
 
 implementation
-{$if not defined(hasamiga)}
+
 uses sslsockets;
-{$endif}
 
 resourcestring
   SErrInvalidProtocol = 'Invalid protocol : "%s"';
@@ -502,6 +508,12 @@ begin
     FSocket.IOTimeout:=AValue;
 end;
 
+procedure TFPCustomHTTPClient.SetConnectTimeout(AValue: Integer);
+begin
+  if FConnectTimeout = AValue then Exit;
+  FConnectTimeout := AValue;
+end;
+
 function TFPCustomHTTPClient.IsConnected: Boolean;
 begin
   Result := Assigned(FSocket);
@@ -577,12 +589,12 @@ begin
   if Assigned(FonGetSocketHandler) then
     FOnGetSocketHandler(Self,UseSSL,Result);
   if (Result=Nil) then
-  {$if not defined(HASAMIGA)}
     If UseSSL then
-      Result:=TSSLSocketHandler.Create
+      Result:=TSSLSocketHandler.GetDefaultHandler
     else
-  {$endif}  
       Result:=TSocketHandler.Create;
+  if Assigned(AfterSocketHandlerCreate) then
+    AfterSocketHandlerCreate(Self,Result);
 end;
 
 procedure TFPCustomHTTPClient.ConnectToServer(const AHost: String;
@@ -605,6 +617,8 @@ begin
   try
     if FIOTimeout<>0 then
       FSocket.IOTimeout:=FIOTimeout;
+    if FConnectTimeout<>0 then
+      FSocket.ConnectTimeout:=FConnectTimeout;
     FSocket.Connect;
   except
     FreeAndNil(FSocket);
@@ -1199,7 +1213,6 @@ Procedure TFPCustomHTTPClient.DoNormalRequest(const AURI: TURI;
   const AMethod: string; AStream: TStream;
   const AAllowedResponseCodes: array of Integer;
   AHeadersOnly, AIsHttps: Boolean);
-
 Var
   CHost: string;
   CPort: Word;
@@ -1220,7 +1233,6 @@ Procedure TFPCustomHTTPClient.DoKeepConnectionRequest(const AURI: TURI;
   const AMethod: string; AStream: TStream;
   const AAllowedResponseCodes: array of Integer;
   AHeadersOnly, AIsHttps: Boolean);
-
 Var
   T: Boolean;
   CHost: string;
@@ -1276,6 +1288,7 @@ begin
   inherited Create(AOwner);
   // Infinite timeout on most platforms
   FIOTimeout:=0;
+  FConnectTimeout:=3000;
   FRequestHeaders:=TStringList.Create;
   FRequestHeaders.NameValueSeparator:=':';
   FResponseHeaders:=TStringList.Create;
@@ -1361,12 +1374,11 @@ begin
   FBuffer:='';
 end;
 
-
 procedure TFPCustomHTTPClient.HTTPMethod(const AMethod, AURL: String;
   Stream: TStream; const AllowedResponseCodes: array of Integer);
 
 Var
-  M,L,NL : String;
+  M,L,NL,RNL : String;
   RC : Integer;
   RR : Boolean; // Repeat request ?
 
@@ -1389,17 +1401,22 @@ begin
         if (RC>MaxRedirects) then
           Raise EHTTPClient.CreateFmt(SErrMaxRedirectsReached,[RC]);
         NL:=GetHeader(FResponseHeaders,'Location');
-        if Not Assigned(FOnRedirect) then
-          L:=NL
-        else
+        if Assigned(FOnRedirect) then
           FOnRedirect(Self,L,NL);
+        if (not IsAbsoluteURI(NL)) and ResolveRelativeURI(L,NL,RNL) then
+          NL:=RNL;
         if (RedirectForcesGET(FResponseStatusCode)) then
           M:='GET';
-        L:=NL;
         // Request has saved cookies in sentcookies.
-        FreeAndNil(FCookies);
-        FCookies:=FSentCookies;
-        FSentCookies:=Nil;
+        if ParseURI(L).Host=ParseURI(NL).Host then
+          FreeAndNil(FSentCookies)
+        else
+          begin
+          FreeAndNil(FCookies);
+          FCookies:=FSentCookies;
+          FSentCookies:=Nil;
+          end;
+        L:=NL;
         end;
       end;
     if (FResponseStatusCode=401) then
@@ -1463,7 +1480,8 @@ begin
     301,
     302,
     303,
-    307,808 : Result:=True;
+    307,
+    308 : Result:=True;
   else
     Result:=False;
   end;

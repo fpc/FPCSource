@@ -170,6 +170,9 @@ unit cgobj;
              @param(cgpara where the parameter will be stored)
           }
           procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : TCGPara);virtual;
+         protected
+          procedure a_load_ref_cgparalocref(list: TAsmList; sourcesize: tcgsize; sizeleft: tcgint; const ref, paralocref: treference; const cgpara: tcgpara; const location: PCGParaLocation); virtual;
+         public
           {# Pass the value of a parameter, which can be located either in a register or memory location,
              to a routine.
 
@@ -437,6 +440,8 @@ unit cgobj;
 
           { initialize the pic/got register }
           procedure g_maybe_got_init(list: TAsmList); virtual;
+          { initialize the tls register if needed }
+          procedure g_maybe_tls_init(list : TAsmList); virtual;
           { allocallcpuregisters, a_call_name, deallocallcpuregisters sequence }
           procedure g_call(list: TAsmList; const s: string);
           { Generate code to exit an unwind-protected region. The default implementation
@@ -445,6 +450,10 @@ unit cgobj;
           { Generate code for integer division by constant,
             generic version is suitable for 3-address CPUs }
           procedure g_div_const_reg_reg(list:tasmlist; size: TCgSize; a: tcgint; src,dst: tregister); virtual;
+
+          { some CPUs do not support hardware fpu exceptions, this procedure is called after instructions which
+            might set FPU exception related flags, so it has to check these flags if needed and throw an exeception }
+          procedure g_check_for_fpu_exception(list: TAsmList); virtual;
 
          protected
           function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister;virtual;
@@ -1123,16 +1132,8 @@ implementation
                 end;
               LOC_REFERENCE,LOC_CREFERENCE:
                 begin
-                   if assigned(location^.next) then
-                     internalerror(2010052906);
-                   reference_reset_base(ref,location^.reference.index,location^.reference.offset,ctempposinvalid,newalignment(cgpara.alignment,cgpara.intsize-sizeleft),[]);
-                   if (size <> OS_NO) and
-                      (tcgsize2size[size] <= sizeof(aint)) then
-                     a_load_ref_ref(list,size,location^.size,tmpref,ref)
-                   else
-                     { use concatcopy, because the parameter can be larger than }
-                     { what the OS_* constants can handle                       }
-                     g_concatcopy(list,tmpref,ref,sizeleft);
+                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,ctempposinvalid,newalignment(cgpara.alignment,cgpara.intsize-sizeleft),[]);
+                  a_load_ref_cgparalocref(list,size,sizeleft,tmpref,ref,cgpara,location);
                 end;
               LOC_MMREGISTER,LOC_CMMREGISTER:
                 begin
@@ -1147,6 +1148,10 @@ implementation
                      else
                        internalerror(2010053101);
                    end;
+                end;
+              LOC_FPUREGISTER,LOC_CFPUREGISTER:
+                begin
+                  a_loadfpu_ref_reg(list,size,location^.size,tmpref,location^.register);
                 end
               else
                 internalerror(2010053111);
@@ -1156,6 +1161,19 @@ implementation
             location:=location^.next;
           end;
       end;
+
+    procedure tcg.a_load_ref_cgparalocref(list: TAsmList; sourcesize: tcgsize; sizeleft: tcgint; const ref, paralocref: treference; const cgpara: tcgpara; const location: PCGParaLocation);
+      begin
+        if assigned(location^.next) then
+          internalerror(2010052906);
+        if (sourcesize<>OS_NO) and
+           (tcgsize2size[sourcesize]<=sizeof(aint)) then
+           a_load_ref_ref(list,sourcesize,location^.size,ref,paralocref)
+        else
+          { use concatcopy, because the parameter can be larger than }
+          { what the OS_* constants can handle                       }
+          g_concatcopy(list,ref,paralocref,sizeleft);
+       end;
 
 
     procedure tcg.a_load_loc_cgpara(list : TAsmList;const l:tlocation;const cgpara : TCGPara);
@@ -1775,10 +1793,14 @@ implementation
                 a:=a and 15;
               OS_8,OS_S8:
                 a:=a and 7;
+              else
+                internalerror(2019050521);
             end;
             if a = 0 then
               op:=OP_NONE;
           end;
+        else
+          ;
         end;
       end;
 
@@ -1921,11 +1943,20 @@ implementation
     procedure tcg.a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference);
       var
         tmpreg : tregister;
+        tmpref : treference;
       begin
+        if assigned(ref.symbol) then
+          begin
+            tmpreg:=getaddressregister(list);
+            a_loadaddr_ref_reg(list,ref,tmpreg);
+            reference_reset_base(tmpref,tmpreg,0,ref.temppos,ref.alignment,[]);
+          end
+        else
+          tmpref:=ref;
         tmpreg:=getintregister(list,size);
-        a_load_ref_reg(list,size,size,ref,tmpreg);
+        a_load_ref_reg(list,size,size,tmpref,tmpreg);
         a_op_const_reg(list,op,size,a,tmpreg);
-        a_load_reg_ref(list,size,size,tmpreg,ref);
+        a_load_reg_ref(list,size,size,tmpreg,tmpref);
       end;
 
 
@@ -1945,9 +1976,18 @@ implementation
     procedure tcg.a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize;reg: TRegister;  const ref: TReference);
       var
         tmpreg : tregister;
+        tmpref : treference;
       begin
+        if assigned(ref.symbol) then
+          begin
+            tmpreg:=getaddressregister(list);
+            a_loadaddr_ref_reg(list,ref,tmpreg);
+            reference_reset_base(tmpref,tmpreg,0,ref.temppos,ref.alignment,[]);
+          end
+        else
+          tmpref:=ref;
         tmpreg:=getintregister(list,size);
-        a_load_ref_reg(list,size,size,ref,tmpreg);
+        a_load_ref_reg(list,size,size,tmpref,tmpreg);
         if op in [OP_NEG,OP_NOT] then
           begin
             if reg<>NR_NO then
@@ -1956,7 +1996,7 @@ implementation
           end
         else
           a_op_reg_reg(list,op,size,reg,tmpreg);
-        a_load_reg_ref(list,size,size,tmpreg,ref);
+        a_load_reg_ref(list,size,size,tmpreg,tmpref);
       end;
 
 
@@ -2087,6 +2127,8 @@ implementation
                     a_load_const_reg(list,OS_16,0,dst);
                     exit;
                   end;
+                else
+                  ;
               end;
           end;
         OP_SHR:
@@ -2099,9 +2141,13 @@ implementation
                     a_load_const_reg(list,OS_16,0,GetNextReg(dst));
                     exit;
                   end;
+                else
+                  ;
               end;
           end;
 {$endif cpu16bitalu}
+        else
+          ;
       end;
       a_load_reg_reg(list,size,size,src,dst);
       a_op_const_reg(list,op,size,a,dst);
@@ -2751,6 +2797,8 @@ implementation
               { a_load_ref_reg will turn this into a pic-load if needed }
               a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
             end;
+          else
+            ;
         end;
       end;
 
@@ -2758,6 +2806,12 @@ implementation
     procedure tcg.g_maybe_got_init(list: TAsmList);
       begin
       end;
+
+
+    procedure tcg.g_maybe_tls_init(list: TAsmList);
+      begin
+      end;
+
 
     procedure tcg.g_call(list: TAsmList;const s: string);
       begin
@@ -2873,6 +2927,12 @@ implementation
           end
         else
           InternalError(2014060601);
+      end;
+
+
+    procedure tcg.g_check_for_fpu_exception(list: TAsmList);
+      begin
+        { empty by default }
       end;
 
 

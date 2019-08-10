@@ -740,7 +740,7 @@ parser_e_not_external_and_export=03121_E_EXPORT et EXTERNAL sont incompatibles
 % These two procedure directives are mutually exclusive
 parser_e_name_keyword_expected=03122_E_Le mot r‚serv‚ NAME est requis ici
 % The definition of an external variable needs a \var{name} clause.
-parser_h_not_supported_for_inline=03123_H_$1 n'est pas support‚ pour des fonctions INLINE
+parser_n_not_supported_for_inline=03123_N_$1 n'est pas support‚ pour des fonctions INLINE
 % Inline procedures don't support this declaration.
 parser_h_inlining_disabled=03124_H_Inlining d‚sactiv‚
 % Inlining of procedures is disabled.

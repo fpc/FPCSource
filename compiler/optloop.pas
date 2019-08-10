@@ -74,9 +74,9 @@ unit optloop;
       end;
       preplaceinfo = ^treplaceinfo;
 
-    function checkbreakcontinue(var n:tnode; arg: pointer): foreachnoderesult;
+    function checkcontrollflowstatements(var n:tnode; arg: pointer): foreachnoderesult;
       begin
-        if n.nodetype in [breakn,continuen] then
+        if n.nodetype in [breakn,continuen,goton,labeln,exitn,raisen] then
           result:=fen_norecurse_true
         else
           result:=fen_false;
@@ -105,7 +105,7 @@ unit optloop;
         unrollblock : tblocknode;
         getridoffor : boolean;
         replaceinfo : treplaceinfo;
-        usesbreakcontinue : boolean;
+        hascontrollflowstatements : boolean;
       begin
         result:=nil;
         if (cs_opt_size in current_settings.optimizerswitches) then
@@ -118,7 +118,8 @@ unit optloop;
            { the address of the counter variable might be taken if it is passed by constref to a
              subroutine, so really check if it is not taken }
            ((tfornode(node).left.nodetype=loadn) and (tloadnode(tfornode(node).left).symtableentry is tabstractvarsym) and
-            not(tabstractvarsym(tloadnode(tfornode(node).left).symtableentry).addr_taken))
+            not(tabstractvarsym(tloadnode(tfornode(node).left).symtableentry).addr_taken) and
+            not(tabstractvarsym(tloadnode(tfornode(node).left).symtableentry).different_scope))
            ) then
           begin
             { number of executions known? }
@@ -129,7 +130,7 @@ unit optloop;
                 else
                   counts:=tordconstnode(tfornode(node).t1).value-tordconstnode(tfornode(node).right).value+1;
 
-                usesbreakcontinue:=foreachnodestatic(tfornode(node).t2,@checkbreakcontinue,nil);
+                hascontrollflowstatements:=foreachnodestatic(tfornode(node).t2,@checkcontrollflowstatements,nil);
 
                 { don't unroll more than we need,
 
@@ -143,7 +144,7 @@ unit optloop;
                 unrollblock:=internalstatements(unrollstatement);
 
                 { can we get rid completly of the for ? }
-                getridoffor:=(unrolls=counts) and not(usesbreakcontinue) and
+                getridoffor:=(unrolls=counts) and not(hascontrollflowstatements) and
                   { TP/Macpas allows assignments to the for-variables, so we cannot get rid of the for }
                   ([m_tp7,m_mac]*current_settings.modeswitches=[]);
 
@@ -274,6 +275,8 @@ unit optloop;
             end;
           typeconvn:
             result:=is_loop_invariant(loop,ttypeconvnode(expr).left);
+          else
+            ;
         end;
       end;
 
@@ -453,6 +456,8 @@ unit optloop;
                   result:=fen_norecurse_false;
                 end;
             end;
+          else
+            ;
         end;
       end;
 

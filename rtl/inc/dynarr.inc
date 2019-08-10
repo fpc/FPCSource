@@ -88,7 +88,7 @@ procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_D
     if realp^.refcount=0 then
       HandleErrorAddrFrameInd(204,get_pc_addr,get_frame);
 
-    if declocked(realp^.refcount) then
+    if (realp^.refcount>0) and declocked(realp^.refcount) then
       begin
 {$ifdef VER3_0}
         ti:=aligntoptr(ti+2+PByte(ti)[1]);
@@ -115,9 +115,9 @@ procedure fpc_dynarray_incr_ref(p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_RE
 
      realp:=pdynarray(p-sizeof(tdynarray));
      if realp^.refcount=0 then
-       HandleErrorAddrFrameInd(204,get_pc_addr,get_frame);
-
-     inclocked(realp^.refcount);
+       HandleErrorAddrFrameInd(204,get_pc_addr,get_frame)
+     else if realp^.refcount>0 then
+       inclocked(realp^.refcount);
   end;
 
 { provide local access to dynarr_decr_ref for dynarr_setlength }
@@ -193,11 +193,11 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
             exit;
           getmem(newp,size);
           fillchar(newp^,size,0);
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
           { call int_InitializeArray for management operators }
           if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject]) then
             int_InitializeArray(pointer(newp)+sizeof(tdynarray), eletype, dims[0]);
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
           updatep := true;
        end
      else
@@ -270,12 +270,12 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                          reallocmem(realp,size);
                          fillchar((pointer(realp)+sizeof(tdynarray)+elesize*(realp^.high+1))^,
                            (dims[0]-realp^.high-1)*elesize,0);
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
                          { call int_InitializeArray for management operators }
                          if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject]) then
                            int_InitializeArray(pointer(realp)+sizeof(tdynarray)+elesize*(realp^.high+1),
                              eletype, dims[0]-realp^.high-1);
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
                       end;
                     newp := realp;
                     updatep := true;
@@ -401,7 +401,11 @@ procedure fpc_dynarray_delete(var p : pointer;source,count : SizeInt;pti : point
        end;
 
      { skip kind and name }
+{$ifdef VER3_0}
+     ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
+{$else VER3_0}
      ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$endif VER3_0}
 
      elesize:=pdynarraytypedata(ti)^.elSize;
      eletype:=pdynarraytypedata(ti)^.elType2^;
@@ -498,7 +502,11 @@ procedure fpc_dynarray_insert(var p : pointer;source : SizeInt;data : pointer;co
       source:=0;
 
     { skip kind and name }
-    ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$ifdef VER3_0}
+     ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
+{$else VER3_0}
+     ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$endif VER3_0}
 
     elesize:=pdynarraytypedata(ti)^.elSize;
     eletype:=pdynarraytypedata(ti)^.elType2^;
@@ -622,7 +630,11 @@ procedure fpc_dynarray_concat_multi(var dest : pointer; pti: pointer; const sarr
       end;
 
     { skip kind and name }
-    ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$ifdef VER3_0}
+     ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
+{$else VER3_0}
+     ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$endif VER3_0}
 
     elesize:=pdynarraytypedata(ti)^.elSize;
 
@@ -690,7 +702,11 @@ procedure fpc_dynarray_concat(var dest : pointer; pti: pointer; const src1,src2 
       end;
 
     { skip kind and name }
-    ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$ifdef VER3_0}
+     ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
+{$else VER3_0}
+     ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$endif VER3_0}
 
     elesize:=pdynarraytypedata(ti)^.elSize;
 
@@ -820,7 +836,11 @@ function DynArrayIndex(a: Pointer; const indices: array of SizeInt; typeInfo: Po
         a := PPointerArray(a)^[indices[i]];
 
       { skip kind and name }
-      typeInfo:=(typeInfo+2+PByte(typeInfo)[1]);
+{$ifdef VER3_0}
+      typeInfo:=aligntoptr(Pointer(typeInfo)+2+PByte(typeInfo)[1]);
+{$else VER3_0}
+      typeInfo:=aligntoqword(Pointer(typeInfo)+2+PByte(typeInfo)[1]);
+{$endif VER3_0}
       { store the last element size for the index calculation }
       elsize:=pdynarraytypedata(typeInfo)^.elSize;
       { element type info}
@@ -835,7 +855,11 @@ function DynArrayIndex(a: Pointer; const indices: array of SizeInt; typeInfo: Po
     end;
 
     { skip kind and name }
-    typeInfo:=(typeInfo+2+PByte(typeInfo)[1]);
+{$ifdef VER3_0}
+      typeInfo:=aligntoptr(Pointer(typeInfo)+2+PByte(typeInfo)[1]);
+{$else VER3_0}
+      typeInfo:=aligntoqword(Pointer(typeInfo)+2+PByte(typeInfo)[1]);
+{$endif VER3_0}
 
     result:=@(PByte(a)[indices[h]*elsize]);
   end;

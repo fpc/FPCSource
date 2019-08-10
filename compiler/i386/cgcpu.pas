@@ -261,10 +261,6 @@ unit cgcpu;
                                 reference_reset_symbol(tmpref,dirref.symbol,0,sizeof(pint),[]);
                                 tmpref.refaddr:=addr_pic;
                                 tmpref.base:=current_procinfo.got;
-{$ifdef EXTDEBUG}
-				if not (pi_needs_got in current_procinfo.flags) then
-				  Comment(V_warning,'pi_needs_got not included');
-{$endif EXTDEBUG}
                                 include(current_procinfo.flags,pi_needs_got);
                                 list.concat(taicpu.op_ref(A_PUSH,S_L,tmpref));
                               end
@@ -517,6 +513,8 @@ unit cgcpu;
           S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
           S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
           S_L : list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
+          else
+            internalerror(2019050901);
         end;
         ungetcpuregister(list,NR_EDI);
         ungetcpuregister(list,NR_ECX);
@@ -548,7 +546,10 @@ unit cgcpu;
             if not (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
               begin
                 { Use ECX as a temp register by default }
-                tmpreg:=NR_ECX;
+                if current_procinfo.got = NR_EBX then
+                  tmpreg:=NR_EBX
+                else
+                  tmpreg:=NR_ECX;
                 { Allocate registers used for parameters to make sure they
                   never allocated during this PIC init code }
                 for i:=0 to current_procinfo.procdef.paras.Count - 1 do
@@ -873,6 +874,8 @@ unit cgcpu;
               cg.ungetcpuregister(list,NR_ECX);
               exit;
             end;
+          else
+            ;
         end;
         get_64bit_ops(op,op1,op2);
         if op in [OP_ADD,OP_SUB] then
@@ -940,6 +943,8 @@ unit cgcpu;
                           list.concat(taicpu.op_const_reg(A_RCR,S_L,value,reg.reglo));
                           cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
+                      else
+                        internalerror(2019050902);
                     end
                   else if value>31 then
                     case op of
@@ -1053,6 +1058,8 @@ unit cgcpu;
                           list.concat(taicpu.op_const_ref(A_RCR,S_L,value,tempref));
                           cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
+                      else
+                        internalerror(2019050901);
                     end
                   else if value>31 then
                     case op of

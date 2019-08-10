@@ -45,7 +45,7 @@
   public
     function entity: NSEntityDescription; message 'entity';
     function persistentStore: NSPersistentStore; message 'persistentStore';
-    function isTemporaryID: Boolean; message 'isTemporaryID';
+    function isTemporaryID: BOOL; message 'isTemporaryID';
     function URIRepresentation: NSURL; message 'URIRepresentation';
 
     { Adopted Protocols }

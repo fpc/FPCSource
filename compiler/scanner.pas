@@ -234,7 +234,7 @@ interface
          spacefound,
          eolfound : boolean;
          constructor create(const fn:string);
-         destructor  destroy;
+         destructor  destroy; override;
          procedure Add(const s:string);
          procedure AddSpace;
        end;
@@ -521,12 +521,17 @@ implementation
 
            HandleModeSwitches(m_none,changeinit);
 
-           { turn on bitpacking for mode macpas and iso pascal as well as extended pascal }
+           { turn on bitpacking and case checking for mode macpas and iso pascal,
+             as well as extended pascal }
            if ([m_mac,m_iso,m_extpas] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.localswitches,cs_bitpacking);
+               include(current_settings.localswitches,cs_check_all_case_coverage);
                if changeinit then
-                 include(init_settings.localswitches,cs_bitpacking);
+                 begin
+                   include(init_settings.localswitches,cs_bitpacking);
+                   include(init_settings.localswitches,cs_check_all_case_coverage);
+                 end;
              end;
 
            { support goto/label by default in delphi/tp7/mac/iso/extpas modes }
@@ -572,13 +577,15 @@ implementation
            { Default to intel assembler for delphi/tp7 on i386/i8086 }
            if (m_delphi in current_settings.modeswitches) or
               (m_tp7 in current_settings.modeswitches) then
+             begin
 {$ifdef i8086}
-             current_settings.asmmode:=asmmode_i8086_intel;
+               current_settings.asmmode:=asmmode_i8086_intel;
 {$else i8086}
-             current_settings.asmmode:=asmmode_i386_intel;
+               current_settings.asmmode:=asmmode_i386_intel;
 {$endif i8086}
-           if changeinit then
-             init_settings.asmmode:=current_settings.asmmode;
+               if changeinit then
+                 init_settings.asmmode:=current_settings.asmmode;
+             end;
 {$endif i386 or i8086}
 
            { Exception support explicitly turned on (mainly for macpas, to }
@@ -925,7 +932,7 @@ type
         that we use the base types instead of the cpu-specific ones. }
       sintdef:=torddef.create(s64bit,low(int64),high(int64),false);
       uintdef:=torddef.create(u64bit,low(qword),high(qword),false);
-      booldef:=torddef.create(pasbool8,0,1,false);
+      booldef:=torddef.create(pasbool1,0,1,false);
       strdef:=tstringdef.createansi(0,false);
       setdef:=tsetdef.create(sintdef,0,255,false);
       realdef:=tfloatdef.create(s80real,false);
@@ -1481,7 +1488,9 @@ type
                               tokentoconsume:=_STRING;
                             end;
                         end
-                      end;
+                      else
+                        ;
+                    end;
                   end
                 else
                   begin
@@ -1994,6 +2003,8 @@ type
                                     result.free;
                                     result:=texprvalue.create_int(tenumsym(srsym).value);
                                   end;
+                                else
+                                  ;
                               end;
                           end
                         end
@@ -2524,6 +2535,9 @@ type
               if (not found) then
                found:=findincludefile(path,ChangeFileExt(name,pasext),foundfile);
             end;
+           { if the name ends in dot, try without the dot }
+           if (not found) and (ExtractFileExt(name)=ExtensionSeparator) and (Length(name)>=2) then
+             found:=findincludefile(path,Copy(name,1,Length(name)-1),foundfile);
            if current_scanner.inputfilecount<max_include_nesting then
              begin
                inc(current_scanner.inputfilecount);
@@ -2558,6 +2572,7 @@ type
 {$ifdef PREPROCWRITE}
     constructor tpreprocfile.create(const fn:string);
       begin
+        inherited create;
       { open outputfile }
         assign(f,fn);
         {$push}{$I-}
@@ -3039,6 +3054,9 @@ type
             alignment.procalign:=tokenreadlongint;
             alignment.loopalign:=tokenreadlongint;
             alignment.jumpalign:=tokenreadlongint;
+            alignment.jumpalignskipmax:=tokenreadlongint;
+            alignment.coalescealign:=tokenreadlongint;
+            alignment.coalescealignskipmax:=tokenreadlongint;
             alignment.constalignmin:=tokenreadlongint;
             alignment.constalignmax:=tokenreadlongint;
             alignment.varalignmin:=tokenreadlongint;
@@ -3079,6 +3097,8 @@ type
             minfpconstprec:=tfloattype(tokenreadenum(sizeof(tfloattype)));
 
             disabledircache:=boolean(tokenreadbyte);
+
+            tlsmodel:=ttlsmodel(tokenreadenum(sizeof(ttlsmodel)));
 { TH: Since the field was conditional originally, it was not stored in PPUs.  }
 { While adding ControllerSupport constant, I decided not to store ct_none     }
 { on targets not supporting controllers, but this might be changed here and   }
@@ -3119,6 +3139,9 @@ type
             tokenwritelongint(alignment.procalign);
             tokenwritelongint(alignment.loopalign);
             tokenwritelongint(alignment.jumpalign);
+            tokenwritelongint(alignment.jumpalignskipmax);
+            tokenwritelongint(alignment.coalescealign);
+            tokenwritelongint(alignment.coalescealignskipmax);
             tokenwritelongint(alignment.constalignmin);
             tokenwritelongint(alignment.constalignmax);
             tokenwritelongint(alignment.varalignmin);
@@ -3157,6 +3180,9 @@ type
             tokenwriteenum(minfpconstprec,sizeof(tfloattype));
 
             recordtokenbuf.write(byte(disabledircache),1);
+
+            tokenwriteenum(tlsmodel,sizeof(tlsmodel));
+
 { TH: See note about controllertype field in tokenreadsettings. }
 {$PUSH}
  {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
@@ -3301,6 +3327,8 @@ type
               recordtokenbuf.write(orgpattern[0],1);
               recordtokenbuf.write(orgpattern[1],length(orgpattern));
             end;
+          else
+            ;
         end;
       end;
 
@@ -3468,11 +3496,11 @@ type
                         current_tokenpos.fileindex:=tokenreadword;
                         current_filepos:=current_tokenpos;
                       end;
-                    else
-                      internalerror(2006103010);
                   end;
                 continue;
               end;
+            else
+              ;
           end;
           break;
         until false;
@@ -3817,14 +3845,14 @@ type
         valuedescr: String;
       begin
         if assigned(preprocstack) and
-           (preprocstack.typ in [pp_if,pp_elseif]) then
+           (preprocstack.typ in [pp_if,pp_ifdef,pp_ifndef,pp_elseif]) then
          begin
            { when the branch is accepted we use pp_elseif so we know that
              all the next branches need to be rejected. when this branch is still
              not accepted then leave it at pp_if }
            if (preprocstack.typ=pp_elseif) then
              preprocstack.accept:=false
-           else if (preprocstack.typ=pp_if) and preprocstack.accept then
+           else if (preprocstack.typ in [pp_if,pp_ifdef,pp_ifndef]) and preprocstack.accept then
                begin
                  preprocstack.accept:=false;
                  preprocstack.typ:=pp_elseif;
@@ -3920,11 +3948,14 @@ type
 {$ifdef PREPROCWRITE}
          if parapreprocess then
           begin
-            t:=Get_Directive(hs);
-            if not(is_conditional(t) or (t=_DIR_DEFINE) or (t=_DIR_UNDEF)) then
+            if not (m_mac in current_settings.modeswitches) then
+              t:=tdirectiveitem(turbo_scannerdirectives.Find(hs))
+            else
+              t:=tdirectiveitem(mac_scannerdirectives.Find(hs));
+            if assigned(t) and not(t.is_conditional) then
              begin
-               preprocfile^.AddSpace;
-               preprocfile^.Add('{$'+hs+current_scanner.readcomment+'}');
+               preprocfile.AddSpace;
+               preprocfile.Add('{$'+hs+current_scanner.readcomment+'}');
                exit;
              end;
           end;
@@ -5118,7 +5149,7 @@ type
                              begin
                                readchar; { read leading $ }
                                asciinr:='$';
-                               while (upcase(c) in ['A'..'F','0'..'9']) and (length(asciinr)<=5) do
+                               while (upcase(c) in ['A'..'F','0'..'9']) and (length(asciinr)<=7) do
                                  begin
                                    asciinr:=asciinr+c;
                                    readchar;
@@ -5128,7 +5159,7 @@ type
                              begin
                                readchar; { read leading $ }
                                asciinr:='&';
-                               while (upcase(c) in ['0'..'7']) and (length(asciinr)<=7) do
+                               while (upcase(c) in ['0'..'7']) and (length(asciinr)<=8) do
                                  begin
                                    asciinr:=asciinr+c;
                                    readchar;
@@ -5138,7 +5169,7 @@ type
                              begin
                                readchar; { read leading $ }
                                asciinr:='%';
-                               while (upcase(c) in ['0','1']) and (length(asciinr)<=17) do
+                               while (upcase(c) in ['0','1']) and (length(asciinr)<=22) do
                                  begin
                                    asciinr:=asciinr+c;
                                    readchar;
@@ -5147,7 +5178,7 @@ type
                            else
                              begin
                                asciinr:='';
-                               while (c in ['0'..'9']) and (length(asciinr)<=5) do
+                               while (c in ['0'..'9']) and (length(asciinr)<=8) do
                                  begin
                                    asciinr:=asciinr+c;
                                    readchar;
@@ -5159,7 +5190,7 @@ type
                            Message(scan_e_illegal_char_const)
                          else if (m<0) or (m>255) or (length(asciinr)>3) then
                            begin
-                              if (m>=0) and (m<=65535) then
+                              if (m>=0) and (m<=$10FFFF) then
                                 begin
                                   if not iswidestring then
                                    begin
@@ -5170,7 +5201,15 @@ type
                                      iswidestring:=true;
                                      len:=0;
                                    end;
-                                  concatwidestringchar(patternw,tcompilerwidechar(m));
+                                  if m<=$FFFF then
+                                    concatwidestringchar(patternw,tcompilerwidechar(m))
+                                  else
+                                    begin
+                                      { split into surrogate pair }
+                                      dec(m,$10000);
+                                      concatwidestringchar(patternw,tcompilerwidechar((m shr 10) + $D800));
+                                      concatwidestringchar(patternw,tcompilerwidechar((m and $3FF) + $DC00));
+                                    end;
                                 end
                               else
                                 Message(scan_e_illegal_char_const)

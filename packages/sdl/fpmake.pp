@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     P.Dependencies.Add('x11',AllUnixOSes);
@@ -24,7 +24,7 @@ begin
     P.Dependencies.Add('morphunits',[morphos]);
     if Defaults.CPU=arm then
        P.OSes := P.OSes - [darwin];
-    P.OSes := P.OSes - [iphonesim,os2,emx,go32v2,watcom,nativent,embedded,android,amiga,aros,msdos,gba,nds,win16,atari,macos,palmos,wii];
+    P.OSes := P.OSes - [iphonesim,java,os2,emx,go32v2,watcom,netware,netwlibc,nativent,embedded,android,amiga,aros,msdos,gba,nds,win16,atari,macos,palmos,symbian,wii];
 
     T:=P.Targets.AddUnit('logger.pas');
       with T.Dependencies do

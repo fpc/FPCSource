@@ -180,10 +180,11 @@ type
 
   { TTestExpressionWriter }
 
-  TTestExpressionWriter= class(TTestJSWriter)
+  TTestExpressionWriter = class(TTestJSWriter)
   Protected
     Procedure TestUnary(Const Msg : String; AClass : TJSUnaryClass; Result : String);
-    Procedure TestBinary(Const Msg : String; AClass : TJSBinaryClass; Result : String;ACompact : Boolean);
+    Procedure TestBinary(Const Msg : String; AClass : TJSBinaryClass; Result : String; ACompact : Boolean);
+    Procedure TestBinaryNested(Const Msg : String; AClass : TJSBinaryClass; Result : String; ACompact : Boolean);
   Published
     Procedure TestIdent;
     Procedure TestThis;
@@ -201,8 +202,10 @@ type
     Procedure TestPostMinusMinus;
     Procedure TestBinaryLogicalOr;
     Procedure TestBinaryLogicalOrCompact;
+    Procedure TestBinaryLogicalOrNested;
     Procedure TestBinaryLogicalAnd;
     Procedure TestBinaryLogicalAndCompact;
+    Procedure TestBinaryLogicalAndNested;
     Procedure TestBinaryBitwiseOr;
     Procedure TestBinaryBitwiseOrCompact;
     Procedure TestBinaryBitwiseAnd;
@@ -237,10 +240,13 @@ type
     Procedure TestBinaryURShiftOfCompact;
     Procedure TestBinaryPlus;
     Procedure TestBinaryPlusCompact;
+    Procedure TestBinaryPlusNested;
     Procedure TestBinaryMinus;
     Procedure TestBinaryMinusCompact;
+    Procedure TestBinaryMinusNested;
     Procedure TestBinaryMultiply;
     Procedure TestBinaryMultiplyCompact;
+    Procedure TestBinaryMultiplyNested;
     Procedure TestBinaryDivide;
     Procedure TestBinaryDivideCompact;
     Procedure TestBinaryMod;
@@ -288,6 +294,23 @@ begin
   U:=AClass.Create(0,0);
   U.A:=CreateIdent('a');
   U.B:=CreateIdent('b');
+  AssertWrite(Msg,Result,U);
+end;
+
+procedure TTestExpressionWriter.TestBinaryNested(const Msg: String;
+  AClass: TJSBinaryClass; Result: String; ACompact: Boolean);
+var
+  U: TJSBinary;
+begin
+  if ACompact then
+    Writer.Options:=Writer.Options+[woCompact];
+  U:=AClass.Create(0,0);
+  U.A:=AClass.Create(0,0);
+  TJSBinary(U.A).A:=CreateIdent('a');
+  TJSBinary(U.A).B:=CreateIdent('b');
+  U.B:=AClass.Create(0,0);
+  TJSBinary(U.B).A:=CreateIdent('c');
+  TJSBinary(U.B).B:=CreateIdent('d');
   AssertWrite(Msg,Result,U);
 end;
 
@@ -373,6 +396,11 @@ begin
   TestBinary('logical or',TJSLogicalOrExpression,'(a||b)',True);
 end;
 
+procedure TTestExpressionWriter.TestBinaryLogicalOrNested;
+begin
+  TestBinaryNested('logical or',TJSLogicalOrExpression,'(a||b||c||d)',True);
+end;
+
 procedure TTestExpressionWriter.TestBinaryLogicalAnd;
 begin
   TestBinary('logical or',TJSLogicalAndExpression,'(a && b)',False);
@@ -381,6 +409,11 @@ end;
 procedure TTestExpressionWriter.TestBinaryLogicalAndCompact;
 begin
   TestBinary('logical or',TJSLogicalAndExpression,'(a&&b)',True);
+end;
+
+procedure TTestExpressionWriter.TestBinaryLogicalAndNested;
+begin
+  TestBinaryNested('logical and',TJSLogicalAndExpression,'(a&&b&&c&&d)',True);
 end;
 
 procedure TTestExpressionWriter.TestBinaryBitwiseOr;
@@ -553,6 +586,11 @@ begin
   TestBinary('A plus B',TJSAdditiveExpressionPlus,'(a+b)',True);
 end;
 
+procedure TTestExpressionWriter.TestBinaryPlusNested;
+begin
+  TestBinaryNested('(A+B)+(C+D)',TJSAdditiveExpressionPlus,'(a+b+(c+d))',True);
+end;
+
 procedure TTestExpressionWriter.TestBinaryMinus;
 begin
   TestBinary('A minus B',TJSAdditiveExpressionMinus,'(a - b)',False);
@@ -563,6 +601,11 @@ begin
   TestBinary('A minus B',TJSAdditiveExpressionMinus,'(a-b)',True);
 end;
 
+procedure TTestExpressionWriter.TestBinaryMinusNested;
+begin
+  TestBinaryNested('(A-B)-(C-D)',TJSAdditiveExpressionMinus,'(a-b-(c-d))',True);
+end;
+
 procedure TTestExpressionWriter.TestBinaryMultiply;
 begin
   TestBinary('A multiply B',TJSMultiplicativeExpressionMul,'(a * b)',False);
@@ -571,6 +614,11 @@ end;
 procedure TTestExpressionWriter.TestBinaryMultiplyCompact;
 begin
   TestBinary('A multiply B',TJSMultiplicativeExpressionMul,'(a*b)',True);
+end;
+
+procedure TTestExpressionWriter.TestBinaryMultiplyNested;
+begin
+  TestBinaryNested('(A*B)*(C*D)',TJSMultiplicativeExpressionMul,'(a*b*(c*d))',True);
 end;
 
 procedure TTestExpressionWriter.TestBinaryDivide;
@@ -2594,7 +2642,7 @@ Var
   S : AnsiString;
   p: Integer;
 begin
-  S:=FTextWriter.AsAnsistring;
+  S:=FTextWriter.AsString;
   if S=Result then exit;
   p:=1;
   while (p<=length(S)) and (p<=length(Result)) and (S[p]=Result[p]) do inc(p);

@@ -42,6 +42,10 @@ Procedure Dispose (P : TypedPointer; Des : TProcedure);
 Procedure Exclude (Var S : TSetType; E : TSetElement);
 Procedure Exit(Const X : TAnyType);
 Procedure Exit;
+Procedure Delete(var S : String; Const Index, Count : Integer);
+Procedure Delete(var A : DynArrayType; Const Index, Count : Integer);
+Procedure Insert(Const source: string; var S : String; Const Index : Integer);
+Procedure Insert(Const source: DynaArrayType; var S : DynArrayType; Const Index : Integer);
 Function High (Arg: TypeOrVariable) : TOrdinal;
 Procedure Inc (Var X : TOrdinal);
 Procedure Inc (Var X : TOrdinal; Increment : TOrdinal);
@@ -86,6 +90,7 @@ Procedure UnPack(Const Z : PackedArrayType; Out A : UnpackedArrayType; StartInde
 Function Slice(Const A : ArrayType; ACount : Integer) : ArrayType2;
 Function Default(Const T : AnyType) : AnyType;
 Function TypeInfo(Const T : AnyType) : Pointer;
+Function GetTypeKind(Const T : AnyType) : TTypeKind;
 Procedure Fail;
 Function TypeOf(T : TObjectType) : Pointer;
 Procedure Initialize(Var T : TAnyType; ACount : SizeInt = 1);

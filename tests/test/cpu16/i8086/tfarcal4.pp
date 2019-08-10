@@ -18,6 +18,7 @@
 program tfarcal4;
 
 {$F-}
+{$hugecode off}
 
 uses
   dos;

@@ -63,6 +63,13 @@ end;
 end;
 {$define implemented}   
 {$endif cpuaarch64}
+{$ifdef cpuriscv64}
+.L1:
+  auipc a0,%pcrel_hi(stacksize)
+  ld a0, %pcrel_lo(.L1)(a0)
+end;
+{$define implemented}
+{$endif cpuriscv64}
 {$ifndef implemented}
  {$error This test does not supported this CPU}
 end;

@@ -379,11 +379,13 @@
 
       class function TObject.InitInstance(instance : pointer) : tobject; {$ifdef SYSTEMINLINE} inline; {$ENDIF}
 
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
         var
            vmt  : PVmt;
-           temp : pointer;
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+           inittable : pointer;
+           mopinittable : PRTTIRecordOpOffsetTable;
+           i : longint;
+{$endif VER3_0}
         begin
            { the size is saved at offset 0 }
            fillchar(instance^, InstanceSize, 0);
@@ -393,19 +395,27 @@
            if {$ifdef VER3_0}PVmt(self)^.vIntfTable <> @emptyintf{$else}assigned(PVmt(self)^.vIntfTable){$endif} then
              InitInterfacePointers(self,instance);
 
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
            { for management operators like initialize call int_initialize }
            vmt := PVmt(self);
-           while vmt<>nil do
+           if assigned(vmt) then
              begin
-               Temp:= vmt^.vInitTable;
-               { The RTTI format matches one for records, except the type is tkClass.
-                 Since RecordRTTI does not check the type, calling it yields the desired result. }
-               if Assigned(Temp) then
-                 RecordRTTI(Instance,Temp,@int_initialize);
-               vmt:= vmt^.vParent;
+               inittable:=vmt^.vInitTable;
+               if assigned(inittable) then
+                 begin
+                   mopinittable:=RTTIRecordMopInitTable(inittable);
+                   if assigned(mopinittable) then
+                     begin
+                       {$push}
+                       { ensure that no range check errors pop up with the [0..0] array }
+                       {$R-}
+                       for i:=0 to mopinittable^.Count-1 do
+                         TRTTIRecVarOp(mopinittable^.Entries[i].ManagmentOperator)(PByte(Instance)+mopinittable^.Entries[i].FieldOffset);
+                       {$pop}
+                     end;
+                 end;
              end;
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
 
            InitInstance:=TObject(Instance);
         end;

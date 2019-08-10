@@ -178,9 +178,21 @@ begin
 {$ifdef m68k}
       LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/m68k-linux-gnu',true);
 {$endif m68k}
+{$ifdef mipsel}
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/mipsel-linux-gnu',true);
+{$endif mipsel}
+{$ifdef mips}
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/mips-linux-gnu',true);
+{$endif mips}
 {$ifdef sparc64}
       LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/sparc64-linux-gnu',true);
 {$endif sparc64}
+{$ifdef riscv32}
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/riscv32-linux-gnu',true);
+{$endif riscv32}
+{$ifdef riscv64}
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/riscv64-linux-gnu',true);
+{$endif riscv64}
     end;
 end;
 
@@ -233,6 +245,13 @@ const defdynlinker='/lib/ld-linux-aarch64.so.1';
 {$ifdef sparc64}
   const defdynlinker='/lib64/ld-linux.so.2';
 {$endif sparc64}
+
+{$ifdef riscv32}
+  const defdynlinker='/lib32/ld.so.1';
+{$endif riscv32}
+{$ifdef riscv64}
+  const defdynlinker='/lib/ld-linux-riscv64-lp64d.so.1';
+{$endif riscv64}
 
 
 procedure SetupDynlinker(out DynamicLinker:string;out libctype:TLibcType);
@@ -338,6 +357,8 @@ const
                    platform_select='-EB';
   {$endif}
 {$endif}
+{$ifdef riscv32}   platform_select='';{$endif} {unknown :( }
+{$ifdef riscv64}   platform_select='';{$endif} {unknown :( }
 
 var
   platformopt: string;
@@ -352,8 +373,8 @@ begin
 {$endif powerpc64}
   with Info do
    begin
-     ExeCmd[1]:='ld '+platform_select+platformopt+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE';
-     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE';
+     ExeCmd[1]:='ld '+platform_select+platformopt+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE';
+     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME $MAP -shared $GCSECTIONS -L. -o $EXE';
      { when we want to cross-link we need to override default library paths;
        when targeting binutils 2.19 or later, we use the "INSERT" command to
        augment the default linkerscript, which also requires -T (normally that
@@ -368,7 +389,7 @@ begin
      DllCmd[1]:=DllCmd[1]+' $RES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
      ExtDbgCmd[1]:='objcopy --only-keep-debug $EXE $DBG';
-     ExtDbgCmd[2]:='objcopy --add-gnu-debuglink=$DBG $EXE';
+     ExtDbgCmd[2]:='objcopy "--add-gnu-debuglink=$DBGX" $EXE';
      ExtDbgCmd[3]:='strip --strip-unneeded $EXE';
 
      SetupDynlinker(DynamicLinker,libctype);
@@ -1354,7 +1375,8 @@ function TLinkerLinux.MakeExecutable:boolean;
 var
   i : longint;
   binstr,
-  cmdstr  : TCmdStr;
+  cmdstr,
+  mapstr : TCmdStr;
   success : boolean;
   DynLinkStr : string;
   GCSectionsStr,
@@ -1369,13 +1391,14 @@ begin
   StripStr:='';
   GCSectionsStr:='';
   DynLinkStr:='';
+  mapstr:='';
   if (cs_link_staticflag in current_settings.globalswitches) then
    StaticStr:='-static';
   if (cs_link_strip in current_settings.globalswitches) and
      not(cs_link_separate_dbg_file in current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in current_settings.globalswitches) then
-   StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+   mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
   if (cs_link_smart in current_settings.globalswitches) and
      create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
@@ -1401,6 +1424,7 @@ begin
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
+  Replace(cmdstr,'$MAP',mapstr);
 
   { create dynamic symbol table? }
   if HasExports then
@@ -1416,6 +1440,7 @@ begin
           SplitBinCmd(Info.ExtDbgCmd[i],binstr,cmdstr);
           Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
           Replace(cmdstr,'$DBGFN',maybequoted(extractfilename(current_module.dbgfilename)));
+          Replace(cmdstr,'$DBGX',current_module.dbgfilename);
           Replace(cmdstr,'$DBG',maybequoted(current_module.dbgfilename));
           success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
           if not success then
@@ -1435,14 +1460,22 @@ Function TLinkerLinux.MakeSharedLibrary:boolean;
 var
   InitStr,
   FiniStr,
+  GCSectionsStr,
   SoNameStr : string[80];
   binstr,
-  cmdstr  : TCmdStr;
+  cmdstr,
+  mapstr : TCmdStr;
   success : boolean;
 begin
   MakeSharedLibrary:=false;
+  mapstr:='';
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename);
+  if (cs_link_smart in current_settings.globalswitches) and
+     create_smartlink_sections then
+   GCSectionsStr:='--gc-sections'
+  else
+    GCSectionsStr:='';
 
 { Write used files and libraries }
   WriteResponseFile(true);
@@ -1452,6 +1485,8 @@ begin
   InitStr:='-init FPC_SHARED_LIB_START';
   FiniStr:='-fini FPC_LIB_EXIT';
   SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename);
+  if (cs_link_map in current_settings.globalswitches) then
+     mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
 
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
@@ -1461,6 +1496,8 @@ begin
   Replace(cmdstr,'$INIT',InitStr);
   Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
+  Replace(cmdstr,'$MAP',mapstr);
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
 
 { Strip the library ? }
@@ -1877,5 +1914,15 @@ initialization
   RegisterTarget(system_mipseb_linux_info);
 {$endif MIPSEL}
 {$endif MIPS}
+{$ifdef riscv32}
+  RegisterImport(system_riscv32_linux,timportliblinux);
+  RegisterExport(system_riscv32_linux,texportliblinux);
+  RegisterTarget(system_riscv32_linux_info);
+{$endif riscv32}
+{$ifdef riscv64}
+  RegisterImport(system_riscv64_linux,timportliblinux);
+  RegisterExport(system_riscv64_linux,texportliblinux);
+  RegisterTarget(system_riscv64_linux_info);
+{$endif riscv64}
   RegisterRes(res_elf_info,TWinLikeResourceFile);
 end.

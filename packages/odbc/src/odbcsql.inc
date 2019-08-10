@@ -1919,7 +1919,7 @@ begin
     Result.sign:=0;
     c := -c;
   end;
-  n := NtoLE(int64(c));
+  n := NtoLE(Trunc(c*10000));
   for i:=0 to high(Result.val) do begin
     Result.val[i] := n and $ff;
     n := n shr 8;

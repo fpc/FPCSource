@@ -66,6 +66,8 @@ function tllvmloadnode.pass_1: tnode;
           if assigned(left) then
             expectloc:=LOC_REFERENCE;
         end;
+      else
+        ;
     end;
   end;
 
@@ -90,7 +92,7 @@ procedure tllvmloadnode.pass_generate_code;
             (resultdef.typ in [symconst.procdef,procvardef]) and
              not tabstractprocdef(resultdef).is_addressonly then
             begin
-              pvdef:=tprocvardef(procdef.getcopyas(procvardef,pc_normal));
+              pvdef:=tprocvardef(procdef.getcopyas(procvardef,pc_normal,''));
               { on little endian, location.register contains proc and
                 location.registerhi contains self; on big endian, it's the
                 other way around }
@@ -124,7 +126,7 @@ procedure tllvmloadnode.pass_generate_code;
       labelsym:
         begin
           selfreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidcodepointertype);
-          ai:=taillvm.blockaddress(
+          ai:=taillvm.blockaddress(voidcodepointertype,
               current_asmdata.RefAsmSymbol(current_procinfo.procdef.mangledname,AT_FUNCTION),
               location.reference.symbol
             );
@@ -133,6 +135,8 @@ procedure tllvmloadnode.pass_generate_code;
           );
           reference_reset_base(location.reference,selfreg,0,ctempposinvalid,location.reference.alignment,location.reference.volatility);
         end;
+      else
+        ;
     end;
   end;
 

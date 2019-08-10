@@ -446,11 +446,15 @@ interface
         IF_SSSE3,
         IF_SSE41,
         IF_SSE42,
+        IF_MOVBE,
+        IF_CLMUL,
         IF_AVX,
         IF_AVX2,
         IF_AVX512,
         IF_BMI1,
         IF_BMI2,
+        { Intel ADX (Multi-Precision Add-Carry Instruction Extensions) }
+        IF_ADX,
         IF_16BITONLY,
         IF_FMA,
         IF_FMA4,
@@ -536,9 +540,6 @@ interface
 
       { alignment for operator }
       tai_align = class(tai_align_abstract)
-         reg       : tregister;
-         constructor create(b:byte);override;
-         constructor create_op(b: byte; _op: byte);override;
          function calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;override;
       end;
 
@@ -886,20 +887,6 @@ implementation
 {****************************************************************************
                               TAI_ALIGN
  ****************************************************************************}
-
-    constructor tai_align.create(b: byte);
-      begin
-        inherited create(b);
-        reg:=NR_ECX;
-      end;
-
-
-    constructor tai_align.create_op(b: byte; _op: byte);
-      begin
-        inherited create_op(b,_op);
-        reg:=NR_NO;
-      end;
-
 
     function tai_align.calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;
       const
@@ -1619,6 +1606,8 @@ implementation
                        csiMem16: ot := ot and (not(OT_SIZE_MASK)) or OT_IMMEDIATE or OT_BITS16;
                        csiMem32: ot := ot and (not(OT_SIZE_MASK)) or OT_IMMEDIATE or OT_BITS32;
                        csiMem64: ot := ot and (not(OT_SIZE_MASK)) or OT_IMMEDIATE or OT_BITS64;
+                       else
+                         ;
                     end;
                   end
                   else
@@ -1812,6 +1801,8 @@ implementation
                    OT_XMMRM: insot := insot or OT_BITS128;
                    OT_YMMRM: insot := insot or OT_BITS256;
                    OT_ZMMRM: insot := insot or OT_BITS512;
+                   else
+                     ;
                  end;
                end;
              end;
@@ -2127,6 +2118,8 @@ implementation
             begin
               case aIsEVEXW1 of
                 false: if aIsVector512 then tuplesize := 32;
+                else
+                  Internalerror(2019081003);
               end;
             end
             else if IF_THVM in aInsEntry^.Flags then
@@ -2380,7 +2373,10 @@ implementation
             { Switching index to base position gives shorter assembler instructions.
               Converting index*2 to base+index also gives shorter instructions. }
             if (ref.base=NR_NO) and (ref.index<>NR_NO) and (ref.scalefactor<=2) and
-               (ss_equals_ds or (ref.segment<>NR_NO) or (ref.index<>NR_EBP)) then
+               (ss_equals_ds or (ref.segment<>NR_NO) or (ref.index<>NR_EBP))
+               { do not mess with tls references, they have the (,reg,1) format on purpose
+                 else the linker cannot resolve/replace them }
+               {$ifdef i386} and (ref.refaddr<>addr_tlsgd) {$endif i386} then
               begin
                 ref.base:=ref.index;
                 if ref.scalefactor=2 then
@@ -2498,6 +2494,8 @@ implementation
             //    rexbit = 1 => MMRegister 8..15 or 24..31
             if (getsupreg(r) and $08) = $08 then
               result:=result or $47;
+          else
+            ;
         end;
       end;
 
@@ -2958,7 +2956,7 @@ implementation
     function process_ea_ref_16(const input:toper;out output:ea;rfield:longint; uselargeoffset: boolean):boolean;
       var
         sym   : tasmsymbol;
-        md,s,rv  : byte;
+        md,s  : byte;
         base,
         o     : longint;
         ir,br : Tregister;
@@ -3816,6 +3814,8 @@ implementation
                                    needed_VSIB := true;
                                  end;
                                end;
+                      else
+                        Internalerror(2019081004);
                     end;
 
 
@@ -4597,7 +4597,6 @@ implementation
     procedure build_spilling_operation_type_table;
       var
         opcode : tasmop;
-        i      : integer;
       begin
         new(operation_type_table);
         fillchar(operation_type_table^,sizeof(toperation_type_table),byte(operand_read));

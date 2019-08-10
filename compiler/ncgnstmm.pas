@@ -40,9 +40,9 @@ implementation
     uses
       systems,
       cutils,cclasses,verbose,globals,constexp,
-      symconst,symdef,symsym,symtable,symcreat,defutil,paramgr,
+      symconst,symdef,symsym,symtable,defutil,procdefutil,pparautl,symcreat,
       aasmbase,aasmtai,aasmdata,
-      procinfo,pass_2,parabase,
+      procinfo,pass_2,parabase,paramgr,
       pass_1,ncnv,nmem,nld,ncon,nadd,nutils,
       cgutils,cgobj,hlcgobj,
       tgobj,ncgutil,objcgutl
@@ -60,10 +60,15 @@ implementation
         nextpi      : tprocinfo;
       begin
         result:=inherited;
-        if assigned(result) then
+        if assigned(result) or
+           (assigned(current_procinfo) and
+            (df_generic in current_procinfo.procdef.defoptions)) then
           exit;
         currpi:=current_procinfo.parent;
-        while (currpi.procdef.parast.symtablelevel>=parentpd.parast.symtablelevel) do
+        { current_procinfo.parent is not assigned for specialised generic routines in the
+          top-level scope }
+        while assigned(currpi) and
+              (currpi.procdef.parast.symtablelevel>=parentpd.parast.symtablelevel) do
           begin
             if not assigned(currpi.procdef.parentfpstruct) then
               build_parentfpstruct(currpi.procdef);
@@ -72,13 +77,17 @@ implementation
         { mark all parent parentfp parameters for inclusion in the struct that
           holds all locals accessed from nested routines }
         currpi:=current_procinfo.parent;
-        nextpi:=currpi.parent;
-        while (currpi.procdef.parast.symtablelevel>parentpd.parast.symtablelevel) do
+        if assigned(currpi) then
           begin
-            hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
-            maybe_add_sym_to_parentfpstruct(currpi.procdef,hsym,nextpi.procdef.parentfpstructptrtype,false);
-            currpi:=nextpi;
-            nextpi:=nextpi.parent;
+            nextpi:=currpi.parent;
+            while assigned(currpi) and
+                  (currpi.procdef.parast.symtablelevel>parentpd.parast.symtablelevel) do
+              begin
+                hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
+                maybe_add_sym_to_parentfpstruct(currpi.procdef,hsym,nextpi.procdef.parentfpstructptrtype,false);
+                currpi:=nextpi;
+                nextpi:=nextpi.parent;
+              end;
           end;
       end;
 

@@ -274,6 +274,8 @@ implementation
                               A_UNPCKLPD,
                               A_UNPCKLPS :
                                 replaceoper:=-1;
+                              else
+                                ;
                             end;
                           end;
                         1 :
@@ -406,6 +408,8 @@ implementation
                         opcode:=A_VMOVSS;
                       A_VMOVAPD:
                         opcode:=A_VMOVSD;
+                      else
+                        ;
                     end;
                   end;
                 result:=true;

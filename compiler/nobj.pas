@@ -60,7 +60,8 @@ implementation
        globals,verbose,systems,
        node,
        symbase,symtable,symconst,symtype,symcpu,
-       defcmp;
+       defcmp,
+       pparautl;
 
 
 {*****************************************************************************
@@ -511,6 +512,7 @@ implementation
         hclass : tobjectdef;
         hashedid : THashedIDString;
         srsym      : tsym;
+        overload: boolean;
       begin
         result:=nil;
         hashedid.id:=name;
@@ -519,11 +521,16 @@ implementation
           begin
             srsym:=tsym(hclass.symtable.FindWithHash(hashedid));
             if assigned(srsym) and
-               (srsym.typ=procsym) then
+               (srsym.typ=procsym) and
+               ((hclass=_class) or
+                is_visible_for_object(srsym,_class)) then
               begin
+                overload:=false;
                 for i:=0 to Tprocsym(srsym).ProcdefList.Count-1 do
                   begin
                     implprocdef:=tprocdef(tprocsym(srsym).ProcdefList[i]);
+                    if po_overload in implprocdef.procoptions then
+                      overload:=true;
                     if (implprocdef.procsym=tprocsym(srsym)) and
                        (compare_paras(proc.paras,implprocdef.paras,cp_all,[cpo_ignorehidden,cpo_ignoreuniv])>=te_equal) and
                        (compare_defs(proc.returndef,implprocdef.returndef,nothingn)>=te_equal) and
@@ -544,6 +551,10 @@ implementation
                         exit;
                       end;
                   end;
+                { like with normal procdef resolution (in htypechk), stop if
+                  we encounter a proc without the overload directive }
+                if not overload then
+                  exit;
               end;
             hclass:=hclass.childof;
           end;
@@ -912,6 +923,7 @@ implementation
                   add_new_vmt_entry(tprocdef(def),overridesclasshelper);
               end;
           end;
+        insert_struct_hidden_paras(_class);
         build_interface_mappings;
         if assigned(_class.ImplementedInterfaces) and
            not(is_objc_class_or_protocol(_class)) and

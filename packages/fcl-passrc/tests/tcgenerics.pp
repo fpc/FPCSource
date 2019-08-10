@@ -16,13 +16,19 @@ Type
     Procedure TestObjectGenerics;
     Procedure TestRecordGenerics;
     Procedure TestArrayGenerics;
+    Procedure TestGenericConstraint;
+    Procedure TestGenericInterfaceConstraint; // ToDo
+    Procedure TestDeclarationConstraint;
     Procedure TestSpecializationDelphi;
     Procedure TestDeclarationDelphi;
     Procedure TestDeclarationDelphiSpecialize;
+    Procedure TestDeclarationFPC;
     Procedure TestMethodImplementation;
     Procedure TestInlineSpecializationInArgument;
     Procedure TestSpecializeNested;
     Procedure TestInlineSpecializeInStatement;
+    Procedure TestInlineSpecializeInStatementDelphi;
+    Procedure TestGenericFunction;
   end;
 
 implementation
@@ -58,6 +64,63 @@ begin
   ParseDeclarations;
 end;
 
+procedure TTestGenerics.TestGenericConstraint;
+begin
+  Add([
+    'Type',
+    'Generic TSomeClass<T: TObject> = class',
+    '  b : T;',
+    'end;',
+    'Generic TBird<T: class> = class',
+    '  c : TBird<T>;',
+    'end;',
+    'Generic TEagle<T: record> = class',
+    'end;',
+    'Generic TEagle<T: constructor> = class',
+    'end;',
+    '']);
+  ParseDeclarations;
+end;
+
+procedure TTestGenerics.TestGenericInterfaceConstraint;
+begin
+  Add([
+    'Type',
+    'TIntfA = interface end;',
+    'TIntfB = interface end;',
+    'TBird = class(TInterfacedObject,TIntfA,TIntfB) end;',
+    'Generic TAnt<T: TIntfA, TIntfB> = class',
+    '  b: T;',
+    '  c: TAnt<T>;',
+    'end;',
+    'Generic TFly<T: TIntfA, TIntfB; S> = class',
+    '  b: S;',
+    '  c: TFly<T>;',
+    'end;',
+    '']);
+  ParseDeclarations;
+end;
+
+procedure TTestGenerics.TestDeclarationConstraint;
+Var
+  T : TPasClassType;
+begin
+  Scanner.CurrentModeSwitches:=[msDelphi]+Scanner.CurrentModeSwitches ;
+  Source.Add('Type');
+  Source.Add('  TSomeClass<T: T2> = Class(TObject)');
+  Source.Add('    b : T;');
+  Source.Add('  end;');
+  ParseDeclarations;
+  AssertNotNull('have generic definition',Declarations.Classes);
+  AssertEquals('have generic definition',1,Declarations.Classes.Count);
+  AssertEquals('Pascal class',TPasClassType,TObject(Declarations.Classes[0]).ClassType);
+  T:=TPasClassType(Declarations.Classes[0]);
+  AssertNotNull('have generic templates',T.GenericTemplateTypes);
+  AssertEquals('1 template types',1,T.GenericTemplateTypes.Count);
+  AssertSame('Parent 0 is class',T,TPasElement(T.GenericTemplateTypes[0]).Parent);
+  AssertEquals('Type constraint is recorded','T2',TPasGenericTemplateType(T.GenericTemplateTypes[0]).TypeConstraint);
+end;
+
 procedure TTestGenerics.TestSpecializationDelphi;
 begin
   ParseType('TFPGList<integer>',TPasSpecializeType,'');
@@ -70,9 +133,9 @@ begin
   Scanner.CurrentModeSwitches:=[msDelphi]+Scanner.CurrentModeSwitches ;
   Source.Add('Type');
   Source.Add('  TSomeClass<T,T2> = Class(TObject)');
-  Source.Add('  b : T;');
-  Source.Add('  b2 : T2;');
-  Source.Add('end;');
+  Source.Add('    b : T;');
+  Source.Add('    b2 : T2;');
+  Source.Add('  end;');
   ParseDeclarations;
   AssertNotNull('have generic definition',Declarations.Classes);
   AssertEquals('have generic definition',1,Declarations.Classes.Count);
@@ -91,15 +154,36 @@ begin
   Scanner.CurrentModeSwitches:=[msDelphi]+Scanner.CurrentModeSwitches ;
   Source.Add('Type');
   Source.Add('  TSomeClass<T,T2> = Class(TSomeGeneric<Integer,Integer>)');
-  Source.Add('  b : T;');
-  Source.Add('  b2 : T2;');
-  Source.Add('end;');
+  Source.Add('    b : T;');
+  Source.Add('    b2 : T2;');
+  Source.Add('  end;');
   ParseDeclarations;
   AssertNotNull('have generic definition',Declarations.Classes);
   AssertEquals('have generic definition',1,Declarations.Classes.Count);
   AssertEquals('Pascal class',TPasClassType,TObject(Declarations.Classes[0]).ClassType);
   T:=TPasClassType(Declarations.Classes[0]);
   AssertEquals('Name is correct','TSomeClass',T.Name);
+  AssertNotNull('have generic templates',T.GenericTemplateTypes);
+  AssertEquals('2 template types',2,T.GenericTemplateTypes.Count);
+  AssertSame('Parent 0 is class',T,TPasElement(T.GenericTemplateTypes[0]).Parent);
+  AssertSame('Parent 1 is class',T,TPasElement(T.GenericTemplateTypes[1]).Parent);
+end;
+
+procedure TTestGenerics.TestDeclarationFPC;
+Var
+  T : TPasClassType;
+begin
+  Scanner.CurrentModeSwitches:=[msDelphi]+Scanner.CurrentModeSwitches;
+  Source.Add('Type');
+  Source.Add('  TSomeClass<T;T2> = Class(TObject)');
+  Source.Add('    b : T;');
+  Source.Add('    b2 : T2;');
+  Source.Add('  end;');
+  ParseDeclarations;
+  AssertNotNull('have generic definition',Declarations.Classes);
+  AssertEquals('have generic definition',1,Declarations.Classes.Count);
+  AssertEquals('Pascal class',TPasClassType,TObject(Declarations.Classes[0]).ClassType);
+  T:=TPasClassType(Declarations.Classes[0]);
   AssertNotNull('have generic templates',T.GenericTemplateTypes);
   AssertEquals('2 template types',2,T.GenericTemplateTypes.Count);
   AssertSame('Parent 0 is class',T,TPasElement(T.GenericTemplateTypes[0]).Parent);
@@ -154,9 +238,34 @@ procedure TTestGenerics.TestInlineSpecializeInStatement;
 begin
   Add([
   'begin',
+  '  t:=specialize a<b>;',
+  '  t:=a.specialize b<c>;',
+  '']);
+  ParseModule;
+end;
+
+procedure TTestGenerics.TestInlineSpecializeInStatementDelphi;
+begin
+  Add([
+  'begin',
   '  vec:=TVector<double>.create;',
   '  b:=a<b;',
   '  t:=a<b.c<d,e.f>>;',
+  '  t:=a.b<c>;',
+  '  t:=a<b>.c;',
+  // forbidden:'  t:=a<b<c>.d>;',
+  '']);
+  ParseModule;
+end;
+
+procedure TTestGenerics.TestGenericFunction;
+begin
+  Add([
+  'generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inline; overload;',
+  'begin',
+  'end;',
+  'begin',
+  '  specialize IfThen<word>(true,2,3);',
   '']);
   ParseModule;
 end;

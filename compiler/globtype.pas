@@ -87,6 +87,14 @@ interface
        AIntBits = 8;
 {$endif cpu8bitalu}
 
+     { Maximum possible size of locals space (stack frame) }
+     Const
+{$if defined(cpu16bitaddr)}
+       MaxLocalsSize = High(PUint);
+{$else}
+       MaxLocalsSize = High(longint) - 15;
+{$endif}
+
      Type
        PAWord = ^AWord;
        PAInt = ^AInt;
@@ -123,6 +131,12 @@ interface
            0 : (bytes:array[0..7] of byte);
            1 : (value:double);
        end;
+       { Use a variant record to be sure that the array if aligned correctly }
+       tcompsinglerec=record
+         case byte of
+           0 : (bytes:array[0..3] of byte);
+           1 : (value:single);
+       end;
        tcompextendedrec=record
          case byte of
            0 : (bytes:array[0..9] of byte);
@@ -142,6 +156,8 @@ interface
          cs_full_boolean_eval,cs_typed_const_writable,cs_allow_enum_calc,
          cs_do_inline,cs_fpu_fwait,cs_ieee_errors,
          cs_check_low_addr_load,cs_imported_data,
+         cs_excessprecision,cs_check_fpu_exceptions,
+         cs_check_all_case_coverage,
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }
@@ -333,6 +349,33 @@ interface
        );
        twpoptimizerswitches = set of twpoptimizerswitch;
 
+       { module flags (extra unit flags not in ppu header) }
+       tmoduleflag = (
+         mf_init,                     { unit has initialization section }
+         mf_finalize,                 { unit has finalization section   }
+         mf_checkpointer_called,      { Unit uses experimental checkpointer test code }
+         mf_has_resourcestrings,      { unit has resource string section }
+         mf_release,                  { unit was compiled with -Ur option }
+         mf_threadvars,               { unit has threadvars }
+         mf_has_stabs_debuginfo,      { this unit has stabs debuginfo generated }
+         mf_local_symtable,           { this unit has a local symtable stored }
+         mf_uses_variants,            { this unit uses variants }
+         mf_has_resourcefiles,        { this unit has external resources (using $R directive)}
+         mf_has_exports,              { this module or a used unit has exports }
+         mf_has_dwarf_debuginfo,      { this unit has dwarf debuginfo generated }
+         mf_wideinits,                { this unit has winlike widestring typed constants }
+         mf_classinits,               { this unit has class constructors/destructors }
+         mf_resstrinits,              { this unit has string consts referencing resourcestrings }
+         mf_i8086_far_code,           { this unit uses an i8086 memory model with far code (i.e. medium, large or huge) }
+         mf_i8086_far_data,           { this unit uses an i8086 memory model with far data (i.e. compact or large) }
+         mf_i8086_huge_data,          { this unit uses an i8086 memory model with huge data (i.e. huge) }
+         mf_i8086_cs_equals_ds,       { this unit uses an i8086 memory model with CS=DS (i.e. tiny) }
+         mf_i8086_ss_equals_ds,       { this unit uses an i8086 memory model with SS=DS (i.e. tiny, small or medium) }
+         mf_package_deny,             { this unit must not be part of a package }
+         mf_package_weak              { this unit may be completely contained in a package }
+       );
+       tmoduleflags = set of tmoduleflag;
+
     type
        ttargetswitchinfo = record
           name: string[22];
@@ -377,7 +420,7 @@ interface
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1,cs_opt_peephole];
        genericlevel2optimizerswitches = [cs_opt_level2,cs_opt_remove_emtpy_proc];
-       genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate,cs_opt_nodedfa,cs_opt_use_load_modify_store,cs_opt_loopunroll];
+       genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate,cs_opt_nodedfa{$ifndef llvm},cs_opt_use_load_modify_store{$endif},cs_opt_loopunroll];
        genericlevel4optimizerswitches = [cs_opt_level4,cs_opt_reorder_fields,cs_opt_dead_values,cs_opt_fastmath];
 
        { whole program optimizations whose information generation requires
@@ -438,7 +481,10 @@ interface
          m_blocks,              { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
          m_isolike_io,          { I/O as it required by an ISO compatible compiler }
          m_isolike_program_para, { program parameters as it required by an ISO compatible compiler }
-         m_isolike_mod          { mod operation as it is required by an iso compatible compiler }
+         m_isolike_mod,         { mod operation as it is required by an iso compatible compiler }
+         m_array_operators,     { use Delphi compatible array operators instead of custom ones ("+") }
+         m_multi_helpers,       { helpers can appear in multiple scopes simultaneously }
+         m_array2dynarray       { regular arrays can be implicitly converted to dynamic arrays }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -570,7 +616,7 @@ interface
            'Interrupt',
            'HardFloat',
            'SysV_ABI_Default',
-           'MS_ABI_CDecl', { TODO: Is this correct? Shouldn't it be SysV_ABI_Default }
+           'SysV_ABI_CDecl',
            'MS_ABI_Default',
            'MS_ABI_CDecl',
            'VectorCall'
@@ -626,7 +672,10 @@ interface
          'CBLOCKS',
          'ISOIO',
          'ISOPROGRAMPARAS',
-         'ISOMOD'
+         'ISOMOD',
+         'ARRAYOPERATORS',
+         'MULTIHELPERS',
+         'ARRAYTODYNARRAY'
          );
 
 
@@ -683,9 +732,18 @@ interface
            for i8086 cpu huge memory model,
            as this changes SP register it requires special handling
            to restore DS segment register  }
-         pi_has_open_array_parameter
+         pi_has_open_array_parameter,
+         { subroutine uses threadvars }
+         pi_uses_threadvar
        );
        tprocinfoflags=set of tprocinfoflag;
+
+       ttlsmodel = (tlsm_none,
+         { elf tls model: works for all kind of code and thread vars }
+         tlsm_general,
+         { elf tls model: works only if the thread vars are declared and used in the same executable }
+         tlsm_local
+       );
 
     type
       { float types -- warning, this enum/order is used internally by the RTL

@@ -1,4 +1,4 @@
-// Generic types for FreeSparta.com and FreePascal!
+// Generic types for NewPascal.org and FPC!
 // by Maciej Izak (hnb), 2014
 
 program THashMapExtendedEqualityComparer;
@@ -42,7 +42,7 @@ begin
   // don't work with TCuckooD6 map because default TCuckooD6 needs TDelphiSixfoldHashFactory
   // and TDefaultHashFactory = TDelphiQuadrupleHashFactory
   // (TDelphiQuadrupleHashFactory is compatible with TDelphiDoubleHashFactory and TDelphiHashFactory)
-  TDefaultHashFactory.GetHashList(@AValue.TaxID, SizeOf(Integer), AHashList);
+  TDelphiQuadrupleHashFactory.GetHashList(@AValue.TaxID, SizeOf(Integer), AHashList);
 end;
 
 var

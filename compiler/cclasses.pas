@@ -365,21 +365,21 @@ type
           { Gets last Item }
           function  GetLast:TLinkedListItem;
           { inserts another List at the begin and make this List empty }
-          procedure insertList(p : TLinkedList);
+          procedure insertList(p : TLinkedList); virtual;
           { inserts another List before the provided item and make this List empty }
-          procedure insertListBefore(Item:TLinkedListItem;p : TLinkedList);
+          procedure insertListBefore(Item:TLinkedListItem;p : TLinkedList); virtual;
           { inserts another List after the provided item and make this List empty }
-          procedure insertListAfter(Item:TLinkedListItem;p : TLinkedList);
+          procedure insertListAfter(Item:TLinkedListItem;p : TLinkedList); virtual;
           { concats another List at the end and make this List empty }
-          procedure concatList(p : TLinkedList);
+          procedure concatList(p : TLinkedList); virtual;
           { concats another List at the start and makes a copy
             the list is ordered in reverse.
           }
-          procedure insertListcopy(p : TLinkedList);
+          procedure insertListcopy(p : TLinkedList); virtual;
           { concats another List at the end and makes a copy }
-          procedure concatListcopy(p : TLinkedList);
+          procedure concatListcopy(p : TLinkedList); virtual;
           { removes all items from the list, the items are not freed }
-          procedure RemoveAll;
+          procedure RemoveAll; virtual;
           property First:TLinkedListItem read FFirst;
           property Last:TLinkedListItem read FLast;
           property Count:Integer read FCount;
@@ -397,7 +397,7 @@ type
           constructor Create(const s:TCmdStr);
           destructor  Destroy;override;
           function GetCopy:TLinkedListItem;override;
-          function Str:TCmdStr; {$ifdef CCLASSESINLINE}inline;{$endif}
+          property Str: TCmdStr read FPStr;
        end;
 
        { string container }
@@ -422,9 +422,9 @@ type
           { true if string is in the container }
           function Find(const s:TCmdStr):TCmdStrListItem;
           { inserts an item }
-          procedure InsertItem(item:TCmdStrListItem); {$ifdef CCLASSESINLINE}inline;{$endif}
+          procedure InsertItem(item:TCmdStrListItem);
           { concats an item }
-          procedure ConcatItem(item:TCmdStrListItem); {$ifdef CCLASSESINLINE}inline;{$endif}
+          procedure ConcatItem(item:TCmdStrListItem);
           property Doubles:boolean read FDoubles write FDoubles;
        end;
 
@@ -615,6 +615,7 @@ implementation
           s : string;
         begin
           l := c-b;
+          s:='';
           if (l > 0) or AddEmptyStrings then
             begin
               setlength(s, l);
@@ -1052,6 +1053,11 @@ begin
   FFreeObjects := True;
 end;
 
+function TFPObjectList.IndexOf(AObject: TObject): Integer;
+begin
+  Result := FList.IndexOf(Pointer(AObject));
+end;
+
 function TFPObjectList.GetCount: integer;
 begin
   Result := FList.Count;
@@ -1122,11 +1128,6 @@ begin
       TObject(FList[Result]).Free;
     FList.Delete(Result);
   end;
-end;
-
-function TFPObjectList.IndexOf(AObject: TObject): Integer;
-begin
-  Result := FList.IndexOf(Pointer(AObject));
 end;
 
 function TFPObjectList.FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt : Integer): Integer;
@@ -1764,72 +1765,6 @@ end;
 
 
 {*****************************************************************************
-                               TFPHashObject
-*****************************************************************************}
-
-procedure TFPHashObject.InternalChangeOwner(HashObjectList:TFPHashObjectList;const s:TSymStr);
-var
-  Index : integer;
-begin
-  FOwner:=HashObjectList;
-  Index:=HashObjectList.Add(s,Self);
-  FStrIndex:=HashObjectList.List.List^[Index].StrIndex;
-end;
-
-
-constructor TFPHashObject.CreateNotOwned;
-begin
-  FStrIndex:=-1;
-end;
-
-
-constructor TFPHashObject.Create(HashObjectList:TFPHashObjectList;const s:TSymStr);
-begin
-  InternalChangeOwner(HashObjectList,s);
-end;
-
-
-procedure TFPHashObject.ChangeOwner(HashObjectList:TFPHashObjectList);
-begin
-  InternalChangeOwner(HashObjectList,PSymStr(@FOwner.List.Strs[FStrIndex])^);
-end;
-
-
-procedure TFPHashObject.ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:TSymStr);
-begin
-  InternalChangeOwner(HashObjectList,s);
-end;
-
-
-procedure TFPHashObject.Rename(const ANewName:TSymStr);
-var
-  Index : integer;
-begin
-  Index:=FOwner.Rename(PSymStr(@FOwner.List.Strs[FStrIndex])^,ANewName);
-  if Index<>-1 then
-    FStrIndex:=FOwner.List.List^[Index].StrIndex;
-end;
-
-
-function TFPHashObject.GetName:TSymStr;
-begin
-  if FOwner<>nil then
-    Result:=PSymStr(@FOwner.List.Strs[FStrIndex])^
-  else
-    Result:='';
-end;
-
-
-function TFPHashObject.GetHash:Longword;
-begin
-  if FOwner<>nil then
-    Result:=FPHash(PSymStr(@FOwner.List.Strs[FStrIndex])^)
-  else
-    Result:=$ffffffff;
-end;
-
-
-{*****************************************************************************
             TFPHashObjectList (Copied from rtl/objpas/classes/lists.inc)
 *****************************************************************************}
 
@@ -1859,6 +1794,11 @@ begin
     for i := 0 to FHashList.Count - 1 do
       TObject(FHashList[i]).Free;
   FHashList.Clear;
+end;
+
+function TFPHashObjectList.IndexOf(AObject: TObject): Integer;
+begin
+  Result := FHashList.IndexOf(Pointer(AObject));
 end;
 
 function TFPHashObjectList.GetCount: integer;
@@ -1943,12 +1883,6 @@ begin
     end;
 end;
 
-function TFPHashObjectList.IndexOf(AObject: TObject): Integer;
-begin
-  Result := FHashList.IndexOf(Pointer(AObject));
-end;
-
-
 function TFPHashObjectList.Find(const s:TSymStr): TObject;
 begin
   result:=TObject(FHashList.Find(s));
@@ -2027,6 +1961,72 @@ end;
 procedure TFPHashObjectList.WhileEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
 begin
   FHashList.WhileEachCall(TListStaticCallBack(proc2call),arg);
+end;
+
+
+{*****************************************************************************
+                               TFPHashObject
+*****************************************************************************}
+
+procedure TFPHashObject.InternalChangeOwner(HashObjectList:TFPHashObjectList;const s:TSymStr);
+var
+  Index : integer;
+begin
+  FOwner:=HashObjectList;
+  Index:=HashObjectList.Add(s,Self);
+  FStrIndex:=HashObjectList.List.List^[Index].StrIndex;
+end;
+
+
+constructor TFPHashObject.CreateNotOwned;
+begin
+  FStrIndex:=-1;
+end;
+
+
+constructor TFPHashObject.Create(HashObjectList:TFPHashObjectList;const s:TSymStr);
+begin
+  InternalChangeOwner(HashObjectList,s);
+end;
+
+
+procedure TFPHashObject.ChangeOwner(HashObjectList:TFPHashObjectList);
+begin
+  InternalChangeOwner(HashObjectList,PSymStr(@FOwner.List.Strs[FStrIndex])^);
+end;
+
+
+procedure TFPHashObject.ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:TSymStr);
+begin
+  InternalChangeOwner(HashObjectList,s);
+end;
+
+
+procedure TFPHashObject.Rename(const ANewName:TSymStr);
+var
+  Index : integer;
+begin
+  Index:=FOwner.Rename(PSymStr(@FOwner.List.Strs[FStrIndex])^,ANewName);
+  if Index<>-1 then
+    FStrIndex:=FOwner.List.List^[Index].StrIndex;
+end;
+
+
+function TFPHashObject.GetName:TSymStr;
+begin
+  if FOwner<>nil then
+    Result:=PSymStr(@FOwner.List.Strs[FStrIndex])^
+  else
+    Result:='';
+end;
+
+
+function TFPHashObject.GetHash:Longword;
+begin
+  if FOwner<>nil then
+    Result:=FPHash(PSymStr(@FOwner.List.Strs[FStrIndex])^)
+  else
+    Result:=$ffffffff;
 end;
 
 
@@ -2380,12 +2380,6 @@ end;
     destructor TCmdStrListItem.Destroy;
       begin
         FPStr:='';
-      end;
-
-
-    function TCmdStrListItem.Str:TCmdStr;
-      begin
-        Str:=FPStr;
       end;
 
 

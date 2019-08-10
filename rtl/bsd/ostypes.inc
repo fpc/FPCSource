@@ -63,7 +63,7 @@ TYPE
 
   { file characteristics services }
    stat    = record { the types are real}
-{$ifdef dragonfly}
+{$if defined(dragonfly)}
         st_ino        : ino_t;             // inode's number
         st_nlink      : nlink_t;           // number of hard links
         st_dev        : dev_t;             // inode's device
@@ -86,13 +86,73 @@ TYPE
         st_lspare     : cint32;
         st_qspare1    : cint64;            // was recursive change detect
         st_qspare2    : cint64;
-{$else dragonfly}
+{$elseif defined(openbsd)}
+        st_mode       : mode_t;            // inode protection mode
+        st_dev        : dev_t;             // inode's device
+        st_ino        : ino_t;             // inode's number
+        st_nlink      : nlink_t;           // number of hard links
+        st_uid        : uid_t;             // user ID of the file's owner
+        st_gid        : gid_t;             // group ID of the file's group
+        st_rdev       : dev_t;             // device type
+        st_atime      : time_t;            // time of last access
+        st_atimensec  : clong;             // nsec of last access
+        st_mtime      : time_t;            // time of last data modification
+        st_mtimensec  : clong;             // nsec of last data modification
+        st_ctime      : time_t;            // time of last file status change
+        st_ctimensec  : clong;             // nsec of last file status change
+        st_size       : off_t;             // file size, in bytes
+        st_blocks     : cint64;            // blocks allocated for file
+        st_blksize    : cint32;            // optimal blocksize for I/O
+        st_flags      : cuint32;           // user defined flags for file
+        st_gen        : cuint32;           // file generation number
+        st_birthtime  : time_t;            // File creation time
+        st_birthtimensec : clong;          // nsec of file creation time
+{$elseif defined(freebsd)}
+{$ifdef i386}
+{$define __STAT_TIME_T_EXT}
+{$endif}
+        st_dev        : dev_t;             // inode's device
+        st_ino        : ino_t;             // inode's number
+        st_nlink      : nlink_t;           // number of hard links
+        st_mode       : mode_t;            // inode protection mode
+	st_padding0   : cint16;
+        st_uid        : uid_t;             // user ID of the file's owner
+        st_gid        : gid_t;             // group ID of the file's group
+	st_padding1   : cint32;
+        st_rdev       : dev_t;             // device type
+{$ifdef __STAT_TIME_T_EXT}
+        st_atim_ext   : cint32;
+{$endif}
+        st_atime      : time_t;            // time of last access
+        st_atimensec  : clong;             // nsec of last access
+{$ifdef __STAT_TIME_T_EXT}
+        st_mtim_ext   : cint32;
+{$endif}
+        st_mtime      : time_t;            // time of last data modification
+        st_mtimensec  : clong;             // nsec of last data modification
+{$ifdef __STAT_TIME_T_EXT}
+        st_ctim_ext   : cint32;
+{$endif}
+        st_ctime      : time_t;            // time of last file status change
+        st_ctimensec  : clong;             // nsec of last file status change
+{$ifdef __STAT_TIME_T_EXT}
+        st_birthtim_ext   : cint32;
+{$endif}
+        st_birthtime  : time_t;            // File creation time
+        st_birthtimensec : clong;          // nsec of file creation time
+        st_size       : off_t;             // file size, in bytes
+        st_blocks     : cint64;            // blocks allocated for file
+        st_blksize    : cint32;            // optimal blocksize for I/O
+        st_flags      : cuint32;           // user defined flags for file
+        st_gen        : cuint64;           // file generation number
+	st_spare      : array [0..10-1] of cuint64;
+{$else}
         st_dev        : dev_t;             // inode's device
 {$ifdef darwin_new_iostructs}
         st_mode       : mode_t;            // inode protection mode
         st_nlink      : nlink_t;           // number of hard links
         st_ino        : ino_t;             // inode's number
-{$else}
+{$else not darwin_new_iostructs}
 {$ifdef netbsd_use_stat30}
      { order is inverted for better alignment probably }
         st_mode       : mode_t;            // inode protection mode
@@ -102,13 +162,10 @@ TYPE
         st_mode       : mode_t;            // inode protection mode
 {$endif not netbsd}
         st_nlink      : nlink_t;           // number of hard links
-{$endif}
+{$endif not darwin_new_iostructs}
         st_uid        : uid_t;             // user ID of the file's owner
         st_gid        : gid_t;             // group ID of the file's group
         st_rdev       : dev_t;             // device type
-{$ifdef openbsd}
-        st_padd0      : cint;
-{$endif}
         st_atime      : time_t;            // time of last access
         st_atimensec  : clong;             // nsec of last access
         st_mtime      : time_t;            // time of last data modification
@@ -133,37 +190,14 @@ TYPE
 {$ifndef NetBSD}
         st_lspare     : cint32;
 {$endif}
-{$ifdef openbsd}
-        st_birthtime  : time_t;            // File creation time
-        st_birthtimensec : clong;          // nsec of file creation time
-{$endif}
         st_qspare     : array[0..1] Of cint64;
-{$endif dragonfly}
+{$endif}
    end;
    TStat = stat;
    pStat = ^stat;
 
   { directory services }
-{$ifndef darwin_new_iostructs}
-{$ifdef dragonfly}
-   dirent  = record
-        d_fileno      : ino_t;                          // file number of entry
-        d_namlen      : cuint16;                        // strlen (d_name)
-        d_type        : cuint8;                         // file type, see below
-        d_unused1     : cuint8;                         // padding, reserved
-        d_unused2     : cuint32;                        // reserved
-        d_name        : array[0..255] of char;          // name, null terminated
-   end;
-{$else}
-   dirent  = record
-        d_fileno      : cuint32;                        // file number of entry
-        d_reclen      : cuint16;                        // length of this record
-        d_type        : cuint8;                         // file type, see below
-        d_namlen      : cuint8;                         // length of string in d_name
-        d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
-   end;
-{$endif}
-{$else not darwin_new_iostructs}
+{$if defined(darwin_new_iostructs)}
    {$packrecords 4}
    { available on Mac OS X 10.6 and later, and used by all iPhoneOS versions }
    dirent  = record
@@ -175,7 +209,45 @@ TYPE
         d_name        : array[0..PATH_MAX-1] of char;        // name must be no longer than this
    end;
    {$packrecords c}
-{$endif darwin_new_iostructs}
+{$elseif defined(dragonfly)}
+   dirent  = record
+        d_fileno      : ino_t;                          // file number of entry
+        d_namlen      : cuint16;                        // strlen (d_name)
+        d_type        : cuint8;                         // file type, see below
+        d_unused1     : cuint8;                         // padding, reserved
+        d_unused2     : cuint32;                        // reserved
+        d_name        : array[0..255] of char;          // name, null terminated
+   end;
+{$elseif defined(openbsd)}
+   dirent  = record
+        d_fileno      : ino_t;
+        d_off         : off_t;
+        d_reclen      : cuint16;                        // length of this record
+        d_type        : cuint8;                         // file type, see below
+        d_namlen      : cuint8;                         // length of string in d_name
+        d_padding     : array[0..3] of cuint8;
+        d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
+   end;
+{$elseif defined(freebsd)}
+   dirent  = record
+        d_fileno      : ino_t;
+        d_off         : off_t;
+        d_reclen      : cuint16;                        // length of this record
+        d_type        : cuint8;                         // file type, see below
+	d_pad0        : cuint8;
+        d_namlen      : cuint16;                        // length of string in d_name
+	d_pad1        : cuint16;
+        d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
+   end;
+{$else}
+   dirent  = record
+        d_fileno      : cuint32;                        // file number of entry
+        d_reclen      : cuint16;                        // length of this record
+        d_type        : cuint8;                         // file type, see below
+        d_namlen      : cuint8;                         // length of string in d_name
+        d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
+   end;
+{$endif}
    TDirent = dirent;
    pDirent = ^dirent;
 
@@ -185,6 +257,11 @@ TYPE
         dd_size   : clong;        // amount of data returned by getdirentries
         dd_buf    : pchar;        // data buffer
         dd_len    : cint;         // size of data buffer
+{$ifdef openbsd}
+        dd_curpos : off_t;
+        dd_lock   : pointer;
+        dd_rewind : clong;
+{$else not openbsd}
 {$ifdef netbsdpowerpc}
         dd_pad1   : cint;
         dd_seek   : cint64;        // magic cookie returned by getdirentries
@@ -197,6 +274,7 @@ TYPE
         __dd_lock : pthread_mutex_t; // for thread locking
         __dd_td : pointer;        // telldir position recording
 {$endif}
+{$endif not openbsd}
    end;
    TDir    = dir;
    pDir    = ^dir;
@@ -214,6 +292,9 @@ TYPE
                 l_pid   : pid_t;        { lock owner }
                 l_type  : cshort;       { lock type: read/write, etc. }
                 l_whence: cshort;       { type of l_start }
+{$ifdef freebsd}
+                l_sysid : cint;
+{$endif}
                 end;
    TFlock   = flock;
    pFlock   = ^flock;

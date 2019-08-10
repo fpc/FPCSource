@@ -17,6 +17,11 @@ const
 {$define C_SIZE(drv_no) := (cuint16(((g_CSD[drv_no][6] and $03) shl 10) or (g_CSD[drv_no][7] shl 2) or ((g_CSD[drv_no][8] shr 6) and $03)))}
 {$define C_SIZE_MULT(drv_no) := (cuint8((g_CSD[drv_no][9] and $03) shl 1) or ((g_CSD[drv_no][10] shr 7) and $01))}
 
+type
+  card_addressing_type_t = cuint32;
+const
+  CARD_IO_SECTOR_ADDRESSING: card_addressing_type_t = 0;
+  CARD_IO_BYTE_ADDRESSING: card_addressing_type_t = 1;
 
 var
   g_CSD : array [0..15] of cuint8; external;
@@ -40,6 +45,15 @@ function sdgecko_writeSectors(drv_no: cint32; sector_no, num_sectors: cuint32;
 function sdgecko_doUnmount(drv_no: cint32): cint32; cdecl; external;
 procedure sdgecko_insertedCB(drv_no: cint32); cdecl; external;
 procedure sdgecko_ejectedCB(drv_no: cint32); cdecl; external;
+
+procedure sdgecko_setSpeed(freq: cuint32); cdecl; external;
+
+function sdgecko_getPageSize(drv_no: cint32): cuint32; cdecl; external;
+function sdgecko_setPageSize(drv_no: cint32; size: cint): cuint32; cdecl; external;
+
+function sdgecko_getAddressingType(drv_no: cint32): card_addressing_type_t; cdecl; external;
+
+
 {$ENDIF}
 
 

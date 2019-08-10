@@ -51,7 +51,12 @@ type
   }
 
   { BOOL is one byte and uses 0/1, just like Pascal }
+{$ifndef VER3_0}
+  BOOL = boolean8;
+{$else}
   BOOL = boolean;
+{$endif}
+  pBOOL = ^BOOL;
 
   tobjc_class = record
   end;

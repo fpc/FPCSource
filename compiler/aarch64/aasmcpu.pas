@@ -592,7 +592,6 @@ implementation
 
     function simple_ref_type(op: tasmop; size:tcgsize; oppostfix: toppostfix; const ref: treference): tsimplereftype;
       var
-        maxoffs: asizeint;
         accesssize: longint;
       begin
         result:=sr_internal_illegal;
@@ -922,8 +921,8 @@ implementation
 
 
     procedure BuildInsTabCache;
-      var
-        i : longint;
+//      var
+//        i : longint;
       begin
 (*        new(instabcache);
         FillChar(instabcache^,sizeof(tinstabcache),$ff);
@@ -1006,6 +1005,7 @@ implementation
 *)
 
     procedure insertpcrelativedata(list,listtoinsert : TAsmList);
+(*
       var
         curinspos,
         penalty,
@@ -1021,6 +1021,7 @@ implementation
         l : tasmlabel;
         doinsert,
         removeref : boolean;
+*)
       begin
 (*
         curdata:=TAsmList.create;

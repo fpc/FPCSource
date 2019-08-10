@@ -63,8 +63,6 @@ interface
        TCGNonRefLoc=low(TCGLoc)..pred(LOC_CREFERENCE);
        TCGRefLoc=LOC_CREFERENCE..LOC_REFERENCE;
 
-       { since we have only 16bit offsets, we need to be able to specify the high
-         and lower 16 bits of the address of a symbol of up to 64 bit }
        trefaddr = (
          addr_no,
          addr_full,
@@ -72,6 +70,8 @@ interface
          addr_pic_no_got
          {$IF defined(POWERPC) or defined(POWERPC64) or defined(SPARC) or defined(MIPS) or defined(SPARC64)}
          ,
+         { since we have only 16bit offsets, we need to be able to specify the high
+           and lower 16 bits of the address of a symbol of up to 64 bit }
          addr_low,         // bits 48-63
          addr_high,        // bits 32-47
          {$IF defined(POWERPC64)}
@@ -93,6 +93,14 @@ interface
          addr_low_call,    // counterpart of two above, generate call_hi16 and call_lo16 relocs
          addr_high_call
          {$ENDIF}
+         {$if defined(RISCV32) or defined(RISCV64)}
+         ,
+         addr_hi20,
+         addr_lo12,
+         addr_pcrel_hi20,
+         addr_pcrel_lo12,
+         addr_pcrel
+         {$endif RISCV}
          {$IFDEF AVR}
          ,addr_lo8
          ,addr_lo8_gs
@@ -114,6 +122,18 @@ interface
          ,addr_gdop_hix22
          ,addr_gdop_lox22
          {$endif SPARC64}
+         {$IFDEF ARM}
+         ,addr_gottpoff
+         ,addr_tpoff
+         {$ENDIF}
+         {$IFDEF i386}
+         ,addr_ntpoff
+         ,addr_tlsgd
+         {$ENDIF}
+{$ifdef x86_64}
+          ,addr_tpoff
+          ,addr_tlsgd
+{$endif x86_64}
          );
 
 

@@ -162,6 +162,7 @@ begin
   FNameValueSeparator:=c;
 end;
 
+
 Function TStrings.GetNameValueSeparator :Char;
 begin
   CheckSpecialChars;
@@ -190,6 +191,12 @@ begin
     QuoteChar:=C2;
     StrictDelimiter:=FSD;
   end;
+end;
+
+function TStrings.GetMissingNameValueSeparatorAction: TMissingNameValueSeparatorAction;
+begin
+  CheckSpecialChars;
+  Result:=FMissingNameValueSeparatorAction;
 end;
 
 
@@ -240,6 +247,7 @@ procedure TStrings.GetNameValue(Index : Integer; Out AName,AValue : String);
 Var L : longint;
 
 begin
+  aName:='';
   CheckSpecialChars;
   AValue:=Strings[Index];
   L:=Pos(FNameValueSeparator,AValue);
@@ -249,7 +257,18 @@ begin
     System.Delete(AValue,1,L);
     end
   else
-    AName:='';
+    case FMissingNameValueSeparatorAction of
+      mnvaValue : ;
+      mnvaName :
+        begin
+        aName:=aValue;
+        aValue:='';
+        end;
+      mnvaEmpty :
+        aValue:='';
+      mnvaError :
+        Raise EStringListError.CreateFmt(SErrNoNameValuePairAt,[Index]);
+    end;
 end;
 
 function TStrings.ExtractName(const s:String):String;
@@ -325,7 +344,7 @@ end;
 
 
 Procedure TStrings.SetDelimitedText(const AValue: string);
-var i,j:integer;
+var i,j: SizeInt;
     aNotFirst:boolean;
 begin
  CheckSpecialChars;
@@ -445,6 +464,12 @@ begin
   end;
 end;
 
+procedure TStrings.SetMissingNameValueSeparatorAction(AValue: TMissingNameValueSeparatorAction);
+begin
+  CheckSpecialChars;
+  FMissingNameValueSeparatorAction:=aValue;
+end;
+
 
 Procedure TStrings.SetStringsAdapter(const Value: IStringsAdapter);
 
@@ -542,7 +567,7 @@ end;
 Function TStrings.GetTextStr: string;
 
 Var P : Pchar;
-    I,L,NLS : Longint;
+    I,L,NLS : SizeInt;
     S,NL : String;
 
 begin
@@ -608,66 +633,101 @@ begin
   // Empty.
 end;
 
-Class Function TStrings.GetNextLine (Const Value : String; Var S : String; Var P : Integer) : Boolean;
+Class Function TStrings.GetNextLine (Const Value : String; Var S : String; Var P : SizeInt) : Boolean;
 
-Var 
-  PS : PChar;
-  IP,L : Integer;
+var
+  LengthOfValue: SizeInt;
+  StartPos, FuturePos: SizeInt;
+
+begin
+  LengthOfValue := Length(Value);
+  StartPos := P;
+  if (StartPos <= 0) or (StartPos > LengthOfValue) then // True for LengthOfValue <= 0
+    begin
+    S := '';
+    Exit(False);
+    end;
+  FuturePos := StartPos;
+  while (FuturePos <= LengthOfValue) and not (Value[FuturePos] in [#10, #13]) do
+    Inc(FuturePos);
+  // If we use S := Copy(Value, StartPos, FuturePos - StartPos); then compiler
+  // generate TempS := Copy(...); S := TempS to eliminate side effects and
+  // implicit "try finally" for TempS finalization
+  // When we use SetString then no TempS, no try finally generated,
+  // but we must check case when Value and S is same (side effects)
+  if Pointer(S) = Pointer(Value) then
+    System.Delete(S, FuturePos, High(FuturePos))
+  else
+    begin
+    SetString(S, @Value[StartPos], FuturePos - StartPos);
+    if (FuturePos <= LengthOfValue) and (Value[FuturePos] = #13) then
+      Inc(FuturePos);
+    if (FuturePos <= LengthOfValue) and (Value[FuturePos] = #10) then
+      Inc(FuturePos);
+    end;
+  P := FuturePos;
+  Result := True;
+end;
+
+Function TStrings.GetNextLineBreak (Const Value : String; Var S : String; Var P : SizeInt) : Boolean;
+
+var
+  StartPos, FuturePos: SizeInt;
   
 begin
-  L:=Length(Value);
-  S:='';
-  Result:=False;
-  If ((L-P)<0) then 
-    exit;
-  if ((L-P)=0) and (not (value[P] in [#10,#13])) Then
-    Begin
-      s:=value[P];
-      inc(P);
-      Exit(True);
-    End;
-  PS:=PChar(Value)+P-1;
-  IP:=P;
-  While ((L-P)>=0) and (not (PS^ in [#10,#13])) do 
+  StartPos := P;
+  if (StartPos <= 0) or (StartPos > Length(Value)) then // True for Length <= 0
     begin
-    P:=P+1;
-    Inc(PS);
+    S := '';
+    Exit(False);
     end;
-  SetLength (S,P-IP);
-  System.Move (Value[IP],Pointer(S)^,P-IP);
-  If (P<=L) and (Value[P]=#13) then 
-    Inc(P);
-  If (P<=L) and (Value[P]=#10) then
-    Inc(P); // Point to character after #10(#13)
-  Result:=True;
+  FuturePos := Pos(FLineBreak, Value, StartPos); // Use PosEx in old RTL
+  // Why we don't use Copy but use SetString read in GetNextLine
+  if FuturePos = 0 then // No line breaks
+    begin
+    FuturePos := Length(Value) + 1;
+    if Pointer(S) = Pointer(Value) then
+      // Nothing to do
+    else
+      SetString(S, @Value[StartPos], FuturePos - StartPos)
+    end
+  else
+    if Pointer(S) = Pointer(Value) then
+      System.Delete(S, FuturePos, High(FuturePos))
+    else
+      begin
+      SetString(S, @Value[StartPos], FuturePos - StartPos);
+      Inc(FuturePos, Length(FLineBreak));
+      end;
+  P := FuturePos;
+  Result := True;
 end;
 
-Function TStrings.GetNextLineBreak (Const Value : String; Var S : String; Var P : Integer) : Boolean;
-
-Var
-  PS,PC,PP : PChar;
-
+{$IF (SizeOf(Integer) < SizeOf(SizeInt)) }
+class function TStrings.GetNextLine(const Value: string; var S: string; var P: Integer) : Boolean;
+var
+  LP: SizeInt;
 begin
-  S:='';
-  Result:=False;
-  If ((Length(Value)-P)<0) then
-    exit;
-  PS:=@Value[P];
-  PC:=PS;
-  PP:=AnsiStrPos(PS,PChar(FLineBreak));
-  // Stop on #0.
-  While (PC^<>#0) and (PC<>PP) do
-    Inc(PC);
-  P:=P+(PC-PS)+Length(FLineBreak);
-  SetString(S,PS,PC-PS);
-  Result:=True;
+  LP := P;
+  Result := GetNextLine(Value, S, LP);
+  P := LP;
 end;
+
+function TStrings.GetNextLineBreak(const Value: string; var S: string; var P: Integer) : Boolean;
+var
+  LP: SizeInt;
+begin
+  LP := P;
+  Result := GetNextLineBreak(Value, S, LP);
+  P := LP;
+end;
+{$IFEND}
 
 Procedure TStrings.DoSetTextStr(const Value: string; DoClear : Boolean);
 
 Var
   S : String;
-  P : Integer;
+  P : SizeInt;
 
 begin
   Try
@@ -779,13 +839,16 @@ end;
 
 Procedure TStrings.AddStrings(TheStrings: TStrings; ClearFirst : Boolean);
 
-
+Var Runner : longint;
 begin
   beginupdate;
   try
     if ClearFirst then
       Clear;
-    AddStrings(TheStrings);
+    if Count + TheStrings.Count > Capacity then
+      Capacity := Count + TheStrings.Count;
+    For Runner:=0 to TheStrings.Count-1 do
+      self.AddObject (Thestrings[Runner],TheStrings.Objects[Runner]);
   finally
     EndUpdate;
   end;
@@ -793,31 +856,28 @@ end;
 
 Procedure TStrings.AddStrings(TheStrings: TStrings);
 
-Var Runner : longint;
 begin
-  For Runner:=0 to TheStrings.Count-1 do
-    self.AddObject (Thestrings[Runner],TheStrings.Objects[Runner]);
+  AddStrings(TheStrings, False);
 end;
 
 Procedure TStrings.AddStrings(const TheStrings: array of string);
 
-Var Runner : longint;
 begin
-  if Count + High(TheStrings)+1 > Capacity then
-    Capacity := Count + High(TheStrings)+1;
-  For Runner:=Low(TheStrings) to High(TheStrings) do
-    self.Add(Thestrings[Runner]);
+  AddStrings(TheStrings, False);
 end;
 
 Procedure TStrings.AddStrings(const TheStrings: array of string; ClearFirst : Boolean);
 
-
+Var Runner : longint;
 begin
   beginupdate;
   try
     if ClearFirst then
       Clear;
-    AddStrings(TheStrings);
+    if Count + High(TheStrings)+1 > Capacity then
+      Capacity := Count + High(TheStrings)+1;
+    For Runner:=Low(TheStrings) to High(TheStrings) do
+      self.Add(Thestrings[Runner]);
   finally
     EndUpdate;
   end;
@@ -1037,7 +1097,7 @@ Var
   Buffer     : AnsiString;
   BytesRead,
   BufLen,
-  I,BufDelta     : Longint;
+  I,BufDelta     : SizeInt;
 begin
   if not IgnoreEncoding then
     begin
@@ -1082,7 +1142,7 @@ Var
   T              : string;
   BytesRead,
   BufLen,
-  I,BufDelta,
+  I,BufDelta: SizeInt;
   PreambleLength : Longint;
 begin
   // reread into a buffer
@@ -1283,52 +1343,6 @@ begin
     end;
   if Not ClearOnly then
     SetCapacity(0);
-end;
-
-procedure TStringList.QuickSort(L, R: Integer; CompareFn: TStringListSortCompare
-  );
-var
-  Pivot, vL, vR: Integer;
-  ExchangeProc: procedure(Left, Right: Integer) of object;
-begin
-  //if ExchangeItems is override call that, else call (faster) ExchangeItemsInt
-  if TMethod(@Self.ExchangeItems).Code = CodePointer(@TStringList.ExchangeItems) then
-    ExchangeProc := @ExchangeItemsInt
-  else
-    ExchangeProc := @ExchangeItems;
-
-  if R - L <= 1 then begin // a little bit of time saver
-    if L < R then
-      if CompareFn(Self, L, R) > 0 then
-        ExchangeProc(L, R);
-
-    Exit;
-  end;
-
-  vL := L;
-  vR := R;
-
-  Pivot := L + Random(R - L); // they say random is best
-
-  while vL < vR do begin
-    while (vL < Pivot) and (CompareFn(Self, vL, Pivot) <= 0) do
-      Inc(vL);
-
-    while (vR > Pivot) and (CompareFn(Self, vR, Pivot) > 0) do
-      Dec(vR);
-
-    ExchangeProc(vL, vR);
-
-    if Pivot = vL then // swap pivot if we just hit it from one side
-      Pivot := vR
-    else if Pivot = vR then
-      Pivot := vL;
-  end;
-
-  if Pivot - 1 >= L then
-    QuickSort(L, Pivot - 1, CompareFn);
-  if Pivot + 1 <= R then
-    QuickSort(Pivot + 1, R, CompareFn);
 end;
 
 
@@ -1671,10 +1685,54 @@ end;
 procedure TStringList.CustomSort(CompareFn: TStringListSortCompare);
 
 begin
+  CustomSort(CompareFn, SortBase.DefaultSortingAlgorithm);
+end;
+
+type
+  PStringList_CustomSort_Context = ^TStringList_CustomSort_Context;
+  TStringList_CustomSort_Context = record
+    List: TStringList;
+    ListStartPtr: Pointer;
+    CompareFn: TStringListSortCompare;
+  end;
+
+function TStringList_CustomSort_Comparer(Item1, Item2, Context: Pointer): Integer;
+begin
+  with PStringList_CustomSort_Context(Context)^ do
+    Result := CompareFn(List,
+                        (Item1 - ListStartPtr) div SizeOf(TStringItem),
+                        (Item2 - ListStartPtr) div SizeOf(TStringItem));
+end;
+
+procedure TStringList_CustomSort_Exchanger(Item1, Item2, Context: Pointer);
+begin
+  with PStringList_CustomSort_Context(Context)^ do
+    List.ExchangeItems((Item1 - ListStartPtr) div SizeOf(TStringItem),
+                       (Item2 - ListStartPtr) div SizeOf(TStringItem));
+end;
+
+procedure TStringList.CustomSort(CompareFn: TStringListSortCompare; SortingAlgorithm: PSortingAlgorithm);
+var
+  Context: TStringList_CustomSort_Context;
+begin
   If (FForceSort or (Not (FSortStyle=sslAuto))) and (FCount>1) then
     begin
     Changing;
-    QuickSort(0,FCount-1, CompareFn);
+
+    Context.List := Self;
+    Context.ListStartPtr := FList;
+    Context.CompareFn := CompareFn;
+
+    //if ExchangeItems is overriden call that, else call (faster) ItemListSorter_ContextComparer
+    if TMethod(@Self.ExchangeItems).Code = CodePointer(@TStringList.ExchangeItems) then
+      SortingAlgorithm^.ItemListSorter_ContextComparer(
+        FList, FCount, SizeOf(TStringItem), @TStringList_CustomSort_Comparer,
+        @Context)
+    else
+      SortingAlgorithm^.ItemListSorter_CustomItemExchanger_ContextComparer(
+        FList, FCount, SizeOf(TStringItem), @TStringList_CustomSort_Comparer,
+        @TStringList_CustomSort_Exchanger, @Context);
+
     Changed;
     end;
 end;
@@ -1690,6 +1748,12 @@ procedure TStringList.Sort;
 
 begin
   CustomSort(@StringListAnsiCompare);
+end;
+
+procedure TStringList.Sort(SortingAlgorithm: PSortingAlgorithm);
+
+begin
+  CustomSort(@StringListAnsiCompare, SortingAlgorithm);
 end;
 
 {$else}
@@ -1878,32 +1942,46 @@ begin
   Changed;
 end;
 
-procedure TStringList.QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
-var 
-  I, J, Pivot: Integer;
+type
+  PStringList_CustomSort_Context = ^TStringList_CustomSort_Context;
+  TStringList_CustomSort_Context = record
+    List: TStringList;
+    ListStartPtr: Pointer;
+    ItemSize: SizeUInt;
+    IndexBase: Integer;
+    CompareFn: TStringListSortCompare;
+  end;
+
+function TStringList_CustomSort_Comparer(Item1, Item2, Context: Pointer): Integer;
 begin
-  repeat
-    I := L;
-    J := R;
-    Pivot := (L + R) div 2;
-    repeat
-      while CompareFn(Self, I, Pivot) < 0 do Inc(I);
-      while CompareFn(Self, J, Pivot) > 0 do Dec(J);
-      if I <= J then
-      begin
-        FMap.InternalExchange(I, J); // No check, indices are correct.
-        if Pivot = I then
-          Pivot := J
-        else if Pivot = J then
-          Pivot := I;
-        Inc(I);
-        Dec(j);
-      end;
-    until I > J;
-    if L < J then 
-      QuickSort(L,J, CompareFn);
-    L := I;
-  until I >= R;
+  with PStringList_CustomSort_Context(Context)^ do
+    Result := CompareFn(List,
+                        ((Item1 - ListStartPtr) div ItemSize) + IndexBase,
+                        ((Item2 - ListStartPtr) div ItemSize) + IndexBase);
+end;
+
+procedure TStringList_CustomSort_Exchanger(Item1, Item2, Context: Pointer);
+begin
+  with PStringList_CustomSort_Context(Context)^ do
+    List.Exchange(((Item1 - ListStartPtr) div ItemSize) + IndexBase,
+                  ((Item2 - ListStartPtr) div ItemSize) + IndexBase);
+end;
+
+procedure TStringList.QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
+var
+  Context: TStringList_CustomSort_Context;
+begin
+  if L > R then
+    exit;
+  Context.List := Self;
+  Context.ListStartPtr := FMap.Items[L];
+  Context.CompareFn := CompareFn;
+  Context.ItemSize := FMap.KeySize + FMap.DataSize;
+  Context.IndexBase := L;
+
+  DefaultSortingAlgorithm^.ItemListSorter_CustomItemExchanger_ContextComparer(
+    Context.ListStartPtr, R - L + 1, Context.ItemSize, @TStringList_CustomSort_Comparer,
+    @TStringList_CustomSort_Exchanger, @Context);
 end;
 
 procedure TStringList.CustomSort(CompareFn: TStringListSortCompare);
@@ -1916,12 +1994,44 @@ begin
   end;
 end;
 
+procedure TStringList.CustomSort(CompareFn: TStringListSortCompare; SortingAlgorithm: PSortingAlgorithm);
+var
+  Context: TStringList_CustomSort_Context;
+begin
+  if not Sorted and (FMap.Count > 1) then
+  begin
+    Changing;
+
+    Context.List := Self;
+    Context.ListStartPtr := FMap.Items[0];
+    Context.CompareFn := CompareFn;
+    Context.ItemSize := FMap.KeySize + FMap.DataSize;
+    Context.IndexBase := 0;
+
+    SortingAlgorithm^.ItemListSorter_CustomItemExchanger_ContextComparer(
+      Context.ListStartPtr, FMap.Count, Context.ItemSize, @TStringList_CustomSort_Comparer,
+      @TStringList_CustomSort_Exchanger, @Context);
+
+    Changed;
+  end;
+end;
+
 procedure TStringList.Sort;
 begin
   if not Sorted and (FMap.Count > 1) then
   begin
     Changing;
     FMap.Sort;
+    Changed;
+  end;
+end;
+
+procedure TStringList.Sort(SortingAlgorithm: PSortingAlgorithm);
+begin
+  if not Sorted and (FMap.Count > 1) then
+  begin
+    Changing;
+    FMap.Sort(SortingAlgorithm);
     Changed;
   end;
 end;

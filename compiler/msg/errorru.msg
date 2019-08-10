@@ -782,7 +782,7 @@ parser_e_function_already_declared_public_forward=03120_E_Функция "$1" у
 % в секции \var{implmentation}.
 parser_e_not_external_and_export=03121_E_Hельзя использовать EXPORT совместно с EXTERNAL
 % Эти две директивы являются взаимоисключающими
-parser_h_not_supported_for_inline=03123_H_"$1" не поддеpживается внyтpи INLINE пpоцедypы/фyнкции
+parser_n_not_supported_for_inline=03123_N_"$1" не поддеpживается внyтpи INLINE пpоцедypы/фyнкции
 % Встраиваемые процедуры не поддерживают этот тип объявления.
 parser_h_inlining_disabled=03124_H_Встраивание (INLINE) отключено
 % Встраивание процедур отключено.

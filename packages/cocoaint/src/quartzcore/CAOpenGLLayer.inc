@@ -45,9 +45,9 @@
     __glPriv: Pointer;
     
   public
-    procedure setAsynchronous (newValue: Boolean); message 'setAsynchronous:';
-    function isAsynchronous: Boolean; message 'isAsynchronous';
-    function canDrawInCGLContext_pixelFormat_forLayerTime_displayTime(ctx: CGLContextObj; pf: CGLPixelFormatObj; t: CFTimeInterval; ts: CVTimeStampPtr): Boolean; message 'canDrawInCGLContext:pixelFormat:forLayerTime:displayTime:';
+    procedure setAsynchronous (newValue: BOOL); message 'setAsynchronous:';
+    function isAsynchronous: BOOL; message 'isAsynchronous';
+    function canDrawInCGLContext_pixelFormat_forLayerTime_displayTime(ctx: CGLContextObj; pf: CGLPixelFormatObj; t: CFTimeInterval; ts: CVTimeStampPtr): BOOL; message 'canDrawInCGLContext:pixelFormat:forLayerTime:displayTime:';
     procedure drawInCGLContext_pixelFormat_forLayerTime_displayTime(ctx: CGLContextObj; pf: CGLPixelFormatObj; t: CFTimeInterval; ts: CVTimeStampPtr); message 'drawInCGLContext:pixelFormat:forLayerTime:displayTime:';
     function copyCGLPixelFormatForDisplayMask(mask_: cuint32): CGLPixelFormatObj; message 'copyCGLPixelFormatForDisplayMask:';
     procedure releaseCGLPixelFormat(pf: CGLPixelFormatObj); message 'releaseCGLPixelFormat:';

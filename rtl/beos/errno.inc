@@ -386,10 +386,12 @@ const
     ESysESRCH       = (B_POSIX_ERROR_BASE + 13);
     ESysETIMEDOUT   = ord(B_TIMED_OUT);
     ESysEXDEV       = ord(B_CROSS_DEVICE_LINK);
+    ESysEMSGSIZE     = EMSGSIZE;
+    ESysEOPNOTSUPP   = EOPNOTSUPP;
+
 
     {ESysEBADMSG     =    realtime extension POSIX only   }
     {ESysECANCELED   =    async. I/O extension POSIX only }
-    {ESysEMSGSIZE    =    realtime extension POSIX only   }
     {ESysEINPROGRESS =    async. I/O extension POSIX only }
 
 {***********************************************************************}

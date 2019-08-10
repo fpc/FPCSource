@@ -248,7 +248,7 @@ interface
             end;
           LOC_REGISTER,LOC_CREGISTER :
             begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
               if left.location.size in [OS_64,OS_S64] then
                begin
                  hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -256,7 +256,7 @@ interface
                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reghi,hregister);
                end
               else
-{$endif cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                begin
                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
                end;
@@ -334,8 +334,6 @@ interface
                {!!!!!!!}
                internalerror(8888);
              end;
-           else
-             internalerror(200808241);
          end;
       end;
 
@@ -423,10 +421,10 @@ interface
          case tstringdef(resultdef).stringtype of
            st_shortstring :
              begin
-               tg.gethltemp(current_asmdata.CurrAsmList,cshortstringtype,256,tt_normal,location.reference);
+               tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
                tmpref:=location.reference;
                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
-                 cpointerdef.getreusable(cshortstringtype),
+                 cpointerdef.getreusable(resultdef),
                  cpointerdef.getreusable(left.resultdef),tmpref);
                hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
                  tmpref);
@@ -574,7 +572,7 @@ interface
                     begin
                       location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
                       { code field is the first one }
-                      hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(tprocvardef(tprocdef(left.resultdef).getcopyas(procvardef,pc_normal))),cpointerdef.getreusable(resultdef),left.location.reference);
+                      hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(tprocvardef(tprocdef(left.resultdef).getcopyas(procvardef,pc_normal,''))),cpointerdef.getreusable(resultdef),left.location.reference);
                       hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,left.location.reference,location.register);
                     end;
                   LOC_REGISTER,LOC_CREGISTER:

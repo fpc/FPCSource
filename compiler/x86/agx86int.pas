@@ -53,7 +53,7 @@ interface
 implementation
 
     uses
-      SysUtils,
+      SysUtils,math,
       cutils,globtype,globals,systems,cclasses,
       verbose,cscript,cpuinfo,
       itx86int,
@@ -65,7 +65,8 @@ implementation
 
     const
       line_length = 70;
-
+      max_tokens : longint = 25;
+(*
       wasm_cpu_name : array[tcputype] of string = (
 {$if defined(x86_64)}
         'IA64',        // cpu_none,
@@ -99,6 +100,7 @@ implementation
         '686'       // cpu_PentiumM
 {$endif}
       );
+*)
       secnames : array[TAsmSectiontype] of string[4] = ('','',
         'CODE','DATA','DATA','DATA','BSS','TLS',
         '','','','','','',
@@ -402,6 +404,8 @@ implementation
                              writer.AsmWrite('dword ptr ');
 
 {$endif x86_64}
+                     else
+                       ;
                      end;
                    end;
                   WriteReference(o.ref^);
@@ -468,10 +472,12 @@ implementation
     end;
 
     const
-      ait_const2str : array[aitconst_128bit..aitconst_secrel32_symbol] of string[20]=(
+      ait_const2str : array[aitconst_128bit..aitconst_64bit_unaligned] of string[20]=(
         #9''#9,#9'DQ'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
         #9'FIXMESLEB',#9'FIXEMEULEB',
-        #9'DD RVA'#9,#9'DD SECREL32'#9
+        #9'DD RVA'#9,#9'DD SECREL32'#9,
+        #9'FIXME',#9'FIXME',#9'FIXME',#9'FIXME',
+        #9'DW'#9,#9'DD'#9,#9'DQ'#9
       );
 
     Function PadTabs(const p:string;addch:char):string;
@@ -501,7 +507,7 @@ implementation
       hp,nhp   : tai;
       cpu: tcputype;
       counter,
-      lines,
+      lines, tokens,
       InlineLevel : longint;
       i,j,l    : longint;
       consttype : taiconst_type;
@@ -603,11 +609,15 @@ implementation
                  aitconst_32bit,
                  aitconst_16bit,
                  aitconst_8bit,
+                 aitconst_16bit_unaligned,
+                 aitconst_32bit_unaligned,
+                 aitconst_64bit_unaligned,
                  aitconst_rva_symbol,
                  aitconst_secrel32_symbol :
                    begin
                      writer.AsmWrite(ait_const2str[consttype]);
                      l:=0;
+		     tokens:=1;
                      repeat
                        if assigned(tai_const(hp).sym) then
                          begin
@@ -622,7 +632,9 @@ implementation
                          s:=tostr(tai_const(hp).value);
                        writer.AsmWrite(s);
                        inc(l,length(s));
+		       inc(tokens);
                        if (l>line_length) or
+                          (tokens>max_tokens) or
                           (hp.next=nil) or
                           (tai(hp.next).typ<>ait_const) or
                           (tai_const(hp.next).consttype<>consttype) then
@@ -644,11 +656,48 @@ implementation
              begin
                case tai_realconst(hp).realtyp of
                  aitrealconst_s32bit:
-                   writer.AsmWriteLn(#9#9'DD'#9+single2str(tai_realconst(hp).value.s32val));
+                   begin
+                     if (asminfo^.id = as_i386_wasm) and (IsInfinite(tai_realconst(hp).value.s32val)) then
+                       begin
+                         { Watcom Wasm does not handle Infinity }
+                         if Sign(tai_realconst(hp).value.s32val)=PositiveValue then
+                           writer.AsmWriteln(#9#9'DB'#9'0,0,80h,7Fh')
+                         else
+                           writer.AsmWriteln(#9#9'DW'#9'0,0,80h,FFh');
+                       end
+                     else if (asminfo^.id = as_i386_wasm) and (IsNan(tai_realconst(hp).value.s32val)) then
+                       writer.AsmWriteln(#9#9'DB'#9'1,0,80h,7Fh')
+                     else
+                       writer.AsmWriteLn(#9#9'DD'#9+single2str(tai_realconst(hp).value.s32val));
+                   end;
                  aitrealconst_s64bit:
-                   writer.AsmWriteLn(#9#9'DQ'#9+double2str(tai_realconst(hp).value.s64val));
+                   begin
+                     if (asminfo^.id = as_i386_wasm) and (IsInfinite(tai_realconst(hp).value.s64val)) then
+                       begin
+                         { Watcom Wasm does not handle Infinity }
+                         if Sign(tai_realconst(hp).value.s64val)=PositiveValue then
+                           writer.AsmWriteln(#9#9'DW'#9'0,0,0,7FF0h')
+                         else
+                           writer.AsmWriteln(#9#9'DW'#9'0,0,0,FFF0h');
+                       end
+                     else if (asminfo^.id = as_i386_wasm) and (IsNan(tai_realconst(hp).value.s64val)) then
+                       writer.AsmWriteln(#9#9'DW'#9'0,0,0,0,7FF8h')
+                     else
+                       writer.AsmWriteLn(#9#9'DQ'#9+double2str(tai_realconst(hp).value.s64val));
+                   end;
                  aitrealconst_s80bit:
-                   writer.AsmWriteLn(#9#9'DT'#9+extended2str(tai_realconst(hp).value.s80val));
+                   if (asminfo^.id = as_i386_wasm) and (IsInfinite(tai_realconst(hp).value.s80val)) then
+                     begin
+                       { Watcom Wasm does not handle Infinity }
+                       if Sign(tai_realconst(hp).value.s80val)=PositiveValue then
+                         writer.AsmWriteln(#9#9'DW'#9'0,0,0,8000h,7FFFh')
+                       else
+                         writer.AsmWriteln(#9#9'DW'#9'0,0,0,8000h,FFFFh');
+                     end
+                   else if (asminfo^.id = as_i386_wasm) and (IsNan(tai_realconst(hp).value.s80val)) then
+                     writer.AsmWriteln(#9#9'DW'#9'0,0,0,C000h,7FFFh')
+                   else
+                     writer.AsmWriteLn(#9#9'DT'#9+extended2str(tai_realconst(hp).value.s80val));
                  aitrealconst_s64comp:
                    writer.AsmWriteLn(#9#9'DQ'#9+extended2str(tai_realconst(hp).value.s64compval));
                  else
@@ -841,6 +890,23 @@ implementation
                else if (asminfo^.id=as_x86_64_masm) and
                  (fixed_opcode=A_MOVQ) then
                  writer.AsmWrite(#9#9'mov')
+{$ifdef I386}
+               else if (asminfo^.id = as_i386_wasm) and ((fixed_opcode=A_RETD)
+                       or (fixed_opcode=A_RETND) or (fixed_opcode=A_RETFD)) then
+                 begin
+                   { no 'd' suffix for Watcom assembler }
+                   case fixed_opcode of
+                       A_RETD:
+                         writer.AsmWrite(#9#9'ret');
+                       A_RETND:
+                         writer.AsmWrite(#9#9'retn');
+                       A_RETFD:
+                         writer.AsmWrite(#9#9'retf');
+                       else
+                         internalerror(2019050907);
+                   end
+                 end
+{$endif I386}
                else
                  writer.AsmWrite(#9#9+prefix+std_op2str[fixed_opcode]+cond2str[taicpu(hp).condition]+suffix);
                if taicpu(hp).ops<>0 then

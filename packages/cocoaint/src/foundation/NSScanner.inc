@@ -47,7 +47,7 @@
     function scanLocation: NSUInteger; message 'scanLocation';
     procedure setScanLocation(pos: NSUInteger); message 'setScanLocation:';
     procedure setCharactersToBeSkipped(set_: NSCharacterSet); message 'setCharactersToBeSkipped:';
-    procedure setCaseSensitive(flag: Boolean); message 'setCaseSensitive:';
+    procedure setCaseSensitive(flag: BOOL); message 'setCaseSensitive:';
     procedure setLocale(locale_: id); message 'setLocale:';
 
     { Adopted Protocols }
@@ -57,22 +57,22 @@
 { NSExtendedScannerCategory }
   NSExtendedScannerCategory = objccategory external (NSScanner)
     function charactersToBeSkipped: NSCharacterSet; message 'charactersToBeSkipped';
-    function caseSensitive: Boolean; message 'caseSensitive';
+    function caseSensitive: BOOL; message 'caseSensitive';
     function locale: id; message 'locale';
-    function scanInt(value: pcint): Boolean; message 'scanInt:';
-    function scanInteger(value: NSIntegerPtr): Boolean; message 'scanInteger:';
-    function scanHexLongLong(result_: pculonglong): Boolean; message 'scanHexLongLong:';
-    function scanHexFloat(result_: psingle): Boolean; message 'scanHexFloat:';
-    function scanHexDouble(result_: pdouble): Boolean; message 'scanHexDouble:';
-    function scanHexInt(value: pcuint): Boolean; message 'scanHexInt:';
-    function scanLongLong(value: pclonglong): Boolean; message 'scanLongLong:';
-    function scanFloat(value: psingle): Boolean; message 'scanFloat:';
-    function scanDouble(value: pdouble): Boolean; message 'scanDouble:';
-    function scanString_intoString(string__: NSString; value: NSStringPointer): Boolean; message 'scanString:intoString:';
-    function scanCharactersFromSet_intoString(set_: NSCharacterSet; value: NSStringPointer): Boolean; message 'scanCharactersFromSet:intoString:';
-    function scanUpToString_intoString(string__: NSString; value: NSStringPointer): Boolean; message 'scanUpToString:intoString:';
-    function scanUpToCharactersFromSet_intoString(set_: NSCharacterSet; value: NSStringPointer): Boolean; message 'scanUpToCharactersFromSet:intoString:';
-    function isAtEnd: Boolean; message 'isAtEnd';
+    function scanInt(value: pcint): BOOL; message 'scanInt:';
+    function scanInteger(value: NSIntegerPtr): BOOL; message 'scanInteger:';
+    function scanHexLongLong(result_: pculonglong): BOOL; message 'scanHexLongLong:';
+    function scanHexFloat(result_: psingle): BOOL; message 'scanHexFloat:';
+    function scanHexDouble(result_: pdouble): BOOL; message 'scanHexDouble:';
+    function scanHexInt(value: pcuint): BOOL; message 'scanHexInt:';
+    function scanLongLong(value: pclonglong): BOOL; message 'scanLongLong:';
+    function scanFloat(value: psingle): BOOL; message 'scanFloat:';
+    function scanDouble(value: pdouble): BOOL; message 'scanDouble:';
+    function scanString_intoString(string__: NSString; value: NSStringPointer): BOOL; message 'scanString:intoString:';
+    function scanCharactersFromSet_intoString(set_: NSCharacterSet; value: NSStringPointer): BOOL; message 'scanCharactersFromSet:intoString:';
+    function scanUpToString_intoString(string__: NSString; value: NSStringPointer): BOOL; message 'scanUpToString:intoString:';
+    function scanUpToCharactersFromSet_intoString(set_: NSCharacterSet; value: NSStringPointer): BOOL; message 'scanUpToCharactersFromSet:intoString:';
+    function isAtEnd: BOOL; message 'isAtEnd';
     function initWithString(string__: NSString): id; message 'initWithString:';
     class function scannerWithString(string__: NSString): id; message 'scannerWithString:';
     class function localizedScannerWithString(string__: NSString): id; message 'localizedScannerWithString:';

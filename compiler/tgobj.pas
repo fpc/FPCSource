@@ -64,6 +64,7 @@ unit tgobj;
           procedure alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); virtual;
           procedure freetemp(list: TAsmList; pos: treftemppos; temptypes: ttemptypeset);virtual;
           procedure gettempinternal(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref : treference);
+          procedure freetemphook(list: TAsmList; temp: ptemprecord); virtual;
        public
           { contains all temps }
           templist      : ptemprecord;
@@ -216,6 +217,9 @@ implementation
         firsttemp:=0;
         lasttemp:=0;
         alignmismatch:=0;
+{$ifdef EXTDEBUG}
+         Comment(V_Note,'tgobj: (ResetTempGen) all temps freed');
+{$endif}
       end;
 
 
@@ -231,6 +235,9 @@ implementation
            internalerror(200204221);
          firsttemp:=l;
          lasttemp:=l;
+{$ifdef EXTDEBUG}
+         Comment(V_Note,'tgobj: (SetFirstTempGen) set to '+tostr(l));
+{$endif}
       end;
 
 
@@ -260,7 +267,7 @@ implementation
          if size=0 then
           begin
 {$ifdef EXTDEBUG}
-            Comment(V_Warning,'tgobj: (AllocTemp) temp of size 0 requested, allocating 4 bytes');
+            Comment(V_Note,'tgobj: (AllocTemp) temp of size 0 requested, allocating 4 bytes');
 {$endif}
             size:=4;
           end;
@@ -268,6 +275,11 @@ implementation
          freetype:=Used2Free[temptype];
          if freetype=tt_none then
            internalerror(200208201);
+         if size>MaxLocalsSize then
+            begin
+              CGMessage(cg_e_localsize_too_big);
+              size:=0;  // Prevent further range check errors
+            end;
          size:=align(size,alignment);
          { First check the tmpfreelist, but not when
            we don't want to reuse an already allocated block }
@@ -280,7 +292,7 @@ implementation
              begin
 {$ifdef EXTDEBUG}
                if not(hp^.temptype in FreeTempTypes) then
-                 Comment(V_Warning,'tgobj: (AllocTemp) temp at pos '+tostr(hp^.pos)+ ' in freelist is not set to tt_free !');
+                 Comment(V_Warning,'tgobj: (AllocTemp) temp at pos '+tostr(hp^.pos)+ ' in freelist is not set to  a free temp type !');
 {$endif}
                { Check only slots that are
                   - free
@@ -411,26 +423,30 @@ implementation
             tl^.temptype:=temptype;
             tl^.def:=def;
 
-{$push}
-{$r-}
-{$warn 6018 off}
-{$warn 4044 off}
             { Extend the temp }
             if direction=-1 then
               begin
-                if qword(align(-lasttemp-alignmismatch,alignment))+size+alignmismatch>high(tl^.pos) then
-                  CGMessage(cg_e_localsize_too_big);
+                if Int64(align(-lasttemp-alignmismatch,alignment))+size+alignmismatch>MaxLocalsSize then
+                  begin
+                    CGMessage(cg_e_localsize_too_big);
+                    size:=0;  // Prevent further range check errors
+                  end;
                 lasttemp:=(-align(-lasttemp-alignmismatch,alignment))-size-alignmismatch;
                 tl^.pos:=lasttemp;
               end
             else
               begin
                 tl^.pos:=align(lasttemp+alignmismatch,alignment)-alignmismatch;
-                if qword(tl^.pos)+size>high(tl^.pos) then
-                  CGMessage(cg_e_localsize_too_big);
+                if Int64(tl^.pos)+size>MaxLocalsSize then
+                  begin
+                    CGMessage(cg_e_localsize_too_big);
+                    size:=0;  // Prevent further range check errors
+                  end;
                 lasttemp:=tl^.pos+size;
               end;
-{$pop}
+{$ifdef EXTDEBUG}
+         Comment(V_Note,'tgobj: (AllocTemp) lasttemp set to '+tostr(lasttemp));
+{$endif}
             tl^.fini:=fini;
             tl^.alignment:=alignment;
             tl^.size:=size;
@@ -444,6 +460,7 @@ implementation
            list.concat(tai_tempalloc.allocinfo(tl^.pos,tl^.size,'allocated with type '+TempTypeStr[tl^.temptype]+' for def '+tl^.def.typename))
          else
            list.concat(tai_tempalloc.allocinfo(tl^.pos,tl^.size,'allocated with type '+TempTypeStr[tl^.temptype]));
+         Comment(V_Note,'tgobj: (AllocTemp) temp of size '+tostr(size)+' type '+TempTypeStr[tl^.temptype]+' requested, allocated at offset '+tostr(tl^.pos));
 {$else}
          list.concat(tai_tempalloc.alloc(tl^.pos,tl^.size));
 {$endif}
@@ -458,6 +475,9 @@ implementation
          hp:=templist;
          hprev:=nil;
          hprevfree:=nil;
+{$ifdef EXTDEBUG}
+         Comment(V_Note,'tgobj: (FreeTemp) freeing of temp at pos '+tostr(pos.val)+' requested');
+{$endif}
          while assigned(hp) do
           begin
             if (hp^.pos=pos.val) then
@@ -475,12 +495,15 @@ implementation
                if not(hp^.temptype in temptypes) then
                 begin
 {$ifdef EXTDEBUG}
-                  Comment(V_Debug,'tgobj: (Freetemp) temp at pos '+tostr(pos.val)+ ' has different type ('+TempTypeStr[hp^.temptype]+'), not releasing');
+                  if hp^.temptype = tt_persistent then
+                    Comment(V_Note,'tgobj: (Freetemp) temp at pos '+tostr(pos.val)+ ' has different type ('+TempTypeStr[hp^.temptype]+'), not releasing')
+                  else
+                    Comment(V_Warning,'tgobj: (Freetemp) temp at pos '+tostr(pos.val)+ ' has different type ('+TempTypeStr[hp^.temptype]+'), not releasing');
                   list.concat(tai_tempalloc.allocinfo(hp^.pos,hp^.size,'temp has wrong type ('+TempTypeStr[hp^.temptype]+') not releasing'));
 {$endif}
                   exit;
                 end;
-               list.concat(tai_tempalloc.dealloc(hp^.pos,hp^.size));
+               freetemphook(list,hp);
                { set this block to free }
                hp^.temptype:=Used2Free[hp^.temptype];
                { Update tempfreelist }
@@ -551,7 +574,6 @@ implementation
       end;
 
 
-
     procedure ttgobj.gettemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; out ref : treference);
       begin
         gettempinternal(list,size,alignment,temptype,nil,false,ref);
@@ -564,6 +586,12 @@ implementation
       begin
         varalign:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
         alloctemp(list,size,varalign,temptype,def,fini,ref);
+      end;
+
+
+    procedure ttgobj.freetemphook(list: TAsmList; temp: ptemprecord);
+      begin
+        list.concat(tai_tempalloc.dealloc(temp^.pos,temp^.size));
       end;
 
 

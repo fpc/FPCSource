@@ -41,7 +41,7 @@ begin
   Dispose(t);
 end;
 
-function TypeInfoToFFIType(aTypeInfo: PTypeInfo): pffi_type; forward;
+function TypeInfoToFFIType(aTypeInfo: PTypeInfo; aFlags: TParamFlags): pffi_type; forward;
 
 function RecordOrObjectToFFIType(aTypeInfo: PTypeInfo): pffi_type;
 var
@@ -58,9 +58,10 @@ var
   end;
 
 var
-  td: PTypeData;
-  i, curoffset, remoffset: SizeInt;
+  td, fieldtd: PTypeData;
+  i, j, curoffset, remoffset: SizeInt;
   field: PManagedField;
+  ffitype: pffi_type;
 begin
   td := GetTypeData(aTypeInfo);
   if td^.TotalFieldCount = 0 then
@@ -69,6 +70,7 @@ begin
   New(Result);
   FillChar(Result^, SizeOf(Result), 0);
   Result^._type := _FFI_TYPE_STRUCT;
+  Result^.elements := Nil;
   curoffset := 0;
   curindex := 0;
   field := PManagedField(PByte(@td^.TotalFieldCount) + SizeOf(td^.TotalFieldCount));
@@ -76,8 +78,10 @@ begin
   SetLength(elements, td^.TotalFieldCount);
   for i := 0 to td^.TotalFieldCount - 1 do begin
     { ToDo: what about fields that are larger that what we have currently? }
-    if field^.FldOffset < curoffset then
+    if field^.FldOffset < curoffset then begin
+      Inc(field);
       Continue;
+    end;
     remoffset := field^.FldOffset - curoffset;
     { insert padding elements }
     while remoffset >= SizeOf(QWord) do begin
@@ -96,8 +100,21 @@ begin
       AddElement(@ffi_type_uint8);
       Dec(remoffset, SizeOf(Byte))
     end;
-    { now add the real field type }
-    AddElement(TypeInfoToFFIType(field^.TypeRef));
+    { now add the real field type (Note: some are handled differently from
+      being passed as arguments, so we handle those here) }
+    if field^.TypeRef^.Kind = tkObject then
+      AddElement(RecordOrObjectToFFIType(field^.TypeRef))
+    else if field^.TypeRef^.Kind = tkSString then begin
+      fieldtd := GetTypeData(field^.TypeRef);
+      for j := 0 to fieldtd^.MaxLength + 1 do
+        AddElement(@ffi_type_uint8);
+    end else if field^.TypeRef^.Kind = tkArray then begin
+      fieldtd := GetTypeData(field^.TypeRef);
+      ffitype := TypeInfoToFFIType(fieldtd^.ArrayData.ElType, []);
+      for j := 0 to fieldtd^.ArrayData.ElCount - 1 do
+        AddElement(ffitype);
+    end else
+      AddElement(TypeInfoToFFIType(field^.TypeRef, []));
     Inc(field);
     curoffset := field^.FldOffset;
   end;
@@ -128,6 +145,7 @@ begin
     Exit(Nil);
   New(Result);
   Result^._type := _FFI_TYPE_STRUCT;
+  Result^.elements := Nil;
   curindex := 0;
   SetLength(elements, aSize);
   while aSize >= SizeOf(QWord) do begin
@@ -151,10 +169,11 @@ begin
   Tpffi_typeArray(Result^.elements) := elements;
 end;
 
-function TypeInfoToFFIType(aTypeInfo: PTypeInfo): pffi_type;
+function TypeInfoToFFIType(aTypeInfo: PTypeInfo; aFlags: TParamFlags): pffi_type;
 
   function TypeKindName: String;
   begin
+    Result := '';
     WriteStr(Result, aTypeInfo^.Kind);
   end;
 
@@ -164,103 +183,104 @@ begin
   Result := @ffi_type_void;
   if Assigned(aTypeInfo) then begin
     td := GetTypeData(aTypeInfo);
-    case aTypeInfo^.Kind of
-      tkInteger,
-      tkEnumeration,
-      tkBool,
-      tkInt64,
-      tkQWord:
-        case td^.OrdType of
-          otSByte:
-            Result := @ffi_type_sint8;
-          otUByte:
-            Result := @ffi_type_uint8;
-          otSWord:
-            Result := @ffi_type_sint16;
-          otUWord:
-            Result := @ffi_type_uint16;
-          otSLong:
-            Result := @ffi_type_sint32;
-          otULong:
-            Result := @ffi_type_uint32;
-          otSQWord:
-            Result := @ffi_type_sint64;
-          otUQWord:
-            Result := @ffi_type_uint64;
-        end;
-      tkChar:
-        Result := @ffi_type_uint8;
-      tkFloat:
-        case td^.FloatType of
-          ftSingle:
-            Result := @ffi_type_float;
-          ftDouble:
-            Result := @ffi_type_double;
-          ftExtended:
-            Result := @ffi_type_longdouble;
-          ftComp:
-{$ifndef FPC_HAS_TYPE_EXTENDED}
-            Result := @ffi_type_sint64;
-{$else}
-            Result := @ffi_type_longdouble;
-{$endif}
-          ftCurr:
-            Result := @ffi_type_sint64;
-        end;
-      tkSet:
-        case td^.OrdType of
-          otUByte: begin
-            if td^.SetSize = 1 then
-              Result := @ffi_type_uint8
-            else begin
-              { ugh... build a of suitable record }
-              Result := SetToFFIType(td^.SetSize);
-            end;
+    if aFlags * [pfArray, pfOut, pfVar, pfConstRef] <> [] then
+      Result := @ffi_type_pointer
+    else
+      case aTypeInfo^.Kind of
+        tkInteger,
+        tkEnumeration,
+        tkBool,
+        tkInt64,
+        tkQWord:
+          case td^.OrdType of
+            otSByte:
+              Result := @ffi_type_sint8;
+            otUByte:
+              Result := @ffi_type_uint8;
+            otSWord:
+              Result := @ffi_type_sint16;
+            otUWord:
+              Result := @ffi_type_uint16;
+            otSLong:
+              Result := @ffi_type_sint32;
+            otULong:
+              Result := @ffi_type_uint32;
+            otSQWord:
+              Result := @ffi_type_sint64;
+            otUQWord:
+              Result := @ffi_type_uint64;
           end;
-          otUWord:
-            Result := @ffi_type_uint16;
-          otULong:
-            Result := @ffi_type_uint32;
-        end;
-      tkWChar,
-      tkUChar:
-        Result := @ffi_type_uint16;
-      tkInterface,
-      tkAString,
-      tkUString,
-      tkWString,
-      tkInterfaceRaw,
-      tkProcVar,
-      tkDynArray,
-      tkClass,
-      tkClassRef,
-      tkPointer:
-        Result := @ffi_type_pointer;
-      tkMethod:
-        Result := RecordOrObjectToFFIType(TypeInfo(TMethod));
-      tkSString:
-        { since shortstrings are rather large they're passed as references }
-        Result := @ffi_type_pointer;
-      tkObject:
-        { passed around as pointer as well }
-        Result := @ffi_type_pointer;
-      tkArray:
-        { arrays are passed as pointers to be compatible to C }
-        Result := @ffi_type_pointer;
-      tkRecord:
-        Result := RecordOrObjectToFFIType(aTypeInfo);
-      tkVariant:
-        Result := RecordOrObjectToFFIType(TypeInfo(tvardata));
-      //tkLString: ;
-      //tkHelper: ;
-      //tkFile: ;
-      else
-        raise EInvocationError.CreateFmt(SErrTypeKindNotSupported, [TypeKindName]);
-    end;
-  end;
+        tkChar:
+          Result := @ffi_type_uint8;
+        tkFloat:
+          case td^.FloatType of
+            ftSingle:
+              Result := @ffi_type_float;
+            ftDouble:
+              Result := @ffi_type_double;
+            ftExtended:
+              Result := @ffi_type_longdouble;
+            { Comp and Currency are passed as Int64 (ToDo: on all platforms?) }
+            ftComp:
+              Result := @ffi_type_sint64;
+            ftCurr:
+              Result := @ffi_type_sint64;
+          end;
+        tkSet:
+          case td^.OrdType of
+            otUByte: begin
+              if td^.SetSize = 1 then
+                Result := @ffi_type_uint8
+              else begin
+                { ugh... build a of suitable record }
+                Result := SetToFFIType(td^.SetSize);
+              end;
+            end;
+            otUWord:
+              Result := @ffi_type_uint16;
+            otULong:
+              Result := @ffi_type_uint32;
+          end;
+        tkWChar,
+        tkUChar:
+          Result := @ffi_type_uint16;
+        tkInterface,
+        tkAString,
+        tkUString,
+        tkWString,
+        tkInterfaceRaw,
+        tkProcVar,
+        tkDynArray,
+        tkClass,
+        tkClassRef,
+        tkPointer:
+          Result := @ffi_type_pointer;
+        tkMethod:
+          Result := RecordOrObjectToFFIType(TypeInfo(TMethod));
+        tkSString:
+          { since shortstrings are rather large they're passed as references }
+          Result := @ffi_type_pointer;
+        tkObject:
+          { passed around as pointer as well }
+          Result := @ffi_type_pointer;
+        tkArray:
+          { arrays are passed as pointers to be compatible to C }
+          Result := @ffi_type_pointer;
+        tkRecord:
+          Result := RecordOrObjectToFFIType(aTypeInfo);
+        tkVariant:
+          Result := RecordOrObjectToFFIType(TypeInfo(tvardata));
+        //tkLString: ;
+        //tkHelper: ;
+        //tkFile: ;
+        else
+          raise EInvocationError.CreateFmt(SErrTypeKindNotSupported, [TypeKindName]);
+      end;
+  end else if aFlags * [pfOut, pfVar, pfConst, pfConstRef] <> [] then
+    Result := @ffi_type_pointer;
 end;
 
-function ValueToFFIValue(constref Value: TValue; var aIndirect: Pointer; aIsResult: Boolean): Pointer;
+function ArgIsIndirect(aKind: TTypeKind; aFlags: TParamFlags; aIsResult: Boolean): Boolean;
 const
   ResultTypeNeedsIndirection = [
    tkAString,
@@ -270,17 +290,88 @@ const
    tkDynArray
   ];
 begin
-  aIndirect := Nil;
-  Result := Value.GetReferenceToRawData;
-  if (Value.Kind = tkSString) or (aIsResult and (Value.Kind in ResultTypeNeedsIndirection)) then begin
-    aIndirect := Result;
-    Result := @aIndirect;
-  end;
+  Result := False;
+  if (aKind = tkSString) or
+      (aIsResult and (aKind in ResultTypeNeedsIndirection)) or
+      (aFlags * [pfArray, pfOut, pfVar, pfConstRef] <> []) or
+      ((aKind = tkUnknown) and (pfConst in aFlags)) then
+    Result := True;
 end;
 
-function FFIValueToValue(Value: Pointer; TypeInfo: PTypeInfo): TValue;
+procedure FFIValueToValue(Source, Dest: Pointer; TypeInfo: PTypeInfo);
+var
+  size: SizeInt;
+  td: PTypeData;
 begin
-  TValue.Make(Value, TypeInfo, Result);
+  td := GetTypeData(TypeInfo);
+  size := 0;
+  case TypeInfo^.Kind of
+    tkChar,
+    tkWChar,
+    tkUChar,
+    tkEnumeration,
+    tkBool,
+    tkInteger,
+    tkInt64,
+    tkQWord:
+      case td^.OrdType of
+        otSByte,
+        otUByte:
+          size := 1;
+        otSWord,
+        otUWord:
+          size := 2;
+        otSLong,
+        otULong:
+          size := 4;
+        otSQWord,
+        otUQWord:
+          size := 8;
+      end;
+    tkSet:
+      size := td^.SetSize;
+    tkFloat:
+      case td^.FloatType of
+        ftSingle:
+          size := SizeOf(Single);
+        ftDouble:
+          size := SizeOf(Double);
+        ftExtended:
+          size := SizeOf(Extended);
+        ftComp:
+          size := SizeOf(Comp);
+        ftCurr:
+          size := SizeOf(Currency);
+      end;
+    tkMethod:
+      size := SizeOf(TMethod);
+    tkSString:
+      size := td^.MaxLength + 1;
+    tkDynArray,
+    tkLString,
+    tkAString,
+    tkUString,
+    tkWString,
+    tkClass,
+    tkPointer,
+    tkClassRef,
+    tkInterfaceRaw:
+      size := SizeOf(Pointer);
+    tkVariant:
+      size := SizeOf(tvardata);
+    tkArray:
+      size := td^.ArrayData.Size;
+    tkRecord:
+      size := td^.RecSize;
+    tkProcVar:
+      size := SizeOf(CodePointer);
+    tkObject: ;
+    tkHelper: ;
+    tkFile: ;
+  end;
+
+  if size > 0 then
+    Move(Source^, Dest^, size);
 end;
 
 { move this to type info? }
@@ -300,8 +391,29 @@ begin
   end;
 end;
 
-procedure FFIInvoke(aCodeAddress: Pointer; const aArgs: TFunctionCallParameterArray; aCallConv: TCallConv;
-            aResultType: PTypeInfo; out aResultValue: TValue; aFlags: TFunctionCallFlags);
+{ on X86 platforms Currency and Comp results are passed by the X87 if the
+  Extended type is available }
+{$if (defined(CPUI8086) or defined(CPUI386) or defined(CPUX86_64)) and defined(FPC_HAS_TYPE_EXTENDED) and (not defined(FPC_COMP_IS_INT64) or not defined(FPC_CURRENCY_IS_INT64))}
+{$define USE_EXTENDED_AS_COMP_CURRENCY_RES}
+{$endif}
+
+type
+  TFFIData = record
+    Types: array of pffi_type;
+    Values: array of Pointer;
+    Indirect: array of Boolean;
+    ResultType: pffi_type;
+    ResultValue: Pointer;
+    ResultIndex: SizeInt;
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+    ResultTypeData: PTypeData;
+    ResultExtended: Extended;
+{$endif}
+    { put this at the end just in case we messed up the size }
+    CIF: ffi_cif;
+  end;
+
+procedure CreateCIF(constref aArgInfos: array of TFunctionCallParameterInfo; constref aArgValues: array of Pointer; aCallConv: TCallConv; aResultType: PTypeInfo; aResultValue: Pointer; aFlags: TFunctionCallFlags; out aData: TFFIData);
 
   function CallConvName: String; inline;
   begin
@@ -310,19 +422,15 @@ procedure FFIInvoke(aCodeAddress: Pointer; const aArgs: TFunctionCallParameterAr
 
 var
   abi: ffi_abi;
-  argtypes: array of pffi_type;
-  argvalues: array of Pointer;
-  argindirect: array of Pointer;
-  rtype: pffi_type;
-  rvalue: ffi_arg;
-  i, arglen, argoffset, retidx, argstart: LongInt;
-  cif: ffi_cif;
-  retparam: Boolean;
+  i, arglen, argoffset, argstart: LongInt;
+  usevalues, retparam: Boolean;
+  kind: TTypeKind;
+  types: ppffi_type;
 begin
-  aResultValue := TValue.Empty;
-
-  if not (fcfStatic in aFlags) and (Length(aArgs) = 0) then
+  if not (fcfStatic in aFlags) and (Length(aArgInfos) = 0) then
     raise EInvocationError.Create(SErrMissingSelfParam);
+
+  Assert((Length(aArgInfos) = Length(aArgValues)) or (Length(aArgValues) = 0), 'Amount of arguments does not match needed arguments');
 
   case aCallConv of
 {$if defined(CPUI386)}
@@ -355,62 +463,341 @@ begin
       raise EInvocationError.CreateFmt(SErrCallConvNotSupported, [CallConvName]);
   end;
 
+  { if no values are provided we are called to prepare a callback, otherwise
+    we are asked to prepare a invokation }
+  usevalues := (Length(aArgInfos) > 0) and (Length(aArgValues) > 0);
+
   retparam := RetInParam(aCallConv, aResultType);
 
-  arglen := Length(aArgs);
+  arglen := Length(aArgInfos);
   if retparam then begin
     Inc(arglen);
+    usevalues := True;
     argoffset := 1;
-    retidx := 0;
+    aData.ResultIndex := 0;
   end else begin
     argoffset := 0;
-    retidx := -1;
+    aData.ResultIndex := -1;
   end;
 
-  SetLength(argtypes, arglen);
-  SetLength(argvalues, arglen);
-  SetLength(argindirect, arglen);
+  SetLength(aData.Types, arglen);
+  SetLength(aData.Indirect, arglen);
+  if usevalues then
+    SetLength(aData.Values, arglen);
 
   { the order is Self/Vmt (if any), Result param (if any), other params }
 
   if not (fcfStatic in aFlags) and retparam then begin
-    argtypes[0] := TypeInfoToFFIType(aArgs[0].Value.TypeInfo);
-    argvalues[0] := ValueToFFIValue(aArgs[0].Value, argindirect[0], False);
+    aData.Types[0] := TypeInfoToFFIType(aArgInfos[0].ParamType, aArgInfos[0].ParamFlags);
+    if Assigned(aArgInfos[0].ParamType) then
+      kind := aArgInfos[0].ParamType^.Kind
+    else
+      kind := tkUnknown;
+    aData.Indirect[0] := ArgIsIndirect(kind, aArgInfos[0].ParamFlags, False);
+    if usevalues then
+      if aData.Indirect[0] then
+        aData.Values[0] := @aArgValues[0]
+      else
+        aData.Values[0] := aArgValues[0];
     if retparam then
-      Inc(retidx);
+      Inc(aData.ResultIndex);
     argstart := 1;
   end else
     argstart := 0;
 
-  for i := Low(aArgs) + argstart to High(aArgs) do begin
-    argtypes[i - Low(aArgs) + Low(argtypes) + argoffset] := TypeInfoToFFIType(aArgs[i].Value.TypeInfo);
-    argvalues[i - Low(aArgs) + Low(argtypes) + argoffset] := ValueToFFIValue(aArgs[i].Value, argindirect[i + argoffset], False);
+  for i := argstart to High(aArgInfos) do begin
+    aData.Types[i + argoffset] := TypeInfoToFFIType(aArgInfos[i].ParamType, aArgInfos[i].ParamFlags);
+    if (pfResult in aArgInfos[i].ParamFlags) and not retparam then
+      aData.ResultIndex := i + argoffset;
+    if Assigned(aArgInfos[i].ParamType) then
+      kind := aArgInfos[i].ParamType^.Kind
+    else
+      kind := tkUnknown;
+    aData.Indirect[i + argoffset] := ArgIsIndirect(kind, aArgInfos[i].ParamFlags, False);
+    if usevalues then
+      if aData.Indirect[i + argoffset] then
+        aData.Values[i + argoffset] := @aArgValues[i]
+      else
+        aData.Values[i + argoffset] := aArgValues[i];
   end;
 
   if retparam then begin
-    argtypes[retidx] := TypeInfoToFFIType(aResultType);
-    TValue.Make(Nil, aResultType, aResultValue);
-    argvalues[retidx] := ValueToFFIValue(aResultValue, argindirect[retidx], True);
-    rtype := @ffi_type_void;
+    aData.Types[aData.ResultIndex] := TypeInfoToFFIType(aResultType, []);
+    aData.Indirect[aData.ResultIndex] := ArgIsIndirect(aResultType^.Kind, [], True);
+    if usevalues then
+      if aData.Indirect[aData.ResultIndex] then
+        aData.Values[aData.ResultIndex] := @aResultValue
+      else
+        aData.Values[aData.ResultIndex] := aResultValue;
+    aData.ResultType := @ffi_type_void;
+    aData.ResultValue := Nil;
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+    aData.ResultTypeData := Nil;
+{$endif}
   end else begin
-    rtype := TypeInfoToFFIType(aResultType);
+    aData.ResultValue := Nil;
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+    { special case for Comp/Currency as such arguments are passed as Int64,
+      but the result is handled through the X87 }
+    if Assigned(aResultType) and (aResultType^.Kind = tkFloat) then begin
+      aData.ResultTypeData := GetTypeData(aResultType);
+      case aData.ResultTypeData^.FloatType of
+{$ifndef FPC_CURRENCY_IS_INT64}
+        ftCurr: begin
+          aData.ResultType := @ffi_type_longdouble;
+          aData.ResultValue := @aData.ResultExtended;
+        end;
+{$endif}
+{$ifndef FPC_COMP_IS_INT64}
+        ftComp: begin
+          aData.ResultType := @ffi_type_longdouble;
+          aData.ResultValue := @aData.ResultExtended;
+        end;
+{$endif}
+      end;
+    end else
+      aData.ResultTypeData := Nil;
+{$endif}
+    if not Assigned(aData.ResultValue) then begin
+      aData.ResultType := TypeInfoToFFIType(aResultType, []);
+      if Assigned(aResultType) then
+        aData.ResultValue := aResultValue
+      else
+        aData.ResultValue := Nil;
+    end;
   end;
 
-  if ffi_prep_cif(@cif, abi, arglen, rtype, @argtypes[0]) <> FFI_OK then
+  if Assigned(aData.Types) then
+    types := @aData.Types[0]
+  else
+    types := Nil;
+
+  if ffi_prep_cif(@aData.CIF, abi, arglen, aData.ResultType, types) <> FFI_OK then
     raise EInvocationError.Create(SErrInvokeFailed);
-
-  ffi_call(@cif, ffi_fn(aCodeAddress), @rvalue, @argvalues[0]);
-
-  if Assigned(aResultType) and not retparam then
-    aResultValue := FFIValueToValue(@rvalue, aResultType);
 end;
+
+procedure FFIInvoke(aCodeAddress: Pointer; const aArgs: TFunctionCallParameterArray; aCallConv: TCallConv;
+            aResultType: PTypeInfo; aResultValue: Pointer; aFlags: TFunctionCallFlags);
+var
+  ffidata: TFFIData;
+  i: SizeInt;
+  arginfos: array of TFunctionCallParameterInfo;
+  argvalues: array of Pointer;
+begin
+  if Assigned(aResultType) and not Assigned(aResultValue) then
+    raise EInvocationError.Create(SErrInvokeResultTypeNoValue);
+
+  SetLength(arginfos, Length(aArgs));
+  SetLength(argvalues, Length(aArgs));
+  for i := 0 to High(aArgs) do begin
+    arginfos[i] := aArgs[i].Info;
+    argvalues[i] := aArgs[i].ValueRef;
+  end;
+  CreateCIF(arginfos, argvalues, aCallConv, aResultType, aResultValue, aFlags, ffidata);
+
+  arginfos := Nil;
+  argvalues := Nil;
+
+  ffi_call(@ffidata.CIF, ffi_fn(aCodeAddress), ffidata.ResultValue, @ffidata.Values[0]);
+
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+  if Assigned(ffidata.ResultTypeData) then begin
+    case ffidata.ResultTypeData^.FloatType of
+{$ifndef FPC_CURRENCY_IS_INT64}
+      ftCurr:
+        PCurrency(aResultValue)^ := Currency(ffidata.ResultExtended / 10000);
+{$endif}
+{$ifndef FPC_COMP_IS_INT64}
+      ftComp:
+        PComp(aResultValue)^ := Comp(ffidata.ResultExtended);
+{$endif}
+    end;
+  end;
+{$endif}
+end;
+
+type
+  TFFIFunctionCallback = class(TFunctionCallCallback)
+  private
+    fFFIData: TFFIData;
+    fData: Pointer;
+    fCode: CodePointer;
+    fContext: Pointer;
+  private
+    class procedure ClosureFunc(aCIF: pffi_cif; aRet: Pointer; aArgs: PPointer; aUserData: Pointer); cdecl; static;
+    procedure PassToHandler(aRet: Pointer; aArgs: PPointer);
+  protected
+    function GetCodeAddress: CodePointer; override;
+    procedure CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer); virtual; abstract;
+  public
+    constructor Create(aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+    destructor Destroy; override;
+  end;
+
+  TFFIFunctionCallbackMethod = class(TFFIFunctionCallback)
+  private
+    fHandler: TFunctionCallMethod;
+  protected
+    procedure CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer); override;
+  public
+    constructor Create(aHandler: TFunctionCallMethod; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+  end;
+
+  TFFIFunctionCallbackProc = class(TFFIFunctionCallback)
+  private
+    fHandler: TFunctionCallProc;
+  protected
+    procedure CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer); override;
+  public
+    constructor Create(aHandler: TFunctionCallProc; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+  end;
+
+class procedure TFFIFunctionCallback.ClosureFunc(aCIF: pffi_cif; aRet: Pointer; aArgs: PPointer; aUserData: Pointer); cdecl;
+var
+  this: TFFIFunctionCallback absolute aUserData;
+begin
+  this.PassToHandler(aRet, aArgs);
+end;
+
+procedure TFFIFunctionCallback.PassToHandler(aRet: Pointer; aArgs: PPointer);
+var
+  args: array of Pointer;
+  i, arglen, argidx: SizeInt;
+  resptr: Pointer;
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+{$ifndef FPC_COMP_IS_INT64}
+  rescomp: Comp;
+{$endif}
+{$ifndef FPC_CURR_IS_INT64}
+  rescurr: Currency;
+{$endif}
+{$endif}
+begin
+  arglen := Length(fFFIData.Types);
+  if fFFIData.ResultIndex >= 0 then
+    Dec(arglen);
+  SetLength(args, arglen);
+  argidx := 0;
+  for i := 0 to High(fFFIData.Types) do begin
+    if i = fFFIData.ResultIndex then
+      Continue;
+    args[argidx] := aArgs[i];
+    if fFFIData.Indirect[i] then
+      args[argidx] := PPointer(aArgs[i])^
+    else
+      args[argidx] := aArgs[i];
+    Inc(argidx);
+  end;
+
+  if fFFIData.ResultIndex >= 0 then begin
+    if fFFIData.Indirect[fFFIData.ResultIndex] then
+      resptr := PPointer(aArgs[fFFIData.ResultIndex])^
+    else
+      resptr := aArgs[fFFIData.ResultIndex];
+  end else begin
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+    resptr := Nil;
+    if Assigned(fFFIData.ResultTypeData) then begin
+      case fFFIData.ResultTypeData^.FloatType of
+{$ifndef FPC_COMP_IS_INT64}
+        ftComp:
+          resptr := @rescomp;
+{$endif}
+{$ifndef FPC_CURR_IS_INT64}
+        ftCurr:
+          resptr := @rescurr;
+{$endif}
+      end;
+    end;
+    if not Assigned(resptr) then
+{$endif}
+      resptr := aRet;
+  end;
+
+  CallHandler(args, resptr, fContext);
+
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+  if Assigned(fFFIData.ResultTypeData) then begin
+    case fFFIData.ResultTypeData^.FloatType of
+{$ifndef FPC_COMP_IS_INT64}
+      ftComp:
+        PExtended(aRet)^ := rescomp;
+{$endif}
+{$ifndef FPC_CURR_IS_INT64}
+      ftCurr:
+        PExtended(aRet) ^ := rescurr * 10000;
+{$endif}
+    end;
+  end;
+{$endif}
+end;
+
+function TFFIFunctionCallback.GetCodeAddress: CodePointer;
+begin
+  Result := fData;
+end;
+
+constructor TFFIFunctionCallback.Create(aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+var
+  res: ffi_status;
+begin
+  fContext := aContext;
+
+  CreateCIF(aArgs, [], aCallConv, aResultType, Nil, aFlags, fFFIData);
+
+  fData := ffi_closure_alloc(SizeOf(ffi_closure), @fCode);
+  if not Assigned(fData) or not Assigned(fCode) then
+    raise ERTTI.Create(SErrMethodImplCreateFailed);
+
+  res := ffi_prep_closure_loc(pffi_closure(fData), @fFFIData.CIF, @ClosureFunc, Self, fCode);
+  if res <> FFI_OK then
+    raise ERTTI.Create(SErrMethodImplCreateFailed);
+end;
+
+destructor TFFIFunctionCallback.Destroy;
+begin
+  if Assigned(fData) then
+    ffi_closure_free(fData);
+end;
+
+constructor TFFIFunctionCallbackProc.Create(aHandler: TFunctionCallProc; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+begin
+  inherited Create(aContext, aCallConv, aArgs, aResultType, aFlags);
+  fHandler := aHandler;
+end;
+
+procedure TFFIFunctionCallbackProc.CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer);
+begin
+  fHandler(aArgs, aResult, aContext);
+end;
+
+constructor TFFIFunctionCallbackMethod.Create(aHandler: TFunctionCallMethod; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+begin
+  inherited Create(aContext, aCallConv, aArgs, aResultType, aFlags);
+  fHandler := aHandler;
+end;
+
+procedure TFFIFunctionCallbackMethod.CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer);
+begin
+  fHandler(aArgs, aResult, aContext);
+end;
+
+function FFICreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+begin
+  Result := TFFIFunctionCallbackProc.Create(aHandler, aContext, aCallConv, aArgs, aResultType, aFlags);
+end;
+
+function FFICreateCallbackMethod(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+begin
+  Result := TFFIFunctionCallbackMethod.Create(aHandler, aContext, aCallConv, aArgs, aResultType, aFlags);
+end;
+
 
 const
   FFIManager: TFunctionCallManager = (
     Invoke: @FFIInvoke;
-    CreateCallbackProc: Nil;
-    CreateCallbackMethod: Nil;
-    FreeCallback: Nil
+    CreateCallbackProc: @FFICreateCallbackProc;
+    CreateCallbackMethod: @FFICreateCallbackMethod;
   );
 
 var

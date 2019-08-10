@@ -270,6 +270,8 @@ Unit AoptObj;
         Procedure UpdateUsedRegs(p : Tai);
         class procedure UpdateUsedRegs(var Regs: TAllUsedRegs; p: Tai);
         Function CopyUsedRegs(var dest : TAllUsedRegs) : boolean;
+        procedure RestoreUsedRegs(const Regs : TAllUsedRegs);
+        procedure TransferUsedRegs(var dest: TAllUsedRegs);
         class Procedure ReleaseUsedRegs(const regs : TAllUsedRegs);
         class Function RegInUsedRegs(reg : TRegister;regs : TAllUsedRegs) : boolean;
         class Procedure IncludeRegInUsedRegs(reg : TRegister;var regs : TAllUsedRegs);
@@ -327,7 +329,7 @@ Unit AoptObj;
         function RegEndOfLife(reg: TRegister;p: taicpu): boolean;
 
         { removes p from asml, updates registers and replaces it by a valid value, if this is the case true is returned }
-        function RemoveCurrentP(var p : taicpu): boolean;
+        function RemoveCurrentP(var p : tai): boolean;
 
        { traces sucessive jumps to their final destination and sets it, e.g.
          je l1                je l3
@@ -383,8 +385,8 @@ Unit AoptObj;
 
     function JumpTargetOp(ai: taicpu): poper; inline;
       begin
-{$if defined(MIPS)}
-        { MIPS branches can have 1,2 or 3 operands, target label is the last one. }
+{$if defined(MIPS) or defined(riscv64) or defined(riscv32)}
+        { MIPS or RiscV branches can have 1,2 or 3 operands, target label is the last one. }
         result:=ai.oper[ai.ops-1];
 {$elseif defined(SPARC64)}
         if ai.ops=2 then
@@ -440,6 +442,8 @@ Unit AoptObj;
                         Include(UsedRegs, getsupreg(tai_regalloc(p).reg));
                     ra_dealloc :
                       Exclude(UsedRegs, getsupreg(tai_regalloc(p).reg));
+                    else
+                      ;
                   end;
                 end;
               p := tai(p.next);
@@ -457,7 +461,7 @@ Unit AoptObj;
       End;
 
 
-    Function TUsedRegs.GetUsedRegs: TRegSet;
+    Function TUsedRegs.GetUsedRegs: TRegSet; inline;
       Begin
         GetUsedRegs := UsedRegs;
       End;
@@ -828,7 +832,7 @@ Unit AoptObj;
               If (TInstr(p).oper[Count]^.typ = Top_Ref) Then
                 TmpResult := RefsEq(Ref, PInstr(p)^.oper[Count]^.ref^);
               Inc(Count);
-            Until (Count = MaxOps) or TmpResult;
+            Until (Count = max_operands) or TmpResult;
           End;
         RefInInstruction := TmpResult;
       End;
@@ -916,6 +920,8 @@ Unit AoptObj;
                     Include(UsedRegs[getregtype(tai_regalloc(p).reg)].UsedRegs, getsupreg(tai_regalloc(p).reg));
                   ra_dealloc :
                     Exclude(UsedRegs[getregtype(tai_regalloc(p).reg)].UsedRegs, getsupreg(tai_regalloc(p).reg));
+                  else
+                    ;
                 end;
                 p := tai(p.next);
               end;
@@ -942,6 +948,30 @@ Unit AoptObj;
         Result:=true;
         for i:=low(TRegisterType) to high(TRegisterType) do
           dest[i]:=TUsedRegs.Create_Regset(i,UsedRegs[i].GetUsedRegs);
+      end;
+
+
+      procedure TAOptObj.RestoreUsedRegs(const Regs: TAllUsedRegs);
+      var
+        i : TRegisterType;
+      begin
+        { Note that the constructor Create_Regset is being called as a regular
+          method - it is not instantiating a new object.  This is because it is
+          the only published means to modify the internal state en-masse. [Kit] }
+        for i:=low(TRegisterType) to high(TRegisterType) do
+          UsedRegs[i].Create_Regset(i,Regs[i].GetUsedRegs);
+      end;
+
+
+      procedure TAOptObj.TransferUsedRegs(var dest: TAllUsedRegs);
+      var
+        i : TRegisterType;
+      begin
+        { Note that the constructor Create_Regset is being called as a regular
+          method - it is not instantiating a new object.  This is because it is
+          the only published means to modify the internal state en-masse. [Kit] }
+        for i:=low(TRegisterType) to high(TRegisterType) do
+          dest[i].Create_Regset(i, UsedRegs[i].GetUsedRegs);
       end;
 
 
@@ -1059,7 +1089,10 @@ Unit AoptObj;
             Top_Reg :
               OpsEqual:=o1.reg=o2.reg;
             Top_Ref :
-              OpsEqual := references_equal(o1.ref^, o2.ref^);
+              OpsEqual:=
+                references_equal(o1.ref^, o2.ref^) and
+                (o1.ref^.volatility=[]) and
+                (o2.ref^.volatility=[]);
             Top_Const :
               OpsEqual:=o1.val=o2.val;
             Top_None :
@@ -1289,7 +1322,7 @@ Unit AoptObj;
       end;
 
 
-    function TAOptObj.RemoveCurrentP(var p : taicpu) : boolean;
+    function TAOptObj.RemoveCurrentP(var p : tai) : boolean;
       var
         hp1 : tai;
       begin
@@ -1299,7 +1332,7 @@ Unit AoptObj;
         UpdateUsedRegs(tai(p.Next));
         AsmL.Remove(p);
         p.Free;
-        p:=taicpu(hp1);
+        p:=hp1;
       end;
 
 
@@ -1342,7 +1375,12 @@ Unit AoptObj;
 {$if defined(arm) or defined(aarch64)}
           (hp.condition=c_None) and
 {$endif arm or aarch64}
+{$if defined(riscv32) or defined(riscv64)}          
           (hp.ops>0) and
+          (hp.oper[0]^.reg=NR_X0) and
+{$else riscv}
+          (hp.ops>0) and
+{$endif riscv}
           (JumpTargetOp(hp)^.typ = top_ref) and
           (JumpTargetOp(hp)^.ref^.symbol is TAsmLabel);
       end;
@@ -1390,7 +1428,7 @@ Unit AoptObj;
        to avoid endless loops with constructs such as "l5: ; jmp l5"           }
 
       var p1: tai;
-          {$if not defined(MIPS) and not defined(JVM)}
+          {$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM)}
           p2: tai;
           l: tasmlabel;
           {$endif}
@@ -1408,7 +1446,7 @@ Unit AoptObj;
               if { the next instruction after the label where the jump hp arrives}
                  { is unconditional or of the same type as hp, so continue       }
                  IsJumpToLabelUncond(taicpu(p1))
-{$if not defined(MIPS) and not defined(JVM)}
+{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM)}
 { for MIPS, it isn't enough to check the condition; first operands must be same, too. }
                  or
                  conditions_equal(taicpu(p1).condition,hp.condition) or
@@ -1425,7 +1463,7 @@ Unit AoptObj;
                    (IsJumpToLabelUncond(taicpu(p2)) or
                    (conditions_equal(taicpu(p2).condition,hp.condition))) and
                   SkipLabels(p1,p1))
-{$endif not MIPS and not JVM}
+{$endif not MIPS and not RV64 and not RV32 and not JVM}
                  then
                 begin
                   { quick check for loops of the form "l5: ; jmp l5 }
@@ -1446,7 +1484,7 @@ Unit AoptObj;
                   JumpTargetOp(hp)^.ref^.symbol:=JumpTargetOp(taicpu(p1))^.ref^.symbol;
                   tasmlabel(JumpTargetOp(hp)^.ref^.symbol).increfs;
                 end
-{$if not defined(MIPS) and not defined(JVM)}
+{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM)}
               else
                 if conditions_equal(taicpu(p1).condition,inverse_cond(hp.condition)) then
                   if not FindAnyLabel(p1,l) then
@@ -1477,7 +1515,7 @@ Unit AoptObj;
                       if not GetFinalDestination(hp,succ(level)) then
                         exit;
                     end;
-{$endif not MIPS and not JVM}
+{$endif not MIPS and not RV64 and not RV32 and not JVM}
           end;
         GetFinalDestination := true;
       end;
@@ -1546,7 +1584,7 @@ Unit AoptObj;
                                   and (hp1.typ <> ait_jcatch)
 {$endif}
                                   do
-                              if not(hp1.typ in ([ait_label,ait_align]+skipinstr)) then
+                              if not(hp1.typ in ([ait_label]+skipinstr)) then
                                 begin
                                   if (hp1.typ = ait_instruction) and
                                      taicpu(hp1).is_jmp and
@@ -1555,7 +1593,7 @@ Unit AoptObj;
                                      TAsmLabel(JumpTargetOp(taicpu(hp1))^.ref^.symbol).decrefs;
                                   { don't kill start/end of assembler block,
                                     no-line-info-start/end etc }
-                                  if hp1.typ<>ait_marker then
+                                  if not(hp1.typ in [ait_align,ait_marker]) then
                                     begin
 {$ifdef cpudelayslot}
                                       if (hp1.typ=ait_instruction) and (taicpu(hp1).is_jmp) then
@@ -1652,6 +1690,8 @@ Unit AoptObj;
                       begin
                       end; { if is_jmp }
                   end;
+                else
+                  ;
               end;
               if assigned(p) then
                 begin
@@ -1671,7 +1711,6 @@ Unit AoptObj;
         ClearUsedRegs;
         while (p <> BlockEnd) Do
           begin
-            UpdateUsedRegs(tai(p.next));
             if PeepHoleOptPass2Cpu(p) then
               continue;
             if assigned(p) then

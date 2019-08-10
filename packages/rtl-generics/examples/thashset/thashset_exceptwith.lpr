@@ -1,3 +1,7 @@
+// Generic types for NewPascal.org and FPC!
+// by Maciej Izak (hnb), 2018
+// sponsored by Sphere 10 Software (http://sphere10.com)
+
 program thashset_exceptwith;
 
 {$MODE DELPHI}

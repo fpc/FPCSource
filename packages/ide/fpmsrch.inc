@@ -98,7 +98,7 @@ begin
     end;
   New(S, Init(500,500));
   ProcedureCollection:=S;
-  BrowCol.Modules^.ForEach(@InsertInS);
+  BrowCol.Modules^.ForEach(TCallbackProcParam(@InsertInS));
   if Overflow then
     WarningBox(msg_toomanysymbolscantdisplayall,nil);
   Desktop^.GetExtent(R); R.A.X:=R.B.X-35;
@@ -153,7 +153,7 @@ begin
     end;
   New(S, Init(500,500));
   GlobalsCollection:=S;
-  BrowCol.Modules^.ForEach(@InsertInS);
+  BrowCol.Modules^.ForEach(TCallbackProcParam(@InsertInS));
   if Overflow then
     WarningBox(msg_toomanysymbolscantdisplayall,nil);
   Desktop^.GetExtent(R); R.A.X:=R.B.X-35;
@@ -179,7 +179,7 @@ begin
     end;
   New(S, Init(500,500));
   ModulesCollection:=S;
-  BrowCol.Modules^.ForEach(@InsertInS);
+  BrowCol.Modules^.ForEach(TCallbackProcParam(@InsertInS));
   Desktop^.GetExtent(R); R.A.X:=R.B.X-35;
   Desktop^.Insert(New(PBrowserWindow, Init(R,
     dialog_units,SearchFreeWindowNo,nil,label_sym_globalscope,'',S,nil,nil,nil)));

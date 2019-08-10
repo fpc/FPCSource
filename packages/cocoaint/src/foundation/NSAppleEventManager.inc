@@ -56,7 +56,7 @@ var
 { NSAppleEventManager }
   NSAppleEventManager = objcclass external (NSObject)
   private
-    _isPreparedForDispatch: Boolean;
+    _isPreparedForDispatch: BOOL;
     _padding: array[0..(3)-1] of char;
     
   public

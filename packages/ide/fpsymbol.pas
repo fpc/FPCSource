@@ -298,7 +298,7 @@ procedure CloseAllBrowsers;
   end;
 
 begin
-  Desktop^.ForEach(@SendCloseIfBrowser);
+  Desktop^.ForEach(TCallbackProcParam(@SendCloseIfBrowser));
 end;
 
 procedure RemoveBrowsersCollection;
@@ -367,7 +367,7 @@ begin
    Name:=UpcaseStr(Name);
    If BrowCol.Modules<>nil then
      begin
-       PS:=BrowCol.Modules^.FirstThat(@Search);
+       PS:=BrowCol.Modules^.FirstThat(TCallbackFunBoolParam(@Search));
        If assigned(PS) then
          begin
            S:=PS^.Items^.At(Index);
@@ -744,7 +744,7 @@ begin
 end;
 begin
   BW:=nil;
-  Desktop^.ForEach(@IsBW);
+  Desktop^.ForEach(TCallbackProcParam(@IsBW));
   LastBrowserWindow:=BW;
 end;
 

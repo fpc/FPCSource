@@ -536,11 +536,20 @@ end;
 {$macro on}
 {$define INUNICODESTRINGREPLACE}
 {$define SRString:=UnicodeString}
-{$define SRUpperCase:=WideUppercase}
-{$define SRPCHAR:=PChar}
-{$define SRCHAR:=Char}
+{$define SRUpperCase:=UnicodeUppercase}
+{$define SRPCHAR:=PUnicodeChar}
+{$define SRCHAR:=UnicodeChar}
 
-function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags): UnicodeString;
+Function UnicodeStringReplace(const S, OldPattern, NewPattern: Unicodestring;  Flags: TReplaceFlags): Unicodestring;
+
+Var
+  C : Integer;
+
+begin
+  Result:=UnicodeStringReplace(S,OldPattern,NewPattern,Flags,C);
+end;
+
+function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags; Out aCount : Integer): UnicodeString;
 {$i syssr.inc}
 
 {$undef INUNICODESTRINGREPLACE}

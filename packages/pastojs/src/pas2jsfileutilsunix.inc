@@ -3,7 +3,7 @@
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2018  Mattias Gaertner  mattias@freepascal.org
 
-    Pascal to Javascript converter class.
+    Unix backend of pas2jsfileutils
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -20,7 +20,7 @@ begin
   Result:=FilenameIsUnixAbsolute(aFilename);
 end;
 
-function ExpandFileNameUTF8(const FileName: string; BaseDir: string): string;
+function ExpandFileNamePJ(const FileName: string; BaseDir: string): string;
 var
   IsAbs: Boolean;
   HomeDir, Fn: String;
@@ -32,9 +32,9 @@ begin
   begin
     if ((Length(Fn) > 1) and (Fn[1] = '~') and (Fn[2] = '/')) or (Fn = '~') then
     begin
-      HomeDir := GetEnvironmentVariableUTF8('HOME');
+      HomeDir := GetEnvironmentVariablePJ('HOME');
       if not FileNameIsUnixAbsolute(HomeDir) then
-        HomeDir := ExpandFileNameUtf8(HomeDir,'');
+        HomeDir := ExpandFileNamePJ(HomeDir,'');
       Fn := HomeDir + Copy(Fn,2,length(Fn));
       IsAbs := True;
     end;
@@ -46,18 +46,18 @@ begin
   else
   begin
     if (BaseDir = '') then
-      Fn := IncludeTrailingPathDelimiter(GetCurrentDirUtf8) + Fn
+      Fn := IncludeTrailingPathDelimiter(GetCurrentDirPJ) + Fn
     else
       Fn := IncludeTrailingPathDelimiter(BaseDir) + Fn;
     Fn := ResolveDots(Fn);
     //if BaseDir is not absolute then this needs to be expanded as well
     if not FileNameIsUnixAbsolute(Fn) then
-      Fn := ExpandFileNameUtf8(Fn, '');
+      Fn := ExpandFileNamePJ(Fn, '');
     Result := Fn;
   end;
 end;
 
-function GetCurrentDirUTF8: String;
+function GetCurrentDirPJ: String;
 begin
   Result:=GetCurrentDir;
 end;
@@ -143,22 +143,43 @@ begin
     Result:='';
 end;
 
+function IsUNCPath(const Path: String): Boolean;
+begin
+  Result := false;
+  if Path='' then ;
+end;
+
+function ExtractUNCVolume(const Path: String): String;
+begin
+  Result := '';
+  if Path='' then ;
+end;
+
 function FileIsWritable(const AFilename: string): boolean;
 begin
   Result := BaseUnix.FpAccess(AFilename, BaseUnix.W_OK) = 0;
 end;
 
-function GetEnvironmentVariableCountUTF8: Integer;
+function FileIsExecutable(const AFilename: string): boolean;
+var
+  Info : Stat;
+begin
+  // first check AFilename is not a directory and then check if executable
+  Result:= (FpStat(AFilename,info{%H-})<>-1) and FPS_ISREG(info.st_mode) and
+           (BaseUnix.FpAccess(AFilename,BaseUnix.X_OK)=0);
+end;
+
+function GetEnvironmentVariableCountPJ: Integer;
 begin
   Result:=GetEnvironmentVariableCount;
 end;
 
-function GetEnvironmentStringUTF8(Index: Integer): string;
+function GetEnvironmentStringPJ(Index: Integer): string;
 begin
   Result:=ConsoleToUTF8(GetEnvironmentString(Index));
 end;
 
-function GetEnvironmentVariableUTF8(const EnvVar: string): String;
+function GetEnvironmentVariablePJ(const EnvVar: string): String;
 begin
   Result:=ConsoleToUTF8(GetEnvironmentVariable(EnvVar));
 end;
@@ -225,3 +246,4 @@ procedure FinalizePlatform;
 begin
 
 end;
+

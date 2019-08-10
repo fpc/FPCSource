@@ -173,8 +173,10 @@ implementation
                         message(parser_e_range_check_error)
                       else
                         current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s64compreal(round(value_real)));
-                  else
-                    internalerror(10120);
+{$ifndef cpufloat128}
+                    else
+                      internalerror(10120);
+{$endif not cpufloat128}
                   end;
                end;
           end;
@@ -188,11 +190,11 @@ implementation
     procedure tcgordconstnode.pass_generate_code;
       begin
          location_reset(location,LOC_CONSTANT,def_cgsize(resultdef));
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu) or defined(cpuhighleveltarget)}
          location.value:=value.svalue;
-{$else cpu64bitalu}
+{$else cpu64bitalu or cpuhighleveltarget}
          location.value64:=value.svalue;
-{$endif cpu64bitalu}
+{$endif cpu64bitalu or cpuhighleveltarget}
       end;
 
 

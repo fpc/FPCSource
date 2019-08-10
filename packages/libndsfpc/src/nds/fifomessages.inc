@@ -69,7 +69,7 @@ type
 			  end;
 		  );
       6: (
-        fwParams: record
+        blockParams: record
           buffer: pointer;
           address: cuint32;
           length: cuint32;

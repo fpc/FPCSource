@@ -18,10 +18,12 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Dependencies.Add('zlib');
     P.SourcePath.Add('src');
     P.OSes := AllUnixOSes-[qnx]+[win32,os2,emx];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     T:=P.Targets.AddUnit('png.pp');
 {$ifndef ALLPACKAGES}

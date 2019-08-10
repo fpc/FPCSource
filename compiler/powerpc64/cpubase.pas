@@ -397,6 +397,7 @@ function inverse_cond(const c: TAsmCond): Tasmcond;
 {$IFDEF USEINLINE}inline;{$ENDIF USEINLINE}
 function conditions_equal(const c1, c2: TAsmCond): boolean;
 function dwarf_reg(r:tregister):shortint;
+function dwarf_reg_no_error(r:tregister):shortint;
 
 implementation
 
@@ -427,6 +428,8 @@ begin
     A_B, A_BA, A_BL, A_BLA, A_BC, A_BCA, A_BCL, A_BCLA, A_BCCTR, A_BCCTRL,
     A_BCLR, A_BF, A_BT,
     A_BCLRL, A_TW, A_TWI: is_calljmp := true;
+    else
+      ;
   end;
 end;
 
@@ -563,6 +566,10 @@ begin
     internalerror(200603251);
 end;
 
+    function dwarf_reg_no_error(r:tregister):shortint;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+      end;
 
 end.
 

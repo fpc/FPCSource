@@ -100,7 +100,11 @@ function Fprename(old : pchar; newpath: pchar): cint; [public, alias : 'FPC_SYSC
 
 begin
 {$if defined(generic_linux_syscalls)}
-  Fprename:=do_syscall(syscall_nr_renameat,AT_FDCWD,TSysParam(old),AT_FDCWD,TSysParam(newpath));
+  {$if defined(userenameat)}
+    Fprename:=do_syscall(syscall_nr_renameat,AT_FDCWD,TSysParam(old),AT_FDCWD,TSysParam(newpath));
+  {$else}
+    Fprename:=do_syscall(syscall_nr_renameat2,AT_FDCWD,TSysParam(old),AT_FDCWD,TSysParam(newpath),0);
+  {$endif}
 {$else}
   Fprename:=do_syscall(syscall_nr_rename,TSysParam(old),TSysParam(newpath));
 {$endif}
@@ -249,13 +253,21 @@ asm
 end;
 {$endif cpusparc or cpusparc64}
 
-{$ifndef android}
+{$if defined(android)}
+
+{$if defined(cpux86_64)}
+  {$define NEED_USER_TRAMPOLINE}
+{$endif}
+
+{$else not android}
+
 {$if defined(cpui386) or defined(cpuarm) or defined(cpux86_64)}
   {$define NEED_USER_TRAMPOLINE}
 {$endif}
 {$if defined(cpui386) or defined(cpuarm)}
   {$define NEED_USER_TRAMPOLINE_RT_DIFFERENT}
 {$endif}
+
 {$endif android}
 
 {$ifdef NEED_USER_TRAMPOLINE}
@@ -589,6 +601,12 @@ end;
 Function Fpmunmap(adr:pointer;len:size_t):cint; [public, alias :'FPC_SYSC_MUNMAP'];
 begin
   Fpmunmap:=do_syscall(syscall_nr_munmap,TSysParam(Adr),TSysParam(Len));
+end;
+
+
+Function Fpmprotect(adr:pointer;len:size_t;prot:cint):cint; [public, alias : 'FPC_SYSC_MPROTECT'];
+begin
+  Fpmprotect:=do_syscall(syscall_nr_mprotect,TSysParam(adr),TSysParam(len),TSysParam(prot));
 end;
 
 {

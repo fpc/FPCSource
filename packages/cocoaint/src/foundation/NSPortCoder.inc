@@ -43,8 +43,8 @@
   NSPortCoder = objcclass external (NSCoder)
     
   public
-    function isBycopy: Boolean; message 'isBycopy';
-    function isByref: Boolean; message 'isByref';
+    function isBycopy: BOOL; message 'isBycopy';
+    function isByref: BOOL; message 'isByref';
     function connection: NSConnection; message 'connection';
     procedure encodePortObject(aport: NSPort); message 'encodePortObject:';
     function decodePortObject: NSPort; message 'decodePortObject';

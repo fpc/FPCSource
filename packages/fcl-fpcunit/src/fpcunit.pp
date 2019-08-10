@@ -100,14 +100,14 @@ type
     class procedure AssertFalse(ACondition: boolean); overload;
     class procedure AssertEquals(const AMessage: string; Expected, Actual: string); overload;
     class procedure AssertEquals(Expected, Actual: string); overload;
-    {$IFDEF UNICODE}
     class procedure AssertEquals(const AMessage: string; Expected, Actual: UnicodeString); overload;
     class procedure AssertEquals(Expected, Actual: UnicodeString); overload;
-    {$ENDIF}
     class procedure AssertEquals(const AMessage: string; Expected, Actual: integer); overload;
     class procedure AssertEquals(Expected, Actual: integer); overload;
     class procedure AssertEquals(const AMessage: string; Expected, Actual: int64); overload;
     class procedure AssertEquals(Expected, Actual: int64); overload;
+    class procedure AssertEquals(const AMessage: string; Expected, Actual: QWord); overload;
+    class procedure AssertEquals(Expected, Actual: QWord); overload;
     class procedure AssertEquals(const AMessage: string; Expected, Actual: currency); overload;
     class procedure AssertEquals(Expected, Actual: currency); overload;
     class procedure AssertEquals(const AMessage: string; Expected, Actual, Delta: double); overload;
@@ -332,9 +332,7 @@ type
   end;
 
   function ComparisonMsg(const aExpected: string; const aActual: string; const aCheckEqual: boolean=true): string; overload;
-  {$IFDEF UNICODE}
-  function ComparisonMsg(const aExpected: UnicodeString; const aActual: UnicodeString; const aCheckEqual: boolean=true): string; overload;
-  {$ENDIF}
+  function ComparisonMsg(const aExpected: UnicodeString; const aActual: UnicodeString; const aCheckEqual: boolean=true): Unicodestring; overload;
   function ComparisonMsg(const aMsg: string; const aExpected: string; const aActual: string; const aCheckEqual: boolean=true): string; overload;
 
   // Made public for 3rd party developers extending TTestCase with new AssertXXX methods
@@ -374,16 +372,14 @@ Const
 function CallerAddr: Pointer;
 
 Var
-  bp,pcaddr : pointer;
-  
+  address: CodePointer;
+  nframes: sizeint;
 begin
-  Result:=Nil;
-  bp:=get_frame;
-  pcaddr:=get_pc_addr;
-  get_caller_stackinfo(bp,pcaddr);
-  if bp<>Nil then
-    get_caller_stackinfo(bp,pcaddr);
-  result:=pcaddr;
+  nframes:=CaptureBacktrace(2,1,@address);
+  if nframes=1 then
+    result:=address
+  else
+    result:=nil;
 end;
 
 function AddrsToStr(Addrs: Pointer): string;
@@ -438,16 +434,15 @@ begin
     Result := format(SCompareNotEqual, [aExpected, aActual]);
 end;
 
-{$IFDEF UNICODE}
-function ComparisonMsg(const aExpected: UnicodeString; const aActual: UnicodeString; const aCheckEqual: boolean=true): string;
+function ComparisonMsg(const aExpected: Unicodestring; const aActual: Unicodestring; const aCheckEqual: boolean=true): Unicodestring;
 // aCheckEqual=false gives the error message if the test does *not* expect the results to be the same.
 begin
   if aCheckEqual then
-    Result := format(UnicodeString(SCompare), [aExpected, aActual])
+    Result := unicodeformat(SCompare, [aExpected, aActual])
   else {check unequal requires opposite error message}
-    Result := format(UnicodeString(SCompareNotEqual), [aExpected, aActual]);
+    Result := unicodeformat(SCompareNotEqual, [aExpected, aActual]);
 end;
-{$ENDIF}
+
 
 function ComparisonMsg(const aMsg: string; const aExpected: string; const aActual: string; const aCheckEqual: boolean): string;
 begin
@@ -698,18 +693,18 @@ begin
   AssertTrue(ComparisonMsg(Expected, Actual), Expected=Actual,CallerAddr);
 end;
 
-{$IFDEF UNICODE}
-class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: UnicodeString);
+class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: Unicodestring);
 begin
-  AssertTrue(ComparisonMsg(AMessage,Expected, Actual), (Expected=Actual),CallerAddr);
+  AssertTrue(ComparisonMsg(AMessage ,Expected, Actual), Expected=Actual,CallerAddr);
 end;
 
 
-class procedure TAssert.AssertEquals(Expected, Actual: UnicodeString);
+class procedure TAssert.AssertEquals(Expected, Actual: Unicodestring);
 begin
-  AssertTrue(ComparisonMsg(Expected, Actual), (Expected=Actual),CallerAddr);
+  AssertTrue(ComparisonMsg(Expected, Actual), Expected=Actual,CallerAddr);
 end;
-{$ENDIF}
+
+
 
 class procedure TAssert.AssertNotNull(const AString: string);
 begin
@@ -736,6 +731,18 @@ end;
 
 
 class procedure TAssert.AssertEquals(Expected, Actual: int64);
+begin
+  AssertTrue(ComparisonMsg(IntToStr(Expected), IntToStr(Actual)), Expected = Actual,CallerAddr);
+end;
+
+
+class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: QWord);
+begin
+  AssertTrue(ComparisonMsg(AMessage,IntToStr(Expected), IntToStr(Actual)), Expected = Actual,CallerAddr);
+end;
+
+
+class procedure TAssert.AssertEquals(Expected, Actual: QWord);
 begin
   AssertTrue(ComparisonMsg(IntToStr(Expected), IntToStr(Actual)), Expected = Actual,CallerAddr);
 end;

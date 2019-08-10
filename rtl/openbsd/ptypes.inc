@@ -61,7 +61,7 @@ type
     pSize    = ^size_t;
     pSize_t  = ^size_t;
 
-    ssize_t  = cint32;          { used by function for returning number of bytes }
+    ssize_t  = clong;          { used by function for returning number of bytes }
     TsSize   = ssize_t;
     psSize   = ^ssize_t;
 
@@ -107,7 +107,6 @@ type
    pthread_mutexattr_t_rec	= record end;
    pthread_cond_t_rec		= record end;
    pthread_condattr_t_rec	= record end;
-   pthread_once_t_rec		= record end;
    pthread_rwlock_t_rec   	= record end;
    pthread_rwlockattr_t_rec	= record end;
 
@@ -118,7 +117,11 @@ type
    pthread_cond_t       = ^pthread_cond_t_rec;
    pthread_condattr_t   = ^pthread_condattr_t_rec;
    pthread_key_t        = cint;
-   pthread_once_t	= ^pthread_once_t_rec;
+   pthread_once_t_rec		= record
+     state : cint;
+     mutex : pthread_mutex_t;
+   end;
+   pthread_once_t	= pthread_once_t_rec;
    pthread_rwlock_t     = ^pthread_rwlock_t_rec;
    pthread_rwlockattr_t = ^pthread_rwlockattr_t_rec;
 
@@ -149,11 +152,11 @@ type
   );
 
 Const
-     MNAMLEN   = 90;		// length of buffer for returned name
-     MFSNamLen = 16;		// length of fs type name, including nul
+     MFSNAMELEN = 16;   // length of fs type name, including nul
+     MNAMELEN   = 90;   // length of buffer for returned name
 
 type
-  fsid_t  = array[0..1] of cint;
+  fsid_t  = array[0..1] of cint32;
 
   ufs_args_rec		= record end;
   mfs_args_rec		= record end;
@@ -176,29 +179,36 @@ type
     end;
 
 // kernel statfs from mount.h
+  { new statfs structure with mount options and statvfs fields }
   TStatfs = record
-    flags,			  { copy of mount flags }
-    bsize,			  { filesystem block size}
-    iosize		: cint;   { optimal transfr block size }
-    blocks,			  { total data block in file system }
-    bfree		: cuint64;  { blocks free in fs }
-    bavail		: cint64; { block available for non-superuser }
-    files,			  { total file nodes in file system }
-    ffree		: cuint64;  { free files nodes in fs }
-    favail		: cint64; { free file nodes avail to non-root }
-    fsyncwrites,		  { count of sync writes since mount }
-    fasyncwrites,		  { count of async writes since mount }
-    fsyncreads,			  { count of sync reads since mount }
-    fasyncreads		: cuint64;  { count of async reads since mount }
-    fsid		: fsid_t; { file system id }
-    namemax		: cint;   { maximum fileystem length }
-    fowner		: tuid;   { user that mounted the fileystem }
-    ctime		: cint;   { last mount [-u] time }
-    fspare3		: array[0..2] of cint; { spare for later }
-    fstypename		: array[0..MFSNamLen-1] of char; { fs type name }
-    mountpoint		: array[0..MNAMLEN-1] of char; { directory on which mounted}
-    mnfromname		: array[0..MNAMLEN-1] of char; { mounted file system }
-    mount_info		: mountinfo; { per-filesystem mount options }
+    flags,                        { copy of mount flags }
+    bsize,                        { filesystem block size }
+    iosize            : cuint32;  { optimal transfer block size }
+
+                                    { unit is f_bsize }
+    blocks,                       { total data block in file system }
+    bfree             : cuint64;  { free blocks in fs }
+    bavail            : cint64;   { free blocks avail to non-superuser }
+
+    files,                        { total file nodes in file system }
+    ffree             : cuint64;  { free files nodes in fs }
+    favail            : cint64;   { free file nodes avail to non-root }
+
+    fsyncwrites,                  { count of sync writes since mount }
+    fsyncreads,                   { count of sync reads since mount }
+    fasyncwrites,                 { count of async writes since mount }
+    fasyncreads       : cuint64;  { count of async reads since mount }
+
+    fsid              : fsid_t;   { file system id }
+    namemax           : cuint32;  { maximum filename length }
+    owner             : tuid;     { user that mounted the fileystem }
+    ctime             : cuint64;  { last mount [-u] time }
+
+    fstypename : array[0..MFSNAMELEN-1] of char;      { fs type name }
+    mntonname  : array[0..MNAMELEN-1] of char;        { directory on which mounted }
+    mntfromname: array[0..MNAMELEN-1] of char;        { mounted file system }
+    mntfromspec: array[0..MNAMELEN-1] of char;        { special for mount request }
+    mount_info: mountinfo;                            { per-filesystem mount options }
   end;
   PStatFS=^TStatFS;
 

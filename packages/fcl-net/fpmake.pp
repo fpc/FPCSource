@@ -17,9 +17,8 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Dependencies.Add('fcl-base');
-    P.Dependencies.Add('openssl',AllOSes - AllAmigaLikeOSes);
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
     P.Dependencies.Add('fcl-async',[linux,freebsd,netbsd,openbsd,dragonfly]);
@@ -32,6 +31,8 @@ begin
     P.Description := 'Network related parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
     P.OSes:=P.OSes-[embedded,msdos,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src/unix',AllUnixOSes);
@@ -42,6 +43,7 @@ begin
 
     // IP and Sockets
     T:=P.Targets.AddUnit('netdb.pp',AllUnixOSes);
+    T:=P.Targets.AddUnit('sslbase.pp');
     T:=P.Targets.AddUnit('resolve.pp',AllUnixOSes+AllWindowsOSes+AllAmigaLikeOSes+[OS2,EMX]);
       with T.Dependencies do
         begin
@@ -55,10 +57,11 @@ begin
           AddUnit('resolve');
         end;
     T.ResourceStrings := True;
-    T:=P.Targets.AddUnit('sslsockets.pp',AllUnixOSes+AllWindowsOSes);
+    T:=P.Targets.AddUnit('sslsockets.pp',AllUnixOSes+AllWindowsOSes+AllAmigaLikeOSes+[OS2,EMX]);
       with T.Dependencies do
         begin
           AddUnit('ssockets');
+          Addunit('sslbase');
         end;
     T.ResourceStrings := True;
 

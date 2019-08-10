@@ -146,6 +146,11 @@ implementation
                   lten : result.flag:=F_GE;
                   gtn : result.flag:=F_LT;
                   gten : result.flag:=F_LE;
+                  equaln,
+                  unequaln:
+                    ;
+                  else
+                    internalerror(2019050942);
                 end
               else
                 case nodetype of
@@ -153,6 +158,11 @@ implementation
                   lten : result.flag:=F_LE;
                   gtn : result.flag:=F_GT;
                   gten : result.flag:=F_GE;
+                  equaln,
+                  unequaln:
+                    ;
+                  else
+                    internalerror(2019050943);
                 end;
             end
           end
@@ -199,8 +209,8 @@ implementation
         firstcomplex(self);
 
         cmpop:=false;
-        if (torddef(left.resultdef).ordtype in [pasbool8,bool8bit]) or
-           (torddef(right.resultdef).ordtype in [pasbool8,bool8bit]) then
+        if (torddef(left.resultdef).ordtype in [pasbool1,pasbool8,bool8bit]) or
+           (torddef(right.resultdef).ordtype in [pasbool1,pasbool8,bool8bit]) then
           cgsize:=OS_8
         else if (torddef(left.resultdef).ordtype in [pasbool16,bool16bit]) or
            (torddef(right.resultdef).ordtype in [pasbool16,bool16bit]) then

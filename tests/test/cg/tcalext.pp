@@ -1,3 +1,4 @@
+{ %FILES=ctest.o }
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {****************************************************************}
@@ -26,6 +27,11 @@ uses strings,ctypes;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 {$define test_longdouble}
+{$endif}
+
+{$if defined(cpux86_64) and defined(android) and (sizeof(clongdouble)<>16)}
+  // On x86_64-android long double is 128-bit. There is no support for 128-bit floats in FPC yet.
+  {$undef test_longdouble}
 {$endif}
 
 { Use C alignment of records }

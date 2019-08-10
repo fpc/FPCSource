@@ -71,10 +71,6 @@ Const
 
   MaxCh = 3;
 
-{ the maximum number of operands an instruction has }
-
-  MaxOps = 5;
-
 {Oper index of operand that contains the source (reference) with a load }
 {instruction                                                            }
 

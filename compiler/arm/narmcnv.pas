@@ -278,6 +278,9 @@ implementation
               else
                 current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VCVT,location.register,left.location.register), PF_F32U32));
             end;
+          else
+            { should be handled in pass 1 }
+            internalerror(2019050934);
         end;
       end;
 

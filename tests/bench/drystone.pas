@@ -53,7 +53,7 @@ CONST
       better precision and for fast machines.
 }
 
-  LOOPS =  5000;      { Use this for slow or 16 bit machines }
+  LOOPS =  15000;      { Use this for slow or 16 bit machines }
   Ident1 = 1;
   Ident2 = 2;
   Ident3 = 3;

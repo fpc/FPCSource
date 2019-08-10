@@ -128,7 +128,6 @@ implementation
     procedure taarch64inlinenode.second_abs_long;
       var
         opsize : tcgsize;
-        hp : taicpu;
       begin
         secondpass(left);
         opsize:=def_cgsize(left.resultdef);

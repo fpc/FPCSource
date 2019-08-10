@@ -136,25 +136,12 @@ interface
        end;
        tvecnodeclass = class of tvecnode;
 
-       twithnode = class(tunarynode)
-          constructor create(l:tnode);
-          destructor destroy;override;
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function dogetcopy : tnode;override;
-          function pass_1 : tnode;override;
-          function docompare(p: tnode): boolean; override;
-          function pass_typecheck:tnode;override;
-       end;
-       twithnodeclass = class of twithnode;
-
     var
        cloadvmtaddrnode : tloadvmtaddrnodeclass= tloadvmtaddrnode;
        caddrnode : taddrnodeclass= taddrnode;
        cderefnode : tderefnodeclass= tderefnode;
        csubscriptnode : tsubscriptnodeclass= tsubscriptnode;
        cvecnode : tvecnodeclass= tvecnode;
-       cwithnode : twithnodeclass= twithnode;
        cloadparentfpnode : tloadparentfpnodeclass = tloadparentfpnode;
 
     function is_big_untyped_addrnode(p: tnode): boolean;
@@ -255,9 +242,6 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_REGISTER;
-         if (left.nodetype=typen) and
-            (cs_create_pic in current_settings.moduleswitches) then
-           include(current_procinfo.flags,pi_needs_got);
          if left.nodetype<>typen then
            begin
              if (is_objc_class_or_protocol(left.resultdef) or
@@ -769,9 +753,11 @@ implementation
          maybe_call_procvar(left,true);
 
          if left.resultdef.typ=pointerdef then
-          resultdef:=tpointerdef(left.resultdef).pointeddef
+           resultdef:=tpointerdef(left.resultdef).pointeddef
+         else if left.resultdef.typ=undefineddef then
+           resultdef:=cundefineddef.create(true)
          else
-          CGMessage(parser_e_invalid_qualifier);
+           CGMessage(parser_e_invalid_qualifier);
       end;
 
     procedure Tderefnode.mark_write;
@@ -1068,7 +1054,9 @@ implementation
            that has a field of one of these types -> in that case the record
            can't be a regvar either }
          if ((left.resultdef.typ=arraydef) and
-             not is_special_array(left.resultdef)) or
+             not is_special_array(left.resultdef) and
+             { arrays with elements equal to the alu size and with a constant index can be kept in register }
+             not(is_constnode(right) and (tarraydef(left.resultdef).elementdef.size=alusinttype.size))) or
             ((left.resultdef.typ=stringdef) and
              (tstringdef(left.resultdef).stringtype in [st_shortstring,st_longstring])) then
            make_not_regable(left,[ra_addr_regable]);
@@ -1142,8 +1130,6 @@ implementation
                       elementdef:=cansichartype;
                       elementptrdef:=charpointertype;
                     end;
-                  else
-                    internalerror(2013112902);
                 end;
                 if right.nodetype=rangen then
                   begin
@@ -1174,7 +1160,7 @@ implementation
       begin
         include(flags,nf_write);
         { see comment in tsubscriptnode.mark_write }
-        if not(is_implicit_pointer_object_type(left.resultdef)) then
+        if not(is_implicit_array_pointer(left.resultdef)) then
           left.mark_write;
       end;
 
@@ -1312,66 +1298,6 @@ implementation
         end;
     end;
 
-
-{*****************************************************************************
-                               TWITHNODE
-*****************************************************************************}
-
-    constructor twithnode.create(l:tnode);
-      begin
-         inherited create(withn,l);
-         fileinfo:=l.fileinfo;
-      end;
-
-
-    destructor twithnode.destroy;
-      begin
-        inherited destroy;
-      end;
-
-
-    constructor twithnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
-      begin
-        inherited ppuload(t,ppufile);
-      end;
-
-
-    procedure twithnode.ppuwrite(ppufile:tcompilerppufile);
-      begin
-        inherited ppuwrite(ppufile);
-      end;
-
-
-    function twithnode.dogetcopy : tnode;
-      var
-         p : twithnode;
-      begin
-         p:=twithnode(inherited dogetcopy);
-         result:=p;
-      end;
-
-
-    function twithnode.pass_typecheck:tnode;
-      begin
-        result:=nil;
-        resultdef:=voidtype;
-        if assigned(left) then
-          typecheckpass(left);
-      end;
-
-
-    function twithnode.pass_1 : tnode;
-      begin
-        result:=nil;
-        expectloc:=LOC_VOID;
-      end;
-
-
-    function twithnode.docompare(p: tnode): boolean;
-      begin
-        docompare :=
-          inherited docompare(p);
-      end;
 
     function is_big_untyped_addrnode(p: tnode): boolean;
       begin

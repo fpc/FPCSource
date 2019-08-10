@@ -72,9 +72,9 @@ type
     function initRegularFileWithContents(contents: NSData): id; message 'initRegularFileWithContents:';
     function initSymbolicLinkWithDestinationURL(url: NSURL): id; message 'initSymbolicLinkWithDestinationURL:';
     function initWithSerializedRepresentation(serializeRepresentation: NSData): id; message 'initWithSerializedRepresentation:';
-    function isDirectory: Boolean; message 'isDirectory';
-    function isRegularFile: Boolean; message 'isRegularFile';
-    function isSymbolicLink: Boolean; message 'isSymbolicLink';
+    function isDirectory: BOOL; message 'isDirectory';
+    function isRegularFile: BOOL; message 'isRegularFile';
+    function isSymbolicLink: BOOL; message 'isSymbolicLink';
     procedure setPreferredFilename(fileName_: NSString); message 'setPreferredFilename:';
     function preferredFilename: NSString; message 'preferredFilename';
     procedure setFilename(fileName_: NSString); message 'setFilename:';
@@ -83,9 +83,9 @@ type
     function fileAttributes: NSDictionary; message 'fileAttributes';
     procedure setIcon(icon_: NSImage); message 'setIcon:';
     function icon: NSImage; message 'icon';
-    function matchesContentsOfURL(url: NSURL): Boolean; message 'matchesContentsOfURL:';
-    function readFromURL_options_error(url: NSURL; options: NSFileWrapperReadingOptions; outError: NSErrorPointer): Boolean; message 'readFromURL:options:error:';
-    function writeToURL_options_originalContentsURL_error(url: NSURL; options: NSFileWrapperWritingOptions; originalContentsURL: NSURL; outError: NSErrorPointer): Boolean; message 'writeToURL:options:originalContentsURL:error:';
+    function matchesContentsOfURL(url: NSURL): BOOL; message 'matchesContentsOfURL:';
+    function readFromURL_options_error(url: NSURL; options: NSFileWrapperReadingOptions; outError: NSErrorPointer): BOOL; message 'readFromURL:options:error:';
+    function writeToURL_options_originalContentsURL_error(url: NSURL; options: NSFileWrapperWritingOptions; originalContentsURL: NSURL; outError: NSErrorPointer): BOOL; message 'writeToURL:options:originalContentsURL:error:';
     function serializedRepresentation: NSData; message 'serializedRepresentation';
     function addFileWrapper(child: NSFileWrapper): NSString; message 'addFileWrapper:';
     function addRegularFileWithContents_preferredFilename(data: NSData; fileName_: NSString): NSString; message 'addRegularFileWithContents:preferredFilename:';
@@ -104,9 +104,9 @@ type
   NSDeprecated_NSFileWrapperCategory = objccategory external name 'NSDeprecated' (NSFileWrapper)
     function initWithPath(path: NSString): id; message 'initWithPath:';
     function initSymbolicLinkWithDestination(path: NSString): id; message 'initSymbolicLinkWithDestination:';
-    function needsToBeUpdatedFromPath(path: NSString): Boolean; message 'needsToBeUpdatedFromPath:';
-    function updateFromPath(path: NSString): Boolean; message 'updateFromPath:';
-    function writeToFile_atomically_updateFilenames(path: NSString; atomicFlag: Boolean; updateFilenamesFlag: Boolean): Boolean; message 'writeToFile:atomically:updateFilenames:';
+    function needsToBeUpdatedFromPath(path: NSString): BOOL; message 'needsToBeUpdatedFromPath:';
+    function updateFromPath(path: NSString): BOOL; message 'updateFromPath:';
+    function writeToFile_atomically_updateFilenames(path: NSString; atomicFlag: BOOL; updateFilenamesFlag: BOOL): BOOL; message 'writeToFile:atomically:updateFilenames:';
     function addFileWithPath(path: NSString): NSString; message 'addFileWithPath:';
     function addSymbolicLinkWithDestination_preferredFilename(path: NSString; filename_: NSString): NSString; message 'addSymbolicLinkWithDestination:preferredFilename:';
     function symbolicLinkDestination: NSString; message 'symbolicLinkDestination';

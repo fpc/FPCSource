@@ -58,8 +58,8 @@ function fpc_pwidechar_length(p:pwidechar):sizeint; compilerproc;
 procedure fpc_chararray_to_shortstr(out res : shortstring;const arr: array of char; zerobased: boolean = true); compilerproc;
 procedure fpc_shortstr_to_chararray(out res: array of char; const src: ShortString); compilerproc;
 
-Function  fpc_shortstr_Copy(const s:shortstring;index:SizeInt;count:SizeInt):shortstring;compilerproc;
-function  fpc_char_copy(c:char;index : SizeInt;count : SizeInt): shortstring;compilerproc;
+Function  fpc_shortstr_Copy(const s:shortstring;index:SizeInt;count:SizeInt):shortstring;compilerproc{$ifndef VER3_0}:fpc_in_copy_x{$endif VER3_0};
+function  fpc_char_copy(c:char;index : SizeInt;count : SizeInt): shortstring;compilerproc{$ifndef VER3_0}:fpc_in_copy_x{$endif VER3_0};
 {$ifndef VER3_0}
 Procedure fpc_shortstr_delete(var s:shortstring;index:SizeInt;count:SizeInt); compilerproc:fpc_in_delete_x_y_z;
 Procedure fpc_shortstr_insert(const source:shortstring;var s:shortstring;index:SizeInt); compilerproc:fpc_in_insert_x_y_z;
@@ -318,7 +318,7 @@ Function fpc_AnsiStr_Compare_equal(const S1,S2 : RawByteString): SizeInt; compil
 Procedure fpc_AnsiStr_RangeCheck(p : Pointer; index : SizeInt); compilerproc;
 
 Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
-Function  fpc_ansistr_Copy (Const S : RawByteString; Index,Size : SizeInt): RawByteString;compilerproc;
+Function  fpc_ansistr_Copy (Const S : RawByteString; Index,Size : SizeInt): RawByteString;compilerproc{$ifndef VER3_0}:fpc_in_copy_x{$endif VER3_0};
 {$ifndef VER3_0}
 Procedure fpc_ansistr_insert (const Source : RawByteString; var S : RawByteString; Index : SizeInt); compilerproc:fpc_in_insert_x_y_z; rtlproc;
 Procedure fpc_ansistr_delete (var S : RawByteString; Index,Size: SizeInt); compilerproc:fpc_in_delete_x_y_z; rtlproc;
@@ -357,7 +357,7 @@ Function fpc_WideStr_Compare_equal(const S1,S2 : WideString): SizeInt; compilerp
 Procedure fpc_WideStr_RangeCheck(p: Pointer; index : SizeInt); compilerproc;
 
 Procedure fpc_WideStr_SetLength (Var S : WideString; l : SizeInt); compilerproc;
-Function  fpc_widestr_Copy (Const S : WideString; Index,Size : SizeInt) : WideString;compilerproc;
+Function  fpc_widestr_Copy (Const S : WideString; Index,Size : SizeInt) : WideString;compilerproc{$ifndef VER3_0}:fpc_in_copy_x{$endif VER3_0};
 {$ifndef VER3_0}
 Procedure fpc_widestr_insert (Const Source : WideString; Var S : WideString; Index : SizeInt); compilerproc:fpc_in_insert_x_y_z;
 Procedure fpc_widestr_delete (Var S : WideString; Index,Size: SizeInt); compilerproc:fpc_in_delete_x_y_z;
@@ -405,7 +405,7 @@ Function fpc_UnicodeStr_Compare_equal(const S1,S2 : UnicodeString): SizeInt; com
 Procedure fpc_UnicodeStr_RangeCheck(p: Pointer; index : SizeInt); compilerproc;
 
 Procedure fpc_UnicodeStr_SetLength (Var S : UnicodeString; l : SizeInt); compilerproc;
-Function  fpc_unicodestr_Copy (Const S : UnicodeString; Index,Size : SizeInt) : UnicodeString;compilerproc;
+Function  fpc_unicodestr_Copy (Const S : UnicodeString; Index,Size : SizeInt) : UnicodeString;compilerproc{$ifndef VER3_0}:fpc_in_copy_x{$endif VER3_0};
 {$ifndef VER3_0}
 Procedure fpc_unicodestr_insert (Const Source : UnicodeString; Var S : UnicodeString; Index : SizeInt); compilerproc:fpc_in_insert_x_y_z;
 Procedure fpc_unicodestr_delete (Var S : UnicodeString; Index,Size: SizeInt); compilerproc:fpc_in_delete_x_y_z;
@@ -637,14 +637,14 @@ function fpc_div_currency(n,z : currency) : currency; compilerproc;
 function fpc_mod_currency(n,z : currency) : currency; compilerproc;
 
 {$ifdef FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
-function fpc_shl_qword(value : qword; shift : sizeint) : qword; compilerproc;
-function fpc_shr_qword(value : qword; shift : sizeint) : qword; compilerproc;
-function fpc_shl_int64(value : int64; shift : sizeint) : int64; compilerproc;
-function fpc_shr_int64(value : int64; shift : sizeint) : int64; compilerproc;
-procedure fpc_shl_assign_qword(var value : qword; shift : sizeint); compilerproc;
-procedure fpc_shr_assign_qword(var value : qword; shift : sizeint); compilerproc;
-procedure fpc_shl_assign_int64(var value : int64; shift : sizeint); compilerproc;
-procedure fpc_shr_assign_int64(var value : int64; shift : sizeint); compilerproc;
+function fpc_shl_qword(value : qword; shift : ALUUInt) : qword; compilerproc;
+function fpc_shr_qword(value : qword; shift : ALUUInt) : qword; compilerproc;
+function fpc_shl_int64(value : int64; shift : ALUUInt) : int64; compilerproc;
+function fpc_shr_int64(value : int64; shift : ALUUInt) : int64; compilerproc;
+procedure fpc_shl_assign_qword(var value : qword; shift : ALUUInt); compilerproc;
+procedure fpc_shr_assign_qword(var value : qword; shift : ALUUInt); compilerproc;
+procedure fpc_shl_assign_int64(var value : int64; shift : ALUUInt); compilerproc;
+procedure fpc_shr_assign_int64(var value : int64; shift : ALUUInt); compilerproc;
 {$endif  FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 {$ifndef FPC_HAS_INTERNAL_SAR_ASSIGN_QWORD}
 procedure fpc_sar_assign_int64(var AValue : Int64;const Shift : Byte);compilerproc;
@@ -791,9 +791,9 @@ procedure fpc_do_exit;compilerproc;
 
 {
 Procedure fpc_do_exit; compilerproc;
-Procedure fpc_lib_exit; compilerproc;
 Procedure fpc_HandleErrorAddrFrame (Errno : longint;addr,frame : pointer); compilerproc;
 }
+Procedure fpc_lib_exit; compilerproc;
 Procedure fpc_HandleError (Errno : longint); compilerproc;
 
 procedure fpc_AbstractErrorIntern;compilerproc;

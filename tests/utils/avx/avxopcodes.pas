@@ -8,7 +8,7 @@ uses Classes;
 
 type
 
-  TTestFileTyp = (tfNasm, tfFPC, tfFasm);
+  TTestFileTyp = (tfNasm, tfFPC, tfFasm, tfFPCInc);
 
   TAVXTestGenerator = class(TObject)
   private
@@ -51,6 +51,36 @@ end;
 
 procedure TAVXTestGenerator.Init;
 begin
+  FOpCodeList.Add('ADCX,1,1,REG32,RM32,,,');
+  FOpCodeList.Add('ADCX,1,1,REG64,RM64,,,');
+  FOpCodeList.Add('ADOX,1,1,REG32,RM32,,,');
+  FOpCodeList.Add('ADOX,1,1,REG64,RM64,,,');
+
+  FOpCodeList.Add('BLSI,1,1,REG32,RM32,,,');
+  FOpCodeList.Add('BLSI,1,1,REG64,RM64,,,');
+  FOpCodeList.Add('BLSR,1,1,REG32,RM32,,,');
+  FOpCodeList.Add('BLSR,1,1,REG64,RM64,,,');
+  FOpCodeList.Add('BLSMSK,1,1,REG32,RM32,,,');
+  FOpCodeList.Add('BLSMSK,1,1,REG64,RM64,,,');
+  FOpCodeList.Add('BZHI,1,1,REG32,RM32,REG32,,');
+  FOpCodeList.Add('BZHI,1,1,REG64,RM64,REG64,,');
+  FOpCodeList.Add('MULX,1,1,REG32,REG32,RM32,,');
+  FOpCodeList.Add('MULX,1,1,REG64,REG64,RM64,,');
+  FOpCodeList.Add('PDEP,1,1,REG32,REG32,RM32,,');
+  FOpCodeList.Add('PDEP,1,1,REG64,REG64,RM64,,');
+  FOpCodeList.Add('PEXT,1,1,REG32,REG32,RM32,,');
+  FOpCodeList.Add('PEXT,1,1,REG64,REG64,RM64,,');  
+  
+  FOpCodeList.Add('MOVBE,1,1,REG16,MEM16,,,');
+  FOpCodeList.Add('MOVBE,1,1,MEM16,REG16,,,');
+  FOpCodeList.Add('MOVBE,1,1,REG32,MEM32,,,');
+  FOpCodeList.Add('MOVBE,1,1,MEM32,REG32,,,');
+  FOpCodeList.Add('MOVBE,1,1,REG64,MEM64,,,');
+  FOpCodeList.Add('MOVBE,1,1,MEM64,REG64,,,');
+
+  FOpCodeList.Add('PCLMULQDQ,1,1,XMMREG,XMMRM,IMM8,');
+  FOpCodeList.Add('VPCLMULQDQ,1,1,XMMREG,XMMREG,XMMRM,IMM8');
+
   //FOpCodeList.Add('VADDPD,1,1,XMMREG,XMMREG,XMMRM,');
   //FOpCodeList.Add('VADDPD,1,1,YMMREG,YMMREG,YMMRM,');
   //FOpCodeList.Add('VADDPS,1,1,XMMREG,XMMREG,XMMRM,');
@@ -808,7 +838,6 @@ begin
   //FOpCodeList.Add('VPGATHERQQ,1,1,XMMREG,XMEM64,XMMREG,');
   //FOpCodeList.Add('VPGATHERQQ,1,1,YMMREG,YMEM64,YMMREG,');
 
-//  FOpCodeList.Add('VADDPD,1,1,1,XMMREG_M,XMMREG,XMMRM,');
 
   FOpCodeList.Add('vaddpd,1,1,1,XMMREG_MZ,XMMREG,XMMRM,');
   FOpCodeList.Add('vaddpd,1,1,1,XMMREG_MZ,XMMREG,2B64,');
@@ -3758,7 +3787,30 @@ FOpCodeList.Add('vshufi64x2,1,1,1,ymmreg_mz,ymmreg,4b64,imm8');
 FOpCodeList.Add('vshufi64x2,1,1,1,zmmreg_mz,zmmreg,zmmrm,imm8');
 FOpCodeList.Add('vshufi64x2,1,1,1,zmmreg_mz,zmmreg,8b64,imm8');
 
+  FOpCodeList.Add('VGATHERQPD,1,1,XMMREG,XMEM64,XMMREG,');
+  FOpCodeList.Add('VGATHERQPD,1,1,YMMREG,YMEM64,YMMREG,');
 
+
+  FOpCodeList.Add('VGATHERDPS,1,1,XMMREG,XMEM32,XMMREG,');
+  FOpCodeList.Add('VGATHERDPS,1,1,YMMREG,YMEM32,YMMREG,');
+
+  FOpCodeList.Add('VGATHERQPS,1,1,XMMREG,XMEM64,XMMREG,');
+  FOpCodeList.Add('VGATHERQPS,1,1,XMMREG,YMEM64,XMMREG,');
+
+
+
+  FOpCodeList.Add('VPGATHERDD,1,1,XMMREG,XMEM32,XMMREG,');
+  FOpCodeList.Add('VPGATHERDD,1,1,YMMREG,YMEM32,YMMREG,');
+
+  FOpCodeList.Add('VPGATHERQD,1,1,XMMREG,XMEM64,XMMREG,');
+  FOpCodeList.Add('VPGATHERQD,1,1,XMMREG,YMEM64,XMMREG,');
+
+
+  FOpCodeList.Add('VPGATHERDQ,1,1,XMMREG,XMEM32,XMMREG,');
+  FOpCodeList.Add('VPGATHERDQ,1,1,YMMREG,XMEM32,YMMREG,');
+
+  FOpCodeList.Add('VPGATHERQQ,1,1,XMMREG,XMEM64,XMMREG,');
+  FOpCodeList.Add('VPGATHERQQ,1,1,YMMREG,YMEM64,YMMREG,');
 end;
 
 function TAVXTestGenerator.InternalMakeTestFiles(aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String;
@@ -3777,8 +3829,8 @@ var
 
     if aAsmList.Count > 0 then
     begin
-      aAsmList.Insert(0, StringReplace(aHeaderList.Text, '$$$OPCODE$$$', aOpCode, []));
-      aAsmList.AddStrings(aFooterList);
+      aAsmList.Insert(0, StringReplace(aHeaderList.Text, '$$$OPCODE$$$', aOpCode, [rfReplaceAll]));
+      aAsmList.AddStrings(StringReplace(aFooterList.Text, '$$$OPCODE$$$', aOpCode, [rfReplaceAll]));
 
       aAsmList.SaveToFile(IncludeTrailingBackslash(aDestPath) + aOpCode + aFileExt);
     end;
@@ -3811,7 +3863,7 @@ begin
             if LastOpCode <> '' then
             begin
               SaveFile(slAsm, LastOpCode, aDestPath, aFileExt, aHeaderList, aFooterList);
-              writeln(format('%s%s%s', [aDestPath, NewOpCode, aFileExt]));
+              writeln(format('%s%s%s', [aDestPath, LastOpCode, aFileExt]));
 
               slAsm.Clear;
               LastOpCode := NewOpCode;
@@ -3884,6 +3936,46 @@ begin
                    slFooter.Add('NOP');
 
                   slFooter.Add('  end;');
+                  slFooter.Add('end.');
+                end;
+         tfFPCInc: begin
+                  writeln(format('outputformat: fpc  platform: %s  path: %s',
+                                 [cPlatform[aX64], aDestPath]));
+
+                  FileExt := '.pp';
+
+                  slHeader.Add('Program Test$$$OPCODE$$$;');
+                  slHeader.Add('{$asmmode intel}');
+                  slHeader.Add('{$warn 7102 off}');
+                  slHeader.Add('{$I $$$OPCODE$$$.inc}');
+                  slHeader.Add('Procedure Proc$$$OPCODE$$$;assembler;nostackframe;');
+                  slHeader.Add('  asm');
+
+                  for i := 1 to 10 do
+                   slHeader.Add(#9'NOP');
+
+                  for i := 1 to 10 do
+                   slFooter.Add(#9'NOP');
+
+                  slFooter.Add('  end;');
+                  slFooter.Add('procedure check(const id: string; const expected: array of byte; p: pointer);');
+                  slFooter.Add('var');
+                  slFooter.Add('  i : longint;');
+                  slFooter.Add('begin');
+                  slFooter.Add('  for i:=0 to high(expected) do');
+                  slFooter.Add('    if expected[i]<>pbyte(p)[i] then');
+                  slFooter.Add('      begin');
+                  slFooter.Add('        writeln(id, '' mismatch at offset $'',hexstr(i,4), '', expected=$'',hexstr(expected[i],2),'' actual=$'',hexstr(pbyte(p)[i],2));');
+                  slFooter.Add('        halt(1);');
+                  slFooter.Add('      end;');
+                  slFooter.Add('end;');
+
+                  slFooter.Add('begin');
+                  if aX64 then
+                    slFooter.Add('  check(''x86_64'',$$$OPCODE$$$,@Proc$$$OPCODE$$$);')
+                  else
+                    slFooter.Add('  check(''i386'',$$$OPCODE$$$,@Proc$$$OPCODE$$$);');
+                  slFooter.Add('  writeln(''ok'');');
                   slFooter.Add('end.');
                 end;
         tfNasm: begin

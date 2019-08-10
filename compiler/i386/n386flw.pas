@@ -44,7 +44,7 @@ interface
     ti386tryfinallynode=class(tcgtryfinallynode)
       finalizepi: tcgprocinfo;
       constructor create(l,r:TNode);override;
-      constructor create_implicit(l,r,_t1:TNode);override;
+      constructor create_implicit(l,r:TNode);override;
       function pass_1: tnode;override;
       function simplify(forinline: boolean): tnode;override;
       procedure pass_generate_code;override;
@@ -58,7 +58,7 @@ implementation
     symconst,symbase,symtable,symsym,symdef,
     cgbase,cgobj,cgcpu,cgutils,tgobj,
     cpubase,htypechk,
-    parabase,paramgr,pdecsub,pass_1,pass_2,ncgutil,cga,
+    parabase,paramgr,pass_1,pass_2,ncgutil,cga,
     aasmbase,aasmtai,aasmdata,aasmcpu,procinfo,cpupi;
 
   var
@@ -144,16 +144,15 @@ function reset_regvars(var n: tnode; arg: pointer): foreachnoderesult;
         make_not_regable(n,[]);
       calln:
         include(tprocinfo(arg).flags,pi_do_call);
+      else ;
     end;
     result:=fen_true;
   end;
 
 function copy_parasize(var n: tnode; arg: pointer): foreachnoderesult;
   begin
-    case n.nodetype of
-      calln:
+    if n.nodetype=calln then
         tcgprocinfo(arg).allocate_push_parasize(tcallnode(n).pushed_parasize);
-    end;
     result:=fen_true;
   end;
 
@@ -168,13 +167,7 @@ constructor ti386tryfinallynode.create(l, r: TNode);
       (df_generic in current_procinfo.procdef.defoptions)
       then
       exit;
-    finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
-    finalizepi.force_nested;
-    finalizepi.procdef:=create_finalizer_procdef;
-    finalizepi.entrypos:=r.fileinfo;
-    finalizepi.entryswitches:=r.localswitches;
-    finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
-    finalizepi.exitswitches:=current_settings.localswitches;
+    finalizepi:=tcgprocinfo(current_procinfo.create_for_outlining('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype,r));
     { Regvar optimization for symbols is suppressed when using exceptions, but
       temps may be still placed into registers. This must be fixed. }
     foreachnodestatic(r,@reset_regvars,finalizepi);
@@ -183,9 +176,9 @@ constructor ti386tryfinallynode.create(l, r: TNode);
     include(finalizepi.flags,pi_uses_exceptions);
   end;
 
-constructor ti386tryfinallynode.create_implicit(l, r, _t1: TNode);
+constructor ti386tryfinallynode.create_implicit(l, r: TNode);
   begin
-    inherited create_implicit(l, r, _t1);
+    inherited create_implicit(l, r);
     if (target_info.system<>system_i386_win32) then
       exit;
 
@@ -196,13 +189,7 @@ constructor ti386tryfinallynode.create_implicit(l, r, _t1: TNode);
     if df_generic in current_procinfo.procdef.defoptions then
       InternalError(2013012501);
 
-    finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
-    finalizepi.force_nested;
-    finalizepi.procdef:=create_finalizer_procdef;
-    finalizepi.entrypos:=current_filepos;
-    finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
-    finalizepi.entryswitches:=r.localswitches;
-    finalizepi.exitswitches:=current_settings.localswitches;
+    finalizepi:=tcgprocinfo(current_procinfo.create_for_outlining('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype,r));
     include(finalizepi.flags,pi_has_assembler_block);
     include(finalizepi.flags,pi_do_call);
     include(finalizepi.flags,pi_uses_exceptions);
@@ -247,8 +234,6 @@ function ti386tryfinallynode.simplify(forinline: boolean): tnode;
         if implicitframe then
           begin
             current_procinfo.finalize_procinfo:=finalizepi;
-            { don't leave dangling pointer }
-            tcgprocinfo(current_procinfo).final_asmnode:=nil;
           end;
       end;
   end;

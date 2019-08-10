@@ -1,7 +1,7 @@
 {$mode objfpc}
 {$H+}
 unit dwlinear;
-
+{$WARN 5024 off : Parameter "$1" not used}
 interface
 
 uses
@@ -47,7 +47,8 @@ Type
     // Procedures which MAY be overridden in descendents
     procedure WriteBeginDocument; virtual;
     procedure WriteEndDocument; virtual;
-    Function  EscapeText(S : String) : String; virtual;
+    Function  EscapeText(S : UnicodeString) : String; overload;
+    Function  EscapeText(S : String) : String; virtual; overload;
     Function  StripText(S : String) : String; virtual;
     Procedure StartProcedure; Virtual;
     Procedure EndProcedure; Virtual;
@@ -523,7 +524,7 @@ procedure TLinearWriter.WriteClassInterfacesOverview(ClassDecl: TPasClassType);
 var
   lInterface: TPasElement;
   i: Integer;
-  L,N,S,A: String;
+  L,N,S: String;
   DocNode: TDocNode;
   List : TStringList;
   lNode: TDocNode;
@@ -688,7 +689,7 @@ begin
     begin
       ResStrDecl := TPasResString(ASection.ResStrings[i]);
       StartListing(false, '');
-      DescrWriteText(ResStrDecl.GetDeclaration(True)); // instead of WriteLn() so we can do further processing like manual line wrapping in descendants
+      DescrWriteText(UTF8Decode(ResStrDecl.GetDeclaration(True))); // instead of WriteLn() so we can do further processing like manual line wrapping in descendants
       EndListing;
       WriteLabel(ResStrDecl);
       WriteIndex(ResStrDecl);
@@ -869,10 +870,8 @@ end;
 
 procedure TLinearWriter.WriteTypes(ASection: TPasSection);
 var
-  i,j: Integer;
+  i: Integer;
   TypeDecl: TPasType;
-  Recdecl: TPasRecordType;
-  Member : TPasElement;
   DocNode : TDocNode;
 begin
   if ASection.Types.Count > 0 then
@@ -1109,7 +1108,7 @@ begin
       Writeln(VisibilityNames[Visibility])
       end;
     StartAccess;
-    Setlength(S,0);
+    S:='';
     If Length(ReadAccessorName) > 0 then
       S:='Read';
     if Length(WriteAccessorName) > 0 then
@@ -1150,7 +1149,7 @@ procedure TLinearWriter.WriteSeeAlso(ADocNode: TDocNode);
 
 var
   Node: TDOMNode;
-  s: String;
+  s: DOMString;
   First : Boolean;
 
 begin
@@ -1482,6 +1481,11 @@ end;
 procedure TLinearWriter.WriteEndDocument;
 begin
   // do nothing
+end;
+
+function TLinearWriter.EscapeText(S: UnicodeString): String;
+begin
+  Result:=EscapeText(UTF8Encode(S));
 end;
 
 function TLinearWriter.InterpretOption(const Cmd, Arg: String): Boolean;

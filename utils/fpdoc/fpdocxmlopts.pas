@@ -1,7 +1,7 @@
 unit fpdocxmlopts;
 
 {$mode objfpc}{$H+}
-
+{$WARN 5024 off : Parameter "$1" not used}
 interface
 
 uses
@@ -80,10 +80,10 @@ end;
 
 procedure TXMLFPDocOptions.LoadPackage(APackage: TFPDocPackage; E: TDOMElement);
 
-  Function LoadInput(I : TDOMElement) : String;
+  Function LoadInput(I : TDOMElement) : UnicodeString;
 
   Var
-    S : String;
+    S : UnicodeString;
 
   begin
     Result:=I['file'];
@@ -94,7 +94,7 @@ procedure TXMLFPDocOptions.LoadPackage(APackage: TFPDocPackage; E: TDOMElement);
       Result:=S+' '+Result;
   end;
 
-  Function LoadDescription(I : TDOMElement) : String;
+  Function LoadDescription(I : TDOMElement) : UnicodeString;
 
   begin
     Result:=I['file'];
@@ -102,10 +102,11 @@ procedure TXMLFPDocOptions.LoadPackage(APackage: TFPDocPackage; E: TDOMElement);
       Error(SErrNoDescrFile);
   end;
 
-  Function LoadImport(I : TDOMElement) : String;
+  Function LoadImport(I : TDOMElement) : UnicodeString;
 
   Var
-    S : String;
+    S : UnicodeString;
+
   begin
     Result:=I['file'];
     If (Result='') then
@@ -121,9 +122,9 @@ Var
   O : TDomElement;
 
 begin
-  APackage.Name:=E['name'];
-  APackage.output:=E['output'];
-  APackage.ContentFile:=E['content'];
+  APackage.Name:=UTF8Encode(E['name']);
+  APackage.output:=UTF8Encode(E['output']);
+  APackage.ContentFile:=UTF8Encode(E['content']);
   N:=E.FirstChild;
   While (N<>Nil) do
     begin
@@ -136,7 +137,7 @@ begin
         While (S<>Nil) do
           begin
           If (S.NodeType=Element_Node) and (S.NodeName='unit') then
-            APackage.Inputs.add(LoadInput(S as TDomElement));
+            APackage.Inputs.add(UTF8Encode(LoadInput(S as TDomElement)));
           S:=S.NextSibling;
           end;
         end
@@ -146,7 +147,7 @@ begin
         While (S<>Nil) do
           begin
           If (S.NodeType=Element_Node) and (S.NodeName='description') then
-            APackage.Descriptions.add(LoadDescription(S as TDomElement));
+            APackage.Descriptions.add(UTF8Encode(LoadDescription(S as TDomElement)));
           S:=S.NextSibling;
           end;
         end
@@ -156,7 +157,7 @@ begin
         While (S<>Nil) do
           begin
           If (S.NodeType=Element_Node) and (S.NodeName='import') then
-            APackage.Imports.add(LoadImport(S as TDomElement));
+            APackage.Imports.add(UTF8Encode(LoadImport(S as TDomElement)));
           S:=S.NextSibling;
           end;
         end
@@ -202,8 +203,8 @@ begin
     begin
     If (O.NodeType=Element_NODE) and (O.NodeName='option') then
       begin
-      N:=LowerCase(TDOMElement(o)['name']);
-      V:=TDOMElement(o)['value'];
+      N:=LowerCase(Utf8Encode(TDOMElement(o)['name']));
+      V:=UTF8Encode(TDOMElement(o)['value']);
       Case IndexOfString(N,OptionNames) of
         0 : Options.HideProtected:=TrueValue(v);
         1 : Options.WarnNoNode:=TrueValue(v);
@@ -260,8 +261,8 @@ procedure TXMLFPDocOptions.SaveEngineOptions(Options: TEngineOptions;
       Exit;
     E:=XML.CreateElement('option');
     AParent.AppendChild(E);
-    E['name'] := n;
-    E['value'] := v;
+    E['name'] := Utf8Decode(n);
+    E['value'] := Utf8Decode(v);
   end;
 
   procedure AddBool(const AName: string; B: Boolean);
@@ -298,15 +299,15 @@ Var
 
 begin
   SplitInputFileOption(AInputFile,F,O);
-  AParent['file']:=F;
-  AParent['options']:=O;
+  AParent['file']:=Utf8Decode(F);
+  AParent['options']:=Utf8Decode(O);
 end;
 
 procedure TXMLFPDocOptions.SaveDescription(const ADescription: String;
   XML: TXMLDocument; AParent: TDOMElement);
 
 begin
-  AParent['file']:=ADescription;
+  AParent['file']:=Utf8Decode(ADescription);
 end;
 
 procedure TXMLFPDocOptions.SaveImportFile(const AImportFile: String;
@@ -317,8 +318,8 @@ Var
 
 begin
   I:=Pos(',',AImportFile);
-  AParent['file']:=Copy(AImportFile,1,I-1);
-  AParent['prefix']:=Copy(AImportFile,i+1,Length(AImportFile));
+  AParent['file']:=Utf8Decode(Copy(AImportFile,1,I-1));
+  AParent['prefix']:=Utf8Decode(Copy(AImportFile,i+1,Length(AImportFile)));
 end;
 
 procedure TXMLFPDocOptions.SavePackage(APackage: TFPDocPackage;
@@ -330,9 +331,9 @@ var
   E,PE : TDomElement;
 
 begin
-  AParent['name']:=APackage.Name;
-  AParent['output']:=APackage.Output;
-  AParent['content']:=APackage.ContentFile;
+  AParent['name']:=UTF8Decode(APackage.Name);
+  AParent['output']:=UTF8Decode(APackage.Output);
+  AParent['content']:=UTF8Decode(APackage.ContentFile);
   // Units
   PE:=XML.CreateElement('units');
   AParent.AppendChild(PE);

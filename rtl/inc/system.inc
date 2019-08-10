@@ -44,7 +44,11 @@ type
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 const
+{$ifdef CPUAVR}
+  STACK_MARGIN = 64;    { Stack size margin for stack checking }
+{$else}
   STACK_MARGIN = 16384;    { Stack size margin for stack checking }
+{$endif}
 { Random / Randomize constants }
   OldRandSeed : Cardinal = 0;
 
@@ -277,6 +281,22 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$define SYSPROCDEFINED}
 {$endif cpuaarch64}
 
+{$ifdef cpuriscv32}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i riscv32.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpuriscv32}
+
+{$ifdef cpuriscv64}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i riscv64.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpuriscv64}
+
 {$ifndef SYSPROCDEFINED}
   {$Error Can't determine processor type !}
 {$endif}
@@ -468,13 +488,9 @@ function aligntoqword(p : pointer) : pointer;inline;
                   Run-Time Type Information (RTTI) declarations
 ****************************************************************************}
 
-type
-  PTypeKind = ^TTypeKind;
-
-const
-  // all potentially managed types
-  tkManagedTypes   = [tkAstring,tkWstring,tkUstring,tkArray,
-                     tkObject,tkRecord,tkDynArray,tkInterface,tkVariant];
+{$ifdef FPC_HAS_FEATURE_RTTI}
+{$i rttidecl.inc}
+{$endif FPC_HAS_FEATURE_RTTI}
 
 {*****************************************************************************
                         Dynamic Array support
@@ -721,7 +737,11 @@ End;
 {$ifndef FPC_SYSTEM_HAS_STACKTOP}
 function StackTop: pointer;
 begin
-  result:=StackBottom+StackLength;
+  { Avoid wrap to zero on 32-bit }
+  if ptruint(StackBottom) > high(ptruint) - StackLength then
+    result:=pointer(ptruint(high(ptruint)))
+  else
+    result:=StackBottom + StackLength;
 end;
 {$endif FPC_SYSTEM_HAS_STACKTOP}
 
@@ -933,23 +953,16 @@ var
 procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 var
   i : ALUUInt;
-{$ifdef DEBUG}
   pt : PInitFinalTable;
-{$endif}
 begin
   { call cpu/fpu initialisation routine }
   fpc_cpuinit;
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
-{$ifdef DEBUG}
   pt := PInitFinalTable(EntryInformation.InitFinalTable);
-{$endif}
-  with PInitFinalTable(EntryInformation.InitFinalTable)^ do
 {$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
-{$ifdef DEBUG}
   pt := @InitFinalTable;
-{$endif}
-  with InitFinalTable do
 {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+  with pt^ do
    begin
      for i:=1 to ALUUInt(TableCount) do
       begin
@@ -1004,7 +1017,8 @@ end;
                           Error / Exit / ExitProc
 *****************************************************************************}
 
-Procedure system_exit;forward;
+Procedure system_exit;forward;{$ifdef FPC_SYSTEM_EXIT_NO_RETURN}noreturn;{$endif}
+
 {$ifdef FPC_HAS_FEATURE_HEAP}
 {$ifndef HAS_MEMORYMANAGER}
 //not needed if independant memory manager
@@ -1125,7 +1139,7 @@ end;
 procedure internal_do_exit; external name 'FPC_DO_EXIT';
 
 
-Procedure lib_exit;[Public,Alias:'FPC_LIB_EXIT'];
+Procedure fpc_lib_exit;[Public,Alias:'FPC_LIB_EXIT'];
 begin
   InternalExit;
 end;
@@ -1561,10 +1575,8 @@ end;
 { Generic threadmanager }
 {$i thread.inc}
 
-{$ifndef FPC_SECTION_THREADVARS}
 { Generic threadvar support }
 {$i threadvr.inc}
-{$endif FPC_SECTION_THREADVARS}
 
 {$ifdef DISABLE_NO_THREAD_MANAGER}
 { OS Dependent implementation }

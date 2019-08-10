@@ -48,6 +48,8 @@ unit cpubase;
     type
       TAsmOp= {$i a64op.inc}
 
+      TAsmOps = set of TAsmOp;
+
       { This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];
 
@@ -325,6 +327,7 @@ unit cpubase;
     procedure shifterop_reset(var so : tshifterop); {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
     function dwarf_reg(r:tregister):shortint;
+    function dwarf_reg_no_error(r:tregister):shortint;
 
     function is_shifter_const(d: aint; size: tcgsize): boolean;
 
@@ -365,8 +368,11 @@ unit cpubase;
           R_MMREGISTER:
             begin
               case s of
+                { records }
+                OS_32,
                 OS_F32:
                   cgsize2subreg:=R_SUBMMS;
+                OS_64,
                 OS_F64:
                   cgsize2subreg:=R_SUBMMD;
                 else
@@ -490,6 +496,10 @@ unit cpubase;
           internalerror(200603251);
       end;
 
+    function dwarf_reg_no_error(r:tregister):shortint;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+      end;
 
     function is_shifter_const(d: aint; size: tcgsize): boolean;
       var

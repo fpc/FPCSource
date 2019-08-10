@@ -90,13 +90,21 @@ type
     Procedure EnumValues(Const APath : UnicodeString; List : TStrings);
 
     function  GetValue(const APath: UnicodeString; const ADefault: UnicodeString): UnicodeString; overload;
+    function  GetValue(const APath: RawByteString; const ADefault: RawByteString): UnicodeString; overload;
     function  GetValue(const APath: UnicodeString; ADefault: Integer): Integer; overload;
+    function  GetValue(const APath: RawByteString; ADefault: Integer): Integer; overload;
     function  GetValue(const APath: UnicodeString; ADefault: Int64): Int64; overload;
+    function  GetValue(const APath: RawByteString; ADefault: Int64): Int64; overload;
     function  GetValue(const APath: UnicodeString; ADefault: Boolean): Boolean; overload;
+    function  GetValue(const APath: RawByteString; ADefault: Boolean): Boolean; overload;
     function  GetValue(const APath: UnicodeString; ADefault: Double): Double; overload;
+    function  GetValue(const APath: RawByteString; ADefault: Double): Double; overload;
     Function GetValue(const APath: UnicodeString; AValue: TStrings; Const ADefault: String) : Boolean; overload;
+    Function GetValue(const APath: RawByteString; AValue: TStrings; Const ADefault: String) : Boolean; overload;
     Function GetValue(const APath: UnicodeString; AValue: TStrings; Const ADefault: TStrings): Boolean; overload;
+
     procedure SetValue(const APath: UnicodeString; const AValue: UnicodeString); overload;
+    procedure SetValue(const APath: RawByteString; const AValue: RawByteString); overload;
     procedure SetValue(const APath: UnicodeString; AValue: Integer); overload;
     procedure SetValue(const APath: UnicodeString; AValue: Int64); overload;
     procedure SetValue(const APath: UnicodeString; AValue: Boolean); overload;
@@ -289,6 +297,12 @@ begin
 end;
 
 
+function TJSONConfig.GetValue(const APath: RawByteString; const ADefault: RawByteString): UnicodeString;
+
+begin
+  Result:=GetValue(UTF8Decode(aPath),UTF8Decode(ADefault));
+end;
+
 function TJSONConfig.GetValue(const APath: UnicodeString; const ADefault: UnicodeString): UnicodeString;
 
 var
@@ -300,6 +314,12 @@ begin
     Result:=El.AsUnicodeString
   else
     Result:=ADefault;
+end;
+
+function TJSONConfig.GetValue(const APath: RawByteString; ADefault: Integer): Integer;
+
+begin
+  Result:=GetValue(UTF8Decode(aPath),ADefault);
 end;
 
 function TJSONConfig.GetValue(const APath: UnicodeString; ADefault: Integer): Integer;
@@ -316,6 +336,12 @@ begin
     Result:=StrToIntDef(El.AsString,ADefault);
 end;
 
+function TJSONConfig.GetValue(const APath: RawByteString; ADefault: Int64): Int64;
+
+begin
+  Result:=GetValue(UTF8Decode(aPath),ADefault);
+end;
+
 function TJSONConfig.GetValue(const APath: UnicodeString; ADefault: Int64): Int64;
 var
   El : TJSONData;
@@ -328,6 +354,12 @@ begin
     Result:=El.AsInt64
   else
     Result:=StrToInt64Def(El.AsString,ADefault);
+end;
+
+function TJSONConfig.GetValue(const APath: RawByteString; ADefault: Boolean): Boolean;
+
+begin
+  Result:=GetValue(UTF8Decode(aPath),ADefault);
 end;
 
 function TJSONConfig.GetValue(const APath: UnicodeString; ADefault: Boolean): Boolean;
@@ -345,6 +377,12 @@ begin
     Result:=StrToBoolDef(El.AsString,ADefault);
 end;
 
+function TJSONConfig.GetValue(const APath: RawByteString; ADefault: Double): Double;
+
+begin
+  Result:=GetValue(UTF8Decode(aPath),ADefault);
+end;
+
 function TJSONConfig.GetValue(const APath: UnicodeString; ADefault: Double): Double;
 
 var
@@ -359,6 +397,14 @@ begin
   else
     Result:=StrToFloatDef(El.AsString,ADefault);
 end;
+
+function TJSONConfig.GetValue(const APath: RawByteString; AValue: TStrings;
+  const ADefault: String): Boolean;
+
+begin
+  Result:=GetValue(UTF8Decode(aPath),AValue, ADefault);
+end;
+
 
 function TJSONConfig.GetValue(const APath: UnicodeString; AValue: TStrings;
   const ADefault: String): Boolean;
@@ -416,6 +462,13 @@ begin
   else
     El.AsUnicodeString:=AValue;
   FModified:=True;
+end;
+
+
+procedure TJSONConfig.SetValue(const APath: RawByteString;
+  const AValue: RawByteString);
+begin
+  SetValue(UTF8Decode(APath),UTF8Decode(AValue));
 end;
 
 procedure TJSONConfig.SetDeleteValue(const APath: UnicodeString; const AValue, DefValue: UnicodeString);

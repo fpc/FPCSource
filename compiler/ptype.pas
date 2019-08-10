@@ -82,7 +82,7 @@ implementation
        nset,ncnv,ncon,nld,
        { parser }
        scanner,
-       pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl,pgenutil
+       pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl,pgenutil,pparautl
 {$ifdef jvm}
        ,pjvm
 {$endif}
@@ -675,7 +675,7 @@ implementation
         oldparse_only: boolean;
         member_blocktype : tblock_type;
         hadgeneric,
-        fields_allowed, is_classdef, classfields: boolean;
+        fields_allowed, is_classdef, classfields, threadvarfields: boolean;
         vdoptions: tvar_dec_options;
       begin
         { empty record declaration ? }
@@ -695,6 +695,7 @@ implementation
         is_classdef:=false;
         hadgeneric:=false;
         classfields:=false;
+        threadvarfields:=false;
         member_blocktype:=bt_general;
         repeat
           case token of
@@ -713,6 +714,22 @@ implementation
                 fields_allowed:=true;
                 member_blocktype:=bt_general;
                 classfields:=is_classdef;
+                threadvarfields:=false;
+                is_classdef:=false;
+              end;
+            _THREADVAR :
+              begin
+                if not is_classdef then
+                  begin
+                    message(parser_e_threadvar_must_be_class);
+                    { for error recovery we enforce class fields }
+                    is_classdef:=true;
+                  end;
+                consume(_THREADVAR);
+                fields_allowed:=true;
+                member_blocktype:=bt_general;
+                classfields:=is_classdef;
+                threadvarfields:=true;
                 is_classdef:=false;
               end;
             _CONST:
@@ -735,6 +752,7 @@ implementation
                        fields_allowed:=true;
                        is_classdef:=false;
                        classfields:=false;
+                       threadvarfields:=false;
                        member_blocktype:=bt_general;
                      end;
                    _PROTECTED :
@@ -746,6 +764,7 @@ implementation
                        fields_allowed:=true;
                        is_classdef:=false;
                        classfields:=false;
+                       threadvarfields:=false;
                        member_blocktype:=bt_general;
                      end;
                    _PUBLIC :
@@ -755,6 +774,7 @@ implementation
                        fields_allowed:=true;
                        is_classdef:=false;
                        classfields:=false;
+                       threadvarfields:=false;
                        member_blocktype:=bt_general;
                      end;
                    _PUBLISHED :
@@ -765,6 +785,7 @@ implementation
                        fields_allowed:=true;
                        is_classdef:=false;
                        classfields:=false;
+                       threadvarfields:=false;
                        member_blocktype:=bt_general;
                      end;
                    _STRICT :
@@ -796,6 +817,7 @@ implementation
                         fields_allowed:=true;
                         is_classdef:=false;
                         classfields:=false;
+                        threadvarfields:=false;
                         member_blocktype:=bt_general;
                      end
                     else
@@ -829,6 +851,8 @@ implementation
                                   include(vdoptions,vd_class);
                                 if not (m_delphi in current_settings.modeswitches) then
                                   include(vdoptions,vd_check_generic);
+                                if threadvarfields then
+                                  include(vdoptions,vd_threadvar);
                                 read_record_fields(vdoptions,nil,nil,hadgeneric);
                               end;
                           end
@@ -857,7 +881,7 @@ implementation
                 { class modifier is only allowed for procedures, functions, }
                 { constructors, destructors, fields and properties          }
                 if (hadgeneric and not (token in [_FUNCTION,_PROCEDURE])) or
-                    (not hadgeneric and (not ((token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_DESTRUCTOR,_OPERATOR]) or (token=_CONSTRUCTOR)) and
+                    (not hadgeneric and (not ((token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_DESTRUCTOR,_OPERATOR,_THREADVAR]) or (token=_CONSTRUCTOR)) and
                    not((token=_ID) and (idtoken=_OPERATOR)))) then
                   Message(parser_e_procedure_or_function_expected);
 
@@ -1027,7 +1051,7 @@ implementation
          { don't keep track of procdefs in a separate list, because the
            compiler may add additional procdefs (e.g. property wrappers for
            the jvm backend) }
-         insert_record_hidden_paras(trecorddef(current_structdef));
+         insert_struct_hidden_paras(trecorddef(current_structdef));
          { restore symtable stack }
          symtablestack.pop(recst);
          if trecorddef(current_structdef).is_packed and is_managed_type(current_structdef) then
@@ -1105,12 +1129,14 @@ implementation
                                def:=corddef.create(uchar,lv,hv,true)
                              else
                                if is_boolean(pt1.resultdef) then
-                                 def:=corddef.create(pasbool8,lv,hv,true)
+                                 def:=corddef.create(pasbool1,lv,hv,true)
                                else if is_signed(pt1.resultdef) then
                                  def:=corddef.create(range_to_basetype(lv,hv),lv,hv,true)
                                else
                                  def:=corddef.create(range_to_basetype(lv,hv),lv,hv,true);
                            end;
+                         else
+                           internalerror(2019050527);
                        end;
                      end;
                  end
@@ -1311,7 +1337,7 @@ implementation
 {$ifdef cpu64bitaddr}
                     u32bit,s64bit,
 {$endif cpu64bitaddr}
-                    pasbool8,pasbool16,pasbool32,pasbool64,
+                    pasbool1,pasbool8,pasbool16,pasbool32,pasbool64,
                     bool8bit,bool16bit,bool32bit,bool64bit,
                     uwidechar] then
                     begin
@@ -1572,7 +1598,7 @@ implementation
                     newtype.free;
                   end;
                 { Add implicit hidden parameters and function result }
-                handle_calling_convention(pd);
+                handle_calling_convention(pd,hcc_default_actions_intf);
               end;
             { restore old state }
             parse_generic:=old_parse_generic;
@@ -1858,8 +1884,6 @@ implementation
                     def:=object_dec(odt_interfacecorba,name,newsym,genericdef,genericlist,nil,ht_none);
                   it_interfacejava:
                     def:=object_dec(odt_interfacejava,name,newsym,genericdef,genericlist,nil,ht_none);
-                  else
-                    internalerror(2010122612);
                 end;
               end;
             _OBJCPROTOCOL :

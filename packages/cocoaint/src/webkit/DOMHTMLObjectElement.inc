@@ -58,8 +58,8 @@
     function codeType: NSString; message 'codeType';
     procedure setData (newValue: NSString); message 'setData:';
     function data: NSString; message 'data';
-    procedure setDeclare (newValue: Boolean); message 'setDeclare:';
-    function declare: Boolean; message 'declare';
+    procedure setDeclare (newValue: BOOL); message 'setDeclare:';
+    function declare: BOOL; message 'declare';
     procedure setHeight (newValue: NSString); message 'setHeight:';
     function height: NSString; message 'height';
     procedure setHspace (newValue: cint); message 'setHspace:';

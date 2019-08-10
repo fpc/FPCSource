@@ -45,6 +45,15 @@ var
 function fpc_geteipasebxlocal : pointer; [external name 'fpc_geteipasebx'];
 {$endif}
 
+procedure InitTLS; [external name 'FPC_INITTLS'];
+
+
+{ so far, I found no case where this is actually called, so it is a dummy so far (FK) }
+function ___tls_get_addr(p : pointer) : pointer; public name '___tls_get_addr';
+  begin
+  end;
+
+
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
 asm
   { First locate the start of the environment variables }
@@ -92,6 +101,10 @@ asm
   {$else FPC_PIC}
   	movl    %esp,initialstkptr
   {$endif FPC_PIC}
+
+{$if FPC_FULLVERSION>30200}
+  call    InitTLS
+{$endif FPC_FULLVERSION>30200}
 
   xorl    %ebp,%ebp
   call    PASCALMAIN

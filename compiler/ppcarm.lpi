@@ -62,7 +62,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="arm"/>
-      <OtherUnitFiles Value="arm;systems"/>
+      <OtherUnitFiles Value="armgen;arm;systems"/>
       <UnitOutputDirectory Value="arm\lazbuild"/>
     </SearchPaths>
     <Parsing>

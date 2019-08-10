@@ -105,17 +105,25 @@ end;
 procedure normalexit(status: cint); cdecl; external 'c' name 'exit';
 {$endif}
 
+{$if defined(openbsd)}
+procedure haltproc; cdecl; external name '_haltproc';
+{$endif}
+
 procedure System_exit;
-{$ifndef darwin}
-begin
-   Fpexit(cint(ExitCode));
-end;
-{$else darwin}
+{$if defined(darwin)}
 begin
    { make sure the libc atexit handlers are called, needed for e.g. profiling }
    normalexit(cint(ExitCode));
 end;
-{$endif darwin}
+{$elseif defined(openbsd)}
+begin
+   haltproc;
+end;
+{$else}
+begin
+   Fpexit(cint(ExitCode));
+end;
+{$endif}
 
 
 Function ParamCount: Longint;

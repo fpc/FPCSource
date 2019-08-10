@@ -166,7 +166,7 @@ var
     function italicAngle: CGFloat; message 'italicAngle';
     function capHeight: CGFloat; message 'capHeight';
     function xHeight: CGFloat; message 'xHeight';
-    function isFixedPitch: Boolean; message 'isFixedPitch';
+    function isFixedPitch: BOOL; message 'isFixedPitch';
     function boundingRectForGlyph(aGlyph: NSGlyph): NSRect; message 'boundingRectForGlyph:';
     function advancementForGlyph(ag: NSGlyph): NSSize; message 'advancementForGlyph:';
     procedure getBoundingRects_forGlyphs_count(bounds: NSRectArray; glyphs: NSGlyphPtr; glyphCount: NSUInteger); message 'getBoundingRects:forGlyphs:count:';
@@ -189,20 +189,20 @@ var
   NSFontDeprecatedCategory = objccategory external (NSFont)
     class procedure useFont(fontName_: NSString); message 'useFont:'; deprecated 'in Mac OS X 10.4 and later';
     function widthOfString(string_: NSString): CGFloat; message 'widthOfString:'; deprecated 'in Mac OS X 10.4 and later';
-    function isBaseFont: Boolean; message 'isBaseFont'; deprecated 'in Mac OS X 10.4 and later';
+    function isBaseFont: BOOL; message 'isBaseFont'; deprecated 'in Mac OS X 10.4 and later';
     function afmDictionary: NSDictionary; message 'afmDictionary'; deprecated 'in Mac OS X 10.4 and later';
-    function glyphIsEncoded(aGlyph: NSGlyph): Boolean; message 'glyphIsEncoded:'; deprecated 'in Mac OS X 10.4 and later';
+    function glyphIsEncoded(aGlyph: NSGlyph): BOOL; message 'glyphIsEncoded:'; deprecated 'in Mac OS X 10.4 and later';
     function defaultLineHeightForFont: CGFloat; message 'defaultLineHeightForFont'; deprecated 'in Mac OS X 10.4 and later';
     class function preferredFontNames: NSArray; message 'preferredFontNames'; deprecated 'in Mac OS X 10.4 and later';
     class procedure setPreferredFontNames(fontNameArray: NSArray); message 'setPreferredFontNames:'; deprecated 'in Mac OS X 10.4 and later';
     function encodingScheme: NSString; message 'encodingScheme'; deprecated 'in Mac OS X 10.4 and later';
     function glyphPacking: NSMultibyteGlyphPacking; message 'glyphPacking'; deprecated 'in Mac OS X 10.4 and later';
-    function positionOfGlyph_precededByGlyph_isNominal(curGlyph: NSGlyph; prevGlyph: NSGlyph; nominal: pboolean): NSPoint; message 'positionOfGlyph:precededByGlyph:isNominal:'; deprecated 'in Mac OS X 10.4 and later';
+    function positionOfGlyph_precededByGlyph_isNominal(curGlyph: NSGlyph; prevGlyph: NSGlyph; nominal: pBOOL): NSPoint; message 'positionOfGlyph:precededByGlyph:isNominal:'; deprecated 'in Mac OS X 10.4 and later';
     function positionsForCompositeSequence_numberOfGlyphs_pointArray(someGlyphs: NSGlyphPtr; numGlyphs: NSInteger; points: NSPointArray): NSInteger; message 'positionsForCompositeSequence:numberOfGlyphs:pointArray:'; deprecated 'in Mac OS X 10.4 and later';
-    function positionOfGlyph_struckOverGlyph_metricsExist(curGlyph: NSGlyph; prevGlyph: NSGlyph; exist: pboolean): NSPoint; message 'positionOfGlyph:struckOverGlyph:metricsExist:'; deprecated 'in Mac OS X 10.4 and later';
-    function positionOfGlyph_struckOverRect_metricsExist(aGlyph: NSGlyph; aRect: NSRect; exist: pboolean): NSPoint; message 'positionOfGlyph:struckOverRect:metricsExist:'; deprecated 'in Mac OS X 10.4 and later';
+    function positionOfGlyph_struckOverGlyph_metricsExist(curGlyph: NSGlyph; prevGlyph: NSGlyph; exist: pBOOL): NSPoint; message 'positionOfGlyph:struckOverGlyph:metricsExist:'; deprecated 'in Mac OS X 10.4 and later';
+    function positionOfGlyph_struckOverRect_metricsExist(aGlyph: NSGlyph; aRect: NSRect; exist: pBOOL): NSPoint; message 'positionOfGlyph:struckOverRect:metricsExist:'; deprecated 'in Mac OS X 10.4 and later';
     function positionOfGlyph_forCharacter_struckOverRect(aGlyph: NSGlyph; aChar: unichar; aRect: NSRect): NSPoint; message 'positionOfGlyph:forCharacter:struckOverRect:'; deprecated 'in Mac OS X 10.4 and later';
-    function positionOfGlyph_withRelation_toBaseGlyph_totalAdvancement_metricsExist(thisGlyph: NSGlyph; rel: NSGlyphRelation; baseGlyph: NSGlyph; adv: NSSizePointer; exist: pboolean): NSPoint; message 'positionOfGlyph:withRelation:toBaseGlyph:totalAdvancement:metricsExist:'; deprecated 'in Mac OS X 10.4 and later';
+    function positionOfGlyph_withRelation_toBaseGlyph_totalAdvancement_metricsExist(thisGlyph: NSGlyph; rel: NSGlyphRelation; baseGlyph: NSGlyph; adv: NSSizePointer; exist: pBOOL): NSPoint; message 'positionOfGlyph:withRelation:toBaseGlyph:totalAdvancement:metricsExist:'; deprecated 'in Mac OS X 10.4 and later';
   end;
 
 {$endif}

@@ -45,7 +45,7 @@ type
   TOprType=(OPR_NONE,OPR_CONSTANT,OPR_SYMBOL,OPR_LOCAL,
             OPR_REFERENCE,OPR_REGISTER,OPR_COND,OPR_REGSET,
             OPR_SHIFTEROP,OPR_MODEFLAGS,OPR_SPECIALREG,
-            OPR_REGPAIR);
+            OPR_REGPAIR,OPR_FENCEFLAGS);
 
   TOprRec = record
     case typ:TOprType of
@@ -81,6 +81,9 @@ type
 {$ifdef aarch64}
       OPR_SHIFTEROP : (shifterop : tshifterop);
       OPR_COND      : (cc : tasmcond);
+{$endif aarch64}
+{$if defined(riscv32) or defined(riscv64)}
+      OPR_FENCEFLAGS: (fenceflags : TFenceFlags);
 {$endif aarch64}
   end;
 
@@ -794,6 +797,8 @@ Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
           case opr.typ of
             OPR_REFERENCE: opr.varsize := l;
                 OPR_LOCAL: opr.localvarsize := l;
+            else
+              ;
           end;
 
 
@@ -810,7 +815,11 @@ Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
         case opr.typ of
           OPR_REFERENCE: opr.varsize := sym.getsize;
               OPR_LOCAL: opr.localvarsize := sym.getsize;
+          else
+            ;
         end;
+      else
+        ;
     end;
   end;
 
@@ -994,6 +1003,8 @@ Begin
               if paramanager.push_addr_param(tabstractvarsym(sym).varspez,tabstractvarsym(sym).vardef,current_procinfo.procdef.proccalloption) then
                 SetSize(sizeof(pint),false);
             end;
+          else
+            ;
         end;
         if not size_set_from_absolute then
           setvarsize(tabstractvarsym(sym));
@@ -1295,6 +1306,10 @@ end;
              OPR_COND:
                ai.loadconditioncode(i-1,cc);
 {$endif arm or aarch64}
+{$if defined(riscv32) or defined(riscv64)}
+             OPR_FENCEFLAGS:
+               ai.loadfenceflags(i-1,fenceflags);
+{$endif riscv32 or riscv64}
               { ignore wrong operand }
               OPR_NONE:
                 ;
@@ -1424,6 +1439,8 @@ Begin
                exit;
              end;
          end;
+       else
+         ;
      end;
    end;
 end;
@@ -1476,6 +1493,8 @@ Begin
            SearchIConstant:=TRUE;
            exit;
          end;
+       else
+         ;
      end;
    end;
 end;
@@ -1539,6 +1558,8 @@ Begin
            st:=Tabstractvarsym(sym).vardef.GetSymtable(gs_record);
          typesym :
            st:=Ttypesym(sym).typedef.GetSymtable(gs_record);
+         else
+           ;
        end
      else
        s:='';
@@ -1592,6 +1613,8 @@ Begin
                  st:=trecorddef(vardef).symtable;
                objectdef :
                  st:=tobjectdef(vardef).symtable;
+               else
+                 ;
              end;
            end;
        procsym:
@@ -1621,6 +1644,8 @@ Begin
            GetRecordOffsetSize:=(s='');
            exit;
          end;
+       else
+         ;
      end;
    end;
    { Support Field.Type as typecasting }
@@ -1658,7 +1683,7 @@ Begin
           begin
             Tlabelsym(sym).nonlocal:=true;
             if emit then
-              exclude(current_procinfo.procdef.procoptions,po_inline);
+              include(current_procinfo.flags,pi_has_interproclabel);
           end;
         if not(assigned(tlabelsym(sym).asmblocklabel)) then
           if Tlabelsym(sym).nonlocal then
@@ -1676,6 +1701,8 @@ Begin
           tlabelsym(sym).used:=true;
         SearchLabel:=true;
       end;
+    else
+      ;
   end;
 end;
 

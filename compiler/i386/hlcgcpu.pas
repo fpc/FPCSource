@@ -198,6 +198,7 @@ implementation
         { Alloc EBX }
         getcpuregister(list, NR_PIC_OFFSET_REG);
         list.concat(taicpu.op_reg_reg(A_MOV,S_L,current_procinfo.got,NR_PIC_OFFSET_REG));
+        include(current_procinfo.flags,pi_needs_got);
       end;
     Result:=inherited a_call_name(list, pd, s, paras, forceresdef, weak);
     { Free EBX }

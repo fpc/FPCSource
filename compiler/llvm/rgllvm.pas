@@ -201,6 +201,8 @@ implementation
                            writtenregs^[sr]:=succ(writtenregs^[sr]);
                        end;
                  end;
+               else
+                 ;
              end;
              hp:=tai(hp.next);
            end;
@@ -249,6 +251,8 @@ implementation
                         end;
                     end;
                 end;
+              else
+                ;
             end;
           end;
         if not assigned(def) then

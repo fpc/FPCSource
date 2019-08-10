@@ -14,6 +14,10 @@
  **********************************************************************}
 unit FPHelp;
 
+{$ifdef cpullvm}
+{$modeswitch nestedprocvars}
+{$endif}
+
 interface
 
 uses
@@ -686,7 +690,7 @@ begin
     end;
 end;
 begin
-  Desktop^.ForEach(@CloseIfHelpWindow);
+  Desktop^.ForEach(TCallbackProcParam(@CloseIfHelpWindow));
 end;
 
 END.

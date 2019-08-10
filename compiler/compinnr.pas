@@ -117,6 +117,7 @@ type
      in_not_assign_x      = 95,
      in_gettypekind_x     = 96,
      in_faraddr_x         = 97,
+     in_volatile_x        = 98,
 
 { Internal constant functions }
      in_const_sqr        = 100,
@@ -164,6 +165,10 @@ type
 
      { SSE }
 
+{$if defined(X86)}
+     ,
+     {$i x86/cx86innr.inc}
+{$endif }
 {$if defined(AVR)}
      ,
      {$i ccpuinnr.inc}

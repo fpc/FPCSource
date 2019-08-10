@@ -247,7 +247,8 @@ Var
   f      : file;
   ext,
   s      : string;
-  ppuversion : dword;
+  ppuversion,
+  ppulongversion: dword;
 begin
   DoPPU:=false;
   If Not Quiet then
@@ -328,6 +329,18 @@ begin
      end;
     if b<>untilb then
      begin
+       if b=ibextraheader then
+         begin
+           ppulongversion:=cardinal(inppu.getlongint);
+           if ppulongversion<>CurrentPPULongVersion then
+             begin
+               inppu.free;
+               outppu.free;
+               Error('Error: Wrong PPU Long Version '+tostr(ppulongversion)+' in '+PPUFn,false);
+               Exit;
+             end;
+           outppu.putlongint(longint(ppulongversion));
+         end;
        repeat
          inppu.getdatabuf(buffer^,bufsize,l);
          outppu.putdata(buffer^,l);

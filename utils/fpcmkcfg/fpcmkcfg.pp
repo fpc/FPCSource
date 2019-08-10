@@ -1,5 +1,6 @@
 {$mode objfpc}
 {$H+}
+{$macro on}
 {
     This file is part of Free Pascal Build tools
     Copyright (c) 2005 by Michael Van Canneyt
@@ -41,6 +42,19 @@ uses
 {$i fppkg.inc}
 {$i default.inc}
 
+{$ifndef package_version_major}
+  {$define package_version_major:=0}
+{$endif}
+{$ifndef package_version_minor}
+  {$define package_version_minor:=0}
+{$endif}
+{$ifndef package_version_micro}
+  {$define package_version_micro:=0}
+{$endif}
+{$ifndef package_version_build}
+  {$define package_version_build:=0}
+{$endif}
+
 Const
   BuildVersion={$I %FPCVERSION%};
   BuildTarget={$I %FPCTARGET%};
@@ -51,6 +65,10 @@ Const
   ExeExt = '.exe';
 {$endif unix}
 
+  version_major = package_version_major;
+  version_minor = package_version_minor;
+  version_micro = package_version_micro;
+  version_build = package_version_build;
 
 Resourcestring
   SUsage00  = 'Usage: %s [options]';
@@ -66,11 +84,15 @@ Resourcestring
   SUsage84  = '  -s            skip the creation of a backup-file.';
   SUsage87  = '  -p            force directory creation.';
   SUsage90  = '  -v            be verbose.';
+  SUsage95  = '  -V            show version.';
   Susage100 = '  -0            use built in fpc.cfg template (default)';
   Susage110 = '  -1            use built in fp.cfg template';
   Susage120 = '  -2            use built in fp.ini template';
   Susage130 = '  -3            use built in fppkg.cfg template';
   Susage140 = '  -4            use built in fppkg default compiler template';
+
+  SVersion  = 'Version: %s';
+
   SErrUnknownOption   = 'Error: Unknown option.';
   SErrArgExpected     = 'Error: Option "%s" requires an argument.';
   SErrIncompletePair  = 'Error: Incomplete name-value pair "%s".';
@@ -166,6 +188,14 @@ begin
     result := '#DEFINE NEEDCROSSBINUTILS';
 end;
 
+function GetDefaultUserPathSuffix: string;
+begin
+  if not (StringToOS(BuildOSTarget) in AllWindowsOSes) then
+    Result := 'lib/fpc/{CompilerVersion}'
+  else
+    Result := '';
+end;
+
 function GetDefaultGCCDir: string;
 
   var
@@ -215,8 +245,52 @@ begin
        AddConditionalLinkerPath('cpux86_64', x86_64, result);
        AddConditionalLinkerPath('cpupowerpc', powerpc, result);
        AddConditionalLinkerPath('cpupowerpc64', powerpc64, result);
-       end
+       { macOS 10.14 or later:
+          1) command line tools are installed under /Library/Developer/CommandLineTools
+          2) the system libraries still contain i386 code, but the 10.14 sdk doesn't
+            (-> only use the 10.14 sdk when targeting x86_64 or unknown architectures )
+          3) crt1.o is no longer installed under /usr -> add its directory explicitly via
+             -Fl
+            
+        We can't detect the macOS version inside fpc.cfg, unfortunately, so we can only
+        insert this while generating the configuration file.
+        
+        This will stop working when macOS 10.15 is released without i386 support, but then
+        users will be responsible for supplying their own i386 SDK anyway.
+       }
+       if DirectoryExists('/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk') then
+         begin
+           result:=result + LineEnding +
+             '-FD/Library/Developer/CommandLineTools/usr/bin' + LineEnding +
+             '#ifdef cpui386' + LineEnding +
+             '-Fl/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib' + LineEnding +
+             '#endif' + LineEnding +
+             '#ifndef cpui386' + LineEnding +
+             '#ifndef cpupowerpc' + LineEnding +
+             '#ifndef cpupowerpc64' + LineEnding +
+             '-XR/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk' + LineEnding +
+             '#endif' + LineEnding +
+             '#endif' + LineEnding +
+             '#endif';
+         end
+       else
+         begin
+           { add Xcode.app binutils to search path}
+           result:=result + LineEnding +
+             '-FD/Applications/Xcode.app/Contents/Developer/usr/bin';
+         end;
+      end;
   end; {case}
+
+  { ifdef everything above related to the target OS otherwise host linker/clib paths can leak
+    into the target while cross-ing, and cause nonworking executables (Darwin-x86_64 to ARM-Linux
+    for example on my setup), and while it's advised to use -n when crosscompiling, it can 
+    cause hard to identify issues if -n is forgotten... (KB) }
+  if result <> '' then
+    result := '#ifdef ' + BuildOSTarget + LineEnding +
+              result + LineEnding +
+              '#endif' + LineEnding;
+
 end;
 
 
@@ -242,6 +316,7 @@ begin
   TemplateParser.Values['COMPILERCONFIGDIR'] := GetDefaultCompilerConfigDir;
   TemplateParser.Values['NEEDCROSSBINUTILSIFDEF'] := GetDefaultNeedCrossBinutilsIfdef;
   TemplateParser.Values['GCCLIBPATH'] := GetDefaultGCCDIR;
+  TemplateParser.Values['USERPATHSUFFIX'] := GetDefaultUserPathSuffix;
 
   Cfg:=TStringList.Create;
   Cfg.Text:=StrPas(Addr(DefaultConfig[0][1]));
@@ -269,12 +344,31 @@ begin
   Writeln(SUsage84);
   Writeln(SUsage87);
   Writeln(SUsage90);
+  Writeln(SUsage95);
   Writeln(SUsage100);
   Writeln(SUsage110);
   Writeln(SUsage120);
   Writeln(SUsage130);
   Writeln(SUsage140);
   Halt(1);
+end;
+
+Procedure Version;
+var
+  Version: string;
+begin
+  Version := '';
+  if version_major <> -1 then
+    Version := Version + IntToStr(version_major);
+  if version_minor <> -1 then
+    Version := Version + '.' + IntToStr(version_minor);
+  if version_micro <> -1 then
+    Version := Version + '.' + IntToStr(version_micro);
+  if version_build <> -1 then
+    Version := Version + '-'  + IntToStr(version_build);
+
+  Writeln(Format(SVersion,[Version]));
+  Halt(0);
 end;
 
 Procedure UnknownOption(Const S : String);
@@ -355,6 +449,7 @@ begin
     else
       case S[2] of
         'v' : Verbose:=True;
+        'V' : Version;
         'h' : Usage;
         'b' : ShowBuiltinCommand := true;
         'm' : begin
@@ -414,7 +509,7 @@ Procedure CreateFile;
 
 Var
   Fout : Text;
-  S,BFN : String;
+  S,BFN,ODir : String;
   I : Integer;
 
 begin
@@ -442,7 +537,8 @@ begin
     else
       Writeln(Format(SBackupCreated,[ExtractFileName(OutputFileName),ExtractFileName(BFN)]));
     end;
-  if (OutputFileName<>'') and not DirectoryExists(ExtractFilePath(OutputFileName)) then
+  ODir:=ExtractFilePath(OutputFileName);
+  if (OutputFileName<>'') and (ODir<>'') and not DirectoryExists(ODir) then
     begin
     if CreateDir then
       begin

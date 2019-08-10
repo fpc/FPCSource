@@ -54,8 +54,14 @@ implementation
     {$ifndef NOTARGETAROS}
       ,t_aros
     {$endif}
+    {$ifndef NOTARGETHAIKU}
+      ,t_haiku
+    {$endif}
     {$ifndef NOTARGETEMBEDDED}
       ,t_embed
+    {$endif}
+    {$ifndef NOTARGETANDROID}
+      ,t_android
     {$endif}
 
 {**************************************

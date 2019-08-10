@@ -52,7 +52,9 @@
              cpu_i8086,                    { 15 }
              cpu_aarch64,                  { 16 }
              cpu_wasm,                     { 17 }
-             cpu_sparc64                   { 18 }
+             cpu_sparc64,                  { 18 }
+             cpu_riscv32,                  { 19 }
+             cpu_riscv64                   { 20 }
        );
 
        tasmmode= (asmmode_none
@@ -179,7 +181,14 @@
              system_wasm_wasm32,        { 92 }
              system_sparc64_linux,      { 93 }
              system_sparc64_solaris,    { 94 }
-             system_arm_netbsd          { 95 }
+             system_arm_netbsd,         { 95 }
+             system_riscv32_linux,      { 96 }
+             system_riscv64_linux,      { 97 }
+             system_riscv64_embedded,   { 98 }
+             system_riscv32_embedded,   { 99 }
+             system_aarch64_android,    { 100 }
+             system_x86_64_android,     { 101 }
+             system_x86_64_haiku        { 102 }
        );
 
      type
@@ -270,7 +279,8 @@
              ld_int_nativent,
              ld_int_netware,
              ld_int_windows,
-             ld_int_msdos
+             ld_int_msdos,
+             ld_int_win16
        );
 
        tar = (ar_none
@@ -309,6 +319,7 @@
             ,abi_eabi,abi_armeb,abi_eabihf
             ,abi_old_win32_gnu
             ,abi_aarch64_darwin
+            ,abi_riscv_hf
        );
 
      const

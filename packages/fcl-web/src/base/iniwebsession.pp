@@ -354,6 +354,9 @@ begin
     DeleteFile(Finifile.FileName);
     FreeAndNil(FIniFile);
     end;
+  RemoveFromSessionState(ssActive);
+  RemoveFromSessionState(ssNew);
+  RemoveFromSessionState(ssExpired);
 end;
 
 procedure TIniWebSession.UpdateResponse(AResponse: TResponse);
@@ -389,6 +392,7 @@ begin
     FIniFile:=CreateIniFile(FN);
     if SF.SessionExpired(FIniFile) then
       begin
+      AddToSessionState(ssExpired);
       // Expire session.
       If Assigned(OnExpired) then
         OnExpired(Self);
@@ -401,6 +405,7 @@ begin
     end;
   If (S='') then
     begin
+    AddToSessionState(ssNew);
     If Assigned(OnNewSession) then
       OnNewSession(Self);
     GetSessionID;
@@ -414,6 +419,7 @@ begin
   FIniFile.WriteDateTime(SSession,KeyLast,Now);
   If not FCached then
     UpdateIniFile;
+  AddToSessionState(ssActive);
 {$ifdef cgidebug}SendMethodExit('TIniWebSession.InitSession');{$endif}
 end;
 
@@ -442,6 +448,7 @@ begin
     C.Path:=SessionCookiePath;
     end;
 {$ifdef cgidebug}SendMethodExit('TIniWebSession.InitResponse');{$endif}
+  AddToSessionState(ssResponseInitialized);
 end;
 
 procedure TIniWebSession.RemoveVariable(VariableName: String);

@@ -459,8 +459,12 @@ begin
   FSourceStream.Seek(0, soFromBeginning);
   if FDetectBOM then
   begin
-    FSourceStream.ReadBuffer(b[0], 3);
-    if (b[0] = $EF) and (b[1] = $BB) and (b[2] = $BF) then begin
+    if FSourceStream.Read(b[0], 3)<3 then
+      begin
+      n:=0;
+      FBOM:=bomNone;
+      end
+    else if (b[0] = $EF) and (b[1] = $BB) and (b[2] = $BF) then begin
       FBOM := bomUTF8;
       n := 3;
     end else

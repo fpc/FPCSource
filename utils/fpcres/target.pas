@@ -23,6 +23,7 @@ interface
 type
   TMachineType = (mtnone, mti386,mtx86_64,mtppc,mtppc64,mtarm,mtarmeb,mtm68k,
                   mtsparc,mtalpha,mtia64,mtmips,mtmipsel,mtaarch64,mtppc64le,
+                  mtriscv32,mtriscv64,
                   mtBigEndian,mtLittleEndian);
   TMachineTypes = set of TMachineType;
 
@@ -35,6 +36,7 @@ type
         (subarm: TSubMachineTypeArm);
       mtnone, mti386,mtx86_64,mtppc,mtppc64,mtm68k,
       mtsparc,mtalpha,mtia64,mtmips,mtmipsel,mtaarch64,mtppc64le,
+      mtriscv32,mtriscv64,
       mtBigEndian,mtLittleEndian:
         (subgen: TSubMachineTypeGeneric);
   end;
@@ -85,6 +87,8 @@ var
     (name : 'mipsel';       formats : [ofElf]),                   //mtmipsel
     (name : 'aarch64';      formats : [ofElf, ofMachO]),          //mtaarch64
     (name : 'powerpc64le';  formats : [ofElf]),                   //mtppc64le
+    (name : 'riscv32';      formats : [ofElf]),                   //mtriscv32
+    (name : 'riscv64';      formats : [ofElf]),                   //mtriscv64
     (name : 'bigendian';    formats : [ofExt]),                   //mtBigEndian
     (name : 'littleendian'; formats : [ofExt])                    //mtLittleEndian
   );
@@ -102,7 +106,8 @@ var
                                                      mtppc64,mtarm,mtarmeb,
                                                      mtm68k,mtsparc,mtalpha,
                                                      mtia64,mtmips,mtmipsel,
-                                                     mtppc64le,mtaarch64]),
+                                                     mtppc64le,mtaarch64,
+                                                     mtriscv32,mtriscv64]),
     (name : 'coff';     ext : '.o';      machines : [mti386,mtx86_64,mtarm,
                                                      mtppc,mtppc64]),
     (name : 'xcoff';    ext : '.o';      machines : [mtppc{,mtppc64}]),
@@ -158,6 +163,12 @@ var
     submachine : (subgen: smtgen_all);
   {$elseif defined(CPUAARCH64)}
     machine : mtaarch64;
+    submachine : (subgen: smtgen_all);
+  {$elseif defined(CPURISCV32)}
+    machine : mtriscv32;
+    submachine : (subgen: smtgen_all);
+  {$elseif defined(CPURISCV64)}
+    machine : mtriscv64;
     submachine : (subgen: smtgen_all);
   {$else}
     machine : mti386;  //default i386

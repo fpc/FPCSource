@@ -108,6 +108,7 @@ var r : integer;
     d : TIHData;
     startPos: Int64;
 begin
+  msg := '';
   startPos := str.Position;
   with ImageHandlers do
     try
@@ -116,7 +117,9 @@ begin
         begin
         d := GetData(r);
         if assigned (d) then
-          h := d.FReader;
+          h := d.FReader
+        else
+          h := nil;
         if assigned (h) then
           begin
           reader := h.Create;
@@ -127,6 +130,7 @@ begin
                   FStream := str;
                   FImage := self;
                   InternalRead (str, self);
+                  msg := '';
                   break;
                 except
                   on e : exception do
@@ -264,25 +268,54 @@ begin
   result := FExtra.count;
 end;
 
+const dumchar = ';';
 class function TFPCustomImage.FindHandlerFromExtension(extension: String
   ): TIHData;
 var s : string;
     r : integer;
 begin
+  if extension='' then
+    Exit(nil);
   extension := lowercase (extension);
   if (extension <> '') and (extension[1] = '.') then
     delete (extension,1,1);
   with ImageHandlers do
     begin
       r := count-1;
-      s := extension + ';';
+      s := dumchar  + extension + dumchar;
       while (r >= 0) do
         begin
         Result := GetData(r);
-        if (pos(s,Result.Fextension+';') <> 0) then
+        if (pos(s, dumchar+Result.Fextension+dumchar) <> 0) then
           Exit;
         dec (r);
         end;
+    end;
+  Result := nil;
+end;
+
+class function TFPCustomImage.FindHandlerFromStream(Str: TStream): TIHData;
+var r : integer;
+    p: Int64;
+    reader: TFPCustomImageReader;
+begin
+  r := ImageHandlers.Count-1;
+  p := Str.Position;
+  while (r >= 0) do
+    begin
+    Result := ImageHandlers.GetData(r);
+    if Result.Reader<>nil then
+      begin
+      reader := Result.Reader.Create;
+      try
+        if reader.CheckContents(Str) then
+          Exit;
+      finally
+        reader.free;
+        Str.Position := p;
+      end;
+      end;
+    dec (r);
     end;
   Result := nil;
 end;
@@ -302,6 +335,17 @@ class function TFPCustomImage.FindReaderFromFileName(const filename: String
   ): TFPCustomImageReaderClass;
 begin
   Result := FindReaderFromExtension(ExtractFileExt(filename));
+end;
+
+class function TFPCustomImage.FindReaderFromStream(
+  Str: TStream): TFPCustomImageReaderClass;
+var d : TIHData;
+begin
+  d := FindHandlerFromStream(Str);
+  if d<>nil then
+    Result := d.FReader
+  else
+    Result := nil;
 end;
 
 class function TFPCustomImage.FindWriterFromExtension(const extension: String

@@ -1292,6 +1292,7 @@ var
   execres  : boolean;
   EndTicks,
   StartTicks : int64;
+  OldExecuteResult: longint;
 begin
   RunExecutable:=false;
   execres:=true;
@@ -1369,6 +1370,7 @@ begin
       if (deAfter in DelExecutable) and
          not Config.NeededAfter then
         begin
+          { Delete executable if not needed after }
           execcmd:=execcmd+' ; rm ';
           if rshprog <> 'adb' then
             execcmd:=execcmd+'-f ';
@@ -1395,7 +1397,16 @@ begin
                 execcmd:=execcmd + 'rm ' + s;
               execcmd:=execcmd + '; ';
             end;
-          ExecuteRemote(rshprog,execcmd+'}'+rquote,StartTicks,EndTicks);
+          execcmd:=execcmd+'}'+rquote;
+          // Save ExecuteResult and EXELogFile
+          OldExecuteResult:=ExecuteResult;
+          s:=EXELogFile;
+          // Output results of cleanup commands to stdout
+          EXELogFile:='';
+          ExecuteRemote(rshprog,execcmd,StartTicks,EndTicks);
+          // Restore
+          EXELogFile:=s;
+          ExecuteResult:=OldExecuteResult;
         end;
     end
   else
@@ -1613,6 +1624,8 @@ procedure getargs;
 
      'L' : begin
              UniqueSuffix:=Para;
+             if UniqueSuffix='' then
+               UniqueSuffix:=toStr(system.GetProcessID);
            end;
 
      'M' : EmulatorName:=Para;
@@ -1779,7 +1792,7 @@ begin
           { ToDo: check relative paths on MACOS }
           PPPrefix:=Copy(PPDir,1,3);
           if (PPPrefix='../') or (PPPrefix='..\') then
-            PPDir:='root/'+Copy(PPDir,4);
+            PPDir:='root/'+Copy(PPDir,4,length(PPDir));
           TestOutputDir:=OutputDir+'/'+PPDir;
           if UniqueSuffix<>'' then
             TestOutputDir:=TestOutputDir+'/'+UniqueSuffix;

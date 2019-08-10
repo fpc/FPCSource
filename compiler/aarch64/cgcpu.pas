@@ -382,8 +382,6 @@ implementation
                             reference_reset_base(ref,preferred_newbasereg,ref.offset,ref.temppos,ref.alignment,ref.volatility);
                           end;
                       end
-                    else
-                      internalerror(2014110904);
                   end;
                 end;
               A_LDP,A_STP:
@@ -810,35 +808,80 @@ implementation
     procedure tcgaarch64.a_load_ref_reg_unaligned(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; register: tregister);
       var
         href: treference;
-        hreg1, hreg2, tmpreg: tregister;
+        hreg1, hreg2, tmpreg,tmpreg2: tregister;
+        i : Integer;
       begin
-        if fromsize in [OS_64,OS_S64] then
-          begin
-            { split into two 32 bit loads }
-            hreg1:=getintregister(list,OS_32);
-            hreg2:=getintregister(list,OS_32);
-            if target_info.endian=endian_big then
-              begin
-                tmpreg:=hreg1;
-                hreg1:=hreg2;
-                hreg2:=tmpreg;
-              end;
-            { can we use LDP? }
-            if (ref.alignment=4) and
-               (simple_ref_type(A_LDP,OS_32,PF_None,ref)=sr_simple) then
-              list.concat(taicpu.op_reg_reg_ref(A_LDP,hreg1,hreg2,ref))
-            else
-              begin
-                a_load_ref_reg(list,OS_32,OS_32,ref,hreg1);
-                href:=ref;
-                inc(href.offset,4);
-                a_load_ref_reg(list,OS_32,OS_32,href,hreg2);
-              end;
-            a_load_reg_reg(list,OS_32,OS_64,hreg1,register);
-            list.concat(taicpu.op_reg_reg_const_const(A_BFI,register,makeregsize(hreg2,OS_64),32,32));
-          end
-       else
-         inherited;
+        case fromsize of
+          OS_64,OS_S64:
+            begin
+              { split into two 32 bit loads }
+              hreg1:=getintregister(list,OS_32);
+              hreg2:=getintregister(list,OS_32);
+              if target_info.endian=endian_big then
+                begin
+                  tmpreg:=hreg1;
+                  hreg1:=hreg2;
+                  hreg2:=tmpreg;
+                end;
+              { can we use LDP? }
+              if (ref.alignment=4) and
+                 (simple_ref_type(A_LDP,OS_32,PF_None,ref)=sr_simple) then
+                list.concat(taicpu.op_reg_reg_ref(A_LDP,hreg1,hreg2,ref))
+              else
+                begin
+                  a_load_ref_reg(list,OS_32,OS_32,ref,hreg1);
+                  href:=ref;
+                  inc(href.offset,4);
+                  a_load_ref_reg(list,OS_32,OS_32,href,hreg2);
+                end;
+              a_load_reg_reg(list,OS_32,OS_64,hreg1,register);
+              list.concat(taicpu.op_reg_reg_const_const(A_BFI,register,makeregsize(hreg2,OS_64),32,32));
+            end;
+          OS_16,OS_S16,
+          OS_32,OS_S32:
+            begin
+              if ref.alignment=2 then
+                begin
+                  href:=ref;
+                  if target_info.endian=endian_big then
+                    inc(href.offset,tcgsize2size[fromsize]-2);
+                  tmpreg:=getintregister(list,OS_32);
+                  a_load_ref_reg(list,OS_16,OS_32,href,tmpreg);
+                  tmpreg2:=getintregister(list,OS_32);
+                  for i:=1 to (tcgsize2size[fromsize]-1) div 2 do
+                    begin
+                      if target_info.endian=endian_big then
+                        dec(href.offset,2)
+                      else
+                        inc(href.offset,2);
+                      a_load_ref_reg(list,OS_16,OS_32,href,tmpreg2);
+                      list.concat(taicpu.op_reg_reg_const_const(A_BFI,tmpreg,tmpreg2,i*16,16));
+                    end;
+                  a_load_reg_reg(list,fromsize,tosize,tmpreg,register);
+                end
+              else
+                begin
+                  href:=ref;
+                  if target_info.endian=endian_big then
+                    inc(href.offset,tcgsize2size[fromsize]-1);
+                  tmpreg:=getintregister(list,OS_32);
+                  a_load_ref_reg(list,OS_8,OS_32,href,tmpreg);
+                  tmpreg2:=getintregister(list,OS_32);
+                  for i:=1 to tcgsize2size[fromsize]-1 do
+                    begin
+                      if target_info.endian=endian_big then
+                        dec(href.offset)
+                      else
+                        inc(href.offset);
+                      a_load_ref_reg(list,OS_8,OS_32,href,tmpreg2);
+                      list.concat(taicpu.op_reg_reg_const_const(A_BFI,tmpreg,tmpreg2,i*8,8));
+                    end;
+                  a_load_reg_reg(list,fromsize,tosize,tmpreg,register);
+                end;
+            end;
+          else
+            inherited;
+        end;
       end;
 
 
@@ -1040,13 +1083,19 @@ implementation
 
 
      procedure tcgaarch64.a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize: tcgsize; mmreg, intreg: tregister; shuffle: pmmshuffle);
+       var
+         r : tregister;
        begin
          if not shufflescalar(shuffle) then
            internalerror(2014122802);
          if not(tcgsize2size[fromsize] in [4,8]) or
-            (tcgsize2size[fromsize]<>tcgsize2size[tosize]) then
+            (tcgsize2size[fromsize]>tcgsize2size[tosize]) then
            internalerror(2014122804);
-         list.concat(taicpu.op_reg_reg(A_UMOV,intreg,mmreg));
+         if tcgsize2size[fromsize]<tcgsize2size[tosize] then
+           r:=makeregsize(intreg,fromsize)
+         else
+           r:=intreg;
+         list.concat(taicpu.op_reg_reg(A_UMOV,r,mmreg));
        end;
 
 
@@ -1076,18 +1125,15 @@ implementation
 
     procedure tcgaarch64.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
       var
-        bitsize,
-        signbit: longint;
+        bitsize: longint;
       begin
         if srcsize in [OS_64,OS_S64] then
           begin
             bitsize:=64;
-            signbit:=6;
           end
         else
           begin
             bitsize:=32;
-            signbit:=5;
           end;
         { source is 0 -> dst will have to become 255 }
         list.concat(taicpu.op_reg_const(A_CMP,src,0));
@@ -1257,6 +1303,8 @@ implementation
               a_load_const_reg(list,size,a,dst);
               exit;
             end;
+          else
+            ;
         end;
         case op of
           OP_ADD,
@@ -1405,6 +1453,8 @@ implementation
                     check for overflow) }
                   internalerror(2014122101);
                 end;
+              else
+                internalerror(2019050936);
             end;
           end;
         a_op_reg_reg_reg(list,op,size,src1,src2,dst);

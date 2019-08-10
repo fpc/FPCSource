@@ -115,6 +115,11 @@ function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; new
 function FPsysctl (Name: pcint; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 {$endif}
 
+{$ifdef OpenBSD}
+const
+  syscall_nr___sysctl = syscall_nr_sysctl;
+{$endif OpenBSD}
+
 Begin
         if (pcint(name)[0] <> CTL_USER) Then
            exit(do_syscall(syscall_nr___sysctl,TSysParam(name), namelen, TSysParam(oldp), TSysParam(oldlenp), TSysParam(newp), TSysParam(newlen)))

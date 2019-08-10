@@ -46,10 +46,10 @@
     class function branchImage: NSImage; message 'branchImage';
     class function highlightedBranchImage: NSImage; message 'highlightedBranchImage';
     function highlightColorInView(controlView_: NSView): NSColor; message 'highlightColorInView:';
-    function isLeaf: Boolean; message 'isLeaf';
-    procedure setLeaf(flag: Boolean); message 'setLeaf:';
-    function isLoaded: Boolean; message 'isLoaded';
-    procedure setLoaded(flag: Boolean); message 'setLoaded:';
+    function isLeaf: BOOL; message 'isLeaf';
+    procedure setLeaf(flag: BOOL); message 'setLeaf:';
+    function isLoaded: BOOL; message 'isLoaded';
+    procedure setLoaded(flag: BOOL); message 'setLoaded:';
     procedure reset; message 'reset';
     procedure set_; message 'set';
     procedure setImage(image_: NSImage); message 'setImage:';

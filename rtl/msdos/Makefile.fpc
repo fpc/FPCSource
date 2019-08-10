@@ -5,13 +5,12 @@
 main=rtl
 [target]
 loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
-units=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils \
+units=system uuchar objpas strings dos heaptrc lnfodwrf sysconst sysutils \
       math macpas iso7185 extpas rtlconsts typinfo cpu types \
-      getopts fgl classes \
+      getopts sortbase fgl classes \
       msmouse ports  \
       charset cpall ctypes \
       fpwidestring character unicodedata unicodenumtable
-#      lnfodwrf
 #      cmem
 #      initc profile dxetype dxeload emu387 \
 #      cpu mmx \
@@ -69,24 +68,28 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 # Loaders
 #
+ifneq ($(findstring -dTEST_I8086_SMARTLINK_SECTIONS,$(FPCOPT)),)
+override NASM_OPT+=-D__I8086_SMARTLINK_SECTIONS__
+endif
+
 prt0s$(OEXT) : prt0s.asm prt0comn.asm
 	$(MAKE) $(COMPILER_UNITTARGETDIR)
-        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0s$(OEXT) prt0s.asm
+        $(NASM) $(NASM_OPT) -f obj -o $(UNITTARGETDIRPREFIX)prt0s$(OEXT) prt0s.asm
 prt0t$(OEXT) : prt0t.asm prt0comn.asm
 	$(MAKE) $(COMPILER_UNITTARGETDIR)
-        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0t$(OEXT) prt0t.asm
+        $(NASM) $(NASM_OPT) -f obj -o $(UNITTARGETDIRPREFIX)prt0t$(OEXT) prt0t.asm
 prt0m$(OEXT) : prt0m.asm prt0comn.asm
 	$(MAKE) $(COMPILER_UNITTARGETDIR)
-        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0m$(OEXT) prt0m.asm
+        $(NASM) $(NASM_OPT) -f obj -o $(UNITTARGETDIRPREFIX)prt0m$(OEXT) prt0m.asm
 prt0c$(OEXT) : prt0c.asm prt0comn.asm
 	$(MAKE) $(COMPILER_UNITTARGETDIR)
-        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0c$(OEXT) prt0c.asm
+        $(NASM) $(NASM_OPT) -f obj -o $(UNITTARGETDIRPREFIX)prt0c$(OEXT) prt0c.asm
 prt0l$(OEXT) : prt0l.asm prt0comn.asm
 	$(MAKE) $(COMPILER_UNITTARGETDIR)
-        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0l$(OEXT) prt0l.asm
+        $(NASM) $(NASM_OPT) -f obj -o $(UNITTARGETDIRPREFIX)prt0l$(OEXT) prt0l.asm
 prt0h$(OEXT) : prt0h.asm prt0comn.asm
 	$(MAKE) $(COMPILER_UNITTARGETDIR)
-        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0h$(OEXT) prt0h.asm
+        $(NASM) $(NASM_OPT) -f obj -o $(UNITTARGETDIRPREFIX)prt0h$(OEXT) prt0h.asm
 #
 # System Units (System, Objpas, Strings)
 #
@@ -121,7 +124,7 @@ extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 # System Dependent Units
 #
 
-ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)
+ports$(PPUEXT) : ports.pp system$(PPUEXT)
 	$(COMPILER) ports.pp
 	$(EXECPPAS)
 #
@@ -142,11 +145,13 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 	$(EXECPPAS)
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
+                   types$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT) \
+                   objpas$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 	$(EXECPPAS)
 
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
 	$(EXECPPAS)
 
@@ -192,15 +197,11 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 	$(EXECPPAS)
 
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp exeinfo$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(INC)/lineinfo.pp
-	$(EXECPPAS)
-
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp exeinfo$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(INC)/lnfodwrf.pp
 	$(EXECPPAS)
 
-exeinfo$(PPUEXT) : $(INC)/exeinfo.pp sysutils$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
+exeinfo$(PPUEXT) : $(INC)/exeinfo.pp strings$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(INC)/exeinfo.pp
 	$(EXECPPAS)
 
@@ -224,6 +225,8 @@ unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas objpas$(PPUEXT) syst
 unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
 
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 
 #
 # Other system-dependent RTL Units

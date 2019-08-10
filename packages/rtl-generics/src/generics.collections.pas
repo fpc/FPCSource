@@ -1,11 +1,11 @@
 {
-    This file is part of the Free Pascal run time library.
+    This file is part of the Free Pascal/NewPascal run time library.
     Copyright (c) 2014 by Maciej Izak (hnb)
-    member of the Free Sparta development team (http://freesparta.com)
+    member of the NewPascal development team (http://newpascal.org)
 
-    Copyright(c) 2004-2014 DaThoX
+    Copyright(c) 2004-2018 DaThoX
 
-    It contains the Free Pascal generics library
+    It contains the generics collections library
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -43,25 +43,6 @@ interface
 uses
     RtlConsts, Classes, SysUtils, Generics.MemoryExpanders, Generics.Defaults,
     Generics.Helpers, Generics.Strings;
-
-{ FPC BUGS related to Generics.* (54 bugs, 19 fixed)
-  REGRESSION: 26483, 26481
-  FIXED REGRESSION: 26480, 26482
-
-  CRITICAL: 24848(!!!), 24872(!), 25607(!), 26030, 25917, 25918, 25620, 24283, 24254, 24287 (Related to? 24872)
-  IMPORTANT: 23862(!), 24097, 24285, 24286 (Similar to? 24285), 24098, 24609 (RTL inconsistency), 24534,
-             25606, 25614, 26177, 26195
-  OTHER: 26484, 24073, 24463, 25593, 25596, 25597, 25602, 26181 (or MYBAD?)
-  CLOSED BUT IMO STILL TO FIX: 25601(!), 25594
-  FIXED: 25610(!), 24064, 24071, 24282, 24458, 24867, 24871, 25604, 25600, 25605, 25598, 25603, 25929, 26176, 26180,
-         26193, 24072
-  MYBAD: 24963, 25599
-}
-
-{ LAZARUS BUGS related to Generics.* (7 bugs, 0 fixed)
-  CRITICAL: 25613
-  OTHER: 25595, 25612, 25615, 25617, 25618, 25619
-}
 
 {.$define EXTRA_WARNINGS}
 {.$define ENABLE_METHODS_WITH_TEnumerableWithPointers}

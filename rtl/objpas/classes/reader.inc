@@ -609,12 +609,32 @@ begin
   If (Stream=Nil) then
     Raise EReadError.Create(SEmptyStreamIllegalReader);
   FDriver := CreateDriver(Stream, BufSize);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  InitCriticalSection(FLock);
+{$ENDIF}  
 end;
 
 destructor TReader.Destroy;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  DoneCriticalSection(FLock);
+{$ENDIF}  
   FDriver.Free;
   inherited Destroy;
+end;
+
+procedure TReader.Lock;
+begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalSection(FLock);
+{$ENDIF}  
+end;
+
+procedure TReader.Unlock;
+begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  LeaveCriticalSection(FLock);
+{$ENDIF}  
 end;
 
 procedure TReader.FlushBuffer;
@@ -1476,12 +1496,17 @@ begin
           { Don't use Result.Name directly, as this would influence
             FindGlobalComponent in successive loop runs }
           ResultName := CompName;
-          while Assigned(FindGlobalComponent(ResultName)) do
-          begin
-            Inc(i);
-            ResultName := CompName + '_' + IntToStr(i);
+          Lock;
+          try
+            while Assigned(FindGlobalComponent(ResultName)) do
+            begin
+              Inc(i);
+              ResultName := CompName + '_' + IntToStr(i);
+            end;
+            Result.Name := ResultName;
+          finally
+            Unlock;
           end;
-          Result.Name := ResultName;
         end;
       end;
 

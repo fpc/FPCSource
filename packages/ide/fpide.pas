@@ -14,15 +14,10 @@
  **********************************************************************}
 unit fpide;
 
-{2.0 compatibility}
-{$ifdef VER2_0}
-  {$macro on}
-  {$define resourcestring := const}
-{$endif}
+{$i globdir.inc}
 
 interface
 
-{$i globdir.inc}
 
 uses
   Objects,Drivers,Views,App,Gadgets,MsgBox,Tabs,
@@ -686,7 +681,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 msg_errorsavingconfigfile = 'Error saving config file.';
 
                 {Save options dialog.}
-                dialog_saveoptions = 'Save Options';
+                dialog_saveoptions = 'Save Options As';
                 dialog_ini_filename = 'Name of INI file';
 
                 {Window list dialog.}
@@ -1662,7 +1657,10 @@ procedure TIDEApp.UpdateRecentFileList;
 var P: PMenuItem;
     {ID,}I: word;
     FileMenu: PMenuItem;
+    R: TRect;
+    AdjustRecentCount : word;
 begin
+  if not assigned(MenuBar) then exit;
 {  ID:=cmRecentFileBase;}
   FileMenu:=SearchSubMenu(MenuBar^.Menu,menuFile);
   repeat
@@ -1688,13 +1686,25 @@ begin
   if (P<>nil) and IsSeparator(P) then
      RemoveMenuItem(FileMenu^.SubMenu,P);
 
-  if RecentFileCount>0 then
-     AppendMenuItem(FileMenu^.SubMenu,NewLine(nil));
-  for I:=1 to RecentFileCount do
+  GetExtent(R);
+  AdjustRecentCount :=0;
+  {calculate how much lines on screen for reacent files can be used }
+  if r.b.y-r.a.y -19 > 0 then AdjustRecentCount:=r.b.y-r.a.y -19;
+  {only if there is enough space then show all reacent files }
+  {else cut list shorter }
+  if RecentFileCount < AdjustRecentCount then
+     AdjustRecentCount:=RecentFileCount;
+
+  if AdjustRecentCount>0 then
   begin
-    P:=NewItem('~'+IntToStr(I)+'~ '+ShrinkPath(SmartPath(RecentFiles[I].FileName),27),' ',
-        kbNoKey,cmRecentFileBase+I,hcRecentFileBase+I,nil);
-    AppendMenuItem(FileMenu^.SubMenu,P);
+     AppendMenuItem(FileMenu^.SubMenu,NewLine(nil));
+
+    for I:=1 to AdjustRecentCount do
+    begin
+      P:=NewItem('~'+IntToStr(I)+'~ '+ShrinkPath(SmartPath(RecentFiles[I].FileName),27),' ',
+          kbNoKey,cmRecentFileBase+I,hcRecentFileBase+I,nil);
+      AppendMenuItem(FileMenu^.SubMenu,P);
+    end;
   end;
 end;
 

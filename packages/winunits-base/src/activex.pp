@@ -1115,6 +1115,12 @@ Const
     XFORMCOORDS_CONTAINERTOHIMETRIC       = $8;
     XFORMCOORDS_EVENTCOMPAT               = $10;
 
+    REGCLS_SINGLEUSE      = 0;  // class object only generates one instance
+    REGCLS_MULTIPLEUSE    = 1;  // same class object genereates multiple inst.
+    REGCLS_MULTI_SEPARATE = 2;  // multiple use, but separate control over each
+    REGCLS_SUSPENDED      = 4;  // register is as suspended, will be activated
+    REGCLS_SURROGATE      = 8;  // must be used when a surrogate process
+
 TYPE
     TVarType            = USHORT;
 
@@ -2788,7 +2794,7 @@ TYPE
        Function GetDataHere(CONST pformatetc : FormatETC; Out medium : STGMEDIUM):HRESULT; STDCALL;
        Function QueryGetData(const pformatetc : FORMATETC):HRESULT; STDCALL;
        Function GetCanonicalFormatEtc(const pformatetcIn : FORMATETC;Out pformatetcOut : FORMATETC):HResult; STDCALl;
-       Function SetData (Const pformatetc : FORMATETC;const medium:STGMEDIUM;FRelease : BOOL):HRESULT; StdCall;
+       Function SetData (Const pformatetc : FORMATETC;var medium:STGMEDIUM;FRelease : BOOL):HRESULT; StdCall;
        Function EnumFormatEtc(dwDirection : DWord; OUT enumformatetcpara : IENUMFORMATETC):HRESULT; StdCall;
        Function DAdvise(const formatetc : FORMATETC;advf :DWORD; CONST AdvSink : IAdviseSink;OUT dwConnection:DWORD):HRESULT;StdCall;
        Function DUnadvise(dwconnection :DWord) :HRESULT;StdCall;
@@ -4060,7 +4066,7 @@ type
        function Uncache(dwConnection:LongWord):HRESULT;stdcall;
        function EnumCache(out ppenumSTATDATA:IEnumSTATDATA):HRESULT;stdcall;
        function InitCache(pDataObject:IDataObject):HRESULT;stdcall;
-       function SetData(var pFormatetc:tagFORMATETC;var pmedium:wireSTGMEDIUM;fRelease:Bool):HRESULT;stdcall;
+       function SetData(var pFormatetc:tagFORMATETC;var medium:TSTGMEDIUM;fRelease:Bool):HRESULT;stdcall;
       end;
 
     IOleCache2 = interface(IOleCache)

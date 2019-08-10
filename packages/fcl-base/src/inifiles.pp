@@ -244,9 +244,12 @@ type
     property CacheUpdates : Boolean read FCacheUpdates write SetCacheUpdates;
   end;
 
+  { TMemIniFile }
+
   TMemIniFile = class(TIniFile)
   public
-    constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean = False); overload; override;
+    constructor Create(const AFileName: string; AOptions : TIniFileoptions = []); overload; override;
+    constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean); overload; override;
     procedure Clear;
     procedure GetStrings(List: TStrings);
     procedure Rename(const AFileName: string; Reload: Boolean);
@@ -279,9 +282,7 @@ end;
 
 function IsComment(const AString: string): boolean;
 begin
-  Result := False;
-  if AString > '' then
-    Result := (Copy(AString, 1, 1) = Comment);
+  Result:=(Length(aString)>0) and (Copy(AString, 1, 1) = Comment);
 end;
 
 { TStringHash }
@@ -1002,7 +1003,7 @@ const
   Utf8Bom    = #$EF#$BB#$BF;        { Die einzelnen BOM Typen }
 
 var
-  i,j: integer;
+  i,j,sLen: integer;
   sLine, sIdent, sValue: string;
   oSection: TIniFileSection;
 
@@ -1038,14 +1039,19 @@ begin
   FSectionList.Clear;
   if EscapeLineFeeds then
     RemoveBackslashes;
-  if (AStrings.Count > 0) and (copy(AStrings.Strings[0],1,Length(Utf8Bom)) = Utf8Bom) then
-  begin
-    FBOM := Utf8Bom;
-    AStrings.Strings[0] := copy(AStrings.Strings[0],Length(Utf8Bom)+1,Length(AStrings.Strings[0]));
-  end;
+  if (AStrings.Count > 0) then
+    begin
+    sLine:=AStrings[0];
+    if (copy(sLine,1,Length(Utf8Bom)) = Utf8Bom) then
+      begin
+      FBOM := Utf8Bom;
+      AStrings[0]:=copy(sLine,Length(Utf8Bom)+1,Length(SLine));
+      end;
+    end;
   for i := 0 to AStrings.Count-1 do begin
     sLine := Trim(AStrings[i]);
-    if sLine > '' then
+    sLen:=Length(sLine);
+    if (sLen>0)  then
       begin
       if IsComment(sLine) and (oSection = nil) then
         begin
@@ -1057,10 +1063,10 @@ begin
           end;
         continue;
         end;
-      if (Copy(sLine, 1, 1) = Brackets[0]) and (Copy(sLine, length(sLine), 1) = Brackets[1]) then
+      if (sLine[1]=Brackets[0]) and (sLine[sLen]= Brackets[1]) then
         begin
         // regular section
-        oSection := TIniFileSection.Create(Copy(sLine, 2, Length(sLine) - 2));
+        oSection := TIniFileSection.Create(Copy(sLine, 2, sLen - 2));
         FSectionList.Add(oSection);
         end
       else if oSection <> nil then
@@ -1086,7 +1092,7 @@ begin
            begin
            AddKey:=True;
            sIdent:=Trim(Copy(sLine, 1,  j - 1));
-           sValue:=Trim(Copy(sLine, j + 1, Length(sLine) - j));
+           sValue:=Trim(Copy(sLine, j + 1, sLen - j));
            end;
         end;
         if AddKey then
@@ -1184,7 +1190,6 @@ begin
     oSection := FSectionList.SectionByName(Section,CaseSensitive);
     if oSection <> nil then with oSection.KeyList do
       for i := 0 to Count-1 do
-        if not IsComment(Items[i].Ident) then
          begin
            if Items[i].Ident<>'' then
             Strings.Add(Items[i].Ident + Separator +Items[i].Value)
@@ -1396,7 +1401,13 @@ end;
 
 { TMemIniFile }
 
-constructor TMemIniFile.Create(const AFileName: string; AEscapeLineFeeds : Boolean = False);
+constructor TMemIniFile.Create(const AFileName: string; AOptions: TIniFileoptions);
+begin
+  inherited;
+  FCacheUpdates:=True;
+end;
+
+constructor TMemIniFile.Create(const AFileName: string; AEscapeLineFeeds : Boolean);
 
 begin
   Inherited;

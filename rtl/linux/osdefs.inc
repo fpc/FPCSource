@@ -88,19 +88,33 @@
 {$ifdef cpuaarch64}
   {$define generic_linux_syscalls}
   {$undef usestime}
+  {$define userenameat}
 {$endif cpuaarch64}
 
 {$ifdef cpusparc64}
   {$define FPC_USEGETTIMEOFDAY}
 {$endif cpusparc64}
 
+{$ifdef cpuriscv32}
+  {$define generic_linux_syscalls}
+  {$undef usestime}
+{$endif cpuriscv32}
+
+{$ifdef cpuriscv64}
+  {$define generic_linux_syscalls}
+  {$undef usestime}
+{$endif cpuriscv64}
+
 {$ifdef android}
+  {$define generic_linux_syscalls}
+  {$ifdef cpuarm}
+    {$define NO_SYSCALL_PSELECT6}
+    {$define NO_SYSCALL_PPOLL}
+  {$endif cpuarm}
+  {$define userenameat}
   {$undef usestime}
   {$undef OLDMMAP}
-  {$define MMAP2}
-  {$define NO_SYSCALL_UTIME}
-  {$ifndef cpumips}
-    {$define NO_SYSCALL_GETRLIMIT}
+  {$ifndef cpu64}
+    {$define MMAP2}
   {$endif}
-  {$define FPC_USEGETTIMEOFDAY}
 {$endif android}

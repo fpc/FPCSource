@@ -43,8 +43,8 @@
   DOMHTMLOptGroupElement = objcclass external (DOMHTMLElement)
     
   public
-    procedure setDisabled (newValue: Boolean); message 'setDisabled:';
-    function disabled: Boolean; message 'disabled';
+    procedure setDisabled (newValue: BOOL); message 'setDisabled:';
+    function disabled: BOOL; message 'disabled';
     procedure setLabel (newValue: NSString); message 'setLabel:';
     function label_: NSString; message 'label_';
   end;

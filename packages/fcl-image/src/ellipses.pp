@@ -19,11 +19,11 @@ interface
 
 uses classes, FPImage, FPCanvas;
 
-procedure DrawSolidEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; c:TFPColor);
-procedure DrawSolidEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; Width:integer; c:TFPColor);
-procedure DrawPatternEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; Pattern:TPenPattern; c:TFPColor);
-procedure FillEllipseColor (Canv:TFPCustomCanvas; const Bounds:TRect; c:TFPColor);
-procedure FillEllipsePattern (Canv:TFPCustomCanvas; const Bounds:TRect; Pattern:TBrushPattern; c:TFPColor);
+procedure DrawSolidEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; const c:TFPColor);
+procedure DrawSolidEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; Width:integer; const c:TFPColor);
+procedure DrawPatternEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; Pattern:TPenPattern; const c:TFPColor);
+procedure FillEllipseColor (Canv:TFPCustomCanvas; const Bounds:TRect; const c:TFPColor);
+procedure FillEllipsePattern (Canv:TFPCustomCanvas; const Bounds:TRect; Pattern:TBrushPattern; const c:TFPColor);
 procedure FillEllipseHashHorizontal (Canv:TFPCustomCanvas; const Bounds:TRect; width:integer; const c:TFPColor);
 procedure FillEllipseHashVertical (Canv:TFPCustomCanvas; const Bounds:TRect; width:integer; const c:TFPColor);
 procedure FillEllipseHashDiagonal (Canv:TFPCustomCanvas; const Bounds:TRect; width:integer; const c:TFPColor);
@@ -317,7 +317,7 @@ end;
 { The drawing routines }
 
 type
-  TPutPixelProc = procedure (Canv:TFPCustomCanvas; x,y:integer; color:TFPColor);
+  TPutPixelProc = procedure (Canv:TFPCustomCanvas; x,y:integer; const color:TFPColor);
   TLinePoints = array[0..PatternBitCount-1] of boolean;
   PLinePoints = ^TLinePoints;
 
@@ -334,31 +334,31 @@ begin
   LinePoints^[0] := (APattern and i) <> 0;
 end;
 
-procedure PutPixelCopy(Canv:TFPCustomCanvas; x,y:integer; color:TFPColor);
+procedure PutPixelCopy(Canv:TFPCustomCanvas; x,y:integer; const color:TFPColor);
 begin
   with Canv do
-    Colors[x,y] := color;
+    DrawPixel(x,y,color);
 end;
 
-procedure PutPixelXor(Canv:TFPCustomCanvas; x,y:integer; color:TFPColor);
+procedure PutPixelXor(Canv:TFPCustomCanvas; x,y:integer; const color:TFPColor);
 begin
   with Canv do
     Colors[x,y] := Colors[x,y] xor color;
 end;
 
-procedure PutPixelOr(Canv:TFPCustomCanvas; x,y:integer; color:TFPColor);
+procedure PutPixelOr(Canv:TFPCustomCanvas; x,y:integer; const color:TFPColor);
 begin
   with Canv do
     Colors[x,y] := Colors[x,y] or color;
 end;
 
-procedure PutPixelAnd(Canv:TFPCustomCanvas; x,y:integer; color:TFPColor);
+procedure PutPixelAnd(Canv:TFPCustomCanvas; x,y:integer; const color:TFPColor);
 begin
   with Canv do
     Colors[x,y] := Colors[x,y] and color;
 end;
 
-procedure DrawSolidEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; c:TFPColor);
+procedure DrawSolidEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; const c:TFPColor);
 var info : TEllipseInfo;
     r, y : integer;
     MyPutPix : TPutPixelProc;
@@ -387,7 +387,7 @@ begin
     end;
 end;
 
-procedure DrawSolidEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; Width:integer; c:TFPColor);
+procedure DrawSolidEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; Width:integer; const c:TFPColor);
 var infoOut, infoIn : TEllipseInfo;
     r, y : integer;
     id : PEllipseInfoData;
@@ -430,7 +430,7 @@ begin
     end;
 end;
 
-procedure DrawPatternEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; Pattern:TPenPattern; c:TFPColor);
+procedure DrawPatternEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; Pattern:TPenPattern; const c:TFPColor);
 var info : TEllipseInfo;
     xx, y : integer;
     LinePoints : TLinePoints;
@@ -496,7 +496,7 @@ begin
     end;
 end;
 
-procedure FillEllipseColor (Canv:TFPCustomCanvas; const Bounds:TRect; c:TFPColor);
+procedure FillEllipseColor (Canv:TFPCustomCanvas; const Bounds:TRect; const c:TFPColor);
 var info : TEllipseInfo;
     r, y : integer;
     id : PEllipseInfoData;
@@ -508,13 +508,13 @@ begin
       for r := 0 to info.infolist.count-1 do
         with PEllipseInfoData (info.infolist[r])^ do
           for y := ytopmin to ybotmax do
-            colors[x,y] := c;
+            DrawPixel(x,y,c);
   finally
     info.Free;
   end;
 end;
 
-procedure FillEllipsePattern (Canv:TFPCustomCanvas; const Bounds:TRect; Pattern:TBrushPattern; c:TFPColor);
+procedure FillEllipsePattern (Canv:TFPCustomCanvas; const Bounds:TRect; Pattern:TBrushPattern; const c:TFPColor);
 begin
 end;
 
@@ -530,7 +530,7 @@ begin
       with PEllipseInfoData (info.infolist[r])^ do
         for y := ytopmin to ybotmax do
           if (y mod width) = 0 then
-            canv.colors[x,y] := c;
+            canv.DrawPixel(x,y,c);
   finally
     info.Free;
   end;
@@ -548,7 +548,7 @@ begin
       with PEllipseInfoData (info.infolist[r])^ do
         if (x mod width) = 0 then
           for y := ytopmin to ybotmax do
-            canv.colors[x,y] := c;
+            canv.DrawPixel(x,y,c);
   finally
     info.Free;
   end;
@@ -569,7 +569,7 @@ begin
         w := width - 1 - (x mod width);
         for y := ytopmin to ybotmax do
           if (y mod width) = w then
-            canv.colors[x,y] := c;
+            canv.DrawPixel(x,y,c);
         end;
   finally
     info.Free;
@@ -591,7 +591,7 @@ begin
         w := (x mod width);
         for y := ytopmin to ybotmax do
           if (y mod width) = w then
-            canv.colors[x,y] := c;
+            canv.DrawPixel(x,y,c);
         end;
   finally
     info.Free;
@@ -616,7 +616,7 @@ begin
           begin
           wy := y mod width;
           if (wy = w1) or (wy = w2) then
-            canv.colors[x,y] := c;
+            canv.DrawPixel(x,y,c);
           end;
         end;
   finally
@@ -636,11 +636,11 @@ begin
       with PEllipseInfoData (info.infolist[r])^ do
         if (x mod width) = 0 then
           for y := ytopmin to ybotmax do
-            canv.colors[x,y] := c
+            canv.DrawPixel(x,y,c)
         else
           for y := ytopmin to ybotmax do
             if (y mod width) = 0 then
-              canv.colors[x,y] := c;
+              canv.DrawPixel(x,y,c);
   finally
     info.Free;
   end;
@@ -660,7 +660,7 @@ begin
         begin
         w := (x mod image.width);
         for y := ytopmin to ybotmax do
-          canv.colors[x,y] := Image.colors[w, (y mod image.height)];
+          canv.DrawPixel(x,y,Image.colors[w, (y mod image.height)]);
         end;
   finally
     info.Free;
@@ -692,7 +692,7 @@ begin
           yi := (y - yo) mod image.height;
           if yi < 0 then
             inc (yi, image.height);
-          canv.colors[x,y] := Image.colors[xi, yi];
+          canv.DrawPixel(x,y,Image.colors[xi, yi]);
           end;
         end;
   finally

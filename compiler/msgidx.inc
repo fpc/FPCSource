@@ -239,7 +239,7 @@ const
   parser_e_proc_dir_not_allowed_in_procvar=03119;
   parser_e_function_already_declared_public_forward=03120;
   parser_e_not_external_and_export=03121;
-  parser_h_not_supported_for_inline=03123;
+  parser_n_not_supported_for_inline=03123;
   parser_h_inlining_disabled=03124;
   parser_i_writing_browser_log=03125;
   parser_h_maybe_deref_caret_missing=03126;
@@ -457,6 +457,10 @@ const
   parser_e_packages_not_supported=03344;
   parser_e_cannot_use_hardfloat_in_a_softfloat_environment=03345;
   parser_e_invalid_internal_function_index=03346;
+  parser_w_operator_overloaded_hidden_3=03347;
+  parser_e_threadvar_must_be_class=03348;
+  parser_e_only_static_members_via_object_type=03349;
+  parse_e_callthrough_varargs=03350;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -655,6 +659,9 @@ const
   sym_w_managed_function_result_uninitialized=05093;
   sym_h_managed_function_result_uninitialized=05094;
   sym_w_duplicate_id=05095;
+  sym_e_generic_type_param_mismatch=05096;
+  sym_e_generic_type_param_decl=05097;
+  sym_e_type_must_be_rec_or_object=05098;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -691,6 +698,8 @@ const
   cg_e_function_not_support_by_selected_instruction_set=06056;
   cg_f_max_units_reached=06057;
   cg_n_no_inline=06058;
+  cg_e_case_incomplete=06059;
+  cg_w_case_incomplete=06060;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
   asmr_e_none_label_contain_at=07002;
@@ -1102,9 +1111,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 82348;
+  MsgTxtSize = 83066;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,106,347,126,96,59,143,34,221,67,
+    28,106,351,126,99,61,143,34,221,67,
     62,20,30,1,1,1,1,1,1,1
   );

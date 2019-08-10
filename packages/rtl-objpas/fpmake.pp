@@ -19,17 +19,17 @@ Const
   VarUtilsOSes  = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,symbian,watcom,wii,win32,win64]+UnixLikes+AllAmigaLikeOSes;
   ConvUtilsOSes = [nativent,netware,netwlibc,win32,win64,wince]+AllAmigaLikeOSes+UnixLikes-[BeOS];
   ConvUtilOSes  = [atari,Go32v2,msdos,os2,emx];
-  DateUtilsOSes = [gba,nativent,nds,netware,netwlibc,wii,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
+  DateUtilsOSes = [gba,nativent,nds,netware,netwlibc,symbian,wii,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
   DateUtilOSes  = [atari,Go32v2,msdos,os2,emx];
   StdConvsOSes  = [NativeNT,Win32,win64,os2,msdos,go32v2]+UnixLikes-[BeOS];
-  FmtBCDOSes    = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
-  VariantsOSes  = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
+  FmtBCDOSes    = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,symbian,watcom,wii,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
+  VariantsOSes  = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,symbian,watcom,wii,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
   RttiOSes      = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
   AllTargetsObjPas = DateUtilsOses +DateUtilOSes+
                   VarutilsOses + ConvutilsOSes + ConvutilOSes + StdConvsOSes+
                   FmtBCDOSes + StrUtilsOSes;
 
-  CommonSrcOSes = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,watcom,wii]+UnixLikes+AllAmigaLikeOSes;
+  CommonSrcOSes = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,symbian,watcom,wii]+UnixLikes+AllAmigaLikeOSes;
 
 Var
   P : TPackage;
@@ -41,11 +41,14 @@ begin
     P:=AddPackage('rtl-objpas');
     P.ShortName:='rtlo';
     P.Directory:=ADirectory;
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Author := 'FPC core team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.OSes:=AllTargetsObjPas;
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Email := '';
     P.Description := 'Rtl-objpas, aux. Delphi compat units';
     P.NeedLibC:= false;
@@ -57,9 +60,11 @@ begin
 
     P.IncludePath.Add('src/inc');
     P.IncludePath.Add('src/$(OS)');
+    P.IncludePath.Add('src/$(CPU)');
     P.IncludePath.Add('src/common',CommonSrcOSes);
 
     T:=P.Targets.AddUnit('strutils.pp',StrUtilsOses);
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('widestrutils.pp',StrUtilsOses-ConvUtilOSes);
     T:=P.Targets.AddUnit('varutils.pp',VarUtilsOses);
     with T.Dependencies do
@@ -119,6 +124,10 @@ begin
      end;
 
     T:=P.Targets.AddUnit('rtti.pp',RttiOSes);
+    with T.Dependencies do
+       begin
+         AddInclude('invoke.inc',[x86_64],RttiOSes);
+       end;
     T.ResourceStrings:=true;
   end
 end;

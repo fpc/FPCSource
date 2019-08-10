@@ -184,10 +184,9 @@ begin
           addsstringcsstringoptn:
             curmaxlen := min(taddsstringoptnode(left).curmaxlen +
                               tstringconstnode(right).len,255)
-          else
-            internalerror(291220001);
         end
-      else curmaxlen := 255;
+      else
+        curmaxlen := 255;
     end
   else if (left.nodetype = stringconstn) then
     curmaxlen := min(tstringconstnode(left).len,255)

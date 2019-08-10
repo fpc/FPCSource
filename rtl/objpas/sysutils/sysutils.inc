@@ -41,9 +41,7 @@
   {$i varerror.inc}
   
   { Type helpers}
-  {$IFNDEF VER2_6}
   {$i syshelp.inc}
-  {$ENDIF}
 
   {$ifndef OS_FILEISREADONLY}
   Function FileIsReadOnly(const FileName: RawByteString): Boolean;
@@ -801,3 +799,15 @@ begin
   result:=ExecuteProcess(ToSingleByteFileSystemEncodedFileName(Path),ComLineA);
 end;
 {$endif}
+
+
+// generic ifthen..
+{$IFNDEF VER3_0}
+generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inline; overload;
+begin
+  if val then 
+    Result := ifTrue
+  else
+    Result:=ifFalse;  
+end;
+{$ENDIF}

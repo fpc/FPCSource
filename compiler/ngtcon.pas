@@ -213,6 +213,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname) then
                   tobjectdef(tclassrefdef(n.resultdef).pointeddef).register_maybe_created_object_type;
               end;
+            else
+              ;
           end;
           tc_emit_classrefdef(def,n);
           n.free;
@@ -361,7 +363,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
     procedure tasmlisttypedconstbuilder.flush_packed_value(var bp: tbitpackedval);
       var
         bitstowrite: longint;
-        writeval : AInt;
+        writeval : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
       begin
         if (bp.curbitoffset < AIntBits) then
           begin
@@ -403,7 +405,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
     { parses a packed array constant }
     procedure tasmlisttypedconstbuilder.parse_packed_array_def(def: tarraydef);
       var
-        i  : aint;
+        i  : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
         bp : tbitpackedval;
       begin
         if not(def.elementdef.typ in [orddef,enumdef]) then
@@ -455,7 +457,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
     procedure tasmlisttypedconstbuilder.tc_emit_stringdef(def: tstringdef; var node: tnode);
       var
-        strlength : aint;
+        strlength : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
         strval    : pchar;
         ll        : tasmlabofs;
         ca        : pchar;
@@ -613,6 +615,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
       begin
         case def.ordtype of
+           pasbool1,
            pasbool8,
            bool8bit,
            pasbool16,
@@ -719,8 +722,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
              ftcb.emit_tai(tai_realconst.create_s64compreal(round(value*10000)),def);
            s128real:
              ftcb.emit_tai(tai_realconst.create_s128real(value),def);
-           else
-             internalerror(200611053);
         end;
       end;
 
@@ -915,9 +916,11 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                        case hp.nodetype of
                          vecn :
                            begin
-                             if is_constintnode(tvecnode(hp).right) and
-                                not is_ansistring(tvecnode(hp).left.resultdef) and
-                                not is_wide_or_unicode_string(tvecnode(hp).left.resultdef) then
+                             if (is_constintnode(tvecnode(hp).right) or
+                                 is_constenumnode(tvecnode(hp).right) or
+                                 is_constcharnode(tvecnode(hp).right) or
+                                 is_constboolnode(tvecnode(hp).right)) and
+                                not is_implicit_array_pointer(tvecnode(hp).left.resultdef) then
                                ftcb.queue_vecn(tvecnode(hp).left.resultdef,get_ordinal_value(tvecnode(hp).right))
                              else
                                Message(parser_e_illegal_expression);
@@ -1160,6 +1163,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.parse_arraydef(def:tarraydef);
+      const
+        LKlammerToken: array[Boolean] of TToken = (_LKLAMMER, _LECKKLAMMER);
+        RKlammerToken: array[Boolean] of TToken = (_RKLAMMER, _RECKKLAMMER);
       var
         n : tnode;
         i : longint;
@@ -1168,15 +1174,64 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         ca  : pbyte;
         int_const: tai_const;
         char_size: integer;
+        dyncount,
         oldoffset: asizeint;
         dummy : byte;
+        sectype : tasmsectiontype;
+        oldtcb,
+        datatcb : ttai_typedconstbuilder;
+        ll : tasmlabel;
+        dyncountloc : ttypedconstplaceholder;
+        llofs : tasmlabofs;
+        dynarrdef : tdef;
       begin
-        { dynamic array nil }
+        { dynamic array }
         if is_dynamic_array(def) then
           begin
-            { Only allow nil initialization }
-            consume(_NIL);
-            ftcb.emit_tai(Tai_const.Create_sym(nil),def);
+            if try_to_consume(_NIL) then
+              begin
+                ftcb.emit_tai(Tai_const.Create_sym(nil),def);
+              end
+            else if try_to_consume(LKlammerToken[m_delphi in current_settings.modeswitches]) then
+              begin
+                if try_to_consume(RKlammerToken[m_delphi in current_settings.modeswitches]) then
+                  begin
+                    ftcb.emit_tai(tai_const.create_sym(nil),def);
+                  end
+                else
+                  begin
+                    if fsym.varspez=vs_const then
+                      sectype:=sec_rodata
+                    else
+                      sectype:=sec_data;
+                    ftcb.start_internal_data_builder(fdatalist,sectype,'',datatcb,ll);
+
+                    llofs:=datatcb.begin_dynarray_const(def,ll,dyncountloc);
+
+                    dyncount:=0;
+
+                    oldtcb:=ftcb;
+                    ftcb:=datatcb;
+                    while true do
+                      begin
+                        read_typed_const_data(def.elementdef);
+                        inc(dyncount);
+                        if try_to_consume(RKlammerToken[m_delphi in current_settings.modeswitches]) then
+                          break
+                        else
+                          consume(_COMMA);
+                      end;
+                    ftcb:=oldtcb;
+
+                    dynarrdef:=datatcb.end_dynarray_const(def,dyncount,dyncountloc);
+
+                    ftcb.finish_internal_data_builder(datatcb,ll,dynarrdef,sizeof(pint));
+
+                    ftcb.emit_dynarray_offset(llofs,dyncount,def,trecorddef(dynarrdef));
+                  end;
+              end
+            else
+              consume(_LKLAMMER);
           end
         { packed array constant }
         else if is_packed_array(def) and
@@ -1463,11 +1518,11 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         sorg,s  : TIDString;
         tmpguid : tguid;
         recoffset,
-        fillbytes  : aint;
+        fillbytes  : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
         bp   : tbitpackedval;
         error,
         is_packed: boolean;
-        startoffset: aint;
+        startoffset: {$ifdef CPU8BITALU}word{$else}aword{$endif};
 
       procedure handle_stringconstn;
         begin
@@ -1678,10 +1733,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         obj    : tobjectdef;
         srsym  : tsym;
         st     : tsymtable;
-        objoffset : aint;
+        objoffset : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
         s,sorg : TIDString;
         vmtwritten : boolean;
-        startoffset:aint;
+        startoffset : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
       begin
         { no support for packed object }
         if is_packed_record_or_object(def) then
@@ -1871,7 +1926,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         recsym,
         srsym   : tsym;
         sorg,s  : TIDString;
-        recoffset : aint;
+        recoffset : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
         error,
         is_packed: boolean;
 
@@ -2040,7 +2095,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         obj    : tobjectdef;
         srsym  : tsym;
         st     : tsymtable;
-        objoffset : aint;
+        objoffset : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
         s,sorg : TIDString;
       begin
         { no support for packed object }

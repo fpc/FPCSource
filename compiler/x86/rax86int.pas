@@ -1026,6 +1026,8 @@ Unit Rax86int;
             AS_OPRDSAE: aop.vopext := aop.vopext or OTVE_VECTOR_RDSAE;
             AS_OPRUSAE: aop.vopext := aop.vopext or OTVE_VECTOR_RUSAE;
             AS_OPRZSAE: aop.vopext := aop.vopext or OTVE_VECTOR_RZSAE;
+        else
+          Internalerror(2019081009);
       end;
 
       if aConsumeVOpExt then
@@ -1302,6 +1304,13 @@ Unit Rax86int;
           if (cseif_isref in in_flags) and (actasmtoken=AS_LBRACKET) then
             break;
           if (cseif_referencelike in in_flags) and
+             (actasmtoken in [AS_BYTE,AS_WORD,AS_DWORD,AS_QWORD,AS_TBYTE,AS_DQWORD,AS_OWORD,AS_XMMWORD,AS_YWORD,AS_YMMWORD]) then
+            begin
+              { Support ugly tp7 and delphi constructs like 'DD DWORD PTR 5' }
+              Consume(actasmtoken);
+              Consume(AS_PTR);
+            end;
+          if (cseif_referencelike in in_flags) and
              (actasmtoken in [AS_LBRACKET,AS_RBRACKET]) then
             case actasmtoken of
               AS_LBRACKET:
@@ -1317,6 +1326,8 @@ Unit Rax86int;
                   Consume(AS_RBRACKET);
                   expr:=expr+']';
                 end;
+              else
+                ;
             end;
           Case actasmtoken of
             AS_LPAREN:
@@ -1793,6 +1804,8 @@ Unit Rax86int;
                          else
                            Inc(oper.opr.ref.offset,l);
                        end;
+                     else
+                       internalerror(2019050715);
                    end;
                  end
                 else
@@ -1877,6 +1890,8 @@ Unit Rax86int;
                           inc(oper.opr.localsymofs,l);
                         OPR_REFERENCE :
                           inc(oper.opr.ref.offset,l);
+                        else
+                          internalerror(2019050716);
                       end;
                       if hastypecast then
                        oper.hastype:=true;
@@ -1976,6 +1991,8 @@ Unit Rax86int;
                             else
                               Message(asmr_e_invalid_reference_syntax);
                           end;
+                        else
+                          internalerror(2019050719);
                       end;
                     end;
                   else
@@ -1990,6 +2007,8 @@ Unit Rax86int;
                         oper.opr.ref.scalefactor:=l;
                       OPR_LOCAL :
                         oper.opr.localscale:=l;
+                      else
+                        internalerror(2019050717);
                     end;
                     if l>9 then
                       Message(asmr_e_wrong_scale_factor);
@@ -2067,6 +2086,8 @@ Unit Rax86int;
 {$endif x86_64}
                             end;
                         end;
+                      else
+                        internalerror(2019050718);
                     end;
                     GotPlus:=false;
                     GotStar:=false;
@@ -2148,6 +2169,8 @@ Unit Rax86int;
                       else
                         Inc(oper.opr.localsymofs,l);
                     end;
+                  else
+                    internalerror(2019050714);
                 end;
                 GotPlus:=(prevasmtoken=AS_PLUS) or
                          (prevasmtoken=AS_MINUS);
@@ -2212,8 +2235,8 @@ Unit Rax86int;
           end;
         until false;
       end;
-
-
+{ Disable range check because opr.val must accept values from min(longint) to max(dword) for i386 }
+{$R-}
         procedure tx86intreader.BuildConstantOperand(oper: tx86operand);
       var
         l,size : tcgint;
@@ -2561,6 +2584,8 @@ Unit Rax86int;
                                 if oper.opr.typ=OPR_SYMBOL then
                                   oper.initref;
                               end;
+                            else
+                              ;
                           end;
                         end
                        else
@@ -2976,7 +3001,8 @@ Unit Rax86int;
               { convert 'call/jmp [proc/label]' to 'call/jmp proc/label'. Ugly,
                 but Turbo Pascal 7 compatible. }
               if (instr.opcode in [A_CALL,A_JMP]) and
-                 (instr.operands[i].haslabelref or instr.operands[i].hasproc)
+                 (instr.operands[i].haslabelref or instr.operands[i].hasproc) and
+                 (not instr.operands[i].hastype)
                  and (typ=OPR_REFERENCE) and
                  assigned(ref.symbol) and (ref.symbol.typ in [AT_FUNCTION,AT_LABEL,AT_ADDR]) and
                  (ref.base=NR_NO) and (ref.index=NR_NO) then
@@ -3064,6 +3090,16 @@ Unit Rax86int;
                 end;
                 ConcatString(curlist,expr);
               end;
+            AS_BYTE,
+            AS_WORD,
+            AS_DWORD,
+            AS_TBYTE,
+            AS_DQWORD,
+            AS_QWORD,
+            AS_OWORD,
+            AS_XMMWORD,
+            AS_YWORD,
+            AS_YMMWORD,
             AS_PLUS,
             AS_MINUS,
             AS_LPAREN,

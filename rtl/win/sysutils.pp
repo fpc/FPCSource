@@ -407,28 +407,149 @@ begin
 end;
 
 
-Function FileExists (Const FileName : UnicodeString) : Boolean;
-var
-  Attr:Dword;
-begin
+function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
+{ reparse point specific declarations from Windows headers }
+const
+  IO_REPARSE_TAG_MOUNT_POINT = $A0000003;
+  IO_REPARSE_TAG_SYMLINK = $A000000C;
+  ERROR_REPARSE_TAG_INVALID = 4393;
+  FSCTL_GET_REPARSE_POINT = $900A8;
+  MAXIMUM_REPARSE_DATA_BUFFER_SIZE = 16 * 1024;
+  SYMLINK_FLAG_RELATIVE = 1;
+  FILE_FLAG_OPEN_REPARSE_POINT = $200000;
+  FILE_READ_EA = $8;
+type
+  TReparseDataBuffer = record
+    ReparseTag: ULONG;
+    ReparseDataLength: Word;
+    Reserved: Word;
+    SubstituteNameOffset: Word;
+    SubstituteNameLength: Word;
+    PrintNameOffset: Word;
+    PrintNameLength: Word;
+    case ULONG of
+      IO_REPARSE_TAG_MOUNT_POINT: (
+        PathBufferMount: array[0..4095] of WCHAR);
+      IO_REPARSE_TAG_SYMLINK: (
+        Flags: ULONG;
+        PathBufferSym: array[0..4095] of WCHAR);
+  end;
 
-  Attr:=GetFileAttributesW(PWideChar(FileName));
-  if Attr <> $ffffffff then
-    Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) = 0
-  else
-    Result:=False;
+const
+  CShareAny = FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE;
+  COpenReparse = FILE_FLAG_OPEN_REPARSE_POINT or FILE_FLAG_BACKUP_SEMANTICS;
+var
+  HFile, Handle: THandle;
+  PBuffer: ^TReparseDataBuffer;
+  BytesReturned: DWORD;
+begin
+  SymLinkRec := Default(TUnicodeSymLinkRec);
+
+  HFile := CreateFileW(PUnicodeChar(FileName), FILE_READ_EA, CShareAny, Nil, OPEN_EXISTING, COpenReparse, 0);
+  if HFile <> INVALID_HANDLE_VALUE then
+    try
+      GetMem(PBuffer, MAXIMUM_REPARSE_DATA_BUFFER_SIZE);
+      try
+        if DeviceIoControl(HFile, FSCTL_GET_REPARSE_POINT, Nil, 0,
+             PBuffer, MAXIMUM_REPARSE_DATA_BUFFER_SIZE, @BytesReturned, Nil) then begin
+          case PBuffer^.ReparseTag of
+            IO_REPARSE_TAG_MOUNT_POINT: begin
+              SymLinkRec.TargetName := WideCharLenToString(
+                @PBuffer^.PathBufferMount[4 { skip start '\??\' } +
+                  PBuffer^.SubstituteNameOffset div SizeOf(WCHAR)],
+                PBuffer^.SubstituteNameLength div SizeOf(WCHAR) - 4);
+            end;
+            IO_REPARSE_TAG_SYMLINK: begin
+              SymLinkRec.TargetName := WideCharLenToString(
+                @PBuffer^.PathBufferSym[PBuffer^.PrintNameOffset div SizeOf(WCHAR)],
+                PBuffer^.PrintNameOffset div SizeOf(WCHAR));
+              if (PBuffer^.Flags and SYMLINK_FLAG_RELATIVE) <> 0 then
+                SymLinkRec.TargetName := ExpandFileName(ExtractFilePath(FileName) + SymLinkRec.TargetName);
+            end;
+          end;
+
+          Handle := FindFirstFileExW(PUnicodeChar(FileName), FindExInfoBasic, @SymLinkRec.FindData,
+                      FindExSearchNameMatch, Nil, 0);
+          if Handle <> INVALID_HANDLE_VALUE then begin
+            Windows.FindClose(Handle);
+            SymLinkRec.Attr := SymLinkRec.FindData.dwFileAttributes;
+            SymLinkRec.Size := QWord(SymLinkRec.FindData.nFileSizeHigh) shl 32 + QWord(SymLinkRec.FindData.nFileSizeLow);
+          end else
+            SymLinkRec.TargetName := '';
+        end else
+          SetLastError(ERROR_REPARSE_TAG_INVALID);
+      finally
+        FreeMem(PBuffer);
+      end;
+    finally
+      CloseHandle(HFile);
+    end;
+  Result := SymLinkRec.TargetName <> '';
 end;
 
 
-Function DirectoryExists (Const Directory : UnicodeString) : Boolean;
+function FileOrDirExists(const FileOrDirName: UnicodeString; CheckDir: Boolean; FollowLink: Boolean): Boolean;
+const
+  CDirAttributes: array[Boolean] of DWORD = (0, FILE_ATTRIBUTE_DIRECTORY);
+
+  function FoundByEnum: Boolean;
+  var
+    FindData: TWin32FindDataW;
+    Handle: THandle;
+  begin
+    { FindFirstFileEx is faster than FindFirstFile }
+    Handle := FindFirstFileExW(PUnicodeChar(FileOrDirName), FindExInfoBasic, @FindData,
+                FindExSearchNameMatch, Nil, 0);
+    Result := Handle <> INVALID_HANDLE_VALUE;
+    if Result then begin
+      Windows.FindClose(Handle);
+      Result := (FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = CDirAttributes[CheckDir];
+    end;
+  end;
+
+  function LinkFileExists: Boolean;
+  var
+    LinkTargetName: UnicodeString;
+  begin
+    Result := FileGetSymLinkTarget(FileOrDirName, LinkTargetName) and
+                FileOrDirExists(LinkTargetName, CheckDir, False);
+  end;
+
+const
+  CNotExistsErrors = [
+    ERROR_FILE_NOT_FOUND,
+    ERROR_PATH_NOT_FOUND,
+    ERROR_INVALID_NAME, // protects from names in the form of masks like '*'
+    ERROR_INVALID_DRIVE,
+    ERROR_NOT_READY,
+    ERROR_INVALID_PARAMETER,
+    ERROR_BAD_PATHNAME,
+    ERROR_BAD_NETPATH,
+    ERROR_BAD_NET_NAME
+  ];
 var
-  Attr:Dword;
+  Attr : DWord;
 begin
-  Attr:=GetFileAttributesW(PWideChar(Directory));
-  if Attr <> $ffffffff then
-    Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) > 0
-  else
-    Result:=False;
+  Attr := GetFileAttributesW(PUnicodeChar(FileOrDirName));
+  if Attr = INVALID_FILE_ATTRIBUTES then
+    Result := not (GetLastError in CNotExistsErrors) and FoundByEnum
+  else begin
+    Result := (Attr and FILE_ATTRIBUTE_DIRECTORY) = CDirAttributes[CheckDir];
+    if Result and FollowLink and ((Attr and FILE_ATTRIBUTE_REPARSE_POINT) <> 0) then
+      Result := LinkFileExists;
+  end;
+end;
+
+
+Function FileExists (Const FileName : UnicodeString; FollowLink : Boolean) : Boolean;
+begin
+  Result := FileOrDirExists(FileName, False, FollowLink);
+end;
+
+
+Function DirectoryExists (Const Directory : UnicodeString; FollowLink : Boolean) : Boolean;
+begin
+  Result := FileOrDirExists(Directory, True, FollowLink);
 end;
 
 Function FindMatch(var f: TAbstractSearchRec; var Name: UnicodeString) : Longint;
@@ -916,6 +1037,34 @@ procedure GetFormatSettings;
 begin
   GetlocaleFormatSettings(GetThreadLocale, DefaultFormatSettings);
 end;
+
+Procedure InitLeadBytes;
+
+var
+  I,B,C,E: Byte;
+  Info: TCPInfo;
+
+begin
+  GetCPInfo(CP_ACP,Info);
+  I:=0;
+  With Info do
+    begin
+    B:=LeadByte[i];
+    E:=LeadByte[i+1];
+    while (I<MAX_LEADBYTES) and (B<>0) and (E<>0) do
+      begin
+      for C:=B to E do
+        Include(LeadBytes,AnsiChar(C));
+      Inc(I,2);
+      if (I<MAX_LEADBYTES) then
+        begin
+        B:=LeadByte[i];
+        E:=LeadByte[i+1];
+        end;
+      end;
+    end;   
+end;
+
 
 Procedure InitInternational;
 var
@@ -1493,6 +1642,7 @@ Initialization
   ExceptObjProc:=@WinExceptionObject;
   ExceptClsProc:=@WinExceptionClass;
 {$endif mswindows}
+  InitLeadBytes;
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
   InitSysConfigDir;

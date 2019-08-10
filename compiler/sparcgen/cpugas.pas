@@ -111,6 +111,8 @@ implementation
             result:='%hi('+result+')';
           addr_low:
             result:='%lo('+result+')';
+          else
+            ;
         end;
 
         if assigned(ref.symbol) or (ref.offset<>0) then

@@ -36,7 +36,9 @@ interface
 
         function first_get_frame: tnode; override;
         function first_abs_real: tnode; override;
+        function first_fma: tnode; override;
         function first_sqr_real: tnode; override;
+        function first_sqrt_real: tnode; override;
         function first_trunc_real: tnode; override;
        public
         procedure second_length; override;
@@ -51,6 +53,7 @@ implementation
        verbose,globals,globtype,constexp,
        aasmbase, aasmdata,
        symconst,symtype,symdef,defutil,
+       compinnr,
        nutils,nadd,nbas,ncal,ncnv,ncon,nflw,ninl,nld,nmat,
        pass_2,
        cgbase,cgutils,tgobj,hlcgobj,
@@ -145,6 +148,26 @@ implementation
         left:=nil;
       end;
 
+    function tllvminlinenode.first_fma: tnode;
+      var
+        procname: string[15];
+      begin
+        case inlinenumber of
+          in_fma_single:
+            procname:='llvm_fma_f32';
+          in_fma_double:
+            procname:='llvm_fma_f64';
+          in_fma_extended:
+            procname:='llvm_fma_f80';
+          in_fma_float128:
+            procname:='llvm_fma_f128';
+          else
+            internalerror(2018122101);
+        end;
+        result:=ccallnode.createintern(procname,left);
+        left:=nil;
+      end;
+
 
     function tllvminlinenode.first_sqr_real: tnode;
       begin
@@ -153,6 +176,29 @@ implementation
           expectloc:=LOC_MMREGISTER
         else
           expectloc:=LOC_FPUREGISTER;
+      end;
+
+
+    function tllvminlinenode.first_sqrt_real: tnode;
+      var
+        intrinsic: string[20];
+      begin
+        if left.resultdef.typ<>floatdef then
+          internalerror(2018121601);
+        case tfloatdef(left.resultdef).floattype of
+          s32real:
+            intrinsic:='llvm_sqrt_f32';
+          s64real:
+            intrinsic:='llvm_sqrt_f64';
+          s80real,sc80real:
+            intrinsic:='llvm_sqrt_f80';
+          s128real:
+            intrinsic:='llvm_sqrt_f128';
+          else
+            internalerror(2018121602);
+        end;
+        result:=ccallnode.createintern(intrinsic, ccallparanode.create(left,nil));
+        left:=nil;
       end;
 
 

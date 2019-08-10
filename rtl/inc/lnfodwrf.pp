@@ -31,7 +31,7 @@ type
   CodePointer = Pointer;
 {$ENDIF}
 
-function GetLineInfo(addr:ptruint;var func,source:string;var line:longint) : boolean;
+function GetLineInfo(addr:codeptruint;var func,source:string;var line:longint) : boolean;
 function DwarfBackTraceStr(addr: CodePointer): string;
 procedure CloseDwarf;
 
@@ -67,6 +67,12 @@ uses
 { some type definitions }
 type
   Bool8 = ByteBool;
+{$ifdef CPUI8086}
+  TOffset = Word;
+{$else CPUI8086}
+  TOffset = PtrUInt;
+{$endif CPUI8086}
+  TSegment = Word;
 
 const
   EBUF_SIZE = 100;
@@ -96,6 +102,11 @@ const
   DW_LNE_END_SEQUENCE = 1;
   DW_LNE_SET_ADDRESS = 2;
   DW_LNE_DEFINE_FILE = 3;
+{$ifdef CPUI8086}
+  { non-standard Open Watcom extension; might conflict with future versions of
+    the DWARF standard }
+  DW_LNE_SET_SEGMENT = 4;
+{$endif CPUI8086}
   { Standard opcodes }
   DW_LNS_COPY = 1;
   DW_LNS_ADVANCE_PC = 2;
@@ -139,6 +150,7 @@ type
   { state record for the line info state machine }
   TMachineState = record
     address : QWord;
+    segment : TSegment;
     file_id : DWord;
     line : QWord;
     column : DWord;
@@ -198,7 +210,9 @@ type
     debug_info_offset : QWord;
     address_size : Byte;
     segment_size : Byte;
+{$ifndef CPUI8086}
     padding : DWord;
+{$endif CPUI8086}
   end;
 
   TDebugArangesHeader32= packed record
@@ -207,23 +221,52 @@ type
     debug_info_offset : DWord;
     address_size : Byte;
     segment_size : Byte;
+{$ifndef CPUI8086}
     padding : DWord;
+{$endif CPUI8086}
   end;
 
 {---------------------------------------------------------------------------
  I/O utility functions
 ---------------------------------------------------------------------------}
 
+type
+{$ifdef cpui8086}
+  TFilePos = LongInt;
+{$else cpui8086}
+  TFilePos = SizeInt;
+{$endif cpui8086}
+
 var
-  base, limit : SizeInt;
-  index : SizeInt;
-  baseaddr : pointer;
+  base, limit : TFilePos;
+  index : TFilePos;
+  baseaddr : {$ifdef cpui8086}farpointer{$else}pointer{$endif};
   filename,
   dbgfn : string;
   lastfilename: string;   { store last processed file }
   lastopendwarf: Boolean; { store last result of processing a file }
 
-function OpenDwarf(addr : pointer) : boolean;
+{$ifdef cpui8086}
+function tofar(fp: FarPointer): FarPointer; inline;
+begin
+  tofar:=fp;
+end;
+
+function tofar(cp: NearCsPointer): FarPointer; inline;
+begin
+  tofar:=Ptr(CSeg,Word(cp));
+end;
+
+function tofar(cp: NearPointer): FarPointer; inline;
+begin
+  tofar:=Ptr(DSeg,Word(cp));
+end;
+{$else cpui8086}
+type
+  tofar=Pointer;
+{$endif cpui8086}
+
+function OpenDwarf(addr : codepointer) : boolean;
 begin
   // False by default
   OpenDwarf:=false;
@@ -232,9 +275,9 @@ begin
   filename := '';
 
   // Get filename by address using GetModuleByAddr
-  GetModuleByAddr(addr,baseaddr,filename);
+  GetModuleByAddr(tofar(addr),baseaddr,filename);
 {$ifdef DEBUG_LINEINFO}
-  writeln(stderr,filename,' Baseaddr: ',hexstr(ptruint(baseaddr),sizeof(baseaddr)*2));
+  writeln(stderr,filename,' Baseaddr: ',hexstr(baseaddr));
 {$endif DEBUG_LINEINFO}
 
   // Check if GetModuleByAddr has worked
@@ -316,7 +359,7 @@ begin
 end;
 
 
-function Pos() : Int64;
+function Pos() : TFilePos;
 begin
   Pos := index;
 end;
@@ -431,15 +474,36 @@ begin
   end;
   { extend sign. Note that we can not use shl/shr since the latter does not
     translate to arithmetic shifting for signed types }
-  ReadLEB128 := (not ((ReadLEB128 and (1 shl (shift-1)))-1)) or ReadLEB128;
+  ReadLEB128 := (not ((ReadLEB128 and (Int64(1) shl (shift-1)))-1)) or ReadLEB128;
 end;
 
 
+{$ifdef CPUI8086}
 { Reads an address from the current input stream }
-function ReadAddress() : PtrUInt;
+function ReadAddress(addr_size: smallint) : LongWord;
+begin
+  if addr_size = 4 then
+    ReadNext(ReadAddress, 4)
+  else if addr_size = 2 then begin
+    ReadAddress := 0;
+    ReadNext(ReadAddress, 2);
+  end
+  else
+    ReadAddress := 0;
+end;
+
+{ Reads a segment from the current input stream }
+function ReadSegment() : Word;
+begin
+  ReadNext(ReadSegment, sizeof(ReadSegment));
+end;
+{$else CPUI8086}
+{ Reads an address from the current input stream }
+function ReadAddress(addr_size: smallint) : PtrUInt;
 begin
   ReadNext(ReadAddress, sizeof(ReadAddress));
 end;
+{$endif CPUI8086}
 
 
 { Reads a zero-terminated string from the current input stream. If the
@@ -503,6 +567,7 @@ procedure InitStateRegisters(var state : TMachineState; const aIs_Stmt : Bool8);
 begin
   with state do begin
     address := 0;
+    segment := 0;
     file_id := 1;
     line := 1;
     column := 0;
@@ -595,7 +660,7 @@ begin
 end;
 
 
-function ParseCompilationUnit(const addr : PtrUInt; const file_offset : QWord;
+function ParseCompilationUnit(const addr : TOffset; const segment : TSegment; const file_offset : QWord;
   var source : String; var line : longint; var found : Boolean) : QWord;
 var
   state : TMachineState;
@@ -711,9 +776,15 @@ begin
             DEBUG_WRITELN('DW_LNE_END_SEQUENCE');
           end;
           DW_LNE_SET_ADDRESS : begin
-            state.address := ReadAddress();
+            state.address := ReadAddress(extended_opcode_length-1);
             DEBUG_WRITELN('DW_LNE_SET_ADDRESS (', hexstr(state.address, sizeof(state.address)*2), ')');
           end;
+{$ifdef CPUI8086}
+          DW_LNE_SET_SEGMENT : begin
+            state.segment := ReadSegment();
+            DEBUG_WRITELN('DW_LNE_SET_SEGMENT (', hexstr(state.segment, sizeof(state.segment)*2), ')');
+          end;
+{$endif CPUI8086}
           DW_LNE_DEFINE_FILE : begin
             {$ifdef DEBUG_DWARF_PARSER}s := {$endif}ReadString();
             SkipLEB128();
@@ -804,20 +875,27 @@ begin
 
     if (state.append_row) then begin
       DEBUG_WRITELN('Current state : address = ', hexstr(state.address, sizeof(state.address) * 2),
+{$ifdef CPUI8086}
+      DEBUG_COMMENT ' segment = ', hexstr(state.segment, sizeof(state.segment) * 2),
+{$endif CPUI8086}
       DEBUG_COMMENT ' file_id = ', state.file_id, ' line = ', state.line, ' column = ', state.column,
       DEBUG_COMMENT  ' is_stmt = ', state.is_stmt, ' basic_block = ', state.basic_block,
       DEBUG_COMMENT  ' end_sequence = ', state.end_sequence, ' prolouge_end = ', state.prolouge_end,
       DEBUG_COMMENT  ' epilouge_begin = ', state.epilouge_begin, ' isa = ', state.isa);
 
       if (first_row) then begin
-        if (state.address > addr) then
+        if (state.segment > segment) or
+           ((state.segment = segment) and
+            (state.address > addr)) then
           break;
         first_row := false;
       end;
 
       { when we have found the address we need to return the previous
         line because that contains the call instruction }
-      if (state.address >= addr) then
+      if (state.segment > segment) or
+         ((state.segment = segment) and
+          (state.address >= addr)) then
         found:=true
       else
         begin
@@ -900,8 +978,12 @@ procedure ReadAbbrevTable;
   end;
 
 
-function ParseCompilationUnitForDebugInfoOffset(const addr : PtrUInt; const file_offset : QWord;
+function ParseCompilationUnitForDebugInfoOffset(const addr : TOffset; const segment : TSegment; const file_offset : QWord;
   var debug_info_offset : QWord; var found : Boolean) : QWord;
+{$ifndef CPUI8086}
+const
+  arange_segment = 0;
+{$endif CPUI8086}
 var
   { we need both headers on the stack, although we only use the 64 bit one internally }
   header64 : TDebugArangesHeader64;
@@ -909,7 +991,12 @@ var
   isdwarf64 : boolean;
   temp_length : DWord;
   unit_length : QWord;
+{$ifdef CPUI8086}
+  arange_start, arange_size: DWord;
+  arange_segment: Word;
+{$else CPUI8086}
   arange_start, arange_size: PtrUInt;
+{$endif CPUI8086}
 begin
   found := false;
 
@@ -946,24 +1033,32 @@ begin
     end;
 
   DEBUG_WRITELN('debug_info_offset: ',header64.debug_info_offset);
-  arange_start:=ReadAddress;
-  arange_size:=ReadAddress;
+  DEBUG_WRITELN('address_size: ', header64.address_size);
+  DEBUG_WRITELN('segment_size: ', header64.segment_size);
+  arange_start:=ReadAddress(header64.address_size);
+{$ifdef CPUI8086}
+  arange_segment:=ReadSegment();
+{$endif CPUI8086}
+  arange_size:=ReadAddress(header64.address_size);
 
-  while not((arange_start=0) and (arange_size=0)) and (not found) do
+  while not((arange_start=0) and (arange_segment=0) and (arange_size=0)) and (not found) do
     begin
-      if (addr>=arange_start) and (addr<=arange_start+arange_size) then
+      if (segment=arange_segment) and (addr>=arange_start) and (addr<=arange_start+arange_size) then
         begin
           found:=true;
           debug_info_offset:=header64.debug_info_offset;
           DEBUG_WRITELN('Matching aranges entry $',hexStr(arange_start,header64.address_size*2),', $',hexStr(arange_size,header64.address_size*2));
         end;
 
-      arange_start:=ReadAddress;
-      arange_size:=ReadAddress;
+      arange_start:=ReadAddress(header64.address_size);
+{$ifdef CPUI8086}
+      arange_segment:=ReadSegment();
+{$endif CPUI8086}
+      arange_size:=ReadAddress(header64.address_size);
     end;
 end;
 
-function ParseCompilationUnitForFunctionName(const addr : PtrUInt; const file_offset : QWord;
+function ParseCompilationUnitForFunctionName(const addr : TOffset; const segment : TSegment; const file_offset : QWord;
   var func : String; var found : Boolean) : QWord;
 var
   { we need both headers on the stack, although we only use the 64 bit one internally }
@@ -1040,7 +1135,14 @@ procedure SkipAttr(form : QWord);
               ReadNext(dummy,4);
           end
         else
-          ReadNext(dummy,header64.address_size);
+          begin
+            { address size for DW_FORM_ref_addr must be at least 32 bits }
+            { this is compatible with Open Watcom on i8086 }
+            if header64.address_size<4 then
+              ReadNext(dummy,4)
+            else
+              ReadNext(dummy,header64.address_size);
+          end;
       DW_FORM_strp,
       DW_FORM_sec_offset:
         if isdwarf64 then
@@ -1073,8 +1175,8 @@ procedure SkipAttr(form : QWord);
 
 var
   i : PtrInt;
-  prev_base,prev_limit : SizeInt;
-  prev_pos : Int64;
+  prev_base,prev_limit : TFilePos;
+  prev_pos : TFilePos;
 
 begin
   found := false;
@@ -1108,6 +1210,7 @@ begin
   end;
 
   DEBUG_WRITELN('debug_abbrev_offset: ',header64.debug_abbrev_offset);
+  DEBUG_WRITELN('address_size: ',header64.address_size);
 
   { not nice, but we have to read the abbrev section after the start of the debug_info section has been read }
   prev_limit:=limit;
@@ -1182,10 +1285,11 @@ begin
 end;
 
 
-function GetLineInfo(addr : ptruint; var func, source : string; var line : longint) : boolean;
+function GetLineInfo(addr : codeptruint; var func, source : string; var line : longint) : boolean;
 var
   current_offset,
   end_offset, debug_info_offset_from_aranges : QWord;
+  segment : Word = 0;
 
   found, found_aranges : Boolean;
 
@@ -1194,8 +1298,17 @@ begin
   source := '';
   GetLineInfo:=false;
 
-  if not OpenDwarf(pointer(addr)) then
+  if not OpenDwarf(codepointer(addr)) then
     exit;
+
+{$ifdef CPUI8086}
+  {$if defined(FPC_MM_MEDIUM) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
+    segment := (addr shr 16) - e.processsegment;
+    addr := Word(addr);
+  {$else}
+    segment := CSeg - e.processsegment;
+  {$endif}
+{$endif CPUI8086}
 
   addr := addr - e.processaddress;
 
@@ -1205,7 +1318,7 @@ begin
   found := false;
   while (current_offset < end_offset) and (not found) do begin
     Init(current_offset, end_offset - current_offset);
-    current_offset := ParseCompilationUnit(addr, current_offset,
+    current_offset := ParseCompilationUnit(addr, segment, current_offset,
       source, line, found);
   end;
 
@@ -1215,7 +1328,7 @@ begin
   found_aranges := false;
   while (current_offset < end_offset) and (not found_aranges) do begin
     Init(current_offset, end_offset - current_offset);
-    current_offset := ParseCompilationUnitForDebugInfoOffset(addr, current_offset, debug_info_offset_from_aranges, found_aranges);
+    current_offset := ParseCompilationUnitForDebugInfoOffset(addr, segment, current_offset, debug_info_offset_from_aranges, found_aranges);
   end;
 
   { no function name found yet }
@@ -1230,7 +1343,7 @@ begin
       DEBUG_WRITELN('Reading .debug_info at section offset $',hexStr(current_offset-Dwarf_Debug_Info_Section_Offset,16));
 
       Init(current_offset, end_offset - current_offset);
-      current_offset := ParseCompilationUnitForFunctionName(addr, current_offset, func, found);
+      current_offset := ParseCompilationUnitForFunctionName(addr, segment, current_offset, func, found);
       if found then
         DEBUG_WRITELN('Found .debug_info entry by using .debug_aranges information');
     end
@@ -1244,7 +1357,7 @@ begin
     DEBUG_WRITELN('Reading .debug_info at section offset $',hexStr(current_offset-Dwarf_Debug_Info_Section_Offset,16));
 
     Init(current_offset, end_offset - current_offset);
-    current_offset := ParseCompilationUnitForFunctionName(addr, current_offset, func, found);
+    current_offset := ParseCompilationUnitForFunctionName(addr, segment, current_offset, func, found);
   end;
 
   if not AllowReuseOfLineInfoData then
@@ -1270,9 +1383,9 @@ begin
   Success:=false;
   Store := BackTraceStrFunc;
   BackTraceStrFunc := @SysBackTraceStr;
-  Success:=GetLineInfo(ptruint(addr), func, source, line);
+  Success:=GetLineInfo(codeptruint(addr), func, source, line);
   { create string }
-  DwarfBackTraceStr :='  $' + HexStr(ptruint(addr), sizeof(ptruint) * 2);
+  DwarfBackTraceStr :='  $' + HexStr(addr);
   if Success then
   begin
     if func<>'' then

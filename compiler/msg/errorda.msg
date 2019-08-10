@@ -844,7 +844,7 @@ parser_e_function_already_declared_public_forward=03120_E_Funktionen "$1" er all
 % declaration in the \var{implmentation} section.
 parser_e_not_external_and_export=03121_E_Kan ikke bruge både EXPORT og EXTERNAL
 % These two procedure directives are mutually exclusive
-parser_h_not_supported_for_inline=03123_H_Deklarationen "$1" er endnu ikke understøttet i inline procedurer/funktioner
+parser_n_not_supported_for_inline=03123_N_Deklarationen "$1" er endnu ikke understøttet i inline procedurer/funktioner
 % Inline procedures don't support this declaration.
 parser_h_inlining_disabled=03124_H_Inlining slået fra
 % Inlining of procedures is disabled.

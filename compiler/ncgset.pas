@@ -74,10 +74,12 @@ interface
           { has the implementation jumptable support }
           min_label : tconstexprint;
 
+          function GetBranchLabel(Block: TNode; out _Label: TAsmLabel): Boolean;
+
           function  blocklabel(id:longint):tasmlabel;
-          procedure optimizevalues(var max_linear_list:aint;var max_dist:aword);virtual;
+          procedure optimizevalues(var max_linear_list:int64;var max_dist:qword);virtual;
           function  has_jumptable : boolean;virtual;
-          procedure genjumptable(hp : pcaselabel;min_,max_ : aint); virtual;
+          procedure genjumptable(hp : pcaselabel;min_,max_ : int64); virtual;
           procedure genlinearlist(hp : pcaselabel); virtual;
           procedure genlinearcmplist(hp : pcaselabel); virtual;
 
@@ -90,9 +92,10 @@ implementation
 
     uses
       verbose,
-      symconst,symdef,defutil,
+      cutils,
+      symconst,symdef,symsym,defutil,
       pass_2,tgobj,
-      ncon,
+      nbas,ncon,ncgflw,
       ncgutil,hlcgobj;
 
 
@@ -234,7 +237,7 @@ implementation
     procedure tcginnode.pass_generate_code;
        var
          adjustment,
-         setbase    : aint;
+         setbase    : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
          l, l2      : tasmlabel;
          hr,
          pleftreg   : tregister;
@@ -524,6 +527,81 @@ implementation
                             TCGCASENODE
 *****************************************************************************}
 
+
+    { Analyse the nodes following the else label - if empty, change to end label }
+    function tcgcasenode.GetBranchLabel(Block: TNode; out _Label: TAsmLabel): Boolean;
+      var
+        LabelSym: TLabelSym;
+      begin
+        Result := True;
+
+        if not Assigned(Block) then
+          begin
+            { Block doesn't exist / is empty }
+            _Label := endlabel;
+            Exit;
+          end;
+
+        { These optimisations aren't particularly debugger friendly }
+        if not (cs_opt_level2 in current_settings.optimizerswitches) then
+          begin
+            Result := False;
+            current_asmdata.getjumplabel(_Label);
+            Exit;
+          end;
+
+        while Assigned(Block) do
+          begin
+            case Block.nodetype of
+              nothingn:
+                begin
+                  _Label := endlabel;
+                  Exit;
+                end;
+              goton:
+                begin
+                  LabelSym := TCGGotoNode(Block).labelsym;
+                  if not Assigned(LabelSym) then
+                    InternalError(2018121131);
+
+                  _Label := TCGLabelNode(TCGGotoNode(Block).labelnode).getasmlabel;
+                  if Assigned(_Label) then
+                    { Keep tabs on the fact that an actual 'goto' was used }
+                    Include(flowcontrol,fc_gotolabel)
+                  else
+                    Break;
+                  Exit;
+                end;
+              blockn:
+                begin
+                  Block := TBlockNode(Block).Left;
+                  Continue;
+                end;
+              statementn:
+                begin
+                  { If the right node is assigned, then it's a compound block
+                    that can't be simplified, so fall through, set Result to
+                    False and make a new label }
+
+                  if Assigned(TStatementNode(Block).right) then
+                    Break;
+
+                  Block := TStatementNode(Block).Left;
+                  Continue;
+                end;
+              else
+                ;
+            end;
+
+            Break;
+          end;
+
+        { Create unique label }
+        Result := False;
+        current_asmdata.getjumplabel(_Label);
+      end;
+
+
     function tcgcasenode.blocklabel(id:longint):tasmlabel;
       begin
         if not assigned(blocks[id]) then
@@ -532,7 +610,7 @@ implementation
       end;
 
 
-    procedure tcgcasenode.optimizevalues(var max_linear_list:aint;var max_dist:aword);
+    procedure tcgcasenode.optimizevalues(var max_linear_list:int64;var max_dist:qword);
       begin
         { no changes by default }
       end;
@@ -545,7 +623,7 @@ implementation
       end;
 
 
-    procedure tcgcasenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
+    procedure tcgcasenode.genjumptable(hp : pcaselabel;min_,max_ : int64);
       begin
         internalerror(200209161);
       end;
@@ -560,17 +638,18 @@ implementation
          newsize: tcgsize;
          newdef: tdef;
 
-      procedure genitem(t : pcaselabel);
+      procedure gensub(value:tcgint);
+        begin
+          { here, since the sub and cmp are separate we need
+            to move the result before subtract to help
+            the register allocator
+          }
+          hlcg.a_load_reg_reg(current_asmdata.CurrAsmList, opsize, opsize, hregister, scratch_reg);
+          hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, value, hregister);
+        end;
 
-          procedure gensub(value:tcgint);
-            begin
-              { here, since the sub and cmp are separate we need
-                to move the result before subtract to help
-                the register allocator
-              }
-              hlcg.a_load_reg_reg(current_asmdata.CurrAsmList, opsize, opsize, hregister, scratch_reg);
-              hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, value, hregister);
-            end;
+
+      procedure genitem(t : pcaselabel);
 
         begin
            if assigned(t^.less) then
@@ -641,10 +720,25 @@ implementation
                   hregister:=scratch_reg;
                   opsize:=newdef;
                 end;
-              last:=0;
-              first:=true;
-              scratch_reg:=hlcg.getintregister(current_asmdata.CurrAsmList,opsize);
-              genitem(hp);
+              if (labelcnt>1) or not(cs_opt_level1 in current_settings.optimizerswitches) then
+                begin
+                  last:=0;
+                  first:=true;
+                  scratch_reg:=hlcg.getintregister(current_asmdata.CurrAsmList,opsize);
+                  genitem(hp);
+                end
+              else
+                begin
+                  { If only one label exists, we can greatly simplify the checks to a simple comparison }
+                  if hp^._low=hp^._high then
+                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, tcgint(hp^._low.svalue), hregister, blocklabel(hp^.blockid))
+                  else
+                    begin
+                      scratch_reg:=hlcg.getintregister(current_asmdata.CurrAsmList,opsize);
+                      gensub(tcgint(hp^._low.svalue));
+                      hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_BE, tcgint(hp^._high.svalue-hp^._low.svalue), hregister, blocklabel(hp^.blockid))
+                    end;
+                end;
               hlcg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
            end;
       end;
@@ -658,16 +752,17 @@ implementation
 
       procedure genitem(t : pcaselabel);
 
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
         var
            l1 : tasmlabel;
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
 
         begin
            if assigned(t^.less) then
              genitem(t^.less);
            if t^._low=t^._high then
              begin
+{$ifndef cpuhighleveltarget}
 {$if defined(cpu32bitalu)}
                 if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
@@ -727,8 +822,9 @@ implementation
                   end
                 else
 {$endif}
+{$endif cpuhighleveltarget}
                   begin
-                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, aint(t^._low.svalue),hregister, blocklabel(t^.blockid));
+                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, tcgint(t^._low.svalue),hregister, blocklabel(t^.blockid));
                   end;
                 { Reset last here, because we've only checked for one value and need to compare
                   for the next range both the lower and upper bound }
@@ -741,6 +837,7 @@ implementation
                 { ELSE-label                                }
                 if not lastwasrange or (t^._low-last>1) then
                   begin
+{$ifndef cpuhighleveltarget}
 {$if defined(cpu32bitalu)}
                      if def_cgsize(opsize) in [OS_64,OS_S64] then
                        begin
@@ -832,11 +929,13 @@ implementation
                        end
                      else
 {$endif}
+{$endif cpuhighleveltarget}
                        begin
-                        hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_lt, aint(t^._low.svalue), hregister,
+                        hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_lt, tcgint(t^._low.svalue), hregister,
                            elselabel);
                        end;
                   end;
+{$ifndef cpuhighleveltarget}
 {$if defined(cpu32bitalu)}
                 if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
@@ -922,8 +1021,9 @@ implementation
                   end
                 else
 {$endif}
+{$endif cpuhighleveltarget}
                   begin
-                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_le, aint(t^._high.svalue), hregister, blocklabel(t^.blockid));
+                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_le, tcgint(t^._high.svalue), hregister, blocklabel(t^.blockid));
                   end;
 
                 last:=t^._high;
@@ -1032,7 +1132,8 @@ implementation
         end;
 
       begin
-        SetLength(labelarray,case_count_labels(root));
+        labelarray:=nil;
+        SetLength(labelarray,labelcnt);
         nextarrayentry:=0;
         addarrayentry(root);
         rebuild(0,high(labelarray),root);
@@ -1045,22 +1146,28 @@ implementation
       var
          oldflowcontrol: tflowcontrol;
          i : longint;
-         dist,distv,
+         dist : aword;
+         distv,
          lv,hv,
          max_label: tconstexprint;
-         labelcnt : tcgint;
-         max_linear_list : aint;
-         max_dist : aword;
+         max_linear_list : int64;
+         max_dist : qword;
+         ShortcutElse: Boolean;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
          oldflowcontrol := flowcontrol;
          include(flowcontrol,fc_inflowcontrol);
          { Allocate labels }
+
          current_asmdata.getjumplabel(endlabel);
-         current_asmdata.getjumplabel(elselabel);
+
+         { Do some optimisation to deal with empty else blocks }
+         ShortcutElse := GetBranchLabel(elseblock, elselabel);
+
          for i:=0 to blocks.count-1 do
-           current_asmdata.getjumplabel(pcaseblock(blocks[i])^.blocklabel);
+           with pcaseblock(blocks[i])^ do
+             shortcut := GetBranchLabel(statement, blocklabel);
 
          with_sign:=is_signed(left.resultdef);
          if with_sign then
@@ -1084,14 +1191,14 @@ implementation
          opsize:=left.resultdef;
          { copy the case expression to a register }
          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opsize,false);
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu)}
          if def_cgsize(opsize) in [OS_S64,OS_64] then
            begin
              hregister:=left.location.register64.reglo;
              hregister2:=left.location.register64.reghi;
            end
          else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
            hregister:=left.location.register;
 
          { we need the min_label always to choose between }
@@ -1102,11 +1209,11 @@ implementation
 {$ifdef OLDREGVARS}
          load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu)}
          if def_cgsize(opsize) in [OS_64,OS_S64] then
            genlinearcmplist(labels)
          else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
            begin
               if cs_opt_level1 in current_settings.optimizerswitches then
                 begin
@@ -1117,8 +1224,9 @@ implementation
                    { moreover can the size only be appro- }
                    { ximated as it is not known if rel8,  }
                    { rel16 or rel32 jumps are used   }
-                   max_label:=case_get_max(labels);
-                   labelcnt:=case_count_labels(labels);
+
+                   max_label := case_get_max(labels);
+
                    { can we omit the range check of the jump table ? }
                    getrange(left.resultdef,lv,hv);
                    jumptable_no_range:=(lv=min_label) and (hv=max_label);
@@ -1127,7 +1235,7 @@ implementation
                    if distv>=0 then
                      dist:=distv.uvalue
                    else
-                     dist:=-distv.svalue;
+                     dist:=aword(-distv.svalue);
 
                    { optimize for size ? }
                    if cs_opt_size in current_settings.optimizerswitches  then
@@ -1136,8 +1244,8 @@ implementation
                           (min_label>=int64(low(aint))) and
                           (max_label<=high(aint)) and
                           not((labelcnt<=2) or
-                              ((max_label-min_label)<0) or
-                              ((max_label-min_label)>3*labelcnt)) then
+                              (distv.svalue<0) or
+                              (dist>3*labelcnt)) then
                          begin
                            { if the labels less or more a continuum then }
                            genjumptable(labels,min_label.svalue,max_label.svalue);
@@ -1150,7 +1258,12 @@ implementation
                      end
                    else
                      begin
-                        max_dist:=4*labelcnt;
+                        max_dist:=4*labelcoverage;
+
+                        { Don't allow jump tables to get too large }
+                        if max_dist>4*labelcnt then
+                          max_dist:=min(max_dist,2048);
+
                         if jumptable_no_range then
                           max_linear_list:=4
                         else
@@ -1186,26 +1299,37 @@ implementation
            end;
 
          { generate the instruction blocks }
-         for i:=0 to blocks.count-1 do
+         for i:=0 to blocks.count-1 do with pcaseblock(blocks[i])^ do
            begin
-              current_asmdata.CurrAsmList.concat(cai_align.create(current_settings.alignment.jumpalign));
-              cg.a_label(current_asmdata.CurrAsmList,pcaseblock(blocks[i])^.blocklabel);
-              secondpass(pcaseblock(blocks[i])^.statement);
-              { don't come back to case line }
-              current_filepos:=current_asmdata.CurrAsmList.getlasttaifilepos^;
+             { If the labels are not equal, then the block label has been shortcut to point elsewhere,
+               so there's no need to implement it }
+             if not shortcut then
+               begin
+                 current_asmdata.CurrAsmList.concat(cai_align.create(current_settings.alignment.jumpalign));
+                 cg.a_label(current_asmdata.CurrAsmList,blocklabel);
+                 secondpass(statement);
+                 { don't come back to case line }
+                 current_filepos:=current_asmdata.CurrAsmList.getlasttaifilepos^;
 {$ifdef OLDREGVARS}
-              load_all_regvars(current_asmdata.CurrAsmList);
+                 load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
-              hlcg.a_jmp_always(current_asmdata.CurrAsmList,endlabel);
+                 hlcg.a_jmp_always(current_asmdata.CurrAsmList,endlabel);
+               end;
            end;
-         current_asmdata.CurrAsmList.concat(cai_align.create(current_settings.alignment.jumpalign));
+
          { ...and the else block }
-         hlcg.a_label(current_asmdata.CurrAsmList,elselabel);
-         if assigned(elseblock) then
+         if not ShortcutElse then
            begin
-              secondpass(elseblock);
+             current_asmdata.CurrAsmList.concat(cai_align.create(current_settings.alignment.jumpalign));
+             hlcg.a_label(current_asmdata.CurrAsmList,elselabel);
+           end;
+
+         if Assigned(elseblock) then
+           begin
+
+             secondpass(elseblock);
 {$ifdef OLDREGVARS}
-              load_all_regvars(current_asmdata.CurrAsmList);
+             load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
            end;
 

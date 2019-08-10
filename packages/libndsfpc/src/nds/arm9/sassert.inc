@@ -29,7 +29,7 @@ end;
 
 procedure sassert2(e: boolean; msg: pchar); inline;
 var
-  i: integer;
+  i: integer = 0;
   s: string;
 begin
   if e then 

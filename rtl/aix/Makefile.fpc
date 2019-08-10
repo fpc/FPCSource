@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 extpas macpas 
       baseunix unixutil \
       termio unix initc cmem \
       lnfogdb \
-      sysutils typinfo math fgl classes \
+      sysutils typinfo math sortbase fgl classes \
       charset cpall character unixcp getopts \
       errors \
       # ipc 
@@ -85,8 +85,8 @@ ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 
-# AIX requires libc, no syscalls, no mouse
-override FPCOPT+=-dFPC_USE_LIBC -dNOMOUSE
+# AIX requires libc, no syscalls
+override FPCOPT+=-dFPC_USE_LIBC
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -186,10 +186,10 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) \
-		   $(SYSTEMUNIT)$(PPUEXT) fgl$(PPUEXT)
+		   $(SYSTEMUNIT)$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -300,3 +300,6 @@ initc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 
 console$(PPUEXT) : baseunix$(PPUEXT) termio$(PPUEXT)
         $(COMPILER) $<
+
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/sortbase.pp

@@ -1098,6 +1098,8 @@ procedure TCGMIPS.a_jmp_flags(list: tasmlist; const f: TResFlags; l: tasmlabel);
           end;
           exit;
         end;
+      else
+        ;
     end;
     if f.use_const then
       a_cmp_const_reg_label(list,OS_INT,f.cond,f.value,f.reg1,l)
@@ -1136,6 +1138,8 @@ procedure TCGMIPS.g_flags2reg(list: tasmlist; size: tcgsize; const f: tresflags;
             end;
           exit;
         end;
+      else
+        ;
     end;
     if (f.cond in [OC_EQ,OC_NE]) then
       begin

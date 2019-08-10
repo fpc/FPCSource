@@ -7,7 +7,7 @@ uses
 
 var
 	ip, gateway, mask, dns1, dns2: in_addr;
-
+    keys: integer;
 begin
 
 	consoleDemoInit();  //setup the sub screen for printing
@@ -31,6 +31,10 @@ begin
 	end;
 
 	while true do
+  begin
 		swiWaitForVBlank();
+		if( keys and KEY_START ) <> 0 then 
+      break;
+  end;
 end.
 

@@ -4,7 +4,7 @@
 
 [package]
 name=morphunits
-version=3.1.1
+version=3.3.1
 
 [target]
 units= amigalib agraphics ahi amigados asl clipboard datatypes exec get9 \

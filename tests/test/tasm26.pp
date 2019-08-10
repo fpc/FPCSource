@@ -1,4 +1,5 @@
 { %CPU=i8086,i386,x86_64 }
+{ %skiptarget=android }
 
 {$IFDEF FPC}
 {$MODE TP}

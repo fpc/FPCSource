@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
     P.Author := 'Marcus Sackrow';
     P.License := 'LGPL with modification';
@@ -51,6 +51,7 @@ begin
     T:=P.Targets.AddUnit('cybergraphics.pas');
     T:=P.Targets.AddUnit('locale.pas');
     T:=P.Targets.AddUnit('datatypes.pas');
+    T:=P.Targets.AddUnit('serial.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

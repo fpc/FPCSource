@@ -110,10 +110,11 @@ Function SetThreadManager(Const NewTM : TThreadManager; Var OldTM : TThreadManag
 Function SetThreadManager(Const NewTM : TThreadManager) : Boolean;
 {$ifndef DISABLE_NO_THREAD_MANAGER}
 {$endif DISABLE_NO_THREAD_MANAGER}
-// Needs to be exported, so the manager can call it.
-{$ifndef FPC_SECTION_THREADVARS}
+{ Needs to be exported, so the manager can call it.
+  It needs to be exported even if FPC_SECTION_THREADVARS is set as it relocates also the
+  heap
+}
 procedure InitThreadVars(RelocProc : TRelocateThreadVarHandler);
-{$endif FPC_SECTION_THREADVARS}
 procedure InitThread(stklen:SizeUInt);
 procedure DoneThread;
 

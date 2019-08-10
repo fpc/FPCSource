@@ -359,6 +359,13 @@ begin
       ct_stm32f051r6,
       ct_stm32f051r8,
 
+      ct_stm32f091cc,
+      ct_stm32f091cb,
+      ct_stm32f091rc,
+      ct_stm32f091rb,
+      ct_stm32f091vc,
+      ct_stm32f091vb,
+
       ct_stm32f100x4,
       ct_stm32f100x6,
       ct_stm32f100x8,
@@ -672,6 +679,7 @@ begin
       Add('    *(.strings)');
       Add('    *(.rodata .rodata.*)');
       Add('    *(.comment)');
+      Add('    . = ALIGN(4);');
       Add('    _etext = .;');
       if embedded_controllers[current_settings.controllertype].flashsize<>0 then
         begin
@@ -1114,9 +1122,6 @@ begin
               Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
             end;
         end
-    else
-      if not (cs_link_nolink in current_settings.globalswitches) then
-      	 internalerror(200902011);
   end;
 
   with linkres do
@@ -1303,12 +1308,12 @@ begin
   if success and (target_info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded]) then
     begin
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
-        ChangeFileExt(current_module.exefilename,'.elf')+' '+
-        ChangeFileExt(current_module.exefilename,'.hex'),true,false);
+        maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')))+' '+
+        maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.hex'))),true,false);
       if success then
         success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
-          ChangeFileExt(current_module.exefilename,'.elf')+' '+
-          ChangeFileExt(current_module.exefilename,'.bin'),true,false);
+          maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')))+' '+
+          maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
     end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

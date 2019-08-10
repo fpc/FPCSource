@@ -14,99 +14,6 @@
 
 { Run-Time type information routines }
 
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-  {$define USE_PACKED}
-{$endif}
-{$ifdef VER2_6}
-  {$define USE_PACKED}
-{$endif}
-
-type
-  PRecordElement=^TRecordElement;
-  TRecordElement=
-{$ifdef USE_PACKED}
-  packed
-{$endif USE_PACKED}
-  record
-    {$ifdef VER3_0}
-    TypeInfo: Pointer;
-    {$else}
-    TypeInfo: PPointer;
-    {$endif}
-    {$ifdef VER2_6}
-    Offset: Longint;
-    {$else}
-    Offset: SizeInt;
-    {$endif}
-  end;
-
-  PRecordInfoFull=^TRecordInfoFull;
-  TRecordInfoFull=
-{$ifdef USE_PACKED}
-  packed
-{$endif USE_PACKED}
-  record
-{$ifndef VER3_0}
-    InitTable: Pointer;
-{$endif VER3_0}
-    Size: Longint;
-    Count: Longint;
-    { Elements: array[count] of TRecordElement }
-  end;
-
-  PRecordInfoInit=^TRecordInfoInit;
-{$ifndef VER3_0}
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
-  TRTTIRecVarOp=procedure(ARec: Pointer);
-  TRTTIRecCopyOp=procedure(ASrc, ADest: Pointer);
-  TRTTIRecOpType=(rotAny, rotInitialize, rotFinalize, rotAddRef, rotCopy);
-  PRTTIRecordOpVMT=^TRTTIRecordOpVMT;
-  TRTTIRecordOpVMT=
-{$ifdef USE_PACKED}
-  packed
-{$endif USE_PACKED}
-  record
-    Initialize: TRTTIRecVarOp;
-    Finalize: TRTTIRecVarOp;
-    AddRef: TRTTIRecVarOp;
-    Copy: TRTTIRecCopyOp;
-  end;
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
-
-  TRecordInfoInit=
-{$ifdef USE_PACKED}
-  packed
-{$endif USE_PACKED}
-  record
-    Terminator: Pointer;
-    Size: Longint;
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
-    RecordOp: PRTTIRecordOpVMT;
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
-    Count: Longint;
-    { Elements: array[count] of TRecordElement }
-  end;
-{$else VER3_0}
-  TRecordInfoInit=TRecordInfoFull;
-{$endif VER3_0}
-
-  PArrayInfo=^TArrayInfo;
-  TArrayInfo=
-{$ifdef USE_PACKED}
-  packed
-{$endif USE_PACKED}
-  record
-    Size: SizeInt;
-    ElCount: SizeInt;
-{$ifdef VER3_0}
-    ElInfo: Pointer;
-{$else}
-    ElInfo: PPointer;
-{$endif}
-    DimCount: Byte;
-    Dims:array[0..255] of Pointer;
-  end;
-
 function RTTIArraySize(typeInfo: Pointer): SizeInt;
 begin
 {$ifdef VER3_0}
@@ -132,7 +39,7 @@ begin
   result:=PRecordInfoFull(typeInfo)^.Size;
 end;
 
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
 function RTTIRecordOp(typeInfo: Pointer; var initrtti: Pointer): PRecordInfoInit; inline;
 begin
   { find init table and management operators }
@@ -148,7 +55,7 @@ begin
     result:=aligntoqword(initrtti+2+PByte(initrtti)[1]);
   end
 end;
-{$else FPC_HAS_MANAGEMENT_OPERATORS}
+{$else VER3_0}
 function RTTIRecordRttiInfoToInitInfo(typeInfo: Pointer): Pointer; inline;
 begin
   result:=typeInfo;
@@ -162,17 +69,17 @@ begin
     result:=PRecordInfoFull(typeInfo)^.InitTable;
 {$endif VER3_0}
 end;
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
 
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
 function RTTISizeAndOp(typeInfo: Pointer;
   const expectedManagementOp: TRTTIRecOpType; out hasManagementOp: boolean): SizeInt;
 begin
   hasManagementOp:=false;
-{$else FPC_HAS_MANAGEMENT_OPERATORS}
+{$else VER3_0}
 function RTTISize(typeInfo: Pointer): SizeInt;
 begin
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
   case PTypeKind(typeinfo)^ of
     tkAString,tkWString,tkUString,
     tkInterface,tkDynarray:
@@ -183,7 +90,7 @@ begin
 {$endif FPC_HAS_FEATURE_VARIANTS}
     tkArray:
       result:=RTTIArraySize(typeinfo);
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
     tkObject:
       result:=RTTIRecordSize(typeinfo);
     tkRecord:
@@ -199,10 +106,10 @@ begin
               rotCopy: hasManagementOp:=Assigned(RecordOp^.Copy);
             end;
         end;
-{$else FPC_HAS_MANAGEMENT_OPERATORS}
+{$else VER3_0}
     tkObject,tkRecord:
       result:=RTTIRecordSize(typeinfo);
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
   else
     result:=-1;
   end;
@@ -228,6 +135,15 @@ begin
       Inc(PRecordElement(typeInfo));
     end;
 end;
+
+
+{$ifndef VER3_0}
+function RTTIRecordMopInitTable(ti: Pointer): PRTTIRecordOpOffsetTable;
+begin
+  ti:=aligntoqword(ti+2+PByte(ti)[1]);
+  Result:=PRecordInfoInit(ti)^.InitRecordOpTable;
+end;
+{$endif VER3_0}
 
 
 { if you modify this procedure, fpc_copy must be probably modified as well }
@@ -288,7 +204,7 @@ begin
     tkObject,
 {$endif FPC_HAS_FEATURE_OBJECTS}
     tkRecord:
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
       { if possible try to use more optimal initrtti }
       with RTTIRecordOp(typeinfo, typeinfo)^ do
       begin
@@ -296,12 +212,12 @@ begin
         if Assigned(recordop) and Assigned(recordop^.Initialize) then
           recordop^.Initialize(data);
       end;
-{$else FPC_HAS_MANAGEMENT_OPERATORS}
+{$else VER3_0}
       begin
         typeinfo:=RTTIRecordRttiInfoToInitInfo(typeinfo);
         recordrtti(data,typeinfo,@int_initialize);
       end;
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
     tkVariant:
       variant_init(PVarData(Data)^);
@@ -331,7 +247,7 @@ begin
     tkObject,
 {$endif FPC_HAS_FEATURE_OBJECTS}
     tkRecord:
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
       { if possible try to use more optimal initrtti }
       with RTTIRecordOp(typeinfo, typeinfo)^ do
       begin
@@ -339,12 +255,12 @@ begin
           recordop^.Finalize(data);
         recordrtti(data,typeinfo,@int_finalize);
       end;
-{$else FPC_HAS_MANAGEMENT_OPERATORS}
+{$else VER3_0}
       begin
         typeinfo:=RTTIRecordRttiInfoToInitInfo(typeinfo);
         recordrtti(data,typeinfo,@int_finalize);
       end;
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
     tkInterface:
       Intf_Decr_Ref(PPointer(Data)^);
 {$ifdef FPC_HAS_FEATURE_DYNARRAYS}
@@ -380,7 +296,7 @@ begin
     tkobject,
 {$endif FPC_HAS_FEATURE_OBJECTS}
     tkrecord :
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
       { find init table }
       with RTTIRecordOp(typeinfo, typeinfo)^ do
       begin
@@ -388,12 +304,12 @@ begin
         if Assigned(recordop) and Assigned(recordop^.AddRef) then
           recordop^.AddRef(Data);
       end;
-{$else FPC_HAS_MANAGEMENT_OPERATORS}
+{$else VER3_0}
       begin
         typeinfo:=RTTIRecordRttiInfoToInitInfo(typeinfo);
         recordrtti(data,typeinfo,@int_addref);
       end;
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
 {$ifdef FPC_HAS_FEATURE_DYNARRAYS}
     tkDynArray:
       fpc_dynarray_incr_ref(PPointer(Data)^);
@@ -468,31 +384,29 @@ begin
     tkobject,
 {$endif FPC_HAS_FEATURE_OBJECTS}
     tkrecord:
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
       { find init table }
       with RTTIRecordOp(typeinfo, typeinfo)^ do
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
       begin
-{$ifndef FPC_HAS_MANAGEMENT_OPERATORS}
-        typeInfo:=RTTIRecordRttiInfoToInitInfo(typeInfo);
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
 {$ifdef VER3_0}
+        typeInfo:=RTTIRecordRttiInfoToInitInfo(typeInfo);
         Temp:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
 {$else VER3_0}
         Temp:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
 {$endif VER3_0}
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
         if Assigned(recordop) and Assigned(recordop^.Copy) then
           recordop^.Copy(Src,Dest)
         else
           begin
             Result:=Size;
             Inc(PRecordInfoInit(Temp));
-{$else FPC_HAS_MANAGEMENT_OPERATORS}
+{$else VER3_0}
             Result:=PRecordInfoFull(Temp)^.Size;
             Count:=PRecordInfoFull(Temp)^.Count;
             Inc(PRecordInfoFull(Temp));
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
             expectedoffset:=0;
             { Process elements with rtti }
             for i:=1 to Count Do
@@ -508,9 +422,9 @@ begin
             { elements remaining? }
             if result>expectedoffset then
               move((Src+expectedoffset)^,(Dest+expectedoffset)^,Result-expectedoffset);
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
           end;
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
       end;
 {$ifdef FPC_HAS_FEATURE_DYNARRAYS}
     tkDynArray:
@@ -541,16 +455,16 @@ end;
 procedure fpc_initialize_array(data,typeinfo : pointer;count : SizeInt); [public,alias:'FPC_INITIALIZE_ARRAY']; compilerproc;
   var
     i, size : SizeInt;
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
     hasManagementOp: boolean;
   begin
     size:=RTTISizeAndOp(typeinfo, rotInitialize, hasManagementOp);
     if (size>0) or hasManagementOp then
-{$else FPC_HAS_MANAGEMENT_OPERATORS}
+{$else VER3_0}
   begin
     size:=RTTISize(typeInfo);
     if size>0 then
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
       for i:=0 to count-1 do
         int_initialize(data+size*i,typeinfo);
   end;
@@ -559,16 +473,16 @@ procedure fpc_initialize_array(data,typeinfo : pointer;count : SizeInt); [public
 procedure fpc_finalize_array(data,typeinfo : pointer;count : SizeInt); [Public,Alias:'FPC_FINALIZE_ARRAY'];  compilerproc;
   var
      i, size: SizeInt;
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
     hasManagementOp: boolean;
   begin
     size:=RTTISizeAndOp(typeinfo, rotFinalize, hasManagementOp);
     if (size>0) or hasManagementOp then
-{$else FPC_HAS_MANAGEMENT_OPERATORS}
+{$else VER3_0}
   begin
     size:=RTTISize(typeInfo);
     if size>0 then
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
       for i:=0 to count-1 do
         int_finalize(data+size*i,typeinfo);
   end;
@@ -577,16 +491,16 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count : SizeInt); [Public,A
 procedure fpc_addref_array(data,typeinfo: pointer; count: SizeInt); [public,alias:'FPC_ADDREF_ARRAY']; compilerproc;
   var
     i, size: SizeInt;
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
     hasManagementOp: boolean;
   begin
     size:=RTTISizeAndOp(typeinfo, rotAddRef, hasManagementOp);
     if (size>0) or hasManagementOp then
-{$else FPC_HAS_MANAGEMENT_OPERATORS}
+{$else VER3_0}
   begin
     size:=RTTISize(typeInfo);
     if size>0 then
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
       for i:=0 to count-1 do
         int_addref(data+size*i,typeinfo);
   end;
@@ -611,16 +525,16 @@ procedure FinalizeArray(p, typeInfo: Pointer; count: SizeInt);
 procedure CopyArray(dest, source, typeInfo: Pointer; count: SizeInt);
   var
     i, size: SizeInt;
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
     hasManagementOp: boolean;
   begin
     size:=RTTISizeAndOp(typeinfo, rotCopy, hasManagementOp);
     if (size>0) or hasManagementOp then
-{$else FPC_HAS_MANAGEMENT_OPERATORS}
+{$else VER3_0}
   begin
     size:=RTTISize(typeInfo);
     if size>0 then
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
       for i:=0 to count-1 do
         fpc_Copy_internal(source+size*i, dest+size*i, typeInfo);
   end;

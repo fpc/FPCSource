@@ -47,14 +47,14 @@ interface
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function simplify(forinline : boolean) : tnode;override;
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
           { override the following if you want to implement }
           { parts explicitely in the code generator (CEC)
             Should return nil, if everything will be handled
             in the code generator
           }
           function first_shlshr64bitint: tnode; virtual;
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
        end;
        tshlshrnodeclass = class of tshlshrnode;
 
@@ -124,6 +124,8 @@ implementation
                     result := cordconstnode.create(0,left.resultdef,true);
                   divn:
                     result := left.getcopy;
+                  else
+                    internalerror(2019050518);
                 end;
                 exit;
               end;
@@ -173,6 +175,8 @@ implementation
                   result:=create_simplified_ord_const(lv mod rv,resultdef,forinline);
               divn:
                 result:=create_simplified_ord_const(lv div rv,resultdef,forinline);
+              else
+                internalerror(2019050519);
             end;
          end;
       end;
@@ -183,15 +187,15 @@ implementation
         { not with an ifdef around the call to this routine, because e.g. the
           Java VM has a signed 64 bit division opcode, but not an unsigned
           one }
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu) or defined(cpuhighleveltarget)}
         result:=false;
-{$else cpu64bitalu}
+{$else cpu64bitalu or cpuhighleveltarget}
         result:=
           (left.resultdef.typ=orddef) and
           (right.resultdef.typ=orddef) and
           { include currency as well }
           (is_64bit(left.resultdef) or is_64bit(right.resultdef));
-{$endif cpu64bitaly}
+{$endif cpu64bitalu or cpuhighleveltarget}
       end;
 
 
@@ -227,7 +231,7 @@ implementation
 
          { allow operator overloading }
          t:=self;
-         if isbinaryoverloaded(t) then
+         if isbinaryoverloaded(t,[]) then
            begin
               result:=t;
               exit;
@@ -503,14 +507,14 @@ implementation
         { divide/mod a number by a constant which is a power of 2? }
         if (right.nodetype = ordconstn) and
           isabspowerof2(tordconstnode(right).value,power) and
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu) or defined(cpuhighleveltarget)}
           { for 64 bit, we leave the optimization to the cg }
             (not is_signed(resultdef)) then
-{$else cpu64bitalu}
+{$else cpu64bitalu or cpuhighleveltarget}
            (((nodetype=divn) and is_oversizedord(resultdef)) or
             (nodetype=modn) or
             not is_signed(resultdef)) then
-{$endif cpu64bitalu}
+{$endif cpu64bitalu or cpuhighleveltarget}
           begin
             if nodetype=divn then
               begin
@@ -728,6 +732,8 @@ implementation
                       result:=create_simplified_ord_const(lvalue shr rvalue,resultdef,forinline);
                     shln:
                       result:=create_simplified_ord_const(lvalue shl rvalue,resultdef,forinline);
+                    else
+                      internalerror(2019050517);
                  end;
                end
             else if rvalue=0 then
@@ -787,7 +793,7 @@ implementation
 
          { allow operator overloading }
          t:=self;
-         if isbinaryoverloaded(t) then
+         if isbinaryoverloaded(t,[]) then
            begin
               result:=t;
               exit;
@@ -848,7 +854,7 @@ implementation
       end;
 
 
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
     function tshlshrnode.first_shlshr64bitint: tnode;
       var
         procname: string[31];
@@ -874,7 +880,7 @@ implementation
         right := nil;
         firstpass(result);
       end;
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
 
 
     function tshlshrnode.pass_1 : tnode;
@@ -887,7 +893,7 @@ implementation
          if codegenerror then
            exit;
 
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
          { 64 bit ints have their own shift handling }
          if is_64bit(left.resultdef) then
            begin
@@ -897,7 +903,7 @@ implementation
              regs:=2;
            end
          else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
            begin
              regs:=1
            end;
@@ -1004,7 +1010,7 @@ implementation
            begin
              { allow operator overloading }
              t:=self;
-             if isunaryoverloaded(t) then
+             if isunaryoverloaded(t,[]) then
                begin
                   result:=t;
                   exit;
@@ -1136,7 +1142,7 @@ implementation
           begin
             { allow operator overloading }
             t:=self;
-            if isunaryoverloaded(t) then
+            if isunaryoverloaded(t,[]) then
               begin
                 result:=t;
                 exit;
@@ -1194,11 +1200,13 @@ implementation
          end;
 
         { constant folding }
-        if (left.nodetype=ordconstn) then
+        if (left.nodetype=ordconstn) and
+          (left.resultdef.typ=orddef) then
           begin
              v:=tordconstnode(left).value;
              def:=left.resultdef;
              case torddef(left.resultdef).ordtype of
+               pasbool1,
                pasbool8,
                pasbool16,
                pasbool32,
@@ -1315,7 +1323,7 @@ implementation
            begin
              { allow operator overloading }
              t:=self;
-             if isunaryoverloaded(t) then
+             if isunaryoverloaded(t,[]) then
                begin
                   result:=t;
                   exit;
@@ -1352,14 +1360,14 @@ implementation
              expectloc:=LOC_MMXREGISTER
          else
 {$endif SUPPORT_MMX}
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
            if is_64bit(left.resultdef) then
              begin
                 if (expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
                   expectloc:=LOC_REGISTER;
              end
          else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
            if is_integer(left.resultdef) then
              expectloc:=LOC_REGISTER;
       end;

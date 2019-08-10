@@ -1163,7 +1163,7 @@ type
 
 { TParam }
 
-  TBlobData = AnsiString;  // Delphi defines it as alias to TBytes
+  TBlobData = TBytes;
 
   TParamBinding = array of integer;
 
@@ -1247,7 +1247,7 @@ type
     Procedure SetBlobData(Buffer: Pointer; ASize: Integer);
     Procedure SetData(Buffer: Pointer);
     Property AsBCD : Currency read GetAsCurrency write SetAsBCD;
-    Property AsBlob : TBlobData read GetAsAnsiString write SetAsBlob;
+    Property AsBlob : TBlobData read GetAsBytes write SetAsBlob;
     Property AsBoolean : Boolean read GetAsBoolean write SetAsBoolean;
     Property AsBytes : TBytes read GetAsBytes write SetAsBytes;
     Property AsCurrency : Currency read GetAsCurrency write SetAsCurrency;
@@ -1490,6 +1490,8 @@ type
     Procedure DoInsertAppend(DoAppend : Boolean);
     Procedure DoInternalOpen;
     Function  GetBuffer (Index : longint) : TRecordBuffer;
+    function GetDatasourceCount: Integer;
+    function GetDatasources(aIndex : integer): TDatasource;
     Function  GetField (Index : Longint) : TField;
     Procedure RegisterDataSource(ADataSource : TDataSource);
     Procedure RemoveField (Field : TField);
@@ -1620,6 +1622,8 @@ type
     procedure SetUniDirectional(const Value: Boolean);
     class function FieldDefsClass : TFieldDefsClass; virtual;
     class function FieldsClass : TFieldsClass; virtual;
+    Property MyDataSources[aIndex : integer] : TDatasource Read GetDatasources;
+    Property MyDataSourceCount : Integer Read GetDatasourceCount;
   protected { abstract methods }
     function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
     procedure InternalClose; virtual; abstract;
@@ -1898,6 +1902,8 @@ type
     FOnDataChange: TDataChangeEvent;
     FOnUpdateData: TNotifyEvent;
     procedure DistributeEvent(Event: TDataEvent; Info: Ptrint);
+    function GetLink(AIndex : Integer): TDataLink;
+    function GetLinkCount: Integer;
     procedure RegisterDataLink(DataLink: TDataLink);
     Procedure ProcessEvent(Event : TDataEvent; Info : Ptrint);
     procedure SetDataSet(ADataSet: TDataSet);
@@ -1908,6 +1914,8 @@ type
     Procedure DoStateChange; virtual;
     Procedure DoUpdateData;
     property DataLinks: TList read FDataLinks;
+    Property DataLink[AIndex : Integer] : TDataLink Read GetLink;
+    Property DataLinkCount : Integer Read GetLinkCount;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;

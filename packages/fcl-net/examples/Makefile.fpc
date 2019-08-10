@@ -6,7 +6,7 @@
 packages=fcl-base fcl-xml fcl-net
 
 [target]
-programs=rpcserv rpccli
+programs=rpcserv rpccli isockcli isocksvr
 units=svrclass svrclass_xmlrpc
 
 [compiler]

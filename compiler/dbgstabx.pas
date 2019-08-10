@@ -158,7 +158,7 @@ implementation
           declstabnr:=def_stab_number(def)
         end;
       if (symname='') or
-         not(def.typ in tagtypes) then
+         not(use_tag_prefix(def)) then
         begin
           st:=def_stabstr_evaluate(def,':$1$2=',[stabchar,declstabnr]);
           st:='"'+def_stabstr_evaluate(def,symname,[])+st+ss;
@@ -341,8 +341,12 @@ implementation
                     inc(nolineinfolevel);
                   mark_NoLineInfoEnd:
                     dec(nolineinfolevel);
+                  else
+                    ;
                 end;
               end;
+            else
+              ;
           end;
 
           if (currsectype=sec_code) and

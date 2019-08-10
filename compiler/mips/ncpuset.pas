@@ -33,9 +33,9 @@ uses
 type
   tcpucasenode = class(tcgcasenode)
   protected
-    procedure optimizevalues(var max_linear_list: aint; var max_dist: aword); override;
+    procedure optimizevalues(var max_linear_list: int64; var max_dist: qword); override;
     function has_jumptable: boolean; override;
-    procedure genjumptable(hp: pcaselabel; min_, max_: aint); override;
+    procedure genjumptable(hp: pcaselabel; min_, max_: int64); override;
   end;
 
 
@@ -50,7 +50,7 @@ uses
   cgbase, cgutils, cgobj,
   defutil,procinfo;
 
-procedure tcpucasenode.optimizevalues(var max_linear_list: aint; var max_dist: aword);
+procedure tcpucasenode.optimizevalues(var max_linear_list: int64; var max_dist: qword);
 begin
   { give the jump table a higher priority }
   max_dist := (max_dist * 3) div 2;
@@ -63,7 +63,7 @@ begin
 end;
 
 
-procedure tcpucasenode.genjumptable(hp: pcaselabel; min_, max_: aint);
+procedure tcpucasenode.genjumptable(hp: pcaselabel; min_, max_: int64);
 var
   table: tasmlabel;
   last:  TConstExprInt;
@@ -75,15 +75,23 @@ var
 
   procedure genitem(t: pcaselabel);
   var
-    i: aint;
+    i: TConstExprInt;
   begin
     if assigned(t^.less) then
       genitem(t^.less);
     { fill possible hole }
-    for i := last.svalue+1 to t^._low.svalue-1 do
-      jumpSegment.concat(Tai_const.Create_type_sym(labeltyp,elselabel));
-    for i := t^._low.svalue to t^._high.svalue do
-      jumpSegment.concat(Tai_const.Create_type_sym(labeltyp,blocklabel(t^.blockid)));
+    i:=last+1;
+    while i<=t^._low-1 do
+      begin
+        jumpSegment.concat(Tai_const.Create_type_sym(labeltyp,elselabel));
+        i:=i+1;
+      end;
+    i:= t^._low;
+    while i<=t^._high do
+      begin
+        jumpSegment.concat(Tai_const.Create_type_sym(labeltyp,blocklabel(t^.blockid)));
+        i:=i+1;
+      end;
     last := t^._high;
     if assigned(t^.greater) then
       genitem(t^.greater);

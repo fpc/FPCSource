@@ -58,8 +58,8 @@ var
     function repeatCount: single; message 'repeatCount';
     procedure setRepeatDuration (newValue: CFTimeInterval); message 'setRepeatDuration:';
     function repeatDuration: CFTimeInterval; message 'repeatDuration';
-    procedure setAutoreverses (newValue: Boolean); message 'setAutoreverses:';
-    function autoreverses: Boolean; message 'autoreverses';
+    procedure setAutoreverses (newValue: BOOL); message 'setAutoreverses:';
+    function autoreverses: BOOL; message 'autoreverses';
     procedure setFillMode (newValue: NSString); message 'setFillMode:';
     function fillMode: NSString; message 'fillMode';
   end;

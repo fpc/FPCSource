@@ -200,6 +200,8 @@ type
     Procedure TestTokenSeriesComments;
     Procedure TestTokenSeriesNoComments;
     Procedure TestDefine0;
+    procedure TestDefine0Spaces;
+    procedure TestDefine0Spaces2;
     procedure TestDefine01;
     Procedure TestDefine1;
     Procedure TestDefine2;
@@ -242,6 +244,7 @@ type
     procedure TestIfError;
     Procedure TestModeSwitch;
     Procedure TestOperatorIdentifier;
+    Procedure TestUTF8BOM;
   end;
 
 implementation
@@ -1371,15 +1374,25 @@ end;
 procedure TTestScanner.TestDefine0;
 begin
   TestTokens([tkComment],'{$DEFINE NEVER}');
-  If FSCanner.Defines.IndexOf('NEVER')=-1 then
-    Fail('Define not defined');
+  AssertTrue('Define not defined', FSCanner.Defines.IndexOf('NEVER')<>-1);
+end;
+
+procedure TTestScanner.TestDefine0Spaces;
+begin
+  TestTokens([tkComment],'{$DEFINE  NEVER}');
+  AssertTrue('Define not defined',FSCanner.Defines.IndexOf('NEVER')<>-1);
+end;
+
+procedure TTestScanner.TestDefine0Spaces2;
+begin
+  TestTokens([tkComment],'{$DEFINE NEVER }');
+  AssertTrue('Define not defined',FSCanner.Defines.IndexOf('NEVER')<>-1);
 end;
 
 procedure TTestScanner.TestDefine01;
 begin
   TestTokens([tkComment],'(*$DEFINE NEVER*)');
-  If FSCanner.Defines.IndexOf('NEVER')=-1 then
-    Fail('Define not defined');
+  AssertTrue('Define not defined',FSCanner.Defines.IndexOf('NEVER')<>-1);
 end;
 
 procedure TTestScanner.TestDefine1;
@@ -1391,7 +1404,7 @@ procedure TTestScanner.TestDefine2;
 
 begin
   FSCanner.Defines.Add('ALWAYS');
-  TestTokens([tkComment,tkWhitespace,tkOf,tkWhitespace,tkcomment],'{$IFDEF ALWAYS} of {$ENDIF}');
+  TestTokens([tkComment,tkWhitespace,tkOf,tkWhitespace,tkcomment],'{$IFDEF ALWAYS comment} of {$ENDIF}');
 end;
 
 procedure TTestScanner.TestDefine21;
@@ -1730,6 +1743,12 @@ procedure TTestScanner.TestOperatorIdentifier;
 begin
   Scanner.SetNonToken(tkoperator);
   TestToken(tkidentifier,'operator',True);
+end;
+
+procedure TTestScanner.TestUTF8BOM;
+
+begin
+  DoTestToken(tkLineEnding,#$EF+#$BB+#$BF);
 end;
 
 initialization

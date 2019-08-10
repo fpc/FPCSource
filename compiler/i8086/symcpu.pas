@@ -110,7 +110,7 @@ type
 
   tcpuprocvardef = class(ti86procvardef)
     constructor create(level:byte);override;
-    function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp):tstoreddef;override;
+    function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string):tstoreddef;override;
     function address_type:tdef;override;
     function ofs_address_type:tdef;override;
     function size:asizeint;override;
@@ -133,7 +133,7 @@ type
     procedure Setinterfacedef(AValue: boolean);override;
    public
     constructor create(level:byte;doregister:boolean);override;
-    function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp):tstoreddef;override;
+    function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string):tstoreddef;override;
     function address_type:tdef;override;
     function ofs_address_type:tdef;override;
     function size:asizeint;override;
@@ -334,7 +334,7 @@ implementation
     end;
 
 
-  function tcpuprocdef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp):tstoreddef;
+  function tcpuprocdef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string):tstoreddef;
     begin
       result:=inherited;
       if is_far then
@@ -428,7 +428,7 @@ implementation
     end;
 
 
-  function tcpuprocvardef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp):tstoreddef;
+  function tcpuprocvardef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string):tstoreddef;
     begin
       result:=inherited;
       if is_far then
@@ -541,8 +541,6 @@ implementation
           x86pt_near_fs,
           x86pt_near_gs:
             result:=s16inttype;
-          else
-            internalerror(2016100403);
         end;
       end;
 
@@ -561,8 +559,6 @@ implementation
           x86pt_near_fs,
           x86pt_near_gs:
             result:=u16inttype;
-          else
-            internalerror(2016100403);
         end;
       end;
 
@@ -582,8 +578,6 @@ implementation
           x86pt_near_fs,
           x86pt_near_gs:
             result:=s16inttype;
-          else
-            internalerror(2016100402);
         end;
       end;
 
@@ -602,8 +596,6 @@ implementation
           x86pt_near_fs,
           x86pt_near_gs:
             result:=s16inttype;
-          else
-            internalerror(2016100401);
         end;
       end;
 

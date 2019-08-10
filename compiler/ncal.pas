@@ -56,7 +56,8 @@ interface
          cnf_call_never_returns, { information for the dfa that a subroutine never returns }
          cnf_call_self_node_done,{ the call_self_node has been generated if necessary
                                    (to prevent it from potentially happening again in a wrong context in case of constant propagation or so) }
-         cnf_ignore_visibility   { internally generated call that should ignore visibility checks }
+         cnf_ignore_visibility,  { internally generated call that should ignore visibility checks }
+         cnf_check_fpu_exceptions { after the call fpu exceptions shall be checked }
        );
        tcallnodeflags = set of tcallnodeflag;
 
@@ -107,6 +108,7 @@ interface
             it's not strictly necessary) for speed and code size reasons.
             Returns true if the temp creation has been handled, false otherwise
           }
+          function paraneedsinlinetemp(para: tcallparanode; const pushconstaddr, complexpara: boolean): boolean; virtual;
           function maybecreateinlineparatemp(para: tcallparanode; out complexpara: boolean): boolean;
           procedure createinlineparas;
           procedure wrapcomplexinlinepara(para: tcallparanode); virtual;
@@ -290,7 +292,7 @@ interface
          dct_propput
        );
 
-    function reverseparameters(p: tcallparanode): tcallparanode;
+    procedure reverseparameters(var p: tcallparanode);
     function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;
       dispid : longint;resultdef : tdef) : tnode;
 
@@ -331,21 +333,23 @@ implementation
                              HELPERS
  ****************************************************************************}
 
-    function reverseparameters(p: tcallparanode): tcallparanode;
+    procedure reverseparameters(var p: tcallparanode);
       var
+        tmpp,
         hp1, hp2: tcallparanode;
       begin
         hp1:=nil;
-        while assigned(p) do
+        tmpp:=p;
+        while assigned(tmpp) do
           begin
              { pull out }
-             hp2:=p;
-             p:=tcallparanode(p.right);
+             hp2:=tmpp;
+             tmpp:=tcallparanode(tmpp.right);
              { pull in }
              hp2.right:=hp1;
              hp1:=hp2;
           end;
-        reverseparameters:=hp1;
+        p:=hp1;
       end;
 
     function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;
@@ -767,7 +771,7 @@ implementation
                         as a dynamic array here }
                      { first restore the actual resultdef of left }
                      temparraydef:=left.resultdef;
-                     left.resultdef:=parasym.vardef;
+                     left.resultdef:=resultdef;
                      { get its address }
                      lefttemp:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
                      addstatement(initstat,lefttemp);
@@ -778,21 +782,19 @@ implementation
                          caddrnode.create_internal(left)
                        )
                      );
-                     { restore the resultdef }
-                     left.resultdef:=temparraydef;
                      { now treat that address (correctly) as the original
                        dynamic array to get its start and length }
                      arraybegin:=cvecnode.create(
                        ctypeconvnode.create_explicit(ctemprefnode.create(lefttemp),
-                         left.resultdef),
+                         temparraydef),
                        genintconstnode(0)
                      );
                      arraysize:=caddnode.create(muln,
                        geninlinenode(in_length_x,false,
                          ctypeconvnode.create_explicit(ctemprefnode.create(lefttemp),
-                           left.resultdef)
+                           temparraydef)
                        ),
-                       genintconstnode(tarraydef(left.resultdef).elementdef.size)
+                       genintconstnode(tarraydef(temparraydef).elementdef.size)
                      );
                    end
                  else
@@ -1084,19 +1086,6 @@ implementation
                       aktcallnode.procdefinition.proccalloption) then
           copy_value_by_ref_para;
 
-        { does it need to load RTTI? }
-        if assigned(parasym) and (parasym.varspez=vs_out) and
-           (cs_create_pic in current_settings.moduleswitches) and
-           (
-             is_rtti_managed_type(left.resultdef) or
-             (
-               is_open_array(resultdef) and
-               is_managed_type(tarraydef(resultdef).elementdef)
-             )
-           ) and
-           not(target_info.system in systems_garbage_collected_managed_types) then
-          include(current_procinfo.flags,pi_needs_got);
-
         if assigned(fparainit) then
           firstpass(fparainit);
         firstpass(left);
@@ -1332,10 +1321,14 @@ implementation
 
                      case parasym.varspez of
                        vs_var,
-                       vs_constref,
                        vs_out :
                          begin
                            if not valid_for_formal_var(left,true) then
+                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
+                         end;
+                       vs_constref:
+                         begin
+                           if not valid_for_formal_constref(left,true) then
                             CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
                          end;
                        vs_const :
@@ -1349,6 +1342,8 @@ implementation
                                typecheckpass(left);
                              end;
                          end;
+                       else
+                         ;
                      end;
                    end
                  else
@@ -1626,6 +1621,7 @@ implementation
          call_self_node.free;
          call_vmt_node.free;
          vmt_entry.free;
+         spezcontext.free;
 {$ifndef symansistr}
          stringdispose(fforcedprocname);
 {$endif symansistr}
@@ -1901,18 +1897,27 @@ implementation
       var
         lastinitstatement : tstatementnode;
       begin
+        if not assigned(n) then
+          exit;
         if not assigned(callinitblock) then
-          callinitblock:=internalstatements(lastinitstatement)
-        else
-          lastinitstatement:=laststatement(callinitblock);
+          begin
+            callinitblock:=internalstatements(lastinitstatement);
+            lastinitstatement.left.free;
+            lastinitstatement.left:=n;
+            firstpass(tnode(callinitblock));
+            exit;
+          end;
+        lastinitstatement:=laststatement(callinitblock);
         { all these nodes must be immediately typechecked, because this routine }
         { can be called from pass_1 (i.e., after typecheck has already run) and }
         { moreover, the entire blocks themselves are also only typechecked in   }
         { pass_1, while the the typeinfo is already required after the          }
         { typecheck pass for simplify purposes (not yet perfect, because the    }
         { statementnodes themselves are not typechecked this way)               }
-        firstpass(n);
         addstatement(lastinitstatement,n);
+        firstpass(tnode(lastinitstatement));
+        { Update expectloc for callinitblock }
+        callinitblock.expectloc:=lastinitstatement.expectloc;
       end;
 
 
@@ -1920,13 +1925,22 @@ implementation
       var
         lastdonestatement : tstatementnode;
       begin
+        if not assigned(n) then
+          exit;
         if not assigned(callcleanupblock) then
-          callcleanupblock:=internalstatements(lastdonestatement)
-        else
-          lastdonestatement:=laststatement(callcleanupblock);
+          begin
+            callcleanupblock:=internalstatements(lastdonestatement);
+            lastdonestatement.left.free;
+            lastdonestatement.left:=n;
+            firstpass(tnode(callcleanupblock));
+            exit;
+          end;
+        lastdonestatement:=laststatement(callcleanupblock);
         { see comments in add_init_statement }
-        firstpass(n);
         addstatement(lastdonestatement,n);
+        firstpass(tnode(lastdonestatement));
+        { Update expectloc for callcleanupblock }
+        callcleanupblock.expectloc:=lastdonestatement.expectloc;
       end;
 
 
@@ -1980,6 +1994,8 @@ implementation
               result:=(tabstractvarsym(tloadnode(hp).symtableentry).varregable in [vr_none,vr_addr]);
             temprefn:
               result:=not(ti_may_be_in_reg in ttemprefnode(hp).tempflags);
+            else
+              ;
           end;
       end;
 
@@ -3176,12 +3192,12 @@ implementation
                 else
                  if vo_is_range_check in para.parasym.varoptions then
                    begin
-                     para.left:=cordconstnode.create(Ord(cs_check_range in current_settings.localswitches),pasbool8type,false);
+                     para.left:=cordconstnode.create(Ord(cs_check_range in current_settings.localswitches),pasbool1type,false);
                    end
                 else
                  if vo_is_overflow_check in para.parasym.varoptions then
                    begin
-                     para.left:=cordconstnode.create(Ord(cs_check_overflow in current_settings.localswitches),pasbool8type,false);
+                     para.left:=cordconstnode.create(Ord(cs_check_overflow in current_settings.localswitches),pasbool1type,false);
                    end
                 else
                   if vo_is_msgsel in para.parasym.varoptions then
@@ -4082,6 +4098,8 @@ implementation
                         LOC_REGISTER,
                         LOC_FPUREGISTER :
                           break;
+                        else
+                          ;
                       end;
                     end;
                   LOC_MMREGISTER,
@@ -4092,6 +4110,8 @@ implementation
                          (node_complexity(hpcurr)>node_complexity(hp)) then
                         break;
                     end;
+                  else
+                    ;
                 end;
                 hpprev:=hp;
                 hp:=tcallparanode(hp.right);
@@ -4160,8 +4180,8 @@ implementation
            {  Prevent too deep inlining recursion and code bloat by inlining
 
               The actual formuala is
-                                inlinelevel+1  /-------
-                  node count <  -------------\/  10000
+                                inlinelevel/3+1    /-------
+                  node count <  -----------------\/  10000
 
               This allows exponential grow of the code only to a certain limit.
 
@@ -4172,7 +4192,7 @@ implementation
                  if the outer nodes are in a seldomly used code path
                - The code avoids to use functions from the math unit
            }
-           (node_count(tprocdef(procdefinition).inlininginfo^.code)<round(exp((1.0/(inlinelevel+1))*ln(10000)))) then
+           (node_count(tprocdef(procdefinition).inlininginfo^.code)<round(exp((1.0/(inlinelevel/3.0+1))*ln(10000)))) then
           begin
             include(callnodeflags,cnf_do_inline);
             { Check if we can inline the procedure when it references proc/var that
@@ -4361,18 +4381,17 @@ implementation
               ([cnf_member_call,cnf_inherited] * callnodeflags <> []) then
              current_procinfo.ConstructorCallingConstructor:=true;
 
-           { object check helper will load VMT -> needs GOT }
-           if (cs_check_object in current_settings.localswitches) and
-              (cs_create_pic in current_settings.moduleswitches) then
-             include(current_procinfo.flags,pi_needs_got);
-
            { Continue with checking a normal call or generate the inlined code }
            if cnf_do_inline in callnodeflags then
              result:=pass1_inline
            else
              begin
-               if (po_inline in procdefinition.procoptions) and not(po_compilerproc in procdefinition.procoptions) then
-                 Message1(cg_n_no_inline,tprocdef(procdefinition).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker]));
+               if (po_inline in procdefinition.procoptions) and not(po_compilerproc in procdefinition.procoptions) and
+                  (procdefinition.typ=procdef) and
+                  not (pio_inline_not_possible in tprocdef(procdefinition).implprocoptions) then
+                 begin
+                   Message1(cg_n_no_inline,tprocdef(procdefinition).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker]));
+                 end;
                mark_unregable_parameters;
                result:=pass1_normal;
              end;
@@ -4391,7 +4410,7 @@ implementation
 
          { calculate the parameter size needed for this call include varargs if they are available }
          if assigned(varargsparas) then
-           pushedparasize:=paramanager.create_varargs_paraloc_info(procdefinition,varargsparas)
+           pushedparasize:=paramanager.create_varargs_paraloc_info(procdefinition,callerside,varargsparas)
          else
            pushedparasize:=procdefinition.callerargareasize;
 
@@ -4539,6 +4558,8 @@ implementation
                   typecheckpass(n);
                   result := fen_true;
                 end;
+              else
+                ;
             end;
           end;
       end;
@@ -4584,18 +4605,118 @@ implementation
         { this is just to play it safe, there are more safe situations }
         if (n.nodetype = derefn) or
            ((n.nodetype = loadn) and
+            { can be nil in case of internally generated labels like $raiseaddr }
+            assigned(tloadnode(n).symtable) and
             { globals and fields of (possibly global) objects could always be changed in the callee }
             ((tloadnode(n).symtable.symtabletype in [globalsymtable,ObjectSymtable]) or
             { statics can only be modified by functions in the same unit }
              ((tloadnode(n).symtable.symtabletype = staticsymtable) and
               (tloadnode(n).symtable = TSymtable(arg))) or
              { if the addr of the symbol is taken somewhere, it can be also non-local }
-             (tabstractvarsym(tloadnode(n).symtableentry).addr_taken)
+             ((tloadnode(n).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) and
+	      (tabstractvarsym(tloadnode(n).symtableentry).addr_taken))
             )
            ) or
            ((n.nodetype = subscriptn) and
             (tsubscriptnode(n).vs.owner.symtabletype = ObjectSymtable)) then
           result := fen_norecurse_true;
+      end;
+
+
+    function tcallnode.paraneedsinlinetemp(para: tcallparanode; const pushconstaddr, complexpara: boolean): boolean;
+      begin
+        { We don't need temps for parameters that are already temps, except if
+          the passed temp could be put in a regvar while the parameter inside
+          the routine cannot be (e.g., because its address is taken in the
+          routine), or if the temp is a const and the parameter gets modified }
+        if (para.left.nodetype=temprefn) and
+           (not(ti_may_be_in_reg in ttemprefnode(para.left).tempflags) or
+            not(tparavarsym(para.parasym).varregable in [vr_none,vr_addr])) and
+           (not(ti_const in ttemprefnode(para.left).tempflags) or
+            (tparavarsym(para.parasym).varstate in [vs_initialised,vs_declared,vs_read])) then
+          exit(false);
+
+        { We need a temp if the passed value will not be in memory, while
+          the parameter inside the routine must be in memory }
+        if (tparavarsym(para.parasym).varregable in [vr_none,vr_addr]) and
+           not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+          exit(true);
+
+        { We cannot create a formaldef temp and assign something to it }
+        if para.parasym.vardef.typ=formaldef then
+          exit(false);
+
+        { We try to handle complex expressions later by taking their address
+          and storing this address in a temp (which is then dereferenced when
+          the value is used; that doesn't work if we cannot take the address
+          of the expression though, in which case we store the result of the
+          expression in a temp }
+        if (complexpara and not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) or
+           (complexpara and
+            (not valid_for_addr(para.left,false) or
+             (para.left.nodetype=calln) or
+             is_constnode(para.left)))) then
+          exit(true);
+
+        { Normally, we do not need to create a temp for value parameters that
+          are not modified in the inlined function, and neither for const
+          parameters that are passed by value.
+
+          However, if we pass a global variable, an object field, a variable
+          whose address has been taken, or an expression containing a pointer
+          dereference as parameter, this value could be modified in other ways
+          as well (even inside the callee) and in such cases we still create a
+          temp to be on the safe side.
+
+          We *must not* create a temp for global variables passed by
+          reference to a const parameter, because if not inlined then any
+          changes to the original value will also be visible in the callee
+          (although this is technically undefined behaviour, since with
+           "const" the programmer tells the compiler this argument will not
+           change). }
+        if (((para.parasym.varspez=vs_value) and
+             (para.parasym.varstate in [vs_initialised,vs_declared,vs_read])) or
+            ((para.parasym.varspez=vs_const) and
+             not pushconstaddr)) and
+           foreachnodestatic(para.left,@nonlocalvars,pointer(symtableproc)) then
+          exit(true);
+
+        { Value parameters of which we know they are modified by definition
+          have to be copied to a temp }
+        if (para.parasym.varspez=vs_value) and
+           not(para.parasym.varstate in [vs_initialised,vs_declared,vs_read]) then
+          exit(true);
+
+        { the compiler expects that it can take the address of parameters passed by reference in
+          the case of const so we can't replace the node simply by a constant node
+          When playing with this code, ensure that
+          function f(const a,b  : longint) : longint;inline;
+            begin
+              result:=a*b;
+            end;
+
+          [...]
+          ...:=f(10,20));
+          [...]
+
+          is still folded. (FK)
+          }
+        if (para.parasym.varspez=vs_const) and
+           { const para's can get vs_readwritten if their address is taken ->
+             in case they are not passed by reference, to keep the same
+             behaviour as without inlining we have to make a copy in case the
+             originally passed parameter value gets changed inside the callee
+           }
+           (not pushconstaddr and
+            (para.parasym.varstate=vs_readwritten)
+           ) or
+           { call-by-reference const's may need to be passed by reference to
+             function called in the inlined code }
+           (pushconstaddr and
+            not valid_for_addr(para.left,false)) then
+          exit(true);
+
+        result:=false;
       end;
 
 
@@ -4605,92 +4726,6 @@ implementation
         realtarget: tnode;
         paracomplexity: longint;
         pushconstaddr: boolean;
-
-      function needtemp: boolean;
-        begin
-          { We need a temp if the passed value will not be in memory, while
-            the parameter inside the routine must be in memory }
-          if (tparavarsym(para.parasym).varregable in [vr_none,vr_addr]) and
-             not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-            exit(true);
-
-          { We cannot create a formaldef temp and assign something to it }
-          if para.parasym.vardef.typ=formaldef then
-            exit(false);
-
-          { We try to handle complex expressions later by taking their address
-            and storing this address in a temp (which is then dereferenced when
-            the value is used; that doesn't work if we cannot take the address
-            of the expression though, in which case we store the result of the
-            expression in a temp }
-          if (complexpara and not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) or
-             (complexpara and
-              (not valid_for_addr(para.left,false) or
-               (para.left.nodetype=calln) or
-               is_constnode(para.left)))) then
-            exit(true);
-
-          { Normally, we do not need to create a temp for value parameters that
-            are not modified in the inlined function, and neither for const
-            parameters that are passed by value.
-
-            However, if we pass a global variable, an object field, a variable
-            whose address has been taken, or an expression containing a pointer
-            dereference as parameter, this value could be modified in other ways
-            as well (even inside the callee) and in such cases we still create a
-            temp to be on the safe side.
-
-            We *must not* create a temp for global variables passed by
-            reference to a const parameter, because if not inlined then any
-            changes to the original value will also be visible in the callee
-            (although this is technically undefined behaviour, since with
-             "const" the programmer tells the compiler this argument will not
-             change). }
-          if (((para.parasym.varspez=vs_value) and
-               (para.parasym.varstate in [vs_initialised,vs_declared,vs_read])) or
-              ((para.parasym.varspez=vs_const) and
-               not pushconstaddr)) and
-             foreachnodestatic(para.left,@nonlocalvars,pointer(symtableproc)) then
-            exit(true);
-
-          { Value parameters of which we know they are modified by definition
-            have to be copied to a temp }
-          if (para.parasym.varspez=vs_value) and
-             not(para.parasym.varstate in [vs_initialised,vs_declared,vs_read]) then
-            exit(true);
-
-          { the compiler expects that it can take the address of parameters passed by reference in
-            the case of const so we can't replace the node simply by a constant node
-            When playing with this code, ensure that
-            function f(const a,b  : longint) : longint;inline;
-              begin
-                result:=a*b;
-              end;
-
-            [...]
-            ...:=f(10,20));
-            [...]
-
-            is still folded. (FK)
-            }
-          if (para.parasym.varspez=vs_const) and
-             { const para's can get vs_readwritten if their address is taken ->
-               in case they are not passed by reference, to keep the same
-               behaviour as without inlining we have to make a copy in case the
-               originally passed parameter value gets changed inside the callee
-             }
-             (not pushconstaddr and
-              (para.parasym.varstate=vs_readwritten)
-             ) or
-             { call-by-reference const's may need to be passed by reference to
-               function called in the inlined code }
-             (pushconstaddr and
-              not valid_for_addr(para.left,false)) then
-            exit(true);
-
-          result:=false;
-        end;
-
       begin
         result:=false;
         { determine how a parameter is passed to the inlined body
@@ -4734,21 +4769,10 @@ implementation
            )
           );
 
-        { We don't need temps for parameters that are already temps, except if
-          the passed temp could be put in a regvar while the parameter inside
-          the routine cannot be (e.g., because its address is taken in the
-          routine), or if the temp is a const and the parameter gets modified }
-        if (para.left.nodetype=temprefn) and
-           (not(ti_may_be_in_reg in ttemprefnode(para.left).tempflags) or
-            not(tparavarsym(para.parasym).varregable in [vr_none,vr_addr])) and
-           (not(ti_const in ttemprefnode(para.left).tempflags) or
-            (tparavarsym(para.parasym).varstate in [vs_initialised,vs_declared,vs_read])) then
-          exit;
-
         { check if we have to create a temp, assign the parameter's
           contents to that temp and then substitute the parameter
           with the temp everywhere in the function                  }
-        if needtemp then
+        if paraneedsinlinetemp(para,pushconstaddr,complexpara) then
           begin
             tempnode:=ctempcreatenode.create(para.parasym.vardef,para.parasym.vardef.size,
               tt_persistent,tparavarsym(para.parasym).is_regvar(false));
@@ -4827,11 +4851,16 @@ implementation
         ptrtype: tdef;
         tempnode: ttempcreatenode;
         paraaddr: taddrnode;
+        isfuncretnode : boolean;
       begin
         ptrtype:=cpointerdef.getreusable(para.left.resultdef);
         tempnode:=ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,true);
         addstatement(inlineinitstatement,tempnode);
-        addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
+        isfuncretnode:=nf_is_funcret in para.left.flags;
+        if isfuncretnode then
+          addstatement(inlinecleanupstatement,ctempdeletenode.create_normal_temp(tempnode))
+        else
+          addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
         { inherit addr_taken flag }
         if (tabstractvarsym(para.parasym).addr_taken) then
           tempnode.includetempflag(ti_addr_taken);
@@ -4843,6 +4872,8 @@ implementation
         addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
           paraaddr));
         para.left:=cderefnode.create(ctemprefnode.create(tempnode));
+        if isfuncretnode then
+          Include(para.left.flags,nf_is_funcret);
       end;
 
 

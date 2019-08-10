@@ -19,7 +19,7 @@
 {$define NSKEYVALUEBINDING_PAS_F}
 
 { Functions }
-function NSIsControllerMarker(object_: id): Boolean; cdecl; external;
+function NSIsControllerMarker(object_: id): BOOL; cdecl; external;
 
 {$endif}
 {$endif}
@@ -181,7 +181,7 @@ var
 { NSEditorCategory }
   NSEditorCategory = objccategory external (NSObject)
     procedure discardEditing; message 'discardEditing';
-    function commitEditing: Boolean; message 'commitEditing';
+    function commitEditing: BOOL; message 'commitEditing';
     procedure commitEditingWithDelegate_didCommitSelector_contextInfo(delegate: id; didCommitSelector: SEL; contextInfo: Pointer); message 'commitEditingWithDelegate:didCommitSelector:contextInfo:';
   end;
 

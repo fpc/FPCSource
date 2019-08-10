@@ -98,7 +98,7 @@ fi
 
 # Write fppkg.cfg
 echo Writing sample configuration file to $fppkgfile
-${FPCMKCFGBIN} -p -3 -d "GlobalPrefix=$FPCGLOBALPREFIX" -d "GlobalPath=$FPCGLOBALPATH" $compilerconfigdir -o $fppkgfile
+${FPCMKCFGBIN} -p -3 -d "GlobalPrefix=$FPCGLOBALPREFIX" -d "GlobalPath=$FPCGLOBALPATH/{CompilerVersion}/" $compilerconfigdir -o $fppkgfile
 
 # Write default
 echo Writing sample configuration file to $defaultfile

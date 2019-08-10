@@ -106,8 +106,8 @@ type
   public
     function datePickerStyle: NSDatePickerStyle; message 'datePickerStyle';
     procedure setDatePickerStyle(newStyle: NSDatePickerStyle); message 'setDatePickerStyle:';
-    function drawsBackground: Boolean; message 'drawsBackground';
-    procedure setDrawsBackground(flag: Boolean); message 'setDrawsBackground:';
+    function drawsBackground: BOOL; message 'drawsBackground';
+    procedure setDrawsBackground(flag: BOOL); message 'setDrawsBackground:';
     function backgroundColor: NSColor; message 'backgroundColor';
     procedure setBackgroundColor(color: NSColor); message 'setBackgroundColor:';
     function textColor: NSColor; message 'textColor';

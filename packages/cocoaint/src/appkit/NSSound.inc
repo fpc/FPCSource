@@ -54,20 +54,20 @@ var
     
   public
     class function soundNamed(name_: NSString): id; message 'soundNamed:';
-    function initWithContentsOfURL_byReference(url: NSURL; byRef: Boolean): id; message 'initWithContentsOfURL:byReference:';
-    function initWithContentsOfFile_byReference(path: NSString; byRef: Boolean): id; message 'initWithContentsOfFile:byReference:';
+    function initWithContentsOfURL_byReference(url: NSURL; byRef: BOOL): id; message 'initWithContentsOfURL:byReference:';
+    function initWithContentsOfFile_byReference(path: NSString; byRef: BOOL): id; message 'initWithContentsOfFile:byReference:';
     function initWithData(data: NSData): id; message 'initWithData:';
-    function setName(string_: NSString): Boolean; message 'setName:';
+    function setName(string_: NSString): BOOL; message 'setName:';
     function name: NSString; message 'name';
-    class function canInitWithPasteboard(pasteboard: NSPasteboard): Boolean; message 'canInitWithPasteboard:';
+    class function canInitWithPasteboard(pasteboard: NSPasteboard): BOOL; message 'canInitWithPasteboard:';
     class function soundUnfilteredTypes: NSArray; message 'soundUnfilteredTypes';
     function initWithPasteboard(pasteboard: NSPasteboard): id; message 'initWithPasteboard:';
     procedure writeToPasteboard(pasteboard: NSPasteboard); message 'writeToPasteboard:';
-    function play: Boolean; message 'play';
-    function pause: Boolean; message 'pause';
-    function resume: Boolean; message 'resume';
-    function stop: Boolean; message 'stop';
-    function isPlaying: Boolean; message 'isPlaying';
+    function play: BOOL; message 'play';
+    function pause: BOOL; message 'pause';
+    function resume: BOOL; message 'resume';
+    function stop: BOOL; message 'stop';
+    function isPlaying: BOOL; message 'isPlaying';
     function delegate: NSSoundDelegateProtocol; message 'delegate';
     procedure setDelegate(aDelegate: NSSoundDelegateProtocol); message 'setDelegate:';
     function duration: NSTimeInterval; message 'duration';
@@ -75,8 +75,8 @@ var
     function volume: single; message 'volume';
     function currentTime: NSTimeInterval; message 'currentTime';
     procedure setCurrentTime(seconds: NSTimeInterval); message 'setCurrentTime:';
-    procedure setLoops(val: Boolean); message 'setLoops:';
-    function loops: Boolean; message 'loops';
+    procedure setLoops(val: BOOL); message 'setLoops:';
+    function loops: BOOL; message 'loops';
     procedure setPlaybackDeviceIdentifier(deviceUID: NSString); message 'setPlaybackDeviceIdentifier:';
     function playbackDeviceIdentifier: NSString; message 'playbackDeviceIdentifier';
     procedure setChannelMapping(channelMapping_: NSArray); message 'setChannelMapping:';
@@ -103,7 +103,7 @@ var
 { NSSoundDelegate Protocol }
   NSSoundDelegateProtocol = objcprotocol external name 'NSSoundDelegate'
   optional
-    procedure sound_didFinishPlaying(sound: NSSound; aBool: Boolean); message 'sound:didFinishPlaying:';
+    procedure sound_didFinishPlaying(sound: NSSound; aBool: BOOL); message 'sound:didFinishPlaying:';
   end;
 {$endif}
 {$endif}

@@ -160,11 +160,12 @@ begin
 {$IFNDEF FPC_FEXPAND_SYSUTILS}
 (* Allow both '/' and '\' as directory separators *)
 (* by converting all to the native one.           *)
+{$push}
 {$warnings off}
 	  for I := 1 to Length (Pa) do
 	    if CharInSet(Pa [I], AllowDirectorySeparators)  then
 	      Pa [I] := DirectorySeparator;
-{$warnings on}
+{$pop}
 {$ENDIF not FPC_FEXPAND_SYSUTILS}
 
 (* PathStart is amount of characters to strip to get beginning *)
@@ -442,6 +443,23 @@ begin
 
     {Get string of directories to only process relative references on this one}
     Dirs := Copy (Pa, Succ (PathStart), Length (Pa) - PathStart);
+
+{$IFNDEF FPC_FEXPAND_DIRSEP_IS_CURDIR}
+ {$IFNDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+    {Before anything else, remove doubled DirectorySeparator characters
+     - technically invalid or at least useless, but ignored by most operating
+     systems except for plain DOS.}
+    I := Pos (DirectorySeparator + DirectorySeparator, Dirs);
+    while I <> 0 do
+        begin
+            J := Succ (I);
+            while (Length (Dirs) > J) and (Dirs [Succ (J)] = DirectorySeparator) do
+                Inc (J);
+            Delete (Dirs, Succ (I), J - I);
+            I := Pos (DirectorySeparator + DirectorySeparator, Dirs);
+        end;
+ {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+{$ENDIF FPC_FEXPAND_DIRSEP_IS_CURDIR}
 
 {$IFNDEF FPC_FEXPAND_NO_CURDIR}
  {$IFNDEF FPC_FEXPAND_DIRSEP_IS_CURDIR}

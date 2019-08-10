@@ -109,6 +109,8 @@ implementation
            end;
          consume(_END);
          statements_til_end:=cblocknode.create(first);
+         if assigned(first) then
+           statements_til_end.fileinfo:=first.fileinfo;
       end;
 
 
@@ -776,8 +778,6 @@ implementation
               symtablestack.pop(TSymtable(withsymtablelist[i]));
             withsymtablelist.free;
 
-//            p:=cwithnode.create(right,twithsymtable(withsymtable),levelcount,refnode);
-
             { Finalize complex withnode with destroy of temp }
             if assigned(newblock) then
              begin
@@ -1217,6 +1217,11 @@ implementation
                  Message(parser_e_no_assembler_in_generic);
                code:=_asm_statement;
              end;
+           _PLUS:
+             begin
+               Message(parser_e_syntax_error);
+               consume(_PLUS);
+             end;
            _EOF :
              Message(scan_f_end_of_file);
          else
@@ -1252,7 +1257,7 @@ implementation
                    if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
                      begin
                        tlabelsym(srsym).nonlocal:=true;
-                       exclude(current_procinfo.procdef.procoptions,po_inline);
+                       include(current_procinfo.flags,pi_has_interproclabel);
                      end;
                    if tlabelsym(srsym).nonlocal and
                      (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then

@@ -70,21 +70,21 @@ var
     class function EPSOperationWithView_insideRect_toData(view_: NSView; rect: NSRect; data: NSMutableData): NSPrintOperation; message 'EPSOperationWithView:insideRect:toData:';
     class function currentOperation: NSPrintOperation; message 'currentOperation';
     class procedure setCurrentOperation(operation: NSPrintOperation); message 'setCurrentOperation:';
-    function isCopyingOperation: Boolean; message 'isCopyingOperation';
+    function isCopyingOperation: BOOL; message 'isCopyingOperation';
     procedure setJobTitle(jobTitle_: NSString); message 'setJobTitle:';
     function jobTitle: NSString; message 'jobTitle';
-    procedure setShowsPrintPanel(flag: Boolean); message 'setShowsPrintPanel:';
-    function showsPrintPanel: Boolean; message 'showsPrintPanel';
-    procedure setShowsProgressPanel(flag: Boolean); message 'setShowsProgressPanel:';
-    function showsProgressPanel: Boolean; message 'showsProgressPanel';
+    procedure setShowsPrintPanel(flag: BOOL); message 'setShowsPrintPanel:';
+    function showsPrintPanel: BOOL; message 'showsPrintPanel';
+    procedure setShowsProgressPanel(flag: BOOL); message 'setShowsProgressPanel:';
+    function showsProgressPanel: BOOL; message 'showsProgressPanel';
     procedure setPrintPanel(panel: NSPrintPanel); message 'setPrintPanel:';
     function printPanel: NSPrintPanel; message 'printPanel';
-    procedure setCanSpawnSeparateThread(canSpawnSeparateThread_: Boolean); message 'setCanSpawnSeparateThread:';
-    function canSpawnSeparateThread: Boolean; message 'canSpawnSeparateThread';
+    procedure setCanSpawnSeparateThread(canSpawnSeparateThread_: BOOL); message 'setCanSpawnSeparateThread:';
+    function canSpawnSeparateThread: BOOL; message 'canSpawnSeparateThread';
     procedure setPageOrder(pageOrder_: NSPrintingPageOrder); message 'setPageOrder:';
     function pageOrder: NSPrintingPageOrder; message 'pageOrder';
     procedure runOperationModalForWindow_delegate_didRunSelector_contextInfo(docWindow: NSWindow; delegate: id; didRunSelector: SEL; contextInfo: Pointer); message 'runOperationModalForWindow:delegate:didRunSelector:contextInfo:';
-    function runOperation: Boolean; message 'runOperation';
+    function runOperation: BOOL; message 'runOperation';
     function view: NSView; message 'view';
     function printInfo: NSPrintInfo; message 'printInfo';
     procedure setPrintInfo(printInfo_: NSPrintInfo); message 'setPrintInfo:';
@@ -93,7 +93,7 @@ var
     function currentPage: NSInteger; message 'currentPage';
     function createContext: NSGraphicsContext; message 'createContext';
     procedure destroyContext; message 'destroyContext';
-    function deliverResult: Boolean; message 'deliverResult';
+    function deliverResult: BOOL; message 'deliverResult';
     procedure cleanUpOperation; message 'cleanUpOperation';
   end;
 
@@ -103,8 +103,8 @@ var
     function accessoryView: NSView; message 'accessoryView'; deprecated 'in Mac OS X 10.5 and later';
     procedure setJobStyleHint(hint: NSString); message 'setJobStyleHint:'; deprecated 'in Mac OS X 10.5 and later';
     function jobStyleHint: NSString; message 'jobStyleHint'; deprecated 'in Mac OS X 10.5 and later';
-    procedure setShowPanels(flag: Boolean); message 'setShowPanels:'; deprecated 'in Mac OS X 10.4 and later';
-    function showPanels: Boolean; message 'showPanels'; deprecated 'in Mac OS X 10.4 and later';
+    procedure setShowPanels(flag: BOOL); message 'setShowPanels:'; deprecated 'in Mac OS X 10.4 and later';
+    function showPanels: BOOL; message 'showPanels'; deprecated 'in Mac OS X 10.4 and later';
   end;
 
 {$endif}

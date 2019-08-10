@@ -76,6 +76,19 @@ begin
 Dest := Dest + S;
 end ;
 
+function IsLeadChar(C: AnsiChar): Boolean; inline;
+
+begin
+  Result:=C in LeadBytes;
+end;
+
+function IsLeadChar(B: Byte): Boolean; inline;
+
+
+begin
+  Result:=Char(B) in LeadBytes;
+end;
+
 Function InternalChangeCase(Const S : AnsiString; const Chars: TSysCharSet; const Adjustment: Longint): AnsiString;
   var
     i : Integer;
@@ -850,6 +863,17 @@ begin
  System.Str(Value, result);
 end ;
 
+function UIntToStr(Value: QWord): string;
+
+begin
+  result:=IntTostr(Value);
+end;
+
+function UIntToStr(Value: Cardinal): string; 
+
+begin
+  System.Str(Value, result);
+end;
 
 {   IntToHex returns a string representing the hexadecimal value of Value   }
 
@@ -2283,6 +2307,16 @@ end;
 {$define SRCHAR:=Char}
 
 Function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
+
+Var
+  C : Integer;
+
+begin
+  Result:=StringReplace(S,OldPattern,NewPattern,Flags,C);
+end;
+
+function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags; Out aCount : Integer): string;
+
 {$i syssr.inc}
 
 {$undef INSTRINGREPLACE}

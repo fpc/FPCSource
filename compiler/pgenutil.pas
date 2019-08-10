@@ -73,7 +73,7 @@ uses
   node,nobj,
   { parser }
   scanner,
-  pbase,pexpr,pdecsub,ptype,psub;
+  pbase,pexpr,pdecsub,ptype,psub,pparautl;
 
 
     procedure maybe_add_waiting_unit(tt:tdef);
@@ -688,6 +688,8 @@ uses
                   for i:=0 to st.deflist.count-1 do
                     unset_forwarddef(tdef(st.deflist[i]));
                 end;
+              else
+                ;
             end;
           end;
 
@@ -1077,7 +1079,7 @@ uses
                         end;
                       if replaydepth>current_scanner.replay_stack_depth then
                         parse_var_proc_directives(ttypesym(srsym));
-                      handle_calling_convention(tprocvardef(result));
+                      handle_calling_convention(tprocvardef(result),hcc_default_actions_intf);
                       if not hintsprocessed and (replaydepth>current_scanner.replay_stack_depth) then
                         begin
                           try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg);
@@ -1095,7 +1097,10 @@ uses
                       parse_proc_directives(pd,pdflags);
                       while try_consume_hintdirective(pd.symoptions,pd.deprecatedmsg) do
                         consume(_SEMICOLON);
-                      handle_calling_convention(tprocdef(result),hcc_all);
+                      if parse_generic then
+                        handle_calling_convention(tprocdef(result),hcc_default_actions_intf)
+                      else
+                        handle_calling_convention(tprocdef(result),hcc_default_actions_impl);
                       proc_add_definition(tprocdef(result));
                       { for partial specializations we implicitely declare the routine as
                         having its implementation although we'll not specialize it in reality }
@@ -1300,6 +1305,8 @@ uses
                           odt_interfacejava,
                           odt_dispinterface:
                             constraintdata.interfaces.add(def);
+                          else
+                            ;
                         end;
                     end;
                 end;
@@ -1533,6 +1540,9 @@ uses
                 if not searchsym_with_flags(sym.name,srsym,srsymtable,[ssf_no_addsymref]) then
                   srsym:=nil;
               end
+            else if (sym.typ=procsym) and
+                (tprocsym(sym).procdeflist.count>0) then
+              srsym:=sym
             else
               { dummy symbol is already not so dummy anymore }
               srsym:=nil;
@@ -1774,6 +1784,8 @@ uses
 
                   specialization_done(state);
                 end;
+              else
+                ;
             end;
           end;
 

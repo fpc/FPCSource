@@ -377,8 +377,9 @@ unit cpubase;
       doesn't handle ROR_C detection }
     function is_thumb32_imm(d : aint) : boolean;
     function split_into_shifter_const(value : aint;var imm1: dword; var imm2: dword):boolean;
-    function is_continuous_mask(d : aint;var lsb, width: byte) : boolean;
+    function is_continuous_mask(d : aword;var lsb, width: byte) : boolean;
     function dwarf_reg(r:tregister):shortint;
+    function dwarf_reg_no_error(r:tregister):shortint;
 
     function IsIT(op: TAsmOp) : boolean;
     function GetITLevels(op: TAsmOp) : longint;
@@ -386,6 +387,8 @@ unit cpubase;
     function GenerateARMCode : boolean;
     function GenerateThumbCode : boolean;
     function GenerateThumb2Code : boolean;
+
+    function IsVFPFloatImmediate(ft : tfloattype;value : bestreal) : boolean;
 
   implementation
 
@@ -413,8 +416,11 @@ unit cpubase;
           R_MMREGISTER:
             begin
               case s of
+                { records passed in MM registers }
+                OS_32,
                 OS_F32:
                   cgsize2subreg:=R_SUBFS;
+                OS_64,
                 OS_F64:
                   cgsize2subreg:=R_SUBFD;
                 else
@@ -607,7 +613,7 @@ unit cpubase;
           end;
       end;
     
-    function is_continuous_mask(d : aint;var lsb, width: byte) : boolean;
+    function is_continuous_mask(d : aword;var lsb, width: byte) : boolean;
       var
         msb : byte;
       begin
@@ -616,7 +622,7 @@ unit cpubase;
         
         width:=msb-lsb+1;
         
-        result:=(lsb<>255) and (msb<>255) and ((((1 shl (msb-lsb+1))-1) shl lsb) = d);
+        result:=(lsb<>255) and (msb<>255) and (aword(((1 shl (msb-lsb+1))-1) shl lsb) = d);
       end;
 
 
@@ -650,6 +656,11 @@ unit cpubase;
         result:=regdwarf_table[findreg_by_number(r)];
         if result=-1 then
           internalerror(200603251);
+      end;
+
+    function dwarf_reg_no_error(r:tregister):shortint;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
       end;
 
       { Low part of 64bit return value }
@@ -733,6 +744,35 @@ unit cpubase;
     function GenerateThumb2Code : boolean;
       begin
         Result:=(current_settings.instructionset=is_thumb) and (CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype]);
+      end;
+
+
+    function IsVFPFloatImmediate(ft : tfloattype;value : bestreal) : boolean;
+      var
+        singlerec : tcompsinglerec;
+        doublerec : tcompdoublerec;
+      begin
+        Result:=false;
+        case ft of
+          s32real:
+            begin
+              singlerec.value:=value;
+              singlerec:=tcompsinglerec(NtoLE(DWord(singlerec)));
+              Result:=(singlerec.bytes[0]=0) and (singlerec.bytes[1]=0) and ((singlerec.bytes[2] and 7)=0)  and
+                (((singlerec.bytes[3] and $7e)=$40) or ((singlerec.bytes[3] and $7e)=$3e));
+            end;
+          s64real:
+            begin
+              doublerec.value:=value;
+              doublerec:=tcompdoublerec(NtoLE(QWord(doublerec)));
+              Result:=(doublerec.bytes[0]=0) and (doublerec.bytes[1]=0) and (doublerec.bytes[2]=0) and
+                      (doublerec.bytes[3]=0) and (doublerec.bytes[4]=0) and (doublerec.bytes[5]=0) and
+                      ((((doublerec.bytes[6] and $7f)=$40) and ((doublerec.bytes[7] and $c0)=0)) or
+                       (((doublerec.bytes[6] and $7f)=$3f) and ((doublerec.bytes[7] and $c0)=$c0)));
+            end;
+          else
+            ;
+        end;
       end;
 
 

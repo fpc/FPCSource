@@ -46,7 +46,7 @@ interface
         @param(nr Parameter number of routine, starting from 1)}
         procedure getintparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
-        function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
+        function  create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
         function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
         function param_use_paraloc(const cgpara: tcgpara): boolean; override;
         function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
@@ -74,7 +74,7 @@ implementation
     function tcpuparamanager.get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray;
       const
         { dummy, not used for JVM }
-        saved_regs: array [0..0] of tsuperregister = (RS_NO);
+        saved_regs: {$ifndef VER3_0}tcpuregisterarray{$else}array [0..0] of tsuperregister{$endif} = (RS_NO);
       begin
         result:=saved_regs;
       end;
@@ -209,15 +209,22 @@ implementation
       end;
 
 
-    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
       var
         parasize : longint;
       begin
         parasize:=0;
         { calculate the registers for the normal parameters }
-        create_paraloc_info_intern(p,callerside,p.paras,parasize);
+        create_paraloc_info_intern(p,side,p.paras,parasize);
         { append the varargs }
-        create_paraloc_info_intern(p,callerside,varargspara,parasize);
+        if assigned(varargspara) then
+          begin
+            if side=callerside then
+              create_paraloc_info_intern(p,side,varargspara,parasize)
+            else
+              internalerror(2019021924);
+          end;
+        create_funcretloc_info(p,side);
         result:=parasize;
       end;
 
@@ -284,6 +291,8 @@ implementation
                   paraloc^.loc:=LOC_REFERENCE;
                   paraloc^.reference.index:=NR_STACK_POINTER_REG;
                 end;
+              else
+                ;
             end;
             { 2 slots for 64 bit integers and floats, 1 slot for the rest }
             if not(is_64bit(paradef) or

@@ -49,7 +49,8 @@ interface
         function sectionattrs(atype:TAsmSectiontype):string;virtual;
         function sectionattrs_coff(atype:TAsmSectiontype):string;virtual;
         function sectionalignment_aix(atype:TAsmSectiontype;secalign: longint):string;
-        procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint);virtual;
+        procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;
+          secflags:TSectionFlags=SF_None;secprogbits:TSectionProgbits=SPB_None);virtual;
         procedure WriteExtraHeader;virtual;
         procedure WriteExtraFooter;virtual;
         procedure WriteInstruction(hp: tai);
@@ -211,7 +212,7 @@ implementation
 { vtable for a class called Window:                                       }
 { .section .data.rel.ro._ZTV6Window,"awG",@progbits,_ZTV6Window,comdat    }
 { TODO: .data.ro not yet working}
-{$if defined(arm) or defined(powerpc)}
+{$if defined(arm) or defined(riscv64) or defined(powerpc)}
           '.rodata',
 {$else arm}
           '.data',
@@ -346,9 +347,13 @@ implementation
             exit;
           end;
 
-        if (atype=sec_threadvar) and
-          (target_info.system in (systems_windows+systems_wince)) then
-          secname:='.tls';
+        if atype=sec_threadvar then
+          begin
+            if (target_info.system in (systems_windows+systems_wince)) then
+              secname:='.tls'
+            else if (target_info.system in systems_linux) then
+              secname:='.tbss';
+          end;
 
         { go32v2 stub only loads .text and .data sections, and allocates space for .bss.
           Thus, data which normally goes into .rodata and .rodata_norel sections must
@@ -370,6 +375,8 @@ implementation
                 secname:='.data.rel.ro';
               sec_rodata_norel:
                 secname:='.rodata';
+              else
+                ;
             end;
           end;
 
@@ -457,7 +464,7 @@ implementation
       end;
 
 
-    procedure TGNUAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint);
+    procedure TGNUAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;secflags:TSectionFlags=SF_None;secprogbits:TSectionProgbits=SPB_None);
       var
         s : string;
       begin
@@ -491,58 +498,81 @@ implementation
         end;
         s:=sectionname(atype,aname,aorder);
         writer.AsmWrite(s);
-        case atype of
-          sec_fpc :
-            if aname = 'resptrs' then
-              writer.AsmWrite(', "a", @progbits');
-          sec_stub :
-            begin
-              case target_info.system of
-                { there are processor-independent shortcuts available    }
-                { for this, namely .symbol_stub and .picsymbol_stub, but }
-                { they don't work and gcc doesn't use them either...     }
-                system_powerpc_darwin,
-                system_powerpc64_darwin:
-                  if (cs_create_pic in current_settings.moduleswitches) then
-                    writer.AsmWriteln('__TEXT,__picsymbolstub1,symbol_stubs,pure_instructions,32')
-                  else
-                    writer.AsmWriteln('__TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16');
-                system_i386_darwin,
-                system_i386_iphonesim:
-                  writer.AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
-                system_arm_darwin:
-                  if (cs_create_pic in current_settings.moduleswitches) then
-                    writer.AsmWriteln('__TEXT,__picsymbolstub4,symbol_stubs,none,16')
-                  else
-                    writer.AsmWriteln('__TEXT,__symbol_stub4,symbol_stubs,none,12')
-                { darwin/(x86-64/AArch64) uses PC-based GOT addressing, no
-                  explicit symbol stubs }
-                else
-                  internalerror(2006031101);
-              end;
-            end;
-        else
-          { GNU AS won't recognize '.text.n_something' section name as belonging
-            to '.text' and assigns default attributes to it, which is not
-            always correct. We have to fix it.
-
-            TODO: This likely applies to all systems which smartlink without
-            creating libraries }
+        { flags explicitly defined? }
+        if (secflags<>SF_None) or (secprogbits<>SPB_None) then
           begin
-            if is_smart_section(atype) and (aname<>'') then
+            case secflags of
+              SF_A:
+                writer.AsmWrite(',"a"');
+              SF_W:
+                writer.AsmWrite(',"w"');
+              SF_X:
+                writer.AsmWrite(',"x"');
+              SF_None:
+                writer.AsmWrite(',""');
+            end;
+            case secprogbits of
+              SPB_PROGBITS:
+                writer.AsmWrite(',%progbits');
+              SPB_NOBITS:
+                writer.AsmWrite(',%nobits');
+              SPB_None:
+                ;
+            end;
+          end
+        else
+          case atype of
+            sec_fpc :
+              if aname = 'resptrs' then
+                writer.AsmWrite(', "a", @progbits');
+            sec_stub :
               begin
-                s:=sectionattrs(atype);
-                if (s<>'') then
-                  writer.AsmWrite(',"'+s+'"');
+                case target_info.system of
+                  { there are processor-independent shortcuts available    }
+                  { for this, namely .symbol_stub and .picsymbol_stub, but }
+                  { they don't work and gcc doesn't use them either...     }
+                  system_powerpc_darwin,
+                  system_powerpc64_darwin:
+                    if (cs_create_pic in current_settings.moduleswitches) then
+                      writer.AsmWriteln('__TEXT,__picsymbolstub1,symbol_stubs,pure_instructions,32')
+                    else
+                      writer.AsmWriteln('__TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16');
+                  system_i386_darwin,
+                  system_i386_iphonesim:
+                    writer.AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
+                  system_arm_darwin:
+                    if (cs_create_pic in current_settings.moduleswitches) then
+                      writer.AsmWriteln('__TEXT,__picsymbolstub4,symbol_stubs,none,16')
+                    else
+                      writer.AsmWriteln('__TEXT,__symbol_stub4,symbol_stubs,none,12')
+                  { darwin/(x86-64/AArch64) uses PC-based GOT addressing, no
+                    explicit symbol stubs }
+                  else
+                    internalerror(2006031101);
+                end;
               end;
-            if target_info.system in systems_aix then
-              begin
-                s:=sectionalignment_aix(atype,secalign);
-                if s<>'' then
-                  writer.AsmWrite(','+s);
-              end;
+          else
+            { GNU AS won't recognize '.text.n_something' section name as belonging
+              to '.text' and assigns default attributes to it, which is not
+              always correct. We have to fix it.
+
+              TODO: This likely applies to all systems which smartlink without
+              creating libraries }
+            begin
+              if is_smart_section(atype) and (aname<>'') then
+                begin
+                  s:=sectionattrs(atype);
+                  if (s<>'') then
+                    writer.AsmWrite(',"'+s+'"');
+                end;
+              if target_info.system in systems_aix then
+                begin
+                  s:=sectionalignment_aix(atype,secalign);
+                  if s<>'' then
+                    writer.AsmWrite(','+s);
+                end;
+            end;
           end;
-        end;
         writer.AsmLn;
         LastSecType:=atype;
       end;
@@ -592,9 +622,10 @@ implementation
         end;
 
 
-      procedure doalign(alignment: byte; use_op: boolean; fillop: byte; out last_align: longint;lasthp:tai);
+      procedure doalign(alignment: byte; use_op: boolean; fillop: byte; maxbytes: byte; out last_align: longint;lasthp:tai);
         var
           i: longint;
+          alignment64 : int64;
 {$ifdef m68k}
           instr : string;
 {$endif}
@@ -621,14 +652,33 @@ implementation
                   else
                     begin
 {$endif m68k}
-                  writer.AsmWrite(#9'.balign '+tostr(alignment));
-                  if use_op then
-                    writer.AsmWrite(','+tostr(fillop))
+                      alignment64:=alignment;
+                      if (maxbytes<>alignment) and ispowerof2(alignment64,i) then
+                        begin
+                          if use_op then
+                            begin
+                              writer.AsmWrite(#9'.p2align '+tostr(i)+','+tostr(fillop)+','+tostr(maxbytes));
+                              writer.AsmLn;
+                              writer.AsmWrite(#9'.p2align '+tostr(i-1)+','+tostr(fillop));
+                            end
+                          else
+                            begin
+                              writer.AsmWrite(#9'.p2align '+tostr(i)+',,'+tostr(maxbytes));
+                              writer.AsmLn;
+                              writer.AsmWrite(#9'.p2align '+tostr(i-1));
+                            end
+                        end
+                      else
+                        begin
+                          writer.AsmWrite(#9'.balign '+tostr(alignment));
+                          if use_op then
+                            writer.AsmWrite(','+tostr(fillop))
 {$ifdef x86}
-                  { force NOP as alignment op code }
-                  else if (LastSecType=sec_code) and (asminfo^.id<>as_solaris_as) then
-                    writer.AsmWrite(',0x90');
+                          { force NOP as alignment op code }
+                          else if (LastSecType=sec_code) and (asminfo^.id<>as_solaris_as) then
+                            writer.AsmWrite(',0x90');
 {$endif x86}
+                        end;
 {$ifdef m68k}
                     end;
 {$endif m68k}
@@ -718,16 +768,18 @@ implementation
 
            ait_align :
              begin
-               doalign(tai_align_abstract(hp).aligntype,tai_align_abstract(hp).use_op,tai_align_abstract(hp).fillop,last_align,lasthp);
+               doalign(tai_align_abstract(hp).aligntype,tai_align_abstract(hp).use_op,tai_align_abstract(hp).fillop,tai_align_abstract(hp).maxbytes,last_align,lasthp);
              end;
 
            ait_section :
              begin
                if tai_section(hp).sectype<>sec_none then
                  if replaceforbidden then
-                   WriteSection(tai_section(hp).sectype,ReplaceForbiddenAsmSymbolChars(tai_section(hp).name^),tai_section(hp).secorder,tai_section(hp).secalign)
+                   WriteSection(tai_section(hp).sectype,ReplaceForbiddenAsmSymbolChars(tai_section(hp).name^),tai_section(hp).secorder,
+                     tai_section(hp).secalign,tai_section(hp).secflags,tai_section(hp).secprogbits)
                  else
-                   WriteSection(tai_section(hp).sectype,tai_section(hp).name^,tai_section(hp).secorder,tai_section(hp).secalign)
+                   WriteSection(tai_section(hp).sectype,tai_section(hp).name^,tai_section(hp).secorder,
+                     tai_section(hp).secalign,tai_section(hp).secflags,tai_section(hp).secprogbits)
                else
                  begin
 {$ifdef EXTDEBUG}
@@ -893,6 +945,11 @@ implementation
                         WriteAixIntConst(tai_const(hp));
                       writer.AsmLn;
                     end;
+                 aitconst_gottpoff:
+                   begin
+                     writer.AsmWrite(#9'.word'#9+tai_const(hp).sym.name+'(gottpoff)+(.-'+tai_const(hp).endsym.name+tostr_with_plus(tai_const(hp).symofs)+')');
+                     writer.Asmln;
+                   end;
 {$endif cpu64bitaddr}
                  aitconst_got:
                    begin
@@ -967,6 +1024,8 @@ implementation
                              WriteDecodedUleb128(qword(tai_const(hp).value));
                            aitconst_sleb128bit:
                              WriteDecodedSleb128(int64(tai_const(hp).value));
+                           else
+                             ;
                          end
                        end
                      else
@@ -1220,14 +1279,26 @@ implementation
                if replaceforbidden then
                  begin
                    { avoid string truncation }
-                   writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^)+s);
+                   writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^));
+                   writer.AsmWrite(s);
                    writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).value^));
+                   if tai_symbolpair(hp).kind=spk_set_global then
+                     begin
+                       writer.AsmWrite(#9'.globl ');
+                       writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^));
+                     end;
                  end
                else
                  begin
                    { avoid string truncation }
-                   writer.AsmWrite(tai_symbolpair(hp).sym^+s);
+                   writer.AsmWrite(tai_symbolpair(hp).sym^);
+                   writer.AsmWrite(s);
                    writer.AsmWriteLn(tai_symbolpair(hp).value^);
+                   if tai_symbolpair(hp).kind=spk_set_global then
+                     begin
+                       writer.AsmWrite(#9'.globl ');
+                       writer.AsmWriteLn(tai_symbolpair(hp).sym^);
+                     end;
                  end;
              end;
            ait_symbol_end :
@@ -1715,6 +1786,8 @@ implementation
                 result:='.section '+objc_section_name(atype);
                 exit
               end;
+            else
+              ;
           end;
         result := inherited sectionname(atype,aname,aorder);
       end;

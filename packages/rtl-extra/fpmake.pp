@@ -43,11 +43,14 @@ begin
     P:=AddPackage('rtl-extra');
     P.ShortName:='rtle';
     P.Directory:=ADirectory;
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Author := 'FPC core team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.OSes:=AllTargetsextra;
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Email := '';
     P.Description := 'Rtl-extra, RTL not needed for bootstrapping';
     P.NeedLibC:= false;
@@ -85,7 +88,8 @@ begin
     // from the 'android' dir, not the 'unix' dir.
     T:=P.Targets.AddUnit('real48utils.pp',AllTargetsextra-[msdos,win16]  { msdos,win16 excluded temporarily, until bitpacked records containing longints on 16-bit targets are fixed }
                                                          -[embedded]);   { at least avr has no floats }
-    T:=P.Targets.AddUnit('clocale.pp',[android]);
+    if Defaults.CPU<>jvm then
+      T:=P.Targets.AddUnit('clocale.pp',[android]);
 
     T:=P.Targets.AddUnit('ucomplex.pp',UComplexOSes);
 
@@ -140,6 +144,7 @@ begin
      begin
        addinclude('clocale.inc',clocaleincOSes);
      end;
+    T:=P.Targets.AddUnit('sortalgs.pp');
   end
 end;
 

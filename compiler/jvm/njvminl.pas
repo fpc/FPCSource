@@ -311,6 +311,8 @@ implementation
                if left.resultdef.typ in [objectdef,classrefdef] then
                  Message(parser_e_illegal_expression);
              end;
+           else
+             ;
          end;
         if not handled then
           result:=inherited pass_typecheck;
@@ -487,7 +489,7 @@ implementation
         { prepend new }
         newparas:=ccallparanode.create(newnode,newparas);
         { prepend deepcopy }
-        newparas:=ccallparanode.create(cordconstnode.create(0,pasbool8type,false),newparas);
+        newparas:=ccallparanode.create(cordconstnode.create(0,pasbool1type,false),newparas);
         { call the right setlenght helper }
         if ndims>1 then
           begin
@@ -521,7 +523,7 @@ implementation
     function tjvminlinenode.first_setlength: tnode;
       begin
         { reverse the parameter order so we can process them more easily }
-        left:=reverseparameters(tcallparanode(left));
+        reverseparameters(tcallparanode(left));
         { treat setlength(x,0) specially: used to init uninitialised locations }
         if not is_shortstring(left.resultdef) and
            not assigned(tcallparanode(tcallparanode(left).right).right) and
@@ -535,7 +537,7 @@ implementation
         { strings are handled the same as on other platforms }
         if left.resultdef.typ=stringdef then
           begin
-            left:=reverseparameters(tcallparanode(left));
+            reverseparameters(tcallparanode(left));
             result:=inherited first_setlength;
             exit;
           end;

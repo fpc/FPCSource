@@ -159,7 +159,8 @@ Unit rappcgas;
                End
               Else
                Begin
-                 oper.opr.Ref.Offset:=BuildConstExpression(false,true);
+                 { cast explicitly to avoid range check errors }
+                 oper.opr.Ref.Offset:=ASizeInt(BuildConstExpression(false,true));
                  Consume(AS_RPAREN);
                  if actasmtoken=AS_AT then
                    ReadAt(oper);
@@ -253,6 +254,8 @@ Unit rappcgas;
                         end;
                       end;
                   end;
+                else
+                  ;
               end;
               Consume(AS_RPAREN);
               if actasmtoken=AS_AT then

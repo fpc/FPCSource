@@ -341,7 +341,7 @@ type
    // SYSTEM VARIABLES
     NextVSprite: PVSprite; // GEL linked list forward/backward pointers sorted by y,x value
     PrevVSprite: PVSprite;
-    DrawPath: PVSprite;    // pointer of overlay drawing
+    IntVSprite: PVSprite;    // pointer of overlay drawing
     ClearPath: PVSprite;   // pointer for overlay clearing
     OldY, OldX: SmallInt;  // previous position
    // COMMON VARIABLES
@@ -564,10 +564,10 @@ type
   PShapeHookMsg = ^TShapeHookMsg;
   TShapeHookMsg = record
     Action: LongInt;
-    Layer: PLayer;
-    ActualShape: PRegion;
-    NewBounds: TRectangle;
-    OldBounds: TRectangle;
+    NewShape: PRegion;
+    OldShape: PRegion;
+    NewBounds: PRectangle;
+    OldBounds: PRectangle;
   end;
   // Hook for getting LA_ShapeHook and getting this Msg
   TShapeHookProc = function(Hook: PHook; Layer: PLayer; Msg: PShapeHookMsg): PRegion; cdecl;
@@ -990,19 +990,19 @@ type
   // Copper structures
   PCopIns = ^TCopIns;
   TCopIns = record
-    OpCode  : smallint; // 0 = move, 1 = wait
+    OpCode: smallint; // 0 = move, 1 = wait
     case SmallInt of
     0:(
       NxtList: PCopList;
       );
     1:(
-      VWaitPos: SmallInt; // vertical wait position
       DestAddr: SmallInt; // destination Pointer
+      DestData: SmallInt; // data to send      
       );
     2:(
-      HWaitPos: SmallInt; // horizontal wait position
-      DestData: SmallInt; // data to send
-      );
+      VWaitPos: SmallInt; // vertical wait position
+      HWaitPos: SmallInt; // horizontal wait position      
+      );  
   end;
 
   TCopList = record
@@ -1994,9 +1994,9 @@ type
     VBCounter: ULONG;
 
     HashTableSemaphore: PSignalSemaphore;  // Semaphore for hash_table access, private in fact
-
-    ChunkyToPlanarPtr: PLongWord;  // HWEmul[0];
-    HWEmul: array[1..8] of PLongWord;
+    case boolean of
+      true: ( ChunkyToPlanarPtr: PLongWord;);  // HWEmul[0];
+      false: (HWEmul: array[0..8] of PLongWord;);
   end;
 
 type

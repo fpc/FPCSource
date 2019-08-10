@@ -179,7 +179,7 @@ type
         cgid  : kernel_gid_t;
         mode  : kernel_mode_t;
 {$if sizeof(kernel_mode_t) < 4}
-        __pad1    : array[1..4-sizeof(mode_t)];
+        __pad1    : array[1..4-sizeof(mode_t)] of byte;
 {$endif}
 {$ifdef cpupowerpc}
         seq       : cuint;
@@ -888,7 +888,7 @@ uses Syscall;
 
 {$ifndef FPC_USE_LIBC}
  {$if defined(Linux)}
-  {$if defined(cpux86_64) or defined(cpuaarch64) or defined(NO_SYSCALL_IPC)}
+  {$if defined(cpux86_64) or defined(cpuaarch64) or defined(cpuriscv32) or defined(cpuriscv64) or defined(NO_SYSCALL_IPC)}
     {$i ipcsys.inc}
   {$else}
     {$i ipccall.inc}

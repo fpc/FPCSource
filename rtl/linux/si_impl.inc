@@ -16,6 +16,7 @@ procedure PascalMain; external name 'PASCALMAIN';
 
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 procedure SysEntry(constref info: TEntryInformation); external name 'FPC_SysEntry';
+procedure SysEntry_InitTLS(constref info: TEntryInformation); external name 'FPC_SysEntry_InitTLS';
 
 var
   InitFinalTable : record end; external name 'INITFINAL';
@@ -30,7 +31,11 @@ var
 const
   SysInitEntryInformation : TEntryInformation = (
     InitFinalTable : @InitFinalTable;
+{$ifdef FPC_SECTION_THREADVARS}
+    ThreadvarTablesTable : nil;
+{$else FPC_SECTION_THREADVARS}
     ThreadvarTablesTable : @ThreadvarTablesTable;
+{$endif FPC_SECTION_THREADVARS}
     ResourceStringTables : @ResourceStringTables;
 {$ifdef FPC_HAS_RESSTRINITS}
     ResStrInitTables : @ResStrInitTables;

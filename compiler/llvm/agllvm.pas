@@ -210,9 +210,9 @@ implementation
               { escape dollars }
               '$':
                  result:=result+'$$';
-              { ^ is used as placeholder for a single dollar (reference to
+              { ` is used as placeholder for a single dollar (reference to
                  argument to the inline assembly) }
-              '^':
+              '`':
                  result:=result+'$';
               #0..#31,
               #127..#255,
@@ -604,12 +604,18 @@ implementation
           end;
         la_blockaddress:
           begin
-            owner.writer.AsmWrite('i8* blockaddress(');
-            owner.writer.AsmWrite(getopstr(taillvm(hp).oper[0]^,false));
+            { nested -> no type }
+            if owner.fdecllevel = 0 then
+              begin
+                owner.writer.AsmWrite(getopstr(taillvm(hp).oper[0]^,false));
+                owner.writer.AsmWrite(' ');
+              end;
+            owner.writer.AsmWrite('blockaddress(');
+            owner.writer.AsmWrite(getopstr(taillvm(hp).oper[1]^,false));
             { getopstr would add a "label" qualifier, which blockaddress does
               not want }
             owner.writer.AsmWrite(',%');
-            with taillvm(hp).oper[1]^ do
+            with taillvm(hp).oper[2]^ do
               begin
                 if (typ<>top_ref) or
                    (ref^.refaddr<>addr_full) then
@@ -716,6 +722,8 @@ implementation
             if vol_write in hp.oper[3]^.ref^.volatility then
               result:=result+' volatile';
           end;
+        else
+          ;
       end;
     end;
 
@@ -973,6 +981,8 @@ implementation
             writer.AsmWrite(' returns_twice');
           if po_inline in pd.procoptions then
             writer.AsmWrite(' inlinehint');
+          if po_noinline in pd.procoptions then
+            writer.AsmWrite(' noinline');
           { ensure that functions that happen to have the same name as a
             standard C library function, but which are implemented in Pascal,
             are not considered to have the same semantics as the C function with
@@ -1252,6 +1262,8 @@ implementation
                         writer.AsmWrite(objc_section_name(taillvmdecl(hp).sec));
                         writer.AsmWrite('"');
                       end;
+                    else
+                      ;
                   end;
                   { sections whose name starts with 'llvm.' are for LLVM
                     internal use and don't have an alignment }
@@ -1333,6 +1345,8 @@ implementation
                   asmblock:=true;
                 mark_AsmBlockEnd:
                   asmblock:=false;
+                else
+                  ;
               end;
 
           ait_directive :

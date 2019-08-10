@@ -25,7 +25,7 @@ const
   IRQ_LID				      : IRQ_MASK =	(1 shl 22);	  (* interrupt mask hinge *)
   IRQ_SPI				      : IRQ_MASK =	(1 shl 23);	  (* SPI interrupt mask *)
   IRQ_WIFI			      : IRQ_MASK =	(1 shl 24);	  (* WIFI interrupt mask (ARM7)*)
-  IRQ_ALL				      : IRQ_MASK =	(not 0);      //$FFFFFF ?
+  IRQ_ALL				      : IRQ_MASK =	$FFFFFFFF;//(not 0);      //$FFFFFF ?
 
 
 type

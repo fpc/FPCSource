@@ -42,7 +42,9 @@ unit cgcpu;
         cgsetflags : boolean;
 
         procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const paraloc : TCGPara);override;
-        procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
+       protected
+         procedure a_load_ref_cgparalocref(list: TAsmList; sourcesize: tcgsize; sizeleft: tcgint; const ref, paralocref: treference; const cgpara: tcgpara; const location: PCGParaLocation); override;
+       public
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
@@ -107,13 +109,15 @@ unit cgcpu;
         { try to generate optimized 32 Bit multiplication, returns true if successful generated }
         function try_optimized_mul32_const_reg_reg(list: TAsmList; a: tcgint; src, dst: tregister) : boolean;
 
-        { clear out potential overflow bits from 8 or 16 bit operations  }
-        { the upper 24/16 bits of a register after an operation          }
+        { clear out potential overflow bits from 8 or 16 bit operations
+          the upper 24/16 bits of a register after an operation          }
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
 
         { mla for thumb requires that none of the registers is equal to r13/r15, this method ensures this }
         procedure safe_mla(list: TAsmList;op1,op2,op3,op4 : TRegister);
 
+
+        procedure g_maybe_tls_init(list : TAsmList); override;
       end;
 
       { tcgarm is shared between normal arm and thumb-2 }
@@ -240,6 +244,10 @@ unit cgcpu;
        tgobj,
        procinfo,cpupi,
        paramgr;
+
+{ Range check must be disabled explicitly as conversions between signed and unsigned
+  32-bit values are done without explicit typecasts }
+{$R-}
 
 
     function get_fpu_postfix(def : tdef) : toppostfix;
@@ -565,52 +573,16 @@ unit cgcpu;
       end;
 
 
-    procedure tbasecgarm.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);
-      var
-        tmpref, ref: treference;
-        location: pcgparalocation;
-        sizeleft: aint;
+    procedure tbasecgarm.a_load_ref_cgparalocref(list: TAsmList; sourcesize: tcgsize; sizeleft: tcgint; const ref, paralocref: treference; const cgpara: tcgpara; const location: PCGParaLocation);
       begin
-        location := paraloc.location;
-        tmpref := r;
-        sizeleft := paraloc.intsize;
-        while assigned(location) do
+        { doubles in softemu mode have a strange order of registers and references }
+        if (cgpara.size=OS_F64) and
+           (location^.size=OS_32) then
           begin
-            paramanager.allocparaloc(list,location);
-            case location^.loc of
-              LOC_REGISTER,LOC_CREGISTER:
-                a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
-              LOC_REFERENCE:
-                begin
-                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,ctempposinvalid,paraloc.alignment,[]);
-                  { doubles in softemu mode have a strange order of registers and references }
-                  if location^.size=OS_32 then
-                    g_concatcopy(list,tmpref,ref,4)
-                  else
-                    begin
-                      g_concatcopy(list,tmpref,ref,sizeleft);
-                      if assigned(location^.next) then
-                        internalerror(2005010710);
-                    end;
-                end;
-              LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                case location^.size of
-                   OS_F32, OS_F64:
-                     a_loadfpu_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
-                   else
-                     internalerror(2002072801);
-                end;
-              LOC_VOID:
-                begin
-                  // nothing to do
-                end;
-              else
-                internalerror(2002081103);
-            end;
-            inc(tmpref.offset,tcgsize2size[location^.size]);
-            dec(sizeleft,tcgsize2size[location^.size]);
-            location := location^.next;
-          end;
+            g_concatcopy(list,ref,paralocref,4)
+          end
+        else
+          inherited;
       end;
 
 
@@ -926,9 +898,11 @@ unit cgcpu;
               a_load_const_reg(list, size, a, dst);
               exit;
             end;
+          else
+            ;
         end;
         ovloc.loc:=LOC_VOID;
-        if {$ifopt R+}(a<>-2147483648) and{$endif} not setflags and is_shifter_const(-a,shift) then
+        if (a<>-2147483648) and not setflags and is_shifter_const(-a,shift) then
           case op of
             OP_ADD:
               begin
@@ -940,6 +914,8 @@ unit cgcpu;
                 op:=OP_ADD;
                 a:=aint(dword(-a));
               end
+            else
+              ;
           end;
 
         if is_shifter_const(a,shift) and not(op in [OP_IMUL,OP_MUL]) then
@@ -988,6 +964,8 @@ unit cgcpu;
                       ovloc.resflags:=F_CS;
                     OP_SUB:
                       ovloc.resflags:=F_CC;
+                    else
+                      internalerror(2019050922);
                   end;
                 end;
           end
@@ -1031,7 +1009,7 @@ unit cgcpu;
             { Doing two shifts instead of two bics might allow the peephole optimizer to fold the second shift
               into the following instruction}
             else if (op = OP_AND) and
-                    is_continuous_mask(a, lsb, width) and
+                    is_continuous_mask(aword(a), lsb, width) and
                     ((lsb = 0) or ((lsb + width) = 32)) then
               begin
                 shifterop_reset(so);
@@ -1899,6 +1877,10 @@ unit cgcpu;
             firstfloatreg:=RS_NO;
             mmregs:=[];
             case current_settings.fputype of
+              fpu_none,
+              fpu_soft,
+              fpu_libgcc:
+                ;
               fpu_fpa,
               fpu_fpa10,
               fpu_fpa11:
@@ -1924,6 +1906,8 @@ unit cgcpu;
                     as the even ones by with a different subtype as it is done on x86 with al/ah }
                   mmregs:=(rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall))*[0..31];
                 end;
+              else
+                internalerror(2019050924);
             end;
             a_reg_alloc(list,NR_STACK_POINTER_REG);
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
@@ -2108,9 +2092,11 @@ unit cgcpu;
                      if mmregs<>[] then
                        list.concat(taicpu.op_ref_regset(A_VSTM,ref,R_MMREGISTER,R_SUBFD,mmregs));
                    end;
+                 else
+                   internalerror(2019050923);
                end;
              end;
-        end;
+          end;
       end;
 
 
@@ -2137,6 +2123,10 @@ unit cgcpu;
             mmregs:=[];
             saveregs:=[];
             case current_settings.fputype of
+              fpu_none,
+              fpu_soft,
+              fpu_libgcc:
+                ;
               fpu_fpa,
               fpu_fpa10,
               fpu_fpa11:
@@ -2166,6 +2156,8 @@ unit cgcpu;
                     as the even ones by with a different subtype as it is done on x86 with al/ah }
                   mmregs:=(rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall))*[0..31];
                 end;
+              else
+                internalerror(2019050926);
             end;
 
             if (firstfloatreg<>RS_NO) or
@@ -2214,6 +2206,8 @@ unit cgcpu;
                      if mmregs<>[] then
                        list.concat(taicpu.op_ref_regset(A_VLDM,ref,R_MMREGISTER,R_SUBFD,mmregs));
                     end;
+                  else
+                    internalerror(2019050921);
                 end;
               end;
 
@@ -2472,6 +2466,8 @@ unit cgcpu;
                     a_op_const_reg(list,OP_ADD,OS_ADDR,ref.offset,tmpreg);
                 indirection_done:=true;
               end
+            else if ref.refaddr=addr_gottpoff then
+              current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_gottpoff,ref.symbol,ref.relsymbol,ref.offset))
             else if (cs_create_pic in current_settings.moduleswitches) then
               if (tf_pic_uses_got in target_info.flags) then
                 current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_got,ref.symbol))
@@ -2512,6 +2508,11 @@ unit cgcpu;
                (tf_pic_uses_got in target_info.flags) and
                assigned(ref.symbol) then
               begin
+                {$ifdef EXTDEBUG}
+                if not (pi_needs_got in current_procinfo.flags) then
+                	Comment(V_warning,'pi_needs_got not included');
+                {$endif EXTDEBUG}
+                Include(current_procinfo.flags,pi_needs_got);
                 reference_reset(tmpref,4,[]);
                 tmpref.base:=current_procinfo.got;
                 tmpref.index:=tmpreg;
@@ -2678,6 +2679,21 @@ unit cgcpu;
           list.concat(taicpu.op_reg_reg(A_MOV,destreg,destreg));
         end;
 
+      { save estimation, if a creating a separate ref is needed or
+        if we can keep the original reference while copying }
+      function SimpleRef(const ref : treference) : boolean;
+        begin
+          result:=((ref.base=NR_PC) and (ref.addressmode=AM_OFFSET) and (ref.refaddr in [addr_full,addr_no])) or
+              ((ref.symbol=nil) and
+               (ref.addressmode=AM_OFFSET) and
+               (((ref.offset>=0) and (ref.offset+len<=31)) or
+                (not(GenerateThumbCode) and (ref.offset>=-255) and (ref.offset+len<=255)) or
+                { ldrh has a limited offset range }
+                (not(GenerateThumbCode) and ((len mod 4) in [0,1]) and (ref.offset>=-4095) and (ref.offset+len<=4095))
+               )
+              );
+        end;
+
       { will never be called with count<=4 }
       procedure genloop_thumb(count : aword;size : byte);
 
@@ -2784,17 +2800,15 @@ unit cgcpu;
           begin
             tmpregi:=0;
 
-            srcreg:=getintregister(list,OS_ADDR);
-
-            { explicit pc relative addressing, could be
-              e.g. a floating point constant }
-            if source.base=NR_PC then
+            { loading address in a separate register needed? }
+            if SimpleRef(source) then
               begin
                 { ... then we don't need a loadaddr }
                 srcref:=source;
               end
             else
               begin
+                srcreg:=getintregister(list,OS_ADDR);
                 a_loadaddr_ref_reg(list,source,srcreg);
                 reference_reset_base(srcref,srcreg,0,source.temppos,source.alignment,source.volatility);
               end;
@@ -2808,9 +2822,15 @@ unit cgcpu;
                 dec(len,4);
               end;
 
-            destreg:=getintregister(list,OS_ADDR);
-            a_loadaddr_ref_reg(list,dest,destreg);
-            reference_reset_base(dstref,destreg,0,dest.temppos,dest.alignment,dest.volatility);
+            { loading address in a separate register needed? }
+            if SimpleRef(dest) then
+              dstref:=dest
+            else
+              begin
+                destreg:=getintregister(list,OS_ADDR);
+                a_loadaddr_ref_reg(list,dest,destreg);
+                reference_reset_base(dstref,destreg,0,dest.temppos,dest.alignment,dest.volatility);
+              end;
             tmpregi2:=1;
             while (tmpregi2<=tmpregi) do
               begin
@@ -2942,7 +2962,7 @@ unit cgcpu;
               if not((def.typ=pointerdef) or
                     ((def.typ=orddef) and
                      (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
-                                               pasbool8,pasbool16,pasbool32,pasbool64]))) then
+                                               pasbool1,pasbool8,pasbool16,pasbool32,pasbool64]))) then
                  ai.SetCondition(C_VC)
               else
                 if TAiCpu(List.Last).opcode in [A_RSB,A_RSC,A_SBC,A_SUB] then
@@ -3046,6 +3066,8 @@ unit cgcpu;
         case instr.opcode of
           A_VMOV:
             add_move_instruction(instr);
+          else
+            ;
         end;
       end;
 
@@ -3075,6 +3097,10 @@ unit cgcpu;
               if (fromsize<>tosize) then
                 internalerror(2009112901);
             end;
+          OS_F32,OS_F64:
+            ;
+          else
+            internalerror(2019050920);
         end;
 
         if (fromsize<>tosize) then
@@ -3136,6 +3162,10 @@ unit cgcpu;
               if (fromsize<>tosize) then
                 internalerror(2009112901);
             end;
+          OS_F32,OS_F64:
+            ;
+          else
+            internalerror(2019050919);
         end;
 
         if (fromsize<>tosize) then
@@ -3267,6 +3297,15 @@ unit cgcpu;
       end;
 
 
+    procedure tbasecgarm.g_maybe_tls_init(list : TAsmList);
+      begin
+        list.concat(tai_regalloc.alloc(NR_R0,nil));
+        a_call_name(list,'fpc_read_tp',false);
+        a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_R0,current_procinfo.tlsoffset);
+        list.concat(tai_regalloc.dealloc(NR_R0,nil));
+      end;
+
+
     procedure tcg64farm.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
       begin
         case op of
@@ -3340,6 +3379,8 @@ unit cgcpu;
           OP_NEG,
           OP_NOT :
             internalerror(2012022501);
+          else
+            ;
         end;
         if (setflags or tbasecgarm(cg).cgsetflags) and (op in [OP_ADD,OP_SUB]) then
           begin
@@ -3404,6 +3445,8 @@ unit cgcpu;
                     ovloc.resflags:=F_CS;
                   OP_SUB:
                     ovloc.resflags:=F_CC;
+                  else
+                    internalerror(2019050918);
                 end;
               end;
           end
@@ -3477,6 +3520,8 @@ unit cgcpu;
           OP_NEG,
           OP_NOT :
             internalerror(2012022502);
+          else
+            ;
         end;
         if (setflags or tbasecgarm(cg).cgsetflags) and (op in [OP_ADD,OP_SUB]) then
           begin
@@ -3505,6 +3550,8 @@ unit cgcpu;
                     ovloc.resflags:=F_CS;
                   OP_SUB:
                     ovloc.resflags:=F_CC;
+                  else
+                    internalerror(2019050917);
                 end;
               end;
           end
@@ -4080,6 +4127,8 @@ unit cgcpu;
                 op:=OP_ADD;
                 a:=aint(dword(-a));
               end
+            else
+              ;
           end;
 
         if is_thumb_imm(a) and (op in [OP_ADD,OP_SUB]) then
@@ -4098,6 +4147,8 @@ unit cgcpu;
                     ;
                   OP_SUB:
                     //!!! ovloc.resflags:=F_CC;
+                    ;
+                  else
                     ;
                 end;
               end;
@@ -4428,6 +4479,11 @@ unit cgcpu;
               OS_S8: list.concat(taicpu.op_reg_reg(A_SXTB,dst,dst));
               OS_16: list.concat(taicpu.op_reg_reg(A_UXTH,dst,dst));
               OS_S16: list.concat(taicpu.op_reg_reg(A_SXTH,dst,dst));
+              OS_32,
+              OS_S32:
+                ;
+              else
+                internalerror(2019050916);
             end;
           end
         else
@@ -4443,7 +4499,7 @@ unit cgcpu;
         l1 : longint;
       begin
         ovloc.loc:=LOC_VOID;
-        if {$ifopt R+}(a<>-2147483648) and{$endif} is_shifter_const(-a,shift) then
+        if (a<>-2147483648) and is_shifter_const(-a,shift) then
           case op of
             OP_ADD:
               begin
@@ -4455,6 +4511,8 @@ unit cgcpu;
                 op:=OP_ADD;
                 a:=aint(dword(-a));
               end
+            else
+              ;
           end;
 
         if is_shifter_const(a,shift) and not(op in [OP_IMUL,OP_MUL]) then
@@ -4559,6 +4617,8 @@ unit cgcpu;
                       ovloc.resflags:=F_CS;
                     OP_SUB:
                       ovloc.resflags:=F_CC;
+                    else
+                      ;
                   end;
                 end;
           end
@@ -4616,7 +4676,7 @@ unit cgcpu;
               list.concat(taicpu.op_reg_reg(A_UXTH,dst,src))
             else if (op = OP_AND) and is_thumb32_imm(not(dword(a))) then
               list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,not(dword(a))))
-            else if (op = OP_AND) and is_continuous_mask(not(a), shift, width) then
+            else if (op = OP_AND) and is_continuous_mask(aword(not(a)), shift, width) then
               begin
                 a_load_reg_reg(list,size,size,src,dst);
                 list.concat(taicpu.op_reg_const_const(A_BFC,dst,shift,width))
@@ -5022,7 +5082,10 @@ unit cgcpu;
                 cg.a_label(current_procinfo.aktlocaldata,l);
                 tmpref.symboldata:=current_procinfo.aktlocaldata.last;
 
-                current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset));
+                if ref.refaddr=addr_gottpoff then
+                  current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_gottpoff,ref.symbol,ref.relsymbol,ref.offset))
+                else
+                  current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset));
 
                 { load consts entry }
                 tmpref.symbol:=l;

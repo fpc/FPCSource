@@ -31,18 +31,13 @@ interface
   const
     CurrentPCPVersion=3;
 
-  { unit flags }
-    //uf_init                = $000001; { unit has initialization section }
-    //uf_finalize            = $000002; { unit has finalization section   }
+    { unit flags }
     pf_big_endian          = $000004;
-  //uf_has_browser         = $000010;
     //uf_in_library          = $000020; { is the file in another file than <ppufile>.* ? }
     //uf_smart_linked        = $000040; { the ppu can be smartlinked }
     //uf_static_linked       = $000080; { the ppu can be linked static }
     //uf_shared_linked       = $000100; { the ppu can be linked shared }
-  //uf_local_browser       = $000200;
     //uf_no_link             = $000400; { unit has no .o generated, but can still have external linking! }
-    //uf_has_resourcestrings = $000800; { unit has resource string section }
     pf_little_endian       = $001000;
 
 
@@ -66,6 +61,7 @@ interface
       procedure newheader;override;
       function readheader:longint;override;
       procedure resetfile;override;
+      procedure RaiseAssertion(Code: Longint); override;
     public
       procedure writeheader;override;
       function checkpcpid:boolean;
@@ -87,6 +83,12 @@ uses
   function tpcpfile.getheaderaddr: pentryheader;
     begin
       result:=@header;
+    end;
+
+  procedure tpcpfile.RaiseAssertion(Code: Longint);
+    begin
+      // InternalError(nb);
+      inherited RaiseAssertion(Code);
     end;
 
   procedure tpcpfile.newheader;

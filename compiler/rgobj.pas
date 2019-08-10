@@ -110,6 +110,8 @@ unit rgobj;
 {$ifdef llvm}
         def      : pointer;
 {$endif llvm}
+        count_uses : longint;
+        total_interferences : longint;
       end;
       Preginfo=^TReginfo;
 
@@ -489,7 +491,6 @@ unit rgobj;
     procedure Trgobj.dispose_reginfo;
       var
         i : cardinal;
-        j : longint;
       begin
         if reginfo<>nil then
           begin
@@ -711,10 +712,10 @@ unit rgobj;
         i,j:cardinal;
 
     begin
-      assign(f,'igraph'+tostr(loopidx));
+      assign(f,current_procinfo.procdef.mangledname+'_igraph'+tostr(loopidx));
       rewrite(f);
-      writeln(f,'Interference graph');
-      writeln(f,'First imaginary register is ',first_imaginary);
+      writeln(f,'Interference graph of ',current_procinfo.procdef.fullprocname(true));
+      writeln(f,'First imaginary register is ',first_imaginary,' ($',hexstr(first_imaginary,2),')');
       writeln(f);
       write(f,'                  ');
       for i:=0 to maxreg div 16 do
@@ -727,7 +728,7 @@ unit rgobj;
       writeln(f);
       for i:=0 to maxreg-1 do
         begin
-          write(f,reginfo[i].weight:5,'  ',reginfo[i].degree:5,'  ',hexstr(i,2):4);
+          write(f,reginfo[i].weight:5,'  ',reginfo[i].degree:5,'  ',reginfo[i].count_uses:5,'  ',reginfo[i].total_interferences:5,'  ',hexstr(i,2):4);
           for j:=0 to maxreg-1 do
             if ibitmap[i,j] then
               write(f,'*')
@@ -830,8 +831,12 @@ unit rgobj;
         if supreg>=first_imaginary then
           with reginfo[supreg] do
             begin
-              // if aweight>weight then
-              inc(weight,aweight);
+              { avoid overflow }
+              if high(weight)-aweight<weight then
+                weight:=high(weight)
+              else
+                inc(weight,aweight);
+
               if (live_range_direction=rad_forward) then
                 begin
                   if not assigned(live_start) then
@@ -1453,20 +1458,81 @@ unit rgobj;
       freeze_moves(n);
     end;
 
+{ The spilling approach selected by SPILLING_NEW does not work well for AVR as it eploits apparently the problem of the current
+  reg. allocator with AVR. The current reg. allocator is not aware of the fact that r1-r15 and r16-r31 are not equal on AVR }
+{$if defined(AVR)}
+{$define SPILLING_OLD}
+{$else defined(AVR)}
+{ $define SPILLING_NEW}
+{$endif defined(AVR)}
+{$ifndef SPILLING_NEW}
+{$define SPILLING_OLD}
+{$endif SPILLING_NEW}
     procedure trgobj.select_spill;
     var
       n : tsuperregister;
       adj : psuperregisterworklist;
-      max,p,i:word;
+      maxlength,p,i :word;
       minweight: longint;
+      {$ifdef SPILLING_NEW}
+      dist: Double;
+      {$endif}
     begin
+{$ifdef SPILLING_NEW}
+      { This new approach for selecting the next spill candidate takes care of the weight of a register:
+        It spills the register with the lowest weight but only if it is expected that it results in convergence of
+        register allocation. Convergence is expected if a register is spilled where the average of the active interferences
+        - active interference means that the register is used in an instruction - is lower than
+        the degree.
+
+        Example (modify means read and the write):
+
+        modify reg1
+
+        loop:
+          modify reg2
+          modify reg3
+          modify reg4
+          modify reg5
+          modify reg6
+          modify reg7
+
+        modify reg1
+
+        In this example, all register have the same degree. However, spilling reg1 is most benefical as it is used least. Furthermore,
+        spilling reg1 is a step toward solving the coloring problem as the registers used during spilling will have a lower degree
+        as no register are in use at the location where reg1 is spilled.
+      }
+      minweight:=high(longint);
+      p:=0;
+      with spillworklist do
+        begin
+          { Safe: This procedure is only called if length<>0 }
+          for i:=0 to length-1 do
+            begin
+              adj:=reginfo[buf^[i]].adjlist;
+              dist:=adj^.length-reginfo[buf^[i]].total_interferences/reginfo[buf^[i]].count_uses;
+              if assigned(adj) and
+                (reginfo[buf^[i]].weight<minweight) and
+                (dist>=1) and
+                (reginfo[buf^[i]].weight>0) then
+                begin
+                  p:=i;
+                  minweight:=reginfo[buf^[i]].weight;
+                end;
+            end;
+          n:=buf^[p];
+          deleteidx(p);
+        end;
+{$endif SPILLING_NEW}
+{$ifdef SPILLING_OLD}
       { We must look for the element with the most interferences in the
         spillworklist. This is required because those registers are creating
         the most conflicts and keeping them in a register will not reduce the
         complexity and even can cause the help registers for the spilling code
         to get too much conflicts with the result that the spilling code
         will never converge (PFV) }
-      max:=0;
+      maxlength:=0;
       minweight:=high(longint);
       p:=0;
       with spillworklist do
@@ -1477,19 +1543,19 @@ unit rgobj;
               adj:=reginfo[buf^[i]].adjlist;
               if assigned(adj) and
                  (
-                  (adj^.length>max) or
-                  ((adj^.length=max) and (reginfo[buf^[i]].weight<minweight))
+                  (adj^.length>maxlength) or
+                  ((adj^.length=maxlength) and (reginfo[buf^[i]].weight<minweight))
                  ) then
                 begin
                   p:=i;
-                  max:=adj^.length;
+                  maxlength:=adj^.length;
                   minweight:=reginfo[buf^[i]].weight;
                 end;
             end;
           n:=buf^[p];
           deleteidx(p);
         end;
-
+{$endif SPILLING_OLD}
       simplifyworklist.add(n);
       freeze_moves(n);
     end;
@@ -1764,12 +1830,20 @@ unit rgobj;
 
 
     procedure trgobj.generate_interference_graph(list:TAsmList;headertai:tai);
+
+      procedure RecordUse(var r : Treginfo);
+        begin
+          inc(r.total_interferences,live_registers.length);
+          inc(r.count_uses);
+        end;
+
       var
         p : tai;
-{$if defined(EXTDEBUG) or defined(DEBUG_REGISTERLIFE)}
         i : integer;
-{$endif defined(EXTDEBUG) or defined(DEBUG_REGISTERLIFE)}
-        supreg : tsuperregister;
+        supreg, u: tsuperregister;
+{$ifdef arm}
+        so: pshifterop;
+{$endif arm}
       begin
         { All allocations are available. Now we can generate the
           interference graph. Walk through all instructions, we can
@@ -1780,46 +1854,129 @@ unit rgobj;
         while assigned(p) do
           begin
             prefetch(pointer(p.next)^);
-            if p.typ=ait_regalloc then
-              with Tai_regalloc(p) do
-                begin
-                  if (getregtype(reg)=regtype) then
-                    begin
-                      supreg:=getsupreg(reg);
-                      case ratype of
-                        ra_alloc :
-                          begin
-                            live_registers.add(supreg);
-{$ifdef DEBUG_REGISTERLIFE}
-                            write(live_registers.length,'  ');
-                            for i:=0 to live_registers.length-1 do
-                              write(std_regname(newreg(regtype,live_registers.buf^[i],defaultsub)),' ');
-                            writeln;
-{$endif DEBUG_REGISTERLIFE}
-                            add_edges_used(supreg);
-                          end;
-                        ra_dealloc :
-                          begin
-                            live_registers.delete(supreg);
-{$ifdef DEBUG_REGISTERLIFE}
-                            write(live_registers.length,'  ');
-                            for i:=0 to live_registers.length-1 do
-                              write(std_regname(newreg(regtype,live_registers.buf^[i],defaultsub)),' ');
-                            writeln;
-{$endif DEBUG_REGISTERLIFE}
-                            add_edges_used(supreg);
-                          end;
-                        ra_markused :
-                          if (supreg<first_imaginary) then
+            case p.typ of
+              ait_instruction:
+                with Taicpu(p) do
+                  begin
+                    current_filepos:=fileinfo;
+                    {For speed reasons, get_alias isn't used here, instead,
+                     assign_colours will also set the colour of coalesced nodes.
+                     If there are registers with colour=0, then the coalescednodes
+                     list probably doesn't contain these registers, causing
+                     assign_colours not to do this properly.}
+                    for i:=0 to ops-1 do
+                      with oper[i]^ do
+                        case typ of
+                          top_reg:
+                             if (getregtype(reg)=regtype) then
+                               begin
+                                 u:=getsupreg(reg);
+{$ifdef EXTDEBUG}
+                                 if (u>=maxreginfo) then
+                                   internalerror(2018111701);
+{$endif}
+                                 RecordUse(reginfo[u]);
+                               end;
+                          top_ref:
                             begin
-                              include(used_in_proc,supreg);
-                              has_usedmarks:=true;
+                              if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
+                                with ref^ do
+                                  begin
+                                    if (base<>NR_NO) and
+                                       (getregtype(base)=regtype) then
+                                      begin
+                                        u:=getsupreg(base);
+{$ifdef EXTDEBUG}
+                                        if (u>=maxreginfo) then
+                                          internalerror(2018111702);
+{$endif}
+                                        RecordUse(reginfo[u]);
+                                      end;
+                                    if (index<>NR_NO) and
+                                       (getregtype(index)=regtype) then
+                                      begin
+                                        u:=getsupreg(index);
+{$ifdef EXTDEBUG}
+                                        if (u>=maxreginfo) then
+                                          internalerror(2018111703);
+{$endif}
+                                        RecordUse(reginfo[u]);
+                                      end;
+{$if defined(x86)}
+                                    if (segment<>NR_NO) and
+                                       (getregtype(segment)=regtype) then
+                                      begin
+                                        u:=getsupreg(segment);
+{$ifdef EXTDEBUG}
+                                        if (u>=maxreginfo) then
+                                          internalerror(2018111704);
+{$endif}
+                                        RecordUse(reginfo[u]);
+                                      end;
+{$endif defined(x86)}
+                                  end;
                             end;
+{$ifdef arm}
+                          Top_shifterop:
+                            begin
+                              if regtype=R_INTREGISTER then
+                                begin
+                                  so:=shifterop;
+                                  if (so^.rs<>NR_NO) and
+                                     (getregtype(so^.rs)=regtype) then
+                                    RecordUse(reginfo[getsupreg(so^.rs)]);
+                                end;
+                            end;
+{$endif arm}
+                          else
+                            ;
+                        end;
+                  end;
+              ait_regalloc:
+                with Tai_regalloc(p) do
+                  begin
+                    if (getregtype(reg)=regtype) then
+                      begin
+                        supreg:=getsupreg(reg);
+                        case ratype of
+                          ra_alloc :
+                            begin
+                              live_registers.add(supreg);
+{$ifdef DEBUG_REGISTERLIFE}
+                              write(live_registers.length,'  ');
+                              for i:=0 to live_registers.length-1 do
+                                write(std_regname(newreg(regtype,live_registers.buf^[i],defaultsub)),' ');
+                              writeln;
+{$endif DEBUG_REGISTERLIFE}
+                              add_edges_used(supreg);
+                            end;
+                          ra_dealloc :
+                            begin
+                              live_registers.delete(supreg);
+{$ifdef DEBUG_REGISTERLIFE}
+                              write(live_registers.length,'  ');
+                              for i:=0 to live_registers.length-1 do
+                                write(std_regname(newreg(regtype,live_registers.buf^[i],defaultsub)),' ');
+                              writeln;
+{$endif DEBUG_REGISTERLIFE}
+                              add_edges_used(supreg);
+                            end;
+                          ra_markused :
+                            if (supreg<first_imaginary) then
+                              begin
+                                include(used_in_proc,supreg);
+                                has_usedmarks:=true;
+                              end;
+                          else
+                            ;
+                        end;
+                        { constraints needs always to be updated }
+                        add_constraints(reg);
                       end;
-                      { constraints needs always to be updated }
-                      add_constraints(reg);
-                    end;
-                end;
+                  end;
+              else
+                ;
+            end;
             add_cpu_interferences(p);
             p:=Tai(p.next);
           end;
@@ -2015,6 +2172,8 @@ unit rgobj;
                                 end;
                             end;
 {$endif arm}
+                          else
+                            ;
                         end;
 
                     { Maybe the operation can be removed when
@@ -2028,6 +2187,8 @@ unit rgobj;
                         continue;
                       end;
                   end;
+              else
+                ;
             end;
             p:=Tai(p.next);
           end;
@@ -2171,6 +2332,8 @@ unit rgobj;
                                live_registers.add(supreg);
                               ra_dealloc :
                                live_registers.delete(supreg);
+                              else
+                                ;
                             end;
                           end;
                       end;
@@ -2186,6 +2349,8 @@ unit rgobj;
                     if instr_spill_register(list,tai_cpu_abstract_sym(p),regs_to_spill_set,spill_temps^) then
                       spill_registers:=true;
                   end;
+              else
+                ;
             end;
             p:=Tai(p.next);
           end;
@@ -2313,6 +2478,8 @@ unit rgobj;
                       result:=addreginfo(regs,r,shifterop^.rs,operand_read);
                 end;
 {$endif ARM}
+              else
+                ;
             end;
           end;
       end;
@@ -2374,6 +2541,8 @@ unit rgobj;
                   try_replace_reg(regs, shifterop^.rs, true { always read-only });
               end;
   {$endif ARM}
+            else
+              ;
           end;
       end;
 

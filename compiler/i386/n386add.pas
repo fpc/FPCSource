@@ -280,6 +280,8 @@ interface
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
               unequaln:
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+              else
+                internalerror(2019050905);
            end;
         end;
 
@@ -305,6 +307,8 @@ interface
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
                    cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
                 end;
+              else
+                internalerror(2019050904);
            end;
         end;
 
@@ -332,6 +336,8 @@ interface
             case getresflags(true) of
               F_AE: hlab:=location.truelabel ;
               F_B:  hlab:=location.falselabel;
+              else
+                ;
             end;
           end;
 

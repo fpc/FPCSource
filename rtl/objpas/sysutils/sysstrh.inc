@@ -115,6 +115,8 @@ function IsValidIdent(const Ident: string; AllowDots: Boolean = False; StrictDot
 function IntToStr(Value: Longint): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
 function IntToStr(Value: Int64): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
 function IntToStr(Value: QWord): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function UIntToStr(Value: QWord): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function UIntToStr(Value: Cardinal): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
 function IntToHex(Value: Longint; Digits: integer): string;
 function IntToHex(Value: Int64; Digits: integer): string;
 function IntToHex(Value: QWord; Digits: integer): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
@@ -232,6 +234,7 @@ function TryStrToBool(const S: string; out Value: Boolean): Boolean;
 function TryStrToBool(const S: string; out Value: Boolean; Const FormatSettings: TFormatSettings): Boolean;
 
 function LastDelimiter(const Delimiters, S: string): SizeInt;
+function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags; Out aCount : Integer): string;
 function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
 Function IsDelimiter(const Delimiters, S: string; Index: SizeInt): Boolean;
 
@@ -248,6 +251,8 @@ Function CharToByteLen(const S: string; MaxLen: SizeInt): SizeInt;
 Function ByteToCharIndex(const S: string; Index: SizeInt): SizeInt;
 Function StrCharLength(const Str: PChar): SizeInt;
 function StrNextChar(const Str: PChar): PChar;
+function IsLeadChar(C: AnsiChar): Boolean; inline; overload;
+function IsLeadChar(B: Byte): Boolean; inline; overload;
 
 
 const

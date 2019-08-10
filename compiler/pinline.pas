@@ -655,7 +655,7 @@ implementation
 
     function inline_copy: tnode;
       begin
-        result:=inline_copy_insert_delete(in_copy_x,'Copy',true);
+        result:=inline_copy_insert_delete(in_copy_x,'Copy',false);
       end;
 
 

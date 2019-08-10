@@ -80,13 +80,13 @@
       end;
     
   public
-    class procedure setUsesUserKeyEquivalents(flag: Boolean); message 'setUsesUserKeyEquivalents:';
-    class function usesUserKeyEquivalents: Boolean; message 'usesUserKeyEquivalents';
+    class procedure setUsesUserKeyEquivalents(flag: BOOL); message 'setUsesUserKeyEquivalents:';
+    class function usesUserKeyEquivalents: BOOL; message 'usesUserKeyEquivalents';
     class function separatorItem: NSMenuItem; message 'separatorItem';
     function initWithTitle_action_keyEquivalent(aString: NSString; aSelector: SEL; charCode: NSString): id; message 'initWithTitle:action:keyEquivalent:';
     procedure setMenu(menu_: NSMenu); message 'setMenu:';
     function menu: NSMenu; message 'menu';
-    function hasSubmenu: Boolean; message 'hasSubmenu';
+    function hasSubmenu: BOOL; message 'hasSubmenu';
     procedure setSubmenu(submenu_: NSMenu); message 'setSubmenu:';
     function submenu: NSMenu; message 'submenu';
     function parentItem: NSMenuItem; message 'parentItem';
@@ -94,7 +94,7 @@
     function title: NSString; message 'title';
     procedure setAttributedTitle(string_: NSAttributedString); message 'setAttributedTitle:';
     function attributedTitle: NSAttributedString; message 'attributedTitle';
-    function isSeparatorItem: Boolean; message 'isSeparatorItem';
+    function isSeparatorItem: BOOL; message 'isSeparatorItem';
     procedure setKeyEquivalent(aKeyEquivalent: NSString); message 'setKeyEquivalent:';
     function keyEquivalent: NSString; message 'keyEquivalent';
     procedure setKeyEquivalentModifierMask(mask: NSUInteger); message 'setKeyEquivalentModifierMask:';
@@ -111,10 +111,10 @@
     function offStateImage: NSImage; message 'offStateImage';
     procedure setMixedStateImage(image_: NSImage); message 'setMixedStateImage:';
     function mixedStateImage: NSImage; message 'mixedStateImage';
-    procedure setEnabled(flag: Boolean); message 'setEnabled:';
-    function isEnabled: Boolean; message 'isEnabled';
-    procedure setAlternate(isAlternate_: Boolean); message 'setAlternate:';
-    function isAlternate: Boolean; message 'isAlternate';
+    procedure setEnabled(flag: BOOL); message 'setEnabled:';
+    function isEnabled: BOOL; message 'isEnabled';
+    procedure setAlternate(isAlternate_: BOOL); message 'setAlternate:';
+    function isAlternate: BOOL; message 'isAlternate';
     procedure setIndentationLevel(indentationLevel_: NSInteger); message 'setIndentationLevel:';
     function indentationLevel: NSInteger; message 'indentationLevel';
     procedure setTarget(anObject: id); message 'setTarget:';
@@ -127,10 +127,10 @@
     function representedObject: id; message 'representedObject';
     procedure setView(view_: NSView); message 'setView:';
     function view: NSView; message 'view';
-    function isHighlighted: Boolean; message 'isHighlighted';
-    procedure setHidden(hidden: Boolean); message 'setHidden:';
-    function isHidden: Boolean; message 'isHidden';
-    function isHiddenOrHasHiddenAncestor: Boolean; message 'isHiddenOrHasHiddenAncestor';
+    function isHighlighted: BOOL; message 'isHighlighted';
+    procedure setHidden(hidden: BOOL); message 'setHidden:';
+    function isHidden: BOOL; message 'isHidden';
+    function isHiddenOrHasHiddenAncestor: BOOL; message 'isHiddenOrHasHiddenAncestor';
     procedure setToolTip(toolTip_: NSString); message 'setToolTip:';
     function toolTip: NSString; message 'toolTip';
 

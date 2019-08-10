@@ -15,6 +15,10 @@
 {$i globdir.inc}
 unit WCEdit;
 
+{$ifdef cpullvm}
+{$modeswitch nestedprocvars}
+{$endif}
+
 interface
 
 uses Objects,Drivers,Views,
@@ -336,7 +340,7 @@ begin
   if not assigned(EditorInfos) then
     GetEditorInfo:=DefaultEditorInfo
   else
-    GetEditorInfo:=EditorInfos^.FirstThat(@Match);
+    GetEditorInfo:=EditorInfos^.FirstThat(TCallbackFunBoolParam(@Match));
 end;
 
 function TLine.GetFlags: longint;
@@ -477,7 +481,7 @@ begin
 end;
 begin
   if Assigned(Lines) then
-    Lines^.ForEach(@AddIt);
+    Lines^.ForEach(TCallbackProcParam(@AddIt));
 end;
 
 procedure TCodeEditorCore.SetContent(ALines: PUnsortedStringCollection);
@@ -488,7 +492,7 @@ end;
 begin
   DeleteAllLines;
   if Assigned(ALines) then
-    ALines^.ForEach(@AddIt);
+    ALines^.ForEach(TCallbackProcParam(@AddIt));
   LimitsChanged;
 end;
 
@@ -541,7 +545,7 @@ end;
 begin
   if Idx=-1 then Idx:=Lines^.Count;
   I:=0;
-  Bindings^.ForEach(@RegLine);
+  Bindings^.ForEach(TCallbackProcParam(@RegLine));
   Lines^.AtInsert(Idx,Line);
 end;
 
@@ -1382,13 +1386,14 @@ begin
                 WasInserting:=GetInsertMode;
                 SetInsertMode(true);
                 SetFlags(GetFlags or efNoIndent);
-                InsertLine(StartPos.Y,'');
+                InsertLine(StartPos.Y,GetStr(Text));
                 SetInsertMode(WasInserting);
                 if not HadefNoIndent then
                   SetFlags(GetFlags and not efNoIndent);
                 {DelEnd; wrong for eaCut at least }
                 SetCurPtr(StartPos.X,StartPos.Y);
-                SetLineText(StartPos.Y,Copy(GetDisplayText(StartPos.Y),1,StartPos.X)+GetStr(Text));
+                if StartPos.Y > EndPos.Y then
+                   SetLineText(EndPos.Y,Copy(GetDisplayText(EndPos.Y),1,EndPos.X));
                 SetMinMax(StartPos.Y);
               end;
             eaSelectionChanged :

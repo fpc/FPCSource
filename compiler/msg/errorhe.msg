@@ -764,7 +764,7 @@ parser_e_function_already_declared_public_forward=03120_E_הגדרת הפונקציה "$1" כב
 % declaration in the \var{implmentation} section.
 parser_e_not_external_and_export=03121_E_לא ניתן להשתמש גם ב EXPORT וגם EXTERNAL
 % These two procedure directives are mutually exclusive
-parser_h_not_supported_for_inline=03123_H_"$1" אינו נתמך עדיין בתוך פונקצית/שגרת inline
+parser_n_not_supported_for_inline=03123_N_"$1" אינו נתמך עדיין בתוך פונקצית/שגרת inline
 % Inline procedures don't support this declaration.
 parser_h_inlining_disabled=03124_H_השימוש הישיר מבוטל
 % Inlining of procedures is disabled.

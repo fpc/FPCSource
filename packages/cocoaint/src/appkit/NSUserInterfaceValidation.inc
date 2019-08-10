@@ -45,7 +45,7 @@
   
 { NSUserInterfaceValidations Protocol }
   NSUserInterfaceValidationsProtocol = objcprotocol external name 'NSUserInterfaceValidations'
-    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): Boolean; message 'validateUserInterfaceItem:';
+    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): BOOL; message 'validateUserInterfaceItem:';
   end;
 {$endif}
 {$endif}

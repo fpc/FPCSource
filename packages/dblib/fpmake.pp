@@ -19,7 +19,7 @@ begin
     begin
       P:=AddPackage('dblib');
       P.Directory:=ADirectory;
-      P.Version:='3.1.1';
+      P.Version:='3.3.1';
       P.Author := 'Library: (FreeTDS/Microsoft), header: Ladislav Karrach';
       P.License := 'Library: FreeTDS License, header: LGPL with modification, ';
       P.HomepageURL := 'www.freepascal.org';
@@ -29,6 +29,10 @@ begin
 
       P.SourcePath.Add('src');
       P.IncludePath.Add('src');
+
+      P.OSes := DBLibOSes;
+      if Defaults.CPU=jvm then
+        P.OSes := P.OSes - [android];
 
       T:=P.Targets.AddUnit('dblib.pp',DBLibOSes);
     end;

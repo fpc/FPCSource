@@ -24,8 +24,6 @@
 
 {$PACKRECORDS C}
   stat = record
-    case integer of
-    0 : (
       st_dev        : cULong;
       st_ino        : cULong;
       st_mode       : cUInt;
@@ -46,27 +44,4 @@
       st_ctime_nsec : cULong;
       __unused4a    : cUInt;
       __unused5a    : cUInt;
-      );
-    1 : (
-      dev           : cULong deprecated;
-      ino           : cULong deprecated;
-      mode          : cUInt deprecated;
-      nlink         : cUInt deprecated;
-      uid           : cUInt deprecated;
-      gid           : cUInt deprecated;
-      rdev          : cULong deprecated;
-      __pad1b       : cULong deprecated;
-      size          : cLong deprecated;
-      blksize       : cInt deprecated;
-      __pad2b       : cInt deprecated;
-      blocks        : cLong deprecated;
-      atime         : cLong deprecated;
-      atime_nsec    : cULong deprecated;
-      mtime         : cLong deprecated;
-      mtime_nsec    : cULong deprecated;
-      ctime         : cLong deprecated;
-      ctime_nsec    : cULong deprecated;
-      __unused4b    : cUInt deprecated;
-      __unused5b    : cUInt deprecated;
-      );
   end;

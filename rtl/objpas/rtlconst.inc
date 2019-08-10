@@ -308,6 +308,7 @@ ResourceString
   SParamIsNegative              = 'Parameter "%s" cannot be negative.';
   SErrCannotWriteToProperty     = 'Cannot write to property "%s".';
   SErrCannotReadProperty        = 'Cannot read property "%s".';
+  SErrNoNameValuePairAt         = 'No name=value pair at position %d.';
 
 { ---------------------------------------------------------------------
     Keysim Names

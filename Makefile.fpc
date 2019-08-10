@@ -4,7 +4,7 @@
 
 [package]
 name=fpc
-version=3.1.1
+version=3.3.1
 
 [target]
 dirs=compiler rtl utils packages installer
@@ -84,6 +84,12 @@ PPSUF=avr
 endif
 ifeq ($(CPU_TARGET),aarch64)
 PPSUF=a64
+endif
+ifeq ($(CPU_TARGET),riscv32)
+PPSUF=rv32
+endif
+ifeq ($(CPU_TARGET),riscv64)
+PPSUF=rv64
 endif
 
 # cross compilers uses full cpu_target, not just ppc-suffix
@@ -199,7 +205,7 @@ INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
 BuildOnlyBaseCPUs=jvm
 
 ifneq ($(wildcard utils),)
-NOUTILSTARGETS=embedded gba nds msdos win16 $(BuildOnlyBaseCPUs)
+NOUTILSTARGETS=embedded gba nds msdos win16 macos $(BuildOnlyBaseCPUs)
 ifeq ($(findstring $(OS_TARGET),$(NOUTILSTARGETS)),)
 ifdef BUILDFULLNATIVE
 UTILS=1

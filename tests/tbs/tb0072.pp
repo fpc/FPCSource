@@ -66,6 +66,13 @@ asm
   mov w3, y
 end;
 {$endif CPUAARCH64}
+{$ifdef CPURISCV64}
+{$define SUPPORTED}
+asm
+  addi a0, x, 0
+  addi a1, y, 0
+end;
+{$endif CPURISCV64}
 {$ifndef SUPPORTED}
 asm
 end;

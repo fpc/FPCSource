@@ -88,6 +88,8 @@ interface
          function  getsymtable(t:tgetsymtable):TSymtable;virtual;
          function  is_publishable:boolean;virtual;abstract;
          function  needs_inittable:boolean;virtual;abstract;
+         { contains a (managed) child that is not initialized to 0/Nil }
+         function  has_non_trivial_init_child(check_parent:boolean):boolean;virtual;abstract;
          function  needs_separate_initrtti:boolean;virtual;abstract;
          procedure ChangeOwner(st:TSymtable);
          function getreusablesymtab: tsymtable;
@@ -204,6 +206,8 @@ interface
          procedure putderef(const d:tderef);
          procedure putpropaccesslist(p:tpropaccesslist);
          procedure putasmsymbol(s:tasmsymbol);
+       protected
+         procedure RaiseAssertion(Code: Longint); override;
        end;
 
 {$ifdef MEMDEBUG}
@@ -868,8 +872,6 @@ implementation
                   if len<>1 then
                     internalerror(200306232);
                 end;
-              else
-                internalerror(200212277);
             end;
           end;
       end;
@@ -885,6 +887,10 @@ implementation
          Message(unit_f_ppu_read_error);
       end;
 
+    procedure tcompilerppufile.RaiseAssertion(Code: Longint);
+      begin
+        InternalError(Code);
+      end;
 
     procedure tcompilerppufile.getguid(var g: tguid);
       begin
@@ -976,8 +982,6 @@ implementation
                 getderef(hderef);
                 p.addconstderef(slt,idx,hderef);
               end;
-            else
-              internalerror(200110204);
           end;
         until false;
         getpropaccesslist:=tpropaccesslist(p);
@@ -1101,7 +1105,10 @@ implementation
       begin
         oldcrc:=do_crc;
         do_crc:=false;
-        putlongint(d.dataidx);
+        if d.dataidx=-1 then
+          internalerror(2019022201)
+        else
+          putlongint(d.dataidx);
         do_crc:=oldcrc;
       end;
 

@@ -80,6 +80,7 @@ function tobjcselectornode.pass_typecheck: tnode;
     len: longint;
     s: shortstring;
   begin
+    s:='';
     if not(m_objectivec1 in current_settings.modeswitches) then
       Message(parser_f_modeswitch_objc_required);
     result:=nil;

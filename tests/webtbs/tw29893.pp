@@ -1,4 +1,5 @@
 { %CPU=i386,x86_64 }
+{ %skiptarget=android }
 { %norun }
 
 const

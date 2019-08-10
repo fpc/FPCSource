@@ -638,7 +638,7 @@ begin
     aColor := StrToIntDef(GetProperty(aDataNode,'FrameColor'),0);
     aFrame.Color:= RGBToReportColor(Red(aColor),Green(aColor),Blue(aColor));
     end;
-  aFrame.Width := StrToIntDef(GetProperty(aDataNode,'FrameWidth'),0);
+  aFrame.Width := Round(StrToIntDef(GetProperty(aDataNode,'FrameWidth'),0)/2);
   aFrame.Lines:=[];
   tmp := GetProperty(aDataNode,'FrameBorders');
   if tmp = '' then
@@ -701,6 +701,8 @@ begin
     aPage.PageSize.Width := round(PageToMM(StrToFloatDef(GetProperty(aPageNode,'Width'),aPage.PageSize.Width)));
   if GetProperty(aPageNode,'Height')<>'' then
     aPage.PageSize.Height := round(PageToMM(StrToFloatDef(GetProperty(aPageNode,'Height'),aPage.PageSize.Width)));
+  if GetProperty(aPageNode,'Orientation') = 'poLandscape' then
+    aPage.Orientation:=poLandscape;
   aDataNode := aPageNode.FindNode('Margins');
   if Assigned(aDataNode) then
     begin

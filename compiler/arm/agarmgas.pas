@@ -94,7 +94,9 @@ unit agarmgas;
       begin
         inherited;
         InstrWriter := TArmInstrWriter.create(self);
+{$ifndef llvm}
         if GenerateThumb2Code then
+{$endif}
           TArmInstrWriter(InstrWriter).unified_syntax:=true;
       end;
 
@@ -124,7 +126,11 @@ unit agarmgas;
 
         if target_info.abi = abi_eabihf then
           { options based on what gcc uses on debian armhf }
-          result:='-mfloat-abi=hard -meabi=5 '+result;
+          result:='-mfloat-abi=hard -meabi=5 '+result
+        else if (target_info.abi = abi_eabi) and not(current_settings.fputype = fpu_soft) then
+          result:='-mfloat-abi=softfp -meabi=5 '+result
+        else if (target_info.abi = abi_eabi) and (current_settings.fputype = fpu_soft) then
+          result:='-mfloat-abi=soft -meabi=5 '+result;
       end;
 
     procedure TArmGNUAssembler.WriteExtraHeader;
@@ -201,6 +207,8 @@ unit agarmgas;
                        s:=s+', rrx'
                      else if shiftmode <> SM_None then
                        s:=s+', '+gas_shiftmode2str[shiftmode]+' #'+tostr(shiftimm);
+                     if offset<>0 then
+                       Internalerror(2019012601);
                   end
                 else if offset<>0 then
                   s:=s+', #'+tostr(offset);
@@ -210,6 +218,8 @@ unit agarmgas;
                     s:=s+']';
                   AM_PREINDEXED:
                     s:=s+']!';
+                  else
+                    ;
                 end;
               end;
 
@@ -318,6 +328,11 @@ unit agarmgas;
                   if srF in o.specialflags then getopstr:=getopstr+'f';
                   if srS in o.specialflags then getopstr:=getopstr+'s';
                 end;
+            end;
+          top_realconst:
+            begin
+              str(o.val_real,Result);
+              Result:='#'+Result;
             end
           else
             internalerror(2002070604);

@@ -44,7 +44,7 @@ interface
     tx64tryfinallynode=class(tcgtryfinallynode)
       finalizepi: tcgprocinfo;
       constructor create(l,r:TNode);override;
-      constructor create_implicit(l,r,_t1:TNode);override;
+      constructor create_implicit(l,r:TNode);override;
       function simplify(forinline: boolean): tnode;override;
       procedure pass_generate_code;override;
     end;
@@ -137,6 +137,8 @@ function reset_regvars(var n: tnode; arg: pointer): foreachnoderesult;
         make_not_regable(n,[]);
       calln:
         include(tprocinfo(arg).flags,pi_do_call);
+      else
+        ;
     end;
     result:=fen_true;
   end;
@@ -146,6 +148,8 @@ function copy_parasize(var n: tnode; arg: pointer): foreachnoderesult;
     case n.nodetype of
       calln:
         tcgprocinfo(arg).allocate_push_parasize(tcallnode(n).pushed_parasize);
+      else
+        ;
     end;
     result:=fen_true;
   end;
@@ -158,16 +162,9 @@ constructor tx64tryfinallynode.create(l, r: TNode);
         behavior causes compilation errors because real nested procedures
         aren't allowed for generics. Not creating them doesn't harm because
         generic node tree is discarded without generating code. }
-       not (df_generic in current_procinfo.procdef.defoptions)
-       then
+       not (df_generic in current_procinfo.procdef.defoptions) then
       begin
-        finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
-        finalizepi.force_nested;
-        finalizepi.procdef:=create_finalizer_procdef;
-        finalizepi.entrypos:=r.fileinfo;
-        finalizepi.entryswitches:=r.localswitches;
-        finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
-        finalizepi.exitswitches:=current_settings.localswitches;
+        finalizepi:=tcgprocinfo(current_procinfo.create_for_outlining('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype,r));
         { the init/final code is messing with asm nodes, so inform the compiler about this }
         include(finalizepi.flags,pi_has_assembler_block);
         { Regvar optimization for symbols is suppressed when using exceptions, but
@@ -176,22 +173,15 @@ constructor tx64tryfinallynode.create(l, r: TNode);
       end;
   end;
 
-constructor tx64tryfinallynode.create_implicit(l, r, _t1: TNode);
+constructor tx64tryfinallynode.create_implicit(l, r: TNode);
   begin
-    inherited create_implicit(l, r, _t1);
+    inherited create_implicit(l, r);
     if (target_info.system=system_x86_64_win64) then
       begin
         if df_generic in current_procinfo.procdef.defoptions then
           InternalError(2013012501);
 
-        finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
-        finalizepi.force_nested;
-        finalizepi.procdef:=create_finalizer_procdef;
-
-        finalizepi.entrypos:=current_filepos;
-        finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
-        finalizepi.entryswitches:=r.localswitches;
-        finalizepi.exitswitches:=current_settings.localswitches;
+        finalizepi:=tcgprocinfo(current_procinfo.create_for_outlining('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype,r));
         include(finalizepi.flags,pi_do_call);
         { the init/final code is messing with asm nodes, so inform the compiler about this }
         include(finalizepi.flags,pi_has_assembler_block);
@@ -216,8 +206,6 @@ function tx64tryfinallynode.simplify(forinline: boolean): tnode;
         if implicitframe then
           begin
             current_procinfo.finalize_procinfo:=finalizepi;
-            { don't leave dangling pointer }
-            tcgprocinfo(current_procinfo).final_asmnode:=nil;
           end;
       end;
   end;
@@ -254,8 +242,8 @@ procedure tx64tryfinallynode.pass_generate_code;
     { Do not generate a frame that catches exceptions if the only action
       would be reraising it. Doing so is extremely inefficient with SEH
       (in contrast with setjmp/longjmp exception handling) }
-    catch_frame:=implicitframe and ((not has_no_code(t1)) or
-      (current_procinfo.procdef.proccalloption=pocall_safecall));
+    catch_frame:=implicitframe and
+      (current_procinfo.procdef.proccalloption=pocall_safecall);
 
     oldflowcontrol:=flowcontrol;
     flowcontrol:=[fc_inflowcontrol];

@@ -1147,8 +1147,6 @@ implementation
               ft_typed,
               ft_untyped:
                 result:=def2=search_system_type('FILEREC').typedef;
-              else
-                internalerror(2015091401);
             end
           else
             result:=false;
@@ -1497,7 +1495,7 @@ implementation
         if node.nodetype=asn then
           node.resultdef:=realtodef
         else
-          node.resultdef:=pasbool8type;
+          node.resultdef:=pasbool1type;
     end;
 
 

@@ -112,7 +112,9 @@ implementation
                  { ... at the place we are looking for }
                  references_equal(tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.reference,rr^.old^) and
                  { its address cannot have escaped the current routine }
-                 not(tabstractvarsym(tloadnode(n).symtableentry).addr_taken) then
+                 not(tabstractvarsym(tloadnode(n).symtableentry).addr_taken) and
+                 { it is not accessed in nested procedures }
+                 not(tabstractvarsym(tloadnode(n).symtableentry).different_scope) then
                 begin
                   { relocate variable }
                   tcgloadnode(n).changereflocation(rr^.new^);
@@ -159,6 +161,8 @@ implementation
           inn,
           asn,isn:
             result := fen_norecurse_false;
+          else
+            ;
         end;
       end;
 
@@ -328,8 +332,9 @@ implementation
                begin
                  { Load a pointer to the thread var record into a register. }
                  { This register will be used in both multithreaded and non-multithreaded cases. }
-                 hreg_tv_rec:=hlcg.getaddressregister(current_asmdata.CurrAsmList,fieldptrdef);
-                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,fieldptrdef,tvref,hreg_tv_rec);
+                 hreg_tv_rec:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(tv_rec));
+                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tv_rec,cpointerdef.getreusable(tv_rec),tvref,hreg_tv_rec);
+                 reference_reset_base(tvref,hreg_tv_rec,0,ctempposinvalid,tvref.alignment,tvref.volatility)
                end;
              paraloc1.init;
              paramanager.getintparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
@@ -344,8 +349,6 @@ implementation
              hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,
                tv_rec,
                tfieldvarsym(tv_index_field),href);
-             if size_opt then
-               hlcg.reference_reset_base(href,tfieldvarsym(tv_index_field).vardef,hreg_tv_rec,href.offset,href.temppos,href.alignment,[]);
              hlcg.a_load_ref_cgpara(current_asmdata.CurrAsmList,tfieldvarsym(tv_index_field).vardef,href,paraloc1);
              { Dealloc the threadvar record register before calling the helper function to allow  }
              { the register allocator to assign non-mandatory real registers for hreg_tv_rec. }
@@ -375,10 +378,6 @@ implementation
              hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,
                tv_rec,
                tfieldvarsym(tv_non_mt_data_field),href);
-             { load in the same "hregister" as above, so after this sequence
-               the address of the threadvar is always in hregister }
-             if size_opt then
-               hlcg.reference_reset_base(href,fieldptrdef,hreg_tv_rec,href.offset,href.temppos,href.alignment,[]);
              hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,fieldptrdef,href,hregister);
              hlcg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
 
@@ -418,6 +417,7 @@ implementation
         href : treference;
         newsize : tcgsize;
         vd : tdef;
+        alignment: longint;
         indirect : boolean;
         name : TSymStr;
       begin
@@ -491,8 +491,8 @@ implementation
                          reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,location.reference.alignment,[])
                      end
                    else
-                     location:=gvs.localloc;
-                 end;
+                      location:=gvs.localloc;
+                  end;
 
                 { make const a LOC_CREFERENCE }
                 if (gvs.varspez=vs_const) and
@@ -527,7 +527,10 @@ implementation
                     { assume packed records may always be unaligned }
                     if not(resultdef.typ in [recorddef,objectdef]) or
                        (tabstractrecordsymtable(tabstractrecorddef(resultdef).symtable).usefieldalignment<>1) then
-                      location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment,[])
+                      begin
+                        alignment:=min(min(min(resultdef.alignment,current_settings.alignment.localalignmax),current_settings.alignment.constalignmax),current_settings.alignment.varalignmax);
+                        location_reset_ref(location,LOC_REFERENCE,newsize,alignment,[]);
+                      end
                     else
                       location_reset_ref(location,LOC_REFERENCE,newsize,1,[]);
                     hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,ctempposinvalid,location.reference.alignment,[]);
@@ -554,7 +557,8 @@ implementation
                        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
                      { vd will contain the type of the self pointer (self in
                        case of a class/classref, address of self in case of
-                       an object }
+                       an object, frame pointer or pointer to parentfpstruct
+                       in case of nested procsym load  }
                      vd:=nil;
                      case left.location.loc of
                         LOC_CREGISTER,
@@ -570,7 +574,8 @@ implementation
                         LOC_REFERENCE:
                           begin
                              if is_implicit_pointer_object_type(left.resultdef) or
-                                 (left.resultdef.typ=classrefdef) then
+                                (left.resultdef.typ=classrefdef) or
+                                is_nested_pd(procdef) then
                                begin
                                  vd:=left.resultdef;
                                  location.registerhi:=hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef);
@@ -689,7 +694,7 @@ implementation
          alignmentrequirement,
          len : aint;
          r : tregister;
-         {$if not defined(cpu64bitalu)}
+         {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
          r64 : tregister64;
          {$endif}
          oldflowcontrol : tflowcontrol;
@@ -834,11 +839,11 @@ implementation
             case right.location.loc of
               LOC_CONSTANT :
                 begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                   if (left.location.size in [OS_64,OS_S64]) or (right.location.size in [OS_64,OS_S64]) then
                     cg64.a_load64_const_loc(current_asmdata.CurrAsmList,right.location.value64,left.location)
                   else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                     hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,right.location.value,left.location);
                 end;
               LOC_REFERENCE,
@@ -946,11 +951,11 @@ implementation
                       hlcg.a_load_ref_subsetreg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.reference,left.location.sreg);
                     LOC_SUBSETREF,
                     LOC_CSUBSETREF:
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                       if right.location.size in [OS_64,OS_S64] then
                        cg64.a_load64_ref_subsetref(current_asmdata.CurrAsmList,right.location.reference,left.location.sref)
                       else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                        hlcg.a_load_ref_subsetref(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.reference,left.location.sref);
                     else
                       internalerror(200203284);
@@ -1049,11 +1054,11 @@ implementation
               LOC_SUBSETREF,
               LOC_CSUBSETREF:
                 begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                   if right.location.size in [OS_64,OS_S64] then
                    cg64.a_load64_subsetref_loc(current_asmdata.CurrAsmList,right.location.sref,left.location)
                   else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                   hlcg.a_load_subsetref_loc(current_asmdata.CurrAsmList,
                       right.resultdef,left.resultdef,right.location.sref,left.location);
                 end;
@@ -1063,30 +1068,30 @@ implementation
                   hlcg.a_label(current_asmdata.CurrAsmList,right.location.truelabel);
                   if is_pasbool(left.resultdef) then
                     begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                       if left.location.size in [OS_64,OS_S64] then
                         cg64.a_load64_const_loc(current_asmdata.CurrAsmList,1,left.location)
                       else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                         hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,1,left.location)
                     end
                   else
                     begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                       if left.location.size in [OS_64,OS_S64] then
                         cg64.a_load64_const_loc(current_asmdata.CurrAsmList,-1,left.location)
                       else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                         hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,-1,left.location);
                     end;
 
                   hlcg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
                   hlcg.a_label(current_asmdata.CurrAsmList,right.location.falselabel);
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                   if left.location.size in [OS_64,OS_S64] then
                     cg64.a_load64_const_loc(current_asmdata.CurrAsmList,0,left.location)
                   else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                     hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,0,left.location);
                   hlcg.a_label(current_asmdata.CurrAsmList,hlabel);
                 end;
@@ -1097,7 +1102,7 @@ implementation
                     begin
                       case left.location.loc of
                         LOC_REGISTER,LOC_CREGISTER:
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                           if left.location.size in [OS_S64,OS_64] then
                             begin
                               cg.g_flags2reg(current_asmdata.CurrAsmList,OS_32,right.location.resflags,left.location.register64.reglo);
@@ -1105,7 +1110,7 @@ implementation
                               cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,left.location.register64.reghi);
                             end
                           else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                             begin
                               cg.g_flags2reg(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,left.location.register);
                               cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
@@ -1113,7 +1118,7 @@ implementation
                         LOC_REFERENCE:
                         { i8086 and i386 have hacks in their code generators so that they can
                           deal with 64 bit locations in this parcticular case }
-{$if not defined(cpu64bitalu) and not defined(x86)}
+{$if not defined(cpu64bitalu) and not defined(x86) and not defined(cpuhighleveltarget)}
                           if left.location.size in [OS_S64,OS_64] then
                             begin
                               r64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -1124,7 +1129,7 @@ implementation
                               cg64.a_load64_reg_ref(current_asmdata.CurrAsmList,r64,left.location.reference);
                             end
                           else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not x86 and not cpuhighleveltarget}
                             begin
                               cg.g_flags2ref(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,left.location.reference);
                               cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
@@ -1142,7 +1147,7 @@ implementation
                     end
                   else
                     begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
                       if left.location.size in [OS_S64,OS_64] then
                         begin
                           r64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -1155,7 +1160,7 @@ implementation
                           cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,r64,left.location);
                         end
                       else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                         begin
                           r:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
                           cg.g_flags2reg(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,r);
@@ -1166,6 +1171,10 @@ implementation
                     end;
                 end;
 {$endif cpuflags}
+              LOC_VOID:
+                ;
+              else
+                internalerror(2019050706);
             end;
          end;
 
@@ -1300,6 +1309,8 @@ implementation
                                   vtype:=vtQWord;
                                   varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VQWORD'));
                                 end;
+                              else
+                                ;
                             end;
                             freetemp:=false;
                             vaddr:=true;
@@ -1330,6 +1341,8 @@ implementation
                                      vtype:=vtWideChar;
                                      varfield:=tfieldvarsym(search_struct_member_no_helper(trecorddef(eledef),'VINTEGER'));
                                    end;
+                                 else
+                                   ;
                                end;
                              end;
                      end;
@@ -1424,6 +1437,8 @@ implementation
                            freetemp:=false;
                          end;
                      end;
+                   else
+                     ;
                  end;
                  if vtype=$ff then
                    internalerror(14357);
