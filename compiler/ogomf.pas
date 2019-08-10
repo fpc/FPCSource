@@ -4700,7 +4700,7 @@ cleanup:
             idtxt  : 'OMF';
             asmbin : '';
             asmcmd : '';
-            supported_targets : [system_i8086_msdos,system_i8086_embedded];
+            supported_targets : [system_i8086_msdos,system_i8086_embedded,system_i8086_win16];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '..@';
             comment : '; ';
