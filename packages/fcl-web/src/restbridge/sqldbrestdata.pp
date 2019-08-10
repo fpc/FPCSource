@@ -64,7 +64,8 @@ Type
     function FindFieldForParam(aOperation: TRestOperation; P: TParam): TSQLDBRestField; virtual;
     function BuildFieldList(ForceAll : Boolean): TRestFieldPairArray; virtual;
     function CreateQuery(aSQL: String): TSQLQuery; virtual;
-    procedure FillParams(aOperation: TRestOperation; aQuery: TSQLQuery; FilteredFields: TRestFilterPairArray); virtual;
+    procedure FillParams(aOperation: TRestOperation; aParams: TParams;
+      FilteredFields: TRestFilterPairArray); virtual;
     function GetDatasetForResource(aFieldList: TRestFieldPairArray; Singleton : Boolean): TDataset; virtual;
     function GetOrderByFieldArray: TRestFieldOrderPairArray;
     function GetOrderBy: UTF8String;virtual;
@@ -388,7 +389,12 @@ end;
 procedure TSQLDBRestDBHandler.SetParamFromData(P: TParam; F: TSQLDBRestField;
   D: TJSONData);
 
+Var
+  S : String;
+
 begin
+  if Assigned(D) then
+    S:=D.AsString;
   if not Assigned(D) then
     P.Clear
   else if Assigned(F) then
@@ -434,7 +440,7 @@ begin
     Result:=FResource.Fields.FindByFieldName(N);
 end;
 
-procedure TSQLDBRestDBHandler.FillParams(aOperation : TRestOperation; aQuery: TSQLQuery;FilteredFields : TRestFilterPairArray);
+procedure TSQLDBRestDBHandler.FillParams(aOperation : TRestOperation; aParams: TParams;FilteredFields : TRestFilterPairArray);
 
 Var
   I : Integer;
@@ -452,19 +458,21 @@ begin
     F:=FF.Field;
     if FF.Operation<>rfNull then
       begin
-      P:=aQuery.Params.FindParam(FilterParamPrefix[FF.Operation]+F.FieldName);
-      if not Assigned(P) then
-        Raise ESQLDBRest.CreateFmt(IO.RestStatuses.GetStatusCode(rsError),SErrFilterParamNotFound,[F.PublicName]);
-      if Assigned(FF.ValueParam) then
-        P.Value:=FF.ValueParam.Value
-      else
+      P:=aParams.FindParam(FilterParamPrefix[FF.Operation]+F.FieldName);
+      // If there is no %where% macro, the parameter can be absent
+      if Assigned(P) then
         begin
-        D:=TJSONString.Create(FF.Value);
-        try
-          SetParamFromData(P,F,D)
-        finally
-          D.Free;
-        end;
+        if Assigned(FF.ValueParam) then
+          P.Value:=FF.ValueParam.Value
+        else
+          begin
+          D:=TJSONString.Create(FF.Value);
+          try
+            SetParamFromData(P,F,D)
+          finally
+            D.Free;
+          end;
+          end;
         end;
       end;
     end;
@@ -477,9 +485,9 @@ begin
   else
     Sources:=AllVariableSources;
   end;
-  For I:=0 to aQuery.Params.Count-1 do
+  For I:=0 to aParams.Count-1 do
     begin
-    P:=aQuery.Params[i];
+    P:=aParams[i];
     if P.IsNull then
       try
         D:=Nil;
@@ -654,7 +662,7 @@ begin
   Q:=CreateQuery(SQL);
   Try
     Q.UsePrimaryKeyAsKey:=False;
-    FillParams(roGet,Q,WhereFilterList);
+    FillParams(roGet,Q.Params,WhereFilterList);
     Result:=Q;
   except
     Q.Free;
@@ -699,8 +707,13 @@ begin
       end;
     if not (D.EOF and D.BOF) then
       StreamDataset(IO.RESTOutput,D,FieldList)
-    else if Single then
-      DoNotFound;
+    else
+      begin
+      if Single then
+        DoNotFound
+      else
+        StreamDataset(IO.RESTOutput,D,FieldList)
+      end;
   finally
     D.Free;
   end;
@@ -710,6 +723,23 @@ function TSQLDBRestDBHandler.GetGeneratorValue(const aGeneratorName: String
   ): Int64;
 
 begin
+{$IFDEF VER3_0_4}
+  // The 'get next value' SQL in 3.0.4 is wrong, so we need to do this sep
+  if (IO.Connection is TSQLConnector) and SameText((IO.Connection as TSQLConnector).ConnectorType,'Sqlite3') then
+    begin
+    With CreateQuery('SELECT seq+1 FROM sqlite_sequence WHERE name=:aName') do
+      Try
+        ParamByName('aName').AsString:=aGeneratorName;
+        Open;
+        if (EOF and BOF) then
+          DatabaseErrorFmt('Generator %s does not exist',[aGeneratorName]);
+        Result:=Fields[0].asLargeint;
+      Finally
+        Free;
+      end;
+    end
+  else
+{$ENDIF}
   Result:=IO.Connection.GetNextValue(aGeneratorName,1);
 end;
 
@@ -865,7 +895,7 @@ begin
   if not IO.RESTInput.SelectObject(0) then
     raise ESQLDBRest.Create(IO.RestStatuses.GetStatusCode(rsInvalidParam), SErrNoResourceDataFound);
   InsertNewRecord;
-  // Now build response
+  // Now build response. We can imagine not doing a select again, and simply supply back the fields as sent...
   FieldList:=BuildFieldList(False);
   D:=GetDatasetForResource(FieldList,True);
   try
@@ -882,6 +912,7 @@ procedure TSQLDBRestDBHandler.UpdateExistingRecord(OldData : TDataset);
 Var
   S : TSQLStatement;
   SQl : String;
+  WhereFilterList : TRestFilterPairArray;
 
 begin
   if (OldData=ExternalDataset) then
@@ -897,13 +928,14 @@ begin
     end
   else
     begin
-    SQL:=FResource.GetResolvedSQl(skUpdate,'','','');
+    SQL:=FResource.GetResolvedSQl(skUpdate,GetIDWhere(WhereFilterList) ,'','');
     S:=TSQLStatement.Create(Self);
     try
       S.Database:=IO.Connection;
       S.Transaction:=IO.Transaction;
       S.SQL.Text:=SQL;
       SetPostParams(S.Params,OldData.Fields);
+      FillParams(roGet,S.Params,WhereFilterList);
       // Give user a chance to look at it.
       FResource.CheckParams(io.RestContext,roPut,S.Params);
       S.Execute;
@@ -971,6 +1003,7 @@ begin
     // Now build response
     if D<>ExternalDataset then
       begin;
+      // Now build response. We can imagine not doing a select again, and simply supply back the fields as sent...
       FreeAndNil(D);
       D:=GetDatasetForResource(FieldList,True);
       FieldList:=BuildFieldList(False);
@@ -1021,7 +1054,7 @@ begin
     SQL:=FResource.GetResolvedSQl(skDelete,aWhere,'');
     Q:=CreateQuery(SQL);
     try
-      FillParams(roDelete,Q,FilteredFields);
+      FillParams(roDelete,Q.Params,FilteredFields);
       Q.ExecSQL;
       if Q.RowsAffected<>1 then
         DoNotFound;

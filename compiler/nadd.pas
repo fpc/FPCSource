@@ -389,7 +389,7 @@ implementation
         var
           swapl, swapr: Boolean;
           valuer: tnode;
-          t: QWord;
+          t: Tconstexprint;
         begin
           result:=false;
           swapl:=false;
@@ -398,29 +398,26 @@ implementation
           if nodel.left.nodetype=ordconstn then
             begin
               swapl:=true;
-              cl:=tordconstnode(nodel.left).value.uvalue;
+              cl:=tordconstnode(nodel.left).value;
               value:=nodel.right;
             end
           else if nodel.right.nodetype=ordconstn then
             begin
-              cl:=tordconstnode(nodel.right).value.uvalue;
+              cl:=tordconstnode(nodel.right).value;
               value:=nodel.left;
             end
           else
             exit;
 
-          if is_signed(value.resultdef) then
-            exit;
-
           if noder.left.nodetype=ordconstn then
             begin
               swapl:=true;
-              cr:=tordconstnode(noder.left).value.uvalue;
+              cr:=tordconstnode(noder.left).value;
               valuer:=noder.right;
             end
           else if noder.right.nodetype=ordconstn then
             begin
-              cr:=tordconstnode(noder.right).value.uvalue;
+              cr:=tordconstnode(noder.right).value;
               valuer:=noder.left;
             end
           else
@@ -2126,7 +2123,8 @@ implementation
                  end;
                subn:
                  begin
-                    if (cs_extsyntax in current_settings.moduleswitches) then
+                    if (cs_extsyntax in current_settings.moduleswitches) or
+                       (nf_internal in flags) then
                       begin
                         if is_voidpointer(right.resultdef) then
                         begin
@@ -2440,7 +2438,7 @@ implementation
               begin
                 if (rt=niln) then
                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,'NIL');
-                if not(cs_extsyntax in current_settings.moduleswitches) or
+                if (not(cs_extsyntax in current_settings.moduleswitches) and not(nf_internal in flags))  or
                    (not (is_pchar(ld) or is_chararray(ld) or is_open_chararray(ld) or is_widechar(ld) or is_widechararray(ld) or is_open_widechararray(ld)) and
                     not(cs_pointermath in current_settings.localswitches) and
                     not((ld.typ=pointerdef) and tpointerdef(ld).has_pointer_math)) then
@@ -2473,7 +2471,7 @@ implementation
                begin
                  if (lt=niln) then
                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),'NIL',rd.typename);
-                 if not(cs_extsyntax in current_settings.moduleswitches) or
+                 if (not(cs_extsyntax in current_settings.moduleswitches) and not(nf_internal in flags)) or
                    (not (is_pchar(ld) or is_chararray(ld) or is_open_chararray(ld) or is_widechar(ld) or is_widechararray(ld) or is_open_widechararray(ld)) and
                     not(cs_pointermath in current_settings.localswitches) and
                     not((ld.typ=pointerdef) and tpointerdef(ld).has_pointer_math)) then

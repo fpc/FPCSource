@@ -59,6 +59,7 @@ interface
         procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
         procedure WriteOper_jmp(const o:toper; ai : taicpu);
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;alignment : longint);
+        procedure WriteHiddenSymbolAttribute(sym: TAsmSymbol);
         procedure ResetSectionsList;
         procedure AddGroup(const grpname: string);
         procedure AddSegmentToGroup(const grpname,segname: string);
@@ -556,7 +557,8 @@ interface
           '.obcj_nlcatlist',
           '.objc_protolist',
           '.stack',
-          '.heap'
+          '.heap',
+          ',gcc_except_table'
         );
       var
         secname,secgroup: string;
@@ -620,6 +622,17 @@ interface
           end;
         writer.AsmLn;
         LastSecType:=atype;
+      end;
+
+    procedure TX86NasmAssembler.WriteHiddenSymbolAttribute(sym: TAsmSymbol);
+      begin
+        if target_info.system in systems_windows then
+          exit;
+        if target_info.system in systems_darwin then
+          writer.AsmWrite(':private_extern')
+        else
+          { no colon }
+          writer.AsmWrite(' hidden')
       end;
 
     procedure TX86NasmAssembler.ResetSectionsList;
@@ -785,7 +798,9 @@ interface
                if tai_datablock(hp).is_global or SmartAsm then
                 begin
                   writer.AsmWrite(#9'GLOBAL ');
-                  writer.AsmWriteLn(tai_datablock(hp).sym.name);
+                  writer.AsmWrite(tai_datablock(hp).sym.name);
+                  if tai_datablock(hp).sym.bind=AB_PRIVATE_EXTERN then
+                    WriteHiddenSymbolAttribute(tai_datablock(hp).sym);
                 end;
                writer.AsmWrite(PadTabs(tai_datablock(hp).sym.name,':'));
                if SmartAsm then
@@ -1002,6 +1017,8 @@ interface
                 begin
                   writer.AsmWrite(#9'GLOBAL ');
                   writer.AsmWriteLn(tai_symbol(hp).sym.name);
+                  if tai_symbol(hp).sym.bind=AB_PRIVATE_EXTERN then
+                    WriteHiddenSymbolAttribute(tai_symbol(hp).sym);
                 end;
                writer.AsmWrite(tai_symbol(hp).sym.name);
                if SmartAsm then

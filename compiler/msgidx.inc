@@ -460,7 +460,8 @@ const
   parser_w_operator_overloaded_hidden_3=03347;
   parser_e_threadvar_must_be_class=03348;
   parser_e_only_static_members_via_object_type=03349;
-  parse_e_callthrough_varargs=03350;
+  parser_e_callthrough_varargs=03350;
+  parser_e_unbound_attribute=03351;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -698,7 +699,7 @@ const
   cg_e_function_not_support_by_selected_instruction_set=06056;
   cg_f_max_units_reached=06057;
   cg_n_no_inline=06058;
-  cg_e_case_incomplete=06059;
+  cg_e_case_missing_value=06059;
   cg_w_case_incomplete=06060;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
@@ -1001,6 +1002,7 @@ const
   unit_u_loading_from_package=10064;
   cg_f_internal_type_not_found=10065;
   cg_f_internal_type_does_not_match=10066;
+  unit_u_ppu_llvm_mismatch=10067;
   option_usage=11000;
   option_only_one_source_support=11001;
   option_def_only_for_os2=11002;
@@ -1111,9 +1113,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 83066;
+  MsgTxtSize = 83577;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,106,351,126,99,61,143,34,221,67,
+    28,106,352,126,99,61,143,34,221,68,
     62,20,30,1,1,1,1,1,1,1
   );

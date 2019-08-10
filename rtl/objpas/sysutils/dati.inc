@@ -337,7 +337,7 @@ begin
   DateTimeToString(Result, FormatSettings.LongTimeFormat, Time, FormatSettings);
 end;
 
-{   DateTimeToStr returns a string representation of DateTime using LongDateTimeFormat   }
+{   DateTimeToStr returns a string representation of DateTime using ShortDateFormat and LongTimeFormat   }
 
 Const
   DateTimeToStrFormat : Array[Boolean] of string = ('c','f');

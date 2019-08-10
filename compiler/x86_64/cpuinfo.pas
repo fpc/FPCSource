@@ -79,7 +79,7 @@ Type
 Const
    { Is there support for dealing with multiple microcontrollers available }
    { for this platform? }
-   ControllerSupport = true;
+   ControllerSupport = false;
    { Size of native extended type }
    extended_size = 10;
    { target cpu string (used by compiler options) }
@@ -128,6 +128,17 @@ Const
      'SSE42',
      'AVX',
      'AVX2'
+   );
+
+   fputypestrllvm : array[tfputype] of string[6] = ('',
+//     'SOFT',
+     '',
+     'sse3',
+     'ssse3',
+     'sse4.1',
+     'sse4.2',
+     'avx',
+     'avx2'
    );
 
    sse_singlescalar = [fpu_sse64..fpu_avx2];

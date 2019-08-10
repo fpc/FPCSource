@@ -1,11 +1,20 @@
 { Parsed from Foundation.framework NSURLError.h }
 
+{$ifdef EXTERNAL_SYMBOLS}
+var
+  NSURLErrorDomain: NSString; cvar; external;
+  NSURLErrorFailingURLErrorKey: NSString { available in 10_6, 4_0 }; cvar; external;
+  NSURLErrorFailingURLStringErrorKey: NSString { available in 10_6, 4_0 }; cvar; external;
+  NSErrorFailingURLStringKey: NSString deprecated 'in 10_0, 10_6, 2_0, 4_0'; cvar; external;
+  NSURLErrorFailingURLPeerTrustErrorKey: NSString { available in 10_6, 4_0 }; cvar; external;
+  NSURLErrorBackgroundTaskCancelledReasonKey: NSString { available in 10_10, 8_0 }; cvar; external;
+{$endif}
+
 {$ifdef TYPES}
-{$ifndef NSURLERROR_PAS_T}
-{$define NSURLERROR_PAS_T}
-
-{ Constants }
-
+const
+  NSURLErrorCancelledReasonUserForceQuitApplication = 0;
+  NSURLErrorCancelledReasonBackgroundUpdatesDisabled = 1;
+  NSURLErrorCancelledReasonInsufficientSystemResources = 2 { available in 10_10, 8_0 };
 const
   NSURLErrorUnknown = -1;
   NSURLErrorCancelled = kCFURLErrorCancelled;
@@ -30,7 +39,7 @@ const
   NSURLErrorFileDoesNotExist = kCFURLErrorFileDoesNotExist;
   NSURLErrorFileIsDirectory = kCFURLErrorFileIsDirectory;
   NSURLErrorNoPermissionsToReadFile = kCFURLErrorNoPermissionsToReadFile;
-  NSURLErrorDataLengthExceedsMaximum = kCFURLErrorDataLengthExceedsMaximum;
+  NSURLErrorDataLengthExceedsMaximum = kCFURLErrorDataLengthExceedsMaximum { available in 10_5, 2_0 };
   NSURLErrorSecureConnectionFailed = kCFURLErrorSecureConnectionFailed;
   NSURLErrorServerCertificateHasBadDate = kCFURLErrorServerCertificateHasBadDate;
   NSURLErrorServerCertificateUntrusted = kCFURLErrorServerCertificateUntrusted;
@@ -47,35 +56,12 @@ const
   NSURLErrorCannotMoveFile = kCFURLErrorCannotMoveFile;
   NSURLErrorDownloadDecodingFailedMidStream = kCFURLErrorDownloadDecodingFailedMidStream;
   NSURLErrorDownloadDecodingFailedToComplete = kCFURLErrorDownloadDecodingFailedToComplete;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSURLERROR_PAS_R}
-{$define NSURLERROR_PAS_R}
-
-{$endif}
+  NSURLErrorInternationalRoamingOff = kCFURLErrorInternationalRoamingOff { available in 10_7, 3_0 };
+  NSURLErrorCallIsActive = kCFURLErrorCallIsActive { available in 10_7, 3_0 };
+  NSURLErrorDataNotAllowed = kCFURLErrorDataNotAllowed { available in 10_7, 3_0 };
+  NSURLErrorRequestBodyStreamExhausted = kCFURLErrorRequestBodyStreamExhausted { available in 10_7, 3_0 };
+  NSURLErrorBackgroundSessionRequiresSharedContainer = -995 { available in 10_10, 8_0 };
+  NSURLErrorBackgroundSessionInUseByAnotherProcess = -996 { available in 10_10, 8_0 };
+  NSURLErrorBackgroundSessionWasDisconnected = -997 { available in 10_10, 8_0 };
 {$endif}
 
-{$ifdef FUNCTIONS}
-{$ifndef NSURLERROR_PAS_F}
-{$define NSURLERROR_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSURLERROR_PAS_S}
-{$define NSURLERROR_PAS_S}
-
-{ External string constants }
-var
-  NSURLErrorDomain: NSString; cvar; external;
-  NSURLErrorFailingURLErrorKey: NSString; cvar; external;
-  NSURLErrorFailingURLStringErrorKey: NSString; cvar; external;
-  NSErrorFailingURLStringKey: NSString deprecated 'in Mac OS X 10.6 and later'; cvar; external;
-  NSURLErrorFailingURLPeerTrustErrorKey: NSString; cvar; external;
-
-{$endif}
-{$endif}

@@ -201,6 +201,9 @@ interface
        {$endif state_tracking}
           function  docompare(p: tnode): boolean; override;
           procedure printnodedata(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
           function  para_count:longint;
           function  required_para_count:longint;
           { checks if there are any parameters which end up at the stack, i.e.
@@ -483,13 +486,13 @@ implementation
           end;
 
         { create a temp to store parameter values }
-        vardispatchparadef:=crecorddef.create_global_internal('',voidpointertype.size,voidpointertype.size,current_settings.alignment.maxCrecordalign);
+        vardispatchparadef:=crecorddef.create_global_internal('',voidpointertype.size,voidpointertype.size);
         { the size will be set once the vardistpatchparadef record has been completed }
         params:=ctempcreatenode.create(vardispatchparadef,0,tt_persistent,false);
         addstatement(statements,params);
 
         tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
-        tcb.begin_anonymous_record('',1,sizeof(pint),1,1);
+        tcb.begin_anonymous_record('',1,sizeof(pint),1);
 
         if not variantdispatch then  { generate a tdispdesc record }
         begin
@@ -1836,6 +1839,56 @@ implementation
            (not(cnf_typedefset in callnodeflags) and not(cnf_typedefset in tcallnode(p).callnodeflags)));
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TCallNode.XMLPrintNodeData(var T: Text);
+      begin
+        if assigned(procdefinition) and (procdefinition.typ=procdef) then
+          WriteLn(T, PrintNodeIndention, '<procname>', SanitiseXMLString(TProcDef(procdefinition).FullProcName(True)), '</procname>')
+        else
+          begin
+            if assigned(symtableprocentry) then
+              WriteLn(T, PrintNodeIndention, '<procname>', symtableprocentry.name, '</procname>')
+          end;
+
+        if assigned(methodpointer) then
+          begin
+            WriteLn(T, PrintNodeIndention, '<methodpointer>');
+            PrintNodeIndent;
+            XMLPrintNode(T, methodpointer);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</methodpointer>');
+          end;
+
+        if assigned(funcretnode) then
+          begin
+            WriteLn(T, PrintNodeIndention, '<funcretnode>');
+            PrintNodeIndent;
+            XMLPrintNode(T, funcretnode);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</funcretnode>');
+          end;
+
+        if assigned(callinitblock) then
+          begin
+            WriteLn(T, PrintNodeIndention, '<callinitblock>');
+            PrintNodeIndent;
+            XMLPrintNode(T, callinitblock);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</callinitblock>');
+          end;
+
+        if assigned(callcleanupblock) then
+          begin
+            WriteLn(T, PrintNodeIndention, '<callcleanupblock>');
+            PrintNodeIndent;
+            XMLPrintNode(T, callcleanupblock);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</callcleanupblock>');
+          end;
+
+        inherited XMLPrintNodeData(T);
+      end;
+{$endif DEBUG_NODE_XML}
 
     procedure tcallnode.printnodedata(var t:text);
       begin
@@ -4200,11 +4253,12 @@ implementation
             st:=procdefinition.owner;
             while (st.symtabletype in [ObjectSymtable,recordsymtable]) do
               st:=st.defowner.owner;
-            if (pi_uses_static_symtable in tprocdef(procdefinition).inlininginfo^.flags) and
+            if not(tf_supports_hidden_symbols in target_info.flags) and
+               (pi_uses_static_symtable in tprocdef(procdefinition).inlininginfo^.flags) and
                (st.symtabletype=globalsymtable) and
                (not st.iscurrentunit) then
               begin
-                Comment(V_lineinfo+V_Debug,'Not inlining "'+tprocdef(procdefinition).procsym.realname+'", references static symtable');
+                Comment(V_lineinfo+V_Debug,'Not inlining "'+tprocdef(procdefinition).procsym.realname+'", references private symbols from other unit');
                 exclude(callnodeflags,cnf_do_inline);
               end;
             para:=tcallparanode(parameters);

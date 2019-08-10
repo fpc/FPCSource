@@ -54,7 +54,7 @@ interface
     function tarmrealconstnode.pass_1 : tnode;
       begin
         result:=nil;
-        if (current_settings.fputype in [fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16,fpu_fpv4_s16]) and
+        if (FPUARM_HAS_VMOV_CONST in fpu_capabilities[current_settings.fputype]) and
            IsVFPFloatImmediate(tfloatdef(resultdef).floattype,value_real) then
            expectloc:=LOC_MMREGISTER
          else
@@ -75,7 +75,7 @@ interface
          pf : TOpPostfix;
 
       begin
-        if (current_settings.fputype in [fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16,fpu_fpv4_s16]) and
+        if (FPUARM_HAS_VMOV_CONST in fpu_capabilities[current_settings.fputype]) and
           IsVFPFloatImmediate(tfloatdef(resultdef).floattype,value_real) then
           begin
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));

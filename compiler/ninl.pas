@@ -36,6 +36,9 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function dogetcopy : tnode;override;
           procedure printnodeinfo(var t : text);override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeInfo(var t : text);override;
+{$endif DEBUG_NODE_XML}
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function pass_typecheck_cpu:tnode;virtual;
@@ -85,6 +88,7 @@ interface
           function first_assigned: tnode; virtual;
           function first_assert: tnode; virtual;
           function first_popcnt: tnode; virtual;
+          function first_bitscan: tnode; virtual;
           { override these for Seg() support }
           function typecheck_seg: tnode; virtual;
           function first_seg: tnode; virtual;
@@ -127,7 +131,7 @@ implementation
       verbose,globals,systems,constexp,
       globtype,cutils,cclasses,fmodule,
       symconst,symdef,symsym,symcpu,symtable,paramgr,defcmp,defutil,symbase,
-      cpuinfo,
+      cpuinfo,cpubase,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
       nobjc,objcdef,
@@ -191,6 +195,13 @@ implementation
         write(t,', inlinenumber = ',inlinenumber);
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TInlineNode.XMLPrintNodeInfo(var T: Text);
+      begin
+        inherited;
+        Write(T, ' inlinenumber="', inlinenumber, '"');
+      end;
+{$endif DEBUG_NODE_XML}
 
     function get_str_int_func(def: tdef): string;
     var
@@ -2298,7 +2309,14 @@ implementation
 {$else}
                      hp:=cpointerconstnode.create((vl2.uvalue shl 4)+vl.uvalue,voidpointertype);
 {$endif}
-                   end
+                   end;
+                 in_const_eh_return_data_regno:
+                   begin
+                     vl:=eh_return_data_regno(vl.svalue);
+                     if vl=-1 then
+                       CGMessagePos(left.fileinfo,type_e_range_check_error_bounds);
+                     hp:=genintconstnode(vl);
+                   end;
                  else
                    internalerror(88);
                end;
@@ -2497,13 +2515,14 @@ implementation
                         else
                           vl:=tordconstnode(left).value-1;
                         if is_integer(left.resultdef) then
-                        { the type of the original integer constant is irrelevant,
-                          it should be automatically adapted to the new value
-                          (except when inlining) }
+                          { the type of the original integer constant is irrelevant,
+                            it should be automatically adapted to the new value
+                            (except when inlining) }
                           result:=create_simplified_ord_const(vl,resultdef,forinline)
                         else
                           { check the range for enums, chars, booleans }
-                          result:=cordconstnode.create(vl,left.resultdef,not(nf_internal in flags))
+                          result:=cordconstnode.create(vl,left.resultdef,not(nf_internal in flags));
+                        result.flags:=result.flags+(flags*[nf_internal]);
                       end;
                     addn,
                     subn:
@@ -2849,9 +2868,9 @@ implementation
                  (index.left.nodetype = ordconstn) and
                  not is_special_array(unpackedarraydef) then
                 begin
-                  testrange(unpackedarraydef,tordconstnode(index.left).value,false,false);
+                  adaptrange(unpackedarraydef,tordconstnode(index.left).value,rc_default);
                   tempindex := tordconstnode(index.left).value + packedarraydef.highrange-packedarraydef.lowrange;
-                  testrange(unpackedarraydef,tempindex,false,false);
+                  adaptrange(unpackedarraydef,tempindex,rc_default);
                 end;
             end;
 
@@ -2944,13 +2963,13 @@ implementation
                      if assigned(hightree) then
                       begin
                         hp:=caddnode.create(addn,hightree,
-                                         cordconstnode.create(1,sinttype,false));
+                                         cordconstnode.create(1,sizesinttype,false));
                         if (left.resultdef.typ=arraydef) then
                           if not is_packed_array(tarraydef(left.resultdef)) then
                             begin
                               if (tarraydef(left.resultdef).elesize<>1) then
                                 hp:=caddnode.create(muln,hp,cordconstnode.create(tarraydef(
-                                  left.resultdef).elesize,sinttype,true));
+                                  left.resultdef).elesize,sizesinttype,true));
                             end
                           else if (tarraydef(left.resultdef).elepackedbitsize <> 8) then
                             begin
@@ -2958,24 +2977,24 @@ implementation
                               if (hp.nodetype <> ordconstn) then
                                 internalerror(2006081511);
                               hp.free;
-                              hp := cordconstnode.create(left.resultdef.size,sinttype,true);
+                              hp := cordconstnode.create(left.resultdef.size,sizesinttype,true);
 {
                               hp:=
-                                 ctypeconvnode.create_explicit(sinttype,
+                                 ctypeconvnode.create_explicit(sizesinttype,
                                    cmoddivnode.create(divn,
                                      caddnode.create(addn,
                                        caddnode.create(muln,hp,cordconstnode.create(tarraydef(
                                          left.resultdef).elepackedbitsize,s64inttype,true)),
                                        cordconstnode.create(a,s64inttype,true)),
                                      cordconstnode.create(8,s64inttype,true)),
-                                   sinttype);
+                                   sizesinttype);
 }
                             end;
                         result:=hp;
                       end;
                    end
                   else
-                   resultdef:=sinttype;
+                   resultdef:=sizesinttype;
                 end;
 
               in_typeof_x:
@@ -4072,10 +4091,11 @@ implementation
          in_rol_x,
          in_rol_x_y,
          in_ror_x,
-         in_ror_x_y,
+         in_ror_x_y:
+           expectloc:=LOC_REGISTER;
          in_bsf_x,
          in_bsr_x:
-           expectloc:=LOC_REGISTER;
+           result:=first_bitscan;
          in_sar_x,
          in_sar_x_y:
            result:=first_sar;
@@ -4710,6 +4730,12 @@ implementation
          end;
          result:=ccallnode.createintern('fpc_popcnt_'+suffix,ccallparanode.create(left,nil));
          left:=nil;
+       end;
+
+     function tinlinenode.first_bitscan: tnode;
+       begin
+         result:=nil;
+         expectloc:=LOC_REGISTER;
        end;
 
 

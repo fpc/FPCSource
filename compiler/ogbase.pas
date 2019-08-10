@@ -523,6 +523,8 @@ interface
         constructor create(AList:TFPHashObjectList;const AName:string);virtual;
         destructor  destroy;override;
         procedure AddObjSection(objsec:TObjSection;ignoreprops:boolean=false);virtual;
+        { string representation for the linker map file }
+        function MemPosStr(AImageBase: qword): string;virtual;
         property ObjSectionList:TFPObjectList read FObjSectionList;
         property SecSymIdx:longint read FSecSymIdx write FSecSymIdx;
       end;
@@ -789,7 +791,7 @@ implementation
 
     procedure TObjSymbol.SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
       begin
-        if not(abind in [AB_GLOBAL,AB_LOCAL,AB_COMMON,AB_IMPORT]) then
+        if not(abind in [AB_GLOBAL,AB_PRIVATE_EXTERN,AB_LOCAL,AB_COMMON,AB_IMPORT]) then
           internalerror(200603016);
         if not assigned(aobjsec) then
           internalerror(200603017);
@@ -1255,7 +1257,8 @@ implementation
           {sec_objc_nlcatlist} [oso_data,oso_load],
           {sec_objc_protolist'} [oso_data,oso_load],
           {stack} [oso_load,oso_write],
-          {heap} [oso_load,oso_write]
+          {heap} [oso_load,oso_write],
+          {gcc_except_table} [oso_data,oso_load]
         );
       begin
         result:=secoptions[atype];
@@ -1607,7 +1610,7 @@ implementation
       begin
         { export globals and common symbols, this is needed
           for .a files }
-        if p.bind in [AB_GLOBAL,AB_COMMON] then
+        if p.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN,AB_COMMON] then
          FWriter.writesym(p.name);
       end;
 
@@ -1768,6 +1771,12 @@ implementation
             SecOptions:=SecOptions+objsec.SecOptions;
           end;
         SecAlign:=max(objsec.SecAlign,SecAlign);
+      end;
+
+
+    function TExeSection.MemPosStr(AImageBase: qword): string;
+      begin
+        result:='0x'+HexStr(mempos+AImageBase,sizeof(pint)*2);
       end;
 
 
@@ -2477,7 +2486,7 @@ implementation
           for j:=0 to ObjData.ObjSymbolList.Count-1 do
             begin
               objsym:=TObjSymbol(ObjData.ObjSymbolList[j]);
-              { From the local symbols we are only interressed in the
+              { From the local symbols we are only interessed in the
                 VTENTRY and VTINHERIT symbols }
               if objsym.bind=AB_LOCAL then
                 begin
@@ -2533,7 +2542,8 @@ implementation
                 end;
               objsym.ExeSymbol:=exesym;
               case objsym.bind of
-                AB_GLOBAL :
+                AB_GLOBAL,
+                AB_PRIVATE_EXTERN:
                   begin
                     if exesym.State<>symstate_defined then
                       begin
@@ -2579,6 +2589,10 @@ implementation
                       else
                         { specific error if ComDat flags are different? }
                         Message1(link_e_duplicate_symbol,objsym.name);
+
+                    { hidden symbols must become local symbols in the executable }
+                    if objsym.bind=AB_PRIVATE_EXTERN then
+                      objsym.bind:=AB_LOCAL;
                   end;
                 AB_EXTERNAL :
                   begin

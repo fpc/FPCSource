@@ -28,10 +28,10 @@ unit cpupi;
   interface
 
     uses
-       psub,procinfo,aasmdata;
+       psub,procinfo,psabiehpi,aasmdata;
 
     type
-       tcpuprocinfo = class(tcgprocinfo)
+       tcpuprocinfo = class(tpsabiehprocinfo)
          constructor create(aparent:tprocinfo);override;
          procedure set_first_temp_offset;override;
          function calc_stackframe_size:longint;override;

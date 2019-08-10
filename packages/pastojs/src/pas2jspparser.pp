@@ -63,7 +63,7 @@ type
   public
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility;
-      const ASrcPos: TPasSourcePos): TPasElement;
+      const ASrcPos: TPasSourcePos; TypeParams: TFPList = nil): TPasElement;
       overload; override;
     function FindModule(const aUnitname: String): TPasModule; override;
     function FindUnit(const AName, InFilename: String; NameExpr,
@@ -145,11 +145,11 @@ end;
 
 function TPas2jsCompilerResolver.CreateElement(AClass: TPTreeElement;
   const AName: String; AParent: TPasElement; AVisibility: TPasMemberVisibility;
-  const ASrcPos: TPasSourcePos): TPasElement;
+  const ASrcPos: TPasSourcePos; TypeParams: TFPList): TPasElement;
 begin
   if AClass=TFinalizationSection then
     (CurrentParser as TPas2jsPasParser).RaiseParserError(nFinalizationNotSupported,[]);
-  Result:=inherited CreateElement(AClass,AName,AParent,AVisibility,ASrcPos);
+  Result:=inherited CreateElement(AClass,AName,AParent,AVisibility,ASrcPos,TypeParams);
   if (Result is TPasModule) then
     OnCheckSrcName(Result);
 end;

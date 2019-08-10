@@ -130,6 +130,11 @@ implementation
            current_module.linkunitstaticlibs.add(current_module.staticlibfilename ,link_smart);
            current_module.headerflags:=current_module.headerflags or uf_smart_linked;
          end;
+        if cs_lto in current_settings.moduleswitches then
+          begin
+            current_module.linkunitofiles.add(ChangeFileExt(current_module.objfilename,LTOExt),link_lto);
+            current_module.headerflags:=current_module.headerflags or uf_lto_linked;
+          end;
       end;
 
 
@@ -881,6 +886,10 @@ type
          current_module.SetFileName(main_file.path+main_file.name,true);
          current_module.SetModuleName(unitname);
 
+{$ifdef DEBUG_NODE_XML}
+         XMLInitializeNodeFile('unit', unitname);
+{$endif DEBUG_NODE_XML}
+
          { check for system unit }
          new(s2);
          s2^:=upper(ChangeFileExt(ExtractFileName(main_file.name),''));
@@ -1018,6 +1027,10 @@ type
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
             symtablestack.pop(current_module.globalsymtable);
+
+{$ifdef DEBUG_NODE_XML}
+            XMLFinalizeNodeFile('unit');
+{$endif DEBUG_NODE_XML}
             exit;
           end;
 
@@ -1204,6 +1217,9 @@ type
          add_synthetic_method_implementations(current_module.globalsymtable);
          add_synthetic_method_implementations(current_module.localsymtable);
 
+         { generate construction functions for all attributes in the unit }
+         generate_attr_constrs(current_module.used_rtti_attrs);
+
          { if the unit contains ansi/widestrings, initialization and
            finalization code must be forced }
          force_init_final:=tglobalsymtable(current_module.globalsymtable).needs_init_final or
@@ -1311,6 +1327,10 @@ type
             module_is_done;
             if not immediate then
               restore_global_state(globalstate,true);
+
+{$ifdef DEBUG_NODE_XML}
+            XMLFinalizeNodeFile('unit');
+{$endif DEBUG_NODE_XML}
             exit;
           end;
 
@@ -1400,6 +1420,10 @@ type
             module_is_done;
             if not immediate then
               restore_global_state(globalstate,true);
+
+{$ifdef DEBUG_NODE_XML}
+            XMLFinalizeNodeFile('unit');
+{$endif DEBUG_NODE_XML}
             exit;
           end;
 
@@ -1459,6 +1483,9 @@ type
                 waitingmodule.end_of_parsing;
               end;
           end;
+{$ifdef DEBUG_NODE_XML}
+        XMLFinalizeNodeFile('unit');
+{$endif DEBUG_NODE_XML}
       end;
 
 
@@ -1539,6 +1566,10 @@ type
            read, all following directives are parsed as well }
 
          setupglobalswitches;
+
+{$ifdef DEBUG_NODE_XML}
+         XMLInitializeNodeFile('package', module_name);
+{$endif DEBUG_NODE_XML}
 
          consume(_SEMICOLON);
 
@@ -1721,6 +1752,10 @@ type
              main_procinfo.code:=generate_pkg_stub(main_procinfo.procdef);
              main_procinfo.generate_code;
            end;
+
+{$ifdef DEBUG_NODE_XML}
+         XMLFinalizeNodeFile('package');
+{$endif DEBUG_NODE_XML}
 
          { leave when we got an error }
          if (Errorcount>0) and not status.skip_error then
@@ -1986,6 +2021,10 @@ type
               setupglobalswitches;
 
               consume(_SEMICOLON);
+
+{$ifdef DEBUG_NODE_XML}
+              XMLInitializeNodeFile('library', program_name);
+{$endif DEBUG_NODE_XML}
            end
          else
            { is there an program head ? }
@@ -2032,6 +2071,10 @@ type
               setupglobalswitches;
 
               consume(_SEMICOLON);
+
+{$ifdef DEBUG_NODE_XML}
+              XMLInitializeNodeFile('program', program_name);
+{$endif DEBUG_NODE_XML}
             end
          else
            begin
@@ -2040,6 +2083,10 @@ type
 
              { setup things using the switches }
              setupglobalswitches;
+
+{$ifdef DEBUG_NODE_XML}
+             XMLInitializeNodeFile('program', current_module.realmodulename^);
+{$endif DEBUG_NODE_XML}
            end;
 
          { load all packages, so we know whether a unit is contained inside a
@@ -2192,6 +2239,9 @@ type
            the compiler }
          add_synthetic_method_implementations(current_module.localsymtable);
 
+         { generate construction functions for all attributes in the program }
+         generate_attr_constrs(current_module.used_rtti_attrs);
+
          { should we force unit initialization? }
          force_init_final:=tstaticsymtable(current_module.localsymtable).needs_init_final;
          if force_init_final or cnodeutils.force_init then
@@ -2261,6 +2311,13 @@ type
 
          { consume the last point }
          consume(_POINT);
+
+{$ifdef DEBUG_NODE_XML}
+         if IsLibrary then
+           XMLFinalizeNodeFile('library')
+         else
+           XMLFinalizeNodeFile('program');
+{$endif DEBUG_NODE_XML}
 
          { reset wpo flags for all defs }
          reset_all_defs;

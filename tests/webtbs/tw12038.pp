@@ -281,6 +281,8 @@ begin
         v := 0;
         for i:= 1 to DTypeData^.ParamCount do
           begin
+           { due to the uncommon usage pattern, the alignment approach is uncommon as well }
+           Inc(CurrentParamPosition,AlignTParamFlags(@DTypeData^.ParamList[CurrentParamPosition])-@DTypeData^.ParamList[CurrentParamPosition]);
             { First Handle the ParamFlag }
            Flag:=pword(@DTypeData^.ParamList[CurrentParamPosition])^;
            Flags:=TParamFlags(Flag);

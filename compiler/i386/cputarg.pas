@@ -106,7 +106,6 @@ implementation
 
       ,ogcoff
       ,ogelf
-      ,ogmacho
       ,cpuelf
 
 {**************************************

@@ -149,10 +149,12 @@ function UTF8ToString(const S: array of Byte): unicodestring;
 {$endif not CPUJVM}
 function AnsiToUtf8(const s : RawByteString): RawByteString;{$ifdef SYSTEMINLINE}inline;{$endif}
 function Utf8ToAnsi(const s : RawByteString) : RawByteString;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$ifdef FPC_HAS_FEATURE_DYNARRAYS}
 function UnicodeStringToUCS4String(const s : UnicodeString) : UCS4String;
 function UCS4StringToUnicodeString(const s : UCS4String) : UnicodeString;
 function WideStringToUCS4String(const s : WideString) : UCS4String;
 function UCS4StringToWideString(const s : UCS4String) : WideString;
+{$endif FPC_HAS_FEATURE_DYNARRAYS}
 
 Procedure GetWideStringManager (Var Manager : TUnicodeStringManager);
 Procedure SetWideStringManager (Const New : TUnicodeStringManager);

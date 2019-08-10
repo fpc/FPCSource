@@ -453,7 +453,8 @@ unit cgobj;
 
           { some CPUs do not support hardware fpu exceptions, this procedure is called after instructions which
             might set FPU exception related flags, so it has to check these flags if needed and throw an exeception }
-          procedure g_check_for_fpu_exception(list: TAsmList); virtual;
+          procedure g_check_for_fpu_exception(list : TAsmList; force,clear : boolean); virtual;
+          procedure maybe_check_for_fpu_exception(list: TAsmList);
 
          protected
           function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister;virtual;
@@ -2930,11 +2931,17 @@ implementation
       end;
 
 
-    procedure tcg.g_check_for_fpu_exception(list: TAsmList);
+    procedure tcg.g_check_for_fpu_exception(list: TAsmList;force,clear : boolean);
       begin
         { empty by default }
       end;
 
+
+    procedure tcg.maybe_check_for_fpu_exception(list: TAsmList);
+      begin
+        current_procinfo.FPUExceptionCheckNeeded:=true;
+        g_check_for_fpu_exception(list,false,true);
+      end;
 
 {*****************************************************************************
                                     TCG64

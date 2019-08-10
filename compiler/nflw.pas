@@ -68,6 +68,10 @@ interface
           procedure derefimpl;override;
           procedure insertintolist(l : tnodelist);override;
           procedure printnodetree(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeInfo(var T: Text); override;
+          procedure XMLPrintNodeTree(var T: Text); override;
+{$endif DEBUG_NODE_XML}
           function docompare(p: tnode): boolean; override;
        end;
 
@@ -189,7 +193,10 @@ interface
        end;
        ttryexceptnodeclass = class of ttryexceptnode;
 
-       ttryfinallynode = class(tbinarynode)
+       { the third node is to store a copy of the finally code for llvm:
+         it needs one copy to execute in case an exception occurs, and
+         one in case no exception occurs }
+       ttryfinallynode = class(ttertiarynode)
           implicitframe : boolean;
           constructor create(l,r:tnode);virtual;reintroduce;
           constructor create_implicit(l,r:tnode);virtual;
@@ -1049,6 +1056,119 @@ implementation
         writeln(t,printnodeindention,')');
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TLoopNode.XMLPrintNodeInfo(var T: Text);
+      var
+        i: TLoopFlag;
+        First: Boolean;
+      begin
+        inherited XMLPrintNodeInfo(T);
+
+        First := True;
+        for i := Low(TLoopFlag) to High(TLoopFlag) do
+          if i in loopflags then
+            begin
+              if First then
+                begin
+                  Write(T, ' loopflags="', i);
+                  First := False;
+                end
+              else
+                Write(T, ',', i)
+            end;
+        if not First then
+          Write(T, '"');
+      end;
+
+    procedure TLoopNode.XMLPrintNodeTree(var T: Text);
+      begin
+        Write(T, PrintNodeIndention, '<', nodetype2str[nodetype]);
+        XMLPrintNodeInfo(T);
+        WriteLn(T, '>');
+        PrintNodeIndent;
+        if Assigned(Left) then
+          begin
+            if nodetype = forn then
+              WriteLn(T, PrintNodeIndention, '<counter>')
+            else
+              WriteLn(T, PrintNodeIndention, '<condition>');
+            PrintNodeIndent;
+            XMLPrintNode(T, Left);
+            PrintNodeUnindent;
+            if nodetype = forn then
+              WriteLn(T, PrintNodeIndention, '</counter>')
+            else
+              WriteLn(T, PrintNodeIndention, '</condition>');
+          end;
+
+        if Assigned(Right) then
+          begin
+            case nodetype of
+              ifn:
+                WriteLn(T, PrintNodeIndention, '<then>');
+              forn:
+                WriteLn(T, PrintNodeIndention, '<first>');
+              else
+                WriteLn(T, PrintNodeIndention, '<right>');
+            end;
+            PrintNodeIndent;
+            XMLPrintNode(T, Right);
+            PrintNodeUnindent;
+            case nodetype of
+              ifn:
+                WriteLn(T, PrintNodeIndention, '</then>');
+              forn:
+                WriteLn(T, PrintNodeIndention, '</first>');
+              else
+                WriteLn(T, PrintNodeIndention, '</right>');
+            end;
+          end;
+
+        if Assigned(t1) then
+          begin
+            case nodetype of
+              ifn:
+                WriteLn(T, PrintNodeIndention, '<else>');
+              forn:
+                WriteLn(T, PrintNodeIndention, '<last>');
+              else
+                WriteLn(T, PrintNodeIndention, '<t1>');
+            end;
+            PrintNodeIndent;
+            XMLPrintNode(T, t1);
+            PrintNodeUnindent;
+            case nodetype of
+              ifn:
+                WriteLn(T, PrintNodeIndention, '</else>');
+              forn:
+                WriteLn(T, PrintNodeIndention, '</last>');
+              else
+                WriteLn(T, PrintNodeIndention, '</t1>');
+            end;
+          end;
+
+        if Assigned(t2) then
+          begin
+
+            if nodetype <> forn then
+              begin
+                WriteLn(T, PrintNodeIndention, '<loop>');
+                PrintNodeIndent;
+              end;
+
+            XMLPrintNode(T, t2);
+
+            if nodetype <> forn then
+              begin
+                PrintNodeUnindent;
+                WriteLn(T, PrintNodeIndention, '</loop>');
+              end;
+          end;
+
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+      end;
+{$endif DEBUG_NODE_XML}
 
     function tloopnode.docompare(p: tnode): boolean;
       begin
@@ -2202,6 +2322,10 @@ implementation
                 current_addr:=clabelnode.create(cnothingnode.create,clabelsym.create('$raiseaddr'));
                 addstatement(statements,current_addr);
                 right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
+
+                { raise address off by one so we are for sure inside the action area for the raise }
+                if tf_use_psabieh in target_info.flags then
+                  right:=caddnode.create_internal(addn,right,cordconstnode.create(1,sizesinttype,false));
               end;
 
             raisenode:=ccallnode.createintern('fpc_raiseexception',
@@ -2288,14 +2412,16 @@ implementation
 
     constructor ttryfinallynode.create(l,r:tnode);
       begin
-        inherited create(tryfinallyn,l,r);
+        inherited create(tryfinallyn,l,r,nil);
+        third:=nil;
         implicitframe:=false;
       end;
 
 
     constructor ttryfinallynode.create_implicit(l,r:tnode);
       begin
-        inherited create(tryfinallyn,l,r);
+        inherited create(tryfinallyn,l,r,nil);
+        third:=nil;
         implicitframe:=true;
       end;
 
@@ -2312,6 +2438,12 @@ implementation
         typecheckpass(right);
         // "except block" is "used"? (JM)
         set_varstate(right,vs_readwritten,[vsf_must_be_valid]);
+
+        if assigned(third) then
+          begin
+            typecheckpass(third);
+            set_varstate(third,vs_readwritten,[vsf_must_be_valid]);
+          end;
       end;
 
 
@@ -2322,6 +2454,8 @@ implementation
         firstpass(left);
 
         firstpass(right);
+        if assigned(third) then
+          firstpass(third);
 
         include(current_procinfo.flags,pi_do_call);
 

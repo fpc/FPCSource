@@ -1,4 +1,4 @@
-{
+  {
     Copyright (c) 1998-2006 by the Free Pascal team
 
     This unit implements the generic part of the GNU assembler
@@ -32,7 +32,7 @@ interface
 
     uses
       globtype,globals,
-      aasmbase,aasmtai,aasmdata,
+      aasmbase,aasmtai,aasmdata,aasmcfi,
       assemble;
 
     type
@@ -55,6 +55,7 @@ interface
         procedure WriteExtraFooter;virtual;
         procedure WriteInstruction(hp: tai);
         procedure WriteWeakSymbolRef(s: tasmsymbol); virtual;
+        procedure WriteHiddenSymbol(sym: TAsmSymbol);
         procedure WriteAixStringConst(hp: tai_string);
         procedure WriteAixIntConst(hp: tai_const);
         procedure WriteUnalignedIntConst(hp: tai_const);
@@ -68,6 +69,7 @@ interface
         setcount: longint;
         procedure WriteDecodedSleb128(a: int64);
         procedure WriteDecodedUleb128(a: qword);
+        procedure WriteCFI(hp: tai_cfi_base);
         function NextSetLabel: string;
        protected
         InstrWriter: TCPUInstrWriter;
@@ -270,7 +272,8 @@ implementation
           '.obcj_nlcatlist',
           '.objc_protolist',
           '.stack',
-          '.heap'
+          '.heap',
+          '.gcc_except_table'
         );
         secnames_pic : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',
@@ -329,7 +332,8 @@ implementation
           '.obcj_nlcatlist',
           '.objc_protolist',
           '.stack',
-          '.heap'
+          '.heap',
+          '.gcc_except_table'
         );
       var
         sep     : string[3];
@@ -583,7 +587,7 @@ implementation
         i,len : longint;
         buf   : array[0..63] of byte;
       begin
-        len:=EncodeUleb128(a,buf);
+        len:=EncodeUleb128(a,buf,0);
         for i:=0 to len-1 do
           begin
             if (i > 0) then
@@ -593,12 +597,45 @@ implementation
       end;
 
 
+    procedure TGNUAssembler.WriteCFI(hp: tai_cfi_base);
+      begin
+        writer.AsmWrite(cfi2str[hp.cfityp]);
+        case hp.cfityp of
+          cfi_startproc,
+          cfi_endproc:
+            ;
+          cfi_undefined,
+          cfi_restore,
+          cfi_def_cfa_register:
+            begin
+              writer.AsmWrite(' ');
+              writer.AsmWrite(gas_regname(tai_cfi_op_reg(hp).reg1));
+            end;
+          cfi_def_cfa_offset:
+            begin
+              writer.AsmWrite(' ');
+              writer.AsmWrite(tostr(tai_cfi_op_val(hp).val1));
+            end;
+          cfi_offset:
+            begin
+              writer.AsmWrite(' ');
+              writer.AsmWrite(gas_regname(tai_cfi_op_reg_val(hp).reg1));
+              writer.AsmWrite(',');
+              writer.AsmWrite(tostr(tai_cfi_op_reg_val(hp).val));
+            end;
+          else
+            internalerror(2019030203);
+        end;
+        writer.AsmLn;
+      end;
+
+
     procedure TGNUAssembler.WriteDecodedSleb128(a: int64);
       var
         i,len : longint;
         buf   : array[0..255] of byte;
       begin
-        len:=EncodeSleb128(a,buf);
+        len:=EncodeSleb128(a,buf,0);
         for i:=0 to len-1 do
           begin
             if (i > 0) then
@@ -799,8 +836,11 @@ implementation
                      processes). The alternate code creates some kind of common symbols
                      in the data segment.
                    }
+
                    if tai_datablock(hp).is_global then
                      begin
+                       if tai_datablock(hp).sym.bind=AB_PRIVATE_EXTERN then
+                         WriteHiddenSymbol(tai_datablock(hp).sym);
                        writer.AsmWrite('.globl ');
                        writer.AsmWriteln(tai_datablock(hp).sym.name);
                        writer.AsmWriteln('.data');
@@ -879,6 +919,8 @@ implementation
                      begin
                        if Tai_datablock(hp).is_global then
                          begin
+                           if (tai_datablock(hp).sym.bind=AB_PRIVATE_EXTERN) then
+                             WriteHiddenSymbol(tai_datablock(hp).sym);
                            writer.AsmWrite(#9'.globl ');
                            if replaceforbidden then
                              writer.AsmWriteln(ReplaceForbiddenAsmSymbolChars(Tai_datablock(hp).sym.name))
@@ -1179,14 +1221,6 @@ implementation
 
            ait_symbol :
              begin
-               if (tai_symbol(hp).sym.bind=AB_PRIVATE_EXTERN) then
-                 begin
-                   writer.AsmWrite(#9'.private_extern ');
-                   if replaceforbidden then
-                     writer.AsmWriteln(ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name))
-                   else
-                     writer.AsmWriteln(tai_symbol(hp).sym.name);
-                 end;
                if (target_info.system=system_powerpc64_linux) and
                   (tai_symbol(hp).sym.typ=AT_FUNCTION) and
                   (cs_profile in current_settings.moduleswitches) then
@@ -1199,6 +1233,8 @@ implementation
                     writer.AsmWriteln(ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name))
                   else
                     writer.AsmWriteln(tai_symbol(hp).sym.name);
+                  if (tai_symbol(hp).sym.bind=AB_PRIVATE_EXTERN) then
+                    WriteHiddenSymbol(tai_symbol(hp).sym);
                 end;
                if (target_info.system=system_powerpc64_linux) and
                   use_dotted_functions and
@@ -1441,6 +1477,10 @@ implementation
                    std_regname(tai_varloc(hp).newlocation)));
                writer.AsmLn;
              end;
+           ait_cfi:
+             begin
+               WriteCFI(tai_cfi_base(hp));
+             end;
            else
              internalerror(2006012201);
          end;
@@ -1468,7 +1508,29 @@ implementation
 
     procedure TGNUAssembler.WriteWeakSymbolRef(s: tasmsymbol);
       begin
-        writer.AsmWriteLn(#9'.weak '+s.name);
+        writer.AsmWrite(#9'.weak ');
+        if asminfo^.dollarsign='$' then
+          writer.AsmWriteLn(s.name)
+        else
+          writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(s.name))
+      end;
+
+
+    procedure TGNUAssembler.WriteHiddenSymbol(sym: TAsmSymbol);
+      begin
+        { on Windows/(PE)COFF, global symbols are hidden by default: global
+          symbols that are not explicitly exported from an executable/library,
+          become hidden }
+        if target_info.system in systems_windows then
+          exit;
+        if target_info.system in systems_darwin then
+          writer.AsmWrite(#9'.private_extern ')
+        else
+          writer.AsmWrite(#9'.hidden ');
+        if asminfo^.dollarsign='$' then
+          writer.AsmWriteLn(sym.name)
+        else
+          writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(sym.name))
       end;
 
 
@@ -1894,7 +1956,8 @@ implementation
          sec_none (* sec_objc_nlcatlist *),
          sec_none (* sec_objc_protlist *),
          sec_none (* sec_stack *),
-         sec_none (* sec_heap *)
+         sec_none (* sec_heap *),
+         sec_none (* gcc_except_table *)
         );
       begin
         Result := inherited SectionName (SecXTable [AType], AName, AOrder);

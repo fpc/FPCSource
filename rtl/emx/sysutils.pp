@@ -1340,5 +1340,6 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
 Finalization
+  FreeTerminateProcs;
   DoneExceptions;
 end.

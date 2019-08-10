@@ -29,10 +29,12 @@ interface
 
     uses
        globtype,
-       psub,procinfo,aasmbase,aasmdata;
+       psub,
+       procinfo,psabiehpi,
+       aasmbase,aasmdata;
 
     type
-       tcpuprocinfo = class(tcgprocinfo)
+       tcpuprocinfo = class(tpsabiehprocinfo)
        private
          scopes: TAsmList;
          scopecount: longint;

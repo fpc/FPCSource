@@ -436,7 +436,7 @@ scan_n_changecputype=02105_N_Changed CPU type to be consistent with specified co
 #
 # Parser
 #
-# 03348 is the last used one
+# 03351 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1594,10 +1594,12 @@ parser_e_only_static_members_via_object_type=03349_E_Only static methods and sta
 %   TObj.test;
 % \end{verbatim}
 % \var{test} is not a static method and hence cannot be called through a type, but only using an instance.
-parse_e_callthrough_varargs=03350_E_Cannot redeclare C-style variadic function "$1" as external on this platform; make its first declaration already external
+parser_e_callthrough_varargs=03350_E_Cannot redeclare C-style variadic function "$1" as external on this platform; make its first declaration already external
 % If a function is declared normally in the interface or as a forward declaration, and then later as external, the compiler
 % must generate a stub that calls the external function. Due to code generation limitations, this cannot be done on some
 % platforms. Even on platforms where it is supported, this is quite inefficient.
+parser_e_unbound_attribute=03351_E_Unbound custom attribute: "$1".
+% A custom attribute is defined, but there is no identifier to bind it to.
 %
 % \end{description}
 %
@@ -2520,7 +2522,9 @@ cg_n_no_inline=06058_N_Call to subroutine "$1" marked as inline is not inlined
 % The directive inline is only a hint to the compiler. Sometimes the compiler ignores this hint, a subroutine
 % marked as inline is not inlined. In this case, this hint is given. Compiling with \var{-vd} might result in more information why
 % the directive inline is ignored.
-cg_e_case_incomplete=06059_E_Case statement does not handle all possible cases
+cg_e_case_missing_value=06059_E_Case statement does not handle ordinal value "$1", and no else/otherwise statement is present.
+# The case statement does not handle the specified value and does not have an else/otherwise statement, and the compiler determined
+# that this value can be passed to the case statement. This is a compile-time error in ISO and Extended Pascal.
 cg_w_case_incomplete=06060_W_Case statement does not handle all possible cases
 % The case statement does not contain labels for all possible values of the operand, and no else statement is present.
 %
@@ -3353,6 +3357,9 @@ cg_f_internal_type_does_not_match=10066_F_Internal type "$1" does not look as ex
 % and you didn't change the runtime library code, it's very likely that the runtime library
 % you're using doesn't match the compiler in use. If you changed the runtime library this error means
 % that you changed a type which the compiler needs for internal use and which needs to have a certain structure.
+unit_u_ppu_llvm_mismatch=10067_U_Skipping unit, PPU and compiler have to be both compiled with or without LLVM support
+% Units compiled by a compiler built with the LLVM code generator cannot be used with a regular compiler,
+% and vice versa.
 % \end{description}
 # EndOfTeX
 
@@ -3693,7 +3700,7 @@ package_u_ppl_filename=13029_U_PPL filename $1
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2018 by Florian Klaempfl and others
+Copyright (c) 1993-2019 by Florian Klaempfl and others
 ]
 
 #
@@ -3845,6 +3852,10 @@ S*2Aas_Assemble using GNU AS
 **2Ch<n>[,m]_<n> bytes min heap size (between 1023 and 67107840) and optionally [m] max heap size
 **2Ci_IO-checking
 A*2CI<x>_Select instruction set on ARM: ARM or THUMB
+L*2CL<x>_LLVM code generation options
+L*3CLflto_Enable Link-time optimisation (needed both when compiling units and programs/libraries)
+L*3CLfltonosystem_Disable LTO for the system unit (needed with at least Xcode 10.2 and earlier due to linker bugs)
+L*3CLv<x>_LLVM target version: 3.3, 3.4, .., Xcode-6.4, .., Xcode-10.1, 7.0, 8.0
 **2Cn_Omit linking stage
 P*2CN_Generate nil-pointer checks (AIX-only)
 **2Co_Check overflow of integer operations

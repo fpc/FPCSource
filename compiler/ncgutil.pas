@@ -109,10 +109,6 @@ implementation
     dbgbase,
     nbas,ncon,nld,nmem,nutils,
     tgobj,cgobj,hlcgobj,hlcgcpu
-{$ifdef llvm}
-    { override create_hlcodegen from hlcgcpu }
-    , hlcgllvm
-{$endif}
 {$ifdef powerpc}
     , cpupi
 {$endif}
@@ -691,21 +687,13 @@ implementation
 
     procedure alloc_proc_symbol(pd: tprocdef);
       var
-        item : TCmdStrListItem;
+        item: TCmdStrListItem;
       begin
-        item := TCmdStrListItem(pd.aliasnames.first);
+        item:=TCmdStrListItem(pd.aliasnames.first);
         while assigned(item) do
           begin
-            { The condition to use global or local symbol must match
-              the code written in hlcg.gen_proc_symbol to 
-              avoid change from AB_LOCAL to AB_GLOBAL, which generates
-              erroneous code (at least for targets using GOT) } 
-            if (cs_profile in current_settings.moduleswitches) or
-               (po_global in current_procinfo.procdef.procoptions) then
-              current_asmdata.DefineAsmSymbol(item.str,AB_GLOBAL,AT_FUNCTION,pd)
-            else
-              current_asmdata.DefineAsmSymbol(item.str,AB_LOCAL,AT_FUNCTION,pd);
-           item := TCmdStrListItem(item.next);
+            current_asmdata.DefineProcAsmSymbol(pd,item.str,pd.needsglobalasmsym);
+            item:=TCmdStrListItem(item.next);
          end;
       end;
 
@@ -733,6 +721,12 @@ implementation
       begin
         { generate call frame marker for dwarf call frame info }
         current_asmdata.asmcfi.start_frame(list);
+
+        { labels etc. for exception frames are inserted here }
+        current_procinfo.start_eh(list);
+
+        if current_procinfo.procdef.proctypeoption=potype_proginit then
+          current_asmdata.asmcfi.outmost_frame(list);
 
         { All temps are know, write offsets used for information }
         if (cs_asm_source in current_settings.globalswitches) and
@@ -790,6 +784,9 @@ implementation
 
         { generate target specific proc exit code }
         hlcg.g_proc_exit(list,parasize,(po_nostackframe in current_procinfo.procdef.procoptions));
+
+        { labels etc. for exception frames are inserted here }
+        current_procinfo.end_eh(list);
 
         { release return registers, needed for optimizer }
         if not is_void(current_procinfo.procdef.returndef) then

@@ -563,6 +563,7 @@ EXEEXT=.exe
 PPLEXT=.ppl
 PPUEXT=.ppu
 OEXT=.o
+LTOEXT=.bc
 ASMEXT=.s
 SMARTEXT=.sl
 STATICLIBEXT=.a
@@ -1523,7 +1524,7 @@ ifdef CLEAN_UNITS
 override CLEANPPUFILES+=$(addsuffix $(PPUEXT),$(CLEAN_UNITS))
 endif
 ifdef CLEANPPUFILES
-override CLEANPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(CLEANPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(CLEANPPUFILES))) $(addprefix $(IMPORTLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(CLEANPPUFILES)))
+override CLEANPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(CLEANPPUFILES)) $(subst $(PPUEXT),$(LTOEXT),$(CLEANPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(CLEANPPUFILES))) $(addprefix $(IMPORTLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(CLEANPPUFILES)))
 ifdef DEBUGSYMEXT
 override CLEANPPULINKFILES+=$(subst $(PPUEXT),$(DEBUGSYMEXT),$(CLEANPPUFILES))
 endif
@@ -1574,7 +1575,7 @@ ifdef CLEAN_FILES
 endif
 	-$(DELTREE) units
 	-$(DELTREE) bin
-	-$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+	-$(DEL) *$(OEXT) *$(LTOEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 ifneq ($(PPUEXT),.ppu)
 	-$(DEL) *.o *.ppu *.a
 endif
@@ -1730,7 +1731,8 @@ endif
 fpmkunit_clean_bootstrap:
 	$(MAKE) -C fpmkunit clean_bootstrap
 fpmake$(SRCEXEEXT): fpmake.pp $(SUB_FPMAKE_SRCS) fpmake_add.inc fpmake_proc.inc
-	$(MAKE) -C fpmkunit bootstrap
+	$(MAKE) -C ../rtl all FPC=$(FPCFPMAKE)
+	$(MAKE) -C fpmkunit bootstrap FPC=$(FPCFPMAKE)
 	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT) $(OPT)
 all:	fpmake$(SRCEXEEXT)
 	$(LOCALFPMAKE) compile $(FPMAKE_OPT)

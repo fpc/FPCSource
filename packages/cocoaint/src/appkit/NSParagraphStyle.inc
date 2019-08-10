@@ -1,16 +1,27 @@
-{ Parsed from Appkit.framework NSParagraphStyle.h }
+{ Parsed from AppKit.framework NSParagraphStyle.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSPARAGRAPHSTYLE_PAS_T}
-{$define NSPARAGRAPHSTYLE_PAS_T}
+type
+  NSTextTabPtr = ^NSTextTab;
+  NSParagraphStylePtr = ^NSParagraphStyle;
+  NSMutableParagraphStylePtr = ^NSMutableParagraphStyle;
+{$endif}
 
-{ Constants }
+{$ifdef TYPES}
+type
+  NSTextTabType = NSUInteger;
+  NSTextTabTypePtr = ^NSTextTabType;
 
 const
   NSLeftTabStopType = 0;
   NSRightTabStopType = 1;
   NSCenterTabStopType = 2;
   NSDecimalTabStopType = 3;
+
+type
+  NSLineBreakMode = NSUInteger;
+  NSLineBreakModePtr = ^NSLineBreakMode;
 
 const
   NSLineBreakByWordWrapping = 0;
@@ -19,94 +30,48 @@ const
   NSLineBreakByTruncatingHead = 3;
   NSLineBreakByTruncatingTail = 4;
   NSLineBreakByTruncatingMiddle = 5;
-
-{ Types }
-type
-  NSTextTabType = NSUInteger;
-  NSTextTabTypePtr = ^NSTextTabType;
-  NSLineBreakMode = NSUInteger;
-  NSLineBreakModePtr = ^NSLineBreakMode;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSPARAGRAPHSTYLE_PAS_R}
-{$define NSPARAGRAPHSTYLE_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSPARAGRAPHSTYLE_PAS_F}
-{$define NSPARAGRAPHSTYLE_PAS_F}
-
-{$endif}
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPARAGRAPHSTYLE_PAS_S}
-{$define NSPARAGRAPHSTYLE_PAS_S}
-
-{ External string constants }
 var
   NSTabColumnTerminatorsAttributeName: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSTextTab = objcclass;
-  NSTextTabPointer = ^NSTextTab;
-  NSTextTabPtr = NSTextTabPointer;
-  NSParagraphStyle = objcclass;
-  NSParagraphStylePointer = ^NSParagraphStyle;
-  NSParagraphStylePtr = NSParagraphStylePointer;
-  NSMutableParagraphStyle = objcclass;
-  NSMutableParagraphStylePointer = ^NSMutableParagraphStyle;
-  NSMutableParagraphStylePtr = NSMutableParagraphStylePointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSPARAGRAPHSTYLE_PAS_C}
-{$define NSPARAGRAPHSTYLE_PAS_C}
 
-{ NSTextTab }
+type
   NSTextTab = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __flags: record
+    _flags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSParagraphStyle1: NSTextAlignment);
-       1: (data: bitpacked record
-        _alignment: 0..((1 shl 4)-1);
-        refCount: 0..((1 shl 24)-1);
-        unused: 0..((1 shl 4)-1);
-        {$ifdef cpu64}
-        _anonbitfield_NSParagraphStyle0: 0..((1 shl 32)-1);
-        {$endif}
-       end;
-      );
+        0: (_anonBitField__flags0: cuint);
+        1: (
+          alignment: 0..((1 shl 4)-1);
+          refCount: 0..((1 shl 24)-1);
+          unused: 0..((1 shl 4)-1);
+          {$if defined(__LP64__)}
+          int: 0..((1 shl 32)-1);
+          {$endif}
+        );
       end;
     _location: CGFloat;
     _reserved: id;
-    
   public
-    function initWithTextAlignment_location_options(alignment_: NSTextAlignment; loc: CGFloat; options_: NSDictionary): id; message 'initWithTextAlignment:location:options:';
+    function initWithTextAlignment_location_options (alignment: NSTextAlignment; loc: CGFloat; options: NSDictionary): instancetype; message 'initWithTextAlignment:location:options:';
     function alignment: NSTextAlignment; message 'alignment';
     function options: NSDictionary; message 'options';
-    function initWithType_location(type_: NSTextTabType; loc: CGFloat): id; message 'initWithType:location:';
+    function initWithType_location (type_: NSTextTabType; loc: CGFloat): instancetype; message 'initWithType:location:';
     function location: CGFloat; message 'location';
     function tabStopType: NSTextTabType; message 'tabStopType';
 
-    { Adopted Protocols }
-    function copyWithZone(zone_: NSZonePtr): id;
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
   end;
 
-{ NSParagraphStyle }
-  NSParagraphStyle = objcclass external (NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol)
+type
+  NSParagraphStyle = objcclass external (NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSSecureCodingProtocol)
   private
     _lineSpacing: CGFloat;
     _paragraphSpacing: CGFloat;
@@ -116,29 +81,27 @@ var
     _minimumLineHeight: CGFloat;
     _maximumLineHeight: CGFloat;
     _tabStops: NSArray;
-    __flags: record
+    _flags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSParagraphStyle3: NSTextAlignment);
-       1: (data: bitpacked record
-        _alignment: 0..((1 shl 4)-1);
-        _lineBreakMode: 0..((1 shl 4)-1);
-        tabStopsIsMutable: 0..1;
-        isNaturalDirection: 0..1;
-        rightToLeftDirection: 0..1;
-        fixedMultiple: 0..((1 shl 2)-1);
-        refCount: 0..((1 shl 19)-1);
-        {$ifdef cpu64}
-        _anonbitfield_NSParagraphStyle2: 0..((1 shl 32)-1);
-        {$endif}
-       end;
-      );
+        0: (_anonBitField__flags0: cuint);
+        1: (
+          alignment: 0..((1 shl 4)-1);
+          lineBreakMode: 0..((1 shl 4)-1);
+          tabStopsIsMutable: 0..1;
+          isNaturalDirection: 0..1;
+          rightToLeftDirection: 0..1;
+          fixedMultiple: 0..((1 shl 2)-1);
+          refCount: 0..((1 shl 19)-1);
+          {$if defined(__LP64__)}
+          int: 0..((1 shl 32)-1);
+          {$endif}
+        );
       end;
     _defaultTabInterval: CGFloat;
     _extraData: id;
-    
   public
     class function defaultParagraphStyle: NSParagraphStyle; message 'defaultParagraphStyle';
-    class function defaultWritingDirectionForLanguage(languageName: NSString): NSWritingDirection; message 'defaultWritingDirectionForLanguage:';
+    class function defaultWritingDirectionForLanguage (languageName: NSString): NSWritingDirection; message 'defaultWritingDirectionForLanguage:';
     function lineSpacing: CGFloat; message 'lineSpacing';
     function paragraphSpacing: CGFloat; message 'paragraphSpacing';
     function alignment: NSTextAlignment; message 'alignment';
@@ -159,40 +122,58 @@ var
     function tighteningFactorForTruncation: single; message 'tighteningFactorForTruncation';
     function headerLevel: NSInteger; message 'headerLevel';
 
-    { Adopted Protocols }
-    function copyWithZone(zone_: NSZonePtr): id;
-    function mutableCopyWithZone(zone_: NSZonePtr): id;
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
+    function mutableCopyWithZone (zone: NSZonePtr): id; message 'mutableCopyWithZone:';
+    class function supportsSecureCoding: ObjCBOOL; message 'supportsSecureCoding';
   end;
 
-{ NSMutableParagraphStyle }
+type
   NSMutableParagraphStyle = objcclass external (NSParagraphStyle)
-    
   public
-    procedure setLineSpacing(aFloat: CGFloat); message 'setLineSpacing:';
-    procedure setParagraphSpacing(aFloat: CGFloat); message 'setParagraphSpacing:';
-    procedure setAlignment(alignment_: NSTextAlignment); message 'setAlignment:';
-    procedure setFirstLineHeadIndent(aFloat: CGFloat); message 'setFirstLineHeadIndent:';
-    procedure setHeadIndent(aFloat: CGFloat); message 'setHeadIndent:';
-    procedure setTailIndent(aFloat: CGFloat); message 'setTailIndent:';
-    procedure setLineBreakMode(mode: NSLineBreakMode); message 'setLineBreakMode:';
-    procedure setMinimumLineHeight(aFloat: CGFloat); message 'setMinimumLineHeight:';
-    procedure setMaximumLineHeight(aFloat: CGFloat); message 'setMaximumLineHeight:';
-    procedure addTabStop(anObject: NSTextTab); message 'addTabStop:';
-    procedure removeTabStop(anObject: NSTextTab); message 'removeTabStop:';
-    procedure setTabStops(array_: NSArray); message 'setTabStops:';
-    procedure setParagraphStyle(obj: NSParagraphStyle); message 'setParagraphStyle:';
-    procedure setBaseWritingDirection(writingDirection: NSWritingDirection); message 'setBaseWritingDirection:';
-    procedure setLineHeightMultiple(aFloat: CGFloat); message 'setLineHeightMultiple:';
-    procedure setParagraphSpacingBefore(aFloat: CGFloat); message 'setParagraphSpacingBefore:';
-    procedure setDefaultTabInterval(aFloat: CGFloat); message 'setDefaultTabInterval:';
-    procedure setTextBlocks(array_: NSArray); message 'setTextBlocks:';
-    procedure setTextLists(array_: NSArray); message 'setTextLists:';
-    procedure setHyphenationFactor(aFactor: single); message 'setHyphenationFactor:';
-    procedure setTighteningFactorForTruncation(aFactor: single); message 'setTighteningFactorForTruncation:';
-    procedure setHeaderLevel(level: NSInteger); message 'setHeaderLevel:';
+    procedure setLineSpacing(newValue: CGFloat); message 'setLineSpacing:';
+    function lineSpacing: CGFloat; message 'lineSpacing';
+    procedure setParagraphSpacing(newValue: CGFloat); message 'setParagraphSpacing:';
+    function paragraphSpacing: CGFloat; message 'paragraphSpacing';
+    procedure setAlignment(newValue: NSTextAlignment); message 'setAlignment:';
+    function alignment: NSTextAlignment; message 'alignment';
+    procedure setHeadIndent(newValue: CGFloat); message 'setHeadIndent:';
+    function headIndent: CGFloat; message 'headIndent';
+    procedure setTailIndent(newValue: CGFloat); message 'setTailIndent:';
+    function tailIndent: CGFloat; message 'tailIndent';
+    procedure setFirstLineHeadIndent(newValue: CGFloat); message 'setFirstLineHeadIndent:';
+    function firstLineHeadIndent: CGFloat; message 'firstLineHeadIndent';
+    procedure addTabStop (anObject: NSTextTab); message 'addTabStop:';
+    procedure removeTabStop (anObject: NSTextTab); message 'removeTabStop:';
+    procedure setTabStops(newValue: NSArray); message 'setTabStops:';
+    function tabStops: NSArray; message 'tabStops';
+    procedure setMinimumLineHeight(newValue: CGFloat); message 'setMinimumLineHeight:';
+    function minimumLineHeight: CGFloat; message 'minimumLineHeight';
+    procedure setMaximumLineHeight(newValue: CGFloat); message 'setMaximumLineHeight:';
+    function maximumLineHeight: CGFloat; message 'maximumLineHeight';
+    procedure setLineBreakMode(newValue: NSLineBreakMode); message 'setLineBreakMode:';
+    function lineBreakMode: NSLineBreakMode; message 'lineBreakMode';
+    procedure setParagraphStyle (obj: NSParagraphStyle); message 'setParagraphStyle:';
+    procedure setBaseWritingDirection(newValue: NSWritingDirection); message 'setBaseWritingDirection:';
+    function baseWritingDirection: NSWritingDirection; message 'baseWritingDirection';
+    procedure setLineHeightMultiple(newValue: CGFloat); message 'setLineHeightMultiple:';
+    function lineHeightMultiple: CGFloat; message 'lineHeightMultiple';
+    procedure setParagraphSpacingBefore(newValue: CGFloat); message 'setParagraphSpacingBefore:';
+    function paragraphSpacingBefore: CGFloat; message 'paragraphSpacingBefore';
+    procedure setDefaultTabInterval(newValue: CGFloat); message 'setDefaultTabInterval:';
+    function defaultTabInterval: CGFloat; message 'defaultTabInterval';
+    procedure setTextBlocks(newValue: NSArray); message 'setTextBlocks:';
+    function textBlocks: NSArray; message 'textBlocks';
+    procedure setTextLists(newValue: NSArray); message 'setTextLists:';
+    function textLists: NSArray; message 'textLists';
+    procedure setHyphenationFactor(newValue: single); message 'setHyphenationFactor:';
+    function hyphenationFactor: single; message 'hyphenationFactor';
+    procedure setTighteningFactorForTruncation(newValue: single); message 'setTighteningFactorForTruncation:';
+    function tighteningFactorForTruncation: single; message 'tighteningFactorForTruncation';
+    procedure setHeaderLevel(newValue: NSInteger); message 'setHeaderLevel:';
+    function headerLevel: NSInteger; message 'headerLevel';
   end;
+{$endif}
 
-{$endif}
-{$endif}

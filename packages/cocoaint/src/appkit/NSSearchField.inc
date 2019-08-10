@@ -1,58 +1,41 @@
-{ Parsed from Appkit.framework NSSearchField.h }
+{ Parsed from AppKit.framework NSSearchField.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSSEARCHFIELD_PAS_T}
-{$define NSSEARCHFIELD_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSSEARCHFIELD_PAS_R}
-{$define NSSEARCHFIELD_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSSEARCHFIELD_PAS_F}
-{$define NSSEARCHFIELD_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSSEARCHFIELD_PAS_S}
-{$define NSSEARCHFIELD_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSSearchField = objcclass;
-  NSSearchFieldPointer = ^NSSearchField;
-  NSSearchFieldPtr = NSSearchFieldPointer;
-
+type
+  NSSearchFieldPtr = ^NSSearchField;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSSEARCHFIELD_PAS_C}
-{$define NSSEARCHFIELD_PAS_C}
 
-{ NSSearchField }
+type
   NSSearchField = objcclass external (NSTextField)
   private
-    _reserved1: cuint;
+    _sfFlags: bitpacked record
+      case byte of
+        0: (_anonBitField__sfFlags0: cuint);
+        1: (
+          _inTransition: 0..1;
+          _reselecting: 0..1;
+          _reserved: 0..((1 shl 30)-1);
+        );
+      end;
     _reserved2: cuint;
     _reserved3: cuint;
     _reserved4: cuint;
-    
   public
-    procedure setRecentSearches(searches: NSArray); message 'setRecentSearches:';
+    procedure setRecentSearches(newValue: NSArray); message 'setRecentSearches:';
     function recentSearches: NSArray; message 'recentSearches';
-    procedure setRecentsAutosaveName(string_: NSString); message 'setRecentsAutosaveName:';
+    procedure setRecentsAutosaveName(newValue: NSString); message 'setRecentsAutosaveName:';
     function recentsAutosaveName: NSString; message 'recentsAutosaveName';
+    procedure setSearchMenuTemplate(newValue: NSMenu); message 'setSearchMenuTemplate:';
+    function searchMenuTemplate: NSMenu; message 'searchMenuTemplate';
+    procedure setSendsWholeSearchString(newValue: ObjCBOOL); message 'setSendsWholeSearchString:';
+    function sendsWholeSearchString: ObjCBOOL; message 'sendsWholeSearchString';
+    procedure setMaximumRecents(newValue: NSInteger); message 'setMaximumRecents:';
+    function maximumRecents: NSInteger; message 'maximumRecents';
+    procedure setSendsSearchStringImmediately(newValue: ObjCBOOL); message 'setSendsSearchStringImmediately:';
+    function sendsSearchStringImmediately: ObjCBOOL; message 'sendsSearchStringImmediately';
   end;
+{$endif}
 
-{$endif}
-{$endif}

@@ -189,6 +189,12 @@ const
   nCreatingAnInstanceOfAbstractClassY = 3123;
   nIllegalExpressionAfterX = 3124;
   nMethodHidesNonVirtualMethodExactly = 3125;
+  nDuplicatePublishedMethodXAtY = 3126;
+  nConstraintXSpecifiedMoreThanOnce = 3127;
+  nConstraintXAndConstraintYCannotBeTogether = 3128;
+  nXIsNotAValidConstraint = 3129;
+  nWrongNumberOfParametersForGenericType = 3130;
+  nGenericsWithoutSpecializationAsType = 3131;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -325,6 +331,12 @@ resourcestring
   sCreatingAnInstanceOfAbstractClassY = 'Creating an instance of abstract class "%s"';
   sIllegalExpressionAfterX = 'illegal expression after %s';
   sMethodHidesNonVirtualMethodExactly = 'method hides identifier at "%s". Use reintroduce';
+  sDuplicatePublishedMethodXAtY = 'Duplicate published method "%s" at %s';
+  sConstraintXSpecifiedMoreThanOnce = 'Constraint "%s" specified more than once';
+  sConstraintXAndConstraintYCannotBeTogether = '"%s" constraint and "%s" constraint cannot be specified together';
+  sXIsNotAValidConstraint = '"%s" is not a valid constraint';
+  sWrongNumberOfParametersForGenericType = 'wrong number of parameters for generic type %s';
+  sGenericsWithoutSpecializationAsType = 'Generics without specialization cannot be used as a type for a %s';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

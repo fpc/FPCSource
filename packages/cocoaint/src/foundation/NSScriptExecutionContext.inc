@@ -1,61 +1,28 @@
 { Parsed from Foundation.framework NSScriptExecutionContext.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSSCRIPTEXECUTIONCONTEXT_PAS_T}
-{$define NSSCRIPTEXECUTIONCONTEXT_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSSCRIPTEXECUTIONCONTEXT_PAS_R}
-{$define NSSCRIPTEXECUTIONCONTEXT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSSCRIPTEXECUTIONCONTEXT_PAS_F}
-{$define NSSCRIPTEXECUTIONCONTEXT_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSSCRIPTEXECUTIONCONTEXT_PAS_S}
-{$define NSSCRIPTEXECUTIONCONTEXT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSScriptExecutionContext = objcclass;
-  NSScriptExecutionContextPointer = ^NSScriptExecutionContext;
-  NSScriptExecutionContextPtr = NSScriptExecutionContextPointer;
-
+type
+  NSScriptExecutionContextPtr = ^NSScriptExecutionContext;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSSCRIPTEXECUTIONCONTEXT_PAS_C}
-{$define NSSCRIPTEXECUTIONCONTEXT_PAS_C}
 
-{ NSScriptExecutionContext }
+type
   NSScriptExecutionContext = objcclass external (NSObject)
   private
     _topLevelObject: id;
     _objectBeingTested: id;
     _rangeContainerObject: id;
     _moreVars: id;
-    
   public
     class function sharedScriptExecutionContext: NSScriptExecutionContext; message 'sharedScriptExecutionContext';
+    procedure setTopLevelObject(newValue: id); message 'setTopLevelObject:';
     function topLevelObject: id; message 'topLevelObject';
-    procedure setTopLevelObject(obj: id); message 'setTopLevelObject:';
+    procedure setObjectBeingTested(newValue: id); message 'setObjectBeingTested:';
     function objectBeingTested: id; message 'objectBeingTested';
-    procedure setObjectBeingTested(obj: id); message 'setObjectBeingTested:';
+    procedure setRangeContainerObject(newValue: id); message 'setRangeContainerObject:';
     function rangeContainerObject: id; message 'rangeContainerObject';
-    procedure setRangeContainerObject(obj: id); message 'setRangeContainerObject:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

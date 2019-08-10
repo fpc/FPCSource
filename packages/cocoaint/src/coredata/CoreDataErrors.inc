@@ -1,11 +1,19 @@
-{ Parsed from Coredata.framework CoreDataErrors.h }
+{ Parsed from CoreData.framework CoreDataErrors.h }
+
+{$ifdef EXTERNAL_SYMBOLS}
+var
+  NSDetailedErrorsKey: NSString { available in 10_4,3_0 }; cvar; external;
+  NSValidationObjectErrorKey: NSString { available in 10_4,3_0 }; cvar; external;
+  NSValidationKeyErrorKey: NSString { available in 10_4,3_0 }; cvar; external;
+  NSValidationPredicateErrorKey: NSString { available in 10_4,3_0 }; cvar; external;
+  NSValidationValueErrorKey: NSString { available in 10_4,3_0 }; cvar; external;
+  NSAffectedStoresErrorKey: NSString { available in 10_4,3_0 }; cvar; external;
+  NSAffectedObjectsErrorKey: NSString { available in 10_4,3_0 }; cvar; external;
+  NSPersistentStoreSaveConflictsErrorKey: NSString { available in 10_7, 5_0 }; cvar; external;
+  NSSQLiteErrorDomain: NSString { available in 10_5,3_0 }; cvar; external;
+{$endif}
 
 {$ifdef TYPES}
-{$ifndef COREDATAERRORS_PAS_T}
-{$define COREDATAERRORS_PAS_T}
-
-{ Constants }
-
 const
   NSManagedObjectValidationError = 1550;
   NSValidationMultipleErrorsError = 1560;
@@ -31,10 +39,12 @@ const
   NSPersistentStoreIncompatibleSchemaError = 134020;
   NSPersistentStoreSaveError = 134030;
   NSPersistentStoreIncompleteSaveError = 134040;
+  NSPersistentStoreSaveConflictsError = 134050;
   NSCoreDataError = 134060;
   NSPersistentStoreOperationError = 134070;
   NSPersistentStoreOpenError = 134080;
   NSPersistentStoreTimeoutError = 134090;
+  NSPersistentStoreUnsupportedRequestTypeError = 134091;
   NSPersistentStoreIncompatibleVersionHashError = 134100;
   NSMigrationError = 134110;
   NSMigrationCancelledError = 134120;
@@ -46,38 +56,5 @@ const
   NSSQLiteError = 134180;
   NSInferredMappingModelError = 134190;
   NSExternalRecordImportError = 134200;
-
-{$endif}
 {$endif}
 
-{$ifdef RECORDS}
-{$ifndef COREDATAERRORS_PAS_R}
-{$define COREDATAERRORS_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef COREDATAERRORS_PAS_F}
-{$define COREDATAERRORS_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef COREDATAERRORS_PAS_S}
-{$define COREDATAERRORS_PAS_S}
-
-{ External string constants }
-var
-  NSDetailedErrorsKey: NSString; cvar; external;
-  NSValidationObjectErrorKey: NSString; cvar; external;
-  NSValidationKeyErrorKey: NSString; cvar; external;
-  NSValidationPredicateErrorKey: NSString; cvar; external;
-  NSValidationValueErrorKey: NSString; cvar; external;
-  NSAffectedStoresErrorKey: NSString; cvar; external;
-  NSAffectedObjectsErrorKey: NSString; cvar; external;
-  NSSQLiteErrorDomain: NSString; cvar; external;
-
-{$endif}
-{$endif}

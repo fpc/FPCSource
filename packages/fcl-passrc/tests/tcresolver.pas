@@ -68,7 +68,7 @@ type
     procedure ReleaseUsedUnits;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility;
-      const ASrcPos: TPasSourcePos): TPasElement;
+      const ASrcPos: TPasSourcePos; TypeParams: TFPList = nil): TPasElement;
       overload; override;
     function FindUnit(const AName, InFilename: String; NameExpr,
       InFileExpr: TPasExpr): TPasModule; override;
@@ -763,6 +763,7 @@ type
 
     // arrays
     Procedure TestDynArrayOfLongint;
+    Procedure TestDynArrayOfSelfFail;
     Procedure TestStaticArray;
     Procedure TestStaticArrayOfChar;
     Procedure TestStaticArrayOfCharDelphi;
@@ -936,6 +937,7 @@ type
     Procedure TestTypeHelper_Set;
     Procedure TestTypeHelper_Enumerator;
     Procedure TestTypeHelper_String;
+    Procedure TestTypeHelper_StringOtherUnit;
     Procedure TestTypeHelper_Boolean;
     Procedure TestTypeHelper_Double;
     Procedure TestTypeHelper_DoubleAlias;
@@ -1011,9 +1013,9 @@ end;
 
 function TTestEnginePasResolver.CreateElement(AClass: TPTreeElement;
   const AName: String; AParent: TPasElement; AVisibility: TPasMemberVisibility;
-  const ASrcPos: TPasSourcePos): TPasElement;
+  const ASrcPos: TPasSourcePos; TypeParams: TFPList): TPasElement;
 begin
-  Result:=inherited CreateElement(AClass, AName, AParent, AVisibility, ASrcPos);
+  Result:=inherited CreateElement(AClass, AName, AParent, AVisibility, ASrcPos, TypeParams);
   if (FModule=nil) and AClass.InheritsFrom(TPasModule) then
     Module:=TPasModule(Result);
 end;
@@ -7384,7 +7386,7 @@ begin
   Add('function GetIt: longint; begin end;');
   Add('var s: smallint;');
   Add('begin');
-  Add('   s:=smallint(GetIt);');
+  Add('  s:=smallint(GetIt);');
   ParseProgram;
 end;
 
@@ -8280,6 +8282,7 @@ begin
   '  r.V1:=trec.VC;',
   '  r.VC:=r.V1;',
   '  trec.VC:=trec.c1;',
+  '  trec.ca[1]:=trec.c2;',
   '']);
   ParseProgram;
 end;
@@ -10203,6 +10206,7 @@ begin
   Add('  ProcA(TClassA({@o}o));');
   Add('  if TClassA({@o}o).id=3 then ;');
   Add('  if (o as TClassA).id=3 then ;');
+  Add('  o:=TObject(nil);');
   ParseProgram;
 end;
 
@@ -11326,7 +11330,7 @@ begin
   Add('procedure TObject.DoIt; begin end;');
   Add('procedure TObject.DoIt(i: longint); begin end;');
   Add('begin');
-  CheckResolverException(sDuplicateIdentifier,nDuplicateIdentifier);
+  CheckResolverException(sDuplicatePublishedMethodXAtY,nDuplicatePublishedMethodXAtY);
 end;
 
 procedure TTestResolver.TestNestedClass;
@@ -13751,6 +13755,14 @@ begin
   Add('  if a[3]=a[4] then ;');
   Add('  a[a[5]]:=a[a[6]];');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestDynArrayOfSelfFail;
+begin
+  StartProgram(false);
+  Add('type TIntArray = array of TIntArray;');
+  Add('begin');
+  CheckResolverException(sIllegalExpression,nIllegalExpression);
 end;
 
 procedure TTestResolver.TestStaticArray;
@@ -17649,6 +17661,43 @@ begin
   '  ''abc''.DoIt;',
   '  ''xyz''.DoIt();',
   '  ''c''.Fly;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_StringOtherUnit;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    '{$modeswitch typehelpers}',
+    'type',
+    '  TStringHelper = type helper for String',
+    '    procedure DoIt;',
+    '  end;',
+    '  TCharHelper = type helper for char',
+    '    procedure Fly;',
+    '  end;',
+    '']),
+    LinesToStr([
+    'procedure TStringHelper.DoIt;',
+    'begin',
+    '  Self[1]:=Self[2];',
+    'end;',
+    'procedure TCharHelper.Fly;',
+    'begin',
+    '  Self:=''c'';',
+    '  Self:=Self;',
+    'end;',
+    '']));
+  StartProgram(true);
+  Add([
+  'uses unit2;',
+  'var s: string;',
+  'begin',
+  '  ''abc''.DoIt;',
+  '  ''xyz''.DoIt();',
+  '  ''c''.Fly;',
+  '  s.DoIt;',
   '']);
   ParseProgram;
 end;

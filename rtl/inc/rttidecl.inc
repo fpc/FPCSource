@@ -67,12 +67,22 @@ type
   packed
 {$endif USE_PACKED}
   record
+{$if declared(TRttiDataCommon)}
+    Common: TRttiDataCommon;
+{$endif declared TRttiDataCommon}
+    case TTypeKind of
+      tkRecord: (
 {$ifndef VER3_0}
-    InitTable: Pointer;
+        InitTable: Pointer;
 {$endif VER3_0}
-    Size: Longint;
-    Count: Longint;
-    { Elements: array[count] of TRecordElement }
+        Size: Longint;
+        Count: Longint;
+        { Elements: array[count] of TRecordElement }
+      );
+      { include for proper alignment }
+      tkInt64: (
+        dummy : Int64
+      );
   end;
 
   PRecordInfoInit=^TRecordInfoInit;
@@ -116,14 +126,24 @@ type
   packed
 {$endif USE_PACKED}
   record
-    Terminator: Pointer;
-    Size: Longint;
+{$if declared(TRttiDataCommon)}
+    Common: TRttiDataCommon;
+{$endif declared TRttiDataCommon}
+    case TTypeKind of
+      tkRecord: (
+        Terminator: Pointer;
+        Size: Longint;
 {$ifndef VER3_0}
-    InitRecordOpTable: PRTTIRecordOpOffsetTable;
-    RecordOp: PRTTIRecordOpVMT;
+        InitRecordOpTable: PRTTIRecordOpOffsetTable;
+        RecordOp: PRTTIRecordOpVMT;
 {$endif VER3_0}
-    Count: Longint;
-    { Elements: array[count] of TRecordElement }
+        Count: Longint;
+        { Elements: array[count] of TRecordElement }
+      );
+      { include for proper alignment }
+      tkInt64: (
+        dummy : Int64
+      );
   end;
 {$else VER3_0}
   TRecordInfoInit=TRecordInfoFull;
@@ -135,15 +155,25 @@ type
   packed
 {$endif USE_PACKED}
   record
-    Size: SizeInt;
-    ElCount: SizeInt;
+{$if declared(TRttiDataCommon)}
+    Common: TRttiDataCommon;
+{$endif declared TRttiDataCommon}
+    case TTypeKind of
+      tkArray: (
+        Size: SizeInt;
+        ElCount: SizeInt;
 {$ifdef VER3_0}
-    ElInfo: Pointer;
+        ElInfo: Pointer;
 {$else}
-    ElInfo: PPointer;
+        ElInfo: PPointer;
 {$endif}
-    DimCount: Byte;
-    Dims:array[0..255] of Pointer;
+        DimCount: Byte;
+        Dims:array[0..255] of Pointer;
+      );
+      { include for proper alignment }
+      tkInt64: (
+        dummy : Int64
+      );
   end;
 
 

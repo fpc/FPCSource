@@ -111,6 +111,7 @@ implementation
         systemunit.insert(csyssym.create('Insert',in_insert_x_y_z));
         systemunit.insert(csyssym.create('Delete',in_delete_x_y_z));
         systemunit.insert(csyssym.create('GetTypeKind',in_gettypekind_x));
+        systemunit.insert(csyssym.create('fpc_eh_return_data_regno', in_const_eh_return_data_regno));
         systemunit.insert(cconstsym.create_ord('False',constord,0,pasbool1type));
         systemunit.insert(cconstsym.create_ord('True',constord,1,pasbool1type));
       end;
@@ -582,7 +583,7 @@ implementation
         if not(target_info.system in systems_managed_vm) then
           begin
             { Add a type for virtual method tables }
-            hrecst:=trecordsymtable.create('',current_settings.packrecords,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
+            hrecst:=trecordsymtable.create('',current_settings.packrecords,current_settings.alignment.recordalignmin);
             vmttype:=crecorddef.create('',hrecst);
             pvmttype:=cpointerdef.create(vmttype);
             { can't use addtype for pvmt because the rtti of the pointed
@@ -607,17 +608,22 @@ implementation
             addtype('$vtblarray',vmtarraytype);
           end;
         { Add a type for methodpointers }
-        hrecst:=trecordsymtable.create('',1,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
+        hrecst:=trecordsymtable.create('',1,current_settings.alignment.recordalignmin);
         addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[],true));
         addfield(hrecst,cfieldvarsym.create('$self',vs_value,voidpointertype,[],true));
         methodpointertype:=crecorddef.create('',hrecst);
         addtype('$methodpointer',methodpointertype);
         { Add a type for nested proc pointers }
-        hrecst:=trecordsymtable.create('',1,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
+        hrecst:=trecordsymtable.create('',1,current_settings.alignment.recordalignmin);
         addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[],true));
         addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[],true));
         nestedprocpointertype:=crecorddef.create('',hrecst);
         addtype('$nestedprocpointer',nestedprocpointertype);
+{$ifdef llvm}
+        llvm_metadatatype:=cpointerdef.create(voidtype);
+        { if this gets renamed, also adjust agllvm so it still writes the identifier of this type as "metadata" }
+        addtype('$metadata',llvm_metadatatype);
+{$endif}
         symtablestack.pop(systemunit);
       end;
 
@@ -733,6 +739,9 @@ implementation
           end;
         loadtype('methodpointer',methodpointertype);
         loadtype('nestedprocpointer',nestedprocpointertype);
+{$ifdef llvm}
+        loadtype('metadata',llvm_metadatatype);
+{$endif}
         loadtype('HRESULT',hresultdef);
         loadtype('TTYPEKIND',typekindtype);
         set_default_int_types;

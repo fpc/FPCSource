@@ -277,6 +277,8 @@ uses
     function std_regname(r:Tregister):string;
     function findreg_by_number(r:Tregister):tregisterindex;
 
+    function eh_return_data_regno(nr: longint): longint;
+
     { since we don't use tasmconds, don't call this routine
       (it will internalerror). We need it anyway to get aoptobj
       to compile (but it won't execute it).
@@ -340,6 +342,10 @@ uses
           result:=generic_regname(r);
       end;
 
+    function eh_return_data_regno(nr: longint): longint;
+      begin
+        result:=-1;
+      end;
 
     function inverse_cond(const c: TAsmCond): Tasmcond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin

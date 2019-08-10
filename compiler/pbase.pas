@@ -89,8 +89,16 @@ interface
     function consume_sym(var srsym:tsym;var srsymtable:TSymtable):boolean;
     function consume_sym_orgid(var srsym:tsym;var srsymtable:TSymtable;var s : string):boolean;
 
-    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id,allow_specialize:boolean;out is_specialize:boolean;sympattern:TSymStr):boolean;
-    function try_consume_unitsym_no_specialize(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id:boolean;sympattern:TSymStr):boolean;
+    type
+      tconsume_unitsym_flag = (
+        cuf_consume_id,
+        cuf_allow_specialize,
+        cuf_check_attr_suffix
+      );
+      tconsume_unitsym_flags = set of tconsume_unitsym_flag;
+
+    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;flags:tconsume_unitsym_flags;out is_specialize:boolean;sympattern:TSymStr):boolean;
+    function try_consume_unitsym_no_specialize(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;flags:tconsume_unitsym_flags;sympattern:TSymStr):boolean;
 
     function try_consume_hintdirective(var symopt:tsymoptions; var deprecatedmsg:pshortstring):boolean;
 
@@ -205,7 +213,7 @@ implementation
           end;
         searchsym(pattern,srsym,srsymtable);
         { handle unit specification like System.Writeln }
-        try_consume_unitsym_no_specialize(srsym,srsymtable,t,true,pattern);
+        try_consume_unitsym_no_specialize(srsym,srsymtable,t,[cuf_consume_id],pattern);
         { if nothing found give error and return errorsym }
         if assigned(srsym) then
           check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg)
@@ -238,7 +246,7 @@ implementation
           end;
         searchsym(pattern,srsym,srsymtable);
         { handle unit specification like System.Writeln }
-        try_consume_unitsym_no_specialize(srsym,srsymtable,t,true,pattern);
+        try_consume_unitsym_no_specialize(srsym,srsymtable,t,[cuf_consume_id],pattern);
         { if nothing found give error and return errorsym }
         if assigned(srsym) then
           check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg)
@@ -254,7 +262,7 @@ implementation
       end;
 
 
-    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id,allow_specialize:boolean;out is_specialize:boolean;sympattern:TSymStr):boolean;
+    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;flags:tconsume_unitsym_flags;out is_specialize:boolean;sympattern:TSymStr):boolean;
       var
         hmodule: tmodule;
         ns:ansistring;
@@ -318,7 +326,7 @@ implementation
               internalerror(201001120);
             if hmodule.unit_index=current_filepos.moduleindex then
               begin
-                if consume_id then
+                if cuf_consume_id in flags then
                   consume(_ID);
                 consume(_POINT);
                 if srsym.typ=namespacesym then
@@ -354,26 +362,38 @@ implementation
                   end;
                 case token of
                   _ID:
-                    { system.char? (char=widechar comes from the implicit
-                      uuchar unit -> override) }
-                    if (pattern='CHAR') and
-                       (tmodule(tunitsym(srsym).module).globalsymtable=systemunit) then
-                      begin
-                        if m_default_unicodestring in current_settings.modeswitches then
-                          searchsym_in_module(tunitsym(srsym).module,'WIDECHAR',srsym,srsymtable)
-                        else
-                          searchsym_in_module(tunitsym(srsym).module,'ANSICHAR',srsym,srsymtable)
-                      end
-                    else
-                      if allow_specialize and (idtoken=_SPECIALIZE) then
+                    begin
+                      if cuf_check_attr_suffix in flags then
                         begin
-                          consume(_ID);
-                          is_specialize:=true;
-                          if token=_ID then
-                            searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
+                          if searchsym_in_module(tunitsym(srsym).module,pattern+custom_attribute_suffix,srsym,srsymtable) then
+                            exit(true);
+                        end;
+                      { system.char? (char=widechar comes from the implicit
+                        uuchar unit -> override) }
+                      if (pattern='CHAR') and
+                         (tmodule(tunitsym(srsym).module).globalsymtable=systemunit) then
+                        begin
+                          if m_default_unicodestring in current_settings.modeswitches then
+                            searchsym_in_module(tunitsym(srsym).module,'WIDECHAR',srsym,srsymtable)
+                          else
+                            searchsym_in_module(tunitsym(srsym).module,'ANSICHAR',srsym,srsymtable)
                         end
                       else
-                        searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
+                        if (cuf_allow_specialize in flags) and (idtoken=_SPECIALIZE) then
+                          begin
+                            consume(_ID);
+                            is_specialize:=true;
+                            if token=_ID then
+                              begin
+                                if (cuf_check_attr_suffix in flags) and
+                                    searchsym_in_module(tunitsym(srsym).module,pattern+custom_attribute_suffix,srsym,srsymtable) then
+                                  exit(true);
+                                searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
+                              end;
+                          end
+                        else
+                          searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
+                     end;
                   _STRING:
                     begin
                       { system.string? }
@@ -405,11 +425,12 @@ implementation
       end;
 
 
-    function try_consume_unitsym_no_specialize(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id:boolean;sympattern:TSymStr):boolean;
+    function try_consume_unitsym_no_specialize(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;flags:tconsume_unitsym_flags;sympattern:TSymStr):boolean;
       var
         dummy: Boolean;
       begin
-        result:=try_consume_unitsym(srsym,srsymtable,tokentoconsume,consume_id,false,dummy,sympattern);
+        exclude(flags,cuf_allow_specialize);
+        result:=try_consume_unitsym(srsym,srsymtable,tokentoconsume,flags,dummy,sympattern);
       end;
 
     function try_consume_hintdirective(var symopt:tsymoptions; var deprecatedmsg:pshortstring):boolean;

@@ -72,7 +72,7 @@ unit cgrv;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
 
-        procedure g_check_for_fpu_exception(list: TAsmList); override;
+        procedure g_check_for_fpu_exception(list: TAsmList;force,clear : boolean); override;
       protected
         function  fixref(list: TAsmList; var ref: treference): boolean;
         procedure maybeadjustresult(list: TAsmList; op: topcg; size: tcgsize; dst: tregister);
@@ -614,7 +614,7 @@ unit cgrv;
         if fromsize<>tosize then
           begin
             list.concat(taicpu.op_reg_reg(convOp[fromsize,tosize],reg2,reg1));
-            g_check_for_fpu_exception(list);
+            maybe_check_for_fpu_exception(list);
           end
         else
           begin
@@ -786,7 +786,7 @@ unit cgrv;
       end;
 
 
-    procedure tcgrv.g_check_for_fpu_exception(list: TAsmList);
+    procedure tcgrv.g_check_for_fpu_exception(list: TAsmList;force,clear : boolean);
       var
         r : TRegister;
         ai: taicpu;

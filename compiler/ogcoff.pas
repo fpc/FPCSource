@@ -592,7 +592,8 @@ implementation
           '.obcj_nlcatlist',
           '.objc_protolist',
           '.stack',
-          '.heap'
+          '.heap',
+          '.gcc_except_table'
         );
 
 const go32v2stub : array[0..2047] of byte=(
@@ -1490,7 +1491,8 @@ const pemagic : array[0..3] of byte = (
                if (objsym.bind=AB_LOCAL) then
                  continue;
                case objsym.bind of
-                 AB_GLOBAL :
+                 AB_GLOBAL,
+                 AB_PRIVATE_EXTERN:
                    begin
                      globalval:=COFF_SYM_GLOBAL;
                      sectionval:=objsym.objsection.index;

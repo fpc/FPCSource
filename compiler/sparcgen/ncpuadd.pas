@@ -505,7 +505,7 @@ interface
     function tsparcaddnode.use_generic_mul64bit: boolean;
       begin
 {$ifdef SPARC64}
-        result:=(cs_check_overflow in current_settings.localswitches);
+        result:=needoverflowcheck;
 {$else SPARC64}
         result:=inherited;
 {$endif SPARC64}

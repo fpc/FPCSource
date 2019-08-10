@@ -679,7 +679,10 @@ type
     procedure ValueNotify(constref AValue: TValue; ACollectionNotification: TCollectionNotification); inline;
     procedure NodeNotify(ANode: PNode; ACollectionNotification: TCollectionNotification; ADispose: boolean); inline;
     procedure SetValue(var AValue: TValue; constref ANewValue: TValue);
+    function GetItem(const AKey: TKey): TValue;
+    procedure SetItem(const AKey: TKey; const AValue: TValue);
 
+    property Items[Index: TKey]: TValue read GetItem write SetItem;
     // for reporting
     procedure WriteStr(AStream: TStream; const AText: string);
   public type
@@ -747,8 +750,8 @@ type
     function Remove(constref AKey: TKey; ADisposeNode: boolean = true): boolean;
     function ExtractPair(constref AKey: TKey; ADisposeNode: boolean = true): TTreePair; overload;
     function ExtractPair(constref ANode: PNode; ADispose: boolean = true): TTreePair; overload;
-    function ExtractNode(constref AKey: TKey; ADisposeNode: boolean): PNode; overload;
-    function ExtractNode(ANode: PNode; ADispose: boolean): PNode; overload;
+    function Extract(constref AKey: TKey; ADisposeNode: boolean): PNode;
+    function ExtractNode(ANode: PNode; ADispose: boolean): PNode;
     procedure Delete(ANode: PNode; ADispose: boolean = true); inline;
 
     function GetEnumerator: TPairEnumerator;
@@ -782,6 +785,8 @@ type
   end;
 
   TAVLTreeMap<TKey, TValue> = class(TCustomAVLTreeMap<TKey, TValue, TEmptyRecord>)
+  public
+    property Items; default;
   end;
 
   TIndexedAVLTreeMap<TKey, TValue> = class(TCustomAVLTreeMap<TKey, TValue, SizeInt>)
@@ -808,6 +813,7 @@ type
   protected
     property OnKeyNotify;
     property OnValueNotify;
+    property Items;
   public type
     TItemEnumerator = TKeyEnumerator;
   public
@@ -3319,6 +3325,21 @@ begin
   Result := TValueCollection(FValues);
 end;
 
+function TCustomAVLTreeMap<TREE_CONSTRAINTS>.GetItem(const AKey: TKey): TValue;
+var
+  LNode: PNode;
+begin
+  LNode := Find(AKey);
+  if not Assigned(LNode) then
+    raise EAVLTree.CreateRes(@SDictionaryKeyDoesNotExist);
+  result := LNode.Value;
+end;
+
+procedure TCustomAVLTreeMap<TREE_CONSTRAINTS>.SetItem(const AKey: TKey; const AValue: TValue);
+begin
+  Find(AKey).Value := AValue;
+end;
+
 constructor TCustomAVLTreeMap<TREE_CONSTRAINTS>.Create;
 begin
   FComparer := TComparer<TKey>.Default;
@@ -3430,7 +3451,7 @@ begin
   Result.Value := DoRemove(ANode, cnExtracted, ADispose);
 end;
 
-function TCustomAVLTreeMap<TREE_CONSTRAINTS>.ExtractNode(constref AKey: TKey; ADisposeNode: boolean): PNode;
+function TCustomAVLTreeMap<TREE_CONSTRAINTS>.Extract(constref AKey: TKey; ADisposeNode: boolean): PNode;
 begin
   Result:=Find(AKey);
   if Result<>nil then

@@ -16,8 +16,10 @@ Type
     Procedure TestObjectGenerics;
     Procedure TestRecordGenerics;
     Procedure TestArrayGenerics;
+    Procedure TestArrayGenericsDelphi;
+    Procedure TestProcTypeGenerics;
     Procedure TestGenericConstraint;
-    Procedure TestGenericInterfaceConstraint; // ToDo
+    Procedure TestGenericInterfaceConstraint;
     Procedure TestDeclarationConstraint;
     Procedure TestSpecializationDelphi;
     Procedure TestDeclarationDelphi;
@@ -28,7 +30,8 @@ Type
     Procedure TestSpecializeNested;
     Procedure TestInlineSpecializeInStatement;
     Procedure TestInlineSpecializeInStatementDelphi;
-    Procedure TestGenericFunction;
+    Procedure TestGenericFunction_Program;
+    Procedure TestGenericFunction_Unit;
   end;
 
 implementation
@@ -60,6 +63,28 @@ begin
   Add([
     'Type',
     '  Generic TSome<T> = array of T;',
+    '  Generic TStatic<R,T> = array[R] of T;',
+    '']);
+  ParseDeclarations;
+end;
+
+procedure TTestGenerics.TestArrayGenericsDelphi;
+begin
+  Add([
+    '{$mode delphi}',
+    'Type',
+    '  TSome<T> = array of T;',
+    '  TStatic<R,T> = array[R] of T;',
+    '']);
+  ParseDeclarations;
+end;
+
+procedure TTestGenerics.TestProcTypeGenerics;
+begin
+  Add([
+    'Type',
+    '  Generic TSome<T> = procedure(v: T);',
+    '  Generic TFunc<R,T> = function(b: R): T;',
     '']);
   ParseDeclarations;
 end;
@@ -200,9 +225,20 @@ begin
     Add('type');
     Add('  TTest<T> =  object');
     Add('    procedure foo(v:T);');
+    Add('    procedure bar<Y>(v:T);');
+    Add('  type');
+    Add('    TSub = class');
+    Add('      procedure DoIt<Y>(v:T);');
+    Add('    end;');
     Add('  end;');
     Add('implementation');
     Add('procedure TTest<T>.foo;');
+    Add('begin');
+    Add('end;');
+    Add('procedure TTest<T>.bar<Y>;');
+    Add('begin');
+    Add('end;');
+    Add('procedure TTest<T>.TSub.DoIt<Y>;');
     Add('begin');
     Add('end;');
     end;
@@ -258,7 +294,7 @@ begin
   ParseModule;
 end;
 
-procedure TTestGenerics.TestGenericFunction;
+procedure TTestGenerics.TestGenericFunction_Program;
 begin
   Add([
   'generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inline; overload;',
@@ -266,6 +302,22 @@ begin
   'end;',
   'begin',
   '  specialize IfThen<word>(true,2,3);',
+  '']);
+  ParseModule;
+end;
+
+procedure TTestGenerics.TestGenericFunction_Unit;
+begin
+  Add([
+  'unit afile;',
+  'interface',
+  'generic function Get<T>(val: T) :T;',
+  'implementation',
+  'generic function Get<T>(val: T) :T;',
+  'begin',
+  'end;',
+  'initialization',
+  '  specialize GetIt<word>(2);',
   '']);
   ParseModule;
 end;

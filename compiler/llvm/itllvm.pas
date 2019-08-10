@@ -62,6 +62,7 @@ interface
         'type', { type definition }
         'catch', { catch exception }
         'filter', { exception filter }
+        'cleanup', { exception cleanup/finally }
         'invalid1', { la_x_to_inttoptr }
         'invalid2', { la_ptrtoint_to_x }
         'asm' { la_asmblock }

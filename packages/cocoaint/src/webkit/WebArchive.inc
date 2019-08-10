@@ -1,66 +1,34 @@
-{ Parsed from Webkit.framework WebArchive.h }
+{ Parsed from WebKit.framework WebArchive.h }
+
 
 {$ifdef TYPES}
-{$ifndef WEBARCHIVE_PAS_T}
-{$define WEBARCHIVE_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef WEBARCHIVE_PAS_R}
-{$define WEBARCHIVE_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef WEBARCHIVE_PAS_F}
-{$define WEBARCHIVE_PAS_F}
-
-{$endif}
+type
+  WebArchivePtr = ^WebArchive;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef WEBARCHIVE_PAS_S}
-{$define WEBARCHIVE_PAS_S}
-
-{ External string constants }
 var
   WebArchivePboardType: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  WebArchive = objcclass;
-  WebArchivePointer = ^WebArchive;
-  WebArchivePtr = WebArchivePointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef WEBARCHIVE_PAS_C}
-{$define WEBARCHIVE_PAS_C}
 
-{ WebArchive }
+type
   WebArchive = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     _private: WebArchivePrivate;
-    
   public
-    function initWithMainResource_subresources_subframeArchives(mainResource_: WebResource; subresources_: NSArray; subframeArchives_: NSArray): id; message 'initWithMainResource:subresources:subframeArchives:';
-    function initWithData(data_: NSData): id; message 'initWithData:';
+    function initWithMainResource_subresources_subframeArchives (mainResource: WebResource; subresources: NSArray; subframeArchives: NSArray): instancetype; message 'initWithMainResource:subresources:subframeArchives:';
+    function initWithData (data: NSData): instancetype; message 'initWithData:';
     function mainResource: WebResource; message 'mainResource';
     function subresources: NSArray; message 'subresources';
     function subframeArchives: NSArray; message 'subframeArchives';
     function data: NSData; message 'data';
 
-    { Adopted Protocols }
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
-    function copyWithZone(zone_: NSZonePtr): id;
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

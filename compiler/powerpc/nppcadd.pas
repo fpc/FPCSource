@@ -325,11 +325,10 @@ interface
             current_asmdata.getjumplabel(falselabel);
           end;
 
-        load_left_right(cmpop,((cs_check_overflow in current_settings.localswitches) and
-            (nodetype in [addn,subn])) or (nodetype = muln));
+        load_left_right(cmpop,needoverflowcheck or (nodetype = muln));
 
-        if (nodetype <> muln) and
-           (not(cs_check_overflow in current_settings.localswitches) or
+        if (nodetype<>muln) and
+           (not needoverflowcheck or
             not(nodetype in [addn,subn])) then
           begin
             case nodetype of
@@ -657,9 +656,7 @@ interface
 
          checkoverflow:=
            (nodetype in [addn,subn,muln]) and
-           (cs_check_overflow in current_settings.localswitches) and
-           (left.resultdef.typ<>pointerdef) and
-           (right.resultdef.typ<>pointerdef);
+           needoverflowcheck;
 
          load_left_right(cmpop, checkoverflow);
 

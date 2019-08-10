@@ -67,6 +67,7 @@ type
     procedure TestM_Const;
     procedure TestM_ResourceString;
     procedure TestM_Record;
+    procedure TestM_RecordGeneric;
     procedure TestM_PointerTyped_Record;
     procedure TestM_Array;
     procedure TestM_NestedFuncResult;
@@ -128,6 +129,7 @@ type
     procedure TestM_Hint_FunctionResultDoesNotSeemToBeSet;
     procedure TestM_Hint_FunctionResultDoesNotSeemToBeSet_Abstract;
     procedure TestM_Hint_FunctionResultRecord;
+    procedure TestM_Hint_FunctionResultRecordEmpty;
     procedure TestM_Hint_FunctionResultPassRecordElement;
     procedure TestM_Hint_FunctionResultAssembler;
     procedure TestM_Hint_FunctionResultExit;
@@ -870,6 +872,34 @@ begin
   'const',
   '  ci = 2;',
   '  cr: TRec = (a:0;b:ci;c:2);',
+  'begin',
+  '  r.a:=3;',
+  '  with r do c:=4;',
+  '  r:=cr;',
+  'end;',
+  'begin',
+  '  DoIt;']);
+  AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_RecordGeneric;
+begin
+  StartProgram(false);
+  Add([
+  'procedure {#DoIt_used}DoIt;',
+  'type',
+  '  {#integer_used}integer = longint;',
+  '  {#number_used}number = word;',
+  '  generic {#trec_used}TRec<{#trec_t_notused}T> = record',
+  '    {#a_used}a: integer;',
+  '    {#b_notused}b: integer;',
+  '    {#c_used}c: T;',
+  '  end;',
+  'var',
+  '  {#r_used}r: specialize TRec<number>;',
+  'const',
+  '  ci = 2;',
+  '  cr: specialize TRec<number> = (a:0;b:ci;c:2);',
   'begin',
   '  r.a:=3;',
   '  with r do c:=4;',
@@ -2166,6 +2196,25 @@ begin
   CheckUseAnalyzerHint(mtHint,nPALocalVariableIsAssignedButNeverUsed,
     'Local variable "X" is assigned but never used');
   CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "Y" not used');
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_FunctionResultRecordEmpty;
+begin
+  StartProgram(true);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  TEmpty = record',
+  '    class function Create: TEmpty; static;',
+  '  end;',
+  'class function TEmpty.Create: TEmpty;',
+  'begin',
+  'end;',
+  'begin',
+  '  TEmpty.Create;',
+  '']);
+  AnalyzeProgram;
   CheckUseAnalyzerUnexpectedHints;
 end;
 

@@ -20,8 +20,8 @@ uses
   {$IFDEF EnableMemCheck}
   MemCheck,
   {$ENDIF}
-  Classes, consoletestrunner, tcconverter, tcmodules, tcoptimizations, tcsrcmap,
-  tcfiler, Pas2JsFiler, tcunitsearch, tcprecompile, pas2jsuseanalyzer;
+  Classes, consoletestrunner, tcconverter, TCModules, tcoptimizations, tcsrcmap,
+  tcfiler, tcunitsearch, tcprecompile, TCGenerics;
 
 type
 

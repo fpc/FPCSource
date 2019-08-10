@@ -458,6 +458,18 @@ function aligntoqword(p : pointer) : pointer;inline;
   end;
 
 
+{$if not defined(VER3_0) and not defined(VER3_2)}
+type
+  TRttiDataCommon =
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif}
+  record
+    Attrs: Pointer;
+  end;
+{$endif not VER3_0 and not VER3_2}
+
+
 {****************************************************************************
                   Subroutines for String handling
 ****************************************************************************}
@@ -670,16 +682,37 @@ begin
 end;
 
 function random(l:int64): int64;
+var
+ a, b, c, d: cardinal;
+ q, bd, ad, bc, ac: qword;
+ carry: qword;
 begin
-  { always call random, so the random generator cycles (TP-compatible) (JM) }
-  { also do it in two separate steps, so the order in which the two calls
-    are performed is predictable (JM) }
-  random:=mtwist_u32rand;
-  random:=random or ((qword(mtwist_u32rand) shl 32) and high(int64));
-  if (l<>0) then
-    random := random mod l
+  if (l < 0) then
+    begin
+      inc(l);
+      q:=qword(-l)
+    end
   else
-    random := 0;
+    q:=qword(l);
+
+  a:=mtwist_u32rand;
+ b:=mtwist_u32rand;
+
+ c:=q shr 32;
+ d:=cardinal(q);
+
+ bd:=b*d;
+ ad:=a*d;
+ bc:=b*c;
+ ac:=a*c;
+
+ // We only need the carry bit
+ carry:=((bd shr 32)+cardinal(ad)+cardinal(bc)) shr 32;
+
+ // Calculate the final result
+ result:=int64(carry+(ad shr 32)+(bc shr 32)+ac);
+ if l<0 then
+   result:=-result;
 end;
 
 {$ifndef FPUNONE}

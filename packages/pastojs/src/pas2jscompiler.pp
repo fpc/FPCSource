@@ -37,8 +37,9 @@ uses
   {$ENDIF}
   // !! No filesystem units here.
   Classes, SysUtils, contnrs,
-  jsbase, jstree, jswriter, JSSrcMap,
+  jsbase, jstree, jswriter, JSSrcMap, fpjson,
   PScanner, PParser, PasTree, PasResolver, PasResolveEval, PasUseAnalyzer,
+  pas2jsresstrfile,
   FPPas2Js, FPPJsSrcMap, Pas2jsLogger, Pas2jsFS, Pas2jsPParser, Pas2jsUseAnalyzer;
 
 const
@@ -95,6 +96,7 @@ const
   nPostProcessorWarnX = 142; sPostProcessorWarnX = 'Post processor: %s';
   nPostProcessorFinished = 143; sPostProcessorFinished = 'Post processor finished';
   nRTLIdentifierChanged = 144; sRTLIdentifierChanged = 'RTL identifier %s changed from %s to %s';
+  nSkipNoConstResourcestring = 145; sSkipNoConstResourcestring = 'Resource string %s is not a constant, not adding to resourcestrings file.';
   // Note: error numbers 201+ are used by Pas2jsFileCache
 
 //------------------------------------------------------------------------------
@@ -148,12 +150,16 @@ type
     rvcSystem,
     rvcUnit
     );
+  TP2JSResourceStringFile = (rsfNone,rsfUnit,rsfProgram);
+
 const
   DefaultP2jsCompilerOptions = [coShowErrors,coSourceMapXSSIHeader,coUseStrict];
+  DefaultP2JSResourceStringFile = rsfProgram;
   DefaultP2jsRTLVersionCheck = rvcNone;
   coShowAll = [coShowErrors..coShowDebug];
   coO1Enable = [coEnumValuesAsNumbers];
   coO1Disable = [coKeepNotUsedPrivates,coKeepNotUsedDeclarationsWPO];
+
 
   p2jscoCaption: array[TP2jsCompilerOption] of string = (
     // only used by experts or programs parsing the pas2js output, no need for resourcestrings
@@ -492,8 +498,13 @@ type
     FSrcMapSourceRoot: string;
     FUnits: TPasAnalyzerKeySet; // set of TPas2jsCompilerFile, key is PasUnitName
     FWPOAnalyzer: TPas2JSAnalyzer;
+    FResourceStrings : TResourceStringsFile;
+    FResourceStringFile :  TP2JSResourceStringFile;
     procedure AddInsertJSFilename(const aFilename: string);
     Procedure AddNamespaces(const Paths: string; FromCmdLine: boolean);
+    procedure AddUnitResourceStrings(aFile: TPas2jsCompilerFile);
+    function CreateFileWriter(aFile: TPas2jsCompilerFile; const aFilename: string): TPas2JSMapper;
+    procedure EmitJavaScript(aFile: TPas2jsCompilerFile; aFileWriter: TPas2JSMapper);
     function GetDefaultNamespace: String;
     function GetFileCount: integer;
     function GetResolvedMainJSFile: string;
@@ -539,6 +550,9 @@ type
     procedure SetTargetProcessor(const AValue: TPasToJsProcessor);
     procedure SetWriteDebugLog(const AValue: boolean);
     procedure SetWriteMsgToStdErr(const AValue: boolean);
+    procedure WriteJSToFile(const MapFileName: string; aFileWriter: TPas2JSMapper);
+    procedure WriteResourceStrings(aFileName: String);
+    procedure WriteSrcMap(const MapFileName: string; aFileWriter: TPas2JSMapper);
   private
     procedure AddDefinesForTargetPlatform;
     procedure AddDefinesForTargetProcessor;
@@ -590,8 +604,11 @@ type
     procedure CreateJavaScript(aFile: TPas2jsCompilerFile;
       Checked: TPasAnalyzerKeySet { set of TPas2jsCompilerFile, key is UnitFilename });
     procedure FinishSrcMap(SrcMap: TPas2JSSrcMap); virtual;
+    // WriteSingleJSFile does not
+    procedure WriteSingleJSFile(aFile: TPas2jsCompilerFile; CombinedFileWriter: TPas2JSMapper);
+    // WriteJSFiles recurses uses clause
     procedure WriteJSFiles(aFile: TPas2jsCompilerFile;
-      var CombinedFileWriter: TPas2JSMapper;
+      CombinedFileWriter: TPas2JSMapper;
       Checked: TPasAnalyzerKeySet { set of TPas2jsCompilerFile, key is UnitFilename });
     procedure InitParamMacros;virtual;
     procedure ClearDefines;
@@ -1986,7 +2003,7 @@ begin
 
     // write .js files
     Checked:=CreateSetOfCompilerFiles(kcFilename);
-    WriteJSFiles(MainFile,CombinedFileWriter,Checked);
+    WriteJSFiles(MainFile,Nil,Checked);
     FreeAndNil(Checked);
 
     // write success message
@@ -2292,10 +2309,426 @@ begin
   Result:=TPas2JSSrcMap.Create(aFileName);
 end;
 
-procedure TPas2jsCompiler.WriteJSFiles(aFile: TPas2jsCompilerFile;
-  var CombinedFileWriter: TPas2JSMapper; Checked: TPasAnalyzerKeySet);
+function TPas2jsCompiler.CreateFileWriter(aFile: TPas2jsCompilerFile;
+  const aFilename: string): TPas2JSMapper;
 
-  procedure CheckUsesClause(UsesClause: TPasUsesClause);
+var
+  SrcMap: TPas2JSSrcMap;
+  DestFileName : String;
+
+begin
+  DestFileName:=AFileName;
+  if DestFileName='' then
+    DestFileName:=aFile.JSFilename;
+  Result:=CreateJSMapper;
+  Result.DestFileName:=DestFileName;
+  if SrcMapEnable then
+  begin
+    SrcMap:=CreateSrcMap(ExtractFilename(DestFilename));
+    Result.SrcMap:=SrcMap;
+    SrcMap.Release;// release the refcount from the Create
+    SrcMap.SourceRoot:=SrcMapSourceRoot;
+    SrcMap.LocalFilename:=aFile.JSFilename;
+    if SrcMapXSSIHeader then
+      SrcMap.Options:=SrcMap.Options+[smoSafetyHeader]
+    else
+      SrcMap.Options:=SrcMap.Options-[smoSafetyHeader];
+    SrcMap.Options:=SrcMap.Options+[smoAllowSrcLine0];
+  end;
+end;
+
+
+procedure TPas2jsCompiler.EmitJavaScript(aFile: TPas2jsCompilerFile;
+  aFileWriter: TPas2JSMapper);
+
+var
+  aJSWriter: TJSWriter;
+begin
+  // write JavaScript
+  aJSWriter:=CreateJSWriter(aFileWriter);
+  try
+    aJSWriter.Options:=DefaultJSWriterOptions;
+    aJSWriter.IndentSize:=2;
+    try
+      aJSWriter.WriteJS(aFile.JSModule);
+    except
+      on E: Exception do begin
+        if ShowDebug then
+          Log.LogExceptionBackTrace(E);
+        Log.LogPlain('[20180204193420] Error while creating JavaScript '+FullFormatPath(aFileWriter.DestFilename)+': '+E.Message);
+        Terminate(ExitCodeErrorInternal);
+      end
+      {$IFDEF Pas2js}
+      else HandleJSException('[20181031190520] TPas2jsCompiler.WriteJSFiles Error while creating JavaScript',JSExceptValue);
+      {$ENDIF}
+    end;
+  Finally
+    aJSWriter.Free;
+  end;
+end;
+
+
+procedure TPas2jsCompiler.WriteJSToFile(const MapFileName: string;
+  aFileWriter: TPas2JSMapper);
+
+Var
+  {$IFDEF Pas2js}
+  buf: TJSArray;
+  {$ELSE}
+  buf: TMemoryStream;
+  {$ENDIF}
+  Src : String;
+
+begin
+  // write js
+  try
+    {$IFDEF Pas2js}
+    buf:=TJSArray.new;
+    {$ELSE}
+    buf:=TMemoryStream.Create;
+    {$ENDIF}
+    try
+      {$IFDEF FPC_HAS_CPSTRING}
+      // UTF8-BOM
+      if (Log.Encoding='') or (Log.Encoding='utf8') then
+      begin
+        Src:=String(UTF8BOM);
+        buf.Write(Src[1],length(Src));
+      end;
+      {$ENDIF}
+      // JS source
+      {$IFDEF Pas2js}
+      buf:=TJSArray(aFileWriter.Buffer).slice();
+      {$ELSE}
+      buf.Write(aFileWriter.Buffer^,aFileWriter.BufferLength);
+      {$ENDIF}
+      // source map comment
+      if aFileWriter.SrcMap<>nil then
+      begin
+        Src:='//# sourceMappingURL='+ExtractFilename(MapFilename)+LineEnding;
+        {$IFDEF Pas2js}
+        buf.push(Src);
+        {$ELSE}
+        buf.Write(Src[1],length(Src));
+        {$ENDIF}
+      end;
+      //SetLength(Src,buf.Position);
+      //Move(buf.Memory^,Src[1],length(Src));
+      //writeln('TPas2jsCompiler.WriteJSFiles ====',Src);
+      //writeln('TPas2jsCompiler.WriteJSFiles =======================');
+      {$IFDEF Pas2js}
+      {$ELSE}
+      buf.Position:=0;
+      {$ENDIF}
+      FS.SaveToFile(buf,aFileWriter.DestFilename);
+    finally
+      {$IFDEF Pas2js}
+      buf:=nil;
+      {$ELSE}
+      buf.Free;
+      {$ENDIF}
+    end;
+  except
+    on E: Exception do begin
+      if ShowDebug then
+        Log.LogExceptionBackTrace(E);
+      {$IFDEF FPC}
+      if E.Message<>SafeFormat(SFCreateError,[aFileWriter.DestFileName]) then
+      {$ENDIF}
+        Log.LogPlain('Error: '+E.Message);
+      Log.LogMsg(nUnableToWriteFile,[FullFormatPath(aFileWriter.DestFilename)]);
+      Terminate(ExitCodeWriteError);
+    end
+    {$IFDEF Pas2js}
+    else HandleJSException('[20181031190637] TPas2jsCompiler.WriteJSFiles',JSExceptValue,true);
+    {$ENDIF}
+  end;
+end;
+
+procedure TPas2jsCompiler.WriteSrcMap(const MapFileName: string;
+  aFileWriter: TPas2JSMapper);
+
+Var
+  {$IFDEF Pas2js}
+  buf: TJSArray;
+  {$ELSE}
+  buf: TMemoryStream;
+  {$ENDIF}
+begin
+  Log.LogMsg(nWritingFile,[FullFormatPath(MapFilename)],'',0,0,
+             not (coShowLineNumbers in Options));
+  FinishSrcMap(aFileWriter.SrcMap);
+  try
+    {$IFDEF Pas2js}
+    buf:=TJSArray.new;
+    {$ELSE}
+    buf:=TMemoryStream.Create;
+    {$ENDIF}
+    try
+      // Note: No UTF-8 BOM in source map, Chrome 59 gives an error
+      aFileWriter.SrcMap.SaveToStream(buf);
+      {$IFDEF Pas2js}
+      {$ELSE}
+      buf.Position:=0;
+      {$ENDIF}
+      FS.SaveToFile(buf,MapFilename);
+    finally
+      {$IFDEF Pas2js}
+      buf:=nil;
+      {$ELSE}
+      buf.Free;
+      {$ENDIF}
+    end;
+  except
+    on E: Exception do begin
+      if ShowDebug then
+        Log.LogExceptionBackTrace(E);
+      {$IFDEF FPC}
+      if E.Message<>SafeFormat(SFCreateError,[aFileWriter.DestFileName]) then
+      {$ENDIF}
+        Log.LogPlain('Error: '+E.Message);
+      Log.LogMsg(nUnableToWriteFile,[FullFormatPath(MapFilename)]);
+      Terminate(ExitCodeWriteError);
+    end
+    {$IFDEF Pas2js}
+    else HandleJSException('[20181031190737] TPas2jsCompiler.WriteJSFiles',JSExceptValue);
+    {$ENDIF}
+  end;
+end;
+
+procedure TPas2jsCompiler.AddUnitResourceStrings(aFile : TPas2jsCompilerFile);
+
+Var
+  ResList : TFPList;
+
+  Procedure AddToList(aList : TFPList);
+  var
+    I : integer;
+  begin
+    For I:=0 to aList.Count-1 do
+      ResList.Add(aList[i]);
+  end;
+
+  Procedure AddUsedToList(aList : TFPList);
+  var
+    I : integer;
+
+  begin
+    For I:=0 to aList.Count-1 do
+      if aFile.UseAnalyzer.IsUsed(TPasElement(aList[i])) then
+        ResList.Add(aList[i]);
+  end;
+
+  Procedure CheckSection(aSection : TPasSection);
+
+  begin
+    if not (Assigned(aSection) and Assigned(aSection.ResStrings)) then
+      exit;
+    if FResourceStringFile=rsfProgram then
+      AddUsedToList(aSection.ResStrings)
+    else
+      AddToList(aSection.ResStrings);
+  end;
+
+Var
+  I : Integer;
+  Res : TPasResString;
+  aValue : TResEvalValue;
+
+begin
+  if FResourceStringFile=rsfUnit then
+     FResourceStrings.Clear;
+  ResList:=TFPList.Create;
+  try
+    // Program ?
+    if aFile.pasModule is TPasProgram then
+      CheckSection(TPasProgram(aFile.pasModule).ProgramSection)
+    else if aFile.pasModule is TPasLibrary then // Library ?
+      CheckSection(TPasLibrary(aFile.pasModule).LibrarySection)
+    else
+      begin
+      // Interface
+      CheckSection(aFile.PasModule.InterfaceSection);
+      // Implementation
+      CheckSection(aFile.PasModule.ImplementationSection);
+      end;
+    // Now add to file
+    if ResList.Count>0 then
+      begin
+      FResourceStrings.StartUnit(aFile.GetModuleName);
+      For I:=0 to ResList.Count-1 do
+        begin
+        Res:=TPasResString(ResList[i]);
+        aValue:=aFile.PascalResolver.Eval(Res.Expr,[refConst],False);
+        case aValue.Kind of
+        {$IFDEF FPC_HAS_CPSTRING}
+        revkString:
+          FResourceStrings.AddString(Res.Name,TResEvalString(aValue).S);
+        {$ENDIF}
+        revkUnicodeString:
+          FResourceStrings.AddString(Res.Name,TJSONStringType(TResEvalUTF16(aValue).S))
+        else
+          Log.Log(mtNote,sSkipNoConstResourcestring,nSkipNoConstResourcestring,aFile.PasFileName);
+        end;
+        ReleaseEvalValue(aValue);
+        end;
+      end;
+  finally
+    ResList.Free;
+  end;
+end;
+
+procedure TPas2jsCompiler.WriteResourceStrings(aFileName : String);
+Var
+  {$IFDEF Pas2js}
+  buf: TJSArray;
+  {$ELSE}
+  buf: TMemoryStream;
+  {$ENDIF}
+  S : TJSONStringType;
+begin
+  Log.LogMsg(nWritingFile,[FullFormatPath(aFilename)],'',0,0,False);
+  try
+    {$IFDEF Pas2js}
+    buf:=TJSArray.new;
+    {$ELSE}
+    buf:=TMemoryStream.Create;
+    {$ENDIF}
+    try
+      // Note: No UTF-8 BOM in source map, Chrome 59 gives an error
+      S:=FResourceStrings.AsString;
+      {$ifdef pas2js}
+      buf.push(S);
+      {$else}
+      buf.Write(S[1],length(S));
+      {$endif}
+      FS.SaveToFile(buf,aFilename);
+    finally
+      {$IFDEF Pas2js}
+      buf:=nil;
+      {$ELSE}
+      buf.Free;
+      {$ENDIF}
+    end;
+  except
+    on E: Exception do begin
+      if ShowDebug then
+        Log.LogExceptionBackTrace(E);
+      {$IFDEF FPC}
+      if E.Message<>SafeFormat(SFCreateError,[aFileName]) then
+      {$ENDIF}
+        Log.LogPlain('Error: '+E.Message);
+      Log.LogMsg(nUnableToWriteFile,[FullFormatPath(aFilename)]);
+      Terminate(ExitCodeWriteError);
+    end
+    {$IFDEF Pas2js}
+    else HandleJSException('[20181031190737] TPas2jsCompiler.WriteJSFiles',JSExceptValue);
+    {$ENDIF}
+  end;
+
+end;
+
+procedure TPas2jsCompiler.WriteSingleJSFile(aFile: TPas2jsCompilerFile; CombinedFileWriter: TPas2JSMapper);
+
+  Procedure WriteToStandardOutput(aFileWriter : TPas2JSMapper);
+
+  begin
+  // write to stdout
+    {$IFDEF HasStdErr}
+    Log.WriteMsgToStdErr:=false;
+    {$ENDIF}
+    try
+      Log.LogRaw(aFileWriter.AsString);
+    finally
+      {$IFDEF HasStdErr}
+      Log.WriteMsgToStdErr:=coWriteMsgToStdErr in Options;
+      {$ENDIF}
+    end;
+  end;
+
+  Procedure CheckOutputDir(Const DestFileName : String);
+
+  Var
+    DestDir : String;
+
+  begin
+    // check output directory
+    DestDir:=ChompPathDelim(ExtractFilePath(DestFilename));
+    if (DestDir<>'') and not FS.DirectoryExists(DestDir) then
+    begin
+      Log.LogMsg(nOutputDirectoryNotFound,[FullFormatPath(DestDir)]);
+      Terminate(ExitCodeFileNotFound);
+    end;
+    if FS.DirectoryExists(DestFilename) then
+    begin
+      Log.LogMsg(nFileIsFolder,[FullFormatPath(DestFilename)]);
+      Terminate(ExitCodeWriteError);
+    end;
+  end;
+
+Var
+  aFileWriter : TPas2JSMapper;
+  isSingleFile : Boolean;
+  MapFilename : String;
+
+begin
+  aFileWriter:=CombinedFileWriter;
+  try
+    isSingleFile:=aFileWriter=nil;
+    if isSingleFile then
+      // create local writer for this file
+      begin
+      aFileWriter:=CreateFileWriter(aFile,'');
+      if aFile.IsMainFile and Not AllJSIntoMainJS then
+        InsertCustomJSFiles(aFileWriter);
+      end;
+
+    if FResourceStringFile<>rsfNone then
+      AddUnitResourceStrings(aFile);
+    EmitJavaScript(aFile,aFileWriter);
+
+
+
+    if aFile.IsMainFile and (TargetPlatform=PlatformNodeJS) then
+      aFileWriter.WriteFile('rtl.run();'+LineEnding,aFile.UnitFilename);
+
+    if isSingleFile or aFile.isMainFile then
+      begin
+      if Assigned(PostProcessorSupport) then
+        PostProcessorSupport.CallPostProcessors(aFile.JSFilename,aFileWriter);
+
+      // Give chance to descendants to write file
+      if DoWriteJSFile(aFile.JSFilename,aFileWriter) then
+        exit;// descendant has written -> finished
+
+      if (aFile.JSFilename='') and (MainJSFile='.') then
+        WriteToStandardOutput(aFileWriter);
+
+      //writeln('TPas2jsCompiler.WriteJSFiles ',aFile.UnitFilename,' ',aFile.JSFilename);
+      Log.LogMsg(nWritingFile,[FullFormatPath(aFileWriter.DestFilename)],'',0,0, not (coShowLineNumbers in Options));
+
+      CheckOutputDir(aFileWriter.DestFileName);
+
+      MapFilename:=aFileWriter.DestFilename+'.map';
+      WriteJSToFile(MapFileName,aFileWriter);
+      if (FResourceStringFile=rsfUnit) or (aFile.IsMainFile and (FResourceStringFile<>rsfNone)) then
+        if FResourceStrings.StringsCount>0 then
+          WriteResourceStrings(ChangeFileExt(aFileWriter.DestFileName,'.jrs'));
+      // write source map
+      if aFileWriter.SrcMap<>nil then
+        WriteSrcMap(MapFileName,aFileWriter);
+      end;
+
+  finally
+    if isSingleFile then
+      aFileWriter.Free;
+  end;
+end;
+
+
+procedure TPas2jsCompiler.WriteJSFiles(aFile: TPas2jsCompilerFile; CombinedFileWriter: TPas2JSMapper; Checked: TPasAnalyzerKeySet);
+
+  procedure CheckUsesClause(aFileWriter: TPas2JSMapper; UsesClause: TPasUsesClause);
   var
     i: Integer;
     UsedFile: TPas2jsCompilerFile;
@@ -2307,264 +2740,36 @@ procedure TPas2jsCompiler.WriteJSFiles(aFile: TPas2jsCompilerFile;
       UsedFile:=TPas2jsCompilerFile.GetFile(aModule);
       if UsedFile=nil then
         RaiseInternalError(20171214121720,aModule.Name);
-      WriteJSFiles(UsedFile,CombinedFileWriter,Checked);
+      WriteJSFiles(UsedFile,aFileWriter,Checked);
     end;
   end;
 
-var
-  aFileWriter: TPas2JSMapper;
-  FreeWriter: Boolean;
+Var
+  aFileWriter : TPas2JSMapper;
 
-  procedure CreateFileWriter(aFilename: string);
-  var
-    SrcMap: TPas2JSSrcMap;
-  begin
-    aFileWriter:=CreateJSMapper;
-    FreeWriter:=true;
-    if SrcMapEnable then
-    begin
-      SrcMap:=CreateSrcMap(ExtractFilename(aFilename));
-      aFileWriter.SrcMap:=SrcMap;
-      SrcMap.Release;// release the refcount from the Create
-      SrcMap.SourceRoot:=SrcMapSourceRoot;
-      SrcMap.LocalFilename:=aFile.JSFilename;
-      if SrcMapXSSIHeader then
-        SrcMap.Options:=SrcMap.Options+[smoSafetyHeader]
-      else
-        SrcMap.Options:=SrcMap.Options-[smoSafetyHeader];
-      SrcMap.Options:=SrcMap.Options+[smoAllowSrcLine0];
-    end;
-  end;
-
-var
-  DestFilename, DestDir, Src, MapFilename: String;
-  aJSWriter: TJSWriter;
-  {$IFDEF Pas2js}
-  buf: TJSArray;
-  {$ELSE}
-  buf: TMemoryStream;
-  {$ENDIF}
 begin
-  //writeln('TPas2jsCompiler.WriteJSFiles START ',aFile.UnitFilename,' Need=',aFile.NeedBuild,' Checked=',Checked.ContainsItem(aFile),' JSModule=',GetObjName(aFile.JSModule));
+  // writeln('TPas2jsCompiler.WriteJSFiles START ',aFile.UnitFilename,' Need=',aFile.NeedBuild,' Checked=',Checked.ContainsItem(aFile),' JSModule=',GetObjName(aFile.JSModule));
   if (aFile.JSModule=nil) or (not aFile.NeedBuild) then exit;
   // check each file only once
   if Checked.ContainsItem(aFile) then exit;
   Checked.Add(aFile);
 
-  FreeWriter:=false;
-  if AllJSIntoMainJS and (CombinedFileWriter=nil) then
-  begin
-    // create CombinedFileWriter
-    DestFilename:=GetResolvedMainJSFile;
-    CreateFileWriter(DestFilename);
-    CombinedFileWriter:=aFileWriter;
-    InsertCustomJSFiles(CombinedFileWriter);
-  end else begin
-    DestFilename:=aFile.JSFilename;
-  end;
-
-  // convert dependencies
-  CheckUsesClause(aFile.GetPasMainUsesClause);
-  CheckUsesClause(aFile.GetPasImplUsesClause);
-
-  aJSWriter:=nil;
   aFileWriter:=CombinedFileWriter;
-  try
-    if aFileWriter=nil then
+  if AllJSIntoMainJS and (aFileWriter=nil) then
     begin
-      // create writer for this file
-      CreateFileWriter(DestFilename);
-      if aFile.IsMainFile and Not AllJSIntoMainJS then
-        InsertCustomJSFiles(aFileWriter);
+    // create CombinedFileWriter
+    aFileWriter:=CreateFileWriter(aFile,GetResolvedMainJSFile);
+    InsertCustomJSFiles(aFileWriter);
     end;
-
-    // write JavaScript
-    aJSWriter:=CreateJSWriter(aFileWriter);
-    aJSWriter.Options:=DefaultJSWriterOptions;
-    aJSWriter.IndentSize:=2;
-    try
-      aJSWriter.WriteJS(aFile.JSModule);
-    except
-      on E: Exception do begin
-        if ShowDebug then
-          Log.LogExceptionBackTrace(E);
-        Log.LogPlain('[20180204193420] Error while creating JavaScript '+FullFormatPath(DestFilename)+': '+E.Message);
-        Terminate(ExitCodeErrorInternal);
-      end
-      {$IFDEF Pas2js}
-      else HandleJSException('[20181031190520] TPas2jsCompiler.WriteJSFiles Error while creating JavaScript',JSExceptValue);
-      {$ENDIF}
-    end;
-
-    if aFile.IsMainFile and (TargetPlatform=PlatformNodeJS) then
-      aFileWriter.WriteFile('rtl.run();'+LineEnding,aFile.UnitFilename);
-
-    if FreeWriter then
-    begin
-      if Assigned(PostProcessorSupport) then
-        PostProcessorSupport.CallPostProcessors(aFile.JSFilename,aFileWriter);
-
-      // Give chance to descendants to write file
-      if DoWriteJSFile(aFile.JSFilename,aFileWriter) then
-        exit;// descendant has written -> finished
-
-      if (aFile.JSFilename='') and (MainJSFile='.') then
-      begin
-        // write to stdout
-        if FreeWriter then
-        begin
-          {$IFDEF HasStdErr}
-          Log.WriteMsgToStdErr:=false;
-          {$ENDIF}
-          try
-            Log.LogRaw(aFileWriter.AsString);
-          finally
-            {$IFDEF HasStdErr}
-            Log.WriteMsgToStdErr:=coWriteMsgToStdErr in Options;
-            {$ENDIF}
-          end;
-        end;
-      end else if FreeWriter then
-      begin
-        // write to file
-
-        //writeln('TPas2jsCompiler.WriteJSFiles ',aFile.UnitFilename,' ',aFile.JSFilename);
-        Log.LogMsg(nWritingFile,[FullFormatPath(DestFilename)],'',0,0,
-                   not (coShowLineNumbers in Options));
-
-        // check output directory
-        DestDir:=ChompPathDelim(ExtractFilePath(DestFilename));
-        if (DestDir<>'') and not FS.DirectoryExists(DestDir) then
-        begin
-          Log.LogMsg(nOutputDirectoryNotFound,[FullFormatPath(DestDir)]);
-          Terminate(ExitCodeFileNotFound);
-        end;
-        if FS.DirectoryExists(DestFilename) then
-        begin
-          Log.LogMsg(nFileIsFolder,[FullFormatPath(DestFilename)]);
-          Terminate(ExitCodeWriteError);
-        end;
-
-        MapFilename:=DestFilename+'.map';
-
-        // write js
-        try
-          {$IFDEF Pas2js}
-          buf:=TJSArray.new;
-          {$ELSE}
-          buf:=TMemoryStream.Create;
-          {$ENDIF}
-          try
-            {$IFDEF FPC_HAS_CPSTRING}
-            // UTF8-BOM
-            if (Log.Encoding='') or (Log.Encoding='utf8') then
-            begin
-              Src:=String(UTF8BOM);
-              buf.Write(Src[1],length(Src));
-            end;
-            {$ENDIF}
-            // JS source
-            {$IFDEF Pas2js}
-            buf:=TJSArray(aFileWriter.Buffer).slice();
-            {$ELSE}
-            buf.Write(aFileWriter.Buffer^,aFileWriter.BufferLength);
-            {$ENDIF}
-            // source map comment
-            if aFileWriter.SrcMap<>nil then
-            begin
-              Src:='//# sourceMappingURL='+ExtractFilename(MapFilename)+LineEnding;
-              {$IFDEF Pas2js}
-              buf.push(Src);
-              {$ELSE}
-              buf.Write(Src[1],length(Src));
-              {$ENDIF}
-            end;
-            //SetLength(Src,buf.Position);
-            //Move(buf.Memory^,Src[1],length(Src));
-            //writeln('TPas2jsCompiler.WriteJSFiles ====',Src);
-            //writeln('TPas2jsCompiler.WriteJSFiles =======================');
-            {$IFDEF Pas2js}
-            {$ELSE}
-            buf.Position:=0;
-            {$ENDIF}
-            FS.SaveToFile(buf,DestFilename);
-          finally
-            {$IFDEF Pas2js}
-            buf:=nil;
-            {$ELSE}
-            buf.Free;
-            {$ENDIF}
-          end;
-        except
-          on E: Exception do begin
-            if ShowDebug then
-              Log.LogExceptionBackTrace(E);
-            {$IFDEF FPC}
-            if E.Message<>SafeFormat(SFCreateError,[DestFileName]) then
-            {$ENDIF}
-              Log.LogPlain('Error: '+E.Message);
-            Log.LogMsg(nUnableToWriteFile,[FullFormatPath(DestFilename)]);
-            Terminate(ExitCodeWriteError);
-          end
-          {$IFDEF Pas2js}
-          else HandleJSException('[20181031190637] TPas2jsCompiler.WriteJSFiles',JSExceptValue,true);
-          {$ENDIF}
-        end;
-
-        // write source map
-        if aFileWriter.SrcMap<>nil then
-        begin
-          Log.LogMsg(nWritingFile,[FullFormatPath(MapFilename)],'',0,0,
-                     not (coShowLineNumbers in Options));
-          FinishSrcMap(aFileWriter.SrcMap);
-          try
-            {$IFDEF Pas2js}
-            buf:=TJSArray.new;
-            {$ELSE}
-            buf:=TMemoryStream.Create;
-            {$ENDIF}
-            try
-              // Note: No UTF-8 BOM in source map, Chrome 59 gives an error
-              aFileWriter.SrcMap.SaveToStream(buf);
-              {$IFDEF Pas2js}
-              {$ELSE}
-              buf.Position:=0;
-              {$ENDIF}
-              FS.SaveToFile(buf,MapFilename);
-            finally
-              {$IFDEF Pas2js}
-              buf:=nil;
-              {$ELSE}
-              buf.Free;
-              {$ENDIF}
-            end;
-          except
-            on E: Exception do begin
-              if ShowDebug then
-                Log.LogExceptionBackTrace(E);
-              {$IFDEF FPC}
-              if E.Message<>SafeFormat(SFCreateError,[DestFileName]) then
-              {$ENDIF}
-                Log.LogPlain('Error: '+E.Message);
-              Log.LogMsg(nUnableToWriteFile,[FullFormatPath(MapFilename)]);
-              Terminate(ExitCodeWriteError);
-            end
-            {$IFDEF Pas2js}
-            else HandleJSException('[20181031190737] TPas2jsCompiler.WriteJSFiles',JSExceptValue);
-            {$ENDIF}
-          end;
-        end;
-      end;
-    end;
-
+  Try
+    // convert dependencies
+    CheckUsesClause(aFileWriter,aFile.GetPasMainUsesClause);
+    CheckUsesClause(aFileWriter,aFile.GetPasImplUsesClause);
+    // Write me...
+    WriteSingleJSFile(aFile,aFileWriter);
   finally
-    if FreeWriter then
-    begin
-      if CombinedFileWriter=aFileWriter then
-        CombinedFileWriter:=nil;
-      aFileWriter.Free
-    end;
-    aJSWriter.Free;
+    if aFileWriter<>CombinedFileWriter then
+      aFileWriter.Free;
   end;
 end;
 
@@ -3218,6 +3423,20 @@ begin
         PostProcessorSupport.AddPostProcessor(aValue);
       end;
     end;
+  'r': // -Jr<...>
+    begin
+    S:=aValue;
+    if aValue='' then
+      ParamFatal('missing value for -Jr option')
+    else if (S='none') then
+      FResourceStringFile:=rsfNone
+    else if (S='unit') then
+      FResourceStringFile:=rsfunit
+    else if (S='program') then
+      FResourceStringFile:=rsfProgram
+    else
+      ParamFatal('invalid resource string file format (-Jr) "'+aValue+'"');
+    end;
   'u': // -Ju<foreign path>
     if not Quick then
       begin
@@ -3804,6 +4023,7 @@ begin
 
   FFiles:=CreateSetOfCompilerFiles(kcFilename);
   FUnits:=CreateSetOfCompilerFiles(kcUnitName);
+  FResourceStrings:=TResourceStringsFile.Create;
   FReadingModules:=TFPList.Create;
   InitParamMacros;
   Reset;
@@ -3813,6 +4033,7 @@ destructor TPas2jsCompiler.Destroy;
 
   procedure FreeStuff;
   begin
+    FreeAndNil(FResourceStrings);
     FreeAndNil(FNamespaces);
     FreeAndNil(FWPOAnalyzer);
     FreeAndNil(FInsertFilenames);
@@ -4284,6 +4505,10 @@ begin
   w('     -JoCheckVersion=system: insert rtl version check into system unit init.');
   w('     -JoCheckVersion=unit: insert rtl version check into every unit init.');
   w('     -JoRTL-<y>=<z>: set RTL identifier y to value z. See -iJ.');
+  w('   -Jr<x> Control writing of resource string file');
+  w('     -Jrnone: Do not write resource string file');
+  w('     -Jrunit: Write resource string file per unit with all resource strings');
+  w('     -Jrprogram: Write resource string file per program with all used resource strings in program');
   w('   -Jpcmd<command>: Run postprocessor. For each generated js execute command passing the js as stdin and read the new js from stdout. This option can be added multiple times to call several postprocessors in succession.');
   w('   -Ju<x>: Add <x> to foreign unit paths. Foreign units are not compiled.');
   WritePrecompiledFormats;

@@ -1,0 +1,16 @@
+{$define FRAMEWORK_LOADED_COREVIDEO}
+{$include CoreVideo.inc}
+{$include CVBase.inc}
+{$include CVReturn.inc}
+{$include CVHostTime.inc}
+{$include CVDisplayLink.inc}
+{$include CVBuffer.inc}
+{$include CVImageBuffer.inc}
+{$include CVPixelBufferIOSurface.inc}
+{$include CVPixelBuffer.inc}
+{$include CVPixelBufferPool.inc}
+{$include CVOpenGLBuffer.inc}
+{$include CVOpenGLBufferPool.inc}
+{$include CVOpenGLTexture.inc}
+{$include CVOpenGLTextureCache.inc}
+{$include CVPixelFormatDescription.inc}

@@ -52,7 +52,7 @@ interface
       { filter unsigned MUL opcode, which requires special handling.
         Note that when overflow checking is off, we can use IMUL instead. }
       if (nodetype=muln) and
-        (cs_check_overflow in current_settings.localswitches) and
+        needoverflowcheck and
         (not(is_signed(left.resultdef)) or
          not(is_signed(right.resultdef))) then
       begin
@@ -126,7 +126,7 @@ interface
           emit_ref(A_MUL,opsize,ref)
         else
           emit_reg(A_MUL,opsize,reg);
-        if cs_check_overflow in current_settings.localswitches  then
+        if needoverflowcheck then
          begin
            current_asmdata.getjumplabel(hl4);
            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);

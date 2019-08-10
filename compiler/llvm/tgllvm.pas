@@ -217,6 +217,11 @@ implementation
 
 
 begin
+  if not assigned(tgobjclass) then
+    begin
+      writeln('Internalerror 2018052004');
+      halt(1);
+    end;
   orgtgclass:=tgobjclass;
   tgobjclass:=ttgllvm;
 end.

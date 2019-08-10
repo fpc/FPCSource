@@ -23,6 +23,8 @@ unit psub;
 
 {$i fpcdefs.inc}
 
+{ $define debug_eh}
+
 interface
 
     uses
@@ -65,11 +67,19 @@ interface
         procedure parse_body;
 
         function has_assembler_child : boolean;
+        procedure set_eh_info; override;
+{$ifdef DEBUG_NODE_XML}
+        procedure XMLPrintProc;
+{$endif DEBUG_NODE_XML}
       end;
 
 
     procedure printnode_reset;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure XMLInitializeNodeFile(RootName, ModuleName: shortstring);
+    procedure XMLFinalizeNodeFile(RootName: shortstring);
+{$endif DEBUG_NODE_XML}
     { reads the declaration blocks }
     procedure read_declarations(islibrary : boolean);
 
@@ -79,7 +89,7 @@ interface
     { reads any routine in the implementation, or a non-method routine
       declaration in the interface (depending on whether or not parse_only is
       true) }
-    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef;isgeneric:boolean);
+    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef; isgeneric:boolean);
 
     { parses only the body of a non nested routine; needs a correctly setup pd }
     procedure read_proc_body(pd:tprocdef);
@@ -92,7 +102,7 @@ implementation
     uses
        sysutils,
        { common }
-       cutils, cmsgs,
+       cutils, cmsgs, cclasses,
        { global }
        globtype,tokens,verbose,comphook,constexp,
        systems,cpubase,aasmbase,aasmtai,aasmdata,
@@ -115,11 +125,10 @@ implementation
        pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,
        { codegen }
        tgobj,cgbase,cgobj,hlcgobj,hlcgcpu,dbgbase,
-{$ifdef llvm}
-      { override create_hlcodegen from hlcgcpu }
-      hlcgllvm,
-{$endif}
+
+       ncgflw,
        ncgutil,
+
        optbase,
        opttail,
        optcse,
@@ -316,10 +325,44 @@ implementation
           end;
       end;
 
+    procedure init_main_block_syms(block: tnode);
+      var
+         oldfilepos: tfileposinfo;
+      begin
+        { initialized variables }
+        if current_procinfo.procdef.localst.symtabletype=localsymtable then
+         begin
+           { initialization of local variables with their initial
+             values: part of function entry }
+           oldfilepos:=current_filepos;
+           current_filepos:=current_procinfo.entrypos;
+           current_procinfo.procdef.localst.SymList.ForEachCall(@initializevars,block);
+           current_filepos:=oldfilepos;
+         end
+        else if current_procinfo.procdef.localst.symtabletype=staticsymtable then
+         begin
+           { for program and unit initialization code we also need to
+             initialize the local variables used of Default() }
+           oldfilepos:=current_filepos;
+           current_filepos:=current_procinfo.entrypos;
+           current_procinfo.procdef.localst.SymList.ForEachCall(@initializedefaultvars,block);
+           current_filepos:=oldfilepos;
+         end;
+
+        if assigned(current_procinfo.procdef.parentfpstruct) then
+         begin
+           { we only do this after the code has been parsed because
+             otherwise for-loop counters moved to the struct cause
+             errors; we still do it nevertheless to prevent false
+             "unused" symbols warnings and to assist debug info
+             generation }
+           redirect_parentfpstruct_local_syms(current_procinfo.procdef);
+           { finish the parentfpstruct (add padding, ...) }
+           finish_parentfpstruct(current_procinfo.procdef);
+         end;
+      end;
 
     function block(islibrary : boolean) : tnode;
-      var
-        oldfilepos: tfileposinfo;
       begin
          { parse const,types and vars }
          read_declarations(islibrary);
@@ -379,37 +422,7 @@ implementation
             begin
                { parse routine body }
                block:=statement_block(_BEGIN);
-               { initialized variables }
-               if current_procinfo.procdef.localst.symtabletype=localsymtable then
-                 begin
-                   { initialization of local variables with their initial
-                     values: part of function entry }
-                   oldfilepos:=current_filepos;
-                   current_filepos:=current_procinfo.entrypos;
-                   current_procinfo.procdef.localst.SymList.ForEachCall(@initializevars,block);
-                   current_filepos:=oldfilepos;
-                 end
-               else if current_procinfo.procdef.localst.symtabletype=staticsymtable then
-                 begin
-                   { for program and unit initialization code we also need to
-                     initialize the local variables used of Default() }
-                   oldfilepos:=current_filepos;
-                   current_filepos:=current_procinfo.entrypos;
-                   current_procinfo.procdef.localst.SymList.ForEachCall(@initializedefaultvars,block);
-                   current_filepos:=oldfilepos;
-                 end;
-
-               if assigned(current_procinfo.procdef.parentfpstruct) then
-                 begin
-                   { we only do this after the code has been parsed because
-                     otherwise for-loop counters moved to the struct cause
-                     errors; we still do it nevertheless to prevent false
-                     "unused" symbols warnings and to assist debug info
-                     generation }
-                   redirect_parentfpstruct_local_syms(current_procinfo.procdef);
-                   { finish the parentfpstruct (add padding, ...) }
-                   finish_parentfpstruct(current_procinfo.procdef);
-                 end;
+               init_main_block_syms(block);
             end;
       end;
 
@@ -1138,6 +1151,157 @@ implementation
           end;
       end;
 
+
+    procedure tcgprocinfo.set_eh_info;
+      begin
+        inherited;
+         if (tf_use_psabieh in target_info.flags) and
+            ((pi_uses_exceptions in flags) or
+             ((cs_implicit_exceptions in current_settings.moduleswitches) and
+              (pi_needs_implicit_finally in flags))) or
+             (pi_has_except_table_data in flags) then
+           procdef.personality:=search_system_proc('_FPC_PSABIEH_PERSONALITY_V0');
+      end;
+
+
+{$ifdef DEBUG_NODE_XML}
+    procedure tcgprocinfo.XMLPrintProc;
+      var
+        T: Text;
+        W: Word;
+        syssym: tsyssym;
+
+      procedure PrintType(Flag: string);
+        begin
+          Write(T, ' type="', Flag, '"');
+        end;
+
+      procedure PrintOption(Flag: string);
+        begin
+          WriteLn(T, PrintNodeIndention, '<option>', Flag, '</option>');
+        end;
+
+      begin
+        if current_module.ppxfilefail then
+          Exit;
+
+        Assign(T, current_module.ppxfilename);
+        {$push} {$I-}
+        Append(T);
+        if IOResult <> 0 then
+          begin
+            Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
+            current_module.ppxfilefail := True;
+            Exit;
+          end;
+        {$pop}
+        Write(T, PrintNodeIndention, '<subroutine');
+
+        { Check to see if the procedure is a class or object method }
+        if Assigned(procdef.struct) then
+          begin
+            if Assigned(procdef.struct.objrealname) then
+              Write(T, ' struct="', TNode.SanitiseXMLString(procdef.struct.objrealname^), '"')
+            else
+              Write(T, ' struct="&lt;NULL&gt;"');
+          end;
+
+        case procdef.proctypeoption of
+          potype_none: { Do nothing };
+
+          potype_procedure,
+          potype_function:
+            if po_classmethod in procdef.procoptions then
+              begin
+                if po_staticmethod in procdef.procoptions then
+                  PrintType('static class method')
+                else
+                  PrintType('class method');
+              end;
+            { Do nothing otherwise }
+
+          potype_proginit,
+          potype_unitinit:
+            PrintType('initialization');
+          potype_unitfinalize:
+            PrintType('finalization');
+          potype_constructor:
+            PrintType('constructor');
+          potype_destructor:
+            PrintType('destructor');
+          potype_operator:
+            PrintType('operator');
+          potype_class_constructor:
+            PrintType('class constructor');
+          potype_class_destructor:
+            PrintType('class destructor');
+          potype_propgetter:
+            PrintType('dispinterface getter');
+          potype_propsetter:
+            PrintType('dispinterface setter');
+          potype_exceptfilter:
+            PrintType('except filter');
+          potype_mainstub:
+            PrintType('main stub');
+          potype_libmainstub:
+            PrintType('library main stub');
+          potype_pkgstub:
+            PrintType('package stub');
+        end;
+
+        Write(T, ' name="', TNode.SanitiseXMLString(procdef.customprocname([pno_showhidden, pno_noclassmarker])), '"');
+
+        if po_hascallingconvention in procdef.procoptions then
+          Write(T, ' convention="', proccalloptionStr[procdef.proccalloption], '"');
+
+        WriteLn(T, '>');
+
+        PrintNodeIndent;
+
+        if Assigned(procdef.returndef) and not is_void(procdef.returndef) then
+          WriteLn(T, PrintNodeIndention, '<returndef>', TNode.SanitiseXMLString(procdef.returndef.typesymbolprettyname), '</returndef>');
+
+        if po_reintroduce in procdef.procoptions then
+          PrintOption('reintroduce');
+        if po_virtualmethod in procdef.procoptions then
+          PrintOption('virtual');
+        if po_finalmethod in procdef.procoptions then
+          PrintOption('final');
+        if po_overridingmethod in procdef.procoptions then
+          PrintOption('override');
+        if po_overload in procdef.procoptions then
+          PrintOption('overload');
+        if po_compilerproc in procdef.procoptions then
+          PrintOption('compilerproc');
+        if po_assembler in procdef.procoptions then
+          PrintOption('assembler');
+        if po_nostackframe in procdef.procoptions then
+          PrintOption('nostackframe');
+        if po_inline in procdef.procoptions then
+          PrintOption('inline');
+        if po_noreturn in procdef.procoptions then
+          PrintOption('noreturn');
+        if po_noinline in procdef.procoptions then
+          PrintOption('noinline');
+
+        if Assigned(Code) then
+          begin
+            WriteLn(T, PrintNodeIndention, '<code>');
+            PrintNodeIndent;
+            XMLPrintNode(T, Code);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</code>');
+          end
+        else
+          WriteLn(T, PrintNodeIndention, '<code />');
+
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</subroutine>');
+        WriteLn(T); { Line for spacing }
+        Close(T);
+      end;
+{$endif DEBUG_NODE_XML}
+
     procedure tcgprocinfo.generate_code_tree;
       var
         hpi : tcgprocinfo;
@@ -1435,7 +1599,7 @@ implementation
 {$endif i386 or i8086}
 
         { Print the node to tree.log }
-        if paraprintnodetree=1 then
+        if paraprintnodetree <> 0 then
           printproc( 'after the firstpass');
 
         { do this before adding the entry code else the tail recursion recognition won't work,
@@ -1519,6 +1683,8 @@ implementation
           begin
             create_hlcodegen;
 
+            setup_eh;
+
             if (procdef.proctypeoption<>potype_exceptfilter) then
               setup_tempgen;
 
@@ -1560,7 +1726,7 @@ implementation
             CalcExecutionWeights(code);
 
             { Print the node to tree.log }
-            if paraprintnodetree=1 then
+            if paraprintnodetree <> 0 then
               printproc( 'right before code generation');
 
             { generate code for the node tree }
@@ -1739,6 +1905,9 @@ implementation
                 hlcg.gen_stack_check_size_para(templist);
                 aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist)
               end;
+
+            current_procinfo.set_eh_info;
+
             { Add entry code (stack allocation) after header }
             current_filepos:=entrypos;
             gen_proc_entry_code(templist);
@@ -1763,6 +1932,14 @@ implementation
                not(pi_has_implicit_finally in flags) and
                not(target_info.system in systems_garbage_collected_managed_types) then
              internalerror(200405231);
+
+             { sanity check }
+             if not(assigned(current_procinfo.procdef.personality)) and
+                (tf_use_psabieh in target_info.flags) and
+                ((pi_uses_exceptions in flags) or
+                 ((cs_implicit_exceptions in current_settings.moduleswitches) and
+                  (pi_needs_implicit_finally in flags))) then
+               Internalerror(2019021005);
 
             { Position markers are only used to insert additional code after the secondpass
               and before this point. They are of no use in optimizer. Instead of checking and
@@ -1807,6 +1984,8 @@ implementation
             if (cs_debuginfo in current_settings.moduleswitches) or
                (cs_use_lineinfo in current_settings.globalswitches) then
               current_debuginfo.insertlineinfo(aktproccode);
+
+            finish_eh;
 
             hlcg.record_generated_code_for_procdef(current_procinfo.procdef,aktproccode,aktlocaldata);
 
@@ -2043,8 +2222,13 @@ implementation
            CreateInlineInfo;
 
          { Print the node to tree.log }
-         if paraprintnodetree=1 then
+         if paraprintnodetree <> 0 then
            printproc( 'after parsing');
+
+{$ifdef DEBUG_NODE_XML}
+         printnodeindention := printnodespacing;
+         XMLPrintProc;
+{$endif DEBUG_NODE_XML}
 
          { ... remove symbol tables }
          remove_from_symtablestack;
@@ -2188,7 +2372,7 @@ implementation
       end;
 
 
-    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef;isgeneric:boolean);
+    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef; isgeneric:boolean);
       {
         Parses the procedure directives, then parses the procedure body, then
         generates the code for it
@@ -2371,7 +2555,7 @@ implementation
                        even if we could, e.g. LLVM cannot call through to something
                        else in that case) }
                      if is_c_variadic(pd) then
-                       Message1(parse_e_callthrough_varargs,pd.fullprocname(false));
+                       Message1(parser_e_callthrough_varargs,pd.fullprocname(false));
                      call_through_new_name(pd,proc_get_importname(pd));
                    end
                  else
@@ -2403,13 +2587,7 @@ implementation
 
          { make sure we don't change the binding of real external symbols }
          if (([po_external,po_weakexternal]*pd.procoptions)=[]) and (pocall_internproc<>pd.proccalloption) then
-           begin
-             if (po_global in pd.procoptions) or
-                (cs_profile in current_settings.moduleswitches) then
-               current_asmdata.DefineAsmSymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION,pd)
-             else
-               current_asmdata.DefineAsmSymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION,pd);
-           end;
+           current_asmdata.DefineProcAsmSymbol(pd,pd.mangledname,pd.needsglobalasmsym);
 
          current_structdef:=old_current_structdef;
          current_genericdef:=old_current_genericdef;
@@ -2461,6 +2639,50 @@ implementation
           MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure XMLInitializeNodeFile(RootName, ModuleName: shortstring);
+      var
+        T: Text;
+      begin
+        Assign(T, current_module.ppxfilename);
+        {$push} {$I-}
+        Rewrite(T);
+        if IOResult<>0 then
+          begin
+            Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
+            current_module.ppxfilefail := True;
+            Exit;
+          end;
+        {$pop}
+        { Mark the node dump file as available for writing }
+        current_module.ppxfilefail := False;
+        WriteLn(T, '<?xml version="1.0" encoding="utf-8"?>');
+        WriteLn(T, '<', RootName, ' name="', ModuleName, '">');
+        Close(T);
+      end;
+
+
+    procedure XMLFinalizeNodeFile(RootName: shortstring);
+      var
+        T: Text;
+      begin
+        if current_module.ppxfilefail then
+          Exit;
+
+        current_module.ppxfilefail := True; { File is now considered closed no matter what happens }
+        Assign(T, current_module.ppxfilename);
+        {$push} {$I-}
+        Append(T);
+        if IOResult<>0 then
+          begin
+            Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
+            Exit;
+          end;
+        {$pop}
+        WriteLn(T, '</', RootName, '>');
+        Close(T);
+      end;
+{$endif DEBUG_NODE_XML}
 
     procedure read_declarations(islibrary : boolean);
       var

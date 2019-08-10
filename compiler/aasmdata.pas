@@ -160,10 +160,13 @@ interface
         procedure generate_code(list:TAsmList);virtual;
         procedure start_frame(list:TAsmList);virtual;
         procedure end_frame(list:TAsmList);virtual;
+        procedure outmost_frame(list:TAsmList);virtual;
         procedure cfa_offset(list:TAsmList;reg:tregister;ofs:longint);virtual;
         procedure cfa_restore(list:TAsmList;reg:tregister);virtual;
         procedure cfa_def_cfa_register(list:TAsmList;reg:tregister);virtual;
         procedure cfa_def_cfa_offset(list:TAsmList;ofs:longint);virtual;
+        function get_frame_start: TAsmLabel;virtual;
+        function get_cfa_list : TAsmList;virtual;
       end;
       TAsmCFIClass=class of TAsmCFI;
 
@@ -195,6 +198,7 @@ interface
         { asmsymbol }
         function  DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype; def: tdef) : TAsmSymbol; virtual;
         function  DefineAsmSymbol(const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype; def: tdef) : TAsmSymbol;
+        function  DefineProcAsmSymbol(pd: tdef; const s: TSymStr; global: boolean): TAsmSymbol;
         function  WeakRefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype) : TAsmSymbol;
         function  RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype;indirect:boolean=false) : TAsmSymbol;
         function  GetAsmSymbol(const s : TSymStr) : TAsmSymbol;
@@ -245,6 +249,7 @@ implementation
 
     uses
       verbose,
+      globals,
       symconst,
       aasmtai;
 
@@ -285,6 +290,11 @@ implementation
       end;
 
 
+    procedure TAsmCFI.outmost_frame(list: TAsmList);
+      begin
+      end;
+
+
     procedure TAsmCFI.cfa_offset(list:TAsmList;reg:tregister;ofs:longint);
       begin
       end;
@@ -302,6 +312,18 @@ implementation
 
     procedure TAsmCFI.cfa_def_cfa_offset(list:TAsmList;ofs:longint);
       begin
+      end;
+
+
+    function TAsmCFI.get_frame_start: TAsmLabel;
+      begin
+        Result:=nil;
+      end;
+
+
+    function TAsmCFI.get_cfa_list: TAsmList;
+      begin
+        Result:=nil;
       end;
 
 {*****************************************************************************
@@ -552,6 +574,21 @@ implementation
       end;
 
 
+    function TAsmData.DefineProcAsmSymbol(pd: tdef; const s: TSymStr; global: boolean): TAsmSymbol;
+      begin
+        { The condition to use global or local symbol must match
+          the code written in hlcg.gen_proc_symbol to
+          avoid change from AB_LOCAL to AB_GLOBAL, which generates
+          erroneous code (at least for targets using GOT) }
+        if global or
+           (cs_profile in current_settings.moduleswitches) then
+          result:=DefineAsmSymbol(s,AB_GLOBAL,AT_FUNCTION,pd)
+        else if tf_supports_hidden_symbols in target_info.flags then
+          result:=DefineAsmSymbol(s,AB_PRIVATE_EXTERN,AT_FUNCTION,pd)
+        else
+          result:=DefineAsmSymbol(s,AB_LOCAL,AT_FUNCTION,pd);
+      end;
+
     function TAsmData.RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype;indirect:boolean) : TAsmSymbol;
       var
         namestr : TSymStr;
@@ -674,7 +711,8 @@ initialization
   memasmlists:=TMemDebug.create('AsmLists');
   memasmlists.stop;
 {$endif MEMDEBUG}
-  CAsmCFI:=TAsmCFI;
+  if not(assigned(CAsmCFI)) then
+    CAsmCFI:=TAsmCFI;
 
 finalization
 {$ifdef MEMDEBUG}

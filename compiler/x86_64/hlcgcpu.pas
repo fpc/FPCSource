@@ -38,8 +38,6 @@ interface
      procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
     end;
 
-  procedure create_hlcodegen;
-
 implementation
 
   uses
@@ -74,7 +72,7 @@ implementation
       if make_global then
         List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0,procdef))
       else
-        List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0,procdef));
+        List.concat(Tai_symbol.Createname_hidden(labelname,AT_FUNCTION,0,procdef));
 
       { set param1 interface to self  }
       g_adjust_self_value(list,procdef,ioffset);
@@ -113,7 +111,7 @@ implementation
     end;
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_cpu;
     begin
       hlcg:=thlcgcpu.create;
       create_codegen;
@@ -121,4 +119,5 @@ implementation
 
 begin
   chlcgobj:=thlcgcpu;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.

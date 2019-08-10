@@ -954,5 +954,6 @@ Initialization
 
   RefreshDeviceList;
 Finalization
+  FreeTerminateProcs;
   DoneExceptions;
 end.

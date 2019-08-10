@@ -120,6 +120,9 @@ interface
           procedure derefimpl;override;
           function dogetcopy : tnode;override;
           procedure printnodetree(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeTree(var t:text); override;
+{$endif DEBUG_NODE_XML}
           procedure insertintolist(l : tnodelist);override;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
@@ -685,11 +688,8 @@ implementation
         if assigned(elseblock) then
           typecheckpass(elseblock);
 
-        if not codegenerror and
-           is_ordinal(left.resultdef) then
-          checkordinalcoverage;
-
         resultdef:=voidtype;
+        result:=simplify(false);
       end;
 
 
@@ -782,6 +782,22 @@ implementation
          init_block:=nil;
          temp_cleanup:=nil;
          expectloc:=LOC_VOID;
+
+         { only do in pass_1, so that simplify can run first and
+             1) possibly simplify the case node without triggering a warning
+             2) possibly give a compile-time error if not all cases are handled
+                in ISO/Extended Pascal mode }
+         if is_ordinal(left.resultdef) then
+           checkordinalcoverage;
+
+         { ideally this would be in simplify, but then checkordinalcoverage can
+           false positives about case statements not handling all cases }
+         if assigned(elseblock) and
+            has_no_code(elseblock) then
+           begin
+             elseblock.free;
+             elseblock:=nil;
+           end;
 
          { evalutes the case expression }
          firstpass(left);
@@ -939,14 +955,14 @@ implementation
             if assigned(elseblock) then
               result:=elseblock.getcopy
             else
-              { no else block, so there is no code to execute at all }
-              result:=cnothingnode.create;
-          end;
-        if assigned(elseblock) and
-           has_no_code(elseblock) then
-          begin
-            elseblock.free;
-            elseblock:=nil;
+              begin
+                if ([m_iso,m_extpas]*current_settings.modeswitches)<>[] then
+                  cgmessage1(cg_e_case_missing_value,tostr(tordconstnode(left).value))
+                else
+                  cgmessage(cg_w_case_incomplete);
+                { no else block, so there is no code to execute at all }
+                result:=cnothingnode.create;
+              end;
           end;
       end;
 
@@ -1014,6 +1030,43 @@ implementation
         writeln(t,printnodeindention,')');
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TCaseNode.XMLPrintNodeTree(var T: Text);
+      var
+        i : longint;
+      begin
+        Write(T, PrintNodeIndention, '<', nodetype2str[nodetype]);
+        XMLPrintNodeInfo(T);
+        WriteLn(T, '>');
+        PrintNodeIndent;
+        WriteLn(T, PrintNodeIndention, '<condition>');
+        PrintNodeIndent;
+        XMLPrintNode(T, Left);
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</condition>');
+
+        i:=0;
+        for i:=0 to blocks.count-1 do
+          begin
+            WriteLn(T, PrintNodeIndention, '<block id="', i, '">');
+            PrintNodeIndent;
+            XMLPrintNode(T, PCaseBlock(blocks[i])^.statement);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</block>');
+          end;
+        if assigned(elseblock) then
+          begin
+            WriteLn(T, PrintNodeIndention, '<block id="else">');;
+            PrintNodeIndent;
+            XMLPrintNode(T, ElseBlock);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</block>');
+          end;
+
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+      end;
+{$endif DEBUG_NODE_XML}
 
     procedure tcasenode.insertintolist(l : tnodelist);
       begin
@@ -1179,16 +1232,13 @@ implementation
                (labelcoverage<typcount) then
               begin
                 { labels for some values of the operand are missing, and no else block is present }
-                if not(m_iso in current_settings.modeswitches) then
+                cgmessage(cg_w_case_incomplete);
+                { in Standard/Extended Pascal, this is a dynamic violation error if it actually happens }
+                if ([m_extpas,m_iso]*current_settings.modeswitches)<>[] then
                   begin
-                    cgmessage(cg_w_case_incomplete);
-                    { in Extended Pascal, this is a dynamic violation error if it actually happens }
-                    if (m_extpas in current_settings.modeswitches) then
-                      elseblock:=ccallnode.createintern('fpc_rangeerror',nil);
-                  end
-                else
-                  { this is an error in ISO Pascal }
-                  message(cg_e_case_incomplete);
+                    elseblock:=ccallnode.createintern('fpc_rangeerror',nil);
+                    typecheckpass(elseblock);
+                  end;
               end
           end
         else if labelcoverage=typcount then

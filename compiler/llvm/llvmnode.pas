@@ -38,8 +38,9 @@ implementation
     ncgadd,ncgcal,ncgmat,ncginl,
     tgllvm,hlcgllvm,
     nllvmadd,nllvmbas,nllvmcal,nllvmcnv,nllvmcon,nllvmflw,nllvminl,nllvmld,
-    nllvmmat,nllvmmem,nllvmtcon,nllvmutil,
-    llvmpara,
-    symllvm;
+    nllvmmat,nllvmmem,nllvmset,nllvmtcon,nllvmutil,
+    llvmpara,llvmpi,
+    symllvm,
+    llvmcfi;
 
 end.

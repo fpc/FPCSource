@@ -87,9 +87,14 @@ interface
           ait_llvmins, { llvm instruction }
           ait_llvmalias, { alias for a symbol }
           ait_llvmdecl, { llvm symbol declaration (global/external variable, external procdef) }
+          ait_llvmmetadatanode, (* llvm metadata node: !id = !{type value, ...} *)
+          ait_llvmmetadatareftypedconst, { reference to metadata inside a metadata constant }
+          ait_llvmmetadatarefoperand, { llvm metadata referece: !metadataname !id }
 {$endif}
           { SEH directives used in ARM,MIPS and x86_64 COFF targets }
-          ait_seh_directive
+          ait_seh_directive,
+          { Dwarf CFI directive }
+          ait_cfi
           );
 
         taiconst_type = (
@@ -220,7 +225,11 @@ interface
           'llvmins',
           'llvmalias',
           'llvmdecl',
+          'llvmmetadata',
+          'llvmmetadatareftc',
+          'llvmmetadatarefop',
 {$endif}
+          'cfi',
           'seh_directive'
           );
 
@@ -265,6 +274,7 @@ interface
        ,top_cond
        ,top_para
        ,top_asmlist
+       ,top_callingconvention
 {$endif llvm}
 {$if defined(riscv32) or defined(riscv64)}
        ,top_fenceflags
@@ -319,8 +329,12 @@ interface
 {$endif JVM}
 {$ifdef llvm}
                      ait_llvmdecl,
+                     ait_llvmmetadatanode,
+                     ait_llvmmetadatareftypedconst,
+                     ait_llvmmetadatarefoperand,
 {$endif llvm}
-                     ait_seh_directive
+                     ait_seh_directive,
+                     ait_cfi
                     ];
 
 
@@ -477,6 +491,7 @@ interface
             top_fpcond : (fpcond: tllvmfpcmp);
             top_para   : (paras: tfplist);
             top_asmlist : (asmlist: tasmlist);
+            top_callingconvention: (callingconvention: tproccalloption);
         {$endif llvm}
         {$if defined(riscv32) or defined(riscv64)}
             top_fenceflags : (fenceflags : TFenceFlags);
@@ -539,6 +554,7 @@ interface
           constructor Create_Global(_sym:tasmsymbol;siz:longint);
           constructor Createname(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
           constructor Createname_global(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
+          constructor Createname_hidden(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
           constructor Createname_global_value(const _name : string;_symtyp:Tasmsymtype;siz:longint;val:ptruint;def:tdef);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -622,6 +638,7 @@ interface
           sym       : tasmsymbol;
           size      : asizeint;
           constructor Create(const _name : string;_size : asizeint; def: tdef);
+          constructor Create_hidden(const _name : string;_size : asizeint; def: tdef);
           constructor Create_global(const _name : string;_size : asizeint; def: tdef);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -641,6 +658,9 @@ interface
           symofs,
           value   : int64;
           consttype : taiconst_type;
+          { sleb128 and uleb128 values have a varying length, by calling FixSize their size can be fixed
+            to avoid that other offsets need to be changed. The value to write is stored in fixed_size }
+          fixed_size : byte;
           { we use for the 128bit int64/qword for now because I can't imagine a
             case where we need 128 bit now (FK) }
           constructor Create(_typ:taiconst_type;_value : int64);
@@ -685,6 +705,9 @@ interface
           constructor Create_int_codeptr_unaligned(_value: int64);
           constructor Create_int_dataptr(_value: int64);
           constructor Create_int_dataptr_unaligned(_value: int64);
+{$ifdef avr}
+          constructor Create_int_dataptr_unaligned(_value: int64; size: taiconst_type);
+{$endif}
 {$ifdef i8086}
           constructor Create_seg_name(const name:string);
           constructor Create_dgroup;
@@ -695,6 +718,9 @@ interface
           procedure derefimpl;override;
           function getcopy:tlinkedlistitem;override;
           function size:longint;
+          { sleb128 and uleb128 values have a varying length, by calling FixSize their size can be fixed
+            to avoid that other offsets need to be changed. The value to write is stored in fixed_size }
+          Procedure FixSize;
        end;
 
        { floating point const }
@@ -1271,6 +1297,23 @@ implementation
          is_global:=false;
       end;
 
+    constructor tai_datablock.Create_hidden(const _name: string; _size: asizeint; def: tdef);
+      begin
+        if tf_supports_hidden_symbols in target_info.flags then
+          begin
+            inherited Create;
+            typ:=ait_datablock;
+            sym:=current_asmdata.DefineAsmSymbol(_name,AB_PRIVATE_EXTERN,AT_DATA,def);
+            { keep things aligned }
+            if _size<=0 then
+              _size:=sizeof(aint);
+            size:=_size;
+            is_global:=true;
+          end
+        else
+          Create(_name,_size,def);
+      end;
+
 
     constructor tai_datablock.Create_global(const _name : string;_size : asizeint; def: tdef);
       begin
@@ -1357,6 +1400,20 @@ implementation
          sym:=current_asmdata.DefineAsmSymbol(_name,AB_GLOBAL,_symtyp,def);
          size:=siz;
          is_global:=true;
+      end;
+
+    constructor tai_symbol.Createname_hidden(const _name: string; _symtyp: Tasmsymtype; siz: longint; def: tdef);
+      begin
+        if tf_supports_hidden_symbols in target_info.flags then
+          begin
+            inherited Create;
+            typ:=ait_symbol;
+            sym:=current_asmdata.DefineAsmSymbol(_name,AB_PRIVATE_EXTERN,_symtyp,def);
+            size:=siz;
+            is_global:=true;
+          end
+        else
+          Createname(_name, _symtyp, siz, def);
       end;
 
 
@@ -1911,6 +1968,20 @@ implementation
       end;
 
 
+{$ifdef avr}
+    constructor tai_const.Create_int_dataptr_unaligned(_value: int64;
+      size: taiconst_type);
+      begin
+        inherited Create;
+        typ:=ait_const;
+        consttype:=size;
+        sym:=nil;
+        endsym:=nil;
+        symofs:=0;
+        value:=_value;
+      end;
+{$endif avr}
+
 {$ifdef i8086}
     constructor tai_const.Create_seg_name(const name:string);
       begin
@@ -1990,9 +2061,31 @@ implementation
             else
               result:=sizeof(pint);
           aitconst_uleb128bit :
-            result:=LengthUleb128(qword(value));
+            begin
+              if fixed_size>0 then
+                result:=fixed_size
+              else if sym=nil then
+                begin
+                  FixSize;
+                  result:=fixed_size;
+                end
+              else
+                { worst case }
+                result:=sizeof(pint)+2;
+            end;
           aitconst_sleb128bit :
-            result:=LengthSleb128(value);
+            begin
+              if fixed_size>0 then
+                result:=fixed_size
+              else if sym=nil then
+                begin
+                  FixSize;
+                  result:=fixed_size;
+                end
+              else
+                { worst case }
+                result:=sizeof(pint)+2;
+            end;
           aitconst_half16bit,
           aitconst_gs:
             result:=2;
@@ -2008,6 +2101,19 @@ implementation
             result:=4;
           else
             internalerror(200603253);
+        end;
+      end;
+
+
+    procedure tai_const.FixSize;
+      begin
+        case consttype of
+          aitconst_uleb128bit:
+            fixed_size:=LengthUleb128(qword(value));
+          aitconst_sleb128bit:
+            fixed_size:=LengthSleb128(value);
+          else
+            Internalerror(2019030301);
         end;
       end;
 

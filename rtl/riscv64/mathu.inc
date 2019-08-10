@@ -12,6 +12,7 @@
 
 **********************************************************************}
 
+{$ifdef FPUFD}
 function getrm: dword; nostackframe; assembler;
   asm
     frrm a0
@@ -117,4 +118,48 @@ procedure ClearExceptions(RaisePending: Boolean);
     softfloat_exception_flags:=[];
     setfflags(0);
   end;
+{$else}
+function GetRoundMode: TFPURoundingMode;
+  begin
+    GetRoundMode:=softfloat_rounding_mode;
+  end;
 
+
+function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
+  begin
+    result:=softfloat_rounding_mode;
+    softfloat_rounding_mode:=RoundMode;
+  end;
+
+
+function GetPrecisionMode: TFPUPrecisionMode;
+  begin
+    result := pmDouble;
+  end;
+
+
+function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
+  begin
+    { does not apply }
+    result := pmDouble;
+  end;
+
+
+function GetExceptionMask: TFPUExceptionMask;
+  begin
+    Result:=softfloat_exception_mask;
+  end;
+
+
+function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+  begin
+    Result:=softfloat_exception_mask;
+    softfloat_exception_mask:=Mask;
+  end;
+
+
+procedure ClearExceptions(RaisePending: Boolean =true);
+  begin
+    softfloat_exception_flags:=[];
+  end;
+{$endif}

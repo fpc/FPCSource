@@ -1,36 +1,6 @@
-{ Parsed from Quartzcore.framework CABase.h }
-
-{$ifdef TYPES}
-{$ifndef CABASE_PAS_T}
-{$define CABASE_PAS_T}
-
-{ Defines }
-const
-  CA_WARN_DEPRECATED = 1;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef CABASE_PAS_R}
-{$define CABASE_PAS_R}
-
-{$endif}
-{$endif}
+{ Parsed from QuartzCore.framework CABase.h }
 
 {$ifdef FUNCTIONS}
-{$ifndef CABASE_PAS_F}
-{$define CABASE_PAS_F}
-
-{ Functions }
-function CACurrentMediaTime: CFTimeInterval; cdecl; external;
-
-{$endif}
+function CACurrentMediaTime: CFTimeInterval; cdecl; external; { available starting in __MAC_10_5, __IPHONE_2_0 }
 {$endif}
 
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef CABASE_PAS_S}
-{$define CABASE_PAS_S}
-
-{$endif}
-{$endif}

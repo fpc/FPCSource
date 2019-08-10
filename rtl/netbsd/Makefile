@@ -2217,6 +2217,7 @@ EXEEXT=.exe
 PPLEXT=.ppl
 PPUEXT=.ppu
 OEXT=.o
+LTOEXT=.bc
 ASMEXT=.s
 SMARTEXT=.sl
 STATICLIBEXT=.a
@@ -2895,7 +2896,7 @@ fpc_debug:
 	$(MAKE) all DEBUG=1
 fpc_release:
 	$(MAKE) all RELEASE=1
-.SUFFIXES: $(EXEEXT) $(PPUEXT) $(OEXT) .pas .lpr .dpr .pp .rc .res
+.SUFFIXES: $(EXEEXT) $(PPUEXT) $(OEXT) $(LTOEXT) .pas .lpr .dpr .pp .rc .res
 $(COMPILER_UNITTARGETDIR):
 	$(MKDIRTREE) $(COMPILER_UNITTARGETDIR)
 $(COMPILER_TARGETDIR):
@@ -2926,6 +2927,7 @@ vpath %.lpr $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
 vpath %.dpr $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
 vpath %.inc $(COMPILER_INCLUDEDIR)
 vpath %$(OEXT) $(COMPILER_UNITTARGETDIR)
+vpath %$(LTOEXT) $(COMPILER_UNITTARGETDIR)
 vpath %$(PPUEXT) $(COMPILER_UNITTARGETDIR)
 .PHONY: fpc_shared
 override INSTALLTARGET+=fpc_shared_install
@@ -2968,9 +2970,9 @@ override INSTALLPPUFILES:=$(filter-out $(INSTALL_BUILDUNIT)$(PPUEXT),$(INSTALLPP
 endif
 ifdef INSTALLPPUFILES
 ifneq ($(IMPORTLIBPREFIX)-$(STATICLIBEXT),$(STATICLIBPREFIX)-$(STATICLIBEXT))
-override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES))) $(addprefix $(IMPORTLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
+override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(subst $(PPUEXT),$(LTOEXT),$(INSTALLPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES))) $(addprefix $(IMPORTLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
 else
-override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
+override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(subst $(PPUEXT),$(LTOEXT),$(INSTALLPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
 endif
 ifneq ($(UNITTARGETDIRPREFIX),)
 override INSTALLPPUFILES:=$(addprefix $(UNITTARGETDIRPREFIX),$(notdir $(INSTALLPPUFILES)))
@@ -3043,7 +3045,7 @@ ifdef CLEAN_UNITS
 override CLEANPPUFILES+=$(addsuffix $(PPUEXT),$(CLEAN_UNITS))
 endif
 ifdef CLEANPPUFILES
-override CLEANPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(CLEANPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(CLEANPPUFILES))) $(addprefix $(IMPORTLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(CLEANPPUFILES)))
+override CLEANPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(CLEANPPUFILES)) $(subst $(PPUEXT),$(LTOEXT),$(CLEANPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(CLEANPPUFILES))) $(addprefix $(IMPORTLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(CLEANPPUFILES)))
 ifdef DEBUGSYMEXT
 override CLEANPPULINKFILES+=$(subst $(PPUEXT),$(DEBUGSYMEXT),$(CLEANPPUFILES))
 endif
@@ -3094,7 +3096,7 @@ ifdef CLEAN_FILES
 endif
 	-$(DELTREE) units
 	-$(DELTREE) bin
-	-$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+	-$(DEL) *$(OEXT) *$(LTOEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 ifneq ($(PPUEXT),.ppu)
 	-$(DEL) *.o *.ppu *.a
 endif
@@ -3261,26 +3263,41 @@ uuchar$(PPUEXT):  $(INC)/uuchar.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+	$(COMPILER) $<
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
 		   $(SYSTEMUNIT)$(PPUEXT)
-baseunix$(PPUEXT) : errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
-  signal.inc $(UNIXINC)/bunxh.inc \
+	$(COMPILER) $<
+baseunix$(PPUEXT) :  $(UNIXINC)/baseunix.pp errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
+  signal.inc $(UNIXINC)/bunxh.inc sysctl$(PPUEXT) \
   $(BSDINC)/bunxsysc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
   $(BSDINC)/ostypes.inc $(BSDINC)/osmacro.inc $(UNIXINC)/gensigset.inc \
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT) sysctl$(PPUEXT)
+	$(COMPILER) $<
+fpintres$(PPUEXT): $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 unixtype$(PPUEXT): $(UNIXINC)/unixtype.pp $(UNIXINC)/ctypes.inc ptypes.inc $(SYSTEMUNIT)$(PPUEXT)
-unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
+	$(COMPILER) $<
+unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) sysctl$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
 		 syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc \
 		 unxsysc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $<
 unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) baseunix$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/unixcp.pp
+	$(COMPILER) $<
+x86$(PPUEXT) : $(UNIXINC)/x86.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+ports$(PPUEXT) : $(UNIXINC)/ports.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 	       unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-		    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT)
+		objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
 	$(COMPILER) $(OBJPASDIR)/rtlconsts.pp
@@ -3309,29 +3326,52 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
 else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 endif
+	$(COMPILER) $<
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Sg $(INC)/heaptrc.pp
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
+	$(COMPILER) $<
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) lineinfo$(PPUEXT)
+	$(COMPILER) $<
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT) syscall$(PPUEXT)
+	$(COMPILER) $<
 syscall$(PPUEXT) : $(UNIXINC)/syscall.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp $(INC)/textrec.inc $(INC)/filerec.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(UNIXINC)/unixutil.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
 sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) math$(PPUEXT)
 	$(COMPILER) -Fi$(INC) $(INC)/variants.pp
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
+	$(COMPILER) $<
+bsd$(PPUEXT) : $(BSDINC)/bsd.pas unix$(PPUEXT) syscall$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+initc$(PPUEXT) : $(UNIXINC)/initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<

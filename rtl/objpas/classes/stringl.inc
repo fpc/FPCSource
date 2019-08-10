@@ -1083,21 +1083,22 @@ begin
   LoadFromStream(Stream,False);
 end;
 
+Const
+  LoadBufSize = 1024;
+  LoadMaxGrow = MaxInt Div 2;
+
 Procedure TStrings.LoadFromStream(Stream: TStream; IgnoreEncoding : Boolean);
 {
    Borlands method is no good, since a pipe for
    instance doesn't have a size.
    So we must do it the hard way.
 }
-Const
-  BufSize = 1024;
-  MaxGrow = 1 shl 29;
 
 Var
-  Buffer     : AnsiString;
-  BytesRead,
-  BufLen,
-  I,BufDelta     : SizeInt;
+  Buffer : AnsiString;
+  BufLen : SizeInt;
+  BytesRead, I, BufDelta : Longint;
+
 begin
   if not IgnoreEncoding then
     begin
@@ -1111,11 +1112,11 @@ begin
     BufLen:=0;
     I:=1;
     Repeat
-      BufDelta:=BufSize*I;
+      BufDelta:=LoadBufSize*I;
       SetLength(Buffer,BufLen+BufDelta);
       BytesRead:=Stream.Read(Buffer[BufLen+1],BufDelta);
       inc(BufLen,BufDelta);
-      If I<MaxGrow then
+      If I<LoadMaxGrow then
         I:=I shl 1;
     Until BytesRead<>BufDelta;
     SetLength(Buffer, BufLen-BufDelta+BytesRead);
@@ -1133,17 +1134,13 @@ Procedure TStrings.LoadFromStream(Stream: TStream; AEncoding: TEncoding);
    instance doesn't have a size.
    So we must do it the hard way.
 }
-Const
-  BufSize = 1024;
-  MaxGrow = 1 shl 29;
 
 Var
-  Buffer         : TBytes;
-  T              : string;
-  BytesRead,
-  BufLen,
-  I,BufDelta: SizeInt;
-  PreambleLength : Longint;
+  Buffer : TBytes;
+  T : string;
+  BufLen : SizeInt;
+  BytesRead, I, BufDelta, PreambleLength : Longint;
+
 begin
   // reread into a buffer
   beginupdate;
@@ -1152,11 +1149,11 @@ begin
     BufLen:=0;
     I:=1;
     Repeat
-      BufDelta:=BufSize*I;
+      BufDelta:=LoadBufSize*I;
       SetLength(Buffer,BufLen+BufDelta);
       BytesRead:=Stream.Read(Buffer[BufLen],BufDelta);
       inc(BufLen,BufDelta);
-      If I<MaxGrow then
+      If I<LoadMaxGrow then
         I:=I shl 1;
     Until BytesRead<>BufDelta;
     SetLength(Buffer,BufLen-BufDelta+BytesRead);

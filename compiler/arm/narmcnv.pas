@@ -117,11 +117,7 @@ implementation
               fpu_fpa10,
               fpu_fpa11:
                 expectloc:=LOC_FPUREGISTER;
-              fpu_vfpv2,
-              fpu_vfpv3,
-              fpu_vfpv4,
-              fpu_vfpv3_d16,
-              fpu_fpv4_s16:
+              fpu_vfp_first..fpu_vfp_last:
                 expectloc:=LOC_MMREGISTER;
               else
                 internalerror(2009112702);

@@ -22,17 +22,20 @@ program ppudump;
 
 {$i fpcdefs.inc}
 {$H+}
+{$packenum 1}
 
 {$define IN_PPUDUMP}
 uses
   { do NOT add symconst or globtype to make merging easier }
   { do include symconst and globtype now before splitting 2.5 PM 2011-06-15 }
+  cutils,
   SysUtils,
   constexp,
   symconst,
   ppu,
   entfile,
   systems,
+  cpuinfo,
   globals,
   globtype,
   widestr,
@@ -83,6 +86,31 @@ const
     { 18 } 'sparc64',
     { 19 } 'riscv32',
     { 20 } 'riscv64'
+    );
+
+  CpuHasController : array[tsystemcpu] of boolean =
+    (
+    {  0 } false {'none'},
+    {  1 } false {'i386'},
+    {  2 } false {'m68k'},
+    {  3 } false {'alpha (obsolete)'},
+    {  4 } false {'powerpc'},
+    {  5 } false {'sparc'},
+    {  6 } false {'vis (obsolete)'},
+    {  7 } false {'ia64 (obsolete)'},
+    {  8 } false {'x86_64'},
+    {  9 } false {'mipseb'},
+    { 10 } true  {'arm'},
+    { 11 } false {'powerpc64'},
+    { 12 } true  {'avr'},
+    { 13 } true  {'mipsel'},
+    { 14 } false {'jvm'},
+    { 15 } false {'i8086'},
+    { 16 } false {'aarch64'},
+    { 17 } false {'wasm'},
+    { 18 } false {'sparc64'},
+    { 19 } false {'riscv32'},
+    { 20 } false {'riscv64'}
     );
 
 { List of all supported system-cpu couples }
@@ -212,6 +240,210 @@ type
     ST_LOADMESSAGES,
     ST_INVALID);
 
+type
+  tcpu_i386 = (
+       cpu_variant_i386_none,
+       cpu_variant_386,
+       cpu_variant_486,
+       cpu_variant_Pentium,
+       cpu_variant_Pentium2,
+       cpu_variant_Pentium3,
+       cpu_variant_Pentium4,
+       cpu_variant_PentiumM,
+       cpu_variant_core_i,
+       cpu_variant_core_avx,
+       cpu_variant_core_avx2);
+
+  tcpu_m68k = (
+       cpu_variant_m68k_none,
+       cpu_variant_MC68000,
+       cpu_variant_MC68020,
+       cpu_variant_MC68040,
+       cpu_variant_MC68060,
+       cpu_variant_isa_a,
+       cpu_variant_isa_a_p,
+       cpu_variant_isa_b,
+       cpu_variant_isa_c,
+       cpu_variant_cfv4e
+      );
+
+  tcpu_powerpc = (
+       cpu_variant_powerpc_none,
+       cpu_variant_ppc604,
+       cpu_variant_ppc750,
+       cpu_variant_ppc7400,
+       cpu_variant_ppc970
+      );
+
+  tcpu_sparc = (
+    cpu_variant_sparc_none,
+    cpu_variant_SPARC_V7,
+    cpu_variant_SPARC_V8,
+    cpu_variant_SPARC_V9
+  );
+
+  tcpu_x86_64 = (
+       cpu_variant_x86_64_none,
+       cpu_variant_athlon64,
+       cpu_variant_x86_64_core_i,
+       cpu_variant_x86_64_core_avx,
+       cpu_variant_x86_64_core_avx2
+      );
+
+  tcpu_mipseb = (
+       cpu_variant_mipseb_none,
+       cpu_variant_mips1,
+       cpu_variant_mips2,
+       cpu_variant_mips3,
+       cpu_variant_mips4,
+       cpu_variant_mips5,
+       cpu_variant_mips32,
+       cpu_variant_mips32r2,
+       cpu_variant_pic32mx
+      );
+
+  tcpu_arm = (
+       cpu_variant_arm_none,
+       cpu_variant_armv3,
+       cpu_variant_armv4,
+       cpu_variant_armv4t,
+       cpu_variant_armv5,
+       cpu_variant_armv5t,
+       cpu_variant_armv5te,
+       cpu_variant_armv5tej,
+       cpu_variant_armv6,
+       cpu_variant_armv6k,
+       cpu_variant_armv6t2,
+       cpu_variant_armv6z,
+       cpu_variant_armv6m,
+       cpu_variant_armv7,
+       cpu_variant_armv7a,
+       cpu_variant_armv7r,
+       cpu_variant_armv7m,
+       cpu_variant_armv7em
+      );
+
+  tcpu_powerpc64 = (
+    cpu_variant_powerpc64_none,
+    cpu_variant_powerpc64_ppc970
+    );
+
+  tcpu_avr = (
+       cpu_variant_avr_none,
+       cpu_variant_avr1,
+       cpu_variant_avr2,
+       cpu_variant_avr25,
+       cpu_variant_avr3,
+       cpu_variant_avr31,
+       cpu_variant_avr35,
+       cpu_variant_avr4,
+       cpu_variant_avr5,
+       cpu_variant_avr51,
+       cpu_variant_avr6
+      );
+
+  tcpu_mipsel = tcpu_mipseb;
+
+  tcpu_jvm = (
+       cpu_variant_jvm_none,
+       { jvm, same as cpu_none }
+       cpu_variant_jvm,
+       { jvm byte code to be translated into Dalvik bytecode: more type-
+         sensitive }
+       cpu_variant_dalvik
+      );
+
+  tcpu_i8086 = (
+       cpu_variant_i8086_none,
+       cpu_variant_8086,
+       cpu_variant_186,
+       cpu_variant_286,
+       cpu_variant_i8086_386,
+       cpu_variant_i8086_486,
+       cpu_variant_i8086_Pentium,
+       cpu_variant_i8086_Pentium2,
+       cpu_variant_i8086_Pentium3,
+       cpu_variant_i8086_Pentium4,
+       cpu_variant_i8086_PentiumM
+      );
+
+  tcpu_aarch64 = (
+       cpu_variant_aarch64_none,
+       cpu_variant_armv8
+      );
+
+  tcpu_wasm = (
+       cpu_variant_wasm_none);
+
+  tcpu_sparc64 = (
+    cpu_variant_sparc64_none,
+    cpu_variant_SPARC64_V9
+  );
+
+  tcpu_riscv32 = (
+       cpu_variant_riscv32_none,
+       cpu_variant_rv32imafd,
+       cpu_variant_rv32ima,
+       cpu_variant_rv32im,
+       cpu_variant_rv32i
+      );
+
+  tcpu_riscv64 = (
+    cpu_variant_riscv64_none,
+    cpu_variant_rv64imafdc,
+    cpu_variant_rv64imafd,
+    cpu_variant_rv64ima,
+    cpu_variant_rv64im,
+    cpu_variant_rv64i
+  );
+ 
+  tcpu_type = record
+     case tsystemcpu of
+       cpu_no:                      { 0 }
+          ();
+       cpu_i386:                    { 1 }
+          (cpu_i386 : tcpu_i386;);
+       cpu_m68k:                    { 2 }
+          (cpu_m68k : tcpu_m68k;);
+       obsolete_cpu_alpha:          { 3 }
+          ();
+       cpu_powerpc:                 { 4 }
+          (cpu_powerpc : tcpu_powerpc;);
+       cpu_sparc:                   { 5 }
+          (cpu_sparc : tcpu_sparc;);
+       obsolete_cpu_vm:             { 6 }
+          ();
+       obsolete_cpu_ia64:           { 7 }
+          ();
+       cpu_x86_64:                  { 8 }
+          (cpu_x86_64 : tcpu_x86_64;);
+       cpu_mipseb:                  { 9 }
+          (cpu_mipseb : tcpu_mipseb;);
+       cpu_arm:                     { 10 }
+          (cpu_arm : tcpu_arm;);
+       cpu_powerpc64:               { 11 }
+          (cpu_powerpc64 : tcpu_powerpc64;);
+       cpu_avr:                     { 12 }
+          (cpu_avr : tcpu_avr;);
+       cpu_mipsel:                  { 13 }
+          (cpu_mipsel : tcpu_mipsel;);
+       cpu_jvm:                     { 14 }
+          (cpu_jvm : tcpu_jvm;);
+       cpu_i8086:                   { 15 }
+          (cpu_i8086 : tcpu_i8086;);
+       cpu_aarch64:                 { 16 }
+          (cpu_aarch64 : tcpu_aarch64;);
+       cpu_wasm:                    { 17 }
+          (cpu_wasm : tcpu_wasm;);
+       cpu_sparc64:                 { 18 }
+          (cpu_sparc64 : tcpu_sparc64;);
+       cpu_riscv32:                 { 19 }
+          (cpu_riscv32 : tcpu_riscv32;);
+       cpu_riscv64:                 { 20 }
+          (cpu_riscv64 : tcpu_riscv64;);
+     end;
+
+  
   TPpuModuleDef = class(TPpuUnitDef)
     ModuleFlags: tmoduleflags;
   end;
@@ -234,7 +466,13 @@ var
   UnitList: TPpuContainerDef;
   CurUnit: TPpuModuleDef;
   SkipVersionCheck: boolean;
+  SymAnsiStr: boolean;
 
+var
+  { needed during tobjectdef parsing... }
+  current_defoptions : tdefoptions;
+  current_objectoptions : tobjectoptions;
+  current_symtable_options : tsymtableoptions;
 
 {****************************************************************************
                           Helper Routines
@@ -661,6 +899,14 @@ end;
                              Read Routines
 ****************************************************************************}
 
+function readsymstr(ppufile: tppufile): ansistring;
+  begin
+    if not(mf_symansistr in CurUnit.ModuleFlags) then
+      result:=ppufile.getstring
+    else
+      result:=ppufile.getansistring;
+  end;
+
 function readmanagementoperatoroptions(const space : string;const name : string):tmanagementoperators;forward;
 
 procedure readrecsymtableoptions;
@@ -681,7 +927,7 @@ begin
   readmanagementoperatoroptions(space,'Fields have MOPs');
 end;
 
-procedure readsymtableoptions(const s: string);
+function readsymtableoptions(const s: string) : tsymtableoptions;
 type
   tsymtblopt=record
     mask : tsymtableoption;
@@ -726,16 +972,27 @@ begin
   else
    write('none');
   writeln;
+  readsymtableoptions:=options;
 end;
 
 procedure readdefinitions(const s:string; ParentDef: TPpuContainerDef); forward;
 procedure readsymbols(const s:string; ParentDef: TPpuContainerDef = nil); forward;
 
 procedure readsymtable(const s: string; ParentDef: TPpuContainerDef = nil);
+var
+  stored_symtable_options : tsymtableoptions;
 begin
-  readsymtableoptions(s);
+  stored_symtable_options:=current_symtable_options;
+  current_symtable_options:=readsymtableoptions(s);
   readdefinitions(s, ParentDef);
   readsymbols(s, ParentDef);
+  current_symtable_options:=stored_symtable_options;
+end;
+
+procedure readrecordsymtable(const s: string; ParentDef: TPpuContainerDef = nil);
+begin
+  readrecsymtableoptions;
+  readsymtable(s, ParentDef);
 end;
 
 Procedure ReadLinkContainer(const prefix:string);
@@ -845,10 +1102,7 @@ begin
       for j:=0 to extsymcnt-1 do
         begin
           extsymname:=ppufile.getstring;
-          if ppuversion>130 then
-            extsymmangledname:=ppufile.getstring
-          else
-            extsymmangledname:=extsymname;
+          extsymmangledname:=ppufile.getstring;
           extsymordnr:=ppufile.getlongint;
           extsymisvar:=ppufile.getbyte<>0;
           writeln([' ',extsymname,' as ',extsymmangledname,
@@ -1358,7 +1612,9 @@ const
          (mask:pi_has_open_array_parameter;
          str:' has open array parameter '),
          (mask:pi_uses_threadvar;
-         str:' uses threadvars ')
+         str:' uses threadvars '),
+         (mask:pi_has_except_table_data;
+         str:' has except table data ')
   );
 var
   procinfooptions : tprocinfoflags;
@@ -1448,6 +1704,79 @@ begin
   writeln(Visibility2Str(i));
 end;
 
+procedure readattrs(def: TPpuDef);
+var
+  i,cnt,paras: longint;
+begin
+  cnt:=ppufile.getlongint;
+  if cnt>0 then
+    begin
+      writeln([space,'   Attributes : ']);
+      space:='    '+space;
+      if assigned(def) then
+        SetLength(def.Attrs,cnt);
+      for i:=0 to cnt-1 do
+        begin
+          writeln([space,'** Custom Attribute ',i,' **']);
+          write  ([space,'      Type symbol : ']);
+          if assigned(def) then
+            begin
+              def.Attrs[i].TypeSym:=TPpuRef.Create;
+              readderef('',def.Attrs[i].TypeSym);
+            end
+          else
+            readderef('');
+          write  ([space,' Type constructor : ']);
+          if assigned(def) then
+            begin
+              def.Attrs[i].TypeConstr:=TPpuRef.Create;
+              readderef('',def.Attrs[i].TypeConstr);
+            end
+          else
+            readderef('');
+          paras:=ppufile.getlongint;
+          writeln([space,'       Parameters : ',paras]);
+          if assigned(def) then
+            def.Attrs[i].ParaCount:=paras;
+        end;
+      delete(space,1,4);
+    end;
+end;
+
+procedure readnodetree; forward;
+
+procedure readattrparas(def: TPpuDef);
+var
+  attr,para: LongInt;
+begin
+  if Length(def.Attrs) > 0 then
+    writeln([space,'   Attr Paras : ']);
+  space:='    '+space;
+  for attr:=0 to High(def.Attrs) do
+    begin
+      writeln([space,'** Custom Attribute ',attr,' Arguments **']);
+      space:='    '+space;
+      for para:=0 to def.Attrs[attr].ParaCount-1 do
+        begin
+          readnodetree;
+        end;
+      delete(space,1,4);
+    end;
+  delete(space,1,4);
+end;
+
+procedure readdefsubentries(def: TPpuDef);
+begin
+  space:='    '+space;
+  readattrparas(def);
+  delete(space,1,4);
+end;
+
+procedure readsymsubentries(def: TPpuDef);
+begin
+  readattrparas(def);
+end;
+
 procedure readcommonsym(const s:string; Def: TPpuDef = nil);
 var
   i: integer;
@@ -1467,6 +1796,7 @@ begin
   readvisibility(Def);
   write  ([space,'   SymOptions : ']);
   readsymoptions(space+'   ',Def);
+  readattrs(Def);
 end;
 
 
@@ -1537,72 +1867,223 @@ begin
     end;
 end;
 
-var
-  { needed during tobjectdef parsing... }
-  current_defoptions : tdefoptions;
-  current_objectoptions : tobjectoptions;
-
-procedure readcommondef(const s:string; out defoptions: tdefoptions; Def: TPpuDef = nil);
+procedure displaytokenbuffer(tokenbuf : pbyte;tokenbufsize : longint);
 type
-  tdefopt=record
-    mask : tdefoption;
-    str  : string[30];
-  end;
-  tdefstateinfo=record
-    mask : tdefstate;
-    str  : string[30];
-  end;
-  tgenconstrflag=record
-    mask : tgenericconstraintflag;
-    str  : string[30];
-  end;
   ptoken=^ttoken;
   pmsgstate =^tmsgstate;
-const
-  defopt : array[1..ord(high(tdefoption))] of tdefopt=(
-     (mask:df_unique;         str:'Unique Type'),
-     (mask:df_generic;        str:'Generic'),
-     (mask:df_specialization; str:'Specialization'),
-     (mask:df_copied_def;     str:'Copied Typedef'),
-     (mask:df_genconstraint;  str:'Generic Constraint'),
-     { this should never happen for defs stored to a ppu file }
-     (mask:df_not_registered_no_free;  str:'Unregistered/No free (invalid)'),
-     (mask:df_llvm_no_struct_packing;  str:'LLVM unpacked struct'),
-     (mask:df_internal;       str:'Internal')
-  );
-  defstate : array[1..ord(high(tdefstate))] of tdefstateinfo=(
-     (mask:ds_vmt_written;           str:'VMT Written'),
-     (mask:ds_rtti_table_used;       str:'RTTITable Used'),
-     (mask:ds_init_table_used;       str:'InitTable Used'),
-     (mask:ds_rtti_table_written;    str:'RTTITable Written'),
-     (mask:ds_init_table_written;    str:'InitTable Written'),
-     (mask:ds_dwarf_dbg_info_used;   str:'Dwarf DbgInfo Used'),
-     (mask:ds_dwarf_dbg_info_written;str:'Dwarf DbgInfo Written')
-  );
-  genconstrflag : array[1..ord(high(tgenericconstraintflag))] of tgenconstrflag=(
-     (mask:gcf_constructor; str:'Constructor'),
-     (mask:gcf_class;       str:'Class'),
-     (mask:gcf_record;      str:'Record')
-  );
-  
 var
-  defstates  : tdefstates;
-  i, nb{, msgvalue}, mesgnb : longint;
-  first  : boolean;
-  copy_size, min_size, tokenbufsize : longint;
-  tokenbuf : pbyte;
-  tbi, last_col, new_col : longint;
-  last_line,new_line : dword;
-//  idtoken,
-  token : ttoken;
-//  state : tmsgstate;
-  new_settings : Tsettings;
-  len : sizeint;
-  wstring : widestring;
-  astring : ansistring;
-  linestr,genstr : string;
-  genconstr : tgenericconstraintflags;
+  tbi : longint;
+  state : tmsgstate;
+  prev_settings, new_settings : Tsettings;
+  nb, msgvalue, mesgnb : longint;
 
+
+  function readtoken: ttoken;
+    var
+      b,b2 : byte;
+    begin
+      b:=tokenbuf[tbi];
+      inc(tbi);
+      if (b and $80)<>0 then
+        begin
+          b2:=tokenbuf[tbi];
+          inc(tbi);
+          result:=ttoken(((b and $7f) shl 8) or b2);
+        end
+      else
+        result:=ttoken(b);
+    end;
+
+  function gettokenbufdword : dword;
+  var
+    var32 : dword;
+  begin
+    var32:=unaligned(pdword(@tokenbuf[tbi])^);
+    inc(tbi,sizeof(dword));
+    if ppufile.change_endian then
+      var32:=swapendian(var32);
+    result:=var32;
+  end;
+
+  function gettokenbufword : word;
+  var
+    var16 : word;
+  begin
+    var16:=unaligned(pword(@tokenbuf[tbi])^);
+    inc(tbi,sizeof(word));
+    if ppufile.change_endian then
+      var16:=swapendian(var16);
+    result:=var16;
+  end;
+
+  function gettokenbuflongint : longint;
+  var
+    var32 : longint;
+  begin
+    var32:=unaligned(plongint(@tokenbuf[tbi])^);
+    inc(tbi,sizeof(longint));
+    if ppufile.change_endian then
+      var32:=swapendian(var32);
+    result:=var32;
+  end;
+
+  function gettokenbufshortint : shortint;
+  var
+    var8 : shortint;
+  begin
+    var8:=pshortint(@tokenbuf[tbi])^;
+    inc(tbi,sizeof(shortint));
+    result:=var8;
+  end;
+
+  procedure tokenreadset(var b;size : longint);
+  var
+    i : longint;
+  begin
+    move(tokenbuf[tbi],b,size);
+    inc(tbi,size);
+    if ppufile.change_endian then
+      for i:=0 to size-1 do
+        Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
+  end;
+
+  function gettokenbufbyte : byte;
+  begin
+    result:=pbyte(@tokenbuf[tbi])^;
+    inc(tbi);
+  end;
+
+   function tokenreadenum(size : longint) : longword;
+  begin
+    if size=1 then
+      result:=gettokenbufbyte
+    else if size=2 then
+      result:=gettokenbufword
+    else if size=4 then
+      result:=gettokenbufdword;
+  end;
+
+
+
+  function gettokenbufsizeint : int64;
+  var
+    var64 : int64;
+    var32 : longint;
+    var16 : smallint;
+
+  begin
+    if CpuAddrBitSize[cpu]=64 then
+      begin
+        var64:=unaligned(pint64(@tokenbuf[tbi])^);
+        inc(tbi,sizeof(int64));
+        if ppufile.change_endian then
+          var64:=swapendian(var64);
+        result:=var64;
+      end
+    else if CpuAddrBitSize[cpu]=32 then
+      begin
+        var32:=unaligned(plongint(@tokenbuf[tbi])^);
+        inc(tbi,sizeof(longint));
+        if ppufile.change_endian then
+          var32:=swapendian(var32);
+        result:=var32;
+      end
+    else if CpuAddrBitSize[cpu]=16 then
+      begin
+        { ASizeInt is still a longint, see globtype.pas unit }
+        var32:=unaligned(plongint(@tokenbuf[tbi])^);
+        inc(tbi,sizeof(longint));
+        if ppufile.change_endian then
+          var32:=swapendian(var32);
+        result:=var32;
+      end
+    else
+      begin
+        WriteError('Wrong CpuAddrBitSize');
+        result:=0;
+      end;
+  end;
+
+  procedure tokenreadsettings(var asettings : tsettings; expected_size : asizeint);
+
+    {    This procedure
+       needs to be changed whenever
+       globals.tsettings type is changed,
+       the problem is that no error will appear
+       before tests with generics are tested. PM }
+
+       var
+         startpos, endpos : longword;
+      begin
+        { WARNING all those fields need to be in the correct
+        order otherwise cross_endian PPU reading will fail }
+        startpos:=tbi;
+        with asettings do
+          begin
+            alignment.procalign:=gettokenbuflongint;
+            alignment.loopalign:=gettokenbuflongint;
+            alignment.jumpalign:=gettokenbuflongint;
+            alignment.jumpalignskipmax:=gettokenbuflongint;
+            alignment.coalescealign:=gettokenbuflongint;
+            alignment.coalescealignskipmax:=gettokenbuflongint;
+            alignment.constalignmin:=gettokenbuflongint;
+            alignment.constalignmax:=gettokenbuflongint;
+            alignment.varalignmin:=gettokenbuflongint;
+            alignment.varalignmax:=gettokenbuflongint;
+            alignment.localalignmin:=gettokenbuflongint;
+            alignment.localalignmax:=gettokenbuflongint;
+            alignment.recordalignmin:=gettokenbuflongint;
+            alignment.recordalignmax:=gettokenbuflongint;
+            alignment.maxCrecordalign:=gettokenbuflongint;
+            tokenreadset(globalswitches,sizeof(globalswitches));
+            tokenreadset(targetswitches,sizeof(targetswitches));
+            tokenreadset(moduleswitches,sizeof(moduleswitches));
+            tokenreadset(localswitches,sizeof(localswitches));
+            tokenreadset(modeswitches,sizeof(modeswitches));
+            tokenreadset(optimizerswitches,sizeof(optimizerswitches));
+            tokenreadset(genwpoptimizerswitches,sizeof(genwpoptimizerswitches));
+            tokenreadset(dowpoptimizerswitches,sizeof(dowpoptimizerswitches));
+            tokenreadset(debugswitches,sizeof(debugswitches));
+            { 0: old behaviour for sets <=256 elements
+              >0: round to this size }
+            setalloc:=gettokenbufshortint;
+            packenum:=gettokenbufshortint;
+
+            packrecords:=gettokenbufshortint;
+            maxfpuregisters:=gettokenbufshortint;
+
+            cputype:=tcputype(tokenreadenum(sizeof(tcputype)));
+            optimizecputype:=tcputype(tokenreadenum(sizeof(tcputype)));
+            fputype:=tfputype(tokenreadenum(sizeof(tfputype)));
+            asmmode:=tasmmode(tokenreadenum(sizeof(tasmmode)));
+            interfacetype:=tinterfacetypes(tokenreadenum(sizeof(tinterfacetypes)));
+            defproccall:=tproccalloption(tokenreadenum(sizeof(tproccalloption)));
+            { tstringencoding is word type,
+              thus this should be OK here }
+            sourcecodepage:=tstringEncoding(gettokenbufword);
+
+            minfpconstprec:=tfloattype(tokenreadenum(sizeof(tfloattype)));
+
+            disabledircache:=boolean(gettokenbufbyte);
+
+            tlsmodel:=ttlsmodel(tokenreadenum(sizeof(ttlsmodel)));
+{ TH: Since the field was conditional originally, it was not stored in PPUs.  }
+{ While adding ControllerSupport constant, I decided not to store ct_none     }
+{ on targets not supporting controllers, but this might be changed here and   }
+{ in tokenwritesettings in the future to unify the PPU structure and handling }
+{ of this field in the compiler.                                              }
+{$PUSH}
+ {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
+            if CpuHasController[cpu] then
+             controllertype:=tcontrollertype(tokenreadenum(sizeof(tcontrollertype)))
+            else
+             ControllerType:=ct_none;
+{$POP}
+           endpos:=tbi;
+           if endpos-startpos<>expected_size then
+             Writeln(['Wrong size of Settings read-in: ',expected_size,' expected, but got ',endpos-startpos]);
+         end;
+     end;
   procedure dump_new_settings;
 (*     tsettings = record
          alignment       : talignmentinfo;
@@ -1703,7 +2184,7 @@ const
            update the segment values of the segment that has moved. }
         'Use odd BP for far procs' {ts_x86_far_procs_push_odd_bp}
        );
-    moduleswitchname : array[tmoduleswitch] of string[30] =
+    moduleswitchname : array[tmoduleswitch] of string[40] =
        ('Module None', {cs_modulenone,}
          { parser }
         'Floating Point Emulation',{ cs_fp_emulation}
@@ -1734,7 +2215,8 @@ const
         'Hude code', {cs_huge_code}
         'Win16 smart callbacks', {cs_win16_smartcallbacks}
          { Record usage of checkpointer experimental feature }
-        'CheckPointer used' {cs_checkpointer_called}
+        'CheckPointer used', {cs_checkpointer_called}
+        'Supports LLVM Link-Time Optimization' {cs_lto}
        );
     globalswitchname : array[tglobalswitch] of string[50] =
        ('Global None',{cs_globalnone}
@@ -1782,7 +2264,8 @@ const
         'Link no default lib order', {cs_link_no_default_lib_order}
         'Link using native linker', {cs_link_native}
         'Link for GNU linker version <=2.19', {cs_link_pre_binutils_2_19}
-        'Link using vlink' {cs_link_vlink}
+        'Link using vlink', {cs_link_vlink}
+        'Link-Time Optimization disabled for system unit' {cs_lto_nosystem}
        );
     localswitchname : array[tlocalswitch] of string[50] =
        { Switches which can be changed locally }
@@ -1831,6 +2314,95 @@ const
         'i8086 huge pointer arithmetic', {cs_hugeptr_arithmetic_normalization}
         'i8086 huge pointer comparison' {cs_hugeptr_comparison_normalization}
        );
+       { Switches which can be changed by a mode (fpc,tp7,delphi) }
+       modeswitchname : array[tmodeswitch] of string[50] =
+        ('m_none',
+         { generic }
+         'm_fpc','m_objfpc','m_delphi','m_tp7','m_mac','m_iso','m_extpas',
+         {$ifdef gpc_mode}'m_gpc',{$endif}
+         { more specific }
+         'm_class',               { delphi class model }
+         'm_objpas',              { load objpas unit }
+         'm_result',              { result in functions }
+         'm_string_pchar',        { pchar 2 string conversion }
+         'm_cvar_support',        { cvar variable directive }
+         'm_nested_comment',      { nested comments }
+         'm_tp_procvar',          { tp style procvars (no @ needed) }
+         'm_mac_procvar',         { macpas style procvars }
+         'm_repeat_forward',      { repeating forward declarations is needed }
+         'm_pointer_2_procedure', { allows the assignement of pointers to
+                                  procedure variables                     }
+         'm_autoderef',           { does auto dereferencing of struct. vars }
+         'm_initfinal',           { initialization/finalization for units }
+         'm_default_ansistring',  { ansistring turned on by default }
+         'm_out',                 { support the calling convention OUT }
+         'm_default_para',        { support default parameters }
+         'm_hintdirective',       { support hint directives }
+         'm_duplicate_names',     { allow locals/paras to have duplicate names of globals }
+         'm_property',            { allow properties }
+         'm_default_inline',      { allow inline proc directive }
+         'm_except',              { allow exception-related keywords }
+         'm_objectivec1',         { support interfacing with Objective-C (1.0) }
+         'm_objectivec2',         { support interfacing with Objective-C (2.0) }
+         'm_nested_procvars',     { support nested procedural variables }
+         'm_non_local_goto',      { support non local gotos (like iso pascal) }
+         'm_advanced_records',    { advanced record syntax with visibility sections, methods and properties }
+         'm_isolike_unary_minus', { unary minus like in iso pascal: same precedence level as binary minus/plus }
+         'm_systemcodepage',      { use system codepage as compiler codepage by default, emit ansistrings with system codepage }
+         'm_final_fields',        { allows declaring fields as "final", which means they must be initialised
+                                  in the (class) constructor and are constant from then on (same as final
+                                  fields in Java) }
+         'm_default_unicodestring', { makes the default string type in $h+ mode unicodestring rather than
+                                    ansistring; similarly, char becomes unicodechar rather than ansichar }
+         'm_type_helpers',        { allows the declaration of "type helper" for all supported types
+                                  (primitive types, records, classes, interfaces) }
+         'm_blocks',              { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
+         'm_isolike_io',          { I/O as it required by an ISO compatible compiler }
+         'm_isolike_program_para',{ program parameters as it required by an ISO compatible compiler }
+         'm_isolike_mod',         { mod operation as it is required by an iso compatible compiler }
+         'm_array_operators',     { use Delphi compatible array operators instead of custom ones ("+") }
+         'm_multi_helpers',       { helpers can appear in multiple scopes simultaneously }
+         'm_array2dynarray',      { regular arrays can be implicitly converted to dynamic arrays }
+         'm_prefixed_attributes'  { enable attributes that are defined before the type they belong to }
+       );
+       { optimizer }
+       optimizerswitchname : array[toptimizerswitch] of string[50] =
+        ('cs_opt_none',
+         'cs_opt_level1',
+         'cs_opt_level2',
+         'cs_opt_level3',
+         'cs_opt_level4',
+         'cs_opt_regvar',
+         'cs_opt_uncertain',
+         'cs_opt_size',
+         'cs_opt_stackframe',
+         'cs_opt_peephole',
+         'cs_opt_loopunroll',
+         'cs_opt_tailrecursion',
+         'cs_opt_nodecse',
+         'cs_opt_nodedfa',
+         'cs_opt_loopstrength',
+         'cs_opt_scheduler',
+         'cs_opt_autoinline',
+         'cs_useebp',
+         'cs_userbp',
+         'cs_opt_reorder_fields',
+         'cs_opt_fastmath',
+         { Allow removing expressions whose result is not used, even when this
+           can change program behaviour (range check errors disappear',
+           access violations due to invalid pointer derefences disappear, ...).
+           Note: it does not (and must not) remove expressions that have
+             explicit side-effects, only implicit side-effects (like the ones
+             mentioned before) can disappear.
+         }
+         'cs_opt_dead_values',
+         { compiler checks for empty procedures/methods and removes calls to them if possible }
+         'cs_opt_remove_emtpy_proc',
+         'cs_opt_constant_propagate',
+         'cs_opt_dead_store_eliminate',
+         'cs_opt_forcenostackframe',
+         'cs_opt_use_load_modify_store'
+       );
     var
          globalswitch  : tglobalswitch;
          targetswitch  : ttargetswitch;
@@ -1838,6 +2410,12 @@ const
          localswitch   : tlocalswitch;
          modeswitch    : tmodeswitch;
          optimizerswitch : toptimizerswitch;
+         globalswitches  : tglobalswitches;
+         targetswitches  : ttargetswitches;
+         moduleswitches  : tmoduleswitches;
+         localswitches   : tlocalswitches;
+         modeswitches    : tmodeswitches;
+         optimizerswitches : toptimizerswitches;
     begin
        {alignment : talignmentinfo;}
        {talignmentinfo = packed record}
@@ -1864,122 +2442,303 @@ const
        writeln('Min record alignment: '+tostr(new_settings.alignment.recordalignmin));
        writeln('Max record alignment: '+tostr(new_settings.alignment.recordalignmax));
        writeln('Max C record alignment: '+tostr(new_settings.alignment.maxCrecordalign));
+       globalswitches:=new_settings.globalswitches;
        for globalswitch:=low(tglobalswitch) to high(tglobalswitch) do
-         if globalswitch in new_settings.globalswitches then
-           writeln('global switch: '+globalswitchname[globalswitch]);
+         if globalswitch in globalswitches then
+           begin
+             writeln('global switch: '+globalswitchname[globalswitch]);
+             exclude(globalswitches,globalswitch);
+           end;
+       if (globalswitches <> []) then
+         writeln('Unknown global switch');
+       targetswitches:=new_settings.targetswitches;
        for targetswitch:=low(ttargetswitch) to high(ttargetswitch) do
-         if targetswitch in new_settings.targetswitches then
-           writeln('target switch: '+targetswitchname[targetswitch]);
+         if targetswitch in targetswitches then
+           begin
+             writeln('target switch: '+targetswitchname[targetswitch]);
+             exclude(targetswitches,targetswitch);
+           end;
+       if (targetswitches <> []) then
+         writeln('Unknown target switch');
+       moduleswitches:=new_settings.moduleswitches;
        for moduleswitch:=low(tmoduleswitch) to high(tmoduleswitch) do
-         if moduleswitch in new_settings.moduleswitches then
-           writeln('module switch: '+moduleswitchname[moduleswitch]);
+         if moduleswitch in moduleswitches then
+           begin
+             writeln('module switch: '+moduleswitchname[moduleswitch]);
+             exclude(moduleswitches,moduleswitch);
+           end;
+       if (moduleswitches <> []) then
+         writeln('Unknown module switch');
+       localswitches:=new_settings.localswitches;
        for localswitch:=low(tlocalswitch) to high(tlocalswitch) do
-         if localswitch in new_settings.localswitches then
-           writeln('local switch: '+localswitchname[localswitch]);
-       (* for modeswitch:=low(tmodeswitch) to high(tmodeswitch) do
-         if modeswitch in new_settings.modeswitches then
-           writeln('mode switch: '+modeswitchname[modeswitch]);
+         if localswitch in localswitches then
+           begin
+             writeln('local switch: '+localswitchname[localswitch]);
+             exclude(localswitches,localswitch);
+           end;
+       if (localswitches <> []) then
+         writeln('Unknown local switch');
+       modeswitches:=new_settings.modeswitches;
+       for modeswitch:=low(tmodeswitch) to high(tmodeswitch) do
+         if modeswitch in modeswitches then
+           begin
+             writeln(['mode switch: ',modeswitchname[modeswitch]]);
+             exclude(modeswitches,modeswitch);
+           end;
+       if (modeswitches <> []) then
+         writeln('Unknown mode switch');
+       optimizerswitches:=new_settings.optimizerswitches;
        for optimizerswitch:=low(toptimizerswitch) to high(toptimizerswitch) do
-         if optimizerswitch in new_settings.optimizerswitches then
-           writeln('optimizer switch: '+optimizerswitchname[optimizerswitch]);*)
+         if optimizerswitch in optimizerswitches then
+           begin
+             writeln(['optimizer switch: ',optimizerswitchname[optimizerswitch]]);
+             exclude(optimizerswitches,optimizerswitch);
+           end;
+       if (optimizerswitches <> []) then
+         writeln('Unknown optimizer switch');
+       writeln(['Set allocation size ',new_settings.setalloc]);
+       writeln(['Pack enums ',new_settings.packenum]);
+       writeln(['Pack records ',new_settings.packrecords]);
+       writeln(['Max FPU registers ',new_settings.maxfpuregisters]);
+
+       writeln(['CPU type ',new_settings.cputype]);
+       writeln(['CPU optimize type ',new_settings.optimizecputype]);
+       writeln(['FPU type ',new_settings.fputype]);
+       writeln(['ASM mode ',new_settings.asmmode]);
     end;
 
-  function readtoken: ttoken;
-    var
-      b,b2 : byte;
+var
+  linestr,genstr : string;
+  token : ttoken;
+  copy_size, stbi, last_col, new_col : longint;
+  last_line,new_line : dword;
+  len : sizeint;
+  wstring : widestring;
+  astring : ansistring;
+begin
+  tbi:=0;
+  last_line:=0;
+  last_col:=0;
+  linestr:='';
+  genstr:='';
+  fillchar(new_settings,sizeof(new_settings),#0);
+  fillchar(prev_settings,sizeof(prev_settings),#0);
+  write([space,' Tokens: ']);
+  while tbi<tokenbufsize do
     begin
-      b:=tokenbuf[tbi];
-      inc(tbi);
-      if (b and $80)<>0 then
+      token:=readtoken;
+      if token<>_GENERICSPECIALTOKEN then
         begin
-          b2:=tokenbuf[tbi];
-          inc(tbi);
-          result:=ttoken(((b and $7f) shl 8) or b2);
-        end
-      else
-        result:=ttoken(b);
-    end;
-  function gettokenbufdword : dword;
-  var
-    var32 : dword;
-  begin
-    var32:=unaligned(pdword(@tokenbuf[tbi])^);
-    inc(tbi,sizeof(dword));
-    if ppufile.change_endian then
-      var32:=swapendian(var32);
-{$ifdef FPC_BIG_ENDIAN}
-    { Tokens seems to be swapped to little endian in compiler code }
-    var32:=swapendian(var32);
-{$endif}
-    result:=var32;
-  end;
-
-  function gettokenbufword : word;
-  var
-    var16 : word;
-  begin
-    var16:=unaligned(pword(@tokenbuf[tbi])^);
-    inc(tbi,sizeof(word));
-    if ppufile.change_endian then
-      var16:=swapendian(var16);
-{$ifdef FPC_BIG_ENDIAN}
-    { Tokens seems to be swapped to little endian in compiler code }
-    var16:=swapendian(var16);
-{$endif}
-    result:=var16;
-  end;
-
-
-  function gettokenbufsizeint : int64;
-  var
-    var64 : int64;
-    var32 : longint;
-    var16 : smallint;
-
-  begin
-    if CpuAddrBitSize[cpu]=64 then
-      begin
-        var64:=unaligned(pint64(@tokenbuf[tbi])^);
-        inc(tbi,sizeof(int64));
-        if ppufile.change_endian then
-          var64:=swapendian(var64);
-{$ifdef FPC_BIG_ENDIAN}
-        { Tokens seems to be swapped to little endian in compiler code }
-        var64:=swapendian(var64);
-{$endif}
-        result:=var64;
-      end
-    else if CpuAddrBitSize[cpu]=32 then
-      begin
-        var32:=unaligned(plongint(@tokenbuf[tbi])^);
-        inc(tbi,sizeof(longint));
-        if ppufile.change_endian then
-          var32:=swapendian(var32);
-{$ifdef FPC_BIG_ENDIAN}
-        { Tokens seems to be swapped to little endian in compiler code }
-        var32:=swapendian(var32);
-{$endif}
-        result:=var32;
-      end
-    else if CpuAddrBitSize[cpu]=16 then
-      begin
-        var16:=unaligned(psmallint(@tokenbuf[tbi])^);
-        inc(tbi,sizeof(smallint));
-        if ppufile.change_endian then
-          var16:=swapendian(var16);
-{$ifdef FPC_BIG_ENDIAN}
-        { Tokens seems to be swapped to little endian in compiler code }
-        var16:=swapendian(var16);
-{$endif}
-        result:=var16;
-      end
-    else
-      begin
-        WriteError('Wrong CpuAddrBitSize');
-        result:=0;
+          if token <= high(ttoken) then
+            begin
+              write(arraytokeninfo[token].str);
+              if not (token in [_CWCHAR, _CWSTRING, _CSTRING, _CCHAR,
+                                _INTCONST,_REALNUMBER, _ID]) then
+                StrAppend(linestr,lowercase(arraytokeninfo[token].str));
+            end
+          else
+            begin
+              HasMoreInfos;
+              write('Error in Token List');
+              break;
+            end;
+          {idtoken:=}readtoken;
+        end;
+      case token of
+        _CWCHAR,
+        _CWSTRING :
+          begin
+            len:=gettokenbufsizeint;
+            setlength(wstring,len);
+            move(tokenbuf[tbi],wstring[1],len*2);
+            write([' ''',wstring,'''']);
+            StrAppend(linestr,' ''');
+            StrAppend(linestr,wstring);
+            StrAppend(linestr,'''');
+            inc(tbi,len*2);
+          end;
+        _CSTRING:
+          begin
+            len:=gettokenbufsizeint;
+            setlength(astring,len);
+            if len>0 then
+              move(tokenbuf[tbi],astring[1],len);
+            write([' ''',astring,'''']);
+            StrAppend(linestr,' ''');
+            StrAppend(linestr,astring);
+            StrAppend(linestr,'''');
+            inc(tbi,len);
+          end;
+        _CCHAR:
+          begin
+            write([' ''',unaligned(pshortstring(@tokenbuf[tbi])^),'''']);
+            StrAppend(linestr,' ''');
+            StrAppend(linestr,unaligned(pshortstring(@tokenbuf[tbi])^));
+            StrAppend(linestr,'''');
+            inc(tbi,tokenbuf[tbi]+1);
+          end;
+        _INTCONST,
+        _REALNUMBER :
+          begin
+            write([' ',unaligned(pshortstring(@tokenbuf[tbi])^)]);
+            StrAppend(linestr,unaligned(pshortstring(@tokenbuf[tbi])^));
+            inc(tbi,tokenbuf[tbi]+1);
+          end;
+        _ID :
+          begin
+            write([' ',unaligned(pshortstring(@tokenbuf[tbi])^)]);
+            StrAppend(linestr,unaligned(pshortstring(@tokenbuf[tbi])^));
+            inc(tbi,tokenbuf[tbi]+1);
+          end;
+        _GENERICSPECIALTOKEN:
+          begin
+            { Short version of column change,
+              byte or $80 used }
+            if (tokenbuf[tbi] and $80)<>0 then
+              begin
+                new_col:=tokenbuf[tbi] and $7f;
+                write(['Col: ',new_col]);
+                if length(linestr)<new_col-1 then
+                  StrAppend(linestr,StringOfChar(' ',new_col - 1 - length(linestr)));
+                inc(tbi);
+                last_col:=new_col;
+              end
+            else
+              case tspecialgenerictoken(tokenbuf[tbi]) of
+                ST_LOADSETTINGS:
+                  begin
+                    inc(tbi);
+                    write([space,'Settings: ']);
+                    fillchar(new_settings,sizeof(new_settings),#0);
+                    { This does not load pmessage pointer }
+                    new_settings.pmessage:=nil;
+                    { TSettings size depends in target...
+                      We first read the size of the copied part }
+                    { Still not cross endian ready :( }
+                    copy_size:=gettokenbufsizeint;
+                    stbi:=tbi;
+                    tokenreadsettings(new_settings, copy_size);
+                    tbi:=stbi+copy_size;
+                    if CompareByte(new_settings,prev_settings,sizeof(new_settings))<>0 then
+                      begin
+                        dump_new_settings;
+                        writeln;
+                      end
+                    else
+                      begin
+                        writeln('Unchanged');
+                      end;
+                    prev_settings:=new_settings;
+                  end;
+                ST_LOADMESSAGES:
+                  begin
+                    inc(tbi);
+                    mesgnb:=tokenbuf[tbi];
+                    writeln([space,mesgnb,' messages: ']);
+                    inc(tbi);
+                    for nb:=1 to mesgnb do
+                      begin
+                        msgvalue:=gettokenbufsizeint;
+                        //inc(tbi,sizeof(sizeint));
+                        state:=tmsgstate(gettokenbufsizeint);
+                        writeln(['#',msgvalue,' ',state]);
+                      end;
+                  end;
+                ST_LINE:
+                  begin
+                    inc(tbi);
+                    new_line:=gettokenbufdword;
+                    if (new_line<>last_line) then
+                      begin
+                        StrAppend(genstr,linestr+LineEnding);
+                        linestr:='';
+                      end;
+                    writeln(['Line: ',new_line]);
+                    last_line:=new_line;
+                  end;
+                ST_COLUMN:
+                  begin
+                    inc(tbi);
+                    new_col:=gettokenbufword;
+                    write(['Col: ',new_col]);
+                    if length(linestr)<new_col - 1 then
+                      StrAppend(linestr,StringOfChar(' ',new_col - 1 - length(linestr)));
+                    last_col:=new_col;
+                  end;
+                ST_FILEINDEX:
+                  begin
+                    inc(tbi);
+                    StrAppend(genstr,linestr+LineEnding);
+                    linestr:='';
+                    write(['File: ',gettokenbufword]);
+                  end;
+                else
+                  begin
+                    HasMoreInfos;
+                    write('Error in Token List');
+                    break;
+                  end;
+              end;
+          end;
+        else ; { empty else to avoid warning }
       end;
-  end;
 
+      if tbi<tokenbufsize then
+        write(',');
+    end;
+  writeln;
+  StrAppend(genstr,linestr);
+  writeln(['##',genstr,'##']);
+end;
+
+procedure readcommondef(const s:string; out defoptions: tdefoptions; Def: TPpuDef = nil);
+type
+  tdefopt=record
+    mask : tdefoption;
+    str  : string[30];
+  end;
+  tdefstateinfo=record
+    mask : tdefstate;
+    str  : string[30];
+  end;
+  tgenconstrflag=record
+    mask : tgenericconstraintflag;
+    str  : string[30];
+  end;
+const
+  defopt : array[1..ord(high(tdefoption))] of tdefopt=(
+     (mask:df_unique;         str:'Unique Type'),
+     (mask:df_generic;        str:'Generic'),
+     (mask:df_specialization; str:'Specialization'),
+     (mask:df_copied_def;     str:'Copied Typedef'),
+     (mask:df_genconstraint;  str:'Generic Constraint'),
+     { this should never happen for defs stored to a ppu file }
+     (mask:df_not_registered_no_free;  str:'Unregistered/No free (invalid)'),
+     (mask:df_llvm_no_struct_packing;  str:'LLVM unpacked struct'),
+     (mask:df_internal;       str:'Internal')
+  );
+  defstate : array[1..ord(high(tdefstate))] of tdefstateinfo=(
+     (mask:ds_vmt_written;           str:'VMT Written'),
+     (mask:ds_rtti_table_used;       str:'RTTITable Used'),
+     (mask:ds_init_table_used;       str:'InitTable Used'),
+     (mask:ds_rtti_table_written;    str:'RTTITable Written'),
+     (mask:ds_init_table_written;    str:'InitTable Written'),
+     (mask:ds_dwarf_dbg_info_used;   str:'Dwarf DbgInfo Used'),
+     (mask:ds_dwarf_dbg_info_written;str:'Dwarf DbgInfo Written')
+  );
+  genconstrflag : array[1..ord(high(tgenericconstraintflag))] of tgenconstrflag=(
+     (mask:gcf_constructor; str:'Constructor'),
+     (mask:gcf_class;       str:'Class'),
+     (mask:gcf_record;      str:'Record')
+  );
+  
+var
+  defstates  : tdefstates;
+  i, nb, len : longint;
+  first  : boolean;
+  min_size, tokenbufsize : longint;
+  tokenbuf : pbyte;
+  genconstr : tgenericconstraintflags;
 begin
   i:=ppufile.getlongint;
   if Def <> nil then
@@ -2074,175 +2833,11 @@ begin
     end;
   if df_generic in defoptions then
     begin
-      last_line:=0;
-      last_col:=0;
-      linestr:='';
-      genstr:='';
       tokenbufsize:=ppufile.getlongint;
       writeln([space,' Tokenbuffer size : ',tokenbufsize]);
       tokenbuf:=allocmem(tokenbufsize);
       ppufile.getdata(tokenbuf^,tokenbufsize);
-      tbi:=0;
-      write([space,' Tokens: ']);
-      while tbi<tokenbufsize do
-        begin
-          token:=readtoken;
-          if token<>_GENERICSPECIALTOKEN then
-            begin
-              if token <= high(ttoken) then
-                begin
-                  write(arraytokeninfo[token].str);
-                  if not (token in [_CWCHAR, _CWSTRING, _CSTRING, _CCHAR,
-                                    _INTCONST,_REALNUMBER, _ID]) then
-                    StrAppend(linestr,lowercase(arraytokeninfo[token].str));
-                end
-              else
-                begin
-                  HasMoreInfos;
-                  write('Error in Token List');
-                  break;
-                end;
-              {idtoken:=}readtoken;
-            end;
-          case token of
-            _CWCHAR,
-            _CWSTRING :
-              begin
-                len:=gettokenbufsizeint;
-                setlength(wstring,len);
-                move(tokenbuf[tbi],wstring[1],len*2);
-                write([' ''',wstring,'''']);
-                StrAppend(linestr,' ''');
-                StrAppend(linestr,wstring);
-                StrAppend(linestr,'''');
-                inc(tbi,len*2);
-              end;
-            _CSTRING:
-              begin
-                len:=gettokenbufsizeint;
-                setlength(astring,len);
-                if len>0 then
-                  move(tokenbuf[tbi],astring[1],len);
-                write([' ''',astring,'''']);
-                StrAppend(linestr,' ''');
-                StrAppend(linestr,astring);
-                StrAppend(linestr,'''');
-                inc(tbi,len);
-              end;
-            _CCHAR:
-              begin
-                write([' ''',unaligned(pshortstring(@tokenbuf[tbi])^),'''']);
-                StrAppend(linestr,' ''');
-                StrAppend(linestr,unaligned(pshortstring(@tokenbuf[tbi])^));
-                StrAppend(linestr,'''');
-                inc(tbi,tokenbuf[tbi]+1);
-              end;
-            _INTCONST,
-            _REALNUMBER :
-              begin
-                write([' ',unaligned(pshortstring(@tokenbuf[tbi])^)]);
-                StrAppend(linestr,unaligned(pshortstring(@tokenbuf[tbi])^));
-                inc(tbi,tokenbuf[tbi]+1);
-              end;
-            _ID :
-              begin
-                write([' ',unaligned(pshortstring(@tokenbuf[tbi])^)]);
-                StrAppend(linestr,unaligned(pshortstring(@tokenbuf[tbi])^));
-                inc(tbi,tokenbuf[tbi]+1);
-              end;
-            _GENERICSPECIALTOKEN:
-              begin
-                { Short version of column change,
-                  byte or $80 used }
-                if (tokenbuf[tbi] and $80)<>0 then
-                  begin
-                    new_col:=tokenbuf[tbi] and $7f;
-                    write(['Col: ',new_col]);
-                    if length(linestr)<new_col-1 then
-                      StrAppend(linestr,StringOfChar(' ',new_col - 1 - length(linestr)));
-                    inc(tbi);
-                    last_col:=new_col;
-                  end
-                else
-                  case tspecialgenerictoken(tokenbuf[tbi]) of
-                    ST_LOADSETTINGS:
-                      begin
-                        inc(tbi);
-                        write('Settings: ');
-                        fillchar(new_settings,sizeof(new_settings),#0);
-                        { This does not load pmessage pointer }
-                        new_settings.pmessage:=nil;
-                        { TSettings size depends in target...
-                          We first read the size of the copied part }
-                        { Still not cross endian ready :( }
-                        copy_size:=gettokenbufsizeint;
-                        if copy_size < sizeof(tsettings)-sizeof(pointer) then
-                          min_size:=copy_size
-                        else
-                          min_size:= sizeof(tsettings)-sizeof(pointer);
-                        move(tokenbuf[tbi],new_settings, min_size);
-                        inc(tbi,copy_size);
-                        dump_new_settings;
-                        writeln;
-                      end;
-                    ST_LOADMESSAGES:
-                      begin
-                        inc(tbi);
-                        write('Messages:');
-                        mesgnb:=tokenbuf[tbi];
-                        inc(tbi);
-                        for nb:=1 to mesgnb do
-                          begin
-                            {msgvalue:=}gettokenbufsizeint;
-                            inc(tbi,sizeof(sizeint));
-                            //state:=tmsgstate(gettokenbufsizeint);
-                          end;
-                      end;
-                    ST_LINE:
-                      begin
-                        inc(tbi);
-                        new_line:=gettokenbufdword;
-                        if (new_line<>last_line) then
-                          begin
-                            StrAppend(genstr,linestr+LineEnding);
-                            linestr:='';
-                          end;
-                        write(['Line: ',new_line]);
-                        last_line:=new_line;
-                      end;
-                    ST_COLUMN:
-                      begin
-                        inc(tbi);
-                        new_col:=gettokenbufword;
-                        write(['Col: ',new_col]);
-                        if length(linestr)<new_col - 1 then
-                          StrAppend(linestr,StringOfChar(' ',new_col - 1 - length(linestr)));
-                        last_col:=new_col;
-                      end;
-                    ST_FILEINDEX:
-                      begin
-                        inc(tbi);
-                        StrAppend(genstr,linestr+LineEnding);
-                        linestr:='';
-                        write(['File: ',gettokenbufword]);
-                      end;
-                    else
-                      begin
-                        HasMoreInfos;
-                        write('Error in Token List');
-                        break;
-                      end;
-                  end;
-              end;
-            else ; { empty else to avoid warning }
-          end;
-
-          if tbi<tokenbufsize then
-            write(',');
-        end;
-      writeln;
-      StrAppend(genstr,linestr);
-      writeln(genstr);
+      displaytokenbuffer(tokenbuf,tokenbufsize);
       freemem(tokenbuf);
     end;
   if df_specialization in defoptions then
@@ -2250,6 +2845,9 @@ begin
       write  ([space,' Orig. GenericDef : ']);
       readderef('');
     end;
+  space:=space+'    ';
+  readattrs(def);
+  delete(space,1,4);
   current_defoptions:=defoptions;
 end;
 
@@ -3143,10 +3741,7 @@ begin
              write  ([space,' DefaultConst : ']);
              readderef('');
              if (vo_has_mangledname in varoptions) then
-               if tsystemcpu(ppufile.header.common.cpu)=cpu_jvm then
-                 writeln([space,'AMangledname : ',getansistring])
-               else
-                 writeln([space,'SMangledname : ',getstring]);
+               writeln([space,'Mangledname : ',readsymstr(ppufile)]);
              if vo_has_section in varoptions then
                writeln(['Section name:',ppufile.getansistring]);
              write  ([space,' FieldVarSymDeref: ']);
@@ -3216,6 +3811,7 @@ begin
            begin
              def:=TPpuPropDef.Create(ParentDef);
              readcommonsym('Property ',def);
+             write  ([space,' Prop Options : ']);
              propoptions:=readpropertyoptions;
              if ppo_overrides in propoptions then
                begin
@@ -3231,6 +3827,7 @@ begin
              write  ([space,'   Index Type : ']);
              readderef('');
              { palt_none }
+             write  ([space,'   Noneaccess : ']);
              readpropaccesslist('');
              write  ([space,'   Readaccess : ']);
              readpropaccesslist(space+'         Sym: ',TPpuPropDef(def).Getter);
@@ -3260,6 +3857,8 @@ begin
              WriteError('!! Skipping unsupported PPU Entry in Symbols: '+IntToStr(b));
            end;
        end;
+       if assigned(def) then
+         readsymsubentries(def);
        if (def <> nil) and (def.Parent = nil) then
          def.Free;
        if not EndOfEntry then
@@ -3571,10 +4170,7 @@ begin
              readcommondef('Procedure definition',defoptions,def);
              read_abstract_proc_def(calloption,procoptions,TPpuProcDef(def));
              if (po_has_mangledname in procoptions) then
-               if tsystemcpu(ppufile.header.common.cpu)=cpu_jvm then
-                 writeln([space,'     Mangled name : ',getansistring])
-               else
-                 writeln([space,'     Mangled name : ',getstring]);
+               writeln([space,'     Mangled name : ',readsymstr(ppufile)]);
              writeln([space,'           Number : ',getword]);
              writeln([space,'            Level : ',getbyte]);
              write  ([space,'            Class : ']);
@@ -3620,10 +4216,13 @@ begin
              tokenbufsize:=ppufile.getlongint;
              if tokenbufsize<>0 then
                begin
-                 write  ([space,'      Declaration token buffer : TODO']);
+                 space:=space + '    ';
+                 write  ([space,'Declaration token buffer : size = ',tokenbufsize]);
                  tokenbuf:=allocmem(tokenbufsize);
                  ppufile.getdata(tokenbuf^,tokenbufsize);
+                 displaytokenbuffer(tokenbuf,tokenbufsize);
                  freemem(tokenbuf);
+                 delete(space,1,4);
                end;
              if po_syscall_has_libsym in procoptions then
                begin
@@ -3638,7 +4237,9 @@ begin
              readsymtable('parast', TPpuProcDef(def));
              { localst }
              if (pio_has_inlininginfo in implprocoptions) then
-                readsymtable('localst');
+                readsymtable('inline localst')
+             else if (df_generic in defoptions) then
+                readsymtable('generic localst');
              if (pio_has_inlininginfo in implprocoptions) then
                readnodetree;
              delete(space,1,4);
@@ -3738,8 +4339,7 @@ begin
              if not(df_copied_def in current_defoptions) then
                begin
                  space:='    '+space;
-                 readrecsymtableoptions;
-                 readsymtable('fields',TPpuRecordDef(def));
+                 readrecordsymtable('fields',TPpuRecordDef(def));
                  Delete(space,1,4);
                end;
              if not EndOfEntry then
@@ -3858,8 +4458,7 @@ begin
                begin
                  {read the record definitions and symbols}
                  space:='    '+space;
-                 readrecsymtableoptions;
-                 readsymtable('fields',objdef);
+                 readrecordsymtable('fields',objdef);
                  Delete(space,1,4);
               end;
              if not EndOfEntry then
@@ -3986,6 +4585,8 @@ begin
              WriteError('!! Skipping unsupported PPU Entry in definitions: '+IntToStr(b));
            end;
        end;
+       if assigned(def) then
+         readdefsubentries(def);
        if (def <> nil) and (def.Parent = nil) then
          def.Free;
        if not EndOfEntry then
@@ -4067,6 +4668,8 @@ begin
              CurUnit.LongVersion:=cardinal(getlongint);
              Writeln(['LongVersion: ',CurUnit.LongVersion]);
              getsmallset(CurUnit.ModuleFlags);
+             if mf_symansistr in CurUnit.ModuleFlags then
+               SymAnsiStr:=true;
            end;
 
          ibmodulename :
@@ -4252,18 +4855,14 @@ function parseextraheader(module: TPpuModuleDef; ppufile: tppufile): boolean;
 var
   b: byte;
 begin
-  result:=true;
-  if ppuversion>=207 then
-    begin
-      result:=false;
-      b:=ppufile.readentry;
-      if b<>ibextraheader then
-        exit;
-      CurUnit.LongVersion:=cardinal(ppufile.getlongint);
-      Writeln(['LongVersion: ',CurUnit.LongVersion]);
-      ppufile.getsmallset(CurUnit.ModuleFlags);
-      result:=ppufile.EndOfEntry;
-    end;
+  result:=false;
+  b:=ppufile.readentry;
+  if b<>ibextraheader then
+    exit;
+  CurUnit.LongVersion:=cardinal(ppufile.getlongint);
+  Writeln(['LongVersion: ',CurUnit.LongVersion]);
+  ppufile.getsmallset(CurUnit.ModuleFlags);
+  result:=ppufile.EndOfEntry;
 end;
 
 procedure dofile (filename : string);
@@ -4289,11 +4888,6 @@ begin
   ppuversion:=ppufile.getversion;
 
   Writeln(['Analyzing ',filename,' (v',PPUVersion,')']);
-  if PPUVersion<16 then
-   begin
-     WriteError(Filename+' : Old PPU Formats (<v16) are not supported, Skipping');
-     exit;
-   end;
 
   if not SkipVersionCheck and (PPUVersion <> CurrentPPUVersion) then
    begin

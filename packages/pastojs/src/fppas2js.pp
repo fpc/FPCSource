@@ -1340,7 +1340,7 @@ type
   protected
     procedure AddType(El: TPasType); override;
     procedure AddRecordType(El: TPasRecordType); override;
-    procedure AddClassType(El: TPasClassType); override;
+    procedure AddClassType(El: TPasClassType; TypeParams: TFPList); override;
     procedure AddEnumType(El: TPasEnumType); override;
     procedure ResolveImplAsm(El: TPasImplAsmStatement); override;
     procedure ResolveNameExpr(El: TPasExpr; const aName: string;
@@ -2806,7 +2806,10 @@ begin
   else if C.InheritsFrom(TPasProcedure) then
     begin
     if TPasProcedure(El).IsOverride then
-      exit(true);
+      exit(true); // using name of overridden
+    if El.Visibility=visPublished then
+      exit(false);
+
     // Note: external proc pollutes the name space
     ProcScope:=TPasProcedureScope(El.CustomData);
     if ProcScope.DeclarationProc<>nil then
@@ -3241,9 +3244,9 @@ begin
     AddElevatedLocal(El);
 end;
 
-procedure TPas2JSResolver.AddClassType(El: TPasClassType);
+procedure TPas2JSResolver.AddClassType(El: TPasClassType; TypeParams: TFPList);
 begin
-  inherited AddClassType(El);
+  inherited AddClassType(El,TypeParams);
 end;
 
 procedure TPas2JSResolver.AddEnumType(El: TPasEnumType);
@@ -4903,12 +4906,12 @@ begin
     end;
 
   // search for TIName
-  ResetSubExprScopes(ScopeDepth);
+  ScopeDepth:=StashSubExprScopes;
   FindData:=Default(TPRFindData);
   FindData.ErrorPosEl:=Params;
   Abort:=false;
   IterateElements(TIName,@OnFindFirst,@FindData,Abort);
-  RestoreSubExprScopes(ScopeDepth);
+  RestoreStashedScopes(ScopeDepth);
   {$IFDEF VerbosePas2JS}
   writeln('TPas2JSResolver.BI_TypeInfo_OnGetCallResult TIName="',TIName,'" FindData.Found="',GetObjName(FindData.Found),'"');
   {$ENDIF}
@@ -11225,6 +11228,31 @@ end;
 
 function TPasToJSConverter.ConvertBuiltIn_Ord(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
+
+  function CheckOrdConstant(aResolver: TPas2JSResolver; Param: TPasExpr): TJSElement;
+  var
+    ParamValue, OrdValue: TResEvalValue;
+  begin
+    Result:=nil;
+    OrdValue:=nil;
+    ParamValue:=aResolver.Eval(Param,[]);
+    try
+      if ParamValue<>nil then
+        begin
+        OrdValue:=aResolver.ExprEvaluator.OrdValue(ParamValue,El);
+        if OrdValue<>nil then
+          begin
+          // ord(constant) -> constant
+          Result:=ConvertConstValue(OrdValue,AContext,El);
+          exit;
+          end;
+        end;
+    finally
+      ReleaseEvalValue(ParamValue);
+      ReleaseEvalValue(OrdValue);
+    end;
+  end;
+
 var
   ParamResolved, SubParamResolved: TPasResolverResult;
   Param, SubParam: TPasExpr;
@@ -11233,12 +11261,14 @@ var
   SubParamJS: TJSElement;
   Minus: TJSAdditiveExpressionMinus;
   Add: TJSAdditiveExpressionPlus;
+  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
-  if AContext.Resolver=nil then
+  aResolver:=AContext.Resolver;
+  if aResolver=nil then
     RaiseInconsistency(20170210105235,El);
   Param:=El.Params[0];
-  AContext.Resolver.ComputeElement(Param,ParamResolved,[]);
+  aResolver.ComputeElement(Param,ParamResolved,[]);
   if ParamResolved.BaseType=btChar then
     begin
     if Param is TParamsExpr then
@@ -11272,6 +11302,11 @@ begin
           exit;
           end;
         end;
+      end
+    else
+      begin
+      Result:=CheckOrdConstant(aResolver,Param);
+      if Result<>nil then exit;
       end;
     // ord(aChar) -> aChar.charCodeAt()
     Result:=ConvertExpression(Param,AContext);
@@ -11281,6 +11316,9 @@ begin
     end
   else if ParamResolved.BaseType in btAllJSBooleans then
     begin
+    // ord(bool)
+    Result:=CheckOrdConstant(aResolver,Param);
+    if Result<>nil then exit;
     // ord(bool) ->  bool+0
     Result:=ConvertExpression(Param,AContext);
     // Note: convert Param first, as it might raise an exception
@@ -13288,6 +13326,9 @@ var
   aResolver: TPas2JSResolver;
 begin
   Result:=nil;
+  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
+    exit;
+
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertClassType START ',GetObjName(El));
   {$ENDIF}
@@ -13945,6 +13986,8 @@ var
   Prop: TJSObjectLiteralElement;
 begin
   Result:=nil;
+  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
+    exit;
   if El.IsNested then
     DoError(20170222231636,nPasElementNotSupported,sPasElementNotSupported,
       ['is nested'],El);
@@ -14068,6 +14111,8 @@ var
   ReturnSt: TJSReturnStatement;
 begin
   Result:=nil;
+  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
+    exit;
   if El.PackMode<>pmNone then
     DoError(20170222231648,nPasElementNotSupported,sPasElementNotSupported,
        ['packed'],El);
@@ -22822,6 +22867,8 @@ var
   VarSt: TJSVariableStatement;
 begin
   Result:=nil;
+  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
+    exit;
   if El.Name='' then
     RaiseNotSupported(El,AContext,20190105101258,'anonymous record');
   {$IFDEF VerbosePas2JS}

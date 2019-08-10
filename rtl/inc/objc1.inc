@@ -50,13 +50,13 @@ type
       types, as many are used internally by the compiler.
   }
 
-  { BOOL is one byte and uses 0/1, just like Pascal }
+  { ObjCBOOL is one byte and uses 0/1, just like Pascal }
 {$ifndef VER3_0}
-  BOOL = boolean8;
+  ObjCBOOL = boolean8;
 {$else}
-  BOOL = boolean;
+  ObjCBOOL = boolean;
 {$endif}
-  pBOOL = ^BOOL;
+  pObjCBOOL = ^ObjCBOOL;
 
   tobjc_class = record
   end;
@@ -152,7 +152,7 @@ type
 {$endif}
 
   function class_getName(cls:pobjc_class):PChar; cdecl; inline;
-  function class_isMetaClass(cls:pobjc_class):BOOL; cdecl;
+  function class_isMetaClass(cls:pobjc_class):ObjCBOOL; cdecl;
   function class_getSuperclass(cls:pobjc_class):pobjc_class; cdecl; inline;
 
   function class_getVersion(cls:pobjc_class):longint; cdecl; external libname;
@@ -168,10 +168,10 @@ type
   function class_getClassMethod(cls:pobjc_class; name:SEL):Method; cdecl; external libname;
   function class_getMethodImplementation(cls:pobjc_class; name:SEL):IMP; cdecl; external libname;
   function class_getMethodImplementation_stret(cls:pobjc_class; name:SEL):IMP; cdecl; external libname;
-  function class_respondsToSelector(cls:pobjc_class; sel:SEL):BOOL; cdecl; external libname;
+  function class_respondsToSelector(cls:pobjc_class; sel:SEL):ObjCBOOL; cdecl; external libname;
   function class_copyMethodList(cls:pobjc_class; outCount:pdword):PMethod; cdecl; external libname;
 
-  function class_conformsToProtocol(cls:pobjc_class; protocol: pobjc_protocol):BOOL; cdecl; external libname;
+  function class_conformsToProtocol(cls:pobjc_class; protocol: pobjc_protocol):ObjCBOOL; cdecl; external libname;
   function class_copyProtocolList(cls:pobjc_class; var outCount: dword):ppobjc_protocol; cdecl; external libname;
 
   function class_createInstance(cls:pobjc_class; extraBytes:size_t):id; cdecl; external libname;
@@ -182,9 +182,9 @@ type
   function objc_duplicateClass(original:pobjc_class; name:pchar; extraBytes:size_t):pobjc_class; cdecl; external libname;
   procedure objc_disposeClassPair(cls:pobjc_class); cdecl; external libname;
 
-  function class_addMethod(cls:pobjc_class; name:SEL; imp:IMP; types:pchar):BOOL; cdecl; external libname;
-  function class_addIvar(cls:pobjc_class; name:pchar; size:size_t; alignment:uint8_t; types:pchar):BOOL; cdecl; external libname;
-  function class_addProtocol(cls:pobjc_class; protocol:pProtocol):BOOL; cdecl; external libname;
+  function class_addMethod(cls:pobjc_class; name:SEL; imp:IMP; types:pchar):ObjCBOOL; cdecl; external libname;
+  function class_addIvar(cls:pobjc_class; name:pchar; size:size_t; alignment:uint8_t; types:pchar):ObjCBOOL; cdecl; external libname;
+  function class_addProtocol(cls:pobjc_class; protocol:pProtocol):ObjCBOOL; cdecl; external libname;
 *)
 
   function method_getName(m:Method):SEL; cdecl; inline;
@@ -205,7 +205,7 @@ type
   function ivar_getOffset(v:Ivar):ptrdiff_t; cdecl; inline;
 
 (*
-  function sel_isEqual(lhs:SEL; rhs:SEL):BOOL; cdecl; external libname;
+  function sel_isEqual(lhs:SEL; rhs:SEL):ObjCBOOL; cdecl; external libname;
 *)
 
   { fast enumeration support (available on Mac OS X 10.5 and later) }
@@ -334,7 +334,7 @@ function class_getSuperclass(cls:pobjc_class):pobjc_class; cdecl; inline;
     class_getSuperclass := pobjc_class(pobjc_class1(cls)^.super_class);
   end;
 
-function class_isMetaClass(cls:_Class):BOOL; cdecl;
+function class_isMetaClass(cls:_Class):ObjCBOOL; cdecl;
   begin
     class_isMetaClass := Assigned(cls) and (pobjc_class1(cls)^.Info = CLS_META);
   end;

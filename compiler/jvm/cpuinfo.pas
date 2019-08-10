@@ -14,6 +14,8 @@
 
 Unit cpuinfo;
 
+{$i fpcdefs.inc}
+
 Interface
 
   uses

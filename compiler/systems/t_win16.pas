@@ -67,12 +67,16 @@ implementation
          constructor Create;override;
          procedure SetDefaultInfo;override;
          function  MakeExecutable:boolean;override;
+         function  MakeSharedLibrary:boolean;override;
       end;
 
       { TInternalLinkerWin16 }
 
       TInternalLinkerWin16=class(tinternallinker)
       protected
+        function GetCodeSize(aExeOutput: TExeOutput): QWord;override;
+        function GetDataSize(aExeOutput: TExeOutput): QWord;override;
+        function GetBssSize(aExeOutput: TExeOutput): QWord;override;
         procedure DefaultLinkScript;override;
       public
         constructor create;override;
@@ -120,7 +124,7 @@ begin
       for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
         begin
           ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
-          AddImport(ImportLibrary.Name,ImportSymbol.Name,ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
+          AddImport(StripDllExt(ImportLibrary.Name),ImportSymbol.Name,ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
         end;
     end;
   ObjOutput.Free;
@@ -246,6 +250,8 @@ begin
 
   LinkRes.Add('option quiet');
 
+  LinkRes.Add('option description '+maybequoted(description));
+
   if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
     LinkRes.Add('debug dwarf')
   else if target_dbg.id=dbg_codeview then
@@ -274,11 +280,17 @@ begin
     if s<>'' then
       LinkRes.Add('library '+MaybeQuoted(s));
   end;
-  LinkRes.Add('format windows');
+  if isdll then
+    LinkRes.Add('format windows dll')
+  else
+    LinkRes.Add('format windows');
   LinkRes.Add('option heapsize='+tostr(heapsize));
   if (cs_link_map in current_settings.globalswitches) then
     LinkRes.Add('option map='+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
-  LinkRes.Add('name ' + maybequoted(current_module.exefilename));
+  if isdll then
+    LinkRes.Add('name ' + maybequoted(current_module.sharedlibfilename))
+  else
+    LinkRes.Add('name ' + maybequoted(current_module.exefilename));
   LinkRes.Add('option dosseg');
 
   { Write and Close response }
@@ -301,6 +313,7 @@ begin
   with Info do
    begin
      ExeCmd[1]:='wlink $OPT $RES';
+     DllCmd[1]:='wlink $OPT $RES';
    end;
 end;
 
@@ -329,15 +342,60 @@ begin
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
 
+function TExternalLinkerWin16WLink.MakeSharedLibrary:boolean;
+var
+  binstr,
+  cmdstr  : TCmdStr;
+  success : boolean;
+begin
+  if not(cs_link_nolink in current_settings.globalswitches) then
+    Message1(exec_i_linking,current_module.sharedlibfilename);
+
+  { Write used files and libraries and our own tlink script }
+  WriteResponsefile(true);
+
+  { Call linker }
+  SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
+  Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
+
+  { Remove ReponseFile }
+  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+    DeleteFile(outputexedir+Info.ResName);
+
+  MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
+end;
+
 
 {****************************************************************************
                                TInternalLinkerWin16
 ****************************************************************************}
 
+function TInternalLinkerWin16.GetCodeSize(aExeOutput: TExeOutput): QWord;
+begin
+  { todo }
+  Result:=0;
+end;
+
+function TInternalLinkerWin16.GetDataSize(aExeOutput: TExeOutput): QWord;
+begin
+  { todo }
+  Result:=0;
+end;
+
+function TInternalLinkerWin16.GetBssSize(aExeOutput: TExeOutput): QWord;
+begin
+  { todo }
+  Result:=0;
+end;
+
 procedure TInternalLinkerWin16.DefaultLinkScript;
 var
   s: TCmdStr;
 begin
+  if IsSharedLibrary then
+    LinkScript.Concat('ISSHAREDLIBRARY');
   { add objectfiles, start with prt0 always }
   case current_settings.x86memorymodel of
     mm_small:   LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0s','',false)));
@@ -363,9 +421,11 @@ begin
   end;
   LinkScript.Concat('ENDGROUP');
 
-  LinkScript.Concat('EXESECTION .MZ_flat_content');
+  LinkScript.Concat('EXESECTION .NE_code');
   LinkScript.Concat('  OBJSECTION _TEXT||CODE');
   LinkScript.Concat('  OBJSECTION *||CODE');
+  LinkScript.Concat('ENDEXESECTION');
+  LinkScript.Concat('EXESECTION .NE_data');
   LinkScript.Concat('  OBJSECTION *||FAR_DATA');
   LinkScript.Concat('  OBJSECTION _NULL||BEGDATA');
   LinkScript.Concat('  OBJSECTION _AFTERNULL||BEGDATA');

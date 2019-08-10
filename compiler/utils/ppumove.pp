@@ -66,6 +66,7 @@ const
   link_static  = $2;
   link_smart   = $4;
   link_shared  = $8;
+  link_lto     = $10;
 
 Type
   PLinkOEnt = ^TLinkOEnt;
@@ -249,8 +250,10 @@ Var
   s      : string;
   ppuversion,
   ppulongversion: dword;
+  gotltofiles: boolean;
 begin
   DoPPU:=false;
+  gotltofiles:=false;
   If Not Quiet then
    Write ('Processing ',PPUFn,'...');
   inppu:=tppufile.create(PPUFn);
@@ -354,19 +357,23 @@ begin
     iblinkunitofiles :
       begin
         { add all o files, and save the entry when not creating a static
-          library to keep staticlinking possible }
+          library to keep staticlinking possible (also keep possibility
+          to link lto) }
         while not inppu.endofentry do
          begin
            s:=inppu.getstring;
            m:=inppu.getlongint;
-           if not MakeStatic then
+           if (not MakeStatic) or
+              ((m and link_lto)<>0) then
             begin
+              gotltofiles:=gotltofiles or ((m and link_lto)<>0);
               outppu.putstring(s);
               outppu.putlongint(m);
             end;
            AddToLinkFiles(s);
          end;
-        if not MakeStatic then
+        if not MakeStatic or
+           gotltofiles then
          outppu.writeentry(b);
       end;
 {    iblinkunitstaticlibs :
@@ -386,13 +393,19 @@ begin
   if MakeStatic then
    begin
      outppu.putstring(OutputfileForPPU);
-     outppu.putlongint(link_static);
+     if not gotltofiles then
+       outppu.putlongint(link_static)
+     else
+       outppu.putlongint(link_static or link_lto);
      outppu.writeentry(iblinkunitstaticlibs)
    end
   else
    begin
      outppu.putstring(OutputfileForPPU);
-     outppu.putlongint(link_shared);
+     if not gotltofiles then
+       outppu.putlongint(link_shared)
+     else
+       outppu.putlongint(link_shared or link_lto);
      outppu.writeentry(iblinkunitsharedlibs);
    end;
 { read all entries until the end and write them also to the new ppu }

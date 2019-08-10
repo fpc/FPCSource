@@ -217,7 +217,7 @@ uses
   defutil,systems,verbose,globals,
   symtable,paramgr,
   aasmcpu,
-  procinfo;
+  procinfo,ngenutil;
 
 {*************************************************************************
                               TExprParse
@@ -1331,6 +1331,62 @@ end;
                       Symbol table helper routines
 ****************************************************************************}
 
+procedure AddAbsoluteSymRefs(sym: tabsolutevarsym); forward;
+
+procedure MaybeAddSymRef(sym: tsym);
+begin
+  case sym.typ of
+     absolutevarsym:
+       AddAbsoluteSymRefs(tabsolutevarsym(sym));
+     staticvarsym:
+       if not(vo_is_external in tstaticvarsym(sym).varoptions) then
+         cnodeutils.RegisterUsedAsmSym(current_asmdata.RefAsmSymbol(sym.mangledname,AT_DATA),tstaticvarsym(sym).vardef,true);
+     procsym:
+       begin
+         { if it's a pure assembler routine, the definition of the symbol will also
+           be in assembler and it can't be removed by the compiler (and if we mark
+           it as used anyway, clang will get into trouble) }
+         if not(po_assembler in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions) and
+            not(po_external in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions) then
+           cnodeutils.RegisterUsedAsmSym(current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname,AT_FUNCTION),tprocdef(tprocsym(sym).ProcdefList[0]),true);
+       end;
+     else
+       ;
+   end;
+end;
+
+procedure AddAbsoluteSymRefs(sym: tabsolutevarsym);
+var
+  symlist: ppropaccesslistitem;
+begin
+  case sym.abstyp of
+    toaddr:
+      ;
+    toasm:
+      begin
+        cnodeutils.RegisterUsedAsmSym(current_asmdata.RefAsmSymbol(sym.mangledname,AT_DATA),sym.vardef,true);
+      end;
+    tovar:
+      begin
+        symlist:=tabsolutevarsym(sym).ref.firstsym;
+        repeat
+          case symlist^.sltype of
+            sl_load:
+              MaybeAddSymRef(symlist^.sym);
+            sl_subscript,
+            sl_absolutetype,
+            sl_typeconv,
+            sl_vec:
+              ;
+            else
+              internalerror(2009031401);
+          end;
+          symlist:=symlist^.next;
+        until not assigned(symlist);
+      end;
+  end;
+end;
+
 procedure AsmSearchSym(const s:string;out srsym:tsym;out srsymtable:TSymtable);
 var
   i : integer;
@@ -1391,6 +1447,9 @@ begin
       srsym:=tprocdef(srsymtable.defowner).procsym;
       srsymtable:=srsym.Owner;
     end;
+  { llvm can't catch symbol references from inline assembler blocks }
+  if assigned(srsym) then
+    MaybeAddSymRef(srsym);
 end;
 
 

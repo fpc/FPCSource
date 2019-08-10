@@ -39,8 +39,10 @@ interface
     type
        TAsmsymbind=(
          AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL,AB_WEAK_EXTERNAL,
-         { global in the current program/library, but not visible outside it }
-         AB_PRIVATE_EXTERN,AB_LAZY,AB_IMPORT,
+         { global in the current program/library, but not visible outside it
+           (= "hidden" in ELF) }
+         AB_PRIVATE_EXTERN,
+         AB_LAZY,AB_IMPORT,
          { a symbol that's internal to the compiler and used as a temp }
          AB_TEMP,
          { a global symbol that points to another global symbol and is only used
@@ -74,10 +76,10 @@ interface
        { is the label only there for getting an DataOffset (e.g. for i/o
          checks -> alt_addr) or is it a jump target (alt_jump), for debug
          info alt_dbgline and alt_dbgfile, etc. }
-       TAsmLabelType = (alt_jump,alt_addr,alt_data,alt_dbgline,alt_dbgfile,alt_dbgtype,alt_dbgframe);
+       TAsmLabelType = (alt_jump,alt_addr,alt_data,alt_dbgline,alt_dbgfile,alt_dbgtype,alt_dbgframe,alt_eh_begin,alt_eh_end);
 
     const
-       asmlabeltypeprefix : array[TAsmLabeltype] of char = ('j','a','d','l','f','t','c');
+       asmlabeltypeprefix : array[TAsmLabeltype] of string[2] = ('j','a','d','l','f','t','c','eb','ee');
        asmsymbindname : array[TAsmsymbind] of string[23] = ('none', 'external','common',
        'local','global','weak external','private external','lazy','import','internal temp',
        'indirect','external indirect');
@@ -166,7 +168,9 @@ interface
          { stack segment for 16-bit DOS }
          sec_stack,
          { initial heap segment for 16-bit DOS }
-         sec_heap
+         sec_heap,
+         { dwarf based/gcc style exception handling }
+         sec_gcc_except_table
        );
 
        TObjCAsmSectionType = sec_objc_class..sec_objc_protolist;

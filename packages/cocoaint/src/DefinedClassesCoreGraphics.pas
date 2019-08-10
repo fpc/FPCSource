@@ -1,0 +1,4 @@
+unit DefinedClassesCoreGraphics;
+interface
+implementation
+end.

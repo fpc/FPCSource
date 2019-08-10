@@ -30,7 +30,7 @@ interface
       cclasses,globtype,
       aasmbase,
       parabase,
-      symbase,symtype,symdef,
+      symconst,symbase,symtype,symdef,
       llvmbase;
 
    type
@@ -68,7 +68,7 @@ interface
       record consisting of 4 longints must be returned as a record consisting of
       two int64's on x86-64. This function is used to create (and reuse)
       temporary recorddefs for such purposes.}
-    function llvmgettemprecorddef(const fieldtypes: array of tdef; packrecords, recordalignmin, maxcrecordalign: shortint): trecorddef;
+    function llvmgettemprecorddef(const fieldtypes: array of tdef; packrecords, recordalignmin: shortint): trecorddef;
 
     { get the llvm type corresponding to a parameter, e.g. a record containing
       two integer int64 for an arbitrary record split over two individual int64
@@ -76,7 +76,7 @@ interface
       such parameters to be zero/sign extended. The second parameter can be used
       to get the type before zero/sign extension, as e.g. required to generate
       function declarations. }
-    function llvmgetcgparadef(const cgpara: tcgpara; beforevalueext: boolean): tdef;
+    function llvmgetcgparadef(const cgpara: tcgpara; beforevalueext: boolean; callercallee: tcallercallee): tdef;
 
     { can be used to extract the value extension info from acgpara. Pass in
       the def of the cgpara as first parameter and a local variable holding
@@ -116,7 +116,7 @@ implementation
     globals,cutils,constexp,
     verbose,systems,
     fmodule,
-    symtable,symconst,symsym,
+    symtable,symsym,
     llvmsym,hlcgobj,
     defutil,blockutl,cgbase,paramgr,
     cpubase;
@@ -796,6 +796,7 @@ implementation
 
     procedure llvmaddencodedproctype(def: tabstractprocdef; const customname: TSymStr; pddecltype: tllvmprocdefdecltype; var encodedstr: TSymStr);
       var
+        callingconv: ansistring;
         usedef: tdef;
         paranr: longint;
         hp: tparavarsym;
@@ -803,6 +804,12 @@ implementation
         useside: tcallercallee;
         first: boolean;
       begin
+        if not(pddecltype in [lpd_alias,lpd_procvar]) then
+          begin
+            callingconv:=llvm_callingconvention_name(def.proccalloption);
+            if callingconv<>'' then
+              encodedstr:=encodedstr+' "'+callingconv+'"';
+          end;
         { when writing a definition, we have to write the parameter names, and
           those are only available on the callee side. In all other cases,
           we are at the callerside }
@@ -815,7 +822,7 @@ implementation
         { function result (return-by-ref is handled explicitly) }
         if not paramanager.ret_in_param(def.returndef,def) then
           begin
-            usedef:=llvmgetcgparadef(def.funcretloc[useside],false);
+            usedef:=llvmgetcgparadef(def.funcretloc[useside],false,useside);
             llvmextractvalueextinfo(def.returndef,usedef,signext);
             { specifying result sign extention information for an alias causes
               an error for some reason }
@@ -855,7 +862,7 @@ implementation
       end;
 
 
-    function llvmgettemprecorddef(const fieldtypes: array of tdef; packrecords, recordalignmin, maxcrecordalign: shortint): trecorddef;
+    function llvmgettemprecorddef(const fieldtypes: array of tdef; packrecords, recordalignmin: shortint): trecorddef;
       var
         i: longint;
         res: PHashSetItem;
@@ -913,7 +920,7 @@ implementation
         if not assigned(res^.Data) then
           begin
             res^.Data:=crecorddef.create_global_internal(typename,packrecords,
-              recordalignmin,maxcrecordalign);
+              recordalignmin);
             for i:=low(fieldtypes) to high(fieldtypes) do
               trecorddef(res^.Data).add_field_by_def('F'+tostr(i),fieldtypes[i]);
           end;
@@ -922,7 +929,7 @@ implementation
       end;
 
 
-    function llvmgetcgparadef(const cgpara: tcgpara; beforevalueext: boolean): tdef;
+    function llvmgetcgparadef(const cgpara: tcgpara; beforevalueext: boolean; callercallee: tcallercallee): tdef;
       var
         retdeflist: array[0..9] of tdef;
         retloc: pcgparalocation;
@@ -967,6 +974,16 @@ implementation
               retdeflist[i]:=retloc^.def;
               dec(sizeleft,retloc^.def.size);
             end
+          { on the callerside, "byval" parameter locations have the implicit
+            pointer in their type -> remove if we wish to create a record
+            containing all actual parameter data }
+          else if (callercallee=callerside) and
+             not retloc^.llvmvalueloc then
+            begin
+              if retloc^.def.typ<>pointerdef then
+                internalerror(2019020201);
+              retdeflist[i]:=tpointerdef(retloc^.def).pointeddef
+            end
           else if retloc^.def.size<>sizeleft then
             begin
               case sizeleft of
@@ -1006,8 +1023,7 @@ implementation
           retloc:=retloc^.next;
         until not assigned(retloc);
         result:=llvmgettemprecorddef(slice(retdeflist,i),C_alignment,
-          targetinfos[target_info.system]^.alignment.recordalignmin,
-          targetinfos[target_info.system]^.alignment.maxCrecordalign);
+          targetinfos[target_info.system]^.alignment.recordalignmin);
         include(result.defoptions,df_llvm_no_struct_packing);
       end;
 

@@ -145,6 +145,7 @@ unit cgcpu;
       var
         hitem: tlinkedlistitem;
         seh_proc: tai_seh_directive;
+        regsize: longint;
         r: integer;
         href: treference;
         templist: TAsmList;
@@ -169,17 +170,28 @@ unit cgcpu;
         var
           r: longint;
           usedregs: tcpuregisterset;
+          hreg: TRegister;
         begin
           usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
           for r := low(regs_to_save_int) to high(regs_to_save_int) do
             if regs_to_save_int[r] in usedregs then
               begin
-                inc(stackmisalignment,sizeof(pint));
+                inc(regsize,sizeof(aint));
+                inc(stackmisalignment,sizeof(aint));
                 push_one_reg(newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE));
+                hreg:=newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE);
+                if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                  current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)*2+localsize))
+                else
+                  begin
+                    current_asmdata.asmcfi.cfa_offset(list,hreg,-(regsize+sizeof(pint)+localsize));
+                    current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+sizeof(pint)+localsize);
+                  end;
               end;
         end;
 
       begin
+        regsize:=0;
         regs_to_save_int:=paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption);
         regs_to_save_mm:=paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption);
         hitem:=list.last;
@@ -248,7 +260,7 @@ unit cgcpu;
                   localsize := align(localsize+stackmisalignment,target_info.stackalign)-stackmisalignment;
                 g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
-                  current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));
+                  current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
                 current_procinfo.final_localsize:=localsize;
                 if (target_info.system=system_x86_64_win64) then
                   begin
@@ -376,6 +388,7 @@ unit cgcpu;
 
                 if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
                   list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
+                current_asmdata.asmcfi.cfa_def_cfa_offset(list,sizeof(pint));
               end
             else if (target_info.system=system_x86_64_win64) then
               begin

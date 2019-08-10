@@ -42,8 +42,6 @@ interface
      procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr);override;
     end;
 
-  procedure create_hlcodegen;
-
 implementation
 
   uses
@@ -78,7 +76,7 @@ implementation
       if make_global then
         List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0,procdef))
       else
-        List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0,procdef));
+        List.concat(Tai_symbol.Createname_hidden(labelname,AT_FUNCTION,0,procdef));
 
       { set param1 interface to self  }
       procdef.init_paraloc_info(callerside);
@@ -135,7 +133,7 @@ implementation
     end;
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_cpu;
     begin
       hlcg:=thlcgcpu.create;
       create_codegen;
@@ -143,4 +141,5 @@ implementation
 
 begin
   chlcgobj:=thlcgcpu;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.

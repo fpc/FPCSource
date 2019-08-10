@@ -6,7 +6,7 @@ insert into  sqlite_sequence (name,seq) values ('seqProjectsID',1);
 drop table t2;
  
 create table ExpenseTypes (
-  etID bigint primary key,
+  etID integer primary key,
   etName varchar(50) not null,
   etDescription varchar(100) not null,
   etMaxAmount decimal(10,2),
@@ -15,7 +15,7 @@ create table ExpenseTypes (
 );
 
 create table Users (
-  uID bigint primary key,
+  uID integer primary key,
   uLogin varchar(50) not null,
   uFullName varchar(100) not null,
   uPassword varchar(100) not null,
@@ -23,17 +23,17 @@ create table Users (
 );
 
 create table Projects (
-  pID bigint primary key,
+  pID integer primary key,
   pName varchar(50) not null,
   pDescription varchar(100) not null,
   pActive boolean not null default true
 );
 
 create table Expenses (
-  eID bigint primary key,
-  eUserFK bigint not null,
-  eProjectFK bigint not null,
-  eTypeFK bigint not null,
+  eID integer primary key,
+  eUserFK integer not null,
+  eProjectFK integer not null,
+  eTypeFK integer not null,
   eAmount decimal(10,2) not null,
   eDate date not null default CURRENT_DATE,
   eComment varchar(1024)

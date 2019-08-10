@@ -146,6 +146,8 @@ interface
       class procedure RegisterModuleInitFunction(pd: tprocdef); virtual;
       class procedure RegisterModuleFiniFunction(pd: tprocdef); virtual;
 
+      class procedure GenerateObjCImageInfo; virtual;
+
      strict protected
       class procedure add_main_procdef_paras(pd: tdef); virtual;
     end;
@@ -871,7 +873,7 @@ implementation
           list.concat(Tai_datablock.create_global(sym.mangledname,size,sym.vardef));
         end
       else
-        list.concat(Tai_datablock.create(sym.mangledname,size,sym.vardef));
+        list.concat(Tai_datablock.create_hidden(sym.mangledname,size,sym.vardef));
     end;
 
 
@@ -1080,8 +1082,7 @@ implementation
     begin
       unitinits:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
       unitinits.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
-        targetinfos[target_info.system]^.alignment.recordalignmin,
-        targetinfos[target_info.system]^.alignment.maxCrecordalign);
+        targetinfos[target_info.system]^.alignment.recordalignmin);
 
       { tablecount }
       unitinits.emit_ord_const(entries.count,aluuinttype);
@@ -1165,8 +1166,7 @@ implementation
       count:=0;
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
       tcb.begin_anonymous_record('',1,sizeof(pint),
-        targetinfos[target_info.system]^.alignment.recordalignmin,
-        targetinfos[target_info.system]^.alignment.maxCrecordalign
+        targetinfos[target_info.system]^.alignment.recordalignmin
       );
       placeholder:=tcb.emit_placeholder(u32inttype);
 
@@ -1242,8 +1242,7 @@ implementation
          exit;
        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
        tabledef:=tcb.begin_anonymous_record('',1,sizeof(pint),
-         targetinfos[target_info.system]^.alignment.recordalignmin,
-         targetinfos[target_info.system]^.alignment.maxCrecordalign);
+         targetinfos[target_info.system]^.alignment.recordalignmin);
        if assigned(current_module.globalsymtable) then
          current_module.globalsymtable.SymList.ForEachCall(@AddToThreadvarList,tcb);
        current_module.localsymtable.SymList.ForEachCall(@AddToThreadvarList,tcb);
@@ -1277,8 +1276,7 @@ implementation
     begin
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
       tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
-        targetinfos[target_info.system]^.alignment.recordalignmin,
-        targetinfos[target_info.system]^.alignment.maxCrecordalign
+        targetinfos[target_info.system]^.alignment.recordalignmin
       );
       { placeholder for the count }
       countplaceholder:=tcb.emit_placeholder(sizesinttype);
@@ -1332,8 +1330,7 @@ implementation
       s:=make_mangledname(prefix,current_module.localsymtable,'');
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
       tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
-        targetinfos[target_info.system]^.alignment.recordalignmin,
-        targetinfos[target_info.system]^.alignment.maxCrecordalign  );
+        targetinfos[target_info.system]^.alignment.recordalignmin);
       repeat
         { optimize away unused local/static symbols }
         if (item.sym.refs>0) or (item.sym.owner.symtabletype=globalsymtable) then
@@ -1397,8 +1394,7 @@ implementation
       count:=0;
       hp:=tmodule(loaded_units.first);
       tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
-        targetinfos[target_info.system]^.alignment.recordalignmin,
-        targetinfos[target_info.system]^.alignment.maxCrecordalign);
+        targetinfos[target_info.system]^.alignment.recordalignmin);
       countplaceholder:=tcb.emit_placeholder(sizesinttype);
       while assigned(hp) do
         begin
@@ -1577,6 +1573,26 @@ implementation
   class procedure tnodeutils.RegisterModuleFiniFunction(pd: tprocdef);
     begin
       exportlib.setfininame(current_asmdata.AsmLists[al_pure_assembler],pd.mangledname);
+    end;
+
+
+  class procedure tnodeutils.GenerateObjCImageInfo;
+    var
+      tcb: ttai_typedconstbuilder;
+    begin
+      { first 4 bytes contain version information about this section (currently version 0),
+        next 4 bytes contain flags (currently only regarding whether the code in the object
+        file supports or requires garbage collection)
+      }
+      tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_no_dead_strip]);
+      tcb.emit_ord_const(0,u64inttype);
+      current_asmdata.asmlists[al_objc_data].concatList(
+        tcb.get_final_asmlist(
+          current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'_OBJC_IMAGE_INFO',AB_LOCAL,AT_DATA,u64inttype),
+          u64inttype,sec_objc_image_info,'_OBJC_IMAGE_INFO',sizeof(pint)
+        )
+      );
+      tcb.free;
     end;
 
 

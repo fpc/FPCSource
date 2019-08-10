@@ -56,14 +56,14 @@ asm
 .LBackwardMove:
   ld r18, -X
   st -Y, r18
-  sbiw Z, 1
+  sbiw r30, 1
   brne .LBackwardMove
   rjmp .Lexit
 
 .LForwardMove:
   ld r18, X+
   st Y+, r18
-  sbiw Z, 1
+  sbiw r30, 1
   brne .LForwardMove
 .Lexit:
 

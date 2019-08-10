@@ -2149,6 +2149,7 @@ function Utf8ToAnsi(const s : RawByteString) : RawByteString;{$ifdef SYSTEMINLIN
   end;
 
 
+{$ifdef FPC_HAS_FEATURE_DYNARRAYS}
 procedure UCS4Encode(p: PWideChar; len: sizeint; out res: UCS4String);
   var
     i, reslen: sizeint;
@@ -2264,6 +2265,7 @@ function UCS4StringToWideString(const s : UCS4String) : WideString;
     UCS4Decode(s,pointer(result));
   end;
 {$endif FPC_HAS_UCS4STRING_TO_WIDESTR}
+{$endif FPC_HAS_FEATURE_DYNARRAYS}
 
 
 {$ifndef FPC_HAS_BUILTIN_WIDESTR_MANAGER}

@@ -2,6 +2,7 @@
     This file is assembled from all the Interface files.
 }
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -201,6 +202,8 @@ interface
 {$i AXConstants.pas}
 {unit Accessibility}
 {$i Accessibility.pas}
+{unit AudioFormat}
+{$i AudioFormat.pas}
 {unit ConditionalMacros}
 {$i ConditionalMacros.pas}
 {unit MacTypes}
@@ -281,8 +284,6 @@ interface
 {$i x509defs.pas}
 {unit xattr}
 {$i xattr.pas}
-{unit ABTypedefs}
-{$i ABTypedefs.pas}
 {unit AEDataModel}
 {$i AEDataModel.pas}
 {unit AEUserTermTypes}
@@ -513,12 +514,16 @@ interface
 {$i gluContext.pas}
 {unit ABGlobals}
 {$i ABGlobals.pas}
+{unit ABTypedefs}
+{$i ABTypedefs.pas}
 {unit AEMach}
 {$i AEMach.pas}
 {unit AXTextAttributedString}
 {$i AXTextAttributedString.pas}
 {unit AXValue}
 {$i AXValue.pas}
+{unit AudioConverter}
+{$i AudioConverter.pas}
 {unit AudioHardwareBase}
 {$i AudioHardwareBase.pas}
 {unit AuthSession}
@@ -649,6 +654,8 @@ interface
 {$i AudioHardware.pas}
 {unit AudioHardwareDeprecated}
 {$i AudioHardwareDeprecated.pas}
+{unit AudioHardwareService}
+{$i AudioHardwareService.pas}
 {unit CFFileDescriptor}
 {$i CFFileDescriptor.pas}
 {unit CFMachPort}
@@ -863,8 +870,8 @@ interface
 {$i AudioCodecs.pas}
 {unit AudioOutputUnit}
 {$i AudioOutputUnit.pas}
-{unit AudioUnitProperties}
-{$i AudioUnitProperties.pas}
+{unit AudioUnitUtilities}
+{$i AudioUnitUtilities.pas}
 {unit AuthorizationDB}
 {$i AuthorizationDB.pas}
 {unit CFFTPStream}
@@ -1019,6 +1026,18 @@ interface
 {$i SCNetworkConfiguration.pas}
 {unit AppleScript}
 {$i AppleScript.pas}
+{unit AudioFile}
+{$i AudioFile.pas}
+{unit AudioFileComponents}
+{$i AudioFileComponents.pas}
+{unit AudioFileStream}
+{$i AudioFileStream.pas}
+{unit AudioQueue}
+{$i AudioQueue.pas}
+{unit AudioServices}
+{$i AudioServices.pas}
+{unit AudioUnitProperties}
+{$i AudioUnitProperties.pas}
 {unit CarbonEvents}
 {$i CarbonEvents.pas}
 {unit FinderRegistry}
@@ -2146,49 +2165,6 @@ begin
 	kMIDIDriverInterface2ID := CFUUIDGetConstantUUIDWithBytes(nil, $43, $C9, $8C, $3C, $30, $6C, $11, $D5, $AF, $73, $00, $30, $65, $A8, $30, $1E)
 end;
 {$endc}
-{implementation of unit AudioUnitProperties}
-
-
-function GetAudioUnitParameterDisplayType(flags : UInt32) : UInt32; inline;
-begin
-	GetAudioUnitParameterDisplayType := flags and kAudioUnitParameterFlag_DisplayMask
-end;
-
-function AudioUnitDisplayTypeIsLogarithmic(flags : UInt32) : Boolean; inline;
-begin
-	AudioUnitDisplayTypeIsLogarithmic := GetAudioUnitParameterDisplayType(flags) = 	kAudioUnitParameterFlag_DisplayLogarithmic
-end;
-
-function AudioUnitDisplayTypeIsSquareRoot(flags : UInt32) : Boolean; inline;
-begin
-	AudioUnitDisplayTypeIsSquareRoot := GetAudioUnitParameterDisplayType(flags) = kAudioUnitParameterFlag_DisplaySquareRoot
-end;
-
-function AudioUnitDisplayTypeIsSquared(flags : UInt32) : Boolean; inline;
-begin
-	AudioUnitDisplayTypeIsSquared := GetAudioUnitParameterDisplayType(flags) = kAudioUnitParameterFlag_DisplaySquared
-end;
-
-function AudioUnitDisplayTypeIsCubed(flags : UInt32) : Boolean; inline;
-begin
-	AudioUnitDisplayTypeIsCubed := GetAudioUnitParameterDisplayType(flags) = kAudioUnitParameterFlag_DisplayCubed
-end;
-
-function AudioUnitDisplayTypeIsCubeRoot(flags : UInt32) : Boolean; inline;
-begin
-	AudioUnitDisplayTypeIsCubeRoot := GetAudioUnitParameterDisplayType(flags) = kAudioUnitParameterFlag_DisplayCubeRoot
-end;
-
-function AudioUnitDisplayTypeIsExponential(flags : UInt32) : Boolean; inline;
-begin
-	AudioUnitDisplayTypeIsExponential := GetAudioUnitParameterDisplayType(flags) = kAudioUnitParameterFlag_DisplayExponential
-end;
-
-procedure SetAudioUnitParameterDisplayType(var flags : UInt32; displayType : UInt32); inline;
-begin
-	flags := (flags and (not kAudioUnitParameterFlag_DisplayMask)) or displayType
-end;
-
 {implementation of unit QLGenerator}
 
 {$ifc TARGET_OS_MAC}
@@ -2233,6 +2209,75 @@ end;
 {$endc} {not TARGET_CPU_64}
 
 {$endc} {TARGET_OS_MAC}
+
+{implementation of unit AudioFile}
+
+function NumBytesToNumAudioFileMarkers(inNumBytes: size_t): size_t;
+begin
+  if inNumBytes < size_t(@AudioFileMarkerListPtr(nil)^.mMarkers[0]) then
+    NumBytesToNumAudioFileMarkers := 0
+  else
+    NumBytesToNumAudioFileMarkers := inNumBytes - size_t(@AudioFileMarkerListPtr(nil)^.mMarkers[0])
+end;
+
+
+function NumAudioFileMarkersToNumBytes(inNumMarkers: size_t): size_t;
+begin
+	NumAudioFileMarkersToNumBytes := size_t(@AudioFileMarkerListPtr(nil)^.mMarkers[0]) + (inNumMarkers) * sizeof(AudioFileMarker);
+end;
+
+
+function NextAudioFileRegion(const {var} inAFRegionPtr: AudioFileRegion): AudioFileRegionPtr;
+begin
+  NextAudioFileRegion := AudioFileRegionPtr(
+    Pointer(@inAFRegionPtr) +
+    MacPtrUInt(@AudioFileRegionPtr(nil)^.mMarkers) +
+    (inAFRegionPtr.mNumberMarkers*sizeof(AudioFileMarker))
+    );
+  end;
+
+{implementation of unit AudioUnitProperties}
+
+
+function GetAudioUnitParameterDisplayType(flags : UInt32) : UInt32; inline;
+begin
+	GetAudioUnitParameterDisplayType := flags and kAudioUnitParameterFlag_DisplayMask
+end;
+
+function AudioUnitDisplayTypeIsLogarithmic(flags : UInt32) : Boolean; inline;
+begin
+	AudioUnitDisplayTypeIsLogarithmic := GetAudioUnitParameterDisplayType(flags) = 	kAudioUnitParameterFlag_DisplayLogarithmic
+end;
+
+function AudioUnitDisplayTypeIsSquareRoot(flags : UInt32) : Boolean; inline;
+begin
+	AudioUnitDisplayTypeIsSquareRoot := GetAudioUnitParameterDisplayType(flags) = kAudioUnitParameterFlag_DisplaySquareRoot
+end;
+
+function AudioUnitDisplayTypeIsSquared(flags : UInt32) : Boolean; inline;
+begin
+	AudioUnitDisplayTypeIsSquared := GetAudioUnitParameterDisplayType(flags) = kAudioUnitParameterFlag_DisplaySquared
+end;
+
+function AudioUnitDisplayTypeIsCubed(flags : UInt32) : Boolean; inline;
+begin
+	AudioUnitDisplayTypeIsCubed := GetAudioUnitParameterDisplayType(flags) = kAudioUnitParameterFlag_DisplayCubed
+end;
+
+function AudioUnitDisplayTypeIsCubeRoot(flags : UInt32) : Boolean; inline;
+begin
+	AudioUnitDisplayTypeIsCubeRoot := GetAudioUnitParameterDisplayType(flags) = kAudioUnitParameterFlag_DisplayCubeRoot
+end;
+
+function AudioUnitDisplayTypeIsExponential(flags : UInt32) : Boolean; inline;
+begin
+	AudioUnitDisplayTypeIsExponential := GetAudioUnitParameterDisplayType(flags) = kAudioUnitParameterFlag_DisplayExponential
+end;
+
+procedure SetAudioUnitParameterDisplayType(var flags : UInt32; displayType : UInt32); inline;
+begin
+	flags := (flags and (not kAudioUnitParameterFlag_DisplayMask)) or displayType
+end;
 
 
 end.

@@ -108,10 +108,9 @@ interface
           recordalignment,       { alignment desired when inserting this record }
           fieldalignment,        { alignment current alignment used when fields are inserted }
           padalignment : shortint;   { size to a multiple of which the symtable has to be rounded up }
-          recordalignmin,            { local equivalents of global settings, so that records can }
-          maxCrecordalign: shortint; { be created with custom settings internally }
+          recordalignmin: shortint; { local equivalentsof global settings, so that records can be created with custom settings internally }
           has_fields_with_mop : tmanagementoperators; { whether any of the fields has the need for a management operator (or one of the field's fields) }
-          constructor create(const n:string;usealign,recordminalign,recordmaxCalign:shortint);
+          constructor create(const n:string;usealign,recordminalign:shortint);
           destructor destroy;override;
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -161,14 +160,14 @@ interface
           { object/classes. In XE5 and newer is possible to use class operator }
           { for classes (like for Delphi .NET before) only for Delphi NEXTGEN  }
           managementoperators : tmanagementoperators;
-          constructor create(const n:string;usealign,recordminalign,recordmaxCalign:shortint);
+          constructor create(const n:string;usealign,recordminalign:shortint);
           procedure insertunionst(unionst : trecordsymtable;offset : asizeint);
           procedure includemanagementoperator(mop:tmanagementoperator);
        end;
 
        tObjectSymtable = class(tabstractrecordsymtable)
        public
-          constructor create(adefowner:tdef;const n:string;usealign,recordminalign,recordmaxCalign:shortint);
+          constructor create(adefowner:tdef;const n:string;usealign,recordminalign:shortint);
           function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
        end;
 
@@ -561,13 +560,13 @@ implementation
         def : tdef;
         b   : byte;
       begin
-         def:=nil;
          { load start of definition section, which holds the amount of defs }
          if ppufile.readentry<>ibstartdefs then
            Message(unit_f_ppu_read_error);
          { read definitions }
          repeat
            b:=ppufile.readentry;
+           def:=nil;
            case b of
              ibpointerdef : def:=cpointerdef.ppuload(ppufile);
              ibarraydef : def:=carraydef.ppuload(ppufile);
@@ -594,6 +593,8 @@ implementation
            else
              Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
+           if assigned(def) then
+             tstoreddef(def).ppuload_subentries(ppufile);
            InsertDef(def);
          until false;
       end;
@@ -604,12 +605,12 @@ implementation
         b   : byte;
         sym : tsym;
       begin
-         sym:=nil;
          { load start of definition section, which holds the amount of defs }
          if ppufile.readentry<>ibstartsyms then
           Message(unit_f_ppu_read_error);
          { now read the symbols }
          repeat
+           sym:=nil;
            b:=ppufile.readentry;
            case b of
                 ibtypesym : sym:=ctypesym.ppuload(ppufile);
@@ -632,6 +633,8 @@ implementation
            else
              Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
+           if assigned(sym) then
+             tstoredsym(sym).ppuload_subentries(ppufile);
            Insert(sym,false);
          until false;
       end;
@@ -656,7 +659,10 @@ implementation
           begin
             def:=tstoreddef(DefList[i]);
             if def.is_registered then
-              def.ppuwrite(ppufile);
+              begin
+                def.ppuwrite(ppufile);
+                def.ppuwrite_subentries(ppufile);
+              end;
           end;
         { write end of definitions }
         ppufile.writeentry(ibenddefs);
@@ -682,7 +688,10 @@ implementation
           begin
             sym:=tstoredsym(SymList[i]);
             if sym.is_registered then
-              sym.ppuwrite(ppufile);
+              begin
+                sym.ppuwrite(ppufile);
+                sym.ppuwrite_subentries(ppufile);
+              end;
           end;
         { end of symbols }
         ppufile.writeentry(ibendsyms);
@@ -955,6 +964,7 @@ implementation
                  if (vo_is_funcret in tabstractvarsym(sym).varoptions) then
                    begin
                      { don't warn about the result of constructors }
+                     { or the synthetic helper functions for class-attributes }
                      if ((tsym(sym).owner.symtabletype<>localsymtable) or
                         (tprocdef(tsym(sym).owner.defowner).proctypeoption<>potype_constructor)) and
                         not (po_noreturn in tprocdef(tsym(sym).owner.defowner).procoptions) and
@@ -1159,7 +1169,7 @@ implementation
       end;
 {$endif llvm}
 
-    constructor tabstractrecordsymtable.create(const n:string;usealign,recordminalign,recordmaxCalign:shortint);
+    constructor tabstractrecordsymtable.create(const n:string;usealign,recordminalign:shortint);
       begin
         inherited create(n);
         _datasize:=0;
@@ -1167,7 +1177,6 @@ implementation
         recordalignment:=1;
         usefieldalignment:=usealign;
         recordalignmin:=recordminalign;
-        maxCrecordalign:=recordmaxCalign;
         padalignment:=1;
         { recordalign C_alignment means C record packing, that starts
           with an alignment of 1 }
@@ -1299,7 +1308,7 @@ implementation
       begin
         case usefieldalignment of
           C_alignment:
-            varalignrecord:=used_align(varalign,recordalignmin,maxCrecordalign);
+            varalignrecord:=used_align(varalign,recordalignmin,current_settings.alignment.maxCrecordalign);
           mac68k_alignment:
             varalignrecord:=2;
           else
@@ -1777,7 +1786,7 @@ implementation
                 Message1(sym_w_wrong_C_pack,vardef.typename);
               if varalign=0 then
                 varalign:=l;
-              if (globalfieldalignment<maxCrecordalign) then
+              if (globalfieldalignment<current_settings.alignment.maxCrecordalign) then
                 begin
                   if (varalign>16) and (globalfieldalignment<32) then
                     globalfieldalignment:=32
@@ -1793,7 +1802,7 @@ implementation
                   else if (varalign>1) and (globalfieldalignment<2) then
                     globalfieldalignment:=2;
                 end;
-              globalfieldalignment:=min(globalfieldalignment,maxCrecordalign);
+              globalfieldalignment:=min(globalfieldalignment,current_settings.alignment.maxCrecordalign);
             end;
           mac68k_alignment:
             begin
@@ -1825,9 +1834,9 @@ implementation
                               TRecordSymtable
 ****************************************************************************}
 
-    constructor trecordsymtable.create(const n:string;usealign,recordminalign,recordmaxCalign:shortint);
+    constructor trecordsymtable.create(const n:string;usealign,recordminalign:shortint);
       begin
-        inherited create(n,usealign,recordminalign,recordmaxCalign);
+        inherited create(n,usealign,recordminalign);
         symtabletype:=recordsymtable;
       end;
 
@@ -1952,9 +1961,9 @@ implementation
                               TObjectSymtable
 ****************************************************************************}
 
-    constructor tObjectSymtable.create(adefowner:tdef;const n:string;usealign,recordminalign,recordmaxCalign:shortint);
+    constructor tObjectSymtable.create(adefowner:tdef;const n:string;usealign,recordminalign:shortint);
       begin
-        inherited create(n,usealign,recordminalign,recordmaxCalign);
+        inherited create(n,usealign,recordminalign);
         symtabletype:=ObjectSymtable;
         defowner:=adefowner;
       end;
@@ -4712,6 +4721,7 @@ implementation
 {$endif}
        { set some global vars to nil, might be important for the ide }
        class_tobject:=nil;
+       class_tcustomattribute:=nil;
        interface_iunknown:=nil;
        interface_idispatch:=nil;
        rec_tguid:=nil;

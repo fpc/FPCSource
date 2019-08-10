@@ -787,6 +787,7 @@ type
     Procedure TestRTTI_DefaultValueRangeType;
     Procedure TestRTTI_DefaultValueInherit;
     Procedure TestRTTI_OverrideMethod;
+    Procedure TestRTTI_ReintroduceMethod;
     Procedure TestRTTI_OverloadProperty;
     // ToDo: array argument
     Procedure TestRTTI_ClassForward;
@@ -4798,15 +4799,21 @@ begin
   Add([
   'type',
   '  TProc = reference to procedure;',
+  '  TEvent = procedure of object;',
   '  TObject = class',
   '    Size: word;',
   '    function GetIt: TProc;',
+  '    procedure DoIt; virtual; abstract;',
   '  end;',
   'function TObject.GetIt: TProc;',
   'begin',
   '  Result:=procedure',
+  '    var p: TEvent;',
   '    begin',
   '      Size:=Size;',
+  '      Size:=Self.Size;',
+  '      p:=@DoIt;',
+  '      p:=@Self.DoIt;',
   '    end;',
   'end;',
   'begin']);
@@ -4823,7 +4830,11 @@ begin
     '    var $Self = this;',
     '    var Result = null;',
     '    Result = function () {',
+    '      var p = null;',
     '      $Self.Size = $Self.Size;',
+    '      $Self.Size = $Self.Size;',
+    '      p = rtl.createCallback($Self, "DoIt");',
+    '      p = rtl.createCallback($Self, "DoIt");',
     '    };',
     '    return Result;',
     '  };',
@@ -5902,6 +5913,7 @@ begin
   '  if c in [''a''..''z'',''_''] then ;',
   '  if ''b'' in [''a''..''z'',''_''] then ;',
   '  if ''Я'' in sc then ;',
+  '  if 3=ord('' '') then ;',
   '']);
   ConvertProgram;
   CheckSource('TestSet_ConstChar',
@@ -5920,6 +5932,7 @@ begin
     'if ($mod.c.charCodeAt() in rtl.createSet(null, 97, 122, 95)) ;',
     'if (98 in rtl.createSet(null, 97, 122, 95)) ;',
     'if (1071 in $mod.sc) ;',
+    'if (3 === 32) ;',
     '']));
 end;
 
@@ -8243,7 +8256,8 @@ end;
 procedure TTestModule.TestArray_Dynamic;
 begin
   StartProgram(false);
-  Add(['type',
+  Add([
+  'type',
   '  TArrayInt = array of longint;',
   'var',
   '  Arr: TArrayInt;',
@@ -9704,10 +9718,15 @@ begin
   '  public',
   '    Property LongMonthNames : TMonthNames Read GetLongMonthNames;',
   '  end;',
-  'var f: TObject;',
+  'var',
+  '  f: TObject;',
   '  Month: string;',
+  '  Names: array of string = (''a'',''foo'',''bar'');',
+  '  i: longint;',
   'begin',
   '  for Month in f.LongMonthNames do ;',
+  '  for Month in Names do ;',
+  '  for i:=low(Names) to high(Names) do ;',
   '']);
   ConvertProgram;
   CheckSource('TestArray_ForInArrOfString',
@@ -9720,9 +9739,13 @@ begin
     '});',
     'this.f = null;',
     'this.Month = "";',
+    'this.Names = ["a", "foo", "bar"];',
+    'this.i = 0;',
     '']),
     LinesToStr([ // $mod.$main
     'for (var $in1 = $mod.f.GetLongMonthNames(), $l2 = 0, $end3 = rtl.length($in1) - 1; $l2 <= $end3; $l2++) $mod.Month = $in1[$l2];',
+    'for (var $in4 = $mod.Names, $l5 = 0, $end6 = rtl.length($in4) - 1; $l5 <= $end6; $l5++) $mod.Month = $in4[$l5];',
+    'for (var $l7 = 0, $end8 = rtl.length($mod.Names) - 1; $l7 <= $end8; $l7++) $mod.i = $l7;',
     '']));
 end;
 
@@ -10454,6 +10477,12 @@ begin
   'procedure Fly(d: jsvalue; const c: jsvalue);',
   'begin',
   'end;',
+  'procedure Run(d: TRecord; const c: TRecord; var v: TRecord);',
+  'begin',
+  '  if jsvalue(d) then ;',
+  '  if jsvalue(c) then ;',
+  '  if jsvalue(v) then ;',
+  'end;',
   'var',
   '  Jv: jsvalue;',
   '  Rec: trecord;',
@@ -10462,6 +10491,8 @@ begin
   '  jv:=rec;',
   '  Fly(rec,rec);',
   '  Fly(@rec,@rec);',
+  '  if jsvalue(Rec) then ;',
+  '  Run(trecord(jv),trecord(jv),rec);',
   '']);
   ConvertProgram;
   CheckSource('TestRecord_JSValue',
@@ -10478,6 +10509,11 @@ begin
     '});',
     'this.Fly = function (d, c) {',
     '};',
+    'this.Run = function (d, c, v) {',
+    '  if (d) ;',
+    '  if (c) ;',
+    '  if (v) ;',
+    '};',
     'this.Jv = undefined;',
     'this.Rec = $mod.TRecord.$new();',
     '']),
@@ -10486,6 +10522,8 @@ begin
     '$mod.Jv = $mod.Rec;',
     '$mod.Fly($mod.TRecord.$clone($mod.Rec), $mod.Rec);',
     '$mod.Fly($mod.Rec, $mod.Rec);',
+    'if ($mod.Rec) ;',
+    '$mod.Run($mod.TRecord.$clone(rtl.getObject($mod.Jv)), rtl.getObject($mod.Jv), $mod.Rec);',
     '']));
 end;
 
@@ -10882,8 +10920,9 @@ begin
   '{$modeswitch AdvancedRecords}',
   'type',
   '  TRec = record',
-  '    class var Fx: longint;',
-  '    class var Fy: longint;',
+  '    class var',
+  '      Fx: longint;',
+  '      Fy: longint;',
   '    class function GetInt: longint; static;',
   '    class procedure SetInt(Value: longint); static;',
   '    class procedure DoIt; static;',
@@ -13199,6 +13238,7 @@ begin
   Add('  tcontrol(obj):=tcontrol(tcontrol(obj).getit());');
   Add('  tcontrol(obj):=tcontrol(tcontrol(obj).getit(1));');
   Add('  tcontrol(obj):=tcontrol(tcontrol(tcontrol(obj).getit).arr[2]);');
+  Add('  obj:=tcontrol(nil);');
   ConvertProgram;
   CheckSource('TestClass_TypeCast',
     LinesToStr([ // statements
@@ -13237,6 +13277,7 @@ begin
     '$mod.Obj = $mod.Obj.GetIt(0);',
     '$mod.Obj = $mod.Obj.GetIt(1);',
     '$mod.Obj = $mod.Obj.GetIt(0).Arr[2];',
+    '$mod.Obj = null;',
     '']));
 end;
 
@@ -25785,6 +25826,10 @@ procedure TTestModule.TestJSValue_If;
 begin
   StartProgram(false);
   Add([
+  'procedure Fly(var u);',
+  'begin',
+  '  if jsvalue(u) then ;',
+  'end;',
   'var',
   '  v: jsvalue;',
   'begin',
@@ -25795,6 +25840,9 @@ begin
   ConvertProgram;
   CheckSource('TestJSValue_If',
     LinesToStr([ // statements
+    'this.Fly = function (u) {',
+    '  if (u.get()) ;',
+    '};',
     'this.v = undefined;',
     '']),
     LinesToStr([ // $mod.$main
@@ -27155,8 +27203,8 @@ begin
   Add('    procedure Proc(Sender: tobject); virtual; abstract;');
   Add('  end;');
   Add('begin');
-  SetExpectedPasResolverError('Duplicate identifier "Proc" at test1.pp(6,19)',
-    nDuplicateIdentifier);
+  SetExpectedPasResolverError('Duplicate published method "Proc" at test1.pp(6,19)',
+    nDuplicatePublishedMethodXAtY);
   ConvertProgram;
 end;
 
@@ -28033,6 +28081,51 @@ begin
     'rtl.createClass($mod, "TSky", $mod.TObject, function () {',
     '  this.DoIt = function () {',
     '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_ReintroduceMethod;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  published',
+  '    procedure DoIt;',
+  '  end;',
+  '  TSky = class',
+  '  published',
+  '    procedure DoIt; reintroduce;',
+  '  end;',
+  'procedure TObject.DoIt; begin end;',
+  'procedure TSky.DoIt;',
+  'begin',
+  '  inherited DoIt;',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestRTTI_ReintroduceMethod',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addMethod("DoIt", 0, null);',
+    '});',
+    'rtl.createClass($mod, "TSky", $mod.TObject, function () {',
+    '  this.DoIt = function () {',
+    '    $mod.TObject.DoIt.call(this);',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addMethod("DoIt", 0, null);',
     '});',
     '']),
     LinesToStr([ // $mod.$main
