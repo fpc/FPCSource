@@ -4298,6 +4298,9 @@ cleanup:
       var
         i: Integer;
       begin
+        if IsSharedLibrary then
+          Header.Flags:=Header.Flags+[nehfIsDLL,nehfSingleData]-[nehfMultipleData];
+
         { all exported symbols must have an ordinal }
         AssignOrdinalsToAllExportSymbols;
 
@@ -4458,7 +4461,9 @@ cleanup:
                 exesym:=TExeSymbol(ExeSymbolList.Find(sym.InternalName));
                 if not Assigned(exesym) then
                   internalerror(2019081006);
-                ent.Flags:=[neepfExported,neepfSingleData];
+                ent.Flags:=[neepfExported];
+                if IsSharedLibrary then
+                  ent.Flags:=ent.Flags+[neepfSingleData];
                 ent.Offset:=exesym.ObjSymbol.address;
                 sec:=TNewExeSection(exesym.ObjSymbol.objsection.ExeSection);
                 ent.Segment:=sec.MemBasePos;
