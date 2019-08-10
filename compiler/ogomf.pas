@@ -584,11 +584,13 @@ interface
         FFlags: TNewExeEntryPointFlags;
         FSegment: Byte;
         FOffset: Word;
+        FParmCount: Integer;
         function GetFlagsByte: Byte;
       public
         property Flags: TNewExeEntryPointFlags read FFlags write FFlags;
         property Segment: Byte read FSegment write FSegment;
         property Offset: Word read FOffset write FOffset;
+        property ParmCount: Integer read FParmCount write FParmCount;
         property FlagsByte: Byte read GetFlagsByte;
       end;
 
@@ -3996,7 +3998,7 @@ cleanup:
 
     function TNewExeEntryPoint.GetFlagsByte: Byte;
       begin
-        Result:=0;
+        Result:=Byte(ParmCount shl 3);
         if neepfExported in Flags then
           Result:=Result or 1;
         if neepfSingleData in Flags then
@@ -4469,6 +4471,7 @@ cleanup:
                 ent.Segment:=sec.MemBasePos;
                 if nesfMovable in sec.NewExeSegmentFlags then
                   ent.Flags:=ent.Flags+[neepfMovableSegment];
+                ent.ParmCount:=sym.ParmCount;
               end;
           end;
       end;
