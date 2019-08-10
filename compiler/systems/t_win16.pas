@@ -361,6 +361,8 @@ procedure TInternalLinkerWin16.DefaultLinkScript;
 var
   s: TCmdStr;
 begin
+  if IsSharedLibrary then
+    LinkScript.Concat('ISSHAREDLIBRARY');
   { add objectfiles, start with prt0 always }
   case current_settings.x86memorymodel of
     mm_small:   LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0s','',false)));
