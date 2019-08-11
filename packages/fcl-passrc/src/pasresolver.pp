@@ -10890,6 +10890,8 @@ begin
         exit;
       if TPasClassType(aClassOrRec).IsForward then
         exit;
+      if TPasClassType(aClassOrRec).IsExternal then
+        exit;
       end;
     ClassOrRecScope:=aClassOrRec.CustomData as TPasClassOrRecordScope;
     if ClassOrRecScope.SpecializedFrom<>nil then

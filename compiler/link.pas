@@ -655,8 +655,16 @@ Implementation
           end
         else
           begin
-            Info.ResName:='link.res';
-            Info.ScriptName:='script.res';
+            if GetProcessID>0 then
+              begin
+                Info.ResName:='link'+tostr(GetProcessID)+'.res';
+                Info.ScriptName:='script'+tostr(GetProcessID)+'.res';
+              end
+            else
+              begin
+                Info.ResName:='link.res';
+                Info.ScriptName:='script.res';
+              end;
           end;
         { set the linker specific defaults }
         SetDefaultInfo;

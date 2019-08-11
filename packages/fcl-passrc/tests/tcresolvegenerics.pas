@@ -58,6 +58,9 @@ type
     // ToDo: class-of
     // ToDo: UnitA.impl uses UnitB.intf uses UnitA.intf, UnitB has specialize of UnitA
 
+    // generic external class
+    procedure TestGen_ExtClass_Array;
+
     // ToDo: generic interface
 
     // ToDo: generic array
@@ -497,6 +500,49 @@ begin
   'begin',
   '']);
   CheckResolverException('type "TBird" is not yet completely defined',nTypeXIsNotYetCompletelyDefined);
+end;
+
+procedure TTestResolveGenerics.TestGen_ExtClass_Array;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  '{$ModeSwitch externalclass}',
+  'type',
+  '  NativeInt = longint;',
+  '  TJSGenArray<T> = Class external name ''Array''',
+  '  private',
+  '    function GetElements(Index: NativeInt): T; external name ''[]'';',
+  '    procedure SetElements(Index: NativeInt; const AValue: T); external name ''[]'';',
+  '  public',
+  '    type TSelfType = TJSGenArray<T>;',
+  '  public',
+  '    FLength : NativeInt; external name ''length'';',
+  '    constructor new; overload;',
+  '    constructor new(aLength : NativeInt); overload;',
+  '    class function _of() : TSelfType; varargs; external name ''of'';',
+  '    function fill(aValue : T) : TSelfType; overload;',
+  '    function fill(aValue : T; aStartIndex : NativeInt) : TSelfType; overload;',
+  '    function fill(aValue : T; aStartIndex,aEndIndex : NativeInt) : TSelfType; overload;',
+  '    property Length : NativeInt Read FLength Write FLength;',
+  '    property Elements[Index: NativeInt]: T read GetElements write SetElements; default;',
+  '  end;',
+  '  TJSWordArray = TJSGenArray<word>;',
+  'var',
+  '  wa: TJSWordArray;',
+  '  w: word;',
+  'begin',
+  '  wa:=TJSWordArray.new;',
+  '  wa:=TJSWordArray.new(3);',
+  '  wa:=TJSWordArray._of(4,5);',
+  '  wa:=wa.fill(7);',
+  '  wa:=wa.fill(7,8,9);',
+  '  w:=wa.length;',
+  '  wa.length:=10;',
+  '  wa[11]:=w;',
+  '  w:=wa[12];',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolveGenerics.TestGen_GenericFunction;

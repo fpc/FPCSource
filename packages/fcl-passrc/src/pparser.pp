@@ -369,6 +369,8 @@ type
     function ParseExprOperand(AParent : TPasElement): TPasExpr;
     function ParseExpIdent(AParent : TPasElement): TPasExpr; deprecated 'use ParseExprOperand instead'; // since fpc 3.3.1
     procedure DoParseClassType(AType: TPasClassType);
+    procedure DoParseClassExternalHeader(AObjKind: TPasObjKind;
+      out AExternalNameSpace, AExternalName: string);
     procedure DoParseArrayType(ArrType: TPasArrayType);
     function DoParseExpression(AParent: TPaselement;InitExpr: TPasExpr=nil; AllowEqual : Boolean = True): TPasExpr;
     function DoParseConstValueExpression(AParent: TPasElement): TPasExpr;
@@ -1702,8 +1704,12 @@ begin
     ParseExcTokenError('[20190801112729]');
   ST:=TPasSpecializeType(CreateElement(TPasSpecializeType,TypeName,Parent));
   try
-    ST.Expr:=GenNameExpr;
-    GenNameExpr:=nil; // ownership transferred to ST
+    if GenNameExpr<>nil then
+      begin
+      ST.Expr:=GenNameExpr;
+      GenNameExpr.Parent:=ST;
+      GenNameExpr:=nil; // ownership transferred to ST
+      end;
     // read nested specialize arguments
     ReadSpecializeArguments(ST);
     // Important: resolve type reference AFTER args, because arg count is needed
@@ -4265,7 +4271,7 @@ function TPasParser.ParseGenericTypeDecl(Parent: TPasElement;
   end;
 
 var
-  TypeName: String;
+  TypeName, AExternalNameSpace, AExternalName: String;
   NamePos: TPasSourcePos;
   TypeParams: TFPList;
   ClassEl: TPasClassType;
@@ -4274,6 +4280,7 @@ var
   ProcTypeEl: TPasProcedureType;
   ProcType: TProcType;
   i: Integer;
+  AObjKind: TPasObjKind;
 begin
   Result:=nil;
   TypeName := CurTokenString;
@@ -4287,16 +4294,25 @@ begin
       tkObject,
       tkClass :
         begin
+        if CurToken=tkobject then
+          AObjKind:=okObject
+        else
+          AObjKind:=okClass;
+        NextToken;
+        if (AObjKind = okClass) and (CurToken = tkOf) then
+          ParseExcExpectedIdentifier;
+        DoParseClassExternalHeader(AObjKind,AExternalNameSpace,AExternalName);
         ClassEl := TPasClassType(CreateElement(TPasClassType,
           TypeName, Parent, visDefault, NamePos, TypeParams));
-        if CurToken=tkobject then
-          ClassEl.ObjKind:=okObject
-        else
-          ClassEl.ObjKind:=okClass;
+        ClassEl.ObjKind:=AObjKind;
         if AddToParent and (Parent is TPasDeclarations) then
           TPasDeclarations(Parent).Classes.Add(ClassEl);
+        ClassEl.IsExternal:=(AExternalName<>'');
+        if AExternalName<>'' then
+          ClassEl.ExternalName:={$ifdef pas2js}DeQuoteString{$else}AnsiDequotedStr{$endif}(AExternalName,'''');
+        if AExternalNameSpace<>'' then
+          ClassEl.ExternalNameSpace:={$ifdef pas2js}DeQuoteString{$else}AnsiDequotedStr{$endif}(AExternalNameSpace,'''');
         InitGenericType(ClassEl,TypeParams);
-        NextToken;
         DoParseClassType(ClassEl);
         CheckHint(ClassEl,True);
         Engine.FinishScope(stTypeDef,ClassEl);
@@ -7125,6 +7141,33 @@ begin
     end;
 end;
 
+procedure TPasParser.DoParseClassExternalHeader(AObjKind: TPasObjKind; out
+  AExternalNameSpace, AExternalName: string);
+begin
+  if ((AObjKind in [okClass,okInterface]) and (msExternalClass in CurrentModeswitches)
+      and CurTokenIsIdentifier('external')) then
+    begin
+    NextToken;
+    if CurToken<>tkString then
+      UnGetToken
+    else
+      AExternalNameSpace:=CurTokenString;
+    ExpectIdentifier;
+    If Not CurTokenIsIdentifier('Name')  then
+      ParseExc(nParserExpectedExternalClassName,SParserExpectedExternalClassName);
+    NextToken;
+    if not (CurToken in [tkChar,tkString]) then
+      CheckToken(tkString);
+    AExternalName:=CurTokenString;
+    NextToken;
+    end
+  else
+    begin
+    AExternalNameSpace:='';
+    AExternalName:='';
+    end;
+end;
+
 procedure TPasParser.DoParseArrayType(ArrType: TPasArrayType);
 var
   S: String;
@@ -7211,28 +7254,7 @@ begin
     end;
     exit;
     end;
-  if ((AObjKind in [okClass,okInterface]) and (msExternalClass in CurrentModeswitches)
-      and CurTokenIsIdentifier('external')) then
-    begin
-    NextToken;
-    if CurToken<>tkString then
-      UnGetToken
-    else
-      AExternalNameSpace:=CurTokenString;
-    ExpectIdentifier;
-    If Not CurTokenIsIdentifier('Name')  then
-      ParseExc(nParserExpectedExternalClassName,SParserExpectedExternalClassName);
-    NextToken;
-    if not (CurToken in [tkChar,tkString]) then
-      CheckToken(tkString);
-    AExternalName:=CurTokenString;
-    NextToken;
-    end
-  else
-    begin
-    AExternalNameSpace:='';
-    AExternalName:='';
-    end;
+  DoParseClassExternalHeader(AObjKind,AExternalNameSpace,AExternalName);
   if AObjKind in okAllHelpers then
     begin
     if not CurTokenIsIdentifier('Helper') then
