@@ -487,7 +487,12 @@ implementation
 {$endif x86_64}
               else
                 reg_cgsize:=OS_32
-            end
+            end;
+          R_ADDRESSREGISTER:
+            case reg of
+              NR_K0..NR_K7: reg_cgsize:=OS_64;
+              else internalerror(2003031801);
+            end;
           else
             internalerror(2003031801);
           end;
@@ -594,8 +599,18 @@ implementation
         { for the name the sub reg doesn't matter }
         hr:=r;
         if (getregtype(hr)=R_MMREGISTER) and
-           (getsubreg(hr)<>R_SUBMMY) then
+           (getsubreg(hr)<>R_SUBMMY) and
+           (getsubreg(hr)<>R_SUBMMZ) then
           setsubreg(hr,R_SUBMMX);
+
+        //// TG TODO check
+        //if (getregtype(hr)=R_MMREGISTER) then
+        // case getsubreg(hr) of
+        //   R_SUBMMX: setsubreg(hr,R_SUBMMX);
+        //   R_SUBMMY: setsubreg(hr,R_SUBMMY);
+        //   R_SUBMMZ: setsubreg(hr,R_SUBMMZ);
+        //  else setsubreg(hr,R_SUBMMX);
+        // end;
         result:=findreg_by_number_table(hr,regnumber_index);
       end;
 

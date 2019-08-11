@@ -39,7 +39,7 @@ interface
 
 
     type
-       tcommentstyle = (comment_none,comment_tp,comment_oldtp,comment_delphi,comment_c);
+       tcommentstyle = (comment_none,comment_tp,comment_oldtp,comment_delphi,comment_c, comment_x86OpExt);
 
        tscannerfile = class;
 
@@ -214,7 +214,7 @@ interface
           procedure readnumber;
           function  readid:string;
           function  readval:longint;
-          function  readcomment:string;
+          function  readcomment(include_special_char: boolean = false):string;
           function  readquotedstring:string;
           function  readstate:char;
           function  readoptionalstate(fallback:char):char;
@@ -4137,7 +4137,7 @@ type
       end;
 
 
-    function tscannerfile.readcomment:string;
+    function tscannerfile.readcomment(include_special_char: boolean):string;
       var
         i : longint;
       begin
@@ -4146,15 +4146,29 @@ type
           case c of
             '{' :
               begin
+                if (include_special_char) and (i<255) then
+                begin
+                  inc(i);
+                  readcomment[i]:=c;
+                end;
+
                 if current_commentstyle=comment_tp then
                   inc_comment_level;
               end;
             '}' :
               begin
+                if (include_special_char) and (i<255) then
+                begin
+                  inc(i);
+                  readcomment[i]:=c;
+                end;
+
                 if current_commentstyle=comment_tp then
                   begin
                     readchar;
                     dec_comment_level;
+
+
                     if comment_level=0 then
                       break
                     else

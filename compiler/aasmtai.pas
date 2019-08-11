@@ -446,6 +446,9 @@ interface
         { please keep the size of this record <=12 bytes and keep it properly aligned }
         toper = record
           ot : longint;
+        {$ifdef x86}
+          vopext: smallint;
+        {$ENDIF}
           case typ : toptype of
             top_none   : ();
             top_reg    : (reg:tregister);
