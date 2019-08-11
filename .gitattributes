@@ -628,6 +628,7 @@ compiler/powerpc64/rppcstab.inc svneol=native#text/plain
 compiler/powerpc64/rppcstd.inc svneol=native#text/plain
 compiler/powerpc64/rppcsup.inc svneol=native#text/plain
 compiler/powerpc64/symcpu.pas svneol=native#text/plain
+compiler/pp.lpi svneol=native#text/plain
 compiler/pp.pas svneol=native#text/plain
 compiler/pparautl.pas svneol=native#text/plain
 compiler/ppc68k.lpi svneol=native#text/plain
