@@ -28,7 +28,7 @@ uses BaseList, Classes;
 
 type
   TOpType = (otUnknown, otXMMReg, otXMMRM, otXMMRM16, otXMMRM8, otYMMReg, otYMMRM, otZMMReg, otZMMRM, otEAX, otRAX, otMem32,
-             otMem8, otMem16, otMem64, otMem128, otMem256, otMem512, otREG64, otREG32, otREG16, otRM32, otRM64, otIMM8,
+             otMem8, otMem16, otMem64, otMem128, otMem256, otMem512, otREG64, otREG32, otREG16, otREG8, otRM32, otRM64, otIMM8,
              otXMEM32, otXMEM64, otYMEM32, otYMEM64, otZMEM32, otZMEM64,
              otB32, otB64, otKREG);
 
@@ -150,11 +150,15 @@ type
       IF_SSSE3,
       IF_SSE41,
       IF_SSE42,
+      IF_MOVBE,
+      IF_CLMUL,
       IF_AVX,
       IF_AVX2,
       IF_AVX512,
       IF_BMI1,
       IF_BMI2,
+      { Intel ADX (Multi-Precision Add-Carry Instruction Extensions) }
+      IF_ADX,
       IF_16BITONLY,
       IF_FMA,
       IF_FMA4,
@@ -1147,7 +1151,6 @@ begin
               end
               else MemRegBaseIndexCombi(sl_prefix, sSuffix, FReg32Base, FReg32Index, Item.Values);
             end
-<<<<<<< .working
             else if (AnsiSameText(sl_Operand, 'MEM512')) or
                     (AnsiSameText(sl_Operand, 'MEM512_M')) or
                     (AnsiSameText(sl_Operand, 'MEM512_MZ')) then

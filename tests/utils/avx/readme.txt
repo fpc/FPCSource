@@ -37,7 +37,9 @@ fpc avxtestfilecmp
 ./avxtestgenerator -px8664 -fnasm -otmp
 cd tmp
 echo *.pp | xargs -n 1 fpc -Px86_64 -v0i
-echo *.asm | xargs -n 1 nasm -fwin64
+# echo *.asm | xargs -n 1 nasm -fwin64
+# use GNU Parallel [1]
+find . -name '*.asm' | parallel nasm -fwin64
 cd ..
 ./avxtestfilecmp -mtmp/*.o -dtmp -s
 
@@ -88,3 +90,4 @@ VMOVUPD
 VMOVUPS
 
 
+[1] O. Tange (2011): GNU Parallel - The Command-Line Power Tool, ;login: The USENIX Magazine, February 2011:42-47.
