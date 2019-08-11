@@ -1601,11 +1601,11 @@ implementation
                      (not(InsTabMemRefSizeInfoCache^[opcode].ConstSize in [csiMultiple, csiUnkown])) then
                   begin
                     case InsTabMemRefSizeInfoCache^[opcode].ConstSize of
-                      csiNoSize: ot := ot and (not(OT_SIZE_MASK)) or OT_IMMEDIATE;
-                        csiMem8: ot := ot and (not(OT_SIZE_MASK)) or OT_IMMEDIATE or OT_BITS8;
-                       csiMem16: ot := ot and (not(OT_SIZE_MASK)) or OT_IMMEDIATE or OT_BITS16;
-                       csiMem32: ot := ot and (not(OT_SIZE_MASK)) or OT_IMMEDIATE or OT_BITS32;
-                       csiMem64: ot := ot and (not(OT_SIZE_MASK)) or OT_IMMEDIATE or OT_BITS64;
+                      csiNoSize: ot := ot and OT_NON_SIZE or OT_IMMEDIATE;
+                        csiMem8: ot := ot and OT_NON_SIZE or OT_IMMEDIATE or OT_BITS8;
+                       csiMem16: ot := ot and OT_NON_SIZE or OT_IMMEDIATE or OT_BITS16;
+                       csiMem32: ot := ot and OT_NON_SIZE or OT_IMMEDIATE or OT_BITS32;
+                       csiMem64: ot := ot and OT_NON_SIZE or OT_IMMEDIATE or OT_BITS64;
                        else
                          ;
                     end;
