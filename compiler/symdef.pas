@@ -374,7 +374,7 @@ interface
           variantrecdesc : pvariantrecdesc;
           isunion       : boolean;
           constructor create(const n:string; p:TSymtable);virtual;
-          constructor create_global_internal(n: string; packrecords, recordalignmin: shortint); virtual;
+          constructor create_global_internal(const n: string; packrecords, recordalignmin: shortint); virtual;
           function add_field_by_def(const optionalname: TIDString; def: tdef): tsym;
           procedure add_fields_from_deflist(fieldtypes: tfplist);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -4783,33 +4783,38 @@ implementation
       end;
 
 
-    constructor trecorddef.create_global_internal(n: string; packrecords, recordalignmin: shortint);
+    constructor trecorddef.create_global_internal(const n: string; packrecords, recordalignmin: shortint);
       var
+        name : string;
+        pname : pshortstring;
         oldsymtablestack: tsymtablestack;
         where : tsymtable;
         ts: ttypesym;
-        definedname: boolean;
       begin
         { construct name }
-        definedname:=n<>'';
-        if not definedname then
-          n:='$InternalRec'+tostr(current_module.deflist.count);
+        if n<>'' then
+          pname:=@n
+        else
+          begin
+            name:='$InternalRec'+tostr(current_module.deflist.count);
+            pname:=@name;
+          end;
         oldsymtablestack:=symtablestack;
         { do not simply push/pop current_module.localsymtable, because
           that can have side-effects (e.g., it removes helpers) }
         symtablestack:=nil;
 
-        symtable:=trecordsymtable.create(n,packrecords,recordalignmin);
+        symtable:=trecordsymtable.create(pname^,packrecords,recordalignmin);
         symtable.defowner:=self;
         isunion:=false;
-        inherited create(n,recorddef,true);
+        inherited create(pname^,recorddef,true);
         where:=current_module.localsymtable;
         if not assigned(where) then
           where:=current_module.globalsymtable;
         where.insertdef(self);
         { if we specified a name, then we'll probably want to look up the
           type again by name too -> create typesym }
-        if definedname then
+        if n<>'' then
           begin
             ts:=ctypesym.create(n,self,true);
             { avoid hints about unused types (these may only be used for
