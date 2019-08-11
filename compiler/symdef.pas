@@ -4786,6 +4786,7 @@ implementation
     constructor trecorddef.create_global_internal(n: string; packrecords, recordalignmin: shortint);
       var
         oldsymtablestack: tsymtablestack;
+        where : tsymtable;
         ts: ttypesym;
         definedname: boolean;
       begin
@@ -4802,27 +4803,19 @@ implementation
         symtable.defowner:=self;
         isunion:=false;
         inherited create(n,recorddef,true);
+        where:=current_module.localsymtable;
+        if not assigned(where) then
+          where:=current_module.globalsymtable;
+        where.insertdef(self);
         { if we specified a name, then we'll probably want to look up the
           type again by name too -> create typesym }
-        ts:=nil;
         if definedname then
           begin
             ts:=ctypesym.create(n,self,true);
             { avoid hints about unused types (these may only be used for
               typed constant data) }
             ts.increfcount;
-          end;
-        if assigned(current_module.localsymtable) then
-          begin
-            current_module.localsymtable.insertdef(self);
-            if definedname then
-              current_module.localsymtable.insert(ts);
-          end
-        else
-          begin
-            current_module.globalsymtable.insertdef(self);
-            if definedname then
-              current_module.globalsymtable.insert(ts);
+            where.insert(ts);
           end;
         symtablestack:=oldsymtablestack;
         { don't create RTTI for internal types, these are not exported }
