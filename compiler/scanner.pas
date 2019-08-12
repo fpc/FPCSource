@@ -39,7 +39,7 @@ interface
 
 
     type
-       tcommentstyle = (comment_none,comment_tp,comment_oldtp,comment_delphi,comment_c, comment_x86OpExt);
+       tcommentstyle = (comment_none,comment_tp,comment_oldtp,comment_delphi,comment_c);
 
        tscannerfile = class;
 

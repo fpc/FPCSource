@@ -73,6 +73,8 @@ type
     { opcode adding }
     function ConcatInstruction(p : TAsmList) : tai;override;
     function getstring: string;
+    { returns true, if the opcode might have an extension as used by AVX512 }
+    function MightHaveExtension : boolean;
   end;
 
 const
@@ -2014,6 +2016,12 @@ begin
        end;
    end;
   GetString:=s+']';
+end;
+
+function Tx86Instruction.MightHaveExtension: boolean;
+
+begin
+  Result:=aasmcpu.MightHaveExtension(opcode);
 end;
 
 end.

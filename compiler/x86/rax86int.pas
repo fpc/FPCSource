@@ -2015,7 +2015,7 @@ Unit Rax86int;
               begin
                 hreg:=actasmregister;
 
-                Consume(AS_REGISTER, true);
+                Consume(AS_REGISTER, MightHaveExtension(actopcode));
 
                 while actasmtoken in OPEXT_STARTASMTOKEN do
                 begin
@@ -2190,7 +2190,7 @@ Unit Rax86int;
                 if GotPlus or GotStar or BracketlessReference then
                   Message(asmr_e_invalid_reference_syntax);
 
-                Consume(AS_RBRACKET, true);
+                Consume(AS_RBRACKET, MightHaveExtension(actopcode));
                 while actasmtoken in OPEXT_STARTASMTOKEN do
                 begin
                   consume_voperand_ext(oper);
@@ -2544,7 +2544,7 @@ Unit Rax86int;
                     { is it a normal variable ? }
                      Begin
                        expr:=actasmpattern;
-                       Consume(AS_ID, true);
+                       Consume(AS_ID, MightHaveExtension(actopcode));
 
                        while actasmtoken in OPEXT_STARTASMTOKEN do
                        begin
@@ -2613,7 +2613,8 @@ Unit Rax86int;
               begin
                 { save the type of register used. }
                 tempreg:=actasmregister;
-                Consume(AS_REGISTER, true);
+
+                Consume(AS_REGISTER, MightHaveExtension(actopcode));
 
                 if (getregtype(tempreg) in [R_MMREGISTER, R_ADDRESSREGISTER]) then
                  begin
@@ -2876,7 +2877,7 @@ Unit Rax86int;
                   Message(asmr_e_too_many_operands)
                 else
                   Dec(operandnum);
-                Consume(AS_COMMA, true);
+                Consume(AS_COMMA,instr.MightHaveExtension);
               end;
 
             {Far constant, i.e. jmp $0000:$11111111.}

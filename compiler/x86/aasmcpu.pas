@@ -63,12 +63,10 @@ interface
       OT_VECTORSAE  = $8000000000;  { OPTIONAL SAE-FLAG  AVX512}
       OT_VECTORER   = $10000000000; { OPTIONAL ER-FLAG-FLAG  AVX512}
 
+      OT_VECTOR_EXT = OT_VECTORMASK or OT_VECTORZERO or OT_VECTORBCST or OT_VECTORSAE or OT_VECTORER;
 
       OT_BITSB32    = OT_BITS32 or OT_VECTORBCST;
       OT_BITSB64    = OT_BITS64 or OT_VECTORBCST;
-
-
-      OT_VECTOR_EXT_MASK = OT_VECTORMASK or OT_VECTORZERO or OT_VECTORBCST;
 
       OT_BITS80    = $00000010;  { FPU only  }
       OT_FAR       = $00000020;  { this means 16:16 or 16:32, like in CALL/JMP }
@@ -652,6 +650,7 @@ interface
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
     function MemRefInfo(aAsmop: TAsmOp): TInsTabMemRefSizeInfoRec;
+    function MightHaveExtension(AsmOp : TAsmOp) : Boolean;
 
     procedure InitAsm;
     procedure DoneAsm;
@@ -685,8 +684,6 @@ implementation
        systems,
        itcpugas,
        cpuinfo;
-
-
 
     procedure AddSymbol(symname : string; defined : boolean);
     var
@@ -876,6 +873,31 @@ implementation
     begin
       result := InsTabMemRefSizeInfoCache^[aAsmop];
     end;
+
+
+    function MightHaveExtension(AsmOp : TAsmOp): Boolean;
+      var
+        i,j: LongInt;
+        insentry: pinsentry;
+      begin
+        Result:=true;
+        i:=InsTabCache^[AsmOp];
+        if i>=0 then
+          begin
+            insentry:=@instab[i];
+            while insentry^.opcode=AsmOp do
+              begin
+                for j:=0 to insentry^.ops-1 do
+                  begin
+                    if (insentry^.optypes[j] and OT_VECTOR_EXT)<>0 then
+                      exit;
+                  end;
+                inc(i);
+                insentry:=@instab[i];
+              end;
+          end;
+        Result:=false;
+      end;
 
     { Operation type for spilling code }
     type
