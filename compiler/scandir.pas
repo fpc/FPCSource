@@ -855,7 +855,12 @@ unit scandir;
         maxheapsize_limit: longint;
       begin
 {$if defined(i8086)}
-        if current_settings.x86memorymodel in x86_far_data_models then
+        if target_info.system=system_i8086_win16 then
+          begin
+            heapsize_limit:=65520;
+            maxheapsize_limit:=65520;
+          end
+        else if current_settings.x86memorymodel in x86_far_data_models then
           begin
             heapsize_limit:=655360;
             maxheapsize_limit:=655360;
