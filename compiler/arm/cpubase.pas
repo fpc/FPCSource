@@ -777,8 +777,8 @@ unit cpubase;
               doublerec:=tcompdoublerec(NtoLE(QWord(doublerec)));
               Result:=(doublerec.bytes[0]=0) and (doublerec.bytes[1]=0) and (doublerec.bytes[2]=0) and
                       (doublerec.bytes[3]=0) and (doublerec.bytes[4]=0) and (doublerec.bytes[5]=0) and
-                      ((((doublerec.bytes[6] and $7f)=$40) and ((doublerec.bytes[7] and $c0)=0)) or
-                       (((doublerec.bytes[6] and $7f)=$3f) and ((doublerec.bytes[7] and $c0)=$c0)));
+                      ((((doublerec.bytes[6] and $c0)=$0) and ((doublerec.bytes[7] and $7f)=$40)) or
+                       (((doublerec.bytes[6] and $c0)=$c0) and ((doublerec.bytes[7] and $7f)=$3f)));
             end;
           else
             ;
