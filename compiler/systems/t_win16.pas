@@ -250,7 +250,7 @@ begin
 
   LinkRes.Add('option quiet');
 
-  LinkRes.Add('option description '+maybequoted(description));
+  LinkRes.Add('option description '+maybequoted_for_script(description,script_unix));
 
   if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
     LinkRes.Add('debug dwarf')
