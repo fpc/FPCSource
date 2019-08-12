@@ -12837,6 +12837,8 @@ begin
     Result:=ConvertProcedureType(TPasProcedureType(El),GlobalCtx)
   else if (C=TPasArrayType) then
     Result:=ConvertArrayType(TPasArrayType(El),GlobalCtx)
+  else if (C=TPasSpecializeType) then
+    // specialize type is converted at the generic type
   else
     begin
     {$IFDEF VerbosePas2JS}
