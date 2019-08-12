@@ -711,7 +711,8 @@ unit cpupara;
         retcgsize  : tcgsize;
         basedef: tdef;
         i: longint;
-        mmreg: tregister;
+        sparesinglereg: tregister;
+        mmreg : TSuperRegister;
       begin
          if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
            exit;
@@ -719,6 +720,7 @@ unit cpupara;
         paraloc:=result.add_location;
         { Return in FPU register? }
         basedef:=nil;
+        sparesinglereg:=NR_NO;
         if (result.def.typ=floatdef) or
            is_hfa(result.def,basedef) then
           begin
@@ -736,20 +738,43 @@ unit cpupara;
                   OS_64,
                   OS_F64:
                     begin
-                      mmreg:=NR_MM_RESULT_REG
+                      mmreg:=RS_D0;
                     end;
                   OS_32,
                   OS_F32:
                     begin
-                      mmreg:=NR_S0;
+                      mmreg:=RS_S0;
                     end;
                   else
                     internalerror(2012032501);
                 end;
                 repeat
                   paraloc^.loc:=LOC_MMREGISTER;
-                  paraloc^.register:=mmreg;
-                  inc(mmreg);
+                  { mm registers are strangly ordered in the arm compiler }
+                  case retcgsize of
+                    OS_32,OS_F32:
+                      begin
+                        if sparesinglereg=NR_NO then
+                          begin
+                            paraloc^.register:=newreg(R_MMREGISTER,mmreg,R_SUBFS);
+                            sparesinglereg:=newreg(R_MMREGISTER,mmreg-RS_S0+RS_S1,R_SUBFS);
+                            inc(mmreg);
+                          end
+                        else
+                          begin
+                            paraloc^.register:=sparesinglereg;
+                            sparesinglereg:=NR_NO;
+                          end;
+                      end;
+                    OS_64,OS_F64:
+                      begin
+                        paraloc^.register:=newreg(R_MMREGISTER,mmreg,R_SUBFD);
+                        inc(mmreg);
+                      end;
+                    else
+                      Internalerror(2019081201);
+                  end;
+
                   paraloc^.size:=retcgsize;
                   paraloc^.def:=basedef;
                   paraloc:=paraloc^.next;
