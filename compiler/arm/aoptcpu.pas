@@ -473,8 +473,8 @@ Implementation
     begin
       Result:=false;
       if (MatchInstruction(movp, A_VMOV, [taicpu(p).condition], [taicpu(p).oppostfix]) or
-          ((taicpu(p).oppostfix in [PF_F64F32,PF_F64S16,PF_F64S32,PF_F64U16,PF_F64U32]) and MatchInstruction(movp, A_VMOV, [taicpu(p).condition], [PF_F64])) or
-          ((taicpu(p).oppostfix in [PF_F32F64,PF_F32S16,PF_F32S32,PF_F32U16,PF_F32U32]) and MatchInstruction(movp, A_VMOV, [taicpu(p).condition], [PF_F32]))
+          (((taicpu(p).oppostfix in [PF_F64F32,PF_F64S16,PF_F64S32,PF_F64U16,PF_F64U32]) or (getsubreg( taicpu(p).oper[0]^.reg)=R_SUBFD)) and MatchInstruction(movp, A_VMOV, [taicpu(p).condition], [PF_F64])) or
+          (((taicpu(p).oppostfix in [PF_F32F64,PF_F32S16,PF_F32S32,PF_F32U16,PF_F32U32]) or (getsubreg( taicpu(p).oper[0]^.reg)=R_SUBFS)) and MatchInstruction(movp, A_VMOV, [taicpu(p).condition], [PF_F32]))
          ) and
          (taicpu(movp).ops=2) and
          MatchOperand(taicpu(movp).oper[1]^, taicpu(p).oper[0]^.reg) and
@@ -2245,6 +2245,7 @@ Implementation
                         DebugMsg('Peephole Bl2B done', p);
                       end;
                   end;
+                A_VLDR,
                 A_VADD,
                 A_VMUL,
                 A_VDIV,
