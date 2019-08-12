@@ -65,7 +65,8 @@ type
 
     // ToDo: generic interface
 
-    // ToDo: generic array
+    // generic array
+    procedure TestGen_Array;
 
     // ToDo: generic procedure type
 
@@ -480,6 +481,7 @@ begin
   'var',
   '  e: specialize TEagle<word>;',
   'begin',
+  '  e.i:=e.j;',
   '']);
   ParseProgram;
 end;
@@ -587,6 +589,27 @@ begin
   '           begin',
   '           end',
   '      );',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Array;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TArray<T> = array of T;',
+  '  TWordArray = specialize TArray<word>;',
+  'var',
+  '  a: specialize TArray<word>;',
+  '  b: TWordArray;',
+  '  w: word;',
+  'begin',
+  '  a[1]:=2;',
+  '  b[2]:=a[3]+b[4];',
+  '  a:=b;',
+  '  SetLength(a,5);',
+  '  SetLength(b,6);',
   '']);
   ParseProgram;
 end;

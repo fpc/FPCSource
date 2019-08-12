@@ -1339,7 +1339,7 @@ type
     procedure ClearOverloadScopes;
   protected
     procedure AddType(El: TPasType); override;
-    procedure AddRecordType(El: TPasRecordType); override;
+    procedure AddRecordType(El: TPasRecordType; TypeParams: TFPList); override;
     procedure AddClassType(El: TPasClassType; TypeParams: TFPList); override;
     procedure AddEnumType(El: TPasEnumType); override;
     procedure ResolveImplAsm(El: TPasImplAsmStatement); override;
@@ -3229,7 +3229,8 @@ begin
     AddElevatedLocal(El);
 end;
 
-procedure TPas2JSResolver.AddRecordType(El: TPasRecordType);
+procedure TPas2JSResolver.AddRecordType(El: TPasRecordType; TypeParams: TFPList
+  );
 begin
   inherited;
   if (El.Name='') and (El.Parent.ClassType<>TPasVariant) then
