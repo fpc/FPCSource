@@ -645,8 +645,8 @@ interface
         FExeMetaSec: TNewExeMetaSection;
         FMemBasePos: Word;
         FDataPosSectors: Word;
-        FMinAllocSize: QWord;
         FNewExeSegmentFlags: TNewExeSegmentFlags;
+        function GetMinAllocSize: QWord;
       public
         procedure WriteHeaderTo(aWriter: TObjectWriter);
         function MemPosStr(AImageBase: qword): string;override;
@@ -657,7 +657,7 @@ interface
         property ExeMetaSec: TNewExeMetaSection read FExeMetaSec write FExeMetaSec;
         property MemBasePos: Word read FMemBasePos write FMemBasePos;
         property DataPosSectors: Word read FDataPosSectors write FDataPosSectors;
-        property MinAllocSize: QWord read FMinAllocSize write FMinAllocSize;
+        property MinAllocSize: QWord read GetMinAllocSize;
         property NewExeSegmentFlags: TNewExeSegmentFlags read FNewExeSegmentFlags write FNewExeSegmentFlags;
       end;
 
@@ -4156,6 +4156,11 @@ cleanup:
                               TNewExeSection
 ****************************************************************************}
 
+    function TNewExeSection.GetMinAllocSize: QWord;
+      begin
+        Result:=Size-StackSize;
+      end;
+
     procedure TNewExeSection.WriteHeaderTo(aWriter: TObjectWriter);
       var
         SegmentHeaderBytes: array [0..7] of Byte;
@@ -4319,7 +4324,6 @@ cleanup:
         Header.InitialSS:=Header.AutoDataSegmentNumber;
         Header.InitialStackSize:=TNewExeSection(ExeSectionList[Header.AutoDataSegmentNumber-1]).StackSize;
         Header.InitialLocalHeapSize:=heapsize;
-        {todo: subtract the stack size from the size of the auto data segment }
 
         Header.SegmentTableStart:=NewExeHeaderSize;
         Header.SegmentTableEntriesCount:=ExeSectionList.Count;
