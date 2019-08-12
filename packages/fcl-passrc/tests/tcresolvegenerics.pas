@@ -38,7 +38,6 @@ type
     procedure TestGen_RecordDelphi;
     procedure TestGen_RecordNestedSpecialized;
     procedure TestGen_Record_SpecializeSelfInsideFail;
-    // ToDo: enums within generic
     procedure TestGen_RecordAnoArray;
     // ToDo: procedure TestGen_SpecializeArg_ArrayOf;  type TBird = specialize<array of word>
     // ToDo: unitname.specialize TBird<word>.specialize
@@ -57,6 +56,9 @@ type
     // ToDo: ancestor cycle: TBird<T> = class(TBird<word>) fail
     // ToDo: class-of
     // ToDo: UnitA.impl uses UnitB.intf uses UnitA.intf, UnitB has specialize of UnitA
+    procedure TestGen_NestedType;
+    // ToDo: procedure TestGen_NestedDottedType;
+    procedure TestGen_Class_Enums_NotPropagating;
 
     // generic external class
     procedure TestGen_ExtClass_Array;
@@ -78,15 +80,12 @@ type
     // generic statements
     procedure TestGen_LocalVar;
     procedure TestGen_Statements;
-    procedure TestGen_ForLoop;
     // ToDo: for-in
-    // ToDo: if
-    // ToDo: case
-    // ToDo: while, repeat
     // ToDo: try finally/except
     // ToDo: call
     // ToDo: dot
     // ToDo: is as
+    // ToDo: typecast
   end;
 
 implementation
@@ -410,7 +409,7 @@ begin
   '    r: TRec;',
   '  end;',
   'var',
-  '  s: specialize TRec;',
+  '  s: TRec;',
   '  {=Typ}w: T;',
   'begin',
   '  s.b.v:=w;',
@@ -502,6 +501,46 @@ begin
   CheckResolverException('type "TBird" is not yet completely defined',nTypeXIsNotYetCompletelyDefined);
 end;
 
+procedure TTestResolveGenerics.TestGen_NestedType;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '  public type',
+  '    TArrayEvent = reference to procedure(El: T);',
+  '  public',
+  '    p: TArrayEvent;',
+  '  end;',
+  '  TBirdWord = specialize TBird<word>;',
+  'var',
+  '  b: TBirdWord;',
+  'begin',
+  '  b.p:=procedure(El: word) begin end;']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_Enums_NotPropagating;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '  public type',
+  '    TEnum = (red, blue);',
+  '  const',
+  '    e = blue;',
+  '  end;',
+  'const',
+  '  r = red;',
+  'begin']);
+  CheckResolverException('identifier not found "red"',nIdentifierNotFound);
+end;
+
 procedure TTestResolveGenerics.TestGen_ExtClass_Array;
 begin
   StartProgram(false);
@@ -516,11 +555,14 @@ begin
   '    procedure SetElements(Index: NativeInt; const AValue: T); external name ''[]'';',
   '  public',
   '    type TSelfType = TJSGenArray<T>;',
+  '    TArrayEvent = reference to function(El: T; Arr: TSelfType): Boolean;',
+  '    TArrayCallback = TArrayEvent;',
   '  public',
   '    FLength : NativeInt; external name ''length'';',
   '    constructor new; overload;',
   '    constructor new(aLength : NativeInt); overload;',
   '    class function _of() : TSelfType; varargs; external name ''of'';',
+  '    function every(const aCallback: TArrayCallBack): boolean; overload;',
   '    function fill(aValue : T) : TSelfType; overload;',
   '    function fill(aValue : T; aStartIndex : NativeInt) : TSelfType; overload;',
   '    function fill(aValue : T; aStartIndex,aEndIndex : NativeInt) : TSelfType; overload;',
@@ -541,6 +583,10 @@ begin
   '  wa.length:=10;',
   '  wa[11]:=w;',
   '  w:=wa[12];',
+  '  wa.every(function(El: word; Arr: TJSWordArray): Boolean',
+  '           begin',
+  '           end',
+  '      );',
   '']);
   ParseProgram;
 end;
@@ -618,29 +664,6 @@ begin
   '  case v1 of',
   '  1: v3:=3;',
   '  end;',
-  'end;',
-  'var',
-  '  b: specialize TBird<word>;',
-  'begin',
-  '  b.Fly(2);',
-  '']);
-  ParseProgram;
-end;
-
-procedure TTestResolveGenerics.TestGen_ForLoop;
-begin
-  StartProgram(false);
-  Add([
-  '{$mode objfpc}',
-  'type',
-  '  TObject = class end;',
-  '  generic TBird<{#Templ}T> = class',
-  '    function Fly(p:T): T;',
-  '  end;',
-  'function TBird.Fly(p:T): T;',
-  'var i: T;',
-  'begin',
-  '  for i:=0 to 3 do Result:=i+p;',
   'end;',
   'var',
   '  b: specialize TBird<word>;',

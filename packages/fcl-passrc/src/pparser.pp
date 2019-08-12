@@ -1525,10 +1525,17 @@ Var
   K : TSimpleTypeKind;
   Name : String;
   Expr: TPasExpr;
-  ok: Boolean;
+  ok, MustBeSpecialize: Boolean;
 
 begin
   Result:=nil;
+  if CurToken=tkspecialize then
+    begin
+    MustBeSpecialize:=true;
+    ExpectIdentifier;
+    end
+  else
+    MustBeSpecialize:=false;
   Name := CurTokenString;
   Expr:=nil;
   Ref:=nil;
@@ -1546,6 +1553,9 @@ begin
         NextToken;
         end;
       end;
+
+    if MustBeSpecialize and (CurToken<>tkLessThan) then
+      ParseExcTokenError('<');
 
     // Current token is first token after identifier.
     if IsFull and (CurToken=tkSemicolon) or isCurTokenHint then // Type A = B;
@@ -1719,8 +1729,7 @@ begin
       ParseExcTokenError('[20190801113005]');
     // ToDo: cascaded specialize A<B>.C<D>
 
-    if TypeName='' then
-      Engine.FinishScope(stTypeDef,ST);
+    Engine.FinishScope(stTypeDef,ST);
     Result:=ST;
   finally
     if Result=nil then
@@ -1841,10 +1850,7 @@ begin
       tkInterface:
         Result := ParseClassDecl(Parent, NamePos, TypeName, okInterface,PM);
       tkSpecialize:
-        begin
-        NextToken;
         Result:=ParseSimpleType(Parent,CurSourcePos,TypeName);
-        end;
       tkClass:
         begin
         isHelper:=false;
@@ -2096,7 +2102,7 @@ begin
       {AllowWriteln}
       if po_resolvestandardtypes in FOptions then
         begin
-        writeln('ERROR: TPasParser.ParseSimpleType resolver failed to raise an error');
+        writeln('ERROR: TPasParser.ResolveTypeReference: resolver failed to raise an error');
         ParseExcExpectedIdentifier;
         end;
       {AllowWriteln-}
@@ -3520,33 +3526,33 @@ begin
             // Scanner.SetForceCaret(OldForceCaret); // It may have been switched off
             if Assigned(TypeEl) then        // !!!
               begin
-                Declarations.Declarations.Add(TypeEl);
-                {$IFDEF CheckPasTreeRefCount}if TypeEl.RefIds.IndexOf('CreateElement')>=0 then TypeEl.ChangeRefId('CreateElement','TPasDeclarations.Children');{$ENDIF}
-                if (TypeEl.ClassType = TPasClassType)
-                    and (not (po_keepclassforward in Options)) then
+              Declarations.Declarations.Add(TypeEl);
+              {$IFDEF CheckPasTreeRefCount}if TypeEl.RefIds.IndexOf('CreateElement')>=0 then TypeEl.ChangeRefId('CreateElement','TPasDeclarations.Children');{$ENDIF}
+              if (TypeEl.ClassType = TPasClassType)
+                  and (not (po_keepclassforward in Options)) then
+              begin
+                // Remove previous forward declarations, if necessary
+                for i := 0 to Declarations.Classes.Count - 1 do
                 begin
-                  // Remove previous forward declarations, if necessary
-                  for i := 0 to Declarations.Classes.Count - 1 do
+                  ClassEl := TPasClassType(Declarations.Classes[i]);
+                  if CompareText(ClassEl.Name, TypeEl.Name) = 0 then
                   begin
-                    ClassEl := TPasClassType(Declarations.Classes[i]);
-                    if CompareText(ClassEl.Name, TypeEl.Name) = 0 then
-                    begin
-                      Declarations.Classes.Delete(i);
-                      for j := 0 to Declarations.Declarations.Count - 1 do
-                        if CompareText(TypeEl.Name,
-                          TPasElement(Declarations.Declarations[j]).Name) = 0 then
-                        begin
-                          Declarations.Declarations.Delete(j);
-                          break;
-                        end;
-                      ClassEl.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-                      break;
-                    end;
+                    Declarations.Classes.Delete(i);
+                    for j := 0 to Declarations.Declarations.Count - 1 do
+                      if CompareText(TypeEl.Name,
+                        TPasElement(Declarations.Declarations[j]).Name) = 0 then
+                      begin
+                        Declarations.Declarations.Delete(j);
+                        break;
+                      end;
+                    ClassEl.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+                    break;
                   end;
-                  // Add the new class to the class list
-                  Declarations.Classes.Add(TypeEl)
-                end else
-                  Declarations.Types.Add(TypeEl);
+                end;
+                // Add the new class to the class list
+                Declarations.Classes.Add(TypeEl)
+              end else
+                Declarations.Types.Add(TypeEl);
               end;
             end;
           declExports:

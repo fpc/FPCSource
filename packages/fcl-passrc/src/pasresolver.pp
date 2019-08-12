@@ -5625,7 +5625,7 @@ var
   aType: TPasType;
 begin
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.FinishTypeDef El=',GetObjName(El));
+  //writeln('TPasResolver.FinishTypeDef El=',GetObjName(El));
   {$ENDIF}
   C:=El.ClassType;
   if C=TPasEnumType then
@@ -6285,6 +6285,9 @@ var
   DestType: TPasType;
   i: Integer;
 begin
+  {$IFDEF VerbosePasResolver}
+  //writeln('TPasResolver.FinishSpecializeType ');
+  {$ENDIF}
   // resolve Params
   Params:=El.Params;
   for i:=0 to Params.Count-1 do
@@ -11164,6 +11167,7 @@ var
   i: Integer;
   Scope: TPasScope;
   Old: TPasIdentifier;
+  ClassOrRec: TPasMembersType;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.AddEnumValue ',GetObjName(El));
@@ -11189,6 +11193,9 @@ begin
       Old:=TPasIdentifierScope(Scope).FindIdentifier(El.Name);
       if Old=nil then
         TPasIdentifierScope(Scope).AddIdentifier(El.Name,El,pikSimple);
+      ClassOrRec:=Scope.Element as TPasMembersType;
+      if GetTypeParameterCount(ClassOrRec)>0 then
+        break; // enums in generics do not propagate
       end
     else if (Scope is TPasProcedureScope) or (Scope is TPasSectionScope) then
       begin
@@ -14435,6 +14442,9 @@ begin
     if ParamType is TPasGenericTemplateType then
       begin
       // not fully specialized
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.CheckSpecializeConstraints ',GetObjName(El),' i=',i,' P=',GetObjName(P),' ParamType=',GetObjName(ParamType));
+      {$ENDIF}
       Result:=false;
       // ToDo: check if both constraints fit
       continue;
@@ -14502,7 +14512,12 @@ begin
       begin
       if (ParentEl is TPasGenericType)
           and (GetTypeParameterCount(TPasGenericType(ParentEl))>0) then
+        begin
+        {$IFDEF VerbosePasResolver}
+        //writeln('TPasResolver.CheckSpecializeConstraints El=',GetObjName(El),' not specialized Parent=',GetObjName(ParentEl));
+        {$ENDIF}
         exit(false); // parent is not specialized
+        end;
       ParentEl:=ParentEl.Parent;
       end;
     end;
@@ -15064,17 +15079,12 @@ begin
   if GenElType.Parent<>GenEl then
     begin
     // reference
-    if GenElType is TPasGenericTemplateType then
-      begin
-      Ref:=FindElement(GenElType.Name);
-      if (Ref<>GenElType) and (Ref is TPasType) then
-        begin
-        // replace template with specialized type
-        GenElType:=TPasType(Ref);
-        end;
-      end;
+    Ref:=FindElement(GenElType.Name);
+    if not (Ref is TPasType) then
+      RaiseNotYetImplemented(20190812021538,GenEl,GetObjName(Ref));
+    GenElType:=TPasType(Ref);
     if SpecElType<>nil then
-      SpecElType.Release{$IFDEF CheckPasTreeRefCount}('ResolveTypeReference'){$ENDIF};
+      RaiseNotYetImplemented(20190812021617,GenEl);
     SpecElType:=GenElType;
     SpecElType.AddRef{$IFDEF CheckPasTreeRefCount}('ResolveTypeReference'){$ENDIF};
     exit;
@@ -15137,7 +15147,7 @@ procedure TPasResolver.SpecializeElList(GenEl, SpecEl: TPasElement;
   {$IFDEF CheckPasTreeRefCount}; const RefId: string{$ENDIF});
 var
   i: Integer;
-  GenListItem, SpecListItem: TPasElement;
+  GenListItem, SpecListItem, Ref: TPasElement;
   NewClass: TPTreeElement;
 begin
   for i:=0 to GenList.Count-1 do
@@ -15147,9 +15157,14 @@ begin
       begin
       if not AllowReferences then
         RaiseNotYetImplemented(20190808212421,GenEl,IntToStr(i));
+      if not (GenListItem is TPasType) then
+        RaiseNotYetImplemented(20190812025715,GenEl,IntToStr(i)+' GenListItem='+GetObjName(GenListItem));
       // reference
-      GenListItem.AddRef{$IFDEF CheckPasTreeRefCount}(RefID){$ENDIF};
-      SpecList.Add(GenListItem);
+      Ref:=FindElement(GenListItem.Name);
+      if not (Ref is TPasType) then
+        RaiseNotYetImplemented(20190812025715,GenEl,IntToStr(i)+' GenListItem='+GetObjName(GenListItem)+' Ref='+GetObjName(Ref));
+      Ref.AddRef{$IFDEF CheckPasTreeRefCount}(RefId){$ENDIF};
+      SpecList.Add(Ref);
       continue;
       end;
     NewClass:=TPTreeElement(GenListItem.ClassType);
@@ -15308,13 +15323,30 @@ end;
 
 procedure TPasResolver.SpecializeSpecializeType(GenEl,
   SpecEl: TPasSpecializeType);
+var
+  GenDestType: TPasType;
+  Ref: TPasElement;
 begin
-  SpecializeElType(GenEl,SpecEl,GenEl.DestType,SpecEl.DestType);
+  // search DestType<ParamCount>
+  GenDestType:=GenEl.DestType;
+  if GenDestType=nil then
+    RaiseNotYetImplemented(20190812022211,GenEl);
+  if GenDestType.Parent=GenEl then
+    RaiseNotYetImplemented(20190812022251,GenEl);
+  Ref:=FindElementFor(GenDestType.Name,GenEl.Parent,GenEl.Params.Count);
+  if not (Ref is TPasGenericType) then
+    RaiseNotYetImplemented(20190812022359,GenEl,GetObjName(Ref));
+  SpecEl.DestType:=TPasGenericType(Ref);
+  SpecEl.DestType.AddRef{$IFDEF CheckPasTreeRefCount}('ResolveTypeReference'){$ENDIF};
+
   SpecializeElExpr(GenEl,SpecEl,GenEl.Expr,SpecEl.Expr);
   SpecializeElList(GenEl,SpecEl,GenEl.Params,SpecEl.Params,true
     {$IFDEF CheckPasTreeRefCount},'TPasSpecializeType.Params'{$ENDIF});
 
   FinishSpecializeType(SpecEl);
+  {$IFDEF VerbosePasResolver}
+  //writeln('TPasResolver.SpecializeSpecializeType ',GetObjName(SpecEl.DestType),' ',GetObjName(SpecEl.CustomData));
+  {$ENDIF}
 end;
 
 procedure TPasResolver.SpecializeArgument(GenEl, SpecEl: TPasArgument);
@@ -20528,7 +20560,7 @@ begin
   for i:=0 to ProcArgs1.Count-1 do
     begin
     {$IFDEF VerbosePasResolver}
-    writeln('TPasResolver.CheckProcAssignCompatibility ',i,'/',ProcArgs1.Count);
+    writeln('TPasResolver.CheckProcTypeCompatibility ',i,'/',ProcArgs1.Count);
     {$ENDIF}
     ExpectedArg:=TPasArgument(ProcArgs1[i]);
     ActualArg:=TPasArgument(ProcArgs2[i]);
