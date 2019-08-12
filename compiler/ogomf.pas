@@ -646,6 +646,7 @@ interface
         FMemBasePos: Word;
         FDataPosSectors: Word;
         FNewExeSegmentFlags: TNewExeSegmentFlags;
+        FSizeInFile: QWord;
         function GetMinAllocSize: QWord;
       public
         procedure WriteHeaderTo(aWriter: TObjectWriter);
@@ -658,6 +659,7 @@ interface
         property MemBasePos: Word read FMemBasePos write FMemBasePos;
         property DataPosSectors: Word read FDataPosSectors write FDataPosSectors;
         property MinAllocSize: QWord read GetMinAllocSize;
+        property SizeInFile: QWord read FSizeInFile write FSizeInFile;
         property NewExeSegmentFlags: TNewExeSegmentFlags read FNewExeSegmentFlags write FNewExeSegmentFlags;
       end;
 
@@ -4167,8 +4169,8 @@ cleanup:
       begin
         SegmentHeaderBytes[0]:=Byte(DataPosSectors);
         SegmentHeaderBytes[1]:=Byte(DataPosSectors shr 8);
-        SegmentHeaderBytes[2]:=Byte(Size);
-        SegmentHeaderBytes[3]:=Byte(Size shr 8);
+        SegmentHeaderBytes[2]:=Byte(SizeInFile);
+        SegmentHeaderBytes[3]:=Byte(SizeInFile shr 8);
         SegmentHeaderBytes[4]:=Byte(Word(NewExeSegmentFlags));
         SegmentHeaderBytes[5]:=Byte(Word(NewExeSegmentFlags) shr 8);
         SegmentHeaderBytes[6]:=Byte(MinAllocSize);
@@ -4187,11 +4189,12 @@ cleanup:
         s: TSymStr;
         Separator: SizeInt;
         SegName, SegClass: string;
-        IsStack: Boolean;
+        IsStack, IsBss: Boolean;
       begin
         { allow mixing initialized and uninitialized data in the same section
           => set ignoreprops=true }
         inherited AddObjSection(objsec,true);
+        IsBss:=not(oso_Data in objsec.SecOptions);
         s:=objsec.Name;
         { name format is 'SegName||ClassName' }
         Separator:=Pos('||',s);
@@ -4216,6 +4219,8 @@ cleanup:
         if IsStack then
           StackSize:=StackSize+objsec.Size;
         EarlySize:=align_qword(EarlySize,SecAlign)+objsec.Size;
+        if (not IsBss) and (not IsStack) then
+          SizeInFile:=EarlySize;
       end;
 
     function TNewExeSection.CanAddObjSection(objsec: TObjSection; ExeSectionLimit: QWord): boolean;
