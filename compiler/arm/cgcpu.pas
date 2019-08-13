@@ -1933,6 +1933,13 @@ unit cgcpu;
                     as the even ones by with a different subtype as it is done on x86 with al/ah }
                   mmregs:=(rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall))*[0..31];
                 end
+              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+                begin;
+                  { the *[0..15] is a hack to prevent that the compiler tries to save odd single-type registers,
+                    they have numbers>$1f which is not really correct as they should simply have the same numbers
+                    as the even ones by with a different subtype as it is done on x86 with al/ah }
+                  mmregs:=(rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall))*[0..15];
+                end
               else
                 internalerror(2019050924);
             end;
