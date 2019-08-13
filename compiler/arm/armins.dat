@@ -1731,6 +1731,11 @@ reg32              \x3\x01\x2F\xFF\x20             ARM32,ARMv5TEJ
 immshifter           \x61\xDE\x0                   THUMB,ARMv4T
 void                 void                          ARM32,ARMv4T
 
+; NEON/Advanced SIMD
+
+[VEOR]
+vreg,vreg,vreg              \x42\xF3\x00\x01\x10   ARM32,NEON
+
 ; FPA
 
 

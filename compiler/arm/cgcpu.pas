@@ -3265,20 +3265,30 @@ unit cgcpu;
           case op of
             OP_XOR:
               begin
-                if (src<>dst) or
-                   (reg_cgsize(src)<>size) or
-                   assigned(shuffle) then
-                  internalerror(2009112907);
-                tmpreg:=getintregister(list,OS_32);
-                a_load_const_reg(list,OS_32,0,tmpreg);
-                case size of
-                  OS_F32:
-                    list.concat(taicpu.op_reg_reg(A_VMOV,dst,tmpreg));
-                  OS_F64:
-                    list.concat(taicpu.op_reg_reg_reg(A_VMOV,dst,tmpreg,tmpreg));
-                  else
-                    internalerror(2009112908);
-                end;
+                if (FPUARM_HAS_NEON in fpu_capabilities[current_settings.fputype]) and (size in [OS_F64]) then
+                  begin
+                    if (reg_cgsize(src)<>size) or
+                       assigned(shuffle) then
+                      internalerror(2019081301);
+                    list.concat(taicpu.op_reg_reg_reg(A_VEOR,dst,dst,src));
+                  end
+                else
+                  begin
+                    if (src<>dst) or
+                       (reg_cgsize(src)<>size) or
+                       assigned(shuffle) then
+                      internalerror(2009112907);
+                    tmpreg:=getintregister(list,OS_32);
+                    a_load_const_reg(list,OS_32,0,tmpreg);
+                    case size of
+                      OS_F32:
+                        list.concat(taicpu.op_reg_reg(A_VMOV,dst,tmpreg));
+                      OS_F64:
+                        list.concat(taicpu.op_reg_reg_reg(A_VMOV,dst,tmpreg,tmpreg));
+                      else
+                        internalerror(2009112908);
+                    end;
+                  end;
               end
             else
               internalerror(2009112906);
