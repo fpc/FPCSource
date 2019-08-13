@@ -26,7 +26,7 @@ Unit aoptcpu;
 {$i fpcdefs.inc}
 
 { $define DEBUG_PREREGSCHEDULER}
-{ $define DEBUG_AOPTCPU}
+{$define DEBUG_AOPTCPU}
 
 Interface
 
@@ -473,8 +473,8 @@ Implementation
     begin
       Result:=false;
       if (MatchInstruction(movp, A_VMOV, [taicpu(p).condition], [taicpu(p).oppostfix]) or
-          (((taicpu(p).oppostfix in [PF_F64F32,PF_F64S16,PF_F64S32,PF_F64U16,PF_F64U32]) or (getsubreg( taicpu(p).oper[0]^.reg)=R_SUBFD)) and MatchInstruction(movp, A_VMOV, [taicpu(p).condition], [PF_F64])) or
-          (((taicpu(p).oppostfix in [PF_F32F64,PF_F32S16,PF_F32S32,PF_F32U16,PF_F32U32]) or (getsubreg( taicpu(p).oper[0]^.reg)=R_SUBFS)) and MatchInstruction(movp, A_VMOV, [taicpu(p).condition], [PF_F32]))
+          (((taicpu(p).oppostfix in [PF_F64F32,PF_F64S16,PF_F64S32,PF_F64U16,PF_F64U32]) or (getsubreg(taicpu(p).oper[0]^.reg)=R_SUBFD)) and MatchInstruction(movp, A_VMOV, [taicpu(p).condition], [PF_F64])) or
+          (((taicpu(p).oppostfix in [PF_F32F64,PF_F32S16,PF_F32S32,PF_F32U16,PF_F32U32]) or (getsubreg(taicpu(p).oper[0]^.reg)=R_SUBFS)) and MatchInstruction(movp, A_VMOV, [taicpu(p).condition], [PF_F32]))
          ) and
          (taicpu(movp).ops=2) and
          MatchOperand(taicpu(movp).oper[1]^, taicpu(p).oper[0]^.reg) and
@@ -2314,7 +2314,8 @@ Implementation
                            (l<=4) and
                            CanBeCond(hp1) and
                            { stop on labels }
-                           not(hp1.typ=ait_label) do
+                           not(hp1.typ=ait_label) and
+                           not((hp1.typ=ait_instruction) and (taicpu(hp1).opcode=A_B)) do
                            begin
                               inc(l);
                               if MustBeLast(hp1) then
@@ -2349,6 +2350,7 @@ Implementation
                                       until not(assigned(hp1)) or
                                         not(CanBeCond(hp1)) or
                                         (hp1.typ=ait_label);
+                                      DebugMsg('Peephole Bcc2Cond done',hp2);
                                       { wait with removing else GetNextInstruction could
                                         ignore the label if it was the only usage in the
                                         jump moved away }
@@ -2384,7 +2386,7 @@ Implementation
                                     (taicpu(hp2).condition=C_None) and
                                     { real label and jump, no further references to the
                                       label are allowed }
-                                    (tasmlabel(taicpu(p).oper[0]^.ref^.symbol).getrefs=2) and
+                                    (tasmlabel(taicpu(p).oper[0]^.ref^.symbol).getrefs=1) and
                                     FindLabel(tasmlabel(taicpu(p).oper[0]^.ref^.symbol),hp1) then
                                      begin
                                        l:=0;
@@ -2409,30 +2411,27 @@ Implementation
                                                 taicpu(hp1).condition:=condition;
                                               GetNextInstruction(hp1,hp1);
                                             until not(assigned(hp1)) or
-                                              not(CanBeCond(hp1));
+                                              not(CanBeCond(hp1)) or
+                                              ((hp1.typ=ait_instruction) and (taicpu(hp1).opcode=A_B));
                                             { hp2 is still at jmp yyy }
                                             GetNextInstruction(hp2,hp1);
-                                            { hp2 is now at xxx: }
+                                            { hp1 is now at xxx: }
                                             condition:=inverse_cond(condition);
                                             GetNextInstruction(hp1,hp1);
                                             { hp1 is now at <several movs 2> }
                                             repeat
-                                              taicpu(hp1).condition:=condition;
+                                              if hp1.typ=ait_instruction then
+                                                taicpu(hp1).condition:=condition;
                                               GetNextInstruction(hp1,hp1);
                                             until not(assigned(hp1)) or
                                               not(CanBeCond(hp1)) or
                                               (hp1.typ=ait_label);
-                                            {
-                                            asml.remove(hp1.next)
-                                            hp1.next.free;
-                                            asml.remove(hp1);
-                                            hp1.free;
-                                            }
+                                            DebugMsg('Peephole BccB2Cond done',hp3);
                                             { remove Bcc }
                                             tasmlabel(taicpu(hp3).oper[0]^.ref^.symbol).decrefs;
                                             asml.remove(hp3);
                                             hp3.free;
-                                            { remove jmp }
+                                            { remove B }
                                             tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol).decrefs;
                                             asml.remove(hp2);
                                             hp2.free;
