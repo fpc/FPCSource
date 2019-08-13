@@ -177,6 +177,7 @@
   {$define cputargethasfixedstack}
   {$define cpurefshaveindexreg}
   {$define cpucapabilities}
+  {$define fpucapabilities}
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
   { default to armel }

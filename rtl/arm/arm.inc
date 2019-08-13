@@ -35,7 +35,15 @@ const
 {$if not(defined(wince)) and not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
-{$if not defined(darwin) and not defined(FPUVFPV2) and not defined(FPUVFPV3) and not defined(FPUVFPV4) and not defined(FPUVFPV3_D16)}
+
+{ for bootstrapping with 3.0.x/3.2.x }
+{$if not defined(darwin) and not defined(FPUVFPV2) and not defined(FPUVFPV3) and not defined(FPUVFPV4) and not defined(FPUVFPV3_D16) and not defined(FPUARM_HAS_VFP_EXTENSION))}
+{$define FPUARM_HAS_FPA}
+{$else}
+{$define FPUARM_HAS_VFP_EXTENSION}
+{$endif}
+
+{$if defined(FPUARM_HAS_FPA)}
 Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
@@ -46,7 +54,7 @@ begin
     wfs r0
   end;
 end;
-{$else}
+{$elseif defined(FPUARM_HAS_VFP_EXTENSION)}
 
 
 const

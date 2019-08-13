@@ -1059,6 +1059,7 @@ Const
 
    tfpuflags =
       (
+        FPUARM_HAS_FPA,                { fpu is an fpa based FPU                                                               }
         FPUARM_HAS_VFP_EXTENSION,      { fpu is a vfp extension                                                                }
         FPUARM_HAS_VFP_DOUBLE,         { vfp has double support                                                                }
         FPUARM_HAS_VFP_SINGLE_ONLY,    { vfp has only single support, disjunct to FPUARM_HAS_VFP_DOUBLE, for error checking    }
@@ -1096,9 +1097,9 @@ Const
        ( { fpu_none       } [],
          { fpu_soft       } [],
          { fpu_libgcc     } [],
-         { fpu_fpa        } [],
-         { fpu_fpa10      } [],
-         { fpu_fpa11      } [],
+         { fpu_fpa        } [FPUARM_HAS_FPA],
+         { fpu_fpa10      } [FPUARM_HAS_FPA],
+         { fpu_fpa11      } [FPUARM_HAS_FPA],
          { fpu_vfpv2      } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE],
          { fpu_vfpv3      } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST],
          { fpu_neon_vfpv3 } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_NEON],

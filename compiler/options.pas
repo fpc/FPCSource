@@ -3772,8 +3772,13 @@ var
   cmdstr : TCmdStr;
 {$if defined(cpucapabilities)}
   cpuflag : tcpuflags;
-  hs : string;
 {$endif defined(cpucapabilities)}
+{$if defined(fpucapabilities)}
+  fpuflag : tfpuflags;
+{$endif defined(fpucapabilities)}
+{$if defined(cpucapabilities) or defined(fpucapabilities)}
+  hs : string;
+{$endif defined(cpucapabilities) or defined(fpucapabilities)}
 begin
   option:=coption.create;
   disable_configfile:=false;
@@ -4395,6 +4400,16 @@ begin
         undef_system_macro(hs);
     end;
 {$endif defined(cpucapabilities)}
+{$if defined(fpucapabilities)}
+  for fpuflag:=low(fpuflag) to high(fpuflag) do
+    begin
+      str(fpuflag,hs);
+      if fpuflag in fpu_capabilities[init_settings.fputype] then
+        def_system_macro(hs)
+      else
+        undef_system_macro(hs);
+    end;
+{$endif defined(fpucapabilities)}
 
   if init_settings.fputype<>fpu_none then
     begin
