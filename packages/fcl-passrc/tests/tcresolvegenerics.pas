@@ -68,7 +68,8 @@ type
     // generic array
     procedure TestGen_Array;
 
-    // ToDo: generic procedure type
+    // generic procedure type
+    procedure TestGen_ProcType;
 
     // ToDo: pointer of generic
 
@@ -608,8 +609,36 @@ begin
   '  a[1]:=2;',
   '  b[2]:=a[3]+b[4];',
   '  a:=b;',
+  '  b:=a;',
   '  SetLength(a,5);',
   '  SetLength(b,6);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ProcType;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TFunc<T> = function(v: T): T;',
+  '  TWordFunc = specialize TFunc<word>;',
+  'function GetIt(w: word): word;',
+  'begin',
+  'end;',
+  'var',
+  '  a: specialize TFunc<word>;',
+  '  b: TWordFunc;',
+  '  w: word;',
+  'begin',
+  '  a:=nil;',
+  '  b:=nil;',
+  '  a:=b;',
+  '  b:=a;',
+  '  w:=a(w);',
+  '  w:=b(w);',
+  '  a:=@GetIt;',
+  '  b:=@GetIt;',
   '']);
   ParseProgram;
 end;

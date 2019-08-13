@@ -952,6 +952,12 @@ type
   public
   end;
 
+  { TPasProcTypeScope }
+
+  TPasProcTypeScope = Class(TPasGenericScope)
+  public
+  end;
+
   { TPasClassOrRecordScope }
 
   TPasClassOrRecordScope = Class(TPasGenericScope)
@@ -1540,6 +1546,7 @@ type
     procedure AddEnumType(El: TPasEnumType); virtual;
     procedure AddEnumValue(El: TPasEnumValue); virtual;
     procedure AddProperty(El: TPasProperty); virtual;
+    procedure AddProcedureType(El: TPasProcedureType; TypeParams: TFPList); virtual;
     procedure AddProcedure(El: TPasProcedure); virtual;
     procedure AddProcedureBody(El: TProcedureBody); virtual;
     procedure AddArgument(El: TPasArgument); virtual;
@@ -1748,7 +1755,7 @@ type
       {$IFDEF CheckPasTreeRefCount}; const RefId: string{$ENDIF});
     procedure SpecializeProcedure(GenEl, SpecEl: TPasProcedure);
     procedure SpecializeOperator(GenEl, SpecEl: TPasOperator);
-    procedure SpecializeProcedureType(GenEl, SpecEl: TPasProcedureType);
+    procedure SpecializeProcedureType(GenEl, SpecEl: TPasProcedureType; SpecializedItem: TPSSpecializedItem);
     procedure SpecializeProcedureBody(GenEl, SpecEl: TProcedureBody);
     procedure SpecializeDeclarations(GenEl, SpecEl: TPasDeclarations);
     procedure SpecializeSpecializeType(GenEl, SpecEl: TPasSpecializeType);
@@ -6174,7 +6181,6 @@ begin
   else if C=TPasArrayType then
   else if (C=TPasProcedureType)
       or (C=TPasFunctionType) then
-    RaiseNotYetImplemented(20190812220555,aType,GetObjName(aType))
   else
     RaiseNotYetImplemented(20190726150359,aType,GetObjName(aType));
 end;
@@ -6431,7 +6437,14 @@ var
   HelperForType: TPasType;
   Args: TFPList;
   Arg: TPasArgument;
+  ProcTypeScope: TPasProcTypeScope;
 begin
+  if TopScope.Element=El then
+    begin
+    ProcTypeScope:=El.CustomData as TPasProcTypeScope;
+    ProcTypeScope.GenericStep:=psgsImplementationParsed;
+    PopScope;
+    end;
   if El.Parent is TPasProcedure then
     Proc:=TPasProcedure(El.Parent)
   else
@@ -11279,6 +11292,29 @@ begin
   PushScope(El,TPasPropertyScope);
 end;
 
+procedure TPasResolver.AddProcedureType(El: TPasProcedureType;
+  TypeParams: TFPList);
+var
+  Scope: TPasProcTypeScope;
+begin
+  if El.Name<>'' then begin
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.AddProcedureType ',GetObjName(El),' Parent=',GetObjName(El.Parent));
+    {$ENDIF}
+    if not (TopScope is TPasIdentifierScope) then
+      RaiseInvalidScopeForElement(20190813193703,El);
+    AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple);
+  end;
+  if TypeParams<>nil then
+    begin
+    // generic procedure type
+    if El.Name='' then
+      RaiseNotYetImplemented(20190813193745,El);
+    Scope:=TPasProcTypeScope(PushScope(El,TPasProcTypeScope));
+    AddGenericTemplateIdentifiers(TypeParams,Scope);
+    end;
+end;
+
 procedure TPasResolver.AddProcedure(El: TPasProcedure);
 
   procedure AddClassConDestructor(ClassOrRecordScope: TPasClassOrRecordScope;
@@ -14744,6 +14780,7 @@ var
   NewArrayType, GenArrayType: TPasArrayType;
   NewRecordType, GenRecordType: TPasRecordType;
   HeaderScope: TPasClassHeaderScope;
+  GenProcType, NewProcType: TPasProcedureType;
 begin
   if SpecializedItem.Step<>psssNone then
     exit;
@@ -14828,6 +14865,14 @@ begin
     GenArrayType:=TPasArrayType(GenericType);
     NewArrayType:=TPasArrayType(SpecType);
     SpecializeArrayType(GenArrayType,NewArrayType,SpecializedItem);
+    SpecializedItem.Step:=psssImplementationFinished;
+    end
+  else if (C=TPasProcedureType)
+      or (C=TPasFunctionType) then
+    begin
+    GenProcType:=TPasProcedureType(GenericType);
+    NewProcType:=TPasProcedureType(SpecType);
+    SpecializeProcedureType(GenProcType,NewProcType,SpecializedItem);
     SpecializedItem.Step:=psssImplementationFinished;
     end
   else
@@ -15128,8 +15173,8 @@ begin
     end
   else if C.InheritsFrom(TPasProcedureType) then
     begin
-    AddType(TPasProcedureType(SpecEl));
-    SpecializeProcedureType(TPasProcedureType(GenEl),TPasProcedureType(SpecEl));
+    AddProcedureType(TPasProcedureType(SpecEl),nil);
+    SpecializeProcedureType(TPasProcedureType(GenEl),TPasProcedureType(SpecEl),nil);
     end
   else
     RaiseNotYetImplemented(20190728151215,GenEl);
@@ -15352,13 +15397,30 @@ begin
   SpecializeProcedure(GenEl,SpecEl);
 end;
 
-procedure TPasResolver.SpecializeProcedureType(GenEl, SpecEl: TPasProcedureType
-  );
+procedure TPasResolver.SpecializeProcedureType(GenEl,
+  SpecEl: TPasProcedureType; SpecializedItem: TPSSpecializedItem);
 var
   GenResultEl, NewResultEl: TPasResultElement;
   NewClass: TPTreeElement;
   i: Integer;
+  GenScope: TPasGenericScope;
 begin
+  if GenEl.GenericTemplateTypes<>nil then
+    begin
+    GenScope:=TPasGenericScope(PushScope(SpecEl,TPasProcTypeScope));
+    if SpecializedItem<>nil then
+      begin
+      // specialized procedure type
+      GenScope.SpecializedItem:=SpecializedItem;
+      AddSpecializedTemplateIdentifiers(GenEl.GenericTemplateTypes,
+                                        SpecializedItem.Params,GenScope);
+      end
+    else
+      begin
+      // generic procedure type inside a generic type
+      RaiseNotYetImplemented(20190813194550,GenEl);
+      end;
+    end;
   // Args
   SpecializeElList(GenEl,SpecEl,GenEl.Args,SpecEl.Args,false
     {$IFDEF CheckPasTreeRefCount},'TPasProcedureType.Args'{$ENDIF});
@@ -18071,7 +18133,7 @@ begin
       AddArrayType(TPasArrayType(El),TypeParams)
     else if (AClass=TPasProcedureType)
         or (AClass=TPasFunctionType) then
-      AddType(TPasType(El)) // ToDo: TypeParams
+      AddProcedureType(TPasProcedureType(El),TypeParams)
     else if AClass=TPasGenericTemplateType then
       // TPasParser first collects template types and later adds them as a list
       // they are not real types
