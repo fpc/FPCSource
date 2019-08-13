@@ -1732,7 +1732,7 @@ implementation
 
            // IGNORE VECTOR-MEMORY-SIZE
            if insot and OT_MEMORY = OT_MEMORY then
-            insot := insot and not(OT_BITS128 or OT_BITS256 or OT_BITS512);
+            insot := insot and not(int64(OT_BITS128 or OT_BITS256 or OT_BITS512));
 
 
            { Check if the passed operand size matches with one of
