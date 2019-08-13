@@ -635,6 +635,59 @@ interface
         'Data');
 
     type
+      TNewExeRelocationAddressType = (
+        neratLoByte       = 0,    { low 8 bits of 16-bit offset }
+        neratSelector     = 2,    { 16-bit selector }
+        neratFarPointer   = 3,    { 16-bit selector:16-bit offset }
+        neratOffset       = 5,    { 16-bit offset }
+        neratFarPointer48 = 11,   { 16-bit selector:32-bit offset }
+        neratOffset32     = 13);  { 32-bit offset }
+      TNewExeRelocationType = (
+        nertInternalRef,
+        nertImportName,
+        nertImportOrdinal,
+        nertOsFixup);
+      TNewExeOsFixupType = (
+        neoftFIARQQ_FJARQQ = 1,
+        neoftFISRQQ_FJSRQQ = 2,
+        neoftFICRQQ_FJCRQQ = 3,
+        neoftFIERQQ        = 4,
+        neoftFIDRQQ        = 5,
+        neoftFIWRQQ        = 6);
+      TNewExeInternalRefSegmentType = (
+        neirstFixed,
+        neirstMovable);
+
+      { TNewExeRelocation }
+
+      TNewExeRelocation=class
+      private
+        FAddressType: TNewExeRelocationAddressType;
+        FRelocationType: TNewExeRelocationType;
+        FIsAdditive: Boolean;
+        FInternalRefSegmentType: TNewExeInternalRefSegmentType;
+        FOsFixupType: TNewExeOsFixupType;
+        FOffset: Word;
+        FImportModuleIndex: Word;
+        FImportNameIndex: Word;
+        FImportOrdinal: Word;
+        FInternalRefFixedSegmentNumber: Byte;
+        FInternalRefFixedSegmentOffset: Word;
+        FInternalRefMovableSegmentEntryTableIndex: Word;
+      public
+        property AddressType: TNewExeRelocationAddressType read FAddressType write FAddressType;
+        property RelocationType: TNewExeRelocationType read FRelocationType write FRelocationType;
+        property IsAdditive: Boolean read FIsAdditive write FIsAdditive;
+        property InternalRefSegmentType: TNewExeInternalRefSegmentType read FInternalRefSegmentType write FInternalRefSegmentType;
+        property OsFixupType: TNewExeOsFixupType read FOsFixupType write FOsFixupType;
+        property Offset: Word read FOffset write FOffset;
+        property ImportModuleIndex: Word read FImportModuleIndex write FImportModuleIndex;
+        property ImportNameIndex: Word read FImportNameIndex write FImportNameIndex;
+        property ImportOrdinal: Word read FImportOrdinal write FImportOrdinal;
+        property InternalRefFixedSegmentNumber: Byte read FInternalRefFixedSegmentNumber write FInternalRefFixedSegmentNumber;
+        property InternalRefFixedSegmentOffset: Word read FInternalRefFixedSegmentOffset write FInternalRefFixedSegmentOffset;
+        property InternalRefMovableSegmentEntryTableIndex: Word read FInternalRefMovableSegmentEntryTableIndex write FInternalRefMovableSegmentEntryTableIndex;
+      end;
 
       { TNewExeSection }
 
