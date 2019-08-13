@@ -83,7 +83,7 @@ type
     procedure TestGen_LocalVar;
     procedure TestGen_Statements;
     // ToDo: for-in
-    // ToDo: try finally/except
+    procedure TestGen_TryExcept;
     // ToDo: call
     // ToDo: dot
     // ToDo: is as
@@ -715,6 +715,49 @@ begin
   '  if v1<v2 then else ;',
   '  case v1 of',
   '  1: v3:=3;',
+  '  end;',
+  'end;',
+  'var',
+  '  b: specialize TBird<word>;',
+  'begin',
+  '  b.Fly(2);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_TryExcept;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<{#Templ}T> = class',
+  '    function Fly(p:T): T;',
+  '  end;',
+  '  Exception = class',
+  '  end;',
+  '  generic EMsg<T> = class',
+  '    Msg: T;',
+  '  end;',
+  'function TBird.Fly(p:T): T;',
+  'var',
+  '  v1,v2,v3:T;',
+  'begin',
+  '  try',
+  '  finally',
+  '  end;',
+  '  try',
+  '    v1:=v2;',
+  '  finally',
+  '    v2:=v1;',
+  '  end;',
+  '  try',
+  '  except',
+  '    on Exception do ;',
+  '    on E: Exception do ;',
+  '    on E: EMsg<boolean> do E.Msg:=true;',
+  '    on E: EMsg<T> do E.Msg:=1;',
   '  end;',
   'end;',
   'var',

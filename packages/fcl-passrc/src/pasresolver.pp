@@ -15122,7 +15122,10 @@ begin
       or (C=TPasImplTryExceptElse) then
     SpecializeImplBlock(TPasImplCaseElse(GenEl),TPasImplCaseElse(SpecEl))
   else if C=TPasImplExceptOn then
-    SpecializeImplExceptOn(TPasImplExceptOn(GenEl),TPasImplExceptOn(SpecEl))
+    begin
+    AddExceptOn(TPasImplExceptOn(SpecEl));
+    SpecializeImplExceptOn(TPasImplExceptOn(GenEl),TPasImplExceptOn(SpecEl));
+    end
   else if C=TPasImplRaise then
     SpecializeImplRaise(TPasImplRaise(GenEl),TPasImplRaise(SpecEl))
   // declaration
@@ -15245,6 +15248,8 @@ begin
       or (GenElType.ClassType=TPasGenericTemplateType) then
     begin
     // reference
+    if GenElType.Name='' then
+      RaiseNotYetImplemented(20190813213555,GenEl,GetObjName(GenElType)+' Parent='+GetObjName(GenElType.Parent));
     Ref:=FindElement(GenElType.Name);
     if not (Ref is TPasType) then
       RaiseNotYetImplemented(20190812021538,GenEl,GetObjName(Ref));
@@ -15677,13 +15682,11 @@ procedure TPasResolver.SpecializeImplTry(GenEl, SpecEl: TPasImplTry);
 begin
   SpecializeImplBlock(GenEl,SpecEl); // clone elements
   if GenEl.FinallyExcept<>nil then
-    SpecializeElImplAlias(GenEl,SpecEl,GenEl.FinallyExcept,
-      TPasImplElement(SpecEl.FinallyExcept)
-      {$IFDEF CheckPasTreeRefCount},'TPasImplTry.FinallyExcept'{$ENDIF});
+    SpecializeElImplEl(GenEl,SpecEl,GenEl.FinallyExcept,
+      TPasImplElement(SpecEl.FinallyExcept));
   if GenEl.ElseBranch<>nil then
-    SpecializeElImplAlias(GenEl,SpecEl,GenEl.ElseBranch,
-      TPasImplElement(SpecEl.ElseBranch)
-      {$IFDEF CheckPasTreeRefCount},'TPasImplTry.ElseBranch'{$ENDIF});
+    SpecializeElImplEl(GenEl,SpecEl,GenEl.ElseBranch,
+      TPasImplElement(SpecEl.ElseBranch));
 end;
 
 procedure TPasResolver.SpecializeImplExceptOn(GenEl, SpecEl: TPasImplExceptOn);
@@ -18271,7 +18274,7 @@ begin
     {AllowWriteln-}
     {$ENDIF}
     if not IsValidIdent(CurName) then
-      RaiseNotYetImplemented(20170328000033,ErrorEl);
+      RaiseNotYetImplemented(20170328000033,ErrorEl,CurName);
     if CurScopeEl<>nil then
       begin
       NeedPop:=true;
@@ -20064,7 +20067,7 @@ var
 begin
   s:=sNotYetImplemented+' ['+IntToStr(id)+']';
   if Msg<>'' then
-    s:=s+' '+Msg;
+    s:=s+' "'+Msg+'"';
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.RaiseNotYetImplemented s="',s,'" El=',GetObjName(El));
   {$ENDIF}

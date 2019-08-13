@@ -5735,6 +5735,7 @@ var
   Name: String;
   TypeEl: TPasType;
   ImplRaise: TPasImplRaise;
+  VarEl: TPasVariable;
 
 begin
   NewImplElement:=nil;
@@ -6184,10 +6185,12 @@ begin
                 NextToken;
                 TypeEl:=ParseSimpleType(El,SrcPos,'');
                 TPasImplExceptOn(El).TypeEl:=TypeEl;
-                TPasImplExceptOn(El).VarEl:=TPasVariable(CreateElement(TPasVariable,
-                                      Name,El,SrcPos));
-                TPasImplExceptOn(El).VarEl.VarType:=TypeEl;
+                VarEl:=TPasVariable(CreateElement(TPasVariable,Name,El,SrcPos));
+                TPasImplExceptOn(El).VarEl:=VarEl;
+                VarEl.VarType:=TypeEl;
                 TypeEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasVariable.VarType'){$ENDIF};
+                if TypeEl.Parent=El then
+                  TypeEl.Parent:=VarEl;
                 end
               else
                 begin
