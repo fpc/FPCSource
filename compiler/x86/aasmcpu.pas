@@ -1729,6 +1729,12 @@ implementation
            { Check the operand flags }
            if (insot and (not currot) and OT_NON_SIZE)<>0 then
              exit;
+
+           // IGNORE VECTOR-MEMORY-SIZE
+           if insot and OT_MEMORY = OT_MEMORY then
+            insot := insot and not(OT_BITS128 or OT_BITS256 or OT_BITS512);
+
+
            { Check if the passed operand size matches with one of
              the supported operand sizes }
            if ((insot and OT_SIZE_MASK)<>0) and
