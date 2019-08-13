@@ -2315,6 +2315,7 @@ Implementation
                            CanBeCond(hp1) and
                            { stop on labels }
                            not(hp1.typ=ait_label) and
+                           { avoid that we cannot recognize the case BccB2Cond }
                            not((hp1.typ=ait_instruction) and (taicpu(hp1).opcode=A_B)) do
                            begin
                               inc(l);
@@ -2393,10 +2394,17 @@ Implementation
                                        { skip hp1 to <several moves 2> }
                                        GetNextInstruction(hp1, hp1);
                                        while assigned(hp1) and
-                                         CanBeCond(hp1) do
+                                         CanBeCond(hp1) and
+                                         (l<=3) do
                                          begin
                                            inc(l);
-                                           GetNextInstruction(hp1, hp1);
+                                           if MustBeLast(hp1) then
+                                             begin
+                                               GetNextInstruction(hp1, hp1);
+                                               break;
+                                             end
+                                           else
+                                             GetNextInstruction(hp1, hp1);
                                          end;
                                        { hp1 points to yyy: }
                                        if assigned(hp1) and
@@ -2409,7 +2417,13 @@ Implementation
                                             repeat
                                               if hp1.typ=ait_instruction then
                                                 taicpu(hp1).condition:=condition;
-                                              GetNextInstruction(hp1,hp1);
+                                              if MustBeLast(hp1) then
+                                                begin
+                                                  GetNextInstruction(hp1, hp1);
+                                                  break;
+                                                end
+                                              else
+                                                GetNextInstruction(hp1, hp1);
                                             until not(assigned(hp1)) or
                                               not(CanBeCond(hp1)) or
                                               ((hp1.typ=ait_instruction) and (taicpu(hp1).opcode=A_B));
