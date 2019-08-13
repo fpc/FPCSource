@@ -179,9 +179,9 @@ implementation
               fpu_fpa10,
               fpu_fpa11:
                 expectloc:=LOC_FPUREGISTER;
-              else if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype] then
-                expectloc:=LOC_MMREGISTER
               else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+                expectloc:=LOC_MMREGISTER
+              else if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype] then
                 begin
                   if tfloatdef(left.resultdef).floattype=s32real then
                     expectloc:=LOC_MMREGISTER
