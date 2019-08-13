@@ -123,18 +123,15 @@ implementation
               fpu_fpa10,
               fpu_fpa11:
                 expectloc:=LOC_FPUREGISTER;
-              fpu_vfpv2,
-              fpu_vfpv3,
-              fpu_vfpv4,
-              fpu_vfpv3_d16:
-                expectloc:=LOC_MMREGISTER;
-              fpu_fpv4_s16:
+              else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+                expectloc:=LOC_MMREGISTER
+              else if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype] then
                 begin
                   if tfloatdef(left.resultdef).floattype=s32real then
                     expectloc:=LOC_MMREGISTER
                   else
                     exit(inherited first_abs_real);
-                end;
+                end
               else
                 internalerror(2009112401);
             end;
@@ -154,18 +151,15 @@ implementation
               fpu_fpa10,
               fpu_fpa11:
                 expectloc:=LOC_FPUREGISTER;
-              fpu_vfpv2,
-              fpu_vfpv3,
-              fpu_vfpv4,
-              fpu_vfpv3_d16:
-                expectloc:=LOC_MMREGISTER;
-              fpu_fpv4_s16:
+              else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+                expectloc:=LOC_MMREGISTER
+              else if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype] then
                 begin
                   if tfloatdef(left.resultdef).floattype=s32real then
                     expectloc:=LOC_MMREGISTER
                   else
                     exit(inherited first_sqr_real);
-                end;
+                end
               else
                 internalerror(2009112402);
             end;
@@ -185,18 +179,15 @@ implementation
               fpu_fpa10,
               fpu_fpa11:
                 expectloc:=LOC_FPUREGISTER;
-              fpu_vfpv2,
-              fpu_vfpv3,
-              fpu_vfpv4,
-              fpu_vfpv3_d16:
-                expectloc:=LOC_MMREGISTER;
-              fpu_fpv4_s16:
+              else if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype] then
+                expectloc:=LOC_MMREGISTER
+              else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
                 begin
                   if tfloatdef(left.resultdef).floattype=s32real then
                     expectloc:=LOC_MMREGISTER
                   else
                     exit(inherited first_sqrt_real);
-                end;
+                end
               else
                 internalerror(2009112403);
             end;
@@ -258,23 +249,6 @@ implementation
           fpu_fpa10,
           fpu_fpa11:
             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_ABS,location.register,left.location.register),get_fpu_postfix(resultdef)));
-          fpu_vfpv2,
-          fpu_vfpv3,
-          fpu_vfpv4,
-          fpu_vfpv3_d16:
-            begin
-              if singleprec then
-                pf:=PF_F32
-              else
-                pf:=PF_F64;
-              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register),pf));
-              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
-            end;
-          fpu_fpv4_s16:
-            begin
-              current_asmdata.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register), PF_F32));
-              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
-            end;
           fpu_soft:
             begin
               if singleprec then
@@ -282,8 +256,22 @@ implementation
               else
                 cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,tcgint($7fffffff),location.registerhi);
             end
-        else
-          internalerror(2009111402);
+          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+            begin
+              if singleprec then
+                pf:=PF_F32
+              else
+                pf:=PF_F64;
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register),pf));
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+            end
+          else if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype] then
+            begin
+              current_asmdata.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register), PF_F32));
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+            end
+          else
+            internalerror(2009111402);
         end;
       end;
 
@@ -299,10 +287,7 @@ implementation
           fpu_fpa10,
           fpu_fpa11:
             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_MUF,location.register,left.location.register,left.location.register),get_fpu_postfix(resultdef)));
-          fpu_vfpv2,
-          fpu_vfpv3,
-          fpu_vfpv4,
-          fpu_vfpv3_d16:
+          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
             begin
               if singleprec then
                 pf:=PF_F32
@@ -310,14 +295,14 @@ implementation
                 pf:=PF_F64;
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_VMUL,location.register,left.location.register,left.location.register),pf));
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
-            end;
-          fpu_fpv4_s16:
+            end
+          else if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype] then
             begin
               current_asmdata.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg_reg(A_VMUL,location.register,left.location.register,left.location.register), PF_F32));
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
-            end;
-        else
-          internalerror(2009111403);
+            end
+          else
+            internalerror(2009111403);
         end;
       end;
 
@@ -333,10 +318,7 @@ implementation
           fpu_fpa10,
           fpu_fpa11:
             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_SQT,location.register,left.location.register),get_fpu_postfix(resultdef)));
-          fpu_vfpv2,
-          fpu_vfpv3,
-          fpu_vfpv4,
-          fpu_vfpv3_d16:
+          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
             begin
               if singleprec then
                 pf:=PF_F32
@@ -344,14 +326,14 @@ implementation
                 pf:=PF_F64;
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register),pf));
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
-            end;
-          fpu_fpv4_s16:
+            end
+          else if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype] then
             begin
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register), PF_F32));
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
-            end;
-        else
-          internalerror(2009111402);
+            end
+          else
+            internalerror(2009111402);
         end;
       end;
 
@@ -465,7 +447,7 @@ implementation
         negproduct : boolean;
         oppostfix : TOpPostfix;
       begin
-         if current_settings.fputype in [fpu_vfpv4] then
+         if FPUARM_HAS_FMA in fpu_capabilities[current_settings.fputype] then
            begin
              negop3:=false;
              negproduct:=false;

@@ -104,18 +104,26 @@ unit agarmgas;
     function TArmGNUAssembler.MakeCmdLine: TCmdStr;
       begin
         result:=inherited MakeCmdLine;
-        if (current_settings.fputype = fpu_soft) then
-          result:='-mfpu=softvfp '+result;
-        if (current_settings.fputype = fpu_vfpv2) then
-          result:='-mfpu=vfpv2 '+result;
-        if (current_settings.fputype = fpu_vfpv3) then
-          result:='-mfpu=vfpv3 '+result;
-        if (current_settings.fputype = fpu_vfpv3_d16) then
-          result:='-mfpu=vfpv3-d16 '+result;
-        if (current_settings.fputype = fpu_fpv4_s16) then
-          result:='-mfpu=fpv4-sp-d16 '+result;
-        if (current_settings.fputype = fpu_vfpv4) then
-          result:='-mfpu=vfpv4 '+result;
+        case current_settings.fputype of
+          fpu_soft:
+            result:='-mfpu=softvfp '+result;
+          fpu_vfpv2:
+            result:='-mfpu=vfpv2 '+result;
+          fpu_vfpv3:
+            result:='-mfpu=vfpv3 '+result;
+          fpu_neon_vfpv3:
+            result:='-mfpu=neon-vfpv3 '+result;
+          fpu_vfpv3_d16:
+            result:='-mfpu=vfpv3-d16 '+result;
+          fpu_fpv4_s16:
+            result:='-mfpu=fpv4-sp-d16 '+result;
+          fpu_vfpv4:
+            result:='-mfpu=vfpv4 '+result;
+          fpu_neon_vfpv4:
+            result:='-mfpu=neon-vfpv4 '+result;
+          else
+            ;
+        end;
 
         if GenerateThumb2Code then
           result:='-march='+cputype_to_gas_march[current_settings.cputype]+' -mthumb -mthumb-interwork '+result

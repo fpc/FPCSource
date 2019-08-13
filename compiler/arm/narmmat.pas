@@ -367,7 +367,7 @@ implementation
             exit;
           end;
 
-        if (current_settings.fputype<>fpu_fpv4_s16) or
+        if (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) or
           (tfloatdef(resultdef).floattype=s32real) then
           exit(inherited pass_1);
 
@@ -418,10 +418,20 @@ implementation
                 location.register,left.location.register,0),
                 cgsize2fpuoppostfix[def_cgsize(resultdef)]));
             end;
-          fpu_vfpv2,
-          fpu_vfpv3,
-          fpu_vfpv4,
-          fpu_vfpv3_d16:
+          fpu_soft:
+            begin
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              location:=left.location;
+              case location.size of
+                OS_32:
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.register);
+                OS_64:
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.registerhi);
+              else
+                internalerror(2014033101);
+              end;
+            end
+          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[init_settings.fputype] then
             begin
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location:=left.location;
@@ -436,8 +446,8 @@ implementation
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VNEG,
                 location.register,left.location.register), pf));
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
-            end;
-          fpu_fpv4_s16:
+            end
+          else if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[init_settings.fputype] then
             begin
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location:=left.location;
@@ -446,19 +456,6 @@ implementation
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VNEG,
                 location.register,left.location.register), PF_F32));
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
-            end;
-          fpu_soft:
-            begin
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-              location:=left.location;
-              case location.size of
-                OS_32:
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.register);
-                OS_64:
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.registerhi);
-              else
-                internalerror(2014033101);
-              end;
             end
           else
             internalerror(2009112602);

@@ -178,18 +178,15 @@ unit cpupi;
                   if firstfloatreg<>RS_NO then
                     floatsavesize:=(lastfloatreg-firstfloatreg+1)*12;
                 end;
-              fpu_vfpv2,
-              fpu_vfpv3,
-              fpu_vfpv4,
-              fpu_vfpv3_d16:
+              else if FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype] then
                 begin
                   floatsavesize:=0;
                   regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
                   for r:=RS_D0 to RS_D31 do
                     if r in regs then
                       inc(floatsavesize,8);
-                end;
-              fpu_fpv4_s16:
+                end
+              else
                 begin
                   floatsavesize:=0;
                   regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);

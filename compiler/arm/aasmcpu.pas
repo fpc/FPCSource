@@ -2220,7 +2220,9 @@ implementation
             IF_VFPv2,
             IF_VFPv2 or IF_VFPv3,
             IF_VFPv2 or IF_VFPv3,
+            IF_VFPv2 or IF_VFPv3,
             IF_NONE,
+            IF_VFPv2 or IF_VFPv3 or IF_VFPv4,
             IF_VFPv2 or IF_VFPv3 or IF_VFPv4
           );
       begin

@@ -8678,7 +8678,7 @@ implementation
 {$endif x86}
 {$ifdef arm}
 {$define use_vectorfpuimplemented}
-        use_vectorfpu:=(current_settings.fputype in vfp_scalar);
+        use_vectorfpu:=FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype];
 {$endif arm}
 {$ifdef aarch64}
 {$define use_vectorfpuimplemented}
