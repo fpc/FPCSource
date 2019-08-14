@@ -351,6 +351,7 @@ interface
     const
       NewExeHeaderSize = $40;
       NewExeSegmentHeaderSize = 8;
+      NewExeRelocationRecordSize = 8;
 
     type
       TNewExeHeaderFlag = (
