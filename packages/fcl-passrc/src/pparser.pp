@@ -6247,6 +6247,7 @@ begin
             // simple statement (function call)
             El:=TPasImplSimple(CreateElement(TPasImplSimple,'',CurBlock,SrcPos));
             TPasImplSimple(El).Expr:=Left;
+            Left.Parent:=El;
             Left:=nil;
             AddStatement(El);
             El:=nil;

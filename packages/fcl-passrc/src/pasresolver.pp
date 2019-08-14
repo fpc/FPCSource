@@ -2205,6 +2205,7 @@ type
     function IsArrayOperatorAdd(Expr: TPasExpr): boolean;
     function IsTypeCast(Params: TParamsExpr): boolean;
     function GetTypeParameterCount(aType: TPasGenericType): integer;
+    function GetGenericConstraintKeyword(El: TPasExpr): TToken;
     function IsGenericTemplType(const ResolvedEl: TPasResolverResult): boolean;
     function IsInterfaceType(const ResolvedEl: TPasResolverResult;
       IntfType: TPasClassInterfaceType): boolean; overload;
@@ -6189,12 +6190,12 @@ procedure TPasResolver.FinishGenericTemplateType(El: TPasGenericTemplateType);
 var
   i: Integer;
   Expr: TPasExpr;
-  Value: String;
   IsClass, IsRecord, IsConstructor: Boolean;
   LastType: TPasType;
   ResolvedEl: TPasResolverResult;
   MemberType: TPasMembersType;
   aClass: TPasClassType;
+  ExprToken: TToken;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishGenericTemplateType ',GetObjName(El),' El.Parent=',GetObjName(El.Parent),' Constraints=',length(El.Constraints));
@@ -6206,106 +6207,103 @@ begin
   for i:=0 to length(El.Constraints)-1 do
     begin
     Expr:=El.Constraints[i];
-    if (Expr.ClassType=TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent) then
+    ExprToken:=GetGenericConstraintKeyword(Expr);
+    case ExprToken of
+    tkclass:
       begin
-      Value:=TPrimitiveExpr(Expr).Value;
-      if SameText(Value,'class') then
+      if IsClass then
+        RaiseMsg(20190720202412,nConstraintXSpecifiedMoreThanOnce,
+          sConstraintXSpecifiedMoreThanOnce,['class'],Expr);
+      if IsRecord then
+        RaiseMsg(20190720202516,nConstraintXAndConstraintYCannotBeTogether,
+          sConstraintXAndConstraintYCannotBeTogether,['record','class'],Expr);
+      if LastType<>nil then
+        RaiseMsg(20190720205708,nConstraintXAndConstraintYCannotBeTogether,
+          sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,'class'],Expr);
+      IsClass:=true;
+      end;
+    tkrecord:
+      begin
+      if IsRecord then
+        RaiseMsg(20190720203028,nConstraintXSpecifiedMoreThanOnce,
+          sConstraintXSpecifiedMoreThanOnce,['record'],Expr);
+      if IsClass then
+        RaiseMsg(20190720203039,nConstraintXAndConstraintYCannotBeTogether,
+          sConstraintXAndConstraintYCannotBeTogether,['class','record'],Expr);
+      if IsConstructor then
+        RaiseMsg(20190720203056,nConstraintXAndConstraintYCannotBeTogether,
+          sConstraintXAndConstraintYCannotBeTogether,['constructor','record'],Expr);
+      if LastType<>nil then
+        RaiseMsg(20190720205938,nConstraintXAndConstraintYCannotBeTogether,
+          sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,'record'],Expr);
+      IsRecord:=true;
+      end;
+    tkconstructor:
+      begin
+      if IsConstructor then
+        RaiseMsg(20190720203123,nConstraintXSpecifiedMoreThanOnce,
+          sConstraintXSpecifiedMoreThanOnce,['constructor'],Expr);
+      if IsRecord then
+        RaiseMsg(20190720203148,nConstraintXAndConstraintYCannotBeTogether,
+          sConstraintXAndConstraintYCannotBeTogether,['record','constructor'],Expr);
+      if LastType<>nil then
+        RaiseMsg(20190720210005,nConstraintXAndConstraintYCannotBeTogether,
+          sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,'constructor'],Expr);
+      IsConstructor:=true;
+      end;
+    else
+      begin
+      // type identifier: class, record or interface
+      ResolveExpr(Expr,rraNone);
+      ComputeElement(Expr,ResolvedEl,[rcType]);
+      if (ResolvedEl.BaseType<>btContext)
+          or not (ResolvedEl.IdentEl is TPasMembersType) then
         begin
-        if IsClass then
-          RaiseMsg(20190720202412,nConstraintXSpecifiedMoreThanOnce,
-            sConstraintXSpecifiedMoreThanOnce,['class'],Expr);
-        if IsRecord then
-          RaiseMsg(20190720202516,nConstraintXAndConstraintYCannotBeTogether,
-            sConstraintXAndConstraintYCannotBeTogether,['record','class'],Expr);
-        if LastType<>nil then
-          RaiseMsg(20190720205708,nConstraintXAndConstraintYCannotBeTogether,
-            sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,'class'],Expr);
-        IsClass:=true;
-        end
-      else if SameText(Value,'record') then
+        RaiseMsg(20190720204604,nXIsNotAValidConstraint,sXIsNotAValidConstraint,
+          [GetResolverResultDescription(ResolvedEl)],Expr);
+        end;
+      MemberType:=TPasMembersType(ResolvedEl.LoTypeEl);
+      if IsRecord then
+        RaiseMsg(20190720210130,nConstraintXAndConstraintYCannotBeTogether,
+          sConstraintXAndConstraintYCannotBeTogether,['record',MemberType.Name],Expr);
+      if IsClass then
+        RaiseMsg(20190720210202,nConstraintXAndConstraintYCannotBeTogether,
+          sConstraintXAndConstraintYCannotBeTogether,['class',MemberType.Name],Expr);
+      if IsConstructor then
+        RaiseMsg(20190720210244,nConstraintXAndConstraintYCannotBeTogether,
+          sConstraintXAndConstraintYCannotBeTogether,['constructor',MemberType.Name],Expr);
+      if MemberType is TPasClassType then
         begin
-        if IsRecord then
-          RaiseMsg(20190720203028,nConstraintXSpecifiedMoreThanOnce,
-            sConstraintXSpecifiedMoreThanOnce,['record'],Expr);
-        if IsClass then
-          RaiseMsg(20190720203039,nConstraintXAndConstraintYCannotBeTogether,
-            sConstraintXAndConstraintYCannotBeTogether,['class','record'],Expr);
-        if IsConstructor then
-          RaiseMsg(20190720203056,nConstraintXAndConstraintYCannotBeTogether,
-            sConstraintXAndConstraintYCannotBeTogether,['constructor','record'],Expr);
-        if LastType<>nil then
-          RaiseMsg(20190720205938,nConstraintXAndConstraintYCannotBeTogether,
-            sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,'record'],Expr);
-        IsRecord:=true;
-        end
-      else if SameText(Value,'constructor') then
-        begin
-        if IsConstructor then
-          RaiseMsg(20190720203123,nConstraintXSpecifiedMoreThanOnce,
-            sConstraintXSpecifiedMoreThanOnce,['constructor'],Expr);
-        if IsRecord then
-          RaiseMsg(20190720203148,nConstraintXAndConstraintYCannotBeTogether,
-            sConstraintXAndConstraintYCannotBeTogether,['record','constructor'],Expr);
-        if LastType<>nil then
-          RaiseMsg(20190720210005,nConstraintXAndConstraintYCannotBeTogether,
-            sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,'constructor'],Expr);
-        IsConstructor:=true;
-        end
-      else
-        begin
-        // type identifier: class, record or interface
-        ResolveNameExpr(Expr,Value,rraNone);
-        ComputeElement(Expr,ResolvedEl,[rcType]);
-        if (ResolvedEl.BaseType<>btContext)
-            or not (ResolvedEl.IdentEl is TPasMembersType) then
+        aClass:=TPasClassType(MemberType);
+        case aClass.ObjKind of
+        okClass:
           begin
-          RaiseMsg(20190720204604,nXIsNotAValidConstraint,sXIsNotAValidConstraint,
-            [Value],Expr);
+          // there can be at most one classtype constraint
+          if LastType<>nil then
+            RaiseMsg(20190720210351,nConstraintXAndConstraintYCannotBeTogether,
+              sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,MemberType.Name],Expr);
           end;
-        MemberType:=TPasMembersType(ResolvedEl.LoTypeEl);
-        if IsRecord then
-          RaiseMsg(20190720210130,nConstraintXAndConstraintYCannotBeTogether,
-            sConstraintXAndConstraintYCannotBeTogether,['record',MemberType.Name],Expr);
-        if IsClass then
-          RaiseMsg(20190720210202,nConstraintXAndConstraintYCannotBeTogether,
-            sConstraintXAndConstraintYCannotBeTogether,['class',MemberType.Name],Expr);
-        if IsConstructor then
-          RaiseMsg(20190720210244,nConstraintXAndConstraintYCannotBeTogether,
-            sConstraintXAndConstraintYCannotBeTogether,['constructor',MemberType.Name],Expr);
-        if MemberType is TPasClassType then
+        okInterface:
           begin
-          aClass:=TPasClassType(MemberType);
-          case aClass.ObjKind of
-          okClass:
-            begin
-            // there can be at most one classtype constraint
-            if LastType<>nil then
-              RaiseMsg(20190720210351,nConstraintXAndConstraintYCannotBeTogether,
-                sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,MemberType.Name],Expr);
-            end;
-          okInterface:
-            begin
-            // there can be multiple interfacetype constraint
-            if not (LastType is TPasClassType) then
-              RaiseMsg(20190720211236,nConstraintXAndConstraintYCannotBeTogether,
-                sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,MemberType.Name],Expr);
-            if TPasClassType(LastType).ObjKind<>okInterface then
-              RaiseMsg(20190720211304,nConstraintXAndConstraintYCannotBeTogether,
-                sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,MemberType.Name],Expr);
-            end
-          else
-            RaiseMsg(20190720210919,nXIsNotAValidConstraint,
-              sXIsNotAValidConstraint,[MemberType.Name],Expr);
-          end;
+          // there can be multiple interfacetype constraint
+          if not (LastType is TPasClassType) then
+            RaiseMsg(20190720211236,nConstraintXAndConstraintYCannotBeTogether,
+              sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,MemberType.Name],Expr);
+          if TPasClassType(LastType).ObjKind<>okInterface then
+            RaiseMsg(20190720211304,nConstraintXAndConstraintYCannotBeTogether,
+              sConstraintXAndConstraintYCannotBeTogether,[LastType.Name,MemberType.Name],Expr);
           end
         else
-          RaiseMsg(20190720210809,nXIsNotAValidConstraint,
+          RaiseMsg(20190720210919,nXIsNotAValidConstraint,
             sXIsNotAValidConstraint,[MemberType.Name],Expr);
-        LastType:=MemberType;
         end;
-      end
-    else
-      RaiseMsg(20190720203419,nParserSyntaxError,SParserSyntaxError,[],Expr);
+        end
+      else
+        RaiseMsg(20190720210809,nXIsNotAValidConstraint,
+          sXIsNotAValidConstraint,[MemberType.Name],Expr);
+      LastType:=MemberType;
+      end;
+    end;
     end;
 end;
 
@@ -11105,9 +11103,14 @@ var
   Duplicate: TPasIdentifier;
   ForwardDecl: TPasClassType;
   CurScope, LocalScope: TPasIdentifierScope;
-  GenTemplCnt: Integer;
+  GenTemplCnt, i, j: Integer;
   DuplEl: TPasElement;
   ClassScope: TPasClassScope;
+  ForwGenTempl, ActGenTempl: TPasGenericTemplateType;
+  ForwConstraints, ActConstraints: TPasExprArray;
+  ForwExpr, ActExpr: TPasExpr;
+  ForwToken, ActToken: TToken;
+  ForwConstraintResolved, ActConstraintResolved: TPasResolverResult;
 begin
   // Beware: El.ObjKind is not yet set!
   {$IFDEF VerbosePasResolver}
@@ -11149,6 +11152,42 @@ begin
     {$IFDEF VerbosePasResolver}
     writeln('  Resolving Forward=',GetObjName(ForwardDecl),' ',GetElementSourcePosStr(ForwardDecl));
     {$ENDIF}
+    if GenTemplCnt>0 then
+      begin
+      // check generic constraints match exactly
+      for i:=0 to GenTemplCnt-1 do
+        begin
+        ForwGenTempl:=TPasGenericTemplateType(ForwardDecl.GenericTemplateTypes[i]);
+        ActGenTempl:=TPasGenericTemplateType(TypeParams[i]);
+        if not SameText(ForwGenTempl.Name,ActGenTempl.Name) then
+          RaiseMsg(20190814114811,nDeclOfXDiffersFromPrevAtY,sDeclOfXDiffersFromPrevAtY,
+            [GetTypeDescription(ActGenTempl),GetElementSourcePosStr(ForwGenTempl)],ActGenTempl);
+        ForwConstraints:=ForwGenTempl.Constraints;
+        ActConstraints:=ActGenTempl.Constraints;
+        if length(ForwConstraints)<>length(ActConstraints) then
+          RaiseMsg(20190814121031,nDeclOfXDiffersFromPrevAtY,sDeclOfXDiffersFromPrevAtY,
+            [GetTypeDescription(ActGenTempl),GetElementSourcePosStr(ForwGenTempl)],ActGenTempl);
+        for j:=0 to length(ForwConstraints)-1 do
+          begin
+          ForwExpr:=ForwConstraints[j];
+          ActExpr:=ActConstraints[j];
+          ForwToken:=GetGenericConstraintKeyword(ForwExpr);
+          ActToken:=GetGenericConstraintKeyword(ActExpr);
+          if ForwToken<>ActToken then
+            RaiseMsg(20190814121139,nDeclOfXDiffersFromPrevAtY,sDeclOfXDiffersFromPrevAtY,
+              [GetTypeDescription(ActGenTempl),GetElementSourcePosStr(ForwExpr)],ActExpr);
+          if ForwToken=tkEOF then
+            begin
+            ComputeElement(ForwExpr,ForwConstraintResolved,[rcType]);
+            ComputeElement(ActExpr,ActConstraintResolved,[rcType]);
+            if not CheckElTypeCompatibility(ForwConstraintResolved.LoTypeEl,ActConstraintResolved.LoTypeEl,prraNone) then
+              RaiseMsg(20190814121509,nDeclOfXDiffersFromPrevAtY,sDeclOfXDiffersFromPrevAtY,
+                [GetTypeDescription(ActGenTempl),GetElementSourcePosStr(ForwExpr)],ActExpr);
+            end;
+          end;
+        end;
+      end;
+
     if ForwardDecl.CustomData<>nil then
       begin
       // move the classscope to the real declaration
@@ -14473,8 +14512,15 @@ begin
     begin
     Item:=TPSSpecializedItem(SpecializedTypes[i]);
     j:=length(Item.Params)-1;
-    while (j>=0) and IsSameType(Item.Params[j],ParamsResolved[j],prraNone) do
+    while j>=0 do
+      begin
+      if not IsSameType(Item.Params[j],ParamsResolved[j],prraNone) then
+        begin
+        if not CheckElTypeCompatibility(Item.Params[j],ParamsResolved[j],prraNone) then
+          break;
+        end;
       dec(j);
+      end;
     if j<0 then
       break;
     Item:=nil;
@@ -14506,8 +14552,8 @@ var
   ResolvedEl, ResolvedConstraint: TPasResolverResult;
   GenTempl: TPasGenericTemplateType;
   ConExpr: TPasExpr;
-  Value: String;
   ConstraintClass: TPasClassType;
+  ConToken: TToken;
 begin
   Result:=false;
   Params:=El.Params;
@@ -14543,55 +14589,58 @@ begin
     for j:=0 to length(GenTempl.Constraints)-1 do
       begin
       ConExpr:=GenTempl.Constraints[j];
-      if (ConExpr.Kind=pekIdent) then
+      ConToken:=GetGenericConstraintKeyword(ConExpr);
+      case ConToken of
+      tkrecord:
         begin
-        Value:=TPrimitiveExpr(ConExpr).Value;
-        if SameText(Value,'record') then
-          begin
-          if not (ParamType is TPasRecordType) then
-            RaiseXExpectedButTypeYFound(20190725200015,'record type',ParamType,P);
-          continue;
-          end
-        else if SameText(Value,'class') or SameText(Value,'constructor') then
-          begin
-          if not (ParamType is TPasClassType) then
-            RaiseXExpectedButTypeYFound(20190726133231,'class type',ParamType,P);
-          if TPasClassType(ParamType).ObjKind<>okClass then
-            RaiseXExpectedButTypeYFound(20190726133232,'class type',ParamType,P);
-          if TPasClassType(ParamType).IsExternal then
-            RaiseXExpectedButTypeYFound(20190726133233,'non external class type',ParamType,P);
-          if SameText(Value,'constructor') then
-            begin
-            // check if ParamType has the default constructor
-            // ToDo
-            RaiseMsg(20190726133722,nXIsNotSupported,sXIsNotSupported,['constraint keyword construcor'],P);
-            end;
-          continue;
-          end;
+        if not (ParamType is TPasRecordType) then
+          RaiseXExpectedButTypeYFound(20190725200015,'record type',ParamType,P);
+        continue;
         end;
-      // constraint can be a class type or interface type
-      // Param must be a class
-      ComputeElement(ConExpr,ResolvedConstraint,[rcType]);
-      if ResolvedConstraint.IdentEl=nil then
-        RaiseMsg(20190726134037,nXIsNotAValidConstraint,sXIsNotAValidConstraint,[GetElementSourcePosStr(ConExpr)],P);
-      if not (ResolvedConstraint.LoTypeEl is TPasClassType) then
-        RaiseMsg(20190726134223,nXIsNotAValidConstraint,sXIsNotAValidConstraint,[GetElementSourcePosStr(ConExpr)],P);
-      ConstraintClass:=TPasClassType(ResolvedConstraint.LoTypeEl);
-      if not (ParamType is TPasClassType) then
-        RaiseIncompatibleType(20190726135859,nIncompatibleTypesGotExpected,[''],ParamType,ConstraintClass,P);
-      case ConstraintClass.ObjKind of
-      okClass:
-        // Param must be a ConstraintClass
-        if CheckClassIsClass(ParamType,ConstraintClass)=cIncompatible then
-          RaiseIncompatibleType(20190726135309,nIncompatibleTypesGotExpected,[''],ParamType,ConstraintClass,P);
-      okInterface:
-        // ParamType must implement ConstraintClass
-        if GetClassImplementsIntf(TPasClassType(ParamType),ConstraintClass)=nil then
-          RaiseIncompatibleType(20190726135458,nIncompatibleTypesGotExpected,[''],ParamType,ConstraintClass,P);
+      tkclass,tkconstructor:
+        begin
+        if not (ParamType is TPasClassType) then
+          RaiseXExpectedButTypeYFound(20190726133231,'class type',ParamType,P);
+        if TPasClassType(ParamType).ObjKind<>okClass then
+          RaiseXExpectedButTypeYFound(20190726133232,'class type',ParamType,P);
+        if TPasClassType(ParamType).IsExternal then
+          RaiseXExpectedButTypeYFound(20190726133233,'non external class type',ParamType,P);
+        if ConToken=tkconstructor then
+          begin
+          // check if ParamType has the default constructor
+          // ToDo
+          RaiseMsg(20190726133722,nXIsNotSupported,sXIsNotSupported,['constraint keyword construcor'],P);
+          end;
+        continue;
+        end;
       else
-        RaiseIncompatibleType(20190726135310,nIncompatibleTypesGotExpected,[''],ParamType,ConstraintClass,P);
-      end;
-      end;
+        begin
+        // constraint can be a class type or interface type
+        // Param must be a class
+        ComputeElement(ConExpr,ResolvedConstraint,[rcType]);
+        if ResolvedConstraint.IdentEl=nil then
+          RaiseMsg(20190726134037,nXIsNotAValidConstraint,sXIsNotAValidConstraint,[GetElementSourcePosStr(ConExpr)],P);
+        if not (ResolvedConstraint.LoTypeEl is TPasClassType) then
+          RaiseMsg(20190726134223,nXIsNotAValidConstraint,sXIsNotAValidConstraint,[GetElementSourcePosStr(ConExpr)],P);
+        ConstraintClass:=TPasClassType(ResolvedConstraint.LoTypeEl);
+        if not (ParamType is TPasClassType) then
+          RaiseIncompatibleType(20190726135859,nIncompatibleTypesGotExpected,[''],ParamType,ConstraintClass,P);
+        case ConstraintClass.ObjKind of
+        okClass:
+          // Param must be a ConstraintClass
+          if CheckClassIsClass(ParamType,ConstraintClass)=cIncompatible then
+            RaiseIncompatibleType(20190726135309,nIncompatibleTypesGotExpected,[''],ParamType,ConstraintClass,P);
+        okInterface:
+          // ParamType must implement ConstraintClass
+          if GetClassImplementsIntf(TPasClassType(ParamType),ConstraintClass)=nil then
+            RaiseIncompatibleType(20190726135458,nIncompatibleTypesGotExpected,[''],ParamType,ConstraintClass,P);
+        else
+          RaiseIncompatibleType(20190726135310,nIncompatibleTypesGotExpected,[''],ParamType,ConstraintClass,P);
+        end;
+        end;
+      end; // end case
+
+      end; // end for
     end;
 
   if Result then
@@ -25187,6 +25236,17 @@ begin
   if aType=nil then exit(0);
   if aType.GenericTemplateTypes=nil then exit(0);
   Result:=aType.GenericTemplateTypes.Count;
+end;
+
+function TPasResolver.GetGenericConstraintKeyword(El: TPasExpr): TToken;
+begin
+  if (El=nil) or (El.Kind<>pekIdent) then exit(tkEOF);
+  case lowercase(TPrimitiveExpr(El).Value) of
+  'record': Result:=tkrecord;
+  'class': Result:=tkclass;
+  'constructor': Result:=tkconstructor;
+  else Result:=tkEOF;
+  end;
 end;
 
 function TPasResolver.IsInterfaceType(const ResolvedEl: TPasResolverResult;

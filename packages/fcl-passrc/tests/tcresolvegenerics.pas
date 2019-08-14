@@ -39,17 +39,18 @@ type
     procedure TestGen_RecordNestedSpecialized;
     procedure TestGen_Record_SpecializeSelfInsideFail;
     procedure TestGen_RecordAnoArray;
-    // ToDo: procedure TestGen_SpecializeArg_ArrayOf;  type TBird = specialize<array of word>
     // ToDo: unitname.specialize TBird<word>.specialize
 
     // generic class
     procedure TestGen_Class;
     procedure TestGen_ClassDelphi;
     procedure TestGen_ClassForward;
+    procedure TestGen_ClassForwardConstraints;
+    procedure TestGen_ClassForwardConstraintNameMismatchFail;
+    procedure TestGen_ClassForwardConstraintKeywordMismatchFail;
+    procedure TestGen_ClassForwardConstraintTypeMismatchFail;
     procedure TestGen_Class_Method;
     procedure TestGen_Class_SpecializeSelfInside;
-    // ToDo: generic class forward (constraints must be repeated)
-    // ToDo: generic class forward  constraints mismatch fail
     // ToDo: generic class overload <T> <S,T>
     procedure TestGen_Class_GenAncestor;
     procedure TestGen_Class_AncestorSelfFail;
@@ -59,6 +60,7 @@ type
     procedure TestGen_NestedType;
     // ToDo: procedure TestGen_NestedDottedType;
     procedure TestGen_Class_Enums_NotPropagating;
+    procedure TestGen_Class_List;
 
     // generic external class
     procedure TestGen_ExtClass_Array;
@@ -165,7 +167,7 @@ begin
   'end;',
   'begin',
   '']);
-  CheckResolverException('"string" is not a valid constraint',
+  CheckResolverException('"String" is not a valid constraint',
     nXIsNotAValidConstraint);
 end;
 
@@ -242,7 +244,7 @@ begin
   '  generic TBird<T:TArr> = record v: T; end;',
   'begin',
   '']);
-  CheckResolverException('"TArr" is not a valid constraint',
+  CheckResolverException('"array of Word" is not a valid constraint',
     nXIsNotAValidConstraint);
 end;
 
@@ -348,8 +350,11 @@ begin
   '{$mode objfpc}',
   'type',
   '  generic TBird<T> = record v: T; end;',
-  'var b: specialize TBird<array of word>;',
+  'var',
+  '  a: specialize TBird<array of word>;',
+  '  b: specialize TBird<array of word>;',
   'begin',
+  '  a:=b;',
   '']);
   ParseProgram;
 end;
@@ -418,6 +423,86 @@ begin
   '  s.b.r:=s;',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ClassForwardConstraints;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  TAnt = class end;',
+  '  generic TBird<T: class; U; V: TAnt> = class;',
+  '  TRec = record',
+  '    b: specialize TBird<TAnt,word,TAnt>;',
+  '  end;',
+  '  generic TBird<T: class; U; V: TAnt> = class',
+  '    i: U;',
+  '    r: TRec;',
+  '  end;',
+  'var',
+  '  s: TRec;',
+  '  w: word;',
+  'begin',
+  '  s.b.i:=w;',
+  '  s.b.r:=s;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ClassForwardConstraintNameMismatchFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class;',
+  '  generic TBird<U> = class',
+  '    i: U;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Declaration of "U" differs from previous declaration at afile.pp(5,18)',
+    nDeclOfXDiffersFromPrevAtY);
+end;
+
+procedure TTestResolveGenerics.
+  TestGen_ClassForwardConstraintKeywordMismatchFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T: class, constructor> = class;',
+  '  generic TBird<U: class> = class',
+  '    i: U;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Declaration of "U" differs from previous declaration at afile.pp(5,18)',
+    nDeclOfXDiffersFromPrevAtY);
+end;
+
+procedure TTestResolveGenerics.TestGen_ClassForwardConstraintTypeMismatchFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  TAnt = class end;',
+  '  TFish = class end;',
+  '  generic TBird<T: TAnt> = class;',
+  '  generic TBird<T: TFish> = class',
+  '    i: U;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Declaration of "T" differs from previous declaration at afile.pp(7,20)',
+    nDeclOfXDiffersFromPrevAtY);
 end;
 
 procedure TTestResolveGenerics.TestGen_Class_Method;
@@ -542,6 +627,45 @@ begin
   '  r = red;',
   'begin']);
   CheckResolverException('identifier not found "red"',nIdentifierNotFound);
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_List;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TList<T> = class',
+  '  strict private',
+  '    FItems: array of T;',
+  '    function GetItems(Index: longint): T;',
+  '    procedure SetItems(Index: longint; Value: T);',
+  '  public',
+  '    procedure Alter(w: T);',
+  '    property Items[Index: longint]: T read GetItems write SetItems; default;',
+  '  end;',
+  '  TWordList = specialize TList<word>;',
+  'function TList.GetItems(Index: longint): T;',
+  'begin',
+  '  Result:=FItems[Index];',
+  'end;',
+  'procedure TList.SetItems(Index: longint; Value: T);',
+  'begin',
+  '  FItems[Index]:=Value;',
+  'end;',
+  'procedure TList.Alter(w: T);',
+  'begin',
+  '  SetLength(FItems,length(FItems)+1);',
+  '  Insert(w,FItems,2);',
+  '  Delete(FItems,2,3);',
+  'end;',
+  'var l: TWordList;',
+  '  w: word;',
+  'begin',
+  '  l[1]:=w;',
+  '  w:=l[2];']);
+  ParseProgram;
 end;
 
 procedure TTestResolveGenerics.TestGen_ExtClass_Array;
