@@ -675,6 +675,8 @@ interface
         FInternalRefFixedSegmentOffset: Word;
         FInternalRefMovableSegmentEntryTableIndex: Word;
       public
+        procedure EncodeTo(dest: PByte);
+
         property AddressType: TNewExeRelocationAddressType read FAddressType write FAddressType;
         property RelocationType: TNewExeRelocationType read FRelocationType write FRelocationType;
         property IsAdditive: Boolean read FIsAdditive write FIsAdditive;
@@ -4205,6 +4207,64 @@ cleanup:
         if aNewCount<Count then
           internalerror(2019081003);
         SetLength(FItems,aNewCount);
+      end;
+
+{****************************************************************************
+                             TNewExeRelocation
+****************************************************************************}
+
+    procedure TNewExeRelocation.EncodeTo(dest: PByte);
+      begin
+        dest[0]:=Ord(AddressType);
+        dest[1]:=Ord(RelocationType) or (Ord(IsAdditive) shl 2);
+        dest[2]:=Byte(Offset);
+        dest[3]:=Byte(Offset shr 8);
+        case RelocationType of
+          nertInternalRef:
+            begin
+              case InternalRefSegmentType of
+                neirstFixed:
+                  begin
+                    dest[4]:=Byte(InternalRefFixedSegmentNumber);
+                    dest[5]:=0;
+                    dest[6]:=Byte(InternalRefFixedSegmentOffset);
+                    dest[7]:=Byte(InternalRefFixedSegmentOffset shr 8);
+                  end;
+                neirstMovable:
+                  begin
+                    dest[4]:=$FF;
+                    dest[5]:=0;
+                    dest[6]:=Byte(InternalRefMovableSegmentEntryTableIndex);
+                    dest[7]:=Byte(InternalRefMovableSegmentEntryTableIndex shr 8);
+                  end;
+                else
+                  internalerror(2019081402);
+              end;
+            end;
+          nertImportName:
+            begin
+              dest[4]:=Byte(ImportModuleIndex);
+              dest[5]:=Byte(ImportModuleIndex shr 8);
+              dest[6]:=Byte(ImportNameIndex);
+              dest[7]:=Byte(ImportNameIndex shr 8);
+            end;
+          nertImportOrdinal:
+            begin
+              dest[4]:=Byte(ImportModuleIndex);
+              dest[5]:=Byte(ImportModuleIndex shr 8);
+              dest[6]:=Byte(ImportOrdinal);
+              dest[7]:=Byte(ImportOrdinal shr 8);
+            end;
+          nertOsFixup:
+            begin
+              dest[4]:=Byte(Ord(OsFixupType));
+              dest[5]:=Byte(Ord(OsFixupType) shr 8);
+              dest[6]:=0;
+              dest[7]:=0;
+            end;
+          else
+            internalerror(2019081401);
+        end;
       end;
 
 {****************************************************************************
