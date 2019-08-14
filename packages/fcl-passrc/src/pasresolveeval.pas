@@ -778,6 +778,7 @@ function CodePointToString(CodePoint: longword): String;
 function CodePointToUnicodeString(u: longword): UnicodeString;
 
 function GetObjName(o: TObject): string;
+function GetObjPath(o: TObject): string;
 function dbgs(const Flags: TResEvalFlags): string; overload;
 function dbgs(v: TResEvalValue): string; overload;
 
@@ -1002,6 +1003,34 @@ begin
     Result:=TPasElement(o).Name+':'+o.ClassName
   else
     Result:=o.ClassName;
+end;
+
+function GetObjPath(o: TObject): string;
+var
+  El: TPasElement;
+begin
+  if o is TPasElement then
+    begin
+    El:=TPasElement(o);
+    Result:=':'+El.ClassName;
+    while El<>nil do
+      begin
+      if El<>o then
+        Result:='.'+Result;
+      if El.Name<>'' then
+        begin
+        if IsValidIdent(El.Name) then
+          Result:=El.Name+Result
+        else
+          Result:='"'+El.Name+'"'+Result;
+        end
+      else
+        Result:='['+El.ClassName+']'+Result;
+      El:=El.Parent;
+      end;
+    end
+  else
+    Result:=GetObjName(o);
 end;
 
 function dbgs(const Flags: TResEvalFlags): string;

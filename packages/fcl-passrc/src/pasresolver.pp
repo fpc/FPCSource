@@ -6673,7 +6673,12 @@ begin
     // finish interface/implementation/nested procedure
     if (ProcName<>'') and ProcNeedsBody(Proc) then
       begin
-      if not (ppsfIsSpecialized in ProcScope.Flags) then
+      if ppsfIsSpecialized in ProcScope.Flags then
+        begin
+        if ProcScope.DeclarationProc<>nil then
+          ReplaceProcScopeImplArgsWithDeclArgs(ProcScope);
+        end
+      else
         begin
         // check if there is a forward declaration
         //writeln('TPasResolver.FinishProcedureType ',GetObjName(TopScope),' ',GetObjName(Scopes[ScopeCount-2]));
@@ -6943,6 +6948,8 @@ begin
     DeclProcScope:=DeclProc.CustomData as TPasProcedureScope;
     if DeclProcScope.ImplProc<>ImplProc then
       RaiseNotYetImplemented(20190804182220,ImplProc);
+    // replace arguments in scope with declaration arguments
+    ReplaceProcScopeImplArgsWithDeclArgs(ImplProcScope);
     end
   else
     RaiseNotYetImplemented(20190804181222,ImplProc);
@@ -14938,9 +14945,10 @@ var
   GenIntfProcScope, SpecIntfProcScope, GenImplProcScope,
     SpecImplProcScope: TPasProcedureScope;
   NewClass: TPTreeElement;
-  OldStashCount, i: Integer;
+  OldStashCount, i, p, LastDotP: Integer;
   SpecClassOrRecScope: TPasClassOrRecordScope;
   GenScope: TPasGenericScope;
+  NewImplProcName, OldClassname: String;
 begin
   // check generic type is resolved completely
   GenScope:=TPasGenericScope(GenericType.CustomData);
@@ -15006,7 +15014,17 @@ begin
           RaiseNotYetImplemented(20190804130322,GenImplProc,GetObjName(ImplParent));
 
         // create impl proc
-        SpecImplProc:=TPasProcedure(NewClass.Create(GenImplProc.Name,GenImplProc.Parent));
+        NewImplProcName:=GenImplProc.Name;
+        p:=length(NewImplProcName);
+        while (p>1) and (NewImplProcName[p]<>'.') do dec(p);
+        LastDotP:=p;
+        while (p>1) and (NewImplProcName[p-1]<>'.') do dec(p);
+        OldClassname:=copy(NewImplProcName,p,LastDotP-p);
+        if not SameText(OldClassname,GenClassOrRec.Name) then
+          RaiseNotYetImplemented(20190814141833,GenImplProc);
+        NewImplProcName:=LeftStr(NewImplProcName,p-1)+SpecClassOrRec.Name+copy(NewImplProcName,LastDotP,length(NewImplProcName));
+
+        SpecImplProc:=TPasProcedure(NewClass.Create(NewImplProcName,GenImplProc.Parent));
         SpecIntfProcScope.ImplProc:=SpecImplProc;
         if SpecializedItem.ImplProcs=nil then
           SpecializedItem.ImplProcs:=TFPList.Create;
