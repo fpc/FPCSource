@@ -1663,7 +1663,12 @@ implementation
                           if is_cbool(ld) then
                             begin
                               inserttypeconv(left,pasbool8type);
-                              ttypeconvnode(left).convtype:=tc_bool_2_bool;
+                              { inserttypeconv might already simplify
+                                the typeconvnode after insertion,
+                                thus we need to check if it still
+                                really is a typeconv node }
+                              if left is ttypeconvnode then
+                                ttypeconvnode(left).convtype:=tc_bool_2_bool;
                               if not is_cbool(rd) or
                                  (ld.size>=rd.size) then
                                 resultdef:=ld;
@@ -1671,7 +1676,12 @@ implementation
                           if is_cbool(rd) then
                             begin
                               inserttypeconv(right,pasbool8type);
-                              ttypeconvnode(right).convtype:=tc_bool_2_bool;
+                              { inserttypeconv might already simplify
+                                the typeconvnode after insertion,
+                                thus we need to check if it still
+                                really is a typeconv node }
+                              if right is ttypeconvnode then
+                                ttypeconvnode(right).convtype:=tc_bool_2_bool;
                               if not assigned(resultdef) then
                                 resultdef:=rd;
                             end;
