@@ -4237,8 +4237,6 @@ cleanup:
                     dest[6]:=Byte(InternalRefMovableSegmentEntryTableIndex);
                     dest[7]:=Byte(InternalRefMovableSegmentEntryTableIndex shr 8);
                   end;
-                else
-                  internalerror(2019081402);
               end;
             end;
           nertImportName:
@@ -4262,8 +4260,6 @@ cleanup:
               dest[6]:=0;
               dest[7]:=0;
             end;
-          else
-            internalerror(2019081401);
         end;
       end;
 
