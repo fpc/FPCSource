@@ -4952,7 +4952,7 @@ begin
   '  f: TMyEnum = Green;',
   'begin',
   '  e:=green;']);
-  SetExpectedPasResolverError('not yet implemented: Red:TPasEnumValue [20180126202434] enum const',3002);
+  SetExpectedPasResolverError('not yet implemented: Red:TPasEnumValue [20180126202434] "enum const"',3002);
   ConvertProgram;
 end;
 
@@ -10733,7 +10733,7 @@ begin
   'var',
   '  r: record x: word end;',
   'begin']);
-  SetExpectedPasResolverError('not yet implemented: :TPasRecordType [20190408224556] anonymous record type',
+  SetExpectedPasResolverError('not yet implemented: :TPasRecordType [20190408224556] "anonymous record type"',
     nNotYetImplemented);
   ConvertProgram;
 end;
@@ -11323,7 +11323,7 @@ begin
   '  end;',
   'begin',
   '']);
-  SetExpectedPasResolverError('not yet implemented: IBird:TPasClassType [20190105143752] interface inside record',
+  SetExpectedPasResolverError('not yet implemented: IBird:TPasClassType [20190105143752] "interface inside record"',
     nNotYetImplemented);
   ParseProgram;
 end;
