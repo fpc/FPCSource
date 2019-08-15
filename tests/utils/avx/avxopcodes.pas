@@ -51,35 +51,35 @@ end;
 
 procedure TAVXTestGenerator.Init;
 begin
-  FOpCodeList.Add('ADCX,1,1,REG32,RM32,,,');
-  FOpCodeList.Add('ADCX,1,1,REG64,RM64,,,');
-  FOpCodeList.Add('ADOX,1,1,REG32,RM32,,,');
-  FOpCodeList.Add('ADOX,1,1,REG64,RM64,,,');
+  FOpCodeList.Add('ADCX,1,1,0,REG32,RM32,,,');
+  FOpCodeList.Add('ADCX,1,1,0,REG64,RM64,,,');
+  FOpCodeList.Add('ADOX,1,1,0,REG32,RM32,,,');
+  FOpCodeList.Add('ADOX,1,1,0,REG64,RM64,,,');
 
-  FOpCodeList.Add('BLSI,1,1,REG32,RM32,,,');
-  FOpCodeList.Add('BLSI,1,1,REG64,RM64,,,');
-  FOpCodeList.Add('BLSR,1,1,REG32,RM32,,,');
-  FOpCodeList.Add('BLSR,1,1,REG64,RM64,,,');
-  FOpCodeList.Add('BLSMSK,1,1,REG32,RM32,,,');
-  FOpCodeList.Add('BLSMSK,1,1,REG64,RM64,,,');
-  FOpCodeList.Add('BZHI,1,1,REG32,RM32,REG32,,');
-  FOpCodeList.Add('BZHI,1,1,REG64,RM64,REG64,,');
-  FOpCodeList.Add('MULX,1,1,REG32,REG32,RM32,,');
-  FOpCodeList.Add('MULX,1,1,REG64,REG64,RM64,,');
-  FOpCodeList.Add('PDEP,1,1,REG32,REG32,RM32,,');
-  FOpCodeList.Add('PDEP,1,1,REG64,REG64,RM64,,');
-  FOpCodeList.Add('PEXT,1,1,REG32,REG32,RM32,,');
-  FOpCodeList.Add('PEXT,1,1,REG64,REG64,RM64,,');  
+  FOpCodeList.Add('BLSI,1,1,0,REG32,RM32,,,');
+  FOpCodeList.Add('BLSI,1,1,0,REG64,RM64,,,');
+  FOpCodeList.Add('BLSR,1,1,0,REG32,RM32,,,');
+  FOpCodeList.Add('BLSR,1,1,0,REG64,RM64,,,');
+  FOpCodeList.Add('BLSMSK,1,1,0,REG32,RM32,,,');
+  FOpCodeList.Add('BLSMSK,1,1,0,REG64,RM64,,,');
+  FOpCodeList.Add('BZHI,1,1,0,0,REG32,RM32,REG32,,');
+  FOpCodeList.Add('BZHI,1,1,0,0,REG64,RM64,REG64,,');
+  FOpCodeList.Add('MULX,1,1,0,0,REG32,REG32,RM32,,');
+  FOpCodeList.Add('MULX,1,1,0,0,REG64,REG64,RM64,,');
+  FOpCodeList.Add('PDEP,1,1,0,0,REG32,REG32,RM32,,');
+  FOpCodeList.Add('PDEP,1,1,0,0,REG64,REG64,RM64,,');
+  FOpCodeList.Add('PEXT,1,1,0,0,REG32,REG32,RM32,,');
+  FOpCodeList.Add('PEXT,1,1,0,0,REG64,REG64,RM64,,');
   
-  FOpCodeList.Add('MOVBE,1,1,REG16,MEM16,,,');
-  FOpCodeList.Add('MOVBE,1,1,MEM16,REG16,,,');
-  FOpCodeList.Add('MOVBE,1,1,REG32,MEM32,,,');
-  FOpCodeList.Add('MOVBE,1,1,MEM32,REG32,,,');
-  FOpCodeList.Add('MOVBE,1,1,REG64,MEM64,,,');
-  FOpCodeList.Add('MOVBE,1,1,MEM64,REG64,,,');
+  FOpCodeList.Add('MOVBE,1,1,0,REG16,MEM16,,,');
+  FOpCodeList.Add('MOVBE,1,1,0,MEM16,REG16,,,');
+  FOpCodeList.Add('MOVBE,1,1,0,REG32,MEM32,,,');
+  FOpCodeList.Add('MOVBE,1,1,0,MEM32,REG32,,,');
+  FOpCodeList.Add('MOVBE,1,1,0,REG64,MEM64,,,');
+  FOpCodeList.Add('MOVBE,1,1,0,MEM64,REG64,,,');
 
-  FOpCodeList.Add('PCLMULQDQ,1,1,XMMREG,XMMRM,IMM8,');
-  FOpCodeList.Add('VPCLMULQDQ,1,1,XMMREG,XMMREG,XMMRM,IMM8');
+  FOpCodeList.Add('PCLMULQDQ,1,1,0,XMMREG,XMMRM,IMM8,');
+  FOpCodeList.Add('VPCLMULQDQ,1,1,0,XMMREG,XMMREG,XMMRM,IMM8');
 
   //FOpCodeList.Add('VADDPD,1,1,XMMREG,XMMREG,XMMRM,');
   //FOpCodeList.Add('VADDPD,1,1,YMMREG,YMMREG,YMMRM,');
@@ -3787,30 +3787,30 @@ FOpCodeList.Add('vshufi64x2,1,1,1,ymmreg_mz,ymmreg,4b64,imm8');
 FOpCodeList.Add('vshufi64x2,1,1,1,zmmreg_mz,zmmreg,zmmrm,imm8');
 FOpCodeList.Add('vshufi64x2,1,1,1,zmmreg_mz,zmmreg,8b64,imm8');
 
-  FOpCodeList.Add('VGATHERQPD,1,1,XMMREG,XMEM64,XMMREG,');
-  FOpCodeList.Add('VGATHERQPD,1,1,YMMREG,YMEM64,YMMREG,');
+  FOpCodeList.Add('VGATHERQPD,1,1,0,XMMREG,XMEM64,XMMREG,');
+  FOpCodeList.Add('VGATHERQPD,1,1,0,YMMREG,YMEM64,YMMREG,');
 
 
-  FOpCodeList.Add('VGATHERDPS,1,1,XMMREG,XMEM32,XMMREG,');
-  FOpCodeList.Add('VGATHERDPS,1,1,YMMREG,YMEM32,YMMREG,');
+  FOpCodeList.Add('VGATHERDPS,1,1,0,XMMREG,XMEM32,XMMREG,');
+  FOpCodeList.Add('VGATHERDPS,1,1,0,YMMREG,YMEM32,YMMREG,');
 
-  FOpCodeList.Add('VGATHERQPS,1,1,XMMREG,XMEM64,XMMREG,');
-  FOpCodeList.Add('VGATHERQPS,1,1,XMMREG,YMEM64,XMMREG,');
-
-
-
-  FOpCodeList.Add('VPGATHERDD,1,1,XMMREG,XMEM32,XMMREG,');
-  FOpCodeList.Add('VPGATHERDD,1,1,YMMREG,YMEM32,YMMREG,');
-
-  FOpCodeList.Add('VPGATHERQD,1,1,XMMREG,XMEM64,XMMREG,');
-  FOpCodeList.Add('VPGATHERQD,1,1,XMMREG,YMEM64,XMMREG,');
+  FOpCodeList.Add('VGATHERQPS,1,1,0,XMMREG,XMEM64,XMMREG,');
+  FOpCodeList.Add('VGATHERQPS,1,1,0,XMMREG,YMEM64,XMMREG,');
 
 
-  FOpCodeList.Add('VPGATHERDQ,1,1,XMMREG,XMEM32,XMMREG,');
-  FOpCodeList.Add('VPGATHERDQ,1,1,YMMREG,XMEM32,YMMREG,');
 
-  FOpCodeList.Add('VPGATHERQQ,1,1,XMMREG,XMEM64,XMMREG,');
-  FOpCodeList.Add('VPGATHERQQ,1,1,YMMREG,YMEM64,YMMREG,');
+  FOpCodeList.Add('VPGATHERDD,1,1,0,XMMREG,XMEM32,XMMREG,');
+  FOpCodeList.Add('VPGATHERDD,1,1,0,YMMREG,YMEM32,YMMREG,');
+
+  FOpCodeList.Add('VPGATHERQD,1,1,0,XMMREG,XMEM64,XMMREG,');
+  FOpCodeList.Add('VPGATHERQD,1,1,0,XMMREG,YMEM64,XMMREG,');
+
+
+  FOpCodeList.Add('VPGATHERDQ,1,1,0,XMMREG,XMEM32,XMMREG,');
+  FOpCodeList.Add('VPGATHERDQ,1,1,0,YMMREG,XMEM32,YMMREG,');
+
+  FOpCodeList.Add('VPGATHERQQ,1,1,0,XMMREG,XMEM64,XMMREG,');
+  FOpCodeList.Add('VPGATHERQQ,1,1,0,YMMREG,YMEM64,YMMREG,');
 end;
 
 function TAVXTestGenerator.InternalMakeTestFiles(aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String;
