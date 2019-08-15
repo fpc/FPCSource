@@ -175,47 +175,50 @@ interface
       OT_MMXRM     = OT_REGMEM or otf_reg_mmx;
 
       { register class 5: XMM (both reg and r/m) }
-      OT_XMMREG    = OT_REGNORM or otf_reg_xmm;
-      OT_XMMRM     = OT_REGMEM or otf_reg_xmm;
-      OT_XMEM32    = OT_REGNORM or otf_reg_xmm or otf_reg_gpr or OT_BITS32;
-      OT_XMEM32_M  = OT_XMEM32 or OT_VECTORMASK;
-      OT_XMEM64    = OT_REGNORM or otf_reg_xmm or otf_reg_gpr or OT_BITS64;
-      OT_XMEM64_M  = OT_XMEM64 or OT_VECTORMASK;
+      OT_XMMREG    = OT_REGNORM  or otf_reg_xmm;
+      OT_XMMRM     = OT_REGMEM   or otf_reg_xmm;
+      OT_XMEM      = OT_REGNORM  or otf_reg_xmm or otf_reg_gpr;
+      OT_XMEM32    = OT_XMEM     or OT_BITS32;
+      OT_XMEM32_M  = OT_XMEM32   or OT_VECTORMASK;
+      OT_XMEM64    = OT_XMEM     or OT_BITS64;
+      OT_XMEM64_M  = OT_XMEM64   or OT_VECTORMASK;
 
-      OT_XMMREG_M   = OT_XMMREG or OT_VECTORMASK;
-      OT_XMMREG_MZ  = OT_XMMREG or OT_VECTORMASK or OT_VECTORZERO;
-      OT_XMMRM_MZ   = OT_XMMRM  or OT_VECTORMASK or OT_VECTORZERO;
-      OT_XMMREG_SAE = OT_XMMREG or OT_VECTORSAE;
-      OT_XMMRM_SAE  = OT_XMMRM  or OT_VECTORSAE;
-      OT_XMMREG_ER  = OT_XMMREG or OT_VECTORER;
-      OT_XMMRM_ER   = OT_XMMRM  or OT_VECTORER;
+      OT_XMMREG_M   = OT_XMMREG  or OT_VECTORMASK;
+      OT_XMMREG_MZ  = OT_XMMREG  or OT_VECTORMASK or OT_VECTORZERO;
+      OT_XMMRM_MZ   = OT_XMMRM   or OT_VECTORMASK or OT_VECTORZERO;
+      OT_XMMREG_SAE = OT_XMMREG  or OT_VECTORSAE;
+      OT_XMMRM_SAE  = OT_XMMRM   or OT_VECTORSAE;
+      OT_XMMREG_ER  = OT_XMMREG  or OT_VECTORER;
+      OT_XMMRM_ER   = OT_XMMRM   or OT_VECTORER;
 
 
 
       { register class 5: YMM (both reg and r/m) }
       OT_YMMREG     = OT_REGNORM or otf_reg_ymm;
-      OT_YMMRM      = OT_REGMEM or otf_reg_ymm;
-      OT_YMEM32     = OT_REGNORM or otf_reg_ymm or otf_reg_gpr or OT_BITS32;
-      OT_YMEM32_M   = OT_YMEM32 or OT_VECTORMASK;
-      OT_YMEM64     = OT_REGNORM or otf_reg_ymm or otf_reg_gpr or OT_BITS64;
-      OT_YMEM64_M   = OT_YMEM64 or OT_VECTORMASK;
+      OT_YMMRM      = OT_REGMEM  or otf_reg_ymm;
+      OT_YMEM       = OT_REGNORM or otf_reg_ymm or otf_reg_gpr;
+      OT_YMEM32     = OT_YMEM    or OT_BITS32;
+      OT_YMEM32_M   = OT_YMEM32  or OT_VECTORMASK;
+      OT_YMEM64     = OT_YMEM    or OT_BITS64;
+      OT_YMEM64_M   = OT_YMEM64  or OT_VECTORMASK;
 
-      OT_YMMREG_M   = OT_YMMREG or OT_VECTORMASK;
-      OT_YMMREG_MZ  = OT_YMMREG or OT_VECTORMASK or OT_VECTORZERO;
-      OT_YMMRM_MZ   = OT_YMMRM  or OT_VECTORMASK or OT_VECTORZERO;
-      OT_YMMREG_SAE = OT_YMMREG or OT_VECTORSAE;
-      OT_YMMRM_SAE  = OT_YMMRM  or OT_VECTORSAE;
-      OT_YMMREG_ER  = OT_YMMREG or OT_VECTORER;
-      OT_YMMRM_ER   = OT_YMMRM  or OT_VECTORER;
+      OT_YMMREG_M   = OT_YMMREG  or OT_VECTORMASK;
+      OT_YMMREG_MZ  = OT_YMMREG  or OT_VECTORMASK or OT_VECTORZERO;
+      OT_YMMRM_MZ   = OT_YMMRM   or OT_VECTORMASK or OT_VECTORZERO;
+      OT_YMMREG_SAE = OT_YMMREG  or OT_VECTORSAE;
+      OT_YMMRM_SAE  = OT_YMMRM   or OT_VECTORSAE;
+      OT_YMMREG_ER  = OT_YMMREG  or OT_VECTORER;
+      OT_YMMRM_ER   = OT_YMMRM   or OT_VECTORER;
 
 
       { register class 5: ZMM (both reg and r/m) }
       OT_ZMMREG     = OT_REGNORM or otf_reg_zmm;
-      OT_ZMMRM      = OT_REGMEM or otf_reg_zmm;
-      OT_ZMEM32     = OT_REGNORM or otf_reg_zmm or otf_reg_gpr or OT_BITS32;
-      OT_ZMEM32_M   = OT_ZMEM32 or OT_VECTORMASK;
-      OT_ZMEM64     = OT_REGNORM or otf_reg_zmm or otf_reg_gpr or OT_BITS64;
-      OT_ZMEM64_M   = OT_ZMEM64 or OT_VECTORMASK;
+      OT_ZMMRM      = OT_REGMEM  or otf_reg_zmm;
+      OT_ZMEM       = OT_REGNORM or otf_reg_zmm or otf_reg_gpr;
+      OT_ZMEM32     = OT_ZMEM    or OT_BITS32;
+      OT_ZMEM32_M   = OT_ZMEM32  or OT_VECTORMASK;
+      OT_ZMEM64     = OT_ZMEM    or OT_BITS64;
+      OT_ZMEM64_M   = OT_ZMEM64  or OT_VECTORMASK;
 
 
       OT_ZMMREG_M   = OT_ZMMREG or OT_VECTORMASK;
@@ -1709,9 +1712,8 @@ implementation
              exit;
 
            // IGNORE VECTOR-MEMORY-SIZE
-           if insot and OT_MEMORY = OT_MEMORY then
+           if (insot and OT_TYPE_MASK = OT_MEMORY) then
             insot := insot and not(OT_BITS128 or OT_BITS256 or OT_BITS512);
-
 
            { Check if the passed operand size matches with one of
              the supported operand sizes }
