@@ -946,8 +946,13 @@ implementation
          if printcom then 
         WriteLn('LockServer: ', fLock);
 {$endif}
+{$ifndef wince}
           Result := CoLockObjectExternal(Self, fLock, True);
           ComServer.CountObject(fLock);
+{$else}
+          RunError(217);
+          Result:=0;
+{$endif}
       end;
 
 
@@ -1018,7 +1023,9 @@ implementation
 
     destructor TComObjectFactory.Destroy;
       begin
+{$ifndef wince}
         if fIsRegistered <> dword(-1) then CoRevokeClassObject(fIsRegistered);
+{$endif}
         ComClassManager.RemoveObjectFactory(Self);
       end;
 
@@ -1050,9 +1057,13 @@ implementation
          if printcom then 
         WriteLn('TComObjectFactory.RegisterClassObject');
       {$endif}
+{$ifndef wince}
       if FInstancing <> ciInternal then
       OleCheck(CoRegisterClassObject(FClassID, Self, CLSCTX_LOCAL_SERVER,
          reg_flags(), @FIsRegistered));
+{$else}
+      RunError(217);
+{$endif}
     end;
 
 
