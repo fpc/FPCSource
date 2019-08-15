@@ -980,10 +980,17 @@
         type
           TClassTypeInfo = {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
             Attributes: Pointer;
-            ClassType: TClass;
-            ParentInfo: Pointer;
-            PropCount: SmallInt;
-            UnitName: ShortString;
+            case TTypeKind of
+              tkClass: (
+                ClassType: TClass;
+                ParentInfo: Pointer;
+                PropCount: SmallInt;
+                UnitName: ShortString;
+              );
+              { include for proper alignment }
+              tkInt64: (
+                Dummy: Int64;
+              );
           end;
           PClassTypeInfo = ^TClassTypeInfo;
         var
