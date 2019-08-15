@@ -1027,6 +1027,11 @@ implementation
                                       end
                                     else if subeq>te_convert_l6 then
                                       eq:=pred(subeq)
+                                    else if subeq=te_convert_operator then
+                                      { the operater needs to be applied by element, so we tell
+                                        the caller that it's some unpreffered conversion and let
+                                        it handle the per-element stuff }
+                                      eq:=te_convert_l6
                                     else
                                       eq:=subeq;
                                    doconv:=tc_arrayconstructor_2_dynarray;
