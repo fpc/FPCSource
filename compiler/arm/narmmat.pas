@@ -367,7 +367,7 @@ implementation
             exit;
           end;
 
-        if (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) or
+        if not(FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype]) or
           (tfloatdef(resultdef).floattype=s32real) then
           exit(inherited pass_1);
 
