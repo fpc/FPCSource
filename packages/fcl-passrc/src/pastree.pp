@@ -604,10 +604,8 @@ type
     function GetDeclaration(full : Boolean): string; override;
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
-    procedure AddParam(El: TPasElement);
   public
-    NameExpr: TPasExpr; // TPrimitiveExpr
-    Params: TFPList; // list of TPasType or TPasExpr
+    DestType: TPasSpecializeType;
   end;
 
   { TPasClassOfType }
@@ -2034,17 +2032,11 @@ constructor TInlineSpecializeExpr.Create(const AName: string;
 begin
   if AName='' then ;
   inherited Create(AParent, pekSpecialize, eopNone);
-  Params:=TFPList.Create;
 end;
 
 destructor TInlineSpecializeExpr.Destroy;
-var
-  i: Integer;
 begin
-  ReleaseAndNil(TPasElement(NameExpr){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
-  for i:=0 to Params.Count-1 do
-    TPasElement(Params[i]).Release{$IFDEF CheckPasTreeRefCount}('TInlineSpecializeExpr.Params'){$ENDIF};
-  FreeAndNil(Params);
+  ReleaseAndNil(TPasElement(DestType){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
   inherited Destroy;
 end;
 
@@ -2054,34 +2046,15 @@ begin
 end;
 
 function TInlineSpecializeExpr.GetDeclaration(full: Boolean): string;
-var
-  i: Integer;
 begin
-  Result:='specialize ';
-  Result:=Result+NameExpr.GetDeclaration(full);
-  Result:=Result+'<';
-  for i:=0 to Params.Count-1 do
-    begin
-    if i>0 then
-      Result:=Result+',';
-    Result:=Result+TPasElement(Params[i]).GetDeclaration(false);
-    end;
+  Result:=DestType.GetDeclaration(full);
 end;
 
 procedure TInlineSpecializeExpr.ForEachCall(
   const aMethodCall: TOnForEachPasElement; const Arg: Pointer);
-var
-  i: Integer;
 begin
   inherited ForEachCall(aMethodCall, Arg);
-  ForEachChildCall(aMethodCall,Arg,NameExpr,false);
-  for i:=0 to Params.Count-1 do
-    ForEachChildCall(aMethodCall,Arg,TPasElement(Params[i]),true);
-end;
-
-procedure TInlineSpecializeExpr.AddParam(El: TPasElement);
-begin
-  Params.Add(El);
+  ForEachChildCall(aMethodCall,Arg,DestType,false);
 end;
 
 { TPasSpecializeType }
@@ -2119,7 +2092,7 @@ begin
       Result:=Result+',';
     Result:=Result+TPasElement(Params[i]).GetDeclaration(false);
     end;
-  If Full then
+  If Full and (Name<>'') then
     begin
     Result:=Name+' = '+Result;
     ProcessHints(False,Result);

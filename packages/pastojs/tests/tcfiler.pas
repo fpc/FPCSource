@@ -1360,8 +1360,7 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredInlineSpecializedExpr(
   const Path: string; Orig, Rest: TInlineSpecializeExpr);
 begin
-  CheckRestoredElement(Path+'.NameExpr',Orig.NameExpr,Rest.NameExpr);
-  CheckRestoredElementList(Path+'.Params',Orig.Params,Rest.Params);
+  CheckRestoredElement(Path+'.DestType',Orig.DestType,Rest.DestType);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredRangeType(const Path: string;

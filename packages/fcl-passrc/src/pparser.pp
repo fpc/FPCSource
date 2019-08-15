@@ -321,7 +321,7 @@ type
     procedure ParseClassMembers(AType: TPasClassType);
     procedure ProcessMethod(AType: TPasClassType; IsClass : Boolean; AVisibility : TPasMemberVisibility);
     procedure ReadGenericArguments(List : TFPList;Parent : TPasElement);
-    procedure ReadSpecializeArguments(Spec: TPasElement);
+    procedure ReadSpecializeArguments(Spec: TPasSpecializeType);
     function ReadDottedIdentifier(Parent: TPasElement; out Expr: TPasExpr; NeedAsString: boolean): String;
     function CheckProcedureArgs(Parent: TPasElement;
       Args: TFPList; // list of TPasArgument
@@ -2304,6 +2304,7 @@ var
   SrcPos, ScrPos: TPasSourcePos;
   ProcType: TProcType;
   ProcExpr: TProcedureExpr;
+  SpecType: TPasSpecializeType;
 
 begin
   Result:=nil;
@@ -2389,7 +2390,8 @@ begin
         UngetToken;
         ParseExcExpectedIdentifier;
         end;
-      Last:=CreatePrimitiveExpr(AParent,pekString, '^'+CurTokenText);
+      Result:=CreatePrimitiveExpr(AParent,pekString, '^'+CurTokenText);
+      exit;
       end;
     tkBraceOpen:
       begin
@@ -2469,11 +2471,37 @@ begin
           break
         else
           begin
-          // an inline specialization (e.g. A<B,C>)
+          // an inline specialization (e.g. A<B,C>  or  something.A<B>)
+          // check expression in front is an identifier
+          Expr:=Result;
+          while Expr.Kind=pekBinary do
+            begin
+            if Expr.OpCode<>eopSubIdent then
+              ParseExcSyntaxError;
+            Expr:=TBinaryExpr(Expr).right;
+            end;
+          if Expr.Kind<>pekIdent then
+            ParseExcSyntaxError;
+
+          // read specialized type
           ISE:=TInlineSpecializeExpr(CreateElement(TInlineSpecializeExpr,'',AParent,SrcPos));
-          ReadSpecializeArguments(ISE);
-          ISE.NameExpr:=Result;
-          Result:=ISE;
+          SpecType:=TPasSpecializeType(CreateElement(TPasSpecializeType,'',ISE,SrcPos));
+          ISE.DestType:=SpecType;
+          ReadSpecializeArguments(SpecType);
+          // can't resolve SpecType.DestType here
+
+          // A<B>  or  something.A<B>
+          if Expr.Parent is TBinaryExpr then
+            begin
+            if TBinaryExpr(Expr.Parent).right<>Expr then
+              ParseExcSyntaxError;
+            TBinaryExpr(Expr.Parent).right:=ISE;
+            ISE.Parent:=Expr.Parent;
+            end;
+          SpecType.Expr:=Expr;
+          Expr.Parent:=SpecType;
+          if Expr=Result then
+            Result:=ISE;
           ISE:=nil;
           CanSpecialize:=aCannot;
           NextToken;
@@ -4079,19 +4107,8 @@ begin
 end;
 {$warn 5043 on}
 
-procedure TPasParser.ReadSpecializeArguments(Spec: TPasElement);
+procedure TPasParser.ReadSpecializeArguments(Spec: TPasSpecializeType);
 // after parsing CurToken is on tkGreaterThan
-
-  procedure AddParam(El: TPasElement);
-  begin
-    if Spec is TPasSpecializeType then
-      TPasSpecializeType(Spec).AddParam(El)
-    else if Spec is TInlineSpecializeExpr then
-      TInlineSpecializeExpr(Spec).AddParam(El)
-    else
-      ParseExcTokenError('[20190619112611] '+Spec.ClassName);
-  end;
-
 Var
   TypeEl: TPasType;
 begin
@@ -4100,7 +4117,7 @@ begin
   repeat
     //writeln('ARG TPasParser.ReadSpecializeArguments ',CurTokenText,' ',CurTokenString);
     TypeEl:=ParseType(Spec,CurTokenPos,'');
-    AddParam(TypeEl);
+    Spec.AddParam(TypeEl);
     NextToken;
     if CurToken=tkComma then
       continue

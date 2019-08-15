@@ -1584,6 +1584,7 @@ type
     procedure ResolveSetParamsExpr(Params: TParamsExpr); virtual;
     procedure ResolveArrayValues(El: TArrayValues); virtual;
     procedure ResolveRecordValues(El: TRecordValues); virtual;
+    procedure ResolveInlineSpecializeExpr(El: TInlineSpecializeExpr); virtual;
     function ResolveAccessor(Expr: TPasExpr): TPasElement;
     procedure SetResolvedRefAccess(Expr: TPasExpr; Ref: TResolvedReference;
       Access: TResolvedRefAccess); virtual;
@@ -6312,13 +6313,16 @@ var
   Params, GenericTemplateList: TFPList;
   P: TPasElement;
   DestType: TPasType;
-  i: Integer;
+  i, ScopeDepth: Integer;
 begin
   {$IFDEF VerbosePasResolver}
   //writeln('TPasResolver.FinishSpecializeType ');
   {$ENDIF}
   // resolve Params
+  ScopeDepth:=StashSubExprScopes;
   Params:=El.Params;
+  if Params.Count=0 then
+    RaiseMsg(20190724114416,nMissingParameterX,sMissingParameterX,['type'],El);
   for i:=0 to Params.Count-1 do
     begin
     P:=TPasElement(Params[i]);
@@ -6328,11 +6332,9 @@ begin
     else
       RaiseMsg(20190728113336,nXExpectedButYFound,sXExpectedButYFound,['type identifier',GetObjName(P)+' parameter '+IntToStr(i+1)],El);
     end;
-  if Params.Count=0 then
-    RaiseMsg(20190724114416,nMissingParameterX,sMissingParameterX,['type'],El);
+  RestoreStashedScopes(ScopeDepth);
 
   // check DestType
-  GenericTemplateList:=nil;
   DestType:=El.DestType;
   if DestType=nil then
     RaiseMsg(20190725184734,nIdentifierNotFound,sIdentifierNotFound,['specialize type'],El)
@@ -9428,6 +9430,8 @@ begin
     end
   else if ElClass=TProcedureExpr then
     // resolved by FinishScope(stProcedure)
+  else if ElClass=TInlineSpecializeExpr then
+    ResolveInlineSpecializeExpr(TInlineSpecializeExpr(El))
   else
     RaiseNotYetImplemented(20170222184329,El);
 
@@ -10638,6 +10642,33 @@ begin
   // ToDo: hint for missing variants
   if s<>'' then
     LogMsg(20180429121127,mtHint,nMissingFieldsX,sMissingFieldsX,[s],El);
+end;
+
+procedure TPasResolver.ResolveInlineSpecializeExpr(El: TInlineSpecializeExpr);
+var
+  aName: String;
+  SpecType: TPasSpecializeType;
+  Expr: TPasExpr;
+  GenType: TPasGenericType;
+begin
+  SpecType:=El.DestType;
+  if SpecType.DestType<>nil then
+    RaiseNotYetImplemented(20190815092327,El,GetObjName(SpecType.DestType));
+
+  // resolve DestType
+  Expr:=SpecType.Expr;
+  if Expr=nil then
+    RaiseNotYetImplemented(20190815091319,SpecType);
+  if Expr.Kind<>pekIdent then
+    RaiseNotYetImplemented(20190815083349,Expr);
+  aName:=TPrimitiveExpr(Expr).Value;
+  GenType:=FindGenericType(aName,SpecType.Params.Count,Expr);
+  if GenType=nil then
+    RaiseMsg(20190815083433,nIdentifierNotFound,sIdentifierNotFound,[aName],Expr);
+  SpecType.DestType:=GenType;
+  GenType.AddRef{$IFDEF CheckPasTreeRefCount}('TPasAliasType.DestType'){$ENDIF};
+
+  FinishSpecializeType(SpecType);
 end;
 
 function TPasResolver.ResolveAccessor(Expr: TPasExpr): TPasElement;
@@ -15879,11 +15910,19 @@ end;
 
 procedure TPasResolver.SpecializeInlineSpecializeExpr(GenEl,
   SpecEl: TInlineSpecializeExpr);
+var
+  GenSpec, SpecSpec: TPasSpecializeType;
 begin
   SpecializeExpr(GenEl,SpecEl);
-  SpecializeElExpr(GenEl,SpecEl,GenEl.NameExpr,SpecEl.NameExpr);
-  SpecializeElList(GenEl,SpecEl,GenEl.Params,SpecEl.Params,true
-    {$IFDEF CheckPasTreeRefCount},'TInlineSpecializeExpr.Params'{$ENDIF});
+  GenSpec:=GenEl.DestType;
+  SpecSpec:=TPasSpecializeType.Create('',SpecEl);
+  SpecEl.DestType:=SpecSpec;
+
+  SpecializeElExpr(GenSpec,SpecSpec,GenSpec.Expr,SpecSpec.Expr);
+  SpecializeElList(GenSpec,SpecSpec,GenSpec.Params,SpecSpec.Params,true
+             {$IFDEF CheckPasTreeRefCount},'TPasSpecializeType.Params'{$ENDIF});
+
+  // SpecSpec.DestType is done in ResolveInlineSpecializeExpr
 end;
 
 procedure TPasResolver.SpecializeProcedureExpr(GenEl, SpecEl: TProcedureExpr);
@@ -24227,6 +24266,22 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
     Include(ResolvedEl.Flags,rrfCanBeStatement);
   end;
 
+  procedure ComputeSpecializeType(SpecType: TPasSpecializeType);
+  var
+    TypeEl: TPasType;
+  begin
+    if SpecType.CustomData is TPasSpecializeTypeData then
+      begin
+      TypeEl:=TPasSpecializeTypeData(SpecType.CustomData).SpecializedType;
+      SetResolverIdentifier(ResolvedEl,btContext,TypeEl,TypeEl,TypeEl,[]);
+      end
+    else
+      begin
+      TypeEl:=SpecType.DestType;
+      SetResolverIdentifier(ResolvedEl,btContext,SpecType,TypeEl,SpecType,[]);
+      end;
+  end;
+
 var
   DeclEl: TPasElement;
   ElClass: TClass;
@@ -24608,18 +24663,9 @@ begin
     SetResolverIdentifier(ResolvedEl,btContext,El,TPasGenericTemplateType(El),
       TPasGenericTemplateType(El),[])
   else if ElClass=TPasSpecializeType then
-    begin
-    if El.CustomData is TPasSpecializeTypeData then
-      begin
-      TypeEl:=TPasSpecializeTypeData(El.CustomData).SpecializedType;
-      SetResolverIdentifier(ResolvedEl,btContext,TypeEl,TypeEl,TypeEl,[]);
-      end
-    else
-      begin
-      TypeEl:=TPasSpecializeType(El).DestType;
-      SetResolverIdentifier(ResolvedEl,btContext,El,TypeEl,TPasType(El),[]);
-      end;
-    end
+    ComputeSpecializeType(TPasSpecializeType(El))
+  else if ElClass=TInlineSpecializeExpr then
+    ComputeSpecializeType(TInlineSpecializeExpr(El).DestType)
   else
     RaiseNotYetImplemented(20160922163705,El);
   {$IF defined(nodejs) and defined(VerbosePasResolver)}

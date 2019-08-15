@@ -40,6 +40,7 @@ type
     procedure TestGen_Record_SpecializeSelfInsideFail;
     procedure TestGen_RecordAnoArray;
     // ToDo: unitname.specialize TBird<word>.specialize
+    procedure TestGen_RecordNestedSpecialize;
 
     // generic class
     procedure TestGen_Class;
@@ -57,10 +58,11 @@ type
     // ToDo: ancestor cycle: TBird<T> = class(TBird<word>) fail
     // ToDo: class-of
     // ToDo: UnitA.impl uses UnitB.intf uses UnitA.intf, UnitB has specialize of UnitA
-    procedure TestGen_NestedType;
+    procedure TestGen_Class_NestedType;
     // ToDo: procedure TestGen_NestedDottedType;
     procedure TestGen_Class_Enums_NotPropagating;
     procedure TestGen_Class_List;
+    // ToDo: procedure TestGen_Class_SubClassType;
 
     // generic external class
     procedure TestGen_ExtClass_Array;
@@ -84,6 +86,7 @@ type
     // generic statements
     procedure TestGen_LocalVar;
     procedure TestGen_Statements;
+    procedure TestGen_InlineSpecializeExpr;
     // ToDo: for-in
     procedure TestGen_TryExcept;
     // ToDo: call
@@ -359,6 +362,21 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolveGenerics.TestGen_RecordNestedSpecialize;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  generic TBird<T> = record v: T; end;',
+  'var',
+  '  a: specialize TBird<specialize TBird<word>>;',
+  'begin',
+  '  a.v.v:=3;',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolveGenerics.TestGen_Class;
 begin
   StartProgram(false);
@@ -589,7 +607,7 @@ begin
   CheckResolverException('type "TBird" is not yet completely defined',nTypeXIsNotYetCompletelyDefined);
 end;
 
-procedure TTestResolveGenerics.TestGen_NestedType;
+procedure TTestResolveGenerics.TestGen_Class_NestedType;
 begin
   StartProgram(false);
   Add([
@@ -845,6 +863,44 @@ begin
   '  b: specialize TBird<word>;',
   'begin',
   '  b.Fly(2);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_InlineSpecializeExpr;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '    constructor Create;',
+  '  end;',
+  '  generic TAnt<U> = class',
+  '    constructor Create;',
+  '  end;',
+  'constructor TBird.Create;',
+  'var',
+  '  a: TAnt<T>;',
+  '  b: TAnt<word>;',
+  'begin',
+  '  a:=TAnt<T>.create;',
+  '  b:=TAnt<word>.create;',
+  'end;',
+  'constructor TAnt.Create;',
+  'var',
+  '  i: TBird<U>;',
+  '  j: TBird<word>;',
+  '  k: TAnt<U>;',
+  'begin',
+  '  i:=TBird<U>.create;',
+  '  j:=TBird<word>.create;',
+  '  k:=TAnt<U>.create;',
+  'end;',
+  'var a: TAnt<word>;',
+  'begin',
+  '  a:=TAnt<word>.create;',
   '']);
   ParseProgram;
 end;
