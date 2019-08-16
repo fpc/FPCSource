@@ -603,6 +603,11 @@ begin
   Fpmunmap:=do_syscall(syscall_nr_munmap,TSysParam(Adr),TSysParam(Len));
 end;
 
+{$define FPC_SYSTEM_HAS_MREMAP}
+Function Fpmremap(adr:pointer;old_len,new_len:size_t;flags:cint;new_adr:pointer):pointer; [public, alias :'FPC_SYSC_MREMAP'];
+begin
+  Fpmremap:=pointer(do_syscall(syscall_nr_mremap,TSysParam(Adr),TSysParam(old_len),TSysParam(new_len),TSysParam(flags),TSysParam(new_adr)));
+end;
 
 Function Fpmprotect(adr:pointer;len:size_t;prot:cint):cint; [public, alias : 'FPC_SYSC_MPROTECT'];
 begin

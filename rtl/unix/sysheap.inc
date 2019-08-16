@@ -31,3 +31,19 @@ begin
   fpmunmap(p, size);
 end;
 
+
+{$ifdef FPC_SYSTEM_HAS_MREMAP}
+const
+  MREMAP_MAYMOVE = 1;
+
+{$define FPC_SYSTEM_HAS_SYSOSREALLOC}
+function SysOSRealloc(p: pointer;oldsize,newsize: ptruint): pointer;
+begin
+  result:=Fpmremap(p,oldsize,newsize,MREMAP_MAYMOVE,nil);
+  if result=pointer(-1) then
+    result:=nil
+  else
+    seterrno(0);
+end;
+
+{$endif FPC_SYSTEM_HAS_MREMAP}

@@ -61,6 +61,8 @@ const
 { DEBUG: Dump info when the heap needs to grow }
 { define DUMPGROW}
 
+{ define DEBUG_SYSOSREALLOC}
+
 { Memory profiling: at moment in time of max heap size usage,
   keep statistics of number of each size allocated
   (with 16 byte granularity) }
@@ -1066,6 +1068,9 @@ begin
 {$endif}
     end;
   end;
+{$ifdef DEBUG_SYSOSREALLOC}
+  writeln('Allocated block at: $',hexstr(PtrUInt(pcurr),SizeOf(PtrUInt)*2),', size: ',hexstr(PtrUInt(pcurr^.size and sizemask),SizeOf(PtrUInt)*2));
+{$endif DEBUG_SYSOSREALLOC}
 end;
 
 function SysGetMem(size : ptruint):pointer;
@@ -1183,7 +1188,9 @@ begin
     waitfree_var(pmcv);
     exit(chunksize);
   end;
-
+{$ifdef DEBUG_SYSOSREALLOC}
+  writeln('Releasing block at: $',hexstr(PtrUInt(pmcv),SizeOf(PtrUInt)*2));
+{$endif DEBUG_SYSOSREALLOC}
   { insert the block in its freelist }
   pmcv^.size := pmcv^.size and (not usedflag);
   append_to_list_var(pmcv);
@@ -1334,13 +1341,21 @@ end;
 function SysTryResizeMem(var p: pointer; size: ptruint): boolean;
 var
   chunksize,
+  newsize,
   oldsize,
   currsize : ptruint;
   pcurr : pmemchunk_var;
   loc_freelists : pfreelists;
+  poc : poschunk;
+  pmcv : pmemchunk_var;
 begin
   SysTryResizeMem := false;
 
+{$ifdef DEBUG_SYSOSREALLOC}
+  writeln('Resize block at: $',hexstr(PtrUInt(pcurr),SizeOf(PtrUInt)*2),
+    ', from: ',hexstr(SysMemSize(p),SizeOf(PtrUInt)*2),
+    ', to: ',hexstr(size,SizeOf(PtrUInt)*2));
+{$endif DEBUG_SYSOSREALLOC}
   { fix p to point to the heaprecord }
   chunksize := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr))^.size;
 
@@ -1395,6 +1410,62 @@ begin
     currsize := pcurr^.size and sizemask;
   if size>currsize then
     begin
+{$ifdef FPC_SYSTEM_HAS_SYSOSREALLOC}
+      { if the os block is only occupied by the memory block which shall be resized,
+        it can be tried if the OS can reallocate the block. On linux, the OS often does
+        not need to move the data but it can just remap the memory pages }
+      if ((pcurr^.size and firstblockflag) <> 0) and ((pcurr^.size and lastblockflag) <> 0) then
+        begin
+          newsize:=(size+varfirstoffset+sizeof(tmemchunk_var_hdr)+$ffff) and not $ffff;
+          poc:=SysOSRealloc(pointer(pcurr)-varfirstoffset,poschunk(pointer(pcurr)-varfirstoffset)^.size,newsize);
+          if poc<>nil then
+            begin
+              with loc_freelists^.internal_status do
+                begin
+                  inc(currheapsize,newsize-poc^.size);
+                  if currheapsize > maxheapsize then
+                    maxheapsize := currheapsize;
+                end;
+{$ifdef DEBUG_SYSOSREALLOC}
+              writeln('Block successfully resized by SysOSRealloc to: ',hexstr(qword(poc),sizeof(pointer)*2),' new size: $',hexstr(newsize,sizeof(ptruint)*2));
+{$endif DEBUG_SYSOSREALLOC}
+              poc^.size:=newsize;
+              { remove old os block from list, while it is already moved, the data is still the same }
+              if assigned(poc^.prev_any) then
+                poc^.prev_any^.next_any := poc^.next_any
+              else
+                loc_freelists^.oslist_all := poc^.next_any;
+              if assigned(poc^.next_any) then
+                poc^.next_any^.prev_any := poc^.prev_any;
+
+              { insert the block with the new data into oslist_all }
+              poc^.prev_any := nil;
+              poc^.next_any := loc_freelists^.oslist_all;
+              if assigned(loc_freelists^.oslist_all) then
+                loc_freelists^.oslist_all^.prev_any := poc;
+              loc_freelists^.oslist_all := poc;
+              
+              { setup new block location }
+              p:=pointer(poc)+varfirstoffset+sizeof(tmemchunk_var_hdr);
+              
+              { setup the block data }
+              pmcv:=pmemchunk_var(p-sizeof(tmemchunk_var_hdr));
+              pmcv^.size:=(ptruint(newsize-varfirstoffset) and sizemask) or (firstblockflag or lastblockflag);
+              pmcv^.prevsize:=0;
+
+              currsize:=size;
+
+              { create the left over freelist block as we rounded up, if at least 16 bytes are free }
+              size:=split_block(pmcv,size);
+
+              { the block is used }
+              pmcv^.size:=pmcv^.size or usedflag;
+
+              { TryResizeMem is successful }
+              SysTryResizeMem:=true;
+            end;
+        end;
+{$endif FPC_SYSTEM_HAS_SYSOSREALLOC}
       { adjust statistics (try_concat_free_chunk_forward may have merged a free
         block into the current block, which we will subsequently free (so the
         combined size will be freed -> make sure the combined size is marked as
