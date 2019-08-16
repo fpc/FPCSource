@@ -55,14 +55,13 @@ type
     // ToDo: generic class overload <T> <S,T>
     procedure TestGen_Class_GenAncestor;
     procedure TestGen_Class_AncestorSelfFail;
-    // ToDo: ancestor cycle: TBird<T> = class(TBird<word>) fail
     // ToDo: class-of
     // ToDo: UnitA.impl uses UnitB.intf uses UnitA.intf, UnitB has specialize of UnitA
     procedure TestGen_Class_NestedType;
-    // ToDo: procedure TestGen_NestedDottedType;
+    procedure TestGen_Class_NestedRecord;
+    procedure TestGen_Class_NestedClass; // ToDo
     procedure TestGen_Class_Enums_NotPropagating;
     procedure TestGen_Class_List;
-    // ToDo: procedure TestGen_Class_SubClassType;
 
     // generic external class
     procedure TestGen_ExtClass_Array;
@@ -93,6 +92,7 @@ type
     // ToDo: dot
     // ToDo: is as
     // ToDo: typecast
+    // ToTo: nested proc
   end;
 
 implementation
@@ -625,6 +625,59 @@ begin
   '  b: TBirdWord;',
   'begin',
   '  b.p:=procedure(El: word) begin end;']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_NestedRecord;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch advancedrecords}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '  public type TWing = record',
+  '      s: T;',
+  '      function GetIt: T;',
+  '    end;',
+  '  public',
+  '    w: TWing;',
+  '  end;',
+  '  TBirdWord = specialize TBird<word>;',
+  'function TBird.TWing.GetIt: T;',
+  'begin',
+  'end;',
+  'var',
+  '  b: TBirdWord;',
+  '  i: word;',
+  'begin',
+  '  b.w.s:=i;',
+  '  i:=b.w.GetIt;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_NestedClass;
+begin
+  exit;
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '  public type TWing = class',
+  '      s: T;',
+  '    end;',
+  '  public',
+  '    w: TWing;',
+  '  end;',
+  '  TBirdWord = specialize TBird<word>;',
+  'var',
+  '  b: TBirdWord;',
+  'begin',
+  '  b.w.s:=3;']);
   ParseProgram;
 end;
 

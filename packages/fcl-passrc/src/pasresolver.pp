@@ -1737,6 +1737,8 @@ type
     procedure SpecializeGenTypeImpl(GenericType: TPasGenericType;
       SpecializedItem: TPSSpecializedItem); virtual;
     procedure SpecializeMembers(GenMembersType, SpecMembersType: TPasMembersType); virtual;
+    procedure SpecializeMembersImpl(GenericType, SpecType: TPasMembersType;
+      ImplProcs: TFPList); virtual;
     procedure SpecializeElement(GenEl, SpecEl: TPasElement);
     procedure SpecializePasElementProperties(GenEl, SpecEl: TPasElement);
     procedure SpecializeVariable(GenEl, SpecEl: TPasVariable; Finish: boolean);
@@ -1792,6 +1794,7 @@ type
     procedure SpecializePointerType(GenEl, SpecEl: TPasPointerType);
     procedure SpecializeRangeType(GenEl, SpecEl: TPasRangeType);
     procedure SpecializeArrayType(GenEl, SpecEl: TPasArrayType; SpecializedItem: TPSSpecializedItem);
+    procedure SpecializeRecordType(GenEl, SpecEl: TPasRecordType; SpecializedItem: TPSSpecializedItem);
     procedure SpecializeEnumValue(GenEl, SpecEl: TPasEnumValue);
     procedure SpecializeEnumType(GenEl, SpecEl: TPasEnumType);
     procedure SpecializeSetType(GenEl, SpecEl: TPasSetType);
@@ -10984,8 +10987,13 @@ begin
         Proc:=TPasProcedure(DeclEl);
         if Proc.IsAbstract or Proc.IsExternal then continue;
         if TPasProcedureScope(Proc.CustomData).ImplProc=nil then
+          begin
+          {$IFDEF VerbosePasResolver}
+          writeln('TPasResolver.CheckPendingForwardProcs Proc.ParentPath=',Proc.PathName);
+          {$ENDIF}
           RaiseMsg(20170216152221,nForwardProcNotResolved,sForwardProcNotResolved,
             [GetElementTypeName(Proc),Proc.Name],Proc);
+          end;
         end;
       end;
     ClassOrRecScope.GenericStep:=psgsImplementationParsed;
@@ -14884,16 +14892,9 @@ begin
     begin
     NewRecordType:=TPasRecordType(SpecType);
     GenRecordType:=TPasRecordType(GenericType);
-    NewRecordType.PackMode:=GenRecordType.PackMode;
     GenScope:=TPasGenericScope(PushScope(NewRecordType,TPasRecordScope));
-    GenScope.SpecializedItem:=SpecializedItem;
     GenScope.VisibilityContext:=NewRecordType;
-    AddSpecializedTemplateIdentifiers(GenericTemplateTypes,
-                                      SpecializedItem.Params,GenScope);
-    // specialize sub elements
-    SpecializeMembers(GenRecordType,NewRecordType);
-    SpecializedItem.Step:=psssInterfaceFinished;
-    FinishRecordType(NewRecordType);
+    SpecializeRecordType(GenRecordType,NewRecordType,SpecializedItem);
     end
   else if C=TPasClassType then
     begin
@@ -14952,7 +14953,6 @@ begin
     GenArrayType:=TPasArrayType(GenericType);
     NewArrayType:=TPasArrayType(SpecType);
     SpecializeArrayType(GenArrayType,NewArrayType,SpecializedItem);
-    SpecializedItem.Step:=psssImplementationFinished;
     end
   else if (C=TPasProcedureType)
       or (C=TPasFunctionType) then
@@ -14960,7 +14960,6 @@ begin
     GenProcType:=TPasProcedureType(GenericType);
     NewProcType:=TPasProcedureType(SpecType);
     SpecializeProcedureType(GenProcType,NewProcType,SpecializedItem);
-    SpecializedItem.Step:=psssImplementationFinished;
     end
   else
     RaiseNotYetImplemented(20190728134933,GenericType);
@@ -14970,16 +14969,7 @@ procedure TPasResolver.SpecializeGenTypeImpl(GenericType: TPasGenericType;
   SpecializedItem: TPSSpecializedItem);
 var
   SpecType: TPasGenericType;
-  GenClassOrRec, SpecClassOrRec: TPasMembersType;
-  GenMember, SpecMember, ImplParent: TPasElement;
-  GenIntfProc, GenImplProc, SpecImplProc, SpecIntfProc: TPasProcedure;
-  GenIntfProcScope, SpecIntfProcScope, GenImplProcScope,
-    SpecImplProcScope: TPasProcedureScope;
-  NewClass: TPTreeElement;
-  OldStashCount, i, p, LastDotP: Integer;
-  SpecClassOrRecScope: TPasClassOrRecordScope;
   GenScope: TPasGenericScope;
-  NewImplProcName, OldClassname: String;
 begin
   // check generic type is resolved completely
   GenScope:=TPasGenericScope(GenericType.CustomData);
@@ -14999,87 +14989,10 @@ begin
   // specialize all methods
   if GenericType is TPasMembersType then
     begin
-    GenClassOrRec:=TPasMembersType(GenericType);
-    SpecClassOrRec:=TPasMembersType(SpecType);
-    SpecClassOrRecScope:=TPasClassOrRecordScope(SpecClassOrRec.CustomData);
-
-    {$IFDEF VerbosePasResolver}
-    writeln('TPasResolver.FinishClassType RestoreStashedScopes ',GetObjName(SpecializedItem.SpecializedType),' ',ScopeCount,' FStashScopeCount=',FStashScopeCount);
-    {$ENDIF}
-    ImplParent:=nil;
-    OldStashCount:=FStashScopeCount;
-
-    for i:=0 to GenClassOrRec.Members.Count-1 do
-      begin
-      GenMember:=TPasElement(GenClassOrRec.Members[i]);
-      if GenMember is TPasProcedure then
-        begin
-        GenIntfProc:=TPasProcedure(GenMember);
-        if GenIntfProc.IsAbstract or GenIntfProc.IsExternal then continue;
-        GenIntfProcScope:=TPasProcedureScope(GenIntfProc.CustomData);
-        GenImplProc:=GenIntfProcScope.ImplProc;
-        if GenImplProc=nil then
-          RaiseNotYetImplemented(20190804122134,GenIntfProc);
-        GenImplProcScope:=TPasProcedureScope(GenImplProc.CustomData);
-        SpecMember:=TPasElement(SpecClassOrRec.Members[i]);
-        if SpecMember.Name<>GenMember.Name then
-          RaiseNotYetImplemented(20190804124220,GenMember,GetObjName(SpecMember));
-        SpecIntfProc:=SpecMember as TPasProcedure;
-        SpecIntfProcScope:=TPasProcedureScope(SpecIntfProc.CustomData);
-        NewClass:=TPTreeElement(GenImplProc.ClassType);
-
-        {$IFDEF VerbosePasResolver}
-        writeln('TPasResolver.SpecializeGenTypeImpl Specialize GenImplProc: ',GetObjName(GenImplProc));
-        {$ENDIF}
-
-        if ImplParent=nil then
-          begin
-          // switch scope (e.g. unit implementation section)
-          ImplParent:=GenImplProc.Parent;
-          OldStashCount:=InitSpecializeScopes(GenImplProc);
-          {$IFDEF VerbosePasResolver}
-          writeln('TPasResolver.SpecializeGenTypeImpl Specialize implprocs: SpecType=',GetObjName(SpecType),' ImplParent=',GetObjName(ImplParent),' ScopeCount=',ScopeCount,' FStashScopeCount=',FStashScopeCount,' TopScope=',GetObjName(TopScope));
-          {$ENDIF}
-          end
-        else if ImplParent<>GenImplProc.Parent then
-          RaiseNotYetImplemented(20190804130322,GenImplProc,GetObjName(ImplParent));
-
-        // create impl proc
-        NewImplProcName:=GenImplProc.Name;
-        p:=length(NewImplProcName);
-        while (p>1) and (NewImplProcName[p]<>'.') do dec(p);
-        LastDotP:=p;
-        while (p>1) and (NewImplProcName[p-1]<>'.') do dec(p);
-        OldClassname:=copy(NewImplProcName,p,LastDotP-p);
-        if not SameText(OldClassname,GenClassOrRec.Name) then
-          RaiseNotYetImplemented(20190814141833,GenImplProc);
-        NewImplProcName:=LeftStr(NewImplProcName,p-1)+SpecClassOrRec.Name+copy(NewImplProcName,LastDotP,length(NewImplProcName));
-
-        SpecImplProc:=TPasProcedure(NewClass.Create(NewImplProcName,GenImplProc.Parent));
-        SpecIntfProcScope.ImplProc:=SpecImplProc;
-        if SpecializedItem.ImplProcs=nil then
-          SpecializedItem.ImplProcs:=TFPList.Create;
-        SpecializedItem.ImplProcs.Add(SpecImplProc);
-
-        // create impl proc scope
-        SpecImplProcScope:=TPasProcedureScope(CreateScope(SpecImplProc,FScopeClass_Proc));
-        SpecImplProcScope.Flags:=[ppsfIsSpecialized];
-        SpecImplProcScope.DeclarationProc:=SpecIntfProc;
-        SpecImplProcScope.ModeSwitches:=GenImplProcScope.Modeswitches;
-        SpecImplProcScope.BoolSwitches:=GenImplProcScope.BoolSwitches;
-        SpecImplProcScope.VisibilityContext:=SpecClassOrRec;
-        SpecImplProcScope.ClassRecScope:=SpecClassOrRecScope;
-
-        // specialize props
-        SpecializeElement(GenImplProc,SpecImplProc);
-        end;
-      end;
-
-    if ImplParent<>nil then
-      begin
-      // restore scope
-      RestoreStashedScopes(OldStashCount);
-      end;
+    if SpecializedItem.ImplProcs=nil then
+      SpecializedItem.ImplProcs:=TFPList.Create;
+    SpecializeMembersImpl(TPasMembersType(GenericType),TPasMembersType(SpecType),
+      SpecializedItem.ImplProcs);
     end;
 
   SpecializedItem.Step:=psssImplementationFinished;
@@ -15101,6 +15014,107 @@ begin
     NewEl:=TPasElement(NewClass.Create(GenEl.Name,SpecMembersType));
     SpecMembersType.Members.Add(NewEl);
     SpecializeElement(GenEl,NewEl);
+    end;
+end;
+
+procedure TPasResolver.SpecializeMembersImpl(GenericType,
+  SpecType: TPasMembersType; ImplProcs: TFPList);
+var
+  GenClassOrRec, SpecClassOrRec: TPasMembersType;
+  SpecClassOrRecScope: TPasClassOrRecordScope;
+  OldStashCount, i, p, LastDotP: Integer;
+  GenMember, SpecMember, ImplParent: TPasElement;
+  GenIntfProc, GenImplProc, SpecIntfProc, SpecImplProc: TPasProcedure;
+  GenIntfProcScope, GenImplProcScope, SpecIntfProcScope,
+    SpecImplProcScope: TPasProcedureScope;
+  NewClass: TPTreeElement;
+  NewImplProcName, OldClassname: String;
+begin
+  GenClassOrRec:=TPasMembersType(GenericType);
+  SpecClassOrRec:=TPasMembersType(SpecType);
+  SpecClassOrRecScope:=TPasClassOrRecordScope(SpecClassOrRec.CustomData);
+
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.SpecializeMembersImpl RestoreStashedScopes ',GetObjPath(SpecClassOrRec),' ',ScopeCount,' FStashScopeCount=',FStashScopeCount);
+  {$ENDIF}
+  ImplParent:=nil;
+  OldStashCount:=FStashScopeCount;
+
+  for i:=0 to GenClassOrRec.Members.Count-1 do
+    begin
+    GenMember:=TPasElement(GenClassOrRec.Members[i]);
+    SpecMember:=TPasElement(SpecClassOrRec.Members[i]);
+    if SpecMember.ClassType<>GenMember.ClassType then
+      RaiseNotYetImplemented(20190816002658,GenMember,GetObjName(SpecMember));
+    if SpecMember.Name<>GenMember.Name then
+      RaiseNotYetImplemented(20190804124220,GenMember,GetObjName(SpecMember));
+    if GenMember is TPasProcedure then
+      begin
+      GenIntfProc:=TPasProcedure(GenMember);
+      if GenIntfProc.IsAbstract or GenIntfProc.IsExternal then continue;
+      GenIntfProcScope:=TPasProcedureScope(GenIntfProc.CustomData);
+      GenImplProc:=GenIntfProcScope.ImplProc;
+      if GenImplProc=nil then
+        RaiseNotYetImplemented(20190804122134,GenIntfProc);
+      GenImplProcScope:=TPasProcedureScope(GenImplProc.CustomData);
+      SpecIntfProc:=SpecMember as TPasProcedure;
+      SpecIntfProcScope:=TPasProcedureScope(SpecIntfProc.CustomData);
+      NewClass:=TPTreeElement(GenImplProc.ClassType);
+
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.SpecializeMembersImpl Specialize GenImplProc: ',GetObjName(GenImplProc));
+      {$ENDIF}
+
+      if ImplParent=nil then
+        begin
+        // switch scope (e.g. unit implementation section)
+        ImplParent:=GenImplProc.Parent;
+        OldStashCount:=InitSpecializeScopes(GenImplProc);
+        {$IFDEF VerbosePasResolver}
+        writeln('TPasResolver.SpecializeMembersImpl Specialize implprocs: SpecType=',GetObjName(SpecType),' ImplParent=',GetObjName(ImplParent),' ScopeCount=',ScopeCount,' FStashScopeCount=',FStashScopeCount,' TopScope=',GetObjName(TopScope));
+        {$ENDIF}
+        end
+      else if ImplParent<>GenImplProc.Parent then
+        RaiseNotYetImplemented(20190804130322,GenImplProc,GetObjName(ImplParent));
+
+      // create impl proc
+      NewImplProcName:=GenImplProc.Name;
+      p:=length(NewImplProcName);
+      while (p>1) and (NewImplProcName[p]<>'.') do dec(p);
+      LastDotP:=p;
+      while (p>1) and (NewImplProcName[p-1]<>'.') do dec(p);
+      OldClassname:=copy(NewImplProcName,p,LastDotP-p);
+      if not SameText(OldClassname,GenClassOrRec.Name) then
+        RaiseNotYetImplemented(20190814141833,GenImplProc);
+      NewImplProcName:=LeftStr(NewImplProcName,p-1)+SpecClassOrRec.Name+copy(NewImplProcName,LastDotP,length(NewImplProcName));
+
+      SpecImplProc:=TPasProcedure(NewClass.Create(NewImplProcName,GenImplProc.Parent));
+      SpecIntfProcScope.ImplProc:=SpecImplProc;
+      ImplProcs.Add(SpecImplProc);
+
+      // create impl proc scope
+      SpecImplProcScope:=TPasProcedureScope(CreateScope(SpecImplProc,FScopeClass_Proc));
+      SpecImplProcScope.Flags:=[ppsfIsSpecialized];
+      SpecImplProcScope.DeclarationProc:=SpecIntfProc;
+      SpecImplProcScope.ModeSwitches:=GenImplProcScope.Modeswitches;
+      SpecImplProcScope.BoolSwitches:=GenImplProcScope.BoolSwitches;
+      SpecImplProcScope.VisibilityContext:=SpecClassOrRec;
+      SpecImplProcScope.ClassRecScope:=SpecClassOrRecScope;
+
+      // specialize props
+      SpecializeElement(GenImplProc,SpecImplProc);
+      end
+    else if GenMember is TPasMembersType then
+      begin
+      // nested record/class type
+      SpecializeMembersImpl(TPasMembersType(GenMember),TPasMembersType(SpecMember),ImplProcs);
+      end;
+    end;
+
+  if ImplParent<>nil then
+    begin
+    // restore scope
+    RestoreStashedScopes(OldStashCount);
     end;
 end;
 
@@ -15155,8 +15169,8 @@ begin
     end
   else if C=TPasArrayType then
     begin
-    if TPasArrayType(GenEl).GenericTemplateTypes<>nil then
-      RaiseNotYetImplemented(20190812220312,GenEl);
+    if GetTypeParameterCount(TPasArrayType(GenEl))>0 then
+      RaiseNotYetImplemented(20190815201219,GenEl);
     AddArrayType(TPasArrayType(SpecEl),nil);
     SpecializeArrayType(TPasArrayType(GenEl),TPasArrayType(SpecEl),nil);
     end
@@ -15174,7 +15188,13 @@ begin
     SpecializeSetType(TPasSetType(GenEl),TPasSetType(SpecEl))
   else if C=TPasVariant then
     SpecializeVariant(TPasVariant(GenEl),TPasVariant(SpecEl))
-  // ToDo: TPasRecordType
+  else if C=TPasRecordType then
+    begin
+    if GetTypeParameterCount(TPasRecordType(GenEl))>0 then
+      RaiseNotYetImplemented(20190815201201,GenEl);
+    AddRecordType(TPasRecordType(SpecEl),nil);
+    SpecializeRecordType(TPasRecordType(GenEl),TPasRecordType(SpecEl),nil);
+    end
   // ToDo: TPasClassType
   else if C=TPasStringType then
     begin
@@ -15548,6 +15568,8 @@ begin
     end;
 
   FinishProcedureType(SpecEl);
+  if SpecializedItem<>nil then
+    SpecializedItem.Step:=psssImplementationFinished;
 end;
 
 procedure TPasResolver.SpecializeProcedureBody(GenEl, SpecEl: TProcedureBody);
@@ -15985,6 +16007,36 @@ begin
   SpecializeExprArray(GenEl,SpecEl,GenEl.Ranges,SpecEl.Ranges);
   SpecializeElType(GenEl,SpecEl,GenEl.ElType,SpecEl.ElType);
   FinishArrayType(SpecEl);
+  if SpecializedItem<>nil then
+    SpecializedItem.Step:=psssImplementationFinished;
+end;
+
+procedure TPasResolver.SpecializeRecordType(GenEl, SpecEl: TPasRecordType;
+  SpecializedItem: TPSSpecializedItem);
+var
+  GenScope: TPasGenericScope;
+begin
+  if SpecEl.CustomData=nil then
+    RaiseNotYetImplemented(20190815201634,SpecEl);
+  SpecEl.PackMode:=GenEl.PackMode;
+  GenScope:=TPasGenericScope(SpecEl.CustomData);
+  if SpecializedItem<>nil then
+    begin
+    // specialized generic record
+    GenScope.SpecializedItem:=SpecializedItem;
+    AddSpecializedTemplateIdentifiers(GenEl.GenericTemplateTypes,
+                                      SpecializedItem.Params,GenScope);
+    end
+  else if GenEl.GenericTemplateTypes.Count>0 then
+    begin
+    // generic recordtype inside a generic type
+    RaiseNotYetImplemented(20190815194327,GenEl);
+    end;
+  // specialize sub elements
+  SpecializeMembers(GenEl,SpecEl);
+  FinishRecordType(SpecEl);
+  if SpecializedItem<>nil then
+    SpecializedItem.Step:=psssInterfaceFinished;
 end;
 
 procedure TPasResolver.SpecializeEnumValue(GenEl, SpecEl: TPasEnumValue);
