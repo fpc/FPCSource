@@ -500,6 +500,7 @@ type
     fGUID: TGUID;
     fOnInvoke: TVirtualInterfaceInvokeEvent;
     fContext: TRttiContext;
+    fThunks: array[0..2] of CodePointer;
     fImpls: array of TMethodImplementation;
     fVmt: PCodePointer;
     fQueryInterfaceType: TRttiType;
@@ -745,6 +746,7 @@ resourcestring
   SErrVirtIntfTypeNotFound = 'Type ''%s'' is not valid';
   SErrVirtIntfNotAllMethodsRTTI = 'Not all methods of ''%s'' or its parents have the required RTTI';
   SErrVirtIntfRetrieveIInterface = 'Failed to retrieve IInterface information';
+  SErrVirtIntfCreateThunk = 'Failed to create thunks for ''%0:s''';
   SErrVirtIntfCreateImpl = 'Failed to create implementation for method ''%1:s'' of ''%0:s''';
   SErrVirtIntfInvalidVirtIdx = 'Virtual index %2:d for method ''%1:s'' of ''%0:s'' is invalid';
   SErrVirtIntfMethodNil = 'Method %1:d of ''%0:s'' is Nil';
@@ -3908,6 +3910,25 @@ constructor TVirtualInterface.Create(aPIID: PTypeInfo);
       raise ERtti.CreateFmt(SErrVirtIntfCreateImpl, [aPIID^.Name, aName]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
   end;
 
+const
+  BytesToPopQueryInterface =
+{$ifdef cpui386}
+    3 * SizeOf(Pointer); { aIID + aObj + $RetAddr }
+{$else}
+    0;
+{$endif}
+  BytesToPopAddRef =
+{$ifdef cpui386}
+    1 * SizeOf(Pointer); { $RetAddr }
+{$else}
+    0;
+{$endif}
+  BytesToPopRelease =
+{$ifdef cpui386}
+    1 * SizeOf(Pointer); { $RetAddr }
+{$else}
+    0;
+{$endif}
 var
   t: TRttiType;
   ti: PTypeInfo;
@@ -3934,9 +3955,17 @@ begin
 
   fGUID := td^.GUID;
 
+  fThunks[0] := AllocateRawThunk(TMethod(@QueryInterface).Code, Pointer(Self), BytesToPopQueryInterface);
+  fThunks[1] := AllocateRawThunk(TMethod(@_AddRef).Code, Pointer(Self), BytesToPopAddRef);
+  fThunks[2] := AllocateRawThunk(TMethod(@_Release).Code, Pointer(Self), BytesToPopRelease);
+
+  for i := Low(fThunks) to High(fThunks) do
+    if not Assigned(fThunks[i]) then
+      raise ENotImplemented.CreateFmt(SErrVirtIntfCreateThunk, [aPIID^.Name]);
+
   ti := aPIID;
-  { we have at least the three methods of IInterface }
-  count := 3;
+  { ignore the three methods of IInterface }
+  count := 0;
   while ti <> TypeInfo(IInterface) do begin
     mt := td^.MethodTable;
     if (mt^.Count > 0) and (mt^.RTTICount <> mt^.Count) then
@@ -3948,33 +3977,35 @@ begin
 
   SetLength(fImpls, count);
 
-  fImpls[0] := GetIInterfaceMethod(TypeInfo(TQueryInterface), 'QueryInterface', fQueryInterfaceType);
-  fImpls[1] := GetIInterfaceMethod(TypeInfo(TAddRef), 'AddRef', fAddRefType);
-  fImpls[2] := GetIInterfaceMethod(TypeInfo(TRelease), 'Release', fReleaseType);
-
   methods := t.GetMethods;
   for m in methods do begin
-    if m.VirtualIndex > High(fImpls) then
-      raise ERtti.CreateFmt(SErrVirtIntfInvalidVirtIdx, [aPIID^.Name, m.Name]);
+    if m.VirtualIndex > High(fImpls) + Length(fThunks) then
+      raise ERtti.CreateFmt(SErrVirtIntfInvalidVirtIdx, [aPIID^.Name, m.Name, m.VirtualIndex]);
+    if m.VirtualIndex < Length(fThunks) then
+      raise ERtti.CreateFmt(SErrVirtIntfInvalidVirtIdx, [aPIID^.Name, m.Name, m.VirtualIndex]);
     { we use the childmost entry, except for the IInterface methods }
-    if Assigned(fImpls[m.VirtualIndex]) then begin
+    if Assigned(fImpls[m.VirtualIndex - Length(fThunks)]) then begin
       {$IFDEF DEBUG_VIRTINTF}Writeln('Ignoring duplicate implementation for index ', m.VirtualIndex);{$ENDIF}
       Continue;
     end;
-    fImpls[m.VirtualIndex] := m.CreateImplementation(m, @HandleUserCallback);
+    fImpls[m.VirtualIndex - Length(fThunks)] := m.CreateImplementation(m, @HandleUserCallback);
   end;
 
   for i := 0 to High(fImpls) do
     if not Assigned(fImpls) then
       raise ERtti.CreateFmt(SErrVirtIntfMethodNil, [aPIID^.Name, i]);
 
-  fVmt := GetMem(Length(fImpls) * SizeOf(CodePointer));
+  fVmt := GetMem(Length(fImpls) * SizeOf(CodePointer) + Length(fThunks) * SizeOf(CodePointer));
   if not Assigned(fVmt) then
     raise ERtti.CreateFmt(SErrVirtIntfCreateVmt, [aPIID^.Name]);
 
-  for i := 0 to High(fImpls) do begin
-    fVmt[i] := fImpls[i].CodeAddress;
+  for i := 0 to High(fThunks) do begin
+    fVmt[i] := fThunks[i];
     {$IFDEF DEBUG_VIRTINTF}Writeln('VMT ', i, ': ', HexStr(fVmt[i]));{$ENDIF}
+  end;
+  for i := 0 to High(fImpls) do begin
+    fVmt[i + Length(fThunks)] := fImpls[i].CodeAddress;
+    {$IFDEF DEBUG_VIRTINTF}Writeln('VMT ', i + Length(fThunks), ': ', HexStr(fVmt[i + Length(fThunks)]));{$ENDIF}
   end;
 end;
 
@@ -3987,10 +4018,14 @@ end;
 destructor TVirtualInterface.Destroy;
 var
   impl: TMethodImplementation;
+  thunk: CodePointer;
 begin
   {$IFDEF DEBUG_VIRTINTF}Writeln('Freeing implementations');{$ENDIF}
   for impl in fImpls do
     impl.Free;
+  {$IFDEF DEBUG_VIRTINTF}Writeln('Freeing thunks');{$ENDIF}
+  for thunk in fThunks do
+    FreeRawThunk(thunk);
   {$IFDEF DEBUG_VIRTINTF}Writeln('Freeing VMT');{$ENDIF}
   if Assigned(fVmt) then
     FreeMem(fVmt);
