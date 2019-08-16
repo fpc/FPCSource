@@ -660,7 +660,6 @@ end;
 
 procedure TTestResolveGenerics.TestGen_Class_NestedClass;
 begin
-  exit;
   StartProgram(false);
   Add([
   '{$mode objfpc}',
@@ -669,15 +668,22 @@ begin
   '  generic TBird<T> = class',
   '  public type TWing = class',
   '      s: T;',
+  '      function GetIt: T;',
   '    end;',
   '  public',
   '    w: TWing;',
   '  end;',
   '  TBirdWord = specialize TBird<word>;',
+  'function TBird.TWing.GetIt: T;',
+  'begin',
+  'end;',
   'var',
   '  b: TBirdWord;',
+  '  i: word;',
   'begin',
-  '  b.w.s:=3;']);
+  '  b.w.s:=3;',
+  '  i:=b.w.GetIt;',
+  '']);
   ParseProgram;
 end;
 

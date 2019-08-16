@@ -360,7 +360,6 @@ type
     Procedure TestUnitUseIntf;
     Procedure TestUnitUseImplFail;
     Procedure TestUnit_DuplicateUsesFail;
-    Procedure TestUnit_DuplicateUsesIntfImplFail;
     Procedure TestUnit_NestedFail;
     Procedure TestUnitUseDotted;
     Procedure TestUnit_ProgramDefaultNamespace;
@@ -5672,28 +5671,6 @@ begin
   Add('begin');
   Add('  i:=3;');
   CheckParserException('Duplicate identifier "unit2"',
-    nParserDuplicateIdentifier);
-end;
-
-procedure TTestResolver.TestUnit_DuplicateUsesIntfImplFail;
-begin
-  AddModuleWithIntfImplSrc('unit2.pp',
-    LinesToStr([
-    'type number = longint;']),
-    LinesToStr([
-    '']));
-
-  StartUnit(true);
-  Add([
-  'interface',
-  'uses unit2;',
-  'var j: number;',
-  'implementation',
-  'uses unit2;',
-  'initialization',
-  '  if number(3) then ;',
-  '']);
-  CheckParserException('Duplicate identifier "unit2" at token ";" in file afile.pp at line 6 column 11',
     nParserDuplicateIdentifier);
 end;
 
