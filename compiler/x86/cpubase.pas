@@ -143,6 +143,22 @@ uses
       RS_XMM13       = $0d;
       RS_XMM14       = $0e;
       RS_XMM15       = $0f;
+      RS_XMM16       = $10;
+      RS_XMM17       = $11;
+      RS_XMM18       = $12;
+      RS_XMM19       = $13;
+      RS_XMM20       = $14;
+      RS_XMM21       = $15;
+      RS_XMM22       = $16;
+      RS_XMM23       = $17;
+      RS_XMM24       = $18;
+      RS_XMM25       = $19;
+      RS_XMM26       = $1a;
+      RS_XMM27       = $1b;
+      RS_XMM28       = $1c;
+      RS_XMM29       = $1d;
+      RS_XMM30       = $1e;
+      RS_XMM31       = $1f;
 
 {$if defined(x86_64)}
       RS_RFLAGS      = $06;

@@ -96,6 +96,7 @@
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
   {$define cpucapabilities}
+  {$define fpucapabilities}
   {$define cpucg64shiftsupport}
 {$endif i386}
 
@@ -113,6 +114,7 @@
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
   {$define cpucapabilities}
+  {$define fpucapabilities}
 {$endif x86_64}
 
 {$ifdef sparc}

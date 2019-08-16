@@ -62,7 +62,8 @@ Type
       fpu_sse41,
       fpu_sse42,
       fpu_avx,
-      fpu_avx2
+      fpu_avx2,
+      fpu_avx512f
      );
 
    tcontrollertype =
@@ -119,7 +120,7 @@ Const
      'COREAVX2'
    );
 
-   fputypestr : array[tfputype] of string[6] = ('',
+   fputypestr : array[tfputype] of string[7] = ('',
 //     'SOFT',
      'SSE64',
      'SSE3',
@@ -127,10 +128,11 @@ Const
      'SSE41',
      'SSE42',
      'AVX',
-     'AVX2'
+     'AVX2',
+     'AVX512F'
    );
 
-   fputypestrllvm : array[tfputype] of string[6] = ('',
+   fputypestrllvm : array[tfputype] of string[7] = ('',
 //     'SOFT',
      '',
      'sse3',
@@ -138,13 +140,14 @@ Const
      'sse4.1',
      'sse4.2',
      'avx',
-     'avx2'
+     'avx2',
+     'avx512f'
    );
 
-   sse_singlescalar = [fpu_sse64..fpu_avx2];
-   sse_doublescalar = [fpu_sse64..fpu_avx2];
+   sse_singlescalar = [fpu_sse64..fpu_avx512f];
+   sse_doublescalar = [fpu_sse64..fpu_avx512f];
 
-   fpu_avx_instructionsets = [fpu_avx,fpu_avx2];
+   fpu_avx_instructionsets = [fpu_avx,fpu_avx2,fpu_avx512f];
 
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+
@@ -169,11 +172,15 @@ type
        CPUX86_HAS_BMI1,
        CPUX86_HAS_BMI2,
        CPUX86_HAS_POPCNT,
-       CPUX86_HAS_AVXUNIT,
        CPUX86_HAS_LZCNT,
        CPUX86_HAS_MOVBE,
        CPUX86_HAS_FMA,
        CPUX86_HAS_FMA4
+      );
+
+   tfpuflags =
+      (FPUX86_HAS_AVXUNIT,
+       FPUX86_HAS_32MMREGS
       );
 
  const
@@ -181,8 +188,20 @@ type
      { cpu_none      } [],
      { Athlon64      } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2],
      { cpu_core_i    } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT],
-     { cpu_core_avx  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_AVXUNIT],
-     { cpu_core_avx2 } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_AVXUNIT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE,CPUX86_HAS_FMA]
+     { cpu_core_avx  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT],
+     { cpu_core_avx2 } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE,CPUX86_HAS_FMA]
+   );
+
+   fpu_capabilities : array[tfputype] of set of tfpuflags = (
+      { fpu_none     } [],
+      { fpu_sse64    } [],
+      { fpu_sse3     } [],
+      { fpu_ssse3    } [],
+      { fpu_sse41    } [],
+      { fpu_sse42    } [],
+      { fpu_avx      } [FPUX86_HAS_AVXUNIT],
+      { fpu_avx2     } [FPUX86_HAS_AVXUNIT],
+      { fpu_avx512   } [FPUX86_HAS_AVXUNIT,FPUX86_HAS_32MMREGS]
    );
 
 Implementation

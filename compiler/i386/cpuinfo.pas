@@ -165,11 +165,15 @@ type
        CPUX86_HAS_BMI1,
        CPUX86_HAS_BMI2,
        CPUX86_HAS_POPCNT,
-       CPUX86_HAS_AVXUNIT,
        CPUX86_HAS_LZCNT,
        CPUX86_HAS_MOVBE,
        CPUX86_HAS_FMA,
        CPUX86_HAS_FMA4
+      );
+
+   tfpuflags =
+      (FPUX86_HAS_AVXUNIT,
+       FPUX86_HAS_32MMREGS
       );
 
  const
@@ -183,10 +187,22 @@ type
      { cpu_Pentium4  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2],
      { cpu_PentiumM  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2],
      { cpu_core_i    } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT],
-     { cpu_core_avx  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_AVXUNIT],
-     { cpu_core_avx2 } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_AVXUNIT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE,CPUX86_HAS_FMA]
+     { cpu_core_avx  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT],
+     { cpu_core_avx2 } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE,CPUX86_HAS_FMA]
    );
 
+   fpu_capabilities : array[tfputype] of set of tfpuflags = (
+      { fpu_none     } [],
+      { fpu_x87      } [],
+      { fpu_sse      } [],
+      { fpu_sse2     } [],
+      { fpu_sse3     } [],
+      { fpu_ssse3    } [],
+      { fpu_sse41    } [],
+      { fpu_sse42    } [],
+      { fpu_avx      } [FPUX86_HAS_AVXUNIT],
+      { fpu_avx2     } [FPUX86_HAS_AVXUNIT]
+   );
 
 Implementation
 
