@@ -7715,12 +7715,12 @@ implementation
 
     function tobjectdef.vmt_def: trecorddef;
       var
-        vmttypesym: tsym;
+        vmttypesym: tsymentry;
       begin
         if not(typesym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-          vmttypesym:=tsym(typesym.owner.Find('vmtdef$'+mangledparaname))
+          vmttypesym:=typesym.owner.Find('vmtdef$'+mangledparaname)
         else
-          vmttypesym:=tsym(tobjectsymtable(typesym.owner).get_unit_symtable.Find('vmtdef$'+mangledparaname));
+          vmttypesym:=tobjectsymtable(typesym.owner).get_unit_symtable.Find('vmtdef$'+mangledparaname);
         if not assigned(vmttypesym) or
            (vmttypesym.typ<>symconst.typesym) or
            (ttypesym(vmttypesym).typedef.typ<>recorddef) then
