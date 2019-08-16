@@ -799,6 +799,130 @@ begin
 {$ENDIF}
 end;
 
+label
+  RawThunkEnd;
+
+const
+  RawThunkEndPtr: Pointer = @RawThunkEnd;
+
+{$if defined(cpui386)}
+const
+  RawThunkPlaceholderBytesToPop = $12341234;
+  RawThunkPlaceholderProc = $87658765;
+  RawThunkPlaceholderContext = $43214321;
+
+type
+  TRawThunkBytesToPop = UInt32;
+  TRawThunkProc = PtrUInt;
+  TRawThunkContext = PtrUInt;
+
+{ works for both cdecl and stdcall }
+procedure RawThunk; assembler; nostackframe;
+asm
+  { the stack layout is
+      $ReturnAddr <- ESP
+      ArgN
+      ArgN - 1
+      ...
+      Arg1
+      Arg0
+
+    aBytesToPop is the size of the stack to the Self argument }
+
+  movl RawThunkPlaceholderBytesToPop, %eax
+  movl %sp, %ecx
+  lea (%ecx,%eax), %eax
+  movl RawThunkPlaceholderContext, (%eax)
+  movl RawThunkPlaceholderProc, %eax
+  jmp %eax
+RawThunkEnd:
+end;
+{$endif}
+
+{$if declared(RawThunk)}
+type
+{$if declared(TRawThunkBytesToPop)}
+  PRawThunkBytesToPop = ^TRawThunkBytesToPop;
+{$endif}
+  PRawThunkContext = ^TRawThunkContext;
+  PRawThunkProc = ^TRawThunkProc;
+{$endif}
+
+{ Delphi has these as part of TRawVirtualClass.TVTable; until we have that we
+  simply leave that here in the implementation }
+function AllocateRawThunk(aProc: CodePointer; aContext: Pointer; aBytesToPop: SizeInt): Pointer;
+{$if declared(RawThunk)}
+var
+  size, i: SizeInt;
+{$if declared(TRawThunkBytesToPop)}
+  btp: PRawThunkBytesToPop;
+  btpdone: Boolean;
+{$endif}
+  context: PRawThunkContext;
+  contextdone: Boolean;
+  proc: PRawThunkProc;
+  procdone: Boolean;
+{$endif}
+begin
+{$if not declared(RawThunk)}
+  { platform dose not have thunk support... :/ }
+  Result := Nil;
+{$else}
+  Size := PtrUInt(RawThunkEndPtr) - PtrUInt(@RawThunk) + 1;
+  Result := AllocateMemory(size);
+  Move(Pointer(@RawThunk)^, Result^, size);
+
+{$if declared(TRawThunkBytesToPop)}
+  btpdone := False;
+{$endif}
+  contextdone := False;
+  procdone := False;
+
+  for i := 0 to Size - 1 do begin
+{$if declared(TRawThunkBytesToPop)}
+    if not btpdone and (i <= Size - SizeOf(TRawThunkBytesToPop)) then begin
+      btp := PRawThunkBytesToPop(PByte(Result) + i);
+      if btp^ = RawThunkPlaceholderBytesToPop then begin
+        btp^ := TRawThunkBytesToPop(aBytesToPop);
+        btpdone := True;
+      end;
+    end;
+{$endif}
+    if not contextdone and (i <= Size - SizeOf(TRawThunkContext)) then begin
+      context := PRawThunkContext(PByte(Result) + i);
+      if context^ = RawThunkPlaceholderContext then begin
+        context^ := TRawThunkContext(aContext);
+        contextdone := True;
+      end;
+    end;
+    if not procdone and (i <= Size - SizeOf(TRawThunkProc)) then begin
+      proc := PRawThunkProc(PByte(Result) + i);
+      if proc^ = RawThunkPlaceholderProc then begin
+        proc^ := TRawThunkProc(aProc);
+        procdone := True;
+      end;
+    end;
+  end;
+
+  if not contextdone or not procdone
+{$if declared(TRawThunkBytesToPop)}
+      or not btpdone
+{$endif}
+      then begin
+    FreeMemory(Result, Size);
+    Result := Nil;
+  end else
+    ProtectMemory(Result, Size, True);
+{$endif}
+end;
+
+procedure FreeRawThunk(aThunk: Pointer);
+begin
+{$if declared(RawThunk)}
+  FreeMemory(aThunk, PtrUInt(RawThunkEndPtr) - PtrUInt(@RawThunk));
+{$endif}
+end;
+
 function CCToStr(aCC: TCallConv): String; inline;
 begin
   WriteStr(Result, aCC);
