@@ -31,6 +31,8 @@ type
     // ToDo: constraint T:Unit2.TBird
     // ToDo: constraint T:Unit2.TGen<word>
     procedure TestGen_TemplNameEqTypeNameFail;
+    procedure TestGen_ConstraintInheritedMissingRecordFail;
+    procedure TestGen_ConstraintInheritedMissingClassTypeFail;
 
     // generic record
     procedure TestGen_RecordLocalNameDuplicateFail;
@@ -47,10 +49,12 @@ type
     procedure TestGen_ClassDelphi;
     procedure TestGen_ClassForward;
     procedure TestGen_ClassForwardConstraints;
-    procedure TestGen_ClassForwardConstraintNameMismatchFail;
-    procedure TestGen_ClassForwardConstraintKeywordMismatchFail;
-    procedure TestGen_ClassForwardConstraintTypeMismatchFail;
+    procedure TestGen_ClassForwardConstraintNameMismatch;
+    procedure TestGen_ClassForwardConstraintKeywordMismatch;
+    procedure TestGen_ClassForwardConstraintTypeMismatch;
+    procedure TestGen_ClassForward_Circle;
     procedure TestGen_Class_Method;
+    // ToDo: procedure TestGen_Class_MethodOverride;
     procedure TestGen_Class_SpecializeSelfInside;
     // ToDo: generic class overload <T> <S,T>
     procedure TestGen_Class_GenAncestor;
@@ -59,14 +63,16 @@ type
     // ToDo: UnitA.impl uses UnitB.intf uses UnitA.intf, UnitB has specialize of UnitA
     procedure TestGen_Class_NestedType;
     procedure TestGen_Class_NestedRecord;
-    procedure TestGen_Class_NestedClass; // ToDo
+    procedure TestGen_Class_NestedClass;
     procedure TestGen_Class_Enums_NotPropagating;
     procedure TestGen_Class_List;
 
     // generic external class
     procedure TestGen_ExtClass_Array;
 
-    // ToDo: generic interface
+    // generic interface
+    procedure TestGen_ClassInterface;
+    procedure TestGen_ClassInterface_Method;
 
     // generic array
     procedure TestGen_Array;
@@ -263,6 +269,39 @@ begin
   '']);
   CheckResolverException('Duplicate identifier "TBird" at afile.pp(4,16)',
     nDuplicateIdentifier);
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintInheritedMissingRecordFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T: record> = class v: T; end;',
+  '  generic TEagle<U> = class(TBird<U>)',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Type parameter "U" is missing constraint "record"',
+    nTypeParamXIsMissingConstraintY);
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintInheritedMissingClassTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  TAnt = class end;',
+  '  generic TBird<T: TAnt> = class v: T; end;',
+  '  generic TEagle<U> = class(TBird<U>)',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Type parameter "U" is not compatible with type "TAnt"',
+    nTypeParamXIsNotCompatibleWithY);
 end;
 
 procedure TTestResolveGenerics.TestGen_RecordLocalNameDuplicateFail;
@@ -469,7 +508,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolveGenerics.TestGen_ClassForwardConstraintNameMismatchFail;
+procedure TTestResolveGenerics.TestGen_ClassForwardConstraintNameMismatch;
 begin
   StartProgram(false);
   Add([
@@ -486,8 +525,7 @@ begin
     nDeclOfXDiffersFromPrevAtY);
 end;
 
-procedure TTestResolveGenerics.
-  TestGen_ClassForwardConstraintKeywordMismatchFail;
+procedure TTestResolveGenerics.TestGen_ClassForwardConstraintKeywordMismatch;
 begin
   StartProgram(false);
   Add([
@@ -504,7 +542,7 @@ begin
     nDeclOfXDiffersFromPrevAtY);
 end;
 
-procedure TTestResolveGenerics.TestGen_ClassForwardConstraintTypeMismatchFail;
+procedure TTestResolveGenerics.TestGen_ClassForwardConstraintTypeMismatch;
 begin
   StartProgram(false);
   Add([
@@ -521,6 +559,40 @@ begin
   '']);
   CheckResolverException('Declaration of "T" differs from previous declaration at afile.pp(7,20)',
     nDeclOfXDiffersFromPrevAtY);
+end;
+
+procedure TTestResolveGenerics.TestGen_ClassForward_Circle;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TAnt<T> = class;',
+  '  generic TFish<U> = class',
+  '    private type AliasU = U;',
+  '    var a: TAnt<AliasU>;',
+  '        Size: AliasU;',
+  '  end;',
+  '  generic TAnt<T> = class',
+  '    private type AliasT = T;',
+  '    var f: TFish<AliasT>;',
+  '        Speed: AliasT;',
+  '  end;',
+  'var',
+  '  WordFish: specialize TFish<word>;',
+  '  BoolAnt: specialize TAnt<boolean>;',
+  '  w: word;',
+  '  b: boolean;',
+  'begin',
+  '  WordFish.Size:=w;',
+  '  WordFish.a.Speed:=w;',
+  '  WordFish.a.f.Size:=w;',
+  '  BoolAnt.Speed:=b;',
+  '  BoolAnt.f.Size:=b;',
+  '  BoolAnt.f.a.Speed:=b;',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolveGenerics.TestGen_Class_Method;
@@ -792,6 +864,48 @@ begin
   '           end',
   '      );',
   '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ClassInterface;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {$interfaces corba}',
+  '  generic ICorbaIntf<T> = interface',
+  '    procedure Fly(a: T);',
+  '  end;',
+  '  {$interfaces com}',
+  '  IUnknown = interface',
+  '  end;',
+  '  IInterface = IUnknown;',
+  '  generic IComIntf<T> = interface',
+  '    procedure Run(b: T);',
+  '  end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ClassInterface_Method;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {$interfaces corba}',
+  '  generic IBird<T> = interface',
+  '    procedure Fly(a: T);',
+  '  end;',
+  '  TObject = class end;',
+  '  generic TBird<U> = class(IBird<U>)',
+  '    procedure Fly(a: U);',
+  '  end;',
+  'procedure TBird.Fly(a: U);',
+  'begin',
+  'end;',
+  'var b: specialize IBird<word>;',
+  'begin',
+  '  b.Fly(3);']);
   ParseProgram;
 end;
 

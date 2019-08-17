@@ -196,6 +196,9 @@ const
   nWrongNumberOfParametersForGenericType = 3130;
   nGenericsWithoutSpecializationAsType = 3131;
   nDeclOfXDiffersFromPrevAtY = 3132;
+  nTypeParamXIsMissingConstraintY = 3133;
+  nTypeParamXIsNotCompatibleWithY = 3134;
+  nTypeParamXMustSupportIntfY = 3135;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -339,6 +342,9 @@ resourcestring
   sWrongNumberOfParametersForGenericType = 'wrong number of parameters for generic type %s';
   sGenericsWithoutSpecializationAsType = 'Generics without specialization cannot be used as a type for a %s';
   sDeclOfXDiffersFromPrevAtY = 'Declaration of "%s" differs from previous declaration at %s';
+  sTypeParamXIsMissingConstraintY = 'Type parameter "%s" is missing constraint "%s"';
+  sTypeParamXIsNotCompatibleWithY = 'Type parameter "%s" is not compatible with type "%s"';
+  sTypeParamXMustSupportIntfY = 'Type parameter "%s" must support interface "%s"';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

@@ -3750,13 +3750,23 @@ function TPasParser.AddUseUnit(ASection: TPasSection;
   const NamePos: TPasSourcePos; AUnitName: string; NameExpr: TPasExpr;
   InFileExpr: TPrimitiveExpr): TPasUsesUnit;
 
-  procedure CheckDuplicateInUsesList(AUnitName : string; UsesClause: TPasUsesClause);
+  procedure CheckDuplicateInUsesList(UsesClause: TPasUsesClause);
   var
     i: Integer;
   begin
     if UsesClause=nil then exit;
     for i:=0 to length(UsesClause)-1 do
       if CompareText(AUnitName,UsesClause[i].Name)=0 then
+        ParseExc(nParserDuplicateIdentifier,SParserDuplicateIdentifier,[AUnitName]);
+  end;
+
+  procedure CheckDuplicateInUsesList(UnitRef: TPasElement; UsesClause: TPasUsesClause);
+  var
+    i: Integer;
+  begin
+    if UsesClause=nil then exit;
+    for i:=0 to length(UsesClause)-1 do
+      if UsesClause[i].Module=UnitRef then
         ParseExc(nParserDuplicateIdentifier,SParserDuplicateIdentifier,[AUnitName]);
   end;
 
@@ -3777,16 +3787,23 @@ begin
         exit; // for compatibility ignore implicit use of system in system
       ParseExc(nParserDuplicateIdentifier,SParserDuplicateIdentifier,[AUnitName]);
       end;
-    CheckDuplicateInUsesList(AUnitName,ASection.UsesClause);
-    if ASection.ClassType=TImplementationSection then
-      CheckDuplicateInUsesList(AUnitName,CurModule.InterfaceSection.UsesClause);
 
     UnitRef := Engine.FindModule(AUnitName,NameExpr,InFileExpr);
     if Assigned(UnitRef) then
-      UnitRef.AddRef{$IFDEF CheckPasTreeRefCount}('TPasUsesUnit.Module'){$ENDIF}
+      begin
+      UnitRef.AddRef{$IFDEF CheckPasTreeRefCount}('TPasUsesUnit.Module'){$ENDIF};
+      CheckDuplicateInUsesList(UnitRef,ASection.UsesClause);
+      if ASection.ClassType=TImplementationSection then
+        CheckDuplicateInUsesList(UnitRef,CurModule.InterfaceSection.UsesClause);
+      end
     else
+      begin
+      CheckDuplicateInUsesList(ASection.UsesClause);
+      if ASection.ClassType=TImplementationSection then
+        CheckDuplicateInUsesList(CurModule.InterfaceSection.UsesClause);
       UnitRef := TPasUnresolvedUnitRef(CreateElement(TPasUnresolvedUnitRef,
         AUnitName, ASection, NamePos));
+      end;
 
     UsesUnit:=TPasUsesUnit(CreateElement(TPasUsesUnit,AUnitName,ASection,NamePos));
     Result:=ASection.AddUnitToUsesList(AUnitName,NameExpr,InFileExpr,UnitRef,UsesUnit);
@@ -4315,12 +4332,14 @@ begin
     NextToken;
     Case CurToken of
       tkObject,
-      tkClass :
+      tkClass,
+      tkinterface:
         begin
-        if CurToken=tkobject then
-          AObjKind:=okObject
-        else
-          AObjKind:=okClass;
+        case CurToken of
+        tkobject: AObjKind:=okObject;
+        tkinterface: AObjKind:=okInterface;
+        else AObjKind:=okClass;
+        end;
         NextToken;
         if (AObjKind = okClass) and (CurToken = tkOf) then
           ParseExcExpectedIdentifier;
@@ -4328,6 +4347,9 @@ begin
         ClassEl := TPasClassType(CreateElement(TPasClassType,
           TypeName, Parent, visDefault, NamePos, TypeParams));
         ClassEl.ObjKind:=AObjKind;
+        if AObjKind=okInterface then
+          if SameText(Scanner.CurrentValueSwitch[vsInterfaces],'CORBA') then
+            ClassEl.InterfaceType:=citCorba;
         if AddToParent and (Parent is TPasDeclarations) then
           TPasDeclarations(Parent).Classes.Add(ClassEl);
         ClassEl.IsExternal:=(AExternalName<>'');
