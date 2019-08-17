@@ -25448,7 +25448,11 @@ begin
     exit(true)
   else if (C=TPasClassType)
       or (C=TPasClassOfType)
-      or (C=TPasEnumType) then
+      or (C=TPasEnumType)
+      or (C=TPasRecordType)
+      or (C=TPasArrayType)
+      or (C=TPasSpecializeType)
+      or (C=TPasGenericTemplateType) then
     exit(true)
   else if (C=TPasUnresolvedSymbolRef)
       and (Decl.CustomData is TResElDataBaseType) then
