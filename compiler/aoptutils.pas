@@ -38,22 +38,29 @@ unit aoptutils;
     { skips all labels and returns the next "real" instruction }
     function SkipLabels(hp: tai; var hp2: tai): boolean;
 
+    { sets hp2 to hp and returns True if hp is not nil }
+    function SetAndTest(const hp: tai; out hp2: tai): Boolean;
+
   implementation
 
-    function MatchOpType(const p : taicpu; type0: toptype) : Boolean;
+    uses
+      aasmbase;
+
+
+    function MatchOpType(const p : taicpu; type0: toptype) : Boolean; inline;
       begin
         Result:=(p.ops=1) and (p.oper[0]^.typ=type0);
       end;
 
 
-    function MatchOpType(const p : taicpu; type0,type1 : toptype) : Boolean;
+    function MatchOpType(const p : taicpu; type0,type1 : toptype) : Boolean; inline;
       begin
         Result:=(p.ops=2) and (p.oper[0]^.typ=type0) and (p.oper[1]^.typ=type1);
       end;
 
 
 {$if max_operands>2}
-    function MatchOpType(const p : taicpu; type0,type1,type2 : toptype) : Boolean;
+    function MatchOpType(const p : taicpu; type0,type1,type2 : toptype) : Boolean; inline;
       begin
         Result:=(p.ops=3) and (p.oper[0]^.typ=type0) and (p.oper[1]^.typ=type1) and (p.oper[2]^.typ=type2);
       end;
@@ -78,6 +85,11 @@ unit aoptutils;
           end;
       end;
 
+    { sets hp2 to hp and returns True if hp is not nil }
+    function SetAndTest(const hp: tai; out hp2: tai): Boolean; inline;
+      begin
+        hp2 := hp;
+        Result := Assigned(hp);
+      end;
 
 end.
-

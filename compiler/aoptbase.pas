@@ -176,7 +176,7 @@ unit aoptbase;
   End;
 
 
-  function labelCanBeSkipped(p: tai_label): boolean;
+  function labelCanBeSkipped(p: tai_label): boolean; inline;
   begin
     labelCanBeSkipped := not(p.labsym.is_used) or (p.labsym.labeltype<>alt_jump);
   end;
