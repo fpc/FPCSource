@@ -248,7 +248,7 @@ type
 
   TRttiFloatType = class(TRttiType)
   private
-    function GetFloatType: TFloatType;
+    function GetFloatType: TFloatType; inline;
   protected
     function GetTypeSize: integer; override;
   public
