@@ -249,6 +249,8 @@ type
   TRttiFloatType = class(TRttiType)
   private
     function GetFloatType: TFloatType;
+  protected
+    function GetTypeSize: integer; override;
   public
     property FloatType: TFloatType read GetFloatType;
   end;
@@ -2646,6 +2648,22 @@ end;
 function TRttiFloatType.GetFloatType: TFloatType;
 begin
   result := FTypeData^.FloatType;
+end;
+
+function TRttiFloatType.GetTypeSize: integer;
+begin
+  case FloatType of
+    ftSingle:
+      Result := SizeOf(Single);
+    ftDouble:
+      Result := SizeOf(Double);
+    ftExtended:
+      Result := SizeOf(Extended);
+    ftComp:
+      Result := SizeOf(Comp);
+    ftCurr:
+      Result := SizeOf(Currency);
+  end;
 end;
 
 { TRttiParameter }
