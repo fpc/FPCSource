@@ -831,9 +831,6 @@ end;
 label
   RawThunkEnd;
 
-const
-  RawThunkEndPtr: Pointer = @RawThunkEnd;
-
 {$if defined(cpui386)}
 const
   RawThunkPlaceholderBytesToPop = $12341234;
@@ -869,6 +866,9 @@ end;
 {$endif}
 
 {$if declared(RawThunk)}
+const
+  RawThunkEndPtr: Pointer = @RawThunkEnd;
+
 type
 {$if declared(TRawThunkBytesToPop)}
   PRawThunkBytesToPop = ^TRawThunkBytesToPop;
