@@ -831,7 +831,7 @@ var
   s: String;
   E: EPasAnalyzer;
 begin
-  s:='['+IntToStr(Id)+']: Element='+GetElModName(El);
+  s:='['+IntToStr(Id)+']: Element='+GetObjPath(El);
   if Msg<>'' then S:=S+' '+Msg;
   E:=EPasAnalyzer.Create(s);
   E.PasElement:=El;
@@ -1065,6 +1065,7 @@ var
   Prop: TPasProperty;
   ProcType: TPasProcedureType;
   ClassEl: TPasClassType;
+  ArrType: TPasArrayType;
 begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UsePublished START ',GetObjName(El));
@@ -1100,10 +1101,13 @@ begin
   else if C=TPasRangeType then
   else if C=TPasArrayType then
     begin
-    UseSubEl(TPasArrayType(El).ElType);
-    for i:=0 to length(TPasArrayType(El).Ranges)-1 do
+    ArrType:=TPasArrayType(El);
+    if (ScopeModule=nil) and not Resolver.IsFullySpecialized(ArrType) then
+      RaiseNotSupported(20190817151437,ArrType);
+    UseSubEl(ArrType.ElType);
+    for i:=0 to length(ArrType.Ranges)-1 do
       begin
-      Member:=TPasArrayType(El).Ranges[i];
+      Member:=ArrType.Ranges[i];
       Resolver.ComputeElement(Member,MemberResolved,[rcConstant]);
       UseSubEl(MemberResolved.HiTypeEl);
       end;
@@ -1145,10 +1149,19 @@ begin
   else if C.InheritsFrom(TPasProcedureType) then
     begin
     ProcType:=TPasProcedureType(El);
+    if (ScopeModule=nil) and not Resolver.IsFullySpecialized(ProcType) then
+      RaiseNotSupported(20190817151554,ProcType);
     for i:=0 to ProcType.Args.Count-1 do
       UseSubEl(TPasArgument(ProcType.Args[i]).ArgType);
     if El is TPasFunctionType then
       UseSubEl(TPasFunctionType(El).ResultEl.ResultType);
+    end
+  else if C=TPasSpecializeType then
+    UseSubEl(TPasSpecializeType(El).DestType)
+  else if C=TPasGenericTemplateType then
+    begin
+    if ScopeModule=nil then
+      RaiseNotSupported(20190817110226,El);
     end
   else
     begin
@@ -1844,6 +1857,8 @@ begin
   writeln('TPasAnalyzer.UseProcedureType ',GetElModName(ProcType));
   {$ENDIF}
   if not MarkElementAsUsed(ProcType) then exit;
+  if (ScopeModule=nil) and not Resolver.IsFullySpecialized(ProcType) then
+    RaiseNotSupported(20190817151651,ProcType);
 
   for i:=0 to ProcType.Args.Count-1 do
     begin
@@ -1861,6 +1876,7 @@ procedure TPasAnalyzer.UseType(El: TPasType; Mode: TPAUseMode);
 var
   C: TClass;
   i: Integer;
+  ArrType: TPasArrayType;
 begin
   if El=nil then exit;
 
@@ -1896,10 +1912,13 @@ begin
       end
     else if C=TPasArrayType then
       begin
-      if not MarkElementAsUsed(El) then exit;
-      for i:=0 to length(TPasArrayType(El).Ranges)-1 do
-        UseExpr(TPasArrayType(El).Ranges[i]);
-      UseElType(El,TPasArrayType(El).ElType,Mode);
+      ArrType:=TPasArrayType(El);
+      if (ScopeModule=nil) and not Resolver.IsFullySpecialized(ArrType) then
+        RaiseNotSupported(20190817151449,ArrType);
+      if not MarkElementAsUsed(ArrType) then exit;
+      for i:=0 to length(ArrType.Ranges)-1 do
+        UseExpr(ArrType.Ranges[i]);
+      UseElType(El,ArrType.ElType,Mode);
       end
     else if (C=TPasRecordType) or (C=TPasClassType) then
       UseClassOrRecType(TPasMembersType(El),Mode)
@@ -1928,6 +1947,7 @@ begin
       UseProcedureType(TPasProcedureType(El))
     else if C=TPasSpecializeType then
       UseSpecializeType(TPasSpecializeType(El),Mode)
+    else if C=TPasGenericTemplateType then
     else
       RaiseNotSupported(20170306170315,El);
 
@@ -2001,6 +2021,8 @@ var
   aClass: TPasClassType;
 begin
   FirstTime:=true;
+  if (ScopeModule=nil) and not Resolver.IsFullySpecialized(El) then
+    RaiseNotSupported(20190817110919,El);
   case Mode of
   paumAllExports: exit;
   paumAllPasUsable:

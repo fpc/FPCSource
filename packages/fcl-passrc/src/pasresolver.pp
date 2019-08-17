@@ -2209,9 +2209,10 @@ type
     function IsArrayExpr(Expr: TParamsExpr): TPasArrayType;
     function IsArrayOperatorAdd(Expr: TPasExpr): boolean;
     function IsTypeCast(Params: TParamsExpr): boolean;
+    function IsGenericTemplType(const ResolvedEl: TPasResolverResult): boolean;
     function GetTypeParameterCount(aType: TPasGenericType): integer;
     function GetGenericConstraintKeyword(El: TPasExpr): TToken;
-    function IsGenericTemplType(const ResolvedEl: TPasResolverResult): boolean;
+    function IsFullySpecialized(El: TPasGenericType): boolean;
     function IsInterfaceType(const ResolvedEl: TPasResolverResult;
       IntfType: TPasClassInterfaceType): boolean; overload;
     function IsInterfaceType(TypeEl: TPasType; IntfType: TPasClassInterfaceType): boolean; overload;
@@ -25470,6 +25471,23 @@ begin
   'constructor': Result:=tkconstructor;
   else Result:=tkEOF;
   end;
+end;
+
+function TPasResolver.IsFullySpecialized(El: TPasGenericType): boolean;
+var
+  GenScope: TPasGenericScope;
+  Params: TPasTypeArray;
+  i: Integer;
+begin
+  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
+    exit(false);
+  if not (El.CustomData is TPasGenericScope) then exit(true);
+  GenScope:=TPasGenericScope(El.CustomData);
+  if GenScope.SpecializedItem=nil then exit(true);
+  Params:=GenScope.SpecializedItem.Params;
+  for i:=0 to length(Params)-1 do
+    if Params[i] is TPasGenericTemplateType then exit(false);
+  Result:=true;
 end;
 
 function TPasResolver.IsInterfaceType(const ResolvedEl: TPasResolverResult;

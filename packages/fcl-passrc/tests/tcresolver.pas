@@ -5908,8 +5908,8 @@ begin
   '  if unit1.j1=0 then ;',
   '  if unitdots.unit1.j1=0 then ;',
   '']);
-  CheckResolverException('Duplicate identifier "unitdots.unit1" at unitdots.main1.pas(2,14)',
-    nDuplicateIdentifier);
+  CheckParserException('Duplicate identifier "unit1" at token ";" in file unitdots.main1.pas at line 2 column 27',
+    nParserDuplicateIdentifier);
 end;
 
 procedure TTestResolver.TestUnit_Unit1DotUnit2Fail;
