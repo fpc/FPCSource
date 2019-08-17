@@ -13329,13 +13329,12 @@ var
   aResolver: TPas2JSResolver;
 begin
   Result:=nil;
-  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
-    exit;
+  aResolver:=AContext.Resolver;
+  if not aResolver.IsFullySpecialized(El) then exit;
 
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertClassType START ',GetObjName(El));
   {$ENDIF}
-  aResolver:=AContext.Resolver;
   if not (El.ObjKind in [okClass,okInterface,okClassHelper,okRecordHelper,okTypeHelper]) then
     RaiseNotSupported(El,AContext,20170927183645);
   if El.Parent is TProcedureBody then
@@ -13987,10 +13986,11 @@ var
   MethodKind: TMethodKind;
   Obj: TJSObjectLiteral;
   Prop: TJSObjectLiteralElement;
+  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
-  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
-    exit;
+  aResolver:=AContext.Resolver;
+  if not aResolver.IsFullySpecialized(El) then exit;
   if El.IsNested then
     DoError(20170222231636,nPasElementNotSupported,sPasElementNotSupported,
       ['is nested'],El);
@@ -14112,10 +14112,11 @@ var
   BracketEx: TJSBracketMemberExpression;
   ArraySt, CloneEl: TJSElement;
   ReturnSt: TJSReturnStatement;
+  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
-  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
-    exit;
+  aResolver:=AContext.Resolver;
+  if not aResolver.IsFullySpecialized(El) then exit;
   if El.PackMode<>pmNone then
     DoError(20170222231648,nPasElementNotSupported,sPasElementNotSupported,
        ['packed'],El);
@@ -14128,7 +14129,7 @@ begin
   if AContext.JSElement is TJSSourceElements then
     Src:=TJSSourceElements(AContext.JSElement);
 
-  if AContext.Resolver.HasStaticArrayCloneFunc(El) then
+  if aResolver.HasStaticArrayCloneFunc(El) then
     begin
     // For example: type TArr = array[1..2] of array[1..2] of longint;
     //  this.TStaticArray$clone = function(a){
@@ -14159,7 +14160,7 @@ begin
       ExprLT:=TJSRelationalExpressionLT(CreateElement(TJSRelationalExpressionLT,El));
       ForLoop.Cond:=ExprLT;
       ExprLT.A:=CreatePrimitiveDotExpr(CloneRunName,El);
-      RangeEnd:=AContext.Resolver.GetRangeLength(RangeEl);
+      RangeEnd:=aResolver.GetRangeLength(RangeEl);
       ExprLT.B:=CreateLiteralNumber(RangeEl,RangeEnd);
       // i++
       PlusPlus:=TJSUnaryPostPlusPlusExpression(CreateElement(TJSUnaryPostPlusPlusExpression,El));
@@ -14174,7 +14175,7 @@ begin
       BracketEx.MExpr:=CreatePrimitiveDotExpr(CloneArrName,El);
       BracketEx.Name:=CreatePrimitiveDotExpr(CloneRunName,El);
       // clone a[i]
-      ElType:=AContext.Resolver.ResolveAliasType(El.ElType);
+      ElType:=aResolver.ResolveAliasType(El.ElType);
       CloneEl:=nil;
       if ElType is TPasArrayType then
         begin
@@ -14238,7 +14239,7 @@ begin
       CallName:=GetBIName(pbifnRTTINewDynArray);
     Call:=CreateRTTINewType(El,CallName,false,AContext,Obj);
     try
-      ElType:=AContext.Resolver.ResolveAliasType(El.ElType);
+      ElType:=aResolver.ResolveAliasType(El.ElType);
       if length(El.Ranges)>0 then
         begin
         // static array
@@ -14251,7 +14252,7 @@ begin
         Index:=0;
         repeat
           RangeEl:=Arr.Ranges[Index];
-          RgLen:=AContext.Resolver.GetRangeLength(RangeEl);
+          RgLen:=aResolver.GetRangeLength(RangeEl);
           ArrLit.AddElement(CreateLiteralNumber(RangeEl,RgLen));
           inc(Index);
           if Index=length(Arr.Ranges) then
@@ -14261,7 +14262,7 @@ begin
             Arr:=TPasArrayType(ElType);
             if length(Arr.Ranges)=0 then
               RaiseNotSupported(Arr,AContext,20170411222315,'static array of anonymous array');
-            ElType:=AContext.Resolver.ResolveAliasType(Arr.ElType);
+            ElType:=aResolver.ResolveAliasType(Arr.ElType);
             Index:=0;
             end;
         until false;
@@ -22870,14 +22871,13 @@ var
   VarSt: TJSVariableStatement;
 begin
   Result:=nil;
-  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
-    exit;
   if El.Name='' then
     RaiseNotSupported(El,AContext,20190105101258,'anonymous record');
+  aResolver:=AContext.Resolver;
+  if not aResolver.IsFullySpecialized(El) then exit;
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertRecordType ',GetObjName(El));
   {$ENDIF}
-  aResolver:=AContext.Resolver;
   FuncContext:=nil;
   NewFields:=nil;
   Vars:=nil;
