@@ -15,6 +15,9 @@
 
  **********************************************************************}
 
+{$ifndef HAS_SYSOSALLOC}
+{$define HAS_SYSOSALLOC}
+
 function SysOSAlloc(size: ptruint): pointer;
 begin
   result:=Fpmmap(nil,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
@@ -23,14 +26,17 @@ begin
   else
     seterrno(0);
 end;
+{$endif HAS_SYSOSALLOC}
 
+
+{$ifndef HAS_SYSOSFREE}
 {$define HAS_SYSOSFREE}
 
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
   fpmunmap(p, size);
 end;
-
+{$endif HAS_SYSOSFREE}
 
 {$ifdef FPC_SYSTEM_HAS_MREMAP}
 const

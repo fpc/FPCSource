@@ -10181,6 +10181,7 @@ rtl/darwin/rtldefs.inc svneol=native#text/plain
 rtl/darwin/signal.inc svneol=native#text/plain
 rtl/darwin/sysctlh.inc svneol=native#text/plain
 rtl/darwin/sysinit.pas svneol=native#text/pascal
+rtl/darwin/sysmach.inc svneol=native#text/plain
 rtl/darwin/termio.pp svneol=native#text/plain
 rtl/darwin/termios.inc svneol=native#text/plain
 rtl/darwin/termiosproc.inc svneol=native#text/plain

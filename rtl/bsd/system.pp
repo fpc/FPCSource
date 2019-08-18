@@ -361,6 +361,9 @@ begin
 end;
 
 Begin
+{$ifdef darwin}
+  darwin_init_page_size;
+{$endif darwin}
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
