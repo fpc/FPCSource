@@ -528,12 +528,10 @@ begin
             msiMem8: memrefsize := 8;
             msiMultiple16,
             msiMem16: memrefsize := 16;
-            msiXMem32,
-            msiYMem32,
             msiMultiple32,
             msiMem32: memrefsize := 32;
-            msiXMem64,
-            msiYMem64,
+            //msiXMem64,
+            //msiYMem64,
             msiMultiple64,
             msiMem64: memrefsize := 64;
             msiMultiple128,
@@ -701,6 +699,13 @@ begin
                   end;
                 end;
               end;
+            msiXMem32,
+            msiYMem32,
+            msiZMem32,
+            msiXMem64,
+            msiYMem64,
+            msiZMem64: ; // ignore;  gather/scatter opcodes haven a fixed element-size, not a fixed memory-size
+                         // the vector-register have indices with base of the memory-address in the memory-operand
             msiNoSize,
             msiUnkown,
             msiUnsupported,
@@ -835,8 +840,6 @@ begin
 
                                  Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"16 bit memory operand"');
                                end;
-                      msiXMem32,
-                      msiYMem32,
                       msiMem32:
                                begin
                                  tx86operand(operands[i]).opsize := S_L;
@@ -849,8 +852,6 @@ begin
 
                                  Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"32 bit memory operand"');
                                end;
-                      msiXMem64,
-                      msiYMem64,
                       msiMem64:
                                begin
                                  tx86operand(operands[i]).opsize := S_Q;
@@ -1173,14 +1174,18 @@ begin
                                  end;
                                end;
 
-
-
-
+                   msiXMem32,
+                   msiYMem32,
+                   msiZMem32,
+                   msiXMem64,
+                   msiYMem64,
+                   msiZMem64: ; // ignore;  gather/scatter opcodes haven a fixed element-size, not a fixed memory-size
+                                // the vector-register have indices with base of the memory-address in the memory-operand
                    msiNoSize: ; //  all memory-sizes are ok
+                   msiVMemMultiple,
+                   msiVMemRegSize: ;  // ignore
                    msiUnkown,
                    msiUnsupported,
-                   msiVMemMultiple,
-                   msiVMemRegSize,
                    msiMultiple: Message(asmr_e_unable_to_determine_reference_size); // TODO individual message
                   else
                     Internalerror(2019081008);
