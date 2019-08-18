@@ -1375,20 +1375,14 @@ implementation
       begin
         result:=fen_false;
         if (n.nodetype in [assignn,calln,asmn,finalizetempsn]) or
-          ((n.nodetype=inlinen) and
-           (tinlinenode(n).inlinenumber in [in_write_x,in_writeln_x,in_read_x,in_readln_x,in_str_x_string,
-             in_val_x,in_reset_x,in_rewrite_x,in_reset_typedfile,in_rewrite_typedfile,
-             in_reset_typedfile_name,in_rewrite_typedfile_name,in_settextbuf_file_x,
-             in_inc_x,in_dec_x,in_include_x_y,in_exclude_x_y,in_break,in_continue,in_setlength_x,
-             in_finalize_x,in_new_x,in_dispose_x,in_exit,in_copy_x,in_initialize_x,in_leave,in_cycle,
-             in_and_assign_x_y,in_or_assign_x_y,in_xor_assign_x_y,in_sar_assign_x_y,in_shl_assign_x_y,
-             in_shr_assign_x_y,in_rol_assign_x_y,in_ror_assign_x_y,in_neg_assign_x,in_not_assign_x])
-          ) or
-          ((mhs_exceptions in pmhs_flags(arg)^) and
-           ((n.nodetype in [derefn,vecn,subscriptn]) or
-            ((n.nodetype in [addn,subn,muln,divn,slashn,unaryminusn]) and (n.localswitches*[cs_check_overflow,cs_check_range]<>[]))
-           )
-          ) then
+           ((n.nodetype=inlinen) and
+            tinlinenode(n).may_have_sideeffect_norecurse
+           ) or
+           ((mhs_exceptions in pmhs_flags(arg)^) and
+            ((n.nodetype in [derefn,vecn,subscriptn]) or
+             ((n.nodetype in [addn,subn,muln,divn,slashn,unaryminusn]) and (n.localswitches*[cs_check_overflow,cs_check_range]<>[]))
+            )
+           ) then
           result:=fen_norecurse_true;
       end;
 
