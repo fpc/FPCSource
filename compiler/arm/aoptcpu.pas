@@ -26,7 +26,7 @@ Unit aoptcpu;
 {$i fpcdefs.inc}
 
 { $define DEBUG_PREREGSCHEDULER}
-{ $define DEBUG_AOPTCPU}
+{$define DEBUG_AOPTCPU}
 
 Interface
 
@@ -2256,6 +2256,30 @@ Implementation
                         hp4.free;
                         p:=hp2;
                         DebugMsg('Peephole Bl2B done', p);
+                      end;
+                  end;
+                A_VMOV:
+                  begin
+                    {
+                      change
+                      vmov reg0,reg1,reg2
+                      vmov reg1,reg2,reg0
+                      into
+                      vmov reg0,reg1,reg2
+
+                      can be applied regardless if reg0 or reg2 is the vfp register
+                    }
+                    if (taicpu(p).ops = 3) and
+                      GetNextInstruction(p, hp1) and
+                      MatchInstruction(hp1, A_VMOV, [taicpu(p).condition], [taicpu(p).oppostfix]) and
+                      (taicpu(hp1).ops = 3) and
+                      MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[2]^) and
+                      MatchOperand(taicpu(p).oper[1]^, taicpu(hp1).oper[0]^) and
+                      MatchOperand(taicpu(p).oper[2]^, taicpu(hp1).oper[1]^) then
+                      begin
+                        asml.Remove(hp1);
+                        hp1.free;
+                        DebugMsg('Peephole VMovVMov2VMov done', p);
                       end;
                   end;
                 A_VLDR,
