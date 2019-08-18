@@ -1892,6 +1892,7 @@ begin
     context.Free;
   end;
 end;
+{$endif}
 
 procedure TTestCase1.TestProcVar;
 var
@@ -1996,8 +1997,6 @@ begin
     context.Free;
   end;
 end;
-
-{$endif}
 
 initialization
 {$ifdef fpc}
