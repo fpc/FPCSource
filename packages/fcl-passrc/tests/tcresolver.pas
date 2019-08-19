@@ -453,6 +453,7 @@ type
     Procedure TestProc_ImplicitCalls;
     Procedure TestProc_Absolute;
     Procedure TestProc_LocalInit;
+    Procedure TestProc_ExtNamePropertyFail;
 
     // anonymous procs
     Procedure TestAnonymousProc_Assign;
@@ -7501,6 +7502,16 @@ begin
   'end;',
   'begin']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_ExtNamePropertyFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Foo; external name ''});'' property;',
+  'begin']);
+  CheckParserException('Expected ";" at token "property" in file afile.pp at line 2 column 36',
+    nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestAnonymousProc_Assign;

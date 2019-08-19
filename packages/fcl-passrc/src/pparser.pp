@@ -4927,9 +4927,8 @@ begin
 end;
 
 procedure TPasParser.HandleProcedureModifier(Parent: TPasElement; pm: TProcedureModifier);
-
+// at end on last token of modifier, usually the semicolon
 Var
-  Tok : String;
   P : TPasProcedure;
   E : TPasExpr;
 
@@ -4953,28 +4952,23 @@ begin
       // external libname
       // external libname name XYZ
       // external name XYZ
-      Tok:=UpperCase(CurTokenString);
-      if Not ((CurToken=tkIdentifier) and (Tok='NAME')) then
+      if Not CurTokenIsIdentifier('NAME') then
         begin
         E:=DoParseExpression(Parent);
         if Assigned(P) then
           P.LibraryExpr:=E;
         end;
-      if CurToken=tkSemicolon then
-        UnGetToken
-      else
+      if CurTokenIsIdentifier('NAME') then
         begin
-        Tok:=UpperCase(CurTokenString);
-        if ((CurToken=tkIdentifier) and (Tok='NAME')) then
-          begin
-          NextToken;
-          if not (CurToken in [tkChar,tkString,tkIdentifier]) then
-            ParseExcTokenError(TokenInfos[tkString]);
-          E:=DoParseExpression(Parent);
-          if Assigned(P) then
-            P.LibrarySymbolName:=E;
-          end;
+        NextToken;
+        if not (CurToken in [tkChar,tkString,tkIdentifier]) then
+          ParseExcTokenError(TokenInfos[tkString]);
+        E:=DoParseExpression(Parent);
+        if Assigned(P) then
+          P.LibrarySymbolName:=E;
         end;
+      if CurToken<>tkSemicolon then
+        UngetToken;
       end
     else
       UngetToken;
@@ -5004,8 +4998,7 @@ begin
       E:=DoParseExpression(Parent);
       if Parent is TPasProcedure then
         TPasProcedure(Parent).PublicName:=E;
-      if (CurToken <> tkSemicolon) then
-        ParseExcTokenError(TokenInfos[tkSemicolon]);
+      CheckToken(tkSemicolon);
       end;
     end;
   pmForward:
@@ -5029,14 +5022,14 @@ begin
       pekString: TPasProcedure(Parent).Messagetype:=pmtString;
       end;
       end;
-    if CurToken = tkSemicolon then
+    if CurToken<>tkSemicolon then
       UngetToken;
     end;
   pmDispID:
     begin
     NextToken;
     TPasProcedure(Parent).DispIDExpr:=DoParseExpression(Parent);
-    if CurToken = tkSemicolon then
+    if CurToken<>tkSemicolon then
       UngetToken;
     end;
   end; // Case
@@ -6472,7 +6465,6 @@ begin
     PC:=GetProcedureClass(ProcType);
     if Name<>'' then
       Parent:=CheckIfOverLoaded(Parent,Name);
-    //TPasProcedure(CreateElement(PC,Name,Parent,AVisibility));
     Result := TPasProcedure(Engine.CreateElement(PC, Name, Parent, AVisibility,
                                                  CurSourcePos, NameParts));
     if NameParts<>nil then
