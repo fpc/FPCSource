@@ -856,7 +856,7 @@ asm
     aBytesToPop is the size of the stack to the Self argument }
 
   movl RawThunkPlaceholderBytesToPop, %eax
-  movl %sp, %ecx
+  movl %esp, %ecx
   lea (%ecx,%eax), %eax
   movl RawThunkPlaceholderContext, (%eax)
   movl RawThunkPlaceholderProc, %eax
@@ -876,8 +876,8 @@ type
 procedure RawThunk; assembler; nostackframe;
 asm
   { Self is always in register RCX }
-  movl RawThunkPlaceholderContext, %rcx
-  movl RawThunkPlaceholderProc, %rax
+  movq RawThunkPlaceholderContext, %rcx
+  movq RawThunkPlaceholderProc, %rax
   jmp %rax
 RawThunkEnd:
 end;
@@ -885,8 +885,8 @@ end;
 procedure RawThunk; assembler; nostackframe;
 asm
   { Self is always in register RDI }
-  movl RawThunkPlaceholderContext, %rdi
-  movl RawThunkPlaceholderProc, %rax
+  movq RawThunkPlaceholderContext, %rdi
+  movq RawThunkPlaceholderProc, %rax
   jmp %rax
 RawThunkEnd:
 end;
