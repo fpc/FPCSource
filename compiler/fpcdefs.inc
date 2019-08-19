@@ -209,6 +209,7 @@
   {$define cpufpemu}
   {$define cpurefshaveindexreg}
   {$define cpucapabilities}
+  {$define fpucapabilities}
   {$define cpuneedsmulhelper}
   {$define cpuneedsdivhelper}
   {$define cpu_uses_separate_address_registers}

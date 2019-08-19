@@ -53,6 +53,8 @@ Type
       fpu_soft,
       fpu_libgcc,
       fpu_68881,
+      fpu_68040,
+      fpu_68060,
       fpu_coldfire
      );
 
@@ -124,6 +126,8 @@ Const
      'SOFT',
      'LIBGCC',
      '68881',
+     '68040',
+     '68060',
      'COLDFIRE'
    );
 
@@ -163,6 +167,15 @@ type
       CPUM68K_HAS_BASEDISP   { CPU supports addressing with 32bit base displacements     }
      );
 
+  tfpuflags =
+     (FPUM68K_HAS_HARDWARE,        { FPU is actually a hardware implementation, not a software library }
+      FPUM68K_HAS_EXTENDED,        { FPU has 80 bit extended support }
+      FPUM68K_HAS_TRIGONOMETRY,    { FPU supports trigonometric instructions (FSIN/FCOS, etc) }
+      FPUM68K_HAS_RESULTPRECISION, { FPU supports encoding the result precision into instructions }
+      FPUM68K_HAS_FLOATIMMEDIATE,  { FPU supports floating pont immediate values }
+      FPUM68K_HAS_FINTRZ           { FPU supports the FINT/FINTRZ instruction }
+     );
+
 const
   cpu_capabilities : array[tcputype] of set of tcpuflags =
     ( { cpu_none     } [],
@@ -177,11 +190,27 @@ const
       { cpu_cfv4e    } [CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_MVSMVZ,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_REMSREMU]
     );
 
+  { on m68k, Motorola provided a software-library, which provides full '881/2 instruction set
+    compatibility on 040/060 FPU types via emulation for user code compatibility. this is slow
+    though, so this capabilities list contains the capabilities supported in the hardware itself }
+  fpu_capabilities : array[tfputype] of set of tfpuflags =
+    ( { fpu_none     } [],
+      { fpu_soft     } [],
+      { fpu_libgcc   } [],
+      { fpu_68881    } [FPUM68K_HAS_HARDWARE,FPUM68K_HAS_EXTENDED,FPUM68K_HAS_FLOATIMMEDIATE,FPUM68K_HAS_TRIGONOMETRY,FPUM68K_HAS_FINTRZ],
+      { fpu_68040    } [FPUM68K_HAS_HARDWARE,FPUM68K_HAS_EXTENDED,FPUM68K_HAS_RESULTPRECISION,FPUM68K_HAS_FLOATIMMEDIATE],
+      { fpu_68060    } [FPUM68K_HAS_HARDWARE,FPUM68K_HAS_EXTENDED,FPUM68K_HAS_RESULTPRECISION,FPUM68K_HAS_FLOATIMMEDIATE,FPUM68K_HAS_FINTRZ],
+      { fpu_coldfire } [FPUM68K_HAS_HARDWARE,FPUM68K_HAS_RESULTPRECISION,FPUM68K_HAS_FINTRZ]
+    );
+
   { all CPUs commonly called "coldfire" }
   cpu_coldfire = [cpu_isa_a,cpu_isa_a_p,cpu_isa_b,cpu_isa_c,cpu_cfv4e];
 
   { all CPUs commonly called "68020+" }
   cpu_mc68020p = [cpu_mc68020,cpu_mc68040,cpu_mc68060];
+
+  { all FPUs commonly called "68881/2" }
+  fpu_mc68881 = [fpu_68881,fpu_68040,fpu_68060];
 
 Implementation
 
