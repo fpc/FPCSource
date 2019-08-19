@@ -1549,16 +1549,20 @@ var
 begin
   OrigNameParts:=Orig.NameParts;
   RestNameParts:=Rest.NameParts;
-  AssertEquals(Path+'.NameParts length',length(OrigNameParts),length(RestNameParts));
-  for i:=0 to length(OrigNameParts)-1 do
+  AssertEquals(Path+'.NameParts<>nil',OrigNameParts<>nil,RestNameParts<>nil);
+  if OrigNameParts<>nil then
     begin
-    SubPath:=Path+'.NameParts['+IntToStr(i)+']';
-    AssertEquals(SubPath+'.Name',OrigNameParts[i].Name,RestNameParts[i].Name);
-    OrigTemplates:=OrigNameParts[i].Templates;
-    RestTemplates:=RestNameParts[i].Templates;
-    CheckRestoredObject(SubPath+'.Templates',OrigTemplates,RestTemplates);
-    if OrigTemplates=nil then continue;
-    CheckRestoredElementList(SubPath+'.Templates',OrigTemplates,RestTemplates);
+    AssertEquals(Path+'.NameParts.Count',OrigNameParts.Count,RestNameParts.Count);
+    for i:=0 to OrigNameParts.Count-1 do
+      begin
+      SubPath:=Path+'.NameParts['+IntToStr(i)+']';
+      AssertEquals(SubPath+'.Name',TProcedureNamePart(OrigNameParts[i]).Name,TProcedureNamePart(RestNameParts[i]).Name);
+      OrigTemplates:=TProcedureNamePart(OrigNameParts[i]).Templates;
+      RestTemplates:=TProcedureNamePart(RestNameParts[i]).Templates;
+      CheckRestoredObject(SubPath+'.Templates',OrigTemplates,RestTemplates);
+      if OrigTemplates=nil then continue;
+      CheckRestoredElementList(SubPath+'.Templates',OrigTemplates,RestTemplates);
+      end;
     end;
 end;
 

@@ -19,6 +19,7 @@ type
     procedure TestGen_GenTypeWithWrongParamCountFail;
     procedure TestGen_GenericNotFoundFail;
     procedure TestGen_SameNameSameParamCountFail;
+    procedure TestGen_TypeAliasWithoutSpecializeFail;
 
     // constraints
     procedure TestGen_ConstraintStringFail;
@@ -53,13 +54,18 @@ type
     procedure TestGen_ClassForwardConstraintKeywordMismatch;
     procedure TestGen_ClassForwardConstraintTypeMismatch;
     procedure TestGen_ClassForward_Circle;
+    procedure TestGen_Class_RedeclareInUnitImplFail;
+    // ToDo: add another in unit implementation
     procedure TestGen_Class_Method;
     // ToDo: procedure TestGen_Class_MethodOverride;
+    procedure TestGen_Class_MethodDelphi;
+    // ToDo: procedure TestGen_Class_MethodDelphiTypeParamMissing;
+    // ToDo: procedure TestGen_Class_MethodImplConstraintFail;
     procedure TestGen_Class_SpecializeSelfInside;
     // ToDo: generic class overload <T> <S,T>
     procedure TestGen_Class_GenAncestor;
     procedure TestGen_Class_AncestorSelfFail;
-    // ToDo: class-of
+    // ToDo: class of TBird<word> fail
     // ToDo: UnitA.impl uses UnitB.intf uses UnitA.intf, UnitB has specialize of UnitA
     procedure TestGen_Class_NestedType;
     procedure TestGen_Class_NestedRecord;
@@ -81,12 +87,14 @@ type
     procedure TestGen_ProcType;
 
     // ToDo: pointer of generic
+    // ToDo: PBird = ^TBird<word> fail
 
     // ToDo: helpers for generics
 
     // generic functions
-    // ToDo: generic class method overload <T> <S,T>
     procedure TestGen_GenericFunction; // ToDo
+    // ToDo: generic class method overload <T> <S,T>
+    // ToDo: procedure TestGen_GenMethod_ClassConstructorFail;
 
     // generic statements
     procedure TestGen_LocalVar;
@@ -164,6 +172,20 @@ begin
   '']);
   CheckResolverException('Duplicate identifier "TBird" at afile.pp(4,8)',
     nDuplicateIdentifier);
+end;
+
+procedure TTestResolveGenerics.TestGen_TypeAliasWithoutSpecializeFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TBird<T> = record w: T; end;',
+  '  TBirdAlias = TBird;',
+  'begin',
+  '']);
+  CheckResolverException('type expected, but TBird<> found',
+    nXExpectedButYFound);
 end;
 
 procedure TTestResolveGenerics.TestGen_ConstraintStringFail;
@@ -381,7 +403,7 @@ begin
   '  end;',
   'begin',
   '']);
-  CheckResolverException('type "TBird" is not yet completely defined',
+  CheckResolverException('type "TBird<>" is not yet completely defined',
     nTypeXIsNotYetCompletelyDefined);
 end;
 
@@ -595,6 +617,21 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolveGenerics.TestGen_Class_RedeclareInUnitImplFail;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class v: T; end;',
+  'implementation',
+  'type generic TBird<T> = record v: T; end;',
+  '']);
+  CheckResolverException('Duplicate identifier "TBird" at afile.pp(5,16)',
+    nDuplicateIdentifier);
+end;
+
 procedure TTestResolveGenerics.TestGen_Class_Method;
 begin
   StartProgram(false);
@@ -612,6 +649,31 @@ begin
   'end;',
   'var',
   '  b: specialize TBird<word>;',
+  '  {=Typ}w: T;',
+  'begin',
+  '  w:=b.Fly(w);',
+  '  w:=b.Run(w);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_MethodDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  {#Typ}T = word;',
+  '  TBird<{#Templ}T> = class',
+  '    function Fly(p:T): T; virtual; abstract;',
+  '    function Run(p:T): T;',
+  '  end;',
+  'function TBird<T>.Run(p:T): T;',
+  'begin',
+  'end;',
+  'var',
+  '  b: TBird<word>;',
   '  {=Typ}w: T;',
   'begin',
   '  w:=b.Fly(w);',
@@ -676,7 +738,7 @@ begin
   '  b: specialize TBird<word>;',
   'begin',
   '']);
-  CheckResolverException('type "TBird" is not yet completely defined',nTypeXIsNotYetCompletelyDefined);
+  CheckResolverException('type "TBird<>" is not yet completely defined',nTypeXIsNotYetCompletelyDefined);
 end;
 
 procedure TTestResolveGenerics.TestGen_Class_NestedType;
@@ -960,6 +1022,7 @@ end;
 
 procedure TTestResolveGenerics.TestGen_GenericFunction;
 begin
+  exit;
   StartProgram(false);
   Add([
   'generic function DoIt<T>(a: T): T;',

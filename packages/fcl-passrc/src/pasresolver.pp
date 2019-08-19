@@ -1547,7 +1547,7 @@ type
     procedure AddEnumValue(El: TPasEnumValue); virtual;
     procedure AddProperty(El: TPasProperty); virtual;
     procedure AddProcedureType(El: TPasProcedureType; TypeParams: TFPList); virtual;
-    procedure AddProcedure(El: TPasProcedure); virtual;
+    procedure AddProcedure(El: TPasProcedure; TypeParams: TFPList); virtual;
     procedure AddProcedureBody(El: TProcedureBody); virtual;
     procedure AddArgument(El: TPasArgument); virtual;
     procedure AddFunctionResult(El: TPasResultElement); virtual;
@@ -1609,11 +1609,10 @@ type
     procedure FinishClassOfType(El: TPasClassOfType); virtual;
     procedure FinishPointerType(El: TPasPointerType); virtual;
     procedure FinishArrayType(El: TPasArrayType); virtual;
-    procedure FinishGenericTemplateTypes(aType: TPasGenericType); virtual;
+    procedure FinishAliasType(El: TPasAliasType); virtual;
     procedure FinishGenericTemplateType(El: TPasGenericTemplateType); virtual;
     procedure FinishSpecializeType(El: TPasSpecializeType); virtual;
     procedure FinishResourcestring(El: TPasResString); virtual;
-    procedure FinishProcNameParts(aProc: TPasProcedure); virtual;
     procedure FinishProcedure(aProc: TPasProcedure); virtual;
     procedure FinishProcedureType(El: TPasProcedureType); virtual;
     procedure FinishMethodDeclHeader(Proc: TPasProcedure); virtual;
@@ -1643,6 +1642,7 @@ type
     procedure CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure; CheckNames: boolean);
     procedure CheckPendingForwardProcs(El: TPasElement);
     procedure CheckPointerCycle(El: TPasPointerType);
+    procedure CheckGenericTemplateTypes(El: TPasGenericType); virtual;
     procedure ComputeUnaryNot(El: TUnaryExpr; var ResolvedEl: TPasResolverResult;
       Flags: TPasResolverComputeFlags); virtual;
     procedure ComputeBinaryExpr(Bin: TBinaryExpr;
@@ -1762,6 +1762,7 @@ type
     procedure SpecializeProcedureBody(GenEl, SpecEl: TProcedureBody);
     procedure SpecializeDeclarations(GenEl, SpecEl: TPasDeclarations);
     procedure SpecializeSpecializeType(GenEl, SpecEl: TPasSpecializeType);
+    procedure SpecializeGenericTemplateType(GenEl, SpecEl: TPasGenericTemplateType);
     procedure SpecializeArgument(GenEl, SpecEl: TPasArgument);
     procedure SpecializeImplBlock(GenEl, SpecEl: TPasImplBlock);
     procedure SpecializeImplAsmStatement(GenEl, SpecEl: TPasImplAsmStatement);
@@ -5206,13 +5207,31 @@ end;
 function TPasResolver.AddIdentifier(Scope: TPasIdentifierScope;
   const aName: String; El: TPasElement; const Kind: TPasIdentifierKind
   ): TPasIdentifier;
+
+  function SkipGenericTypes(Identifier: TPasIdentifier;
+    TypeParamCnt: integer): TPasIdentifier;
+  var
+    CurEl: TPasElement;
+  begin
+    while Identifier<>nil do
+      begin
+      CurEl:=Identifier.Element;
+      if not (CurEl is TPasGenericType) then break;
+      if GetTypeParameterCount(TPasGenericType(CurEl))=TypeParamCnt then break;
+      Identifier:=Identifier.NextSameIdentifier;
+      end;
+    Result:=Identifier;
+  end;
+
 var
   Group: TPasGroupScope;
   Identifier, OlderIdentifier: TPasIdentifier;
   OlderEl: TPasElement;
   C: TClass;
-  i: Integer;
+  i, TypeParamCnt: Integer;
   OtherScope: TPasIdentifierScope;
+  ParentScope: TPasScope;
+  IsGeneric: Boolean;
 begin
   if aName='' then exit(nil);
   if Scope is TPasGroupScope then
@@ -5222,6 +5241,16 @@ begin
     end
   else
     Group:=nil;
+  if El is TPasGenericType then
+    begin
+    IsGeneric:=true;
+    TypeParamCnt:=GetTypeParameterCount(TPasGenericType(El));
+    end
+  else
+    begin
+    IsGeneric:=false;
+    TypeParamCnt:=0;
+    end;
 
   if (El.Visibility=visPublished) then
     begin
@@ -5241,6 +5270,8 @@ begin
       begin
       OtherScope:=Group.Scopes[i];
       OlderIdentifier:=OtherScope.FindLocalIdentifier(aName);
+      if IsGeneric then
+        OlderIdentifier:=SkipGenericTypes(OlderIdentifier,TypeParamCnt);
       while OlderIdentifier<>nil do
         begin
         OlderEl:=OlderIdentifier.Element;
@@ -5263,29 +5294,51 @@ begin
 
   // check duplicate in current scope
   OlderIdentifier:=Identifier.NextSameIdentifier;
+  if IsGeneric then
+    OlderIdentifier:=SkipGenericTypes(OlderIdentifier,TypeParamCnt);
   if OlderIdentifier<>nil then
     begin
-    if (OlderIdentifier.Element.ClassType=TPasEnumValue)
-        and (OlderIdentifier.Element.Parent.Parent<>Scope.Element) then
+    OlderEl:=OlderIdentifier.Element;
+    if (OlderEl.ClassType=TPasEnumValue)
+        and (OlderEl.Parent.Parent<>Scope.Element) then
       begin
       // this enum was propagated from a sub type -> remove enum from this scope
       if OlderIdentifier.NextSameIdentifier<>nil then
-        RaiseNotYetImplemented(20190807114726,El,GetElementSourcePosStr(OlderIdentifier.Element));
-      Scope.RemoveLocalIdentifier(OlderIdentifier.Element);
+        RaiseNotYetImplemented(20190807114726,El,GetElementSourcePosStr(OlderEl));
+      Scope.RemoveLocalIdentifier(OlderEl);
       OlderIdentifier:=nil;
-      end;
-    if (El.Visibility=visPublished) and (El is TPasProcedure)
-        and (OlderIdentifier.Element is TPasProcedure) then
+      OlderEl:=nil;
+      end
+    else if (El.Visibility=visPublished) and (El is TPasProcedure)
+        and (OlderEl is TPasProcedure) then
       // published method bites method in same scope
       RaiseMsg(20190626175432,nDuplicatePublishedMethodXAtY,
                sDuplicatePublishedMethodXAtY,
-               [aName,GetElementSourcePosStr(OlderIdentifier.Element)],El);
-    if (Identifier.Kind=pikSimple)
+               [aName,GetElementSourcePosStr(OlderEl)],El)
+    else if (Identifier.Kind=pikSimple)
         or (OlderIdentifier.Kind=pikSimple) then
       // duplicate identifier
       RaiseMsg(20170216151530,nDuplicateIdentifier,sDuplicateIdentifier,
-              [aName,GetElementSourcePosStr(OlderIdentifier.Element)],El);
+              [aName,GetElementSourcePosStr(OlderEl)],El);
+    end;
 
+  if (Scope=TopScope) and (Scope is TPasSectionScope) then
+    begin
+    ParentScope:=Scopes[ScopeCount-2];
+    if ParentScope is TPasSectionScope then
+      begin
+      OlderIdentifier:=TPasSectionScope(ParentScope).FindLocalIdentifier(aName);
+      if IsGeneric then
+        OlderIdentifier:=SkipGenericTypes(OlderIdentifier,TypeParamCnt);
+      if OlderIdentifier<>nil then
+        begin
+        OlderEl:=OlderIdentifier.Element;
+        if (Identifier.Kind=pikSimple)
+            or (OlderIdentifier.Kind=pikSimple) then
+          RaiseMsg(20190818141630,nDuplicateIdentifier,sDuplicateIdentifier,
+                   [aName,GetElementSourcePosStr(OlderEl)],El);
+        end;
+      end;
     end;
 
   Result:=Identifier;
@@ -5648,7 +5701,6 @@ end;
 procedure TPasResolver.FinishTypeDef(El: TPasType);
 var
   C: TClass;
-  aType: TPasType;
 begin
   {$IFDEF VerbosePasResolver}
   //writeln('TPasResolver.FinishTypeDef El=',GetObjName(El));
@@ -5671,12 +5723,7 @@ begin
   else if C=TPasArrayType then
     FinishArrayType(TPasArrayType(El))
   else if (C=TPasAliasType) or (C=TPasTypeAliasType) then
-    begin
-    aType:=ResolveAliasType(El);
-    if (aType is TPasMembersType) and (aType.CustomData=nil) then
-      exit;
-    EmitTypeHints(El,TPasAliasType(El).DestType);
-    end
+    FinishAliasType(TPasAliasType(El))
   else if (C=TPasPointerType) then
     EmitTypeHints(El,TPasPointerType(El).DestType)
   else if C=TPasGenericTemplateType then
@@ -6149,47 +6196,18 @@ begin
     PopScope;
 end;
 
-procedure TPasResolver.FinishGenericTemplateTypes(aType: TPasGenericType);
+procedure TPasResolver.FinishAliasType(El: TPasAliasType);
 var
-  C: TClass;
-  GenTemplates: TFPList;
-  TemplType: TPasGenericTemplateType;
-  i: Integer;
-  ClassHeaderScope: TPasClassHeaderScope;
+  aType: TPasType;
 begin
-  {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.FinishGenericTemplateTypes ',GetObjName(aType));
-  {$ENDIF}
-  GenTemplates:=aType.GenericTemplateTypes;
-  if (GenTemplates=nil) or (GenTemplates.Count=0) then
-    RaiseNotYetImplemented(20190726184902,aType,'emty generic template list');
-
-  // template names must differ from generic type name
-  for i:=0 to GenTemplates.Count-1 do
-    begin
-    TemplType:=TPasGenericTemplateType(GenTemplates[i]);
-    if SameText(TemplType.Name,aType.Name) then
-      RaiseMsg(20190801101444,nDuplicateIdentifier,sDuplicateIdentifier,[
-        TemplType.Name,GetElementSourcePosStr(aType)],TemplType);
-    end;
-
-  // add template names to scope
-  C:=aType.ClassType;
-  if C=TPasRecordType then
-  else if C=TPasClassType then
-    begin
-    // Note: TPasClassType.Forward is not yet set!
-    // create class header scope
-    TemplType:=TPasGenericTemplateType(GenTemplates[0]);
-    ClassHeaderScope:=TPasClassHeaderScope(PushScope(TemplType,TPasClassHeaderScope));
-    ClassHeaderScope.GenericType:=aType;
-    AddGenericTemplateIdentifiers(GenTemplates,ClassHeaderScope);
-    end
-  else if C=TPasArrayType then
-  else if (C=TPasProcedureType)
-      or (C=TPasFunctionType) then
-  else
-    RaiseNotYetImplemented(20190726150359,aType,GetObjName(aType));
+  aType:=ResolveAliasType(El);
+  if (aType is TPasMembersType) and (aType.CustomData=nil) then
+    exit;
+  if (aType is TPasGenericType)
+      and (GetTypeParameterCount(TPasGenericType(aType))>0) then
+    RaiseMsg(20190818135830,nXExpectedButYFound,sXExpectedButYFound,
+      ['type',GetTypeDescription(aType)],El);
+  EmitTypeHints(El,TPasAliasType(El).DestType);
 end;
 
 procedure TPasResolver.FinishGenericTemplateType(El: TPasGenericTemplateType);
@@ -6363,19 +6381,6 @@ begin
   ComputeElement(El.Expr,ResolvedEl,[rcConstant]);
   if not (ResolvedEl.BaseType in btAllStringAndChars) then
     RaiseXExpectedButYFound(20171004135753,'string',GetTypeDescription(ResolvedEl),El.Expr);
-end;
-
-procedure TPasResolver.FinishProcNameParts(aProc: TPasProcedure);
-var
-  i, j: Integer;
-begin
-  for i:=0 to length(aProc.NameParts)-1 do
-    with aProc.NameParts[i] do
-      begin
-      if Templates<>nil then
-        for j:=0 to Templates.Count-1 do
-          AddType(TPasGenericTemplateType(Templates[j]));
-      end;
 end;
 
 procedure TPasResolver.FinishProcedure(aProc: TPasProcedure);
@@ -11029,6 +11034,26 @@ begin
     end;
 end;
 
+procedure TPasResolver.CheckGenericTemplateTypes(El: TPasGenericType);
+var
+  GenTemplates: TFPList;
+  i: Integer;
+  TemplType: TPasGenericTemplateType;
+begin
+  GenTemplates:=El.GenericTemplateTypes;
+  if (GenTemplates=nil) or (GenTemplates.Count=0) then
+    RaiseNotYetImplemented(20190726184902,El,'emty generic template list');
+
+  // template names must differ from generic type name
+  for i:=0 to GenTemplates.Count-1 do
+    begin
+    TemplType:=TPasGenericTemplateType(GenTemplates[i]);
+    if SameText(TemplType.Name,El.Name) then
+      RaiseMsg(20190801101444,nDuplicateIdentifier,sDuplicateIdentifier,[
+        TemplType.Name,GetElementSourcePosStr(El)],TemplType);
+    end;
+end;
+
 procedure TPasResolver.ComputeUnaryNot(El: TUnaryExpr;
   var ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags);
 begin
@@ -11101,16 +11126,23 @@ begin
   if El.Name<>'' then begin
     if not (TopScope is TPasIdentifierScope) then
       RaiseInvalidScopeForElement(20190812215622,El);
+
+    if TypeParams<>nil then
+      begin
+      El.SetGenericTemplates(TypeParams);
+      TypeParams:=El.GenericTemplateTypes;
+      CheckGenericTemplateTypes(El);
+      end;
+
     AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple);
-  end;
-  if TypeParams<>nil then
-    begin
-    // generic array
-    if El.Name='' then
-      RaiseNotYetImplemented(20190812215851,El);
-    Scope:=TPasArrayScope(PushScope(El,TPasArrayScope));
-    AddGenericTemplateIdentifiers(TypeParams,Scope);
-    end;
+
+    if TypeParams<>nil then
+      begin
+      Scope:=TPasArrayScope(PushScope(El,TPasArrayScope));
+      AddGenericTemplateIdentifiers(TypeParams,Scope);
+      end;
+  end else if TypeParams<>nil then
+    RaiseNotYetImplemented(20190812215851,El);
 end;
 
 procedure TPasResolver.AddRecordType(El: TPasRecordType; TypeParams: TFPList);
@@ -11122,6 +11154,14 @@ begin
   {$ENDIF}
   if not (TopScope is TPasIdentifierScope) then
     RaiseInvalidScopeForElement(20160922163508,El);
+
+  if TypeParams<>nil then
+    begin
+    El.SetGenericTemplates(TypeParams);
+    TypeParams:=El.GenericTemplateTypes;
+    CheckGenericTemplateTypes(El);
+    end;
+
   if El.Name<>'' then begin
     AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple);
     {$IFDEF VerbosePasResolver}
@@ -11154,11 +11194,12 @@ var
   GenTemplCnt, i, j: Integer;
   DuplEl: TPasElement;
   ClassScope: TPasClassScope;
-  ForwGenTempl, ActGenTempl: TPasGenericTemplateType;
+  ForwGenTempl, ActGenTempl, TemplType: TPasGenericTemplateType;
   ForwConstraints, ActConstraints: TPasExprArray;
   ForwExpr, ActExpr: TPasExpr;
   ForwToken, ActToken: TToken;
   ForwConstraintResolved, ActConstraintResolved: TPasResolverResult;
+  ClassHeaderScope: TPasClassHeaderScope;
 begin
   // Beware: El.ObjKind is not yet set!
   {$IFDEF VerbosePasResolver}
@@ -11166,6 +11207,15 @@ begin
   {$ENDIF}
   if not (TopScope is TPasIdentifierScope) then
     RaiseInvalidScopeForElement(20160922163510,El);
+  if TypeParams=nil then
+    GenTemplCnt:=0
+  else
+    begin
+    GenTemplCnt:=TypeParams.Count;
+    El.SetGenericTemplates(TypeParams);
+    TypeParams:=El.GenericTemplateTypes;
+    CheckGenericTemplateTypes(El);
+    end;
 
   CurScope:=TPasIdentifierScope(TopScope);
   if CurScope is TPasGroupScope then
@@ -11173,10 +11223,6 @@ begin
   else
     LocalScope:=CurScope;
   Duplicate:=LocalScope.FindLocalIdentifier(El.Name);
-  if TypeParams=nil then
-    GenTemplCnt:=0
-  else
-    GenTemplCnt:=TypeParams.Count;
   while Duplicate<>nil do
     begin
     DuplEl:=Duplicate.Element;
@@ -11253,6 +11299,15 @@ begin
     end
   else
     AddIdentifier(CurScope,El.Name,El,pikSimple);
+
+  if TypeParams<>nil then
+    begin
+    // Parsing the ancestor+interface list requires the type params.
+    TemplType:=TPasGenericTemplateType(TypeParams[0]);
+    ClassHeaderScope:=TPasClassHeaderScope(PushScope(TemplType,TPasClassHeaderScope));
+    ClassHeaderScope.GenericType:=El;
+    AddGenericTemplateIdentifiers(TypeParams,ClassHeaderScope);
+    end;
 
   {$IFDEF VerbosePasResolver}
   if FPendingForwardProcs.IndexOf(El)>=0 then
@@ -11390,19 +11445,26 @@ begin
     {$ENDIF}
     if not (TopScope is TPasIdentifierScope) then
       RaiseInvalidScopeForElement(20190813193703,El);
+
+    if TypeParams<>nil then
+      begin
+      El.SetGenericTemplates(TypeParams);
+      TypeParams:=El.GenericTemplateTypes;
+      CheckGenericTemplateTypes(El);
+      end;
+
     AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple);
-  end;
-  if TypeParams<>nil then
-    begin
-    // generic procedure type
-    if El.Name='' then
-      RaiseNotYetImplemented(20190813193745,El);
-    Scope:=TPasProcTypeScope(PushScope(El,TPasProcTypeScope));
-    AddGenericTemplateIdentifiers(TypeParams,Scope);
-    end;
+
+    if TypeParams<>nil then
+      begin
+      Scope:=TPasProcTypeScope(PushScope(El,TPasProcTypeScope));
+      AddGenericTemplateIdentifiers(TypeParams,Scope);
+      end;
+  end else if TypeParams<>nil then
+    RaiseNotYetImplemented(20190813193745,El);
 end;
 
-procedure TPasResolver.AddProcedure(El: TPasProcedure);
+procedure TPasResolver.AddProcedure(El: TPasProcedure; TypeParams: TFPList);
 
   procedure AddClassConDestructor(ClassOrRecordScope: TPasClassOrRecordScope;
     var Field: TPasProcedure);
@@ -11415,22 +11477,94 @@ procedure TPasResolver.AddProcedure(El: TPasProcedure);
     Field:=El;
   end;
 
+  function FindBestMembersType(const ClassOrRecName: string;
+    TypeParamCnt: integer; Scope: TPasIdentifierScope;
+    var Best: TPasMembersType; ErrorPos: TPasElement): integer;
+  // returns number of candidates
+  var
+    Identifier: TPasIdentifier;
+    CurEl: TPasElement;
+  begin
+    Result:=0;
+    Identifier:=Scope.FindLocalIdentifier(ClassOrRecName);
+    while Identifier<>nil do
+      begin
+      CurEl:=Identifier.Element;
+      if not (CurEl is TPasMembersType) then
+        RaiseXExpectedButYFound(20170216152557,
+          'class',CurEl.Name+':'+GetElementTypeName(CurEl),ErrorPos);
+      inc(Result);
+      if Best=nil then
+        Best:=TPasMembersType(CurEl);
+      if GetTypeParameterCount(TPasGenericType(CurEl))=TypeParamCnt then
+        begin
+        // fits
+        Best:=TPasMembersType(CurEl);
+        exit;
+        end;
+      Identifier:=Identifier.NextSameIdentifier;
+      end;
+  end;
+
+  function FindMembersType(Scope: TPasIdentifierScope;
+    const ClassOrRecName: string; TypeParamCnt: integer; IsDelphi: boolean;
+    ErrorPos: TPasElement): TPasMembersType;
+  var
+    Found: integer;
+  begin
+    Result:=nil;
+    if Scope<>nil then
+      Found:=FindBestMembersType(ClassOrRecName,TypeParamCnt,Scope,Result,ErrorPos)
+    else if TopScope is TPasIdentifierScope then
+      begin
+      Found:=FindBestMembersType(ClassOrRecName,TypeParamCnt,
+          TPasIdentifierScope(TopScope),Result,ErrorPos);
+      if (Result=nil) or (TypeParamCnt<>GetTypeParameterCount(Result)) then
+        begin
+        if (TopScope is TPasSectionScope)
+            and (ScopeCount>1) and (Scopes[ScopeCount-2] is TPasSectionScope) then
+          // search in unit interface too
+          Found:=Found+FindBestMembersType(ClassOrRecName,TypeParamCnt,
+                TPasIdentifierScope(Scopes[ScopeCount-2]),Result,ErrorPos);
+        end;
+      end;
+    if Result=nil then
+      RaiseMsg(20190818112356,nClassXNotFoundInThisModule,sClassXNotFoundInThisModule,
+               [ClassOrRecName],ErrorPos);
+    if TypeParamCnt=GetTypeParameterCount(Result) then
+      exit; // fits perfectly
+    if (not IsDelphi) and (TypeParamCnt=0) and (Found=1) then
+      exit; // in objfpc type params can be omitted if there is only one type
+    // found one or more, but type param count do not fit
+    RaiseMsg(20190818112856,nXExpectedButYFound,sXExpectedButYFound,
+      [Result.Name+GetTypeParamCommas(GetTypeParameterCount(Result)),
+       ClassOrRecName+GetTypeParamCommas(TypeParamCnt)],ErrorPos);
+  end;
+
 var
   ProcName, aClassName: String;
   p: SizeInt;
   ClassOrRecType: TPasMembersType;
   ProcScope: TPasProcedureScope;
-  HasDot, IsClassConDestructor: Boolean;
-  CurEl: TPasElement;
-  Identifier: TPasIdentifier;
+  HasDot, IsClassConDestructor, IsDelphi: Boolean;
   ClassOrRecScope: TPasClassOrRecordScope;
   C: TClass;
   CurScope: TPasScope;
   LocalScope: TPasScope;
+  Level, TypeParamCount, i: Integer;
+  TypeParam: TProcedureNamePart;
+  TemplType: TPasGenericTemplateType;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.AddProcedure ',GetObjName(El));
   {$ENDIF}
+
+  if TypeParams<>nil then
+    begin
+    // move type param elements to El
+    El.SetNameParts(TypeParams);
+    TypeParams:=El.NameParts;
+    end;
 
   CurScope:=TopScope;
   if CurScope.ClassType=TPasGroupScope then
@@ -11448,6 +11582,8 @@ begin
   else
     begin
     // anonymous proc
+    if TypeParams<>nil then
+      RaiseNotYetImplemented(20190818101856,El);
     C:=LocalScope.ClassType;
     if (C=ScopeClass_InitialFinalization)
         or C.InheritsFrom(TPasProcedureScope)
@@ -11463,6 +11599,10 @@ begin
   // Note: El.ProcType is nil !  It is parsed later.
 
   HasDot:=Pos('.',ProcName)>1;
+  if (TypeParams<>nil) then
+    if HasDot<>(TypeParams.Count>1) then
+      RaiseNotYetImplemented(20190818093923,El);
+
   if El.CustomData is TPasProcedureScope then
     begin
     // adding a specialized implementation proc
@@ -11480,6 +11620,7 @@ begin
     end
   else
     begin
+    IsDelphi:=msDelphi in CurrentParser.CurrentModeswitches;
     IsClassConDestructor:=(El.ClassType=TPasClassConstructor)
         or (El.ClassType=TPasClassDestructor);
     if (not HasDot) and IsClassConDestructor then
@@ -11493,6 +11634,9 @@ begin
         AddClassConDestructor(ClassOrRecScope,TPasProcedure(ClassOrRecScope.ClassConstructor))
       else
         AddClassConDestructor(ClassOrRecScope,TPasProcedure(ClassOrRecScope.ClassDestructor));
+      if TypeParams<>nil then
+        RaiseMsg(20190818094753,nTypeParamsNotAllowedOnX,sTypeParamsNotAllowedOnX,
+          [El.ElementTypeName],El);
       end;
 
     if (not HasDot) and (ProcName<>'')
@@ -11503,7 +11647,7 @@ begin
       AddIdentifier(TPasIdentifierScope(CurScope),ProcName,El,pikProc);
       end;
 
-    ProcScope:=TPasProcedureScope(PushScope(El,FScopeClass_Proc));
+    ProcScope:=TPasProcedureScope(CreateScope(El,FScopeClass_Proc));
     ProcScope.ModeSwitches:=CurrentParser.CurrentModeswitches;
     if HasDot then
       begin
@@ -11512,7 +11656,9 @@ begin
       writeln('TPasResolver.AddProcedure searching class of "',ProcName,'" ...');
       {$ENDIF}
       ClassOrRecType:=nil;
+      Level:=0;
       repeat
+        inc(Level);
         p:=Pos('.',ProcName);
         if p<1 then
           begin
@@ -11522,8 +11668,29 @@ begin
           end;
         aClassName:=LeftStr(ProcName,p-1);
         Delete(ProcName,1,p);
+        TypeParamCount:=0;
+        if TypeParams<>nil then
+          begin
+          // e.g. aclassname<T>.
+          if Level>TypeParams.Count then
+            RaiseNotYetImplemented(20190818122217,El);
+          TypeParam:=TProcedureNamePart(TypeParams[Level-1]);
+          if TypeParam.Name<>aClassName then
+            RaiseNotYetImplemented(20190818102541,El,IntToStr(Level)+': '+TypeParam.Name+'<>'+aClassName);
+          if TypeParam.Templates<>nil then
+            begin
+            TypeParamCount:=TypeParam.Templates.Count;
+            for i:=0 to TypeParamCount-1 do
+              begin
+              TemplType:=TPasGenericTemplateType(TypeParam.Templates[i]);
+              if length(TemplType.Constraints)>0 then
+                RaiseMsg(20190818102850,nXCannotHaveParameters,sXCannotHaveParameters,
+                  [TemplType.Name],TemplType.Constraints[0]);
+              end;
+            end;
+          end;
         {$IFDEF VerbosePasResolver}
-        writeln('TPasResolver.AddProcedure searching class "',aClassName,'" ProcName="',ProcName,'" ...');
+        writeln('TPasResolver.AddProcedure searching class "',aClassName,GetTypeParamCommas(TypeParamCount),'" ProcName="',ProcName,'" ...');
         {$ENDIF}
         if not IsValidIdent(aClassName) then
           RaiseNotYetImplemented(20161013170844,El);
@@ -11531,41 +11698,25 @@ begin
         if ClassOrRecType<>nil then
           begin
           ClassOrRecScope:=TPasClassOrRecordScope(ClassOrRecType.CustomData);
-          Identifier:=ClassOrRecScope.FindLocalIdentifier(aClassName);
-          if Identifier=nil then
-            RaiseIdentifierNotFound(20180430130635,aClassName,El)
-          else
-            CurEl:=Identifier.Element;
+          ClassOrRecType:=FindMembersType(ClassOrRecScope,aClassName,
+                                          TypeParamCount,IsDelphi,El);
           end
         else
-          CurEl:=FindElementWithoutParams(aClassName,El,false);
+          ClassOrRecType:=FindMembersType(nil,aClassName,
+                                          TypeParamCount,IsDelphi,El);
 
-        if not (CurEl is TPasMembersType) then
-          begin
-          aClassName:=LeftStr(El.Name,length(El.Name)-length(ProcName)-1);
-          {$IFDEF VerbosePasResolver}
-          writeln('TPasResolver.AddProcedure searching class "',aClassName,'" ProcName="',ProcName,'" found: '+GetObjName(CurEl));
-          {$ENDIF}
-          RaiseXExpectedButYFound(20170216152557,
-            'class',aClassname+':'+GetElementTypeName(CurEl),El);
-          end;
-        ClassOrRecType:=TPasMembersType(CurEl);
         if ClassOrRecType is TPasClassType then
           begin
           if not (TPasClassType(ClassOrRecType).ObjKind in
               ([okClass]+okAllHelpers)) then
             begin
             aClassName:=LeftStr(El.Name,length(El.Name)-length(ProcName)-1);
-            RaiseXExpectedButYFound(20180321161722,
-              'class',aClassname+':'+GetElementTypeName(CurEl),El);
+            RaiseXExpectedButYFound(20180321161722,'class',
+              aClassname+GetTypeParamCommas(GetTypeParameterCount(ClassOrRecType))+':'+GetElementTypeName(ClassOrRecType),El);
             end
           end;
         if ClassOrRecType.GetModule<>El.GetModule then
-          begin
-          aClassName:=LeftStr(El.Name,length(El.Name)-length(ProcName)-1);
-          RaiseMsg(20180211230432,nMethodClassXInOtherUnitY,sMethodClassXInOtherUnitY,
-            [aClassName,ClassOrRecType.GetModule.Name],El);
-          end;
+          RaiseNotYetImplemented(20190818120051,El);
       until false;
 
       if not IsValidIdent(ProcName) then
@@ -11573,8 +11724,30 @@ begin
 
       ProcScope.VisibilityContext:=ClassOrRecType;
       ProcScope.ClassRecScope:=NoNil(ClassOrRecType.CustomData) as TPasClassOrRecordScope;
-      end; // HasDot=true
-    end;
+
+      if TypeParams<>nil then
+        begin
+        if Level<>TypeParams.Count then
+          RaiseNotYetImplemented(20190818122315,El);
+        TypeParam:=TProcedureNamePart(TypeParams[Level-1]);
+        if TypeParam.Name<>ProcName then
+          RaiseNotYetImplemented(20190818122551,El,IntToStr(Level)+': '+TypeParam.Name+'<>'+ProcName);
+        if TypeParam.Templates<>nil then
+          begin
+          // ToDo: generic method
+          RaiseNotYetImplemented(20190818122619,El);
+          end;
+        end;
+
+      end
+    else
+      begin
+      // HasDot=false
+      if TypeParams<>nil then
+        RaiseNotYetImplemented(20190818095452,El);
+      end;
+    PushScope(ProcScope);
+    end;// source proc, not specialized
 
   if HasDot then
     begin
@@ -14577,7 +14750,7 @@ begin
   if Item=nil then
     begin
     // new specialization
-    SrcModule:=El.GetModule;
+    SrcModule:=GenericType.GetModule;
     SrcModuleScope:=SrcModule.CustomData as TPasModuleScope;
     SrcResolver:=SrcModuleScope.Owner as TPasResolver;
     Item:=SrcResolver.CreateSpecializedType(El,ParamsResolved);
@@ -15242,6 +15415,8 @@ begin
     AddType(TPasSpecializeType(SpecEl));
     SpecializeSpecializeType(TPasSpecializeType(GenEl),TPasSpecializeType(SpecEl));
     end
+  else if C=TPasGenericTemplateType then
+    SpecializeGenericTemplateType(TPasGenericTemplateType(GenEl),TPasGenericTemplateType(SpecEl))
   // empty statement
   else if C=TPasImplCommand then
   // TPasImplBlock
@@ -15320,12 +15495,12 @@ begin
     end
   else if C=TPasOperator then
     begin
-    AddProcedure(TPasOperator(SpecEl));
+    AddProcedure(TPasOperator(SpecEl),nil);
     SpecializeOperator(TPasOperator(GenEl),TPasOperator(SpecEl));
     end
   else if C.InheritsFrom(TPasProcedure) then
     begin
-    AddProcedure(TPasProcedure(SpecEl));
+    AddProcedure(TPasProcedure(SpecEl),nil);
     SpecializeProcedure(TPasProcedure(GenEl),TPasProcedure(SpecEl));
     end
   else if C.InheritsFrom(TPasProcedureType) then
@@ -15507,6 +15682,9 @@ var
   NewClass: TPTreeElement;
   SpecProcScope: TPasProcedureScope;
   GenBody: TProcedureBody;
+  i, j: Integer;
+  GenPart, SpecPart: TProcedureNamePart;
+  GenTempl, SpecTempl: TPasGenericTemplateType;
 begin
   SpecProcScope:=SpecEl.CustomData as TPasProcedureScope;
   Include(SpecProcScope.Flags,ppsfIsSpecialized);
@@ -15525,6 +15703,33 @@ begin
   SpecEl.MessageType:=GenEl.MessageType;
   SpecEl.AliasName:=GenEl.AliasName;
   SpecEl.Modifiers:=GenEl.Modifiers;
+  if GenEl.NameParts<>nil then
+    begin
+    if SpecEl.NameParts<>nil then
+      RaiseNotYetImplemented(20190818125620,SpecEl);
+    SpecEl.NameParts:=TFPList.Create;
+    for i:=0 to GenEl.NameParts.Count-1 do
+      begin
+      GenPart:=TProcedureNamePart(GenEl.NameParts[i]);
+      SpecPart:=TProcedureNamePart.Create;
+      SpecEl.NameParts.Add(SpecPart);
+      SpecPart.Name:=GenPart.Name;
+      if GenPart.Templates<>nil then
+        begin
+        SpecPart.Templates:=TFPList.Create;
+        for j:=0 to GenPart.Templates.Count-1 do
+          begin
+          GenTempl:=TPasGenericTemplateType(GenPart.Templates[j]);
+          if GenTempl.Parent<>GenEl then
+            RaiseNotYetImplemented(20190818130001,GenEl,IntToStr(i)+','+IntToStr(j)+':'+GenTempl.Name+' GenParent='+GetObjName(GenTempl.Parent)+' GenEl='+GetObjName(GenEl));
+          NewClass:=TPTreeElement(GenTempl.ClassType);
+          SpecTempl:=TPasGenericTemplateType(NewClass.Create(GenTempl.Name,SpecEl));
+          SpecPart.Templates.Add(SpecTempl);
+          SpecializeElement(GenTempl,SpecTempl);
+          end;
+        end;
+      end;
+    end;
   if GenEl.ProcType<>nil then
     begin
     GenProcType:=GenEl.ProcType;
@@ -15543,8 +15748,6 @@ begin
     SpecEl.Body:=TProcedureBody(NewClass.Create(GenBody.Name,SpecEl));
     SpecializeElement(GenBody,SpecEl.Body);
     end;
-
-  if length(GenEl.NameParts)>0 then RaiseNotYetImplemented(20190803215418,GenEl);
 
   FinishProcedure(SpecEl);
 end;
@@ -15693,6 +15896,12 @@ begin
   {$IFDEF VerbosePasResolver}
   //writeln('TPasResolver.SpecializeSpecializeType ',GetObjName(SpecEl.DestType),' ',GetObjName(SpecEl.CustomData));
   {$ENDIF}
+end;
+
+procedure TPasResolver.SpecializeGenericTemplateType(GenEl,
+  SpecEl: TPasGenericTemplateType);
+begin
+  SpecializeExprArray(GenEl,SpecEl,GenEl.Constraints,SpecEl.Constraints);
 end;
 
 procedure TPasResolver.SpecializeArgument(GenEl, SpecEl: TPasArgument);
@@ -18420,7 +18629,7 @@ begin
       AddClassType(TPasClassType(El),TypeParams)
     else if AClass=TPasVariant then
     else if AClass.InheritsFrom(TPasProcedure) then
-      AddProcedure(TPasProcedure(El))
+      AddProcedure(TPasProcedure(El),TypeParams)
     else if AClass=TPasResultElement then
       AddFunctionResult(TPasResultElement(El))
     else if AClass=TProcedureBody then
@@ -19169,11 +19378,6 @@ begin
   stTypeSection: FinishTypeSection(El);
   stTypeDef: FinishTypeDef(El as TPasType);
   stResourceString: FinishResourcestring(El as TPasResString);
-  stGenericTypeTemplates:
-    if El is TPasGenericType then
-      FinishGenericTemplateTypes(TPasGenericType(El))
-    else
-      FinishProcNameParts(El as TPasProcedure);
   stProcedure: FinishProcedure(El as TPasProcedure);
   stProcedureHeader: FinishProcedureType(El as TPasProcedureType);
   stExceptOnExpr: FinishExceptOnExpr;
@@ -22689,7 +22893,9 @@ function TPasResolver.GetTypeDescription(aType: TPasType; AddPath: boolean): str
         end
       else
         Result:=GetElementTypeName(aType);
-      end;
+      end
+    else if aType is TPasGenericType then
+      Result:=Result+GetTypeParamCommas(GetTypeParameterCount(TPasGenericType(aType)));
     if AddPath then
       begin
       s:=aType.ParentPath;
@@ -25379,7 +25585,7 @@ begin
     AncestorScope:=(aClass.CustomData as TPasClassScope).AncestorScope;
     if AncestorScope=nil then exit;
     aClass:=NoNil(AncestorScope.Element) as TPasClassType;
-  end;
+    end;
 end;
 
 function TPasResolver.IsProcedureType(const ResolvedEl: TPasResolverResult;

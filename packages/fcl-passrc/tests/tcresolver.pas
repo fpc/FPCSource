@@ -9149,7 +9149,7 @@ begin
   Add('begin');
   Add('end;');
   Add('begin');
-  CheckResolverException('identifier not found "TClassA"',nIdentifierNotFound);
+  CheckResolverException('class "TClassA" not found in this module',nClassXNotFoundInThisModule);
 end;
 
 procedure TTestResolver.TestClass_MethodInOtherUnitFail;
@@ -9170,7 +9170,8 @@ begin
   'begin',
   'end;',
   'begin']);
-  CheckResolverException('method class "TObject" in other unit "unit1"',nMethodClassXInOtherUnitY);
+  CheckResolverException('class "TObject" not found in this module',
+    nClassXNotFoundInThisModule);
 end;
 
 procedure TTestResolver.TestClass_MethodWithParams;

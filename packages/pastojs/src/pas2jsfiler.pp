@@ -3762,14 +3762,14 @@ var
   NameParts: TProcedureNameParts;
 begin
   NameParts:=El.NameParts;
-  if length(NameParts)=0 then exit;
+  if (NameParts=nil) or (NameParts.Count=0) then exit;
   Arr:=TJSONArray.Create;
   Obj.Add('NameParts',Arr);
-  for i:=0 to length(NameParts)-1 do
+  for i:=0 to NameParts.Count-1 do
     begin
     NamePartObj:=TJSONObject.Create;
     Arr.Add(NamePartObj);
-    with NameParts[i] do
+    with TProcedureNamePart(NameParts[i]) do
       begin
       NamePartObj.Add('Name',Name);
       if Templates<>nil then
@@ -7484,15 +7484,21 @@ var
   NamePartObj, TemplObj: TJSONObject;
   GenTypeName: string;
   GenType: TPasGenericTemplateType;
+  NamePart: TProcedureNamePart;
 begin
   ReleaseProcNameParts(El.NameParts);
   if ReadArray(Obj,'NameParts',Arr,El) then
     begin
-    SetLength(El.NameParts,Arr.Count);
+    if El.NameParts=nil then
+      El.NameParts:=TProcedureNameParts.Create
+    else
+      El.NameParts.Clear;
     for i:=0 to Arr.Count-1 do
       begin
       NamePartObj:=CheckJSONObject(Arr[i],20190718113441);
-      with El.NameParts[i] do
+      NamePart:=TProcedureNamePart.Create;
+      El.NameParts.Add(NamePart);
+      with NamePart do
         begin
         if not ReadString(NamePartObj,'Name',Name,El) then
           RaiseMsg(20190718113739,El,IntToStr(i));
