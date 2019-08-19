@@ -135,7 +135,7 @@ var
 Begin
   e := OpenFile(FileName, result, Mode, faOpen);
   if e <> 0 then
-    result := -1;
+    result := unusedhandle;
 end;
 
 
@@ -145,7 +145,7 @@ var
 begin
   e := OpenFile(FileName, result, ofReadWrite, faCreate or faOpenReplace);
   if e <> 0 then
-    result := -1;
+    result := unusedhandle;
 end;
 
 
