@@ -1146,7 +1146,7 @@ implementation
       var
          oldflowcontrol: tflowcontrol;
          i : longint;
-         dist : aword;
+         dist : asizeuint;
          distv,
          lv,hv,
          max_label: tconstexprint;
@@ -1235,7 +1235,7 @@ implementation
                    if distv>=0 then
                      dist:=distv.uvalue
                    else
-                     dist:=aword(-distv.svalue);
+                     dist:=asizeuint(-distv.svalue);
 
                    { optimize for size ? }
                    if cs_opt_size in current_settings.optimizerswitches  then
