@@ -907,7 +907,7 @@ type
 
 { Delphi has these as part of TRawVirtualClass.TVTable; until we have that we
   simply leave that here in the implementation }
-function AllocateRawThunk(aProc: CodePointer; aContext: Pointer; aBytesToPop: SizeInt): Pointer;
+function AllocateRawThunk(aProc: CodePointer; aContext: Pointer; aBytesToPop: SizeInt): CodePointer;
 {$if declared(RawThunk)}
 var
   size, i: SizeInt;
@@ -973,7 +973,7 @@ begin
 {$endif}
 end;
 
-procedure FreeRawThunk(aThunk: Pointer);
+procedure FreeRawThunk(aThunk: CodePointer);
 begin
 {$if declared(RawThunk)}
   FreeMemory(aThunk, PtrUInt(RawThunkEndPtr) - PtrUInt(@RawThunk));
