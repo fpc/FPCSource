@@ -6967,6 +6967,7 @@ packages/libndsfpc/examples/graphics/grit/256colorTilemap/Makefile.fpc svneol=na
 packages/libndsfpc/examples/graphics/grit/256colorTilemap/gfx/tilemap.grit svneol=native#text/plain
 packages/libndsfpc/examples/graphics/grit/256colorTilemap/gfx/tilemap.png -text
 packages/libndsfpc/examples/graphics/grit/256colorTilemap/tilemap_256_color.pp svneol=native#text/plain
+packages/libndsfpc/examples/graphics/grit/Makefile svneol=native#text/plain
 packages/libndsfpc/examples/graphics/grit/Makefile.fpc svneol=native#text/plain
 packages/libndsfpc/examples/hello_world/Makefile svneol=native#text/plain
 packages/libndsfpc/examples/hello_world/Makefile.fpc svneol=native#text/plain
