@@ -692,6 +692,26 @@ interface
         property InternalRefMovableSegmentEntryTableIndex: Word read FInternalRefMovableSegmentEntryTableIndex write FInternalRefMovableSegmentEntryTableIndex;
       end;
 
+      { TNewExeRelocationList }
+
+      TNewExeRelocationList=class
+      private
+        FInternalList: TFPObjectList;
+        function GetCount: Integer;
+        function GetItem(Index: Integer): TNewExeRelocation;
+        function GetSize: QWord;
+        procedure SetCount(AValue: Integer);
+        procedure SetItem(Index: Integer; AValue: TNewExeRelocation);
+      public
+        constructor Create;
+        destructor Destroy; override;
+        procedure WriteTo(aWriter: TObjectWriter);
+        function Add(AObject: TNewExeRelocation): Integer;
+        property Size: QWord read GetSize;
+        property Count: Integer read GetCount write SetCount;
+        property Items[Index: Integer]: TNewExeRelocation read GetItem write SetItem; default;
+      end;
+
       { TNewExeSection }
 
       TNewExeSection=class(TExeSection)
@@ -703,8 +723,12 @@ interface
         FDataPosSectors: Word;
         FNewExeSegmentFlags: TNewExeSegmentFlags;
         FSizeInFile: QWord;
+        FRelocations: TNewExeRelocationList;
         function GetMinAllocSize: QWord;
       public
+        constructor create(AList:TFPHashObjectList;const AName:string);override;
+        destructor destroy;override;
+
         procedure WriteHeaderTo(aWriter: TObjectWriter);
         function MemPosStr(AImageBase: qword): string;override;
         procedure AddObjSection(objsec:TObjSection;ignoreprops:boolean=false);override;
@@ -717,6 +741,7 @@ interface
         property MinAllocSize: QWord read GetMinAllocSize;
         property SizeInFile: QWord read FSizeInFile write FSizeInFile;
         property NewExeSegmentFlags: TNewExeSegmentFlags read FNewExeSegmentFlags write FNewExeSegmentFlags;
+        property Relocations: TNewExeRelocationList read FRelocations;
       end;
 
       { TNewExeOutput }
@@ -4265,12 +4290,87 @@ cleanup:
       end;
 
 {****************************************************************************
+                           TNewExeRelocationList
+****************************************************************************}
+
+    function TNewExeRelocationList.GetCount: Integer;
+      begin
+        Result:=FInternalList.Count;
+      end;
+
+    function TNewExeRelocationList.GetItem(Index: Integer): TNewExeRelocation;
+      begin
+        Result:=TNewExeRelocation(FInternalList[Index]);
+      end;
+
+    function TNewExeRelocationList.GetSize: QWord;
+      begin
+        Result:=2+Count*NewExeRelocationRecordSize;
+      end;
+
+    procedure TNewExeRelocationList.SetCount(AValue: Integer);
+      begin
+        FInternalList.Count:=AValue;
+      end;
+
+    procedure TNewExeRelocationList.SetItem(Index:Integer;AValue:TNewExeRelocation);
+      begin
+        FInternalList[Index]:=AValue;
+      end;
+
+    constructor TNewExeRelocationList.Create;
+      begin
+        FInternalList:=TFPObjectList.Create;
+      end;
+
+    destructor TNewExeRelocationList.Destroy;
+      begin
+        FInternalList.Free;
+        inherited Destroy;
+      end;
+
+    procedure TNewExeRelocationList.WriteTo(aWriter: TObjectWriter);
+      var
+        buf: array of Byte;
+        p: PByte;
+        i: Integer;
+      begin
+        SetLength(buf,Size);
+        buf[0]:=Byte(Count);
+        buf[1]:=Byte(Count shr 8);
+        p:=@(buf[2]);
+        for i:=0 to Count-1 do
+          begin
+            Items[i].EncodeTo(p);
+            Inc(p,NewExeRelocationRecordSize);
+          end;
+        aWriter.write(buf[0],Size);
+      end;
+
+    function TNewExeRelocationList.Add(AObject: TNewExeRelocation): Integer;
+      begin
+        Result:=FInternalList.Add(AObject);
+      end;
+
+{****************************************************************************
                               TNewExeSection
 ****************************************************************************}
 
     function TNewExeSection.GetMinAllocSize: QWord;
       begin
         Result:=Size-StackSize;
+      end;
+
+    constructor TNewExeSection.create(AList:TFPHashObjectList;const AName:string);
+      begin
+        inherited create(AList, AName);
+        FRelocations:=TNewExeRelocationList.Create;
+      end;
+
+    destructor TNewExeSection.destroy;
+      begin
+        FRelocations.Free;
+        inherited destroy;
       end;
 
     procedure TNewExeSection.WriteHeaderTo(aWriter: TObjectWriter);
