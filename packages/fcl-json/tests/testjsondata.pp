@@ -238,6 +238,7 @@ type
     procedure TestCreateBoolean;
     procedure TestCreateBooleanUnquoted;
     procedure TestCreateObject;
+    procedure TestCreateJSONUnicodeString;
     procedure TestCreateJSONString;
     procedure TestCreateJSONStringUnquoted;
     procedure TestCreateJSONObject;
@@ -3923,6 +3924,25 @@ begin
     end;
   except
     // Should be OK.
+  end;
+end;
+
+procedure TTestObject.TestCreateJSONUnicodeString;
+Const
+  A = 'A';
+  S : Unicodestring = 'A string';
+
+Var
+  O : TJSONObject;
+
+begin
+  O:=TJSONObject.Create([A,S]);
+  try
+    TestItemCount(O,1);
+    TestJSONType(O[A],jtString);
+    TestJSON(O,'{ "A" : "'+S+'" }');
+  finally
+    FreeAndNil(O);
   end;
 end;
 
