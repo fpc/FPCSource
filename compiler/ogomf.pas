@@ -725,6 +725,7 @@ interface
         FSizeInFile: QWord;
         FRelocations: TNewExeRelocationList;
         function GetMinAllocSize: QWord;
+        function GetNewExeSegmentFlags: TNewExeSegmentFlags;
       public
         constructor create(AList:TFPHashObjectList;const AName:string);override;
         destructor destroy;override;
@@ -740,7 +741,7 @@ interface
         property DataPosSectors: Word read FDataPosSectors write FDataPosSectors;
         property MinAllocSize: QWord read GetMinAllocSize;
         property SizeInFile: QWord read FSizeInFile write FSizeInFile;
-        property NewExeSegmentFlags: TNewExeSegmentFlags read FNewExeSegmentFlags write FNewExeSegmentFlags;
+        property NewExeSegmentFlags: TNewExeSegmentFlags read GetNewExeSegmentFlags write FNewExeSegmentFlags;
         property Relocations: TNewExeRelocationList read FRelocations;
       end;
 
@@ -4359,6 +4360,15 @@ cleanup:
     function TNewExeSection.GetMinAllocSize: QWord;
       begin
         Result:=Size-StackSize;
+      end;
+
+    function TNewExeSection.GetNewExeSegmentFlags: TNewExeSegmentFlags;
+      begin
+        Result:=FNewExeSegmentFlags;
+        if Relocations.Count>0 then
+          Include(Result,nesfHasRelocationData)
+        else
+          Exclude(Result,nesfHasRelocationData);
       end;
 
     constructor TNewExeSection.create(AList:TFPHashObjectList;const AName:string);
