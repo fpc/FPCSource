@@ -15449,7 +15449,7 @@ begin
   else if (C=TPasImplTryFinally)
       or (C=TPasImplTryExcept)
       or (C=TPasImplTryExceptElse) then
-    SpecializeImplBlock(TPasImplCaseElse(GenEl),TPasImplCaseElse(SpecEl))
+    SpecializeImplBlock(TPasImplTryHandler(GenEl),TPasImplTryHandler(SpecEl))
   else if C=TPasImplExceptOn then
     begin
     AddExceptOn(TPasImplExceptOn(SpecEl));

@@ -15929,8 +15929,8 @@ begin
   Add([
   'type p = ^(red, green);',
   'begin']);
-  CheckResolverException('not yet implemented: pointer of anonymous type',
-    nNotYetImplemented);
+  CheckParserException('Expected "Identifier" at token "(" in file afile.pp at line 2 column 11',
+    nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestPointer_AssignPointerToClassFail;

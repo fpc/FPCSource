@@ -55,17 +55,16 @@ type
     procedure TestGen_ClassForwardConstraintTypeMismatch;
     procedure TestGen_ClassForward_Circle;
     procedure TestGen_Class_RedeclareInUnitImplFail;
-    // ToDo: add another in unit implementation
+    procedure TestGen_Class_AnotherInUnitImpl;
     procedure TestGen_Class_Method;
-    // ToDo: procedure TestGen_Class_MethodOverride;
+    procedure TestGen_Class_MethodOverride;
     procedure TestGen_Class_MethodDelphi;
     // ToDo: procedure TestGen_Class_MethodDelphiTypeParamMissing;
     // ToDo: procedure TestGen_Class_MethodImplConstraintFail;
     procedure TestGen_Class_SpecializeSelfInside;
-    // ToDo: generic class overload <T> <S,T>
     procedure TestGen_Class_GenAncestor;
     procedure TestGen_Class_AncestorSelfFail;
-    // ToDo: class of TBird<word> fail
+    procedure TestGen_ClassOfSpecializeFail;
     // ToDo: UnitA.impl uses UnitB.intf uses UnitA.intf, UnitB has specialize of UnitA
     procedure TestGen_Class_NestedType;
     procedure TestGen_Class_NestedRecord;
@@ -82,12 +81,13 @@ type
 
     // generic array
     procedure TestGen_Array;
+    // ToDo: anonymous array type
 
     // generic procedure type
     procedure TestGen_ProcType;
 
-    // ToDo: pointer of generic
-    // ToDo: PBird = ^TBird<word> fail
+    // pointer of generic
+    procedure TestGen_PointerDirectSpecializeFail;
 
     // ToDo: helpers for generics
 
@@ -632,6 +632,20 @@ begin
     nDuplicateIdentifier);
 end;
 
+procedure TTestResolveGenerics.TestGen_Class_AnotherInUnitImpl;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class v: T; end;',
+  'implementation',
+  'type generic TBird<T,U> = record x: T; y: U; end;',
+  '']);
+  ParseUnit;
+end;
+
 procedure TTestResolveGenerics.TestGen_Class_Method;
 begin
   StartProgram(false);
@@ -653,6 +667,31 @@ begin
   'begin',
   '  w:=b.Fly(w);',
   '  w:=b.Run(w);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_MethodOverride;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '    function Fly(p:T): T; virtual; abstract;',
+  '  end;',
+  '  generic TEagle<S> = class(specialize TBird<S>)',
+  '    function Fly(p:S): S; override;',
+  '  end;',
+  'function TEagle.Fly(p:S): S;',
+  'begin',
+  'end;',
+  'var',
+  '  e: specialize TEagle<word>;',
+  '  w: word;',
+  'begin',
+  '  w:=e.Fly(w);',
   '']);
   ParseProgram;
 end;
@@ -739,6 +778,22 @@ begin
   'begin',
   '']);
   CheckResolverException('type "TBird<>" is not yet completely defined',nTypeXIsNotYetCompletelyDefined);
+end;
+
+procedure TTestResolveGenerics.TestGen_ClassOfSpecializeFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '    e: T;',
+  '  end;',
+  '  TBirdClass = class of specialize TBird<word>;',
+  'begin',
+  '']);
+  CheckParserException('Expected "Identifier" at token "specialize" in file afile.pp at line 8 column 25',nParserExpectTokenError);
 end;
 
 procedure TTestResolveGenerics.TestGen_Class_NestedType;
@@ -1018,6 +1073,18 @@ begin
   '  b:=@GetIt;',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_PointerDirectSpecializeFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TRec<T> = record v: T; end;',
+  '  PRec = ^specialize TRec<word>;',
+  'begin',
+  '']);
+  CheckParserException('Expected "Identifier" at token "specialize" in file afile.pp at line 4 column 11',nParserExpectTokenError);
 end;
 
 procedure TTestResolveGenerics.TestGen_GenericFunction;

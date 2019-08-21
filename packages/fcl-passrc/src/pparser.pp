@@ -1741,11 +1741,27 @@ function TPasParser.ParsePointerType(Parent: TPasElement;
 
 var
   ok: Boolean;
+  Name: String;
 begin
   Result := TPasPointerType(CreateElement(TPasPointerType, TypeName, Parent, NamePos));
   ok:=false;
   Try
-    TPasPointerType(Result).DestType := ParseType(Result,CurSourcePos);
+    // only allowed: ^dottedidentifer
+    // forbidden: ^^identifier, ^array of word, ^A<B>
+    ExpectIdentifier;
+    Name:=CurTokenString;
+    repeat
+      NextToken;
+      if CurToken=tkDot then
+        begin
+        ExpectIdentifier;
+        Name := Name+'.'+CurTokenString;
+        end
+      else
+        break;
+    until false;
+    UngetToken;
+    Result.DestType:=ResolveTypeReference(Name,Result);
     Engine.FinishScope(stTypeDef,Result);
     ok:=true;
   finally
