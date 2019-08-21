@@ -2220,7 +2220,7 @@ end;
 
 function Invoke(const aName: String; aCodeAddress: CodePointer; aCallConv: TCallConv; aStatic: Boolean; aInstance: TValue; constref aArgs: array of TValue; const aParams: specialize TArray<TRttiParameter>; aReturnType: TRttiType): TValue;
 var
-  arrparam, param: TRttiParameter;
+  param: TRttiParameter;
   unhidden, highs, i: SizeInt;
   args: TFunctionCallParameterArray;
   highargs: array of SizeInt;
