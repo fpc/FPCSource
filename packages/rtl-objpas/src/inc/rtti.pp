@@ -530,13 +530,9 @@ type
     fThunks: array[0..2] of CodePointer;
     fImpls: array of TMethodImplementation;
     fVmt: PCodePointer;
-    fQueryInterfaceType: TRttiType;
-    fAddRefType: TRttiType;
-    fReleaseType: TRttiType;
   protected
     function QueryInterface(constref aIID: TGuid; out aObj): LongInt;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 
-    procedure HandleIInterfaceCallback(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue);
     procedure HandleUserCallback(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue);
   public
     constructor Create(aPIID: PTypeInfo);
@@ -4048,28 +4044,11 @@ begin
   result := (FContextToken as IPooltoken).RttiPool.GetTypes;
 end;}
 
-type
-  TQueryInterface = function(constref aIID: TGUID; out aObj): LongInt of object;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
-  TAddRef = function: LongInt of object;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
-  TRelease = function: LongInt of object;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
-
 { TVirtualInterface }
 
 {.$define DEBUG_VIRTINTF}
 
 constructor TVirtualInterface.Create(aPIID: PTypeInfo);
-
-  function GetIInterfaceMethod(aTypeInfo: PTypeInfo; const aName: String; out aType: TRttiType): TMethodImplementation;
-  begin
-    aType := fContext.GetType(aTypeInfo);
-    if not (aType is TRttiMethodType) then
-      raise EInsufficientRtti.Create(SErrVirtIntfIInterface) at get_caller_addr(get_frame), get_caller_frame(get_frame);
-
-    Result := TRttiMethodType(aType).CreateImplementation(@HandleIInterfaceCallback);
-    if not Assigned(Result) then
-      raise ERtti.CreateFmt(SErrVirtIntfCreateImpl, [aPIID^.Name, aName]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
-  end;
-
 const
   BytesToPopQueryInterface =
 {$ifdef cpui386}
@@ -4206,28 +4185,6 @@ begin
     Result := S_OK;
   end else
     Result := inherited QueryInterface(aIID, aObj);
-end;
-
-procedure TVirtualInterface.HandleIInterfaceCallback(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue);
-var
-  res: LongInt;
-  guid: TGuid;
-begin
-  {$IFDEF DEBUG_VIRTINTF}Writeln(aInvokable.Name);{$ENDIF}
-  if aInvokable = fQueryInterfaceType then begin
-    {$IFDEF DEBUG_VIRTINTF}Writeln('Call for QueryInterface');{$ENDIF}
-    Move(aArgs[1].GetReferenceToRawData^, guid, SizeOf(guid));
-    res := QueryInterface(guid, PPointer(aArgs[2].GetReferenceToRawData)^);
-    TValue.Make(@res, TypeInfo(LongInt), aResult);
-  end else if aInvokable = fAddRefType then begin
-    {$IFDEF DEBUG_VIRTINTF}Writeln('Call for AddRef');{$ENDIF}
-    res := _AddRef;
-    TValue.Make(@res, TypeInfo(LongInt), aResult);
-  end else if aInvokable = fReleaseType then begin
-    {$IFDEF DEBUG_VIRTINTF}Writeln('Call for Release');{$ENDIF}
-    res := _Release;
-    TValue.Make(@res, TypeInfo(LongInt), aResult);
-  end;
 end;
 
 procedure TVirtualInterface.HandleUserCallback(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue);
