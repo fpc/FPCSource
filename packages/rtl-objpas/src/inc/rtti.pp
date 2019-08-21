@@ -891,6 +891,34 @@ asm
 RawThunkEnd:
 end;
 {$endif}
+{$elseif defined(cpuarm)}
+const
+  RawThunkPlaceholderProc = $87658765;
+  RawThunkPlaceholderContext = $43214321;
+
+type
+  TRawThunkProc = PtrUInt;
+  TRawThunkContext = PtrUInt;
+
+procedure RawThunk; assembler; nostackframe;
+asm
+  (* To be compatible with Thumb we first load the function pointer into R0,
+    then move that to R12 which is volatile and then we load the new Self into
+    R0 *)
+  ldr r0, .LProc
+  mov r12, r0
+  ldr r0, .LContext
+{$ifdef CPUARM_HAS_BX}
+  bx r12
+{$else}
+  mov pc, r12
+{$endif}
+.LProc:
+  .long RawThunkPlaceholderProc
+.LContext:
+  .long RawThunkPlaceholderContext
+RawThunkEnd:
+end;
 {$endif}
 
 {$if declared(RawThunk)}
