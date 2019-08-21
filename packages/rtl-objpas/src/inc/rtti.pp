@@ -1506,7 +1506,6 @@ type
   PMethod = ^TMethod;
 var
   td: PTypeData;
-  size: SizeInt;
 begin
   result.FData.FTypeInfo:=ATypeInfo;
   { resets the whole variant part; FValueData is already Nil }
