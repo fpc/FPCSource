@@ -1,5 +1,10 @@
 program tarray15;
 
+{$define target_supports_rodata}
+{$if defined(msdos) or defined(hasamiga) or defined(atari) or defined(palmos)}
+{$undef target_supports_rodata}
+{$endif}
+
 {$mode  objfpc}
 
 { needed for "except" to work }
@@ -79,6 +84,13 @@ begin
     Halt(17);
   if not specialize CheckArray<LongInt>(rc1, [1, 2, 3]) then
     Halt(18);
+{$ifdef target_supports_rodata}
+  try
+    rc1[1] := 42;
+    Halt(19);
+  except
+  end;
+{$endif}
   if not specialize CheckArray<LongInt>(wc1, [1, 2, 3]) then
     Halt(20);
   wc1[1] := 42;

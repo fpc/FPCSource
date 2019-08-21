@@ -14,35 +14,65 @@ uses
 {$push}
 {$J-}
 const
-  rc1: array of LongInt = (1, 2, 3);
+  rc: LongInt = 5;
+  rc1: array [0..2] of LongInt = (1, 2, 3);
 {$J+}
 const
-  wc1: array of LongInt = (1, 2, 3);
+  wc: LongInt = 78;
+  wc1: array [0..2] of LongInt = (1, 2, 3);
+  has_errors : boolean = false;
 {$pop}
-
+var
+  p : plongint;
 
 begin
 {$ifdef target_supports_rodata}
   try
-    rc1[1] := 42;
-    writeln('Error: Trying to write read-only data did not generate an exception');
-    Halt(1);
+    p := @rc;
+    p^ := 42;
+    writeln('Error: Trying to write a read-only longint constant did not generate an exception');
+    has_errors:=true;
   except
-    writeln('Trying to write read-only data generated exception');
+    writeln('OK: Trying to write read-only data generated exception');
+  end;
+  try
+    p := @rc1[1];
+    p^ := 42;
+    writeln('Error: Trying to write a read-only longint array data element did not generate an exception');
+    has_errors:=true;
+  except
+    writeln('OK: Trying to write read-only data generated exception');
   end;
 {$else}
   try
-    rc1[1] := 42;
-    writeln('Trying to write read-only data did not generate an exception, as expected');
+    p := @rc;
+    p^ := 42;
+    writeln('Trying to write a read-only longint constant did not generate an exception, as expected');
   except
-    writeln('Trying to write read-only data generated exception, while system is supposed not to support this');
-    halt(2);
+    writeln('Trying to write a read-only longint constant generated exception, while system is supposed not to support this');
+    has_errors:=true;
+  end;
+  try
+    p := @rc1[1];
+    p^ := 42;
+    writeln('Trying to write a read-only longint array data element did not generate an exception, as expected');
+  except
+    writeln('Trying to write a read-only longint array data element generated exception, while system is supposed not to support this');
+    has_errors:=true;
   end;
 {$endif}
   try
+    wc := 42;
+  except
+    writeln('Error: Trying to write normal longint initialized "const" generated exception');
+    has_errors:=true;
+  end;
+  try
     wc1[1] := 42;
   except
-    writeln('Error: Trying to write normal data generated exception');
-    halt(3);
+    writeln('Error: Trying to write normal array data element generated exception');
+    has_errors:=true;
   end;
+  if has_errors then
+    halt(1);
 end.

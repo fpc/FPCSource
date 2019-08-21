@@ -15067,6 +15067,7 @@ tests/test/trange4.pp svneol=native#text/plain
 tests/test/trange5.pp svneol=native#text/plain
 tests/test/trangeob.pp svneol=native#text/plain
 tests/test/treadonlydata.pp svneol=native#text/pascal
+tests/test/treadonlydata2.pp svneol=native#text/pascal
 tests/test/trecreg.pp svneol=native#text/plain
 tests/test/trecreg2.pp svneol=native#text/plain
 tests/test/trecreg3.pp svneol=native#text/plain
