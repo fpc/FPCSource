@@ -458,6 +458,16 @@ function aligntoqword(p : pointer) : pointer;inline;
   end;
 
 
+function AlignTypeData(p : pointer) : pointer; inline;
+  begin
+{$if defined(CPUM68K) and not defined(VER3_0)}
+    result := aligntoqword(p);
+{$else CPUM68K and not VER3_0}
+    result := aligntoptr(p);
+{$endif CPUM68K and not VER3_0}
+  end;
+
+
 {$if not defined(VER3_0) and not defined(VER3_2)}
 type
   TRttiDataCommon =
