@@ -3772,7 +3772,7 @@ Var
 begin
   OB:=IncludeTrailingPathDelimiter(GetBinOutputDir(ACPU,AOS));
   OU:=IncludeTrailingPathDelimiter(GetUnitsOutputDir(ACPU,AOS));
-  List.Add(GetUnitConfigOutputFilename(Defaults.CPU,Defaults.OS));
+  List.Add(GetUnitConfigOutputFilename(ACPU,AOS));
   List.Add(ManifestFile);
   AddConditionalStrings(Self, List,CleanFiles,ACPU,AOS);
   For I:=0 to FTargets.Count-1 do
