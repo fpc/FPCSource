@@ -1023,15 +1023,15 @@ type
 
 function aligntoptr(p : pointer) : pointer;inline;
    begin
-{$ifdef m68k}
+{$ifdef CPUM68K}
      result:=AlignTypeData(p);
-{$else m68k}
+{$else CPUM68K}
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
      result:=align(p,sizeof(p));
 {$else FPC_REQUIRES_PROPER_ALIGNMENT}
      result:=p;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-{$endif m68k}
+{$endif CPUM68K}
    end;
 
 
