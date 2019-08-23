@@ -627,7 +627,7 @@ var rtl = {
   },
 
   queryIntfIsT: function(obj,intftype){
-    var i = rtl.queryIntfG(obj,intftype.$guid);
+    var i = rtl.getIntfG(obj,intftype.$guid);
     if (!i) return false;
     if (i.$kind === 'com') i._Release();
     return true;
@@ -636,6 +636,18 @@ var rtl = {
   asIntfT: function (obj,intftype){
     var i = rtl.getIntfG(obj,intftype.$guid);
     if (i!==null) return i;
+    rtl.raiseEInvalidCast();
+  },
+
+  intfIsIntfT: function(intf,intftype){
+    return (intf!==null) && rtl.queryIntfIsT(intf.$o,intftype);
+  },
+
+  intfAsIntfT: function (intf,intftype){
+    if (intf){
+      var i = rtl.getIntfG(intf.$o,intftype.$guid);
+      if (i!==null) return i;
+    }
     rtl.raiseEInvalidCast();
   },
 
