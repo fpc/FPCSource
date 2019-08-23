@@ -404,7 +404,7 @@ begin
             Result:=PRecordInfoInit(Temp)^.Size;
             EleCount:=PRecordInfoInit(Temp)^.Count;
             { Get element info, hacky, but what else can we do? }
-            Temp:=aligntoptr(Pointer(@PRecordInfoInit(Temp)^.Count)+SizeOf(PRecordInfoInit(Temp)^.Count));
+            Temp:=AlignTypeData(Pointer(@PRecordInfoInit(Temp)^.Count)+SizeOf(PRecordInfoInit(Temp)^.Count));
 {$else VER3_0}
             Result:=PRecordInfoFull(Temp)^.Size;
             EleCount:=PRecordInfoFull(Temp)^.Count;
