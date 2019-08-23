@@ -1668,12 +1668,36 @@ end;
 {$endif}
 
 class function TValue.FromOrdinal(aTypeInfo: PTypeInfo; aValue: Int64): TValue;
+{$ifdef ENDIAN_BIG}
+var
+  p: PByte;
+  td: PTypeData;
+{$endif}
 begin
   if not Assigned(aTypeInfo) or
       not (aTypeInfo^.Kind in [tkInteger, tkInt64, tkQWord, tkEnumeration, tkBool, tkChar, tkWChar, tkUChar]) then
     raise EInvalidCast.Create(SErrInvalidTypecast);
 
+{$ifdef ENDIAN_BIG}
+  td := GetTypeData(aTypeInfo);
+  p := @aValue;
+  case td^.OrdType of
+    otSByte,
+    otUByte:
+      p := p + 7;
+    otSWord,
+    otUWord:
+      p := p + 6;
+    otSLong,
+    otULong:
+      p := p + 4;
+    otSQWord,
+    otUQWord: ;
+  end;
+  TValue.Make(p, aTypeInfo, Result);
+{$else}
   TValue.Make(@aValue, aTypeInfo, Result);
+{$endif}
 end;
 
 function TValue.GetIsEmpty: boolean;
