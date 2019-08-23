@@ -227,6 +227,7 @@ type
     function GetBaseType: TRttiType; virtual;
   public
     constructor Create(ATypeInfo : PTypeInfo);
+    destructor Destroy; override;
     function GetAttributes: specialize TArray<TCustomAttribute>; override;
     function GetProperties: specialize TArray<TRttiProperty>; virtual;
     function GetProperty(const AName: string): TRttiProperty; virtual;
@@ -3903,6 +3904,15 @@ begin
   FTypeInfo:=ATypeInfo;
   if assigned(FTypeInfo) then
     FTypeData:=GetTypeData(ATypeInfo);
+end;
+
+destructor TRttiType.Destroy;
+var
+  attr: TCustomAttribute;
+begin
+  for attr in FAttributes do
+    attr.Free;
+  inherited;
 end;
 
 function TRttiType.GetAttributes: specialize TArray<TCustomAttribute>;
