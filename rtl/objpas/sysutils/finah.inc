@@ -29,7 +29,7 @@ function ExtractShortPathName(Const FileName : PathStr) : PathStr;
 function ExpandFileName (Const FileName : PathStr): PathStr;
 function ExpandFileNameCase (const FileName: PathStr; out MatchFound: TFilenameCaseMatch): PathStr;
 function ExpandUNCFileName (Const FileName : PathStr): PathStr;
-function ExtractRelativePath (Const BaseName,DestNAme : PathStr): PathStr;
+function ExtractRelativePath (Const BaseName,DestName : PathStr): PathStr;
 function IncludeTrailingPathDelimiter(Const Path : PathStr) : PathStr;
 function IncludeTrailingBackslash(Const Path : PathStr) : PathStr;
 function ExcludeTrailingBackslash(Const Path: PathStr): PathStr;
