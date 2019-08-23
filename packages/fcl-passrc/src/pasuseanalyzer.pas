@@ -2516,6 +2516,7 @@ var
   i: Integer;
   Decl: TPasElement;
   Usage: TPAElement;
+  GenScope: TPasGenericScope;
 begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.EmitDeclarationsHints ',GetElModName(El));
@@ -2537,6 +2538,12 @@ begin
       if Usage=nil then
         begin
         // declaration was never used
+        if Decl is TPasGenericType then
+          begin
+          GenScope:=Decl.CustomData as TPasGenericScope;
+          if GenScope.SpecializedItem<>nil then
+            continue;
+          end;
         EmitMessage(20170311231734,mtHint,nPALocalXYNotUsed,
           sPALocalXYNotUsed,[Decl.ElementTypeName,Decl.Name],Decl);
         end;
@@ -2551,6 +2558,7 @@ var
   i: Integer;
   Member: TPasElement;
   Members: TFPList;
+  GenScope: TPasGenericScope;
 begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.EmitTypeHints ',GetElModName(El));
@@ -2566,6 +2574,12 @@ begin
       begin
       if (El is TPasClassType) and (TPasClassType(El).ObjKind=okInterface) then
         exit;
+      if El is TPasGenericType then
+        begin
+        GenScope:=El.CustomData as TPasGenericScope;
+        if GenScope.SpecializedItem<>nil then
+          exit;
+        end;
 
       EmitMessage(20170312000025,mtHint,nPALocalXYNotUsed,
         sPALocalXYNotUsed,[El.ElementTypeName,El.Name],El);

@@ -59,8 +59,9 @@ type
     procedure TestGen_Class_Method;
     procedure TestGen_Class_MethodOverride;
     procedure TestGen_Class_MethodDelphi;
-    // ToDo: procedure TestGen_Class_MethodDelphiTypeParamMissing;
-    // ToDo: procedure TestGen_Class_MethodImplConstraintFail;
+    procedure TestGen_Class_MethodDelphiTypeParamMissing;
+    procedure TestGen_Class_MethodImplConstraintFail;
+    procedure TestGen_Class_MethodImplTypeParamNameMismatch;
     procedure TestGen_Class_SpecializeSelfInside;
     procedure TestGen_Class_GenAncestor;
     procedure TestGen_Class_AncestorSelfFail;
@@ -719,6 +720,60 @@ begin
   '  w:=b.Run(w);',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_MethodDelphiTypeParamMissing;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TBird<T> = class',
+  '    function Run(p:T): T;',
+  '  end;',
+  'function TBird.Run(p:T): T;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('TBird<> expected, but TBird found',nXExpectedButYFound);
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_MethodImplConstraintFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TBird<T: record> = class',
+  '    function Run(p:T): T;',
+  '  end;',
+  'function TBird<T: record>.Run(p:T): T;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('T cannot have parameters',nXCannotHaveParameters);
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_MethodImplTypeParamNameMismatch;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TBird<T> = class',
+  '    procedure DoIt;',
+  '  end;',
+  'procedure TBird<S>.DoIt;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('T expected, but S found',nXExpectedButYFound);
 end;
 
 procedure TTestResolveGenerics.TestGen_Class_SpecializeSelfInside;

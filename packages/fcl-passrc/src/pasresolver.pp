@@ -11552,8 +11552,8 @@ var
   CurScope: TPasScope;
   LocalScope: TPasScope;
   Level, TypeParamCount, i: Integer;
-  TypeParam: TProcedureNamePart;
-  TemplType: TPasGenericTemplateType;
+  NameParams: TProcedureNamePart;
+  TemplType, FoundTemplType: TPasGenericTemplateType;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.AddProcedure ',GetObjName(El));
@@ -11674,21 +11674,23 @@ begin
           // e.g. aclassname<T>.
           if Level>TypeParams.Count then
             RaiseNotYetImplemented(20190818122217,El);
-          TypeParam:=TProcedureNamePart(TypeParams[Level-1]);
-          if TypeParam.Name<>aClassName then
-            RaiseNotYetImplemented(20190818102541,El,IntToStr(Level)+': '+TypeParam.Name+'<>'+aClassName);
-          if TypeParam.Templates<>nil then
+          NameParams:=TProcedureNamePart(TypeParams[Level-1]);
+          if NameParams.Name<>aClassName then
+            RaiseNotYetImplemented(20190818102541,El,IntToStr(Level)+': '+NameParams.Name+'<>'+aClassName);
+          if NameParams.Templates<>nil then
             begin
-            TypeParamCount:=TypeParam.Templates.Count;
+            TypeParamCount:=NameParams.Templates.Count;
             for i:=0 to TypeParamCount-1 do
               begin
-              TemplType:=TPasGenericTemplateType(TypeParam.Templates[i]);
+              TemplType:=TPasGenericTemplateType(NameParams.Templates[i]);
               if length(TemplType.Constraints)>0 then
                 RaiseMsg(20190818102850,nXCannotHaveParameters,sXCannotHaveParameters,
                   [TemplType.Name],TemplType.Constraints[0]);
               end;
             end;
-          end;
+          end
+        else
+          NameParams:=nil;
         {$IFDEF VerbosePasResolver}
         writeln('TPasResolver.AddProcedure searching class "',aClassName,GetTypeParamCommas(TypeParamCount),'" ProcName="',ProcName,'" ...');
         {$ENDIF}
@@ -11717,6 +11719,18 @@ begin
           end;
         if ClassOrRecType.GetModule<>El.GetModule then
           RaiseNotYetImplemented(20190818120051,El);
+        if NameParams<>nil then
+          begin
+          for i:=0 to TypeParamCount-1 do
+            begin
+            TemplType:=TPasGenericTemplateType(NameParams.Templates[i]);
+            FoundTemplType:=TPasGenericTemplateType(ClassOrRecType.GenericTemplateTypes[i]);
+            if not SameText(TemplType.Name,FoundTemplType.Name) then
+              RaiseMsg(20190822014652,nXExpectedButYFound,
+                sXExpectedButYFound,[FoundTemplType.Name,TemplType.Name],TemplType);
+            end;
+          end;
+
       until false;
 
       if not IsValidIdent(ProcName) then
@@ -11729,10 +11743,10 @@ begin
         begin
         if Level<>TypeParams.Count then
           RaiseNotYetImplemented(20190818122315,El);
-        TypeParam:=TProcedureNamePart(TypeParams[Level-1]);
-        if TypeParam.Name<>ProcName then
-          RaiseNotYetImplemented(20190818122551,El,IntToStr(Level)+': '+TypeParam.Name+'<>'+ProcName);
-        if TypeParam.Templates<>nil then
+        NameParams:=TProcedureNamePart(TypeParams[Level-1]);
+        if NameParams.Name<>ProcName then
+          RaiseNotYetImplemented(20190818122551,El,IntToStr(Level)+': '+NameParams.Name+'<>'+ProcName);
+        if NameParams.Templates<>nil then
           begin
           // ToDo: generic method
           RaiseNotYetImplemented(20190818122619,El);
