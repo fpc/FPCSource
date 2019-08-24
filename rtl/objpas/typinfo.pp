@@ -95,8 +95,8 @@ unit TypInfo;
        TIntfFlagsBase = set of TIntfFlag;
 
        // don't rely on integer values of TCallConv since it includes all conventions
-       // which both delphi and fpc support. In the future delphi can support more and
-       // fpc own conventions will be shifted/reordered accordinly
+       // which both Delphi and FPC support. In the future Delphi can support more and
+       // FPC's own conventions will be shifted/reordered accordingly
        TCallConv = (ccReg, ccCdecl, ccPascal, ccStdCall, ccSafeCall,
                     ccCppdecl, ccFar16, ccOldFPCCall, ccInternProc,
                     ccSysCall, ccSoftFloat, ccMWPascal);
