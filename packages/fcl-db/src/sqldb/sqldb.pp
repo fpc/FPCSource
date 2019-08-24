@@ -756,7 +756,7 @@ type
     function LoadField(cursor : TSQLCursor; FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
-
+    function GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string; override;
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
@@ -3633,6 +3633,11 @@ procedure TSQLConnector.FreeFldBuffers(cursor: TSQLCursor);
 begin
   CheckProxy;
   FProxy.FreeFldBuffers(cursor);
+end;
+
+function TSQLConnector.GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string;
+begin
+  Result:=Proxy.GetNextValueSQL(SequenceName, IncrementBy);
 end;
 
 function TSQLConnector.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef;
