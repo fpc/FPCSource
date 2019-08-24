@@ -90,7 +90,9 @@ begin
       Result := True;
       for i := 0 to aValue1.GetArrayLength - 1 do
         if not EqualValues(aValue1.GetArrayElement(i), aValue2.GetArrayElement(i)) then begin
+{$ifdef debug}
           Writeln('Element ', i, ' differs: ', HexStr(aValue1.GetArrayElement(i).AsOrdinal, 4), ' ', HexStr(aValue2.GetArrayElement(i).AsOrdinal, 4));
+{$endif}
           Result := False;
           Break;
         end;
