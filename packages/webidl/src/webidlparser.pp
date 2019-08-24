@@ -29,6 +29,7 @@ Type
 
   TWebIDLContext = Class (TIDLBaseObject)
   private
+    FAliases: TStrings;
     FDefinitions: TIDLDefinitionList;
     FHash : TFPObjectHashTable;
   Protected
@@ -50,6 +51,7 @@ Type
     Function Add(aClass : TIDLDefinitionClass; const AName : UTF8String) : TIDLDefinition; override;
     Function Add(aParent : TIDLBaseObject; aClass : TIDLDefinitionClass; const AName : UTF8String) : TIDLDefinition; virtual;
     Property Definitions : TIDLDefinitionList Read FDefinitions;
+    Property Aliases : TStrings Read FAliases Write FAliases;
   end;
 
   { TWebIDLParser }
@@ -132,6 +134,7 @@ Resourcestring
   SErrTypeNotAllowed = 'Type "%s" not allowed in "%s" type.';
   SErrDictionaryNotFound = 'Dictionary %s not found';
   SErrInterfaceNotFound = 'Interface %s not found';
+  SErrInterfaceNotFoundfor = 'Included Interface %s not found for %s';
 
 { TWebIDLParser }
 
@@ -1367,9 +1370,17 @@ begin
         Raise EWebIDLParser.CreateFmt(SErrInterfaceNotFound,[ID.Name]);
       II:=FindInterface(ID.IncludedInterface);
       If (II=Nil) then
-        Raise EWebIDLParser.CreateFmt(SErrInterfaceNotFound,[ID.Name]);
-      II.IsInclude:=True;
-      OI.Partials.Add(II);
+        begin
+        if Assigned(Aliases) and (Aliases.IndexOfName(ID.IncludedInterface)<>-1) then
+          OI.ParentName:=Aliases.Values[ID.IncludedInterface]
+        else
+          Raise EWebIDLParser.CreateFmt(SErrInterfaceNotFoundFor,[ID.IncludedInterface,ID.Name]);
+       end
+      else
+        begin
+        II.IsInclude:=True;
+        OI.Partials.Add(II);
+        end
       end;
   // if there is a single include, no members and no parent, make it a descendent
   For D in FDefinitions do
