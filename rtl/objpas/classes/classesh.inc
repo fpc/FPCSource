@@ -256,6 +256,8 @@ Type
     procedure Pack;
     procedure Sort(Compare: TListSortCompare);
     procedure Sort(Compare: TListSortCompare; SortingAlgorithm: PSortingAlgorithm);
+    procedure Sort(Compare: TListSortComparer_Context; Context: Pointer);
+    procedure Sort(Compare: TListSortComparer_Context; Context: Pointer; SortingAlgorithm: PSortingAlgorithm);
     procedure ForEachCall(proc2call:TListCallback;arg:pointer);
     procedure ForEachCall(proc2call:TListStaticCallback;arg:pointer);
     property Capacity: Integer read FCapacity write SetCapacity;
@@ -342,6 +344,8 @@ Type
     procedure Pack;
     procedure Sort(Compare: TListSortCompare);
     procedure Sort(Compare: TListSortCompare; SortingAlgorithm: PSortingAlgorithm);
+    procedure Sort(Compare: TListSortComparer_Context; Context: Pointer);
+    procedure Sort(Compare: TListSortComparer_Context; Context: Pointer; SortingAlgorithm: PSortingAlgorithm);
     property Capacity: Integer read GetCapacity write SetCapacity;
     property Count: Integer read GetCount write SetCount;
     property Items[Index: Integer]: Pointer read Get write Put; default;
