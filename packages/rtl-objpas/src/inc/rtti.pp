@@ -3298,7 +3298,7 @@ begin
   if not aWithHidden and (Length(FParams) > 0) then
     Exit(FParams);
 
-  ptr := AlignTParamFlags(@FTypeData^.ParamList[0]);
+  ptr := @FTypeData^.ParamList[0];
 
   visible := 0;
   total := 0;
@@ -3307,6 +3307,8 @@ begin
     SetLength(infos, FTypeData^.ParamCount);
 
     while total < FTypeData^.ParamCount do begin
+      { align }
+      ptr := AlignTParamFlags(ptr);
       infos[total].Handle := ptr;
       infos[total].Flags := PParamFlags(ptr)^;
       Inc(ptr, SizeOf(TParamFlags));
@@ -3315,8 +3317,6 @@ begin
       Inc(ptr, ptr^ + SizeOf(Byte));
       { skip type name }
       Inc(ptr, ptr^ + SizeOf(Byte));
-      { align }
-      ptr := AlignTParamFlags(ptr);
 
       if not (pfHidden in infos[total].Flags) then
         Inc(visible);
@@ -3326,7 +3326,7 @@ begin
 
   if FTypeData^.MethodKind in [mkFunction, mkClassFunction] then begin
     { skip return type name }
-    ptr := AlignTypeData(PByte(ptr) + ptr^ + SizeOf(Byte));
+    ptr := AlignToPtr(PByte(ptr) + ptr^ + SizeOf(Byte));
     { handle return type }
     FReturnType := GRttiPool.GetType(PPPTypeInfo(ptr)^^);
     Inc(ptr, SizeOf(PPTypeInfo));
