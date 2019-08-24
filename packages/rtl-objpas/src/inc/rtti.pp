@@ -615,6 +615,19 @@ uses
 {$endif}
   fgl;
 
+function AlignToPtr(aPtr: Pointer): Pointer; inline;
+begin
+{$ifdef CPUM68K}
+  Result := AlignTypeData(aPtr);
+{$else}
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  Result := Align(aPtr, SizeOf(Pointer));
+{$else}
+  Result := aPtr;
+{$endif}
+{$endif}
+end;
+
 type
 
   { TRttiPool }
