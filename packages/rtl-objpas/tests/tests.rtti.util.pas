@@ -5,7 +5,7 @@ unit Tests.Rtti.Util;
 interface
 
 uses
-  Rtti;
+  TypInfo, Rtti;
 
 {$ifndef fpc}
 type
@@ -15,6 +15,13 @@ type
     function AsUnicodeString: UnicodeString;
     function AsAnsiString: AnsiString;
   end;
+{$endif}
+
+const
+{$if defined(cpui386) or defined(cpux86_64) or defined(cpum68k)}
+  DefaultCC = ccReg;
+{$else}
+  DefaultCC = ccStdCall;
 {$endif}
 
 function CopyValue({$ifdef fpc}constref{$else}const [ref]{$endif} aValue: TValue): TValue;
@@ -37,7 +44,7 @@ function GetArray(const aArg: array of SizeInt): TValue;
 implementation
 
 uses
-  TypInfo, SysUtils, Math;
+  SysUtils, Math;
 
 {$ifndef fpc}
 function TValueHelper.AsUnicodeString: UnicodeString;
