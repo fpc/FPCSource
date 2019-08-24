@@ -3435,7 +3435,7 @@ begin
 
   context := TRttiContext.Create;
   try
-    param := AlignTypeData(PProcedureParam(@FTypeData^.ProcSig.ParamCount + SizeOf(FTypeData^.ProcSig.ParamCount)));
+    param := AlignToPtr(PProcedureParam(@FTypeData^.ProcSig.ParamCount + SizeOf(FTypeData^.ProcSig.ParamCount)));
     visible := 0;
     for i := 0 to FTypeData^.ProcSig.ParamCount - 1 do begin
       obj := context.GetByHandle(param);
@@ -3451,7 +3451,7 @@ begin
         Inc(visible);
       end;
 
-      param := PProcedureParam(AlignTypeData(PByte(@param^.Name) + Length(param^.Name) + SizeOf(param^.Name[0])));
+      param := PProcedureParam(AlignToPtr(PByte(@param^.Name) + Length(param^.Name) + SizeOf(param^.Name[0])));
     end;
 
     SetLength(FParams, visible);
