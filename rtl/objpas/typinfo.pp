@@ -3366,7 +3366,7 @@ var
   p: PByte;
 begin
   p := PByte(@UnitNameField[0]) + SizeOf(UnitNameField[0]) + Length(UnitNameField);
-  Result := AlignTypeData(p);
+  Result := AlignToPtr(p);
 end;
 
 { TTypeData }
