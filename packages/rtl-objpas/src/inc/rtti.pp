@@ -3342,7 +3342,7 @@ begin
   if FTypeData^.ParamCount > 0 then begin
     context := TRttiContext.Create;
     try
-      paramtypes := PPPTypeInfo(ptr);
+      paramtypes := PPPTypeInfo(AlignTypeData(ptr));
       visible := 0;
       for i := 0 to FTypeData^.ParamCount - 1 do begin
         obj := context.GetByHandle(infos[i].Handle);
