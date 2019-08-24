@@ -1291,7 +1291,9 @@ end;
 
 function TraceAllocMem(size:ptruint):Pointer;
 begin
-  TraceAllocMem:=SysAllocMem(size);
+  TraceAllocMem := TraceGetMem(size);
+  if Assigned(TraceAllocMem) then
+    FillChar(TraceAllocMem^, TraceMemSize(TraceAllocMem), 0);
 end;
 
 
