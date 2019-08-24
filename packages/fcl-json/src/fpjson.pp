@@ -2498,6 +2498,7 @@ begin
       vtString     : Result:=CreateJSON(vString^);
       vtAnsiString : Result:=CreateJSON(UTF8Decode(StrPas(VPChar)));
       vtUnicodeString: Result:=CreateJSON(UnicodeString(VUnicodeString));
+      vtWideString: Result:=CreateJSON(WideString(VWideString));
       vtPChar      : Result:=CreateJSON(StrPas(VPChar));
       vtPointer    : If (VPointer<>Nil) then
                        TJSONData.DoError(SErrPointerNotNil,[SourceType])
