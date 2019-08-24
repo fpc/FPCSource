@@ -1328,9 +1328,9 @@ end;
 
 function SysAllocMem(size: ptruint): pointer;
 begin
-  result := MemoryManager.GetMem(size);
+  result := SysGetMem(size);
   if result<>nil then
-    FillChar(result^,MemoryManager.MemSize(result),0);
+    FillChar(result^,SysMemSize(result),0);
 end;
 
 
