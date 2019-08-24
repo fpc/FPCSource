@@ -579,17 +579,29 @@ unit TypInfo;
         function GetUnitName: ShortString; inline;
         function GetPropertyTable: PPropData; inline;
       public
+        property UnitName: ShortString read GetUnitName;
+        property PropertyTable: PPropData read GetPropertyTable;
+      public
         {$ifdef PROVIDE_ATTR_TABLE}
         AttributeTable : PAttributeTable;
         {$endif}
-        ClassType : TClass;
-        Parent : PPTypeInfo;
-        PropCount : SmallInt;
-        property UnitName: ShortString read GetUnitName;
-        property PropertyTable: PPropData read GetPropertyTable;
-      private
-        UnitNameField : ShortString;
-        { PropertyTable: TPropData }
+        case TTypeKind of
+          tkClass: (
+            ClassType : TClass;
+            Parent : PPTypeInfo;
+            PropCount : SmallInt;
+            UnitNameField : ShortString;
+            { PropertyTable: TPropData }
+          );
+          { include for proper alignment }
+          tkInt64: (
+            dummy: Int64;
+          );
+{$ifndef FPUNONE}
+          tkFloat: (
+            FloatType : TFloatType
+          );
+{$endif}
       end;
 
       PTypeData = ^TTypeData;
