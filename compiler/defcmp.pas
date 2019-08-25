@@ -2505,6 +2505,13 @@ implementation
             exit;
           end;
 
+        if (realself.objecttype in [odt_objcclass,odt_objcprotocol]) and
+           (otherdef=objc_idtype) then
+          begin
+            result:=true;
+            exit;
+          end;
+
         if (otherdef.typ<>objectdef) then
           begin
             result:=false;
