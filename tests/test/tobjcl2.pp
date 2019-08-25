@@ -43,7 +43,7 @@ function MyDerivedClass.callprotectedfun: byte;
 var
   a: MyLibObjCClass;
 begin
-  a:=NSObject(MyDerivedClass.alloc).init;
+  a:=MyDerivedClass.alloc.init;
   a.fa:=55;
   a.fb:=66;
   if a.publicfun<>55 then

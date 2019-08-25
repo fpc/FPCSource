@@ -15,7 +15,7 @@ type
     class procedure testClassOverride; override;
   end;
 
-  tmyoverrideclass = class of NSObject;
+  tmyoverrideclass = class of MyOverride;
 
 var
   selfshouldbe: tmyoverrideclass;
