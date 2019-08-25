@@ -8264,10 +8264,13 @@ begin
         RaiseMsg(20170216151949,nAncestorCycleDetected,sAncestorCycleDetected,[],aClass);
       if (El.ClassType=TPasAliasType)
       or (El.ClassType=TPasTypeAliasType)
+      or (El.ClassType=TPasSpecializeType)
       then
         El:=TPasAliasType(El).DestType
       else if El.ClassType=TPasClassType then
-        El:=TPasClassType(El).AncestorType;
+        El:=TPasClassType(El).AncestorType
+      else
+        RaiseNotYetImplemented(20190825195203,aClass,GetObjName(El));
     until El=nil;
     end;
 
@@ -15055,6 +15058,7 @@ function TPasResolver.InitSpecializeScopes(El: TPasElement): integer;
   var
     Keep: Integer;
     Scope: TPasScope;
+    IntfSection: TInterfaceSection;
   begin
     {$IFDEF VerboseInitSpecializeScopes}
     writeln('  PushParentScopes START ',GetObjName(CurEl));
@@ -15101,6 +15105,17 @@ function TPasResolver.InitSpecializeScopes(El: TPasElement): integer;
         StashScopes(Keep);
         if Keep<>FScopeCount then
           RaiseNotYetImplemented(20190813005130,El);
+        end;
+      if (CurEl.ClassType=TImplementationSection) then
+        begin
+        // unit implementation -> push interface scope
+        IntfSection:=CurEl.GetModule.InterfaceSection;
+        if IntfSection=nil then
+          RaiseNotYetImplemented(20190825112907,CurEl);
+        if not (IntfSection.CustomData is TPasSectionScope) then
+          RaiseNotYetImplemented(20190825112907,CurEl);
+        PushScope(TPasSectionScope(IntfSection.CustomData));
+        inc(Keep);
         end;
       PushScope(Scope);
       end;
@@ -19020,6 +19035,9 @@ begin
     s:=AName+'<';
     for i:=2 to TemplateCount do s:=s+',';
     s:=s+'>';
+    {$IFDEF VerbosePasResolver}
+    WriteScopesShort('TPasResolver.FindGenericType');
+    {$ENDIF}
     RaiseMsg(20190801104759,nIdentifierNotFound,sIdentifierNotFound,[s],ErrorPosEl);
     end;
   CheckFoundElement(Data.Find,nil);
