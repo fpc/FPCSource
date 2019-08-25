@@ -1025,7 +1025,7 @@ begin
     if ((El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0)) then
       // generic template -> analyze
     else if not Resolver.IsFullySpecialized(El) then
-      // specialized -> skip
+      // half specialized -> skip
       exit(true);
     end;
 end;
@@ -1503,6 +1503,34 @@ begin
 end;
 
 procedure TPasAnalyzer.UseExpr(El: TPasExpr);
+
+  procedure UseSystemExit;
+  var
+    ParamsExpr: TParamsExpr;
+    Params: TPasExprArray;
+    SubEl: TPasElement;
+    Proc: TPasProcedure;
+    ProcScope: TPasProcedureScope;
+  begin
+    ParamsExpr:=Resolver.GetParamsOfNameExpr(El);
+    if ParamsExpr=nil then exit;
+    Params:=ParamsExpr.Params;
+    if length(Params)<1 then
+      exit;
+    SubEl:=El.Parent;
+    while (SubEl<>nil) and not (SubEl is TPasProcedure) do
+      SubEl:=SubEl.Parent;
+    if SubEl=nil then exit;
+    Proc:=TPasProcedure(SubEl);
+    if not (Proc.ProcType is TPasFunctionType) then
+      RaiseNotSupported(20190825203504,El);
+    ProcScope:=Proc.CustomData as TPasProcedureScope;
+    if ProcScope.DeclarationProc<>nil then
+      Proc:=ProcScope.DeclarationProc;
+    SubEl:=TPasFunctionType(Proc.ProcType).ResultEl;
+    UseElement(SubEl,rraAssign,false);
+  end;
+
 var
   Ref: TResolvedReference;
   C: TClass;
@@ -1566,25 +1594,7 @@ begin
         BuiltInProc:=TResElDataBuiltInProc(Decl.CustomData);
         case BuiltInProc.BuiltIn of
         bfExit:
-          begin
-          ParamsExpr:=Resolver.GetParamsOfNameExpr(El);
-          if ParamsExpr<>nil then
-            begin
-            Params:=(El.Parent as TParamsExpr).Params;
-            if length(Params)=1 then
-              begin
-              SubEl:=El.Parent;
-              while (SubEl<>nil) and not (SubEl is TPasProcedure) do
-                SubEl:=SubEl.Parent;
-              if (SubEl is TPasProcedure)
-                  and (TPasProcedure(SubEl).ProcType is TPasFunctionType) then
-                begin
-                SubEl:=TPasFunctionType(TPasProcedure(SubEl).ProcType).ResultEl;
-                UseElement(SubEl,rraAssign,false);
-                end;
-              end;
-            end;
-          end;
+          UseSystemExit;
         bfTypeInfo:
           begin
           ParamsExpr:=Resolver.GetParamsOfNameExpr(El);
@@ -1663,6 +1673,8 @@ begin
     UseInheritedExpr(TInheritedExpr(El))
   else if C=TProcedureExpr then
     UseProcedure(TProcedureExpr(El).Proc)
+  else if C=TInlineSpecializeExpr then
+    UseSpecializeType(TInlineSpecializeExpr(El).DestType,paumElement)
   else
     RaiseNotSupported(20170307085444,El);
 end;
@@ -2684,6 +2696,10 @@ begin
     ImplProc:=El
   else
     ImplProc:=ProcScope.ImplProc;
+  if (ProcScope.ClassRecScope<>nil)
+      and (ProcScope.ClassRecScope.SpecializedItem<>nil) then
+    exit; // specialized proc
+
   if not PAElementExists(DeclProc) then
     begin
     // procedure never used
