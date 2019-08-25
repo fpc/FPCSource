@@ -91,6 +91,8 @@ type
   TAlignment = (taLeftJustify, taRightJustify, taCenter);
 
   TLeftRight = taLeftJustify..taRightJustify;
+  TVerticalAlignment = (taAlignTop, taAlignBottom, taVerticalCenter);
+  TTopBottom = taAlignTop..taAlignBottom;
 
   TBiDiMode = (bdLeftToRight,bdRightToLeft,bdRightToLeftNoAlign,bdRightToLeftReadingOnly);
 
