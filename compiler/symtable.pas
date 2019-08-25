@@ -4293,25 +4293,30 @@ implementation
 
     function search_objc_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
       var
+        searchst   : tsymtable;
+        searchsym  : tsym;
         hashedid   : THashedIDString;
         stackitem  : psymtablestackitem;
         i          : longint;
+        founddefowner,
         defowner   : tobjectdef;
       begin
         hashedid.id:=class_helper_prefix+s;
         stackitem:=symtablestack.stack;
+        result:=false;
+        founddefowner:=nil;
         while assigned(stackitem) do
           begin
-            srsymtable:=stackitem^.symtable;
-            srsym:=tsym(srsymtable.FindWithHash(hashedid));
-            if assigned(srsym) then
+            searchst:=stackitem^.symtable;
+            searchsym:=tsym(searchst.FindWithHash(hashedid));
+            if assigned(searchsym) then
               begin
-                if not(srsymtable.symtabletype in [globalsymtable,staticsymtable]) or
-                   not(srsym.owner.symtabletype in [globalsymtable,staticsymtable]) or
-                   (srsym.typ<>procsym) then
+                if not(searchst.symtabletype in [globalsymtable,staticsymtable]) or
+                   not(searchsym.owner.symtabletype in [globalsymtable,staticsymtable]) or
+                   (searchsym.typ<>procsym) then
                   internalerror(2009111505);
                 { check whether this procsym includes a helper for this particular class }
-                for i:=0 to tprocsym(srsym).procdeflist.count-1 do
+                for i:=0 to tprocsym(searchsym).procdeflist.count-1 do
                   begin
                     { does pd inherit from (or is the same as) the class
                       that this method's category extended?
@@ -4319,7 +4324,7 @@ implementation
                       Warning: this list contains both category and objcclass methods
                        (for id.randommethod), so only check category methods here
                     }
-                    defowner:=tobjectdef(tprocdef(tprocsym(srsym).procdeflist[i]).owner.defowner);
+                    defowner:=tobjectdef(tprocdef(tprocsym(searchsym).procdeflist[i]).owner.defowner);
                     if is_objccategory(defowner) and
                        def_is_related(pd,defowner.childof) then
                       begin
@@ -4327,28 +4332,39 @@ implementation
                           in the static symtable, because then it can't be
                           inlined from outside this unit }
                         if assigned(current_procinfo) and
-                           (srsym.owner.symtabletype=staticsymtable) then
+                           (searchsym.owner.symtabletype=staticsymtable) then
                           include(current_procinfo.flags,pi_uses_static_symtable);
-                        { no need to keep looking. There might be other
-                          categories that extend this, a parent or child
-                          class with a method with the same name (either
-                          overriding this one, or overridden by this one),
-                          but that doesn't matter as far as the basic
-                          procsym is concerned.
+                        { Stop looking if this is a category that extends the specified
+                          class itself. There might be other categories that extend this,
+                          but that doesn't matter. If it extens a parent, keep looking
+                          in case we find the symbol in a category that extends this class
+                          (or a closer parent).
                         }
-                        srsym:=tprocdef(tprocsym(srsym).procdeflist[i]).procsym;
-                        srsymtable:=srsym.owner;
-                        addsymref(srsym);
-                        result:=true;
-                        exit;
+                        if not result or
+                           def_is_related(defowner.childof,founddefowner) then
+                          begin
+                            founddefowner:=defowner.childof;
+                            srsym:=tprocdef(tprocsym(searchsym).procdeflist[i]).procsym;
+                            srsymtable:=srsym.owner;
+                            result:=true;
+                            if pd=founddefowner then
+                              begin
+                                addsymref(srsym);
+                                exit;
+                              end;
+                          end;
                       end;
                   end;
               end;
             stackitem:=stackitem^.next;
           end;
+        if result then
+          begin
+            addsymref(srsym);
+            exit;
+          end;
         srsym:=nil;
         srsymtable:=nil;
-        result:=false;
       end;
 
 
