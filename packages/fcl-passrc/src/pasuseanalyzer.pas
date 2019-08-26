@@ -1010,14 +1010,34 @@ begin
 end;
 
 function TPasAnalyzer.CanSkipGenericType(El: TPasGenericType): boolean;
+
+  procedure RaiseHalfSpecialized;
+  var
+    GenScope: TPasGenericScope;
+    Item: TPSSpecializedItem;
+  begin
+    if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
+      RaiseNotSupported(20190817151437,El);
+    if not (El.CustomData is TPasGenericScope) then
+      RaiseNotSupported(20190826141320,El,GetObjName(El.CustomData));
+    GenScope:=TPasGenericScope(El.CustomData);
+    Item:=GenScope.SpecializedItem;
+    if Item=nil then
+      RaiseNotSupported(20190826141352,El);
+    if Item.SpecializedType=nil then
+      RaiseNotSupported(20190826141516,El);
+    if Item.FirstSpecialize=nil then
+      RaiseNotSupported(20190826141649,El);
+    RaiseNotSupported(20190826141540,El,'SpecializedAt:'+GetObjPath(Item.FirstSpecialize)+' '+Resolver.GetElementSourcePosStr(Item.FirstSpecialize));
+  end;
+
 begin
   Result:=false;
   if ScopeModule=nil then
     begin
     // analyze whole program
-    // -> should only reach fully specialized types
     if not Resolver.IsFullySpecialized(El) then
-      RaiseNotSupported(20190817151437,El);
+      RaiseHalfSpecialized;
     end
   else
     begin
@@ -2058,11 +2078,11 @@ var
   aClass: TPasClassType;
 begin
   FirstTime:=true;
-  if CanSkipGenericType(El) then exit;
   case Mode of
   paumAllExports: exit;
   paumAllPasUsable:
     begin
+    if CanSkipGenericType(El) then exit;
     if MarkElementAsUsed(El) then
       ElementVisited(El,Mode)
     else
@@ -2075,7 +2095,10 @@ begin
       end;
     end;
   paumElement:
+    begin
+    if CanSkipGenericType(El) then exit;
     if not MarkElementAsUsed(El) then exit;
+    end
   else
     RaiseInconsistency(20170414152143,IntToStr(ord(Mode)));
   end;

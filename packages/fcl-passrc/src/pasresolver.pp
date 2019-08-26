@@ -26571,8 +26571,13 @@ begin
       inc(Result);
       end
     else if SrcType.ClassType=TPasSpecializeType then
+      begin
       // specialize -> skip
-      SrcType:=TPasSpecializeType(SrcType).DestType
+      if SrcType.CustomData is TPasSpecializeTypeData then
+        SrcType:=TPasSpecializeTypeData(SrcType.CustomData).SpecializedType
+      else
+        SrcType:=TPasSpecializeType(SrcType).DestType;
+      end
     else if SrcType.ClassType=TPasClassType then
       begin
       ClassEl:=TPasClassType(SrcType);
