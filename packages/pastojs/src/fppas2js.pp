@@ -1999,6 +1999,7 @@ type
     Function ConvertPrimitiveExpression(El: TPrimitiveExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertIdentifierExpr(El: TPasExpr; const aName: string; AContext : TConvertContext): TJSElement; virtual;
     Function ConvertUnaryExpression(El: TUnaryExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertInlineSpecializeExpr(El: TInlineSpecializeExpr; AContext: TConvertContext): TJSElement; virtual;
     // Convert declarations
     Function ConvertElement(El : TPasElement; AContext: TConvertContext) : TJSElement; virtual;
     Function ConvertProperty(El: TPasProperty; AContext: TConvertContext ): TJSElement; virtual;
@@ -6846,6 +6847,25 @@ begin
   if U=nil then
     NotSupported(20180423162324);
   Result:=U;
+end;
+
+function TPasToJSConverter.ConvertInlineSpecializeExpr(
+  El: TInlineSpecializeExpr; AContext: TConvertContext): TJSElement;
+var
+  aResolver: TPas2JSResolver;
+  DestType: TPasType;
+  GenType: TPasGenericType;
+  Name: String;
+begin
+  aResolver:=AContext.Resolver;
+  DestType:=aResolver.ResolveAliasType(El.DestType);
+  if not (DestType is TPasGenericType) then
+    RaiseNotSupported(El,AContext,20190826143203,GetObjPath(DestType));
+  GenType:=TPasGenericType(DestType);
+  if (GenType.GenericTemplateTypes<>nil) and (GenType.GenericTemplateTypes.Count>0) then
+    RaiseNotSupported(El,AContext,20190826143508,GetObjName(GenType));
+  Name:=CreateReferencePath(GenType,AContext,rpkPathAndName);
+  Result:=CreatePrimitiveDotExpr(Name,El);
 end;
 
 function TPasToJSConverter.GetExpressionValueType(El: TPasExpr;
@@ -12759,31 +12779,36 @@ end;
 
 function TPasToJSConverter.ConvertExpression(El: TPasExpr;
   AContext: TConvertContext): TJSElement;
+var
+  C: TClass;
 begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertExpression El=',GetObjName(El),' Context=',GetObjName(AContext));
   {$ENDIF}
   Result:=Nil;
-  if (El.ClassType=TUnaryExpr) then
+  C:=El.ClassType;
+  if C=TUnaryExpr then
     Result:=ConvertUnaryExpression(TUnaryExpr(El),AContext)
-  else if (El.ClassType=TBinaryExpr) then
+  else if C=TBinaryExpr then
     Result:=ConvertBinaryExpression(TBinaryExpr(El),AContext)
-  else if (El.ClassType=TPrimitiveExpr) then
+  else if C=TPrimitiveExpr then
     Result:=ConvertPrimitiveExpression(TPrimitiveExpr(El),AContext)
-  else if (El.ClassType=TBoolConstExpr) then
+  else if C=TBoolConstExpr then
     Result:=ConvertBoolConstExpression(TBoolConstExpr(El),AContext)
-  else if (El.ClassType=TNilExpr) then
+  else if C=TNilExpr then
     Result:=ConvertNilExpr(TNilExpr(El),AContext)
-  else if (El.ClassType=TInheritedExpr) then
+  else if C=TInheritedExpr then
     Result:=ConvertInheritedExpr(TInheritedExpr(El),AContext)
-  else if (El.ClassType=TParamsExpr) then
+  else if C=TParamsExpr then
     Result:=ConvertParamsExpr(TParamsExpr(El),AContext)
-  else if (El.ClassType=TProcedureExpr) then
+  else if C=TProcedureExpr then
     Result:=ConvertProcedure(TProcedureExpr(El).Proc,AContext)
-  else if (El.ClassType=TRecordValues) then
+  else if C=TRecordValues then
     Result:=ConvertRecordValues(TRecordValues(El),AContext)
-  else if (El.ClassType=TArrayValues) then
+  else if C=TArrayValues then
     Result:=ConvertArrayValues(TArrayValues(El),AContext)
+  else if C=TInlineSpecializeExpr then
+    Result:=ConvertInlineSpecializeExpr(TInlineSpecializeExpr(El),AContext)
   else
     RaiseNotSupported(El,AContext,20161024191314);
 end;

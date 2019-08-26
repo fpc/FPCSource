@@ -24,6 +24,9 @@ type
 
     // generic external class
     procedure TestGen_ExtClass_Array;
+
+    // statements
+    Procedure TestGen_InlineSpec_Constructor;
   end;
 
 implementation
@@ -260,6 +263,44 @@ begin
     '$mod.wa.length = 10;',
     '$mod.wa[11] = $mod.w;',
     '$mod.w = $mod.wa[12];',
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_InlineSpec_Constructor;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class',
+  '  public',
+  '    constructor Create;',
+  '  end;',
+  '  generic TBird<T> = class',
+  '  end;',
+  'constructor TObject.Create; begin end;',
+  'var b: TBird<word>;',
+  'begin',
+  '  b:=specialize TBird<word>.Create;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_InlineSpec_Constructor',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function () {',
+    '    return this;',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird$G1", $mod.TObject, function () {',
+    '});',
+    'this.b = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.b = $mod.TBird$G1.$create("Create");',
     '']));
 end;
 
