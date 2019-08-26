@@ -23202,6 +23202,13 @@ begin
         else
           exit(cAliasExact);
         end;
+      if (ParamResolved.BaseType=btContext)
+          and (ParamResolved.LoTypeEl.ClassType=TPasArrayType)
+          and (ExprResolved.LoTypeEl.ClassType=TPasArrayType) then
+        begin
+        Result:=CheckAssignResCompatibility(ParamResolved,ExprResolved,Expr,false);
+        if Result<>cIncompatible then exit;
+        end;
       end;
     if RaiseOnError then
       RaiseIncompatibleTypeRes(20170216152452,nIncompatibleTypeArgNoVarParamMustMatchExactly,

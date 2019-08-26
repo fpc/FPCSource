@@ -14510,6 +14510,10 @@ begin
   'type',
   '  TDynArrInt = array of byte;',
   '  TStaArrInt = array[1..2] of byte;',
+  'procedure Fly(var a: array of byte);',
+  'begin',
+  '  Fly(a);',
+  'end;',
   'procedure DoIt(a: array of byte);',
   'var',
   '  d: TDynArrInt;',
@@ -14520,6 +14524,8 @@ begin
   '  // d:=a; forbidden in delphi',
   '  DoIt(d);',
   '  DoIt(s);',
+  '  Fly(a);',
+  '  Fly(d);', // dyn array can be passed to a var open array
   'end;',
   'begin',
   '']);
