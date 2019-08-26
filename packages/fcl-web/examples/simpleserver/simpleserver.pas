@@ -55,7 +55,7 @@ begin
   Writeln('-i --indexpage=name Directory index page to use (default: index.html)');
   Writeln('-n --noindexpage    Do not allow index page.');
   Writeln('-p --port=NNNN      TCP/IP port to listen on (default is 3000)');
-  Writeln('-m --mimetypes=file path of mime.types, default under unix: /etc/mime.types. Loaded in addition to OS known types');
+  Writeln('-m --mimetypes=file path of mime.types. Loaded in addition to OS known types');
   Writeln('-q --quiet          Do not write diagnostic messages');
   Writeln('-s --ssl            Use SSL');
   Writeln('-H --hostname=NAME  set hostname for self-signed SSL certificate');
