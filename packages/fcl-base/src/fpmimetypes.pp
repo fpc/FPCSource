@@ -46,9 +46,18 @@ Type
   Protected
     Function FindMimeByType(Const AMime : String) : TMimeType;
     Function FindMimeByExt(Const AExt : String) : TMimeType;
+    Function DefaultMimeTypesLocation : String; virtual;
+{$IFDEF WINDOWS}
+    Procedure LoadFromRegistry;
+{$ENDIF}
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
+    // clear list
+    Procedure Clear;
+    // Load known types from OS.
+    // On unixy types, this reads from /etc/mime.types, on windows this reads from registry and from mime.types located next to binary
+    Procedure LoadKnownTypes; virtual;
     // Extract an extension from an extension list as returned by GetMimeExtensions
     class function GetNextExtension(var E: String): string;
     // Load from stream
@@ -71,6 +80,10 @@ Type
 Function MimeTypes : TFPMimeTypes;
 
 implementation
+
+{$IFDEF WINDOWS}
+uses registry;
+{$ENDIF}
 
 { TFPMimeTypes }
 var
@@ -117,6 +130,7 @@ Var
   S : String;
 
 begin
+  Extensions:='';
   P:=1;
   Mime:=GetNextWord(ALine,p);
   Repeat
@@ -161,6 +175,20 @@ begin
     end
 end;
 
+
+function TFPMimeTypes.DefaultMimeTypesLocation: String;
+begin
+{$IFDEF windows}
+  Result:=ExtractFilePath(ParamStr(0));
+{$ELSE}
+{$IFDEF DARWIN}
+  Result:='/private/etc/apache2/';
+{$ELSE}
+  Result:='/etc/';
+{$ENDIF}
+{$ENDIF}
+end;
+
 constructor TFPMimeTypes.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -169,6 +197,15 @@ begin
 end;
 
 destructor TFPMimeTypes.Destroy;
+
+begin
+  Clear;
+  FreeAndNil(FTypes);
+  FreeAndNil(FExtensions);
+  inherited Destroy;
+end;
+
+procedure TFPMimeTypes.Clear;
 
 Var
   T : TMimeType;
@@ -180,10 +217,66 @@ begin
     T:=TMimeType(FTypes.Items[i]);
     FreeAndNil(T);
     end;
-  FreeAndNil(FTypes);
-  FreeAndNil(FExtensions);
-  inherited Destroy;
+  FTypes.Clear;
+  FExtensions.Clear;
 end;
+
+procedure TFPMimeTypes.LoadKnownTypes;
+
+Var
+  S : String;
+
+begin
+{$IFDEF WINDOWS}
+  LoadFromRegistry;
+{$ENDIF}
+  S:=DefaultMimeTypesLocation;
+  if (S<>'') then
+    begin
+    S:=S+'mime.types';
+    if FileExists(S) then
+      LoadFromFile(S);
+    end;
+end;
+
+{$IFDEF WINDOWS}
+procedure TFPMimeTypes.LoadFromRegistry;
+
+Var
+  Reg : TRegistry;
+  aType,Ext : string;
+  L : TStringList;
+  I : Integer;
+
+begin
+  L:=Nil;
+  Reg := TRegistry.Create;
+  try
+    L:=TStringList.Create;
+    Reg.RootKey := HKEY_CLASSES_ROOT;
+    if Reg.OpenKeyReadOnly('') then
+      begin
+      Reg.GetKeyNames(L);
+      Reg.CloseKey;
+      For I:=0 to L.Count-1 do
+        begin
+        Ext:=L[i];
+        if (Ext<>'') and (Ext[1]='.') and Reg.OpenKeyReadOnly(Ext) then
+          begin
+          aType:= Reg.ReadString('Content Type');
+          Reg.CloseKey;
+          if aType<>'' then
+            AddType(aType,Ext);
+          end;
+        end;
+      Reg.CloseKey;
+      end;
+  finally
+    L.Free;
+    Reg.Free;
+  end;
+end;
+{$ENDIF WINDOWS}
 
 procedure TFPMimeTypes.LoadFromStream(const Stream: TStream);
 
@@ -293,6 +386,7 @@ begin
     AList.Clear;
     For I:=0 to FTypes.Count-1 do
       Alist.Add(FTypes.NameOfIndex(i));
+    Result:=AList.Count;
   finally
     AList.EndUpdate;
   end;
@@ -308,6 +402,7 @@ begin
     AList.Clear;
     For I:=0 to FExtensions.Count-1 do
       Alist.Add(FExtensions.NameOfIndex(i));
+    Result:=AList.Count;
   finally
     AList.EndUpdate;
   end;
@@ -334,6 +429,9 @@ begin
     If (E<>'') then
       begin
       E:=E+';';
+      if (Fextensions<>'') then
+        If Fextensions[Length(FExtensions)]<>';' then
+          FExtensions:=FExtensions+';';
       If (Copy(Fextensions,1,Length(E))<>E) and (Pos(E,FExtensions)=0) then
         FExtensions:=Extensions+E;
       end;
