@@ -4129,7 +4129,7 @@ xmmreg,xmmreg,mem64,imm8                  \334\362\370\1\xC2\75\120\27          
 kreg_m,xmmreg,mem32,imm8                  \333\350\370\1\xC2\75\120\27              AVX512,T1S
 kreg_m,xmmreg,xmmreg_sae,imm8             \333\350\370\1\xC2\75\120\27              AVX512
 xmmreg,xmmreg,xmmreg,imm8                 \333\362\370\1\xC2\75\120\27              AVX,SANDYBRIDGE
-xmmreg,xmmreg,mem64,imm8                  \333\362\370\1\xC2\75\120\27              AVX,SANDYBRIDGE
+xmmreg,xmmreg,mem32,imm8                  \333\362\370\1\xC2\75\120\27              AVX,SANDYBRIDGE
 
 [VCOMISD]
 (Ch_Rop1, Ch_Rop2, Ch_WFlags)
