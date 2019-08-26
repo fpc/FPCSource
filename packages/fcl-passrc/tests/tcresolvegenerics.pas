@@ -71,6 +71,8 @@ type
     procedure TestGen_Class_NestedRecord;
     procedure TestGen_Class_NestedClass;
     procedure TestGen_Class_Enums_NotPropagating;
+    procedure TestGen_Class_Self;
+    procedure TestGen_Class_MemberTypeConstructor;
     procedure TestGen_Class_List;
 
     // generic external class
@@ -948,6 +950,62 @@ begin
   '  r = red;',
   'begin']);
   CheckResolverException('identifier not found "red"',nIdentifierNotFound);
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_Self;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  generic TAnimal<T> = class end;',
+  '  generic TBird<T> = class(TAnimal<T>)',
+  '    function GetObj: TObject;',
+  '    procedure Fly(Obj: TObject); virtual; abstract;',
+  '  end;',
+  '  TProc = procedure(Obj: TObject) of object;',
+  '  TWordBird = specialize TBird<word>;',
+  'function TBird.GetObj: TObject;',
+  'var p: TProc;',
+  'begin',
+  '  Result:=Self;',
+  '  if Self.GetObj=Result then ;',
+  '  Fly(Self);',
+  '  p:=@Fly;',
+  '  p(Self);',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_MemberTypeConstructor;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TAnimal<A> = class',
+  '  end;',
+  '  TAnt<L> = class',
+  '    constructor Create(A: TAnimal<L>);',
+  '  end;',
+  '  TBird<T> = class(TAnimal<T>)',
+  '  type TMyAnt = TAnt<T>;',
+  '    function Fly: TMyAnt;',
+  '  end;',
+  '  TWordBird = TBird<word>;',
+  'constructor TAnt<L>.Create(A: TAnimal<L>);',
+  'begin',
+  'end;',
+  'function TBird<T>.Fly: TMyAnt;',
+  'begin',
+  '  Result:=TMyAnt.Create(Self);',
+  'end;',
+  'begin']);
+  ParseProgram;
 end;
 
 procedure TTestResolveGenerics.TestGen_Class_List;

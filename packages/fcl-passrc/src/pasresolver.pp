@@ -684,6 +684,7 @@ type
     FSpecializedType: TPasGenericType;
     procedure SetSpecializedType(AValue: TPasGenericType);
   public
+    GenericType: TPasGenericType;
     Step: TPSSpecializeStep;
     FirstSpecialize: TPasElement;
     Params: TPasTypeArray;
@@ -7017,7 +7018,7 @@ begin
     end;
 
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.FinishMethodBodyHeader END "',ImplProc.Name,'" ...');
+  writeln('TPasResolver.FinishMethodImplHeader END "',ImplProc.Name,'" ...');
   {$ENDIF}
 end;
 
@@ -11605,6 +11606,8 @@ begin
   if (TypeParams<>nil) then
     if HasDot<>(TypeParams.Count>1) then
       RaiseNotYetImplemented(20190818093923,El);
+  IsClassConDestructor:=(El.ClassType=TPasClassConstructor)
+      or (El.ClassType=TPasClassDestructor);
 
   if El.CustomData is TPasProcedureScope then
     begin
@@ -11618,14 +11621,19 @@ begin
       RaiseNotYetImplemented(20190804175518,El);
     if ProcScope.GroupScope<>nil then
       RaiseNotYetImplemented(20190804175451,El);
+    if (not HasDot) and IsClassConDestructor then
+      begin
+      if El.ClassType=TPasClassConstructor then
+        AddClassConDestructor(ClassOrRecScope,TPasProcedure(ClassOrRecScope.ClassConstructor))
+      else
+        AddClassConDestructor(ClassOrRecScope,TPasProcedure(ClassOrRecScope.ClassDestructor));
+      end;
 
     PushScope(ProcScope);
     end
   else
     begin
     IsDelphi:=msDelphi in CurrentParser.CurrentModeswitches;
-    IsClassConDestructor:=(El.ClassType=TPasClassConstructor)
-        or (El.ClassType=TPasClassDestructor);
     if (not HasDot) and IsClassConDestructor then
       begin
       if ProcName='' then
@@ -15014,6 +15022,7 @@ begin
   {$ENDIF}
 
   Result:=TPSSpecializedItem.Create;
+  Result.GenericType:=GenericType;
   Result.FirstSpecialize:=El;
   Result.Params:=ParamsResolved;
   SpecializedTypes.Add(Result);
@@ -21686,7 +21695,14 @@ begin
     begin
     LBT:=GetActualBaseType(LHS.BaseType);
     RBT:=GetActualBaseType(RHS.BaseType);
-    if IsGenericTemplType(LHS) or IsGenericTemplType(RHS) then
+    if IsGenericTemplType(LHS) then
+      begin
+      // not fully specified -> maybe
+      if IsGenericTemplType(RHS) and (LHS.LoTypeEl=RHS.LoTypeEl) then
+        exit(cExact);
+      exit(cCompatible);
+      end
+    else if IsGenericTemplType(RHS) then
       begin
       // not fully specified -> maybe
       exit(cCompatible);
@@ -26520,12 +26536,15 @@ function TPasResolver.CheckClassIsClass(SrcType, DestType: TPasType): integer;
 // check if Src is equal or descends from Dest
 var
   ClassEl: TPasClassType;
+  DestScope: TPasClassScope;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.CheckClassIsClass SrcType=',GetObjName(SrcType),' DestType=',GetObjName(DestType));
   {$ENDIF}
   if DestType=nil then exit(cIncompatible);
   DestType:=ResolveAliasType(DestType);
+  if DestType.ClassType<>TPasClassType then
+    exit(cIncompatible);
 
   Result:=cExact;
   while SrcType<>nil do
@@ -26544,6 +26563,9 @@ begin
       SrcType:=TPasAliasType(SrcType).DestType;
       inc(Result);
       end
+    else if SrcType.ClassType=TPasSpecializeType then
+      // specialize -> skip
+      SrcType:=TPasSpecializeType(SrcType).DestType
     else if SrcType.ClassType=TPasClassType then
       begin
       ClassEl:=TPasClassType(SrcType);
@@ -26552,6 +26574,20 @@ begin
         SrcType:=(ClassEl.CustomData as TResolvedReference).Declaration as TPasType
       else
         begin
+        if (ClassEl.GenericTemplateTypes<>nil) and (ClassEl.GenericTemplateTypes.Count>0) then
+          begin
+          // SrcType is a generic
+          DestScope:=DestType.CustomData as TPasClassScope;
+          if DestScope.SpecializedItem<>nil then
+            begin
+            // DestType is specialized
+            {$IFDEF VerbosePasResolver}
+            writeln(' DestType is specialized from ',GetObjName(DestScope.SpecializedItem.GenericType));
+            {$ENDIF}
+            if SrcType=DestScope.SpecializedItem.GenericType then
+              exit; // DestType is a specialized SrcType
+            end;
+          end;
         // class ancestor -> increase distance
         SrcType:=(ClassEl.CustomData as TPasClassScope).DirectAncestor;
         inc(Result);
