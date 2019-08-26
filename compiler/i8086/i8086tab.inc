@@ -10328,7 +10328,7 @@
   (
     opcode  : A_VCMPSS;
     ops     : 4;
-    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_immediate or ot_bits8);
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits32,ot_immediate or ot_bits8);
     code    : #219#242#248#1#194#61#80#23;
     flags   : [if_avx,if_sandybridge]
   ),
