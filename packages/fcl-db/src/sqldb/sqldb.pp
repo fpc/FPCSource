@@ -508,7 +508,6 @@ type
     procedure SetUpdateMode(AValue : TUpdateMode);
     procedure OnChangeModifySQL(Sender : TObject);
     procedure Execute;
-    procedure ApplyFilter;
     Function AddFilter(SQLstr : string) : string;
   protected
     function CreateSQLStatement(aOwner: TComponent): TCustomSQLStatement; virtual;
@@ -2696,19 +2695,6 @@ begin
   end;
 end;
 
-procedure TCustomSQLQuery.ApplyFilter;
-
-begin
-  FreeFldBuffers;
-  FStatement.Unprepare;
-  FIsEOF := False;
-  inherited InternalClose;
-  FStatement.DoPrepare;
-  FStatement.DoExecute;
-  inherited InternalOpen;
-  First;
-end;
-
 procedure TCustomSQLQuery.SetActive(Value: Boolean);
 
 begin
@@ -2727,7 +2713,11 @@ begin
   if (ServerFiltered <> Value) then
     begin
     FServerFiltered := Value;
-    if Active then ApplyFilter;
+    if Active then 
+      begin
+      Close;
+      Open;
+      end;
     end;
 end;
 
@@ -2736,7 +2726,11 @@ begin
   if Value <> ServerFilter then
     begin
     FServerFilterText := Value;
-    if Active then ApplyFilter;
+    if Active then 
+      begin
+      Close;
+      Open;
+      end;
     end;
 end;
 
