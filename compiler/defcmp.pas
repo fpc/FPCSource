@@ -424,7 +424,8 @@ implementation
                             end;
                           uvoid,
                           pasbool1,pasbool8,pasbool16,pasbool32,pasbool64,
-                          bool8bit,bool16bit,bool32bit,bool64bit:
+                          bool8bit,bool16bit,bool32bit,bool64bit,
+                          scurrency:
                             eq:=te_equal;
                           else
                             internalerror(200210061);
