@@ -33,7 +33,7 @@ type
   // TField and TFieldDef only support a limited amount of fields.
   // TFieldBinding and TExtendedFieldType can be used to map PQ types
   // on standard fields and retain mapping info.
-  TExtendedFieldType = (eftNone,eftEnum);
+  TExtendedFieldType = (eftNone,eftEnum,eftCitext);
 
   TFieldBinding = record
     FieldDef : TSQLDBFieldDef; // FieldDef this is associated with
@@ -366,15 +366,16 @@ begin
       tt:=pqgetvalue(Res,i,2);
       tc:=pqgetvalue(Res,i,3);
       J:=length(Bindings)-1;
-      while (J>=0) and (Bindings[j].TypeOID<>toid) do
-        Dec(J);
-      if (J>=0) then
+      while (J>= 0) do
         begin
-        Bindings[j].TypeName:=TN;
-        Case tt of
-          'e': // Enum
+        if (Bindings[j].TypeOID=toid) then
+          Case tt of
+           'e':
             Bindings[j].ExtendedFieldType:=eftEnum;
-        end;
+           'citext':
+            Bindings[j].ExtendedFieldType:=eftCitext;
+          end;
+        Dec(J);
         end;
       end;
   finally
@@ -1152,6 +1153,10 @@ begin
             FD.DataType:=ftString;
             FD.Size:=64;
             //FD.Attributes:=FD.Attributes+[faReadonly];
+            end;
+          eftCitext:
+            begin
+            FD.DataType:=ftMemo;
             end
         else
           if ErrorOnUnknownType then
