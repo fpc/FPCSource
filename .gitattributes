@@ -4418,6 +4418,7 @@ packages/fcl-web/examples/session/wmsession.pp svneol=native#text/plain
 packages/fcl-web/examples/simpleserver/README.txt svneol=native#text/plain
 packages/fcl-web/examples/simpleserver/index.css svneol=native#text/plain
 packages/fcl-web/examples/simpleserver/index.html svneol=native#text/plain
+packages/fcl-web/examples/simpleserver/mime.types svneol=native#text/plain
 packages/fcl-web/examples/simpleserver/simpleserver.lpi svneol=native#text/plain
 packages/fcl-web/examples/simpleserver/simpleserver.pas svneol=native#text/plain
 packages/fcl-web/examples/webdata/demo/createusers.lpi svneol=native#text/plain
