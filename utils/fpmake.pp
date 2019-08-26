@@ -50,6 +50,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils');
+    P.ShortName := 'tils';
     P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
     P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
     if Defaults.CPU=jvm then

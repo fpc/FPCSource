@@ -13,6 +13,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('iosxlocale');
+    P.ShortName := 'iosl';
     P.Dependencies.Add('univint');
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;

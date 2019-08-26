@@ -13,7 +13,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('libenet');
-    P.ShortName:='libenet';
+    P.ShortName:='lnet';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}

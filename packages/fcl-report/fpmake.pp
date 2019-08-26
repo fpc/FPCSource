@@ -13,7 +13,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('fcl-report');
-    P.ShortName:='fpreport';
+    P.ShortName:='fpre';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}

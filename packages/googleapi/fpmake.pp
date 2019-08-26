@@ -23,7 +23,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('googleapi');
-    P.ShortName:='googleap';
+    P.ShortName:='gapi';
     P.Author := 'Michael Van Canneyt';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

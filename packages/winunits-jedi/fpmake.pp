@@ -14,6 +14,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('winunits-jedi');
+    P.ShortName := 'wij';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}

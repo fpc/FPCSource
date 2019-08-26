@@ -822,7 +822,7 @@ Type
     FOptions: TStrings;
     FTransmitOptions: TStrings;
     FFileName: String;
-    FShortName: String;
+    FShortName: String; { Used to generate the short 8.3 zip file name, must be 4 characters at most }
     FAuthor: String;
     FLicense: String;
     FHomepageURL: String;

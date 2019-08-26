@@ -15,7 +15,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-instantfpc');
-    P.ShortName:='instantfpc';
+    P.ShortName:='ifpc';
     P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];

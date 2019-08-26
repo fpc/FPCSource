@@ -15,7 +15,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-fpcres');
-    P.ShortName:='fpres';
+    P.ShortName:='fprs';
     P.OSes:=AllOSes-[atari,embedded,msdos,win16,macos,palmos];
     //P.OSes:=[win32,win64,wince,haiku,linux,freebsd,openbsd,netbsd,darwin,iphonesim,solaris,os2,emx,aix,aros,amiga,morphos];
 

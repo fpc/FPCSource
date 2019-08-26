@@ -15,7 +15,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-fpcreslipo');
-    P.ShortName:='fpcreslipo';
+    P.ShortName:='fprl';
     P.Description:='Free Pascal External Resource Thinner';
     P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
     if Defaults.CPU=jvm then

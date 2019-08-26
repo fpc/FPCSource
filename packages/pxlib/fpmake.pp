@@ -12,6 +12,7 @@ begin
     begin
 {$endif ALLPACKAGES}
     P:=AddPackage('pxlib');
+    P.ShortName := 'pxl';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
