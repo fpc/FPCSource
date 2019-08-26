@@ -298,8 +298,12 @@ function tcpuparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
 procedure tcpuparamanager.init_values(var curintreg, curfloatreg, curmmreg:
   tsuperregister; var cur_stack_offset: aword);
 begin
-  { register parameter save area begins at 48(r2) }
-  cur_stack_offset := 48;
+  case target_info.abi of
+    abi_powerpc_elfv2:
+      cur_stack_offset := 32;
+    else
+      cur_stack_offset := 48;
+  end;
   curintreg := RS_R3;
   curfloatreg := RS_F1;
   curmmreg := RS_M2;
