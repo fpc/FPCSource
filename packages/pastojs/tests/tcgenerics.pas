@@ -21,6 +21,7 @@ type
     Procedure TestGen_ClassEmpty;
     Procedure TestGen_Class_EmptyMethod;
     Procedure TestGen_Class_TList;
+    Procedure TestGen_ClassAncestor;
 
     // generic external class
     procedure TestGen_ExtClass_Array;
@@ -204,6 +205,38 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.l.SetItems(1, $mod.w);',
     '$mod.w = $mod.l.GetItems(2);',
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_ClassAncestor;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '  end;',
+  '  generic TEagle<T> = class(TBird<T>)',
+  '  end;',
+  'var a: specialize TEagle<word>;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_ClassAncestor',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird$G2", $mod.TObject, function () {',
+    '});',
+    'rtl.createClass($mod, "TEagle$G1", $mod.TBird$G2, function () {',
+    '});',
+    'this.a = null;',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 

@@ -14992,6 +14992,31 @@ var
   GenericType, NewEl: TPasGenericType;
   GenScope: TPasGenericScope;
   SpecializedTypes: TObjectList;
+
+  procedure InsertBehind(List: TFPList);
+  var
+    Last: TPasElement;
+    i: Integer;
+  begin
+    Last:=GenericType;
+    if SpecializedTypes<>nil then
+      begin
+      i:=SpecializedTypes.Count-2;
+      if i>=0 then
+        Last:=TPSSpecializedItem(SpecializedTypes[i]).SpecializedType;
+      end;
+    i:=List.IndexOf(Last);
+    if i<0 then
+      begin
+      {$IF defined(VerbosePasResolver) or defined(VerbosePas2JS)}
+      writeln('InsertBehind Generic=',GetObjName(GenericType),' Last=',GetObjName(Last));
+      {$ENDIF}
+      RaiseNotYetImplemented(20190826150507,El);
+      end;
+    List.Insert(i+1,NewEl);
+  end;
+
+var
   NewName: String;
   NewClass: TPTreeElement;
   SrcModule: TPasModule;
@@ -15034,12 +15059,12 @@ begin
 
   if NewParent is TPasDeclarations then
     begin
-    TPasDeclarations(NewParent).Declarations.Add(NewEl);
+    InsertBehind(TPasDeclarations(NewParent).Declarations);
     {$IFDEF CheckPasTreeRefCount}NewEl.RefIds.Add('TPasDeclarations.Children');{$ENDIF}
     end
   else if NewParent is TPasMembersType then
     begin
-    TPasMembersType(NewParent).Members.Add(NewEl);
+    InsertBehind(TPasMembersType(NewParent).Members);
     {$IFDEF CheckPasTreeRefCount}NewEl.RefIds.Add('TPasMembersType.Members');{$ENDIF}
     end
   else
