@@ -524,21 +524,12 @@ begin
           end
           else
           case MemRefInfo(opcode).MemRefSize of
-            msiMultiple8,
             msiMem8: memrefsize := 8;
-            msiMultiple16,
             msiMem16: memrefsize := 16;
-            msiMultiple32,
             msiMem32: memrefsize := 32;
-            //msiXMem64,
-            //msiYMem64,
-            msiMultiple64,
             msiMem64: memrefsize := 64;
-            msiMultiple128,
             msiMem128: memrefsize := 128;
-            msiMultiple256,
             msiMem256: memrefsize := 256;
-            msiMultiple512,
             msiMem512: memrefsize := 512;
             msiMemRegx16y32:
               begin
@@ -706,8 +697,16 @@ begin
             msiYMem64,
             msiZMem64: ; // ignore;  gather/scatter opcodes haven a fixed element-size, not a fixed memory-size
                          // the vector-register have indices with base of the memory-address in the memory-operand
+            msiMultipleMinSize8,
+            msiMultipleMinSize16,
+            msiMultipleMinSize32,
+            msiMultipleMinSize64,
+            msiMultipleMinSize128,
+            msiMultipleMinSize256,
+            msiMultipleMinSize512: ; // ignore
             msiNoSize,
-            msiUnkown,
+            msiNoMemRef,
+            msiUnknown,
             msiUnsupported,
             msiVMemMultiple,
             msiVMemRegSize,
@@ -821,7 +820,7 @@ begin
                                 tx86operand(operands[i]).opsize := S_B;
                                 tx86operand(operands[i]).size   := OS_8;
                               end;
-                      msiMultiple8:
+                      msiMultipleMinSize8:
                               begin
                                 tx86operand(operands[i]).opsize := S_B;
                                 tx86operand(operands[i]).size   := OS_8;
@@ -833,7 +832,7 @@ begin
                                 tx86operand(operands[i]).opsize := S_W;
                                 tx86operand(operands[i]).size   := OS_16;
                               end;
-                      msiMultiple16:
+                      msiMultipleMinSize16:
                                begin
                                  tx86operand(operands[i]).opsize := S_W;
                                  tx86operand(operands[i]).size   := OS_16;
@@ -845,7 +844,7 @@ begin
                                  tx86operand(operands[i]).opsize := S_L;
                                  tx86operand(operands[i]).size   := OS_32;
                                end;
-                      msiMultiple32:
+                      msiMultipleMinSize32:
                                begin
                                  tx86operand(operands[i]).opsize := S_L;
                                  tx86operand(operands[i]).size   := OS_32;
@@ -857,7 +856,7 @@ begin
                                  tx86operand(operands[i]).opsize := S_Q;
                                  tx86operand(operands[i]).size   := OS_M64;
                                end;
-                      msiMultiple64:
+                      msiMultipleMinSize64:
                                begin
                                  tx86operand(operands[i]).opsize := S_Q;
                                  tx86operand(operands[i]).size   := OS_M64;
@@ -869,7 +868,7 @@ begin
                                  tx86operand(operands[i]).opsize := S_XMM;
                                  tx86operand(operands[i]).size   := OS_M128;
                                end;
-                      msiMultiple128:
+                      msiMultipleMinSize128:
                                begin
                                  tx86operand(operands[i]).opsize := S_XMM;
                                  tx86operand(operands[i]).size   := OS_M128;
@@ -882,7 +881,7 @@ begin
                                  tx86operand(operands[i]).size   := OS_M256;
                                  opsize := S_YMM;
                                end;
-                      msiMultiple256:
+                      msiMultipleMinSize256:
                                begin
                                  tx86operand(operands[i]).opsize := S_YMM;
                                  tx86operand(operands[i]).size   := OS_M256;
@@ -896,7 +895,7 @@ begin
                                  tx86operand(operands[i]).size   := OS_M512;
                                  opsize := S_ZMM;
                                end;
-                      msiMultiple512:
+                      msiMultipleMinSize512:
                                begin
                                  tx86operand(operands[i]).opsize := S_ZMM;
                                  tx86operand(operands[i]).size   := OS_M512;
@@ -1182,9 +1181,10 @@ begin
                    msiZMem64: ; // ignore;  gather/scatter opcodes haven a fixed element-size, not a fixed memory-size
                                 // the vector-register have indices with base of the memory-address in the memory-operand
                    msiNoSize: ; //  all memory-sizes are ok
+                   msiNoMemRef:; // ignore;
                    msiVMemMultiple,
                    msiVMemRegSize: ;  // ignore
-                   msiUnkown,
+                   msiUnknown,
                    msiUnsupported,
                    msiMultiple: Message(asmr_e_unable_to_determine_reference_size); // TODO individual message
                   else
@@ -1215,7 +1215,7 @@ begin
                               internalerror(2019050910);
                             end;
 {$endif}
-                  csiUnkown, csiMultiple, csiNoSize:
+                  csiUnknown, csiMultiple, csiNoSize:
                     ;
                 end;
           else
