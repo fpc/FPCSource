@@ -4304,6 +4304,8 @@ implementation
         hashedid.id:=class_helper_prefix+s;
         stackitem:=symtablestack.stack;
         result:=false;
+        srsym:=nil;
+        srsymtable:=nil;
         founddefowner:=nil;
         while assigned(stackitem) do
           begin
@@ -4363,8 +4365,6 @@ implementation
             addsymref(srsym);
             exit;
           end;
-        srsym:=nil;
-        srsymtable:=nil;
       end;
 
 
