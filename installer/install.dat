@@ -29,17 +29,17 @@ ideinifile=fp.ini
 
 filecheck=*dos.zip
 # Dos 1
-package=basedos.zip,~B~asic system for Go32v2 (required)
+package=basedos.zip[basedos.zip],~B~asic system for Go32v2 (required)
 # Dos 2
-package=aslddos.zip,GNU ~L~inker and GNU Assembler for Go32v2 (required)
+package=aslddos.zip[aslddos.zip],GNU ~L~inker and GNU Assembler for Go32v2 (required)
 # Dos 3
 package=units-idedos.zip[uidedos.zip],~I~DE with integrated debugger/compiler (BETA)
 # Dos 4
-package=utilsdos.zip[utildos.zip],~E~xtra Utilities
+package=utilsdos.zip[utilsdos.zip],~E~xtra Utilities
 # Dos 5
-package=makedos.zip,GNU ~U~tilities (needed for Makefile usage)
+package=makedos.zip[makedos.zip],GNU ~U~tilities (needed for Makefile usage)
 # Dos 6
-package=gdbdos.zip,GNU ~D~ebugger for Go32v2
+package=gdbdos.zip[gdbdos.zip],GNU ~D~ebugger for Go32v2
 # Dos 7
 package=units-gdbintdos.zip[ugdbdos.zip],GDB Interfacing units
 # Dos 8
@@ -51,7 +51,7 @@ package=units-unzipdos.zip[uzipdos.zip],Unzip units
 # Dos 11
 package=units-pasjpegdos.zip[upjpdos.zip],Pas~J~PEG units
 # Dos 12
-package=units-hashdos.zip[uhshdos.zip],Hash calculation units
+package=units-hashdos.zip[uhashdos.zip],Hash calculation units
 # Dos 13
 package=units-fvdos.zip[ufvdos.zip],Free ~V~ision (FV)
 # Dos 14
@@ -78,7 +78,7 @@ package=units-fpmkunitdos.zip[ufpmkdos.zip],Units required for building fpmake.e
 package=units-fcl-jsondos.zip[ufcljdos.zip],Free Component Library (FCL)-JSON interface
 # Dos 25
 # Dos 26
-package=units-chmdos.zip,Support for .chm files handling
+package=units-chmdos.zip[uchmdos.zip],Support for .chm files handling
 # Dos 27
 package=units-libgddos.zip[ulgddos.zip],GD library interface unit
 # Dos 28
@@ -116,21 +116,21 @@ package=units-rtl-objpasdos.zip[urtlodos.zip],RTL-Object Pascal units (e.g. Delp
 # Dos-2 10
 package=units-rtl-unicodedos.zip[urtludos.zip],RTL-miscellaneous Unicode support units
 # Dos-2 11
-package=utils-fpcmkcfgdos.zip[ufcmkdos.zip],Creation of Free Pascal configuration files
+package=utils-fpcmkcfgdos.zip[ufpckdos.zip],Creation of Free Pascal configuration files
 # Dos-2 12
 package=utils-fpcmdos.zip[ufpcmdos.zip],Generate Makefiles out of Makefile.fpc files
 # Dos-2 13
-package=utils-fprcpdos.zip[ufprcpdos.zip],Free Pascal Resource Compiler Preprocessor
+package=utils-fprcpdos.zip[ufprcdos.zip],Free Pascal Resource Compiler Preprocessor
 # Dos-2 14
-package=utils-h2pasdos.zip[uh2pasdos.zip],Create Pascal interface units from C headers
+package=utils-h2pasdos.zip[uh2pados.zip],Create Pascal interface units from C headers
 # Dos-2 15
-package=utils-pas2fpmdos.zip[up2fmdos.zip],Generate fpmake.pp for Pascal source
+package=utils-pas2fpmdos.zip[up2fpdos.zip],Generate fpmake.pp for Pascal source
 # Dos-2 16
 package=utils-pas2utdos.zip[up2utdos.zip],Pascal source to FPC Unit test generator
 # Dos-2 17
 package=utils-rmwaitdos.zip[urmwdos.zip],Remove (delete) file(s) with optional retries
 # Dos-2 18
-package=utils-lexyaccdos.zip[tplydos.zip],Compiler generator for TP and compatibles
+package=utils-lexyaccdos.zip[ulexydos.zip],Compiler generator for TP and compatibles
 # Dos-2 19
 package=units-ptcdos.zip[uptcdos.zip],Free portable framebuffer library
 # Dos-2 20
@@ -140,7 +140,7 @@ package=units-fcl-pdfdos.zip[ufcpddos.zip],PDF generating and TTF file info libr
 # Dos-2 22
 package=units-rtl-genericsdos.zip[urtlgdos.zip],RTL-generic collection library
 # Dos-2 23
-package=units-webidldos.zip[uwbdldos.zip],WEB IDL parser and converter to Object Pascal classes
+package=units-webidldos.zip[uwidldos.zip],WEB IDL parser and converter to Object Pascal classes
 # Dos-2 24
 package=utils-fpcresdos.zip[ufprsdos.zip],Free Pascal Resource Converter
 # Dos-2 25
@@ -323,7 +323,7 @@ package=ufvos2.zip,Free ~V~ision (FV)
 # OS/2 8
 package=uos2unitsos2.zip[uos2os2.zip],Units interfacing libraries delivered with OS/2/eCS
 # OS/2 9
-package=utils-h2pasos2.zip[h2pasos2.zip],Create Pascal interface units from C headers
+package=utils-h2pasos2.zip[uh2paos2.zip],Create Pascal interface units from C headers
 # OS/2 10
 package=upasjpegos2.zip[upjpos2.zip],Pas~J~PEG units
 # OS/2 11
@@ -359,11 +359,11 @@ package=utils-fpmcos2.zip[fpmcos2.zip],Free Pascal Message Compiler
 # OS/2 26
 package=utils-fppkgos2.zip[fppkgos2.zip],Free Pascal package repository utility
 # OS/2 27
-package=utils-fprcpos2.zip[fprcpos2.zip],Free Pascal Resource Compiler Preprocessor
+package=utils-fprcpos2.zip[ufprcos2.zip],Free Pascal Resource Compiler Preprocessor
 # OS/2 28
 package=utils-fpcresos2.zip[fpresos2.zip],Free Pascal Resource Converter
 # OS/2 29
-package=utils-pas2fpmos2.zip[p2fmos2.zip],Generate fpmake.pp for Pascal source
+package=utils-pas2fpmos2.zip[up2fpos2.zip],Generate fpmake.pp for Pascal source
 # OS/2 30
 package=utils-pas2jnios2.zip[p2jnos2.zip],Generate JNI bridge for Pascal code
 # OS/2 31
@@ -435,7 +435,7 @@ package=urtl-unicodeos2.zip[urtluos2.zip],RTL-miscellaneous Unicode support unit
 # OS/2-2 29
 package=utils-rmwaitos2.zip[rmwos2.zip],Remove (delete) file(s) with optional retries
 # OS/2-2 30
-package=utils-lexyaccos2.zip[tplyos2.zip],Compiler generator for TP and compatibles
+package=utils-lexyaccos2.zip[ulexyos2.zip],Compiler generator for TP and compatibles
 # OS/2-2 31
 package=utils-fpcmos2.zip[fpcmos2.zip],Generate Makefiles out of Makefile.fpc files
 # OS/2-2 32
@@ -514,13 +514,13 @@ package=utils-fpmcemx.zip[fpmcemx.zip],Free Pascal Message Compiler.
 # EMX 25
 package=utils-fppkgemx.zip[fppkgemx.zip],Free Pascal package repository utility.
 # EMX 26
-package=utils-fprcpemx.zip[fprcpemx.zip],Free Pascal Resource Compiler Preprocessor
+package=utils-fprcpemx.zip[ufprcemx.zip],Free Pascal Resource Compiler Preprocessor
 # EMX 27
 package=utils-fpcresemx.zip[fpresemx.zip],Free Pascal Resource Converter
 # EMX 28
-package=utils-h2pasemx.zip[h2pasemx.zip],Create Pascal interface units from C headers
+package=utils-h2pasemx.zip[uh2paemx.zip],Create Pascal interface units from C headers
 # EMX 29
-package=utils-pas2fpmemx.zip[p2fmemx.zip],Generate fpmake.pp for Pascal source
+package=utils-pas2fpmemx.zip[up2fpemx.zip],Generate fpmake.pp for Pascal source
 # EMX 30
 package=utils-pas2jniemx.zip[p2jnemx.zip],Generate JNI bridge for Pascal code
 # EMX 31
@@ -592,7 +592,7 @@ package=urtl-unicodeemx.zip[urtluemx.zip],RTL-miscellaneous Unicode support unit
 # EMX-2 29
 package=utils-rmwaitemx.zip[rmwemx.zip],Remove (delete) file(s) with optional retries
 # EMX-2 30
-package=utils-lexyaccemx.zip[tplyemx.zip],Compiler generator for TP and compatibles
+package=utils-lexyaccemx.zip[ulexyemx.zip],Compiler generator for TP and compatibles
 # EMX-2 31
 package=utils-fpcmemx.zip[fpcmemx.zip],Generate Makefiles out of Makefile.fpc files
 # EMX-3 32
@@ -613,15 +613,15 @@ package=urtl-genericsemx.zip[urtlgemx.zip],RTL-generic collection library
 #
 pack=Commo~n~
 # Common 1
-package=doc-pdf.zip,Documentation (~P~DF)
+package=doc-pdf.zip[doc-pdf.zip],Documentation (~P~DF)
 # Common 2
-package=doc-chm.zip,Documentation (CH~M~)
+package=doc-chm.zip[doc-chm.zip],Documentation (CH~M~)
 # Common 3
 package=doc-html.zip[doc-htm.zip],Documentation (~H~TML)
 # Common 4
-package=doc-txt.zip,Documentation (~T~XT)
+package=doc-txt.zip[doc-txt.zip],Documentation (~T~XT)
 # Common 5
-package=demo.zip,D~e~mos
+package=demo.zip[demo.zip],D~e~mos
 
 
 #
@@ -683,7 +683,7 @@ package=units-ibase-3.3.1.source.zip[uibassrc.zip],Interbase interface units sou
 # Source-2 5
 package=units-mysql-3.3.1.source.zip[umysqsrc.zip],MySQL interface units sources
 # Source-2 6
-package=utils-lexyacc-3.3.1.source.zip[tplysrc.zip],Compiler generator for TP and compatibles
+package=utils-lexyacc-3.3.1.source.zip[ulexysrc.zip],Compiler generator for TP and compatibles
 # Source-2 7
 package=utils-unicode-3.3.1.source.zip[ucodesrc.zip],Transformation of Unicode consortium data for FPC
 # Source-2 8
