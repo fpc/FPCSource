@@ -475,8 +475,8 @@ type
     FContentSent: Boolean;
     FRequest : TRequest;
     FCookies : TCookies;
-    function GetContent: String;
-    procedure SetContent(const AValue: String);
+    function GetContent: RawByteString;
+    procedure SetContent(const AValue: RawByteString);
     procedure SetContents(AValue: TStrings);
     procedure SetContentStream(const AValue: TStream);
     procedure SetFirstHeaderLine(const line: String);
@@ -507,7 +507,7 @@ type
     Property RetryAfter : String  Index Ord(hhRetryAfter) Read GetHeaderValue Write SetHeaderValue;
     Property FirstHeaderLine : String Read GetFirstHeaderLine Write SetFirstHeaderLine;
     Property ContentStream : TStream Read FContentStream Write SetContentStream;
-    Property Content : String Read GetContent Write SetContent;
+    Property Content : RawByteString Read GetContent Write SetContent;
     property Contents : TStrings read FContents Write SetContents;
     Property HeadersSent : Boolean Read FHeadersSent;
     Property ContentSent : Boolean Read FContentSent;
@@ -1985,7 +1985,7 @@ begin
   FContents:=TStringList.Create;
   TStringList(FContents).OnChange:=@ContentsChanged;
   FCookies:=TCookies.Create(TCookie);
-  FCustomHeaders:=TStringList.Create;
+  FCustomHeaders:=TStringList.Create; // Destroyed in parent
 end;
 
 destructor TResponse.destroy;
@@ -2074,14 +2074,18 @@ begin
   FContents.Assign(AValue);
 end;
 
-function TResponse.GetContent: String;
+function TResponse.GetContent: RawByteString;
 begin
   Result:=Contents.Text;
 end;
 
-procedure TResponse.SetContent(const AValue: String);
+procedure TResponse.SetContent(const AValue: RawByteString);
 begin
-  FContentStream:=Nil;
+  if Assigned(FContentStream) then
+    if FreeContentStream then
+      FreeAndNil(FContentStream)
+    else
+      FContentStream:=Nil;
   FContents.Text:=AValue;
 end;
 

@@ -53,7 +53,7 @@ type
     Procedure SetUp; override;
     Procedure TestItemCount(J : TJSONData;Expected : Integer);
     Procedure TestJSONType(J : TJSONData;Expected : TJSONType);
-    Procedure TestJSON(J : TJSONData;Expected : String);
+    Procedure TestJSON(J : TJSONData;Expected : TJSONStringType);
     Procedure TestIsNull(J : TJSONData;Expected : Boolean);
     Procedure TestAsBoolean(J : TJSONData;Expected : Boolean; ExpectError : boolean = False);
     Procedure TestAsInteger(J : TJSONData; Expected : Integer; ExpectError : boolean = False);
@@ -238,6 +238,8 @@ type
     procedure TestCreateBoolean;
     procedure TestCreateBooleanUnquoted;
     procedure TestCreateObject;
+    procedure TestCreateJSONUnicodeString;
+    procedure TestCreateJSONWideString;
     procedure TestCreateJSONString;
     procedure TestCreateJSONStringUnquoted;
     procedure TestCreateJSONObject;
@@ -1078,7 +1080,7 @@ begin
   AssertEquals(J.ClassName+'.JSONType',Ord(Expected),Ord(J.JSONType));
 end;
 
-Procedure TTestJSON.TestJSON(J: TJSONData; Expected: String);
+Procedure TTestJSON.TestJSON(J: TJSONData; Expected: TJSONStringType);
 begin
   AssertEquals(J.ClassName+'.AsJSON',Expected,J.AsJSON);
 end;
@@ -3923,6 +3925,44 @@ begin
     end;
   except
     // Should be OK.
+  end;
+end;
+
+procedure TTestObject.TestCreateJSONUnicodeString;
+Const
+  A = 'A';
+  S : Unicodestring = 'A string';
+
+Var
+  O : TJSONObject;
+
+begin
+  O:=TJSONObject.Create([A,S]);
+  try
+    TestItemCount(O,1);
+    TestJSONType(O[A],jtString);
+    TestJSON(O,'{ "A" : "'+UTF8Encode(S)+'" }');
+  finally
+    FreeAndNil(O);
+  end;
+end;
+
+procedure TTestObject.TestCreateJSONWideString;
+Const
+  A = 'A';
+  W : WideString = 'A string';
+
+Var
+  O : TJSONObject;
+
+begin
+  O:=TJSONObject.Create([A,W]);
+  try
+    TestItemCount(O,1);
+    TestJSONType(O[A],jtString);
+    TestJSON(O,'{ "A" : "'+UTF8Encode(W)+'" }');
+  finally
+    FreeAndNil(O);
   end;
 end;
 
