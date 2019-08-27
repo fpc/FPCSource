@@ -49,6 +49,7 @@ begin
     P.SourcePath.Add('src/jsonrpc');
     P.SourcePath.Add('src/hpack');
     P.SourcePath.Add('src/restbridge');
+    T:=P.Targets.addUnit('fpmimetypes.pp');
 
     T:=P.Targets.AddUnit('httpdefs.pp');
     T.ResourceStrings:=true;

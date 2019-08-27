@@ -122,7 +122,6 @@ begin
 
     T:=P.Targets.AddUnit('fileinfo.pp');
       T.ResourceStrings:=true;
-    T:=P.Targets.addUnit('fpmimetypes.pp');
     T:=P.Targets.AddUnit('csvreadwrite.pp');
     T:=P.Targets.addUnit('csvdocument.pp');
     With T.Dependencies do
