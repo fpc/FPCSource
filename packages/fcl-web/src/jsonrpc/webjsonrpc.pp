@@ -275,7 +275,8 @@ begin
       AResponse.FreeContentStream:=True;
       AResponse.ContentStream:=TMemoryStream.Create;
       R:=Res.AsJSON;
-      AResponse.ContentStream.WriteBuffer(R[1],Length(R));
+      if Length(R)>0 then
+        AResponse.ContentStream.WriteBuffer(R[1],Length(R));
       AResponse.ContentLength:=AResponse.ContentStream.Size;
       R:=''; // Free up mem
       AResponse.ContentType:=GetResponseContentType;

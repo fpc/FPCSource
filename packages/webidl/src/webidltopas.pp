@@ -1363,6 +1363,7 @@ procedure TWebIDLToPas.ProcessDefinitions;
 begin
   FContext.AppendPartials;
   FContext.AppendIncludes;
+
   AllocatePasNames(FContext.Definitions);
 end;
 
@@ -1371,6 +1372,7 @@ procedure TWebIDLToPas.Execute;
 begin
   FContext:=CreateContext;
   try
+    FContext.Aliases:=Self.TypeAliases;
     Parse;
     if Verbose then
       DoLog('Parsed %d definitions.',[Context.Definitions.Count]);
