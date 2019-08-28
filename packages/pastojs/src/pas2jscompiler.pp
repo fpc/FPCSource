@@ -2273,6 +2273,8 @@ begin
         MapFilename:=LocalFilename;
       end;
     end;
+    if FilenameIsAbsolute(MapFilename) then
+      MapFilename:='file://'+MapFilename;
     {$IFNDEF Unix}
     // use / as PathDelim
     if PathDelim<>'/' then

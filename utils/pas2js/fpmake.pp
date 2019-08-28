@@ -15,7 +15,6 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-pas2js');
-    P.ShortName := 'upjs';
 
     P.Author := 'Free Pascal Team';
     P.License := 'LGPL with modification';
