@@ -127,6 +127,7 @@ const
   SHA_DIGEST_LENGTH = 20;
 
 type
+  uint64_t = qword;
   SslPtr = Pointer;
   PSslPtr = ^SslPtr;
   PSSL_CTX = SslPtr;
@@ -141,6 +142,7 @@ type
   PRSA = SslPtr;
   PASN1_UTCTIME = SslPtr;
   PASN1_INTEGER = SSlPtr;
+  POPENSSL_INIT_SETTINGS = SSLPtr;
 
   PDH = pointer;
   PSTACK_OFX509 = pointer;
@@ -580,6 +582,36 @@ const
   SSL_ERROR_WANT_ACCEPT = 8;
   SSL_ERROR_WANT_CHANNEL_ID_LOOKUP = 9;
   SSL_ERROR_PENDING_SESSION = 11;
+
+  OPENSSL_INIT_NO_LOAD_CRYPTO_STRINGS = $00000001;
+  OPENSSL_INIT_LOAD_CRYPTO_STRINGS    = $00000002;
+  OPENSSL_INIT_ADD_ALL_CIPHERS        = $00000004;
+  OPENSSL_INIT_ADD_ALL_DIGESTS        = $00000008;
+  OPENSSL_INIT_NO_ADD_ALL_CIPHERS     = $00000010;
+  OPENSSL_INIT_NO_ADD_ALL_DIGESTS     = $00000020;
+  OPENSSL_INIT_LOAD_CONFIG            = $00000040;
+  OPENSSL_INIT_NO_LOAD_CONFIG         = $00000080;
+  OPENSSL_INIT_ASYNC                  = $00000100;
+  OPENSSL_INIT_ENGINE_RDRAND          = $00000200;
+  OPENSSL_INIT_ENGINE_DYNAMIC         = $00000400;
+  OPENSSL_INIT_ENGINE_OPENSSL         = $00000800;
+  OPENSSL_INIT_ENGINE_CRYPTODEV       = $00001000;
+  OPENSSL_INIT_ENGINE_CAPI            = $00002000;
+  OPENSSL_INIT_ENGINE_PADLOCK         = $00004000;
+  OPENSSL_INIT_ENGINE_AFALG           = $00008000;
+  OPENSSL_INIT_ATFORK                 = $00020000;
+  OPENSSL_INIT_NO_LOAD_SSL_STRINGS    = $00100000;
+  OPENSSL_INIT_LOAD_SSL_STRINGS       = $00200000;
+
+  OPENSSL_INIT_SSL_DEFAULT            =  (OPENSSL_INIT_LOAD_SSL_STRINGS or OPENSSL_INIT_LOAD_CRYPTO_STRINGS);
+
+  OPENSSL_INIT_ENGINE_ALL_BUILTIN =
+      OPENSSL_INIT_ENGINE_RDRAND or
+      OPENSSL_INIT_ENGINE_DYNAMIC or
+      OPENSSL_INIT_ENGINE_CRYPTODEV or
+      OPENSSL_INIT_ENGINE_CAPI or
+      OPENSSL_INIT_ENGINE_PADLOCK;
+
 
   SSL_CTRL_NEED_TMP_RSA = 1;
   SSL_CTRL_SET_TMP_RSA = 2;
@@ -1026,6 +1058,7 @@ var
 // libssl.dll
   function OpenSSLGetVersion(t: cint):String;
   function SslGetError(s: PSSL; ret_code: cInt):cInt;
+  Function OPENSSL_init_ssl(opts: uint64_t ; settings : POPENSSL_INIT_SETTINGS) : cint;
   function SslLibraryInit:cInt;
   procedure SslLoadErrorStrings;
 //  function SslCtxSetCipherList(arg0: PSSL_CTX; str: PChar):cInt;
@@ -1086,6 +1119,11 @@ var
   function SslSetSslCtx(ssl: PSSL; ctx: PSSL_CTX): PSSL;
 
 // libeay.dll
+  function OPENSSL_INIT_new : POPENSSL_INIT_SETTINGS;
+  Procedure OPENSSL_INIT_free(aSettings : POPENSSL_INIT_SETTINGS);
+  function OPENSSL_INIT_set_config_appname (settings:POPENSSL_INIT_SETTINGS; config_file : Pchar) : cint;
+  Function OPENSSL_init_crypto ( opts: uint64_t ; settings : POPENSSL_INIT_SETTINGS) : cint;
+  Procedure OPENSSL_cleanup;
   procedure ERR_load_crypto_strings;
   function X509New: PX509;
   procedure X509Free(x: PX509);
@@ -1142,8 +1180,8 @@ var
 
   function RAND_set_rand_method(const meth: PRAND_METHOD): cint;
   function RAND_get_rand_method: PRAND_METHOD;
-  function RAND_SSLeay: PRAND_METHOD;
-  procedure RAND_cleanup;
+  function RAND_SSLeay: PRAND_METHOD; deprecated 'No longer in OpenSSL';
+  procedure RAND_cleanup; deprecated 'deprecated as of 1.1';
   function RAND_bytes(buf: PByte; num: cint): cint;
   function RAND_pseudo_bytes(buf: PByte; num: cint): cint;
   procedure RAND_seed(const buf: Pointer; num: cint);
@@ -1514,6 +1552,12 @@ type
   TOpenSSLversion = function (arg : cint) : pchar; cdecl;
   TSslGetError = function(s: PSSL; ret_code: cInt):cInt; cdecl;
   TSslLibraryInit = function:cInt; cdecl;
+  TOPENSSL_INIT_new = function : POPENSSL_INIT_SETTINGS; cdecl;
+  TOPENSSL_INIT_free = procedure(settings : POPENSSL_INIT_SETTINGS); cdecl;
+  TOPENSSL_INIT_set_config_appname = function (settings:POPENSSL_INIT_SETTINGS; config_file : Pchar) : cint;
+
+  TOPENSSL_init_ssl = function ( opts: uint64_t ; settings : POPENSSL_INIT_SETTINGS) : cint; cdecl;
+  TOPENSSL_cleanup = procedure; cdecl;
   TSslLoadErrorStrings = procedure; cdecl;
   TSslCtxSetCipherList = function(arg0: PSSL_CTX; str: PChar):cInt; cdecl;
   TSslCtxNew = function(meth: PSSL_METHOD):PSSL_CTX; cdecl;
@@ -1697,6 +1741,7 @@ type
   //
   TEVP_CIPHER_CTX_init = procedure(a: PEVP_CIPHER_CTX); cdecl;
   TEVP_CIPHER_CTX_cleanup = function(a: PEVP_CIPHER_CTX): cint; cdecl;
+  TEVP_CIPHER_CTX_reset = function(a: PEVP_CIPHER_CTX): cint; cdecl;
   TEVP_CIPHER_CTX_set_key_length = function(x: PEVP_CIPHER_CTX; keylen: cint): cint; cdecl;
   TEVP_CIPHER_CTX_ctrl = function(ctx: PEVP_CIPHER_CTX; type_, arg: cint; ptr: Pointer): cint; cdecl;
   //
@@ -1745,6 +1790,7 @@ var
   _OpenSSLVersion : TOpenSSLversion = Nil;
   _SslGetError: TSslGetError = nil;
   _SslLibraryInit: TSslLibraryInit = nil;
+  _OPENSSL_init_ssl : TOPENSSL_init_ssl = Nil;
   _SslLoadErrorStrings: TSslLoadErrorStrings = nil;
   _SslCtxSetCipherList: TSslCtxSetCipherList = nil;
   _SslCtxNew: TSslCtxNew = nil;
@@ -1791,6 +1837,11 @@ var
   _SslSetSslCtx: TSSLSetSslCtx = nil;
 
 // libeay.dll
+  _OPENSSL_cleanup : TOPENSSL_cleanup = Nil;
+  _OPENSSL_INIT_new : TOPENSSL_INIT_new = nil;
+  _OPENSSL_INIT_free : TOPENSSL_INIT_free = nil;
+  _OPENSSL_INIT_set_config_appname : TOPENSSL_INIT_set_config_appname = Nil;
+  _OPENSSL_init_crypto : TOPENSSL_init_ssl = Nil;
   _ERR_load_crypto_strings: TERR_load_crypto_strings = nil;
   _X509New: TX509New = nil;
   _X509Free: TX509Free = nil;
@@ -1940,6 +1991,7 @@ var
   _EVP_get_cipherbyname: TEVP_get_cipherbyname = nil;
   _EVP_get_digestbyname: TEVP_get_digestbyname = nil;
   //
+  _EVP_CIPHER_CTX_reset: TEVP_CIPHER_CTX_reset = nil;
   _EVP_CIPHER_CTX_init: TEVP_CIPHER_CTX_init = nil;
   _EVP_CIPHER_CTX_cleanup: TEVP_CIPHER_CTX_cleanup = nil;
   _EVP_CIPHER_CTX_set_key_length: TEVP_CIPHER_CTX_set_key_length = nil;
@@ -2107,18 +2159,31 @@ begin
     Result := SSL_ERROR_SSL;
 end;
 
+Function OPENSSL_init_ssl(opts: uint64_t ; settings : POPENSSL_INIT_SETTINGS) : cint;
+
+begin
+  Result := 1;
+  if InitSSLInterface and Assigned(_OPENSSL_init_ssl) then
+    Result:=_OPENSSL_init_ssl(opts,settings);
+end;
+
 function SslLibraryInit:cInt;
 begin
-  if InitSSLInterface and Assigned(_SslLibraryInit) then
-    Result := _SslLibraryInit
-  else
-    Result := 1;
+  Result := 1;
+  if InitSSLInterface then
+    if Assigned(_SslLibraryInit) then
+      Result := _SslLibraryInit
+    else if Assigned(_OPENSSL_init_ssl) then
+      Result:=_OPENSSL_init_ssl(0,Nil)
 end;
 
 procedure SslLoadErrorStrings;
 begin
-  if InitSSLInterface and Assigned(_SslLoadErrorStrings) then
-    _SslLoadErrorStrings;
+  if InitSSLInterface then
+    if Assigned(_SslLoadErrorStrings) then
+      _SslLoadErrorStrings
+    else if Assigned(_OpenSSl_init_ssl) then
+      _OpenSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS or OPENSSL_INIT_LOAD_CRYPTO_STRINGS,Nil)
 end;
 
 function SslCtxSetCipherList(arg0: PSSL_CTX; var str: String):cInt;
@@ -2511,10 +2576,53 @@ begin
     Result := '';
 end;
 
+Procedure OPENSSL_cleanup;
+
+begin
+  if InitSSLInterface and Assigned(_OPENSSL_cleanup) then
+    _OPENSSL_cleanup();
+end;
+
+function OPENSSL_INIT_new : POPENSSL_INIT_SETTINGS;
+
+begin
+  if InitsslInterface and assigned(_OPENSSL_INIT_new) then
+    Result:=_OPENSSL_INIT_new()
+  else
+    result:=nil;
+end;
+
+procedure OPENSSL_INIT_free(aSettings : POPENSSL_INIT_SETTINGS);
+
+begin
+  if InitsslInterface and assigned(_OPENSSL_INIT_free) then
+    _OPENSSL_INIT_free(aSettings);
+end;
+
+function OPENSSL_INIT_set_config_appname (settings:POPENSSL_INIT_SETTINGS; config_file : Pchar) : cint;
+
+begin
+  if InitsslInterface and assigned(_OPENSSL_INIT_set_config_appname) then
+    Result:=_OPENSSL_INIT_set_config_appname(Settings,config_file)
+  else
+    Result:=1;
+end;
+
+Function OPENSSL_init_crypto ( opts: uint64_t ; settings : POPENSSL_INIT_SETTINGS) : cint;
+begin
+  if InitSSLInterface and Assigned(_OPENSSL_init_crypto) then
+    Result:=_OPENSSL_init_crypto(opts,Settings)
+  else
+    Result:=1;
+end;
+
 procedure ERR_load_crypto_strings;
 Begin
-  if InitSSLInterface and Assigned(_ERR_load_crypto_strings) then
-    _ERR_load_crypto_strings;
+  if InitSSLInterface then
+    if Assigned(_ERR_load_crypto_strings) then
+     _ERR_load_crypto_strings
+    else if Assigned(_OPENSSL_init_crypto) then
+     _OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS,Nil);
 end;
 
 function X509New: PX509;
@@ -2951,7 +3059,7 @@ end;
 procedure RAND_cleanup;
 begin
   if InitSSLInterface and Assigned(_RAND_cleanup) then
-    _RAND_cleanup();
+    _RAND_cleanup(); // OK if it does not exit;
 end;
 
 function RAND_bytes(buf: PByte; num: cint): cint;
@@ -3395,20 +3503,30 @@ end;
 
 procedure OpenSSL_add_all_algorithms;
 begin
-  if InitSSLInterface and Assigned(_OpenSSL_add_all_algorithms) then
-    _OpenSSL_add_all_algorithms();
+  if InitSSLInterface then
+    if Assigned(_OpenSSL_add_all_algorithms) then
+      _OpenSSL_add_all_algorithms()
+    else if assigned(_OPENSSL_init_crypto) then
+       _OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS or OPENSSL_INIT_ADD_ALL_DIGESTS or OPENSSL_INIT_LOAD_CONFIG, Nil)
 end;
 
 procedure OpenSSL_add_all_ciphers;
 begin
-  if InitSSLInterface and Assigned(_OpenSSL_add_all_ciphers) then
-    _OpenSSL_add_all_ciphers();
+  if InitSSLInterface then
+    if Assigned(_OpenSSL_add_all_ciphers) then
+      _OpenSSL_add_all_ciphers()
+   else if assigned(_OPENSSL_init_crypto) then
+      _OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS, Nil)
 end;
 
 procedure OpenSSL_add_all_digests;
+
 begin
-  if InitSSLInterface and Assigned(_OpenSSL_add_all_digests) then
-    _OpenSSL_add_all_digests();
+  if InitSSLInterface then
+    if Assigned(_OpenSSL_add_all_digests) then
+      _OpenSSL_add_all_digests()
+    else if assigned(_OPENSSL_init_crypto) then
+     _OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_DIGESTS, Nil)
 end;
 //
 function EVP_DigestInit(ctx: PEVP_MD_CTX; type_: PEVP_MD): cint;
@@ -3487,14 +3605,20 @@ end;
 //
 procedure EVP_CIPHER_CTX_init(a: PEVP_CIPHER_CTX);
 begin
-  if InitSSLInterface and Assigned(_EVP_CIPHER_CTX_init) then
-    _EVP_CIPHER_CTX_init(a);
+  if InitSSLInterface then
+    if Assigned(_EVP_CIPHER_CTX_init) then
+    _EVP_CIPHER_CTX_init(a)
+  else if Assigned(_EVP_CIPHER_CTX_reset) then
+    _EVP_CIPHER_CTX_reset(a);
 end;
 
 function EVP_CIPHER_CTX_cleanup(a: PEVP_CIPHER_CTX): cint;
 begin
-  if InitSSLInterface and Assigned(_EVP_CIPHER_CTX_cleanup) then
+  if InitSSLInterface then
+   if  Assigned(_EVP_CIPHER_CTX_cleanup) then
     Result := _EVP_CIPHER_CTX_cleanup(a)
+  else if  Assigned(_EVP_CIPHER_CTX_reset) then
+    Result := _EVP_CIPHER_CTX_reset(a)
   else
     Result := -1;
 end;
@@ -4450,10 +4574,12 @@ end;
 
 function BN_mod(rem: PBIGNUM; a: PBIGNUM; m: PBIGNUM; ctx: PBN_CTX): cint;
 begin
-  if InitSSLInterface and Assigned(_BN_mod) then
-    Result:=_BN_mod(rem, a, m, ctx)
-  else
-    Result:=-1;
+  Result:=-1;
+  if InitSSLInterface then
+    if Assigned(_BN_mod) then
+      Result:=_BN_mod(rem, a, m, ctx)
+    else if assigned(_BN_div) then
+      Result:=_BN_div(nil,rem, a, m, ctx)
 end;
 
 function BN_nnmod(r: PBIGNUM; m: PBIGNUM; d: PBIGNUM; ctx: PBN_CTX): cint;
@@ -4663,11 +4789,58 @@ begin
   {$ENDIF WINDOWS}
 end;
 
+Function CheckOK(ProcName : string ) : string;
+
+
+begin
+  Result:=ProcName;
+  if (ProcName='SSL_library_init')
+     or (ProcName='SSL_load_error_strings')
+     or (ProcName='ERR_load_crypto_strings')
+     or (ProcName='ERR_load_CRYPTOlib_strings')
+     or (ProcName='OpenSSL_add_all_algorithms')
+     or (ProcName='OpenSSL_add_all_ciphers')
+     or (ProcName='OpenSSL_add_all_digests')
+     or (ProcName='EVP_CIPHER_CTX_init')
+     or (ProcName='EVP_CIPHER_CTX_reset')
+     or (ProcName='EVP_CIPHER_CTX_cleanup')
+     or (ProcName='EVP_cleanup')
+     or (ProcName='OPENSSL_cleanup')
+     or (ProcName='OPENSSL_init_crypto')
+     or (ProcName='OPENSSL_INIT_new')
+     or (ProcName='OPENSSL_INIT_free')
+     or (ProcName='OPENSSL_INIT_set_config_appname')
+     or (ProcName='OPENSSL_init_ssl')
+     or (ProcName='SSLeay_version')
+     or (ProcName='ERR_free_strings')
+     or (ProcName='X509_set_notBefore')
+     or (ProcName='X509_set1_notBefore')
+     or (ProcName='X509_set_notAfter')
+     or (ProcName='X509_set1_notAfter')
+     or (ProcName='RAND_screen')
+     or (ProcName='RAND_cleanup')
+     or (ProcName='RAND_SSLeay')
+     or (ProcName='CRYPTO_num_locks')
+     or (ProcName='CRYPTO_set_locking_callback')
+     or (ProcName='BN_mod')
+     or (ProcName='OpenSSL_version') then
+      Result:=Result+' (handled in unit)';
+
+  if (ProcName='SSLv2_method')
+     or (ProcName='SSLv3_method')
+     or (ProcName='SSLv23_method')
+     or (ProcName='RAND_query_egd_bytes')
+     or (ProcName='RAND_egd')
+     or (ProcName='RAND_egd_bytes')
+     then
+    Result:=Result+' (method not supported by lib)';
+end;
+
 function GetProcAddr(module: HModule; const ProcName: string): SslPtr;
 begin
   Result := GetProcAddress(module, PChar(ProcName));
   if LoadVerbose and (Result = nil) then
-    OpenSSL_unavailable_functions := OpenSSL_unavailable_functions + ProcName + LineEnding;
+    OpenSSL_unavailable_functions := OpenSSL_unavailable_functions + CheckOK(ProcName) + LineEnding;
 end;
 
 // The AVerboseLoading parameter can be used to check which particular
@@ -4686,6 +4859,7 @@ begin
   _OpenSSLVersion := GetProcAddr(SSLLibHandle, 'OpenSSL_version');
   _SslGetError := GetProcAddr(SSLLibHandle, 'SSL_get_error');
   _SslLibraryInit := GetProcAddr(SSLLibHandle, 'SSL_library_init');
+  _OPENSSL_init_ssl := GetProcAddr(SSLLibHandle, 'OPENSSL_init_ssl');
   _SslLoadErrorStrings := GetProcAddr(SSLLibHandle, 'SSL_load_error_strings');
   _SslCtxSetCipherList := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_cipher_list');
   _SslCtxNew := GetProcAddr(SSLLibHandle, 'SSL_CTX_new');
@@ -4738,6 +4912,15 @@ Procedure LoadUtilEntryPoints;
 
 begin
   _ERR_load_crypto_strings := GetProcAddr(SSLUtilHandle, 'ERR_load_crypto_strings');
+  // aliases used over time
+  if (@_ERR_load_crypto_strings=Nil) then
+    _ERR_load_crypto_strings:=GetProcAddr(SSLUtilHandle, 'ERR_load_CRYPTOlib_strings');
+  if (@_ERR_load_crypto_strings=Nil) then
+    _ERR_load_crypto_strings:=GetProcAddr(SSLUtilHandle, 'ERR_load_CRYPTO_strings');
+  _OPENSSL_init_crypto :=  GetProcAddr(SSLUtilHandle, 'OPENSSL_init_crypto');
+  _OPENSSL_INIT_new := GetProcAddr(SSLUtilHandle, 'OPENSSL_INIT_new');
+  _OPENSSL_INIT_free := GetProcAddr(SSLUtilHandle, 'OPENSSL_INIT_free');
+  _OPENSSL_INIT_set_config_appname :=GetProcAddr(SSLUtilHandle, 'OPENSSL_INIT_set_config_appname');
   _X509New := GetProcAddr(SSLUtilHandle, 'X509_new');
   _X509Free := GetProcAddr(SSLUtilHandle, 'X509_free');
   _X509NameOneline := GetProcAddr(SSLUtilHandle, 'X509_NAME_oneline');
@@ -4754,7 +4937,11 @@ begin
   _X509Sign := GetProcAddr(SSLUtilHandle, 'X509_sign');
   _X509GmtimeAdj := GetProcAddr(SSLUtilHandle, 'X509_gmtime_adj');
   _X509SetNotBefore := GetProcAddr(SSLUtilHandle, 'X509_set_notBefore');
+  if (@_X509SetNotBefore=nil) then
+    _X509SetNotBefore:=GetProcAddr(SSLUtilHandle, 'X509_set1_notBefore');
   _X509SetNotAfter := GetProcAddr(SSLUtilHandle, 'X509_set_notAfter');
+  if (@_X509SetNotAfter=nil) then
+    _X509SetNotAfter:=GetProcAddr(SSLUtilHandle, 'X509_set1_notAfter');
   _X509GetSerialNumber := GetProcAddr(SSLUtilHandle, 'X509_get_serialNumber');
   _EvpPkeyNew := GetProcAddr(SSLUtilHandle, 'EVP_PKEY_new');
   _EvpPkeyFree := GetProcAddr(SSLUtilHandle, 'EVP_PKEY_free');
@@ -4762,6 +4949,8 @@ begin
   _EVPCleanup := GetProcAddr(SSLUtilHandle, 'EVP_cleanup');
   _EvpGetDigestByName := GetProcAddr(SSLUtilHandle, 'EVP_get_digestbyname');
   _SSLeayversion := GetProcAddr(SSLUtilHandle, 'SSLeay_version');
+  if @_SSLeayversion=Nil then
+    _SSLeayversion := GetProcAddr(SSLUtilHandle, 'OpenSSL_version');
   _ErrErrorString := GetProcAddr(SSLUtilHandle, 'ERR_error_string_n');
   _ErrGetError := GetProcAddr(SSLUtilHandle, 'ERR_get_error');
   _ErrClearError := GetProcAddr(SSLUtilHandle, 'ERR_clear_error');
@@ -4811,10 +5000,10 @@ begin
   _EVP_DigestVerifyInit := GetProcAddr(SSLUtilHandle, 'EVP_DigestVerifyInit');
   _EVP_DigestVerifyFinal := GetProcAddr(SSLUtilHandle, 'EVP_DigestVerifyFinal');
    // 3DES functions
-  _DESsetoddparity := GetProcAddr(SSLUtilHandle, 'des_set_odd_parity');
-  _DESsetkeychecked := GetProcAddr(SSLUtilHandle, 'des_set_key_checked');
-  _DESsetkey := GetProcAddr(SSLUtilHandle, 'des_set_key');
-  _DESecbencrypt := GetProcAddr(SSLUtilHandle, 'des_ecb_encrypt');
+  _DESsetoddparity := GetProcAddr(SSLUtilHandle, 'DES_set_odd_parity');
+  _DESsetkeychecked := GetProcAddr(SSLUtilHandle, 'DES_set_key_checked');
+  _DESsetkey := GetProcAddr(SSLUtilHandle, 'DES_set_key');
+  _DESecbencrypt := GetProcAddr(SSLUtilHandle, 'DES_ecb_encrypt');
   //
   _CRYPTOnumlocks := GetProcAddr(SSLUtilHandle, 'CRYPTO_num_locks');
   _CRYPTOsetlockingcallback := GetProcAddr(SSLUtilHandle, 'CRYPTO_set_locking_callback');
@@ -4863,7 +5052,7 @@ begin
    // ERR Functions
   _ERR_error_string := GetProcAddr(SSLUtilHandle, 'ERR_error_string');
    // EVP Functions
-   _OpenSSL_add_all_algorithms := GetProcAddr(SSLUtilHandle, 'OpenSSL_add_all_algorithms');
+  _OpenSSL_add_all_algorithms := GetProcAddr(SSLUtilHandle, 'OpenSSL_add_all_algorithms');
   _OpenSSL_add_all_ciphers := GetProcAddr(SSLUtilHandle, 'OpenSSL_add_all_ciphers');
   _OpenSSL_add_all_digests := GetProcAddr(SSLUtilHandle, 'OpenSSL_add_all_digests');
   _EVP_DigestInit := GetProcAddr(SSLUtilHandle, 'EVP_DigestInit');
@@ -4876,6 +5065,7 @@ begin
   _EVP_get_cipherbyname := GetProcAddr(SSLUtilHandle, 'EVP_get_cipherbyname');
   _EVP_get_digestbyname := GetProcAddr(SSLUtilHandle, 'EVP_get_digestbyname');
   _EVP_CIPHER_CTX_init := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_init');
+  _EVP_CIPHER_CTX_reset := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_reset');
   _EVP_CIPHER_CTX_cleanup := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_cleanup');
   _EVP_CIPHER_CTX_set_key_length := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_set_key_length');
   _EVP_CIPHER_CTX_ctrl := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_ctrl');
@@ -5028,6 +5218,7 @@ begin
   _OpenSSLVersion := Nil;
   _SslGetError := nil;
   _SslLibraryInit := nil;
+  _OPENSSL_init_ssl:=Nil;
   _SslLoadErrorStrings := nil;
   _SslCtxSetCipherList := nil;
   _SslCtxNew := nil;
@@ -5205,6 +5396,11 @@ Procedure ClearUtilEntryPoints;
 begin
   _SSLeayversion := nil;
   _ERR_load_crypto_strings := nil;
+  _OPENSSL_init_crypto:=Nil;
+  _OPENSSL_INIT_free:=nil;
+  _OPENSSL_INIT_set_config_appname:=Nil;
+  _OPENSSL_INIT_new:=nil;
+  _OPENSSL_cleanup:=Nil;
   _X509New := nil;
   _X509Free := nil;
   _X509NameOneline := nil;
@@ -5327,6 +5523,7 @@ begin
   _EVP_get_cipherbyname := nil;
   _EVP_get_digestbyname := nil;
   //
+  _EVP_CIPHER_CTX_reset := nil;
   _EVP_CIPHER_CTX_init := nil;
   _EVP_CIPHER_CTX_cleanup := nil;
   _EVP_CIPHER_CTX_set_key_length := nil;
@@ -5384,18 +5581,23 @@ var
   n: integer;
   max: integer;
 begin
-  max:=_CRYPTOnumlocks;
+  if (@_CRYPTOnumlocks<>nil) then
+    max:=_CRYPTOnumlocks
+  else
+    max:=1; // hardcoded in header
   SetLength(Locks,Max);
   for n := 0 to max-1 do
     InitCriticalSection(Locks[n]);
-  _CRYPTOsetlockingcallback(@locking_callback);
+  if (@_CRYPTOsetlockingcallback<>Nil) then
+    _CRYPTOsetlockingcallback(@locking_callback);
 end;
 
 procedure FreeLocks;
 var
   n: integer;
 begin
-  _CRYPTOsetlockingcallback(nil);
+  if (@_CRYPTOsetlockingcallback<>Nil) then
+    _CRYPTOsetlockingcallback(nil);
   for n := 0 to Length(Locks)-1 do
     DoneCriticalSection(Locks[n]);
   SetLength(Locks,0);
