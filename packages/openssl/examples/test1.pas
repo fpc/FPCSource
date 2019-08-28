@@ -3,12 +3,18 @@ program test1;
 {$mode objfpc}{$H+}
 
 uses
-  OpenSSL;
+  SysUtils,OpenSSL;
+
+Const
+  Bools : Array[Boolean] of string = ('Failed','OK');
+
+Var
+  B : Boolean;
 
 begin
-  if InitSSLInterface then
-    Writeln('Success')
-  else
-    Writeln('Load failed, missing functions: ',OpenSSL_unavailable_functions);
+  B:=InitSSLInterface(True);
+  Writeln('Load ',Bools[B],', missing functions: ');
+  if OpenSSL_unavailable_functions<>'' then
+    Writeln(OpenSSL_unavailable_functions);
 end.
 
