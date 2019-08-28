@@ -409,12 +409,24 @@ Ignore:
         else
           BreakpointNo := 0;
 
-        Addr := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['addr'].AsCoreAddr;
-        if Assigned(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname']) then
-          FileName := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname'].AsString;
-        if Assigned(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line']) then
-          LineNumber := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line'].AsLongInt;
-
+        if Assigned(GDB.ExecAsyncOutput.Parameters['frame']) then
+          begin
+            if Assigned(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['addr']) then
+              Addr := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['addr'].AsCoreAddr
+            else
+              Addr := 0;
+            if Assigned(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname']) then
+              FileName := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname'].AsString;
+            if Assigned(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line']) then
+              LineNumber := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line'].AsLongInt;
+          end
+        else
+          begin
+            if Assigned(GDB.ExecAsyncOutput.Parameters['fullname']) then
+              FileName := GDB.ExecAsyncOutput.Parameters['fullname'].AsString;
+            if Assigned(GDB.ExecAsyncOutput.Parameters['line']) then
+              LineNumber := GDB.ExecAsyncOutput.Parameters['line'].AsLongInt;
+          end;
         { this kills GDB.ExecAsyncOutput, because it may execute other gdb commands, so
           make sure we have read all parameters that we need to local variables before that }
         DebuggerScreen;
