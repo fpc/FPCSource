@@ -366,9 +366,9 @@ end;
 function ParseValue(const S: string; var NextCharPos: LongInt): TGDBMI_Value;
 var
   CStr: string;
-  Tuple: TGDBMI_TupleValue;
-  List: TGDBMI_ListValue;
-
+  ////  Tuple: TGDBMI_TupleValue;
+  List: TGDBMI_TupleOrListValue;
+  end_c : char;
   Name: string;
   Value: TGDBMI_Value;
 begin
@@ -379,7 +379,7 @@ begin
         CStr := ParseCString(S, NextCharPos);
         Result := TGDBMI_StringValue.Create(CStr);
       end;
-    '{':
+(*    '{':
       begin
         Inc(NextCharPos);
         Assert(NextCharPos <= Length(S));
@@ -388,11 +388,17 @@ begin
         while (NextCharPos <= Length(S)) and (S[NextCharPos] <> '}') do
         begin
           Name := ParseIdentifier(S, NextCharPos);
-          Assert(NextCharPos <= Length(S));
-          Assert(S[NextCharPos] = '=');
-          Inc(NextCharPos);
-          Value := ParseValue(S, NextCharPos);
-          Tuple.Add(Name, Value);
+          if (NextCharPos <= Length(S)) and (S[NextCharPos] = '=') then
+            begin
+              Inc(NextCharPos);
+              Value := ParseValue(S, NextCharPos);
+              Tuple.Add(Name, Value);
+            end
+          else
+            begin
+              Value:=TGDBMI_StringValue.Create(Name);
+              Tuple.Add(Name, Value);
+            end;
           Assert(NextCharPos <= Length(S));
           Assert(S[NextCharPos] in [',', '}']);
           if S[NextCharPos] = ',' then
@@ -400,30 +406,39 @@ begin
         end;
         if (NextCharPos <= Length(S)) and (S[NextCharPos] = '}') then
           Inc(NextCharPos);
-      end;
-    '[':
+      end;*)
+    '[','{':
       begin
+        if S[NextCharPos]='[' then
+          begin
+            end_c:=']';
+          end
+        else
+          begin
+            end_c:='}';
+          end;
         Inc(NextCharPos);
         Assert(NextCharPos <= Length(S));
-        List := TGDBMI_ListValue.Create;
-        Result := List;
+
         if S[NextCharPos] in ['"', '{', '['] then
         begin
+          List := TGDBMI_ListValue.Create;
           { list of values, no names }
-          while (NextCharPos <= Length(S)) and (S[NextCharPos] <> ']') do
+          while (NextCharPos <= Length(S)) and (S[NextCharPos] <> end_c) do
           begin
             Value := ParseValue(S, NextCharPos);
             List.Add('', Value);
             Assert(NextCharPos <= Length(S));
-            Assert(S[NextCharPos] in [',', ']']);
+            Assert(S[NextCharPos] in [',', end_c]);
             if S[NextCharPos] = ',' then
               Inc(NextCharPos);
           end;
         end
         else
         begin
+          List := TGDBMI_TupleValue.Create;
           { list of name=value pairs (like a tuple) }
-          while (NextCharPos <= Length(S)) and (S[NextCharPos] <> ']') do
+          while (NextCharPos <= Length(S)) and (S[NextCharPos] <> end_c) do
           begin
             Name := ParseIdentifier(S, NextCharPos);
             Assert(NextCharPos <= Length(S));
@@ -432,13 +447,14 @@ begin
             Value := ParseValue(S, NextCharPos);
             List.Add(Name, Value);
             Assert(NextCharPos <= Length(S));
-            Assert(S[NextCharPos] in [',', ']']);
+            Assert(S[NextCharPos] in [',', end_c]);
             if S[NextCharPos] = ',' then
               Inc(NextCharPos);
           end;
         end;
-        if (NextCharPos <= Length(S)) and (S[NextCharPos] = ']') then
+        if (NextCharPos <= Length(S)) and (S[NextCharPos] = end_c) then
           Inc(NextCharPos);
+        Result := List;
       end;
     else
       Assert(False);
