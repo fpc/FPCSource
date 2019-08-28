@@ -336,7 +336,7 @@ implementation
                     begin
                       tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
                       { OR low and high parts together }
-                      current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,left.location.register64.reglo,left.location.register64.reghi,tmpreg),PF_S));
+                      current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,tmpreg,left.location.register64.reglo,left.location.register64.reghi),PF_S));
                     end
                   else
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
