@@ -1150,7 +1150,7 @@ var
   function EvpPkeyAssign(pkey: PEVP_PKEY; _type: cInt; key: Prsa): cInt;
   function EvpGetDigestByName(Name: String): PEVP_MD;
   procedure EVPcleanup;
-  function SSLeayversion(t: cInt): string;
+  function SSLeayversion(t: cInt): string;  deprecated 'For 1.1+ use OpenSSL_version';
   procedure ErrErrorString(e: cInt; var buf: string; len: cInt);
   function ErrGetError: cInt;
   procedure ErrClearError;
