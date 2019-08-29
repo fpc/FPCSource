@@ -2273,8 +2273,12 @@ begin
         MapFilename:=LocalFilename;
       end;
     end;
-    if FilenameIsAbsolute(MapFilename) then
+    if FilenameIsAbsolute(MapFilename)
+        and SameText(SrcMapSourceRoot,'file://') then
+      begin
+      // Firefox needs the "file://" schema with every file
       MapFilename:='file://'+MapFilename;
+      end;
     {$IFNDEF Unix}
     // use / as PathDelim
     if PathDelim<>'/' then
