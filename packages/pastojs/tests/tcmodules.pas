@@ -386,6 +386,7 @@ type
     Procedure TestArithmeticOperators1;
     Procedure TestLogicalOperators;
     Procedure TestBitwiseOperators;
+    Procedure TestBitwiseOperatorsLongword;
     Procedure TestFunctionInt;
     Procedure TestFunctionString;
     Procedure TestIfThen;
@@ -3141,6 +3142,69 @@ begin
     '$mod.X = rtl.or($mod.Y, $mod.vA);',
     '$mod.X = rtl.xor($mod.Y, $mod.Z);',
     '$mod.X = rtl.xor($mod.Y, $mod.vA);',
+    '']));
+end;
+
+procedure TTestModule.TestBitwiseOperatorsLongword;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  a,b,c:longword;',
+  '  i: longint;',
+  'begin',
+  '  a:=$12345678;',
+  '  b:=$EDCBA987;',
+  '  c:=not a;',
+  '  c:=a and b;',
+  '  c:=a and $ffff0000;',
+  '  c:=a or b;',
+  '  c:=a or $ff00ff00;',
+  '  c:=a xor b;',
+  '  c:=a xor $f0f0f0f0;',
+  '  c:=a shl 1;',
+  '  c:=a shl 16;',
+  '  c:=a shl 24;',
+  '  c:=a shl b;',
+  '  c:=a shr 1;',
+  '  c:=a shr 16;',
+  '  c:=a shr 24;',
+  '  c:=a shr b;',
+  '  c:=(b and c) or (a and b);',
+  '  c:=i and a;',
+  '  c:=i or a;',
+  '  c:=i xor a;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestBitwiseOperatorsLongword',
+    LinesToStr([ // statements
+    'this.a = 0;',
+    'this.b = 0;',
+    'this.c = 0;',
+    'this.i = 0;',
+    '']),
+    LinesToStr([ // this.$main
+    '$mod.a = 0x12345678;',
+    '$mod.b = 0xEDCBA987;',
+    '$mod.c = rtl.lw(~$mod.a);',
+    '$mod.c = rtl.lw($mod.a & $mod.b);',
+    '$mod.c = rtl.lw($mod.a & 0xffff0000);',
+    '$mod.c = rtl.lw($mod.a | $mod.b);',
+    '$mod.c = rtl.lw($mod.a | 0xff00ff00);',
+    '$mod.c = rtl.lw($mod.a ^ $mod.b);',
+    '$mod.c = rtl.lw($mod.a ^ 0xf0f0f0f0);',
+    '$mod.c = rtl.lw($mod.a << 1);',
+    '$mod.c = rtl.lw($mod.a << 16);',
+    '$mod.c = rtl.lw($mod.a << 24);',
+    '$mod.c = rtl.lw($mod.a << $mod.b);',
+    '$mod.c = rtl.lw($mod.a >>> 1);',
+    '$mod.c = rtl.lw($mod.a >>> 16);',
+    '$mod.c = rtl.lw($mod.a >>> 24);',
+    '$mod.c = rtl.lw($mod.a >>> $mod.b);',
+    '$mod.c = rtl.lw(rtl.lw($mod.b & $mod.c) | rtl.lw($mod.a & $mod.b));',
+    '$mod.c = $mod.i & $mod.a;',
+    '$mod.c = $mod.i | $mod.a;',
+    '$mod.c = $mod.i ^ $mod.a;',
     '']));
 end;
 

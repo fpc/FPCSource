@@ -1111,6 +1111,11 @@ var rtl = {
     return 0;
   },
 
+  lw: function(l){
+    // fix longword bitwise operation
+    return l<0?l+0x100000000:l;
+  },
+
   and: function(a,b){
     var hi = 0x80000000;
     var low = 0x7fffffff;
