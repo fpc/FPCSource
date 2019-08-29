@@ -71,10 +71,12 @@ begin
     MimeTypesFile:=GetOptionValue('m','mimetypes');
     if (MimeTypesFile<>'') and not FileExists(MimeTypesFile) then
       begin
-      MimeTypesFile:='';
       Log(etWarning,'mimetypes file not found: '+MimeTypesFile);
+      MimeTypesFile:='';
       end;
     end;
+  If MimeTypesFile<>'' then
+    MimeTypes.LoadFromFile(MimeTypesFile);  
 end;
 
 procedure THTTPApplication.DoRun;
@@ -88,6 +90,7 @@ begin
     usage(S);
   Quiet:=HasOption('q','quiet');
   Port:=StrToIntDef(GetOptionValue('p','port'),3000);
+  LoadMimeTypes;
   D:=GetOptionValue('d','directory');
   if D='' then
     D:=GetCurrentDir;
