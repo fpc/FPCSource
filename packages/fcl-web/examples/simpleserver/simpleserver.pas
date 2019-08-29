@@ -88,6 +88,7 @@ begin
     usage(S);
   Quiet:=HasOption('q','quiet');
   Port:=StrToIntDef(GetOptionValue('p','port'),3000);
+  LoadMimeTypes;
   D:=GetOptionValue('d','directory');
   if D='' then
     D:=GetCurrentDir;
