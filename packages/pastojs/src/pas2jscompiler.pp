@@ -2259,7 +2259,7 @@ begin
     MapFilename:=LocalFilename;
     if (BaseDir<>'') and not SrcMapFilenamesAbsolute then
     begin
-      if not FS.TryCreateRelativePath(LocalFilename,BaseDir,true,MapFilename) then
+      if not FS.TryCreateRelativePath(LocalFilename,BaseDir,true,false,MapFilename) then
       begin
         // e.g. file is on another partition
         if not SrcMapInclude then
