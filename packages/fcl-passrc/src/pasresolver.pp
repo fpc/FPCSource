@@ -1702,13 +1702,14 @@ type
     function FindUsedUnit(const aName: string; aMod: TPasModule): TPasModule;
     procedure FinishAssertCall(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr); virtual;
-    function FindExceptionConstructor(const aUnitName, aClassName: string;
+    function FindClassTypeAndConstructor(const aUnitName, aClassName: string;
       out aClass: TPasClassType; out aConstructor: TPasConstructor;
       ErrorEl: TPasElement): boolean; virtual;
     procedure FindAssertExceptionConstructors(ErrorEl: TPasElement); virtual;
     procedure FindRangeErrorConstructors(ErrorEl: TPasElement); virtual;
     function FindTVarRec(ErrorEl: TPasElement): TPasRecordType; virtual;
     function GetTVarRec(El: TPasArrayType): TPasRecordType; virtual;
+    function FindDefaultConstructor(aClass: TPasClassType): TPasConstructor; virtual;
   protected
     // constant evaluation
     fExprEvaluator: TResExprEvaluator;
@@ -2027,6 +2028,7 @@ type
       WithTopHelpers: boolean; AncestorScope: TPasClassScope): TPasInheritedScope;
     function PushEnumDotScope(CurEnumType: TPasEnumType): TPasDotEnumTypeScope;
     function PushHelperDotScope(TypeEl: TPasType): TPasDotBaseScope;
+    function PushTemplateDotScope(TemplType: TPasGenericTemplateType; ErrorEl: TPasElement): TPasDotBaseScope;
     function PushDotScope(TypeEl: TPasType): TPasDotBaseScope;
     function PushWithExprScope(Expr: TPasExpr): TPasWithExprScope;
     function StashScopes(NewScopeCnt: integer): integer; // returns old StashDepth
@@ -6171,8 +6173,12 @@ begin
       // full range, e.g. array[char]
     else if (RangeResolved.BaseType=btContext) and (RangeResolved.LoTypeEl is TPasEnumType) then
       // e.g. array[enumtype]
+    else if (RangeResolved.BaseType=btContext) and (RangeResolved.LoTypeEl is TPasGenericTemplateType) then
+      // e.g. Tarr<T> = array[T] of ...
+    else if RangeResolved.IdentEl<>nil then
+      RaiseXExpectedButYFound(20170216151609,'range',GetElementTypeName(RangeResolved.IdentEl),Expr)
     else
-      RaiseXExpectedButYFound(20170216151609,'range',GetElementTypeName(RangeResolved.IdentEl),Expr);
+      RaiseXExpectedButYFound(20190830215123,'range',GetResolverResultDescription(RangeResolved),Expr);
     end;
   if El.ElType=nil then
     begin
@@ -9915,6 +9921,21 @@ begin
         // e.g. TShiftState.ssAlt
         DotScope:=PushEnumDotScope(TPasEnumType(LTypeEl));
         DotScope.OnlyTypeMembers:=true;
+        ResolveRight;
+        exit;
+        end;
+      end
+    else if LTypeEl.ClassType=TPasGenericTemplateType then
+      begin
+      DotScope:=PushTemplateDotScope(TPasGenericTemplateType(LTypeEl),El);
+      if DotScope<>nil then
+        begin
+        if LeftResolved.IdentEl is TPasType then
+          // e.g. T.Member
+          DotScope.OnlyTypeMembers:=true
+        else
+          // e.g. VarOfTypeT.Member
+          DotScope.OnlyTypeMembers:=false;
         ResolveRight;
         exit;
         end;
@@ -13967,7 +13988,7 @@ begin
   CreateReference(aConstructor,Params,rraRead);
 end;
 
-function TPasResolver.FindExceptionConstructor(const aUnitName,
+function TPasResolver.FindClassTypeAndConstructor(const aUnitName,
   aClassName: string; out aClass: TPasClassType; out
   aConstructor: TPasConstructor; ErrorEl: TPasElement): boolean;
 var
@@ -14032,7 +14053,7 @@ begin
   if pmsfAssertSearched in ModScope.Flags then exit;
   Include(ModScope.Flags,pmsfAssertSearched);
 
-  FindExceptionConstructor('sysutils','EAssertionFailed',aClass,aConstructor,ErrorEl);
+  FindClassTypeAndConstructor('sysutils','EAssertionFailed',aClass,aConstructor,ErrorEl);
   if aClass=nil then exit;
   ClassScope:=NoNil(aClass.CustomData) as TPasClassScope;
   ModScope.AssertClass:=aClass;
@@ -14079,7 +14100,7 @@ begin
   if pmsfRangeErrorSearched in ModScope.Flags then exit;
   Include(ModScope.Flags,pmsfRangeErrorSearched);
 
-  FindExceptionConstructor('sysutils','ERangeError',aClass,aConstructor,ErrorEl);
+  FindClassTypeAndConstructor('sysutils','ERangeError',aClass,aConstructor,ErrorEl);
   ModScope.RangeErrorClass:=aClass;
   ModScope.RangeErrorConstructor:=aConstructor;
 end;
@@ -14127,6 +14148,43 @@ begin
   Result:=ModScope.SystemTVarRec;
   if Result=nil then
     RaiseNotYetImplemented(20190215111924,El,'missing System.TVarRec');
+end;
+
+function TPasResolver.FindDefaultConstructor(aClass: TPasClassType
+  ): TPasConstructor;
+var
+  ClassScope: TPasClassScope;
+  Identifier: TPasIdentifier;
+  El: TPasElement;
+  HasOverload: Boolean;
+  Proc: TPasProcedure;
+begin
+  Result:=nil;
+  if (aClass=nil) or aClass.IsExternal or (aClass.ObjKind<>okClass) then exit;
+  ClassScope:=aClass.CustomData as TPasClassScope;
+  repeat
+    Identifier:=ClassScope.FindLocalIdentifier('create');
+    if Identifier<>nil then
+      begin
+      HasOverload:=false;
+      while Identifier<>nil do
+        begin
+        El:=Identifier.Element;
+        if not (El is TPasProcedure) then exit;
+        Proc:=TPasProcedure(El);
+        if Proc.ClassType=TPasConstructor then
+          begin
+          if Proc.ProcType.Args.Count=0 then
+            exit(TPasConstructor(El));
+          end;
+        if Proc.IsOverload then
+          HasOverload:=true;
+        Identifier:=Identifier.NextSameIdentifier;
+        end;
+      if not HasOverload then exit;
+      end;
+    ClassScope:=ClassScope.AncestorScope;
+  until false;
 end;
 
 procedure TPasResolver.OnExprEvalLog(Sender: TResExprEvaluator;
@@ -14875,7 +14933,7 @@ function TPasResolver.CheckSpecializeConstraints(El: TPasSpecializeType
     ConExpr: TPasExpr;
     ConToken: TToken;
     ResolvedConstraint: TPasResolverResult;
-    ConstraintClass: TPasClassType;
+    ConstraintClass, aClass: TPasClassType;
   begin
     // check if the specialized ParamType fits the constraints
     for j:=0 to length(GenTempl.Constraints)-1 do
@@ -14893,15 +14951,15 @@ function TPasResolver.CheckSpecializeConstraints(El: TPasSpecializeType
         begin
         if not (ParamType is TPasClassType) then
           RaiseXExpectedButTypeYFound(20190726133231,'class type',ParamType,ErrorPos);
-        if TPasClassType(ParamType).ObjKind<>okClass then
+        aClass:=TPasClassType(ParamType);
+        if aClass.ObjKind<>okClass then
           RaiseXExpectedButTypeYFound(20190726133232,'class type',ParamType,ErrorPos);
-        if TPasClassType(ParamType).IsExternal then
+        if aClass.IsExternal then
           RaiseXExpectedButTypeYFound(20190726133233,'non external class type',ParamType,ErrorPos);
         if ConToken=tkconstructor then
           begin
-          // check if ParamType has the default constructor
-          // ToDo
-          RaiseMsg(20190726133722,nXIsNotSupported,sXIsNotSupported,['constraint keyword construcor'],ConExpr);
+          if FindDefaultConstructor(aClass)=nil then
+            RaiseXExpectedButTypeYFound(20190831000225,'class type with constructor create()',ParamType,ErrorPos);
           end;
         continue;
         end;
@@ -20282,6 +20340,61 @@ begin
   Result.Owner:=Self;
   Result.GroupScope:=Group;
   PushScope(Result);
+end;
+
+function TPasResolver.PushTemplateDotScope(TemplType: TPasGenericTemplateType;
+  ErrorEl: TPasElement): TPasDotBaseScope;
+
+var
+  i: Integer;
+  Expr: TPasExpr;
+  ExprToken: TToken;
+  ResolvedEl: TPasResolverResult;
+  MemberType: TPasMembersType;
+  aClass: TPasClassType;
+  aConstructor: TPasConstructor;
+  DotClassScope: TPasDotClassScope;
+begin
+  Result:=nil;
+  for i:=0 to length(TemplType.Constraints)-1 do
+    begin
+    Expr:=TemplType.Constraints[i];
+    ExprToken:=GetGenericConstraintKeyword(Expr);
+    case ExprToken of
+    tkrecord: ;
+    tkclass, tkconstructor:
+      begin
+      if Result<>nil then
+        RaiseNotYetImplemented(20190831005217,TemplType);
+
+      if not FindClassTypeAndConstructor('system','tobject',aClass,aConstructor,ErrorEl) then
+        RaiseIdentifierNotFound(20190831002421,'system.TObject.Create()',ErrorEl);
+      DotClassScope:=TPasDotClassScope.Create;
+      Result:=DotClassScope;
+      PushScope(Result);
+      DotClassScope.Owner:=Self;
+      DotClassScope.ClassRecScope:=aClass.CustomData as TPasClassScope;
+      Result.GroupScope:=CreateGroupScope(aClass,false);
+      end;
+    else
+      ComputeElement(Expr,ResolvedEl,[rcType]);
+      if (ResolvedEl.BaseType<>btContext)
+          or not (ResolvedEl.IdentEl is TPasMembersType) then
+        RaiseNotYetImplemented(20190831001450,Expr);
+      MemberType:=TPasMembersType(ResolvedEl.LoTypeEl);
+      if Result=nil then
+        begin
+        DotClassScope:=TPasDotClassScope.Create;
+        Result:=DotClassScope;
+        PushScope(Result);
+        DotClassScope.Owner:=Self;
+        DotClassScope.ClassRecScope:=MemberType.CustomData as TPasClassScope;
+        Result.GroupScope:=CreateGroupScope(MemberType,false);
+        end
+      else
+        GroupScope_AddTypeAndAncestors(Result.GroupScope,MemberType,false);
+    end;
+    end;
 end;
 
 function TPasResolver.PushDotScope(TypeEl: TPasType): TPasDotBaseScope;

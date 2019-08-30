@@ -28,12 +28,14 @@ type
     procedure TestGen_ConstraintClassRecordFail;
     procedure TestGen_ConstraintRecordClassFail;
     procedure TestGen_ConstraintArrayFail;
-    // ToDo: constraint constructor
+    procedure TestGen_ConstraintConstructor;
     // ToDo: constraint T:Unit2.TBird
     // ToDo: constraint T:Unit2.TGen<word>
     procedure TestGen_TemplNameEqTypeNameFail;
     procedure TestGen_ConstraintInheritedMissingRecordFail;
     procedure TestGen_ConstraintInheritedMissingClassTypeFail;
+    procedure TestGen_ConstraintMultiParam;
+    procedure TestGen_ConstraintMultiParamClassMismatch;
 
     // generic record
     procedure TestGen_RecordLocalNameDuplicateFail;
@@ -83,8 +85,9 @@ type
     procedure TestGen_ClassInterface_Method;
 
     // generic array
-    procedure TestGen_Array;
-    // ToDo: anonymous array type
+    procedure TestGen_DynArray;
+    procedure TestGen_StaticArray;
+    procedure TestGen_Array_Anoynmous;
 
     // generic procedure type
     procedure TestGen_ProcType;
@@ -282,6 +285,27 @@ begin
     nXIsNotAValidConstraint);
 end;
 
+procedure TTestResolveGenerics.TestGen_ConstraintConstructor;
+begin
+  StartProgram(true,[supTObject]);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  generic TBird<T:constructor> = class',
+  '    o: T;',
+  '    procedure Fly;',
+  '  end;',
+  '  TAnt = class end;',
+  'var a: specialize TBird<TAnt>;',
+  'procedure TBird.Fly;',
+  'begin',
+  '  o:=T.Create;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolveGenerics.TestGen_TemplNameEqTypeNameFail;
 begin
   StartProgram(false);
@@ -327,6 +351,45 @@ begin
   '']);
   CheckResolverException('Type parameter "U" is not compatible with type "TAnt"',
     nTypeParamXIsNotCompatibleWithY);
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintMultiParam;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  TAnt = class end;',
+  '  generic TBird<S,T: TAnt> = class',
+  '    x: S;',
+  '    y: T;',
+  '  end;',
+  '  TRedAnt = class(TAnt) end;',
+  '  TEagle = specialize TBird<TRedAnt,TAnt>;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintMultiParamClassMismatch;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  TAnt = class end;',
+  '  TRedAnt = class(TAnt) end;',
+  '  generic TBird<S,T: TRedAnt> = class',
+  '    x: S;',
+  '    y: T;',
+  '  end;',
+  '  TEagle = specialize TBird<TRedAnt,TAnt>;',
+  'begin',
+  '']);
+  CheckResolverException('Incompatible types: got "TAnt" expected "TRedAnt"',
+    nIncompatibleTypesGotExpected);
 end;
 
 procedure TTestResolveGenerics.TestGen_RecordLocalNameDuplicateFail;
@@ -1139,7 +1202,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolveGenerics.TestGen_Array;
+procedure TTestResolveGenerics.TestGen_DynArray;
 begin
   StartProgram(false);
   Add([
@@ -1157,6 +1220,56 @@ begin
   '  b:=a;',
   '  SetLength(a,5);',
   '  SetLength(b,6);',
+  '  w:=length(a)+low(a)+high(a);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_StaticArray;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TBird<T> = array[T] of word;',
+  '  TByteBird = specialize TBird<byte>;',
+  'var',
+  '  a: specialize TBird<byte>;',
+  '  b: TByteBird;',
+  '  i: byte;',
+  'begin',
+  '  a[1]:=2;',
+  '  b[2]:=a[3]+b[4];',
+  '  a:=b;',
+  '  b:=a;',
+  '  i:=low(a);',
+  '  i:=high(a);',
+  '  for i in a do ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Array_Anoynmous;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TRec<T> = record',
+  '    a: array of T;',
+  '  end;',
+  '  TWordRec = specialize TRec<word>;',
+  'var',
+  '  a: specialize TRec<word>;',
+  '  b: TWordRec;',
+  '  w: word;',
+  'begin',
+  '  a:=b;',
+  '  a.a:=b.a;',
+  '  a.a[1]:=2;',
+  '  b.a[2]:=a.a[3]+b.a[4];',
+  '  b:=a;',
+  '  SetLength(a.a,5);',
+  '  SetLength(b.a,6);',
+  '  w:=length(a.a)+low(a.a)+high(a.a);',
   '']);
   ParseProgram;
 end;
