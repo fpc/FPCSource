@@ -1810,7 +1810,7 @@ function TPas2jsFilesCache.TryCreateRelativePath(const Filename, BaseDirectory: 
   UsePointDirectory: boolean; out RelPath: String): Boolean;
 begin
   Result:=Pas2jsFileUtils.TryCreateRelativePath(Filename, BaseDirectory,
-    UsePointDirectory, true, RelPath);
+    UsePointDirectory, false, RelPath);
 end;
 
 function TPas2jsFilesCache.FindIncludeFileName(const aFilename,
