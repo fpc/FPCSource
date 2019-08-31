@@ -36,6 +36,7 @@ type
     procedure TestGen_ConstraintInheritedMissingClassTypeFail;
     procedure TestGen_ConstraintMultiParam;
     procedure TestGen_ConstraintMultiParamClassMismatch;
+    procedure TestGen_ConstraintClassType_DotIsAsTypeCast;
 
     // generic record
     procedure TestGen_RecordLocalNameDuplicateFail;
@@ -109,9 +110,6 @@ type
     // ToDo: for-in
     procedure TestGen_TryExcept;
     // ToDo: call
-    // ToDo: dot
-    // ToDo: is as
-    // ToDo: typecast
     // ToTo: nested proc
   end;
 
@@ -390,6 +388,41 @@ begin
   '']);
   CheckResolverException('Incompatible types: got "TAnt" expected "TRedAnt"',
     nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintClassType_DotIsAsTypeCast;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  TAnt = class',
+  '    procedure Run; external; overload;',
+  '  end;',
+  '  TRedAnt = class(TAnt)',
+  '    procedure Run(w: word); external; overload;',
+  '  end;',
+  '  generic TBird<T: TRedAnt> = class',
+  '    y: T;',
+  '    procedure Fly;',
+  '  end;',
+  '  TFireAnt = class(TRedAnt);',
+  '  generic TEagle<U: TRedAnt> = class(TBird<U>) end;',
+  '  TRedEagle = specialize TEagle<TRedAnt>;',
+  'procedure TBird.Fly;',
+  'var f: TFireAnt;',
+  'begin',
+  '  y.Run;',
+  '  y.Run(3);',
+  '  if y is TFireAnt then',
+  '    f:=y as TFireAnt;',
+  '  f:=TFireAnt(y);',
+  '  y:=T(f);',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolveGenerics.TestGen_RecordLocalNameDuplicateFail;

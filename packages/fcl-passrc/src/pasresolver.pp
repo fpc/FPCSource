@@ -4789,14 +4789,15 @@ begin
         or (C=TPasProcedureType)
         or (C=TPasFunctionType)
         or (C=TPasArrayType)
-        or (C=TPasRangeType) then
+        or (C=TPasRangeType)
+        or (C=TPasGenericTemplateType) then
       begin
       // type cast to user type
       Abort:=true; // can't be overloaded
       if Data^.Found<>nil then exit;
       Distance:=CheckTypeCast(TPasType(El),Data^.Params,false);
       {$IFDEF VerbosePasResolver}
-      writeln('TPasResolver.OnFindCallElements type cast to =',GetObjName(El),' Distance=',Distance);
+      writeln('TPasResolver.OnFindCallElements type cast to "',GetObjName(El),'" Distance=',Distance);
       {$ENDIF}
       CandidateFound:=true;
       end;
@@ -10209,7 +10210,8 @@ begin
         or (C=TPasSetType)
         or (C=TPasPointerType)
         or (C=TPasArrayType)
-        or (C=TPasRangeType) then
+        or (C=TPasRangeType)
+        or (C=TPasGenericTemplateType) then
       begin
       // type cast
       FinishUntypedParams(Access);
@@ -24217,6 +24219,10 @@ var
   ToTypeBaseType: TResolverBaseType;
   C: TClass;
   ToProcType, FromProcType: TPasProcedureType;
+  TemplType: TPasGenericTemplateType;
+  i: Integer;
+  Expr: TPasExpr;
+  ExprToken: TToken;
 begin
   Result:=cIncompatible;
   ToTypeEl:=ToResolved.LoTypeEl;
@@ -24372,6 +24378,25 @@ begin
           if Result=cIncompatible then
             Result:=CheckTypeCastClassInstanceToClass(FromResolved,ToResolved,ErrorEl);
           end
+        else if FromTypeEl.ClassType=TPasGenericTemplateType then
+          begin
+          // e.g. classtype(T)
+          TemplType:=TPasGenericTemplateType(FromTypeEl);
+          for i:=0 to length(TemplType.Constraints)-1 do
+            begin
+            Expr:=TemplType.Constraints[i];
+            ExprToken:=GetGenericConstraintKeyword(Expr);
+            case ExprToken of
+            tkrecord: ; // invalid type cast
+            tkClass, tkconstructor:
+              Result:=cExact;
+            else
+              // identifier constraint: class or interface -> allow
+              Result:=cExact;
+              break;
+            end;
+            end;
+          end;
         end
       else if FromResolved.BaseType=btPointer then
         begin
@@ -24380,6 +24405,35 @@ begin
         end
       else if FromResolved.BaseType=btNil then
         Result:=cExact; // nil to class or interface
+      end
+    else if C=TPasGenericTemplateType then
+      begin
+      // e.g. T(var)
+      TemplType:=TPasGenericTemplateType(ToTypeEl);
+      FromTypeEl:=FromResolved.LoTypeEl;
+      for i:=0 to length(TemplType.Constraints)-1 do
+        begin
+        Expr:=TemplType.Constraints[i];
+        ExprToken:=GetGenericConstraintKeyword(Expr);
+        case ExprToken of
+        tkrecord:
+          if FromResolved.BaseType=btContext then
+            begin
+            if FromTypeEl.ClassType=TPasRecordType then
+              // typecast record to template record
+              Result:=cExact
+            else if FromTypeEl.ClassType=TPasGenericType then
+              // typecast template to template record
+              Result:=cExact;
+            end;
+        tkClass, tkconstructor:
+          Result:=cExact;
+        else
+          // identifier constraint: class or interface -> allow
+          Result:=cExact;
+          break;
+        end;
+        end;
       end
     else if C=TPasClassOfType then
       begin
