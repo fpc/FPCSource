@@ -14406,6 +14406,7 @@ tests/test/tfillchr.pp svneol=native#text/plain
 tests/test/tfinal1.pp svneol=native#text/pascal
 tests/test/tfinal2.pp svneol=native#text/pascal
 tests/test/tfma1.inc svneol=native#text/plain
+tests/test/tfma1a64.pp svneol=native#text/pascal
 tests/test/tfma1arm.pp svneol=native#text/pascal
 tests/test/tfma1x86.pp svneol=native#text/pascal
 tests/test/tforin1.pp svneol=native#text/pascal
