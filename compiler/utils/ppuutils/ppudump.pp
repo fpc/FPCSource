@@ -2011,7 +2011,8 @@ const
      (mask:po_is_function_ref; str: 'Function reference'),
      (mask:po_is_block;        str: 'C "Block"'),
      (mask:po_is_auto_getter;  str: 'Automatically generated getter'),
-     (mask:po_is_auto_setter;  str: 'Automatically generated setter')
+     (mask:po_is_auto_setter;  str: 'Automatically generated setter'),
+     (mask:po_objc_related_result_type; str: 'Objective-C related result type')
   );
 var
   proctypeoption  : tproctypeoption;
