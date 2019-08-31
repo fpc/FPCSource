@@ -723,6 +723,7 @@ Type
 
   {$ifdef fpc}
   TJSONParserHandler = Procedure(AStream : TStream; Const AUseUTF8 : Boolean; Out Data : TJSONData);
+  TJSONStringParserHandler = Procedure(Const aJSON : TJSONStringType; Const AUseUTF8 : Boolean; Out Data : TJSONData);
   {$endif}
 
 Function SetJSONInstanceType(AType : TJSONInstanceType; AClass : TJSONDataClass) : TJSONDataClass;
@@ -754,7 +755,9 @@ Function CreateJSONObject(const Data : Array of {$ifdef pas2js}jsvalue{$else}Con
 Function GetJSON(Const JSON : TJSONStringType; Const UseUTF8 : Boolean = True) : TJSONData;
 Function GetJSON(Const JSON : TStream; Const UseUTF8 : Boolean = True) : TJSONData;
 Function SetJSONParserHandler(AHandler : TJSONParserHandler) : TJSONParserHandler;
+Function SetJSONStringParserHandler(AHandler : TJSONStringParserHandler) : TJSONStringParserHandler;
 Function GetJSONParserHandler : TJSONParserHandler;
+Function GetJSONStringParserHandler: TJSONStringParserHandler;
 {$endif}
 
 implementation
@@ -1003,31 +1006,57 @@ begin
 end;
 
 {$ifdef fpc}
+Var
+  JPH : TJSONParserHandler;
+  JPSH : TJSONStringParserHandler;
+
 function GetJSON(const JSON: TJSONStringType; const UseUTF8: Boolean): TJSONData;
 
 Var
   SS : TStringStream;
 begin
-  SS:=TStringStream.Create(JSON);
-  try
-    Result:=GetJSON(SS,UseUTF8);
-  finally
-    SS.Free;
-  end;
+  if Assigned(JPSH) then
+    JPSH(JSON,useUTF8,Result)
+  else
+    begin
+    if UseUTF8 then
+      SS:=TStringStream.Create(JSON,TEncoding.UTF8)
+    else
+      SS:=TStringStream.Create(JSON);
+    try
+      Result:=GetJSON(SS,UseUTF8);
+    finally
+      SS.Free;
+    end;
+    end;
 end;
 {$endif}
 
 {$ifdef fpc}
-Var
-  JPH : TJSONParserHandler;
-
 function GetJSON(const JSON: TStream; const UseUTF8: Boolean): TJSONData;
+
+Var
+  S : TJSONStringType;
 
 begin
   Result:=Nil;
-  If (JPH=Nil) then
-    TJSONData.DoError(SErrNoParserHandler);
-  JPH(JSON,UseUTF8,Result);
+  If (JPH<>Nil) then
+    JPH(JSON,UseUTF8,Result)
+  else if JPSH=Nil then
+    TJSONData.DoError(SErrNoParserHandler)
+  else
+    begin
+    Setlength(S,JSON.Size);
+    if Length(S)>0 then
+      JSON.ReadBuffer(S[1],Length(S));
+    end;
+end;
+
+
+Function SetJSONStringParserHandler(AHandler : TJSONStringParserHandler) : TJSONStringParserHandler;
+begin
+  Result:=JPSH;
+  JPSH:=AHandler;
 end;
 
 function SetJSONParserHandler(AHandler: TJSONParserHandler): TJSONParserHandler;
@@ -1039,6 +1068,11 @@ end;
 function GetJSONParserHandler: TJSONParserHandler;
 begin
   Result:=JPH;
+end;
+
+function GetJSONStringParserHandler: TJSONStringParserHandler;
+begin
+  Result:=JPSH;
 end;
 {$endif}
 
