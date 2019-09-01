@@ -273,9 +273,13 @@ end;
 procedure TTestGenerics.TestInlineSpecializeInStatement;
 begin
   Add([
+  '{$mode objfpc}',
   'begin',
+  '  vec:=specialize TVector<double>.create;',
   '  t:=specialize a<b>;',
-  '  t:=a.specialize b<c>;',
+  //'  t:=specialize a<b.specialize c<d,e.f>>;',
+  //'  t:=a.specialize b<c>;',
+  '  t:=specialize a<b>.c;',
   '']);
   ParseModule;
 end;
@@ -283,6 +287,7 @@ end;
 procedure TTestGenerics.TestInlineSpecializeInStatementDelphi;
 begin
   Add([
+  '{$mode delphi}',
   'begin',
   '  vec:=TVector<double>.create;',
   '  b:=a<b;',

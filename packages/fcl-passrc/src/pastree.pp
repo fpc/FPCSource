@@ -1951,6 +1951,7 @@ begin
   l:=Length(Constraints);
   SetLength(Constraints,l+1);
   Constraints[l]:=Expr;
+  Expr.Parent:=Self;
 end;
 
 {$IFDEF HasPTDumpStack}

@@ -319,7 +319,7 @@ type
     procedure ParseClassFields(AType: TPasClassType; const AVisibility: TPasMemberVisibility; IsClassField : Boolean);
     procedure ParseClassMembers(AType: TPasClassType);
     procedure ProcessMethod(AType: TPasClassType; IsClass : Boolean; AVisibility : TPasMemberVisibility);
-    procedure ReadGenericArguments(List : TFPList;Parent : TPasElement);
+    procedure ReadGenericArguments(List: TFPList; Parent: TPasElement);
     procedure ReadSpecializeArguments(Spec: TPasSpecializeType);
     function ReadDottedIdentifier(Parent: TPasElement; out Expr: TPasExpr; NeedAsString: boolean): String;
     function CheckProcedureArgs(Parent: TPasElement;
@@ -1683,8 +1683,11 @@ begin
     if CurToken=tkLessThan then
       begin
       // specialize
-      Result:=ParseSpecializeType(Parent,'',Name,Expr);
-      NextToken;
+      if IsSpecialize or (msDelphi in CurrentModeswitches) then
+        begin
+        Result:=ParseSpecializeType(Parent,'',Name,Expr);
+        NextToken;
+        end;
       end
     else if IsSpecialize then
       CheckToken(tkLessThan)
@@ -1697,8 +1700,14 @@ begin
       end;
     ok:=true;
   finally
-    if (not ok) and (Result<>nil) then
-      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+    if not ok then
+      begin
+      if Result<>nil then
+        Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+      ReleaseAndNil(TPasElement(Expr){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
+      end
+    else if (not NeedExpr) and (Expr<>nil) then
+      ReleaseAndNil(TPasElement(Expr){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
   end;
 end;
 
@@ -2331,7 +2340,10 @@ begin
     tkNumber: Last:=CreatePrimitiveExpr(AParent,pekNumber,CurTokenString);
     tkIdentifier:
       begin
-      CanSpecialize:=aCan;
+      if msDelphi in CurrentModeswitches then
+        CanSpecialize:=aCan
+      else
+        CanSpecialize:=aCannot;
       aName:=CurTokenText;
       if (CompareText(aName,'self')=0) and not (tkself in Scanner.NonTokens) then
         Last:=CreateSelfExpr(AParent)
@@ -4100,6 +4112,8 @@ Var
   T : TPasGenericTemplateType;
   Expr: TPasExpr;
   TypeEl: TPasType;
+  SrcPos: TPasSourcePos;
+  ISE: TInlineSpecializeExpr;
 begin
   ExpectToken(tkLessThan);
   repeat
@@ -4111,24 +4125,37 @@ begin
       repeat
         NextToken;
         // comma separated list: identifier, class, record, constructor
-        if CurToken in [tkclass,tkrecord,tkconstructor] then
+        case CurToken of
+        tkclass,tkrecord,tkconstructor:
           begin
           if T.TypeConstraint='' then
             T.TypeConstraint:=CurTokenString;
           Expr:=CreatePrimitiveExpr(T,pekIdent,CurTokenText);
           NextToken;
-          end
-        else if CurToken=tkIdentifier then
+          end;
+        tkIdentifier,tkspecialize:
           begin
-          TypeEl:=ParseTypeReference(Parent,true,Expr);
+          SrcPos:=CurSourcePos;
+          TypeEl:=ParseTypeReference(T,true,Expr);
           if TypeEl<>nil then
             begin
             T.TypeConstraint:=TypeEl.Name;
-            TypeEl.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+            if TypeEl is TPasSpecializeType then
+              begin
+              ISE:=TInlineSpecializeExpr(CreateElement(TInlineSpecializeExpr,'',T,SrcPos));
+              ISE.DestType:=TPasSpecializeType(TypeEl);
+              TypeEl.Parent:=ISE;
+              Expr:=ISE;
+              end
+            else if TypeEl.Parent=T then
+              ParseExc(nParserExpectTokenError,SParserExpectTokenError,['20190831211205:'+TypeEl.ClassName])
+            else
+              TypeEl.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
             end;
-          end
+          end;
         else
           CheckToken(tkIdentifier);
+        end;
         T.AddConstraint(Expr);
       until CurToken<>tkComma;
     Engine.FinishScope(stTypeDef,T);

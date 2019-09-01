@@ -31,12 +31,15 @@ type
     procedure TestGen_ConstraintConstructor;
     // ToDo: constraint T:Unit2.TBird
     // ToDo: constraint T:Unit2.TGen<word>
+    procedure TestGen_ConstraintSpecialize;
+    procedure TestGen_ConstraintTSpecializeT; // ToDo
     procedure TestGen_TemplNameEqTypeNameFail;
     procedure TestGen_ConstraintInheritedMissingRecordFail;
     procedure TestGen_ConstraintInheritedMissingClassTypeFail;
     procedure TestGen_ConstraintMultiParam;
     procedure TestGen_ConstraintMultiParamClassMismatch;
     procedure TestGen_ConstraintClassType_DotIsAsTypeCast;
+    procedure TestGen_ConstraintClassType_ForInT; // ToDo
 
     // generic record
     procedure TestGen_RecordLocalNameDuplicateFail;
@@ -304,6 +307,55 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolveGenerics.TestGen_ConstraintSpecialize;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TAnt<S> = class m: S; end;',
+  '  generic TBird<T:specialize TAnt<word>> = class',
+  '    o: T;',
+  '  end;',
+  '  TFireAnt = class(specialize TAnt<word>) end;',
+  'var',
+  '  a: specialize TBird<TFireAnt>;',
+  '  f: TFireAnt;',
+  'begin',
+  '  a.o:=f;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintTSpecializeT;
+begin
+  exit; // ToDo
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TAnt<S> = class m: S; end;',
+  '  generic TBird<X; Y:specialize TAnt<X>> = class',
+  '    o: Y;',
+  '  end;',
+  //'  generic TEagle<X; Y:X> = class',
+  //'    e: Y;',
+  //'  end;',
+  //'  generic TFireAnt<F> = class(specialize TAnt<F>) end;',
+  'var',
+  '  b: specialize TBird<word, specialize TAnt<word>>;',
+  //'  a: specialize TAnt<word>;',
+  //'  f: specialize TEagle<specialize TAnt<boolean>, specialize TFireAnt<boolean>>;',
+  //'  fb: specialize TFireAnt<boolean>;',
+  'begin',
+  //'  b.o:=a;',
+  //'  f.e:=fb;',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolveGenerics.TestGen_TemplNameEqTypeNameFail;
 begin
   StartProgram(false);
@@ -326,7 +378,7 @@ begin
   'type',
   '  TObject = class end;',
   '  generic TBird<T: record> = class v: T; end;',
-  '  generic TEagle<U> = class(TBird<U>)',
+  '  generic TEagle<U> = class(specialize TBird<U>)',
   '  end;',
   'begin',
   '']);
@@ -343,7 +395,7 @@ begin
   '  TObject = class end;',
   '  TAnt = class end;',
   '  generic TBird<T: TAnt> = class v: T; end;',
-  '  generic TEagle<U> = class(TBird<U>)',
+  '  generic TEagle<U> = class(specialize TBird<U>)',
   '  end;',
   'begin',
   '']);
@@ -408,7 +460,7 @@ begin
   '    procedure Fly;',
   '  end;',
   '  TFireAnt = class(TRedAnt);',
-  '  generic TEagle<U: TRedAnt> = class(TBird<U>) end;',
+  '  generic TEagle<U: TRedAnt> = class(specialize TBird<U>) end;',
   '  TRedEagle = specialize TEagle<TRedAnt>;',
   'procedure TBird.Fly;',
   'var f: TFireAnt;',
@@ -421,6 +473,51 @@ begin
   '  y:=T(f);',
   'end;',
   'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintClassType_ForInT;
+begin
+  exit; // ToDo
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TEnumerator<TItem> = class',
+  '    FCurrent: TItem;',
+  '    property Current: TItem read FCurrent;',
+  '    function MoveNext: boolean;',
+  '  end;',
+  '  generic TAnt<U> = class',
+  '    function GetEnumerator: specialize TEnumerator<U>;',
+  '  end;',
+  '  generic TRedAnt<S> = class(specialize TAnt<S>);',
+  '  generic TBird<S; T: specialize TRedAnt<S>> = class',
+  '    m: T;',
+  '    function GetEnumerator: specialize TEnumerator<T>;',
+  '  end;',
+  '  TFireAnt = class(specialize TRedAnt<word>);',
+  '  generic TEagle<U> = class(specialize TBird<U,TFireAnt>)',
+  '  end;',
+  '  TRedEagle = specialize TEagle<word>;',
+  'function TEnumerator.MoveNext: boolean;',
+  'begin',
+  'end;',
+  'function TAnt.GetEnumerator: specialize TEnumerator<U>;',
+  'begin',
+  'end;',
+  'function TBird.GetEnumerator: specialize TEnumerator<S>;',
+  'begin',
+  'end;',
+  'var',
+  '  r: TRedEagle;',
+  '  w: word;',
+  '  f: TFireAnt;',
+  'begin',
+  '  for w in r.m do ;',
+  '  for f in r do ;',
   '']);
   ParseProgram;
 end;
@@ -905,7 +1002,7 @@ begin
   '  generic TBird<T> = class',
   '    i: T;',
   '  end;',
-  '  generic TEagle<T> = class(TBird<T>)',
+  '  generic TEagle<T> = class(specialize TBird<T>)',
   '    j: T;',
   '  end;',
   'var',
@@ -923,7 +1020,7 @@ begin
   '{$mode objfpc}',
   'type',
   '  TObject = class end;',
-  '  generic TBird<T> = class(TBird<word>)',
+  '  generic TBird<T> = class(specialize TBird<word>)',
   '    e: T;',
   '  end;',
   'var',
@@ -1057,7 +1154,7 @@ begin
   '  TObject = class',
   '  end;',
   '  generic TAnimal<T> = class end;',
-  '  generic TBird<T> = class(TAnimal<T>)',
+  '  generic TBird<T> = class(specialize TAnimal<T>)',
   '    function GetObj: TObject;',
   '    procedure Fly(Obj: TObject); virtual; abstract;',
   '  end;',
@@ -1223,7 +1320,7 @@ begin
   '    procedure Fly(a: T);',
   '  end;',
   '  TObject = class end;',
-  '  generic TBird<U> = class(IBird<U>)',
+  '  generic TBird<U> = class(specialize IBird<U>)',
   '    procedure Fly(a: U);',
   '  end;',
   'procedure TBird.Fly(a: U);',
@@ -1444,25 +1541,25 @@ begin
   '  end;',
   'constructor TBird.Create;',
   'var',
-  '  a: TAnt<T>;',
-  '  b: TAnt<word>;',
+  '  a: specialize TAnt<T>;',
+  '  b: specialize TAnt<word>;',
   'begin',
-  '  a:=TAnt<T>.create;',
-  '  b:=TAnt<word>.create;',
+  '  a:=specialize TAnt<T>.create;',
+  '  b:=specialize TAnt<word>.create;',
   'end;',
   'constructor TAnt.Create;',
   'var',
-  '  i: TBird<U>;',
-  '  j: TBird<word>;',
-  '  k: TAnt<U>;',
+  '  i: specialize TBird<U>;',
+  '  j: specialize TBird<word>;',
+  '  k: specialize TAnt<U>;',
   'begin',
-  '  i:=TBird<U>.create;',
-  '  j:=TBird<word>.create;',
-  '  k:=TAnt<U>.create;',
+  '  i:=specialize TBird<U>.create;',
+  '  j:=specialize TBird<word>.create;',
+  '  k:=specialize TAnt<U>.create;',
   'end;',
-  'var a: TAnt<word>;',
+  'var a: specialize TAnt<word>;',
   'begin',
-  '  a:=TAnt<word>.create;',
+  '  a:=specialize TAnt<word>.create;',
   '']);
   ParseProgram;
 end;
