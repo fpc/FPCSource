@@ -2013,23 +2013,23 @@ type
     function GetLocalScope: TPasScope; inline;
     function GetParentLocalScope: TPasScope; inline;
     function CreateScope(El: TPasElement; ScopeClass: TPasScopeClass): TPasScope; virtual;
-    function CreateGroupScope(aType: TPasType; WithTopHelpers: boolean = true): TPasGroupScope; virtual;
-    procedure GroupScope_AddTypeAndAncestors(Scope: TPasGroupScope; TypeEl: TPasType; WithTopHelpers: boolean = true);
+    function CreateGroupScope(HiType: TPasType; WithTopHelpers: boolean = true): TPasGroupScope; virtual;
+    procedure GroupScope_AddTypeAndAncestors(Scope: TPasGroupScope; HiType: TPasType; WithTopHelpers: boolean = true);
     procedure PopScope;
     procedure PopWithScope(El: TPasImplWithDo);
     procedure PopGenericParamScope(El: TPasGenericType); virtual;
     procedure PushScope(Scope: TPasScope); overload;
     function PushScope(El: TPasElement; ScopeClass: TPasScopeClass): TPasScope; overload;
-    function PushGroupScope(aType: TPasType): TPasGroupScope;
+    function PushGroupScope(HiType: TPasType): TPasGroupScope;
     function PushModuleDotScope(aModule: TPasModule): TPasModuleDotScope;
     function PushClassDotScope(var CurClassType: TPasClassType; WithTopHelpers: boolean = true): TPasDotClassScope;
     function PushRecordDotScope(CurRecordType: TPasRecordType): TPasDotClassOrRecordScope;
     function PushInheritedScope(ClassOrRec: TPasMembersType;
       WithTopHelpers: boolean; AncestorScope: TPasClassScope): TPasInheritedScope;
-    function PushEnumDotScope(CurEnumType: TPasEnumType): TPasDotEnumTypeScope;
-    function PushHelperDotScope(TypeEl: TPasType): TPasDotBaseScope;
+    function PushEnumDotScope(HiType: TPasType; EnumLoType: TPasEnumType): TPasDotEnumTypeScope;
+    function PushHelperDotScope(HiType: TPasType): TPasDotBaseScope;
     function PushTemplateDotScope(TemplType: TPasGenericTemplateType; ErrorEl: TPasElement): TPasDotBaseScope;
-    function PushDotScope(TypeEl: TPasType): TPasDotBaseScope;
+    function PushDotScope(HiType: TPasType): TPasDotBaseScope;
     function PushWithExprScope(Expr: TPasExpr): TPasWithExprScope;
     function StashScopes(NewScopeCnt: integer): integer; // returns old StashDepth
     function StashSubExprScopes: integer; // returns old StashDepth
@@ -2177,7 +2177,7 @@ type
     function ProcHasImplElements(Proc: TPasProcedure): boolean; virtual;
     function IndexOfImplementedInterface(ClassEl: TPasClassType; aType: TPasType): integer;
     function GetLoop(El: TPasElement): TPasImplElement;
-    function ResolveAliasType(aType: TPasType): TPasType;
+    function ResolveAliasType(aType: TPasType; SkipTypeAlias: boolean = true): TPasType;
     function ResolveAliasTypeEl(El: TPasElement): TPasType; inline;
     function ExprIsAddrTarget(El: TPasExpr): boolean;
     function IsNameExpr(El: TPasExpr): boolean; inline; // TPrimitiveExpr with Kind=pekIdent
@@ -9822,12 +9822,12 @@ procedure TPasResolver.ResolveSubIdent(El: TBinaryExpr;
     PopScope;
   end;
 
-  function SearchInTypeHelpers(aType: TPasType; IdentEl: TPasElement): boolean;
+  function SearchInTypeHelpers(HiType: TPasType; IdentEl: TPasElement): boolean;
   var
     DotScope: TPasDotBaseScope;
   begin
-    if aType=nil then exit(false);
-    DotScope:=PushHelperDotScope(aType);
+    if HiType=nil then exit(false);
+    DotScope:=PushHelperDotScope(HiType);
     if DotScope=nil then exit(false);
     if IdentEl is TPasType then
       // e.g. TFlag.HelperProc
@@ -9844,7 +9844,7 @@ var
   Left: TPasExpr;
   RecordEl: TPasRecordType;
   RecordScope: TPasDotClassOrRecordScope;
-  LTypeEl: TPasType;
+  LLoTypeEl, LHiTypeEl: TPasType;
   DotScope: TPasDotBaseScope;
   SetType: TPasSetType;
 begin
@@ -9870,20 +9870,22 @@ begin
     end
   else
     begin
-    LTypeEl:=LeftResolved.LoTypeEl;
-    if (LTypeEl.ClassType=TPasPointerType)
+    LHiTypeEl:=LeftResolved.HiTypeEl;
+    LLoTypeEl:=LeftResolved.LoTypeEl;
+    if (LLoTypeEl.ClassType=TPasPointerType)
         and ElHasModeSwitch(El,msAutoDeref)
         and (rrfReadable in LeftResolved.Flags)
         then
       begin
       // a.b  ->  a^.b
-      LTypeEl:=ResolveAliasType(TPasPointerType(LTypeEl).DestType);
+      LHiTypeEl:=TPasPointerType(LLoTypeEl).DestType;
+      LLoTypeEl:=ResolveAliasType(LHiTypeEl);
       Include(LeftResolved.Flags,rrfWritable);
       end;
 
-    if LTypeEl.ClassType=TPasClassType then
+    if LLoTypeEl.ClassType=TPasClassType then
       begin
-      ClassEl:=TPasClassType(LTypeEl);
+      ClassEl:=TPasClassType(LLoTypeEl);
       if ClassEl.HelperForType<>nil then
         RaiseHelpersCannotBeUsedAsType(20190123093438,El);
       ClassScope:=PushClassDotScope(ClassEl);
@@ -9896,19 +9898,19 @@ begin
       ResolveRight;
       exit;
       end
-    else if LTypeEl.ClassType=TPasClassOfType then
+    else if LLoTypeEl.ClassType=TPasClassOfType then
       begin
       // e.g. ImageClass.FindHandlerFromExtension()
-      ClassEl:=ResolveAliasType(TPasClassOfType(LTypeEl).DestType) as TPasClassType;
+      ClassEl:=ResolveAliasType(TPasClassOfType(LLoTypeEl).DestType) as TPasClassType;
       ClassScope:=PushClassDotScope(ClassEl);
       ClassScope.OnlyTypeMembers:=true;
       ClassScope.IsClassOf:=true;
       ResolveRight;
       exit;
       end
-    else if LTypeEl.ClassType=TPasRecordType then
+    else if LLoTypeEl.ClassType=TPasRecordType then
       begin
-      RecordEl:=TPasRecordType(LTypeEl);
+      RecordEl:=TPasRecordType(LLoTypeEl);
       RecordScope:=PushRecordDotScope(RecordEl);
       RecordScope.ConstParent:=not (rrfWritable in LeftResolved.Flags);
       if LeftResolved.IdentEl is TPasType then
@@ -9923,21 +9925,21 @@ begin
       ResolveRight;
       exit;
       end
-    else if LTypeEl.ClassType=TPasEnumType then
+    else if LLoTypeEl.ClassType=TPasEnumType then
       begin
       if (LeftResolved.IdentEl is TPasType)
           and (ResolveAliasType(TPasType(LeftResolved.IdentEl)).ClassType=TPasEnumType) then
         begin
         // e.g. TShiftState.ssAlt
-        DotScope:=PushEnumDotScope(TPasEnumType(LTypeEl));
+        DotScope:=PushEnumDotScope(LHiTypeEl,TPasEnumType(LLoTypeEl));
         DotScope.OnlyTypeMembers:=true;
         ResolveRight;
         exit;
         end;
       end
-    else if LTypeEl.ClassType=TPasGenericTemplateType then
+    else if LLoTypeEl.ClassType=TPasGenericTemplateType then
       begin
-      DotScope:=PushTemplateDotScope(TPasGenericTemplateType(LTypeEl),El);
+      DotScope:=PushTemplateDotScope(TPasGenericTemplateType(LLoTypeEl),El);
       if DotScope<>nil then
         begin
         if LeftResolved.IdentEl is TPasType then
@@ -10528,15 +10530,19 @@ var
   Group: TPasGroupScope;
   i: Integer;
   Scope: TPasIdentifierScope;
-  TypeEl: TPasType;
+  HiType, LoType: TPasType;
   IsClassOf: Boolean;
 begin
-  TypeEl:=ResolvedValue.LoTypeEl;
-  IsClassOf:=TypeEl.ClassType=TPasClassOfType;
+  HiType:=ResolvedValue.HiTypeEl;
+  LoType:=ResolvedValue.LoTypeEl;
+  IsClassOf:=LoType.ClassType=TPasClassOfType;
   if IsClassOf then
-    TypeEl:=ResolveAliasType(TPasClassOfType(TypeEl).DestType);
+    begin
+    HiType:=TPasClassOfType(LoType).DestType;
+    LoType:=ResolveAliasType(LoType);
+    end;
 
-  Group:=CreateGroupScope(TypeEl);
+  Group:=CreateGroupScope(HiType);
   PropEl:=nil;
   for i:=0 to Group.Count-1 do
     begin
@@ -13829,7 +13835,7 @@ end;
 function TPasResolver.CheckForInClassOrRec(Loop: TPasImplForLoop; const VarResolved,
   InResolved: TPasResolverResult): boolean;
 var
-  TypeEl: TPasType;
+  LoTypeEl: TPasType;
   EnumeratorClass: TPasClassType;
   EnumeratorScope: TPasDotClassScope;
   Getter, MoveNext, Current: TPasIdentifier;
@@ -13848,11 +13854,11 @@ begin
     RaiseMsg(20171221195421,nCannotFindEnumeratorForType,sCannotFindEnumeratorForType,
       [GetBaseDescription(InResolved)],Loop.StartExpr);
 
-  TypeEl:=InResolved.LoTypeEl;
-  if TypeEl=nil then exit;
+  LoTypeEl:=InResolved.LoTypeEl;
+  if LoTypeEl=nil then exit;
 
   // check function InVar.GetEnumerator
-  DotScope:=PushDotScope(TypeEl);
+  DotScope:=PushDotScope(InResolved.HiTypeEl);
   if DotScope=nil then
     exit;
   // find aRecord.GetEnumerator
@@ -13860,7 +13866,7 @@ begin
   PopScope;
   if Getter=nil then
     begin
-    if TypeEl is TPasMembersType then
+    if LoTypeEl is TPasMembersType then
       RaiseIdentifierNotFound(20171221191511,'GetEnumerator',Loop.StartExpr)
     else
       exit;
@@ -13883,14 +13889,14 @@ begin
   ComputeElement(GetterFunc.FuncType.ResultEl,ResultResolved,[rcType]);
   if (ResultResolved.BaseType<>btContext) then
     RaiseContextXExpectedButYFound(20171221193749,'function GetEnumerator','result class',GetTypeDescription(ResultResolved),Loop.StartExpr);
-  TypeEl:=ResultResolved.LoTypeEl;
-  if not (TypeEl is TPasClassType) then
+  LoTypeEl:=ResultResolved.LoTypeEl;
+  if not (LoTypeEl is TPasClassType) then
     RaiseContextXExpectedButYFound(20171221193749,'function GetEnumerator','result class',GetTypeDescription(ResultResolved.LoTypeEl),Loop.StartExpr);
   if not (rrfReadable in ResultResolved.Flags) then
     RaiseContextXExpectedButYFound(20171221195506,'function GetEnumerator','result class instance',GetTypeDescription(ResultResolved.LoTypeEl),Loop.StartExpr);
 
   // find function MoveNext: boolean in Enumerator class
-  EnumeratorClass:=TPasClassType(TypeEl);
+  EnumeratorClass:=TPasClassType(LoTypeEl);
   EnumeratorScope:=PushClassDotScope(EnumeratorClass);
   MoveNext:=EnumeratorScope.FindIdentifier('MoveNext');
   if MoveNext=nil then
@@ -20160,40 +20166,43 @@ begin
     AddResolveData(El,Result,lkModule);
 end;
 
-function TPasResolver.CreateGroupScope(aType: TPasType; WithTopHelpers: boolean
+function TPasResolver.CreateGroupScope(HiType: TPasType; WithTopHelpers: boolean
   ): TPasGroupScope;
 begin
   Result:=TPasGroupScope.Create;
-  Result.Element:=aType;
-  GroupScope_AddTypeAndAncestors(Result,aType,WithTopHelpers);
+  Result.Element:=HiType;
+  GroupScope_AddTypeAndAncestors(Result,HiType,WithTopHelpers);
 end;
 
 procedure TPasResolver.GroupScope_AddTypeAndAncestors(Scope: TPasGroupScope;
-  TypeEl: TPasType; WithTopHelpers: boolean);
+  HiType: TPasType; WithTopHelpers: boolean);
 var
   IsClass: Boolean;
   i: Integer;
   Entry: TPRHelperEntry;
-  HelperForType: TPasType;
+  HelperForType, LoType: TPasType;
   AncestorScope, HelperScope: TPasClassScope;
   C: TClass;
 begin
-  TypeEl:=ResolveAliasType(TypeEl);
-  IsClass:=TypeEl.ClassType=TPasClassType;
-  if IsClass and (TPasClassType(TypeEl).HelperForType<>nil) then
+  writeln('AAA1 TPasResolver.GroupScope_AddTypeAndAncestors ',GetObjName(HiType));
+  HiType:=ResolveAliasType(HiType,false);
+  LoType:=ResolveAliasType(HiType);
+  IsClass:=LoType.ClassType=TPasClassType;
+  if IsClass and (TPasClassType(LoType).HelperForType<>nil) then
     begin
     // start in a helper
     WithTopHelpers:=false;
     // first add helper and its ancestors
-    HelperScope:=TPasClassScope(TypeEl.CustomData);
+    HelperScope:=TPasClassScope(LoType.CustomData);
     while HelperScope<>nil do
       begin
       Scope.Add(HelperScope);
       HelperScope:=HelperScope.AncestorScope;
       end;
     // then add the HelperForType and its ancestors
-    TypeEl:=ResolveAliasType(TPasClassType(TypeEl).HelperForType);
-    IsClass:=TypeEl.ClassType=TPasClassType;
+    HiType:=ResolveAliasType(TPasClassType(HiType).HelperForType,false);
+    LoType:=ResolveAliasType(HiType);
+    IsClass:=LoType.ClassType=TPasClassType;
     end;
   repeat
     // first add helper(s)
@@ -20203,7 +20212,7 @@ begin
         begin
         Entry:=FActiveHelpers[i];
         HelperForType:=Entry.HelperForType;
-        if IsSameType(HelperForType,TypeEl,prraNone) then
+        if IsSameType(HelperForType,HiType,prraNone) then
           begin
           // add Helper and its ancestors
           HelperScope:=TPasClassScope(Entry.Helper.CustomData);
@@ -20219,16 +20228,17 @@ begin
       end
     else
       WithTopHelpers:=true;
-    // then add scope of TypeEl
-    C:=TypeEl.ClassType;
+    // then add scope of LoType
+    C:=LoType.ClassType;
     if (C=TPasClassType) or (C=TPasRecordType) then
-      Scope.Add(TypeEl.CustomData as TPasIdentifierScope);
+      Scope.Add(LoType.CustomData as TPasIdentifierScope);
     // continue with ancestor
     if not IsClass then break;
-    AncestorScope:=(TypeEl.CustomData as TPasClassScope).AncestorScope;
+    AncestorScope:=(LoType.CustomData as TPasClassScope).AncestorScope;
     if AncestorScope=nil then break;
-    TypeEl:=TPasClassType(AncestorScope.Element);
-  until TypeEl=nil;
+    HiType:=TPasClassType(AncestorScope.Element);
+    LoType:=HiType;
+  until LoType=nil;
 end;
 
 procedure TPasResolver.PopScope;
@@ -20318,9 +20328,9 @@ begin
   PushScope(Result);
 end;
 
-function TPasResolver.PushGroupScope(aType: TPasType): TPasGroupScope;
+function TPasResolver.PushGroupScope(HiType: TPasType): TPasGroupScope;
 begin
-  Result:=CreateGroupScope(aType);
+  Result:=CreateGroupScope(HiType);
   PushScope(Result);
 end;
 
@@ -20402,28 +20412,28 @@ begin
   PushScope(Result);
 end;
 
-function TPasResolver.PushEnumDotScope(CurEnumType: TPasEnumType
-  ): TPasDotEnumTypeScope;
+function TPasResolver.PushEnumDotScope(HiType: TPasType;
+  EnumLoType: TPasEnumType): TPasDotEnumTypeScope;
 begin
   Result:=TPasDotEnumTypeScope.Create;
   Result.Owner:=Self;
-  Result.EnumScope:=NoNil(CurEnumType.CustomData) as TPasEnumTypeScope;
-  Result.GroupScope:=CreateGroupScope(CurEnumType);
+  Result.EnumScope:=NoNil(EnumLoType.CustomData) as TPasEnumTypeScope;
+  Result.GroupScope:=CreateGroupScope(HiType);
   PushScope(Result);
 end;
 
-function TPasResolver.PushHelperDotScope(TypeEl: TPasType): TPasDotBaseScope;
+function TPasResolver.PushHelperDotScope(HiType: TPasType): TPasDotBaseScope;
 var
   Group: TPasGroupScope;
 begin
-  Group:=CreateGroupScope(TypeEl);
+  Group:=CreateGroupScope(HiType);
   if Group.Count=0 then
     begin
     Group.Free;
     exit(nil);
     end;
   Result:=TPasDotHelperScope.Create;
-  Result.Element:=TypeEl;
+  Result.Element:=HiType;
   Result.Owner:=Self;
   Result.GroupScope:=Group;
   PushScope(Result);
@@ -20484,7 +20494,7 @@ function TPasResolver.PushTemplateDotScope(TemplType: TPasGenericTemplateType;
           PushScope(Result);
           DotClassScope.Owner:=Self;
           DotClassScope.ClassRecScope:=MemberType.CustomData as TPasClassScope;
-          Result.GroupScope:=CreateGroupScope(MemberType,false);
+          Result.GroupScope:=CreateGroupScope(ResolvedEl.HiTypeEl,false);
           end
         else
           GroupScope_AddTypeAndAncestors(Result.GroupScope,MemberType,false);
@@ -20502,19 +20512,21 @@ begin
     PushConstraintExprScope(TemplType.Constraints[i]);
 end;
 
-function TPasResolver.PushDotScope(TypeEl: TPasType): TPasDotBaseScope;
+function TPasResolver.PushDotScope(HiType: TPasType): TPasDotBaseScope;
 var
   C: TClass;
+  LoType: TPasType;
 begin
-  C:=TypeEl.ClassType;
+  LoType:=ResolveAliasType(HiType);
+  C:=LoType.ClassType;
   if C=TPasClassType then
-    Result:=PushClassDotScope(TPasClassType(TypeEl))
+    Result:=PushClassDotScope(TPasClassType(LoType))
   else if C=TPasRecordType then
-    Result:=PushRecordDotScope(TPasRecordType(TypeEl))
+    Result:=PushRecordDotScope(TPasRecordType(LoType))
   else if C=TPasEnumType then
-    Result:=PushEnumDotScope(TPasEnumType(TypeEl))
+    Result:=PushEnumDotScope(HiType,TPasEnumType(LoType))
   else
-    Result:=PushHelperDotScope(TypeEl);
+    Result:=PushHelperDotScope(HiType);
 end;
 
 function TPasResolver.PushWithExprScope(Expr: TPasExpr): TPasWithExprScope;
@@ -20523,7 +20535,7 @@ var
   WithScope: TPasWithScope;
   ExprResolved: TPasResolverResult;
   ErrorEl: TPasExpr;
-  TypeEl: TPasType;
+  LoType, HiType, DestType: TPasType;
   ExprScope: TPasGroupScope;
   ClassEl: TPasClassType;
   WithExprScope: TPasWithExprScope;
@@ -20543,9 +20555,10 @@ begin
   writeln('TPasResolver.PushWithExprScope ExprResolved=',GetResolverResultDbg(ExprResolved));
   {$ENDIF}
   ErrorEl:=Expr;
-  TypeEl:=ExprResolved.LoTypeEl;
+  HiType:=ExprResolved.HiTypeEl;
+  LoType:=ExprResolved.LoTypeEl;
   // ToDo: use last element in Expr for error position
-  if TypeEl=nil then
+  if LoType=nil then
     RaiseMsg(20170216152004,nExprTypeMustBeClassOrRecordTypeGot,sExprTypeMustBeClassOrRecordTypeGot,
       [BaseTypeNames[ExprResolved.BaseType]],ErrorEl);
   if (ExprResolved.BaseType in btAllStandardTypes) then
@@ -20557,29 +20570,30 @@ begin
       [BaseTypeNames[ExprResolved.BaseType]],ErrorEl);
 
   Flags:=[];
-  CheckUseAsType(TypeEl,20190123113957,Expr);
+  CheckUseAsType(LoType,20190123113957,Expr);
   ClassRecScope:=nil;
   ExprScope:=nil;
-  if TypeEl.ClassType=TPasClassOfType then
+  if LoType.ClassType=TPasClassOfType then
     begin
     // e.g. with ImageClass do FindHandlerFromExtension()
-    ClassEl:=ResolveAliasType(TPasClassOfType(TypeEl).DestType) as TPasClassType;
-    ExprScope:=CreateGroupScope(ClassEl);
+    DestType:=TPasClassOfType(LoType).DestType;
+    ClassEl:=ResolveAliasType(DestType) as TPasClassType;
+    ExprScope:=CreateGroupScope(DestType);
     ClassRecScope:=TPasClassOrRecordScope(ClassEl.CustomData);
     Include(Flags,wesfOnlyTypeMembers);
     Include(Flags,wesfIsClassOf);
     end
-  else if TypeEl is TPasMembersType then
-    ClassRecScope:=TPasClassOrRecordScope(TypeEl.CustomData);
+  else if LoType is TPasMembersType then
+    ClassRecScope:=TPasClassOrRecordScope(LoType.CustomData);
 
   if ExprScope=nil then
     begin
-    ExprScope:=CreateGroupScope(TypeEl);
+    ExprScope:=CreateGroupScope(HiType);
     if ExprScope.Count=0 then
       begin
       ExprScope.Free;
       RaiseMsg(20170216152007,nExprTypeMustBeClassOrRecordTypeGot,sExprTypeMustBeClassOrRecordTypeGot,
-        [GetElementTypeName(TypeEl)],ErrorEl);
+        [GetElementTypeName(LoType)],ErrorEl);
       end;
     if ExprResolved.IdentEl is TPasType then
       // e.g. with TPoint do PointInCircle
@@ -20722,7 +20736,7 @@ var
   i: Integer;
   HelperForType: TPasType;
 begin
-  HelperForType:=ResolveAliasType(Helper.HelperForType);
+  HelperForType:=ResolveAliasType(Helper.HelperForType,false);
   NewEntry:=TPRHelperEntry.Create;
   NewEntry.Helper:=Helper;
   NewEntry.HelperForType:=HelperForType;
@@ -25572,14 +25586,17 @@ begin
   Result:=nil;
 end;
 
-function TPasResolver.ResolveAliasType(aType: TPasType): TPasType;
+function TPasResolver.ResolveAliasType(aType: TPasType; SkipTypeAlias: boolean
+  ): TPasType;
 var
   C: TClass;
 begin
   while aType<>nil do
     begin
     C:=aType.ClassType;
-    if (C=TPasAliasType) or (C=TPasTypeAliasType) then
+    if C=TPasAliasType then
+      aType:=TPasAliasType(aType).DestType
+    else if (C=TPasTypeAliasType) and SkipTypeAlias then
       aType:=TPasAliasType(aType).DestType
     else if (C=TPasClassType) and TPasClassType(aType).IsForward
         and (aType.CustomData is TResolvedReference) then

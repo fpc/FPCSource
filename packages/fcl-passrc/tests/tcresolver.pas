@@ -946,6 +946,7 @@ type
     Procedure TestTypeHelper_Constructor_NewInstance;
     Procedure TestTypeHelper_Interface;
     Procedure TestTypeHelper_Interface_ConstructorFail;
+    Procedure TestTypeHelper_TypeAliasType;
 
     // attributes
     Procedure TestAttributes_Globals;
@@ -17955,6 +17956,37 @@ begin
   'begin',
   '']);
   CheckResolverException('constructor is not supported',nXIsNotSupported);
+end;
+
+procedure TTestResolver.TestTypeHelper_TypeAliasType;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TEnum = type longint;',
+  '  TIntHelper = type helper for longint',
+  '    procedure Run;',
+  '  end;',
+  '  TEnumHelper = type helper for TEnum',
+  '    procedure Fly;',
+  '  end;',
+  'procedure TIntHelper.Run;',
+  'begin',
+  'end;',
+  'procedure TEnumHelper.Fly;',
+  'begin',
+  'end;',
+  'var',
+  '  e: TEnum;',
+  '  i: longint;',
+  'begin',
+  '  i.Run;',
+  '  e.Fly;',
+  '  with i do Run;',
+  '  with e do Fly;',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestAttributes_Globals;
