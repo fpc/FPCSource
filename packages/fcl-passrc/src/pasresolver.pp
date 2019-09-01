@@ -2326,8 +2326,6 @@ function IsValidIdent(const Ident: string; AllowDots: Boolean = False; StrictDot
 function DotExprToName(Expr: TPasExpr): string;
 function NoNil(o: TObject): TObject;
 
-function ComparePRHelperEntries(Entry1, Entry2: TPRHelperEntry): integer;
-
 function dbgs(const Flags: TPasResolverComputeFlags): string; overload;
 function dbgs(const a: TResolvedRefAccess): string; overload;
 function dbgs(const Flags: TResolvedReferenceFlags): string; overload;
@@ -2903,27 +2901,6 @@ begin
   end;
 end;
 {$ENDIF}
-
-function ComparePRHelperEntries(Entry1, Entry2: TPRHelperEntry): integer;
-var
-  HelperForType1, HelperForType2: TPasType;
-begin
-  HelperForType1:=Entry1.HelperForType;
-  HelperForType2:=Entry2.HelperForType;
-  {$IFDEF Pas2js}
-  if HelperForType1.PasElementId<HelperForType2.PasElementId then
-    exit(1)
-  else if HelperForType1.PasElementId>HelperForType2.PasElementId then
-    exit(-1)
-  {$ELSE}
-  if Pointer(HelperForType1)>Pointer(HelperForType2) then
-    exit(1)
-  else if Pointer(HelperForType1)<Pointer(HelperForType2) then
-    exit(-1)
-  {$ENDIF}
-  else
-    Result:=Entry1.Added-Entry2.Added;
-end;
 
 function dbgs(const Flags: TPasResolverComputeFlags): string;
 var
@@ -20716,40 +20693,19 @@ end;
 
 procedure TPasResolver.AddHelper(Helper: TPasClassType;
   var List: TPRHelperEntryArray);
-  {$IF defined(fpc) and (FPC_FULLVERSION<30101)}
-  procedure Insert(Item: TPRHelperEntry; var A: TPRHelperEntryArray; Index: integer); overload;
-  var
-    i: Integer;
-  begin
-    if Index<0 then
-      RaiseInternalError(20190118211455);
-    if Index>length(A) then
-      RaiseInternalError(20190119122624);
-    SetLength(A,length(A)+1);
-    for i:=length(A)-1 downto Index+1 do
-      A[i]:=A[i-1];
-    A[Index]:=Item;
-  end;
-  {$ENDIF}
 var
-  NewEntry, Entry: TPRHelperEntry;
-  i: Integer;
+  NewEntry: TPRHelperEntry;
+  Added: Integer;
   HelperForType: TPasType;
 begin
   HelperForType:=ResolveAliasType(Helper.HelperForType,false);
   NewEntry:=TPRHelperEntry.Create;
   NewEntry.Helper:=Helper;
   NewEntry.HelperForType:=HelperForType;
-  NewEntry.Added:=length(List);
-  // keep list sorted for 1. HelperForType and 2. Added
-  i:=0;
-  while i<length(List) do
-    begin
-    Entry:=List[i];
-    if ComparePRHelperEntries(NewEntry,Entry)<=0 then break;
-    inc(i);
-    end;
-  Insert(NewEntry,List,i);
+  Added:=length(List);
+  NewEntry.Added:=Added;
+  SetLength(List,Added+1);
+  List[Added]:=NewEntry;
 end;
 
 procedure TPasResolver.AddActiveHelper(Helper: TPasClassType);
