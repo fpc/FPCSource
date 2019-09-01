@@ -1016,12 +1016,14 @@ Var
   SS : TStringStream;
 begin
   if Assigned(JPSH) then
-    JPSH(JSON,useUTF8,Result)
+    JPSH(JSON,UseUTF8,Result)
   else
     begin
+    {$IF FPC_FULLVERSION>30300}
     if UseUTF8 then
       SS:=TStringStream.Create(JSON,TEncoding.UTF8)
     else
+    {$ENDIF}
       SS:=TStringStream.Create(JSON);
     try
       Result:=GetJSON(SS,UseUTF8);
