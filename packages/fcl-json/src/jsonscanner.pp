@@ -265,7 +265,7 @@ begin
       FetchLine;
       Result := tkWhitespace;
       end;
-    #9, ' ':
+    #9, ' ', #10, #13:
       begin
       Result := tkWhitespace;
       repeat
