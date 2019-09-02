@@ -636,7 +636,7 @@ package=compiler.source.zip[compsrc.zip],~C~ompiler sources
 # Source 3
 package=rtl.source.zip[rtlsrc.zip],Run time library sources
 # Source 4
-package=units-ide-3.3.1.source.zip[idesrc.zip],IDE sources
+package=units-ide-3.3.1.source.zip[uidesrc.zip],IDE sources
 # Source 5
 package=utils-3.3.1.source.zip[utilssrc.zip],~U~tils sources
 # Source 6
@@ -685,7 +685,7 @@ package=units-mysql-3.3.1.source.zip[umysqsrc.zip],MySQL interface units sources
 # Source-2 6
 package=utils-lexyacc-3.3.1.source.zip[ulexysrc.zip],Compiler generator for TP and compatibles
 # Source-2 7
-package=utils-unicode-3.3.1.source.zip[ucodesrc.zip],Transformation of Unicode consortium data for FPC
+package=utils-unicode-3.3.1.source.zip[uucdsrc.zip],Transformation of Unicode consortium data for FPC
 # Source-2 8
 package=units-os2units-3.3.1.source.zip[uos2src.zip],Units interfacing libraries delivered with OS/2/eCS
 # Source-2 9
@@ -739,7 +739,7 @@ package=units-dblib-3.3.1.source.zip,Headers for the MS SQL Server RDBMS
 pack=Sou~r~ces 3
 filecheck=*.source.zip[*src.zip]
 # Source-3 1
-package=units-winunits-base-3.3.1.source.zip[uwinsrc.zip],Extended Windows API interface units
+package=units-winunits-base-3.3.1.source.zip[uwibsrc.zip],Extended Windows API interface units
 # Source-3 2
 package=units-tcl-3.3.1.source.zip[utclsrc.zip],TCL interface units sources
 # Source-3 3
