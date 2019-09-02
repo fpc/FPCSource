@@ -257,6 +257,14 @@ begin
       FCurToken := Result;
       exit;
       end;
+  // Empty line
+  if (FTokenStr=FEOL) then
+    begin
+    Result := tkWhiteSpace;
+    FCurToken := Result;
+    exit;
+    end;
+
 
   FCurTokenString := '';
   case FTokenStr^ of
@@ -270,13 +278,13 @@ begin
       Result := tkWhitespace;
       repeat
         Inc(FTokenStr);
-        if FTokenStr[0] = #0 then
+        if (FTokenStr[0] = #0) or (FTokenStr=FEOL) then
           if not FetchLine then
           begin
             FCurToken := Result;
             exit;
           end;
-      until not (FTokenStr[0] in [#9, ' ']);
+      until not (FTokenStr[0] in [#9, ' ',#10, #13]);
       end;
     '"','''':
       begin
