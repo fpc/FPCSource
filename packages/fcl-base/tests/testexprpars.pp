@@ -5127,6 +5127,7 @@ Var
   Res : TFPExpressioNResult;
 
 begin
+  Res:=Default(TFPExpressioNResult);
   AssertEquals('Only one identifier',1,FP.Identifiers.Count);
   Case FAccessAs of
     rtBoolean  : FP.Identifiers[0].AsBoolean:=res.ResBoolean;
@@ -6738,6 +6739,7 @@ Var
   I : Integer;
 
 begin
+  Result:=Default(TExprArgumentArray);
   SetLength(Result,High(Args)-Low(Args)+1);
   For I:=Low(Args) to High(Args) do
     Result[I]:=Args[i].VObject as TFPExprNode;
