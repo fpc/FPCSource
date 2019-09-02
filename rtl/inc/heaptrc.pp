@@ -562,7 +562,9 @@ begin
    pp^.extra_info:=nil;
   if add_tail then
     begin
-      pl:=pointer(pp)+allocsize-pp^.extra_info_size-tail_size;
+      { Calculate position from start because of arm
+        specific alignment }
+      pl:=pointer(pp)+sizeof(theap_mem_info)+pp^.size;
       for i:=1 to tail_size div sizeof(dword) do
         begin
           unaligned(pl^):=dword(AllocateSig);
@@ -924,7 +926,9 @@ begin
    pp^.extra_info:=nil;
   if add_tail then
     begin
-      pl:=pointer(pp)+allocsize-pp^.extra_info_size-tail_size;
+      { Calculate position from start because of arm
+        specific alignment }
+      pl:=pointer(pp)+sizeof(theap_mem_info)+pp^.size;
       for i:=1 to tail_size div sizeof(dword) do
         begin
           unaligned(pl^):=dword(AllocateSig);
@@ -1287,7 +1291,9 @@ end;
 
 function TraceAllocMem(size:ptruint):Pointer;
 begin
-  TraceAllocMem:=SysAllocMem(size);
+  TraceAllocMem := TraceGetMem(size);
+  if Assigned(TraceAllocMem) then
+    FillChar(TraceAllocMem^, TraceMemSize(TraceAllocMem), 0);
 end;
 
 

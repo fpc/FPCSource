@@ -1663,5 +1663,6 @@ Initialization
 
 Finalization
   FreeDriveStr;
+  FreeTerminateProcs;
   DoneExceptions;
 end.

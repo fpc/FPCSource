@@ -26,7 +26,9 @@ const
    MinsPerHour = 60;
    SecsPerMin  = 60;
    MSecsPerSec = 1000;
+
    MinsPerDay  = HoursPerDay * MinsPerHour;
+   SecsPerHour = SecsPerMin * MinsPerHour;
    SecsPerDay  = MinsPerDay * SecsPerMin;
    MSecsPerDay = SecsPerDay * MSecsPerSec;
 

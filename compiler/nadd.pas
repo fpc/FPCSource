@@ -389,7 +389,7 @@ implementation
         var
           swapl, swapr: Boolean;
           valuer: tnode;
-          t: QWord;
+          t: Tconstexprint;
         begin
           result:=false;
           swapl:=false;
@@ -398,29 +398,26 @@ implementation
           if nodel.left.nodetype=ordconstn then
             begin
               swapl:=true;
-              cl:=tordconstnode(nodel.left).value.uvalue;
+              cl:=tordconstnode(nodel.left).value;
               value:=nodel.right;
             end
           else if nodel.right.nodetype=ordconstn then
             begin
-              cl:=tordconstnode(nodel.right).value.uvalue;
+              cl:=tordconstnode(nodel.right).value;
               value:=nodel.left;
             end
           else
             exit;
 
-          if is_signed(value.resultdef) then
-            exit;
-
           if noder.left.nodetype=ordconstn then
             begin
               swapl:=true;
-              cr:=tordconstnode(noder.left).value.uvalue;
+              cr:=tordconstnode(noder.left).value;
               valuer:=noder.right;
             end
           else if noder.right.nodetype=ordconstn then
             begin
-              cr:=tordconstnode(noder.right).value.uvalue;
+              cr:=tordconstnode(noder.right).value;
               valuer:=noder.left;
             end
           else
@@ -1666,7 +1663,12 @@ implementation
                           if is_cbool(ld) then
                             begin
                               inserttypeconv(left,pasbool8type);
-                              ttypeconvnode(left).convtype:=tc_bool_2_bool;
+                              { inserttypeconv might already simplify
+                                the typeconvnode after insertion,
+                                thus we need to check if it still
+                                really is a typeconv node }
+                              if left is ttypeconvnode then
+                                ttypeconvnode(left).convtype:=tc_bool_2_bool;
                               if not is_cbool(rd) or
                                  (ld.size>=rd.size) then
                                 resultdef:=ld;
@@ -1674,7 +1676,12 @@ implementation
                           if is_cbool(rd) then
                             begin
                               inserttypeconv(right,pasbool8type);
-                              ttypeconvnode(right).convtype:=tc_bool_2_bool;
+                              { inserttypeconv might already simplify
+                                the typeconvnode after insertion,
+                                thus we need to check if it still
+                                really is a typeconv node }
+                              if right is ttypeconvnode then
+                                ttypeconvnode(right).convtype:=tc_bool_2_bool;
                               if not assigned(resultdef) then
                                 resultdef:=rd;
                             end;

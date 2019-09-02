@@ -13,6 +13,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('tosunits');
+    P.ShortName := 'tos';
 
     P.Author := 'FPC core team';
     P.License := 'LGPL with modification';

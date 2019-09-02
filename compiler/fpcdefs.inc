@@ -96,6 +96,7 @@
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
   {$define cpucapabilities}
+  {$define fpucapabilities}
   {$define cpucg64shiftsupport}
 {$endif i386}
 
@@ -113,6 +114,7 @@
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
   {$define cpucapabilities}
+  {$define fpucapabilities}
 {$endif x86_64}
 
 {$ifdef sparc}
@@ -177,6 +179,7 @@
   {$define cputargethasfixedstack}
   {$define cpurefshaveindexreg}
   {$define cpucapabilities}
+  {$define fpucapabilities}
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
   { default to armel }
@@ -206,6 +209,7 @@
   {$define cpufpemu}
   {$define cpurefshaveindexreg}
   {$define cpucapabilities}
+  {$define fpucapabilities}
   {$define cpuneedsmulhelper}
   {$define cpuneedsdivhelper}
   {$define cpu_uses_separate_address_registers}

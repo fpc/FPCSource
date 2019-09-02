@@ -172,7 +172,10 @@ procedure TVersionInfo.FreeResources;
 
 begin
   if Assigned(FResources) then
-    FreeAndNil(FResources)
+    begin
+      FreeAndNil(FResources);
+      FVersionInfo := nil;
+    end
   else
     FreeAndNil(FVersionInfo);
 end;

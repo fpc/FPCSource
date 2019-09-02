@@ -312,6 +312,18 @@ begin
 end;
 
 
+procedure TFPList.Sort(Compare: TListSortComparer_Context; Context: Pointer);
+begin
+  Sort(Compare, Context, SortBase.DefaultSortingAlgorithm);
+end;
+
+
+procedure TFPList.Sort(Compare: TListSortComparer_Context; Context: Pointer; SortingAlgorithm: PSortingAlgorithm);
+begin
+  SortingAlgorithm^.PtrListSorter_ContextComparer(PPointer(FList), FCount, Compare, Context);
+end;
+
+
 procedure TFPList.ForEachCall(proc2call:TListCallback;arg:pointer);
 var
   i : integer;
@@ -782,6 +794,16 @@ end;
 procedure TList.Sort(Compare: TListSortCompare; SortingAlgorithm: PSortingAlgorithm);
 begin
   FList.Sort(Compare, SortingAlgorithm);
+end;
+
+procedure TList.Sort(Compare: TListSortComparer_Context; Context: Pointer);
+begin
+  FList.Sort(Compare, Context);
+end;
+
+procedure TList.Sort(Compare: TListSortComparer_Context; Context: Pointer; SortingAlgorithm: PSortingAlgorithm);
+begin
+  FList.Sort(Compare, Context, SortingAlgorithm);
 end;
 
 procedure TList.CopyMove (aList : TList);

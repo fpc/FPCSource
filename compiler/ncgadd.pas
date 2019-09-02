@@ -66,6 +66,8 @@ interface
           procedure second_cmpsmallset;virtual;abstract;
           procedure second_cmp64bit;virtual;abstract;
           procedure second_cmpordinal;virtual;abstract;
+
+          function needoverflowcheck: boolean;
        end;
 
   implementation
@@ -518,9 +520,7 @@ interface
 
         checkoverflow:=
           checkoverflow and
-          (left.resultdef.typ<>pointerdef) and
-          (right.resultdef.typ<>pointerdef) and
-          (cs_check_overflow in current_settings.localswitches) and not(nf_internal in flags);
+          needoverflowcheck;
 
 {$if defined(cpu64bitalu) or defined(cpuhighleveltarget)}
         case nodetype of
@@ -761,6 +761,15 @@ interface
     procedure tcgaddnode.second_cmpboolean;
       begin
         second_cmpordinal;
+      end;
+
+    function tcgaddnode.needoverflowcheck: boolean;
+      begin
+        result:=
+          (cs_check_overflow in current_settings.localswitches) and
+          (left.resultdef.typ<>pointerdef) and
+          (right.resultdef.typ<>pointerdef) and
+          not(nf_internal in flags);
       end;
 
 

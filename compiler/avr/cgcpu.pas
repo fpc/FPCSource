@@ -60,8 +60,10 @@ unit cgcpu;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
         procedure a_op_reg_reg(list: TAsmList; Op: TOpCG; size: TCGSize; src, dst : TRegister); override;
-        procedure a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister); override;
         procedure a_op_const_reg_reg(list : TAsmList;op : TOpCg;size : tcgsize; a : tcgint;src,dst : tregister); override;
+
+        procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister; setflags: boolean; var ovloc: tlocation); override;
+        procedure a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister; setflags: boolean; var ovloc: tlocation); override;
 
         { move instructions }
         procedure a_load_const_reg(list : TAsmList; size: tcgsize; a : tcgint;reg : tregister);override;
@@ -94,6 +96,7 @@ unit cgcpu;
         procedure g_concatcopy_move(list : TAsmList;const source,dest : treference;len : tcgint);
 
         procedure g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef); override;
+        procedure g_overflowCheck_loc(List: TAsmList; const Loc: TLocation; def: TDef; ovloc: tlocation); override;
 
         procedure g_save_registers(list : TAsmList);override;
         procedure g_restore_registers(list : TAsmList);override;
@@ -108,6 +111,8 @@ unit cgcpu;
         procedure a_adjust_sp(list: TAsmList; value: longint);
         function GetLoad(const ref : treference) : tasmop;
         function GetStore(const ref: treference): tasmop;
+
+        procedure gen_multiply(list: TAsmList; op: topcg; size: TCgSize; src2, src1, dst: tregister; check_overflow: boolean; var ovloc: tlocation);
 
       protected
         procedure a_op_reg_reg_internal(list: TAsmList; Op: TOpCG; size: TCGSize; src, srchi, dst, dsthi: TRegister);
@@ -432,29 +437,6 @@ unit cgcpu;
        end;
 
 
-     procedure tcgavr.a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister);
-       begin
-         if (op in [OP_MUL,OP_IMUL]) and (size in [OS_16,OS_S16]) and
-            (CPUAVR_HAS_MUL in cpu_capabilities[current_settings.cputype]) then
-           begin
-             getcpuregister(list,NR_R0);
-             getcpuregister(list,NR_R1);
-             list.concat(taicpu.op_reg_reg(A_MUL,src1,src2));
-             emit_mov(list,dst,NR_R0);
-             emit_mov(list,GetNextReg(dst),NR_R1);
-             list.concat(taicpu.op_reg_reg(A_MUL,GetNextReg(src1),src2));
-             list.concat(taicpu.op_reg_reg(A_ADD,GetNextReg(dst),NR_R0));
-             list.concat(taicpu.op_reg_reg(A_MUL,src1,GetNextReg(src2)));
-             list.concat(taicpu.op_reg_reg(A_ADD,GetNextReg(dst),NR_R0));
-             ungetcpuregister(list,NR_R0);
-             list.concat(taicpu.op_reg(A_CLR,NR_R1));
-             ungetcpuregister(list,NR_R1);
-           end
-         else
-          inherited a_op_reg_reg_reg(list,op,size,src1,src2,dst);
-       end;
-
-
      procedure tcgavr.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister);
        begin
          if (op in [OP_MUL,OP_IMUL]) and (size in [OS_16,OS_S16]) and (a in [2,4,8]) then
@@ -473,6 +455,36 @@ unit cgcpu;
            inherited a_op_const_reg_reg(list,op,size,a,src,dst);
        end;
 
+     procedure tcgavr.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
+       var
+         tmpreg: TRegister;
+       begin
+         if (op in [OP_MUL,OP_IMUL]) and
+            setflags then
+           begin
+             tmpreg:=getintregister(list,size);
+             a_load_const_reg(list,size,a,tmpreg);
+             a_op_reg_reg_reg_checkoverflow(list,op,size,tmpreg,src,dst,setflags,ovloc);
+           end
+         else
+           begin
+             inherited a_op_const_reg_reg_checkoverflow(list, op, size, a, src, dst, setflags, ovloc);
+             ovloc.loc:=LOC_FLAGS;
+           end;
+       end;
+
+     procedure tcgavr.a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister; setflags: boolean; var ovloc: tlocation);
+       begin
+         if (op in [OP_MUL,OP_IMUL]) and
+            setflags then
+           gen_multiply(list,op,size,src1,src2,dst,setflags,ovloc)
+         else
+           begin
+             inherited a_op_reg_reg_reg_checkoverflow(list, op, size, src1, src2, dst, setflags, ovloc);
+             ovloc.loc:=LOC_FLAGS;
+           end;
+       end;
+
 
      procedure tcgavr.a_op_reg_reg_internal(list : TAsmList; Op: TOpCG; size: TCGSize; src, srchi, dst, dsthi: TRegister);
        var
@@ -483,6 +495,7 @@ unit cgcpu;
          paraloc1,paraloc2 : TCGPara;
          l1,l2 : tasmlabel;
          pd : tprocdef;
+         hovloc: tlocation;
 
       { NextRegDst* is sometimes called before the register usage and sometimes afterwards }
        procedure NextSrcDstPreInc;
@@ -598,93 +611,13 @@ unit cgcpu;
 
            OP_MUL,OP_IMUL:
              begin
-               if size in [OS_8,OS_S8] then
+               tmpreg:=dst;
+               if size in [OS_16,OS_S16] then
                  begin
-                   if CPUAVR_HAS_MUL in cpu_capabilities[current_settings.cputype] then
-                     begin
-                       cg.a_reg_alloc(list,NR_R0);
-                       cg.a_reg_alloc(list,NR_R1);
-                       list.concat(taicpu.op_reg_reg(topcg2asmop[op],dst,src));
-                       list.concat(taicpu.op_reg(A_CLR,NR_R1));
-                       cg.a_reg_dealloc(list,NR_R1);
-                       list.concat(taicpu.op_reg_reg(A_MOV,dst,NR_R0));
-                       cg.a_reg_dealloc(list,NR_R0);
-                     end
-                   else
-                     begin
-                       if size=OS_8 then
-                         pd:=search_system_proc('fpc_mul_byte')
-                       else
-                          pd:=search_system_proc('fpc_mul_shortint');
-                       paraloc1.init;
-                       paraloc2.init;
-                       paramanager.getintparaloc(list,pd,1,paraloc1);
-                       paramanager.getintparaloc(list,pd,2,paraloc2);
-                       a_load_reg_cgpara(list,OS_8,src,paraloc2);
-                       a_load_reg_cgpara(list,OS_8,dst,paraloc1);
-                       paramanager.freecgpara(list,paraloc2);
-                       paramanager.freecgpara(list,paraloc1);
-                       alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-                       if size=OS_8 then
-                         a_call_name(list,'FPC_MUL_BYTE',false)
-                       else
-                         a_call_name(list,'FPC_MUL_SHORTINT',false);
-                       dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-                       cg.a_reg_alloc(list,NR_R24);
-                       cg.a_load_reg_reg(list,OS_8,OS_8,NR_R24,dst);
-                       cg.a_reg_dealloc(list,NR_R24);
-                       paraloc2.done;
-                       paraloc1.done;
-                     end;
-                 end
-               else if size in [OS_16,OS_S16] then
-                 begin
-                   if CPUAVR_HAS_MUL in cpu_capabilities[current_settings.cputype] then
-                     begin
-                       tmpreg:=getintregister(list,OS_16);
-                       emit_mov(list,tmpreg,dst);
-                       emit_mov(list,GetNextReg(tmpreg),GetNextReg(dst));
-                       list.concat(taicpu.op_reg_reg(A_MUL,tmpreg,src));
-                       emit_mov(list,dst,NR_R0);
-                       emit_mov(list,GetNextReg(dst),NR_R1);
-                       list.concat(taicpu.op_reg_reg(A_MUL,GetNextReg(tmpreg),src));
-                       list.concat(taicpu.op_reg_reg(A_ADD,GetNextReg(dst),NR_R0));
-                       list.concat(taicpu.op_reg_reg(A_MUL,tmpreg,GetNextReg(src)));
-                       list.concat(taicpu.op_reg_reg(A_ADD,GetNextReg(dst),NR_R0));
-                       list.concat(taicpu.op_reg(A_CLR,NR_R1));
-                     end
-                   else
-                     begin
-                       if size=OS_16 then
-                         pd:=search_system_proc('fpc_mul_word')
-                       else
-                          pd:=search_system_proc('fpc_mul_integer');
-                       paraloc1.init;
-                       paraloc2.init;
-                       paramanager.getintparaloc(list,pd,1,paraloc1);
-                       paramanager.getintparaloc(list,pd,2,paraloc2);
-                       a_load_reg_cgpara(list,OS_16,src,paraloc2);
-                       a_load_reg_cgpara(list,OS_16,dst,paraloc1);
-                       paramanager.freecgpara(list,paraloc2);
-                       paramanager.freecgpara(list,paraloc1);
-                       alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-                       if size=OS_16 then
-                         a_call_name(list,'FPC_MUL_WORD',false)
-                       else
-                         a_call_name(list,'FPC_MUL_INTEGER',false);
-                       dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-                       cg.a_reg_alloc(list,NR_R24);
-                       cg.a_reg_alloc(list,NR_R25);
-                       cg.a_load_reg_reg(list,OS_8,OS_8,NR_R24,dst);
-                       cg.a_reg_dealloc(list,NR_R24);
-                       cg.a_load_reg_reg(list,OS_8,OS_8,NR_R25,GetNextReg(dst));
-                       cg.a_reg_dealloc(list,NR_R25);
-                       paraloc2.done;
-                       paraloc1.done;
-                     end;
-                 end
-               else
-                 internalerror(2011022002);
+                   tmpreg:=getintregister(list,size);
+                   a_load_reg_reg(list,size,size,dst,tmpreg);
+                 end;
+               gen_multiply(list,op,size,src,tmpreg,dst,false,hovloc);
              end;
 
            OP_DIV,OP_IDIV:
@@ -1673,7 +1606,7 @@ unit cgcpu;
     procedure tcgavr.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;
       cmp_op : topcmp;a : tcgint;reg : tregister;l : tasmlabel);
       var
-        swapped : boolean;
+        swapped , test_msb: boolean;
         tmpreg : tregister;
         i : byte;
       begin
@@ -1704,18 +1637,31 @@ unit cgcpu;
                 end;
             end;
 
-            if swapped then
-              list.concat(taicpu.op_reg_reg(A_CP,NR_R1,reg))
-            else
-              list.concat(taicpu.op_reg_reg(A_CP,reg,NR_R1));
-
-            for i:=2 to tcgsize2size[size] do
+            { If doing a signed test for x<0, we can simply test the sign bit
+              of the most significant byte }
+            if (cmp_op in [OC_LT,OC_GTE]) and
+               (not swapped) then
               begin
-                reg:=GetNextReg(reg);
+                for i:=2 to tcgsize2size[size] do
+                  reg:=GetNextReg(reg);
+
+                list.concat(taicpu.op_reg_reg(A_CP,reg,NR_R1));
+              end
+            else
+              begin
                 if swapped then
-                  list.concat(taicpu.op_reg_reg(A_CPC,NR_R1,reg))
+                  list.concat(taicpu.op_reg_reg(A_CP,NR_R1,reg))
                 else
-                  list.concat(taicpu.op_reg_reg(A_CPC,reg,NR_R1));
+                  list.concat(taicpu.op_reg_reg(A_CP,reg,NR_R1));
+
+                for i:=2 to tcgsize2size[size] do
+                  begin
+                    reg:=GetNextReg(reg);
+                    if swapped then
+                      list.concat(taicpu.op_reg_reg(A_CPC,NR_R1,reg))
+                    else
+                      list.concat(taicpu.op_reg_reg(A_CPC,reg,NR_R1));
+                  end;
               end;
 
             a_jmp_cond(list,cmp_op,l);
@@ -1900,6 +1846,248 @@ unit cgcpu;
           result:=A_ST;
       end;
 
+    procedure tcgavr.gen_multiply(list: TAsmList; op: topcg; size: TCgSize; src2, src1, dst: tregister; check_overflow: boolean; var ovloc: tlocation);
+
+      procedure perform_r1_check(overflow_label: TAsmLabel; other_reg: TRegister=NR_R1);
+        var
+          ai: taicpu;
+        begin
+          if check_overflow then
+            begin
+              list.concat(taicpu.op_reg_reg(A_OR,NR_R1,other_reg));
+
+              ai:=Taicpu.Op_Sym(A_BRxx,overflow_label);
+              ai.SetCondition(C_NE);
+              ai.is_jmp:=true;
+              list.concat(ai);
+            end;
+        end;
+
+      procedure perform_ovf_check(overflow_label: TAsmLabel);
+        var
+          ai: taicpu;
+        begin
+          if check_overflow then
+            begin
+              ai:=Taicpu.Op_Sym(A_BRxx,overflow_label);
+              ai.SetCondition(C_CS);
+              ai.is_jmp:=true;
+              list.concat(ai);
+            end;
+        end;
+
+      var
+        pd: tprocdef;
+        paraloc1, paraloc2: tcgpara;
+        ai: taicpu;
+        hl, no_overflow: TAsmLabel;
+        name: String;
+      begin
+        ovloc.loc:=LOC_VOID;
+        if size in [OS_8,OS_S8] then
+          begin
+            if (CPUAVR_HAS_MUL in cpu_capabilities[current_settings.cputype]) and
+               (op=OP_MUL) then
+              begin
+                cg.a_reg_alloc(list,NR_R0);
+                cg.a_reg_alloc(list,NR_R1);
+                list.concat(taicpu.op_reg_reg(topcg2asmop[op],src1,src2));
+                // Check overflow
+                if check_overflow then
+                  begin
+                    current_asmdata.getjumplabel(hl);
+                    list.concat(taicpu.op_reg_reg(A_AND,NR_R1,NR_R1));
+
+                     { Clear carry as it's not affected by any of the instructions }
+                    list.concat(taicpu.op_none(A_CLC));
+
+                    ai:=Taicpu.Op_Sym(A_BRxx,hl);
+                    ai.SetCondition(C_EQ);
+                    ai.is_jmp:=true;
+                    list.concat(ai);
+
+                    list.concat(taicpu.op_reg(A_CLR,NR_R1));
+                    list.concat(taicpu.op_none(A_SEC));
+
+                    a_label(list,hl);
+
+                    ovloc.loc:=LOC_FLAGS;
+                  end
+                else
+                  list.concat(taicpu.op_reg(A_CLR,NR_R1));
+                cg.a_reg_dealloc(list,NR_R1);
+
+                list.concat(taicpu.op_reg_reg(A_MOV,dst,NR_R0));
+                cg.a_reg_dealloc(list,NR_R0);
+              end
+            else if (CPUAVR_HAS_MUL in cpu_capabilities[current_settings.cputype]) and
+               (op=OP_IMUL) then
+              begin
+                cg.a_reg_alloc(list,NR_R0);
+                cg.a_reg_alloc(list,NR_R1);
+                list.concat(taicpu.op_reg_reg(A_MULS,src1,src2));
+                list.concat(taicpu.op_reg_reg(A_MOV,dst,NR_R0));
+
+                // Check overflow
+                if check_overflow then
+                  begin
+                    current_asmdata.getjumplabel(no_overflow);
+
+                    list.concat(taicpu.op_reg_const(A_SBRC,NR_R0,7));
+                    list.concat(taicpu.op_reg(A_INC,NR_R1));
+                    list.concat(taicpu.op_reg(A_TST,NR_R1));
+
+                    ai:=Taicpu.Op_Sym(A_BRxx,no_overflow);
+                    ai.SetCondition(C_EQ);
+                    ai.is_jmp:=true;
+                    list.concat(ai);
+
+                    list.concat(taicpu.op_reg(A_CLR,NR_R1));
+
+                    a_call_name(list,'FPC_OVERFLOW',false);
+
+                    a_label(list,no_overflow);
+
+                    ovloc.loc:=LOC_VOID;
+                  end
+                else
+                  list.concat(taicpu.op_reg(A_CLR,NR_R1));
+                cg.a_reg_dealloc(list,NR_R1);
+                cg.a_reg_dealloc(list,NR_R0);
+              end
+            else
+              begin
+                if size=OS_8 then
+                  name:='fpc_mul_byte'
+                else
+                  name:='fpc_mul_shortint';
+
+                if check_overflow then
+                  name:=name+'_checkoverflow';
+
+                pd:=search_system_proc(name);
+                paraloc1.init;
+                paraloc2.init;
+                paramanager.getintparaloc(list,pd,1,paraloc1);
+                paramanager.getintparaloc(list,pd,2,paraloc2);
+                a_load_reg_cgpara(list,OS_8,src1,paraloc2);
+                a_load_reg_cgpara(list,OS_8,src2,paraloc1);
+                paramanager.freecgpara(list,paraloc2);
+                paramanager.freecgpara(list,paraloc1);
+                alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                a_call_name(list,upper(name),false);
+                dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                cg.a_reg_alloc(list,NR_R24);
+                cg.a_load_reg_reg(list,OS_8,OS_8,NR_R24,dst);
+                cg.a_reg_dealloc(list,NR_R24);
+                paraloc2.done;
+                paraloc1.done;
+              end;
+          end
+        else if size in [OS_16,OS_S16] then
+          begin
+            if (CPUAVR_HAS_MUL in cpu_capabilities[current_settings.cputype]) and
+               ((not check_overflow) or
+                (size=OS_16)) then
+              begin
+                if check_overflow then
+                  begin
+                    current_asmdata.getjumplabel(hl);
+                    current_asmdata.getjumplabel(no_overflow);
+                  end;
+                cg.a_reg_alloc(list,NR_R0);
+                cg.a_reg_alloc(list,NR_R1);
+                list.concat(taicpu.op_reg_reg(A_MUL,src2,src1));
+                emit_mov(list,dst,NR_R0);
+                emit_mov(list,GetNextReg(dst),NR_R1);
+                list.concat(taicpu.op_reg_reg(A_MUL,GetNextReg(src1),src2));
+                perform_r1_check(hl);
+                list.concat(taicpu.op_reg_reg(A_ADD,GetNextReg(dst),NR_R0));
+                perform_ovf_check(hl);
+                list.concat(taicpu.op_reg_reg(A_MUL,src1,GetNextReg(src2)));
+                perform_r1_check(hl);
+                list.concat(taicpu.op_reg_reg(A_ADD,GetNextReg(dst),NR_R0));
+                perform_ovf_check(hl);
+
+                if check_overflow then
+                  begin
+                    list.concat(taicpu.op_reg_reg(A_MUL,GetNextReg(src1),GetNextReg(src2)));
+                    perform_r1_check(hl,NR_R0);
+                  end;
+
+                cg.a_reg_dealloc(list,NR_R0);
+                list.concat(taicpu.op_reg(A_CLR,NR_R1));
+
+                if check_overflow then
+                  begin
+                    {
+                      CLV/CLC
+                      JMP no_overflow
+                    .hl:
+                      CLR R1
+                      SEV/SEC
+                    .no_overflow:
+                    }
+
+                    if op=OP_MUL then
+                      list.concat(taicpu.op_none(A_CLC))
+                    else
+                      list.concat(taicpu.op_none(A_CLV));
+
+                    a_jmp_always(list,no_overflow);
+
+                    a_label(list,hl);
+
+                    list.concat(taicpu.op_reg(A_CLR,NR_R1));
+
+                    if op=OP_MUL then
+                      list.concat(taicpu.op_none(A_SEC))
+                    else
+                      list.concat(taicpu.op_none(A_SEV));
+
+                    a_label(list,no_overflow);
+
+                    ovloc.loc:=LOC_FLAGS;
+                  end;
+
+                cg.a_reg_dealloc(list,NR_R1);
+              end
+            else
+              begin
+                if size=OS_16 then
+                  name:='fpc_mul_word'
+                else
+                  name:='fpc_mul_integer';
+
+                if check_overflow then
+                  name:=name+'_checkoverflow';
+
+                pd:=search_system_proc(name);
+                paraloc1.init;
+                paraloc2.init;
+                paramanager.getintparaloc(list,pd,1,paraloc1);
+                paramanager.getintparaloc(list,pd,2,paraloc2);
+                a_load_reg_cgpara(list,OS_16,src1,paraloc2);
+                a_load_reg_cgpara(list,OS_16,src2,paraloc1);
+                paramanager.freecgpara(list,paraloc2);
+                paramanager.freecgpara(list,paraloc1);
+                alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                a_call_name(list,upper(name),false);
+                dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                cg.a_reg_alloc(list,NR_R24);
+                cg.a_reg_alloc(list,NR_R25);
+                cg.a_load_reg_reg(list,OS_8,OS_8,NR_R24,dst);
+                cg.a_reg_dealloc(list,NR_R24);
+                cg.a_load_reg_reg(list,OS_8,OS_8,NR_R25,GetNextReg(dst));
+                cg.a_reg_dealloc(list,NR_R25);
+                paraloc2.done;
+                paraloc1.done;
+              end;
+          end
+        else
+          internalerror(2011022002);
+      end;
+
 
     procedure tcgavr.g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);
       var
@@ -1908,7 +2096,8 @@ unit cgcpu;
       begin
         if current_procinfo.procdef.isempty then
           exit;
-        if po_interrupt in current_procinfo.procdef.procoptions then
+        if (po_interrupt in current_procinfo.procdef.procoptions) and
+          (not nostackframe) then
           begin
             { check if the framepointer is actually used, this is done here because
               we have to know the size of the locals (must be 0), avr does not know
@@ -2007,7 +2196,8 @@ unit cgcpu;
           exit;
         if po_interrupt in current_procinfo.procdef.procoptions then
           begin
-            if not(current_procinfo.procdef.isempty) then
+            if not(current_procinfo.procdef.isempty) and
+              (not nostackframe) then
               begin
                 regs:=rg[R_INTREGISTER].used_in_proc;
                 if current_procinfo.framepointer<>NR_NO then
@@ -2374,7 +2564,7 @@ unit cgcpu;
         end;
 
 
-    procedure tcgavr.g_overflowCheck(list : TAsmList;const l : tlocation;def : tdef);
+    procedure tcgavr.g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef);
       var
         hl : tasmlabel;
         ai : taicpu;
@@ -2397,6 +2587,38 @@ unit cgcpu;
 
         a_call_name(list,'FPC_OVERFLOW',false);
         a_label(list,hl);
+      end;
+
+
+    procedure tcgavr.g_overflowCheck_loc(List: TAsmList; const Loc: TLocation; def: TDef; ovloc: tlocation);
+      var
+        hl : tasmlabel;
+        ai : taicpu;
+        cond : TAsmCond;
+      begin
+        if not(cs_check_overflow in current_settings.localswitches) then
+         exit;
+
+        case ovloc.loc of
+          LOC_FLAGS:
+            begin
+              current_asmdata.getjumplabel(hl);
+              if not ((def.typ=pointerdef) or
+                     ((def.typ=orddef) and
+                      (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
+                                                pasbool1,pasbool8,pasbool16,pasbool32,pasbool64]))) then
+                cond:=C_VC
+              else
+                cond:=C_CC;
+              ai:=Taicpu.Op_Sym(A_BRxx,hl);
+              ai.SetCondition(cond);
+              ai.is_jmp:=true;
+              list.concat(ai);
+
+              a_call_name(list,'FPC_OVERFLOW',false);
+              a_label(list,hl);
+            end;
+        end;
       end;
 
 

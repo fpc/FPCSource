@@ -393,7 +393,7 @@ type
         maxcrecordalign: specify maximum C record alignment (no equivalent in
           source code)
      }
-     function begin_anonymous_record(const optionalname: string; packrecords, recordalign, recordalignmin, maxcrecordalign: shortint): trecorddef; virtual;
+     function begin_anonymous_record(const optionalname: string; packrecords, recordalign, recordalignmin: shortint): trecorddef; virtual;
      function end_anonymous_record: trecorddef; virtual;
 
      { add a placeholder element at the current position that later can be
@@ -1399,7 +1399,7 @@ implementation
        result.ofs:=0;
        { pack the data, so that we don't add unnecessary null bytes after the
          constant string }
-       begin_anonymous_record('$'+get_dynstring_rec_name(stringtype,false,len),1,sizeof(TConstPtrUInt),1,1);
+       begin_anonymous_record('$'+get_dynstring_rec_name(stringtype,false,len),1,sizeof(TConstPtrUInt),1);
        string_symofs:=get_string_symofs(stringtype,false);
        { encoding }
        emit_tai(tai_const.create_16bit(encoding),u16inttype);
@@ -1611,7 +1611,7 @@ implementation
        if (typ<>st_widestring) or
           not winlike then
          begin
-           result:=crecorddef.create_global_internal('$'+name,1,1,1);
+           result:=crecorddef.create_global_internal('$'+name,1,1);
            { encoding }
            result.add_field_by_def('',u16inttype);
            { element size }
@@ -1637,8 +1637,7 @@ implementation
        else
          begin
            result:=crecorddef.create_global_internal('$'+name,4,
-             targetinfos[target_info.system]^.alignment.recordalignmin,
-             targetinfos[target_info.system]^.alignment.maxCrecordalign);
+             targetinfos[target_info.system]^.alignment.recordalignmin);
            { length in bytes }
            result.add_field_by_def('',s32inttype);
            streledef:=cwidechartype;
@@ -1689,8 +1688,7 @@ implementation
            result.lab:=startlab;
            datatcb.begin_anonymous_record('$'+get_dynstring_rec_name(st_widestring,true,strlength),
              4,4,
-             targetinfos[target_info.system]^.alignment.recordalignmin,
-             targetinfos[target_info.system]^.alignment.maxCrecordalign);
+             targetinfos[target_info.system]^.alignment.recordalignmin);
            datatcb.emit_tai(Tai_const.Create_32bit(strlength*cwidechartype.size),s32inttype);
            { can we optimise by placing the string constant label at the
              required offset? }
@@ -1749,7 +1747,7 @@ implementation
        result.ofs:=0;
        { pack the data, so that we don't add unnecessary null bytes after the
          constant string }
-       begin_anonymous_record('',1,sizeof(TConstPtrUInt),1,1);
+       begin_anonymous_record('',1,sizeof(TConstPtrUInt),1);
        dynarray_symofs:=get_dynarray_symofs;
        { what to do if ptrsinttype <> sizesinttype??? }
        emit_tai(tai_const.create_sizeint(-1),ptrsinttype);
@@ -1928,7 +1926,7 @@ implementation
      end;
 
 
-   function ttai_typedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords, recordalign, recordalignmin, maxcrecordalign: shortint): trecorddef;
+   function ttai_typedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords, recordalign, recordalignmin: shortint): trecorddef;
      var
        anonrecorddef: trecorddef;
        typesym: ttypesym;
@@ -1949,7 +1947,7 @@ implementation
              end;
          end;
        { create skeleton def }
-       anonrecorddef:=crecorddef.create_global_internal(optionalname,packrecords,recordalignmin,maxcrecordalign);
+       anonrecorddef:=crecorddef.create_global_internal(optionalname,packrecords,recordalignmin);
        trecordsymtable(anonrecorddef.symtable).recordalignment:=recordalign;
        { generic aggregate housekeeping }
        begin_aggregate_internal(anonrecorddef,true);

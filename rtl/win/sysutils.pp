@@ -93,7 +93,7 @@ implementation
     windirs;
 
 var 
-  FindExInfoDefaults : TFINDEX_INFO_LEVELS = FindExInfoBasic;
+  FindExInfoDefaults : TFINDEX_INFO_LEVELS = FindExInfoStandard;
   FindFirstAdditionalFlags : DWord = 0;
 
 function WinCheck(res:boolean):boolean;
@@ -466,7 +466,7 @@ begin
             IO_REPARSE_TAG_SYMLINK: begin
               SymLinkRec.TargetName := WideCharLenToString(
                 @PBuffer^.PathBufferSym[PBuffer^.PrintNameOffset div SizeOf(WCHAR)],
-                PBuffer^.PrintNameOffset div SizeOf(WCHAR));
+                PBuffer^.PrintNameLength div SizeOf(WCHAR));
               if (PBuffer^.Flags and SYMLINK_FLAG_RELATIVE) <> 0 then
                 SymLinkRec.TargetName := ExpandFileName(ExtractFilePath(FileName) + SymLinkRec.TargetName);
             end;
@@ -1658,5 +1658,6 @@ Initialization
   InitSysConfigDir;
   OnBeep:=@SysBeep;
 Finalization
+  FreeTerminateProcs;
   DoneExceptions;
 end.

@@ -63,6 +63,8 @@ implementation
     begin
       if sym.globalasmsym then
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_GLOBAL,AT_DATA,sym.vardef)
+      else if tf_supports_hidden_symbols in target_info.flags then
+        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_PRIVATE_EXTERN,AT_DATA,sym.vardef)
       else
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_LOCAL,AT_DATA,sym.vardef);
       if not(vo_is_thread_var in sym.varoptions) then
@@ -175,8 +177,7 @@ implementation
           fields[1]:=pd.getcopyas(procvardef,pc_address_only,'');
           fields[2]:=voidpointertype;
           itemdef:=llvmgettemprecorddef(fields,C_alignment,
-            targetinfos[target_info.system]^.alignment.recordalignmin,
-            targetinfos[target_info.system]^.alignment.maxCrecordalign);
+            targetinfos[target_info.system]^.alignment.recordalignmin);
           include(itemdef.defoptions,df_llvm_no_struct_packing);
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
           tllvmtai_typedconstbuilder(tcb).appendingdef:=true;

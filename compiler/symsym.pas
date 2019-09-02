@@ -46,10 +46,17 @@ interface
           procedure ppuwrite_platform(ppufile: tcompilerppufile);virtual;
           procedure ppuload_platform(ppufile: tcompilerppufile);virtual;
        public
+          { this is Nil if the symbol has no RTTI attributes }
+          rtti_attribute_list : trtti_attribute_list;
           constructor create(st:tsymtyp;const n : string;doregister:boolean);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
+          { this is called directly after ppuload }
+          procedure ppuload_subentries(ppufile:tcompilerppufile);virtual;
+          { this is called directly after ppuwrite }
+          procedure ppuwrite_subentries(ppufile:tcompilerppufile);virtual;
+          procedure deref; override;
           procedure buildderef; override;
           procedure register_sym; override;
        end;
@@ -566,6 +573,7 @@ implementation
            deprecatedmsg:=ppufile.getpshortstring
          else
            deprecatedmsg:=nil;
+         rtti_attribute_list:=trtti_attribute_list.ppuload(ppufile);
       end;
 
 
@@ -590,6 +598,27 @@ implementation
          if sp_has_deprecated_msg in symoptions then
            ppufile.putstring(deprecatedmsg^);
          ppufile.do_interface_crc:=oldintfcrc;
+         trtti_attribute_list.ppuwrite(rtti_attribute_list,ppufile);
+      end;
+
+
+    procedure tstoredsym.ppuload_subentries(ppufile: tcompilerppufile);
+      begin
+        trtti_attribute_list.ppuload_subentries(rtti_attribute_list,ppufile);
+      end;
+
+
+    procedure tstoredsym.ppuwrite_subentries(ppufile: tcompilerppufile);
+      begin
+        trtti_attribute_list.ppuwrite_subentries(rtti_attribute_list,ppufile);
+      end;
+
+
+    procedure tstoredsym.deref;
+      begin
+        inherited;
+        if assigned(rtti_attribute_list) then
+          rtti_attribute_list.deref;
       end;
 
 
@@ -598,6 +627,8 @@ implementation
         inherited;
         if not registered then
           register_sym;
+        if assigned(rtti_attribute_list) then
+          rtti_attribute_list.buildderef;
       end;
 
 
@@ -621,6 +652,7 @@ implementation
 
     destructor tstoredsym.destroy;
       begin
+        rtti_attribute_list.free;
         inherited destroy;
       end;
 

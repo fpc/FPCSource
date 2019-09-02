@@ -207,6 +207,9 @@ interface
         { contains a list of specializations for which the method bodies need
           to be generated }
         pendingspecializations : TFPHashObjectList;
+        { list of attributes that are used and thus need their construction
+          functions generated }
+        used_rtti_attrs: tfpobjectlist;
 
         { this contains a list of units that needs to be waited for until the
           unit can be finished (code generated, etc.); this is needed to handle
@@ -611,6 +614,7 @@ implementation
         pendingspecializations:=tfphashobjectlist.create(false);
         waitingforunit:=tfpobjectlist.create(false);
         waitingunits:=tfpobjectlist.create(false);
+        used_rtti_attrs:=tfpobjectlist.create(false);
         globalsymtable:=nil;
         localsymtable:=nil;
         globalmacrosymtable:=nil;
@@ -709,6 +713,7 @@ implementation
         pendingspecializations.free;
         waitingforunit.free;
         waitingunits.free;
+        used_rtti_attrs.free;
         stringdispose(asmprefix);
         stringdispose(deprecatedmsg);
         stringdispose(namespace);

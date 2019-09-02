@@ -55,7 +55,7 @@ interface
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
           m_out,m_default_para,m_duplicate_names,m_hintdirective,
           m_property,m_default_inline,m_except,m_advanced_records,
-          m_array_operators];
+          m_array_operators,m_prefixed_attributes];
        delphiunicodemodeswitches = delphimodeswitches + [m_systemcodepage,m_default_unicodestring];
        fpcmodeswitches =
          [m_fpc,m_string_pchar,m_nested_comment,m_repeat_forward,
@@ -399,6 +399,8 @@ interface
        defaultmainaliasname = 'main';
        mainaliasname : string = defaultmainaliasname;
 
+       custom_attribute_suffix = 'ATTRIBUTE';
+
       LTOExt: TCmdStr = '';
 
     const
@@ -536,14 +538,14 @@ interface
         fputype : fpu_x87;
   {$endif i8086}
   {$ifdef riscv32}
-        cputype : cpu_rv32imafd;
-        optimizecputype : cpu_rv32imafd;
+        cputype : cpu_rv32ima;
+        optimizecputype : cpu_rv32ima;
         asmcputype : cpu_none;
         fputype : fpu_fd;
   {$endif riscv32}
   {$ifdef riscv64}
-        cputype : cpu_rv64imafdc;
-        optimizecputype : cpu_rv64imafdc;
+        cputype : cpu_rv64imac;
+        optimizecputype : cpu_rv64imac;
         asmcputype : cpu_none;
         fputype : fpu_fd;
   {$endif riscv64}

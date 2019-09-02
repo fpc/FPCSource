@@ -45,15 +45,19 @@ begin
         writeln('-f  [fpc,nasm,fasm,fpcinc] outputformat');
         writeln('-p  [x8664] codegenerator for x86_64 platform');
         writeln('-o  destination path');
+        writeln('-z  avx512');
         writeln('');
       end
       else
       begin
+        //TAsmTestGenerator.CalcTestInstFile;
+        //exit;
+
         case OutputFormat of
-          'f': MakeTestFiles(tfFPC, x64, Path);
-          'F': MakeTestFiles(tfFasm, x64, Path);
-          'n': MakeTestFiles(tfNasm, x64, Path);
-          'I': MakeTestFiles(tfFPCInc, x64, Path);
+          'f': MakeTestFiles(tfFPC, x64, AVX512, false, Path);
+          'F': MakeTestFiles(tfFasm, x64, AVX512, false, Path);
+          'n': MakeTestFiles(tfNasm, x64, AVX512, false, Path);
+          'I': MakeTestFiles(tfFPCInc, x64, AVX512, false, Path);
         end;
       end;
     finally

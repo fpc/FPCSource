@@ -229,9 +229,20 @@ unit agrvgas;
 
 
     function TRVGNUAssembler.MakeCmdLine: TCmdStr;
+      const
+        arch_str: array[boolean,tcputype] of string[10] = (
+{$ifdef RISCV32}
+          ('','rv32ima','rv32im','rv32i'),
+          ('','rv32imafd','rv32imfd','rv32ifd')
+{$endif RISCV32}
+{$ifdef RISCV64}
+          ('','rv64imac','rv64ima','rv64im','rv64i'),
+          ('','rv64imafdc','rv64imafd','rv64imfd','rv64ifd')
+{$endif RISCV64}
+        );
       begin
         result := inherited MakeCmdLine;
-        Replace(result,'$ARCH',lower(cputypestr[current_settings.cputype]));
+        Replace(result,'$ARCH',arch_str[current_settings.fputype=fpu_fd,current_settings.cputype]);
       end;
 
 

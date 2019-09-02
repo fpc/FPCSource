@@ -265,7 +265,7 @@ var
                { thick width }
                hline(x1,x2,y2-1);
                hline(x1,x2,y2);
-               hline(x2,x2,y2+1);
+               hline(x1,x2,y2+1);
             end;
         end
     else

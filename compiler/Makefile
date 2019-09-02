@@ -496,6 +496,14 @@ endif
 NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg
 SVNVERSION:=$(firstword $(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH))))
+PPUDUMPPROG:=$(firstword $(strip $(wildcard $(addsuffix /ppudump$(SRCEXEEXT),$(SEARCHPATH)))))
+ifndef PPUDUMP
+ifdef PPUDUMPPROG
+PPUDUMP=$(PPUDUMPPROG)
+else
+PPUDUMP=ppudump
+endif
+endif
 REVINC:=$(wildcard revision.inc)
 ifneq ($(REVINC),)
 override LOCALOPT+=-dREVINC
@@ -3701,8 +3709,9 @@ endif
 ifdef LIB_NAME
 	-$(DEL) $(LIB_NAME) $(LIB_FULLNAME)
 endif
-	-$(DEL) $(FPCMADE) Package.fpc $(PPAS) script.res link.res $(FPCEXTFILE) $(REDIRFILE)
-	-$(DEL) *$(ASMEXT) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
+	-$(DEL) $(FPCMADE) *$(FULL_TARGET).fpm Package.fpc *$(ASMEXT)
+	-$(DEL) $(FPCEXTFILE) $(REDIRFILE) script*.res link*.res *_script.res *_link.res
+	-$(DEL) $(PPAS) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
 fpc_cleanall: $(CLEANTARGET)
 ifdef CLEANEXEFILES
 	-$(DEL) $(CLEANEXEFILES)
@@ -3728,8 +3737,9 @@ ifneq ($(PPUEXT),.ppu)
 	-$(DEL) *.o *.ppu *.a
 endif
 	-$(DELTREE) *$(SMARTEXT)
-	-$(DEL) fpcmade.* Package.fpc $(PPAS) script.res link.res $(FPCEXTFILE) $(REDIRFILE)
-	-$(DEL) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
+	-$(DEL) fpcmade.* Package.fpc *.fpm
+	-$(DEL) $(FPCEXTFILE) $(REDIRFILE) script*.res link*.res *_script.res *_link.res
+	-$(DEL) $(PPAS) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
 ifdef AOUTEXT
 	-$(DEL) *$(AOUTEXT)
 endif
@@ -4215,7 +4225,7 @@ ifdef CMP
 override DIFF:=$(CMP) -i218
 endif
 endif
-ifeq ($(findstring 2.4.,$(FPC_VERSION)),)
+ifneq ($(CYCLELEVEL),1)
 ifndef ALLOW_WARNINGS
 override LOCALOPT+=-Sew
 endif
@@ -4693,7 +4703,7 @@ rtlppulogs : $(RTLPPULOGLIST)
 vpath %.ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
 vpath %.log-ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
 %.log-ppu : %.ppu
-	ppudump -VA -M $< > $@
+	$(PPUDUMP) -VA -M $< > $@
 ./utils/ppudump$(EXEEXT):
 	$(MAKE) -C $(COMPILERUTILSDIR) ppudump$(EXEEXT)
 ppuinfo :

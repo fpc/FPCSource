@@ -10,7 +10,7 @@ uses
 {$else}
   opensslsockets,
 {$endif}
-  sslbase,custhttpapp, fpwebfile;
+  sslbase,custhttpapp, fpmimetypes, fpwebfile;
 
 Type
 
@@ -19,6 +19,7 @@ Type
   THTTPApplication = Class(TCustomHTTPApplication)
   private
     FQuiet: Boolean;
+    procedure LoadMimeTypes;
     procedure Usage(Msg: String);
   published
     procedure DoLog(EventType: TEventType; const Msg: String); override;
@@ -54,11 +55,28 @@ begin
   Writeln('-i --indexpage=name Directory index page to use (default: index.html)');
   Writeln('-n --noindexpage    Do not allow index page.');
   Writeln('-p --port=NNNN      TCP/IP port to listen on (default is 3000)');
-  Writeln('-m --mimetypes=file path of mime.types, default under unix: /etc/mime.types');
+  Writeln('-m --mimetypes=file path of mime.types. Loaded in addition to OS known types');
   Writeln('-q --quiet          Do not write diagnostic messages');
   Writeln('-s --ssl            Use SSL');
   Writeln('-H --hostname=NAME  set hostname for self-signed SSL certificate');
   Halt(Ord(Msg<>''));
+end;
+
+procedure THTTPApplication.LoadMimeTypes;
+
+begin
+  MimeTypes.LoadKnownTypes;
+  if HasOption('m','mimetypes') then
+    begin
+    MimeTypesFile:=GetOptionValue('m','mimetypes');
+    if (MimeTypesFile<>'') and not FileExists(MimeTypesFile) then
+      begin
+      Log(etWarning,'mimetypes file not found: '+MimeTypesFile);
+      MimeTypesFile:='';
+      end;
+    end;
+  If MimeTypesFile<>'' then
+    MimeTypes.LoadFromFile(MimeTypesFile);  
 end;
 
 procedure THTTPApplication.DoRun;
@@ -67,11 +85,12 @@ Var
   S,IndexPage,D : String;
 
 begin
-  S:=Checkoptions('hqd:ni:p:sH:',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:']);
+  S:=Checkoptions('hqd:ni:p:sH:m:',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:']);
   if (S<>'') or HasOption('h','help') then
     usage(S);
   Quiet:=HasOption('q','quiet');
   Port:=StrToIntDef(GetOptionValue('p','port'),3000);
+  LoadMimeTypes;
   D:=GetOptionValue('d','directory');
   if D='' then
     D:=GetCurrentDir;
@@ -79,24 +98,6 @@ begin
   UseSSL:=HasOption('s','ssl');
   if HasOption('H','hostname') then
     HostName:=GetOptionValue('H','hostname');
-  if HasOption('m','mimetypes') then
-    MimeTypesFile:=GetOptionValue('m','mimetypes');
-{$ifdef unix}
-  if MimeTypesFile='' then
-    begin
-    MimeTypesFile:='/etc/mime.types';
-    if not FileExists(MimeTypesFile) then
-      begin
-      {$ifdef darwin}
-      MimeTypesFile:='/private/etc/apache2/mime.types';
-      if not FileExists(MimeTypesFile) then
-      {$endif}
-        MimeTypesFile:='';
-      end;
-    end;
-  if (MimeTypesFile<>'') and not FileExists(MimeTypesFile) then
-    Log(etWarning,'mimetypes file not found: '+MimeTypesFile);
-{$endif}
   TSimpleFileModule.BaseDir:=IncludeTrailingPathDelimiter(D);
   TSimpleFileModule.OnLog:=@Log;
   If not HasOption('n','noindexpage') then

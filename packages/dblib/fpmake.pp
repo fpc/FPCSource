@@ -18,6 +18,7 @@ begin
   With Installer do
     begin
       P:=AddPackage('dblib');
+      P.ShortName := 'dblb';
       P.Directory:=ADirectory;
       P.Version:='3.3.1';
       P.Author := 'Library: (FreeTDS/Microsoft), header: Ladislav Karrach';

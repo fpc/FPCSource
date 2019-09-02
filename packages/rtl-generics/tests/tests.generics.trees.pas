@@ -42,6 +42,7 @@ type
     procedure Test_IndexedAVLTree_Add_General;
     procedure Test_IndexedAVLTree_Add;
     procedure Test_IndexedAVLTree_Delete;
+    procedure Test_IndexedAVLTree_Items;
 
     procedure Test_TAVLTreeMap_Notification;
   end;
@@ -50,6 +51,7 @@ implementation
 
 type
   TStringsTree = TIndexedAVLTree<string>;
+  TMapTree = TAVLTreeMap<string, Integer>;
 
 { TTestTrees }
 
@@ -135,6 +137,29 @@ begin
     LNodes.Free;
     LTree.Free;
     LNumbers.Free;
+  end;
+end;
+
+procedure TTestTrees.Test_IndexedAVLTree_Items;
+var
+  LTree: TMapTree;
+begin
+  LTree := TMapTree.Create;
+  try
+    Check(LTree.Add('A', 1)<>nil);
+    Check(LTree.Add('B', 2)<>nil);
+    Check(LTree.Add('C', 3)<>nil);
+    CheckEquals(LTree.Items['A'], 1);
+    CheckEquals(LTree.Items['B'], 2);
+    CheckEquals(LTree.Items['C'], 3);
+    LTree.Items['A'] := 4;
+    LTree.Items['B'] := 5;
+    LTree.Items['C'] := 6;
+    CheckEquals(LTree.Items['A'], 4);
+    CheckEquals(LTree.Items['B'], 5);
+    CheckEquals(LTree.Items['C'], 6);
+  finally
+    LTree.Free;
   end;
 end;
 

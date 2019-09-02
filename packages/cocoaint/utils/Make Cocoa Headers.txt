@@ -1,6 +1,0 @@
-To (re)build the Objective-Pascal Cocoa headers from source (note: only
-tested against the Mac OS X 10.6 headers):
-1) cd to the directory which contains parser.php (this directory)
-2) ./make-cocoa-headers.sh
-
-The built headers will be placed under cocoa-skel/src

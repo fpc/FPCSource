@@ -160,13 +160,13 @@ implementation
             begin
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT_S,location.register,
                 left.location.register));
-              cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end;
           OS_F64:
             begin
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT_D,location.register,
                 left.location.register));
-              cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
              end
           else
             inherited;
@@ -199,7 +199,7 @@ implementation
          else
            op := A_FMUL_D;
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,left.location.register));
-         cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+         cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
        end;
 
 
@@ -210,7 +210,17 @@ implementation
          secondpass(left);
          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+{$ifdef RISCV32}
+         if (location.size in [OS_S64,OS_64]) then
+           begin
+             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+           end
+         else
+           location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+{$else}
          location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+{$endif}
          { convert to signed integer rounding towards zero (there's no "round to
            integer using current rounding mode") }
 
@@ -227,7 +237,7 @@ implementation
 {$endif}
 
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,location.register,left.location.register));
-         cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+         cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
        end;
 
 
@@ -238,7 +248,17 @@ implementation
          secondpass(left);
          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+{$ifdef RISCV32}
+         if (location.size in [OS_S64,OS_64]) then
+           begin
+             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+           end
+         else
+           location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+{$else}
          location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+{$endif}
          { convert to signed integer rounding towards zero (there's no "round to
            integer using current rounding mode") }
 
@@ -255,7 +275,7 @@ implementation
 {$endif}
 
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_roundingmode(op,location.register,left.location.register,RM_RTZ));
-         cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+         cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
        end;
 
 
@@ -329,7 +349,7 @@ implementation
              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
 
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_reg(op[def_cgsize(resultdef), negproduct,negop3],location.register,paraarray[1].location.register,paraarray[2].location.register,paraarray[2].location.register));
-             cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+             cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
            end
          else
            internalerror(2014032301);

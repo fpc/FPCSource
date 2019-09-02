@@ -61,6 +61,8 @@ unit cgcpu;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
 
+        procedure g_check_for_fpu_exception(list : TAsmList; force,clear : boolean); override;
+
         procedure a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const paraloc : TCGPara);override;
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
@@ -298,7 +300,7 @@ unit cgcpu;
           non-overlapping subregs per register, so we can only use
           half the single precision registers for now (as sub registers of the
           double precision ones). }
-        if current_settings.fputype in [fpu_vfpv3,fpu_vfpv4] then
+        if FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype] then
           rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
               [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
                RS_D16,RS_D17,RS_D18,RS_D19,RS_D20,RS_D21,RS_D22,RS_D23,RS_D24,RS_D25,RS_D26,RS_D27,RS_D28,RS_D29,RS_D30,RS_D31,
@@ -1720,6 +1722,34 @@ unit cgcpu;
        end;
 
 
+    procedure tbasecgarm.g_check_for_fpu_exception(list: TAsmList;force,clear : boolean);
+      var
+        r : TRegister;
+        ai: taicpu;
+        l: TAsmLabel;
+      begin
+        if ((cs_check_fpu_exceptions in current_settings.localswitches) and
+            not(FPUARM_HAS_EXCEPTION_TRAPPING in fpu_capabilities[current_settings.fputype]) and
+            (force or current_procinfo.FPUExceptionCheckNeeded)) then
+          begin
+            r:=getintregister(list,OS_INT);
+            list.concat(taicpu.op_reg_reg(A_FMRX,r,NR_FPSCR));
+            list.concat(setoppostfix(taicpu.op_reg_reg_const(A_AND,r,r,$9f),PF_S));
+            current_asmdata.getjumplabel(l);
+            ai:=taicpu.op_sym(A_B,l);
+            ai.is_jmp:=true;
+            ai.condition:=C_EQ;
+            list.concat(ai);
+            alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+            cg.a_call_name(list,'FPC_THROWFPUEXCEPTION',false);
+            dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+            a_label(list,l);
+            if clear then
+              current_procinfo.FPUExceptionCheckNeeded:=false;
+          end;
+      end;
+
+
     {  comparison operations }
     procedure tbasecgarm.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
       l : tasmlabel);
@@ -1896,16 +1926,20 @@ unit cgcpu;
                         inc(registerarea,12);
                       end;
                 end;
-              fpu_vfpv2,
-              fpu_vfpv3,
-              fpu_vfpv4,
-              fpu_vfpv3_d16:
+              else if FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype] then
                 begin;
                   { the *[0..31] is a hack to prevent that the compiler tries to save odd single-type registers,
                     they have numbers>$1f which is not really correct as they should simply have the same numbers
                     as the even ones by with a different subtype as it is done on x86 with al/ah }
                   mmregs:=(rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall))*[0..31];
-                end;
+                end
+              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+                begin;
+                  { the *[0..15] is a hack to prevent that the compiler tries to save odd single-type registers,
+                    they have numbers>$1f which is not really correct as they should simply have the same numbers
+                    as the even ones by with a different subtype as it is done on x86 with al/ah }
+                  mmregs:=(rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall))*[0..15];
+                end
               else
                 internalerror(2019050924);
             end;
@@ -2050,7 +2084,7 @@ unit cgcpu;
              begin
                reference_reset(ref,4,[]);
                if (tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023) or
-                  (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16]) then
+                 (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
                  begin
                    if not is_shifter_const(tcpuprocinfo(current_procinfo).floatregstart,shift) then
                      begin
@@ -2077,10 +2111,7 @@ unit cgcpu;
                      list.concat(taicpu.op_reg_const_ref(A_SFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
                        lastfloatreg-firstfloatreg+1,ref));
                    end;
-                 fpu_vfpv2,
-                 fpu_vfpv3,
-                 fpu_vfpv4,
-                 fpu_vfpv3_d16:
+                 else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
                    begin
                      ref.index:=ref.base;
                      ref.base:=NR_NO;
@@ -2091,7 +2122,7 @@ unit cgcpu;
                        postfix:=PF_IAD;}
                      if mmregs<>[] then
                        list.concat(taicpu.op_ref_regset(A_VSTM,ref,R_MMREGISTER,R_SUBFD,mmregs));
-                   end;
+                   end
                  else
                    internalerror(2019050923);
                end;
@@ -2145,17 +2176,14 @@ unit cgcpu;
                         }
                       end;
                 end;
-              fpu_vfpv2,
-              fpu_vfpv3,
-              fpu_vfpv4,
-              fpu_vfpv3_d16:
-                begin;
+              else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+                begin
                   { restore vfp registers? }
                   { the *[0..31] is a hack to prevent that the compiler tries to save odd single-type registers,
                     they have numbers>$1f which is not really correct as they should simply have the same numbers
                     as the even ones by with a different subtype as it is done on x86 with al/ah }
                   mmregs:=(rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall))*[0..31];
-                end;
+                end
               else
                 internalerror(2019050926);
             end;
@@ -2165,7 +2193,7 @@ unit cgcpu;
               begin
                 reference_reset(ref,4,[]);
                 if (tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023) or
-                   (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16]) then
+                   (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
                   begin
                     if not is_shifter_const(tcpuprocinfo(current_procinfo).floatregstart,shift) then
                       begin
@@ -2191,10 +2219,7 @@ unit cgcpu;
                       list.concat(taicpu.op_reg_const_ref(A_LFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
                         lastfloatreg-firstfloatreg+1,ref));
                     end;
-                  fpu_vfpv2,
-                  fpu_vfpv3,
-                  fpu_vfpv4,
-                  fpu_vfpv3_d16:
+                  else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
                     begin
                       ref.index:=ref.base;
                       ref.base:=NR_NO;
@@ -2205,7 +2230,7 @@ unit cgcpu;
                         mmpostfix:=PF_IAD;}
                      if mmregs<>[] then
                        list.concat(taicpu.op_ref_regset(A_VLDM,ref,R_MMREGISTER,R_SUBFD,mmregs));
-                    end;
+                    end
                   else
                     internalerror(2019050921);
                 end;
@@ -3069,6 +3094,7 @@ unit cgcpu;
           else
             ;
         end;
+        maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -3134,6 +3160,7 @@ unit cgcpu;
 
         if (tmpmmreg<>reg) then
           a_loadmm_reg_reg(list,fromsize,tosize,tmpmmreg,reg,shuffle);
+        maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -3199,6 +3226,7 @@ unit cgcpu;
           begin
              handle_load_store(list,A_VSTR,PF_None,tmpmmreg,ref);
           end;
+        maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -3214,6 +3242,7 @@ unit cgcpu;
            not shufflescalar(shuffle) then
           internalerror(2009112516);
         list.concat(taicpu.op_reg_reg(A_VMOV,mmreg,intreg));
+        maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -3229,6 +3258,7 @@ unit cgcpu;
            not shufflescalar(shuffle) then
           internalerror(2009112514);
         list.concat(taicpu.op_reg_reg(A_VMOV,intreg,mmreg));
+        maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -3242,20 +3272,30 @@ unit cgcpu;
           case op of
             OP_XOR:
               begin
-                if (src<>dst) or
-                   (reg_cgsize(src)<>size) or
-                   assigned(shuffle) then
-                  internalerror(2009112907);
-                tmpreg:=getintregister(list,OS_32);
-                a_load_const_reg(list,OS_32,0,tmpreg);
-                case size of
-                  OS_F32:
-                    list.concat(taicpu.op_reg_reg(A_VMOV,dst,tmpreg));
-                  OS_F64:
-                    list.concat(taicpu.op_reg_reg_reg(A_VMOV,dst,tmpreg,tmpreg));
-                  else
-                    internalerror(2009112908);
-                end;
+                if (FPUARM_HAS_NEON in fpu_capabilities[current_settings.fputype]) and (size in [OS_F64]) then
+                  begin
+                    if (reg_cgsize(src)<>size) or
+                       assigned(shuffle) then
+                      internalerror(2019081301);
+                    list.concat(taicpu.op_reg_reg_reg(A_VEOR,dst,dst,src));
+                  end
+                else
+                  begin
+                    if (src<>dst) or
+                       (reg_cgsize(src)<>size) or
+                       assigned(shuffle) then
+                      internalerror(2009112907);
+                    tmpreg:=getintregister(list,OS_32);
+                    a_load_const_reg(list,OS_32,0,tmpreg);
+                    case size of
+                      OS_F32:
+                        list.concat(taicpu.op_reg_reg(A_VMOV,dst,tmpreg));
+                      OS_F64:
+                        list.concat(taicpu.op_reg_reg_reg(A_VMOV,dst,tmpreg,tmpreg));
+                      else
+                        internalerror(2009112908);
+                    end;
+                  end;
               end
             else
               internalerror(2009112906);
@@ -3356,6 +3396,7 @@ unit cgcpu;
         if (mmsize<>OS_F64) then
           internalerror(2009112405);
         list.concat(taicpu.op_reg_reg_reg(A_VMOV,mmreg,intreg.reglo,intreg.reghi));
+        cg.maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -3366,6 +3407,7 @@ unit cgcpu;
         if (mmsize<>OS_F64) then
           internalerror(2009112406);
         list.concat(taicpu.op_reg_reg_reg(A_VMOV,intreg.reglo,intreg.reghi,mmreg));
+        cg.maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -4276,13 +4318,13 @@ unit cgcpu;
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
 
-        if current_settings.fputype in [fpu_vfpv3,fpu_vfpv4] then
+        if FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype] then
           rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
               [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
                RS_D16,RS_D17,RS_D18,RS_D19,RS_D20,RS_D21,RS_D22,RS_D23,RS_D24,RS_D25,RS_D26,RS_D27,RS_D28,RS_D29,RS_D30,RS_D31,
                RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
               ],first_mm_imreg,[])
-        else if current_settings.fputype in [fpu_fpv4_s16,fpu_vfpv3_d16] then
+        else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
           rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
               [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
                RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
@@ -5196,6 +5238,7 @@ unit cgcpu;
             instr:=setoppostfix(taicpu.op_reg_reg(A_VMOV,reg2,reg1), PF_F32);
             list.Concat(instr);
             add_move_instruction(instr);
+            maybe_check_for_fpu_exception(list);
           end
         else if (fromsize=OS_F64) and
           (tosize=OS_F64) then
@@ -5221,6 +5264,7 @@ unit cgcpu;
     procedure tthumb2cgarm.a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference; shuffle: pmmshuffle);
       begin
         handle_load_store(list,A_VSTR,PF_None,reg,ref);
+        maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -5238,7 +5282,10 @@ unit cgcpu;
       begin
         if //(shuffle=nil) and
           (fromsize=OS_F32) then
-          list.Concat(taicpu.op_reg_reg(A_VMOV,intreg,mmreg))
+          begin
+            list.Concat(taicpu.op_reg_reg(A_VMOV,intreg,mmreg));
+            maybe_check_for_fpu_exception(list);
+          end
         else
           internalerror(2012100814);
       end;

@@ -247,7 +247,7 @@ implementation
         FLastLocLabel:=nil;
         code_alignment_factor:=1;
         data_alignment_factor:=-4;
-        FDwarfList:=TLinkedList.Create;
+        FDwarfList:=TAsmList.Create;
       end;
 
 

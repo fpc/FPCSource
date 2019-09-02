@@ -44,6 +44,7 @@ begin
   try
     S:=TWebIDLScanner.Create(F);
     P:=TWebIDLParser.Create(FContext,S);
+    P.Version:=v2;
     P.Parse;
     Writeln('// Contents of '+AFileName);
     For I:=0 to FConText.Definitions.Count-1 do

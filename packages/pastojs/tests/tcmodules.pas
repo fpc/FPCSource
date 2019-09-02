@@ -386,6 +386,7 @@ type
     Procedure TestArithmeticOperators1;
     Procedure TestLogicalOperators;
     Procedure TestBitwiseOperators;
+    Procedure TestBitwiseOperatorsLongword;
     Procedure TestFunctionInt;
     Procedure TestFunctionString;
     Procedure TestIfThen;
@@ -3144,6 +3145,69 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestBitwiseOperatorsLongword;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  a,b,c:longword;',
+  '  i: longint;',
+  'begin',
+  '  a:=$12345678;',
+  '  b:=$EDCBA987;',
+  '  c:=not a;',
+  '  c:=a and b;',
+  '  c:=a and $ffff0000;',
+  '  c:=a or b;',
+  '  c:=a or $ff00ff00;',
+  '  c:=a xor b;',
+  '  c:=a xor $f0f0f0f0;',
+  '  c:=a shl 1;',
+  '  c:=a shl 16;',
+  '  c:=a shl 24;',
+  '  c:=a shl b;',
+  '  c:=a shr 1;',
+  '  c:=a shr 16;',
+  '  c:=a shr 24;',
+  '  c:=a shr b;',
+  '  c:=(b and c) or (a and b);',
+  '  c:=i and a;',
+  '  c:=i or a;',
+  '  c:=i xor a;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestBitwiseOperatorsLongword',
+    LinesToStr([ // statements
+    'this.a = 0;',
+    'this.b = 0;',
+    'this.c = 0;',
+    'this.i = 0;',
+    '']),
+    LinesToStr([ // this.$main
+    '$mod.a = 0x12345678;',
+    '$mod.b = 0xEDCBA987;',
+    '$mod.c = rtl.lw(~$mod.a);',
+    '$mod.c = rtl.lw($mod.a & $mod.b);',
+    '$mod.c = rtl.lw($mod.a & 0xffff0000);',
+    '$mod.c = rtl.lw($mod.a | $mod.b);',
+    '$mod.c = rtl.lw($mod.a | 0xff00ff00);',
+    '$mod.c = rtl.lw($mod.a ^ $mod.b);',
+    '$mod.c = rtl.lw($mod.a ^ 0xf0f0f0f0);',
+    '$mod.c = rtl.lw($mod.a << 1);',
+    '$mod.c = rtl.lw($mod.a << 16);',
+    '$mod.c = rtl.lw($mod.a << 24);',
+    '$mod.c = rtl.lw($mod.a << $mod.b);',
+    '$mod.c = rtl.lw($mod.a >>> 1);',
+    '$mod.c = rtl.lw($mod.a >>> 16);',
+    '$mod.c = rtl.lw($mod.a >>> 24);',
+    '$mod.c = rtl.lw($mod.a >>> $mod.b);',
+    '$mod.c = rtl.lw(rtl.lw($mod.b & $mod.c) | rtl.lw($mod.a & $mod.b));',
+    '$mod.c = $mod.i & $mod.a;',
+    '$mod.c = $mod.i | $mod.a;',
+    '$mod.c = $mod.i ^ $mod.a;',
+    '']));
+end;
+
 procedure TTestModule.TestPrgProcVar;
 begin
   StartProgram(false);
@@ -4799,15 +4863,21 @@ begin
   Add([
   'type',
   '  TProc = reference to procedure;',
+  '  TEvent = procedure of object;',
   '  TObject = class',
   '    Size: word;',
   '    function GetIt: TProc;',
+  '    procedure DoIt; virtual; abstract;',
   '  end;',
   'function TObject.GetIt: TProc;',
   'begin',
   '  Result:=procedure',
+  '    var p: TEvent;',
   '    begin',
   '      Size:=Size;',
+  '      Size:=Self.Size;',
+  '      p:=@DoIt;',
+  '      p:=@Self.DoIt;',
   '    end;',
   'end;',
   'begin']);
@@ -4824,7 +4894,11 @@ begin
     '    var $Self = this;',
     '    var Result = null;',
     '    Result = function () {',
+    '      var p = null;',
     '      $Self.Size = $Self.Size;',
+    '      $Self.Size = $Self.Size;',
+    '      p = rtl.createCallback($Self, "DoIt");',
+    '      p = rtl.createCallback($Self, "DoIt");',
     '    };',
     '    return Result;',
     '  };',
@@ -4942,7 +5016,7 @@ begin
   '  f: TMyEnum = Green;',
   'begin',
   '  e:=green;']);
-  SetExpectedPasResolverError('not yet implemented: Red:TPasEnumValue [20180126202434] enum const',3002);
+  SetExpectedPasResolverError('not yet implemented: Red:TPasEnumValue [20180126202434] "enum const"',3002);
   ConvertProgram;
 end;
 
@@ -5903,6 +5977,7 @@ begin
   '  if c in [''a''..''z'',''_''] then ;',
   '  if ''b'' in [''a''..''z'',''_''] then ;',
   '  if ''Я'' in sc then ;',
+  '  if 3=ord('' '') then ;',
   '']);
   ConvertProgram;
   CheckSource('TestSet_ConstChar',
@@ -5921,6 +5996,7 @@ begin
     'if ($mod.c.charCodeAt() in rtl.createSet(null, 97, 122, 95)) ;',
     'if (98 in rtl.createSet(null, 97, 122, 95)) ;',
     'if (1071 in $mod.sc) ;',
+    'if (3 === 32) ;',
     '']));
 end;
 
@@ -10465,6 +10541,12 @@ begin
   'procedure Fly(d: jsvalue; const c: jsvalue);',
   'begin',
   'end;',
+  'procedure Run(d: TRecord; const c: TRecord; var v: TRecord);',
+  'begin',
+  '  if jsvalue(d) then ;',
+  '  if jsvalue(c) then ;',
+  '  if jsvalue(v) then ;',
+  'end;',
   'var',
   '  Jv: jsvalue;',
   '  Rec: trecord;',
@@ -10473,6 +10555,8 @@ begin
   '  jv:=rec;',
   '  Fly(rec,rec);',
   '  Fly(@rec,@rec);',
+  '  if jsvalue(Rec) then ;',
+  '  Run(trecord(jv),trecord(jv),rec);',
   '']);
   ConvertProgram;
   CheckSource('TestRecord_JSValue',
@@ -10489,6 +10573,11 @@ begin
     '});',
     'this.Fly = function (d, c) {',
     '};',
+    'this.Run = function (d, c, v) {',
+    '  if (d) ;',
+    '  if (c) ;',
+    '  if (v) ;',
+    '};',
     'this.Jv = undefined;',
     'this.Rec = $mod.TRecord.$new();',
     '']),
@@ -10497,6 +10586,8 @@ begin
     '$mod.Jv = $mod.Rec;',
     '$mod.Fly($mod.TRecord.$clone($mod.Rec), $mod.Rec);',
     '$mod.Fly($mod.Rec, $mod.Rec);',
+    'if ($mod.Rec) ;',
+    '$mod.Run($mod.TRecord.$clone(rtl.getObject($mod.Jv)), rtl.getObject($mod.Jv), $mod.Rec);',
     '']));
 end;
 
@@ -10706,7 +10797,7 @@ begin
   'var',
   '  r: record x: word end;',
   'begin']);
-  SetExpectedPasResolverError('not yet implemented: :TPasRecordType [20190408224556] anonymous record type',
+  SetExpectedPasResolverError('not yet implemented: :TPasRecordType [20190408224556] "anonymous record type"',
     nNotYetImplemented);
   ConvertProgram;
 end;
@@ -10893,8 +10984,9 @@ begin
   '{$modeswitch AdvancedRecords}',
   'type',
   '  TRec = record',
-  '    class var Fx: longint;',
-  '    class var Fy: longint;',
+  '    class var',
+  '      Fx: longint;',
+  '      Fy: longint;',
   '    class function GetInt: longint; static;',
   '    class procedure SetInt(Value: longint); static;',
   '    class procedure DoIt; static;',
@@ -11295,7 +11387,7 @@ begin
   '  end;',
   'begin',
   '']);
-  SetExpectedPasResolverError('not yet implemented: IBird:TPasClassType [20190105143752] interface inside record',
+  SetExpectedPasResolverError('not yet implemented: IBird:TPasClassType [20190105143752] "interface inside record"',
     nNotYetImplemented);
   ParseProgram;
 end;
@@ -13210,6 +13302,7 @@ begin
   Add('  tcontrol(obj):=tcontrol(tcontrol(obj).getit());');
   Add('  tcontrol(obj):=tcontrol(tcontrol(obj).getit(1));');
   Add('  tcontrol(obj):=tcontrol(tcontrol(tcontrol(obj).getit).arr[2]);');
+  Add('  obj:=tcontrol(nil);');
   ConvertProgram;
   CheckSource('TestClass_TypeCast',
     LinesToStr([ // statements
@@ -13248,6 +13341,7 @@ begin
     '$mod.Obj = $mod.Obj.GetIt(0);',
     '$mod.Obj = $mod.Obj.GetIt(1);',
     '$mod.Obj = $mod.Obj.GetIt(0).Arr[2];',
+    '$mod.Obj = null;',
     '']));
 end;
 
@@ -18403,10 +18497,10 @@ begin
     'this.DoDefault = function (i, j, o) {',
     '  rtl._AddRef(i);',
     '  try {',
-    '    if ($mod.IUnknown.isPrototypeOf(i)) ;',
+    '    if (rtl.intfIsIntfT(i, $mod.IUnknown)) ;',
     '    if (rtl.queryIntfIsT(o, $mod.IUnknown)) ;',
     '    if (rtl.intfIsClass(i, $mod.TObject)) ;',
-    '    i = rtl.setIntfL(i, rtl.as(j, $mod.IUnknown));',
+    '    i = rtl.setIntfL(i, rtl.intfAsIntfT(j, $mod.IUnknown));',
     '    i = rtl.setIntfL(i, rtl.queryIntfT(o, $mod.IUnknown), true);',
     '    o = rtl.intfAsClass(j, $mod.TObject);',
     '    i = rtl.setIntfL(i, j);',
@@ -23296,7 +23390,7 @@ begin
   '{$modeswitch typehelpers}',
   'type',
   '  Float = type double;',
-  '  THelper = type helper for double',
+  '  THelper = type helper for Float',
   '    const NPI = 3.141592;',
   '    function ToStr: String;',
   '  end;',
@@ -25796,6 +25890,10 @@ procedure TTestModule.TestJSValue_If;
 begin
   StartProgram(false);
   Add([
+  'procedure Fly(var u);',
+  'begin',
+  '  if jsvalue(u) then ;',
+  'end;',
   'var',
   '  v: jsvalue;',
   'begin',
@@ -25806,6 +25904,9 @@ begin
   ConvertProgram;
   CheckSource('TestJSValue_If',
     LinesToStr([ // statements
+    'this.Fly = function (u) {',
+    '  if (u.get()) ;',
+    '};',
     'this.v = undefined;',
     '']),
     LinesToStr([ // $mod.$main

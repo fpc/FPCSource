@@ -592,31 +592,51 @@ begin
   InternalFindClose(f.FindHandle{$ifdef SEARCHREC_USEFINDDATA},f.FindData{$endif});
 end;
 
+{$if defined(windows) and not defined(win16)}
+function FindDataTimeToDateTime(constref aFileTime: FILETIME; out aResult: TDateTime): Boolean;
+var
+  st, lt: TSystemTime;
+begin
+  Result := FileTimeToSystemTime(aFileTime, st);
+  if Result then begin
+{$ifndef wince}
+    if SystemTimeToTzSpecificLocalTime(Nil, st, lt) then
+      aResult := SystemTimeToDateTime(lt)
+    else
+{$endif}
+      aResult := SystemTimeToDateTime(st);
+  end;
+end;
+{$endif}
+
 { TUnicodeSearchRec }
 
 function TUnicodeSearchRec.GetTimeStamp: TDateTime;
 begin
+{$if declared(FindDataTimeToDateTime)}
+  if not FindDataTimeToDateTime(FindData.ftLastWriteTime, Result) then
+{$else}
   Result := FileDateToDateTime(Time);
+{$endif}
 end;
 
 { TRawbyteSearchRec }
 
 function TRawbyteSearchRec.GetTimeStamp: TDateTime;
 begin
+{$if declared(FindDataTimeToDateTime)}
+  if not FindDataTimeToDateTime(FindData.ftLastWriteTime, Result) then
+{$else}
   Result := FileDateToDateTime(Time);
+{$endif}
 end;
 
 { TUnicodeSymLinkRec }
 
 function TUnicodeSymLinkRec.GetTimeStamp: TDateTime;
-{$if defined(win32) or defined(win64) or defined(wince)}
-var
-  st: TSystemTime;
-{$endif}
 begin
-{$if defined(win32) or defined(win64) or defined(wince)}
-  FileTimeToSystemTime(FindData.ftLastWriteTime, st);
-  Result := SystemTimeToDateTime(st);
+{$if declared(FindDataTimeToDateTime)}
+  if not FindDataTimeToDateTime(FindData.ftLastWriteTime, Result) then
 {$else}
   Result := 0;
 {$endif}
@@ -625,14 +645,9 @@ end;
 { TRawbyteSymLinkRec }
 
 function TRawbyteSymLinkRec.GetTimeStamp: TDateTime;
-{$if defined(win32) or defined(win64) or defined(wince)}
-var
-  st: TSystemTime;
-{$endif}
 begin
-{$if defined(win32) or defined(win64) or defined(wince)}
-  FileTimeToSystemTime(FindData.ftLastWriteTime, st);
-  Result := SystemTimeToDateTime(st);
+{$if declared(FindDataTimeToDateTime)}
+  if not FindDataTimeToDateTime(FindData.ftLastWriteTime, Result) then
 {$else}
   Result := 0;
 {$endif}

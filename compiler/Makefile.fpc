@@ -235,6 +235,15 @@ MSGFILE=msg/error$(FPCLANG).msg
 
 
 SVNVERSION:=$(firstword $(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH))))
+PPUDUMPPROG:=$(firstword $(strip $(wildcard $(addsuffix /ppudump$(SRCEXEEXT),$(SEARCHPATH)))))
+ifndef PPUDUMP
+ifdef PPUDUMPPROG
+PPUDUMP=$(PPUDUMPPROG)
+else
+PPUDUMP=ppudump
+endif
+endif
+
 # Check if revision.inc is present
 REVINC:=$(wildcard revision.inc)
 ifneq ($(REVINC),)
@@ -408,7 +417,7 @@ endif
 
 # Use -Sew option by default
 # Allow disabling by setting ALLOW_WARNINGS=1
-ifeq ($(findstring 2.4.,$(FPC_VERSION)),)
+ifneq ($(CYCLELEVEL),1)
 ifndef ALLOW_WARNINGS
 override LOCALOPT+=-Sew
 endif
@@ -1121,7 +1130,7 @@ vpath %.log-ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
 
 # Use installed ppudump
 %.log-ppu : %.ppu
-	ppudump -VA -M $< > $@
+	$(PPUDUMP) -VA -M $< > $@
 
 
 ./utils/ppudump$(EXEEXT):

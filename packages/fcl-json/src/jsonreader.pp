@@ -60,9 +60,9 @@ Type
     Property Scanner : TJSONScanner read FScanner;
   Public
     Constructor Create(Source : TStream; AUseUTF8 : Boolean = True); overload;deprecated 'use options form instead';
-    Constructor Create(Source : TJSONStringType; AUseUTF8 : Boolean = True); overload;deprecated 'use options form instead';
+    Constructor Create(Const Source : RawByteString; AUseUTF8 : Boolean = True); overload;deprecated 'use options form instead';
     constructor Create(Source: TStream; AOptions: TJSONOptions); overload;
-    constructor Create(const Source: String; AOptions: TJSONOptions); overload;
+    constructor Create(const Source: RawByteString; AOptions: TJSONOptions); overload;
     destructor Destroy();override;
     // Parsing options
     Property Options : TJSONOptions Read GetOptions Write SetOptions;
@@ -415,7 +415,7 @@ begin
    Options:=Options + [joUTF8];
 end;
 
-constructor TBaseJSONReader.Create(Source: TJSONStringType; AUseUTF8 : Boolean = True);
+constructor TBaseJSONReader.Create(const Source: RawByteString; AUseUTF8 : Boolean = True);
 begin
   Inherited Create;
   FScanner:=TJSONScanner.Create(Source,[joUTF8]);
@@ -428,7 +428,7 @@ begin
   FScanner:=TJSONScanner.Create(Source,AOptions);
 end;
 
-constructor TBaseJSONReader.Create(const Source: String; AOptions: TJSONOptions);
+constructor TBaseJSONReader.Create(const Source: RawByteString; AOptions: TJSONOptions);
 begin
   FScanner:=TJSONScanner.Create(Source,AOptions);
 end;

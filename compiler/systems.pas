@@ -171,7 +171,9 @@ interface
             { use high level cfi directives to generate call frame information }
             tf_use_hlcfi,
             { supports symbol order file (to ensure symbols in vectorised sections are kept in the correct order) }
-            tf_supports_symbolorderfile
+            tf_supports_symbolorderfile,
+            { supports hidden/private extern symbols: visible across object files, but local/private in exe/library }
+            tf_supports_hidden_symbols
        );
 
        psysteminfo = ^tsysteminfo;

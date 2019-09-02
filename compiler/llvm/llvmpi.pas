@@ -148,8 +148,7 @@ implementation
             exactly two fields in this struct) }
           landingpaddef:=llvmgettemprecorddef([voidpointertype,u32inttype],
             1,
-            targetinfos[target_info.system]^.alignment.recordalignmin,
-            targetinfos[target_info.system]^.alignment.maxCrecordalign);
+            targetinfos[target_info.system]^.alignment.recordalignmin);
           reg:=hlcg.getregisterfordef(list,landingpaddef);
           landingpad:=taillvm.landingpad(reg,landingpaddef,{clause}nil);
           list.concat(landingpad);

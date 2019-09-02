@@ -204,7 +204,7 @@ unit cgx86;
 
     function UseAVX: boolean;
       begin
-        Result:=(current_settings.fputype in fpu_avx_instructionsets) {$ifndef i8086}or (CPUX86_HAS_AVXUNIT in cpu_capabilities[current_settings.cputype]){$endif i8086};
+        Result:={$ifdef i8086}false{$else i8086}(FPUX86_HAS_AVXUNIT in fpu_capabilities[current_settings.fputype]){$endif i8086};
       end;
 
 
@@ -2882,7 +2882,7 @@ unit cgx86;
 {$ifndef i8086}
       { avx helps only to reduce size, using it in general does at least not help on
         an i7-4770 (FK) }
-      if (CPUX86_HAS_AVXUNIT in cpu_capabilities[current_settings.cputype]) and
+      if (FPUX86_HAS_AVXUNIT in fpu_capabilities[current_settings.fputype]) and
         // (cs_opt_size in current_settings.optimizerswitches) and
          ({$ifdef i386}(len=8) or{$endif i386}(len=16) or (len=24) or (len=32) { or (len=40) or (len=48)}) then
          cm:=copy_avx

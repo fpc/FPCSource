@@ -3772,8 +3772,13 @@ var
   cmdstr : TCmdStr;
 {$if defined(cpucapabilities)}
   cpuflag : tcpuflags;
-  hs : string;
 {$endif defined(cpucapabilities)}
+{$if defined(fpucapabilities)}
+  fpuflag : tfpuflags;
+{$endif defined(fpucapabilities)}
+{$if defined(cpucapabilities) or defined(fpucapabilities)}
+  hs : string;
+{$endif defined(cpucapabilities) or defined(fpucapabilities)}
 begin
   option:=coption.create;
   disable_configfile:=false;
@@ -4244,7 +4249,7 @@ begin
         end
       else
         begin
-          if not (init_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16,fpu_vfpv4]) then
+          if not(FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[init_settings.fputype]) then
             begin
               Message(option_illegal_fpu_eabihf);
               StopOptions(1);
@@ -4275,21 +4280,19 @@ begin
     begin
       {$ifdef riscv32}
       if not option.CPUSetExplicitly then
-        init_settings.cputype:=cpu_rv32imafd;
+        init_settings.cputype:=cpu_rv32ima;
       if not option.OptCPUSetExplicitly then
-        init_settings.optimizecputype:=cpu_rv32imafd;
+        init_settings.optimizecputype:=cpu_rv32ima;
       {$else}
       if not option.CPUSetExplicitly then
-        init_settings.cputype:=cpu_rv64imafdc;
+        init_settings.cputype:=cpu_rv64imac;
       if not option.OptCPUSetExplicitly then
-        init_settings.optimizecputype:=cpu_rv64imafdc;
+        init_settings.optimizecputype:=cpu_rv64imac;
       {$endif}
 
       { Set FPU type }
       if not(option.FPUSetExplicitly) then
-        begin
-          init_settings.fputype:=fpu_fd;
-        end
+        init_settings.fputype:=fpu_fd
       else
         begin
           if not (init_settings.fputype in [fpu_fd]) then
@@ -4397,6 +4400,16 @@ begin
         undef_system_macro(hs);
     end;
 {$endif defined(cpucapabilities)}
+{$if defined(fpucapabilities)}
+  for fpuflag:=low(fpuflag) to high(fpuflag) do
+    begin
+      str(fpuflag,hs);
+      if fpuflag in fpu_capabilities[init_settings.fputype] then
+        def_system_macro(hs)
+      else
+        undef_system_macro(hs);
+    end;
+{$endif defined(fpucapabilities)}
 
   if init_settings.fputype<>fpu_none then
     begin

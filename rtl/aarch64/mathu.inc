@@ -80,9 +80,14 @@ const
 
 
 function GetExceptionMask: TFPUExceptionMask;
+  {
   var
     fpcr: dword;
+  }
   begin
+    { as I am not aware of any hardware exception supporting AArch64 implementation,
+      and else the trapping enable flags are RAZ, return the softfloat exception mask (FK)
+
     fpcr:=getfpcr;
     result:=[];
     if ((fpcr and fpu_ioe)=0) then
@@ -97,14 +102,22 @@ function GetExceptionMask: TFPUExceptionMask;
       result := result+[exPrecision];
     if ((fpcr and fpu_ide)=0) then
       result := result+[exDenormalized];
+    }
+    result:=softfloat_exception_mask;
   end;
 
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+  {
   var
     newfpcr: dword;
+  }
   begin
+    { as I am not aware of any hardware exception supporting AArch64 implementation,
+      and else the trapping enable flags are RAZ, work solely with softfloat_exception_mask (FK)
+    }
     softfloat_exception_mask:=mask;
+    {
     newfpcr:=fpu_exception_mask;
     if exInvalidOp in Mask then
       newfpcr:=newfpcr and not(fpu_ioe);
@@ -118,13 +131,15 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
       newfpcr:=newfpcr and not(fpu_ixe);
     if exDenormalized in Mask then
       newfpcr:=newfpcr and not(fpu_ide);
+    }
     { clear "exception happened" flags }
     ClearExceptions(false);
     { set new exception mask }
-    setfpcr((getfpcr and not(fpu_exception_mask)) or newfpcr);
+//    setfpcr((getfpcr and not(fpu_exception_mask)) or newfpcr);
     { unsupported mask bits will remain 0 -> read exception mask again }
-    result:=GetExceptionMask;
-    softfloat_exception_mask:=result;
+//    result:=GetExceptionMask;
+//    softfloat_exception_mask:=result;
+    result:=softfloat_exception_mask;
   end;
 
 

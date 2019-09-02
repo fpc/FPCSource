@@ -17,6 +17,7 @@ begin
   With Installer do
     begin
       P:=AddPackage('fpindexer');
+      P.ShortName := 'fpi';
       P.Directory:=ADirectory;
       P.Version:='3.3.1';
       P.OSes := [beos,haiku,freebsd,darwin,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,dragonfly];

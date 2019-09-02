@@ -1900,7 +1900,7 @@ implementation
                 Message(type_e_ordinal_expr_expected);
               consume(_OF);
 
-              UnionSymtable:=trecordsymtable.create('',current_settings.packrecords,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
+              UnionSymtable:=trecordsymtable.create('',current_settings.packrecords,current_settings.alignment.recordalignmin);
               UnionDef:=crecorddef.create('',unionsymtable);
               uniondef.isunion:=true;
 

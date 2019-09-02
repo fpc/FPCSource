@@ -17,12 +17,12 @@
 program mkx86reg;
 
 const Version = '1.00';
-      max_regcount = 200;
+      max_regcount = 255;
 
 var s : string;
     i : longint;
     line : longint;
-    regcount:byte;
+    regcount:longint;
     regcount_bsstart:byte;
     names,numbers,stdnames,intnames,nasmnames,attnames,stabs,dwarf16,dwarf32,dwarf64,ots,ops:
         array[0..max_regcount-1] of string[63];
@@ -246,7 +246,7 @@ var infile:text;
 
 begin
    { open dat file }
-   assign(infile,'x86reg.dat');
+   assign(infile,'../x86/x86reg.dat');
    reset(infile);
    while not(eof(infile)) do
      begin

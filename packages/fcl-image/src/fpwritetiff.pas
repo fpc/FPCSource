@@ -464,12 +464,12 @@ begin
     Compression:=IFD.Compression;
     case Compression of
     TiffCompressionNone,
-    TiffCompressionDeflateZLib: ;
+    TiffCompressionDeflateAdobe: ;
     else
       {$ifdef FPC_DEBUG_IMAGE}
       writeln('TFPWriterTiff.AddImage unsupported compression '+TiffCompressionName(Compression)+', using deflate instead.');
       {$endif}
-      Compression:=TiffCompressionDeflateZLib;
+      Compression:=TiffCompressionDeflateAdobe;
     end;
 
     if IFD.Orientation in [1..4] then begin
@@ -698,7 +698,7 @@ t=',ChunkCount);
 
         // compress
         case Compression of
-        TiffCompressionDeflateZLib: EncodeDeflate(Chunk,ChunkBytes);
+        TiffCompressionDeflateZLib, TiffCompressionDeflateAdobe: EncodeDeflate(Chunk,ChunkBytes);
         end;
 
         ChunkOffsets.Chunks[ChunkIndex].Data:=Chunk;

@@ -198,6 +198,7 @@ interface
         { asmsymbol }
         function  DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype; def: tdef) : TAsmSymbol; virtual;
         function  DefineAsmSymbol(const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype; def: tdef) : TAsmSymbol;
+        function  DefineProcAsmSymbol(pd: tdef; const s: TSymStr; global: boolean): TAsmSymbol;
         function  WeakRefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype) : TAsmSymbol;
         function  RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype;indirect:boolean=false) : TAsmSymbol;
         function  GetAsmSymbol(const s : TSymStr) : TAsmSymbol;
@@ -248,6 +249,7 @@ implementation
 
     uses
       verbose,
+      globals,
       symconst,
       aasmtai;
 
@@ -571,6 +573,21 @@ implementation
         result:=DefineAsmSymbolByClass(TAsmSymbol,s,_bind,_typ,def);
       end;
 
+
+    function TAsmData.DefineProcAsmSymbol(pd: tdef; const s: TSymStr; global: boolean): TAsmSymbol;
+      begin
+        { The condition to use global or local symbol must match
+          the code written in hlcg.gen_proc_symbol to
+          avoid change from AB_LOCAL to AB_GLOBAL, which generates
+          erroneous code (at least for targets using GOT) }
+        if global or
+           (cs_profile in current_settings.moduleswitches) then
+          result:=DefineAsmSymbol(s,AB_GLOBAL,AT_FUNCTION,pd)
+        else if tf_supports_hidden_symbols in target_info.flags then
+          result:=DefineAsmSymbol(s,AB_PRIVATE_EXTERN,AT_FUNCTION,pd)
+        else
+          result:=DefineAsmSymbol(s,AB_LOCAL,AT_FUNCTION,pd);
+      end;
 
     function TAsmData.RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype;indirect:boolean) : TAsmSymbol;
       var

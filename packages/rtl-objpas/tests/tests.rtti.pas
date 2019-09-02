@@ -83,6 +83,8 @@ type
 
     procedure TestProcVar;
     procedure TestMethod;
+
+    procedure TestRawThunk;
   private
     procedure MakeFromOrdinalTObject;
     procedure MakeFromOrdinalSet;
@@ -91,6 +93,9 @@ type
   end;
 
 implementation
+
+uses
+  Tests.Rtti.Util;
 
 type
 
@@ -1786,7 +1791,7 @@ begin
 
     method := methods[0];
     CheckEquals(method.Name, 'Test', 'Method name of Test does not match');
-    Check(method.CallingConvention = ccReg, 'Calling convention of Test does not match');
+    Check(method.CallingConvention = DefaultCC, 'Calling convention of Test does not match');
     Check(method.MethodKind = mkProcedure, 'Method kind of Test does not match');
     Check(method.DispatchKind = dkInterface, 'Dispatch kind of Test does not match');
     Check(not Assigned(method.CodeAddress), 'Code address of Test is not Nil');
@@ -1797,7 +1802,7 @@ begin
 
     method := methods[1];
     CheckEquals(method.Name, 'Test2', 'Method name of Test2 does not match');
-    Check(method.CallingConvention = ccReg, 'Calling convention of Test2 does not match');
+    Check(method.CallingConvention = DefaultCC, 'Calling convention of Test2 does not match');
     Check(method.MethodKind = mkFunction, 'Method kind of Test2 does not match');
     Check(method.DispatchKind = dkInterface, 'Dispatch kind of Test2 does not match');
     Check(not Assigned(method.CodeAddress), 'Code address of Test2 is not Nil');
@@ -1809,7 +1814,7 @@ begin
 
     method := methods[2];
     CheckEquals(method.Name, 'Test3', 'Method name of Test3 does not match');
-    Check(method.CallingConvention = ccReg, 'Calling convention of Test3 does not match');
+    Check(method.CallingConvention = DefaultCC, 'Calling convention of Test3 does not match');
     Check(method.MethodKind = mkProcedure, 'Method kind of Test3 does not match');
     Check(method.DispatchKind = dkInterface, 'Dispatch kind of Test3 does not match');
     Check(not Assigned(method.CodeAddress), 'Code address of Test3 is not Nil');
@@ -1845,7 +1850,7 @@ begin
 
     method := methods[3];
     CheckEquals(method.Name, 'Test4', 'Method name of Test4 does not match');
-    Check(method.CallingConvention = ccReg, 'Calling convention of Test4 does not match');
+    Check(method.CallingConvention = DefaultCC, 'Calling convention of Test4 does not match');
     Check(method.MethodKind = mkFunction, 'Method kind of Test4 does not match');
     Check(method.DispatchKind = dkInterface, 'Dispatch kind of Test4 does not match');
     Check(not Assigned(method.CodeAddress), 'Code address of Test4 is not Nil');
@@ -1872,6 +1877,24 @@ begin
   end;
 end;
 
+procedure TTestCase1.TestRawThunk;
+var
+  intf: IInterface;
+begin
+  { we test the raw thunking by instantiating a TVirtualInterface of IInterface }
+  { this does not require a function call manager as the thunking is implemented
+    directly inside the RTTI unit }
+  try
+    intf := TVirtualInterface.Create(PTypeInfo(TypeInfo(IInterface))) as IInterface;
+  except
+    on e: ENotImplemented do
+      Ignore('RawThunk not implemented');
+  end;
+  { if all went well QueryInterface and _AddRef were called and now we call
+    _Release as well }
+  intf := Nil;
+end;
+
 {$ifdef fpc}
 procedure TTestCase1.TestInterfaceRaw;
 var
@@ -1892,6 +1915,7 @@ begin
     context.Free;
   end;
 end;
+{$endif}
 
 procedure TTestCase1.TestProcVar;
 var
@@ -1908,7 +1932,7 @@ begin
     Check(t is TRttiProcedureType, 'Rtti Type is not a procedure type');
 
     p := t as TRttiProcedureType;
-    Check(p.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(p.CallingConvention = DefaultCC, 'Calling convention does not match');
     Check(not Assigned(p.ReturnType), 'Return type is assigned');
     CheckEquals(0, Length(p.GetParameters), 'Procedure variable has parameters');
 
@@ -1918,7 +1942,7 @@ begin
     Check(t is TRttiProcedureType, 'Rtti Type is not a procedure type');
 
     p := t as TRttiProcedureType;
-    Check(p.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(p.CallingConvention = DefaultCC, 'Calling convention does not match');
     Check(Assigned(p.ReturnType), 'Return type is not assigned');
     //Check(p.ReturnType is TRttiOrdinalType, 'Return type is not an ordinal type');
     CheckEquals(0, Length(p.GetParameters), 'Procedure variable has parameters');
@@ -1929,7 +1953,7 @@ begin
     Check(t is TRttiProcedureType, 'Rtti Type is not a procedure type');
 
     p := t as TRttiProcedureType;
-    Check(p.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(p.CallingConvention = DefaultCC, 'Calling convention does not match');
     Check(Assigned(p.ReturnType), 'Return type is not assigned');
     Check(p.ReturnType is TRttiStringType, 'Return type is not a string type');
 
@@ -1960,7 +1984,7 @@ begin
     Check(t is TRttiMethodType, 'Rtti Type is not a method type');
 
     m := t as TRttiMethodType;
-    Check(m.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(m.CallingConvention = DefaultCC, 'Calling convention does not match');
     Check(not Assigned(m.ReturnType), 'Return type is assigned');
     CheckEquals(0, Length(m.GetParameters), 'Method variable has parameters');
 
@@ -1970,7 +1994,7 @@ begin
     Check(t is TRttiMethodType, 'Rtti Type is not a method type');
 
     m := t as TRttiMethodType;
-    Check(m.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(m.CallingConvention = DefaultCC, 'Calling convention does not match');
     Check(Assigned(m.ReturnType), 'Return type is not assigned');
     //Check(p.ReturnType is TRttiOrdinalType, 'Return type is not an ordinal type');
     CheckEquals(0, Length(m.GetParameters), 'Method variable has parameters');
@@ -1981,7 +2005,7 @@ begin
     Check(t is TRttiMethodType, 'Rtti Type is not a method type');
 
     m := t as TRttiMethodType;
-    Check(m.CallingConvention = ccReg, 'Calling convention does not match');
+    Check(m.CallingConvention = DefaultCC, 'Calling convention does not match');
     Check(Assigned(m.ReturnType), 'Return type is not assigned');
     Check(m.ReturnType is TRttiStringType, 'Return type is not a string type');
 
@@ -1996,8 +2020,6 @@ begin
     context.Free;
   end;
 end;
-
-{$endif}
 
 initialization
 {$ifdef fpc}

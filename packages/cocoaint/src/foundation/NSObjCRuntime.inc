@@ -1,12 +1,21 @@
 { Parsed from Foundation.framework NSObjCRuntime.h }
 
+{$if not defined(instancetype)}
 {$ifdef TYPES}
-{$ifndef NSOBJCRUNTIME_PAS_T}
-{$define NSOBJCRUNTIME_PAS_T}
+type
+  instancetype = id;
+{$endif}
 
-{ Defines }
+{$endif}
+
+{$ifdef EXTERNAL_SYMBOLS}
+var
+  NSFoundationVersionNumber: double; cvar; external;
+{$endif}
+
+{$if defined(TARGET_OS_MAC)}
+{$ifdef TYPES}
 const
-  NS_BLOCKS_AVAILABLE = 0;
   NSFoundationVersionNumber10_0 = 397.40;
   NSFoundationVersionNumber10_1 = 425.00;
   NSFoundationVersionNumber10_1_1 = 425.00;
@@ -58,96 +67,133 @@ const
   NSFoundationVersionNumber10_6_1 = 751.00;
   NSFoundationVersionNumber10_6_2 = 751.14;
   NSFoundationVersionNumber10_6_3 = 751.21;
+  NSFoundationVersionNumber10_6_4 = 751.29;
+  NSFoundationVersionNumber10_6_5 = 751.42;
+  NSFoundationVersionNumber10_6_6 = 751.53;
+  NSFoundationVersionNumber10_6_7 = 751.53;
+  NSFoundationVersionNumber10_6_8 = 751.62;
+  NSFoundationVersionNumber10_7 = 833.10;
+  NSFoundationVersionNumber10_7_1 = 833.10;
+  NSFoundationVersionNumber10_7_2 = 833.20;
+  NSFoundationVersionNumber10_7_3 = 833.24;
+  NSFoundationVersionNumber10_7_4 = 833.25;
+  NSFoundationVersionNumber10_8 = 945.00;
+  NSFoundationVersionNumber10_8_1 = 945.00;
+  NSFoundationVersionNumber10_8_2 = 945.11;
+  NSFoundationVersionNumber10_8_3 = 945.16;
+  NSFoundationVersionNumber10_8_4 = 945.18;
+  NSFoundationVersionNumber10_9 = 1056;
+  NSFoundationVersionNumber10_9_1 = 1056;
+  NSFoundationVersionNumber10_9_2 = 1056.13;
+{$endif}
+
+{$endif}
+
+{$if defined(TARGET_OS_IPHONE)}
+{$ifdef TYPES}
+const
   NSFoundationVersionNumber_iPhoneOS_2_0 = 678.24;
   NSFoundationVersionNumber_iPhoneOS_2_1 = 678.26;
   NSFoundationVersionNumber_iPhoneOS_2_2 = 678.29;
   NSFoundationVersionNumber_iPhoneOS_3_0 = 678.47;
   NSFoundationVersionNumber_iPhoneOS_3_1 = 678.51;
   NSFoundationVersionNumber_iPhoneOS_3_2 = 678.60;
-  NSINTEGER_DEFINED = 1;
-
-{ Types }
-type
-{$if defined(cpu64) or defined(cpuarm) or defined(win32)}
-  NSInteger = clong;
-  NSUInteger = culong;
-{$else}
-  NSInteger = cint;
-  NSUInteger = cuint;
+  NSFoundationVersionNumber_iOS_4_0 = 751.32;
+  NSFoundationVersionNumber_iOS_4_1 = 751.37;
+  NSFoundationVersionNumber_iOS_4_2 = 751.49;
+  NSFoundationVersionNumber_iOS_4_3 = 751.49;
+  NSFoundationVersionNumber_iOS_5_0 = 881.00;
+  NSFoundationVersionNumber_iOS_5_1 = 890.10;
+  NSFoundationVersionNumber_iOS_6_0 = 992.00;
+  NSFoundationVersionNumber_iOS_6_1 = 993.00;
+  NSFoundationVersionNumber_iOS_7_0 = 1047.20;
+  NSFoundationVersionNumber_iOS_7_1 = 1047.25;
 {$endif}
+
+{$endif}
+
+{$if defined(__LP64__) or (defined(TARGET_OS_EMBEDDED) and not defined(TARGET_OS_IPHONE)) or defined(TARGET_OS_WIN32) or defined(NS_BUILD_32_LIKE_64)}
+{$ifdef TYPES}
+type
+  NSInteger = clong;
   NSIntegerPtr = ^NSInteger;
+  NSUInteger = culong;
   NSUIntegerPtr = ^NSUInteger;
+{$endif}
+
+{$else}
+{$ifdef TYPES}
+type
+  NSInteger = cint;
+  NSIntegerPtr = ^NSInteger;
+  NSUInteger = cuint;
+  NSUIntegerPtr = ^NSUInteger;
+{$endif}
+
+{$endif}
+{$ifdef TYPES}
+const
+  NSIntegerMax = LONG_MAX;
+  NSIntegerMin = LONG_MIN;
+  NSUIntegerMax = ULONG_MAX;
+{$endif}
+
+{$ifdef FUNCTIONS}
+function NSStringFromSelector(aSelector: SEL): NSString; cdecl; external;
+function NSSelectorFromString(aSelectorName: NSString): SEL; cdecl; external;
+function NSStringFromClass(aClass: pobjc_class): NSString; cdecl; external;
+function NSClassFromString(aClassName: NSString): pobjc_class; cdecl; external;
+function NSStringFromProtocol(proto: Protocol): NSString; cdecl; external; { available in 10_5, 2_0 }
+function NSProtocolFromString(namestr: NSString): Protocol; cdecl; external; { available in 10_5, 2_0 }
+function NSGetSizeAndAlignment(typePtr: PChar; sizep: NSUIntegerPtr; alignp: NSUIntegerPtr): PChar; cdecl; external;
+procedure NSLog(format: NSString); varargs; cdecl; external;
+procedure NSLogv(format: NSString; args: va_list); cdecl; external;
+{$endif}
+
+{$ifdef TYPES}
+type
   NSComparisonResult = NSInteger;
   NSComparisonResultPtr = ^NSComparisonResult;
-  NSEnumerationOptions = NSUInteger;
-  NSEnumerationOptionsPtr = ^NSEnumerationOptions;
-  NSSortOptions = NSUInteger;
-  NSSortOptionsPtr = ^NSSortOptions;
-
-{ Constants }
 
 const
   NSOrderedAscending = -1;
   NSOrderedSame = 0;
   NSOrderedDescending = 1;
+{$endif}
+
+{$ifdef TYPES}
+type
+  NSComparator = OpaqueCBlock;
+{$endif}
+
+{$ifdef TYPES}
+type
+  NSEnumerationOptions = NSUInteger;
+  NSEnumerationOptionsPtr = ^NSEnumerationOptions;
 
 const
   NSEnumerationConcurrent = 1 shl 0;
   NSEnumerationReverse = 1 shl 1;
 
+type
+  NSSortOptions = NSUInteger;
+  NSSortOptionsPtr = ^NSSortOptions;
+
 const
   NSSortConcurrent = 1 shl 0;
   NSSortStable = 1 shl 4;
 
+type
+  NSQualityOfService = NSInteger;
+  NSQualityOfServicePtr = ^NSQualityOfService;
+
 const
-  NSIntegerMax = high(NSInteger);
-  NSIntegerMin = low(NSInteger);
-  NSUIntegerMin = low(NSUinteger);
-  NSUIntegerMax = high(NSUinteger);
+  NSQualityOfServiceUserInteractive = $21;
+  NSQualityOfServiceUserInitiated = $19;
+  NSQualityOfServiceUtility = $11;
+  NSQualityOfServiceBackground = $09;
+  NSQualityOfServiceDefault = -1;
+const
   NSNotFound = NSIntegerMax;
-
-{$endif}
 {$endif}
 
-{$ifdef RECORDS}
-{$ifndef NSOBJCRUNTIME_PAS_R}
-{$define NSOBJCRUNTIME_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSOBJCRUNTIME_PAS_F}
-{$define NSOBJCRUNTIME_PAS_F}
-
-{ Functions }
-function NSStringFromSelector(aSelector: SEL): NSString; cdecl; external;
-function NSSelectorFromString(aSelectorName: NSString): SEL; cdecl; external;
-function NSStringFromClass(aClass: Pobjc_class): NSString; cdecl; external;
-function NSClassFromString(aClassName: NSString): Pobjc_class; cdecl; external;
-function NSStringFromProtocol(proto: Protocol): NSString; cdecl; external;
-function NSProtocolFromString(namestr: NSString): Protocol; cdecl; external;
-function NSGetSizeAndAlignment(typePtr: PChar; sizep: NSUIntegerPtr; alignp: NSUIntegerPtr): PChar; cdecl; external;
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSOBJCRUNTIME_PAS_S}
-{$define NSOBJCRUNTIME_PAS_S}
-
-{ External symbols }
-var
-  NSFoundationVersionNumber: double; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef USER_PATCHES}
-{$ifdef INTERFACE}
-procedure NSLog(fmt:NSString); cdecl; varargs; external;
-{$endif}
-
-
-
-{$endif}

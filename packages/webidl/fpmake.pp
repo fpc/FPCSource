@@ -13,7 +13,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('webidl');
-    P.ShortName:='webidl';
+    P.ShortName:='widl';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}

@@ -3935,7 +3935,7 @@ implementation
         end
       else
         begin
-          sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_LOCAL,AT_FUNCTION,procdef);
+          sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_PRIVATE_EXTERN,AT_FUNCTION,procdef);
           list.concat(Tai_symbol.Create(sym,0));
         end;
       a_jmp_external_name(list,externalname);
@@ -4590,14 +4590,7 @@ implementation
     begin
       item:=TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
       firstitem:=item;
-      global:=
-        (cs_profile in current_settings.moduleswitches) or
-        { smart linking using a library requires to promote
-          all non-nested procedures to AB_GLOBAL
-          otherwise you get undefined symbol error at linking
-          for msdos  target with -CX option for instance }
-        (create_smartlink_library and not is_nested_pd(current_procinfo.procdef)) or
-        (po_global in current_procinfo.procdef.procoptions);
+      global:=current_procinfo.procdef.needsglobalasmsym;
       while assigned(item) do
         begin
 {$ifdef arm}
@@ -4614,13 +4607,10 @@ implementation
               if global then
                 begin
                   list.concat(tai_symbolpair.create(spk_set_global,item.str,firstitem.str));
-                  { needed for generating the tai_symbol_end }
-                  current_asmdata.DefineAsmSymbol(item.str,AB_GLOBAL,AT_FUNCTION,current_procinfo.procdef);
                 end
               else
                 begin
                   list.concat(tai_symbolpair.create(spk_set,item.str,firstitem.str));
-                  current_asmdata.DefineAsmSymbol(item.str,AB_LOCAL,AT_FUNCTION,current_procinfo.procdef);
                 end;
             end
           else
@@ -4628,7 +4618,7 @@ implementation
               if global then
                 list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0,current_procinfo.procdef))
               else
-                list.concat(Tai_symbol.createname(item.str,AT_FUNCTION,0,current_procinfo.procdef));
+                list.concat(Tai_symbol.Createname_hidden(item.str,AT_FUNCTION,0,current_procinfo.procdef));
               if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
                 list.concat(Tai_function_name.create(item.str));
             end;

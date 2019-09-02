@@ -1491,7 +1491,8 @@ const pemagic : array[0..3] of byte = (
                if (objsym.bind=AB_LOCAL) then
                  continue;
                case objsym.bind of
-                 AB_GLOBAL :
+                 AB_GLOBAL,
+                 AB_PRIVATE_EXTERN:
                    begin
                      globalval:=COFF_SYM_GLOBAL;
                      sectionval:=objsym.objsection.index;

@@ -11,6 +11,7 @@ begin
     begin
 {$endif ALLPACKAGES}
     P:=AddPackage('objcrtl');
+    P.ShortName := 'objc';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}

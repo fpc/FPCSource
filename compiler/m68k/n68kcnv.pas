@@ -31,6 +31,7 @@ interface
     type
        tm68ktypeconvnode = class(tcgtypeconvnode)
          protected
+          function typecheck_int_to_int: tnode; override;
           function first_int_to_real: tnode; override;
           procedure second_int_to_real;override;
           procedure second_int_to_bool;override;
@@ -43,10 +44,27 @@ implementation
       symconst,symdef,aasmbase,aasmtai,aasmdata,
       defutil,
       cgbase,pass_1,pass_2,procinfo,
-      ncon,ncal,
+      ncon,ncal,ninl,compinnr,
       ncgutil,
       cpubase,cpuinfo,aasmcpu,
       rgobj,tgobj,cgobj,hlcgobj,cgutils,globtype,cgcpu,cutils;
+
+
+    function tm68ktypeconvnode.typecheck_int_to_int : tnode;
+      begin
+        if (left.nodetype=inlinen) then
+          if (cs_opt_fastmath in current_settings.optimizerswitches) and
+             (((tinlinenode(left).inlinenumber = in_trunc_real) and (FPUM68K_HAS_FINTRZ in fpu_capabilities[current_settings.fputype])) or
+              ((tinlinenode(left).inlinenumber = in_round_real) and (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]))) and
+             (resultdef.typ=orddef) and (torddef(resultdef).ordtype in [u8bit,u16bit,s8bit,s16bit,s32bit]) then
+            begin
+              { this triggers the special codepath for trunc/round inline nodes on m68k (KB) }
+              left.resultdef:=s32inttype;
+            end;
+
+        result:=inherited typecheck_int_to_int;
+
+      end;
 
 
 {*****************************************************************************

@@ -452,6 +452,22 @@ ifeq ($(CPU_UNITS_DEFINED),)
 $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)
 endif
 endif
+ifeq ($(ARCH),riscv32)
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
+CPU_UNITS=
+CPU_UNITS_DEFINED=1
+ifeq ($(CPU_UNITS_DEFINED),)
+$(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)
+endif
+endif
+ifeq ($(ARCH),riscv64)
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
+CPU_UNITS=
+CPU_UNITS_DEFINED=1
+ifeq ($(CPU_UNITS_DEFINED),)
+$(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)
+endif
+endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 ifeq ($(FULL_TARGET),i386-linux)
@@ -2618,8 +2634,9 @@ endif
 ifdef LIB_NAME
 	-$(DEL) $(LIB_NAME) $(LIB_FULLNAME)
 endif
-	-$(DEL) $(FPCMADE) Package.fpc $(PPAS) script.res link.res $(FPCEXTFILE) $(REDIRFILE)
-	-$(DEL) *$(ASMEXT) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
+	-$(DEL) $(FPCMADE) *$(FULL_TARGET).fpm Package.fpc *$(ASMEXT)
+	-$(DEL) $(FPCEXTFILE) $(REDIRFILE) script*.res link*.res *_script.res *_link.res
+	-$(DEL) $(PPAS) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
 fpc_cleanall: $(CLEANTARGET)
 ifdef CLEANEXEFILES
 	-$(DEL) $(CLEANEXEFILES)
@@ -2645,8 +2662,9 @@ ifneq ($(PPUEXT),.ppu)
 	-$(DEL) *.o *.ppu *.a
 endif
 	-$(DELTREE) *$(SMARTEXT)
-	-$(DEL) fpcmade.* Package.fpc $(PPAS) script.res link.res $(FPCEXTFILE) $(REDIRFILE)
-	-$(DEL) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
+	-$(DEL) fpcmade.* Package.fpc *.fpm
+	-$(DEL) $(FPCEXTFILE) $(REDIRFILE) script*.res link*.res *_script.res *_link.res
+	-$(DEL) $(PPAS) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
 ifdef AOUTEXT
 	-$(DEL) *$(AOUTEXT)
 endif

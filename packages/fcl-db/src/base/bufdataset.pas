@@ -614,6 +614,7 @@ type
     function Fetch : boolean; virtual;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); virtual; abstract;
+    function DoLocate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions; DoEvents : Boolean) : boolean;
     Property Refreshing : Boolean Read FRefreshing;
   public
     constructor Create(AOwner: TComponent); override;
@@ -3756,8 +3757,14 @@ begin
   end;
 end;
 
-function TCustomBufDataset.Locate(const KeyFields: string;
-  const KeyValues: Variant; Options: TLocateOptions): boolean;
+function TCustomBufDataset.Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): boolean;
+
+begin
+  Result:=DoLocate(keyfields,KeyValues,Options,True);
+end;
+
+function TCustomBufDataset.DoLocate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions; DoEvents : Boolean) : boolean;
+
 
 var SearchFields    : TList;
     DBCompareStruct : TDBCompareStruct;
@@ -3768,7 +3775,7 @@ var SearchFields    : TList;
 
 begin
   // Call inherited to make sure the dataset is bi-directional
-  Result := inherited;
+  Result := inherited Locate(KeyFields,KeyValues,Options);
   CheckActive;
   if IsEmpty then exit;
 
@@ -3825,7 +3832,13 @@ begin
   if Result then
     begin
     ABookmark.BookmarkFlag := bfCurrent;
-    GotoBookmark(@ABookmark);
+    if DoEvents then
+      GotoBookmark(@ABookmark)
+    else
+      begin
+      InternalGotoBookMark(@ABookmark);
+      Resync([rmExact,rmCenter]);
+      end;
     end;
 end;
 
@@ -3838,12 +3851,13 @@ begin
   bm:=GetBookmark;
   DisableControls;
   try
-    if Locate(KeyFields,KeyValues,[]) then
+    if DoLocate(KeyFields,KeyValues,[],False) then
       begin
       //  CalculateFields(ActiveBuffer); // not needed, done by Locate more than once
       result:=FieldValues[ResultFields];
       end;
-    GotoBookmark(bm);
+    InternalGotoBookMark(pointer(bm));
+    Resync([rmExact,rmCenter]);
     FreeBookmark(bm);
   finally
     EnableControls;

@@ -436,7 +436,7 @@ scan_n_changecputype=02105_N_Changed CPU type to be consistent with specified co
 #
 # Parser
 #
-# 03348 is the last used one
+# 03351 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1594,10 +1594,12 @@ parser_e_only_static_members_via_object_type=03349_E_Only static methods and sta
 %   TObj.test;
 % \end{verbatim}
 % \var{test} is not a static method and hence cannot be called through a type, but only using an instance.
-parse_e_callthrough_varargs=03350_E_Cannot redeclare C-style variadic function "$1" as external on this platform; make its first declaration already external
+parser_e_callthrough_varargs=03350_E_Cannot redeclare C-style variadic function "$1" as external on this platform; make its first declaration already external
 % If a function is declared normally in the interface or as a forward declaration, and then later as external, the compiler
 % must generate a stub that calls the external function. Due to code generation limitations, this cannot be done on some
 % platforms. Even on platforms where it is supported, this is quite inefficient.
+parser_e_unbound_attribute=03351_E_Unbound custom attribute: "$1".
+% A custom attribute is defined, but there is no identifier to bind it to.
 %
 % \end{description}
 %
@@ -2520,7 +2522,9 @@ cg_n_no_inline=06058_N_Call to subroutine "$1" marked as inline is not inlined
 % The directive inline is only a hint to the compiler. Sometimes the compiler ignores this hint, a subroutine
 % marked as inline is not inlined. In this case, this hint is given. Compiling with \var{-vd} might result in more information why
 % the directive inline is ignored.
-cg_e_case_incomplete=06059_E_Case statement does not handle all possible cases
+cg_e_case_missing_value=06059_E_Case statement does not handle ordinal value "$1", and no else/otherwise statement is present.
+# The case statement does not handle the specified value and does not have an else/otherwise statement, and the compiler determined
+# that this value can be passed to the case statement. This is a compile-time error in ISO and Extended Pascal.
 cg_w_case_incomplete=06060_W_Case statement does not handle all possible cases
 % The case statement does not contain labels for all possible values of the operand, and no else statement is present.
 %
@@ -2868,6 +2872,7 @@ asmr_e_local_label_cannot_be_declared_public=07138_E_Local label $1 cannot be de
 asmr_e_multiple_segment_overrides=07139_E_Cannot use multiple segment overrides
 asmr_w_multiple_segment_overrides=07140_W_Multiple segment overrides (only the last one will take effect)
 asmr_w_segment_override_ignored_in_64bit_mode=07141_W_Segment base $1 will be generated, but is ignored by the CPU in 64-bit mode
+asmr_e_mismatch_broadcasting_elements=07142_E_Mismatch broadcasting elements (expected: {$1} found: {$2})
 #
 # Assembler/binary writers
 #
@@ -3695,7 +3700,7 @@ package_u_ppl_filename=13029_U_PPL filename $1
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2018 by Florian Klaempfl and others
+Copyright (c) 1993-2019 by Florian Klaempfl and others
 ]
 
 #

@@ -40,12 +40,18 @@ Unit Rax86int;
       AS_COMMA,AS_LBRACKET,AS_RBRACKET,AS_LPAREN,
       AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,
       AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,
+      AS_LOPMASK,AS_VOPMASK,AS_LOPZEROMASK,AS_VOPZEROMASK,AS_LOPBCST,AS_OPBCST1TO2,AS_OPBCST1TO4,AS_OPBCST1TO8,AS_OPBCST1TO16,AS_LOPSAE,AS_OPSAE,
+      AS_LOPER,AS_OPRNSAE,AS_OPRDSAE,AS_OPRUSAE,AS_OPRZSAE,
        {------------------ Assembler directives --------------------}
       AS_ALIGN,AS_DB,AS_DW,AS_DD,AS_DQ,AS_PUBLIC,AS_END,
        {------------------ Assembler Operators  --------------------}
-      AS_BYTE,AS_WORD,AS_DWORD,AS_QWORD,AS_TBYTE,AS_DQWORD,AS_OWORD,AS_XMMWORD,AS_YWORD,AS_YMMWORD,AS_NEAR,AS_FAR,
+      AS_BYTE,AS_WORD,AS_DWORD,AS_QWORD,AS_TBYTE,AS_DQWORD,AS_OWORD,AS_XMMWORD,AS_YWORD,AS_YMMWORD,AS_ZWORD,AS_ZMMWORD,AS_NEAR,AS_FAR,
       AS_HIGH,AS_LOW,AS_OFFSET,AS_SIZEOF,AS_VMTOFFSET,AS_SEG,AS_TYPE,AS_PTR,AS_MOD,AS_SHL,AS_SHR,AS_NOT,
-      AS_AND,AS_OR,AS_XOR,AS_WRT,AS___GOTPCREL,AS_TARGET_DIRECTIVE);
+      AS_AND,AS_OR,AS_XOR,AS_WRT,AS___GOTPCREL,AS_TARGET_DIRECTIVE,AS_RNSAE
+
+      );
+
+
 
     type
        { input flags for BuildConstSymbolExpression }
@@ -66,9 +72,13 @@ Unit Rax86int;
          cseof_hasofs
        );
        tconstsymbolexpressionoutputflags = set of tconstsymbolexpressionoutputflag;
+
+       { tx86intreader }
+
        tx86intreader = class(tasmreader)
          actasmpattern_origcase : string;
          actasmtoken : tasmtoken;
+         actoperextention: string;
          prevasmtoken : tasmtoken;
          ActOpsize : topsize;
          inexpression : boolean;
@@ -79,8 +89,9 @@ Unit Rax86int;
          function is_register(const s:string):boolean;
          function is_locallabel(const s:string):boolean;
          function Assemble: tlinkedlist;override;
-         procedure GetToken;
-         function consume(t : tasmtoken):boolean;
+         procedure GetToken(check_operand_extention: boolean = false);
+         function consume(t : tasmtoken; check_operand_extention: boolean = false):boolean;
+         //procedure ConsumeOperExtention(oper: tx86operand; const aOperExtention: string);
          procedure RecoverConsume(allowcomma:boolean);
          procedure AddReferences(dest,src : tx86operand);
          procedure SetSegmentOverride(oper:tx86operand;seg:tregister);
@@ -93,6 +104,8 @@ Unit Rax86int;
          procedure BuildConstantOperand(oper: tx86operand);
          procedure BuildOpCode(instr : tx86instruction);
          procedure BuildConstant(constsize: byte);
+         procedure consume_voperand_ext(aop: tx86operand; aConsumeVOpExt: boolean = true);
+
 
          function is_targetdirective(const s: string): boolean;virtual;
          procedure HandleTargetDirective;virtual;
@@ -137,13 +150,15 @@ Unit Rax86int;
        firstoperator  = AS_BYTE;
        lastoperator   = AS___GOTPCREL;
 
+       OPEXT_STARTASMTOKEN: set of tasmtoken = [AS_LOPMASK,AS_LOPZEROMASK,AS_LOPBCST,AS_LOPSAE,AS_LOPER];
+
        _asmdirectives : array[firstdirective..lastdirective] of tasmkeyword =
        ('ALIGN','DB','DW','DD','DQ','PUBLIC','END');
 
        { problems with shl,shr,not,and,or and xor, they are }
        { context sensitive.                                 }
        _asmoperators : array[firstoperator..lastoperator] of tasmkeyword = (
-        'BYTE','WORD','DWORD','QWORD','TBYTE','DQWORD','OWORD','XMMWORD','YWORD','YMMWORD','NEAR','FAR','HIGH',
+        'BYTE','WORD','DWORD','QWORD','TBYTE','DQWORD','OWORD','XMMWORD','YWORD','YMMWORD','ZWORD','ZMMWORD','NEAR','FAR','HIGH',
         'LOW','OFFSET','SIZEOF','VMTOFFSET','SEG','TYPE','PTR','MOD','SHL','SHR','NOT','AND',
         'OR','XOR','WRT','GOTPCREL');
 
@@ -152,10 +167,12 @@ Unit Rax86int;
         ',','[',']','(',
         ')',':','.','+','-','*',
         ';','identifier','register','opcode','/',
+        '','','','','','','','','','','',
+        '','','','','',
         '','','','','','','END',
-        '','','','','','','','','','','','',
+        '','','','','','','','','','','','','','',
         '','','','sizeof','vmtoffset','','type','ptr','mod','shl','shr','not',
-        'and','or','xor','wrt','..gotpcrel',''
+        'and','or','xor','wrt','..gotpcrel','','{RN-SAE}'
       );
 
     constructor tx86intreader.create;
@@ -166,6 +183,8 @@ Unit Rax86int;
         iasmops:=TFPHashList.create;
         for i:=firstop to lastop do
           iasmops.Add(upper(std_op2str[i]),Pointer(PtrInt(i)));
+
+        actoperextention := '';
       end;
 
 
@@ -282,13 +301,18 @@ Unit Rax86int;
       end;
 
 
-    Procedure tx86intreader.GetToken;
+    Procedure tx86intreader.GetToken(check_operand_extention: boolean);
       var
         len : longint;
         forcelabel : boolean;
         srsym : tsym;
         srsymtable : TSymtable;
+        scomment: string;
+        schar: char;
+        old_commentstyle: tcommentstyle;
       begin
+        actoperextention := '';
+
         c:=scanner.c;
         { save old token and reset new token }
         prevasmtoken:=actasmtoken;
@@ -438,6 +462,85 @@ Unit Rax86int;
                      Begin
                        actasmpattern:=actasmpattern + c;
                        c:=current_scanner.asmgetchar;
+                     end;
+                  end;
+                 //if prevasmtoken in [AS_LOPMASK,AS_LOPZEROMASK,AS_LOPBCST,AS_LOPSAE,AS_LOPER] then
+                  if prevasmtoken in OPEXT_STARTASMTOKEN then
+                  begin
+                    if (prevasmtoken = AS_LOPER) and (c = '-') then
+                     begin
+                       actasmpattern := actasmpattern + c;
+                       c:=current_scanner.asmgetchar;
+                       while c in  ['A'..'Z','a'..'z'] do
+                       begin
+                         actasmpattern:=actasmpattern + c;
+                         c:=current_scanner.asmgetchar;
+                       end;
+                     end;
+
+
+                    { allow spaces }
+                    while (c in [' ',#9]) do
+                      c:=current_scanner.asmgetchar;
+
+                    if c = '}' then
+                     begin
+                       current_scanner.readchar;
+                       case prevasmtoken of
+                         AS_LOPMASK: if (length(actasmpattern) = 2) and
+                                        (actasmpattern[2] in ['1'..'7']) then
+                                      begin
+                                        actasmtoken := AS_VOPMASK;
+                                      end;
+                         AS_LOPZEROMASK:
+                                      if (actasmpattern = 'z') or
+                                         (actasmpattern = 'Z') then
+                                      begin
+                                        actasmtoken := AS_VOPZEROMASK;
+                                      end;
+                             AS_LOPBCST:
+                                      begin
+                                        actasmpattern_origcase:=actasmpattern;
+                                        uppervar(actasmpattern);
+
+                                        if (actasmpattern = '1TO2') then actasmtoken := AS_OPBCST1TO2
+                                         else if (actasmpattern = '1TO4') then actasmtoken := AS_OPBCST1TO4
+                                         else if (actasmpattern = '1TO8') then actasmtoken := AS_OPBCST1TO8
+                                         else if (actasmpattern = '1TO16') then actasmtoken := AS_OPBCST1TO16
+                                         else actasmpattern := actasmpattern_origcase;
+                                      end;
+                             AS_LOPSAE:
+                                      begin
+                                        actasmpattern_origcase:=actasmpattern;
+                                        uppervar(actasmpattern);
+
+                                        if (actasmpattern = 'SAE') then actasmtoken := AS_OPSAE
+                                         else actasmpattern := actasmpattern_origcase;
+                                      end;
+                              AS_LOPER:
+                                      begin
+                                        actasmpattern_origcase:=actasmpattern;
+                                        uppervar(actasmpattern);
+
+                                        if (actasmpattern = 'RD-SAE') then actasmtoken := AS_OPRDSAE
+                                         else if (actasmpattern = 'RN-SAE') then actasmtoken := AS_OPRNSAE
+                                         else if (actasmpattern = 'RU-SAE') then actasmtoken := AS_OPRUSAE
+                                         else if (actasmpattern = 'RZ-SAE') then actasmtoken := AS_OPRZSAE
+                                         else actasmpattern := actasmpattern_origcase;
+                                      end
+
+                                 else ; // is completely comment =>> nothing todo
+
+                       end;
+                       exit;
+                     end
+                    else
+                     begin
+                       if c = '{' then current_scanner.inc_comment_level;
+                       current_scanner.skipcomment(false); // is comment
+                       actasmpattern := '';
+                       actasmtoken := AS_NONE;
+                       exit;
                      end;
                   end;
                  if is_asmdirective(actasmpattern) then
@@ -709,52 +812,91 @@ Unit Rax86int;
 
              '0'..'9':
                begin
-                 actasmpattern:=c;
-                 c:=current_scanner.asmgetchar;
-                 { Get the possible characters }
-                 while c in ['0'..'9','A'..'F','a'..'f'] do
-                  begin
-                    actasmpattern:=actasmpattern + c;
-                    c:=current_scanner.asmgetchar;
-                  end;
-                 { Get ending character }
-                 actasmpattern_origcase:=actasmpattern;
-                 uppervar(actasmpattern);
-                 c:=upcase(c);
-                 { possibly a binary number. }
-                 if (actasmpattern[length(actasmpattern)] = 'B') and (c <> 'H') then
-                  Begin
-                    { Delete the last binary specifier }
-                    delete(actasmpattern,length(actasmpattern),1);
-                    actasmpattern:=tostr(ParseVal(actasmpattern,2));
-                    actasmtoken:=AS_INTNUM;
-                    exit;
-                  end
-                 else
-                  Begin
-                    case c of
-                      'O' :
-                        Begin
-                          actasmpattern:=tostr(ParseVal(actasmpattern,8));
-                          actasmtoken:=AS_INTNUM;
-                          c:=current_scanner.asmgetchar;
-                          exit;
-                        end;
-                      'H' :
-                        Begin
-                          actasmpattern:=tostr(ParseVal(actasmpattern,16));
-                          actasmtoken:=AS_INTNUM;
-                          c:=current_scanner.asmgetchar;
-                          exit;
-                        end;
-                      else { must be an integer number }
-                        begin
-                          actasmpattern:=tostr(ParseVal(actasmpattern,10));
-                          actasmtoken:=AS_INTNUM;
-                          exit;
-                        end;
+                 if prevasmtoken = AS_LOPBCST then
+                 begin
+                   actasmpattern:=c;
+                   c:=current_scanner.asmgetchar;
+                   { Get the possible characters }
+                   while c in ['1','2','4','6','8','t','T','o','O'] do
+                    begin
+                      actasmpattern:=actasmpattern + c;
+                      c:=current_scanner.asmgetchar;
                     end;
-                  end;
+
+                   while (c in [' ',#9]) do
+                    c:=current_scanner.asmgetchar;
+
+                   if c = '}' then
+                    begin
+                      actasmpattern_origcase:=actasmpattern;
+                      uppervar(actasmpattern);
+
+                      if (actasmpattern = '1TO2') then actasmtoken := AS_OPBCST1TO2
+                       else if (actasmpattern = '1TO4') then actasmtoken := AS_OPBCST1TO4
+                       else if (actasmpattern = '1TO8') then actasmtoken := AS_OPBCST1TO8
+                       else if (actasmpattern = '1TO16') then actasmtoken := AS_OPBCST1TO16
+                       else actasmpattern := actasmpattern_origcase;
+                       c:=current_scanner.asmgetchar;
+                    end
+                    else
+                    begin
+                      if c = '{' then current_scanner.inc_comment_level;
+                      current_scanner.skipcomment(false); // is comment
+                    end;
+
+                    actasmpattern := '';
+                    exit;
+                 end
+                 else
+                 begin
+
+                   actasmpattern:=c;
+                   c:=current_scanner.asmgetchar;
+                   { Get the possible characters }
+                   while c in ['0'..'9','A'..'F','a'..'f'] do
+                    begin
+                      actasmpattern:=actasmpattern + c;
+                      c:=current_scanner.asmgetchar;
+                    end;
+                   { Get ending character }
+                   actasmpattern_origcase:=actasmpattern;
+                   uppervar(actasmpattern);
+                   c:=upcase(c);
+                   { possibly a binary number. }
+                   if (actasmpattern[length(actasmpattern)] = 'B') and (c <> 'H') then
+                    Begin
+                      { Delete the last binary specifier }
+                      delete(actasmpattern,length(actasmpattern),1);
+                      actasmpattern:=tostr(ParseVal(actasmpattern,2));
+                      actasmtoken:=AS_INTNUM;
+                      exit;
+                    end
+                   else
+                    Begin
+                      case c of
+                        'O' :
+                          Begin
+                            actasmpattern:=tostr(ParseVal(actasmpattern,8));
+                            actasmtoken:=AS_INTNUM;
+                            c:=current_scanner.asmgetchar;
+                            exit;
+                          end;
+                        'H' :
+                          Begin
+                            actasmpattern:=tostr(ParseVal(actasmpattern,16));
+                            actasmtoken:=AS_INTNUM;
+                            c:=current_scanner.asmgetchar;
+                            exit;
+                          end;
+                        else { must be an integer number }
+                          begin
+                            actasmpattern:=tostr(ParseVal(actasmpattern,10));
+                            actasmtoken:=AS_INTNUM;
+                            exit;
+                          end;
+                      end;
+                   end;
+                 end;
                end;
 
              #13,#10:
@@ -776,8 +918,47 @@ Unit Rax86int;
 
              '{':
                begin
-                 current_scanner.skipcomment(true);
-                 GetToken;
+                 if not(check_operand_extention) then current_scanner.skipcomment(true)
+                  else  // exists operand extention e.g. AVX512 {k1..k7} or {z} or {1to8}
+                  begin
+                    case current_scanner.asmgetchar of
+                      '{': begin
+                             current_scanner.inc_comment_level;
+                             current_scanner.skipcomment(true);
+                           end;
+                      '}': ; // local comment closed
+                      'k',
+                      'K': begin
+                             actasmtoken := AS_LOPMASK;
+                             exit;
+                           end;
+                      'z',
+                      'Z': begin
+                             actasmtoken := AS_LOPZEROMASK;
+                             exit;
+                           end;
+
+                      '1': begin
+                             actasmtoken := AS_LOPBCST;
+                             exit;
+                           end;
+                      's',
+                      'S': begin
+                             actasmtoken := AS_LOPSAE;
+                             exit;
+                           end;
+                      'r',
+                      'R': begin
+                             actasmtoken := AS_LOPER;
+                             exit;
+                           end;
+                      else begin
+                             current_scanner.skipcomment(false);
+                           end;
+                    end;
+                  end;
+
+                 GetToken(check_operand_extention);
                end;
 
               else
@@ -787,7 +968,7 @@ Unit Rax86int;
       end;
 
 
-  function tx86intreader.consume(t : tasmtoken):boolean;
+  function tx86intreader.consume(t : tasmtoken; check_operand_extention: boolean):boolean;
     begin
       Consume:=true;
       if t<>actasmtoken then
@@ -796,10 +977,63 @@ Unit Rax86int;
          Consume:=false;
        end;
       repeat
-        gettoken;
+        gettoken(check_operand_extention);
       until actasmtoken<>AS_NONE;
     end;
 
+  //procedure tx86intreader.ConsumeOperExtention(oper: tx86operand; const aOperExtention: string);
+  //begin
+  //  //if oper.reg
+  //end;
+
+  procedure tx86intreader.consume_voperand_ext(aop: tx86operand; aConsumeVOpExt: boolean);
+  var
+    kreg: tregister;
+  begin
+    Consume(actasmtoken, true);
+    if actasmtoken in [AS_VOPMASK, AS_VOPZEROMASK, AS_OPBCST1TO2, AS_OPBCST1TO4, AS_OPBCST1TO8, AS_OPBCST1TO16,
+                       AS_OPSAE,AS_OPRNSAE,AS_OPRDSAE,AS_OPRUSAE,AS_OPRZSAE] then
+    begin
+      case actasmtoken of
+            AS_VOPMASK: begin
+                          kreg := masm_regnum_search(lower(actasmpattern));
+                          if (kreg >= NR_K1) and
+                             (kreg <= NR_K7) then
+                          begin
+                            aop.vopext := aop.vopext or (tregisterrec(kreg).supreg  and $07);
+                            aop.vopext := aop.vopext or OTVE_VECTOR_WRITEMASK;
+                          end;
+                        end;
+        AS_VOPZEROMASK: aop.vopext := aop.vopext or OTVE_VECTOR_ZERO;
+         AS_OPBCST1TO2: begin
+                          aop.vopext := aop.vopext or OTVE_VECTOR_BCST or OTVE_VECTOR_BCST2;
+                          aop.vbcst  := 2;
+                        end;
+         AS_OPBCST1TO4: begin
+                          aop.vopext := aop.vopext or OTVE_VECTOR_BCST or OTVE_VECTOR_BCST4;
+                          aop.vbcst  := 4;
+                        end;
+         AS_OPBCST1TO8: begin
+                          aop.vopext := aop.vopext or OTVE_VECTOR_BCST or OTVE_VECTOR_BCST8;
+                          aop.vbcst  := 8;
+                        end;
+        AS_OPBCST1TO16: begin
+                          aop.vopext := aop.vopext or OTVE_VECTOR_BCST or OTVE_VECTOR_BCST16;
+                          aop.vbcst  := 16;
+                        end;
+              AS_OPSAE: aop.vopext := aop.vopext or OTVE_VECTOR_SAE;
+            AS_OPRNSAE: aop.vopext := aop.vopext or OTVE_VECTOR_RNSAE;
+            AS_OPRDSAE: aop.vopext := aop.vopext or OTVE_VECTOR_RDSAE;
+            AS_OPRUSAE: aop.vopext := aop.vopext or OTVE_VECTOR_RUSAE;
+            AS_OPRZSAE: aop.vopext := aop.vopext or OTVE_VECTOR_RZSAE;
+        else
+          Internalerror(2019081009);
+      end;
+
+      if aConsumeVOpExt then
+       Consume(actasmtoken, true);
+    end;
+  end;
 
   procedure tx86intreader.RecoverConsume(allowcomma:boolean);
     begin
@@ -1012,7 +1246,7 @@ Unit Rax86int;
         while (actasmtoken=AS_DOT) do
          begin
            Consume(AS_DOT);
-           if actasmtoken in [AS_BYTE,AS_ID,AS_WORD,AS_DWORD,AS_QWORD,AS_OWORD,AS_XMMWORD,AS_YWORD,AS_YMMWORD,AS_REGISTER] then
+           if actasmtoken in [AS_BYTE,AS_ID,AS_WORD,AS_DWORD,AS_QWORD,AS_OWORD,AS_XMMWORD,AS_YWORD,AS_YMMWORD,AS_ZWORD,AS_ZMMWORD,AS_REGISTER] then
              begin
                s:=s+'.'+actasmpattern;
                consume(actasmtoken);
@@ -1780,7 +2014,14 @@ Unit Rax86int;
             AS_REGISTER :
               begin
                 hreg:=actasmregister;
-                Consume(AS_REGISTER);
+
+                Consume(AS_REGISTER, MightHaveExtension(actopcode));
+
+                while actasmtoken in OPEXT_STARTASMTOKEN do
+                begin
+                  consume_voperand_ext(oper);
+                end;
+
                 if actasmtoken=AS_COLON then
                   begin
                     Consume(AS_COLON);
@@ -1948,7 +2189,15 @@ Unit Rax86int;
               begin
                 if GotPlus or GotStar or BracketlessReference then
                   Message(asmr_e_invalid_reference_syntax);
-                Consume(AS_RBRACKET);
+
+                Consume(AS_RBRACKET, MightHaveExtension(actopcode));
+                while actasmtoken in OPEXT_STARTASMTOKEN do
+                begin
+                  consume_voperand_ext(oper);
+                end;
+
+
+
                 if actasmtoken=AS_LBRACKET then
                   begin
                     tmpoper:=Tx86Operand.create;
@@ -2048,6 +2297,7 @@ Unit Rax86int;
            end;
         end;
 
+
       var
         expr,
         hs      : string;
@@ -2057,7 +2307,10 @@ Unit Rax86int;
         toffset,
         tsize   : tcgint;
         hastypecast: boolean;
+
       begin
+        oper.vopext := 0;
+
         expr:='';
         repeat
           if actasmtoken=AS_DOT then
@@ -2291,7 +2544,14 @@ Unit Rax86int;
                     { is it a normal variable ? }
                      Begin
                        expr:=actasmpattern;
-                       Consume(AS_ID);
+                       Consume(AS_ID, MightHaveExtension(actopcode));
+
+                       while actasmtoken in OPEXT_STARTASMTOKEN do
+                       begin
+                         consume_voperand_ext(oper);
+                       end;
+
+
                        { typecasting? }
                        if SearchType(expr,l) then
                         begin
@@ -2353,7 +2613,17 @@ Unit Rax86int;
               begin
                 { save the type of register used. }
                 tempreg:=actasmregister;
-                Consume(AS_REGISTER);
+
+                Consume(AS_REGISTER, MightHaveExtension(actopcode));
+
+                if (getregtype(tempreg) in [R_MMREGISTER, R_ADDRESSREGISTER]) then
+                 begin
+                   while actasmtoken in OPEXT_STARTASMTOKEN do
+                  begin
+                    consume_voperand_ext(oper);
+                  end;
+                end;
+
                 if actasmtoken = AS_COLON then
                  Begin
                    Consume(AS_COLON);
@@ -2386,7 +2656,10 @@ Unit Rax86int;
             AS_OWORD,
             AS_XMMWORD,
             AS_YWORD,
-            AS_YMMWORD:
+            AS_YMMWORD,
+            AS_ZWORD,
+            AS_ZMMWORD
+            :
               begin
                 { Type specifier }
                 oper.hastype:=true;
@@ -2402,6 +2675,8 @@ Unit Rax86int;
                   AS_XMMWORD: oper.typesize:=16; 
                   AS_YWORD,                     
                   AS_YMMWORD: oper.typesize:=32;
+                  AS_ZWORD,
+                  AS_ZMMWORD: oper.typesize:=64;
                   else
                     internalerror(2010061101);
                 end;
@@ -2446,6 +2721,9 @@ Unit Rax86int;
               end;
           end;
         until false;
+
+
+
         { End of operand, update size if a typecast is forced }
         if (oper.typesize<>0) and
            (oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL]) then
@@ -2599,7 +2877,7 @@ Unit Rax86int;
                   Message(asmr_e_too_many_operands)
                 else
                   Dec(operandnum);
-                Consume(AS_COMMA);
+                Consume(AS_COMMA,instr.MightHaveExtension);
               end;
 
             {Far constant, i.e. jmp $0000:$11111111.}
@@ -2639,6 +2917,21 @@ Unit Rax86int;
                  end;
                 BuildOperand(instr.Operands[operandnum] as tx86operand,false);
               end;
+            AS_LOPSAE,
+            AS_LOPER:
+              if operandnum < max_operands then
+               begin
+                 consume_voperand_ext(instr.Operands[operandnum + 1] as tx86operand, false);
+                 if actasmtoken in [AS_OPSAE,AS_OPRNSAE,AS_OPRDSAE,AS_OPRUSAE,AS_OPRZSAE] then
+                  begin
+                    consume(actasmtoken);
+                    // ignore operand
+                    if actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA] then inc(operandnum)
+                     else Message(asmr_e_syntax_error);
+                  end
+                   else Message(asmr_e_syntax_error);
+               end
+                else Message(asmr_e_syntax_error);
             else
               BuildOperand(instr.Operands[operandnum] as tx86operand,false);
           end; { end case }

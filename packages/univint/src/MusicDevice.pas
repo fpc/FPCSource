@@ -1,18 +1,47 @@
-{
-     File:       MusicDevice.h
- 
-     Contains:   MusicDevice Interfaces
-  
-     Copyright:  © 2000-2011 by Apple, Inc., all rights reserved.
- 
-     Bugs?:      For bug reports, consult the following page on
-                 the World Wide Web:
- 
-                     http://bugs.freepascal.org
- 
+{!
+	@file		MusicDevice.h
+	@framework	AudioToolbox.framework
+	@copyright	(c) 2000-2015 Apple, Inc. All rights reserved.
+	@abstract	Additional Audio Unit API for software musical instruments.
+
+	@discussion
+
+	A music device audio unit, commonly referred to as a music instrument, is used to render notes.
+	A note is a sound, usually pitched, that is started and stopped with a note number or pitch
+	specifier. A note is played on a group (in MIDI this is called a MIDI Channel) and the various
+	state values of a group (such as pitch bend, after-touch, etc) is inherited and controlled by
+	every playing note on a given group. A note can be individually stopped (which is the common
+	case), or stopped with the "All Notes Off" message that is sent to a specific group.
+
+	A music instrument can be multi-timbral - that is, each group can have a particular patch (or
+	sound) associated with it, and different groups can have different patches. This is a common
+	case for music instruments that implement the General MIDI specification. In this case, the
+	music instrument should return the number of available patches at a given time as the value for
+	the _InstrumentCount property.
+
+	It is also common for instruments to be mono-timbral - that is, they are only capable of
+	producing notes using a single patch/sound and typically only respond to commands on one group.
+	In this case, the music instrument should return 0 as the value for the _InstrumentCount
+	property.
+
+	Parameters can be defined in Group Scope, and these parameter IDs within the range of 0 < 1024,
+	are equivalent to the standard definitions of control in the MIDI specification (up to the ID
+	of). Parameters in group scope above 1024 are audio unit defined.
+
+	Notes can be created/started with one of two methods. To stop a note it must be stopped with the
+	same API group as was used to start it (MIDI or the extended Start/Stop note API.
+
+	(1) the MIDI Note on event (MusicDeviceMIDIEvent)
+		- notes must be stopped with the MIDI note off event (MusicDeviceMIDIEvent)
+		The MIDI Note number is used to turn the note off for the specified channel
+		
+	(2) the extended Note API (MusicDeviceStartNote). This API returns a note instance ID.
+		This is unique and can be used with the kAudioUnitScope_Note.
+		It is also used to turn the note off with MusicDeviceStopNote
 }
 {  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2019 }
 
 {
     Modified for use with Free Pascal
@@ -22,6 +51,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -222,41 +252,6 @@ uses MacTypes,AUComponent,AudioComponents,CoreAudioTypes;
 //#pragma mark -
 //#pragma mark Overview
 
-{!
-    @header MusicDevice
-	
-	@discussion
-	A music device audio unit - what is commonly referred to as a music instrument - is used to render notes. 
-	A note is a sound, usually pitched, that is started and stopped with a note number or pitch specifier.	
-	A note is played on a group (in MIDI this is called a MIDI Channel) and the various state values of a 
-	group (such as pitch bend, after-touch, etc) is inherited and controlled by every playing note on a given group. 
-	A note can be individually stopped (which is the common case), or stopped with the "All Notes Off" message that 
-	is sent to a specific group.
-
-	A music instrument can be multi-timbral - that is, each group can have a particular patch (or sound) associated with 
-	it, and different groups can have different patches. This is a common case for music instruments that implement 
-	the General MIDI specification. In this case, the music instrument should return the number of available 
-	patches at a given time as the value for the _InstrumentCount property.
-	
-	It is also common for instruments to be mono-timbral - that is, they are only capable of producing notes using a 
-	single patch/sound and typically only respond to commands on one group. In this case, the music instrument 
-	should return 0 as the value for the _InstrumentCount property.
-	
-	Parameters can be defined in Group Scope, and these parameter IDs within the range of 0 < 1024, are equivalent 
-	to the standard definitions of control in the MIDI specification (up to the ID of). Parameters in group scope 
-	above 1024 are audio unit defined.
-
-	Notes can be created/started with one of two methods. To stop a note it must be stopped with the same API group 
-	as was used to start it (MIDI or the extended Start/Stop note API.
-	
-	(1) the MIDI Note on event (MusicDeviceMIDIEvent)
-		- notes must be stopped with the MIDI note off event (MusicDeviceMIDIEvent)
-		The MIDI Note number is used to turn the note off for the specified channel
-		
-	(2) the extended Note API (MusicDeviceStartNote). This API returns a note instance ID.
-		This is unique and can be used with the kAudioUnitScope_Note.
-		It is also used to turn the note off with MusicDeviceStopNote
-}
 
 //=====================================================================================================================
 //#pragma mark -
@@ -400,7 +395,6 @@ type
 				The first MIDI data byte (value is in the range 0 < 128)
 	@param			inData2
 				The second MIDI data byte (value is in the range 0 < 128). If the MIDI status byte only has one 
-					
 					data byte, this should be set to zero.
 	@param			inOffsetSampleFrame
 				If you are scheduling the MIDI Event from the audio unit's render thread, then you can supply a 
@@ -412,7 +406,7 @@ type
 	@result			noErr, or an audio unit error code
 }
 function MusicDeviceMIDIEvent( inUnit: MusicDeviceComponent; inStatus: UInt32; inData1: UInt32; inData2: UInt32; inOffsetSampleFrame: UInt32 ): OSStatus; external name '_MusicDeviceMIDIEvent';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_NA) *)
+(* API_AVAILABLE(macos(10.0), ios(5.0), watchos(2.0), tvos(9.0)) *)
 
 {!
 	@function	MusicDeviceSysEx
@@ -430,8 +424,8 @@ function MusicDeviceMIDIEvent( inUnit: MusicDeviceComponent; inStatus: UInt32; i
 
 	@result			noErr, or an audio unit error code
 }
-function MusicDeviceSysEx( inUnit: MusicDeviceComponent; const inData: UnivPtr; inLength: UInt32 ): OSStatus; external name '_MusicDeviceSysEx';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_NA) *)
+function MusicDeviceSysEx( inUnit: MusicDeviceComponent; const (*var*) inData: UInt8; inLength: UInt32 ): OSStatus; external name '_MusicDeviceSysEx';
+(* API_AVAILABLE(macos(10.0), ios(5.0), watchos(2.0), tvos(9.0)) *)
 
 
 {!
@@ -474,7 +468,7 @@ function MusicDeviceSysEx( inUnit: MusicDeviceComponent; const inData: UnivPtr; 
 	@result			noErr, or an audio unit error code
 }
 function MusicDeviceStartNote( inUnit: MusicDeviceComponent; inInstrument: MusicDeviceInstrumentID; inGroupID: MusicDeviceGroupID; var outNoteInstanceID: NoteInstanceID; inOffsetSampleFrame: UInt32; const (*var*) inParams: MusicDeviceNoteParams ): OSStatus; external name '_MusicDeviceStartNote';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_NA) *)
+(* API_AVAILABLE(macos(10.0), ios(5.0), watchos(2.0), tvos(9.0)) *)
 
 {!
 	@function	MusicDeviceStopNote
@@ -495,7 +489,7 @@ function MusicDeviceStartNote( inUnit: MusicDeviceComponent; inInstrument: Music
 	@result			noErr, or an audio unit error code
 }
 function MusicDeviceStopNote( inUnit: MusicDeviceComponent; inGroupID: MusicDeviceGroupID; inNoteInstanceID: NoteInstanceID; inOffsetSampleFrame: UInt32 ): OSStatus; external name '_MusicDeviceStopNote';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_NA) *)
+(* API_AVAILABLE(macos(10.0), ios(5.0), watchos(2.0), tvos(9.0)) *)
 
 
 {!
@@ -530,7 +524,7 @@ const
 					
 					The arguments are the same as are provided to the corresponding API call
 	
-	@param			inComponentStorage
+	@param			self
 					For a component manager component, this is the component instance storage pointer
 	@param			inStatus
 	@param			inData1
@@ -540,7 +534,7 @@ const
 	@result			noErr, or an audio unit error code
 }
 type
-	MusicDeviceMIDIEventProc = function( inComponentStorage: UnivPtr; inStatus: UInt32; inData1: UInt32; inData2: UInt32; inOffsetSampleFrame: UInt32 ): OSStatus;
+	MusicDeviceMIDIEventProc = function( self: UnivPtr; inStatus: UInt32; inData1: UInt32; inData2: UInt32; inOffsetSampleFrame: UInt32 ): OSStatus;
 
 {!
 	@typedef		MusicDeviceSysExProc
@@ -549,7 +543,7 @@ type
 					
 					The arguments are the same as are provided to the corresponding API call
 	
-	@param			inComponentStorage
+	@param			self
 					For a component manager component, this is the component instance storage pointer
 	@param			inData
 	@param			inLength
@@ -557,7 +551,7 @@ type
 	@result			noErr, or an audio unit error code
 }
 type
-	MusicDeviceSysExProc = function( inComponentStorage: UnivPtr; (*const*) inData: UnivPtr; inLength: UInt32 ): OSStatus;
+	MusicDeviceSysExProc = function( self: UnivPtr; (*const*) inData: UnivPtr; inLength: UInt32 ): OSStatus;
 
 {!
 	@typedef		MusicDeviceStartNoteProc
@@ -566,7 +560,7 @@ type
 					
 					The arguments are the same as are provided to the corresponding API call
 	
-	@param			inComponentStorage
+	@param			self
 					For a component manager component, this is the component instance storage pointer
 	@param			inInstrument
 	@param			inGroupID
@@ -577,7 +571,7 @@ type
 	@result			noErr, or an audio unit error code
 }
 type
-	MusicDeviceStartNoteProc = function( inComponentStorage: UnivPtr; inInstrument: MusicDeviceInstrumentID; inGroupID: MusicDeviceGroupID; var outNoteInstanceID: NoteInstanceID; inOffsetSampleFrame: UInt32; const (*var*) inParams: MusicDeviceNoteParams ): OSStatus;
+	MusicDeviceStartNoteProc = function( self: UnivPtr; inInstrument: MusicDeviceInstrumentID; inGroupID: MusicDeviceGroupID; var outNoteInstanceID: NoteInstanceID; inOffsetSampleFrame: UInt32; const (*var*) inParams: MusicDeviceNoteParams ): OSStatus;
 
 {!
 	@typedef		MusicDeviceStopNoteProc
@@ -586,7 +580,7 @@ type
 					
 					The arguments are the same as are provided to the corresponding API call
 	
-	@param			inComponentStorage
+	@param			self
 					For a component manager component, this is the component instance storage pointer
 	@param			inGroupID
 	@param			inNoteInstanceID
@@ -595,7 +589,7 @@ type
 	@result			noErr, or an audio unit error code
 }
 type
-	MusicDeviceStopNoteProc = function( inComponentStorage: UnivPtr; inGroupID: MusicDeviceGroupID; inNoteInstanceID: NoteInstanceID; inOffsetSampleFrame: UInt32 ): OSStatus;
+	MusicDeviceStopNoteProc = function( self: UnivPtr; inGroupID: MusicDeviceGroupID; inNoteInstanceID: NoteInstanceID; inOffsetSampleFrame: UInt32 ): OSStatus;
 
 
 //=====================================================================================================================
@@ -610,11 +604,11 @@ type
 
 }
 function MusicDevicePrepareInstrument( inUnit: MusicDeviceComponent; inInstrument: MusicDeviceInstrumentID ): OSStatus; external name '_MusicDevicePrepareInstrument';
-(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
+(* API_DEPRECATED("no longer supported", macos(10.0, 10.5)) API_UNAVAILABLE(ios, watchos, tvos) *)
 
 
 function MusicDeviceReleaseInstrument( inUnit: MusicDeviceComponent; inInstrument: MusicDeviceInstrumentID ): OSStatus; external name '_MusicDeviceReleaseInstrument';
-(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
+(* API_DEPRECATED("no longer supported", macos(10.0, 10.5)) API_UNAVAILABLE(ios, watchos, tvos) *)
 
 {$endc} { TARGET_OS_MAC }
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}

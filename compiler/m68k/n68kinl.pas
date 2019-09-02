@@ -39,6 +39,8 @@ interface
         function first_sin_real: tnode; override;
         function first_int_real: tnode; override;
         function first_frac_real: tnode; override;
+        function first_round_real: tnode; override;
+        function first_trunc_real: tnode; override;
 
         procedure second_abs_real; override;
         procedure second_sqr_real; override;
@@ -49,6 +51,8 @@ interface
         procedure second_sin_real; override;
         procedure second_int_real; override;
         procedure second_frac_real; override;
+        procedure second_round_real; override;
+        procedure second_trunc_real; override;
         {procedure second_prefetch; override;
         procedure second_abs_long; override;}
       protected 
@@ -63,8 +67,8 @@ implementation
     uses
       globtype,verbose,globals,cutils,
       cpuinfo,defutil,symdef,aasmdata,aasmcpu,aasmtai,
-      cgbase,cgutils,pass_1,pass_2,
-      ncgutil,cgobj,cgcpu,hlcgobj;
+      cgbase,cgutils,pass_1,pass_2,symconst,
+      ncnv,ncgutil,cgobj,cgcpu,hlcgobj;
 
 {*****************************************************************************
                               t68kinlinenode
@@ -72,125 +76,106 @@ implementation
 
     function t68kinlinenode.first_abs_real : tnode;
       begin
-        if (cs_fp_emulation in current_settings.moduleswitches) then
-          result:=inherited first_abs_real
-        else
+        if FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype] then
           begin
-            case current_settings.fputype of
-              fpu_68881,fpu_coldfire:
-                expectloc:=LOC_FPUREGISTER;
-              else
-                internalerror(2015022206);
-            end;
-            first_abs_real:=nil;
-          end;
+            expectloc:=LOC_FPUREGISTER;
+            result:=nil;
+          end
+        else
+          result:=inherited first_abs_real;
       end;
 
     function t68kinlinenode.first_sqr_real : tnode;
       begin
-        if (cs_fp_emulation in current_settings.moduleswitches) then
-          result:=inherited first_sqr_real
-        else
+        if FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype] then
           begin
-            case current_settings.fputype of
-              fpu_68881,fpu_coldfire:
-                expectloc:=LOC_FPUREGISTER;
-              else
-                internalerror(2015022201);
-            end;
-            first_sqr_real:=nil;
-          end;
+            expectloc:=LOC_FPUREGISTER;
+            result:=nil;
+          end
+        else
+          result:=inherited first_sqr_real;
       end;
 
     function t68kinlinenode.first_sqrt_real : tnode;
       begin
-        if (cs_fp_emulation in current_settings.moduleswitches) then
-          result:=inherited first_sqrt_real
-        else
+        if FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype] then
           begin
-            case current_settings.fputype of
-              fpu_68881,fpu_coldfire:
-                expectloc:=LOC_FPUREGISTER;
-              else
-                internalerror(2015022203);
-            end;
-            first_sqrt_real:=nil;
-          end;
+            expectloc:=LOC_FPUREGISTER;
+            result:=nil;
+          end
+        else
+          result:=inherited first_sqrt_real;
       end;
 
     function t68kinlinenode.first_sin_real : tnode;
       begin
-        if (cs_fp_emulation in current_settings.moduleswitches) then
-          result:=inherited first_sin_real
-        else
+        if FPUM68K_HAS_TRIGONOMETRY in fpu_capabilities[current_settings.fputype] then
           begin
-            case current_settings.fputype of
-              fpu_68881:
-                expectloc:=LOC_FPUREGISTER;
-              fpu_soft,fpu_coldfire:
-                begin
-                  result:=inherited first_sin_real;
-                  exit;
-                end;
-              else
-                internalerror(2015022203);
-            end;
-            first_sin_real:=nil;
-          end;
+            expectloc:=LOC_FPUREGISTER;
+            result:=nil;
+          end
+        else
+          result:=inherited first_sin_real;
       end;
 
     function t68kinlinenode.first_cos_real : tnode;
       begin
-        if (cs_fp_emulation in current_settings.moduleswitches) then
-          result:=inherited first_cos_real
-        else
+        if FPUM68K_HAS_TRIGONOMETRY in fpu_capabilities[current_settings.fputype] then
           begin
-            case current_settings.fputype of
-              fpu_68881:
-                expectloc:=LOC_FPUREGISTER;
-              fpu_soft,fpu_coldfire:
-                begin
-                  result:=inherited first_cos_real;
-                  exit;
-                end;
-              else
-                internalerror(2015022203);
-            end;
-            first_cos_real:=nil;
-          end;
+            expectloc:=LOC_FPUREGISTER;
+            result:=nil;
+          end
+        else
+          result:=inherited first_cos_real;
       end;
 
     function t68kinlinenode.first_int_real : tnode;
       begin
-        if (cs_fp_emulation in current_settings.moduleswitches) then
-          result:=inherited first_int_real
-        else
+        if FPUM68K_HAS_FINTRZ in fpu_capabilities[current_settings.fputype] then
           begin
-            case current_settings.fputype of
-              fpu_68881,fpu_coldfire:
-                expectloc:=LOC_FPUREGISTER;
-              else
-                internalerror(2016112701);
-            end;
-            first_int_real:=nil;
-          end;
+            expectloc:=LOC_FPUREGISTER;
+            result:=nil;
+          end
+        else
+          result:=inherited first_int_real;
       end;
 
     function t68kinlinenode.first_frac_real : tnode;
       begin
-        if (cs_fp_emulation in current_settings.moduleswitches) then
-          result:=inherited first_frac_real
-        else
+        if FPUM68K_HAS_FINTRZ in fpu_capabilities[current_settings.fputype] then
           begin
-            case current_settings.fputype of
-              fpu_68881,fpu_coldfire:
-                expectloc:=LOC_FPUREGISTER;
-              else
-                internalerror(2017052103);
-            end;
-            first_frac_real:=nil;
-          end;
+            expectloc:=LOC_FPUREGISTER;
+            result:=nil;
+          end
+        else
+          result:=inherited first_frac_real;
       end;
+
+
+    function t68kinlinenode.first_trunc_real : tnode;
+      begin
+        if (FPUM68K_HAS_FINTRZ in fpu_capabilities[current_settings.fputype]) and
+           (resultdef.typ=orddef) and (torddef(resultdef).ordtype in [u8bit,u16bit,s8bit,s16bit,s32bit]) then
+          begin
+            expectloc:=LOC_REGISTER;
+            result:=nil;
+          end
+        else
+          result:=inherited first_trunc_real;
+      end;
+
+    function t68kinlinenode.first_round_real : tnode;
+      begin
+        if (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]) and
+           (resultdef.typ=orddef) and (torddef(resultdef).ordtype in [u8bit,u16bit,s8bit,s16bit,s32bit]) then
+          begin
+            expectloc:=LOC_REGISTER;
+            result:=nil;
+          end
+        else
+          result:=inherited first_round_real;
+      end;
+
 
     procedure t68kinlinenode.second_abs_real;
       begin
@@ -209,7 +194,7 @@ implementation
               location_copy(location,left.location);
               if left.location.loc=LOC_CFPUREGISTER then
                 begin
-                  //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_srq_real called!: left was cfpuregister!')));
+                  //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sqr_real called!: left was cfpuregister!')));
                   location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
                   location.loc := LOC_FPUREGISTER;
                   cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,OS_NO,OS_NO,left.location.register,location.register);
@@ -320,6 +305,39 @@ implementation
           internalerror(2017052102);
         end;
       end;
+
+    procedure t68kinlinenode.second_round_real;
+      var
+        size: tcgsize;
+      begin
+        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_round_real called!')));
+        secondpass(left);
+        size:=def_cgsize(resultdef);
+
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+
+        location_reset(location,LOC_REGISTER,size);
+        location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMOVE,tcgsize2opsize[size],left.location.register,location.register));
+      end;
+
+    procedure t68kinlinenode.second_trunc_real;
+      var
+        hreg: TRegister;
+        size: tcgsize;
+      begin
+        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_trunc_real called!')));
+        second_do_operation(A_FINTRZ);
+        size:=def_cgsize(resultdef);
+
+        hreg:=location.register;
+        location_reset(location,LOC_REGISTER,size);
+        location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMOVE,tcgsize2opsize[size],hreg,location.register));
+      end;
+
 
       { ideas for second_abs_long (KB) }
 

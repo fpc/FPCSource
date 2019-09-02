@@ -29,6 +29,7 @@ begin
     P.Dependencies.Add('fcl-net');
     P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('fcl-fpcunit');
+    P.Dependencies.Add('fcl-registry',AllWindowsOSes);
     P.Dependencies.Add('openssl',AllUnixOSes+AllWindowsOSes);
     P.Dependencies.Add('fastcgi');
     P.Dependencies.Add('httpd22', AllOses - [amiga,aros,morphos]);
@@ -49,6 +50,7 @@ begin
     P.SourcePath.Add('src/jsonrpc');
     P.SourcePath.Add('src/hpack');
     P.SourcePath.Add('src/restbridge');
+    T:=P.Targets.addUnit('fpmimetypes.pp');
 
     T:=P.Targets.AddUnit('httpdefs.pp');
     T.ResourceStrings:=true;

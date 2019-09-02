@@ -4233,6 +4233,7 @@ function CoerceMethodA(Cl: PIClass; Obj: PObject_; Msg: APTR): PtrUInt;
 function SetSuperAttrsA(Cl: PIClass; Obj: PObject_; Msg : APTR): PtrUInt;
 
 function DoMethod(Obj: PObject_; Params: array of PtrUInt): LongWord; inline;
+function DoSuperMethod(Cl: PIClass; Obj: PObject_; const Params: array of PtrUInt): PtrUInt; inline;
 
 IMPLEMENTATION
 
@@ -4442,6 +4443,11 @@ begin
     DoSuperMethodA := CallHookPkt(@Cl^.cl_Super^.cl_Dispatcher, Obj, Msg)
   else
     DoSuperMethodA := 0;
+end;
+
+function DoSuperMethod(Cl: PIClass; Obj: PObject_; const Params: array of PtrUInt): PTrUInt;
+begin
+  DoSuperMethod := DoSuperMethodA(Cl, Obj, @Params);
 end;
 
 function CoerceMethodA(Cl: PIClass; Obj: PObject_; Msg: APTR): PtrUInt;

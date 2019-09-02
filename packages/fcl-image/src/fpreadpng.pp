@@ -26,6 +26,8 @@ Type
   TSetPixelProc = procedure (x,y:integer; CD : TColordata) of object;
   TConvertColorProc = function (CD:TColorData) : TFPColor of object;
 
+  { TFPReaderPNG }
+
   TFPReaderPNG = class (TFPCustomImageReader)
     private
 
@@ -46,6 +48,11 @@ Type
       FPalette : TFPPalette;
       FSetPixel : TSetPixelProc;
       FConvertColor : TConvertColorProc;
+      function GetGrayScale: Boolean;
+      function GetHeaderByte(AIndex: Integer): Byte;
+      function GetIndexed: Boolean;
+      function GetUseAlpha: Boolean;
+      function GetWordSized: Boolean;
       procedure ReadChunk;
       procedure HandleData;
       procedure HandleUnknown;
@@ -99,6 +106,17 @@ Type
     public
       constructor create; override;
       destructor destroy; override;
+      // These 2 match writer properties. Calculated from header values
+      Property GrayScale : Boolean Read GetGrayScale;
+      Property WordSized : Boolean Read GetWordSized;
+      Property Indexed : Boolean Read GetIndexed;
+      Property UseAlpha : Boolean Read GetUseAlpha;
+      // Raw reader values
+      Property BitDepth : Byte Index 0 Read GetHeaderByte;
+      Property ColorType : Byte Index 1 Read GetHeaderByte;
+      Property Compression : Byte Index 2 Read GetHeaderByte;
+      Property Filter : Byte Index 3 Read GetHeaderByte;
+      Property Interlace : Byte Index 4 Read GetHeaderByte;
   end;
 
 implementation
@@ -174,6 +192,40 @@ begin
     if ReadCRC <> l then
       raise PNGImageException.Create ('CRC check failed');
     end;
+end;
+
+function TFPReaderPNG.GetHeaderByte(AIndex: Integer): Byte;
+begin
+  With FHeader do
+  Case aIndex of
+     0 : Result:=BitDepth;
+     1 : Result:=ColorType;
+     2 : Result:=Compression;
+     3 : Result:=Filter;
+     4 : Result:=Interlace;
+  else
+    Result:=0;
+  end;
+end;
+
+function TFPReaderPNG.GetIndexed: Boolean;
+begin
+  Result:=ColorType=3;
+end;
+
+function TFPReaderPNG.GetUseAlpha: Boolean;
+begin
+  Result:=ColorType in [4,6]; // Can also be in 3, but that would require scanning the palette
+end;
+
+function TFPReaderPNG.GetWordSized: Boolean;
+begin
+  Result:=BitDepth=16;
+end;
+
+function TFPReaderPNG.GetGrayScale: Boolean;
+begin
+  Result:=ColorType in [0,4];
 end;
 
 procedure TFPReaderPNG.HandleData;

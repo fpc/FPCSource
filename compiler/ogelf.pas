@@ -742,7 +742,10 @@ implementation
         if objsym.ThumbFunc then
           inc(elfsym.st_value);
 {$endif ARM}
-
+        { hidden symbols should have been converted to local symbols in
+          the linking pass in case we're writing an exe/library; don't
+          convert them to local here as well, as that would potentially
+          hide a bug there. }
         case objsym.bind of
           AB_LOCAL :
             begin
@@ -761,6 +764,11 @@ implementation
             elfsym.st_info:=STB_WEAK shl 4;
           AB_GLOBAL :
             elfsym.st_info:=STB_GLOBAL shl 4;
+          AB_PRIVATE_EXTERN :
+            begin
+              elfsym.st_info:=STB_GLOBAL shl 4;
+              SetElfSymbolVisibility(elfsym.st_other,STV_HIDDEN);
+            end
         else
           InternalError(2012111801);
         end;
@@ -1187,6 +1195,8 @@ implementation
                 STB_GLOBAL:
                   if sym.st_shndx=SHN_UNDEF then
                     bind:=AB_EXTERNAL
+                  else if GetElfSymbolVisibility(sym.st_other)=STV_HIDDEN then
+                    bind:=AB_PRIVATE_EXTERN
                   else
                     bind:=AB_GLOBAL;
                 STB_WEAK:

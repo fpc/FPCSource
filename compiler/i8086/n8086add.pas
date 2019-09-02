@@ -315,7 +315,7 @@ interface
         { is in unsigned VAR!!                              }
         if mboverflow then
          begin
-           if cs_check_overflow in current_settings.localswitches  then
+           if needoverflowcheck then
             begin
               current_asmdata.getjumplabel(hl4);
               if unsigned then
@@ -1002,6 +1002,7 @@ interface
         ref:Treference;
         use_ref:boolean;
         hl4 : tasmlabel;
+        overflowcheck: boolean;
 
     const
       asmops: array[boolean] of tasmop = (A_IMUL, A_MUL);
@@ -1012,10 +1013,12 @@ interface
 
       pass_left_right;
 
+      overflowcheck:=needoverflowcheck;
+
       { MUL is faster than IMUL on the 8086 & 8088 (and equal in speed on 286+),
         but it's only safe to use in place of IMUL when overflow checking is off
         and we're doing a 16-bit>16-bit multiplication }
-      if not (cs_check_overflow in current_settings.localswitches) and
+      if not overflowcheck and
         (not is_32bitint(resultdef)) then
         unsigned:=true;
 
@@ -1048,7 +1051,7 @@ interface
         emit_ref(asmops[unsigned],S_W,ref)
       else
         emit_reg(asmops[unsigned],S_W,reg);
-      if (cs_check_overflow in current_settings.localswitches) and
+      if overflowcheck and
         { 16->32 bit cannot overflow }
         (not is_32bitint(resultdef)) then
         begin

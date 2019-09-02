@@ -3,7 +3,7 @@
  
      Contains:   Types, constants, prototypes for Unicode Utilities (Unicode input and text utils)
  
-     Copyright:  © 1997-2011 by Apple Inc. All rights reserved.
+     Copyright:  © 1997-2016 by Apple Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -11,6 +11,8 @@
                      http://bugs.freepascal.org
  
 }
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, June 2018 }
+
 {
     Modified for use with Free Pascal
     Version 308
@@ -19,6 +21,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -364,7 +367,7 @@ type
 		keyToCharTableIndexFormat: UInt16; { =kUCKeyToCharTableIndexFormat}
 		keyToCharTableSize: UInt16;     { Max keyCode (128 for ADB keyboards)}
 		keyToCharTableCount: UInt32;    { Dimension for keyToCharTableOffsets[] (usually 6 to 12 tables)}
-		keyToCharTableOffsets:	array [0..0] of ByteOffset;
+		keyToCharTableOffsets: array [0..0] of UInt32;
 
                                               { Each offset in keyToCharTableOffsets is from the beginning of the resource to a}
                                               { table as follows:}
@@ -378,7 +381,7 @@ type
 	UCKeyStateRecordsIndex = record
 		keyStateRecordsIndexFormat: UInt16; { =kUCKeyStateRecordsIndexFormat}
 		keyStateRecordCount: UInt16;    { Dimension for keyStateRecordOffsets[]}
-		keyStateRecordOffsets:	array [0..0] of ByteOffset;
+		keyStateRecordOffsets: array [0..0] of UInt32;
 
                                               { Each offset in keyStateRecordOffsets is from the beginning of the resource to a}
                                               { UCKeyStateRecord. These UCKeyStateRecords follow the keyStateRecordOffsets[] array.}
@@ -545,6 +548,7 @@ const
 	kUCTSOptionsNoneMask = 0;
 	kUCTSOptionsReleaseStringMask = 1;
 	kUCTSOptionsDataIsOrderedMask = 2;
+  // Additional option bits are defined for internal use
 
 
 {

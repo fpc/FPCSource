@@ -7,6 +7,8 @@
  
      Copyright:  © 1985-2011 Apple, Inc. All rights reserved
 }
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, June 2018 }
+
 {
     Modified for use with Free Pascal
     Version 308
@@ -15,6 +17,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -2756,7 +2759,7 @@ const
  *    Non-Carbon CFM:   not available
  }
 function FSReplaceObject( const (*var*) originalObject: FSRef; const (*var*) replacementObject: FSRef; newName: CFStringRef; temporaryName: CFStringRef; temporaryDirectory: {const} FSRefPtr; flags: OptionBits; var resultObject: FSRef ): OSStatus; external name '_FSReplaceObject';
-(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_5, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED_MSG(__MAC_10_5, __MAC_10_8, __IPHONE_NA, __IPHONE_NA, "Use NSFileManager's -replaceItemAtURL:withItemAtURL:backupItemName:options:resultingItemURL:error: instead. WARNING: FSReplaceObject does not work correctly in sandboxed apps.") *)
 
 
 {
@@ -2805,7 +2808,7 @@ function FSReplaceObject( const (*var*) originalObject: FSRef; const (*var*) rep
  *    Non-Carbon CFM:   not available
  }
 function FSPathReplaceObject( originalObjectPath: ConstCStringPtr; replacementObjectPath: ConstCStringPtr; newName: CFStringRef; temporaryName: CFStringRef; temporaryDirectoryPath: ConstCStringPtr; flags: OptionBits ): OSStatus; external name '_FSPathReplaceObject';
-(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_5, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED_MSG(__MAC_10_5, __MAC_10_8, __IPHONE_NA, __IPHONE_NA, "Use NSFileManager's -replaceItemAtURL:withItemAtURL:backupItemName:options:resultingItemURL:error: instead. WARNING: FSPathReplaceObject does not work correctly in sandboxed apps.") *)
 
 
 {

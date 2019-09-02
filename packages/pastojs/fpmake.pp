@@ -14,6 +14,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('pastojs');
+    P.ShortName := 'p2js';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}

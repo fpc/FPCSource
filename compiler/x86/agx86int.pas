@@ -390,6 +390,7 @@ implementation
                              writer.AsmWrite('word ptr ');
                      S_XMM: writer.AsmWrite('xmmword ptr ');
                      S_YMM: writer.AsmWrite('ymmword ptr ');
+                     S_ZMM: writer.AsmWrite('zmmword ptr ');
 {$ifdef x86_64}
                      S_BQ : if dest then
                              writer.AsmWrite('qword ptr ')

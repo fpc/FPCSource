@@ -1050,6 +1050,16 @@ implementation
                              HideSym(srsym);
                              searchagain:=true;
                            end
+                         else if (srsym.typ=typesym) and
+                             (sp_generic_dummy in srsym.symoptions) and
+                             (ttypesym(srsym).typedef.typ=undefineddef) then
+                           begin
+                             { this is a generic dummy symbol that has not yet
+                               been used; so we rename the dummy symbol and continue
+                               as if nothing happened }
+                             hidesym(srsym);
+                             searchagain:=true;
+                           end
                          else
                           begin
                             {  we use a different error message for tp7 so it looks more compatible }
@@ -3267,9 +3277,14 @@ const
         else
           stoprecording:=false;
 
-        while token in [_ID,_LECKKLAMMER] do
+        while (token=_ID) or
+            (
+              not (m_prefixed_attributes in current_settings.modeswitches) and
+              (token=_LECKKLAMMER)
+            ) do
          begin
-           if try_to_consume(_LECKKLAMMER) then
+           if not (m_prefixed_attributes in current_settings.modeswitches) and
+              try_to_consume(_LECKKLAMMER) then
             begin
               repeat
                 parse_proc_direc(pd,pdflags);

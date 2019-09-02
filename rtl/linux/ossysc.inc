@@ -343,8 +343,15 @@ function Fpsigaction(sig: cint; new_action, old_action: psigactionrec): cint; [p
 begin
 {$if defined(cpusparc) or defined(cpusparc64)}
   { Sparc has an extra stub parameter }
+{$ifdef cpusparc}
+  { it seems that rt_sigreturn only works correctly for 32-bit if SA_SIGINFO is set }
+  if new_action <> nil then
+    new_action^.sa_flags:=new_action^.sa_flags or SA_SIGINFO;
+{$endif}
+  { the -8 stems from the fact that the adress is supposed to be a value from a sub-routine
+    call stored into register %i7 to which +8 is added upon return }
   Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(new_action),TSysParam(old_action),TSysParam(ptruint(@Fprt_sigreturn_stub)-8),TSysParam(8));
-{$else cpusparc}
+{$else not (defined(cpusparc) or defined(cpusparc64))}
 {$ifdef NEED_USER_TRAMPOLINE}
   if new_action <> nil then
   begin
@@ -603,6 +610,11 @@ begin
   Fpmunmap:=do_syscall(syscall_nr_munmap,TSysParam(Adr),TSysParam(Len));
 end;
 
+{$define FPC_SYSTEM_HAS_MREMAP}
+Function Fpmremap(adr:pointer;old_len,new_len:size_t;flags:cint;new_adr:pointer):pointer; [public, alias :'FPC_SYSC_MREMAP'];
+begin
+  Fpmremap:=pointer(do_syscall(syscall_nr_mremap,TSysParam(Adr),TSysParam(old_len),TSysParam(new_len),TSysParam(flags),TSysParam(new_adr)));
+end;
 
 Function Fpmprotect(adr:pointer;len:size_t;prot:cint):cint; [public, alias : 'FPC_SYSC_MPROTECT'];
 begin

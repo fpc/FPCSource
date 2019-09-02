@@ -138,6 +138,10 @@ uses
 
       IF_NONE   = $00000000;
 
+      IF_EXTENSIONS = $0000000F;
+
+      IF_NEON       = $00000001;
+
       IF_ARMMASK    = $000F0000;
       IF_ARM32      = $00010000;
       IF_THUMB      = $00020000;
@@ -861,6 +865,7 @@ implementation
             A_UXTB,A_UXTH,A_SXTB,A_SXTH,
             A_NEG,
             A_VABS,A_VADD,A_VCVT,A_VDIV,A_VLDR,A_VMOV,A_VMUL,A_VNEG,A_VSQRT,A_VSUB,
+            A_VEOR,
             A_MRS,A_MSR:
               if opnr=0 then
                 result:=operand_write
@@ -2211,17 +2216,19 @@ implementation
 
         FPUMasks: array[tfputype] of longword =
           (
-            IF_NONE,
-            IF_NONE,
-            IF_NONE,
-            IF_FPA,
-            IF_FPA,
-            IF_FPA,
-            IF_VFPv2,
-            IF_VFPv2 or IF_VFPv3,
-            IF_VFPv2 or IF_VFPv3,
-            IF_NONE,
-            IF_VFPv2 or IF_VFPv3 or IF_VFPv4
+            { fpu_none       } IF_NONE,
+            { fpu_soft       } IF_NONE,
+            { fpu_libgcc     } IF_NONE,
+            { fpu_fpa        } IF_FPA,
+            { fpu_fpa10      } IF_FPA,
+            { fpu_fpa11      } IF_FPA,
+            { fpu_vfpv2      } IF_VFPv2,
+            { fpu_vfpv3      } IF_VFPv2 or IF_VFPv3,
+            { fpu_neon_vfpv3 } IF_VFPv2 or IF_VFPv3 or IF_NEON,
+            { fpu_vfpv3_d16  } IF_VFPv2 or IF_VFPv3,
+            { fpu_fpv4_s16   } IF_NONE,
+            { fpu_vfpv4      } IF_VFPv2 or IF_VFPv3 or IF_VFPv4,
+            { fpu_neon_vfpv4 } IF_VFPv2 or IF_VFPv3 or IF_VFPv4 or IF_NEON
           );
       begin
         fArmVMask:=Masks[current_settings.cputype] or FPUMasks[current_settings.fputype];

@@ -64,7 +64,7 @@ interface
 
     function ti386addnode.use_generic_mul64bit: boolean;
     begin
-      result:=(cs_check_overflow in current_settings.localswitches) or
+      result:=needoverflowcheck or
         (cs_opt_size in current_settings.optimizerswitches);
     end;
 
@@ -78,7 +78,7 @@ interface
                 not(is_signed(right.resultdef));
       { use IMUL instead of MUL in case overflow checking is off and we're
         doing a 32->32-bit multiplication }
-      if not (cs_check_overflow in current_settings.localswitches) and
+      if not needoverflowcheck and
          not is_64bit(resultdef) then
         unsigned:=false;
       if (nodetype=muln) and (unsigned or is_64bit(resultdef)) then
@@ -213,7 +213,7 @@ interface
         { is in unsigned VAR!!                              }
         if mboverflow then
          begin
-           if cs_check_overflow in current_settings.localswitches  then
+           if needoverflowcheck then
             begin
               current_asmdata.getjumplabel(hl4);
               if unsigned then
@@ -487,7 +487,7 @@ interface
         emit_ref(asmops[unsigned],S_L,ref)
       else
         emit_reg(asmops[unsigned],S_L,reg);
-      if (cs_check_overflow in current_settings.localswitches) and
+      if needoverflowcheck and
         { 32->64 bit cannot overflow }
         (not is_64bit(resultdef)) then
         begin

@@ -19,7 +19,7 @@ program ExecStack;
     ret: Byte;
 {$endif}
 {$ifdef cpuarm}
-    'add arm code to test stack execution'
+    ret: dword;
 {$endif}
 {$ifdef cpumips}
     ret: array[0..1] of longword;
@@ -76,6 +76,23 @@ program ExecStack;
     DoNothing:=proc(@ret);
     DoNothing;
 {$endif cpum68k}
+
+{$ifdef cpuarm}
+{$if defined(CPUTHUMB) or defined(CPUTHUMB2)}
+{$ifdef CPUARM_HAS_BX}
+    ret:=$4770;
+{$else}
+    ret:=$46f7;
+{$endif}
+{$else defined(CPUTHUMB) or defined(CPUTHUMB2)}
+    ret:=$e8bd8008;
+{$endif defined(CPUTHUMB) or defined(CPUTHUMB2)}
+{$ifdef ENDIAN_BIG}
+    ret:=SwapEndian(ret);
+{$endif ENDIAN_BIG}
+    DoNothing:=proc(@ret);
+    DoNothing;
+{$endif cpuarm}
 
   end;
 begin

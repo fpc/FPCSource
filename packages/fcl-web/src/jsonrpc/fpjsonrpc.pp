@@ -412,7 +412,9 @@ function CreateJSON2ErrorResponse(Const AMessage : String; Const ACode : Integer
 
 begin
   If (ID=Nil) then
-    ID:=TJSONNull.Create;
+    ID:=TJSONNull.Create
+  else
+    ID:=ID.Clone;
   Result:=TJSONErrorObject.Create(['jsonrpc','2.0','error',CreateJSONErrorObject(AMessage,ACode),idname,ID]);
 end;
 
@@ -420,7 +422,9 @@ function CreateJSON2ErrorResponse(Const AFormat : String; Args : Array of const;
 
 begin
   If (ID=Nil) then
-    ID:=TJSONNull.Create;
+    ID:=TJSONNull.Create
+  else
+    ID:=ID.Clone;
   Result:=TJSONErrorObject.Create(['jsonrpc','2.0','error',CreateJSONErrorObject(Format(AFormat,Args),ACode),idname,ID]);
 end;
 
@@ -812,7 +816,7 @@ begin
         begin
         // No response, and a response was expected.
         if (ID<>Nil) or not (jdoNotifications in Options) then
-          Result:=CreateJSON2Error(SErrNoResponse,[M],EJSONRPCInternalError,ID.Clone,transactionProperty);
+          Result:=CreateJSON2Error(SErrNoResponse,[M],EJSONRPCInternalError,ID,transactionProperty);
         end
       else
         begin
@@ -832,7 +836,7 @@ begin
       If (Result<>Nil) then
         FreeAndNil(Result);
       If Assigned(ID) and not (ID is TJSONNull) then
-        Result:=CreateJSON2Error(E.Message,EJSONRPCInternalError,ID.Clone,transactionproperty)
+        Result:=CreateJSON2Error(E.Message,EJSONRPCInternalError,ID,transactionproperty)
       else
         Result:=CreateJSON2Error(E.Message,EJSONRPCInternalError,Nil,transactionproperty);
       end;
@@ -973,7 +977,7 @@ begin
           O:=A.Objects[i];
           J:=O.IndexOfName('id');
           if (J<>-1) then
-            ID:=O.Items[J].Clone;
+            ID:=O.Items[J];
           end;
         TJSONArray(Result).Add(CreateJSON2ErrorResponse(SErrJSON2NotAllowed,EJSONRPCInvalidRequest,ID,transactionproperty));
         end;

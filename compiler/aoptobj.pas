@@ -371,6 +371,15 @@ Unit AoptObj;
 
        Function ArrayRefsEq(const r1, r2: TReference): Boolean;
 
+       { Returns a pointer to the operand that contains the destination label }
+       function JumpTargetOp(ai: taicpu): poper;
+
+       { Returns True if hp is any jump to a label }
+       function IsJumpToLabel(hp: taicpu): boolean;
+
+       { Returns True if hp is an unconditional jump to a label }
+       function IsJumpToLabelUncond(hp: taicpu): boolean;
+
     { ***************************** Implementation **************************** }
 
   Implementation

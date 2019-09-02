@@ -535,7 +535,9 @@ Type
   TUCS4CharArray      = array[0..$effffff] of UCS4Char;
 {$endif CPU16}
   PUCS4CharArray      = ^TUCS4CharArray;
+{$ifdef FPC_HAS_FEATURE_DYNARRAYS}
   UCS4String          = array of UCS4Char;
+{$endif}
 
 {$ifdef FPC_HAS_CPSTRING}
   UTF8String          = type AnsiString(CP_UTF8);

@@ -96,14 +96,38 @@ interface
         property LinNumEntries: TOmfSubRecord_LINNUM_MsLink_LineNumberList read FLinNumEntries;
       end;
 
+      { TOmfObjExportedSymbol }
+
+      TOmfObjExportedSymbol = class(TFPHashObject)
+      private
+        FExportByOrdinal: Boolean;
+        FResidentName: Boolean;
+        FNoData: Boolean;
+        FParmCount: Integer;
+        FExportedName: string;
+        FInternalName: string;
+        FExportOrdinal: Word;
+      public
+        property ExportByOrdinal: Boolean read FExportByOrdinal write FExportByOrdinal;
+        property ResidentName: Boolean read FResidentName write FResidentName;
+        property NoData: Boolean read FNoData write FNoData;
+        property ParmCount: Integer read FParmCount write FParmCount;
+        property ExportedName: string read FExportedName write FExportedName;
+        property InternalName: string read FInternalName write FInternalName;
+        property ExportOrdinal: Word read FExportOrdinal write FExportOrdinal;
+      end;
+
       { TOmfObjData }
 
       TOmfObjData = class(TObjData)
       private
         FMainSource: TPathStr;
+        FImportLibraryList:TFPHashObjectList;
+        FExportedSymbolList:TFPHashObjectList;
         class function CodeSectionName(const aname:string): string;
       public
         constructor create(const n:string);override;
+        destructor destroy;override;
         function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;override;
         function sectiontype2align(atype:TAsmSectiontype):longint;override;
         function sectiontype2class(atype:TAsmSectiontype):string;
@@ -111,7 +135,11 @@ interface
         function createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;override;
         function reffardatasection:TObjSection;
         procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
+        procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
+        procedure AddExportSymbol(aExportByOrdinal,aResidentName,aNoData:Boolean;aParmCount:Integer;aExportedName,aInternalName:string;aExportOrdinal:Word);
         property MainSource: TPathStr read FMainSource;
+        property ImportLibraryList:TFPHashObjectList read FImportLibraryList;
+        property ExportedSymbolList:TFPHashObjectList read FExportedSymbolList;
       end;
 
       { TOmfObjOutput }
@@ -167,8 +195,8 @@ interface
         function ReadPubDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadModEnd(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadLeOrLiDataAndFixups(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
-        function ReadImpDef(Rec: TOmfRecord_COMENT): Boolean;
-        function ReadExpDef(Rec: TOmfRecord_COMENT): Boolean;
+        function ReadImpDef(Rec: TOmfRecord_COMENT; objdata:TObjData): Boolean;
+        function ReadExpDef(Rec: TOmfRecord_COMENT; objdata:TObjData): Boolean;
         function ImportOmfFixup(objdata: TObjData; objsec: TOmfObjSection; Fixup: TOmfSubRecord_FIXUP): Boolean;
 
         property LNames: TOmfOrderedNameCollection read FLNames;
@@ -320,6 +348,12 @@ interface
         property MZFlatContentSection: TMZExeSection read GetMZFlatContentSection;
       end;
 
+    const
+      NewExeHeaderSize = $40;
+      NewExeSegmentHeaderSize = 8;
+      NewExeRelocationRecordSize = 8;
+
+    type
       TNewExeHeaderFlag = (
         nehfSingleData,                                               { bit  0 }
         nehfMultipleData,                                             { bit  1 }
@@ -462,23 +496,306 @@ interface
         property ExpectedWindowsVersion: Word read FExpectedWindowsVersion write FExpectedWindowsVersion;
       end;
 
+      { TNewExeResourceTable }
+
+      TNewExeResourceTable = class
+      private
+        FResourceDataAlignmentShiftCount: Word;
+
+        function GetSize: QWord;
+      public
+        constructor Create;
+        procedure WriteTo(aWriter: TObjectWriter);
+
+        property ResourceDataAlignmentShiftCount: Word read FResourceDataAlignmentShiftCount write FResourceDataAlignmentShiftCount;
+        property Size: QWord read GetSize;
+      end;
+
+      { TNewExeExportNameTableEntry }
+
+      TNewExeExportNameTableEntry = class(TFPHashObject)
+      private
+        FOrdinalNr: Word;
+      public
+        constructor Create(HashObjectList:TFPHashObjectList;const s:TSymStr;OrdNr:Word);
+
+        property OrdinalNr: Word read FOrdinalNr write FOrdinalNr;
+      end;
+
+      { TNewExeExportNameTable }
+
+      TNewExeExportNameTable = class(TFPHashObjectList)
+      private
+        function GetSize: QWord;
+      public
+        procedure WriteTo(aWriter: TObjectWriter);
+        property Size: QWord read GetSize;
+      end;
+
+      TNewExeImportedNameTable = class;
+
+      { TNewExeModuleReferenceTableEntry }
+
+      TNewExeModuleReferenceTableEntry = class(TFPHashObject)
+      end;
+
+      { TNewExeModuleReferenceTable }
+
+      TNewExeModuleReferenceTable = class(TFPHashObjectList)
+      private
+        function GetSize: QWord;
+      public
+        procedure AddModuleReference(const dllname:TSymStr);
+        procedure WriteTo(aWriter: TObjectWriter;imptbl:TNewExeImportedNameTable);
+        property Size: QWord read GetSize;
+      end;
+
+      { TNewExeImportedNameTableEntry }
+
+      TNewExeImportedNameTableEntry = class(TFPHashObject)
+      private
+        FTableOffset: Word;
+      public
+        property TableOffset: Word read FTableOffset write FTableOffset;
+      end;
+
+      { TNewExeImportedNameTable }
+
+      TNewExeImportedNameTable = class(TFPHashObjectList)
+      private
+        function GetSize: QWord;
+      public
+        procedure AddImportedName(const name:TSymStr);
+        procedure CalcTableOffsets;
+        procedure WriteTo(aWriter: TObjectWriter);
+        property Size: QWord read GetSize;
+      end;
+
+      TNewExeEntryPointFlag = (
+        neepfMovableSegment,
+        neepfExported,
+        neepfSingleData
+      );
+      TNewExeEntryPointFlags = set of TNewExeEntryPointFlag;
+
+      { TNewExeEntryPoint }
+
+      TNewExeEntryPoint = class
+      private
+        FFlags: TNewExeEntryPointFlags;
+        FSegment: Byte;
+        FOffset: Word;
+        FParmCount: Integer;
+        function GetFlagsByte: Byte;
+      public
+        property Flags: TNewExeEntryPointFlags read FFlags write FFlags;
+        property Segment: Byte read FSegment write FSegment;
+        property Offset: Word read FOffset write FOffset;
+        property ParmCount: Integer read FParmCount write FParmCount;
+        property FlagsByte: Byte read GetFlagsByte;
+      end;
+
+      { TNewExeEntryTable }
+
+      TNewExeEntryTable = class
+      strict private
+        FItems: array of TNewExeEntryPoint;
+
+        function GetCount: Word;
+        function GetItems(i: Integer): TNewExeEntryPoint;
+        function GetSize: QWord;
+        procedure SetItems(i: Integer; AValue: TNewExeEntryPoint);
+        function CanBeInSameBundle(i,j:Integer):Boolean;
+        function BundleSize(StartingElement:Integer): Byte;
+      public
+        destructor Destroy;override;
+
+        procedure WriteTo(aWriter: TObjectWriter);
+        procedure GrowTo(aNewCount: Word);
+        property Size: QWord read GetSize;
+        property Count: Word read GetCount;
+        property Items[i: Integer]: TNewExeEntryPoint read GetItems write SetItems;default;
+      end;
+
+      { These are fake "meta sections" used by the linker script. The actual
+        NewExe sections are segments, limited to 64kb, which means there can be
+        multiple code segments, etc. These are created manually as object
+        sections are added. If they fit the current segment, without exceeding
+        64kb, they are added to the current segment, otherwise a new segment is
+        created. The current "meta sections" tells what kind of new segment to
+        create (e.g. nemsCode means that a new code segment will be created). }
+      TNewExeMetaSection = (
+        nemsNone,
+        nemsCode,
+        nemsData);
+
+    const
+      NewExeMetaSection2String: array [TNewExeMetaSection] of string[9] = (
+        '',
+        'Code',
+        'Data');
+
+    type
+      TNewExeRelocationAddressType = (
+        neratLoByte       = 0,    { low 8 bits of 16-bit offset }
+        neratSelector     = 2,    { 16-bit selector }
+        neratFarPointer   = 3,    { 16-bit selector:16-bit offset }
+        neratOffset       = 5,    { 16-bit offset }
+        neratFarPointer48 = 11,   { 16-bit selector:32-bit offset }
+        neratOffset32     = 13);  { 32-bit offset }
+      TNewExeRelocationType = (
+        nertInternalRef,
+        nertImportName,
+        nertImportOrdinal,
+        nertOsFixup);
+      TNewExeOsFixupType = (
+        neoftFIARQQ_FJARQQ = 1,
+        neoftFISRQQ_FJSRQQ = 2,
+        neoftFICRQQ_FJCRQQ = 3,
+        neoftFIERQQ        = 4,
+        neoftFIDRQQ        = 5,
+        neoftFIWRQQ        = 6);
+      TNewExeInternalRefSegmentType = (
+        neirstFixed,
+        neirstMovable);
+
+      { TNewExeRelocation }
+
+      TNewExeRelocation=class
+      private
+        FAddressType: TNewExeRelocationAddressType;
+        FRelocationType: TNewExeRelocationType;
+        FIsAdditive: Boolean;
+        FInternalRefSegmentType: TNewExeInternalRefSegmentType;
+        FOsFixupType: TNewExeOsFixupType;
+        FOffset: Word;
+        FImportModuleIndex: Word;
+        FImportNameIndex: Word;
+        FImportOrdinal: Word;
+        FInternalRefFixedSegmentNumber: Byte;
+        FInternalRefFixedSegmentOffset: Word;
+        FInternalRefMovableSegmentEntryTableIndex: Word;
+      public
+        procedure EncodeTo(dest: PByte);
+
+        property AddressType: TNewExeRelocationAddressType read FAddressType write FAddressType;
+        property RelocationType: TNewExeRelocationType read FRelocationType write FRelocationType;
+        property IsAdditive: Boolean read FIsAdditive write FIsAdditive;
+        property InternalRefSegmentType: TNewExeInternalRefSegmentType read FInternalRefSegmentType write FInternalRefSegmentType;
+        property OsFixupType: TNewExeOsFixupType read FOsFixupType write FOsFixupType;
+        property Offset: Word read FOffset write FOffset;
+        property ImportModuleIndex: Word read FImportModuleIndex write FImportModuleIndex;
+        property ImportNameIndex: Word read FImportNameIndex write FImportNameIndex;
+        property ImportOrdinal: Word read FImportOrdinal write FImportOrdinal;
+        property InternalRefFixedSegmentNumber: Byte read FInternalRefFixedSegmentNumber write FInternalRefFixedSegmentNumber;
+        property InternalRefFixedSegmentOffset: Word read FInternalRefFixedSegmentOffset write FInternalRefFixedSegmentOffset;
+        property InternalRefMovableSegmentEntryTableIndex: Word read FInternalRefMovableSegmentEntryTableIndex write FInternalRefMovableSegmentEntryTableIndex;
+      end;
+
+      { TNewExeRelocationList }
+
+      TNewExeRelocationList=class
+      private
+        FInternalList: TFPObjectList;
+        function GetCount: Integer;
+        function GetItem(Index: Integer): TNewExeRelocation;
+        function GetSize: QWord;
+        procedure SetCount(AValue: Integer);
+        procedure SetItem(Index: Integer; AValue: TNewExeRelocation);
+      public
+        constructor Create;
+        destructor Destroy; override;
+        procedure WriteTo(aWriter: TObjectWriter);
+        function Add(AObject: TNewExeRelocation): Integer;
+        property Size: QWord read GetSize;
+        property Count: Integer read GetCount write SetCount;
+        property Items[Index: Integer]: TNewExeRelocation read GetItem write SetItem; default;
+      end;
+
+      { TNewExeSection }
+
+      TNewExeSection=class(TExeSection)
+      private
+        FEarlySize: QWord;
+        FStackSize: QWord;
+        FExeMetaSec: TNewExeMetaSection;
+        FMemBasePos: Word;
+        FDataPosSectors: Word;
+        FNewExeSegmentFlags: TNewExeSegmentFlags;
+        FSizeInFile: QWord;
+        FRelocations: TNewExeRelocationList;
+        function GetMinAllocSize: QWord;
+        function GetNewExeSegmentFlags: TNewExeSegmentFlags;
+      public
+        constructor create(AList:TFPHashObjectList;const AName:string);override;
+        destructor destroy;override;
+
+        procedure WriteHeaderTo(aWriter: TObjectWriter);
+        function MemPosStr(AImageBase: qword): string;override;
+        procedure AddObjSection(objsec:TObjSection;ignoreprops:boolean=false);override;
+        function CanAddObjSection(objsec:TObjSection;ExeSectionLimit:QWord):boolean;
+        property EarlySize: QWord read FEarlySize write FEarlySize;
+        property StackSize: QWord read FStackSize write FStackSize;
+        property ExeMetaSec: TNewExeMetaSection read FExeMetaSec write FExeMetaSec;
+        property MemBasePos: Word read FMemBasePos write FMemBasePos;
+        property DataPosSectors: Word read FDataPosSectors write FDataPosSectors;
+        property MinAllocSize: QWord read GetMinAllocSize;
+        property SizeInFile: QWord read FSizeInFile write FSizeInFile;
+        property NewExeSegmentFlags: TNewExeSegmentFlags read GetNewExeSegmentFlags write FNewExeSegmentFlags;
+        property Relocations: TNewExeRelocationList read FRelocations;
+      end;
+
       { TNewExeOutput }
 
       TNewExeOutput = class(TExeOutput)
       private
         FHeader: TNewExeHeader;
+        FImports: TFPHashObjectList;
+        FCurrExeMetaSec: TNewExeMetaSection;
+        FResourceTable: TNewExeResourceTable;
+        FResidentNameTable: TNewExeExportNameTable;
+        FNonresidentNameTable: TNewExeExportNameTable;
+        FModuleReferenceTable: TNewExeModuleReferenceTable;
+        FImportedNameTable: TNewExeImportedNameTable;
+        FEntryTable: TNewExeEntryTable;
+        procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
+        procedure AddImportLibrariesExtractedFromObjectModules;
+        procedure AddNewExeSection;
+        function WriteNewExe:boolean;
+        procedure FillImportedNameAndModuleReferenceTable;
+        function GetHighestExportSymbolOrdinal: Word;
+        procedure AssignOrdinalsToAllExportSymbols;
+        procedure AddEntryPointsForAllExportSymbols;
+        procedure AddExportedNames;
+        property Header: TNewExeHeader read FHeader;
+        property CurrExeMetaSec: TNewExeMetaSection read FCurrExeMetaSec write FCurrExeMetaSec;
+        property ResourceTable: TNewExeResourceTable read FResourceTable;
+        property ResidentNameTable: TNewExeExportNameTable read FResidentNameTable;
+        property NonresidentNameTable: TNewExeExportNameTable read FNonresidentNameTable;
+        property ModuleReferenceTable: TNewExeModuleReferenceTable read FModuleReferenceTable;
+        property ImportedNameTable: TNewExeImportedNameTable read FImportedNameTable;
+        property EntryTable: TNewExeEntryTable read FEntryTable;
       protected
         procedure DoRelocationFixup(objsec:TObjSection);override;
+        procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
       public
         constructor create;override;
         destructor destroy;override;
 
+        procedure Order_ExeSection(const aname:string);override;
+        procedure Order_EndExeSection;override;
+        procedure Order_ObjSection(const aname:string);override;
+        procedure MemPos_Start;override;
+        procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
         function writeData:boolean;override;
       end;
 
       TOmfAssembler = class(tinternalassembler)
         constructor create(info: pasminfo; smart:boolean);override;
       end;
+
+    function StripDllExt(const DllName:TSymStr):TSymStr;
+    function MaybeAddDllExt(const DllName:TSymStr):TSymStr;
 
 implementation
 
@@ -544,11 +861,16 @@ implementation
       var
         base: qword;
       begin
-        if assigned(TOmfObjSection(objsection).MZExeUnifiedLogicalSegment) then
-          base:=TOmfObjSection(objsection).MZExeUnifiedLogicalSegment.MemBasePos
+        if assigned(objsection.ExeSection) and (objsection.ExeSection is TNewExeSection) then
+          Result:=HexStr(TNewExeSection(objsection.ExeSection).MemBasePos,4)+':'+HexStr(address,4)
         else
-          base:=(address shr 4) shl 4;
-        Result:=HexStr(base shr 4,4)+':'+HexStr(address-base,4);
+          begin
+            if assigned(TOmfObjSection(objsection).MZExeUnifiedLogicalSegment) then
+              base:=TOmfObjSection(objsection).MZExeUnifiedLogicalSegment.MemBasePos
+            else
+              base:=(address shr 4) shl 4;
+            Result:=HexStr(base shr 4,4)+':'+HexStr(address-base,4);
+          end;
       end;
 
 {****************************************************************************
@@ -702,8 +1024,13 @@ implementation
 
     function TOmfObjSection.MemPosStr(AImageBase: qword): string;
       begin
-        Result:=HexStr(MZExeUnifiedLogicalSegment.MemBasePos shr 4,4)+':'+
-          HexStr(MemPos-MZExeUnifiedLogicalSegment.MemBasePos,4);
+        if Assigned(MZExeUnifiedLogicalSegment) then
+          Result:=HexStr(MZExeUnifiedLogicalSegment.MemBasePos shr 4,4)+':'+
+            HexStr(MemPos-MZExeUnifiedLogicalSegment.MemBasePos,4)
+        else if Assigned(ExeSection) and (ExeSection is TNewExeSection) then
+          Result:=HexStr(TNewExeSection(ExeSection).MemBasePos,4)+':'+HexStr(mempos,4)
+        else
+          Result:=inherited;
       end;
 
 {****************************************************************************
@@ -732,6 +1059,15 @@ implementation
         CObjSection:=TOmfObjSection;
         createsectiongroup('DGROUP');
         FMainSource:=current_module.mainsource;
+        FImportLibraryList:=TFPHashObjectList.Create(true);
+        FExportedSymbolList:=TFPHashObjectList.Create(true);
+      end;
+
+    destructor TOmfObjData.destroy;
+      begin
+        FExportedSymbolList.Free;
+        FImportLibraryList.Free;
+        inherited destroy;
       end;
 
     function TOmfObjData.sectiontype2options(atype: TAsmSectiontype): TObjSectionOptions;
@@ -905,6 +1241,39 @@ implementation
               CurrObjSec.ObjRelocations.Add(objreloc);
             end;
         CurrObjSec.write(data,len);
+      end;
+
+    procedure TOmfObjData.AddImportSymbol(const libname, symname,
+      symmangledname: TCmdStr; OrdNr: longint; isvar: boolean);
+      var
+        ImportLibrary : TImportLibrary;
+        ImportSymbol  : TFPHashObject;
+      begin
+        ImportLibrary:=TImportLibrary(ImportLibraryList.Find(libname));
+        if not assigned(ImportLibrary) then
+          ImportLibrary:=TImportLibrary.Create(ImportLibraryList,libname);
+        ImportSymbol:=TFPHashObject(ImportLibrary.ImportSymbolList.Find(symname));
+        if not assigned(ImportSymbol) then
+          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,symmangledname,OrdNr,isvar);
+      end;
+
+    procedure TOmfObjData.AddExportSymbol(aExportByOrdinal, aResidentName,
+        aNoData: Boolean; aParmCount: Integer; aExportedName,
+        aInternalName: string; aExportOrdinal: Word);
+      var
+        s: TOmfObjExportedSymbol;
+      begin
+        s:=TOmfObjExportedSymbol.Create(ExportedSymbolList,aInternalName);
+        with s do
+          begin
+            ExportByOrdinal:=aExportByOrdinal;
+            ResidentName:=aResidentName;
+            NoData:=aNoData;
+            ParmCount:=aParmCount;
+            ExportedName:=aExportedName;
+            InternalName:=aInternalName;
+            ExportOrdinal:=aExportOrdinal;
+          end;
       end;
 
 {****************************************************************************
@@ -1850,16 +2219,44 @@ implementation
         Result:=True;
       end;
 
-    function TOmfObjInput.ReadImpDef(Rec: TOmfRecord_COMENT): Boolean;
+    function TOmfObjInput.ReadImpDef(Rec: TOmfRecord_COMENT; objdata: TObjData): Boolean;
+      var
+        ImpDefRec: TOmfRecord_COMENT_IMPDEF;
+        SymName: string;
       begin
-        {todo: implement}
+        ImpDefRec:=TOmfRecord_COMENT_IMPDEF.Create;
+        ImpDefRec.DecodeFrom(Rec);
+        SymName:=ImpDefRec.InternalName;
+        if not CaseSensitiveSymbols then
+          SymName:=UpCase(SymName);
+        if ImpDefRec.ImportByOrdinal then
+          TOmfObjData(objdata).AddImportSymbol(MaybeAddDllExt(ImpDefRec.ModuleName),'',SymName,ImpDefRec.Ordinal,false)
+        else
+          TOmfObjData(objdata).AddImportSymbol(MaybeAddDllExt(ImpDefRec.ModuleName),ImpDefRec.Name,SymName,0,false);
         Result:=True;
+        ImpDefRec.Free;
       end;
 
-    function TOmfObjInput.ReadExpDef(Rec: TOmfRecord_COMENT): Boolean;
+    function TOmfObjInput.ReadExpDef(Rec: TOmfRecord_COMENT; objdata: TObjData): Boolean;
+      var
+        ExpDefRec: TOmfRecord_COMENT_EXPDEF;
+        SymName: string;
       begin
-        {todo: implement}
+        ExpDefRec:=TOmfRecord_COMENT_EXPDEF.Create;
+        ExpDefRec.DecodeFrom(Rec);
+        SymName:=ExpDefRec.InternalName;
+        if not CaseSensitiveSymbols then
+          SymName:=UpCase(SymName);
+        TOmfObjData(objdata).AddExportSymbol(
+          ExpDefRec.ExportByOrdinal,
+          ExpDefRec.ResidentName,
+          ExpDefRec.NoData,
+          ExpDefRec.ParmCount,
+          ExpDefRec.ExportedName,
+          SymName,
+          ExpDefRec.ExportOrdinal);
         Result:=True;
+        ExpDefRec.Free;
       end;
 
     function TOmfObjInput.ImportOmfFixup(objdata: TObjData; objsec: TOmfObjSection; Fixup: TOmfSubRecord_FIXUP): Boolean;
@@ -2247,10 +2644,10 @@ implementation
                         begin
                           case Ord(FCOMENTRecord.CommentString[1]) of
                             CC_OmfExtension_IMPDEF:
-                              if not ReadImpDef(FCOMENTRecord) then
+                              if not ReadImpDef(FCOMENTRecord,objdata) then
                                 exit;
                             CC_OmfExtension_EXPDEF:
-                              if not ReadExpDef(FCOMENTRecord) then
+                              if not ReadExpDef(FCOMENTRecord,objdata) then
                                 exit;
                           end;
                         end;
@@ -3491,12 +3888,865 @@ cleanup:
       end;
 
 {****************************************************************************
+                           TNewExeResourceTable
+****************************************************************************}
+
+    function TNewExeResourceTable.GetSize: QWord;
+      begin
+        Result:=5;
+      end;
+
+    constructor TNewExeResourceTable.Create;
+      begin
+        ResourceDataAlignmentShiftCount:=8;
+      end;
+
+    procedure TNewExeResourceTable.WriteTo(aWriter: TObjectWriter);
+
+        procedure WriteAlignShift;
+          var
+            AlignShiftBytes: array [0..1] of Byte;
+          begin
+            AlignShiftBytes[0]:=Byte(ResourceDataAlignmentShiftCount);
+            AlignShiftBytes[1]:=Byte(ResourceDataAlignmentShiftCount shr 8);
+            aWriter.write(AlignShiftBytes[0],2);
+          end;
+
+        procedure WriteEndTypes;
+          const
+            EndTypesBytes: array [0..1] of Byte = (0, 0);
+          begin
+            aWriter.write(EndTypesBytes[0],2);
+          end;
+
+        procedure WriteEndNames;
+          const
+            EndNames: Byte = 0;
+          begin
+            aWriter.write(EndNames,1);
+          end;
+
+      begin
+        WriteAlignShift;
+        WriteEndTypes;
+        WriteEndNames;
+      end;
+
+{****************************************************************************
+                       TNewExeExportNameTableEntry
+****************************************************************************}
+
+    constructor TNewExeExportNameTableEntry.Create(HashObjectList:TFPHashObjectList;const s:TSymStr;OrdNr:Word);
+      begin
+        inherited Create(HashObjectList,s);
+        OrdinalNr:=OrdNr;
+      end;
+
+{****************************************************************************
+                         TNewExeExportNameTable
+****************************************************************************}
+
+    function TNewExeExportNameTable.GetSize: QWord;
+      var
+        i: Integer;
+      begin
+        { the end of table mark is 1 byte }
+        Result:=1;
+        { each entry is 3 bytes, plus the length of the name }
+        for i:=0 to Count-1 do
+          Inc(Result,3+Length(TNewExeExportNameTableEntry(Items[i]).Name));
+      end;
+
+    procedure TNewExeExportNameTable.WriteTo(aWriter: TObjectWriter);
+      var
+        i: Integer;
+        rn: TNewExeExportNameTableEntry;
+        slen: Byte;
+        OrdNrBuf: array [0..1] of Byte;
+      begin
+        for i:=0 to Count-1 do
+          begin
+            rn:=TNewExeExportNameTableEntry(Items[i]);
+            slen:=Length(rn.Name);
+            if slen=0 then
+              internalerror(2019080801);
+            aWriter.write(slen,1);
+            aWriter.write(rn.Name[1],slen);
+            OrdNrBuf[0]:=Byte(rn.OrdinalNr);
+            OrdNrBuf[1]:=Byte(rn.OrdinalNr shr 8);
+            aWriter.write(OrdNrBuf[0],2);
+          end;
+        { end of table mark }
+        slen:=0;
+        aWriter.write(slen,1);
+      end;
+
+{****************************************************************************
+                         TNewExeModuleReferenceTable
+****************************************************************************}
+
+    function TNewExeModuleReferenceTable.GetSize: QWord;
+      begin
+        Result:=Count*2;
+      end;
+
+    procedure TNewExeModuleReferenceTable.AddModuleReference(const dllname:TSymStr);
+      begin
+        if not Assigned(Find(dllname)) then
+          TNewExeModuleReferenceTableEntry.Create(Self,dllname);
+      end;
+
+    procedure TNewExeModuleReferenceTable.WriteTo(aWriter: TObjectWriter;imptbl: TNewExeImportedNameTable);
+      var
+        buf: array of Byte;
+        i: Integer;
+        ImpTblEntry: TNewExeImportedNameTableEntry;
+      begin
+        SetLength(buf,Size);
+        for i:=0 to Count-1 do
+          begin
+            ImpTblEntry:=TNewExeImportedNameTableEntry(imptbl.Find(TNewExeModuleReferenceTableEntry(Items[i]).Name));
+            if not Assigned(ImpTblEntry) then
+              internalerror(2019080903);
+            buf[2*i]:=Byte(ImpTblEntry.TableOffset);
+            buf[2*i+1]:=Byte(ImpTblEntry.TableOffset shr 8);
+          end;
+        aWriter.write(buf[0],Length(buf));
+      end;
+
+{****************************************************************************
+                          TNewExeImportedNameTable
+****************************************************************************}
+
+    function TNewExeImportedNameTable.GetSize: QWord;
+      var
+        i: Integer;
+      begin
+        { the table starts with an empty entry, which takes 1 byte }
+        Result:=1;
+        { each entry is 1 byte, plus the length of the name }
+        for i:=0 to Count-1 do
+          Inc(Result,1+Length(TNewExeImportedNameTableEntry(Items[i]).Name));
+      end;
+
+    procedure TNewExeImportedNameTable.AddImportedName(const name: TSymStr);
+      begin
+        if not Assigned(Find(name)) then
+          TNewExeImportedNameTableEntry.Create(Self,name);
+      end;
+
+    procedure TNewExeImportedNameTable.CalcTableOffsets;
+      var
+        cofs: LongInt;
+        i: Integer;
+        entry: TNewExeImportedNameTableEntry;
+      begin
+        { the table starts with an empty entry, which takes 1 byte }
+        cofs:=1;
+        for i:=0 to Count-1 do
+          begin
+            entry:=TNewExeImportedNameTableEntry(Items[i]);
+            entry.TableOffset:=cofs;
+            Inc(cofs,1+Length(entry.Name));
+            if cofs>High(Word) then
+              internalerror(2019080902);
+          end;
+      end;
+
+    procedure TNewExeImportedNameTable.WriteTo(aWriter: TObjectWriter);
+      var
+        i: Integer;
+        entry: TNewExeImportedNameTableEntry;
+        slen: Byte;
+      begin
+        { the table starts with an empty entry }
+        slen:=0;
+        aWriter.write(slen,1);
+
+        for i:=0 to Count-1 do
+          begin
+            entry:=TNewExeImportedNameTableEntry(Items[i]);
+            slen:=Length(entry.Name);
+            if slen=0 then
+              internalerror(2019080901);
+            aWriter.write(slen,1);
+            aWriter.write(entry.Name[1],slen);
+          end;
+      end;
+
+{****************************************************************************
+                            TNewExeEntryPoint
+****************************************************************************}
+
+    function TNewExeEntryPoint.GetFlagsByte: Byte;
+      begin
+        Result:=Byte(ParmCount shl 3);
+        if neepfExported in Flags then
+          Result:=Result or 1;
+        if neepfSingleData in Flags then
+          Result:=Result or 2;
+      end;
+
+{****************************************************************************
+                            TNewExeEntryTable
+****************************************************************************}
+
+    function TNewExeEntryTable.GetSize: QWord;
+      var
+        CurBundleStart, i: Integer;
+        CurBundleSize: Byte;
+        cp: TNewExeEntryPoint;
+      begin
+        Result:=0;
+        CurBundleStart:=1;
+        repeat
+          CurBundleSize:=BundleSize(CurBundleStart);
+          Inc(Result,2);
+          if CurBundleSize>0 then
+            begin
+              if Items[CurBundleStart]=nil then
+                { a bundle of null entries }
+              else if neepfMovableSegment in Items[CurBundleStart].Flags then
+                { a bundle of movable segment records }
+                Inc(Result,6*CurBundleSize)
+              else
+                { a bundle of fixed segment records }
+                Inc(Result,3*CurBundleSize);
+            end;
+          Inc(CurBundleStart,CurBundleSize);
+        until CurBundleSize=0;
+      end;
+
+    procedure TNewExeEntryTable.SetItems(i: Integer; AValue: TNewExeEntryPoint);
+      begin
+        if (i<1) or (i>Length(FItems)) then
+          internalerror(2019081002);
+        FItems[i-1]:=AValue;
+      end;
+
+    function TNewExeEntryTable.CanBeInSameBundle(i, j: Integer): Boolean;
+      begin
+        if (Items[i]=nil) or (Items[j]=nil) then
+          Result:=(Items[i]=nil) and (Items[j]=nil)
+        else if not (neepfMovableSegment in Items[i].Flags) and
+                not (neepfMovableSegment in Items[j].Flags) then
+          Result:=Items[i].Segment=Items[j].Segment
+        else
+          Result:=(neepfMovableSegment in Items[i].Flags)=
+                  (neepfMovableSegment in Items[j].Flags);
+      end;
+
+    function TNewExeEntryTable.BundleSize(StartingElement:Integer): Byte;
+      begin
+        if StartingElement>Count then
+          Result:=0
+        else
+          begin
+            Result:=1;
+            while (Result<255) and ((StartingElement+Result)<=Count) and CanBeInSameBundle(StartingElement,StartingElement+Result) do
+              Inc(Result);
+          end;
+      end;
+
+    function TNewExeEntryTable.GetCount: Word;
+      begin
+        Result:=Length(FItems);
+      end;
+
+    function TNewExeEntryTable.GetItems(i: Integer): TNewExeEntryPoint;
+      begin
+        if (i<1) or (i>Length(FItems)) then
+          internalerror(2019081002);
+        Result:=FItems[i-1];
+      end;
+
+    destructor TNewExeEntryTable.Destroy;
+      var
+        i: Integer;
+      begin
+        for i:=low(FItems) to high(FItems) do
+          FreeAndNil(FItems[i]);
+        inherited Destroy;
+      end;
+
+    procedure TNewExeEntryTable.WriteTo(aWriter: TObjectWriter);
+      var
+        CurBundleStart, i: Integer;
+        CurBundleSize: Byte;
+        buf: array [0..5] of Byte;
+        cp: TNewExeEntryPoint;
+      begin
+        CurBundleStart:=1;
+        repeat
+          CurBundleSize:=BundleSize(CurBundleStart);
+          aWriter.write(CurBundleSize,1);
+          if CurBundleSize>0 then
+            begin
+              if Items[CurBundleStart]=nil then
+                begin
+                  { a bundle of null entries }
+                  buf[0]:=0;
+                  aWriter.write(buf[0],1);
+                end
+              else if neepfMovableSegment in Items[CurBundleStart].Flags then
+                begin
+                  { a bundle of movable segment records }
+                  buf[0]:=$ff;
+                  aWriter.write(buf[0],1);
+                  for i:=CurBundleStart to CurBundleStart+CurBundleSize-1 do
+                    begin
+                      cp:=Items[i];
+                      buf[0]:=cp.FlagsByte;
+                      buf[1]:=$CD;  { INT 3Fh instruction }
+                      buf[2]:=$3F;
+                      buf[3]:=Byte(cp.Segment);
+                      buf[4]:=Byte(cp.Offset);
+                      buf[5]:=Byte(cp.Offset shr 8);
+                      aWriter.write(buf[0],6);
+                    end;
+                end
+              else
+                begin
+                  { a bundle of fixed segment records }
+                  buf[0]:=Items[CurBundleStart].Segment;
+                  aWriter.write(buf[0],1);
+                  for i:=CurBundleStart to CurBundleStart+CurBundleSize-1 do
+                    begin
+                      cp:=Items[i];
+                      buf[0]:=cp.FlagsByte;
+                      buf[1]:=Byte(cp.Offset);
+                      buf[2]:=Byte(cp.Offset shr 8);
+                      aWriter.write(buf[0],3);
+                    end;
+                end;
+            end;
+          Inc(CurBundleStart,CurBundleSize);
+        until CurBundleSize=0;
+        { finish the end marker - a null bundle of 0 entries - must be 2 zero
+          bytes. The first one was already written by the loop, time to add the
+          second one. }
+        buf[0]:=0;
+        aWriter.write(buf[0],1);
+      end;
+
+    procedure TNewExeEntryTable.GrowTo(aNewCount: Word);
+      begin
+        if aNewCount<Count then
+          internalerror(2019081003);
+        SetLength(FItems,aNewCount);
+      end;
+
+{****************************************************************************
+                             TNewExeRelocation
+****************************************************************************}
+
+    procedure TNewExeRelocation.EncodeTo(dest: PByte);
+      begin
+        dest[0]:=Ord(AddressType);
+        dest[1]:=Ord(RelocationType) or (Ord(IsAdditive) shl 2);
+        dest[2]:=Byte(Offset);
+        dest[3]:=Byte(Offset shr 8);
+        case RelocationType of
+          nertInternalRef:
+            begin
+              case InternalRefSegmentType of
+                neirstFixed:
+                  begin
+                    dest[4]:=Byte(InternalRefFixedSegmentNumber);
+                    dest[5]:=0;
+                    dest[6]:=Byte(InternalRefFixedSegmentOffset);
+                    dest[7]:=Byte(InternalRefFixedSegmentOffset shr 8);
+                  end;
+                neirstMovable:
+                  begin
+                    dest[4]:=$FF;
+                    dest[5]:=0;
+                    dest[6]:=Byte(InternalRefMovableSegmentEntryTableIndex);
+                    dest[7]:=Byte(InternalRefMovableSegmentEntryTableIndex shr 8);
+                  end;
+              end;
+            end;
+          nertImportName:
+            begin
+              dest[4]:=Byte(ImportModuleIndex);
+              dest[5]:=Byte(ImportModuleIndex shr 8);
+              dest[6]:=Byte(ImportNameIndex);
+              dest[7]:=Byte(ImportNameIndex shr 8);
+            end;
+          nertImportOrdinal:
+            begin
+              dest[4]:=Byte(ImportModuleIndex);
+              dest[5]:=Byte(ImportModuleIndex shr 8);
+              dest[6]:=Byte(ImportOrdinal);
+              dest[7]:=Byte(ImportOrdinal shr 8);
+            end;
+          nertOsFixup:
+            begin
+              dest[4]:=Byte(Ord(OsFixupType));
+              dest[5]:=Byte(Ord(OsFixupType) shr 8);
+              dest[6]:=0;
+              dest[7]:=0;
+            end;
+        end;
+      end;
+
+{****************************************************************************
+                           TNewExeRelocationList
+****************************************************************************}
+
+    function TNewExeRelocationList.GetCount: Integer;
+      begin
+        Result:=FInternalList.Count;
+      end;
+
+    function TNewExeRelocationList.GetItem(Index: Integer): TNewExeRelocation;
+      begin
+        Result:=TNewExeRelocation(FInternalList[Index]);
+      end;
+
+    function TNewExeRelocationList.GetSize: QWord;
+      begin
+        Result:=2+Count*NewExeRelocationRecordSize;
+      end;
+
+    procedure TNewExeRelocationList.SetCount(AValue: Integer);
+      begin
+        FInternalList.Count:=AValue;
+      end;
+
+    procedure TNewExeRelocationList.SetItem(Index:Integer;AValue:TNewExeRelocation);
+      begin
+        FInternalList[Index]:=AValue;
+      end;
+
+    constructor TNewExeRelocationList.Create;
+      begin
+        FInternalList:=TFPObjectList.Create;
+      end;
+
+    destructor TNewExeRelocationList.Destroy;
+      begin
+        FInternalList.Free;
+        inherited Destroy;
+      end;
+
+    procedure TNewExeRelocationList.WriteTo(aWriter: TObjectWriter);
+      var
+        buf: array of Byte;
+        p: PByte;
+        i: Integer;
+      begin
+        SetLength(buf,Size);
+        buf[0]:=Byte(Count);
+        buf[1]:=Byte(Count shr 8);
+        p:=@(buf[2]);
+        for i:=0 to Count-1 do
+          begin
+            Items[i].EncodeTo(p);
+            Inc(p,NewExeRelocationRecordSize);
+          end;
+        aWriter.write(buf[0],Size);
+      end;
+
+    function TNewExeRelocationList.Add(AObject: TNewExeRelocation): Integer;
+      begin
+        Result:=FInternalList.Add(AObject);
+      end;
+
+{****************************************************************************
+                              TNewExeSection
+****************************************************************************}
+
+    function TNewExeSection.GetMinAllocSize: QWord;
+      begin
+        Result:=Size-StackSize;
+      end;
+
+    function TNewExeSection.GetNewExeSegmentFlags: TNewExeSegmentFlags;
+      begin
+        Result:=FNewExeSegmentFlags;
+        if Relocations.Count>0 then
+          Include(Result,nesfHasRelocationData)
+        else
+          Exclude(Result,nesfHasRelocationData);
+      end;
+
+    constructor TNewExeSection.create(AList:TFPHashObjectList;const AName:string);
+      begin
+        inherited create(AList, AName);
+        FRelocations:=TNewExeRelocationList.Create;
+      end;
+
+    destructor TNewExeSection.destroy;
+      begin
+        FRelocations.Free;
+        inherited destroy;
+      end;
+
+    procedure TNewExeSection.WriteHeaderTo(aWriter: TObjectWriter);
+      var
+        SegmentHeaderBytes: array [0..7] of Byte;
+      begin
+        SegmentHeaderBytes[0]:=Byte(DataPosSectors);
+        SegmentHeaderBytes[1]:=Byte(DataPosSectors shr 8);
+        SegmentHeaderBytes[2]:=Byte(SizeInFile);
+        SegmentHeaderBytes[3]:=Byte(SizeInFile shr 8);
+        SegmentHeaderBytes[4]:=Byte(Word(NewExeSegmentFlags));
+        SegmentHeaderBytes[5]:=Byte(Word(NewExeSegmentFlags) shr 8);
+        SegmentHeaderBytes[6]:=Byte(MinAllocSize);
+        SegmentHeaderBytes[7]:=Byte(MinAllocSize shr 8);
+
+        aWriter.write(SegmentHeaderBytes[0],8);
+      end;
+
+    function TNewExeSection.MemPosStr(AImageBase: qword): string;
+      begin
+        Result:=HexStr(MemBasePos,4)+':'+HexStr(MemPos,4);
+      end;
+
+    procedure TNewExeSection.AddObjSection(objsec: TObjSection; ignoreprops: boolean);
+      var
+        s: TSymStr;
+        Separator: SizeInt;
+        SegName, SegClass: string;
+        IsStack, IsBss: Boolean;
+      begin
+        { allow mixing initialized and uninitialized data in the same section
+          => set ignoreprops=true }
+        inherited AddObjSection(objsec,true);
+        IsBss:=not(oso_Data in objsec.SecOptions);
+        s:=objsec.Name;
+        { name format is 'SegName||ClassName' }
+        Separator:=Pos('||',s);
+        if Separator>0 then
+          begin
+            SegName:=Copy(s,1,Separator-1);
+            SegClass:=Copy(s,Separator+2,Length(s)-Separator-1);
+          end
+        else
+          begin
+            SegName:=s;
+            SegClass:='';
+          end;
+        { wlink recognizes the stack segment by the class name 'STACK' }
+        { let's be compatible with wlink }
+        IsStack:=SegClass='STACK';
+        { tlink (and ms link?) use the scStack segment combination to recognize
+          the stack segment.
+          let's be compatible with tlink as well }
+        if TOmfObjSection(ObjSec).Combination=scStack then
+          IsStack:=True;
+        if IsStack then
+          StackSize:=StackSize+objsec.Size;
+        EarlySize:=align_qword(EarlySize,SecAlign)+objsec.Size;
+        if (not IsBss) and (not IsStack) then
+          SizeInFile:=EarlySize;
+      end;
+
+    function TNewExeSection.CanAddObjSection(objsec: TObjSection; ExeSectionLimit: QWord): boolean;
+      var
+        NewSecAlign: LongInt;
+        NewSize: QWord;
+      begin
+        NewSecAlign:=max(objsec.SecAlign,SecAlign);
+        NewSize:=align_qword(EarlySize,NewSecAlign)+objsec.Size;
+        Result:=NewSize<=ExeSectionLimit;
+      end;
+
+{****************************************************************************
                                TNewExeOutput
 ****************************************************************************}
+
+    procedure TNewExeOutput.AddImportSymbol(const libname, symname,
+      symmangledname: TCmdStr; OrdNr: longint; isvar: boolean);
+      var
+        ImportLibrary: TImportLibrary;
+        ImportSymbol: TFPHashObject;
+      begin
+        ImportLibrary:=TImportLibrary(FImports.Find(libname));
+        if not assigned(ImportLibrary) then
+          ImportLibrary:=TImportLibrary.Create(FImports,libname);
+        ImportSymbol:=TFPHashObject(ImportLibrary.ImportSymbolList.Find(symname));
+        if not assigned(ImportSymbol) then
+          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,symmangledname,OrdNr,isvar);
+      end;
+
+    procedure TNewExeOutput.AddImportLibrariesExtractedFromObjectModules;
+      var
+        i, j, k: Integer;
+        ObjData: TOmfObjData;
+        ImportLibrary: TImportLibrary;
+        ImportSymbol: TImportSymbol;
+      begin
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            ObjData:=TOmfObjData(ObjDataList[i]);
+            for j:=0 to ObjData.ImportLibraryList.Count-1 do
+              begin
+                ImportLibrary:=TImportLibrary(ObjData.ImportLibraryList[j]);
+                for k:=0 to ImportLibrary.ImportSymbolList.Count-1 do
+                  begin
+                    ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[k]);
+                    AddImportSymbol(ImportLibrary.Name,ImportSymbol.Name,ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
+                  end;
+              end;
+          end;
+      end;
+
+    procedure TNewExeOutput.AddNewExeSection;
+      var
+        SegNr: Integer;
+        SecName: string;
+      begin
+        SegNr:=ExeSectionList.Count+1;
+        WriteStr(SecName,'Segment',SegNr,'_',NewExeMetaSection2String[CurrExeMetaSec]);
+        inherited Order_ExeSection(SecName);
+        TNewExeSection(CurrExeSec).ExeMetaSec:=CurrExeMetaSec;
+        TNewExeSection(CurrExeSec).MemBasePos:=SegNr;
+        if (CurrExeMetaSec=nemsData) and (Header.AutoDataSegmentNumber=0) then
+          Header.AutoDataSegmentNumber:=SegNr;
+        case CurrExeMetaSec of
+          nemsCode:
+            TNewExeSection(CurrExeSec).NewExeSegmentFlags:=[nesfMovable,nesfPreload];
+          nemsData:
+            TNewExeSection(CurrExeSec).NewExeSegmentFlags:=[nesfData,nesfPreload];
+          else
+            internalerror(2019070601);
+        end;
+      end;
+
+    function TNewExeOutput.WriteNewExe: boolean;
+
+        function ExtractModuleName(filename: string): string;
+          begin
+            Result:=UpCase(ChangeFileExt(filename,''));
+          end;
+
+      var
+        i: Integer;
+      begin
+        if IsSharedLibrary then
+          Header.Flags:=Header.Flags+[nehfIsDLL,nehfSingleData]-[nehfMultipleData];
+
+        { all exported symbols must have an ordinal }
+        AssignOrdinalsToAllExportSymbols;
+
+        AddEntryPointsForAllExportSymbols;
+
+        { the first entry in the resident-name table is the module name }
+        TNewExeExportNameTableEntry.Create(ResidentNameTable,ExtractModuleName(current_module.exefilename),0);
+        { the first entry in the nonresident-name table is the module description }
+        TNewExeExportNameTableEntry.Create(NonresidentNameTable,description,0);
+        { add all symbols, exported by name to the resident and nonresident-name tables }
+        AddExportedNames;
+
+        FillImportedNameAndModuleReferenceTable;
+        ImportedNameTable.CalcTableOffsets;
+
+        Header.InitialIP:=EntrySym.address;
+        Header.InitialCS:=TNewExeSection(EntrySym.objsection.ExeSection).MemBasePos;
+        Header.InitialSP:=0;
+        Header.InitialSS:=Header.AutoDataSegmentNumber;
+        Header.InitialStackSize:=TNewExeSection(ExeSectionList[Header.AutoDataSegmentNumber-1]).StackSize;
+        Header.InitialLocalHeapSize:=heapsize;
+
+        Header.SegmentTableStart:=NewExeHeaderSize;
+        Header.SegmentTableEntriesCount:=ExeSectionList.Count;
+        Header.ResourceTableStart:=Header.SegmentTableStart+NewExeSegmentHeaderSize*Header.SegmentTableEntriesCount;
+        Header.ResidentNameTableStart:=Header.ResourceTableStart+ResourceTable.Size;
+        Header.ModuleReferenceTableStart:=Header.ResidentNameTableStart+ResidentNameTable.Size;
+        Header.ModuleReferenceTableEntriesCount:=ModuleReferenceTable.Count;
+        Header.ImportedNameTableStart:=Header.ModuleReferenceTableStart+ModuleReferenceTable.Size;
+        Header.EntryTableOffset:=Header.ImportedNameTableStart+ImportedNameTable.Size;
+        Header.EntryTableLength:=EntryTable.Size;
+        Header.NonresidentNameTableStart:=Header.EntryTableOffset+Header.EntryTableLength+Length(Header.MsDosStub);
+        Header.NonresidentNameTableLength:=NonresidentNameTable.Size;
+
+        Header.WriteTo(FWriter);
+
+        for i:=0 to ExeSectionList.Count-1 do
+          TNewExeSection(ExeSectionList[i]).WriteHeaderTo(FWriter);
+
+        ResourceTable.WriteTo(FWriter);
+        ResidentNameTable.WriteTo(FWriter);
+        ModuleReferenceTable.WriteTo(FWriter,ImportedNameTable);
+        ImportedNameTable.WriteTo(FWriter);
+        EntryTable.WriteTo(FWriter);
+        NonresidentNameTable.WriteTo(FWriter);
+
+        { todo: write the rest of the file as well }
+
+        Result:=True;
+      end;
+
+    procedure TNewExeOutput.FillImportedNameAndModuleReferenceTable;
+      var
+        i, j: Integer;
+        ImportLibrary: TImportLibrary;
+        ImportSymbol: TImportSymbol;
+        exesym: TExeSymbol;
+        LibNameAdded: Boolean;
+        dllname: TSymStr;
+      begin
+        for i:=0 to FImports.Count-1 do
+          begin
+            ImportLibrary:=TImportLibrary(FImports[i]);
+            LibNameAdded:=False;
+
+            for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
+              begin
+                ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
+                exesym:=TExeSymbol(ExeSymbolList.Find(ImportSymbol.MangledName));
+                if assigned(exesym) then
+                  begin
+                    if not LibNameAdded then
+                      begin
+                        dllname:=StripDllExt(ImportLibrary.Name);
+                        ImportedNameTable.AddImportedName(dllname);
+                        ModuleReferenceTable.AddModuleReference(dllname);
+                        LibNameAdded:=True;
+                      end;
+                    if (ImportSymbol.OrdNr=0) and (ImportSymbol.Name<>'') then
+                      ImportedNameTable.AddImportedName(ImportSymbol.Name);
+                  end;
+              end;
+          end;
+      end;
+
+    function TNewExeOutput.GetHighestExportSymbolOrdinal: Word;
+      var
+        i, j: Integer;
+        ObjData: TOmfObjData;
+        sym: TOmfObjExportedSymbol;
+      begin
+        Result:=0;
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            ObjData:=TOmfObjData(ObjDataList[i]);
+            for j:=0 to ObjData.ExportedSymbolList.Count-1 do
+              begin
+                sym:=TOmfObjExportedSymbol(ObjData.ExportedSymbolList[j]);
+                if sym.ExportByOrdinal then
+                  Result:=Max(Result,sym.ExportOrdinal);
+              end;
+          end;
+      end;
+
+    procedure TNewExeOutput.AssignOrdinalsToAllExportSymbols;
+      var
+        NextOrdinal: LongInt;
+        i, j: Integer;
+        ObjData: TOmfObjData;
+        sym: TOmfObjExportedSymbol;
+      begin
+        NextOrdinal:=GetHighestExportSymbolOrdinal+1;
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            ObjData:=TOmfObjData(ObjDataList[i]);
+            for j:=0 to ObjData.ExportedSymbolList.Count-1 do
+              begin
+                sym:=TOmfObjExportedSymbol(ObjData.ExportedSymbolList[j]);
+                if not sym.ExportByOrdinal then
+                  begin
+                    if NextOrdinal>High(Word) then
+                      internalerror(2019081001);
+                    sym.ExportByOrdinal:=True;
+                    sym.ExportOrdinal:=NextOrdinal;
+                    Inc(NextOrdinal);
+                  end;
+              end;
+          end;
+      end;
+
+    procedure TNewExeOutput.AddEntryPointsForAllExportSymbols;
+      var
+        LastOrdinal: Word;
+        i, j: Integer;
+        ObjData: TOmfObjData;
+        sym: TOmfObjExportedSymbol;
+        ent: TNewExeEntryPoint;
+        exesym: TExeSymbol;
+        sec: TNewExeSection;
+      begin
+        LastOrdinal:=GetHighestExportSymbolOrdinal;
+        EntryTable.GrowTo(LastOrdinal);
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            ObjData:=TOmfObjData(ObjDataList[i]);
+            for j:=0 to ObjData.ExportedSymbolList.Count-1 do
+              begin
+                sym:=TOmfObjExportedSymbol(ObjData.ExportedSymbolList[j]);
+                { all exports must have an ordinal at this point }
+                if not sym.ExportByOrdinal then
+                  internalerror(2019081004);
+                { check for duplicated ordinals }
+                if Assigned(EntryTable[sym.ExportOrdinal]) then
+                  internalerror(2019081005);
+                ent:=TNewExeEntryPoint.Create;
+                EntryTable[sym.ExportOrdinal]:=ent;
+                exesym:=TExeSymbol(ExeSymbolList.Find(sym.InternalName));
+                if not Assigned(exesym) then
+                  internalerror(2019081006);
+                ent.Flags:=[neepfExported];
+                if IsSharedLibrary then
+                  ent.Flags:=ent.Flags+[neepfSingleData];
+                ent.Offset:=exesym.ObjSymbol.address;
+                sec:=TNewExeSection(exesym.ObjSymbol.objsection.ExeSection);
+                ent.Segment:=sec.MemBasePos;
+                if nesfMovable in sec.NewExeSegmentFlags then
+                  ent.Flags:=ent.Flags+[neepfMovableSegment];
+                ent.ParmCount:=sym.ParmCount;
+              end;
+          end;
+      end;
+
+    procedure TNewExeOutput.AddExportedNames;
+      var
+        i, j: Integer;
+        ObjData: TOmfObjData;
+        sym: TOmfObjExportedSymbol;
+      begin
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            ObjData:=TOmfObjData(ObjDataList[i]);
+            for j:=0 to ObjData.ExportedSymbolList.Count-1 do
+              begin
+                sym:=TOmfObjExportedSymbol(ObjData.ExportedSymbolList[j]);
+                { all exports must have an ordinal at this point }
+                if not sym.ExportByOrdinal then
+                  internalerror(2019081007);
+                if sym.ResidentName then
+                  TNewExeExportNameTableEntry.Create(ResidentNameTable,sym.ExportedName,sym.ExportOrdinal)
+                else
+                  TNewExeExportNameTableEntry.Create(NonresidentNameTable,sym.ExportedName,sym.ExportOrdinal);
+              end;
+          end;
+      end;
 
     procedure TNewExeOutput.DoRelocationFixup(objsec: TObjSection);
       begin
         {todo}
+      end;
+
+    function INewExeOmfObjSectionClassNameCompare(Item1, Item2: Pointer): Integer;
+      var
+        I1 : TOmfObjSection absolute Item1;
+        I2 : TOmfObjSection absolute Item2;
+      begin
+        Result:=CompareStr(I1.ClassName,I2.ClassName);
+        if Result=0 then
+          Result:=CompareStr(I1.Name,I2.Name);
+        if Result=0 then
+          Result:=I1.SortOrder-I2.SortOrder;
+      end;
+
+    procedure TNewExeOutput.Order_ObjSectionList(ObjSectionList: TFPObjectList;const aPattern: string);
+      var
+        i: Integer;
+      begin
+        for i:=0 to ObjSectionList.Count-1 do
+          TOmfObjSection(ObjSectionList[i]).SortOrder:=i;
+        ObjSectionList.Sort(@INewExeOmfObjSectionClassNameCompare);
       end;
 
     constructor TNewExeOutput.create;
@@ -3504,19 +4754,135 @@ cleanup:
         inherited create;
         CObjData:=TOmfObjData;
         CObjSymbol:=TOmfObjSymbol;
+        CExeSection:=TNewExeSection;
         FHeader:=TNewExeHeader.Create;
+        MaxMemPos:=$FFFFFFFF;
+        CurrExeMetaSec:=nemsNone;
+        FResourceTable:=TNewExeResourceTable.Create;
+        FResidentNameTable:=TNewExeExportNameTable.Create;
+        FNonresidentNameTable:=TNewExeExportNameTable.Create;
+        FModuleReferenceTable:=TNewExeModuleReferenceTable.Create;
+        FImportedNameTable:=TNewExeImportedNameTable.Create;
+        FEntryTable:=TNewExeEntryTable.Create;
       end;
 
     destructor TNewExeOutput.destroy;
       begin
+        FEntryTable.Free;
+        FImportedNameTable.Free;
+        FModuleReferenceTable.Free;
+        FNonresidentNameTable.Free;
+        FResidentNameTable.Free;
+        FResourceTable.Free;
         FHeader.Free;
         inherited destroy;
       end;
 
+    procedure TNewExeOutput.Order_ExeSection(const aname: string);
+      begin
+        case aname of
+          '.NE_code':
+            CurrExeMetaSec:=nemsCode;
+          '.NE_data':
+            CurrExeMetaSec:=nemsData;
+          else
+            internalerror(2019080201);
+        end;
+      end;
+
+    procedure TNewExeOutput.Order_EndExeSection;
+      begin
+        CurrExeMetaSec:=nemsNone;
+        inherited;
+      end;
+
+    procedure TNewExeOutput.Order_ObjSection(const aname: string);
+      const
+        SegmentLimit=$10000;
+      var
+        i,j     : longint;
+        ObjData : TObjData;
+        objsec  : TObjSection;
+        TmpObjSectionList : TFPObjectList;
+      begin
+        if CurrExeMetaSec=nemsNone then
+          internalerror(2019080202);
+        if not assigned (CurrExeSec) then
+          AddNewExeSection;
+        TmpObjSectionList:=TFPObjectList.Create(false);
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            ObjData:=TObjData(ObjDataList[i]);
+            for j:=0 to ObjData.ObjSectionList.Count-1 do
+              begin
+                objsec:=TObjSection(ObjData.ObjSectionList[j]);
+                if (not objsec.Used) and
+                   MatchPattern(aname,objsec.name) then
+                  TmpObjSectionList.Add(objsec);
+              end;
+          end;
+        { Order list if needed }
+        Order_ObjSectionList(TmpObjSectionList,aname);
+        { Add the (ordered) list to the current ExeSection }
+        for i:=0 to TmpObjSectionList.Count-1 do
+          begin
+            objsec:=TObjSection(TmpObjSectionList[i]);
+            { If there's no room left in the current section, create a new one }
+            if not TNewExeSection(CurrExeSec).CanAddObjSection(objsec,SegmentLimit) then
+              AddNewExeSection;
+            CurrExeSec.AddObjSection(objsec);
+          end;
+        TmpObjSectionList.Free;
+      end;
+
+    procedure TNewExeOutput.MemPos_Start;
+      var
+        i: Integer;
+      begin
+        inherited MemPos_Start;
+        for i:=0 to ExeSectionList.Count-1 do
+          begin
+            MemPos_ExeSection(TExeSection(ExeSectionList[i]));
+            CurrMemPos:=0;
+          end;
+      end;
+
+    procedure TNewExeOutput.GenerateLibraryImports(ImportLibraryList: TFPHashObjectList);
+      var
+        i,j: longint;
+        ImportLibrary: TImportLibrary;
+        ImportSymbol: TImportSymbol;
+        exesym: TExeSymbol;
+      begin
+        FImports:=ImportLibraryList;
+        AddImportLibrariesExtractedFromObjectModules;
+        for i:=0 to FImports.Count-1 do
+          begin
+            ImportLibrary:=TImportLibrary(FImports[i]);
+            for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
+              begin
+                ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
+                exesym:=TExeSymbol(ExeSymbolList.Find(ImportSymbol.MangledName));
+                if assigned(exesym) and
+                   (exesym.State<>symstate_defined) then
+                  begin
+                    ImportSymbol.CachedExeSymbol:=exesym;
+                    exesym.State:=symstate_defined;
+                  end;
+              end;
+          end;
+        PackUnresolvedExeSymbols('after DLL imports');
+      end;
+
     function TNewExeOutput.writeData: boolean;
       begin
-        {todo}
         Result:=False;
+        if ExeWriteMode in [ewm_exefull,ewm_exeonly] then
+          begin
+            Result:=WriteNewExe;
+            if not Result then
+              exit;
+          end;
       end;
 
 {****************************************************************************
@@ -3531,6 +4897,26 @@ cleanup:
       end;
 
 {*****************************************************************************
+                            Procedures and functions
+*****************************************************************************}
+
+    function StripDllExt(const DllName:TSymStr):TSymStr;
+      begin
+        if UpCase(ExtractFileExt(DllName))='.DLL' then
+          Result:=Copy(DllName,1,Length(DllName)-4)
+        else
+          Result:=DllName;
+      end;
+
+    function MaybeAddDllExt(const DllName: TSymStr): TSymStr;
+      begin
+        if ExtractFileExt(DllName)='' then
+          Result:=ChangeFileExt(DllName,'.dll')
+        else
+          Result:=DllName;
+      end;
+
+{*****************************************************************************
                                   Initialize
 *****************************************************************************}
 {$ifdef i8086}
@@ -3541,7 +4927,7 @@ cleanup:
             idtxt  : 'OMF';
             asmbin : '';
             asmcmd : '';
-            supported_targets : [system_i8086_msdos,system_i8086_embedded];
+            supported_targets : [system_i8086_msdos,system_i8086_embedded,system_i8086_win16];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '..@';
             comment : '; ';

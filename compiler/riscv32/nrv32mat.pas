@@ -55,8 +55,8 @@ implementation
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
       cgutils,cgobj,hlcgobj,pass_2,
+      cpubase,cpuinfo,
       ncon,procinfo,
-      cpubase,
       ncgutil,cgcpu;
 
     procedure trv32notnode.second_boolean;
@@ -121,7 +121,8 @@ implementation
 
     function trv32moddivnode.first_moddivint: tnode;
       begin
-        if (not is_64bitint(resultdef)) then
+        if (not is_64bitint(resultdef)) and
+           (CPURV_HAS_MUL in cpu_capabilities[current_settings.cputype]) then
           Result:=nil
         else
           result:=inherited;

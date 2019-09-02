@@ -35,7 +35,15 @@ const
 {$if not(defined(wince)) and not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
-{$if not defined(darwin) and not defined(FPUVFPV2) and not defined(FPUVFPV3) and not defined(FPUVFPV4) and not defined(FPUVFPV3_D16)}
+
+{ for bootstrapping with 3.0.x/3.2.x }
+{$if not defined(darwin) and not defined(FPUVFPV2) and not defined(FPUVFPV3) and not defined(FPUVFPV4) and not defined(FPUVFPV3_D16) and not defined(FPUARM_HAS_VFP_EXTENSION))}
+{$define FPUARM_HAS_FPA}
+{$else}
+{$define FPUARM_HAS_VFP_EXTENSION}
+{$endif}
+
+{$if defined(FPUARM_HAS_FPA)}
 Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
@@ -46,7 +54,64 @@ begin
     wfs r0
   end;
 end;
-{$else}
+{$elseif defined(FPUARM_HAS_VFP_EXTENSION)}
+
+
+const
+  fpu_nx = 1 shl 0;
+  fpu_uf = 1 shl 1;
+  fpu_of = 1 shl 2;
+  fpu_dz = 1 shl 3;
+  fpu_nv = 1 shl 4;
+
+function getfpscr: sizeuint; nostackframe; assembler;
+  asm
+    fmrx r0,fpscr
+  end;
+
+
+procedure setfpscr(flags : sizeuint); nostackframe; assembler;
+  asm
+    fmxr fpscr,r0
+  end;
+
+
+const
+  FPSCR_IOC = 1;
+  FPSCR_DZC = 1 shl 1;
+  FPSCR_OFC = 1 shl 2;
+  FPSCR_UFC = 1 shl 3;
+  FPSCR_IXC = 1 shl 4;
+  FPSCR_IDC = 1 shl 7;
+
+
+procedure fpc_throwfpuexception;[public,alias:'FPC_THROWFPUEXCEPTION'];
+  var
+    fpscr : longint;
+    f: TFPUException;
+  begin
+    { at this point, we know already, that an exception will be risen }
+    fpscr:=getfpscr;
+
+    if (fpscr and FPSCR_DZC) <> 0 then
+      float_raise(exZeroDivide);
+    if (fpscr and FPSCR_OFC) <> 0 then
+      float_raise(exOverflow);
+    if (fpscr and FPSCR_UFC) <> 0 then
+      float_raise(exUnderflow);
+    if (fpscr and FPSCR_IOC) <> 0 then
+      float_raise(exInvalidOp);
+    if (fpscr and FPSCR_IXC) <> 0 then
+      float_raise(exPrecision);
+    if (fpscr and FPSCR_IDC) <> 0 then
+      float_raise(exDenormalized);
+
+    { now the soft float exceptions }
+    for f in softfloat_exception_flags do
+      float_raise(f);
+  end;
+
+
 Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }

@@ -1,11 +1,11 @@
-{ Parsed from Webkit.framework DOMException.h }
+{ Parsed from WebKit.framework DOMException.h }
+
+{$ifdef EXTERNAL_SYMBOLS}
+var
+  DOMException: NSString { available in 10_4 }; cvar; external;
+{$endif}
 
 {$ifdef TYPES}
-{$ifndef DOMEXCEPTION_PAS_T}
-{$define DOMEXCEPTION_PAS_T}
-
-{ Constants }
-
 const
   DOM_INDEX_SIZE_ERR = 1;
   DOM_DOMSTRING_SIZE_ERR = 2;
@@ -22,31 +22,5 @@ const
   DOM_INVALID_MODIFICATION_ERR = 13;
   DOM_NAMESPACE_ERR = 14;
   DOM_INVALID_ACCESS_ERR = 15;
-
-{$endif}
 {$endif}
 
-{$ifdef RECORDS}
-{$ifndef DOMEXCEPTION_PAS_R}
-{$define DOMEXCEPTION_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMEXCEPTION_PAS_F}
-{$define DOMEXCEPTION_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMEXCEPTION_PAS_S}
-{$define DOMEXCEPTION_PAS_S}
-
-{ External string constants }
-var
-  DOMException: NSString; cvar; external;
-
-{$endif}
-{$endif}

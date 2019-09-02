@@ -6343,6 +6343,13 @@
     flags   : if_arm32 or if_armv4t
   ),
   (
+    opcode  : A_VEOR;
+    ops     : 3;
+    optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
+    code    : #66#243#0#1#16;
+    flags   : if_arm32 or if_neon
+  ),
+  (
     opcode  : A_TAN;
     ops     : 2;
     optypes : (ot_fpureg,ot_fpureg,ot_none,ot_none,ot_none,ot_none);

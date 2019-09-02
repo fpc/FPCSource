@@ -1,4 +1,5 @@
 { %fail }
+{ %opt=-Sew }
 {$mode iso}
 
 var

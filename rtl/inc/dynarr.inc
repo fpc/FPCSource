@@ -39,18 +39,28 @@ type
 
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    record
-     elSize : SizeUInt;
-     {$ifdef VER3_0}
-     elType2 : Pointer;
-     {$else}
-     elType2 : PPointer;
-     {$endif}
-     varType : Longint;
-     {$ifdef VER3_0}
-     elType : Pointer;
-     {$else}
-     elType : PPointer;
-     {$endif}
+     {$if declared(TRttiDataCommon)}
+     common: TRttiDataCommon;
+     {$endif declared TRttiDataCommon}
+     case TTypeKind of
+       tkArray: (
+         elSize : SizeUInt;
+         {$ifdef VER3_0}
+         elType2 : Pointer;
+         {$else}
+         elType2 : PPointer;
+         {$endif}
+         varType : Longint;
+         {$ifdef VER3_0}
+         elType : Pointer;
+         {$else}
+         elType : PPointer;
+         {$endif}
+       );
+       { include for proper alignment }
+       tkInt64: (
+         dummy : Int64
+       );
    end;
 
 procedure fpc_dynarray_rangecheck(p : pointer;i : tdynarrayindex);[Public,Alias:'FPC_DYNARRAY_RANGECHECK']; compilerproc;

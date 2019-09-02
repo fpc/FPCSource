@@ -231,6 +231,21 @@ interface
 
     procedure Tx86InstrWriter.WriteOper(const o:toper);
       begin
+        if o.vopext and OTVE_VECTOR_SAE = OTVE_VECTOR_SAE then
+         owner.writer.AsmWrite('{sae},');
+
+        if o.vopext and OTVE_VECTOR_ER_MASK = OTVE_VECTOR_RNSAE then
+         owner.writer.AsmWrite('{rn-sae},');
+
+        if o.vopext and OTVE_VECTOR_ER_MASK = OTVE_VECTOR_RDSAE then
+         owner.writer.AsmWrite('{rd-sae},');
+
+        if o.vopext and OTVE_VECTOR_ER_MASK = OTVE_VECTOR_RUSAE then
+         owner.writer.AsmWrite('{ru-sae},');
+
+        if o.vopext and OTVE_VECTOR_ER_MASK = OTVE_VECTOR_RZSAE then
+         owner.writer.AsmWrite('{rz-sae},');
+
         case o.typ of
           top_reg :
             { Solaris assembler does not accept %st instead of %st(0) }
@@ -263,6 +278,26 @@ interface
           else
             internalerror(10001);
         end;
+
+           if o.vopext and OTVE_VECTOR_WRITEMASK = OTVE_VECTOR_WRITEMASK then
+            begin
+              owner.writer.AsmWrite('{%k' + tostr(o.vopext and $07) + '} ');
+              if o.vopext and OTVE_VECTOR_ZERO = OTVE_VECTOR_ZERO then
+               owner.writer.AsmWrite('{z}');
+            end;
+
+
+           if o.vopext and OTVE_VECTOR_BCST = OTVE_VECTOR_BCST then
+            begin
+              case o.vopext and (OTVE_VECTOR_BCST2 or OTVE_VECTOR_BCST4 or OTVE_VECTOR_BCST8 or OTVE_VECTOR_BCST16) of
+                 OTVE_VECTOR_BCST2: owner.writer.AsmWrite('{1to2}');
+                 OTVE_VECTOR_BCST4: owner.writer.AsmWrite('{1to4}');
+                 OTVE_VECTOR_BCST8: owner.writer.AsmWrite('{1to8}');
+                OTVE_VECTOR_BCST16: owner.writer.AsmWrite('{1to16}');
+                               else ; //TG TODO errormsg
+              end;
+            end;
+
       end;
 
 

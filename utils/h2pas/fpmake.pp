@@ -15,7 +15,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-h2pas');
-    P.ShortName:='h2pas';
+    P.ShortName:='h2pa';
     { java and jvm-android do not support 
       fpc_get_output used in these sources }
     if Defaults.CPU=jvm then

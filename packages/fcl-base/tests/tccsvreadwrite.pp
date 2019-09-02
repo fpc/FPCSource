@@ -5,7 +5,7 @@ unit tccsvreadwrite;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, csvreadwrite;
+  Classes, SysUtils, fpcunit, testregistry, csvreadwrite;
 
 type
 
@@ -102,7 +102,7 @@ end;
 procedure TTestCSVReadWrite.SetUp;
 begin
   FParser:=TCSVParser.Create;
-  FData:=Tstrings.Create;
+  FData:=TStringList.Create;
 end;
 
 procedure TTestCSVReadWrite.TearDown;

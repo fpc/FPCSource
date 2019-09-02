@@ -1,0 +1,13 @@
+{$define FRAMEWORK_LOADED_SYNCSERVICES}
+{$include SyncServices.inc}
+{$include ISyncCommon.inc}
+{$include ISyncChange.inc}
+{$include ISyncClient.inc}
+{$include ISyncFilter.inc}
+{$include ISyncManager.inc}
+{$include ISyncRecordSnapshot.inc}
+{$include ISyncRecordReference.inc}
+{$include ISyncSession.inc}
+{$include ISyncSessionDriver.inc}
+{$include ISyncCoreData.inc}
+{$include SyncServicesErrors.inc}

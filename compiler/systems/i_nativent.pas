@@ -39,7 +39,7 @@ unit i_nativent;
                             ,tf_smartlink_sections{,tf_section_threadvars}{,tf_needs_dwarf_cfi},
                             tf_no_pic_supported,
                             tf_no_generic_stackcheck{,tf_has_winlike_resources},tf_under_development,
-                            tf_dwarf_only_local_labels];
+                            tf_dwarf_only_local_labels,tf_supports_hidden_symbols];
             cpu          : cpu_i386;
             unit_env     : 'NTUNITS';
             extradefines : 'NATIVENT;FPC_OS_UNICODE';

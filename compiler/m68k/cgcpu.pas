@@ -514,7 +514,7 @@ unit cgcpu;
            end;
 
          { deal with large offsets on non-020+ }
-         if not (current_settings.cputype in cpu_mc68020p) then
+         if not (CPUM68K_HAS_BASEDISP in cpu_capabilities[current_settings.cputype]) then
            begin
              if ((ref.index<>NR_NO) and not isvalue8bit(ref.offset)) or
                 ((ref.base<>NR_NO) and not isvalue16bit(ref.offset)) then
@@ -1195,7 +1195,7 @@ unit cgcpu;
                 { NOTE: better have this as fast as possible on every CPU in all cases,
                         because the compiler uses OP_IMUL for array indexing... (KB) }
                 { ColdFire doesn't support MULS/MULU <imm>,dX }
-                if current_settings.cputype in cpu_coldfire then
+                if not (CPUM68K_HAS_MULIMM in cpu_capabilities[current_settings.cputype]) then
                   begin
                     { move const to a register first }
                     scratch_reg := getintregister(list,OS_INT);
@@ -1211,7 +1211,7 @@ unit cgcpu;
                   end
                 else
                   begin
-                    if current_settings.cputype in cpu_mc68020p then
+                    if CPUM68K_HAS_32BITMUL in cpu_capabilities[current_settings.cputype] then
                       begin
                         { do the multiplication }
                         scratch_reg := force_to_dataregister(list, size, reg);
@@ -1888,7 +1888,7 @@ unit cgcpu;
 
             if (parasize > 0) and not (current_procinfo.procdef.proccalloption in clearstack_pocalls) then
               begin
-                if current_settings.cputype in cpu_mc68020p then
+                if CPUM68K_HAS_RTD in cpu_capabilities[current_settings.cputype] then
                   list.concat(taicpu.op_const(A_RTD,S_NO,parasize))
                 else
                   begin

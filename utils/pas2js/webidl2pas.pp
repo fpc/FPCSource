@@ -197,6 +197,7 @@ begin
   Writeln(StdErr,'                           use @filename to load the aliases from file.');
   Writeln(StdErr,'-u  --unitname=Name        name for unit. Defaults to input file without extension.');
   Writeln(StdErr,'-v  --verbose              Output some diagnostic information');
+  Writeln(StdErr,'-w  --webidlversion=V      Set web IDL version. Allowed values: v1 or v2');
   Writeln(StdErr,'-x  --extra=units          Extra units to put in uses clause (comma separated list)');
   ExitCode:=Ord(Msg<>'');
   {AllowWriteln-}

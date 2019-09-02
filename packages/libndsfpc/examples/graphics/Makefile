@@ -330,280 +330,280 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-android)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i386-aros)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),m68k-macos)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),x86_64-haiku)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),x86_64-iphonesim)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),x86_64-android)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),x86_64-aros)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),x86_64-dragonfly)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),arm-netbsd)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),arm-android)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),arm-aros)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),mipsel-embedded)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),mipsel-android)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),jvm-java)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i8086-embedded)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i8086-msdos)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),i8086-win16)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),aarch64-linux)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),aarch64-darwin)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),aarch64-android)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),wasm-wasm)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),sparc64-linux)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),riscv32-linux)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),riscv32-embedded)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),riscv64-linux)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 ifeq ($(FULL_TARGET),riscv64-embedded)
-override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes Printing Sprites
+override TARGET_DIRS+=3D Backgrounds Effects Ext_Palettes grit Printing Sprites
 endif
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
@@ -2578,8 +2578,9 @@ endif
 ifdef LIB_NAME
 	-$(DEL) $(LIB_NAME) $(LIB_FULLNAME)
 endif
-	-$(DEL) $(FPCMADE) Package.fpc $(PPAS) script.res link.res $(FPCEXTFILE) $(REDIRFILE)
-	-$(DEL) *$(ASMEXT) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
+	-$(DEL) $(FPCMADE) *$(FULL_TARGET).fpm Package.fpc *$(ASMEXT)
+	-$(DEL) $(FPCEXTFILE) $(REDIRFILE) script*.res link*.res *_script.res *_link.res
+	-$(DEL) $(PPAS) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
 fpc_cleanall: $(CLEANTARGET)
 ifdef CLEANEXEFILES
 	-$(DEL) $(CLEANEXEFILES)
@@ -2605,8 +2606,9 @@ ifneq ($(PPUEXT),.ppu)
 	-$(DEL) *.o *.ppu *.a
 endif
 	-$(DELTREE) *$(SMARTEXT)
-	-$(DEL) fpcmade.* Package.fpc $(PPAS) script.res link.res $(FPCEXTFILE) $(REDIRFILE)
-	-$(DEL) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
+	-$(DEL) fpcmade.* Package.fpc *.fpm
+	-$(DEL) $(FPCEXTFILE) $(REDIRFILE) script*.res link*.res *_script.res *_link.res
+	-$(DEL) $(PPAS) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
 ifdef AOUTEXT
 	-$(DEL) *$(AOUTEXT)
 endif
@@ -2730,6 +2732,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2738,6 +2741,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2746,6 +2750,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2754,6 +2759,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2762,6 +2768,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2770,6 +2777,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2778,6 +2786,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2786,6 +2795,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2794,6 +2804,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2802,6 +2813,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2810,6 +2822,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2818,6 +2831,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2826,6 +2840,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2834,6 +2849,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2842,6 +2858,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2850,6 +2867,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2858,6 +2876,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2866,6 +2885,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2874,6 +2894,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2882,6 +2903,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2890,6 +2912,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2898,6 +2921,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2906,6 +2930,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2914,6 +2939,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2922,6 +2948,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2930,6 +2957,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2938,6 +2966,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2946,6 +2975,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2954,6 +2984,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2962,6 +2993,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2970,6 +3002,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2978,6 +3011,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2986,6 +3020,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -2994,6 +3029,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3002,6 +3038,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3010,6 +3047,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3018,6 +3056,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3026,6 +3065,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3034,6 +3074,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3042,6 +3083,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3050,6 +3092,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3058,6 +3101,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3066,6 +3110,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3074,6 +3119,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3082,6 +3128,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3090,6 +3137,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3098,6 +3146,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3106,6 +3155,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3114,6 +3164,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3122,6 +3173,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3130,6 +3182,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3138,6 +3191,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3146,6 +3200,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3154,6 +3209,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3162,6 +3218,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3170,6 +3227,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3178,6 +3236,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3186,6 +3245,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3194,6 +3254,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3202,6 +3263,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3210,6 +3272,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3218,6 +3281,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3226,6 +3290,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3234,6 +3299,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3242,6 +3308,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3250,6 +3317,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3258,6 +3326,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3266,6 +3335,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3274,6 +3344,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3282,6 +3353,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3290,6 +3362,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3298,6 +3371,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3306,6 +3380,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3314,6 +3389,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3322,6 +3398,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3330,6 +3407,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3338,6 +3416,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3346,6 +3425,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3354,6 +3434,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3362,6 +3443,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3370,6 +3452,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3378,6 +3461,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3386,6 +3470,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3394,6 +3479,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3402,6 +3488,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3410,6 +3497,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3418,6 +3506,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3426,6 +3515,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3434,6 +3524,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3442,6 +3533,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3450,6 +3542,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3458,6 +3551,7 @@ TARGET_DIRS_3D=1
 TARGET_DIRS_BACKGROUNDS=1
 TARGET_DIRS_EFFECTS=1
 TARGET_DIRS_EXT_PALETTES=1
+TARGET_DIRS_GRIT=1
 TARGET_DIRS_PRINTING=1
 TARGET_DIRS_SPRITES=1
 endif
@@ -3640,6 +3734,51 @@ Ext_Palettes_makefiles:
 Ext_Palettes:
 	$(MAKE) -C Ext_Palettes all
 .PHONY: Ext_Palettes_all Ext_Palettes_debug Ext_Palettes_smart Ext_Palettes_release Ext_Palettes_units Ext_Palettes_examples Ext_Palettes_shared Ext_Palettes_install Ext_Palettes_sourceinstall Ext_Palettes_exampleinstall Ext_Palettes_distinstall Ext_Palettes_zipinstall Ext_Palettes_zipsourceinstall Ext_Palettes_zipexampleinstall Ext_Palettes_zipdistinstall Ext_Palettes_clean Ext_Palettes_distclean Ext_Palettes_cleanall Ext_Palettes_info Ext_Palettes_makefiles Ext_Palettes
+endif
+ifdef TARGET_DIRS_GRIT
+grit_all:
+	$(MAKE) -C grit all
+grit_debug:
+	$(MAKE) -C grit debug
+grit_smart:
+	$(MAKE) -C grit smart
+grit_release:
+	$(MAKE) -C grit release
+grit_units:
+	$(MAKE) -C grit units
+grit_examples:
+	$(MAKE) -C grit examples
+grit_shared:
+	$(MAKE) -C grit shared
+grit_install:
+	$(MAKE) -C grit install
+grit_sourceinstall:
+	$(MAKE) -C grit sourceinstall
+grit_exampleinstall:
+	$(MAKE) -C grit exampleinstall
+grit_distinstall:
+	$(MAKE) -C grit distinstall
+grit_zipinstall:
+	$(MAKE) -C grit zipinstall
+grit_zipsourceinstall:
+	$(MAKE) -C grit zipsourceinstall
+grit_zipexampleinstall:
+	$(MAKE) -C grit zipexampleinstall
+grit_zipdistinstall:
+	$(MAKE) -C grit zipdistinstall
+grit_clean:
+	$(MAKE) -C grit clean
+grit_distclean:
+	$(MAKE) -C grit distclean
+grit_cleanall:
+	$(MAKE) -C grit cleanall
+grit_info:
+	$(MAKE) -C grit info
+grit_makefiles:
+	$(MAKE) -C grit makefiles
+grit:
+	$(MAKE) -C grit all
+.PHONY: grit_all grit_debug grit_smart grit_release grit_units grit_examples grit_shared grit_install grit_sourceinstall grit_exampleinstall grit_distinstall grit_zipinstall grit_zipsourceinstall grit_zipexampleinstall grit_zipdistinstall grit_clean grit_distclean grit_cleanall grit_info grit_makefiles grit
 endif
 ifdef TARGET_DIRS_PRINTING
 Printing_all:

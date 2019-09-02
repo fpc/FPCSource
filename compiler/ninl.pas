@@ -53,6 +53,8 @@ interface
           function first_pack_unpack: tnode; virtual;
 
           property parameters : tnode read left write left;
+
+          function may_have_sideeffect_norecurse: boolean;
          protected
           { All the following routines currently
             call compilerprocs, unless they are
@@ -2963,13 +2965,13 @@ implementation
                      if assigned(hightree) then
                       begin
                         hp:=caddnode.create(addn,hightree,
-                                         cordconstnode.create(1,sinttype,false));
+                                         cordconstnode.create(1,sizesinttype,false));
                         if (left.resultdef.typ=arraydef) then
                           if not is_packed_array(tarraydef(left.resultdef)) then
                             begin
                               if (tarraydef(left.resultdef).elesize<>1) then
                                 hp:=caddnode.create(muln,hp,cordconstnode.create(tarraydef(
-                                  left.resultdef).elesize,sinttype,true));
+                                  left.resultdef).elesize,sizesinttype,true));
                             end
                           else if (tarraydef(left.resultdef).elepackedbitsize <> 8) then
                             begin
@@ -2977,24 +2979,24 @@ implementation
                               if (hp.nodetype <> ordconstn) then
                                 internalerror(2006081511);
                               hp.free;
-                              hp := cordconstnode.create(left.resultdef.size,sinttype,true);
+                              hp := cordconstnode.create(left.resultdef.size,sizesinttype,true);
 {
                               hp:=
-                                 ctypeconvnode.create_explicit(sinttype,
+                                 ctypeconvnode.create_explicit(sizesinttype,
                                    cmoddivnode.create(divn,
                                      caddnode.create(addn,
                                        caddnode.create(muln,hp,cordconstnode.create(tarraydef(
                                          left.resultdef).elepackedbitsize,s64inttype,true)),
                                        cordconstnode.create(a,s64inttype,true)),
                                      cordconstnode.create(8,s64inttype,true)),
-                                   sinttype);
+                                   sizesinttype);
 }
                             end;
                         result:=hp;
                       end;
                    end
                   else
-                   resultdef:=sinttype;
+                   resultdef:=sizesinttype;
                 end;
 
               in_typeof_x:
@@ -5265,6 +5267,20 @@ implementation
          { free the loop counter }
          addstatement(loopstatement,ctempdeletenode.create(loopvar));
          result := loop;
+       end;
+
+     function tinlinenode.may_have_sideeffect_norecurse: boolean;
+       begin
+         result:=
+          (inlinenumber in [in_write_x,in_writeln_x,in_read_x,in_readln_x,in_str_x_string,
+           in_val_x,in_reset_x,in_rewrite_x,in_reset_typedfile,in_rewrite_typedfile,
+           in_reset_typedfile_name,in_rewrite_typedfile_name,in_settextbuf_file_x,
+           in_inc_x,in_dec_x,in_include_x_y,in_exclude_x_y,in_break,in_continue,in_setlength_x,
+           in_finalize_x,in_new_x,in_dispose_x,in_exit,in_copy_x,in_initialize_x,in_leave,in_cycle,
+           in_and_assign_x_y,in_or_assign_x_y,in_xor_assign_x_y,in_sar_assign_x_y,in_shl_assign_x_y,
+           in_shr_assign_x_y,in_rol_assign_x_y,in_ror_assign_x_y,in_neg_assign_x,in_not_assign_x]) or
+          ((inlinenumber = in_assert_x_y) and
+           (cs_do_assertion in localswitches));
        end;
 
 

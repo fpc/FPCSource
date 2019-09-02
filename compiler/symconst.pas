@@ -420,7 +420,9 @@ type
     po_noinline,
     { same as po_varargs, but with an array-of-const parameter instead of with the
       "varargs" modifier or Mac-Pascal ".." parameter }
-    po_variadic
+    po_variadic,
+    { implicitly return same type as the class instance to which the message is sent }
+    po_objc_related_result_type
   );
   tprocoptions=set of tprocoption;
 
@@ -729,20 +731,35 @@ type
     itp_vmt_afterconstruction_local,
     itp_rttidef,
     itp_rtti_header,
+    itp_rtti_outer,
+    itp_rtti_case,
+    itp_rtti_common_data,
     itp_rtti_prop,
     itp_rtti_ansistr,
+    itp_rtti_attr_list,
+    itp_rtti_attr_entry,
     itp_rtti_ord_outer,
+    itp_rtti_ord_middle,
     itp_rtti_ord_inner,
     itp_rtti_ord_64bit,
     itp_rtti_normal_array,
+    itp_rtti_normal_array_inner,
     itp_rtti_dyn_array,
+    itp_rtti_dyn_array_inner,
+    itp_rtti_pointer,
+    itp_rtti_classref,
+    itp_rtti_float,
     itp_rtti_proc_param,
     itp_rtti_enum_size_start_rec,
+    itp_rtti_enum_size_start_rec2,
     itp_rtti_enum_min_max_rec,
     itp_rtti_enum_basetype_array_rec,
     itp_rtti_ref,
     itp_rtti_set_outer,
+    itp_rtti_set_middle,
     itp_rtti_set_inner,
+    itp_rtti_record,
+    itp_rtti_record_inner,
     itp_init_record_operators,
     itp_init_mop_offset_entry,
     itp_threadvar_record,
@@ -869,20 +886,35 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
        '$vmt_afterconstruction_local',
        '$rttidef$',
        '$rtti_header$',
+       '$rtti_outer$',
+       '$rtti_case$',
+       '$rtti_common_data$',
        '$rtti_prop$',
        '$rtti_ansistr$',
+       '$rtti_attr_list$',
+       '$rtti_attr_entry$',
        '$rtti_ord_outer$',
+       '$rtti_ord_middle$',
        '$rtti_ord_inner$',
        '$rtti_ord_64bit$',
        '$rtti_normal_array$',
+       '$rtti_normal_array_inner$',
        '$rtti_dyn_array$',
+       '$rtti_dyn_array_inner$',
+       '$rtti_dyn_pointer$',
+       '$rtti_dyn_classref$',
+       '$rtti_dyn_float$',
        '$rtti_proc_param$',
        '$rtti_enum_size_start_rec$',
+       '$rtti_enum_size_start_rec2$',
        '$rtti_enum_min_max_rec$',
        '$rtti_enum_basetype_array_rec$',
        '$rtti_ref$',
        '$rtti_set_outer$',
+       '$rtti_set_middle$',
        '$rtti_set_inner$',
+       '$rtti_record$',
+       '$rtti_record_inner$',
        '$init_record_operators$',
        '$init_mop_offset_entry$',
        '$threadvar_record$',
@@ -1034,7 +1066,8 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
       'po_is_auto_getter',{po_is_auto_getter}
       'po_is_auto_setter',{po_is_auto_setter}
       'po_noinline',{po_noinline}
-      'C-style array-of-const' {po_variadic}
+      'C-style array-of-const', {po_variadic}
+      'objc-related-result-type' {po_objc_related_result_type}
     );
 
 implementation

@@ -53,9 +53,9 @@ Unit aopt;
         { Builds a table with the locations of the labels in the TAsmList.
           Also fixes some RegDeallocs like "# %eax released; push (%eax)"  }
         Procedure BuildLabelTableAndFixRegAlloc;
-        procedure clear;
       protected
         procedure pass_1;
+        procedure clear;
       End;
       TAsmOptimizerClass = class of TAsmOptimizer;
 

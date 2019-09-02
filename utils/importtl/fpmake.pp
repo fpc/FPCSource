@@ -15,7 +15,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-importtl');
-    P.ShortName:='importttl';
+    P.ShortName:='impt';
     P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];

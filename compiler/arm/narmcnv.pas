@@ -78,7 +78,7 @@ implementation
 {$ifdef cpufpemu}
           (current_settings.fputype=fpu_soft) or
 {$endif cpufpemu}
-          (current_settings.fputype=fpu_fpv4_s16) then
+          (FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype]) then
           result:=inherited first_int_to_real
         else
           begin
@@ -117,11 +117,7 @@ implementation
               fpu_fpa10,
               fpu_fpa11:
                 expectloc:=LOC_FPUREGISTER;
-              fpu_vfpv2,
-              fpu_vfpv3,
-              fpu_vfpv4,
-              fpu_vfpv3_d16,
-              fpu_fpv4_s16:
+              fpu_vfp_first..fpu_vfp_last:
                 expectloc:=LOC_MMREGISTER;
               else
                 internalerror(2009112702);
@@ -131,7 +127,7 @@ implementation
 
     function tarmtypeconvnode.first_real_to_real: tnode;
       begin
-        if (current_settings.fputype=fpu_fpv4_s16) then
+        if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype] then
           begin
             case tfloatdef(left.resultdef).floattype of
               s32real:
@@ -244,10 +240,7 @@ implementation
                   end;
               end;
             end;
-          fpu_vfpv2,
-          fpu_vfpv3,
-          fpu_vfpv4,
-          fpu_vfpv3_d16:
+          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
             begin
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
               signed:=left.location.size=OS_S32;
@@ -261,8 +254,8 @@ implementation
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VCVT,
                 location.register,left.location.register),
                 signedprec2vfppf[signed,location.size]));
-            end;
-          fpu_fpv4_s16:
+            end
+          else if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype] then
             begin
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
               signed:=left.location.size=OS_S32;
@@ -277,7 +270,7 @@ implementation
                 current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VCVT,location.register,left.location.register), PF_F32S32))
               else
                 current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VCVT,location.register,left.location.register), PF_F32U32));
-            end;
+            end
           else
             { should be handled in pass 1 }
             internalerror(2019050934);

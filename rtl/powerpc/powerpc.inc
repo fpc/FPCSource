@@ -1018,8 +1018,11 @@ asm
       mr      r10,r4
       mtctr   r10
       { at LStrPasDone, we set the length of the result to 255 - r10 - r4 }
-      { = 255 - 255 - 0 if the soure = nil -> perfect :)                  }
-      beq     .LStrPasDone
+      bne     .LStrPasStart
+      { put zero into r10 }
+      mr      r10, r8
+      b       .LStrPasDone
+.LStrPasStart:
       { save address for at the end and use r7 in loop }
       mr      r7,r3
       { no "subi r7,r7,1" because the first byte = length byte }
@@ -1037,11 +1040,11 @@ asm
       { if r10 was zero (-> stopped because of zero byte), then r4 will be 32 }
       { (32 leading zero bits) -> shr 5 = 1, otherwise this will be zero      }
       srwi    r4,r4,5
-.LStrPasDone:
       subfic  r10,r10,255
       sub     r10,r10,r4
 
       { store length }
+.LStrPasDone:
       stb     r10,0(r3)
 end;
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}

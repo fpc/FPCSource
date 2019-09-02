@@ -280,7 +280,7 @@ var rtl = {
       // if root is an "object" then c.$ancestor === Object.getPrototypeOf(c)
       // if root is a "function" then c.$ancestor === c.__proto__, Object.getPrototypeOf(c) returns the root
     } else {
-      c = {};
+      c = { $ancestor: null };
       c.$create = function(fn,args){
         if (args == undefined) args = [];
         var o = Object.create(this);
@@ -355,7 +355,7 @@ var rtl = {
       c.$ancestor = ancestor;
       // c.$ancestor === Object.getPrototypeOf(c)
     } else {
-      c = {};
+      c = { $ancestor: null };
     };
     parent[name] = c;
     c.$class = c; // Note: o.$class === Object.getPrototypeOf(o)
@@ -627,7 +627,7 @@ var rtl = {
   },
 
   queryIntfIsT: function(obj,intftype){
-    var i = rtl.queryIntfG(obj,intftype.$guid);
+    var i = rtl.getIntfG(obj,intftype.$guid);
     if (!i) return false;
     if (i.$kind === 'com') i._Release();
     return true;
@@ -636,6 +636,18 @@ var rtl = {
   asIntfT: function (obj,intftype){
     var i = rtl.getIntfG(obj,intftype.$guid);
     if (i!==null) return i;
+    rtl.raiseEInvalidCast();
+  },
+
+  intfIsIntfT: function(intf,intftype){
+    return (intf!==null) && rtl.queryIntfIsT(intf.$o,intftype);
+  },
+
+  intfAsIntfT: function (intf,intftype){
+    if (intf){
+      var i = rtl.getIntfG(intf.$o,intftype.$guid);
+      if (i!==null) return i;
+    }
     rtl.raiseEInvalidCast();
   },
 
@@ -1058,6 +1070,7 @@ var rtl = {
         s=' '+s;
         l++;
       };
+      return s;
     };
   },
 
@@ -1096,6 +1109,11 @@ var rtl = {
     }
     setCodeFn(1);
     return 0;
+  },
+
+  lw: function(l){
+    // fix longword bitwise operation
+    return l<0?l+0x100000000:l;
   },
 
   and: function(a,b){

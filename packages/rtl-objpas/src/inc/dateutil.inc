@@ -453,9 +453,10 @@ Function TryISOTZStrToTZOffset(const TZ : String; Out TZOffset : Integer) : bool
 // ISO 8601 Date/Time formatting
 
 function DateToISO8601(const ADate: TDateTime; AInputIsUTC: Boolean = True): string;
-Function ISO8601ToDate(const DateString: string; ReturnUTC : Boolean): TDateTime;
-Function ISO8601ToDateDef(const DateString: string; ReturnUTC : Boolean; aDefault : TDateTime): TDateTime;
-Function TryISO8601ToDate(const DateString: string; ReturnUTC : Boolean;out ADateTime: TDateTime) : Boolean;
+Function ISO8601ToDate(const DateString: string; ReturnUTC : Boolean = True): TDateTime;
+Function ISO8601ToDateDef(const DateString: string; ReturnUTC : Boolean; aDefault : TDateTime ): TDateTime; deprecated;
+Function ISO8601ToDateDef(const DateString: string; aDefault : TDateTime; ReturnUTC : Boolean = True ): TDateTime;
+Function TryISO8601ToDate(const DateString: string; out ADateTime: TDateTime; ReturnUTC : Boolean = True) : Boolean;
 
 
 implementation
@@ -2896,7 +2897,7 @@ begin
     Raise EConvertError.CreateFmt('Invalid ISO timezone string',[TZ]);
 end;
 
-Function TryISO8601ToDate(const DateString: string; ReturnUTC : Boolean;out ADateTime: TDateTime) : Boolean;
+Function TryISO8601ToDate(const DateString: string; out ADateTime: TDateTime;ReturnUTC : Boolean = True) : Boolean;
 
 
 Var
@@ -2941,19 +2942,27 @@ begin
   Result:=True;
 end;
 
-Function ISO8601ToDate(const DateString: string; ReturnUTC : Boolean): TDateTime;
+Function ISO8601ToDate(const DateString: string; ReturnUTC : Boolean = True): TDateTime;
 
 begin
-  if not TryISO8601ToDate(DateString,ReturnUTC,Result) then
+  if not TryISO8601ToDate(DateString,Result,ReturnUTC) then
     Raise EConvertError.CreateFmt(SErrInvalidTimeStamp,[DateString]);
 end;
 
 Function ISO8601ToDateDef(const DateString: string; ReturnUTC : Boolean; aDefault : TDateTime): TDateTime;
 
 begin
-  if not TryISO8601ToDate(DateString,ReturnUTC,Result) then
+  if not TryISO8601ToDate(DateString,Result,ReturnUTC) then
     Result:=aDefault;
 end;
+
+Function ISO8601ToDateDef(const DateString: string; aDefault : TDateTime; ReturnUTC : Boolean = True): TDateTime;
+
+begin
+  if not TryISO8601ToDate(DateString,Result,ReturnUTC) then
+    Result:=aDefault;
+end;
+
 
 {$else}
 implementation

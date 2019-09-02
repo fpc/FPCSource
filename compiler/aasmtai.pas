@@ -446,6 +446,9 @@ interface
         { please keep the size of this record <=12 bytes and keep it properly aligned }
         toper = record
           ot : longint;
+        {$ifdef x86}
+          vopext: smallint;
+        {$ENDIF}
           case typ : toptype of
             top_none   : ();
             top_reg    : (reg:tregister);
@@ -551,6 +554,7 @@ interface
           constructor Create_Global(_sym:tasmsymbol;siz:longint);
           constructor Createname(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
           constructor Createname_global(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
+          constructor Createname_hidden(const _name : string;_symtyp:Tasmsymtype;siz:longint;def:tdef);
           constructor Createname_global_value(const _name : string;_symtyp:Tasmsymtype;siz:longint;val:ptruint;def:tdef);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -634,6 +638,7 @@ interface
           sym       : tasmsymbol;
           size      : asizeint;
           constructor Create(const _name : string;_size : asizeint; def: tdef);
+          constructor Create_hidden(const _name : string;_size : asizeint; def: tdef);
           constructor Create_global(const _name : string;_size : asizeint; def: tdef);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -700,6 +705,9 @@ interface
           constructor Create_int_codeptr_unaligned(_value: int64);
           constructor Create_int_dataptr(_value: int64);
           constructor Create_int_dataptr_unaligned(_value: int64);
+{$ifdef avr}
+          constructor Create_int_dataptr_unaligned(_value: int64; size: taiconst_type);
+{$endif}
 {$ifdef i8086}
           constructor Create_seg_name(const name:string);
           constructor Create_dgroup;
@@ -1289,6 +1297,23 @@ implementation
          is_global:=false;
       end;
 
+    constructor tai_datablock.Create_hidden(const _name: string; _size: asizeint; def: tdef);
+      begin
+        if tf_supports_hidden_symbols in target_info.flags then
+          begin
+            inherited Create;
+            typ:=ait_datablock;
+            sym:=current_asmdata.DefineAsmSymbol(_name,AB_PRIVATE_EXTERN,AT_DATA,def);
+            { keep things aligned }
+            if _size<=0 then
+              _size:=sizeof(aint);
+            size:=_size;
+            is_global:=true;
+          end
+        else
+          Create(_name,_size,def);
+      end;
+
 
     constructor tai_datablock.Create_global(const _name : string;_size : asizeint; def: tdef);
       begin
@@ -1375,6 +1400,20 @@ implementation
          sym:=current_asmdata.DefineAsmSymbol(_name,AB_GLOBAL,_symtyp,def);
          size:=siz;
          is_global:=true;
+      end;
+
+    constructor tai_symbol.Createname_hidden(const _name: string; _symtyp: Tasmsymtype; siz: longint; def: tdef);
+      begin
+        if tf_supports_hidden_symbols in target_info.flags then
+          begin
+            inherited Create;
+            typ:=ait_symbol;
+            sym:=current_asmdata.DefineAsmSymbol(_name,AB_PRIVATE_EXTERN,_symtyp,def);
+            size:=siz;
+            is_global:=true;
+          end
+        else
+          Createname(_name, _symtyp, siz, def);
       end;
 
 
@@ -1928,6 +1967,20 @@ implementation
         value:=_value;
       end;
 
+
+{$ifdef avr}
+    constructor tai_const.Create_int_dataptr_unaligned(_value: int64;
+      size: taiconst_type);
+      begin
+        inherited Create;
+        typ:=ait_const;
+        consttype:=size;
+        sym:=nil;
+        endsym:=nil;
+        symofs:=0;
+        value:=_value;
+      end;
+{$endif avr}
 
 {$ifdef i8086}
     constructor tai_const.Create_seg_name(const name:string);

@@ -614,8 +614,7 @@ implementation
             tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,classtable);
             datatcb.begin_anonymous_record('$fpc_intern_classtable_'+tostr(classtablelist.Count-1),
               packrecords,1,
-              targetinfos[target_info.system]^.alignment.recordalignmin,
-              targetinfos[target_info.system]^.alignment.maxCrecordalign);
+              targetinfos[target_info.system]^.alignment.recordalignmin);
             datatcb.emit_tai(Tai_const.Create_16bit(classtablelist.count),u16inttype);
             for i:=0 to classtablelist.Count-1 do
               begin
@@ -649,8 +648,7 @@ implementation
               plus there would be very little chance that it could actually be
               reused }
             datatcb.begin_anonymous_record('',packrecords,1,
-              targetinfos[target_info.system]^.alignment.recordalignmin,
-              targetinfos[target_info.system]^.alignment.maxCrecordalign);
+              targetinfos[target_info.system]^.alignment.recordalignmin);
             datatcb.emit_tai(Tai_const.Create_16bit(fieldcount),u16inttype);
             datatcb.emit_tai(Tai_const.Create_sym(classtable),cpointerdef.getreusable(classtabledef));
             for i:=0 to _class.symtable.SymList.Count-1 do
@@ -672,8 +670,7 @@ implementation
                       end;
                     }
                     datatcb.begin_anonymous_record('$fpc_intern_fieldinfo_'+tostr(length(tfieldvarsym(sym).realname)),packrecords,1,
-                      targetinfos[target_info.system]^.alignment.recordalignmin,
-                      targetinfos[target_info.system]^.alignment.maxCrecordalign);
+                      targetinfos[target_info.system]^.alignment.recordalignmin);
                     datatcb.emit_tai(Tai_const.Create_sizeint(tfieldvarsym(sym).fieldoffset),sizeuinttype);
                     classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
                     if classindex=-1 then
@@ -728,8 +725,7 @@ implementation
       begin
         tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,'',datatcb,fintfvtablelabels[intfindex]);
         datatcb.begin_anonymous_record('',0,1,
-          targetinfos[target_info.system]^.alignment.recordalignmin,
-          targetinfos[target_info.system]^.alignment.maxCrecordalign);
+          targetinfos[target_info.system]^.alignment.recordalignmin);
         if assigned(AImplIntf.procdefs) then
           begin
             for i:=0 to AImplIntf.procdefs.count-1 do
@@ -847,8 +843,7 @@ implementation
 
         tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,lab);
         datatcb.begin_anonymous_record('',default_settings.packrecords,1,
-          targetinfos[target_info.system]^.alignment.recordalignmin,
-          targetinfos[target_info.system]^.alignment.maxCrecordalign);
+          targetinfos[target_info.system]^.alignment.recordalignmin);
         datatcb.emit_tai(Tai_const.Create_sizeint(_class.ImplementedInterfaces.count),sizeuinttype);
         interfaceentrydef:=search_system_type('TINTERFACEENTRY').typedef;
         interfaceentrytypedef:=search_system_type('TINTERFACEENTRYTYPE').typedef;

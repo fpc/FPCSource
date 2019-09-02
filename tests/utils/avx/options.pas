@@ -26,8 +26,11 @@ interface
 
 type
 
+  { TOptions }
+
   TOptions = class(TObject)
   private
+    FAVX512: boolean;
     FHelp: boolean;
     FX64: boolean;
     FOutputFormat: Char;
@@ -40,6 +43,7 @@ type
     property Help: boolean read FHelp write FHelp;
     property OutputFormat: Char read FOutputFormat write FOutputFormat;
     property X64: boolean read FX64 write FX64;
+    property AVX512: boolean read FAVX512 write FAVX512;
     property Path: string read FPath write FPath;
   end;
 
@@ -53,6 +57,7 @@ constructor TOptions.Create;
 begin
   FHelp          := false;
   FX64           := false;
+  FAVX512        := false;
   FOutputFormat  := '?';
   FPath          := '';
 end;
@@ -91,6 +96,7 @@ begin
                 Fx64 := true;
               end
               else IsInvalidParam := true;
+         'z': FAVX512 := true;
          'o': if sValue <> '' then
               begin
                 FPath :=  IncludeTrailingBackslash(sValue);

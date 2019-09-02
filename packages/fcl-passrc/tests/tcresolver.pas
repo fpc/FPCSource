@@ -68,7 +68,7 @@ type
     procedure ReleaseUsedUnits;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility;
-      const ASrcPos: TPasSourcePos): TPasElement;
+      const ASrcPos: TPasSourcePos; TypeParams: TFPList = nil): TPasElement;
       overload; override;
     function FindUnit(const AName, InFilename: String; NameExpr,
       InFileExpr: TPasExpr): TPasModule; override;
@@ -360,6 +360,7 @@ type
     Procedure TestUnitUseIntf;
     Procedure TestUnitUseImplFail;
     Procedure TestUnit_DuplicateUsesFail;
+    Procedure TestUnit_DuplicateUsesIntfImplFail;
     Procedure TestUnit_NestedFail;
     Procedure TestUnitUseDotted;
     Procedure TestUnit_ProgramDefaultNamespace;
@@ -452,6 +453,7 @@ type
     Procedure TestProc_ImplicitCalls;
     Procedure TestProc_Absolute;
     Procedure TestProc_LocalInit;
+    Procedure TestProc_ExtNamePropertyFail;
 
     // anonymous procs
     Procedure TestAnonymousProc_Assign;
@@ -763,6 +765,7 @@ type
 
     // arrays
     Procedure TestDynArrayOfLongint;
+    Procedure TestDynArrayOfSelfFail;
     Procedure TestStaticArray;
     Procedure TestStaticArrayOfChar;
     Procedure TestStaticArrayOfCharDelphi;
@@ -936,12 +939,14 @@ type
     Procedure TestTypeHelper_Set;
     Procedure TestTypeHelper_Enumerator;
     Procedure TestTypeHelper_String;
+    Procedure TestTypeHelper_StringOtherUnit;
     Procedure TestTypeHelper_Boolean;
     Procedure TestTypeHelper_Double;
     Procedure TestTypeHelper_DoubleAlias;
     Procedure TestTypeHelper_Constructor_NewInstance;
     Procedure TestTypeHelper_Interface;
     Procedure TestTypeHelper_Interface_ConstructorFail;
+    Procedure TestTypeHelper_TypeAliasType;
 
     // attributes
     Procedure TestAttributes_Globals;
@@ -1011,9 +1016,9 @@ end;
 
 function TTestEnginePasResolver.CreateElement(AClass: TPTreeElement;
   const AName: String; AParent: TPasElement; AVisibility: TPasMemberVisibility;
-  const ASrcPos: TPasSourcePos): TPasElement;
+  const ASrcPos: TPasSourcePos; TypeParams: TFPList): TPasElement;
 begin
-  Result:=inherited CreateElement(AClass, AName, AParent, AVisibility, ASrcPos);
+  Result:=inherited CreateElement(AClass, AName, AParent, AVisibility, ASrcPos, TypeParams);
   if (FModule=nil) and AClass.InheritsFrom(TPasModule) then
     Module:=TPasModule(Result);
 end;
@@ -5672,6 +5677,28 @@ begin
     nParserDuplicateIdentifier);
 end;
 
+procedure TTestResolver.TestUnit_DuplicateUsesIntfImplFail;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'type number = longint;']),
+    LinesToStr([
+    '']));
+
+  StartUnit(true);
+  Add([
+  'interface',
+  'uses unit2;',
+  'var j: number;',
+  'implementation',
+  'uses unit2;',
+  'initialization',
+  '  if number(3) then ;',
+  '']);
+  CheckParserException('Duplicate identifier "unit2" at token ";" in file afile.pp at line 6 column 11',
+    nParserDuplicateIdentifier);
+end;
+
 procedure TTestResolver.TestUnit_NestedFail;
 begin
   AddModuleWithIntfImplSrc('unit2.pp',
@@ -5883,8 +5910,8 @@ begin
   '  if unit1.j1=0 then ;',
   '  if unitdots.unit1.j1=0 then ;',
   '']);
-  CheckResolverException('Duplicate identifier "unitdots.unit1" at unitdots.main1.pas(2,14)',
-    nDuplicateIdentifier);
+  CheckParserException('Duplicate identifier "unit1" at token ";" in file unitdots.main1.pas at line 2 column 27',
+    nParserDuplicateIdentifier);
 end;
 
 procedure TTestResolver.TestUnit_Unit1DotUnit2Fail;
@@ -7384,7 +7411,7 @@ begin
   Add('function GetIt: longint; begin end;');
   Add('var s: smallint;');
   Add('begin');
-  Add('   s:=smallint(GetIt);');
+  Add('  s:=smallint(GetIt);');
   ParseProgram;
 end;
 
@@ -7476,6 +7503,16 @@ begin
   'end;',
   'begin']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_ExtNamePropertyFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Foo; external name ''});'' property;',
+  'begin']);
+  CheckParserException('Expected ";" at token "property" in file afile.pp at line 2 column 36',
+    nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestAnonymousProc_Assign;
@@ -8280,6 +8317,7 @@ begin
   '  r.V1:=trec.VC;',
   '  r.VC:=r.V1;',
   '  trec.VC:=trec.c1;',
+  '  trec.ca[1]:=trec.c2;',
   '']);
   ParseProgram;
 end;
@@ -9123,7 +9161,7 @@ begin
   Add('begin');
   Add('end;');
   Add('begin');
-  CheckResolverException('identifier not found "TClassA"',nIdentifierNotFound);
+  CheckResolverException('class "TClassA" not found in this module',nClassXNotFoundInThisModule);
 end;
 
 procedure TTestResolver.TestClass_MethodInOtherUnitFail;
@@ -9144,7 +9182,8 @@ begin
   'begin',
   'end;',
   'begin']);
-  CheckResolverException('method class "TObject" in other unit "unit1"',nMethodClassXInOtherUnitY);
+  CheckResolverException('class "TObject" not found in this module',
+    nClassXNotFoundInThisModule);
 end;
 
 procedure TTestResolver.TestClass_MethodWithParams;
@@ -10203,6 +10242,7 @@ begin
   Add('  ProcA(TClassA({@o}o));');
   Add('  if TClassA({@o}o).id=3 then ;');
   Add('  if (o as TClassA).id=3 then ;');
+  Add('  o:=TObject(nil);');
   ParseProgram;
 end;
 
@@ -13753,6 +13793,14 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestDynArrayOfSelfFail;
+begin
+  StartProgram(false);
+  Add('type TIntArray = array of TIntArray;');
+  Add('begin');
+  CheckResolverException(sIllegalExpression,nIllegalExpression);
+end;
+
 procedure TTestResolver.TestStaticArray;
 begin
   StartProgram(false);
@@ -14463,6 +14511,10 @@ begin
   'type',
   '  TDynArrInt = array of byte;',
   '  TStaArrInt = array[1..2] of byte;',
+  'procedure Fly(var a: array of byte);',
+  'begin',
+  '  Fly(a);',
+  'end;',
   'procedure DoIt(a: array of byte);',
   'var',
   '  d: TDynArrInt;',
@@ -14473,6 +14525,8 @@ begin
   '  // d:=a; forbidden in delphi',
   '  DoIt(d);',
   '  DoIt(s);',
+  '  Fly(a);',
+  '  Fly(d);', // dyn array can be passed to a var open array
   'end;',
   'begin',
   '']);
@@ -15882,8 +15936,8 @@ begin
   Add([
   'type p = ^(red, green);',
   'begin']);
-  CheckResolverException('not yet implemented: pointer of anonymous type',
-    nNotYetImplemented);
+  CheckParserException('Expected "Identifier" at token "(" in file afile.pp at line 2 column 11',
+    nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestPointer_AssignPointerToClassFail;
@@ -17653,6 +17707,43 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestTypeHelper_StringOtherUnit;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    '{$modeswitch typehelpers}',
+    'type',
+    '  TStringHelper = type helper for String',
+    '    procedure DoIt;',
+    '  end;',
+    '  TCharHelper = type helper for char',
+    '    procedure Fly;',
+    '  end;',
+    '']),
+    LinesToStr([
+    'procedure TStringHelper.DoIt;',
+    'begin',
+    '  Self[1]:=Self[2];',
+    'end;',
+    'procedure TCharHelper.Fly;',
+    'begin',
+    '  Self:=''c'';',
+    '  Self:=Self;',
+    'end;',
+    '']));
+  StartProgram(true);
+  Add([
+  'uses unit2;',
+  'var s: string;',
+  'begin',
+  '  ''abc''.DoIt;',
+  '  ''xyz''.DoIt();',
+  '  ''c''.Fly;',
+  '  s.DoIt;',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestTypeHelper_Boolean;
 begin
   StartProgram(false);
@@ -17865,6 +17956,37 @@ begin
   'begin',
   '']);
   CheckResolverException('constructor is not supported',nXIsNotSupported);
+end;
+
+procedure TTestResolver.TestTypeHelper_TypeAliasType;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TEnum = type longint;',
+  '  TIntHelper = type helper for longint',
+  '    procedure Run;',
+  '  end;',
+  '  TEnumHelper = type helper for TEnum',
+  '    procedure Fly;',
+  '  end;',
+  'procedure TIntHelper.Run;',
+  'begin',
+  'end;',
+  'procedure TEnumHelper.Fly;',
+  'begin',
+  'end;',
+  'var',
+  '  e: TEnum;',
+  '  i: longint;',
+  'begin',
+  '  i.Run;',
+  '  e.Fly;',
+  '  with i do Run;',
+  '  with e do Fly;',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestAttributes_Globals;

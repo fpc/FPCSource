@@ -21,7 +21,9 @@
 }
 unit pcp;
 
-{$mode objfpc}{$H+}
+{$i fpcdefs.inc}
+
+{$H+}
 
 interface
 

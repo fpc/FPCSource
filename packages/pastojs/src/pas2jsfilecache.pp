@@ -279,7 +279,8 @@ type
     function ExpandExecutable(const Filename: string): string; override;
     function HandleOptionPaths(C: Char; aValue: String; FromCmdLine: Boolean): String; override;
     Function AddForeignUnitPath(const aValue: String; FromCmdLine: Boolean): String; override;
-    function TryCreateRelativePath(const Filename, BaseDirectory: String; UsePointDirectory: boolean; out RelPath: String): Boolean; override;
+    function TryCreateRelativePath(const Filename, BaseDirectory: String;
+      UsePointDirectory, AlwaysRequireSharedBaseFolder: boolean; out RelPath: String): Boolean; override;
   Protected
     property DirectoryCache: TPas2jsCachedDirectories read FDirectoryCache;
   public
@@ -1806,11 +1807,12 @@ begin
   AddSrcUnitPaths(aValue,FromCmdLine,Result);
 end;
 
-function TPas2jsFilesCache.TryCreateRelativePath(const Filename, BaseDirectory: String;
-  UsePointDirectory: boolean; out RelPath: String): Boolean;
+function TPas2jsFilesCache.TryCreateRelativePath(const Filename,
+  BaseDirectory: String; UsePointDirectory,
+  AlwaysRequireSharedBaseFolder: boolean; out RelPath: String): Boolean;
 begin
   Result:=Pas2jsFileUtils.TryCreateRelativePath(Filename, BaseDirectory,
-    UsePointDirectory, true, RelPath);
+    UsePointDirectory, AlwaysRequireSharedBaseFolder, RelPath);
 end;
 
 function TPas2jsFilesCache.FindIncludeFileName(const aFilename,

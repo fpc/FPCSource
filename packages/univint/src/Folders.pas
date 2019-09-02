@@ -7,6 +7,8 @@
  
      Copyright:  © 1995-2011 by Apple Inc. All rights reserved.
 }
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, June 2018 }
+
 {
     Modified for use with Free Pascal
     Version 308
@@ -15,6 +17,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -585,7 +588,10 @@ const
 	kClassicPreferencesFolderType = FourCharCode('cprf'); { "Classic" folder in ~/Library/ for redirected preference files. }
 
 const
-	kQuickLookFolderType = FourCharCode('qlck'); { The QuickLook folder, supported in Mac OS X SnowLeopard and later. }
+	kQuickLookFolderType = FourCharCode('qlck'); { The QuickLook folder, supported in Mac OS X 10.6 and later. }
+
+const
+	kServicesFolderType = FourCharCode('svcs'); { The services folder, supported in Mac OS X 10.7 and later. }
 
 const
 {    The following selectors really only make sense when used within the Classic environment on Mac OS X.}

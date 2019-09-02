@@ -3344,8 +3344,9 @@ endif
 ifdef LIB_NAME
 	-$(DEL) $(LIB_NAME) $(LIB_FULLNAME)
 endif
-	-$(DEL) $(FPCMADE) Package.fpc $(PPAS) script.res link.res $(FPCEXTFILE) $(REDIRFILE)
-	-$(DEL) *$(ASMEXT) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
+	-$(DEL) $(FPCMADE) *$(FULL_TARGET).fpm Package.fpc *$(ASMEXT)
+	-$(DEL) $(FPCEXTFILE) $(REDIRFILE) script*.res link*.res *_script.res *_link.res
+	-$(DEL) $(PPAS) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
 fpc_cleanall: $(CLEANTARGET)
 ifdef CLEANEXEFILES
 	-$(DEL) $(CLEANEXEFILES)
@@ -3371,8 +3372,9 @@ ifneq ($(PPUEXT),.ppu)
 	-$(DEL) *.o *.ppu *.a
 endif
 	-$(DELTREE) *$(SMARTEXT)
-	-$(DEL) fpcmade.* Package.fpc $(PPAS) script.res link.res $(FPCEXTFILE) $(REDIRFILE)
-	-$(DEL) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
+	-$(DEL) fpcmade.* Package.fpc *.fpm
+	-$(DEL) $(FPCEXTFILE) $(REDIRFILE) script*.res link*.res *_script.res *_link.res
+	-$(DEL) $(PPAS) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
 ifdef AOUTEXT
 	-$(DEL) *$(AOUTEXT)
 endif
@@ -3515,6 +3517,7 @@ makefiles: fpc_makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
+.NOTPARALLEL:
 include $(INC)/makefile.inc
 SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
@@ -3536,7 +3539,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   $(SYSTEMUNIT)$(PPUEXT)
 unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp ptypes.inc $(UNIXINC)/ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/unixtype.pp
-baseunix$(PPUEXT) : baseunix.pp $(UNIXINC)/unixtype.pp $(SYSTEMUNIT)$(PPUEXT)
+baseunix$(PPUEXT) : baseunix.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Fi$(UNIXINC) -Fu$(UNIXINC) baseunix.pp
 syscall$(PPUEXT) : $(UNIXINC)/syscall.pp $(SYSNRINC)  $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/syscall.pp

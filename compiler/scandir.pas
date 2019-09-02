@@ -484,7 +484,7 @@ unit scandir;
     procedure dir_description;
       begin
         if not (target_info.system in systems_all_windows+[system_i386_os2,system_i386_emx,
-                 system_i386_netware,system_i386_wdosx,system_i386_netwlibc]) then
+                 system_i386_netware,system_i386_wdosx,system_i386_netwlibc,system_i8086_win16]) then
           Message(scan_w_description_not_support);
         { change description global var in all cases }
         { it not used but in win32, os2 and netware }
@@ -855,7 +855,12 @@ unit scandir;
         maxheapsize_limit: longint;
       begin
 {$if defined(i8086)}
-        if current_settings.x86memorymodel in x86_far_data_models then
+        if target_info.system=system_i8086_win16 then
+          begin
+            heapsize_limit:=65520;
+            maxheapsize_limit:=65520;
+          end
+        else if current_settings.x86memorymodel in x86_far_data_models then
           begin
             heapsize_limit:=655360;
             maxheapsize_limit:=655360;
