@@ -3,6 +3,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     Implement a buffered stream.
+    TBufferedFileStream contributed by José Mejuto, bug ID 30549.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
