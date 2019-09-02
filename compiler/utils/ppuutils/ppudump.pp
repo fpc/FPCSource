@@ -491,17 +491,20 @@ type
     case byte of
       0: (bytes: Array[0..9] of byte);
       1: (words: Array[0..4] of word);
+{$ifdef FPC_LITTLE_ENDIAN}
       2: (cards: Array[0..1] of cardinal; w: word);
+{$else not FPC_LITTLE_ENDIAN}
+      2: (w:word; cards: Array[0..1] of cardinal);
+{$endif not FPC_LITTLE_ENDIAN}
   end;
 const
   maxDigits = 17;
-  function Real80bitToStr(var e : TSplit80bitReal) : string;
+  function Real80bitToStr(var e : TSplit80bitReal;var ext : extended) : string;
   var
     Temp : string;
     new : TSplit80bitReal;
     fraczero, expmaximal, sign, outside_double : boolean;
     exp : smallint;
-    ext : extended;
     d : double;
     i : longint;
     mantval : qword;
@@ -524,7 +527,11 @@ const
     exp:=(e.w and $7fff) - 16383 - 63;
     fraczero := (e.cards[0] = 0) and
                     ((e.cards[1] and $7fffffff) = 0);
+{$ifdef FPC_LITTLE_ENDIAN}
     mantval := qword(e.cards[0]) or (qword(e.cards[1]) shl 32);
+{$else not FPC_LITTLE_ENDIAN}
+    mantval := (qword(e.cards[0]) shl 32) or qword(e.cards[1]);
+{$endif not FPC_LITTLE_ENDIAN}
     if expMaximal then
       if fraczero then
         if sign then
@@ -554,10 +561,15 @@ const
       if (mantval<>0) and (d=0.0) then
         outside_double:=true;
       if outside_double then
-        Temp:='Extended value outside double bound'
+        begin
+          Temp:='Extended value outside double bound';
+          ext:=0.0;
+        end
       else
-        system.str(d,temp);
-
+        begin
+          ext:=d;
+          system.str(d,temp);
+        end;
       end;
 
     result:=temp;
@@ -3600,8 +3612,7 @@ begin
                    else if entryleft=10 then
                      begin
                        getdata(extended,entryleft);
-                       ss:=Real80bitToStr(extended);
-                       constdef.VFloat:=StrToFloat(ss);
+                       ss:=Real80bitToStr(extended,constdef.VFloat);
                        writeln(ss);
                      end
                    else
