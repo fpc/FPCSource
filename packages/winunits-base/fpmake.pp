@@ -13,7 +13,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('winunits-base');
-    P.ShortName:='win';
+    P.ShortName:='wib';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
