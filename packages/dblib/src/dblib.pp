@@ -108,6 +108,7 @@ const
   // settings from here are purely FreeTDS extensions:
   DBSETUTF16   = 1001;
   DBSETNTLMV2  = 1002;
+  DBSETREADONLY= 1003;
 
   TIMEOUT_IGNORE=-1;
   TIMEOUT_INFINITE=0;
@@ -451,7 +452,7 @@ procedure dbwinexit;
 function dbsetlcharset(login:PLOGINREC; charset:PAnsiChar):RETCODE;
 function dbsetlsecure(login:PLOGINREC):RETCODE;
 function dbdatetimeallcrack(dta: PDBDATETIMEALL): TDateTime;
-function dbmoneytocurr(pdbmoney: PQWord): Currency;
+function dbmoneytocurr(pdbmoney: PQWord): Currency; inline;
 
 function InitialiseDBLib(const LibraryName : ansistring): integer;
 procedure ReleaseDBLib;
@@ -530,8 +531,6 @@ begin
    pointer(dbtds) := GetProcedureAddress(DBLibLibraryHandle,'dbtds');
    pointer(dbsetlversion) := GetProcedureAddress(DBLibLibraryHandle,'dbsetlversion');
    pointer(dbservcharset) := GetProcedureAddress(DBLibLibraryHandle,'dbservcharset');
-   //if not assigned(dbiscount) then
-   //  raise EInOutError.Create('Minimum supported version of FreeTDS client library is 0.91!');
    {$ENDIF}
    DBLibInit:=false;
   end;
@@ -641,13 +640,9 @@ begin
   Result := ComposeDateTime(Result, dta^.time/MSecsPerDay/10000 + dta^.offset/MinsPerDay);
 end;
 
-function dbmoneytocurr(pdbmoney: PQWord): Currency;
+function dbmoneytocurr(pdbmoney: PQWord): Currency; inline;
 begin
-{$IFDEF ENDIAN_LITTLE}
-  PQWord(@Result)^ := pdbmoney^ shr 32 or pdbmoney^ shl 32;
-{$ELSE}
-  move(pdbmoney^, Result, sizeof(Currency));
-{$ENDIF}
+  PQWord(@Result)^ := {$IFDEF ENDIAN_LITTLE}Swap(pdbmoney^){$ELSE}pdbmoney^{$ENDIF};
 end;
 
 {
