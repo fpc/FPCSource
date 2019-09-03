@@ -888,6 +888,7 @@ compiler/utils/fixtab.pp svneol=native#text/plain
 compiler/utils/fpc.mpw svneol=native#text/plain
 compiler/utils/fpc.pp svneol=native#text/plain
 compiler/utils/fpimpdef.pp svneol=native#text/plain
+compiler/utils/gena64vfp.pp svneol=native#text/pascal
 compiler/utils/gia64reg.pp svneol=native#text/plain
 compiler/utils/gppc386.pp svneol=native#text/plain
 compiler/utils/mk68kreg.pp svneol=native#text/plain
