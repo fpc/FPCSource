@@ -23,9 +23,12 @@ type
     class function c(a,b :TPair):boolean;
   end;
 
+  { TMapIterator }
+
   generic TMapIterator<TKey, TValue, TPair, TNode>=class
     public
     type PNode=^TNode;
+         TLMapIterator = specialize TMapIterator<TKey, TValue, TPair, TNode>;
     var FNode:PNode;
     type PValue=^TValue;
     function GetData:TPair;inline;
@@ -33,12 +36,15 @@ type
     function GetValue:TValue;inline;
     function GetMutable:PValue;inline;
     procedure SetValue(value:TValue);inline;
+    function MoveNext:boolean;inline;
     function Next:boolean;inline;
     function Prev:boolean;inline;
+    function GetEnumerator: TLMapIterator; inline;
     property Data:TPair read GetData;
     property Key:TKey read GetKey;
     property Value:TValue read GetValue write SetValue;
     property MutableValue:PValue read GetMutable;
+    property Current : TPair read GetData;
   end;
 
   generic TMap<TKey, TValue, TCompare>=class
@@ -71,6 +77,7 @@ type
     procedure Delete(key:TKey);inline;
     function Size:SizeUInt;inline;
     function IsEmpty:boolean;inline;
+    function GetEnumerator: TIterator; inline;
     constructor Create;
     destructor Destroy;override;
     property Items[i : TKey]: TValue read GetValue write Insert; default;
@@ -227,6 +234,11 @@ begin
   IsEmpty:=FSet.IsEmpty;
 end;
 
+function TMap.GetEnumerator: TIterator;
+begin
+  result:=titerator.create;
+end;
+
 function TMapIterator.GetData:TPair;inline;
 begin
   GetData:=FNode^.Data;
@@ -250,6 +262,27 @@ end;
 procedure TMapIterator.SetValue(value:TValue);inline;
 begin
   FNode^.Data.Value := value;
+end;
+
+function TMapIterator.MoveNext: boolean;
+var temp:PNode;
+begin
+  if(FNode=nil) then exit(false);
+  if(FNode^.Right<>nil) then begin
+    temp:=FNode^.Right;
+    while(temp^.Left<>nil) do temp:=temp^.Left;
+  end
+  else begin
+    temp:=FNode;
+    while(true) do begin
+      if(temp^.Parent=nil) then begin temp:=temp^.Parent; break; end;
+      if(temp^.Parent^.Left=temp) then begin temp:=temp^.Parent; break; end;
+      temp:=temp^.Parent;
+    end;
+  end;
+  if (temp = nil) then exit(false);
+  FNode:=temp;
+  MoveNext:=true;
 end;
 
 function TMapIterator.Next:boolean;inline;
@@ -292,6 +325,11 @@ begin
   if (temp = nil) then exit(false);
   FNode:=temp;
   Prev:=true;
+end;
+
+function TMapIterator.GetEnumerator: TLMapIterator;
+begin
+  result:=Self;
 end;
 
 end.
