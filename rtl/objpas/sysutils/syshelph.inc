@@ -523,7 +523,7 @@ Type
   public
     const
       MaxValue = High(NativeInt);
-      MinValue = Low(NativeUInt);
+      MinValue = Low(NativeInt);
   Public
     Class Function Parse(const AString: string): NativeInt; inline; static;
     Class Function Size: Integer; inline; static;

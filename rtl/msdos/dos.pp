@@ -316,6 +316,7 @@ end;
 procedure setverify(verify : boolean);
 begin
   dosregs.ah:=$2e;
+  dosregs.dl:=0;
   dosregs.al:=ord(verify);
   msdos(dosregs);
 end;

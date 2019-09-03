@@ -1250,7 +1250,7 @@ Type
                     dwUser: DWORD_PTR;
                     dwFlags: DWORD;
                     lpNext: PMIDIHDR;
-                    reserved: DWORD;
+                    reserved: DWORD_PTR;
                     dwOffset: DWORD;
                     dwReserved: array [0..Pred(8)] Of DWORD_PTR;
 	    End;
@@ -1605,7 +1605,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  TMIXERCONTROLDETAILS_UNSIGNED  = _MIXERCONTROLDETAILS_UNSIGNED;
 
  LPTIMECALLBACK =
-    Procedure (uTimerID, uMsg: UINT; dwUser, dw1, dw2: DWORD);stdcall;
+    Procedure (uTimerID, uMsg: UINT; dwUser, dw1, dw2: DWORD_PTR);stdcall;
  TTIMECALLBACK=LPTIMECALLBACK;
 
  TFNTimeCallBack = TTimeCallback; // delphi compat
