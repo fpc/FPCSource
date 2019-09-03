@@ -122,7 +122,6 @@ const
 type
   { Number of registers used for indexing in tables }
   tregisterindex = 0..{$I rppcnor.inc} - 1;
-  totherregisterset = set of tregisterindex;
 
 const
   maxvarregs = 32 - 6;

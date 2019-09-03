@@ -59,7 +59,6 @@ uses
     type
       { Number of registers used for indexing in tables }
       tregisterindex=0..{$i rspnor.inc}-1;
-      totherregisterset = set of tregisterindex;
 
     const
       { Available Superregisters }
@@ -102,7 +101,6 @@ uses
     type
       { Number of registers used for indexing in tables }
       tregisterindex=0..{$i rsp64nor.inc}-1;
-      totherregisterset = set of tregisterindex;
 
     const
       { Available Superregisters }

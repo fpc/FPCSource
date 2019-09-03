@@ -238,7 +238,9 @@ interface
         R_SUBFLAGSIGN,      { = 19; Sign flag }
         R_SUBFLAGOVERFLOW,  { = 20; Overflow flag }
         R_SUBFLAGINTERRUPT, { = 21; Interrupt enable flag }
-        R_SUBFLAGDIRECTION  { = 22; Direction flag }
+        R_SUBFLAGDIRECTION, { = 22; Direction flag }
+        R_SUBMM8B,  { = 23; for part of v regs on aarch64 }
+        R_SUBMM16B  { = 24; for part of v regs on aarch64 }
       );
       TSubRegisterSet = set of TSubRegister;
 
@@ -705,6 +707,8 @@ implementation
             result:=result+'my';
           R_SUBMMZ:
             result:=result+'mz';
+          R_SUBMM8B:
+            result:=result+'m8b';
           else
             internalerror(200308252);
         end;

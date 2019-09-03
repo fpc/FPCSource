@@ -105,7 +105,6 @@ uses
     type
       { Number of registers used for indexing in tables }
       tregisterindex=0..{$i rppcnor.inc}-1;
-      totherregisterset = set of tregisterindex;
 
     const
       maxvarregs = 32-6; { 32 int registers - r0 - stackpointer - r2 - 3 scratch registers }

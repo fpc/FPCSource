@@ -236,6 +236,11 @@ unit agcpugas;
               end
             else
               getopstr:=getreferencestring(asminfo,o.ref^);
+          top_realconst:
+            begin
+              str(o.val_real,Result);
+              Result:='#'+Result;
+            end
           else
             internalerror(2014121507);
         end;

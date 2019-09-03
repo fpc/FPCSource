@@ -113,9 +113,6 @@ unit cpubase;
 
       VOLATILE_INTREGISTERS_DARWIN = [RS_R0..RS_R3,RS_R9,RS_R12..RS_R14];
 
-    type
-      totherregisterset = set of tregisterindex;
-
 {*****************************************************************************
                           Instruction post fixes
 *****************************************************************************}
