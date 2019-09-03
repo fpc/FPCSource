@@ -50,6 +50,7 @@ type
       function GetCurrent: T; inline;
     public
       constructor Create(AVector: TVector);
+      function GetEnumerator: TVectorEnumerator; inline;
       function MoveNext: Boolean; inline;
       property Current: T read GetCurrent;
     end;
@@ -81,6 +82,11 @@ implementation
 constructor TVector.TVectorEnumerator.Create(AVector: TVector);
 begin
   FVector := AVector;
+end;
+
+function TVector.TVectorEnumerator.GetEnumerator: TVectorEnumerator;
+begin
+  result:=self;
 end;
 
 function TVector.TVectorEnumerator.GetCurrent: T;

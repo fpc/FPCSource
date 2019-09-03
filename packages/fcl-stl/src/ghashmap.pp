@@ -44,6 +44,7 @@
     generic THashmapIterator<TKey, TValue, T, TTable>=class
          public
          type PValue=^TValue;
+              TIntIterator = specialize THashmapIterator<TKey, TValue, T, TTable>;
          var
            Fh,Fp:SizeUInt;
            FData:TTable;
@@ -55,6 +56,7 @@
            function GetValue:TValue;inline;
            function GetMutable:PValue;inline;
            procedure SetValue(value:TValue);inline;
+           function GetEnumerator : TIntIterator; inline;
            property Data:T read GetData;
            property Key:TKey read GetKey;
            property Value:TValue read GetValue write SetValue;
@@ -374,6 +376,11 @@ end;
 procedure THashmapIterator.SetValue(value:TValue);
 begin
   ((FData[Fh]).mutable[Fp])^.Value := value;
+end;
+
+function THashmapIterator.getenumerator: TIntIterator;
+begin
+  result:=self;
 end;
 
 end.
