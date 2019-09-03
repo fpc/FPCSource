@@ -8351,6 +8351,11 @@ packages/winunits-base/tests/OOHelper.pp svneol=native#text/plain
 packages/winunits-base/tests/OOTest.pp svneol=native#text/plain
 packages/winunits-base/tests/hhex.pp svneol=native#text/pascal
 packages/winunits-base/tests/hhex2.pp svneol=native#text/pascal
+packages/winunits-base/tests/inproccomtest/com_clnt.dpr svneol=native#text/plain
+packages/winunits-base/tests/inproccomtest/com_impl.pas svneol=native#text/plain
+packages/winunits-base/tests/inproccomtest/com_serv.dpr svneol=native#text/plain
+packages/winunits-base/tests/inproccomtest/com_serv.tlb -text
+packages/winunits-base/tests/inproccomtest/com_serv_TLB.pas svneol=native#text/plain
 packages/winunits-base/tests/testcom1.pp svneol=native#text/plain
 packages/winunits-base/tests/testcom2.pp svneol=native#text/plain
 packages/winunits-base/tests/testver.pp svneol=native#text/plain
