@@ -29,6 +29,7 @@ compiler/aarch64/hlcgcpu.pas svneol=native#text/plain
 compiler/aarch64/itcpugas.pas svneol=native#text/plain
 compiler/aarch64/ncpuadd.pas svneol=native#text/plain
 compiler/aarch64/ncpucnv.pas svneol=native#text/plain
+compiler/aarch64/ncpucon.pas svneol=native#text/pascal
 compiler/aarch64/ncpuinl.pas svneol=native#text/plain
 compiler/aarch64/ncpumat.pas svneol=native#text/plain
 compiler/aarch64/ncpumem.pas svneol=native#text/plain
