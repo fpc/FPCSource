@@ -199,7 +199,7 @@ unit cpubase;
       tshiftmode = (SM_None,
                     { shifted register instructions. LSL can also be used for
                       the index register of certain loads/stores }
-                    SM_LSL,SM_LSR,SM_ASR,
+                    SM_LSL,SM_LSR,SM_ASR,SM_ROR,
                     { extended register instructions: zero/sign extension +
                         optional shift (interpreted as LSL after extension)
                        -- the index register of certain loads/stores can be

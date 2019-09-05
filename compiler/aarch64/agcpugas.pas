@@ -50,7 +50,7 @@ unit agcpugas;
 
     const
       gas_shiftmode2str : array[tshiftmode] of string[4] = (
-        '','lsl','lsr','asr',
+        '','lsl','lsr','asr','ror',
         'uxtb','uxth','uxtw','uxtx',
         'sxtb','sxth','sxtw','sxtx');
 
