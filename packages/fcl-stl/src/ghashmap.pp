@@ -38,25 +38,33 @@
   }
 
   type
-    generic THashmapIterator<TKey, TValue, T, TTable>=class
-      public
-      type PValue=^TValue;
-      var
-        Fh,Fp:SizeUInt;
-        FData:TTable;
-        function Next:boolean;inline;
-        function Prev:boolean;inline;
-        function GetData:T;inline;
-        function GetKey:TKey;inline;
-        function GetValue:TValue;inline;
-        function GetMutable:PValue;inline;
-        procedure SetValue(value:TValue);inline;
-        property Data:T read GetData;
-        property Key:TKey read GetKey;
-        property Value:TValue read GetValue write SetValue;
-        property MutableValue:PValue read GetMutable;
-    end;
 
+    { THashmapIterator }
+
+    generic THashmapIterator<TKey, TValue, T, TTable>=class
+         public
+         type PValue=^TValue;
+              TIntIterator = specialize THashmapIterator<TKey, TValue, T, TTable>;
+         var
+           Fh,Fp:SizeUInt;
+           FData:TTable;
+           function Next:boolean;inline;
+           function MoveNext:boolean;inline;
+           function Prev:boolean;inline;
+           function GetData:T;inline;
+           function GetKey:TKey;inline;
+           function GetValue:TValue;inline;
+           function GetMutable:PValue;inline;
+           procedure SetValue(value:TValue);inline;
+           function GetEnumerator : TIntIterator; inline;
+           property Data:T read GetData;
+           property Key:TKey read GetKey;
+           property Value:TValue read GetValue write SetValue;
+           property MutableValue:PValue read GetMutable;
+           property Current : T read GetData;
+       end;
+
+    { THashmap }
     generic THashmap<TKey, TValue, Thash>=class
       public
       type
@@ -76,20 +84,19 @@
       public 
       type
         TIterator = specialize THashmapIterator<TKey, TValue, TPair, TTable>;
-        constructor create;
-        destructor destroy;override;
+        constructor Create;
+        destructor Destroy;override;
         procedure insert(key:TKey;value:TValue);inline;
         function contains(key:TKey):boolean;inline;
-        function size:SizeUInt;inline;
+        function Size:SizeUInt;inline;
         procedure delete(key:TKey);inline;
         procedure erase(iter:TIterator);inline;
         function IsEmpty:boolean;inline;
         function GetData(key:TKey):TValue;inline;
         function GetValue(key:TKey;out value:TValue):boolean;inline;
-
-        property Items[i : TKey]: TValue read GetData write Insert; default;
-
         function Iterator:TIterator;
+        function getenumerator :TIterator;
+        property Items[i : TKey]: TValue read GetData write Insert; default;
   end;
 
 implementation
@@ -111,7 +118,7 @@ begin
   FData.Destroy;
 end;
 
-function THashmap.IsEmpty(): boolean;
+function THashmap.IsEmpty: boolean;
 begin
   IsEmpty := Size()=0;
 end;
@@ -145,7 +152,7 @@ begin
   end;
 end;
 
-constructor THashmap.create;
+constructor THashmap.Create;
 var i: SizeUInt;
 begin
   FDataSize:=0;
@@ -290,6 +297,22 @@ begin
   exit(false);
 end;
 
+function THashmapIterator.MoveNext: boolean;
+begin
+  Assert(Fh < FData.size);      // assumes FData.size>0 (i.e. buckets don't shrink) and cannot call Next again after reaching end
+  inc(Fp);
+  if (Fp < (FData[Fh]).size) then
+    exit(true);
+  Fp:=0; Inc(Fh);
+  while Fh < FData.size do begin
+    if ((FData[Fh]).size > 0) then
+      exit(true);
+    Inc(Fh);
+  end;
+  //Assert((Fp = 0) and (Fh = FData.size));
+  exit(false);
+end;
+
 function THashmapIterator.Prev: boolean;
 var bs:SizeUInt;
 begin
@@ -330,6 +353,11 @@ begin
   Iterator.FData := FData;
 end;
 
+function THashmap.getenumerator: TIterator;
+begin
+  result:=iterator;
+end;
+
 function THashmapIterator.GetKey: TKey;
 begin
   GetKey:=((FData[Fh])[Fp]).Key;
@@ -348,6 +376,11 @@ end;
 procedure THashmapIterator.SetValue(value:TValue);
 begin
   ((FData[Fh]).mutable[Fp])^.Value := value;
+end;
+
+function THashmapIterator.getenumerator: TIntIterator;
+begin
+  result:=self;
 end;
 
 end.
