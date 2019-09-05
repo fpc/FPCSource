@@ -1084,7 +1084,7 @@ unit cgcpu;
       var
         ref : treference;
       begin
-        if use_push(cgpara) and (current_settings.fputype in [fpu_68881,fpu_coldfire]) then
+        if use_push(cgpara) and (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]) then
           begin
             cgpara.check_simple_location;
             reference_reset_base(ref, NR_STACK_POINTER_REG, 0, ctempposinvalid, cgpara.alignment, []);
@@ -1117,7 +1117,7 @@ unit cgcpu;
               inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
           end
         else
-          if use_push(cgpara) and (current_settings.fputype in [fpu_68881,fpu_coldfire]) then
+          if use_push(cgpara) and (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]) then
             begin
               //list.concat(tai_comment.create(strpnew('a_loadfpu_ref_cgpara copy')));
               cgpara.check_simple_location;

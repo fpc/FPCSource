@@ -186,24 +186,21 @@ implementation
     procedure t68kinlinenode.second_sqr_real;
       begin
         secondpass(left);
-        case current_settings.fputype of
-          fpu_68881,fpu_coldfire:
-            begin
-              //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sqr_real called!')));
-              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-              location_copy(location,left.location);
-              if left.location.loc=LOC_CFPUREGISTER then
-                begin
-                  //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sqr_real called!: left was cfpuregister!')));
-                  location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                  location.loc := LOC_FPUREGISTER;
-                  cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,OS_NO,OS_NO,left.location.register,location.register);
-                end;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMUL,fpuregopsize,left.location.register,location.register));
-            end;
-        else
+
+        if not (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]) then
           internalerror(2015022202);
-        end;
+
+        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sqr_real called!')));
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        location_copy(location,left.location);
+        if left.location.loc=LOC_CFPUREGISTER then
+          begin
+            //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sqr_real called!: left was cfpuregister!')));
+            location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+            location.loc := LOC_FPUREGISTER;
+            cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,OS_NO,OS_NO,left.location.register,location.register);
+          end;
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMUL,fpuregopsize,left.location.register,location.register));
       end;
 
     procedure t68kinlinenode.second_sqrt_real;
@@ -235,35 +232,32 @@ implementation
         href: TReference;
       begin
         secondpass(left);
-        case current_settings.fputype of
-          fpu_68881,fpu_coldfire:
-            begin
-              location_reset(location,LOC_FPUREGISTER,left.location.size);
 
-              case left.location.loc of
-                LOC_FPUREGISTER:
-                  begin
-                    location.register:=left.location.register;
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg(op,fpuregopsize,location.register))
-                  end;
-                LOC_CFPUREGISTER:
-                  begin
-                    location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,fpuregopsize,left.location.register,location.register));
-                  end;
-                LOC_REFERENCE,LOC_CREFERENCE:
-                  begin
-                    location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                    href:=left.location.reference;
-                    tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
-                    current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[left.location.size],href,location.register));
-                  end;
-                else
-                  internalerror(2015022205);
-              end;
-            end;
-        else
+        if not (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]) then
           internalerror(2015022204);
+
+        location_reset(location,LOC_FPUREGISTER,left.location.size);
+
+        case left.location.loc of
+          LOC_FPUREGISTER:
+            begin
+              location.register:=left.location.register;
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg(op,fpuregopsize,location.register))
+            end;
+          LOC_CFPUREGISTER:
+            begin
+              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,fpuregopsize,left.location.register,location.register));
+            end;
+          LOC_REFERENCE,LOC_CREFERENCE:
+            begin
+              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              href:=left.location.reference;
+              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
+              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[left.location.size],href,location.register));
+            end;
+          else
+            internalerror(2015022205);
         end;
       end;
 
@@ -273,36 +267,33 @@ implementation
         hreg: TRegister;
       begin
         secondpass(left);
-        case current_settings.fputype of
-          fpu_68881,fpu_coldfire:
-            begin
-              location_reset(location,LOC_FPUREGISTER,left.location.size);
 
-              case left.location.loc of
-                LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                  begin
-                    hreg:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                    location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                    cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,OS_NO,OS_NO,left.location.register,location.register);
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FINTRZ,fpuregopsize,left.location.register,hreg));
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSUB,fpuregopsize,hreg,location.register));
-                  end;
-                LOC_REFERENCE,LOC_CREFERENCE:
-                  begin
-                    hreg:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                    location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                    href:=left.location.reference;
-                    tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
-                    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmlist,left.location.size,OS_NO,href,location.register);
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FINTRZ,fpuregopsize,location.register,hreg));
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSUB,fpuregopsize,hreg,location.register));
-                  end;
-                else
-                  internalerror(2017052101);
-              end;
-            end;
-        else
+        if not (FPUM68K_HAS_FINTRZ in fpu_capabilities[current_settings.fputype]) then
           internalerror(2017052102);
+
+        location_reset(location,LOC_FPUREGISTER,left.location.size);
+
+        case left.location.loc of
+          LOC_FPUREGISTER,LOC_CFPUREGISTER:
+            begin
+              hreg:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,OS_NO,OS_NO,left.location.register,location.register);
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FINTRZ,fpuregopsize,left.location.register,hreg));
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSUB,fpuregopsize,hreg,location.register));
+            end;
+          LOC_REFERENCE,LOC_CREFERENCE:
+            begin
+              hreg:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              href:=left.location.reference;
+              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
+              cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmlist,left.location.size,OS_NO,href,location.register);
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FINTRZ,fpuregopsize,location.register,hreg));
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSUB,fpuregopsize,hreg,location.register));
+            end;
+          else
+            internalerror(2017052101);
         end;
       end;
 
