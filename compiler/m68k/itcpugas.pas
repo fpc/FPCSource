@@ -64,7 +64,7 @@ interface
          'mov3q','mvz','mvs','sats','byterev','ff1','remu','rems',
          { fpu processor instructions - directly supported }
          { ieee aware and misc. condition codes not supported   }
-         'fabs','fadd','fsadd','fdadd',
+         'fabs','fsabs','fdabs','fadd','fsadd','fdadd',
          'fbeq','fbne','fbngt','fbgt','fbge','fbnge',
          'fblt','fbnlt','fble','fbgl','fbngl','fbgle','fbngle',
          'fdbeq','fdbne','fdbgt','fdbngt','fdbge','fdbnge',
@@ -72,8 +72,8 @@ interface
          'fseq','fsne','fsgt','fsngt','fsge','fsnge',
          'fslt','fsnlt','fsle','fsgl','fsngl','fsgle','fsngle',
          'fcmp','fdiv','fsdiv','fddiv','fmove','fsmove','fdmove','fmovem',
-         'fmul','fsmul','fdmul','fneg','fnop','fsqrt','fsub','fssub','fdsub','fsgldiv',
-         'fsflmul','ftst',
+         'fmul','fsmul','fdmul','fneg','fsneg','fdneg','fnop','fsqrt','fssqrt','fdsqrt',
+         'fsub','fssub','fdsub','fsgldiv','fsglmul','ftst',
          'ftrapeq','ftrapne','ftrapgt','ftrapngt','ftrapge','ftrapnge',
          'ftraplt','ftrapnlt','ftraple','ftrapgl','ftrapngl','ftrapgle','ftrapngle',
          'fint','fintrz',
