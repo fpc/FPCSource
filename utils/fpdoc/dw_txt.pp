@@ -89,6 +89,8 @@ Type
     procedure DescrEndItalic; override;
     procedure DescrBeginEmph; override;
     procedure DescrEndEmph; override;
+    procedure DescrBeginUnderline; override;
+    procedure DescrEndUnderline; override;
     procedure DescrWriteFileEl(const AText: DOMString); override;
     procedure DescrWriteKeywordEl(const AText: DOMString); override;
     procedure DescrWriteVarEl(const AText: DOMString); override;
@@ -267,6 +269,14 @@ begin
 end;
 
 procedure TTXTWriter.DescrEndEmph;
+begin
+end;
+
+procedure TTXTWriter.DescrBeginUnderline;
+begin
+end;
+
+procedure TTXTWriter.DescrEndUnderline;
 begin
 end;
 
