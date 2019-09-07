@@ -19,6 +19,7 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Various non-visual VCL compatibility units.';
+    P.OSes := P.OSes - [embedded];
       
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
