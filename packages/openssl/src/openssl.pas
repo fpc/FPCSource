@@ -1156,7 +1156,7 @@ var
   procedure ErrClearError;
   procedure ErrFreeStrings;
   procedure ErrRemoveState(pid: cInt);
-  procedure RandScreen;
+  procedure RandScreen; deprecated 'Deprecated as of 1.1+';
   function d2iPKCS12bio(b:PBIO; Pkcs12: SslPtr): SslPtr;
   function PKCS12parse(p12: SslPtr; pass: string; var pkey, cert, ca: SslPtr): cInt;
   procedure PKCS12free(p12: SslPtr);
@@ -5663,8 +5663,6 @@ begin
       _SslLoadErrorStrings;
     if assigned(_OPENSSLaddallalgorithms) then
       _OPENSSLaddallalgorithms;
-    if assigned(_RandScreen) then
-      _RandScreen;
     if assigned(_CRYPTOnumlocks) and assigned(_CRYPTOsetlockingcallback) then
       InitLocks;
     SSLloaded := True;
