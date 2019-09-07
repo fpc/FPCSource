@@ -534,6 +534,7 @@ begin
   if StreamSize > 0 then
   begin
     SetLength(Result, StreamSize);
+    FDefaultOutput.Position:=0;
     FDefaultOutput.ReadBuffer(Result[1], StreamSize);
   end;
 end;
