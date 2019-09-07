@@ -1761,6 +1761,8 @@ unit cgcpu;
       var
         l : TAsmLabel;
         tmpflags : TResFlags;
+        i: Integer;
+        hreg: TRegister;
       begin
         current_asmdata.getjumplabel(l);
         {
@@ -1776,6 +1778,13 @@ unit cgcpu;
         }
           begin
             list.concat(taicpu.op_reg_const(A_LDI,reg,1));
+            hreg:=reg;
+            for i:=2 to tcgsize2size[size] do
+              begin
+                hreg:=GetNextReg(hreg);
+                emit_mov(list,hreg,NR_R1);
+              end;
+
             a_jmp_flags(list,f,l);
             emit_mov(list,reg,NR_R1);
           end;
