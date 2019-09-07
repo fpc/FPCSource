@@ -4205,7 +4205,10 @@ implementation
         if (highrange>0) and (lowrange<0) then
           begin
             qhigh:=highrange;
-            qlow:=qword(-lowrange);
+            if lowrange=low(asizeint) then
+              qlow:=high(asizeint) + 1
+            else
+              qlow:=qword(-lowrange);
             { prevent overflow, return 0 to indicate overflow }
             if qhigh+qlow>qword(high(asizeint)-1) then
               result:=0
@@ -7720,7 +7723,9 @@ implementation
         if not(typesym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
           vmttypesym:=typesym.owner.Find('vmtdef$'+mangledparaname)
         else
-          vmttypesym:=tobjectsymtable(typesym.owner).get_unit_symtable.Find('vmtdef$'+mangledparaname);
+          { Use common parent of trecordsymtable and tobjectsymtable
+            to avoid invalid typecast error when compiled with -CR option }
+          vmttypesym:=tabstractrecordsymtable(typesym.owner).get_unit_symtable.Find('vmtdef$'+mangledparaname);
         if not assigned(vmttypesym) or
            (vmttypesym.typ<>symconst.typesym) or
            (ttypesym(vmttypesym).typedef.typ<>recorddef) then
