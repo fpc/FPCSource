@@ -19,8 +19,8 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Various non-visual VCL compatibility units.';
-    P.OSes := P.OSes - [embedded];
-      
+    P.OSes := P.OSes - [embedded,palmos,atari,msdos,go32v2];
+
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
@@ -29,7 +29,7 @@ begin
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-web');
     P.Dependencies.Add('rtl-extra'); 
-  
+
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
