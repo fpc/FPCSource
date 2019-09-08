@@ -413,7 +413,6 @@ interface
         IF_SB,                  { unsized operands can't be non-byte  }
         IF_SW,                  { unsized operands can't be non-word  }
         IF_SD,                  { unsized operands can't be nondword  }
-        IF_SQ,                  { unsized operands can't be nonqword  }
 
         { unsized argument spec }
         { please keep these in order and in sync with IF_ARMASK }
@@ -515,7 +514,12 @@ interface
         IF_TMEM128,
         IF_THV,
         IF_THVM,
-        IF_TOVM
+        IF_TOVM,
+
+        { sse/avx scalare memrefsize }
+        IF_SCL32,
+        IF_SCL64
+
       );
       tinsflags=set of tinsflag;
 
@@ -4949,6 +4953,7 @@ implementation
           RegBCSTZMMSizeMask := 0;
           ExistsMemRef       := false;
 
+
           while (insentry^.opcode=AsmOp) do
           begin
             MRefInfo         := msiUnknown;
@@ -5027,7 +5032,10 @@ implementation
                 begin
                   inc(actMemCount);
 
-                  actMemSize:=actMemSize or (insentry^.optypes[j] and (OT_SIZE_MASK OR OT_VECTORBCST));
+                  if IF_SCL32 in insentry^.Flags then actMemSize := actMemSize or OT_BITS32
+                   else if IF_SCL64 in insentry^.Flags then actMemSize := actMemSize or OT_BITS64
+                   else actMemSize:=actMemSize or (insentry^.optypes[j] and (OT_SIZE_MASK OR OT_VECTORBCST));
+
                   if (insentry^.optypes[j] and OT_REGMEM) = OT_REGMEM then
                     begin
                       actRegMemTypes  := actRegMemTypes or insentry^.optypes[j];
@@ -5138,11 +5146,15 @@ implementation
                   0: ; // nothing todo
                   1: begin
                        MRefInfo := msiUnknown;
-                       case actRegMemTypes and (OT_MMXRM or OT_XMMRM or OT_YMMRM or OT_ZMMRM or OT_REG_EXTRA_MASK) of
-                         OT_MMXRM: actMemSize := actMemSize or OT_BITS64;
-                         OT_XMMRM: actMemSize := actMemSize or OT_BITS128;
-                         OT_YMMRM: actMemSize := actMemSize or OT_BITS256;
-                         OT_ZMMRM: actMemSize := actMemSize or OT_BITS512;
+
+                       if (insentry^.Flags * [IF_SCL32, IF_SCL64] = []) then
+                       begin
+                         case actRegMemTypes and (OT_MMXRM or OT_XMMRM or OT_YMMRM or OT_ZMMRM or OT_REG_EXTRA_MASK) of
+                           OT_MMXRM: actMemSize := actMemSize or OT_BITS64;
+                           OT_XMMRM: actMemSize := actMemSize or OT_BITS128;
+                           OT_YMMRM: actMemSize := actMemSize or OT_BITS256;
+                           OT_ZMMRM: actMemSize := actMemSize or OT_BITS512;
+                         end;
                        end;
 
                        case actMemSize of

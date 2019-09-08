@@ -736,7 +736,25 @@ begin
                 ;
             end;
 
-            if memopsize = 0 then memopsize := topsize2memsize[tx86operand(operands[i]).opsize];
+            //if memopsize = 0 then memopsize := topsize2memsize[tx86operand(operands[i]).opsize];
+
+            if memopsize = 0 then
+            begin
+              {$ifdef i386}
+                { 64-bit operands are allowed for SSE and AVX instructions, so
+                  go by the byte size instead for these families of opcodes }
+                if (MemRefInfo(opcode).ExistsSSEAVX) then
+                begin
+                  memopsize := tx86operand(operands[i]).typesize * 8;
+                  if tx86operand(operands[i]).typesize = 8 then
+                  { Will be S_L otherwise and won't be corrected in time }
+                   tx86operand(operands[i]).opsize := S_Q;
+                end
+                else
+              {$endif i386}
+                memopsize := topsize2memsize[tx86operand(operands[i]).opsize];
+            end;
+
 
             if (memopsize > 0) and
                (memrefsize > 0) then
@@ -758,30 +776,32 @@ begin
                          std_op2str[opcode],
                          ToStr(memoffset));
               end
-              else if (memopsize < (memrefsize + memoffset * 8)) then
+              else if ((tx86operand(operands[i]).hastype) and (memopsize < memrefsize)) or
+                      (memopsize < (memrefsize + memoffset * 8)) then
               begin
-                if memoffset = 0 then
+                if memopsize < memrefsize then
                 begin
-                  Message3(asmr_w_check_mem_operand_size3,
-                           std_op2str[opcode],
-                           ToStr(memopsize),
-                           ToStr(memrefsize)
-                           );
-                end
-                else
-                begin
-                  Message4(asmr_w_check_mem_operand_size_offset,
-                           std_op2str[opcode],
-                           ToStr(memopsize),
-                           ToStr(memrefsize),
-                           ToStr(memoffset)
-                           );
+                  if memoffset = 0 then
+                  begin
+                    Message3(asmr_w_check_mem_operand_size3,
+                             std_op2str[opcode],
+                             ToStr(memopsize),
+                             ToStr(memrefsize)
+                             );
+                  end
+                  else
+                  begin
+                    Message4(asmr_w_check_mem_operand_size_offset,
+                             std_op2str[opcode],
+                             ToStr(memopsize),
+                             ToStr(memrefsize),
+                             ToStr(memoffset)
+                             );
+                  end;
                 end;
               end;
             end;
           end;
-
-
         end;
       end;
     end;
@@ -1869,14 +1889,13 @@ begin
                      asize:=OT_BITS32;
                    OS_64,OS_S64:
                      begin
-                       { Only FPU operations know about 64bit values, for all
-                         integer operations it is seen as 32bit
+                       { Only FPU and SSE/AVX operations know about 64bit
+                         values, for all integer operations it is seen as 32bit
 
-                         this applies only to i386, see tw16622}
+                          this applies only to i386, see tw16622}
 
-                       if gas_needsuffix[opcode] in [attsufFPU,attsufFPUint] then
-                         asize:=OT_BITS64
-                          else if MemRefInfo(opcode).ExistsSSEAVX then asize:=OT_BITS64
+                       if (gas_needsuffix[opcode] in [attsufFPU,attsufFPUint]) or (MemRefInfo(opcode).ExistsSSEAVX) then
+                        asize:=OT_BITS64
 {$ifdef i386}
                        else
                          asize:=OT_BITS32
