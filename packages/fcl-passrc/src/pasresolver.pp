@@ -10008,6 +10008,7 @@ var
   Value: TPasExpr;
   SubParams: TParamsExpr;
   ResolvedEl: TPasResolverResult;
+  InlineSpecExpr: TInlineSpecializeExpr;
 begin
   Value:=Params.Value;
   if Value is TBinaryExpr then
@@ -10037,6 +10038,21 @@ begin
   else if IsNameExpr(Value) then
     begin
     ResolveFuncParamsExprName(Value,Params,Access);
+    end
+  else if Value is TInlineSpecializeExpr then
+    begin
+    // specialize A<B>()  -> typecast
+    InlineSpecExpr:=TInlineSpecializeExpr(Value);
+    ResolveInlineSpecializeExpr(InlineSpecExpr);
+    if length(Params.Params)<1 then
+      RaiseMsg(20190908180612,nWrongNumberOfParametersForTypeCast,
+        sWrongNumberOfParametersForTypeCast,
+        [GetTypeDescription(InlineSpecExpr.DestType)],Params)
+     else if length(Params.Params)>1 then
+      RaiseMsg(20190908180837,nWrongNumberOfParametersForTypeCast,
+        sWrongNumberOfParametersForTypeCast,
+        [GetTypeDescription(InlineSpecExpr.DestType)],Params.Params[1]);
+    FinishCallArgAccess(Params.Params[0],Access);
     end
   else if Value.ClassType=TParamsExpr then
     begin
@@ -10690,6 +10706,7 @@ var
   SpecType: TPasSpecializeType;
   Expr: TPasExpr;
   GenType: TPasGenericType;
+  DeclType: TPasType;
 begin
   SpecType:=El.DestType;
   if SpecType.DestType<>nil then
@@ -10716,6 +10733,14 @@ begin
   GenType.AddRef{$IFDEF CheckPasTreeRefCount}('TPasAliasType.DestType'){$ENDIF};
 
   FinishSpecializeType(SpecType);
+
+  if SpecType.CustomData is TPasSpecializeTypeData then
+    begin
+    DeclType:=TPasSpecializeTypeData(SpecType.CustomData).SpecializedType;
+    CreateReference(DeclType,El,rraRead);
+    end
+  else
+    CreateReference(GenType,El,rraRead);
 end;
 
 function TPasResolver.ResolveAccessor(Expr: TPasExpr): TPasElement;
@@ -12402,15 +12427,21 @@ begin
           RaiseXExpectedButYFound(20170322105252,'class type',GetElementTypeName(RightResolved.LoTypeEl),Bin.right);
         end
       else if LeftResolved.LoTypeEl=nil then
+        begin
+        {$IFDEF VerbosePasResolver}
+        writeln('TPasResolver.ComputeBinaryExprRes is-operator: left=',GetResolverResultDbg(LeftResolved),' right=',GetResolverResultDbg(RightResolved));
+        {$ENDIF}
         RaiseMsg(20170216152232,nLeftSideOfIsOperatorExpectsAClassButGot,sLeftSideOfIsOperatorExpectsAClassButGot,
-                 [BaseTypeNames[LeftResolved.BaseType]],Bin.left)
+                 [BaseTypeNames[LeftResolved.BaseType]],Bin.left);
+        end
       else
+        begin
+        {$IFDEF VerbosePasResolver}
+        writeln('TPasResolver.ComputeBinaryExprRes is-operator: left=',GetResolverResultDbg(LeftResolved),' right=',GetResolverResultDbg(RightResolved));
+        {$ENDIF}
         RaiseMsg(20170216152234,nLeftSideOfIsOperatorExpectsAClassButGot,sLeftSideOfIsOperatorExpectsAClassButGot,
                  [GetElementTypeName(LeftResolved.LoTypeEl)],Bin.left);
-      {$IFDEF VerbosePasResolver}
-      writeln('TPasResolver.ComputeBinaryExprRes is-operator: left=',GetResolverResultDbg(LeftResolved),' right=',GetResolverResultDbg(RightResolved));
-      {$ENDIF}
-      RaiseIncompatibleTypeRes(20170216152236,nTypesAreNotRelatedXY,[],LeftResolved,RightResolved,Bin);
+        end;
       end;
     eopAs:
       begin

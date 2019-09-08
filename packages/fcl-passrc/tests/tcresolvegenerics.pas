@@ -41,6 +41,7 @@ type
     procedure TestGen_ConstraintMultiParamClassMismatch;
     procedure TestGen_ConstraintClassType_DotIsAsTypeCast;
     procedure TestGen_ConstraintClassType_ForInT;
+    procedure TestGen_ConstraintClassType_IsAs;
 
     // generic record
     procedure TestGen_RecordLocalNameDuplicateFail;
@@ -529,6 +530,28 @@ begin
   'begin',
   '  for w in a do ;',
   '  for w in b.m do ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintClassType_IsAs;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TAnt<U> = class',
+  '    v: U;',
+  '    function Run: U;',
+  '  end;',
+  'function TAnt.Run: U;',
+  'begin',
+  '  if v is TObject then ;',
+  '  if v is specialize TAnt<TObject> then',
+  '    specialize TAnt<TObject>(v).v:=nil;',
+  'end;',
+  'begin',
   '']);
   ParseProgram;
 end;
