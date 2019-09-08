@@ -73,10 +73,8 @@ implementation
           begin
             //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: l <> 1')));
             { if we have a possibility, setup a scalefactor instead of the MUL }
-            if (location.reference.index<>NR_NO) or
-               (current_settings.cputype in [cpu_mc68000]) or
-               ((current_settings.cputype in cpu_coldfire) and not (l in [2,4])) or
-               not (l in [2,4,8]) then
+            if not (((CPUM68K_HAS_INDEXSCALE in cpu_capabilities[current_settings.cputype]) and (l in [2,4])) or
+               ((CPUM68K_HAS_INDEXSCALE8 in cpu_capabilities[current_settings.cputype]) and (l in [2,4,8]))) then
               begin
                 //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: mul')));
                 hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
