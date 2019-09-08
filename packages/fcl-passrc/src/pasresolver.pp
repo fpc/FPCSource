@@ -13843,6 +13843,7 @@ begin
       [GetBaseDescription(InResolved)],Loop.StartExpr);
 
   LoTypeEl:=InResolved.LoTypeEl;
+  writeln('AAA1 TPasResolver.CheckForInClassOrRec ',GetResolverResultDbg(InResolved));
   if LoTypeEl=nil then exit;
 
   // check function InVar.GetEnumerator
@@ -13851,6 +13852,7 @@ begin
     exit;
   // find aRecord.GetEnumerator
   Getter:=DotScope.FindIdentifier('GetEnumerator');
+  writeln('AAA2 TPasResolver.CheckForInClassOrRec ',GetObjPath(Getter));
   PopScope;
   if Getter=nil then
     begin
@@ -20586,6 +20588,8 @@ begin
     Result:=PushRecordDotScope(TPasRecordType(LoType))
   else if C=TPasEnumType then
     Result:=PushEnumDotScope(HiType,TPasEnumType(LoType))
+  else if C=TPasGenericTemplateType then
+    Result:=PushTemplateDotScope(TPasGenericTemplateType(LoType),HiType)
   else
     Result:=PushHelperDotScope(HiType);
 end;

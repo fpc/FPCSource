@@ -32,14 +32,15 @@ type
     // ToDo: constraint T:Unit2.TBird
     // ToDo: constraint T:Unit2.TGen<word>
     procedure TestGen_ConstraintSpecialize;
-    procedure TestGen_ConstraintTSpecializeT;
+    procedure TestGen_ConstraintTSpecializeWithT;
+    procedure TestGen_ConstraintTSpecializeAsTFail;
     procedure TestGen_TemplNameEqTypeNameFail;
     procedure TestGen_ConstraintInheritedMissingRecordFail;
     procedure TestGen_ConstraintInheritedMissingClassTypeFail;
     procedure TestGen_ConstraintMultiParam;
     procedure TestGen_ConstraintMultiParamClassMismatch;
     procedure TestGen_ConstraintClassType_DotIsAsTypeCast;
-    procedure TestGen_ConstraintClassType_ForInT; // ToDo
+    procedure TestGen_ConstraintClassType_ForInT;
 
     // generic record
     procedure TestGen_RecordLocalNameDuplicateFail;
@@ -110,7 +111,6 @@ type
     procedure TestGen_LocalVar;
     procedure TestGen_Statements;
     procedure TestGen_InlineSpecializeExpr;
-    // ToDo: for-in
     procedure TestGen_TryExcept;
     // ToDo: call
     // ToTo: nested proc
@@ -328,7 +328,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolveGenerics.TestGen_ConstraintTSpecializeT;
+procedure TTestResolveGenerics.TestGen_ConstraintTSpecializeWithT;
 begin
   StartProgram(false);
   Add([
@@ -356,6 +356,19 @@ begin
   '  f.e:=fb;',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstraintTSpecializeAsTFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  generic TAnt<S> = record v: S; end;',
+  '  generic TBird<T; U: specialize T<word>> = record v: T; end;',
+  'begin',
+  '']);
+  CheckResolverException('identifier not found "T<>"',nIdentifierNotFound);
 end;
 
 procedure TTestResolveGenerics.TestGen_TemplNameEqTypeNameFail;
@@ -481,7 +494,6 @@ end;
 
 procedure TTestResolveGenerics.TestGen_ConstraintClassType_ForInT;
 begin
-  exit; // ToDo
   StartProgram(false);
   Add([
   '{$mode objfpc}',
@@ -495,31 +507,28 @@ begin
   '  generic TAnt<U> = class',
   '    function GetEnumerator: specialize TEnumerator<U>;',
   '  end;',
-  '  generic TRedAnt<S> = class(specialize TAnt<S>);',
-  '  generic TBird<S; T: specialize TRedAnt<S>> = class',
+  '  generic TBird<S; T: specialize TAnt<S>> = class',
   '    m: T;',
-  '    function GetEnumerator: specialize TEnumerator<T>;',
+  '    procedure Fly;',
   '  end;',
-  '  TFireAnt = class(specialize TRedAnt<word>);',
-  '  generic TEagle<U> = class(specialize TBird<U,TFireAnt>)',
-  '  end;',
-  '  TRedEagle = specialize TEagle<word>;',
   'function TEnumerator.MoveNext: boolean;',
   'begin',
   'end;',
   'function TAnt.GetEnumerator: specialize TEnumerator<U>;',
   'begin',
   'end;',
-  'function TBird.GetEnumerator: specialize TEnumerator<S>;',
+  'procedure TBird.Fly;',
+  'var i: S;',
   'begin',
+  '  for i in m do ;',
   'end;',
   'var',
-  '  r: TRedEagle;',
+  '  a: TAnt<word>;',
   '  w: word;',
-  '  f: TFireAnt;',
+  '  b: TBird<word,specialize TAnt<word>>;',
   'begin',
-  '  for w in r.m do ;',
-  '  for f in r do ;',
+  '  for w in a do ;',
+  '  for w in b.m do ;',
   '']);
   ParseProgram;
 end;
