@@ -401,10 +401,9 @@ Implementation
          ((taicpu(hp1).opcode<>A_SUB) or
           MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[taicpu(hp1).ops-1]^)) then
         begin
-          if taicpu(hp1).opcode in [A_TST, A_CMP, A_CMN, A_MOV] then
-            I2:=0
-          else
-            I2:=1;
+          { for the two operand instructions, start also at the second operand as they are not always commutative
+            (depends on the flags tested laster on) and thus the operands cannot swapped }
+          I2:=1;
           for I:=I2 to taicpu(hp1).ops-1 do
             if MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg) then
               begin
