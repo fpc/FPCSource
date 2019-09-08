@@ -32,7 +32,7 @@ type
     // ToDo: constraint T:Unit2.TBird
     // ToDo: constraint T:Unit2.TGen<word>
     procedure TestGen_ConstraintSpecialize;
-    procedure TestGen_ConstraintTSpecializeT; // ToDo
+    procedure TestGen_ConstraintTSpecializeT;
     procedure TestGen_TemplNameEqTypeNameFail;
     procedure TestGen_ConstraintInheritedMissingRecordFail;
     procedure TestGen_ConstraintInheritedMissingClassTypeFail;
@@ -330,28 +330,30 @@ end;
 
 procedure TTestResolveGenerics.TestGen_ConstraintTSpecializeT;
 begin
-  exit; // ToDo
   StartProgram(false);
   Add([
-  '{$mode objfpc}',
+  '{$mode delphi}',
   'type',
   '  TObject = class end;',
-  '  generic TAnt<S> = class m: S; end;',
-  '  generic TBird<X; Y:specialize TAnt<X>> = class',
-  '    o: Y;',
+  '  TAnt<S> = class m: S; end;',
+  '  TBird<X; Y: TAnt<X>> = class',
+  '    Ant: Y;',
   '  end;',
-  //'  generic TEagle<X; Y:X> = class',
-  //'    e: Y;',
-  //'  end;',
-  //'  generic TFireAnt<F> = class(specialize TAnt<F>) end;',
+  '  TEagle<X; Y:X> = class',
+  '    e: Y;',
+  '  end;',
+  '  TFireAnt<F> = class(TAnt<F>) end;',
+  '  TAntWord = TAnt<word>;',
+  '  TBirdAntWord = TBird<word, TAnt<word>>;',
   'var',
-  '  b: specialize TBird<word, specialize TAnt<word>>;',
-  //'  a: specialize TAnt<word>;',
-  //'  f: specialize TEagle<specialize TAnt<boolean>, specialize TFireAnt<boolean>>;',
-  //'  fb: specialize TFireAnt<boolean>;',
+  '  a: TAnt<word>;',
+  '  b: TBird<word, TAntWord>;',
+  '  c: TBird<TBirdAntWord, TAnt<TBirdAntWord>>;',
+  '  f: TEagle<TAnt<boolean>, TFireAnt<boolean>>;',
+  '  fb: TFireAnt<boolean>;',
   'begin',
-  //'  b.o:=a;',
-  //'  f.e:=fb;',
+  '  b.Ant:=a;',
+  '  f.e:=fb;',
   '']);
   ParseProgram;
 end;
