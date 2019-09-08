@@ -70,7 +70,7 @@ unit cpubase;
          a_mov3q,a_mvz,a_mvs,a_sats,a_byterev,a_ff1,a_remu,a_rems,
          { fpu processor instructions - directly supported }
          { ieee aware and misc. condition codes not supported   }
-         a_fabs,fsabs,fdabs,a_fadd,a_fsadd,a_fdadd,
+         a_fabs,a_fsabs,a_fdabs,a_fadd,a_fsadd,a_fdadd,
          a_fbeq,a_fbne,a_fbngt,a_fbgt,a_fbge,a_fbnge,
          a_fblt,a_fbnlt,a_fble,a_fbgl,a_fbngl,a_fbgle,a_fbngle,
          a_fdbeq,a_fdbne,a_fdbgt,a_fdbngt,a_fdbge,a_fdbnge,

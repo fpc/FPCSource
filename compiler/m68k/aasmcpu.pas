@@ -504,13 +504,16 @@ type
             result:=operand_write;
           A_NEG, A_NEGX, A_EXT, A_EXTB, A_NOT, A_SWAP:
             result:=operand_readwrite;
-          A_TST,A_CMP,A_CMPI,A_BTST:
+          A_TST, A_CMP, A_CMPI, A_BTST:
             begin end; { Do nothing, default operand_read is fine here. }
 
           // FPU opcodes
           A_FSXX, A_FSEQ, A_FSNE, A_FSLT, A_FSLE, A_FSGT, A_FSGE:
              result:=operand_write;
-          A_FABS,A_FSQRT,A_FNEG,A_FSIN,A_FCOS:
+          A_FABS, A_FSABS, A_FDABS,
+          A_FSQRT, A_FSSQRT, A_FDSQRT,
+          A_FNEG, A_FSNEG, A_FDNEG,
+          A_FSIN, A_FCOS:
              if ops = 1 then
                begin
                  if opnr = 0 then
@@ -519,10 +522,13 @@ type
              else
                if opnr = 1 then
                  result:=operand_write;
-          A_FMOVE:
+          A_FMOVE, A_FSMOVE, A_FDMOVE:
              if opnr=1 then
                result:=operand_write;
-          A_FADD, A_FSUB, A_FMUL, A_FDIV:
+          A_FADD, A_FSADD, A_FDADD,
+          A_FSUB, A_FSSUB, A_FDSUB,
+          A_FMUL, A_FSMUL, A_FDMUL, A_FSGLMUL,
+          A_FDIV, A_FSDIV, A_FDDIV, A_FSGLDIV:
              if opnr=1 then
                result:=operand_readwrite;
           A_FCMP, A_FTST:

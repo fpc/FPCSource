@@ -411,7 +411,10 @@ unit aoptcpu;
                     else
                       result:=result or MaybeRealConstOperSimplify(p);
                   end;
-              A_FMOVE,A_FMUL,A_FADD,A_FSUB,A_FDIV:
+              A_FMOVE,A_FSMOVE,A_FDMOVE,
+              A_FADD,A_FSADD,A_FDADD,A_FSUB,A_FSSUB,A_FDSUB,
+              A_FMUL,A_FSMUL,A_FDMUL,A_FDIV,A_FSDIV,A_FDDIV,
+              A_FSGLMUL,A_FSGLDIV:
                   begin
                     if (taicpu(p).opcode = A_FMOVE) and TryToOptimizeMove(p) then
                       begin
