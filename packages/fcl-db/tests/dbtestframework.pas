@@ -17,6 +17,10 @@ uses
   bufdatasettoolsunit,
   memdstoolsunit,
   SdfDSToolsUnit,
+ {$IFDEF TEST_SQLITE3DS}
+   Sqlite3DSToolsUnit,
+   TestSpecificTSqlite3Dataset,
+ {$ENDIF}
 // Units wich contain the tests
   tcsdfdata,
   TestBasics,
