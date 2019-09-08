@@ -518,7 +518,7 @@ unit cpupara;
                             paraloc^.size:=paracgsize;
                             paraloc^.def:=paradef;
                             paraloc^.loc:=LOC_FPUREGISTER;
-                            paraloc^.register:=newreg(R_FPUREGISTER,floatparasupregs[floatparareg],R_SUBWHOLE);
+                            paraloc^.register:=newreg(R_FPUREGISTER,floatparasupregs[floatparareg],R_SUBNONE);
                             inc(floatparareg);
                           end;
                       end
