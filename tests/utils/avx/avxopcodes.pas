@@ -307,7 +307,7 @@ begin
   FOpCodeList.Add('vcmpss,1,1,1,KREG_M,XMMREG,MEM32,IMM8');
   FOpCodeList.Add('vcmpss,1,1,1,KREG_M,XMMREG,XMMREG_SAE,IMM8');
   FOpCodeList.Add('vcmpss,1,1,0,XMMREG,XMMREG,XMMREG,IMM8');
-  FOpCodeList.Add('vcmpss,1,1,0,XMMREG,XMMREG,MEM64,IMM8');
+  FOpCodeList.Add('vcmpss,1,1,0,XMMREG,XMMREG,MEM32,IMM8');
   FOpCodeList.Add('vcomisd,1,1,1,XMMREG,MEM64,,');
   FOpCodeList.Add('vcomisd,1,1,1,XMMREG,XMMREG_SAE,,');
   FOpCodeList.Add('vcomiss,1,1,1,XMMREG,MEM32,,');
