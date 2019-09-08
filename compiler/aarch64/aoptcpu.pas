@@ -38,13 +38,14 @@ Interface
       TCpuAsmOptimizer = class(TAsmOptimizer)
         { uses the same constructor as TAopObj }
         function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
-        procedure PeepHoleOptPass2;override;
+        function PostPeepHoleOptsCpu(var p: tai): boolean; override;
         function RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;override;
         function GetNextInstructionUsingReg(Current : tai; out Next : tai; reg : TRegister) : Boolean;
         function LookForPostindexedPattern(p : taicpu) : boolean;
         procedure DebugMsg(const s : string; p : tai);
       private
         function OptPass1Shift(var p: tai): boolean;
+        function OptPostCMP(var p: tai): boolean;
       End;
 
 Implementation
@@ -347,6 +348,39 @@ Implementation
     end;
 
 
+  function TCpuAsmOptimizer.OptPostCMP(var p : tai): boolean;
+    var
+     hp1,hp2: tai;
+    begin
+      result:=false;
+      if MatchOpType(taicpu(p),top_reg,top_const) and
+        (taicpu(p).oper[1]^.val=0) and
+        GetNextInstruction(p,hp1) and
+        MatchInstruction(hp1,A_B,[PF_None]) and
+        (taicpu(hp1).condition in [C_EQ,C_NE]) then
+        begin
+          case taicpu(hp1).condition of
+            C_NE:
+              hp2:=taicpu.op_reg_sym_ofs(A_CBNZ,taicpu(p).oper[0]^.reg,taicpu(hp1).oper[0]^.ref^.symbol,taicpu(hp1).oper[0]^.ref^.offset);
+            C_EQ:
+              hp2:=taicpu.op_reg_sym_ofs(A_CBZ,taicpu(p).oper[0]^.reg,taicpu(hp1).oper[0]^.ref^.symbol,taicpu(hp1).oper[0]^.ref^.offset);
+            else
+              Internalerror(2019090801);
+          end;
+          taicpu(hp2).fileinfo:=taicpu(hp1).fileinfo;
+          asml.insertbefore(hp2, hp1);
+
+          asml.remove(p);
+          asml.remove(hp1);
+          p.free;
+          hp1.free;
+          p:=hp2;
+          DebugMsg('Peephole CMPB.E/NE2CBNZ/CBZ done', p);
+          Result:=true;
+        end;
+    end;
+
+
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     begin
       result := false;
@@ -373,8 +407,18 @@ Implementation
     end;
 
 
-  procedure TCpuAsmOptimizer.PeepHoleOptPass2;
+  function TCpuAsmOptimizer.PostPeepHoleOptsCpu(var p: tai): boolean;
     begin
+      result := false;
+      if p.typ=ait_instruction then
+        begin
+          case taicpu(p).opcode of
+            A_CMP:
+              Result:=OptPostCMP(p);
+            else
+              ;
+          end;
+        end;
     end;
 
 begin
