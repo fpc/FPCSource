@@ -546,10 +546,13 @@ begin
   '    function Run: U;',
   '  end;',
   'function TAnt.Run: U;',
+  'var a: specialize TAnt<U>;',
   'begin',
   '  if v is TObject then ;',
   '  if v is specialize TAnt<TObject> then',
   '    specialize TAnt<TObject>(v).v:=nil;',
+  '  a:=v as specialize TAnt<U>;',
+  '  if (v as specialize TAnt<TObject>).v=nil then ;',
   'end;',
   'begin',
   '']);

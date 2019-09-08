@@ -12039,6 +12039,20 @@ begin
   if IsGenericTemplType(LeftResolved) or IsGenericTemplType(RightResolved) then
     begin
     // cannot yet be decided
+    case Bin.OpCode of
+    eopEqual, eopNotEqual,
+    eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual,
+    eopIn,eopIs:
+      begin
+      SetBaseType(btBoolean);
+      exit;
+      end;
+    eopAs:
+      begin
+      SetRightValueExpr([rrfReadable]);
+      exit;
+      end;
+    end;
     ResolvedEl:=LeftResolved;
     ResolvedEl.Flags:=ResolvedEl.Flags-[rrfWritable];
     exit;
@@ -12491,6 +12505,28 @@ begin
             end;
           end;
         RaiseIncompatibleTypeRes(20180324190713,nTypesAreNotRelatedXY,[],LeftResolved,RightResolved,Bin);
+        end
+      else if LeftTypeEl.ClassType=TPasGenericTemplateType then
+        begin
+        // genericvar as ...
+        if (LeftResolved.IdentEl is TPasType)
+            or (not (rrfReadable in LeftResolved.Flags)) then
+          RaiseIncompatibleTypeRes(20190908191127,nOperatorIsNotOverloadedAOpB,
+            [OpcodeStrings[Bin.OpCode]],LeftResolved,RightResolved,Bin);
+        if RightResolved.IdentEl=nil then
+          RaiseXExpectedButYFound(20190908191202,'class',GetElementTypeName(RightResolved.LoTypeEl),Bin.right);
+        if not (RightResolved.IdentEl is TPasType) then
+          RaiseXExpectedButYFound(20190908191204,'class',RightResolved.IdentEl.Name,Bin.right);
+        if not (RightResolved.BaseType=btContext) then
+          RaiseXExpectedButYFound(20190908191206,'class',RightResolved.IdentEl.Name,Bin.right);
+        RightTypeEl:=RightResolved.LoTypeEl;
+        if RightTypeEl is TPasClassType then
+          begin
+          // e.g. genericvar as classtype
+          SetRightValueExpr([rrfReadable]);
+          exit;
+          end;
+        RaiseIncompatibleTypeRes(20190908192345,nTypesAreNotRelatedXY,[],LeftResolved,RightResolved,Bin);
         end;
       end;
     eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual:
