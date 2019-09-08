@@ -2230,7 +2230,8 @@ begin
     CloseDataSets;
     If LogEvent(detCommit) then
       Log(detCommit,SCommitting);
-    if (stoUseImplicit in Options) or SQLConnection.AttemptCommit(FTrans) then
+    // FTrans=Nil for the case of forced close.
+    if (FTrans=Nil) or (stoUseImplicit in Options) or SQLConnection.AttemptCommit(FTrans) then
       begin
       CloseTrans;
       FreeAndNil(FTrans);
@@ -2257,7 +2258,8 @@ begin
     CloseDataSets;
     If LogEvent(detRollback) then
       Log(detRollback,SRollingBack);
-    if SQLConnection.AttemptRollBack(FTrans) then
+    // FTrans=Nil for the case of forced close.
+    if (FTrans=Nil) or SQLConnection.AttemptRollBack(FTrans) then
       begin
       CloseTrans;
       FreeAndNil(FTrans);
