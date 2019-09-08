@@ -890,10 +890,13 @@ implementation
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
         case opcode of
-          A_B,A_BL,
+          A_B,A_BL,A_BR,A_BLR,
           A_CMN,A_CMP,
           A_CCMN,A_CCMP,
-          A_TST:
+          A_TST,
+          A_FCMP,A_FCMPE,
+          A_CBZ,A_CBNZ,
+          A_RET:
             result:=operand_read;
           A_STR,A_STUR:
             if opnr=0 then
@@ -926,11 +929,78 @@ implementation
                  { check for pre/post indexed in spilling_get_operation_type_ref }
                  result:=operand_read;
              end;
+{$ifdef EXTDEBUG}
+           { play save to avoid hard to find bugs, better fail at compile time }
+           A_ADD,
+           A_ADRP,
+           A_AND,
+           A_ASR,
+           A_BFI,
+           A_BFXIL,
+           A_CLZ,
+           A_CSEL,
+           A_CSET,
+           A_CSETM,
+           A_FABS,
+           A_EON,
+           A_EOR,
+           A_FADD,
+           A_FCVT,
+           A_FDIV,
+           A_FMADD,
+           A_FMOV,
+           A_FMSUB,
+           A_FMUL,
+           A_FNEG,
+           A_FNMADD,
+           A_FNMSUB,
+           A_FRINTX,
+           A_FSQRT,
+           A_FSUB,
+           A_ORR,
+           A_LSL,
+           A_LSLV,
+           A_LSR,
+           A_LSRV,
+           A_MOV,
+           A_MOVK,
+           A_MOVN,
+           A_MOVZ,
+           A_MSUB,
+           A_MUL,
+           A_MVN,
+           A_NEG,
+           A_LDR,
+           A_LDUR,
+           A_RBIT,
+           A_ROR,
+           A_RORV,
+           A_SBFX,
+           A_SCVTF,
+           A_FCVTZS,
+           A_SDIV,
+           A_SMULL,
+           A_SUB,
+           A_SXT,
+           A_UBFIZ,
+           A_UBFX,
+           A_UCVTF,
+           A_UDIV,
+           A_UMULL,
+           A_UXT:
+             if opnr=0 then
+               result:=operand_write
+             else
+               result:=operand_read;
+           else
+             Internalerror(2019090802);
+{$else EXTDEBUG}
            else
              if opnr=0 then
                result:=operand_write
              else
                result:=operand_read;
+{$endif EXTDEBUG}
         end;
       end;
 
