@@ -2105,6 +2105,7 @@ type
     // checking compatibilility
     function IsSameType(TypeA, TypeB: TPasType; ResolveAlias: TPRResolveAlias): boolean; // check if it is exactly the same
     function HasExactType(const ResolvedEl: TPasResolverResult): boolean; // false if HiTypeEl was guessed, e.g. 1 guessed a btLongint
+    function IndexOfGenericParam(Params: TPasExprArray): integer;
     procedure CheckUseAsType(aType: TPasElement; id: TMaxPrecInt; ErrorEl: TPasElement);
     function CheckCallProcCompatibility(ProcType: TPasProcedureType;
       Params: TParamsExpr; RaiseOnError: boolean;
@@ -10079,6 +10080,41 @@ end;
 procedure TPasResolver.ResolveFuncParamsExprName(NameExpr: TPasExpr;
   Params: TParamsExpr; Access: TResolvedRefAccess; CallName: string);
 
+  procedure RaiseMultiFit;
+  var
+    FindCallData: TFindCallElData;
+    Msg: String;
+    i: Integer;
+    El: TPasElement;
+    Abort: boolean;
+  begin
+    FindCallData:=Default(TFindCallElData);
+    FindCallData.Params:=Params;
+    FindCallData.List:=TFPList.Create;
+    try
+      Abort:=false;
+      IterateElements(CallName,@OnFindCallElements,@FindCallData,Abort);
+      Msg:='';
+      for i:=0 to FindCallData.List.Count-1 do
+        begin
+        El:=TPasElement(FindCallData.List[i]);
+        {$IFDEF VerbosePasResolver}
+        writeln('TPasResolver.ResolveFuncParamsExpr Overload Candidate: ',GetElementSourcePosStr(El),' ',GetTreeDbg(El));
+        {$ENDIF}
+        // emit a hint for each candidate
+        if El is TPasProcedure then
+          LogMsg(20170417180320,mtHint,nFoundCallCandidateX,sFoundCallCandidateX,
+            [GetProcTypeDescription(TPasProcedure(El).ProcType,
+              [prptdUseName,prptdAddPaths,prptdResolveSimpleAlias])],El);
+        Msg:=Msg+', '+GetElementSourcePosStr(El);
+        end;
+    finally
+      FindCallData.List.Free;
+    end;
+    RaiseMsg(20170216152200,nCantDetermineWhichOverloadedFunctionToCall,
+      sCantDetermineWhichOverloadedFunctionToCall+Msg,[CallName],NameExpr);
+  end;
+
   procedure FinishUntypedParams(ParamAccess: TResolvedRefAccess);
   var
     i: Integer;
@@ -10089,11 +10125,9 @@ procedure TPasResolver.ResolveFuncParamsExprName(NameExpr: TPasExpr;
   end;
 
 var
-  i: Integer;
-  Msg: String;
   FindCallData: TFindCallElData;
   Abort: boolean;
-  El, FoundEl: TPasElement;
+  FoundEl: TPasElement;
   Ref: TResolvedReference;
   FindData: TPRFindData;
   BuiltInProc: TResElDataBuiltInProc;
@@ -10160,33 +10194,16 @@ begin
     // missing raise exception
     RaiseNotYetImplemented(20180621002400,Params,'missing exception, Found='+GetObjName(FindCallData.Found));
     end;
+
   if FindCallData.Count>1 then
     begin
-    // multiple overloads fit => search again and list the candidates
-    FindCallData:=Default(TFindCallElData);
-    FindCallData.Params:=Params;
-    FindCallData.List:=TFPList.Create;
-    try
-      IterateElements(CallName,@OnFindCallElements,@FindCallData,Abort);
-      Msg:='';
-      for i:=0 to FindCallData.List.Count-1 do
-        begin
-        El:=TPasElement(FindCallData.List[i]);
-        {$IFDEF VerbosePasResolver}
-        writeln('TPasResolver.ResolveFuncParamsExpr Overload Candidate: ',GetElementSourcePosStr(El),' ',GetTreeDbg(El));
-        {$ENDIF}
-        // emit a hint for each candidate
-        if El is TPasProcedure then
-          LogMsg(20170417180320,mtHint,nFoundCallCandidateX,sFoundCallCandidateX,
-            [GetProcTypeDescription(TPasProcedure(El).ProcType,
-              [prptdUseName,prptdAddPaths,prptdResolveSimpleAlias])],El);
-        Msg:=Msg+', '+GetElementSourcePosStr(El);
-        end;
-      RaiseMsg(20170216152200,nCantDetermineWhichOverloadedFunctionToCall,
-        sCantDetermineWhichOverloadedFunctionToCall+Msg,[CallName],NameExpr);
-    finally
-      FindCallData.List.Free;
-    end;
+    // multiple overloads fit
+    if (FindCallData.Found is TPasProcedure)
+        and (IndexOfGenericParam(Params.Params)>=0) then
+      // generic params -> ignore ambiguity
+    else
+      // => search again and list the candidates
+      RaiseMultiFit;
     end;
 
   // FoundEl compatible element -> create reference
@@ -25604,6 +25621,20 @@ begin
     Result:=true
   else
     Result:=false;
+end;
+
+function TPasResolver.IndexOfGenericParam(Params: TPasExprArray): integer;
+var
+  i: Integer;
+  ParamResolved: TPasResolverResult;
+begin
+  for i:=0 to length(Params)-1 do
+    begin
+    ComputeElement(Params[i],ParamResolved,[]);
+    if ParamResolved.LoTypeEl is TPasGenericTemplateType then
+      exit(i);
+    end;
+  Result:=-1;
 end;
 
 procedure TPasResolver.CheckUseAsType(aType: TPasElement; id: TMaxPrecInt;

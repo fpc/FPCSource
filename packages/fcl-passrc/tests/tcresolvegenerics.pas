@@ -113,7 +113,7 @@ type
     procedure TestGen_Statements;
     procedure TestGen_InlineSpecializeExpr;
     procedure TestGen_TryExcept;
-    // ToDo: call
+    procedure TestGen_Call;
     // ToTo: nested proc
   end;
 
@@ -1640,6 +1640,33 @@ begin
   '  b: specialize TBird<word>;',
   'begin',
   '  b.Fly(2);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Call;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '    function Fly(p:T): T;',
+  '  end;',
+  'procedure Run(b: boolean); overload;',
+  'begin end;',
+  'procedure Run(w: word); overload;',
+  'begin end;',
+  'function TBird.Fly(p:T): T;',
+  'begin',
+  '  Run(p);',
+  '  Run(Result);',
+  'end;',
+  'var',
+  '  w: specialize TBird<word>;',
+  '  b: specialize TBird<boolean>;',
+  'begin',
   '']);
   ParseProgram;
 end;
