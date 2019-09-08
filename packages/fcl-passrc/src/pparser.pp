@@ -1570,7 +1570,8 @@ begin
         ParseExcSyntaxError;
       UnGetToken;
       end
-    else if (CurToken = tkLessThan) then // A = B<t>;
+    else if (CurToken = tkLessThan)
+        and (MustBeSpecialize or (msDelphi in CurrentModeswitches)) then // A = B<t>;
       begin
       Result:=ParseSpecializeType(Parent,TypeName,Name,Expr);
       ok:=true;

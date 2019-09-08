@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testregistry,
-  TCModules;
+  TCModules, FPPas2Js;
 
 type
 
@@ -22,6 +22,7 @@ type
     Procedure TestGen_Class_EmptyMethod;
     Procedure TestGen_Class_TList;
     Procedure TestGen_ClassAncestor;
+    Procedure TestGen_TypeInfo;
 
     // generic external class
     procedure TestGen_ExtClass_Array;
@@ -242,6 +243,51 @@ begin
     '']));
 end;
 
+procedure TTestGenerics.TestGen_TypeInfo;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '  published',
+  '    m: T;',
+  '  end;',
+  '  TEagle = specialize TBird<word>;',
+  'var',
+  '  b: specialize TBird<word>;',
+  '  p: pointer;',
+  'begin',
+  '  p:=typeinfo(TEagle);',
+  '  p:=typeinfo(b);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_TypeInfo',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird$G1", $mod.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
+    '    this.m = 0;',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addField("m", rtl.word);',
+    '});',
+    'this.b = null;',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.$rtti["TBird$G1"];',
+    '$mod.p = $mod.b.$rtti;',
+    '']));
+end;
+
 procedure TTestGenerics.TestGen_ExtClass_Array;
 begin
   StartProgram(false);
@@ -314,7 +360,7 @@ begin
   '  generic TBird<T> = class',
   '  end;',
   'constructor TObject.Create; begin end;',
-  'var b: TBird<word>;',
+  'var b: specialize TBird<word>;',
   'begin',
   '  b:=specialize TBird<word>.Create;',
   '']);
