@@ -87,6 +87,9 @@ class function tllvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, to
        { same for two different specialisations }
        ((df_specialization in fromdef.defoptions) and
         (df_specialization in todef.defoptions)) or
+       { external objc classes referring to the same type }
+       (is_objc_class_or_protocol(fromdef) and
+        is_objc_class_or_protocol(todef)) or
        { typed from/to untyped filedef in ISO mode: have to keep because of
          the get/put buffer }
        ((fromdef.typ=filedef) and
