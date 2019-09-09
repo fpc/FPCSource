@@ -379,7 +379,7 @@ Implementation
          MatchOpType(taicpu(p),top_reg,top_reg,top_const) and
          GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
          MatchInstruction(hp1, [A_ADD, A_AND, A_BIC, A_CMP, A_CMN,
-                                A_EON, A_EOR, A_MOV, A_NEG, A_ORN, A_ORR,
+                                A_EON, A_EOR, A_NEG, A_ORN, A_ORR,
                                 A_SUB, A_TST], [PF_None]) and
          RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) and
          (taicpu(hp1).ops >= 2) and
@@ -459,7 +459,11 @@ Implementation
                 Result:=true;
                 break;
               end;
-        end;
+        end
+      else if MatchInstruction(p,[A_LSL, A_LSR, A_ASR,A_ROR],[PF_None]) and
+        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+        RemoveSuperfluousMove(p, hp1, 'ShiftMov2Shift') then
+        Result:=true;
     end;
 
 
