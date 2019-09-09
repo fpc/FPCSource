@@ -794,12 +794,24 @@ implementation
       firstop,
       secondop: tllvmop;
     begin
-      ai:=taillvm.blockaddress(voidcodepointertype,
-          current_asmdata.RefAsmSymbol(current_procinfo.procdef.mangledname,AT_FUNCTION),
-          current_asmdata.RefAsmSymbol(l.mangledname,AT_LABEL)
-        );
-      emit_tai(ai,voidcodepointertype);
-      fqueue_offset:=low(fqueue_offset);
+      if not assigned(l.asmblocklabel) or
+         not l.asmblocklabel.defined_in_asmstatement then
+        begin
+          ai:=taillvm.blockaddress(voidcodepointertype,
+              current_asmdata.RefAsmSymbol(current_procinfo.procdef.mangledname,AT_FUNCTION),
+              current_asmdata.RefAsmSymbol(l.mangledname,AT_LABEL)
+            );
+          emit_tai(ai,voidcodepointertype);
+          fqueue_offset:=low(fqueue_offset);
+        end
+      else
+        begin
+          { we've already incorporated the offset via the inserted operations above,
+            make sure it doesn't get emitted again as part of the tai_const for
+            the tasmsymbol }
+          fqueue_offset:=0;
+          inherited;
+        end;
     end;
 
 

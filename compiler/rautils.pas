@@ -1754,7 +1754,8 @@ Begin
           begin
             if tlabelsym(sym).defined then
               Message(sym_e_label_already_defined);
-            tlabelsym(sym).defined:=true
+            tlabelsym(sym).defined:=true;
+            hl.defined_in_asmstatement:=true
           end
         else
           tlabelsym(sym).used:=true;

@@ -973,8 +973,15 @@ implementation
 
     procedure TLLVMAssember.WriteTai(const replaceforbidden: boolean; const do_line, inmetadata: boolean; var InlineLevel: cardinal; var asmblock: boolean; var hp: tai);
 
-      procedure WriteLinkageVibilityFlags(bind: TAsmSymBind);
+      procedure WriteLinkageVibilityFlags(bind: TAsmSymBind; is_definition: boolean);
         begin
+          { re-declaration of a symbol defined in the current module (in an
+            assembler block) }
+          if not is_definition then
+            begin
+              writer.AsmWrite(' external');
+              exit;
+            end;
           case bind of
              AB_EXTERNAL,
              AB_EXTERNAL_INDIRECT:
@@ -1297,7 +1304,7 @@ implementation
                       writer.AsmWrite('define');
                       if ldf_weak in taillvmdecl(hp).flags then
                         writer.AsmWrite(' weak');
-                      WriteLinkageVibilityFlags(taillvmdecl(hp).namesym.bind);
+                      WriteLinkageVibilityFlags(taillvmdecl(hp).namesym.bind, true);
                       writer.AsmWrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), '', lpd_def));
                       WriteFunctionFlags(tprocdef(taillvmdecl(hp).def));
                       if assigned(tprocdef(taillvmdecl(hp).def).personality) then
@@ -1319,7 +1326,7 @@ implementation
                     writer.AsmWrite(' weak');
                   if ldf_appending in taillvmdecl(hp).flags then
                     writer.AsmWrite(' appending');
-                  WriteLinkageVibilityFlags(taillvmdecl(hp).namesym.bind);
+                  WriteLinkageVibilityFlags(taillvmdecl(hp).namesym.bind, ldf_definition in taillvmdecl(hp).flags);
                   writer.AsmWrite(' ');
                   if (ldf_tls in taillvmdecl(hp).flags) then
                     writer.AsmWrite('thread_local ');
@@ -1332,7 +1339,7 @@ implementation
                   if not assigned(taillvmdecl(hp).initdata) then
                     begin
                       writer.AsmWrite(llvmencodetypename(taillvmdecl(hp).def));
-                      if not(taillvmdecl(hp).namesym.bind in [AB_EXTERNAL, AB_WEAK_EXTERNAL,AB_EXTERNAL_INDIRECT]) then
+                      if ldf_definition in taillvmdecl(hp).flags then
                         writer.AsmWrite(' zeroinitializer');
                     end
                   else
@@ -1384,7 +1391,7 @@ implementation
             begin
               writer.AsmWrite(LlvmAsmSymName(taillvmalias(hp).newsym));
               writer.AsmWrite(' = alias ');
-              WriteLinkageVibilityFlags(taillvmalias(hp).bind);
+              WriteLinkageVibilityFlags(taillvmalias(hp).bind, true);
               if taillvmalias(hp).def.typ=procdef then
                 sstr:=llvmencodeproctype(tabstractprocdef(taillvmalias(hp).def), '', lpd_alias)
               else

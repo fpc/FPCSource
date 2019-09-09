@@ -224,6 +224,7 @@ interface
          labeltype : TAsmLabelType;
          is_set    : boolean;
          is_public : boolean;
+         defined_in_asmstatement : boolean;
          constructor Createlocal(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
          constructor Createstatic(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
          constructor Createglobal(AList: TFPHashObjectList; const modulename: TSymStr; nr: longint; ltyp: TAsmLabelType);
