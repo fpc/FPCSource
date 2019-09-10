@@ -192,7 +192,7 @@ type
     FCharSet             : string;
     FCodePage            : TSystemCodePage;
     FRole                : String;
-    FStatements          : TFPList;
+    FStatements          : TThreadList;
     FLogEvents: TDBEventTypes;
     FOnLog: TDBLogNotifyEvent;
     function GetPort: cardinal;
@@ -265,11 +265,9 @@ type
 
     Procedure MaybeConnect;
 
-    Property Statements : TFPList Read FStatements;
+    Property Statements : TThreadList Read FStatements;
     property Port: cardinal read GetPort write SetPort;
   public
-    property Handle: Pointer read GetHandle;
-    property FieldNameQuoteChars: TQuoteChars read FFieldNameQuoteChars write FFieldNameQuoteChars;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure StartTransaction; override;
@@ -290,6 +288,8 @@ type
     procedure DropDB; virtual;
     function GetNextValue(const SequenceName: string; IncrementBy: integer=1): Int64; virtual;
     property ConnOptions: TConnOptions read FConnOptions;
+    property Handle: Pointer read GetHandle;
+    property FieldNameQuoteChars: TQuoteChars read FFieldNameQuoteChars write FFieldNameQuoteChars;
   published
     property Password : string read FPassword write FPassword;
     property Transaction : TSQLTransaction read FTransaction write SetTransaction;
@@ -1193,7 +1193,8 @@ begin
   FSQLFormatSettings:=DefaultSQLFormatSettings;
   FFieldNameQuoteChars:=DoubleQuotes;
   FLogEvents:=LogAllEvents; //match Property LogEvents...Default LogAllEvents
-  FStatements:=TFPList.Create;
+  FStatements:=TThreadList.Create;
+  FStatements.Duplicates:=dupIgnore;
 end;
 
 destructor TSQLConnection.Destroy;
@@ -1269,11 +1270,17 @@ procedure TSQLConnection.DoInternalDisconnect;
 
 Var
   I : integer;
+  L : TList;
 
 begin
-  For I:=0 to FStatements.Count-1 do
-    TCustomSQLStatement(FStatements[i]).Unprepare;
-  FStatements.Clear;
+  L:=FStatements.LockList;
+  try
+    For I:=0 to L.Count-1 do
+      TCustomSQLStatement(L[i]).Unprepare;
+    L.Clear;
+  finally
+    FStatements.UnlockList;
+  end;
 end;
 
 procedure TSQLConnection.StartTransaction;
@@ -1792,9 +1799,9 @@ begin
 end;
 
 procedure TSQLConnection.RegisterStatement(S: TCustomSQLStatement);
+
 begin
-  if FStatements.IndexOf(S)=-1 then
-    FStatements.Add(S);
+  FStatements.Add(S);
 end;
 
 procedure TSQLConnection.UnRegisterStatement(S: TCustomSQLStatement);
