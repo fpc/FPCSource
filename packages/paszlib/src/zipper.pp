@@ -1046,7 +1046,7 @@ begin
         Count:=C.Read(Buf^,FBufferSize);
         For I:=0 to Count-1 do
           UpdC32(Buf[i]);
-        FOutFile.Write(Buf^,Count);
+        FOutFile.WriteBuffer(Buf^,Count);
         inc(BytesNow,Count);
         if BytesNow>NextMark Then
            begin
