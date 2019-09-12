@@ -2404,7 +2404,14 @@ unit cgcpu;
             list.concat(taicpu.op_reg_ref(GetLoad(srcref),NR_R0,srcref));
             list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,NR_R0));
             cg.ungetcpuregister(list,NR_R0);
-            list.concat(taicpu.op_reg(A_DEC,countreg));
+            if tcgsize2size[countregsize] = 1 then
+              list.concat(taicpu.op_reg(A_DEC,countreg))
+            else
+              begin
+                list.concat(taicpu.op_reg_const(A_SUBI,countreg,1));
+                list.concat(taicpu.op_reg_reg(A_SBC,GetNextReg(countreg),NR_R1));
+              end;
+
             a_jmp_flags(list,F_NE,l);
             cg.ungetcpuregister(list,NR_R26);
             cg.ungetcpuregister(list,NR_R27);
