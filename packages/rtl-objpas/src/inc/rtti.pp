@@ -929,6 +929,26 @@ asm
   .long RawThunkPlaceholderContext
 RawThunkEnd:
 end;
+{$elseif defined(cpuaarch64)}
+const
+  RawThunkPlaceholderProc = $8765876587658765;
+  RawThunkPlaceholderContext = $4321432143214321;
+
+type
+  TRawThunkProc = PtrUInt;
+  TRawThunkContext = PtrUInt;
+
+procedure RawThunk; assembler; nostackframe;
+asm
+  ldr x16, .LProc
+  ldr x0, .LContext
+  br x16
+.LProc:
+  .quad RawThunkPlaceholderProc
+.LContext:
+  .quad RawThunkPlaceholderContext
+RawThunkEnd:
+end;
 {$elseif defined(cpum68k)}
 const
   RawThunkPlaceholderProc = $87658765;
