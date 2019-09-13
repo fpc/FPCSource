@@ -17,6 +17,7 @@ Type
     Function AllowFile(Const AFileName : String) : Boolean; virtual;
     // Actually Send file to client.
     Procedure SendFile(Const AFileName : String; AResponse : TResponse); virtual;
+  Public
     // Overrides TCustomHTTPModule to implement file serving.
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
   end;
@@ -30,9 +31,11 @@ Type
     FRequestedFileName,
     FMappedFileName : String;
     class procedure HandleSimpleFileRequest(ARequest: TRequest; AResponse: TResponse); static;
+  Protected
     Function AllowFile(Const AFileName : String) : Boolean; override;
     Function MapFileName(Const AFileName : String) : String; override;
     Function GetRequestFileName(Const ARequest : TRequest) : String; override;
+  Public
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
   Public
   Class var
