@@ -142,6 +142,42 @@ interface
        private
           labelnodeidx : longint;
        public
+          { * Set when creating the gotonode (since that's all we know at that
+              point).
+            * Used in pass_typecheck to find the corresponding labelnode (when a
+              labelnode is created for a tlabelsym, the label assigns itself to
+              the "code" field of the labelsym), which is then assigned to the
+              labelnode field
+            * After this, the labelsym is (and must) never be used anymore, and
+              instead the labelnode must always be used. The reason is that the
+              labelsym may not be owned by anything, and will be freed by the
+              label node when it gets freed
+            * The above is the reason why the labelsym field does not get copied
+              by tgotonode.dogetcopy, but instead the copy of the labelnode gets
+              tracked (both the labelnode and its goto nodes must always all be
+              copied).
+
+            The labelnode itself will not copy the labelsym either in dogetcopy.
+            Instead, since the link between the gotos and the labels gets
+            tracked via node tree references, the label node will generate a new
+            asmlabel on the fly and the goto node will get it from there (if the
+            goto node gets processed before the label node has been processed,
+            it will ask the label node to generate the asmsymbol at that point).
+
+            The original tlabelsym will get emitted only for the original
+            label node. It is only actually used if there is a reference to it
+            from
+              * an inline assembly block. Since inline assembly blocks cannot be
+                inlined at this point, it doesn't matter that this would break
+                in case the node gets copied
+              * global goto/label. Inlining is not supported for these, so no
+                problem here either for now.
+              * a load node (its symtableentry field). Since the symtableentry
+                of loadnodes is always expected to be valid, we cannot do like
+                with the goto nodes. Instead, we will create a new labelsym
+                when performing a dogetcopy of such a load node and assign this
+                labelsym to the copied labelnode (and vice versa)
+          }
           labelsym : tlabelsym;
           labelnode : tlabelnode;
           exceptionblock : integer;
