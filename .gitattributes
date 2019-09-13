@@ -15514,6 +15514,7 @@ tests/test/units/matrix/tinv1.pp svneol=native#text/pascal
 tests/test/units/objects/testobj.pp svneol=native#text/plain
 tests/test/units/objects/testobj1.pp svneol=native#text/plain
 tests/test/units/objects/testobj2.pp svneol=native#text/plain
+tests/test/units/rtl-generics/tw35877.pp svneol=native#text/plain
 tests/test/units/sharemem/libtest.pp svneol=native#text/plain
 tests/test/units/sharemem/test1.pp svneol=native#text/plain
 tests/test/units/softfpu/sfttst.pp svneol=native#text/plain
