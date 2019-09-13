@@ -1844,6 +1844,7 @@ var
   S : String;
 
 begin
+  S:='';
 {$ifdef CGIDEBUG} SendMethodEnter('ProcessURLEncoded');{$endif CGIDEBUG}
   SetLength(S,Stream.Size); // Skip added Null.
   Stream.ReadBuffer(S[1],Stream.Size);
