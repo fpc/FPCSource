@@ -994,7 +994,7 @@ begin
 {$if declared(TRawThunkBytesToPop)}
     if not btpdone and (i <= Size - SizeOf(TRawThunkBytesToPop)) then begin
       btp := PRawThunkBytesToPop(PByte(Result) + i);
-      if btp^ = RawThunkPlaceholderBytesToPop then begin
+      if btp^ = TRawThunkBytesToPop(RawThunkPlaceholderBytesToPop) then begin
         btp^ := TRawThunkBytesToPop(aBytesToPop);
         btpdone := True;
       end;
@@ -1002,14 +1002,14 @@ begin
 {$endif}
     if not contextdone and (i <= Size - SizeOf(TRawThunkContext)) then begin
       context := PRawThunkContext(PByte(Result) + i);
-      if context^ = RawThunkPlaceholderContext then begin
+      if context^ = TRawThunkContext(RawThunkPlaceholderContext) then begin
         context^ := TRawThunkContext(aContext);
         contextdone := True;
       end;
     end;
     if not procdone and (i <= Size - SizeOf(TRawThunkProc)) then begin
       proc := PRawThunkProc(PByte(Result) + i);
-      if proc^ = RawThunkPlaceholderProc then begin
+      if proc^ = TRawThunkProc(RawThunkPlaceholderProc) then begin
         proc^ := TRawThunkProc(aProc);
         procdone := True;
       end;
