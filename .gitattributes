@@ -4522,6 +4522,7 @@ packages/fcl-web/src/base/fpoauth2ini.pp svneol=native#text/plain
 packages/fcl-web/src/base/fpweb.pp svneol=native#text/plain
 packages/fcl-web/src/base/fpwebclient.pp svneol=native#text/plain
 packages/fcl-web/src/base/fpwebfile.pp svneol=native#text/plain
+packages/fcl-web/src/base/fpwebproxy.pp svneol=native#text/plain
 packages/fcl-web/src/base/httpdefs.pp svneol=native#text/plain
 packages/fcl-web/src/base/httpprotocol.pp svneol=native#text/plain
 packages/fcl-web/src/base/httproute.pp svneol=native#text/plain
