@@ -433,6 +433,7 @@ var
 begin
   l := Length(S);
   if l=0 then exit;
+  Result:='';
   SetLength(Result, l);
   P:=PChar(Result);
   i:=1;
