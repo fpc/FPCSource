@@ -108,7 +108,6 @@ Type
     FAdminName: string;
     FAfterSocketHandlerCreated: TSocketHandlerCreatedEvent;
     FCertificateData: TCertificateData;
-    FHostName: string;
     FOnAcceptIdle: TNotifyEvent;
     FOnAllowConnect: TConnectQuery;
     FOnGetSocketHandler: TGetSocketHandlerEvent;
