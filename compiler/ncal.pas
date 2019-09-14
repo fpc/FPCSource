@@ -587,8 +587,7 @@ implementation
           -> must have unique name in entire progream }
         calldescsym:=cstaticvarsym.create(
           internaltypeprefixName[itp_vardisp_calldesc]+current_module.modulename^+'$'+tostr(current_module.localsymtable.SymList.count),
-          vs_const,tcb.end_anonymous_record,[vo_is_public,vo_is_typed_const],
-          false);
+          vs_const,tcb.end_anonymous_record,[vo_is_public,vo_is_typed_const]);
         calldescsym.varstate:=vs_initialised;
         current_module.localsymtable.insert(calldescsym);
         current_asmdata.AsmLists[al_typedconsts].concatList(

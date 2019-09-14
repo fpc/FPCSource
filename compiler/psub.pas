@@ -757,7 +757,7 @@ implementation
             constructionsuccessful:=nil;
             if is_class(procdef.struct) then
               begin
-                constructionsuccessful:=clocalvarsym.create(internaltypeprefixName[itp_vmt_afterconstruction_local],vs_value,ptrsinttype,[],false);
+                constructionsuccessful:=clocalvarsym.create(internaltypeprefixName[itp_vmt_afterconstruction_local],vs_value,ptrsinttype,[]);
                 procdef.localst.insert(constructionsuccessful,false);
                 srsym:=search_struct_member(procdef.struct,'AFTERCONSTRUCTION');
                 if not assigned(srsym) or

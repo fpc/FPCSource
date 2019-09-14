@@ -174,7 +174,7 @@ implementation
       { find the type of the descriptor structure }
       descriptordef:=search_named_unit_globaltype('BLOCKRTL','FPC_BLOCK_DESCRIPTOR_SIMPLE',true).typedef;
       { create new static variable }
-      descriptor:=cstaticvarsym.create(name,vs_value,descriptordef,[],true);
+      descriptor:=cstaticvarsym.create(name,vs_value,descriptordef,[]);
       symtablestack.top.insert(descriptor);
       include(descriptor.symoptions,sp_internal);
       { create typed constant for the descriptor }
@@ -227,7 +227,7 @@ implementation
         begin
           { alias for the type to invoke the procvar, used in the symcreat
             handling of tsk_block_invoke_procvar }
-          result.localst.insert(ctypesym.create('__FPC_BLOCK_INVOKE_PV_TYPE',orgpv,true));
+          result.localst.insert(ctypesym.create('__FPC_BLOCK_INVOKE_PV_TYPE',orgpv));
           result.synthetickind:=tsk_block_invoke_procvar;
         end;
     end;
@@ -253,7 +253,7 @@ implementation
       result:=cstaticvarsym.create(
         '$'+literalname,
         vs_value,
-        blockliteraldef,[],true);
+        blockliteraldef,[]);
       include(result.symoptions,sp_internal);
       symtablestack.top.insert(result);
       { initialise it }

@@ -877,7 +877,7 @@ implementation
             (def.typesym=nil) and
             check_proc_directive(true) then
            begin
-              newtype:=ctypesym.create('unnamed',def,true);
+              newtype:=ctypesym.create('unnamed',def);
               parse_var_proc_directives(tsym(newtype));
               newtype.typedef:=nil;
               def.typesym:=nil;
@@ -1115,7 +1115,7 @@ implementation
           case vs.typ of
             localvarsym :
               begin
-                tcsym:=cstaticvarsym.create('$default'+vs.realname,vs_const,vs.vardef,[],true);
+                tcsym:=cstaticvarsym.create('$default'+vs.realname,vs_const,vs.vardef,[]);
                 include(tcsym.symoptions,sp_internal);
                 symtablestack.top.insert(tcsym);
                 templist:=tasmlist.create;
@@ -1362,11 +1362,11 @@ implementation
                                 (idtoken=_GENERIC);
                    case symtablestack.top.symtabletype of
                      localsymtable :
-                       vs:=clocalvarsym.create(orgpattern,vs_value,generrordef,[],false);
+                       vs:=clocalvarsym.create(orgpattern,vs_value,generrordef,[]);
                      staticsymtable,
                      globalsymtable :
                        begin
-                         vs:=cstaticvarsym.create(orgpattern,vs_value,generrordef,[],false);
+                         vs:=cstaticvarsym.create(orgpattern,vs_value,generrordef,[]);
                          if vd_threadvar in options then
                            include(vs.varoptions,vo_is_thread_var);
                        end;
@@ -1661,7 +1661,7 @@ implementation
                sorg:=orgpattern;
                if token=_ID then
                  begin
-                   vs:=cfieldvarsym.create(sorg,vs_value,generrordef,[],false);
+                   vs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
 
                    { normally the visibility is set via addfield, but sometimes
                      we collect symbols so we can add them in a batch of
@@ -1881,7 +1881,7 @@ implementation
                 begin
                   consume(_ID);
                   consume(_COLON);
-                  fieldvs:=cfieldvarsym.create(sorg,vs_value,generrordef,[],true);
+                  fieldvs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
                   variantdesc^^.variantselector:=fieldvs;
                   symtablestack.top.insert(fieldvs);
                 end;

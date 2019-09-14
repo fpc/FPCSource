@@ -972,7 +972,7 @@ uses
                   else
                     srsym:=cprocsym.create(finalspecializename)
                 else
-                  srsym:=ctypesym.create(finalspecializename,generrordef,true);
+                  srsym:=ctypesym.create(finalspecializename,generrordef);
                 { insert the symbol only if we don't know already that we have
                   a procsym to add it to }
                 if not assigned(psym) then
@@ -1218,7 +1218,7 @@ uses
         repeat
           if token=_ID then
             begin
-              generictype:=ctypesym.create(orgpattern,cundefinedtype,false);
+              generictype:=ctypesym.create(orgpattern,cundefinedtype);
               { type parameters need to be added as strict private }
               generictype.visibility:=vis_strictprivate;
               include(generictype.symoptions,sp_generic_para);
@@ -1417,7 +1417,7 @@ uses
             generictype:=ttypesym(genericlist[i]);
             if assigned(generictype.owner) then
               begin
-                sym:=ctypesym.create(genericlist.nameofindex(i),generictype.typedef,true);
+                sym:=ctypesym.create(genericlist.nameofindex(i),generictype.typedef);
                 { type parameters need to be added as strict private }
                 sym.visibility:=vis_strictprivate;
                 st.insert(sym);
@@ -1464,7 +1464,7 @@ uses
           begin
             { we need to pass nil as def here, because the constructor wants
               to set the typesym of the def which is not what we want }
-            gensym:=ctypesym.create(copy(name,1,pos('$',name)-1),nil,true);
+            gensym:=ctypesym.create(copy(name,1,pos('$',name)-1),nil);
             gensym.typedef:=current_structdef;
             include(gensym.symoptions,sp_internal);
             { the symbol should be only visible to the generic class

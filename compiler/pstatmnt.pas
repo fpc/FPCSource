@@ -943,7 +943,7 @@ implementation
                             begin
                               single_type(ot,[]);
                               check_type_valid(ot);
-                              sym:=clocalvarsym.create(objrealname,vs_value,ot,[],true);
+                              sym:=clocalvarsym.create(objrealname,vs_value,ot,[]);
                             end
                           else
                             begin
@@ -976,7 +976,7 @@ implementation
                                  { create dummy symbol so we don't need a special
                                  case in ncgflw, and so that we always know the
                                  type }
-                               sym:=clocalvarsym.create('$exceptsym',vs_value,ot,[],true);
+                               sym:=clocalvarsym.create('$exceptsym',vs_value,ot,[]);
                             end;
                           excepTSymtable:=tstt_excepTSymtable.create;
                           excepTSymtable.insert(sym);

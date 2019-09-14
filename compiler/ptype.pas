@@ -1593,7 +1593,7 @@ implementation
               begin
                 if check_proc_directive(true) then
                   begin
-                    newtype:=ctypesym.create('unnamed',result,true);
+                    newtype:=ctypesym.create('unnamed',result);
                     parse_var_proc_directives(tsym(newtype));
                     newtype.typedef:=nil;
                     result.typesym:=nil;

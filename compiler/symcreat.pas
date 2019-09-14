@@ -1272,7 +1272,7 @@ implementation
             fieldvardef:=cpointerdef.getreusable(vardef)
           else
             fieldvardef:=vardef;
-          result:=cfieldvarsym.create(symrealname,vs_value,fieldvardef,[],true);
+          result:=cfieldvarsym.create(symrealname,vs_value,fieldvardef,[]);
           if nestedvarsst.symlist.count=0 then
             include(tfieldvarsym(result).varoptions,vo_is_first_field);
           nestedvarsst.insert(result);

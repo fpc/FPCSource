@@ -344,7 +344,7 @@ implementation
                                   exit_procinfo.nestedexitlabel.defined:=true;
                                   exit_procinfo.nestedexitlabel.used:=true;
 
-                                  exit_procinfo.nestedexitlabel.jumpbuf:=clocalvarsym.create('LABEL$_'+exit_procinfo.nestedexitlabel.name,vs_value,rec_jmp_buf,[],true);
+                                  exit_procinfo.nestedexitlabel.jumpbuf:=clocalvarsym.create('LABEL$_'+exit_procinfo.nestedexitlabel.name,vs_value,rec_jmp_buf,[]);
                                   exit_procinfo.procdef.localst.insert(exit_procinfo.nestedexitlabel);
                                   exit_procinfo.procdef.localst.insert(exit_procinfo.nestedexitlabel.jumpbuf);
                                 end;
@@ -3073,7 +3073,7 @@ implementation
                       findwithsymtable then
                      begin
                        { create dummy symbol, it will be freed later on }
-                       srsym:=tstoredsym.create(undefinedsym,'$undefinedsym',false);
+                       srsym:=tstoredsym.create(undefinedsym,'$undefinedsym');
                        srsymtable:=nil;
                      end
                    else

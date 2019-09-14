@@ -285,13 +285,13 @@ implementation
                        { note: we keep hdef so that we might at least read the
                                constant data correctly for error recovery }
                        check_allowed_for_var_or_const(hdef,false);
-                       sym:=cfieldvarsym.create(orgname,varspez,hdef,[],true);
+                       sym:=cfieldvarsym.create(orgname,varspez,hdef,[]);
                        symtablestack.top.insert(sym);
                        sym:=make_field_static(symtablestack.top,tfieldvarsym(sym));
                      end
                    else
                      begin
-                       sym:=cstaticvarsym.create(orgname,varspez,hdef,[],true);
+                       sym:=cstaticvarsym.create(orgname,varspez,hdef,[]);
                        sym.visibility:=symtablestack.top.currentvisibility;
                        symtablestack.top.insert(sym);
                      end;
@@ -374,12 +374,12 @@ implementation
                   begin
                     if symtablestack.top.symtabletype=localsymtable then
                       begin
-                        labelsym.jumpbuf:=clocalvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[],true);
+                        labelsym.jumpbuf:=clocalvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
                         symtablestack.top.insert(labelsym.jumpbuf);
                       end
                     else
                       begin
-                        labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[],true);
+                        labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
                         symtablestack.top.insert(labelsym.jumpbuf);
                         cnodeutils.insertbssdata(tstaticvarsym(labelsym.jumpbuf));
                       end;
@@ -826,7 +826,7 @@ implementation
                   sym:=tsym(symtablestack.top.Find(typename));
                   if not assigned(sym) then
                     begin
-                      sym:=ctypesym.create(orgtypename,cundefineddef.create(true),true);
+                      sym:=ctypesym.create(orgtypename,cundefineddef.create(true));
                       Include(sym.symoptions,sp_generic_dummy);
                       ttypesym(sym).typedef.typesym:=sym;
                       sym.visibility:=symtablestack.top.currentvisibility;
@@ -867,7 +867,7 @@ implementation
               { insert a new type if we don't reuse an existing symbol }
               if not assigned(newtype) then
                 begin
-                  newtype:=ctypesym.create(genorgtypename,hdef,true);
+                  newtype:=ctypesym.create(genorgtypename,hdef);
                   newtype.visibility:=symtablestack.top.currentvisibility;
                   symtablestack.top.insert(newtype);
                 end;
