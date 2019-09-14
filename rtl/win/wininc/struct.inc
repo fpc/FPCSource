@@ -8853,7 +8853,7 @@ type
          2 : (ki : KEYBDINPUT);
          3 : (hi : HARDWAREINPUT);
      end;
-     PINPUT = ^INPUT;
+     PINPUT = ^TINPUT;
      LPINPUT = PINPUT;
 
 {$push}
