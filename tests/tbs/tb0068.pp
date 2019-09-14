@@ -17,6 +17,7 @@ function SetupScanLines(va,vb,vc:word):single;
 var dx3d,dx2d,dy2d,dz,ex3d,ex2d,ez:longint;
     r:single;
 begin
+ dy2d := 0;
  dy2d := Vtx2d[vb].y;
  r    := (dy2d-Vtx2d[va].y);     {this line causes error!!!!!!!!!!!!!!!!!!!}
 end;
