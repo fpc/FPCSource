@@ -1330,6 +1330,7 @@ function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
   function GetShellWindow:HWND; stdcall; external 'user32.dll' name 'GetShellWindow';
   function RealChildWindowFromPoint(Parent : HWND; Pt : TPOINT): HWND; stdcall; external 'user32.dll' name 'RealChildWindowFromPoint';
   function GetGuiResources(ProcessHandle : THANDLE; ResourceType : DWORD): DWORD; stdcall; external 'user32.dll' name 'GetGuiResources';
+  function SendInput(InputsCount : UINT; InputsPtr : PINPUT; Size : WINT) : UINT; stdcall; external 'user32.dll' name 'SendInput';
 {$endif read_interface}
 
 
