@@ -8846,14 +8846,13 @@ type
      PHARDWAREINPUT  = ^HARDWAREINPUT;
      LPHARDWAREINPUT = PHARDWAREINPUT;
 
-     INPUT = record
+     TINPUT = record
        _Type : DWORD;
        case integer of
          1 : (mi : MOUSEINPUT);
          2 : (ki : KEYBDINPUT);
          3 : (hi : HARDWAREINPUT);
      end;
-     TINPUT = INPUT;
      PINPUT = ^INPUT;
      LPINPUT = PINPUT;
 
