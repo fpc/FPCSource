@@ -578,16 +578,17 @@ implementation
       begin
         result:=sr_complex;
         if not assigned(ref.symboldata) and
-           not(ref.refaddr in [addr_gotpageoffset,addr_gotpage,addr_pageoffset,addr_page]) then
+           not(ref.refaddr in [addr_pic,addr_gotpageoffset,addr_gotpage,addr_pageoffset,addr_page]) then
           exit;
         { can't use pre-/post-indexed mode here (makes no sense either) }
         if ref.addressmode<>AM_OFFSET then
           exit;
         { "ldr literal" must be a 32/64 bit LDR and have a symbol }
-        if assigned(ref.symboldata) and
+        if (ref.refaddr=addr_pic) and
            ((op<>A_LDR) or
             not(oppostfix in [PF_NONE,PF_W,PF_SW]) or
-            not assigned(ref.symbol)) then
+            (not assigned(ref.symbol) and
+             not assigned(ref.symboldata))) then
           exit;
         { if this is a (got) page offset load, we must have a base register and a
           symbol }

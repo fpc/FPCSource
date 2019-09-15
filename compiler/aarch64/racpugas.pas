@@ -732,8 +732,6 @@ Unit racpugas;
                  CreateLocalLabel(actasmpattern,hl,false);
                  Consume(AS_ID);
                  AddLabelOperand(hl);
-                 if oper.opr.ref.refaddr=addr_pic then
-                   oper.opr.ref.refaddr:=addr_page;
                end
               else
                { Check for label }

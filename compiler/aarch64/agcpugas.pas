@@ -119,9 +119,11 @@ unit agcpugas;
                     result:=ref.symbol.name+darwin_addrpage2str[ref.refaddr]
                   else
                     result:=linux_addrpage2str[ref.refaddr]+ref.symbol.name
-                end
+                end;
+              addr_pic:
+                result:=ref.symbol.name;
               else
-                internalerror(2015022301);
+                internalerror(2015022302);
             end
           end
         else
