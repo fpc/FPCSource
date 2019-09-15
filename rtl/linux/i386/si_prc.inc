@@ -64,43 +64,43 @@ asm
   leal    4(%esp,%ecx,4),%eax     { The start of the environment is: esp+4*eax+4 }
   andl    $0xfffffff0,%esp        { Align stack to 16 bytes }
 
-  {$ifdef FPC_PIC}
-        pushl %ebx
-        pushl %ecx
+{$ifdef FPC_PIC}
+  pushl %ebx
+  pushl %ecx
 
-        call fpc_geteipasebxlocal
-        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+  call fpc_geteipasebxlocal
+  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
 
-	movl  operatingsystem_parameter_envp@GOT(%ebx),%ecx
-	movl  %eax,(%ecx)
+  movl  operatingsystem_parameter_envp@GOT(%ebx),%ecx
+  movl  %eax,(%ecx)
 
-	movl  operatingsystem_parameter_argc@GOT(%ebx),%edx
-	popl  %ecx
-	movl  %ecx,(%edx)
+  movl  operatingsystem_parameter_argc@GOT(%ebx),%edx
+  popl  %ecx
+  movl  %ecx,(%edx)
 
-	movl  operatingsystem_parameter_argv@GOT(%ebx),%edx
-	popl  %ebx
-	movl  %ebx,(%edx)
-  {$else FPC_PIC}
-  	movl  %eax,operatingsystem_parameter_envp
-  	movl  %ecx,operatingsystem_parameter_argc
-  	movl  %ebx,operatingsystem_parameter_argv
-  {$endif FPC_PIC}
+  movl  operatingsystem_parameter_argv@GOT(%ebx),%edx
+  popl  %ebx
+  movl  %ebx,(%edx)
+{$else FPC_PIC}
+  movl  %eax,operatingsystem_parameter_envp
+  movl  %ecx,operatingsystem_parameter_argc
+  movl  %ebx,operatingsystem_parameter_argv
+{$endif FPC_PIC}
 
   { Initialize FPU }
   call SysResetFPU
 
   { Save initial stackpointer }
-  {$ifdef FPC_PIC}
-        pushl %ebx
-        call  fpc_geteipasebxlocal
-        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
-	movl  initialstkptr@GOT(%ebx),%ebx
-  	movl  %esp,(%ebx)
-	popl  %ebx
-  {$else FPC_PIC}
-  	movl    %esp,initialstkptr
-  {$endif FPC_PIC}
+{$ifdef FPC_PIC}
+  pushl %ebx
+  call  fpc_geteipasebxlocal
+  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl  initialstkptr@GOT(%ebx),%ebx
+  movl  %esp,(%ebx)
+  popl  %ebx
+{$else FPC_PIC}
+  movl    %esp,initialstkptr
+{$endif FPC_PIC}
 
 {$if FPC_FULLVERSION>30200}
   call    InitTLS
