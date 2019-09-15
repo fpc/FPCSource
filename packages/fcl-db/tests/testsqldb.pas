@@ -56,6 +56,7 @@ type
     procedure TestSequence;
     procedure TestReturningInsert;
     procedure TestReturningUpdate;
+    procedure TestMacros;
   end;
 
   { TTestTSQLConnection }
@@ -720,6 +721,35 @@ begin
   FMyQ.Next;
   AssertEquals('#2.a updated', 'a2', FMyQ.FieldByName('a').AsString);
   AssertEquals('#2.b updated', 'b2', FMyQ.FieldByName('b').AsString);
+end;
+
+procedure TTestTSQLQuery.TestMacros;
+begin
+  with SQLDBConnector do
+    begin
+    if not (sqSupportReturning in Connection.ConnOptions) then
+      Ignore(STestNotApplicable);
+    ExecuteDirect('create table FPDEV2 (id integer not null, constraint PK_FPDEV2 primary key(id))');
+    CommitDDL;
+    ExecuteDirect('insert into FPDEV2 (id) values (1)');
+    ExecuteDirect('insert into FPDEV2 (id) values (2)');
+    end;
+
+  With SQLDBConnector.Query do
+    begin
+    SQL.Text:='Select ID from FPDEV2 '+
+      '%WHERE_CL' +sLineBreak+
+      '%ORDER_CL' +sLineBreak;
+    MacroCheck:=true;
+    MacroByName('WHERE_CL').AsString:='where 1=1';
+    MacroByName('ORDER_CL').AsString:='order by 1';
+    Open;
+    AssertEquals('Correct SQL executed, macros substituted: ',1,Fields[0].AsInteger);
+    Close;
+    MacroByName('ORDER_CL').AsString := 'Order by 1 DESC';
+    Open;
+    AssertEquals('Correct SQL executed, macro value changed: ',2,Fields[0].AsInteger);
+    end;
 end;
 
 
