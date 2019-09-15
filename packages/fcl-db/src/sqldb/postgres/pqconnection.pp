@@ -947,8 +947,10 @@ begin
         end;
       FPrepared := True;
       end
+    else if Assigned(AParams) then
+      Statement := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL)
     else
-      Statement := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
+      Statement:=Buf;
     end;
 end;
 
