@@ -2557,6 +2557,7 @@ implementation
                      if is_c_variadic(pd) then
                        Message1(parser_e_callthrough_varargs,pd.fullprocname(false));
                      call_through_new_name(pd,proc_get_importname(pd));
+                     include(pd.implprocoptions,pio_thunk);
                    end
                  else
 {$endif cpuhighleveltarget}

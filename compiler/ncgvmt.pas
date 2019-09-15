@@ -1249,7 +1249,7 @@ implementation
                     wrapperpd:=create_procdef_alias(pd,tmps,tmps,
                       current_module.localsymtable,_class,
                       tsk_interface_wrapper,wrapperinfo);
-                    include(wrapperpd.procoptions,po_noreturn);
+                    include(wrapperpd.implprocoptions,pio_thunk);
 {$else cpuhighleveltarget}
                     oldfileposinfo:=current_filepos;
                     if pd.owner.iscurrentunit then

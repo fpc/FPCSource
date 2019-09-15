@@ -1026,6 +1026,8 @@ implementation
             writer.AsmWrite(' nobuiltin');
           if po_noreturn in pd.procoptions then
             writer.AsmWrite(' noreturn');
+          if pio_thunk in pd.implprocoptions then
+            writer.AsmWrite(' "thunk"');
           if llvmflag_null_pointer_valid in llvmversion_properties[current_settings.llvmversion] then
             writer.AsmWrite(' "null-pointer-is-valid"="true"');
         end;
