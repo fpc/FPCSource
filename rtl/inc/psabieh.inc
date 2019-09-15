@@ -790,7 +790,7 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
     WrappedException:=FPC_psabieh_GetExceptionWrapper(libunwind_exception);
 
 {$ifdef excdebug}
-    writeln('Personality (version = ',version,', actions = $',hexstr(actions,4),') started for wrapper ',hexstr(WrappedException),' = fpc exc ',hexstr(WrappedException^.FObject),
+    writeln('Personality (version = ',{$ifndef __ARM_EABI_UNWINDER__}version{$else}0{$endif},', actions = $',hexstr(actions,4),') started for wrapper ',hexstr(WrappedException),' = fpc exc ',hexstr(WrappedException^.FObject),
       ', refcount is now ',WrappedException^.refcount);
     writeln('  ip=$',hexstr(_Unwind_GetIP(context),sizeof(pointer)*2));
 {$endif}
