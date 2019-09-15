@@ -4583,6 +4583,8 @@ begin
         end;
     end;
 {$pop}
+  { as stackalign is not part of the alignment record, we do not need to define the others alignments for symmetry yet }
+  set_system_macro('FPC_STACKALIGNMENT',tostr(target_info.stackalign));
 
   option.free;
   Option:=nil;
