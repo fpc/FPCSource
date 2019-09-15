@@ -59,54 +59,61 @@ implementation
                             Global procedures
 *****************************************************************************}
 
+    procedure typecheckpass_internal_loop(var p : tnode; out node_changed: boolean);
+      var
+         hp        : tnode;
+      begin
+        codegenerror:=false;
+        repeat
+          current_filepos:=p.fileinfo;
+          current_settings.localswitches:=p.localswitches;
+          status.verbosity:=p.verbosity;
+          hp:=p.pass_typecheck;
+          { should the node be replaced? }
+          if assigned(hp) then
+            begin
+              node_changed:=true;
+              p.free;
+              { switch to new node }
+              p:=hp;
+            end;
+        until not assigned(hp) or
+              assigned(hp.resultdef);
+        if codegenerror then
+          begin
+            include(p.flags,nf_error);
+            { default to errortype if no type is set yet }
+            if p.resultdef=nil then
+              p.resultdef:=generrordef;
+          end;
+      end;
+
     procedure typecheckpass_internal(var p : tnode; out node_changed: boolean);
       var
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
          oldverbosity     : longint;
          oldpos    : tfileposinfo;
-         hp        : tnode;
       begin
         node_changed:=false;
         if (p.resultdef=nil) then
-         begin
-           oldcodegenerror:=codegenerror;
-           oldpos:=current_filepos;
-           oldlocalswitches:=current_settings.localswitches;
-           oldverbosity:=status.verbosity;
-           codegenerror:=false;
-           current_filepos:=p.fileinfo;
-           current_settings.localswitches:=p.localswitches;
-           status.verbosity:=p.verbosity;
-           hp:=p.pass_typecheck;
-           { should the node be replaced? }
-           if assigned(hp) then
-            begin
-               node_changed:=true;
-               p.free;
-               { switch to new node }
-               p:=hp;
-               { run typecheckpass }
-               typecheckpass(p);
-            end;
-           current_settings.localswitches:=oldlocalswitches;
-           current_filepos:=oldpos;
-           status.verbosity:=oldverbosity;
-           if codegenerror then
-            begin
-              include(p.flags,nf_error);
-              { default to errortype if no type is set yet }
-              if p.resultdef=nil then
-               p.resultdef:=generrordef;
-            end;
-           codegenerror:=codegenerror or oldcodegenerror;
-         end
+          begin
+            oldcodegenerror:=codegenerror;
+            oldpos:=current_filepos;
+            oldlocalswitches:=current_settings.localswitches;
+            oldverbosity:=status.verbosity;
+            typecheckpass_internal_loop(p, node_changed);
+            current_settings.localswitches:=oldlocalswitches;
+            current_filepos:=oldpos;
+            status.verbosity:=oldverbosity;
+            codegenerror:=codegenerror or oldcodegenerror;
+          end
         else
-         begin
-           { update the codegenerror boolean with the previous result of this node }
-           if (nf_error in p.flags) then
-             codegenerror:=true;
-         end;
+          begin
+            { update the codegenerror boolean with the previous result of this node }
+            if (nf_error in p.flags) then
+              codegenerror:=true;
+          end;
       end;
 
 
@@ -141,84 +148,63 @@ implementation
          oldpos    : tfileposinfo;
          oldverbosity: longint;
          hp : tnode;
+         nodechanged : boolean;
       begin
          if (nf_pass1_done in p.flags) then
            exit;
          if not(nf_error in p.flags) then
            begin
-              oldcodegenerror:=codegenerror;
-              oldpos:=current_filepos;
-              oldlocalswitches:=current_settings.localswitches;
-              oldverbosity:=status.verbosity;
-              codegenerror:=false;
-              current_filepos:=p.fileinfo;
-              current_settings.localswitches:=p.localswitches;
-              status.verbosity:=p.verbosity;
-              { checks make always a call }
-              if ([cs_check_range,cs_check_overflow,cs_check_stack] * current_settings.localswitches <> []) then
-                include(current_procinfo.flags,pi_do_call);
-              { determine the resultdef if not done }
-              if (p.resultdef=nil) then
-                begin
-                  hp:=p.pass_typecheck;
-                  { should the node be replaced? }
-                  if assigned(hp) then
-                   begin
-                      p.free;
-                      { switch to new node }
-                      p:=hp;
-                      { run typecheckpass }
-                      typecheckpass(p);
-                   end;
-                  if codegenerror then
-                   begin
-                     include(p.flags,nf_error);
-                     { default to errortype if no type is set yet }
-                     if p.resultdef=nil then
-                      p.resultdef:=generrordef;
-                   end;
-                  codegenerror:=codegenerror or oldcodegenerror;
-                end;
-              if not(nf_error in p.flags) then
-                begin
-                  { first pass }
-                  hp:=p.pass_1;
-                  { should the node be replaced? }
-                  if assigned(hp) then
-                   begin
-                     p.free;
-                     { switch to new node }
-                     p := hp;
-                     { run firstpass }
-                     firstpass(p);
-                   end
-                  else
-                    begin
-                      { inlining happens in pass_1 and can cause new }
-                      { simplify opportunities                       }
-                      hp:=p.simplify(true);
-                      if assigned(hp) then
-                        begin
-                          p.free;
-                          p := hp;
-                          firstpass(p);
-                        end;
-                    end;
-                  if codegenerror then
-                   include(p.flags,nf_error)
-                  else
-                   begin
+             oldcodegenerror:=codegenerror;
+             oldpos:=current_filepos;
+             oldlocalswitches:=current_settings.localswitches;
+             oldverbosity:=status.verbosity;
+             codegenerror:=false;
+             repeat
+               { checks make always a call }
+               if ([cs_check_range,cs_check_overflow,cs_check_stack] * current_settings.localswitches <> []) then
+                 include(current_procinfo.flags,pi_do_call);
+               { determine the resultdef if not done }
+               if (p.resultdef=nil) then
+                 begin
+                   typecheckpass_internal_loop(p,nodechanged);
+                 end;
+
+               hp:=nil;
+               if not(nf_error in p.flags) then
+                 begin
+                   current_filepos:=p.fileinfo;
+                   current_settings.localswitches:=p.localswitches;
+                   status.verbosity:=p.verbosity;
+                   { first pass }
+                   hp:=p.pass_1;
+                   { inlining happens in pass_1 and can cause new }
+                   { simplify opportunities                       }
+                   if not assigned(hp) then
+                     hp:=p.simplify(true);
+                   { should the node be replaced? }
+                   if assigned(hp) then
+                     begin
+                       p.free;
+                       { switch to new node }
+                       p:=hp;
+                     end;
+                   if codegenerror then
+                     include(p.flags,nf_error)
+                   else
+                     begin
 {$ifdef EXTDEBUG}
-                     if (p.expectloc=LOC_INVALID) then
-                       Comment(V_Warning,'Expectloc is not set in firstpass: '+nodetype2str[p.nodetype]);
+                       if (p.expectloc=LOC_INVALID) then
+                         Comment(V_Warning,'Expectloc is not set in firstpass: '+nodetype2str[p.nodetype]);
 {$endif EXTDEBUG}
-                   end;
-                end;
-              include(p.flags,nf_pass1_done);
-              codegenerror:=codegenerror or oldcodegenerror;
-              current_settings.localswitches:=oldlocalswitches;
-              current_filepos:=oldpos;
-              status.verbosity:=oldverbosity;
+                     end;
+                 end;
+             until not assigned(hp) or
+                   (nf_pass1_done in hp.flags);
+             include(p.flags,nf_pass1_done);
+             codegenerror:=codegenerror or oldcodegenerror;
+             current_settings.localswitches:=oldlocalswitches;
+             current_filepos:=oldpos;
+             status.verbosity:=oldverbosity;
            end
          else
            codegenerror:=true;
