@@ -433,7 +433,7 @@ unit cpupara;
         { we push Flags and CS as long
           to cope with the IRETD
           and we save 6 register + 4 selectors }
-        if po_interrupt in p.procoptions then
+        if (po_interrupt in p.procoptions) and (side=calleeside) then
           inc(parasize,8+6*4+4*2);
         { Offset is calculated like:
            sub esp,12

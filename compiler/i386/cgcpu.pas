@@ -331,9 +331,7 @@ unit cgcpu;
           end;
 
         { return from proc }
-        if (po_interrupt in current_procinfo.procdef.procoptions) and
-           { this messes up stack alignment }
-           (target_info.stackalign=4) then
+        if po_interrupt in current_procinfo.procdef.procoptions then
           begin
             if assigned(current_procinfo.procdef.funcretloc[calleeside].location) and
                (current_procinfo.procdef.funcretloc[calleeside].location^.loc=LOC_REGISTER) then
