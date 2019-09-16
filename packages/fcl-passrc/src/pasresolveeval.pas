@@ -200,6 +200,8 @@ const
   nTypeParamXIsNotCompatibleWithY = 3134;
   nTypeParamXMustSupportIntfY = 3135;
   nTypeParamsNotAllowedOnX = 3136;
+  nXMethodsCannotHaveTypeParams = 3137;
+  nImplMustNotRepeatConstraints = 3138;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -347,6 +349,8 @@ resourcestring
   sTypeParamXIsNotCompatibleWithY = 'Type parameter "%s" is not compatible with type "%s"';
   sTypeParamXMustSupportIntfY = 'Type parameter "%s" must support interface "%s"';
   sTypeParamsNotAllowedOnX = 'Type parameters not allowed on %s';
+  sXMethodsCannotHaveTypeParams = '%s methods cannot have type parameters';
+  sImplMustNotRepeatConstraints = 'Implementations must not repeat constraints';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
@@ -790,6 +794,7 @@ function GetObjPath(o: TObject): string;
 function GetTypeParamCommas(Cnt: integer): string;
 function dbgs(const Flags: TResEvalFlags): string; overload;
 function dbgs(v: TResEvalValue): string; overload;
+function LastPos(c: char; const s: string): sizeint;
 
 implementation
 
@@ -1092,6 +1097,15 @@ begin
     Result:='nil'
   else
     Result:=v.AsDebugString;
+end;
+
+function LastPos(c: char; const s: string): sizeint;
+var
+  i: SizeInt;
+begin
+  for i:=length(s) downto 1 do
+    if s[i]=c then exit(i);
+  Result:=-1;
 end;
 
 { TResEvalExternal }

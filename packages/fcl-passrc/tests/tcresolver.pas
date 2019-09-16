@@ -1092,6 +1092,8 @@ begin
     writeln('TCustomTestResolver.TearDown GlobalRefCount Was='+IntToStr(FStartElementRefCount)+' Now='+IntToStr(TPasElement.GlobalRefCount));
     {$IFDEF CheckPasTreeRefCount}
     El:=TPasElement.FirstRefEl;
+    if El=nil then
+      writeln('  TPasElement.FirstRefEl=nil');
     while El<>nil do
       begin
       writeln('  ',GetObjName(El),' RefIds.Count=',El.RefIds.Count,':');

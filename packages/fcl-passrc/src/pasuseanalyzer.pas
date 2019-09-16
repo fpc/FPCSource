@@ -265,6 +265,7 @@ type
     procedure UseExprRef(El: TPasElement; Expr: TPasExpr;
       Access: TResolvedRefAccess; UseFull: boolean); virtual;
     procedure UseInheritedExpr(El: TInheritedExpr); virtual;
+    procedure UseInlineSpecializeExpr(El: TInlineSpecializeExpr); virtual;
     procedure UseScopeReferences(Refs: TPasScopeReferences); virtual;
     procedure UseProcedure(Proc: TPasProcedure); virtual;
     procedure UseProcedureType(ProcType: TPasProcedureType); virtual;
@@ -1526,15 +1527,15 @@ procedure TPasAnalyzer.UseExpr(El: TPasExpr);
 
   procedure UseSystemExit;
   var
-    ParamsExpr: TParamsExpr;
     Params: TPasExprArray;
     SubEl: TPasElement;
     Proc: TPasProcedure;
     ProcScope: TPasProcedureScope;
+    ParentParams: TPRParentParams;
   begin
-    ParamsExpr:=Resolver.GetParamsOfNameExpr(El);
-    if ParamsExpr=nil then exit;
-    Params:=ParamsExpr.Params;
+    Resolver.GetParamsOfNameExpr(El,ParentParams);
+    if ParentParams.Params=nil then exit;
+    Params:=ParentParams.Params.Params;
     if length(Params)<1 then
       exit;
     SubEl:=El.Parent;
@@ -1551,18 +1552,50 @@ procedure TPasAnalyzer.UseExpr(El: TPasExpr);
     UseElement(SubEl,rraAssign,false);
   end;
 
+  procedure UseBuilInFuncTypeInfo;
+  var
+    ParentParams: TPRParentParams;
+    ParamResolved: TPasResolverResult;
+    SubEl: TPasElement;
+    Params: TPasExprArray;
+  begin
+    Resolver.GetParamsOfNameExpr(El,ParentParams);
+    if ParentParams.Params=nil then
+      RaiseNotSupported(20190225150136,El);
+    Params:=ParentParams.Params.Params;
+    if length(Params)<>1 then
+      RaiseNotSupported(20180226144217,El.Parent);
+    Resolver.ComputeElement(Params[0],ParamResolved,[rcNoImplicitProc]);
+    {$IFDEF VerbosePasAnalyzer}
+    writeln('TPasAnalyzer.UseExpr typeinfo ',GetResolverResultDbg(ParamResolved));
+    {$ENDIF}
+    if ParamResolved.IdentEl=nil then
+      RaiseNotSupported(20180628155107,Params[0]);
+    if (ParamResolved.IdentEl is TPasProcedure)
+        and (TPasProcedure(ParamResolved.IdentEl).ProcType is TPasFunctionType) then
+      begin
+      SubEl:=TPasFunctionType(TPasProcedure(ParamResolved.IdentEl).ProcType).ResultEl.ResultType;
+      MarkImplScopeRef(El,SubEl,psraTypeInfo);
+      UseTypeInfo(SubEl);
+      end
+    else
+      begin
+      SubEl:=ParamResolved.IdentEl;
+      MarkImplScopeRef(El,SubEl,psraTypeInfo);
+      UseTypeInfo(SubEl);
+      end;
+    // the parameter is not used otherwise
+  end;
+
 var
   Ref: TResolvedReference;
   C: TClass;
   Params: TPasExprArray;
   i: Integer;
   BuiltInProc: TResElDataBuiltInProc;
-  ParamResolved: TPasResolverResult;
   Decl: TPasElement;
   ModScope: TPasModuleScope;
   Access: TResolvedRefAccess;
-  SubEl: TPasElement;
-  ParamsExpr: TParamsExpr;
 begin
   if El=nil then exit;
   // Note: expression itself is not marked, but it can reference identifiers
@@ -1614,35 +1647,13 @@ begin
         BuiltInProc:=TResElDataBuiltInProc(Decl.CustomData);
         case BuiltInProc.BuiltIn of
         bfExit:
+          begin
           UseSystemExit;
+          exit;
+          end;
         bfTypeInfo:
           begin
-          ParamsExpr:=Resolver.GetParamsOfNameExpr(El);
-          if ParamsExpr=nil then
-            RaiseNotSupported(20190225150136,El);
-          Params:=ParamsExpr.Params;
-          if length(Params)<>1 then
-            RaiseNotSupported(20180226144217,El.Parent);
-          Resolver.ComputeElement(Params[0],ParamResolved,[rcNoImplicitProc]);
-          {$IFDEF VerbosePasAnalyzer}
-          writeln('TPasAnalyzer.UseExpr typeinfo ',GetResolverResultDbg(ParamResolved));
-          {$ENDIF}
-          if ParamResolved.IdentEl=nil then
-            RaiseNotSupported(20180628155107,Params[0]);
-          if (ParamResolved.IdentEl is TPasProcedure)
-              and (TPasProcedure(ParamResolved.IdentEl).ProcType is TPasFunctionType) then
-            begin
-            SubEl:=TPasFunctionType(TPasProcedure(ParamResolved.IdentEl).ProcType).ResultEl.ResultType;
-            MarkImplScopeRef(El,SubEl,psraTypeInfo);
-            UseTypeInfo(SubEl);
-            end
-          else
-            begin
-            SubEl:=ParamResolved.IdentEl;
-            MarkImplScopeRef(El,SubEl,psraTypeInfo);
-            UseTypeInfo(SubEl);
-            end;
-          // the parameter is not used otherwise
+          UseBuilInFuncTypeInfo;
           exit;
           end;
         bfAssert:
@@ -1694,7 +1705,7 @@ begin
   else if C=TProcedureExpr then
     UseProcedure(TProcedureExpr(El).Proc)
   else if C=TInlineSpecializeExpr then
-    UseSpecializeType(TInlineSpecializeExpr(El).DestType,paumElement)
+    UseInlineSpecializeExpr(TInlineSpecializeExpr(El))
   else
     RaiseNotSupported(20170307085444,El);
 end;
@@ -1802,6 +1813,15 @@ begin
       RaiseNotSupported(20171107175406,Arg);
     end;
     end;
+end;
+
+procedure TPasAnalyzer.UseInlineSpecializeExpr(El: TInlineSpecializeExpr);
+var
+  i: Integer;
+begin
+  for i:=0 to El.Params.Count-1 do
+    UseType(TPasType(El.Params[i]),paumElement);
+  UseExpr(El.NameExpr);
 end;
 
 procedure TPasAnalyzer.UseScopeReferences(Refs: TPasScopeReferences);

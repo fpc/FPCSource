@@ -42,6 +42,8 @@ type
     procedure TestGen_ConstraintClassType_DotIsAsTypeCast;
     procedure TestGen_ConstraintClassType_ForInT;
     procedure TestGen_ConstraintClassType_IsAs;
+    // ToDo: A<T:T> fail
+    // ToDo: A<T:B<T>> fail
 
     // generic record
     procedure TestGen_RecordLocalNameDuplicateFail;
@@ -103,18 +105,29 @@ type
 
     // ToDo: helpers for generics
 
-    // generic functions
-    procedure TestGen_GenericFunction; // ToDo
-    // ToDo: generic class method overload <T> <S,T>
-    // ToDo: procedure TestGen_GenMethod_ClassConstructorFail;
-
     // generic statements
     procedure TestGen_LocalVar;
     procedure TestGen_Statements;
     procedure TestGen_InlineSpecializeExpr;
+    // ToDo: a.b<c>(d)
+    // ToDo: with a do b<c>
     procedure TestGen_TryExcept;
     procedure TestGen_Call;
-    // ToTo: nested proc
+    procedure TestGen_NestedProc;
+
+    // generic functions
+    procedure TestGenProc_Function; // ToDo
+    //procedure TestGenProc_Forward; // ToDo
+    // ToDo: forward parametrized impl must not repeat constraints
+    // ToDo: forward parametrized impl overloads
+    // ToDo: parametrized nested proc fail
+    // ToDo: generic class method overload <T> <S,T>
+    // ToDo: procedure TestGenMethod_ClassConstructorFail;
+    // ToDo: procedure TestGenMethod_NestedProc;
+    // ToDo: virtual method cannot have type parameters
+    // ToDo: message method cannot have type parameters
+    // ToDo: interface method cannot have type parameters
+    // ToDo: parametrized method mismatch interface method
   end;
 
 implementation
@@ -200,10 +213,7 @@ procedure TTestResolveGenerics.TestGen_ConstraintStringFail;
 begin
   StartProgram(false);
   Add([
-  'generic function DoIt<T:string>(a: T): T;',
-  'begin',
-  '  Result:=a;',
-  'end;',
+  'type generic TRec<T:string> = record end;',
   'begin',
   '']);
   CheckResolverException('"String" is not a valid constraint',
@@ -219,10 +229,7 @@ begin
   '  TObject = class end;',
   '  TBird = class end;',
   '  TBear = class end;',
-  'generic function DoIt<T: TBird, TBear>(a: T): T;',
-  'begin',
-  '  Result:=a;',
-  'end;',
+  '  generic TRec<T: TBird, TBear> = record end;',
   'begin',
   '']);
   CheckResolverException('"TBird" constraint and "TBear" constraint cannot be specified together',
@@ -553,6 +560,7 @@ begin
   '    specialize TAnt<TObject>(v).v:=nil;',
   '  a:=v as specialize TAnt<U>;',
   '  if (v as specialize TAnt<TObject>).v=nil then ;',
+  '  if nil=(v as specialize TAnt<TObject>).v then ;',
   'end;',
   'begin',
   '']);
@@ -812,7 +820,7 @@ begin
   '  end;',
   'begin',
   '']);
-  CheckResolverException('Declaration of "T" differs from previous declaration at afile.pp(7,20)',
+  CheckResolverException('Declaration of "T" differs from previous declaration at afile.pp(7,18)',
     nDeclOfXDiffersFromPrevAtY);
 end;
 
@@ -987,7 +995,7 @@ begin
   'end;',
   'begin',
   '']);
-  CheckResolverException('T cannot have parameters',nXCannotHaveParameters);
+  CheckResolverException('illegal qualifier ":" after "T"',nIllegalQualifierAfter);
 end;
 
 procedure TTestResolveGenerics.TestGen_Class_MethodImplTypeParamNameMismatch;
@@ -1480,24 +1488,6 @@ begin
   CheckParserException('Expected "Identifier" at token "specialize" in file afile.pp at line 4 column 11',nParserExpectTokenError);
 end;
 
-procedure TTestResolveGenerics.TestGen_GenericFunction;
-begin
-  exit;
-  StartProgram(false);
-  Add([
-  'generic function DoIt<T>(a: T): T;',
-  'var i: T;',
-  'begin',
-  '  a:=i;',
-  '  Result:=a;',
-  'end;',
-  'var w: word;',
-  'begin',
-  //'  w:=DoIt<word>(3);',
-  '']);
-  ParseProgram;
-end;
-
 procedure TTestResolveGenerics.TestGen_LocalVar;
 begin
   StartProgram(false);
@@ -1667,6 +1657,50 @@ begin
   '  w: specialize TBird<word>;',
   '  b: specialize TBird<boolean>;',
   'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_NestedProc;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '    function Fly(p:T): T;',
+  '  end;',
+  'function TBird.Fly(p:T): T;',
+  '  function Run: T;',
+  '  begin',
+  '    Fly:=Result;',
+  '  end;',
+  'begin',
+  '  Run;',
+  'end;',
+  'var',
+  '  w: specialize TBird<word>;',
+  '  b: specialize TBird<boolean>;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_Function;
+begin
+  exit;
+  StartProgram(false);
+  Add([
+  'generic function DoIt<T>(a: T): T;',
+  'var i: T;',
+  'begin',
+  '  a:=i;',
+  '  Result:=a;',
+  'end;',
+  'var w: word;',
+  'begin',
+  '  w:=DoIt<word>(3);',
   '']);
   ParseProgram;
 end;
