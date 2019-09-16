@@ -78,7 +78,6 @@ interface
 
     function used_align(varalign,minalign,maxalign:longint):longint;
     function isbetteralignedthan(new, org, limit: cardinal): boolean;
-    function size_2_align(len : longint) : longint;
     function packedbitsloadsize(bitlen: int64) : int64;
     procedure Replace(var s:string;s1:string;const s2:string);
     procedure Replace(var s:AnsiString;s1:string;const s2:AnsiString);
@@ -387,23 +386,6 @@ implementation
           result:=i
         else
           result:=((i-1+a) div a) * a;
-      end;
-
-
-    function size_2_align(len : longint) : longint;
-      begin
-         if len>16 then
-           size_2_align:=32
-         else if len>8 then
-           size_2_align:=16
-         else if len>4 then
-           size_2_align:=8
-         else if len>2 then
-           size_2_align:=4
-         else if len>1 then
-           size_2_align:=2
-         else
-           size_2_align:=1;
       end;
 
 

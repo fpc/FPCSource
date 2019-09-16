@@ -57,7 +57,7 @@ unit cpupara;
        cutils,sysutils,
        systems,verbose,
        symtable,
-       defutil;
+       globals,defutil;
 
       const
         parasupregs : array[0..2] of tsuperregister = (RS_EAX,RS_EDX,RS_ECX);

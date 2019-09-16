@@ -70,7 +70,7 @@ unit cpupara;
        cutils,
        systems,verbose,
        symtable,symcpu,
-       defutil;
+       globals,defutil;
 
       const
         parasupregs : array[0..2] of tsuperregister = (RS_AX,RS_DX,RS_BX);

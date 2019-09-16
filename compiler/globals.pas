@@ -613,12 +613,13 @@ interface
 
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
+    function size_2_align(len : asizeuint) : longint;
     function var_align(want_align: longint): shortint;
-    function var_align_size(siz: longint): shortint;
+    function var_align_size(siz: asizeuint): shortint;
     {# Routine to get the required alignment for size of data, which will
        be placed in data/const segment, according to the current alignment requirements }
     function const_align(want_align: longint): shortint;
-    function const_align_size(siz: longint): shortint;
+    function const_align_size(siz: asizeuint): shortint;
 {$ifdef ARM}
     function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
 {$endif ARM}
@@ -1370,13 +1371,30 @@ implementation
       end;
 
 
+    function size_2_align(len : asizeuint) : longint;
+      begin
+         if len>16 then
+           size_2_align:=32
+         else if len>8 then
+           size_2_align:=16
+         else if len>4 then
+           size_2_align:=8
+         else if len>2 then
+           size_2_align:=4
+         else if len>1 then
+           size_2_align:=2
+         else
+           size_2_align:=1;
+      end;
+
+
     function var_align(want_align: longint): shortint;
       begin
         var_align := used_align(want_align,current_settings.alignment.varalignmin,current_settings.alignment.varalignmax);
       end;
 
 
-    function var_align_size(siz: longint): shortint;
+    function var_align_size(siz: asizeuint): shortint;
       begin
         siz := size_2_align(siz);
         var_align_size := var_align(siz);
@@ -1389,7 +1407,7 @@ implementation
       end;
 
 
-    function const_align_size(siz: longint): shortint;
+    function const_align_size(siz: asizeuint): shortint;
       begin
         siz := size_2_align(siz);
         const_align_size := const_align(siz);

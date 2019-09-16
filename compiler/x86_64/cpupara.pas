@@ -55,7 +55,7 @@ unit cpupara;
     uses
        cutils,verbose,
        systems,
-       defutil,
+       globals,defutil,
        symtable,
        cpupi,
        cgx86,cgobj,cgcpu;
