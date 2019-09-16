@@ -83,6 +83,7 @@ type
     procedure CheckRestoredAnalyzerElement(const Path: string; Orig, Rest: TPasElement); virtual;
     procedure CheckRestoredElement(const Path: string; Orig, Rest: TPasElement); virtual;
     procedure CheckRestoredElementList(const Path: string; Orig, Rest: TFPList); virtual;
+    procedure CheckRestoredElementArray(const Path: string; Orig, Rest: TPasElementArray); virtual;
     procedure CheckRestoredElRefList(const Path: string; OrigParent: TPasElement;
       Orig: TFPList; RestParent: TPasElement; Rest: TFPList; AllowInSitu: boolean); virtual;
     procedure CheckRestoredPasExpr(const Path: string; Orig, Rest: TPasExpr); virtual;
@@ -100,6 +101,7 @@ type
     procedure CheckRestoredPointerType(const Path: string; Orig, Rest: TPasPointerType); virtual;
     procedure CheckRestoredSpecializedType(const Path: string; Orig, Rest: TPasSpecializeType); virtual;
     procedure CheckRestoredInlineSpecializedExpr(const Path: string; Orig, Rest: TInlineSpecializeExpr); virtual;
+    procedure CheckRestoredGenericTemplateType(const Path: string; Orig, Rest: TPasGenericTemplateType); virtual;
     procedure CheckRestoredRangeType(const Path: string; Orig, Rest: TPasRangeType); virtual;
     procedure CheckRestoredArrayType(const Path: string; Orig, Rest: TPasArrayType); virtual;
     procedure CheckRestoredFileType(const Path: string; Orig, Rest: TPasFileType); virtual;
@@ -1130,6 +1132,8 @@ begin
     CheckRestoredSpecializedType(Path,TPasSpecializeType(Orig),TPasSpecializeType(Rest))
   else if C=TInlineSpecializeExpr then
     CheckRestoredInlineSpecializedExpr(Path,TInlineSpecializeExpr(Orig),TInlineSpecializeExpr(Rest))
+  else if C=TPasGenericTemplateType then
+    CheckRestoredGenericTemplateType(Path,TPasGenericTemplateType(Orig),TPasGenericTemplateType(Rest))
   else if C=TPasRangeType then
     CheckRestoredRangeType(Path,TPasRangeType(Orig),TPasRangeType(Rest))
   else if C=TPasArrayType then
@@ -1211,6 +1215,29 @@ begin
     if not (OrigItem is TPasElement) then
       Fail(SubPath+' Orig='+GetObjName(OrigItem));
     RestItem:=TObject(Rest[i]);
+    if not (RestItem is TPasElement) then
+      Fail(SubPath+' Rest='+GetObjName(RestItem));
+    //writeln('TCustomTestPrecompile.CheckRestoredElementList ',GetObjName(OrigItem),' ',GetObjName(RestItem));
+    SubPath:=Path+'['+IntToStr(i)+']"'+TPasElement(OrigItem).Name+'"';
+    CheckRestoredElement(SubPath,TPasElement(OrigItem),TPasElement(RestItem));
+    end;
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredElementArray(const Path: string;
+  Orig, Rest: TPasElementArray);
+var
+  OrigItem, RestItem: TPasElement;
+  i: Integer;
+  SubPath: String;
+begin
+  AssertEquals(Path+'.length',length(Orig),length(Rest));
+  for i:=0 to length(Orig)-1 do
+    begin
+    SubPath:=Path+'['+IntToStr(i)+']';
+    OrigItem:=Orig[i];
+    if not (OrigItem is TPasElement) then
+      Fail(SubPath+' Orig='+GetObjName(OrigItem));
+    RestItem:=Rest[i];
     if not (RestItem is TPasElement) then
       Fail(SubPath+' Rest='+GetObjName(RestItem));
     //writeln('TCustomTestPrecompile.CheckRestoredElementList ',GetObjName(OrigItem),' ',GetObjName(RestItem));
@@ -1360,7 +1387,14 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredInlineSpecializedExpr(
   const Path: string; Orig, Rest: TInlineSpecializeExpr);
 begin
-  CheckRestoredElement(Path+'.DestType',Orig.DestType,Rest.DestType);
+  CheckRestoredElement(Path+'.Name',Orig.NameExpr,Rest.NameExpr);
+  CheckRestoredElementList(Path+'.Params',Orig.Params,Rest.Params);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredGenericTemplateType(
+  const Path: string; Orig, Rest: TPasGenericTemplateType);
+begin
+  CheckRestoredElementArray(Path+'.Constraints',Orig.Constraints,Rest.Constraints);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredRangeType(const Path: string;

@@ -148,7 +148,7 @@ begin
   //  ' Orig:',ExtractFileName(FSrcFilename),',Line=',FSrcLine,',Col=',FSrcColumn-1);
 
   SrcMap.AddMapping(CurLine,Max(0,CurColumn-1),
-    FSrcFilename,FSrcLine,Max(0,FSrcColumn-1));
+    FSrcFilename,Max(0,FSrcLine),Max(0,FSrcColumn-1));
 
   if (CurElement is TJSLiteral)
       and (TJSLiteral(CurElement).Value.CustomValue<>'') then

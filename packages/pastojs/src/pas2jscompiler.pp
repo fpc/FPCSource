@@ -15,7 +15,6 @@ Compiler-ToDos:
   Warn if -Ju and -Fu intersect
   -Fa<x>[,y] (for a program) load units <x> and [y] before uses is parsed
   Add Windows macros, see InitMacros.
-  add options for names of globals like 'pas' and 'rtl'
 }
 unit Pas2jsCompiler;
 

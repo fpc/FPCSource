@@ -723,6 +723,9 @@ type
     procedure WriteElementList(Obj: TJSONObject; Parent: TPasElement;
       const PropName: string; ListOfElements: TFPList; aContext: TPCUWriterContext;
       ReferencesAllowed: boolean = false); virtual;
+    procedure WriteElementArray(Obj: TJSONObject; Parent: TPasElement;
+      const PropName: string; ArrOfElements: TPasElementArray; aContext: TPCUWriterContext;
+      ReferencesAllowed: boolean = false); virtual;
     procedure WriteElement(Obj: TJSONObject; El: TPasElement; aContext: TPCUWriterContext); virtual;
     procedure WriteElType(Obj: TJSONObject; El: TPasElement; const PropName: string; aType: TPasType; aContext: TPCUWriterContext); virtual;
     procedure WriteVarModifiers(Obj: TJSONObject; const PropName: string; const Value, DefaultValue: TVariableModifiers); virtual;
@@ -826,6 +829,15 @@ type
     AddRef: TPCUAddRef;
   end;
 
+  { TPCUReaderPendingElArrRef }
+
+  TPCUReaderPendingElArrRef = class(TPCUFilerPendingElRef)
+  public
+    Arr: TPasElementArray;
+    Index: integer;
+    AddRef: TPCUAddRef;
+  end;
+
   { TPCUReaderPendingIdentifierScope }
 
   TPCUReaderPendingIdentifierScope = class
@@ -844,7 +856,6 @@ type
     procedure Set_Variable_VarType(RefEl: TPasElement; Data: TObject);
     procedure Set_AliasType_DestType(RefEl: TPasElement; Data: TObject);
     procedure Set_PointerType_DestType(RefEl: TPasElement; Data: TObject);
-    procedure Set_InlineSpecializeExpr_DestType(RefEl: TPasElement; Data: TObject);
     procedure Set_ArrayType_ElType(RefEl: TPasElement; Data: TObject);
     procedure Set_FileType_ElType(RefEl: TPasElement; Data: TObject);
     procedure Set_SetType_EnumType(RefEl: TPasElement; Data: TObject);
@@ -891,6 +902,8 @@ type
       Data: TObject; ErrorEl: TPasElement); virtual;
     procedure PromiseSetElListReference(Id: integer; List: TFPList; Index: integer;
       AddRef: TPCUAddRef; ErrorEl: TPasElement); virtual;
+    procedure PromiseSetElArrReference(Id: integer; Arr: TPasElementArray; Index: integer;
+      AddRef: TPCUAddRef; ErrorEl: TPasElement); virtual;
     procedure ReadHeaderMagic(Obj: TJSONObject); virtual;
     procedure ReadHeaderVersion(Obj: TJSONObject); virtual;
     procedure ReadGUID(Obj: TJSONObject); virtual;
@@ -922,6 +935,9 @@ type
       const PropName: string; const Setter: TOnSetElReference); virtual;
     procedure ReadElementList(Obj: TJSONObject; Parent: TPasElement;
       const PropName: string; ListOfElements: TFPList; AddRef: TPCUAddRef;
+      aContext: TPCUReaderContext); virtual;
+    procedure ReadElementArray(Obj: TJSONObject; Parent: TPasElement;
+      const PropName: string; var ArrOfElements: TPasElementArray; AddRef: TPCUAddRef;
       aContext: TPCUReaderContext); virtual;
     procedure ReadElType(Obj: TJSONObject; const PropName: string; El: TPasElement;
       const Setter: TOnSetElReference; aContext: TPCUReaderContext); virtual;
@@ -2750,6 +2766,36 @@ begin
     end;
 end;
 
+procedure TPCUWriter.WriteElementArray(Obj: TJSONObject; Parent: TPasElement;
+  const PropName: string; ArrOfElements: TPasElementArray;
+  aContext: TPCUWriterContext; ReferencesAllowed: boolean);
+var
+  Arr: TJSONArray;
+  i: Integer;
+  SubObj: TJSONObject;
+  Item: TPasElement;
+begin
+  if length(ArrOfElements)=0 then exit;
+  Arr:=TJSONArray.Create;
+  Obj.Add(PropName,Arr);
+  for i:=0 to length(ArrOfElements)-1 do
+    begin
+    Item:=ArrOfElements[i];
+    if Item.Parent<>Parent then
+      begin
+      if not ReferencesAllowed then
+        RaiseMsg(20180209191444,Item,GetObjName(Parent)+'<>'+GetObjName(Item.Parent));
+      AddReferenceToArray(Arr,Item);
+      end
+    else
+      begin
+      SubObj:=TJSONObject.Create;
+      Arr.Add(SubObj);
+      WriteElement(SubObj,Item,aContext);
+      end;
+    end;
+end;
+
 procedure TPCUWriter.WriteElement(Obj: TJSONObject;
   El: TPasElement; aContext: TPCUWriterContext);
 var
@@ -3298,7 +3344,7 @@ begin
     TemplObj:=TJSONObject.Create;
     Arr.Add(TemplObj);
     TemplObj.Add('Name',Templ.Name);
-    WritePasExprArray(TemplObj,Parent,'Constraints',Templ.Constraints,aContext);
+    WriteElementArray(TemplObj,Parent,'Constraints',Templ.Constraints,aContext,true);
     end;
 end;
 
@@ -3328,7 +3374,8 @@ procedure TPCUWriter.WriteInlineSpecializeExpr(Obj: TJSONObject;
   Expr: TInlineSpecializeExpr; aContext: TPCUWriterContext);
 begin
   WritePasExpr(Obj,Expr,pekSpecialize,eopNone,aContext);
-  WriteElType(Obj,Expr,'Dest',Expr.DestType,aContext);
+  WriteExpr(Obj,Expr,'Name',Expr.NameExpr,aContext);
+  WriteElementList(Obj,Expr,'Params',Expr.Params,aContext);
 end;
 
 procedure TPCUWriter.WriteRangeType(Obj: TJSONObject; El: TPasRangeType;
@@ -3782,7 +3829,7 @@ begin
           TemplObj:=TJSONObject.Create;
           TemplArr.Add(TemplObj);
           TemplObj.Add('Name',GenType.Name);
-          WritePasExprArray(TemplObj,El,'Constraints',GenType.Constraints,aContext);
+          WriteElementArray(TemplObj,El,'Constraints',GenType.Constraints,aContext,true);
           end;
         end;
       end;
@@ -4247,21 +4294,6 @@ begin
     end
   else
     RaiseMsg(20180211121757,El,GetObjName(RefEl));
-end;
-
-procedure TPCUReader.Set_InlineSpecializeExpr_DestType(RefEl: TPasElement;
-  Data: TObject);
-var
-  El: TInlineSpecializeExpr absolute Data;
-begin
-  if RefEl is TPasSpecializeType then
-    begin
-    El.DestType:=TPasSpecializeType(RefEl);
-    if RefEl.Parent<>El then
-      RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TInlineSpecializeExpr.DestType'){$ENDIF};
-    end
-  else
-    RaiseMsg(20190815192420,El,GetObjName(RefEl));
 end;
 
 procedure TPCUReader.Set_ArrayType_ElType(RefEl: TPasElement; Data: TObject);
@@ -4771,6 +4803,7 @@ var
   RefItem: TPCUFilerPendingElRef;
   PendingElRef: TPCUReaderPendingElRef;
   PendingElListRef: TPCUReaderPendingElListRef;
+  PendingElArrRef: TPCUReaderPendingElArrRef;
   {$IF defined(VerbosePCUFiler) or defined(memcheck)}
   Node: TAVLTreeNode;
   {$ENDIF}
@@ -4840,6 +4873,13 @@ begin
           if PendingElListRef.AddRef{$IFDEF CheckPasTreeRefCount}<>''{$ENDIF} then
             Ref.Element.AddRef{$IFDEF CheckPasTreeRefCount}(PendingElListRef.AddRef){$ENDIF};
           end
+        else if RefItem is TPCUReaderPendingElArrRef then
+          begin
+          PendingElArrRef:=TPCUReaderPendingElArrRef(RefItem);
+          PendingElArrRef.Arr[PendingElArrRef.Index]:=Ref.Element;
+          if PendingElArrRef.AddRef{$IFDEF CheckPasTreeRefCount}<>''{$ENDIF} then
+            Ref.Element.AddRef{$IFDEF CheckPasTreeRefCount}(PendingElArrRef.AddRef){$ENDIF};
+          end
         else
           RaiseMsg(20180207153056,ErrorEl,RefItem.ClassName);
         Ref.Pending:=RefItem.Next;
@@ -4894,6 +4934,33 @@ begin
     // element was not yet created -> store
     PendingItem:=TPCUReaderPendingElListRef.Create;
     PendingItem.List:=List;
+    PendingItem.Index:=Index;
+    PendingItem.AddRef:=AddRef;
+    PendingItem.ErrorEl:=ErrorEl;
+    Ref.AddPending(PendingItem);
+    end;
+end;
+
+procedure TPCUReader.PromiseSetElArrReference(Id: integer;
+  Arr: TPasElementArray; Index: integer; AddRef: TPCUAddRef;
+  ErrorEl: TPasElement);
+var
+  Ref: TPCUFilerElementRef;
+  PendingItem: TPCUReaderPendingElArrRef;
+begin
+  Ref:=AddElReference(Id,ErrorEl,nil);
+  if Ref.Element<>nil then
+    begin
+    // element was already created -> set list item immediately
+    Arr[Index]:=Ref.Element;
+    if AddRef{$IFDEF CheckPasTreeRefCount}<>''{$ENDIF} then
+      Ref.Element.AddRef{$IFDEF CheckPasTreeRefCount}(AddRef){$ENDIF};
+    end
+  else
+    begin
+    // element was not yet created -> store
+    PendingItem:=TPCUReaderPendingElArrRef.Create;
+    PendingItem.Arr:=Arr;
     PendingItem.Index:=Index;
     PendingItem.AddRef:=AddRef;
     PendingItem.ErrorEl:=ErrorEl;
@@ -6006,13 +6073,47 @@ begin
       // reference
       Id:=Data.AsInteger;
       ListOfElements.Add(nil);
-      PromiseSetElListReference(Id,ListOfElements,ListOfElements.Count-1,AddRef,Parent);
+      PromiseSetElListReference(Id,ListOfElements,i,AddRef,Parent);
       end
     else if Data is TJSONObject then
       begin
       SubObj:=TJSONObject(Data);
       SubEl:=ReadElement(SubObj,Parent,aContext);
       ListOfElements.Add(SubEl);
+      end
+    else
+      RaiseMsg(20180210201001,Parent,'['+IntToStr(i)+'] is '+GetObjName(Data));
+    end;
+end;
+
+procedure TPCUReader.ReadElementArray(Obj: TJSONObject; Parent: TPasElement;
+  const PropName: string; var ArrOfElements: TPasElementArray;
+  AddRef: TPCUAddRef; aContext: TPCUReaderContext);
+var
+  Arr: TJSONArray;
+  i, Id: Integer;
+  Data: TJSONData;
+  SubObj: TJSONObject;
+  SubEl: TPasElement;
+begin
+  if not ReadArray(Obj,PropName,Arr,Parent) then exit;
+  for i:=0 to Arr.Count-1 do
+    begin
+    Data:=Arr[i];
+    if Data is TJSONIntegerNumber then
+      begin
+      // reference
+      Id:=Data.AsInteger;
+      SetLength(ArrOfElements,i+1);
+      ArrOfElements[i]:=nil;
+      PromiseSetElArrReference(Id,ArrOfElements,i,AddRef,Parent);
+      end
+    else if Data is TJSONObject then
+      begin
+      SubObj:=TJSONObject(Data);
+      SubEl:=ReadElement(SubObj,Parent,aContext);
+      SetLength(ArrOfElements,i+1);
+      ArrOfElements[i]:=SubEl;
       end
     else
       RaiseMsg(20180210201001,Parent,'['+IntToStr(i)+'] is '+GetObjName(Data));
@@ -6691,7 +6792,9 @@ begin
       RaiseMsg(20190720224130,Parent,IntToStr(i));
     GenType:=TPasGenericTemplateType(CreateElement(TPasGenericTemplateType,GenTypeName,Parent));
     GenericTemplateTypes.Add(GenType);
-    ReadPasExprArray(TemplObj,Parent,'Constraints',GenType.Constraints,aContext);
+    ReadElementArray(TemplObj,Parent,'Constraints',GenType.Constraints,
+      {$IFDEF CheckPasTreeRefCount}'TPasGenericTemplateType.Constraints'{$ELSE}true{$ENDIF},
+      aContext);
     end;
 end;
 
@@ -6723,7 +6826,10 @@ procedure TPCUReader.ReadInlineSpecializeExpr(Obj: TJSONObject;
   Expr: TInlineSpecializeExpr; aContext: TPCUReaderContext);
 begin
   Expr.Kind:=pekSpecialize;
-  ReadElType(Obj,'Dest',Expr,@Set_InlineSpecializeExpr_DestType,aContext);
+  Expr.NameExpr:=ReadExpr(Obj,Expr,'Name',aContext);
+  ReadElementList(Obj,Expr,'Params',Expr.Params,
+    {$IFDEF CheckPasTreeRefCount}'TInlineSpecializeExpr.Params'{$ELSE}true{$ENDIF},
+    aContext);
 end;
 
 procedure TPCUReader.ReadRangeType(Obj: TJSONObject; El: TPasRangeType;
@@ -7512,7 +7618,9 @@ begin
             RaiseMsg(20190718114244,El,IntToStr(i)+','+IntToStr(j));
           GenType:=TPasGenericTemplateType(CreateElement(TPasGenericTemplateType,GenTypeName,El));
           Templates.Add(GenType);
-          ReadPasExprArray(TemplObj,El,'Constraints',GenType.Constraints,aContext);
+          ReadElementArray(TemplObj,El,'Constraints',GenType.Constraints,
+             {$IFDEF CheckPasTreeRefCount}'TPasGenericTemplateType.Constraints'{$ELSE}true{$ENDIF},
+             aContext);
           end;
         end;
       end;

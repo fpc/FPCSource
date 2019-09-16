@@ -6859,21 +6859,8 @@ end;
 
 function TPasToJSConverter.ConvertInlineSpecializeExpr(
   El: TInlineSpecializeExpr; AContext: TConvertContext): TJSElement;
-var
-  aResolver: TPas2JSResolver;
-  DestType: TPasType;
-  GenType: TPasGenericType;
-  Name: String;
 begin
-  aResolver:=AContext.Resolver;
-  DestType:=aResolver.ResolveAliasType(El.DestType);
-  if not (DestType is TPasGenericType) then
-    RaiseNotSupported(El,AContext,20190826143203,GetObjPath(DestType));
-  GenType:=TPasGenericType(DestType);
-  if (GenType.GenericTemplateTypes<>nil) and (GenType.GenericTemplateTypes.Count>0) then
-    RaiseNotSupported(El,AContext,20190826143508,GetObjName(GenType));
-  Name:=CreateReferencePath(GenType,AContext,rpkPathAndName);
-  Result:=CreatePrimitiveDotExpr(Name,El);
+  Result:=ConvertElement(El.NameExpr,AContext);
 end;
 
 function TPasToJSConverter.GetExpressionValueType(El: TPasExpr;
