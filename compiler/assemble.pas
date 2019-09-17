@@ -1615,9 +1615,11 @@ Implementation
                                     (objsym.objsection<>ObjData.CurrObjSec) then
                                    InternalError(200404124);
                                end
+{$push} {$R-}{$Q-}
                              else
                                Tai_const(hp).value:=objsymend.address-objsym.address+Tai_const(hp).symofs;
                            end;
+{$pop}
                        end;
                    end;
                  ObjData.alloc(tai_const(hp).size);
@@ -1768,9 +1770,11 @@ Implementation
                             (objsym.objsection<>ObjData.CurrObjSec) then
                            internalerror(200905042);
                        end
+{$push} {$R-}{$Q-}
                      else
                        Tai_const(hp).value:=objsymend.address-objsym.address+Tai_const(hp).symofs;
                    end;
+{$pop}
                  if (Tai_const(hp).consttype in [aitconst_uleb128bit,aitconst_sleb128bit]) then
                    Tai_const(hp).fixsize;
                  ObjData.alloc(tai_const(hp).size);
@@ -1981,8 +1985,17 @@ Implementation
                      objsym:=Objdata.SymbolRef(tai_const(hp).sym);
                      objsymend:=Objdata.SymbolRef(tai_const(hp).endsym);
                      relative_reloc:=(objsym.objsection<>objsymend.objsection);
-                     Tai_const(hp).value:=objsymend.address-objsym.address+Tai_const(hp).symofs;
+                     if objsymend.objsection<>objsym.objsection then
+                       begin
+                         if (Tai_const(hp).consttype in [aitconst_uleb128bit,aitconst_sleb128bit]) or
+                            (objsym.objsection<>ObjData.CurrObjSec) then
+                           internalerror(2019010301);
+                       end
+                     else
+{$push} {$R-}{$Q-}
+                       Tai_const(hp).value:=objsymend.address-objsym.address+Tai_const(hp).symofs;
                    end;
+{$pop}
                  case tai_const(hp).consttype of
                    aitconst_64bit,
                    aitconst_32bit,
