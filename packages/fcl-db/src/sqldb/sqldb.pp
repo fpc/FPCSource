@@ -104,6 +104,7 @@ Type
 
   TSQLCursor = Class(TSQLHandle)
   public
+    FDirect        : Boolean;
     FPrepared      : Boolean;
     FSelectable    : Boolean;
     FInitFieldDef  : Boolean;
@@ -369,6 +370,7 @@ type
     FServerSQL : String;
     FTransaction: TSQLTransaction;
     FParseSQL: Boolean;
+    FDoUnPrepare : Boolean;
     FDataLink : TDataLink;
     FRowsAffected : TRowsCount;
     function ExpandMacros( OrigSQL: String): String;
@@ -381,6 +383,8 @@ type
     procedure SetTransaction(AValue: TSQLTransaction);
     procedure RecreateMacros;
     Function GetPrepared : Boolean;
+    Procedure CheckUnprepare;
+    Procedure CheckPrepare;
   Protected
     Function CreateDataLink : TDataLink; virtual;
     procedure OnChangeSQL(Sender : TObject); virtual;
@@ -480,12 +484,12 @@ type
     FIsEOF               : boolean;
     FLoadingFieldDefs    : boolean;
     FUpdateMode          : TUpdateMode;
+    FDoUnprepare : Boolean;
     FusePrimaryKeyAsKey  : Boolean;
     FWhereStartPos       : integer;
     FWhereStopPos        : integer;
     FServerFilterText    : string;
     FServerFiltered      : Boolean;
-
     FServerIndexDefs     : TServerIndexDefs;
 
     // Used by SetSchemaType
@@ -496,6 +500,8 @@ type
     FUpdateQry,
     FDeleteQry           : TCustomSQLQuery;
     FSequence            : TSQLSequence;
+    procedure CheckPrepare;
+    procedure CheckUnPrepare;
     procedure FreeFldBuffers;
     function GetMacroChar: Char;
     function GetParamCheck: Boolean;
@@ -556,7 +562,6 @@ type
     Procedure InternalRefresh; override;
     function  GetCanModify: Boolean; override;
     Function IsPrepared : Boolean; virtual;
-    Procedure SetActive (Value : Boolean); override;
     procedure SetServerFiltered(Value: Boolean); virtual;
     procedure SetServerFilterText(const Value: string); virtual;
     Function GetDataSource : TDataSource; override;
@@ -1058,8 +1063,27 @@ begin
 end;
 
 function TCustomSQLStatement.GetPrepared: Boolean;
+
 begin
-  Result := Assigned(FCursor) and FCursor.FPrepared;
+  Result := Assigned(FCursor) and (FCursor.FPrepared or FCursor.FDirect);
+end;
+
+procedure TCustomSQLStatement.CheckUnprepare;
+begin
+  if FDoUnPrepare then
+    begin
+    UnPrepare;
+    FDoUnPrepare:=False;
+    end;
+end;
+
+procedure TCustomSQLStatement.CheckPrepare;
+begin
+  if Not Prepared then
+    begin
+    FDoUnprepare:=True;
+    Prepare;
+    end;
 end;
 
 function TCustomSQLStatement.CreateDataLink: TDataLink;
@@ -1253,12 +1277,15 @@ begin
   If LogEvent(detPrepare) then
     Log(detPrepare,FServerSQL);
   Database.PrepareStatement(FCursor,Transaction,FServerSQL,FParams);
+  // Update
+  FCursor.FInitFieldDef:=FCursor.FSelectable;
 end;
 
 procedure TCustomSQLStatement.Prepare;
 
 begin
-  if Prepared then exit;
+  if Prepared then
+    exit;
   if not assigned(Database) then
     DatabaseError(SErrDatabasenAssigned);
   if not assigned(Transaction) then
@@ -1276,8 +1303,12 @@ end;
 
 procedure TCustomSQLStatement.Execute;
 begin
-  Prepare;
-  DoExecute;
+  CheckPrepare;
+  try
+    DoExecute;
+  finally
+    CheckUnPrepare;
+  end;
 end;
 
 procedure TCustomSQLStatement.DoUnPrepare;
@@ -2208,7 +2239,7 @@ begin
     Qry.Open
     end
   else
-    Qry.Execute;
+    Qry.ExecSQL;
   if (scoApplyUpdatesChecksRowsAffected in Options) and (Qry.RowsAffected<>1) then
     begin
     Qry.Close;
@@ -2865,16 +2896,6 @@ begin
   First;
 end;
 
-procedure TCustomSQLQuery.SetActive(Value: Boolean);
-
-begin
-  inherited SetActive(Value);
-// The query is UnPrepared, so that if a transaction closes all datasets
-// they also get unprepared
-  if not Value and IsPrepared then UnPrepare;
-end;
-
-
 procedure TCustomSQLQuery.SetServerFiltered(Value: Boolean);
 
 begin
@@ -2901,9 +2922,6 @@ procedure TCustomSQLQuery.Prepare;
 
 begin
   FStatement.Prepare;
-  if Assigned(FStatement.FCursor) then
-    with FStatement.FCursor do
-      FInitFieldDef := FSelectable;
 end;
 
 procedure TCustomSQLQuery.UnPrepare;
@@ -2989,7 +3007,7 @@ end;
 
 procedure TCustomSQLQuery.Execute;
 begin
-  FStatement.Execute;
+  FStatement.DoExecute;
 end;
 
 function TCustomSQLQuery.RowsAffected: TRowsCount;
@@ -3018,13 +3036,16 @@ end;
 
 procedure TCustomSQLQuery.InternalClose;
 begin
+
   if assigned(Cursor) then
     begin
     if Cursor.FSelectable then
       FreeFldBuffers;
+    CheckUnPrepare;
     // Some SQLConnections does not support statement [un]preparation,
     //  so let them do cleanup f.e. cancel pending queries and/or free resultset
-    if not Prepared then FStatement.DoUnprepare;
+    // if not Prepared then
+    //  FStatement.DoUnprepare;
     end;
 
   if DefaultFields then
@@ -3040,15 +3061,13 @@ begin
 end;
 
 procedure TCustomSQLQuery.InternalInitFieldDefs;
+
 begin
   if FLoadingFieldDefs then
     Exit;
-
   FLoadingFieldDefs := True;
-
   try
     FieldDefs.Clear;
-    Prepare;
     SQLConnection.AddFieldDefs(Cursor,FieldDefs);
   finally
     FLoadingFieldDefs := False;
@@ -3061,6 +3080,7 @@ procedure TCustomSQLQuery.InternalOpen;
 var counter, fieldc : integer;
     F               : TField;
     IndexFields     : TStrings;
+
 begin
   if IsReadFromPacket then
     begin
@@ -3072,7 +3092,7 @@ begin
     end
   else
     begin
-    Prepare;
+    CheckPrepare;
     if not Cursor.FSelectable then
       DatabaseError(SErrNoSelectStatement,Self);
 
@@ -3082,13 +3102,14 @@ begin
     if DefaultFields and FUpdateable and FusePrimaryKeyAsKey and (not IsUniDirectional) then
       UpdateServerIndexDefs;
 
-    Execute;
+    FStatement.Execute;
     if not Cursor.FSelectable then
       DatabaseError(SErrNoSelectStatement,Self);
 
     // InternalInitFieldDef is only called after a prepare. i.e. not twice if
     // a dataset is opened - closed - opened.
-    if Cursor.FInitFieldDef then InternalInitFieldDefs;
+    if Cursor.FInitFieldDef then
+      InternalInitFieldDefs;
     if DefaultFields then
       begin
       CreateFields;
@@ -3129,22 +3150,40 @@ end;
 
 // public part
 
-procedure TCustomSQLQuery.ExecSQL;
+procedure TCustomSQLQuery.CheckPrepare;
+
 begin
-  try
+  if Not IsPrepared then
+    begin
     Prepare;
+    FDoUnPrepare:=True;
+    end;
+end;
+
+procedure TCustomSQLQuery.CheckUnPrepare;
+
+begin
+  if FDoUnPrepare then
+    begin
+    FDoUnPrepare:=False;
+    UnPrepare;
+    end;
+end;
+
+
+procedure TCustomSQLQuery.ExecSQL;
+
+begin
+  CheckPrepare;
+  try
     Execute;
+    // Always retrieve rows affected
+    FStatement.RowsAffected;
     If sqoAutoCommit in Options then
-      begin
-      // Retrieve rows affected
-      FStatement.RowsAffected;
       SQLTransaction.Commit;
-      end;
   finally
-    // Cursor has to be assigned, or else the prepare went wrong before PrepareStatment was
-    //   called, so UnPrepareStatement shoudn't be called either
-    // Don't deallocate cursor; f.e. RowsAffected is requested later
-    if not Prepared and (assigned(Database)) and (assigned(Cursor)) then SQLConnection.UnPrepareStatement(Cursor);
+    CheckUnPrepare;
+    // if not Prepared and (assigned(Database)) and (assigned(Cursor)) then SQLConnection.UnPrepareStatement(Cursor);
   end;
 end;
 

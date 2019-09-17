@@ -30,8 +30,10 @@ type
   TTestTSQLQuery = class(TSQLDBTestCase)
   private
     FMyQ: TSQLQuery;
+    FPrepareCount:Integer;
     procedure DoAfterPost(DataSet: TDataSet);
     Procedure DoApplyUpdates;
+    procedure DoCount(Sender: TSQLConnection; EventType: TDBEventType; const Msg: String);
     Procedure TrySetQueryOptions;
     Procedure TrySetPacketRecords;
   Protected
@@ -57,6 +59,7 @@ type
     procedure TestReturningInsert;
     procedure TestReturningUpdate;
     procedure TestMacros;
+    Procedure TestPrepareCount;
   end;
 
   { TTestTSQLConnection }
@@ -94,6 +97,7 @@ implementation
 procedure TTestTSQLQuery.Setup;
 begin
   inherited Setup;
+  FPrepareCount:=0;
   SQLDBConnector.Connection.Options:=[];
 end;
 
@@ -337,6 +341,12 @@ procedure TTestTSQLQuery.DoApplyUpdates;
 
 begin
   FMyQ.ApplyUpdates();
+end;
+
+procedure TTestTSQLQuery.DoCount(Sender: TSQLConnection; EventType: TDBEventType; const Msg: String);
+begin
+  If (EventType=detPrepare) then
+    Inc(FPrepareCount);
 end;
 
 procedure TTestTSQLQuery.TestCheckRowsAffected;
@@ -727,8 +737,6 @@ procedure TTestTSQLQuery.TestMacros;
 begin
   with SQLDBConnector do
     begin
-    if not (sqSupportReturning in Connection.ConnOptions) then
-      Ignore(STestNotApplicable);
     ExecuteDirect('create table FPDEV2 (id integer not null, constraint PK_FPDEV2 primary key(id))');
     CommitDDL;
     ExecuteDirect('insert into FPDEV2 (id) values (1)');
@@ -750,6 +758,42 @@ begin
     Open;
     AssertEquals('Correct SQL executed, macro value changed: ',2,Fields[0].AsInteger);
     end;
+end;
+
+procedure TTestTSQLQuery.TestPrepareCount;
+
+begin
+  with SQLDBConnector do
+    begin
+    ExecuteDirect('create table FPDEV2 (id integer not null, constraint PK_FPDEV2 primary key(id))');
+    CommitDDL;
+    ExecuteDirect('insert into FPDEV2 (id) values (1)');
+    ExecuteDirect('insert into FPDEV2 (id) values (2)');
+    Connection.OnLog:=@DoCount;
+    Connection.LogEvents:=[detPrepare];
+    end;
+  try
+    With SQLDBConnector.Query do
+      begin
+      Unidirectional:=True; // Disable server index defs etc
+      UsePrimaryKeyAsKey:=False; // Idem
+      SQL.Text:='Select ID from FPDEV2 where (ID=:ID)';
+      ParamByname('ID').AsInteger:=1;
+      Prepare;
+      Open;
+      AssertEquals('Correct record count param 1',1,RecordCount);
+      AssertEquals('Correct SQL executed, correct paramete: ',1,Fields[0].AsInteger);
+      Close;
+      ParamByname('ID').AsInteger:=2;
+      Open;
+      AssertEquals('Correct record count param 2',1,RecordCount);
+      AssertEquals('Correct SQL executed, macro value changed: ',2,Fields[0].AsInteger);
+      end;
+    AssertEquals('Prepare called only once ',1,FPrepareCount);
+  finally
+    SQLDBConnector.Connection.OnLog:=Nil;
+  end;
+
 end;
 
 

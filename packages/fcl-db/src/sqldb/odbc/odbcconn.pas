@@ -753,7 +753,11 @@ begin
 
   // Parse the SQL and build FParamIndex
   if assigned(AParams) and (AParams.count > 0) then
+    begin
     buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psInterbase,ODBCCursor.FParamIndex);
+    if LogEvent(detActualSQL) then
+      Log(detActualSQL,Buf);
+    end;
 
   // prepare statement
   ODBCCursor.FQuery:=Buf;
