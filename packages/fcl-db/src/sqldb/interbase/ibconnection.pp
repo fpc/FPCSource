@@ -62,7 +62,7 @@ type
     FDialect               : integer;
     FBlobSegmentSize       : word; //required for backward compatibilty; not used
     FUseConnectionCharSetIfNone: Boolean;
-
+    FWireCompression       : Boolean;
     procedure ConnectFB;
 
     procedure AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
@@ -134,6 +134,7 @@ type
     property OnLogin;
     Property Port stored false;
     Property UseConnectionCharSetIfNone : Boolean Read FUseConnectionCharSetIfNone Write FUseConnectionCharSetIfNone;
+    property WireCompression: Boolean read FWireCompression write FWireCompression default False;
   end;
   
   { TIBConnectionDef }
@@ -191,6 +192,7 @@ begin
   FConnOptions := FConnOptions + [sqSupportParams, sqEscapeRepeat, sqSupportReturning];
   FBlobSegmentSize := 65535; //Shows we're using the maximum segment size
   FDialect := INVALID_DATA;
+  FWireCompression := False;
   ResetDatabaseInfo;
 end;
 
@@ -611,6 +613,9 @@ end;
 
 
 procedure TIBConnection.ConnectFB;
+const
+  isc_dpb_config = 87;
+  CStr_WireCompression = 'WireCompression=true';
 var
   ADatabaseName: String;
   DPB: string;
@@ -628,6 +633,9 @@ begin
      DPB := DPB + chr(isc_dpb_sql_role_name) + chr(Length(Role)) + Role;
   if Length(CharSet) > 0 then
     DPB := DPB + Chr(isc_dpb_lc_ctype) + Chr(Length(CharSet)) + CharSet;
+  if WireCompression or (SameText(Params.values['WireCompression'],'true')) then
+    DPB := DPB + Chr(isc_dpb_config) + Chr(Length(CStr_WireCompression)) +
+           CStr_WireCompression;
 
   FDatabaseHandle := nil;
   HN:=HostName;
