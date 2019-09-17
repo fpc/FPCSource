@@ -497,7 +497,7 @@ end;
 function TField.GetAsBytes: TBytes;
 begin
   Result:=Default(TBytes);
-  Writeln('Allocating ',Datasize,' bytes');
+//  Writeln('Allocating ',Datasize,' bytes');
   SetLength(Result, DataSize);
   if assigned(result) and not GetData(@Result[0], False) then
     Result := nil;
