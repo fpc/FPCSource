@@ -953,7 +953,7 @@ begin
    exit;
   { check stack alignment }
 {$ifdef CPUI386}
-{$ifdef FPC_STACKALIGNMENT=16}
+{$if FPC_STACKALIGNMENT=16}
   if ((PtrUInt(Sptr)+4) mod 16)<>0 then
     begin
       StackError:=true;
