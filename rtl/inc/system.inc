@@ -953,6 +953,7 @@ begin
    exit;
   { check stack alignment }
 {$ifdef CPUI386}
+{$ifdef FPC_STACKALIGNMENT}
 {$if FPC_STACKALIGNMENT=16}
   if ((PtrUInt(Sptr)+4) mod 16)<>0 then
     begin
@@ -960,6 +961,7 @@ begin
       HandleError(202);
     end;
 {$endif FPC_STACKALIGNMENT=16}
+{$endif FPC_STACKALIGNMENT}
 {$endif CPUI386}
   { don't use stack_size, since the stack pointer has already been
     decreased when this routine is called
