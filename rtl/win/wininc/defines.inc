@@ -1800,9 +1800,6 @@
      STD_OUTPUT_HANDLE = DWORD(-11);
      STD_ERROR_HANDLE = DWORD(-12);
 
-
-
-
      INVALID_HANDLE_VALUE = HANDLE(-1);
      INVALID_FILE_SIZE    = DWORD(-1);
      INVALID_SET_FILE_POINTER = DWORD(-1);
@@ -2230,7 +2227,9 @@
      HC_NOREMOVE = 3;
   { keybd_event  }
      KEYEVENTF_EXTENDEDKEY = 1;
-     KEYEVENTF_KEYUP = 2;
+     KEYEVENTF_KEYUP       = 2;
+     KEYEVENTF_UNICODE     = 4;
+     KEYEVENTF_SCANCODE    = 8;
   { LoadBitmap  }
      OBM_BTNCORNERS = 32758;
      OBM_BTSIZE = 32761;
@@ -2360,14 +2359,27 @@
      MWT_LEFTMULTIPLY = 2;
      MWT_RIGHTMULTIPLY = 3;
   { mouse_event  }
-     MOUSEEVENTF_ABSOLUTE = 32768;
-     MOUSEEVENTF_MOVE = 1;
-     MOUSEEVENTF_LEFTDOWN = 2;
-     MOUSEEVENTF_LEFTUP = 4;
-     MOUSEEVENTF_RIGHTDOWN = 8;
-     MOUSEEVENTF_RIGHTUP = 16;
-     MOUSEEVENTF_MIDDLEDOWN = 32;
-     MOUSEEVENTF_MIDDLEUP = 64;
+     MOUSEEVENTF_MOVE            = $00001; (* mouse move *)
+     MOUSEEVENTF_LEFTDOWN        = $00002; (* left button down *)
+     MOUSEEVENTF_LEFTUP          = $00004; (* left button up *)
+     MOUSEEVENTF_RIGHTDOWN       = $00008; (* right button down *)
+     MOUSEEVENTF_RIGHTUP         = $00010; (* right button up *)
+     MOUSEEVENTF_MIDDLEDOWN      = $00020; (* middle button down *)
+     MOUSEEVENTF_MIDDLEUP        = $00040; (* middle button up *)
+     MOUSEEVENTF_XDOWN           = $00080; (* x button down *)
+     MOUSEEVENTF_XUP             = $00100; (* x button down *)
+     MOUSEEVENTF_WHEEL           = $00800; (* wheel button rolled *)
+     MOUSEEVENTF_HWHEEL          = $01000; (* hwheel button rolled *)
+     MOUSEEVENTF_MOVE_NOCOALESCE = $02000; (* do not coalesce mouse moves *)
+     MOUSEEVENTF_VIRTUALDESK     = $04000; (* map to entire virtual desktop *)
+     MOUSEEVENTF_ABSOLUTE        = $08000; (* absolute move *)
+  { TagInput}
+     INPUT_MOUSE    = 0;
+     INPUT_KEYBOARD = 1;
+     INPUT_HARDWARE = 2;
+  { XButton values are WORD flags }
+     XBUTTON1 = WORD($0001);
+     XBUTTON2 = WORD($0002);
   { MoveFileEx  }
      MOVEFILE_REPLACE_EXISTING = 1;
      MOVEFILE_COPY_ALLOWED = 2;
@@ -3301,52 +3313,52 @@ Type
 
   const
      VS_VERSION_INFO = 1;
-     VS_FF_DEBUG = $1;
-     VS_FF_INFOINFERRED = $10;
-     VS_FF_PATCHED = $4;
-     VS_FF_PRERELEASE = $2;
-     VS_FF_PRIVATEBUILD = $8;
-     VS_FF_SPECIALBUILD = $20;
+     VS_FF_DEBUG  = $1;
+     VS_FF_INFOINFERRED  = $10;
+     VS_FF_PATCHED  = $4;
+     VS_FF_PRERELEASE  = $2;
+     VS_FF_PRIVATEBUILD  = $8;
+     VS_FF_SPECIALBUILD  = $20;
 
-     VOS_WINCE               = $00050000;
-     VOS__WINDOWS16          = $00000001;
-     VOS__PM16               = $00000002;
-     VOS__PM32               = $00000003;
-     VOS__WINDOWS32          = $00000004;
+     VOS_WINCE                = $00050000;
+     VOS__WINDOWS16           = $00000001;
+     VOS__PM16                = $00000002;
+     VOS__PM32                = $00000003;
+     VOS__WINDOWS32           = $00000004;
      VOS_UNKNOWN = 0;
      VOS_BASE = 0;
-     VOS_DOS = $10000;
-     VOS_OS216 = $20000;
-     VOS_OS232 = $30000;
-     VOS_NT = $40000;
-     VOS_DOS_WINDOWS16 = $10001;
-     VOS_DOS_WINDOWS32 = $10004;
-     VOS_OS216_PM16 = $20002;
-     VOS_OS232_PM32 = $30003;
-     VOS_NT_WINDOWS32 = $40004;
+     VOS_DOS  = $10000;
+     VOS_OS216  = $20000;
+     VOS_OS232  = $30000;
+     VOS_NT  = $40000;
+     VOS_DOS_WINDOWS16  = $10001;
+     VOS_DOS_WINDOWS32  = $10004;
+     VOS_OS216_PM16  = $20002;
+     VOS_OS232_PM32  = $30003;
+     VOS_NT_WINDOWS32  = $40004;
      VFT_UNKNOWN = 0;
-     VFT_APP = $1;
-     VFT_DLL = $2;
-     VFT_DRV = $3;
-     VFT_FONT = $4;
-     VFT_VXD = $5;
-     VFT_STATIC_LIB = $7;
+     VFT_APP  = $1;
+     VFT_DLL  = $2;
+     VFT_DRV  = $3;
+     VFT_FONT  = $4;
+     VFT_VXD  = $5;
+     VFT_STATIC_LIB  = $7;
      VFT2_UNKNOWN = 0;
-     VFT2_DRV_PRINTER = $1;
-     VFT2_DRV_KEYBOARD = $2;
-     VFT2_DRV_LANGUAGE = $3;
-     VFT2_DRV_DISPLAY = $4;
-     VFT2_DRV_MOUSE = $5;
-     VFT2_DRV_NETWORK = $6;
-     VFT2_DRV_SYSTEM = $7;
-     VFT2_DRV_INSTALLABLE = $8;
-     VFT2_DRV_SOUND = $9;
-     VFT2_DRV_COMM             = $0a;
-     VFT2_DRV_INPUTMETHOD      = $0b;
-     VFT2_DRV_VERSIONED_PRINTER= $0c;
-     VFT2_FONT_RASTER = $1;
-     VFT2_FONT_VECTOR = $2;
-     VFT2_FONT_TRUETYPE = $3;
+     VFT2_DRV_PRINTER  = $1;
+     VFT2_DRV_KEYBOARD  = $2;
+     VFT2_DRV_LANGUAGE  = $3;
+     VFT2_DRV_DISPLAY  = $4;
+     VFT2_DRV_MOUSE  = $5;
+     VFT2_DRV_NETWORK  = $6;
+     VFT2_DRV_SYSTEM  = $7;
+     VFT2_DRV_INSTALLABLE  = $8;
+     VFT2_DRV_SOUND  = $9;
+     VFT2_DRV_COMM              = $0a;
+     VFT2_DRV_INPUTMETHOD       = $0b;
+     VFT2_DRV_VERSIONED_PRINTER = $0c;
+     VFT2_FONT_RASTER  = $1;
+     VFT2_FONT_VECTOR  = $2;
+     VFT2_FONT_TRUETYPE  = $3;
   { PANOSE structure  }
      PAN_ANY = 0;
      PAN_NO_FIT = 1;
@@ -3458,35 +3470,35 @@ Type
      BS_PATTERN8X8 = 7;
      BS_SOLID = 0;
   { DEVMODE structure  }
-     DM_ORIENTATION = $1;
-     DM_PAPERSIZE = $2;
-     DM_PAPERLENGTH = $4;
-     DM_PAPERWIDTH = $8;
-     DM_SCALE = $10;
-     DM_POSITION = $00000020;
-     DM_NUP = $00000040;
+     DM_ORIENTATION  = $1;
+     DM_PAPERSIZE  = $2;
+     DM_PAPERLENGTH  = $4;
+     DM_PAPERWIDTH  = $8;
+     DM_SCALE  = $10;
+     DM_POSITION  = $00000020;
+     DM_NUP  = $00000040;
 
-     DM_COPIES = $100;
-     DM_DEFAULTSOURCE = $200;
-     DM_PRINTQUALITY = $400;
-     DM_COLOR = $800;
-     DM_DUPLEX = $1000;
-     DM_YRESOLUTION = $2000;
-     DM_TTOPTION = $4000;
-     DM_COLLATE = $8000;
-     DM_FORMNAME = $10000;
-     DM_LOGPIXELS = $20000;
-     {DM_BITSPERPEL = $40000;
-     DM_PELSWIDTH = $80000;
-     DM_PELSHEIGHT = $100000;
-     DM_DISPLAYFLAGS = $200000;
-     DM_DISPLAYFREQUENCY = $400000;already above }
-     DM_ICMMETHOD = $800000;
-     DM_ICMINTENT = $1000000;
-     DM_MEDIATYPE = $2000000;
-     DM_DITHERTYPE = $4000000;
-     DM_PANNINGWIDTH = $08000000;
-     DM_PANNINGHEIGHT = $10000000;
+     DM_COPIES  = $100;
+     DM_DEFAULTSOURCE  = $200;
+     DM_PRINTQUALITY  = $400;
+     DM_COLOR  = $800;
+     DM_DUPLEX  = $1000;
+     DM_YRESOLUTION  = $2000;
+     DM_TTOPTION  = $4000;
+     DM_COLLATE  = $8000;
+     DM_FORMNAME  = $10000;
+     DM_LOGPIXELS  = $20000;
+     {DM_BITSPERPEL  = $40000;
+     DM_PELSWIDTH  = $80000;
+     DM_PELSHEIGHT  = $100000;
+     DM_DISPLAYFLAGS  = $200000;
+     DM_DISPLAYFREQUENCY  = $400000;already above }
+     DM_ICMMETHOD  = $800000;
+     DM_ICMINTENT  = $1000000;
+     DM_MEDIATYPE  = $2000000;
+     DM_DITHERTYPE  = $4000000;
+     DM_PANNINGWIDTH  = $08000000;
+     DM_PANNINGHEIGHT  = $10000000;
 
      DMORIENT_PORTRAIT = 1;
      DMORIENT_LANDSCAPE = 2;
@@ -3771,7 +3783,7 @@ Type
      CFM_ITALIC = 2;
      CFM_OFFSET = 268435456;
      CFM_PROTECTED = 16;
-     CFM_SIZE = $80000000;
+     CFM_SIZE  = $80000000;
      CFM_STRIKEOUT = 8;
      CFM_UNDERLINE = 4;
      CFE_AUTOCOLOR = 1073741824;
@@ -3784,7 +3796,7 @@ Type
      PFM_ALIGNMENT = 8;
      PFM_NUMBERING = 32;
      PFM_OFFSET = 4;
-     PFM_OFFSETINDENT = $80000000;
+     PFM_OFFSETINDENT  = $80000000;
      PFM_RIGHTINDENT = 2;
      PFM_STARTINDENT = 1;
      PFM_TABSTOPS = 16;
@@ -3819,11 +3831,11 @@ Type
      ODS_CHECKED = 8;
      ODS_FOCUS = 16;
      ODS_DEFAULT = 32;
-     ODS_HOTLIGHT = $0040;
-     ODS_INACTIVE = $0080;
-     ODS_NOACCEL = $0100;
-     ODS_NOFOCUSRECT = $0200;
-     ODS_COMBOBOXEDIT = $1000;
+     ODS_HOTLIGHT  = $0040;
+     ODS_INACTIVE  = $0080;
+     ODS_NOACCEL  = $0100;
+     ODS_NOFOCUSRECT  = $0200;
+     ODS_COMBOBOXEDIT  = $1000;
 
   { Common control window classes  }
      ANIMATE_CLASSW = 'SysAnimate32';
@@ -3839,13 +3851,13 @@ Type
      WC_TABCONTROLW = 'SysTabControl32';
      WC_TREEVIEWW = 'SysTreeView32';
   { Common control styles  }
-     CCS_ADJUSTABLE = $20;
-     CCS_BOTTOM = $3;
-     CCS_NODIVIDER = $40;
-     CCS_NOMOVEY = $2;
-     CCS_NOPARENTALIGN = $8;
-     CCS_NORESIZE = $4;
-     CCS_TOP = $1;
+     CCS_ADJUSTABLE  = $20;
+     CCS_BOTTOM  = $3;
+     CCS_NODIVIDER  = $40;
+     CCS_NOMOVEY  = $2;
+     CCS_NOPARENTALIGN  = $8;
+     CCS_NORESIZE  = $4;
+     CCS_TOP  = $1;
      ANIMATE_CLASSA = 'SysAnimate32';
      HOTKEY_CLASSA = 'msctls_hotkey32';
      PROGRESS_CLASSA = 'msctls_progress32';
@@ -4285,84 +4297,84 @@ Type
    //  Primary language IDs.
    //
 
-     LANG_NEUTRAL    = $00;
-     LANG_INVARIANT  = $7f;
+     LANG_NEUTRAL     = $00;
+     LANG_INVARIANT   = $7f;
 
-     LANG_AFRIKAANS  = $36;
-     LANG_ALBANIAN   = $1c;
-     LANG_ARABIC     = $01;
-     LANG_ARMENIAN   = $2b;
-     LANG_ASSAMESE   = $4d;
-     LANG_AZERI      = $2c;
-     LANG_BASQUE     = $2d;
-     LANG_BELARUSIAN = $23;
-     LANG_BENGALI    = $45;
-     LANG_BULGARIAN  = $02;
-     LANG_CATALAN    = $03;
-     LANG_CHINESE    = $04;
-     LANG_CROATIAN   = $1a;
-     LANG_CZECH      = $05;
-     LANG_DANISH     = $06;
-     LANG_DIVEHI     = $65;
-     LANG_DUTCH      = $13;
-     LANG_ENGLISH    = $09;
-     LANG_ESTONIAN   = $25;
-     LANG_FAEROESE   = $38;
-     LANG_FARSI      = $29;
-     LANG_FINNISH    = $0b;
-     LANG_FRENCH     = $0c;
-     LANG_GALICIAN   = $56;
-     LANG_GEORGIAN   = $37;
-     LANG_GERMAN     = $07;
-     LANG_GREEK      = $08;
-     LANG_GUJARATI   = $47;
-     LANG_HEBREW     = $0d;
-     LANG_HINDI      = $39;
-     LANG_HUNGARIAN  = $0e;
-     LANG_ICELANDIC  = $0f;
-     LANG_INDONESIAN = $21;
-     LANG_ITALIAN    = $10;
-     LANG_JAPANESE   = $11;
-     LANG_KANNADA    = $4b;
-     LANG_KASHMIRI   = $60;
-     LANG_KAZAK      = $3f;
-     LANG_KONKANI    = $57;
-     LANG_KOREAN     = $12;
-     LANG_KYRGYZ     = $40;
-     LANG_LATVIAN    = $26;
-     LANG_LITHUANIAN = $27;
-     LANG_MACEDONIAN = $2f;            // the Former Yugoslav Republic of Macedonia
-     LANG_MALAY      = $3e;
-     LANG_MALAYALAM  = $4c;
-     LANG_MANIPURI   = $58;
-     LANG_MARATHI    = $4e;
-     LANG_MONGOLIAN  = $50;
-     LANG_NEPALI     = $61;
-     LANG_NORWEGIAN  = $14;
-     LANG_ORIYA      = $48;
-     LANG_POLISH     = $15;
-     LANG_PORTUGUESE = $16;
-     LANG_PUNJABI    = $46;
-     LANG_ROMANIAN   = $18;
-     LANG_RUSSIAN    = $19;
-     LANG_SANSKRIT   = $4f;
-     LANG_SERBIAN    = $1a;
-     LANG_SINDHI     = $59;
-     LANG_SLOVAK     = $1b;
-     LANG_SLOVENIAN  = $24;
-     LANG_SPANISH    = $0a;
-     LANG_SWAHILI    = $41;
-     LANG_SWEDISH    = $1d;
-     LANG_SYRIAC     = $5a;
-     LANG_TAMIL      = $49;
-     LANG_TATAR      = $44;
-     LANG_TELUGU     = $4a;
-     LANG_THAI       = $1e;
-     LANG_TURKISH    = $1f;
-     LANG_UKRAINIAN  = $22;
-     LANG_URDU       = $20;
-     LANG_UZBEK      = $43;
-     LANG_VIETNAMESE = $2a;
+     LANG_AFRIKAANS   = $36;
+     LANG_ALBANIAN    = $1c;
+     LANG_ARABIC      = $01;
+     LANG_ARMENIAN    = $2b;
+     LANG_ASSAMESE    = $4d;
+     LANG_AZERI       = $2c;
+     LANG_BASQUE      = $2d;
+     LANG_BELARUSIAN  = $23;
+     LANG_BENGALI     = $45;
+     LANG_BULGARIAN   = $02;
+     LANG_CATALAN     = $03;
+     LANG_CHINESE     = $04;
+     LANG_CROATIAN    = $1a;
+     LANG_CZECH       = $05;
+     LANG_DANISH      = $06;
+     LANG_DIVEHI      = $65;
+     LANG_DUTCH       = $13;
+     LANG_ENGLISH     = $09;
+     LANG_ESTONIAN    = $25;
+     LANG_FAEROESE    = $38;
+     LANG_FARSI       = $29;
+     LANG_FINNISH     = $0b;
+     LANG_FRENCH      = $0c;
+     LANG_GALICIAN    = $56;
+     LANG_GEORGIAN    = $37;
+     LANG_GERMAN      = $07;
+     LANG_GREEK       = $08;
+     LANG_GUJARATI    = $47;
+     LANG_HEBREW      = $0d;
+     LANG_HINDI       = $39;
+     LANG_HUNGARIAN   = $0e;
+     LANG_ICELANDIC   = $0f;
+     LANG_INDONESIAN  = $21;
+     LANG_ITALIAN     = $10;
+     LANG_JAPANESE    = $11;
+     LANG_KANNADA     = $4b;
+     LANG_KASHMIRI    = $60;
+     LANG_KAZAK       = $3f;
+     LANG_KONKANI     = $57;
+     LANG_KOREAN      = $12;
+     LANG_KYRGYZ      = $40;
+     LANG_LATVIAN     = $26;
+     LANG_LITHUANIAN  = $27;
+     LANG_MACEDONIAN  = $2f;            // the Former Yugoslav Republic of Macedonia
+     LANG_MALAY       = $3e;
+     LANG_MALAYALAM   = $4c;
+     LANG_MANIPURI    = $58;
+     LANG_MARATHI     = $4e;
+     LANG_MONGOLIAN   = $50;
+     LANG_NEPALI      = $61;
+     LANG_NORWEGIAN   = $14;
+     LANG_ORIYA       = $48;
+     LANG_POLISH      = $15;
+     LANG_PORTUGUESE  = $16;
+     LANG_PUNJABI     = $46;
+     LANG_ROMANIAN    = $18;
+     LANG_RUSSIAN     = $19;
+     LANG_SANSKRIT    = $4f;
+     LANG_SERBIAN     = $1a;
+     LANG_SINDHI      = $59;
+     LANG_SLOVAK      = $1b;
+     LANG_SLOVENIAN   = $24;
+     LANG_SPANISH     = $0a;
+     LANG_SWAHILI     = $41;
+     LANG_SWEDISH     = $1d;
+     LANG_SYRIAC      = $5a;
+     LANG_TAMIL       = $49;
+     LANG_TATAR       = $44;
+     LANG_TELUGU      = $4a;
+     LANG_THAI        = $1e;
+     LANG_TURKISH     = $1f;
+     LANG_UKRAINIAN   = $22;
+     LANG_URDU        = $20;
+     LANG_UZBEK       = $43;
+     LANG_VIETNAMESE  = $2a;
 
    //
    //  Sublanguage IDs.
@@ -4372,126 +4384,126 @@ Type
    //  valid language ID.
    //
 
-     SUBLANG_NEUTRAL     = $00; // language neutral
-     SUBLANG_DEFAULT     = $01; // user default
-     SUBLANG_SYS_DEFAULT = $02; // system default
+     SUBLANG_NEUTRAL      = $00; // language neutral
+     SUBLANG_DEFAULT      = $01; // user default
+     SUBLANG_SYS_DEFAULT  = $02; // system default
 
-     SUBLANG_ARABIC_SAUDI_ARABIA        = $01; // Arabic (Saudi Arabia)
-     SUBLANG_ARABIC_IRAQ                = $02; // Arabic (Iraq)
-     SUBLANG_ARABIC_EGYPT               = $03; // Arabic (Egypt)
-     SUBLANG_ARABIC_LIBYA               = $04; // Arabic (Libya)
-     SUBLANG_ARABIC_ALGERIA             = $05; // Arabic (Algeria)
-     SUBLANG_ARABIC_MOROCCO             = $06; // Arabic (Morocco)
-     SUBLANG_ARABIC_TUNISIA             = $07; // Arabic (Tunisia)
-     SUBLANG_ARABIC_OMAN                = $08; // Arabic (Oman)
-     SUBLANG_ARABIC_YEMEN               = $09; // Arabic (Yemen)
-     SUBLANG_ARABIC_SYRIA               = $0a; // Arabic (Syria)
-     SUBLANG_ARABIC_JORDAN              = $0b; // Arabic (Jordan)
-     SUBLANG_ARABIC_LEBANON             = $0c; // Arabic (Lebanon)
-     SUBLANG_ARABIC_KUWAIT              = $0d; // Arabic (Kuwait)
-     SUBLANG_ARABIC_UAE                 = $0e; // Arabic (U.A.E)
-     SUBLANG_ARABIC_BAHRAIN             = $0f; // Arabic (Bahrain)
-     SUBLANG_ARABIC_QATAR               = $10; // Arabic (Qatar)
-     SUBLANG_AZERI_LATIN                = $01; // Azeri (Latin)
-     SUBLANG_AZERI_CYRILLIC             = $02; // Azeri (Cyrillic)
-     SUBLANG_CHINESE_TRADITIONAL        = $01; // Chinese (Taiwan)
-     SUBLANG_CHINESE_SIMPLIFIED         = $02; // Chinese (PR China)
-     SUBLANG_CHINESE_HONGKONG           = $03; // Chinese (Hong Kong S.A.R., P.R.C.)
-     SUBLANG_CHINESE_SINGAPORE          = $04; // Chinese (Singapore)
-     SUBLANG_CHINESE_MACAU              = $05; // Chinese (Macau S.A.R.)
-     SUBLANG_DUTCH                      = $01; // Dutch
-     SUBLANG_DUTCH_BELGIAN              = $02; // Dutch (Belgian)
-     SUBLANG_ENGLISH_US                 = $01; // English (USA)
-     SUBLANG_ENGLISH_UK                 = $02; // English (UK)
-     SUBLANG_ENGLISH_AUS                = $03; // English (Australian)
-     SUBLANG_ENGLISH_CAN                = $04; // English (Canadian)
-     SUBLANG_ENGLISH_NZ                 = $05; // English (New Zealand)
-     SUBLANG_ENGLISH_EIRE               = $06; // English (Irish)
-     SUBLANG_ENGLISH_SOUTH_AFRICA       = $07; // English (South Africa)
-     SUBLANG_ENGLISH_JAMAICA            = $08; // English (Jamaica)
-     SUBLANG_ENGLISH_CARIBBEAN          = $09; // English (Caribbean)
-     SUBLANG_ENGLISH_BELIZE             = $0a; // English (Belize)
-     SUBLANG_ENGLISH_TRINIDAD           = $0b; // English (Trinidad)
-     SUBLANG_ENGLISH_ZIMBABWE           = $0c; // English (Zimbabwe)
-     SUBLANG_ENGLISH_PHILIPPINES        = $0d; // English (Philippines)
-     SUBLANG_FRENCH                     = $01; // French
-     SUBLANG_FRENCH_BELGIAN             = $02; // French (Belgian)
-     SUBLANG_FRENCH_CANADIAN            = $03; // French (Canadian)
-     SUBLANG_FRENCH_SWISS               = $04; // French (Swiss)
-     SUBLANG_FRENCH_LUXEMBOURG          = $05; // French (Luxembourg)
-     SUBLANG_FRENCH_MONACO              = $06; // French (Monaco)
-     SUBLANG_GERMAN                     = $01; // German
-     SUBLANG_GERMAN_SWISS               = $02; // German (Swiss)
-     SUBLANG_GERMAN_AUSTRIAN            = $03; // German (Austrian)
-     SUBLANG_GERMAN_LUXEMBOURG          = $04; // German (Luxembourg)
-     SUBLANG_GERMAN_LIECHTENSTEIN       = $05; // German (Liechtenstein)
-     SUBLANG_ITALIAN                    = $01; // Italian
-     SUBLANG_ITALIAN_SWISS              = $02; // Italian (Swiss)
-     SUBLANG_KASHMIRI_SASIA             = $02; // Kashmiri (South Asia)
-     SUBLANG_KASHMIRI_INDIA             = $02; // For app compatibility only
-     SUBLANG_KOREAN                     = $01; // Korean (Extended Wansung)
-     SUBLANG_LITHUANIAN                 = $01; // Lithuanian
-     SUBLANG_MALAY_MALAYSIA             = $01; // Malay (Malaysia)
-     SUBLANG_MALAY_BRUNEI_DARUSSALAM    = $02; // Malay (Brunei Darussalam)
-     SUBLANG_NEPALI_INDIA               = $02; // Nepali (India)
-     SUBLANG_NORWEGIAN_BOKMAL           = $01; // Norwegian (Bokmal)
-     SUBLANG_NORWEGIAN_NYNORSK          = $02; // Norwegian (Nynorsk)
-     SUBLANG_PORTUGUESE                 = $02; // Portuguese
-     SUBLANG_PORTUGUESE_BRAZILIAN       = $01; // Portuguese (Brazilian)
-     SUBLANG_SERBIAN_LATIN              = $02; // Serbian (Latin)
-     SUBLANG_SERBIAN_CYRILLIC           = $03; // Serbian (Cyrillic)
-     SUBLANG_SPANISH                    = $01; // Spanish (Castilian)
-     SUBLANG_SPANISH_MEXICAN            = $02; // Spanish (Mexican)
-     SUBLANG_SPANISH_MODERN             = $03; // Spanish (Spain)
-     SUBLANG_SPANISH_GUATEMALA          = $04; // Spanish (Guatemala)
-     SUBLANG_SPANISH_COSTA_RICA         = $05; // Spanish (Costa Rica)
-     SUBLANG_SPANISH_PANAMA             = $06; // Spanish (Panama)
-     SUBLANG_SPANISH_DOMINICAN_REPUBLIC = $07; // Spanish (Dominican Republic)
-     SUBLANG_SPANISH_VENEZUELA          = $08; // Spanish (Venezuela)
-     SUBLANG_SPANISH_COLOMBIA           = $09; // Spanish (Colombia)
-     SUBLANG_SPANISH_PERU               = $0a; // Spanish (Peru)
-     SUBLANG_SPANISH_ARGENTINA          = $0b; // Spanish (Argentina)
-     SUBLANG_SPANISH_ECUADOR            = $0c; // Spanish (Ecuador)
-     SUBLANG_SPANISH_CHILE              = $0d; // Spanish (Chile)
-     SUBLANG_SPANISH_URUGUAY            = $0e; // Spanish (Uruguay)
-     SUBLANG_SPANISH_PARAGUAY           = $0f; // Spanish (Paraguay)
-     SUBLANG_SPANISH_BOLIVIA            = $10; // Spanish (Bolivia)
-     SUBLANG_SPANISH_EL_SALVADOR        = $11; // Spanish (El Salvador)
-     SUBLANG_SPANISH_HONDURAS           = $12; // Spanish (Honduras)
-     SUBLANG_SPANISH_NICARAGUA          = $13; // Spanish (Nicaragua)
-     SUBLANG_SPANISH_PUERTO_RICO        = $14; // Spanish (Puerto Rico)
-     SUBLANG_SWEDISH                    = $01; // Swedish
-     SUBLANG_SWEDISH_FINLAND            = $02; // Swedish (Finland)
-     SUBLANG_URDU_PAKISTAN              = $01; // Urdu (Pakistan)
-     SUBLANG_URDU_INDIA                 = $02; // Urdu (India)
-     SUBLANG_UZBEK_LATIN                = $01; // Uzbek (Latin)
-     SUBLANG_UZBEK_CYRILLIC             = $02; // Uzbek (Cyrillic)
+     SUBLANG_ARABIC_SAUDI_ARABIA         = $01; // Arabic (Saudi Arabia)
+     SUBLANG_ARABIC_IRAQ                 = $02; // Arabic (Iraq)
+     SUBLANG_ARABIC_EGYPT                = $03; // Arabic (Egypt)
+     SUBLANG_ARABIC_LIBYA                = $04; // Arabic (Libya)
+     SUBLANG_ARABIC_ALGERIA              = $05; // Arabic (Algeria)
+     SUBLANG_ARABIC_MOROCCO              = $06; // Arabic (Morocco)
+     SUBLANG_ARABIC_TUNISIA              = $07; // Arabic (Tunisia)
+     SUBLANG_ARABIC_OMAN                 = $08; // Arabic (Oman)
+     SUBLANG_ARABIC_YEMEN                = $09; // Arabic (Yemen)
+     SUBLANG_ARABIC_SYRIA                = $0a; // Arabic (Syria)
+     SUBLANG_ARABIC_JORDAN               = $0b; // Arabic (Jordan)
+     SUBLANG_ARABIC_LEBANON              = $0c; // Arabic (Lebanon)
+     SUBLANG_ARABIC_KUWAIT               = $0d; // Arabic (Kuwait)
+     SUBLANG_ARABIC_UAE                  = $0e; // Arabic (U.A.E)
+     SUBLANG_ARABIC_BAHRAIN              = $0f; // Arabic (Bahrain)
+     SUBLANG_ARABIC_QATAR                = $10; // Arabic (Qatar)
+     SUBLANG_AZERI_LATIN                 = $01; // Azeri (Latin)
+     SUBLANG_AZERI_CYRILLIC              = $02; // Azeri (Cyrillic)
+     SUBLANG_CHINESE_TRADITIONAL         = $01; // Chinese (Taiwan)
+     SUBLANG_CHINESE_SIMPLIFIED          = $02; // Chinese (PR China)
+     SUBLANG_CHINESE_HONGKONG            = $03; // Chinese (Hong Kong S.A.R., P.R.C.)
+     SUBLANG_CHINESE_SINGAPORE           = $04; // Chinese (Singapore)
+     SUBLANG_CHINESE_MACAU               = $05; // Chinese (Macau S.A.R.)
+     SUBLANG_DUTCH                       = $01; // Dutch
+     SUBLANG_DUTCH_BELGIAN               = $02; // Dutch (Belgian)
+     SUBLANG_ENGLISH_US                  = $01; // English (USA)
+     SUBLANG_ENGLISH_UK                  = $02; // English (UK)
+     SUBLANG_ENGLISH_AUS                 = $03; // English (Australian)
+     SUBLANG_ENGLISH_CAN                 = $04; // English (Canadian)
+     SUBLANG_ENGLISH_NZ                  = $05; // English (New Zealand)
+     SUBLANG_ENGLISH_EIRE                = $06; // English (Irish)
+     SUBLANG_ENGLISH_SOUTH_AFRICA        = $07; // English (South Africa)
+     SUBLANG_ENGLISH_JAMAICA             = $08; // English (Jamaica)
+     SUBLANG_ENGLISH_CARIBBEAN           = $09; // English (Caribbean)
+     SUBLANG_ENGLISH_BELIZE              = $0a; // English (Belize)
+     SUBLANG_ENGLISH_TRINIDAD            = $0b; // English (Trinidad)
+     SUBLANG_ENGLISH_ZIMBABWE            = $0c; // English (Zimbabwe)
+     SUBLANG_ENGLISH_PHILIPPINES         = $0d; // English (Philippines)
+     SUBLANG_FRENCH                      = $01; // French
+     SUBLANG_FRENCH_BELGIAN              = $02; // French (Belgian)
+     SUBLANG_FRENCH_CANADIAN             = $03; // French (Canadian)
+     SUBLANG_FRENCH_SWISS                = $04; // French (Swiss)
+     SUBLANG_FRENCH_LUXEMBOURG           = $05; // French (Luxembourg)
+     SUBLANG_FRENCH_MONACO               = $06; // French (Monaco)
+     SUBLANG_GERMAN                      = $01; // German
+     SUBLANG_GERMAN_SWISS                = $02; // German (Swiss)
+     SUBLANG_GERMAN_AUSTRIAN             = $03; // German (Austrian)
+     SUBLANG_GERMAN_LUXEMBOURG           = $04; // German (Luxembourg)
+     SUBLANG_GERMAN_LIECHTENSTEIN        = $05; // German (Liechtenstein)
+     SUBLANG_ITALIAN                     = $01; // Italian
+     SUBLANG_ITALIAN_SWISS               = $02; // Italian (Swiss)
+     SUBLANG_KASHMIRI_SASIA              = $02; // Kashmiri (South Asia)
+     SUBLANG_KASHMIRI_INDIA              = $02; // For app compatibility only
+     SUBLANG_KOREAN                      = $01; // Korean (Extended Wansung)
+     SUBLANG_LITHUANIAN                  = $01; // Lithuanian
+     SUBLANG_MALAY_MALAYSIA              = $01; // Malay (Malaysia)
+     SUBLANG_MALAY_BRUNEI_DARUSSALAM     = $02; // Malay (Brunei Darussalam)
+     SUBLANG_NEPALI_INDIA                = $02; // Nepali (India)
+     SUBLANG_NORWEGIAN_BOKMAL            = $01; // Norwegian (Bokmal)
+     SUBLANG_NORWEGIAN_NYNORSK           = $02; // Norwegian (Nynorsk)
+     SUBLANG_PORTUGUESE                  = $02; // Portuguese
+     SUBLANG_PORTUGUESE_BRAZILIAN        = $01; // Portuguese (Brazilian)
+     SUBLANG_SERBIAN_LATIN               = $02; // Serbian (Latin)
+     SUBLANG_SERBIAN_CYRILLIC            = $03; // Serbian (Cyrillic)
+     SUBLANG_SPANISH                     = $01; // Spanish (Castilian)
+     SUBLANG_SPANISH_MEXICAN             = $02; // Spanish (Mexican)
+     SUBLANG_SPANISH_MODERN              = $03; // Spanish (Spain)
+     SUBLANG_SPANISH_GUATEMALA           = $04; // Spanish (Guatemala)
+     SUBLANG_SPANISH_COSTA_RICA          = $05; // Spanish (Costa Rica)
+     SUBLANG_SPANISH_PANAMA              = $06; // Spanish (Panama)
+     SUBLANG_SPANISH_DOMINICAN_REPUBLIC  = $07; // Spanish (Dominican Republic)
+     SUBLANG_SPANISH_VENEZUELA           = $08; // Spanish (Venezuela)
+     SUBLANG_SPANISH_COLOMBIA            = $09; // Spanish (Colombia)
+     SUBLANG_SPANISH_PERU                = $0a; // Spanish (Peru)
+     SUBLANG_SPANISH_ARGENTINA           = $0b; // Spanish (Argentina)
+     SUBLANG_SPANISH_ECUADOR             = $0c; // Spanish (Ecuador)
+     SUBLANG_SPANISH_CHILE               = $0d; // Spanish (Chile)
+     SUBLANG_SPANISH_URUGUAY             = $0e; // Spanish (Uruguay)
+     SUBLANG_SPANISH_PARAGUAY            = $0f; // Spanish (Paraguay)
+     SUBLANG_SPANISH_BOLIVIA             = $10; // Spanish (Bolivia)
+     SUBLANG_SPANISH_EL_SALVADOR         = $11; // Spanish (El Salvador)
+     SUBLANG_SPANISH_HONDURAS            = $12; // Spanish (Honduras)
+     SUBLANG_SPANISH_NICARAGUA           = $13; // Spanish (Nicaragua)
+     SUBLANG_SPANISH_PUERTO_RICO         = $14; // Spanish (Puerto Rico)
+     SUBLANG_SWEDISH                     = $01; // Swedish
+     SUBLANG_SWEDISH_FINLAND             = $02; // Swedish (Finland)
+     SUBLANG_URDU_PAKISTAN               = $01; // Urdu (Pakistan)
+     SUBLANG_URDU_INDIA                  = $02; // Urdu (India)
+     SUBLANG_UZBEK_LATIN                 = $01; // Uzbek (Latin)
+     SUBLANG_UZBEK_CYRILLIC              = $02; // Uzbek (Cyrillic)
 
    //
    //  Sorting IDs.
    //
 
-     SORT_DEFAULT = $0; // sorting default
+     SORT_DEFAULT  = $0; // sorting default
 
-     SORT_JAPANESE_XJIS    = $0; // Japanese XJIS order
-     SORT_JAPANESE_UNICODE = $1; // Japanese Unicode order
+     SORT_JAPANESE_XJIS     = $0; // Japanese XJIS order
+     SORT_JAPANESE_UNICODE  = $1; // Japanese Unicode order
 
-     SORT_CHINESE_BIG5     = $0; // Chinese BIG5 order
-     SORT_CHINESE_PRCP     = $0; // PRC Chinese Phonetic order
-     SORT_CHINESE_UNICODE  = $1; // Chinese Unicode order
-     SORT_CHINESE_PRC      = $2; // PRC Chinese Stroke Count order
-     SORT_CHINESE_BOPOMOFO = $3; // Traditional Chinese Bopomofo order
+     SORT_CHINESE_BIG5      = $0; // Chinese BIG5 order
+     SORT_CHINESE_PRCP      = $0; // PRC Chinese Phonetic order
+     SORT_CHINESE_UNICODE   = $1; // Chinese Unicode order
+     SORT_CHINESE_PRC       = $2; // PRC Chinese Stroke Count order
+     SORT_CHINESE_BOPOMOFO  = $3; // Traditional Chinese Bopomofo order
 
-     SORT_KOREAN_KSC     = $0; // Korean KSC order
-     SORT_KOREAN_UNICODE = $1; // Korean Unicode order
+     SORT_KOREAN_KSC      = $0; // Korean KSC order
+     SORT_KOREAN_UNICODE  = $1; // Korean Unicode order
 
-     SORT_GERMAN_PHONE_BOOK = $1; // German Phone Book order
+     SORT_GERMAN_PHONE_BOOK  = $1; // German Phone Book order
 
-     SORT_HUNGARIAN_DEFAULT   = $0; // Hungarian Default order
-     SORT_HUNGARIAN_TECHNICAL = $1; // Hungarian Technical order
+     SORT_HUNGARIAN_DEFAULT    = $0; // Hungarian Default order
+     SORT_HUNGARIAN_TECHNICAL  = $1; // Hungarian Technical order
 
-     SORT_GEORGIAN_TRADITIONAL = $0; // Georgian Traditional order
-     SORT_GEORGIAN_MODERN      = $1; // Georgian Modern order
+     SORT_GEORGIAN_TRADITIONAL  = $0; // Georgian Traditional order
+     SORT_GEORGIAN_MODERN       = $1; // Georgian Modern order
 
 
   { SYSTEM_INFO structure  }
@@ -4554,63 +4566,63 @@ Type
      TAPE_DRIVE_WRITE_SETMARKS = -(2130706432);
      TAPE_DRIVE_WRITE_SHORT_FMKS = -(2080374784);
   { Standard rights  }
-     STANDARD_RIGHTS_REQUIRED = $f0000;
-     STANDARD_RIGHTS_WRITE = $20000;
-     STANDARD_RIGHTS_READ = $20000;
-     STANDARD_RIGHTS_EXECUTE = $20000;
-     STANDARD_RIGHTS_ALL = $1f0000;
-     SPECIFIC_RIGHTS_ALL = $ffff;
+     STANDARD_RIGHTS_REQUIRED  = $f0000;
+     STANDARD_RIGHTS_WRITE  = $20000;
+     STANDARD_RIGHTS_READ  = $20000;
+     STANDARD_RIGHTS_EXECUTE  = $20000;
+     STANDARD_RIGHTS_ALL  = $1f0000;
+     SPECIFIC_RIGHTS_ALL  = $ffff;
   { ACCESS_MASK  }
-     MAXIMUM_ALLOWED = $2000000;
-     GENERIC_ALL = $10000000;
+     MAXIMUM_ALLOWED  = $2000000;
+     GENERIC_ALL  = $10000000;
   { SID  }
      SECURITY_NULL_RID = 0;
      SECURITY_WORLD_RID = 0;
      SECURITY_LOCAL_RID = 0;
      SECURITY_CREATOR_OWNER_RID = 0;
-     SECURITY_CREATOR_GROUP_RID = $1;
-     SECURITY_DIALUP_RID = $1;
-     SECURITY_NETWORK_RID = $2;
-     SECURITY_BATCH_RID = $3;
-     SECURITY_INTERACTIVE_RID = $4;
-     SECURITY_LOGON_IDS_RID = $5;
-     SECURITY_LOGON_IDS_RID_COUNT = $3;
-     SECURITY_SERVICE_RID = $6;
-     SECURITY_LOCAL_SYSTEM_RID = $12;
-     SECURITY_BUILTIN_DOMAIN_RID = $20;
-     DOMAIN_USER_RID_ADMIN = $1f4;
-     DOMAIN_USER_RID_GUEST = $1f5;
-     DOMAIN_GROUP_RID_ADMINS = $200;
-     DOMAIN_GROUP_RID_USERS = $201;
-     DOMAIN_ALIAS_RID_ADMINS = $220;
-     DOMAIN_ALIAS_RID_USERS = $221;
-     DOMAIN_ALIAS_RID_GUESTS = $222;
-     DOMAIN_ALIAS_RID_POWER_USERS = $223;
-     DOMAIN_ALIAS_RID_ACCOUNT_OPS = $224;
-     DOMAIN_ALIAS_RID_SYSTEM_OPS = $225;
-     DOMAIN_ALIAS_RID_PRINT_OPS = $226;
-     DOMAIN_ALIAS_RID_BACKUP_OPS = $227;
-     DOMAIN_ALIAS_RID_REPLICATOR = $228;
+     SECURITY_CREATOR_GROUP_RID  = $1;
+     SECURITY_DIALUP_RID  = $1;
+     SECURITY_NETWORK_RID  = $2;
+     SECURITY_BATCH_RID  = $3;
+     SECURITY_INTERACTIVE_RID  = $4;
+     SECURITY_LOGON_IDS_RID  = $5;
+     SECURITY_LOGON_IDS_RID_COUNT  = $3;
+     SECURITY_SERVICE_RID  = $6;
+     SECURITY_LOCAL_SYSTEM_RID  = $12;
+     SECURITY_BUILTIN_DOMAIN_RID  = $20;
+     DOMAIN_USER_RID_ADMIN  = $1f4;
+     DOMAIN_USER_RID_GUEST  = $1f5;
+     DOMAIN_GROUP_RID_ADMINS  = $200;
+     DOMAIN_GROUP_RID_USERS  = $201;
+     DOMAIN_ALIAS_RID_ADMINS  = $220;
+     DOMAIN_ALIAS_RID_USERS  = $221;
+     DOMAIN_ALIAS_RID_GUESTS  = $222;
+     DOMAIN_ALIAS_RID_POWER_USERS  = $223;
+     DOMAIN_ALIAS_RID_ACCOUNT_OPS  = $224;
+     DOMAIN_ALIAS_RID_SYSTEM_OPS  = $225;
+     DOMAIN_ALIAS_RID_PRINT_OPS  = $226;
+     DOMAIN_ALIAS_RID_BACKUP_OPS  = $227;
+     DOMAIN_ALIAS_RID_REPLICATOR  = $228;
   { TOKEN_GROUPS structure  }
-     SE_GROUP_MANDATORY = $1;
-     SE_GROUP_ENABLED_BY_DEFAULT = $2;
-     SE_GROUP_ENABLED = $4;
-     SE_GROUP_OWNER = $8;
-     SE_GROUP_LOGON_ID = $c0000000;
+     SE_GROUP_MANDATORY  = $1;
+     SE_GROUP_ENABLED_BY_DEFAULT  = $2;
+     SE_GROUP_ENABLED  = $4;
+     SE_GROUP_OWNER  = $8;
+     SE_GROUP_LOGON_ID  = $c0000000;
   { ACL Defines  }
      ACL_REVISION = 2;
   { ACE_HEADER structure  }
-     ACCESS_ALLOWED_ACE_TYPE = $0;
-     ACCESS_DENIED_ACE_TYPE = $1;
-     SYSTEM_AUDIT_ACE_TYPE = $2;
-     SYSTEM_ALARM_ACE_TYPE = $3;
+     ACCESS_ALLOWED_ACE_TYPE  = $0;
+     ACCESS_DENIED_ACE_TYPE  = $1;
+     SYSTEM_AUDIT_ACE_TYPE  = $2;
+     SYSTEM_ALARM_ACE_TYPE  = $3;
   { ACE flags in the ACE_HEADER structure  }
-     OBJECT_INHERIT_ACE = $1;
-     CONTAINER_INHERIT_ACE = $2;
-     NO_PROPAGATE_INHERIT_ACE = $4;
-     INHERIT_ONLY_ACE = $8;
-     SUCCESSFUL_ACCESS_ACE_FLAG = $40;
-     FAILED_ACCESS_ACE_FLAG = $80;
+     OBJECT_INHERIT_ACE  = $1;
+     CONTAINER_INHERIT_ACE  = $2;
+     NO_PROPAGATE_INHERIT_ACE  = $4;
+     INHERIT_ONLY_ACE  = $8;
+     SUCCESSFUL_ACCESS_ACE_FLAG  = $40;
+     FAILED_ACCESS_ACE_FLAG  = $80;
   { SECURITY_DESCRIPTOR_CONTROL  }
      {SECURITY_DESCRIPTOR_REVISION = 1;already defined above }
      SE_OWNER_DEFAULTED = 1;
@@ -4621,18 +4633,18 @@ Type
      SE_SACL_DEFAULTED = 32;
      SE_SELF_RELATIVE = 32768;
   { PRIVILEGE_SET  }
-     SE_PRIVILEGE_ENABLED_BY_DEFAULT = $1;
-     SE_PRIVILEGE_ENABLED = $2;
-     SE_PRIVILEGE_USED_FOR_ACCESS = $80000000;
-     PRIVILEGE_SET_ALL_NECESSARY = $1;
+     SE_PRIVILEGE_ENABLED_BY_DEFAULT  = $1;
+     SE_PRIVILEGE_ENABLED  = $2;
+     SE_PRIVILEGE_USED_FOR_ACCESS  = $80000000;
+     PRIVILEGE_SET_ALL_NECESSARY  = $1;
   { OPENFILENAME structure  }
 
 
-     OFN_READONLY                 = $1;
-     OFN_OVERWRITEPROMPT          = $2;
-     OFN_HIDEREADONLY             = $4;	
-     OFN_NOCHANGEDIR              = $8;
-     OFN_SHOWHELP                 = $10;
+     OFN_READONLY                  = $1;
+     OFN_OVERWRITEPROMPT           = $2;
+     OFN_HIDEREADONLY              = $4;	
+     OFN_NOCHANGEDIR               = $8;
+     OFN_SHOWHELP                  = $10;
      OFN_ENABLEHOOK               = $20;
      OFN_ENABLETEMPLATE           = $40;
      OFN_ENABLETEMPLATEHANDLE     = $80;
@@ -4653,92 +4665,92 @@ Type
      OFN_ENABLEINCLUDENOTIFY      = $00400000;
      OFN_ENABLESIZING             = $00800000;
      OFN_DONTADDTORECENT          = $02000000;
-     OFN_FORCESHOWHIDDEN          = $10000000;
+     OFN_FORCESHOWHIDDEN           = $10000000;
 
   { SHAREVISTRING message  }
-     OFN_SHAREFALLTHROUGH = $2;
-     OFN_SHARENOWARN = $1;
+     OFN_SHAREFALLTHROUGH  = $2;
+     OFN_SHARENOWARN  = $1;
      OFN_SHAREWARN = 0;
 	
-     OFN_EX_NOPLACESBAR         = $00000001;
+     OFN_EX_NOPLACESBAR          = $00000001;
   { Open/Save notifications  }
-     CDN_INITDONE = $fffffda7;
-     CDN_SELCHANGE = $fffffda6;
-     CDN_FOLDERCHANGE = $fffffda5;
-     CDN_SHAREVIOLATION = $fffffda4;
-     CDN_HELP = $fffffda3;
-     CDN_FILEOK = $fffffda2;
-     CDN_TYPECHANGE = $fffffda1;
+     CDN_INITDONE  = $fffffda7;
+     CDN_SELCHANGE  = $fffffda6;
+     CDN_FOLDERCHANGE  = $fffffda5;
+     CDN_SHAREVIOLATION  = $fffffda4;
+     CDN_HELP  = $fffffda3;
+     CDN_FILEOK  = $fffffda2;
+     CDN_TYPECHANGE  = $fffffda1;
   { Open/Save messages  }
-     CDM_GETFILEPATH = $465;
-     CDM_GETFOLDERIDLIST = $467;
-     CDM_GETFOLDERPATH = $466;
-     CDM_GETSPEC = $464;
-     CDM_HIDECONTROL = $469;
-     CDM_SETCONTROLTEXT = $468;
-     CDM_SETDEFEXT = $46a;
+     CDM_GETFILEPATH  = $465;
+     CDM_GETFOLDERIDLIST  = $467;
+     CDM_GETFOLDERPATH  = $466;
+     CDM_GETSPEC  = $464;
+     CDM_HIDECONTROL  = $469;
+     CDM_SETCONTROLTEXT  = $468;
+     CDM_SETDEFEXT  = $46a;
   { CHOOSECOLOR structure  }
-     CC_ENABLEHOOK = $10;
-     CC_ENABLETEMPLATE = $20;
-     CC_ENABLETEMPLATEHANDLE = $40;
-     CC_FULLOPEN = $2;
-     CC_PREVENTFULLOPEN = $4;
-     CC_RGBINIT = $1;
-     CC_SHOWHELP = $8;
-     CC_SOLIDCOLOR = $80;
+     CC_ENABLEHOOK  = $10;
+     CC_ENABLETEMPLATE  = $20;
+     CC_ENABLETEMPLATEHANDLE  = $40;
+     CC_FULLOPEN  = $2;
+     CC_PREVENTFULLOPEN  = $4;
+     CC_RGBINIT  = $1;
+     CC_SHOWHELP  = $8;
+     CC_SOLIDCOLOR  = $80;
   { FINDREPLACE structure  }
-     FR_DIALOGTERM = $40;
-     FR_DOWN = $1;
-     FR_ENABLEHOOK = $100;
-     FR_ENABLETEMPLATE = $200;
-     FR_ENABLETEMPLATEHANDLE = $2000;
-     FR_FINDNEXT = $8;
-     FR_HIDEUPDOWN = $4000;
-     FR_HIDEMATCHCASE = $8000;
-     FR_HIDEWHOLEWORD = $10000;
-     FR_MATCHCASE = $4;
-     FR_NOMATCHCASE = $800;
-     FR_NOUPDOWN = $400;
-     FR_NOWHOLEWORD = $1000;
-     FR_REPLACE = $10;
-     FR_REPLACEALL = $20;
-     FR_SHOWHELP = $80;
-     FR_WHOLEWORD = $2;
+     FR_DIALOGTERM  = $40;
+     FR_DOWN  = $1;
+     FR_ENABLEHOOK  = $100;
+     FR_ENABLETEMPLATE  = $200;
+     FR_ENABLETEMPLATEHANDLE  = $2000;
+     FR_FINDNEXT  = $8;
+     FR_HIDEUPDOWN  = $4000;
+     FR_HIDEMATCHCASE  = $8000;
+     FR_HIDEWHOLEWORD  = $10000;
+     FR_MATCHCASE  = $4;
+     FR_NOMATCHCASE  = $800;
+     FR_NOUPDOWN  = $400;
+     FR_NOWHOLEWORD  = $1000;
+     FR_REPLACE  = $10;
+     FR_REPLACEALL  = $20;
+     FR_SHOWHELP  = $80;
+     FR_WHOLEWORD  = $2;
   { CHOOSEFONT structure  }
-     CF_APPLY = $200;
-     CF_ANSIONLY = $400;
-     CF_BOTH = $3;
-     CF_TTONLY = $40000;
-     CF_EFFECTS = $100;
-     CF_ENABLEHOOK = $8;
-     CF_ENABLETEMPLATE = $10;
-     CF_ENABLETEMPLATEHANDLE = $20;
-     CF_FIXEDPITCHONLY = $4000;
-     CF_FORCEFONTEXIST = $10000;
-     CF_INITTOLOGFONTSTRUCT = $40;
-     CF_LIMITSIZE = $2000;
-     CF_NOOEMFONTS = $800;
-     CF_NOFACESEL = $80000;
-     CF_NOSCRIPTSEL = $800000;
-     CF_NOSTYLESEL = $100000;
-     CF_NOSIZESEL = $200000;
-     CF_NOSIMULATIONS = $1000;
-     CF_NOVECTORFONTS = $800;
-     CF_NOVERTFONTS = $1000000;
-     CF_PRINTERFONTS = $2;
-     CF_SCALABLEONLY = $20000;
-     CF_SCREENFONTS = $1;
-     CF_SCRIPTSONLY = $400;
-     CF_SELECTSCRIPT = $400000;
-     CF_SHOWHELP = $4;
-     CF_USESTYLE = $80;
-     CF_WYSIWYG = $8000;
-     BOLD_FONTTYPE = $100;
-     ITALIC_FONTTYPE = $200;
-     PRINTER_FONTTYPE = $4000;
-     REGULAR_FONTTYPE = $400;
-     SCREEN_FONTTYPE = $2000;
-     SIMULATED_FONTTYPE = $8000;
+     CF_APPLY  = $200;
+     CF_ANSIONLY  = $400;
+     CF_BOTH  = $3;
+     CF_TTONLY  = $40000;
+     CF_EFFECTS  = $100;
+     CF_ENABLEHOOK  = $8;
+     CF_ENABLETEMPLATE  = $10;
+     CF_ENABLETEMPLATEHANDLE  = $20;
+     CF_FIXEDPITCHONLY  = $4000;
+     CF_FORCEFONTEXIST  = $10000;
+     CF_INITTOLOGFONTSTRUCT  = $40;
+     CF_LIMITSIZE  = $2000;
+     CF_NOOEMFONTS  = $800;
+     CF_NOFACESEL  = $80000;
+     CF_NOSCRIPTSEL  = $800000;
+     CF_NOSTYLESEL  = $100000;
+     CF_NOSIZESEL  = $200000;
+     CF_NOSIMULATIONS  = $1000;
+     CF_NOVECTORFONTS  = $800;
+     CF_NOVERTFONTS  = $1000000;
+     CF_PRINTERFONTS  = $2;
+     CF_SCALABLEONLY  = $20000;
+     CF_SCREENFONTS  = $1;
+     CF_SCRIPTSONLY  = $400;
+     CF_SELECTSCRIPT  = $400000;
+     CF_SHOWHELP  = $4;
+     CF_USESTYLE  = $80;
+     CF_WYSIWYG  = $8000;
+     BOLD_FONTTYPE  = $100;
+     ITALIC_FONTTYPE  = $200;
+     PRINTER_FONTTYPE  = $4000;
+     REGULAR_FONTTYPE  = $400;
+     SCREEN_FONTTYPE  = $2000;
+     SIMULATED_FONTTYPE  = $8000;
   { Common dialog messages  }
      COLOROKSTRINGW = 'commdlg_ColorOK';
      FILEOKSTRINGW = 'commdlg_FileNameOK';
@@ -4833,15 +4845,15 @@ Type
      SW_PARENTCLOSING = 1;
      SW_PARENTOPENING = 3;
 
-     AW_HOR_POSITIVE = $00000001;
-     AW_HOR_NEGATIVE = $00000002;
-     AW_VER_POSITIVE = $00000004;
-     AW_VER_NEGATIVE = $00000008;
-     AW_CENTER = $00000010;
-     AW_HIDE = $00010000;
-     AW_ACTIVATE = $00020000;
-     AW_SLIDE = $00040000;
-     AW_BLEND = $00080000;
+     AW_HOR_POSITIVE  = $00000001;
+     AW_HOR_NEGATIVE  = $00000002;
+     AW_VER_POSITIVE  = $00000004;
+     AW_VER_NEGATIVE  = $00000008;
+     AW_CENTER  = $00000010;
+     AW_HIDE  = $00010000;
+     AW_ACTIVATE  = $00020000;
+     AW_SLIDE  = $00040000;
+     AW_BLEND  = $00080000;
 
   { Virtual Key codes  }
      VK_LBUTTON = 1;
@@ -5150,8 +5162,8 @@ Type
      CS_SAVEBITS = 2048;
      CS_VREDRAW = 1;
 
-     CS_IME = $10000;
-     CS_DROPSHADOW = $20000;
+     CS_IME  = $10000;
+     CS_DROPSHADOW  = $20000;
 
      DLGWINDOWEXTRA = 30;
   { ACCEL structure  }
@@ -5171,13 +5183,13 @@ Type
      MIM_HELPID = 4;
      MIM_MENUDATA = 8;
      MIM_STYLE = 16;
-     MIM_APPLYTOSUBMENUS = $80000000;
-     MNS_CHECKORBMP = $4000000;
-     MNS_NOTIFYBYPOS = $8000000;
-     MNS_AUTODISMISS = $10000000;
-     MNS_DRAGDROP = $20000000;
-     MNS_MODELESS = $40000000;
-     MNS_NOCHECK = $80000000;
+     MIM_APPLYTOSUBMENUS  = $80000000;
+     MNS_CHECKORBMP  = $4000000;
+     MNS_NOTIFYBYPOS  = $8000000;
+     MNS_AUTODISMISS  = $10000000;
+     MNS_DRAGDROP  = $20000000;
+     MNS_MODELESS  = $40000000;
+     MNS_NOCHECK  = $80000000;
   { MENUITEMINFO structure  }
      MIIM_CHECKMARKS = 8;
      MIIM_DATA = 32;
@@ -5188,21 +5200,21 @@ Type
      MIIM_STRING = 64;
      MIIM_BITMAP = 128;
      MIIM_FTYPE = 256;
-     MFT_BITMAP = $4;
-     MFT_MENUBARBREAK = $20;
-     MFT_MENUBREAK = $40;
-     MFT_OWNERDRAW = $100;
-     MFT_RADIOCHECK = $200;
-     MFT_RIGHTJUSTIFY = $4000;
-     MFT_SEPARATOR = $800;
-     MFT_RIGHTORDER = $2000;
+     MFT_BITMAP  = $4;
+     MFT_MENUBARBREAK  = $20;
+     MFT_MENUBREAK  = $40;
+     MFT_OWNERDRAW  = $100;
+     MFT_RADIOCHECK  = $200;
+     MFT_RIGHTJUSTIFY  = $4000;
+     MFT_SEPARATOR  = $800;
+     MFT_RIGHTORDER  = $2000;
      MFT_STRING = 0;
-     MFS_CHECKED = $8;
-     MFS_DEFAULT = $1000;
-     MFS_DISABLED = $3;
+     MFS_CHECKED  = $8;
+     MFS_DEFAULT  = $1000;
+     MFS_DISABLED  = $3;
      MFS_ENABLED = 0;
-     MFS_GRAYED = $3;
-     MFS_HILITE = $80;
+     MFS_GRAYED  = $3;
+     MFS_HILITE  = $80;
      MFS_UNCHECKED = 0;
      MFS_UNHILITE = 0;
      HBMMENU_CALLBACK = -1;
@@ -5232,12 +5244,12 @@ Type
      HELPINFO_MENUITEM = 2;
      HELPINFO_WINDOW = 1;
   { WM_PRINT message  }
-     PRF_CHECKVISIBLE = $1;
-     PRF_CHILDREN = $10;
-     PRF_CLIENT = $4;
-     PRF_ERASEBKGND = $8;
-     PRF_NONCLIENT = $2;
-     PRF_OWNED = $20;
+     PRF_CHECKVISIBLE  = $1;
+     PRF_CHILDREN  = $10;
+     PRF_CLIENT  = $4;
+     PRF_ERASEBKGND  = $8;
+     PRF_NONCLIENT  = $2;
+     PRF_OWNED  = $20;
   { MapWindowPoints  }
      HWND_DESKTOP = HWND(0);
 
@@ -5406,15 +5418,15 @@ Type
      BI_BITFIELDS = 3;
   { Extensions to OpenGL  }
   { ChoosePixelFormat  }
-     PFD_DOUBLEBUFFER = $1;
-     PFD_STEREO = $2;
-     PFD_DRAW_TO_WINDOW = $4;
-     PFD_DRAW_TO_BITMAP = $8;
-     PFD_SUPPORT_GDI = $10;
-     PFD_SUPPORT_OPENGL = $20;
-     PFD_DEPTH_DONTCARE = $20000000;
-     PFD_DOUBLEBUFFER_DONTCARE = $40000000;
-     PFD_STEREO_DONTCARE = $80000000;
+     PFD_DOUBLEBUFFER  = $1;
+     PFD_STEREO  = $2;
+     PFD_DRAW_TO_WINDOW  = $4;
+     PFD_DRAW_TO_BITMAP  = $8;
+     PFD_SUPPORT_GDI  = $10;
+     PFD_SUPPORT_OPENGL  = $20;
+     PFD_DEPTH_DONTCARE  = $20000000;
+     PFD_DOUBLEBUFFER_DONTCARE  = $40000000;
+     PFD_STEREO_DONTCARE  = $80000000;
      PFD_TYPE_RGBA = 0;
      PFD_TYPE_COLORINDEX = 1;
      PFD_MAIN_PLANE = 0;
@@ -5425,21 +5437,21 @@ Type
      WGL_FONT_POLYGONS = 1;
   { LAYERPLANEDESCRIPTOR structure  }
   { PIXELFORMATDESCRIPTOR structure  }
-     PFD_GENERIC_FORMAT = $40;
-     PFD_NEED_PALETTE = $80;
-     PFD_NEED_SYSTEM_PALETTE = $100;
-     PFD_SWAP_EXCHANGE = $200;
-     PFD_SWAP_COPY = $400;
-     PFD_SWAP_LAYER_BUFFERS = $800;
-     PFD_GENERIC_ACCELERATED = $1000;
-     PFD_SUPPORT_DIRECTDRAW = $2000;
-     PFD_DIRECT3D_ACCELERATED = $4000;
-     PFD_SUPPORT_COMPOSITION = $8000;
+     PFD_GENERIC_FORMAT  = $40;
+     PFD_NEED_PALETTE  = $80;
+     PFD_NEED_SYSTEM_PALETTE  = $100;
+     PFD_SWAP_EXCHANGE  = $200;
+     PFD_SWAP_COPY  = $400;
+     PFD_SWAP_LAYER_BUFFERS  = $800;
+     PFD_GENERIC_ACCELERATED  = $1000;
+     PFD_SUPPORT_DIRECTDRAW  = $2000;
+     PFD_DIRECT3D_ACCELERATED  = $4000;
+     PFD_SUPPORT_COMPOSITION  = $8000;
   { TEXTMETRIC structure  }
-     TMPF_FIXED_PITCH = $1;
-     TMPF_VECTOR = $2;
-     TMPF_TRUETYPE = $4;
-     TMPF_DEVICE = $8;
+     TMPF_FIXED_PITCH  = $1;
+     TMPF_VECTOR  = $2;
+     TMPF_TRUETYPE  = $4;
+     TMPF_DEVICE  = $8;
      WM_CTLCOLOR = 25;
 
      LWA_COLORKEY    =        $00000001;
@@ -5605,55 +5617,55 @@ Type
   { END OF shellapi.h stuff from old headers  }
   { ------------------------------------------------------------------  }
   { From ddeml.h in old Cygnus headers  }
-     XCLASS_BOOL = $1000;
-     XCLASS_DATA = $2000;
-     XCLASS_FLAGS = $4000;
-     XCLASS_MASK = $fc00;
-     XCLASS_NOTIFICATION = $8000;
-     XTYPF_NOBLOCK = $0002;
-     XTYP_ADVDATA = $4010;
-     XTYP_ADVREQ = $2022;
-     XTYP_ADVSTART = $1030;
-     XTYP_ADVSTOP = $8040;
-     XTYP_CONNECT = $1062;
-     XTYP_CONNECT_CONFIRM = $8072;
-     XTYP_DISCONNECT = $80c2;
-     XTYP_EXECUTE = $4050;
-     XTYP_POKE = $4090;
-     XTYP_REQUEST = $20b0;
-     XTYP_WILDCONNECT = $20E2;
-     XTYP_REGISTER = $80A2;
-     XTYP_ERROR = $8002;
-     XTYP_XACT_COMPLETE = $8080;
-     XTYP_UNREGISTER = $80D2;
-     DMLERR_DLL_USAGE = $4004;
-     DMLERR_INVALIDPARAMETER = $4006;
-     DMLERR_NOTPROCESSED = $4009;
-     DMLERR_POSTMSG_FAILED = $400c;
-     DMLERR_SERVER_DIED = $400e;
-     DMLERR_SYS_ERROR = $400f;
-     DMLERR_BUSY = $4001;
-     DMLERR_DATAACKTIMEOUT = $4002;
-     DMLERR_ADVACKTIMEOUT = $4000;
-     DMLERR_DLL_NOT_INITIALIZED = $4003;
-     DMLERR_LOW_MEMORY = $4007;
-     DMLERR_MEMORY_ERROR = $4008;
-     DMLERR_POKEACKTIMEOUT = $400b;
-     DMLERR_NO_CONV_ESTABLISHED = $400a;
-     DMLERR_REENTRANCY = $400d;
-     DMLERR_UNFOUND_QUEUE_ID = $4011;
-     DMLERR_UNADVACKTIMEOUT = $4010;
-     DMLERR_EXECACKTIMEOUT = $4005;
-     DDE_FACK = $8000;
-     DDE_FNOTPROCESSED = $0000;
-     DNS_REGISTER = $0001;
-     DNS_UNREGISTER = $0002;
+     XCLASS_BOOL  = $1000;
+     XCLASS_DATA  = $2000;
+     XCLASS_FLAGS  = $4000;
+     XCLASS_MASK  = $fc00;
+     XCLASS_NOTIFICATION  = $8000;
+     XTYPF_NOBLOCK  = $0002;
+     XTYP_ADVDATA  = $4010;
+     XTYP_ADVREQ  = $2022;
+     XTYP_ADVSTART  = $1030;
+     XTYP_ADVSTOP  = $8040;
+     XTYP_CONNECT  = $1062;
+     XTYP_CONNECT_CONFIRM  = $8072;
+     XTYP_DISCONNECT  = $80c2;
+     XTYP_EXECUTE  = $4050;
+     XTYP_POKE  = $4090;
+     XTYP_REQUEST  = $20b0;
+     XTYP_WILDCONNECT  = $20E2;
+     XTYP_REGISTER  = $80A2;
+     XTYP_ERROR  = $8002;
+     XTYP_XACT_COMPLETE  = $8080;
+     XTYP_UNREGISTER  = $80D2;
+     DMLERR_DLL_USAGE  = $4004;
+     DMLERR_INVALIDPARAMETER  = $4006;
+     DMLERR_NOTPROCESSED  = $4009;
+     DMLERR_POSTMSG_FAILED  = $400c;
+     DMLERR_SERVER_DIED  = $400e;
+     DMLERR_SYS_ERROR  = $400f;
+     DMLERR_BUSY  = $4001;
+     DMLERR_DATAACKTIMEOUT  = $4002;
+     DMLERR_ADVACKTIMEOUT  = $4000;
+     DMLERR_DLL_NOT_INITIALIZED  = $4003;
+     DMLERR_LOW_MEMORY  = $4007;
+     DMLERR_MEMORY_ERROR  = $4008;
+     DMLERR_POKEACKTIMEOUT  = $400b;
+     DMLERR_NO_CONV_ESTABLISHED  = $400a;
+     DMLERR_REENTRANCY  = $400d;
+     DMLERR_UNFOUND_QUEUE_ID  = $4011;
+     DMLERR_UNADVACKTIMEOUT  = $4010;
+     DMLERR_EXECACKTIMEOUT  = $4005;
+     DDE_FACK  = $8000;
+     DDE_FNOTPROCESSED  = $0000;
+     DNS_REGISTER  = $0001;
+     DNS_UNREGISTER  = $0002;
      CP_WINANSI = 1004;
      CP_WINUNICODE = 1200;
   {  Not convertable by H2PAS
   #define EXPENTRY CALLBACK
    }
-     APPCLASS_STANDARD = $00000000;
+     APPCLASS_STANDARD  = $00000000;
   { End of stuff from ddeml.h in old Cygnus headers  }
   { -----------------------------------------------  }
      BKMODE_LAST = 2;
@@ -5665,40 +5677,40 @@ Type
      CTLCOLOR_SCROLLBAR = 5;
      CTLCOLOR_STATIC = 6;
      CTLCOLOR_MAX = 7;
-     META_SETMAPMODE = $0103;
-     META_SETWINDOWORG = $020B;
-     META_SETWINDOWEXT = $020C;
+     META_SETMAPMODE  = $0103;
+     META_SETWINDOWORG  = $020B;
+     META_SETWINDOWEXT  = $020C;
      POLYFILL_LAST = 2;
 
-     STATUS_WAIT_0 = $00000000;
-     STATUS_ABANDONED_WAIT_0 = $00000080;
-     STATUS_USER_APC = $000000C0;
-     STATUS_TIMEOUT = $00000102;
-     STATUS_PENDING = $00000103;
-     STATUS_GUARD_PAGE_VIOLATION = $80000001;
-     STATUS_DATATYPE_MISALIGNMENT = $80000002;
-     STATUS_BREAKPOINT = $80000003;
-     STATUS_SINGLE_STEP = $80000004;
-     STATUS_ACCESS_VIOLATION = $C0000005;
-     STATUS_IN_PAGE_ERROR = $C0000006;
-     STATUS_INVALID_HANDLE = $C0000008;
-     STATUS_NO_MEMORY = $C0000017;
-     STATUS_ILLEGAL_INSTRUCTION = $C000001D;
-     STATUS_NONCONTINUABLE_EXCEPTION = $C0000025;
-     STATUS_INVALID_DISPOSITION = $C0000026;
-     STATUS_ARRAY_BOUNDS_EXCEEDED = $C000008C;
-     STATUS_FLOAT_DENORMAL_OPERAND = $C000008D;
-     STATUS_FLOAT_DIVIDE_BY_ZERO = $C000008E;
-     STATUS_FLOAT_INEXACT_RESULT = $C000008F;
-     STATUS_FLOAT_INVALID_OPERATION = $C0000090;
-     STATUS_FLOAT_OVERFLOW = $C0000091;
-     STATUS_FLOAT_STACK_CHECK = $C0000092;
-     STATUS_FLOAT_UNDERFLOW = $C0000093;
-     STATUS_INTEGER_DIVIDE_BY_ZERO = $C0000094;
-     STATUS_INTEGER_OVERFLOW = $C0000095;
-     STATUS_PRIVILEGED_INSTRUCTION = $C0000096;
-     STATUS_STACK_OVERFLOW = $C00000FD;
-     STATUS_CONTROL_C_EXIT = $C000013A;
+     STATUS_WAIT_0  = $00000000;
+     STATUS_ABANDONED_WAIT_0  = $00000080;
+     STATUS_USER_APC  = $000000C0;
+     STATUS_TIMEOUT  = $00000102;
+     STATUS_PENDING  = $00000103;
+     STATUS_GUARD_PAGE_VIOLATION  = $80000001;
+     STATUS_DATATYPE_MISALIGNMENT  = $80000002;
+     STATUS_BREAKPOINT  = $80000003;
+     STATUS_SINGLE_STEP  = $80000004;
+     STATUS_ACCESS_VIOLATION  = $C0000005;
+     STATUS_IN_PAGE_ERROR  = $C0000006;
+     STATUS_INVALID_HANDLE  = $C0000008;
+     STATUS_NO_MEMORY  = $C0000017;
+     STATUS_ILLEGAL_INSTRUCTION  = $C000001D;
+     STATUS_NONCONTINUABLE_EXCEPTION  = $C0000025;
+     STATUS_INVALID_DISPOSITION  = $C0000026;
+     STATUS_ARRAY_BOUNDS_EXCEEDED  = $C000008C;
+     STATUS_FLOAT_DENORMAL_OPERAND  = $C000008D;
+     STATUS_FLOAT_DIVIDE_BY_ZERO  = $C000008E;
+     STATUS_FLOAT_INEXACT_RESULT  = $C000008F;
+     STATUS_FLOAT_INVALID_OPERATION  = $C0000090;
+     STATUS_FLOAT_OVERFLOW  = $C0000091;
+     STATUS_FLOAT_STACK_CHECK  = $C0000092;
+     STATUS_FLOAT_UNDERFLOW  = $C0000093;
+     STATUS_INTEGER_DIVIDE_BY_ZERO  = $C0000094;
+     STATUS_INTEGER_OVERFLOW  = $C0000095;
+     STATUS_PRIVILEGED_INSTRUCTION  = $C0000096;
+     STATUS_STACK_OVERFLOW  = $C00000FD;
+     STATUS_CONTROL_C_EXIT  = $C000013A;
      STATUS_FLOAT_MULTIPLE_FAULTS = $C00002B4;
      STATUS_FLOAT_MULTIPLE_TRAPS = $C00002B5;
      STATUS_REG_NAT_CONSUMPTION = $C00002C9;
@@ -5905,9 +5917,9 @@ const
   UIS_CLEAR      = 2;
   UIS_INITIALIZE = 3;
 
-  UISF_HIDEFOCUS = $1;
-  UISF_HIDEACCEL = $2;
-  UISF_ACTIVE    = $4;
+  UISF_HIDEFOCUS  = $1;
+  UISF_HIDEACCEL  = $2;
+  UISF_ACTIVE     = $4;
 
 const
   IMAGE_DEBUG_TYPE_UNKNOWN       = 0;
@@ -5943,11 +5955,11 @@ const
 //      IMAGE_LIBRARY_PROCESS_TERM           0x0002     // Reserved.
 //      IMAGE_LIBRARY_THREAD_INIT            0x0004     // Reserved.
 //      IMAGE_LIBRARY_THREAD_TERM            0x0008     // Reserved.
-  IMAGE_DLLCHARACTERISTICS_NO_ISOLATION    = $0200;    // Image understands isolation and doesn't want it
-  IMAGE_DLLCHARACTERISTICS_NO_SEH  	   = $0400; // Image does not use SEH.  No SE handler may reside in this image
-  IMAGE_DLLCHARACTERISTICS_NO_BIND 	   = $0800; // Do not bind this image.
-  IMAGE_DLLCHARACTERISTICS_WDM_DRIVER	   = $2000; // Driver uses WDM model
-  IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE = $8000;
+  IMAGE_DLLCHARACTERISTICS_NO_ISOLATION     = $0200;    // Image understands isolation and doesn't want it
+  IMAGE_DLLCHARACTERISTICS_NO_SEH  	    = $0400; // Image does not use SEH.  No SE handler may reside in this image
+  IMAGE_DLLCHARACTERISTICS_NO_BIND 	    = $0800; // Do not bind this image.
+  IMAGE_DLLCHARACTERISTICS_WDM_DRIVER	    = $2000; // Driver uses WDM model
+  IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE  = $8000;
 
 
 // Directory Entries
@@ -5979,18 +5991,18 @@ const
   GA_ROOT       = 2;  { The window's root window }
   GA_ROOTOWNER  = 3;  { The window's owner }
 
-  AC_SRC_OVER = $00;
-  AC_SRC_ALPHA = $01;
+  AC_SRC_OVER  = $00;
+  AC_SRC_ALPHA  = $01;
 
   DMDO_DEFAULT    = 0;
   DMDO_90         = 1;
   DMDO_180        = 2;
   DMDO_270        = 3;
 
-  FIND_FIRST_EX_CASE_SENSITIVE   = $00000001;
-  FIND_FIRST_EX_LARGE_FETCH      = $00000002;
+  FIND_FIRST_EX_CASE_SENSITIVE    = $00000001;
+  FIND_FIRST_EX_LARGE_FETCH       = $00000002;
 
-  GPT_ATTRIBUTE_PLATFORM_REQUIRED  = $0000000000000001;
+  GPT_ATTRIBUTE_PLATFORM_REQUIRED   = $0000000000000001;
 
 //
 // The following are GPT partition attributes applicable when the
@@ -6003,96 +6015,96 @@ const
   GPT_BASIC_DATA_ATTRIBUTE_READ_ONLY          =qword($1000000000000000);
 
     IMAGE_FILE_MACHINE_UNKNOWN           = 0;
-    IMAGE_FILE_MACHINE_I386              = $014c;  // Intel 386.
-    IMAGE_FILE_MACHINE_R3000             = $0162;  // MIPS little-endian, = $160 big-endian
-    IMAGE_FILE_MACHINE_R4000             = $0166;  // MIPS little-endian
-    IMAGE_FILE_MACHINE_R10000            = $0168;  // MIPS little-endian
-    IMAGE_FILE_MACHINE_WCEMIPSV2         = $0169;  // MIPS little-endian WCE v2
-    IMAGE_FILE_MACHINE_ALPHA             = $0184;  // Alpha_AXP
-    IMAGE_FILE_MACHINE_SH3               = $01a2;  // SH3 little-endian
-    IMAGE_FILE_MACHINE_SH3DSP            = $01a3;
-    IMAGE_FILE_MACHINE_SH3E              = $01a4;  // SH3E little-endian
-    IMAGE_FILE_MACHINE_SH4               = $01a6;  // SH4 little-endian
-    IMAGE_FILE_MACHINE_SH5               = $01a8;  // SH5
-    IMAGE_FILE_MACHINE_ARM               = $01c0;  // ARM Little-Endian
-    IMAGE_FILE_MACHINE_THUMB             = $01c2;
-    IMAGE_FILE_MACHINE_AM33              = $01d3;
-    IMAGE_FILE_MACHINE_POWERPC           = $01F0;  // IBM PowerPC Little-Endian
-    IMAGE_FILE_MACHINE_POWERPCFP         = $01f1;
-    IMAGE_FILE_MACHINE_IA64              = $0200;  // Intel 64
-    IMAGE_FILE_MACHINE_MIPS16            = $0266;  // MIPS
-    IMAGE_FILE_MACHINE_ALPHA64           = $0284;  // ALPHA64
-    IMAGE_FILE_MACHINE_MIPSFPU           = $0366;  // MIPS
-    IMAGE_FILE_MACHINE_MIPSFPU16         = $0466;  // MIPS
+    IMAGE_FILE_MACHINE_I386               = $014c;  // Intel 386.
+    IMAGE_FILE_MACHINE_R3000              = $0162;  // MIPS little-endian,  = $160 big-endian
+    IMAGE_FILE_MACHINE_R4000              = $0166;  // MIPS little-endian
+    IMAGE_FILE_MACHINE_R10000             = $0168;  // MIPS little-endian
+    IMAGE_FILE_MACHINE_WCEMIPSV2          = $0169;  // MIPS little-endian WCE v2
+    IMAGE_FILE_MACHINE_ALPHA              = $0184;  // Alpha_AXP
+    IMAGE_FILE_MACHINE_SH3                = $01a2;  // SH3 little-endian
+    IMAGE_FILE_MACHINE_SH3DSP             = $01a3;
+    IMAGE_FILE_MACHINE_SH3E               = $01a4;  // SH3E little-endian
+    IMAGE_FILE_MACHINE_SH4                = $01a6;  // SH4 little-endian
+    IMAGE_FILE_MACHINE_SH5                = $01a8;  // SH5
+    IMAGE_FILE_MACHINE_ARM                = $01c0;  // ARM Little-Endian
+    IMAGE_FILE_MACHINE_THUMB              = $01c2;
+    IMAGE_FILE_MACHINE_AM33               = $01d3;
+    IMAGE_FILE_MACHINE_POWERPC            = $01F0;  // IBM PowerPC Little-Endian
+    IMAGE_FILE_MACHINE_POWERPCFP          = $01f1;
+    IMAGE_FILE_MACHINE_IA64               = $0200;  // Intel 64
+    IMAGE_FILE_MACHINE_MIPS16             = $0266;  // MIPS
+    IMAGE_FILE_MACHINE_ALPHA64            = $0284;  // ALPHA64
+    IMAGE_FILE_MACHINE_MIPSFPU            = $0366;  // MIPS
+    IMAGE_FILE_MACHINE_MIPSFPU16          = $0466;  // MIPS
     IMAGE_FILE_MACHINE_AXP64             = IMAGE_FILE_MACHINE_ALPHA64;
-    IMAGE_FILE_MACHINE_TRICORE           = $0520;  // Infineon
-    IMAGE_FILE_MACHINE_CEF               = $0CEF;
-    IMAGE_FILE_MACHINE_EBC               = $0EBC;  // EFI Byte Code
-    IMAGE_FILE_MACHINE_AMD64             = $8664;  // AMD64 (K8)
-    IMAGE_FILE_MACHINE_M32R              = $9041;  // M32R little-endian
-    IMAGE_FILE_MACHINE_CEE               = $C0EE;
-    IMAGE_FILE_LARGE_ADDRESS_AWARE       = $20;    // for peflags.
+    IMAGE_FILE_MACHINE_TRICORE            = $0520;  // Infineon
+    IMAGE_FILE_MACHINE_CEF                = $0CEF;
+    IMAGE_FILE_MACHINE_EBC                = $0EBC;  // EFI Byte Code
+    IMAGE_FILE_MACHINE_AMD64              = $8664;  // AMD64 (K8)
+    IMAGE_FILE_MACHINE_M32R               = $9041;  // M32R little-endian
+    IMAGE_FILE_MACHINE_CEE                = $C0EE;
+    IMAGE_FILE_LARGE_ADDRESS_AWARE        = $20;    // for peflags.
 
   //
   // Section characteristics.
   //
-  //      IMAGE_SCN_TYPE_REG                   = $00000000;  // Reserved.
-  //      IMAGE_SCN_TYPE_DSECT                 = $00000001;  // Reserved.
-  //      IMAGE_SCN_TYPE_NOLOAD                = $00000002;  // Reserved.
-  //      IMAGE_SCN_TYPE_GROUP                 = $00000004;  // Reserved.
-     IMAGE_SCN_TYPE_NO_PAD                = $00000008;  // Reserved.
-  //      IMAGE_SCN_TYPE_COPY                  = $00000010;  // Reserved.
+  //      IMAGE_SCN_TYPE_REG                    = $00000000;  // Reserved.
+  //      IMAGE_SCN_TYPE_DSECT                  = $00000001;  // Reserved.
+  //      IMAGE_SCN_TYPE_NOLOAD                 = $00000002;  // Reserved.
+  //      IMAGE_SCN_TYPE_GROUP                  = $00000004;  // Reserved.
+     IMAGE_SCN_TYPE_NO_PAD                 = $00000008;  // Reserved.
+  //      IMAGE_SCN_TYPE_COPY                   = $00000010;  // Reserved.
 
-     IMAGE_SCN_CNT_CODE                   = $00000020;  // Section contains code.
-     IMAGE_SCN_CNT_INITIALIZED_DATA       = $00000040;  // Section contains initialized data.
-     IMAGE_SCN_CNT_UNINITIALIZED_DATA     = $00000080;  // Section contains uninitialized data.
+     IMAGE_SCN_CNT_CODE                    = $00000020;  // Section contains code.
+     IMAGE_SCN_CNT_INITIALIZED_DATA        = $00000040;  // Section contains initialized data.
+     IMAGE_SCN_CNT_UNINITIALIZED_DATA      = $00000080;  // Section contains uninitialized data.
 
-     IMAGE_SCN_LNK_OTHER                  = $00000100;  // Reserved.
-     IMAGE_SCN_LNK_INFO                   = $00000200;  // Section contains comments or some other type of information.
-  //      IMAGE_SCN_TYPE_OVER                  = $00000400  // Reserved.
-     IMAGE_SCN_LNK_REMOVE                 = $00000800;  // Section contents will not become part of image.
-     IMAGE_SCN_LNK_COMDAT                 = $00001000;  // Section contents comdat.
-  //                                           = $00002000  // Reserved.
-  //      IMAGE_SCN_MEM_PROTECTED - Obsolete   = $00004000
-     IMAGE_SCN_NO_DEFER_SPEC_EXC          = $00004000;  // Reset speculative exceptions handling bits in the TLB entries for this section.
-     IMAGE_SCN_GPREL                      = $00008000;  // Section content can be accessed relative to GP
-     IMAGE_SCN_MEM_FARDATA                = $00008000;
-  //      IMAGE_SCN_MEM_SYSHEAP  - Obsolete    = $00010000;
-     IMAGE_SCN_MEM_PURGEABLE              = $00020000;
-     IMAGE_SCN_MEM_16BIT                  = $00020000;
-     IMAGE_SCN_MEM_LOCKED                 = $00040000;
-     IMAGE_SCN_MEM_PRELOAD                = $00080000;
+     IMAGE_SCN_LNK_OTHER                   = $00000100;  // Reserved.
+     IMAGE_SCN_LNK_INFO                    = $00000200;  // Section contains comments or some other type of information.
+  //      IMAGE_SCN_TYPE_OVER                   = $00000400  // Reserved.
+     IMAGE_SCN_LNK_REMOVE                  = $00000800;  // Section contents will not become part of image.
+     IMAGE_SCN_LNK_COMDAT                  = $00001000;  // Section contents comdat.
+  //                                            = $00002000  // Reserved.
+  //      IMAGE_SCN_MEM_PROTECTED - Obsolete    = $00004000
+     IMAGE_SCN_NO_DEFER_SPEC_EXC           = $00004000;  // Reset speculative exceptions handling bits in the TLB entries for this section.
+     IMAGE_SCN_GPREL                       = $00008000;  // Section content can be accessed relative to GP
+     IMAGE_SCN_MEM_FARDATA                 = $00008000;
+  //      IMAGE_SCN_MEM_SYSHEAP  - Obsolete     = $00010000;
+     IMAGE_SCN_MEM_PURGEABLE               = $00020000;
+     IMAGE_SCN_MEM_16BIT                   = $00020000;
+     IMAGE_SCN_MEM_LOCKED                  = $00040000;
+     IMAGE_SCN_MEM_PRELOAD                 = $00080000;
 
-     IMAGE_SCN_ALIGN_1BYTES               = $00100000;  //
-     IMAGE_SCN_ALIGN_2BYTES               = $00200000;  //
-     IMAGE_SCN_ALIGN_4BYTES               = $00300000;  //
-     IMAGE_SCN_ALIGN_8BYTES               = $00400000;  //
-     IMAGE_SCN_ALIGN_16BYTES              = $00500000;  // Default alignment if no others are specified.
-     IMAGE_SCN_ALIGN_32BYTES              = $00600000;  //
-     IMAGE_SCN_ALIGN_64BYTES              = $00700000;  //
-     IMAGE_SCN_ALIGN_128BYTES             = $00800000;  //
-     IMAGE_SCN_ALIGN_256BYTES             = $00900000;  //
-     IMAGE_SCN_ALIGN_512BYTES             = $00A00000;  //
-     IMAGE_SCN_ALIGN_1024BYTES            = $00B00000;  //
-     IMAGE_SCN_ALIGN_2048BYTES            = $00C00000;  //
-     IMAGE_SCN_ALIGN_4096BYTES            = $00D00000;  //
-     IMAGE_SCN_ALIGN_8192BYTES            = $00E00000;  //
-  // Unused                                    = $00F00000;
-     IMAGE_SCN_ALIGN_MASK                 = $00F00000;
+     IMAGE_SCN_ALIGN_1BYTES                = $00100000;  //
+     IMAGE_SCN_ALIGN_2BYTES                = $00200000;  //
+     IMAGE_SCN_ALIGN_4BYTES                = $00300000;  //
+     IMAGE_SCN_ALIGN_8BYTES                = $00400000;  //
+     IMAGE_SCN_ALIGN_16BYTES               = $00500000;  // Default alignment if no others are specified.
+     IMAGE_SCN_ALIGN_32BYTES               = $00600000;  //
+     IMAGE_SCN_ALIGN_64BYTES               = $00700000;  //
+     IMAGE_SCN_ALIGN_128BYTES              = $00800000;  //
+     IMAGE_SCN_ALIGN_256BYTES              = $00900000;  //
+     IMAGE_SCN_ALIGN_512BYTES              = $00A00000;  //
+     IMAGE_SCN_ALIGN_1024BYTES             = $00B00000;  //
+     IMAGE_SCN_ALIGN_2048BYTES             = $00C00000;  //
+     IMAGE_SCN_ALIGN_4096BYTES             = $00D00000;  //
+     IMAGE_SCN_ALIGN_8192BYTES             = $00E00000;  //
+  // Unused                                     = $00F00000;
+     IMAGE_SCN_ALIGN_MASK                  = $00F00000;
 
-     IMAGE_SCN_LNK_NRELOC_OVFL            = $01000000;  // Section contains extended relocations.
-     IMAGE_SCN_MEM_DISCARDABLE            = $02000000;  // Section can be discarded.
-     IMAGE_SCN_MEM_NOT_CACHED             = $04000000;  // Section is not cachable.
-     IMAGE_SCN_MEM_NOT_PAGED              = $08000000;  // Section is not pageable.
-     IMAGE_SCN_MEM_SHARED                 = $10000000;  // Section is shareable.
-     IMAGE_SCN_MEM_EXECUTE                = $20000000;  // Section is executable.
-     IMAGE_SCN_MEM_READ                   = $40000000;  // Section is readable.
-     IMAGE_SCN_MEM_WRITE                  = $80000000;  // Section is writeable.
+     IMAGE_SCN_LNK_NRELOC_OVFL             = $01000000;  // Section contains extended relocations.
+     IMAGE_SCN_MEM_DISCARDABLE             = $02000000;  // Section can be discarded.
+     IMAGE_SCN_MEM_NOT_CACHED              = $04000000;  // Section is not cachable.
+     IMAGE_SCN_MEM_NOT_PAGED               = $08000000;  // Section is not pageable.
+     IMAGE_SCN_MEM_SHARED                  = $10000000;  // Section is shareable.
+     IMAGE_SCN_MEM_EXECUTE                 = $20000000;  // Section is executable.
+     IMAGE_SCN_MEM_READ                    = $40000000;  // Section is readable.
+     IMAGE_SCN_MEM_WRITE                   = $80000000;  // Section is writeable.
 
   //
   // TLS Characteristic Flags
   //
-     IMAGE_SCN_SCALE_INDEX                = $00000001;  // Tls index is scaled
+     IMAGE_SCN_SCALE_INDEX                 = $00000001;  // Tls index is scaled
 
 
     GWLP_WNDPROC        		 = -4; 
@@ -6142,23 +6154,23 @@ const
  * MENUGETOBJECTINFO dwFlags values
  */}
 const
-      MNGOF_TOPGAP         = $00000001;
-      MNGOF_BOTTOMGAP      = $00000002;
+      MNGOF_TOPGAP          = $00000001;
+      MNGOF_BOTTOMGAP       = $00000002;
 
 {/*
  * WM_MENUGETOBJECT return values
  */}
 const
-      MNGO_NOINTERFACE     = $00000000;
-      MNGO_NOERROR         = $00000001;
+      MNGO_NOINTERFACE      = $00000000;
+      MNGO_NOERROR          = $00000001;
 //#endif /* WINVER >= 0x0500 */
 
 
 // Menubar information 
 const
 // Constants for the tagMENUBARINFO.FocusedBits bit mask
-      MBIFB_BAR_FOCUSED = $00000001;
-      MBIFB_FOCUSED     = $00000002;
+      MBIFB_BAR_FOCUSED  = $00000001;
+      MBIFB_FOCUSED      = $00000002;
 
 
 const 
@@ -6175,42 +6187,42 @@ const
 // Define CopyFileEx callback routine state change values
 //
 
-    CALLBACK_CHUNK_FINISHED         = $00000000;
-    CALLBACK_STREAM_SWITCH          = $00000001;
+    CALLBACK_CHUNK_FINISHED          = $00000000;
+    CALLBACK_STREAM_SWITCH           = $00000001;
 
 //
 // Define CopyFileEx option flags
 //
 
-    COPY_FILE_FAIL_IF_EXISTS              = $00000001;
-    COPY_FILE_RESTARTABLE                 = $00000002;
-    COPY_FILE_OPEN_SOURCE_FOR_WRITE       = $00000004;
-    COPY_FILE_ALLOW_DECRYPTED_DESTINATION = $00000008;
+    COPY_FILE_FAIL_IF_EXISTS               = $00000001;
+    COPY_FILE_RESTARTABLE                  = $00000002;
+    COPY_FILE_OPEN_SOURCE_FOR_WRITE        = $00000004;
+    COPY_FILE_ALLOW_DECRYPTED_DESTINATION  = $00000008;
 
 //
 //  Gap for private copyfile flags
 //
 
-    COPY_FILE_COPY_SYMLINK                = $00000800;
-    COPY_FILE_NO_BUFFERING                = $00001000;
+    COPY_FILE_COPY_SYMLINK                 = $00000800;
+    COPY_FILE_NO_BUFFERING                 = $00001000;
 
 //
 //  CopyFile2 flags
 //
 
-    COPY_FILE_REQUEST_SECURITY_PRIVILEGES        = $00002000;
-    COPY_FILE_RESUME_FROM_PAUSE                  = $00004000;
+    COPY_FILE_REQUEST_SECURITY_PRIVILEGES         = $00002000;
+    COPY_FILE_RESUME_FROM_PAUSE                   = $00004000;
 
 
-    COPY_FILE_NO_OFFLOAD                         = $00040000;
+    COPY_FILE_NO_OFFLOAD                          = $00040000;
 
 //
 // Define ReplaceFile option flags
 //
 
-    REPLACEFILE_WRITE_THROUGH       = $00000001;
-    REPLACEFILE_IGNORE_MERGE_ERRORS = $00000002;
-    REPLACEFILE_IGNORE_ACL_ERRORS   = $00000004;
+    REPLACEFILE_WRITE_THROUGH        = $00000001;
+    REPLACEFILE_IGNORE_MERGE_ERRORS  = $00000002;
+    REPLACEFILE_IGNORE_ACL_ERRORS    = $00000004;
 
 // WM_INPUT wParam
 (*
@@ -6237,12 +6249,12 @@ const
  * Define the mouse button state indicators.
  *)
 
-  RI_MOUSE_LEFT_BUTTON_DOWN   = $0001;  // Left Button changed to down.
-  RI_MOUSE_LEFT_BUTTON_UP     = $0002;  // Left Button changed to up.
-  RI_MOUSE_RIGHT_BUTTON_DOWN  = $0004;  // Right Button changed to down.
-  RI_MOUSE_RIGHT_BUTTON_UP    = $0008;  // Right Button changed to up.
-  RI_MOUSE_MIDDLE_BUTTON_DOWN = $0010;  // Middle Button changed to down.
-  RI_MOUSE_MIDDLE_BUTTON_UP   = $0020;  // Middle Button changed to up.
+  RI_MOUSE_LEFT_BUTTON_DOWN    = $0001;  // Left Button changed to down.
+  RI_MOUSE_LEFT_BUTTON_UP      = $0002;  // Left Button changed to up.
+  RI_MOUSE_RIGHT_BUTTON_DOWN   = $0004;  // Right Button changed to down.
+  RI_MOUSE_RIGHT_BUTTON_UP     = $0008;  // Right Button changed to up.
+  RI_MOUSE_MIDDLE_BUTTON_DOWN  = $0010;  // Middle Button changed to down.
+  RI_MOUSE_MIDDLE_BUTTON_UP    = $0020;  // Middle Button changed to up.
 
   RI_MOUSE_BUTTON_1_DOWN      = RI_MOUSE_LEFT_BUTTON_DOWN;
   RI_MOUSE_BUTTON_1_UP        = RI_MOUSE_LEFT_BUTTON_UP;
@@ -6251,33 +6263,33 @@ const
   RI_MOUSE_BUTTON_3_DOWN      = RI_MOUSE_MIDDLE_BUTTON_DOWN;
   RI_MOUSE_BUTTON_3_UP        = RI_MOUSE_MIDDLE_BUTTON_UP;
 
-  RI_MOUSE_BUTTON_4_DOWN      = $0040;
-  RI_MOUSE_BUTTON_4_UP        = $0080;
-  RI_MOUSE_BUTTON_5_DOWN      = $0100;
-  RI_MOUSE_BUTTON_5_UP        = $0200;
+  RI_MOUSE_BUTTON_4_DOWN       = $0040;
+  RI_MOUSE_BUTTON_4_UP         = $0080;
+  RI_MOUSE_BUTTON_5_DOWN       = $0100;
+  RI_MOUSE_BUTTON_5_UP         = $0200;
 
 (*
  * If usButtonFlags has RI_MOUSE_WHEEL, the wheel delta is stored in usButtonData.
  * Take it as a signed value.
  *)
-  RI_MOUSE_WHEEL              = $0400;
+  RI_MOUSE_WHEEL               = $0400;
 
 (*
  * Define the mouse indicator flags.
  *)
   MOUSE_MOVE_RELATIVE      = 0;
   MOUSE_MOVE_ABSOLUTE      = 1;
-  MOUSE_VIRTUAL_DESKTOP    = $02;  // the coordinates are mapped to the virtual desktop
-  MOUSE_ATTRIBUTES_CHANGED = $04;  // requery for mouse attributes
+  MOUSE_VIRTUAL_DESKTOP     = $02;  // the coordinates are mapped to the virtual desktop
+  MOUSE_ATTRIBUTES_CHANGED  = $04;  // requery for mouse attributes
 //#if(WINVER >= 0x0600)
-  MOUSE_MOVE_NOCOALESCE    = $08;  // do not coalesce mouse moves
+  MOUSE_MOVE_NOCOALESCE     = $08;  // do not coalesce mouse moves
 //#endif /* WINVER >= 0x0600 */
 
 (*
  * Define the keyboard overrun MakeCode.
  *)
 
-  KEYBOARD_OVERRUN_MAKE_CODE    = $FF;
+  KEYBOARD_OVERRUN_MAKE_CODE     = $FF;
 
 (*
  * Define the keyboard input data Flags.
@@ -6287,35 +6299,35 @@ const
   RI_KEY_E0               = 2;
   RI_KEY_E1               = 4;
   RI_KEY_TERMSRV_SET_LED  = 8;
-  RI_KEY_TERMSRV_SHADOW   = $10;
+  RI_KEY_TERMSRV_SHADOW    = $10;
 
 (*
  * Flags for GetRawInputData
  *)
 
-  RID_INPUT               = $10000003;
-  RID_HEADER              = $10000005;
+  RID_INPUT                = $10000003;
+  RID_HEADER               = $10000005;
 
 (*
  * Raw Input Device Information
  *)
-  RIDI_PREPARSEDDATA      = $20000005;
-  RIDI_DEVICENAME         = $20000007;  // the return valus is the character length, not the byte size
-  RIDI_DEVICEINFO         = $2000000b;
+  RIDI_PREPARSEDDATA       = $20000005;
+  RIDI_DEVICENAME          = $20000007;  // the return valus is the character length, not the byte size
+  RIDI_DEVICEINFO          = $2000000b;
 
-  RIDEV_REMOVE            = $00000001;
-  RIDEV_EXCLUDE           = $00000010;
-  RIDEV_PAGEONLY          = $00000020;
-  RIDEV_NOLEGACY          = $00000030;
-  RIDEV_INPUTSINK         = $00000100;
-  RIDEV_CAPTUREMOUSE      = $00000200;  // effective when mouse nolegacy is specified, otherwise it would be an error
-  RIDEV_NOHOTKEYS         = $00000200;  // effective for keyboard.
-  RIDEV_APPKEYS           = $00000400;  // effective for keyboard.
+  RIDEV_REMOVE             = $00000001;
+  RIDEV_EXCLUDE            = $00000010;
+  RIDEV_PAGEONLY           = $00000020;
+  RIDEV_NOLEGACY           = $00000030;
+  RIDEV_INPUTSINK          = $00000100;
+  RIDEV_CAPTUREMOUSE       = $00000200;  // effective when mouse nolegacy is specified, otherwise it would be an error
+  RIDEV_NOHOTKEYS          = $00000200;  // effective for keyboard.
+  RIDEV_APPKEYS            = $00000400;  // effective for keyboard.
 //#if(_WIN32_WINNT >= 0x0501)
-  RIDEV_EXINPUTSINK       = $00001000;
-  RIDEV_DEVNOTIFY         = $00002000;
+  RIDEV_EXINPUTSINK        = $00001000;
+  RIDEV_DEVNOTIFY          = $00002000;
 //#endif /* _WIN32_WINNT >= 0x0501 */
-  RIDEV_EXMODEMASK        = $000000F0;
+  RIDEV_EXMODEMASK         = $000000F0;
 
 //#if(_WIN32_WINNT >= 0x0501)
 (*
@@ -6340,46 +6352,46 @@ const
 //
 // Wincon.h
 //
-    NLS_DBCSCHAR = $00010000;    { DBCS for JPN: SBCS/DBCS mode. }
-    NLS_ALPHANUMERIC = $00000000;    { DBCS for JPN: Alphanumeric mode. }
-    NLS_KATAKANA = $00020000;    { DBCS for JPN: Katakana mode. }
-    NLS_HIRAGANA = $00040000;    { DBCS for JPN: Hiragana mode. }
-    NLS_ROMAN = $00400000;    { DBCS for JPN: Roman/Noroman mode. }
-    NLS_IME_CONVERSION = $00800000;    { DBCS for JPN: IME conversion. }
-    NLS_IME_DISABLE = $20000000;    { DBCS for JPN: IME enable/disable. }
+    NLS_DBCSCHAR  = $00010000;    { DBCS for JPN: SBCS/DBCS mode. }
+    NLS_ALPHANUMERIC  = $00000000;    { DBCS for JPN: Alphanumeric mode. }
+    NLS_KATAKANA  = $00020000;    { DBCS for JPN: Katakana mode. }
+    NLS_HIRAGANA  = $00040000;    { DBCS for JPN: Hiragana mode. }
+    NLS_ROMAN  = $00400000;    { DBCS for JPN: Roman/Noroman mode. }
+    NLS_IME_CONVERSION  = $00800000;    { DBCS for JPN: IME conversion. }
+    NLS_IME_DISABLE  = $20000000;    { DBCS for JPN: IME enable/disable. }
 
   
-    MOUSE_WHEELED = $0004;    
-    MOUSE_HWHEELED = $0008;    
+    MOUSE_WHEELED  = $0004;    
+    MOUSE_HWHEELED  = $0008;    
 
   
-    COMMON_LVB_LEADING_BYTE = $0100;    { Leading Byte of DBCS }
-    COMMON_LVB_TRAILING_BYTE = $0200;    { Trailing Byte of DBCS }
-    COMMON_LVB_GRID_HORIZONTAL = $0400;    { DBCS: Grid attribute: top horizontal. }
-    COMMON_LVB_GRID_LVERTICAL = $0800;    { DBCS: Grid attribute: left vertical. }
-    COMMON_LVB_GRID_RVERTICAL = $1000;    { DBCS: Grid attribute: right vertical. }
-    COMMON_LVB_REVERSE_VIDEO = $4000;    { DBCS: Reverse fore/back ground attribute. }
-    COMMON_LVB_UNDERSCORE = $8000;    { DBCS: Underscore. }
-    COMMON_LVB_SBCSDBCS = $0300;    { SBCS or DBCS flag. }
+    COMMON_LVB_LEADING_BYTE  = $0100;    { Leading Byte of DBCS }
+    COMMON_LVB_TRAILING_BYTE  = $0200;    { Trailing Byte of DBCS }
+    COMMON_LVB_GRID_HORIZONTAL  = $0400;    { DBCS: Grid attribute: top horizontal. }
+    COMMON_LVB_GRID_LVERTICAL  = $0800;    { DBCS: Grid attribute: left vertical. }
+    COMMON_LVB_GRID_RVERTICAL  = $1000;    { DBCS: Grid attribute: right vertical. }
+    COMMON_LVB_REVERSE_VIDEO  = $4000;    { DBCS: Reverse fore/back ground attribute. }
+    COMMON_LVB_UNDERSCORE  = $8000;    { DBCS: Underscore. }
+    COMMON_LVB_SBCSDBCS  = $0300;    { SBCS or DBCS flag. }
   
-    HISTORY_NO_DUP_FLAG = $1;    
+    HISTORY_NO_DUP_FLAG  = $1;    
 
   
-    CONSOLE_NO_SELECTION = $0000;    
-    CONSOLE_SELECTION_IN_PROGRESS = $0001;    { selection has begun }
-    CONSOLE_SELECTION_NOT_EMPTY = $0002;    { non-null select rectangle }
-    CONSOLE_MOUSE_SELECTION = $0004;    { selecting with mouse }
-    CONSOLE_MOUSE_DOWN = $0008;    { mouse is down }
+    CONSOLE_NO_SELECTION  = $0000;    
+    CONSOLE_SELECTION_IN_PROGRESS  = $0001;    { selection has begun }
+    CONSOLE_SELECTION_NOT_EMPTY  = $0002;    { non-null select rectangle }
+    CONSOLE_MOUSE_SELECTION  = $0004;    { selecting with mouse }
+    CONSOLE_MOUSE_DOWN  = $0008;    { mouse is down }
   
-    ENABLE_INSERT_MODE = $0020;    
-    ENABLE_QUICK_EDIT_MODE = $0040;    
-    ENABLE_EXTENDED_FLAGS = $0080;    
-    ENABLE_AUTO_POSITION = $0100;    
-    ENABLE_VIRTUAL_TERMINAL_INPUT = $0200;    
+    ENABLE_INSERT_MODE  = $0020;    
+    ENABLE_QUICK_EDIT_MODE  = $0040;    
+    ENABLE_EXTENDED_FLAGS  = $0080;    
+    ENABLE_AUTO_POSITION  = $0100;    
+    ENABLE_VIRTUAL_TERMINAL_INPUT  = $0200;    
   
-    ENABLE_VIRTUAL_TERMINAL_PROCESSING = $0004;    
-    DISABLE_NEWLINE_AUTO_RETURN = $0008;    
-    ENABLE_LVB_GRID_WORLDWIDE = $0010;    
+    ENABLE_VIRTUAL_TERMINAL_PROCESSING  = $0004;    
+    DISABLE_NEWLINE_AUTO_RETURN  = $0008;    
+    ENABLE_LVB_GRID_WORLDWIDE  = $0010;    
     
     CONSOLE_FULLSCREEN = 1;    { fullscreen console }
     CONSOLE_FULLSCREEN_HARDWARE = 2;    { console owns the hardware }

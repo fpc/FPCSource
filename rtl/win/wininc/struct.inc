@@ -8814,6 +8814,48 @@ type
      PIMAGE_LOAD_CONFIG_DIRECTORY = PIMAGE_LOAD_CONFIG_DIRECTORY32;
 {$endif}
 
+     MOUSEINPUT = record
+       dx        : LONG;
+       dy        : LONG;
+       MouseData : DWORD;
+       dwFlags   : DWORD;
+       Time      : DWORD;
+       ExtraInfo : ULONG_PTR;
+     end;
+     TMOUSEINPUT  = MOUSEINPUT;
+     PMOUSEINPUT  = ^MOUSEINPUT;
+     LPMOUSEINPUT = PMOUSEINPUT;
+
+     KEYBDINPUT = record
+       wVk       : WORD;
+       wScan     : WORD;
+       dwFlags   : DWORD;
+       Time      : DWORD;
+       ExtraInfo : ULONG_PTR;
+     end;
+     TKEYBDINPUT  = KEYBDINPUT;
+     PKEYBDINPUT  = ^KEYBDINPUT;
+     LPKEYBDINPUT = PKEYBDINPUT;
+
+     HARDWAREINPUT = record
+       uMsg     : DWORD;
+       wParamL  : WORD;
+       wParamH  : WORD;
+     end;
+     THARDWAREINPUT  = HARDWAREINPUT;
+     PHARDWAREINPUT  = ^HARDWAREINPUT;
+     LPHARDWAREINPUT = PHARDWAREINPUT;
+
+     TINPUT = record
+       _Type : DWORD;
+       case integer of
+         1 : (mi : MOUSEINPUT);
+         2 : (ki : KEYBDINPUT);
+         3 : (hi : HARDWAREINPUT);
+     end;
+     PINPUT = ^TINPUT;
+     LPINPUT = PINPUT;
+
 {$push}
 {$packrecords 4}
 
