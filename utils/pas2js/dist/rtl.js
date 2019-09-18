@@ -809,34 +809,56 @@ var rtl = {
   },
 
   arraySetLength: function(arr,defaultvalue,newlength){
-    // multi dim: (arr,defaultvalue,dim1,dim2,...)
-    var p = arguments;
-    function setLength(src,argNo){
-      var newlen = p[argNo];
-      var a = [];
-      a.length = newlength;
-      if (argNo === p.length-1){
-        var oldlen = src?src.length:0;
+    var stack = [];
+    for (var i=2; i<arguments.length; i++){
+      stack.push({ dim:arguments[i]+0, a:null, i:0, src:null });
+    }
+    var dimmax = stack.length-1;
+    var depth = 0;
+    var lastlen = stack[dimmax].dim;
+    var item = null;
+    var a = null;
+    var src = arr;
+    var oldlen = 0
+    do{
+      a = [];
+      if (depth>0){
+        item=stack[depth-1];
+        item.a[item.i]=a;
+        src = (item.src && item.src.length>item.i)?item.src[item.i]:null;
+        item.i++;
+      }
+      if (depth<dimmax){
+        item = stack[depth];
+        item.a = a;
+        item.i = 0;
+        item.src = src;
+        depth++;
+      } else {
+        oldlen = src?src.length:0;
         if (rtl.isArray(defaultvalue)){
-          for (var i=0; i<newlen; i++) a[i]=(i<oldlen)?src[i]:[]; // array of dyn array
+          for (var i=0; i<lastlen; i++) a[i]=(i<oldlen)?src[i]:[]; // array of dyn array
         } else if (rtl.isObject(defaultvalue)) {
           if (rtl.isTRecord(defaultvalue)){
-            for (var i=0; i<newlen; i++)
+            for (var i=0; i<lastlen; i++){
               a[i]=(i<oldlen)?defaultvalue.$clone(src[i]):defaultvalue.$new(); // e.g. record
+            }
           } else {
-            for (var i=0; i<newlen; i++) a[i]=(i<oldlen)?rtl.refSet(src[i]):{}; // e.g. set
+            for (var i=0; i<lastlen; i++) a[i]=(i<oldlen)?rtl.refSet(src[i]):{}; // e.g. set
           }
         } else {
-          for (var i=0; i<newlen; i++)
+          for (var i=0; i<lastlen; i++)
             a[i]=(i<oldlen)?src[i]:defaultvalue;
         }
-      } else {
-        // multi dim array
-        for (var i=0; i<newlen; i++) a[i]=setLength(src?src[i]:null,argNo+1);
+        while ((depth>0) && (stack[depth-1].i===stack[depth-1].dim)){
+          depth--;
+        };
+        if (depth===0){
+          if (dimmax===0) return a;
+          return stack[0].a;
+        }
       }
-      return a;
-    }
-    return setLength(arr,2);
+    }while (true);
   },
 
   /*arrayChgLength: function(arr,defaultvalue,newlength){
