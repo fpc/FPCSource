@@ -689,6 +689,7 @@ type
     Procedure TestTypeHelper_Word;
     Procedure TestTypeHelper_Double;
     Procedure TestTypeHelper_StringChar;
+    Procedure TestTypeHelper_JSValue;
     Procedure TestTypeHelper_Array;
     Procedure TestTypeHelper_EnumType;
     Procedure TestTypeHelper_SetType;
@@ -23522,6 +23523,70 @@ begin
     '$mod.TCharHelper.Fly.call({',
     '  get: function () {',
     '      return "c";',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.raiseE("EPropReadOnly");',
+    '    }',
+    '});',
+    '']));
+end;
+
+procedure TTestModule.TestTypeHelper_JSValue;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TExtValue = type jsvalue;',
+  '  THelper = type helper for TExtValue',
+  '    function ToStr: String;',
+  '  end;',
+  'function THelper.ToStr: String;',
+  'begin',
+  'end;',
+  'var',
+  '  s: string;',
+  '  v: TExtValue;',
+  'begin',
+  '  s:=v.toStr;',
+  '  s:=v.toStr();',
+  '  TExtValue(s).toStr;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_JSValue',
+    LinesToStr([ // statements
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.ToStr = function () {',
+    '    var Result = "";',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.s = "";',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.s = $mod.THelper.ToStr.call({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.v;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.v = v;',
+    '    }',
+    '});',
+    '$mod.s = $mod.THelper.ToStr.call({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.v;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.v = v;',
+    '    }',
+    '});',
+    '$mod.THelper.ToStr.call({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.s;',
     '    },',
     '  set: function (v) {',
     '      rtl.raiseE("EPropReadOnly");',

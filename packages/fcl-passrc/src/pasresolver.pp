@@ -10154,7 +10154,8 @@ begin
       end;
     // default: search for type helpers
     if (LeftResolved.BaseType in btAllStandardTypes)
-        or (LeftResolved.BaseType=btContext) then
+        or (LeftResolved.BaseType=btContext)
+        or (LeftResolved.BaseType=btCustom) then
       begin
       if SearchInTypeHelpers(LeftResolved.HiTypeEl,LeftResolved.IdentEl) then exit;
       end
