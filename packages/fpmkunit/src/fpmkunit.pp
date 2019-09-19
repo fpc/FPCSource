@@ -203,7 +203,7 @@ Const
     { openbsd } ( false, true,  true,  false, false, true,  false, false, false, false, false, false, false, false, false, false),
     { wdosx }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false),
     { palmos }  ( false, false, true,  false, false, false, true,  false, false, false, false, false, false, false, false, false),
-    { macos }   ( false, false, false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
+    { macos }   ( false, false, true,  true,  false, false, false, false, false, false, false, false, false, false, false, false),
     { darwin }  ( false, true,  false, true,  false, true,  true,  true,  false, false, false, false, false, false, true , false),
     { emx }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false),
     { watcom }  ( false, true,  false, false, false ,false, false, false, false, false, false, false, false, false, false, false),
@@ -223,7 +223,7 @@ Const
     { nativent }( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false),
     { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true , false, false),
     { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false, false, false),
-    { aros }    ( false, true,  false, false, false, false, true,  false, false, false, false, false, false, false, false, false),
+    { aros }    ( false, true,  false, false, false, true,  true,  false, false, false, false, false, false, false, false, false),
     { dragonfly}( false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false, false),
     { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true , false, false)
   );
@@ -3767,7 +3767,7 @@ Var
 begin
   OB:=IncludeTrailingPathDelimiter(GetBinOutputDir(ACPU,AOS));
   OU:=IncludeTrailingPathDelimiter(GetUnitsOutputDir(ACPU,AOS));
-  List.Add(GetUnitConfigOutputFilename(Defaults.CPU,Defaults.OS));
+  List.Add(GetUnitConfigOutputFilename(ACPU,AOS));
   List.Add(ManifestFile);
   AddConditionalStrings(Self, List,CleanFiles,ACPU,AOS);
   For I:=0 to FTargets.Count-1 do

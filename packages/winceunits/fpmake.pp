@@ -94,7 +94,6 @@ begin
     T:=P.Targets.AddImplicitUnit('tsp.pp', [wince]);
     T:=P.Targets.AddImplicitUnit('extapi.pp', [wince]);
     T:=P.Targets.AddImplicitUnit('imm.pp', [wince]);
-    T:=P.Targets.AddImplicitUnit('activex.pp', [wince]);
     T:=P.Targets.AddImplicitUnit('pnp.pas', [wince]);
     T:=P.Targets.AddImplicitUnit('storemgr.pas', [wince]);
 

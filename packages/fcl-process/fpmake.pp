@@ -30,6 +30,7 @@ begin
       P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src',AllOSes);
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/winall',AllWindowsOSes);
     P.IncludePath.Add('src/win',[win32,win64]);
