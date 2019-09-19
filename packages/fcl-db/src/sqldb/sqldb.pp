@@ -2899,13 +2899,9 @@ end;
 procedure TCustomSQLQuery.ApplyFilter;
 
 begin
-  FreeFldBuffers;
-  FStatement.Unprepare;
-  FIsEOF := False;
-  inherited InternalClose;
-  FStatement.DoPrepare;
-  FStatement.DoExecute;
-  inherited InternalOpen;
+  if Prepared then
+    FStatement.Unprepare;
+  InternalRefresh;
   First;
 end;
 
@@ -2940,7 +2936,8 @@ end;
 procedure TCustomSQLQuery.UnPrepare;
 
 begin
-  CheckInactive;
+  if Not Refreshing then
+    CheckInactive;
   If Assigned(FStatement) then
     FStatement.Unprepare;
 end;
