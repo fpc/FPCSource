@@ -3848,6 +3848,8 @@ var
   bm:TBookmark;
 begin
   result:=Null;
+  if IsEmpty then
+    exit;
   bm:=GetBookmark;
   DisableControls;
   try
