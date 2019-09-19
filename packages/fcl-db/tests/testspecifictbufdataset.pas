@@ -53,6 +53,7 @@ type
     procedure TestAutoIncFieldStreamingXML;
     Procedure TestLocateScrollEventCount;
     Procedure TestLookupScrollEventCount;
+    procedure TestLookupEmpty;
     Procedure TestRecordCount;
     Procedure TestClear;
     procedure TestCopyFromDataset; //is copied dataset identical to original?
@@ -303,6 +304,22 @@ begin
     end;
 end;
 
+
+procedure TTestSpecificTBufDataset.TestLookupEmpty;
+
+// Test for issue 36086
+
+Var
+  V : Variant;
+
+begin
+  with DBConnector.GetNDataset(0) as TBufDataset do
+    begin
+    Open;
+    V:=Lookup('ID',5,'NAME');
+    AssertTrue('Null',Null=V);
+    end;
+end;
 
 procedure TTestSpecificTBufDataset.TestLookupScrollEventCount;
 
