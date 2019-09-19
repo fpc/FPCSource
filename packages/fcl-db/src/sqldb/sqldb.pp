@@ -536,6 +536,7 @@ type
     procedure ApplyFilter;
     Function AddFilter(SQLstr : string) : string;
   protected
+    procedure OpenCursor(InfoQuery: Boolean); override;
     function CreateSQLStatement(aOwner: TComponent): TCustomSQLStatement; virtual;
     Function CreateParams: TSQLDBParams; virtual;
     Function RefreshLastInsertID(Field: TField): Boolean; virtual;
@@ -2789,6 +2790,18 @@ begin
   else
     system.insert(' where ('+ServerFilter+') ',SQLstr,FWhereStartPos);
   Result := SQLstr;
+end;
+
+procedure TCustomSQLQuery.OpenCursor(InfoQuery: Boolean);
+begin
+  if InfoQuery then
+    CheckPrepare;
+  try
+    inherited OpenCursor(InfoQuery);
+  finally
+    if InfoQuery then
+      CheckUnPrepare;
+  end;
 end;
 
 function TCustomSQLQuery.NeedRefreshRecord(UpdateKind: TUpdateKind): Boolean;
