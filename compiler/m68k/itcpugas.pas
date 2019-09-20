@@ -90,18 +90,23 @@ interface
 
     function gas_regnum_search(const s:string):Tregister;
     function gas_regname(r:Tregister):string;
+    function gas_regfullname(r:Tregister):string;
 
   implementation
 
     const
       gas_regname_table : array[tregisterindex] of string[7] = (
-        {r386att.inc contains the AT&T name of each register.}
+        {r68kgas.inc contains the name of each register.}
         {$i r68kgas.inc}
       );
 
+      gas_regfullname_table : array[tregisterindex] of string[7] = (
+        {r68kgasf.inc contains the "full" name of each register.}
+        {$i r68kgasf.inc}
+      );
+
       gas_regname_index : array[tregisterindex] of tregisterindex = (
-        {r386ari.inc contains an index which sorts att_regname_table by
-         ATT name.}
+        {r68kgri.inc contains an index which sorts gas_regname_table by name }
         {$i r68kgri.inc}
       );
 
@@ -138,6 +143,17 @@ interface
         p:=findreg_by_number(r);
         if p<>0 then
           result:=gas_regname_table[p]
+        else
+          result:='%'+generic_regname(r);
+      end;
+
+    function gas_regfullname(r:Tregister):string;
+      var
+        p : tregisterindex;
+      begin
+        p:=findreg_by_number(r);
+        if p<>0 then
+          result:=gas_regfullname_table[p]
         else
           result:='%'+generic_regname(r);
       end;

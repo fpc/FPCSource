@@ -116,7 +116,7 @@ unit cpubase;
       {$i r68ksup.inc}
       RS_SP = RS_A7;
 
-      R_SUBWHOLE = R_SUBNONE;
+      R_SUBWHOLE = R_SUBD;
 
       { Available Registers }
       {$i r68kcon.inc}
@@ -454,25 +454,40 @@ implementation
       end;
 
     function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
-      var p: pointer;
       begin
-        case s of
-          OS_8,OS_S8:
+        case regtype of
+          R_INTREGISTER:
+            if (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[current_settings.cputype]) then
+              case s of
+                OS_8,OS_S8:
+                  cgsize2subreg:=R_SUBL;
+                OS_16,OS_S16:
+                  cgsize2subreg:=R_SUBW;
+                OS_32,OS_S32:
+                  cgsize2subreg:=R_SUBD;
+                OS_NO:
+                  cgsize2subreg:=R_SUBNONE;
+              else
+                internalerror(2019090801);
+              end
+            else
+              case s of
+                OS_8,OS_S8,
+                OS_16,OS_S16,
+                OS_32,OS_S32:
+                  cgsize2subreg:=R_SUBWHOLE;
+                OS_NO:
+                  cgsize2subreg:=R_SUBNONE;
+              else
+                internalerror(2019090803);
+              end;
+          R_ADDRESSREGISTER:
             cgsize2subreg:=R_SUBWHOLE;
-          OS_16,OS_S16:
-            cgsize2subreg:=R_SUBWHOLE;
-          OS_32,OS_S32:
-            cgsize2subreg:=R_SUBWHOLE;
-          OS_64,OS_S64:
-            cgsize2subreg:=R_SUBWHOLE;
-
-          OS_F32,OS_F64 :
+          R_FPUREGISTER:
             cgsize2subreg:=R_SUBNONE;
 
-          OS_NO:
-            cgsize2subreg:=R_SUBNONE;
           else
-            internalerror(2019090801);
+            internalerror(2019090802);
         end;
       end;
 

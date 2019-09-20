@@ -111,7 +111,7 @@ interface
         with ref do
           begin
             basestr:=gas_regname(base);
-            indexstr:=gas_regname(index);
+            indexstr:=gas_regfullname(index);
 
             if assigned(symbol) then
               begin
@@ -138,17 +138,17 @@ interface
                   if (base<>NR_NO) and (index<>NR_NO) then
                     begin
                       if scalefactor in [0,1] then
-                        s:=s+'('+basestr+','+indexstr+'.l)'
+                        s:=s+'('+basestr+','+indexstr+')'
                       else
-                        s:=s+'('+basestr+','+indexstr+'.l*'+tostr(scalefactor)+')';
+                        s:=s+'('+basestr+','+indexstr+'*'+tostr(scalefactor)+')';
                       exit;
                     end;
                   if (base=NR_NO) and (index<>NR_NO) then
                     begin
                       if scalefactor in [0,1] then
-                        s:=s+'('+indexstr+'.l)'
+                        s:=s+'('+indexstr+')'
                       else
-                        s:=s+'('+indexstr+'.l*'+tostr(scalefactor)+')';
+                        s:=s+'('+indexstr+'*'+tostr(scalefactor)+')';
                       exit;
                     end;
                 end;
