@@ -465,6 +465,8 @@ implementation
                   cgsize2subreg:=R_SUBW;
                 OS_32,OS_S32:
                   cgsize2subreg:=R_SUBD;
+                OS_64,OS_S64:
+                  cgsize2subreg:=R_SUBWHOLE;
                 OS_NO:
                   cgsize2subreg:=R_SUBNONE;
               else
@@ -474,7 +476,8 @@ implementation
               case s of
                 OS_8,OS_S8,
                 OS_16,OS_S16,
-                OS_32,OS_S32:
+                OS_32,OS_S32,
+                OS_64,OS_S64:
                   cgsize2subreg:=R_SUBWHOLE;
                 OS_NO:
                   cgsize2subreg:=R_SUBNONE;
