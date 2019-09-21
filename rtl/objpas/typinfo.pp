@@ -1196,11 +1196,18 @@ end;
 Function SetToString(PropInfo: PPropInfo; Value: LongInt; Brackets: Boolean) : String;
 
 begin
-  Result:=SetToString(PropInfo^.PropType, @Value, Brackets);
+  Result:=SetToString(PropInfo^.PropType, Value, Brackets);
 end;
 
 Function SetToString(TypeInfo: PTypeInfo; Value: LongInt; Brackets: Boolean) : String;
 begin
+{$if defined(FPC_BIG_ENDIAN)}
+  { correctly adjust packed sets that are smaller than 32-bit }
+  case GetTypeData(TypeInfo)^.OrdType of
+    otSByte,otUByte: Value := Value shl (SizeOf(Integer)*8-8);
+    otSWord,otUWord: Value := Value shl (SizeOf(Integer)*8-16);
+  end;
+{$endif}
   Result := SetToString(TypeInfo, @Value, Brackets);
 end;
 
@@ -1295,12 +1302,19 @@ end;
 Function StringToSet(PropInfo: PPropInfo; const Value: string): LongInt;
 
 begin
-  StringToSet(PropInfo^.PropType,Value,@Result);
+  Result:=StringToSet(PropInfo^.PropType,Value);
 end;
 
 Function StringToSet(TypeInfo: PTypeInfo; const Value: string): LongInt;
 begin
   StringToSet(TypeInfo, Value, @Result);
+{$if defined(FPC_BIG_ENDIAN)}
+  { correctly adjust packed sets that are smaller than 32-bit }
+  case GetTypeData(TypeInfo)^.OrdType of
+    otSByte,otUByte: Result := Result shr (SizeOf(Integer)*8-8);
+    otSWord,otUWord: Result := Result shr (SizeOf(Integer)*8-16);
+  end;
+{$endif}
 end;
 
 procedure StringToSet(TypeInfo: PTypeInfo; const Value: String; Result: Pointer);
