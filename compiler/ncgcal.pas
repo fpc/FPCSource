@@ -1117,6 +1117,11 @@ implementation
                         name_to_call:=tprocdef(procdefinition).mangledname;
                       if cnf_inherited in callnodeflags then
                         retloc:=hlcg.a_call_name_inherited(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs)
+                      { under certain conditions, a static call (i.e. without PIC) can be generated }
+                      else if ((procdefinition.owner=current_procinfo.procdef.owner) or
+                         (procdefinition.owner.symtabletype in [localsymtable,staticsymtable])
+                        ) and ((procdefinition.procoptions*[po_weakexternal,po_external])=[]) then
+                        retloc:=hlcg.a_call_name_static(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs,typedef)
                       else
                         retloc:=hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs,typedef,po_weakexternal in procdefinition.procoptions);
                       extra_post_call_code;
