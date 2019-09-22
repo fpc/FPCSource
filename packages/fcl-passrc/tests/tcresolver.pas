@@ -11123,7 +11123,6 @@ begin
   '    procedure DoIt;',
   '    class procedure DoMore;',
   '  end;',
-  'implementation',
   'procedure tobject.doit;',
   'begin',
   '  if cI=4 then;',
@@ -11169,7 +11168,7 @@ begin
   '    class c: word;',
   '  end;',
   'begin']);
-  CheckParserException('Expected "procedure or function"',nParserExpectTokenError);
+  CheckParserException('Expected "Procedure" or "Function"',nParserExpectToken2Error);
 end;
 
 procedure TTestResolver.TestClass_ClassConstFail;

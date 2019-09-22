@@ -1974,16 +1974,14 @@ procedure TTestResolveGenerics.TestGenMethod_VirtualFail;
 begin
   StartProgram(false);
   Add([
-  'procedure Fly;',
-  '  generic procedure Run<T>(a: T);',
-  '  begin',
+  'type',
+  '  TObject = class',
+  '    generic procedure Run<T>(a: T); virtual; abstract;',
   '  end;',
   'begin',
-  '  Run<boolean>(true);',
-  'end;',
-  'begin',
   '']);
-  CheckResolverException('Type parameters not allowed on nested procedure',nTypeParamsNotAllowedOnX);
+  CheckResolverException('virtual, dynamic or message methods cannot have type parameters',
+    nXMethodsCannotHaveTypeParams);
 end;
 
 initialization

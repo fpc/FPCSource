@@ -2325,7 +2325,6 @@ begin
   FFilename:='ns1.test1.pp';
   StartProgram(true);
   Add('uses unIt2;');
-  Add('implementation');
   Add('var');
   Add('  i: longint;');
   Add('begin');
@@ -2406,7 +2405,6 @@ begin
   FFilename:='Ns1.SubNs1.Test1.pp';
   StartProgram(true);
   Add('uses Ns2.sUbnS2.unIt2;');
-  Add('implementation');
   Add('var');
   Add('  i: longint;');
   Add('begin');
@@ -11157,7 +11155,6 @@ begin
   '    Bracket: longint external name ''["A B"]'';',
   '    procedure DoIt;',
   '  end;',
-  'implementation',
   'procedure tcar.doit;',
   'begin',
   '  Intern:=Intern+1;',
@@ -13955,7 +13952,6 @@ begin
   Add('    procedure DoIt;');
   Add('    class procedure DoMore;');
   Add('  end;');
-  Add('implementation');
   Add('procedure tobject.doit;');
   Add('begin');
   Add('  if cI=4 then;');
