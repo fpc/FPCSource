@@ -176,7 +176,8 @@ var rtl = {
 
   loaduseslist: function(module,useslist,f){
     if (useslist==undefined) return;
-    for (var i in useslist){
+    var len = useslist.length;
+    for (var i = 0; i<len; i++) {
       var unitname=useslist[i];
       if (rtl.debug_load_units) rtl.debug('loaduseslist of "'+module.$name+'" uses="'+unitname+'"');
       if (pas[unitname]==undefined)
