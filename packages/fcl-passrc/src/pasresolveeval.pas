@@ -193,7 +193,7 @@ const
   nConstraintXSpecifiedMoreThanOnce = 3127;
   nConstraintXAndConstraintYCannotBeTogether = 3128;
   nXIsNotAValidConstraint = 3129;
-  nWrongNumberOfParametersForGenericType = 3130;
+  nWrongNumberOfParametersForGenericX = 3130;
   nGenericsWithoutSpecializationAsType = 3131;
   nDeclOfXDiffersFromPrevAtY = 3132;
   nTypeParamXIsMissingConstraintY = 3133;
@@ -342,7 +342,7 @@ resourcestring
   sConstraintXSpecifiedMoreThanOnce = 'Constraint "%s" specified more than once';
   sConstraintXAndConstraintYCannotBeTogether = '"%s" constraint and "%s" constraint cannot be specified together';
   sXIsNotAValidConstraint = '"%s" is not a valid constraint';
-  sWrongNumberOfParametersForGenericType = 'wrong number of parameters for generic type %s';
+  sWrongNumberOfParametersForGenericX = 'wrong number of parameters for generic %s';
   sGenericsWithoutSpecializationAsType = 'Generics without specialization cannot be used as a type for a %s';
   sDeclOfXDiffersFromPrevAtY = 'Declaration of "%s" differs from previous declaration at %s';
   sTypeParamXIsMissingConstraintY = 'Type parameter "%s" is missing constraint "%s"';
@@ -791,7 +791,7 @@ function CodePointToUnicodeString(u: longword): UnicodeString;
 
 function GetObjName(o: TObject): string;
 function GetObjPath(o: TObject): string;
-function GetTypeParamCommas(Cnt: integer): string;
+function GetGenericParamCommas(Cnt: integer): string;
 function dbgs(const Flags: TResEvalFlags): string; overload;
 function dbgs(v: TResEvalValue): string; overload;
 function LastPos(c: char; const s: string): sizeint;
@@ -1023,7 +1023,7 @@ begin
       GenType:=TPasGenericType(o);
       if (GenType.GenericTemplateTypes<>nil)
           and (GenType.GenericTemplateTypes.Count>0) then
-        Result:=Result+GetTypeParamCommas(GenType.GenericTemplateTypes.Count);
+        Result:=Result+GetGenericParamCommas(GenType.GenericTemplateTypes.Count);
       end;
     Result:=Result+':'+o.ClassName;
     end
@@ -1049,7 +1049,7 @@ begin
         GenType:=TPasGenericType(El);
         if (GenType.GenericTemplateTypes<>nil)
             and (GenType.GenericTemplateTypes.Count>0) then
-          Result:=GetTypeParamCommas(GenType.GenericTemplateTypes.Count)+Result;
+          Result:=GetGenericParamCommas(GenType.GenericTemplateTypes.Count)+Result;
         end;
       if El.Name<>'' then
         begin
@@ -1067,7 +1067,7 @@ begin
     Result:=GetObjName(o);
 end;
 
-function GetTypeParamCommas(Cnt: integer): string;
+function GetGenericParamCommas(Cnt: integer): string;
 begin
   if Cnt<=0 then
     Result:=''

@@ -1015,17 +1015,17 @@ function TPasAnalyzer.CanSkipGenericType(El: TPasGenericType): boolean;
   procedure RaiseHalfSpecialized;
   var
     GenScope: TPasGenericScope;
-    Item: TPSSpecializedItem;
+    Item: TPRSpecializedItem;
   begin
     if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
       RaiseNotSupported(20190817151437,El);
     if not (El.CustomData is TPasGenericScope) then
       RaiseNotSupported(20190826141320,El,GetObjName(El.CustomData));
     GenScope:=TPasGenericScope(El.CustomData);
-    Item:=GenScope.SpecializedItem;
+    Item:=GenScope.SpecializedFromItem;
     if Item=nil then
       RaiseNotSupported(20190826141352,El);
-    if Item.SpecializedType=nil then
+    if Item.SpecializedEl=nil then
       RaiseNotSupported(20190826141516,El);
     if Item.FirstSpecialize=nil then
       RaiseNotSupported(20190826141649,El);
@@ -2740,7 +2740,7 @@ begin
   else
     ImplProc:=ProcScope.ImplProc;
   if (ProcScope.ClassRecScope<>nil)
-      and (ProcScope.ClassRecScope.SpecializedItem<>nil) then
+      and (ProcScope.ClassRecScope.SpecializedFromItem<>nil) then
     exit; // specialized proc
 
   if not PAElementExists(DeclProc) then
@@ -3049,7 +3049,7 @@ begin
   if El is TPasGenericType then
     begin
     GenScope:=El.CustomData as TPasGenericScope;
-    if (GenScope<>nil) and (GenScope.SpecializedItem<>nil) then
+    if (GenScope<>nil) and (GenScope.SpecializedFromItem<>nil) then
       exit(true);
     end;
   Result:=false;

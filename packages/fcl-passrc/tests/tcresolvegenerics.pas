@@ -84,6 +84,7 @@ type
     procedure TestGen_Class_Self;
     procedure TestGen_Class_MemberTypeConstructor;
     procedure TestGen_Class_List;
+    // ToDo: different modeswitches at parse time and specialize time
 
     // generic external class
     procedure TestGen_ExtClass_Array;
@@ -104,6 +105,7 @@ type
     procedure TestGen_PointerDirectSpecializeFail;
 
     // ToDo: helpers for generics
+    // ToDo: default class prop array helper: arr<b>[c]
 
     // generic statements
     procedure TestGen_LocalVar;
@@ -114,20 +116,30 @@ type
     procedure TestGen_TryExcept;
     procedure TestGen_Call;
     procedure TestGen_NestedProc;
+    // ToDo: obj<b>[c]
 
     // generic functions
-    procedure TestGenProc_Function; // ToDo
-    //procedure TestGenProc_Forward; // ToDo
+    procedure TestGenProc_Function;
+    procedure TestGenProc_FunctionDelphi;
+    procedure TestGenProc_OverloadDuplicate;
+    procedure TestGenProc_Forward; // ToDo
+    //procedure TestGenProc_External;
+    //procedure TestGenProc_UnitIntf;
+    procedure TestGenProc_BackRef1Fail;
+    procedure TestGenProc_BackRef2Fail;
+    procedure TestGenProc_BackRef3Fail;
+    //procedure TestGenProc_Inference;
     // ToDo: forward parametrized impl must not repeat constraints
     // ToDo: forward parametrized impl overloads
     // ToDo: parametrized nested proc fail
-    // ToDo: generic class method overload <T> <S,T>
-    // ToDo: procedure TestGenMethod_ClassConstructorFail;
-    // ToDo: procedure TestGenMethod_NestedProc;
     // ToDo: virtual method cannot have type parameters
     // ToDo: message method cannot have type parameters
     // ToDo: interface method cannot have type parameters
     // ToDo: parametrized method mismatch interface method
+    // ToDo: generic class method overload <T> <S,T>
+    // ToDo: generic class method overload <T>(bool) <T>(word)
+    // ToDo: procedure TestGenMethod_ClassConstructorFail;
+    // ToDo: procedure TestGenMethod_NestedProc;
   end;
 
 implementation
@@ -1689,7 +1701,6 @@ end;
 
 procedure TTestResolveGenerics.TestGenProc_Function;
 begin
-  exit;
   StartProgram(false);
   Add([
   'generic function DoIt<T>(a: T): T;',
@@ -1700,9 +1711,99 @@ begin
   'end;',
   'var w: word;',
   'begin',
+  '  w:=specialize DoIt<word>(3);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_FunctionDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'function DoIt<T>(a: T): T;',
+  'var i: T;',
+  'begin',
+  '  a:=i;',
+  '  Result:=a;',
+  'end;',
+  'var w: word;',
+  'begin',
   '  w:=DoIt<word>(3);',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_OverloadDuplicate;
+begin
+  StartProgram(false);
+  Add([
+  'generic procedure Fly<T>(a: T);',
+  'begin',
+  'end;',
+  'generic procedure Fly<T>(a: T);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('Duplicate identifier "Fly" at afile.pp(2,25)',nDuplicateIdentifier);
+end;
+
+procedure TTestResolveGenerics.TestGenProc_Forward;
+begin
+  exit;
+  StartProgram(false);
+  Add([
+  'generic procedure Fly<T>(a: T); forward;',
+  //'generic procedure Run;',
+  //'begin',
+  //'  specialize Fly<word>(3);',
+  //'end;',
+  'generic procedure Fly<T>(a: T);',
+  'var i: T;',
+  'begin',
+  '  i:=a;',
+  'end;',
+  'begin',
+  '  specialize Fly<boolean>(true);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_BackRef1Fail;
+begin
+  StartProgram(false);
+  Add([
+  'generic function Fly<T>(a: Fly): T;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('Wrong number of parameters specified for call to "function Fly<>(untyped)"',nWrongNumberOfParametersForCallTo);
+end;
+
+procedure TTestResolveGenerics.TestGenProc_BackRef2Fail;
+begin
+  StartProgram(false);
+  Add([
+  'generic function Fly<T>(a: Fly<word>): T;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('Wrong number of parameters specified for call to "function Fly<>(untyped)"',nWrongNumberOfParametersForCallTo);
+end;
+
+procedure TTestResolveGenerics.TestGenProc_BackRef3Fail;
+begin
+  StartProgram(false);
+  Add([
+  'generic function Fly<T>(a: Fly<T>): T;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('Wrong number of parameters specified for call to "function Fly<>(untyped)"',nWrongNumberOfParametersForCallTo);
 end;
 
 initialization

@@ -23,6 +23,7 @@ type
     Procedure TestGen_Class_TList;
     Procedure TestGen_ClassAncestor;
     Procedure TestGen_TypeInfo;
+    // ToDo: TBird, TBird<T>, TBird<S,T>
 
     // generic external class
     procedure TestGen_ExtClass_Array;
@@ -31,6 +32,14 @@ type
     Procedure TestGen_InlineSpec_Constructor;
     Procedure TestGen_CallUnitImplProc;
     Procedure TestGen_IntAssignTemplVar;
+    // ToDo: TBird<word>(o).field:=3;
+
+    // generic helper
+    // ToDo: helper for gen array: TArray<word>.Fly(aword);
+
+    // generic functions
+    // ToDo: Fly<word>(3);
+    // ToDo: inference Fly(3);
   end;
 
 implementation
