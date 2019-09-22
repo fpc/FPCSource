@@ -6365,6 +6365,7 @@ function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement;
   ): TPasProcedure;
 var
   NameParts: TProcedureNameParts;
+  NamePos: TPasSourcePos;
 
   function ExpectProcName: string;
   { Simple procedure:
@@ -6388,6 +6389,7 @@ var
     Part: TProcedureNamePart;
   begin
     Result:=ExpectIdentifier;
+    NamePos:=CurSourcePos;
     Cnt:=1;
     repeat
       NextToken;
@@ -6397,6 +6399,7 @@ var
           begin
           inc(Cnt);
           CurName:=ExpectIdentifier;
+          NamePos:=CurSourcePos;
           Result:=Result+'.'+CurName;
           if NameParts<>nil then
             begin
@@ -6476,12 +6479,14 @@ begin
       if (ot=otUnknown) then
         ParseExc(nErrUnknownOperatorType,SErrUnknownOperatorType,[CurTokenString]);
       Name:=OperatorNames[Ot];
+      NamePos:=CurTokenPos;
       end;
     ptAnonymousProcedure,ptAnonymousFunction:
       begin
       Name:='';
       if MustBeGeneric then
         ParseExcTokenError('generic'); // inconsistency
+      NamePos:=CurTokenPos;
       end
     else
       Name:=ExpectProcName;
@@ -6490,7 +6495,7 @@ begin
     if Name<>'' then
       Parent:=CheckIfOverLoaded(Parent,Name);
     Result := TPasProcedure(Engine.CreateElement(PC, Name, Parent, AVisibility,
-                                                 CurSourcePos, NameParts));
+                                                 NamePos, NameParts));
     if NameParts<>nil then
       begin
       if Result.NameParts=nil then

@@ -5097,7 +5097,7 @@ var
   end;
 
 begin
-  writeln('TPasResolver.OnFindProc START ',El.Name,':',GetElementTypeName(El),' itself=',El=Data^.Proc);
+  //writeln('TPasResolver.OnFindProc START ',El.Name,':',GetElementTypeName(El),' itself=',El=Data^.Proc);
   if not (El is TPasProcedure) then
     begin
     // identifier is not a proc
@@ -8974,7 +8974,6 @@ begin
     DeclTemplates:=GetProcTemplateTypes(DeclProc);
     if ImplTemplates<>nil then
       begin
-        writeln('AAA1 TPasResolver.ReplaceProcScopeImplArgsWithDeclArgs DeclProc=',DeclProc.Name,' ImplProc=',ImplProc.Name,' ',ImplTemplates.Count);
       if (DeclTemplates=nil) or (ImplTemplates.Count<>DeclTemplates.Count) then
         RaiseNotYetImplemented(20190912153602,ImplProc); // inconsistency
       for i:=0 to ImplTemplates.Count-1 do
@@ -15877,8 +15876,12 @@ var
       begin
       {$IF defined(VerbosePasResolver) or defined(VerbosePas2JS)}
       writeln('InsertBehind Generic=',GetObjName(GenericEl),' Last=',GetObjName(Last));
+      //for i:=0 to List.Count-1 do writeln('  ',GetObjName(TObject(List[i])));
       {$ENDIF}
-      RaiseNotYetImplemented(20190826150507,El);
+      if GenericEl is TPasProcedure then
+        i:=List.Count-1
+      else
+        RaiseNotYetImplemented(20190826150507,El);
       end;
     List.Insert(i+1,NewEl);
   end;
