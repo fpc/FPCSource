@@ -458,7 +458,8 @@ type
     procedure ParseProcAsmBlock(Parent: TProcedureBody);
     // Function/Procedure declaration
     function ParseProcedureOrFunctionDecl(Parent: TPasElement;
-      ProcType: TProcType; MustBeGeneric: boolean; AVisibility: TPasMemberVisibility = VisDefault): TPasProcedure;
+      ProcType: TProcType; MustBeGeneric: boolean;
+      AVisibility: TPasMemberVisibility = VisDefault): TPasProcedure;
     procedure ParseArgList(Parent: TPasElement;
       Args: TFPList; // list of TPasArgument
       EndToken: TToken);
@@ -3441,7 +3442,7 @@ var
   ExpEl: TPasExportSymbol;
   PropEl : TPasProperty;
   PT : TProcType;
-  ok: Boolean;
+  ok, MustBeGeneric: Boolean;
   Proc: TPasProcedure;
   Attr: TPasAttributes;
   CurEl: TPasElement;
@@ -3524,23 +3525,25 @@ begin
       SetBlock(declProperty);
     tkProcedure, tkFunction, tkConstructor, tkDestructor, tkOperator:
       begin
+      MustBeGeneric:=(not (msDelphi in CurrentModeswitches)) and (GetPrevToken=tkgeneric);
       SetBlock(declNone);
       SaveComments;
       pt:=GetProcTypeFromToken(CurToken);
-      AddProcOrFunction(Declarations, ParseProcedureOrFunctionDecl(Declarations, pt, false));
+      AddProcOrFunction(Declarations, ParseProcedureOrFunctionDecl(Declarations, pt, MustBeGeneric));
       end;
     tkClass:
       begin
-        SetBlock(declNone);
-        SaveComments;
-        NextToken;
-        If CurToken in [tkprocedure,tkFunction,tkConstructor,tkDestructor] then
-          begin
-          pt:=GetProcTypeFromToken(CurToken,True);
-          AddProcOrFunction(Declarations,ParseProcedureOrFunctionDecl(Declarations, pt, false));
-          end
-        else
-          CheckToken(tkprocedure);
+      MustBeGeneric:=(not (msDelphi in CurrentModeswitches)) and (GetPrevToken=tkgeneric);
+      SetBlock(declNone);
+      SaveComments;
+      NextToken;
+      If CurToken in [tkprocedure,tkFunction,tkConstructor,tkDestructor] then
+        begin
+        pt:=GetProcTypeFromToken(CurToken,True);
+        AddProcOrFunction(Declarations,ParseProcedureOrFunctionDecl(Declarations, pt, MustBeGeneric));
+        end
+      else
+        CheckToken(tkprocedure);
       end;
     tkIdentifier:
       begin
@@ -3657,6 +3660,8 @@ begin
       NextToken;
       if (CurToken in [tkprocedure,tkfunction]) then
         begin
+        if msDelphi in CurrentModeswitches then
+          ParseExcSyntaxError; // inconsistency, tkGeneric should be in Scanner.NonTokens
         SetBlock(declNone);
         UngetToken;
         end;
@@ -6441,6 +6446,8 @@ var
       else
         break;
     until false;
+    if (NameParts=nil) and MustBeGeneric then
+      CheckToken(tkLessThan);
     UngetToken;
   end;
 

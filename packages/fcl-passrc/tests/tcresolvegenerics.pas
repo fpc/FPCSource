@@ -122,8 +122,9 @@ type
     procedure TestGenProc_Function;
     procedure TestGenProc_FunctionDelphi;
     procedure TestGenProc_OverloadDuplicate;
+    procedure TestGenProc_MissingTemplatesFail;
     procedure TestGenProc_Forward;
-    //procedure TestGenProc_External;
+    procedure TestGenProc_External;
     //procedure TestGenProc_UnitIntf;
     procedure TestGenProc_BackRef1Fail;
     procedure TestGenProc_BackRef2Fail;
@@ -1749,12 +1750,24 @@ begin
   CheckResolverException('Duplicate identifier "Fly" at afile.pp(2,25)',nDuplicateIdentifier);
 end;
 
+procedure TTestResolveGenerics.TestGenProc_MissingTemplatesFail;
+begin
+  StartProgram(false);
+  Add([
+  'generic procedure Run;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckParserException('Expected "<"',nParserExpectTokenError);
+end;
+
 procedure TTestResolveGenerics.TestGenProc_Forward;
 begin
   StartProgram(false);
   Add([
   'generic procedure Fly<T>(a: T); forward;',
-  'generic procedure Run;',
+  'procedure Run;',
   'begin',
   '  specialize Fly<word>(3);',
   'end;',
@@ -1762,6 +1775,21 @@ begin
   'var i: T;',
   'begin',
   '  i:=a;',
+  'end;',
+  'begin',
+  '  specialize Fly<boolean>(true);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_External;
+begin
+  StartProgram(false);
+  Add([
+  'generic function Fly<T>(a: T): T; external name ''flap'';',
+  'procedure Run;',
+  'begin',
+  '  specialize Fly<word>(3);',
   'end;',
   'begin',
   '  specialize Fly<boolean>(true);',
