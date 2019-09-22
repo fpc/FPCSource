@@ -122,7 +122,7 @@ type
     procedure TestGenProc_Function;
     procedure TestGenProc_FunctionDelphi;
     procedure TestGenProc_OverloadDuplicate;
-    procedure TestGenProc_Forward; // ToDo
+    procedure TestGenProc_Forward;
     //procedure TestGenProc_External;
     //procedure TestGenProc_UnitIntf;
     procedure TestGenProc_BackRef1Fail;
@@ -1751,14 +1751,13 @@ end;
 
 procedure TTestResolveGenerics.TestGenProc_Forward;
 begin
-  exit;
   StartProgram(false);
   Add([
   'generic procedure Fly<T>(a: T); forward;',
-  //'generic procedure Run;',
-  //'begin',
-  //'  specialize Fly<word>(3);',
-  //'end;',
+  'generic procedure Run;',
+  'begin',
+  '  specialize Fly<word>(3);',
+  'end;',
   'generic procedure Fly<T>(a: T);',
   'var i: T;',
   'begin',

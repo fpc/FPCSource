@@ -6554,7 +6554,7 @@ var
   i: Integer;
   Body: TProcedureBody;
   SubEl: TPasElement;
-  SubProcScope, ProcScope: TPasProcedureScope;
+  SubProcScope, ProcScope, DeclProcScope: TPasProcedureScope;
   SpecializedItem: TPRSpecializedItem;
 begin
   {$IFDEF VerbosePasResolver}
@@ -6600,6 +6600,11 @@ begin
       ProcScope.GroupScope:=nil;
       end;
     ProcScope.GenericStep:=psgsImplementationParsed;
+    if ProcScope.DeclarationProc<>nil then
+      begin
+      DeclProcScope:=ProcScope.DeclarationProc.CustomData as TPasProcedureScope;
+      DeclProcScope.GenericStep:=psgsImplementationParsed;
+      end;
     end
   else if ProcScope.GroupScope<>nil then
     RaiseInternalError(20190122142142,GetObjName(Proc));
@@ -6924,7 +6929,7 @@ begin
             DeclProcScope.ImplProc:=Proc;
             ProcScope.DeclarationProc:=DeclProc;
             // remove ImplProc from scope
-            (ParentScope as TPasIdentifierScope).RemoveLocalIdentifier(Proc);
+            ParentScope.RemoveLocalIdentifier(Proc);
             // replace arguments with declaration arguments
             ReplaceProcScopeImplArgsWithDeclArgs(ProcScope);
             exit;
@@ -8969,6 +8974,7 @@ begin
     DeclTemplates:=GetProcTemplateTypes(DeclProc);
     if ImplTemplates<>nil then
       begin
+        writeln('AAA1 TPasResolver.ReplaceProcScopeImplArgsWithDeclArgs DeclProc=',DeclProc.Name,' ImplProc=',ImplProc.Name,' ',ImplTemplates.Count);
       if (DeclTemplates=nil) or (ImplTemplates.Count<>DeclTemplates.Count) then
         RaiseNotYetImplemented(20190912153602,ImplProc); // inconsistency
       for i:=0 to ImplTemplates.Count-1 do
@@ -12061,6 +12067,7 @@ begin
   IsClassConDestructor:=(El.ClassType=TPasClassConstructor)
       or (El.ClassType=TPasClassDestructor);
 
+  ClassOrRecType:=nil;
   if El.CustomData is TPasProcedureScope then
     begin
     // adding a specialized implementation proc
@@ -12068,19 +12075,20 @@ begin
     if ProcScope.DeclarationProc<>nil then
       TypeParams:=ProcScope.DeclarationProc.NameParts;
     ClassOrRecScope:=ProcScope.ClassRecScope;
-    if ClassOrRecScope=nil then
-      RaiseNotYetImplemented(20190804175307,El);
-    ClassOrRecType:=TPasMembersType(ClassOrRecScope.Element);
-    if GetTypeParameterCount(ClassOrRecType)>0 then
-      RaiseNotYetImplemented(20190804175518,El);
-    if ProcScope.GroupScope<>nil then
-      RaiseNotYetImplemented(20190804175451,El);
-    if (not HasDot) and IsClassConDestructor then
+    if ClassOrRecScope<>nil then
       begin
-      if El.ClassType=TPasClassConstructor then
-        AddClassConDestructor(ClassOrRecScope,TPasProcedure(ClassOrRecScope.ClassConstructor))
-      else
-        AddClassConDestructor(ClassOrRecScope,TPasProcedure(ClassOrRecScope.ClassDestructor));
+      ClassOrRecType:=TPasMembersType(ClassOrRecScope.Element);
+      if GetTypeParameterCount(ClassOrRecType)>0 then
+        RaiseNotYetImplemented(20190804175518,El);
+      if ProcScope.GroupScope<>nil then
+        RaiseNotYetImplemented(20190804175451,El);
+      if (not HasDot) and IsClassConDestructor then
+        begin
+        if El.ClassType=TPasClassConstructor then
+          AddClassConDestructor(ClassOrRecScope,TPasProcedure(ClassOrRecScope.ClassConstructor))
+        else
+          AddClassConDestructor(ClassOrRecScope,TPasProcedure(ClassOrRecScope.ClassDestructor));
+        end;
       end;
 
     PushScope(ProcScope);
@@ -16268,7 +16276,21 @@ var
   SpecClassOrRecScope: TPasClassOrRecordScope;
   NewImplProcName, OldClassname: String;
   p, LastDotP: Integer;
+  SpecializedProcItem: TPRSpecializedProcItem;
+  SpecializedTypeItem: TPRSpecializedTypeItem;
+  Templates: TFPList;
 begin
+  SpecializedProcItem:=nil;
+  SpecializedTypeItem:=nil;
+  if SpecializedItem is TPRSpecializedProcItem then
+    // impl proc of a specialized forward proc
+    SpecializedProcItem:=TPRSpecializedProcItem(SpecializedItem)
+  else if SpecializedItem is TPRSpecializedTypeItem then
+    // method of a specialized class/record
+    SpecializedTypeItem:=TPRSpecializedTypeItem(SpecializedItem)
+  else
+    RaiseNotYetImplemented(20190922145050,SpecDeclProc);
+
   GenDeclProcScope:=TPasProcedureScope(GenDeclProc.CustomData);
   GenImplProc:=GenDeclProcScope.ImplProc;
   if GenImplProc=nil then
@@ -16293,18 +16315,17 @@ begin
   {$ENDIF}
 
   // create impl proc name
-  NewImplProcName:=GenImplProc.Name;
-
-  if SpecializedItem=nil then
+  if SpecializedTypeItem<>nil then
     begin
     // method of a specialized class/record
     if SpecClassOrRecScope=nil then
       RaiseNotYetImplemented(20190921221839,SpecDeclProc);
+    NewImplProcName:=GenImplProc.Name;
     p:=length(NewImplProcName);
     while (p>0) and (NewImplProcName[p]<>'.') do dec(p);
     if p=0 then
       RaiseNotYetImplemented(20190921221730,GenImplProc);
-    // has classname -> replace generic clasname with specialized classname
+    // has classname -> replace generic classname with specialized classname
     LastDotP:=p;
     while (p>1) and (NewImplProcName[p-1]<>'.') do dec(p);
     OldClassname:=copy(NewImplProcName,p,LastDotP-p);
@@ -16312,16 +16333,27 @@ begin
     if not SameText(OldClassname,GenClassOrRec.Name) then
       RaiseNotYetImplemented(20190814141833,GenImplProc);
     NewImplProcName:=LeftStr(NewImplProcName,p-1)+SpecClassOrRec.Name+copy(NewImplProcName,LastDotP,length(NewImplProcName));
+    end
+  else
+    begin
+    // use classname of GenImplProc and name of SpecDeclProc
+    OldClassname:=GenImplProc.Name;
+    p:=length(OldClassname);
+    while (p>0) and (OldClassname[p]<>'.') do dec(p);
+    if p>0 then
+      NewImplProcName:=LeftStr(OldClassname,p)+SpecDeclProc.Name
+    else
+      NewImplProcName:=SpecDeclProc.Name;
     end;
 
   // create impl proc
   NewClass:=TPTreeElement(GenImplProc.ClassType);
   SpecImplProc:=TPasProcedure(NewClass.Create(NewImplProcName,GenImplProc.Parent));
   SpecDeclProcScope.ImplProc:=SpecImplProc;
-  if SpecializedItem is TPRSpecializedProcItem then
-    TPRSpecializedProcItem(SpecializedItem).ImplProc:=SpecImplProc
+  if SpecializedProcItem<>nil then
+    SpecializedProcItem.ImplProc:=SpecImplProc
   else
-    TPRSpecializedTypeItem(SpecializedItem).ImplProcs.Add(SpecImplProc);
+    SpecializedTypeItem.ImplProcs.Add(SpecImplProc);
 
   // create impl proc scope
   SpecImplProcScope:=TPasProcedureScope(CreateScope(SpecImplProc,FScopeClass_Proc));
@@ -16331,9 +16363,20 @@ begin
   SpecImplProcScope.BoolSwitches:=GenImplProcScope.BoolSwitches;
   SpecImplProcScope.VisibilityContext:=SpecClassOrRec;
   SpecImplProcScope.ClassRecScope:=SpecClassOrRecScope;
+  if GenDeclProcScope.SelfArg<>nil then
+    RaiseNotYetImplemented(20190922154603,GenImplProc);
+
+  if SpecializedProcItem<>nil then
+    begin
+    Templates:=GetProcTemplateTypes(GenDeclProc);
+    AddSpecializedTemplateIdentifiers(Templates,SpecializedItem,SpecImplProcScope,
+      false);
+    end;
 
   // specialize props
-  SpecializeElement(GenImplProc,SpecImplProc);
+  SpecializePasElementProperties(GenImplProc,SpecImplProc);
+  AddProcedure(SpecImplProc,nil);
+  SpecializeProcedure(GenImplProc,SpecImplProc,SpecializedItem);
 end;
 
 procedure TPasResolver.SpecializeElement(GenEl, SpecEl: TPasElement);
@@ -16744,7 +16787,13 @@ var
   GenBody: TProcedureBody;
 begin
   GenProcScope:=GenEl.CustomData as TPasProcedureScope;
-  if SpecializedItem<>nil then
+  SpecProcScope:=SpecEl.CustomData as TPasProcedureScope;
+  if SpecProcScope<>nil then
+    begin
+    if TopScope<>SpecProcScope then
+      RaiseNotYetImplemented(20190920194151,SpecEl);
+    end
+  else if SpecializedItem<>nil then
     begin
     // specialized generic/parametrized procedure
     SpecProcScope:=TPasProcedureScope(PushScope(SpecEl,ScopeClass_Procedure));
@@ -16766,12 +16815,7 @@ begin
     AddSpecializedTemplateIdentifiers(Templates,SpecializedItem,SpecProcScope,true);
     end
   else
-    begin
-    // specialized procedure of a specialized parent
-    SpecProcScope:=SpecEl.CustomData as TPasProcedureScope;
-    if TopScope<>SpecProcScope then
-      RaiseNotYetImplemented(20190920194151,SpecEl);
-    end;
+    RaiseNotYetImplemented(20190922153918,SpecEl);
   Include(SpecProcScope.Flags,ppsfIsSpecialized);
 
   if GenEl.PublicName<>nil then
