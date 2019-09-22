@@ -538,9 +538,8 @@ unit cgcpu;
         tmpreg: TRegister;
       begin
         { allocate PIC register }
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) and
-           (pi_needs_got in current_procinfo.flags) then
+        if (tf_pic_uses_got in target_info.flags) and
+          (pi_needs_got in current_procinfo.flags) then
           begin
             if not (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
               begin
