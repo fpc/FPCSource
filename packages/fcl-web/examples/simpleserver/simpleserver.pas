@@ -132,7 +132,7 @@ begin
     EHTTP.CreateFmt('Invalid proxy definition: %s',[aProxyDef]);
   N:=Copy(aProxyDef,1,P-1);
   URL:=Copy(aProxyDef,P+1,Length(aProxyDef));
-  ProxyManager.RegisterLocation(N,URL);
+  ProxyManager.RegisterLocation(N,URL).AppendPathInfo:=True;
 end;
 
 
@@ -177,7 +177,7 @@ begin
         begin
         L.GetNameValue(I,P,U);
         if (P<>'') and (U<>'') then
-          ProxyManager.RegisterLocation(P,U);
+          ProxyManager.RegisterLocation(P,U).AppendPathInfo:=true;
         end;
     finally
       L.Free;
