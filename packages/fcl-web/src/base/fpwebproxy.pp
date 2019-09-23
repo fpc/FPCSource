@@ -239,7 +239,7 @@ end;
 procedure TProxyWebModule.ClientToResponse(T : TFPHTTPClient; aResponse : TResponse);
 
 Var
-  N,H : String;
+  N,H,V : String;
   HT : THeader;
 
 begin
@@ -249,8 +249,9 @@ begin
     HT:=HeaderType(H);
     if not (HT in [hhContentLength]) then
       begin
+      V:=Trim(ExtractWord(2,N,[':']));
       {$IFDEF DEBUGPROXY}Writeln('Returning header: ',N);{$ENDIF}
-      AResponse.CustomHeaders.Add(N);
+      AResponse.SetCustomHeader(H,V);
       end;
     end;
   AResponse.Code:=T.ResponseStatusCode;
@@ -268,9 +269,12 @@ begin
   URL:=L.URL;
   if L.AppendPathInfo then
     begin
-    P:=ARequest.PathInfo;
-    if (P<>'') then
+    P:=ARequest.GetNextPathInfo;
+    While P<>'' do
+      begin
       URL:=IncludeHTTPPathDelimiter(URL)+P;
+      P:=ARequest.GetNextPathInfo;
+      end;
     end;
   if (ARequest.QueryString<>'') then
     URL:=URL+'?'+ARequest.QueryString;
