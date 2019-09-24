@@ -823,7 +823,7 @@ var
   i, allocsize,
   movesize  : ptruint;
   pl : pdword;
-  pp : pheap_mem_info;
+  pp,prevpp{$ifdef EXTRA},ppv{$endif} : pheap_mem_info;
   oldsize,
   oldextrasize,
   oldexactsize : ptruint;
@@ -885,6 +885,7 @@ begin
    inc(allocsize,tail_size);
   { Try to resize the block, if not possible we need to do a
     getmem, move data, freemem }
+  prevpp:=pp;
   if not SysTryResizeMem(pp,allocsize) then
    begin
      { get a new block }
@@ -905,6 +906,45 @@ begin
      p:=newp;
      traceReAllocMem := newp;
      exit;
+   end
+  else
+   begin
+     if (pp<>prevpp) then
+       begin
+         { We need to update the previous/next chains }
+         if assigned(pp^.previous) then
+           pp^.previous^.next:=pp;
+         if assigned(pp^.next) then
+           pp^.next^.previous:=pp;
+         if prevpp=loc_info^.heap_mem_root then
+           loc_info^.heap_mem_root:=pp;
+{$ifdef EXTRA}
+         { remove prevpp from prev_valid chain }
+         ppv:=loc_info^.heap_valid_last;
+         if (ppv=prevpp) then
+           loc_info^.heap_valid_last:=pp^.prev_valid
+         else
+           begin
+             while assigned(ppv) do
+               begin
+                 if (ppv^.prev_valid=prevpp) then
+                   begin
+                     ppv^.prev_valid:=pp^.prev_valid;
+                     if prevpp=loc_info^.heap_valid_first then
+                       loc_info^.heap_valid_first:=ppv;
+                     ppv:=nil;
+                   end
+                 else
+                   ppv:=ppv^.prev_valid;
+               end;
+           end;
+         { Reinsert new value in last position }
+         pp^.prev_valid:=loc_info^.heap_valid_last;
+         loc_info^.heap_valid_last:=pp;
+         if not assigned(loc_info^.heap_valid_first) then
+           loc_info^.heap_valid_first:=pp;
+{$endif EXTRA}
+       end;
    end;
 { Recreate the info block }
   pp^.sig:=longword(AllocateSig);
