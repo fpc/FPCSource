@@ -96,6 +96,13 @@ Var
           CurrentTM.ReleaseThreadVars;
       end;
 
+
+    procedure InitThread;
+      begin
+        { we should find a reasonable value here }
+        InitThread($1000000);
+      end;
+
 {*****************************************************************************
                             Overloaded functions
 *****************************************************************************}
