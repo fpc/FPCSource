@@ -666,7 +666,7 @@ implementation
         if assigned(objreloc) then
           begin
             objreloc.size:=len;
-            if reltype in [RELOC_RELATIVE{$ifdef x86},RELOC_PLT32{$endif}{$ifdef x86_64},RELOC_GOTPCREL,RELOC_TLSGD{$endif}] then
+            if reltype in [RELOC_RELATIVE{$ifdef x86},RELOC_PLT32{$endif}{$ifdef x86_64},RELOC_TLSGD,RELOC_GOTPCREL{$endif}] then
               dec(data,len);
             if ElfTarget.relocs_use_addend then
               begin
@@ -785,8 +785,8 @@ implementation
         else
           InternalError(2012111801);
         end;
-        { External symbols must be NOTYPE in relocatable files }
-        if (objsym.bind<>AB_EXTERNAL) or (kind<>esk_obj) then
+        { External symbols must be NOTYPE in relocatable files except if they are TLS symbols }
+        if (objsym.bind<>AB_EXTERNAL) or (kind<>esk_obj) or (objsym.typ=AT_TLS) then
           begin
             case objsym.typ of
               AT_FUNCTION :

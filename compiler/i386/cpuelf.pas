@@ -112,6 +112,13 @@ implementation
           result:=R_386_PLT32;
         RELOC_GOTOFF:
           result:=R_386_GOTOFF;
+        RELOC_NTPOFF:
+          if objrel.size=4 then
+            result:=R_386_TLS_LE
+          else
+            InternalError(2019092101);
+        RELOC_TLSGD:
+          result:=R_386_TLS_GD;
       else
         result:=0;
         InternalError(2012082301);

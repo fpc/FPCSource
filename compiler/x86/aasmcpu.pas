@@ -1510,11 +1510,11 @@ implementation
                 end;
               top_ref :
                 begin
-                  if (ref^.refaddr in [addr_no{$ifdef x86_64},addr_tpoff{$endif x86_64}])
+                  if (ref^.refaddr in [addr_no{$ifdef x86_64},addr_tpoff{$endif x86_64}{$ifdef i386},addr_ntpoff{$endif i386}])
 {$ifdef i386}
                      or (
-                         (ref^.refaddr in [addr_pic]) and
-                         (ref^.base<>NR_NO)
+                         (ref^.refaddr in [addr_pic,addr_tlsgd]) and
+                         ((ref^.base<>NR_NO) or (ref^.index<>NR_NO))
                         )
 {$endif i386}
 {$ifdef x86_64}
@@ -3577,6 +3577,18 @@ implementation
                       currabsreloc:=RELOC_GOT32;
                       currabsreloc32:=RELOC_GOT32;
                     end
+                  else if oper[opidx]^.ref^.refaddr=addr_ntpoff then
+                    begin
+                      currrelreloc:=RELOC_NTPOFF;
+                      currabsreloc:=RELOC_NTPOFF;
+                      currabsreloc32:=RELOC_NTPOFF;
+                    end
+                  else if oper[opidx]^.ref^.refaddr=addr_tlsgd then
+                    begin
+                      currrelreloc:=RELOC_TLSGD;
+                      currabsreloc:=RELOC_TLSGD;
+                      currabsreloc32:=RELOC_TLSGD;
+                    end
                   else
 {$endif i386}
 {$ifdef x86_64}
@@ -4565,6 +4577,10 @@ implementation
                          if (oper[opidx]^.ref^.refaddr=addr_pic) and
                             (tf_pic_uses_got in target_info.flags) then
                            currabsreloc:=RELOC_GOT32
+                         else if oper[opidx]^.ref^.refaddr=addr_tlsgd then
+                           currabsreloc:=RELOC_TLSGD
+                         else if oper[opidx]^.ref^.refaddr=addr_ntpoff then
+                           currabsreloc:=RELOC_NTPOFF
                          else
 {$endif i386}
 {$ifdef i8086}

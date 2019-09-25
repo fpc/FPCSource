@@ -68,6 +68,8 @@ interface
          RELOC_GOTPC,
          RELOC_GOT32,
          RELOC_PLT32,
+         RELOC_TLSGD,
+         RELOC_NTPOFF,
 {$endif i386}
 {$ifdef i8086}
          RELOC_ABSOLUTE32,
@@ -1410,6 +1412,9 @@ implementation
             { The weak bit could have been removed from asmsym. }
             if (asmsym.bind=AB_EXTERNAL) and (result.bind=AB_WEAK_EXTERNAL) then
               result.bind:=AB_EXTERNAL;
+            { the TLS type needs to be inherited }
+            if asmsym.typ=AT_TLS then
+              result.typ:=AT_TLS;
           end
         else
           result:=nil;
