@@ -52,6 +52,7 @@ Type
   TMicroRequest = Class(TRequest)
   Private
     FHandler : TRequestHandler;
+    FMyQueryString : String;
     // Return amount of data handled
     Procedure DoSetHeader(K,V : String);
     Procedure AddQueryField(K,V : String);
@@ -321,11 +322,19 @@ begin
 end;
 
 procedure TMicroRequest.AddQueryField(K, V: String);
+
+Var
+  S : String;
+
 begin
   if V<>'' then
     QueryFields.Values[K]:=V
   else
     QueryFields.Add(K+'=');
+  S:=FMyQueryString;
+  if S<>'' then
+    S:=S+'&';
+  FMyQueryString:=S+K+'='+HTTPEncode(V);
 end;
 
 function TMicroRequest.AddData(Data: PAnsiChar; DataSize: Size_t): Size_t;
@@ -360,12 +369,7 @@ Var
   I : integer;
 
 begin
-  S:=URL;
-  I:=Pos('?',S);
-  if (I<>0) then
-    SetHTTPVariable(hvQuery,Copy(S,I+1,Length(S)-I))
-  else
-    MHD_get_connection_values(FHandler.FConnection, MHD_GET_ARGUMENT_KIND,@GetRequestData,Self);
+  MHD_get_connection_values(FHandler.FConnection, MHD_GET_ARGUMENT_KIND,@GetRequestData,Self);
   MHD_get_connection_values(FHandler.FConnection, MHD_HEADER_KIND,@GetRequestData,Self);
   for N in FHandler.WebHandler.ExtraHeaders do
     begin
@@ -373,17 +377,19 @@ begin
     If P<>Nil then
       SetCustomHeader(N,P);
     end;
+  S:=URL;
+  I:=Pos('?',S);
   if (I>0) then
-    begin
     S:=Copy(S,1,I-1);
-    end;
   If (Length(S)>1) and (S[1]<>'/') then
     S:='/'+S
   else if S='/' then
     S:='';
   PathInfo:=S;
-
   Inherited;
+  // We set this afterwards, otherwise double processing
+  if FMyQueryString<>'' then
+    SetHTTPVariable(hvQuery,FMyQueryString)
 end;
 
 { ---------------------------------------------------------------------
