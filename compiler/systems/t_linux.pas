@@ -458,7 +458,7 @@ Var
   s,s1,s2      : TCmdStr;
   found1,
   found2       : boolean;
-  linksToSharedLibFiles : boolean;
+  linksToSharedLibFiles, libraryadded: boolean;
 begin
   result:=False;
 { set special options for some targets }
@@ -587,22 +587,29 @@ begin
             (TCmdStrListItem(SharedLibFiles.First).Str<>'c') or
             reorder then
            begin
+             libraryadded:=false;
              Add('INPUT(');
              While not SharedLibFiles.Empty do
-              begin
-                S:=SharedLibFiles.GetFirst;
-                if (s<>'c') or reorder then
-                 begin
-                   i:=Pos(target_info.sharedlibext,S);
-                   if i>0 then
-                    Delete(S,i,255);
-                   Add('-l'+s);
-                 end
-                else
-                 begin
-                  linklibc:=true;
-              end;
-              end;
+               begin
+                 S:=SharedLibFiles.GetFirst;
+                 if (s<>'c') or reorder then
+                  begin
+                    i:=Pos(target_info.sharedlibext,S);
+                    if i>0 then
+                     Delete(S,i,255);
+                    Add('-l'+s);
+                    libraryadded:=true;
+                  end
+                 else
+                   linklibc:=true;
+               end;
+             { link explicitly against the dyn. linker in case we are using section threadvars and
+               if we link against any other library. We need __tls_get_addr from the dyn. linker in this case.
+               This does not hurt as in case we use a dyn. library we depend on the dyn. linker anyways.
+
+               All this does not apply if we link anyways against libc }
+             if libraryadded and not(linklibc) and not(isdll) and (tf_section_threadvars in target_info.flags) then
+               Add('-l:'+ExtractFileName(defdynlinker));
              Add(')');
            end
          else
