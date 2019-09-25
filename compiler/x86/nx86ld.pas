@@ -100,8 +100,6 @@ implementation
                       end;
                     tlsm_general:
                       begin
-                        if not(cs_create_pic in current_settings.moduleswitches) then
-                          Internalerror(2018110701);
                         include(current_procinfo.flags,pi_needs_got);
                         reference_reset(href,0,[]);
                         location.reference.index:=current_procinfo.got;
@@ -136,9 +134,6 @@ implementation
                       end;
                     tlsm_general:
                       begin
-                        if not(cs_create_pic in current_settings.moduleswitches) then
-                          Internalerror(2019012001);
-
                         current_asmdata.CurrAsmList.concat(tai_const.Create_8bit($66));
                         reference_reset(href,0,[]);
                         location.reference.base:=NR_RIP;
