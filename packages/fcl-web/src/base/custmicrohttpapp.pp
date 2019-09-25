@@ -630,7 +630,7 @@ Var
   F,P : Integer;
 
 begin
-  F:=OptionsToFlags or MHD_USE_DEBUG;
+  F:=OptionsToFlags;
   P:=Port;
   Result:= MHD_start_daemon(F,P,
     @AcceptCallBack, Self,
