@@ -3890,6 +3890,7 @@ J*3CTinitlocals_          Initialize local variables that trigger a JVM bytecode
 J*3CTlowercaseprocstart_  Lowercase the first character of procedure/function/method names
 A*3CTthumbinterworking_ Generate Thumb interworking-safe code if possible
 J*2Cv_Var/out parameter copy-out checking
+A*2CV<x>_Set section threadvar model to <x>
 **2CX_Create also smartlinked library
 **1d<x>_Defines the symbol <x>
 **1D_Generate a DEF file

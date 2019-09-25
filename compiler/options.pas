@@ -1481,9 +1481,20 @@ begin
                          Else
                            include(init_settings.localswitches,cs_check_var_copyout)
                        else
-                         IllegalPara(opt)
+                         IllegalPara(opt);
+                    'V':
+                      begin
+                        s:=upper(copy(more,j+1,length(more)-j));
+                        if s='GENERAL' then
+                          init_settings.tlsmodel:=tlsm_general
+                        else if s='LOCAL' then
+                          init_settings.tlsmodel:=tlsm_local
+                        else
+                          IllegalPara(opt);
+                        break;
+                      end;
                     else
-                       IllegalPara(opt);
+                      IllegalPara(opt);
                   end;
                   inc(j);
                 end;
@@ -2490,7 +2501,7 @@ begin
 {$push}
 {$warn 6018 off} { Unreachable code due to compile time evaluation }
                         if (target_info.system in systems_embedded) and
-                                                         ControllerSupport then
+                          ControllerSupport then
                           begin
                             s:=upper(copy(more,j+1,length(more)-j));
                             if not(SetControllerType(s,init_settings.controllertype)) then
