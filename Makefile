@@ -470,6 +470,11 @@ endif
 ifneq ($(OPT),)
 OPTNEW+=$(OPT)
 endif
+ifneq ($(findstring $(OS_TARGET),linux),)
+ifneq ($(findstring $(CPU_TARGET),i386),)
+override OPTNEW+=-CVgeneral
+endif
+endif
 CLEANOPTS=FPC=$(PPNEW)
 BUILDOPTS=FPC=$(PPNEW) FPCFPMAKE=$(FPCFPMAKENEW) RELEASE=1 'OPT=$(OPTNEW)'
 INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
