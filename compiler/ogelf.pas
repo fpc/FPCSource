@@ -401,6 +401,8 @@ implementation
           Ashflags:=Ashflags or SHF_EXECINSTR;
         if oso_write in aoptions then
           Ashflags:=Ashflags or SHF_WRITE;
+        if oso_threadvar in aoptions then
+          Ashflags:=Ashflags or SHF_TLS;
       end;
 
 
@@ -419,6 +421,8 @@ implementation
           include(aoptions,oso_write);
         if Ashflags and SHF_EXECINSTR<>0 then
           include(aoptions,oso_executable);
+        if Ashflags and SHF_TLS<>0 then
+          include(aoptions,oso_threadvar);
       end;
 
 
@@ -575,6 +579,15 @@ implementation
                 result:=secname+'.'+aname;
                 exit;
               end;
+
+            if atype=sec_threadvar then
+              begin
+                if (target_info.system in (systems_windows+systems_wince)) then
+                  secname:='.tls'
+                else if (target_info.system in systems_linux) then
+                  secname:='.tbss';
+              end;
+
             if create_smartlink_sections and (aname<>'') then
               begin
                 case aorder of
@@ -653,7 +666,7 @@ implementation
         if assigned(objreloc) then
           begin
             objreloc.size:=len;
-            if reltype in [RELOC_RELATIVE{$ifdef x86},RELOC_PLT32{$endif}{$ifdef x86_64},RELOC_GOTPCREL{$endif}] then
+            if reltype in [RELOC_RELATIVE{$ifdef x86},RELOC_PLT32{$endif}{$ifdef x86_64},RELOC_GOTPCREL,RELOC_TLSGD{$endif}] then
               dec(data,len);
             if ElfTarget.relocs_use_addend then
               begin

@@ -1510,7 +1510,7 @@ implementation
                 end;
               top_ref :
                 begin
-                  if (ref^.refaddr=addr_no)
+                  if (ref^.refaddr in [addr_no{$ifdef x86_64},addr_tpoff{$endif x86_64}])
 {$ifdef i386}
                      or (
                          (ref^.refaddr in [addr_pic]) and
@@ -1519,7 +1519,7 @@ implementation
 {$endif i386}
 {$ifdef x86_64}
                      or (
-                         (ref^.refaddr in [addr_pic,addr_pic_no_got]) and
+                         (ref^.refaddr in [addr_pic,addr_pic_no_got,addr_tlsgd]) and
                          (ref^.base<>NR_NO)
                         )
 {$endif x86_64}
@@ -3592,6 +3592,18 @@ implementation
                       currabsreloc:=RELOC_RELATIVE;
                       currabsreloc32:=RELOC_RELATIVE;
                     end
+                  else if oper[opidx]^.ref^.refaddr=addr_tpoff then
+                    begin
+                      currrelreloc:=RELOC_TPOFF;
+                      currabsreloc:=RELOC_TPOFF;
+                      currabsreloc32:=RELOC_TPOFF;
+                    end
+                  else if oper[opidx]^.ref^.refaddr=addr_tlsgd then
+                    begin
+                      currrelreloc:=RELOC_TLSGD;
+                      currabsreloc:=RELOC_TLSGD;
+                      currabsreloc32:=RELOC_TLSGD;
+                    end
                   else
 {$endif x86_64}
                     begin
@@ -3630,22 +3642,22 @@ implementation
        procedure objdata_writereloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
          begin
 {$ifdef i386}
-               { Special case of '_GLOBAL_OFFSET_TABLE_'
-                 which needs a special relocation type R_386_GOTPC }
-               if assigned (p) and
-                  (p.name='_GLOBAL_OFFSET_TABLE_') and
-                  (tf_pic_uses_got in target_info.flags) then
-                 begin
-                   { nothing else than a 4 byte relocation should occur
-                     for GOT }
-                   if len<>4 then
-                     Message1(asmw_e_invalid_opcode_and_operands,GetString);
-                   Reloctype:=RELOC_GOTPC;
-                   { We need to add the offset of the relocation
-                     of _GLOBAL_OFFSET_TABLE symbol within
-                     the current instruction }
-                   inc(data,objdata.currobjsec.size-insoffset);
-                 end;
+           { Special case of '_GLOBAL_OFFSET_TABLE_'
+             which needs a special relocation type R_386_GOTPC }
+           if assigned (p) and
+              (p.name='_GLOBAL_OFFSET_TABLE_') and
+              (tf_pic_uses_got in target_info.flags) then
+             begin
+               { nothing else than a 4 byte relocation should occur
+                 for GOT }
+               if len<>4 then
+                 Message1(asmw_e_invalid_opcode_and_operands,GetString);
+               Reloctype:=RELOC_GOTPC;
+               { We need to add the offset of the relocation
+                 of _GLOBAL_OFFSET_TABLE symbol within
+                 the current instruction }
+               inc(data,objdata.currobjsec.size-insoffset);
+             end;
 {$endif i386}
            objdata.writereloc(data,len,p,Reloctype);
          end;
@@ -4534,6 +4546,10 @@ implementation
 {$ifdef x86_64}
                          if oper[opidx]^.ref^.refaddr=addr_pic then
                            currabsreloc:=RELOC_GOTPCREL
+                         else if oper[opidx]^.ref^.refaddr=addr_tlsgd then
+                           currabsreloc:=RELOC_TLSGD
+                         else if oper[opidx]^.ref^.refaddr=addr_tpoff then
+                           currabsreloc:=RELOC_TPOFF
                          else
                            if oper[opidx]^.ref^.base=NR_RIP then
                              begin

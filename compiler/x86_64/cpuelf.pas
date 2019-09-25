@@ -171,6 +171,15 @@ implementation
           result:=R_X86_64_GOTPCREL;
         RELOC_PLT32 :
           result:=R_X86_64_PLT32;
+        RELOC_TPOFF:
+          if objrel.size=8 then
+            result:=R_X86_64_TPOFF64
+          else if objrel.size=4 then
+            result:=R_X86_64_TPOFF32
+          else
+            InternalError(2019091701);
+        RELOC_TLSGD:
+          result:=R_X86_64_TLSGD
       else
         result:=0;
         InternalError(2012082302);

@@ -60,6 +60,8 @@ interface
          { PIC }
          RELOC_GOTPCREL,
          RELOC_PLT32,
+         RELOC_TLSGD,
+         RELOC_TPOFF,
 {$endif x86_64}
 {$ifdef i386}
          { PIC }
@@ -176,7 +178,9 @@ interface
        { Supports bss-like allocation of data, even though it is written in file (i.e. also has oso_Data) }
        oso_sparse_data,
        { Section to support the resolution of multiple symbols with the same name }
-       oso_comdat
+       oso_comdat,
+       { section containing thread variables }
+       oso_threadvar
      );
 
      TObjSectionOptions = set of TObjSectionOption;
@@ -1196,7 +1200,7 @@ implementation
           {roData} [oso_Data,oso_load,oso_write],
           {roData_norel} [oso_Data,oso_load],
           {bss} [oso_load,oso_write],
-          {threadvar} [oso_load,oso_write],
+          {threadvar} [oso_load,oso_write,oso_threadvar],
           {pdata} [oso_data,oso_load],
           {stub} [oso_Data,oso_load,oso_executable],
           {data_nonlazy}  [oso_Data,oso_load,oso_write],
