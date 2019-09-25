@@ -1801,9 +1801,9 @@ implementation
 
             { make sure the got/pic register doesn't get freed in the }
             { middle of a loop                                        }
-            if (cs_create_pic in current_settings.moduleswitches) and
-               (pi_needs_got in flags) and
-               (got<>NR_NO) then
+            if (tf_pic_uses_got in target_info.flags) and
+              (pi_needs_got in flags) and
+              (got<>NR_NO) then
               cg.a_reg_sync(aktproccode,got);
 
             if (pi_uses_threadvar in flags) and
@@ -1879,8 +1879,7 @@ implementation
               maintain location lists }
             procdef.parast.SymList.ForEachCall(@translate_registers,templist);
             procdef.localst.SymList.ForEachCall(@translate_registers,templist);
-            if (cs_create_pic in current_settings.moduleswitches) and
-               (pi_needs_got in flags) and
+            if (tf_pic_uses_got in target_info.flags) and (pi_needs_got in flags) and
                not(cs_no_regalloc in current_settings.globalswitches) and
                (got<>NR_NO) then
               cg.translate_register(got);

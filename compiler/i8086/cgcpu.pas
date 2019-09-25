@@ -151,7 +151,7 @@ unit cgcpu;
 
     procedure tcg8086.do_register_allocation(list:TAsmList;headertai:tai);
       begin
-        if (pi_needs_got in current_procinfo.flags) then
+        if (tf_pic_uses_got in target_info.flags) and (pi_needs_got in current_procinfo.flags) then
           begin
             if getsupreg(current_procinfo.got) < first_int_imreg then
               include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
