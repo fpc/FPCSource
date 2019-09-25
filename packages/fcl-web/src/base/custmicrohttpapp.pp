@@ -1,8 +1,8 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2009 by the Free Pascal development team
+    Copyright (c) 2019 by the Free Pascal development team
 
-    THTTPApplication class.
+    TCustomMicroHTTPApplication class.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -53,6 +53,8 @@ Type
   Private
     FHandler : TRequestHandler;
     // Return amount of data handled
+    Procedure DoSetHeader(K,V : String);
+    Procedure AddQueryField(K,V : String);
     Function AddData(Data: PAnsiChar; DataSize: Size_t) : Size_t;
     Procedure Initialize(const aUrl, aMethod, aVersion: String);
     procedure InitRequestVars; override;
@@ -207,12 +209,29 @@ Const
   libmicrohttp Callbacks
   ---------------------------------------------------------------------}
 
-procedure DoPanic(cls: Pointer; &file: Pcchar; line: cuint; reason: Pcchar); cdecl;
+Function MaybeS(p : pchar) : String;
+begin
+  if Assigned(P) then Result:=P else Result:='';
+end;
 
-  Function MaybeS(p : pchar) : String;
-  begin
-    if Assigned(P) then Result:=P else Result:='';
-  end;
+function GetRequestData(cls: Pointer; kind: MHD_ValueKind; key: Pcchar; value: Pcchar): cint; cdecl;
+
+var
+  K,V : String;
+
+
+begin
+  K:=MaybeS(key);
+  V:=MaybeS(Value);
+  if kind=MHD_HEADER_KIND then
+    TMicroRequest(Cls).DoSetHeader(K,V)
+  else if kind=MHD_GET_ARGUMENT_KIND then
+    TMicroRequest(Cls).AddQueryField(K,V);
+  Result:=MHD_YES;
+end;
+
+
+procedure DoPanic(cls: Pointer; &file: Pcchar; line: cuint; reason: Pcchar); cdecl;
 
 begin
   if Assigned(cls) then
@@ -288,6 +307,27 @@ end;
   ---------------------------------------------------------------------}
 
 
+procedure TMicroRequest.DoSetHeader(K, V: String);
+
+Var
+  H :  THeader;
+
+begin
+  H:=HeaderType(K);
+  if hdRequest in HTTPHeaderDirections[h] then
+    SetHeader(H,V)
+  else
+    SetCustomHeader(K,V);
+end;
+
+procedure TMicroRequest.AddQueryField(K, V: String);
+begin
+  if V<>'' then
+    QueryFields.Values[K]:=V
+  else
+    QueryFields.Add(K+'=');
+end;
+
 function TMicroRequest.AddData(Data: PAnsiChar; DataSize: Size_t): Size_t;
 
 Var
@@ -315,7 +355,6 @@ end;
 procedure TMicroRequest.InitRequestVars;
 
 Var
-  H : THeader;
   P : Pchar;
   N,S  : String;
   I : integer;
@@ -324,14 +363,10 @@ begin
   S:=URL;
   I:=Pos('?',S);
   if (I<>0) then
-    SetHTTPVariable(hvQuery,Copy(S,I+1,Length(S)-I));
-  for H in THeader do
-    if hdRequest in HTTPHeaderDirections[h] then
-      begin
-      P:=MHD_lookup_connection_value(FHandler.FConnection, MHD_HEADER_KIND,Pchar(HeaderName(H)));
-      If P<>Nil then
-        SetHeader(H,P);
-      end;
+    SetHTTPVariable(hvQuery,Copy(S,I+1,Length(S)-I))
+  else
+    MHD_get_connection_values(FHandler.FConnection, MHD_GET_ARGUMENT_KIND,@GetRequestData,Self);
+  MHD_get_connection_values(FHandler.FConnection, MHD_HEADER_KIND,@GetRequestData,Self);
   for N in FHandler.WebHandler.ExtraHeaders do
     begin
     P:=MHD_lookup_connection_value(FHandler.FConnection, MHD_HEADER_KIND,Pchar(N));
