@@ -102,7 +102,7 @@ interface
       class procedure trash_large(var stat: tstatementnode; trashn, sizen: tnode; trashintval: int64); virtual;
       { insert a single bss sym, called by insert bssdata (factored out
         non-common part for llvm) }
-      class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint); virtual;
+      class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ: Tasmsymtype); virtual;
 
       { initialization of iso styled program parameters }
       class procedure initialize_textrec(p : TObject; statn : pointer);
@@ -854,7 +854,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
+  class procedure tnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype);
     begin
       if sym.globalasmsym then
         begin
@@ -870,10 +870,10 @@ implementation
               list.concat(tai_symbol.Create(current_asmdata.DefineAsmSymbol(sym.name,AB_LOCAL,AT_DATA,sym.vardef),0));
               list.concat(tai_directive.Create(asd_reference,sym.name));
             end;
-          list.concat(Tai_datablock.create_global(sym.mangledname,size,sym.vardef));
+          list.concat(Tai_datablock.create_global(sym.mangledname,size,sym.vardef,_typ));
         end
       else
-        list.concat(Tai_datablock.create_hidden(sym.mangledname,size,sym.vardef));
+        list.concat(Tai_datablock.create_hidden(sym.mangledname,size,sym.vardef,_typ));
     end;
 
 
@@ -884,6 +884,7 @@ implementation
       storefilepos : tfileposinfo;
       list : TAsmList;
       sectype : TAsmSectiontype;
+      asmtype: TAsmsymtype;
     begin
       storefilepos:=current_filepos;
       current_filepos:=sym.fileinfo;
@@ -893,12 +894,14 @@ implementation
         varalign:=var_align_size(l)
       else
         varalign:=var_align(varalign);
+      asmtype:=AT_DATA;
       if tf_section_threadvars in target_info.flags then
         begin
           if (vo_is_thread_var in sym.varoptions) then
             begin
               list:=current_asmdata.asmlists[al_threadvars];
               sectype:=sec_threadvar;
+              asmtype:=AT_TLS;
             end
           else
             begin
@@ -924,7 +927,7 @@ implementation
         new_section(list,sec_user,sym.section,varalign)
       else
         new_section(list,sectype,lower(sym.mangledname),varalign);
-      insertbsssym(list,sym,l,varalign);
+      insertbsssym(list,sym,l,varalign,asmtype);
       current_filepos:=storefilepos;
     end;
 
@@ -1536,7 +1539,7 @@ implementation
             is separate in the builder }
           maybe_new_object_file(current_asmdata.asmlists[al_globals]);
           new_section(current_asmdata.asmlists[al_globals],sec_bss,'__fpc_initialheap',current_settings.alignment.varalignmax);
-          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',heapsize,carraydef.getreusable(u8inttype,heapsize)));
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',heapsize,carraydef.getreusable(u8inttype,heapsize),AT_DATA));
         end;
 
       { Valgrind usage }
