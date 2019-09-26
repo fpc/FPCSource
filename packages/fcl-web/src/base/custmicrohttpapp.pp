@@ -437,6 +437,7 @@ Var
 begin
   // Note that if the response is allocated, then you cannot set the content stream any more...
   MaybeAllocateResponse;
+  Headers.NameValueSeparator:=':';
   For I:=0 to Headers.Count-1 do
     begin
     Headers.GetNameValue(I,N,V);
