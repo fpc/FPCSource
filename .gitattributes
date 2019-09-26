@@ -14631,6 +14631,7 @@ tests/test/tgenfunc9.pp svneol=native#text/pascal
 tests/test/tgoto.pp svneol=native#text/plain
 tests/test/theap.pp svneol=native#text/plain
 tests/test/theap2.pp svneol=native#text/pascal
+tests/test/theap2gh.pp svneol=native#text/pascal
 tests/test/theapthread.pp svneol=native#text/plain
 tests/test/thintdir.pp svneol=native#text/plain
 tests/test/thintdir1.pp svneol=native#text/pascal
