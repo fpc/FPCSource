@@ -9997,6 +9997,22 @@ begin
         ArgName:=TransformArgName(TPasArgument(ParamResolved.IdentEl),AContext);
         Result:=CreatePrimitiveDotExpr(ArgName,El);
         exit;
+        end
+      else if (C=TPasClassType)
+          and aResolver.IsExternalClass_Name(TPasClassType(Decl),'Function') then
+        begin
+        // TJSFunction(param)
+        if (Param is TPasExpr) and (TPasExpr(Param).OpCode=eopAddress) then
+          begin
+          aResolver.ComputeElement(TUnaryExpr(Param).Operand,ValueResolved,[rcNoImplicitProc]);
+          if (ValueResolved.BaseType=btProc)
+              and (ValueResolved.IdentEl is TPasProcedure) then
+            begin
+            // TJSFunction(@procname)  -> procname
+            Result:=CreateReferencePathExpr(TPasProcedure(ValueResolved.IdentEl),AContext);
+            exit;
+            end;
+          end;
         end;
 
       Result:=ConvertExpression(Param,AContext);
@@ -10101,7 +10117,7 @@ begin
       if bsObjectChecks in AContext.ScannerBoolSwitches then
         begin
         if (C=TPasClassType)
-           or (C=TPasClassOfType) then
+            or (C=TPasClassOfType) then
           begin
           // TObject(param) -> rtl.asExt(param,type,mode)
           if C=TPasClassOfType then
