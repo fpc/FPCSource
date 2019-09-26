@@ -9812,6 +9812,7 @@ begin
     InlParams:=ParentParams.InlineSpec.Params
   else
     InlParams:=nil;
+  //writeln('TPasResolver.ResolveNameExpr Inline=',GetObjName(ParentParams.InlineSpec),' Params=',GetObjName(ParentParams.Params),' ',GetObjPath(El));
   if ParentParams.Params<>nil then
     begin
     case ParentParams.Params.Kind of
@@ -9830,11 +9831,10 @@ begin
     TypeCnt:=InlParams.Count;
     // ToDo: generic functions without params
     DeclEl:=FindGenericEl(aName,TypeCnt,FindData,El);
-    if DeclEl is TPasGenericType then
+    if DeclEl<>nil then
       begin
-      // GenType<params> -> create specialize type
-      DeclEl:=GetSpecializedEl(ParentParams.InlineSpec,TPasGenericType(DeclEl),
-                                 InlParams);
+      // GenType<params> -> create specialize type/proc
+      DeclEl:=GetSpecializedEl(ParentParams.InlineSpec,DeclEl,InlParams);
       end
     else
       RaiseXExpectedButYFound(20190916160829,'generic type',GetElementTypeName(DeclEl),El);
@@ -10473,6 +10473,9 @@ var
   GenTemplates: TFPList;
 begin
   // e.g. Name() -> find compatible
+  {$IFDEF VerbosePasResolver}
+  //writeln('TPasResolver.ResolveFuncParamsExprName NameExpr=',GetObjName(NameExpr),' TemplParams=',TemplParams<>nil,' CallName="',CallName,'"');
+  {$ENDIF}
   if CallName<>'' then
   else if NameExpr.ClassType=TPrimitiveExpr then
     CallName:=TPrimitiveExpr(NameExpr).Value

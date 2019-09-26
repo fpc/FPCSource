@@ -129,17 +129,20 @@ type
     procedure TestGenProc_BackRef1Fail;
     procedure TestGenProc_BackRef2Fail;
     procedure TestGenProc_BackRef3Fail;
-    //procedure TestGenProc_Inference;
     procedure TestGenProc_CallSelf;
+    // ToDo procedure TestGenProc_CallSelfNoParams;
     procedure TestGenProc_ForwardConstraints;
     procedure TestGenProc_ForwardConstraintsRepeatFail;
     procedure TestGenProc_ForwardTempNameMismatch;
     procedure TestGenProc_ForwardOverload;
     procedure TestGenProc_NestedFail;
+    procedure TestGenProc_TypeParamCntOverload;
+    procedure TestGenProc_TypeParamCntOverloadNoParams;
+    //procedure TestGenProc_Inference;
+
+    // generic methods
     procedure TestGenMethod_VirtualFail;
-    // ToDo: virtual method cannot have type parameters
-    // ToDo: message method cannot have type parameters
-    // ToDo: class interface method cannot have type parameters
+    procedure TestGenMethod_ClassInterfaceMethodFail;
     // ToDo: parametrized method mismatch interface method
     // ToDo: generic class method overload <T> <S,T>
     // ToDo: generic class method overload <T>(bool) <T>(word)
@@ -1970,6 +1973,48 @@ begin
   CheckResolverException('Type parameters not allowed on nested procedure',nTypeParamsNotAllowedOnX);
 end;
 
+procedure TTestResolveGenerics.TestGenProc_TypeParamCntOverload;
+begin
+  StartProgram(false);
+  Add([
+  'generic procedure {#A}Run<T>(a: T);',
+  'begin',
+  'end;',
+  'generic procedure {#B}Run<M,N>(a: M);',
+  'begin',
+  '  specialize {@A}Run<M>(a);',
+  '  specialize {@B}Run<double,char>(1.3);',
+  'end;',
+  'begin',
+  '  specialize {@A}Run<word>(3);',
+  '  specialize {@B}Run<word,char>(4);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_TypeParamCntOverloadNoParams;
+begin
+  StartProgram(false);
+  Add([
+  'generic procedure {#A}Run<T>;',
+  'begin',
+  'end;',
+  'generic procedure {#B}Run<M,N>;',
+  'begin',
+  '  specialize {@A}Run<M>;',
+  '  specialize {@A}Run<M>();',
+  '  specialize {@B}Run<double,char>;',
+  '  specialize {@B}Run<double,char>();',
+  'end;',
+  'begin',
+  '  specialize {@A}Run<word>;',
+  '  specialize {@A}Run<word>();',
+  '  specialize {@B}Run<word,char>;',
+  '  specialize {@B}Run<word,char>();',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolveGenerics.TestGenMethod_VirtualFail;
 begin
   StartProgram(false);
@@ -1982,6 +2027,19 @@ begin
   '']);
   CheckResolverException('virtual, dynamic or message methods cannot have type parameters',
     nXMethodsCannotHaveTypeParams);
+end;
+
+procedure TTestResolveGenerics.TestGenMethod_ClassInterfaceMethodFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    generic procedure Run<T>(a: T); virtual; abstract;',
+  '  end;',
+  'begin',
+  '']);
+  CheckParserException('generic is not allowed in interface',nParserXNotAllowedInY);
 end;
 
 initialization
