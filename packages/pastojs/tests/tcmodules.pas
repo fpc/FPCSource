@@ -567,6 +567,7 @@ type
     Procedure TestExternalClass_DuplicateVarFail;
     Procedure TestExternalClass_Method;
     Procedure TestExternalClass_ClassMethod;
+    Procedure TestExternalClass_ClassMethodStatic;
     Procedure TestExternalClass_FunctionResultInTypeCast;
     Procedure TestExternalClass_NonExternalOverride;
     Procedure TestExternalClass_OverloadHint;
@@ -15656,14 +15657,17 @@ begin
   '    class procedure DoIt(Id: longint = 1); external name ''$Execute'';',
   '  end;',
   '  TExtB = TExtA;',
+  'var p: Pointer;',
   'begin',
   '  texta.doit;',
   '  texta.doit();',
   '  texta.doit(2);',
+  '  p:=@TExtA.DoIt;',
   '  with texta do begin',
   '    doit;',
   '    doit();',
   '    doit(3);',
+  '    p:=@DoIt;',
   '  end;',
   '  textb.doit;',
   '  textb.doit();',
@@ -15677,20 +15681,62 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_ClassMethod',
     LinesToStr([ // statements
+    'this.p = null;',
     '']),
     LinesToStr([ // $mod.$main
     'ExtObj.$Execute(1);',
     'ExtObj.$Execute(1);',
     'ExtObj.$Execute(2);',
+    '$mod.p = rtl.createCallback(ExtObj, "$Execute");',
     'ExtObj.$Execute(1);',
     'ExtObj.$Execute(1);',
     'ExtObj.$Execute(3);',
+    '$mod.p = rtl.createCallback(ExtObj, "$Execute");',
     'ExtObj.$Execute(1);',
     'ExtObj.$Execute(1);',
     'ExtObj.$Execute(4);',
     'ExtObj.$Execute(1);',
     'ExtObj.$Execute(1);',
     'ExtObj.$Execute(5);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_ClassMethodStatic;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''ExtObj''',
+  '    class procedure DoIt(Id: longint = 1); static;',
+  '  end;',
+  'var p: Pointer;',
+  'begin',
+  '  texta.doit;',
+  '  texta.doit();',
+  '  texta.doit(2);',
+  '  p:=@TExtA.DoIt;',
+  '  with texta do begin',
+  '    doit;',
+  '    doit();',
+  '    doit(3);',
+  '    p:=@DoIt;',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_ClassMethodStatic',
+    LinesToStr([ // statements
+    'this.p = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'ExtObj.DoIt(1);',
+    'ExtObj.DoIt(1);',
+    'ExtObj.DoIt(2);',
+    '$mod.p = ExtObj.DoIt;',
+    'ExtObj.DoIt(1);',
+    'ExtObj.DoIt(1);',
+    'ExtObj.DoIt(3);',
+    '$mod.p = ExtObj.DoIt;',
     '']));
 end;
 
@@ -15742,32 +15788,33 @@ end;
 procedure TTestModule.TestExternalClass_NonExternalOverride;
 begin
   StartProgram(false);
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  TExtA = class external name ''ExtObjA''');
-  Add('    procedure ProcA; virtual;');
-  Add('    procedure ProcB; virtual;');
-  Add('  end;');
-  Add('  TExtB = class external name ''ExtObjB'' (TExtA)');
-  Add('  end;');
-  Add('  TExtC = class (TExtB)');
-  Add('    procedure ProcA; override;');
-  Add('  end;');
-  Add('procedure TExtC.ProcA;');
-  Add('begin');
-  Add('  ProcA;');
-  Add('  Self.ProcA;');
-  Add('  ProcB;');
-  Add('  Self.ProcB;');
-  Add('end;');
-  Add('var');
-  Add('  A: texta;');
-  Add('  B: textb;');
-  Add('  C: textc;');
-  Add('begin');
-  Add('  a.proca;');
-  Add('  b.proca;');
-  Add('  c.proca;');
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''ExtObjA''',
+  '    procedure ProcA; virtual;',
+  '    procedure ProcB; virtual;',
+  '  end;',
+  '  TExtB = class external name ''ExtObjB'' (TExtA)',
+  '  end;',
+  '  TExtC = class (TExtB)',
+  '    procedure ProcA; override;',
+  '  end;',
+  'procedure TExtC.ProcA;',
+  'begin',
+  '  ProcA;',
+  '  Self.ProcA;',
+  '  ProcB;',
+  '  Self.ProcB;',
+  'end;',
+  'var',
+  '  A: texta;',
+  '  B: textb;',
+  '  C: textc;',
+  'begin',
+  '  a.proca;',
+  '  b.proca;',
+  '  c.proca;']);
   ConvertProgram;
   CheckSource('TestExternalClass_NonExternalOverride',
     LinesToStr([ // statements

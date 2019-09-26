@@ -21582,6 +21582,20 @@ var
     aPath:=Prefix+aPath;
   end;
 
+  function PrependClassName(var Path: string; ClassOrRec: TPasMembersType): boolean;
+  begin
+    if (ClassOrRec.ClassType=TPasClassType) and TPasClassType(ClassOrRec).IsExternal then
+      begin
+      Prepend(Path,TPasClassType(ClassOrRec).ExternalName);
+      Result:=true;
+      end
+    else
+      begin
+      Prepend(Path,ClassOrRec.Name);
+      Result:=false;
+      end;
+  end;
+
   function NeedsWithExpr: boolean;
   var
     Parent: TPasElement;
@@ -21800,11 +21814,17 @@ begin
           begin
           // redirect to helper-for-type
           ParentEl:=aResolver.ResolveAliasType(TPasClassType(ParentEl).HelperForType);
+          IsClassRec:=(ParentEl.ClassType=TPasClassType)
+                   or (ParentEl.ClassType=TPasRecordType);
+          if not IsClassRec then
+            RaiseNotSupported(El,AContext,20190926091356);
           ShortName:=AContext.GetLocalName(ParentEl);
           end;
 
         if Full then
-          Prepend(Result,ParentEl.Name)
+          begin
+          if PrependClassName(Result,TPasMembersType(ParentEl)) then break;
+          end
         else
           begin
           // Not in a Pascal dotscope and accessing a class member.
@@ -21814,14 +21834,18 @@ begin
           if ShortName<>'' then
             Prepend(Result,ShortName)
           else if El is TPasType then
-            Prepend(Result,ParentEl.Name)
+            begin
+            if PrependClassName(Result,TPasMembersType(ParentEl)) then break;
+            end
           else if El.Parent<>ParentEl then
-            Prepend(Result,ParentEl.Name)
+            begin
+            if PrependClassName(Result,TPasMembersType(ParentEl)) then break;
+            end
           else if (ParentEl.ClassType=TPasClassType)
               and (TPasClassType(ParentEl).HelperForType<>nil) then
             begin
             // helpers have no self
-            Prepend(Result,ParentEl.Name);
+            if PrependClassName(Result,TPasMembersType(ParentEl)) then break;
             end
           else if (SelfContext<>nil)
               and IsA(TPasType(SelfContext.ThisPas),TPasMembersType(ParentEl)) then
@@ -21831,7 +21855,7 @@ begin
             end
           else
             begin
-            Prepend(Result,ParentEl.Name);
+            if PrependClassName(Result,TPasMembersType(ParentEl)) then break;
             // missing JS var for Self
             //{$IFDEF VerbosePas2JS}
             //{AllowWriteln}
