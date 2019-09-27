@@ -330,6 +330,7 @@ type
     Procedure TestProc_OverloadForward;
     Procedure TestProc_OverloadIntfImpl;
     Procedure TestProc_OverloadNested;
+    Procedure TestProc_OverloadNestedForward;
     Procedure TestProc_OverloadUnitCycle;
     Procedure TestProc_Varargs;
     Procedure TestProc_ConstOrder;
@@ -524,6 +525,8 @@ type
     Procedure TestClass_ExternalOverrideFail;
     Procedure TestClass_ExternalVar;
     Procedure TestClass_Const;
+    Procedure TestClass_LocalConstDuplicate;
+    // ToDo: Procedure TestAdvRecord_LocalConstDuplicate;
     Procedure TestClass_LocalVarSelfFail;
     Procedure TestClass_ArgSelfFail;
     Procedure TestClass_NestedProcSelf;
@@ -4086,6 +4089,52 @@ procedure TTestModule.TestProc_OverloadNested;
 begin
   StartProgram(false);
   Add([
+  'procedure doit(vA: longint);',
+  '  procedure DoIt(vA, vB: longint); overload;',
+  '  begin',
+  '    doit(1);',
+  '    doit(1,2);',
+  '  end;',
+  '  procedure doit(vA, vB, vC: longint);',
+  '  begin',
+  '    doit(1);',
+  '    doit(1,2);',
+  '    doit(1,2,3);',
+  '  end;',
+  'begin',
+  '  doit(1);',
+  '  doit(1,2);',
+  '  doit(1,2,3);',
+  'end;',
+  'begin // main',
+  '  doit(1);']);
+  ConvertProgram;
+  CheckSource('TestProcedureOverloadNested',
+    LinesToStr([ // statements
+    'this.doit = function (vA) {',
+    '  function DoIt$1(vA, vB) {',
+    '    $mod.doit(1);',
+    '    DoIt$1(1, 2);',
+    '  };',
+    '  function doit$2(vA, vB, vC) {',
+    '    $mod.doit(1);',
+    '    DoIt$1(1, 2);',
+    '    doit$2(1, 2, 3);',
+    '  };',
+    '  $mod.doit(1);',
+    '  DoIt$1(1, 2);',
+    '  doit$2(1, 2, 3);',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.doit(1);',
+    '']));
+end;
+
+procedure TTestModule.TestProc_OverloadNestedForward;
+begin
+  StartProgram(false);
+  Add([
   'procedure DoIt(vA: longint); overload; forward;',
   'procedure DoIt(vB, vC: longint); overload;',
   'begin // 2 param overload',
@@ -4139,7 +4188,7 @@ begin
   '  doit(1);',
   '  doit(1,2);']);
   ConvertProgram;
-  CheckSource('TestProcedureOverloadNested',
+  CheckSource('TestProc_OverloadNestedForward',
     LinesToStr([ // statements
     'this.DoIt$1 = function (vB, vC) {',
     '  $mod.DoIt(1);',
@@ -14024,6 +14073,65 @@ begin
     'if ($with2.cI === 25) ;',
     'var $with3 = $mod.Cla;',
     'if ($with3.cI === 26) ;',
+    '']));
+end;
+
+procedure TTestModule.TestClass_LocalConstDuplicate;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    const cI: longint = 3;',
+  '    procedure Fly;',
+  '    procedure Run;',
+  '  end;',
+  '  TBird = class',
+  '    procedure Go;',
+  '  end;',
+  'procedure tobject.fly;',
+  'const cI: word = 4;',
+  'begin',
+  '  if cI=Self.cI then ;',
+  'end;',
+  'procedure tobject.run;',
+  'const cI: word = 5;',
+  'begin',
+  '  if cI=Self.cI then ;',
+  'end;',
+  'procedure tbird.go;',
+  'const cI: word = 6;',
+  'begin',
+  '  if cI=Self.cI then ;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_LocalConstDuplicate',
+    LinesToStr([
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.cI = 3;',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var cI$1 = 4;',
+    '  this.Fly = function () {',
+    '    if (cI$1 === this.cI) ;',
+    '  };',
+    '  var cI$2 = 5;',
+    '  this.Run = function () {',
+    '    if (cI$2 === this.cI) ;',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  var cI$3 = 6;',
+    '  this.Go = function () {',
+    '    if (cI$3 === this.cI) ;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
     '']));
 end;
 

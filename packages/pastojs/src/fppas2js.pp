@@ -1107,18 +1107,27 @@ type
     SystemVarRecs: TPasFunction;
   end;
 
+  { TPas2jsElevatedLocals }
+
+  TPas2jsElevatedLocals = class
+  private
+    FElevatedLocals: TPasResHashList; // list of TPasIdentifier, case insensitive
+    procedure InternalAdd(Item: TPasIdentifier);
+    procedure OnClear(Item, Dummy: pointer);
+  public
+    constructor Create;
+    destructor Destroy; override;
+    function Find(const Identifier: String): TPasIdentifier; inline;
+    function Add(const Identifier: String; El: TPasElement): TPasIdentifier; virtual;
+  end;
+
   { TPas2JSSectionScope }
 
   TPas2JSSectionScope = class(TPasSectionScope)
-  private
-    FElevatedLocals: TPasResHashList; // list of TPasIdentifier, case insensitive
-    procedure InternalAddElevatedLocal(Item: TPasIdentifier);
-    procedure OnClearElevatedLocal(Item, Dummy: pointer);
   public
+    ElevatedLocals: TPas2jsElevatedLocals;
     constructor Create; override;
     destructor Destroy; override;
-    function FindElevatedLocal(const Identifier: String): TPasIdentifier; inline;
-    function AddElevatedLocal(const Identifier: String; El: TPasElement): TPasIdentifier; virtual;
     procedure WriteElevatedLocals(Prefix: string); virtual;
   end;
 
@@ -1141,7 +1150,9 @@ type
     DispatchField: String;
     DispatchStrField: String;
     MsgIntToProc, MsgStrToProc: TMessageIdToProc_List; // // not stored by filer
+    ElevatedLocals: TPas2jsElevatedLocals;
   public
+    constructor Create; override;
     destructor Destroy; override;
   end;
 
@@ -1165,10 +1176,10 @@ type
     WithVarName: string;
   end;
 
-  { TPas2JSOverloadSkipScope
+  { TPas2JSOverloadChgThisScope
     Dummy scope to signal a change of the "this" on the overload scope stack }
 
-  TPas2JSOverloadSkipScope = class(TPasIdentifierScope)
+  TPas2JSOverloadChgThisScope = class(TPasIdentifierScope)
   end;
 
   { TResElDataPas2JSBaseType - CustomData for compiler built-in types (TPasUnresolvedSymbolRef), e.g. jsvalue }
@@ -1335,6 +1346,7 @@ type
     function GetOverloadAt(Identifier: TPasIdentifier; var Index: integer): TPasIdentifier;
     function GetOverloadIndex(El: TPasElement): integer;
     function GetOverloadAt(const aName: String; Index: integer): TPasIdentifier;
+    function GetElevatedLocals(Scope: TPasScope): TPas2jsElevatedLocals;
     function RenameOverload(El: TPasElement): boolean;
     procedure RenameOverloadsInSection(aSection: TPasSection);
     procedure RenameOverloads(DeclEl: TPasElement; Declarations: TFPList);
@@ -2194,8 +2206,15 @@ end;
 
 { TPas2JSClassScope }
 
+constructor TPas2JSClassScope.Create;
+begin
+  inherited Create;
+  ElevatedLocals:=TPas2jsElevatedLocals.Create;
+end;
+
 destructor TPas2JSClassScope.Destroy;
 begin
+  FreeAndNil(ElevatedLocals);
   FreeAndNil(MsgIntToProc);
   FreeAndNil(MsgStrToProc);
   inherited Destroy;
@@ -2242,9 +2261,9 @@ begin
     BuiltInNames[n]:=Pas2JSBuiltInNames[n];
 end;
 
-{ TPas2JSSectionScope }
+{ TPas2jsElevatedLocals }
 
-procedure TPas2JSSectionScope.InternalAddElevatedLocal(Item: TPasIdentifier);
+procedure TPas2jsElevatedLocals.InternalAdd(Item: TPasIdentifier);
 var
   {$IFDEF fpc}
   Index: Integer;
@@ -2296,7 +2315,7 @@ begin
   {$ENDIF}
 end;
 
-procedure TPas2JSSectionScope.OnClearElevatedLocal(Item, Dummy: pointer);
+procedure TPas2jsElevatedLocals.OnClear(Item, Dummy: pointer);
 var
   PasIdentifier: TPasIdentifier absolute Item;
   Ident: TPasIdentifier;
@@ -2311,15 +2330,15 @@ begin
     end;
 end;
 
-constructor TPas2JSSectionScope.Create;
+constructor TPas2jsElevatedLocals.Create;
 begin
   inherited Create;
   FElevatedLocals:=TPasResHashList.Create;
 end;
 
-destructor TPas2JSSectionScope.Destroy;
+destructor TPas2jsElevatedLocals.Destroy;
 begin
-  FElevatedLocals.ForEachCall(@OnClearElevatedLocal,nil);
+  FElevatedLocals.ForEachCall(@OnClear,nil);
   {$IFDEF pas2js}
   FElevatedLocals:=nil;
   {$ELSE}
@@ -2329,31 +2348,45 @@ begin
 end;
 
 // inline
-function TPas2JSSectionScope.FindElevatedLocal(const Identifier: String
+function TPas2jsElevatedLocals.Find(const Identifier: String
   ): TPasIdentifier;
 begin
   Result:=TPasIdentifier(FElevatedLocals.Find(lowercase(Identifier)));
 end;
 
-function TPas2JSSectionScope.AddElevatedLocal(const Identifier: String;
+function TPas2jsElevatedLocals.Add(const Identifier: String;
   El: TPasElement): TPasIdentifier;
 var
   Item: TPasIdentifier;
 begin
-  //writeln('TPasIdentifierScope.AddIdentifier Identifier="',Identifier,'" El=',GetObjName(El));
+  //writeln('TPas2jsElevatedLocals.Add Identifier="',Identifier,'" El=',GetObjName(El));
   Item:=TPasIdentifier.Create;
   Item.Identifier:=Identifier;
   Item.Element:=El;
 
-  InternalAddElevatedLocal(Item);
-  //writeln('TPasIdentifierScope.AddIdentifier END');
+  InternalAdd(Item);
+  //writeln('TPas2jsElevatedLocals.Add END');
   Result:=Item;
+end;
+
+{ TPas2JSSectionScope }
+
+constructor TPas2JSSectionScope.Create;
+begin
+  inherited Create;
+  ElevatedLocals:=TPas2jsElevatedLocals.Create;
+end;
+
+destructor TPas2JSSectionScope.Destroy;
+begin
+  FreeAndNil(ElevatedLocals);
+  inherited Destroy;
 end;
 
 procedure TPas2JSSectionScope.WriteElevatedLocals(Prefix: string);
 begin
   Prefix:=Prefix+'  ';
-  FElevatedLocals.ForEachCall(@OnWriteItem,Pointer(Prefix));
+  ElevatedLocals.FElevatedLocals.ForEachCall(@OnWriteItem,Pointer(Prefix));
 end;
 
 { TPas2JSProcedureScope }
@@ -2807,7 +2840,7 @@ begin
       or C.InheritsFrom(TPasType) then
     begin
     if (not WithElevatedLocal) and (El.Parent is TProcedureBody) then
-      exit(false); // local const/type counted via TPas2JSSectionScope.FElevatedLocals
+      exit(false); // local const/type is counted via ElevatedLocals
     if (C=TPasClassType) and TPasClassType(El).IsForward then
       exit(false);
     end
@@ -2895,51 +2928,59 @@ end;
 
 function TPas2JSResolver.GetOverloadIndex(El: TPasElement): integer;
 var
-  i, j: Integer;
+  i, j, MaxDepth: Integer;
   Identifier: TPasIdentifier;
   Scope: TPasIdentifierScope;
   CurEl: TPasElement;
-  Skip: Boolean;
+  ThisChanged: Boolean;
+  ElevatedLocals: TPas2jsElevatedLocals;
 begin
   Result:=0;
   if not HasOverloadIndex(El,true) then exit;
-  Skip:=false;
-  for i:=FOverloadScopes.Count-1 downto 0 do
+
+  ThisChanged:=false;
+  MaxDepth:=FOverloadScopes.Count-1;
+  for i:=MaxDepth downto 0 do
     begin
     Scope:=TPasIdentifierScope(FOverloadScopes[i]);
-    if Scope.ClassType=TPas2JSOverloadSkipScope then
+    if Scope.ClassType=TPas2JSOverloadChgThisScope then
       begin
-      Skip:=true;
+      ThisChanged:=true;
       continue;
       end;
-    if (Scope.ClassType=TPas2JSSectionScope) and (i<FOverloadScopes.Count-1) then
+    if i<MaxDepth then
       begin
-      // Note: the elevated locals have their index after the section scope and
-      //       before the next deeper scope
+      // Reason for "if i<MaxDepth":
+      // Because the elevated locals have their index after their global scope
+      // and before the next deeper (local) scope
 
       // check elevated locals
-      Identifier:=TPas2JSSectionScope(Scope).FindElevatedLocal(El.Name);
-      j:=0;
-      // add count or index
-      while Identifier<>nil do
+      ElevatedLocals:=GetElevatedLocals(Scope);
+      if ElevatedLocals<>nil then
         begin
-        CurEl:=Identifier.Element;
-        Identifier:=Identifier.NextSameIdentifier;
-        if CurEl=El then
-          j:=0
-        else
-          inc(j);
+        Identifier:=ElevatedLocals.Find(El.Name);
+        j:=0;
+        // add count or index
+        while Identifier<>nil do
+          begin
+          CurEl:=Identifier.Element;
+          Identifier:=Identifier.NextSameIdentifier;
+          if CurEl=El then
+            j:=0
+          else
+            inc(j);
+          end;
+        inc(Result,j);
         end;
-      inc(Result,j);
       end;
-    if not Skip then
+    if not ThisChanged then
       begin
       // add count or index of this scope
       Identifier:=Scope.FindLocalIdentifier(El.Name);
       inc(Result,GetOverloadIndex(Identifier,El));
       end;
     end;
-  if Skip then exit;
+  if ThisChanged then exit;
   // finally add count or index of the external scope
   Identifier:=FindExternalName(El.Name);
   inc(Result,GetOverloadIndex(Identifier,El));
@@ -2948,30 +2989,36 @@ end;
 function TPas2JSResolver.GetOverloadAt(const aName: String; Index: integer
   ): TPasIdentifier;
 var
-  i: Integer;
+  i, MaxDepth: Integer;
   Scope: TPasIdentifierScope;
   Skip: Boolean;
+  ElevatedLocals: TPas2jsElevatedLocals;
 begin
   Result:=nil;
   Skip:=false;
-  for i:=FOverloadScopes.Count-1 downto 0 do
+  MaxDepth:=FOverloadScopes.Count-1;
+  for i:=MaxDepth downto 0 do
     begin
     // find last added
     Scope:=TPasIdentifierScope(FOverloadScopes[i]);
-    if Scope.ClassType=TPas2JSOverloadSkipScope then
+    if Scope.ClassType=TPas2JSOverloadChgThisScope then
       begin
       Skip:=true;
       continue;
       end;
-    if (Scope.ClassType=TPas2JSSectionScope) and (i<FOverloadScopes.Count-1) then
+    if i<MaxDepth then
       begin
-      // Note: the elevated locals are after the section scope and before the next deeper scope
-
       // check elevated locals
-      Result:=TPas2JSSectionScope(Scope).FindElevatedLocal(aName);
-      Result:=GetOverloadAt(Result,Index);
-      if Result<>nil then
-        exit;
+      // Note: the elevated locals are after the section scope and
+      //       before the next deeper scope
+      ElevatedLocals:=GetElevatedLocals(Scope);
+      if ElevatedLocals<>nil then
+        begin
+        Result:=ElevatedLocals.Find(aName);
+        Result:=GetOverloadAt(Result,Index);
+        if Result<>nil then
+          exit;
+        end;
       end;
     if not Skip then
       begin
@@ -2985,6 +3032,20 @@ begin
   // find in external names
   Result:=FindExternalName(aName);
   Result:=GetOverloadAt(Result,Index);
+end;
+
+function TPas2JSResolver.GetElevatedLocals(Scope: TPasScope
+  ): TPas2jsElevatedLocals;
+var
+  C: TClass;
+begin
+  C:=Scope.ClassType;
+  if C=TPas2JSSectionScope then
+    Result:=TPas2JSSectionScope(Scope).ElevatedLocals
+  else if C=TPas2JSClassScope then
+    Result:=TPas2JSClassScope(Scope).ElevatedLocals
+  else
+    Result:=nil;
 end;
 
 function TPas2JSResolver.RenameOverload(El: TPasElement): boolean;
@@ -3139,6 +3200,7 @@ var
   ClassScope, aScope: TPasClassScope;
   ClassEl: TPasClassType;
   C: TClass;
+  ProcBody: TProcedureBody;
 begin
   for i:=0 to Declarations.Count-1 do
     begin
@@ -3148,16 +3210,24 @@ begin
       begin
       Proc:=TPasProcedure(El);
       ProcScope:=Proc.CustomData as TPasProcedureScope;
+      if ProcScope.DeclarationProc<>nil then
+        continue;
+      if ProcScope.ImplProc<>nil then
+        begin
+        Proc:=ProcScope.ImplProc;
+        ProcScope:=TPasProcedureScope(Proc.CustomData);
+        end;
       {$IFDEF VerbosePas2JS}
       //writeln('TPas2JSResolver.RenameSubOverloads Proc=',Proc.Name,' DeclarationProc=',GetObjName(ProcScope.DeclarationProc),' ImplProc=',GetObjName(ProcScope.ImplProc),' ClassScope=',GetObjName(ProcScope.ClassOrRecordScope));
       {$ENDIF}
-      if Proc.Body<>nil then
+      ProcBody:=Proc.Body;
+      if ProcBody<>nil then
         begin
         PushOverloadScope(ProcScope);
         // first rename all overloads on this level
-        RenameOverloads(Proc.Body,Proc.Body.Declarations);
+        RenameOverloads(ProcBody,ProcBody.Declarations);
         // then process nested procedures
-        RenameSubOverloads(Proc.Body.Declarations);
+        RenameSubOverloads(ProcBody.Declarations);
         PopOverloadScope;
         end;
       end
@@ -3201,7 +3271,7 @@ end;
 
 procedure TPas2JSResolver.PushOverloadScopeSkip;
 begin
-  FOverloadScopes.Add(TPas2JSOverloadSkipScope.Create);
+  FOverloadScopes.Add(TPas2JSOverloadChgThisScope.Create);
 end;
 
 procedure TPas2JSResolver.PushOverloadScope(Scope: TPasIdentifierScope);
@@ -3216,7 +3286,7 @@ var
 begin
   i:=FOverloadScopes.Count-1;
   Scope:=TPasIdentifierScope(FOverloadScopes[i]);
-  if Scope.ClassType=TPas2JSOverloadSkipScope then
+  if Scope.ClassType=TPas2JSOverloadChgThisScope then
     Scope.Free;
   FOverloadScopes.Delete(i);
 end;
@@ -3809,9 +3879,9 @@ begin
     begin
     // local var
     RaiseVarModifierNotSupported(LocalVarModifiersAllowed);
-    if (El.ClassType=TPasConst) and TPasConst(El).IsConst then
+    if El.ClassType=TPasConst then
       begin
-      // local const
+      // local const. Can be writable!
       AddElevatedLocal(El);
       end;
     end
@@ -4393,14 +4463,29 @@ end;
 procedure TPas2JSResolver.AddElevatedLocal(El: TPasElement);
 var
   i: Integer;
-  SectionScope: TPas2JSSectionScope;
+  ElevatedLocals: TPas2jsElevatedLocals;
+  Scope: TPasScope;
+  ProcScope: TPas2JSProcedureScope;
 begin
   i:=ScopeCount-1;
-  while (i>=0) and not (Scopes[i] is TPas2JSSectionScope) do dec(i);
-  if i<0 then
-    RaiseNotYetImplemented(20180420131358,El);
-  SectionScope:=TPas2JSSectionScope(Scopes[i]);
-  SectionScope.AddElevatedLocal(El.Name,El);
+  while (i>=0) do
+    begin
+    Scope:=Scopes[i];
+    if Scope is TPas2JSProcedureScope then
+      begin
+      ProcScope:=TPas2JSProcedureScope(Scope);
+      if ProcScope.ClassRecScope<>nil then
+        Scope:=ProcScope.ClassRecScope;
+      end;
+    ElevatedLocals:=GetElevatedLocals(Scope);
+    if ElevatedLocals<>nil then
+      begin
+      ElevatedLocals.Add(El.Name,El);
+      exit;
+      end;
+    dec(i);
+    end;
+  RaiseNotYetImplemented(20180420131358,El);
 end;
 
 procedure TPas2JSResolver.ClearElementData;
