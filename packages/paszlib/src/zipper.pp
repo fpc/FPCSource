@@ -2312,7 +2312,7 @@ var
           AEndHdr := SwapECD(AEndHdr);
           {$ENDIF}
           if (AEndHdr.Signature = END_OF_CENTRAL_DIR_SIGNATURE) and
-             (I + SizeOf(AEndHdr) + AEndHdr.ZipFile_Comment_Length = BufSize) then
+             (I + SizeOf(AEndHdr) + AEndHdr.ZipFile_Comment_Length <= BufSize) then
           begin
             AEndHdrPos := FZipStream.Size - BufSize + I;
             FZipStream.Seek(AEndHdrPos + SizeOf(AEndHdr), soBeginning);
