@@ -36,7 +36,7 @@ begin
     P.IncludePath.Add('src');
 
 
-    T:=P.Targets.AddUnit('System.NetEncoding.pp');
+    T:=P.Targets.AddUnit('system.netencoding.pp');
     T.ResourceStrings := True;
 
 {$ifndef ALLPACKAGES}
