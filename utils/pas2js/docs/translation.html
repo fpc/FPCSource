@@ -2762,7 +2762,8 @@ End.
       <li>You can typecast function addresses and function references to JS
       function, e.g. <i>TJSFunction(@SomeProc)</i>, <i>TJSFunction(OnClick)</i>.
       Keep in mind that typecasting a method address creates a function wrapper
-      to bind the Self argument.</li>
+      to bind the Self argument, except when typecasting to <i>TJSFunction</i>
+      (pas2js 1.5+).</li>
     </ul>
     </div>
 
@@ -3009,6 +3010,7 @@ End.
     <li>{$mode delphi} or {$mode objfpc}: Same as -Mdelphi or -Mobjfpc, but only for this unit. You can use units of both modes in a program. If present must be at the top of the unit, or after the module name.</li>
     <li>{$modeswitch externalclass}: allow declaring external classes</li>
     <li>{$modeswitch arrayoperators}: allow + operator to concatenate arrays, default in mode delphi</li>
+    <li>{$modeswitch OmitRTTI}: treat published sections as public</li>
     <li>{$macro on|off} enables macro replacements. Only macros with a value are replaced. Macros are never replaced inside directives.</li>
     <li>{$I filename} or {$include filename} - insert include file</li>
     <li>{$I %param%}:
@@ -3072,6 +3074,8 @@ End.
         <li>Check type casts, e.g. <i>TBird(AnObject)</i> becomes <i>AnObject as TBird</i></li>
       </ul>
     </li>
+    <li>{$DispatchField Msg}: enable checking <i>message number</i> methods for record field name "Msg"</li>
+    <li>{$DispatchStrField MsgStr}: enable checking <i>message string</i> methods for record field name "Msg"</li>
     </ul>
     Defines:
     <ul>

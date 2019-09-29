@@ -143,7 +143,10 @@ type
     // generic methods
     procedure TestGenMethod_VirtualFail;
     procedure TestGenMethod_ClassInterfaceMethodFail;
-    // ToDo: parametrized method mismatch interface method
+    procedure TestGenMethod_ClassConstructorFail;
+    procedure TestGenMethod_TemplNameDifferFail;
+    procedure TestGenMethod_ImplConstraintFail;
+    procedure TestGenMethod_TypeParamCntOverload;
     // ToDo: generic class method overload <T> <S,T>
     // ToDo: generic class method overload <T>(bool) <T>(word)
     // ToDo: procedure TestGenMethod_ClassConstructorFail;
@@ -2040,6 +2043,80 @@ begin
   'begin',
   '']);
   CheckParserException('generic is not allowed in interface',nParserXNotAllowedInY);
+end;
+
+procedure TTestResolveGenerics.TestGenMethod_ClassConstructorFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    generic class constructor Run<T>(a: T);',
+  '  end;',
+  'generic class constructor TObject.Run<T>(a: T);',
+  'begin end;',
+  'begin',
+  '']);
+  CheckParserException('Expected "Procedure" or "Function" at token "constructor" in file afile.pp at line 4 column 19',
+    nParserExpectToken2Error);
+end;
+
+procedure TTestResolveGenerics.TestGenMethod_TemplNameDifferFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    generic procedure Run<T>(a: T);',
+  '  end;',
+  'generic procedure TObject.Run<S>(a: S);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('Declaration of "TObject.Run<S>" differs from previous declaration at afile.pp(4,28)',
+    nDeclOfXDiffersFromPrevAtY);
+end;
+
+procedure TTestResolveGenerics.TestGenMethod_ImplConstraintFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    generic procedure Run<T>(a: T);',
+  '  end;',
+  'generic procedure TObject.Run<T: class>(a: T);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException(sImplMustNotRepeatConstraints,nImplMustNotRepeatConstraints);
+end;
+
+procedure TTestResolveGenerics.TestGenMethod_TypeParamCntOverload;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    generic procedure {#A}Run<T>(a: T);',
+  '    generic procedure {#B}Run<M,N>(a: M);',
+  '  end;',
+  'generic procedure TObject.Run<T>(a: T);',
+  'begin',
+  'end;',
+  'generic procedure TObject.Run<M,N>(a: M);',
+  'begin',
+  '  specialize {@A}Run<M>(a);',
+  '  specialize {@B}Run<double,char>(1.3);',
+  'end;',
+  'var obj: TObject;',
+  'begin',
+  '  obj.specialize {@A}Run<word>(3);',
+  '  obj.specialize {@B}Run<word,char>(4);',
+  '']);
+  ParseProgram;
 end;
 
 initialization

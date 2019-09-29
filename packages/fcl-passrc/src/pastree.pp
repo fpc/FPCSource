@@ -4683,14 +4683,17 @@ procedure TPasProcedure.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
 var
   i, j: Integer;
+  Templates: TFPList;
 begin
   inherited ForEachCall(aMethodCall, Arg);
   if NameParts<>nil then
     for i:=0 to NameParts.Count-1 do
-      with TProcedureNamePart(NameParts[i]) do
-        if Templates<>nil then
-          for j:=0 to Templates.Count-1 do
-            ForEachChildCall(aMethodCall,Arg,TPasElement(Templates[i]),false);
+      begin
+      Templates:=TProcedureNamePart(NameParts[i]).Templates;
+      if Templates<>nil then
+        for j:=0 to Templates.Count-1 do
+          ForEachChildCall(aMethodCall,Arg,TPasElement(Templates[j]),false);
+      end;
   ForEachChildCall(aMethodCall,Arg,ProcType,false);
   ForEachChildCall(aMethodCall,Arg,PublicName,false);
   ForEachChildCall(aMethodCall,Arg,LibraryExpr,false);

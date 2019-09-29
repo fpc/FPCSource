@@ -24,7 +24,7 @@ type
     Procedure TestGen_ClassAncestor;
     Procedure TestGen_TypeInfo;
     // ToDo: TBird, TBird<T>, TBird<S,T>
-    // ToDo: local const T
+    // ToDo: rename local const T
 
     // generic external class
     procedure TestGen_ExtClass_Array;

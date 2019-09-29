@@ -1761,6 +1761,11 @@ type
     function EvalBaseTypeCast(Params: TParamsExpr; bt: TResolverBaseType): TResEvalvalue;
   protected
     // generic/specialize
+    type
+      TScopeStashState = record
+        ScopeCount: integer;
+        StashCount: integer;
+      end;
     procedure AddGenericTemplateIdentifiers(GenericTemplateTypes: TFPList;
       Scope: TPasIdentifierScope);
     procedure AddSpecializedTemplateIdentifiers(GenericTemplateTypes: TFPList;
@@ -1789,7 +1794,8 @@ type
       GenTempl: TPasGenericTemplateType; ErrorPos: TPasElement);
     function CreateSpecializedItem(El: TPasElement; GenericEl: TPasElement;
       const ParamsResolved: TPasTypeArray): TPRSpecializedItem; virtual;
-    function InitSpecializeScopes(El: TPasElement): integer; virtual;
+    procedure InitSpecializeScopes(El: TPasElement; out State: TScopeStashState); virtual;
+    procedure RestoreSpecializeScopes(const State: TScopeStashState); virtual;
     procedure SpecializeGenericIntf(SpecializedItem: TPRSpecializedItem); virtual;
     procedure SpecializeGenericImpl(SpecializedItem: TPRSpecializedItem); virtual;
     procedure SpecializeMembers(GenMembersType, SpecMembersType: TPasMembersType); virtual;
@@ -6027,7 +6033,7 @@ type
   end;
 var
   ClassScope: TPasClassScope;
-  i, j, k, OldStashCount: Integer;
+  i, j, k: Integer;
   IntfType: TPasClassType;
   Resolutions: array of TMethResolution;
   Map: TPasClassIntfMap;
@@ -6043,6 +6049,7 @@ var
   SectionScope: TPasSectionScope;
   SpecializedItems: TObjectList;
   SpecializedItem: TPRSpecializedTypeItem;
+  OldScopeState: TScopeStashState;
 begin
   Resolutions:=nil;
   ClassScope:=nil;
@@ -6218,7 +6225,7 @@ begin
         SpecializedItem:=TPRSpecializedTypeItem(SpecializedItems[i]);
         SpecializedItem.GenericEl:=El;
         if SpecializedItem.Step<>prssNone then continue;
-        OldStashCount:=InitSpecializeScopes(El);
+        InitSpecializeScopes(El,OldScopeState);
         {$IFDEF VerbosePasResolver}
         WriteScopesShort('TPasResolver.FinishClassType Finishing specialize interface: '+GetObjName(SpecializedItem.SpecializedType));
         {$ENDIF}
@@ -6228,7 +6235,7 @@ begin
         WriteScopesShort('TPasResolver.FinishClassType Finished specialize interface: '+GetObjName(SpecializedItem.SpecializedType));
         {$ENDIF}
 
-        RestoreStashedScopes(OldStashCount);
+        RestoreSpecializeScopes(OldScopeState);
         {$IFDEF VerbosePasResolver}
         WriteScopesShort('TPasResolver.FinishClassType RestoreStashedScopes '+GetObjName(SpecializedItem.SpecializedType));
         {$ENDIF}
@@ -7026,13 +7033,16 @@ begin
   ProcScope.ClassRecScope:=ClassOrRecScope;
 
   TemplTypes:=GetProcTemplateTypes(Proc);
-  if TemplTypes<>nil then
-    RaiseNotYetImplemented(20190911105953,Proc);
 
   FindData:=Default(TFindProcData);
   IsClassConDestructor:=(Proc.ClassType=TPasClassConstructor)
                      or (Proc.ClassType=TPasClassDestructor);
-  if not IsClassConDestructor then
+  if IsClassConDestructor then
+    begin
+    if TemplTypes<>nil then
+      RaiseNotYetImplemented(20190911105953,Proc);
+    end
+  else
     begin
     FindData.Proc:=Proc;
     FindData.Args:=Proc.ProcType.Args;
@@ -7107,7 +7117,7 @@ var
   SelfArg: TPasArgument;
   p: Integer;
   SelfType, LoSelfType: TPasType;
-  ImplTemplTypes: TFPList;
+  LastNamePart: TProcedureNamePart;
 begin
   if ImplProc.IsExternal then
     RaiseMsg(20170216151715,nInvalidXModifierY,sInvalidXModifierY,[GetElementTypeName(ImplProc),'external'],ImplProc);
@@ -7126,10 +7136,8 @@ begin
 
   if ImplProc.NameParts<>nil then
     begin
-    ProcName:=TProcedureNamePart(ImplProc.NameParts[ImplProc.NameParts.Count-1]).Name;
-    ImplTemplTypes:=GetProcTemplateTypes(ImplProc);
-    if ImplTemplTypes<>nil then
-      RaiseNotYetImplemented(20190911105319,ImplProc);
+    LastNamePart:=TProcedureNamePart(ImplProc.NameParts[ImplProc.NameParts.Count-1]);
+    ProcName:=LastNamePart.Name;
     end
   else
     begin
@@ -7139,7 +7147,6 @@ begin
       if p<1 then break;
       Delete(ProcName,1,p);
     until false;
-    ImplTemplTypes:=nil;
     end;
 
   if ImplProcScope.DeclarationProc=nil then
@@ -12222,11 +12229,6 @@ begin
         NamePart:=TProcedureNamePart(TypeParams[Level-1]);
         if NamePart.Name<>ProcName then
           RaiseNotYetImplemented(20190818122551,El,IntToStr(Level)+': '+NamePart.Name+'<>'+ProcName);
-        if NamePart.Templates<>nil then
-          begin
-          // ToDo: generic method
-          RaiseNotYetImplemented(20190818122619,El);
-          end;
         end;
 
       end
@@ -15959,7 +15961,8 @@ begin
     SpecializeGenericImpl(Result);
 end;
 
-function TPasResolver.InitSpecializeScopes(El: TPasElement): integer;
+procedure TPasResolver.InitSpecializeScopes(El: TPasElement; out
+  State: TScopeStashState);
 
   function PushParentScopes(CurEl: TPasElement): integer;
   var
@@ -16012,6 +16015,7 @@ function TPasResolver.InitSpecializeScopes(El: TPasElement): integer;
         StashScopes(Keep);
         if Keep<>FScopeCount then
           RaiseNotYetImplemented(20190813005130,El);
+        State.ScopeCount:=ScopeCount;
         end;
       if (CurEl.ClassType=TImplementationSection) then
         begin
@@ -16035,7 +16039,8 @@ begin
   {$IFDEF VerboseInitSpecializeScopes}
   writeln('TPasResolver.InitSpecializeScopes START ',GetObjName(El));
   {$ENDIF}
-  Result:=FStashScopeCount;
+  State.ScopeCount:=ScopeCount;
+  State.StashCount:=FStashScopeCount;
   Keep:=PushParentScopes(El.Parent)+1;
   if Keep<FScopeCount then
     begin
@@ -16052,17 +16057,24 @@ begin
   {$ENDIF}
 end;
 
+procedure TPasResolver.RestoreSpecializeScopes(const State: TScopeStashState);
+begin
+  while ScopeCount>State.ScopeCount do
+    PopScope;
+  RestoreStashedScopes(State.StashCount);
+end;
+
 procedure TPasResolver.SpecializeGenericIntf(SpecializedItem: TPRSpecializedItem
   );
 var
   SpecEl, GenericEl: TPasElement;
-  OldStashCount: Integer;
   C: TClass;
   NewRecordType, GenRecordType: TPasRecordType;
   NewClassType, GenClassType: TPasClassType;
   NewArrayType, GenArrayType: TPasArrayType;
   GenProcType, NewProcType: TPasProcedureType;
   GenProc, NewProc: TPasProcedure;
+  OldScopeState: TScopeStashState;
 begin
   if SpecializedItem.Step<>prssNone then
     exit;
@@ -16071,7 +16083,8 @@ begin
   GenericEl:=SpecializedItem.GenericEl;
 
   // change scope
-  OldStashCount:=InitSpecializeScopes(GenericEl);
+  WriteScopesShort('AAA1 TPasResolver.SpecializeGenericIntf *******************');
+  InitSpecializeScopes(GenericEl,OldScopeState);
   {$IFDEF VerbosePasResolver}
   WriteScopesShort('TPasResolver.SpecializeGenericIntf Init SpecEl='+SpecEl.FullName+' GenericEl='+GenericEl.FullName);
   {$ENDIF}
@@ -16117,7 +16130,7 @@ begin
   WriteScopesShort('TPasResolver.SpecializeGenericIntf Finish: '+SpecEl.FullName);
   {$ENDIF}
 
-  RestoreStashedScopes(OldStashCount);
+  RestoreSpecializeScopes(OldScopeState);
   {$IFDEF VerbosePasResolver}
   WriteScopesShort('TPasResolver.SpecializeGenericIntf RestoreStashedScopes: '+SpecEl.FullName);
   {$ENDIF}
@@ -16132,7 +16145,7 @@ var
   SpecializedProcItem: TPRSpecializedProcItem;
   GenImplProc, GenIntfProc, SpecDeclProc: TPasProcedure;
   GenDeclProcScope: TPasProcedureScope;
-  OldStashCount: Integer;
+  OldScopeState: TScopeStashState;
 begin
   // check specialized type step
   if SpecializedItem.Step>prssInterfaceFinished then
@@ -16179,9 +16192,9 @@ begin
         RaiseNotYetImplemented(20190920192731,GenImplProc); // GenScope.GenericStep is wrong
       SpecDeclProc:=SpecializedProcItem.SpecializedProc;
 
-      OldStashCount:=InitSpecializeScopes(GenImplProc);
+      InitSpecializeScopes(GenImplProc,OldScopeState);
       SpecializeGenImplProc(GenIntfProc,SpecDeclProc,SpecializedProcItem);
-      RestoreStashedScopes(OldStashCount);
+      RestoreSpecializeScopes(OldScopeState);
       end;
     end;
 
@@ -16211,10 +16224,11 @@ procedure TPasResolver.SpecializeMembersImpl(GenericType,
   SpecType: TPasMembersType; SpecializedItem: TPRSpecializedTypeItem);
 var
   GenClassOrRec, SpecClassOrRec: TPasMembersType;
-  OldStashCount, i: Integer;
+  i: Integer;
   GenMember, SpecMember, ImplParent: TPasElement;
   GenIntfProc, GenImplProc, SpecIntfProc: TPasProcedure;
   GenIntfProcScope: TPasProcedureScope;
+  OldScopeState: TScopeStashState;
 begin
   GenClassOrRec:=TPasMembersType(GenericType);
   SpecClassOrRec:=TPasMembersType(SpecType);
@@ -16225,7 +16239,7 @@ begin
 
   // specialize member bodies
   ImplParent:=nil;
-  OldStashCount:=FStashScopeCount;
+  OldScopeState:=default(TScopeStashState);
   for i:=0 to GenClassOrRec.Members.Count-1 do
     begin
     GenMember:=TPasElement(GenClassOrRec.Members[i]);
@@ -16247,7 +16261,7 @@ begin
         begin
         // switch scope (e.g. unit implementation section)
         ImplParent:=GenImplProc.Parent;
-        OldStashCount:=InitSpecializeScopes(GenImplProc);
+        InitSpecializeScopes(GenImplProc,OldScopeState);
         {$IFDEF VerbosePasResolver}
         writeln('TPasResolver.SpecializeGenImplProc Specialize implprocs: SpecType=',GetObjName(SpecType),' ImplParent=',GetObjName(ImplParent),' ScopeCount=',ScopeCount,' FStashScopeCount=',FStashScopeCount,' TopScope=',GetObjName(TopScope));
         {$ENDIF}
@@ -16267,7 +16281,7 @@ begin
   if ImplParent<>nil then
     begin
     // restore scope
-    RestoreStashedScopes(OldStashCount);
+    RestoreSpecializeScopes(OldScopeState);
     end;
 end;
 
@@ -16808,8 +16822,7 @@ begin
       RaiseNotYetImplemented(20190920203700,SpecEl);
     if GenProcScope.OverriddenProc<>nil then
       RaiseNotYetImplemented(20190920203536,SpecEl);
-    if GenProcScope.ClassRecScope<>nil then
-      RaiseNotYetImplemented(20190920203609,SpecEl);
+    SpecProcScope.ClassRecScope:=GenProcScope.ClassRecScope;
     if GenProcScope.SelfArg<>nil then
       RaiseNotYetImplemented(20190920203626,SpecEl);
     // SpecProcScope.Flags
@@ -16897,7 +16910,7 @@ begin
     FinishProcedure(SpecEl);
     end
   else if SpecializedItem=nil then
-    // forward or unit-intf declaration
+    // declaration proc, parent is specialized
     FinishProcedure(SpecEl)
   else
     begin
