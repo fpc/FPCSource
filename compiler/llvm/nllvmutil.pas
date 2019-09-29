@@ -34,7 +34,7 @@ interface
   type
     tllvmnodeutils = class(tnodeutils)
      strict protected
-      class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint); override;
+      class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype); override;
       class procedure InsertUsedList(var usedsyms: tfpobjectlist; const usedsymsname: TSymStr);
       class procedure InsertInitFiniList(var procdefs: tfplist; const initfinisymsname: TSymStr);
      public
@@ -56,17 +56,17 @@ implementation
       llvmtype,llvmdef,
       objcasm;
 
-  class procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
+  class procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype);
     var
       asmsym: tasmsymbol;
       field1, field2: tsym;
     begin
       if sym.globalasmsym then
-        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_GLOBAL,AT_DATA,sym.vardef)
+        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_GLOBAL,_typ,sym.vardef)
       else if tf_supports_hidden_symbols in target_info.flags then
-        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_PRIVATE_EXTERN,AT_DATA,sym.vardef)
+        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_PRIVATE_EXTERN,_typ,sym.vardef)
       else
-        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_LOCAL,AT_DATA,sym.vardef);
+        asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_LOCAL,_typ,sym.vardef);
       if not(vo_is_thread_var in sym.varoptions) then
         list.concat(taillvmdecl.createdef(asmsym,sym.vardef,nil,sec_data,varalign))
       else if tf_section_threadvars in target_info.flags then
