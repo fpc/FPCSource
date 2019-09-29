@@ -66,6 +66,8 @@ const
   RTLD_NEXT         = pointer(-1);
   {$ifdef LINUX}
   RTLD_DEFAULT      = nil;
+  RTLD_NOLOAD = $00004; // GLIBC 2.2 and above
+  RTLD_DI_LINKMAP = 2;
   {$endif}
   {$ifdef BSD}
   RTLD_DEFAULT      = pointer(-2);
@@ -90,10 +92,29 @@ function dlvsym(Lib : Pointer; Name : Pchar; Version: Pchar) : Pointer; cdecl; e
 {$endif}
 function dlclose(Lib : Pointer) : Longint; cdecl; external libdl;
 function dlerror() : Pchar; cdecl; external libdl;
+
 { overloaded for compatibility with hmodule }
 function dlsym(Lib : PtrInt; Name : Pchar) : Pointer; cdecl; external Libdl;
 function dlclose(Lib : PtrInt) : Longint; cdecl; external libdl;
 function dladdr(Lib: pointer; info: Pdl_info): Longint; cdecl; {$if not defined(aix) and not defined(android)} external; {$endif}
+
+type
+  plink_map = ^link_map;
+  link_map = record
+    l_addr:pointer;  { Difference between the address in the ELF file and the address in memory }
+    l_name:Pchar;  { Absolute pathname where object was found }
+    l_ld:pointer;    { Dynamic section of the shared object }
+    l_next, l_prev:^link_map; { Chain of loaded objects }
+    {Plus additional fields private to the implementation }
+  end;
+
+{$if defined(BSD) or defined(LINUX)}
+function dlinfo(Lib:pointer;request:longint;info:pointer):longint;cdecl;external Libdl;
+{$else}
+{ Fortunately investigating the sources of open source projects brought the understanding, that
+  `handle` is just a `struct link_map*` that contains full library name.}
+{$endif}
+
 
 implementation
 
