@@ -715,7 +715,7 @@ type
   function WinHttpSetTimes(hInternet:HINTERNET; nResolveTime:longint; nConnectTime:longint; nSendTime:longint; nReceiveTime:longint):WINBOOL;stdcall;external External_library name 'WinHttpSetTimes';
   function WinHttpIsHostInProxyBypassList(var pProxyInfo:WINHTTP_PROXY_INFO; pwszHost:PCWSTR; tScheme:INTERNET_SCHEME; nPort:INTERNET_PORT; var pfIsInBypassList:BOOL):DWORD;stdcall;external External_library name 'WinHttpIsHostInProxyBypassList';
   function WinHttpOpenRequest(hConnect:HINTERNET; pwszVerb:LPCWSTR; pwszObjectName:LPCWSTR; pwszVersion:LPCWSTR; pwszReferrer:LPCWSTR; 
-            var ppwszAcceptTypes:LPCWSTR; dwFlags:DWORD):HINTERNET;stdcall;external External_library name 'WinHttpOpenRequest';
+            ppwszAcceptTypes:LPPCWSTR; dwFlags:DWORD):HINTERNET;stdcall;external External_library name 'WinHttpOpenRequest';
   function WinHttpAddRequestHeaders(hRequest:HINTERNET; lpszHeaders:LPCWSTR; dwHeadersLength:DWORD; dwModifiers:DWORD):WINBOOL;stdcall;external External_library name 'WinHttpAddRequestHeaders';
   function WinHttpSendRequest(hRequest:HINTERNET; lpszHeaders:LPCWSTR; dwHeadersLength:DWORD; lp:LPVOID; dwLength:DWORD; 
             dwTotalLength:DWORD; dwContext:DWORD_PTR):WINBOOL;stdcall;external External_library name 'WinHttpSendRequest';
