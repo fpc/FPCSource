@@ -21,6 +21,10 @@ begin
     P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
+    P.OSes := [android,freebsd,linux,netbsd,openbsd,win32,win64];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
 
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-db');
@@ -37,7 +41,7 @@ begin
     P.Dependencies.Add('winunits-base', [Win32,Win64]);
     // (Temporary) indirect dependencies, not detected by fpcmake:
     P.Dependencies.Add('univint',[MacOSX,iphonesim]);
-
+    P.Dependencies.Add('libmicrohttpd',AllUnixOSes+AllWindowsOSes);
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -190,6 +194,28 @@ begin
         OSes:=[Win32,Win64];
         Dependencies.AddUnit('custhttpsys');
       end;
+    with P.Targets.AddUnit('custmicrohttpapp.pp') do
+      begin
+        Dependencies.AddUnit('custweb');
+        Dependencies.AddUnit('httpdefs');
+        Dependencies.AddUnit('httpprotocol');
+        ResourceStrings:=true;
+        OSes := [android,freebsd,linux,netbsd,openbsd,win32,win64];
+        if Defaults.CPU=jvm then
+          OSes := OSes - [java,android];
+      end;  
+    with P.Targets.AddUnit('microhttpapp.pp') do
+      begin
+        Dependencies.AddUnit('custweb');
+        Dependencies.AddUnit('httpdefs');
+        Dependencies.AddUnit('httpprotocol');
+        Dependencies.AddUnit('custmicrohttpapp');
+        OSes := [android,freebsd,linux,netbsd,openbsd,win32,win64];
+        if Defaults.CPU=jvm then
+          OSes := OSes - [java,android];
+      end;  
+
+      
     with P.Targets.AddUnit('fphttpstatus.pas') do
       begin
         Dependencies.AddUnit('fphttpserver');
