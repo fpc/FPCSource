@@ -60,6 +60,110 @@ begin
   FOpCodeList.Add('ADDSD,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('ADDSD,1,1,0,XMMREG,MEM64,,,');
 
+  FOpCodeList.Add('CMPEQSS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('CMPEQSS,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPLTSS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('CMPLTSS,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPNEQSS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('CMPNEQSS,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPNLESS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('CMPNLESS,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPMLTSS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('CMPNLTSS,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPORDSS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('CMPORDSS,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPUNORDSS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('CMPUNORDSS,1,1,0,XMMREG,MEM32,,,');
+//  FOpCodeList.Add('CMPSS,1,1,0,XMMREG,XMMREG,IMM8,,');
+//  FOpCodeList.Add('CMPSS,1,1,0,XMMREG,MEM32,IMM8,,');
+  FOpCodeList.Add('COMISS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('COMISS,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('DIVSS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('DIVSS,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('MAXSS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('MAXSS,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('MINSS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('MINSS,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('MULSS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('MULSS,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('RCPSS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('RCPSS,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('RSQRTSS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('RSQRTSS,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('SQRTSS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('SQRTSS,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('SUBSS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('SUBSS,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('UCOMISS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('UCOMISS,1,1,0,XMMREG,MEM32,,,');
+
+
+
+  FOpCodeList.Add('CMPEQSD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('CMPEQSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPLTSD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('CMPLTSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPNEQSD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('CMPNEQSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPNLESD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('CMPNLESD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPMLTSD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('CMPNLTSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPORDSD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('CMPORDSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('CMPUNORDSD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('CMPUNORDSD,1,1,0,XMMREG,MEM32,,,');
+//  FOpCodeList.Add('CMPSS,1,1,0,XMMREG,XMMREG,IMM8,,');
+//  FOpCodeList.Add('CMPSS,1,1,0,XMMREG,MEM32,IMM8,,');
+  FOpCodeList.Add('COMISD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('COMISD,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('DIVSD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('DIVSD,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('MAXSD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('MAXSD,1,1,0,XMMREG,MEM32,,,');
+  FOpCodeList.Add('MINSD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('MINSD,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('MULSD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('MULSD,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('RCPSD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('RCPSD,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('RSQRTSD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('RSQRTSD,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('SQRTSD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('SQRTSD,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('SUBSD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('SUBSD,1,1,0,XMMREG,MEM32,,,');
+
+  FOpCodeList.Add('UCOMISD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('UCOMISD,1,1,0,XMMREG,MEM32,,,');
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   FOpCodeList.Add('ADCX,1,1,0,REG32,RM32,,,');
   FOpCodeList.Add('ADCX,1,1,0,REG64,RM64,,,');
