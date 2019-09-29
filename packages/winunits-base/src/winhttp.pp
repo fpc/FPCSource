@@ -24,6 +24,7 @@ Abstract:
 
 }	
 unit WinHTTP;
+
 interface
 
 uses windows;
@@ -46,8 +47,10 @@ uses windows;
 {$PACKRECORDS C}
 {$ENDIF}
 
-
-
+Type
+  PLPVOID = ^LPVOID;
+  LPUSHORT = ^USHORT;
+  
 
   const
     INTERNET_DEFAULT_PORT = 0;    
@@ -495,6 +498,8 @@ uses windows;
 type
    HINTERNET = LPVOID;
    LPHINTERNET = ^HINTERNET;
+   PHINTERNET = ^HINTERNET;
+   
    INTERNET_PORT = WORD;
    LPINTERNET_PORT = ^INTERNET_PORT;
    WINHTTP_ASYNC_RESULT = record
@@ -541,9 +546,9 @@ type
         lpszProxyBypass : LPWSTR;
       end;
     LPWINHTTP_PROXY_INFO = ^WINHTTP_PROXY_INFO;
+    PWINHTTP_PROXY_INFO = LPWINHTTP_PROXY_INFO;
 
     WINHTTP_PROXY_INFOW = WINHTTP_PROXY_INFO;
-
     LPWINHTTP_PROXY_INFOW = LPWINHTTP_PROXY_INFO;
 
     WINHTTP_AUTOPROXY_OPTIONS = record
@@ -554,6 +559,7 @@ type
         dwReserved : DWORD;
         fAutoLogonIfChallenged : BOOL;
       end;
+    PWINHTTP_AUTOPROXY_OPTIONS = ^WINHTTP_AUTOPROXY_OPTIONS;  
 
 
     _WINHTTP_PROXY_RESULT_ENTRY = record
@@ -564,13 +570,15 @@ type
         ProxyPort : INTERNET_PORT;
       end;
     WINHTTP_PROXY_RESULT_ENTRY = _WINHTTP_PROXY_RESULT_ENTRY;
-
+    PWINHTTP_PROXY_RESULT_ENTRY = ^WINHTTP_PROXY_RESULT_ENTRY;
+    
     _WINHTTP_PROXY_RESULT = record
         cEntries : DWORD;
         pEntries : ^WINHTTP_PROXY_RESULT_ENTRY;
       end;
     WINHTTP_PROXY_RESULT = _WINHTTP_PROXY_RESULT;
-
+    PWINHTTP_PROXY_RESULT = ^WINHTTP_PROXY_RESULT;
+    
     _WINHTTP_PROXY_RESULT_EX = record
         cEntries : DWORD;
         pEntries : ^WINHTTP_PROXY_RESULT_ENTRY;
@@ -578,6 +586,8 @@ type
         dwProxyInterfaceAffinity : DWORD;
       end;
     WINHTTP_PROXY_RESULT_EX = _WINHTTP_PROXY_RESULT_EX;
+    PWINHTTP_PROXY_RESULT_EX = ^WINHTTP_PROXY_RESULT_EX;
+    
     _WinHttpProxyNetworkKey = record
         pbBuffer : array[0..(NETWORKING_KEY_BUFSIZE)-1] of byte;
       end;
@@ -615,7 +625,7 @@ type
         lpszEncryptionAlgName : LPWSTR;
         dwKeySize : DWORD;
       end;
-
+     PWINHTTP_CERTIFICATE_INFO =  ^WINHTTP_CERTIFICATE_INFO;
     
     tagWINHTTP_CREDS = record
         lpszUserName : LPSTR;
@@ -651,7 +661,8 @@ type
         lpszProxy : LPWSTR;
         lpszProxyBypass : LPWSTR;
       end;
-
+    PWINHTTP_CURRENT_USER_IE_PROXY_CONFIG = ^WINHTTP_CURRENT_USER_IE_PROXY_CONFIG;
+     
     _WINHTTP_WEB_SOCKET_OPERATION = (WINHTTP_WEB_SOCKET_SEND_OPERATION := 0,
       WINHTTP_WEB_SOCKET_RECEIVE_OPERATION := 1,
       WINHTTP_WEB_SOCKET_CLOSE_OPERATION := 2,
@@ -666,7 +677,8 @@ type
       WINHTTP_WEB_SOCKET_CLOSE_BUFFER_TYPE := 4
       );
     WINHTTP_WEB_SOCKET_BUFFER_TYPE = _WINHTTP_WEB_SOCKET_BUFFER_TYPE;
-
+    PWINHTTP_WEB_SOCKET_BUFFER_TYPE = ^WINHTTP_WEB_SOCKET_BUFFER_TYPE;
+    
     _WINHTTP_WEB_SOCKET_CLOSE_STATUS = (WINHTTP_WEB_SOCKET_SUCCESS_CLOSE_STATUS := 1000,
       WINHTTP_WEB_SOCKET_ENDPOINT_TERMINATED_CLOSE_STATUS := 1001,
       WINHTTP_WEB_SOCKET_PROTOCOL_ERROR_CLOSE_STATUS := 1002,
@@ -698,12 +710,16 @@ type
 
   function WinHttpSetStatusCallback(hInternet:HINTERNET; lpfnInternetCallback:WINHTTP_STATUS_CALLBACK; dwNotificationFlags:DWORD; dwReserved:DWORD_PTR):WINHTTP_STATUS_CALLBACK;stdcall;external External_library name 'WinHttpSetStatusCallback';
   function WinHttpTimeFromSystemTime(var pst:SYSTEMTIME; pwszTime:LPWSTR):WINBOOL;stdcall;external External_library name 'WinHttpTimeFromSystemTime';
-  function WinHttpTimeToSystemTime(pwszTime:LPCWSTR; var pst:SYSTEMTIME):WINBOOL;stdcall;external External_library name 'WinHttpTimeToSystemTime';
+  function WinHttpTimeFromSystemTime(pst:PSYSTEMTIME; pwszTime:LPWSTR):WINBOOL;stdcall;overload;external External_library name 'WinHttpTimeFromSystemTime'; 
+  function WinHttpTimeToSystemTime(pwszTime:LPCWSTR; var pst:SYSTEMTIME):WINBOOL;stdcall;overload;external External_library name 'WinHttpTimeToSystemTime';
+  function WinHttpTimeToSystemTime(pwszTime:LPCWSTR; pst:PSYSTEMTIME):WINBOOL;stdcall;overload;external External_library name 'WinHttpTimeToSystemTime';
   function WinHttpCrackUrl(pwszUrl:LPCWSTR; dwUrlLength:DWORD; dwFlags:DWORD; lpUrlComponents:LPURL_COMPONENTS):WINBOOL;stdcall;external External_library name 'WinHttpCrackUrl';
   function WinHttpCreateUrl(lpUrlComponents:LPURL_COMPONENTS; dwFlags:DWORD; pwszUrl:LPWSTR; pdwUrlLength:LPDWORD):WINBOOL;stdcall;external External_library name 'WinHttpCreateUrl';
   function WinHttpCheckPlatform:WINBOOL;stdcall;external External_library name 'WinHttpCheckPlatform';
-  function WinHttpGetDefaultProxyConfiguration(var pProxyInfo:WINHTTP_PROXY_INFO):BOOL;stdcall;external External_library name 'WinHttpGetDefaultProxyConfiguration';
-  function WinHttpSetDefaultProxyConfiguration(var pProxyInfo:WINHTTP_PROXY_INFO):BOOL;stdcall;external External_library name 'WinHttpSetDefaultProxyConfiguration';
+  function WinHttpGetDefaultProxyConfiguration(var pProxyInfo:WINHTTP_PROXY_INFO):BOOL;stdcall;overload;external External_library name 'WinHttpGetDefaultProxyConfiguration';
+  function WinHttpSetDefaultProxyConfiguration(var pProxyInfo:WINHTTP_PROXY_INFO):BOOL;stdcall;overload;external External_library name 'WinHttpSetDefaultProxyConfiguration';
+  function WinHttpGetDefaultProxyConfiguration(pProxyInfo:PWINHTTP_PROXY_INFO):BOOL;stdcall;overload;external External_library name 'WinHttpGetDefaultProxyConfiguration';
+  function WinHttpSetDefaultProxyConfiguration(pProxyInfo:PWINHTTP_PROXY_INFO):BOOL;stdcall;overload;external External_library name 'WinHttpSetDefaultProxyConfiguration';
   function WinHttpOpen(pszAgentW:LPCWSTR; dwAccessType:DWORD; pszProxyW:LPCWSTR; pszProxyBypassW:LPCWSTR; dwFlags:DWORD):HINTERNET;stdcall;external External_library name 'WinHttpOpen';
   function WinHttpCloseHandle(hInternet:HINTERNET):WINBOOL;stdcall;external External_library name 'WinHttpCloseHandle';
   function WinHttpConnect(hSession:HINTERNET; pswzServerName:LPCWSTR; nServerPort:INTERNET_PORT; dwReserved:DWORD):HINTERNET;stdcall;external External_library name 'WinHttpConnect';
@@ -713,7 +729,8 @@ type
   function WinHttpQueryOption(hInternet:HINTERNET; dwOption:DWORD; lpBuffer:LPVOID; lpdwBufferLength:LPDWORD):WINBOOL;stdcall;external External_library name 'WinHttpQueryOption';
   function WinHttpSetOption(hInternet:HINTERNET; dwOption:DWORD; lpBuffer:LPVOID; dwBufferLength:DWORD):WINBOOL;stdcall;external External_library name 'WinHttpSetOption';
   function WinHttpSetTimes(hInternet:HINTERNET; nResolveTime:longint; nConnectTime:longint; nSendTime:longint; nReceiveTime:longint):WINBOOL;stdcall;external External_library name 'WinHttpSetTimes';
-  function WinHttpIsHostInProxyBypassList(var pProxyInfo:WINHTTP_PROXY_INFO; pwszHost:PCWSTR; tScheme:INTERNET_SCHEME; nPort:INTERNET_PORT; var pfIsInBypassList:BOOL):DWORD;stdcall;external External_library name 'WinHttpIsHostInProxyBypassList';
+  function WinHttpIsHostInProxyBypassList(var pProxyInfo:WINHTTP_PROXY_INFO; pwszHost:PCWSTR; tScheme:INTERNET_SCHEME; nPort:INTERNET_PORT; var pfIsInBypassList:BOOL):DWORD;stdcall;overload;external External_library name 'WinHttpIsHostInProxyBypassList';
+  function WinHttpIsHostInProxyBypassList(pProxyInfo:PWINHTTP_PROXY_INFO; pwszHost:PCWSTR; tScheme:INTERNET_SCHEME; nPort:INTERNET_PORT; pfIsInBypassList:PBOOL):DWORD;stdcall;overload;external External_library name 'WinHttpIsHostInProxyBypassList';
   function WinHttpOpenRequest(hConnect:HINTERNET; pwszVerb:LPCWSTR; pwszObjectName:LPCWSTR; pwszVersion:LPCWSTR; pwszReferrer:LPCWSTR; 
             ppwszAcceptTypes:LPPCWSTR; dwFlags:DWORD):HINTERNET;stdcall;external External_library name 'WinHttpOpenRequest';
   function WinHttpAddRequestHeaders(hRequest:HINTERNET; lpszHeaders:LPCWSTR; dwHeadersLength:DWORD; dwModifiers:DWORD):WINBOOL;stdcall;external External_library name 'WinHttpAddRequestHeaders';
@@ -722,33 +739,48 @@ type
  function WinHttpSetCredentials(hRequest:HINTERNET; AuthTargets:DWORD; AuthScheme:DWORD; pwszUserName:LPCWSTR; pwszPassword:LPCWSTR; 
              pAuthParams:LPVOID):WINBOOL;stdcall;external External_library name 'WinHttpSetCredentials';
   function WinHttpQueryAuthSchemes(hRequest:HINTERNET; lpdwSupportedSchemes:LPDWORD; lpdwFirstScheme:LPDWORD; pdwAuthTarget:LPDWORD):WINBOOL;stdcall;external External_library name 'WinHttpQueryAuthSchemes';
-  function WinHttpQueryAuthParams(hRequest:HINTERNET; AuthScheme:DWORD; var pAuthParams:LPVOID):WINBOOL;stdcall;external External_library name 'WinHttpQueryAuthParams';
+  function WinHttpQueryAuthParams(hRequest:HINTERNET; AuthScheme:DWORD; var pAuthParams:LPVOID):WINBOOL;stdcall;overload;external External_library name 'WinHttpQueryAuthParams';
+  function WinHttpQueryAuthParams(hRequest:HINTERNET; AuthScheme:DWORD; pAuthParams:PLPVOID):WINBOOL;stdcall;overload;external External_library name 'WinHttpQueryAuthParams';
   function WinHttpReceiveResponse(hRequest:HINTERNET; lpReserved:LPVOID):BOOL;stdcall;external External_library name 'WinHttpReceiveResponse';
   function WinHttpQueryHeaders(hRequest:HINTERNET; dwInfoLevel:DWORD; pwszName:LPCWSTR; lpBuffer:LPVOID; lpdwBufferLength:LPDWORD; 
              lpdwIndex:LPDWORD):WINBOOL;stdcall;external External_library name 'WinHttpQueryHeaders';
-  function WinHttpDetectAutoProxyConfigUrl(dwAutoDetectFlags:DWORD; var ppwstrAutoConfigUrl:LPWSTR):WINBOOL;stdcall;external External_library name 'WinHttpDetectAutoProxyConfigUrl';
-  function WinHttpGetProxyForUrl(hSession:HINTERNET; lpcwszUrl:LPCWSTR; var pAutoProxyOptions:WINHTTP_AUTOPROXY_OPTIONS; var pProxyInfo:WINHTTP_PROXY_INFO):WINBOOL;stdcall;external External_library name 'WinHttpGetProxyForUrl';
-  function WinHttpCreateProxyResolver(hSession:HINTERNET; var phResolver:HINTERNET):DWORD;stdcall;external External_library name 'WinHttpCreateProxyResolver';
-  function WinHttpGetProxyForUrlEx(hResolver:HINTERNET; pcwszUrl:PCWSTR; var pAutoProxyOptions:WINHTTP_AUTOPROXY_OPTIONS; pContext:DWORD_PTR):DWORD;stdcall;external External_library name 'WinHttpGetProxyForUrlEx';
-  function WinHttpGetProxyForUrlEx2(hResolver:HINTERNET; pcwszUrl:PCWSTR; var pAutoProxyOptions:WINHTTP_AUTOPROXY_OPTIONS; cbInterfaceSelectionContext:DWORD; var pInterfaceSelectionContext:BYTE; 
-            pContext:DWORD_PTR):DWORD;stdcall;external External_library name 'WinHttpGetProxyForUrlEx2';
-  function WinHttpGetProxyResult(hResolver:HINTERNET; var pProxyResult:WINHTTP_PROXY_RESULT):DWORD;stdcall;external External_library name 'WinHttpGetProxyResult';
-  function WinHttpGetProxyResultEx(hResolver:HINTERNET; var pProxyResultEx:WINHTTP_PROXY_RESULT_EX):DWORD;stdcall;external External_library name 'WinHttpGetProxyResultEx';
-  procedure WinHttpFreeProxyResult(var pProxyResult:WINHTTP_PROXY_RESULT);stdcall;external External_library name 'WinHttpFreeProxyResult';
-  procedure WinHttpFreeProxyResultEx(var pProxyResultEx:WINHTTP_PROXY_RESULT_EX);stdcall;external External_library name 'WinHttpFreeProxyResultEx';
+  function WinHttpDetectAutoProxyConfigUrl(dwAutoDetectFlags:DWORD; var ppwstrAutoConfigUrl:LPWSTR):WINBOOL;stdcall;overload;external External_library name 'WinHttpDetectAutoProxyConfigUrl';
+  function WinHttpDetectAutoProxyConfigUrl(dwAutoDetectFlags:DWORD; ppwstrAutoConfigUrl:PLPWSTR):WINBOOL;stdcall;overload;external External_library name 'WinHttpDetectAutoProxyConfigUrl';
+  function WinHttpGetProxyForUrl(hSession:HINTERNET; lpcwszUrl:LPCWSTR; var pAutoProxyOptions:WINHTTP_AUTOPROXY_OPTIONS; var pProxyInfo:WINHTTP_PROXY_INFO):WINBOOL;stdcall;overload;external External_library name 'WinHttpGetProxyForUrl';
+  function WinHttpGetProxyForUrl(hSession:HINTERNET; lpcwszUrl:LPCWSTR; pAutoProxyOptions:PWINHTTP_AUTOPROXY_OPTIONS; pProxyInfo:PWINHTTP_PROXY_INFO):WINBOOL;stdcall;overload;external External_library name 'WinHttpGetProxyForUrl';
+  function WinHttpCreateProxyResolver(hSession:HINTERNET; var phResolver:HINTERNET):DWORD;stdcall;overload;external External_library name 'WinHttpCreateProxyResolver';
+  function WinHttpCreateProxyResolver(hSession:HINTERNET; phResolver:PHINTERNET):DWORD;stdcall;overload;external External_library name 'WinHttpCreateProxyResolver';
+  function WinHttpGetProxyForUrlEx(hResolver:HINTERNET; pcwszUrl:PCWSTR; var pAutoProxyOptions:WINHTTP_AUTOPROXY_OPTIONS; pContext:DWORD_PTR):DWORD;stdcall;overload;external External_library name 'WinHttpGetProxyForUrlEx';
+  function WinHttpGetProxyForUrlEx(hResolver:HINTERNET; pcwszUrl:PCWSTR; pAutoProxyOptions:PWINHTTP_AUTOPROXY_OPTIONS; pContext:DWORD_PTR):DWORD;stdcall;overload;external External_library name 'WinHttpGetProxyForUrlEx';
+  function WinHttpGetProxyForUrlEx2(hResolver:HINTERNET; pcwszUrl:PCWSTR; var pAutoProxyOptions:WINHTTP_AUTOPROXY_OPTIONS; cbInterfaceSelectionContext:DWORD; var pInterfaceSelectionContext:BYTE; pContext:DWORD_PTR):DWORD;stdcall;overload;external External_library name 'WinHttpGetProxyForUrlEx2';
+  function WinHttpGetProxyForUrlEx2(hResolver:HINTERNET; pcwszUrl:PCWSTR; pAutoProxyOptions:PWINHTTP_AUTOPROXY_OPTIONS; cbInterfaceSelectionContext:DWORD; pInterfaceSelectionContext: PBYTE; pContext:DWORD_PTR):DWORD;stdcall;overload;external External_library name 'WinHttpGetProxyForUrlEx2';
+  function WinHttpGetProxyResult(hResolver:HINTERNET; var pProxyResult:WINHTTP_PROXY_RESULT):DWORD;stdcall;overload;external External_library name 'WinHttpGetProxyResult';
+  function WinHttpGetProxyResult(hResolver:HINTERNET; pProxyResult:PWINHTTP_PROXY_RESULT):DWORD;stdcall;overload;external External_library name 'WinHttpGetProxyResult';
+  function WinHttpGetProxyResultEx(hResolver:HINTERNET; var pProxyResultEx:WINHTTP_PROXY_RESULT_EX):DWORD;stdcall;overload;external External_library name 'WinHttpGetProxyResultEx';
+  function WinHttpGetProxyResultEx(hResolver:HINTERNET; pProxyResultEx:PWINHTTP_PROXY_RESULT_EX):DWORD;stdcall;overload;external External_library name 'WinHttpGetProxyResultEx';
+  procedure WinHttpFreeProxyResult(var pProxyResult:WINHTTP_PROXY_RESULT);stdcall;overload;external External_library name 'WinHttpFreeProxyResult';
+  procedure WinHttpFreeProxyResult(pProxyResult:PWINHTTP_PROXY_RESULT);stdcall;overload;external External_library name 'WinHttpFreeProxyResult';
+  procedure WinHttpFreeProxyResultEx(var pProxyResultEx:WINHTTP_PROXY_RESULT_EX);stdcall;overload;external External_library name 'WinHttpFreeProxyResultEx';
+  procedure WinHttpFreeProxyResultEx(pProxyResultEx:PWINHTTP_PROXY_RESULT_EX);stdcall;overload;external External_library name 'WinHttpFreeProxyResultEx';
   function WinHttpResetAutoProxy(hSession:HINTERNET; dwFlags:DWORD):DWORD;stdcall;external External_library name 'WinHttpResetAutoProxy';
-  function WinHttpGetIEProxyConfigForCurrentUser(var pProxyConfig:WINHTTP_CURRENT_USER_IE_PROXY_CONFIG):WINBOOL;stdcall;external External_library name 'WinHttpGetIEProxyConfigForCurrentUser';
-  function WinHttpWriteProxySettings(hSession:HINTERNET; fForceUpdate:BOOL; var pWinHttpProxySettings:WINHTTP_PROXY_SETTINGS):DWORD;stdcall;external External_library name 'WinHttpWriteProxySettings';
-  function WinHttpReadProxySettings(hSession:HINTERNET; pcwszConnectionName:PCWSTR; fFallBackToDefaultSettings:BOOL; fSetAutoDiscoverForDefaultSettings:BOOL; var pdwSettingsVersion:DWORD; 
-            var pfDefaultSettingsAreReturned:BOOL; var pWinHttpProxySettings:WINHTTP_PROXY_SETTINGS):DWORD;stdcall;external External_library name 'WinHttpReadProxySettings';
-  procedure WinHttpFreeProxySettings(var pWinHttpProxySettings:WINHTTP_PROXY_SETTINGS);stdcall;external External_library name 'WinHttpFreeProxySettings';
-  function WinHttpGetProxySettingsVersion(hSession:HINTERNET; var pdwProxySettingsVersion:DWORD):DWORD;stdcall;external External_library name 'WinHttpGetProxySettingsVersion';
+  function WinHttpGetIEProxyConfigForCurrentUser(var pProxyConfig:WINHTTP_CURRENT_USER_IE_PROXY_CONFIG):WINBOOL;stdcall;overload;external External_library name 'WinHttpGetIEProxyConfigForCurrentUser';
+  function WinHttpGetIEProxyConfigForCurrentUser(pProxyConfig:PWINHTTP_CURRENT_USER_IE_PROXY_CONFIG):WINBOOL;stdcall;overload;external External_library name 'WinHttpGetIEProxyConfigForCurrentUser';
+  function WinHttpWriteProxySettings(hSession:HINTERNET; fForceUpdate:BOOL; var pWinHttpProxySettings:WINHTTP_PROXY_SETTINGS):DWORD;stdcall;overload;external External_library name 'WinHttpWriteProxySettings';
+  function WinHttpWriteProxySettings(hSession:HINTERNET; fForceUpdate:BOOL; pWinHttpProxySettings:PWINHTTP_PROXY_SETTINGS):DWORD;stdcall;overload;external External_library name 'WinHttpWriteProxySettings';
+  function WinHttpReadProxySettings(hSession:HINTERNET; pcwszConnectionName:PCWSTR; fFallBackToDefaultSettings:BOOL; fSetAutoDiscoverForDefaultSettings:BOOL; var pdwSettingsVersion:DWORD;  var pfDefaultSettingsAreReturned:BOOL; var pWinHttpProxySettings:WINHTTP_PROXY_SETTINGS):DWORD;stdcall;overload;external External_library name 'WinHttpReadProxySettings';
+  function WinHttpReadProxySettings(hSession:HINTERNET; pcwszConnectionName:PCWSTR; fFallBackToDefaultSettings:BOOL; fSetAutoDiscoverForDefaultSettings:BOOL; pdwSettingsVersion:LPDWORD; pfDefaultSettingsAreReturned:LPBOOL; pWinHttpProxySettings:PWINHTTP_PROXY_SETTINGS):DWORD;stdcall;overload;external External_library name 'WinHttpReadProxySettings';
+  procedure WinHttpFreeProxySettings(var pWinHttpProxySettings:WINHTTP_PROXY_SETTINGS);stdcall;overload;external External_library name 'WinHttpFreeProxySettings';
+  procedure WinHttpFreeProxySettings(pWinHttpProxySettings:PWINHTTP_PROXY_SETTINGS);stdcall;overload;external External_library name 'WinHttpFreeProxySettings';
+  function WinHttpGetProxySettingsVersion(hSession:HINTERNET; var pdwProxySettingsVersion:DWORD):DWORD;stdcall;overload;external External_library name 'WinHttpGetProxySettingsVersion';
+  function WinHttpGetProxySettingsVersion(hSession:HINTERNET; pdwProxySettingsVersion:PDWORD):DWORD;stdcall;overload;external External_library name 'WinHttpGetProxySettingsVersion';
   function WinHttpWebSocketCompleteUpgrade(hRequest:HINTERNET; pContext:DWORD_PTR):HINTERNET;stdcall;external External_library name 'WinHttpWebSocketCompleteUpgrade';
   function WinHttpWebSocketSend(hWebSocket:HINTERNET; eBufferType:WINHTTP_WEB_SOCKET_BUFFER_TYPE; pvBuffer:PVOID; dwBufferLength:DWORD):DWORD;stdcall;external External_library name 'WinHttpWebSocketSend';
-  function WinHttpWebSocketReceive(hWebSocket:HINTERNET; pvBuffer:PVOID; dwBufferLength:DWORD; var pdwBytesRead:DWORD; var peBufferType:WINHTTP_WEB_SOCKET_BUFFER_TYPE):DWORD;stdcall;external External_library name 'WinHttpWebSocketReceive';
+  function WinHttpWebSocketReceive(hWebSocket:HINTERNET; pvBuffer:PVOID; dwBufferLength:DWORD; var pdwBytesRead:DWORD; var peBufferType:WINHTTP_WEB_SOCKET_BUFFER_TYPE):DWORD;stdcall;overload;external External_library name 'WinHttpWebSocketReceive';
+  function WinHttpWebSocketReceive(hWebSocket:HINTERNET; pvBuffer:PVOID; dwBufferLength:DWORD; pdwBytesRead:LPDWORD; peBufferType:PWINHTTP_WEB_SOCKET_BUFFER_TYPE):DWORD;stdcall;overload;external External_library name 'WinHttpWebSocketReceive';
   function WinHttpWebSocketShutdown(hWebSocket:HINTERNET; usStatus:USHORT; pvReason:PVOID; dwReasonLength:DWORD):DWORD;stdcall;external External_library name 'WinHttpWebSocketShutdown';
   function WinHttpWebSocketClose(hWebSocket:HINTERNET; usStatus:USHORT; pvReason:PVOID; dwReasonLength:DWORD):DWORD;stdcall;external External_library name 'WinHttpWebSocketClose';
-  function WinHttpWebSocketQueryCloseStatus(hWebSocket:HINTERNET; var pusStatus:USHORT; pvReason:PVOID; dwReasonLength:DWORD; var pdwReasonLengthConsumed:DWORD):DWORD;stdcall;external External_library name 'WinHttpWebSocketQueryCloseStatus';
+  function WinHttpWebSocketQueryCloseStatus(hWebSocket:HINTERNET; var pusStatus:USHORT; pvReason:PVOID; dwReasonLength:DWORD; var pdwReasonLengthConsumed:DWORD):DWORD;stdcall;overload;external External_library name 'WinHttpWebSocketQueryCloseStatus';
+  function WinHttpWebSocketQueryCloseStatus(hWebSocket:HINTERNET; pusStatus:LPUSHORT; pvReason:PVOID; dwReasonLength:DWORD; pdwReasonLengthConsumed:LPDWORD):DWORD;stdcall;overload;external External_library name 'WinHttpWebSocketQueryCloseStatus';
 
 
 implementation
