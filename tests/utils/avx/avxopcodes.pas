@@ -51,8 +51,6 @@ end;
 
 procedure TAVXTestGenerator.Init;
 begin
-  TAsmTestGenerator.CalcTestData(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
-
   // Opcode, i386, x8664, AVX512, Parameter
   FOpCodeList.Add('ADDSS,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('ADDSS,1,1,0,XMMREG,MEM32,,,');
