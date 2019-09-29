@@ -755,15 +755,18 @@ implementation
                     vs_value,
                     vs_const:
                       begin
-                        encodedstr:=encodedstr+' dereferenceable('
+                        encodedstr:=encodedstr+' readonly dereferenceable('
                       end;
                     vs_var,
-                    vs_out,
-                    vs_constref:
+                    vs_out:
                       begin
                         { while normally these are not nil, it is technically possible
                           to pass nil via ptrtype(nil)^ }
-                        encodedstr:=encodedstr+' dereferenceable_or_null('
+                        encodedstr:=encodedstr+' dereferenceable_or_null(';
+                      end;
+                    vs_constref:
+                      begin
+                        encodedstr:=encodedstr+' readonly dereferenceable_or_null(';
                       end;
                     else
                       internalerror(2018120801);
