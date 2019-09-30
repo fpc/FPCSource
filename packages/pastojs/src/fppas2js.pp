@@ -4124,10 +4124,10 @@ begin
               if TPasClassType(HelperForType).IsExternal then
                 begin
                 // method of a class helper for external class
-                if IsClassMethod(El) and not (ptmStatic in El.Modifiers) then
+                if IsClassMethod(Proc) and not (ptmStatic in El.Modifiers) then
                   RaiseMsg(20190201165259,nHelperClassMethodForExtClassMustBeStatic,
                     sHelperClassMethodForExtClassMustBeStatic,[],El);
-                if El.ClassType=TPasConstructor then
+                if Proc.ClassType=TPasConstructor then
                   RaiseNotYetImplemented(20190206153655,El);
                 end;
               end;

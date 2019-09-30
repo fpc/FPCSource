@@ -670,6 +670,7 @@ type
     Procedure TestClassHelper_PassProperty;
     Procedure TestExtClassHelper_ClassVar;
     Procedure TestExtClassHelper_Method_Call;
+    Procedure TestExtClassHelper_ClassMethod_MissingStatic;
     Procedure TestRecordHelper_ClassVar;
     Procedure TestRecordHelper_Method_Call;
     Procedure TestRecordHelper_Constructor;
@@ -21649,6 +21650,27 @@ begin
     '$with1.Fly(2);',
     '$mod.p = rtl.createCallback($mod.Obj, "Fly");',
     '']));
+end;
+
+procedure TTestModule.TestExtClassHelper_ClassMethod_MissingStatic;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''ExtObj''',
+  '    procedure Run(w: word = 10);',
+  '  end;',
+  '  THelper = class helper for TExtA',
+  '    class procedure Fly;',
+  '  end;',
+  'class procedure THelper.Fly;',
+  'begin end;',
+  'begin',
+  '']);
+  SetExpectedPasResolverError(sHelperClassMethodForExtClassMustBeStatic,
+                              nHelperClassMethodForExtClassMustBeStatic);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestRecordHelper_ClassVar;
