@@ -4,19 +4,22 @@ program fpmake;
 
 uses fpmkunit;
 
+{$endif ALLPACKAGES}
+
+procedure add_fcl_web(const ADirectory: string);
+
+Const
+  LibMicroHttpdOSes = AllUnixOSes + [win32,win64];
+
 Var
   T : TTarget;
   P : TPackage;
 begin
   With Installer do
     begin
-{$endif ALLPACKAGES}
-
     P:=AddPackage('fcl-web');
     P.ShortName:='fclw';
-{$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
-{$endif ALLPACKAGES}
     P.Version:='3.3.1';
     P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android];
     if Defaults.CPU=jvm then
@@ -37,7 +40,7 @@ begin
     P.Dependencies.Add('winunits-base', [Win32,Win64]);
     // (Temporary) indirect dependencies, not detected by fpcmake:
     P.Dependencies.Add('univint',[MacOSX,iphonesim]);
-    P.Dependencies.Add('libmicrohttpd',AllUnixOSes+AllWindowsOSes);
+    P.Dependencies.Add('libmicrohttpd',LibMicroHttpdOSes);
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -196,7 +199,7 @@ begin
         Dependencies.AddUnit('httpdefs');
         Dependencies.AddUnit('httpprotocol');
         ResourceStrings:=true;
-        OSes := [android,freebsd,linux,netbsd,openbsd,win32,win64];
+        OSes := LibMicroHttpdOSes;
         if Defaults.CPU=jvm then
           OSes := OSes - [java,android];
       end;  
@@ -206,7 +209,7 @@ begin
         Dependencies.AddUnit('httpdefs');
         Dependencies.AddUnit('httpprotocol');
         Dependencies.AddUnit('custmicrohttpapp');
-        OSes := [android,freebsd,linux,netbsd,openbsd,win32,win64];
+        OSes := LibMicroHttpdOSes;
         if Defaults.CPU=jvm then
           OSes := OSes - [java,android];
       end;  
@@ -424,9 +427,12 @@ begin
       AddUnit('sqldbrestbridge');
       AddUnit('sqldbrestconst');
       end;
+    end;
+end;
     
 {$ifndef ALLPACKAGES}
-    Run;
-    end;
+begin
+  add_fcl_web('');
+  Installer.Run;
 end.
 {$endif ALLPACKAGES}
