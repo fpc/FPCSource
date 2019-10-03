@@ -472,7 +472,7 @@ begin
             end;
           end;
 
-          Handle := FindFirstFileExW(PUnicodeChar(FileName), FindExInfoDefaults , @SymLinkRec.FindData,
+          Handle := FindFirstFileExW(PUnicodeChar(SymLinkRec.TargetName), FindExInfoDefaults , @SymLinkRec.FindData,
                       FindExSearchNameMatch, Nil, 0);
           if Handle <> INVALID_HANDLE_VALUE then begin
             Windows.FindClose(Handle);
