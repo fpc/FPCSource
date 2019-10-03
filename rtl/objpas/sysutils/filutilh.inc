@@ -93,6 +93,9 @@ Type
     TargetName : UnicodeString;
     Attr : Longint;
     Size : Int64;
+{$ifdef unix}
+    Mode : TMode;
+{$endif unix}
 {$ifdef SYMLINKREC_USEFINDDATA}
     FindData : TFindData;
 {$endif}
@@ -106,6 +109,9 @@ Type
     TargetName : RawByteString;
     Size : Int64;
     Attr : Longint;
+{$ifdef unix}
+    Mode : TMode;
+{$endif unix}
 {$IFDEF SYMLINKREC_USEFINDDATA}
     FindData : TFindData;
 {$ENDIF}

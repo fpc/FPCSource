@@ -609,9 +609,50 @@ begin
 end;
 
 
-function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+Function LinuxToWinAttr (const FN : RawByteString; Const Info : Stat) : Longint;
+Var
+  LinkInfo : Stat;
+  nm : RawByteString;
 begin
-  Result := False;
+  Result:=faArchive;
+  If fpS_ISDIR(Info.st_mode) then
+    Result:=Result or faDirectory;
+  nm:=ExtractFileName(FN);
+  If (Length(nm)>=2) and
+     (nm[1]='.') and
+     (nm[2]<>'.')  then
+    Result:=Result or faHidden;
+  If (Info.st_Mode and S_IWUSR)=0 Then
+     Result:=Result or faReadOnly;
+  If fpS_ISSOCK(Info.st_mode) or fpS_ISBLK(Info.st_mode) or fpS_ISCHR(Info.st_mode) or fpS_ISFIFO(Info.st_mode) Then
+     Result:=Result or faSysFile;
+  If fpS_ISLNK(Info.st_mode) Then
+    begin
+      Result:=Result or faSymLink;
+      // Windows reports if the link points to a directory.
+      if (fpstat(pchar(FN),LinkInfo)>=0) and fpS_ISDIR(LinkInfo.st_mode) then
+        Result := Result or faDirectory;
+    end;
+end;
+
+
+function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+var
+  Info : Stat;
+  SystemFileName: RawByteString;
+begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  if (fplstat(SystemFileName,Info)>=0) and fpS_ISLNK(Info.st_mode) then begin
+    FillByte(SymLinkRec, SizeOf(SymLinkRec), 0);
+    SymLinkRec.TargetName:=fpreadlink(SystemFileName);
+    if fpstat(pointer(SystemFileName), Info) < 0 then
+      raise EDirectoryNotFoundException.Create(SysErrorMessage(GetLastOSError));
+    SymLinkRec.Attr := LinuxToWinAttr(SystemFileName, Info);
+    SymLinkRec.Size := Info.st_size;
+    SymLinkRec.Mode := Info.st_mode;
+    Result:=True;
+  end else
+    Result:=False;
 end;
 
 
@@ -652,32 +693,6 @@ begin
     target directory itself should not exist }
   if not exists and not FollowLink then
     DirectoryExists:=(fplstat(pointer(SystemFileName),Info)>=0) and fpS_ISLNK(Info.st_mode);
-end;
-
-Function LinuxToWinAttr (const FN : RawByteString; Const Info : Stat) : Longint;
-Var
-  LinkInfo : Stat;
-  nm : RawByteString;
-begin
-  Result:=faArchive;
-  If fpS_ISDIR(Info.st_mode) then
-    Result:=Result or faDirectory;
-  nm:=ExtractFileName(FN);
-  If (Length(nm)>=2) and
-     (nm[1]='.') and
-     (nm[2]<>'.')  then
-    Result:=Result or faHidden;
-  If (Info.st_Mode and S_IWUSR)=0 Then
-     Result:=Result or faReadOnly;
-  If fpS_ISSOCK(Info.st_mode) or fpS_ISBLK(Info.st_mode) or fpS_ISCHR(Info.st_mode) or fpS_ISFIFO(Info.st_mode) Then
-     Result:=Result or faSysFile;
-  If fpS_ISLNK(Info.st_mode) Then
-    begin
-      Result:=Result or faSymLink;
-      // Windows reports if the link points to a directory.
-      if (fpstat(pchar(FN),LinkInfo)>=0) and fpS_ISDIR(LinkInfo.st_mode) then
-        Result := Result or faDirectory;
-    end;
 end;
 
 

@@ -138,6 +138,9 @@ begin
 {$ifdef SYMLINKREC_USEFINDDATA}
       SymLinkRec.FindData := sr.FindData;
 {$endif}
+{$ifdef unix}
+      SymLinkRec.Mode := sr.Mode;
+{$endif}
     end;
 end;
 
@@ -349,6 +352,9 @@ begin
       SymLinkRec.Attr := sr.Attr;
 {$ifdef SYMLINKREC_USEFINDDATA}
       SymLinkRec.FindData := sr.FindData;
+{$endif}
+{$ifdef unix}
+      SymLinkRec.Mode := sr.Mode;
 {$endif}
     end;
 end;
