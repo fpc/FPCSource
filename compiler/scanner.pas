@@ -615,7 +615,11 @@ implementation
               undef_system_macro('FPC_GPC')
 {$endif}
             else if (m_mac in oldmodeswitches) then
-              undef_system_macro('FPC_MACPAS');
+              undef_system_macro('FPC_MACPAS')
+            else if (m_iso in oldmodeswitches) then
+              undef_system_macro('FPC_ISO')
+            else if (m_extpas in oldmodeswitches) then
+              undef_system_macro('FPC_EXTENDEDPASCAL');
 
             { define new symbol in delphi,objfpc,tp,gpc,macpas mode }
             if (m_delphi in current_settings.modeswitches) then
@@ -629,7 +633,11 @@ implementation
               def_system_macro('FPC_GPC')
 {$endif}
             else if (m_mac in current_settings.modeswitches) then
-              def_system_macro('FPC_MACPAS');
+              def_system_macro('FPC_MACPAS')
+            else if (m_iso in current_settings.modeswitches) then
+              def_system_macro('FPC_ISO')
+            else if (m_extpas in current_settings.modeswitches) then
+              def_system_macro('FPC_EXTENDEDPASCAL');
          end;
 
         SetCompileMode:=b;
