@@ -1960,7 +1960,7 @@ implementation
 
     constructor tstaticvarsym.create_from_fieldvar(const n: string;fieldvar:tfieldvarsym);
       begin
-        create(internal_static_field_name(n),vs_value,fieldvar.vardef,[]);
+        create(internal_static_field_name(n),fieldvar.varspez,fieldvar.vardef,[]);
         fieldvarsym:=fieldvar;
       end;
 
