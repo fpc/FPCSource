@@ -411,7 +411,7 @@ begin
 end;
 
 
-function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
+function FileGetSymLinkTargetInt(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec; RaiseErrorOnMissing: Boolean): Boolean;
 { reparse point specific declarations from Windows headers }
 const
   IO_REPARSE_TAG_MOUNT_POINT = $A0000003;
@@ -478,7 +478,9 @@ begin
             Windows.FindClose(Handle);
             SymLinkRec.Attr := SymLinkRec.FindData.dwFileAttributes;
             SymLinkRec.Size := QWord(SymLinkRec.FindData.nFileSizeHigh) shl 32 + QWord(SymLinkRec.FindData.nFileSizeLow);
-          end else
+          end else if RaiseErrorOnMissing then
+            raise EDirectoryNotFoundException.Create(SysErrorMessage(GetLastOSError))
+          else
             SymLinkRec.TargetName := '';
         end else
           SetLastError(ERROR_REPARSE_TAG_INVALID);
@@ -489,6 +491,12 @@ begin
       CloseHandle(HFile);
     end;
   Result := SymLinkRec.TargetName <> '';
+end;
+
+
+function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
+begin
+  Result := FileGetSymLinkTargetInt(FileName, SymLinkRec, True);
 end;
 
 
@@ -513,10 +521,10 @@ const
 
   function LinkFileExists: Boolean;
   var
-    LinkTargetName: UnicodeString;
+    slr: TUnicodeSymLinkRec;
   begin
-    Result := FileGetSymLinkTarget(FileOrDirName, LinkTargetName) and
-                FileOrDirExists(LinkTargetName, CheckDir, False);
+    Result := FileGetSymLinkTargetInt(FileOrDirName, slr, False) and
+                FileOrDirExists(slr.TargetName, CheckDir, False);
   end;
 
 const
