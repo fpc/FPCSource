@@ -617,12 +617,18 @@ end;
 
 Function FileExists (Const FileName : RawByteString; FollowLink : Boolean) : Boolean;
 var
+  Info : Stat;
   SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   // Don't use stat. It fails on files >2 GB.
   // Access obeys the same access rules, so the result should be the same.
   FileExists:=fpAccess(pointer(SystemFileName),F_OK)=0;
+  { we need to ensure however that we aren't dealing with a directory }
+  if FileExists then begin
+    if (fpstat(pointer(SystemFileName),Info)>=0) and fpS_ISDIR(Info.st_mode) then
+      FileExists:=False;
+  end;
 end;
 
 Function DirectoryExists (Const Directory : RawByteString; FollowLink : Boolean) : Boolean;
