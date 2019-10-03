@@ -106,7 +106,6 @@ Type
     TargetName : RawByteString;
     Size : Int64;
     Attr : Longint;
-    Name : RawByteString;
 {$IFDEF SYMLINKREC_USEFINDDATA}
     FindData : TFindData;
 {$ENDIF}
