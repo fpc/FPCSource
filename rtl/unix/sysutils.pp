@@ -619,25 +619,39 @@ Function FileExists (Const FileName : RawByteString; FollowLink : Boolean) : Boo
 var
   Info : Stat;
   SystemFileName: RawByteString;
+  isdir: Boolean;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   // Don't use stat. It fails on files >2 GB.
   // Access obeys the same access rules, so the result should be the same.
   FileExists:=fpAccess(pointer(SystemFileName),F_OK)=0;
   { we need to ensure however that we aren't dealing with a directory }
+  isdir:=False;
   if FileExists then begin
-    if (fpstat(pointer(SystemFileName),Info)>=0) and fpS_ISDIR(Info.st_mode) then
+    if (fpstat(pointer(SystemFileName),Info)>=0) and fpS_ISDIR(Info.st_mode) then begin
       FileExists:=False;
+      isdir:=True;
+    end;
   end;
+  { if we shall not follow the link we only need to check for a symlink if the
+    target file itself should not exist }
+  if not FileExists and not isdir and not FollowLink then
+    FileExists:=(fplstat(pointer(SystemFileName),Info)>=0) and fpS_ISLNK(Info.st_mode);
 end;
 
 Function DirectoryExists (Const Directory : RawByteString; FollowLink : Boolean) : Boolean;
 Var
   Info : Stat;
   SystemFileName: RawByteString;
+  exists: Boolean;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(Directory);
-  DirectoryExists:=(fpstat(pointer(SystemFileName),Info)>=0) and fpS_ISDIR(Info.st_mode);
+  exists:=fpstat(pointer(SystemFileName),Info)>=0;
+  DirectoryExists:=exists and fpS_ISDIR(Info.st_mode);
+  { if we shall not follow the link we only need to check for a symlink if the
+    target directory itself should not exist }
+  if not exists and not FollowLink then
+    DirectoryExists:=(fplstat(pointer(SystemFileName),Info)>=0) and fpS_ISLNK(Info.st_mode);
 end;
 
 Function LinuxToWinAttr (const FN : RawByteString; Const Info : Stat) : Longint;
