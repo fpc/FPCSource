@@ -86,7 +86,7 @@ function strcoll (__s1:pchar; __s2:pchar):cint;cdecl;external clib name 'strcoll
 {$ifdef netbsd}
   { NetBSD has a new setlocale function defined in /usr/include/locale.h
     that should be used }
-function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name '__setlocale_mb_len_max_32';
+function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name '__setlocale50';
 {$else}
 function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name 'setlocale';
 {$endif}
