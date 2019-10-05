@@ -1633,11 +1633,16 @@ begin
   heap_lock_use := 1;
   initcriticalsection(heap_lock);
 {$endif}
+
+{$ifndef FPC_SECTION_THREADVARS}
+  { even if section threadvars are used, this shouldn't cause problems as loc_freelists simply
+    does not change but we do not need it }
   loc_freelists := @freelists;
   { loc_freelists still points to main thread's freelists, but they
     have a reference to the global main freelists, fix them to point
     to the main thread specific variable }
   modify_freelists(loc_freelists, loc_freelists);
+{$endif FPC_SECTION_THREADVARS}
   if MemoryManager.RelocateHeap <> nil then
     MemoryManager.RelocateHeap();
 end;
