@@ -471,7 +471,7 @@ ifneq ($(OPT),)
 OPTNEW+=$(OPT)
 endif
 ifneq ($(findstring $(OS_TARGET),linux),)
-ifneq ($(findstring $(CPU_TARGET),i386),)
+ifneq ($(findstring $(CPU_TARGET),i386 arm),)
 override OPTNEW+=-CVgeneral-dynamic
 endif
 endif
