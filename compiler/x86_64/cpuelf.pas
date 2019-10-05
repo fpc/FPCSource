@@ -179,7 +179,7 @@ implementation
           else
             InternalError(2019091701);
         RELOC_TLSGD:
-          result:=R_X86_64_TLSGD
+          result:=R_X86_64_TLSGD;
       else
         result:=0;
         InternalError(2012082302);
