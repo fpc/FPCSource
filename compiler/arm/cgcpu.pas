@@ -2495,6 +2495,8 @@ unit cgcpu;
               current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_gottpoff,ref.symbol,ref.relsymbol,ref.offset))
             else if ref.refaddr=addr_tlsgd then
               current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsgd,ref.symbol,ref.relsymbol,ref.offset))
+            else if ref.refaddr=addr_tlsdesc then
+              current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsdesc,ref.symbol,ref.relsymbol,ref.offset))
             else if ref.refaddr=addr_tpoff then
               begin
                 if assigned(ref.relsymbol) or (ref.offset<>0) then
@@ -5140,6 +5142,8 @@ unit cgcpu;
                   current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_gottpoff,ref.symbol,ref.relsymbol,ref.offset))
                 else if ref.refaddr=addr_tlsgd then
                   current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsgd,ref.symbol,ref.relsymbol,ref.offset))
+                else if ref.refaddr=addr_tlsdesc then
+                  current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsdesc,ref.symbol,ref.relsymbol,ref.offset))
                 else if ref.refaddr=addr_tpoff then
                   begin
                     if assigned(ref.relsymbol) or (ref.offset<>0) then

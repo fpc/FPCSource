@@ -1161,7 +1161,7 @@ implementation
                                               if (hp2.typ=ait_const) and (tai_const(hp2).sym=tai_const(hp).sym)
                                                 and (tai_const(hp2).value=tai_const(hp).value) and (tai(hp2.previous).typ=ait_label) and
                                                 { gottpoff and tlsgd symbols are PC relative, so we cannot reuse them }
-                                                (not(tai_const(hp2).consttype in [aitconst_gottpoff,aitconst_tlsgd])) then
+                                                (not(tai_const(hp2).consttype in [aitconst_gottpoff,aitconst_tlsgd,aitconst_tlsdesc])) then
                                                 begin
                                                   with taicpu(curtai).oper[curop]^.ref^ do
                                                     begin
@@ -3051,13 +3051,23 @@ implementation
                 begin
                   currsym:=objdata.symbolref(oper[0]^.ref^.symbol);
 
-                  bytes:=bytes or (((oper[0]^.ref^.offset-8) shr 2) and $ffffff);
+                  { tlscall is not relative so ignore the offset }
+                  if oper[0]^.ref^.refaddr<>addr_tlscall then
+                    bytes:=bytes or (((oper[0]^.ref^.offset-8) shr 2) and $ffffff);
 
                   if (opcode<>A_BL) or (condition<>C_None) then
                     objdata.writereloc(aint(bytes),4,currsym,RELOC_RELATIVE_24)
                   else
-                    objdata.writereloc(aint(bytes),4,currsym,RELOC_RELATIVE_CALL);
-
+                    case oper[0]^.ref^.refaddr of
+                      addr_pic:
+                        objdata.writereloc(aint(bytes),4,currsym,RELOC_ARM_CALL);
+                      addr_full:
+                        objdata.writereloc(aint(bytes),4,currsym,RELOC_RELATIVE_CALL);
+                      addr_tlscall:
+                        objdata.writereloc(aint(bytes),4,currsym,RELOC_TLS_CALL);
+                      else
+                        Internalerror(2019092903);
+                    end;
                   exit;
                 end;
             end;

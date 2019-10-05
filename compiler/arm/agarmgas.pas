@@ -194,7 +194,9 @@ unit agarmgas;
                 if offset<>0 then
                   s:=s+tostr_with_plus(offset);
                 if refaddr=addr_pic then
-                  s:=s+'(PLT)';
+                  s:=s+'(PLT)'
+                else if refaddr=addr_tlscall then
+                  s:=s+'(tlscall)';
               end
             else
               begin

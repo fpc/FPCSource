@@ -1764,7 +1764,7 @@ Implementation
                    begin
                      objsym:=Objdata.SymbolRef(tai_const(hp).sym);
                      objsymend:=Objdata.SymbolRef(tai_const(hp).endsym);
-                     if Tai_const(hp).consttype in [aitconst_gottpoff,aitconst_tlsgd] then
+                     if Tai_const(hp).consttype in [aitconst_gottpoff,aitconst_tlsgd,aitconst_tlsdesc] then
                        begin
                          if objsymend.objsection<>ObjData.CurrObjSec then
                            Internalerror(2019092801);
@@ -1991,11 +1991,17 @@ Implementation
                      objsym:=Objdata.SymbolRef(tai_const(hp).sym);
                      objsymend:=Objdata.SymbolRef(tai_const(hp).endsym);
                      relative_reloc:=(objsym.objsection<>objsymend.objsection);
-                     if Tai_const(hp).consttype in [aitconst_gottpoff,aitconst_tlsgd] then
+                     if Tai_const(hp).consttype in [aitconst_gottpoff] then
                        begin
                          if objsymend.objsection<>ObjData.CurrObjSec then
                            Internalerror(2019092802);
                          Tai_const(hp).value:=objsymend.address-ObjData.CurrObjSec.Size+Tai_const(hp).symofs;
+                       end
+                     else if Tai_const(hp).consttype in [aitconst_tlsgd,aitconst_tlsdesc] then
+                       begin
+                         if objsymend.objsection<>ObjData.CurrObjSec then
+                           Internalerror(2019092802);
+                         Tai_const(hp).value:=ObjData.CurrObjSec.Size-objsymend.address+Tai_const(hp).symofs;
                        end
                      else if objsymend.objsection<>objsym.objsection then
                        begin
@@ -2066,6 +2072,13 @@ Implementation
                      ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_TPOFF);
                    aitconst_tlsgd:
                      ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_TLSGD);
+                   aitconst_tlsdesc:
+                     begin
+                       { must be a relative symbol, thus value being valid }
+                       if not(assigned(tai_const(hp).sym)) or not(assigned(tai_const(hp).endsym)) then
+                         Internalerror(2019092904);
+                       ObjData.writereloc(Tai_const(hp).value,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_TLSDESC);
+                     end;
 {$endif arm}
                    aitconst_gotoff_symbol:
                      ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_GOTOFF);

@@ -154,7 +154,8 @@ interface
           { ARM TLS code }
           aitconst_gottpoff,
           aitconst_tpoff,
-          aitconst_tlsgd
+          aitconst_tlsgd,
+          aitconst_tlsdesc
         );
 
         tairealconsttype = (
@@ -2104,6 +2105,8 @@ implementation
           aitconst_tlsgd:
             result:=4;
           aitconst_tpoff:
+            result:=4;
+          aitconst_tlsdesc:
             result:=4;
           else
             internalerror(200603253);

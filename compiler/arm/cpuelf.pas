@@ -342,6 +342,14 @@ implementation
             result:=R_ARM_TLS_LE32
           else
             Internalerror(2019092901);
+        RELOC_TLSGD:
+          result:=R_ARM_TLS_GD32;
+        RELOC_TLSDESC:
+          result:=R_ARM_TLS_GOTDESC;
+        RELOC_TLS_CALL:
+          result:=R_ARM_TLS_CALL;
+        RELOC_ARM_CALL:
+          result:=R_ARM_CALL;
       else
         InternalError(2012110602);
       end;

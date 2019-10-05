@@ -93,6 +93,9 @@ interface
          RELOC_GOT32,
          RELOC_TPOFF,
          RELOC_TLSGD,
+         RELOC_TLSDESC,
+         RELOC_TLS_CALL,
+         RELOC_ARM_CALL,
 {$endif arm}
          { Relative relocation }
          RELOC_RELATIVE,
