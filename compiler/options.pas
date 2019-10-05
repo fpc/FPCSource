@@ -1485,10 +1485,10 @@ begin
                     'V':
                       begin
                         s:=upper(copy(more,j+1,length(more)-j));
-                        if s='GENERAL' then
-                          init_settings.tlsmodel:=tlsm_general
-                        else if s='LOCAL' then
-                          init_settings.tlsmodel:=tlsm_local
+                        if s='GENERAL-DYNAMIC' then
+                          init_settings.tlsmodel:=tlsm_general_dynamic
+                        else if s='LOCAL-EXEC' then
+                          init_settings.tlsmodel:=tlsm_local_exec
                         else
                           IllegalPara(opt);
                         break;
@@ -4155,9 +4155,9 @@ begin
   if (tf_section_threadvars in target_info.flags) and (init_settings.tlsmodel=tlsm_none) then
     begin
       if cs_create_pic in init_settings.moduleswitches then
-        init_settings.tlsmodel:=tlsm_general
+        init_settings.tlsmodel:=tlsm_general_dynamic
       else
-        init_settings.tlsmodel:=tlsm_local;
+        init_settings.tlsmodel:=tlsm_local_exec;
     end;
 
   { set Mac OS X version default macros if not specified explicitly }

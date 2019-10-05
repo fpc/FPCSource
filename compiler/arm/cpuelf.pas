@@ -28,7 +28,7 @@ interface
 implementation
 
   uses
-    globtype,cutils,cclasses,
+    globtype,globals,cutils,cclasses,
     verbose, elfbase,
     systems,aasmbase,ogbase,ogelf,assemble;
 
@@ -335,9 +335,14 @@ implementation
           result:=R_ARM_THM_CALL;
         RELOC_GOT32:
           result:=R_ARM_GOT_BREL;
+        RELOC_TPOFF:
+          if current_settings.tlsmodel=tlsm_initial_exec then
+            result:=R_ARM_TLS_IE32
+          else if current_settings.tlsmodel=tlsm_local_exec then
+            result:=R_ARM_TLS_LE32
+          else
+            Internalerror(2019092901);
       else
-        result:=0;
-        writeln(objrel.typ);
         InternalError(2012110602);
       end;
     end;

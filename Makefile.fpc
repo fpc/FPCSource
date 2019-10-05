@@ -202,7 +202,7 @@ endif
 # the general threading model when compiling the final versions of rtl and packages
 ifneq ($(findstring $(OS_TARGET),linux),)
 ifneq ($(findstring $(CPU_TARGET),i386),)
-override OPTNEW+=-CVgeneral
+override OPTNEW+=-CVgeneral-dynamic
 endif
 endif
 

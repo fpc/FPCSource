@@ -744,15 +744,22 @@ interface
          { subroutine uses threadvars }
          pi_uses_threadvar,
          { set if the procedure has generated data which shall go in an except table }
-         pi_has_except_table_data
+         pi_has_except_table_data,
+         { subroutine needs to load and maintain a tls register }
+         pi_needs_tls
        );
        tprocinfoflags=set of tprocinfoflag;
 
        ttlsmodel = (tlsm_none,
          { elf tls model: works for all kind of code and thread vars }
-         tlsm_general,
+         tlsm_general_dynamic,
+         { elf tls model: works only if the thread vars are declared and used in the same module,
+           regardless when the module is loaded }
+         tlsm_local_dynamic,
+         { elf tls model: works only if the thread vars are declared and used in modules and executables loaded at startup }
+         tlsm_initial_exec,
          { elf tls model: works only if the thread vars are declared and used in the same executable }
-         tlsm_local
+         tlsm_local_exec
        );
 
     type
