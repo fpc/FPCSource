@@ -2657,7 +2657,11 @@ Implementation
             ) and
             GetNextInstruction(hp1,hp2) and
             (hp2.typ=ait_instruction) and
-            { loaded register used by next instruction? }
+            { loaded register used by next instruction?
+
+              if we ever support labels (they could be skipped in theory) here, the gnu2 tls general-dynamic code could get broken (the ldr before
+              the bl may not be scheduled away from the bl) and it needs to be taken care of this case
+            }
             (RegInInstruction(taicpu(hp1).oper[0]^.reg,hp2)) and
             { loaded register not used by previous instruction? }
             not(RegInInstruction(taicpu(hp1).oper[0]^.reg,p)) and

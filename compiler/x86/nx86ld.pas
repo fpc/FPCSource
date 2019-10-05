@@ -98,7 +98,7 @@ implementation
                         location.reference.segment:=NR_GS;
                         location.reference.refaddr:=addr_ntpoff;
                       end;
-                    tlsm_general_dynamic:
+                    tlsm_global_dynamic:
                       begin
                         include(current_procinfo.flags,pi_needs_got);
                         reference_reset(href,0,[]);
@@ -132,7 +132,7 @@ implementation
                         location.reference.segment:=NR_FS;
                         location.reference.refaddr:=addr_tpoff;
                       end;
-                    tlsm_general_dynamic:
+                    tlsm_global_dynamic:
                       begin
                         current_asmdata.CurrAsmList.concat(tai_const.Create_8bit($66));
                         reference_reset(href,0,[]);

@@ -98,7 +98,7 @@ unit cpupi;
 
     procedure tcpuprocinfo.allocate_got_register(list: tasmlist);
       begin
-        if (pi_uses_threadvar in flags) and (tf_section_threadvars in target_info.flags) and (current_settings.tlsmodel in [tlsm_general_dynamic]) then
+        if (pi_uses_threadvar in flags) and (tf_section_threadvars in target_info.flags) and (current_settings.tlsmodel in [tlsm_global_dynamic]) then
           begin
             { FIXME: It is better to use an imaginary register for GOT and
               if EBX is needed for some reason just allocate EBX and

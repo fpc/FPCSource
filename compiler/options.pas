@@ -1485,8 +1485,8 @@ begin
                     'V':
                       begin
                         s:=upper(copy(more,j+1,length(more)-j));
-                        if s='GENERAL-DYNAMIC' then
-                          init_settings.tlsmodel:=tlsm_general_dynamic
+                        if s='GLOBAL-DYNAMIC' then
+                          init_settings.tlsmodel:=tlsm_global_dynamic
                         else if s='LOCAL-EXEC' then
                           init_settings.tlsmodel:=tlsm_local_exec
                         else
@@ -4155,7 +4155,7 @@ begin
   if (tf_section_threadvars in target_info.flags) and (init_settings.tlsmodel=tlsm_none) then
     begin
       if cs_create_pic in init_settings.moduleswitches then
-        init_settings.tlsmodel:=tlsm_general_dynamic
+        init_settings.tlsmodel:=tlsm_global_dynamic
       else
         init_settings.tlsmodel:=tlsm_local_exec;
     end;

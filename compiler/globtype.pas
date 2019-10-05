@@ -752,7 +752,7 @@ interface
 
        ttlsmodel = (tlsm_none,
          { elf tls model: works for all kind of code and thread vars }
-         tlsm_general_dynamic,
+         tlsm_global_dynamic,
          { elf tls model: works only if the thread vars are declared and used in the same module,
            regardless when the module is loaded }
          tlsm_local_dynamic,
