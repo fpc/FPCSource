@@ -2080,6 +2080,9 @@ Implementation
                        ObjData.writereloc(Tai_const(hp).value,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_TLSDESC);
                      end;
 {$endif arm}
+                   aitconst_dtpoff:
+                     { so far, the size of dtpoff is fixed to 4 bytes }
+                     ObjData.writereloc(Tai_const(hp).symofs,4,Objdata.SymbolRef(tai_const(hp).sym),RELOC_DTPOFF);
                    aitconst_gotoff_symbol:
                      ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_GOTOFF);
                    aitconst_uleb128bit,

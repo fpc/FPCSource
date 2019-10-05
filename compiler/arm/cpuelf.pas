@@ -350,6 +350,8 @@ implementation
           result:=R_ARM_TLS_CALL;
         RELOC_ARM_CALL:
           result:=R_ARM_CALL;
+        RELOC_DTPOFF:
+          result:=R_ARM_TLS_LDO32;
       else
         InternalError(2012110602);
       end;

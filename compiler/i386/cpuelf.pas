@@ -119,6 +119,8 @@ implementation
             InternalError(2019092101);
         RELOC_TLSGD:
           result:=R_386_TLS_GD;
+        RELOC_DTPOFF:
+          result:=R_386_TLS_DTPOFF32;
       else
         result:=0;
         InternalError(2012082301);

@@ -151,6 +151,8 @@ interface
           aitconst_got,
           { offset of symbol itself from GOT }
           aitconst_gotoff_symbol,
+          { offset in TLS block }
+          aitconst_dtpoff,
           { ARM TLS code }
           aitconst_gottpoff,
           aitconst_tpoff,
@@ -2107,6 +2109,8 @@ implementation
           aitconst_tpoff:
             result:=4;
           aitconst_tlsdesc:
+            result:=4;
+          aitconst_dtpoff:
             result:=4;
           else
             internalerror(200603253);

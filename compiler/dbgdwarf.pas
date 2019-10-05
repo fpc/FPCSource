@@ -2653,15 +2653,43 @@ implementation
               case sym.typ of
                 staticvarsym:
                   begin
-                    if (vo_is_thread_var in sym.varoptions) then
+                    if vo_is_thread_var in sym.varoptions then
                       begin
-{ TODO: !!! FIXME: dwarf for thread vars !!!}
-{ This is only a minimal change to at least be able to get a value
-  in only one thread is present PM 2014-11-21, like for stabs format }
-                        templist.concat(tai_const.create_8bit(ord(DW_OP_addr)));
-                        templist.concat(tai_const.Create_type_name(aitconst_ptr_unaligned,sym.mangledname,
-                          offset+sizeof(pint)));
-                        blocksize:=1+sizeof(puint);
+                        if tf_section_threadvars in target_info.flags then
+                          begin
+                            case sizeof(puint) of
+                              2:
+                                templist.concat(tai_const.create_8bit(ord(DW_OP_const2u)));
+                              4:
+                                templist.concat(tai_const.create_8bit(ord(DW_OP_const4u)));
+                              8:
+                                templist.concat(tai_const.create_8bit(ord(DW_OP_const8u)));
+                              else
+                                Internalerror(2019100501);
+                            end;
+{$push}
+{$warn 6018 off}            { Unreachable code due to compile time evaluation }
+                            templist.concat(tai_const.Create_type_name(aitconst_dtpoff,sym.mangledname,0));
+                            { so far, aitconst_dtpoff is solely 32 bit }
+                            if (sizeof(puint)=8) and (target_info.endian=endian_little) then
+                              templist.concat(tai_const.create_32bit(0));
+                            templist.concat(tai_const.create_8bit(ord(DW_OP_GNU_push_tls_address)));
+                            if (sizeof(puint)=8) and (target_info.endian=endian_big) then
+                              templist.concat(tai_const.create_32bit(0));
+{$pop}
+
+                            blocksize:=2+sizeof(puint);
+                          end
+                        else
+                          begin
+                            { TODO: !!! FIXME: dwarf for thread vars !!!}
+                            { This is only a minimal change to at least be able to get a value
+                              in only one thread is present PM 2014-11-21, like for stabs format }
+                            templist.concat(tai_const.create_8bit(ord(DW_OP_addr)));
+                            templist.concat(tai_const.Create_type_name(aitconst_ptr_unaligned,sym.mangledname,
+                              offset+sizeof(pint)));
+                            blocksize:=1+sizeof(puint);
+                          end;
                       end
                     else
                       begin

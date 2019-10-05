@@ -180,9 +180,16 @@ implementation
             InternalError(2019091701);
         RELOC_TLSGD:
           result:=R_X86_64_TLSGD;
-      else
-        result:=0;
-        InternalError(2012082302);
+        RELOC_DTPOFF:
+          if objrel.size=8 then
+            result:=R_X86_64_DTPOFF64
+          else if objrel.size=4 then
+            result:=R_X86_64_DTPOFF32
+          else
+            InternalError(2019091701);
+        else
+          result:=0;
+          InternalError(2012082302);
       end;
     end;
 

@@ -115,7 +115,9 @@ interface
          { Relative to GOT/gp }
          RELOC_GOTOFF,
          { Untranslated target-specific value }
-         RELOC_RAW
+         RELOC_RAW,
+         { offset in TLS block }
+         RELOC_DTPOFF
       );
 
 {$if defined(x86_64)}
