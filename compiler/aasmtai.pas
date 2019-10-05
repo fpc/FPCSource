@@ -153,8 +153,8 @@ interface
           aitconst_gotoff_symbol,
           { ARM TLS code }
           aitconst_gottpoff,
-          aitconst_tpoff
-
+          aitconst_tpoff,
+          aitconst_tlsgd
         );
 
         tairealconsttype = (
@@ -2098,6 +2098,12 @@ implementation
           aitconst_got:
             result:=sizeof(pint);
           aitconst_gotoff_symbol:
+            result:=4;
+          aitconst_gottpoff:
+            result:=4;
+          aitconst_tlsgd:
+            result:=4;
+          aitconst_tpoff:
             result:=4;
           else
             internalerror(200603253);

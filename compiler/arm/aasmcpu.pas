@@ -1160,8 +1160,8 @@ implementation
                                             begin
                                               if (hp2.typ=ait_const) and (tai_const(hp2).sym=tai_const(hp).sym)
                                                 and (tai_const(hp2).value=tai_const(hp).value) and (tai(hp2.previous).typ=ait_label) and
-                                                { gottpoff symbols are PC relative, so we cannot reuse them }
-                                                (tai_const(hp2).consttype<>aitconst_gottpoff) then
+                                                { gottpoff and tlsgd symbols are PC relative, so we cannot reuse them }
+                                                (not(tai_const(hp2).consttype in [aitconst_gottpoff,aitconst_tlsgd])) then
                                                 begin
                                                   with taicpu(curtai).oper[curop]^.ref^ do
                                                     begin

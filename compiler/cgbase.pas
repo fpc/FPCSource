@@ -125,6 +125,7 @@ interface
          {$IFDEF ARM}
          ,addr_gottpoff
          ,addr_tpoff
+         ,addr_tlsgd
          {$ENDIF}
          {$IFDEF i386}
          ,addr_ntpoff

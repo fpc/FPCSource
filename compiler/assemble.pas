@@ -1764,7 +1764,13 @@ Implementation
                    begin
                      objsym:=Objdata.SymbolRef(tai_const(hp).sym);
                      objsymend:=Objdata.SymbolRef(tai_const(hp).endsym);
-                     if objsymend.objsection<>objsym.objsection then
+                     if Tai_const(hp).consttype in [aitconst_gottpoff,aitconst_tlsgd] then
+                       begin
+                         if objsymend.objsection<>ObjData.CurrObjSec then
+                           Internalerror(2019092801);
+                         Tai_const(hp).value:=objsymend.address-ObjData.CurrObjSec.Size+Tai_const(hp).symofs;
+                       end
+                     else if objsymend.objsection<>objsym.objsection then
                        begin
                          if (Tai_const(hp).consttype in [aitconst_uleb128bit,aitconst_sleb128bit]) or
                             (objsym.objsection<>ObjData.CurrObjSec) then
@@ -1985,7 +1991,13 @@ Implementation
                      objsym:=Objdata.SymbolRef(tai_const(hp).sym);
                      objsymend:=Objdata.SymbolRef(tai_const(hp).endsym);
                      relative_reloc:=(objsym.objsection<>objsymend.objsection);
-                     if objsymend.objsection<>objsym.objsection then
+                     if Tai_const(hp).consttype in [aitconst_gottpoff,aitconst_tlsgd] then
+                       begin
+                         if objsymend.objsection<>ObjData.CurrObjSec then
+                           Internalerror(2019092802);
+                         Tai_const(hp).value:=objsymend.address-ObjData.CurrObjSec.Size+Tai_const(hp).symofs;
+                       end
+                     else if objsymend.objsection<>objsym.objsection then
                        begin
                          if (Tai_const(hp).consttype in [aitconst_uleb128bit,aitconst_sleb128bit]) or
                             (objsym.objsection<>ObjData.CurrObjSec) then
@@ -2048,6 +2060,12 @@ Implementation
 {$ifdef arm}
                    aitconst_got:
                      ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_GOT32);
+{                   aitconst_gottpoff:
+                     ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_TPOFF); }
+                   aitconst_tpoff:
+                     ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_TPOFF);
+                   aitconst_tlsgd:
+                     ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_TLSGD);
 {$endif arm}
                    aitconst_gotoff_symbol:
                      ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_GOTOFF);

@@ -2493,6 +2493,15 @@ unit cgcpu;
               end
             else if ref.refaddr=addr_gottpoff then
               current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_gottpoff,ref.symbol,ref.relsymbol,ref.offset))
+            else if ref.refaddr=addr_tlsgd then
+              current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsgd,ref.symbol,ref.relsymbol,ref.offset))
+            else if ref.refaddr=addr_tpoff then
+              begin
+                if assigned(ref.relsymbol) or (ref.offset<>0) then
+                  Internalerror(2019092804);
+
+                current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_tpoff,ref.symbol));
+              end
             else if (cs_create_pic in current_settings.moduleswitches) then
               if (tf_pic_uses_got in target_info.flags) then
                 current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_got,ref.symbol))
@@ -3339,10 +3348,13 @@ unit cgcpu;
 
     procedure tbasecgarm.g_maybe_tls_init(list : TAsmList);
       begin
-        list.concat(tai_regalloc.alloc(NR_R0,nil));
-        a_call_name(list,'fpc_read_tp',false);
-        a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_R0,current_procinfo.tlsoffset);
-        list.concat(tai_regalloc.dealloc(NR_R0,nil));
+        if pi_needs_tls in current_procinfo.flags then
+          begin
+            list.concat(tai_regalloc.alloc(NR_R0,nil));
+            a_call_name(list,'fpc_read_tp',false);
+            a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_R0,current_procinfo.tlsoffset);
+            list.concat(tai_regalloc.dealloc(NR_R0,nil));
+          end;
       end;
 
 
@@ -5126,6 +5138,15 @@ unit cgcpu;
 
                 if ref.refaddr=addr_gottpoff then
                   current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_gottpoff,ref.symbol,ref.relsymbol,ref.offset))
+                else if ref.refaddr=addr_tlsgd then
+                  current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsgd,ref.symbol,ref.relsymbol,ref.offset))
+                else if ref.refaddr=addr_tpoff then
+                  begin
+                    if assigned(ref.relsymbol) or (ref.offset<>0) then
+                      Internalerror(2019092805);
+
+                    current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_tpoff,ref.symbol));
+                  end
                 else
                   current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset));
 

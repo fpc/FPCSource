@@ -91,6 +91,8 @@ interface
          RELOC_RELATIVE_24_THUMB,
          RELOC_RELATIVE_CALL_THUMB,
          RELOC_GOT32,
+         RELOC_TPOFF,
+         RELOC_TLSGD,
 {$endif arm}
          { Relative relocation }
          RELOC_RELATIVE,

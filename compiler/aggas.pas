@@ -992,6 +992,18 @@ implementation
                      writer.AsmWrite(#9'.word'#9+tai_const(hp).sym.name+'(gottpoff)+(.-'+tai_const(hp).endsym.name+tostr_with_plus(tai_const(hp).symofs)+')');
                      writer.Asmln;
                    end;
+                 aitconst_tlsgd:
+                   begin
+                     writer.AsmWrite(#9'.word'#9+tai_const(hp).sym.name+'(tlsgd)+(.-'+tai_const(hp).endsym.name+tostr_with_plus(tai_const(hp).symofs)+')');
+                     writer.Asmln;
+                   end;
+                 aitconst_tpoff:
+                   begin
+                     if assigned(tai_const(hp).endsym) or (tai_const(hp).symofs<>0) then
+                       Internalerror(2019092805);
+                     writer.AsmWrite(#9'.word'#9+tai_const(hp).sym.name+'(tpoff)');
+                     writer.Asmln;
+                   end;
 {$endif cpu64bitaddr}
                  aitconst_got:
                    begin
