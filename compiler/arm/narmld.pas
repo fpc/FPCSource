@@ -67,21 +67,60 @@ implementation
               begin
                 if not(pi_uses_threadvar in current_procinfo.flags) then
                   internalerror(2012012101);
-                current_asmdata.getjumplabel(l);
-                reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA),-8,sizeof(AInt),[]);
-                href.refaddr:=addr_gottpoff;
-                href.relsymbol:=l;
-                hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
-                cg.a_label(current_asmdata.CurrAsmList,l);
-                reference_reset(href,0,[]);
-                href.base:=NR_PC;
-                href.index:=hregister;
-                hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
-                location.reference.base:=current_procinfo.tlsoffset;
-                location.reference.index:=hregister;
-                handled:=true;
+                case current_settings.tlsmodel of
+                  tlsm_general_dynamic:
+                    begin
+                      current_asmdata.getjumplabel(l);
+                      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_TLS),-8,sizeof(AInt),[]);
+                      href.refaddr:=addr_tlsgd;
+                      href.relsymbol:=l;
+                      hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                      cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
+                      cg.a_label(current_asmdata.CurrAsmList,l);
+                      cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
+                      cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,hregister,NR_PC,NR_R0);
+                      cg.g_call(current_asmdata.CurrAsmList,'___tls_get_addr');
+                      cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R0);
+                      hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_R0,hregister);
+                      reference_reset(location.reference,location.reference.alignment,location.reference.volatility);
+                      location.reference.base:=hregister;
+                      handled:=true;
+                    end;
+                  tlsm_initial_exec:
+                    begin
+                      current_asmdata.getjumplabel(l);
+                      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_TLS),-8,sizeof(AInt),[]);
+                      href.refaddr:=addr_tpoff;
+                      href.relsymbol:=l;
+                      hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                      cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
+                      cg.a_label(current_asmdata.CurrAsmList,l);
+                      reference_reset(href,0,[]);
+                      href.base:=NR_PC;
+                      href.index:=hregister;
+                      hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
+                      location.reference.base:=current_procinfo.tlsoffset;
+                      include(current_procinfo.flags,pi_needs_tls);
+                      location.reference.index:=hregister;
+                      handled:=true;
+                    end;
+                  tlsm_local_exec:
+                    begin
+                      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_TLS),0,sizeof(AInt),[]);
+                      href.refaddr:=addr_tpoff;
+                      hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                      cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
+                      reference_reset(href,0,[]);
+                      location.reference.base:=current_procinfo.tlsoffset;
+                      include(current_procinfo.flags,pi_needs_tls);
+                      location.reference.index:=hregister;
+                      handled:=true;
+                    end;
+                  else
+                    Internalerror(2019092802);
+                end;
               end;
           end;
 
