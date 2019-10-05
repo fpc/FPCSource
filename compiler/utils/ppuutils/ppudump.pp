@@ -1626,7 +1626,9 @@ const
          (mask:pi_uses_threadvar;
          str:' uses threadvars '),
          (mask:pi_has_except_table_data;
-         str:' has except table data ')
+         str:' has except table data '),
+         (mask:pi_needs_tls;
+         str:' uses TLS data pointer ')
   );
 var
   procinfooptions : tprocinfoflags;
