@@ -1806,7 +1806,7 @@ implementation
               (got<>NR_NO) then
               cg.a_reg_sync(aktproccode,got);
 
-            if (pi_uses_threadvar in flags) and
+            if (pi_needs_tls in flags) and
               (tlsoffset<>NR_NO) then
               cg.a_reg_sync(aktproccode,tlsoffset);
 
@@ -1850,8 +1850,8 @@ implementation
             cg.g_maybe_got_init(templist);
             aktproccode.insertlistafter(headertai,templist);
 
-            if (pi_uses_threadvar in flags) and (tf_section_threadvars in target_info.flags) then
-              cg.g_maybe_tls_init(templist);
+            { init tls if needed }
+            cg.g_maybe_tls_init(templist);
             aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist);
 
 
