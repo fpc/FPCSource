@@ -2798,9 +2798,51 @@ end;
 
 
     function tdynamicarray.equal(other:tdynamicarray):boolean;
+      var
+        ofsthis,
+        ofsother,
+        remthis,
+        remother,
+        len : sizeint;
+        blockthis,
+        blockother : pdynamicblock;
       begin
-        result:=false;
-        { TODO }
+        if not assigned(other) then
+          exit(false);
+        if size<>other.size then
+          exit(false);
+        blockthis:=Firstblock;
+        blockother:=other.FirstBlock;
+        ofsthis:=0;
+        ofsother:=0;
+
+        while assigned(blockthis) and assigned(blockother) do
+          begin
+            remthis:=blockthis^.used-ofsthis;
+            remother:=blockother^.used-ofsother;
+            len:=min(remthis,remother);
+            if not CompareMem(@blockthis^.data[ofsthis],@blockother^.data[ofsother],len) then
+              exit(false);
+            inc(ofsthis,len);
+            inc(ofsother,len);
+            if ofsthis=blockthis^.used then
+              begin
+                blockthis:=blockthis^.next;
+                ofsthis:=0;
+              end;
+            if ofsother=blockother^.used then
+              begin
+                blockother:=blockother^.next;
+                ofsother:=0;
+              end;
+          end;
+
+        if assigned(blockthis) and not assigned(blockother) then
+          result:=blockthis^.used=0
+        else if assigned(blockother) and not assigned(blockthis) then
+          result:=blockother^.used=0
+        else
+          result:=true;
       end;
 
 
