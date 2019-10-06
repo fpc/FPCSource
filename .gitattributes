@@ -3173,6 +3173,7 @@ packages/fcl-db/examples/loadlibdemo.pp svneol=native#text/plain
 packages/fcl-db/examples/logsqldemo.lpi svneol=native#text/plain
 packages/fcl-db/examples/logsqldemo.pas svneol=native#text/plain
 packages/fcl-db/examples/myext.pp svneol=native#text/plain
+packages/fcl-db/examples/parsesql.pas svneol=native#text/plain
 packages/fcl-db/examples/pqeventstest.pp svneol=native#text/plain
 packages/fcl-db/examples/showcsv.pp svneol=native#text/plain
 packages/fcl-db/examples/sqlite3extdemo.pp svneol=native#text/plain
