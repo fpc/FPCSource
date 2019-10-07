@@ -138,7 +138,16 @@ type
     procedure TestGenProc_NestedFail;
     procedure TestGenProc_TypeParamCntOverload;
     procedure TestGenProc_TypeParamCntOverloadNoParams;
-    //procedure TestGenProc_Inference;
+    procedure TestGenProc_TypeParamWithDefaultParamDelphiFail; // ToDo
+    procedure TestGenProc_Inference_NeedExplicitFail;
+    procedure TestGenProc_Inference_Overload; // ToDo
+    //procedure TestGenProc_Inference_Var_Overload;
+    // ToDo procedure TestGenProc_Inference_NonGenericPrecedence;
+    // ToDo procedure TestGenProc_Inference_DefaultValueFail
+    procedure TestGenProc_Inference_ProcT;
+    procedure TestGenProc_Inference_Mismatch;
+    // ToDo procedure TestGenProc_Inference_ArrayOfT;
+    // ToDo procedure TestGenProc_Inference_ProcType;
 
     // generic methods
     procedure TestGenMethod_VirtualFail;
@@ -2035,6 +2044,100 @@ begin
   '  specialize {@B}Run<word,char>();',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_TypeParamWithDefaultParamDelphiFail;
+begin
+  // delphi 10.3 does not allow default values for args with generic types
+  exit;
+
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'procedure {#A}Run<T>(a: T = 0); overload;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('Parameters of this type cannot have default values',123);
+end;
+
+procedure TTestResolveGenerics.TestGenProc_Inference_NeedExplicitFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'function {#A}Run<S,T>(a: S): T; overload;',
+  'begin',
+  'end;',
+  'begin',
+  '  {@A}Run(1);',
+  '']);
+  CheckResolverException('Could not infer generic type argument "T" for method "Run"',
+    nCouldNotInferTypeArgXForMethodY);
+end;
+
+procedure TTestResolveGenerics.TestGenProc_Inference_Overload;
+begin
+  exit;
+
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'procedure {#A}Run<S>(a: S; b: boolean); overload;',
+  'begin',
+  'end;',
+  'procedure {#B}Run<T>(a: T; w: word); overload;',
+  'begin',
+  'end;',
+  'procedure {#C}Run<U>(a: U; b: U); overload;',
+  'begin',
+  'end;',
+  'begin',
+  '  {@A}Run(1,true);',
+  '  {@B}Run(2,3);',
+  '  {@C}Run(''foo'',''bar'');',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_Inference_ProcT;
+begin
+  exit;
+
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TProc<T> = procedure(a: T);',
+  '  TObject = class',
+  '    procedure {#A}Run<T: class>(a: TProc<T>);',
+  '  end;',
+  '  TBird = class end;',
+  'procedure Tobject.Run<T>(a: TProc<T>);',
+  'begin',
+  'end;',
+  'var obj: TObject;',
+  'begin',
+  '  obj.{@A}Run<TBird>(procedure(Bird: TBird) begin end);',
+  '  obj.{@A}Run(procedure(Bird: TBird) begin end);', // not supported by Delphi
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_Inference_Mismatch;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'procedure Run<T>(a: T; b: T);',
+  'begin',
+  'end;',
+  'begin',
+  '  Run(1,true);',
+  '']);
+  CheckResolverException('Inferred type "T" from different arguments mismatch for method "Run"',
+    nInferredTypeXFromDiffArgsMismatchFromMethodY);
 end;
 
 procedure TTestResolveGenerics.TestGenMethod_VirtualFail;

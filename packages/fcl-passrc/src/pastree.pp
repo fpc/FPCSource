@@ -1744,6 +1744,7 @@ const
 
 procedure ReleaseAndNil(var El: TPasElement {$IFDEF CheckPasTreeRefCount}; const Id: string{$ENDIF}); overload;
 procedure ReleaseGenericTemplateTypes(var GenericTemplateTypes: TFPList{$IFDEF CheckPasTreeRefCount}; const Id: string{$ENDIF});
+procedure ReleaseElementList(ElList: TFPList{$IFDEF CheckPasTreeRefCount}; const Id: string{$ENDIF});
 function GenericTemplateTypesAsString(List: TFPList): string;
 procedure ReleaseProcNameParts(var NameParts: TProcedureNameParts);
 
@@ -1777,6 +1778,21 @@ begin
     El.Release{$IFDEF CheckPasTreeRefCount}(Id){$ENDIF};
     end;
   FreeAndNil(GenericTemplateTypes);
+end;
+
+procedure ReleaseElementList(ElList: TFPList; const Id: string);
+var
+  i: Integer;
+  El: TPasElement;
+begin
+  if ElList=nil then exit;
+  for i := 0 to ElList.Count - 1 do
+    begin
+    El:=TPasElement(ElList[i]);
+    if El<>nil then
+      El.Release{$IFDEF CheckPasTreeRefCount}(Id){$ENDIF};
+    end;
+  ElList.Clear;
 end;
 
 function GenericTemplateTypesAsString(List: TFPList): string;

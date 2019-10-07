@@ -427,6 +427,7 @@ const
     {$ifdef HasInt64},btQWordBool{$endif}];
   btArrayRangeTypes = btAllChars+btAllBooleans+btAllInteger;
   btAllRanges = btArrayRangeTypes+[btRange];
+  btAllWithSubType = [btSet, btArrayLit, btArrayOrSet, btRange];
   btAllStandardTypes = [
     btChar,
     {$ifdef FPC_HAS_CPSTRING}
@@ -611,6 +612,9 @@ const
 
 const
   ResolverResultVar = 'Result';
+  {$IFDEF CheckPasTreeRefCount}
+  RefIdInferenceParamsExpr = 'InferenceParamsExpr';
+  {$ENDIF}
 
 type
   {$ifdef pas2js}
@@ -1503,7 +1507,8 @@ type
   protected
     const
       cExact = 0;
-      cAliasExact = cExact+1;
+      cGenericExact = cExact+1;
+      cAliasExact = cGenericExact+1;
       cCompatible = cAliasExact+1;
       cIntToIntConversion = ord(High(TResolverBaseType));
       cFloatToFloatConversion = 2*cIntToIntConversion;
@@ -1691,6 +1696,10 @@ type
     function ComputeAddStringRes(
       const LeftResolved, RightResolved: TPasResolverResult; ExprEl: TPasExpr;
       out ResolvedEl: TPasResolverResult): boolean; virtual;
+    procedure ComputeArgumentAndExpr(
+      Arg: TPasArgument; out ArgResolved: TPasResolverResult;
+      Expr: TPasExpr; out ExprResolved: TPasResolverResult;
+      SetReferenceFlags: boolean);
     procedure ComputeArrayParams(Params: TParamsExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement);
@@ -1771,6 +1780,8 @@ type
     procedure AddSpecializedTemplateIdentifiers(GenericTemplateTypes: TFPList;
       SpecializedItem: TPRSpecializedItem; Scope: TPasIdentifierScope;
       CheckConstraints: boolean);
+    function CreateInferenceTypesForCall(Params: TParamsExpr;
+      TargetProc: TPasProcedure): TFPList;
     function GetSpecializedEl(El: TPasElement; GenericEl: TPasElement;
       Params: TFPList): TPasElement;
     function CheckGenericConstraintFitsParam(ParamType: TPasType;
@@ -10466,18 +10477,39 @@ procedure TPasResolver.ResolveFuncParamsExprName(NameExpr: TPasExpr;
       FinishCallArgAccess(Params.Params[i],ParamAccess);
   end;
 
+  procedure CheckTemplParams(GenTemplates, TemplParams: TFPList);
+  var
+    i: Integer;
+    Param, PosEl: TPasElement;
+    ResolvedEl: TPasResolverResult;
+  begin
+    for i:=0 to TemplParams.Count-1 do
+      begin
+      Param:=TPasElement(TemplParams[i]);
+      ComputeElement(Param,ResolvedEl,[rcType]);
+      if Param is TPasExpr then
+        PosEl:=Param
+      else
+        PosEl:=Params;
+      if CheckTemplateFitsParamRes(TPasGenericTemplateType(GenTemplates[i]),
+          ResolvedEl,prtcoAssignToTempl,PosEl)=cIncompatible then
+        // should have raise error
+        RaiseNotYetImplemented(20190919095604,PosEl,GetResolverResultDbg(ResolvedEl));
+      end;
+  end;
+
 var
   FindCallData: TFindCallElData;
   Abort: boolean;
-  FoundEl, Param, PosEl: TPasElement;
+  FoundEl: TPasElement;
   Ref: TResolvedReference;
   FindData: TPRFindData;
   BuiltInProc: TResElDataBuiltInProc;
   ResolvedEl: TPasResolverResult;
   TypeEl: TPasType;
   C: TClass;
-  TemplCnt, i: Integer;
-  GenTemplates: TFPList;
+  TemplParamsCnt: Integer;
+  GenTemplates, InferenceParams: TFPList;
 begin
   // e.g. Name() -> find compatible
   {$IFDEF VerbosePasResolver}
@@ -10492,11 +10524,11 @@ begin
   FindCallData.Params:=Params;
   if TemplParams<>nil then
     begin
-    TemplCnt:=TemplParams.Count;
-    FindCallData.TemplCnt:=TemplCnt;
+    TemplParamsCnt:=TemplParams.Count;
+    FindCallData.TemplCnt:=TemplParamsCnt;
     end
   else
-    TemplCnt:=0;
+    TemplParamsCnt:=0;
   Abort:=false;
   IterateElements(CallName,@OnFindCallElements,@FindCallData,Abort);
   if FindCallData.Found=nil then
@@ -10568,33 +10600,37 @@ begin
     GenTemplates:=TPasGenericType(FoundEl).GenericTemplateTypes
   else
     GenTemplates:=nil;
-  if TemplCnt>0 then
+
+  if TemplParamsCnt>0 then
     begin
+    // check template types
     if GenTemplates=nil then
       RaiseMsg(20190919100922,nTypeParamsNotAllowedOnX,sTypeParamsNotAllowedOnX,
         [FoundEl.Name],NameExpr);
-    if TemplCnt<>GenTemplates.Count then
+    if TemplParamsCnt<>GenTemplates.Count then
       RaiseMsg(20190919101051,nWrongNumberOfParametersForGenericX,sWrongNumberOfParametersForGenericX,
         [GetElementTypeName(FoundEl)+' '+FoundEl.Name],NameExpr);
-    for i:=0 to TemplCnt-1 do
-      begin
-      Param:=TPasElement(TemplParams[i]);
-      ComputeElement(Param,ResolvedEl,[rcType]);
-      if Param is TPasExpr then
-        PosEl:=Param
-      else
-        PosEl:=Params;
-      if CheckTemplateFitsParamRes(TPasGenericTemplateType(GenTemplates[i]),
-          ResolvedEl,prtcoAssignToTempl,PosEl)=cIncompatible then
-        // should have raise error
-        RaiseNotYetImplemented(20190919095604,PosEl,GetResolverResultDbg(ResolvedEl));
-      end;
+    CheckTemplParams(GenTemplates,TemplParams);
     FoundEl:=GetSpecializedEl(NameExpr,FoundEl,TemplParams);
     end
   else if (GenTemplates<>nil) and (GenTemplates.Count>0) then
     begin
-    RaiseMsg(20190919120728,nWrongNumberOfParametersForGenericX,sWrongNumberOfParametersForGenericX,
-      [GetElementTypeName(FoundEl)+' '+FoundEl.Name],NameExpr);
+    if FoundEl is TPasProcedure then
+      begin
+      // GenericProc()  -> create template types by inference
+      InferenceParams:=CreateInferenceTypesForCall(Params,TPasProcedure(FoundEl));
+      try
+        CheckTemplParams(GenTemplates,InferenceParams);
+        FoundEl:=GetSpecializedEl(NameExpr,FoundEl,InferenceParams);
+      finally
+        ReleaseElementList(InferenceParams{$IFDEF CheckPasTreeRefCount},RefIdInferenceParamsExpr{$ENDIF});
+        FreeAndNil(InferenceParams);
+      end;
+      end
+    else
+      // GenericType()  -> missing type params
+      RaiseMsg(20190919120728,nWrongNumberOfParametersForGenericX,sWrongNumberOfParametersForGenericX,
+        [GetElementTypeName(FoundEl)+' '+FoundEl.Name],NameExpr);
     end;
 
   // FoundEl compatible element -> create reference
@@ -13223,6 +13259,37 @@ begin
   Result:=false;
 end;
 
+procedure TPasResolver.ComputeArgumentAndExpr(Arg: TPasArgument; out
+  ArgResolved: TPasResolverResult; Expr: TPasExpr; out
+  ExprResolved: TPasResolverResult; SetReferenceFlags: boolean);
+var
+  NeedVar: Boolean;
+  RHSFlags: TPasResolverComputeFlags;
+begin
+  NeedVar:=Arg.Access in [argVar, argOut];
+
+  ComputeElement(Arg,ArgResolved,[]);
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.ComputeArgumentAndExpr Arg=',GetTreeDbg(Arg,2),' ArgResolved=',GetResolverResultDbg(ArgResolved));
+  {$ENDIF}
+  if (ArgResolved.LoTypeEl=nil) and (Arg.ArgType<>nil) then
+    RaiseInternalError(20160922163628,'TypeEl=nil for '+GetTreeDbg(Arg));
+
+  RHSFlags:=[];
+  if NeedVar then
+    Include(RHSFlags,rcNoImplicitProc)
+  else if IsProcedureType(ArgResolved,true)
+      or (ArgResolved.BaseType=btPointer)
+      or (Arg.ArgType=nil) then
+    Include(RHSFlags,rcNoImplicitProcType);
+  if SetReferenceFlags then
+    Include(RHSFlags,rcSetReferenceFlags);
+  ComputeElement(Expr,ExprResolved,RHSFlags);
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.ComputeArgumentAndExpr Expr=',GetTreeDbg(Expr,2),' ExprResolved=',GetResolverResultDbg(ExprResolved),' RHSFlags=',dbgs(RHSFlags));
+  {$ENDIF}
+end;
+
 procedure TPasResolver.ComputeArrayParams(Params: TParamsExpr; out
   ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
   StartEl: TPasElement);
@@ -15293,6 +15360,192 @@ begin
     end;
 end;
 
+function TPasResolver.CreateInferenceTypesForCall(Params: TParamsExpr;
+  TargetProc: TPasProcedure): TFPList;
+type
+  TInferredType = record
+    InferType: TPasType;
+    IsVarOut: boolean;
+  end;
+  TInferredTypes = array of TInferredType;
+
+  procedure RaiseInferTypeMismatch(const Id: TMaxPrecInt; ArgType: TPasType;
+    ErrorPos: TPasElement);
+  begin
+    RaiseMsg(Id,nInferredTypeXFromDiffArgsMismatchFromMethodY,
+      sInferredTypeXFromDiffArgsMismatchFromMethodY,
+      [ArgType.Name,TargetProc.Name],ErrorPos);
+  end;
+
+  procedure Infer(ParamType, ArgType: TPasType; NeedVar, IsSubType: boolean;
+    InferenceParams: TInferredTypes; TemplTypes: TFPList; IsDelphi: boolean;
+    ErrorPos: TPasElement);
+  var
+    C: TClass;
+    i: Integer;
+    OldInferType: TPasType;
+    ResolveAlias: TPRResolveAlias;
+  begin
+    if (ArgType=nil) or (ParamType=nil) then exit;
+    C:=ArgType.ClassType;
+    if C=TPasGenericTemplateType then
+      begin
+      i:=TemplTypes.IndexOf(ArgType);
+      if i>=0 then
+        begin
+        // a generic type param corresponds to ParamType
+        OldInferType:=InferenceParams[i].InferType;
+        if OldInferType=nil then
+          begin
+          // template type inferred first time
+          InferenceParams[i].InferType:=ParamType;
+          InferenceParams[i].IsVarOut:=NeedVar;
+          ParamType.AddRef{$IFDEF CheckPasTreeRefCount}(RefIdInferenceParamsExpr){$ENDIF};
+          exit;
+          end;
+
+        // already inferred -> check if it fits
+        if IsDelphi then
+          // Delphi allows passing alias, but not type alias to a var arg
+          ResolveAlias:=prraSimple
+        else
+          // ObjFPC allows passing type alias to a var arg
+          ResolveAlias:=prraAlias;
+        if IsSameType(OldInferType,ParamType,ResolveAlias) then
+          exit; // fits exactly
+
+        // does not fit exactly
+        if IsSubType then
+          begin
+          if CheckElTypeCompatibility(OldInferType,InferenceParams[i].InferType,ResolveAlias) then
+            exit;
+          // e.g. "array of TA" and "array of TB"
+          RaiseInferTypeMismatch(20191006215539,ArgType,ErrorPos);
+          end;
+
+        // top level type does not fit exactly
+        if NeedVar then
+          begin
+          // second is var/out
+          if InferenceParams[i].IsVarOut then
+            // two var/out arguments mismatch
+            RaiseInferTypeMismatch(20191006220355,ArgType,ErrorPos);
+          if CheckAssignCompatibility(ParamType,OldInferType,
+              false,ErrorPos)=cIncompatible then
+            // second is var/out, and do not match
+            RaiseInferTypeMismatch(20191006220402,ArgType,ErrorPos);
+          // first can be widened to fit
+          InferenceParams[i].InferType.Release{$IFDEF CheckPasTreeRefCount}(RefIdInferenceParamsExpr){$ENDIF};
+          InferenceParams[i].InferType:=ParamType;
+          InferenceParams[i].IsVarOut:=NeedVar;
+          ParamType.AddRef{$IFDEF CheckPasTreeRefCount}(RefIdInferenceParamsExpr){$ENDIF};
+          exit;
+          end
+        else if InferenceParams[i].IsVarOut then
+          begin
+          // first was var/out
+          if CheckAssignCompatibility(OldInferType,ParamType,
+              false,ErrorPos)=cIncompatible then
+            // first was var/out, and do not match
+            RaiseInferTypeMismatch(20191006220750,ArgType,ErrorPos);
+          // second can be widened to fit
+          exit;
+          end;
+        // find a type compatible to both
+        // ToDo
+        RaiseInferTypeMismatch(20191006220406,ArgType,ErrorPos);
+        end;
+      end;
+  end;
+
+  procedure InferParam(i: integer; NeedVar: boolean; ParamsExprs: TPasExprArray;
+    ProcArgs: TFPList;
+    InferenceParams: TInferredTypes; TemplTypes: TFPList; IsDelphi: boolean);
+  var
+    Arg: TPasArgument;
+    ArgType: TPasType;
+    ArgResolved, ExprResolved: TPasResolverResult;
+    Expr: TPasExpr;
+  begin
+    //writeln('InferParam i=',i,' NeedVar=',NeedVar,' IsDelphi=',IsDelphi,' ProcArgs.Count=',ProcArgs.Count);
+    if i>=ProcArgs.Count then
+      exit; // a proc with varargs
+    Arg:=TPasArgument(ProcArgs[i]);
+    ArgType:=Arg.ArgType;
+    if ArgType=nil then
+      exit; // untyped arg
+    if (ArgType.Parent<>Arg) and (ArgType.ClassType<>TPasGenericTemplateType) then
+      exit; // a reference -> no need to search for a template reference
+    if NeedVar<>(Arg.Access in [argVar, argOut]) then
+      exit;
+
+    Expr:=ParamsExprs[i];
+    ComputeArgumentAndExpr(Arg,ArgResolved,Expr,ExprResolved,false);
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.CreateInferenceTypesForCall Arg=',GetTreeDbg(Arg,2),' ArgResolved=',GetResolverResultDbg(ArgResolved));
+    {$ENDIF}
+
+    if ExprResolved.BaseType in btAllWithSubType then
+      // ToDo
+    else if (ExprResolved.SubType<>btNone) then
+      RaiseNotYetImplemented(20191006203622,Expr)
+    else
+      Infer(ExprResolved.HiTypeEl,ArgType,NeedVar,false,
+            InferenceParams,TemplTypes,IsDelphi,Expr);
+  end;
+
+var
+  TemplTypes, ProcArgs: TFPList;
+  InferenceTypes: TInferredTypes;
+  ParamsExprs: TPasExprArray;
+  IsDelphi: Boolean;
+  i: Integer;
+begin
+  Result:=nil;
+  writeln('AAA1 TPasResolver.CreateInferenceTypesForCall ');
+  TemplTypes:=GetProcTemplateTypes(TargetProc);
+  if (TemplTypes=nil) or (TemplTypes.Count=0) then
+    RaiseNotYetImplemented(20191006174321,Params);
+  ProcArgs:=TargetProc.ProcType.Args;
+  ParamsExprs:=Params.Params;
+  if ProcArgs.Count<length(ParamsExprs) then
+    RaiseNotYetImplemented(20191006183021,Params);
+
+  IsDelphi:=msDelphi in CurrentParser.CurrentModeswitches;
+  try
+    SetLength(InferenceTypes,TemplTypes.Count);
+    for i:=0 to TemplTypes.Count-1 do
+      InferenceTypes[i]:=Default(TInferredType);
+
+    // first infer from var/out args exact types
+    for i:=0 to length(ParamsExprs)-1 do
+      InferParam(i,true,ParamsExprs,ProcArgs,InferenceTypes,TemplTypes,IsDelphi);
+
+    // then infer from the other args
+    for i:=0 to length(ParamsExprs)-1 do
+      InferParam(i,false,ParamsExprs,ProcArgs,InferenceTypes,TemplTypes,IsDelphi);
+
+    // check that all types are inferred
+    for i:=0 to TemplTypes.Count-1 do
+      if InferenceTypes[i].InferType=nil then
+        RaiseMsg(20191006175104,nCouldNotInferTypeArgXForMethodY,
+          sCouldNotInferTypeArgXForMethodY,
+          [TPasGenericTemplateType(TemplTypes[i]).Name,TargetProc.Name],Params);
+
+    Result:=TFPList.Create;
+    for i:=0 to length(InferenceTypes)-1 do
+      begin
+      Result.Add(InferenceTypes[i].InferType);
+      InferenceTypes[i].InferType:=nil;
+      end;
+  finally
+    if Result=nil then
+      for i:=0 to length(InferenceTypes)-1 do
+        if InferenceTypes[i].InferType<>nil then
+          InferenceTypes[i].InferType.Release{$IFDEF CheckPasTreeRefCount}(RefIdInferenceParamsExpr){$ENDIF};
+  end;
+end;
+
 function TPasResolver.GetSpecializedEl(El: TPasElement; GenericEl: TPasElement;
   Params: TFPList): TPasElement;
 var
@@ -15727,17 +15980,17 @@ var
   LoTypeEl: TPasType;
 begin
   if length(GenTempl.Constraints)=0 then
-    exit(cExact);
+    exit(cGenericExact);
   if ResolvedEl.BaseType=btContext then
     begin
     LoTypeEl:=ResolvedEl.LoTypeEl;
     if LoTypeEl is TPasGenericTemplateType then
       begin
       if LoTypeEl=GenTempl then
-        exit(cExact);
+        exit(cGenericExact);
       if (Operation=prtcoAssignToTempl) and (ErrorPos<>nil) then
         CheckTemplateFitsTemplate(TPasGenericTemplateType(LoTypeEl),GenTempl,ErrorPos);
-      Result:=cExact;
+      Result:=cGenericExact;
       end
     else
       Result:=CheckTemplateFitsParam(LoTypeEl,GenTempl,nil,Operation,ErrorPos);
@@ -15755,13 +16008,13 @@ begin
         exit(cIncompatible);
         end;
       end;
-    Result:=cExact;
+    Result:=cGenericExact;
     end
   else
     begin
     if ErrorPos<>nil then
       RaiseNotYetImplemented(20190915205441,ErrorPos);
-    exit(cIncompatible);
+    Result:=cIncompatible;
     end;
 end;
 
@@ -24502,33 +24755,12 @@ function TPasResolver.CheckParamCompatibility(Expr: TPasExpr;
 var
   ExprResolved, ParamResolved: TPasResolverResult;
   NeedVar, UseAssignError: Boolean;
-  RHSFlags: TPasResolverComputeFlags;
 begin
   Result:=cIncompatible;
 
   NeedVar:=Param.Access in [argVar, argOut];
 
-  ComputeElement(Param,ParamResolved,[]);
-  {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.CheckParamCompatibility Param=',GetTreeDbg(Param,2),' ParamResolved=',GetResolverResultDbg(ParamResolved));
-  {$ENDIF}
-  if (ParamResolved.LoTypeEl=nil) and (Param.ArgType<>nil) then
-    RaiseInternalError(20160922163628,'GetResolvedType returned TypeEl=nil for '+GetTreeDbg(Param));
-
-  RHSFlags:=[];
-  if NeedVar then
-    Include(RHSFlags,rcNoImplicitProc)
-  else if IsProcedureType(ParamResolved,true)
-      or (ParamResolved.BaseType=btPointer)
-      or (Param.ArgType=nil)  then
-    Include(RHSFlags,rcNoImplicitProcType);
-  if SetReferenceFlags then
-    Include(RHSFlags,rcSetReferenceFlags);
-  ComputeElement(Expr,ExprResolved,RHSFlags);
-
-  {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.CheckParamCompatibility Expr=',GetTreeDbg(Expr,2),' ResolvedExpr=',GetResolverResultDbg(ExprResolved),' RHSFlags=',dbgs(RHSFlags));
-  {$ENDIF}
+  ComputeArgumentAndExpr(Param,ParamResolved,Expr,ExprResolved,SetReferenceFlags);
 
   if NeedVar then
     begin
