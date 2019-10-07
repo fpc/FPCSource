@@ -1780,7 +1780,7 @@ begin
   FreeAndNil(GenericTemplateTypes);
 end;
 
-procedure ReleaseElementList(ElList: TFPList; const Id: string);
+procedure ReleaseElementList(ElList: TFPList{$IFDEF CheckPasTreeRefCount}; const Id: string{$ENDIF});
 var
   i: Integer;
   El: TPasElement;
