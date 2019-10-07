@@ -143,7 +143,8 @@ type
     procedure TestGenProc_Inference_Overload;
     procedure TestGenProc_Inference_Var_Overload;
     //procedure TestGenProc_Inference_Widen;
-    // ToDo procedure TestGenProc_Inference_DefaultValue
+    procedure TestGenProc_Inference_DefaultValue;
+    procedure TestGenProc_Inference_DefaultValueMismatch;
     procedure TestGenProc_Inference_ProcT;
     procedure TestGenProc_Inference_Mismatch;
     // ToDo procedure TestGenProc_Inference_ArrayOfT;
@@ -2121,6 +2122,37 @@ begin
   '  {@C}Run(s,s);',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_Inference_DefaultValue;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'generic procedure {#A}Run<S>(a: S = 2; b: S = 10); overload;',
+  'begin',
+  'end;',
+  'begin',
+  '  {@A}Run(1,2);',
+  '  {@A}Run(3);',
+  '  {@A}Run();',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_Inference_DefaultValueMismatch;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'generic procedure {#A}Run<S>(a: S; b: S = 10); overload;',
+  'begin',
+  'end;',
+  'begin',
+  '  {@A}Run(false,true);',
+  '']);
+  CheckResolverException('Incompatible types: got "Longint" expected "Boolean"',
+                         nIncompatibleTypesGotExpected);
 end;
 
 procedure TTestResolveGenerics.TestGenProc_Inference_ProcT;
