@@ -138,12 +138,12 @@ type
     procedure TestGenProc_NestedFail;
     procedure TestGenProc_TypeParamCntOverload;
     procedure TestGenProc_TypeParamCntOverloadNoParams;
-    procedure TestGenProc_TypeParamWithDefaultParamDelphiFail; // ToDo
+    procedure TestGenProc_TypeParamWithDefaultParamDelphiFail;
     procedure TestGenProc_Inference_NeedExplicitFail;
-    procedure TestGenProc_Inference_Overload; // ToDo
-    //procedure TestGenProc_Inference_Var_Overload;
-    // ToDo procedure TestGenProc_Inference_NonGenericPrecedence;
-    // ToDo procedure TestGenProc_Inference_DefaultValueFail
+    procedure TestGenProc_Inference_Overload;
+    procedure TestGenProc_Inference_Var_Overload;
+    //procedure TestGenProc_Inference_Widen;
+    // ToDo procedure TestGenProc_Inference_DefaultValue
     procedure TestGenProc_Inference_ProcT;
     procedure TestGenProc_Inference_Mismatch;
     // ToDo procedure TestGenProc_Inference_ArrayOfT;
@@ -2049,8 +2049,6 @@ end;
 procedure TTestResolveGenerics.TestGenProc_TypeParamWithDefaultParamDelphiFail;
 begin
   // delphi 10.3 does not allow default values for args with generic types
-  exit;
-
   StartProgram(false);
   Add([
   '{$mode delphi}',
@@ -2059,7 +2057,7 @@ begin
   'end;',
   'begin',
   '']);
-  CheckResolverException('Parameters of this type cannot have default values',123);
+  CheckResolverException(sParamOfThisTypeCannotHaveDefVal,nParamOfThisTypeCannotHaveDefVal);
 end;
 
 procedure TTestResolveGenerics.TestGenProc_Inference_NeedExplicitFail;
@@ -2079,8 +2077,6 @@ end;
 
 procedure TTestResolveGenerics.TestGenProc_Inference_Overload;
 begin
-  exit;
-
   StartProgram(false);
   Add([
   '{$mode delphi}',
@@ -2094,9 +2090,35 @@ begin
   'begin',
   'end;',
   'begin',
-  '  {@A}Run(1,true);',
-  '  {@B}Run(2,3);',
+  '  {@A}Run(1,true);', // non generic take precedence
+  '  {@B}Run(2,word(3));', // non generic take precedence
   '  {@C}Run(''foo'',''bar'');',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_Inference_Var_Overload;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'procedure {#A}Run<S>(var a: S; var b: boolean); overload;',
+  'begin',
+  'end;',
+  'procedure {#B}Run<T>(var a: T; var w: word); overload;',
+  'begin',
+  'end;',
+  'procedure {#C}Run<U>(var a: U; var b: U); overload;',
+  'begin',
+  'end;',
+  'var',
+  '  w: word;',
+  '  b: boolean;',
+  '  s: string;',
+  'begin',
+  '  {@A}Run(w,b);',
+  '  {@B}Run(s,w);',
+  '  {@C}Run(s,s);',
   '']);
   ParseProgram;
 end;

@@ -204,6 +204,7 @@ const
   nImplMustNotRepeatConstraints = 3138;
   nCouldNotInferTypeArgXForMethodY = 3139;
   nInferredTypeXFromDiffArgsMismatchFromMethodY = 3140;
+  nParamOfThisTypeCannotHaveDefVal = 3141;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -355,6 +356,7 @@ resourcestring
   sImplMustNotRepeatConstraints = 'Implementations must not repeat constraints';
   sCouldNotInferTypeArgXForMethodY = 'Could not infer generic type argument "%s" for method "%s"';
   sInferredTypeXFromDiffArgsMismatchFromMethodY = 'Inferred type "%s" from different arguments mismatch for method "%s"';
+  sParamOfThisTypeCannotHaveDefVal = 'Parameters of this type cannot have default values';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

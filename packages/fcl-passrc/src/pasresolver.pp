@@ -8214,6 +8214,45 @@ begin
 end;
 
 procedure TPasResolver.FinishArgument(El: TPasArgument);
+
+  procedure CheckHasGenTemplRef(Arg: TPasArgument);
+
+    procedure Check(Parent: TPasElement; Cur: TPasType; TemplTypes: TFPList);
+    var
+      C: TClass;
+      Arr: TPasArrayType;
+    begin
+      if Cur=nil then exit;
+      C:=Cur.ClassType;
+      if C=TPasGenericTemplateType then
+        begin
+        if TemplTypes.IndexOf(Cur)>=0 then
+          RaiseMsg(20191007213121,nParamOfThisTypeCannotHaveDefVal,sParamOfThisTypeCannotHaveDefVal,[],El);
+        end
+      else if Cur.Parent<>Parent then
+        exit
+      else if C=TPasArrayType then
+        begin
+        Arr:=TPasArrayType(Cur);
+        Check(Arr,Arr.ElType,TemplTypes);
+        end;
+    end;
+
+  var
+    Proc: TPasProcedure;
+    TemplTypes: TFPList;
+  begin
+    if Arg.ArgType=nil then exit;
+    if not (Arg.Parent is TPasProcedureType) then exit;
+    if not (Arg.Parent.Parent is TPasProcedure) then exit;
+    Proc:=TPasProcedure(Arg.Parent.Parent);
+    TemplTypes:=GetProcTemplateTypes(Proc);
+    if TemplTypes=nil then exit;
+    Check(Arg,Arg.ArgType,TemplTypes);
+  end;
+
+var
+  IsDelphi: Boolean;
 begin
   if El.ArgType<>nil then
     CheckUseAsType(El.ArgType,20190123100049,El);
@@ -8221,7 +8260,12 @@ begin
     begin
     ResolveExpr(El.ValueExpr,rraRead);
     if El.ArgType<>nil then
+      begin
       CheckAssignCompatibility(El,El.ValueExpr,true);
+      IsDelphi:=msDelphi in CurrentParser.CurrentModeswitches;
+      if IsDelphi then
+        CheckHasGenTemplRef(El);
+      end;
     end;
   EmitTypeHints(El,El.ArgType);
 end;
@@ -16335,7 +16379,6 @@ begin
   GenericEl:=SpecializedItem.GenericEl;
 
   // change scope
-  WriteScopesShort('AAA1 TPasResolver.SpecializeGenericIntf *******************');
   InitSpecializeScopes(GenericEl,OldScopeState);
   {$IFDEF VerbosePasResolver}
   WriteScopesShort('TPasResolver.SpecializeGenericIntf Init SpecEl='+SpecEl.FullName+' GenericEl='+GenericEl.FullName);
@@ -24757,10 +24800,9 @@ var
 begin
   Result:=cIncompatible;
 
-  NeedVar:=Param.Access in [argVar, argOut];
-
   ComputeArgumentAndExpr(Param,ParamResolved,Expr,ExprResolved,SetReferenceFlags);
 
+  NeedVar:=Param.Access in [argVar, argOut];
   if NeedVar then
     begin
     // Expr must be a variable
@@ -24804,6 +24846,11 @@ begin
         if Result<>cIncompatible then exit;
         end;
       end;
+    if (ParamResolved.BaseType=btContext)
+        and (ParamResolved.LoTypeEl.ClassType=TPasGenericTemplateType) then
+      exit(cGenericExact);
+
+    //writeln('TPasResolver.CheckParamCompatibility NeedVar ParamResolved=',GetResolverResultDbg(ParamResolved),' ExprResolved=',GetResolverResultDbg(ExprResolved));
     if RaiseOnError then
       RaiseIncompatibleTypeRes(20170216152452,nIncompatibleTypeArgNoVarParamMustMatchExactly,
         [IntToStr(ParamNo+1)],ExprResolved,ParamResolved,
@@ -26824,19 +26871,31 @@ function TPasResolver.HasExactType(const ResolvedEl: TPasResolverResult
   ): boolean;
 var
   IdentEl: TPasElement;
+  Expr: TPasExpr;
 begin
   IdentEl:=ResolvedEl.IdentEl;
-  if IdentEl=nil then exit(false);
-  if IdentEl is TPasVariable then
-    exit(TPasVariable(IdentEl).VarType<>nil)
-  else if IdentEl.ClassType=TPasArgument then
-    exit(TPasArgument(IdentEl).ArgType<>nil)
-  else if IdentEl.ClassType=TPasResultElement then
-    exit(TPasResultElement(IdentEl).ResultType<>nil)
-  else if IdentEl is TPasType then
-    Result:=true
-  else
-    Result:=false;
+  if IdentEl<>nil then
+    begin
+    if IdentEl is TPasVariable then
+      exit(TPasVariable(IdentEl).VarType<>nil)
+    else if IdentEl.ClassType=TPasArgument then
+      exit(TPasArgument(IdentEl).ArgType<>nil)
+    else if IdentEl.ClassType=TPasResultElement then
+      exit(TPasResultElement(IdentEl).ResultType<>nil)
+    else if IdentEl is TPasType then
+      exit(true)
+    else
+      exit(false);
+    end;
+  Expr:=ResolvedEl.ExprEl;
+  if Expr<>nil then
+    begin
+    if Expr.Kind in [pekNumber,pekString,pekNil,pekBoolConst] then
+      exit(true)
+    else
+      exit(false);
+    end;
+  Result:=false;
 end;
 
 function TPasResolver.IndexOfGenericParam(Params: TPasExprArray): integer;
