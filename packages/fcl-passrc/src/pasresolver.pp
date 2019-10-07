@@ -15502,7 +15502,6 @@ var
   i: Integer;
 begin
   Result:=nil;
-  writeln('AAA1 TPasResolver.CreateInferenceTypesForCall ');
   TemplTypes:=GetProcTemplateTypes(TargetProc);
   if (TemplTypes=nil) or (TemplTypes.Count=0) then
     RaiseNotYetImplemented(20191006174321,Params);
