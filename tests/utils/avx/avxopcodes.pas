@@ -66,7 +66,7 @@ begin
   FOpCodeList.Add('CMPNEQSS,1,1,0,XMMREG,MEM32,,,');
   FOpCodeList.Add('CMPNLESS,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('CMPNLESS,1,1,0,XMMREG,MEM32,,,');
-  FOpCodeList.Add('CMPMLTSS,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('CMPNLTSS,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('CMPNLTSS,1,1,0,XMMREG,MEM32,,,');
   FOpCodeList.Add('CMPORDSS,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('CMPORDSS,1,1,0,XMMREG,MEM32,,,');
@@ -113,14 +113,12 @@ begin
   FOpCodeList.Add('CMPNEQSD,1,1,0,XMMREG,MEM32,,,');
   FOpCodeList.Add('CMPNLESD,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('CMPNLESD,1,1,0,XMMREG,MEM32,,,');
-  FOpCodeList.Add('CMPMLTSD,1,1,0,XMMREG,XMMREG,,,');
+  FOpCodeList.Add('CMPNLTSD,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('CMPNLTSD,1,1,0,XMMREG,MEM32,,,');
   FOpCodeList.Add('CMPORDSD,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('CMPORDSD,1,1,0,XMMREG,MEM32,,,');
   FOpCodeList.Add('CMPUNORDSD,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('CMPUNORDSD,1,1,0,XMMREG,MEM32,,,');
-//  FOpCodeList.Add('CMPSS,1,1,0,XMMREG,XMMREG,IMM8,,');
-//  FOpCodeList.Add('CMPSS,1,1,0,XMMREG,MEM32,IMM8,,');
   FOpCodeList.Add('COMISD,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('COMISD,1,1,0,XMMREG,MEM32,,,');
 
@@ -134,12 +132,6 @@ begin
 
   FOpCodeList.Add('MULSD,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('MULSD,1,1,0,XMMREG,MEM32,,,');
-
-  FOpCodeList.Add('RCPSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('RCPSD,1,1,0,XMMREG,MEM32,,,');
-
-  FOpCodeList.Add('RSQRTSD,1,1,0,XMMREG,XMMREG,,,');
-  FOpCodeList.Add('RSQRTSD,1,1,0,XMMREG,MEM32,,,');
 
   FOpCodeList.Add('SQRTSD,1,1,0,XMMREG,XMMREG,,,');
   FOpCodeList.Add('SQRTSD,1,1,0,XMMREG,MEM32,,,');
