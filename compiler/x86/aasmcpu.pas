@@ -3105,7 +3105,6 @@ implementation
         exists_l256: boolean;
         exists_l512: boolean;
         exists_EVEXW1: boolean;
-        exists_325: boolean;
         pmref_operand: poper;
 {$ifdef x86_64}
         omit_rexw : boolean;
@@ -3128,7 +3127,6 @@ implementation
         exists_l256      := false;
         exists_l512      := false;
         exists_EVEXW1    := false;
-        exists_325       := false;
 {$ifdef x86_64}
         rex:=0;
         omit_rexw:=false;
@@ -3247,11 +3245,7 @@ implementation
             &331,&332: ;
             &325:
 {$ifdef i8086}
-              begin
                 inc(len);
-
-                exists_325 := true;
-              end
 {$endif i8086}
               ;
 
@@ -3277,7 +3271,9 @@ implementation
               omit_rexw:=true
 {$endif x86_64}
               ;
-            &336: {nothing};
+            &336,
+            &337: {nothing};
+
             &100..&227 :
               begin
 {$ifdef x86_64}
@@ -3426,11 +3422,6 @@ implementation
               if rex and $0B <> 0 then inc(len);  // REX.WXB <> 0 =>> needed VEX-Extension
     {$endif x86_64}
 
-          end
-          else
-          begin
-            if exists_325 and (exists_prefix_66 or exists_prefix_F2 or exists_prefix_F3) then
-             dec(len);
           end;
 
         end;
@@ -3520,6 +3511,7 @@ implementation
        * \334          - 0xF2 prefix for SSE instructions
        * \335          - Indicates 64-bit operand size with REX.W not necessary / 64-bit scalar vector operand size
        * \336          - Indicates 32-bit scalar vector operand size
+       * \337          - Indicates 64-bit scalar vector operand size
 
        * \350          - EVEX prefix for AVX instructions
        * \351          - EVEX Vector length 512
@@ -3681,7 +3673,6 @@ implementation
         ea_data : ea;
         relsym : TObjSymbol;
 
-        exists_325: boolean;
         exists_simd_prefix_F2: boolean;
         exists_simd_prefix_F3: boolean;
         exists_simd_prefix_66: boolean;
@@ -3798,7 +3789,6 @@ implementation
         exists_simd_prefix_F2 := false;
         exists_simd_prefix_F3 := false;
         exists_simd_prefix_66 := false;
-        exists_325            := false;
 
 
         needed_VEX    := false;
@@ -3874,7 +3864,6 @@ implementation
 
 
                  end;
-           &325: exists_325           := true;            // fixed operand size 32 bit or vector scalar 32 bit
            &333: begin
                    exists_simd_prefix_F3:= true;
                    VEXvvvv              := VEXvvvv  OR $02; // set SIMD-prefix $F3
@@ -4416,7 +4405,6 @@ implementation
             &323 : {no action needed};
             &325:
 {$ifdef i8086}
-              if not(exists_simd_prefix_F2 or exists_simd_prefix_F3 or exists_simd_prefix_66) then
                write0x66prefix(objdata);
 {$else i8086}
               {no action needed};
@@ -4455,6 +4443,7 @@ implementation
             &335:
               ;
             &336: ; // indicates 32-bit scalar vector operand {no action needed}
+            &337: ; // indicates 64-bit scalar vector operand {no action needed}
             &312,
             &327,
             &331,&332 :
@@ -4928,8 +4917,8 @@ implementation
       ExistsMemRef      : boolean;
 
       bitcount          : integer;
-      ExistsCode325     : boolean;
-      ExistsCode326     : boolean;
+      ExistsCode336     : boolean;
+      ExistsCode337     : boolean;
       ExistsSSEAVXReg   : boolean;
 
       function bitcnt(aValue: int64): integer;
@@ -4956,13 +4945,6 @@ implementation
       for AsmOp := low(TAsmOp) to high(TAsmOp) do
       begin
         i := InsTabCache^[AsmOp];
-
-        //TODO delete
-        if AsmOp = A_ADDSS then
-        begin
-          i := i;
-        end;
-
 
         if i >= 0 then
         begin
@@ -5009,18 +4991,18 @@ implementation
             actConstSize     := 0;
             actConstCount    := 0;
 
-            ExistsCode325   := false; // indicate fixed operand size 32 bit
-            ExistsCode326   := false; // indicate fixed operand size 64 bit
+            ExistsCode336   := false; // indicate fixed operand size 32 bit
+            ExistsCode337   := false; // indicate fixed operand size 64 bit
             ExistsSSEAVXReg := false;
 
-            // parse insentry^.code for &325 and &326
-            // &325 (octal) = 213 (decimal) == fixed operand size 32 bit
-            // &326 (octal) = 214 (decimal) == fixed operand size 64 bit
+            // parse insentry^.code for &336 and &337
+            // &336 (octal) = 222 (decimal) == fixed operand size 32 bit
+            // &337 (octal) = 223 (decimal) == fixed operand size 64 bit
             for i := low(insentry^.code) to high(insentry^.code) do
             begin
               case insentry^.code[i] of
-                #213: ExistsCode325 := true;
-                #214: ExistsCode326 := true;
+                #222: ExistsCode336 := true;
+                #223: ExistsCode337 := true;
                 #0,#1,#2,#3: break;
               end;
             end;
@@ -5097,8 +5079,8 @@ implementation
                   inc(actMemCount);
 
 
-                  if ExistsSSEAVXReg and ExistsCode325 then actMemSize := actMemSize or OT_BITS32
-                   else if ExistsSSEAVXReg and ExistsCode326 then actMemSize := actMemSize or OT_BITS64
+                  if ExistsSSEAVXReg and ExistsCode336 then actMemSize := actMemSize or OT_BITS32
+                   else if ExistsSSEAVXReg and ExistsCode337 then actMemSize := actMemSize or OT_BITS64
 
                   //if IF_SCL32 in insentry^.Flags then actMemSize := actMemSize or OT_BITS32
                   // else if IF_SCL64 in insentry^.Flags then actMemSize := actMemSize or OT_BITS64
@@ -5215,7 +5197,7 @@ implementation
                   1: begin
                        MRefInfo := msiUnknown;
 
-                       if not(ExistsCode325 or ExistsCode326) then
+                       if not(ExistsCode336 or ExistsCode337) then
 
                        //if (insentry^.Flags * [IF_SCL32, IF_SCL64] = []) then
                        begin
