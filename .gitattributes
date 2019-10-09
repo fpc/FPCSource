@@ -91,6 +91,7 @@ compiler/arm/narmld.pas svneol=native#text/pascal
 compiler/arm/narmmat.pas svneol=native#text/plain
 compiler/arm/narmmem.pas svneol=native#text/plain
 compiler/arm/narmset.pas svneol=native#text/plain
+compiler/arm/narmutil.pas svneol=native#text/pascal
 compiler/arm/pp.lpi.template svneol=native#text/plain
 compiler/arm/raarm.pas svneol=native#text/plain
 compiler/arm/raarmgas.pas svneol=native#text/plain
