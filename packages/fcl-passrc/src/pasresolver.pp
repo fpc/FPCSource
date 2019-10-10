@@ -22951,6 +22951,8 @@ var
   C: TClass;
   Arr1, Arr2: TPasArrayType;
   TemplType1, TemplType2: TPasGenericTemplateType;
+  Templates1, Templates2: TFPList;
+  i: Integer;
 begin
   if Arg1=Arg2 then exit(cExact);
   ComputeElement(Arg1,Arg1Resolved,[rcType]);
@@ -22961,21 +22963,24 @@ begin
 
   if IsGenericTemplType(Arg1Resolved) then
     begin
+    Result:=cGenericExact;
     if Arg1Resolved.LoTypeEl=Arg2Resolved.LoTypeEl then
       exit(cExact)
     else if IsGenericTemplType(Arg2Resolved) then
       begin
       TemplType1:=TPasGenericTemplateType(Arg1Resolved.LoTypeEl);
       TemplType2:=TPasGenericTemplateType(Arg2Resolved.LoTypeEl);
-      if SameText(TemplType1.Name,TemplType2.Name)
-          and (TemplType1.Parent is TPasProcedure)
+      if (TemplType1.Parent is TPasProcedure)
           and (TemplType2.Parent is TPasProcedure) then
-        exit(cExact)
-      else
-        exit(cGenericExact);
-      end
-    else
-      exit(cGenericExact);
+        begin
+        Templates1:=GetProcTemplateTypes(TPasProcedure(TemplType1.Parent));
+        Templates2:=GetProcTemplateTypes(TPasProcedure(TemplType2.Parent));
+        i:=Templates1.IndexOf(TemplType1);
+        if (i>=0) and (i=Templates2.IndexOf(TemplType2)) then
+          exit(cExact);
+        end;
+      end;
+    exit;
     end
   else if IsGenericTemplType(Arg2Resolved) then
     exit(cGenericExact);

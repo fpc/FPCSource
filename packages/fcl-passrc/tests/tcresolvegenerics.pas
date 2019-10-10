@@ -1964,8 +1964,8 @@ begin
   'end;',
   'begin',
   '']);
-  CheckResolverException('Forward function not resolved "Fly"',
-    nForwardProcNotResolved);
+  CheckResolverException('Declaration of "Fly<B>" differs from previous declaration at afile.pp(2,23)',
+    nDeclOfXDiffersFromPrevAtY);
 end;
 
 procedure TTestResolveGenerics.TestGenProc_ForwardOverload;
@@ -2270,8 +2270,8 @@ begin
   'end;',
   'begin',
   '']);
-  CheckResolverException('identifier not found "TObject.Run<S>"',
-    nIdentifierNotFound);
+  CheckResolverException('Declaration of "TObject.Run<S>" differs from previous declaration at afile.pp(4,28)',
+    nDeclOfXDiffersFromPrevAtY);
 end;
 
 procedure TTestResolveGenerics.TestGenMethod_ImplConstraintFail;
