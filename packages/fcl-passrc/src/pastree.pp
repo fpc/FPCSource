@@ -645,7 +645,7 @@ type
     IndexRange : string; // only valid if Parser po_arrayrangeexpr disabled
     Ranges: TPasExprArray; // only valid if Parser po_arrayrangeexpr enabled
     PackMode : TPackMode;
-    ElType: TPasType;
+    ElType: TPasType; // nil means array-of-const
     function IsGenericArray : Boolean;
     function IsPacked : Boolean;
     procedure AddRange(Range: TPasExpr);

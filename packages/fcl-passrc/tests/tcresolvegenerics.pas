@@ -141,13 +141,14 @@ type
     procedure TestGenProc_TypeParamWithDefaultParamDelphiFail;
     procedure TestGenProc_Inference_NeedExplicitFail;
     procedure TestGenProc_Inference_Overload;
+    // ToDo procedure TestGenProc_Inference_OverloadForward;
     procedure TestGenProc_Inference_Var_Overload;
     //procedure TestGenProc_Inference_Widen;
     procedure TestGenProc_Inference_DefaultValue;
     procedure TestGenProc_Inference_DefaultValueMismatch;
-    procedure TestGenProc_Inference_ProcT;
+    procedure TestGenProc_Inference_ProcT; // ToDo
     procedure TestGenProc_Inference_Mismatch;
-    // ToDo procedure TestGenProc_Inference_ArrayOfT;
+    procedure TestGenProc_Inference_ArrayOfT;
     // ToDo procedure TestGenProc_Inference_ProcType;
 
     // generic methods
@@ -1963,8 +1964,8 @@ begin
   'end;',
   'begin',
   '']);
-  CheckResolverException('Declaration of "Fly<B>" differs from previous declaration at afile.pp(2,23)',
-    nDeclOfXDiffersFromPrevAtY);
+  CheckResolverException('Forward function not resolved "Fly"',
+    nForwardProcNotResolved);
 end;
 
 procedure TTestResolveGenerics.TestGenProc_ForwardOverload;
@@ -2129,6 +2130,7 @@ begin
   StartProgram(false);
   Add([
   '{$mode objfpc}',
+  '{$modeswitch implicitfunctionspecialization}',
   'generic procedure {#A}Run<S>(a: S = 2; b: S = 10); overload;',
   'begin',
   'end;',
@@ -2145,6 +2147,7 @@ begin
   StartProgram(false);
   Add([
   '{$mode objfpc}',
+  '{$modeswitch implicitfunctionspecialization}',
   'generic procedure {#A}Run<S>(a: S; b: S = 10); overload;',
   'begin',
   'end;',
@@ -2192,6 +2195,23 @@ begin
   '']);
   CheckResolverException('Inferred type "T" from different arguments mismatch for method "Run"',
     nInferredTypeXFromDiffArgsMismatchFromMethodY);
+end;
+
+procedure TTestResolveGenerics.TestGenProc_Inference_ArrayOfT;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'procedure Run<T>(a: array of T);',
+  'var b: T;',
+  'begin',
+  '  b:=3;',
+  'end;',
+  'var Arr: array of byte;',
+  'begin',
+  '  Run(Arr);',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolveGenerics.TestGenMethod_VirtualFail;
@@ -2250,8 +2270,8 @@ begin
   'end;',
   'begin',
   '']);
-  CheckResolverException('Declaration of "TObject.Run<S>" differs from previous declaration at afile.pp(4,28)',
-    nDeclOfXDiffersFromPrevAtY);
+  CheckResolverException('identifier not found "TObject.Run<S>"',
+    nIdentifierNotFound);
 end;
 
 procedure TTestResolveGenerics.TestGenMethod_ImplConstraintFail;
