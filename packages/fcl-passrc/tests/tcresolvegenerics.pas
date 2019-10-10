@@ -141,12 +141,12 @@ type
     procedure TestGenProc_TypeParamWithDefaultParamDelphiFail;
     procedure TestGenProc_Inference_NeedExplicitFail;
     procedure TestGenProc_Inference_Overload;
-    // ToDo procedure TestGenProc_Inference_OverloadForward;
+    procedure TestGenProc_Inference_OverloadForward;
     procedure TestGenProc_Inference_Var_Overload;
     //procedure TestGenProc_Inference_Widen;
     procedure TestGenProc_Inference_DefaultValue;
     procedure TestGenProc_Inference_DefaultValueMismatch;
-    procedure TestGenProc_Inference_ProcT; // ToDo
+    procedure TestGenProc_Inference_ProcT;
     procedure TestGenProc_Inference_Mismatch;
     procedure TestGenProc_Inference_ArrayOfT;
     // ToDo procedure TestGenProc_Inference_ProcType;
@@ -160,7 +160,6 @@ type
     procedure TestGenMethod_NestedSelf;
     procedure TestGenMethod_OverloadTypeParamCnt;
     procedure TestGenMethod_OverloadArgs;
-    // ToDo: procedure TestGenMethod_NestedProcDelphiFail;  Delphi 10.3 does not support nested procs
   end;
 
 implementation
@@ -2099,6 +2098,34 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolveGenerics.TestGenProc_Inference_OverloadForward;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'procedure {#A}Run<S>(a: S; b: boolean); forward; overload;',
+  'procedure {#B}Run<T>(a: T; w: word); forward; overload;',
+  'procedure {#C}Run<U>(a: U; b: U); forward; overload;',
+  'procedure {#A2}Run<S>(a: S; b: boolean); overload;',
+  'begin',
+  '  {@A}Run(1,true);', // non generic take precedence
+  '  {@B}Run(2,word(3));', // non generic take precedence
+  '  {@C}Run(''foo'',''bar'');',
+  'end;',
+  'procedure {#B2}Run<T>(a: T; w: word); overload;',
+  'begin',
+  'end;',
+  'procedure {#C2}Run<U>(a: U; b: U); overload;',
+  'begin',
+  'end;',
+  'begin',
+  '  {@A}Run(1,true);', // non generic take precedence
+  '  {@B}Run(2,word(3));', // non generic take precedence
+  '  {@C}Run(''foo'',''bar'');',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolveGenerics.TestGenProc_Inference_Var_Overload;
 begin
   StartProgram(false);
@@ -2160,13 +2187,11 @@ end;
 
 procedure TTestResolveGenerics.TestGenProc_Inference_ProcT;
 begin
-  exit;
-
   StartProgram(false);
   Add([
   '{$mode delphi}',
   'type',
-  '  TProc<T> = procedure(a: T);',
+  '  TProc<S> = reference to procedure(a: S);',
   '  TObject = class',
   '    procedure {#A}Run<T: class>(a: TProc<T>);',
   '  end;',
@@ -2177,7 +2202,7 @@ begin
   'var obj: TObject;',
   'begin',
   '  obj.{@A}Run<TBird>(procedure(Bird: TBird) begin end);',
-  '  obj.{@A}Run(procedure(Bird: TBird) begin end);', // not supported by Delphi
+  //'  obj.{@A}Run(procedure(Bird: TBird) begin end);', // not supported by Delphi
   '']);
   ParseProgram;
 end;

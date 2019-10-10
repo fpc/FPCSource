@@ -12239,6 +12239,7 @@ begin
   else
     begin
     IsDelphi:=msDelphi in CurrentParser.CurrentModeswitches;
+
     if (not HasDot) and IsClassConDestructor then
       begin
       if ProcName='' then
@@ -15565,6 +15566,12 @@ type
       ParamElType:=TPasArrayType(ParamLoType).ElType;
       Infer(Arr,Arr.ElType,ParamElType,ResolveAliasType(ParamElType),
             NeedVar,true,IsDelphi,InferenceParams,TemplTypes,ErrorPos);
+      end
+    else
+      begin
+      {$IFDEF VerbosePasResolver}
+      //writeln('Infer ArgType=',GetObjName(ArgType),' ParamLoType=',GetObjName(ParamLoType));
+      {$ENDIF}
       end;
   end;
 
