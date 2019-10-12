@@ -23,7 +23,7 @@ unit aoptx86;
 
 {$i fpcdefs.inc}
 
-{ $define DEBUG_AOPTCPU}
+{$define DEBUG_AOPTCPU}
 
   interface
 
@@ -2101,7 +2101,7 @@ unit aoptx86;
 
     function TX86AsmOptimizer.OptPass1LEA(var p : tai) : boolean;
       var
-        hp1 : tai;
+        hp1, hp2, hp3: tai;
         l : ASizeInt;
       begin
         Result:=false;
@@ -2222,6 +2222,56 @@ unit aoptx86;
             p.Free;
             p:=hp1;
             result:=true;
+          end;
+        { replace
+            lea    x(stackpointer),stackpointer
+            call   procname
+            lea    -x(stackpointer),stackpointer
+            ret
+          by
+            jmp    procname
+
+          this should never hurt except when pic is used, not sure
+          how to handle it then
+
+          but do it only on level 4 because it destroys stack back traces
+        }
+        if (cs_opt_level4 in current_settings.optimizerswitches) and
+          not(cs_create_pic in current_settings.moduleswitches) and
+          (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG) and
+          (taicpu(p).oper[0]^.ref^.base=NR_STACK_POINTER_REG) and
+          (taicpu(p).oper[0]^.ref^.index=NR_NO) and
+          (taicpu(p).oper[0]^.ref^.relsymbol=nil) and
+          (taicpu(p).oper[0]^.ref^.scalefactor in [0,1]) and
+          (taicpu(p).oper[0]^.ref^.segment=NR_NO) and
+          (taicpu(p).oper[0]^.ref^.symbol=nil) and
+          GetNextInstruction(p, hp1) and
+          MatchInstruction(hp1,A_CALL,[S_NO]) and
+          GetNextInstruction(hp1, hp2) and
+          MatchInstruction(hp2,A_LEA,[taicpu(p).opsize]) and
+          (taicpu(hp2).oper[1]^.reg=NR_STACK_POINTER_REG) and
+          (taicpu(p).oper[0]^.ref^.base=taicpu(hp2).oper[0]^.ref^.base) and
+          (taicpu(p).oper[0]^.ref^.index=taicpu(hp2).oper[0]^.ref^.index) and
+          (taicpu(p).oper[0]^.ref^.offset=-taicpu(hp2).oper[0]^.ref^.offset) and
+          (taicpu(p).oper[0]^.ref^.relsymbol=taicpu(hp2).oper[0]^.ref^.relsymbol) and
+          (taicpu(p).oper[0]^.ref^.scalefactor=taicpu(hp2).oper[0]^.ref^.scalefactor) and
+          (taicpu(p).oper[0]^.ref^.segment=taicpu(hp2).oper[0]^.ref^.segment) and
+          (taicpu(p).oper[0]^.ref^.symbol=taicpu(hp2).oper[0]^.ref^.symbol) and
+          GetNextInstruction(hp2, hp3) and
+          MatchInstruction(hp3,A_RET,[S_NO]) and
+          (taicpu(hp3).ops=0) then
+          begin
+            DebugMsg(SPeepholeOptimization + 'LeaCallLeaRet2Jmp done',p);
+            taicpu(hp1).opcode:=A_JMP;
+            taicpu(hp1).is_jmp:=true;
+            asml.remove(p);
+            asml.remove(hp2);
+            asml.remove(hp3);
+            p.free;
+            hp2.free;
+            hp3.free;
+            p:=hp1;
+            Result:=true;
           end;
       end;
 
