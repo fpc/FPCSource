@@ -190,7 +190,7 @@ Type
     Procedure PPSymbol;
     Procedure Gobble(terminators: keysymset);
     Procedure RShift(currmsym: keysymbol);
-    Procedure RShiftIndent(currmsym: keysymbol);
+    Procedure RShiftIndent{$ifdef debug}(currmsym: keysymbol){$endif debug};
     Function ReadConfigFile: Boolean;
   Public
     Constructor Create;
@@ -959,7 +959,7 @@ Procedure TprettyPrinter.RShift(currmsym: keysymbol);
 {$endif debug}
   END; { of RShift }
 
-Procedure TprettyPrinter.RShiftIndent(currmsym: keysymbol);
+Procedure TprettyPrinter.RShiftIndent{$ifdef debug}(currmsym: keysymbol){$endif debug};
   { Move right, stacking margin positions }
   BEGIN
 {$ifdef debug}
@@ -1384,7 +1384,7 @@ Begin
     IF inbytab IN sets^.selected THEN
       RShift(currsym^.name)
     else IF inbyindent IN sets^.selected THEN
-      RShiftIndent(currsym^.name);
+      RShiftIndent{$ifdef debug}(currsym^.name){$endif debug};
     IF gobsym IN sets^.selected THEN Gobble(sets^.terminators);
     IF crafter IN sets^.selected THEN CrPending := TRUE
   END;

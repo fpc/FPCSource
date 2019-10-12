@@ -7561,6 +7561,7 @@ packages/rtl-objpas/src/inc/fmtbcd.pp svneol=native#text/plain
 packages/rtl-objpas/src/inc/rtti.pp svneol=native#text/plain
 packages/rtl-objpas/src/inc/stdconvs.pp svneol=native#text/plain
 packages/rtl-objpas/src/inc/strutils.pp svneol=native#text/plain
+packages/rtl-objpas/src/inc/system.uitypes.pp svneol=native#text/plain
 packages/rtl-objpas/src/inc/varerror.inc svneol=native#text/plain
 packages/rtl-objpas/src/inc/variants.pp svneol=native#text/plain
 packages/rtl-objpas/src/inc/varutilh.inc svneol=native#text/plain
