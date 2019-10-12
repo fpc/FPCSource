@@ -807,5 +807,11 @@ begin
 {$include webidl/fpmake.pp}
 end;
 
+procedure add_vclcompat(const ADirectory: string);
+begin
+  with Installer do
+{$include vcl-compat/fpmake.pp}
+end;
+
 
 {$include ide/fpmake.pp}

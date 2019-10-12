@@ -6068,7 +6068,7 @@ Const
      PPREVENTMEDIAREMOVAL = ^PREVENT_MEDIA_REMOVAL;
 
      {PRINTDLG = record conflicts with PrintDlg function }
-     TPRINTDLG = packed record
+     TPRINTDLG = {$ifndef win64}packed {$endif}record
           lStructSize : DWORD;
           hwndOwner : HWND;
           hDevMode : HGLOBAL;
