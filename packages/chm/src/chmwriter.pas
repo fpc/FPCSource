@@ -117,6 +117,8 @@ Type
     procedure Execute;
     procedure AddStreamToArchive(AFileName, APath: String; AStream: TStream; Compress: Boolean = True);
     procedure PostAddStreamToArchive(AFileName, APath: String; AStream: TStream; Compress: Boolean = True);
+    procedure LocaleToLanguageID(Locale: LongWord);
+    function  LocaleFromLanguageID: LongWord;
     property WindowSize: LongWord read FWindowSize write FWindowSize default 2; // in $8000 blocks
     property FrameSize: LongWord read FFrameSize write FFrameSize default 1; // in $8000 blocks
     property FilesToCompress: TStrings read FFileNames;
@@ -127,7 +129,7 @@ Type
     property ReadmeMessage : String read fReadmeMessage write fReadmeMessage;
     property Cores : integer read fcores write fcores;
     { MS Locale ID code }
-    property LocaleID: dword read ITSFHeader.LanguageID write ITSFHeader.LanguageID;
+    property LocaleID: LongWord read LocaleFromLanguageID write LocaleToLanguageID;
   end;
 
   { TChmWriter }
@@ -274,6 +276,16 @@ begin
   end;
 end;
 
+procedure TITSFWriter.LocaleToLanguageID(Locale: LongWord);
+begin
+    ITSFHeader.LanguageID := NToLE(Locale);
+end;
+
+function  TITSFWriter.LocaleFromLanguageID: LongWord;
+begin
+    Result := LEToN(ITSFHeader.LanguageID);
+end;
+
 procedure TITSFWriter.InitHeaderSectionTable;
 begin
   // header section 0
@@ -315,7 +327,7 @@ begin
 
     Unknown2 := NToLE(Longint(-1));
     //DirectoryChunkCount: LongWord;
-    LanguageID := NToLE(DWord($0409));
+    LanguageID := ITSFHeader.LanguageID;
     GUID := ITSPHeaderGUID;
     LengthAgain := NToLE(DWord($54));
     Unknown3 := NToLE(Longint(-1));
@@ -798,6 +810,7 @@ begin
   FPostStream := TMemoryStream.Create;;
   FDestroyStream := FreeStreamOnDestroy;
   FFileNames := TStringList.Create;
+  InitITSFHeader;
 end;
 
 destructor TITSFWriter.Destroy;
@@ -815,7 +828,6 @@ end;
 
 procedure TITSFWriter.Execute;
 begin
-  InitITSFHeader;
   FOutStream.Position := 0;
   FSection1Size := 0;
 
@@ -987,7 +999,7 @@ begin
   FSection0.WriteWord(NToLE(Word(4)));
   FSection0.WriteWord(NToLE(Word(36))); // size
 
-  FSection0.WriteDWord(NToLE(DWord($0409)));
+  FSection0.WriteDWord(ITSFHeader.LanguageID);
   FSection0.WriteDWord(0);
   FSection0.WriteDWord(NToLE(DWord(Ord(FFullTextSearch and FFullTextSearchAvailable))));
 
