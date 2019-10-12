@@ -450,7 +450,7 @@ Var
 Procedure StartLog;
 
 begin
-{$ifdef win32}
+{$if defined(win32) or defined(win64)}
   Assign(FL,'c:\service.log');
 {$else}
   Assign(FL,'/tmp/service.log');
