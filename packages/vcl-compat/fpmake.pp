@@ -19,8 +19,10 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Various non-visual VCL compatibility units.';
-    P.OSes := P.OSes - [embedded];
-      
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
@@ -29,7 +31,7 @@ begin
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-web');
     P.Dependencies.Add('rtl-extra'); 
-  
+
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
