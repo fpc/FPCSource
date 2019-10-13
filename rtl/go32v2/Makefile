@@ -3235,7 +3235,7 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) rtlconst$(PPUEXT)
 	$(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
 	$(EXECPPAS)
-types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 	$(EXECPPAS)
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp

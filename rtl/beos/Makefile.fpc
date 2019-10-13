@@ -74,6 +74,7 @@ OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 
 [rules]
+.NOTPARALLEL:
 # Get the system independent include file names.
 # This will set the following variables :
 # SYSINCNAMES
@@ -204,7 +205,7 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 
-types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
        	$(COMPILER) $(OBJPASDIR)/types.pp
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
