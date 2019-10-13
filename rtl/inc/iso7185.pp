@@ -48,6 +48,7 @@ unit iso7185;
     Procedure Get(Var f: TypedFile);
     Procedure Put(Var f: TypedFile);
     Procedure Seek(var f:TypedFile;Pos:Int64);
+    Function FilePos(var f:TypedFile):Int64;
 
     Function Eof(var f:TypedFile): Boolean;
 
@@ -210,7 +211,7 @@ unit iso7185;
       End;
 
 
-    Procedure Seek(var f:TypedFile;Pos:Int64);
+    Procedure Seek(var f:TypedFile;Pos:Int64);[IOCheck];
       Begin
         System.Seek(f,Pos);
         if (FileRec(f).mode=fmInOut) or
@@ -225,6 +226,16 @@ unit iso7185;
               FileRec(f)._private[1]:=1;
           end;
       End;
+
+
+   Function FilePos(var f:TypedFile):Int64;[IOCheck];
+     Begin
+       FilePos:=System.FilePos(f);
+       { in case of reading a file, the buffer is always filled, so the result of Do_FilePos is off by one }
+       if (FileRec(f).mode=fmInOut) or
+         (FileRec(f).mode=fmInput) then
+         dec(FilePos);
+     End;
 
 begin
   { we shouldn't do this because it might confuse user programs, but for now it
