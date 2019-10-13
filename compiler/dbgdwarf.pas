@@ -4237,13 +4237,13 @@ implementation
         if assigned(def.typesym) then
           append_entry(DW_TAG_array_type,true,[
             DW_AT_name,DW_FORM_string,symname(def.typesym, false)+#0,
-            DW_AT_data_location,DW_FORM_block1,2,
-            DW_AT_byte_stride,DW_FORM_udata,def.elesize
+            DW_AT_byte_stride,DW_FORM_udata,def.elesize,
+            DW_AT_data_location,DW_FORM_block1,2
             ])
         else
           append_entry(DW_TAG_array_type,true,[
-            DW_AT_data_location,DW_FORM_block1,2,
-            DW_AT_byte_stride,DW_FORM_udata,def.elesize
+            DW_AT_byte_stride,DW_FORM_udata,def.elesize,
+            DW_AT_data_location,DW_FORM_block1,2
             ]);
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
