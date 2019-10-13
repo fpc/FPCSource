@@ -1600,6 +1600,9 @@ parser_e_callthrough_varargs=03350_E_Cannot redeclare C-style variadic function 
 % platforms. Even on platforms where it is supported, this is quite inefficient.
 parser_e_unbound_attribute=03351_E_Unbound custom attribute: "$1".
 % A custom attribute is defined, but there is no identifier to bind it to.
+parser_e_enumeration_out_of_range=03352_E_Enumeration symbols can only have values in the range of -2^31 to 2^31-1
+% The size of enumeration values is limited to 4 bytes. As the value can be signed, the range
+% of valid values is limited to a signed 32 Bit value (i.e. \var{longint}).
 %
 % \end{description}
 %
