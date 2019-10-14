@@ -640,8 +640,9 @@ type
     Procedure TestNestedClass_Forward;
     procedure TestNestedClass_StrictPrivateFail;
     procedure TestNestedClass_AccessStrictPrivate;
-    procedure TestNestedClass_AccessParentVarFail;
     procedure TestNestedClass_AccessParent;
+    procedure TestNestedClass_BodyAccessParentVarFail;
+    procedure TestNestedClass_PropertyAccessParentVarFail;
 
     // external class
     Procedure TestExternalClass;
@@ -11477,7 +11478,50 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestNestedClass_AccessParentVarFail;
+procedure TTestResolver.TestNestedClass_AccessParent;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TLimb = class',
+  '    {#tlimb_d}d: longint;',
+  '  end;',
+  '  TAnt = boolean;',
+  '  TBird = class',
+  '  public type',
+  '    TBody = class',
+  '    public type',
+  '      TAnt = word;',
+  '      TWing = class(TLimb)',
+  '        {#ant}ant: TAnt;',
+  '        procedure Fly(i: longint);',
+  '      end;',
+  '    public',
+  '      class var {#tbody_a}a, {#tbody_b}b, {#tbody_d}d, {#tbody_e}e: longint;',
+  '    end;',
+  '  public',
+  '    class var {#tbird_a}a, {#tbird_b}b, {#tbird_c}c, {#tbird_d}d, {#tbird_e}e: longint;',
+  '  end;',
+  'var {#intf_a}a, {#intf_d}d: longint;',
+  'implementation',
+  'var {#impl_e}e: longint;',
+  'procedure TBird.TBody.TWing.Fly(i: longint);',
+  'begin',
+  '  {@ant}ant:=2;',
+  '  {@intf_a}a:=3;',
+  '  {@tbody_b}b:=4;',
+  '  {@tbird_c}c:=5;',
+  '  {@tlimb_d}d:=6;',
+  '  {@impl_e}e:=7;',
+  'end;',
+  '']);
+  ParseUnit;
+end;
+
+procedure TTestResolver.TestNestedClass_BodyAccessParentVarFail;
 begin
   StartProgram(false);
   Add([
@@ -11499,47 +11543,21 @@ begin
   CheckResolverException('Instance member "i" inaccessible here',nInstanceMemberXInaccessible);
 end;
 
-procedure TTestResolver.TestNestedClass_AccessParent;
+procedure TTestResolver.TestNestedClass_PropertyAccessParentVarFail;
 begin
-  StartUnit(false);
+  StartProgram(false);
   Add([
-  'interface',
   'type',
-  '  TObject = class',
-  '  end;',
-  '  TLimb = class',
-  '    {#tlimb_d}d: longint;',
-  '  end;',
-  '  TAnt = boolean;',
+  '  TObject = class end;',
   '  TBird = class',
+  '    fSize: word;',
   '  public type',
-  '    TBody = class',
-  '    public type',
-  '      TAnt = word;',
-  '      TWing = class(TLimb)',
-  '        {#ant}ant: TAnt;',
-  '        procedure Fly;',
-  '      end;',
-  '    public',
-  '      class var {#tbody_a}a, {#tbody_b}b, {#tbody_d}d, {#tbody_e}e: longint;',
+  '    TWing = class',
+  '      property Size: word read fSize;',
   '    end;',
-  '  public',
-  '    class var {#tbird_a}a, {#tbird_b}b, {#tbird_c}c, {#tbird_d}d, {#tbird_e}e: longint;',
   '  end;',
-  'var {#intf_a}a, {#intf_d}d: longint;',
-  'implementation',
-  'var {#impl_e}e: longint;',
-  'procedure TBird.TBody.TWing.Fly;',
-  'begin',
-  '  {@ant}ant:=2;',
-  '  {@intf_a}a:=3;',
-  '  {@tbody_b}b:=4;',
-  '  {@tbird_c}c:=5;',
-  '  {@tlimb_d}d:=6;',
-  '  {@impl_e}e:=7;',
-  'end;',
-  '']);
-  ParseUnit;
+  'begin']);
+  CheckResolverException('identifier not found "fSize"',nIdentifierNotFound);
 end;
 
 procedure TTestResolver.TestExternalClass;

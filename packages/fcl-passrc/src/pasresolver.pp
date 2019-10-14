@@ -1047,6 +1047,7 @@ type
   public
     Scopes: TPasIdentifierScopeArray;
     Count: integer;
+    OnlyTypeMembers: boolean;
     procedure Add(Scope: TPasIdentifierScope);
     destructor Destroy; override;
     function GetFirstNonHelperScope: TPasIdentifierScope;
@@ -1075,7 +1076,7 @@ type
     OverriddenProc: TPasProcedure; // the ancestor proc with same signature
     ClassRecScope: TPasClassOrRecordScope;
     GroupScope: TPasGroupScope; // set during parsing a method body
-    NestedMembersScope: TPasIdentifierScope; // set during parsing a method body of a nested class
+    NestedMembersScope: TPasGroupScope; // set during parsing a method body of a nested class
     SelfArg: TPasArgument;
     Flags: TPasProcedureScopeFlags;
     BoolSwitches: TBoolSwitches; // if Body<>nil then body start, otherwise when FinishProc
@@ -3694,7 +3695,7 @@ begin
   {$ENDIF}
   FreeAndNil(References);
   FreeAndNil(GroupScope);
-  NestedMembersScope:=nil;  // do not free NestedMembersScope
+  NestedMembersScope:=nil; // NestedMembersScope is auto freed
   inherited Destroy;
   ReleaseAndNil(TPasElement(SelfArg){$IFDEF CheckPasTreeRefCount},'TPasProcedureScope.SelfArg'{$ENDIF});
   {$IFDEF VerbosePasResolverMem}
@@ -12173,7 +12174,7 @@ var
   Level, TypeParamCount, i: Integer;
   NamePart: TProcedureNamePart;
   TemplType, FoundTemplType: TPasGenericTemplateType;
-  NestedMembersScope: TPasDotBaseScope;
+  NestedMembersScope: TPasGroupScope;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.AddProcedure ',GetObjName(El));
@@ -12402,31 +12403,21 @@ begin
       begin
       // nested class
       ClassOrRecType:=TPasMembersType(ClassOrRecType.Parent);
-      NestedMembersScope:=PushDotScope(ClassOrRecType);
+      NestedMembersScope:=CreateGroupScope(ClassOrRecType);
       ProcScope.NestedMembersScope:=NestedMembersScope;
       NestedMembersScope.OnlyTypeMembers:=true;
       // Delphi searches the parent class scopes *after* the section scopes
       // and before the module scope - sigh
       // -> Move scope between module scope and section scope
-      i:=ScopeCount-1;
-      while true do
-        begin
-        if i<=0 then
-          RaiseNotYetImplemented(20191015002850,El)
-        else if FScopes[i-1] is TPasModuleScope then
-          begin
-          FScopes[i]:=NestedMembersScope;
-          break;
-          end;
-        FScopes[i]:=FScopes[i-1];
-        dec(i);
-        end;
-      FTopScope:=FScopes[FScopeCount-1];
+      i:=0;
+      while (i<ScopeCount) and not (FScopes[i] is TPasModuleScope) do
+        inc(i);
+      InsertScope(NestedMembersScope,i+1);
 
       while ClassOrRecType.Parent is TPasMembersType do
         begin
         ClassOrRecType:=TPasMembersType(ClassOrRecType.Parent);
-        GroupScope_AddTypeAndAncestors(NestedMembersScope.GroupScope,ClassOrRecType);
+        GroupScope_AddTypeAndAncestors(NestedMembersScope,ClassOrRecType);
         end;
       end;
     end;
@@ -20710,7 +20701,9 @@ begin
     //writeln('TPasResolver.CheckFoundElement ',GetObjName(Proc),' ',IsClassMethod(Proc),' ElScope=',GetObjName(FindData.ElScope));
     if (FindData.ElScope<>StartScope) and IsClassMethod(Proc) then
       OnlyTypeMembers:=true;
-    end;
+    end
+  else if StartScope.ClassType=TPasGroupScope then
+    OnlyTypeMembers:=TPasGroupScope(StartScope).OnlyTypeMembers;
 
   //writeln('TPasResolver.CheckFoundElOnStartScope StartScope=',StartScope.ClassName,
   //    ' StartIsDot=',StartScope is TPasDotBaseScope,
