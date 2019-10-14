@@ -1075,6 +1075,7 @@ type
     OverriddenProc: TPasProcedure; // the ancestor proc with same signature
     ClassRecScope: TPasClassOrRecordScope;
     GroupScope: TPasGroupScope; // set during parsing a method body
+    NestedMembersScope: TPasIdentifierScope; // set during parsing a method body of a nested class
     SelfArg: TPasArgument;
     Flags: TPasProcedureScopeFlags;
     BoolSwitches: TBoolSwitches; // if Body<>nil then body start, otherwise when FinishProc
@@ -2113,6 +2114,8 @@ type
     function StashScopes(NewScopeCnt: integer): integer; // returns old StashDepth
     function StashSubExprScopes: integer; // returns old StashDepth
     procedure RestoreStashedScopes(StashDepth: integer);
+    procedure DeleteScope(Index: integer); virtual;
+    procedure InsertScope(Scope: TPasScope; Index: integer); virtual;
     function GetCurrentProcScope(ErrorEl: TPasElement): TPasProcedureScope;
     function GetProcScope(El: TPasElement): TPasProcedureScope;
     function GetCurrentSelfScope(ErrorEl: TPasElement): TPasProcedureScope;
@@ -3691,6 +3694,7 @@ begin
   {$ENDIF}
   FreeAndNil(References);
   FreeAndNil(GroupScope);
+  NestedMembersScope:=nil;  // do not free NestedMembersScope
   inherited Destroy;
   ReleaseAndNil(TPasElement(SelfArg){$IFDEF CheckPasTreeRefCount},'TPasProcedureScope.SelfArg'{$ENDIF});
   {$IFDEF VerbosePasResolverMem}
@@ -6655,6 +6659,17 @@ begin
       begin
       ProcScope.GroupScope.Free;
       ProcScope.GroupScope:=nil;
+      if ProcScope.NestedMembersScope<>nil then
+        begin
+        for i:=0 to ScopeCount-1 do
+          if Scopes[i]=ProcScope.NestedMembersScope then
+            begin
+            DeleteScope(i);
+            break;
+            end;
+        ProcScope.NestedMembersScope.Free;
+        ProcScope.NestedMembersScope:=nil;
+        end;
       end;
     ProcScope.GenericStep:=psgsImplementationParsed;
     if ProcScope.DeclarationProc<>nil then
@@ -6662,9 +6677,11 @@ begin
       DeclProcScope:=ProcScope.DeclarationProc.CustomData as TPasProcedureScope;
       DeclProcScope.GenericStep:=psgsImplementationParsed;
       end;
-    end
-  else if ProcScope.GroupScope<>nil then
-    RaiseInternalError(20190122142142,GetObjName(Proc));
+    end;
+  if ProcScope.GroupScope<>nil then
+    RaiseNotYetImplemented(20190122142142,Proc);
+  if ProcScope.NestedMembersScope<>nil then
+    RaiseNotYetImplemented(20191014233200,Proc);
 
   if TopScope.Element<>Proc then
     RaiseInternalError(20190806094032);
@@ -12156,6 +12173,7 @@ var
   Level, TypeParamCount, i: Integer;
   NamePart: TProcedureNamePart;
   TemplType, FoundTemplType: TPasGenericTemplateType;
+  NestedMembersScope: TPasDotBaseScope;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.AddProcedure ',GetObjName(El));
@@ -12377,11 +12395,39 @@ begin
   if HasDot then
     begin
     // create GroupScope
+    if TopScope<>ProcScope then
+      RaiseNotYetImplemented(20191014235935,El,GetObjName(TopScope));
     ProcScope.GroupScope:=CreateGroupScope(ClassOrRecType);
-    while ClassOrRecType.Parent is TPasMembersType do
+    if ClassOrRecType.Parent is TPasMembersType then
       begin
+      // nested class
       ClassOrRecType:=TPasMembersType(ClassOrRecType.Parent);
-      GroupScope_AddTypeAndAncestors(ProcScope.GroupScope,ClassOrRecType);
+      NestedMembersScope:=PushDotScope(ClassOrRecType);
+      ProcScope.NestedMembersScope:=NestedMembersScope;
+      NestedMembersScope.OnlyTypeMembers:=true;
+      // Delphi searches the parent class scopes *after* the section scopes
+      // and before the module scope - sigh
+      // -> Move scope between module scope and section scope
+      i:=ScopeCount-1;
+      while true do
+        begin
+        if i<=0 then
+          RaiseNotYetImplemented(20191015002850,El)
+        else if FScopes[i-1] is TPasModuleScope then
+          begin
+          FScopes[i]:=NestedMembersScope;
+          break;
+          end;
+        FScopes[i]:=FScopes[i-1];
+        dec(i);
+        end;
+      FTopScope:=FScopes[FScopeCount-1];
+
+      while ClassOrRecType.Parent is TPasMembersType do
+        begin
+        ClassOrRecType:=TPasMembersType(ClassOrRecType.Parent);
+        GroupScope_AddTypeAndAncestors(NestedMembersScope.GroupScope,ClassOrRecType);
+        end;
       end;
     end;
 
@@ -19604,7 +19650,7 @@ end;
 
 function TPasResolver.BI_DeleteArray_OnGetCallCompatibility(
   Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
-// Delete(var Array; Start, Count: integer)
+// DeleteScope(var Array; Start, Count: integer)
 var
   Params: TParamsExpr;
   Param: TPasExpr;
@@ -20690,8 +20736,8 @@ begin
       // e.g. enumtype.enumvalue: ok
     else
       begin
-      RaiseMsg(20170216152348,nCannotAccessThisMemberFromAX,
-        sCannotAccessThisMemberFromAX,[GetElementTypeName(FindData.Found.Parent)],FindData.ErrorPosEl);
+      RaiseMsg(20170216152348,nInstanceMemberXInaccessible,
+        sInstanceMemberXInaccessible,[FindData.Found.Name],FindData.ErrorPosEl);
       end;
     end
   else if (proExtClassInstanceNoTypeMembers in Options)
@@ -22039,6 +22085,47 @@ begin
     FStashScopes[FStashScopeCount]:=nil;
     inc(FScopeCount);
     end;
+end;
+
+procedure TPasResolver.DeleteScope(Index: integer);
+  {$IF defined(fpc) and (FPC_FULLVERSION<30101)}
+  procedure Delete(var A: TPasScopeArray; Index, Count: integer); overload;
+  var
+    i: Integer;
+  begin
+    if Index<0 then
+      raise Exception.Create('20191014232344');
+    if Index+Count>length(A) then
+      raise Exception.Create('20191014232345');
+    for i:=Index+Count to length(A)-1 do
+      A[i-Count]:=A[i];
+    SetLength(A,length(A)-Count);
+  end;
+  {$ENDIF}
+begin
+  Delete(FScopes,Index,1);
+  dec(FScopeCount);
+end;
+
+procedure TPasResolver.InsertScope(Scope: TPasScope; Index: integer);
+  {$IF defined(fpc) and (FPC_FULLVERSION<30101)}
+  procedure Insert(Item: TPasScope; var A: TPasScopeArray; Index: integer); overload;
+  var
+    i: Integer;
+  begin
+    if Index<0 then
+      raise Exception.Create('20191014232355');
+    if Index>length(A) then
+      raise Exception.Create('20191014232356');
+    SetLength(A,length(A)+1);
+    for i:=length(A)-1 downto Index+1 do
+      A[i]:=A[i-1];
+    A[Index]:=Item;
+  end;
+  {$ENDIF}
+begin
+  Insert(Scope,FScopes,Index);
+  inc(FScopeCount);
 end;
 
 function TPasResolver.GetCurrentProcScope(ErrorEl: TPasElement

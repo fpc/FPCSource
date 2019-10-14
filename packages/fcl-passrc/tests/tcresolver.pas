@@ -640,6 +640,8 @@ type
     Procedure TestNestedClass_Forward;
     procedure TestNestedClass_StrictPrivateFail;
     procedure TestNestedClass_AccessStrictPrivate;
+    procedure TestNestedClass_AccessParentVarFail;
+    procedure TestNestedClass_AccessParent;
 
     // external class
     Procedure TestExternalClass;
@@ -10340,8 +10342,8 @@ begin
   Add('  end;');
   Add('begin');
   Add('  if TObject.i=7 then ;');
-  CheckResolverException(sCannotAccessThisMemberFromAX,
-    nCannotAccessThisMemberFromAX);
+  CheckResolverException(sInstanceMemberXInaccessible,
+    nInstanceMemberXInaccessible);
 end;
 
 procedure TTestResolver.TestClass_FuncReturningObjectMember;
@@ -11475,6 +11477,71 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestNestedClass_AccessParentVarFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TBird = class',
+  '  public type',
+  '    TWing = class',
+  '      procedure Fly;',
+  '    end;',
+  '  public',
+  '    var i: longint;',
+  '  end;',
+  'procedure TBird.TWing.Fly;',
+  'begin',
+  '  i:=3;',
+  'end;',
+  'begin']);
+  CheckResolverException('Instance member "i" inaccessible here',nInstanceMemberXInaccessible);
+end;
+
+procedure TTestResolver.TestNestedClass_AccessParent;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TLimb = class',
+  '    {#tlimb_d}d: longint;',
+  '  end;',
+  '  TAnt = boolean;',
+  '  TBird = class',
+  '  public type',
+  '    TBody = class',
+  '    public type',
+  '      TAnt = word;',
+  '      TWing = class(TLimb)',
+  '        {#ant}ant: TAnt;',
+  '        procedure Fly;',
+  '      end;',
+  '    public',
+  '      class var {#tbody_a}a, {#tbody_b}b, {#tbody_d}d, {#tbody_e}e: longint;',
+  '    end;',
+  '  public',
+  '    class var {#tbird_a}a, {#tbird_b}b, {#tbird_c}c, {#tbird_d}d, {#tbird_e}e: longint;',
+  '  end;',
+  'var {#intf_a}a, {#intf_d}d: longint;',
+  'implementation',
+  'var {#impl_e}e: longint;',
+  'procedure TBird.TBody.TWing.Fly;',
+  'begin',
+  '  {@ant}ant:=2;',
+  '  {@intf_a}a:=3;',
+  '  {@tbody_b}b:=4;',
+  '  {@tbird_c}c:=5;',
+  '  {@tlimb_d}d:=6;',
+  '  {@impl_e}e:=7;',
+  'end;',
+  '']);
+  ParseUnit;
+end;
+
 procedure TTestResolver.TestExternalClass;
 begin
   StartProgram(false);
@@ -11736,8 +11803,8 @@ begin
   Add('  oc: TObjectClass;');
   Add('begin');
   Add('  oc.Id:=3;');
-  CheckResolverException(sCannotAccessThisMemberFromAX,
-    nCannotAccessThisMemberFromAX);
+  CheckResolverException(sInstanceMemberXInaccessible,
+    nInstanceMemberXInaccessible);
 end;
 
 procedure TTestResolver.TestClassOfDotClassProc;
@@ -11796,8 +11863,8 @@ begin
   Add('  oc: TObjectClass;');
   Add('begin');
   Add('  oc.ProcA;');
-  CheckResolverException(sCannotAccessThisMemberFromAX,
-    nCannotAccessThisMemberFromAX);
+  CheckResolverException(sInstanceMemberXInaccessible,
+    nInstanceMemberXInaccessible);
 end;
 
 procedure TTestResolver.TestClassOfDotClassProperty;
@@ -11843,8 +11910,8 @@ begin
   Add('  oc: TObjectClass;');
   Add('begin');
   Add('  if oc.A=3 then ;');
-  CheckResolverException(sCannotAccessThisMemberFromAX,
-    nCannotAccessThisMemberFromAX);
+  CheckResolverException(sInstanceMemberXInaccessible,
+    nInstanceMemberXInaccessible);
 end;
 
 procedure TTestResolver.TestClass_ClassProcSelf;
@@ -17610,7 +17677,8 @@ begin
   'begin',
   '  TFlag.Fly;',
   '']);
-  CheckResolverException('Cannot access this member from a type helper',nCannotAccessThisMemberFromAX);
+  CheckResolverException('Instance member "Fly" inaccessible here',
+    nInstanceMemberXInaccessible);
 end;
 
 procedure TTestResolver.TestTypeHelper_Set;

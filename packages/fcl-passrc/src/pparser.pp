@@ -4614,10 +4614,11 @@ begin
                                         AVisibility,CurTokenPos));
       VarList.Add(VarEl);
       NextToken;
-      if Not (CurToken in [tkComma,tkColon]) then
-        ParseExc(nParserExpectedCommaColon,SParserExpectedCommaColon);
-      if CurToken=tkComma then
-        ExpectIdentifier;
+      case CurToken of
+      tkColon: break;
+      tkComma: ExpectIdentifier;
+      else     ParseExc(nParserExpectedCommaColon,SParserExpectedCommaColon);
+      end;
     Until (CurToken=tkColon);
     OldForceCaret:=Scanner.SetForceCaret(True);
     try

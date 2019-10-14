@@ -106,7 +106,7 @@ const
   nTypesAreNotRelatedXY = 3029;
   nAbstractMethodsCannotBeCalledDirectly = 3030;
   nMissingParameterX = 3031;
-  nCannotAccessThisMemberFromAX = 3032;
+  nInstanceMemberXInaccessible = 3032;
   nInOperatorExpectsSetElementButGot = 3033;
   nWrongNumberOfParametersForTypeCast = 3034;
   nIllegalTypeConversionTo = 3035;
@@ -250,7 +250,7 @@ resourcestring
   sTypesAreNotRelatedXY = 'Types are not related: "%s" and "%s"';
   sAbstractMethodsCannotBeCalledDirectly = 'Abstract methods cannot be called directly';
   sMissingParameterX = 'Missing parameter %s';
-  sCannotAccessThisMemberFromAX = 'Cannot access this member from a %s';
+  sInstanceMemberXInaccessible = 'Instance member "%s" inaccessible here';
   sInOperatorExpectsSetElementButGot = 'the in-operator expects a set element, but got %s';
   sWrongNumberOfParametersForTypeCast = 'wrong number of parameters for type cast to %s';
   sIllegalTypeConversionTo = 'Illegal type conversion: "%s" to "%s"';
