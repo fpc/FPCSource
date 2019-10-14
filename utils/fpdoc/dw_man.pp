@@ -138,6 +138,8 @@ Type
     procedure DescrEndItalic; override;
     procedure DescrBeginEmph; override;
     procedure DescrEndEmph; override;
+    procedure DescrBeginUnderline; override;
+    procedure DescrEndUnderline; override;
     procedure DescrWriteFileEl(const AText: DOMString); override;
     procedure DescrWriteKeywordEl(const AText: DOMString); override;
     procedure DescrWriteVarEl(const AText: DOMString); override;
@@ -421,6 +423,17 @@ begin
 end;
 
 procedure TManWriter.DescrEndEmph;
+begin
+  NewLine;
+end;
+
+procedure TManWriter.DescrBeginUnderline;
+begin
+  NewLine;
+  Write('.I '); //use ITALIC!
+end;
+
+procedure TManWriter.DescrEndUnderline;
 begin
   NewLine;
 end;

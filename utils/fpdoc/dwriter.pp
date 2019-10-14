@@ -117,6 +117,8 @@ type
     procedure DescrEndBold; virtual; abstract;
     procedure DescrBeginItalic; virtual; abstract;
     procedure DescrEndItalic; virtual; abstract;
+    procedure DescrBeginUnderline; virtual; abstract;
+    procedure DescrEndUnderline; virtual; abstract;
     procedure DescrBeginEmph; virtual; abstract;
     procedure DescrEndEmph; virtual; abstract;
     procedure DescrWriteImageEl(const AFileName, ACaption,ALinkName : DOMString); virtual; 
@@ -636,6 +638,12 @@ begin
       DescrBeginEmph;
       ConvertBaseShortList(AContext, Node, False);
       DescrEndEmph;
+    end else
+    if Node.NodeName = 'u' then
+    begin
+      DescrBeginUnderline;
+      ConvertBaseShortList(AContext, Node, False);
+      DescrEndUnderline;
     end else
     if Node.NodeName = 'file' then
       DescrWriteFileEl(ConvertTextContent)

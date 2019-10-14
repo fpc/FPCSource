@@ -181,35 +181,33 @@ type
 
 
   TStreamHelper = class helper for TStream
-
-                     function  ReadWordLE :word;
-                     function  ReadDWordLE:dword;
-                     function  ReadQWordLE:qword;
-                     procedure WriteWordLE (w:word);
-  		     procedure WriteDWordLE(dw:dword);
-	             procedure WriteQWordLE(dq:qword);
-                     function  ReadWordBE :word;
-                     function  ReadDWordBE:dword;
-                     function  ReadQWordBE:qword;
-                     procedure WriteWordBE (w:word);
-  		     procedure WriteDWordBE(dw:dword);
-	             procedure WriteQWordBE(dq:qword);
-                     function  ReadSingle:Single;
-                     function  ReadDouble:Double;
-                     procedure WriteSingle(s:Single);
-                     procedure WriteDouble(d:double);
-
-                     {$ifndef FPC}
-                      function ReadByte  : Byte;
-                      function ReadWord  : Word;
-                      function ReadDWord : DWord;
-                      function ReadQWord : QWord;
-                      procedure WriteByte  (b : Byte);
-                      procedure WriteWord  (b : word);
-                      procedure WriteDWord (b : DWord);
-                      procedure WriteQWord (b : QWord);
-                     {$endif}
-                     end;
+    function  ReadWordLE :word;
+    function  ReadDWordLE:dword;
+    function  ReadQWordLE:qword;
+    procedure WriteWordLE (w:word);
+    procedure WriteDWordLE(dw:dword);
+    procedure WriteQWordLE(dq:qword);
+    function  ReadWordBE :word;
+    function  ReadDWordBE:dword;
+    function  ReadQWordBE:qword;
+    procedure WriteWordBE (w:word);
+    procedure WriteDWordBE(dw:dword);
+    procedure WriteQWordBE(dq:qword);
+    function  ReadSingle:Single;
+    function  ReadDouble:Double;
+    procedure WriteSingle(s:Single);
+    procedure WriteDouble(d:double);
+    {$ifndef FPC}
+    function ReadByte  : Byte;
+    function ReadWord  : Word;
+    function ReadDWord : DWord;
+    function ReadQWord : QWord;
+    procedure WriteByte  (b : Byte);
+    procedure WriteWord  (b : word);
+    procedure WriteDWord (b : DWord);
+    procedure WriteQWord (b : QWord);
+    {$endif}
+  end;
 
 Implementation
 

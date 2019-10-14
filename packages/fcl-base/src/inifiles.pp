@@ -1381,17 +1381,10 @@ begin
       if FEncoding=nil then
         slLines.LoadFromFile(FFileName)
       else
-      begin
-        slLines.DefaultEncoding := FEncoding;
-        slLines.LoadFromFile(FFileName, nil);
-        if FEncoding <> slLines.Encoding then
         begin
-          if FOwnsEncoding then
-            FEncoding.Free;
-          FEncoding := slLines.Encoding;
-          FOwnsEncoding := not TEncoding.IsStandardEncoding(FEncoding);
+        slLines.DefaultEncoding := FEncoding; // TStrings clones the encoding.
+        slLines.LoadFromFile(FFileName, nil);
         end;
-      end;
       FillSectionList(slLines);
     finally
       slLines.Free;
