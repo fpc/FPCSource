@@ -1333,7 +1333,7 @@ begin
             add('  .rodata1        : { *(.rodata1) }');
             add('  .eh_frame_hdr : { *(.eh_frame_hdr) }');
             add('  .eh_frame       : ONLY_IF_RO { KEEP (*(.eh_frame)) }');
-            add('  .gcc_except_table   : { KEEP *(.gcc_except_table .gcc_except_table.*) }');
+            add('  .gcc_except_table   : { KEEP (*(.gcc_except_table .gcc_except_table.*)) }');
 
             {Adjust the address for the data segment.  We want to adjust up to
              the same address within the page on the next page up.}
