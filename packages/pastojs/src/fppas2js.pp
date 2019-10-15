@@ -400,22 +400,24 @@ Works:
   - pass class property, static class property
   - pass array property
 - array of const, TVarRec
+- attributes
+- overflow check:
+  -Co   : Overflow checking of integer operations
+- generics
 
 ToDos:
 - range check:
    type helper self:=
-- overflow check:
-   ?
 - cmd line param to set modeswitch
 - Result:=inherited;
 - asm-block annotate/reference
   - pas()  test or use or read or write
+  - trailing [,,,]
 - bug: DoIt(typeinfo(i))  where DoIt is in another unit and has TTypeInfo
 - $OPTIMIZATION ON|OFF
 - $optimization REMOVEEMPTYPROCS
 - $optimization REMOVEEMPTYPROCS,RemoveNotUsedDeclarations-
 - setlength(dynarray)  modeswitch to not create a copy
-- 'new', 'Function' -> class var use .prototype
 - static arrays
   - clone multi dim static array
 - RTTI
@@ -428,50 +430,22 @@ ToDos:
 - stdcall of methods: pass original 'this' as first parameter
 - property read Arr[0]  https://bugs.freepascal.org/view.php?id=33416
 - write, writeln
-- array of const
 - call array of proc element without ()
 - enums with custom values
 - library
 - constref
 - option overflow checking -Co
   +, -, *, Succ, Pred, Inc, Dec
-  -Co   : Overflow checking of integer operations
   -CO   : Check for possible overflow of integer operations
 -C3 : Turn on ieee error checking for constants
 - optimizations:
-  - move rtl.js functions to system.pp
-  - add $mod only if needed
-  - add Self only if needed
-  - use a number for small sets
-  - put set literals into constants
-  - shortcut for test set is empty  a=[]  a<>[]
-  - set operators on literals without temporary arrays, a in [b], [a]*b<>[]
-  - combine multiple var a=0,b=0
-  - init a local var with the first assignment
-  - skip clone array for new array and arraysetlength
-  - SetLength(scope.a,l) -> read scope only once, same for
-    Include, Exclude, Inc, Dec, +=, -=, *=, /=
-  - inline  -Si
-  - autoinline
-  -O1 insert unit vars for complex literals
-  -O1 no function Result var when assigned only once
-  -O1 replace constant expression with result
-  -O1 pass array element by ref: when index is constant, use that directly
-  -O1 case-of with 6+ elements as binary tree
-  -O2 insert local/unit vars for global type references:
-      at start of intf var $r1=null;
-      at end of impl: $r1=path;
-  -O2 removeemptyprocs
-  -O2 skip dead code If(false){...}
-  -O2 CSE
-  -O3 DFA
+  see https://wiki.lazarus.freepascal.org/Pas2js_optimizations
 - objects
 - generics
 - operator overloading
   - operator enumerator
 - inline
 - extended RTTI
-- attributes
 
 Debugging this unit: -d<x>
    VerbosePas2JS
