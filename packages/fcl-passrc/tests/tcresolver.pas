@@ -715,8 +715,8 @@ type
     Procedure TestClassProperty;
     Procedure TestClassPropertyNonStaticFail;
     Procedure TestClassPropertyNonStaticAllow;
-    //Procedure TestClassPropertyStaticMismatchFail;
     Procedure TestArrayProperty;
+    Procedure TestArrayProperty_PassImplicitCallClassFunc;
     Procedure TestProperty_WrongTypeAsIndexFail;
     Procedure TestProperty_Option_ClassPropertyNonStatic;
     Procedure TestDefaultProperty;
@@ -12856,6 +12856,76 @@ begin
   Add('begin');
   Add('  obj.{@Items}Items[11]:=obj.{@Items}Items[12];');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestArrayProperty_PassImplicitCallClassFunc;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  ActualImplicitCallWithoutParams, ExpectedImplicitCallWithoutParams: Boolean;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function GetItems(s: string): string;',
+  '    property Items[s: string]: string read GetItems; default;',
+  '    class function Desc: string; virtual; abstract;',
+  '  end;',
+  'function TObject.GetItems(s: string): string;',
+  'begin',
+  '  Result:=Items[{#a_implicit}Desc];',
+  '  Result:=Items[{#b_direct}Desc()];',
+  '  Result:=Items[Self.{#c_implicit}Desc];',
+  '  Result:=Items[Self.{#d_direct}Desc()];',
+  'end;',
+  'var b: TObject;',
+  '  s: string;',
+  'begin',
+  '  s:=b.Items[b.{#m_implicit}Desc];',
+  '  s:=b.Items[b.{#n_direct}Desc()];',
+  '  s:=b.Items[TObject.{#o_implicit}Desc];',
+  '  s:=b.Items[TObject.{#p_direct}Desc()];',
+  '  s:=b[b.{#q_implicit}Desc];',
+  '  s:=b[b.{#r_direct}Desc()];',
+  '  s:=b[TObject.{#s_implicit}Desc];',
+  '  s:=b[TObject.{#t_direct}Desc()];',
+  '']);
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestArrayProperty_PassImplicitCallClassFunc ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      ActualImplicitCallWithoutParams:=false;
+      Ref:=nil;
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestArrayProperty_PassImplicitCallClassFunc ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        if Ref.Declaration is TPasProcedure then
+          break
+        else
+          Ref:=nil;
+        end;
+      if Ref=nil then
+        RaiseErrorAtSrcMarker('missing proc ref at "#'+aMarker^.Identifier+'"',aMarker);
+      ActualImplicitCallWithoutParams:=rrfImplicitCallWithoutParams in Ref.Flags;
+      ExpectedImplicitCallWithoutParams:=RightStr(aMarker^.Identifier,length('_implicit'))='_implicit';
+      if ActualImplicitCallWithoutParams<>ExpectedImplicitCallWithoutParams then
+        RaiseErrorAtSrcMarker('wrong implicit call at "#'+aMarker^.Identifier
+          +', ExpectedImplicitCall='+BoolToStr(ExpectedImplicitCallWithoutParams,true)+'"',aMarker);
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
 end;
 
 procedure TTestResolver.TestProperty_WrongTypeAsIndexFail;

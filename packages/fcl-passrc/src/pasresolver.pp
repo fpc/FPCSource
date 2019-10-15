@@ -8970,7 +8970,7 @@ begin
       argVar: ParamAccess:=rraVarParam;
       argOut: ParamAccess:=rraOutParam;
       end;
-    AccessExpr(Params.Params[i],ParamAccess);
+    FinishCallArgAccess(Params.Params[i],ParamAccess);
     end;
 end;
 
