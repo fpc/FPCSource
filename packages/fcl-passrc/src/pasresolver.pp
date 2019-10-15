@@ -1823,6 +1823,7 @@ type
     procedure SpecializeVariable(GenEl, SpecEl: TPasVariable; Finish: boolean);
     procedure SpecializeConst(GenEl, SpecEl: TPasConst);
     procedure SpecializeProperty(GenEl, SpecEl: TPasProperty);
+    function SpecializeTypeRef(GenEl, SpecEl: TPasElement; GenTypeRef: TPasType): TPasType;
     procedure SpecializeElType(GenEl, SpecEl: TPasElement;
       GenElType: TPasType; var SpecElType: TPasType);
     procedure SpecializeElExpr(GenEl, SpecEl: TPasElement;
@@ -2181,7 +2182,8 @@ type
     function IsSameType(TypeA, TypeB: TPasType; ResolveAlias: TPRResolveAlias): boolean; // check if it is exactly the same
     function HasExactType(const ResolvedEl: TPasResolverResult): boolean; // false if HiTypeEl was guessed, e.g. 1 guessed a btLongint
     function IndexOfGenericParam(Params: TPasExprArray): integer;
-    procedure CheckUseAsType(aType: TPasElement; id: TMaxPrecInt; ErrorEl: TPasElement);
+    procedure CheckUseAsType(aType: TPasElement; id: TMaxPrecInt;
+      ErrorEl: TPasElement);
     function CheckCallProcCompatibility(ProcType: TPasProcedureType;
       Params: TParamsExpr; RaiseOnError: boolean;
       SetReferenceFlags: boolean = false): integer;
@@ -17059,25 +17061,44 @@ begin
   FinishProperty(SpecEl);
 end;
 
+function TPasResolver.SpecializeTypeRef(GenEl, SpecEl: TPasElement;
+  GenTypeRef: TPasType): TPasType;
+var
+  GenParent, SpecParent, Ref: TPasElement;
+begin
+  if GenTypeRef.Name='' then
+    RaiseNotYetImplemented(20190813213555,GenEl,GetObjPath(GenTypeRef));
+  if GenEl.HasParent(GenTypeRef) then
+    begin
+    GenParent:=GenEl.Parent;
+    SpecParent:=SpecEl.Parent;
+    while GenParent<>GenTypeRef do
+      begin
+      GenParent:=GenParent.Parent;
+      SpecParent:=SpecParent.Parent;
+      end;
+    Ref:=SpecParent;
+    end
+  else
+    Ref:=FindElement(GenTypeRef.Name);
+  if not (Ref is TPasType) then
+    RaiseNotYetImplemented(20190812021538,GenEl,GetObjName(Ref));
+  Result:=TPasType(Ref);
+end;
+
 procedure TPasResolver.SpecializeElType(GenEl, SpecEl: TPasElement;
   GenElType: TPasType; var SpecElType: TPasType);
 var
-  Ref: TPasElement;
   NewClass: TPTreeElement;
 begin
   if GenElType=nil then exit;
+  if SpecElType<>nil then
+    RaiseNotYetImplemented(20190812021617,GenEl);
   if (GenElType.Parent<>GenEl)
       or (GenElType.ClassType=TPasGenericTemplateType) then
     begin
     // reference
-    if GenElType.Name='' then
-      RaiseNotYetImplemented(20190813213555,GenEl,GetObjName(GenElType)+' Parent='+GetObjName(GenElType.Parent));
-    Ref:=FindElement(GenElType.Name);
-    if not (Ref is TPasType) then
-      RaiseNotYetImplemented(20190812021538,GenEl,GetObjName(Ref));
-    GenElType:=TPasType(Ref);
-    if SpecElType<>nil then
-      RaiseNotYetImplemented(20190812021617,GenEl);
+    GenElType:=SpecializeTypeRef(GenEl,SpecEl,GenElType);
     SpecElType:=GenElType;
     SpecElType.AddRef{$IFDEF CheckPasTreeRefCount}('ResolveTypeReference'){$ENDIF};
     exit;
@@ -17153,9 +17174,7 @@ begin
       if not (GenListItem is TPasType) then
         RaiseNotYetImplemented(20190812025715,GenEl,IntToStr(i)+' GenListItem='+GetObjName(GenListItem));
       // reference
-      Ref:=FindElement(GenListItem.Name);
-      if not (Ref is TPasType) then
-        RaiseNotYetImplemented(20190812025715,GenEl,IntToStr(i)+' GenListItem='+GetObjName(GenListItem)+' Ref='+GetObjName(Ref));
+      Ref:=SpecializeTypeRef(GenEl,SpecEl,TpasType(GenListItem));
       Ref.AddRef{$IFDEF CheckPasTreeRefCount}(RefId){$ENDIF};
       SpecList.Add(Ref);
       continue;
@@ -17193,9 +17212,7 @@ begin
       if not (GenListItem is TPasType) then
         RaiseNotYetImplemented(20190914102957,GenEl,IntToStr(i)+' GenListItem='+GetObjName(GenListItem));
       // reference
-      Ref:=FindElement(GenListItem.Name);
-      if not (Ref is TPasType) then
-        RaiseNotYetImplemented(20190914103009,GenEl,IntToStr(i)+' GenListItem='+GetObjName(GenListItem)+' Ref='+GetObjName(Ref));
+      Ref:=SpecializeTypeRef(GenEl,SpecEl,TPasType(GenListItem));
       Ref.AddRef{$IFDEF CheckPasTreeRefCount}(RefId){$ENDIF};
       SpecList[i]:=Ref;
       continue;
@@ -27103,8 +27120,15 @@ begin
       end;
     if (TPasGenericType(aType).GenericTemplateTypes<>nil)
         and (TPasGenericType(aType).GenericTemplateTypes.Count>0) then
-          RaiseMsg(id,nGenericsWithoutSpecializationAsType,sGenericsWithoutSpecializationAsType,
+      begin
+      // ref to generic type without specialization
+      if not (msDelphi in CurrentParser.CurrentModeswitches)
+          and (ErrorEl.HasParent(aType)) then
+        // ObjFPC allows referring to parent without type params
+      else
+        RaiseMsg(id,nGenericsWithoutSpecializationAsType,sGenericsWithoutSpecializationAsType,
             [ErrorEl.ElementTypeName],ErrorEl);
+      end;
     end;
 end;
 

@@ -58,6 +58,8 @@ type
     // generic class
     procedure TestGen_Class;
     procedure TestGen_ClassDelphi;
+    procedure TestGen_ClassObjFPC;
+    procedure TestGen_ClassObjFPC_OverloadFail;
     procedure TestGen_ClassForward;
     procedure TestGen_ClassForwardConstraints;
     procedure TestGen_ClassForwardConstraintNameMismatch;
@@ -66,7 +68,7 @@ type
     procedure TestGen_ClassForward_Circle;
     procedure TestGen_Class_RedeclareInUnitImplFail;
     procedure TestGen_Class_AnotherInUnitImpl;
-    procedure TestGen_Class_Method;
+    procedure TestGen_Class_MethodObjFPC;
     procedure TestGen_Class_MethodOverride;
     procedure TestGen_Class_MethodDelphi;
     procedure TestGen_Class_MethodDelphiTypeParamMissing;
@@ -139,17 +141,20 @@ type
     procedure TestGenProc_TypeParamCntOverload;
     procedure TestGenProc_TypeParamCntOverloadNoParams;
     procedure TestGenProc_TypeParamWithDefaultParamDelphiFail;
-    procedure TestGenProc_Inference_NeedExplicitFail;
-    procedure TestGenProc_Inference_Overload;
-    procedure TestGenProc_Inference_OverloadForward;
-    procedure TestGenProc_Inference_Var_Overload;
-    //procedure TestGenProc_Inference_Widen;
-    procedure TestGenProc_Inference_DefaultValue;
-    procedure TestGenProc_Inference_DefaultValueMismatch;
-    procedure TestGenProc_Inference_ProcT;
-    procedure TestGenProc_Inference_Mismatch;
-    procedure TestGenProc_Inference_ArrayOfT;
-    // ToDo procedure TestGenProc_Inference_ProcType;
+    // ToDo: NestedResultAssign
+
+    // generic function infer types
+    procedure TestGenProc_Infer_NeedExplicitFail;
+    procedure TestGenProc_Infer_Overload;
+    procedure TestGenProc_Infer_OverloadForward;
+    procedure TestGenProc_Infer_Var_Overload;
+    //procedure TestGenProc_Infer_Widen;
+    procedure TestGenProc_Infer_DefaultValue;
+    procedure TestGenProc_Infer_DefaultValueMismatch;
+    procedure TestGenProc_Infer_ProcT;
+    procedure TestGenProc_Infer_Mismatch;
+    procedure TestGenProc_Infer_ArrayOfT;
+    // ToDo procedure TestGenProc_Infer_ProcType;
 
     // generic methods
     procedure TestGenMethod_VirtualFail;
@@ -751,6 +756,40 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolveGenerics.TestGen_ClassObjFPC;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '    v: TBird;',
+  '  end;',
+  'var',
+  '  b: specialize TBird<word>;',
+  'begin',
+  '  b.v:=b;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ClassObjFPC_OverloadFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  TBird = word;',
+  '  generic TBird<T> = class',
+  '    v: T;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('Duplicate identifier "TBird" at afile.pp(5,8)',nDuplicateIdentifier);
+end;
+
 procedure TTestResolveGenerics.TestGen_ClassForward;
 begin
   StartProgram(false);
@@ -919,7 +958,7 @@ begin
   ParseUnit;
 end;
 
-procedure TTestResolveGenerics.TestGen_Class_Method;
+procedure TTestResolveGenerics.TestGen_Class_MethodObjFPC;
 begin
   StartProgram(false);
   Add([
@@ -2061,7 +2100,7 @@ begin
   CheckResolverException(sParamOfThisTypeCannotHaveDefVal,nParamOfThisTypeCannotHaveDefVal);
 end;
 
-procedure TTestResolveGenerics.TestGenProc_Inference_NeedExplicitFail;
+procedure TTestResolveGenerics.TestGenProc_Infer_NeedExplicitFail;
 begin
   StartProgram(false);
   Add([
@@ -2076,7 +2115,7 @@ begin
     nCouldNotInferTypeArgXForMethodY);
 end;
 
-procedure TTestResolveGenerics.TestGenProc_Inference_Overload;
+procedure TTestResolveGenerics.TestGenProc_Infer_Overload;
 begin
   StartProgram(false);
   Add([
@@ -2098,7 +2137,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolveGenerics.TestGenProc_Inference_OverloadForward;
+procedure TTestResolveGenerics.TestGenProc_Infer_OverloadForward;
 begin
   StartProgram(false);
   Add([
@@ -2126,7 +2165,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolveGenerics.TestGenProc_Inference_Var_Overload;
+procedure TTestResolveGenerics.TestGenProc_Infer_Var_Overload;
 begin
   StartProgram(false);
   Add([
@@ -2152,7 +2191,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolveGenerics.TestGenProc_Inference_DefaultValue;
+procedure TTestResolveGenerics.TestGenProc_Infer_DefaultValue;
 begin
   StartProgram(false);
   Add([
@@ -2169,7 +2208,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolveGenerics.TestGenProc_Inference_DefaultValueMismatch;
+procedure TTestResolveGenerics.TestGenProc_Infer_DefaultValueMismatch;
 begin
   StartProgram(false);
   Add([
@@ -2185,7 +2224,7 @@ begin
                          nIncompatibleTypesGotExpected);
 end;
 
-procedure TTestResolveGenerics.TestGenProc_Inference_ProcT;
+procedure TTestResolveGenerics.TestGenProc_Infer_ProcT;
 begin
   StartProgram(false);
   Add([
@@ -2207,7 +2246,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolveGenerics.TestGenProc_Inference_Mismatch;
+procedure TTestResolveGenerics.TestGenProc_Infer_Mismatch;
 begin
   StartProgram(false);
   Add([
@@ -2222,7 +2261,7 @@ begin
     nInferredTypeXFromDiffArgsMismatchFromMethodY);
 end;
 
-procedure TTestResolveGenerics.TestGenProc_Inference_ArrayOfT;
+procedure TTestResolveGenerics.TestGenProc_Infer_ArrayOfT;
 begin
   StartProgram(false);
   Add([
