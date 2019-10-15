@@ -4260,7 +4260,8 @@ begin
         end
       else
         begin
-          if not(FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[init_settings.fputype]) then
+          if (not(FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[init_settings.fputype]))
+	     or (target_info.system = system_arm_darwin) then
             begin
               Message(option_illegal_fpu_eabihf);
               StopOptions(1);
