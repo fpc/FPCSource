@@ -22,8 +22,8 @@ type
     Procedure TestGen_Class_EmptyMethod;
     Procedure TestGen_Class_TList;
     Procedure TestGen_ClassAncestor;
-    Procedure TestGen_TypeInfo;
-    // ToDo: TBird, TBird<T>, TBird<S,T>
+    Procedure TestGen_Class_TypeInfo;
+    Procedure TestGen_Class_TypeOverload; // ToDo TBird, TBird<T>, TBird<S,T>
     // ToDo: rename local const T
 
     // generic external class
@@ -33,6 +33,7 @@ type
     Procedure TestGen_InlineSpec_Constructor;
     Procedure TestGen_CallUnitImplProc;
     Procedure TestGen_IntAssignTemplVar;
+    Procedure TestGen_TypeCastDotField;
     // ToDo: TBird<word>(o).field:=3;
 
     // generic helper
@@ -254,7 +255,7 @@ begin
     '']));
 end;
 
-procedure TTestGenerics.TestGen_TypeInfo;
+procedure TTestGenerics.TestGen_Class_TypeInfo;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
   StartProgram(false);
@@ -296,6 +297,39 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.p = $mod.$rtti["TBird$G1"];',
     '$mod.p = $mod.b.$rtti;',
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_Class_TypeOverload;
+begin
+  exit;// ToDo
+
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TBird = word;',
+  '  TBird<T> = class',
+  '    m: T;',
+  '  end;',
+  '  TEagle = TBird<word>;',
+  'var',
+  '  b: TBird<word>;',
+  '  e: TEagle;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_Class_TypeOverload',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -490,6 +524,56 @@ begin
     'this.b = null;',
     '']),
     LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_TypeCastDotField;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  generic TBird<T> = class',
+  '    Field: T;',
+  '    procedure Fly;',
+  '  end;',
+  'var',
+  '  o: TObject;',
+  '  b: specialize TBird<word>;',
+  'procedure TBird.Fly;',
+  'begin',
+  '  specialize TBird<word>(o).Field:=3;',
+  '  if 4=specialize TBird<word>(o).Field then ;',
+  'end;',
+  'begin',
+  '  specialize TBird<word>(o).Field:=5;',
+  '  if 6=specialize TBird<word>(o).Field then ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_TypeCastDotField',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird$G1", $mod.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
+    '    this.Field = 0;',
+    '  };',
+    '  this.Fly = function () {',
+    '    $mod.o.Field = 3;',
+    '    if (4 === $mod.o.Field) ;',
+    '  };',
+    '});',
+    'this.o = null;',
+    'this.b = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.o.Field = 5;',
+    'if (6 === $mod.o.Field) ;',
     '']));
 end;
 

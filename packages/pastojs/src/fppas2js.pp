@@ -9925,6 +9925,13 @@ begin
     DotBin:=TBinaryExpr(Value);
     Value:=DotBin.right;
     end;
+  if (not (Value.CustomData is TResolvedReference))
+      and (aResolver<>nil)
+      and (Value is TInlineSpecializeExpr) then
+    begin
+    //  Value<>()
+    Value:=TInlineSpecializeExpr(Value).NameExpr;
+    end;
 
   if Value.CustomData is TResolvedReference then
     begin
