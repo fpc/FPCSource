@@ -58,6 +58,7 @@ type
     // generic class
     procedure TestGen_Class;
     procedure TestGen_ClassDelphi;
+    procedure TestGen_ClassDelphi_TypeOverload; // ToDo
     procedure TestGen_ClassObjFPC;
     procedure TestGen_ClassObjFPC_OverloadFail;
     procedure TestGen_ClassForward;
@@ -750,6 +751,29 @@ begin
   'var',
   '  b: TBird<word>;',
   '  {=Typ}w: T;',
+  'begin',
+  '  b.v:=w;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ClassDelphi_TypeOverload;
+begin
+  exit;
+
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TBird = word;',
+  '  TBird<T> = class',
+  '    v: T;',
+  '  end;',
+  '  TEagle = TBird<word>;',
+  'var',
+  '  b: TBird<word>;',
+  '  w: TBird;',
   'begin',
   '  b.v:=w;',
   '']);

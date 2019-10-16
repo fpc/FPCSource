@@ -5428,8 +5428,16 @@ function TPasResolver.AddIdentifier(Scope: TPasIdentifierScope;
     while Identifier<>nil do
       begin
       CurEl:=Identifier.Element;
-      if not (CurEl is TPasGenericType) then break;
-      if GetTypeParameterCount(TPasGenericType(CurEl))=TypeParamCnt then break;
+      if CurEl is TPasGenericType then
+        begin
+        if GetTypeParameterCount(TPasGenericType(CurEl))=TypeParamCnt then
+          break;
+        end
+      else
+        begin
+        if TypeParamCnt=0 then
+          break;
+        end;
       Identifier:=Identifier.NextSameIdentifier;
       end;
     Result:=Identifier;
@@ -5506,7 +5514,7 @@ begin
 
   // check duplicate in current scope
   OlderIdentifier:=Identifier.NextSameIdentifier;
-  if IsGeneric then
+  if IsGeneric and (msDelphi in CurrentParser.CurrentModeswitches) then
     OlderIdentifier:=SkipGenericTypes(OlderIdentifier,TypeParamCnt);
   if OlderIdentifier<>nil then
     begin
@@ -20387,7 +20395,7 @@ begin
     else
       NeedPop:=false;
 
-    if (TypeParamCount>0) and (RightPath='') then
+    if (RightPath='') and (TypeParamCount>0) then
       begin
       NextEl:=FindGenericEl(CurName,TypeParamCount,FindData,ErrorEl);
       if (FindData.StartScope<>nil) and (FindData.StartScope.ClassType=ScopeClass_WithExpr)
