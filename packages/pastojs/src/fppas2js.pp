@@ -2832,6 +2832,8 @@ begin
     if ProcScope.DeclarationProc<>nil then
       // implementation proc -> only count the header -> skip
       exit(false);
+    if ProcScope.SpecializedFromItem<>nil then
+      exit(false);
     end;
   Result:=true;
 end;
@@ -5792,12 +5794,30 @@ end;
 function TPas2JSResolver.GetOverloadName(El: TPasElement): string;
 var
   Data: TObject;
+  ProcScope, GenScope: TPas2JSProcedureScope;
+  GenEl: TPasElement;
 begin
   Data:=El.CustomData;
   if Data is TPas2JSProcedureScope then
     begin
-    Result:=TPas2JSProcedureScope(Data).OverloadName;
-    if Result<>'' then exit;
+    ProcScope:=TPas2JSProcedureScope(Data);
+    if ProcScope.SpecializedFromItem<>nil then
+      begin
+      // specialized proc -> generic name + 's' + index
+      GenEl:=ProcScope.SpecializedFromItem.GenericEl;
+      GenScope:=TPas2JSProcedureScope(GenEl.CustomData);
+      Result:=GenScope.OverloadName;
+      if Result='' then
+        Result:=GenEl.Name+'$';
+      Result:=Result+'s'+IntToStr(ProcScope.SpecializedFromItem.Index);
+      end
+    else
+      begin
+      Result:=ProcScope.OverloadName;
+      if Result='' then
+        Result:=El.Name;
+      end;
+    exit;
     end;
   Result:=El.Name;
 end;
@@ -14644,11 +14664,12 @@ begin
     exit;
   IsClassConDestructor:=(El.ClassType=TPasClassConstructor)
                      or (El.ClassType=TPasClassDestructor);
+  aResolver:=AContext.Resolver;
+  if not aResolver.IsFullySpecialized(El) then exit;
 
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertProcedure "',El.Name,'" Overload="',ProcScope.OverloadName,'" ',El.Parent.ClassName);
   {$ENDIF}
-  aResolver:=AContext.Resolver;
 
   ImplProc:=El;
   if ProcScope.ImplProc<>nil then

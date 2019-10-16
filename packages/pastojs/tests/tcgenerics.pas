@@ -34,14 +34,14 @@ type
     Procedure TestGen_CallUnitImplProc;
     Procedure TestGen_IntAssignTemplVar;
     Procedure TestGen_TypeCastDotField;
-    // ToDo: TBird<word>(o).field:=3;
 
     // generic helper
-    // ToDo: helper for gen array: TArray<word>.Fly(aword);
+    procedure TestGen_HelperForArray;
 
     // generic functions
-    // ToDo: Fly<word>(3);
-    // ToDo: TestGenProc_ProcT
+    procedure TestGenProc_Function_ObjFPC;
+    procedure TestGenProc_Function_Delphi;
+    procedure TestGenProc_Overload;
     // ToDo: inference Fly(3);
   end;
 
@@ -574,6 +574,145 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.o.Field = 5;',
     'if (6 === $mod.o.Field) ;',
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_HelperForArray;
+begin
+  StartProgram(false);
+  Add([
+  '{$ModeSwitch typehelpers}',
+  'type',
+  '  generic TArr<T> = array[1..2] of T;',
+  '  TWordArrHelper = type helper for specialize TArr<word>',
+  '    procedure Fly(w: word);',
+  '  end;',
+  'procedure TWordArrHelper.Fly(w: word);',
+  'begin',
+  'end;',
+  'var',
+  '  a: specialize TArr<word>;',
+  'begin',
+  '  a.Fly(3);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_HelperForArray',
+    LinesToStr([ // statements
+    'rtl.createHelper($mod, "TWordArrHelper", null, function () {',
+    '  this.Fly = function (w) {',
+    '  };',
+    '});',
+    'this.a = rtl.arraySetLength(null, 0, 2);',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.TWordArrHelper.Fly.call({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.a;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.a = v;',
+    '    }',
+    '}, 3);',
+    '']));
+end;
+
+procedure TTestGenerics.TestGenProc_Function_ObjFPC;
+begin
+  StartProgram(false);
+  Add([
+  'generic function Run<T>(a: T): T;',
+  'var i: T;',
+  'begin',
+  '  a:=i;',
+  '  Result:=a;',
+  'end;',
+  'var w: word;',
+  'begin',
+  '  w:=specialize Run<word>(3);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGenProc_Function_ObjFPC',
+    LinesToStr([ // statements
+    'this.Run$s0 = function (a) {',
+    '  var Result = 0;',
+    '  var i = 0;',
+    '  a = i;',
+    '  Result = a;',
+    '  return Result;',
+    '};',
+    'this.w = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.w = $mod.Run$s0(3);',
+    '']));
+end;
+
+procedure TTestGenerics.TestGenProc_Function_Delphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'function Run<T>(a: T): T;',
+  'var i: T;',
+  'begin',
+  '  a:=i;',
+  '  Result:=a;',
+  'end;',
+  'var w: word;',
+  'begin',
+  '  w:=Run<word>(3);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGenProc_Function_Delphi',
+    LinesToStr([ // statements
+    'this.Run$s0 = function (a) {',
+    '  var Result = 0;',
+    '  var i = 0;',
+    '  a = i;',
+    '  Result = a;',
+    '  return Result;',
+    '};',
+    'this.w = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.w = $mod.Run$s0(3);',
+    '']));
+end;
+
+procedure TTestGenerics.TestGenProc_Overload;
+begin
+  StartProgram(false);
+  Add([
+  'generic procedure DoIt<T>(a: T; w: word); overload;',
+  'begin',
+  'end;',
+  'generic procedure DoIt<T>(a: T; b: boolean); overload;',
+  'begin',
+  'end;',
+  'begin',
+  '  specialize DoIt<word>(3,4);',
+  '  specialize DoIt<boolean>(false,5);',
+  '  specialize DoIt<word>(6,true);',
+  '  specialize DoIt<double>(7.3,true);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGenProc_Overload',
+    LinesToStr([ // statements
+    'this.DoIt$s0 = function (a, w) {',
+    '};',
+    'this.DoIt$s1 = function (a, w) {',
+    '};',
+    'this.DoIt$1s0 = function (a, b) {',
+    '};',
+    'this.DoIt$1s1 = function (a, b) {',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt$s0(3, 4);',
+    '$mod.DoIt$s1(false, 5);',
+    '$mod.DoIt$1s0(6, true);',
+    '$mod.DoIt$1s1(7.3, true);',
     '']));
 end;
 
