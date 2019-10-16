@@ -1695,7 +1695,9 @@ begin
         begin
         Result:=ParseSpecializeType(Parent,'',Name,Expr);
         NextToken;
-        end;
+        end
+      else
+        CheckToken(tkend);
       end
     else if IsSpecialize then
       CheckToken(tkLessThan)

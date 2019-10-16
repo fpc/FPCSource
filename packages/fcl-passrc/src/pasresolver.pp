@@ -688,6 +688,7 @@ type
     FSpecializedEl: TPasElement;
   public
     GenericEl: TPasElement;
+    Index: integer;
     Step: TPRSpecializeStep; // how much of the specialized element has been created
     FirstSpecialize: TPasElement;
     Params: TPasTypeArray;
@@ -1809,6 +1810,8 @@ type
       GenTempl: TPasGenericTemplateType; ErrorPos: TPasElement);
     function CreateSpecializedItem(El: TPasElement; GenericEl: TPasElement;
       const ParamsResolved: TPasTypeArray): TPRSpecializedItem; virtual;
+    function CreateSpecializedTypeName(SpecializedItems: TObjectList;
+      Item: TPRSpecializedItem): string; virtual;
     procedure InitSpecializeScopes(El: TPasElement; out State: TScopeStashState); virtual;
     procedure RestoreSpecializeScopes(const State: TScopeStashState); virtual;
     procedure SpecializeGenericIntf(SpecializedItem: TPRSpecializedItem); virtual;
@@ -2307,7 +2310,8 @@ type
     function GetTypeParameterCount(aType: TPasGenericType): integer;
     function GetGenericConstraintKeyword(El: TPasElement): TToken;
     function GetGenericConstraintErrorEl(ConstraintEl, TemplType: TPasElement): TPasElement;
-    function IsFullySpecialized(El: TPasGenericType): boolean;
+    function IsFullySpecialized(El: TPasGenericType): boolean; overload;
+    function IsFullySpecialized(Proc: TPasProcedure): boolean; overload;
     function IsInterfaceType(const ResolvedEl: TPasResolverResult;
       IntfType: TPasClassInterfaceType): boolean; overload;
     function IsInterfaceType(TypeEl: TPasType; IntfType: TPasClassInterfaceType): boolean; overload;
@@ -6754,6 +6758,12 @@ begin
       if Proc.IsVirtual or Proc.IsDynamic or Proc.IsMessage or Proc.IsOverride then
         RaiseMsg(20190911112925,nXMethodsCannotHaveTypeParams,
           sXMethodsCannotHaveTypeParams,['virtual, dynamic or message'],El);
+      if Proc.IsOverride then
+        RaiseMsg(20191016174218,nXMethodsCannotHaveTypeParams,
+          sXMethodsCannotHaveTypeParams,['override'],El);
+      if not (Proc.Visibility in [visDefault,visPrivate,visStrictPrivate,visProtected,visStrictProtected,visPublic]) then
+        RaiseMsg(20191016174327,nXMethodsCannotHaveTypeParams,
+          sXMethodsCannotHaveTypeParams,[VisibilityNames[Proc.Visibility]],El);
       end;
 
     if El is TPasFunctionType then
@@ -8449,6 +8459,8 @@ begin
     if aClass.IsExternal then
       RaiseMsg(20190116192722,nIllegalQualifier,sIllegalQualifier,['external'],aClass);
     HelperForType:=ResolveAliasType(aClass.HelperForType);
+    if HelperForType=nil then
+      RaiseNotYetImplemented(20191016125557,aClass);
     if (aClass=HelperForType) or (aClass.HasParent(HelperForType)) then
       RaiseMsg(20190118190935,nTypeXIsNotYetCompletelyDefined,
         sTypeXIsNotYetCompletelyDefined,[HelperForType.Name],aClass);
@@ -16357,8 +16369,9 @@ begin
   Result.GenericEl:=GenericEl;
   Result.FirstSpecialize:=El;
   Result.Params:=ParamsResolved;
+  Result.Index:=SpecializedItems.Count;
   SpecializedItems.Add(Result);
-  NewName:=GenericEl.Name+'$G'+IntToStr(SpecializedItems.Count);
+  NewName:=CreateSpecializedTypeName(SpecializedItems,Result);
   NewClass:=TPTreeElement(GenericEl.ClassType);
   NewParent:=GenericEl.Parent;
   NewEl:=TPasElement(NewClass.Create(NewName,NewParent));
@@ -16385,6 +16398,12 @@ begin
 
   if GenScope.GenericStep>=psgsImplementationParsed then
     SpecializeGenericImpl(Result);
+end;
+
+function TPasResolver.CreateSpecializedTypeName(SpecializedItems: TObjectList;
+  Item: TPRSpecializedItem): string;
+begin
+  Result:=Item.GenericEl.Name+'$G'+IntToStr(SpecializedItems.Count);
 end;
 
 procedure TPasResolver.InitSpecializeScopes(El: TPasElement; out
@@ -27710,6 +27729,30 @@ begin
   GenScope:=TPasGenericScope(El.CustomData);
   if GenScope.SpecializedFromItem=nil then exit(true);
   Params:=GenScope.SpecializedFromItem.Params;
+  for i:=0 to length(Params)-1 do
+    if Params[i] is TPasGenericTemplateType then exit(false);
+  Result:=true;
+end;
+
+function TPasResolver.IsFullySpecialized(Proc: TPasProcedure): boolean;
+var
+  Templates: TFPList;
+  ProcScope: TPasProcedureScope;
+  Params: TPasTypeArray;
+  i: Integer;
+begin
+  if Proc.CustomData=nil then exit(false);
+  ProcScope:=TPasProcedureScope(Proc.CustomData);
+  if ProcScope.DeclarationProc<>nil then
+    begin
+    Proc:=ProcScope.DeclarationProc;
+    ProcScope:=TPasProcedureScope(Proc.CustomData);
+    end;
+  Templates:=GetProcTemplateTypes(Proc);
+  if (Templates<>nil) and (Templates.Count>0) then
+    exit(false);
+  if ProcScope.SpecializedFromItem=nil then exit(true);
+  Params:=ProcScope.SpecializedFromItem.Params;
   for i:=0 to length(Params)-1 do
     if Params[i] is TPasGenericTemplateType then exit(false);
   Result:=true;

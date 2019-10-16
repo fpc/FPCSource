@@ -134,6 +134,7 @@ type
     procedure TestM_Hint_FunctionResultAssembler;
     procedure TestM_Hint_FunctionResultExit;
     procedure TestM_Hint_AbsoluteVar;
+    procedure TestM_Hint_GenFunctionResultArgNotUsed;
 
     // whole program optimization
     procedure TestWP_LocalVar;
@@ -2279,6 +2280,28 @@ begin
   'begin',
   '  DoIt(nil);']);
   AnalyzeProgram;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_GenFunctionResultArgNotUsed;
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  generic TPoint<U> = record X,Y: U; end;',
+  'generic procedure Three<S>(out x: S);',
+  'begin',
+  '  x:=3;',
+  'end;',
+  'generic function Point<T>(): specialize TPoint<T>;',
+  'begin',
+  '  specialize Three<T>(Result.X)',
+  'end;',
+  'begin',
+  '  specialize Point<word>();',
+  '']);
+  AnalyzeProgram;
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "Y" not used');
   CheckUseAnalyzerUnexpectedHints;
 end;
 
