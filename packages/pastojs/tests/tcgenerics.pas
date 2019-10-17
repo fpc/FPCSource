@@ -24,6 +24,7 @@ type
     Procedure TestGen_ClassAncestor;
     Procedure TestGen_Class_TypeInfo;
     Procedure TestGen_Class_TypeOverload; // ToDo TBird, TBird<T>, TBird<S,T>
+    Procedure TestGen_Class_ClassProperty;
     // ToDo: rename local const T
 
     // generic external class
@@ -334,6 +335,41 @@ begin
     '});',
     '']),
     LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_Class_ClassProperty;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TBird<T> = class',
+  '  private',
+  '    class var fSize: T;',
+  '  public',
+  '    class property Size: T read fSize write fSize;',
+  '  end;',
+  '  TEagle = TBird<word>;',
+  'begin',
+  '  TBird<word>.Size:=3+TBird<word>.Size;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_Class_ClassProperty',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird$G1", $mod.TObject, function () {',
+    '  this.fSize = 0;',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.TBird$G1.fSize = 3 + $mod.TBird$G1.fSize;',
     '']));
 end;
 
