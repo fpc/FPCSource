@@ -704,8 +704,8 @@ type
     FSpecializedType: TPasGenericType;
     procedure SetSpecializedType(AValue: TPasGenericType);
   public
-    HeaderScope: TObject;
-    ImplProcs: TFPList;
+    HeaderScope: TObject; // TPasScope
+    ImplProcs: TFPList; // list of TPasProcedure
     destructor Destroy; override;
     property SpecializedType: TPasGenericType read FSpecializedType write SetSpecializedType;
   end;
@@ -717,7 +717,7 @@ type
     FSpecializedProc: TPasProcedure;
     procedure SetSpecializedProc(const AValue: TPasProcedure);
   public
-    ImplProc: TPasProcedure;
+    ImplProc: TPasProcedure; // <>SpecializedProc, can be nil
     destructor Destroy; override;
     property SpecializedProc: TPasProcedure read FSpecializedProc write SetSpecializedProc;
   end;
@@ -3046,7 +3046,7 @@ var
   i: Integer;
 begin
   for i:=0 to length(SpecializedConstraints)-1 do
-    TPasElement(SpecializedConstraints[i]).Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+    SpecializedConstraints[i].Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   SetLength(SpecializedConstraints,0);
   inherited Destroy;
 end;
@@ -3098,7 +3098,10 @@ end;
 destructor TPRSpecializedProcItem.Destroy;
 begin
   if ImplProc<>nil then
-    TPasElement(ImplProc).Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+    begin
+    ImplProc.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+    ImplProc:=nil;
+    end;
   SpecializedProc:=nil;
   inherited Destroy;
 end;
@@ -16731,6 +16734,52 @@ end;
 
 procedure TPasResolver.SpecializeGenImplProc(GenDeclProc,
   SpecDeclProc: TPasProcedure; SpecializedItem: TPRSpecializedItem);
+
+  procedure InsertBehind(ParentElList: TFPList;
+    SpecializedItems: TObjectList; GenImplProc, SpecImplProc: TPasProcedure);
+  // insert SpecImplProc behind last specialized impl proc
+  // Note: impl procs are not always specialized in order
+  var
+    Last: TPasProcedure;
+    i: Integer;
+  begin
+    Last:=nil;
+
+    if SpecializedItems<>nil then
+      begin
+      i:=SpecializedItems.Count-1;
+      while i>=0 do
+        begin
+        Last:=TPRSpecializedProcItem(SpecializedItems[i]).ImplProc;
+        if Last=SpecImplProc then
+          Last:=nil
+        else if Last<>nil then
+          break;
+        dec(i);
+        end;
+      end;
+    if Last=nil then
+      Last:=GenImplProc;
+    i:=ParentElList.IndexOf(Last);
+    if i<0 then
+      begin
+      {$IF defined(VerbosePasResolver) or defined(VerbosePas2JS)}
+      {AllowWriteln}
+      writeln('InsertBehind GenImplProc=',GetObjPath(GenImplProc),' Last=',GetObjPath(Last));
+      for i:=0 to ParentElList.Count-1 do
+        begin
+        writeln('  ',GetObjName(TObject(ParentElList[i])));
+        if TObject(ParentElList[i]) is TPasProcedure then
+          writeln('    IsForward=',TPasProcedure(ParentElList[i]).IsForward);
+        end;
+      {AllowWriteln-}
+      {$ENDIF}
+      RaiseNotYetImplemented(20191017122900,GenDeclProc);
+      end;
+    ParentElList.Insert(i+1,SpecImplProc);
+    SpecImplProc.AddRef{$IFDEF CheckPasTreeRefCount}('TPasDeclarations.Children'){$ENDIF};
+  end;
+
 var
   GenDeclProcScope, GenImplProcScope, SpecDeclProcScope,
     SpecImplProcScope: TPasProcedureScope;
@@ -16743,6 +16792,7 @@ var
   SpecializedProcItem: TPRSpecializedProcItem;
   SpecializedTypeItem: TPRSpecializedTypeItem;
   Templates: TFPList;
+  NewParent: TPasElement;
 begin
   SpecializedProcItem:=nil;
   SpecializedTypeItem:=nil;
@@ -16812,12 +16862,17 @@ begin
 
   // create impl proc
   NewClass:=TPTreeElement(GenImplProc.ClassType);
-  SpecImplProc:=TPasProcedure(NewClass.Create(NewImplProcName,GenImplProc.Parent));
+  NewParent:=GenImplProc.Parent;
+  SpecImplProc:=TPasProcedure(NewClass.Create(NewImplProcName,NewParent));
   SpecDeclProcScope.ImplProc:=SpecImplProc;
   if SpecializedProcItem<>nil then
     SpecializedProcItem.ImplProc:=SpecImplProc
   else
     SpecializedTypeItem.ImplProcs.Add(SpecImplProc);
+
+  if (SpecializedProcItem<>nil) and (NewParent is TPasDeclarations) then
+    InsertBehind(TPasDeclarations(NewParent).Declarations,
+                 GenDeclProcScope.SpecializedItems,GenImplProc,SpecImplProc);
 
   // create impl proc scope
   SpecImplProcScope:=TPasProcedureScope(CreateScope(SpecImplProc,FScopeClass_Proc));
@@ -17325,7 +17380,7 @@ begin
         begin
         if (SpecializedItem<>nil) and (i=GenEl.NameParts.Count-1) then
           begin
-          // the templates have been specialized to parameters
+          // the templates have been specialized to SpecializedItem.Params
           continue;
           end;
         SpecPart.Templates:=TFPList.Create;
