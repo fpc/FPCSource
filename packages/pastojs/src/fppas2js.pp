@@ -1191,7 +1191,8 @@ const
     msArrayOperators,
     msPrefixedAttributes,
     msOmitRTTI,
-    msMultiHelpers];
+    msMultiHelpers,
+    msImplicitFunctionSpec];
 
   bsAllPas2jsBoolSwitchesReadOnly = [
     bsLongStrings
@@ -13399,7 +13400,7 @@ begin
       begin
       P:=TPasElement(El.Declarations[i]);
       {$IFDEF VerbosePas2JS}
-      //writeln('TPasToJSConverter.ConvertDeclarations El[',i,']=',GetObjName(P));
+      writeln('TPasToJSConverter.ConvertDeclarations El[',i,']=',GetObjName(P));
       {$ENDIF}
       if not IsElementUsed(P) then continue;
 

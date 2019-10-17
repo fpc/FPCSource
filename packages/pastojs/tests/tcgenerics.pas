@@ -42,7 +42,9 @@ type
     procedure TestGenProc_Function_ObjFPC;
     procedure TestGenProc_Function_Delphi;
     procedure TestGenProc_Overload;
-    // ToDo: inference Fly(3);
+    procedure TestGenProc_Forward;
+    procedure TestGenProc_Infer_OverloadForward;
+    // ToDo: specialize before impl
   end;
 
 implementation
@@ -713,6 +715,79 @@ begin
     '$mod.DoIt$s1(false, 5);',
     '$mod.DoIt$1s0(6, true);',
     '$mod.DoIt$1s1(7.3, true);',
+    '']));
+end;
+
+procedure TTestGenerics.TestGenProc_Forward;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'procedure Run<S>(a: S; b: boolean); forward;',
+  'procedure Run<S>(a: S; b: boolean);',
+  'begin',
+  '  Run<word>(1,true);',
+  'end;',
+  'begin',
+  '  Run(1.3,true);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGenProc_infer_OverloadForward',
+    LinesToStr([ // statements
+    'this.Run$s0 = function (a, b) {',
+    '  $mod.Run$s0(1, true);',
+    '};',
+    'this.Run$s1 = function (a, b) {',
+    '  $mod.Run$s0(1, true);',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.Run$s1(1.3, true);',
+    '']));
+end;
+
+procedure TTestGenerics.TestGenProc_Infer_OverloadForward;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'procedure {#A}Run<S>(a: S; b: boolean); forward; overload;',
+  'procedure {#B}Run<T>(a: T; w: word); forward; overload;',
+  'procedure {#C}Run<U>(a: U; b: U); forward; overload;',
+  'procedure {#A2}Run<S>(a: S; b: boolean); overload;',
+  'begin',
+  '  {@A}Run(1,true);', // non generic take precedence
+  '  {@B}Run(2,word(3));', // non generic take precedence
+  '  {@C}Run(''foo'',''bar'');',
+  'end;',
+  'procedure {#B2}Run<T>(a: T; w: word); overload;',
+  'begin',
+  'end;',
+  'procedure {#C2}Run<U>(a: U; b: U); overload;',
+  'begin',
+  'end;',
+  'begin',
+  '  {@A}Run(1,true);', // non generic take precedence
+  '  {@B}Run(2,word(3));', // non generic take precedence
+  '  {@C}Run(''foo'',''bar'');',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGenProc_infer_OverloadForward',
+    LinesToStr([ // statements
+    'this.Run$s0 = function (a, b) {',
+    '  $mod.Run$s0(1, true);',
+    '  $mod.Run$1s0(2, 3);',
+    '  $mod.Run$2s0("foo", "bar");',
+    '};',
+    'this.Run$1s0 = function (a, w) {',
+    '};',
+    'this.Run$2s0 = function (a, b) {',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.Run$s0(1, true);',
+    '$mod.Run$1s0(2, 3);',
+    '$mod.Run$2s0("foo", "bar");',
     '']));
 end;
 
