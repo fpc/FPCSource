@@ -44,6 +44,9 @@ type
     procedure TestGenProc_Overload;
     procedure TestGenProc_Forward;
     procedure TestGenProc_Infer_OverloadForward;
+
+    // generic methods
+    procedure TestGenMethod_ObjFPC;
   end;
 
 implementation
@@ -787,6 +790,63 @@ begin
     '$mod.Run$s0(1, true);',
     '$mod.Run$1s0(2, 3);',
     '$mod.Run$2s0("foo", "bar");',
+    '']));
+end;
+
+procedure TTestGenerics.TestGenMethod_ObjFPC;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$ModeSwitch implicitfunctionspecialization}',
+  'type',
+  '  TObject = class',
+  '    generic procedure {#A}Run<S>(a: S; b: boolean); overload;',
+  '    generic procedure {#B}Run<T>(a: T; w: word); overload;',
+  '    generic procedure {#C}Run<U>(a: U; b: U); overload;',
+  '  end; ',
+  'generic procedure {#A2}TObject.Run<S>(a: S; b: boolean); overload;',
+  'begin',
+  '  {@A}Run(1,true);', // non generic take precedence
+  '  {@B}Run(2,word(3));', // non generic take precedence
+  '  {@C}Run(''foo'',''bar'');',
+  'end;',
+  'generic procedure {#B2}TObject.Run<T>(a: T; w: word); overload;',
+  'begin',
+  'end;',
+  'generic procedure {#C2}TObject.Run<U>(a: U; b: U); overload;',
+  'begin',
+  'end;',
+  'var o: TObject;',
+  'begin',
+  '  o.{@A}Run(1,true);', // non generic take precedence
+  '  o.{@B}Run(2,word(3));', // non generic take precedence
+  '  o.{@C}Run(''foo'',''bar'');',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGenMethod_ObjFPC',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Run$s0 = function (a, b) {',
+    '    this.Run$s0(1, true);',
+    '    this.Run$1s0(2, 3);',
+    '    this.Run$2s0("foo", "bar");',
+    '  };',
+    '  this.Run$1s0 = function (a, w) {',
+    '  };',
+    '  this.Run$2s0 = function (a, b) {',
+    '  };',
+    '});',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.o.Run$s0(1, true);',
+    '$mod.o.Run$1s0(2, 3);',
+    '$mod.o.Run$2s0("foo", "bar");',
     '']));
 end;
 
