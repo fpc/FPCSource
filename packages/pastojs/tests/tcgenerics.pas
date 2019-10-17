@@ -44,7 +44,6 @@ type
     procedure TestGenProc_Overload;
     procedure TestGenProc_Forward;
     procedure TestGenProc_Infer_OverloadForward;
-    // ToDo: specialize before impl
   end;
 
 implementation

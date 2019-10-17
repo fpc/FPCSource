@@ -588,6 +588,7 @@ type
     Procedure TestExternalClass_FuncClassOf_New;
     Procedure TestExternalClass_New_PasClassFail;
     Procedure TestExternalClass_New_PasClassBracketsFail;
+    Procedure TestExternalClass_NewExtName;
     Procedure TestExternalClass_Constructor;
     Procedure TestExternalClass_ConstructorBrackets;
     Procedure TestExternalClass_LocalConstSameName;
@@ -16534,6 +16535,51 @@ begin
   '']);
   SetExpectedPasResolverError(sJSNewNotSupported,nJSNewNotSupported);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_NewExtName;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''ExtA''',
+  '    constructor New; external name ''Other'';',
+  '    constructor New(i: longint; j: longint = 2); external name ''A.B'';',
+  '  end;',
+  'var',
+  '  A: texta;',
+  'begin',
+  '  a:=texta.new;',
+  '  a:=texta(texta.new);',
+  '  a:=texta.new();',
+  '  a:=texta.new(1);',
+  '  with texta do begin',
+  '    a:=new;',
+  '    a:=new();',
+  '    a:=new(2);',
+  '  end;',
+  '  a:=test1.texta.new;',
+  '  a:=test1.texta.new();',
+  '  a:=test1.texta.new(3);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_NewExtName',
+    LinesToStr([ // statements
+    'this.A = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.A = new Other();',
+    '$mod.A = new Other();',
+    '$mod.A = new Other();',
+    '$mod.A = new A.B(1,2);',
+    '$mod.A = new Other();',
+    '$mod.A = new Other();',
+    '$mod.A = new A.B(2,2);',
+    '$mod.A = new Other();',
+    '$mod.A = new Other();',
+    '$mod.A = new A.B(3,2);',
+    '']));
 end;
 
 procedure TTestModule.TestExternalClass_Constructor;

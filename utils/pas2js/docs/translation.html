@@ -2695,8 +2695,9 @@ function(){
     Destructors are not allowed.<br>
     Constructors are supported in three ways:
     <ul>
-      <li>With name <i>New</i> it is translated to <i>new ExtClass(params)</i>.</li>
-      <li>With external name <i>'{}'</i> it is translated to <i>{}</i>.</li>
+      <li><i>constructor New</i> is translated to <i>new ExtClass(params)</i>.</li>
+      <li><i>constructor New; external name ''GlobalFunc''</i> is translated to <i>new GlobalFunc(params)</i>.</li>
+      <li><i>constructor SomeName; external name <i>'{}'</i> is translated to <i>{}</i>.</li>
       <li>Otherwise it is translated to <i>new ExtClass.FuncName(params)</i>.</li>
     </ul>
 

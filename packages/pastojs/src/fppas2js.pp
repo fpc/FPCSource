@@ -4052,13 +4052,7 @@ begin
               // constructor of external class can't be overriden -> forbid virtual
               RaiseMsg(20170323100447,nInvalidXModifierY,sInvalidXModifierY,
                 [Proc.ElementTypeName,'virtual,external'],Proc);
-            ExtName:=ComputeConstString(Proc.LibrarySymbolName,true,true);
-            if CompareText(Proc.Name,'new')=0 then
-              begin
-              if ExtName<>Proc.Name then
-                RaiseMsg(20170323083511,nVirtualMethodNameMustMatchExternal,
-                  sVirtualMethodNameMustMatchExternal,[],Proc.LibrarySymbolName);
-              end;
+            ComputeConstString(Proc.LibrarySymbolName,true,true);
             end
           else
             RaiseMsg(20170322163210,nPasElementNotSupported,sPasElementNotSupported,
@@ -10378,6 +10372,7 @@ begin
   Result:=nil;
   aResolver:=AContext.Resolver;
   NewExpr:=nil;
+  ExtName:='';
   ExtNameEl:=nil;
   try
     Proc:=Ref.Declaration as TPasConstructor;
@@ -10385,7 +10380,13 @@ begin
 
     if CompareText(Proc.Name,'new')=0 then
       begin
-      if Left<>nil then
+      if Proc.LibrarySymbolName<>nil then
+        begin
+        ExtName:=ComputeConstString(Proc.LibrarySymbolName,AContext,true);
+        if not SameText(ExtName,'new') then
+          ExtNameEl:=CreatePrimitiveDotExpr(ExtName,PosEl);
+        end;
+      if (ExtNameEl=nil) and (Left<>nil) then
         begin
         if aResolver<>nil then
           begin
