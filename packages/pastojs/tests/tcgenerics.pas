@@ -52,6 +52,7 @@ type
     procedure TestGenProc_Overload;
     procedure TestGenProc_Forward;
     procedure TestGenProc_Infer_OverloadForward;
+    procedure TestGenProc_TypeInfo;
     // ToDo: FuncName:=
 
     // generic methods
@@ -1021,6 +1022,49 @@ begin
     '$mod.Run$s0(1, true);',
     '$mod.Run$1s0(2, 3);',
     '$mod.Run$2s0("foo", "bar");',
+    '']));
+end;
+
+procedure TTestGenerics.TestGenProc_TypeInfo;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  '{$modeswitch implicitfunctionspecialization}',
+  'type',
+  '  TTypeInfo = class external name ''rtl.tTypeInfo''',
+  '  end;',
+  '  TTypeInfoInteger = class external name ''rtl.tTypeInfoInteger''(TTypeInfo)',
+  '  end;',
+  'generic procedure Run<S>(a: S);',
+  'var',
+  '  p: TTypeInfo;',
+  'begin',
+  '  p:=TypeInfo(S);',
+  '  p:=TypeInfo(a);',
+  'end;',
+  'begin',
+  '  Run(word(3));',
+  '  Run(''foo'');',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGenProc_TypeInfo',
+    LinesToStr([ // statements
+    'this.Run$s0 = function (a) {',
+    '  var p = null;',
+    '  p = rtl.word;',
+    '  p = rtl.word;',
+    '};',
+    'this.Run$s1 = function (a) {',
+    '  var p = null;',
+    '  p = rtl.string;',
+    '  p = rtl.string;',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.Run$s0(3);',
+    '$mod.Run$s1("foo");',
     '']));
 end;
 

@@ -4853,6 +4853,9 @@ var
   TypeEl: TPasType;
   FoundClass: TPasClassType;
   ScopeDepth: Integer;
+  TemplType: TPasGenericTemplateType;
+  ConEl: TPasElement;
+  ConToken: TToken;
 begin
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
@@ -4932,7 +4935,32 @@ begin
         TIName:=Pas2JSBuiltInNames[pbitnTIDynArray];
       end
     else if C=TPasPointerType then
-      TIName:=Pas2JSBuiltInNames[pbitnTIPointer];
+      TIName:=Pas2JSBuiltInNames[pbitnTIPointer]
+    else if C=TPasGenericTemplateType then
+      begin
+      TemplType:=TPasGenericTemplateType(TypeEl);
+      if length(TemplType.Constraints)>0 then
+        begin
+        ConEl:=TemplType.Constraints[0];
+        ConToken:=GetGenericConstraintKeyword(ConEl);
+        case ConToken of
+        tkrecord: TIName:=Pas2JSBuiltInNames[pbitnTIRecord];
+        tkclass,tkConstructor: TIName:=Pas2JSBuiltInNames[pbitnTIClass];
+        else
+          if not (ConEl is TPasType) then
+            RaiseNotYetImplemented(20191018180031,ConEl,GetObjPath(Param));
+          if ConEl is TPasClassType then
+            TIName:=Pas2JSBuiltInNames[pbitnTIClass]
+          else
+            RaiseNotYetImplemented(20191018180131,ConEl,GetObjPath(Param));
+        end;
+        end;
+      if TIName='' then
+        begin
+        // generic template without constraints
+        TIName:=Pas2JSBuiltInNames[pbitnTI];
+        end;
+      end;
     end
   else if ParamResolved.BaseType=btSet then
     begin
@@ -4961,7 +4989,7 @@ begin
     else if ParamResolved.BaseType in [btChar,btBoolean] then
       TIName:=Pas2JSBuiltInNames[pbitnTI]
     end;
-  //writeln('TPas2JSResolver.BI_TypeInfo_OnGetCallResult TIName=',TIName);
+  //writeln('TPas2JSResolver.BI_TypeInfo_OnGetCallResult TIName=',TIName,' ',GetObjName(TypeEl));
   if TIName='' then
     begin
     {$IFDEF VerbosePas2JS}

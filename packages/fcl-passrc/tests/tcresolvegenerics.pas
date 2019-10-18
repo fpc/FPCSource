@@ -144,6 +144,7 @@ type
     procedure TestGenProc_TypeParamCntOverloadNoParams;
     procedure TestGenProc_TypeParamWithDefaultParamDelphiFail;
     // ToDo: NestedResultAssign
+    procedure TestGenProc_OverloadsOtherUnit;
 
     // generic function infer types
     procedure TestGenProc_Infer_NeedExplicitFail;
@@ -2145,6 +2146,30 @@ begin
   'begin',
   '']);
   CheckResolverException(sParamOfThisTypeCannotHaveDefVal,nParamOfThisTypeCannotHaveDefVal);
+end;
+
+procedure TTestResolveGenerics.TestGenProc_OverloadsOtherUnit;
+begin
+  AddModuleWithIntfImplSrc('ns1.unit2.pp',
+    LinesToStr([
+    'var i2: longint;']),
+    LinesToStr([
+    '']));
+
+  AddModuleWithIntfImplSrc('ns1.unit1.pp',
+    LinesToStr([
+    'uses unit2;',
+    'var j1: longint;']),
+    LinesToStr([
+    '']));
+
+  StartProgram(true);
+  Add([
+  'uses unit1;',
+  'begin',
+  '  if j1=0 then ;',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolveGenerics.TestGenProc_Infer_NeedExplicitFail;
