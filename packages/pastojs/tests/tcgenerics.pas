@@ -16,6 +16,9 @@ type
   Published
     // generic record
     Procedure TestGen_RecordEmpty;
+    Procedure TestGen_Record_ClassProc_ObjFPC;
+    //Procedure TestGen_Record_ClassProc_Delphi;
+    //Procedure TestGen_Record_ReferGenClass_DelphiFail;
 
     // generic class
     Procedure TestGen_ClassEmpty;
@@ -85,6 +88,48 @@ begin
     LinesToStr([ // $mod.$main
     'if ($mod.a.$eq($mod.b)) ;'
     ]));
+end;
+
+procedure TTestGenerics.TestGen_Record_ClassProc_ObjFPC;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  generic TPoint<T> = record',
+  '    class var x: T;',
+  '    class procedure Fly; static;',
+  '  end;',
+  'class procedure Tpoint.Fly;',
+  'begin',
+  //'  x:=x+3;',
+  '  tpoint.x:=tpoint.x+4;',
+  //'  Fly;',
+  '  tpoint.Fly;',
+  'end;',
+  'var p: specialize TPoint<word>;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_Record_ClassProc',
+    LinesToStr([ // statements
+    'rtl.recNewT($mod, "TPoint$G1", function () {',
+    '  this.x = 0;',
+    '  this.$eq = function (b) {',
+    '    return true;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    return this;',
+    '  };',
+    '  this.Fly = function () {',
+    '    $mod.TPoint$G1.x = $mod.TPoint$G1.x + 4;',
+    '    $mod.TPoint$G1.Fly();',
+    '  };',
+    '}, true);',
+    'this.p = $mod.TPoint$G1.$new();',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
 end;
 
 procedure TTestGenerics.TestGen_ClassEmpty;

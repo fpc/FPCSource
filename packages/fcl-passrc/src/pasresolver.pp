@@ -17944,7 +17944,7 @@ end;
 procedure TPasResolver.SpecializeRecordType(GenEl, SpecEl: TPasRecordType;
   SpecializedItem: TPRSpecializedTypeItem);
 var
-  GenScope: TPasGenericScope;
+  SpecScope: TPasGenericScope;
 begin
   SpecEl.PackMode:=GenEl.PackMode;
   if SpecializedItem<>nil then
@@ -17952,18 +17952,23 @@ begin
     // specialized generic record
     if SpecEl.CustomData<>nil then
       RaiseNotYetImplemented(20190921204740,SpecEl);
-    GenScope:=TPasGenericScope(PushScope(SpecEl,TPasRecordScope));
-    GenScope.VisibilityContext:=SpecEl;
-    GenScope.SpecializedFromItem:=SpecializedItem;
+    SpecScope:=TPasGenericScope(PushScope(SpecEl,TPasRecordScope));
+    SpecScope.VisibilityContext:=SpecEl;
+    SpecScope.SpecializedFromItem:=SpecializedItem;
     AddSpecializedTemplateIdentifiers(GenEl.GenericTemplateTypes,
-                                      SpecializedItem,GenScope,true);
+                                      SpecializedItem,SpecScope,true);
+    if not (msDelphi in CurrentParser.CurrentModeswitches) then
+      begin
+      // ObjFPC: add canonical type alias
+      SpecScope.AddIdentifier(GenEl.Name,SpecEl,pikSimple);
+      end;
     end
   else if GenEl.GenericTemplateTypes.Count>0 then
     begin
     // generic recordtype inside a generic type
     if SpecEl.CustomData=nil then
       RaiseNotYetImplemented(20190815201634,SpecEl);
-    GenScope:=TPasGenericScope(SpecEl.CustomData);
+    SpecScope:=TPasGenericScope(SpecEl.CustomData);
     RaiseNotYetImplemented(20190815194327,GenEl);
     end;
   // specialize sub elements
