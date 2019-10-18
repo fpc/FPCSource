@@ -6110,7 +6110,7 @@ begin
   Add('begin');
   Add('end;');
   Add('begin');
-  CheckResolverException('not yet implemented: a:TPasArgument [20191018235644]',nNotYetImplemented);
+  CheckResolverException('not yet implemented: constref',nNotYetImplemented);
 end;
 
 procedure TTestResolver.TestFunctionResult;
@@ -7283,7 +7283,7 @@ begin
   Add('procedure {#ProcA}ProcA(var {#A}A); forward;');
   Add('procedure {#ProcB}ProcB(const {#B}B); forward;');
   Add('procedure {#ProcC}ProcC(out {#C}C); forward;');
-  Add('procedure {#ProcD}ProcD(constref {#D}D); forward;');
+  //Add('procedure {#ProcD}ProcD(constref {#D}D); forward;');
   Add('procedure ProcA(var A);');
   Add('begin');
   Add('end;');
@@ -7293,15 +7293,15 @@ begin
   Add('procedure ProcC(out C);');
   Add('begin');
   Add('end;');
-  Add('procedure ProcD(constref D);');
-  Add('begin');
-  Add('end;');
+  //Add('procedure ProcD(constref D);');
+  //Add('begin');
+  //Add('end;');
   Add('var i: longint;');
   Add('begin');
   Add('  {@ProcA}ProcA(i);');
   Add('  {@ProcB}ProcB(i);');
   Add('  {@ProcC}ProcC(i);');
-  Add('  {@ProcD}ProcD(i);');
+  //Add('  {@ProcD}ProcD(i);');
   ParseProgram;
 end;
 

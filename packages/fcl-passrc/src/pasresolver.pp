@@ -8334,6 +8334,8 @@ procedure TPasResolver.FinishArgument(El: TPasArgument);
 var
   IsDelphi: Boolean;
 begin
+  if not (El.Access in [argDefault,argConst,argVar,argOut]) then
+    RaiseMsg(20191018235644,nNotYetImplemented,sNotYetImplemented,[AccessDescriptions[El.Access]],El);
   if El.ArgType<>nil then
     CheckUseAsType(El.ArgType,20190123100049,El);
   if El.ValueExpr<>nil then
@@ -12468,8 +12470,6 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.AddArgument ',GetObjName(El));
   {$ENDIF}
-  if El.Access in [argDefault,argConst,argVar,argOut] then
-    RaiseNotYetImplemented(20191018235644,El,AccessNames[El.Access]);
   CurScope:=TopScope;
   if (CurScope=nil) then
     RaiseInvalidScopeForElement(20160922163529,El);
