@@ -53,9 +53,9 @@ uses
   {$ifdef pas2js}
   js,
   {$else}
-  AVL_Tree, contnrs,
+  AVL_Tree,
   {$endif}
-  Classes, SysUtils, Types,
+  Classes, SysUtils, Types, contnrs,
   PasTree, PScanner, PasResolveEval, PasResolver;
 
 const
