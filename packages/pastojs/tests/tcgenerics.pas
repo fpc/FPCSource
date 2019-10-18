@@ -52,6 +52,7 @@ type
     procedure TestGenProc_Overload;
     procedure TestGenProc_Forward;
     procedure TestGenProc_Infer_OverloadForward;
+    // ToDo: FuncName:=
 
     // generic methods
     procedure TestGenMethod_ObjFPC;
@@ -102,13 +103,16 @@ begin
   '  end;',
   'class procedure Tpoint.Fly;',
   'begin',
-  //'  x:=x+3;',
+  '  x:=x+3;',
   '  tpoint.x:=tpoint.x+4;',
-  //'  Fly;',
+  '  Fly;',
   '  tpoint.Fly;',
   'end;',
   'var p: specialize TPoint<word>;',
   'begin',
+  '  p.x:=p.x+10;',
+  '  p.Fly;',
+  '  p.Fly();',
   '']);
   ConvertProgram;
   CheckSource('TestGen_Record_ClassProc',
@@ -122,13 +126,18 @@ begin
     '    return this;',
     '  };',
     '  this.Fly = function () {',
+    '    $mod.TPoint$G1.x = $mod.TPoint$G1.x + 3;',
     '    $mod.TPoint$G1.x = $mod.TPoint$G1.x + 4;',
+    '    $mod.TPoint$G1.Fly();',
     '    $mod.TPoint$G1.Fly();',
     '  };',
     '}, true);',
     'this.p = $mod.TPoint$G1.$new();',
     '']),
     LinesToStr([ // $mod.$main
+    '$mod.TPoint$G1.x = $mod.p.x + 10;',
+    '$mod.p.Fly();',
+    '$mod.p.Fly();',
     '']));
 end;
 
@@ -435,11 +444,11 @@ begin
   '  end;',
   'class procedure Tpoint.Fly;',
   'begin',
-  //'  x:=x+3;',
+  '  x:=x+3;',
   '  tpoint.x:=tpoint.x+4;',
-  //'  Fly;',
+  '  Fly;',
   '  tpoint.Fly;',
-  //'  Run;',
+  '  Run;',
   '  tpoint.Run;',
   'end;',
   'class procedure TPoint.Run;',
@@ -466,9 +475,11 @@ begin
     'rtl.createClass($mod, "TPoint$G1", $mod.TObject, function () {',
     '  this.x = 0;',
     '  this.Fly = function () {',
-    //'    $mod.TPoint$G1.x = $mod.TPoint$G1.x + 3;',
+    '    $mod.TPoint$G1.x = $mod.TPoint$G1.x + 3;',
     '    $mod.TPoint$G1.x = $mod.TPoint$G1.x + 4;',
     '    $mod.TPoint$G1.Fly();',
+    '    $mod.TPoint$G1.Fly();',
+    '    $mod.TPoint$G1.Run();',
     '    $mod.TPoint$G1.Run();',
     '  };',
     '  this.Run = function () {',
