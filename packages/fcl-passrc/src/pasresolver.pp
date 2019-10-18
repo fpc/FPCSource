@@ -17146,25 +17146,14 @@ end;
 function TPasResolver.SpecializeTypeRef(GenEl, SpecEl: TPasElement;
   GenTypeRef: TPasType): TPasType;
 var
-  GenParent, SpecParent, Ref: TPasElement;
+  Ref: TPasElement;
 begin
   if GenTypeRef.Name='' then
     RaiseNotYetImplemented(20190813213555,GenEl,GetObjPath(GenTypeRef));
-  if GenEl.HasParent(GenTypeRef) then
-    begin
-    GenParent:=GenEl.Parent;
-    SpecParent:=SpecEl.Parent;
-    while GenParent<>GenTypeRef do
-      begin
-      GenParent:=GenParent.Parent;
-      SpecParent:=SpecParent.Parent;
-      end;
-    Ref:=SpecParent;
-    end
-  else
-    Ref:=FindElement(GenTypeRef.Name);
+  Ref:=FindElement(GenTypeRef.Name);
   if not (Ref is TPasType) then
     RaiseNotYetImplemented(20190812021538,GenEl,GetObjName(Ref));
+  if SpecEl=nil then ;
   Result:=TPasType(Ref);
 end;
 
@@ -17990,7 +17979,7 @@ var
   HeaderScope: TPasGenericParamsScope;
   TemplType: TPasGenericTemplateType;
   GenericTemplateTypes: TFPList;
-  GenScope: TPasClassScope;
+  SpecClassScope: TPasClassScope;
 begin
   GenericTemplateTypes:=GenEl.GenericTemplateTypes;
   SpecEl.ObjKind:=GenEl.ObjKind;
@@ -18011,7 +18000,7 @@ begin
   // ancestor+interfaces
   if SpecializedItem<>nil then
     begin
-    // ancestor can be specialized types. For example: = class(TAncestor<T>)
+    // ancestor can be a specialized type. For example: = class(TAncestor<T>)
     // -> create a scope with the specialized parameters
     HeaderScope:=TPasGenericParamsScope.Create;
     SpecializedItem.HeaderScope:=HeaderScope;
@@ -18038,16 +18027,21 @@ begin
     end;
 
   FinishAncestors(SpecEl);
+  // Note: class scope was created by FinishAncestors
+  SpecClassScope:=NoNil(SpecEl.CustomData) as TPasClassScope;
 
-  // Note: class scope is created by FinishAncestors
-  GenScope:=NoNil(SpecEl.CustomData) as TPasClassScope;
-  if GenScope.SpecializedFromItem<>nil then
+  if SpecClassScope.SpecializedFromItem<>nil then
     RaiseNotYetImplemented(20190816215413,SpecEl);
   if SpecializedItem<>nil then
     begin
-    GenScope.SpecializedFromItem:=SpecializedItem;
+    SpecClassScope.SpecializedFromItem:=SpecializedItem;
     AddSpecializedTemplateIdentifiers(GenericTemplateTypes,
-                                      SpecializedItem,GenScope,false);
+                                      SpecializedItem,SpecClassScope,false);
+    if not (msDelphi in CurrentParser.CurrentModeswitches) then
+      begin
+      // ObjFPC: add canonical type alias
+      SpecClassScope.AddIdentifier(GenEl.Name,SpecEl,pikSimple);
+      end;
     end;
   // specialize sub elements
   SpecializeMembers(GenEl,SpecEl);

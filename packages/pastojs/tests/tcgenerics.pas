@@ -25,6 +25,10 @@ type
     Procedure TestGen_Class_TypeInfo;
     Procedure TestGen_Class_TypeOverload; // ToDo TBird, TBird<T>, TBird<S,T>
     Procedure TestGen_Class_ClassProperty;
+    Procedure TestGen_Class_ClassProc_ObjFPC;
+    //Procedure TestGen_Class_ClassProc_Delphi;
+    //Procedure TestGen_Class_ReferGenClass_DelphiFail;
+    Procedure TestGen_Class_ClassConstructor;
     // ToDo: rename local const T
 
     // generic external class
@@ -370,6 +374,141 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '$mod.TBird$G1.fSize = 3 + $mod.TBird$G1.fSize;',
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_Class_ClassProc_ObjFPC;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  generic TPoint<T> = class',
+  '    class var x: T;',
+  '    class procedure Fly; static;',
+  '    class procedure Run;',
+  '  end;',
+  'class procedure Tpoint.Fly;',
+  'begin',
+  //'  x:=x+3;',
+  '  tpoint.x:=tpoint.x+4;',
+  //'  Fly;',
+  '  tpoint.Fly;',
+  //'  Run;',
+  '  tpoint.Run;',
+  'end;',
+  'class procedure TPoint.Run;',
+  'begin',
+  '  x:=x+5;',
+  '  tpoint.x:=tpoint.x+6;',
+  '  Fly;',
+  '  tpoint.Fly;',
+  '  Run;',
+  '  tpoint.Run;',
+  'end;',
+  'var p: specialize TPoint<word>;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_Class_ClassProc',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TPoint$G1", $mod.TObject, function () {',
+    '  this.x = 0;',
+    '  this.Fly = function () {',
+    //'    $mod.TPoint$G1.x = $mod.TPoint$G1.x + 3;',
+    '    $mod.TPoint$G1.x = $mod.TPoint$G1.x + 4;',
+    '    $mod.TPoint$G1.Fly();',
+    '    $mod.TPoint$G1.Run();',
+    '  };',
+    '  this.Run = function () {',
+    '    $mod.TPoint$G1.x = this.x + 5;',
+    '    $mod.TPoint$G1.x = $mod.TPoint$G1.x + 6;',
+    '    this.Fly();',
+    '    $mod.TPoint$G1.Fly();',
+    '    this.Run();',
+    '    $mod.TPoint$G1.Run();',
+    '  };',
+    '});',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_Class_ClassConstructor;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  generic TPoint<T> = class',
+  '    class var x: T;',
+  '    class procedure Fly; static;',
+  '    class constructor Init;',
+  '  end;',
+  'var count: word;',
+  'class procedure Tpoint.Fly;',
+  'begin',
+  'end;',
+  'class constructor tpoint.init;',
+  'begin',
+  '  count:=count+1;',
+  '  x:=3;',
+  '  tpoint.x:=4;',
+  '  fly;',
+  '  tpoint.fly;',
+  'end;',
+  'var',
+  '  r: specialize TPoint<word>;',
+  '  s: specialize TPoint<smallint>;',
+  'begin',
+  '  r.x:=10;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_Class_ClassConstructor',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TPoint$G1", $mod.TObject, function () {',
+    '  this.x = 0;',
+    '  this.Fly = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TPoint$G2", $mod.TObject, function () {',
+    '  this.x = 0;',
+    '  this.Fly = function () {',
+    '  };',
+    '});',
+    'this.count = 0;',
+    'this.r = null;',
+    'this.s = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '(function () {',
+    '  $mod.count = $mod.count + 1;',
+    '  $mod.TPoint$G1.x = 3;',
+    '  $mod.TPoint$G1.x = 4;',
+    '  $mod.TPoint$G1.Fly();',
+    '  $mod.TPoint$G1.Fly();',
+    '})();',
+    '(function () {',
+    '  $mod.count = $mod.count + 1;',
+    '  $mod.TPoint$G2.x = 3;',
+    '  $mod.TPoint$G2.x = 4;',
+    '  $mod.TPoint$G2.Fly();',
+    '  $mod.TPoint$G2.Fly();',
+    '})();',
+    '$mod.TPoint$G1.x = 10;',
     '']));
 end;
 
