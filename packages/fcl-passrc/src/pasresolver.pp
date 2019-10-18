@@ -12468,6 +12468,8 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.AddArgument ',GetObjName(El));
   {$ENDIF}
+  if El.Access in [argDefault,argConst,argVar,argOut] then
+    RaiseNotYetImplemented(20191018235644,El,AccessNames[El.Access]);
   CurScope:=TopScope;
   if (CurScope=nil) then
     RaiseInvalidScopeForElement(20160922163529,El);

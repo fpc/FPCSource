@@ -382,6 +382,7 @@ type
     // procs
     Procedure TestProcParam;
     Procedure TestProcParamAccess;
+    Procedure TestProcParamConstRefFail;
     Procedure TestFunctionResult;
     Procedure TestProcedureResultFail;
     Procedure TestProc_ArgVarPrecisionLossFail;
@@ -6100,6 +6101,16 @@ begin
   Add('  DoIt(i,i,i);');
   Add('  DoIt(1,1,i);');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestProcParamConstRefFail;
+begin
+  StartProgram(false);
+  Add('procedure Run(constref a: word);');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  CheckResolverException('not yet implemented: a:TPasArgument [20191018235644]',nNotYetImplemented);
 end;
 
 procedure TTestResolver.TestFunctionResult;
