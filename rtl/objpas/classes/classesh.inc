@@ -2006,7 +2006,7 @@ type
     procedure Delete(index : Integer);
     procedure Exchange(index1,index2 : Integer);
     function First : IUnknown;
-    function IndexOf(item : IUnknown) : Integer;
+    function IndexOf(const item : IUnknown) : Integer;
     function Add(item : IUnknown) : Integer;
     procedure Insert(i : Integer;item : IUnknown);
     function Last : IUnknown;
@@ -2050,7 +2050,7 @@ type
     procedure Exchange(index1,index2 : Integer);
     function First : IUnknown;
     function GetEnumerator: TInterfaceListEnumerator;
-    function IndexOf(item : IUnknown) : Integer;
+    function IndexOf(const item : IUnknown) : Integer;
     function Add(item : IUnknown) : Integer;
     procedure Insert(i : Integer;item : IUnknown);
     function Last : IUnknown;

@@ -171,7 +171,7 @@
       end;
 
 
-    function TInterfaceList.IndexOf(item : IUnknown) : Integer;
+    function TInterfaceList.IndexOf(const item : IUnknown) : Integer;
       begin
         FList.Locklist;
         try
