@@ -2483,6 +2483,24 @@ function TFileResolver.FindIncludeFileName(const AName: string): String;
       end;
   end;
 
+  Function FindInPath(FN : String) : String;
+
+  var
+    I : integer;
+
+  begin
+    Result:='';
+    I:=0;
+    While (Result='') and (I<FIncludePaths.Count) do
+      begin
+      Result:=SearchLowUpCase(FIncludePaths[i]+FN);
+      Inc(I);
+      end;
+    // search in BaseDirectory
+    if (Result='') and (BaseDirectory<>'') then
+      Result:=SearchLowUpCase(BaseDirectory+FN);
+  end;
+
 var
   i: Integer;
   FN : string;
@@ -2493,23 +2511,34 @@ begin
   FN:=SetDirSeparators(AName);
   If FilenameIsAbsolute(FN) then
     begin
-    // Maybe this should also do a SearchLowUpCase ?
-    if FileExists(FN) then
-      Result := FN;
+    Result := SearchLowUpCase(FN);
+    if (Result='') and (ExtractFileExt(FN)='') then
+      begin
+      Result:=SearchLowUpCase(FN+'.inc');
+      if Result='' then
+        begin
+        Result:=SearchLowUpCase(FN+'.pp');
+        if Result='' then
+          Result:=SearchLowUpCase(FN+'.pas');
+        end;
+      end;
     end
   else
     begin
     // file name is relative
     // search in include path
-    I:=0;
-    While (Result='') and (I<FIncludePaths.Count) do
+    Result:=FindInPath(FN);
+    // No extension, try default extensions
+    if (Result='') and (ExtractFileExt(FN)='') then
       begin
-      Result:=SearchLowUpCase(FIncludePaths[i]+AName);
-      Inc(I);
+      Result:=FindInPath(FN+'.inc');
+      if Result='' then
+        begin
+        Result:=FindInPath(FN+'.pp');
+        if Result='' then
+          Result:=FindInPath(FN+'.pas');
+        end;
       end;
-    // search in BaseDirectory
-    if (Result='') and (BaseDirectory<>'') then
-      Result:=SearchLowUpCase(BaseDirectory+AName);
     end;
 end;
 
