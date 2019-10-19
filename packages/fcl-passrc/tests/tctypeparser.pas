@@ -361,6 +361,8 @@ type
     Procedure TestAdvRec_ProcOverrideFail;
     Procedure TestAdvRec_ProcMessageFail;
     Procedure TestAdvRec_DestructorFail;
+    Procedure TestAdvRecordInFunction;
+    Procedure TestAdvRecordInAnonFunction;
   end;
 
   { TTestProcedureTypeParser }
@@ -2605,6 +2607,53 @@ begin
   StartRecord(true);
   AddMember('destructor Free;');
   ParseRecordFail(SParserNoConstructorAllowed,nParserNoConstructorAllowed);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRecordInFunction;
+
+// Src from bug report 36179
+Const
+   Src =
+    '{$mode objfpc}'+sLineBreak+
+    '{$modeswitch advancedrecords}'+sLineBreak+
+    'program afile;'+sLineBreak+
+    '  procedure DoThis;'+sLineBreak+
+    '  type'+sLineBreak+
+    '    TMyRecord = record'+sLineBreak+
+    '      private'+sLineBreak+
+    '        x, y, z: integer;'+sLineBreak+
+    '    end;'+sLineBreak+
+    '  begin'+sLineBreak+
+    '  end;'+sLineBreak+
+    'begin'+sLineBreak+
+    'end.';
+
+begin
+  Source.Text:=Src;
+  ParseModule;
+end;
+
+procedure TTestRecordTypeParser.TestAdvRecordInAnonFunction;
+Const
+   Src =
+    '{$mode objfpc}'+sLineBreak+
+    '{$modeswitch advancedrecords}'+sLineBreak+
+    'program afile;'+sLineBreak+
+    'var a : Procedure;'+sLineBreak+
+    'begin'+sLineBreak+
+    ' a := '+sLineBreak+
+    '  procedure '+sLineBreak+
+    '  type'+sLineBreak+
+    '    TMyRecord = record'+sLineBreak+
+    '      private'+sLineBreak+
+    '        x, y, z: integer;'+sLineBreak+
+    '    end;'+sLineBreak+
+    '  begin'+sLineBreak+
+    '  end;'+sLineBreak+
+    'end.';
+begin
+  Source.Text:=Src;
+  AssertException('Advanced records not allowed in anonymous function',EParserError,@ParseModule);
 end;
 
 { TBaseTestTypeParser }

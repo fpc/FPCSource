@@ -6853,14 +6853,20 @@ function TPasParser.ParseRecordDecl(Parent: TPasElement;
 
 var
   ok: Boolean;
+  allowadvanced : Boolean;
+
 begin
   Result := TPasRecordType(CreateElement(TPasRecordType, TypeName, Parent, NamePos));
   ok:=false;
   try
     Result.PackMode:=PackMode;
     NextToken;
-    ParseRecordMembers(Result,tkEnd,
-      (msAdvancedRecords in Scanner.CurrentModeSwitches) and not (Parent is TProcedureBody));
+    allowAdvanced:=(msAdvancedRecords in Scanner.CurrentModeSwitches);
+    // not allowed in anonymous procedures
+    if (Parent is TProcedureBody) then
+      if TProcedureBody(Parent).Parent is TPasAnonymousProcedure then
+         allowAdvanced:=False;
+    ParseRecordMembers(Result,tkEnd,allowAdvanced);
     Engine.FinishScope(stTypeDef,Result);
     ok:=true;
   finally
