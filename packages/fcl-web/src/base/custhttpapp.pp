@@ -369,7 +369,7 @@ end;
 
 function TFPHTTPServerHandler.GetHostName: String;
 begin
-  Result:=FServer.HostName;
+  Result:=FServer.CertificateData.HostName;
 end;
 
 function TFPHTTPServerHandler.GetIdle: TNotifyEvent;
@@ -404,7 +404,7 @@ end;
 
 procedure TFPHTTPServerHandler.SetHostName(AValue: String);
 begin
-  FServer.HostName:=aValue;
+  FServer.CertificateData.HostName:=aValue;
 end;
 
 procedure TFPHTTPServerHandler.SetIdle(AValue: TNotifyEvent);
