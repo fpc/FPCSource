@@ -395,7 +395,7 @@ interface
        destructor  destroy;override;
        { Sections }
        function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;abstract;
-       function  sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;virtual;
+       class function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;virtual;
        function  sectiontype2align(atype:TAsmSectiontype):longint;virtual;
        function  createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;virtual;
        function  createsection(atype:TAsmSectionType;secflags:TSectionFlags;aprogbits:TSectionProgbits;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;virtual;
@@ -1201,7 +1201,7 @@ implementation
       end;
 
 
-    function TObjData.sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;
+    class function TObjData.sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;
       const
         secoptions : array[TAsmSectiontype] of TObjSectionOptions = ([],
           {user} [oso_Data,oso_load,oso_write],
