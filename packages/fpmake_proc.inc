@@ -182,11 +182,7 @@ begin
 {$include fcl-stl/fpmake.pp}
 end;
 
-procedure add_fcl_web(const ADirectory: string);
-begin
-  with Installer do
 {$include fcl-web/fpmake.pp}
-end;
 
 procedure add_fcl_xml(const ADirectory: string);
 begin
