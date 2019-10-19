@@ -406,8 +406,6 @@ begin
   If (S='') then
     begin
     AddToSessionState(ssNew);
-    If Assigned(OnNewSession) then
-      OnNewSession(Self);
     GetSessionID;
     S:=IncludeTrailingPathDelimiter(SessionDir)+SF.SessionFilePrefix+SessionID;
 {$ifdef cgidebug}SendDebug('Expired or new session. Creating new Ini file : '+S);{$endif}
@@ -415,6 +413,8 @@ begin
     FIniFile.WriteDateTime(SSession,KeyStart,Now);
     FIniFile.WriteInteger(SSession,KeyTimeOut,Self.TimeOutMinutes);
     FSessionStarted:=True;
+    If Assigned(OnNewSession) then
+      OnNewSession(Self);
     end;
   FIniFile.WriteDateTime(SSession,KeyLast,Now);
   If not FCached then
