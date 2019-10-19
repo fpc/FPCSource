@@ -69,6 +69,7 @@ type
     Procedure TestNoHandlerError;
     Procedure TestHandlerResult;
     Procedure TestHandlerResultStream;
+    Procedure TestEmptyLine;
   end;
 
 implementation
@@ -341,7 +342,6 @@ end;
 
 procedure TTestParser.TestObjectError;
 begin
-
   DoTestError('{ "name" : value }',[joUTF8]);
 end;
 
@@ -490,15 +490,19 @@ procedure TTestParser.TestNoHandlerError;
 
 Var
   H : TJSONParserHandler;
+  HS : TJSONStringParserHandler;
 
 begin
   H:=GetJSONParserHandler;
+  HS:=GetJSONStringParserHandler;
   try
     AssertSame('SetJSONParserHandler returns previous handler',H,SetJSONParserHandler(Nil));
+    AssertSame('SetJSONStringParserHandler returns previous handler',HS,SetJSONStringParserHandler(Nil));
     AssertException('No handler raises exception',EJSON,@CallNoHandler);
     AssertException('No handler raises exception',EJSON,@CallNoHandlerStream);
   finally
     SetJSONParserHandler(H);
+    SetJSONStringParserHandler(HS);
   end;
 end;
 
@@ -532,6 +536,31 @@ begin
     end;
   finally
     S.Free;
+  end;
+end;
+
+procedure TTestParser.TestEmptyLine;
+// Bug report 36037
+Const MyJSON =
+'  {'+sLineBreak+
+'  "pylib__linux" : "libpython3.7m.so.1.0",'+sLineBreak+
+'  "ui_toolbar_theme": "default_24x24",'+sLineBreak+
+'  "ui_toolbar_show" : true,'+sLineBreak+
+'  "font_name__linux" : "DejaVu Sans Mono",'+sLineBreak+
+'  "font_size__linux" : 10,'+sLineBreak+
+'    "ui_listbox_fuzzy": false,'+sLineBreak+
+'    "ui_max_size_lexer": 5,'+sLineBreak+
+'    "find_separate_form": false,'+sLineBreak+sLineBreak+
+'}';
+  var
+    J : TJSONData;
+begin
+  With TJSONParser.Create(MyJSON,[joUTF8,joIgnoreTrailingComma]) do
+  Try
+    J:=Parse;
+    J.Free;
+  Finally
+    Free;
   end;
 end;
 
