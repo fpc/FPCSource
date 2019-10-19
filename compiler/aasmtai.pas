@@ -1260,6 +1260,7 @@ implementation
         sectype:=asectype;
         secalign:=Aalign;
         secorder:=Asecorder;
+        TObjData.sectiontype2progbitsandflags(sectype,secprogbits,secflags);
         name:=stringdup(Aname);
         sec:=nil;
       end;
