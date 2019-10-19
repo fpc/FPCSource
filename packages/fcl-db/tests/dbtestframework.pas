@@ -7,6 +7,9 @@ program dbtestframework;
 {$APPTYPE CONSOLE}
 
 uses
+{$ifdef unix}
+  cwstring,
+{$endif}
   SysUtils,
   fpcunit,  testreport, testregistry,
   DigestTestReport,
