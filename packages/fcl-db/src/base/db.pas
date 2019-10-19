@@ -1563,7 +1563,7 @@ type
     function  GetRecordCount: Longint; virtual;
     function  GetRecNo: Longint; virtual;
     procedure InitFieldDefs; virtual;
-    procedure InitFieldDefsFromfields;
+    procedure InitFieldDefsFromFields;
     procedure InitRecord(Buffer: TRecordBuffer); virtual;
     procedure InternalCancel; virtual;
     procedure InternalEdit; virtual;
