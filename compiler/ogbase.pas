@@ -397,6 +397,7 @@ interface
        function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;abstract;
        class function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;virtual;
        function  sectiontype2align(atype:TAsmSectiontype):longint;virtual;
+       class procedure sectiontype2progbitsandflags(atype:TAsmSectiontype;out progbits:TSectionProgbits;out flags:TSectionFlags);virtual;
        function  createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;virtual;
        function  createsection(atype:TAsmSectionType;secflags:TSectionFlags;aprogbits:TSectionProgbits;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;virtual;
        function  createsection(const aname:string;aalign:longint;aoptions:TObjSectionOptions;DiscardDuplicate:boolean=true):TObjSection;virtual;
@@ -1305,6 +1306,29 @@ implementation
           else
             result:=sizeof(pint);
         end;
+      end;
+
+
+    class procedure TObjData.sectiontype2progbitsandflags(atype:TAsmSectiontype;out progbits:TSectionProgbits;out flags:TSectionFlags);
+      var
+        options : TObjSectionOptions;
+      begin
+        { this is essentially the inverse of the createsection overload that takes
+          both progbits and flags as parameters }
+        options:=sectiontype2options(atype);
+        flags:=[];
+        if oso_load in options then
+          include(flags,SF_A);
+        if oso_write in options then
+          include(flags,SF_W);
+        if oso_executable in options then
+          include(flags,SF_X);
+        if not (oso_data in options) then
+          progbits:=SPB_NOBITS
+        else if oso_note in options then
+          progbits:=SPB_NOTE
+        else if oso_arm_attributes in options then
+          progbits:=SPB_ARM_ATTRIBUTES;
       end;
 
 
