@@ -1207,8 +1207,8 @@ procedure TTestDBBasics.TestClearFields;
 begin
   with DBConnector.GetNDataset(true,14) do
     begin
-    open;
-    AssertException('Cannot call clearfields when not in edit mode',EDatabaseError,ClearFields);
+    Open;
+    AssertException('Cannot call ClearFields when not in edit mode',EDatabaseError,ClearFields);
     end;
 end;
 
@@ -2837,8 +2837,8 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    CheckEquals(CurrToStr(testCurrencyValues[i]), Fld.AsString, 'AsString');
     CheckEquals(testCurrencyValues[i], Fld.AsCurrency, 'AsCurrency');
+    CheckEquals(CurrToStr(testCurrencyValues[i]), Fld.AsString, 'AsString');
     CheckEquals(testCurrencyValues[i], Fld.AsFloat, 'AsFloat');
     ds.Next;
     end;
