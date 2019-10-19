@@ -1956,7 +1956,7 @@ type
   Private
     FActive        : boolean;
     FDatabase      : TDatabase;
-    FDataSets      : TList;
+    FDataSets      : TThreadList;
     FOpenAfterRead : boolean;
     Function GetDataSetCount : Longint;
     Function GetDataset(Index : longint) : TDBDataset;
@@ -2047,8 +2047,8 @@ type
   private
     FConnected : Boolean;
     FDataBaseName : String;
-    FDataSets : TList;
-    FTransactions : TList;
+    FDataSets : TThreadList;
+    FTransactions : TThreadList;
     FDirectory : String;
     FKeepConnection : Boolean;
     FParams : TStrings;
