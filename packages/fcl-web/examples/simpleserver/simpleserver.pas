@@ -1,25 +1,45 @@
 {$mode objfpc}
 {$h+}
-{ $define USEGNUTLS}
+
+{ $DEFINE USEGNUTLS}
+{$DEFINE USEMICROHTTP}
+
 program simpleserver;
 
+{$IFDEF USEMICROHTTP}
+{$UNDEF USEGNUTLS}
+{$ENDIF}
+
 uses
-  sysutils,Classes,
+
+
+
+{$IFNDEF USEMICROHTTP}
 {$ifdef USEGNUTLS}
   gnutlssockets,
 {$else}
   opensslsockets,
 {$endif}
+  custhttpapp,
+{$ELSE}
+  cthreads,
+  custmicrohttpapp,
+{$ENDIF}
   {$ifdef unix}
   baseunix,
   {$endif}
-  inifiles, sslbase,httpdefs, custhttpapp, fpmimetypes, fpwebfile, fpwebproxy;
+  sysutils,Classes, inifiles, sslbase, httproute, httpdefs, fpmimetypes, fpwebfile, fpwebproxy, webutil;
 
 Type
 
   { THTTPApplication }
+{$IFDEF USEMICROHTTP}
+  TParentApp = TCustomMicroHTTPApplication;
+{$ELSE}
+  TParentApp = TCustomHTTPApplication;
+{$ENDIF}
 
-  THTTPApplication = Class(TCustomHTTPApplication)
+  THTTPApplication = Class(TParentApp)
   private
     FBaseDir: string;
     FIndexPageName: String;
@@ -27,8 +47,12 @@ Type
     FNoIndexPage: Boolean;
     FQuiet: Boolean;
     FBackground : Boolean;
+    FPassword : string;
+    FEcho : Boolean;
     procedure AddProxy(const aProxyDef: String);
+    procedure DoEcho(ARequest: TRequest; AResponse: TResponse);
     procedure DoProxyLog(Sender: TObject; const aMethod, aLocation, aFromURL, aToURL: String);
+    procedure Doquit(ARequest: TRequest; AResponse: TResponse);
     procedure LoadMimeTypes;
     procedure ProcessOptions;
     procedure ReadConfigFile(const ConfigFile: string);
@@ -48,6 +72,52 @@ Var
   Application : THTTPApplication;
 
 { THTTPApplication }
+
+procedure THTTPApplication.DoEcho(ARequest: TRequest; AResponse: TResponse);
+
+Var
+  L : TStrings;
+
+begin
+  L:=TStringList.Create;
+  try
+    L.AddStrings(['<!doctype html>',
+      '<html>',
+      '<head>',
+      '<title>Echo request</title>',
+      '</head>',
+      '<body>'
+    ]);
+    DumpRequest(aRequest,L);
+    L.AddStrings(['</body>','</html>']);
+    AResponse.Content:=L.Text;
+    AResponse.SendResponse;
+  finally
+    L.Free;
+  end;
+end;
+procedure THTTPApplication.Doquit(ARequest: TRequest; AResponse: TResponse);
+
+Var
+  PWD : String;
+
+begin
+  PWD:=ARequest.QueryFields.Values['password'];
+  if PWD='' then
+    ARequest.ContentFields.Values['password'];
+  if PWD=FPassword then
+    begin
+    AResponse.Content:='OK';
+    AResponse.SendContent;
+    Terminate;
+    end
+  else
+    begin
+    AResponse.Code:=403;
+    AResponse.CodeText:='Forbidden';
+    AResponse.SendContent;
+    end;
+end;
 
 procedure THTTPApplication.DoLog(EventType: TEventType; const Msg: String);
 begin
@@ -93,6 +163,8 @@ begin
   Writeln('-p --port=NNNN      TCP/IP port to listen on (default is 3000)');
   Writeln('-m --mimetypes=file path of mime.types. Loaded in addition to OS known types');
   Writeln('-q --quiet          Do not write diagnostic messages');
+  Writeln('-Q --quit=PWD       register /quit url. Send request with password variable equal to PWD to stop');
+  Writeln('-e --echo       register /quit url. Send request with password variable equal to PWD to stop');
   Writeln('-s --ssl            Use SSL');
   Writeln('-H --hostname=NAME  set hostname for self-signed SSL certificate');
   Writeln('-x --proxy=proxydef Add proxy definition. Definition is of form:');
@@ -132,7 +204,7 @@ begin
     EHTTP.CreateFmt('Invalid proxy definition: %s',[aProxyDef]);
   N:=Copy(aProxyDef,1,P-1);
   URL:=Copy(aProxyDef,P+1,Length(aProxyDef));
-  ProxyManager.RegisterLocation(N,URL);
+  ProxyManager.RegisterLocation(N,URL).AppendPathInfo:=True;
 end;
 
 
@@ -148,6 +220,8 @@ Const
   keyMimetypes = 'mimetypes';
   KeySSL = 'SSL';
   KeyQuiet = 'quiet';
+  KeyQuit = 'quit';
+  KeyEcho = 'echo';
   KeyNoIndexPage = 'noindexpage';
   KeyBackground = 'background';
 
@@ -170,14 +244,15 @@ begin
       HostName:=ReadString(SConfig,KeyHostName,HostName);
       UseSSL:=ReadBool(SConfig,KeySSL,UseSSL);
       FBackground:=ReadBool(SConfig,Keybackground,FBackGround);
-
+      FPassword:=ReadString(SConfig,KeyQuit,FPassword);
+      FEcho:=ReadBool(SConfig,KeyEcho,FEcho);
       L:=TstringList.Create;
       ReadSectionValues(SProxy,L,[]);
       For I:=0 to L.Count-1 do
         begin
         L.GetNameValue(I,P,U);
         if (P<>'') and (U<>'') then
-          ProxyManager.RegisterLocation(P,U);
+          ProxyManager.RegisterLocation(P,U).AppendPathInfo:=true;
         end;
     finally
       L.Free;
@@ -193,7 +268,9 @@ Var
 begin
   for S in GetOptionValues('x','proxy') do
     AddProxy(S);
+  FEcho:=HasOption('e','echo');
   Quiet:=HasOption('q','quiet');
+  FPassword:=GetOptionValue('Q','quit');
   Port:=StrToIntDef(GetOptionValue('p','port'),Port);
   LoadMimeTypes;
   if HasOption('d','directory') then
@@ -228,7 +305,7 @@ Var
   S,ConfigFile : String;
 
 begin
-  S:=Checkoptions('hqd:ni:p:sH:m:x:c:b',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background']);
+  S:=Checkoptions('hqd:ni:p:sH:m:x:c:beQ:',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:']);
   if (S<>'') or HasOption('h','help') then
     usage(S);
   if HasOption('c','config') then
@@ -245,7 +322,10 @@ begin
     Log(erError,'Background option not supported');
 {$endif}
     end;
-
+  if FPassword<>'' then
+    HTTPRouter.RegisterRoute('/quit',rmAll,@Doquit,False);
+  if FEcho  then
+    HTTPRouter.RegisterRoute('/echo',rmAll,@DoEcho,False);
   if ProxyManager.LocationCount>0 then
     begin
     TProxyWebModule.RegisterModule('Proxy',True);
@@ -266,7 +346,6 @@ begin
     end;
   if not Quiet then
     WriteInfo;
-
   inherited;
 end;
 
