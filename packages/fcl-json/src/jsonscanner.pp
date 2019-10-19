@@ -15,10 +15,6 @@
 {$mode objfpc}
 {$h+}
 
-{$ifdef fpc}
-  {$define UsePChar}
-{$endif}
-
 unit jsonscanner;
 
 interface
@@ -66,29 +62,26 @@ Type
 
   TJSONScanner = class
   private
-    FSource: TStringList;
+    FSource: RawByteString;
+    FCurPos : PAnsiChar; // Position inside total string
     FCurRow: Integer;
     FCurToken: TJSONToken;
     FCurTokenString: string;
     FCurLine: string;
-    FTokenStr: {$ifdef UsePChar}PChar{$else}integer{$endif}; // position inside FCurLine
+    FTokenStr:  PAnsiChar; // position inside FCurLine
     FOptions : TJSONOptions;
     function GetCurColumn: Integer; inline;
     function GetO(AIndex: TJSONOption): Boolean;
     procedure SetO(AIndex: TJSONOption; AValue: Boolean);
   protected
     procedure Error(const Msg: string);overload;
-    procedure Error(const Msg: string;
-      Const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif});overload;
+    procedure Error(const Msg: string;  Const Args: array of const);overload;
     function DoFetchToken: TJSONToken; inline;
   public
-    {$ifdef fpc}
     constructor Create(Source : TStream; AUseUTF8 : Boolean = True); overload; deprecated 'use options form instead';
-    constructor Create(const Source : String; AUseUTF8 : Boolean = True); overload; deprecated  'use options form instead';
     constructor Create(Source: TStream; AOptions: TJSONOptions); overload;
-    {$endif}
-    constructor Create(const Source: String; AOptions: TJSONOptions); overload;
-    destructor Destroy; override;
+    constructor Create(const aSource : RawByteString; AUseUTF8 : Boolean = True); overload; deprecated  'use options form instead';
+    constructor Create(const aSource: RawByteString; AOptions: TJSONOptions); overload;
     function FetchToken: TJSONToken;
 
 
@@ -129,7 +122,6 @@ const
 
 implementation
 
-{$ifdef fpc}
 constructor TJSONScanner.Create(Source : TStream; AUseUTF8 : Boolean = True);
 
 Var
@@ -144,7 +136,20 @@ begin
   Create(Source,O);
 end;
 
-constructor TJSONScanner.Create(const Source : String; AUseUTF8 : Boolean = True);
+constructor TJSONScanner.Create(Source: TStream; AOptions: TJSONOptions);
+
+Var
+  S : RawByteString;
+
+begin
+  S:='';
+  SetLength(S,Source.Size);
+  if Length(S)>0 then
+    Source.ReadBuffer(S[1],Length(S));
+  Create(S,AOptions)
+end;
+
+constructor TJSONScanner.Create(const aSource : RawByteString; AUseUTF8 : Boolean = True);
 Var
   O : TJSONOptions;
 
@@ -154,30 +159,15 @@ begin
     Include(O,joUTF8)
   else
     Exclude(O,joUTF8);
-  Create(Source,O);
+  Create(aSource,O);
 end;
 
-constructor TJSONScanner.Create(Source: TStream; AOptions: TJSONOptions);
+constructor TJSONScanner.Create(const aSource: RawByteString; AOptions: TJSONOptions);
 begin
-  FSource:=TStringList.Create;
-  FSource.LoadFromStream(Source);
+  FSource:=aSource;
+  FCurPos:=PAnsiChar(FSource);
   FOptions:=AOptions;
 end;
-{$endif}
-
-constructor TJSONScanner.Create(const Source: String; AOptions: TJSONOptions);
-begin
-  FSource:=TStringList.Create;
-  FSource.Text:=Source;
-  FOptions:=AOptions;
-end;
-
-destructor TJSONScanner.Destroy;
-begin
-  FreeAndNil(FSource);
-  Inherited;
-end;
-
 
 function TJSONScanner.FetchToken: TJSONToken;
   
@@ -190,8 +180,7 @@ begin
   raise EScannerError.Create(Msg);
 end;
 
-procedure TJSONScanner.Error(const Msg: string;
-  const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif});
+procedure TJSONScanner.Error(const Msg: string; const Args: array of const);
 begin
   raise EScannerError.CreateFmt(Msg, Args);
 end;
@@ -199,13 +188,31 @@ end;
 function TJSONScanner.DoFetchToken: TJSONToken;
 
   function FetchLine: Boolean;
+
+  var
+    PEOL : PAnsiChar;
+    Len : integer;
+
   begin
-    Result:=FCurRow<FSource.Count;
+    Result:=(FCurPos<>Nil) and (FCurPos^<>#0);
     if Result then
       begin
-      FCurLine:=FSource[FCurRow];
-      FTokenStr:=PChar(FCurLine);
-      Inc(FCurRow);
+      FTokenStr:=FCurPos;
+      While Not (FCurPos^ in [#0,#10,#13]) do
+        Inc(FCurPos);
+      PEOL:=FCurPos;
+      if (FCurPos^<>#0) then
+        begin
+        if (FCurPos^=#13) and (FCurPos[1]=#10) then
+          Inc(FCurPos); // Skip CR-LF
+        Inc(FCurPos); // To start of next line
+        Inc(FCurRow); // Increase line index
+        end;
+      Len:=PEOL-FTokenStr;
+      SetLength(FCurLine,Len);
+      if Len>0 then
+        Move(FTokenStr^,FCurLine[1],Len);
+      FTokenStr:=PAnsiChar(FCurLine);
       end
     else             
       begin
@@ -226,7 +233,7 @@ var
   Procedure MaybeAppendUnicode;
 
   Var
-    u : String;
+    u : UTF8String;
 
   begin
   // if there is a leftover \u, append
