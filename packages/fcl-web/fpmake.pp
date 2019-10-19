@@ -214,6 +214,20 @@ begin
     // T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fphttpapp.pp');
     T:=P.Targets.AddUnit('fpwebfile.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fphttp');
+      AddUnit('httpdefs');
+      AddUnit('httproute');
+      end;
+    T:=P.Targets.AddUnit('fpwebproxy.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fphttp');
+      AddUnit('httpdefs');
+      AddUnit('httpprotocol');
+      AddUnit('fphttpclient');
+      end;
     T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fpwebdata.pp');
     T.ResourceStrings:=true;

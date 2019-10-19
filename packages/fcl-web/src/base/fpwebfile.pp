@@ -1,5 +1,20 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2019 by the Free Pascal development team
+
+    Classes to implement a file serving mechanism.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 {$mode objfpc}
 {$h+}
+
 unit fpwebfile;
 
 interface
@@ -17,6 +32,7 @@ Type
     Function AllowFile(Const AFileName : String) : Boolean; virtual;
     // Actually Send file to client.
     Procedure SendFile(Const AFileName : String; AResponse : TResponse); virtual;
+  Public
     // Overrides TCustomHTTPModule to implement file serving.
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
   end;
@@ -30,9 +46,11 @@ Type
     FRequestedFileName,
     FMappedFileName : String;
     class procedure HandleSimpleFileRequest(ARequest: TRequest; AResponse: TResponse); static;
+  Protected
     Function AllowFile(Const AFileName : String) : Boolean; override;
     Function MapFileName(Const AFileName : String) : String; override;
     Function GetRequestFileName(Const ARequest : TRequest) : String; override;
+  Public
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
   Public
   Class var
