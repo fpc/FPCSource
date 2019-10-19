@@ -363,6 +363,7 @@ type
     Procedure TestAdvRec_DestructorFail;
     Procedure TestAdvRecordInFunction;
     Procedure TestAdvRecordInAnonFunction;
+    Procedure TestAdvRecordClassOperator;
   end;
 
   { TTestProcedureTypeParser }
@@ -2612,6 +2613,7 @@ end;
 procedure TTestRecordTypeParser.TestAdvRecordInFunction;
 
 // Src from bug report 36179
+
 Const
    Src =
     '{$mode objfpc}'+sLineBreak+
@@ -2630,10 +2632,13 @@ Const
 
 begin
   Source.Text:=Src;
-  ParseModule;
+  ParseModule; // We're just interested in that it parses.
 end;
 
 procedure TTestRecordTypeParser.TestAdvRecordInAnonFunction;
+
+// Src from bug report 36179, modified to put record in anonymous function - not allowed !
+
 Const
    Src =
     '{$mode objfpc}'+sLineBreak+
@@ -2651,9 +2656,35 @@ Const
     '  begin'+sLineBreak+
     '  end;'+sLineBreak+
     'end.';
+
 begin
   Source.Text:=Src;
   AssertException('Advanced records not allowed in anonymous function',EParserError,@ParseModule);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRecordClassOperator;
+
+// Source from bug id 36180
+
+Const
+   SRC =
+    '{$mode objfpc}'+sLineBreak+
+    '{$modeswitch advancedrecords}'+sLineBreak+
+    'program afile;'+sLineBreak+
+    'type'+sLineBreak+
+    '  TMyRecord = record'+sLineBreak+
+    '    class operator = (a, b: TMyRecord): boolean;'+sLineBreak+
+    '  end;'+sLineBreak+
+    'class operator TMyRecord.= (a, b: TMyRecord): boolean;'+sLineBreak+
+    'begin'+sLineBreak+
+    '  result := (@a = @b);'+sLineBreak+
+    'end;'+sLineBreak+
+    'begin'+sLineBreak+
+    'end.';
+
+begin
+  Source.Text:=Src;
+  ParseModule;   // We're just interested in that it parses.
 end;
 
 { TBaseTestTypeParser }

@@ -3550,13 +3550,9 @@ begin
       SetBlock(declNone);
       SaveComments;
       NextToken;
-      If CurToken in [tkprocedure,tkFunction,tkConstructor,tkDestructor] then
-        begin
-        pt:=GetProcTypeFromToken(CurToken,True);
-        AddProcOrFunction(Declarations,ParseProcedureOrFunctionDecl(Declarations, pt, MustBeGeneric));
-        end
-      else
-        CheckToken(tkprocedure);
+      CheckTokens([tkprocedure,tkFunction,tkConstructor,tkDestructor,tkoperator]);
+      pt:=GetProcTypeFromToken(CurToken,True);
+      AddProcOrFunction(Declarations,ParseProcedureOrFunctionDecl(Declarations, pt, MustBeGeneric));
       end;
     tkIdentifier:
       begin
@@ -6501,12 +6497,14 @@ var
   end;
 
 var
-  Name: String;
+  N,Name: String;
   PC : TPTreeElement;
   Ot : TOperatorType;
   IsTokenBased , ok: Boolean;
   j, i: Integer;
+
 begin
+  N:='';
   NameParts:=nil;
   Result:=nil;
   ok:=false;
@@ -6521,10 +6519,28 @@ begin
       if IsTokenBased then
         OT:=TPasOperator.TokenToOperatorType(CurTokenText)
       else
+        begin
         OT:=TPasOperator.NameToOperatorType(CurTokenString);
+        N:=CurTokenString;
+        // Case Class operator TMyRecord.+
+        if (OT=otUnknown) then
+          begin
+          NextToken;
+          if CurToken<>tkDot then
+            ParseExc(nErrUnknownOperatorType,SErrUnknownOperatorType,[N]);
+          NextToken;
+          IsTokenBased:=CurToken<>tkIdentifier;
+          if IsTokenBased then
+            OT:=TPasOperator.TokenToOperatorType(CurTokenText)
+          else
+            OT:=TPasOperator.NameToOperatorType(CurTokenString);
+          end;
+        end;
       if (ot=otUnknown) then
         ParseExc(nErrUnknownOperatorType,SErrUnknownOperatorType,[CurTokenString]);
       Name:=OperatorNames[Ot];
+      if N<>'' then
+        Name:=N+'.'+Name;
       NamePos:=CurTokenPos;
       end;
     ptAnonymousProcedure,ptAnonymousFunction:
