@@ -3134,7 +3134,9 @@ FOpCodeList.Add('vshufi64x2,1,1,1,ymmreg_mz,ymmreg,ymmrm,imm8');
 FOpCodeList.Add('vshufi64x2,1,1,1,ymmreg_mz,ymmreg,4b64,imm8');
 FOpCodeList.Add('vshufi64x2,1,1,1,zmmreg_mz,zmmreg,zmmrm,imm8');
 FOpCodeList.Add('vshufi64x2,1,1,1,zmmreg_mz,zmmreg,8b64,imm8');
-
+    
+  FOpCodeList.Add('movntss,1,1,1,MEM32,XMMREG,');
+  FOpCodeList.Add('movntsd,1,1,1,MEM64,XMMREG,');  
 end;
 
 function TAVXTestGenerator.InternalMakeTestFiles(aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String;
