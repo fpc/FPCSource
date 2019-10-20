@@ -5079,12 +5079,12 @@ implementation
                   inc(actMemCount);
 
 
-                  if ExistsSSEAVXReg and ExistsCode336 then actMemSize := actMemSize or OT_BITS32
-                   else if ExistsSSEAVXReg and ExistsCode337 then actMemSize := actMemSize or OT_BITS64
-
-                  //if IF_SCL32 in insentry^.Flags then actMemSize := actMemSize or OT_BITS32
-                  // else if IF_SCL64 in insentry^.Flags then actMemSize := actMemSize or OT_BITS64
-                   else actMemSize:=actMemSize or (insentry^.optypes[j] and (OT_SIZE_MASK OR OT_VECTORBCST));
+                  if ExistsSSEAVXReg and ExistsCode336 then
+                    actMemSize := actMemSize or OT_BITS32
+                  else if ExistsSSEAVXReg and ExistsCode337 then
+                    actMemSize := actMemSize or OT_BITS64
+                  else
+                    actMemSize:=actMemSize or (insentry^.optypes[j] and (OT_SIZE_MASK OR OT_VECTORBCST));
 
                   if (insentry^.optypes[j] and OT_REGMEM) = OT_REGMEM then
                     begin
@@ -5198,16 +5198,12 @@ implementation
                        MRefInfo := msiUnknown;
 
                        if not(ExistsCode336 or ExistsCode337) then
-
-                       //if (insentry^.Flags * [IF_SCL32, IF_SCL64] = []) then
-                       begin
                          case actRegMemTypes and (OT_MMXRM or OT_XMMRM or OT_YMMRM or OT_ZMMRM or OT_REG_EXTRA_MASK) of
                            OT_MMXRM: actMemSize := actMemSize or OT_BITS64;
                            OT_XMMRM: actMemSize := actMemSize or OT_BITS128;
                            OT_YMMRM: actMemSize := actMemSize or OT_BITS256;
                            OT_ZMMRM: actMemSize := actMemSize or OT_BITS512;
                          end;
-                       end;
 
                        case actMemSize of
                                   0: MRefInfo := msiNoSize;
