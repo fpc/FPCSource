@@ -1203,8 +1203,11 @@ implementation
                         ;
                     end;
                   end
+{$ifndef jvm}
                 else if (nodetype=equaln) and MatchAndTransformNodesCommutative(left,right,@IsLengthZero,@TransformLengthZero,Result) then
-                   exit;
+                   exit
+{$endif jvm}
+                   ;
               end;
 
             { using sqr(x) for reals instead of x*x might reduces register pressure and/or
