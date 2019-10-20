@@ -474,8 +474,10 @@ implementation
       var
         s : string;
         secflag: TSectionFlag;
+        sectionflags: boolean;
       begin
         writer.AsmLn;
+        sectionflags:=false;
         case target_info.system of
          system_i386_OS2,
          system_i386_EMX: ;
@@ -484,7 +486,10 @@ implementation
            begin
              { ... but vasm is GAS compatible on amiga/atari, and supports named sections }
              if create_smartlink_sections then
-               writer.AsmWrite('.section ');
+               begin
+                 writer.AsmWrite('.section ');
+                 sectionflags:=true;
+               end;
            end;
          system_powerpc_darwin,
          system_i386_darwin,
@@ -501,12 +506,17 @@ implementation
                writer.AsmWrite('.section ');
            end
          else
-          writer.AsmWrite('.section ');
+           begin
+             writer.AsmWrite('.section ');
+             sectionflags:=true;
+           end
         end;
         s:=sectionname(atype,aname,aorder);
         writer.AsmWrite(s);
         { flags explicitly defined? }
-        if (secflags<>[]) or (secprogbits<>SPB_None) then
+        if sectionflags and
+           ((secflags<>[]) or
+            (secprogbits<>SPB_None)) then
           begin
             s:=',"';
             for secflag in secflags do
