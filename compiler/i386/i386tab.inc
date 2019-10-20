@@ -7970,7 +7970,7 @@
     opcode  : A_MOVNTSD;
     ops     : 2;
     optypes : (ot_memory,ot_xmmreg,ot_none,ot_none);
-    code    : #214#220#213#2#15#43#65;
+    code    : #220#213#2#15#43#65;
     flags   : [if_sse4]
   ),
   (

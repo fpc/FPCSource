@@ -3190,7 +3190,7 @@ mem,xmmreg              \333\2\x0F\x2B\101                        SSE4,SD
 
 [MOVNTSD]
 (Ch_All)
-mem,xmmreg              \326\334\325\2\x0F\x2B\101                SSE4 ;,SQ
+mem,xmmreg              \334\325\2\x0F\x2B\101                SSE4 ;,SQ
 
 [INSERTQ]
 (Ch_All)
