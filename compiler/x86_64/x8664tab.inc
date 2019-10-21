@@ -8194,14 +8194,14 @@
     opcode  : A_MOVNTSS;
     ops     : 2;
     optypes : (ot_memory,ot_xmmreg,ot_none,ot_none);
-    code    : #219#2#15#43#65;
+    code    : #222#219#2#15#43#65;
     flags   : [if_sse4,if_sd]
   ),
   (
     opcode  : A_MOVNTSD;
     ops     : 2;
     optypes : (ot_memory,ot_xmmreg,ot_none,ot_none);
-    code    : #220#213#2#15#43#65;
+    code    : #223#220#213#2#15#43#65;
     flags   : [if_sse4]
   ),
   (
