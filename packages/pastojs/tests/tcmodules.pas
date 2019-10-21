@@ -2443,8 +2443,9 @@ begin
   StartProgram(false);
   Add('{$modeswitch cblocks-}');
   Add('begin');
-  SetExpectedScannerError('Invalid mode switch: "cblocks-"',nErrInvalidModeSwitch);
   ConvertProgram;
+  CheckHint(mtWarning,nErrInvalidModeSwitch,'Warning: test1.pp(3,23) : Invalid mode switch: "cblocks"');
+  CheckResolverUnexpectedHints();
 end;
 
 procedure TTestModule.TestUnit_UseSystem;
