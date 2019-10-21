@@ -2637,7 +2637,8 @@ end;
 
 procedure TTestRecordTypeParser.TestAdvRecordInAnonFunction;
 
-// Src from bug report 36179, modified to put record in anonymous function - not allowed !
+// Src from bug report 36179, modified to put record in anonymous function
+//  Delphi 10.3.2 allows this
 
 Const
    Src =
@@ -2659,7 +2660,7 @@ Const
 
 begin
   Source.Text:=Src;
-  AssertException('Advanced records not allowed in anonymous function',EParserError,@ParseModule);
+  ParseModule; // We're just interested in that it parses.
 end;
 
 procedure TTestRecordTypeParser.TestAdvRecordClassOperator;

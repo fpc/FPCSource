@@ -6715,8 +6715,10 @@ Var
   OldCount, i: Integer;
   CurEl: TPasElement;
   LastToken: TToken;
+  AllowVisibility: Boolean;
 begin
-  if AllowMethods then
+  AllowVisibility:=msAdvancedRecords in CurrentModeswitches;
+  if AllowVisibility then
     v:=visPublic
   else
     v:=visDefault;
@@ -6806,7 +6808,7 @@ begin
       tkGeneric,tkSelf, // Counts as field name
       tkIdentifier :
         begin
-        If AllowMethods and CheckVisibility(CurTokenString,v) then
+        If AllowVisibility and CheckVisibility(CurTokenString,v) then
           begin
           if not (v in [visPrivate,visPublic,visStrictPrivate]) then
             ParseExc(nParserInvalidRecordVisibility,SParserInvalidRecordVisibility);
@@ -6877,11 +6879,9 @@ begin
   try
     Result.PackMode:=PackMode;
     NextToken;
-    allowAdvanced:=(msAdvancedRecords in Scanner.CurrentModeSwitches);
-    // not allowed in anonymous procedures
-    if (Parent is TProcedureBody) then
-      if TProcedureBody(Parent).Parent is TPasAnonymousProcedure then
-         allowAdvanced:=False;
+    allowAdvanced:=(msAdvancedRecords in Scanner.CurrentModeSwitches)
+                   and not (Parent is TProcedureBody)
+                   and (Result.Name<>'');
     ParseRecordMembers(Result,tkEnd,allowAdvanced);
     Engine.FinishScope(stTypeDef,Result);
     ok:=true;
