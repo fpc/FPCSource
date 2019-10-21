@@ -195,7 +195,7 @@ const
   {$IFDEF MAC}
   DefaultResolution : integer = 72;
   {$ELSE}
-  DefaultResolution : integer = 97;
+  DefaultResolution : integer = 96;
   {$ENDIF}
 
 implementation
