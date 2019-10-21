@@ -130,7 +130,7 @@ interface
         destructor destroy;override;
         class function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;override;
         function sectiontype2align(atype:TAsmSectiontype):longint;override;
-        function sectiontype2class(atype:TAsmSectiontype):string;
+        class function sectiontype2class(atype:TAsmSectiontype):string;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
         function createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;override;
         function reffardatasection:TObjSection;
@@ -1084,7 +1084,7 @@ implementation
         Result:=omf_sectiontype2align(atype);
       end;
 
-    function TOmfObjData.sectiontype2class(atype: TAsmSectiontype): string;
+    class function TOmfObjData.sectiontype2class(atype: TAsmSectiontype): string;
       begin
         Result:=omf_segclass(atype);
       end;
