@@ -15640,10 +15640,12 @@ type
           begin
           NewBaseType:=TResolverBaseType(Max(ord(BaseType1),ord(BaseType2)));
           if (BaseTypes[btLongint]<>nil)
-              and (NewBaseType in [btByte,btShortInt,btWord,btSmallInt,btIntSingle,btUIntSingle,btLongint]) then
+              and (NewBaseType in [btByte,btShortInt,btWord,btSmallInt,btIntSingle,btUIntSingle,btLongint])
+              and (BaseType1<>btLongWord) and (BaseType2<>btLongWord) then
             NewBaseType:=btLongint
           else if (BaseTypes[btInt64]<>nil)
-              and (NewBaseType<=btInt64) then
+              and (NewBaseType<=btInt64)
+              and (BaseType1<>btQWord) and (BaseType2<>btQWord) then
             NewBaseType:=btInt64
           else if (BaseTypes[btIntDouble]<>nil)
               and (NewBaseType<=btIntDouble) then

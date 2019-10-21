@@ -53,6 +53,7 @@ type
     procedure TestGenProc_Forward;
     procedure TestGenProc_Infer_OverloadForward;
     procedure TestGenProc_TypeInfo;
+    procedure TestGenProc_Infer_Widen;
     // ToDo: FuncName:=
 
     // generic methods
@@ -1065,6 +1066,44 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.Run$s0(3);',
     '$mod.Run$s1("foo");',
+    '']));
+end;
+
+procedure TTestGenerics.TestGenProc_Infer_Widen;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'procedure Run<S>(a: S; b: S);',
+  'begin',
+  'end;',
+  'begin',
+  '  Run(word(1),longint(2));',
+  '  Run(byte(2),smallint(2));',
+  '  Run(longword(3),longint(2));',
+  '  Run(nativeint(4),longint(2));',
+  '  Run(nativeint(5),nativeuint(2));',
+  '  Run(''a'',''foo'');',
+  '  Run(''bar'',''c'');',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGenProc_Infer_Widen',
+    LinesToStr([ // statements
+    'this.Run$s0 = function (a, b) {',
+    '};',
+    'this.Run$s1 = function (a, b) {',
+    '};',
+    'this.Run$s2 = function (a, b) {',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.Run$s0(1, 2);',
+    '$mod.Run$s0(2, 2);',
+    '$mod.Run$s1(3, 2);',
+    '$mod.Run$s1(4, 2);',
+    '$mod.Run$s1(5, 2);',
+    '$mod.Run$s2("a", "foo");',
+    '$mod.Run$s2("bar", "c");',
     '']));
 end;
 
