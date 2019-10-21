@@ -412,6 +412,10 @@ const
     ,btQWord,btInt64,btComp
     {$endif}];
   btAllIntegerNoQWord = btAllInteger{$ifdef HasInt64}-[btQWord]{$endif};
+  btAllSignedInteger = [btShortInt,btSmallInt,btIntSingle,btLongint,btIntDouble
+    {$ifdef HasInt64}
+    ,btInt64,btComp
+    {$endif}];
   btAllChars = [btChar,{$ifdef FPC_HAS_CPSTRING}btAnsiChar,{$endif}btWideChar];
   btAllStrings = [btString,
     {$ifdef FPC_HAS_CPSTRING}btAnsiString,btShortString,btRawByteString,{$endif}
@@ -2337,6 +2341,7 @@ type
     function GetSmallestIntegerBaseType(MinVal, MaxVal: TMaxPrecInt): TResolverBaseType; // returns BaseTypeExtended if too big
     function GetCombinedChar(const Char1, Char2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function GetCombinedString(const Str1, Str2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
+    function GetCombinedBaseType(const A, B: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function IsElementSkipped(El: TPasElement): boolean; virtual;
     function FindLocalBuiltInSymbol(El: TPasElement): TPasElement; virtual;
     function GetLastSection: TPasSection;
@@ -15549,6 +15554,8 @@ type
     OldInferType, ParamElType: TPasType;
     ResolveAlias: TPRResolveAlias;
     Arr: TPasArrayType;
+    Param1Resolved, Param2Resolved: TPasResolverResult;
+    NewBaseType, BaseType1, BaseType2: TResolverBaseType;
   begin
     if (ArgType=nil) or (ParamLoType=nil) then exit;
     C:=ArgType.ClassType;
@@ -15613,7 +15620,62 @@ type
           // second can be widened to fit
           exit;
           end;
-        // find a type compatible to both
+
+        // None is var/out -> find a type compatible to both
+        // widen type to some common base types to avoid high number of specialization
+        ComputeElement(ParamHiType,Param1Resolved,[],ErrorPos);
+        ComputeElement(InferenceParams[i].InferType,Param2Resolved,[],ErrorPos);
+        NewBaseType:=btNone;
+        BaseType1:=Param1Resolved.BaseType;
+        BaseType2:=Param2Resolved.BaseType;
+        if BaseType1 in btAllBooleans then
+          begin
+          if BaseType2 in btAllBooleans then
+            if BaseTypes[btBoolean]<>nil then
+              NewBaseType:=btBoolean
+            else
+              NewBaseType:=GetCombinedBoolean(BaseType1,BaseType2,ErrorPos);
+          end
+        else if BaseType1 in btAllInteger then
+          begin
+          NewBaseType:=TResolverBaseType(Max(ord(BaseType1),ord(BaseType2)));
+          if (BaseTypes[btLongint]<>nil)
+              and (NewBaseType in [btByte,btShortInt,btWord,btSmallInt,btIntSingle,btUIntSingle,btLongint]) then
+            NewBaseType:=btLongint
+          else if (BaseTypes[btInt64]<>nil)
+              and (NewBaseType<=btInt64) then
+            NewBaseType:=btInt64
+          else if (BaseTypes[btIntDouble]<>nil)
+              and (NewBaseType<=btIntDouble) then
+            NewBaseType:=btIntDouble
+          else if (BaseTypes[btQWord]<>nil)
+              and not (NewBaseType in btAllSignedInteger) then
+            NewBaseType:=btQWord
+          else
+            NewBaseType:=GetCombinedInt(Param1Resolved,Param2Resolved,ErrorPos);
+          end
+        else if Param1Resolved.BaseType in btAllStringAndChars then
+          begin
+          if Param2Resolved.BaseType in btAllStringAndChars then
+            if BaseTypes[btUnicodeString]<>nil then
+              NewBaseType:=btUnicodeString
+            else
+              NewBaseType:=GetCombinedString(Param1Resolved,Param2Resolved,ErrorPos);
+          end
+        else if Param1Resolved.BaseType in btAllFloats then
+          begin
+          if BaseTypes[btDouble]<>nil then
+            NewBaseType:=btDouble;
+          end;
+        if NewBaseType<>btNone then
+          begin
+          InferenceParams[i].InferType.Release{$IFDEF CheckPasTreeRefCount}(RefIdInferenceParamsExpr){$ENDIF};
+          InferenceParams[i].InferType:=BaseTypes[NewBaseType];
+          InferenceParams[i].IsVarOut:=NeedVar;
+          BaseTypes[NewBaseType].AddRef{$IFDEF CheckPasTreeRefCount}(RefIdInferenceParamsExpr){$ENDIF};
+          exit;
+          end;
+
         // ToDo
         RaiseInferTypeMismatch(20191006220406,ArgType,ErrorPos);
         end;
@@ -28367,7 +28429,10 @@ begin
     if BaseTypes[Result]<>nil then exit;
     end;
   {$endif}
-  RaiseRangeCheck(20170420100336,ErrorEl);
+  if ErrorEl<>nil then
+    RaiseRangeCheck(20170420100336,ErrorEl)
+  else
+    Result:=btNone;
 end;
 
 function TPasResolver.GetSmallestIntegerBaseType(MinVal, MaxVal: TMaxPrecInt
@@ -28514,6 +28579,34 @@ begin
     Result:=btChar
   else if Result=BaseTypeString then
     Result:=btString;
+end;
+
+function TPasResolver.GetCombinedBaseType(const A, B: TPasResolverResult;
+  ErrorEl: TPasElement): TResolverBaseType;
+begin
+  Result:=btNone;
+  if A.BaseType in btAllBooleans then
+    begin
+    if B.BaseType in btAllBooleans then
+      Result:=GetCombinedBoolean(A.BaseType,B.BaseType,ErrorEl);
+    end
+  else if A.BaseType in btAllInteger then
+    begin
+    if B.BaseType in btAllInteger then
+      Result:=GetCombinedInt(A,B,ErrorEl);
+    end
+  else if A.BaseType in btAllChars then
+    begin
+    if B.BaseType in btAllChars then
+      Result:=GetCombinedChar(A,B,ErrorEl)
+    else if B.BaseType in btAllStrings then
+      Result:=GetCombinedString(A,B,ErrorEl);
+    end
+  else if A.BaseType in btAllStrings then
+    begin
+    if B.BaseType in btAllStringAndChars then
+      Result:=GetCombinedString(A,B,ErrorEl);
+    end;
 end;
 
 function TPasResolver.IsElementSkipped(El: TPasElement): boolean;

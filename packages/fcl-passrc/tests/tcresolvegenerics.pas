@@ -150,7 +150,7 @@ type
     procedure TestGenProc_Infer_Overload;
     procedure TestGenProc_Infer_OverloadForward;
     procedure TestGenProc_Infer_Var_Overload;
-    //procedure TestGenProc_Infer_Widen;
+    procedure TestGenProc_Infer_Widen;
     procedure TestGenProc_Infer_DefaultValue;
     procedure TestGenProc_Infer_DefaultValueMismatch;
     procedure TestGenProc_Infer_ProcT;
@@ -2234,6 +2234,23 @@ begin
   '  {@A}Run(w,b);',
   '  {@B}Run(s,w);',
   '  {@C}Run(s,s);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_Infer_Widen;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'procedure {#A}Run<S>(a: S; b: S);',
+  'begin',
+  'end;',
+  'begin',
+  '  {@A}Run(word(1),longint(2));',
+  '  {@A}Run(int64(1),longint(2));',
+  '  {@A}Run(boolean(false),wordbool(2));',
+  '  {@A}Run(''a'',''foo'');',
   '']);
   ParseProgram;
 end;
