@@ -3673,10 +3673,6 @@ implementation
         ea_data : ea;
         relsym : TObjSymbol;
 
-        exists_simd_prefix_F2: boolean;
-        exists_simd_prefix_F3: boolean;
-        exists_simd_prefix_66: boolean;
-
         needed_VEX_Extension: boolean;
         needed_VEX: boolean;
         needed_EVEX: boolean;
@@ -3786,11 +3782,6 @@ implementation
 
         // needed VEX Prefix (for AVX etc.)
 
-        exists_simd_prefix_F2 := false;
-        exists_simd_prefix_F3 := false;
-        exists_simd_prefix_66 := false;
-
-
         needed_VEX    := false;
         needed_EVEX   := false;
         needed_VEX_Extension := false;
@@ -3865,13 +3856,11 @@ implementation
 
                  end;
            &333: begin
-                   exists_simd_prefix_F3:= true;
                    VEXvvvv              := VEXvvvv  OR $02; // set SIMD-prefix $F3
                    VEXpp                := $02;             // set SIMD-prefix $F3
                    EVEXpp               := $02;             // set SIMD-prefix $F3
                  end;
            &334: begin
-                   exists_simd_prefix_F2:= true;
                    VEXvvvv              := VEXvvvv  OR $03; // set SIMD-prefix $F2
                    VEXpp                := $03;             // set SIMD-prefix $F2
                    EVEXpp               := $03;             // set SIMD-prefix $F2
@@ -3880,7 +3869,6 @@ implementation
            &351: EVEXll                 := $02;             // vectorlength = 512 bits AND no scalar
            &352: EVEXw1                 := $01;
            &361: begin
-                   exists_simd_prefix_66:= true;
                    VEXvvvv              := VEXvvvv  OR $01; // set SIMD-prefix $66
                    VEXpp                := $01;             // set SIMD-prefix $66
                    EVEXpp               := $01;             // set SIMD-prefix $66

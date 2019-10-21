@@ -3186,11 +3186,11 @@ mem                   \326\2\x0F\xC7\201              X86_64
 ;
 [MOVNTSS]
 (Ch_All)
-mem,xmmreg              \333\2\x0F\x2B\101                        SSE4,SD
+mem,xmmreg              \336\333\2\x0F\x2B\101                   SSE4,SD
 
 [MOVNTSD]
 (Ch_All)
-mem,xmmreg              \334\325\2\x0F\x2B\101                SSE4 ;,SQ
+mem,xmmreg              \337\334\325\2\x0F\x2B\101                SSE4 ;,SQ
 
 [INSERTQ]
 (Ch_All)
