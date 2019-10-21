@@ -2420,16 +2420,15 @@ begin
       end;
     tkCaret:
       begin
-      // is this still needed?
-      // ^A..^_ characters. See #16341
+      // Why is this still needed?
+      // ^A..^_ characters
       NextToken;
       if not (length(CurTokenText)=1) or not (CurTokenText[1] in ['A'..'_']) then
         begin
         UngetToken;
         ParseExcExpectedIdentifier;
         end;
-      Result:=CreatePrimitiveExpr(AParent,pekString, '^'+CurTokenText);
-      exit;
+      Last:=CreatePrimitiveExpr(AParent,pekString, '^'+CurTokenText);
       end;
     tkBraceOpen:
       begin

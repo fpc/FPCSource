@@ -808,6 +808,7 @@ type
     Procedure TestArray_OpenArrayAsDynArraySetLengthFail;
     Procedure TestArray_OpenArrayAsDynArray;
     Procedure TestArray_OpenArrayDelphi;
+    Procedure TestArray_OpenArrayChar;
     Procedure TestArray_CopyConcat;
     Procedure TestStaticArray_CopyConcat;// ToDo
     Procedure TestArray_CopyMismatchFail;
@@ -14709,6 +14710,21 @@ begin
   '  Fly(d);', // dyn array can be passed to a var open array
   'end;',
   'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_OpenArrayChar;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'Function CharInSet(Ch: Char;Const CSet : array of char) : Boolean;',
+  'begin',
+  'end;',
+  'var Key: Char;',
+  'begin',
+  '  if CharInSet(Key, [^V, ^X, ^C]) then ;',
   '']);
   ParseProgram;
 end;

@@ -140,7 +140,7 @@ type
     tkIdentifier,
     tkString,
     tkNumber,
-    tkChar,
+    tkChar, // ^A .. ^Z
     // Simple (one-character) tokens
     tkBraceOpen,             // '('
     tkBraceClose,            // ')'
