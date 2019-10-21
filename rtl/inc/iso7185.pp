@@ -267,7 +267,7 @@ unit iso7185;
       begin
         if c>=0.0 then
           round:=Trunc(c+0.5)
-        else R
+        else
           round:=Trunc(c-0.5);
       end;
 {$else not cpujvm}
@@ -275,7 +275,7 @@ unit iso7185;
       begin
         if c>=0.0 then
           round_comp:=Trunc(c+0.5)
-        else R
+        else
           round_comp:=Trunc(c-0.5);
       end;
 {$endif cpujvm}
