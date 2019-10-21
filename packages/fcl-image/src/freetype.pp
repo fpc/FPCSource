@@ -598,16 +598,18 @@ function TFontManager.MakeString (FontId:integer; Text:string; size:integer; ang
 Var
   T : Array of cardinal;
   C,I : Integer;
+  U: UnicodeString;
 
 begin
   CurFont := GetFont(FontID);
   InitMakeString (FontID, Size);
-  c := length(text);
+  U := UnicodeString(Text);
+  c := length(U);
   result := TStringBitmaps.Create(c);
   result.FText := Text;
-  SetLength(T,Length(Text));
-  For I:=1 to Length(Text) do
-    T[I-1]:=Ord(Text[i]);
+  SetLength(T,c);
+  For I:=1 to c do
+    T[I-1]:=Ord(U[i]);
   DoMakeString(T,Angle,Result);
 end;
 
@@ -741,16 +743,18 @@ function TFontManager.MakeString (FontId:integer; Text:string; Size:integer) : T
 Var
   T : Array of Cardinal;
   C,I : Integer;
+  U : UnicodeString;
   
 begin
   CurFont := GetFont(FontID);
   InitMakeString (FontID, Size);
-  c := length(text);
+  U := UnicodeString(Text);
+  c := length(U);
   result := TStringBitmaps.Create(c);
   result.FText := Text;
-  SetLength(T,Length(Text));
-  For I:=1 to Length(Text) do
-    T[I-1]:=Ord(Text[i]);
+  SetLength(T,c);
+  For I:=1 to c do
+    T[I-1]:=Ord(U[i]);
   DoMakeString(T,Result);
 end;
 
