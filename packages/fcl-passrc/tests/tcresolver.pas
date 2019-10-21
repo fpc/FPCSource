@@ -131,8 +131,9 @@ type
     procedure OnCheckElementParent(El: TPasElement; arg: pointer);
     procedure FreeSrcMarkers;
     procedure OnPasResolverLog(Sender: TObject; const Msg: String);
-    procedure ScannerDirective(Sender: TObject; Directive, Param: String;
+    procedure OnScannerDirective(Sender: TObject; Directive, Param: String;
       var Handled: boolean);
+    procedure OnScannerLog(Sender: TObject; const Msg: String);
   Protected
     FirstSrcMarker, LastSrcMarker: PSrcMarker;
     Procedure SetUp; override;
@@ -1050,7 +1051,8 @@ begin
   FModules:=TObjectList.Create(true);
   inherited SetUp;
   Parser.Options:=Parser.Options+[po_ResolveStandardTypes];
-  Scanner.OnDirective:=@ScannerDirective;
+  Scanner.OnDirective:=@OnScannerDirective;
+  Scanner.OnLog:=@OnScannerLog;
 end;
 
 procedure TCustomTestResolver.TearDown;
@@ -2548,7 +2550,7 @@ begin
   FResolverMsgs.Add(Item);
 end;
 
-procedure TCustomTestResolver.ScannerDirective(Sender: TObject; Directive,
+procedure TCustomTestResolver.OnScannerDirective(Sender: TObject; Directive,
   Param: String; var Handled: boolean);
 var
   aScanner: TPascalScanner;
@@ -2561,6 +2563,17 @@ begin
   aScanner.LastMsgArgs:=nil;
   raise EScannerError.Create(aScanner.LastMsg);
   if Param='' then ;
+end;
+
+procedure TCustomTestResolver.OnScannerLog(Sender: TObject; const Msg: String);
+var
+  aScanner: TPascalScanner;
+begin
+  aScanner:=TPascalScanner(Sender);
+  if aScanner=nil then exit;
+  {$IFDEF VerbosePasResolver}
+  writeln('TCustomTestResolver.OnScannerLog ',GetObjName(Sender),' ',aScanner.LastMsgType,' ',aScanner.LastMsgNumber,' Msg="', Msg,'"');
+  {$ENDIF}
 end;
 
 function TCustomTestResolver.GetModules(Index: integer): TTestEnginePasResolver;
