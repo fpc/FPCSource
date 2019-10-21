@@ -256,7 +256,7 @@ unit iso7185;
       begin
         if c>=0.0 then
           Round:=Trunc(c+0.5)
-        else R
+        else
           Round:=Trunc(c-0.5);
       end;
 {$endif FPUNONE}
