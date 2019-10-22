@@ -11450,7 +11450,8 @@ begin
       and ((C=TPrimitiveExpr)
         or (C=TNilExpr)
         or (C=TBoolConstExpr)
-        or (C=TProcedureExpr)) then
+        or (C=TProcedureExpr))
+        or (C=TInlineSpecializeExpr) then
     // ok
   else if C=TUnaryExpr then
     AccessExpr(TUnaryExpr(Expr).Operand,Access)

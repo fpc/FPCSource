@@ -156,6 +156,8 @@ type
     procedure TestGenProc_Infer_ProcT;
     procedure TestGenProc_Infer_Mismatch;
     procedure TestGenProc_Infer_ArrayOfT;
+    procedure TestGenProc_Infer_PassAsArgDelphi;
+    procedure TestGenProc_Infer_PassAsArgObjFPC;
     // ToDo procedure TestGenProc_Infer_ProcType;
 
     // generic methods
@@ -2338,6 +2340,43 @@ begin
   'var Arr: array of byte;',
   'begin',
   '  Run(Arr);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_Infer_PassAsArgDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'function Run<T>(a: T): T;',
+  'var b: T;',
+  'begin',
+  '  Run(Run<word>(3));',
+  '  Run(Run(4));',
+  'end;',
+  'begin',
+  '  Run(Run<word>(5));',
+  '  Run(Run(6));',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_Infer_PassAsArgObjFPC;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$ModeSwitch implicitfunctionspecialization}',
+  'generic function Run<T>(a: T): T;',
+  'var b: T;',
+  'begin',
+  '  Run(specialize Run<word>(3));',
+  '  Run(Run(4));',
+  'end;',
+  'begin',
+  '  Run(specialize Run<word>(5));',
+  '  Run(Run(6));',
   '']);
   ParseProgram;
 end;
