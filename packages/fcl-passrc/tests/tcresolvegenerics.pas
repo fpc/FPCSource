@@ -58,7 +58,7 @@ type
     // generic class
     procedure TestGen_Class;
     procedure TestGen_ClassDelphi;
-    procedure TestGen_ClassDelphi_TypeOverload; // ToDo
+    procedure TestGen_ClassDelphi_TypeOverload; // ToDo: type overload
     procedure TestGen_ClassObjFPC;
     procedure TestGen_ClassObjFPC_OverloadFail;
     procedure TestGen_ClassForward;
@@ -68,7 +68,7 @@ type
     procedure TestGen_ClassForwardConstraintTypeMismatch;
     procedure TestGen_ClassForward_Circle;
     procedure TestGen_Class_RedeclareInUnitImplFail;
-    procedure TestGen_Class_AnotherInUnitImpl;
+    procedure TestGen_Class_AnotherInUnitImpl; // ToDo: type overload
     procedure TestGen_Class_MethodObjFPC;
     procedure TestGen_Class_MethodOverride;
     procedure TestGen_Class_MethodDelphi;
@@ -763,8 +763,6 @@ end;
 
 procedure TTestResolveGenerics.TestGen_ClassDelphi_TypeOverload;
 begin
-  exit;
-
   StartProgram(false);
   Add([
   '{$mode delphi}',
@@ -774,14 +772,14 @@ begin
   '  TBird<T> = class',
   '    v: T;',
   '  end;',
-  '  TEagle = TBird<word>;',
-  'var',
-  '  b: TBird<word>;',
-  '  w: TBird;',
+  //'  TEagle = TBird<word>;',
+  //'var',
+  //'  b: TBird<word>;',
+  //'  w: TBird;',
   'begin',
-  '  b.v:=w;',
+  //'  b.v:=w;',
   '']);
-  ParseProgram;
+  CheckResolverException('Duplicate identifier "TBird" at afile.pp(5,8)',nDuplicateIdentifier);
 end;
 
 procedure TTestResolveGenerics.TestGen_ClassObjFPC;
@@ -983,7 +981,7 @@ begin
   'implementation',
   'type generic TBird<T,U> = record x: T; y: U; end;',
   '']);
-  ParseUnit;
+  CheckResolverException('Duplicate identifier "TBird" at afile.pp(5,16)',nDuplicateIdentifier);
 end;
 
 procedure TTestResolveGenerics.TestGen_Class_MethodObjFPC;

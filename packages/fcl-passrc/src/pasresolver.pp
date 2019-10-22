@@ -5433,9 +5433,12 @@ function TPasResolver.AddIdentifier(Scope: TPasIdentifierScope;
 
   function SkipGenericTypes(Identifier: TPasIdentifier;
     TypeParamCnt: integer): TPasIdentifier;
+  {$IFDEF EnableGenTypeOverload}
   var
     CurEl: TPasElement;
+  {$ENDIF}
   begin
+    {$IFDEF EnableGenTypeOverload}
     while Identifier<>nil do
       begin
       CurEl:=Identifier.Element;
@@ -5451,6 +5454,9 @@ function TPasResolver.AddIdentifier(Scope: TPasIdentifierScope;
         end;
       Identifier:=Identifier.NextSameIdentifier;
       end;
+    {$ELSE}
+    if TypeParamCnt=0 then ;
+    {$ENDIF}
     Result:=Identifier;
   end;
 
