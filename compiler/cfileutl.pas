@@ -1076,7 +1076,7 @@ end;
          DePascalQuote(currPath);
          { GNU LD convention: if library search path starts with '=', it's relative to the
            sysroot; otherwise, interpret it as a regular path }
-         if currPath[1]='=' then
+         if (length(currPath) >0) and (currPath[1]='=') then
            currPath:=sysroot+FixPath(copy(currPath,2,length(currPath)-1),false)
          else
            currPath:=sysroot+FixPath(currPath,false);
