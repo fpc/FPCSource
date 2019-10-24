@@ -3245,7 +3245,7 @@ implementation
             &331,&332: ;
             &325:
 {$ifdef i8086}
-                inc(len);
+                inc(len)
 {$endif i8086}
               ;
 
