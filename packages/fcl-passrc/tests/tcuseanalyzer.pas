@@ -842,9 +842,9 @@ begin
   StartProgram(false);
   Add([
   'resourcestring',
-  'resourcestring',
   '  {#a_used}a = ''txt'';',
   '  {#b_used}b = ''foo'';',
+  '  {#c_notused}c = ''bar'';',
   'procedure {#DoIt_used}DoIt(s: string);',
   'var',
   '  {#d_used}d: string;',

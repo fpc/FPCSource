@@ -1404,7 +1404,10 @@ begin
       UseVariable(TPasVariable(Decl),rraNone,true);
       end
     else if C=TPasResString then
-      UseResourcestring(TPasResString(Decl))
+      begin
+      if OnlyExports then continue;
+      UseResourcestring(TPasResString(Decl));
+      end
     else if C=TPasAttributes then
       // attributes are never used directly
     else
