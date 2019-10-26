@@ -1679,9 +1679,9 @@ begin
                  'l' :
                    begin
                      if ispara then
-                       ParaLibraryPath.AddPath(sysrootpath,More,false)
+                       ParaLibraryPath.AddLibraryPath(sysrootpath,More,false)
                      else
-                       LibrarySearchPath.AddPath(sysrootpath,More,true)
+                       LibrarySearchPath.AddLibraryPath(sysrootpath,More,true)
                    end;
                  'L' :
                    begin
