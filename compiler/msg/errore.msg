@@ -3834,6 +3834,7 @@ F*0*_Only options valid for the default or selected platform are listed.
 6*2Agas_GNU Motorola assembler
 6*2Amit_MIT Syntax (old GAS)
 6*2Amot_Standard Motorola assembler
+6*2Avasm_Use vasm to assemble
 A*2Aas_Assemble using GNU AS
 P*2Aas_Assemble using GNU AS
 S*2Aas_Assemble using GNU AS
