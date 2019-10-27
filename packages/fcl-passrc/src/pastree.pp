@@ -4092,6 +4092,7 @@ procedure TPasAliasType.ForEachCall(const aMethodCall: TOnForEachPasElement;
 begin
   inherited ForEachCall(aMethodCall, Arg);
   ForEachChildCall(aMethodCall,Arg,DestType,true);
+  ForEachChildCall(aMethodCall,Arg,Expr,false);
 end;
 
 procedure TPasAliasType.ClearTypeReferences(aType: TPasElement);
