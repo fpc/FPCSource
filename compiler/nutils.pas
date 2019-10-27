@@ -790,7 +790,9 @@ implementation
                   if is_implicit_pointer_object_type(tunarynode(p).left.resultdef) or
                     is_bitpacked_access(p) then
                     inc(result,2)
-                  else if tstoreddef(p.resultdef).is_intregable then
+                  { non-packed, int. regable records cause no extra
+                    overhead no overhead if the fields are aligned to register boundaries }
+                  else if tstoreddef(p.resultdef).is_intregable and (tsubscriptnode(p).vs.fieldoffset mod sizeof(aint)<>0) then
                     inc(result,1);
                   if (result = NODE_COMPLEXITY_INF) then
                     exit;
