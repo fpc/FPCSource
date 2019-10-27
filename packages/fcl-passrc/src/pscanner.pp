@@ -81,12 +81,15 @@ const
   nLogMacroXSetToY = 1030;
   nInvalidDispatchFieldName = 1031;
   nErrWrongSwitchToggle = 1032;
+  nNoResourceSupport = 1033;
+  nResourceFileNotFound = 1034;
 
 // resourcestring patterns of messages
 resourcestring
   SErrInvalidCharacter = 'Invalid character ''%s''';
   SErrOpenString = 'string exceeds end of line';
   SErrIncludeFileNotFound = 'Could not find include file ''%s''';
+  SErrResourceFileNotFound = 'Could not find resource file ''%s''';
   SErrIfXXXNestingLimitReached = 'Nesting of $IFxxx too deep';
   SErrInvalidPPElse = '$ELSE without matching $IFxxx';
   SErrInvalidPPEndif = '$ENDIF without matching $IFxxx';
@@ -118,6 +121,7 @@ resourcestring
   SLogMacroXSetToY = 'Macro %s set to %s';
   SInvalidDispatchFieldName = 'Invalid Dispatch field name';
   SErrWrongSwitchToggle = 'Wrong switch toggle, use ON/OFF or +/-';
+  SNoResourceSupport = 'No support for resources of type "%s"';
 
 type
   TMessageType = (
@@ -497,6 +501,7 @@ type
   TBaseFileResolver = class
   private
     FBaseDirectory: string;
+    FResourcePaths,
     FIncludePaths: TStringList;
     FStrictFileCase : Boolean;
   Protected
@@ -504,10 +509,13 @@ type
     procedure SetBaseDirectory(AValue: string); virtual;
     procedure SetStrictFileCase(AValue: Boolean); virtual;
     Property IncludePaths: TStringList Read FIncludePaths;
+    Property ResourcePaths: TStringList Read FResourcePaths;
   public
     constructor Create; virtual;
     destructor Destroy; override;
     procedure AddIncludePath(const APath: string); virtual;
+    procedure AddResourcePath(const APath: string); virtual;
+    function FindResourceFileName(const AName: string): String; virtual; abstract;
     function FindSourceFile(const AName: string): TLineReader; virtual; abstract;
     function FindIncludeFile(const AName: string): TLineReader; virtual; abstract;
     Property StrictFileCase : Boolean Read FStrictFileCase Write SetStrictFileCase;
@@ -524,9 +532,11 @@ type
     FUseStreams: Boolean;
     {$endif}
   Protected
+    function SearchLowUpCase(FN: string): string;
     Function FindIncludeFileName(const AName: string): String; override;
     Function CreateFileReader(Const AFileName : String) : TLineReader; virtual;
   Public
+    function FindResourceFileName(const AName: string): String; override;
     function FindSourceFile(const AName: string): TLineReader; override;
     function FindIncludeFile(const AName: string): TLineReader; override;
     {$ifdef HasStreams}
@@ -678,11 +688,18 @@ type
   TPScannerWarnEvent = procedure(Sender: TObject; Identifier: string; State: TWarnMsgState; var Handled: boolean) of object;
   TPScannerModeDirective = procedure(Sender: TObject; NewMode: TModeSwitch; Before: boolean; var Handled: boolean) of object;
 
+  // aFileName: full filename (search is already done) aOptions: list of name:value pairs.
+  TResourceHandler = Procedure (Sender : TObject; const aFileName : String; aOptions : TStrings) of object;
+
   TPasScannerTokenPos = {$ifdef UsePChar}PChar{$else}integer{$endif};
 
   TPascalScanner = class
   private
     type
+      TResourceHandlerRecord = record
+        Ext : String;
+        Handler : TResourceHandler;
+      end;
       TWarnMsgNumberState = record
         Number: integer;
         State: TWarnMsgState;
@@ -736,6 +753,7 @@ type
     FIncludeStack: TFPList;
     FFiles: TStrings;
     FWarnMsgStates: TWarnMsgNumberStateArr;
+    FResourceHandlers : Array of TResourceHandlerRecord;
 
     // Preprocessor $IFxxx skipping data
     PPSkipMode: TPascalScannerPPSkipMode;
@@ -763,6 +781,9 @@ type
     procedure SetReadOnlyModeSwitches(const AValue: TModeSwitches);
     procedure SetReadOnlyValueSwitches(const AValue: TValueSwitches);
   protected
+    // extension without initial dot (.)
+    Function IndexOfResourceHandler(Const aExt : string) : Integer;
+    Function FindResourceHandler(Const aExt : string) : TResourceHandler;
     function ReadIdentifier(const AParam: string): string;
     function FetchLine: boolean;
     procedure AddFile(aFilename: string); virtual;
@@ -790,7 +811,10 @@ type
     procedure HandleError(Param: String); virtual;
     procedure HandleMessageDirective(Param: String); virtual;
     procedure HandleIncludeFile(Param: String); virtual;
+    procedure HandleResource(Param : string); virtual;
+
     procedure HandleUnDefine(Param: String); virtual;
+
     function HandleInclude(const Param: String): TToken; virtual;
     procedure HandleMode(const Param: String); virtual;
     procedure HandleModeSwitch(const Param: String); virtual;
@@ -815,6 +839,9 @@ type
   public
     constructor Create(AFileResolver: TBaseFileResolver);
     destructor Destroy; override;
+    // extension without initial dot  (.), case insensitive
+    Procedure RegisterResourceHandler(aExtension : String; aHandler : TResourceHandler); overload;
+    Procedure RegisterResourceHandler(aExtensions : Array of String; aHandler : TResourceHandler); overload;
     procedure OpenFile(AFilename: string);
     procedure FinishedModule; virtual; // called by parser after end.
     function FormatPath(const aFilename: string): string; virtual;
@@ -2428,10 +2455,12 @@ constructor TBaseFileResolver.Create;
 begin
   inherited Create;
   FIncludePaths := TStringList.Create;
+  FResourcePaths := TStringList.Create;
 end;
 
 destructor TBaseFileResolver.Destroy;
 begin
+  FResourcePaths.Free;
   FIncludePaths.Free;
   inherited Destroy;
 end;
@@ -2455,35 +2484,56 @@ begin
     end;
 end;
 
+procedure TBaseFileResolver.AddResourcePath(const APath: string);
+Var
+  FP : String;
+
+begin
+  if (APath='') then
+    FResourcePaths.Add('./')
+  else
+    begin
+{$IFDEF HASFS}
+    FP:=IncludeTrailingPathDelimiter(ExpandFileName(APath));
+{$ELSE}
+    FP:=APath;
+{$ENDIF}
+    FResourcePaths.Add(FP);
+    end;
+end;
+
+
 {$IFDEF HASFS}
 
 { ---------------------------------------------------------------------
   TFileResolver
   ---------------------------------------------------------------------}
 
+
+function TFileResolver.SearchLowUpCase(FN: string): string;
+
+var
+  Dir: String;
+
+begin
+  If FileExists(FN) then
+    Result:=FN
+  else if StrictFileCase then
+    Result:=''
+  else
+    begin
+    Dir:=ExtractFilePath(FN);
+    FN:=ExtractFileName(FN);
+    Result:=Dir+LowerCase(FN);
+    If FileExists(Result) then exit;
+    Result:=Dir+uppercase(Fn);
+    If FileExists(Result) then exit;
+    Result:='';
+    end;
+end;
+
 function TFileResolver.FindIncludeFileName(const AName: string): String;
 
-  function SearchLowUpCase(FN: string): string;
-
-  var
-    Dir: String;
-
-  begin
-    If FileExists(FN) then
-      Result:=FN
-    else if StrictFileCase then
-      Result:=''
-    else
-      begin
-      Dir:=ExtractFilePath(FN);
-      FN:=ExtractFileName(FN);
-      Result:=Dir+LowerCase(FN);
-      If FileExists(Result) then exit;
-      Result:=Dir+uppercase(Fn);
-      If FileExists(Result) then exit;
-      Result:='';
-      end;
-  end;
 
   Function FindInPath(FN : String) : String;
 
@@ -2551,6 +2601,45 @@ begin
   else
   {$endif}
     Result:=TFileLineReader.Create(AFileName);
+end;
+
+function TFileResolver.FindResourceFileName(const AName: string): String;
+
+  Function FindInPath(FN : String) : String;
+
+  var
+    I : integer;
+
+  begin
+    Result:='';
+    I:=0;
+    While (Result='') and (I<FResourcePaths.Count) do
+      begin
+      Result:=SearchLowUpCase(FResourcePaths[i]+FN);
+      Inc(I);
+      end;
+    // search in BaseDirectory
+    if (Result='') and (BaseDirectory<>'') then
+      Result:=SearchLowUpCase(BaseDirectory+FN);
+  end;
+
+var
+  FN : string;
+
+begin
+  Result := '';
+  // convert pathdelims to system
+  FN:=SetDirSeparators(AName);
+  If FilenameIsAbsolute(FN) then
+    begin
+    Result := SearchLowUpCase(FN);
+    end
+  else
+    begin
+    // file name is relative
+    // search in include path
+    Result:=FindInPath(FN);
+    end;
 end;
 
 function TFileResolver.FindSourceFile(const AName: string): TLineReader;
@@ -2737,6 +2826,36 @@ begin
   FreeAndNil(FFiles);
   FreeAndNil(FIncludeStack);
   inherited Destroy;
+end;
+
+procedure TPascalScanner.RegisterResourceHandler(aExtension: String; aHandler: TResourceHandler);
+
+Var
+  Idx: Integer;
+
+begin
+  if (aExtension='') then
+    exit;
+  if (aExtension[1]='.') then
+    aExtension:=copy(aExtension,2,Length(aExtension)-1);
+  Idx:=IndexOfResourceHandler(lowerCase(aExtension));
+  if Idx=-1 then
+    begin
+    Idx:=Length(FResourceHandlers);
+    SetLength(FResourceHandlers,Idx+1);
+    FResourceHandlers[Idx].Ext:=LowerCase(aExtension);
+    end;
+  FResourceHandlers[Idx].handler:=aHandler;
+end;
+
+procedure TPascalScanner.RegisterResourceHandler(aExtensions: array of String; aHandler: TResourceHandler);
+
+Var
+  S : String;
+
+begin
+  For S in aExtensions do
+    RegisterResourceHandler(S,aHandler);
 end;
 
 procedure TPascalScanner.ClearFiles;
@@ -3213,6 +3332,53 @@ begin
   AddFile(FCurFilename);
   If LogEvent(sleFile) then
     DoLog(mtInfo,nLogOpeningFile,SLogOpeningFile,[FormatPath(FCurFileName)],True);
+end;
+
+procedure TPascalScanner.HandleResource(Param: string);
+
+Var
+  Ext,aFullFileName,aFilename,aOptions : String;
+  P: Integer;
+  H : TResourceHandler;
+  OptList : TStrings;
+
+begin
+  aFilename:='';
+  aOptions:='';
+  P:=Pos(';',Param);
+  If P=0 then
+    aFileName:=Trim(Param)
+  else
+    begin
+    aFileName:=Trim(Copy(Param,1,P-1));
+    aOptions:=Copy(Param,P+1,Length(Param)-P);
+    end;
+  Ext:=ExtractFileExt(aFileName);
+  // Construct & find filename
+  If (ChangeFileExt(aFileName,'')='*') then
+    aFileName:=ChangeFileExt(ExtractFileName(CurFilename),Ext);
+  aFullFileName:=FileResolver.FindResourceFileName(aFileName);
+  if aFullFileName='' then
+    Error(nResourceFileNotFound,SErrResourceFileNotFound,[aFileName]);
+  // Check if we can find a handler.
+  if Ext<>'' then
+    Ext:=Copy(Ext,2,Length(Ext)-1);
+  H:=FindResourceHandler(LowerCase(Ext));
+  if (H=Nil) then
+    H:=FindResourceHandler('*');
+  if (H=Nil) then
+    Error(nNoResourceSupport,SNoResourceSupport,[Ext]);
+  // Let the handler take care of the rest.
+  OptList:=TStringList.Create;
+  try
+    OptList.NameValueSeparator:=':';
+    OptList.Delimiter:=';';
+    OptList.StrictDelimiter:=True;
+    OptList.DelimitedText:=aOptions;
+    H(Self,aFullFileName,OptList);
+  finally
+    OptList.Free;
+  end;
 end;
 
 function TPascalScanner.HandleMacro(AIndex : integer) : TToken;
@@ -3828,6 +3994,8 @@ begin
           DoBoolDirective(bsOverflowChecks);
         'POINTERMATH':
           DoBoolDirective(bsPointerMath);
+        'R' :
+          HandleResource(Param);
         'RANGECHECKS':
           DoBoolDirective(bsRangeChecks);
         'SCOPEDENUMS':
@@ -4834,6 +5002,27 @@ procedure TPascalScanner.SetReadOnlyValueSwitches(const AValue: TValueSwitches);
 begin
   if FReadOnlyValueSwitches=AValue then Exit;
   FReadOnlyValueSwitches:=AValue;
+end;
+
+function TPascalScanner.IndexOfResourceHandler(const aExt: string): Integer;
+
+begin
+  Result:=Length(FResourceHandlers)-1;
+  While (Result>=0) and (FResourceHandlers[Result].Ext<>aExt) do
+    Dec(Result);
+end;
+
+function TPascalScanner.FindResourceHandler(const aExt: string): TResourceHandler;
+
+Var
+  Idx : Integer;
+
+begin
+  Idx:=IndexOfResourceHandler(aExt);
+  if Idx=-1 then
+    Result:=Nil
+  else
+    Result:=FResourceHandlers[Idx].handler;
 end;
 
 function TPascalScanner.ReadIdentifier(const AParam: string): string;
