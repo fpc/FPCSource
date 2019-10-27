@@ -777,7 +777,8 @@ implementation
                   if (tloadnode(p).symtableentry.typ=staticvarsym) and
                      (vo_is_thread_var in tstaticvarsym(tloadnode(p).symtableentry).varoptions) then
                     inc(result,5)
-                  else
+                  else if not((tloadnode(p).symtableentry.typ in [staticvarsym,localvarsym,paravarsym,fieldvarsym]) and
+                    (tabstractvarsym(tloadnode(p).symtableentry).varregable in [vr_intreg,vr_mmreg,vr_fpureg])) then
                     inc(result);
                   if (tloadnode(p).symtableentry.typ=paravarsym) and tloadnode(p).is_addr_param_load then
                     inc(result);
