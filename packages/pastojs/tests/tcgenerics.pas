@@ -24,6 +24,7 @@ type
     Procedure TestGen_ClassEmpty;
     Procedure TestGen_Class_EmptyMethod;
     Procedure TestGen_Class_TList;
+    Procedure TestGen_Class_TCustomList;
     Procedure TestGen_ClassAncestor;
     Procedure TestGen_Class_TypeInfo;
     Procedure TestGen_Class_TypeOverload; // ToDo TBird, TBird<T>, TBird<S,T>
@@ -286,6 +287,62 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.l.SetItems(1, $mod.w);',
     '$mod.w = $mod.l.GetItems(2);',
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_Class_TCustomList;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TCustomList<T> = class',
+  '  public',
+  '    function PrepareAddingItem: word; virtual;',
+  '  end;',
+  '  TList<T> = class(TCustomList<T>)',
+  '  public',
+  '    function Add: word;',
+  '  end;',
+  '  TWordList = TList<word>;',
+  'function TCustomList<T>.PrepareAddingItem: word;',
+  'begin',
+  'end;',
+  'function TList<T>.Add: word;',
+  'begin',
+  '  Result:=PrepareAddingItem;',
+  //'  Result:=Self.PrepareAddingItem;',
+  //'  with Self do Result:=PrepareAddingItem;',
+  'end;',
+  'var l: TWordList;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_Class_TCustomList',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TCustomList$G2", $mod.TObject, function () {',
+    '  this.PrepareAddingItem = function () {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TList$G1", $mod.TCustomList$G2, function () {',
+    '  this.Add = function () {',
+    '    var Result = 0;',
+    '    Result = this.PrepareAddingItem();',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.l = null;',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
@@ -1030,15 +1087,9 @@ end;
 procedure TTestGenerics.TestGenProc_TypeInfo;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
-  StartProgram(false);
+  StartProgram(true,[supTypeInfo]);
   Add([
-  '{$modeswitch externalclass}',
   '{$modeswitch implicitfunctionspecialization}',
-  'type',
-  '  TTypeInfo = class external name ''rtl.tTypeInfo''',
-  '  end;',
-  '  TTypeInfoInteger = class external name ''rtl.tTypeInfoInteger''(TTypeInfo)',
-  '  end;',
   'generic procedure Run<S>(a: S);',
   'var',
   '  p: TTypeInfo;',

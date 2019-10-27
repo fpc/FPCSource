@@ -51,7 +51,8 @@ type
 
   TSystemUnitPart = (
     supTObject,
-    supTVarRec
+    supTVarRec,
+    supTypeInfo
     );
   TSystemUnitParts = set of TSystemUnitPart;
 
@@ -816,6 +817,7 @@ type
     Procedure TestRTTI_Interface_Corba;
     Procedure TestRTTI_Interface_COM;
     Procedure TestRTTI_ClassHelper;
+    Procedure TestRTTI_ExternalClass;
 
     // Resourcestring
     Procedure TestResourcestringProgram;
@@ -1557,7 +1559,7 @@ var
 begin
   Intf:=TStringList.Create;
   // interface
-  if supTVarRec in Parts then
+  if [supTVarRec,supTypeInfo]*Parts<>[] then
     Intf.Add('{$modeswitch externalclass}');
   Intf.Add('type');
   Intf.Add('  integer=longint;');
@@ -1603,6 +1605,28 @@ begin
     '  TVarRecArray = array of TVarRec;',
     'function VarRecs: TVarRecArray; varargs;',
     '']);
+  if supTypeInfo in Parts then
+    begin
+    Intf.AddStrings([
+    'type',
+    '  TTypeInfo = class external name ''rtl.tTypeInfo'' end;',
+    '  TTypeInfoInteger = class external name ''rtl.tTypeInfoInteger''(TTypeInfo)',
+    '  end;',
+    '  TTypeInfoEnum = class external name ''rtl.tTypeInfoEnum''(TTypeInfoInteger) end;',
+    '  TTypeInfoSet = class external name ''rtl.tTypeInfoSet''(TTypeInfo) end;',
+    '  TTypeInfoStaticArray = class external name ''rtl.tTypeInfoStaticArray''(TTypeInfo) end;',
+    '  TTypeInfoDynArray = class external name ''rtl.tTypeInfoDynArray''(TTypeInfo) end;',
+    '  TTypeInfoProcVar = class external name ''rtl.tTypeInfoProcVar''(TTypeInfo) end;',
+    '  TTypeInfoMethodVar = class external name ''rtl.tTypeInfoMethodVar''(TTypeInfoProcVar) end;',
+    '  TTypeInfoClass = class external name ''rtl.tTypeInfoClass''(TTypeInfo) end;',
+    '  TTypeInfoClassRef = class external name ''rtl.tTypeInfoClassRef''(TTypeInfo) end;',
+    '  TTypeInfoExtClass = class external name ''rtl.tTypeInfoExtClass''(TTypeInfo) end;',
+    '  TTypeInfoRecord = class external name ''rtl.tTypeInfoRecord''(TTypeInfo) end;',
+    '  TTypeInfoPointer = class external name ''rtl.tTypeInfoPointer''(TTypeInfo) end;',
+    '  TTypeInfoHelper = class external name ''rtl.tTypeInfoHelper''(TTypeInfo) end;',
+    '  TTypeInfoInterface = class external name ''rtl.tTypeInfoInterface''(TTypeInfo) end;',
+    '']);
+    end;
   Intf.Add('var');
   Intf.Add('  ExitCode: Longint = 0;');
 
@@ -27286,14 +27310,10 @@ end;
 procedure TTestModule.TestRTTI_IntRange;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
-  StartProgram(false);
+  StartProgram(true,[supTypeInfo]);
   Add([
   '{$modeswitch externalclass}',
   'type',
-  '  TTypeInfo = class external name ''rtl.tTypeInfo''',
-  '  end;',
-  '  TTypeInfoInteger = class external name ''rtl.tTypeInfoInteger''(TTypeInfo)',
-  '  end;',
   '  TGraphicsColor = -$7FFFFFFF-1..$7FFFFFFF;',
   '  TColor = type TGraphicsColor;',
   'var',
@@ -27322,12 +27342,10 @@ end;
 procedure TTestModule.TestRTTI_Double;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
-  StartProgram(false);
+  StartProgram(true,[supTypeInfo]);
   Add([
   '{$modeswitch externalclass}',
   'type',
-  '  TTypeInfo = class external name ''rtl.tTypeInfo''',
-  '  end;',
   '  TFloat = type double;',
   'var',
   '  p: TTypeInfo;',
@@ -29032,16 +29050,12 @@ end;
 procedure TTestModule.TestRTTI_TypeInfo_ExtTypeInfoClasses1;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
-  StartProgram(false);
+  StartProgram(true,[supTypeInfo]);
   Add([
   '{$modeswitch externalclass}',
   'type',
-  '  TTypeInfo = class external name ''rtl.tTypeInfo'' end;',
-  '  TTypeInfoInteger = class external name ''rtl.tTypeInfoInteger''(TTypeInfo) end;',
   '  TFlag = (up,down);',
-  '  TTypeInfoEnum = class external name ''rtl.tTypeInfoEnum''(TTypeInfoInteger) end;',
   '  TFlags = set of TFlag;',
-  '  TTypeInfoSet = class external name ''rtl.tTypeInfoSet''(TTypeInfo) end;',
   'var',
   '  ti: TTypeInfo;',
   '  tiInt: TTypeInfoInteger;',
@@ -29104,18 +29118,13 @@ end;
 procedure TTestModule.TestRTTI_TypeInfo_ExtTypeInfoClasses2;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
-  StartProgram(false);
+  StartProgram(true,[supTypeInfo]);
   Add('{$modeswitch externalclass}');
   Add('type');
-  Add('  TTypeInfo = class external name ''rtl.tTypeInfo'' end;');
   Add('  TStaticArr = array[boolean] of string;');
-  Add('  TTypeInfoStaticArray = class external name ''rtl.tTypeInfoStaticArray''(TTypeInfo) end;');
   Add('  TDynArr = array of string;');
-  Add('  TTypeInfoDynArray = class external name ''rtl.tTypeInfoDynArray''(TTypeInfo) end;');
   Add('  TProc = procedure;');
-  Add('  TTypeInfoProcVar = class external name ''rtl.tTypeInfoProcVar''(TTypeInfo) end;');
   Add('  TMethod = procedure of object;');
-  Add('  TTypeInfoMethodVar = class external name ''rtl.tTypeInfoMethodVar''(TTypeInfoProcVar) end;');
   Add('var');
   Add('  StaticArray: TStaticArr;');
   Add('  tiStaticArray: TTypeInfoStaticArray;');
@@ -29175,18 +29184,13 @@ end;
 procedure TTestModule.TestRTTI_TypeInfo_ExtTypeInfoClasses3;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
-  StartProgram(false);
+  StartProgram(true,[supTypeInfo]);
   Add('{$modeswitch externalclass}');
   Add('type');
-  Add('  TTypeInfo = class external name ''rtl.tTypeInfo'' end;');
   Add('  TRec = record end;');
-  Add('  TTypeInfoRecord = class external name ''rtl.tTypeInfoRecord''(TTypeInfo) end;');
   // ToDo: ^PRec
   Add('  TObject = class end;');
-  Add('  TTypeInfoClass = class external name ''rtl.tTypeInfoClass''(TTypeInfo) end;');
   Add('  TClass = class of tobject;');
-  Add('  TTypeInfoClassRef = class external name ''rtl.tTypeInfoClassRef''(TTypeInfo) end;');
-  Add('  TTypeInfoPointer = class external name ''rtl.tTypeInfoPointer''(TTypeInfo) end;');
   Add('var');
   Add('  Rec: trec;');
   Add('  tiRecord: ttypeinforecord;');
@@ -29245,7 +29249,7 @@ end;
 procedure TTestModule.TestRTTI_TypeInfo_FunctionClassType;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
-  StartProgram(false);
+  StartProgram(true,[supTypeInfo]);
   Add([
   '{$modeswitch externalclass}',
   'type',
@@ -29254,8 +29258,6 @@ begin
   '    function MyClass: TClass;',
   '    class function ClassType: TClass;',
   '  end;',
-  '  TTypeInfo = class external name ''rtl.tTypeInfo'' end;',
-  '  TTypeInfoClass = class external name ''rtl.tTypeInfoClass''(TTypeInfo) end;',
   'function TObject.MyClass: TClass;',
   'var t: TTypeInfoClass;',
   'begin',
@@ -29398,7 +29400,7 @@ end;
 procedure TTestModule.TestRTTI_Interface_Corba;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
-  StartProgram(false);
+  StartProgram(true,[supTypeInfo]);
   Add([
   '{$interfaces corba}',
   '{$modeswitch externalclass}',
@@ -29410,8 +29412,6 @@ begin
   '    procedure SetItem(Value: longint);',
   '    property Item: longint read GetItem write SetItem;',
   '  end;',
-  '  TTypeInfo = class external name ''rtl.tTypeInfo'' end;',
-  '  TTypeInfoInterface = class external name ''rtl.tTypeInfoInterface''(TTypeInfo) end;',
   'procedure DoIt(t: TTypeInfoInterface); begin end;',
   'var',
   '  i: IBird;',
@@ -29463,7 +29463,7 @@ end;
 procedure TTestModule.TestRTTI_Interface_COM;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
-  StartProgram(false);
+  StartProgram(true,[supTypeInfo]);
   Add([
   '{$interfaces com}',
   '{$modeswitch externalclass}',
@@ -29480,8 +29480,6 @@ begin
   '    procedure SetItem(Value: longint);',
   '    property Item: longint read GetItem write SetItem;',
   '  end;',
-  '  TTypeInfo = class external name ''rtl.tTypeInfo'' end;',
-  '  TTypeInfoInterface = class external name ''rtl.tTypeInfoInterface''(TTypeInfo) end;',
   'var',
   '  i: IBird;',
   '  t: TTypeInfoInterface;',
@@ -29540,7 +29538,7 @@ end;
 procedure TTestModule.TestRTTI_ClassHelper;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
-  StartProgram(false);
+  StartProgram(true,[supTypeInfo]);
   Add([
   '{$interfaces com}',
   '{$modeswitch externalclass}',
@@ -29552,8 +29550,6 @@ begin
   '    function GetItem: longint;',
   '    property Item: longint read GetItem;',
   '  end;',
-  '  TTypeInfo = class external name ''rtl.tTypeInfo'' end;',
-  '  TTypeInfoHelper = class external name ''rtl.tTypeInfoHelper''(TTypeInfo) end;',
   'function THelper.GetItem: longint;',
   'begin',
   'end;',
@@ -29584,6 +29580,40 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '$mod.t = $mod.$rtti["THelper"];',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_ExternalClass;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(true,[supTypeInfo]);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSObject = class external name ''Object''',
+  '  end;',
+  '  TJSArray = class external name ''Array'' (TJSObject)',
+  '  end;',
+  'var',
+  '  p: Pointer;',
+  '  tc: TTypeInfoExtClass;',
+  'begin',
+  '  p:=typeinfo(TJSArray);']);
+  ConvertProgram;
+  CheckSource('TestRTTI_ExternalClass',
+    LinesToStr([ // statements
+    '$mod.$rtti.$ExtClass("TJSObject", {',
+    '  jsclass: "Object"',
+    '});',
+    '$mod.$rtti.$ExtClass("TJSArray", {',
+    '  ancestor: $mod.$rtti["TJSObject"],',
+    '  jsclass: "Array"',
+    '});',
+    'this.p = null;',
+    'this.tc = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.$rtti["TJSArray"];',
     '']));
 end;
 
@@ -29880,7 +29910,6 @@ begin
   'constructor THelper.Create(Id: word); begin end;',
   'begin',
   '  if typeinfo(TMyInt)=nil then ;']);
-  //SetExpectedConverterError('aaa',123);
   ConvertProgram;
 end;
 
