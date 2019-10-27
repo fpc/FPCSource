@@ -1405,6 +1405,7 @@ type
     Found: TPasElement;
     ElScope: TPasScope; // Where Found was found
     StartScope: TPasScope; // where the search started
+    SkipGenerics: boolean;
   end;
   PPRFindData = ^TPRFindData;
 
@@ -2047,9 +2048,9 @@ type
     function FindElement(const aName: String): TPasElement; override;  // used by TPasParser
     function FindElementFor(const aName: String; AParent: TPasElement; TypeParamCount: integer): TPasElement; override; // used by TPasParser
     function FindElementWithoutParams(const AName: String; ErrorPosEl: TPasElement;
-      NoProcsWithArgs: boolean): TPasElement;
+      NoProcsWithArgs, NoGenerics: boolean): TPasElement;
     function FindElementWithoutParams(const AName: String; out Data: TPRFindData;
-      ErrorPosEl: TPasElement; NoProcsWithArgs: boolean): TPasElement;
+      ErrorPosEl: TPasElement; NoProcsWithArgs, NoGenerics: boolean): TPasElement;
     function FindFirstEl(const AName: String; out Data: TPRFindData;
       ErrorPosEl: TPasElement): TPasElement;
     procedure FindLongestUnitName(var El: TPasElement; Expr: TPasExpr);
@@ -4757,12 +4758,31 @@ procedure TPasResolver.OnFindFirst_PreferNoParams(El: TPasElement; ElScope,
 var
   Data: PPRFindData absolute FindFirstElementData;
   ok: Boolean;
+  Proc: TPasProcedure;
+  Templates: TFPList;
 begin
   ok:=true;
-  if (El is TPasProcedure)
-      and ProcNeedsParams(TPasProcedure(El).ProcType) then
-    // found a proc, but it needs parameters -> remember the first and continue
-    ok:=false;
+  if (El is TPasProcedure) then
+    begin
+    Proc:=TPasProcedure(El);
+    if Data^.SkipGenerics then
+      begin
+      Templates:=GetProcTemplateTypes(Proc);
+      if (Templates<>nil) and (Templates.Count>0) then
+        ok:=false;
+      end;
+    if ok and ProcNeedsParams(Proc.ProcType) then
+      // found a proc, but it needs parameters -> remember the first and continue
+      ok:=false;
+    end
+  else if Data^.SkipGenerics then
+    begin
+    if El is TPasGenericType then
+      begin
+      if GetTypeParameterCount(TPasGenericType(El))>0 then
+        ok:=false;
+      end;
+    end;
   if ok or (Data^.Found=nil) then
     begin
     Data^.Found:=El;
@@ -5433,12 +5453,9 @@ function TPasResolver.AddIdentifier(Scope: TPasIdentifierScope;
 
   function SkipGenericTypes(Identifier: TPasIdentifier;
     TypeParamCnt: integer): TPasIdentifier;
-  {$IFDEF EnableGenTypeOverload}
   var
     CurEl: TPasElement;
-  {$ENDIF}
   begin
-    {$IFDEF EnableGenTypeOverload}
     while Identifier<>nil do
       begin
       CurEl:=Identifier.Element;
@@ -5454,9 +5471,6 @@ function TPasResolver.AddIdentifier(Scope: TPasIdentifierScope;
         end;
       Identifier:=Identifier.NextSameIdentifier;
       end;
-    {$ELSE}
-    if TypeParamCnt=0 then ;
-    {$ENDIF}
     Result:=Identifier;
   end;
 
@@ -8385,7 +8399,7 @@ var
       if IsDefaultAncestor(aClass,DefAncestorName) then exit;
       RaiseXExpectedButYFound(20190106132328,'top level '+DefAncestorName,'nested '+aClass.Name,aClass);
       end;
-    CurEl:=FindElementWithoutParams(DefAncestorName,aClass,false);
+    CurEl:=FindElementWithoutParams(DefAncestorName,aClass,false,true);
     if not (CurEl is TPasType) then
       RaiseXExpectedButYFound(20180321150128,Expected,GetElementTypeName(CurEl),aClass);
     DirectAncestor:=TPasType(CurEl);
@@ -8946,7 +8960,7 @@ begin
       begin
       // attribute without params
       // -> resolve call 'Create'
-      DeclEl:=FindElementWithoutParams('Create',Data,NameExpr,false);
+      DeclEl:=FindElementWithoutParams('Create',Data,NameExpr,false,true);
       if DeclEl=nil then
         RaiseIdentifierNotFound(20190221144516,'Create',NameExpr);
       // check call is constructor
@@ -9996,7 +10010,7 @@ begin
       RaiseXExpectedButYFound(20190916160829,'generic type',GetElementTypeName(DeclEl),El);
     end
   else
-    DeclEl:=FindElementWithoutParams(aName,FindData,El,false);
+    DeclEl:=FindElementWithoutParams(aName,FindData,El,false,false);
 
   if DeclEl.ClassType=TPasUsesUnit then
     begin
@@ -10980,7 +10994,7 @@ begin
   else
     RaiseNotYetImplemented(20190131154557,NameExpr);
 
-  DeclEl:=FindElementWithoutParams(ArrayName,FindData,NameExpr,true);
+  DeclEl:=FindElementWithoutParams(ArrayName,FindData,NameExpr,true,true);
   Ref:=CreateReference(DeclEl,NameExpr,Access,@FindData);
   CheckFoundElement(FindData,Ref);
   if DeclEl is TPasProcedure then
@@ -20548,7 +20562,7 @@ begin
         RaiseInternalError(20190801104033); // caller forgot to handle "With"
       end
     else
-      NextEl:=FindElementWithoutParams(CurName,ErrorEl,true);
+      NextEl:=FindElementWithoutParams(CurName,ErrorEl,true,true);
     {$IFDEF VerbosePasResolver}
     //if RightPath<>'' then
     //  writeln('TPasResolver.FindElement searching scope "',CurName,'" RightPath="',RightPath,'" ... NextEl=',GetObjName(NextEl));
@@ -20623,11 +20637,11 @@ begin
 end;
 
 function TPasResolver.FindElementWithoutParams(const AName: String;
-  ErrorPosEl: TPasElement; NoProcsWithArgs: boolean): TPasElement;
+  ErrorPosEl: TPasElement; NoProcsWithArgs, NoGenerics: boolean): TPasElement;
 var
   Data: TPRFindData;
 begin
-  Result:=FindElementWithoutParams(AName,Data,ErrorPosEl,NoProcsWithArgs);
+  Result:=FindElementWithoutParams(AName,Data,ErrorPosEl,NoProcsWithArgs,NoGenerics);
   if Data.Found=nil then exit; // forward type: class-of or ^
   CheckFoundElement(Data,nil);
   if (Data.StartScope<>nil) and (Data.StartScope.ClassType=ScopeClass_WithExpr)
@@ -20636,8 +20650,8 @@ begin
 end;
 
 function TPasResolver.FindElementWithoutParams(const AName: String; out
-  Data: TPRFindData; ErrorPosEl: TPasElement; NoProcsWithArgs: boolean
-  ): TPasElement;
+  Data: TPRFindData; ErrorPosEl: TPasElement; NoProcsWithArgs,
+  NoGenerics: boolean): TPasElement;
 var
   Abort: boolean;
 begin
@@ -20646,6 +20660,7 @@ begin
   Abort:=false;
   Data:=Default(TPRFindData);
   Data.ErrorPosEl:=ErrorPosEl;
+  Data.SkipGenerics:=NoGenerics;
   IterateElements(AName,@OnFindFirst_PreferNoParams,@Data,Abort);
   Result:=Data.Found;
   if Result=nil then

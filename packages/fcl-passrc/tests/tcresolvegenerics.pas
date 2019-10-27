@@ -58,9 +58,10 @@ type
     // generic class
     procedure TestGen_Class;
     procedure TestGen_ClassDelphi;
-    procedure TestGen_ClassDelphi_TypeOverload; // ToDo: type overload
+    procedure TestGen_ClassDelphi_TypeOverload;
     procedure TestGen_ClassObjFPC;
     procedure TestGen_ClassObjFPC_OverloadFail;
+    procedure TestGen_ClassObjFPC_OverloadOtherUnit;
     procedure TestGen_ClassForward;
     procedure TestGen_ClassForwardConstraints;
     procedure TestGen_ClassForwardConstraintNameMismatch;
@@ -68,7 +69,7 @@ type
     procedure TestGen_ClassForwardConstraintTypeMismatch;
     procedure TestGen_ClassForward_Circle;
     procedure TestGen_Class_RedeclareInUnitImplFail;
-    procedure TestGen_Class_AnotherInUnitImpl; // ToDo: type overload
+    procedure TestGen_Class_TypeOverloadInUnitImpl;
     procedure TestGen_Class_MethodObjFPC;
     procedure TestGen_Class_MethodOverride;
     procedure TestGen_Class_MethodDelphi;
@@ -768,18 +769,18 @@ begin
   '{$mode delphi}',
   'type',
   '  TObject = class end;',
-  '  TBird = word;',
-  '  TBird<T> = class',
+  '  {#a}TBird = word;',
+  '  {#b}TBird<T> = class',
   '    v: T;',
   '  end;',
-  //'  TEagle = TBird<word>;',
-  //'var',
-  //'  b: TBird<word>;',
-  //'  w: TBird;',
+  '  {=b}TEagle = TBird<word>;',
+  'var',
+  '  b: {@b}TBird<word>;',
+  '  {=a}w: TBird;',
   'begin',
-  //'  b.v:=w;',
+  '  b.v:=w;',
   '']);
-  CheckResolverException('Duplicate identifier "TBird" at afile.pp(5,8)',nDuplicateIdentifier);
+  ParseProgram;
 end;
 
 procedure TTestResolveGenerics.TestGen_ClassObjFPC;
@@ -814,6 +815,41 @@ begin
   'begin',
   '']);
   CheckResolverException('Duplicate identifier "TBird" at afile.pp(5,8)',nDuplicateIdentifier);
+end;
+
+procedure TTestResolveGenerics.TestGen_ClassObjFPC_OverloadOtherUnit;
+begin
+  AddModuleWithIntfImplSrc('unit1.pas',
+    LinesToStr([
+    'type',
+    '  TBird = class b1: word; end;',
+    '  generic TAnt<T> = class a1: T; end;',
+    '']),
+    LinesToStr([
+    '']));
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'type',
+    '  generic TBird<T> = class b2:T; end;',
+    '  TAnt = class a2:word; end;',
+    '']),
+    LinesToStr([
+    '']));
+  StartProgram(true,[supTObject]);
+  Add([
+  'uses unit1, unit2;',
+  'var',
+  '  b1: TBird;',
+  '  b2: specialize TBird<word>;',
+  '  a1: specialize TAnt<word>;',
+  '  a2: TAnt;',
+  'begin',
+  '  b1.b1:=1;',
+  '  b2.b2:=2;',
+  '  a1.a1:=3;',
+  '  a2.a2:=4;',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolveGenerics.TestGen_ClassForward;
@@ -970,7 +1006,7 @@ begin
     nDuplicateIdentifier);
 end;
 
-procedure TTestResolveGenerics.TestGen_Class_AnotherInUnitImpl;
+procedure TTestResolveGenerics.TestGen_Class_TypeOverloadInUnitImpl;
 begin
   StartUnit(false);
   Add([
@@ -981,7 +1017,7 @@ begin
   'implementation',
   'type generic TBird<T,U> = record x: T; y: U; end;',
   '']);
-  CheckResolverException('Duplicate identifier "TBird" at afile.pp(5,16)',nDuplicateIdentifier);
+  ParseUnit;
 end;
 
 procedure TTestResolveGenerics.TestGen_Class_MethodObjFPC;
@@ -995,8 +1031,16 @@ begin
   '  generic TBird<{#Templ}T> = class',
   '    function Fly(p:T): T; virtual; abstract;',
   '    function Run(p:T): T;',
+  '    procedure Jump(p:T);',
+  '    class procedure Go(p:T);',
   '  end;',
   'function TBird.Run(p:T): T;',
+  'begin',
+  'end;',
+  'generic procedure TBird<T>.Jump(p:T);',
+  'begin',
+  'end;',
+  'generic class procedure TBird<T>.Go(p:T);',
   'begin',
   'end;',
   'var',

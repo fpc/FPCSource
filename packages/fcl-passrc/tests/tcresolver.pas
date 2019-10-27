@@ -1462,7 +1462,9 @@ var
         if El.CustomData is TResolvedReference then
           Ref:=TResolvedReference(El.CustomData).Declaration
         else if El.CustomData is TPasPropertyScope then
-          Ref:=TPasPropertyScope(El.CustomData).AncestorProp;
+          Ref:=TPasPropertyScope(El.CustomData).AncestorProp
+        else if El.CustomData is TPasSpecializeTypeData then
+          Ref:=TPasSpecializeTypeData(El.CustomData).SpecializedType;
         if Ref<>nil then
           for j:=0 to LabelElements.Count-1 do
             begin
@@ -1478,11 +1480,17 @@ var
         El:=TPasElement(ReferenceElements[i]);
         write('Reference candidate for "',aMarker^.Identifier,'" at reference ',aMarker^.Filename,'(',aMarker^.Row,',',aMarker^.StartCol,'-',aMarker^.EndCol,')');
         write(' El=',GetObjName(El));
+        if EL is TPrimitiveExpr then
+          begin
+           writeln('CheckResolverReference ',TPrimitiveExpr(El).Value);
+          end;
         Ref:=nil;
         if El.CustomData is TResolvedReference then
           Ref:=TResolvedReference(El.CustomData).Declaration
         else if El.CustomData is TPasPropertyScope then
-          Ref:=TPasPropertyScope(El.CustomData).AncestorProp;
+          Ref:=TPasPropertyScope(El.CustomData).AncestorProp
+        else if El.CustomData is TPasSpecializeTypeData then
+          Ref:=TPasSpecializeTypeData(El.CustomData).SpecializedType;
         if Ref<>nil then
           begin
           write(' Decl=',GetObjName(Ref));
@@ -1490,7 +1498,7 @@ var
           write(',',Ref.SourceFilename,'(',aLine,',',aCol,')');
           end
         else
-          write(' has no TResolvedReference');
+          write(' has no TResolvedReference. El.CustomData=',GetObjName(El.CustomData));
         writeln;
         end;
       for i:=0 to LabelElements.Count-1 do
@@ -1533,7 +1541,7 @@ var
       for i:=0 to ReferenceElements.Count-1 do
         begin
         El:=TPasElement(ReferenceElements[i]);
-        //writeln('CheckDirectReference ',i,'/',ReferenceElements.Count,' ',GetTreeDesc(El,2));
+        //writeln('CheckDirectReference ',i,'/',ReferenceElements.Count,' ',GetTreeDbg(El,2));
         if El.ClassType=TPasVariable then
           begin
           if TPasVariable(El).VarType=nil then
@@ -1582,6 +1590,8 @@ var
         begin
         El:=TPasElement(ReferenceElements[i]);
         writeln('  Reference ',GetObjName(El),' at ',ResolverEngine.GetElementSourcePosStr(El));
+        //if EL is TPasVariable then
+        //  writeln('CheckDirectReference ',GetObjPath(TPasVariable(El).VarType),' ',ResolverEngine.GetElementSourcePosStr(TPasVariable(EL).VarType));
         end;
       RaiseErrorAtSrcMarker('wrong direct reference "'+aMarker^.Identifier+'"',aMarker);
     finally

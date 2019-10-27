@@ -410,7 +410,7 @@ type
     function ArrayExprToText(Expr: TPasExprArray): String;
     // Type declarations
     function ResolveTypeReference(Name: string; Parent: TPasElement; ParamCnt: integer = 0): TPasType;
-    function ParseComplexType(Parent : TPasElement = Nil): TPasType;
+    function ParseVarType(Parent : TPasElement = Nil): TPasType;
     function ParseTypeDecl(Parent: TPasElement): TPasType;
     function ParseGenericTypeDecl(Parent: TPasElement; AddToParent: boolean): TPasGenericType;
     function ParseType(Parent: TPasElement; const NamePos: TPasSourcePos; const TypeName: String = ''; Full: Boolean = false): TPasType;
@@ -420,7 +420,7 @@ type
     function ParseSimpleType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String; IsFull : Boolean = False): TPasType;
     function ParseAliasType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasType;
     function ParseTypeReference(Parent: TPasElement; NeedExpr: boolean; out Expr: TPasExpr): TPasType;
-    function ParseSpecializeType(Parent: TPasElement; const TypeName, GenName: string; var GenNameExpr: TPasExpr): TPasSpecializeType;
+    function ParseSpecializeType(Parent: TPasElement; Const NamePos: TPasSourcePos; const TypeName, GenName: string; var GenNameExpr: TPasExpr): TPasSpecializeType;
     function ParsePointerType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasPointerType;
     Function ParseArrayType(Parent : TPasElement; Const NamePos: TPasSourcePos; Const TypeName : String; PackMode : TPackMode) : TPasArrayType;
     Function ParseFileType(Parent : TPasElement; Const NamePos: TPasSourcePos; Const TypeName  : String) : TPasFileType;
@@ -1504,10 +1504,11 @@ begin
       begin
       Params:=TParamsExpr(CreateElement(TParamsExpr,'',Result));
       Params.Value:=Result.Expr;
+      Params.Value.Parent:=Params;
       Result.Expr:=Params;
       LengthAsText:='';
       NextToken;
-      LengthExpr:=DoParseExpression(Result,nil,false);
+      LengthExpr:=DoParseExpression(Params,nil,false);
       Params.AddParam(LengthExpr);
       CheckToken(tkSquaredBraceClose);
       LengthAsText:=ExprToText(LengthExpr);
@@ -1584,7 +1585,7 @@ begin
     else if (CurToken = tkLessThan)
         and (MustBeSpecialize or (msDelphi in CurrentModeswitches)) then // A = B<t>;
       begin
-      Result:=ParseSpecializeType(Parent,TypeName,Name,Expr);
+      Result:=ParseSpecializeType(Parent,NamePos,TypeName,Name,Expr);
       ok:=true;
       exit;
       end
@@ -1676,11 +1677,13 @@ function TPasParser.ParseTypeReference(Parent: TPasElement; NeedExpr: boolean;
 var
   Name: String;
   IsSpecialize, ok: Boolean;
+  NamePos: TPasSourcePos;
 begin
   Result:=nil;
   Expr:=nil;
   ok:=false;
   try
+    NamePos:=CurSourcePos;
     if CurToken=tkspecialize then
       begin
       IsSpecialize:=true;
@@ -1697,7 +1700,7 @@ begin
       // specialize
       if IsSpecialize or (msDelphi in CurrentModeswitches) then
         begin
-        Result:=ParseSpecializeType(Parent,'',Name,Expr);
+        Result:=ParseSpecializeType(Parent,NamePos,'',Name,Expr);
         NextToken;
         end
       else
@@ -1723,8 +1726,9 @@ begin
   end;
 end;
 
-function TPasParser.ParseSpecializeType(Parent: TPasElement; const TypeName,
-  GenName: string; var GenNameExpr: TPasExpr): TPasSpecializeType;
+function TPasParser.ParseSpecializeType(Parent: TPasElement;
+  const NamePos: TPasSourcePos; const TypeName, GenName: string;
+  var GenNameExpr: TPasExpr): TPasSpecializeType;
 // after parsing CurToken is at >
 var
   ST: TPasSpecializeType;
@@ -1732,7 +1736,7 @@ begin
   Result:=nil;
   if CurToken<>tkLessThan then
     ParseExcTokenError('[20190801112729]');
-  ST:=TPasSpecializeType(CreateElement(TPasSpecializeType,TypeName,Parent));
+  ST:=TPasSpecializeType(CreateElement(TPasSpecializeType,TypeName,Parent,NamePos));
   try
     if GenNameExpr<>nil then
       begin
@@ -1998,7 +2002,9 @@ begin
   Result.IsReferenceTo:=True;
 end;
 
-function TPasParser.ParseComplexType(Parent : TPasElement = Nil): TPasType;
+function TPasParser.ParseVarType(Parent : TPasElement = Nil): TPasType;
+var
+  NamePos: TPasSourcePos;
 begin
   NextToken;
   case CurToken of
@@ -2017,8 +2023,9 @@ begin
           UngetToken;        // Unget semicolon
       end;
   else
+    NamePos:=CurSourcePos;
     UngetToken;
-    Result := ParseType(Parent,CurSourcePos);
+    Result := ParseType(Parent,NamePos);
   end;
 end;
 
@@ -3670,7 +3677,7 @@ begin
     tkGeneric:
       begin
       NextToken;
-      if (CurToken in [tkprocedure,tkfunction]) then
+      if (CurToken in [tkclass,tkprocedure,tkfunction]) then
         begin
         if msDelphi in CurrentModeswitches then
           ParseExcSyntaxError; // inconsistency, tkGeneric should be in Scanner.NonTokens
@@ -4625,7 +4632,7 @@ begin
     Until (CurToken=tkColon);
     OldForceCaret:=Scanner.SetForceCaret(True);
     try
-      VarType := ParseComplexType(VarEl);
+      VarType := ParseVarType(VarEl);
       {$IFDEF CheckPasTreeRefCount}if VarType.RefIds.IndexOf('CreateElement')>=0 then VarType.ChangeRefId('CreateElement','TPasVariable.VarType'){$ENDIF};
     finally
       Scanner.SetForceCaret(OldForceCaret);
