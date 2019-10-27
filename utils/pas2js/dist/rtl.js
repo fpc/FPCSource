@@ -7,6 +7,8 @@ var rtl = {
   quiet: false,
   debug_load_units: false,
   debug_rtti: false,
+  
+  $res : {},
 
   debug: function(){
     if (rtl.quiet || !console || !console.log) return;
@@ -1393,5 +1395,22 @@ var rtl = {
       flags: flags
     };
     return s;
+  },
+  
+  addResource : function (aRes) {
+    rtl.$res[aRes.name]=aRes;
+  },
+
+  getResource : function (aName) {
+    var res = rtl.$res[aName];
+    if (res !== undefined) {
+      return res;
+    } else  {
+      return null;
+    }  
+  },
+  
+  getResourceList : function () {
+    return Object.keys(rtl.$res);
   }
 }
