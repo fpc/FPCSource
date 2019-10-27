@@ -50,7 +50,7 @@ end;
 
 function THTMLResourceLinkHandler.CreateDataLink(const aResourceName, aFormat, aData: String): String;
 begin
-  Result:=Format('<link rel="%s" id="%s-%s" data-unit="%s" href="data:%s;base64,%s" />',[linkType,IDPrefix,aResourceName,CurrentUnitName,aFormat,aData]);
+  Result:=Format('<link rel="%s" as="script" id="%s-%s" data-unit="%s" href="data:%s;base64,%s" />',[linkType,IDPrefix,aResourceName,CurrentUnitName,aFormat,aData]);
 end;
 
 procedure THTMLResourceLinkHandler.HandleResource(aFileName: string; Options: TStrings);
