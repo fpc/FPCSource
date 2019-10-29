@@ -1709,6 +1709,9 @@ type
       Arg: TPasArgument; out ArgResolved: TPasResolverResult;
       Expr: TPasExpr; out ExprResolved: TPasResolverResult;
       SetReferenceFlags: boolean);
+    procedure ComputeArgumentExpr(const ArgResolved: TPasResolverResult;
+      Access: TArgumentAccess; Expr: TPasExpr; out ExprResolved: TPasResolverResult;
+      SetReferenceFlags: boolean);
     procedure ComputeArrayParams(Params: TParamsExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement);
@@ -2200,6 +2203,9 @@ type
       Params: TParamsExpr; RaiseOnError: boolean; EmitHints: boolean = false): integer;
     function CheckParamCompatibility(Expr: TPasExpr; Param: TPasArgument;
       ParamNo: integer; RaiseOnError: boolean; SetReferenceFlags: boolean = false): integer;
+    function CheckParamResCompatibility(Expr: TPasExpr; const ExprResolved,
+      ParamResolved: TPasResolverResult; ParamNo: integer; RaiseOnError: boolean;
+      SetReferenceFlags: boolean): integer;
     function CheckAssignCompatibilityUserType(
       const LHS, RHS: TPasResolverResult; ErrorEl: TPasElement;
       RaiseOnIncompatible: boolean): integer;
@@ -13450,12 +13456,7 @@ end;
 procedure TPasResolver.ComputeArgumentAndExpr(Arg: TPasArgument; out
   ArgResolved: TPasResolverResult; Expr: TPasExpr; out
   ExprResolved: TPasResolverResult; SetReferenceFlags: boolean);
-var
-  NeedVar: Boolean;
-  RHSFlags: TPasResolverComputeFlags;
 begin
-  NeedVar:=Arg.Access in [argVar, argOut];
-
   ComputeElement(Arg,ArgResolved,[]);
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ComputeArgumentAndExpr Arg=',GetTreeDbg(Arg,2),' ArgResolved=',GetResolverResultDbg(ArgResolved));
@@ -13463,18 +13464,30 @@ begin
   if (ArgResolved.LoTypeEl=nil) and (Arg.ArgType<>nil) then
     RaiseInternalError(20160922163628,'TypeEl=nil for '+GetTreeDbg(Arg));
 
+  ComputeArgumentExpr(ArgResolved,Arg.Access,Expr,ExprResolved,SetReferenceFlags);
+end;
+
+procedure TPasResolver.ComputeArgumentExpr(
+  const ArgResolved: TPasResolverResult; Access: TArgumentAccess;
+  Expr: TPasExpr; out ExprResolved: TPasResolverResult;
+  SetReferenceFlags: boolean);
+var
+  NeedVar: Boolean;
+  RHSFlags: TPasResolverComputeFlags;
+begin
   RHSFlags:=[];
+  NeedVar:=Access in [argVar, argOut];
   if NeedVar then
     Include(RHSFlags,rcNoImplicitProc)
   else if IsProcedureType(ArgResolved,true)
       or (ArgResolved.BaseType=btPointer)
-      or (Arg.ArgType=nil) then
+      or ((ArgResolved.LoTypeEl=nil) and (ArgResolved.IdentEl is TPasArgument)) then
     Include(RHSFlags,rcNoImplicitProcType);
   if SetReferenceFlags then
     Include(RHSFlags,rcSetReferenceFlags);
   ComputeElement(Expr,ExprResolved,RHSFlags);
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.ComputeArgumentAndExpr Expr=',GetTreeDbg(Expr,2),' ExprResolved=',GetResolverResultDbg(ExprResolved),' RHSFlags=',dbgs(RHSFlags));
+  writeln('TPasResolver.ComputeArgumentExpr Expr=',GetTreeDbg(Expr,2),' ExprResolved=',GetResolverResultDbg(ExprResolved),' RHSFlags=',dbgs(RHSFlags));
   {$ENDIF}
 end;
 
@@ -22808,7 +22821,7 @@ var
   ProcArgs: TFPList;
   i, ParamCnt, ParamCompatibility: Integer;
   Param, Value: TPasExpr;
-  ParamResolved: TPasResolverResult;
+  ParamResolved, ArgResolved: TPasResolverResult;
   Flags: TPasResolverComputeFlags;
 begin
   Result:=cExact;
@@ -22820,6 +22833,7 @@ begin
 
   // check args
   ParamCnt:=length(Params.Params);
+  ArgResolved.BaseType:=btNone;;
   i:=0;
   while i<ParamCnt do
     begin
@@ -22838,18 +22852,32 @@ begin
       begin
       if ptmVarargs in ProcType.Modifiers then
         begin
-        if SetReferenceFlags then
-          Flags:=[rcNoImplicitProcType,rcSetReferenceFlags]
-        else
-          Flags:=[rcNoImplicitProcType];
-        ComputeElement(Param,ParamResolved,Flags,Param);
-        if not (rrfReadable in ParamResolved.Flags) then
+        if ProcType.VarArgsType<>nil then
           begin
-          if RaiseOnError then
-            RaiseVarExpected(20180712001415,Param,ParamResolved.IdentEl);
-          exit(cIncompatible);
+          if ArgResolved.BaseType=btNone then
+            ComputeElement(ProcType.VarArgsType,ArgResolved,[rcType]);
+          ComputeArgumentExpr(ArgResolved,argConst,
+                                 Param,ParamResolved,SetReferenceFlags);
+          ParamCompatibility:=CheckParamResCompatibility(Param,ParamResolved,
+                                   ArgResolved,i,RaiseOnError,SetReferenceFlags);
+          if ParamCompatibility=cIncompatible then
+            exit(cIncompatible);
+          end
+        else
+          begin
+          if SetReferenceFlags then
+            Flags:=[rcNoImplicitProcType,rcSetReferenceFlags]
+          else
+            Flags:=[rcNoImplicitProcType];
+          ComputeElement(Param,ParamResolved,Flags,Param);
+          if not (rrfReadable in ParamResolved.Flags) then
+            begin
+            if RaiseOnError then
+              RaiseVarExpected(20180712001415,Param,ParamResolved.IdentEl);
+            exit(cIncompatible);
+            end;
+          ParamCompatibility:=cExact;
           end;
-        ParamCompatibility:=cExact;
         end
       else
         begin
@@ -25157,7 +25185,7 @@ function TPasResolver.CheckParamCompatibility(Expr: TPasExpr;
   SetReferenceFlags: boolean): integer;
 var
   ExprResolved, ParamResolved: TPasResolverResult;
-  NeedVar, UseAssignError: Boolean;
+  NeedVar: Boolean;
 begin
   Result:=cIncompatible;
 
@@ -25218,6 +25246,16 @@ begin
     exit(cIncompatible);
     end;
 
+  Result:=CheckParamResCompatibility(Expr,ExprResolved,ParamResolved,ParamNo,
+                                     RaiseOnError,SetReferenceFlags);
+end;
+
+function TPasResolver.CheckParamResCompatibility(Expr: TPasExpr;
+  const ExprResolved, ParamResolved: TPasResolverResult; ParamNo: integer;
+  RaiseOnError: boolean; SetReferenceFlags: boolean): integer;
+var
+  UseAssignError: Boolean;
+begin
   UseAssignError:=false;
   if RaiseOnError and (ExprResolved.BaseType in [btArrayLit,btArrayOrSet]) then
     // e.g. Call([1,2]) -> on mismatch jump to the wrong param expression

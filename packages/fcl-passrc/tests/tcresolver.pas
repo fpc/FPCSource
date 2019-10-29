@@ -449,6 +449,8 @@ type
     Procedure TestProcedureExternal;
     Procedure TestProc_UntypedParam_Forward;
     Procedure TestProc_Varargs;
+    Procedure TestProc_VarargsOfT;
+    Procedure TestProc_VarargsOfTMismatch;
     Procedure TestProc_ParameterExprAccess;
     Procedure TestProc_FunctionResult_DeclProc;
     Procedure TestProc_TypeCastFunctionResult;
@@ -7352,6 +7354,41 @@ begin
   Add('  ProcC(4);');
   Add('  ProcC(5,''foo'');');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_VarargsOfT;
+begin
+  StartProgram(false);
+  Add([
+  'procedure ProcA(i:longint); varargs of word; external;',
+  'procedure ProcB; varargs of boolean; external;',
+  'procedure ProcC(i: longint = 17); varargs of double; external;',
+  'begin',
+  '  ProcA(1);',
+  '  ProcA(2,3);',
+  '  ProcA(4,5,6);',
+  '  ProcB;',
+  '  ProcB();',
+  '  ProcB(false);',
+  '  ProcB(true,false);',
+  '  ProcC;',
+  '  ProcC();',
+  '  ProcC(7);',
+  '  ProcC(8,9.3);',
+  '  ProcC(8,9.3,1.3);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_VarargsOfTMismatch;
+begin
+  StartProgram(false);
+  Add([
+  'procedure ProcA(i:longint); varargs of word; external;',
+  'begin',
+  '  ProcA(1,false);',
+  '']);
+  CheckResolverException('Incompatible type arg no. 2: Got "Boolean", expected "Word"',nIncompatibleTypeArgNo);
 end;
 
 procedure TTestResolver.TestProc_ParameterExprAccess;

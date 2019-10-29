@@ -5113,10 +5113,28 @@ end;
 
 procedure TPasParser.HandleProcedureTypeModifier(ProcType: TPasProcedureType;
   ptm: TProcTypeModifier);
+var
+  Expr: TPasExpr;
 begin
   if ptm in ProcType.Modifiers then
     ParseExcSyntaxError;
   Include(ProcType.Modifiers,ptm);
+  if ptm=ptmVarargs then
+    begin
+    NextToken;
+    if CurToken<>tkof then
+      begin
+      UngetToken;
+      exit;
+      end;
+    NextToken;
+    Expr:=nil;
+    try
+      ProcType.VarArgsType:=ParseTypeReference(ProcType,false,Expr);
+    finally
+      if Expr<>nil then Expr.Release{$IFDEF CheckPasTreeRefCount}('20191029145019'){$ENDIF};
+    end;
+    end;
 end;
 
 // Next token is expected to be a "(", ";" or for a function ":". The caller
