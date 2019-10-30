@@ -1886,6 +1886,7 @@ type
       AContext: TConvertContext): TJSElement; virtual;
     Procedure AddRTTIArgument(Arg: TPasArgument; TargetParams: TJSArrayLiteral;
       AContext: TConvertContext); virtual;
+    Function GetClassBIName(El: TPasClassType): string; virtual;
     Function CreateRTTINewType(El: TPasType; const CallFuncName: string;
       IsForward: boolean; AContext: TConvertContext; out ObjLit: TJSObjectLiteral): TJSCallExpression; virtual;
     Function CreateRTTIAttributes(const Attr: TPasExprArray; PosEl: TPasElement; aContext: TConvertContext): TJSElement; virtual;
@@ -13608,13 +13609,10 @@ begin
     RaiseNotSupported(El,AContext,20170927183645);
   if El.Parent is TProcedureBody then
     RaiseNotSupported(El,AContext,20181231004355);
-  if El.IsExternal then
-    exit(ConvertExtClassType(El,AContext));
   if El.IsForward then
-    begin
-    Result:=ConvertClassForwardType(El,AContext);
-    exit;
-    end;
+    exit(ConvertClassForwardType(El,AContext))
+  else if El.IsExternal then
+    exit(ConvertExtClassType(El,AContext));
 
   if El.CustomData is TPas2JSClassScope then
     begin
@@ -13862,7 +13860,7 @@ begin
   if IsClassRTTICreatedBefore(aClass,El,AContext) then exit;
   // module.$rtti.$Class("classname");
   case aClass.ObjKind of
-  okClass: Creator:=GetBIName(pbifnRTTINewClass);
+  okClass: Creator:=GetClassBIName(aClass);
   okInterface: Creator:=GetBIName(pbifnRTTINewInterface);
   else
     RaiseNotSupported(El,AContext,20190128102749);
@@ -13885,7 +13883,7 @@ var
   Call: TJSCallExpression;
   ok: Boolean;
   List: TJSStatementList;
-  DestType: TPasType;
+  DestType: TPasClassType;
 begin
   Result:=nil;
   if not HasTypeInfo(El,AContext) then exit;
@@ -13898,16 +13896,16 @@ begin
   try
     Prop:=ObjLit.Elements.AddElement;
     Prop.Name:=TJSString(GetBIName(pbivnRTTIClassRef_InstanceType));
-    DestType:=AContext.Resolver.ResolveAliasType(El.DestType);
+    DestType:=AContext.Resolver.ResolveAliasType(El.DestType) as TPasClassType;
     Prop.Expr:=CreateTypeInfoRef(DestType,AContext,El);
 
-    if not IsClassRTTICreatedBefore(DestType as TPasClassType,El,AContext) then
+    if not IsClassRTTICreatedBefore(DestType,El,AContext) then
       begin
       // class rtti must be forward registered
       if not (AContext is TFunctionContext) then
         RaiseNotSupported(El,AContext,20170412102916);
       // prepend   module.$rtti.$Class("classname");
-      Call:=CreateRTTINewType(DestType,GetBIName(pbifnRTTINewClass),true,AContext,ObjLit);
+      Call:=CreateRTTINewType(DestType,GetClassBIName(DestType),true,AContext,ObjLit);
       if ObjLit<>nil then
         RaiseInconsistency(20170412102654,El);
       List:=TJSStatementList(CreateElement(TJSStatementList,El));
@@ -17358,6 +17356,14 @@ begin
   end;
   if Flags>0 then
     Param.Elements.AddElement.Expr:=CreateLiteralNumber(Arg,Flags);
+end;
+
+function TPasToJSConverter.GetClassBIName(El: TPasClassType): string;
+begin
+  if El.IsExternal then
+    Result:=GetBIName(pbifnRTTINewExtClass)
+  else
+    Result:=GetBIName(pbifnRTTINewClass);
 end;
 
 function TPasToJSConverter.CreateRTTINewType(El: TPasType;
