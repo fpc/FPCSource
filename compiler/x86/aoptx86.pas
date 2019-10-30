@@ -39,6 +39,7 @@ unit aoptx86;
         function RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean; override;
         function InstructionLoadsFromReg(const reg : TRegister; const hp : tai) : boolean; override;
         function RegReadByInstruction(reg : TRegister; hp : tai) : boolean;
+        function RegInInstruction(Reg: TRegister; p1: tai): Boolean;override;
         function GetNextInstructionUsingReg(Current: tai; out Next: tai; reg: TRegister): Boolean;
       protected
         { checks whether loading a new value in reg1 overwrites the entirety of reg2 }
@@ -506,6 +507,76 @@ unit aoptx86;
               end;
           end;
       end;
+    end;
+
+
+  function TX86AsmOptimizer.RegInInstruction(Reg: TRegister; p1: tai): Boolean;
+    begin
+      result:=false;
+      if p1.typ<>ait_instruction then
+        exit;
+
+      if (Ch_All in insprop[taicpu(p1).opcode].Ch) then
+        exit(true);
+
+      if (getregtype(reg)=R_INTREGISTER) and
+        { change information for xmm movsd are not correct }
+        ((taicpu(p1).opcode<>A_MOVSD) or (taicpu(p1).ops=0)) then
+        begin
+          case getsupreg(reg) of
+            { RS_EAX = RS_RAX on x86-64 }
+            RS_EAX:
+              result:=([Ch_REAX,Ch_RRAX,Ch_WEAX,Ch_WRAX,Ch_RWEAX,Ch_RWRAX,Ch_MEAX,Ch_MRAX]*insprop[taicpu(p1).opcode].Ch)<>[];
+            RS_ECX:
+              result:=([Ch_RECX,Ch_RRCX,Ch_WECX,Ch_WRCX,Ch_RWECX,Ch_RWRCX,Ch_MECX,Ch_MRCX]*insprop[taicpu(p1).opcode].Ch)<>[];
+            RS_EDX:
+              result:=([Ch_REDX,Ch_RRDX,Ch_WEDX,Ch_WRDX,Ch_RWEDX,Ch_RWRDX,Ch_MEDX,Ch_MRDX]*insprop[taicpu(p1).opcode].Ch)<>[];
+            RS_EBX:
+              result:=([Ch_REBX,Ch_RRBX,Ch_WEBX,Ch_WRBX,Ch_RWEBX,Ch_RWRBX,Ch_MEBX,Ch_MRBX]*insprop[taicpu(p1).opcode].Ch)<>[];
+            RS_ESP:
+              result:=([Ch_RESP,Ch_RRSP,Ch_WESP,Ch_WRSP,Ch_RWESP,Ch_RWRSP,Ch_MESP,Ch_MRSP]*insprop[taicpu(p1).opcode].Ch)<>[];
+            RS_EBP:
+              result:=([Ch_REBP,Ch_RRBP,Ch_WEBP,Ch_WRBP,Ch_RWEBP,Ch_RWRBP,Ch_MEBP,Ch_MRBP]*insprop[taicpu(p1).opcode].Ch)<>[];
+            RS_ESI:
+              result:=([Ch_RESI,Ch_RRSI,Ch_WESI,Ch_WRSI,Ch_RWESI,Ch_RWRSI,Ch_MESI,Ch_MRSI,Ch_RMemEDI]*insprop[taicpu(p1).opcode].Ch)<>[];
+            RS_EDI:
+              result:=([Ch_REDI,Ch_RRDI,Ch_WEDI,Ch_WRDI,Ch_RWEDI,Ch_RWRDI,Ch_MEDI,Ch_MRDI,Ch_WMemEDI]*insprop[taicpu(p1).opcode].Ch)<>[];
+            else
+              ;
+          end;
+          if result then
+            exit;
+        end
+      else if SuperRegistersEqual(reg,NR_DEFAULTFLAGS) then
+        begin
+          if ([Ch_RFlags,Ch_WFlags,Ch_RWFlags,Ch_RFLAGScc]*insprop[taicpu(p1).opcode].Ch)<>[] then
+            exit(true);
+          case getsubreg(reg) of
+            R_SUBFLAGCARRY:
+              Result:=([Ch_RCarryFlag,Ch_RWCarryFlag,Ch_W0CarryFlag,Ch_W1CarryFlag,Ch_WCarryFlag,Ch_WUCarryFlag]*insprop[taicpu(p1).opcode].Ch)<>[];
+            R_SUBFLAGPARITY:
+              Result:=([Ch_RParityFlag,Ch_RWParityFlag,Ch_W0ParityFlag,Ch_W1ParityFlag,Ch_WParityFlag,Ch_WUParityFlag]*insprop[taicpu(p1).opcode].Ch)<>[];
+            R_SUBFLAGAUXILIARY:
+              Result:=([Ch_RAuxiliaryFlag,Ch_RWAuxiliaryFlag,Ch_W0AuxiliaryFlag,Ch_W1AuxiliaryFlag,Ch_WAuxiliaryFlag,Ch_WUAuxiliaryFlag]*insprop[taicpu(p1).opcode].Ch)<>[];
+            R_SUBFLAGZERO:
+              Result:=([Ch_RZeroFlag,Ch_RWZeroFlag,Ch_W0ZeroFlag,Ch_W1ZeroFlag,Ch_WZeroFlag,Ch_WUZeroFlag]*insprop[taicpu(p1).opcode].Ch)<>[];
+            R_SUBFLAGSIGN:
+              Result:=([Ch_RSignFlag,Ch_RWSignFlag,Ch_W0SignFlag,Ch_W1SignFlag,Ch_WSignFlag,Ch_WUSignFlag]*insprop[taicpu(p1).opcode].Ch)<>[];
+            R_SUBFLAGOVERFLOW:
+              Result:=([Ch_ROverflowFlag,Ch_RWOverflowFlag,Ch_W0OverflowFlag,Ch_W1OverflowFlag,Ch_WOverflowFlag,Ch_WUOverflowFlag]*insprop[taicpu(p1).opcode].Ch)<>[];
+            R_SUBFLAGINTERRUPT:
+              Result:=([Ch_W0IntFlag,Ch_W1IntFlag,Ch_WFlags]*insprop[taicpu(p1).opcode].Ch)<>[];
+            R_SUBFLAGDIRECTION:
+              Result:=([Ch_RDirFlag,Ch_W0DirFlag,Ch_W1DirFlag,Ch_WFlags]*insprop[taicpu(p1).opcode].Ch)<>[];
+            else
+              ;
+          end;
+          if result then
+            exit;
+        end
+      else if (getregtype(reg)=R_FPUREGISTER) and (Ch_FPU in insprop[taicpu(p1).opcode].Ch) then
+        exit(true);
+      Result:=inherited RegInInstruction(Reg, p1);
     end;
 
 
@@ -1672,6 +1743,85 @@ unit aoptx86;
                 p:=hp1;
                 Result:=true;
                 exit;
+              end;
+          end;
+        { search further than the next instruction for a mov }
+        if (cs_opt_level3 in current_settings.optimizerswitches) and
+          { check as much as possible before the expensive GetNextInstructionUsingReg call }
+          (taicpu(p).oper[1]^.typ = top_reg) and
+          (taicpu(p).oper[0]^.typ in [top_reg,top_const]) and
+          { we work with hp2 here, so hp1 can be still used later on when
+            checking for GetNextInstruction_p }
+          GetNextInstructionUsingReg(p,hp2,taicpu(p).oper[1]^.reg) and
+          MatchInstruction(hp2,A_MOV,[]) and
+          MatchOperand(taicpu(p).oper[1]^,taicpu(hp2).oper[0]^) and
+          ((taicpu(p).oper[0]^.typ=top_const) or
+           ((taicpu(p).oper[0]^.typ=top_reg) and
+            not(RegUsedBetween(taicpu(p).oper[0]^.reg, p, hp2))
+           )
+          ) then
+          begin
+            TransferUsedRegs(TmpUsedRegs);
+            { we have
+                mov x, %treg
+                mov %treg, y
+            }
+            if not(RegInOp(taicpu(p).oper[1]^.reg,taicpu(hp2).oper[1]^)) and
+               not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp2, TmpUsedRegs)) then
+              { we've got
+
+                mov x, %treg
+                mov %treg, y
+
+                with %treg is not used after }
+              case taicpu(p).oper[0]^.typ Of
+                top_reg:
+                  begin
+                    { change
+                        mov %reg, %treg
+                        mov %treg, y
+
+                        to
+
+                        mov %reg, y
+                    }
+                    AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp2,usedregs);
+                    taicpu(hp2).loadOper(0,taicpu(p).oper[0]^);
+                    DebugMsg(SPeepholeOptimization + 'MovMov2Mov 6 done',p);
+                    { take care of the register (de)allocs following p }
+                    UpdateUsedRegs(tai(p.next));
+                    asml.remove(p);
+                    p.free;
+                    p:=hp1;
+                    Result:=true;
+                    Exit;
+                  end;
+                top_const:
+                  begin
+                    { change
+                        mov const, %treg
+                        mov %treg, y
+
+                        to
+
+                        mov const, y
+                    }
+                    if (taicpu(hp2).oper[1]^.typ=top_reg) or
+                      ((taicpu(p).oper[0]^.val>=low(longint)) and (taicpu(p).oper[0]^.val<=high(longint))) then
+                      begin
+                        taicpu(hp2).loadOper(0,taicpu(p).oper[0]^);
+                        DebugMsg(SPeepholeOptimization + 'MovMov2Mov 7 done',p);
+                        { take care of the register (de)allocs following p }
+                        UpdateUsedRegs(tai(p.next));
+                        asml.remove(p);
+                        p.free;
+                        p:=hp1;
+                        Result:=true;
+                        Exit;
+                      end;
+                  end;
+                else
+                  Internalerror(2019103001);
               end;
           end;
         { Change
