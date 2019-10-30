@@ -59,6 +59,8 @@ Type
   Public
     Procedure HandleResource (aFileName : string; Options : TStrings); override;
     Class Function OutputMode : TResourceOutputMode; override;
+    function GetResourceCount: Integer; override;
+    function GetAsString: String; override;
   end;
 implementation
 
@@ -76,6 +78,16 @@ end;
 class function TNoResources.OutputMode: TResourceOutputMode;
 begin
   result:=romNone;
+end;
+
+function TNoResources.GetResourceCount: Integer;
+begin
+  Result:=0;
+end;
+
+function TNoResources.GetAsString: String;
+begin
+  Result:='';
 end;
 
 {$ENDIF}
