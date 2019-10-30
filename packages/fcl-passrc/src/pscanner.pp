@@ -536,7 +536,7 @@ type
     Function FindIncludeFileName(const AName: string): String; override;
     Function CreateFileReader(Const AFileName : String) : TLineReader; virtual;
   Public
-    function FindResourceFileName(const AName: string): String; override;
+    function FindResourceFileName(const AFileName: string): String; override;
     function FindSourceFile(const AName: string): TLineReader; override;
     function FindIncludeFile(const AName: string): TLineReader; override;
     {$ifdef HasStreams}
@@ -561,6 +561,7 @@ type
     constructor Create; override;
     destructor Destroy; override;
     Procedure Clear;
+    function FindResourceFileName(const AFileName: string): String; override;
     Procedure AddStream(Const AName : String; AStream : TStream);
     function FindSourceFile(const AName: string): TLineReader; override;
     function FindIncludeFile(const AName: string): TLineReader; override;
@@ -2603,7 +2604,7 @@ begin
     Result:=TFileLineReader.Create(AFileName);
 end;
 
-function TFileResolver.FindResourceFileName(const AName: string): String;
+function TFileResolver.FindResourceFileName(const AFileName: string): String;
 
   Function FindInPath(FN : String) : String;
 
@@ -2629,7 +2630,7 @@ var
 begin
   Result := '';
   // convert pathdelims to system
-  FN:=SetDirSeparators(AName);
+  FN:=SetDirSeparators(AFileName);
   If FilenameIsAbsolute(FN) then
     begin
     Result := SearchLowUpCase(FN);
@@ -2684,6 +2685,12 @@ end;
 function TStreamResolver.FindIncludeFileName(const aFilename: string): String;
 begin
   raise EFileNotFoundError.Create('TStreamResolver.FindIncludeFileName not supported '+aFilename);
+  Result:='';
+end;
+
+function TStreamResolver.FindResourceFileName(const AFileName: string): String;
+begin
+  raise EFileNotFoundError.Create('TStreamResolver.FindResourceFileName not supported '+aFileName);
   Result:='';
 end;
 
