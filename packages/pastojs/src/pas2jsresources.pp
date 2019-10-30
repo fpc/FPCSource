@@ -72,6 +72,8 @@ uses base64;
 procedure TNoResources.HandleResource(aFileName: string; Options: TStrings);
 begin
   // Do nothing
+  if aFileName='' then ;
+  if Options=nil then ;
 end;
 
 
@@ -169,6 +171,7 @@ end;
 function TPas2jsResourceHandler.WriteJS(const aUnitName: String; aModule: TJSElement): TJSElement;
 begin
   Result:=aModule;
+  if aUnitName='' then ;
 end;
 
 

@@ -97,6 +97,7 @@ end;
 procedure THTMLResourceLinkHandler.DoneUnit(IsMainFile : Boolean);
 begin
   // Do no call inherited, it will clear the list
+  if IsMainFile then ;
 end;
 
 
