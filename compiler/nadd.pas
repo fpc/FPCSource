@@ -468,7 +468,7 @@ implementation
                 ctypeconvnode.create_internal(
                   cderefnode.create(
                     caddnode.create_internal(subn,ctypeconvnode.create_internal(tinlinenode(n1).left.getcopy,voidpointertype),
-                      cordconstnode.create(0,sizesinttype,false))
+                      cordconstnode.create(sizesinttype.size,sizesinttype,false))
                   ),sizesinttype
                 ),
               cordconstnode.create(len,sizesinttype,false))
