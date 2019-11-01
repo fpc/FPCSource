@@ -3151,6 +3151,7 @@ implementation
         { must be done before code below, because we need the
           typeconversions for ordconstn's as well }
         case convtype of
+          tc_int_2_bool,
           tc_int_2_int:
             begin
               if (localswitches * [cs_check_range,cs_check_overflow] = []) and
