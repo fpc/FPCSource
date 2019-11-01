@@ -452,6 +452,7 @@ unit cgcpu;
          b, b2, i, j: byte;
          s1, s2, t1: integer;
          l1: TAsmLabel;
+         oldexecutionweight: LongInt;
        begin
          if (op in [OP_MUL,OP_IMUL]) and (size in [OS_16,OS_S16]) and (a in [2,4,8]) then
            begin
@@ -511,6 +512,8 @@ unit cgcpu;
                      countreg:=getintregister(list,OS_8);
                      a_load_const_reg(list,OS_8,b2,countreg);
                      cg.a_label(list,l1);
+                     oldexecutionweight:=executionweight;
+                     executionweight:=executionweight*b2;
                      if op=OP_SHL then
                        list.concat(taicpu.op_reg(A_LSL,GetOffsetReg64(dst,dsthi,b)))
                      else
@@ -526,6 +529,7 @@ unit cgcpu;
                        end;
                      list.concat(taicpu.op_reg(A_DEC,countreg));
                      a_jmp_flags(list,F_NE,l1);
+                     executionweight:=oldexecutionweight;
                      { keep registers alive }
                      a_reg_sync(list,countreg);
                    end
