@@ -356,16 +356,16 @@ initialization
 {$ENDIF}
 
 (*
+ * overloading the memory functions
+ *)
+  xmlMemSetup(@fpcxmlFree, @fpcxmlMalloc, @fpcxmlRealloc, @fpcxmlStrdup);
+
+(*
  * this initialize the library and check potential ABI mismatches
  * between the version it was compiled for and the actual shared
  * library used.
  *)
   LIBXML_TEST_VERSION;
-
-(*
- * overloading the memory functions
- *)
-  xmlMemSetup(@fpcxmlFree, @fpcxmlMalloc, @fpcxmlRealloc, @fpcxmlStrdup);
 
 (*
  * overloading the error functions
@@ -377,11 +377,11 @@ finalization
 (*
  * Cleanup function for the XML library.
  *)
-  //xmlCleanupParser();
+  xmlCleanupParser();
 
 (*
  * this is to debug memory for regression tests
  *)
-  xmlMemoryDump();
+  //xmlMemoryDump();
 
 end.
