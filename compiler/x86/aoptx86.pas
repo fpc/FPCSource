@@ -62,11 +62,10 @@ unit aoptx86;
         function PrePeepholeOptIMUL(var p : tai) : boolean;
 
         function OptPass1AND(var p : tai) : boolean;
-        function OptPass1VMOVAP(var p : tai) : boolean;
+        function OptPass1_V_MOVAP(var p : tai) : boolean;
         function OptPass1VOP(var p : tai) : boolean;
         function OptPass1MOV(var p : tai) : boolean;
         function OptPass1Movx(var p : tai) : boolean;
-        function OptPass1MOVAP(var p : tai) : boolean;
         function OptPass1MOVXX(var p : tai) : boolean;
         function OptPass1OP(var p : tai) : boolean;
         function OptPass1LEA(var p : tai) : boolean;
@@ -1130,61 +1129,7 @@ unit aoptx86;
       end;
 
 
-    function TX86AsmOptimizer.OptPass1MOVAP(var p : tai) : boolean;
-      var
-        hp1,hp2 : tai;
-      begin
-        result:=false;
-        if MatchOpType(taicpu(p),top_reg,top_reg) and
-          GetNextInstruction(p, hp1) and
-          (hp1.typ = ait_instruction) and
-          GetNextInstruction(hp1, hp2) and
-          MatchInstruction(hp2,taicpu(p).opcode,[]) and
-          OpsEqual(taicpu(hp2).oper[1]^, taicpu(p).oper[0]^) and
-          MatchOpType(taicpu(hp2),top_reg,top_reg) and
-          MatchOperand(taicpu(hp2).oper[0]^,taicpu(p).oper[1]^) and
-          (((taicpu(p).opcode=A_MOVAPS) and
-            ((taicpu(hp1).opcode=A_ADDSS) or (taicpu(hp1).opcode=A_SUBSS) or
-             (taicpu(hp1).opcode=A_MULSS) or (taicpu(hp1).opcode=A_DIVSS))) or
-           ((taicpu(p).opcode=A_MOVAPD) and
-            ((taicpu(hp1).opcode=A_ADDSD) or (taicpu(hp1).opcode=A_SUBSD) or
-             (taicpu(hp1).opcode=A_MULSD) or (taicpu(hp1).opcode=A_DIVSD)))
-          ) then
-          { change
-                     movapX    reg,reg2
-                     addsX/subsX/... reg3, reg2
-                     movapX    reg2,reg
-            to
-                     addsX/subsX/... reg3,reg
-          }
-          begin
-            TransferUsedRegs(TmpUsedRegs);
-            UpdateUsedRegs(TmpUsedRegs, tai(p.next));
-            UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
-            If not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2,TmpUsedRegs)) then
-              begin
-                DebugMsg(SPeepholeOptimization + 'MovapXOpMovapX2Op ('+
-                      debug_op2str(taicpu(p).opcode)+' '+
-                      debug_op2str(taicpu(hp1).opcode)+' '+
-                      debug_op2str(taicpu(hp2).opcode)+') done',p);
-                { we cannot eliminate the first move if
-                  the operations uses the same register for source and dest }
-                if not(OpsEqual(taicpu(hp1).oper[1]^,taicpu(hp1).oper[0]^)) then
-                  begin
-                    asml.remove(p);
-                    p.Free;
-                  end;
-                taicpu(hp1).loadoper(1, taicpu(hp2).oper[1]^);
-                asml.remove(hp2);
-                hp2.Free;
-                p:=hp1;
-                result:=true;
-              end;
-          end
-        end;
-
-
-    function TX86AsmOptimizer.OptPass1VMOVAP(var p : tai) : boolean;
+    function TX86AsmOptimizer.OptPass1_V_MOVAP(var p : tai) : boolean;
       var
         hp1,hp2 : tai;
       begin
@@ -1234,12 +1179,72 @@ unit aoptx86;
                         result:=true;
                       end
                   end
-                else if MatchInstruction(hp1,[A_VFMADD132PD,A_VFNMADD231SD,A_VFMADD231SD],[S_NO]) and
+                else if MatchInstruction(hp1,[A_VFMADDPD,
+                                              A_VFMADD132PD,
+                                              A_VFMADD132PS,
+                                              A_VFMADD132SD,
+                                              A_VFMADD132SS,
+                                              A_VFMADD213PD,
+                                              A_VFMADD213PS,
+                                              A_VFMADD213SD,
+                                              A_VFMADD213SS,
+                                              A_VFMADD231PD,
+                                              A_VFMADD231PS,
+                                              A_VFMADD231SD,
+                                              A_VFMADD231SS,
+                                              A_VFMADDSUB132PD,
+                                              A_VFMADDSUB132PS,
+                                              A_VFMADDSUB213PD,
+                                              A_VFMADDSUB213PS,
+                                              A_VFMADDSUB231PD,
+                                              A_VFMADDSUB231PS,
+                                              A_VFMSUB132PD,
+                                              A_VFMSUB132PS,
+                                              A_VFMSUB132SD,
+                                              A_VFMSUB132SS,
+                                              A_VFMSUB213PD,
+                                              A_VFMSUB213PS,
+                                              A_VFMSUB213SD,
+                                              A_VFMSUB213SS,
+                                              A_VFMSUB231PD,
+                                              A_VFMSUB231PS,
+                                              A_VFMSUB231SD,
+                                              A_VFMSUB231SS,
+                                              A_VFMSUBADD132PD,
+                                              A_VFMSUBADD132PS,
+                                              A_VFMSUBADD213PD,
+                                              A_VFMSUBADD213PS,
+                                              A_VFMSUBADD231PD,
+                                              A_VFMSUBADD231PS,
+                                              A_VFNMADD132PD,
+                                              A_VFNMADD132PS,
+                                              A_VFNMADD132SD,
+                                              A_VFNMADD132SS,
+                                              A_VFNMADD213PD,
+                                              A_VFNMADD213PS,
+                                              A_VFNMADD213SD,
+                                              A_VFNMADD213SS,
+                                              A_VFNMADD231PD,
+                                              A_VFNMADD231PS,
+                                              A_VFNMADD231SD,
+                                              A_VFNMADD231SS,
+                                              A_VFNMSUB132PD,
+                                              A_VFNMSUB132PS,
+                                              A_VFNMSUB132SD,
+                                              A_VFNMSUB132SS,
+                                              A_VFNMSUB213PD,
+                                              A_VFNMSUB213PS,
+                                              A_VFNMSUB213SD,
+                                              A_VFNMSUB213SS,
+                                              A_VFNMSUB231PD,
+                                              A_VFNMSUB231PS,
+                                              A_VFNMSUB231SD,
+                                              A_VFNMSUB231SS],[S_NO]) and
                   { we mix single and double opperations here because we assume that the compiler
                     generates vmovapd only after double operations and vmovaps only after single operations }
                   MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[2]^) and
                   GetNextInstruction(hp1,hp2) and
-                  MatchInstruction(hp2,A_VMOVAPD,A_VMOVAPS,[S_NO]) and
+                  MatchInstruction(hp2,[A_VMOVAPD,A_VMOVAPS,A_MOVAPD,A_MOVAPS],[S_NO]) and
                   MatchOperand(taicpu(p).oper[0]^,taicpu(hp2).oper[1]^) then
                   begin
                     TransferUsedRegs(TmpUsedRegs);
@@ -1254,6 +1259,50 @@ unit aoptx86;
                         asml.Remove(hp2);
                         hp2.Free;
                         p:=hp1;
+                      end;
+                  end
+                else if (hp1.typ = ait_instruction) and
+                  GetNextInstruction(hp1, hp2) and
+                  MatchInstruction(hp2,taicpu(p).opcode,[]) and
+                  OpsEqual(taicpu(hp2).oper[1]^, taicpu(p).oper[0]^) and
+                  MatchOpType(taicpu(hp2),top_reg,top_reg) and
+                  MatchOperand(taicpu(hp2).oper[0]^,taicpu(p).oper[1]^) and
+                  (((taicpu(p).opcode=A_MOVAPS) and
+                    ((taicpu(hp1).opcode=A_ADDSS) or (taicpu(hp1).opcode=A_SUBSS) or
+                     (taicpu(hp1).opcode=A_MULSS) or (taicpu(hp1).opcode=A_DIVSS))) or
+                   ((taicpu(p).opcode=A_MOVAPD) and
+                    ((taicpu(hp1).opcode=A_ADDSD) or (taicpu(hp1).opcode=A_SUBSD) or
+                     (taicpu(hp1).opcode=A_MULSD) or (taicpu(hp1).opcode=A_DIVSD)))
+                  ) then
+                  { change
+                             movapX    reg,reg2
+                             addsX/subsX/... reg3, reg2
+                             movapX    reg2,reg
+                    to
+                             addsX/subsX/... reg3,reg
+                  }
+                  begin
+                    TransferUsedRegs(TmpUsedRegs);
+                    UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                    UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
+                    If not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2,TmpUsedRegs)) then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'MovapXOpMovapX2Op ('+
+                              debug_op2str(taicpu(p).opcode)+' '+
+                              debug_op2str(taicpu(hp1).opcode)+' '+
+                              debug_op2str(taicpu(hp2).opcode)+') done',p);
+                        { we cannot eliminate the first move if
+                          the operations uses the same register for source and dest }
+                        if not(OpsEqual(taicpu(hp1).oper[1]^,taicpu(hp1).oper[0]^)) then
+                          begin
+                            asml.remove(p);
+                            p.Free;
+                          end;
+                        taicpu(hp1).loadoper(1, taicpu(hp2).oper[1]^);
+                        asml.remove(hp2);
+                        hp2.Free;
+                        p:=hp1;
+                        result:=true;
                       end;
                   end;
               end;
