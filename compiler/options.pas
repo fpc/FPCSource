@@ -952,7 +952,14 @@ begin
         if not ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',envstr,false) then
           Message1(option_invalid_macosx_deployment_target,envstr)
         else
-          exit;
+          begin
+{$ifdef llvm}
+             { We only support libunwind as part of libsystem, which happened in Mac OS X 10.6 }
+            if CompareVersionStrings(MacOSXVersionMin,'10.6')<=0 then
+              Message1(option_invalid_macosx_deployment_target,envstr);
+{$endif}
+            exit;
+          end;
     end
   else
     begin
@@ -970,30 +977,16 @@ begin
         set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1030');
         MacOSXVersionMin:='10.3';
       end;
-    system_powerpc64_darwin,
-    system_i386_darwin:
+    system_powerpc64_darwin:
       begin
-{$ifdef llvm}
-        { We only support libunwind as part of libsystem }
-        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1060');
-        MacOSXVersionMin:='10.6';
-{$else llvm}
         set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1040');
         MacOSXVersionMin:='10.4';
-{$endif llvm}
       end;
+    system_i386_darwin,
     system_x86_64_darwin:
       begin
-{$ifdef llvm}
-        { We only support libunwind as part of libsystem }
-        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1060');
-        MacOSXVersionMin:='10.6';
-{$else llvm}
-        { actually already works on 10.4, but it's unlikely any 10.4 system
-          with an x86-64 is still in use, so don't default to it }
-        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1050');
-        MacOSXVersionMin:='10.5';
-{$endif llvm}
+        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1080');
+        MacOSXVersionMin:='10.8';
       end;
     system_arm_darwin,
     system_i386_iphonesim:
