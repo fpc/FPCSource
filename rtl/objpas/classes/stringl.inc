@@ -284,6 +284,159 @@ begin
     Result:='';
 end;
 
+
+procedure TStrings.Filter(aFilter: TStringsFilterMethod; aList: TStrings);
+
+var
+  S : string;
+
+begin
+  for S in self do
+    if aFilter(S) then
+      aList.Add(S);
+end;
+
+
+procedure TStrings.ForEach(aCallback: TStringsForeachMethod);
+
+var
+  S : String;
+
+begin
+  for S in self do
+    aCallBack(S);
+end;
+
+
+procedure TStrings.ForEach(aCallback: TStringsForeachMethodEx);
+
+var
+  i: integer;
+
+begin
+  for i:=0 to Count-1 do
+    aCallBack(Strings[i],i);
+end;
+
+
+procedure TStrings.ForEach(aCallback: TStringsForeachMethodExObj);
+
+var
+  i: integer;
+
+begin
+  for i:=0 to Count-1 do
+    aCallback(Strings[i],i,Objects[i]);
+end;
+
+
+function TStrings.Filter(aFilter: TStringsFilterMethod): TStrings;
+
+begin
+  Result:=TStringsClass(Self.ClassType).Create;
+  try
+    Filter(aFilter,Result);
+  except
+    FreeAndNil(Result);
+    Raise;
+  end;
+end;
+
+procedure TStrings.Fill(const aValue: String; aStart, aEnd: Integer);
+var
+  i: integer;
+begin
+  if aEnd<0 then
+    aEnd:=Self.Count+aEnd;
+  if aEnd>=Count then
+    aEnd:=Count-1;
+  for i:=aStart to aEnd do
+    Strings[i]:=aValue;
+end;
+
+
+Procedure TStrings.Map(aMap: TStringsMapMethod; aList : TStrings);
+
+Var
+  S : String;
+
+begin
+  For S in self do
+    aList.Add(aMap(S));
+end;
+
+
+Function TStrings.Map(aMap: TStringsMapMethod) : TStrings;
+
+begin
+  Result:=TStringsClass(Self.ClassType).Create;
+  try
+    Map(aMap,Result);
+  except
+    FreeAndNil(Result);
+    Raise;
+  end;
+end;
+
+
+function TStrings.Reduce(aReduceMethod: TStringsReduceMethod; const startingValue: string): string;
+
+var
+  S : String;
+
+begin
+  Result:=startingValue;
+  for S in self do
+    Result:=aReduceMethod(Result, S);
+end;
+
+
+Function TStrings.Reverse : TStrings;
+
+begin
+  Result:=TStringsClass(Self.ClassType).Create;
+  try
+    Reverse(Result);
+  except
+    FreeAndNil(Result);
+    Raise;
+  end;
+end;
+
+
+Procedure TStrings.Reverse(aList : TStrings);
+
+Var
+  I : Integer;
+
+begin
+  for I:=Count-1 downto 0 do
+    aList.Add(Strings[i]);
+end;
+
+
+Procedure TStrings.Slice(fromIndex: integer; aList : TStrings);
+
+var
+  i: integer;
+
+begin
+  for i:=fromIndex to Count-1 do
+    aList.Add(Self[i]);
+end;
+
+Function TStrings.Slice(fromIndex: integer) :  TStrings;
+
+begin
+  Result:=TStringsClass(Self.ClassType).Create;
+  try
+    Slice(FromIndex,Result);
+  except
+    FreeAndNil(Result);
+    Raise;
+  end;
+end;
+
 function TStrings.GetName(Index: Integer): string;
 
 Var
@@ -1018,6 +1171,19 @@ begin
   if Result=Count then Result:=-1;
 end;
 
+function TStrings.IndexOf(const S: string; aStart: Integer): Integer;
+begin
+  if aStart<0 then
+    begin
+    aStart:=Count+aStart;
+    if aStart<0 then
+      aStart:=0;
+    end;
+  Result:=aStart;
+  While (Result<Count) and (DoCompareText(Strings[Result],S)<>0) do Result:=Result+1;
+  if Result=Count then Result:=-1;
+end;
+
 
 Function TStrings.IndexOfName(const Name: string): Integer;
 Var
@@ -1054,7 +1220,26 @@ begin
   Objects[Index]:=AObject;
 end;
 
+function TStrings.LastIndexOf(const S: string): Integer;
 
+begin
+  Result:=LastIndexOf(S,Count-1);
+end;
+
+function TStrings.LastIndexOf(const S: string; aStart : Integer): Integer;
+begin
+  if aStart<0 then
+    begin
+    aStart:=Count+aStart;
+    if aStart<0 then
+      aStart:=0;
+    end;
+  Result:=aStart;
+  if Result>=Count-1 then
+    Result:=Count-1;
+  While (Result>=0) and (DoCompareText(Strings[Result],S)<>0) do
+    Result:=Result-1;
+end;
 
 Procedure TStrings.LoadFromFile(const FileName: string);
 
@@ -1064,7 +1249,7 @@ end;
 
 Procedure TStrings.LoadFromFile(const FileName: string; IgnoreEncoding : Boolean);
 Var
-        TheStream : TFileStream;
+  TheStream : TFileStream;
 begin
   TheStream:=TFileStream.Create(FileName,fmOpenRead or fmShareDenyWrite);
   try
@@ -1196,7 +1381,31 @@ begin
     end;
 end;
 
+function TStrings.Pop: string;
 
+var
+  C : Integer;
+
+begin
+  Result:='';
+  C:=Count-1;
+  if (C>=0) then
+    begin
+    Result:=Strings[C];
+    Delete(C);
+    end;
+end;
+
+function TStrings.Shift: String;
+
+begin
+  Result:='';
+  if (Count > 0) then
+    begin
+    Result:=Strings[0];
+    Delete(0);
+    end;
+end;
 
 Procedure TStrings.SaveToFile(const FileName: string);
 

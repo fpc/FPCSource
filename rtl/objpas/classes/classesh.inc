@@ -602,6 +602,12 @@ type
   end;
 
 { TStrings class }
+  TStringsFilterMethod = function(const s: string): boolean of object;
+  TStringsReduceMethod = function(const s1, s2: string): string of object;
+  TStringsMapMethod = function(const s: string): string of object;
+  TStringsForEachMethodExObj = procedure(const CurrentValue: string; const index: integer; Obj : TObject) of object;
+  TStringsForEachMethodEx = procedure(const CurrentValue: string; const index: integer) of object;
+  TStringsForEachMethod = procedure(const CurrentValue: string) of object;
   TMissingNameValueSeparatorAction = (mnvaValue,mnvaName,mnvaEmpty,mnvaError);
   TMissingNameValueSeparatorActions = set of TMissingNameValueSeparatorAction;
 
@@ -700,25 +706,43 @@ type
     function Equals(TheStrings: TStrings): Boolean; overload;
     procedure Exchange(Index1, Index2: Integer); virtual;
     function  ExtractName(Const S:String):String;
+    Procedure Filter(aFilter: TStringsFilterMethod; aList : TStrings);
+    Function Filter(aFilter: TStringsFilterMethod) :  TStrings;
+    Procedure Fill(const aValue : String; aStart,aEnd : Integer);
+    procedure ForEach(aCallback: TStringsForeachMethod);
+    procedure ForEach(aCallback: TStringsForeachMethodEx);
+    procedure ForEach(aCallback: TStringsForeachMethodExObj);
     function GetEnumerator: TStringsEnumerator;
     procedure GetNameValue(Index : Integer; Out AName,AValue : String);
     function GetText: PChar; virtual;
     function IndexOf(const S: string): Integer; virtual;
+    function IndexOf(const S: string; aStart : Integer): Integer; virtual;
     function IndexOfName(const Name: string): Integer; virtual;
     function IndexOfObject(AObject: TObject): Integer; virtual;
     procedure Insert(Index: Integer; const S: string); virtual; abstract;
     procedure InsertObject(Index: Integer; const S: string; AObject: TObject);
+    function LastIndexOf(const S: string; aStart : Integer): Integer; virtual;
+    function LastIndexOf(const S: string): Integer;
     procedure LoadFromFile(const FileName: string); overload; virtual;
     procedure LoadFromFile(const FileName: string; IgnoreEncoding : Boolean);
     procedure LoadFromFile(const FileName: string; AEncoding: TEncoding); overload; virtual;
     procedure LoadFromStream(Stream: TStream); overload; virtual;
     procedure LoadFromStream(Stream: TStream; IgnoreEncoding : Boolean); overload;
     procedure LoadFromStream(Stream: TStream; AEncoding: TEncoding); overload; virtual;
+    Procedure Map(aMap: TStringsMapMethod; aList : TStrings);
+    Function Map(aMap: TStringsMapMethod) : TStrings;
     procedure Move(CurIndex, NewIndex: Integer); virtual;
+    Function Pop : String;
+    function Reduce(aReduceMethod: TStringsReduceMethod; const startingValue: string): string;
+    Function Reverse : TStrings;
+    Procedure Reverse(aList : TStrings);
     procedure SaveToFile(const FileName: string); overload; virtual;
     procedure SaveToFile(const FileName: string; AEncoding: TEncoding); overload; virtual;
     procedure SaveToStream(Stream: TStream); overload; virtual;
     procedure SaveToStream(Stream: TStream; AEncoding: TEncoding); overload; virtual;
+    function Shift : String;
+    Procedure Slice(fromIndex: integer; aList : TStrings);
+    Function Slice(fromIndex: integer) : TStrings;
     procedure SetText(TheText: PChar); virtual;
     property AlwaysQuote: Boolean read FAlwaysQuote write FAlwaysQuote;
     property Capacity: Integer read GetCapacity write SetCapacity;
@@ -746,6 +770,7 @@ type
     property Values[const Name: string]: string read GetValue write SetValue;
     property WriteBOM: Boolean read FWriteBOM write FWriteBOM;
   end;
+  TStringsClass = Class of TStrings;
 
 { TStringList class }
 
