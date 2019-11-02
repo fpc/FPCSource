@@ -4244,19 +4244,16 @@ unit aoptx86;
           by
             jmp    procname
 
-          this should never hurt except when pic is used, not sure
-          how to handle it then
-
           but do it only on level 4 because it destroys stack back traces
         }
         if (cs_opt_level4 in current_settings.optimizerswitches) and
-          not(cs_create_pic in current_settings.moduleswitches) and
           GetNextInstruction(p, hp1) and
           MatchInstruction(hp1,A_RET,[S_NO]) and
           (taicpu(hp1).ops=0) then
           begin
             taicpu(p).opcode := A_JMP;
             taicpu(p).is_jmp := true;
+            DebugMsg(SPeepholeOptimization + 'CallRet2Jmp done',p);
             asml.remove(hp1);
             hp1.free;
             Result:=true;
