@@ -3184,7 +3184,17 @@ unit aoptx86;
             or ((taicpu(p).oper[0]^.typ = top_ref) and
              (taicpu(p).oper[0]^.ref^.refaddr = addr_no))
            }
-           MatchOpType(taicpu(p),top_reg,top_reg);
+           (MatchOpType(taicpu(p),top_reg,top_reg) or
+            { allow references, but only pure symbols or got rel. addressing with RIP as based,
+              it is not expected that this can cause a seg. violation }
+            (MatchOpType(taicpu(p),top_ref,top_reg) and
+             (((taicpu(p).oper[0]^.ref^.base=NR_NO) and (taicpu(p).oper[0]^.ref^.refaddr=addr_no)) or
+              ((taicpu(p).oper[0]^.ref^.base=NR_RIP) and (taicpu(p).oper[0]^.ref^.refaddr=addr_pic))
+             ) and
+             (taicpu(p).oper[0]^.ref^.index=NR_NO) and
+             (taicpu(p).oper[0]^.ref^.offset=0)
+            )
+           );
       end;
 
 
