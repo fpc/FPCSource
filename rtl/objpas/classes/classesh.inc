@@ -625,6 +625,7 @@ type
     function GetCommaText: string;
     function GetMissingNameValueSeparatorAction: TMissingNameValueSeparatorAction;
     function GetName(Index: Integer): string;
+    function GetTrailingLineBreak: Boolean;
     function GetValue(const Name: string): string;
     Function GetLBS : TTextLineBreakStyle;
     procedure SetDefaultEncoding(const ADefaultEncoding: TEncoding);
@@ -634,6 +635,7 @@ type
     procedure SetCommaText(const Value: string);
     procedure SetMissingNameValueSeparatorAction(AValue: TMissingNameValueSeparatorAction);
     procedure SetStringsAdapter(const Value: IStringsAdapter);
+    procedure SetTrailingLineBreak(AValue: Boolean);
     procedure SetValue(const Name, Value: string);
     procedure SetDelimiter(c:Char);
     procedure SetQuoteChar(c:Char);
@@ -733,6 +735,8 @@ type
     property Objects[Index: Integer]: TObject read GetObject write PutObject;
     property QuoteChar: Char read GetQuoteChar write SetQuoteChar;
     Property SkipLastLineBreak : Boolean Read GetSkipLastLineBreak Write SetSkipLastLineBreak;
+    // Same as SkipLastLineBreak but for Delphi compatibility. Note it has opposite meaning.
+    Property TrailingLineBreak : Boolean Read GetTrailingLineBreak Write SetTrailingLineBreak;
     Property StrictDelimiter : Boolean Read FStrictDelimiter Write FStrictDelimiter;
     property Strings[Index: Integer]: string read Get write Put; default;
     property StringsAdapter: IStringsAdapter read FAdapter write SetStringsAdapter;
