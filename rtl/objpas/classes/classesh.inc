@@ -1199,7 +1199,7 @@ type
     FEncoding: TEncoding;
     FOwnsEncoding : Boolean;
     function GetDataString: string;
-    function GetUnicodeDataString: String;
+    function GetUnicodeDataString: UnicodeString;
   protected
   public
     constructor Create(const ABytes: TBytes); override; overload;
@@ -1219,7 +1219,7 @@ type
     function ReadString(Count: Longint): string;
     procedure WriteString(const AString: string);
     property DataString: string read GetDataString;
-    Property UnicodeDataString : String Read GetUnicodeDataString;
+    Property UnicodeDataString : UnicodeString Read GetUnicodeDataString;
     Property OwnsEncoding : Boolean Read FOwnsEncoding;
     Property Encoding : TEncoding Read FEncoding;
   end;
