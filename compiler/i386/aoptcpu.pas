@@ -625,6 +625,9 @@ begin
               A_Jcc:
                 if OptPass2Jcc(p) then
                   continue;
+              A_Lea:
+                if OptPass2Lea(p) then
+                  continue;
               A_FSTP,A_FISTP:
                 if OptPass1FSTP(p) then
                   continue;

@@ -79,6 +79,7 @@ unit aoptx86;
         function OptPass2Imul(var p : tai) : boolean;
         function OptPass2Jmp(var p : tai) : boolean;
         function OptPass2Jcc(var p : tai) : boolean;
+        function OptPass2Lea(var p: tai): Boolean;
 
         function PostPeepholeOptMov(var p : tai) : Boolean;
 {$ifdef x86_64} { These post-peephole optimisations only affect 64-bit registers. [Kit] }
@@ -4028,9 +4029,7 @@ unit aoptx86;
       end;
 
 
-    function TX86AsmOptimizer.PostPeepholeOptLea(var p : tai) : Boolean;
-      var
-       hp1, hp2, hp3: tai;
+    function TX86AsmOptimizer.OptPass2Lea(var p : tai) : Boolean;
       begin
         Result:=false;
         if not (RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) and
@@ -4053,7 +4052,34 @@ unit aoptx86;
             taicpu(p).opcode:=A_ADD;
             DebugMsg(SPeepholeOptimization + 'Lea2AddIndex done',p);
             result:=true;
-          end
+          end;
+      end;
+
+
+    function TX86AsmOptimizer.PostPeepholeOptLea(var p : tai) : Boolean;
+
+      function SkipSimpleInstructions(var hp1 : tai) : Boolean;
+        begin
+          { we can skip all instructions not messing with the stack pointer }
+          while assigned(hp1) and {MatchInstruction(taicpu(hp1),[A_LEA,A_MOV,A_MOVQ,A_MOVSQ,A_MOVSX,A_MOVSXD,A_MOVZX,
+            A_AND,A_OR,A_XOR,A_ADD,A_SHR,A_SHL,A_IMUL,A_SETcc,A_SAR,A_SUB,A_TEST,A_CMOVcc,
+            A_MOVSS,A_MOVSD,A_MOVAPS,A_MOVUPD,A_MOVAPD,A_MOVUPS,
+            A_VMOVSS,A_VMOVSD,A_VMOVAPS,A_VMOVUPD,A_VMOVAPD,A_VMOVUPS],[]) and}
+            ({(taicpu(hp1).ops=0) or }
+             ({(MatchOpType(taicpu(hp1),top_reg,top_reg) or MatchOpType(taicpu(hp1),top_const,top_reg) or
+               (MatchOpType(taicpu(hp1),top_ref,top_reg))
+              ) and }
+              not(RegInInstruction(NR_STACK_POINTER_REG,hp1)) { and not(RegInInstruction(NR_FRAME_POINTER_REG,hp1))}
+             )
+            ) do
+            GetNextInstruction(hp1,hp1);
+          Result:=assigned(hp1);
+        end;
+
+      var
+        hp1, hp2, hp3: tai;
+      begin
+        Result:=false;
         { replace
             leal(q) x(<stackpointer>),<stackpointer>
             call   procname
@@ -4062,15 +4088,16 @@ unit aoptx86;
           by
             jmp    procname
 
-          this should never hurt except when pic is used, not sure
-          how to handle it then
-
           but do it only on level 4 because it destroys stack back traces
         }
-        else if (cs_opt_level4 in current_settings.optimizerswitches) and
+        if (cs_opt_level4 in current_settings.optimizerswitches) and
           MatchOpType(taicpu(p),top_ref,top_reg) and
           (taicpu(p).oper[0]^.ref^.base=NR_STACK_POINTER_REG) and
           (taicpu(p).oper[0]^.ref^.index=NR_NO) and
+          { the -8 or -24 are not required, but bail out early if possible,
+            higher values are unlikely }
+          ((taicpu(p).oper[0]^.ref^.offset=-8) or
+           (taicpu(p).oper[0]^.ref^.offset=-24))  and
           (taicpu(p).oper[0]^.ref^.symbol=nil) and
           (taicpu(p).oper[0]^.ref^.relsymbol=nil) and
           (taicpu(p).oper[0]^.ref^.segment=NR_NO) and
@@ -4078,6 +4105,7 @@ unit aoptx86;
           GetNextInstruction(p, hp1) and
           { trick to skip label }
           ((hp1.typ=ait_instruction) or GetNextInstruction(hp1, hp1)) and
+          SkipSimpleInstructions(hp1) and
           MatchInstruction(hp1,A_CALL,[S_NO]) and
           GetNextInstruction(hp1, hp2) and
           MatchInstruction(hp2,A_LEA,[taicpu(p).opsize]) and

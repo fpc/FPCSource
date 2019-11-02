@@ -151,6 +151,8 @@ uses
                   Result:=OptPass2Jmp(p);
                 A_Jcc:
                   Result:=OptPass2Jcc(p);
+                A_Lea:
+                  Result:=OptPass2Lea(p);
                 else
                   ;
               end;
