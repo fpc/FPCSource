@@ -4029,6 +4029,8 @@ unit aoptx86;
 
 
     function TX86AsmOptimizer.PostPeepholeOptLea(var p : tai) : Boolean;
+      var
+       hp1, hp2, hp3: tai;
       begin
         Result:=false;
         if not (RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) and
@@ -4051,6 +4053,57 @@ unit aoptx86;
             taicpu(p).opcode:=A_ADD;
             DebugMsg(SPeepholeOptimization + 'Lea2AddIndex done',p);
             result:=true;
+          end
+        { replace
+            leal(q) x(<stackpointer>),<stackpointer>
+            call   procname
+            leal(q) -x(<stackpointer>),<stackpointer>
+            ret
+          by
+            jmp    procname
+
+          this should never hurt except when pic is used, not sure
+          how to handle it then
+
+          but do it only on level 4 because it destroys stack back traces
+        }
+        else if (cs_opt_level4 in current_settings.optimizerswitches) and
+          MatchOpType(taicpu(p),top_ref,top_reg) and
+          (taicpu(p).oper[0]^.ref^.base=NR_STACK_POINTER_REG) and
+          (taicpu(p).oper[0]^.ref^.index=NR_NO) and
+          (taicpu(p).oper[0]^.ref^.symbol=nil) and
+          (taicpu(p).oper[0]^.ref^.relsymbol=nil) and
+          (taicpu(p).oper[0]^.ref^.segment=NR_NO) and
+          (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG) and
+          GetNextInstruction(p, hp1) and
+          { trick to skip label }
+          ((hp1.typ=ait_instruction) or GetNextInstruction(hp1, hp1)) and
+          MatchInstruction(hp1,A_CALL,[S_NO]) and
+          GetNextInstruction(hp1, hp2) and
+          MatchInstruction(hp2,A_LEA,[taicpu(p).opsize]) and
+          MatchOpType(taicpu(hp2),top_ref,top_reg) and
+          (taicpu(hp2).oper[0]^.ref^.offset=-taicpu(p).oper[0]^.ref^.offset) and
+          (taicpu(hp2).oper[0]^.ref^.base=NR_STACK_POINTER_REG) and
+          (taicpu(hp2).oper[0]^.ref^.index=NR_NO) and
+          (taicpu(hp2).oper[0]^.ref^.symbol=nil) and
+          (taicpu(hp2).oper[0]^.ref^.relsymbol=nil) and
+          (taicpu(hp2).oper[0]^.ref^.segment=NR_NO) and
+          (taicpu(hp2).oper[1]^.reg=NR_STACK_POINTER_REG) and
+          GetNextInstruction(hp2, hp3) and
+          { trick to skip label }
+          ((hp3.typ=ait_instruction) or GetNextInstruction(hp3, hp3)) and
+          MatchInstruction(hp3,A_RET,[S_NO]) and
+          (taicpu(hp3).ops=0) then
+          begin
+            taicpu(hp1).opcode := A_JMP;
+            taicpu(hp1).is_jmp := true;
+            DebugMsg(SPeepholeOptimization + 'LeaCallLeaRet2Jmp done',p);
+            RemoveCurrentP(p);
+            AsmL.Remove(hp2);
+            hp2.free;
+            AsmL.Remove(hp3);
+            hp3.free;
+            Result:=true;
           end;
       end;
 
