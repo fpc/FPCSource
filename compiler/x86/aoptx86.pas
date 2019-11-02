@@ -3188,8 +3188,8 @@ unit aoptx86;
             { allow references, but only pure symbols or got rel. addressing with RIP as based,
               it is not expected that this can cause a seg. violation }
             (MatchOpType(taicpu(p),top_ref,top_reg) and
-             (((taicpu(p).oper[0]^.ref^.base=NR_NO) and (taicpu(p).oper[0]^.ref^.refaddr=addr_no)) or
-              ((taicpu(p).oper[0]^.ref^.base=NR_RIP) and (taicpu(p).oper[0]^.ref^.refaddr=addr_pic))
+             (((taicpu(p).oper[0]^.ref^.base=NR_NO) and (taicpu(p).oper[0]^.ref^.refaddr=addr_no)){$ifdef x86_64} or
+              ((taicpu(p).oper[0]^.ref^.base=NR_RIP) and (taicpu(p).oper[0]^.ref^.refaddr=addr_pic)){$endif x86_64}
              ) and
              (taicpu(p).oper[0]^.ref^.index=NR_NO) and
              (taicpu(p).oper[0]^.ref^.offset=0)
