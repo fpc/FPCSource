@@ -460,7 +460,8 @@ const
     );
 
   PCUProcedureScopeFlagNames: array[TPasProcedureScopeFlag] of string = (
-    'GrpOverload'
+    'GrpOverload',
+    'ppsfIsSpecialized'
     );
 
   PCUDefaultPSRefAccess = psraRead;
@@ -843,6 +844,7 @@ type
     procedure Set_Variable_VarType(RefEl: TPasElement; Data: TObject);
     procedure Set_AliasType_DestType(RefEl: TPasElement; Data: TObject);
     procedure Set_PointerType_DestType(RefEl: TPasElement; Data: TObject);
+    procedure Set_InlineSpecializeExpr_DestType(RefEl: TPasElement; Data: TObject);
     procedure Set_ArrayType_ElType(RefEl: TPasElement; Data: TObject);
     procedure Set_FileType_ElType(RefEl: TPasElement; Data: TObject);
     procedure Set_SetType_EnumType(RefEl: TPasElement; Data: TObject);
@@ -3326,8 +3328,7 @@ procedure TPCUWriter.WriteInlineSpecializeExpr(Obj: TJSONObject;
   Expr: TInlineSpecializeExpr; aContext: TPCUWriterContext);
 begin
   WritePasExpr(Obj,Expr,pekSpecialize,eopNone,aContext);
-  WriteExpr(Obj,Expr,'Name',Expr.NameExpr,aContext);
-  WriteElementList(Obj,Expr,'Params',Expr.Params,aContext);
+  WriteElType(Obj,Expr,'Dest',Expr.DestType,aContext);
 end;
 
 procedure TPCUWriter.WriteRangeType(Obj: TJSONObject; El: TPasRangeType;
@@ -3633,6 +3634,7 @@ procedure TPCUWriter.WriteProcedureType(Obj: TJSONObject;
   El: TPasProcedureType; aContext: TPCUWriterContext);
 begin
   WritePasElement(Obj,El,aContext);
+  WriteGenericTemplateTypes(Obj,El,El.GenericTemplateTypes,aContext);
   WriteElementList(Obj,El,'Args',El.Args,aContext);
   if El.CallingConvention<>ccDefault then
     Obj.Add('Call',PCUCallingConventionNames[El.CallingConvention]);
@@ -3760,14 +3762,14 @@ var
   NameParts: TProcedureNameParts;
 begin
   NameParts:=El.NameParts;
-  if length(NameParts)=0 then exit;
+  if (NameParts=nil) or (NameParts.Count=0) then exit;
   Arr:=TJSONArray.Create;
   Obj.Add('NameParts',Arr);
-  for i:=0 to length(NameParts)-1 do
+  for i:=0 to NameParts.Count-1 do
     begin
     NamePartObj:=TJSONObject.Create;
     Arr.Add(NamePartObj);
-    with NameParts[i] do
+    with TProcedureNamePart(NameParts[i]) do
       begin
       NamePartObj.Add('Name',Name);
       if Templates<>nil then
@@ -4245,6 +4247,21 @@ begin
     end
   else
     RaiseMsg(20180211121757,El,GetObjName(RefEl));
+end;
+
+procedure TPCUReader.Set_InlineSpecializeExpr_DestType(RefEl: TPasElement;
+  Data: TObject);
+var
+  El: TInlineSpecializeExpr absolute Data;
+begin
+  if RefEl is TPasSpecializeType then
+    begin
+    El.DestType:=TPasSpecializeType(RefEl);
+    if RefEl.Parent<>El then
+      RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TInlineSpecializeExpr.DestType'){$ENDIF};
+    end
+  else
+    RaiseMsg(20190815192420,El,GetObjName(RefEl));
 end;
 
 procedure TPCUReader.Set_ArrayType_ElType(RefEl: TPasElement; Data: TObject);
@@ -6706,10 +6723,7 @@ procedure TPCUReader.ReadInlineSpecializeExpr(Obj: TJSONObject;
   Expr: TInlineSpecializeExpr; aContext: TPCUReaderContext);
 begin
   Expr.Kind:=pekSpecialize;
-  Expr.NameExpr:=ReadExpr(Obj,Expr,'Name',aContext);
-  ReadElementList(Obj,Expr,'Params',Expr.Params,
-    {$IFDEF CheckPasTreeRefCount}'TPasSpecializeType.Params'{$ELSE}true{$ENDIF},
-    aContext);
+  ReadElType(Obj,'Dest',Expr,@Set_InlineSpecializeExpr_DestType,aContext);
 end;
 
 procedure TPCUReader.ReadRangeType(Obj: TJSONObject; El: TPasRangeType;
@@ -7280,6 +7294,7 @@ var
   c: TCallingConvention;
 begin
   ReadPasElement(Obj,El,aContext);
+  ReadGenericTemplateTypes(Obj,El,El.GenericTemplateTypes,aContext);
   ReadElementList(Obj,El,'Args',El.Args,
     {$IFDEF CheckPasTreeRefCount}'TPasProcedureType.Args'{$ELSE}true{$ENDIF},
     aContext);
@@ -7469,15 +7484,21 @@ var
   NamePartObj, TemplObj: TJSONObject;
   GenTypeName: string;
   GenType: TPasGenericTemplateType;
+  NamePart: TProcedureNamePart;
 begin
   ReleaseProcNameParts(El.NameParts);
   if ReadArray(Obj,'NameParts',Arr,El) then
     begin
-    SetLength(El.NameParts,Arr.Count);
+    if El.NameParts=nil then
+      El.NameParts:=TProcedureNameParts.Create
+    else
+      El.NameParts.Clear;
     for i:=0 to Arr.Count-1 do
       begin
       NamePartObj:=CheckJSONObject(Arr[i],20190718113441);
-      with El.NameParts[i] do
+      NamePart:=TProcedureNamePart.Create;
+      El.NameParts.Add(NamePart);
+      with NamePart do
         begin
         if not ReadString(NamePartObj,'Name',Name,El) then
           RaiseMsg(20190718113739,El,IntToStr(i));

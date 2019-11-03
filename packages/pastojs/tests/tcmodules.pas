@@ -4952,7 +4952,7 @@ begin
   '  f: TMyEnum = Green;',
   'begin',
   '  e:=green;']);
-  SetExpectedPasResolverError('not yet implemented: Red:TPasEnumValue [20180126202434] enum const',3002);
+  SetExpectedPasResolverError('not yet implemented: Red:TPasEnumValue [20180126202434] "enum const"',3002);
   ConvertProgram;
 end;
 
@@ -10477,6 +10477,12 @@ begin
   'procedure Fly(d: jsvalue; const c: jsvalue);',
   'begin',
   'end;',
+  'procedure Run(d: TRecord; const c: TRecord; var v: TRecord);',
+  'begin',
+  '  if jsvalue(d) then ;',
+  '  if jsvalue(c) then ;',
+  '  if jsvalue(v) then ;',
+  'end;',
   'var',
   '  Jv: jsvalue;',
   '  Rec: trecord;',
@@ -10485,6 +10491,8 @@ begin
   '  jv:=rec;',
   '  Fly(rec,rec);',
   '  Fly(@rec,@rec);',
+  '  if jsvalue(Rec) then ;',
+  '  Run(trecord(jv),trecord(jv),rec);',
   '']);
   ConvertProgram;
   CheckSource('TestRecord_JSValue',
@@ -10501,6 +10509,11 @@ begin
     '});',
     'this.Fly = function (d, c) {',
     '};',
+    'this.Run = function (d, c, v) {',
+    '  if (d) ;',
+    '  if (c) ;',
+    '  if (v) ;',
+    '};',
     'this.Jv = undefined;',
     'this.Rec = $mod.TRecord.$new();',
     '']),
@@ -10509,6 +10522,8 @@ begin
     '$mod.Jv = $mod.Rec;',
     '$mod.Fly($mod.TRecord.$clone($mod.Rec), $mod.Rec);',
     '$mod.Fly($mod.Rec, $mod.Rec);',
+    'if ($mod.Rec) ;',
+    '$mod.Run($mod.TRecord.$clone(rtl.getObject($mod.Jv)), rtl.getObject($mod.Jv), $mod.Rec);',
     '']));
 end;
 
@@ -10718,7 +10733,7 @@ begin
   'var',
   '  r: record x: word end;',
   'begin']);
-  SetExpectedPasResolverError('not yet implemented: :TPasRecordType [20190408224556] anonymous record type',
+  SetExpectedPasResolverError('not yet implemented: :TPasRecordType [20190408224556] "anonymous record type"',
     nNotYetImplemented);
   ConvertProgram;
 end;
@@ -11308,7 +11323,7 @@ begin
   '  end;',
   'begin',
   '']);
-  SetExpectedPasResolverError('not yet implemented: IBird:TPasClassType [20190105143752] interface inside record',
+  SetExpectedPasResolverError('not yet implemented: IBird:TPasClassType [20190105143752] "interface inside record"',
     nNotYetImplemented);
   ParseProgram;
 end;
@@ -13223,6 +13238,7 @@ begin
   Add('  tcontrol(obj):=tcontrol(tcontrol(obj).getit());');
   Add('  tcontrol(obj):=tcontrol(tcontrol(obj).getit(1));');
   Add('  tcontrol(obj):=tcontrol(tcontrol(tcontrol(obj).getit).arr[2]);');
+  Add('  obj:=tcontrol(nil);');
   ConvertProgram;
   CheckSource('TestClass_TypeCast',
     LinesToStr([ // statements
@@ -13261,6 +13277,7 @@ begin
     '$mod.Obj = $mod.Obj.GetIt(0);',
     '$mod.Obj = $mod.Obj.GetIt(1);',
     '$mod.Obj = $mod.Obj.GetIt(0).Arr[2];',
+    '$mod.Obj = null;',
     '']));
 end;
 
@@ -25809,6 +25826,10 @@ procedure TTestModule.TestJSValue_If;
 begin
   StartProgram(false);
   Add([
+  'procedure Fly(var u);',
+  'begin',
+  '  if jsvalue(u) then ;',
+  'end;',
   'var',
   '  v: jsvalue;',
   'begin',
@@ -25819,6 +25840,9 @@ begin
   ConvertProgram;
   CheckSource('TestJSValue_If',
     LinesToStr([ // statements
+    'this.Fly = function (u) {',
+    '  if (u.get()) ;',
+    '};',
     'this.v = undefined;',
     '']),
     LinesToStr([ // $mod.$main

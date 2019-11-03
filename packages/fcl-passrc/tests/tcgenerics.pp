@@ -16,8 +16,10 @@ Type
     Procedure TestObjectGenerics;
     Procedure TestRecordGenerics;
     Procedure TestArrayGenerics;
+    Procedure TestArrayGenericsDelphi;
+    Procedure TestProcTypeGenerics;
     Procedure TestGenericConstraint;
-    Procedure TestGenericInterfaceConstraint; // ToDo
+    Procedure TestGenericInterfaceConstraint;
     Procedure TestDeclarationConstraint;
     Procedure TestSpecializationDelphi;
     Procedure TestDeclarationDelphi;
@@ -61,6 +63,28 @@ begin
   Add([
     'Type',
     '  Generic TSome<T> = array of T;',
+    '  Generic TStatic<R,T> = array[R] of T;',
+    '']);
+  ParseDeclarations;
+end;
+
+procedure TTestGenerics.TestArrayGenericsDelphi;
+begin
+  Add([
+    '{$mode delphi}',
+    'Type',
+    '  TSome<T> = array of T;',
+    '  TStatic<R,T> = array[R] of T;',
+    '']);
+  ParseDeclarations;
+end;
+
+procedure TTestGenerics.TestProcTypeGenerics;
+begin
+  Add([
+    'Type',
+    '  Generic TSome<T> = procedure(v: T);',
+    '  Generic TFunc<R,T> = function(b: R): T;',
     '']);
   ParseDeclarations;
 end;

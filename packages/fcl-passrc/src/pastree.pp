@@ -102,7 +102,7 @@ type
   protected
     procedure Accept(Visitor: TPassTreeVisitor); virtual;
   public
-    Property CustomData : TObject Read FData Write FData;
+    Property CustomData: TObject Read FData Write FData;
   end;
   TPasElementBaseClass = class of TPasElementBase;
 
@@ -508,6 +508,7 @@ type
   public
     function ElementTypeName: string; override;
   end;
+  TPasTypeArray = array of TPasType;
 
   { TPasAliasType }
 
@@ -549,12 +550,33 @@ type
     function ElementTypeName: string; override;
   end;
 
-  { TPasClassOfType }
+  { TPasGenericTemplateType - type param of a generic }
 
-  TPasClassOfType = class(TPasAliasType)
+  TPasGenericTemplateType = Class(TPasType)
   public
-    function ElementTypeName: string; override;
-    function GetDeclaration(full: boolean) : string; override;
+    destructor Destroy; override;
+    function GetDeclaration(full : boolean) : string; override;
+    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
+    procedure AddConstraint(Expr: TPasExpr);
+  Public
+    TypeConstraint: String deprecated; // deprecated in fpc 3.3.1
+    Constraints: TPasExprArray;
+  end;
+
+  { TPasGenericType - abstract base class for all types which can be generics }
+
+  TPasGenericType = class(TPasType)
+  private
+    procedure ClearChildReferences(El: TPasElement; arg: pointer);
+  protected
+    procedure SetParent(const AValue: TPasElement); override;
+  public
+    GenericTemplateTypes: TFPList; // list of TPasGenericTemplateType, can be nil
+    destructor Destroy; override;
+    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
+    procedure SetGenericTemplates(AList: TFPList); virtual;
   end;
 
   { TPasSpecializeType DestType<Params> }
@@ -582,10 +604,16 @@ type
     function GetDeclaration(full : Boolean): string; override;
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
-    procedure AddParam(El: TPasElement);
   public
-    NameExpr: TPasExpr; // TPrimitiveExpr
-    Params: TFPList; // list of TPasType or TPasExpr
+    DestType: TPasSpecializeType;
+  end;
+
+  { TPasClassOfType }
+
+  TPasClassOfType = class(TPasAliasType)
+  public
+    function ElementTypeName: string; override;
+    function GetDeclaration(full: boolean) : string; override;
   end;
 
   { TPasRangeType }
@@ -605,27 +633,21 @@ type
 
   { TPasArrayType }
 
-  TPasArrayType = class(TPasType)
-  private
-    procedure ClearChildReferences(El: TPasElement; arg: pointer);
+  TPasArrayType = class(TPasGenericType)
   protected
     procedure SetParent(const AValue: TPasElement); override;
   public
     destructor Destroy; override;
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
-    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
-      const Arg: Pointer); override;
   public
     IndexRange : string; // only valid if Parser po_arrayrangeexpr disabled
     Ranges: TPasExprArray; // only valid if Parser po_arrayrangeexpr enabled
     PackMode : TPackMode;
     ElType: TPasType;
-    GenericTemplateTypes: TFPList; // list of TPasGenericTemplateType, can be nil
     function IsGenericArray : Boolean;
     function IsPacked : Boolean;
     procedure AddRange(Range: TPasExpr);
-    procedure SetGenericTemplates(AList: TFPList); virtual;
   end;
 
   { TPasFileType }
@@ -701,22 +723,16 @@ type
 
   { TPasMembersType - base type for TPasRecordType and TPasClassType }
 
-  TPasMembersType = class(TPasType)
-  private
-    procedure ClearChildReferences(El: TPasElement; arg: pointer);
-  protected
-    procedure SetParent(const AValue: TPasElement); override;
+  TPasMembersType = class(TPasGenericType)
   public
     PackMode: TPackMode;
     Members: TFPList;
-    GenericTemplateTypes: TFPList; // list of TPasGenericTemplateType
     Constructor Create(const AName: string; AParent: TPasElement); override;
     Destructor Destroy; override;
     Function IsPacked: Boolean;
     Function IsBitPacked : Boolean;
     Procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
-    Procedure SetGenericTemplates(AList: TFPList); virtual;
   end;
 
   { TPasRecordType }
@@ -737,23 +753,9 @@ type
     Function IsAdvancedRecord : Boolean;
   end;
 
-  { TPasGenericTemplateType }
-
-  TPasGenericTemplateType = Class(TPasType)
-  public
-    destructor Destroy; override;
-    function GetDeclaration(full : boolean) : string; override;
-    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
-      const Arg: Pointer); override;
-    procedure AddConstraint(Expr: TPasExpr);
-  Public
-    TypeConstraint: String deprecated; // deprecated in fpc 3.3.1
-    Constraints: TPasExprArray;
-  end;
-
   TPasObjKind = (
     okObject, okClass, okInterface,
-    // okGeneric  removed in FPC 3.3.1  check instead GenericTemplateTypes.Count>0
+    // okGeneric  removed in FPC 3.3.1  check instead GenericTemplateTypes<>nil
     // okSpecialize removed in FPC 3.1.1
     okClassHelper,okRecordHelper,okTypeHelper,
     okDispInterface);
@@ -823,7 +825,7 @@ type
 
   { TPasProcedureType }
 
-  TPasProcedureType = class(TPasType)
+  TPasProcedureType = class(TPasGenericType)
   private
     function GetIsNested: Boolean;
     function GetIsOfObject: Boolean;
@@ -838,7 +840,7 @@ type
     function ElementTypeName: string; override;
     function GetDeclaration(full : boolean) : string; override;
     procedure GetArguments(List : TStrings);
-    function CreateArgument(const AName, AUnresolvedTypeName: string):TPasArgument;
+    function CreateArgument(const AName, AUnresolvedTypeName: string): TPasArgument; // not used by TPasParser
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
@@ -1047,11 +1049,11 @@ type
 
   { TProcedureNamePart }
 
-  TProcedureNamePart = record
+  TProcedureNamePart = class
     Name: string;
-    Templates: TFPList; // optional list of TPasGenericTemplateType, can nil!
+    Templates: TFPList; // optional list of TPasGenericTemplateType, can be nil!
   end;
-  TProcedureNameParts = array of TProcedureNamePart;
+  TProcedureNameParts = TFPList;
                         
   TProcedureBody = class;
 
@@ -1095,7 +1097,7 @@ type
     Function IsStatic : Boolean;
     Function IsForward: Boolean;
     Function GetProcTypeEnum: TProcType; virtual;
-    procedure SetNameParts(var Parts: TProcedureNameParts);
+    procedure SetNameParts(Parts: TProcedureNameParts);
     Property Modifiers : TProcedureModifiers Read FModifiers Write FModifiers;
     Property CallingConvention : TCallingConvention Read GetCallingConvention Write SetCallingConvention;
     Property MessageName : String Read FMessageName Write FMessageName;
@@ -1399,11 +1401,11 @@ type
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
-    Elements: TFPList;    // list of TPasImplElement and maybe one TPasImplCaseElse
+    Elements: TFPList;    // list of TPasImplElement
   end;
   TPasImplBlockClass = class of TPasImplBlock;
 
-  { TPasImplStatement }
+  { TPasImplStatement - base class }
 
   TPasImplStatement = class(TPasImplBlock)
   public
@@ -1623,7 +1625,7 @@ type
     procedure ClearTypeReferences(aType: TPasElement); override;
   public
     VarEl: TPasVariable; // can be nil
-    TypeEl : TPasType;
+    TypeEl : TPasType; // if VarEl<>nil then TypeEl=VarEl.VarType
     Body: TPasImplElement;
     Function VariableName : String;
     Function TypeName: string;
@@ -1807,21 +1809,27 @@ procedure ReleaseProcNameParts(var NameParts: TProcedureNameParts);
 var
   El: TPasElement;
   i, j: Integer;
+  Part: TProcedureNamePart;
 begin
-  for i := 0 to length(NameParts)-1 do
+  if NameParts=nil then exit;
+  for i := NameParts.Count-1 downto 0 do
     begin
-    with NameParts[i] do
-      if Templates<>nil then
+    Part:=TProcedureNamePart(NameParts[i]);
+    if Part.Templates<>nil then
+      begin
+      for j:=0 to Part.Templates.Count-1 do
         begin
-        for j:=0 to Templates.Count-1 do
-          begin
-          El:=TPasGenericTemplateType(Templates[j]);
-          El.Parent:=nil;
-          El.Release{$IFDEF CheckPasTreeRefCount}('TPasProcedure.NameParts'){$ENDIF};
-          end;
-        Templates.Free;
+        El:=TPasGenericTemplateType(Part.Templates[j]);
+        El.Parent:=nil;
+        El.Release{$IFDEF CheckPasTreeRefCount}('TPasProcedure.NameParts'){$ENDIF};
         end;
+      Part.Templates.Free;
+      Part.Templates:=nil;
+      end;
+    NameParts.Delete(i);
+    Part.Free;
     end;
+  NameParts.Free;
   NameParts:=nil;
 end;
 
@@ -1845,6 +1853,58 @@ begin
     end;
 end;
 
+{ TPasGenericType }
+
+procedure TPasGenericType.ClearChildReferences(El: TPasElement; arg: pointer);
+begin
+  El.ClearTypeReferences(Self);
+  if arg=nil then ;
+end;
+
+procedure TPasGenericType.SetParent(const AValue: TPasElement);
+begin
+  if (AValue=nil) and (Parent<>nil) then
+    begin
+    // parent is cleared
+    // -> clear all child references to this array (releasing loops)
+    ForEachCall(@ClearChildReferences,nil);
+    end;
+  inherited SetParent(AValue);
+end;
+
+destructor TPasGenericType.Destroy;
+begin
+  ReleaseGenericTemplateTypes(GenericTemplateTypes{$IFDEF CheckPasTreeRefCount},'TPasGenericType'{$ENDIF});
+  inherited Destroy;
+end;
+
+procedure TPasGenericType.ForEachCall(const aMethodCall: TOnForEachPasElement;
+  const Arg: Pointer);
+var
+  i: Integer;
+begin
+  inherited ForEachCall(aMethodCall, Arg);
+  if GenericTemplateTypes<>nil then
+    for i:=0 to GenericTemplateTypes.Count-1 do
+      ForEachChildCall(aMethodCall,Arg,TPasElement(GenericTemplateTypes[i]),false);
+end;
+
+procedure TPasGenericType.SetGenericTemplates(AList: TFPList);
+var
+  I: Integer;
+  El: TPasElement;
+begin
+  if GenericTemplateTypes=nil then
+    GenericTemplateTypes:=TFPList.Create;
+  For I:=0 to AList.Count-1 do
+    begin
+    El:=TPasElement(AList[i]);
+    El.Parent:=Self;
+    GenericTemplateTypes.Add(El);
+    end;
+  AList.Clear;
+end;
+
 { TPasGenericTemplateType }
 
 destructor TPasGenericTemplateType.Destroy;
@@ -1852,7 +1912,7 @@ var
   i: Integer;
 begin
   for i:=0 to length(Constraints)-1 do
-    Constraints[i].Release;
+    Constraints[i].Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   Constraints:=nil;
   inherited Destroy;
 end;
@@ -1978,17 +2038,11 @@ constructor TInlineSpecializeExpr.Create(const AName: string;
 begin
   if AName='' then ;
   inherited Create(AParent, pekSpecialize, eopNone);
-  Params:=TFPList.Create;
 end;
 
 destructor TInlineSpecializeExpr.Destroy;
-var
-  i: Integer;
 begin
-  ReleaseAndNil(TPasElement(NameExpr));
-  for i:=0 to Params.Count-1 do
-    TPasElement(Params[i]).Release{$IFDEF CheckPasTreeRefCount}('TInlineSpecializeExpr.Params'){$ENDIF};
-  FreeAndNil(Params);
+  ReleaseAndNil(TPasElement(DestType){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
   inherited Destroy;
 end;
 
@@ -1998,34 +2052,15 @@ begin
 end;
 
 function TInlineSpecializeExpr.GetDeclaration(full: Boolean): string;
-var
-  i: Integer;
 begin
-  Result:='specialize ';
-  Result:=Result+NameExpr.GetDeclaration(full);
-  Result:=Result+'<';
-  for i:=0 to Params.Count-1 do
-    begin
-    if i>0 then
-      Result:=Result+',';
-    Result:=Result+TPasElement(Params[i]).GetDeclaration(false);
-    end;
+  Result:=DestType.GetDeclaration(full);
 end;
 
 procedure TInlineSpecializeExpr.ForEachCall(
   const aMethodCall: TOnForEachPasElement; const Arg: Pointer);
-var
-  i: Integer;
 begin
   inherited ForEachCall(aMethodCall, Arg);
-  ForEachChildCall(aMethodCall,Arg,NameExpr,false);
-  for i:=0 to Params.Count-1 do
-    ForEachChildCall(aMethodCall,Arg,TPasElement(Params[i]),true);
-end;
-
-procedure TInlineSpecializeExpr.AddParam(El: TPasElement);
-begin
-  Params.Add(El);
+  ForEachChildCall(aMethodCall,Arg,DestType,false);
 end;
 
 { TPasSpecializeType }
@@ -2063,7 +2098,7 @@ begin
       Result:=Result+',';
     Result:=Result+TPasElement(Params[i]).GetDeclaration(false);
     end;
-  If Full then
+  If Full and (Name<>'') then
     begin
     Result:=Name+' = '+Result;
     ProcessHints(False,Result);
@@ -2991,7 +3026,7 @@ begin
     begin
     Child:=TPasElement(Declarations[i]);
     Child.Parent:=nil;
-    Child.Release{$IFDEF CheckPasTreeRefCount}('TPasDeclarations.Childs'){$ENDIF};
+    Child.Release{$IFDEF CheckPasTreeRefCount}('TPasDeclarations.Children'){$ENDIF};
     end;
   FreeAndNil(Declarations);
 
@@ -3078,19 +3113,24 @@ begin
   inherited Destroy;
 end;
 
-procedure TPasArrayType.ClearChildReferences(El: TPasElement; arg: pointer);
-begin
-  El.ClearTypeReferences(Self);
-  if arg=nil then ;
-end;
-
 procedure TPasArrayType.SetParent(const AValue: TPasElement);
+var
+  CurArr: TPasArrayType;
 begin
   if (AValue=nil) and (Parent<>nil) then
     begin
     // parent is cleared
-    // -> clear all child references to this array (releasing loops)
-    ForEachCall(@ClearChildReferences,nil);
+    // -> clear all references to this array (releasing loops)
+    CurArr:=Self;
+    while CurArr.ElType is TPasArrayType do
+      begin
+      if CurArr.ElType=Self then
+        begin
+        ReleaseAndNil(TPasElement(CurArr.ElType){$IFDEF CheckPasTreeRefCount},'TPasClassType.AncestorType'{$ENDIF});
+        break;
+        end;
+      CurArr:=TPasArrayType(CurArr.ElType);
+      end;
     end;
   inherited SetParent(AValue);
 end;
@@ -3099,7 +3139,6 @@ destructor TPasArrayType.Destroy;
 var
   i: Integer;
 begin
-  ReleaseGenericTemplateTypes(GenericTemplateTypes{$IFDEF CheckPasTreeRefCount},'TPasArrayType'{$ENDIF});
   for i:=0 to length(Ranges)-1 do
     Ranges[i].Release{$IFDEF CheckPasTreeRefCount}('TPasArrayType.Ranges'){$ENDIF};
   ReleaseAndNil(TPasElement(ElType){$IFDEF CheckPasTreeRefCount},'TPasArrayType.ElType'{$ENDIF});
@@ -4088,18 +4127,6 @@ begin
     Result:=Result+'const';
 end;
 
-procedure TPasArrayType.ForEachCall(const aMethodCall: TOnForEachPasElement;
-  const Arg: Pointer);
-var
-  i: Integer;
-begin
-  inherited ForEachCall(aMethodCall, Arg);
-  if GenericTemplateTypes<>nil then
-    for i:=0 to GenericTemplateTypes.Count-1 do
-      ForEachChildCall(aMethodCall,Arg,TPasElement(GenericTemplateTypes[i]),false);
-  ForEachChildCall(aMethodCall,Arg,ElType,true);
-end;
-
 function TPasArrayType.IsGenericArray: Boolean;
 begin
   Result:=GenericTemplateTypes<>nil;
@@ -4117,22 +4144,6 @@ begin
   i:=Length(Ranges);
   SetLength(Ranges, i+1);
   Ranges[i]:=Range;
-end;
-
-procedure TPasArrayType.SetGenericTemplates(AList: TFPList);
-var
-  I: Integer;
-  El: TPasElement;
-begin
-  if GenericTemplateTypes=nil then
-    GenericTemplateTypes:=TFPList.Create;
-  For I:=0 to AList.Count-1 do
-    begin
-    El:=TPasElement(AList[i]);
-    El.Parent:=Self;
-    GenericTemplateTypes.Add(El);
-    end;
-  AList.Clear;
 end;
 
 function TPasFileType.GetDeclaration (full : boolean) : string;
@@ -4224,23 +4235,6 @@ end;
 
 { TPasMembersType }
 
-procedure TPasMembersType.ClearChildReferences(El: TPasElement; arg: pointer);
-begin
-  El.ClearTypeReferences(Self);
-  if arg=nil then ;
-end;
-
-procedure TPasMembersType.SetParent(const AValue: TPasElement);
-begin
-  if (AValue=nil) and (Parent<>nil) then
-    begin
-    // parent is cleared
-    // -> clear all child references to this class/record (releasing loops)
-    ForEachCall(@ClearChildReferences,nil);
-    end;
-  inherited SetParent(AValue);
-end;
-
 constructor TPasMembersType.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
@@ -4284,24 +4278,8 @@ var
   i: Integer;
 begin
   inherited ForEachCall(aMethodCall, Arg);
-  for i:=0 to GenericTemplateTypes.Count-1 do
-    ForEachChildCall(aMethodCall,Arg,TPasElement(GenericTemplateTypes[i]),false);
   for i:=0 to Members.Count-1 do
     ForEachChildCall(aMethodCall,Arg,TPasElement(Members[i]),false);
-end;
-
-procedure TPasMembersType.SetGenericTemplates(AList: TFPList);
-var
-  I: Integer;
-  El: TPasElement;
-begin
-  For I:=0 to AList.Count-1 do
-    begin
-    El:=TPasElement(AList[i]);
-    El.Parent:=Self;
-    GenericTemplateTypes.Add(El);
-    end;
-  AList.Clear;
 end;
 
 { TPasRecordType }
@@ -4692,11 +4670,12 @@ var
   i, j: Integer;
 begin
   inherited ForEachCall(aMethodCall, Arg);
-  for i:=0 to length(NameParts)-1 do
-    with NameParts[i] do
-      if Templates<>nil then
-        for j:=0 to Templates.Count-1 do
-          ForEachChildCall(aMethodCall,Arg,TPasElement(Templates[i]),false);
+  if NameParts<>nil then
+    for i:=0 to NameParts.Count-1 do
+      with TProcedureNamePart(NameParts[i]) do
+        if Templates<>nil then
+          for j:=0 to Templates.Count-1 do
+            ForEachChildCall(aMethodCall,Arg,TPasElement(Templates[i]),false);
   ForEachChildCall(aMethodCall,Arg,ProcType,false);
   ForEachChildCall(aMethodCall,Arg,PublicName,false);
   ForEachChildCall(aMethodCall,Arg,LibraryExpr,false);
@@ -4771,17 +4750,18 @@ begin
   Result:=ptProcedure;
 end;
 
-procedure TPasProcedure.SetNameParts(var Parts: TProcedureNameParts);
+procedure TPasProcedure.SetNameParts(Parts: TProcedureNameParts);
 var
   i, j: Integer;
   El: TPasElement;
 begin
-  if length(NameParts)>0 then
+  if NameParts<>nil then
     ReleaseProcNameParts(NameParts);
-  NameParts:=Parts;
-  Parts:=nil;
-  for i:=0 to length(NameParts)-1 do
-    with NameParts[i] do
+  NameParts:=TFPList.Create;
+  NameParts.Assign(Parts);
+  Parts.Clear;
+  for i:=0 to NameParts.Count-1 do
+    with TProcedureNamePart(NameParts[i]) do
       if Templates<>nil then
         for j:=0 to Templates.Count-1 do
           begin
@@ -4801,14 +4781,14 @@ begin
     If Full then
       begin
       T:=TypeName;
-      if length(NameParts)>0 then
+      if NameParts<>nil then
         begin
         T:=T+' ';
-        for i:=0 to length(NameParts)-1 do
+        for i:=0 to NameParts.Count-1 do
           begin
           if i>0 then
             T:=T+'.';
-          with NameParts[i] do
+          with TProcedureNamePart(NameParts[i]) do
             begin
             T:=T+Name;
             if Templates<>nil then

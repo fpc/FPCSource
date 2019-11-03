@@ -1360,8 +1360,7 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredInlineSpecializedExpr(
   const Path: string; Orig, Rest: TInlineSpecializeExpr);
 begin
-  CheckRestoredElement(Path+'.NameExpr',Orig.NameExpr,Rest.NameExpr);
-  CheckRestoredElementList(Path+'.Params',Orig.Params,Rest.Params);
+  CheckRestoredElement(Path+'.DestType',Orig.DestType,Rest.DestType);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredRangeType(const Path: string;
@@ -1460,6 +1459,7 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredProcedureType(const Path: string;
   Orig, Rest: TPasProcedureType);
 begin
+  CheckRestoredElementList(Path+'.GenericTemplateTypes',Orig.GenericTemplateTypes,Rest.GenericTemplateTypes);
   CheckRestoredElementList(Path+'.Args',Orig.Args,Rest.Args);
   if Orig.CallingConvention<>Rest.CallingConvention then
     Fail(Path+'.CallingConvention Orig='+PCUCallingConventionNames[Orig.CallingConvention]+' Rest='+PCUCallingConventionNames[Rest.CallingConvention]);
@@ -1549,16 +1549,20 @@ var
 begin
   OrigNameParts:=Orig.NameParts;
   RestNameParts:=Rest.NameParts;
-  AssertEquals(Path+'.NameParts length',length(OrigNameParts),length(RestNameParts));
-  for i:=0 to length(OrigNameParts)-1 do
+  AssertEquals(Path+'.NameParts<>nil',OrigNameParts<>nil,RestNameParts<>nil);
+  if OrigNameParts<>nil then
     begin
-    SubPath:=Path+'.NameParts['+IntToStr(i)+']';
-    AssertEquals(SubPath+'.Name',OrigNameParts[i].Name,RestNameParts[i].Name);
-    OrigTemplates:=OrigNameParts[i].Templates;
-    RestTemplates:=RestNameParts[i].Templates;
-    CheckRestoredObject(SubPath+'.Templates',OrigTemplates,RestTemplates);
-    if OrigTemplates=nil then continue;
-    CheckRestoredElementList(SubPath+'.Templates',OrigTemplates,RestTemplates);
+    AssertEquals(Path+'.NameParts.Count',OrigNameParts.Count,RestNameParts.Count);
+    for i:=0 to OrigNameParts.Count-1 do
+      begin
+      SubPath:=Path+'.NameParts['+IntToStr(i)+']';
+      AssertEquals(SubPath+'.Name',TProcedureNamePart(OrigNameParts[i]).Name,TProcedureNamePart(RestNameParts[i]).Name);
+      OrigTemplates:=TProcedureNamePart(OrigNameParts[i]).Templates;
+      RestTemplates:=TProcedureNamePart(RestNameParts[i]).Templates;
+      CheckRestoredObject(SubPath+'.Templates',OrigTemplates,RestTemplates);
+      if OrigTemplates=nil then continue;
+      CheckRestoredElementList(SubPath+'.Templates',OrigTemplates,RestTemplates);
+      end;
     end;
 end;
 
