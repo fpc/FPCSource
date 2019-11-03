@@ -119,6 +119,7 @@ type
     procedure CheckRestoredConst(const Path: string; Orig, Rest: TPasConst); virtual;
     procedure CheckRestoredProperty(const Path: string; Orig, Rest: TPasProperty); virtual;
     procedure CheckRestoredMethodResolution(const Path: string; Orig, Rest: TPasMethodResolution); virtual;
+    procedure CheckRestoredProcNameParts(const Path: string; Orig, Rest: TPasProcedure); virtual;
     procedure CheckRestoredProcedure(const Path: string; Orig, Rest: TPasProcedure); virtual;
     procedure CheckRestoredOperator(const Path: string; Orig, Rest: TPasOperator); virtual;
     procedure CheckRestoredAttributes(const Path: string; Orig, Rest: TPasAttributes); virtual;
@@ -161,6 +162,7 @@ type
     procedure TestPC_Class;
     procedure TestPC_ClassForward;
     procedure TestPC_ClassConstructor;
+    procedure TestPC_ClassDestructor;
     procedure TestPC_ClassDispatchMessage;
     procedure TestPC_Initialization;
     procedure TestPC_BoolSwitches;
@@ -1358,7 +1360,8 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredInlineSpecializedExpr(
   const Path: string; Orig, Rest: TInlineSpecializeExpr);
 begin
-  CheckRestoredElOrRef(Path+'.DestType',Orig,Orig.DestType,Rest,Rest.DestType);
+  CheckRestoredElement(Path+'.NameExpr',Orig.NameExpr,Rest.NameExpr);
+  CheckRestoredElementList(Path+'.Params',Orig.Params,Rest.Params);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredRangeType(const Path: string;
@@ -1371,6 +1374,7 @@ procedure TCustomTestPrecompile.CheckRestoredArrayType(const Path: string;
   Orig, Rest: TPasArrayType);
 begin
   CheckRestoredPasExprArray(Path+'.Ranges',Orig.Ranges,Rest.Ranges);
+  CheckRestoredElementList(Path+'.GenericTemplateTypes',Orig.GenericTemplateTypes,Rest.GenericTemplateTypes);
   if Orig.PackMode<>Rest.PackMode then
     Fail(Path+'.PackMode Orig='+PCUPackModeNames[Orig.PackMode]+' Rest='+PCUPackModeNames[Rest.PackMode]);
   CheckRestoredElOrRef(Path+'.ElType',Orig,Orig.ElType,Rest,Rest.ElType);
@@ -1411,6 +1415,7 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredRecordType(const Path: string;
   Orig, Rest: TPasRecordType);
 begin
+  CheckRestoredElementList(Path+'.GenericTemplateTypes',Orig.GenericTemplateTypes,Rest.GenericTemplateTypes);
   if Orig.PackMode<>Rest.PackMode then
     Fail(Path+'.PackMode Orig='+PCUPackModeNames[Orig.PackMode]+' Rest='+PCUPackModeNames[Rest.PackMode]);
   CheckRestoredElementList(Path+'.Members',Orig.Members,Rest.Members);
@@ -1422,6 +1427,7 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredClassType(const Path: string;
   Orig, Rest: TPasClassType);
 begin
+  CheckRestoredElementList(Path+'.GenericTemplateTypes',Orig.GenericTemplateTypes,Rest.GenericTemplateTypes);
   if Orig.PackMode<>Rest.PackMode then
     Fail(Path+'.PackMode Orig='+PCUPackModeNames[Orig.PackMode]+' Rest='+PCUPackModeNames[Rest.PackMode]);
   if Orig.ObjKind<>Rest.ObjKind then
@@ -1533,6 +1539,29 @@ begin
   CheckRestoredElement(Path+'.ImplementationProc',Orig.ImplementationProc,Rest.ImplementationProc);
 end;
 
+procedure TCustomTestPrecompile.CheckRestoredProcNameParts(const Path: string;
+  Orig, Rest: TPasProcedure);
+var
+  OrigNameParts, RestNameParts: TProcedureNameParts;
+  i: Integer;
+  SubPath: String;
+  OrigTemplates, RestTemplates: TFPList;
+begin
+  OrigNameParts:=Orig.NameParts;
+  RestNameParts:=Rest.NameParts;
+  AssertEquals(Path+'.NameParts length',length(OrigNameParts),length(RestNameParts));
+  for i:=0 to length(OrigNameParts)-1 do
+    begin
+    SubPath:=Path+'.NameParts['+IntToStr(i)+']';
+    AssertEquals(SubPath+'.Name',OrigNameParts[i].Name,RestNameParts[i].Name);
+    OrigTemplates:=OrigNameParts[i].Templates;
+    RestTemplates:=RestNameParts[i].Templates;
+    CheckRestoredObject(SubPath+'.Templates',OrigTemplates,RestTemplates);
+    if OrigTemplates=nil then continue;
+    CheckRestoredElementList(SubPath+'.Templates',OrigTemplates,RestTemplates);
+    end;
+end;
+
 procedure TCustomTestPrecompile.CheckRestoredProcedure(const Path: string;
   Orig, Rest: TPasProcedure);
 var
@@ -1548,6 +1577,7 @@ begin
   AssertEquals(Path+'.CustomData[TPas2JSProcedureScope].ResultVarName',OrigScope.ResultVarName,RestScope.ResultVarName);
   if RestScope.DeclarationProc=nil then
     begin
+    CheckRestoredProcNameParts(Path,Orig,Rest);
     CheckRestoredElement(Path+'.ProcType',Orig.ProcType,Rest.ProcType);
     CheckRestoredElement(Path+'.PublicName',Orig.PublicName,Rest.PublicName);
     CheckRestoredElement(Path+'.LibrarySymbolName',Orig.LibrarySymbolName,Rest.LibrarySymbolName);
@@ -2140,6 +2170,37 @@ begin
   'var b: TBird;',
   'begin',
   '  b:=TBird.Create;',
+  'end;',
+  'end.'
+  ]);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_ClassDestructor;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TObject = class',
+  '    destructor Destroy; virtual;',
+  '  end;',
+  '  TBird = class',
+  '    destructor Destroy; override;',
+  '  end;',
+  'procedure DoIt;',
+  'implementation',
+  'destructor TObject.Destroy;',
+  'begin',
+  'end;',
+  'destructor TBird.Destroy;',
+  'begin',
+  '  inherited;',
+  'end;',
+  'procedure DoIt;',
+  'var b: TBird;',
+  'begin',
+  '  b.Destroy;',
   'end;',
   'end.'
   ]);

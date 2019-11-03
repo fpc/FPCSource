@@ -335,6 +335,7 @@ type
     Procedure TestProc_ConstOrder;
     Procedure TestProc_DuplicateConst;
     Procedure TestProc_LocalVarAbsolute;
+    Procedure TestProc_LocalVarInit;
     Procedure TestProc_ReservedWords;
 
     // anonymous functions
@@ -347,6 +348,7 @@ type
     Procedure TestAnonymousProc_Nested;
     Procedure TestAnonymousProc_NestedAssignResult;
     Procedure TestAnonymousProc_Class;
+    Procedure TestAnonymousProc_ForLoop;
 
     // enums, sets
     Procedure TestEnum_Name;
@@ -785,6 +787,7 @@ type
     Procedure TestRTTI_DefaultValueRangeType;
     Procedure TestRTTI_DefaultValueInherit;
     Procedure TestRTTI_OverrideMethod;
+    Procedure TestRTTI_ReintroduceMethod;
     Procedure TestRTTI_OverloadProperty;
     // ToDo: array argument
     Procedure TestRTTI_ClassForward;
@@ -4337,6 +4340,36 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestProc_LocalVarInit;
+begin
+  StartProgram(false);
+  Add([
+  'type TBytes = array of byte;',
+  'procedure DoIt;',
+  'const c = 4;',
+  'var',
+  '  b: byte = 1;',
+  '  w: word = 2+c;',
+  '  p: pointer = nil;',
+  '  Buffer: TBytes = nil;',
+  'begin',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestProc_LocalVarInit',
+    LinesToStr([ // statements
+    'var c = 4;',
+    'this.DoIt = function () {',
+    '  var b = 1;',
+    '  var w = 2 + 4;',
+    '  var p = null;',
+    '  var Buffer = [];',
+    '};',
+    '']),
+    LinesToStr([
+    ]));
+end;
+
 procedure TTestModule.TestProc_ReservedWords;
 begin
   StartProgram(false);
@@ -4766,15 +4799,21 @@ begin
   Add([
   'type',
   '  TProc = reference to procedure;',
+  '  TEvent = procedure of object;',
   '  TObject = class',
   '    Size: word;',
   '    function GetIt: TProc;',
+  '    procedure DoIt; virtual; abstract;',
   '  end;',
   'function TObject.GetIt: TProc;',
   'begin',
   '  Result:=procedure',
+  '    var p: TEvent;',
   '    begin',
   '      Size:=Size;',
+  '      Size:=Self.Size;',
+  '      p:=@DoIt;',
+  '      p:=@Self.DoIt;',
   '    end;',
   'end;',
   'begin']);
@@ -4791,7 +4830,11 @@ begin
     '    var $Self = this;',
     '    var Result = null;',
     '    Result = function () {',
+    '      var p = null;',
     '      $Self.Size = $Self.Size;',
+    '      $Self.Size = $Self.Size;',
+    '      p = rtl.createCallback($Self, "DoIt");',
+    '      p = rtl.createCallback($Self, "DoIt");',
     '    };',
     '    return Result;',
     '  };',
@@ -4799,6 +4842,44 @@ begin
     '']),
     LinesToStr([
     '']));
+end;
+
+procedure TTestModule.TestAnonymousProc_ForLoop;
+begin
+  StartProgram(false);
+  Add([
+  'type TProc = reference to procedure;',
+  'procedure Foo(p: TProc);',
+  'begin',
+  'end;',
+  'procedure DoIt;',
+  'var i: word;',
+  '  a: word;',
+  'begin',
+  '  for i:=1 to 10 do begin',
+  '    Foo(procedure begin a:=3; end);',
+  '  end;',
+  'end;',
+  'begin',
+  '  DoIt;']);
+  ConvertProgram;
+  CheckSource('TestAnonymousProc_ForLoop',
+    LinesToStr([ // statements
+    'this.Foo = function (p) {',
+    '};',
+    'this.DoIt = function () {',
+    '  var i = 0;',
+    '  var a = 0;',
+    '  for (i = 1; i <= 10; i++) {',
+    '    $mod.Foo(function () {',
+    '      a = 3;',
+    '    });',
+    '  };',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.DoIt();'
+    ]));
 end;
 
 procedure TTestModule.TestEnum_Name;
@@ -5832,6 +5913,7 @@ begin
   '  if c in [''a''..''z'',''_''] then ;',
   '  if ''b'' in [''a''..''z'',''_''] then ;',
   '  if ''Я'' in sc then ;',
+  '  if 3=ord('' '') then ;',
   '']);
   ConvertProgram;
   CheckSource('TestSet_ConstChar',
@@ -5850,6 +5932,7 @@ begin
     'if ($mod.c.charCodeAt() in rtl.createSet(null, 97, 122, 95)) ;',
     'if (98 in rtl.createSet(null, 97, 122, 95)) ;',
     'if (1071 in $mod.sc) ;',
+    'if (3 === 32) ;',
     '']));
 end;
 
@@ -8173,7 +8256,8 @@ end;
 procedure TTestModule.TestArray_Dynamic;
 begin
   StartProgram(false);
-  Add(['type',
+  Add([
+  'type',
   '  TArrayInt = array of longint;',
   'var',
   '  Arr: TArrayInt;',
@@ -9039,19 +9123,25 @@ begin
   Add([
   'type',
   '  TArrArrInt = array of array of longint;',
+  '  TArrStaInt = array of array[1..2] of longint;',
   'var',
   '  a: TArrArrInt;',
+  '  b: TArrStaInt;',
   'begin',
   '  SetLength(a,2);',
   '  SetLength(a,3,4);',
+  '  SetLength(b,5);',
   '']);
   ConvertProgram;
   CheckSource('TestArray_SetLengthMultiDim',
     LinesToStr([ // statements
-    'this.a = [];']),
+    'this.a = [];',
+    'this.b = [];',
+    '']),
     LinesToStr([
     '$mod.a = rtl.arraySetLength($mod.a, [], 2);',
     '$mod.a = rtl.arraySetLength($mod.a, 0, 3, 4);',
+    '$mod.b = rtl.arraySetLength($mod.b, 0, 5, 2);',
     '']));
 end;
 
@@ -9628,10 +9718,15 @@ begin
   '  public',
   '    Property LongMonthNames : TMonthNames Read GetLongMonthNames;',
   '  end;',
-  'var f: TObject;',
+  'var',
+  '  f: TObject;',
   '  Month: string;',
+  '  Names: array of string = (''a'',''foo'',''bar'');',
+  '  i: longint;',
   'begin',
   '  for Month in f.LongMonthNames do ;',
+  '  for Month in Names do ;',
+  '  for i:=low(Names) to high(Names) do ;',
   '']);
   ConvertProgram;
   CheckSource('TestArray_ForInArrOfString',
@@ -9644,9 +9739,13 @@ begin
     '});',
     'this.f = null;',
     'this.Month = "";',
+    'this.Names = ["a", "foo", "bar"];',
+    'this.i = 0;',
     '']),
     LinesToStr([ // $mod.$main
     'for (var $in1 = $mod.f.GetLongMonthNames(), $l2 = 0, $end3 = rtl.length($in1) - 1; $l2 <= $end3; $l2++) $mod.Month = $in1[$l2];',
+    'for (var $in4 = $mod.Names, $l5 = 0, $end6 = rtl.length($in4) - 1; $l5 <= $end6; $l5++) $mod.Month = $in4[$l5];',
+    'for (var $l7 = 0, $end8 = rtl.length($mod.Names) - 1; $l7 <= $end8; $l7++) $mod.i = $l7;',
     '']));
 end;
 
@@ -10806,8 +10905,9 @@ begin
   '{$modeswitch AdvancedRecords}',
   'type',
   '  TRec = record',
-  '    class var Fx: longint;',
-  '    class var Fy: longint;',
+  '    class var',
+  '      Fx: longint;',
+  '      Fy: longint;',
   '    class function GetInt: longint; static;',
   '    class procedure SetInt(Value: longint); static;',
   '    class procedure DoIt; static;',
@@ -27079,8 +27179,8 @@ begin
   Add('    procedure Proc(Sender: tobject); virtual; abstract;');
   Add('  end;');
   Add('begin');
-  SetExpectedPasResolverError('Duplicate identifier "Proc" at test1.pp(6,19)',
-    nDuplicateIdentifier);
+  SetExpectedPasResolverError('Duplicate published method "Proc" at test1.pp(6,19)',
+    nDuplicatePublishedMethodXAtY);
   ConvertProgram;
 end;
 
@@ -27957,6 +28057,51 @@ begin
     'rtl.createClass($mod, "TSky", $mod.TObject, function () {',
     '  this.DoIt = function () {',
     '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_ReintroduceMethod;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  published',
+  '    procedure DoIt;',
+  '  end;',
+  '  TSky = class',
+  '  published',
+  '    procedure DoIt; reintroduce;',
+  '  end;',
+  'procedure TObject.DoIt; begin end;',
+  'procedure TSky.DoIt;',
+  'begin',
+  '  inherited DoIt;',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestRTTI_ReintroduceMethod',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addMethod("DoIt", 0, null);',
+    '});',
+    'rtl.createClass($mod, "TSky", $mod.TObject, function () {',
+    '  this.DoIt = function () {',
+    '    $mod.TObject.DoIt.call(this);',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addMethod("DoIt", 0, null);',
     '});',
     '']),
     LinesToStr([ // $mod.$main

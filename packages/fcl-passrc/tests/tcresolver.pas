@@ -451,6 +451,7 @@ type
     Procedure TestProc_TypeCastFunctionResult;
     Procedure TestProc_ImplicitCalls;
     Procedure TestProc_Absolute;
+    Procedure TestProc_LocalInit;
 
     // anonymous procs
     Procedure TestAnonymousProc_Assign;
@@ -470,6 +471,7 @@ type
     Procedure TestAnonymousProc_With;
     Procedure TestAnonymousProc_ExceptOn;
     Procedure TestAnonymousProc_Nested;
+    Procedure TestAnonymousProc_ForLoop;
 
     // record
     Procedure TestRecord;
@@ -934,6 +936,7 @@ type
     Procedure TestTypeHelper_Set;
     Procedure TestTypeHelper_Enumerator;
     Procedure TestTypeHelper_String;
+    Procedure TestTypeHelper_StringOtherUnit;
     Procedure TestTypeHelper_Boolean;
     Procedure TestTypeHelper_Double;
     Procedure TestTypeHelper_DoubleAlias;
@@ -7455,6 +7458,25 @@ begin
   'begin',
   'end;',
   'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_LocalInit;
+begin
+  StartProgram(false);
+  Add([
+  'type TBytes = array of byte;',
+  'procedure DoIt;',
+  'const c = 4;',
+  'var',
+  '  w: word = c;',
+  '  b: byte = 1+c;',
+  '  p: pointer = nil;',
+  '  buf: TBytes = nil;',
+  'begin',
+  'end;',
+  'begin']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestAnonymousProc_Assign;
@@ -7790,6 +7812,27 @@ begin
   'begin',
   'end;',
   'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestAnonymousProc_ForLoop;
+begin
+  StartProgram(false);
+  Add([
+  'type TProc = reference to procedure;',
+  'procedure Foo(p: TProc);',
+  'begin',
+  'end;',
+  'procedure DoIt;',
+  'var i: word;',
+  '  a: word;',
+  'begin',
+  '  for i:=1 to 10 do begin',
+  '    Foo(procedure begin a:=3; end);',
+  '  end;',
+  'end;',
+  'begin',
+  '  DoIt;']);
   ParseProgram;
 end;
 
@@ -8238,6 +8281,7 @@ begin
   '  r.V1:=trec.VC;',
   '  r.VC:=r.V1;',
   '  trec.VC:=trec.c1;',
+  '  trec.ca[1]:=trec.c2;',
   '']);
   ParseProgram;
 end;
@@ -11284,7 +11328,7 @@ begin
   Add('procedure TObject.DoIt; begin end;');
   Add('procedure TObject.DoIt(i: longint); begin end;');
   Add('begin');
-  CheckResolverException(sDuplicateIdentifier,nDuplicateIdentifier);
+  CheckResolverException(sDuplicatePublishedMethodXAtY,nDuplicatePublishedMethodXAtY);
 end;
 
 procedure TTestResolver.TestNestedClass;
@@ -17607,6 +17651,43 @@ begin
   '  ''abc''.DoIt;',
   '  ''xyz''.DoIt();',
   '  ''c''.Fly;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestTypeHelper_StringOtherUnit;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    '{$modeswitch typehelpers}',
+    'type',
+    '  TStringHelper = type helper for String',
+    '    procedure DoIt;',
+    '  end;',
+    '  TCharHelper = type helper for char',
+    '    procedure Fly;',
+    '  end;',
+    '']),
+    LinesToStr([
+    'procedure TStringHelper.DoIt;',
+    'begin',
+    '  Self[1]:=Self[2];',
+    'end;',
+    'procedure TCharHelper.Fly;',
+    'begin',
+    '  Self:=''c'';',
+    '  Self:=Self;',
+    'end;',
+    '']));
+  StartProgram(true);
+  Add([
+  'uses unit2;',
+  'var s: string;',
+  'begin',
+  '  ''abc''.DoIt;',
+  '  ''xyz''.DoIt();',
+  '  ''c''.Fly;',
+  '  s.DoIt;',
   '']);
   ParseProgram;
 end;

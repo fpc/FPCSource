@@ -2638,7 +2638,6 @@ begin
         while MyTokenPos>l do
           if DoEndOfLine then
             begin
-              writeln('AAA1 TPas2jsPasScanner.ReadNonPascalTillEndToken ',StopAtLineEnd);
             if not StopAtLineEnd then
               Error(nErrOpenString,SErrOpenString);
             exit;
@@ -2807,7 +2806,10 @@ begin
   else if C.InheritsFrom(TPasProcedure) then
     begin
     if TPasProcedure(El).IsOverride then
-      exit(true);
+      exit(true); // using name of overridden
+    if El.Visibility=visPublished then
+      exit(false);
+
     // Note: external proc pollutes the name space
     ProcScope:=TPasProcedureScope(El.CustomData);
     if ProcScope.DeclarationProc<>nil then
@@ -10784,8 +10786,8 @@ function TPasToJSConverter.ConvertBuiltIn_SetLength(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
 // convert "SetLength(a,Len)" to "a = rtl.arraySetLength(a,Len)"
 var
-  Param0: TPasExpr;
-  ResolvedParam0: TPasResolverResult;
+  Param0, Range: TPasExpr;
+  ResolvedParam0, RangeResolved: TPasResolverResult;
   ArrayType: TPasArrayType;
   Call: TJSCallExpression;
   ValInit: TJSElement;
@@ -10793,6 +10795,9 @@ var
   ElType, TypeEl: TPasType;
   i: Integer;
   aResolver: TPas2JSResolver;
+  DimSize: TMaxPrecInt;
+  StaticDims: TObjectList;
+  Lit: TJSLiteral;
 begin
   Result:=nil;
   Param0:=El.Params[0];
@@ -10814,6 +10819,7 @@ begin
 
     // ->  AnArray = rtl.setArrayLength(AnArray,defaultvalue,dim1,dim2,...)
     AssignContext:=TAssignContext.Create(El,nil,AContext);
+    StaticDims:=nil;
     try
       aResolver.ComputeElement(Param0,AssignContext.LeftResolved,[rcNoImplicitProc]);
       AssignContext.RightResolved:=ResolvedParam0;
@@ -10832,6 +10838,27 @@ begin
         ArrayType:=ElType as TPasArrayType;
         end;
       ElType:=aResolver.ResolveAliasType(aResolver.GetArrayElType(ArrayType));
+      while (ElType.ClassType=TPasArrayType) and (length(TPasArrayType(ElType).Ranges)>0) do
+        begin
+        // array of static array, Note: setlength reallocs static arrays
+        ArrayType:=ElType as TPasArrayType;
+        for i:=0 to length(ArrayType.Ranges)-1 do
+          begin
+          Range:=ArrayType.Ranges[i];
+          // compute size of this dimension
+          DimSize:=aResolver.GetRangeLength(Range);
+          if DimSize=0 then
+            begin
+            aResolver.ComputeElement(Range,RangeResolved,[rcConstant]);
+            RaiseNotSupported(Range,AContext,20190614171520,GetResolverResultDbg(RangeResolved));
+            end;
+          Lit:=CreateLiteralNumber(El,DimSize);
+          if StaticDims=nil then
+            StaticDims:=TObjectList.Create(true);
+          StaticDims.Add(Lit);
+          end;
+        ElType:=aResolver.ResolveAliasType(aResolver.GetArrayElType(ArrayType));
+        end;
       if ElType.ClassType=TPasRecordType then
         ValInit:=CreateReferencePathExpr(ElType,AContext)
       else
@@ -10840,12 +10867,19 @@ begin
       // add params: dim1, dim2, ...
       for i:=1 to length(El.Params)-1 do
         Call.AddArg(ConvertExpression(El.Params[i],AContext));
+      if StaticDims<>nil then
+        begin
+        for i:=0 to StaticDims.Count-1 do
+          Call.AddArg(TJSElement(StaticDims[i]));
+        StaticDims.OwnsObjects:=false;
+        end;
 
       // create left side:  array =
       Result:=CreateAssignStatement(Param0,AssignContext);
     finally
       AssignContext.RightSide.Free;
       AssignContext.Free;
+      StaticDims.Free;
     end;
     end
   else if ResolvedParam0.BaseType=btString then
@@ -11194,6 +11228,31 @@ end;
 
 function TPasToJSConverter.ConvertBuiltIn_Ord(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
+
+  function CheckOrdConstant(aResolver: TPas2JSResolver; Param: TPasExpr): TJSElement;
+  var
+    ParamValue, OrdValue: TResEvalValue;
+  begin
+    Result:=nil;
+    OrdValue:=nil;
+    ParamValue:=aResolver.Eval(Param,[]);
+    try
+      if ParamValue<>nil then
+        begin
+        OrdValue:=aResolver.ExprEvaluator.OrdValue(ParamValue,El);
+        if OrdValue<>nil then
+          begin
+          // ord(constant) -> constant
+          Result:=ConvertConstValue(OrdValue,AContext,El);
+          exit;
+          end;
+        end;
+    finally
+      ReleaseEvalValue(ParamValue);
+      ReleaseEvalValue(OrdValue);
+    end;
+  end;
+
 var
   ParamResolved, SubParamResolved: TPasResolverResult;
   Param, SubParam: TPasExpr;
@@ -11202,12 +11261,14 @@ var
   SubParamJS: TJSElement;
   Minus: TJSAdditiveExpressionMinus;
   Add: TJSAdditiveExpressionPlus;
+  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
-  if AContext.Resolver=nil then
+  aResolver:=AContext.Resolver;
+  if aResolver=nil then
     RaiseInconsistency(20170210105235,El);
   Param:=El.Params[0];
-  AContext.Resolver.ComputeElement(Param,ParamResolved,[]);
+  aResolver.ComputeElement(Param,ParamResolved,[]);
   if ParamResolved.BaseType=btChar then
     begin
     if Param is TParamsExpr then
@@ -11241,6 +11302,11 @@ begin
           exit;
           end;
         end;
+      end
+    else
+      begin
+      Result:=CheckOrdConstant(aResolver,Param);
+      if Result<>nil then exit;
       end;
     // ord(aChar) -> aChar.charCodeAt()
     Result:=ConvertExpression(Param,AContext);
@@ -11250,6 +11316,9 @@ begin
     end
   else if ParamResolved.BaseType in btAllJSBooleans then
     begin
+    // ord(bool)
+    Result:=CheckOrdConstant(aResolver,Param);
+    if Result<>nil then exit;
     // ord(bool) ->  bool+0
     Result:=ConvertExpression(Param,AContext);
     // Note: convert Param first, as it might raise an exception
@@ -15236,7 +15305,7 @@ begin
 
   Call:=CreateCallExpression(PosEl);
   Call.Expr:=CreateDotNameExpr(PosEl,Expr,
-                                       TJSString(GetBIName(pbifnRecordClone)));
+                                        TJSString(GetBIName(pbifnRecordClone)));
   Result:=Call;
   if RecordExpr<>nil then
     Call.AddArg(RecordExpr);
@@ -15849,10 +15918,14 @@ begin
     else if ExprResolved.BaseType in btAllStringAndChars then
       begin
       US:=StrToJSString(aResolver.ComputeConstString(Expr,false,true));
-      ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
+      ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,Expr));
       Result:=ArrLit;
       for i:=1 to length(US) do
         ArrLit.Elements.AddElement.Expr:=CreateLiteralJSString(Expr,US[i]);
+      end
+    else if ExprResolved.BaseType=btNil then
+      begin
+      Result:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,Expr));
       end
     else
       RaiseNotSupported(Expr,AContext,20170223133034);
@@ -17264,7 +17337,7 @@ end;
 
 function TPasToJSConverter.CreateRTTIMemberProperty(Members: TFPList;
   Index: integer; AContext: TConvertContext): TJSElement;
-// create  $r.addProperty("propname",flags,result,"getter","setter",{options})
+// create  $r.addProperty("propname",flags,proptype,"getter","setter",{options})
 var
   Prop: TPasProperty;
   Call: TJSCallExpression;

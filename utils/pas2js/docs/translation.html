@@ -2955,9 +2955,10 @@ End.
     type, not of its current runtime value. The exception is a class and class-of instance
     variable (e.g. <i>var o: TObject; ... typeinfo(o)</i>), which returns the
     typeinfo of the current runtime value.
-    If <i>o</i> is <i>null</i> it will give a JS error.<br>
+    If <i>o</i> is <i>nil</i> it will give a JS error.<br>
     Local types (i.e. inside a procedure) do not have typeinfo.<br>
     Open array parameters are not yet supported.<br>
+    Note that FPC <i>typeinfo(aClassVar)<i> returns the compiletime type, so it works on <i>nil</i>.<br>
     </div>
 
 
