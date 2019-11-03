@@ -586,6 +586,8 @@ var
                 WriteProc(TProcDef(p), nil, d);
               dtProp, dtField:
                 WriteVar(TVarDef(p), d);
+              else
+                ; // no action
             end;
           end;
         end;
@@ -622,6 +624,8 @@ var
             WriteProc(TProcDef(it));
         dtProp, dtField:
           WriteVar(TVarDef(it));
+        else
+          ; // no action
       end;
     end;
   end;
@@ -738,6 +742,8 @@ begin
         end;
         Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { super(objptr, cleanup); }', [d.Name]));
       end;
+    else
+      ; // no action
   end;
 
   WriteTypeCast(n, False);
@@ -1301,11 +1307,15 @@ begin
               v:='true'
             else
               v:='false';
+          else
+            ; // no action
         end;
       dtArray:
         with TArrayDef(d.VarType) do
           if (ElType.DefType = dtType) and (TTypeDef(ElType).BasicType in [btChar, btWideChar]) then
             s:='String';
+      else
+        ; // no action
     end;
     if s = '' then
       s:=DefToJavaType(d.VarType);
@@ -2084,6 +2094,8 @@ begin
           WritePointer(TPointerDef(d), True);
         dtClassRef:
           WriteClassRef(TClassRefDef(d), True);
+        else
+          ; // no action
       end;
     end;
 
@@ -2111,6 +2123,8 @@ begin
           WritePointer(TPointerDef(d), False);
         dtClassRef:
           WriteClassRef(TClassRefDef(d), False);
+        else
+          ; // no action
       end;
     end;
 
@@ -2359,6 +2373,8 @@ begin
         Result:=Format('_GetClass(_env, %s, %s)', [Result, GetTypeInfoVar(d)]);
         Result:=Format('%s.%s(%s)', [d.Parent.Name, d.Name, Result]);
       end;
+    else
+      ; // no action
   end;
 end;
 
@@ -2383,6 +2399,8 @@ begin
             Result:=Format('jint(%s)', [Result]);
           btGuid:
             Result:=Format('_StringToJString(_env, _JNIString(GUIDToString(%s)))', [Result]);
+          else
+            ; // no action
         end;
     dtClass:
       case TClassDef(d).CType of
@@ -2406,6 +2424,8 @@ begin
         Result:=Format('ptruint(pointer(%s))', [Result]);
     dtClassRef:
       Result:=Format('_CreateJavaObj(_env, -jlong(ptruint(pointer(%s))), %s)', [Result, GetTypeInfoVar(d)])
+    else
+      ; // no action
   end;
 end;
 
@@ -2482,6 +2502,7 @@ begin
 
     if s <> '' then
       s:='(' + s + ')';
+    ss:='';
     case ProcType of
       ptConstructor:
         ss:='constructor';
@@ -2491,8 +2512,6 @@ begin
         ss:='procedure';
       ptFunction:
         ss:='function';
-      else
-        ss:='';
     end;
     if ProcType in [ptConstructor, ptFunction] then
       s:=s + ': ' + GetPasType(ReturnType, FullTypeNames);
