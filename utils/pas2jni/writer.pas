@@ -864,10 +864,13 @@ begin
           if (VarType <> nil) and (VarType.DefType = dtJniEnv) then
             continue;
           s:=s + '; ' + Name + ': ';
+          ss:=DefToJniType(VarType, err);
           if not IsJavaVarParam(vd) then
-            s:=s + DefToJniType(VarType, err)
+            s:=s + ss
           else begin
-            s:=s + 'jarray';
+            if not err then
+              ss:='jarray';
+            s:=s + ss;
             if tempvars = nil then
               tempvars:=TStringList.Create;
             if VarType = nil then
