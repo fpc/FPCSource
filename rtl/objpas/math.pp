@@ -167,10 +167,6 @@ function Min(a, b: Int64): Int64;inline; overload;
 function Max(a, b: Int64): Int64;inline; overload;
 function Min(a, b: QWord): QWord;inline; overload;
 function Max(a, b: QWord): QWord;inline; overload;
-function Min(a: Int64; b: Qword): Int64;inline; overload;
-function Min(a: Qword; b: Int64): Int64;inline; overload;
-function Max(a: Int64; b: Qword): QWord;inline; overload;
-function Max(a: Qword; b: Int64): QWord;inline; overload;
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function Min(a, b: Single): Single;inline; overload;
 function Max(a, b: Single): Single;inline; overload;
@@ -2079,39 +2075,6 @@ begin
 end;
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
-
-function Min(a: Int64; b: Qword): Int64;inline;
-begin
-  if a<0 then
-    Result:=a
-  else
-    Result:=Min(QWord(a),b);
-end;
-
-function Min(a: Qword; b: Int64): Int64;inline;
-begin
-  if b<0 then
-    Result:=b
-  else
-    Result:=Min(a,QWord(b));
-end;
-
-function Max(a: Int64; b: Qword): QWord;inline;
-begin
-  if a<0 then
-    Result:=b
-  else
-    Result:=Max(QWord(a),b);
-end;
-
-function Max(a: Qword; b: Int64): QWord;inline;
-begin
-  if b<0 then
-    Result:=a
-  else
-    Result:=Max(a,QWord(b));
-end;
-
 function Min(a, b: Single): Single;inline;
 begin
   if a < b then
