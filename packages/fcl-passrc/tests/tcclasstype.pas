@@ -159,6 +159,8 @@ type
     Procedure TestLocalSimpleTypes;
     Procedure TestLocalSimpleConst;
     Procedure TestLocalSimpleConsts;
+    Procedure TestClassTypeAttributes;
+    Procedure TestClassConstAttributes;
     procedure TestClassHelperEmpty;
     procedure TestClassHelperParentedEmpty;
     procedure TestClassHelperOneMethod;
@@ -1764,6 +1766,44 @@ begin
   AssertSame('Type parent is class',TheClass, Const2.Parent);
   AssertNotNull('Member 3 is procedure',Method3);
   AssertEquals('method name','Something', Method3.Name);
+end;
+
+procedure TTestClassType.TestClassTypeAttributes;
+begin
+  Add([
+  '{$modeswitch prefixedattributes}',
+  'type',
+  '  TObject = class',
+  '  [Black]',
+  '  type',
+  '    [Red]',
+  '    [White]',
+  '    TWord = word;',
+  '    [Blue]',
+  '    [Green]',
+  '    TChar = char;',
+  '  end;',
+  '']);
+  ParseDeclarations;
+end;
+
+procedure TTestClassType.TestClassConstAttributes;
+begin
+  Add([
+  '{$modeswitch prefixedattributes}',
+  'type',
+  '  TObject = class',
+  '  [Black]',
+  '  const',
+  '    [Red]',
+  '    [White]',
+  '    A = 1;',
+  '    [Blue]',
+  '    [Green]',
+  '    B = 2;',
+  '  end;',
+  '']);
+  ParseDeclarations;
 end;
 
 procedure TTestClassType.TestClassHelperEmpty;

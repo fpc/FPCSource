@@ -70,7 +70,6 @@ type
     Procedure TestHandlerResult;
     Procedure TestHandlerResultStream;
     Procedure TestEmptyLine;
-    procedure TestBug36037Part2;
   end;
 
 implementation
@@ -541,59 +540,22 @@ begin
 end;
 
 procedure TTestParser.TestEmptyLine;
-
 // Bug report 36037
-
-Const
-  MyJSON =
-    '  {'+sLineBreak+
-    '  "pylib__linux" : "libpython3.7m.so.1.0",'+sLineBreak+
-    '  "ui_toolbar_theme": "default_24x24",'+sLineBreak+
-    '  "ui_toolbar_show" : true,'+sLineBreak+
-    '  "font_name__linux" : "DejaVu Sans Mono",'+sLineBreak+
-    '  "font_size__linux" : 10,'+sLineBreak+
-    '    "ui_listbox_fuzzy": false,'+sLineBreak+
-    '    "ui_max_size_lexer": 5,'+sLineBreak+
-    '    "find_separate_form": false,'+sLineBreak+sLineBreak+
-    '}';
-var
-  J : TJSONData;
+Const MyJSON =
+'  {'+sLineBreak+
+'  "pylib__linux" : "libpython3.7m.so.1.0",'+sLineBreak+
+'  "ui_toolbar_theme": "default_24x24",'+sLineBreak+
+'  "ui_toolbar_show" : true,'+sLineBreak+
+'  "font_name__linux" : "DejaVu Sans Mono",'+sLineBreak+
+'  "font_size__linux" : 10,'+sLineBreak+
+'    "ui_listbox_fuzzy": false,'+sLineBreak+
+'    "ui_max_size_lexer": 5,'+sLineBreak+
+'    "find_separate_form": false,'+sLineBreak+sLineBreak+
+'}';
+  var
+    J : TJSONData;
 begin
   With TJSONParser.Create(MyJSON,[joUTF8,joIgnoreTrailingComma]) do
-  Try
-    J:=Parse;
-    J.Free;
-  Finally
-    Free;
-  end;
-end;
-
-procedure TTestParser.TestBug36037Part2;
-
-Const
-  MyJSON =
-
-'{'+sLineBreak+
-'  "tab_spaces": true,'+sLineBreak+
-'  //auto-indent kind:'+sLineBreak+
-'  //  0: indent like in prev line'+sLineBreak+
-'  //  1: by spaces'+sLineBreak+
-'  //  2: by tabs+spaces'+sLineBreak+
-'  //  3: by tabs only'+sLineBreak+
-'  "indent_kind": 1,'+sLineBreak+
-'  "indent_size": 4,'+sLineBreak+
-''+sLineBreak+
-'  "saving_trim_spaces": true,'+sLineBreak+
-''+sLineBreak+
-'//  "config_menus_from": "kv-menu JSON.json",'+sLineBreak+
-'    "find_hotkey_replace": "Alt+Enter",'+sLineBreak+
-'    "fold_style": 4,'+sLineBreak+
-'}'+sLineBreak;
-
-var
-  J : TJSONData;
-begin
-  With TJSONParser.Create(MyJSON,[joUTF8,joIgnoreTrailingComma,joComments]) do
   Try
     J:=Parse;
     J.Free;

@@ -946,6 +946,7 @@ type
     Procedure TestTypeHelper_Constructor_NewInstance;
     Procedure TestTypeHelper_Interface;
     Procedure TestTypeHelper_Interface_ConstructorFail;
+    Procedure TestTypeHelper_TypeAliasType;
 
     // attributes
     Procedure TestAttributes_Globals;
@@ -1091,6 +1092,8 @@ begin
     writeln('TCustomTestResolver.TearDown GlobalRefCount Was='+IntToStr(FStartElementRefCount)+' Now='+IntToStr(TPasElement.GlobalRefCount));
     {$IFDEF CheckPasTreeRefCount}
     El:=TPasElement.FirstRefEl;
+    if El=nil then
+      writeln('  TPasElement.FirstRefEl=nil');
     while El<>nil do
       begin
       writeln('  ',GetObjName(El),' RefIds.Count=',El.RefIds.Count,':');
@@ -6480,8 +6483,8 @@ begin
   StartProgram(false);
   Add([
   'type',
-  '  integer = longint;',
-  '  TValue = type longint;',
+  '  integer = word;',
+  '  TValue = type word;',
   '  TAliasValue = TValue;',
   'procedure DoIt(i: integer); external;',
   'procedure DoIt(i: TAliasValue); external;',
@@ -11120,7 +11123,6 @@ begin
   '    procedure DoIt;',
   '    class procedure DoMore;',
   '  end;',
-  'implementation',
   'procedure tobject.doit;',
   'begin',
   '  if cI=4 then;',
@@ -11166,7 +11168,7 @@ begin
   '    class c: word;',
   '  end;',
   'begin']);
-  CheckParserException('Expected "procedure or function"',nParserExpectTokenError);
+  CheckParserException('Expected "Procedure" or "Function"',nParserExpectToken2Error);
 end;
 
 procedure TTestResolver.TestClass_ClassConstFail;
@@ -14510,6 +14512,10 @@ begin
   'type',
   '  TDynArrInt = array of byte;',
   '  TStaArrInt = array[1..2] of byte;',
+  'procedure Fly(var a: array of byte);',
+  'begin',
+  '  Fly(a);',
+  'end;',
   'procedure DoIt(a: array of byte);',
   'var',
   '  d: TDynArrInt;',
@@ -14520,6 +14526,8 @@ begin
   '  // d:=a; forbidden in delphi',
   '  DoIt(d);',
   '  DoIt(s);',
+  '  Fly(a);',
+  '  Fly(d);', // dyn array can be passed to a var open array
   'end;',
   'begin',
   '']);
@@ -15929,8 +15937,8 @@ begin
   Add([
   'type p = ^(red, green);',
   'begin']);
-  CheckResolverException('not yet implemented: pointer of anonymous type',
-    nNotYetImplemented);
+  CheckParserException('Expected "Identifier" at token "(" in file afile.pp at line 2 column 11',
+    nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestPointer_AssignPointerToClassFail;
@@ -17949,6 +17957,37 @@ begin
   'begin',
   '']);
   CheckResolverException('constructor is not supported',nXIsNotSupported);
+end;
+
+procedure TTestResolver.TestTypeHelper_TypeAliasType;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  TEnum = type longint;',
+  '  TIntHelper = type helper for longint',
+  '    procedure Run;',
+  '  end;',
+  '  TEnumHelper = type helper for TEnum',
+  '    procedure Fly;',
+  '  end;',
+  'procedure TIntHelper.Run;',
+  'begin',
+  'end;',
+  'procedure TEnumHelper.Fly;',
+  'begin',
+  'end;',
+  'var',
+  '  e: TEnum;',
+  '  i: longint;',
+  'begin',
+  '  i.Run;',
+  '  e.Fly;',
+  '  with i do Run;',
+  '  with e do Fly;',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestAttributes_Globals;

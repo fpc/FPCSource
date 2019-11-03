@@ -176,7 +176,8 @@ var rtl = {
 
   loaduseslist: function(module,useslist,f){
     if (useslist==undefined) return;
-    for (var i in useslist){
+    var len = useslist.length;
+    for (var i = 0; i<len; i++) {
       var unitname=useslist[i];
       if (rtl.debug_load_units) rtl.debug('loaduseslist of "'+module.$name+'" uses="'+unitname+'"');
       if (pas[unitname]==undefined)
@@ -627,7 +628,7 @@ var rtl = {
   },
 
   queryIntfIsT: function(obj,intftype){
-    var i = rtl.queryIntfG(obj,intftype.$guid);
+    var i = rtl.getIntfG(obj,intftype.$guid);
     if (!i) return false;
     if (i.$kind === 'com') i._Release();
     return true;
@@ -636,6 +637,18 @@ var rtl = {
   asIntfT: function (obj,intftype){
     var i = rtl.getIntfG(obj,intftype.$guid);
     if (i!==null) return i;
+    rtl.raiseEInvalidCast();
+  },
+
+  intfIsIntfT: function(intf,intftype){
+    return (intf!==null) && rtl.queryIntfIsT(intf.$o,intftype);
+  },
+
+  intfAsIntfT: function (intf,intftype){
+    if (intf){
+      var i = rtl.getIntfG(intf.$o,intftype.$guid);
+      if (i!==null) return i;
+    }
     rtl.raiseEInvalidCast();
   },
 
@@ -797,34 +810,56 @@ var rtl = {
   },
 
   arraySetLength: function(arr,defaultvalue,newlength){
-    // multi dim: (arr,defaultvalue,dim1,dim2,...)
-    var p = arguments;
-    function setLength(src,argNo){
-      var newlen = p[argNo];
-      var a = [];
-      a.length = newlength;
-      if (argNo === p.length-1){
-        var oldlen = src?src.length:0;
+    var stack = [];
+    for (var i=2; i<arguments.length; i++){
+      stack.push({ dim:arguments[i]+0, a:null, i:0, src:null });
+    }
+    var dimmax = stack.length-1;
+    var depth = 0;
+    var lastlen = stack[dimmax].dim;
+    var item = null;
+    var a = null;
+    var src = arr;
+    var oldlen = 0
+    do{
+      a = [];
+      if (depth>0){
+        item=stack[depth-1];
+        item.a[item.i]=a;
+        src = (item.src && item.src.length>item.i)?item.src[item.i]:null;
+        item.i++;
+      }
+      if (depth<dimmax){
+        item = stack[depth];
+        item.a = a;
+        item.i = 0;
+        item.src = src;
+        depth++;
+      } else {
+        oldlen = src?src.length:0;
         if (rtl.isArray(defaultvalue)){
-          for (var i=0; i<newlen; i++) a[i]=(i<oldlen)?src[i]:[]; // array of dyn array
+          for (var i=0; i<lastlen; i++) a[i]=(i<oldlen)?src[i]:[]; // array of dyn array
         } else if (rtl.isObject(defaultvalue)) {
           if (rtl.isTRecord(defaultvalue)){
-            for (var i=0; i<newlen; i++)
+            for (var i=0; i<lastlen; i++){
               a[i]=(i<oldlen)?defaultvalue.$clone(src[i]):defaultvalue.$new(); // e.g. record
+            }
           } else {
-            for (var i=0; i<newlen; i++) a[i]=(i<oldlen)?rtl.refSet(src[i]):{}; // e.g. set
+            for (var i=0; i<lastlen; i++) a[i]=(i<oldlen)?rtl.refSet(src[i]):{}; // e.g. set
           }
         } else {
-          for (var i=0; i<newlen; i++)
+          for (var i=0; i<lastlen; i++)
             a[i]=(i<oldlen)?src[i]:defaultvalue;
         }
-      } else {
-        // multi dim array
-        for (var i=0; i<newlen; i++) a[i]=setLength(src?src[i]:null,argNo+1);
+        while ((depth>0) && (stack[depth-1].i>=stack[depth-1].dim)){
+          depth--;
+        };
+        if (depth===0){
+          if (dimmax===0) return a;
+          return stack[0].a;
+        }
       }
-      return a;
-    }
-    return setLength(arr,2);
+    }while (true);
   },
 
   /*arrayChgLength: function(arr,defaultvalue,newlength){
@@ -1097,6 +1132,11 @@ var rtl = {
     }
     setCodeFn(1);
     return 0;
+  },
+
+  lw: function(l){
+    // fix longword bitwise operation
+    return l<0?l+0x100000000:l;
   },
 
   and: function(a,b){

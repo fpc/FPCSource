@@ -279,7 +279,8 @@ type
     function ExpandExecutable(const Filename: string): string; override;
     function HandleOptionPaths(C: Char; aValue: String; FromCmdLine: Boolean): String; override;
     Function AddForeignUnitPath(const aValue: String; FromCmdLine: Boolean): String; override;
-    function TryCreateRelativePath(const Filename, BaseDirectory: String; UsePointDirectory: boolean; out RelPath: String): Boolean; override;
+    function TryCreateRelativePath(const Filename, BaseDirectory: String;
+      UsePointDirectory, AlwaysRequireSharedBaseFolder: boolean; out RelPath: String): Boolean; override;
   Protected
     property DirectoryCache: TPas2jsCachedDirectories read FDirectoryCache;
   public
@@ -905,13 +906,25 @@ end;
 function TPas2jsCachedDirectories.DirectoryExists(Filename: string): boolean;
 var
   Info: TFileInfo;
+  Dir: TPas2jsCachedDirectory;
 begin
   Info.Filename:=Filename;
   if not GetFileInfo(Info) then exit(false);
   if Info.Dir<>nil then
     Result:=(Info.Dir.FileAttr(Info.ShortFilename) and faDirectory)>0
   else
-    Result:={$IFDEF pas2js}NodeJSFS{$ELSE}SysUtils{$ENDIF}.DirectoryExists(Info.Filename);
+    begin
+    Dir:=GetDirectory(Filename,true,false);
+    if Dir<>nil then
+      Result:=Dir.Count>0
+    else
+      begin
+      Filename:=ChompPathDelim(ResolveDots(Filename));
+      if not FilenameIsAbsolute(Filename) then
+        Filename:=WorkingDirectory+Filename;
+      Result:={$IFDEF pas2js}NodeJSFS{$ELSE}SysUtils{$ENDIF}.DirectoryExists(Filename);
+      end;
+    end;
 end;
 
 function TPas2jsCachedDirectories.FileExists(Filename: string): boolean;
@@ -1486,8 +1499,9 @@ procedure TPas2jsFilesCache.WriteFoldersAndSearchPaths;
   procedure WriteFolder(aName, Folder: string);
   begin
     if Folder='' then exit;
+    Folder:=ChompPathDelim(Folder);
     Log.LogMsgIgnoreFilter(nUsingPath,[aName,Folder]);
-    if not DirectoryExists(ChompPathDelim(Folder)) then
+    if not DirectoryExists(Folder) then
       Log.LogMsgIgnoreFilter(nFolderNotFound,[aName,QuoteStr(Folder)]);
   end;
 
@@ -1806,11 +1820,12 @@ begin
   AddSrcUnitPaths(aValue,FromCmdLine,Result);
 end;
 
-function TPas2jsFilesCache.TryCreateRelativePath(const Filename, BaseDirectory: String;
-  UsePointDirectory: boolean; out RelPath: String): Boolean;
+function TPas2jsFilesCache.TryCreateRelativePath(const Filename,
+  BaseDirectory: String; UsePointDirectory,
+  AlwaysRequireSharedBaseFolder: boolean; out RelPath: String): Boolean;
 begin
   Result:=Pas2jsFileUtils.TryCreateRelativePath(Filename, BaseDirectory,
-    UsePointDirectory, true, RelPath);
+    UsePointDirectory, AlwaysRequireSharedBaseFolder, RelPath);
 end;
 
 function TPas2jsFilesCache.FindIncludeFileName(const aFilename,

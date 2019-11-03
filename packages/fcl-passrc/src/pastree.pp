@@ -192,6 +192,7 @@ type
     class property GlobalRefCount: NativeInt read FGlobalRefCount write FGlobalRefCount;
     {$endif}
   end;
+  TPasElementArray = array of TPasElement;
 
   TPasExprKind = (pekIdent, pekNumber, pekString, pekSet, pekNil, pekBoolConst,
      pekRange, pekUnary, pekBinary, pekFuncParams, pekArrayParams, pekListOfExp,
@@ -558,10 +559,10 @@ type
     function GetDeclaration(full : boolean) : string; override;
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
-    procedure AddConstraint(Expr: TPasExpr);
+    procedure AddConstraint(El: TPasElement);
   Public
     TypeConstraint: String deprecated; // deprecated in fpc 3.3.1
-    Constraints: TPasExprArray;
+    Constraints: TPasElementArray; // list of TPasExpr or TPasType, can be nil!
   end;
 
   { TPasGenericType - abstract base class for all types which can be generics }
@@ -589,7 +590,6 @@ type
     function GetDeclaration(full: boolean) : string; override;
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
-    procedure AddParam(El: TPasElement);
   public
     Params: TFPList; // list of TPasType or TPasExpr
   end;
@@ -605,7 +605,8 @@ type
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
-    DestType: TPasSpecializeType;
+    NameExpr: TPasExpr;
+    Params: TFPList; // list of TPasType
   end;
 
   { TPasClassOfType }
@@ -644,7 +645,7 @@ type
     IndexRange : string; // only valid if Parser po_arrayrangeexpr disabled
     Ranges: TPasExprArray; // only valid if Parser po_arrayrangeexpr enabled
     PackMode : TPackMode;
-    ElType: TPasType;
+    ElType: TPasType; // nil means array-of-const
     function IsGenericArray : Boolean;
     function IsPacked : Boolean;
     procedure AddRange(Range: TPasExpr);
@@ -1053,7 +1054,7 @@ type
     Name: string;
     Templates: TFPList; // optional list of TPasGenericTemplateType, can be nil!
   end;
-  TProcedureNameParts = TFPList;
+  TProcedureNameParts = TFPList; // list of TProcedureNamePart
                         
   TProcedureBody = class;
 
@@ -1083,7 +1084,7 @@ type
     AliasName : String;
     ProcType : TPasProcedureType;
     Body : TProcedureBody;
-    NameParts: TProcedureNameParts; // only used for generic functions
+    NameParts: TProcedureNameParts; // only used for generic aka parametrized functions
     Procedure AddModifier(AModifier : TProcedureModifier);
     Function IsVirtual : Boolean;
     Function IsDynamic : Boolean;
@@ -1743,14 +1744,14 @@ const
 
 procedure ReleaseAndNil(var El: TPasElement {$IFDEF CheckPasTreeRefCount}; const Id: string{$ENDIF}); overload;
 procedure ReleaseGenericTemplateTypes(var GenericTemplateTypes: TFPList{$IFDEF CheckPasTreeRefCount}; const Id: string{$ENDIF});
+procedure ReleaseElementList(ElList: TFPList{$IFDEF CheckPasTreeRefCount}; const Id: string{$ENDIF});
 function GenericTemplateTypesAsString(List: TFPList): string;
+procedure ReleaseProcNameParts(var NameParts: TProcedureNameParts);
 
 {$IFDEF HasPTDumpStack}
 procedure PTDumpStack;
 function GetPTDumpStack: string;
 {$ENDIF}
-
-procedure ReleaseProcNameParts(var NameParts: TProcedureNameParts);
 
 implementation
 
@@ -1777,6 +1778,21 @@ begin
     El.Release{$IFDEF CheckPasTreeRefCount}(Id){$ENDIF};
     end;
   FreeAndNil(GenericTemplateTypes);
+end;
+
+procedure ReleaseElementList(ElList: TFPList{$IFDEF CheckPasTreeRefCount}; const Id: string{$ENDIF});
+var
+  i: Integer;
+  El: TPasElement;
+begin
+  if ElList=nil then exit;
+  for i := 0 to ElList.Count - 1 do
+    begin
+    El:=TPasElement(ElList[i]);
+    if El<>nil then
+      El.Release{$IFDEF CheckPasTreeRefCount}(Id){$ENDIF};
+    end;
+  ElList.Clear;
 end;
 
 function GenericTemplateTypesAsString(List: TFPList): string;
@@ -1944,13 +1960,13 @@ begin
     ForEachChildCall(aMethodCall,Arg,Constraints[i],false);
 end;
 
-procedure TPasGenericTemplateType.AddConstraint(Expr: TPasExpr);
+procedure TPasGenericTemplateType.AddConstraint(El: TPasElement);
 var
   l: Integer;
 begin
   l:=Length(Constraints);
   SetLength(Constraints,l+1);
-  Constraints[l]:=Expr;
+  Constraints[l]:=El;
 end;
 
 {$IFDEF HasPTDumpStack}
@@ -2038,11 +2054,17 @@ constructor TInlineSpecializeExpr.Create(const AName: string;
 begin
   if AName='' then ;
   inherited Create(AParent, pekSpecialize, eopNone);
+  Params:=TFPList.Create;
 end;
 
 destructor TInlineSpecializeExpr.Destroy;
+var
+  i: Integer;
 begin
-  ReleaseAndNil(TPasElement(DestType){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
+  TPasElement(NameExpr).Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+  for i:=0 to Params.Count-1 do
+    TPasElement(Params[i]).Release{$IFDEF CheckPasTreeRefCount}('TInlineSpecializeExpr.Params'){$ENDIF};
+  FreeAndNil(Params);
   inherited Destroy;
 end;
 
@@ -2052,15 +2074,29 @@ begin
 end;
 
 function TInlineSpecializeExpr.GetDeclaration(full: Boolean): string;
+var
+  i: Integer;
 begin
-  Result:=DestType.GetDeclaration(full);
+  Result:='specialize '+NameExpr.GetDeclaration(false)+'<';
+  for i:=0 to Params.Count-1 do
+    begin
+    if i>0 then
+      Result:=Result+',';
+    Result:=Result+TPasElement(Params[i]).GetDeclaration(false);
+    end;
+  Result:=Result+'>';
+  if full then ;
 end;
 
 procedure TInlineSpecializeExpr.ForEachCall(
   const aMethodCall: TOnForEachPasElement; const Arg: Pointer);
+var
+  i: Integer;
 begin
   inherited ForEachCall(aMethodCall, Arg);
-  ForEachChildCall(aMethodCall,Arg,DestType,false);
+  ForEachChildCall(aMethodCall,Arg,NameExpr,false);
+  for i:=0 to Params.Count-1 do
+    ForEachChildCall(aMethodCall,Arg,TPasElement(Params[i]),true);
 end;
 
 { TPasSpecializeType }
@@ -2113,11 +2149,6 @@ begin
   inherited ForEachCall(aMethodCall, Arg);
   for i:=0 to Params.Count-1 do
     ForEachChildCall(aMethodCall,Arg,TPasElement(Params[i]),true);
-end;
-
-procedure TPasSpecializeType.AddParam(El: TPasElement);
-begin
-  Params.Add(El);
 end;
 
 { TInterfaceSection }
@@ -4668,14 +4699,17 @@ procedure TPasProcedure.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
 var
   i, j: Integer;
+  Templates: TFPList;
 begin
   inherited ForEachCall(aMethodCall, Arg);
   if NameParts<>nil then
     for i:=0 to NameParts.Count-1 do
-      with TProcedureNamePart(NameParts[i]) do
-        if Templates<>nil then
-          for j:=0 to Templates.Count-1 do
-            ForEachChildCall(aMethodCall,Arg,TPasElement(Templates[i]),false);
+      begin
+      Templates:=TProcedureNamePart(NameParts[i]).Templates;
+      if Templates<>nil then
+        for j:=0 to Templates.Count-1 do
+          ForEachChildCall(aMethodCall,Arg,TPasElement(Templates[j]),false);
+      end;
   ForEachChildCall(aMethodCall,Arg,ProcType,false);
   ForEachChildCall(aMethodCall,Arg,PublicName,false);
   ForEachChildCall(aMethodCall,Arg,LibraryExpr,false);

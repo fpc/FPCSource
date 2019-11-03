@@ -115,7 +115,8 @@ Type
     function ExpandExecutable(const Filename: string): string; virtual;
     Function FormatPath(Const aFileName: string): String; virtual;
     Function DirectoryExists(Const aDirectory: string): boolean; virtual;
-    function TryCreateRelativePath(const Filename, BaseDirectory: String; UsePointDirectory: boolean; out RelPath: String): Boolean; virtual;
+    function TryCreateRelativePath(const Filename, BaseDirectory: String;
+      UsePointDirectory, AlwaysRequireSharedBaseFolder: boolean; out RelPath: String): Boolean; virtual;
     procedure DeleteDuplicateFiles(List: TStrings); virtual;
     function IndexOfFile(FileList: TStrings; aFilename: string; Start: integer = 0): integer; virtual;// -1 if not found
     Procedure WriteFoldersAndSearchPaths; virtual;
@@ -255,12 +256,13 @@ begin
   Result:=aDirectory='';
 end;
 
-function TPas2JSFS.TryCreateRelativePath(const Filename, BaseDirectory: String; UsePointDirectory: boolean; out RelPath: String
+function TPas2JSFS.TryCreateRelativePath(const Filename, BaseDirectory: String;
+  UsePointDirectory, AlwaysRequireSharedBaseFolder: boolean; out RelPath: String
   ): Boolean;
 begin
   Result:=True;
   RelPath:=FileName;
-  if (BaseDirectory='') or UsePointDirectory then ;
+  if (BaseDirectory='') or UsePointDirectory or AlwaysRequireSharedBaseFolder then ;
 end;
 
 procedure TPas2JSFS.DeleteDuplicateFiles(List: TStrings);
