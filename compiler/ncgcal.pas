@@ -1048,8 +1048,6 @@ implementation
                    begin
                      reorder_parameters;
                      pushparas;
-                     { free the resources allocated for the parameters }
-                     freeparas;
                    end;
 
                  if callref then
@@ -1085,8 +1083,6 @@ implementation
                     begin
                       reorder_parameters;
                       pushparas;
-                      { free the resources allocated for the parameters }
-                      freeparas;
                     end;
 
                   cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
@@ -1146,8 +1142,6 @@ implementation
                 begin
                   reorder_parameters;
                   pushparas;
-                  { free the resources allocated for the parameters }
-                  freeparas;
                 end;
 
               if callref then
@@ -1174,6 +1168,10 @@ implementation
                 retloc:=hlcg.a_call_reg(current_asmdata.CurrAsmList,callpvdef,pvreg,paralocs);
               extra_post_call_code;
            end;
+
+         { free the resources allocated for the parameters }
+         if assigned(left) then
+           freeparas;
 
          { Need to remove the parameters from the stack? }
          if procdefinition.proccalloption in clearstack_pocalls then
