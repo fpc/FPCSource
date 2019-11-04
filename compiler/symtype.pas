@@ -206,6 +206,8 @@ interface
          procedure putderef(const d:tderef);
          procedure putpropaccesslist(p:tpropaccesslist);
          procedure putasmsymbol(s:tasmsymbol);
+       protected
+         procedure RaiseAssertion(Code: Longint); override;
        end;
 
 {$ifdef MEMDEBUG}
@@ -887,6 +889,10 @@ implementation
          Message(unit_f_ppu_read_error);
       end;
 
+    procedure tcompilerppufile.RaiseAssertion(Code: Longint);
+      begin
+        InternalError(Code);
+      end;
 
     procedure tcompilerppufile.getguid(var g: tguid);
       begin

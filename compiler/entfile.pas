@@ -122,9 +122,9 @@ const
 
   ibmainname       = 90;
   ibsymtableoptions = 91;
-  ibrecsymtableoptions = 91;
   ibpackagefiles   = 92;
   ibpackagename    = 93;
+  ibrecsymtableoptions = 94;
   { target-specific things }
   iblinkotherframeworks = 100;
   ibjvmnamespace = 101;
@@ -231,6 +231,7 @@ type
     procedure resetfile;virtual;abstract;
     function getheadersize:longint;virtual;abstract;
     function getheaderaddr:pentryheader;virtual;abstract;
+    procedure RaiseAssertion(Code: Longint); virtual;
   public
     entrytyp : byte;
     size             : integer;
@@ -376,6 +377,13 @@ procedure tentryfile.flush;
 begin
   if mode=2 then
    writebuf;
+end;
+
+
+procedure tentryfile.RaiseAssertion(Code: Longint);
+begin
+  { It's down to descendent classes to raise an internal error as desired. [Kit] }
+  error := true;
 end;
 
 
@@ -739,12 +747,16 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
-  result:=4;
   case sizeof(aint) of
     8: result:=getint64;
     4: result:=getlongint;
     2: result:=smallint(getword);
     1: result:=shortint(getbyte);
+  else
+    begin
+      RaiseAssertion(2019041801);
+      result:=0;
+    end;
   end;
 {$endif not generic_cpu}
 end;
@@ -783,9 +795,12 @@ begin
     4: result:=asizeint(getlongint);
     2: result:=asizeint(getword);
     1: result:=asizeint(getbyte);
-    else
+  else
+    begin
+      RaiseAssertion(2019041802);
       result:=0;
-end;
+    end;
+  end;
 {$endif not generic_cpu}
 end;
 
@@ -816,7 +831,10 @@ begin
     2: result:=getword;
     1: result:=getbyte;
   else
-    result:=0;
+    begin
+      RaiseAssertion(2019041803);
+      result:=0;
+    end;
   end;
 {$endif not generic_cpu}
 end;
@@ -865,12 +883,16 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
-  result:=4;
   case sizeof(aword) of
     8: result:=getqword;
     4: result:=getdword;
     2: result:=getword;
     1: result:=getbyte;
+  else
+    begin
+      RaiseAssertion(2019041804);
+      result:=0;
+    end;
   end;
 {$endif not generic_cpu}
 end;

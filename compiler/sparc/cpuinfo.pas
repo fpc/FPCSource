@@ -65,7 +65,7 @@ type
 Const
   { Is there support for dealing with multiple microcontrollers available }
   { for this platform? }
-  ControllerSupport = true;
+  ControllerSupport = false;
 
   { We know that there are fields after sramsize
     but we don't care about this warning }

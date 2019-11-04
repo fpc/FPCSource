@@ -21,6 +21,8 @@
 { This unit implements support information structures for the Nintendo Wii. }
 unit i_wii;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

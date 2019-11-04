@@ -24,7 +24,9 @@ unit macho;
 
 { converted by Dmitry Boyarintsev 2009 }
 
-{$mode objfpc}{$H+}
+{$i fpcdefs.inc}
+
+{$H+}
 
 interface
 

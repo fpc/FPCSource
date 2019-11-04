@@ -79,7 +79,7 @@ Type
 Const
    { Is there support for dealing with multiple microcontrollers available }
    { for this platform? }
-   ControllerSupport = true;
+   ControllerSupport = false;
    { Size of native extended type }
    extended_size = 10;
    { target cpu string (used by compiler options) }

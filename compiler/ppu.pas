@@ -43,7 +43,11 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 206;
+  { only update this version if something change in the tppuheader:
+     * the unit flags listed below
+     * the format of the header itslf
+    This number cannot become bigger than 255 (it's stored in a byte) }
+  CurrentPPUVersion = 207;
 
 { unit flags }
   uf_init                = $000001; { unit has initialization section }
