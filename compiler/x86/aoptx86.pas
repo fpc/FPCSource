@@ -672,8 +672,8 @@ unit aoptx86;
                 case taicpu(p).opsize Of
                   S_B: taicpu(hp1).loadConst(0,l Xor $ff);
                   S_W: taicpu(hp1).loadConst(0,l Xor $ffff);
-                  S_L: taicpu(hp1).loadConst(0,l Xor aint($ffffffff));
-                  S_Q: taicpu(hp1).loadConst(0,l Xor aint($ffffffffffffffff));
+                  S_L: taicpu(hp1).loadConst(0,l Xor tcgint($ffffffff));
+                  S_Q: taicpu(hp1).loadConst(0,l Xor tcgint($ffffffffffffffff));
                   else
                     Internalerror(2017050703)
                 end;
@@ -690,8 +690,8 @@ unit aoptx86;
                 case taicpu(p).opsize Of
                   S_B: taicpu(p).loadConst(0,l Xor $ff);
                   S_W: taicpu(p).loadConst(0,l Xor $ffff);
-                  S_L: taicpu(p).loadConst(0,l Xor aint($ffffffff));
-                  S_Q: taicpu(p).loadConst(0,l Xor aint($ffffffffffffffff));
+                  S_L: taicpu(p).loadConst(0,l Xor tcgint($ffffffff));
+                  S_Q: taicpu(p).loadConst(0,l Xor tcgint($ffffffffffffffff));
                   else
                     Internalerror(2017050702)
                 end;
@@ -706,8 +706,8 @@ unit aoptx86;
                 case taicpu(p).opsize Of
                   S_B: taicpu(p).loadConst(0,l Xor $ff);
                   S_W: taicpu(p).loadConst(0,l Xor $ffff);
-                  S_L: taicpu(p).loadConst(0,l Xor aint($ffffffff));
-                  S_Q: taicpu(p).loadConst(0,l Xor aint($ffffffffffffffff));
+                  S_L: taicpu(p).loadConst(0,l Xor tcgint($ffffffff));
+                  S_Q: taicpu(p).loadConst(0,l Xor tcgint($ffffffffffffffff));
                   else
                     Internalerror(2017050701)
                 end;
