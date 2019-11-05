@@ -604,7 +604,7 @@ begin
   CheckEquals(v.IsClass, False);
   CheckEquals(v.IsObject, False);
   CheckEquals(v.IsOrdinal, False);
-  Check(v.AsExtended=fcu);
+  Check(v.AsExtended=Extended(fcu));
   Check(v.AsCurrency=fcu);
   Check(v.GetReferenceToRawData <> @fcu);
 
@@ -643,7 +643,7 @@ begin
   CheckEquals(v.IsClass, False);
   CheckEquals(v.IsObject, False);
   CheckEquals(v.IsOrdinal, False);
-  Check(v.AsExtended=fco);
+  Check(v.AsExtended=Extended(fco));
   Check(v.GetReferenceToRawData <> @fco);
 
   try

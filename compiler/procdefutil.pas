@@ -36,7 +36,7 @@ implementation
 
   uses
     cutils,
-    symbase,symsym,symtable,pparautl;
+    symbase,symsym,symtable,pparautl,globtype;
 
 
   function create_outline_procdef(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef): tprocdef;
@@ -72,6 +72,9 @@ implementation
         nested procvars modeswitch is active. We must be independent of this switch. }
       exclude(result.procoptions,po_delphi_nested_cc);
       result.proctypeoption:=potype;
+      { always use the default calling convention }
+      result.proccalloption:=pocall_default;
+      include(result.procoptions,po_hascallingconvention);
       handle_calling_convention(result,hcc_default_actions_impl);
       sym:=cprocsym.create(basesymname+result.unique_id_str);
       st.insert(sym);

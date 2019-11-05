@@ -37,7 +37,7 @@ function GetArray(const aArg: array of SizeInt): TValue;
 implementation
 
 uses
-  TypInfo, SysUtils;
+  TypInfo, SysUtils, Math;
 
 {$ifndef fpc}
 function TValueHelper.AsUnicodeString: UnicodeString;
@@ -124,10 +124,12 @@ begin
           Result := False
         else begin
           case td1^.FloatType of
-            ftSingle,
-            ftDouble,
+            ftSingle:
+              Result := SameValue(Single(aValue1.AsExtended), Single(aValue2.AsExtended));
+            ftDouble:
+              Result := SameValue(Double(aValue1.AsExtended), Double(aValue2.AsExtended));
             ftExtended:
-              Result := aValue1.AsExtended = aValue2.AsExtended;
+              Result := SameValue(aValue1.AsExtended, aValue2.AsExtended);
             ftComp:
               Result := aValue1.AsInt64 = aValue2.AsInt64;
             ftCurr:
