@@ -4372,6 +4372,8 @@ begin
             init_settings.fputype:=fpu_none;
           end;
       end;
+    else
+      ;
   end;
 {$endif m68k}
 
