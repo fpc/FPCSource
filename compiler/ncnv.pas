@@ -1657,7 +1657,25 @@ implementation
         left:=nil;
         { create a set constructor tree }
         arrayconstructor_to_set(hp);
-        result:=hp;
+        if is_emptyset(hp) then
+          begin
+            { enforce the result type for an empty set }
+            hp.resultdef:=resultdef;
+            result:=hp;
+          end
+        else if hp.resultdef<>resultdef then
+          begin
+            { the set might contain a subrange element (e.g. through a variable),
+              thus we need to insert another type conversion }
+            if nf_explicit in flags then
+              result:=ctypeconvnode.create_explicit(hp,totypedef)
+            else if nf_internal in flags then
+              result:=ctypeconvnode.create_internal(hp,totypedef)
+            else
+              result:=ctypeconvnode.create(hp,totypedef);
+          end
+        else
+          result:=hp;
       end;
 
 
@@ -2387,15 +2405,6 @@ implementation
            not(resultdef.typ in [procvardef,recorddef,setdef]) then
           maybe_call_procvar(left,true);
 
-        { convert array constructors to sets, because there is no conversion
-          possible for array constructors }
-        if (resultdef.typ<>arraydef) and
-           is_array_constructor(left.resultdef) then
-          begin
-            arrayconstructor_to_set(left);
-            typecheckpass(left);
-          end;
-
         if target_specific_general_typeconv then
           exit;
 
@@ -2484,6 +2493,16 @@ implementation
 
               te_incompatible :
                 begin
+                  { convert an array constructor to a set so that we still get
+                    the error "set of Y incompatible to Z" instead of "array of
+                    X incompatible to Z" }
+                  if (resultdef.typ<>arraydef) and
+                     is_array_constructor(left.resultdef) then
+                    begin
+                      arrayconstructor_to_set(left);
+                      typecheckpass(left);
+                    end;
+
                   { Procedures have a resultdef of voiddef and functions of their
                     own resultdef. They will therefore always be incompatible with
                     a procvar. Because isconvertable cannot check for procedures we
