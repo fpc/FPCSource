@@ -1050,6 +1050,16 @@ implementation
                              HideSym(srsym);
                              searchagain:=true;
                            end
+                         else if (srsym.typ=typesym) and
+                             (sp_generic_dummy in srsym.symoptions) and
+                             (ttypesym(srsym).typedef.typ=undefineddef) then
+                           begin
+                             { this is a generic dummy symbol that has not yet
+                               been used; so we rename the dummy symbol and continue
+                               as if nothing happened }
+                             hidesym(srsym);
+                             searchagain:=true;
+                           end
                          else
                           begin
                             {  we use a different error message for tp7 so it looks more compatible }
