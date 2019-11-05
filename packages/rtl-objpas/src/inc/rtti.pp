@@ -244,11 +244,38 @@ type
 
   TRttiFloatType = class(TRttiType)
   private
-    function GetFloatType: TFloatType;
+    function GetFloatType: TFloatType; inline;
+  protected
+    function GetTypeSize: integer; override;
   public
     property FloatType: TFloatType read GetFloatType;
   end;
 
+  TRttiOrdinalType = class(TRttiType)
+  private
+    function GetMaxValue: LongInt; inline;
+    function GetMinValue: LongInt; inline;
+    function GetOrdType: TOrdType; inline;
+  protected
+    function GetTypeSize: Integer; override;
+  public
+    property OrdType: TOrdType read GetOrdType;
+    property MinValue: LongInt read GetMinValue;
+    property MaxValue: LongInt read GetMaxValue;
+  end;
+
+  TRttiInt64Type = class(TRttiType)
+  private
+    function GetMaxValue: Int64; inline;
+    function GetMinValue: Int64; inline;
+    function GetUnsigned: Boolean; inline;
+  protected
+    function GetTypeSize: integer; override;
+  public
+    property MinValue: Int64 read GetMinValue;
+    property MaxValue: Int64 read GetMaxValue;
+    property Unsigned: Boolean read GetUnsigned;
+  end;
 
   TRttiStringKind = (skShortString, skAnsiString, skWideString, skUnicodeString);
 
@@ -881,7 +908,6 @@ begin
   for cc := Low(TCallConv) to High(TCallConv) do
     FuncCallMgr[cc] := NoFunctionCallManager;
 end;
-
 { TRttiPool }
 
 function TRttiPool.GetTypes: specialize TArray<TRttiType>;
@@ -924,6 +950,11 @@ begin
           tkClass   : Result := TRttiInstanceType.Create(ATypeInfo);
           tkInterface: Result := TRttiRefCountedInterfaceType.Create(ATypeInfo);
           tkInterfaceRaw: Result := TRttiRawInterfaceType.Create(ATypeInfo);
+          tkInt64,
+          tkQWord: Result := TRttiInt64Type.Create(ATypeInfo);
+          tkInteger,
+          tkChar,
+          tkWChar: Result := TRttiOrdinalType.Create(ATypeInfo);
           tkSString,
           tkLString,
           tkAString,
@@ -1993,7 +2024,7 @@ end;
 
 function Invoke(const aName: String; aCodeAddress: CodePointer; aCallConv: TCallConv; aStatic: Boolean; aInstance: TValue; constref aArgs: array of TValue; const aParams: specialize TArray<TRttiParameter>; aReturnType: TRttiType): TValue;
 var
-  arrparam, param: TRttiParameter;
+  param: TRttiParameter;
   unhidden, highs, i: SizeInt;
   args: TFunctionCallParameterArray;
   highargs: array of SizeInt;
@@ -2473,11 +2504,84 @@ begin
     Result := FParams;
 end;
 
+{ TRttiInt64Type }
+
+function TRttiInt64Type.GetMaxValue: Int64;
+begin
+  Result := FTypeData^.MaxInt64Value;
+end;
+
+function TRttiInt64Type.GetMinValue: Int64;
+begin
+  Result := FTypeData^.MinInt64Value;
+end;
+
+function TRttiInt64Type.GetUnsigned: Boolean;
+begin
+  Result := FTypeData^.OrdType = otUQWord;
+end;
+
+function TRttiInt64Type.GetTypeSize: integer;
+begin
+  Result := SizeOf(QWord);
+end;
+
+{ TRttiOrdinalType }
+
+function TRttiOrdinalType.GetMaxValue: LongInt;
+begin
+  Result := FTypeData^.MaxValue;
+end;
+
+function TRttiOrdinalType.GetMinValue: LongInt;
+begin
+  Result := FTypeData^.MinValue;
+end;
+
+function TRttiOrdinalType.GetOrdType: TOrdType;
+begin
+  Result := FTypeData^.OrdType;
+end;
+
+function TRttiOrdinalType.GetTypeSize: Integer;
+begin
+  case OrdType of
+    otSByte,
+    otUByte:
+      Result := SizeOf(Byte);
+    otSWord,
+    otUWord:
+      Result := SizeOf(Word);
+    otSLong,
+    otULong:
+      Result := SizeOf(LongWord);
+    otSQWord,
+    otUQWord:
+      Result := SizeOf(QWord);
+  end;
+end;
+
 { TRttiFloatType }
 
 function TRttiFloatType.GetFloatType: TFloatType;
 begin
   result := FTypeData^.FloatType;
+end;
+
+function TRttiFloatType.GetTypeSize: integer;
+begin
+  case FloatType of
+    ftSingle:
+      Result := SizeOf(Single);
+    ftDouble:
+      Result := SizeOf(Double);
+    ftExtended:
+      Result := SizeOf(Extended);
+    ftComp:
+      Result := SizeOf(Comp);
+    ftCurr:
+      Result := SizeOf(Currency);
+  end;
 end;
 
 { TRttiParameter }
