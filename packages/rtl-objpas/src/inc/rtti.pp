@@ -542,6 +542,9 @@ resourcestring
 implementation
 
 uses
+{$ifdef windows}
+  Windows,
+{$endif}
   fgl;
 
 type
@@ -700,6 +703,40 @@ var
   PoolRefCount : integer;
   GRttiPool    : TRttiPool;
   FuncCallMgr: TFunctionCallManagerArray;
+
+function AllocateMemory(aSize: PtrUInt): Pointer;
+begin
+{$IF DEFINED(WINDOWS)}
+  Result := VirtualAlloc(Nil, aSize, MEM_RESERVE or MEM_COMMIT, PAGE_READWRITE);
+{$ELSE}
+  Result := GetMem(aSize);
+{$ENDIF}
+end;
+
+function ProtectMemory(aPtr: Pointer; aSize: PtrUInt; aExecutable: Boolean): Boolean;
+{$IF DEFINED(WINDOWS)}
+var
+  oldprot: DWORD;
+{$ENDIF}
+begin
+{$IF DEFINED(WINDOWS)}
+  if aExecutable then
+    Result := VirtualProtect(aPtr, aSize, PAGE_EXECUTE_READ, oldprot)
+  else
+    Result := VirtualProtect(aPtr, aSize, PAGE_READWRITE, oldprot);
+{$ELSE}
+  Result := True;
+{$ENDIF}
+end;
+
+procedure FreeMemory(aPtr: Pointer);
+begin
+{$IF DEFINED(WINDOWS)}
+  VirtualFree(aPtr, 0, MEM_RELEASE);
+{$ELSE}
+  FreeMem(aPtr);
+{$ENDIF}
+end;
 
 function CCToStr(aCC: TCallConv): String; inline;
 begin

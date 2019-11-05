@@ -235,7 +235,7 @@ begin
         end;
         tkBool: begin
           case td^.OrdType of
-            otUByte: val := ShortInt(PBoolean(aArgs[i].ValueRef)^);
+            otUByte: val := ShortInt(System.PBoolean(aArgs[i].ValueRef)^);
             otUWord: val := Byte(PBoolean16(aArgs[i].ValueRef)^);
             otULong: val := SmallInt(PBoolean32(aArgs[i].ValueRef)^);
             otUQWord: val := QWord(PBoolean64(aArgs[i].ValueRef)^);
