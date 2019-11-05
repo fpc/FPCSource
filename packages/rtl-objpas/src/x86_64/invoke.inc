@@ -28,15 +28,16 @@ asm
 .seh_savereg %rsi, 16
   movq %rdi, 24(%rsp)
 .seh_savereg %rdi, 24
+  movq %r8, 32(%rsp)
+.seh_savereg %r8, 32
 
   movq %rsp, %rbp
 .seh_setframe %rbp, 0
 .seh_endprologue
 
   { align stack size to 16 Byte }
-  add $15, aArgsStackSize
-  and $-16, aArgsStackSize
   sub aArgsStackSize, %rsp
+  and $-16, %rsp
 
   movq aArgsStackSize, %rax
 
@@ -71,6 +72,10 @@ asm
   { restore non-volatile registers }
   movq %rbp, %rsp
 
+  { we abuse the register area pointer for an eventual SSE2 result }
+  movq 32(%rsp), %rdi
+  movq %xmm0, (%rdi)
+
   movq 24(%rsp), %rdi
   movq 16(%rsp), %rsi
   movq 8(%rsp), %rbp
@@ -80,6 +85,42 @@ end;
 resourcestring
   SErrFailedToConvertArg = 'Failed to convert argument %d of type %s';
   SErrFailedToConvertRes = 'Failed to convert result of type %s';
+
+function ReturnResultInParam(aType: PTypeInfo): Boolean;
+var
+  td: PTypeData;
+begin
+  Result := False;
+  if Assigned(aType) then begin
+    case aType^.Kind of
+      tkSString,
+      tkAString,
+      tkUString,
+      tkWString,
+      tkInterface,
+      tkDynArray:
+        Result := True;
+      tkArray: begin
+        td := GetTypeData(aType);
+        Result := not (td^.ArrayData.Size in [1, 2, 4, 8]);
+      end;
+      tkRecord: begin
+        td := GetTypeData(aType);
+        Result := not (td^.RecSize in [1, 2, 4, 8]);
+      end;
+      tkSet: begin
+        td := GetTypeData(aType);
+        case td^.OrdType of
+          otUByte:
+            Result := not (td^.SetSize in [1, 2, 4, 8]);
+          otUWord,
+          otULong:
+            Result := False;
+        end;
+      end;
+    end;
+  end;
+end;
 
 procedure SystemInvoke(aCodeAddress: CodePointer; const aArgs: TFunctionCallParameterArray; aCallConv: TCallConv;
             aResultType: PTypeInfo; aResultValue: Pointer; aFlags: TFunctionCallFlags);
@@ -102,18 +143,7 @@ begin
   if Assigned(aResultType) and not Assigned(aResultValue) then
     raise EInvocationError.Create(SErrInvokeResultTypeNoValue);
 {$ifdef windows}
-  retinparam := False;
-  if Assigned(aResultType) then begin
-    case aResultType^.Kind of
-      tkSString,
-      tkAString,
-      tkUString,
-      tkWString,
-      tkInterface,
-      tkDynArray:
-        retinparam := True;
-    end;
-  end;
+  retinparam := ReturnResultInParam(aResultType);
 
   stackidx := 0;
   regidx := 0;
@@ -249,6 +279,11 @@ begin
 
   if Assigned(aResultType) and not retinparam then begin
     PPtrUInt(aResultValue)^ := val;
+    if aResultType^.Kind = tkFloat then begin
+      td := GetTypeData(aResultType);
+      if td^.FloatType in [ftSingle, ftDouble] then
+        PPtrUInt(aResultValue)^ := regs[0];
+    end;
   end;
 {$else}
   raise EInvocationError.Create(SErrPlatformNotSupported);
