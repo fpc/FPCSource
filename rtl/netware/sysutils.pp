@@ -230,7 +230,13 @@ begin
 end;
 
 
-Function FileExists (Const FileName : RawByteString) : Boolean;
+function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
+Function FileExists (Const FileName : RawByteString; FollowLink : Boolean) : Boolean;
 VAR Info : NWStatBufT;
     SystemFileName: RawByteString;
 begin
@@ -238,7 +244,7 @@ begin
   FileExists:=(_stat(pchar(SystemFileName),Info) = 0);
 end;
 
-Function DirectoryExists (Const Directory : RawByteString) : Boolean;
+Function DirectoryExists (Const Directory : RawByteString; FollowLink : Boolean) : Boolean;
 Var
   Dir : RawByteString;
   drive : byte;
@@ -497,7 +503,7 @@ Begin
 End;
 
 
-function DirectoryExists (const Directory: string): boolean;
+function DirectoryExists (const Directory: string; FollowLink : Boolean): boolean;
 var
   Info : NWStatBufT;
   SystemFileName: RawByteString;
@@ -655,6 +661,6 @@ Initialization
   InitInternational;    { Initialize internationalization settings }
   OnBeep:=@SysBeep;
 Finalization
-  DoneExceptions;
   FreeTerminateProcs;
+  DoneExceptions;
 end.

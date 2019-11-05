@@ -308,9 +308,12 @@ begin
   if (GetCurrentThreadID = MainThreadID) and (not aQueueIfMain or not IsMultiThread) then
 {$endif}
   begin
-    ExecuteThreadQueueEntry(aEntry);
-    if not Assigned(aEntry^.SyncEvent) then
-      Dispose(aEntry);
+    try
+      ExecuteThreadQueueEntry(aEntry);
+    finally
+      if not Assigned(aEntry^.SyncEvent) then
+        Dispose(aEntry);
+    end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   end else begin
     { store thread and whether we're dealing with a synchronized event; the
@@ -415,17 +418,19 @@ class procedure TThread.Synchronize(AThread: TThread; AMethod: TThreadMethod);
 
     syncentry^.Exception := Nil;
     syncentry^.Method := AMethod;
-    ThreadQueueAppend(syncentry, False);
+    try
+      ThreadQueueAppend(syncentry, False);
+    finally
+      syncentry^.Method := Nil;
+      syncentry^.Next := Nil;
 
-    syncentry^.Method := Nil;
-    syncentry^.Next := Nil;
-
-    if not Assigned(thread) then begin
-      { clean up again }
+      if not Assigned(thread) then begin
+        { clean up again }
 {$ifdef FPC_HAS_FEATURE_THREADING}
-      RtlEventDestroy(syncentry^.SyncEvent);
+        RtlEventDestroy(syncentry^.SyncEvent);
 {$endif}
-      Dispose(syncentry);
+        Dispose(syncentry);
+      end;
     end;
   end;
 
@@ -462,7 +467,7 @@ function CheckSynchronize(timeout : longint=0) : boolean;
 
 { assumes being called from GUI thread }
 var
-  ExceptObj: Exception;
+  ExceptObj: TObject;
   tmpentry: TThread.PThreadQueueEntry;
 
 begin
@@ -486,7 +491,7 @@ begin
     try
       ExecuteThreadQueueEntry(tmpentry);
     except
-      exceptobj := Exception(AcquireExceptionObject);
+      exceptobj := TObject(AcquireExceptionObject);
     end;
     { step 3: error handling and cleanup }
     if Assigned(tmpentry^.SyncEvent) then

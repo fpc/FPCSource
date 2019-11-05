@@ -23,24 +23,25 @@ Type
 
   // Some operating systems need extra find data.
 {$if defined(Win32) or defined(WinCE) or defined(Win64)}
-    {$define USEFINDDATA}
+    {$define SEARCHREC_USEFINDDATA}
+    {$define SYMLINKREC_USEFINDDATA}
     TFindData = TWin32FindDataW;
 {$endif}
 {$ifdef netware_clib}
     TFindData = TNetwareFindData;
-    {$define USEFINDDATA}
+    {$define SEARCHREC_USEFINDDATA}
 {$endif}
 {$ifdef netware_libc}
     TFindData = TNetwareLibcFindData;
-    {$define USEFINDDATA}
+    {$define SEARCHREC_USEFINDDATA}
 {$endif}
 {$ifdef MacOS}
     TFindData = TMacOSFindData;
-    {$define USEFINDDATA}
+    {$define SEARCHREC_USEFINDDATA}
 {$endif}
 {$ifdef nativent}
     TFindData = TNativeNTFindData;
-    {$define USEFINDDATA}
+    {$define SEARCHREC_USEFINDDATA}
 {$endif}
 
   // The actual unicode search record
@@ -54,7 +55,7 @@ Type
 {$ifdef unix}
     Mode : TMode;
 {$endif unix}
-{$ifdef USEFINDDATA}
+{$ifdef SEARCHREC_USEFINDDATA}
     FindData : TFindData;
 {$endif}
   private
@@ -73,7 +74,7 @@ Type
 {$ifdef unix}
     Mode : TMode;
 {$endif unix}
-{$IFDEF USEFINDDATA}
+{$IFDEF SEARCHREC_USEFINDDATA}
     FindData : TFindData;
 {$ENDIF}
   private
@@ -87,6 +88,45 @@ Type
 {$ELSE}
   TSearchRec = TRawbyteSearchRec;
 {$ENDIF}
+
+  TUnicodeSymLinkRec = Record
+    TargetName : UnicodeString;
+    Attr : Longint;
+    Size : Int64;
+{$ifdef unix}
+    Mode : TMode;
+{$endif unix}
+{$ifdef SYMLINKREC_USEFINDDATA}
+    FindData : TFindData;
+{$endif}
+  private
+    function GetTimeStamp: TDateTime;
+  public
+    property TimeStamp: TDateTime read GetTimeStamp;
+  end;
+
+  TRawbyteSymLinkRec = Record
+    TargetName : RawByteString;
+    Size : Int64;
+    Attr : Longint;
+{$ifdef unix}
+    Mode : TMode;
+{$endif unix}
+{$IFDEF SYMLINKREC_USEFINDDATA}
+    FindData : TFindData;
+{$ENDIF}
+  private
+    function GetTimeStamp: TDateTime;
+  public
+    property TimeStamp: TDateTime read GetTimeStamp;
+  end;
+
+{$IFDEF FPC_UNICODE_RTL}
+  TSymLinkRec = TUnicodeSymLinkRec;
+{$ELSE}
+  TSymLinkRec = TRawbyteSymLinkRec;
+{$ENDIF}
+
 
 Const
   { File attributes }
@@ -135,8 +175,8 @@ Function FileCreate (Const FileName : UnicodeString; ShareMode : Integer; Rights
 {$IFNDEF FPUNONE}
 Function FileAge (Const FileName : UnicodeString): Longint;
 {$ENDIF}
-Function FileExists (Const FileName : UnicodeString) : Boolean;
-Function DirectoryExists (Const Directory : UnicodeString) : Boolean;
+Function FileExists (Const FileName : UnicodeString; FollowLink : Boolean = True) : Boolean;
+Function DirectoryExists (Const Directory : UnicodeString; FollowLink : Boolean = True) : Boolean;
 Function FileSetDate (Const FileName : UnicodeString;Age : Longint) : Longint;
 Function FileGetAttr (Const FileName : UnicodeString) : Longint;
 Function FileSetAttr (Const Filename : UnicodeString; Attr: longint) : Longint;
@@ -150,13 +190,15 @@ Function FileSearch (Const Name, DirList : UnicodeString; ImplicitCurrentDir : B
 Function ExeSearch  (Const Name : UnicodeString; Const DirList : UnicodeString = '') : UnicodeString;
 Function FileIsReadOnly(const FileName : UnicodeString): Boolean;
 function FileAge(const FileName: UnicodeString; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
+function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
+function FileGetSymLinkTarget(const FileName: UnicodeString; out TargetName: UnicodeString): Boolean; inline;
 
 Function FileOpen (Const FileName : RawByteString; Mode : Integer) : THandle;
 Function FileCreate (Const FileName : RawByteString) : THandle;
 Function FileCreate (Const FileName : RawByteString; Rights : Integer) : THandle;
 Function FileCreate (Const FileName : RawByteString; ShareMode : Integer; Rights : Integer) : THandle;
-Function FileExists (Const FileName : RawByteString) : Boolean;
-Function DirectoryExists (Const Directory : RawByteString) : Boolean;
+Function FileExists (Const FileName : RawByteString; FollowLink : Boolean = True) : Boolean;
+Function DirectoryExists (Const Directory : RawByteString; FollowLink: Boolean = True) : Boolean;
 Function FileSetDate (Const FileName : RawByteString;Age : Longint) : Longint;
 Function FileGetAttr (Const FileName : RawByteString) : Longint;
 Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
@@ -171,6 +213,8 @@ function FileAge(const FileName: RawByteString; out FileDateTime: TDateTime; Fol
 {$ifndef FPUNONE}
 Function FileAge (Const FileName : RawByteString): Longint;
 {$endif}
+function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+function FileGetSymLinkTarget(const FileName: RawByteString; out TargetName: RawByteString): Boolean; inline;
 
 Function FileRead (Handle : THandle; out Buffer; Count : longint) : Longint;
 Function FileWrite (Handle : THandle; const Buffer; Count : Longint) : Longint;

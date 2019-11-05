@@ -320,7 +320,13 @@ begin
 end;
 
 
-function FileExists(const FileName: UnicodeString): Boolean;
+function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
+function FileExists(const FileName: UnicodeString; FollowLink : Boolean): Boolean;
 var
   ntstr: UNICODE_STRING;
   objattr: OBJECT_ATTRIBUTES;
@@ -341,7 +347,7 @@ begin
 end;
 
 
-function DirectoryExists(const Directory : UnicodeString) : Boolean;
+function DirectoryExists(const Directory : UnicodeString; FollowLink : Boolean) : Boolean;
 var
   ntstr: UNICODE_STRING;
   objattr: OBJECT_ATTRIBUTES;
@@ -1257,6 +1263,6 @@ initialization
   InitInternational;    { Initialize internationalization settings }
   OnBeep := @SysBeep;
 finalization
-  DoneExceptions;
   FreeTerminateProcs;
+  DoneExceptions;
 end.
