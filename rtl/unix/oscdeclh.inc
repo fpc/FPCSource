@@ -156,6 +156,7 @@ const
     Function  fpSetPriority (Which,Who,What:cint):cint; cdecl; external clib name 'setpriority';
     function  fpmmap    (addr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;ofs:off_t):pointer; cdecl; external clib name 'mmap'+suffix64bit;
     function  fpmunmap  (addr:pointer;len:size_t):cint; cdecl; external clib name 'munmap';
+    function  fpmprotect(addr:pointer;len:size_t;prot:cint):cint; cdecl; external clib name 'mprotect';
 
     function  fpgetenv  (name : pchar):pchar; cdecl; external clib name 'getenv';
 {$ifndef beos}

@@ -220,12 +220,9 @@ begin
               Result := @ffi_type_double;
             ftExtended:
               Result := @ffi_type_longdouble;
+            { Comp and Currency are passed as Int64 (ToDo: on all platforms?) }
             ftComp:
-  {$ifndef FPC_HAS_TYPE_EXTENDED}
               Result := @ffi_type_sint64;
-  {$else}
-              Result := @ffi_type_longdouble;
-  {$endif}
             ftCurr:
               Result := @ffi_type_sint64;
           end;
@@ -279,10 +276,11 @@ begin
         else
           raise EInvocationError.CreateFmt(SErrTypeKindNotSupported, [TypeKindName]);
       end;
-  end;
+  end else if aFlags * [pfOut, pfVar, pfConst, pfConstRef] <> [] then
+    Result := @ffi_type_pointer;
 end;
 
-function ValueToFFIValue(constref aValue: Pointer; aKind: TTypeKind; aFlags: TParamFlags; aIsResult: Boolean): Pointer;
+function ArgIsIndirect(aKind: TTypeKind; aFlags: TParamFlags; aIsResult: Boolean): Boolean;
 const
   ResultTypeNeedsIndirection = [
    tkAString,
@@ -292,11 +290,12 @@ const
    tkDynArray
   ];
 begin
-  Result := aValue;
+  Result := False;
   if (aKind = tkSString) or
       (aIsResult and (aKind in ResultTypeNeedsIndirection)) or
-      (aFlags * [pfArray, pfOut, pfVar, pfConstRef] <> []) then
-    Result := @aValue;
+      (aFlags * [pfArray, pfOut, pfVar, pfConstRef] <> []) or
+      ((aKind = tkUnknown) and (pfConst in aFlags)) then
+    Result := True;
 end;
 
 procedure FFIValueToValue(Source, Dest: Pointer; TypeInfo: PTypeInfo);
@@ -392,8 +391,29 @@ begin
   end;
 end;
 
-procedure FFIInvoke(aCodeAddress: Pointer; const aArgs: TFunctionCallParameterArray; aCallConv: TCallConv;
-            aResultType: PTypeInfo; aResultValue: Pointer; aFlags: TFunctionCallFlags);
+{ on X86 platforms Currency and Comp results are passed by the X87 if the
+  Extended type is available }
+{$if (defined(CPUI8086) or defined(CPUI386) or defined(CPUX86_64)) and defined(FPC_HAS_TYPE_EXTENDED) and (not defined(FPC_COMP_IS_INT64) or not defined(FPC_CURRENCY_IS_INT64))}
+{$define USE_EXTENDED_AS_COMP_CURRENCY_RES}
+{$endif}
+
+type
+  TFFIData = record
+    Types: array of pffi_type;
+    Values: array of Pointer;
+    Indirect: array of Boolean;
+    ResultType: pffi_type;
+    ResultValue: Pointer;
+    ResultIndex: SizeInt;
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+    ResultTypeData: PTypeData;
+    ResultExtended: Extended;
+{$endif}
+    { put this at the end just in case we messed up the size }
+    CIF: ffi_cif;
+  end;
+
+procedure CreateCIF(constref aArgInfos: array of TFunctionCallParameterInfo; constref aArgValues: array of Pointer; aCallConv: TCallConv; aResultType: PTypeInfo; aResultValue: Pointer; aFlags: TFunctionCallFlags; out aData: TFFIData);
 
   function CallConvName: String; inline;
   begin
@@ -402,19 +422,15 @@ procedure FFIInvoke(aCodeAddress: Pointer; const aArgs: TFunctionCallParameterAr
 
 var
   abi: ffi_abi;
-  argtypes: array of pffi_type;
-  argvalues: array of Pointer;
-  rtype: pffi_type;
-  rvalue: ffi_arg;
-  i, arglen, argoffset, retidx, argstart: LongInt;
-  cif: ffi_cif;
-  retparam: Boolean;
+  i, arglen, argoffset, argstart: LongInt;
+  usevalues, retparam: Boolean;
+  kind: TTypeKind;
+  types: ppffi_type;
 begin
-  if Assigned(aResultType) and not Assigned(aResultValue) then
-    raise EInvocationError.Create(SErrInvokeResultTypeNoValue);
-
-  if not (fcfStatic in aFlags) and (Length(aArgs) = 0) then
+  if not (fcfStatic in aFlags) and (Length(aArgInfos) = 0) then
     raise EInvocationError.Create(SErrMissingSelfParam);
+
+  Assert((Length(aArgInfos) = Length(aArgValues)) or (Length(aArgValues) = 0), 'Amount of arguments does not match needed arguments');
 
   case aCallConv of
 {$if defined(CPUI386)}
@@ -447,59 +463,341 @@ begin
       raise EInvocationError.CreateFmt(SErrCallConvNotSupported, [CallConvName]);
   end;
 
+  { if no values are provided we are called to prepare a callback, otherwise
+    we are asked to prepare a invokation }
+  usevalues := (Length(aArgInfos) > 0) and (Length(aArgValues) > 0);
+
   retparam := RetInParam(aCallConv, aResultType);
 
-  arglen := Length(aArgs);
+  arglen := Length(aArgInfos);
   if retparam then begin
     Inc(arglen);
+    usevalues := True;
     argoffset := 1;
-    retidx := 0;
+    aData.ResultIndex := 0;
   end else begin
     argoffset := 0;
-    retidx := -1;
+    aData.ResultIndex := -1;
   end;
 
-  SetLength(argtypes, arglen);
-  SetLength(argvalues, arglen);
+  SetLength(aData.Types, arglen);
+  SetLength(aData.Indirect, arglen);
+  if usevalues then
+    SetLength(aData.Values, arglen);
 
   { the order is Self/Vmt (if any), Result param (if any), other params }
 
   if not (fcfStatic in aFlags) and retparam then begin
-    argtypes[0] := TypeInfoToFFIType(aArgs[0].Info.ParamType, aArgs[0].Info.ParamFlags);
-    argvalues[0] := ValueToFFIValue(aArgs[0].ValueRef, aArgs[0].Info.ParamType^.Kind, aArgs[0].Info.ParamFlags, False);
+    aData.Types[0] := TypeInfoToFFIType(aArgInfos[0].ParamType, aArgInfos[0].ParamFlags);
+    if Assigned(aArgInfos[0].ParamType) then
+      kind := aArgInfos[0].ParamType^.Kind
+    else
+      kind := tkUnknown;
+    aData.Indirect[0] := ArgIsIndirect(kind, aArgInfos[0].ParamFlags, False);
+    if usevalues then
+      if aData.Indirect[0] then
+        aData.Values[0] := @aArgValues[0]
+      else
+        aData.Values[0] := aArgValues[0];
     if retparam then
-      Inc(retidx);
+      Inc(aData.ResultIndex);
     argstart := 1;
   end else
     argstart := 0;
 
-  for i := Low(aArgs) + argstart to High(aArgs) do begin
-    argtypes[i - Low(aArgs) + Low(argtypes) + argoffset] := TypeInfoToFFIType(aArgs[i].Info.ParamType, aArgs[i].Info.ParamFlags);
-    argvalues[i - Low(aArgs) + Low(argtypes) + argoffset] := ValueToFFIValue(aArgs[i].ValueRef, aArgs[i].Info.ParamType^.Kind, aArgs[i].Info.ParamFlags, False);
+  for i := argstart to High(aArgInfos) do begin
+    aData.Types[i + argoffset] := TypeInfoToFFIType(aArgInfos[i].ParamType, aArgInfos[i].ParamFlags);
+    if (pfResult in aArgInfos[i].ParamFlags) and not retparam then
+      aData.ResultIndex := i + argoffset;
+    if Assigned(aArgInfos[i].ParamType) then
+      kind := aArgInfos[i].ParamType^.Kind
+    else
+      kind := tkUnknown;
+    aData.Indirect[i + argoffset] := ArgIsIndirect(kind, aArgInfos[i].ParamFlags, False);
+    if usevalues then
+      if aData.Indirect[i + argoffset] then
+        aData.Values[i + argoffset] := @aArgValues[i]
+      else
+        aData.Values[i + argoffset] := aArgValues[i];
   end;
 
   if retparam then begin
-    argtypes[retidx] := TypeInfoToFFIType(aResultType, []);
-    argvalues[retidx] := ValueToFFIValue(aResultValue, aResultType^.Kind, [], True);
-    rtype := @ffi_type_void;
+    aData.Types[aData.ResultIndex] := TypeInfoToFFIType(aResultType, []);
+    aData.Indirect[aData.ResultIndex] := ArgIsIndirect(aResultType^.Kind, [], True);
+    if usevalues then
+      if aData.Indirect[aData.ResultIndex] then
+        aData.Values[aData.ResultIndex] := @aResultValue
+      else
+        aData.Values[aData.ResultIndex] := aResultValue;
+    aData.ResultType := @ffi_type_void;
+    aData.ResultValue := Nil;
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+    aData.ResultTypeData := Nil;
+{$endif}
   end else begin
-    rtype := TypeInfoToFFIType(aResultType, []);
+    aData.ResultValue := Nil;
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+    { special case for Comp/Currency as such arguments are passed as Int64,
+      but the result is handled through the X87 }
+    if Assigned(aResultType) and (aResultType^.Kind = tkFloat) then begin
+      aData.ResultTypeData := GetTypeData(aResultType);
+      case aData.ResultTypeData^.FloatType of
+{$ifndef FPC_CURRENCY_IS_INT64}
+        ftCurr: begin
+          aData.ResultType := @ffi_type_longdouble;
+          aData.ResultValue := @aData.ResultExtended;
+        end;
+{$endif}
+{$ifndef FPC_COMP_IS_INT64}
+        ftComp: begin
+          aData.ResultType := @ffi_type_longdouble;
+          aData.ResultValue := @aData.ResultExtended;
+        end;
+{$endif}
+      end;
+    end else
+      aData.ResultTypeData := Nil;
+{$endif}
+    if not Assigned(aData.ResultValue) then begin
+      aData.ResultType := TypeInfoToFFIType(aResultType, []);
+      if Assigned(aResultType) then
+        aData.ResultValue := aResultValue
+      else
+        aData.ResultValue := Nil;
+    end;
   end;
 
-  if ffi_prep_cif(@cif, abi, arglen, rtype, @argtypes[0]) <> FFI_OK then
+  if Assigned(aData.Types) then
+    types := @aData.Types[0]
+  else
+    types := Nil;
+
+  if ffi_prep_cif(@aData.CIF, abi, arglen, aData.ResultType, types) <> FFI_OK then
     raise EInvocationError.Create(SErrInvokeFailed);
-
-  ffi_call(@cif, ffi_fn(aCodeAddress), @rvalue, @argvalues[0]);
-
-  if Assigned(aResultType) and not retparam then
-    FFIValueToValue(@rvalue, aResultValue, aResultType);
 end;
+
+procedure FFIInvoke(aCodeAddress: Pointer; const aArgs: TFunctionCallParameterArray; aCallConv: TCallConv;
+            aResultType: PTypeInfo; aResultValue: Pointer; aFlags: TFunctionCallFlags);
+var
+  ffidata: TFFIData;
+  i: SizeInt;
+  arginfos: array of TFunctionCallParameterInfo;
+  argvalues: array of Pointer;
+begin
+  if Assigned(aResultType) and not Assigned(aResultValue) then
+    raise EInvocationError.Create(SErrInvokeResultTypeNoValue);
+
+  SetLength(arginfos, Length(aArgs));
+  SetLength(argvalues, Length(aArgs));
+  for i := 0 to High(aArgs) do begin
+    arginfos[i] := aArgs[i].Info;
+    argvalues[i] := aArgs[i].ValueRef;
+  end;
+  CreateCIF(arginfos, argvalues, aCallConv, aResultType, aResultValue, aFlags, ffidata);
+
+  arginfos := Nil;
+  argvalues := Nil;
+
+  ffi_call(@ffidata.CIF, ffi_fn(aCodeAddress), ffidata.ResultValue, @ffidata.Values[0]);
+
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+  if Assigned(ffidata.ResultTypeData) then begin
+    case ffidata.ResultTypeData^.FloatType of
+{$ifndef FPC_CURRENCY_IS_INT64}
+      ftCurr:
+        PCurrency(aResultValue)^ := Currency(ffidata.ResultExtended / 10000);
+{$endif}
+{$ifndef FPC_COMP_IS_INT64}
+      ftComp:
+        PComp(aResultValue)^ := Comp(ffidata.ResultExtended);
+{$endif}
+    end;
+  end;
+{$endif}
+end;
+
+type
+  TFFIFunctionCallback = class(TFunctionCallCallback)
+  private
+    fFFIData: TFFIData;
+    fData: Pointer;
+    fCode: CodePointer;
+    fContext: Pointer;
+  private
+    class procedure ClosureFunc(aCIF: pffi_cif; aRet: Pointer; aArgs: PPointer; aUserData: Pointer); cdecl; static;
+    procedure PassToHandler(aRet: Pointer; aArgs: PPointer);
+  protected
+    function GetCodeAddress: CodePointer; override;
+    procedure CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer); virtual; abstract;
+  public
+    constructor Create(aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+    destructor Destroy; override;
+  end;
+
+  TFFIFunctionCallbackMethod = class(TFFIFunctionCallback)
+  private
+    fHandler: TFunctionCallMethod;
+  protected
+    procedure CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer); override;
+  public
+    constructor Create(aHandler: TFunctionCallMethod; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+  end;
+
+  TFFIFunctionCallbackProc = class(TFFIFunctionCallback)
+  private
+    fHandler: TFunctionCallProc;
+  protected
+    procedure CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer); override;
+  public
+    constructor Create(aHandler: TFunctionCallProc; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+  end;
+
+class procedure TFFIFunctionCallback.ClosureFunc(aCIF: pffi_cif; aRet: Pointer; aArgs: PPointer; aUserData: Pointer); cdecl;
+var
+  this: TFFIFunctionCallback absolute aUserData;
+begin
+  this.PassToHandler(aRet, aArgs);
+end;
+
+procedure TFFIFunctionCallback.PassToHandler(aRet: Pointer; aArgs: PPointer);
+var
+  args: array of Pointer;
+  i, arglen, argidx: SizeInt;
+  resptr: Pointer;
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+{$ifndef FPC_COMP_IS_INT64}
+  rescomp: Comp;
+{$endif}
+{$ifndef FPC_CURR_IS_INT64}
+  rescurr: Currency;
+{$endif}
+{$endif}
+begin
+  arglen := Length(fFFIData.Types);
+  if fFFIData.ResultIndex >= 0 then
+    Dec(arglen);
+  SetLength(args, arglen);
+  argidx := 0;
+  for i := 0 to High(fFFIData.Types) do begin
+    if i = fFFIData.ResultIndex then
+      Continue;
+    args[argidx] := aArgs[i];
+    if fFFIData.Indirect[i] then
+      args[argidx] := PPointer(aArgs[i])^
+    else
+      args[argidx] := aArgs[i];
+    Inc(argidx);
+  end;
+
+  if fFFIData.ResultIndex >= 0 then begin
+    if fFFIData.Indirect[fFFIData.ResultIndex] then
+      resptr := PPointer(aArgs[fFFIData.ResultIndex])^
+    else
+      resptr := aArgs[fFFIData.ResultIndex];
+  end else begin
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+    resptr := Nil;
+    if Assigned(fFFIData.ResultTypeData) then begin
+      case fFFIData.ResultTypeData^.FloatType of
+{$ifndef FPC_COMP_IS_INT64}
+        ftComp:
+          resptr := @rescomp;
+{$endif}
+{$ifndef FPC_CURR_IS_INT64}
+        ftCurr:
+          resptr := @rescurr;
+{$endif}
+      end;
+    end;
+    if not Assigned(resptr) then
+{$endif}
+      resptr := aRet;
+  end;
+
+  CallHandler(args, resptr, fContext);
+
+{$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
+  if Assigned(fFFIData.ResultTypeData) then begin
+    case fFFIData.ResultTypeData^.FloatType of
+{$ifndef FPC_COMP_IS_INT64}
+      ftComp:
+        PExtended(aRet)^ := rescomp;
+{$endif}
+{$ifndef FPC_CURR_IS_INT64}
+      ftCurr:
+        PExtended(aRet) ^ := rescurr * 10000;
+{$endif}
+    end;
+  end;
+{$endif}
+end;
+
+function TFFIFunctionCallback.GetCodeAddress: CodePointer;
+begin
+  Result := fData;
+end;
+
+constructor TFFIFunctionCallback.Create(aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+var
+  res: ffi_status;
+begin
+  fContext := aContext;
+
+  CreateCIF(aArgs, [], aCallConv, aResultType, Nil, aFlags, fFFIData);
+
+  fData := ffi_closure_alloc(SizeOf(ffi_closure), @fCode);
+  if not Assigned(fData) or not Assigned(fCode) then
+    raise ERTTI.Create(SErrMethodImplCreateFailed);
+
+  res := ffi_prep_closure_loc(pffi_closure(fData), @fFFIData.CIF, @ClosureFunc, Self, fCode);
+  if res <> FFI_OK then
+    raise ERTTI.Create(SErrMethodImplCreateFailed);
+end;
+
+destructor TFFIFunctionCallback.Destroy;
+begin
+  if Assigned(fData) then
+    ffi_closure_free(fData);
+end;
+
+constructor TFFIFunctionCallbackProc.Create(aHandler: TFunctionCallProc; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+begin
+  inherited Create(aContext, aCallConv, aArgs, aResultType, aFlags);
+  fHandler := aHandler;
+end;
+
+procedure TFFIFunctionCallbackProc.CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer);
+begin
+  fHandler(aArgs, aResult, aContext);
+end;
+
+constructor TFFIFunctionCallbackMethod.Create(aHandler: TFunctionCallMethod; aContext: Pointer; aCallConv: TCallConv; constref aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags);
+begin
+  inherited Create(aContext, aCallConv, aArgs, aResultType, aFlags);
+  fHandler := aHandler;
+end;
+
+procedure TFFIFunctionCallbackMethod.CallHandler(constref aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer);
+begin
+  fHandler(aArgs, aResult, aContext);
+end;
+
+function FFICreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+begin
+  Result := TFFIFunctionCallbackProc.Create(aHandler, aContext, aCallConv, aArgs, aResultType, aFlags);
+end;
+
+function FFICreateCallbackMethod(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+begin
+  Result := TFFIFunctionCallbackMethod.Create(aHandler, aContext, aCallConv, aArgs, aResultType, aFlags);
+end;
+
 
 const
   FFIManager: TFunctionCallManager = (
     Invoke: @FFIInvoke;
-    CreateCallbackProc: Nil;
-    CreateCallbackMethod: Nil;
+    CreateCallbackProc: @FFICreateCallbackProc;
+    CreateCallbackMethod: @FFICreateCallbackMethod;
   );
 
 var

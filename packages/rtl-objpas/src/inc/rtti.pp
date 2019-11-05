@@ -120,6 +120,7 @@ type
     { Note: a TValue based on an open array is only valid until the routine having the open array parameter is left! }
     generic class function FromOpenArray<T>(constref aValue: array of T): TValue; static; inline;
 {$endif}
+    class function FromOrdinal(aTypeInfo: PTypeInfo; aValue: Int64): TValue; static; {inline;}
     function IsArray: boolean; inline;
     function IsOpenArray: Boolean; inline;
     function AsString: string; inline;
@@ -399,6 +400,7 @@ type
   TRttiMethod = class(TRttiMember)
   private
     FString: String;
+    function GetFlags: TFunctionCallFlags;
   protected
     function GetCallingConvention: TCallConv; virtual; abstract;
     function GetCodeAddress: CodePointer; virtual; abstract;
@@ -429,6 +431,9 @@ type
     function Invoke(aInstance: TObject; const aArgs: array of TValue): TValue;
     function Invoke(aInstance: TClass; const aArgs: array of TValue): TValue;
     function Invoke(aInstance: TValue; const aArgs: array of TValue): TValue;
+    { Note: once "reference to" is supported these will be replaced by a single method }
+    function CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallbackMethod): TMethodImplementation;
+    function CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallbackProc): TMethodImplementation;
   end;
 
   TRttiStructuredType = class(TRttiType)
@@ -481,9 +486,10 @@ type
     property DeclaringUnitName: string read GetDeclaringUnitName;
   end;
 
-  EInsufficientRtti = class(Exception);
-  EInvocationError = class(Exception);
-  ENonPublicType = class(Exception);
+  ERtti = class(Exception);
+  EInsufficientRtti = class(ERtti);
+  EInvocationError = class(ERtti);
+  ENonPublicType = class(ERtti);
 
   TFunctionCallParameter = record
     ValueRef: Pointer;
@@ -534,7 +540,8 @@ resourcestring
   SErrInvokeNotImplemented = 'Invoke functionality is not implemented';
   SErrInvokeResultTypeNoValue = 'Function has a result type, but no result pointer provided';
   SErrInvokeFailed = 'Invoke call failed';
-  SErrCallbackNotImplented = 'Callback functionality is not implemented';
+  SErrMethodImplCreateFailed  = 'Failed to create method implementation';
+  SErrCallbackNotImplemented = 'Callback functionality is not implemented';
   SErrCallConvNotSupported = 'Calling convention not supported: %s';
   SErrTypeKindNotSupported = 'Type kind is not supported: %s';
   SErrCallbackHandlerNil = 'Callback handler is Nil';
@@ -545,6 +552,9 @@ implementation
 uses
 {$ifdef windows}
   Windows,
+{$endif}
+{$ifdef unix}
+  BaseUnix,
 {$endif}
   fgl;
 
@@ -697,7 +707,6 @@ resourcestring
   SErrInvokeCallableNotMethod = 'The callable value is not a method variable for: %s';
   SErrMethodImplNoCallback    = 'No callback specified for method implementation';
   SErrMethodImplInsufficientRtti = 'Insufficient RTTI to create method implementation';
-  SErrMethodImplCreateFailed  = 'Failed to create method implementation';
   SErrMethodImplCreateNoArg   = 'TMethodImplementation can not be created this way';
 
 var
@@ -709,8 +718,10 @@ function AllocateMemory(aSize: PtrUInt): Pointer;
 begin
 {$IF DEFINED(WINDOWS)}
   Result := VirtualAlloc(Nil, aSize, MEM_RESERVE or MEM_COMMIT, PAGE_READWRITE);
+{$ELSEIF DEFINED(UNIX)}
+  Result := fpmmap(Nil, aSize, PROT_READ or PROT_WRITE, MAP_PRIVATE or MAP_ANONYMOUS, 0, 0);
 {$ELSE}
-  Result := GetMem(aSize);
+  Result := Nil;
 {$ENDIF}
 end;
 
@@ -725,17 +736,24 @@ begin
     Result := VirtualProtect(aPtr, aSize, PAGE_EXECUTE_READ, oldprot)
   else
     Result := VirtualProtect(aPtr, aSize, PAGE_READWRITE, oldprot);
+{$ELSEIF DEFINED(UNIX)}
+  if aExecutable then
+    Result := Fpmprotect(aPtr, aSize, PROT_EXEC or PROT_READ) = 0
+  else
+    Result := Fpmprotect(aPtr, aSize, PROT_READ or PROT_WRITE) = 0;
 {$ELSE}
-  Result := True;
+  Result := False;
 {$ENDIF}
 end;
 
-procedure FreeMemory(aPtr: Pointer);
+procedure FreeMemory(aPtr: Pointer; aSize: PtrUInt);
 begin
 {$IF DEFINED(WINDOWS)}
   VirtualFree(aPtr, 0, MEM_RELEASE);
+{$ELSEIF DEFINED(UNIX)}
+  fpmunmap(aPtr, aSize);
 {$ELSE}
-  FreeMem(aPtr);
+  { nothing }
 {$ENDIF}
 end;
 
@@ -753,13 +771,13 @@ end;
 function NoCreateCallbackProc(aFunc: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
 begin
   Result := Nil;
-  raise ENotImplemented.Create(SErrCallbackNotImplented);
+  raise ENotImplemented.Create(SErrCallbackNotImplemented);
 end;
 
 function NoCreateCallbackMethod(aFunc: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
 begin
   Result := Nil;
-  raise ENotImplemented.Create(SErrCallbackNotImplented);
+  raise ENotImplemented.Create(SErrCallbackNotImplemented);
 end;
 
 const
@@ -1319,6 +1337,9 @@ begin
                        raise Exception.CreateFmt(SErrUnableToGetValueForType,[ATypeInfo^.Name]);
                    end;
                  end;
+    tkChar,
+    tkWChar,
+    tkUChar,
     tkEnumeration,
     tkInteger  : begin
                    case GetTypeData(ATypeInfo)^.OrdType of
@@ -1385,7 +1406,7 @@ end;
 {$ifndef NoGenericMethods}
 generic class function TValue.From<T>(constref aValue: T): TValue;
 begin
-  TValue.Make(@aValue, System.TypeInfo(T), Result);
+  TValue.Make(@aValue, PTypeInfo(System.TypeInfo(T)), Result);
 end;
 
 generic class function TValue.FromOpenArray<T>(constref aValue: array of T): TValue;
@@ -1396,9 +1417,18 @@ begin
     arrdata := @aValue[0]
   else
     arrdata := Nil;
-  TValue.MakeOpenArray(arrdata, Length(aValue), System.TypeInfo(aValue), Result);
+  TValue.MakeOpenArray(arrdata, Length(aValue), PTypeInfo(System.TypeInfo(aValue)), Result);
 end;
 {$endif}
+
+class function TValue.FromOrdinal(aTypeInfo: PTypeInfo; aValue: Int64): TValue;
+begin
+  if not Assigned(aTypeInfo) or
+      not (aTypeInfo^.Kind in [tkInteger, tkInt64, tkQWord, tkEnumeration, tkBool, tkChar, tkWChar, tkUChar]) then
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+
+  TValue.Make(@aValue, aTypeInfo, Result);
+end;
 
 function TValue.GetIsEmpty: boolean;
 begin
@@ -1496,7 +1526,7 @@ end;
 
 function TValue.IsOrdinal: boolean;
 begin
-  result := (Kind in [tkInteger, tkInt64, tkQWord, tkBool]) or
+  result := (Kind in [tkInteger, tkInt64, tkQWord, tkBool, tkEnumeration, tkChar, tkWChar, tkUChar]) or
             ((Kind in [tkClass, tkClassRef, tkInterfaceRaw, tkUnknown]) and not Assigned(FData.FAsPointer));
 end;
 
@@ -1642,6 +1672,9 @@ begin
     tkQWord   : result := IntToStr(AsUInt64);
     tkInt64   : result := IntToStr(AsInt64);
     tkBool    : result := BoolToStr(AsBoolean, True);
+    tkPointer : result := '(pointer @ ' + HexStr(FData.FAsPointer) + ')';
+    tkInterface : result := '(interface @ ' + HexStr(PPointer(FData.FValueData.GetReferenceToRawData)^) + ')';
+    tkInterfaceRaw : result := '(raw interface @ ' + HexStr(FData.FAsPointer) + ')';
   else
     result := '';
   end;
@@ -1984,7 +2017,7 @@ begin
         if Assigned(aArgs[unhidden].TypeInfo) and not aArgs[unhidden].IsArray and (aArgs[unhidden].Kind <> param.ParamType.TypeKind) then
           raise EInvocationError.CreateFmt(SErrInvokeArrayArgExpected, [param.Name, aName]);
       end else if not (pfHidden in param.Flags) then begin
-        if aArgs[unhidden].Kind <> param.ParamType.TypeKind then
+        if Assigned(param.ParamType) and (aArgs[unhidden].Kind <> param.ParamType.TypeKind) then
           raise EInvocationError.CreateFmt(SErrInvokeArgInvalidType, [param.Name, aName]);
       end;
     end;
@@ -2014,7 +2047,10 @@ begin
 
   for i := 0 to High(aParams) do begin
     param := aParams[i];
-    args[i].Info.ParamType := param.ParamType.FTypeInfo;
+    if Assigned(param.ParamType) then
+      args[i].Info.ParamType := param.ParamType.FTypeInfo
+    else
+      args[i].Info.ParamType := Nil;
     args[i].Info.ParamFlags := param.Flags;
     args[i].Info.ParaLocs := Nil;
 
@@ -2063,7 +2099,7 @@ end;
 function CreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
 begin
   if not Assigned(FuncCallMgr[aCallConv].CreateCallbackProc) then
-    raise ENotImplemented.Create(SErrCallbackNotImplented);
+    raise ENotImplemented.Create(SErrCallbackNotImplemented);
 
   if not Assigned(aHandler) then
     raise EArgumentNilException.Create(SErrCallbackHandlerNil);
@@ -2074,7 +2110,7 @@ end;
 function CreateCallbackMethod(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
 begin
   if not Assigned(FuncCallMgr[aCallConv].CreateCallbackMethod) then
-    raise ENotImplemented.Create(SErrCallbackNotImplented);
+    raise ENotImplemented.Create(SErrCallbackNotImplemented);
 
   if not Assigned(aHandler) then
     raise EArgumentNilException.Create(SErrCallbackHandlerNil);
@@ -2535,7 +2571,10 @@ begin
       Assert((i < Length(fArgs)) and (pfHigh in fArgs[i].ParamFlags), 'Expected high parameter after open array parameter');
       TValue.MakeOpenArray(aArgs[i - 1], SizeInt(aArgs[i]), fArgs[i].ParamType, args[argidx]);
     end else if not (pfHidden in fArgs[i].ParamFlags) or (pfSelf in fArgs[i].ParamFlags) then begin
-      TValue.Make(aArgs[i], fArgs[i].ParamType, args[argidx]);
+      if Assigned(fArgs[i].ParamType) then
+        TValue.Make(aArgs[i], fArgs[i].ParamType, args[argidx])
+      else
+        TValue.Make(@aArgs[i], TypeInfo(Pointer), args[argidx]);
     end;
 
     Inc(i);
@@ -2598,6 +2637,13 @@ end;
 function TRttiMethod.GetHasExtendedInfo: Boolean;
 begin
   Result := False;
+end;
+
+function TRttiMethod.GetFlags: TFunctionCallFlags;
+begin
+  Result := [];
+  if IsStatic then
+    Include(Result, fcfStatic);
 end;
 
 function TRttiMethod.GetParameters: specialize TArray<TRttiParameter>;
@@ -2704,6 +2750,76 @@ begin
   Result := Rtti.Invoke(Name, addr, CallingConvention, IsStatic, aInstance, aArgs, GetParameters(True), ReturnType);
 end;
 
+function TRttiMethod.CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallbackMethod): TMethodImplementation;
+var
+  params: specialize TArray<TRttiParameter>;
+  args: specialize TArray<TFunctionCallParameterInfo>;
+  res: PTypeInfo;
+  restype: TRttiType;
+  resinparam: Boolean;
+  i: SizeInt;
+begin
+  if not Assigned(aCallback) then
+    raise EArgumentNilException.Create(SErrMethodImplNoCallback);
+
+  resinparam := False;
+  params := GetParameters(True);
+  SetLength(args, Length(params));
+  for i := 0 to High(params) do begin
+    if Assigned(params[i].ParamType) then
+      args[i].ParamType := params[i].ParamType.FTypeInfo
+    else
+      args[i].ParamType := Nil;
+    args[i].ParamFlags := params[i].Flags;
+    args[i].ParaLocs := Nil;
+    if pfResult in params[i].Flags then
+      resinparam := True;
+  end;
+
+  restype := GetReturnType;
+  if Assigned(restype) and not resinparam then
+    res := restype.FTypeInfo
+  else
+    res := Nil;
+
+  Result := TMethodImplementation.Create(GetCallingConvention, args, res, GetFlags, aUserData, aCallback);
+end;
+
+function TRttiMethod.CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallbackProc): TMethodImplementation;
+var
+  params: specialize TArray<TRttiParameter>;
+  args: specialize TArray<TFunctionCallParameterInfo>;
+  res: PTypeInfo;
+  restype: TRttiType;
+  resinparam: Boolean;
+  i: SizeInt;
+begin
+  if not Assigned(aCallback) then
+    raise EArgumentNilException.Create(SErrMethodImplNoCallback);
+
+  resinparam := False;
+  params := GetParameters(True);
+  SetLength(args, Length(params));
+  for i := 0 to High(params) do begin
+    if Assigned(params[i].ParamType) then
+      args[i].ParamType := params[i].ParamType.FTypeInfo
+    else
+      args[i].ParamType := Nil;
+    args[i].ParamFlags := params[i].Flags;
+    args[i].ParaLocs := Nil;
+    if pfResult in params[i].Flags then
+      resinparam := True;
+  end;
+
+  restype := GetReturnType;
+  if Assigned(restype) and not resinparam then
+    res := restype.FTypeInfo
+  else
+    res := Nil;
+
+  Result := TMethodImplementation.Create(GetCallingConvention, args, res, GetFlags, aUserData, aCallback);
+end;
+
 { TRttiInvokableType }
 
 function TRttiInvokableType.GetParameters: specialize TArray<TRttiParameter>;
@@ -2727,7 +2843,10 @@ begin
   params := GetParameters(True);
   SetLength(args, Length(params));
   for i := 0 to High(params) do begin
-    args[i].ParamType := params[i].ParamType.FTypeInfo;
+    if Assigned(params[i].ParamType) then
+      args[i].ParamType := params[i].ParamType.FTypeInfo
+    else
+      args[i].ParamType := Nil;
     args[i].ParamFlags := params[i].Flags;
     args[i].ParaLocs := Nil;
     if pfResult in params[i].Flags then
@@ -2759,7 +2878,10 @@ begin
   params := GetParameters(True);
   SetLength(args, Length(params));
   for i := 0 to High(params) do begin
-    args[i].ParamType := params[i].ParamType.FTypeInfo;
+    if Assigned(params[i].ParamType) then
+      args[i].ParamType := params[i].ParamType.FTypeInfo
+    else
+      args[i].ParamType := Nil;
     args[i].ParamFlags := params[i].Flags;
     args[i].ParaLocs := Nil;
     if pfResult in params[i].Flags then
@@ -2794,6 +2916,7 @@ var
   total, visible, i: SizeInt;
   ptr: PByte;
   paramtypes: PPPTypeInfo;
+  paramtype: PTypeInfo;
   context: TRttiContext;
   obj: TRttiObject;
 begin
@@ -2850,7 +2973,11 @@ begin
         if Assigned(obj) then
           FParamsAll[i] := obj as TRttiMethodTypeParameter
         else begin
-          FParamsAll[i] := TRttiMethodTypeParameter.Create(infos[i].Handle, infos[i].Name, infos[i].Flags, paramtypes[i]^);
+          if Assigned(paramtypes[i]) then
+            paramtype := paramtypes[i]^
+          else
+            paramtype := Nil;
+          FParamsAll[i] := TRttiMethodTypeParameter.Create(infos[i].Handle, infos[i].Name, infos[i].Flags, paramtype);
           context.AddObject(FParamsAll[i]);
         end;
 

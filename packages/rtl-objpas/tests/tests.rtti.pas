@@ -60,6 +60,11 @@ type
     procedure TestMakeExtended;
     procedure TestMakeCurrency;
     procedure TestMakeComp;
+    procedure TestMakeEnum;
+    procedure TestMakeAnsiChar;
+    procedure TestMakeWideChar;
+
+    procedure TestFromOrdinal;
 
     procedure TestDataSize;
     procedure TestDataSizeEmpty;
@@ -78,6 +83,11 @@ type
 
     procedure TestProcVar;
     procedure TestMethod;
+  private
+    procedure MakeFromOrdinalTObject;
+    procedure MakeFromOrdinalSet;
+    procedure MakeFromOrdinalString;
+    procedure MakeFromOrdinalNil;
   end;
 
 implementation
@@ -663,6 +673,125 @@ begin
   end;
 
   CheckFalse(hadexcept, 'Had unsigned type conversion exception');
+end;
+
+procedure TTestCase1.TestMakeEnum;
+var
+  e: TTestEnum;
+  v: TValue;
+begin
+  e := te1;
+
+  TValue.Make(@e, TypeInfo(e), v);
+  Check(not v.IsClass);
+  Check(not v.IsArray);
+  Check(not v.IsEmpty);
+  Check(not v.IsOpenArray);
+  Check(not v.IsObject);
+  Check(v.IsOrdinal);
+
+  Check(v.GetReferenceToRawData <> @e);
+  Check(TTestEnum(v.AsOrdinal) = te1);
+end;
+
+procedure TTestCase1.TestMakeAnsiChar;
+var
+  c: AnsiChar;
+  v: TValue;
+begin
+  c := #20;
+
+  TValue.Make(@c, TypeInfo(c), v);
+  Check(not v.IsClass);
+  Check(not v.IsArray);
+  Check(not v.IsEmpty);
+  Check(not v.IsOpenArray);
+  Check(not v.IsObject);
+  Check(v.IsOrdinal);
+
+  Check(v.GetReferenceToRawData <> @c);
+  Check(AnsiChar(v.AsOrdinal) = #20);
+end;
+
+procedure TTestCase1.TestMakeWideChar;
+var
+  c: WideChar;
+  v: TValue;
+begin
+  c := #$1234;
+
+  TValue.Make(@c, TypeInfo(c), v);
+  Check(not v.IsClass);
+  Check(not v.IsArray);
+  Check(not v.IsEmpty);
+  Check(not v.IsOpenArray);
+  Check(not v.IsObject);
+  Check(v.IsOrdinal);
+
+  Check(v.GetReferenceToRawData <> @c);
+  Check(WideChar(v.AsOrdinal) = #$1234);
+end;
+
+procedure TTestCase1.MakeFromOrdinalTObject;
+begin
+  TValue.FromOrdinal(TypeInfo(TObject), 42);
+end;
+
+procedure TTestCase1.MakeFromOrdinalSet;
+begin
+  TValue.FromOrdinal(TypeInfo(TTestSet), 42);
+end;
+
+procedure TTestCase1.MakeFromOrdinalString;
+begin
+  TValue.FromOrdinal(TypeInfo(AnsiString), 42);
+end;
+
+procedure TTestCase1.MakeFromOrdinalNil;
+begin
+  TValue.FromOrdinal(Nil, 42);
+end;
+
+procedure TTestCase1.TestFromOrdinal;
+var
+  v: TValue;
+begin
+  v := TValue.FromOrdinal(TypeInfo(LongInt), 42);
+  Check(v.IsOrdinal);
+  CheckEquals(v.AsOrdinal, 42);
+
+  v := TValue.FromOrdinal(TypeInfo(Boolean), Ord(True));
+  Check(v.IsOrdinal);
+  CheckEquals(v.AsOrdinal, Ord(True));
+
+  v := TValue.FromOrdinal(TypeInfo(Int64), $1234123412341234);
+  Check(v.IsOrdinal);
+  CheckEquals(v.AsOrdinal, $1234123412341234);
+
+  v := TValue.FromOrdinal(TypeInfo(QWord), $1234123412341234);
+  Check(v.IsOrdinal);
+  CheckEquals(v.AsOrdinal, $1234123412341234);
+
+  v := TValue.FromOrdinal(TypeInfo(LongBool), Ord(True));
+  Check(v.IsOrdinal);
+  CheckEquals(v.AsOrdinal, Ord(True));
+
+  v := TValue.FromOrdinal(TypeInfo(TTestEnum), Ord(te1));
+  Check(v.IsOrdinal);
+  CheckEquals(v.AsOrdinal, Ord(te1));
+
+  v := TValue.FromOrdinal(TypeInfo(AnsiChar), Ord(#20));
+  Check(v.IsOrdinal);
+  CheckEquals(v.AsOrdinal, Ord(#20));
+
+  v := TValue.FromOrdinal(TypeInfo(WideChar), Ord(#$1234));
+  Check(v.IsOrdinal);
+  CheckEquals(v.AsOrdinal, Ord(#$1234));
+
+  CheckException({$ifdef fpc}@{$endif}MakeFromOrdinalNil, EInvalidCast);
+  CheckException({$ifdef fpc}@{$endif}MakeFromOrdinalTObject, EInvalidCast);
+  CheckException({$ifdef fpc}@{$endif}MakeFromOrdinalSet, EInvalidCast);
+  CheckException({$ifdef fpc}@{$endif}MakeFromOrdinalString, EInvalidCast);
 end;
 
 procedure TTestCase1.TestGetIsReadable;
