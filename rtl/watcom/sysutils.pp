@@ -893,4 +893,5 @@ Initialization
   InitDelay;
 Finalization
   DoneExceptions;
+  FreeTerminateProcs;
 end.

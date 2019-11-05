@@ -997,4 +997,5 @@ Initialization
   OrigOSErrorWatch := TOSErrorWatch (SetOSErrorTracking (@TrackLastOSError));
 Finalization
   DoneExceptions;
+  FreeTerminateProcs;
 end.

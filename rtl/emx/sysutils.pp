@@ -1335,4 +1335,5 @@ Initialization
   InitInternational;    { Initialize internationalization settings }
 Finalization
   DoneExceptions;
+  FreeTerminateProcs;
 end.

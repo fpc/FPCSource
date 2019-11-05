@@ -1258,4 +1258,5 @@ initialization
   OnBeep := @SysBeep;
 finalization
   DoneExceptions;
+  FreeTerminateProcs;
 end.

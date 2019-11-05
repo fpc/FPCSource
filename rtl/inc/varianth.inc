@@ -186,7 +186,7 @@ type
       olevarfrompstr: procedure(var dest : olevariant; const source : shortstring);
       olevarfromlstr: procedure(var dest : olevariant; const source : ansistring);
       olevarfromvar: procedure(var dest : olevariant; const source : variant);
-      olevarfromint: procedure(var dest : olevariant; const source : longint;const range : shortint);
+      olevarfromint: procedure(var dest : olevariant; const source : int64;const range : shortint);
 
       { operators }
       varop : procedure(var left : variant;const right : variant;opcode : tvarop);
