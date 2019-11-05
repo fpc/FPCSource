@@ -1321,9 +1321,9 @@ end;
 
 function SysAllocMem(size: ptruint): pointer;
 begin
-  result := MemoryManager.GetMem(size);
+  result := SysGetMem(size);
   if result<>nil then
-    FillChar(result^,MemoryManager.MemSize(result),0);
+    FillChar(result^,SysMemSize(result),0);
 end;
 
 
@@ -1459,7 +1459,7 @@ begin
 {$endif}
     if not SysTryResizeMem(p,size) then
     begin
-      oldsize:=MemoryManager.MemSize(p);
+      oldsize:=SysMemSize(p);
       { Grow with bigger steps to prevent the need for
         multiple getmem/freemem calls for fixed blocks. It might cost a bit
         of extra memory, but in most cases a reallocmem is done multiple times. }
@@ -1478,7 +1478,7 @@ begin
       p2 := SysGetMem(newsize);
       if p2<>nil then
         Move(p^,p2^,minsize);
-      MemoryManager.FreeMem(p);
+      SysFreeMem(p);
       p := p2;
 {$ifdef DUMP_MEM_USAGE}
     end else begin
