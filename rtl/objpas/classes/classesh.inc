@@ -696,6 +696,9 @@ type
     procedure AddStrings(const TheStrings: array of string); overload; virtual;
     procedure AddStrings(const TheStrings: array of string; ClearFirst : Boolean); overload;
     Procedure AddText(Const S : String); virtual;
+    procedure AddCommaText(const S: String);
+    procedure AddDelimitedText(const S: String; ADelimiter: char; AStrictDelimiter: Boolean); overload;
+    procedure AddDelimitedtext(const S: String); overload;
     procedure Append(const S: string);
     procedure Assign(Source: TPersistent); override;
     procedure BeginUpdate;
