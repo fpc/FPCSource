@@ -132,6 +132,8 @@ implementation
                      end;
                    _POINT :
                      begin
+                       if not is_object(def) and not is_record(def) then
+                         message(sym_e_type_must_be_rec_or_object);
                        consume(_POINT);
                        if assigned(def) then
                         begin

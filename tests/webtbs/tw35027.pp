@@ -1,7 +1,7 @@
 program tw35027;
 {$mode objfpc}{$H+}
 uses
-  {$IFDEF UNIX}{$IFDEF UseCThreads} cthreads, {$ENDIF}{$ENDIF}
+  {$IFDEF UNIX}cthreads,{$ENDIF}
   Classes, sysutils, syncobjs;
 
 type
