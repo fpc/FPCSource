@@ -1664,8 +1664,7 @@ implementation
           LOC_MMREGISTER,LOC_CMMREGISTER:
             a_loadmm_reg_intreg(list,loc.size,tosize,loc.register,reg,mms_movescalar);
           else
-            begin writeln(loc.loc);
-            internalerror(200109092); end;
+            internalerror(200109092);
         end;
       end;
 
