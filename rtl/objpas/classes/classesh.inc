@@ -655,6 +655,7 @@ type
     procedure SetLineBreak(const S : String);
     Function GetSkipLastLineBreak : Boolean;
     procedure SetSkipLastLineBreak(const AValue : Boolean);
+    Procedure DoSetDelimitedText(const AValue: string; DoClear,aStrictDelimiter : Boolean; aQuoteChar,aDelimiter : Char);
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure Error(const Msg: string; Data: Integer);
