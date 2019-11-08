@@ -503,8 +503,11 @@ end;
 
 
 Procedure TStrings.SetDelimitedText(const AValue: string);
-var i,j: SizeInt;
-    aNotFirst:boolean;
+
+var
+  len,i,j: SizeInt;
+  aNotFirst:boolean;
+
 begin
  CheckSpecialChars;
  BeginUpdate;
@@ -520,21 +523,23 @@ begin
  }
  try
   Clear;
+  len:=length(AValue);
   If StrictDelimiter then
     begin
-    while i<=length(AValue) do begin
+    while i<=Len do begin
      // skip delimiter
-     if aNotFirst and (i<=length(AValue)) and (AValue[i]=FDelimiter) then inc(i);
+     if aNotFirst and (i<=len) and (AValue[i]=FDelimiter) then
+       inc(i);
 
      // read next string
-     if i<=length(AValue) then begin
+     if i<=len then begin
       if AValue[i]=FQuoteChar then begin
        // next string is quoted
        j:=i+1;
-       while (j<=length(AValue)) and
+       while (j<=len) and
              ( (AValue[j]<>FQuoteChar) or
-               ( (j+1<=length(AValue)) and (AValue[j+1]=FQuoteChar) ) ) do begin
-        if (j<=length(AValue)) and (AValue[j]=FQuoteChar) then inc(j,2)
+               ( (j+1<=len) and (AValue[j+1]=FQuoteChar) ) ) do begin
+        if (j<=len) and (AValue[j]=FQuoteChar) then inc(j,2)
                                                           else inc(j);
        end;
        // j is position of closing quote
@@ -544,7 +549,7 @@ begin
       end else begin
        // next string is not quoted; read until delimiter
        j:=i;
-       while (j<=length(AValue)) and
+       while (j<=len) and
              (AValue[j]<>FDelimiter) do inc(j);
        Add( Copy(AValue,i,j-i));
        i:=j;
@@ -558,22 +563,22 @@ begin
     end
   else 
     begin
-    while i<=length(AValue) do begin
+    while i<=len do begin
      // skip delimiter
-     if aNotFirst and (i<=length(AValue)) and (AValue[i]=FDelimiter) then inc(i);
+     if aNotFirst and (i<=len) and (AValue[i]=FDelimiter) then inc(i);
 
      // skip spaces
-     while (i<=length(AValue)) and (Ord(AValue[i])<=Ord(' ')) do inc(i);
+     while (i<=len) and (Ord(AValue[i])<=Ord(' ')) do inc(i);
     
      // read next string
-     if i<=length(AValue) then begin
+     if i<=len then begin
       if AValue[i]=FQuoteChar then begin
        // next string is quoted
        j:=i+1;
-       while (j<=length(AValue)) and
+       while (j<=len) and
              ( (AValue[j]<>FQuoteChar) or
-               ( (j+1<=length(AValue)) and (AValue[j+1]=FQuoteChar) ) ) do begin
-        if (j<=length(AValue)) and (AValue[j]=FQuoteChar) then inc(j,2)
+               ( (j+1<=len) and (AValue[j+1]=FQuoteChar) ) ) do begin
+        if (j<=len) and (AValue[j]=FQuoteChar) then inc(j,2)
                                                           else inc(j);
        end;
        // j is position of closing quote
@@ -583,7 +588,7 @@ begin
       end else begin
        // next string is not quoted; read until control character/space/delimiter
        j:=i;
-       while (j<=length(AValue)) and
+       while (j<=len) and
              (Ord(AValue[j])>Ord(' ')) and
              (AValue[j]<>FDelimiter) do inc(j);
        Add( Copy(AValue,i,j-i));
@@ -594,7 +599,7 @@ begin
      end;
 
      // skip spaces
-     while (i<=length(AValue)) and (Ord(AValue[i])<=Ord(' ')) do inc(i);
+     while (i<=len) and (Ord(AValue[i])<=Ord(' ')) do inc(i);
 
      aNotFirst:=true;
     end;
