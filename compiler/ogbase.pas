@@ -1317,7 +1317,7 @@ implementation
           both progbits and flags as parameters }
         options:=sectiontype2options(atype);
         flags:=[];
-        progbits:=SPB_PROGBITS;
+        progbits:=SPB_None;
         if oso_load in options then
           include(flags,SF_A);
         if oso_write in options then
