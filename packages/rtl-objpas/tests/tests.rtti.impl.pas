@@ -569,7 +569,7 @@ begin
     intf := TVirtualInterface.Create(PTypeInfo(TypeInfo(ITestInterface)), {$ifdef fpc}@{$endif}OnHandleIntfMethod) as ITestInterface;
   except
     on e: ENotImplemented do
-      Exit;
+      Ignore('TVirtualInterface not supported for ' + {$I %FPCTARGETCPU%} + '-' + {$I %FPCTARGETOS%});
   end;
   Check(Assigned(intf), 'ITestInterface instance is Nil');
 

@@ -83,6 +83,8 @@ type
 
     procedure TestProcVar;
     procedure TestMethod;
+
+    procedure TestRawThunk;
   private
     procedure MakeFromOrdinalTObject;
     procedure MakeFromOrdinalSet;
@@ -1872,6 +1874,24 @@ begin
   end;
 end;
 
+procedure TTestCase1.TestRawThunk;
+var
+  intf: IInterface;
+begin
+  { we test the raw thunking by instantiating a TVirtualInterface of IInterface }
+  { this does not require a function call manager as the thunking is implemented
+    directly inside the RTTI unit }
+  try
+    intf := TVirtualInterface.Create(PTypeInfo(TypeInfo(IInterface))) as IInterface;
+  except
+    on e: ENotImplemented do
+      Ignore('RawThunk not implemented');
+  end;
+  { if all went well QueryInterface and _AddRef were called and now we call
+    _Release as well }
+  intf := Nil;
+end;
+
 {$ifdef fpc}
 procedure TTestCase1.TestInterfaceRaw;
 var
@@ -1892,6 +1912,7 @@ begin
     context.Free;
   end;
 end;
+{$endif}
 
 procedure TTestCase1.TestProcVar;
 var
@@ -1996,8 +2017,6 @@ begin
     context.Free;
   end;
 end;
-
-{$endif}
 
 initialization
 {$ifdef fpc}

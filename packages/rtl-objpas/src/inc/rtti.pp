@@ -513,6 +513,28 @@ type
     property DeclaringUnitName: string read GetDeclaringUnitName;
   end;
 
+  TVirtualInterfaceInvokeEvent = procedure(aMethod: TRttiMethod; const aArgs: TValueArray; out aResult: TValue) of object;
+
+  TVirtualInterface = class(TInterfacedObject, IInterface)
+  private
+    fGUID: TGUID;
+    fOnInvoke: TVirtualInterfaceInvokeEvent;
+    fContext: TRttiContext;
+    fThunks: array[0..2] of CodePointer;
+    fImpls: array of TMethodImplementation;
+    fVmt: PCodePointer;
+  protected
+    function QueryInterface(constref aIID: TGuid; out aObj): LongInt;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+
+    procedure HandleUserCallback(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue);
+  public
+    constructor Create(aPIID: PTypeInfo);
+    constructor Create(aPIID: PTypeInfo; aInvokeEvent: TVirtualInterfaceInvokeEvent);
+    destructor Destroy; override;
+    property OnInvoke: TVirtualInterfaceInvokeEvent read fOnInvoke write fOnInvoke;
+  end;
+
+
   ERtti = class(Exception);
   EInsufficientRtti = class(ERtti);
   EInvocationError = class(ERtti);
@@ -584,6 +606,19 @@ uses
   BaseUnix,
 {$endif}
   fgl;
+
+function AlignToPtr(aPtr: Pointer): Pointer; inline;
+begin
+{$ifdef CPUM68K}
+  Result := AlignTypeData(aPtr);
+{$else}
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  Result := Align(aPtr, SizeOf(Pointer));
+{$else}
+  Result := aPtr;
+{$endif}
+{$endif}
+end;
 
 type
 
@@ -735,6 +770,17 @@ resourcestring
   SErrMethodImplNoCallback    = 'No callback specified for method implementation';
   SErrMethodImplInsufficientRtti = 'Insufficient RTTI to create method implementation';
   SErrMethodImplCreateNoArg   = 'TMethodImplementation can not be created this way';
+  SErrVirtIntfTypeNil = 'No type information provided for TVirtualInterface';
+  SErrVirtIntfTypeMustBeIntf = 'Type ''%s'' is not an interface type';
+  SErrVirtIntfTypeNotFound = 'Type ''%s'' is not valid';
+  SErrVirtIntfNotAllMethodsRTTI = 'Not all methods of ''%s'' or its parents have the required RTTI';
+  SErrVirtIntfRetrieveIInterface = 'Failed to retrieve IInterface information';
+  SErrVirtIntfCreateThunk = 'Failed to create thunks for ''%0:s''';
+  SErrVirtIntfCreateImpl = 'Failed to create implementation for method ''%1:s'' of ''%0:s''';
+  SErrVirtIntfInvalidVirtIdx = 'Virtual index %2:d for method ''%1:s'' of ''%0:s'' is invalid';
+  SErrVirtIntfMethodNil = 'Method %1:d of ''%0:s'' is Nil';
+  SErrVirtIntfCreateVmt = 'Failed to create VMT for ''%s''';
+  SErrVirtIntfIInterface = 'Failed to prepare IInterface method callbacks';
 
 var
   PoolRefCount : integer;
@@ -782,6 +828,203 @@ begin
 {$ELSE}
   { nothing }
 {$ENDIF}
+end;
+
+label
+  RawThunkEnd;
+
+{$if defined(cpui386)}
+const
+  RawThunkPlaceholderBytesToPop = $12341234;
+  RawThunkPlaceholderProc = $87658765;
+  RawThunkPlaceholderContext = $43214321;
+
+type
+  TRawThunkBytesToPop = UInt32;
+  TRawThunkProc = PtrUInt;
+  TRawThunkContext = PtrUInt;
+
+{ works for both cdecl and stdcall }
+procedure RawThunk; assembler; nostackframe;
+asm
+  { the stack layout is
+      $ReturnAddr <- ESP
+      ArgN
+      ArgN - 1
+      ...
+      Arg1
+      Arg0
+
+    aBytesToPop is the size of the stack to the Self argument }
+
+  movl RawThunkPlaceholderBytesToPop, %eax
+  movl %esp, %ecx
+  lea (%ecx,%eax), %eax
+  movl RawThunkPlaceholderContext, (%eax)
+  movl RawThunkPlaceholderProc, %eax
+  jmp %eax
+RawThunkEnd:
+end;
+{$elseif defined(cpux86_64)}
+const
+  RawThunkPlaceholderProc = PtrUInt($8765876587658765);
+  RawThunkPlaceholderContext = PtrUInt($4321432143214321);
+
+type
+  TRawThunkProc = PtrUInt;
+  TRawThunkContext = PtrUInt;
+
+{$ifdef win64}
+procedure RawThunk; assembler; nostackframe;
+asm
+  { Self is always in register RCX }
+  movq RawThunkPlaceholderContext, %rcx
+  movq RawThunkPlaceholderProc, %rax
+  jmp %rax
+RawThunkEnd:
+end;
+{$else}
+procedure RawThunk; assembler; nostackframe;
+asm
+  { Self is always in register RDI }
+  movq RawThunkPlaceholderContext, %rdi
+  movq RawThunkPlaceholderProc, %rax
+  jmp %rax
+RawThunkEnd:
+end;
+{$endif}
+{$elseif defined(cpuarm)}
+const
+  RawThunkPlaceholderProc = $87658765;
+  RawThunkPlaceholderContext = $43214321;
+
+type
+  TRawThunkProc = PtrUInt;
+  TRawThunkContext = PtrUInt;
+
+procedure RawThunk; assembler; nostackframe;
+asm
+  (* To be compatible with Thumb we first load the function pointer into R0,
+    then move that to R12 which is volatile and then we load the new Self into
+    R0 *)
+  ldr r0, .LProc
+  mov r12, r0
+  ldr r0, .LContext
+{$ifdef CPUARM_HAS_BX}
+  bx r12
+{$else}
+  mov pc, r12
+{$endif}
+.LProc:
+  .long RawThunkPlaceholderProc
+.LContext:
+  .long RawThunkPlaceholderContext
+RawThunkEnd:
+end;
+{$elseif defined(cpum68k)}
+const
+  RawThunkPlaceholderProc = $87658765;
+  RawThunkPlaceholderContext = $43214321;
+
+type
+  TRawThunkProc = PtrUInt;
+  TRawThunkContext = PtrUInt;
+
+procedure RawThunk; assembler; nostackframe;
+asm
+  lea 4(sp), a0
+  move.l #RawThunkPlaceholderContext, (a0)
+  move.l #RawThunkPlaceholderProc, a0
+  jmp (a0)
+RawThunkEnd:
+end;
+{$endif}
+
+{$if declared(RawThunk)}
+const
+  RawThunkEndPtr: Pointer = @RawThunkEnd;
+
+type
+{$if declared(TRawThunkBytesToPop)}
+  PRawThunkBytesToPop = ^TRawThunkBytesToPop;
+{$endif}
+  PRawThunkContext = ^TRawThunkContext;
+  PRawThunkProc = ^TRawThunkProc;
+{$endif}
+
+{ Delphi has these as part of TRawVirtualClass.TVTable; until we have that we
+  simply leave that here in the implementation }
+function AllocateRawThunk(aProc: CodePointer; aContext: Pointer; aBytesToPop: SizeInt): CodePointer;
+{$if declared(RawThunk)}
+var
+  size, i: SizeInt;
+{$if declared(TRawThunkBytesToPop)}
+  btp: PRawThunkBytesToPop;
+  btpdone: Boolean;
+{$endif}
+  context: PRawThunkContext;
+  contextdone: Boolean;
+  proc: PRawThunkProc;
+  procdone: Boolean;
+{$endif}
+begin
+{$if not declared(RawThunk)}
+  { platform dose not have thunk support... :/ }
+  Result := Nil;
+{$else}
+  Size := PtrUInt(RawThunkEndPtr) - PtrUInt(@RawThunk) + 1;
+  Result := AllocateMemory(size);
+  Move(Pointer(@RawThunk)^, Result^, size);
+
+{$if declared(TRawThunkBytesToPop)}
+  btpdone := False;
+{$endif}
+  contextdone := False;
+  procdone := False;
+
+  for i := 0 to Size - 1 do begin
+{$if declared(TRawThunkBytesToPop)}
+    if not btpdone and (i <= Size - SizeOf(TRawThunkBytesToPop)) then begin
+      btp := PRawThunkBytesToPop(PByte(Result) + i);
+      if btp^ = RawThunkPlaceholderBytesToPop then begin
+        btp^ := TRawThunkBytesToPop(aBytesToPop);
+        btpdone := True;
+      end;
+    end;
+{$endif}
+    if not contextdone and (i <= Size - SizeOf(TRawThunkContext)) then begin
+      context := PRawThunkContext(PByte(Result) + i);
+      if context^ = RawThunkPlaceholderContext then begin
+        context^ := TRawThunkContext(aContext);
+        contextdone := True;
+      end;
+    end;
+    if not procdone and (i <= Size - SizeOf(TRawThunkProc)) then begin
+      proc := PRawThunkProc(PByte(Result) + i);
+      if proc^ = RawThunkPlaceholderProc then begin
+        proc^ := TRawThunkProc(aProc);
+        procdone := True;
+      end;
+    end;
+  end;
+
+  if not contextdone or not procdone
+{$if declared(TRawThunkBytesToPop)}
+      or not btpdone
+{$endif}
+      then begin
+    FreeMemory(Result, Size);
+    Result := Nil;
+  end else
+    ProtectMemory(Result, Size, True);
+{$endif}
+end;
+
+procedure FreeRawThunk(aThunk: CodePointer);
+begin
+{$if declared(RawThunk)}
+  FreeMemory(aThunk, PtrUInt(RawThunkEndPtr) - PtrUInt(@RawThunk));
+{$endif}
 end;
 
 function CCToStr(aCC: TCallConv): String; inline;
@@ -1278,15 +1521,9 @@ end;
 
 class procedure TValue.Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue);
 type
-  PBoolean16 = ^Boolean16;
-  PBoolean32 = ^Boolean32;
-  PBoolean64 = ^Boolean64;
-  PByteBool = ^ByteBool;
-  PQWordBool = ^QWordBool;
   PMethod = ^TMethod;
 var
   td: PTypeData;
-  size: SizeInt;
 begin
   result.FData.FTypeInfo:=ATypeInfo;
   { resets the whole variant part; FValueData is already Nil }
@@ -1453,12 +1690,36 @@ end;
 {$endif}
 
 class function TValue.FromOrdinal(aTypeInfo: PTypeInfo; aValue: Int64): TValue;
+{$ifdef ENDIAN_BIG}
+var
+  p: PByte;
+  td: PTypeData;
+{$endif}
 begin
   if not Assigned(aTypeInfo) or
       not (aTypeInfo^.Kind in [tkInteger, tkInt64, tkQWord, tkEnumeration, tkBool, tkChar, tkWChar, tkUChar]) then
     raise EInvalidCast.Create(SErrInvalidTypecast);
 
+{$ifdef ENDIAN_BIG}
+  td := GetTypeData(aTypeInfo);
+  p := @aValue;
+  case td^.OrdType of
+    otSByte,
+    otUByte:
+      p := p + 7;
+    otSWord,
+    otUWord:
+      p := p + 6;
+    otSLong,
+    otULong:
+      p := p + 4;
+    otSQWord,
+    otUQWord: ;
+  end;
+  TValue.Make(p, aTypeInfo, Result);
+{$else}
   TValue.Make(@aValue, aTypeInfo, Result);
+{$endif}
 end;
 
 function TValue.GetIsEmpty: boolean;
@@ -3029,7 +3290,7 @@ begin
   if not aWithHidden and (Length(FParams) > 0) then
     Exit(FParams);
 
-  ptr := AlignTParamFlags(@FTypeData^.ParamList[0]);
+  ptr := @FTypeData^.ParamList[0];
 
   visible := 0;
   total := 0;
@@ -3038,6 +3299,8 @@ begin
     SetLength(infos, FTypeData^.ParamCount);
 
     while total < FTypeData^.ParamCount do begin
+      { align }
+      ptr := AlignTParamFlags(ptr);
       infos[total].Handle := ptr;
       infos[total].Flags := PParamFlags(ptr)^;
       Inc(ptr, SizeOf(TParamFlags));
@@ -3046,8 +3309,6 @@ begin
       Inc(ptr, ptr^ + SizeOf(Byte));
       { skip type name }
       Inc(ptr, ptr^ + SizeOf(Byte));
-      { align }
-      ptr := AlignTParamFlags(ptr);
 
       if not (pfHidden in infos[total].Flags) then
         Inc(visible);
@@ -3057,7 +3318,7 @@ begin
 
   if FTypeData^.MethodKind in [mkFunction, mkClassFunction] then begin
     { skip return type name }
-    ptr := AlignTypeData(PByte(ptr) + ptr^ + SizeOf(Byte));
+    ptr := AlignToPtr(PByte(ptr) + ptr^ + SizeOf(Byte));
     { handle return type }
     FReturnType := GRttiPool.GetType(PPPTypeInfo(ptr)^^);
     Inc(ptr, SizeOf(PPTypeInfo));
@@ -3073,7 +3334,7 @@ begin
   if FTypeData^.ParamCount > 0 then begin
     context := TRttiContext.Create;
     try
-      paramtypes := PPPTypeInfo(ptr);
+      paramtypes := PPPTypeInfo(AlignTypeData(ptr));
       visible := 0;
       for i := 0 to FTypeData^.ParamCount - 1 do begin
         obj := context.GetByHandle(infos[i].Handle);
@@ -3166,7 +3427,7 @@ begin
 
   context := TRttiContext.Create;
   try
-    param := AlignTypeData(PProcedureParam(@FTypeData^.ProcSig.ParamCount + SizeOf(FTypeData^.ProcSig.ParamCount)));
+    param := AlignToPtr(PProcedureParam(@FTypeData^.ProcSig.ParamCount + SizeOf(FTypeData^.ProcSig.ParamCount)));
     visible := 0;
     for i := 0 to FTypeData^.ProcSig.ParamCount - 1 do begin
       obj := context.GetByHandle(param);
@@ -3182,7 +3443,7 @@ begin
         Inc(visible);
       end;
 
-      param := PProcedureParam(AlignTypeData(PByte(@param^.Name) + Length(param^.Name) + SizeOf(param^.Name[0])));
+      param := PProcedureParam(AlignToPtr(PByte(@param^.Name) + Length(param^.Name) + SizeOf(param^.Name[0])));
     end;
 
     SetLength(FParams, visible);
@@ -3785,6 +4046,156 @@ begin
     FContextToken := TPoolToken.Create;
   result := (FContextToken as IPooltoken).RttiPool.GetTypes;
 end;}
+
+{ TVirtualInterface }
+
+{.$define DEBUG_VIRTINTF}
+
+constructor TVirtualInterface.Create(aPIID: PTypeInfo);
+const
+  BytesToPopQueryInterface =
+{$ifdef cpui386}
+    3 * SizeOf(Pointer); { aIID + aObj + $RetAddr }
+{$else}
+    0;
+{$endif}
+  BytesToPopAddRef =
+{$ifdef cpui386}
+    1 * SizeOf(Pointer); { $RetAddr }
+{$else}
+    0;
+{$endif}
+  BytesToPopRelease =
+{$ifdef cpui386}
+    1 * SizeOf(Pointer); { $RetAddr }
+{$else}
+    0;
+{$endif}
+var
+  t: TRttiType;
+  ti: PTypeInfo;
+  td: PInterfaceData;
+  methods: specialize TArray<TRttiMethod>;
+  m: TRttiMethod;
+  mt: PIntfMethodTable;
+  count, i: SizeInt;
+begin
+  if not Assigned(aPIID) then
+    raise EArgumentNilException.Create(SErrVirtIntfTypeNil);
+  { ToDo: add support for raw interfaces once they support RTTI }
+  if aPIID^.Kind <> tkInterface then
+    raise EArgumentException.CreateFmt(SErrVirtIntfTypeMustBeIntf, [aPIID^.Name]);
+
+  fContext := TRttiContext.Create;
+  t := fContext.GetType(aPIID);
+  if not Assigned(t) then
+    raise EInsufficientRtti.CreateFmt(SErrVirtIntfTypeNotFound, [aPIID^.Name]);
+
+  { check whether the interface and all its parents have RTTI enabled (the only
+    exception is IInterface as we know the methods of that) }
+  td := PInterfaceData(GetTypeData(aPIID));
+
+  fGUID := td^.GUID;
+
+  fThunks[0] := AllocateRawThunk(TMethod(@QueryInterface).Code, Pointer(Self), BytesToPopQueryInterface);
+  fThunks[1] := AllocateRawThunk(TMethod(@_AddRef).Code, Pointer(Self), BytesToPopAddRef);
+  fThunks[2] := AllocateRawThunk(TMethod(@_Release).Code, Pointer(Self), BytesToPopRelease);
+
+  for i := Low(fThunks) to High(fThunks) do
+    if not Assigned(fThunks[i]) then
+      raise ENotImplemented.CreateFmt(SErrVirtIntfCreateThunk, [aPIID^.Name]);
+
+  ti := aPIID;
+  { ignore the three methods of IInterface }
+  count := 0;
+  while ti <> TypeInfo(IInterface) do begin
+    mt := td^.MethodTable;
+    if (mt^.Count > 0) and (mt^.RTTICount <> mt^.Count) then
+      raise EInsufficientRtti.CreateFmt(SErrVirtIntfNotAllMethodsRTTI, [aPIID^.Name]);
+    Inc(count, mt^.Count);
+    ti := td^.Parent^;
+    td := PInterfaceData(GetTypeData(ti));
+  end;
+
+  SetLength(fImpls, count);
+
+  methods := t.GetMethods;
+  for m in methods do begin
+    if m.VirtualIndex > High(fImpls) + Length(fThunks) then
+      raise ERtti.CreateFmt(SErrVirtIntfInvalidVirtIdx, [aPIID^.Name, m.Name, m.VirtualIndex]);
+    if m.VirtualIndex < Length(fThunks) then
+      raise ERtti.CreateFmt(SErrVirtIntfInvalidVirtIdx, [aPIID^.Name, m.Name, m.VirtualIndex]);
+    { we use the childmost entry, except for the IInterface methods }
+    if Assigned(fImpls[m.VirtualIndex - Length(fThunks)]) then begin
+      {$IFDEF DEBUG_VIRTINTF}Writeln('Ignoring duplicate implementation for index ', m.VirtualIndex);{$ENDIF}
+      Continue;
+    end;
+    fImpls[m.VirtualIndex - Length(fThunks)] := m.CreateImplementation(m, @HandleUserCallback);
+  end;
+
+  for i := 0 to High(fImpls) do
+    if not Assigned(fImpls) then
+      raise ERtti.CreateFmt(SErrVirtIntfMethodNil, [aPIID^.Name, i]);
+
+  fVmt := GetMem(Length(fImpls) * SizeOf(CodePointer) + Length(fThunks) * SizeOf(CodePointer));
+  if not Assigned(fVmt) then
+    raise ERtti.CreateFmt(SErrVirtIntfCreateVmt, [aPIID^.Name]);
+
+  for i := 0 to High(fThunks) do begin
+    fVmt[i] := fThunks[i];
+    {$IFDEF DEBUG_VIRTINTF}Writeln('VMT ', i, ': ', HexStr(fVmt[i]));{$ENDIF}
+  end;
+  for i := 0 to High(fImpls) do begin
+    fVmt[i + Length(fThunks)] := fImpls[i].CodeAddress;
+    {$IFDEF DEBUG_VIRTINTF}Writeln('VMT ', i + Length(fThunks), ': ', HexStr(fVmt[i + Length(fThunks)]));{$ENDIF}
+  end;
+end;
+
+constructor TVirtualInterface.Create(aPIID: PTypeInfo; aInvokeEvent: TVirtualInterfaceInvokeEvent);
+begin
+  Create(aPIID);
+  OnInvoke := aInvokeEvent;
+end;
+
+destructor TVirtualInterface.Destroy;
+var
+  impl: TMethodImplementation;
+  thunk: CodePointer;
+begin
+  {$IFDEF DEBUG_VIRTINTF}Writeln('Freeing implementations');{$ENDIF}
+  for impl in fImpls do
+    impl.Free;
+  {$IFDEF DEBUG_VIRTINTF}Writeln('Freeing thunks');{$ENDIF}
+  for thunk in fThunks do
+    FreeRawThunk(thunk);
+  {$IFDEF DEBUG_VIRTINTF}Writeln('Freeing VMT');{$ENDIF}
+  if Assigned(fVmt) then
+    FreeMem(fVmt);
+  {$IFDEF DEBUG_VIRTINTF}Writeln('Freeing Context');{$ENDIF}
+  fContext.Free;
+  {$IFDEF DEBUG_VIRTINTF}Writeln('Done');{$ENDIF}
+  inherited Destroy;
+end;
+
+function TVirtualInterface.QueryInterface(constref aIID: TGuid; out aObj): LongInt;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+begin
+  {$IFDEF DEBUG_VIRTINTF}Writeln('QueryInterface for ', GUIDToString(aIID));{$ENDIF}
+  if IsEqualGUID(aIID, fGUID) then begin
+    {$IFDEF DEBUG_VIRTINTF}Writeln('Returning ', HexStr(@fVmt));{$ENDIF}
+    Pointer(aObj) := @fVmt;
+    { QueryInterface increases the reference count }
+    _AddRef;
+    Result := S_OK;
+  end else
+    Result := inherited QueryInterface(aIID, aObj);
+end;
+
+procedure TVirtualInterface.HandleUserCallback(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue);
+begin
+  {$IFDEF DEBUG_VIRTINTF}Writeln('Call for ', TRttiMethod(aUserData).Name);{$ENDIF}
+  if Assigned(fOnInvoke) then
+    fOnInvoke(TRttiMethod(aUserData), aArgs, aResult);
+end;
 
 {$ifndef InLazIDE}
 {$if defined(CPUI386) or (defined(CPUX86_64) and defined(WIN64))}
