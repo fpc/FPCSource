@@ -90,7 +90,7 @@ const
   );
 
 
-procedure test1; assembler;
+procedure test1; nostackframe; assembler;
 asm
   test [edi+foo2], cval                   { test word ptr [edi], 1   }
   test byte ptr [edi+foo], cval           { test byte ptr [edi], 1   }
@@ -142,7 +142,7 @@ asm
   test word ptr [edi+foo32_2.l], cval     { test word ptr [edi+1], 1 }
 end;
 
-procedure test2; assembler;
+procedure test2; nostackframe; assembler;
 asm
   test [edi+foo32], cval                   { test dword ptr [edi], 1   }
   test [edi+foo32_2.l], cval               { test dword ptr [edi+1], 1 }

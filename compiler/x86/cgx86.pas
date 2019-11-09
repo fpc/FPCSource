@@ -3315,6 +3315,7 @@ unit cgx86;
         end;
 
       begin
+        stackmisalignment:=0;
 {$ifdef i8086}
         { Win16 callback/exported proc prologue support.
           Since callbacks can be called from different modules, DS on entry may be
@@ -3415,9 +3416,7 @@ unit cgx86;
 {$endif i8086}
 {$ifdef i386}
         { interrupt support for i386 }
-        if (po_interrupt in current_procinfo.procdef.procoptions) and
-           { this messes up stack alignment }
-           not(target_info.system in [system_i386_darwin,system_i386_iphonesim,system_i386_android]) then
+        if (po_interrupt in current_procinfo.procdef.procoptions) then
           begin
             { .... also the segment registers }
             list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_GS));
@@ -3431,6 +3430,7 @@ unit cgx86;
             list.concat(Taicpu.Op_reg(A_PUSH,S_L,NR_ECX));
             list.concat(Taicpu.Op_reg(A_PUSH,S_L,NR_EBX));
             list.concat(Taicpu.Op_reg(A_PUSH,S_L,NR_EAX));
+            inc(stackmisalignment,4*2+6*8);
           end;
 {$endif i386}
 
@@ -3438,7 +3438,7 @@ unit cgx86;
         if not nostackframe then
           begin
             { return address }
-            stackmisalignment := sizeof(pint);
+            inc(stackmisalignment,sizeof(pint));
             list.concat(tai_regalloc.alloc(current_procinfo.framepointer,nil));
             if current_procinfo.framepointer=NR_STACK_POINTER_REG then
               begin
