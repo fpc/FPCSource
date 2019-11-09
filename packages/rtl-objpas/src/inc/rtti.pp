@@ -921,6 +921,26 @@ asm
   .long RawThunkPlaceholderContext
 RawThunkEnd:
 end;
+{$elseif defined(cpuaarch64)}
+const
+  RawThunkPlaceholderProc = $8765876587658765;
+  RawThunkPlaceholderContext = $4321432143214321;
+
+type
+  TRawThunkProc = PtrUInt;
+  TRawThunkContext = PtrUInt;
+
+procedure RawThunk; assembler; nostackframe;
+asm
+  ldr x16, .LProc
+  ldr x0, .LContext
+  br x16
+.LProc:
+  .quad RawThunkPlaceholderProc
+.LContext:
+  .quad RawThunkPlaceholderContext
+RawThunkEnd:
+end;
 {$elseif defined(cpum68k)}
 const
   RawThunkPlaceholderProc = $87658765;
@@ -986,7 +1006,7 @@ begin
 {$if declared(TRawThunkBytesToPop)}
     if not btpdone and (i <= Size - SizeOf(TRawThunkBytesToPop)) then begin
       btp := PRawThunkBytesToPop(PByte(Result) + i);
-      if btp^ = RawThunkPlaceholderBytesToPop then begin
+      if btp^ = TRawThunkBytesToPop(RawThunkPlaceholderBytesToPop) then begin
         btp^ := TRawThunkBytesToPop(aBytesToPop);
         btpdone := True;
       end;
@@ -994,14 +1014,14 @@ begin
 {$endif}
     if not contextdone and (i <= Size - SizeOf(TRawThunkContext)) then begin
       context := PRawThunkContext(PByte(Result) + i);
-      if context^ = RawThunkPlaceholderContext then begin
+      if context^ = TRawThunkContext(RawThunkPlaceholderContext) then begin
         context^ := TRawThunkContext(aContext);
         contextdone := True;
       end;
     end;
     if not procdone and (i <= Size - SizeOf(TRawThunkProc)) then begin
       proc := PRawThunkProc(PByte(Result) + i);
-      if proc^ = RawThunkPlaceholderProc then begin
+      if proc^ = TRawThunkProc(RawThunkPlaceholderProc) then begin
         proc^ := TRawThunkProc(aProc);
         procdone := True;
       end;

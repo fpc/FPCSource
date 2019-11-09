@@ -563,7 +563,8 @@ Unit racpugas;
                oper.opr.symbol:=hl;
              end
             else if (actopcode=A_ADR) or
-               (actopcode=A_ADRP) then
+               (actopcode=A_ADRP) or
+               (actopcode=A_LDR) then
               begin
                 oper.InitRef;
                 MaybeAddGotAddrMode;
