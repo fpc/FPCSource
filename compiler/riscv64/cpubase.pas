@@ -348,6 +348,9 @@ const
 
     function conditions_equal(const c1,c2: TAsmCond): boolean;
 
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+
 implementation
 
     uses
@@ -472,6 +475,21 @@ implementation
     function conditions_equal(const c1, c2: TAsmCond): boolean;
       begin
         result:=c1=c2;
+      end;
+
+
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+      begin
+        Result := (c = C_None) or conditions_equal(Subset, c);
+
+        if not Result then
+          case Subset of
+            C_EQ:
+              Result := (c in [C_GE, C_GEU]);
+            else
+              Result := False;
+          end;
       end;
 
 end.
