@@ -3164,18 +3164,18 @@ unit aoptx86;
            GetLastInstruction(p,hp1) and
            MatchInstruction(hp1,A_MOV,[]) and
            MatchOpType(taicpu(hp1),top_reg,top_reg) and
-           ((taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) or
-            ((taicpu(hp1).opsize=S_L) and (taicpu(p).opsize=S_Q) and SuperRegistersEqual(taicpu(hp1).oper[1]^.reg,taicpu(p).oper[1]^.reg))) then
+           (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
           begin
             TransferUsedRegs(TmpUsedRegs);
-            if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,p,TmpUsedRegs)) then
+            if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,p,TmpUsedRegs)) or
+              ((taicpu(p).ops = 3) and (taicpu(p).oper[1]^.reg=taicpu(p).oper[2]^.reg)) then
               { change
                   mov reg1,reg2
                   imul y,reg2 to imul y,reg1,reg2 }
               begin
                 taicpu(p).ops := 3;
+                taicpu(p).loadreg(2,taicpu(p).oper[1]^.reg);
                 taicpu(p).loadreg(1,taicpu(hp1).oper[0]^.reg);
-                taicpu(p).loadreg(2,taicpu(hp1).oper[1]^.reg);
                 DebugMsg(SPeepholeOptimization + 'MovImul2Imul done',p);
                 asml.remove(hp1);
                 hp1.free;
