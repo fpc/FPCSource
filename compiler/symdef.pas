@@ -4510,7 +4510,7 @@ implementation
         ts:=nil;
         if definedname then
           begin
-            ts:=ctypesym.create(n,self,true);
+            ts:=ctypesym.create(n,self);
             { avoid hints about unused types (these may only be used for
               typed constant data) }
             ts.increfcount;
@@ -4547,7 +4547,7 @@ implementation
           end
         else
           pname:=@optionalname;
-        sym:=cfieldvarsym.create(pname^,vs_value,def,[],true);
+        sym:=cfieldvarsym.create(pname^,vs_value,def,[]);
         symtable.insert(sym);
         trecordsymtable(symtable).addfield(sym,vis_hidden);
         result:=sym;
@@ -7239,7 +7239,7 @@ implementation
                  tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,sizeof(pint));
                  tObjectSymtable(symtable).alignrecord(tObjectSymtable(symtable).datasize,sizeof(pint));
                end;
-             vmt_field:=cfieldvarsym.create('_vptr$'+objname^,vs_value,voidpointertype,[],true);
+             vmt_field:=cfieldvarsym.create('_vptr$'+objname^,vs_value,voidpointertype,[]);
              hidesym(vmt_field);
              tObjectSymtable(symtable).insert(vmt_field);
              tObjectSymtable(symtable).addfield(tfieldvarsym(vmt_field),vis_hidden);

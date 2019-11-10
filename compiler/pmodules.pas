@@ -188,7 +188,7 @@ implementation
            assigned(hp.globalmacrosymtable) then
           macrosymtablestack.push(hp.globalmacrosymtable);
         { insert unitsym }
-        unitsym:=cunitsym.create(hp.modulename^,hp,true);
+        unitsym:=cunitsym.create(hp.modulename^,hp);
         inc(unitsym.refs);
         tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
         if addasused then
@@ -487,7 +487,7 @@ implementation
                 can not use the modulename because that can be different
                 when -Un is used }
               current_tokenpos:=filepos;
-              unitsym:=cunitsym.create(sorg,nil,false);
+              unitsym:=cunitsym.create(sorg,nil);
               { the current module uses the unit hp2 }
               current_module.addusedunit(hp2,true,unitsym);
             end
@@ -546,7 +546,7 @@ implementation
                      end;
                    { update unitsym now that we have access to the full name }
                    pu.unitsym.free;
-                   pu.unitsym:=cunitsym.create(sorg,pu.u,true);
+                   pu.unitsym:=cunitsym.create(sorg,pu.u);
                  end
                else
                  begin
@@ -712,7 +712,7 @@ implementation
            begin
              { insert symbol for got access in assembler code}
              gotvarsym:=cstaticvarsym.create('_GLOBAL_OFFSET_TABLE_',
-                          vs_value,voidpointertype,[vo_is_external],true);
+                          vs_value,voidpointertype,[vo_is_external]);
              gotvarsym.set_mangledname('_GLOBAL_OFFSET_TABLE_');
              current_module.localsymtable.insert(gotvarsym);
              { avoid unnecessary warnings }
@@ -823,7 +823,7 @@ implementation
           include(def.objectoptions,oo_is_external);
           include(def.objectoptions,oo_is_sealed);
           def.objextname:=stringdup(current_module.realmodulename^);
-          typesym:=ctypesym.create('__FPC_JVM_Module_Class_Alias$',def,true);
+          typesym:=ctypesym.create('__FPC_JVM_Module_Class_Alias$',def);
           symtablestack.top.insert(typesym);
         end;
 {$endif jvm}
@@ -925,7 +925,7 @@ type
 
          { insert unitsym of this unit to prevent other units having
            the same name }
-         tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module,true));
+         tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
 
          { load default system unit, it must be loaded before interface is parsed
            else we cannot use e.g. feature switches before the next real token }
@@ -1674,7 +1674,7 @@ type
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module,true));
+           tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource);
 
@@ -2103,7 +2103,7 @@ type
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module,true));
+           tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource);
 

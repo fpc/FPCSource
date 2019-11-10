@@ -350,7 +350,7 @@ implementation
              { possible proc directives }
              if check_proc_directive(true) then
                begin
-                  dummytype:=ctypesym.create('unnamed',hdef,true);
+                  dummytype:=ctypesym.create('unnamed',hdef);
                   parse_var_proc_directives(tsym(dummytype));
                   dummytype.typedef:=nil;
                   hdef.typesym:=nil;
@@ -1144,7 +1144,7 @@ implementation
               end;
             if not assigned(dummysym) then
               begin
-                dummysym:=ctypesym.create(orgspnongen,cundefineddef.create(true),true);
+                dummysym:=ctypesym.create(orgspnongen,cundefineddef.create(true));
                 if assigned(astruct) then
                   astruct.symtable.insert(dummysym)
                 else

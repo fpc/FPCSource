@@ -315,7 +315,7 @@ implementation
            if (df_generic in pd.defoptions) or
                not paramanager.ret_in_param(pd.returndef,pd) then
             begin
-              vs:=clocalvarsym.create('$result',vs_value,pd.returndef,[vo_is_funcret],true);
+              vs:=clocalvarsym.create('$result',vs_value,pd.returndef,[vo_is_funcret]);
               pd.localst.insert(vs);
               pd.funcretsym:=vs;
             end;
@@ -1091,7 +1091,7 @@ implementation
         pnestedvarsdef:=cpointerdef.getreusable(nestedvarsdef);
         if not(po_assembler in pd.procoptions) then
           begin
-            nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[],true);
+            nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[]);
             include(nestedvars.symoptions,sp_internal);
             pd.localst.insert(nestedvars);
             pd.parentfpstruct:=nestedvars;
