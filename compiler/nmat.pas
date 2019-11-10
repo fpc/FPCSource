@@ -164,17 +164,17 @@ implementation
                 if nf_isomod in flags then
                   begin
                     if lv>=0 then
-                      result:=create_simplified_ord_const(lv mod rv,resultdef,forinline)
+                      result:=create_simplified_ord_const(lv mod rv,resultdef,forinline,false)
                     else
                       if ((-lv) mod rv)=0 then
-                        result:=create_simplified_ord_const((-lv) mod rv,resultdef,forinline)
+                        result:=create_simplified_ord_const((-lv) mod rv,resultdef,forinline,false)
                       else
-                        result:=create_simplified_ord_const(rv-((-lv) mod rv),resultdef,forinline);
+                        result:=create_simplified_ord_const(rv-((-lv) mod rv),resultdef,forinline,false);
                   end
                 else
-                  result:=create_simplified_ord_const(lv mod rv,resultdef,forinline);
+                  result:=create_simplified_ord_const(lv mod rv,resultdef,forinline,false);
               divn:
-                result:=create_simplified_ord_const(lv div rv,resultdef,forinline);
+                result:=create_simplified_ord_const(lv div rv,resultdef,forinline,cs_check_overflow in localswitches);
               else
                 internalerror(2019050519);
             end;
@@ -729,9 +729,9 @@ implementation
                    lvalue:=tordconstnode(left).value;
                  case nodetype of
                     shrn:
-                      result:=create_simplified_ord_const(lvalue shr rvalue,resultdef,forinline);
+                      result:=create_simplified_ord_const(lvalue shr rvalue,resultdef,forinline,false);
                     shln:
-                      result:=create_simplified_ord_const(lvalue shl rvalue,resultdef,forinline);
+                      result:=create_simplified_ord_const(lvalue shl rvalue,resultdef,forinline,false);
                     else
                       internalerror(2019050517);
                  end;
@@ -916,7 +916,7 @@ implementation
         { constant folding }
         if is_constintnode(left) then
           begin
-             result:=create_simplified_ord_const(-tordconstnode(left).value,resultdef,forinline);
+             result:=create_simplified_ord_const(-tordconstnode(left).value,resultdef,forinline,cs_check_overflow in localswitches);
              exit;
           end;
         if is_constrealnode(left) then

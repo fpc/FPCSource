@@ -593,7 +593,7 @@ implementation
                      t := cpointerconstnode.create(qword(v),resultdef)
                    else
                      if is_integer(ld) then
-                       t := create_simplified_ord_const(v,resultdef,forinline)
+                       t := create_simplified_ord_const(v,resultdef,forinline,cs_check_overflow in localswitches)
                      else
                        t := cordconstnode.create(v,resultdef,(ld.typ<>enumdef));
                  end;
@@ -618,7 +618,7 @@ implementation
                        t := cpointerconstnode.create(qword(v),resultdef)
                    else
                      if is_integer(ld) then
-                       t := create_simplified_ord_const(v,resultdef,forinline)
+                       t := create_simplified_ord_const(v,resultdef,forinline,cs_check_overflow in localswitches)
                      else
                        t:=cordconstnode.create(v,resultdef,(ld.typ<>enumdef));
                  end;
@@ -632,21 +632,21 @@ implementation
                        t:=genintconstnode(0)
                      end
                    else
-                     t := create_simplified_ord_const(v,resultdef,forinline)
+                     t := create_simplified_ord_const(v,resultdef,forinline,cs_check_overflow in localswitches)
                  end;
                xorn :
                  if is_integer(ld) then
-                   t := create_simplified_ord_const(lv xor rv,resultdef,forinline)
+                   t := create_simplified_ord_const(lv xor rv,resultdef,forinline,false)
                  else
                    t:=cordconstnode.create(lv xor rv,resultdef,true);
                orn :
                  if is_integer(ld) then
-                   t:=create_simplified_ord_const(lv or rv,resultdef,forinline)
+                   t:=create_simplified_ord_const(lv or rv,resultdef,forinline,false)
                  else
                    t:=cordconstnode.create(lv or rv,resultdef,true);
                andn :
                  if is_integer(ld) then
-                   t:=create_simplified_ord_const(lv and rv,resultdef,forinline)
+                   t:=create_simplified_ord_const(lv and rv,resultdef,forinline,false)
                  else
                    t:=cordconstnode.create(lv and rv,resultdef,true);
                ltn :
@@ -671,7 +671,8 @@ implementation
                else
                  internalerror(2008022101);
              end;
-             include(t.flags,nf_internal);
+             if not forinline then
+               include(t.flags,nf_internal);
              result:=t;
              exit;
           end
