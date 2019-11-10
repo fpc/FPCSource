@@ -3318,49 +3318,44 @@ unit aoptx86;
                   end;
               end;
 
-            if ((hp1.typ = ait_label) and (symbol = tai_label(hp1).labsym))
-                or ((hp1.typ = ait_align) and GetNextInstruction(hp1, hp2) and (hp2.typ = ait_label) and (symbol = tai_label(hp2).labsym)) then
+          { Detect the following:
+              jmp<cond>     @Lbl1
+              jmp           @Lbl2
+              ...
+            @Lbl1:
+              ret
+
+            Change to:
+
+              jmp<inv_cond> @Lbl2
+              ret
+          }
+            if MatchInstruction(hp1, A_JMP, []) then
               begin
-                { If Jcc is immediately followed by the label that it's supposed to jump to, remove it }
-                DebugMsg(SPeepholeOptimization + 'Removed conditional jump whose destination was immediately after it', p);
-                UpdateUsedRegs(hp1);
-
-                TAsmLabel(symbol).decrefs;
-                { if the label refs. reach zero, remove any alignment before the label }
-                if (hp1.typ = ait_align) then
+                hp2 := getlabelwithsym(TAsmLabel(symbol));
+                if Assigned(hp2) and SkipLabels(hp2,hp2) and
+                  MatchInstruction(hp2,A_RET,[S_NO]) then
                   begin
-                    UpdateUsedRegs(hp2);
-                    if (TAsmLabel(symbol).getrefs = 0) then
-                    begin
-                      asml.Remove(hp1);
-                      hp1.Free;
+                    taicpu(p).condition := inverse_cond(taicpu(p).condition);
+
+                    { Change label address to that of the unconditional jump }
+                    taicpu(p).loadoper(0, taicpu(hp1).oper[0]^);
+
+                    TAsmLabel(symbol).DecRefs;
+                    taicpu(hp1).opcode := A_RET;
+                    taicpu(hp1).is_jmp := false;
+                    taicpu(hp1).ops := taicpu(hp2).ops;
+                    case taicpu(hp2).ops of
+                      0:
+                        taicpu(hp1).clearop(0);
+                      1:
+                        taicpu(hp1).loadconst(0,taicpu(hp2).oper[0]^.val);
+                      else
+                        internalerror(2016041302);
                     end;
-                    hp1 := hp2; { Set hp1 to the label }
                   end;
-
-                asml.remove(p);
-                p.free;
-
-                if (TAsmLabel(symbol).getrefs = 0) then
-                  begin
-                    GetNextInstruction(hp1, p); { Instruction following the label }
-                    asml.remove(hp1);
-                    hp1.free;
-
-                    UpdateUsedRegs(p);
-                    Result := True;
-                  end
-                else
-                  begin
-                    { We don't need to set the result to True because we know hp1
-                      is a label and won't trigger any optimisation routines. [Kit] }
-                    p := hp1;
-                  end;
-
-                Exit;
               end;
           end;
-
 {$ifndef i8086}
         if CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype] then
           begin
@@ -3415,23 +3410,28 @@ unit aoptx86;
                           else
                             hp2 := hp1;
 
-                          if not Assigned(hp2) then
-                            InternalError(2018062910);
+                          { Remember what the first hp2 is in case there's multiple aligns and labels to get rid of }
+                          hp3 := hp2;
+                          repeat
+                            if not Assigned(hp2) then
+                              InternalError(2018062910);
 
-                          if (hp2.typ <> ait_label) then
-                            begin
-                              { There's something other than CMOVs here.  Move the original jump
-                                to right before this point, then break out.
-
-                                Originally this was part of the above internal error, but it got
-                                triggered on the bootstrapping process sometimes. Investigate. [Kit] }
-                              asml.remove(p);
-                              asml.insertbefore(p, hp2);
-                              DebugMsg('Jcc/CMOVcc drop-out', p);
-                              UpdateUsedRegs(p);
-                              Result := True;
-                              Exit;
+                            case hp2.typ of
+                              ait_label:
+                                { What we expected - break out of the loop (it won't be a dead label at the top of
+                                  a cluster because that was optimised at an earlier stage) }
+                                Break;
+                              ait_align:
+                                { Go to the next entry until a label is found (may be multiple aligns before it) }
+                                begin
+                                  hp2 := tai(hp2.Next);
+                                  Continue;
+                                end;
+                              else
+                                InternalError(2018062911);
                             end;
+
+                          until False;
 
                           { Now we can safely decrement the reference count }
                           tasmlabel(symbol).decrefs;
@@ -3444,10 +3444,7 @@ unit aoptx86;
 
                           { Remove the label if this is its final reference }
                           if (tasmlabel(symbol).getrefs=0) then
-                            begin
-                              asml.remove(hp2);
-                              hp2.free;
-                            end;
+                            StripLabelFast(hp3);
 
                           if Assigned(p) then
                             begin
@@ -3541,16 +3538,7 @@ unit aoptx86;
                                 hp1.free;
 
                                 { Remove label xxx (it will have a ref of zero due to the initial check }
-                                if (hp4.typ = ait_align) then
-                                  begin
-                                    { Account for alignment as well }
-                                    GetNextInstruction(hp4, hp1);
-                                    asml.remove(hp1);
-                                    hp1.free;
-                                  end;
-
-                                asml.remove(hp4);
-                                hp4.free;
+                                StripLabelFast(hp4);
 
                                 { Now we can safely decrement it }
                                 tasmlabel(symbol).decrefs;
@@ -3561,23 +3549,12 @@ unit aoptx86;
                                 asml.remove(hp2);
                                 hp2.free;
 
-                                { Remove label yyy (and the optional alignment) if its reference will fall to zero }
-                                if tasmlabel(symbol).getrefs = 1 then
-                                  begin
-                                    if (hp3.typ = ait_align) then
-                                      begin
-                                        { Account for alignment as well }
-                                        GetNextInstruction(hp3, hp1);
-                                        asml.remove(hp1);
-                                        hp1.free;
-                                      end;
+                                { As before, now we can safely decrement it }
+                                tasmlabel(symbol).decrefs;
 
-                                    asml.remove(hp3);
-                                    hp3.free;
-
-                                    { As before, now we can safely decrement it }
-                                    tasmlabel(symbol).decrefs;
-                                  end;
+                                { Remove label yyy (and the optional alignment) if its reference falls to zero }
+                                if tasmlabel(symbol).getrefs = 0 then
+                                  StripLabelFast(hp3);
 
                                 if Assigned(p) then
                                   begin
