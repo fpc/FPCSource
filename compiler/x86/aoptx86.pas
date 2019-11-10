@@ -3537,11 +3537,11 @@ unit aoptx86;
                                 asml.remove(hp1);
                                 hp1.free;
 
-                                { Remove label xxx (it will have a ref of zero due to the initial check }
-                                StripLabelFast(hp4);
-
                                 { Now we can safely decrement it }
                                 tasmlabel(symbol).decrefs;
+
+                                { Remove label xxx (it will have a ref of zero due to the initial check }
+                                StripLabelFast(hp4);
 
                                 { remove jmp }
                                 symbol := taicpu(hp2).oper[0]^.ref^.symbol;
