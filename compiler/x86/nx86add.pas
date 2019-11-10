@@ -1520,16 +1520,11 @@ unit nx86add;
          end
        else
          begin
-           { at least one location is a register, re-use it, so we can try two operand opcodes }
+           { at least one location should be a register, if yes, try to re-use it, so we can try two operand opcodes }
            if left.location.loc<>LOC_REGISTER then
               begin
                 if right.location.loc<>LOC_REGISTER then
-                  begin
-                    tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                    cg.a_load_loc_reg(current_asmdata.CurrAsmList,opsize,left.location,tmpreg);
-                    location_reset(left.location,LOC_REGISTER,opsize);
-                    left.location.register:=tmpreg;
-                  end
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false)
                 else
                   begin
                     location_swap(left.location,right.location);
