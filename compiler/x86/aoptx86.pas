@@ -3392,26 +3392,8 @@ unit aoptx86;
                             GetNextInstruction(hp1,hp1);
                           until not(CanBeCMOV(hp1));
 
-                          { Don't decrement the reference count on the label yet, otherwise
-                            GetNextInstruction might skip over the label if it drops to
-                            zero. }
-                          GetNextInstruction(hp1,hp2);
-
-                          { if the label refs. reach zero, remove any alignment before the label }
-                          if (hp1.typ = ait_align) and (hp2.typ = ait_label) then
-                            begin
-                              { Ref = 1 means it will drop to zero }
-                              if (tasmlabel(symbol).getrefs=1) then
-                                begin
-                                  asml.Remove(hp1);
-                                  hp1.Free;
-                                end;
-                            end
-                          else
-                            hp2 := hp1;
-
-                          { Remember what the first hp2 is in case there's multiple aligns and labels to get rid of }
-                          hp3 := hp2;
+                          { Remember what hp1 is in case there's multiple aligns to get rid of }
+                          hp2 := hp1;
                           repeat
                             if not Assigned(hp2) then
                               InternalError(2018062910);
@@ -3444,7 +3426,7 @@ unit aoptx86;
 
                           { Remove the label if this is its final reference }
                           if (tasmlabel(symbol).getrefs=0) then
-                            StripLabelFast(hp3);
+                            StripLabelFast(hp1);
 
                           if Assigned(p) then
                             begin
