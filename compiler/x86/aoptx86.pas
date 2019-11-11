@@ -2594,12 +2594,34 @@ unit aoptx86;
                    (((taicpu(hp1).opcode = A_INC) or
                      (taicpu(hp1).opcode = A_DEC)) and
                     (taicpu(hp1).oper[0]^.typ = Top_Reg) and
-                    (taicpu(hp1).oper[0]^.reg = taicpu(p).oper[1]^.reg))) and
+                    (taicpu(hp1).oper[0]^.reg = taicpu(p).oper[1]^.reg)) or
+                    ((taicpu(hp1).opcode = A_LEA) and
+                    (taicpu(hp1).oper[0]^.ref^.index = taicpu(p).oper[1]^.reg) and
+                    (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg))) and
                   (not GetNextInstruction(hp1,hp2) or
                    not instrReadsFlags(hp2)) Do
               begin
                 TmpBool1 := False;
-                if (taicpu(hp1).oper[0]^.typ = Top_Const) then
+                if taicpu(hp1).opcode=A_LEA then
+                  begin
+                    if (TmpRef.base = NR_NO) and
+                       (taicpu(hp1).oper[0]^.ref^.symbol=nil) and
+                       (taicpu(hp1).oper[0]^.ref^.relsymbol=nil) and
+                       (taicpu(hp1).oper[0]^.ref^.segment=NR_NO) and
+                       ((taicpu(hp1).oper[0]^.ref^.scalefactor=0) or
+                       (taicpu(hp1).oper[0]^.ref^.scalefactor*tmpref.scalefactor<=8)) then
+                      begin
+                        TmpBool1 := True;
+                        TmpBool2 := True;
+                        inc(TmpRef.offset, taicpu(hp1).oper[0]^.ref^.offset);
+                        if taicpu(hp1).oper[0]^.ref^.scalefactor<>0 then
+                          tmpref.scalefactor:=tmpref.scalefactor*taicpu(hp1).oper[0]^.ref^.scalefactor;
+                        TmpRef.base := taicpu(hp1).oper[0]^.ref^.base;
+                        asml.remove(hp1);
+                        hp1.free;
+                      end
+                  end
+                else if (taicpu(hp1).oper[0]^.typ = Top_Const) then
                   begin
                     TmpBool1 := True;
                     TmpBool2 := True;
@@ -2647,14 +2669,15 @@ unit aoptx86;
               then
               begin
                 if not(TmpBool2) and
-                    (taicpu(p).oper[0]^.val = 1) then
+                    (taicpu(p).oper[0]^.val=1) then
                   begin
-                    hp1 := taicpu.Op_reg_reg(A_ADD,taicpu(p).opsize,
+                    hp1:=taicpu.Op_reg_reg(A_ADD,taicpu(p).opsize,
                       taicpu(p).oper[1]^.reg, taicpu(p).oper[1]^.reg)
                   end
                 else
-                  hp1 := taicpu.op_ref_reg(A_LEA, taicpu(p).opsize, TmpRef,
+                  hp1:=taicpu.op_ref_reg(A_LEA, taicpu(p).opsize, TmpRef,
                               taicpu(p).oper[1]^.reg);
+                DebugMsg(SPeepholeOptimization + 'ShlAddLeaSubIncDec2Lea',p);
                 InsertLLItem(p.previous, p.next, hp1);
                 p.free;
                 p := hp1;
