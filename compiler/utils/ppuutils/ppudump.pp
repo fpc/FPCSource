@@ -3070,8 +3070,20 @@ const
      (mask:vo_is_default_var;  str:'DefaultIntrinsicVar'),
      (mask:vo_is_far;          str:'IsFar')
   );
+type
+  tvaraccessdesc=record
+    mask: tvarsymaccessflag;
+    str: string[30];
+  end;
+const
+  varaccessstr : array[ord(low(tvarsymaccessflag))..ord(high(tvarsymaccessflag))] of tvaraccessdesc=(
+    (mask: vsa_addr_taken;         str:'Address taken'),
+    (mask: vsa_different_scope;    str:'Accessed from different scope')
+  );
 var
   i : longint;
+  accessflag: tvarsymaccessflag;
+  varsymaccessflags: tvarsymaccessflags;
   first : boolean;
 begin
   readcommonsym(s, VarDef);
@@ -3087,6 +3099,21 @@ begin
       end;
   writeln([space,'         Spez : ',Varspez2Str(i)]);
   writeln([space,'      Regable : ',Varregable2Str(ppufile.getbyte)]);
+  ppufile.getset(tppuset1(varsymaccessflags));
+  write([space, ' Access Flags : ']);
+  first:=true;
+  for i:=low(varaccessstr) to high(varaccessstr) do
+    begin
+      if varaccessstr[i].mask in varsymaccessflags then
+        begin
+          if first then
+            first:=false
+          else
+            write([', ']);
+          write([varaccessstr[i].str]);
+        end
+    end;
+  writeln;
   writeln([space,'   Addr Taken : ',(ppufile.getbyte<>0)]);
   writeln([space,'Escaped Scope : ',(ppufile.getbyte<>0)]);
   write  ([space,'     Var Type : ']);

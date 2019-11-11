@@ -611,6 +611,15 @@ type
   );
   tvaroptions=set of tvaroption;
 
+  { variable symbol access flags }
+  tvarsymaccessflag = (
+    { this symbol's address has been taken }
+    vsa_addr_taken,
+    { this symbol is accessed from a different scope }
+    vsa_different_scope
+  );
+  tvarsymaccessflags = set of tvarsymaccessflag;
+
   tmanagementoperator=(mop_none,
     mop_initialize,
     mop_finalize,
