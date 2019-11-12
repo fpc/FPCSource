@@ -3433,7 +3433,14 @@ unit aoptx86;
                                   Continue;
                                 end;
                               else
-                                InternalError(2018062911);
+                                begin
+                                  { Might be a comment or temporary allocation entry }
+                                  if not (hp2.typ in SkipInstr) then
+                                    InternalError(2018062911);
+
+                                  hp2 := tai(hp2.Next);
+                                  Continue;
+                                end;
                             end;
 
                           until False;

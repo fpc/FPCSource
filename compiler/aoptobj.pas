@@ -1789,8 +1789,15 @@ Unit AoptObj;
             ait_align:
               begin
                 tmp := tai(hp.Next);
-                asml.Remove(hp);
-                hp.Free;
+                if not(
+                  (cs_debuginfo in current_settings.moduleswitches) or
+                  (cs_use_lineinfo in current_settings.globalswitches)
+                ) then
+                  { Don't remove aligns if debuginfo is present }
+                  begin
+                    asml.Remove(hp);
+                    hp.Free;
+                  end;
                 hp := tmp;
                 { Control flow will now return to 'repeat' }
               end;
@@ -1807,7 +1814,13 @@ Unit AoptObj;
                 Exit;
               end;
             else
-              InternalError(2019110801);
+              begin
+                { Might be a comment or temporary allocation entry }
+                if not (hp.typ in SkipInstr) then
+                  InternalError(2019110801);
+
+                hp := tai(hp.Next);
+              end;
           end;
         until False;
       end;
