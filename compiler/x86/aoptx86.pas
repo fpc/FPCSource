@@ -2292,6 +2292,8 @@ unit aoptx86;
       var
         hp1, hp2, hp3: tai;
         l : ASizeInt;
+        ref: Integer;
+        saveref: treference;
       begin
         Result:=false;
         { removes seg register prefixes from LEA operations, as they
@@ -2318,11 +2320,8 @@ unit aoptx86;
               end
             else if (taicpu(p).oper[0]^.ref^.offset = 0) then
               begin
-                hp1:=taicpu(p.Next);
                 DebugMsg(SPeepholeOptimization + 'Lea2Nop done',p);
-                asml.remove(p);
-                p.free;
-                p:=hp1;
+                RemoveCurrentP(p);
                 Result:=true;
                 exit;
               end
@@ -2407,10 +2406,76 @@ unit aoptx86;
             DebugMsg(SPeepholeOptimization + 'LeaLea2Lea done',p);
             inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.ref^.offset);
             taicpu(hp1).oper[0]^.ref^.base:=taicpu(p).oper[0]^.ref^.base;
-            asml.Remove(p);
-            p.Free;
-            p:=hp1;
+            RemoveCurrentP(p);
             result:=true;
+            exit;
+          end;
+        { changes
+            lea <ref1>, reg1
+            <op> ...,<ref. with reg1>,...
+            to
+            <op> ...,<ref1>,... }
+        if (taicpu(p).oper[1]^.reg<>current_procinfo.framepointer) and
+          (taicpu(p).oper[1]^.reg<>NR_STACK_POINTER_REG) and
+          GetNextInstruction(p,hp1) and
+          (hp1.typ=ait_instruction) and
+          not(MatchInstruction(hp1,A_LEA,[])) then
+          begin
+            if (taicpu(hp1).ops>=1) and (taicpu(hp1).oper[0]^.typ=top_ref) and RegInOp(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[0]^) then
+              ref:=0
+            else if (taicpu(hp1).ops>=2) and (taicpu(hp1).oper[1]^.typ=top_ref) and RegInOp(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[1]^) then
+              ref:=1
+            else
+              ref:=-1;
+            if (ref<>-1) and
+              ((taicpu(hp1).oper[ref]^.ref^.base=taicpu(p).oper[1]^.reg) xor (taicpu(hp1).oper[ref]^.ref^.index=taicpu(p).oper[1]^.reg)) then
+              begin
+                saveref:=taicpu(hp1).oper[ref]^.ref^;
+                if taicpu(hp1).oper[ref]^.ref^.base=taicpu(p).oper[1]^.reg then
+                  taicpu(hp1).oper[ref]^.ref^.base:=NR_NO
+                else if taicpu(hp1).oper[ref]^.ref^.index=taicpu(p).oper[1]^.reg then
+                  taicpu(hp1).oper[ref]^.ref^.index:=NR_NO
+                else
+                  Internalerror(2019111201);
+                if ((taicpu(hp1).oper[ref]^.ref^.base=taicpu(p).oper[1]^.reg) or (taicpu(hp1).oper[ref]^.ref^.scalefactor in [0,1])) and
+                  ((taicpu(p).oper[0]^.ref^.base=NR_NO) or (taicpu(hp1).oper[ref]^.ref^.base=NR_NO)) and
+                  ((taicpu(p).oper[0]^.ref^.index=NR_NO) or (taicpu(hp1).oper[ref]^.ref^.index=NR_NO)) and
+                  ((taicpu(p).oper[0]^.ref^.symbol=nil) or (taicpu(hp1).oper[ref]^.ref^.symbol=nil)) and
+                  ((taicpu(p).oper[0]^.ref^.relsymbol=nil) or (taicpu(hp1).oper[ref]^.ref^.relsymbol=nil)) and
+                  ((taicpu(p).oper[0]^.ref^.scalefactor in [0,1]) or (taicpu(hp1).oper[ref]^.ref^.scalefactor in [0,1])) and
+                  (taicpu(p).oper[0]^.ref^.segment=NR_NO) and (taicpu(hp1).oper[ref]^.ref^.segment=NR_NO)
+{$ifdef x86_64}
+                  and (abs(taicpu(hp1).oper[ref]^.ref^.offset+taicpu(p).oper[0]^.ref^.offset)<=$7fffffff)
+{$endif x86_64}
+                  then
+                  begin
+                    if not(RegInInstruction(taicpu(p).oper[1]^.reg,taicpu(hp1))) then
+                      begin
+                        TransferUsedRegs(TmpUsedRegs);
+                        UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                        if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
+                          begin
+                            DebugMsg(SPeepholeOptimization + 'LeaOp2Op done',p);
+                            if taicpu(p).oper[0]^.ref^.base<>NR_NO then
+                              taicpu(hp1).oper[ref]^.ref^.base:=taicpu(p).oper[0]^.ref^.base;
+                            if taicpu(p).oper[0]^.ref^.index<>NR_NO then
+                              taicpu(hp1).oper[ref]^.ref^.index:=taicpu(p).oper[0]^.ref^.index;
+                            if taicpu(p).oper[0]^.ref^.symbol<>nil then
+                              taicpu(hp1).oper[ref]^.ref^.symbol:=taicpu(p).oper[0]^.ref^.symbol;
+                            if taicpu(p).oper[0]^.ref^.relsymbol<>nil then
+                              taicpu(hp1).oper[ref]^.ref^.relsymbol:=taicpu(p).oper[0]^.ref^.relsymbol;
+                            if not(taicpu(p).oper[0]^.ref^.scalefactor in [0,1]) then
+                              taicpu(hp1).oper[ref]^.ref^.scalefactor:=taicpu(p).oper[0]^.ref^.scalefactor;
+                            inc(taicpu(hp1).oper[ref]^.ref^.offset,taicpu(p).oper[0]^.ref^.offset);
+                            RemoveCurrentP(p);
+                            result:=true;
+                            exit;
+                          end
+                      end;
+                  end;
+                { recover }
+                taicpu(hp1).oper[ref]^.ref^:=saveref;
+              end;
           end;
         { replace
             lea    x(stackpointer),stackpointer
