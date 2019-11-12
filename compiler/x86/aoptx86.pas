@@ -2421,6 +2421,7 @@ unit aoptx86;
           (hp1.typ=ait_instruction) and
           not(MatchInstruction(hp1,A_LEA,[])) then
           begin
+            { find a reference which uses reg1 }
             if (taicpu(hp1).ops>=1) and (taicpu(hp1).oper[0]^.typ=top_ref) and RegInOp(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[0]^) then
               ref:=0
             else if (taicpu(hp1).ops>=2) and (taicpu(hp1).oper[1]^.typ=top_ref) and RegInOp(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[1]^) then
@@ -2428,8 +2429,10 @@ unit aoptx86;
             else
               ref:=-1;
             if (ref<>-1) and
+              { reg1 must be either the base or the index }
               ((taicpu(hp1).oper[ref]^.ref^.base=taicpu(p).oper[1]^.reg) xor (taicpu(hp1).oper[ref]^.ref^.index=taicpu(p).oper[1]^.reg)) then
               begin
+                { reg1 can be removed from the reference }
                 saveref:=taicpu(hp1).oper[ref]^.ref^;
                 if taicpu(hp1).oper[ref]^.ref^.base=taicpu(p).oper[1]^.reg then
                   taicpu(hp1).oper[ref]^.ref^.base:=NR_NO
@@ -2437,6 +2440,7 @@ unit aoptx86;
                   taicpu(hp1).oper[ref]^.ref^.index:=NR_NO
                 else
                   Internalerror(2019111201);
+                { check if the can insert all data of the lea into the second instruction }
                 if ((taicpu(hp1).oper[ref]^.ref^.base=taicpu(p).oper[1]^.reg) or (taicpu(hp1).oper[ref]^.ref^.scalefactor in [0,1])) and
                   ((taicpu(p).oper[0]^.ref^.base=NR_NO) or (taicpu(hp1).oper[ref]^.ref^.base=NR_NO)) and
                   ((taicpu(p).oper[0]^.ref^.index=NR_NO) or (taicpu(hp1).oper[ref]^.ref^.index=NR_NO)) and
@@ -2449,10 +2453,12 @@ unit aoptx86;
 {$endif x86_64}
                   then
                   begin
+                    { reg1 might not used by the second instruction after it is remove from the reference }
                     if not(RegInInstruction(taicpu(p).oper[1]^.reg,taicpu(hp1))) then
                       begin
                         TransferUsedRegs(TmpUsedRegs);
                         UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                        { reg1 is not updated so it might not be used afterwards }
                         if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
                           begin
                             DebugMsg(SPeepholeOptimization + 'LeaOp2Op done',p);
