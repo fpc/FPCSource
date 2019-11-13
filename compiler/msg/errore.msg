@@ -2934,6 +2934,7 @@ asmw_f_code_segment_too_large=08030_F_Code segment too large
 asmw_f_data_segment_too_large=08031_F_Data segment too large
 asmw_e_instruction_not_supported_by_cpu=08032_E_Instruction not supported by the selected instruction set
 asmw_e_brxx_out_of_range=08033_E_Asm: conditional branch destination is out of range
+asmw_e_illegal_use_of_rip=08034_E_Asm: RIP cannot be used as index register or with another register in a reference
 #
 # Executing linker/assembler
 #
