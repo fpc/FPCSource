@@ -427,6 +427,9 @@ Unit AoptObj;
       verbose,
       aoptutils,
       aasmcfi,
+{$if defined(ARM)}
+      cpuinfo,
+{$endif defined(ARM)}
       procinfo;
 
 
@@ -2354,24 +2357,30 @@ Unit AoptObj;
                 If an instruction needs the information of this, it can easily create a TempUsedRegs (FK)
               UpdateUsedRegs(tai(p.next));
               }
-  {$ifdef DEBUG_OPTALLOC}
+{$ifdef DEBUG_OPTALLOC}
               if p.Typ=ait_instruction then
                 InsertLLItem(tai(p.Previous),p,tai_comment.create(strpnew(GetAllocationString(UsedRegs))));
-  {$endif DEBUG_OPTALLOC}
+{$endif DEBUG_OPTALLOC}
 
               { Handle Jmp Optimizations first }
-              if DoJumpOptimizations(p, stoploop) then
-                begin
-                  UpdateUsedRegs(p);
-                  if FirstInstruction then
-                    { Update StartPoint, since the old p was removed;
-                      don't set FirstInstruction to False though, as
-                      the new p might get removed too. }
-                    StartPoint := p;
+{$if defined(ARM)}
+              { Cannot perform these jump optimisations if the ARM architecture has 16-bit thumb codes }
+              if not (
+                (current_settings.instructionset = is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype])
+              ) then
+{$endif defined(ARM)}
+                if DoJumpOptimizations(p, stoploop) then
+                  begin
+                    UpdateUsedRegs(p);
+                    if FirstInstruction then
+                      { Update StartPoint, since the old p was removed;
+                        don't set FirstInstruction to False though, as
+                        the new p might get removed too. }
+                      StartPoint := p;
 
-                  if (p.typ = ait_instruction) and IsJumpToLabel(taicpu(p)) then
-                    Continue;
-                end;
+                    if (p.typ = ait_instruction) and IsJumpToLabel(taicpu(p)) then
+                      Continue;
+                  end;
 
               if PeepHoleOptPass1Cpu(p) then
                 begin
