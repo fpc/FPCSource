@@ -24,7 +24,9 @@
 }
 Unit AoptObj;
 
-  {$i fpcdefs.inc}
+{ $define DEBUG_JUMP}
+
+{$i fpcdefs.inc}
 
   { general, processor independent objects for use by the assembler optimizer }
 
@@ -1552,11 +1554,11 @@ Unit AoptObj;
     { Output debug message to console - null function if EXTDEBUG is not defined }
     class procedure TAOptObj.DebugWrite(Message: string); inline;
       begin
-{$ifdef EXTDEBUG}
+{$ifdef DEBUG_JUMP}
         WriteLn(Message);
-{$else EXTDEBUG}
+{$else DEBUG_JUMP}
         { Do nothing }
-{$endif EXTDEBUG}
+{$endif DEBUG_JUMP}
       end;
 
     { Removes all instructions between an unconditional jump and the next label }
