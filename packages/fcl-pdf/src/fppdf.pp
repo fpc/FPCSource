@@ -1081,7 +1081,6 @@ type
     function IndexOfGlobalXRef(const AValue: string): integer;
     Function FindGlobalXRef(Const AName : String) : TPDFXRef;
     Function GlobalXRefByName(Const AName : String) : TPDFXRef;
-    Function ImageStreamOptions : TPDFImageStreamOptions;
     Property GlobalXRefs[AIndex : Integer] : TPDFXRef Read GetX;
     Property GlobalXRefCount : Integer Read GetXC;
     Property CurrentColor: string Read FCurrentColor Write FCurrentColor;
@@ -1119,6 +1118,7 @@ type
     Property Fonts : TPDFFontDefs Read FFonts Write SetFonts;
     Property Pages : TPDFPages Read FPages;
     Property Images : TPDFImages Read FImages;
+    Function ImageStreamOptions : TPDFImageStreamOptions;
     Property Catalogue: integer Read FCatalogue;
     Property Trailer: TPDFDictionary Read FTrailer;
     Property FontFiles : TStrings Read FFontFiles Write SetFontFiles;
