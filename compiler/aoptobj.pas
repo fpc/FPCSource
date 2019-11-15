@@ -2014,13 +2014,16 @@ Unit AoptObj;
                             Result := True;
                             Exit;
 
-{$if not defined(avr) and not defined(riscv32) and not defined(riscv64)}
+{$if not defined(avr) and not defined(riscv32) and not defined(riscv64) and not defined(mips)}
                           end
                         else
                           { NOTE: There is currently no watertight, cross-platform way to create
                             an unconditional jump without access to the cg object.  If anyone can
                             improve this particular optimisation to work on AVR and RISC-V,
-                            please do. [Kit]}
+                            please do. [Kit]
+
+                            On MIPS, it causes an endless loop, so I disabled it for now
+                          }
                           begin
                             { Since cond1 is a subset of inv(cond2), jmp<cond2> will always branch if
                               jmp<cond1> does not, so change jmp<cond2> to an unconditional jump. }
