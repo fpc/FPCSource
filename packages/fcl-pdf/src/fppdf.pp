@@ -907,6 +907,7 @@ type
     Destructor Destroy; override;
     Procedure CreateStreamedData(AUseCompression: Boolean); overload;
     Procedure CreateStreamedData(aOptions : TPDFImageStreamOptions); overload;
+    Procedure DetachImage;
     procedure SetStreamedMask(const AValue: TBytes; const ACompression: TPDFImageCompression);
     Function WriteImageStream(AStream: TStream): int64;
     Function WriteMaskStream(AStream: TStream): int64;
@@ -3029,6 +3030,11 @@ begin
     MS.Free;
     MSMask.Free;
   end;
+end;
+
+Procedure TPDFImageItem.DetachImage;
+begin
+  FImage := nil;
 end;
 
 function TPDFImageItem.WriteStream(const AStreamedData: TBytes;
