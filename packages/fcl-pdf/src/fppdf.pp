@@ -3213,10 +3213,12 @@ begin
       Reader.Free;
     end;
     IP.Image:=I;
-    if Not KeepImage then
+    if KeepImage then
+      IP.OwnsImage := True
+    else
       begin
       IP.CreateStreamedData(Owner.ImageStreamOptions);
-      IP.FImage:=Nil; // not through property, that would clear the image
+      IP.DetachImage; // not through property, that would clear the image
       i.Free;
       end;
   end;
