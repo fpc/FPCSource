@@ -143,6 +143,7 @@ type
     Type
       TFPGListEnumeratorSpec = specialize TFPGListEnumerator<T>;
     constructor Create;
+
     class Function ItemIsManaged : Boolean; override;
     function Add(const Item: T): Integer; {$ifdef FGLINLINE} inline; {$endif}
     function Extract(const Item: T): T; {$ifdef FGLINLINE} inline; {$endif}
@@ -968,7 +969,11 @@ end;
 
 class function TFPGList.ItemIsManaged: Boolean;
 begin
+{$IFNDEF VER3_0}
   Result:=IsManagedType(T);
+{$ELSE}
+  Result:=True; // Fallback to old behaviour  
+{$ENDIF}
 end;
 
 function TFPGList.GetEnumerator: TFPGListEnumeratorSpec;
@@ -1011,7 +1016,7 @@ var
   i: Integer;
   
 begin
-  if IsManagedType(T) then
+  if ItemIsManaged then
     begin
     Capacity:=Capacity+Source.Count;
     for I := 0 to Source.Count - 1 do
@@ -1023,7 +1028,7 @@ end;
 
 procedure TFPGList.Assign(Source: TFPGList);
 begin
-  if IsManagedType(T) then
+  if ItemIsManaged then
     begin
     Clear;
     AddList(Source);
