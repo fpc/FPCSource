@@ -139,12 +139,11 @@ type
     procedure SetLast(const Value: T); {$ifdef FGLINLINE} inline; {$endif}
     function GetFirst: T; {$ifdef FGLINLINE} inline; {$endif}
     procedure SetFirst(const Value: T); {$ifdef FGLINLINE} inline; {$endif}
-  Protected
-    class Function ItemIsManaged : Boolean; override;
   public
     Type
       TFPGListEnumeratorSpec = specialize TFPGListEnumerator<T>;
     constructor Create;
+    class Function ItemIsManaged : Boolean; override;
     function Add(const Item: T): Integer; {$ifdef FGLINLINE} inline; {$endif}
     function Extract(const Item: T): T; {$ifdef FGLINLINE} inline; {$endif}
     property First: T read GetFirst write SetFirst;
