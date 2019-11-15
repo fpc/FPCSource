@@ -781,15 +781,18 @@ procedure TFPCustomCanvas.Draw (x,y:integer; image:TFPCustomImage);
 var xx,xi,yi,xm,ym,r,t : integer;
 begin
   xm := x + image.width-1;
+  if (xm<0) or (x>width) then exit;
   if xm >= width then
     xm := width - 1;
   ym := y + image.height-1;
+  if (ym<0) or (y>width) then exit;
   if ym >= height then
     ym := height - 1;
   xi := x;
   yi := y;
   if clipping then
-    CheckRectClipping (ClipRect, xi,yi, xm,ym);
+    if not CheckRectClipping (ClipRect, xi,yi, xm,ym) then
+      exit;
   for r := xi to xm do
     begin
     xx := r - x;
