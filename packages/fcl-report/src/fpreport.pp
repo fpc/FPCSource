@@ -142,6 +142,7 @@ type
             moResetAggregateOnColumn
             );
   TFPReportMemoOptions    = set of TFPReportMemoOption;
+  TFPReportWordWrapOverflow = (wwoTruncate,wwoOverflow,wwoSplit);
 
   TFPReportSections    = set of rsPage..rsColumn;
 
@@ -1929,12 +1930,13 @@ type
     ExpressionNodes: array of TExprNodeInfoRec;
     FFont: TFPReportFont;
     FUseParentFont: Boolean;
+    FWordWrapOverflow: TFPReportWordWrapOverflow;
     function    GetParentFont: TFPReportFont;
     procedure   HandleFontChange(Sender: TObject);
     procedure   SetCullThreshold(AValue: TFPReportCullThreshold);
     procedure   SetText(AValue: TFPReportString);
     procedure   SetUseParentFont(AValue: Boolean);
-    procedure   WrapText(const AText: String; var ALines: TStrings; const ALineWidth: TFPReportUnits; out AHeight: TFPReportUnits);
+    procedure   SetWordWrapOverflow(AValue: TFPReportWordWrapOverflow);
     procedure   ApplyHorzTextAlignment;
     procedure   ApplyVertTextAlignment;
     function    GetTextLines: TStrings;
@@ -1958,6 +1960,7 @@ type
     procedure   SetFont(const AValue: TFPReportFont);
     procedure   CullTextOutOfBounds;
   protected
+    procedure   WrapText(const AText: String; var ALines: TStrings; const ALineWidth: TFPReportUnits; out AHeight: TFPReportUnits); virtual;
     procedure   ReassignParentFont;
     procedure   ParentFontChanged; override;
     function    CreateTextAlignment: TFPReportTextAlignment; virtual;
@@ -1981,6 +1984,7 @@ type
     property    UseParentFont: Boolean read FUseParentFont write SetUseParentFont default True;
     { % of line height that should be visible, otherwise it's culled if StretchMode = smDontStretch. Valid range is 1-100% and default is 75%}
     property    CullThreshold: TFPReportCullThreshold read FCullThreshold write SetCullThreshold default 75;
+    Property    WordWrapOverflow : TFPReportWordWrapOverflow read FWordWrapOverflow write SetWordWrapOverflow;
   protected
     // *****************************
     //   This block is made Protected simply for Unit Testing purposes.
@@ -2022,6 +2026,7 @@ type
     property  LineSpacing;
     property  LinkColor;
     property  Options;
+    Property  WordWrapOverflow;
     property  StretchMode;
     property  Text;
     property  TextAlignment;
@@ -3911,6 +3916,13 @@ begin
   Changed;
 end;
 
+procedure TFPReportCustomMemo.SetWordWrapOverflow(AValue: TFPReportWordWrapOverflow);
+begin
+  if FWordWrapOverflow=AValue then Exit;
+  FWordWrapOverflow:=AValue;
+  Changed;
+end;
+
 procedure TFPReportCustomMemo.WrapText(const AText: String; var ALines: TStrings; const ALineWidth: TFPReportUnits; out
   AHeight: TFPReportUnits);
 var
@@ -3949,25 +3961,31 @@ var
         s3 := s2; // we might need the value of s2 later again
 
         // are we in the middle of a word. If so find the beginning of word.
-        while (m > 0) and (Copy(s2, m, m+1) <> ' ') do
-        begin
+        while (m > 0) and (s2[m] <> ' ') do
           Dec(m);
-          s2  := Copy(s,1,m);
-        end;
+        s2  := Copy(s,1,m);
 
         if s2 = '' then
-        begin
-          s2 := s3;
-          m := Length(s2);
-          { We reached the beginning of the line without finding a word that fits the maxw.
-            So we are forced to use a longer than maxw word. We were in the middle of
-            a word, so now find the end of the current word. }
-          while (m < Length(s)) and (Copy(s2, m, m+1) <> ' ') do
           begin
-            Inc(m);
-            s2  := Copy(s,1,m);
-          end;
-        end;
+          // Single word does not fit. S3 is max word that fits.
+          s2 := s3;
+          Case WordWrapOverflow of
+            wwoOverflow:
+              begin
+                { We reached the beginning of the line without finding a word that fits the maxw.
+                  So we are forced to use a longer than maxw word. We were in the middle of
+                  a word, so now find the end of the current word. }
+              m := Length(s2);
+              while (m < Length(s)) and (s[m]<> ' ') do
+                Inc(m);
+              s2:=Copy(s,1,m);
+              end;
+            wwoTruncate:
+              m:=Length(S); // Discard the remainder of the word.
+            wwoSplit:
+              m:=Length(S3); // S3 was the longest possible part of the word. Split after
+         end;
+         end;
         ALines.Add(s2);
         s   := Copy(s, m+1, Length(s));
         s2  := s;
@@ -5114,6 +5132,7 @@ begin
     TextAlignment.Assign(E.TextAlignment);
     Options := E.Options;
     Original := E;
+    WordWrapOverflow:= E.WordWrapOverflow;
   end;
 end;
 
