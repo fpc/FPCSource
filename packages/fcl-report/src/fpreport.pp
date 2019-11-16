@@ -146,7 +146,8 @@ type
   TFPReportWordOverflow = (woTruncate, // truncate the word
                            woOverflow, // Allow to overflow
                            woSplit,    // Split word at max char count that fits length.
-                           woAsterisk  // Replace word with * chars.
+                           woAsterisk,  // Replace word with * chars.
+                           woEllipsis  // Truncate word, add ... ellipsis.
                            );
 
   TFPReportSections    = set of rsPage..rsColumn;
@@ -250,6 +251,7 @@ const
   cMMperInch = 25.4;
   cCMperInch = 2.54;
   cMMperCM = 10;
+  cEllipsis : UnicodeChar = #$2026; // '…';
   DefaultBandNames : Array[TFPReportBandType] of string
     = ('Unknown','Page Header','Report Title','Column Header', 'Data Header','Group Header','Data','Group Footer',
        'Data Footer','Column Footer','Report Summary','PageFooter','Child');
@@ -1965,8 +1967,8 @@ type
     procedure   SetFont(const AValue: TFPReportFont);
     procedure   CullTextOutOfBounds;
   protected
-    procedure AddTextLine(lFC: TFPFontCacheItem; var S: String; MaxW: TFPReportUnits);
-    procedure WrapText(const AText: String; lFC: TFPFontCacheItem; const ALineWidth: TFPReportUnits; out AHeight: TFPReportUnits);  virtual;
+    procedure   AddTextLine(lFC: TFPFontCacheItem; var S: UTF8String; MaxW: TFPReportUnits);
+    procedure   WrapText(const AText: UTF8String; lFC: TFPFontCacheItem; const ALineWidth: TFPReportUnits; out AHeight: TFPReportUnits);  virtual;
     procedure   ReassignParentFont;
     procedure   ParentFontChanged; override;
     function    CreateTextAlignment: TFPReportTextAlignment; virtual;
@@ -3932,12 +3934,13 @@ end;
   line must also be processed before continuing. If All = False, then double
   CR can be ignored. }
 
-procedure TFPReportCustomMemo.AddTextLine(lFC: TFPFontCacheItem; Var S : String; MaxW : TFPReportUnits);
+procedure TFPReportCustomMemo.AddTextLine(lFC: TFPFontCacheItem; Var S : UTF8String; MaxW : TFPReportUnits);
 
 var
   w: single;
   m: integer;
-  s2, s3: string;
+  s2, s3: UTF8String;
+
 begin
   s2  := s;
   w   := lFC.TextWidth(s2, Font.Size);
@@ -3978,6 +3981,14 @@ begin
             m:=Length(S); // Discard the remainder of the word.
           woSplit:
             m:=Length(S3); // S3 was the longest possible part of the word. Split after
+          woEllipsis:
+            begin
+            repeat
+              S2:=Copy(S2,1,Length(S2)-1);
+            Until (Length(S2)<1) or (lFC.TextWidth(s2+UTF8Encode(cEllipsis), Font.Size)<MaxW);
+            S2:=S2+UTF8Encode(cEllipsis);
+            m:=Length(S); // Discard the remainder of the word.
+            end;
           woAsterisk:
             begin
             w:= lFC.TextWidth('*', Font.Size);
@@ -4003,12 +4014,12 @@ begin
   end; { if/else }
 end;
 
-procedure TFPReportCustomMemo.WrapText(const AText: String; lFC: TFPFontCacheItem; const ALineWidth: TFPReportUnits; out AHeight: TFPReportUnits);
+procedure TFPReportCustomMemo.WrapText(const AText: UTF8String; lFC: TFPFontCacheItem; const ALineWidth: TFPReportUnits; out AHeight: TFPReportUnits);
 
 var
   maxw: single; // value in pixels
   n: integer;
-  s: string;
+  s: UTF8String;
   c: char;
   lWidth: single;
 
@@ -4903,7 +4914,7 @@ procedure TFPReportCustomMemo.RecalcLayout;
 var
   h, maxW: TFPReportUnits;
   lFC : TFPFontCacheItem;
-  S : String;
+  S : UTF8String;
 
 begin
   FTextBlockList.Clear;
