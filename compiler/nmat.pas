@@ -709,32 +709,32 @@ implementation
               rvalue:=tordconstnode(right).value;
             if is_constintnode(left) then
                begin
+                 lvalue:=tordconstnode(left).value;
+                 case nodetype of
+                    shrn:
+                      lvalue:=tordconstnode(left).value shr rvalue;
+                    shln:
+                      lvalue:=tordconstnode(left).value shl rvalue;
+                    else
+                      internalerror(2019050517);
+                 end;
                  if forinline then
                    begin
                      { shl/shr are unsigned operations, so cut off upper bits }
                      case resultdef.size of
                        1:
-                         lvalue:=tordconstnode(left).value and byte($ff);
+                         lvalue:=lvalue and byte($ff);
                        2:
-                         lvalue:=tordconstnode(left).value and word($ffff);
+                         lvalue:=lvalue and word($ffff);
                        4:
-                         lvalue:=tordconstnode(left).value and dword($ffffffff);
+                         lvalue:=lvalue and dword($ffffffff);
                        8:
-                         lvalue:=tordconstnode(left).value and qword($ffffffffffffffff);
+                         lvalue:=lvalue and qword($ffffffffffffffff);
                        else
                          internalerror(2013122301);
                      end;
-                   end
-                 else
-                   lvalue:=tordconstnode(left).value;
-                 case nodetype of
-                    shrn:
-                      result:=create_simplified_ord_const(lvalue shr rvalue,resultdef,forinline,false);
-                    shln:
-                      result:=create_simplified_ord_const(lvalue shl rvalue,resultdef,forinline,false);
-                    else
-                      internalerror(2019050517);
-                 end;
+                   end;
+                 result:=create_simplified_ord_const(lvalue,resultdef,forinline,false);
                end
             else if rvalue=0 then
               begin
@@ -745,19 +745,22 @@ implementation
         else if is_constintnode(left) then
           begin
             lvalue:=tordconstnode(left).value;
-            { shl/shr are unsigned operations, so cut off upper bits }
-            case resultdef.size of
-              1:
-                lvalue:=tordconstnode(left).value and byte($ff);
-              2:
-                lvalue:=tordconstnode(left).value and word($ffff);
-              4:
-                lvalue:=tordconstnode(left).value and dword($ffffffff);
-              8:
-                lvalue:=tordconstnode(left).value and qword($ffffffffffffffff);
-              else
-                internalerror(2013122301);
-            end;
+            if forinline then
+              begin
+                { shl/shr are unsigned operations, so cut off upper bits }
+                case resultdef.size of
+                  1:
+                    lvalue:=tordconstnode(left).value and byte($ff);
+                  2:
+                    lvalue:=tordconstnode(left).value and word($ffff);
+                  4:
+                    lvalue:=tordconstnode(left).value and dword($ffffffff);
+                  8:
+                    lvalue:=tordconstnode(left).value and qword($ffffffffffffffff);
+                  else
+                    internalerror(2013122301);
+                end;
+              end;
             { '0 shl x' and '0 shr x' are 0 }
             if (lvalue=0) and
                ((cs_opt_level4 in current_settings.optimizerswitches) or
