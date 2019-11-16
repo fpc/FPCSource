@@ -3548,7 +3548,7 @@ unit cgx86;
             list.concat(Taicpu.Op_reg(A_PUSH,S_L,NR_ECX));
             list.concat(Taicpu.Op_reg(A_PUSH,S_L,NR_EBX));
             list.concat(Taicpu.Op_reg(A_PUSH,S_L,NR_EAX));
-            inc(stackmisalignment,4*2+6*8);
+            inc(stackmisalignment,4*2+6*4);
           end;
 {$endif i386}
 
