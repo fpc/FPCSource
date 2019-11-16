@@ -25,7 +25,7 @@ unit aoptcpu;
 
 {$i fpcdefs.inc}
 
-{ $define DEBUG_AOPTCPU}
+{$define DEBUG_AOPTCPU}
 
   Interface
 
@@ -340,6 +340,7 @@ unit aoptcpu;
         Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next)));
       if result then
         begin
+          AllocRegBetween(taicpu(p).oper[1]^.reg,p,next,UsedRegs);
           next.oper[1]^.ref^.base:=taicpu(p).oper[1]^.reg;
           DebugMsg('Peephole: Move removed 4',p);
           asml.remove(p);
