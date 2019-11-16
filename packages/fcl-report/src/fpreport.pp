@@ -143,7 +143,11 @@ type
             moResetAggregateOnColumn
             );
   TFPReportMemoOptions    = set of TFPReportMemoOption;
-  TFPReportWordOverflow = (woTruncate,woOverflow,woSplit);
+  TFPReportWordOverflow = (woTruncate, // truncate the word
+                           woOverflow, // Allow to overflow
+                           woSplit,    // Split word at max char count that fits length.
+                           woAsterisk  // Replace word with * chars.
+                           );
 
   TFPReportSections    = set of rsPage..rsColumn;
 
@@ -3974,6 +3978,12 @@ begin
             m:=Length(S); // Discard the remainder of the word.
           woSplit:
             m:=Length(S3); // S3 was the longest possible part of the word. Split after
+          woAsterisk:
+            begin
+            w:= lFC.TextWidth('*', Font.Size);
+            S2:=StringOfChar('*',round(MaxW / w));
+            m:=Length(S); // Discard the remainder of the word.
+            end;
        end;
        end;
       FTextLines.Add(s2);
