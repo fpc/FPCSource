@@ -780,7 +780,8 @@ implementation
                   else if not((tloadnode(p).symtableentry.typ in [staticvarsym,localvarsym,paravarsym,fieldvarsym]) and
                     (tabstractvarsym(tloadnode(p).symtableentry).varregable in [vr_intreg,vr_mmreg,vr_fpureg])) then
                     inc(result);
-                  if (tloadnode(p).symtableentry.typ=paravarsym) and tloadnode(p).is_addr_param_load then
+                  if not(tabstractvarsym(tloadnode(p).symtableentry).varregable=vr_addr) and
+                    (tloadnode(p).symtableentry.typ=paravarsym) and tloadnode(p).is_addr_param_load then
                     inc(result);
                   if (result >= NODE_COMPLEXITY_INF) then
                     result := NODE_COMPLEXITY_INF;
