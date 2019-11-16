@@ -275,7 +275,7 @@ implementation
       begin
         { allow passing of a constant to a const formaldef }
         if (parasym.varspez=vs_const) and
-           (left.location.loc in [LOC_CONSTANT,LOC_REGISTER]) then
+           not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
           hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
         push_addr_para;
       end;
