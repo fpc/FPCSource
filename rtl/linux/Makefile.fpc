@@ -53,7 +53,7 @@ libunits=$(SYSTEMUNIT) objpas strings dos \
       sysutils typinfo math \
       $(CPU_UNITS) getopts \
       errors  \
-      classes fgl sysconst rtlconsts types \
+      classes fgl sysconst syscall rtlconsts types \
       linux sortbase
 
 [prerules]

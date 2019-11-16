@@ -2589,7 +2589,7 @@ endif
 ifeq ($(FULL_TARGET),riscv64-embedded)
 override COMPILER_TARGETDIR+=.
 endif
-override SHARED_LIBUNITS=$(SYSTEMUNIT) objpas strings dos unix baseunix unixtype unixutil sysutils typinfo math $(CPU_UNITS) getopts errors  classes fgl sysconst rtlconsts types linux sortbase
+override SHARED_LIBUNITS=$(SYSTEMUNIT) objpas strings dos unix baseunix unixtype unixutil sysutils typinfo math $(CPU_UNITS) getopts errors  classes fgl sysconst syscall rtlconsts types linux sortbase
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
 endif
