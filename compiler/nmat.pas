@@ -162,17 +162,17 @@ implementation
                 if nf_isomod in flags then
                   begin
                     if lv>=0 then
-                      result:=create_simplified_ord_const(lv mod rv,resultdef,forinline)
+                      result:=create_simplified_ord_const(lv mod rv,resultdef,forinline,false)
                     else
                       if ((-lv) mod rv)=0 then
-                        result:=create_simplified_ord_const((-lv) mod rv,resultdef,forinline)
+                        result:=create_simplified_ord_const((-lv) mod rv,resultdef,forinline,false)
                       else
-                        result:=create_simplified_ord_const(rv-((-lv) mod rv),resultdef,forinline);
+                        result:=create_simplified_ord_const(rv-((-lv) mod rv),resultdef,forinline,false);
                   end
                 else
-                  result:=create_simplified_ord_const(lv mod rv,resultdef,forinline);
+                  result:=create_simplified_ord_const(lv mod rv,resultdef,forinline,false);
               divn:
-                result:=create_simplified_ord_const(lv div rv,resultdef,forinline);
+                result:=create_simplified_ord_const(lv div rv,resultdef,forinline,cs_check_overflow in localswitches);
             end;
          end;
       end;
@@ -705,30 +705,32 @@ implementation
               rvalue:=tordconstnode(right).value;
             if is_constintnode(left) then
                begin
+                 lvalue:=tordconstnode(left).value;
+                 case nodetype of
+                    shrn:
+                      lvalue:=tordconstnode(left).value shr rvalue;
+                    shln:
+                      lvalue:=tordconstnode(left).value shl rvalue;
+                    else
+                      internalerror(2019050517);
+                 end;
                  if forinline then
                    begin
                      { shl/shr are unsigned operations, so cut off upper bits }
                      case resultdef.size of
                        1:
-                         lvalue:=tordconstnode(left).value and byte($ff);
+                         lvalue:=lvalue and byte($ff);
                        2:
-                         lvalue:=tordconstnode(left).value and word($ffff);
+                         lvalue:=lvalue and word($ffff);
                        4:
-                         lvalue:=tordconstnode(left).value and dword($ffffffff);
+                         lvalue:=lvalue and dword($ffffffff);
                        8:
-                         lvalue:=tordconstnode(left).value and qword($ffffffffffffffff);
+                         lvalue:=lvalue and qword($ffffffffffffffff);
                        else
                          internalerror(2013122301);
                      end;
-                   end
-                 else
-                   lvalue:=tordconstnode(left).value;
-                 case nodetype of
-                    shrn:
-                      result:=create_simplified_ord_const(lvalue shr rvalue,resultdef,forinline);
-                    shln:
-                      result:=create_simplified_ord_const(lvalue shl rvalue,resultdef,forinline);
-                 end;
+                   end;
+                 result:=create_simplified_ord_const(lvalue,resultdef,forinline,false);
                end
             else if rvalue=0 then
               begin
@@ -739,19 +741,22 @@ implementation
         else if is_constintnode(left) then
           begin
             lvalue:=tordconstnode(left).value;
-            { shl/shr are unsigned operations, so cut off upper bits }
-            case resultdef.size of
-              1:
-                lvalue:=tordconstnode(left).value and byte($ff);
-              2:
-                lvalue:=tordconstnode(left).value and word($ffff);
-              4:
-                lvalue:=tordconstnode(left).value and dword($ffffffff);
-              8:
-                lvalue:=tordconstnode(left).value and qword($ffffffffffffffff);
-              else
-                internalerror(2013122301);
-            end;
+            if forinline then
+              begin
+                { shl/shr are unsigned operations, so cut off upper bits }
+                case resultdef.size of
+                  1:
+                    lvalue:=tordconstnode(left).value and byte($ff);
+                  2:
+                    lvalue:=tordconstnode(left).value and word($ffff);
+                  4:
+                    lvalue:=tordconstnode(left).value and dword($ffffffff);
+                  8:
+                    lvalue:=tordconstnode(left).value and qword($ffffffffffffffff);
+                  else
+                    internalerror(2013122301);
+                end;
+              end;
             { '0 shl x' and '0 shr x' are 0 }
             if (lvalue=0) and
                ((cs_opt_level4 in current_settings.optimizerswitches) or
@@ -878,8 +883,6 @@ implementation
 
 
     function tshlshrnode.pass_1 : tnode;
-      var
-         regs : longint;
       begin
          result:=nil;
          firstpass(left);
@@ -888,23 +891,11 @@ implementation
            exit;
 
 {$ifndef cpu64bitalu}
+         expectloc:=LOC_REGISTER;
          { 64 bit ints have their own shift handling }
          if is_64bit(left.resultdef) then
-           begin
-             result := first_shlshr64bitint;
-             if assigned(result) then
-               exit;
-             regs:=2;
-           end
-         else
+           result := first_shlshr64bitint;
 {$endif not cpu64bitalu}
-           begin
-             regs:=1
-           end;
-
-         if (right.nodetype<>ordconstn) then
-           inc(regs);
-         expectloc:=LOC_REGISTER;
       end;
 
 
@@ -924,7 +915,7 @@ implementation
         { constant folding }
         if is_constintnode(left) then
           begin
-             result:=create_simplified_ord_const(-tordconstnode(left).value,resultdef,forinline);
+             result:=create_simplified_ord_const(-tordconstnode(left).value,resultdef,forinline,cs_check_overflow in localswitches);
              exit;
           end;
         if is_constrealnode(left) then
