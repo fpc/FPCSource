@@ -26,7 +26,7 @@ Type
 
   { TFixedExportFormatSettings }
 
-  TFixedExportFormatSettings = Class (TCustomExportFormatSettings)
+  TFixedExportFormatSettings = Class (TExportFormatSettings)
   private
     FCharMode: TCharMode;
   Public
