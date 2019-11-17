@@ -1107,7 +1107,7 @@ unit nx86add;
               mms_movescalar);
           end
         { we can use only right as left operand if the operation is commutative }
-        else if (right.location.loc=LOC_MMREGISTER) and (op in [OP_ADD,OP_MUL]) then
+        else if (right.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) and (op in [OP_ADD,OP_MUL]) then
           begin
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
             { force floating point reg. location to be written to memory,
