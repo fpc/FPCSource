@@ -3548,7 +3548,8 @@ unit cgx86;
             list.concat(Taicpu.Op_reg(A_PUSH,S_L,NR_ECX));
             list.concat(Taicpu.Op_reg(A_PUSH,S_L,NR_EBX));
             list.concat(Taicpu.Op_reg(A_PUSH,S_L,NR_EAX));
-            inc(stackmisalignment,4*2+6*4);
+            { pushf, push %cs, 4*selector registers, 6*general purpose registers }
+            inc(stackmisalignment,4+4+4*2+6*4);
           end;
 {$endif i386}
 
