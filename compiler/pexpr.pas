@@ -445,7 +445,7 @@ implementation
                   statement_syssym:=geninlinenode(in_sizeof_x,false,p1);
                   { no packed bit support for these things }
                   if l=in_bitsizeof_x then
-                    statement_syssym:=caddnode.create(muln,statement_syssym,cordconstnode.create(8,sinttype,true));
+                    statement_syssym:=caddnode.create(muln,statement_syssym,cordconstnode.create(8,sizesinttype,true));
                 end
               else
                begin
@@ -460,12 +460,12 @@ implementation
                      not((p1.nodetype = subscriptn) and
                          is_packed_record_or_object(tsubscriptnode(p1).left.resultdef))) then
                    begin
-                     statement_syssym:=cordconstnode.create(p1.resultdef.size,sinttype,true);
+                     statement_syssym:=cordconstnode.create(p1.resultdef.size,sizesinttype,true);
                      if (l = in_bitsizeof_x) then
-                       statement_syssym:=caddnode.create(muln,statement_syssym,cordconstnode.create(8,sinttype,true));
+                       statement_syssym:=caddnode.create(muln,statement_syssym,cordconstnode.create(8,sizesinttype,true));
                    end
                  else
-                   statement_syssym:=cordconstnode.create(p1.resultdef.packedbitsize,sinttype,true);
+                   statement_syssym:=cordconstnode.create(p1.resultdef.packedbitsize,sizesinttype,true);
                  { p1 not needed !}
                  p1.destroy;
                end;
