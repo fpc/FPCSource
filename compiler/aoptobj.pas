@@ -375,6 +375,10 @@ Unit AoptObj;
         { Output debug message to console - null function if EXTDEBUG is not defined }
         class procedure DebugWrite(Message: string); static; inline;
 
+        { Converts a conditional jump into an unconditional jump.  Only call this
+          procedure on an instruction that you already know is a conditional jump }
+        procedure MakeUnconditional(p: taicpu); virtual;
+
         { Removes all instructions between an unconditional jump and the next label }
         procedure RemoveDeadCodeAfterJump(p: taicpu);
 
@@ -1564,6 +1568,25 @@ Unit AoptObj;
 {$endif DEBUG_JUMP}
       end;
 
+
+    { Converts a conditional jump into an unconditional jump.  Only call this
+      procedure on an instruction that you already know is a conditional jump }
+    procedure TAOptObj.MakeUnconditional(p: taicpu);
+      begin
+        { TODO: If anyone can improve this particular optimisation to work on
+          AVR and RISC-V, please do (it's currently not called at all). [Kit] }
+{$if not defined(avr) and not defined(riscv32) and not defined(riscv64)}
+{$if defined(powerpc) or defined(powerpc64)}
+        p.condition.cond := C_None;
+        p.condition.simple := True;
+{$else powerpc}
+        p.condition := C_None;
+{$endif powerpc}
+        p.opcode := aopt_uncondjmp;
+{$endif not avr and not riscv}
+      end;
+
+
     { Removes all instructions between an unconditional jump and the next label }
     procedure TAOptObj.RemoveDeadCodeAfterJump(p: taicpu);
       var
@@ -2014,29 +2037,20 @@ Unit AoptObj;
                             Result := True;
                             Exit;
 
-{$if not defined(avr) and not defined(riscv32) and not defined(riscv64) and not defined(mips)}
+{$if not defined(avr) and not defined(riscv32) and not defined(riscv64)}
                           end
                         else
                           { NOTE: There is currently no watertight, cross-platform way to create
                             an unconditional jump without access to the cg object.  If anyone can
                             improve this particular optimisation to work on AVR and RISC-V,
-                            please do. [Kit]
-
-                            On MIPS, it causes an endless loop, so I disabled it for now
-                          }
+                            please do. [Kit] }
                           begin
                             { Since cond1 is a subset of inv(cond2), jmp<cond2> will always branch if
                               jmp<cond1> does not, so change jmp<cond2> to an unconditional jump. }
 
                             DebugWrite('JUMP DEBUG: jmp<cond> before jmp<inv_cond> - made second jump unconditional');
 
-{$if defined(powerpc) or defined(powerpc64)}
-                            taicpu(hp2).condition.cond := C_None;
-                            taicpu(hp2).condition.simple := True;
-{$else powerpc}
-                            taicpu(hp2).condition := C_None;
-{$endif powerpc}
-                            taicpu(hp2).opcode := aopt_uncondjmp;
+                            MakeUnconditional(taicpu(hp1));
 
                             { NOTE: Changing the jump to unconditional won't open up new opportunities
                               for GetFinalDestination on earlier jumps because there's no live label
