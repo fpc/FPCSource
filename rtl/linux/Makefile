@@ -358,6 +358,10 @@ ifeq ($(ARCH),sparc64)
 override LOADERS=
 SYSINIT_UNITS=si_prc si_c si_g si_dll
 endif
+ifeq ($(ARCH),riscv32)
+override LOADERS=
+SYSINIT_UNITS=si_prc si_dll si_c
+endif
 ifeq ($(ARCH),riscv64)
 override LOADERS=
 SYSINIT_UNITS=si_prc si_dll si_c
@@ -3855,12 +3859,18 @@ ifeq ($(ARCH),mips)
   ifeq ($(PIC_OPT),1)
     ASTARGET+= -KPIC
   endif
+  ifneq (,$(findstring -ao-xgot, $(FPC_OPT)))
+    ASTARGET+= -xgot
+  endif
   ASSHAREDOPT=-KPIC
 endif
 ifeq ($(ARCH),mipsel)
   ASTARGET=-32 -mabi=32 -mips2 -EL
   ifeq ($(PIC_OPT),1)
     ASTARGET+= -KPIC
+  endif
+  ifneq (,$(findstring -ao-xgot, $(FPC_OPT)))
+    ASTARGET+= -xgot
   endif
   ASSHAREDOPT=-KPIC
 endif
