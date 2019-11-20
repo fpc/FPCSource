@@ -111,16 +111,6 @@ unit aoptx86;
       and having an offset }
     function MatchReferenceWithOffset(const ref : treference;base,index : TRegister) : Boolean;
 
-{$ifdef DEBUG_AOPTCPU}
-  const
-    SPeepholeOptimization: shortstring = 'Peephole Optimization: ';
-{$else DEBUG_AOPTCPU}
-  { Empty strings help the optimizer to remove string concatenations that won't
-    ever appear to the user on release builds. [Kit] }
-  const
-    SPeepholeOptimization = '';
-{$endif DEBUG_AOPTCPU}
-
   implementation
 
     uses
@@ -133,6 +123,16 @@ unit aoptx86;
       symconst,symsym,
       cgx86,
       itcpugas;
+
+{$ifdef DEBUG_AOPTCPU}
+    const
+      SPeepholeOptimization: shortstring = 'Peephole Optimization: ';
+{$else DEBUG_AOPTCPU}
+    { Empty strings help the optimizer to remove string concatenations that won't
+      ever appear to the user on release builds. [Kit] }
+    const
+      SPeepholeOptimization = '';
+{$endif DEBUG_AOPTCPU}
 
     function MatchInstruction(const instr: tai; const op: TAsmOp; const opsize: topsizes): boolean;
       begin
@@ -3427,9 +3427,9 @@ unit aoptx86;
               jmp<inv_cond> @Lbl2
               ret
           }
-            if MatchInstruction(hp1, A_JMP, []) then
+            if MatchInstruction(hp1,A_JMP,[]) and (taicpu(hp1).oper[0]^.ref^.refaddr=addr_full) then
               begin
-                hp2 := getlabelwithsym(TAsmLabel(symbol));
+                hp2:=getlabelwithsym(TAsmLabel(symbol));
                 if Assigned(hp2) and SkipLabels(hp2,hp2) and
                   MatchInstruction(hp2,A_RET,[S_NO]) then
                   begin
@@ -3442,6 +3442,7 @@ unit aoptx86;
                     taicpu(hp1).opcode := A_RET;
                     taicpu(hp1).is_jmp := false;
                     taicpu(hp1).ops := taicpu(hp2).ops;
+                    DebugMsg(SPeepholeOptimization+'JccJmpRet2J!ccRet',p);
                     case taicpu(hp2).ops of
                       0:
                         taicpu(hp1).clearop(0);
@@ -3521,6 +3522,8 @@ unit aoptx86;
 
                           { Now we can safely decrement the reference count }
                           tasmlabel(symbol).decrefs;
+
+                          DebugMsg(SPeepholeOptimization+'JccMov2CMov',p);
 
                           { Remove the original jump }
                           asml.Remove(p);
@@ -3618,6 +3621,8 @@ unit aoptx86;
                                   GetNextInstruction to skip the label and
                                   optional align marker. [Kit] }
                                 GetNextInstruction(hp2, hp4);
+
+                                DebugMsg(SPeepholeOptimization+'JccMovJmpMov2CMovCMov',hp1);
 
                                 { remove jCC }
                                 asml.remove(hp1);
