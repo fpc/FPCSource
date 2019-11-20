@@ -24,6 +24,7 @@
 }
 Unit AoptObj;
 
+{ $define DEBUG_AOPTCPU}
 { $define DEBUG_JUMP}
 
 {$i fpcdefs.inc}
@@ -411,6 +412,8 @@ Unit AoptObj;
           each instruction. Useful for debugging the InstructionLoadsFromReg and
           other similar functions. }
         procedure Debug_InsertInstrRegisterDependencyInfo; virtual;
+      private
+        procedure DebugMsg(const s: string; p: tai);
       End;
 
        Function ArrayRefsEq(const r1, r2: TReference): Boolean;
@@ -438,6 +441,17 @@ Unit AoptObj;
       cpuinfo,
 {$endif defined(ARM)}
       procinfo;
+
+
+{$ifdef DEBUG_AOPTCPU}
+    const
+      SPeepholeOptimization: shortstring = 'Peephole Optimization: ';
+{$else DEBUG_AOPTCPU}
+    { Empty strings help the optimizer to remove string concatenations that won't
+      ever appear to the user on release builds. [Kit] }
+    const
+      SPeepholeOptimization = '';
+{$endif DEBUG_AOPTCPU}
 
 
     function JumpTargetOp(ai: taicpu): poper; inline;
@@ -938,6 +952,16 @@ Unit AoptObj;
           inherited Destroy;
         end;
 
+{$ifdef DEBUG_AOPTCPU}
+      procedure TAOptObj.DebugMsg(const s: string;p : tai);
+        begin
+          asml.insertbefore(tai_comment.Create(strpnew(s)), p);
+        end;
+{$else DEBUG_AOPTCPU}
+      procedure TAOptObj.DebugMsg(const s: string;p : tai);inline;
+        begin
+        end;
+{$endif DEBUG_AOPTCPU}
 
       procedure TAOptObj.CreateUsedRegs(var regs: TAllUsedRegs);
         var
@@ -1923,7 +1947,7 @@ Unit AoptObj;
                     }
                     if (CJLabel = NCJLabel) then
                       begin
-                        DebugWrite('JUMP DEBUG: Short-circuited conditional jump');
+                        DebugMsg(SPeepholeOptimization+'Short-circuited conditional jump',p);
                         { Both jumps go to the same label }
                         CJLabel.decrefs;
 {$ifdef cpudelayslot}
@@ -1958,7 +1982,7 @@ Unit AoptObj;
                         then
                           begin
 {$endif arm or aarch64}
-                            DebugWrite('JUMP DEBUG: Conditional jump inversion');
+                            DebugMsg(SPeepholeOptimization+'Conditional jump inversion',p);
 
                             taicpu(p).condition:=inverse_cond(taicpu(p).condition);
                             CJLabel.decrefs;
@@ -2001,7 +2025,7 @@ Unit AoptObj;
 
                     if condition_in(taicpu(hp1).condition, taicpu(p).condition) then
                       begin
-                        DebugWrite('JUMP DEBUG: Dominated conditional jump');
+                        DebugMsg(SPeepholeOptimization+'Dominated conditional jump',p);
 
                         NCJLabel.decrefs;
                         AsmL.Remove(hp1);
@@ -2026,7 +2050,7 @@ Unit AoptObj;
                           the first jump completely }
                         if FindLabel(CJLabel, hp2) then
                           begin
-                            DebugWrite('JUMP DEBUG: jmp<cond> before jmp<inv_cond> - removed first jump');
+                            DebugMsg(SPeepholeOptimization+'jmp<cond> before jmp<inv_cond> - removed first jump',p);
 
                             CJLabel.decrefs;
 {$ifdef cpudelayslot}
@@ -2051,7 +2075,7 @@ Unit AoptObj;
                             { Since cond1 is a subset of inv(cond2), jmp<cond2> will always branch if
                               jmp<cond1> does not, so change jmp<cond2> to an unconditional jump. }
 
-                            DebugWrite('JUMP DEBUG: jmp<cond> before jmp<inv_cond> - made second jump unconditional');
+                            DebugMsg(SPeepholeOptimization+'jmp<cond> before jmp<inv_cond> - made second jump unconditional',p);
 
                             MakeUnconditional(taicpu(hp1));
 
