@@ -2475,18 +2475,7 @@ type
                  hp:=tmodule(loaded_units.first);
                  while assigned(hp) do
                   begin
-                    if (hp<>sysinitmod) {
-                      I commented the following condition as it breaks linking with units being shared libs.
-                      The needed shared libs and object files are ignored
-
-                       and ((hp.headerflags and uf_in_library)=0)
-
-                      I think the right condition is
-
-                      not(assigned(hp.package))
-
-                      as later on for packages the right shared libs are added separately (FK)
-                      } then
+                    if (hp<>sysinitmod) and not assigned(hp.package) then
                       begin
                         linker.AddModuleFiles(hp);
                         if mf_checkpointer_called in hp.moduleflags then
