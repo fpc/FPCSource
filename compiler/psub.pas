@@ -1384,6 +1384,8 @@ implementation
         if procdef.inlininginfo^.code.nodetype=blockn then
           include(procdef.inlininginfo^.code.flags,nf_block_with_exit);
         procdef.has_inlininginfo:=true;
+        export_local_ref_syms;
+        export_local_ref_defs;
        end;
 
     procedure searchthreadvar(p: TObject; arg: pointer);

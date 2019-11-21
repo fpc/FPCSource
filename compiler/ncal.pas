@@ -3787,7 +3787,7 @@ implementation
             { add reference to corresponding procsym; may not be the one
               originally found/passed to the constructor because of overloads }
             if procdefinition.typ = procdef then
-              addsymref(tprocdef(procdefinition).procsym);
+              addsymref(tprocdef(procdefinition).procsym,procdefinition);
 
             { add needed default parameters }
             if (paralength<procdefinition.maxparacount) then

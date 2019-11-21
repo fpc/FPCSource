@@ -232,7 +232,9 @@ type
       because we have to access this information in the symtable unit }
     df_llvm_no_struct_packing,
     { internal def that's not for any export }
-    df_internal
+    df_internal,
+    { the local def is referenced from a public function }
+    df_has_global_ref
   );
   tdefoptions=set of tdefoption;
 
@@ -607,7 +609,9 @@ type
       sections }
     vo_is_default_var,
     { i8086 'external far' (can only be used in combination with vo_is_external) }
-    vo_is_far
+    vo_is_far,
+    { a static symbol that is referenced from a global function }
+    vo_has_global_ref
   );
   tvaroptions=set of tvaroption;
 
