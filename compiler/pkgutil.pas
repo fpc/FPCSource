@@ -82,6 +82,7 @@ implementation
         begin
           pd:=tprocdef(tprocsym(sym).procdeflist[i]);
           if not(pd.proccalloption in [pocall_internproc]) and
+              not (df_generic in pd.defoptions) and
               ((pd.procoptions*[po_external])=[]) and
               (
                 (symtable.symtabletype in [globalsymtable,recordsymtable,objectsymtable]) or
@@ -167,7 +168,7 @@ implementation
   procedure export_typedef(def:tdef;symtable:tsymtable;global:boolean);
     begin
       if not (global or is_class(def)) or
-          (df_internal in def.defoptions) or
+          ([df_internal,df_generic]*def.defoptions<>[]) or
           { happens with type renaming declarations ("abc = xyz") }
           (def.owner<>symtable) then
         exit;
