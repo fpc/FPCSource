@@ -381,7 +381,7 @@ Unit AoptObj;
         procedure MakeUnconditional(p: taicpu); virtual;
 
         { Removes all instructions between an unconditional jump and the next label }
-        procedure RemoveDeadCodeAfterJump(p: taicpu);
+        procedure RemoveDeadCodeAfterJump(p: tai);
 
         { If hp is a label, strip it if its reference count is zero.  Repeat until
           a non-label is found, or a label with a non-zero reference count.
@@ -1615,7 +1615,7 @@ Unit AoptObj;
 
 
     { Removes all instructions between an unconditional jump and the next label }
-    procedure TAOptObj.RemoveDeadCodeAfterJump(p: taicpu);
+    procedure TAOptObj.RemoveDeadCodeAfterJump(p: tai);
       var
         hp1, hp2: tai;
       begin
@@ -1657,7 +1657,7 @@ Unit AoptObj;
                   hp1.free;
                 end
               else
-                p:=taicpu(hp1);
+                p:=hp1;
             end
           else
             Break;

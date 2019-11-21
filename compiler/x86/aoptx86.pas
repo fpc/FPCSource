@@ -2057,6 +2057,8 @@ unit aoptx86;
                     p.Free;
                     hp2.Free;
                     p := hp1;
+                    Result := True;
+                    Exit;
                   end;
               end;
             if MatchOpType(taicpu(hp2),top_reg,top_reg) and
