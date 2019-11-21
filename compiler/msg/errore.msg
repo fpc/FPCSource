@@ -3133,6 +3133,7 @@ link_e_comdat_content_differs=09219_E_Content of duplicate COMDAT symbol "$1" di
 % The COMDAT section specifies that all sections with the same name need to have the same content,
 % but this section had a different size.
 link_e_comdat_selection_differs=09220_E_COMDAT selection mode for symbol "$1" differs
+% Two COMDAT sections with the same name have different COMDAT selection modes.
 %\end{description}
 # EndOfTeX
 
