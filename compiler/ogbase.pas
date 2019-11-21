@@ -3065,7 +3065,12 @@ implementation
             begin
               exesym:=TExeSymbol(UnresolvedExeSymbols[i]);
               if (exesym.State=symstate_undefined) then
-                Comment(V_Error,'Undefined symbol: '+exesym.name);
+                begin
+                  if assigned(exesym.ObjSymbol) and assigned(exesym.ObjSymbol.ObjData) then
+                    Message2(link_e_undefined_symbol_in_obj,exesym.name,exesym.objsymbol.ObjData.Name)
+                  else
+                    Message1(link_e_undefined_symbol,exesym.name);
+                end;
             end;
 
         {
