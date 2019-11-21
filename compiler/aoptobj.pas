@@ -24,7 +24,7 @@
 }
 Unit AoptObj;
 
-{ $define DEBUG_AOPTCPU}
+{ $define DEBUG_AOPTOBJ}
 { $define DEBUG_JUMP}
 
 {$i fpcdefs.inc}
@@ -443,15 +443,15 @@ Unit AoptObj;
       procinfo;
 
 
-{$ifdef DEBUG_AOPTCPU}
+{$ifdef DEBUG_AOPTOBJ}
     const
       SPeepholeOptimization: shortstring = 'Peephole Optimization: ';
-{$else DEBUG_AOPTCPU}
+{$else DEBUG_AOPTOBJ}
     { Empty strings help the optimizer to remove string concatenations that won't
       ever appear to the user on release builds. [Kit] }
     const
       SPeepholeOptimization = '';
-{$endif DEBUG_AOPTCPU}
+{$endif DEBUG_AOPTOBJ}
 
 
     function JumpTargetOp(ai: taicpu): poper; inline;
@@ -952,16 +952,16 @@ Unit AoptObj;
           inherited Destroy;
         end;
 
-{$ifdef DEBUG_AOPTCPU}
+{$ifdef DEBUG_AOPTOBJ}
       procedure TAOptObj.DebugMsg(const s: string;p : tai);
         begin
           asml.insertbefore(tai_comment.Create(strpnew(s)), p);
         end;
-{$else DEBUG_AOPTCPU}
+{$else DEBUG_AOPTOBJ}
       procedure TAOptObj.DebugMsg(const s: string;p : tai);inline;
         begin
         end;
-{$endif DEBUG_AOPTCPU}
+{$endif DEBUG_AOPTOBJ}
 
       procedure TAOptObj.CreateUsedRegs(var regs: TAllUsedRegs);
         var
