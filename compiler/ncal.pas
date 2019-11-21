@@ -5164,9 +5164,18 @@ implementation
         inlineinitstatement:=nil;
         inlinecleanupstatement:=nil;
 
-        { if all that's left of the inlined function is an constant assignment
-          to the result, replace the whole block with the constant only }
-        n:=optimize_funcret_assignment(inlineblock);
+        { we cannot replace the whole block by a single assignment if the call
+          has an init/cleanup block
+
+          we could though (not yet done), convert this into a bew block
+          consisting of the init code, the single assignment and the cleanup block
+          This might even enable new transformations }
+        if not(assigned(callinitblock)) and not(assigned(callcleanupblock)) then
+          { if all that's left of the inlined function is an constant assignment
+            to the result, replace the whole block with the constant only }
+          n:=optimize_funcret_assignment(inlineblock)
+        else
+          n:=nil;
         if assigned(n) then
           begin
             inlineblock.free;
