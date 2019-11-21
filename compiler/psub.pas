@@ -1472,6 +1472,7 @@ implementation
         oldmaxfpuregisters : longint;
         oldfilepos : tfileposinfo;
         old_current_structdef : tabstractrecorddef;
+        oldswitches : tlocalswitches;
         templist : TAsmList;
         headertai : tai;
         i : integer;
@@ -1736,6 +1737,8 @@ implementation
             { The position of the loadpara_asmnode is now known }
             aktproccode.insertlistafter(loadpara_asmnode.currenttai,templist);
 
+            oldswitches:=current_settings.localswitches;
+
             { first generate entry and initialize code with the correct
               position and switches }
             current_filepos:=entrypos;
@@ -1774,6 +1777,9 @@ implementation
             { exit code }
             hlcg.gen_exit_code(templist);
             aktproccode.concatlist(templist);
+
+            { reset switches }
+            current_settings.localswitches:=oldswitches;
 
 {$ifdef OLDREGVARS}
             { note: this must be done only after as much code as possible has  }
