@@ -2052,12 +2052,10 @@ unit aoptx86;
                       ->
                         decw    %si             addw    %dx,%si       p
                     }
-                    asml.remove(p);
                     asml.remove(hp2);
-                    p.Free;
                     hp2.Free;
-                    p := hp1;
-                    Result := True;
+                    RemoveCurrentP(p);
+                    Result:=True;
                     Exit;
                   end;
               end;
