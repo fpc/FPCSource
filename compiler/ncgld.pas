@@ -307,15 +307,14 @@ implementation
                internalerror(2012120901);
 
              { FPC_THREADVAR_RELOCATE is nil? }
-             issystemunit:=not current_module.is_unit or
-                             (
-                               assigned(current_module.globalsymtable) and
-                               (current_module.globalsymtable=systemunit)
-                             ) or
-                             (
-                               not assigned(current_module.globalsymtable) and
-                               (current_module.localsymtable=systemunit)
-                             );
+             issystemunit:=(
+                             assigned(current_module.globalsymtable) and
+                             (current_module.globalsymtable=systemunit)
+                           ) or
+                           (
+                             not assigned(current_module.globalsymtable) and
+                             (current_module.localsymtable=systemunit)
+                           );
              indirect:=(tf_supports_packages in target_info.flags) and
                          (target_info.system in systems_indirect_var_imports) and
                          (cs_imported_data in localswitches) and
