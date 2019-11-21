@@ -3073,7 +3073,7 @@ execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 #
 # Internal linker messages
 #
-# 09220 is the last used one
+# 09222 is the last used one
 #
 # BeginOfTeX
 % \section{Linker messages}
@@ -3134,6 +3134,10 @@ link_e_comdat_content_differs=09219_E_Content of duplicate COMDAT symbol "$1" di
 % but this section had a different size.
 link_e_comdat_selection_differs=09220_E_COMDAT selection mode for symbol "$1" differs
 % Two COMDAT sections with the same name have different COMDAT selection modes.
+link_e_undefined_symbol_in_obj=09221_E_Undefined symbol: $1 (first seen in $2)
+% The specified symbol is used, but not defined and was first seen in the specified object file.
+link_e_undefined_symbol=09222_E_Undefined symbol: $1
+% The specified symbol is used, but not defined.
 %\end{description}
 # EndOfTeX
 
