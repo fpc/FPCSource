@@ -53,7 +53,7 @@ interface
 implementation
 
   uses
-    cutils,globtype,globals,verbose,systems,
+    cutils,globtype,globals,verbose,systems,fmodule,
     nbas,ncal,nmem,nutils,
     symconst,symbase,symtable,symsym,symdef,
     cgbase,cgobj,cgcpu,cgutils,tgobj,
@@ -463,6 +463,7 @@ procedure ti386tryexceptnode.pass_generate_code;
     hnode : tnode;
     hlist : tasmlist;
     onnodecount : tai_const;
+    sym : tasmsymbol;
   label
     errorexit;
   begin
@@ -593,8 +594,10 @@ procedure ti386tryexceptnode.pass_generate_code;
             if hnode.nodetype<>onn then
               InternalError(2011103101);
             current_asmdata.getjumplabel(onlabel);
-            hlist.concat(tai_const.create_sym(current_asmdata.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA)));
+            sym:=current_asmdata.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA,true);
+            hlist.concat(tai_const.create_sym(sym));
             hlist.concat(tai_const.create_sym(onlabel));
+            current_module.add_extern_asmsym(sym);
             cg.a_label(current_asmdata.CurrAsmList,onlabel);
             secondpass(hnode);
             inc(onnodecount.value);
