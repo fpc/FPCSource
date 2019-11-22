@@ -23,10 +23,10 @@ Type
     FEnabled: Boolean;
     FField: TField;
     FFieldName: String;
-    FExportedName: String;
-    function GetExportedName: String;
+    FExportedName: UTF8String;
+    function GetExportedName: UTF8String;
     function GetExporter: TCustomDatasetExporter;
-    procedure SetExportedName(const AValue: String);
+    procedure SetExportedName(const AValue: UTF8String);
   Protected
     Procedure BindField (ADataset : TDataset); virtual;
     procedure SetFieldName(const AValue: String); virtual;
@@ -38,7 +38,7 @@ Type
   Published
     Property Enabled : Boolean Read FEnabled Write FEnabled default True;
     Property FieldName : String Read FFieldName Write SetFieldName;
-    Property ExportedName : String Read GetExportedName Write SetExportedName;
+    Property ExportedName : UTF8String Read GetExportedName Write SetExportedName;
   end;
   
   { TExportFields }
@@ -335,7 +335,7 @@ begin
   FEnabled:=True;
 end;
 
-function TExportFieldItem.GetExportedName: String;
+function TExportFieldItem.GetExportedName: UTF8String;
 begin
   Result:=FExportedName;
   If (Result='') then
@@ -348,7 +348,7 @@ begin
     Result:=(Collection as TExportFields).Exporter;
 end;
 
-procedure TExportFieldItem.SetExportedName(const AValue: String);
+procedure TExportFieldItem.SetExportedName(const AValue: UTF8String);
 
 Var
   I : TExportFieldItem;
