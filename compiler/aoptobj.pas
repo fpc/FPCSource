@@ -394,7 +394,7 @@ Unit AoptObj;
         procedure StripLabelFast(hp: tai); {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
         { Checks and removes "jmp @@lbl; @lbl". Returns True if the jump was removed }
-        function CollapseZeroDistJump(var p: tai; hp1: tai; ThisLabel: TAsmLabel): Boolean;
+        function CollapseZeroDistJump(var p: tai; ThisLabel: TAsmLabel): Boolean;
 
         { If a group of labels are clustered, change the jump to point to the last one that is still referenced }
         function CollapseLabelCluster(jump: tai; var lbltai: tai): TAsmLabel;
@@ -2006,7 +2006,7 @@ Unit AoptObj;
                           end;
 {$endif arm or aarch64}
                       end
-                    else if Assigned(hp2) and CollapseZeroDistJump(hp1, hp2, NCJLabel) then
+                    else if CollapseZeroDistJump(hp1, NCJLabel) then
                       begin
                         { Attempt another iteration in case more jumps follow }
                         Continue;
@@ -2101,11 +2101,15 @@ Unit AoptObj;
       end;
 {$endif JVM}
 
-    function TAOptObj.CollapseZeroDistJump(var p: tai; hp1: tai; ThisLabel: TAsmLabel): Boolean;
+    function TAOptObj.CollapseZeroDistJump(var p: tai; ThisLabel: TAsmLabel): Boolean;
       var
-        tmp: tai;
+        tmp, hp1: tai;
       begin
         Result := False;
+        hp1 := tai(p.Next);
+        tmp := hp1; { Might be an align before the label, so keep a note of it }
+        if (hp1 = BlockEnd) then
+          Exit;
 
         { remove jumps to labels coming right after them }
         if FindLabel(ThisLabel, hp1) and
@@ -2114,7 +2118,6 @@ Unit AoptObj;
           begin
             ThisLabel.decrefs;
 
-            tmp := tai(p.Next); { Might be an align before the label }
 {$ifdef cpudelayslot}
             RemoveDelaySlot(p);
 {$endif cpudelayslot}
@@ -2170,7 +2173,7 @@ Unit AoptObj;
                     in order to aid optimisation later }
                   ThisLabel := CollapseLabelCluster(p, hp2);
 
-                  if CollapseZeroDistJump(p, hp1, ThisLabel) then
+                  if CollapseZeroDistJump(p, ThisLabel) then
                     begin
                       stoploop := False;
                       Result := True;
@@ -2236,9 +2239,11 @@ Unit AoptObj;
                (taicpu(p1).is_jmp) then
               begin
                 p2 := tai(p1.Next);
+                if p2 = BlockEnd then
+                  Exit;
 
                 { Collapse any zero distance jumps we stumble across }
-                while (p1<>StartPoint) and CollapseZeroDistJump(p1, p2, TAsmLabel(JumpTargetOp(taicpu(p1))^.ref^.symbol)) do
+                while (p1<>StartPoint) and CollapseZeroDistJump(p1, TAsmLabel(JumpTargetOp(taicpu(p1))^.ref^.symbol)) do
                   begin
                     { Note: Cannot remove the first instruction }
                     if (p1.typ = ait_label) then
