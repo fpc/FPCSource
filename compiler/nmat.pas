@@ -687,7 +687,9 @@ implementation
 
     function tshlshrnode.simplify(forinline : boolean):tnode;
       var
-        lvalue,rvalue : Tconstexprint;
+        lvalue, rvalue, mask : Tconstexprint;
+        rangedef: tdef;
+        size: longint;
       begin
         result:=nil;
         { constant folding }
@@ -695,7 +697,6 @@ implementation
           begin
             if forinline then
               begin
-                { shl/shr are unsigned operations, so cut off upper bits }
                 case resultdef.size of
                   1,2,4:
                     rvalue:=tordconstnode(right).value and byte($1f);
@@ -710,19 +711,10 @@ implementation
             if is_constintnode(left) then
                begin
                  lvalue:=tordconstnode(left).value;
-                 { shl/shr are unsigned operations, so cut off upper bits }
-                 case resultdef.size of
-                   1:
-                     lvalue:=lvalue and byte($ff);
-                   2:
-                     lvalue:=lvalue and word($ffff);
-                   4:
-                     lvalue:=lvalue and dword($ffffffff);
-                   8:
-                     lvalue:=lvalue and qword($ffffffffffffffff);
-                   else
-                     internalerror(2013122301);
-                 end;
+                 getrangedefmasksize(resultdef, rangedef, mask, size);
+                 { shr is an unsigned operation, so cut off upper bits }
+                 if forinline then
+                   lvalue:=lvalue and mask;
                  case nodetype of
                     shrn:
                       lvalue:=lvalue shr rvalue;
@@ -734,20 +726,7 @@ implementation
                  { discard shifted-out bits (shl never triggers overflow/range errors) }
                  if forinline and
                     (nodetype=shln) then
-                   begin
-                     case resultdef.size of
-                       1:
-                         lvalue:=lvalue and byte($ff);
-                       2:
-                         lvalue:=lvalue and word($ffff);
-                       4:
-                         lvalue:=lvalue and dword($ffffffff);
-                       8:
-                         lvalue:=lvalue and qword($ffffffffffffffff);
-                       else
-                         internalerror(2019111701);
-                     end;
-                   end;
+                   lvalue:=lvalue and mask;
                  result:=create_simplified_ord_const(lvalue,resultdef,forinline,false);
                end
             else if rvalue=0 then
@@ -761,19 +740,8 @@ implementation
             lvalue:=tordconstnode(left).value;
             if forinline then
               begin
-                { shl/shr are unsigned operations, so cut off upper bits }
-                case resultdef.size of
-                  1:
-                    lvalue:=tordconstnode(left).value and byte($ff);
-                  2:
-                    lvalue:=tordconstnode(left).value and word($ffff);
-                  4:
-                    lvalue:=tordconstnode(left).value and dword($ffffffff);
-                  8:
-                    lvalue:=tordconstnode(left).value and qword($ffffffffffffffff);
-                  else
-                    internalerror(2013122301);
-                end;
+                getrangedefmasksize(resultdef, rangedef, mask, size);
+                lvalue:=lvalue and mask;
               end;
             { '0 shl x' and '0 shr x' are 0 }
             if (lvalue=0) and
