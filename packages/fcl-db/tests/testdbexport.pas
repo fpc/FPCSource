@@ -42,6 +42,7 @@ type
     function FieldSupported(const FieldType: TFieldType;
       const ExportSubFormat: TDetailedExportFormats): boolean; //Checks if output dataset supports a certain field type
     procedure GenericExportTest(Exporter: TCustomDatasetExporter; ExportFormat: TDetailedExportFormats);
+    function GetABCDS: TBufDataset;
     function GetBooleanDS: TBufDataset;
     function GetFileSize(const FileName: string): integer; //Gets a file's size
     function GetWideStringDS: TBufDataset;
@@ -61,6 +62,7 @@ type
     procedure TestFixedTextExportUTF16;
     procedure TestFixedTextExportBoolean;
     procedure TestFixedTextExportHeader;
+    procedure TestFixedTextExportSpaces;
     procedure TestJSONExport;
     procedure TestRTFExport;
     procedure TestSQLExport;
@@ -170,7 +172,7 @@ begin
   DBConnector.StartTest(TestName);
   FExportTempDir:=IncludeTrailingPathDelimiter(ExpandFileName(''))+'exporttests'+PathDelim; //Store output in subdirectory
   ForceDirectories(FExportTempDir);
-  FKeepFilesAfterTest:=true; //keep test files; consistent with other units right now
+  // FKeepFilesAfterTest:=true; //keep test files; consistent with other units right now
 end;
 
 procedure TTestDBExport.TearDown;
@@ -712,6 +714,37 @@ begin
   Result:=DS;
 end;
 
+Function TTestDBExport.GetABCDS : TBufDataset;
+
+Var
+  DS : TBufDataset;
+
+begin
+  DS:=TBufDataset.Create(Nil);
+  try
+    DS.FieldDefs.Add('A',ftString,2);
+    DS.FieldDefs.Add('B',ftString,2);
+    DS.FieldDefs.Add('C',ftString,2);
+    DS.CreateDataset;
+    DS.Append;
+    DS.Fields[0].AsString:='xx';
+    DS.Fields[1].AsString:='y';
+    DS.Fields[2].AsString:='zz';
+    DS.Post;
+    DS.Append;
+    DS.Fields[0].AsString:='x';
+    DS.Fields[1].AsString:='yy';
+    DS.Fields[2].AsString:='z';
+    DS.Post;
+    DS.First;
+  except
+    DS.Free;
+    Raise;
+  end;
+  Result:=DS;
+end;
+
+
 procedure TTestDBExport.TestFixedTextExportBoolean;
 var
   DS : TBufDataset;
@@ -785,6 +818,48 @@ begin
     AssertEquals('Correct first line','True ',S); // 1 extra
     Readln(F,S);
     AssertEquals('Correct second line','false',S);
+  finally
+    if HaveFile then
+      closeFile(F);
+    if (FKeepFilesAfterTest = False) then
+      DeleteFile(Exporter.FileName);
+    Exporter.Free;
+  end;
+end;
+
+procedure TTestDBExport.TestFixedTextExportSpaces;
+var
+  DS : TBufDataset;
+  Exporter: TFixedLengthExporter;
+  F : text;
+  S : UTF8String;
+  haveFile : Boolean;
+
+begin
+  haveFile:=False;
+  Exporter:=Nil;
+  DS:=GetABCDS;
+  try
+    Exporter := TFixedLengthExporter.Create(nil);
+    Exporter.FormatSettings.BooleanFalse:='false';
+    Exporter.FormatSettings.BooleanTrue:='True';
+    Exporter.FormatSettings.HeaderRow:=True;
+    Exporter.FormatSettings.ColumnSeparatorSpaceCount:=2;
+    Exporter.Dataset:=DS;
+    Exporter.FileName := FExportTempDir + lowercase(TestName) + '.txt';
+    Exporter.BuildDefaultFieldMap(Exporter.ExportFields);
+    AssertEquals('Output count',2,Exporter.Execute);
+    AssertTrue('Output file must be created', FileExists(Exporter.FileName));
+    AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
+    AssignFile(F,Exporter.FileName);
+    Reset(F);
+    haveFile:=True;
+    Readln(F,S);
+    AssertEquals('Correct header line','A   B   C ',S); // 1 extra
+    Readln(F,S);
+    AssertEquals('Correct first line','xx  y   zz',S); // 1 extra
+    Readln(F,S);
+    AssertEquals('Correct first line','x   yy  z ',S); // 1 extra
   finally
     if HaveFile then
       closeFile(F);
