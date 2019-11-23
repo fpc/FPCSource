@@ -392,6 +392,7 @@ end;
 Procedure TFPDocApplication.DoRun;
 
 begin
+  ExceptionExitCode:=1;
   try
   {$IFDEF Unix}
     gettext.TranslateResourceStrings('/usr/local/share/locale/%s/LC_MESSAGES/fpdoc.mo');
