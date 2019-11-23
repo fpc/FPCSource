@@ -94,6 +94,8 @@ unit aoptcpu;
                   p := tai(p.next);
                   Result:=true;
                 end;
+              if not (p is taicpu) then
+                exit;
               case taicpu(p).opcode Of
                 A_IMUL:
                   Result:=PrePeepholeOptIMUL(p);
