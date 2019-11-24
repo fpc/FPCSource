@@ -862,7 +862,13 @@ uses
         { decide in which symtable to put the specialization }
         if parse_generic and not assigned(result) then
           begin
-            if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) then
+            srsymtable:=symtablestack.top;
+            if (srsymtable.symtabletype in [localsymtable,parasymtable]) and tstoreddef(srsymtable.defowner).is_specialization then
+              { if we are currently specializing a routine we need to specialize into
+                the routine's local- or parasymtable so that they are correctly
+                registered should the specialization be finalized }
+              specializest:=srsymtable
+            else if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) then
               { if we are parsing the definition of a method we specialize into
                 the local symtable of it }
               specializest:=current_procinfo.procdef.getsymtable(gs_local)
