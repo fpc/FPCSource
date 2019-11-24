@@ -737,6 +737,7 @@ uses
         old_current_specializedef,
         old_current_genericdef : tstoreddef;
         old_current_procinfo : tprocinfo;
+        old_module_procinfo : tobject;
         hmodule : tmodule;
         oldcurrent_filepos : tfileposinfo;
         recordbuf : tdynamicarray;
@@ -945,8 +946,10 @@ uses
                 old_current_genericdef:=nil;
                 old_current_structdef:=nil;
                 old_current_procinfo:=current_procinfo;
+                old_module_procinfo:=current_module.procinfo;
 
                 current_procinfo:=nil;
+                current_module.procinfo:=nil;
 
                 if parse_class_parent then
                   begin
@@ -1128,6 +1131,7 @@ uses
 
                 block_type:=old_block_type;
                 current_procinfo:=old_current_procinfo;
+                current_module.procinfo:=old_module_procinfo;
                 if parse_class_parent then
                   begin
                     current_structdef:=old_current_structdef;
