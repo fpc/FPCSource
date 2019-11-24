@@ -85,156 +85,53 @@ unit aoptcpu;
 
     function TCPUAsmOPtimizer.PrePeepHoleOptsCpu(var p: tai): boolean;
       begin
-        Result:=False;
-        case p.typ of
-          ait_instruction:
-            begin
-              if InsContainsSegRef(taicpu(p)) then
-                begin
-                  p := tai(p.next);
-                  Result:=true;
-                end;
-              if not (p is taicpu) then
-                exit;
-              case taicpu(p).opcode Of
-                A_IMUL:
-                  Result:=PrePeepholeOptIMUL(p);
-                A_SAR,A_SHR:
-                  Result:=PrePeepholeOptSxx(p);
-                A_XOR:
+        repeat
+          Result:=False;
+          case p.typ of
+            ait_instruction:
+              begin
+                if InsContainsSegRef(taicpu(p)) then
                   begin
-                    if (taicpu(p).oper[0]^.typ = top_reg) and
-                       (taicpu(p).oper[1]^.typ = top_reg) and
-                       (taicpu(p).oper[0]^.reg = taicpu(p).oper[1]^.reg) then
-                     { temporarily change this to 'mov reg,0' to make it easier }
-                     { for the CSE. Will be changed back in pass 2              }
-                      begin
-                        taicpu(p).opcode := A_MOV;
-                        taicpu(p).loadConst(0,0);
-                        Result:=true;
-                      end;
+                    p := tai(p.next);
+                    { Nothing's actually changed, so no need to set Result to True,
+                      but try again to see if an instruction immediately follows }
+                    Continue;
                   end;
-                else
-                  ;
-              end;
+                case taicpu(p).opcode Of
+                  A_IMUL:
+                    Result:=PrePeepholeOptIMUL(p);
+                  A_SAR,A_SHR:
+                    Result:=PrePeepholeOptSxx(p);
+                  A_XOR:
+                    begin
+                      if (taicpu(p).oper[0]^.typ = top_reg) and
+                         (taicpu(p).oper[1]^.typ = top_reg) and
+                         (taicpu(p).oper[0]^.reg = taicpu(p).oper[1]^.reg) then
+                       { temporarily change this to 'mov reg,0' to make it easier }
+                       { for the CSE. Will be changed back in pass 2              }
+                        begin
+                          taicpu(p).opcode := A_MOV;
+                          taicpu(p).loadConst(0,0);
+                          Result:=true;
+                        end;
+                    end;
+                  else
+                    { Do nothing };
+                end;
+            end;
+          else
+            { Do nothing };
           end;
-        else
-          ;
-        end;
+          Break;
+        until False;
       end;
 
 
     function TCPUAsmOPtimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
-
-      function WriteOk : Boolean;
-        begin
-          writeln('Ok');
-          Result:=True;
-        end;
-
       var
         hp1,hp2 : tai;
         hp3,hp4: tai;
         v:aint;
-
-      function GetFinalDestination(asml: TAsmList; hp: taicpu; level: longint): boolean;
-        {traces sucessive jumps to their final destination and sets it, e.g.
-         je l1                je l3
-         <code>               <code>
-         l1:       becomes    l1:
-         je l2                je l3
-         <code>               <code>
-         l2:                  l2:
-         jmp l3               jmp l3
-
-         the level parameter denotes how deeep we have already followed the jump,
-         to avoid endless loops with constructs such as "l5: ; jmp l5"           }
-
-        var p1, p2: tai;
-            l: tasmlabel;
-
-        function FindAnyLabel(hp: tai; var l: tasmlabel): Boolean;
-          begin
-            FindAnyLabel := false;
-            while assigned(hp.next) and
-                  (tai(hp.next).typ in (SkipInstr+[ait_align])) Do
-              hp := tai(hp.next);
-            if assigned(hp.next) and
-               (tai(hp.next).typ = ait_label) then
-              begin
-                FindAnyLabel := true;
-                l := tai_label(hp.next).labsym;
-              end
-          end;
-
-        begin
-          GetfinalDestination := false;
-          if level > 20 then
-            exit;
-          p1 := getlabelwithsym(tasmlabel(hp.oper[0]^.ref^.symbol));
-          if assigned(p1) then
-            begin
-              SkipLabels(p1,p1);
-              if (tai(p1).typ = ait_instruction) and
-                 (taicpu(p1).is_jmp) then
-                if { the next instruction after the label where the jump hp arrives}
-                   { is unconditional or of the same type as hp, so continue       }
-                   (taicpu(p1).condition in [C_None,hp.condition]) or
-                   { the next instruction after the label where the jump hp arrives}
-                   { is the opposite of hp (so this one is never taken), but after }
-                   { that one there is a branch that will be taken, so perform a   }
-                   { little hack: set p1 equal to this instruction (that's what the}
-                   { last SkipLabels is for, only works with short bool evaluation)}
-                   ((taicpu(p1).condition = inverse_cond(hp.condition)) and
-                    SkipLabels(p1,p2) and
-                    (p2.typ = ait_instruction) and
-                    (taicpu(p2).is_jmp) and
-                    (taicpu(p2).condition in [C_None,hp.condition]) and
-                    SkipLabels(p1,p1)) then
-                  begin
-                    { quick check for loops of the form "l5: ; jmp l5 }
-                    if (tasmlabel(taicpu(p1).oper[0]^.ref^.symbol).labelnr =
-                         tasmlabel(hp.oper[0]^.ref^.symbol).labelnr) then
-                      exit;
-                    if not GetFinalDestination(asml, taicpu(p1),succ(level)) then
-                      exit;
-                    tasmlabel(hp.oper[0]^.ref^.symbol).decrefs;
-                    hp.oper[0]^.ref^.symbol:=taicpu(p1).oper[0]^.ref^.symbol;
-                    tasmlabel(hp.oper[0]^.ref^.symbol).increfs;
-                  end
-                else
-                  if (taicpu(p1).condition = inverse_cond(hp.condition)) then
-                    if not FindAnyLabel(p1,l) then
-                      begin
-{$ifdef finaldestdebug}
-                        insertllitem(asml,p1,p1.next,tai_comment.Create(
-                          strpnew('previous label inserted'))));
-{$endif finaldestdebug}
-                        current_asmdata.getjumplabel(l);
-                        insertllitem(p1,p1.next,tai_label.Create(l));
-                        tasmlabel(taicpu(hp).oper[0]^.ref^.symbol).decrefs;
-                        hp.oper[0]^.ref^.symbol := l;
-                        l.increfs;
-        {               this won't work, since the new label isn't in the labeltable }
-        {               so it will fail the rangecheck. Labeltable should become a   }
-        {               hashtable to support this:                                   }
-        {               GetFinalDestination(asml, hp);                               }
-                      end
-                    else
-                      begin
-{$ifdef finaldestdebug}
-                        insertllitem(asml,p1,p1.next,tai_comment.Create(
-                          strpnew('next label reused'))));
-{$endif finaldestdebug}
-                        l.increfs;
-                        hp.oper[0]^.ref^.symbol := l;
-                        if not GetFinalDestination(asml, hp,succ(level)) then
-                          exit;
-                      end;
-            end;
-          GetFinalDestination := true;
-        end;
-
       begin
         result:=False;
         case p.Typ Of
