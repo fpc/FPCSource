@@ -701,7 +701,6 @@ begin
             add('  . = 0 +  SIZEOF_HEADERS;')
           else
             add('  PROVIDE (__executable_start = 0x0400000); . = 0x0400000 +  SIZEOF_HEADERS;');
-          add('  . = 0 +  SIZEOF_HEADERS;');
           add('  .interp         : { *(.interp) }');
           add('  .hash           : { *(.hash) }');
           add('  .dynsym         : { *(.dynsym) }');
