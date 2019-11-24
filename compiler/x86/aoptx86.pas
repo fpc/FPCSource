@@ -4323,9 +4323,24 @@ unit aoptx86;
                       Result := True;
                     end;
                   else
-                    ;
+                    { Do nothing };
                 end;
               end;
+            -1:
+              { Don't make this optimisation if the CPU flags are required, since OR scrambles them }
+              if (cs_opt_size in current_settings.optimizerswitches) and
+                (taicpu(p).opsize <> S_B) and
+                not (RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
+                begin
+                  { change "mov $-1,%reg" into "or $-1,%reg" }
+                  { NOTES:
+                    - No size saving is made when changing a Word-sized assignment unless the register is AX (smaller encoding)
+                    - This operation creates a false dependency on the register, so only do it when optimising for size
+                    - It is possible to set memory operands using this method, but this creates an even greater false dependency, so don't do this at all
+                  }
+                  taicpu(p).opcode := A_OR;
+                  Result := True;
+                end;
             end;
           end;
       end;
