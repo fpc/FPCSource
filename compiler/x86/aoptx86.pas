@@ -71,9 +71,10 @@ unit aoptx86;
         function OptPass1LEA(var p : tai) : boolean;
         function OptPass1Sub(var p : tai) : boolean;
         function OptPass1SHLSAL(var p : tai) : boolean;
-        function OptPass1SETcc(var p: tai): boolean;
-        function OptPass1FSTP(var p: tai): boolean;
-        function OptPass1FLD(var p: tai): boolean;
+        function OptPass1SETcc(var p : tai) : boolean;
+        function OptPass1FSTP(var p : tai) : boolean;
+        function OptPass1FLD(var p : tai) : boolean;
+        function OptPass1Cmp(var p : tai) : boolean;
 
         function OptPass2MOV(var p : tai) : boolean;
         function OptPass2Imul(var p : tai) : boolean;
@@ -3014,6 +3015,93 @@ unit aoptx86;
                 end
               end
       end;
+
+
+     function TX86AsmOptimizer.OptPass1Cmp(var p: tai): boolean;
+       var
+         v: QWord;
+         hp1, hp2, hp3, hp4: tai;
+       begin
+         Result:=false;
+         { cmp register,$8000                neg register
+           je target                 -->     jo target
+
+           .... only if register is deallocated before jump.}
+         case Taicpu(p).opsize of
+           S_B: v:=$80;
+           S_W: v:=$8000;
+           S_L: v:=qword($80000000);
+           S_Q : v:=qword($8000000000000000);
+           else
+             internalerror(2013112905);
+         end;
+         if MatchOpType(taicpu(p),Top_const,top_reg) and
+            (taicpu(p).oper[0]^.val=v) and
+            GetNextInstruction(p, hp1) and
+            MatchInstruction(hp1,A_Jcc,[]) and
+            (Taicpu(hp1).condition in [C_E,C_NE]) then
+           begin
+             TransferUsedRegs(TmpUsedRegs);
+             UpdateUsedRegs(TmpUsedRegs,tai(p.next));
+             if not(RegInUsedRegs(Taicpu(p).oper[1]^.reg, TmpUsedRegs)) then
+               begin
+                 DebugMsg(SPeepholeOptimization + 'CmpJe2NegJo done',p);
+                 Taicpu(p).opcode:=A_NEG;
+                 Taicpu(p).loadoper(0,Taicpu(p).oper[1]^);
+                 Taicpu(p).clearop(1);
+                 Taicpu(p).ops:=1;
+                 if Taicpu(hp1).condition=C_E then
+                   Taicpu(hp1).condition:=C_O
+                 else
+                   Taicpu(hp1).condition:=C_NO;
+                 Result:=true;
+                 exit;
+               end;
+           end;
+         {
+         @@2:                              @@2:
+           ....                              ....
+           cmp operand1,0
+           jle/jbe @@1
+           dec operand1             -->      sub operand1,1
+           jmp @@2                           jge/jae @@2
+         @@1:                              @@1:
+           ...                               ....}
+         if (taicpu(p).oper[0]^.typ = top_const) and
+            (taicpu(p).oper[1]^.typ in [top_reg,top_ref]) and
+            (taicpu(p).oper[0]^.val = 0) and
+            GetNextInstruction(p, hp1) and
+            MatchInstruction(hp1,A_Jcc,[]) and
+            (taicpu(hp1).condition in [C_LE,C_BE]) and
+            GetNextInstruction(hp1,hp2) and
+            MatchInstruction(hp1,A_DEC,[]) and
+            OpsEqual(taicpu(hp2).oper[0]^,taicpu(p).oper[1]^) and
+            GetNextInstruction(hp2, hp3) and
+            MatchInstruction(hp1,A_JMP,[]) and
+            GetNextInstruction(hp3, hp4) and
+            FindLabel(tasmlabel(taicpu(hp1).oper[0]^.ref^.symbol),hp4) then
+           begin
+             DebugMsg(SPeepholeOptimization + 'CmpJxxDecJmp2SubJcc done',p);
+             taicpu(hp2).Opcode := A_SUB;
+             taicpu(hp2).loadoper(1,taicpu(hp2).oper[0]^);
+             taicpu(hp2).loadConst(0,1);
+             taicpu(hp2).ops:=2;
+             taicpu(hp3).Opcode := A_Jcc;
+             case taicpu(hp1).condition of
+               C_LE: taicpu(hp3).condition := C_GE;
+               C_BE: taicpu(hp3).condition := C_AE;
+               else
+                 internalerror(2019050903);
+             end;
+             asml.remove(p);
+             asml.remove(hp1);
+             p.free;
+             hp1.free;
+             p := hp2;
+             Result:=true;
+             exit;
+           end;
+     end;
 
 
    function TX86AsmOptimizer.OptPass2MOV(var p : tai) : boolean;
