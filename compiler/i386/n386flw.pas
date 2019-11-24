@@ -375,14 +375,10 @@ procedure ti386tryfinallynode.pass_generate_code;
     emit_scope_end;
     if is_safecall then
       begin
-        current_asmdata.getjumplabel(safecalllabel);
-        hreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-        cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,hreg);
         cg.a_jmp_always(current_asmdata.CurrAsmList,safecalllabel);
         { RTL handler will jump here on exception }
         cg.a_label(current_asmdata.CurrAsmList,exceptlabel);
         handle_safecall_exception;
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_FUNCTION_RESULT_REG,hreg);
         cg.a_label(current_asmdata.CurrAsmList,safecalllabel);
       end;
 
@@ -432,8 +428,6 @@ procedure ti386tryfinallynode.pass_generate_code;
             cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
           end;
       end;
-    if is_safecall then
-      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,hreg,NR_FUNCTION_RETURN_REG);
     cg.a_label(current_asmdata.CurrAsmList,endfinallylabel);
 
     { end cleanup }

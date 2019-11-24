@@ -1946,7 +1946,7 @@ implementation
           gets inserted before the exit label to which this node will jump }
         if (target_info.system in systems_fpnestedstruct) and
            not(nf_internal in flags) and
-           current_procinfo.procdef.getfuncretsyminfo(ressym,resdef) and
+           current_procinfo.procdef.get_funcretsym_info(ressym,resdef) and
            (tabstractnormalvarsym(ressym).inparentfpstruct) then
           begin
             if not assigned(result) then
