@@ -829,10 +829,8 @@ unit aoptx86;
              { remove "imul $1, reg" }
               begin
                 hp1 := tai(p.Next);
-                asml.remove(p);
                 DebugMsg(SPeepholeOptimization + 'Imul2Nop done',p);
-                p.free;
-                p := hp1;
+                RemoveCurrentP(p);
                 result:=true;
               end
             else
@@ -844,9 +842,8 @@ unit aoptx86;
                 p.free;
                 p := hp1;
               end
-          else if
-           ((taicpu(p).ops <= 2) or
-            (taicpu(p).oper[2]^.typ = Top_Reg)) and
+          else if ((taicpu(p).ops <= 2) or
+              (taicpu(p).oper[2]^.typ = Top_Reg)) and
            not(cs_opt_size in current_settings.optimizerswitches) and
            (not(GetNextInstruction(p, hp1)) or
              not((tai(hp1).typ = ait_instruction) and
@@ -883,10 +880,8 @@ unit aoptx86;
                     hp1 := taicpu.op_ref_reg(A_LEA, opsize, TmpRef, taicpu(p).oper[2]^.reg);
                   AsmL.InsertAfter(hp1,p);
                   DebugMsg(SPeepholeOptimization + 'Imul2LeaShl done',p);
-                  AsmL.Remove(p);
                   taicpu(hp1).fileinfo:=taicpu(p).fileinfo;
-                  p.free;
-                  p := hp1;
+                  RemoveCurrentP(p);
                   if ShiftValue>0 then
                     AsmL.InsertAfter(taicpu.op_const_reg(A_SHL, opsize, ShiftValue, taicpu(hp1).oper[1]^.reg),hp1);
               end;
