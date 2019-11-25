@@ -472,8 +472,21 @@ uses
         errorrecovery:=false;
         if (symname='') and
             (not assigned(genericdef) or
-            not assigned(genericdef.typesym) or
-            (genericdef.typesym.typ<>typesym)) then
+              (
+                (genericdef.typ<>procdef) and
+                (
+                  not assigned(genericdef.typesym) or
+                  (genericdef.typesym.typ<>typesym)
+                )
+              ) or
+              (
+                (genericdef.typ=procdef) and
+                (
+                  not assigned(tprocdef(genericdef).procsym) or
+                  (tprocdef(genericdef).procsym.typ<>procsym)
+                )
+              )
+            ) then
           begin
             errorrecovery:=true;
             result:=generrordef;
@@ -592,7 +605,12 @@ uses
         { use the name of the symbol as procvars return a user friendly version
           of the name }
         if symname='' then
-          genname:=ttypesym(genericdef.typesym).realname
+          begin
+            if genericdef.typ=procdef then
+              genname:=tprocdef(genericdef).procsym.realname
+            else
+              genname:=ttypesym(genericdef.typesym).realname;
+          end
         else
           genname:=symname;
 
