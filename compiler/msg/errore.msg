@@ -1603,6 +1603,9 @@ parser_e_unbound_attribute=03351_E_Unbound custom attribute: "$1".
 parser_e_enumeration_out_of_range=03352_E_Enumeration symbols can only have values in the range of -2^31 to 2^31-1
 % The size of enumeration values is limited to 4 bytes. As the value can be signed, the range
 % of valid values is limited to a signed 32 Bit value (i.e. \var{longint}).
+parser_w_enumeration_out_of_range=03353_W_Enumeration symbols can only have values in the range of -2^31 to 2^31-1
+% The size of enumeration values is limited to 4 bytes. As the value can be signed, the range
+% of valid values is limited to a signed 32 Bit value (i.e. \var{longint}).
 %
 % \end{description}
 %
