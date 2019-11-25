@@ -488,8 +488,7 @@ uses
               )
             ) then
           begin
-            errorrecovery:=true;
-            result:=generrordef;
+            internalerror(2019112401);
           end;
 
         { Only parse the parameters for recovery or
