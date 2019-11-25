@@ -106,6 +106,7 @@ begin
   // Create with empty connection config.
   C:=FDisp.Connections.AddConnection('','','','','');
   C.name:='connection';
+  // Read connection settings if available
   FN:=GetOptionValue('c', 'config');
   if FN='' then
     FN:='connection.ini';
@@ -113,12 +114,12 @@ begin
     C.LoadFromIniFile(FN,'database',[])
   else
     begin
-    // Try Default
+    // Or set in code.
     C.ConnectionType:=TPQConnectionDef.TypeName;
     C.DatabaseName:='fpctest';
     C.HostName:='localhost';
-    C.UserName:='fpc';
-    C.Password:='Shimrod';
+    C.UserName:='user';
+    C.Password:='secret';
     end;
   Result:=C;
 end;
