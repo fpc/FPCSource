@@ -375,6 +375,7 @@ procedure ti386tryfinallynode.pass_generate_code;
     emit_scope_end;
     if is_safecall then
       begin
+        current_asmdata.getjumplabel(safecalllabel);
         cg.a_jmp_always(current_asmdata.CurrAsmList,safecalllabel);
         { RTL handler will jump here on exception }
         cg.a_label(current_asmdata.CurrAsmList,exceptlabel);
