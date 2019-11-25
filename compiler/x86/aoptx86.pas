@@ -93,6 +93,8 @@ unit aoptx86;
         function PostPeepholeOptLea(var p : tai) : Boolean;
 
         procedure OptReferences;
+
+        procedure ConvertJumpToRET(const p: tai; const ret_p: tai);
       end;
 
     function MatchInstruction(const instr: tai; const op: TAsmOp; const opsize: topsizes): boolean;
@@ -3107,8 +3109,47 @@ unit aoptx86;
 {$endif x86_64}
       begin
         Result:=false;
-        if MatchOpType(taicpu(p),top_reg,top_reg) and
-          GetNextInstruction(p, hp1) and
+        if not GetNextInstruction(p, hp1) then
+          Exit;
+
+        if MatchInstruction(hp1, A_JMP, [S_NO]) then
+          begin
+            { Sometimes the MOVs that OptPass2JMP produces can be improved
+              further, but we can't just put this jump optimisation in pass 1
+              because it tends to perform worse when conditional jumps are
+              nearby (e.g. when converting CMOV instructions). [Kit] }
+            if OptPass2JMP(hp1) then
+              { call OptPass1MOV once to potentially merge any MOVs that were created }
+              Result := OptPass1MOV(p)
+              { OptPass2MOV will now exit but will be called again if OptPass1MOV
+                returned True and the instruction is still a MOV, thus checking
+                the optimisations below }
+            else
+              { Since OptPass2JMP returned false, no optimisations were done to
+                the jump. Additionally, a label will definitely follow the jump
+                (although it may have become dead), so skip ahead as far as
+                possible }
+              begin
+                while (p <> hp1) do
+                  begin
+                    { Nothing changed between the MOV and the JMP, so
+                      don't bother with "UpdateUsedRegsAndOptimize" }
+                    UpdateUsedRegs(p);
+                    p := tai(p.Next);
+                  end;
+
+                { Use "UpdateUsedRegsAndOptimize" here though, because the
+                  label might now be dead and can be stripped out }
+                p := tai(UpdateUsedRegsAndOptimize(hp1).Next);
+
+                { If p is a label, then Result will be False and program flow
+                  will move onto the next list entry in "PeepHoleOptPass2" }
+                if (p = BlockEnd) or not (p.typ in [ait_align, ait_label]) then
+                  Result := True;
+
+              end;
+          end
+        else if MatchOpType(taicpu(p),top_reg,top_reg) and
 {$ifdef x86_64}
           MatchInstruction(hp1,A_MOVZX,A_MOVSX,A_MOVSXD,[]) and
 {$else x86_64}
@@ -3141,7 +3182,6 @@ unit aoptx86;
             exit;
           end
         else if MatchOpType(taicpu(p),top_reg,top_reg) and
-          GetNextInstruction(p, hp1) and
 {$ifdef x86_64}
           MatchInstruction(hp1,[A_MOV,A_MOVZX,A_MOVSX,A_MOVSXD],[]) and
 {$else x86_64}
@@ -3168,7 +3208,6 @@ unit aoptx86;
             exit;
           end
         else if (taicpu(p).oper[0]^.typ = top_ref) and
-          GetNextInstruction(p,hp1) and
           (hp1.typ = ait_instruction) and
           { while the GetNextInstruction(hp1,hp2) call could be factored out,
             doing it separately in both branches allows to do the cheap checks
@@ -3236,7 +3275,6 @@ unit aoptx86;
         else if (taicpu(p).opsize = S_L) and
           (taicpu(p).oper[1]^.typ = top_reg) and
           (
-            GetNextInstruction(p, hp1) and
             MatchInstruction(hp1, A_MOV,[]) and
             (taicpu(hp1).opsize = S_L) and
             (taicpu(hp1).oper[1]^.typ = top_reg)
@@ -3365,40 +3403,100 @@ unit aoptx86;
       end;
 
 
+    procedure TX86AsmOptimizer.ConvertJumpToRET(const p: tai; const ret_p: tai);
+      var
+        ThisLabel: TAsmLabel;
+      begin
+        ThisLabel := tasmlabel(taicpu(p).oper[0]^.ref^.symbol);
+        ThisLabel.decrefs;
+        taicpu(p).opcode := A_RET;
+        taicpu(p).is_jmp := false;
+        taicpu(p).ops := taicpu(ret_p).ops;
+        case taicpu(ret_p).ops of
+          0:
+            taicpu(p).clearop(0);
+          1:
+            taicpu(p).loadconst(0,taicpu(ret_p).oper[0]^.val);
+          else
+            internalerror(2016041301);
+        end;
+
+        { If the original label is now dead, it might turn out that the label
+          immediately follows p.  As a result, everything beyond it, which will
+          be just some final register configuration and a RET instruction, is
+          now dead code. [Kit] }
+
+        { NOTE: This is much faster than introducing a OptPass2RET routine and
+          running RemoveDeadCodeAfterJump for each RET instruction, because
+          this optimisation rarely happens and most RETs appear at the end of
+          routines where there is nothing that can be stripped. [Kit] }
+        if not ThisLabel.is_used then
+          RemoveDeadCodeAfterJump(p);
+      end;
+
+
     function TX86AsmOptimizer.OptPass2Jmp(var p : tai) : boolean;
       var
-        hp1 : tai;
+        hp1, hp2 : tai;
       begin
-        {
-          change
-                 jmp .L1
-                 ...
-             .L1:
-                 ret
-          into
-                 ret
-        }
         result:=false;
         if (taicpu(p).oper[0]^.typ=top_ref) and (taicpu(p).oper[0]^.ref^.refaddr=addr_full) and (taicpu(p).oper[0]^.ref^.base=NR_NO) and
           (taicpu(p).oper[0]^.ref^.index=NR_NO) then
           begin
             hp1:=getlabelwithsym(tasmlabel(taicpu(p).oper[0]^.ref^.symbol));
-            if (taicpu(p).condition=C_None) and assigned(hp1) and SkipLabels(hp1,hp1) and
-              MatchInstruction(hp1,A_RET,[S_NO]) then
+            if (taicpu(p).condition=C_None) and assigned(hp1) and SkipLabels(hp1,hp1) and (hp1.typ = ait_instruction) then
               begin
-                tasmlabel(taicpu(p).oper[0]^.ref^.symbol).decrefs;
-                taicpu(p).opcode:=A_RET;
-                taicpu(p).is_jmp:=false;
-                taicpu(p).ops:=taicpu(hp1).ops;
-                case taicpu(hp1).ops of
-                  0:
-                    taicpu(p).clearop(0);
-                  1:
-                    taicpu(p).loadconst(0,taicpu(hp1).oper[0]^.val);
+                case taicpu(hp1).opcode of
+                  A_RET:
+                    {
+                      change
+                             jmp .L1
+                             ...
+                         .L1:
+                             ret
+                      into
+                             ret
+                    }
+                    begin
+                      ConvertJumpToRET(p, hp1);
+                      result:=true;
+                    end;
+                  A_MOV:
+                    {
+                      change
+                             jmp .L1
+                             ...
+                         .L1:
+                             mov ##, ##
+                             ret
+                      into
+                             mov ##, ##
+                             ret
+                    }
+                    { This optimisation tends to increase code size if the pass 1 MOV optimisations aren't
+                      re-run, so only do this particular optimisation if optimising for speed or when
+                      optimisations are very in-depth. [Kit] }
+                    if (current_settings.optimizerswitches * [cs_opt_level3, cs_opt_size]) <> [cs_opt_size] then
+                      begin
+                        GetNextInstruction(hp1, hp2);
+                        if not Assigned(hp2) then
+                          Exit;
+
+                        if (hp2.typ in [ait_label, ait_align]) then
+                          SkipLabels(hp2,hp2);
+                        if Assigned(hp2) and MatchInstruction(hp2, A_RET, [S_NO]) then
+                          begin
+                            { Duplicate the MOV instruction }
+                            asml.InsertBefore(hp1.getcopy, p);
+
+                            { Now change the jump into a RET instruction }
+                            ConvertJumpToRET(p, hp2);
+                            result:=true;
+                          end;
+                      end;
                   else
-                    internalerror(2016041301);
+                    { Do nothing };
                 end;
-                result:=true;
               end;
           end;
       end;
