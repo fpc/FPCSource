@@ -15464,6 +15464,7 @@ tests/test/units/classes/ttbits.pp svneol=native#text/pascal
 tests/test/units/classes/ttlist.pp svneol=native#text/plain
 tests/test/units/classes/tvclcomobject.pp svneol=native#text/plain
 tests/test/units/cocoaall/tw35994.pp svneol=native#text/plain
+tests/test/units/cocoaall/tw36362.pp svneol=native#text/plain
 tests/test/units/cpu/tcpu1.pp svneol=native#text/pascal
 tests/test/units/crt/tcrt.pp svneol=native#text/plain
 tests/test/units/crt/tctrlc.pp svneol=native#text/plain
