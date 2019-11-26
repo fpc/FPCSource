@@ -1885,10 +1885,16 @@ unit aoptx86;
         }
         if GetNextInstruction_p and
            MatchOpType(taicpu(p),top_reg,top_reg) and
-           MatchInstruction(hp1,A_OR,A_AND,A_TEST,[]) and
-           MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) and
-           (taicpu(hp1).oper[1]^.typ = top_reg) and
-           (taicpu(hp1).oper[0]^.reg = taicpu(hp1).oper[1]^.reg) then
+           ((MatchInstruction(hp1,A_OR,A_AND,A_TEST,[]) and
+            MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) and
+            (taicpu(hp1).oper[1]^.typ = top_reg) and
+            (taicpu(hp1).oper[0]^.reg = taicpu(hp1).oper[1]^.reg)) or
+            (MatchInstruction(hp1,A_CMP,[]) and
+            MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and
+            MatchOpType(taicpu(hp1),top_const,top_reg) and
+            (taicpu(p).oper[1]^.reg = taicpu(hp1).oper[1]^.reg)
+            )
+           ) then
            {  we have
 
               mov %reg1, %reg2
@@ -1902,7 +1908,7 @@ unit aoptx86;
              if GetNextInstruction(hp1, hp2) and
                 (hp2.typ = ait_instruction) and
                 taicpu(hp2).is_jmp and
-                not(RegUsedAfterInstruction(taicpu(hp1).oper[0]^.reg, hp1, TmpUsedRegs)) then
+                not(RegUsedAfterInstruction(taicpu(hp1).oper[1]^.reg, hp1, TmpUsedRegs)) then
                  { change
 
                    mov %reg1, %reg2
@@ -1915,9 +1921,10 @@ unit aoptx86;
                    jxx
                  }
                  begin
-                   taicpu(hp1).loadoper(0,taicpu(p).oper[0]^);
+                   if taicpu(hp1).opcode<>A_CMP then
+                     taicpu(hp1).loadoper(0,taicpu(p).oper[0]^);
                    taicpu(hp1).loadoper(1,taicpu(p).oper[0]^);
-                   DebugMsg(SPeepholeOptimization + 'MovTestJxx2TestMov done',p);
+                   DebugMsg(SPeepholeOptimization + 'MovTest/Cmp/Or/AndJxx2Test/Cmp/Or/AndJxx done',p);
                    asml.remove(p);
                    p.free;
                    p := hp1;
@@ -1936,9 +1943,10 @@ unit aoptx86;
 
                    }
                  begin
-                   taicpu(hp1).loadoper(0,taicpu(p).oper[0]^);
+                   if taicpu(hp1).opcode<>A_CMP then
+                     taicpu(hp1).loadoper(0,taicpu(p).oper[0]^);
                    taicpu(hp1).loadoper(1,taicpu(p).oper[0]^);
-                   DebugMsg(SPeepholeOptimization + 'MovTestJxx2MovTestJxx done',p);
+                   DebugMsg(SPeepholeOptimization + 'MovTest/Cmp/Or/AndJxx2MovTest/Cmp/Or/AndJxx done',p);
                  end;
            end;
         { leave out the mov from "mov reg, x(%frame_pointer); leave/ret" (with
@@ -2797,21 +2805,25 @@ unit aoptx86;
 
         if MatchOpType(taicpu(p),top_reg) and
           GetNextInstruction(p, hp1) and
-          MatchInstruction(hp1, A_TEST, [S_B]) and
-          MatchOpType(taicpu(hp1),top_reg,top_reg) and
-          (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[0]^.reg) and
-          (taicpu(hp1).oper[0]^.reg = taicpu(hp1).oper[1]^.reg) and
+          ((MatchInstruction(hp1, A_TEST, [S_B]) and
+           MatchOpType(taicpu(hp1),top_reg,top_reg) and
+           (taicpu(hp1).oper[0]^.reg = taicpu(hp1).oper[1]^.reg)) or
+           (MatchInstruction(hp1, A_CMP, [S_B]) and
+            MatchOpType(taicpu(hp1),top_const,top_reg) and
+            (taicpu(hp1).oper[0]^.val=0))
+          ) and
+          (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[1]^.reg) and
           GetNextInstruction(hp1, hp2) and
           MatchInstruction(hp2, A_Jcc, []) then
           { Change from:             To:
 
             set(C) %reg              j(~C) label
-            test   %reg,%reg
+            test   %reg,%reg/cmp $0,%reg
             je     label
 
 
             set(C) %reg              j(C)  label
-            test   %reg,%reg
+            test   %reg,%reg/cmp $0,%reg
             jne    label
           }
           begin
@@ -2847,7 +2859,7 @@ unit aoptx86;
                 p := hp2;
               end;
 
-            DebugMsg(SPeepholeOptimization + 'SETcc/TEST/Jcc -> Jcc',p);
+            DebugMsg(SPeepholeOptimization + 'SETcc/TESTCmp/Jcc -> Jcc',p);
           end;
       end;
 
