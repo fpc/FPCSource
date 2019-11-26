@@ -52,8 +52,8 @@ unit aoptx86;
 
         procedure DebugMsg(const s : string; p : tai);inline;
 
-        class function IsExitCode(p : tai) : boolean;
-        class function isFoldableArithOp(hp1 : taicpu; reg : tregister) : boolean;
+        class function IsExitCode(p : tai) : boolean; static;
+        class function isFoldableArithOp(hp1 : taicpu; reg : tregister) : boolean; static;
         procedure RemoveLastDeallocForFuncRes(p : tai);
 
         function DoSubAddOpt(var p : tai) : Boolean;

@@ -201,13 +201,13 @@ Unit AoptObj;
 
         { returns whether the reference Ref is used somewhere in the loading }
         { sequence Content                                                   }
-        Function RefInSequence(Const Ref: TReference; Content: TContent;
-          RefsEq: TRefCompare): Boolean;
+        class function RefInSequence(Const Ref: TReference; Content: TContent;
+          RefsEq: TRefCompare): Boolean; static;
 
         { returns whether the instruction P reads from and/or writes }
         { to Reg                                                     }
-        Function RefInInstruction(Const Ref: TReference; p: Tai;
-          RefsEq: TRefCompare): Boolean;
+        class function RefInInstruction(Const Ref: TReference; p: Tai;
+          RefsEq: TRefCompare): Boolean; static;
 
         { returns whether two references with at least one pointing to an array }
         { may point to the same memory location                                 }
@@ -272,7 +272,7 @@ Unit AoptObj;
         Procedure CreateUsedRegs(var regs: TAllUsedRegs);
         Procedure ClearUsedRegs;
         Procedure UpdateUsedRegs(p : Tai);
-        class procedure UpdateUsedRegs(var Regs: TAllUsedRegs; p: Tai);
+        class procedure UpdateUsedRegs(var Regs: TAllUsedRegs; p: Tai); static;
 
         { If UpdateUsedRegsAndOptimize has read ahead, the result is one before
           the next valid entry (so "p.Next" returns what's expected).  If no
@@ -282,16 +282,16 @@ Unit AoptObj;
         Function CopyUsedRegs(var dest : TAllUsedRegs) : boolean;
         procedure RestoreUsedRegs(const Regs : TAllUsedRegs);
         procedure TransferUsedRegs(var dest: TAllUsedRegs);
-        class Procedure ReleaseUsedRegs(const regs : TAllUsedRegs);
-        class Function RegInUsedRegs(reg : TRegister;regs : TAllUsedRegs) : boolean;
-        class Procedure IncludeRegInUsedRegs(reg : TRegister;var regs : TAllUsedRegs);
-        class Procedure ExcludeRegFromUsedRegs(reg: TRegister;var regs : TAllUsedRegs);
+        class procedure ReleaseUsedRegs(const regs : TAllUsedRegs); static;
+        class function RegInUsedRegs(reg : TRegister;regs : TAllUsedRegs) : boolean; static;
+        class procedure IncludeRegInUsedRegs(reg : TRegister;var regs : TAllUsedRegs); static;
+        class procedure ExcludeRegFromUsedRegs(reg: TRegister;var regs : TAllUsedRegs); static;
 
-        Function GetAllocationString(const regs : TAllUsedRegs) : string;
+        class function GetAllocationString(const regs : TAllUsedRegs) : string; static;
 
         { returns true if the label L is found between hp and the next }
         { instruction                                                  }
-        Function FindLabel(L: TasmLabel; Var hp: Tai): Boolean;
+        class function FindLabel(L: TasmLabel; Var hp: Tai): Boolean; static;
 
         { inserts new_one between prev and foll in AsmL }
         Procedure InsertLLItem(prev, foll, new_one: TLinkedListItem);
@@ -299,10 +299,10 @@ Unit AoptObj;
         { If P is a Tai object releveant to the optimizer, P is returned
           If it is not relevant tot he optimizer, the first object after P
           that is relevant is returned                                     }
-        Function SkipHead(P: Tai): Tai;
+        class function SkipHead(P: Tai): Tai; static;
 
         { returns true if the operands o1 and o2 are completely equal }
-        Function OpsEqual(const o1,o2:toper): Boolean;
+        class function OpsEqual(const o1,o2:toper): Boolean; static;
 
         { Returns the next ait_alloc object with ratype ra_alloc for
           Reg is found in the block
@@ -310,7 +310,7 @@ Unit AoptObj;
           instruction. If none is found, it returns
           nil
         }
-        Function FindRegAlloc(Reg: TRegister; StartPai: Tai): tai_regalloc;
+        class function FindRegAlloc(Reg: TRegister; StartPai: Tai): tai_regalloc; static;
 
         { Returns the last ait_alloc object with ratype ra_alloc for
           Reg is found in the block
@@ -318,14 +318,14 @@ Unit AoptObj;
           instruction. If none is found, it returns
           nil
         }
-        Function FindRegAllocBackward(Reg : TRegister; StartPai : Tai) : tai_regalloc;
+        class function FindRegAllocBackward(Reg : TRegister; StartPai : Tai) : tai_regalloc; static;
 
 
         { Returns the next ait_alloc object with ratype ra_dealloc
           for Reg which is found in the block of Tai's starting with StartPai
           and ending with the next "real" instruction. If none is found, it returns
           nil                                                                        }
-        Function FindRegDeAlloc(Reg: TRegister; StartPai: Tai): tai_regalloc;
+        class function FindRegDeAlloc(Reg: TRegister; StartPai: Tai): tai_regalloc; static;
 
         { allocates register reg between (and including) instructions p1 and p2
           the type of p1 and p2 must not be in SkipInstr }
@@ -890,7 +890,7 @@ Unit AoptObj;
         Else s := 0
       End;
 
-      Function TPaiProp.RefInInstruction(Const Ref: TReference; p: Tai;
+      class Function TPaiProp.RefInInstruction(Const Ref: TReference; p: Tai;
         RefsEq: TRefCompare): Boolean;
       Var Count: AWord;
           TmpResult: Boolean;
@@ -908,7 +908,7 @@ Unit AoptObj;
         RefInInstruction := TmpResult;
       End;
 
-      Function TPaiProp.RefInSequence(Const Ref: TReference; Content: TContent;
+      class function TPaiProp.RefInSequence(Const Ref: TReference; Content: TContent;
         RefsEq: TRefCompare): Boolean;
       Var p: Tai;
           Counter: Byte;
@@ -1161,7 +1161,7 @@ Unit AoptObj;
       end;
 
 
-      function TAOptObj.GetAllocationString(const regs: TAllUsedRegs): string;
+      class function TAOptObj.GetAllocationString(const regs: TAllUsedRegs): string;
       var
         i : TRegisterType;
         j : TSuperRegister;
@@ -1173,7 +1173,7 @@ Unit AoptObj;
       end;
 
 
-      Function TAOptObj.FindLabel(L: TasmLabel; Var hp: Tai): Boolean;
+      class function TAOptObj.FindLabel(L: TasmLabel; Var hp: Tai): Boolean;
       Var TempP: Tai;
       Begin
         TempP := hp;
@@ -1213,7 +1213,7 @@ Unit AoptObj;
       End;
 
 
-      Function TAOptObj.SkipHead(P: Tai): Tai;
+      class function TAOptObj.SkipHead(P: Tai): Tai;
       Var OldP: Tai;
       Begin
         Repeat
@@ -1239,7 +1239,7 @@ Unit AoptObj;
         SkipHead := P;
       End;
 
-      Function TAOptObj.OpsEqual(const o1,o2:toper): Boolean;
+      class function TAOptObj.OpsEqual(const o1,o2:toper): Boolean;
       Begin
         if o1.typ=o2.typ then
           Case o1.typ Of
@@ -1261,7 +1261,7 @@ Unit AoptObj;
       End;
 
 
-      Function TAOptObj.FindRegAlloc(Reg: TRegister; StartPai: Tai): tai_regalloc;
+      class function TAOptObj.FindRegAlloc(Reg: TRegister; StartPai: Tai): tai_regalloc;
       Begin
         Result:=nil;
         Repeat
@@ -1291,7 +1291,7 @@ Unit AoptObj;
       End;
 
 
-      Function TAOptObj.FindRegAllocBackward(Reg: TRegister; StartPai: Tai): tai_regalloc;
+      class function TAOptObj.FindRegAllocBackward(Reg: TRegister; StartPai: Tai): tai_regalloc;
       Begin
         Result:=nil;
         Repeat
@@ -1317,7 +1317,7 @@ Unit AoptObj;
       End;
 
 
-      function TAOptObj.FindRegDeAlloc(Reg: TRegister; StartPai: Tai): tai_regalloc;
+      class function TAOptObj.FindRegDeAlloc(Reg: TRegister; StartPai: Tai): tai_regalloc;
       Begin
          Result:=nil;
          Repeat
