@@ -3016,7 +3016,7 @@ unit aoptx86;
 
      function TX86AsmOptimizer.OptPass1Cmp(var p: tai): boolean;
        var
-         v: QWord;
+         v: TCGInt;
          hp1, hp2, hp3, hp4: tai;
        begin
          Result:=false;
@@ -3028,7 +3028,8 @@ unit aoptx86;
            S_B: v:=$80;
            S_W: v:=$8000;
            S_L: v:=qword($80000000);
-           S_Q : v:=qword($8000000000000000);
+           { actually, this will never happen: cmp with 64 bit constants is not possible }
+           S_Q : v:=Int64($8000000000000000);
            else
              internalerror(2013112905);
          end;
