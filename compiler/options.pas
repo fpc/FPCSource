@@ -1094,7 +1094,8 @@ begin
                 begin
                   case more[j] of
                     '5' :
-                      if target_info.system in systems_all_windows+systems_nativent-[system_i8086_win16] then
+                      if (target_info.system in systems_all_windows+systems_nativent-[system_i8086_win16])
+                         or (target_info.cpu in [cpu_mipseb, cpu_mipsel]) then
                         begin
                           if UnsetBool(More, j, opt, false) then
                             exclude(init_settings.globalswitches,cs_asm_pre_binutils_2_25)
