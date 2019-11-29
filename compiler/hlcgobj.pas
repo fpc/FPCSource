@@ -1939,7 +1939,7 @@ implementation
       if pd.generate_safecall_wrapper then
         begin
           if assigned(forceresdef) then
-            internalerror(2019112401);
+            internalerror(2019112403);
           result:=paramanager.get_safecallresult_funcretloc(pd,callerside)
         end
       else if not assigned(forceresdef) then
