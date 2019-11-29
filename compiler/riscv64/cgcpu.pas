@@ -161,7 +161,7 @@ implementation
                 else
                   list.concat(taicpu.op_reg_const(A_LUI,register,(a shr 12) and $FFFFF));
 
-                list.concat(taicpu.op_reg_reg_const(A_ADDIW,register,register,SarSmallint(a shl 4,4)));
+                list.concat(taicpu.op_reg_reg_const(A_ADDIW,register,register,SarSmallint(smallint(a shl 4),4)));
               end
             else
               begin
