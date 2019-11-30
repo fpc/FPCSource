@@ -1442,6 +1442,13 @@ begin
       {$ELSE}
       PISC_TIMESTAMP(CurrBuff)^.timestamp_date := Trunc(PTime) + IBDateOffset;
       PISC_TIMESTAMP(CurrBuff)^.timestamp_time := Round(abs(Frac(PTime)) * IBTimeFractionsPerDay);
+      if PISC_TIMESTAMP(CurrBuff)^.timestamp_time = IBTimeFractionsPerDay then
+        begin
+        // If PTime is for example 0.99999999999999667, the time-portion of the
+        // TDateTime is rounded into a whole day. Firebird does not accept that.
+        inc(PISC_TIMESTAMP(CurrBuff)^.timestamp_date);
+        PISC_TIMESTAMP(CurrBuff)^.timestamp_time := 0;
+        end;
       {$ENDIF}
       end
   else
