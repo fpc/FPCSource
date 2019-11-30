@@ -4801,7 +4801,7 @@ implementation
           pname:=@n
         else
           begin
-            name:='$InternalRec'+tostr(current_module.deflist.count);
+            name:='$InternalRec'+unique_id_str;
             pname:=@name;
           end;
         oldsymtablestack:=symtablestack;
