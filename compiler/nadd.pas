@@ -918,6 +918,8 @@ implementation
                   internalerror(2008022102);
              end;
              result:=t;
+             if nf_is_currency in flags then
+               include(result.flags,nf_is_currency);
              exit;
           end;
 {$if (FPC_FULLVERSION>20700) and not defined(FPC_SOFT_FPUX80)}
@@ -1447,6 +1449,7 @@ implementation
         b           : boolean;
         lt,rt       : tnodetype;
         ot          : tnodetype;
+        i64         : int64;
 {$ifdef state_tracking}
         factval     : Tnode;
         change      : boolean;
@@ -2749,24 +2752,23 @@ implementation
                   hp:=nil;
                   if s64currencytype.typ=floatdef then
                     begin
-{$ifndef VER3_0}
+                      move(trealconstnode(right).value_currency,i64,sizeof(i64));
                       { if left is a currency integer constant, we can get rid of the factor 10000 }
                       { int64(...) causes a cast on currency, so it is the currency value multiplied by 10000 }
-                      if (left.nodetype=realconstn) and (is_currency(left.resultdef)) and ((int64(trealconstnode(left).value_currency) mod 10000)=0) then
+                      if (left.nodetype=realconstn) and (is_currency(left.resultdef)) and (not(nf_is_currency in left.flags)) and ((trunc(trealconstnode(left).value_real) mod 10000)=0) then
                         begin
                           { trealconstnode expects that value_real and value_currency contain valid values }
                           trealconstnode(left).value_currency:=trealconstnode(left).value_currency {$ifdef FPC_CURRENCY_IS_INT64}div{$else}/{$endif} 10000;
                           trealconstnode(left).value_real:=trealconstnode(left).value_real/10000;
                         end
                       { or if right is an integer constant, we can get rid of its factor 10000 }
-                      else if (right.nodetype=realconstn) and (is_currency(right.resultdef)) and ((int64(trealconstnode(right).value_currency) mod 10000)=0) then
+                      else if (right.nodetype=realconstn) and (is_currency(right.resultdef)) and (not(nf_is_currency in right.flags)) and ((trunc(trealconstnode(right).value_real) mod 10000)=0) then
                         begin
                           { trealconstnode expects that value and value_currency contain valid values }
                           trealconstnode(right).value_currency:=trealconstnode(right).value_currency {$ifdef FPC_CURRENCY_IS_INT64}div{$else}/{$endif} 10000;
                           trealconstnode(right).value_real:=trealconstnode(right).value_real/10000;
                         end
                       else
-{$endif VER3_0}
                         begin
                           hp:=caddnode.create(slashn,getcopy,crealconstnode.create(10000.0,s64currencytype));
                           include(hp.flags,nf_is_currency);
