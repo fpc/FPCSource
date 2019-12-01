@@ -632,31 +632,6 @@ unit aoptx86;
               language, for example... so it could only be done under -O4 as it
               would be considered a side-effect. [Kit] }
             Result := True;
-          A_IMUL:
-            case taicpu(p1).ops of
-              1:
-                Result :=
-                   (
-                    ((getregtype(reg)=R_INTREGISTER) and (getsupreg(reg)=RS_EAX))
-                   ) or
-                   ((getregtype(reg)=R_INTREGISTER) and (getsupreg(reg)=RS_EDX) and (taicpu(p1).opsize<>S_B));
-              2,3:
-                Result := reginop(reg,taicpu(p1).oper[1]^);
-              else
-                InternalError(2019112802);
-            end;
-          A_IDIV,A_DIV,A_MUL:
-            begin
-              Result :=
-                 (
-                   (getregtype(reg)=R_INTREGISTER) and
-                   (
-                     (getsupreg(reg)=RS_EAX) or ((getsupreg(reg)=RS_EDX) and (taicpu(p1).opsize<>S_B))
-                   )
-                 );
-            end;
-          A_LEA:
-            Result := (not is_segment_reg(reg)) and RegInOp(reg, taicpu(p1).oper[1]^);
           A_MOVSD:
             { special handling for SSE MOVSD }
             if (taicpu(p1).ops>0) then
@@ -666,85 +641,86 @@ unit aoptx86;
                 Result := (taicpu(p1).oper[1]^.typ=top_reg) and reginop(reg,taicpu(p1).oper[1]^);
               end;
           else
-            begin
-              with insprop[taicpu(p1).opcode] do
-                begin
-                  if getregtype(reg)=R_INTREGISTER then
-                    begin
-                      case getsupreg(reg) of
-                        RS_EAX:
-                          if [Ch_WEAX,Ch_RWEAX,Ch_MEAX]*Ch<>[] then
-                            begin
-                              Result := True;
-                              exit
-                            end;
-                        RS_ECX:
-                          if [Ch_WECX,Ch_RWECX,Ch_MECX]*Ch<>[] then
-                            begin
-                              Result := True;
-                              exit
-                            end;
-                        RS_EDX:
-                          if [Ch_WEDX,Ch_RWEDX,Ch_MEDX]*Ch<>[] then
-                            begin
-                              Result := True;
-                              exit
-                            end;
-                        RS_EBX:
-                          if [Ch_WEBX,Ch_RWEBX,Ch_MEBX]*Ch<>[] then
-                            begin
-                              Result := True;
-                              exit
-                            end;
-                        RS_ESP:
-                          if [Ch_WESP,Ch_RWESP,Ch_MESP]*Ch<>[] then
-                            begin
-                              Result := True;
-                              exit
-                            end;
-                        RS_EBP:
-                          if [Ch_WEBP,Ch_RWEBP,Ch_MEBP]*Ch<>[] then
-                            begin
-                              Result := True;
-                              exit
-                            end;
-                        RS_ESI:
-                          if [Ch_WESI,Ch_RWESI,Ch_MESI]*Ch<>[] then
-                            begin
-                              Result := True;
-                              exit
-                            end;
-                        RS_EDI:
-                          if [Ch_WEDI,Ch_RWEDI,Ch_MEDI]*Ch<>[] then
-                            begin
-                              Result := True;
-                              exit
-                            end;
-                      end;
-                    end;
-                  if ([CH_RWOP1,CH_WOP1,CH_MOP1]*Ch<>[]) and reginop(reg,taicpu(p1).oper[0]^) then
-                    begin
-                      Result := true;
-                      exit
-                    end;
-                  if ([Ch_RWOP2,Ch_WOP2,Ch_MOP2]*Ch<>[]) and reginop(reg,taicpu(p1).oper[1]^) then
-                    begin
-                      Result := true;
-                      exit
-                    end;
-                  if ([Ch_RWOP3,Ch_WOP3,Ch_MOP3]*Ch<>[]) and reginop(reg,taicpu(p1).oper[2]^) then
-                    begin
-                      Result := true;
-                      exit
-                    end;
-                  if ([Ch_RWOP4,Ch_WOP4,Ch_MOP4]*Ch<>[]) and reginop(reg,taicpu(p1).oper[3]^) then
-                    begin
-                      Result := true;
-                      exit
-                    end;
-                end;
-            end;
+            ;
         end;
+        if Result then
+          exit;
+        with insprop[taicpu(p1).opcode] do
+          begin
+            if getregtype(reg)=R_INTREGISTER then
+              begin
+                case getsupreg(reg) of
+                  RS_EAX:
+                    if [Ch_WEAX,Ch_RWEAX,Ch_MEAX]*Ch<>[] then
+                      begin
+                        Result := True;
+                        exit
+                      end;
+                  RS_ECX:
+                    if [Ch_WECX,Ch_RWECX,Ch_MECX]*Ch<>[] then
+                      begin
+                        Result := True;
+                        exit
+                      end;
+                  RS_EDX:
+                    if [Ch_WEDX,Ch_RWEDX,Ch_MEDX]*Ch<>[] then
+                      begin
+                        Result := True;
+                        exit
+                      end;
+                  RS_EBX:
+                    if [Ch_WEBX,Ch_RWEBX,Ch_MEBX]*Ch<>[] then
+                      begin
+                        Result := True;
+                        exit
+                      end;
+                  RS_ESP:
+                    if [Ch_WESP,Ch_RWESP,Ch_MESP]*Ch<>[] then
+                      begin
+                        Result := True;
+                        exit
+                      end;
+                  RS_EBP:
+                    if [Ch_WEBP,Ch_RWEBP,Ch_MEBP]*Ch<>[] then
+                      begin
+                        Result := True;
+                        exit
+                      end;
+                  RS_ESI:
+                    if [Ch_WESI,Ch_RWESI,Ch_MESI]*Ch<>[] then
+                      begin
+                        Result := True;
+                        exit
+                      end;
+                  RS_EDI:
+                    if [Ch_WEDI,Ch_RWEDI,Ch_MEDI]*Ch<>[] then
+                      begin
+                        Result := True;
+                        exit
+                      end;
+                end;
+              end;
+            if ([CH_RWOP1,CH_WOP1,CH_MOP1]*Ch<>[]) and reginop(reg,taicpu(p1).oper[0]^) then
+              begin
+                Result := true;
+                exit
+              end;
+            if ([Ch_RWOP2,Ch_WOP2,Ch_MOP2]*Ch<>[]) and reginop(reg,taicpu(p1).oper[1]^) then
+              begin
+                Result := true;
+                exit
+              end;
+            if ([Ch_RWOP3,Ch_WOP3,Ch_MOP3]*Ch<>[]) and reginop(reg,taicpu(p1).oper[2]^) then
+              begin
+                Result := true;
+                exit
+              end;
+            if ([Ch_RWOP4,Ch_WOP4,Ch_MOP4]*Ch<>[]) and reginop(reg,taicpu(p1).oper[3]^) then
+              begin
+                Result := true;
+                exit
+              end;
+          end;
       end;
 
 
