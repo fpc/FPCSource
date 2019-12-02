@@ -1449,7 +1449,6 @@ implementation
         b           : boolean;
         lt,rt       : tnodetype;
         ot          : tnodetype;
-        i64         : int64;
 {$ifdef state_tracking}
         factval     : Tnode;
         change      : boolean;
@@ -2752,7 +2751,6 @@ implementation
                   hp:=nil;
                   if s64currencytype.typ=floatdef then
                     begin
-                      move(trealconstnode(right).value_currency,i64,sizeof(i64));
                       { if left is a currency integer constant, we can get rid of the factor 10000 }
                       { int64(...) causes a cast on currency, so it is the currency value multiplied by 10000 }
                       if (left.nodetype=realconstn) and (is_currency(left.resultdef)) and (not(nf_is_currency in left.flags)) and ((trunc(trealconstnode(left).value_real) mod 10000)=0) then
