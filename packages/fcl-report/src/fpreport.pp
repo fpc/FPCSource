@@ -2600,6 +2600,16 @@ begin
   Result := TFPPenStyle(GetEnumValue(TypeInfo(TFPPenStyle), AName));
 end;
 
+function ColumnLayoutToString(AEnum: TFPReportColumnLayout): string; inline;
+begin
+  result := GetEnumName(TypeInfo(TFPReportColumnLayout), Ord(AEnum));
+end;
+
+function StringToColumnLayout(AName: string): TFPReportColumnLayout; inline;
+begin
+  Result := TFPReportColumnLayout(GetEnumValue(TypeInfo(TFPReportColumnLayout), AName));
+end;
+
 function OrientationToString(AEnum: TFPReportOrientation): string; inline;
 begin
   result := GetEnumName(TypeInfo(TFPReportOrientation), Ord(AEnum));
@@ -7727,6 +7737,9 @@ procedure TFPReportCustomPage.ReadElement(AReader: TFPReportStreamer);
 var
   E: TObject;
 begin
+  ColumnCount := AReader.ReadInteger('ColumnCount', 1);
+  ColumnGap := AReader.ReadFloat('ColumnGap', 0);
+  ColumnLayout := StringToColumnLayout(AReader.ReadString('ColumnLayout', 'clVertical'));
   Orientation := StringToPaperOrientation(AReader.ReadString('Orientation', 'poPortrait'));
   Pagesize.PaperName := AReader.ReadString('PageSize.PaperName', 'A4');
   Pagesize.Width := AReader.ReadFloat('PageSize.Width', 210);
@@ -7865,6 +7878,9 @@ end;
 procedure TFPReportCustomPage.DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement);
 begin
   inherited DoWriteLocalProperties(AWriter, AOriginal);
+  AWriter.WriteFloat('ColumnCount', ColumnCount);
+  AWriter.WriteFloat('ColumnGap', ColumnGap);
+  AWriter.WriteString('ColumnLayout', ColumnLayoutToString(ColumnLayout));
   AWriter.WriteString('Orientation', PaperOrientationToString(Orientation));
   AWriter.WriteString('PageSize.PaperName', PageSize.PaperName);
   AWriter.WriteFloat('PageSize.Width', PageSize.Width);
