@@ -493,7 +493,6 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           procedure derefimpl;override;
-          procedure resetvmtentries;
           procedure copyvmtentries(objdef:tobjectdef);
           function  getparentdef:tdef;override;
           function  size : asizeint;override;
@@ -7267,6 +7266,8 @@ implementation
 
 
     destructor tobjectdef.destroy;
+      var
+        i: longint;
       begin
          if assigned(symtable) then
            begin
@@ -7287,7 +7288,8 @@ implementation
            end;
          if assigned(vmtentries) then
            begin
-             resetvmtentries;
+             for i:=0 to vmtentries.count-1 do
+               dispose(pvmtentry(vmtentries[i]));
              vmtentries.free;
              vmtentries:=nil;
            end;
@@ -7532,22 +7534,13 @@ implementation
       end;
 
 
-    procedure tobjectdef.resetvmtentries;
-      var
-        i : longint;
-      begin
-        for i:=0 to vmtentries.Count-1 do
-          Dispose(pvmtentry(vmtentries[i]));
-        vmtentries.clear;
-      end;
-
-
     procedure tobjectdef.copyvmtentries(objdef:tobjectdef);
       var
         i : longint;
         vmtentry : pvmtentry;
       begin
-        resetvmtentries;
+        if vmtentries.count<>0 then
+          internalerror(2019081401);
         vmtentries.count:=objdef.vmtentries.count;
         for i:=0 to objdef.vmtentries.count-1 do
           begin

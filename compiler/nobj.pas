@@ -801,7 +801,6 @@ implementation
         vmtdef: trecorddef;
         systemvmt: tdef;
         sym: tsym;
-        vmtdefname: TIDString;
       begin
         { these types don't have an actual VMT, we only use the other methods
           in TVMTBuilder to determine duplicates/overrides }
@@ -826,13 +825,9 @@ implementation
         if _class.objecttype = odt_cppclass then
           exit;
 
-        { the VMT definition may already exist in case of generics }
-        vmtdefname:=internaltypeprefixName[itp_vmtdef]+_class.mangledparaname;
-        if assigned(try_search_current_module_type(vmtdefname)) then
-          exit;
         { create VMT type definition }
         vmtdef:=crecorddef.create_global_internal(
-          vmtdefname,
+          internaltypeprefixName[itp_vmtdef]+_class.mangledparaname,
           0,
           target_info.alignment.recordalignmin);
 {$ifdef llvm}
@@ -905,8 +900,6 @@ implementation
       begin
         old_current_structdef:=current_structdef;
         current_structdef:=_class;
-
-        _class.resetvmtentries;
 
         { inherit (copy) VMT from parent object }
         if assigned(_class.childof) then
