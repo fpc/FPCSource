@@ -910,11 +910,7 @@ implementation
 
         { inherit (copy) VMT from parent object }
         if assigned(_class.childof) then
-          begin
-            if not assigned(_class.childof.vmtentries) then
-              internalerror(200810281);
-            _class.copyvmtentries(_class.childof);
-          end;
+          _class.copyvmtentries(_class.childof);
 
         { process all procdefs, we must process the defs to
           keep the same order as that is written in the source

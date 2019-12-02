@@ -7331,11 +7331,7 @@ implementation
             for i:=0 to ImplementedInterfaces.count-1 do
               tobjectdef(result).ImplementedInterfaces.Add(TImplementedInterface(ImplementedInterfaces[i]).Getcopy);
           end;
-        if assigned(vmtentries) then
-          begin
-            tobjectdef(result).vmtentries:=TFPList.Create;
-            tobjectdef(result).copyvmtentries(self);
-          end;
+        tobjectdef(result).copyvmtentries(self);
       end;
 
 
