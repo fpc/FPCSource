@@ -4801,6 +4801,7 @@ implementation
           pname:=@n
         else
           begin
+            init_defid;
             name:='$InternalRec'+unique_id_str;
             pname:=@name;
           end;
