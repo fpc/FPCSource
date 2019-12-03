@@ -2791,6 +2791,29 @@ implementation
                         tordconstnode(right).value:=tordconstnode(right).value div 10000
                       else
 {$endif VER3_0}
+                      if (right.nodetype=muln) and is_currency(right.resultdef) and
+                        { do not test swapped here as the internal conversions are only create as "var."*"10000" }
+                        is_currency(taddnode(right).right.resultdef)  and (taddnode(right).right.nodetype=ordconstn) and (tordconstnode(taddnode(right).right).value=10000) and
+                        is_currency(taddnode(right).left.resultdef) and (taddnode(right).left.nodetype=typeconvn) then
+                        begin
+                          hp:=taddnode(right).left.getcopy;
+                          include(hp.flags,nf_is_currency);
+                          right.free;
+                          right:=hp;
+                          hp:=nil;
+                        end
+                      else if (left.nodetype=muln) and is_currency(left.resultdef) and
+                        { do not test swapped here as the internal conversions are only create as "var."*"10000" }
+                        is_currency(taddnode(left).right.resultdef)  and (taddnode(left).right.nodetype=ordconstn) and (tordconstnode(taddnode(left).right).value=10000) and
+                        is_currency(taddnode(left).left.resultdef) and (taddnode(left).left.nodetype=typeconvn) then
+                        begin
+                          hp:=taddnode(left).left.getcopy;
+                          include(hp.flags,nf_is_currency);
+                          left.free;
+                          left:=hp;
+                          hp:=nil;
+                        end
+                      else
                         begin
                           hp:=cmoddivnode.create(divn,getcopy,cordconstnode.create(10000,s64currencytype,false));
                           include(hp.flags,nf_is_currency);

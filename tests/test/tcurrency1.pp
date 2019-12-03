@@ -1,4 +1,4 @@
-program tcurrency;
+program tcurrency1;
 
 { test basic mathematical operations (+,-,*,/) using currency data type }
 
@@ -67,6 +67,17 @@ begin
   c2 := 1234;
   if i*c1 <> c2 then begin
     writeln('Invalid currency*integer=', i*c1, ', but expected ', c2);
+    halt(2);
+  end;
+  i:=10000;
+  c1:=92233720368.5477;
+  c2:=922337203685477;
+  if c1*i <> c2 then begin
+    writeln('Invalid currency*integer=', c1*i, ', but expected ', c2);
+    halt(2);
+  end;
+  if i*c1 <> c2 then begin
+    writeln('Invalid integer*currency=', i*c1, ', but expected ', c2);
     halt(2);
   end;
   // division integer
