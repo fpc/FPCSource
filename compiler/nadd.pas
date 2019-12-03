@@ -2756,14 +2756,22 @@ implementation
                       if (left.nodetype=realconstn) and (is_currency(left.resultdef)) and (not(nf_is_currency in left.flags)) and ((trunc(trealconstnode(left).value_real) mod 10000)=0) then
                         begin
                           { trealconstnode expects that value_real and value_currency contain valid values }
-                          trealconstnode(left).value_currency:=trealconstnode(left).value_currency {$ifdef FPC_CURRENCY_IS_INT64}div{$else}/{$endif} 10000;
+{$ifdef FPC_CURRENCY_IS_INT64}
+                          trealconstnode(left).value_currency:=pint64(@(trealconstnode(left).value_currency))^ div 10000;
+{$else}
+                          trealconstnode(left).value_currency:=trealconstnode(left).value_currency / 10000;
+{$endif}
                           trealconstnode(left).value_real:=trealconstnode(left).value_real/10000;
                         end
                       { or if right is an integer constant, we can get rid of its factor 10000 }
                       else if (right.nodetype=realconstn) and (is_currency(right.resultdef)) and (not(nf_is_currency in right.flags)) and ((trunc(trealconstnode(right).value_real) mod 10000)=0) then
                         begin
                           { trealconstnode expects that value and value_currency contain valid values }
-                          trealconstnode(right).value_currency:=trealconstnode(right).value_currency {$ifdef FPC_CURRENCY_IS_INT64}div{$else}/{$endif} 10000;
+{$ifdef FPC_CURRENCY_IS_INT64}
+                          trealconstnode(right).value_currency:=pint64(@(trealconstnode(right).value_currency))^ div 10000;
+{$else}
+                          trealconstnode(right).value_currency:=trealconstnode(right).value_currency / 10000;
+{$endif}
                           trealconstnode(right).value_real:=trealconstnode(right).value_real/10000;
                         end
                       else
