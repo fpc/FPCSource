@@ -807,6 +807,8 @@ Type
     Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionCallBack) : TFPBuiltInExprIdentifierDef;
     Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionEvent) : TFPBuiltInExprIdentifierDef;
     Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ANodeClass : TFPExprFunctionClass) : TFPBuiltInExprIdentifierDef;
+    Procedure Delete(AIndex: Integer);
+    Function Remove(aIdentifier : String) : Integer;
     Property IdentifierCount : Integer Read GetCount;
     Property Identifiers[AIndex : Integer] :TFPBuiltInExprIdentifierDef Read GetI;
   end;
@@ -2299,6 +2301,7 @@ begin
   Result.FNodeType:=ANodeClass;
 end;
 
+
 { ---------------------------------------------------------------------
   TFPExprIdentifierDef
   ---------------------------------------------------------------------}
@@ -2665,6 +2668,18 @@ function TExprBuiltInManager.AddFunction(const ACategory: TBuiltInCategory;
 begin
   Result:=TFPBuiltInExprIdentifierDef(FDefs.AddFunction(AName,AResultType,AParamTypes,ANodeClass));
   Result. Category:=ACategory;
+end;
+
+procedure TExprBuiltInManager.Delete(AIndex: Integer);
+begin
+  FDefs.Delete(AIndex);
+end;
+
+function TExprBuiltInManager.Remove(aIdentifier: String): Integer;
+begin
+  Result:=IndexOfIdentifier(aIdentifier);
+  if Result<>-1 then
+    Delete(Result);
 end;
 
 

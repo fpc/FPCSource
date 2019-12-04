@@ -884,6 +884,8 @@ type
     procedure TestVariable7;
     procedure TestFunction1;
     procedure TestFunction2;
+    procedure TestDelete;
+    procedure TestRemove;
   end;
 
   TTestBuiltins = Class(TTestExpressionParser)
@@ -5843,6 +5845,34 @@ begin
   AssertEquals('Found no such identifier',-1,ind);
   I2:=FM.FindIdentifier('NoNoNo');
   AssertNull('FindIdentifier returns no result',I2);
+end;
+
+procedure TTestBuiltinsManager.TestDelete;
+
+begin
+  FM.AddFunction(bcUser,'EchoDate','D','D',@EchoDate);
+  FM.AddFunction(bcUser,'EchoDate2','D','D',@EchoDate);
+  FM.AddFunction(bcUser,'EchoDate3','D','D',@EchoDate);
+  AssertEquals('Count before',3,FM.IdentifierCount);
+  FM.Delete(2);
+  AssertEquals('Count after',2,FM.IdentifierCount);
+  AssertEquals('No more',-1,FM.IndexOfIdentifier('EchoDate3'));
+  AssertEquals('Left 1',0,FM.IndexOfIdentifier('EchoDate'));
+  AssertEquals('Left 2',1,FM.IndexOfIdentifier('EchoDate2'));
+end;
+
+procedure TTestBuiltinsManager.TestRemove;
+begin
+  FM.AddFunction(bcUser,'EchoDate','D','D',@EchoDate);
+  FM.AddFunction(bcUser,'EchoDate2','D','D',@EchoDate);
+  FM.AddFunction(bcUser,'EchoDate3','D','D',@EchoDate);
+  AssertEquals('Count before',3,FM.IdentifierCount);
+  AssertEquals('Result ',1,FM.Remove('EchoDate2'));
+  AssertEquals('Count after',2,FM.IdentifierCount);
+  AssertEquals('No more',-1,FM.IndexOfIdentifier('EchoDate2'));
+  AssertEquals('Left 1',0,FM.IndexOfIdentifier('EchoDate'));
+  AssertEquals('Left 2',1,FM.IndexOfIdentifier('EchoDate3'));
+  AssertEquals('Result ',-1,FM.Remove('Nono'));
 end;
 
 { TTestBuiltins }
