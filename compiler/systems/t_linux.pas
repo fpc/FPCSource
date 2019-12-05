@@ -1048,7 +1048,7 @@ begin
               add('SECTIONS');
               add('{');
               add('  /* Read-only sections, merged into text segment: */');
-              add('  PROVIDE (__executable_start = 0x8000); . = 0x8000 + SIZEOF_HEADERS;');
+              add('  PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x10000)); . = SEGMENT_START("text-segment", 0x10000) + SIZEOF_HEADERS;');
               add('  .interp         : { *(.interp) }');
               add('  .note.gnu.build-id : { *(.note.gnu.build-id) }');
               add('  .hash           : { *(.hash) }');
