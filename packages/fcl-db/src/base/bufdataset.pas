@@ -567,6 +567,7 @@ type
     class function DefaultReadFileFormat : TDataPacketFormat; virtual;
     class function DefaultWriteFileFormat : TDataPacketFormat; virtual;
     class function DefaultPacketClass : TDataPacketReaderClass ; virtual;
+    function CreateDefaultPacketReader(aStream : TStream): TDataPacketReader ; virtual;
     procedure SetPacketRecords(aValue : integer); virtual;
     procedure SetRecNo(Value: Longint); override;
     function  GetRecNo: Longint; override;
@@ -2277,6 +2278,11 @@ begin
   Result:=TFpcBinaryDatapacketReader;
 end;
 
+function TCustomBufDataset.CreateDefaultPacketReader(aStream : TStream): TDataPacketReader;
+begin
+  Result:=DefaultPacketClass.Create(Self,aStream);
+end;
+
 
 procedure TCustomBufDataset.SetIndexFieldNames(const AValue: String);
 
@@ -3085,7 +3091,7 @@ begin
   if (Fmt=dfDefault) then
     fmt:=DefaultReadFileFormat;
   if fmt=dfDefault then
-    APacketReader := DefaultPacketClass.Create(Self, AStream)
+    APacketReader := CreateDefaultPacketReader(AStream)
   else if GetRegisterDatapacketReader(AStream, fmt, APacketReaderReg) then
     APacketReader := APacketReaderReg.ReaderClass.Create(Self, AStream)
   else if TFpcBinaryDatapacketReader.RecognizeStream(AStream) then
@@ -3466,7 +3472,7 @@ begin
   if Fmt=dfDefault then
     fmt:=DefaultWriteFileFormat;
   if fmt=dfDefault then
-    APacketWriter := DefaultPacketClass.Create(Self, AStream)
+    APacketWriter := CreateDefaultPacketReader(AStream)
   else if GetRegisterDatapacketReader(Nil,fmt,APacketReaderReg) then
     APacketWriter := APacketReaderReg.ReaderClass.Create(Self, AStream)
   else if fmt = dfBinary then

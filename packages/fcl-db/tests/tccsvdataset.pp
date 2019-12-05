@@ -15,7 +15,7 @@ type
   private
     FCSVDataset: TCSVDataset;
     // Load CSVDataset from CSV stream containing lines
-    procedure DoOpenClose;
+    procedure DoOpenClose(FieldNames: Boolean);
     Procedure LoadFromLines(Const Lines: Array of string);
     // Save CSVDataset to CSV stream, transform to lines
     Procedure SaveToLines(Const Lines: TStrings);
@@ -48,7 +48,8 @@ type
     Procedure TestLoadPriorFieldDefsNoFieldNamesWrongCount;
     Procedure TestLoadPriorFieldDefsFieldNamesWrongCount;
     Procedure TestLoadPriorFieldDefsFieldNamesWrongNames;
-    Procedure TestOpenCloseCycle;
+    Procedure TestOpenCloseCycle1;
+    Procedure TestOpenCloseCycle2;
   end;
 
 implementation
@@ -426,13 +427,13 @@ end;
 const
   FILENAME = 'test.dat';
 
-procedure TTestCSVDataset.DoOpenClose;
+procedure TTestCSVDataset.DoOpenClose(FieldNames : Boolean);
 
 begin
   CSVDataset.FileName := FILENAME;
   With CSVDataset do
      begin
-     CSVOptions.FirstLineAsFieldNames := True;
+     CSVOptions.FirstLineAsFieldNames := FieldNames;
      CSVOptions.DefaultFieldLength := 255;
      CSVOptions.Delimiter := ',';
      CSVOptions.QuoteChar := '"';
@@ -482,22 +483,24 @@ begin
       FieldbyName('Birthdate').AsDateTime := EncodeDate(1982, 12, 17);
       Post;
       end;
+  // Would be 4 if first line misinterpreted
+  AssertEquals('RecordCount',3,CSVDataset.RecordCount);
   // This will write the file;
   CSVDataset.Close;
 end;
 
-procedure TTestCSVDataset.TestOpenCloseCycle;
+procedure TTestCSVDataset.TestOpenCloseCycle1;
 begin
   if FileExists(FileName) then
     AssertTrue('Delete before',DeleteFile(FileName));
   try
     // This will create the file
-    DoOpenClose;
+    DoOpenClose(True);
     // Recreate to be sure
     FreeAndNil(FCSVDataset);
     FCSVDataset:=TCSVDataset.Create(Nil);
     FCSVDataset.Name:='DS';
-    DoOpenClose;
+    DoOpenClose(True);
   except
     On E : Exception do
       Fail('Failed using exception %s : %s',[E.ClassName,E.Message]);
@@ -505,6 +508,27 @@ begin
   if FileExists(FileName) then
     AssertTrue('Delete after',DeleteFile(FileName));
 end;
+
+procedure TTestCSVDataset.TestOpenCloseCycle2;
+begin
+  if FileExists(FileName) then
+    AssertTrue('Delete before',DeleteFile(FileName));
+  try
+    // This will create the file
+    DoOpenClose(False);
+    // Recreate to be sure
+    FreeAndNil(FCSVDataset);
+    FCSVDataset:=TCSVDataset.Create(Nil);
+    FCSVDataset.Name:='DS';
+    DoOpenClose(False);
+  except
+    On E : Exception do
+      Fail('Failed using exception %s : %s',[E.ClassName,E.Message]);
+  end;
+  if FileExists(FileName) then
+    AssertTrue('Delete after',DeleteFile(FileName));
+end;
+
 
 procedure TTestCSVDataset.SetUp;
 begin
