@@ -15,6 +15,7 @@ type
   private
     FCSVDataset: TCSVDataset;
     // Load CSVDataset from CSV stream containing lines
+    procedure DoOpenClose;
     Procedure LoadFromLines(Const Lines: Array of string);
     // Save CSVDataset to CSV stream, transform to lines
     Procedure SaveToLines(Const Lines: TStrings);
@@ -47,6 +48,7 @@ type
     Procedure TestLoadPriorFieldDefsNoFieldNamesWrongCount;
     Procedure TestLoadPriorFieldDefsFieldNamesWrongCount;
     Procedure TestLoadPriorFieldDefsFieldNamesWrongNames;
+    Procedure TestOpenCloseCycle;
   end;
 
 implementation
@@ -419,6 +421,89 @@ begin
   end;
   if (OK<>'') then
     Fail(OK);
+end;
+
+const
+  FILENAME = 'test.dat';
+
+procedure TTestCSVDataset.DoOpenClose;
+
+begin
+  CSVDataset.FileName := FILENAME;
+  With CSVDataset do
+     begin
+     CSVOptions.FirstLineAsFieldNames := True;
+     CSVOptions.DefaultFieldLength := 255;
+     CSVOptions.Delimiter := ',';
+     CSVOptions.QuoteChar := '"';
+     CSVOptions.IgnoreOuterWhitespace := False;
+     CSVOptions.QuoteOuterWhitespace := True;
+     end;
+  // When the program runs for the first time, the data file does not yet exist.
+  // We must create the FieldDefs and create the dataset.
+  if FileExists(CSVDataset.FileName) then
+    CSVDataset.Open
+  else
+    with CSVDataset do
+      begin
+      FieldDefs.Add('FirstName', ftString, 20);
+      FieldDefs.Add('LastName', ftstring, 20);
+      FieldDefs.Add('City', ftString, 20);
+      FieldDefs.Add('Address', ftString, 30);
+      FieldDefs.Add('Birthdate', ftDate);
+      CreateDataset;
+
+      // Open the dataset...
+      Open;
+
+      // ... and add some dummy data:
+      // Names from https://donatellanobatti.blogspot.de/
+      Append;
+      FieldByName('FirstName').AsString := 'Walter';
+      FieldByName('LastName').AsString := 'Mellon';
+      FieldByName('City').AsString := 'Oklahoma City';
+      FieldByName('Address').AsString :=  '1261, Main Street';
+      FieldbyName('Birthdate').AsDateTime := EncodeDate(1980, 1, 1);
+      Post;
+
+      Append;
+      FieldByName('FirstName').AsString := 'Mario';
+      FieldByName('LastName').AsString := 'Speedwagon';
+      FieldByName('City').AsString := 'Hollywood';
+      FieldByName('Address').AsString :=  '1500, Hollywood Blvd';
+      FieldbyName('Birthdate').AsDateTime := EncodeDate(1982, 12, 17);
+      Post;
+
+      Append;
+      FieldByName('FirstName').AsString := 'Anna';
+      FieldByName('LastName').AsString := 'Mull';
+      FieldByName('City').AsString := 'Los Angeles';
+      FieldByName('Address').AsString :=  '2202, Capitol Square';
+      FieldbyName('Birthdate').AsDateTime := EncodeDate(1982, 12, 17);
+      Post;
+      end;
+  // This will write the file;
+  CSVDataset.Close;
+end;
+
+procedure TTestCSVDataset.TestOpenCloseCycle;
+begin
+  if FileExists(FileName) then
+    AssertTrue('Delete before',DeleteFile(FileName));
+  try
+    // This will create the file
+    DoOpenClose;
+    // Recreate to be sure
+    FreeAndNil(FCSVDataset);
+    FCSVDataset:=TCSVDataset.Create(Nil);
+    FCSVDataset.Name:='DS';
+    DoOpenClose;
+  except
+    On E : Exception do
+      Fail('Failed using exception %s : %s',[E.ClassName,E.Message]);
+  end;
+  if FileExists(FileName) then
+    AssertTrue('Delete after',DeleteFile(FileName));
 end;
 
 procedure TTestCSVDataset.SetUp;
