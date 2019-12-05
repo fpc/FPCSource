@@ -1206,7 +1206,7 @@ implementation
            This does not apply to interrupt procedures, their ret statment never clears any stack parameters }
          else if paramanager.use_fixed_stack and
                  not(po_interrupt in procdefinition.procoptions) and
-                 (target_info.abi=abi_linux386_sysv) then
+                 (target_info.abi=abi_i386_dynalignedstack) then
            begin
              { however, a delphi style frame pointer for a nested subroutine
                is not cleared by the callee, so we have to compensate for this
