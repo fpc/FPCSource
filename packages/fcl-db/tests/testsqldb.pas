@@ -77,6 +77,7 @@ type
     procedure TestUseExplicitTransaction;
     procedure TestExplicitConnect;
     procedure TestGetStatementInfo;
+    procedure TestGetNextValue;
   end;
 
   { TTestTSQLScript }
@@ -943,6 +944,22 @@ begin
   StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM dbo.fn1(1)');
   AssertEquals('TableName', '', StmtInfo.TableName);
   AssertEquals('Updateable', False, StmtInfo.Updateable);
+end;
+
+procedure TTestTSQLConnection.TestGetNextValue;
+begin
+  if not (sqSequences in SQLDBConnector.Connection.ConnOptions) then
+    Ignore('Connector '+SQLDBConnector.Connection.ClassName+' does not support sequences');
+  if SQLServerType=ssSQLite then
+    begin
+    SQLDBConnector.TryDropIfExist('me');
+    SQLDBConnector.ExecuteDirect('create table me (a integer primary key autoincrement,b int)');
+    SQLDBConnector.ExecuteDirect('insert into me (b) values (1)');// Will create table sqlite_sequence if it didn't exist yet
+    SQLDBConnector.ExecuteDirect('drop table me');
+    end;
+  SQLDBConnector.TryDropSequence('me');
+  SQLDBConnector.TryCreateSequence('me');
+  AssertTrue('Get value',SQLDBConnector.Connection.GetNextValue('me',1)>0);
 end;
 
 
