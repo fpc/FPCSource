@@ -90,7 +90,6 @@ procedure TXMLFPDocOptions.LoadPackage(APackage: TFPDocPackage; E: TDOMElement);
     If (Result='') then
       Error(SErrNoInputFile);
     S:=I['options'];
-    Writeln('Options : ',S);
     if (S<>'') then
       Result:=S+' '+Result;
   end;
