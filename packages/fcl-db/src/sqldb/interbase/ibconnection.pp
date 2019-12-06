@@ -189,7 +189,7 @@ constructor TIBConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams, sqEscapeRepeat, sqSupportReturning];
+  FConnOptions := FConnOptions + [sqSupportParams, sqEscapeRepeat, sqSupportReturning, sqSequences];
   FBlobSegmentSize := 65535; //Shows we're using the maximum segment size
   FDialect := INVALID_DATA;
   FWireCompression := False;
