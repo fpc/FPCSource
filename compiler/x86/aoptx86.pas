@@ -2247,8 +2247,8 @@ unit aoptx86;
                           debug_op2str(taicpu(hp2).opcode)+debug_opsize2str(taicpu(hp2).opsize)+')',p);
                     { limit size of constants as well to avoid assembler errors, but
                       check opsize to avoid overflow when left shifting the 1 }
-                    if (taicpu(p).oper[0]^.typ=top_const) and (topsize2memsize[taicpu(hp2).opsize]<=4) then
-                      taicpu(p).oper[0]^.val:=taicpu(p).oper[0]^.val and ((qword(1) shl (topsize2memsize[taicpu(hp2).opsize]*8))-1);
+                    if (taicpu(p).oper[0]^.typ=top_const) and (topsize2memsize[taicpu(hp2).opsize]<=63) then
+                      taicpu(p).oper[0]^.val:=taicpu(p).oper[0]^.val and ((qword(1) shl topsize2memsize[taicpu(hp2).opsize])-1);
                     taicpu(hp1).changeopsize(taicpu(hp2).opsize);
                     taicpu(p).changeopsize(taicpu(hp2).opsize);
                     if taicpu(p).oper[0]^.typ=top_reg then
