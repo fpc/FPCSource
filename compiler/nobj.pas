@@ -47,10 +47,10 @@ interface
         procedure intf_optimize_vtbls;
         procedure intf_allocate_vtbls;
         procedure generate_vmt_def;
+        procedure build_interface_mappings;
       public
         constructor create(c:tobjectdef);
         procedure  generate_vmt;
-        procedure  build_interface_mappings;
       end;
 
 
