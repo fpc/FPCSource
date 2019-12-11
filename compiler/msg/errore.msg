@@ -436,7 +436,7 @@ scan_n_changecputype=02105_N_Changed CPU type to be consistent with specified co
 #
 # Parser
 #
-# 03351 is the last used one
+# 03353 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
