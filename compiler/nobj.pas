@@ -1,8 +1,7 @@
 {
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    Routines for the code generation of data structures
-    like VMT, Messages, VTables, Interfaces descs
+    Builds data structures like VMT, Messages, VTables, Interfaces descs
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
