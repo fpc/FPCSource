@@ -661,7 +661,6 @@ implementation
          istyperenaming : boolean;
          generictypelist : tfphashobjectlist;
          generictokenbuf : tdynamicarray;
-         vmtbuilder : TVMTBuilder;
          p:tnode;
          gendef : tstoreddef;
          s : shortstring;
@@ -1088,11 +1087,7 @@ implementation
                     { Build VMT indexes, skip for type renaming and forward classes }
                     if (hdef.typesym=newtype) and
                        not(oo_is_forward in tobjectdef(hdef).objectoptions) then
-                      begin
-                        vmtbuilder:=TVMTBuilder.Create(tobjectdef(hdef));
-                        vmtbuilder.generate_vmt;
-                        vmtbuilder.free;
-                      end;
+                      build_vmt(tobjectdef(hdef));
 
                     { In case of an objcclass, verify that all methods have a message
                       name set. We only check this now, because message names can be set

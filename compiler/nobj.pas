@@ -54,6 +54,12 @@ interface
       end;
 
 
+{ convenince routine to build the VMT for an objectdef
+  Note: also ensures that the procdefs of the objectdef have their hidden
+  parameters inserted }
+procedure build_vmt(def:tobjectdef);
+
+
 implementation
 
     uses
@@ -977,6 +983,16 @@ implementation
                 internalerror(2009091801);
             end
           end;
+      end;
+
+
+    procedure build_vmt(def:tobjectdef);
+      var
+        vmtbuilder : TVMTBuilder;
+      begin
+        vmtbuilder:=TVMTBuilder.create(def);
+        vmtbuilder.generate_vmt;
+        vmtbuilder.free;
       end;
 
 end.
