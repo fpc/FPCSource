@@ -45,11 +45,11 @@ interface
         procedure prot_get_procdefs_recursive(ImplProt:TImplementedInterface;ProtDef:TObjectDef);
         procedure intf_optimize_vtbls;
         procedure intf_allocate_vtbls;
-        procedure generate_vmt_def;
+        procedure create_vmt_def;
         procedure build_interface_mappings;
       public
         constructor create(c:tobjectdef);
-        procedure  generate_vmt;
+        procedure build;
       end;
 
 
@@ -800,7 +800,7 @@ implementation
       end;
 
 
-    procedure TVMTBuilder.generate_vmt_def;
+    procedure TVMTBuilder.create_vmt_def;
       var
         i: longint;
         vmtdef: trecorddef;
@@ -896,7 +896,7 @@ implementation
       end;
 
 
-    procedure TVMTBuilder.generate_vmt;
+    procedure TVMTBuilder.build;
       var
         i : longint;
         def : tdef;
@@ -934,7 +934,7 @@ implementation
             { Allocate interface tables }
             intf_allocate_vtbls;
           end;
-        generate_vmt_def;
+        create_vmt_def;
         current_structdef:=old_current_structdef;
       end;
 
@@ -990,7 +990,7 @@ implementation
         vmtbuilder : TVMTBuilder;
       begin
         vmtbuilder:=TVMTBuilder.create(def);
-        vmtbuilder.generate_vmt;
+        vmtbuilder.build;
         vmtbuilder.free;
       end;
 
