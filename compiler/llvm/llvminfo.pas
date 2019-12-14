@@ -40,7 +40,8 @@ Type
        llvmver_xc_10_1,
        llvmver_7_0,
        llvmver_7_1,
-       llvmver_8_0
+       llvmver_8_0,
+       llvmver_9_0
       );
 
 type
@@ -57,7 +58,8 @@ Const
      'Xcode-10.1',
      '7.0',
      '7.1',
-     '8.0'
+     '8.0',
+     '9.0'
    );
 
    llvmversion_properties: array[tllvmversion] of tllvmversionflags =
@@ -67,7 +69,8 @@ Const
        { llvmver_xc_10_1 } [],
        { llvmver_7_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
        { llvmver_7_1     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
-       { llvmver_8_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid]
+       { llvmver_8_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
+       { llvmver_9_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid]
      );
 
    { Supported optimizations, only used for information }
