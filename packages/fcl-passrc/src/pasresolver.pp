@@ -15677,16 +15677,20 @@ type
               and (NewBaseType in [btByte,btShortInt,btWord,btSmallInt,btIntSingle,btUIntSingle,btLongint])
               and (BaseType1<>btLongWord) and (BaseType2<>btLongWord) then
             NewBaseType:=btLongint
+          {$ifdef HasInt64}
           else if (BaseTypes[btInt64]<>nil)
               and (NewBaseType<=btInt64)
               and (BaseType1<>btQWord) and (BaseType2<>btQWord) then
             NewBaseType:=btInt64
+          {$endif}
           else if (BaseTypes[btIntDouble]<>nil)
               and (NewBaseType<=btIntDouble) then
             NewBaseType:=btIntDouble
+          {$ifdef HasInt64}
           else if (BaseTypes[btQWord]<>nil)
               and not (NewBaseType in btAllSignedInteger) then
             NewBaseType:=btQWord
+          {$endif}
           else
             NewBaseType:=GetCombinedInt(Param1Resolved,Param2Resolved,ErrorPos);
           end
