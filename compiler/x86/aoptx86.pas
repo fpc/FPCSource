@@ -2940,7 +2940,7 @@ unit aoptx86;
 
     function TX86AsmOptimizer.OptPass1SETcc(var p: tai): boolean;
       var
-        hp1,hp2,next: tai; SetC, JumpC: TAsmCond;
+        hp1,hp2,next: tai; SetC, JumpC: TAsmCond; Unconditional: Boolean;
       begin
         Result:=false;
 
@@ -2974,22 +2974,39 @@ unit aoptx86;
             UpdateUsedRegs(TmpUsedRegs, next);
             UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
 
-            asml.Remove(hp1);
-            hp1.Free;
-
             JumpC := taicpu(hp2).condition;
+            Unconditional := False;
 
             if conditions_equal(JumpC, C_E) then
               SetC := inverse_cond(taicpu(p).condition)
             else if conditions_equal(JumpC, C_NE) then
               SetC := taicpu(p).condition
             else
-              InternalError(2018061400);
+              { We've got something weird here (and inefficent) }
+              begin
+                DebugMsg('DEBUG: Inefficient jump - check code generation', p);
+                SetC := C_NONE;
 
-            if SetC = C_NONE then
-              InternalError(2018061401);
+                { JAE/JNB will always branch (use 'condition_in', since C_AE <> C_NB normally) }
+                if condition_in(C_AE, JumpC) then
+                  Unconditional := True
+                else
+                  { Not sure what to do with this jump - drop out }
+                  Exit;
+              end;
 
-            taicpu(hp2).SetCondition(SetC);
+            asml.Remove(hp1);
+            hp1.Free;
+
+            if Unconditional then
+              MakeUnconditional(taicpu(hp2))
+            else
+              begin
+                if SetC = C_NONE then
+                  InternalError(2018061401);
+
+                taicpu(hp2).SetCondition(SetC);
+              end;
 
             if not RegUsedAfterInstruction(taicpu(p).oper[0]^.reg, hp2, TmpUsedRegs) then
               begin
