@@ -400,6 +400,7 @@ var
   BufferLength, StrLenOrInd: SQLLEN;
   CType, SqlType, DecimalDigits:SQLSMALLINT;
   APD: SQLHDESC;
+  BytesVal: TBytes;
 begin
   // Note: it is assumed that AParams is the same as the one passed to PrepareStatement, in the sense that
   //       the parameters have the same order and names
@@ -440,43 +441,27 @@ begin
           SqlType:=SQL_BIGINT;
           ColumnSize:=19;
         end;
-      ftString, ftFixedChar, ftBlob, ftMemo, ftGuid,
-      ftBytes, ftVarBytes:
+      ftBlob, ftBytes, ftVarBytes:
         begin
-          StrVal:=AParams[ParamIndex].AsString;
-          StrLenOrInd:=Length(StrVal);
-          if StrVal='' then //HY104
+          BytesVal:=AParams[ParamIndex].AsBytes;
+          StrLenOrInd:=Length(BytesVal);
+          if Length(BytesVal)=0 then //HY104
              begin
-             StrVal:=#0;
+             BytesVal:=[0];
              StrLenOrInd:=SQL_NTS;
              end;
-          PVal:=@StrVal[1];
-          Size:=Length(StrVal);
+          PVal:=@BytesVal[0];
+          Size:=Length(BytesVal);
           ColumnSize:=Size;
           BufferLength:=Size;
+          CType:=SQL_C_BINARY;
           case AParams[ParamIndex].DataType of
-            ftBytes, ftVarBytes:
-              begin
-              CType:=SQL_C_BINARY;
-              SqlType:=SQL_VARBINARY;
-              end;
-            ftBlob:
-              begin
-              CType:=SQL_C_BINARY;
+            ftBytes, ftVarBytes: SqlType:=SQL_VARBINARY;
+            else // ftBlob
               SqlType:=SQL_LONGVARBINARY;
-              end;
-            ftMemo:
-              begin
-              CType:=SQL_C_CHAR;
-              SqlType:=SQL_LONGVARCHAR;
-              end
-            else // ftString, ftFixedChar
-              begin
-              CType:=SQL_C_CHAR;
-              SqlType:=SQL_VARCHAR;
-              end;
           end;
         end;
+      ftString, ftFixedChar, ftMemo, ftGuid, // string parameters must be passed as widestring to support FPC 3.0.x character conversion
       ftWideString, ftFixedWideChar, ftWideMemo:
         begin
           WideStrVal:=AParams[ParamIndex].AsWideString;
@@ -492,7 +477,7 @@ begin
           BufferLength:=Size;
           CType:=SQL_C_WCHAR;
           case AParams[ParamIndex].DataType of
-            ftWideMemo: SqlType:=SQL_WLONGVARCHAR;
+            ftMemo, ftWideMemo: SqlType:=SQL_WLONGVARCHAR;
             else        SqlType:=SQL_WVARCHAR;
           end;
         end;
