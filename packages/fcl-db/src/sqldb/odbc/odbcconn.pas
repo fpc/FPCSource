@@ -72,6 +72,7 @@ type
     procedure FreeParamBuffers(ODBCCursor:TODBCCursor);
   protected
     // Overrides from TSQLConnection
+    function GetConnectionCharSet: string; override;
     function GetHandle:pointer; override;
     // - Connect/disconnect
     procedure DoInternalConnect; override;
@@ -614,6 +615,13 @@ begin
     if assigned(ODBCCursor.FParamBuf[i]) then
       FreeMem(ODBCCursor.FParamBuf[i]);
   SetLength(ODBCCursor.FParamBuf,0);
+end;
+
+function TODBCConnection.GetConnectionCharSet: string;
+begin
+  Result := inherited GetConnectionCharSet;
+  if Result='' then
+    Result := TEncoding.ANSI.EncodingName; // by default, ODBC talks in ANSI, which can be different from CP_ACP (DefaultSystemCodePage)
 end;
 
 function TODBCConnection.GetHandle: pointer;
