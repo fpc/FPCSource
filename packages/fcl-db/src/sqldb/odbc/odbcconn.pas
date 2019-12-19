@@ -735,6 +735,7 @@ end;
 procedure TODBCConnection.PrepareStatement(cursor: TSQLCursor; ATransaction: TSQLTransaction; buf: string; AParams: TParams);
 var
   ODBCCursor:TODBCCursor;
+  wbuf: widestring;
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
@@ -761,8 +762,9 @@ begin
   ODBCCursor.FQuery:=Buf;
   if not (ODBCCursor.FSchemaType in [stTables, stSysTables, stColumns, stProcedures, stIndexes]) then
     begin
+      wbuf := buf;
       ODBCCheckResult(
-        SQLPrepare(ODBCCursor.FSTMTHandle, PChar(buf), Length(buf)),
+        SQLPrepareW(ODBCCursor.FSTMTHandle, PWideChar(wbuf), Length(wbuf)),
         SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not prepare statement.'
       );
     end;
