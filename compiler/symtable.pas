@@ -2004,7 +2004,7 @@ implementation
                   )
                  ) then
                 begin
-                  { only watn when a parameter/local variable in a method
+                  { only warn when a parameter/local variable in a method
                     conflicts with a category method, because this can easily
                     happen due to all possible categories being imported via
                     CocoaAll }
