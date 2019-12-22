@@ -1264,12 +1264,13 @@ type
 {$endif}
 
 function GetModuleName:string;
-var
 {$ifdef MSWINDOWS}
+var
   sz:cardinal;
   buf:array[0..8191] of char;
 {$endif}
 {$if defined(LINUX) or defined(BSD)}
+var
   res:integer;
   dli:dl_info;
 {$endif}
