@@ -2168,7 +2168,7 @@ unit aoptx86;
                     DebugMsg(SPeepholeOptimization + 'MovOpMov2Op ('+
                           debug_op2str(taicpu(p).opcode)+debug_opsize2str(taicpu(p).opsize)+' '+
                           debug_op2str(taicpu(hp1).opcode)+debug_opsize2str(taicpu(hp1).opsize)+' '+
-                          debug_op2str(taicpu(hp2).opcode)+debug_opsize2str(taicpu(hp2).opsize),p);
+                          debug_op2str(taicpu(hp2).opcode)+debug_opsize2str(taicpu(hp2).opsize)+')',p);
                     taicpu(hp1).changeopsize(taicpu(hp2).opsize);
                     {
                       ->
