@@ -1286,7 +1286,7 @@ begin
   if sz>0 then
     setstring(GetModuleName,PAnsiChar(@buf),sz)
 {$else}
-  Result:=ParamStr(0);
+  GetModuleName:=ParamStr(0);
 {$endif}
 end;
 
