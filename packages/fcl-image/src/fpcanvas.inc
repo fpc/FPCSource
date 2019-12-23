@@ -64,7 +64,6 @@ end;
 
 procedure TFPCustomCanvas.RemoveHelpers;
 var r : integer;
-    OldState : boolean;
 begin
   for r := FHelpers.count-1 downto 0 do
     with TFPCanvasHelper(FHelpers[r]) do
@@ -334,6 +333,7 @@ end;
 
 function TFPCustomCanvas.TextExtent(const Text: string): TSize;
 begin
+  Result:=Default(TSize);
   GetTextSize(Text, Result.cx, Result.cy);
 end;
 
@@ -381,6 +381,7 @@ end;
 
 function TFPCustomCanvas.TextExtent(const Text: unicodestring): TSize;
 begin
+  Result:=Default(TSize);
   GetTextSize(Text, Result.cx, Result.cy);
 end;
 
@@ -684,7 +685,7 @@ begin
 end;
         
 procedure TFPCustomCanvas.Rectangle (const Bounds:TRect);
-var np,nb,dp,db,pb : boolean;
+var np,nb,dp,db: boolean;
 begin
   np:= Pen.style <> psClear; // Need pen ?
   nb:= Brush.style <> bsClear;  // Need brush ?
@@ -802,7 +803,7 @@ begin
 end;
 
 procedure TFPCustomCanvas.StretchDraw(x, y, w, h: integer; source: TFPCustomImage);
-var i : TFPCustomInterpolation;
+var
     FreeInterpolation : boolean;
     IP : TFPCustomInterpolation;
 begin
