@@ -1067,7 +1067,10 @@ implementation
                       if (cp2=CP_UTF8) then
                         begin
                           if not cpavailable(cp1) then
-                            Message1(option_code_page_not_available,IntToStr(cp1));
+                            begin
+                              Message1(option_code_page_not_available,IntToStr(cp1));
+                              exit;
+                            end;
                           initwidestring(pw);
                           setlengthwidestring(pw,len);
                           { returns room for terminating 0 }
@@ -1086,7 +1089,10 @@ implementation
                       if (cp1=CP_UTF8) then
                         begin
                           if not cpavailable(cp2) then
-                            Message1(option_code_page_not_available,IntToStr(cp2));
+                            begin
+                              Message1(option_code_page_not_available,IntToStr(cp2));
+                              exit;
+                            end;
                           initwidestring(pw);
                           setlengthwidestring(pw,len);
                           ascii2unicode(value_str,len,cp2,pw);
