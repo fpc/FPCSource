@@ -50,6 +50,16 @@ begin
   ReallocMem(Result, size);
 end;
 
+function fpcxmlStrdup(str: pchar): pchar; EXTDECL;
+var
+  L: SizeInt;
+begin
+  L := Length(str) + 1;
+  Getmem(Result, L);
+  if Result <> nil then
+    Move(str^, Result^, L);
+end;
+
 procedure fpcxmlStructuredErrorHandler(userData: pointer; error: xmlErrorPtr); EXTDECL;
 begin
   writeln('struct error');
@@ -303,7 +313,7 @@ initialization
 (*
  * overloading the memory functions
  *)
-  xmlMemSetup(@fpcxmlFree, @fpcxmlMalloc, @fpcxmlRealloc, nil);
+  xmlMemSetup(@fpcxmlFree, @fpcxmlMalloc, @fpcxmlRealloc, @fpcxmlStrdup);
 
 (*
  * overloading the error functions
