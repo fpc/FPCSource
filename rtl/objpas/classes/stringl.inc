@@ -534,7 +534,8 @@ begin
  QuoteChars in the string must be repeated to distinguish them from the QuoteChars enclosing the string.
  }
  try
-  Clear;
+  if DoClear then
+    Clear;
   len:=length(AValue);
   If aStrictDelimiter then
     begin
