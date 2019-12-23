@@ -2173,7 +2173,12 @@ begin
     FD:=InternalAddIndex(SDefaultIndex,'',[],'','');
     FD.IndexType:=itDefault;
     FD.FDiscardOnClose:=True;
-    end;
+    end
+// Not sure about this. For the moment we leave it in comment
+{  else if FD.BufferIndex=Nil then
+    InternalCreateIndex(FD)}
+    ;
+
   FCurrentIndexDef:=FD;
   // Custom index
   if not IsUniDirectional then
@@ -2184,7 +2189,11 @@ begin
       FC:=InternalAddIndex(SCustomIndex,'',[],'','');
       FC.IndexType:=itCustom;
       FC.FDiscardOnClose:=True;
-      end;
+      end
+    // Not sure about this. For the moment we leave it in comment
+{    else if FD.BufferIndex=Nil then
+      InternalCreateIndex(FD)}
+      ;
     end;
   BookmarkSize:=CurrentIndexBuf.BookmarkSize;
 end;
@@ -2405,6 +2414,7 @@ function TCustomBufDataset.getnextpacket : integer;
 
 var i : integer;
     pb : TRecordBuffer;
+    T : TBufIndex;
 
 begin
   if FAllPacketsFetched then
@@ -2412,8 +2422,8 @@ begin
     result := 0;
     exit;
     end;
-
-  CurrentIndexBuf.BeginUpdate;
+  T:=CurrentIndexBuf;
+  T.BeginUpdate;
 
   i := 0;
   pb := DefaultBufferIndex.SpareBuffer;
@@ -2427,7 +2437,7 @@ begin
     inc(i);
     end;
 
-  CurrentIndexBuf.EndUpdate;
+  T.EndUpdate;
   FBRecordCount := FBRecordCount + i;
   result := i;
 end;
