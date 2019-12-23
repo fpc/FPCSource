@@ -34,6 +34,58 @@ const
 
 implementation
 
+{$IFDEF NO_EXTERNAL_VARS}
+function GetxmlMalloc: xmlMallocFunc; inline;
+begin
+  Result := varxmlMalloc^;
+end;
+
+procedure SetxmlMalloc(AValue: xmlMallocFunc); inline;
+begin
+  varxmlMalloc^ := AValue;
+end;
+
+function GetxmlMallocAtomic: xmlMallocFunc; inline;
+begin
+  Result := varxmlMallocAtomic^;
+end;
+
+procedure SetxmlMallocAtomic(AValue: xmlMallocFunc); inline;
+begin
+  varxmlMallocAtomic^ := AValue;
+end;
+
+function GetxmlRealloc: xmlReallocFunc; inline;
+begin
+  Result := varxmlRealloc^;
+end;
+
+procedure SetxmlRealloc(AValue: xmlReallocFunc); inline;
+begin
+  varxmlRealloc^ := AValue;
+end;
+
+function GetxmlFree: xmlFreeFunc; inline;
+begin
+  Result := varxmlFree^;
+end;
+
+procedure SetxmlFree(AValue: xmlFreeFunc); inline;
+begin
+  varxmlFree^ := AValue;
+end;
+
+function GetxmlMemStrdup: xmlStrdupFunc; inline;
+begin
+  Result := varxmlMemStrdup^;
+end;
+
+procedure SetxmlMemStrdup(AValue: xmlStrdupFunc); inline;
+begin
+  varxmlMemStrdup^ := AValue;
+end;
+{$ENDIF}
+
 procedure fpcxmlFree(mem: pointer); EXTDECL;
 begin
   FreeMem(mem);
@@ -282,11 +334,11 @@ begin
     __xmlIsPubidChar_tab := GetProcAddress(libHandle, 'xmlIsPubidChar_tab');
     
   { globals.inc }
-    xmlMalloc := xmlMallocFunc(GetProcAddress(libHandle, 'xmlMalloc'));
-    xmlMallocAtomic := xmlMallocFunc(GetProcAddress(libHandle, 'xmlMallocAtomic'));
-    xmlRealloc := xmlReallocFunc(GetProcAddress(libHandle, 'xmlRealloc'));
-    xmlFree := xmlFreeFunc(GetProcAddress(libHandle, 'xmlFree'));
-    xmlMemStrdup := xmlStrdupFunc(GetProcAddress(libHandle, 'xmlMemStrdup'));
+    varxmlMalloc := PxmlMallocFunc(GetProcAddress(libHandle, 'xmlMalloc'));
+    varxmlMallocAtomic := PxmlMallocFunc(GetProcAddress(libHandle, 'xmlMallocAtomic'));
+    varxmlRealloc := PxmlReallocFunc(GetProcAddress(libHandle, 'xmlRealloc'));
+    varxmlFree := PxmlFreeFunc(GetProcAddress(libHandle, 'xmlFree'));
+    varxmlMemStrdup := PxmlStrdupFunc(GetProcAddress(libHandle, 'xmlMemStrdup'));
     
   { xpath.inc }
    {__xmlXPathNAN := PDouble(GetProcAddress(libHandle, 'xmlXPathNAN'));
