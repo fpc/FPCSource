@@ -926,6 +926,40 @@ begin
   DoSetTextStr(S,False);
 end;
 
+procedure TStrings.AddCommaText(const S: String);
+var
+  L: TStringList;
+begin
+  L := TStringList.Create;
+  try
+    L.CommaText := S;
+    AddStrings(L);
+  finally
+    L.Free;
+  end;
+end;
+
+procedure TStrings.AddDelimitedText(const S: String; ADelimiter: Char;
+  AStrictDelimiter: Boolean);
+var
+  L: TStringList;
+begin
+  L := TStringList.Create;
+  try
+    L.Delimiter := ADelimiter;
+    L.StrictDelimiter := AStrictDelimiter;
+    L.DelimitedText := S;
+    AddStrings(L);
+  finally
+    L.Free;
+  end;
+end;
+
+procedure TStrings.AddDelimitedText(const S: String);
+begin
+  AddDelimitedText(S, FDelimiter, FStrictDelimiter);
+end;
+
 Procedure TStrings.SetUpdateState(Updating: Boolean);
 
 begin
