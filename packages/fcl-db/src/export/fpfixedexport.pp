@@ -86,6 +86,8 @@ Resourcestring
 
 implementation
 
+uses math;
+
 { TFixedExportFormatSettings }
 
 procedure TFixedExportFormatSettings.Assign(Source: TPersistent);
@@ -180,18 +182,44 @@ Const
     {ftWideMemo} 0
     );
 
+  Function CalcLbool: integer;
+  var
+    LTrue,LFalse : Integer;
+
+  begin
+    Case charmode of
+    cmUTF8:
+      begin
+      LTrue:=Length(UTF8Decode(FixedFormatSettings.BooleanTrue));
+      LFalse:=Length(UTF8Decode(FixedFormatSettings.BooleanFalse));
+      end;
+     else
+       LTrue:=Length(FixedFormatSettings.BooleanTrue);
+       LFalse:=Length(FixedFormatSettings.BooleanFalse);
+     end;
+    Result:=Max(LTrue,LFalse);
+  end;
+
+
 Var
-  I,W : Integer;
+  I,W,LBool : Integer;
   F : TField;
   FL : TFixedLengthExportFieldItem;
 
 begin
   inherited BuildDefaultFieldMap(AMap);
+  lbool:=0;
   For I:=0 to AMap.Count-1 do
     begin
     FL:=TFixedLengthExportFieldItem(AMAP[i]);
     F:=Dataset.Fields[i];
     W:= FieldWidths[F.DataType];
+    if F.DataType = ftBoolean then
+      begin
+      if lBool=0 then
+        LBool:=CalcLBool;
+      W:=lBool;
+      end;
     If (W>0) then
       FL.Width:=W
     else if (W=0) then
