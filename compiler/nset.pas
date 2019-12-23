@@ -929,7 +929,7 @@ implementation
                begin
                  result:=cifnode.create_internal(
                    caddnode.create_internal(equaln,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false)),
-                   pcaseblock(blocks[flabels^.blockid])^.statement.getcopy,elseblock);
+                   pcaseblock(blocks[flabels^.blockid])^.statement,elseblock);
                end
              else
                begin
@@ -938,9 +938,10 @@ implementation
                      caddnode.create_internal(gten,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false)),
                      caddnode.create_internal(lten,left.getcopy,cordconstnode.create(flabels^._high,left.resultdef,false))
                    ),
-                   pcaseblock(blocks[flabels^.blockid])^.statement.getcopy,elseblock);
+                   pcaseblock(blocks[flabels^.blockid])^.statement,elseblock);
                end;
              elseblock:=nil;
+             pcaseblock(blocks[flabels^.blockid])^.statement:=nil;
              exit;
            end;
         end;
