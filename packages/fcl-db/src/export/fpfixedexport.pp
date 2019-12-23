@@ -29,6 +29,7 @@ Type
   TFixedExportFormatSettings = Class (TExportFormatSettings)
   private
     FCharMode: TCharMode;
+    FColumnSeparatorSpaceCount: Integer;
     FHeaderRow: Boolean;
   Public
     Procedure Assign(Source: TPersistent); override;
@@ -37,12 +38,16 @@ Type
     Property HeaderRow : Boolean Read FHeaderRow Write FHeaderRow default true;
     // How to handle Unicode ?
     Property CharMode : TCharMode Read FCharMode Write FCharMode;
+    // Number of separator spaces between columns. Default 0.
+    Property ColumnSeparatorSpaceCount : Integer Read FColumnSeparatorSpaceCount Write FColumnSeparatorSpaceCount;
   end;
 
   TCustomFixedLengthExporter = Class(TCustomFileExporter)
   Private
     FCurrentRow : RawByteString;
     FCurrentRowUnicode : UnicodeString;
+    FSpaces : RawByteString;
+    FSpacesUnicode : UnicodeString;
     function GetCharMode: TCharMode;
     function GeTFixedExportFormatSettings: TFixedExportFormatSettings;
     procedure SetFixedExportFormatSettings(AValue: TFixedExportFormatSettings);
@@ -99,6 +104,7 @@ begin
     begin
     CharMode:=TFixedExportFormatSettings(Source).CharMode;
     HeaderRow:=TFixedExportFormatSettings(Source).HeaderRow;
+    ColumnSeparatorSpaceCount:=TFixedExportFormatSettings(Source).ColumnSeparatorSpaceCount;
     end;
   inherited Assign(Source);
 end;
@@ -252,6 +258,8 @@ procedure TCustomFixedLengthExporter.DoBeforeExecute;
 begin
   inherited DoBeforeExecute;
   OpenTextFile;
+  FSpaces:=StringOfChar(' ',FormatSettings.ColumnSeparatorSpaceCount);
+  FSpacesUnicode:=StringOfChar(' ',FormatSettings.ColumnSeparatorSpaceCount);
 end;
 
 procedure TCustomFixedLengthExporter.DoAfterExecute;
@@ -318,6 +326,9 @@ end;
 procedure TCustomFixedLengthExporter.ExportFieldUTF16(EF: TExportFieldItem; isHeader : Boolean = False);
 
 begin
+  if (FormatSettings.ColumnSeparatorSpaceCount>0) and (Length(FCurrentRowUnicode)>0) then
+    FCurrentRowUnicode:=FCurrentRowUnicode+FSpacesUnicode;
+
   FCurrentRowUnicode:=FCurrentRowUnicode+ExportFieldAsUnicodeString(EF,isHeader);
 end;
 
@@ -326,6 +337,8 @@ procedure TCustomFixedLengthExporter.ExportFieldUTF8(EF: TExportFieldItem; isHea
 
 
 begin
+  if (FormatSettings.ColumnSeparatorSpaceCount>0) and (Length(FCurrentRow)>0) then
+    FCurrentRow:=FCurrentRow+FSpaces;
   FCurrentRow:=FCurrentRow+UTF8Encode(ExportFieldAsUnicodeString(EF,isHeader));
 end;
 
@@ -364,6 +377,8 @@ begin
     else
       S:=S+SS;
     end;
+  if (FormatSettings.ColumnSeparatorSpaceCount>0) and (Length(FCurrentRow)>0) then
+    FCurrentRow:=FCurrentRow+FSpaces;
   FCurrentRow:=FCurrentRow+S;
 end;
 
