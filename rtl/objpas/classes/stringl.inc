@@ -163,6 +163,7 @@ begin
 end;
 
 
+
 Function TStrings.GetNameValueSeparator :Char;
 begin
   CheckSpecialChars;
@@ -290,6 +291,11 @@ Var
 
 begin
   GetNameValue(Index,Result,V);
+end;
+
+function TStrings.GetTrailingLineBreak: Boolean;
+begin
+  Result:=Not SkipLastLineBreak;
 end;
 
 Function TStrings.GetValue(const Name: string): string;
@@ -474,6 +480,11 @@ end;
 Procedure TStrings.SetStringsAdapter(const Value: IStringsAdapter);
 
 begin
+end;
+
+procedure TStrings.SetTrailingLineBreak(AValue: Boolean);
+begin
+  SkipLastLineBreak:=Not aValue;
 end;
 
 
