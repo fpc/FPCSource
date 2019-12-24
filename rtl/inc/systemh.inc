@@ -473,7 +473,7 @@ Type
 
 {$if not declared(Comp)}
   { map comp to int64, but this doesn't mean we compile the comp support in! }
-  Comp = Int64;
+  Comp = type Int64;
 {$endif}
 
 { Zero - terminated strings }
