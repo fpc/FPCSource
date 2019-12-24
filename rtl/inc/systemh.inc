@@ -193,9 +193,6 @@ Type
   {$ifndef FPUNONE}
     ValReal = Double;
   {$endif}
-
-  { map comp to int64, but this doesn't mean we compile the comp support in! }
-  Comp = Int64;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
   {$define SUPPORT_SINGLE}
@@ -224,9 +221,6 @@ Type
     ValReal = Real;
   {$endif}
 
-  { Comp type does not exist on fpu }
-  Comp    = int64;
-
   FarPointer = Pointer;
 {$endif CPUM68K}
 
@@ -241,9 +235,6 @@ Type
 
     ValReal = Double;
   {$endif}
-
-  { map comp to int64, but this doesn't mean we compile the comp support in! }
-  Comp = Int64;
 
   FarPointer = Pointer;
 {$endif CPUPOWERPC}
@@ -260,9 +251,6 @@ Type
     ValReal = Double;
   {$endif}
 
-  { map comp to int64, but this doesn't mean we compile the comp support in! }
-  Comp = Int64;
-
   FarPointer = Pointer;
 {$endif CPUSPARC}
 
@@ -275,9 +263,6 @@ Type
 
     ValReal = Double;
   {$endif}
-
-  { map comp to int64, but this doesn't mean we compile the comp support in! }
-  Comp = Int64;
 
   FarPointer = Pointer;
 {$endif CPUSPARC64}
@@ -295,9 +280,6 @@ Type
 
     ValReal = Double;
   {$endif}
-
-  { map comp to int64, but this doesn't mean we compile the comp support in! }
-  Comp = Int64;
 
   FarPointer = Pointer;
 {$endif CPUMIPS32}
@@ -318,9 +300,6 @@ Type
     ValReal = Real;
   {$endif}
 
-  { map comp to int64, but this doesn't mean we compile the comp support in! }
-  Comp = Int64;
-
   FarPointer = Pointer;
 {$endif CPUARM}
 
@@ -340,9 +319,6 @@ Type
     ValReal = Real;
   {$endif}
 
-  { map comp to int64, but this doesn't mean we compile the comp support in! }
-  Comp = Int64;
-
   FarPointer = Pointer;
 {$endif CPUAVR}
 
@@ -353,9 +329,6 @@ Type
   {$define SUPPORT_DOUBLE}
 
   ValReal = Double;
-
-  { map comp to int64, but this doesn't mean we compile the comp support in! }
-  Comp = Int64;
 
   FarPointer = Pointer;
 {$endif CPUAARCH64}
@@ -377,9 +350,6 @@ Type
     ValReal = Double;
   {$endif}
 
-  { map comp to int64, but this doesn't mean we compile the comp support in! }
-  Comp = Int64;
-
   FarPointer = Pointer;
 {$endif CPURISCV32}
 
@@ -398,9 +368,6 @@ Type
 
     ValReal = Double;
   {$endif}
-
-  { map comp to int64, but this doesn't mean we compile the comp support in! }
-  Comp = Int64;
 
   FarPointer = Pointer;
 {$endif CPURISCV64}
@@ -503,6 +470,11 @@ Type
   UInt16  = Word;
   UInt32  = Cardinal;
   UIntPtr = PtrUInt;
+
+{$if not declared(Comp)}
+  { map comp to int64, but this doesn't mean we compile the comp support in! }
+  Comp = Int64;
+{$endif}
 
 { Zero - terminated strings }
   PChar               = ^Char;
