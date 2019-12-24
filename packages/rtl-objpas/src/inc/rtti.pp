@@ -1834,6 +1834,8 @@ begin
       raise EInvalidCast.Create(SErrInvalidTypecast);
     end;
     end
+  else if Kind in [tkInteger, tkInt64, tkQWord] then
+    Result := AsInt64
   else
     raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
