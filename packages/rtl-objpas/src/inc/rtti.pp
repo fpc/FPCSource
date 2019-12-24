@@ -159,11 +159,13 @@ type
     class operator := (AValue: Extended): TValue; inline;
 {$endif}
     class operator := (AValue: Currency): TValue; inline;
+    class operator := (AValue: Comp): TValue; inline;
     class operator := (AValue: Int64): TValue; inline;
     class operator := (AValue: QWord): TValue; inline;
     class operator := (AValue: TObject): TValue; inline;
     class operator := (AValue: TClass): TValue; inline;
     class operator := (AValue: Boolean): TValue; inline;
+    class operator := (AValue: IUnknown): TValue; inline;
     property DataSize: SizeInt read GetDataSize;
     property Kind: TTypeKind read GetTypeKind;
     property TypeData: PTypeData read GetTypeDataProp;
@@ -2259,6 +2261,11 @@ begin
   Make(@AValue, System.TypeInfo(AValue), Result);
 end;
 
+class operator TValue.:=(AValue: Comp): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
 class operator TValue.:=(AValue: Int64): TValue;
 begin
   Make(@AValue, System.TypeInfo(AValue), Result);
@@ -2284,6 +2291,10 @@ begin
   Make(@AValue, System.TypeInfo(AValue), Result);
 end;
 
+class operator TValue.:=(AValue: IUnknown): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
 
 function Invoke(aCodeAddress: CodePointer; const aArgs: TValueArray;
   aCallConv: TCallConv; aResultType: PTypeInfo; aIsStatic: Boolean;
