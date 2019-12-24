@@ -2010,6 +2010,9 @@ begin
     tkPointer : result := '(pointer @ ' + HexStr(FData.FAsPointer) + ')';
     tkInterface : result := '(interface @ ' + HexStr(PPointer(FData.FValueData.GetReferenceToRawData)^) + ')';
     tkInterfaceRaw : result := '(raw interface @ ' + HexStr(FData.FAsPointer) + ')';
+    tkEnumeration: Result := GetEnumName(TypeInfo, Integer(AsOrdinal));
+    tkChar: Result := AnsiChar(FData.FAsUByte);
+    tkWChar: Result := UTF8Encode(WideChar(FData.FAsUWord));
   else
     result := '';
   end;
