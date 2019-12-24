@@ -59,7 +59,7 @@ unit cpupara;
 
     uses
        verbose,systems,cutils,
-       defutil,symsym,symcpu,symtable,
+       defutil,symsym,symcpu,symtable,symutil,
        { PowerPC uses procinfo as well in cpupara, so this should not hurt }
        procinfo;
 
@@ -294,7 +294,7 @@ unit cpupara;
                   for i:=0 to trecorddef(def).symtable.SymList.count-1 do
                     begin
                       sym:=tsym(trecorddef(def).symtable.SymList[i]);
-                      if sym.typ<>fieldvarsym then
+                      if not is_normal_fieldvarsym(sym) then
                         continue;
                       { bitfield -> ignore }
                       if (trecordsymtable(trecorddef(def).symtable).usefieldalignment=bit_alignment) and
