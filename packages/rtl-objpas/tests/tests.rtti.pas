@@ -718,6 +718,7 @@ begin
 
   Check(v.GetReferenceToRawData <> @c);
   Check(AnsiChar(v.AsOrdinal) = #20);
+  Check(v.AsAnsiChar = #20);
 end;
 
 procedure TTestCase1.TestMakeWideChar;
@@ -737,6 +738,7 @@ begin
 
   Check(v.GetReferenceToRawData <> @c);
   Check(WideChar(v.AsOrdinal) = #$1234);
+  Check(v.AsWideChar = #$1234);
 end;
 
 procedure TTestCase1.MakeFromOrdinalTObject;

@@ -136,6 +136,9 @@ type
     function AsBoolean: boolean;
     function AsCurrency: Currency;
     function AsInteger: Integer;
+    function AsChar: Char; inline;
+    function AsAnsiChar: AnsiChar;
+    function AsWideChar: WideChar;
     function AsInt64: Int64;
     function AsUInt64: QWord;
     function AsInterface: IInterface;
@@ -1946,6 +1949,31 @@ begin
     end
   else
     raise EInvalidCast.Create(SErrInvalidTypecast);
+end;
+
+function TValue.AsAnsiChar: AnsiChar;
+begin
+  if Kind = tkChar then
+    Result := Chr(FData.FAsUByte)
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+end;
+
+function TValue.AsWideChar: WideChar;
+begin
+  if Kind = tkWChar then
+    Result := WideChar(FData.FAsUWord)
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+end;
+
+function TValue.AsChar: Char;
+begin
+{$if SizeOf(Char) = 1}
+  Result := AsAnsiChar;
+{$else}
+  Result := AsWideChar;
+{$endif}
 end;
 
 function TValue.AsInt64: Int64;
