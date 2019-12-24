@@ -254,12 +254,12 @@ Type
 {$ifdef CPUSPARC}
   {$define DEFAULT_DOUBLE}
 
-  {$define SUPPORT_SINGLE}
-  {$define SUPPORT_DOUBLE}
-
   {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
   {$ifndef FPUNONE}
+    {$define SUPPORT_SINGLE}
+    {$define SUPPORT_DOUBLE}
+
     ValReal = Double;
   {$endif}
 
@@ -273,10 +273,10 @@ Type
 {$ifdef CPUSPARC64}
   {$define DEFAULT_DOUBLE}
 
-  {$define SUPPORT_SINGLE}
-  {$define SUPPORT_DOUBLE}
-
   {$ifndef FPUNONE}
+    {$define SUPPORT_SINGLE}
+    {$define SUPPORT_DOUBLE}
+
     ValReal = Double;
   {$endif}
 
@@ -290,13 +290,14 @@ Type
 {$if defined(CPUMIPS32) or defined(CPUMIPSEL32)}
   {$define DEFAULT_DOUBLE}
 
-  {$define SUPPORT_SINGLE}
-  {$define SUPPORT_DOUBLE}
-
   {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
   {$ifndef FPUNONE}
+    {$define SUPPORT_SINGLE}
+    {$define SUPPORT_DOUBLE}
+
     {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
     ValReal = Double;
   {$endif}
 
@@ -311,14 +312,15 @@ Type
 {$ifdef CPUARM}
   {$define DEFAULT_DOUBLE}
 
-  {$define SUPPORT_SINGLE}
-  {$define SUPPORT_DOUBLE}
-
   {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
   {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
-  {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
 
   {$ifndef FPUNONE}
+    {$define SUPPORT_SINGLE}
+    {$define SUPPORT_DOUBLE}
+
+    {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
     ValReal = Real;
   {$endif}
 
@@ -370,16 +372,17 @@ Type
 {$ifdef CPURISCV32}
   {$define DEFAULT_DOUBLE}
 
-  {$define SUPPORT_SINGLE}
-  {$define SUPPORT_DOUBLE}
-
   {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
   {$define FPC_INCLUDE_SOFTWARE_MUL}
   {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
   {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
 
   {$ifndef FPUNONE}
+    {$define SUPPORT_SINGLE}
+    {$define SUPPORT_DOUBLE}
+
     {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
     ValReal = Double;
   {$endif}
 
@@ -393,15 +396,16 @@ Type
 {$ifdef CPURISCV64}
   {$define DEFAULT_DOUBLE}
 
-  {$define SUPPORT_SINGLE}
-  {$define SUPPORT_DOUBLE}
-
   {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
   {$define FPC_INCLUDE_SOFTWARE_MUL}
   {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
 
   {$ifndef FPUNONE}
+    {$define SUPPORT_SINGLE}
+    {$define SUPPORT_DOUBLE}
+
     {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
     ValReal = Double;
   {$endif}
 
