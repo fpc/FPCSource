@@ -4761,11 +4761,12 @@ implementation
        begin
          { initialize units }
          if not(current_module.islibrary) then
-{$ifdef AVR}
-           cg.a_call_name(list,'FPC_INIT_FUNC_TABLE',false)
-{$else AVR}
-           g_call_system_proc(list,'fpc_initializeunits',[],nil).resetiftemp
-{$endif AVR}
+           begin
+             if tf_init_final_units_by_calls in target_info.flags then
+               cg.a_call_name(list,'FPC_INIT_FUNC_TABLE',false)
+             else
+               g_call_system_proc(list,'fpc_initializeunits',[],nil).resetiftemp;
+           end
          else
            g_call_system_proc(list,'fpc_libinitializeunits',[],nil).resetiftemp;
        end;
