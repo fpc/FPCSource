@@ -1553,6 +1553,7 @@ unit cpupara;
                               else
                                 InternalError(2018012901);
                             end;
+                            paraloc^.def:=carraydef.getreusable_no_free_vector(paraloc^.def,j);
                           end;
                         else
                           if (x86_64_use_ms_abi(p.proccalloption) and (p.proccalloption <> pocall_vectorcall)) then
@@ -1858,6 +1859,7 @@ unit cpupara;
                                   else
                                     InternalError(2018012903);
                                 end;
+                                paraloc^.def:=carraydef.getreusable_no_free_vector(paraloc^.def,j);
                               end;
                             else
                               if (use_ms_abi and (p.proccalloption <> pocall_vectorcall)) then
