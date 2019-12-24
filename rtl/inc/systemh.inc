@@ -196,7 +196,6 @@ Type
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
-  PComp = ^Comp;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
   {$define SUPPORT_SINGLE}
@@ -227,7 +226,6 @@ Type
 
   { Comp type does not exist on fpu }
   Comp    = int64;
-  PComp = ^Comp;
 
   FarPointer = Pointer;
 {$endif CPUM68K}
@@ -246,7 +244,6 @@ Type
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
-  PComp = ^Comp;
 
   FarPointer = Pointer;
 {$endif CPUPOWERPC}
@@ -265,7 +262,6 @@ Type
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
-  PComp = ^Comp;
 
   FarPointer = Pointer;
 {$endif CPUSPARC}
@@ -282,7 +278,6 @@ Type
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
-  PComp = ^Comp;
 
   FarPointer = Pointer;
 {$endif CPUSPARC64}
@@ -303,7 +298,6 @@ Type
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
-  PComp = ^Comp;
 
   FarPointer = Pointer;
 {$endif CPUMIPS32}
@@ -326,7 +320,6 @@ Type
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
-  PComp = ^Comp;
 
   FarPointer = Pointer;
 {$endif CPUARM}
@@ -349,7 +342,6 @@ Type
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
-  PComp = ^Comp;
 
   FarPointer = Pointer;
 {$endif CPUAVR}
@@ -364,7 +356,6 @@ Type
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
-  PComp = ^Comp;
 
   FarPointer = Pointer;
 {$endif CPUAARCH64}
@@ -388,7 +379,6 @@ Type
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
-  PComp = ^Comp;
 
   FarPointer = Pointer;
 {$endif CPURISCV32}
@@ -411,7 +401,6 @@ Type
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
-  PComp = ^Comp;
 
   FarPointer = Pointer;
 {$endif CPURISCV64}
@@ -572,9 +561,9 @@ Type
   PPDouble            = ^PDouble;
 {$endif}
   PCurrency           = ^Currency;
-{$ifdef SUPPORT_COMP}
+{$if declared(Comp)}
   PComp               = ^Comp;
-{$endif SUPPORT_COMP}
+{$endif declared(Comp)}
 
   PSmallInt           = ^Smallint;
   PShortInt           = ^Shortint;
