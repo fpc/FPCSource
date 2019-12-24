@@ -3251,7 +3251,8 @@ const
    { ado_IsConstructor      } 'IsConstructor',
    { ado_IsArrayOfConst     } 'ArrayOfConst',
    { ado_IsConstString      } 'ConstString',
-   { ado_IsBitPacked        } 'BitPacked'
+   { ado_IsBitPacked        } 'BitPacked',
+   { ado_IsVector           } 'Vector'
   );
 var
   symoptions: tarraydefoptions;
