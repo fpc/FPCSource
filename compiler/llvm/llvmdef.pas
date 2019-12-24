@@ -464,7 +464,13 @@ implementation
             end;
           arraydef :
             begin
-              if is_array_of_const(def) then
+              if tarraydef(def).is_hwvector then
+                begin
+                  encodedstr:=encodedstr+'<'+tostr(tarraydef(def).elecount)+' x ';
+                  llvmaddencodedtype_intern(tarraydef(def).elementdef,[lef_inaggregate],encodedstr);
+                  encodedstr:=encodedstr+'>';
+                end
+              else if is_array_of_const(def) then
                 begin
                   encodedstr:=encodedstr+'[0 x ';
                   llvmaddencodedtype_intern(search_system_type('TVARREC').typedef,[lef_inaggregate],encodedstr);
