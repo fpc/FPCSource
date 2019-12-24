@@ -817,7 +817,7 @@ implementation
           begin
             callingconv:=llvm_callingconvention_name(def.proccalloption);
             if callingconv<>'' then
-              encodedstr:=encodedstr+' "'+callingconv+'"';
+              encodedstr:=encodedstr+' '+callingconv;
           end;
         { when writing a definition, we have to write the parameter names, and
           those are only available on the callee side. In all other cases,
