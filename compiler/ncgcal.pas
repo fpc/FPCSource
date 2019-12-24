@@ -1267,7 +1267,7 @@ implementation
              pd:=search_system_proc('fpc_safecallcheck');
              cgpara.init;
              { fpc_safecallcheck returns its parameter value (= function result of function we just called) }
-             paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,cgpara);
+             paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,cgpara);
              location_reset(tmploc,LOC_REGISTER,def_cgsize(retloc.Def));
              tmploc.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,retloc.Def);
              hlcg.gen_load_cgpara_loc(current_asmdata.CurrAsmList,retloc.Def,retloc,tmploc,true);
