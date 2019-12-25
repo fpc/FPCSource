@@ -3991,11 +3991,7 @@ begin
       case GetTypeData(FPropInfo^.PropType)^.FloatType of
         ftCurr   :
           begin
-            {$IfDef FPC_CURRENCY_IS_INT64}
-              Values.Cur := Currency(GetOrdProp(TObject(Instance), FPropInfo)) / 10000;
-            {$Else}
-              Values.Cur := Currency(GetFloatProp(TObject(Instance), FPropInfo));
-            {$EndIf}
+            Values.Cur := Currency(GetFloatProp(TObject(Instance), FPropInfo));
             TValue.Make(@Values.Cur, FPropInfo^.PropType, Result);
           end;
         ftSingle :
@@ -4015,11 +4011,7 @@ begin
           end;
         ftComp   :
           begin
-            {$IfDef FPC_COMP_IS_INT64}
-            Values.Cp := Comp(GetOrdProp(TObject(Instance), FPropInfo));
-            {$Else}
             Values.Cp := Comp(GetFloatProp(TObject(Instance), FPropInfo));
-            {$EndIf}
             TValue.Make(@Values.Cp, FPropInfo^.PropType, Result);
           end;
       end;
@@ -4035,10 +4027,6 @@ begin
 end;
 
 procedure TRttiProperty.SetValue(Instance: pointer; const AValue: TValue);
-{$if defined(FPC_CURRENCY_IS_INT64) or defined(FPC_COMP_IS_INT64)}
-var
-  td: PTypeData;
-{$endif}
 begin
   case FPropinfo^.PropType^.Kind of
     tkSString,
@@ -4056,22 +4044,8 @@ begin
       SetObjectProp(TObject(Instance), FPropInfo, AValue.AsObject);
     tkInterface:
       SetInterfaceProp(TObject(Instance), FPropInfo, AValue.AsInterface);
-    tkFloat: begin
-{$if defined(FPC_CURRENCY_IS_INT64) or defined(FPC_COMP_IS_INT64)}
-      td := GetTypeData(FPropInfo^.PropType);
-{$if defined(FPC_CURRENCY_IS_INT64)}
-      if td^.FloatType = ftCurr then
-        SetOrdProp(TObject(Instance), FPropInfo, Trunc(AValue.AsExtended * 10000))
-      else
-{$endif}
-{$if defined(FPC_COMP_IS_INT64)}
-      if td^.FloatType = ftComp then
-        SetOrdProp(TObject(Instance), FPropInfo, Trunc(AValue.AsExtended))
-      else
-{$endif}
-{$endif}
-        SetFloatProp(TObject(Instance), FPropInfo, AValue.AsExtended);
-    end;
+    tkFloat:
+      SetFloatProp(TObject(Instance), FPropInfo, AValue.AsExtended);
     tkDynArray:
       SetDynArrayProp(TObject(Instance), FPropInfo, PPointer(AValue.GetReferenceToRawData)^);
   else
