@@ -351,8 +351,8 @@ const
                    platform_select='-EB';
   {$endif}
 {$endif}
-{$ifdef riscv32}   platform_select='';{$endif} {unknown :( }
-{$ifdef riscv64}   platform_select='';{$endif} {unknown :( }
+{$ifdef riscv32}   platform_select='-m elf32lriscv';{$endif}
+{$ifdef riscv64}   platform_select='-m elf64lriscv';{$endif}
 
 var
   platformopt: string;
