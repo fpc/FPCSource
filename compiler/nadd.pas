@@ -1754,8 +1754,17 @@ implementation
                   left.resultdef := s64inttype;
                   right.resultdef := s64inttype;
                 end;
-            inserttypeconv(right,resultrealdef);
-            inserttypeconv(left,resultrealdef);
+            if current_settings.fputype=fpu_none then
+              begin
+                Message(parser_e_unsupported_real);
+                result:=cerrornode.create;
+                exit;
+              end
+            else
+              begin
+                inserttypeconv(right,resultrealdef);
+                inserttypeconv(left,resultrealdef);
+              end;
           end
 
          { if both are orddefs then check sub types }
