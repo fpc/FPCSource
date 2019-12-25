@@ -3948,7 +3948,7 @@ begin
     tkEnumeration:
       begin
         Values.Enum := Integer(GetOrdProp(TObject(Instance), FPropInfo));
-        TValue.Make(@Values.Enum, FPropInfo^.PropType, result);
+        ValueFromInt(Values.Enum);
       end;
     tkBool:
       begin
