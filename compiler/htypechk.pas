@@ -1297,7 +1297,7 @@ implementation
                break;
              loadn :
                begin
-                 { the class pointer is read }
+                 { the methodpointer/framepointer is read }
                  if assigned(tunarynode(p).left) then
                    set_varstate(tunarynode(p).left,vs_read,[vsf_must_be_valid]);
                  if (tloadnode(p).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) then
