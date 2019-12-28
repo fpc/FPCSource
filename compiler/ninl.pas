@@ -85,6 +85,7 @@ interface
             by the JVM backend to create new dynamic arrays. }
           function first_new: tnode; virtual;
           function first_length: tnode; virtual;
+          function first_high: tnode; virtual;
           function first_box: tnode; virtual; abstract;
           function first_unbox: tnode; virtual; abstract;
           function first_assigned: tnode; virtual;
@@ -3484,21 +3485,10 @@ implementation
                               result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                             end
                            else
-                            if is_dynamic_array(left.resultdef) then
-                              begin
-                                set_varstate(left,vs_read,[vsf_must_be_valid]);
-                                { can't use inserttypeconv because we need }
-                                { an explicit type conversion (JM)         }
-                                hp := ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),nil);
-                                result := ccallnode.createintern('fpc_dynarray_high',hp);
-                                { make sure the left node doesn't get disposed, since it's }
-                                { reused in the new node (JM)                              }
-                                left:=nil;
-                              end
-                           else
-                            begin
-                              set_varstate(left,vs_read,[]);
-                            end;
+                             begin
+                               set_varstate(left,vs_read,[]);
+                               resultdef:=sizesinttype;
+                             end;
                          end;
                       end;
                     stringdef:
@@ -4047,9 +4037,12 @@ implementation
               result:=first_assert;
             end;
 
-          in_low_x,
-          in_high_x:
+          in_low_x:
             internalerror(200104047);
+          in_high_x:
+            begin
+              result:=first_high;
+            end;
 
           in_slice_x:
             internalerror(2005101501);
@@ -4702,6 +4695,15 @@ implementation
             { ansi/wide string }
             expectloc:=LOC_REGISTER;
           end;
+       end;
+
+
+     function tinlinenode.first_high: tnode;
+       begin
+         result:=nil;
+         if not(is_dynamic_array(left.resultdef)) then
+           Internalerror(2019122802);
+         expectloc:=LOC_REGISTER;
        end;
 
 

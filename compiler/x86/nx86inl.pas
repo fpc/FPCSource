@@ -78,6 +78,7 @@ interface
           procedure second_fma;override;
           procedure second_frac_real;override;
           procedure second_int_real;override;
+          procedure second_high;override;
        private
           procedure load_fpu_location(lnode: tnode);
        end;
@@ -1270,5 +1271,40 @@ implementation
         else
           internalerror(2017052107);
       end;
+
+
+    procedure tx86inlinenode.second_high;
+      var
+        donelab: tasmlabel;
+        hregister : tregister;
+        href : treference;
+      begin
+        secondpass(left);
+        if not(is_dynamic_array(left.resultdef)) then
+          Internalerror(2019122801);
+        { length in dynamic arrays is at offset -sizeof(pint) }
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        current_asmdata.getjumplabel(donelab);
+        { by subtracting 1 here, we get the -1 into the register we need if the dyn. array is nil and the carry
+          flag is set in this case, so we can jump depending on it
+
+          when loading the actual high value, we have to take care later of the decreased value }
+        hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,left.resultdef,1,left.location.register);
+        { volatility of the dyn. array refers to the volatility of the
+          string pointer, not of the string data }
+        cg.a_jmp_flags(current_asmdata.CurrAsmList,F_C,donelab);
+        hlcg.reference_reset_base(href,left.resultdef,left.location.register,-ossinttype.size+1,ctempposinvalid,ossinttype.alignment,[]);
+        { if the string pointer is nil, the length is 0 -> reuse the register
+          that originally held the string pointer for the length, so that we
+          can keep the original nil/0 as length in that case }
+        hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,def_cgsize(resultdef));
+        hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,ossinttype,resultdef,href,hregister);
+
+        cg.a_label(current_asmdata.CurrAsmList,donelab);
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        location.register:=hregister;
+      end;
+
+
 
 end.
