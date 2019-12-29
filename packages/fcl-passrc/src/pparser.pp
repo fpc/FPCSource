@@ -3792,16 +3792,6 @@ function TPasParser.AddUseUnit(ASection: TPasSection;
         ParseExc(nParserDuplicateIdentifier,SParserDuplicateIdentifier,[AUnitName]);
   end;
 
-  procedure CheckDuplicateInUsesList(UnitRef: TPasElement; UsesClause: TPasUsesClause);
-  var
-    i: Integer;
-  begin
-    if UsesClause=nil then exit;
-    for i:=0 to length(UsesClause)-1 do
-      if UsesClause[i].Module=UnitRef then
-        ParseExc(nParserDuplicateIdentifier,SParserDuplicateIdentifier,[AUnitName]);
-  end;
-
 var
   UnitRef: TPasElement;
   UsesUnit: TPasUsesUnit;
@@ -3820,22 +3810,18 @@ begin
       ParseExc(nParserDuplicateIdentifier,SParserDuplicateIdentifier,[AUnitName]);
       end;
 
+    // Note: The alias (AUnitName) must be unique within a module.
+    //       Using an unit module twice with different alias is allowed.
+    CheckDuplicateInUsesList(ASection.UsesClause);
+    if ASection.ClassType=TImplementationSection then
+      CheckDuplicateInUsesList(CurModule.InterfaceSection.UsesClause);
+
     UnitRef := Engine.FindModule(AUnitName,NameExpr,InFileExpr);
     if Assigned(UnitRef) then
-      begin
-      UnitRef.AddRef{$IFDEF CheckPasTreeRefCount}('TPasUsesUnit.Module'){$ENDIF};
-      CheckDuplicateInUsesList(UnitRef,ASection.UsesClause);
-      if ASection.ClassType=TImplementationSection then
-        CheckDuplicateInUsesList(UnitRef,CurModule.InterfaceSection.UsesClause);
-      end
+      UnitRef.AddRef{$IFDEF CheckPasTreeRefCount}('TPasUsesUnit.Module'){$ENDIF}
     else
-      begin
-      CheckDuplicateInUsesList(ASection.UsesClause);
-      if ASection.ClassType=TImplementationSection then
-        CheckDuplicateInUsesList(CurModule.InterfaceSection.UsesClause);
       UnitRef := TPasUnresolvedUnitRef(CreateElement(TPasUnresolvedUnitRef,
         AUnitName, ASection, NamePos));
-      end;
 
     UsesUnit:=TPasUsesUnit(CreateElement(TPasUsesUnit,AUnitName,ASection,NamePos));
     Result:=ASection.AddUnitToUsesList(AUnitName,NameExpr,InFileExpr,UnitRef,UsesUnit);

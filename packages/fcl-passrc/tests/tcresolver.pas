@@ -370,7 +370,7 @@ type
     Procedure TestUnit_DottedUnit;
     Procedure TestUnit_DottedExpr;
     Procedure TestUnit_DuplicateDottedUsesFail;
-    Procedure TestUnit_DuplicateUsesDiffNameFail;
+    Procedure TestUnit_DuplicateUsesDiffName;
     Procedure TestUnit_Unit1DotUnit2Fail;
     Procedure TestUnit_InFilename;
     Procedure TestUnit_InFilenameAliasDelphiFail;
@@ -5924,7 +5924,7 @@ begin
     nParserDuplicateIdentifier);
 end;
 
-procedure TTestResolver.TestUnit_DuplicateUsesDiffNameFail;
+procedure TTestResolver.TestUnit_DuplicateUsesDiffName;
 begin
   MainFilename:='unitdots.main1.pas';
   AddModuleWithIntfImplSrc('unitdots.unit1.pp',
@@ -5942,8 +5942,7 @@ begin
   '  if unit1.j1=0 then ;',
   '  if unitdots.unit1.j1=0 then ;',
   '']);
-  CheckParserException('Duplicate identifier "unit1" at token ";" in file unitdots.main1.pas at line 2 column 27',
-    nParserDuplicateIdentifier);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestUnit_Unit1DotUnit2Fail;
