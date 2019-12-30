@@ -90,7 +90,11 @@ begin
 
   if Assigned(Info) then
   begin
+    {$ifdef AmigaOS4}
+    Port := PFileHandle(BADDR(DosInput()))^.fh_MsgPort;
+    {$else}
     Port := PFileHandle(BADDR(DosInput()))^.fh_Type;
+    {$endif}
     //GetConsoleTask;
     Bptr1  := MKBADDR(Info);
 
@@ -316,10 +320,10 @@ begin
   OutP := DosOutput();
   SetMode(OutP, 1);
   // Wait one millisecond for the key (-1 = timeout)
-  {$if defined(MorphOS) or defined(Amiga68k))}
-  KeyPressed := WaitForChar(OutP, 1);
-  {$else}
+  {$if defined(AROS)}
   KeyPressed := WaitForChar(OutP, 1) <> 0;
+  {$else}
+  KeyPressed := WaitForChar(OutP, 1);
   {$endif}
   SetMode(OutP, 0);
 end;
