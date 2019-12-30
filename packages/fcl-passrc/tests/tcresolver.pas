@@ -379,6 +379,7 @@ type
     Procedure TestUnit_UnitNotFoundErrorPos;
     Procedure TestUnit_AccessIndirectUsedUnitFail;
     Procedure TestUnit_Intf1Impl2Intf1;
+    Procedure TestUnit_Intf1Impl2Intf1_Duplicate;
 
     // procs
     Procedure TestProcParam;
@@ -2386,8 +2387,13 @@ function TCustomTestResolver.OnPasResolverFindUnit(SrcResolver: TPasResolver;
     {$ENDIF}
     CurEngine:=FindModuleWithFilename(aFilename);
     if CurEngine=nil then exit(false);
-    aModule:=InitUnit(CurEngine);
-    if aModule=nil then exit(false);
+    if CurEngine.Module=nil then
+      begin
+      aModule:=InitUnit(CurEngine);
+      if aModule=nil then exit(false);
+      end
+    else
+      aModule:=CurEngine.Module;
     OnPasResolverFindUnit:=aModule;
     Result:=true;
   end;
@@ -6086,6 +6092,27 @@ begin
   Add([
   'interface',
   'uses unit1;',
+  'var i: number;',
+  'implementation']);
+  ParseUnit;
+end;
+
+procedure TTestResolver.TestUnit_Intf1Impl2Intf1_Duplicate;
+begin
+  AddModuleWithIntfImplSrc('unit1.pp',
+    LinesToStr([
+    'type number = longint;']),
+    LinesToStr([
+    'uses afile;',
+    'procedure DoIt;',
+    'begin',
+    '  i:=3;',
+    'end;']));
+
+  StartUnit(true);
+  Add([
+  'interface',
+  'uses unit1, foo in ''unit1.pp'';',
   'var i: number;',
   'implementation']);
   ParseUnit;

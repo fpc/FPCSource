@@ -212,7 +212,7 @@ begin
     UnitNameMaxLen:=Max(UnitNameLen,255);
     s:=UseUnitName;
     SetLength(s,UnitNameMaxLen);
-    if OnUnitAlias(OnUnitAliasData,Pointer(s),UnitNameLen,UnitNameMaxLen) then
+    if OnUnitAlias(OnUnitAliasData,Pointer(s),UnitNameMaxLen) then
       UseUnitName:=LeftStr(s,UnitNameLen);
     end;
 end;
