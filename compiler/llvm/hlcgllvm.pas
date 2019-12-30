@@ -39,6 +39,7 @@ uses
     thlcgllvm = class(thlcgobj)
       constructor create;
 
+      procedure a_load_reg_cgpara(list: TAsmList; size: tdef; r: tregister; const cgpara: TCGPara); override;
       procedure a_load_ref_cgpara(list: TAsmList; size: tdef; const r: treference; const cgpara: TCGPara); override;
       procedure a_load_const_cgpara(list: TAsmList; tosize: tdef; a: tcgint; const cgpara: TCGPara); override;
      protected
@@ -186,6 +187,18 @@ implementation
   constructor thlcgllvm.create;
     begin
       inherited
+    end;
+
+
+  procedure thlcgllvm.a_load_reg_cgpara(list: TAsmList; size: tdef; r: tregister; const cgpara: TCGPara);
+    begin
+      if size<>llvm_metadatatype then
+        begin
+          inherited;
+          exit;
+        end;
+      { overwrite with the reference to the metadata (stored in the register's supreg) }
+      cgpara.location^.register:=r;
     end;
 
 
@@ -610,6 +623,8 @@ implementation
     var
       fromsize: tdef;
     begin
+      if tosize=llvm_metadatatype then
+        internalerror(2019122804);
       if tosize.size<=ptrsinttype.size then
         fromsize:=ptrsinttype
       else
@@ -655,6 +670,9 @@ implementation
       hreg2: tregister;
       tmpsize: tdef;
     begin
+      if (fromsize=llvm_metadatatype) or
+         (tosize=llvm_metadatatype) then
+        internalerror(2019122802);
       sref:=make_simple_ref(list,ref,tosize);
       hreg:=register;
       (* typecast the pointer to the value instead of the value itself if
@@ -724,6 +742,9 @@ implementation
       tmpreg: tregister;
       tmpintdef: tdef;
     begin
+      if (fromsize=llvm_metadatatype) or
+         (tosize=llvm_metadatatype) then
+        internalerror(2019122801);
       op:=llvmconvop(fromsize,tosize,true);
       { converting from pointer to something else and vice versa is only
         possible via an intermediate pass to integer. Same for "something else"
@@ -858,6 +879,9 @@ implementation
       sref: treference;
       hreg: tregister;
     begin
+      if (fromsize=llvm_metadatatype) or
+         (tosize=llvm_metadatatype) then
+        internalerror(2019122803);
       sref:=make_simple_ref(list,ref,fromsize);
       { "named register"? }
       if sref.refaddr=addr_full then

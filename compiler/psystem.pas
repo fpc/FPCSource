@@ -543,6 +543,10 @@ implementation
         addtype('$qwordbool',bool64type);
 {$ifdef llvm}
         addtype('$llvmbool1',llvmbool1type);
+        llvm_metadatatype:=cpointerdef.create(voidtype);
+        { if this gets renamed, also adjust agllvm so it still writes the identifier of this type as "metadata" }
+        addtype('$metadata',llvm_metadatatype);
+        addtype('LLVMMetadata',llvm_metadatatype);
 {$endif llvm}
         addtype('$char_pointer',charpointertype);
         addtype('$widechar_pointer',widecharpointertype);
@@ -620,11 +624,6 @@ implementation
         addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[]));
         nestedprocpointertype:=crecorddef.create('',hrecst);
         addtype('$nestedprocpointer',nestedprocpointertype);
-{$ifdef llvm}
-        llvm_metadatatype:=cpointerdef.create(voidtype);
-        { if this gets renamed, also adjust agllvm so it still writes the identifier of this type as "metadata" }
-        addtype('$metadata',llvm_metadatatype);
-{$endif}
         symtablestack.pop(systemunit);
       end;
 
@@ -725,6 +724,7 @@ implementation
 {$endif x86}
 {$ifdef llvm}
         loadtype('llvmbool1',llvmbool1type);
+        loadtype('metadata',llvm_metadatatype);
 {$endif llvm}
         loadtype('file',cfiletype);
         if not(target_info.system in systems_managed_vm) then
@@ -740,9 +740,6 @@ implementation
           end;
         loadtype('methodpointer',methodpointertype);
         loadtype('nestedprocpointer',nestedprocpointertype);
-{$ifdef llvm}
-        loadtype('metadata',llvm_metadatatype);
-{$endif}
         loadtype('HRESULT',hresultdef);
         loadtype('TTYPEKIND',typekindtype);
         set_default_int_types;

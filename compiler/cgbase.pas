@@ -211,7 +211,9 @@ interface
         R_SPECIALREGISTER, { = 5 }
         R_ADDRESSREGISTER, { = 6 }
         { used on llvm, every temp gets its own "base register" }
-        R_TEMPREGISTER     { = 7 }
+        R_TEMPREGISTER,    { = 7 }
+        { used on llvm for tracking metadata (every unique metadata has its own base register) }
+        R_METADATAREGISTER { = 8 }
       );
 
       { Sub registers }
@@ -242,8 +244,10 @@ interface
         R_SUBFLAGOVERFLOW,  { = 20; Overflow flag }
         R_SUBFLAGINTERRUPT, { = 21; Interrupt enable flag }
         R_SUBFLAGDIRECTION, { = 22; Direction flag }
-        R_SUBMM8B,  { = 23; for part of v regs on aarch64 }
-        R_SUBMM16B  { = 24; for part of v regs on aarch64 }
+        R_SUBMM8B,          { = 23; for part of v regs on aarch64 }
+        R_SUBMM16B,         { = 24; for part of v regs on aarch64 }
+        { subregisters for the metadata register (llvm) }
+        R_SUBMETASTRING     { = 25 }
       );
       TSubRegisterSet = set of TSubRegister;
 

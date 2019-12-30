@@ -272,11 +272,16 @@ implementation
 
     function getregisterstring(reg: tregister): ansistring;
       begin
-        if getregtype(reg)=R_TEMPREGISTER then
-          result:='%tmp.'
+        if getregtype(reg)=R_METADATAREGISTER then
+          result:='!"'+tllvmmetadata.getregstring(reg)+'"'
         else
-          result:='%reg.'+tostr(byte(getregtype(reg)))+'_';
-        result:=result+tostr(getsupreg(reg));
+          begin
+            if getregtype(reg)=R_TEMPREGISTER then
+              result:='%tmp.'
+            else
+              result:='%reg.'+tostr(byte(getregtype(reg)))+'_';
+            result:=result+tostr(getsupreg(reg));
+          end;
       end;
 
 

@@ -359,7 +359,9 @@ implementation
             end;
           pointerdef :
             begin
-              if is_voidpointer(def) then
+              if def=llvm_metadatatype then
+                encodedstr:=encodedstr+'metadata'
+              else if is_voidpointer(def) then
                 encodedstr:=encodedstr+'i8*'
               else
                 begin
