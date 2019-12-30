@@ -1024,6 +1024,8 @@ implementation
             writer.AsmWrite(' "thunk"');
           if llvmflag_null_pointer_valid in llvmversion_properties[current_settings.llvmversion] then
             writer.AsmWrite(' "null-pointer-is-valid"="true"');
+          if not(pio_fastmath in pd.implprocoptions) then
+            writer.AsmWrite(' strictfp');
         end;
 
 

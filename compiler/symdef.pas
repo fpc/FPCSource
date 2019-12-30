@@ -6015,6 +6015,8 @@ implementation
          import_nr:=0;
          inlininginfo:=nil;
          deprecatedmsg:=nil;
+         if cs_opt_fastmath in current_settings.optimizerswitches then
+           include(implprocoptions, pio_fastmath);
       end;
 
 
