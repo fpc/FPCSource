@@ -141,7 +141,8 @@ function tllvmtypeconvnode.first_real_to_real: tnode;
       currency/comp to be compatible with the regular code generators ->
       call round() instead }
     if (tfloatdef(resultdef).floattype in [s64currency,s64comp]) and
-       not(tfloatdef(left.resultdef).floattype in [s64currency,s64comp]) then
+       not(tfloatdef(left.resultdef).floattype in [s64currency,s64comp]) and
+       not(nf_internal in flags) then
       begin
         result:=ccallnode.createinternfromunit('SYSTEM','ROUND',
           ccallparanode.create(left,nil));
