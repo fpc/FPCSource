@@ -52,7 +52,7 @@ interface
 implementation
 
      uses
-       verbose,globals,globtype,constexp,
+       verbose,globals,globtype,constexp,cutils,
        aasmbase, aasmdata,
        symconst,symtype,symdef,defutil,
        compinnr,
@@ -219,21 +219,43 @@ implementation
 
     function tllvminlinenode.first_fma: tnode;
       var
-        procname: string[15];
+        procname: string[40];
       begin
-        case inlinenumber of
-          in_fma_single:
-            procname:='llvm_fma_f32';
-          in_fma_double:
-            procname:='llvm_fma_f64';
-          in_fma_extended:
-            procname:='llvm_fma_f80';
-          in_fma_float128:
-            procname:='llvm_fma_f128';
-          else
-            internalerror(2018122101);
-        end;
-        result:=ccallnode.createintern(procname,left);
+        if cs_opt_fastmath in current_settings.optimizerswitches then
+          begin
+            case inlinenumber of
+              in_fma_single:
+                procname:='llvm_fma_f32';
+              in_fma_double:
+                procname:='llvm_fma_f64';
+              in_fma_extended:
+                procname:='llvm_fma_f80';
+              in_fma_float128:
+                procname:='llvm_fma_f128';
+              else
+                internalerror(2018122101);
+            end;
+            result:=ccallnode.createintern(procname,left);
+          end
+        else
+          begin
+            case inlinenumber of
+              in_fma_single,
+              in_fma_double,
+              in_fma_extended,
+              in_fma_float128:
+                procname:='LLVM_EXPERIMENTAL_CONSTRAINED_FMA';
+              else
+                internalerror(2019122811);
+            end;
+            result:=ccallnode.createintern(procname,
+              ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar('fpexcept.strict'),length('fpexcept.strict'),llvm_metadatatype),
+                ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar('round.dynamic'),length('round.dynamic'),llvm_metadatatype),
+                  left
+                )
+              )
+            );
+          end;
         left:=nil;
       end;
 
@@ -250,23 +272,45 @@ implementation
 
     function tllvminlinenode.first_sqrt_real: tnode;
       var
-        intrinsic: string[20];
+        intrinsic: string[40];
       begin
         if left.resultdef.typ<>floatdef then
           internalerror(2018121601);
-        case tfloatdef(left.resultdef).floattype of
-          s32real:
-            intrinsic:='llvm_sqrt_f32';
-          s64real:
-            intrinsic:='llvm_sqrt_f64';
-          s80real,sc80real:
-            intrinsic:='llvm_sqrt_f80';
-          s128real:
-            intrinsic:='llvm_sqrt_f128';
-          else
-            internalerror(2018121602);
-        end;
-        result:=ccallnode.createintern(intrinsic, ccallparanode.create(left,nil));
+        if cs_opt_fastmath in current_settings.optimizerswitches then
+          begin
+            case tfloatdef(left.resultdef).floattype of
+              s32real:
+                intrinsic:='llvm_sqrt_f32';
+              s64real:
+                intrinsic:='llvm_sqrt_f64';
+              s80real,sc80real:
+                intrinsic:='llvm_sqrt_f80';
+              s128real:
+                intrinsic:='llvm_sqrt_f128';
+              else
+                internalerror(2018121602);
+            end;
+            result:=ccallnode.createintern(intrinsic, ccallparanode.create(left,nil));
+          end
+        else
+          begin
+            case tfloatdef(left.resultdef).floattype of
+              s32real,
+              s64real,
+              s80real,sc80real,
+              s128real:
+                intrinsic:='LLVM_EXPERIMENTAL_CONSTRAINED_SQRT';
+              else
+                internalerror(2019122810);
+            end;
+            result:=ccallnode.createintern(intrinsic,
+              ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar('fpexcept.strict'),length('fpexcept.strict'),llvm_metadatatype),
+                ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar('round.dynamic'),length('round.dynamic'),llvm_metadatatype),
+                  ccallparanode.create(left,nil)
+                )
+              )
+            );
+          end;
         left:=nil;
       end;
 
