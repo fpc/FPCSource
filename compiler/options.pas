@@ -991,14 +991,14 @@ begin
     system_arm_darwin,
     system_i386_iphonesim:
       begin
-        set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','30000');
-        iPhoneOSVersionMin:='3.0';
+        set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','90000');
+        iPhoneOSVersionMin:='9.0';
       end;
     system_aarch64_darwin,
     system_x86_64_iphonesim:
       begin
-        set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','70000');
-        iPhoneOSVersionMin:='7.0';
+        set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','90000');
+        iPhoneOSVersionMin:='9.0';
       end
     else
       internalerror(2012031001);
