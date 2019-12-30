@@ -44,6 +44,7 @@ interface
         function first_popcnt: tnode; override;
        public
         procedure second_length; override;
+        procedure second_high; override;
         procedure second_sqr_real; override;
         procedure second_trunc_real; override;
       end;
@@ -338,9 +339,24 @@ implementation
 
     procedure tllvminlinenode.second_length;
       var
+        hreg: tregister;
+      begin
+        second_high;
+        { Dynamic arrays do not have their length attached but their maximum index }
+        if is_dynamic_array(left.resultdef) then
+          begin
+            hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+            hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_ADD,resultdef,1,location.register,hreg);
+            location.register:=hreg;
+          end;
+      end;
+
+
+    procedure tllvminlinenode.second_high;
+      var
         lengthlab, nillab: tasmlabel;
         hregister: tregister;
-        href, tempref: treference;
+        href: treference;
         lendef: tdef;
       begin
         secondpass(left);
@@ -356,7 +372,6 @@ implementation
          end
         else
          begin
-           tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,tempref);
            { length in ansi/wide strings and high in dynamic arrays is at offset
              -sizeof(sizeint), for widestrings it's at -4 }
            if is_widestring(left.resultdef) then
@@ -375,20 +390,15 @@ implementation
            hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,lendef,resultdef,href,hregister);
            if is_widestring(left.resultdef) then
              hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,resultdef,1,hregister);
-
-           { Dynamic arrays do not have their length attached but their maximum index }
-           if is_dynamic_array(left.resultdef) then
-             hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,resultdef,1,hregister);
-           hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,resultdef,resultdef,hregister,tempref);
            hlcg.a_jmp_always(current_asmdata.CurrAsmList,lengthlab);
 
            hlcg.a_label(current_asmdata.CurrAsmList,nillab);
-           hlcg.a_load_const_ref(current_asmdata.CurrAsmList,resultdef,0,tempref);
+           if is_dynamic_array(left.resultdef) then
+             hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,-1,hregister)
+           else
+             hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,0,hregister);
 
            hlcg.a_label(current_asmdata.CurrAsmList,lengthlab);
-           hregister:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-           hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,tempref,hregister);
-           tg.ungettemp(current_asmdata.CurrAsmList,tempref);
            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
            location.register:=hregister;
          end;
