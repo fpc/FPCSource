@@ -96,6 +96,9 @@ uses
       procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister); override;
       procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference); override;
       procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister); override;
+     protected
+      procedure gen_fpconstrained_intrinsic(list: TAsmList; const intrinsic: TIDString; fromsize, tosize: tdef; fromreg, toreg: tregister);
+     public
 
       procedure gen_proc_symbol(list: TAsmList); override;
       procedure handle_external_proc(list: TAsmList; pd: tprocdef; const importname: TSymStr); override;
@@ -165,7 +168,7 @@ implementation
     verbose,cutils,globals,fmodule,constexp,systems,
     defutil,llvmdef,llvmsym,
     aasmtai,aasmcpu,
-    aasmllvm,llvmbase,llvminfo,tgllvm,
+    aasmllvm,aasmllvmmetadata,llvmbase,llvminfo,tgllvm,
     symtable,symllvm,
     paramgr,
     pass_2,procinfo,llvmpi,cpuinfo,cgobj,cgllvm,cghlcpu,
@@ -1321,10 +1324,55 @@ implementation
   procedure thlcgllvm.a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister);
     var
       op: tllvmop;
+      intrinsic: TIDString;
     begin
       op:=llvmconvop(fromsize,tosize,true);
-      { reg2 = bitcast fromllsize reg1 to tollsize }
-      list.concat(taillvm.op_reg_size_reg_size(op,reg2,fromsize,reg1,tosize));
+      if (cs_opt_fastmath in current_settings.optimizerswitches) or
+         not(llvmflag_constrained_fptrunc_fpext in llvmversion_properties[current_settings.llvmversion]) or
+         not(op in [la_fptrunc,la_fpext]) then
+        list.concat(taillvm.op_reg_size_reg_size(op,reg2,fromsize,reg1,tosize))
+      else
+        begin
+          if op=la_fptrunc then
+            intrinsic:='llvm_experimental_constrained_fptrunc'
+          else
+            intrinsic:='llvm_experimental_constrained_fpext';
+          gen_fpconstrained_intrinsic(list,
+            intrinsic+llvmfloatintrinsicsuffix(tfloatdef(tosize))+llvmfloatintrinsicsuffix(tfloatdef(fromsize)),
+            fromsize,tosize,reg1,reg2);
+        end;
+    end;
+
+
+  procedure thlcgllvm.gen_fpconstrained_intrinsic(list: TAsmList; const intrinsic: TIDString; fromsize, tosize: tdef; fromreg, toreg: tregister);
+    var
+      frompara, roundpara, exceptpara, respara: tcgpara;
+      tmploc: tlocation;
+      pd: tprocdef;
+    begin
+      frompara.init;
+      roundpara.init;
+      exceptpara.init;
+      pd:=search_system_proc(intrinsic);
+
+      paramanager.getcgtempparaloc(list,pd,1,frompara);
+      paramanager.getcgtempparaloc(list,pd,2,roundpara);
+      paramanager.getcgtempparaloc(list,pd,3,exceptpara);
+
+      location_reset(tmploc,frompara.location^.loc,def_cgsize(fromsize));
+      tmploc.register:=fromreg;
+      gen_load_loc_cgpara(list,fromsize,tmploc,frompara);
+      a_load_reg_cgpara(list,llvm_metadatatype,tllvmmetadata.getstringreg('round.dynamic'),roundpara);
+      a_load_reg_cgpara(list,llvm_metadatatype,tllvmmetadata.getstringreg('fpexcept.strict'),exceptpara);
+      respara:=g_call_system_proc(list,pd,[@frompara,@roundpara,@exceptpara],nil);
+
+      location_reset(tmploc,respara.location^.loc,def_cgsize(tosize));
+      tmploc.register:=toreg;
+      gen_load_cgpara_loc(list,tosize,respara,tmploc,false);
+      frompara.done;
+      roundpara.done;
+      exceptpara.done;
+      respara.resetiftemp;
     end;
 
 

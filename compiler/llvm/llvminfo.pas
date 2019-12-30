@@ -47,7 +47,8 @@ Type
 type
    tllvmversionflag = (
      llvmflag_memcpy_indiv_align,  { memcpy intrinsic supports separate alignment for source and dest }
-     llvmflag_null_pointer_valid   { supports "llvmflag_null_pointer_valid" attribute, which indicates access to nil should not be optimized as undefined behaviour }
+     llvmflag_null_pointer_valid,  { supports "llvmflag_null_pointer_valid" attribute, which indicates access to nil should not be optimized as undefined behaviour }
+     llvmflag_constrained_fptrunc_fpext { supports constrained fptrunc and fpext intrinsics }
    );
    tllvmversionflags = set of tllvmversionflag;
 
@@ -70,7 +71,7 @@ Const
        { llvmver_7_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
        { llvmver_7_1     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
        { llvmver_8_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
-       { llvmver_9_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid]
+       { llvmver_9_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext]
      );
 
    { Supported optimizations, only used for information }

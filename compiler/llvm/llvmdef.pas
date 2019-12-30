@@ -109,6 +109,8 @@ interface
 
     function llvmasmsymname(const sym: TAsmSymbol): TSymStr;
 
+    function llvmfloatintrinsicsuffix(def: tfloatdef): TIDString;
+
 
 implementation
 
@@ -288,6 +290,23 @@ implementation
         result:=llvmmangledname(sym.name)
       else
         result:='label %'+sym.name;
+    end;
+
+  function llvmfloatintrinsicsuffix(def: tfloatdef): TIDString;
+    begin
+      case def.floattype of
+        s32real:
+          result:='_f32';
+        s64real:
+          result:='_f64';
+        s80real,sc80real:
+          result:='_f80';
+        s128real:
+          result:='_f128';
+        else
+          { comp/currency need to be converted to s(c)80real first }
+          internalerror(2019122902);
+      end;
     end;
 
 
