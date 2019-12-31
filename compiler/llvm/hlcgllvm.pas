@@ -97,7 +97,7 @@ uses
       procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference); override;
       procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister); override;
      protected
-      procedure gen_fpconstrained_intrinsic(list: TAsmList; const intrinsic: TIDString; fromsize, tosize: tdef; fromreg, toreg: tregister);
+      procedure gen_fpconstrained_intrinsic(list: TAsmList; const intrinsic: TIDString; fromsize, tosize: tdef; fromreg, toreg: tregister; roundingmode: boolean);
      public
 
       procedure gen_proc_symbol(list: TAsmList); override;
@@ -1339,38 +1339,49 @@ implementation
             intrinsic:='llvm_experimental_constrained_fpext';
           gen_fpconstrained_intrinsic(list,
             intrinsic+llvmfloatintrinsicsuffix(tfloatdef(tosize))+llvmfloatintrinsicsuffix(tfloatdef(fromsize)),
-            fromsize,tosize,reg1,reg2);
+            fromsize,tosize,reg1,reg2,op=la_fptrunc);
         end;
     end;
 
 
-  procedure thlcgllvm.gen_fpconstrained_intrinsic(list: TAsmList; const intrinsic: TIDString; fromsize, tosize: tdef; fromreg, toreg: tregister);
+  procedure thlcgllvm.gen_fpconstrained_intrinsic(list: TAsmList; const intrinsic: TIDString; fromsize, tosize: tdef; fromreg, toreg: tregister; roundingmode: boolean);
     var
       frompara, roundpara, exceptpara, respara: tcgpara;
       tmploc: tlocation;
       pd: tprocdef;
     begin
       frompara.init;
-      roundpara.init;
+      if roundingmode then
+        roundpara.init;
       exceptpara.init;
       pd:=search_system_proc(intrinsic);
 
       paramanager.getcgtempparaloc(list,pd,1,frompara);
-      paramanager.getcgtempparaloc(list,pd,2,roundpara);
-      paramanager.getcgtempparaloc(list,pd,3,exceptpara);
+      if roundingmode then
+        begin
+          paramanager.getcgtempparaloc(list,pd,2,roundpara);
+          paramanager.getcgtempparaloc(list,pd,3,exceptpara);
+        end
+      else
+        paramanager.getcgtempparaloc(list,pd,2,exceptpara);
 
       location_reset(tmploc,frompara.location^.loc,def_cgsize(fromsize));
       tmploc.register:=fromreg;
       gen_load_loc_cgpara(list,fromsize,tmploc,frompara);
-      a_load_reg_cgpara(list,llvm_metadatatype,tllvmmetadata.getstringreg('round.dynamic'),roundpara);
+      if roundingmode then
+        a_load_reg_cgpara(list,llvm_metadatatype,tllvmmetadata.getstringreg('round.dynamic'),roundpara);
       a_load_reg_cgpara(list,llvm_metadatatype,tllvmmetadata.getstringreg('fpexcept.strict'),exceptpara);
-      respara:=g_call_system_proc(list,pd,[@frompara,@roundpara,@exceptpara],nil);
+      if roundingmode then
+        respara:=g_call_system_proc(list,pd,[@frompara,@roundpara,@exceptpara],nil)
+      else
+        respara:=g_call_system_proc(list,pd,[@frompara,@exceptpara],nil);
 
       location_reset(tmploc,respara.location^.loc,def_cgsize(tosize));
       tmploc.register:=toreg;
       gen_load_cgpara_loc(list,tosize,respara,tmploc,false);
       frompara.done;
-      roundpara.done;
+      if roundingmode then
+        roundpara.done;
       exceptpara.done;
       respara.resetiftemp;
     end;
