@@ -21,7 +21,7 @@ interface
 implementation
 
 uses
-  exec, amigados, conunit, intuition, agraphics;
+  exec, amigados, conunit, intuition, agraphics, SysUtils;
 
 var
   MaxCols, MaxRows: LongInt;
@@ -80,14 +80,15 @@ begin
   SendActionPacket := Ret;
 end;
 
-function OpenInfo: PInfoData;
+function GetConUnit: PConUnit;
 var
   Port: PMsgPort;
-  Info: PInfoData;
+  Info:  PInfoData;
   Bptr1: BPTR;
 begin
   Info := PInfoData(AllocMem(SizeOf(TInfoData)));
-
+  GetConUnit := nil;
+  //
   if Assigned(Info) then
   begin
     {$ifdef AmigaOS4}
@@ -108,76 +109,167 @@ begin
     begin
       FreeMem(Info);
       Info := nil;
+      Exit;
     end;
+    GetConUnit := PConUnit((PIoStdReq(Info^.id_InUse))^.io_Unit);
   end;
-  OpenInfo := Info;
+  FreeMem(Info);
 end;
 
-procedure CloseInfo(var Info: PInfoData);
-begin
-  if Assigned(Info) then
-  begin
-    FreeMem(Info);
-    Info := nil;
-  end;
-end;
-
-function ConData(Modus: Byte): Integer;
+// Get the size of Display, this time, MorphOS is broken :(
+// does not support ConUnit, is always nil, so we use the slow, error prune way directly via console commands
+function GetDisplaySize: TPoint;
+{$ifdef MorphOS}
 var
-  Info:  PInfoData;
-  TheUnit: PConUnit;
-  Pos: Longint;
+  Pt: TPoint;
+  fh: BPTR;
+  Actual: Integer;
+  Width, Height: LongInt;
+  report: array[0..25] of Char;
+  ToSend: AnsiString;
 begin
-  pos := 1;
-  Info := OpenInfo;
-
-  if Assigned(Info) then
+  Pt.X := 2;
+  Pt.Y := 2;
+  fh := DosOutput();
+  if fh <> 0 then
   begin
-    TheUnit := PConUnit((PIoStdReq(Info^.id_InUse))^.io_Unit);
-    case modus of
-      CD_CURRX: pos := TheUnit^.cu_XCP;
-      CD_CURRY: pos := TheUnit^.cu_YCP;
-      CD_MAXX: pos := TheUnit^.cu_XMax;
-      CD_MAXY: pos := TheUnit^.cu_YMax;
-    end;
-    CloseInfo(Info);
-  end;
-  ConData := Pos + 1;
-end;
+    SetMode(fh, 1); // RAW mode
+    ToSend := Chr($9b)+'0 q';
 
-function WhereX: TCrtCoord;
+    if DosWrite(fh, @ToSend[1], Length(ToSend)) > 0  then
+    begin
+      actual := DosRead(fh, @report[0], 25);
+      if actual >= 0 then
+      begin
+        report[actual] := #0;
+        if sscanf(PChar(@(report[0])), Char($9b)+'1;1;%d;%d r', [@height, @width]) = 2 then
+        begin
+          Pt.X := Width + 1;
+          Pt.Y := Height + 1;
+        end
+        else
+          sysdebugln('scan failed.');
+      end;
+      SetMode(fh, 0); // Normal mode
+    end;
+  end;
+  GetDisplaySize := Pt;
+  MaxCols := Pt.X;
+  MaxRows := Pt.Y;
+end;
+{$else}
+var
+  Pt: TPoint;
+  TheUnit: PConUnit;
 begin
-  WhereX := Byte(ConData(CD_CURRX)) - WindMinX;
+  Pt.X := 2;
+  Pt.Y := 2;
+  TheUnit := GetConUnit;
+  if Assigned(TheUnit) then
+  begin
+    Pt.X := TheUnit^.cu_XMax + 1;
+    Pt.Y := TheUnit^.cu_YMax + 1;
+  end;
+  GetDisplaySize := Pt;
+  MaxCols := Pt.X;
+  MaxRows := Pt.Y;
+end;
+{$endif}
+
+// Get the current position of caret, this time, MorphOS is broken :(
+// does not support ConUnit, is always nil, so we use the slow, error prune way directly via console commands
+function GetCurrentPosition: TPoint;
+{$ifdef MorphOS}
+var
+  Pt: TPoint;
+  fh: BPTR;
+  Actual: Integer;
+  PosX, PosY: LongInt;
+  report: array[0..25] of Char;
+  ToSend: AnsiString;
+begin
+  Pt.X := 2;
+  Pt.Y := 2;
+  fh := DosOutput();
+  if fh <> 0 then
+  begin
+    SetMode(fh, 1); // RAW mode
+    ToSend := Chr($9b)+'6n';
+
+    if DosWrite(fh, @ToSend[1], Length(ToSend)) > 0  then
+    begin
+      actual := DosRead(fh, @report[0], 25);
+      if actual >= 0 then
+      begin
+        report[actual] := #0;
+        if sscanf(PChar(@(report[0])), Char($9b)+'%d;%d R', [@PosY, @PosX]) = 2 then
+        begin
+          Pt.X := PosX;
+          Pt.Y := PosY;
+        end
+        else
+          sysdebugln('scan failed.');
+      end;
+      SetMode(fh, 0); // Normal mode
+    end;
+  end;
+  GetCurrentPosition := Pt;
+end;
+{$else}
+var
+  Pt: TPoint;
+  TheUnit: PConUnit;
+begin
+  Pt.X := 1;
+  Pt.Y := 1;
+  TheUnit := GetConUnit;
+  if Assigned(TheUnit) then
+  begin
+    Pt.X := TheUnit^.cu_Xcp + 1;
+    Pt.Y := TheUnit^.cu_Ycp + 1;
+  end;
+  GetCurrentPosition := Pt;
+end;
+{$endif}
+
+procedure InternalWrite(s: AnsiString);
+begin
+  DosWrite(DosOutput(), @s[1], Length(s));
 end;
 
 function RealX: Byte;
 begin
-  RealX := Byte(ConData(CD_CURRX));
+  RealX := Byte(GetCurrentPosition.X);
+end;
+
+function WhereX: TCrtCoord;
+begin
+  WhereX := Byte(RealX) - WindMinX;
 end;
 
 function RealY: Byte;
 begin
-  RealY := Byte(ConData(CD_CURRY));
+  RealY := Byte(GetCurrentPosition.Y);
 end;
 
 function WhereY: TCrtCoord;
 begin
-  WhereY := Byte(ConData(CD_CURRY)) - WindMinY;
+  WhereY := Byte(RealY) - WindMinY;
 end;
 
 function ScreenCols: Integer;
 begin
-  Screencols := ConData(CD_MAXX);
+  Screencols := MaxCols;
 end;
 
 function ScreenRows: Integer;
 begin
-  ScreenRows := ConData(CD_MAXY);
+  ScreenRows := MaxRows;
 end;
 
 procedure RealGotoXY(x, y: Integer);
 begin
-  Write(CSI, y, ';', x, 'H');
+  InternalWrite(CSI + IntToStr(y) + ';' + IntToStr(x) + 'H');
 end;
 
 procedure GotoXY(x, y: TCrtCoord);
@@ -186,28 +278,35 @@ begin
     y := WindMaxY - WindMinY + 1;
   if x + WindMinX - 2 >= WindMaxX then
     x := WindMaxX - WindMinX + 1;
-  Write(CSI, y + WindMinY, ';', x + WindMinX, 'H');
+  InternalWrite(CSI + IntToStr(y + WindMinY) +  ';' + IntToStr(x + WindMinX) + 'H');
 end;
 
 procedure CursorOff;
 begin
-  Write(CSI,'0 p');
+  InternalWrite(CSI + '0 p');
 end;
 
 procedure CursorOn;
 begin
-  Write(CSI,' p');
+  InternalWrite(CSI + ' p');
 end;
 
 procedure ClrScr;
+var
+  i: Integer;
 begin
-  Write(Chr($0c));
+  for i :=  1 to (WindMaxY - WindMinY) + 1 do
+  begin
+    GotoXY(1, i);
+    InternalWrite(StringOfChar(' ', WindMaxX - WindMinX));
+  end;
+  GotoXY(1, 1);
 end;
 
 function WaitForKey: string;
 var
   OutP: BPTR; // Output file handle
-  Res: Char; // Char to get fropm console
+  Res: Char; // Char to get from console
   Key: string; // result
 begin
   Key := '';
@@ -254,8 +353,10 @@ type
     c2: Char;
   end;
 const
-  KeyMapping: array[0..17] of TKeyMap =
-    ((con: #155'0'; c1: #0; c2:#59;), // F1
+  KeyMapping: array[0..37] of TKeyMap =
+    ((con: #127;    c1: #0; c2:#83;), // Del
+
+     (con: #155'0'; c1: #0; c2:#59;), // F1
      (con: #155'1'; c1: #0; c2:#60;), // F2
      (con: #155'2'; c1: #0; c2:#61;), // F3
      (con: #155'3'; c1: #0; c2:#62;), // F4
@@ -268,13 +369,33 @@ const
      (con: #155'20'; c1: #0; c2:#133;), // F11
      (con: #155'21'; c1: #0; c2:#134;), // F12
 
+     (con: #155'10'; c1: #0; c2:#84;), // Shift F1
+     (con: #155'11'; c1: #0; c2:#85;), // Shift F2
+     (con: #155'12'; c1: #0; c2:#86;), // Shift F3
+     (con: #155'13'; c1: #0; c2:#87;), // Shift F4
+     (con: #155'14'; c1: #0; c2:#88;), // Shift F5
+     (con: #155'15'; c1: #0; c2:#89;), // Shift F6
+     (con: #155'16'; c1: #0; c2:#90;), // Shift F7
+     (con: #155'17'; c1: #0; c2:#91;), // Shift F8
+     (con: #155'18'; c1: #0; c2:#92;), // Shift F9
+     (con: #155'19'; c1: #0; c2:#93;), // Shift F10
+     (con: #155'30'; c1: #0; c2:#135;), // Shift F11
+     (con: #155'31'; c1: #0; c2:#136;), // Shift F12
+
+     (con: #155'40'; c1: #0; c2:#82;), // Ins
+     (con: #155'44'; c1: #0; c2:#71;), // Home
+     (con: #155'45'; c1: #0; c2:#70;), // End
      (con: #155'41'; c1: #0; c2:#73;), // Page Up
      (con: #155'42'; c1: #0; c2:#81;), // Page Down
 
      (con: #155'A'; c1: #0; c2:#72;), // Cursor Up
      (con: #155'B'; c1: #0; c2:#80;), // Cursor Down
      (con: #155'C'; c1: #0; c2:#77;), // Cursor Right
-     (con: #155'D'; c1: #0; c2:#75;)  // Cursor Left
+     (con: #155'D'; c1: #0; c2:#75;), // Cursor Left
+     (con: #155'T'; c1: #0; c2:#65;), // Shift Cursor Up
+     (con: #155'S'; c1: #0; c2:#66;), // Shift Cursor Down
+     (con: #155' A'; c1: #0; c2:#67;), // Shift Cursor Right
+     (con: #155' @'; c1: #0; c2:#68;)  // Shift Cursor Left
      );
 
 function ReadKey: Char;
@@ -363,56 +484,46 @@ procedure TextColor(color : byte);
 begin
   Color := ConvertColor(Color);
   TextAttr := (TextAttr and $70) or Color;
-  Write(CSI, '3', color, 'm');
+  InternalWrite(CSI + '3'+ IntToStr(Color) + 'm');
 end;
 
 procedure TextBackground(color : byte);
 begin
   Color := ConvertColor(Color);
   Textattr:=(textattr and $8f) or ((Color and $7) shl 4);
-  Write(CSI, '4', color, 'm');
+  InternalWrite(CSI + '4' + IntToStr(Color) + 'm');
 end;
 
 function GetTextBackground: Byte;
 var
-  Info: PInfoData;
+  TheUnit: PConUnit;
   Pen: Byte;
 begin
   pen := 1;
-  Info := OpenInfo;
-  if Assigned(Info)then
-  begin
-    Pen := PConUnit((PIoStdReq(Info^.id_InUse))^.io_Unit)^.cu_BgPen;
-    Pen := ConvertColorBack(Pen);
-    CloseInfo(Info);
-  end;
+  TheUnit := GetConUnit;
+  if Assigned(TheUnit)then
+    Pen := ConvertColorBack(TheUnit^.cu_BgPen);
   GetTextBackground := Pen;
 end;
 
 function GetTextColor: Byte;
 var
-  Info: PInfoData;
+  TheUnit: PConUnit;
   Pen: Byte;
 begin
-  Pen := 1;
-  Info := OpenInfo;
-  if Assigned(info) then
-  begin
-    Pen := PConUnit((PIoStdReq(Info^.id_InUse))^.io_Unit)^.cu_FgPen;
-    Pen := ConvertColorBack(Pen);
-    CloseInfo(Info);
-  end;
+  pen := 1;
+  TheUnit := GetConUnit;
+  if Assigned(TheUnit)then
+    Pen := ConvertColorBack(TheUnit^.cu_FgPen);
   GetTextColor := Pen;
 end;
 
 procedure Window(X1,Y1,X2,Y2: Byte);
 begin
-  if x1 < 1 then
-    x1 := 1;
-  if y1 < 1 then
-    y1 := 1;
-  if (x2 > ScreenCols) or (y2 > ScreenRows) or (x1 > x2) or (y1 > y2) then
-    Exit;
+  if x2 > ScreenCols then
+    x2 := ScreenCols;
+  if y2 > ScreenRows then
+    y2 := ScreenRows;
   WindMinX := x1 - 1;
   WindMinY := y1 - 1;
   WindMaxX := x2 - 1;
@@ -423,17 +534,17 @@ end;
 
 procedure DelLine;
 begin
-  Write(CSI,'X');
+  InternalWrite(CSI + 'X');
 end;
 
 procedure ClrEol;
 begin
-  Write(CSI,'K');
+  InternalWrite(CSI + 'K');
 end;
 
 procedure InsLine;
 begin
-  Write(CSI,'1 L');
+  InternalWrite(CSI + '1 L');
 end;
 
 procedure CursorBig;
@@ -457,10 +568,6 @@ begin
 end;
 
 procedure NormVideo;
-begin
-end;
-
-procedure AssignCrt(var F: Text);
 begin
 end;
 
@@ -515,7 +622,86 @@ begin
   end;
 end;
 
-initialization
+procedure WriteChar(c: Char; var Curr: TPoint; var s: AnsiString);
+begin
+  // ignore #13, we only use #10
+  if c = #13 then
+    Exit;
+  // special - Beep
+  if c = #7 then
+    DisplayBeep(nil)
+  else
+  begin
+    // all other Chars
+    s := s + c;
+    //sysdebugln(' Char: ' + c + ' ' + IntToStr(Curr.X) + ' ' + IntToStr(Curr.Y) + ' - ' + IntToStr(WindMinY) + ' ' + IntToStr(WindMaxY));
+    case c of
+      #10: begin
+        if WindMinX > 0 then
+          s := s + CSI + IntToStr(WindMinX) + 'C';
+        Curr.X := WindMinX + 1;
+        if Curr.Y <= WindMaxY then
+          Inc(Curr.Y)
+        else
+          s := s + CSI + IntToStr(Curr.Y) + ';' + IntToStr(WindMinX + 1) + 'H';
+      end;
+      #8: begin
+        Curr.X := RealX;
+      end;
+      else
+      begin
+        Inc(Curr.X);
+      end;
+   end;
+  end;
+  // wrap line
+  if Curr.X > (WindMaxX + 1) then
+  begin
+    if Curr.Y <= WindMaxY - 1 then
+      Inc(Curr.Y);
+    s := s + CSI + IntToStr(Curr.Y) + ';' + IntToStr(WindMinX + 1) + 'H';
+    Curr.X := WindMinX + 1;
+  end;
+end;
+
+procedure CrtWrite(Var F: TextRec);
+var
+  i: Smallint;
+  Curr: TPoint;
+  s: AnsiString;
+begin
+  Curr := GetCurrentPosition;
+  s := '';
+  for i := 0 to f.BufPos - 1 do
+    WriteChar(F.Buffer[i], Curr, s);
+  InternalWrite(s);
+  F.BufPos := 0;
+end;
+
+procedure CrtClose(var F: TextRec);
+begin
+  F.Mode:=fmClosed;
+end;
+
+
+procedure CrtOpen(var F: TextRec);
+begin
+  TextRec(F).InOutFunc := @CrtWrite;
+  TextRec(F).FlushFunc := @CrtWrite;
+  TextRec(F).CloseFunc := @CrtClose;
+end;
+
+procedure AssignCrt(var F: Text);
+begin
+  Assign(F,'');
+  TextRec(F).OpenFunc:=@CrtOpen;
+end;
+
+procedure InitCRT;
+begin
+  AssignCrt(Output);
+  Rewrite(Output);
+  TextRec(Output).Handle := StdOutputHandle;
   // Init Colors, (until now only Red and Green)
   RedPen := ObtainPen(IntuitionBase^.ActiveScreen^.ViewPort.ColorMap, 7, $FFFFFFFF, 0, 0, 0);
   FreeRed := RedPen >= 0;
@@ -527,9 +713,8 @@ initialization
   if not FreeRed then
     GreenPen := GetClosestPen(00,$ff,00);
 
-  // load system variables to temporary variables to save time
-  MaxCols := ScreenCols;
-  MaxRows := ScreenRows;
+  // get screensize (sets MaxCols/MaxRows)
+  GetDisplaySize;
   // Set the initial text attributes
   // Text background
   Textattr:=(textattr and $8f) or ((GetTextBackGround and $7) shl 4);
@@ -538,12 +723,19 @@ initialization
   // set output window
   WindMaxX := MaxCols - 1;
   WindMaxY := MaxRows - 1;
+end;
+
+
+initialization
+  InitCRT;
+
+
 
 finalization
   if FreeRed then
     ReleasePen(IntuitionBase^.ActiveScreen^.ViewPort.ColorMap, RedPen);
   if FreeGreen then
     ReleasePen(IntuitionBase^.ActiveScreen^.ViewPort.ColorMap, GreenPen);
-  write(CSI,'0m');
+  InternalWrite(CSI + '0m');
   CursorOn;
 end.

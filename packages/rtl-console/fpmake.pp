@@ -15,7 +15,7 @@ Const
   WinEventOSes = [win32,win64];
   KVMAll       = [emx,go32v2,msdos,netware,netwlibc,os2,win32,win64,win16]+UnixLikes+AllAmigaLikeOSes;
 
-  // all full KVMers have crt too, except Amigalikes
+  // all full KVMers have crt too
   CrtOSes      = KVMALL+[WatCom];
   KbdOSes      = KVMALL;
   VideoOSes    = KVMALL;
@@ -23,8 +23,6 @@ Const
   TerminfoOSes = UnixLikes-[beos,haiku];
 
   rtl_consoleOSes =KVMALL+CrtOSes+TermInfoOSes;
-
-// Amiga has a crt in its RTL dir, but it is commented in the makefile
 
 Var
   P : TPackage;
