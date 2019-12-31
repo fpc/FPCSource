@@ -129,17 +129,26 @@ interface
 
     function llvm_getmetadatareftypedconst(metadata: tai_llvmbasemetadatanode): tai_simpletypedconst;
 
+    function llvm_constrainedexceptmodestring: ansistring;
 
 implementation
 
   uses
-    verbose,
+    verbose,globals,
     fmodule,
     symdef;
 
   function llvm_getmetadatareftypedconst(metadata: tai_llvmbasemetadatanode): tai_simpletypedconst;
     begin
       result:=tai_simpletypedconst.create(llvm_metadatatype, tai_llvmmetadatareftypedconst.create(metadata));
+    end;
+
+  function llvm_constrainedexceptmodestring: ansistring;
+    begin
+      if not(cs_opt_fastmath in current_settings.optimizerswitches) then
+        result:='fpexcept.strict'
+      else
+        result:='fpexcept.ignore'
     end;
 
   procedure tai_llvmbasemetadatanode.addvalue(val: tai_abstracttypedconst);
