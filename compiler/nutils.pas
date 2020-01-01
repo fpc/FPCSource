@@ -570,7 +570,7 @@ implementation
         if assigned(srsym) then
           begin
             result:=cloadnode.create(srsym,srsym.owner);
-            if is_object(tabsolutevarsym(srsym).vardef) or is_record(tabsolutevarsym(srsym).vardef) then
+            if is_object(tabstractvarsym(srsym).vardef) or is_record(tabstractvarsym(srsym).vardef) then
               include(tloadnode(result).loadnodeflags,loadnf_load_addr);
           end
         else
