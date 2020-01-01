@@ -1346,6 +1346,7 @@ implementation
 
   procedure thlcgllvm.gen_fpconstrained_intrinsic(list: TAsmList; const intrinsic: TIDString; fromsize, tosize: tdef; fromreg, toreg: tregister; roundingmode: boolean);
     var
+      exceptmode: ansistring;
       frompara, roundpara, exceptpara, respara: tcgpara;
       tmploc: tlocation;
       pd: tprocdef;
@@ -1370,7 +1371,8 @@ implementation
       gen_load_loc_cgpara(list,fromsize,tmploc,frompara);
       if roundingmode then
         a_load_reg_cgpara(list,llvm_metadatatype,tllvmmetadata.getstringreg('round.dynamic'),roundpara);
-      a_load_reg_cgpara(list,llvm_metadatatype,tllvmmetadata.getstringreg('fpexcept.strict'),exceptpara);
+      exceptmode:=llvm_constrainedexceptmodestring;
+      a_load_reg_cgpara(list,llvm_metadatatype,tllvmmetadata.getstringreg(exceptmode),exceptpara);
       if roundingmode then
         respara:=g_call_system_proc(list,pd,[@frompara,@roundpara,@exceptpara],nil)
       else

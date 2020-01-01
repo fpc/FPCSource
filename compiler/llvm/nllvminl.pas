@@ -61,7 +61,7 @@ implementation
        pass_2,
        cgbase,cgutils,tgobj,hlcgobj,
        cpubase,
-       llvmbase,aasmllvm;
+       llvmbase,aasmllvm,aasmllvmmetadata;
 
      procedure tllvminlinenode.maybe_remove_round_trunc_typeconv;
        var
@@ -220,6 +220,7 @@ implementation
 
     function tllvminlinenode.first_fma: tnode;
       var
+        exceptmode: ansistring;
         procname: string[40];
       begin
         if cs_opt_fastmath in current_settings.optimizerswitches then
@@ -249,8 +250,9 @@ implementation
               else
                 internalerror(2019122811);
             end;
+            exceptmode:=llvm_constrainedexceptmodestring;
             result:=ccallnode.createintern(procname,
-              ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar('fpexcept.strict'),length('fpexcept.strict'),llvm_metadatatype),
+              ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar(exceptmode),length(exceptmode),llvm_metadatatype),
                 ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar('round.dynamic'),length('round.dynamic'),llvm_metadatatype),
                   left
                 )
@@ -273,6 +275,7 @@ implementation
 
     function tllvminlinenode.first_sqrt_real: tnode;
       var
+        exceptmode: ansistring;
         intrinsic: string[40];
       begin
         if left.resultdef.typ<>floatdef then
@@ -304,8 +307,9 @@ implementation
               else
                 internalerror(2019122810);
             end;
+            exceptmode:=llvm_constrainedexceptmodestring;
             result:=ccallnode.createintern(intrinsic,
-              ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar('fpexcept.strict'),length('fpexcept.strict'),llvm_metadatatype),
+              ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar(exceptmode),length(exceptmode),llvm_metadatatype),
                 ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar('round.dynamic'),length('round.dynamic'),llvm_metadatatype),
                   ccallparanode.create(left,nil)
                 )

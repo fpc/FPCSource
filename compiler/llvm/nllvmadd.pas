@@ -50,7 +50,7 @@ implementation
        verbose,globtype,globals,cutils,
        aasmdata,
        symconst,symtype,symdef,defutil,
-       llvmbase,aasmllvm,
+       llvmbase,aasmllvm,aasmllvmmetadata,
        cgbase,cgutils,pass_1,
        hlcgobj,
        nadd,ncal,ncnv,ncon
@@ -60,6 +60,7 @@ implementation
 
   function tllvmaddnode.pass_1: tnode;
     var
+      exceptmode: ansistring;
       intrname: string;
       iscompcurrency: boolean;
     begin
@@ -98,8 +99,9 @@ implementation
                   inserttypeconv_internal(left,s80floattype);
                   inserttypeconv_internal(right,s80floattype);
                 end;
+              exceptmode:=llvm_constrainedexceptmodestring;
               result:=ccallnode.createintern(intrname,
-                ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar('fpexcept.strict'),length('fpexcept.strict'),llvm_metadatatype),
+                ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar(exceptmode),length(exceptmode),llvm_metadatatype),
                   ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar('round.dynamic'),length('round.dynamic'),llvm_metadatatype),
                     ccallparanode.create(right,
                       ccallparanode.create(left,nil)
