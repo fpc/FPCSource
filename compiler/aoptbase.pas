@@ -266,9 +266,9 @@ unit aoptbase;
   class function TAOptBase.SkipEntryExitMarker(current: tai; out next: tai): boolean;
     begin
       result:=true;
+      next:=current;
       if current.typ<>ait_marker then
         exit;
-      next:=current;
       while GetNextInstruction(next,next) do
         begin
           if (next.typ<>ait_marker) or not(tai_marker(next).Kind in [mark_Position,mark_BlockStart]) then
