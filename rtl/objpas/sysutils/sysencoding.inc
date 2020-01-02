@@ -521,6 +521,11 @@ begin
   FCodePage := ACodePage;
   FMBToWCharFlags := MBToWCharFlags;
   FWCharToMBFlags := WCharToMBFlags;
+  case ACodePage of
+    CP_UTF7, CP_UTF8, CP_UTF16, CP_UTF16BE: FIsSingleByte := False;
+  else
+    FIsSingleByte := True;
+  end;
 end;
 
 function TMBCSEncoding.Clone: TEncoding;
