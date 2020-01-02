@@ -194,6 +194,19 @@ begin
   end;
 end;
 
+function TStrings.GetLineBreakCharLBS: string;
+begin
+  CheckSpecialChars;
+  if FLineBreak<>sLineBreak then
+    Result:=FLineBreak
+  else
+    Case FLBS of
+      tlbsLF   : Result:=#10;
+      tlbsCRLF : Result:=#13#10;
+      tlbsCR   : Result:=#13;
+    end;
+end;
+
 function TStrings.GetMissingNameValueSeparatorAction: TMissingNameValueSeparatorAction;
 begin
   CheckSpecialChars;
@@ -739,21 +752,13 @@ Var P : Pchar;
     S,NL : String;
 
 begin
-  CheckSpecialChars;
+  NL:=GetLineBreakCharLBS;
   // Determine needed place
-  if FLineBreak<>sLineBreak then
-    NL:=FLineBreak
-  else
-    Case FLBS of
-      tlbsLF   : NL:=#10;
-      tlbsCRLF : NL:=#13#10;
-      tlbsCR   : NL:=#13;
-    end;
   L:=0;
   NLS:=Length(NL);
   For I:=0 to count-1 do
     L:=L+Length(Strings[I])+NLS;
-  if SkipLastLineBreak then
+  if FSkipLastLineBreak then
     Dec(L,NLS);
   Setlength(Result,L);
   P:=Pointer(Result);
@@ -764,7 +769,7 @@ begin
     if L<>0 then
       System.Move(Pointer(S)^,P^,L);
     P:=P+L;
-    if (I<Count-1) or Not SkipLastLineBreak then
+    if (I<Count-1) or Not FSkipLastLineBreak then
       For L:=1 to NLS do
         begin
         P^:=NL[L];
@@ -1459,17 +1464,34 @@ end;
 
 
 Procedure TStrings.SaveToStream(Stream: TStream);
-Var
-  S : String;
 begin
-  if Encoding<>nil then
-    SaveToStream(Stream,Encoding)
-  else
-  begin
-    S:=Text;
-    if S = '' then Exit;
-    Stream.WriteBuffer(Pointer(S)^,Length(S));
-  end;
+  SaveToStream(Stream,False)
+end;
+
+
+
+Procedure TStrings.SaveToStream(Stream: TStream; IgnoreEncoding: Boolean);
+Var
+  I,L,NLS : SizeInt;
+  S,NL : String;
+
+begin
+  if not IgnoreEncoding then
+    begin
+    SaveToStream(Stream,Nil);
+    Exit;
+    end;
+  NL:=GetLineBreakCharLBS;
+  NLS:=Length(NL)*SizeOf(Char);
+  For i:=0 To count-1 do
+    begin
+    S:=Strings[I];
+    L:=Length(S);
+    if L<>0 then
+      Stream.WriteBuffer(S[1], L*SizeOf(Char));
+    if (I<Count-1) or Not FSkipLastLineBreak then
+      Stream.WriteBuffer(NL[1], NLS);
+    end;
 end;
 
 
@@ -1477,7 +1499,9 @@ end;
 
 Procedure TStrings.SaveToStream(Stream: TStream; AEncoding: TEncoding);
 
-Var B : TBytes;
+Var B,BNL : TBytes;
+    NL,S: string;
+    i,BNLS: SizeInt;
 
 begin
   if AEncoding=nil then
@@ -1488,9 +1512,21 @@ begin
       if Length(B)>0 then
         Stream.WriteBuffer(B[0],Length(B));
     end;
-  B:=AEncoding.GetAnsiBytes(Text);
-  if Length(B)>0 then
-    Stream.WriteBuffer(B[0],Length(B));
+
+  NL := GetLineBreakCharLBS;
+  BNL:=AEncoding.GetAnsiBytes(NL);
+  BNLS:=Length(BNL);
+  For i:=0 To count-1 do
+    begin
+    S:=Strings[I];
+    if S<>'' then
+      begin
+      B:=AEncoding.GetAnsiBytes(S);
+      Stream.WriteBuffer(B[0],Length(B));
+      end;
+    if (I<Count-1) or Not FSkipLastLineBreak then
+      Stream.WriteBuffer(BNL[0],BNLS);
+    end;
 end;
 
 

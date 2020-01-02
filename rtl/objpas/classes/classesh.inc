@@ -629,6 +629,7 @@ type
     FLineBreak : String;
     FWriteBOM: Boolean;
     function GetCommaText: string;
+    function GetLineBreakCharLBS: string;
     function GetMissingNameValueSeparatorAction: TMissingNameValueSeparatorAction;
     function GetName(Index: Integer): string;
     function GetTrailingLineBreak: Boolean;
@@ -743,6 +744,7 @@ type
     procedure SaveToFile(const FileName: string); overload; virtual;
     procedure SaveToFile(const FileName: string; AEncoding: TEncoding); overload; virtual;
     procedure SaveToStream(Stream: TStream); overload; virtual;
+    procedure SaveToStream(Stream: TStream; IgnoreEncoding : Boolean); overload;
     procedure SaveToStream(Stream: TStream; AEncoding: TEncoding); overload; virtual;
     function Shift : String;
     Procedure Slice(fromIndex: integer; aList : TStrings);
