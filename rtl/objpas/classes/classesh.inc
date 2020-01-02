@@ -1263,6 +1263,17 @@ type
     Property Encoding : TEncoding Read FEncoding;
   end;
 
+{ TRawByteStringStream }
+
+  TRawByteStringStream = Class(TBytesStream)
+  public
+    Constructor Create (const aData : RawByteString); overload;
+    function DataString: RawByteString;
+
+    function ReadString(Count: Longint): RawByteString;
+    procedure WriteString(const AString: RawByteString);
+  end;
+
 { TResourceStream }
 
 {$ifdef FPC_OS_UNICODE}
