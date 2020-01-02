@@ -3438,7 +3438,7 @@ begin
   FMemo.UseParentFont := False;
   FMemo.Font.Name := 'Calibri';
   FMemo.StretchMode := smActualHeight;
-  TMemoFriend(FMemo).WordWrapOverflow:=wwoOverflow;
+  TMemoFriend(FMemo).WordOverflow:=woOverflow;
   TMemoFriend(FMemo).CreateRTLayout;
   TMemoFriend(FMemo).RecalcLayout;
   AssertEquals('Failed on 1', 1, FMemo.TextLines.Count);
@@ -3456,7 +3456,7 @@ begin
   FMemo.UseParentFont := False;
   FMemo.Font.Name := 'Calibri';
   FMemo.StretchMode := smActualHeight;
-  TMemoFriend(FMemo).WordWrapOverflow:=wwoSplit;
+  TMemoFriend(FMemo).WordOverflow:=woSplit;
   TMemoFriend(FMemo).CreateRTLayout;
   TMemoFriend(FMemo).RecalcLayout;
   AssertEquals('Failed on 1', 2, FMemo.TextLines.Count);
