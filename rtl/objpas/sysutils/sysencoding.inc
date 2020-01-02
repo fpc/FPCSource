@@ -564,7 +564,29 @@ end;
 
 function TMBCSEncoding.GetPreamble: TBytes;
 begin
-  Result := nil;
+  case CodePage of
+    CP_UTF8:
+    begin
+      SetLength(Result, 3);
+      Result[0] := $EF;
+      Result[1] := $BB;
+      Result[2] := $BF;
+    end;
+    CP_UTF16:
+    begin
+      SetLength(Result, 2);
+      Result[0] := $FF;
+      Result[1] := $FE;
+    end;
+    CP_UTF16BE:
+    begin
+      SetLength(Result, 2);
+      Result[0] := $FE;
+      Result[1] := $FF;
+    end;
+  else
+    Result := nil;
+  end;
 end;
 
 { TUTF7Encoding }
