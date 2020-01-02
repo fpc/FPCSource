@@ -240,9 +240,14 @@ var
   Encoding: TEncoding;
 begin
   if Assigned(AEncoding) then
+  begin
     for Encoding in FStandardEncodings do
       if Encoding = AEncoding then
         Exit(True);
+    for Encoding in FSystemEncodings do
+      if Encoding = AEncoding then
+        Exit(True);
+  end;
   Result := False;
 end;
 
