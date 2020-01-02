@@ -93,7 +93,7 @@ end;
 
 class function TEncoding.GetDefault: TEncoding;
 begin
-  Result := GetANSI;
+  Result := GetSystemEncoding;
 end;
 
 class function TEncoding.GetSystemEncoding: TEncoding;
