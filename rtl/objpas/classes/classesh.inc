@@ -610,6 +610,8 @@ type
   TStringsForEachMethod = procedure(const CurrentValue: string) of object;
   TMissingNameValueSeparatorAction = (mnvaValue,mnvaName,mnvaEmpty,mnvaError);
   TMissingNameValueSeparatorActions = set of TMissingNameValueSeparatorAction;
+  TStringsOption = (soStrictDelimiter,soWriteBOM,soTrailingLineBreak,soUseLocale);
+  TStringsOptions = set of TStringsOption;
 
   TStrings = class(TPersistent)
   private
@@ -624,16 +626,17 @@ type
     FUpdateCount: Integer;
     FAdapter: IStringsAdapter;
     FLBS : TTextLineBreakStyle;
-    FSkipLastLineBreak : Boolean;
-    FStrictDelimiter : Boolean;
+    FOptions : TStringsOptions;
     FLineBreak : String;
-    FWriteBOM: Boolean;
     function GetCommaText: string;
     function GetLineBreakCharLBS: string;
     function GetMissingNameValueSeparatorAction: TMissingNameValueSeparatorAction;
     function GetName(Index: Integer): string;
+    function GetStrictDelimiter: Boolean;
     function GetTrailingLineBreak: Boolean;
+    function GetUseLocale: Boolean;
     function GetValue(const Name: string): string;
+    function GetWriteBOM: Boolean;
     Function GetLBS : TTextLineBreakStyle;
     procedure SetDefaultEncoding(const ADefaultEncoding: TEncoding);
     procedure SetEncoding(const AEncoding: TEncoding);
@@ -642,7 +645,10 @@ type
     procedure SetCommaText(const Value: string);
     procedure SetMissingNameValueSeparatorAction(AValue: TMissingNameValueSeparatorAction);
     procedure SetStringsAdapter(const Value: IStringsAdapter);
+    procedure SetStrictDelimiter(AValue: Boolean);
     procedure SetTrailingLineBreak(AValue: Boolean);
+    procedure SetUseLocale(AValue: Boolean);
+    procedure SetWriteBOM(AValue: Boolean);
     procedure SetValue(const Name, Value: string);
     procedure SetDelimiter(c:Char);
     procedure SetQuoteChar(c:Char);
@@ -658,6 +664,7 @@ type
     procedure SetSkipLastLineBreak(const AValue : Boolean);
     Procedure DoSetDelimitedText(const AValue: string; DoClear,aStrictDelimiter : Boolean; aQuoteChar,aDelimiter : Char);
   protected
+    function CompareStrings(const s1,s2 : string) : Integer; virtual;
     procedure DefineProperties(Filer: TFiler); override;
     procedure Error(const Msg: string; Data: Integer);
     procedure Error(const Msg: pstring; Data: Integer);
@@ -763,18 +770,20 @@ type
     property Names[Index: Integer]: string read GetName;
     Property NameValueSeparator : Char Read GetNameValueSeparator Write SetNameValueSeparator;
     property Objects[Index: Integer]: TObject read GetObject write PutObject;
+    property Options: TStringsOptions read FOptions write FOptions;
     property QuoteChar: Char read GetQuoteChar write SetQuoteChar;
     Property SkipLastLineBreak : Boolean Read GetSkipLastLineBreak Write SetSkipLastLineBreak;
     // Same as SkipLastLineBreak but for Delphi compatibility. Note it has opposite meaning.
     Property TrailingLineBreak : Boolean Read GetTrailingLineBreak Write SetTrailingLineBreak;
-    Property StrictDelimiter : Boolean Read FStrictDelimiter Write FStrictDelimiter;
+    Property StrictDelimiter : Boolean Read GetStrictDelimiter Write SetStrictDelimiter;
     property Strings[Index: Integer]: string read Get write Put; default;
     property StringsAdapter: IStringsAdapter read FAdapter write SetStringsAdapter;
     property Text: string read GetTextStr write SetTextStr;
     Property TextLineBreakStyle : TTextLineBreakStyle Read GetLBS Write SetLBS;
+    Property UseLocale : Boolean Read GetUseLocale Write SetUseLocale;
     property ValueFromIndex[Index: Integer]: string read GetValueFromIndex write SetValueFromIndex;
     property Values[const Name: string]: string read GetValue write SetValue;
-    property WriteBOM: Boolean read FWriteBOM write FWriteBOM;
+    property WriteBOM: Boolean read GetWriteBOM write SetWriteBOM;
   end;
   TStringsClass = Class of TStrings;
 
@@ -833,7 +842,6 @@ type
     procedure InsertItem(Index: Integer; const S: string); virtual;
     procedure InsertItem(Index: Integer; const S: string; O: TObject); virtual;
     Function DoCompareText(const s1,s2 : string) : PtrInt; override;
-    function CompareStrings(const s1,s2 : string) : Integer; virtual;
 
   public
     destructor Destroy; override;
