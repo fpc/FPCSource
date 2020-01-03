@@ -610,7 +610,7 @@ type
   TStringsForEachMethod = procedure(const CurrentValue: string) of object;
   TMissingNameValueSeparatorAction = (mnvaValue,mnvaName,mnvaEmpty,mnvaError);
   TMissingNameValueSeparatorActions = set of TMissingNameValueSeparatorAction;
-  TStringsOption = (soStrictDelimiter,soWriteBOM,soTrailingLineBreak,soUseLocale);
+  TStringsOption = (soStrictDelimiter,soWriteBOM,soTrailingLineBreak,soUseLocale,soPreserveBOM);
   TStringsOptions = set of TStringsOption;
 
   TStrings = class(TPersistent)

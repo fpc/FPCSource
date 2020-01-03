@@ -1397,6 +1397,8 @@ begin
   finally
     EndUpdate;
   end;
+  if soPreserveBOM in FOptions then
+    WriteBOM:=False;
 end;
 
 
@@ -1431,6 +1433,8 @@ begin
     SetLength(Buffer,BufLen-BufDelta+BytesRead);
     PreambleLength:=TEncoding.GetBufferEncoding(Buffer,AEncoding,FDefaultEncoding);
     T:=AEncoding.GetAnsiString(Buffer,PreambleLength,Length(Buffer)-PreambleLength);
+    if soPreserveBOM in FOptions then
+      WriteBOM:=PreambleLength>0;
     SetEncoding(AEncoding);
     SetLength(Buffer,0);
     SetTextStr(T);
