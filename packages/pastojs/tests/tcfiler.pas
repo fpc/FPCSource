@@ -56,6 +56,7 @@ type
     procedure StartParsing; override;
     function CheckRestoredObject(const Path: string; Orig, Rest: TObject): boolean; virtual;
     procedure CheckRestoredJS(const Path, Orig, Rest: string); virtual;
+    procedure CheckRestoredStringList(const Path: string; Orig, Rest: TStrings); virtual;
     // check restored parser+resolver
     procedure CheckRestoredResolver(Original, Restored: TPas2JSResolver); virtual;
     procedure CheckRestoredDeclarations(const Path: string; Orig, Rest: TPasDeclarations); virtual;
@@ -125,7 +126,9 @@ type
     procedure CheckRestoredProcNameParts(const Path: string; Orig, Rest: TPasProcedure); virtual;
     procedure CheckRestoredProcedure(const Path: string; Orig, Rest: TPasProcedure); virtual;
     procedure CheckRestoredOperator(const Path: string; Orig, Rest: TPasOperator); virtual;
+    procedure CheckRestoredProcedureBody(const Path: string; Orig, Rest: TProcedureBody); virtual;
     procedure CheckRestoredAttributes(const Path: string; Orig, Rest: TPasAttributes); virtual;
+    procedure CheckRestoredImplBeginBlock(const Path: string; Orig, Rest: TPasImplBeginBlock); virtual;
   public
     property Analyzer: TPas2JSAnalyzer read FAnalyzer;
     property RestAnalyzer: TPas2JSAnalyzer read FRestAnalyzer;
@@ -173,7 +176,7 @@ type
     procedure TestPC_Attributes;
 
     procedure TestPC_GenericClassSkip; // ToDo
-    procedure TestPC_GenericFunctionSkip;
+    procedure TestPC_GenericFunction;
 
     procedure TestPC_UseUnit;
     procedure TestPC_UseUnit_Class;
@@ -486,7 +489,6 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredJS(const Path, Orig, Rest: string);
 var
   OrigList, RestList: TStringList;
-  i: Integer;
 begin
   if Orig=Rest then exit;
   writeln('TCustomTestPrecompile.CheckRestoredJS ORIG START--------------');
@@ -500,18 +502,29 @@ begin
   try
     OrigList.Text:=Orig;
     RestList.Text:=Rest;
-    for i:=0 to OrigList.Count-1 do
-      begin
-      if i>=RestList.Count then
-        Fail(Path+' missing: '+OrigList[i]);
-      writeln('  ',i,': '+OrigList[i]);
-      end;
-    if OrigList.Count<RestList.Count then
-      Fail(Path+' too much: '+RestList[OrigList.Count]);
+    CheckRestoredStringList(Path,OrigList,RestList);
  finally
     OrigList.Free;
     RestList.Free;
   end;
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredStringList(const Path: string;
+  Orig, Rest: TStrings);
+var
+  i: Integer;
+begin
+  CheckRestoredObject(Path,Orig,Rest);
+  if Orig=nil then exit;
+  if Orig.Text=Rest.Text then exit;
+  for i:=0 to Orig.Count-1 do
+    begin
+    if i>=Rest.Count then
+      Fail(Path+' missing: '+Orig[i]);
+    writeln('  ',i,': '+Orig[i]);
+    end;
+  if Orig.Count<Rest.Count then
+    Fail(Path+' too much: '+Rest[Orig.Count]);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredResolver(Original,
@@ -1200,6 +1213,8 @@ begin
   else if (C=TPasOperator)
       or (C=TPasClassOperator) then
     CheckRestoredOperator(Path,TPasOperator(Orig),TPasOperator(Rest))
+  else if (C=TPasImplBeginBlock) then
+    CheckRestoredImplBeginBlock(Path,TPasImplBeginBlock(Orig),TPasImplBeginBlock(Rest))
   else if (C=TPasModule)
         or (C=TPasProgram)
         or (C=TPasLibrary) then
@@ -1617,8 +1632,11 @@ end;
 
 procedure TCustomTestPrecompile.CheckRestoredProcedure(const Path: string;
   Orig, Rest: TPasProcedure);
+const
+  ImplMods = [pmInline,pmAssembler,pmNoReturn];
 var
   RestScope, OrigScope: TPas2JSProcedureScope;
+  DeclProc: TPasProcedure;
 begin
   CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
   OrigScope:=Orig.CustomData as TPas2JSProcedureScope;
@@ -1628,8 +1646,10 @@ begin
   CheckRestoredReference(Path+'.CustomData[TPas2JSProcedureScope].DeclarationProc',
     OrigScope.DeclarationProc,RestScope.DeclarationProc);
   AssertEquals(Path+'.CustomData[TPas2JSProcedureScope].ResultVarName',OrigScope.ResultVarName,RestScope.ResultVarName);
-  if RestScope.DeclarationProc=nil then
+  DeclProc:=RestScope.DeclarationProc;
+  if DeclProc=nil then
     begin
+    DeclProc:=Rest;
     CheckRestoredProcNameParts(Path,Orig,Rest);
     CheckRestoredElement(Path+'.ProcType',Orig.ProcType,Rest.ProcType);
     CheckRestoredElement(Path+'.PublicName',Orig.PublicName,Rest.PublicName);
@@ -1646,8 +1666,25 @@ begin
   else
     begin
     // ImplProc
+    if Orig.Modifiers*ImplMods<>Rest.Modifiers*ImplMods then
+      Fail(Path+'.Impl-Modifiers');
     end;
-  // ToDo: Body
+  // Body
+  if Orig.Body<>nil then
+    begin
+    if Engine.ProcCanBePrecompiled(DeclProc) then
+      begin
+      AssertEquals(Path+'.EmptyJS',OrigScope.EmptyJS,RestScope.EmptyJS);
+      CheckRestoredJS(Path+'.BodyJS',OrigScope.BodyJS,RestScope.BodyJS);
+      CheckRestoredStringList(Path+'.GlobalJS',OrigScope.GlobalJS,RestScope.GlobalJS);
+      end
+    else
+      begin
+      CheckRestoredProcedureBody(Path+'.Body',Orig.Body,Rest.Body);
+      end;
+    end
+  else if Rest.Body<>nil then
+    Fail(Path+'.Body<>nil, expected =nil');
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredOperator(const Path: string; Orig,
@@ -1659,10 +1696,25 @@ begin
   CheckRestoredProcedure(Path,Orig,Rest);
 end;
 
+procedure TCustomTestPrecompile.CheckRestoredProcedureBody(const Path: string;
+  Orig, Rest: TProcedureBody);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  CheckRestoredDeclarations(Path,Orig,Rest);
+  CheckRestoredElement(Path+'.Body',Orig.Body,Rest.Body);
+end;
+
 procedure TCustomTestPrecompile.CheckRestoredAttributes(const Path: string;
   Orig, Rest: TPasAttributes);
 begin
   CheckRestoredPasExprArray(Path+'.Calls',Orig.Calls,Rest.Calls);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredImplBeginBlock(const Path: string;
+  Orig, Rest: TPasImplBeginBlock);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  CheckRestoredElementList(Path,Orig.Elements,Rest.Elements);
 end;
 
 { TTestPrecompile }
@@ -2431,7 +2483,7 @@ begin
   WriteReadUnit;
 end;
 
-procedure TTestPrecompile.TestPC_GenericFunctionSkip;
+procedure TTestPrecompile.TestPC_GenericFunction;
 begin
   StartUnit(false);
   Add([
@@ -2441,7 +2493,7 @@ begin
   'generic function Run<T>(a: T): T;',
   'var b: T;',
   'begin',
-  '  b:=a; Result:=b;',
+  //'  b:=a; Result:=b;',
   'end;',
   '']);
   WriteReadUnit;
