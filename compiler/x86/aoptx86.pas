@@ -1287,7 +1287,7 @@ unit aoptx86;
                 p:=hp1;
                 result:=true;
               end
-            else if GetNextInstruction(p,hp1) then
+            else if GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[1]^.reg) then
               begin
                 if MatchInstruction(hp1,[taicpu(p).opcode],[S_NO]) and
                   MatchOpType(taicpu(hp1),top_reg,top_reg) and
