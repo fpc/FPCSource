@@ -3226,49 +3226,6 @@ unit aoptx86;
                  exit;
                end;
            end;
-         {
-         @@2:                              @@2:
-           ....                              ....
-           cmp operand1,0
-           jle/jbe @@1
-           dec operand1             -->      sub operand1,1
-           jmp @@2                           jge/jae @@2
-         @@1:                              @@1:
-           ...                               ....}
-         if (taicpu(p).oper[0]^.typ = top_const) and
-            (taicpu(p).oper[1]^.typ in [top_reg,top_ref]) and
-            (taicpu(p).oper[0]^.val = 0) and
-            GetNextInstruction(p, hp1) and
-            MatchInstruction(hp1,A_Jcc,[]) and
-            (taicpu(hp1).condition in [C_LE,C_BE]) and
-            GetNextInstruction(hp1,hp2) and
-            MatchInstruction(hp1,A_DEC,[]) and
-            OpsEqual(taicpu(hp2).oper[0]^,taicpu(p).oper[1]^) and
-            GetNextInstruction(hp2, hp3) and
-            MatchInstruction(hp1,A_JMP,[]) and
-            GetNextInstruction(hp3, hp4) and
-            FindLabel(tasmlabel(taicpu(hp1).oper[0]^.ref^.symbol),hp4) then
-           begin
-             DebugMsg(SPeepholeOptimization + 'CmpJxxDecJmp2SubJcc done',p);
-             taicpu(hp2).Opcode := A_SUB;
-             taicpu(hp2).loadoper(1,taicpu(hp2).oper[0]^);
-             taicpu(hp2).loadConst(0,1);
-             taicpu(hp2).ops:=2;
-             taicpu(hp3).Opcode := A_Jcc;
-             case taicpu(hp1).condition of
-               C_LE: taicpu(hp3).condition := C_GE;
-               C_BE: taicpu(hp3).condition := C_AE;
-               else
-                 internalerror(2019050903);
-             end;
-             asml.remove(p);
-             asml.remove(hp1);
-             p.free;
-             hp1.free;
-             p := hp2;
-             Result:=true;
-             exit;
-           end;
      end;
 
 
