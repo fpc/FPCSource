@@ -427,7 +427,6 @@ Const
       syscall_nr_pwritev2          = 359;
       syscall_nr_statx             = 360;
       syscall_nr_io_pgetevents     = 361;
-      syscall_nr_io_pgetevents                = 361;
       syscall_nr_pkey_mprotect                = 362;
       syscall_nr_pkey_alloc                   = 363;
       syscall_nr_pkey_free                    = 364;
