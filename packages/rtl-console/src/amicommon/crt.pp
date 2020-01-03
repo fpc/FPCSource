@@ -29,27 +29,28 @@ var
 type
   TANSIColor = record
     r,g,b: Byte;
-    l: Byte;
+    m: Byte;    // pen on MorphOS
+    o: Byte;    // Pen on AmigaOS4
   end;
 
 const
   AnsiColors: array[0..15] of TANSIColor = (
-    (r:000; g:000; b:000; l:016), // 0 = Black
-    (r:000; g:000; b:170; l:019), // 1 = Blue
-    (r:000; g:170; b:000; l:034), // 2 = Green
-    (r:000; g:170; b:170; l:037), // 3 = Cyan
-    (r:170; g:000; b:000; l:124), // 4 = Red
-    (r:170; g:000; b:170; l:127), // 5 = Magenta
-    (r:170; g:085; b:000; l:130), // 6 = Brown
-    (r:170; g:170; b:170; l:249), // 7 = Light Gray
-    (r:085; g:085; b:085; l:240), // 8 = Dark Gray
-    (r:000; g:000; b:255; l:021), // 9 = LightBlue
-    (r:000; g:255; b:000; l:046), // 10 = LightGreen
-    (r:000; g:255; b:255; l:087), // 11 = LightCyan
-    (r:255; g:000; b:000; l:196), // 12 = LightRed
-    (r:255; g:000; b:255; l:201), // 13 = LightMagenta
-    (r:255; g:255; b:000; l:226), // 14 = Yellow
-    (r:255; g:255; b:255; l:231)  // 15 = White
+    (r:000; g:000; b:000; m:016; o:000), // 0 = Black
+    (r:000; g:000; b:170; m:019; o:004), // 1 = Blue
+    (r:000; g:170; b:000; m:034; o:002), // 2 = Green
+    (r:000; g:170; b:170; m:037; o:006), // 3 = Cyan
+    (r:170; g:000; b:000; m:124; o:001), // 4 = Red
+    (r:170; g:000; b:170; m:127; o:005), // 5 = Magenta
+    (r:170; g:085; b:000; m:130; o:103), // 6 = Brown
+    (r:170; g:170; b:170; m:249; o:107), // 7 = Light Gray
+    (r:085; g:085; b:085; m:240; o:100), // 8 = Dark Gray
+    (r:000; g:000; b:255; m:021; o:104), // 9 = LightBlue
+    (r:000; g:255; b:000; m:046; o:102), // 10 = LightGreen
+    (r:000; g:255; b:255; m:087; o:106), // 11 = LightCyan
+    (r:255; g:000; b:000; m:196; o:101), // 12 = LightRed
+    (r:255; g:000; b:255; m:201; o:105), // 13 = LightMagenta
+    (r:255; g:255; b:000; m:226; o:003), // 14 = Yellow
+    (r:255; g:255; b:255; m:231; o:007)  // 15 = White
   );
 
 
@@ -475,7 +476,6 @@ begin
   //SetMode(OutP, 0);
 end;
 
-
 procedure TextColor(color : byte);
 {$ifndef MorphOS}
 var
@@ -485,7 +485,13 @@ begin
   Color := Color and $F;
   FGPen := Color;
   {$ifdef MorphOS}
-  InternalWrite(CSI + '38;5;'+ IntToStr(AnsiColors[Color].l) + 'm');
+  InternalWrite(CSI + '38;5;'+ IntToStr(AnsiColors[Color].m) + 'm');
+  {$else}
+  {$ifdef AmigaOS4}
+  if AnsiColors[Color].o > 100 then
+    InternalWrite(CSI + '1;3'+ IntToStr(AnsiColors[Color].o - 100) + 'm')
+  else
+    InternalWrite(CSI + '22;3'+ IntToStr(AnsiColors[Color].o) + 'm')
   {$else}
   if Pens[Color] < 0 then
     Pens[Color] := ObtainBestPen(IntuitionBase^.ActiveScreen^.ViewPort.ColorMap, AnsiColors[color].r shl 24, AnsiColors[color].g shl 24, AnsiColors[color].b shl 24, [TAG_END]);
@@ -493,11 +499,20 @@ begin
   if Assigned(TheUnit) then
   begin
     if Pens[Color] >= 0 then
+    begin
+      TheUnit^.cu_Mask := -1; // set the mask to show all colors!
       TheUnit^.cu_FgPen := Pens[Color]
+    end
     else
+    begin
       TheUnit^.cu_FgPen := 2;
-  end;
-  {$endif}
+      SysDebugLn('Cannot obtain Text Pen ' + IntToStr(color) + ' use default');
+    end;
+  end
+  else
+    SysDebugLn('ConUnit not found');
+  {$endif} // AmigaOS4
+  {$endif} // MorphOS
 end;
 
 procedure TextBackground(color : byte);
@@ -509,7 +524,13 @@ begin
   Color := Color and $F;
   BGPen := Color;
   {$ifdef MorphOS}
-  InternalWrite(CSI + '48;5;'+ IntToStr(AnsiColors[Color].l) + 'm');
+  InternalWrite(CSI + '48;5;'+ IntToStr(AnsiColors[Color].m) + 'm');
+  {$else}
+  {$ifdef AmigaOS4}
+  if AnsiColors[Color].o > 100 then
+    InternalWrite(CSI + '1;4'+ IntToStr(AnsiColors[Color].o - 100) + 'm')
+  else
+    InternalWrite(CSI + '22;4'+ IntToStr(AnsiColors[Color].o) + 'm')
   {$else}
   if Pens[Color] < 0 then
     Pens[Color] := ObtainBestPen(IntuitionBase^.ActiveScreen^.ViewPort.ColorMap, AnsiColors[color].r shl 24, AnsiColors[color].g shl 24, AnsiColors[color].b shl 24, [TAG_END]);
@@ -517,11 +538,20 @@ begin
   if Assigned(TheUnit) then
   begin
     if Pens[Color] >= 0 then
+    begin
+      TheUnit^.cu_Mask := -1; // set the mask to show all colors!
       TheUnit^.cu_BgPen := Pens[Color]
+    end
     else
-      TheUnit^.cu_BgPen := 0;
-  end;
-  {$endif}
+    begin
+      TheUnit^.cu_FgPen := 0;
+      SysDebugLn('Cannot obtain Background Pen ' + IntToStr(color) + ' use default');
+    end;
+  end
+  else
+    SysDebugLn('ConUnit not found');
+  {$endif} // AmigaOS4
+  {$endif} // MorphOS
 end;
 
 function GetTextBackground: Byte;
@@ -649,9 +679,8 @@ begin
               s := s + StringOfChar(' ', WindMaxX - WindMinX + 1);
           end;
           if isEmpty then
-            s := s + StringOfChar(' ', WindMaxX - WindMinX + 1);
+            s := s + StringOfChar(' ', WindMaxX - WindMinX);
           s := s + CSI + IntToStr(Curr.Y) + ';' + IntToStr(Curr.X) + 'H';
-          //s := s + CSI + 'K';
         end;
         #8: begin
           Curr.X := RealX;
@@ -691,24 +720,14 @@ end;
 Procedure CrtRead(Var F: TextRec);
 var
   ch : Char;
-  Curr: TPoint;
-
-procedure DirectWriteChar(c: Char);
-var
-  s: AnsiString;
-begin
-  s := '';
-  WriteChar(c, Curr, s);
-  InternalWrite(s);
-end;
 
   procedure BackSpace;
   begin
     if (f.bufpos>0) and (f.bufpos=f.bufend) then
      begin
-       DirectWriteChar(#8);
-       DirectWriteChar(' ');
-       DirectWriteChar(#8);
+       InternalWrite(#8);
+       InternalWrite(' ');
+       InternalWrite(#8);
        dec(f.bufpos);
        dec(f.bufend);
      end;
@@ -716,7 +735,7 @@ end;
 
 
 Begin
-  Curr := GetCurrentPosition;
+  //Curr := GetCurrentPosition;
   f.bufpos:=0;
   f.bufend:=0;
   repeat
@@ -725,48 +744,25 @@ Begin
     //SetScreenCursor(CurrX,CurrY);
     ch := readkey;
     case ch of
-      #0:
-        case readkey of
-          #71:
-            while f.bufpos > 0 do
-            begin
-              Dec(f.bufpos);
-              DirectWriteChar(#8);
-            end;
-          #75:
-            if f.bufpos > 0 then
-            begin
-              Dec(f.bufpos);
-              DirectWriteChar(#8);
-            end;
-          #77:
-            if f.bufpos < f.bufend then
-            begin
-              DirectWriteChar(f.bufptr^[f.bufpos]);
-              Inc(f.bufpos);
-            end;
-          #79:
-            while f.bufpos<f.bufend do
-            begin
-              DirectWriteChar(f.bufptr^[f.bufpos]);
-              Inc(f.bufpos);
-            end;
-         end;
+      #0: begin
+        readkey;
+        Exit;
+      end;
       ^S,
       #8: BackSpace;
       ^Y,
       #27: begin
         while f.bufpos < f.bufend do
         begin
-          DirectWriteChar(f.bufptr^[f.bufpos]);
+          InternalWrite(f.bufptr^[f.bufpos]);
           Inc(f.bufpos);
         end;
         while f.bufend>0 do
           BackSpace;
       end;
       #13: begin
-        DirectWriteChar(#13);
-        DirectWriteChar(#10);
+        InternalWrite(#13);
+        InternalWrite(#10);
         f.bufptr^[f.bufend] := #13;
         f.bufptr^[f.bufend + 1] := #10;
         Inc(f.bufend, 2);
@@ -785,7 +781,7 @@ Begin
         begin
           f.buffer[f.bufpos] := ch;
           Inc(f.bufpos);
-          DirectWriteChar(ch);
+          InternalWrite(ch);
         end;
       end;
     end;
