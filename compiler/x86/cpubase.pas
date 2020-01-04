@@ -447,11 +447,11 @@ implementation
               else
                 internalerror(2009071902);
             end;
-          OS_M128,OS_MS128,OS_MF128,OS_MD128:
+          OS_M128:
             cgsize2subreg:=R_SUBMMX;
-          OS_M256,OS_MS256,OS_MF256,OS_MD256:
+          OS_M256:
             cgsize2subreg:=R_SUBMMY;
-          OS_M512,OS_MS512,OS_MF512,OS_MD512:
+          OS_M512:
             cgsize2subreg:=R_SUBMMZ;
           OS_NO:
             { error message should have been thrown already before, so avoid only
