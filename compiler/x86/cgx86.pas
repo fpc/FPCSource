@@ -32,7 +32,8 @@ unit cgx86;
        cgbase,cgutils,cgobj,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,rgx86,
-       symconst,symtype,symdef;
+       symconst,symtype,symdef,
+       parabase;
 
     type
 
@@ -89,6 +90,7 @@ unit cgx86;
         procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
+        procedure a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const cgpara : TCGPara); override;
 
         { vector register move instructions }
         procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); override;
@@ -1321,6 +1323,22 @@ unit cgx86;
            a_loadfpu_reg_reg(list,fromsize,tosize,reg,NR_ST);
          floatstore(list,tosize,tmpref);
        end;
+
+
+    procedure tcgx86.a_loadfpu_ref_cgpara(list: TAsmList; size: tcgsize; const ref: treference; const cgpara: TCGPara);
+      var
+        href: treference;
+      begin
+        if cgpara.location^.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+          begin
+            cgpara.check_simple_location;
+            reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
+            floatload(list,size,ref);
+            floatstore(list,size,href);
+          end
+        else
+          inherited a_loadfpu_ref_cgpara(list, size, ref, cgpara);
+      end;
 
 
     function get_scalar_mm_op(fromsize,tosize : tcgsize) : tasmop;
