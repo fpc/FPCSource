@@ -3230,6 +3230,24 @@ unit aoptx86;
 
 
    function TX86AsmOptimizer.OptPass2MOV(var p : tai) : boolean;
+
+     function IsXCHGAcceptable: Boolean; inline;
+       begin
+         { Always accept if optimising for size }
+         Result := (cs_opt_size in current_settings.optimizerswitches) or
+           (
+{$ifdef x86_64}
+             { XCHG takes 3 cycles on AMD Athlon64 }
+             (current_settings.optimizecputype >= cpu_core_i)
+{$else x86_64}
+             { From the Pentium M onwards, XCHG only has a latency of 2 rather
+             than 3, so it becomes a saving compared to three MOVs with two of
+             them able to execute simultaneously. [Kit] }
+             (current_settings.optimizecputype >= cpu_PentiumM)
+{$endif x86_64}
+           );
+       end;
+
       var
        hp1,hp2: tai;
 {$ifdef x86_64}
@@ -3308,6 +3326,49 @@ unit aoptx86;
               end;
 
             exit;
+          end
+        else if MatchOpType(taicpu(p),top_reg,top_reg) and
+          IsXCHGAcceptable and
+          { XCHG doesn't support 8-byte registers }
+          (taicpu(p).opsize <> S_B) and
+          MatchInstruction(hp1, A_MOV, []) and
+          MatchOpType(taicpu(hp1),top_reg,top_reg) and
+          (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[0]^.reg) and
+          GetNextInstruction(hp1, hp2) and
+          MatchInstruction(hp2, A_MOV, []) and
+          { Don't need to call MatchOpType for hp2 because the operand matches below cover for it }
+          MatchOperand(taicpu(hp2).oper[0]^, taicpu(p).oper[1]^.reg) and
+          MatchOperand(taicpu(hp2).oper[1]^, taicpu(hp1).oper[0]^.reg) then
+          begin
+            { mov %reg1,%reg2
+              mov %reg3,%reg1        ->  xchg %reg3,%reg1
+              mov %reg2,%reg3
+              (%reg2 not used afterwards)
+
+              Note that xchg takes 3 cycles to execute, and generally mov's take
+              only one cycle apiece, but the first two mov's can be executed in
+              parallel, only taking 2 cycles overall.  Older processors should
+              therefore only optimise for size. [Kit]
+            }
+            TransferUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+            UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
+
+            if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp2, TmpUsedRegs) then
+              begin
+                DebugMsg(SPeepholeOptimization + 'MovMovMov2XChg', p);
+                AllocRegBetween(taicpu(hp2).oper[1]^.reg, p, hp1, UsedRegs);
+                taicpu(hp1).opcode := A_XCHG;
+
+                asml.Remove(p);
+                asml.Remove(hp2);
+                p.Free;
+                hp2.Free;
+
+                p := hp1;
+                Result := True;
+                Exit;
+              end;
           end
         else if MatchOpType(taicpu(p),top_reg,top_reg) and
 {$ifdef x86_64}
