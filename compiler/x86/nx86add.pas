@@ -77,7 +77,7 @@ unit nx86add;
       symconst,symdef,
       cgobj,hlcgobj,cgx86,cga,cgutils,
       tgobj,ncgutil,
-      ncon,nset,ninl,
+      ncon,nset,ninl,ncnv,
       defutil,
       htypechk;
 
@@ -1292,7 +1292,7 @@ unit nx86add;
         ops_rdiv: array[boolean] of TAsmOp = (A_FDIVRP,A_FDIVR);
       var
         op : TAsmOp;
-        refnode : tnode;
+        refnode, hp: tnode;
         hasref : boolean;
       begin
         if use_vectorfpu(resultdef) then
@@ -1302,6 +1302,22 @@ unit nx86add;
             else
               second_addfloatsse;
             exit;
+          end;
+
+        { can the operation do the conversion? }
+        if (left.nodetype=typeconvn) and (is_double(ttypeconvnode(left).left.resultdef) or is_single(ttypeconvnode(left).left.resultdef)) then
+          begin
+            hp:=left;
+            left:=ttypeconvnode(left).left;
+            ttypeconvnode(hp).left:=nil;
+            hp.Free;
+          end;
+        if (right.nodetype=typeconvn) and (is_double(ttypeconvnode(right).left.resultdef) or is_single(ttypeconvnode(right).left.resultdef)) then
+          begin
+            hp:=right;
+            right:=ttypeconvnode(right).left;
+            ttypeconvnode(hp).left:=nil;
+            hp.Free;
           end;
 
         pass_left_right;
