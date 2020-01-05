@@ -261,7 +261,6 @@ implementation
                    OS_F128:
                      a_loadmm_ref_reg(list,location^.def,location^.def,tmpref,location^.register,mms_movescalar);
                    OS_M8..OS_M128,
-                   OS_MS8..OS_MS128,
                    OS_32..OS_128,
                    { OS_NO is for records of non-power-of-two sizes that have to
                      be passed in MM registers -> never scalar floats }
