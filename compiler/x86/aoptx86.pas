@@ -1287,7 +1287,7 @@ unit aoptx86;
                 p:=hp1;
                 result:=true;
               end
-            else if GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[1]^.reg) then
+            else if GetNextInstruction(p,hp1) then
               begin
                 if MatchInstruction(hp1,[taicpu(p).opcode],[S_NO]) and
                   MatchOpType(taicpu(hp1),top_reg,top_reg) and
@@ -1302,6 +1302,7 @@ unit aoptx86;
                     UpdateUsedRegs(TmpUsedRegs, tai(p.next));
                     if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
                       begin
+                        DebugMsg(SPeepholeOptimization + '(V)MOVA*(V)MOVA*2(V)MOVA* 1',p);
                         taicpu(p).loadoper(1,taicpu(hp1).oper[1]^);
                         asml.Remove(hp1);
                         hp1.Free;
@@ -1314,12 +1315,16 @@ unit aoptx86;
                       vmova* reg1,reg2 }
                     else if MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) then
                       begin
+                        DebugMsg(SPeepholeOptimization + '(V)MOVA*(V)MOVA*2(V)MOVA* 2',p);
                         asml.Remove(hp1);
                         hp1.Free;
                         result:=true;
                       end
                   end
-                else if MatchInstruction(hp1,[A_VFMADDPD,
+            end;
+          if GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[1]^.reg) then
+            begin
+              if MatchInstruction(hp1,[A_VFMADDPD,
                                               A_VFMADD132PD,
                                               A_VFMADD132PS,
                                               A_VFMADD132SD,
@@ -1390,8 +1395,7 @@ unit aoptx86;
                     TransferUsedRegs(TmpUsedRegs);
                     UpdateUsedRegs(TmpUsedRegs, tai(p.next));
                     UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
-                    if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2,TmpUsedRegs))
-                     then
+                    if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2,TmpUsedRegs)) then
                       begin
                         taicpu(hp1).loadoper(2,taicpu(p).oper[0]^);
                         asml.Remove(p);
@@ -1473,8 +1477,7 @@ unit aoptx86;
           begin
             TransferUsedRegs(TmpUsedRegs);
             UpdateUsedRegs(TmpUsedRegs, tai(p.next));
-            if not(RegUsedAfterInstruction(taicpu(hp1).oper[0]^.reg,hp1,TmpUsedRegs)
-             ) then
+            if not(RegUsedAfterInstruction(taicpu(hp1).oper[0]^.reg,hp1,TmpUsedRegs)) then
               begin
                 taicpu(p).loadoper(2,taicpu(hp1).oper[1]^);
                 DebugMsg(SPeepholeOptimization + 'VOpVmov2VOp done',p);
