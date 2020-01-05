@@ -2028,12 +2028,10 @@ unit aoptx86;
            MatchOpType(taicpu(p),top_reg,top_reg) and
            ((MatchInstruction(hp1,A_OR,A_AND,A_TEST,[]) and
             MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) and
-            (taicpu(hp1).oper[1]^.typ = top_reg) and
-            (taicpu(hp1).oper[0]^.reg = taicpu(hp1).oper[1]^.reg)) or
+            MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^)) or
             (MatchInstruction(hp1,A_CMP,[]) and
-            MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and
-            MatchOpType(taicpu(hp1),top_const,top_reg) and
-            (taicpu(p).oper[1]^.reg = taicpu(hp1).oper[1]^.reg)
+             MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and
+             MatchOpType(taicpu(hp1),top_const,top_reg)
             )
            ) then
            {  we have
@@ -2043,6 +2041,7 @@ unit aoptx86;
            }
            begin
              TransferUsedRegs(TmpUsedRegs);
+             UpdateUsedRegs(TmpUsedRegs, tai(p.next));
              { reg1 will be used after the first instruction,
                so update the allocation info                  }
              AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,usedregs);
@@ -2066,9 +2065,7 @@ unit aoptx86;
                      taicpu(hp1).loadoper(0,taicpu(p).oper[0]^);
                    taicpu(hp1).loadoper(1,taicpu(p).oper[0]^);
                    DebugMsg(SPeepholeOptimization + 'MovTest/Cmp/Or/AndJxx2Test/Cmp/Or/AndJxx done',p);
-                   asml.remove(p);
-                   p.free;
-                   p := hp1;
+                   RemoveCurrentP(p);
                    Exit;
                  end
                else
