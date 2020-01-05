@@ -3630,7 +3630,7 @@ unit aoptx86;
       begin
         result:=false;
         if (taicpu(p).oper[0]^.typ=top_ref) and (taicpu(p).oper[0]^.ref^.refaddr=addr_full) and (taicpu(p).oper[0]^.ref^.base=NR_NO) and
-          (taicpu(p).oper[0]^.ref^.index=NR_NO) then
+          (taicpu(p).oper[0]^.ref^.index=NR_NO) and (taicpu(p).oper[0]^.ref^.symbol is tasmlabel) then
           begin
             hp1:=getlabelwithsym(tasmlabel(taicpu(p).oper[0]^.ref^.symbol));
             if (taicpu(p).condition=C_None) and assigned(hp1) and SkipLabels(hp1,hp1) and (hp1.typ = ait_instruction) then
