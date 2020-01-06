@@ -128,7 +128,22 @@ type
     procedure CheckRestoredOperator(const Path: string; Orig, Rest: TPasOperator); virtual;
     procedure CheckRestoredProcedureBody(const Path: string; Orig, Rest: TProcedureBody); virtual;
     procedure CheckRestoredAttributes(const Path: string; Orig, Rest: TPasAttributes); virtual;
+    procedure CheckRestoredImplCommand(const Path: string; Orig, Rest: TPasImplCommand); virtual;
     procedure CheckRestoredImplBeginBlock(const Path: string; Orig, Rest: TPasImplBeginBlock); virtual;
+    procedure CheckRestoredImplAsmStatement(const Path: string; Orig, Rest: TPasImplAsmStatement); virtual;
+    procedure CheckRestoredImplRepeatUntil(const Path: string; Orig, Rest: TPasImplRepeatUntil); virtual;
+    procedure CheckRestoredImplIfElse(const Path: string; Orig, Rest: TPasImplIfElse); virtual;
+    procedure CheckRestoredImplWhileDo(const Path: string; Orig, Rest: TPasImplWhileDo); virtual;
+    procedure CheckRestoredImplWithDo(const Path: string; Orig, Rest: TPasImplWithDo); virtual;
+    procedure CheckRestoredImplCaseOf(const Path: string; Orig, Rest: TPasImplCaseOf); virtual;
+    procedure CheckRestoredImplCaseStatement(const Path: string; Orig, Rest: TPasImplCaseStatement); virtual;
+    procedure CheckRestoredImplCaseElse(const Path: string; Orig, Rest: TPasImplCaseElse); virtual;
+    procedure CheckRestoredImplForLoop(const Path: string; Orig, Rest: TPasImplForLoop); virtual;
+    procedure CheckRestoredImplAssign(const Path: string; Orig, Rest: TPasImplAssign); virtual;
+    procedure CheckRestoredImplSimple(const Path: string; Orig, Rest: TPasImplSimple); virtual;
+    procedure CheckRestoredImplTry(const Path: string; Orig, Rest: TPasImplTry); virtual;
+    procedure CheckRestoredImplTryHandler(const Path: string; Orig, Rest: TPasImplTryHandler); virtual;
+    procedure CheckRestoredImplRaise(const Path: string; Orig, Rest: TPasImplRaise); virtual;
   public
     property Analyzer: TPas2JSAnalyzer read FAnalyzer;
     property RestAnalyzer: TPas2JSAnalyzer read FRestAnalyzer;
@@ -175,8 +190,20 @@ type
     procedure TestPC_ClassInterface;
     procedure TestPC_Attributes;
 
-    procedure TestPC_GenericClassSkip; // ToDo
+    procedure TestPC_GenericClass; // ToDo
     procedure TestPC_GenericFunction;
+    // ToDo: TPasImplAsmStatement
+    // TPasImplRepeatUntil
+    // TPasImplIfElse,
+    // TPasImplWhileDo,
+    // TPasImplWithDo
+    // TPasImplCaseOf
+    // TPasImplForLoop
+    // TPasImplAssign
+    // TPasImplSimple
+    // TPasImplTry    TPasImplTryHandler  TPasImplTryFinally  TPasImplTryExcept TPasImplTryExceptElse TPasImplExceptOn
+    // TPasImplRaise
+
 
     procedure TestPC_UseUnit;
     procedure TestPC_UseUnit_Class;
@@ -1213,8 +1240,40 @@ begin
   else if (C=TPasOperator)
       or (C=TPasClassOperator) then
     CheckRestoredOperator(Path,TPasOperator(Orig),TPasOperator(Rest))
+  else if (C=TPasImplCommand) then
+    CheckRestoredImplCommand(Path,TPasImplCommand(Orig),TPasImplCommand(Rest))
   else if (C=TPasImplBeginBlock) then
     CheckRestoredImplBeginBlock(Path,TPasImplBeginBlock(Orig),TPasImplBeginBlock(Rest))
+  else if (C=TPasImplAsmStatement) then
+    CheckRestoredImplAsmStatement(Path,TPasImplAsmStatement(Orig),TPasImplAsmStatement(Rest))
+  else if (C=TPasImplRepeatUntil) then
+    CheckRestoredImplRepeatUntil(Path,TPasImplRepeatUntil(Orig),TPasImplRepeatUntil(Rest))
+  else if (C=TPasImplIfElse) then
+    CheckRestoredImplIfElse(Path,TPasImplIfElse(Orig),TPasImplIfElse(Rest))
+  else if (C=TPasImplWhileDo) then
+    CheckRestoredImplWhileDo(Path,TPasImplWhileDo(Orig),TPasImplWhileDo(Rest))
+  else if (C=TPasImplWithDo) then
+    CheckRestoredImplWithDo(Path,TPasImplWithDo(Orig),TPasImplWithDo(Rest))
+  else if (C=TPasImplCaseOf) then
+    CheckRestoredImplCaseOf(Path,TPasImplCaseOf(Orig),TPasImplCaseOf(Rest))
+  else if (C=TPasImplCaseStatement) then
+    CheckRestoredImplCaseStatement(Path,TPasImplCaseStatement(Orig),TPasImplCaseStatement(Rest))
+  else if (C=TPasImplCaseElse) then
+    CheckRestoredImplCaseElse(Path,TPasImplCaseElse(Orig),TPasImplCaseElse(Rest))
+  else if (C=TPasImplForLoop) then
+    CheckRestoredImplForLoop(Path,TPasImplForLoop(Orig),TPasImplForLoop(Rest))
+  else if (C=TPasImplAssign) then
+    CheckRestoredImplAssign(Path,TPasImplAssign(Orig),TPasImplAssign(Rest))
+  else if (C=TPasImplSimple) then
+    CheckRestoredImplSimple(Path,TPasImplSimple(Orig),TPasImplSimple(Rest))
+  else if (C=TPasImplTry) then
+    CheckRestoredImplTry(Path,TPasImplTry(Orig),TPasImplTry(Rest))
+  else if (C=TPasImplTryFinally)
+      or (C=TPasImplTryExcept)
+      or (C=TPasImplTryExceptElse) then
+    CheckRestoredImplTryHandler(Path,TPasImplTryHandler(Orig),TPasImplTryHandler(Rest))
+  else if (C=TPasImplRaise) then
+    CheckRestoredImplRaise(Path,TPasImplRaise(Orig),TPasImplRaise(Rest))
   else if (C=TPasModule)
         or (C=TPasProgram)
         or (C=TPasLibrary) then
@@ -1710,11 +1769,139 @@ begin
   CheckRestoredPasExprArray(Path+'.Calls',Orig.Calls,Rest.Calls);
 end;
 
+procedure TCustomTestPrecompile.CheckRestoredImplCommand(const Path: string;
+  Orig, Rest: TPasImplCommand);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+end;
+
 procedure TCustomTestPrecompile.CheckRestoredImplBeginBlock(const Path: string;
   Orig, Rest: TPasImplBeginBlock);
 begin
   CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
-  CheckRestoredElementList(Path,Orig.Elements,Rest.Elements);
+  CheckRestoredElementList(Path+'.Elements',Orig.Elements,Rest.Elements);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredImplAsmStatement(
+  const Path: string; Orig, Rest: TPasImplAsmStatement);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  CheckRestoredElementList(Path+'.Elements',Orig.Elements,Rest.Elements);
+  CheckRestoredStringList(Path+'.Tokens',Orig.Tokens,Rest.Tokens);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredImplRepeatUntil(
+  const Path: string; Orig, Rest: TPasImplRepeatUntil);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  CheckRestoredElementList(Path+'.Elements',Orig.Elements,Rest.Elements);
+  CheckRestoredElement(Path+'.ConditionExpr',Orig.ConditionExpr,Rest.ConditionExpr);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredImplIfElse(const Path: string;
+  Orig, Rest: TPasImplIfElse);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  CheckRestoredElementList(Path+'.Elements',Orig.Elements,Rest.Elements);
+  CheckRestoredElement(Path+'.ConditionExpr',Orig.ConditionExpr,Rest.ConditionExpr);
+  CheckRestoredElement(Path+'.IfBranch',Orig.IfBranch,Rest.IfBranch);
+  CheckRestoredElement(Path+'.ElseBranch',Orig.ElseBranch,Rest.ElseBranch);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredImplWhileDo(const Path: string;
+  Orig, Rest: TPasImplWhileDo);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  CheckRestoredElementList(Path+'.Elements',Orig.Elements,Rest.Elements);
+  CheckRestoredElement(Path+'.ConditionExpr',Orig.ConditionExpr,Rest.ConditionExpr);
+  CheckRestoredElement(Path+'.Body',Orig.Body,Rest.Body);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredImplWithDo(const Path: string;
+  Orig, Rest: TPasImplWithDo);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  CheckRestoredElementList(Path+'.Elements',Orig.Elements,Rest.Elements);
+  CheckRestoredElementList(Path+'.ConditionExpr',Orig.Expressions,Rest.Expressions);
+  CheckRestoredElement(Path+'.Body',Orig.Body,Rest.Body);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredImplCaseOf(const Path: string;
+  Orig, Rest: TPasImplCaseOf);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  CheckRestoredElementList(Path+'.Elements',Orig.Elements,Rest.Elements);
+  CheckRestoredElement(Path+'.CaseExpr',Orig.CaseExpr,Rest.CaseExpr);
+  CheckRestoredElement(Path+'.ElseBranch',Orig.ElseBranch,Rest.ElseBranch);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredImplCaseStatement(
+  const Path: string; Orig, Rest: TPasImplCaseStatement);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  CheckRestoredElementList(Path+'.Elements',Orig.Elements,Rest.Elements);
+  CheckRestoredElementList(Path+'.Expressions',Orig.Expressions,Rest.Expressions);
+  CheckRestoredElement(Path+'.Body',Orig.Body,Rest.Body);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredImplCaseElse(const Path: string;
+  Orig, Rest: TPasImplCaseElse);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  CheckRestoredElementList(Path+'.Elements',Orig.Elements,Rest.Elements);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredImplForLoop(const Path: string;
+  Orig, Rest: TPasImplForLoop);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  CheckRestoredElementList(Path+'.Elements',Orig.Elements,Rest.Elements);
+  if Orig.LoopType<>Rest.LoopType then
+    AssertEquals(Path+'.LoopType',PCUForLoopType[Orig.LoopType],PCUForLoopType[Rest.LoopType]);
+  CheckRestoredElement(Path+'.VariableName',Orig.VariableName,Rest.VariableName);
+  CheckRestoredElement(Path+'.StartExpr',Orig.StartExpr,Rest.StartExpr);
+  CheckRestoredElement(Path+'.EndExpr',Orig.EndExpr,Rest.EndExpr);
+  CheckRestoredElement(Path+'.Body',Orig.Body,Rest.Body);
+  CheckRestoredElement(Path+'.Variable',Orig.Variable,Rest.Variable);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredImplAssign(const Path: string;
+  Orig, Rest: TPasImplAssign);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  CheckRestoredElement(Path+'.left',Orig.left,Rest.left);
+  CheckRestoredElement(Path+'.right',Orig.right,Rest.right);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredImplSimple(const Path: string;
+  Orig, Rest: TPasImplSimple);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  CheckRestoredElement(Path+'.Expr',Orig.Expr,Rest.Expr);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredImplTry(const Path: string; Orig,
+  Rest: TPasImplTry);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  CheckRestoredElementList(Path+'.Elements',Orig.Elements,Rest.Elements);
+  CheckRestoredElement(Path+'.FinallyExcept',Orig.FinallyExcept,Rest.FinallyExcept);
+  CheckRestoredElement(Path+'.ElseBranch',Orig.ElseBranch,Rest.ElseBranch);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredImplTryHandler(const Path: string;
+  Orig, Rest: TPasImplTryHandler);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  CheckRestoredElementList(Path+'.Elements',Orig.Elements,Rest.Elements);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredImplRaise(const Path: string;
+  Orig, Rest: TPasImplRaise);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  CheckRestoredElement(Path+'.ExceptObject',Orig.ExceptObject,Rest.ExceptObject);
+  CheckRestoredElement(Path+'.ExceptAddr',Orig.ExceptAddr,Rest.ExceptAddr);
 end;
 
 { TTestPrecompile }
@@ -2459,7 +2646,7 @@ begin
   WriteReadUnit;
 end;
 
-procedure TTestPrecompile.TestPC_GenericClassSkip;
+procedure TTestPrecompile.TestPC_GenericClass;
 begin
   exit;
 
@@ -2493,7 +2680,8 @@ begin
   'generic function Run<T>(a: T): T;',
   'var b: T;',
   'begin',
-  //'  b:=a; Result:=b;',
+  '  b:=a;',
+  '  Result:=b;',
   'end;',
   '']);
   WriteReadUnit;
