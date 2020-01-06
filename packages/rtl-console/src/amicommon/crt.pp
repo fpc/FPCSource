@@ -21,7 +21,7 @@ interface
 implementation
 
 uses
-  exec, amigados, Utility, conunit, intuition, agraphics, SysUtils;
+  exec, amigados, Utility, conunit, intuition, agraphics;
 
 var
   MaxCols, MaxRows: LongInt;
@@ -43,7 +43,7 @@ const
     (r:170; g:000; b:170; m:127; o:005), // 5 = Magenta
     (r:170; g:085; b:000; m:130; o:103), // 6 = Brown
     (r:170; g:170; b:170; m:249; o:107), // 7 = Light Gray
-    (r:085; g:085; b:085; m:240; o:100), // 8 = Dark Gray
+    (r:085; g:085; b:085; m:240; o:107), // 8 = Dark Gray
     (r:000; g:000; b:255; m:021; o:104), // 9 = LightBlue
     (r:000; g:255; b:000; m:046; o:102), // 10 = LightGreen
     (r:000; g:255; b:255; m:087; o:106), // 11 = LightCyan
@@ -69,6 +69,15 @@ var
   Pens: array[0..15] of LongInt;
   FGPen: Byte = Black;
   BGPen: Byte = LightGray;
+
+
+function IntToStr(i: LongInt): AnsiString;
+var
+  s: AnsiString;
+begin
+  Str(i, s);
+  IntToStr := s;
+end;
 
 function SendActionPacket(Port: PMsgPort; Arg: BPTR): LongInt;
 var
@@ -143,6 +152,32 @@ begin
   FreeMem(Info);
 end;
 
+{$if defined(MorphOS)}
+//Extract two Integer Values from string ";" separated and space at end
+function GetIntValues(Text: AnsiString; var Val1: LongInt; var Val2: LongInt): Boolean;
+var
+  Start, Ende: LongInt;
+  n: Integer;
+begin
+  GetIntValues := False;
+  // First Value
+  Start := 1;
+  Ende := Pos(';', Text);
+  Val(Copy(Text, Start, Ende - Start), Val1, n);
+  if n <> 0 then
+    Exit;
+  // Second Value
+  Start := Ende + 1;
+  Ende := Pos(' ', Text);
+  if Ende <= 0 then
+    Ende := Length(Text) + 1;
+  Val(Copy(Text, Start, Ende - Start), Val2, n);
+  if n <> 0 then
+    Exit;
+  GetIntValues := True;
+end;
+{$endif}
+
 // Get the size of Display, this time, MorphOS is broken :(
 // does not support ConUnit, is always nil, so we use the slow, error prune way directly via console commands
 function GetDisplaySize: TPoint;
@@ -154,6 +189,7 @@ var
   Width, Height: LongInt;
   report: array[0..25] of Char;
   ToSend: AnsiString;
+  Start, Ende: LongInt;
 begin
   Pt.X := 2;
   Pt.Y := 2;
@@ -169,13 +205,28 @@ begin
       if actual >= 0 then
       begin
         report[actual] := #0;
-        if sscanf(PChar(@(report[0])), Char($9b)+'1;1;%d;%d r', [@height, @width]) = 2 then
+        // Search for position of display message
+        Start := 0;
+        Ende := 0;
+        while Ende < actual do
+        begin
+          if Report[Ende] = Chr($9b) then
+            Start := Ende;
+          if Report[Ende] = 'r' then
+          begin
+            Report[Ende] := #0;
+            Break;
+          end;
+          Inc(Ende);
+        end;
+        // skip over #$9b'1;1;'
+        if GetIntValues(PChar(@report[Start + 5]), Height, Width) then
         begin
           Pt.X := Width + 1;
           Pt.Y := Height + 1;
         end
         else
-          sysdebugln('scan failed.');
+          sysdebugln('scan failed. ' + PChar(@report[Start + 5]));
       end;
       //SetMode(fh, 0); // Normal mode
     end;
@@ -214,6 +265,7 @@ var
   PosX, PosY: LongInt;
   report: array[0..25] of Char;
   ToSend: AnsiString;
+  Start, Ende: LongInt;
 begin
   Pt.X := 2;
   Pt.Y := 2;
@@ -229,13 +281,28 @@ begin
       if actual >= 0 then
       begin
         report[actual] := #0;
-        if sscanf(PChar(@(report[0])), Char($9b)+'%d;%d R', [@PosY, @PosX]) = 2 then
+        // search for the position message
+        Start := 0;
+        Ende := 0;
+        while Ende < actual do
+        begin
+          if Report[Ende] = Chr($9b) then
+            Start := Ende;
+          if Report[Ende] = 'R' then
+          begin
+            Report[Ende] := ' ';
+            Break;
+          end;
+          Inc(Ende);
+        end;
+        // skip over #$9b
+        if GetIntValues(PChar(@report[Start + 1]), PosY, PosX) then
         begin
           Pt.X := PosX;
           Pt.Y := PosY;
         end
         else
-          sysdebugln('scan failed.');
+          sysdebugln('scan failed. ' +  PChar(@report[Start + 1]));
       end;
       //SetMode(fh, 0); // Normal mode
     end;
@@ -673,7 +740,9 @@ begin
             Inc(Curr.Y)
           else
           begin
-            Curr.Y := WindMinY + 1;
+            // only start at top again for smaller windows
+            if WindMaxY < MaxRows - 1 then
+              Curr.Y := WindMinY + 1;
             s := s + CSI + IntToStr(Curr.Y) + ';' + IntToStr(WindMinX + 1) + 'H';
             if not isEmpty then
               s := s + StringOfChar(' ', WindMaxX - WindMinX + 1);
