@@ -148,6 +148,7 @@ Unit aopt;
           p := BlockStart;
           While (P <> BlockEnd) Do
             Begin
+              prefetch(pointer(p.Next)^);
               Case p.typ Of
                 ait_Label:
                   begin
@@ -346,6 +347,7 @@ Unit aopt;
         p:=BlockStart;
         while p<>BlockEnd Do
           begin
+            prefetch(pointer(p.Next)^);
             if SchedulerPass1Cpu(p) then
               continue;
             p:=tai(p.next);

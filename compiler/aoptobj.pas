@@ -1016,6 +1016,7 @@ Unit AoptObj;
                    ((p.typ = ait_marker) and
                     (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_NoLineInfoStart,mark_NoLineInfoEnd]))) do
                  begin
+                   prefetch(pointer(p.Next)^);
                    { Here's the optimise part }
                    if (p.typ in [ait_align, ait_label]) then
                      begin
@@ -1040,6 +1041,7 @@ Unit AoptObj;
             while assigned(p) and
                   (p.typ=ait_RegAlloc) Do
               begin
+                prefetch(pointer(p.Next)^);
                 case tai_regalloc(p).ratype of
                   ra_alloc :
                     Include(UsedRegs[getregtype(tai_regalloc(p).reg)].UsedRegs, getsupreg(tai_regalloc(p).reg));
@@ -1074,6 +1076,7 @@ Unit AoptObj;
             while assigned(p) and
                   (p.typ=ait_RegAlloc) Do
               begin
+                prefetch(pointer(p.Next)^);
                 case tai_regalloc(p).ratype of
                   ra_alloc :
                     Include(UsedRegs[getregtype(tai_regalloc(p).reg)].UsedRegs, getsupreg(tai_regalloc(p).reg));
@@ -1693,6 +1696,7 @@ Unit AoptObj;
         { Stop if hp is an instruction, for example }
         while (hp1 <> BlockEnd) and (hp1.typ in [ait_label,ait_align]) do
           begin
+            prefetch(pointer(hp1.Next)^);
             case hp1.typ of
               ait_label:
                 begin
@@ -2396,13 +2400,13 @@ Unit AoptObj;
         ClearUsedRegs;
         while (p <> BlockEnd) Do
           begin
-            UpdateUsedRegs(tai(p.next));
+            prefetch(pointer(p.Next)^);
             if PrePeepHoleOptsCpu(p) then
               continue;
             if assigned(p) then
               begin
-                UpdateUsedRegs(p);
                 p:=tai(p.next);
+                UpdateUsedRegs(p);
               end;
           end;
       end;
@@ -2425,7 +2429,7 @@ Unit AoptObj;
 
           while Assigned(p) and (p <> BlockEnd) Do
             begin
-              prefetch(p.Next);
+              prefetch(pointer(p.Next)^);
 
               { I'am not sure why this is done, UsedRegs should reflect the register usage before the instruction
                 If an instruction needs the information of this, it can easily create a TempUsedRegs (FK)
@@ -2439,7 +2443,6 @@ Unit AoptObj;
               { Handle jump optimizations first }
               if JumpOptsAvailable and DoJumpOptimizations(p, stoploop) then
                 begin
-                  UpdateUsedRegs(p);
                   if FirstInstruction then
                     { Update StartPoint, since the old p was removed;
                       don't set FirstInstruction to False though, as
@@ -2481,6 +2484,7 @@ Unit AoptObj;
         ClearUsedRegs;
         while (p <> BlockEnd) Do
           begin
+            prefetch(pointer(p.Next)^);
             if PeepHoleOptPass2Cpu(p) then
               continue;
             if assigned(p) then
@@ -2497,13 +2501,13 @@ Unit AoptObj;
         ClearUsedRegs;
         while (p <> BlockEnd) Do
           begin
-            UpdateUsedRegs(tai(p.next));
+            prefetch(pointer(p.Next)^);
             if PostPeepHoleOptsCpu(p) then
               continue;
             if assigned(p) then
               begin
-                UpdateUsedRegs(p);
                 p:=tai(p.next);
+                UpdateUsedRegs(p);
               end;
           end;
       end;

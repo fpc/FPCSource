@@ -195,7 +195,12 @@ unit aoptbase;
 {$endif cpudelayslot}
              ((Current.typ = ait_label) And
               labelCanBeSkipped(Tai_Label(Current)))) Do
-        Current := tai(Current.Next);
+        begin
+          { this won't help the current loop, but it helps when returning from GetNextInstruction
+            as the next entry is probably already in the cache }
+          prefetch(pointer(Current.Next)^);
+          Current := Tai(Current.Next);
+        end;
       If Assigned(Current) And
          (Current.typ = ait_Marker) And
          (Tai_Marker(Current).Kind = mark_NoPropInfoStart) Then
@@ -203,7 +208,12 @@ unit aoptbase;
           While Assigned(Current) And
                 ((Current.typ <> ait_Marker) Or
                  (Tai_Marker(Current).Kind <> mark_NoPropInfoEnd)) Do
-            Current := Tai(Current.Next);
+            begin
+              { this won't help the current loop, but it helps when returning from GetNextInstruction
+                as the next entry is probably already in the cache }
+              prefetch(pointer(Current.Next)^);
+              Current := Tai(Current.Next);
+            end;
         End;
     Until Not(Assigned(Current)) Or
           (Current.typ <> ait_Marker) Or
