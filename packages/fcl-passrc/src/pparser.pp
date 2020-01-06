@@ -5924,9 +5924,9 @@ begin
             CloseBlock;
             CloseStatement(false);
           end;
-          // Case ... else without semicolon in front.
         end else if (CurBlock is TPasImplCaseStatement) then
         begin
+          // Case ... else without semicolon in front.
           UngetToken;
           CloseStatement(False);
           break;
@@ -6118,7 +6118,7 @@ begin
                   //writeln(i,'CASE value="',Expr,'" Token=',CurTokenText);
                   if CurBlock is TPasImplCaseStatement then
                     begin
-                    TPasImplCaseStatement(CurBlock).Expressions.Add(Left);
+                    TPasImplCaseStatement(CurBlock).AddExpression(Left);
                     Left:=nil;
                     end
                   else
