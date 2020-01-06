@@ -148,6 +148,7 @@ compiler/browcol.pas svneol=native#text/plain
 compiler/catch.pas svneol=native#text/plain
 compiler/ccharset.pas svneol=native#text/plain
 compiler/cclasses.pas svneol=native#text/plain
+compiler/cepiktimer.pas svneol=native#text/pascal
 compiler/cfidwarf.pas svneol=native#text/plain
 compiler/cfileutl.pas svneol=native#text/plain
 compiler/cg64f32.pas svneol=native#text/plain
