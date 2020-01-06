@@ -1297,6 +1297,7 @@ unit aoptx86;
                 p.Free;
                 p:=hp1;
                 result:=true;
+                exit;
               end
             else if GetNextInstruction(p,hp1) then
               begin
@@ -1318,6 +1319,7 @@ unit aoptx86;
                         asml.Remove(hp1);
                         hp1.Free;
                         result:=true;
+                        exit;
                       end
                     { special case:
                       vmova* reg1,reg2
@@ -1330,6 +1332,7 @@ unit aoptx86;
                         asml.Remove(hp1);
                         hp1.Free;
                         result:=true;
+                        exit;
                       end
                   end
             end;
