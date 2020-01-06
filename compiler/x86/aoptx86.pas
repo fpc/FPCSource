@@ -638,8 +638,19 @@ unit aoptx86;
               begin
                 if taicpu(p1).ops<>2 then
                   internalerror(2017042703);
-                Result := (taicpu(p1).oper[1]^.typ=top_reg) and reginop(reg,taicpu(p1).oper[1]^);
+                Result := (taicpu(p1).oper[1]^.typ=top_reg) and RegInOp(reg,taicpu(p1).oper[1]^);
               end;
+          {  VMOVSS and VMOVSD has two and three operand flavours, this cannot modelled by x86ins.dat
+             so fix it here (FK)
+          }
+          A_VMOVSS,
+          A_VMOVSD:
+            begin
+              Result := (taicpu(p1).ops=3) and (taicpu(p1).oper[2]^.typ=top_reg) and RegInOp(reg,taicpu(p1).oper[2]^);
+              exit;
+            end;
+          A_IMUL:
+            Result := (taicpu(p1).oper[taicpu(p1).ops-1]^.typ=top_reg) and RegInOp(reg,taicpu(p1).oper[taicpu(p1).ops-1]^);
           else
             ;
         end;
