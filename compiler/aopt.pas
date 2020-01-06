@@ -79,6 +79,7 @@ Unit aopt;
 
     uses
       cutils,
+      cprofile,
       globtype, globals,
       verbose,
       cpubase,
@@ -387,12 +388,14 @@ Unit aopt;
       var
         p : TAsmOptimizer;
       begin
+        ResumeTimer(ct_aopt);
         p:=casmoptimizer.Create(AsmL);
         p.Optimize;
 {$ifdef DEBUG_INSTRUCTIONREGISTERDEPENDENCIES}
         p.Debug_InsertInstrRegisterDependencyInfo;
 {$endif DEBUG_INSTRUCTIONREGISTERDEPENDENCIES}
-        p.free
+        p.free;
+        StopTimer;
       end;
 
 
