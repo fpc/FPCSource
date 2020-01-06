@@ -21,7 +21,27 @@
 }
 unit cprofile;
 
-{$define COMPILER_TIMINGS}
+{ to use this profile intrastructure, the epiktimer sources must be available, the official repository is currently:
+
+  https://github.com/graemeg/epiktimer.git
+
+  clone it into the same base directory fpc is checked out/cloned, i.e.
+  <base dir>/fpc/compiler
+  <base dir>/epiktimer
+
+  As the offical branch requires the use of the classes units, I recommend to
+  use my modified version of epiktimer which allows to disable the use of the classes unit,
+  this is done automatically by the compiler sources through a define. You can get my epiktimer source from
+
+  https://github.com/FPK/epiktimer.git
+
+  clone them into the same base directory fpc is checked out/cloned, i.e.
+  <base dir>/fpc/compiler
+  <base dir>/epiktimer
+
+                                                                           (FK)
+}
+{ $define COMPILER_TIMINGS}
 
 {$i fpcdefs.inc}
 
@@ -41,9 +61,17 @@ interface
 implementation
 
 {$ifndef COMPILER_TIMINGS}
+  procedure ResumeTimer(t : TCTimer);
+    begin
+    end;
+
+
+  procedure StopTimer;
+    begin
+    end;
 {$else COMPILER_TIMINGS}
   uses
-    epiktimer in '../../epiktimer/epiktimer.pas';
+    cepiktimer;
 
   var
     currenttimer : TCTimer;
@@ -73,9 +101,10 @@ initialization
     timers[t]:=TEpikTimer.Create;
   currenttimer:=ct_none;
 finalization
+  writeln(StdErr,'Compiler profiler results:');
   timers[currenttimer].Stop;
   for t:=low(timers) to high(timers) do
-    writeln(StdErr,t,' ',timers[t].Elapsed);
+    writeln(StdErr,'  ',t,' ',timers[t].Elapsed:0:9,' s');
   for t:=low(timers) to high(timers) do
     timers[t].Free;
 {$endif COMPILER_TIMINGS}
