@@ -1288,8 +1288,11 @@ implementation
         { by subtracting 1 here, we get the -1 into the register we need if the dyn. array is nil and the carry
           flag is set in this case, so we can jump depending on it
 
-          when loading the actual high value, we have to take care later of the decreased value }
-        hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,left.resultdef,1,left.location.register);
+          when loading the actual high value, we have to take care later of the decreased value
+
+          do not use the cgs, as they might emit dec instead of a sub instruction, however with dec the trick
+          we are using is not working as dec does not touch the carry flag }
+        current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_SUB,TCGSize2OpSize[def_cgsize(left.resultdef)],1,left.location.register));
         { volatility of the dyn. array refers to the volatility of the
           string pointer, not of the string data }
         cg.a_jmp_flags(current_asmdata.CurrAsmList,F_C,donelab);
