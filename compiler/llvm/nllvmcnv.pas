@@ -115,6 +115,8 @@ function tllvmtypeconvnode.first_int_to_real: tnode;
     if (llvmflag_constrained_fptoi_itofp in llvmversion_properties[current_settings.llvmversion]) and
        { these are converted to 80 bits first in any case }
        not(tfloatdef(resultdef).floattype in [s64currency,s64comp]) and
+       { no actuual int -> floating point conversion }
+       (torddef(left.resultdef).ordtype<>scurrency) and
        ((left.resultdef.size>=resultdef.size) or
         ((torddef(left.resultdef).ordtype=u64bit) and
          (tfloatdef(resultdef).floattype=s80real))) then
