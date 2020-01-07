@@ -695,6 +695,7 @@ implementation
                 pass via a temp in that case
               }
               if (fromsize.typ in [arraydef,recorddef]) or
+                 (is_set(fromsize) and not is_smallset(fromsize)) or
                  (tosize.size in [3,5,6,7]) then
                 begin
                   { store struct/array-in-register to memory }
@@ -901,7 +902,9 @@ implementation
       else
         begin
           if ((fromsize.typ in [arraydef,recorddef]) or
-              (tosize.typ in [arraydef,recorddef])) and
+              (tosize.typ in [arraydef,recorddef]) or
+              (is_set(fromsize) and not is_smallset(fromsize)) or
+              (is_set(tosize) and not is_smallset(tosize))) and
              (fromsize<>tosize) then
             begin
               if handle_agg_load_ref_anyreg(list,fromsize,tosize,sref,register,nil) then
