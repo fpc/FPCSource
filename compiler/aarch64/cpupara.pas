@@ -374,7 +374,7 @@ unit cpupara;
             else
               paralen:=tcgsize2size[def_cgsize(paradef)];
             loc:=getparaloc(p.proccalloption,paradef);
-            if (paradef.typ in [objectdef,arraydef,recorddef]) and
+            if (paradef.typ in [objectdef,arraydef,recorddef,setdef]) and
                not is_special_array(paradef) and
                (varspez in [vs_value,vs_const]) then
               paracgsize:=int_cgsize(paralen)
@@ -514,6 +514,7 @@ unit cpupara;
                  else
                    begin
                      if is_record(locdef) or
+                        is_set(locdef) or
                         ((locdef.typ=arraydef) and
                          not is_special_array(locdef)) then
                        begin
