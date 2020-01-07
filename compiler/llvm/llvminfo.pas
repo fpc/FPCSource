@@ -50,7 +50,8 @@ type
      llvmflag_memcpy_indiv_align,           { memcpy intrinsic supports separate alignment for source and dest }
      llvmflag_null_pointer_valid,           { supports "llvmflag_null_pointer_valid" attribute, which indicates access to nil should not be optimized as undefined behaviour }
      llvmflag_constrained_fptrunc_fpext,    { supports constrained fptrunc and fpext intrinsics }
-     llvmflag_constrained_fptoi_itofp       { supports constrained fptosi/fptoui/uitofp/sitofp instrinsics }
+     llvmflag_constrained_fptoi_itofp,      { supports constrained fptosi/fptoui/uitofp/sitofp instrinsics }
+     llvmflag_generic_constrained_si64tofp  { supports sitofp for 64 bit signed integers on all targets }
    );
    tllvmversionflags = set of tllvmversionflag;
 
