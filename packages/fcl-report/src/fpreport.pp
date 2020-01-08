@@ -5137,6 +5137,7 @@ begin
   FUseParentFont := True;
   FFont := TFPReportFont.Create;
   FFont.OnChanged:=@HandleFontChange;
+  ReassignParentFont;
   FCullThreshold := 75;
 end;
 
@@ -9439,6 +9440,7 @@ begin
   FBandPosition := bpNormal;
   FFont:=TFPReportFont.Create;
   FFont.OnChanged:=@HandleFontChange;
+  ReassignParentFont;
 end;
 
 destructor TFPReportCustomBand.Destroy;
