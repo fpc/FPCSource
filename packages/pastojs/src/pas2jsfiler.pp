@@ -4242,7 +4242,7 @@ end;
 procedure TPCUWriter.WriteProcedure(Obj: TJSONObject; El: TPasProcedure;
   aContext: TPCUWriterContext);
 var
-  DefProcMods: TProcedureModifiers;
+  DefProcMods, ImplProcMods, DeclProcMods: TProcedureModifiers;
   Scope: TPas2JSProcedureScope;
   Arr: TJSONArray;
   i: Integer;
@@ -4325,6 +4325,11 @@ begin
       // generic function: store pascal elements
       if Scope.BodyJS<>'' then
         RaiseMsg(20191120171941,El);
+      ImplProcMods:=El.Modifiers*PCUProcedureModifiersImplProc;
+      DeclProcMods:=DeclProc.Modifiers*PCUProcedureModifiersImplProc;
+      if ImplProcMods<>DeclProcMods then
+        WriteProcedureModifiers(Obj,'PMods',ImplProcMods,DeclProcMods);
+
       BodyObj:=TJSONObject.Create;
       Obj.Add('Body',BodyObj);
       WriteProcedureBody(BodyObj,El.Body,aContext);
@@ -6224,7 +6229,8 @@ var
   SubObj: TJSONObject;
   s: String;
 begin
-  if not ReadObject(Obj,PropName,SubObj,Parent) then exit;
+  if not ReadObject(Obj,PropName,SubObj,Parent) then
+    exit(nil);
   Result:=ReadElement(SubObj,Parent,aContext);
   if (Result is BaseClass) then exit;
   s:=GetObjName(Result);
@@ -8473,7 +8479,7 @@ begin
     Scope.DeclarationProc:=DeclProc; // no AddRef
 
     El.ProcType:=TPasProcedureType(CreateElement(TPasProcedureTypeClass(DeclProc.ProcType.ClassType),'',DeclProc));
-    El.Modifiers:=DeclProc.Modifiers*PCUProcedureModifiersImplProc;
+    El.Modifiers:=ReadProcedureModifiers(Obj,El,'PMods',DeclProc.Modifiers*PCUProcedureModifiersImplProc);
     end
   else
     begin

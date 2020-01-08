@@ -191,10 +191,10 @@ type
     procedure TestPC_Attributes;
 
     procedure TestPC_GenericClass; // ToDo
-    procedure TestPC_GenericFunction;
-    // ToDo: TPasImplAsmStatement
-    // TPasImplRepeatUntil
-    // TPasImplIfElse,
+    procedure TestPC_GenericFunction_Assign;
+    procedure TestPC_GenericFunction_Asm;
+    procedure TestPC_GenericFunction_RepeatUntil;
+    procedure TestPC_GenericFunction_IfElse;
     // TPasImplWhileDo,
     // TPasImplWithDo
     // TPasImplCaseOf
@@ -359,7 +359,9 @@ var
   RestParser: TPasParser;
   RestConverter: TPasToJSConverter;
   RestJSModule: TJSSourceElements;
+  InitialParserOptions: TPOptions;
 begin
+  InitialParserOptions:=Parser.Options;
   ConvertUnit;
 
   FPCUWriter:=TPCUWriter.Create;
@@ -403,7 +405,7 @@ begin
       RestResolver.AddObjFPCBuiltInIdentifiers(btAllJSBaseTypes,bfAllJSBaseProcs);
       RestResolver.OnFindUnit:=@OnRestResolverFindUnit;
       RestParser:=TPasParser.Create(RestScanner,RestFileResolver,RestResolver);
-      RestParser.Options:=po_tcmodules;
+      RestParser.Options:=InitialParserOptions;
       RestResolver.CurrentParser:=RestParser;
       ms.Position:=0;
       PCUReader.ReadPCU(RestResolver,ms);
@@ -853,29 +855,18 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredProcScope(const Path: string;
   Orig, Rest: TPas2JSProcedureScope);
 var
-  i: Integer;
+  DeclProc: TPasProcedure;
 begin
   CheckRestoredReference(Path+'.DeclarationProc',Orig.DeclarationProc,Rest.DeclarationProc);
   CheckRestoredReference(Path+'.ImplProc',Orig.ImplProc,Rest.ImplProc);
-  CheckRestoredScopeRefs(Path+'.References',Orig.References,Rest.References);
   if Orig.BodyJS<>Rest.BodyJS then
     CheckRestoredJS(Path+'.BodyJS',Orig.BodyJS,Rest.BodyJS);
 
-  CheckRestoredObject(Path+'.GlobalJS',Orig.GlobalJS,Rest.GlobalJS);
-  if Orig.GlobalJS<>nil then
-    begin
-    for i:=0 to Orig.GlobalJS.Count-1 do
-      begin
-      if i>=Rest.GlobalJS.Count then
-        Fail(Path+'.GlobalJS['+IntToStr(i)+'] missing: '+Orig.GlobalJS[i]);
-      CheckRestoredJS(Path+'.GlobalJS['+IntToStr(i)+']',Orig.GlobalJS[i],Rest.GlobalJS[i]);
-      end;
-    if Orig.GlobalJS.Count<Rest.GlobalJS.Count then
-      Fail(Path+'.GlobalJS['+IntToStr(i)+'] too much: '+Rest.GlobalJS[Orig.GlobalJS.Count]);
-    end;
+  CheckRestoredStringList(Path+'.GlobalJS',Orig.GlobalJS,Rest.GlobalJS);
 
   if Rest.DeclarationProc=nil then
     begin
+    DeclProc:=TPasProcedure(Rest.Element);
     AssertEquals(Path+'.ResultVarName',Orig.ResultVarName,Rest.ResultVarName);
     CheckRestoredReference(Path+'.OverriddenProc',Orig.OverriddenProc,Rest.OverriddenProc);
 
@@ -888,6 +879,10 @@ begin
     if Orig.ModeSwitches<>Rest.ModeSwitches then
       Fail(Path+'.ModeSwitches');
 
+    if Engine.ProcCanBePrecompiled(DeclProc) then
+      begin
+      CheckRestoredScopeRefs(Path+'.References',Orig.References,Rest.References);
+      end;
     //CheckRestoredIdentifierScope(Path,Orig,Rest);
     end
   else
@@ -1691,8 +1686,6 @@ end;
 
 procedure TCustomTestPrecompile.CheckRestoredProcedure(const Path: string;
   Orig, Rest: TPasProcedure);
-const
-  ImplMods = [pmInline,pmAssembler,pmNoReturn];
 var
   RestScope, OrigScope: TPas2JSProcedureScope;
   DeclProc: TPasProcedure;
@@ -1725,7 +1718,7 @@ begin
   else
     begin
     // ImplProc
-    if Orig.Modifiers*ImplMods<>Rest.Modifiers*ImplMods then
+    if Orig.Modifiers*PCUProcedureModifiersImplProc<>Rest.Modifiers*PCUProcedureModifiersImplProc then
       Fail(Path+'.Impl-Modifiers');
     end;
   // Body
@@ -2670,7 +2663,50 @@ begin
   WriteReadUnit;
 end;
 
-procedure TTestPrecompile.TestPC_GenericFunction;
+procedure TTestPrecompile.TestPC_GenericFunction_Assign;
+begin
+  StartUnit(false);
+  Parser.Options:=Parser.Options+[po_cassignments];
+  Add([
+  'interface',
+  'generic function Run<T>(a: T): T;',
+  'implementation',
+  'generic function Run<T>(a: T): T;',
+  'var b: T;',
+  '  var i: word;',
+  'begin',
+  '  b:=a;',
+  '  Result:=b;',
+  '  i+=1;',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_GenericFunction_Asm;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'generic function Run<T>(a: T): T;',
+  'generic function Fly<T>(b: T): T;',
+  'implementation',
+  'generic function Run<T>(a: T): T; assembler;',
+  'asm',
+  '  console.log(a);',
+  'end;',
+  'generic function Fly<T>(b: T): T;',
+  'begin',
+  '  asm end;',
+  '  asm',
+  '    console.log(b);',
+  '  end;',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_GenericFunction_RepeatUntil;
 begin
   StartUnit(false);
   Add([
@@ -2678,10 +2714,30 @@ begin
   'generic function Run<T>(a: T): T;',
   'implementation',
   'generic function Run<T>(a: T): T;',
-  'var b: T;',
   'begin',
-  '  b:=a;',
-  '  Result:=b;',
+  '  repeat until a>1;',
+  '  repeat',
+  '    Result:=a;',
+  '  until false',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_GenericFunction_IfElse;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'generic function Run<T>(a: T): T;',
+  'implementation',
+  'generic function Run<T>(a: T): T;',
+  'begin',
+  '  if true then ;',
+  '  if false then else ;',
+  '  if false then Result:=a else ;',
+  '  if false then else Result:=a;',
+  '  if true then a:=a else Result:=a;',
   'end;',
   '']);
   WriteReadUnit;
