@@ -7734,6 +7734,7 @@ begin
     Report := E.Report;
     Font.Assign(E.Font);
     ColumnCount := E.ColumnCount;
+    ColumnGap := E.ColumnGap;
   end;
   inherited Assign(Source);
 end;
