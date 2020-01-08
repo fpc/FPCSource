@@ -28,6 +28,9 @@ Unit System;
 {$define FPC_IS_SYSTEM}
 {$define HAS_CMDLINE}
 {$define USE_NOTHREADMANAGER}
+{$ifdef CPUM68K}
+{$define FPC_68K_SYSTEM_HAS_FPU_EXCEPTIONS}
+{$endif}
 
 {$i osdefs.inc}
 
