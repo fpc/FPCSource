@@ -2526,6 +2526,9 @@ SVN_RTL_REV_STR=$(shell $(SVNVERSION) -c ../rtl)
 SVN_PACKAGES_REV_STR=$(shell $(SVNVERSION) -c ../packages)
 endif
 endif
+ifeq ($(TEST_COMMENT),)
+TEST_COMMENT=$(TEST_OPT)
+endif
 $(TEST_OUTPUTDIR)/dbdigest.cfg:
 	$(ECHOREDIR) OS=$(TEST_OS_TARGET) > $(TEST_OUTPUTDIR)/dbdigest.cfg
 	$(ECHOREDIR) CPU=$(TEST_CPU_TARGET) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
@@ -2536,7 +2539,7 @@ ifneq ($(TEST_USE_LONGLOG),)
 endif
 	$(ECHOREDIR) Submitter=$(TEST_USER) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 	$(ECHOREDIR) Machine=$(TEST_HOSTNAME) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
-	$(ECHOREDIR) Comment=$(TEST_OPT) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) Comment=$(TEST_COMMENT) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 ifneq ($(TEST_DATETIME),)
 	$(ECHOREDIR) Date=$(TEST_DATETIME) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 endif
