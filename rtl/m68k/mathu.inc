@@ -79,6 +79,8 @@ const
   FPU68K_EXCEPT_SNAN       = 1 shl (FPU68K_EXCEPT_MASK_SHIFT + 6);
   FPU68K_EXCEPT_BSUN       = 1 shl (FPU68K_EXCEPT_MASK_SHIFt + 7);
 
+  FPU68K_AE_MASK           = $F8;
+
 
 function GetExceptionMask: TFPUExceptionMask;
 begin
@@ -116,6 +118,8 @@ begin
       mode:=mode or FPCToFPUExceptionFlags[e];
 
   SetFPCR((GetFPCR and not FPU68K_EXCEPT_MASK) or (mode and FPU68K_EXCEPT_MASK));
+  { Wipe out any previous exception }
+  SetFPSR(GetFPSR and (not (FPU68K_AE_MASK or FPU68K_EXCEPT_MASK)));
   softfloat_exception_mask:=mask;
 end;
 
