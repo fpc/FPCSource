@@ -42,6 +42,7 @@ unit optutils;
     procedure SetNodeSucessors(p,last : tnode);
     procedure PrintDFAInfo(var f : text;p : tnode);
     procedure PrintIndexedNodeSet(var f : text;s : TIndexedNodeSet);
+
     { determines the optinfo.defsum field for the given node
       this field contains a sum of all expressions defined by
       all child expressions reachable through p
@@ -50,6 +51,12 @@ unit optutils;
 
     { calculates/estimates the field execution weight of optinfo }
     procedure CalcExecutionWeights(p : tnode;Initial : longint = 100);
+
+    { determines the optinfo.defsum field for the given node
+      this field contains a sum of all expressions defined by
+      all child expressions reachable through p
+    }
+    procedure CalcUseSum(p : tnode);
 
     { returns true, if n is a valid node and has life info }
     function has_life_info(n : tnode) : boolean;
@@ -357,6 +364,8 @@ unit optutils;
           end;
       end;
 
+    var
+      usesum : TDFASet;
 
     function SetExecutionWeight(var n: tnode; arg: pointer): foreachnoderesult;
       var
@@ -401,6 +410,26 @@ unit optutils;
       begin
         if assigned(p) then
           foreachnodestatic(pm_postprocess,p,@SetExecutionWeight,Pointer(@Initial));
+      end;
+
+
+    function adduse(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        if assigned(n.optinfo) then
+          DFASetIncludeSet(usesum,n.optinfo^.use);
+        Result:=fen_false;
+      end;
+
+
+    procedure CalcUseSum(p : tnode);
+      begin
+        p.allocoptinfo;
+        if not assigned(p.optinfo^.usesum) then
+          begin
+            usesum:=nil;
+            foreachnodestatic(pm_postprocess,p,@adduse,nil);
+            p.optinfo^.usesum:=usesum;
+          end;
       end;
 
 
