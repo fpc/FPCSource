@@ -343,12 +343,12 @@ unit optutils;
       end;
 
     var
-      sum : TDFASet;
+      defsum : TDFASet;
 
     function adddef(var n: tnode; arg: pointer): foreachnoderesult;
       begin
         if assigned(n.optinfo) then
-          DFASetIncludeSet(sum,n.optinfo^.def);
+          DFASetIncludeSet(defsum,n.optinfo^.def);
         Result:=fen_false;
       end;
 
@@ -358,9 +358,9 @@ unit optutils;
         p.allocoptinfo;
         if not assigned(p.optinfo^.defsum) then
           begin
-            sum:=nil;
+            defsum:=nil;
             foreachnodestatic(pm_postprocess,p,@adddef,nil);
-            p.optinfo^.defsum:=sum;
+            p.optinfo^.defsum:=defsum;
           end;
       end;
 
