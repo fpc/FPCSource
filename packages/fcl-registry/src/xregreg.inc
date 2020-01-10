@@ -116,7 +116,11 @@ end;
 procedure TRegistry.SysRegCreate;
 var s : string;
 begin
+  FStringSizeIncludesNull:=False;
   s:=includetrailingpathdelimiter(GetAppConfigDir(GlobalXMLFile));
+  {$ifdef XMLRegfile_in_CurDir}
+  s:='.' + PathDelim;
+  {$endif}
   ForceDirectories(s);
   FSysData:=TXMLRegistryInstance.GetXMLRegistry(s+XFileName);
   TXmlRegistry(FSysData).AutoFlush:=False;
@@ -130,24 +134,24 @@ begin
   TXMLRegistryInstance.FreeXMLRegistry(TXMLRegistry(FSysData));
 end;
 
-function TRegistry.SysCreateKey(const Key: String): Boolean;
+function TRegistry.SysCreateKey(Key: UnicodeString): Boolean;
 
 begin
   Result:=TXmlRegistry(FSysData).CreateKey(Key);
 end;
 
-function TRegistry.DeleteKey(const Key: string): Boolean;
+function TRegistry.DeleteKey(const Key: UnicodeString): Boolean;
 
 begin
   Result:=TXMLRegistry(FSysData).DeleteKey(Key);
 end;
 
-function TRegistry.DeleteValue(const Name: string): Boolean;
+function TRegistry.DeleteValue(const Name: UnicodeString): Boolean;
 begin
   Result:=TXmlRegistry(FSysData).DeleteValue(Name);
 end;
 
-function TRegistry.SysGetData(const Name: String; Buffer: Pointer;
+function TRegistry.SysGetData(const Name: UnicodeString; Buffer: Pointer;
           BufSize: Integer; Out RegData: TRegDataType): Integer;
 
 Var
@@ -160,7 +164,7 @@ begin
     Result:=-1;
 end;
 
-function TRegistry.GetDataInfo(const ValueName: string; out Value: TRegDataInfo): Boolean;
+function TRegistry.GetDataInfo(const ValueName: UnicodeString; out Value: TRegDataInfo): Boolean;
 
 Var
   Info : TDataInfo;
@@ -181,7 +185,7 @@ begin
       end;
 end;
 
-function TRegistry.GetKey(const Key: string): HKEY;
+function TRegistry.GetKey(Key: UnicodeString): HKEY;
 begin
   Result := 0;
 end;
@@ -205,90 +209,93 @@ begin
       end;
 end;
 
-function TRegistry.KeyExists(const Key: string): Boolean;
+function TRegistry.KeyExists(const Key: UnicodeString): Boolean;
 begin
   Result:=TXmlRegistry(FSysData).KeyExists(Key);
 end;
 
-function TRegistry.LoadKey(const Key, FileName: string): Boolean;
+function TRegistry.LoadKey(const Key, FileName: UnicodeString): Boolean;
 begin
   Result := False;
 end;
 
-function TRegistry.OpenKey(const Key: string; CanCreate: Boolean): Boolean;
+function TRegistry.OpenKey(const Key: UnicodeString; CanCreate: Boolean): Boolean;
 
 begin
   Result:=TXmlRegistry(FSysData).SetKey(Key,CanCreate);
   FCurrentKey:=1;
 end;
 
-function TRegistry.OpenKeyReadOnly(const Key: string): Boolean;
+function TRegistry.OpenKeyReadOnly(const Key: UnicodeString): Boolean;
 
 begin
   Result:=TXmlRegistry(FSysData).SetKey(Key,False);
 end;
 
-function TRegistry.RegistryConnect(const UNCName: string): Boolean;
+function TRegistry.RegistryConnect(const UNCName: UnicodeString): Boolean;
 begin
   Result := True;
 end;
 
-function TRegistry.ReplaceKey(const Key, FileName, BackUpFileName: string): Boolean;
+function TRegistry.ReplaceKey(const Key, FileName, BackUpFileName: UnicodeString): Boolean;
 begin
   Result := False;
 end;
 
-function TRegistry.RestoreKey(const Key, FileName: string): Boolean;
+function TRegistry.RestoreKey(const Key, FileName: UnicodeString): Boolean;
 begin
   Result := False;
 end;
 
-function TRegistry.SaveKey(const Key, FileName: string): Boolean;
+function TRegistry.SaveKey(const Key, FileName: UnicodeString): Boolean;
 begin
   Result := False;
 end;
 
-function TRegistry.UnLoadKey(const Key: string): Boolean;
+function TRegistry.UnLoadKey(const Key: UnicodeString): Boolean;
 begin
   Result := False;
 end;
 
-function TRegistry.ValueExists(const Name: string): Boolean;
+function TRegistry.ValueExists(const Name: UnicodeString): Boolean;
 begin
   Result := TXmlRegistry(FSysData).ValueExists(Name);
 end;
 
-procedure TRegistry.ChangeKey(Value: HKey; const Path: string);
+procedure TRegistry.ChangeKey(Value: HKey; const Path: UnicodeString);
 begin
 
 end;
 
-procedure TRegistry.GetKeyNames(Strings: TStrings);
+function TRegistry.GetKeyNames: TUnicodeStringArray;
 begin
-  TXmlRegistry(FSysData).EnumSubKeys(Strings);
+  Result:=TXmlRegistry(FSysData).EnumSubKeys;
 end;
 
-procedure TRegistry.GetValueNames(Strings: TStrings);
+function TRegistry.GetValueNames: TUnicodeStringArray;
 begin
-  TXmlRegistry(FSysData).EnumValues(Strings);
+  Result := TXmlRegistry(FSysData).EnumValues;
 end;
 
 
-function TRegistry.SysPutData(const Name: string; Buffer: Pointer;
+function TRegistry.SysPutData(const Name: UnicodeString; Buffer: Pointer;
   BufSize: Integer; RegData: TRegDataType): Boolean;
 
 Var
   DataType : TDataType;
 
 begin
+  //writeln('TRegistry.SysPutData: Name=',Name,', RegData=',RegData,', BufSize=',BufSize);
   DataType:=RegDataTypeToXmlDataType(RegData);
+
   Result:=TXMLRegistry(FSysData).SetValueDataUnicode(Name,DataType,Buffer^,BufSize);
 end;
 
-procedure TRegistry.RenameValue(const OldName, NewName: string);
+procedure TRegistry.RenameValue(const OldName, NewName: UnicodeString);
 begin
   TXMLRegistry(FSysData).RenameValue(OldName,NewName);
 end;
+
 
 procedure TRegistry.SetCurrentKey(Value: HKEY);
 begin
@@ -298,7 +305,7 @@ end;
 procedure TRegistry.SetRootKey(Value: HKEY);
 
 Var
-  S: String;
+  S: UnicodeString;
 
 begin
   If (Value=HKEY_CLASSES_ROOT) then
@@ -347,3 +354,5 @@ begin
     TXMLRegistry(FSysData).SetRootKey(TXMLRegistry(FSysData).RootKey);
   end;
 end;
+
+
