@@ -22,7 +22,7 @@ unit fpreport;
 // Global debugging
 { $define gdebug}
 // Separate for aggregate variables
-{$define gdebuga}
+{ $define gdebuga}
 
 interface
 
@@ -1676,6 +1676,7 @@ type
     Procedure SaveDataToNames;
     Procedure RestoreDataFromNames;
     procedure WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
+    procedure WriteRTElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil);
     procedure ReadElement(AReader: TFPReportStreamer); override;
     procedure AddPage(APage: TFPReportCustomPage);
     procedure RemovePage(APage: TFPReportCustomPage);
@@ -3305,9 +3306,9 @@ begin
   if (aNode is TFPExprVariable) then
     begin
     DS:=ExtractWord(1,TFPExprVariable(ANode).Identifier.Name,['.']);
-    If AData.FindReportData(DS)<>Nil then
+      If AData.FindReportData(DS)<>Nil then
       FDataName:=DS;
-    end
+      end
   else if (ANode is TFPExprFunction) then
     begin
     I:=0;
@@ -3643,7 +3644,7 @@ begin
     begin
     WriteString('Name',Self.Name);
     WriteString('DataType',ResultTypeName(DataType));
-    WriteString('Value',Value);
+//    WriteString('Value',Value);
     WriteString('Expression',Expression);
     WriteString('ResetValueExpression',ResetValueExpression);
     WriteString('ResetType',GetEnumName(TypeInfo(TFPReportResetType),Ord(ResetType)));
@@ -3668,7 +3669,7 @@ begin
       DataType:=rtString
     else
       DataType:=TResultType(I);
-    Value:=ReadString('Value','');
+//    Value:=ReadString('Value','');
     Expression:=ReadString('Expression','');
     ResetValueExpression:=ReadString('ResetValueExpression','');
     S:=ReadString('ResetType','');
@@ -8724,6 +8725,39 @@ begin
     AWriter.PopElement;
   end;
   // TODO: Implement writing OnRenderReport, OnBeginReport, OnEndReport
+end;
+
+procedure TFPCustomReport.WriteRTElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement);
+var
+  i: integer;
+begin
+  // ignore AOriginal here as we don't support whole report diffs, only element diffs
+  AWriter.PushElement('Report');
+  try
+    inherited WriteElement(AWriter, AOriginal);
+    // local properties
+    AWriter.WriteString('Title', Title);
+    AWriter.WriteString('Author', Author);
+    AWriter.WriteBoolean('TwoPass',TwoPass);
+    AWriter.WriteDateTime('DateCreated', DateCreated);
+    // now the pages
+    AWriter.PushElement('Pages');
+    try
+      for i := 0 to RTObjects.Count - 1 do
+      begin
+        AWriter.PushElement(IntToStr(i)); // use page index as identifier
+        try
+          TFPReportComponent(RTObjects[i]).WriteElement(AWriter);
+        finally
+          AWriter.PopElement;
+        end;
+      end;
+    finally
+      AWriter.PopElement;
+    end;
+  finally
+    AWriter.PopElement;
+  end;
 end;
 
 procedure TFPCustomReport.ReadElement(AReader: TFPReportStreamer);
