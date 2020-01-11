@@ -1139,6 +1139,7 @@ implementation
     procedure tcgprocinfo.OptimizeNodeTree;
       var
         i : integer;
+        RedoDFA: Boolean;
         {RedoDFA : boolean;}
       begin
        { do this before adding the entry code else the tail recursion recognition won't work,
@@ -1158,6 +1159,24 @@ implementation
            dfabuilder:=TDFABuilder.Create;
            dfabuilder.createdfainfo(code);
            include(flags,pi_dfaavailable);
+           RedoDFA:=false;
+
+           if (cs_opt_loopstrength in current_settings.optimizerswitches)
+             { our induction variable strength reduction doesn't like
+               for loops with more than one entry }
+             and not(pi_has_label in flags) then
+             begin
+               RedoDFA:=OptimizeInductionVariables(code);
+             end;
+
+           RedoDFA:=ConvertForLoops(code) or RedoDFA;
+
+           if RedoDFA then
+             begin
+               dfabuilder.resetdfainfo(code);
+               dfabuilder.createdfainfo(code);
+               include(flags,pi_dfaavailable);
+             end;
 
            { when life info is available, we can give more sophisticated warning about uninitialized
              variables ...
@@ -1186,18 +1205,14 @@ implementation
                        tabstractnormalvarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).noregvarinitneeded:=true
                    end;
                end;
+         end
+       else
+         begin
+           ConvertForLoops(code);
          end;
 
        if (pi_dfaavailable in flags) and (cs_opt_dead_store_eliminate in current_settings.optimizerswitches) then
          do_optdeadstoreelim(code);
-
-       if (cs_opt_loopstrength in current_settings.optimizerswitches)
-         { our induction variable strength reduction doesn't like
-           for loops with more than one entry }
-         and not(pi_has_label in flags) then
-         begin
-           {RedoDFA:=}OptimizeInductionVariables(code);
-         end;
 
        if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and
          (procdef.proctypeoption in [potype_operator,potype_procedure,potype_function]) and
