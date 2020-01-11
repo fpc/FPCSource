@@ -266,7 +266,7 @@ unit optloop;
                 { no aliasing? }
                 result:=not(tabstractvarsym(tloadnode(expr).symtableentry).addr_taken) and
                 { no definition in the loop? }
-                  not(DFASetIn(loop.optinfo^.defsum,expr.optinfo^.index));
+                  not(DFASetIn(tfornode(loop).t2.optinfo^.defsum,expr.optinfo^.index));
             end;
           vecn:
             begin
@@ -375,8 +375,7 @@ unit optloop;
 
                       addstatement(initcodestatements,tempnode);
                       addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode),
-                        caddnode.create(muln,
-                          caddnode.create(subn,tfornode(arg).right.getcopy,cordconstnode.create(1,tfornode(arg).right.resultdef,false)),
+                        caddnode.create(muln,tfornode(arg).right.getcopy,
                           taddnode(n).right.getcopy)
                         )
                       );
@@ -396,6 +395,7 @@ unit optloop;
             begin
               { is the index the counter variable? }
               if not(is_special_array(tvecnode(n).left.resultdef)) and
+                not(is_packed_array(tvecnode(n).left.resultdef)) and
                 (tvecnode(n).right.isequal(tfornode(arg).left) or
                  { fpc usually creates a type cast to access an array }
                  ((tvecnode(n).right.nodetype=typeconvn) and

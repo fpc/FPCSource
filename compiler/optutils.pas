@@ -348,7 +348,14 @@ unit optutils;
     function adddef(var n: tnode; arg: pointer): foreachnoderesult;
       begin
         if assigned(n.optinfo) then
-          DFASetIncludeSet(defsum,n.optinfo^.def);
+          begin
+            DFASetIncludeSet(defsum,n.optinfo^.def);
+            { for nodes itself do not necessarily expose the definition of the counter as
+              the counter might be undefined after the for loop, so include here the counter
+              explicitly }
+            if (n.nodetype=forn) and assigned(tfornode(n).left.optinfo) then
+              DFASetInclude(defsum,tfornode(n).left.optinfo^.index);
+          end;
         Result:=fen_false;
       end;
 
