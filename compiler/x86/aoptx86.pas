@@ -3386,30 +3386,10 @@ unit aoptx86;
               { OptPass2MOV will now exit but will be called again if OptPass1MOV
                 returned True and the instruction is still a MOV, thus checking
                 the optimisations below }
-            else
-              { Since OptPass2JMP returned false, no optimisations were done to
-                the jump. Additionally, a label will definitely follow the jump
-                (although it may have become dead), so skip ahead as far as
-                possible }
-              begin
-                while (p <> hp1) do
-                  begin
-                    { Nothing changed between the MOV and the JMP, so
-                      don't bother with "UpdateUsedRegsAndOptimize" }
-                    UpdateUsedRegs(p);
-                    p := tai(p.Next);
-                  end;
 
-                { Use "UpdateUsedRegsAndOptimize" here though, because the
-                  label might now be dead and can be stripped out }
-                p := tai(UpdateUsedRegsAndOptimize(hp1).Next);
-
-                { If p is a label, then Result will be False and program flow
-                  will move onto the next list entry in "PeepHoleOptPass2" }
-                if (p = BlockEnd) or not (p.typ in [ait_align, ait_label]) then
-                  Result := True;
-
-              end;
+            { If OptPass2JMP returned False, no optimisations were done to
+              the jump and there are no further optimisations that can be done
+              to the MOV instruction on this pass }
           end
         else if MatchOpType(taicpu(p),top_reg,top_reg) and
 {$ifdef x86_64}
@@ -4027,7 +4007,8 @@ unit aoptx86;
 
     function TX86AsmOptimizer.OptPass2Jmp(var p : tai) : boolean;
       var
-        hp1, hp2 : tai;
+        hp1, hp2, hp3: tai;
+        OperIdx: Integer;
       begin
         result:=false;
         if (taicpu(p).oper[0]^.typ=top_ref) and (taicpu(p).oper[0]^.ref^.refaddr=addr_full) and (taicpu(p).oper[0]^.ref^.base=NR_NO) and
@@ -4077,7 +4058,27 @@ unit aoptx86;
                         if Assigned(hp2) and MatchInstruction(hp2, A_RET, [S_NO]) then
                           begin
                             { Duplicate the MOV instruction }
-                            asml.InsertBefore(hp1.getcopy, p);
+                            hp3:=tai(hp1.getcopy);
+                            asml.InsertBefore(hp3, p);
+
+                            { Make sure the compiler knows about any final registers written here }
+                            for OperIdx := 0 to 1 do
+                              with taicpu(hp3).oper[OperIdx]^ do
+                                begin
+                                  case typ of
+                                    top_ref:
+                                      begin
+                                        if (ref^.base <> NR_NO) and (ref^.base <> NR_RIP) then
+                                          AllocRegBetween(ref^.base, hp3, tai(p.Next), UsedRegs);
+                                        if (ref^.index <> NR_NO) and (ref^.index <> NR_RIP) then
+                                          AllocRegBetween(ref^.index, hp3, tai(p.Next), UsedRegs);
+                                      end;
+                                    top_reg:
+                                      AllocRegBetween(reg, hp3, tai(p.Next), UsedRegs);
+                                    else
+                                      ;
+                                  end;
+                                end;
 
                             { Now change the jump into a RET instruction }
                             ConvertJumpToRET(p, hp2);
@@ -4085,7 +4086,7 @@ unit aoptx86;
                           end;
                       end;
                   else
-                    { Do nothing };
+                    ;
                 end;
               end;
           end;
