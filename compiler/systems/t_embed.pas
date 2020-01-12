@@ -1266,13 +1266,15 @@ var
   StaticStr,
   GCSectionsStr,
   DynLinkStr,
-  StripStr: string;
+  StripStr,
+  FixedExeFileName: string;
 begin
   { for future use }
   StaticStr:='';
   StripStr:='';
   mapstr:='';
   DynLinkStr:='';
+  FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
 
   GCSectionsStr:='--gc-sections';
   //if not(cs_link_extern in current_settings.globalswitches) then
@@ -1290,7 +1292,7 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if not(cs_link_on_target in current_settings.globalswitches) then
    begin
-    Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')))));
+    Replace(cmdstr,'$EXE',FixedExeFileName);
     Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
@@ -1300,7 +1302,7 @@ begin
    end
   else
    begin
-    Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf'))));
+    Replace(cmdstr,'$EXE',FixedExeFileName);
     Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
@@ -1316,17 +1318,17 @@ begin
 
 { Post process }
   if success and not(cs_link_nolink in current_settings.globalswitches) then
-    success:=PostProcessExecutable(current_module.exefilename+'.elf',false);
+    success:=PostProcessExecutable(FixedExeFileName,false);
 
   if success and (target_info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded]) then
     begin
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
-        ChangeFileExt(current_module.exefilename,'.elf')+' '+
-        ChangeFileExt(current_module.exefilename,'.hex'),true,false);
+        FixedExeFileName+' '+
+        maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.hex'))),true,false);
       if success then
         success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
-          ChangeFileExt(current_module.exefilename,'.elf')+' '+
-          ChangeFileExt(current_module.exefilename,'.bin'),true,false);
+          FixedExeFileName+' '+
+          maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
     end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
