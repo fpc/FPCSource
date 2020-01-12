@@ -3363,9 +3363,10 @@ unit aoptx86;
        end;
 
       var
-       hp1,hp2: tai;
-{$ifdef x86_64}
-       hp3: tai;
+       hp1,hp2,hp3: tai;
+{$ifndef x86_64}
+       hp4: tai;
+       OperIdx: Integer;
 {$endif x86_64}
       begin
         Result:=false;
@@ -3509,6 +3510,291 @@ unit aoptx86;
             p := hp1;
             Result:=true;
             exit;
+          end
+        else if MatchOpType(taicpu(p),top_reg,top_reg) and
+          MatchInstruction(hp1, A_SAR, []) then
+          begin
+            if MatchOperand(taicpu(hp1).oper[0]^, 31) then
+              begin
+                { the use of %edx also covers the opsize being S_L }
+                if MatchOperand(taicpu(hp1).oper[1]^, NR_EDX) then
+                  begin
+                    { Note it has to be specifically "movl %eax,%edx", and those specific sub-registers }
+                    if (taicpu(p).oper[0]^.reg = NR_EAX) and
+                      (taicpu(p).oper[1]^.reg = NR_EDX) then
+                      begin
+                        { Change:
+                            movl %eax,%edx
+                            sarl $31,%edx
+                          To:
+                            cltd
+                        }
+                        DebugMsg(SPeepholeOptimization + 'MovSar2Cltd', p);
+                        Asml.Remove(hp1);
+                        hp1.Free;
+                        taicpu(p).opcode := A_CDQ;
+                        taicpu(p).opsize := S_NO;
+                        taicpu(p).clearop(1);
+                        taicpu(p).clearop(0);
+                        taicpu(p).ops:=0;
+                        Result := True;
+                      end
+                    else if (cs_opt_size in current_settings.optimizerswitches) and
+                      (taicpu(p).oper[0]^.reg = NR_EDX) and
+                      (taicpu(p).oper[1]^.reg = NR_EAX) then
+                      begin
+                        { Change:
+                            movl %edx,%eax
+                            sarl $31,%edx
+                          To:
+                            movl %edx,%eax
+                            cltd
+
+                          Note that this creates a dependency between the two instructions,
+                            so only perform if optimising for size.
+                        }
+                        DebugMsg(SPeepholeOptimization + 'MovSar2MovCltd', p);
+                        taicpu(hp1).opcode := A_CDQ;
+                        taicpu(hp1).opsize := S_NO;
+                        taicpu(hp1).clearop(1);
+                        taicpu(hp1).clearop(0);
+                        taicpu(hp1).ops:=0;
+                      end;
+{$ifndef x86_64}
+                  end
+                { Don't bother if CMOV is supported, because a more optimal
+                  sequence would have been generated for the Abs() intrinsic }
+                else if not(CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) and
+                  { the use of %eax also covers the opsize being S_L }
+                  MatchOperand(taicpu(hp1).oper[1]^, NR_EAX) and
+                  (taicpu(p).oper[0]^.reg = NR_EAX) and
+                  (taicpu(p).oper[1]^.reg = NR_EDX) and
+                  GetNextInstruction(hp1, hp2) and
+                  MatchInstruction(hp2, A_XOR, [S_L]) and
+                  MatchOperand(taicpu(hp2).oper[0]^, NR_EAX) and
+                  MatchOperand(taicpu(hp2).oper[1]^, NR_EDX) and
+
+                  GetNextInstruction(hp2, hp3) and
+                  MatchInstruction(hp3, A_SUB, [S_L]) and
+                  MatchOperand(taicpu(hp3).oper[0]^, NR_EAX) and
+                  MatchOperand(taicpu(hp3).oper[1]^, NR_EDX) then
+                  begin
+                    { Change:
+                        movl %eax,%edx
+                        sarl $31,%eax
+                        xorl %eax,%edx
+                        subl %eax,%edx
+                        (Instruction that uses %edx)
+                        (%eax deallocated)
+                        (%edx deallocated)
+                      To:
+                        cltd
+                        xorl %edx,%eax  <-- Note the registers have swapped
+                        subl %edx,%eax
+                        (Instruction that uses %eax) <-- %eax rather than %edx
+                    }
+
+                    TransferUsedRegs(TmpUsedRegs);
+                    UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                    UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
+                    UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
+
+                    if not RegUsedAfterInstruction(NR_EAX, hp3, TmpUsedRegs) then
+                      begin
+                        if GetNextInstruction(hp3, hp4) and
+                          not RegModifiedByInstruction(NR_EDX, hp4) and
+                          not RegUsedAfterInstruction(NR_EDX, hp4, TmpUsedRegs) then
+                          begin
+                            DebugMsg(SPeepholeOptimization + 'abs() intrinsic optimisation', p);
+
+                            taicpu(p).opcode := A_CDQ;
+                            taicpu(p).clearop(1);
+                            taicpu(p).clearop(0);
+                            taicpu(p).ops:=0;
+
+                            AsmL.Remove(hp1);
+                            hp1.Free;
+
+                            taicpu(hp2).loadreg(0, NR_EDX);
+                            taicpu(hp2).loadreg(1, NR_EAX);
+
+                            taicpu(hp3).loadreg(0, NR_EDX);
+                            taicpu(hp3).loadreg(1, NR_EAX);
+
+                            AllocRegBetween(NR_EAX, hp3, hp4, TmpUsedRegs);
+                            { Convert references in the following instruction (hp4) from %edx to %eax }
+                            for OperIdx := 0 to taicpu(hp4).ops - 1 do
+                              with taicpu(hp4).oper[OperIdx]^ do
+                                case typ of
+                                  top_reg:
+                                    if reg = NR_EDX then
+                                      reg := NR_EAX;
+                                  top_ref:
+                                    begin
+                                      if ref^.base = NR_EDX then
+                                        ref^.base := NR_EAX;
+                                      if ref^.index = NR_EDX then
+                                        ref^.index := NR_EAX;
+                                    end;
+                                  else
+                                    ;
+                                end;
+                          end;
+                      end;
+{$else x86_64}
+                  end;
+              end
+            else if MatchOperand(taicpu(hp1).oper[0]^, 63) and
+              { the use of %rdx also covers the opsize being S_Q }
+              MatchOperand(taicpu(hp1).oper[1]^, NR_RDX) then
+              begin
+                { Note it has to be specifically "movq %rax,%rdx", and those specific sub-registers }
+                if (taicpu(p).oper[0]^.reg = NR_RAX) and
+                  (taicpu(p).oper[1]^.reg = NR_RDX) then
+                  begin
+                    { Change:
+                        movq %rax,%rdx
+                        sarq $63,%rdx
+                      To:
+                        cqto
+                    }
+                    DebugMsg(SPeepholeOptimization + 'MovSar2Cqto', p);
+                    Asml.Remove(hp1);
+                    hp1.Free;
+                    taicpu(p).opcode := A_CQO;
+                    taicpu(p).opsize := S_NO;
+                    taicpu(p).clearop(1);
+                    taicpu(p).clearop(0);
+                    taicpu(p).ops:=0;
+                    Result := True;
+                  end
+                else if (cs_opt_size in current_settings.optimizerswitches) and
+                  (taicpu(p).oper[0]^.reg = NR_RDX) and
+                  (taicpu(p).oper[1]^.reg = NR_RAX) then
+                  begin
+                    { Change:
+                        movq %rdx,%rax
+                        sarq $63,%rdx
+                      To:
+                        movq %rdx,%rax
+                        cqto
+
+                      Note that this creates a dependency between the two instructions,
+                        so only perform if optimising for size.
+                    }
+                    DebugMsg(SPeepholeOptimization + 'MovSar2MovCqto', p);
+                    taicpu(hp1).opcode := A_CQO;
+                    taicpu(hp1).opsize := S_NO;
+                    taicpu(hp1).clearop(1);
+                    taicpu(hp1).clearop(0);
+                    taicpu(hp1).ops:=0;
+{$endif x86_64}
+                  end;
+              end;
+          end
+        else if MatchInstruction(hp1, A_MOV, []) and
+          (taicpu(hp1).oper[1]^.typ = top_reg) then
+          { Though "GetNextInstruction" could be factored out, along with
+            the instructions that depend on hp2, it is an expensive call that
+            should be delayed for as long as possible, hence we do cheaper
+            checks first that are likely to be False. [Kit] }
+          begin
+
+            if MatchOperand(taicpu(p).oper[1]^, NR_EDX) and
+              (
+                (
+                  (taicpu(hp1).oper[1]^.reg = NR_EAX) and
+                  (
+                    MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[0]^) or
+                    MatchOperand(taicpu(hp1).oper[0]^, NR_EDX)
+                  )
+                ) or
+                (
+                  (taicpu(hp1).oper[1]^.reg = NR_EDX) and
+                  (
+                    MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[0]^) or
+                    MatchOperand(taicpu(hp1).oper[0]^, NR_EAX)
+                  )
+                )
+              ) and
+              GetNextInstruction(hp1, hp2) and
+              MatchInstruction(hp2, A_SAR, []) and
+              MatchOperand(taicpu(hp2).oper[0]^, 31) then
+              begin
+                if MatchOperand(taicpu(hp2).oper[1]^, NR_EDX) then
+                  begin
+                    { Change:
+                        movl r/m,%edx         movl r/m,%eax         movl r/m,%edx         movl r/m,%eax
+                        movl %edx,%eax   or   movl %eax,%edx   or   movl r/m,%eax    or   movl r/m,%edx
+                        sarl $31,%edx         sarl $31,%edx         sarl $31,%edx         sarl $31,%edx
+                      To:
+                        movl r/m,%eax    <- Note the change in register
+                        cltd
+                    }
+                    DebugMsg(SPeepholeOptimization + 'MovMovSar2MovCltd', p);
+
+                    AllocRegBetween(NR_EAX, p, hp1, UsedRegs);
+                    taicpu(p).loadreg(1, NR_EAX);
+
+                    taicpu(hp1).opcode := A_CDQ;
+                    taicpu(hp1).clearop(1);
+                    taicpu(hp1).clearop(0);
+                    taicpu(hp1).ops:=0;
+
+                    AsmL.Remove(hp2);
+                    hp2.Free;
+(*
+{$ifdef x86_64}
+                  end
+                else if MatchOperand(taicpu(hp2).oper[1]^, NR_RDX) and
+                  { This code sequence does not get generated - however it might become useful
+                    if and when 128-bit signed integer types make an appearance, so the code
+                    is kept here for when it is eventually needed. [Kit] }
+                  (
+                    (
+                      (taicpu(hp1).oper[1]^.reg = NR_RAX) and
+                      (
+                        MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[0]^) or
+                        MatchOperand(taicpu(hp1).oper[0]^, NR_RDX)
+                      )
+                    ) or
+                    (
+                      (taicpu(hp1).oper[1]^.reg = NR_RDX) and
+                      (
+                        MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[0]^) or
+                        MatchOperand(taicpu(hp1).oper[0]^, NR_RAX)
+                      )
+                    )
+                  ) and
+                  GetNextInstruction(hp1, hp2) and
+                  MatchInstruction(hp2, A_SAR, [S_Q]) and
+                  MatchOperand(taicpu(hp2).oper[0]^, 63) and
+                  MatchOperand(taicpu(hp2).oper[1]^, NR_RDX) then
+                  begin
+                    { Change:
+                        movq r/m,%rdx         movq r/m,%rax         movq r/m,%rdx         movq r/m,%rax
+                        movq %rdx,%rax   or   movq %rax,%rdx   or   movq r/m,%rax    or   movq r/m,%rdx
+                        sarq $63,%rdx         sarq $63,%rdx         sarq $63,%rdx         sarq $63,%rdx
+                      To:
+                        movq r/m,%rax    <- Note the change in register
+                        cqto
+                    }
+                    DebugMsg(SPeepholeOptimization + 'MovMovSar2MovCqto', p);
+
+                    AllocRegBetween(NR_RAX, p, hp1, UsedRegs);
+                    taicpu(p).loadreg(1, NR_RAX);
+
+                    taicpu(hp1).opcode := A_CQO;
+                    taicpu(hp1).clearop(1);
+                    taicpu(hp1).clearop(0);
+                    taicpu(hp1).ops:=0;
+
+                    AsmL.Remove(hp2);
+                    hp2.Free;
+{$endif x86_64}
+*)
+                  end;
+              end;
           end
         else if (taicpu(p).oper[0]^.typ = top_ref) and
           (hp1.typ = ait_instruction) and
