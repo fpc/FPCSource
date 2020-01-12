@@ -88,6 +88,7 @@ unit aoptx86;
         function PostPeepholeOptMovzx(var p : tai) : Boolean;
         function PostPeepholeOptXor(var p : tai) : Boolean;
 {$endif}
+        function PostPeepholeOptMOVSX(var p : tai) : boolean;
         function PostPeepholeOptCmp(var p : tai) : Boolean;
         function PostPeepholeOptTestOr(var p : tai) : Boolean;
         function PostPeepholeOptCall(var p : tai) : Boolean;
@@ -5029,6 +5030,50 @@ unit aoptx86;
                   Result := True;
                 end;
             end;
+          end;
+      end;
+
+
+    function TX86AsmOptimizer.PostPeepholeOptMOVSX(var p : tai) : boolean;
+      begin
+        Result := False;
+        if not MatchOpType(taicpu(p), top_reg, top_reg) then
+          Exit;
+
+        { Convert:
+            movswl %ax,%eax  -> cwtl
+            movslq %eax,%rax -> cdqe
+
+            NOTE: Don't convert movswl %al,%ax to cbw, because cbw and cwde
+              refer to the same opcode and depends only on the assembler's
+              current operand-size attribute. [Kit]
+        }
+        with taicpu(p) do
+          case opsize of
+            S_WL:
+              if (oper[0]^.reg = NR_AX) and (oper[1]^.reg = NR_EAX) then
+                begin
+                  DebugMsg(SPeepholeOptimization + 'Converted movswl %ax,%eax to cwtl', p);
+                  opcode := A_CWDE;
+                  clearop(0);
+                  clearop(1);
+                  ops := 0;
+                  Result := True;
+                end;
+{$ifdef x86_64}
+            S_LQ:
+              if (oper[0]^.reg = NR_EAX) and (oper[1]^.reg = NR_RAX) then
+                begin
+                  DebugMsg(SPeepholeOptimization + 'Converted movslq %eax,%rax to cltq', p);
+                  opcode := A_CDQE;
+                  clearop(0);
+                  clearop(1);
+                  ops := 0;
+                  Result := True;
+                end;
+{$endif x86_64}
+            else
+              ;
           end;
       end;
 
