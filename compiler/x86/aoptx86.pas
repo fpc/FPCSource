@@ -4068,9 +4068,9 @@ unit aoptx86;
                                   case typ of
                                     top_ref:
                                       begin
-                                        if (ref^.base <> NR_NO) and (ref^.base <> NR_RIP) then
+                                        if (ref^.base <> NR_NO) {$ifdef x86_64} and (ref^.base <> NR_RIP) {$endif x86_64} then
                                           AllocRegBetween(ref^.base, hp3, tai(p.Next), UsedRegs);
-                                        if (ref^.index <> NR_NO) and (ref^.index <> NR_RIP) then
+                                        if (ref^.index <> NR_NO) {$ifdef x86_64} and (ref^.index <> NR_RIP) {$endif x86_64} then
                                           AllocRegBetween(ref^.index, hp3, tai(p.Next), UsedRegs);
                                       end;
                                     top_reg:
