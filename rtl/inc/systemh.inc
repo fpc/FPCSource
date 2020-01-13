@@ -1639,9 +1639,7 @@ const
                        Object Pascal support
 *****************************************************************************}
 
-{$ifdef FPC_HAS_FEATURE_CLASSES}
 {$i objpash.inc}
-{$endif FPC_HAS_FEATURE_CLASSES}
 
 {*****************************************************************************
                            Variant support

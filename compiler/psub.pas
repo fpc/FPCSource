@@ -932,7 +932,8 @@ implementation
            (pi_needs_implicit_finally in flags) and
            { but it's useless in init/final code of units }
            not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) and
-           not(target_info.system in systems_garbage_collected_managed_types) then
+           not(target_info.system in systems_garbage_collected_managed_types) and
+           (f_exceptions in features) then
           begin
             { Any result of managed type must be returned in parameter }
             if is_managed_type(procdef.returndef) and
@@ -969,7 +970,7 @@ implementation
             { constructors need destroy-on-exception code even if they don't
               have managed variables/temps }
             maybe_add_constructor_wrapper(code,
-              cs_implicit_exceptions in current_settings.moduleswitches);
+              (cs_implicit_exceptions in current_settings.moduleswitches) and (f_exceptions in features));
             current_filepos:=entrypos;
             addstatement(newstatement,code);
             current_filepos:=exitpos;
