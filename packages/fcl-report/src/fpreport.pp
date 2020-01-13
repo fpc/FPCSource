@@ -3513,11 +3513,7 @@ begin
   if Not SameText(aData.Name,FDataName) then
     exit;
   If not IsFirstPass then
-    begin
-    FLastValue.ResultType:=rtFloat;
-    FLastValue.ResFloat:=0;
     exit;
-    end;
   if (FResetValue=#0) then
     begin
     FResetValue:=#255;
@@ -3624,8 +3620,8 @@ begin
         inc(FAggregateValuesIndex);
         end;
       FResetValue:=lResetValue;
-      FAggregateValue:=PFPExpressionResult(FAggregateValues[FAggregateValuesIndex])^;
       FLastValue:=FAggregateValue;
+      FAggregateValue:=PFPExpressionResult(FAggregateValues[FAggregateValuesIndex])^;
       end
     else
       begin
@@ -11932,12 +11928,11 @@ begin
         {$endif}
         // DumpData(lData);
         PrepareRecord(lData);
+        Report.UpdateAggregates(lPage,lData);
         if FNewPage then
           StartNewPage;
         ShowDataHeaderBand;
         HandleGroupBands;
-        // This must be done after the groups were handled.
-        Report.UpdateAggregates(lPage,lData);
         ShowDataBand;
         lData.Next;
         end;  { while not lData.EOF }
@@ -12133,12 +12128,11 @@ begin
         {$endif}
         // DumpData(aPageData);
         PrepareRecord(aData);
+        Report.UpdateAggregates(aPage,aData);
         if FNewPage then
           StartNewPage;
         ShowDataHeaderBand;
         HandleGroupBands;
-        // This must be done after the groups were handled.
-        Report.UpdateAggregates(aPage,aData);
         ShowDataBand;
         aData.Next;
         end;
