@@ -682,6 +682,7 @@ compiler/rgbase.pas svneol=native#text/plain
 compiler/rgobj.pas svneol=native#text/plain
 compiler/riscv/aasmcpu.pas svneol=native#text/plain
 compiler/riscv/agrvgas.pas svneol=native#text/plain
+compiler/riscv/aoptcpurv.pas svneol=native#text/pascal
 compiler/riscv/cgrv.pas svneol=native#text/plain
 compiler/riscv/hlcgrv.pas svneol=native#text/plain
 compiler/riscv/nrvadd.pas svneol=native#text/plain
