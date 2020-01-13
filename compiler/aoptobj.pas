@@ -1606,8 +1606,8 @@ Unit AoptObj;
     procedure TAOptObj.MakeUnconditional(p: taicpu);
       begin
         { TODO: If anyone can improve this particular optimisation to work on
-          AVR and RISC-V, please do (it's currently not called at all). [Kit] }
-{$if not defined(avr) and not defined(riscv32) and not defined(riscv64)}
+          AVR, please do (it's currently not called at all). [Kit] }
+{$if not defined(avr)}
 {$if defined(powerpc) or defined(powerpc64)}
         p.condition.cond := C_None;
         p.condition.simple := True;
@@ -1615,7 +1615,12 @@ Unit AoptObj;
         p.condition := C_None;
 {$endif powerpc}
         p.opcode := aopt_uncondjmp;
-{$endif not avr and not riscv}
+{$ifdef RISCV}
+        p.loadoper(1, p.oper[p.ops-1]^);
+        p.loadreg(0, NR_X0);
+        p.ops:=2;
+{$endif}
+{$endif not avr}
       end;
 
 
@@ -2086,12 +2091,12 @@ Unit AoptObj;
                             Result := True;
                             Exit;
 
-{$if not defined(avr) and not defined(riscv32) and not defined(riscv64)}
+{$if not defined(avr)}
                           end
                         else
                           { NOTE: There is currently no watertight, cross-platform way to create
                             an unconditional jump without access to the cg object.  If anyone can
-                            improve this particular optimisation to work on AVR and RISC-V,
+                            improve this particular optimisation to work on AVR,
                             please do. [Kit] }
                           begin
                             { Since cond1 is a subset of inv(cond2), jmp<cond2> will always branch if
