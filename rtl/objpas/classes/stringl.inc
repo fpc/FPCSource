@@ -1534,7 +1534,7 @@ end;
 
 Procedure TStrings.SaveToStream(Stream: TStream);
 begin
-  SaveToStream(Stream,True)
+  SaveToStream(Stream,False)
 end;
 
 
