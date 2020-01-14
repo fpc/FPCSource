@@ -464,6 +464,7 @@ uses
         countstr,genname,ugenname : string;
         srsym : tsym;
         st : tsymtable;
+        tmpstack : tfpobjectlist;
       begin
         context:=nil;
         result:=nil;
@@ -472,8 +473,21 @@ uses
         errorrecovery:=false;
         if (symname='') and
             (not assigned(genericdef) or
-            not assigned(genericdef.typesym) or
-            (genericdef.typesym.typ<>typesym)) then
+              (
+                (genericdef.typ<>procdef) and
+                (
+                  not assigned(genericdef.typesym) or
+                  (genericdef.typesym.typ<>typesym)
+                )
+              ) or
+              (
+                (genericdef.typ=procdef) and
+                (
+                  not assigned(tprocdef(genericdef).procsym) or
+                  (tprocdef(genericdef).procsym.typ<>procsym)
+                )
+              )
+            ) then
           begin
             errorrecovery:=true;
             result:=generrordef;
@@ -592,7 +606,12 @@ uses
         { use the name of the symbol as procvars return a user friendly version
           of the name }
         if symname='' then
-          genname:=ttypesym(genericdef.typesym).realname
+          begin
+            if genericdef.typ=procdef then
+              genname:=tprocdef(genericdef).procsym.realname
+            else
+              genname:=ttypesym(genericdef.typesym).realname;
+          end
         else
           genname:=symname;
 
@@ -645,6 +664,28 @@ uses
           end
         else
           found:=searchsym(ugenname,context.sym,context.symtable);
+
+        if found and (context.sym.typ=absolutevarsym) and
+            (vo_is_funcret in tabstractvarsym(context.sym).varoptions) then
+          begin
+            { we found the function result alias of a generic function; go up the
+              symbol stack *before* this alias was inserted, so that we can
+              (hopefully) find the correct generic symbol }
+            tmpstack:=tfpobjectlist.create(false);
+            while assigned(symtablestack.top) do
+              begin
+                tmpstack.Add(symtablestack.top);
+                symtablestack.pop(symtablestack.top);
+                if tmpstack.Last=context.symtable then
+                  break;
+              end;
+            if not assigned(symtablestack.top) then
+              internalerror(2019123001);
+            found:=searchsym(ugenname,context.sym,context.symtable);
+            for i:=tmpstack.count-1 downto 0 do
+              symtablestack.push(tsymtable(tmpstack[i]));
+            tmpstack.free;
+          end;
 
         if not found or not (context.sym.typ in [typesym,procsym]) then
           begin
@@ -735,6 +776,7 @@ uses
         old_current_specializedef,
         old_current_genericdef : tstoreddef;
         old_current_procinfo : tprocinfo;
+        old_module_procinfo : tobject;
         hmodule : tmodule;
         oldcurrent_filepos : tfileposinfo;
         recordbuf : tdynamicarray;
@@ -859,7 +901,13 @@ uses
         { decide in which symtable to put the specialization }
         if parse_generic and not assigned(result) then
           begin
-            if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) then
+            srsymtable:=symtablestack.top;
+            if (srsymtable.symtabletype in [localsymtable,parasymtable]) and tstoreddef(srsymtable.defowner).is_specialization then
+              { if we are currently specializing a routine we need to specialize into
+                the routine's local- or parasymtable so that they are correctly
+                registered should the specialization be finalized }
+              specializest:=srsymtable
+            else if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) then
               { if we are parsing the definition of a method we specialize into
                 the local symtable of it }
               specializest:=current_procinfo.procdef.getsymtable(gs_local)
@@ -943,8 +991,10 @@ uses
                 old_current_genericdef:=nil;
                 old_current_structdef:=nil;
                 old_current_procinfo:=current_procinfo;
+                old_module_procinfo:=current_module.procinfo;
 
                 current_procinfo:=nil;
+                current_module.procinfo:=nil;
 
                 if parse_class_parent then
                   begin
@@ -1126,6 +1176,7 @@ uses
 
                 block_type:=old_block_type;
                 current_procinfo:=old_current_procinfo;
+                current_module.procinfo:=old_module_procinfo;
                 if parse_class_parent then
                   begin
                     current_structdef:=old_current_structdef;
