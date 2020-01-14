@@ -1519,7 +1519,7 @@ end;
 
 Procedure TStrings.SaveToStream(Stream: TStream);
 begin
-  SaveToStream(Stream,False)
+  SaveToStream(Stream,True)
 end;
 
 
