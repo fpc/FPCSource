@@ -613,7 +613,8 @@ constructor TCustomIniFile.Create(const AFileName: string;
   AOptions: TIniFileOptions);
 begin
   FEncoding := ADefaultEncoding;
-  FOwnsEncoding := AOwnsEncoding;
+  if FEncoding <> nil then
+    FOwnsEncoding := AOwnsEncoding and not TEncoding.IsStandardEncoding(FEncoding);
   Create(AFileName, AOptions);
 end;
 
@@ -953,7 +954,8 @@ constructor TIniFile.Create(AStream: TStream; ADefaultEncoding: TEncoding;
   AOwnsEncoding: Boolean; AOptions: TIniFileOptions);
 begin
   FEncoding := ADefaultEncoding;
-  FOwnsEncoding := not TEncoding.IsStandardEncoding(FEncoding);
+  if FEncoding <> nil then
+    FOwnsEncoding := AOwnsEncoding and not TEncoding.IsStandardEncoding(FEncoding);
   Create(AStream, AOptions);
 end;
 
