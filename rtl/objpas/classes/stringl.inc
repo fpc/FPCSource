@@ -1502,6 +1502,21 @@ end;
 
 
 
+Procedure TStrings.SaveToFile(const FileName: string; IgnoreEncoding : Boolean);
+
+Var TheStream : TFileStream;
+
+begin
+  TheStream:=TFileStream.Create(FileName,fmCreate);
+  try
+    SaveToStream(TheStream, IgnoreEncoding);
+  finally
+    TheStream.Free;
+  end;
+end;
+
+
+
 Procedure TStrings.SaveToFile(const FileName: string; AEncoding: TEncoding);
 
 Var TheStream : TFileStream;

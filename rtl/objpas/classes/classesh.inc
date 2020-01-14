@@ -749,6 +749,7 @@ type
     Function Reverse : TStrings;
     Procedure Reverse(aList : TStrings);
     procedure SaveToFile(const FileName: string); overload; virtual;
+    procedure SaveToFile(const FileName: string; IgnoreEncoding : Boolean); overload;
     procedure SaveToFile(const FileName: string; AEncoding: TEncoding); overload; virtual;
     procedure SaveToStream(Stream: TStream); overload; virtual;
     procedure SaveToStream(Stream: TStream; IgnoreEncoding : Boolean); overload;
