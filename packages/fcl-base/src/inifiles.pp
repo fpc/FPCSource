@@ -215,7 +215,6 @@ type
     FStream: TStream;
     FCacheUpdates: Boolean;
     FDirty : Boolean;
-    FBOM : String;
     procedure FillSectionList(AStrings: TStrings);
     Procedure DeleteSection(ASection : TIniFileSection);
     Procedure MaybeDeleteSection(ASection : TIniFileSection);
@@ -934,7 +933,6 @@ end;
 
 constructor TIniFile.Create(const AFileName: string; AOptions: TIniFileoptions);
 begin
-  FBOM := '';
   If Not (self is TMemIniFile) then
     Include(AOptions,ifoStripQuotes);
   inherited Create(AFileName,AOptions);
@@ -974,7 +972,6 @@ var
   slLines: TStringList;
 
 begin
-  FBOM := '';
   inherited Create('',AOptions);
   FStream := AStream;
   slLines := TStringList.Create;
@@ -999,9 +996,6 @@ begin
 end;
 
 procedure TIniFile.FillSectionList(AStrings: TStrings);
-const
-  Utf8Bom    = #$EF#$BB#$BF;        { Die einzelnen BOM Typen }
-
 var
   i,j,sLen: integer;
   sLine, sIdent, sValue: string;
@@ -1039,15 +1033,6 @@ begin
   FSectionList.Clear;
   if EscapeLineFeeds then
     RemoveBackslashes;
-  if (AStrings.Count > 0) then
-    begin
-    sLine:=AStrings[0];
-    if (copy(sLine,1,Length(Utf8Bom)) = Utf8Bom) then
-      begin
-      FBOM := Utf8Bom;
-      AStrings[0]:=copy(sLine,Length(Utf8Bom)+1,Length(SLine));
-      end;
-    end;
   for i := 0 to AStrings.Count-1 do begin
     sLine := Trim(AStrings[i]);
     sLen:=Length(sLine);
@@ -1337,8 +1322,6 @@ begin
         if (i < FSectionList.Count-1) and not IsComment(Name) then
           slLines.Add('');
       end;
-    if slLines.Count > 0 then
-      slLines.Strings[0] := FBOM + slLines.Strings[0];
     if FFileName > '' then
       begin
       D:=ExtractFilePath(FFileName);
