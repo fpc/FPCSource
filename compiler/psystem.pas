@@ -110,6 +110,7 @@ implementation
         systemunit.insert(csyssym.create('Insert',in_insert_x_y_z));
         systemunit.insert(csyssym.create('Delete',in_delete_x_y_z));
         systemunit.insert(csyssym.create('GetTypeKind',in_gettypekind_x));
+        systemunit.insert(csyssym.create('IsManagedType',in_ismanagedtype_x));
         systemunit.insert(cconstsym.create_ord('False',constord,0,pasbool1type));
         systemunit.insert(cconstsym.create_ord('True',constord,1,pasbool1type));
       end;

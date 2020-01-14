@@ -117,6 +117,7 @@ type
      in_not_assign_x      = 95,
      in_gettypekind_x     = 96,
      in_faraddr_x         = 97,
+     in_ismanagedtype_x   = 99,
 
 { Internal constant functions }
      in_const_sqr        = 100,
