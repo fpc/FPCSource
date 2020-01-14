@@ -1547,7 +1547,7 @@ Var
 begin
   if not IgnoreEncoding then
     begin
-    SaveToStream(Stream,Nil);
+    SaveToStream(Stream,FEncoding);
     Exit;
     end;
   NL:=GetLineBreakCharLBS;
