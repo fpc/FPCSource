@@ -161,6 +161,8 @@ type
     function GetOption(AIndex: TIniFileOption): Boolean;
     procedure SetOption(AIndex: TIniFileOption; AValue: Boolean);
     procedure SetOptions(AValue: TIniFileOptions);
+  protected
+    procedure SetEncoding(const aEncoding: TEncoding); virtual;
   public
     FormatSettings: TFormatSettings;
     constructor Create(const AFileName: string; ADefaultEncoding: TEncoding; AOptions : TIniFileOptions = []);
@@ -196,7 +198,7 @@ type
     procedure DeleteKey(const Section, Ident: String); virtual; abstract;
     procedure UpdateFile; virtual; abstract;
     function ValueExists(const Section, Ident: string): Boolean; virtual;
-    property Encoding: TEncoding read FEncoding;
+    property Encoding: TEncoding read FEncoding write SetEncoding;
     property FileName: string read FFileName;
     Property Options : TIniFileOptions Read FOptions Write SetOptions;
     property EscapeLineFeeds: boolean index ifoEscapeLineFeeds Read GetOption ;deprecated 'Use options instead';
@@ -225,6 +227,7 @@ type
     procedure ReadIniValues;
     procedure MaybeUpdateFile;
     property Dirty : Boolean Read FDirty;
+    procedure SetEncoding(const aEncoding: TEncoding); override;
   public
     constructor Create(const AFileName: string; AOptions : TIniFileoptions = []); overload; override;
     constructor Create(AStream: TStream; AOptions : TIniFileoptions = []); overload;
@@ -655,6 +658,15 @@ begin
     FBoolFalseStrings:=A;
 end;
 
+procedure TCustomIniFile.SetEncoding(const aEncoding: TEncoding);
+begin
+  if FEncoding = aEncoding then Exit;
+  if FOwnsEncoding then
+    FEncoding.Free;
+  FEncoding := aEncoding;
+  FOwnsEncoding := Assigned(FEncoding) and not TEncoding.IsStandardEncoding(FEncoding);
+end;
+
 function TCustomIniFile.SectionExists(const Section: string): Boolean;
 
 Var
@@ -984,9 +996,7 @@ begin
     // read the ini file values
     slLines.LoadFromStream(FStream, FEncoding);
     FillSectionList(slLines);
-    if FEncoding=nil then
-      FEncoding := TEncoding.Default;
-    FWriteBOM := (FEncoding.CodePage=CP_UTF16) or (FEncoding.CodePage=CP_UTF16BE); // write BOM for UTF16 by default
+    FWriteBOM := Assigned(FEncoding) and ((FEncoding.CodePage=CP_UTF16) or (FEncoding.CodePage=CP_UTF16BE)); // write BOM for UTF16 by default
   finally
     slLines.Free;
   end;
@@ -1126,6 +1136,15 @@ begin
   if FCacheUpdates and not AValue and FDirty then
     UpdateFile;
   FCacheUpdates := AValue;
+end;
+
+procedure TIniFile.SetEncoding(const aEncoding: TEncoding);
+begin
+  if FEncoding = aEncoding then Exit;
+  inherited SetEncoding(aEncoding);
+  if Assigned(FEncoding) and ((FEncoding.CodePage=CP_UTF16) or (FEncoding.CodePage=CP_UTF16BE)) then
+    FWriteBOM := True;
+  MaybeUpdateFile;
 end;
 
 procedure TIniFile.SetWriteBOM(const aWriteBOM: Boolean);
@@ -1402,9 +1421,7 @@ begin
     end;
   end else
   begin
-    if FEncoding=nil then
-      FEncoding := TEncoding.Default;
-    FWriteBOM := (FEncoding.CodePage=CP_UTF16) or (FEncoding.CodePage=CP_UTF16BE); // write BOM for UTF16 by default
+    FWriteBOM := Assigned(FEncoding) and ((FEncoding.CodePage=CP_UTF16) or (FEncoding.CodePage=CP_UTF16BE)); // write BOM for UTF16 by default
   end;
 end;
 
