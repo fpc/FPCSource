@@ -1341,7 +1341,7 @@ unit cgx86;
       end;
 
 
-    function get_scalar_mm_op(fromsize,tosize : tcgsize) : tasmop;
+    function get_scalar_mm_op(fromsize,tosize : tcgsize;aligned : boolean) : tasmop;
       const
         convertopsse : array[OS_F32..OS_F128,OS_F32..OS_F128] of tasmop = (
           (A_MOVSS,A_CVTSS2SD,A_NONE,A_NONE,A_NONE),
@@ -1391,9 +1391,16 @@ unit cgx86;
               OS_M128:
                 { 128-bit aligned vector }
                 if UseAVX then
-                  result:=A_VMOVAPS
+                  begin
+                    if aligned then
+                      result:=A_VMOVAPS
+                    else
+                      result:=A_VMOVUPS;
+                  end
+                else if aligned then
+                  result:=A_MOVAPS
                 else
-                  result:=A_MOVAPS;
+                  result:=A_MOVUPS;
               OS_M256,
               OS_M512:
                 { 256-bit aligned vector }
@@ -1405,6 +1412,14 @@ unit cgx86;
               else
                 InternalError(2018012920);
             end;
+          end
+        else if (tcgsize2size[fromsize]=tcgsize2size[tosize]) and
+          (fromsize=OS_M128) then
+          begin
+            if UseAVX then
+              result:=A_VMOVDQU
+            else
+              result:=A_MOVDQU;
           end
         else
           internalerror(2010060104);
@@ -1459,7 +1474,7 @@ unit cgx86;
           end
         else if shufflescalar(shuffle) then
           begin
-            op:=get_scalar_mm_op(fromsize,tosize);
+            op:=get_scalar_mm_op(fromsize,tosize,true);
 
             { MOVAPD/MOVAPS are normally faster }
             if op=A_MOVSD then
@@ -1579,7 +1594,7 @@ unit cgx86;
            end
          else if shufflescalar(shuffle) then
            begin
-             op:=get_scalar_mm_op(fromsize,tosize);
+             op:=get_scalar_mm_op(fromsize,tosize,tcgsize2size[fromsize]=ref.alignment);
 
              { A_VCVTSD2SS and A_VCVTSS2SD require always three operands }
              if (op=A_VCVTSD2SS) or (op=A_VCVTSS2SD) then
@@ -1673,7 +1688,7 @@ unit cgx86;
              if tcgsize2size[tosize]<>tcgsize2size[fromsize] then
                begin
                  hreg:=getmmregister(list,tosize);
-                 op:=get_scalar_mm_op(fromsize,tosize);
+                 op:=get_scalar_mm_op(fromsize,tosize,tcgsize2size[tosize]=ref.alignment);
 
                  { A_VCVTSD2SS and A_VCVTSS2SD require always three operands }
                  if (op=A_VCVTSD2SS) or (op=A_VCVTSS2SD) then
@@ -1681,10 +1696,10 @@ unit cgx86;
                  else
                    list.concat(taicpu.op_reg_reg(op,S_NO,reg,hreg));
 
-                 list.concat(taicpu.op_reg_ref(get_scalar_mm_op(tosize,tosize),S_NO,hreg,tmpref))
+                 list.concat(taicpu.op_reg_ref(get_scalar_mm_op(tosize,tosize,tcgsize2size[tosize]=tmpref.alignment),S_NO,hreg,tmpref))
                end
              else
-               list.concat(taicpu.op_reg_ref(get_scalar_mm_op(fromsize,tosize),S_NO,reg,tmpref));
+               list.concat(taicpu.op_reg_ref(get_scalar_mm_op(fromsize,tosize,tcgsize2size[tosize]=tmpref.alignment),S_NO,reg,tmpref));
            end
          else
            internalerror(200312252);

@@ -299,11 +299,12 @@ interface
         passed to an mm operation is nil, it means that the whole location is moved }
       tmmshuffle = record
         { describes how many shuffles are actually described, if len=0 then
-          moving the scalar with index 0 to the scalar with index 0 is meant }
-        len : byte;
-        { lower nibble of each entry of this array describes index of the source data index while
-          the upper nibble describes the destination index }
-        shuffles : array[1..1] of byte;
+          moving the scalar with index 0 to the scalar with index 0 is meant,
+          if len=-1, then a variable/unknown length is assumed }
+        len : Shortint;
+        { lower byte of each entry of this array describes index of the source data index while
+          the upper byte describes the destination index }
+        shuffles : array[1..1] of word;
       end;
 
       Tsuperregisterarray=array[0..$ffff] of Tsuperregister;
@@ -417,7 +418,13 @@ interface
             );
 
     var
-       mms_movescalar : pmmshuffle;
+       mms_movescalar,
+       mms_variable,
+       mms_2,
+       mms_4,
+       mms_8,
+       mms_16,
+       mms_32 : pmmshuffle;
 
     procedure supregset_reset(var regs:tsuperregisterset;setall:boolean;
                               maxreg:Tsuperregister);{$ifdef USEINLINE}inline;{$endif}
@@ -465,7 +472,8 @@ interface
 implementation
 
     uses
-      verbose;
+      verbose,
+      cutils;
 
 {******************************************************************************
                              tsuperregisterworklist
@@ -815,13 +823,13 @@ implementation
         i : longint;
       begin
         realshuffle:=true;
-        if (shuffle=nil) or (shuffle^.len=0) then
+        if (shuffle=nil) or (shuffle^.len<1) then
           realshuffle:=false
         else
           begin
             for i:=1 to shuffle^.len do
               begin
-                if (shuffle^.shuffles[i] and $f)<>((shuffle^.shuffles[i] and $f0) shr 4) then
+                if (shuffle^.shuffles[i] and $ff)<>((shuffle^.shuffles[i] and $ff00) shr 8) then
                   exit;
               end;
             realshuffle:=false;
@@ -846,9 +854,34 @@ implementation
       end;
 
 
+   procedure Initmms(var p : pmmshuffle;len : ShortInt);
+     var
+       i : Integer;
+     begin
+       Getmem(p,sizeof(tmmshuffle)+(max(len,0)-1)*2);
+       p^.len:=len;
+       for i:=1 to len do
+{$push}
+{$R-}
+         p^.shuffles[i]:=i;
+{$pop}
+     end;
+
 initialization
-  new(mms_movescalar);
-  mms_movescalar^.len:=0;
+  Initmms(mms_movescalar,0);
+  Initmms(mms_variable,-1);
+  Initmms(mms_2,2);
+  Initmms(mms_4,4);
+  Initmms(mms_8,8);
+  Initmms(mms_16,16);
+  Initmms(mms_32,32);
 finalization
-  dispose(mms_movescalar);
+  Freemem(mms_movescalar);
+  Freemem(mms_variable);
+  Freemem(mms_2);
+  Freemem(mms_4);
+  Freemem(mms_8);
+  Freemem(mms_16);
+  Freemem(mms_32);
 end.
+

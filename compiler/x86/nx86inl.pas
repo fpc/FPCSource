@@ -96,7 +96,7 @@ implementation
       htypechk,
       cgbase,pass_1,pass_2,
       cpuinfo,cpubase,nutils,
-      ncal,ncgutil,nld,
+      ncal,ncgutil,nld,ncon,
       tgobj,
       cga,cgutils,cgx86,cgobj,hlcgobj;
 
@@ -151,6 +151,8 @@ implementation
 {$else i8086}
              resultdef:=s32inttype;
 {$endif i8086}
+           { include automatically generated code }
+           {$i x86mmtype.inc}
            else
              Result:=inherited pass_typecheck_cpu;
          end;
@@ -177,6 +179,8 @@ implementation
            in_x86_cli,
            in_x86_sti:
              expectloc:=LOC_VOID;
+           { include automatically generated code }
+           {$i x86mmfirst.inc}
            else
              Result:=inherited first_cpu;
          end;
@@ -411,6 +415,11 @@ implementation
 
      procedure tx86inlinenode.pass_generate_code_cpu;
 
+       var
+         paraarray : array[1..4] of tnode;
+         i : integer;
+         op: TAsmOp;
+
        procedure inport(dreg:TRegister;dsize:topsize;dtype:tdef);
          var
            portnumber: tnode;
@@ -442,6 +451,7 @@ implementation
              end;
          end;
 
+
        procedure outport(dreg:TRegister;dsize:topsize;dtype:tdef);
          var
            portnumber, portdata: tnode;
@@ -466,6 +476,7 @@ implementation
            hlcg.ungetcpuregister(current_asmdata.CurrAsmList,dreg);
          end;
 
+
        procedure get_segreg(segreg:tregister);
          begin
            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
@@ -473,7 +484,82 @@ implementation
            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOV,TCGSize2OpSize[def_cgsize(resultdef)],segreg,location.register));
          end;
 
+
+      function GetConstInt(n: tnode): longint;
+        begin
+          Result:=0;
+          if is_constintnode(n) then
+            result:=tordconstnode(n).value.svalue
+          else
+            Message(type_e_constant_expr_expected);
+        end;
+
+
+      procedure GetParameters(count: longint);
+        var
+          i: longint;
+          p: tnode;
+        begin
+          if (count=1) and
+             (not (left is tcallparanode)) then
+            paraarray[1]:=left
+          else
+            begin
+              p:=left;
+              for i := count downto 1 do
+                begin
+                  paraarray[i]:=tcallparanode(p).paravalue;
+                  p:=tcallparanode(p).nextpara;
+                end;
+            end;
+        end;
+
+      procedure location_force_mmxreg(list:TAsmList;var l: tlocation;maybeconst:boolean);
+        var
+          reg : tregister;
+        begin
+          if (l.loc<>LOC_MMXREGISTER)  and
+             ((l.loc<>LOC_CMMXREGISTER) or (not maybeconst)) then
+            begin
+              reg:=tcgx86(cg).getmmxregister(list);
+              cg.a_loadmm_loc_reg(list,OS_M64,l,reg,nil);
+              location_freetemp(list,l);
+              location_reset(l,LOC_MMXREGISTER,OS_M64);
+              l.register:=reg;
+            end;
+        end;
+
+      procedure location_make_ref(var loc: tlocation);
+        var
+          hloc: tlocation;
+        begin
+          case loc.loc of
+            LOC_CREGISTER,
+            LOC_REGISTER:
+              begin
+                location_reset_ref(hloc, LOC_REFERENCE, OS_32, 1, []);
+                hloc.reference.base:=loc.register;
+
+                loc:=hloc;
+              end;
+            LOC_CREFERENCE,
+            LOC_REFERENCE:
+              begin
+              end;
+          else
+            begin
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,loc,u32inttype,u32inttype,false);
+
+              location_reset_ref(hloc, LOC_REFERENCE, OS_32, 1, []);
+              hloc.reference.base:=loc.register;
+
+              loc:=hloc;
+            end;
+          end;
+        end;
+
        begin
+         FillChar(paraarray,sizeof(paraarray),0);
          case inlinenumber of
            in_x86_inportb:
              inport(NR_AL,S_B,u8inttype);
@@ -503,6 +589,7 @@ implementation
              get_segreg(NR_FS);
            in_x86_get_gs:
              get_segreg(NR_GS);
+           {$i x86mmsecond.inc}
            else
              inherited pass_generate_code_cpu;
          end;
@@ -1307,7 +1394,5 @@ implementation
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register:=hregister;
       end;
-
-
 
 end.

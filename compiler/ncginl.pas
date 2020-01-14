@@ -960,7 +960,6 @@ implementation
         internalerror(2014032701);
       end;
 
-
 begin
    cinlinenode:=tcginlinenode;
 end.

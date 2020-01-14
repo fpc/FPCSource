@@ -837,7 +837,6 @@ procedure WriteBarrier;
 procedure MoveData(srcseg,srcoff,destseg,destoff:Word;n:Word);
 {$endif cpui8086}
 
-
 {****************************************************************************
                           Math Routines
 ****************************************************************************}

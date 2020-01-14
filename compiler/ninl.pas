@@ -27,6 +27,7 @@ interface
 
     uses
        node,htypechk,symtype,compinnr;
+
     type
        tinlinenode = class(tunarynode)
           inlinenumber : tinlinenumber;
@@ -2902,7 +2903,6 @@ implementation
           result:=cstringconstnode.createpchar(ansistring2pchar(encodedtype),length(encodedtype),nil);
         end;
 
-
       var
          hightree,
          hp        : tnode;
@@ -5308,7 +5308,20 @@ implementation
          result:=nil;
        end;
 
-
+//
+//||||||| .merge-left.r31134
+//
+//{$ifdef ARM}
+//              {$i armtype.inc}
+//{$endif ARM}
+//=======
+//
+//{$ifdef x86}
+//              {$i x86type.inc}
+//{$endif x86}
+//{$ifdef ARM}
+//              {$i armtype.inc}
+//{$endif ARM}
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
      function tinlinenode.first_ShiftRot_assign_64bitint: tnode;
        var
