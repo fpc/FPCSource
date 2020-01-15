@@ -843,6 +843,7 @@ type
     procedure WriteImplSimple(Obj: TJSONObject; El: TPasImplSimple; aContext: TPCUWriterContext); virtual;
     procedure WriteImplTry(Obj: TJSONObject; El: TPasImplTry; aContext: TPCUWriterContext); virtual;
     procedure WriteImplTryHandler(Obj: TJSONObject; El: TPasImplTryHandler; aContext: TPCUWriterContext); virtual;
+    procedure WriteImplExceptOn(Obj: TJSONObject; El: TPasImplExceptOn; aContext: TPCUWriterContext); virtual;
     procedure WriteImplRaise(Obj: TJSONObject; El: TPasImplRaise; aContext: TPCUWriterContext); virtual;
   public
     constructor Create; override;
@@ -937,6 +938,7 @@ type
     procedure Set_PropertyScope_AncestorProp(RefEl: TPasElement; Data: TObject);
     procedure Set_ProcedureScope_ImplProc(RefEl: TPasElement; Data: TObject);
     procedure Set_ProcedureScope_Overridden(RefEl: TPasElement; Data: TObject);
+    procedure Set_ExceptOn_TypeEl(RefEl: TPasElement; Data: TObject);
     procedure Set_ResolvedReference_Declaration(RefEl: TPasElement; Data: TObject);
     procedure Set_ResolvedReference_CtxConstructor(RefEl: TPasElement; Data: TObject);
     procedure Set_ResolvedReference_CtxAttrProc(RefEl: TPasElement; Data: TObject);
@@ -1104,6 +1106,7 @@ type
     procedure ReadImplSimple(Obj: TJSONObject; El: TPasImplSimple; aContext: TPCUReaderContext); virtual;
     procedure ReadImplTry(Obj: TJSONObject; El: TPasImplTry; aContext: TPCUReaderContext); virtual;
     procedure ReadImplTryHandler(Obj: TJSONObject; El: TPasImplTryHandler; aContext: TPCUReaderContext); virtual;
+    procedure ReadImplExceptOn(Obj: TJSONObject; El: TPasImplExceptOn; aContext: TPCUReaderContext); virtual;
     procedure ReadImplRaise(Obj: TJSONObject; El: TPasImplRaise; aContext: TPCUReaderContext); virtual;
   public
     constructor Create; override;
@@ -2834,7 +2837,7 @@ var
 begin
   if El=nil then exit;
   if (Parent<>El.Parent) then
-    RaiseMsg(20180208221751,El,GetObjName(Parent)+'<>'+GetObjName(El.Parent));
+    RaiseMsg(20180208221751,El,PropName+': '+GetObjName(Parent)+'<>'+GetObjName(El.Parent));
   SubObj:=TJSONObject.Create;
   Obj.Add(PropName,SubObj);
   WriteElement(SubObj,El,aContext);
@@ -3584,6 +3587,11 @@ begin
     begin
     Obj.Add('Type','ExceptElse');
     WriteImplTryHandler(Obj,TPasImplTryExceptElse(El),aContext);
+    end
+  else if C=TPasImplExceptOn then
+    begin
+    Obj.Add('Type','ExceptOn');
+    WriteImplExceptOn(Obj,TPasImplExceptOn(El),aContext);
     end
   else if C=TPasImplRaise then
     begin
@@ -4559,6 +4567,16 @@ begin
   WriteElementList(Obj,El,'El',El.Elements,aContext);
 end;
 
+procedure TPCUWriter.WriteImplExceptOn(Obj: TJSONObject; El: TPasImplExceptOn;
+  aContext: TPCUWriterContext);
+begin
+  WritePasElement(Obj,El,aContext);
+  WriteElementProperty(Obj,El,'Var',El.VarEl,aContext);
+  if El.VarEl=nil then
+    WriteElType(Obj,El,'VarType',El.TypeEl,aContext);
+  WriteElementProperty(Obj,El,'Body',El.Body,aContext);
+end;
+
 procedure TPCUWriter.WriteImplRaise(Obj: TJSONObject; El: TPasImplRaise;
   aContext: TPCUWriterContext);
 begin
@@ -5077,6 +5095,20 @@ begin
     Scope.OverriddenProc:=TPasProcedure(RefEl) // no AddRef
   else
     RaiseMsg(20180213215959,Scope.Element,GetObjName(RefEl));
+end;
+
+procedure TPCUReader.Set_ExceptOn_TypeEl(RefEl: TPasElement; Data: TObject);
+var
+  El: TPasImplExceptOn absolute Data;
+begin
+  if RefEl is TPasType then
+    begin
+    El.TypeEl:=TPasType(RefEl);
+    if RefEl.Parent<>El then
+      RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasVariable.VarType'){$ENDIF};
+    end
+  else
+    RaiseMsg(20200115214455,El,GetObjName(RefEl));
 end;
 
 procedure TPCUReader.Set_ResolvedReference_Declaration(RefEl: TPasElement;
@@ -7267,6 +7299,11 @@ begin
       Result:=CreateElement(TPasImplTryExceptElse,Name,Parent);
       ReadImplTryHandler(Obj,TPasImplTryExceptElse(Result),aContext);
       end;
+    'ExceptOn':
+      begin
+      Result:=CreateElement(TPasImplExceptOn,Name,Parent);
+      ReadImplExceptOn(Obj,TPasImplExceptOn(Result),aContext);
+      end;
     'Raise':
       begin
       Result:=CreateElement(TPasImplRaise,Name,Parent);
@@ -8819,20 +8856,13 @@ end;
 
 procedure TPCUReader.ReadImplTry(Obj: TJSONObject; El: TPasImplTry;
   aContext: TPCUReaderContext);
-var
-  FinallyEl: TPasImplTryHandler;
-  ElseEl: TPasImplTryExceptElse;
 begin
   ReadPasElement(Obj,El,aContext);
   ReadElementList(Obj,El,'Try',El.Elements,
     {$IFDEF CheckPasTreeRefCount}'TPasImplTry.Elements'{$ELSE}true{$ENDIF}
     ,aContext);
-  FinallyEl:=TPasImplTryHandler(ReadElementProperty(Obj,El,'Finally',TPasImplTryHandler,aContext));
-  if  FinallyEl<>nil then
-    El.FinallyExcept:=FinallyEl;
-  ElseEl:=TPasImplTryExceptElse(ReadElementProperty(Obj,El,'Else',TPasImplTryExceptElse,aContext));
-  if  FinallyEl<>nil then
-    El.ElseBranch:=ElseEl;
+  El.FinallyExcept:=TPasImplTryHandler(ReadElementProperty(Obj,El,'Finally',TPasImplTryHandler,aContext));
+  El.ElseBranch:=TPasImplTryExceptElse(ReadElementProperty(Obj,El,'Else',TPasImplTryExceptElse,aContext));
 end;
 
 procedure TPCUReader.ReadImplTryHandler(Obj: TJSONObject;
@@ -8842,6 +8872,25 @@ begin
   ReadElementList(Obj,El,'El',El.Elements,
     {$IFDEF CheckPasTreeRefCount}'TPasImplTryHandler.Elements'{$ELSE}true{$ENDIF}
     ,aContext);
+end;
+
+procedure TPCUReader.ReadImplExceptOn(Obj: TJSONObject; El: TPasImplExceptOn;
+  aContext: TPCUReaderContext);
+var
+  Body: TPasImplElement;
+begin
+  ReadPasElement(Obj,El,aContext);
+  El.VarEl:=TPasVariable(ReadElementProperty(Obj,El,'Var',TPasVariable,aContext));
+  if El.VarEl<>nil then
+    begin
+    El.TypeEl:=El.VarEl.VarType;
+    El.TypeEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasVariable.VarType'){$ENDIF};
+    end
+  else
+    ReadElType(Obj,'VarType',El,@Set_ExceptOn_TypeEl,aContext);
+  Body:=TPasImplElement(ReadElementProperty(Obj,El,'Body',TPasImplElement,aContext));
+  if Body<>nil then
+    El.AddElement(Body);
 end;
 
 procedure TPCUReader.ReadImplRaise(Obj: TJSONObject; El: TPasImplRaise;

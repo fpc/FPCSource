@@ -147,6 +147,7 @@ type
     procedure CheckRestoredImplSimple(const Path: string; Orig, Rest: TPasImplSimple; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredImplTry(const Path: string; Orig, Rest: TPasImplTry; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredImplTryHandler(const Path: string; Orig, Rest: TPasImplTryHandler; Flags: TPCCheckFlags); virtual;
+    procedure CheckRestoredImplExceptOn(const Path: string; Orig, Rest: TPasImplExceptOn; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredImplRaise(const Path: string; Orig, Rest: TPasImplRaise; Flags: TPCCheckFlags); virtual;
   public
     property Analyzer: TPas2JSAnalyzer read FAnalyzer;
@@ -201,13 +202,12 @@ type
     procedure TestPC_GenericFunction_IfElse;
     procedure TestPC_GenericFunction_WhileDo;
     procedure TestPC_GenericFunction_WithDo;
-    // TPasImplCaseOf
-    // TPasImplForLoop
-    // TPasImplAssign
-    // TPasImplSimple
-    // TPasImplTry    TPasImplTryHandler  TPasImplTryFinally  TPasImplTryExcept TPasImplTryExceptElse TPasImplExceptOn
-    // TPasImplRaise
-
+    procedure TestPC_GenericFunction_CaseOf;
+    procedure TestPC_GenericFunction_ForLoop;
+    procedure TestPC_GenericFunction_Simple;
+    procedure TestPC_GenericFunction_TryFinally;
+    procedure TestPC_GenericFunction_TryExcept;
+    procedure TestPC_GenericFunction_LocalProc;
 
     procedure TestPC_UseUnit;
     procedure TestPC_UseUnit_Class;
@@ -1054,7 +1054,10 @@ begin
       C:=Orig.ClassType;
       if (C=TResolvedReference)
           or (C=TPasWithScope)
-          or (C=TPas2JSWithExprScope) then
+          or (C=TPas2JSWithExprScope)
+          or (C=TPasForLoopScope)
+          or (C=TPasExceptOnScope)
+          or C.InheritsFrom(TResEvalValue) then
         exit
       else
         Fail(Path+': Generic Orig='+GetObjName(Orig)+' Rest=nil');
@@ -1292,6 +1295,8 @@ begin
       or (C=TPasImplTryExcept)
       or (C=TPasImplTryExceptElse) then
     CheckRestoredImplTryHandler(Path,TPasImplTryHandler(Orig),TPasImplTryHandler(Rest),Flags)
+  else if (C=TPasImplExceptOn) then
+    CheckRestoredImplExceptOn(Path,TPasImplExceptOn(Orig),TPasImplExceptOn(Rest),Flags)
   else if (C=TPasImplRaise) then
     CheckRestoredImplRaise(Path,TPasImplRaise(Orig),TPasImplRaise(Rest),Flags)
   else if (C=TPasModule)
@@ -1904,6 +1909,14 @@ procedure TCustomTestPrecompile.CheckRestoredImplTryHandler(const Path: string;
   Orig, Rest: TPasImplTryHandler; Flags: TPCCheckFlags);
 begin
   CheckRestoredElementList(Path+'.Elements',Orig.Elements,Rest.Elements,Flags);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredImplExceptOn(const Path: string;
+  Orig, Rest: TPasImplExceptOn; Flags: TPCCheckFlags);
+begin
+  CheckRestoredElement(Path+'.VarEl',Orig.VarEl,Rest.VarEl,Flags);
+  CheckRestoredElOrRef(Path+'.TypeEl',Orig,Orig.TypeEl,Rest,Rest.TypeEl,Flags);
+  CheckRestoredElement(Path+'.Body',Orig.Body,Rest.Body,Flags);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredImplRaise(const Path: string;
@@ -2793,6 +2806,173 @@ begin
   '  with r do begin w:=w; end;',
   '  with r,s do w:=w;',
   '  with r do with s do w:=w;',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_GenericFunction_CaseOf;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'generic function Run<T>(a: T): T;',
+  'implementation',
+  'generic function Run<T>(a: T): T;',
+  'var i,j,k,l,m,n,o: word;',
+  'begin',
+  '  case i of',
+  '  1: ;',
+  '  end;',
+  '  case j of',
+  '  1: ;',
+  '  2..3: ;',
+  '  4,5: ;',
+  '  end;',
+  '  case k of',
+  '  1: ;',
+  '  else',
+  '  end;',
+  '  case l of',
+  '  1: ;',
+  '  else m:=m;',
+  '  end;',
+  '  case n of',
+  '  1: o:=o;',
+  '  end;',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_GenericFunction_ForLoop;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'generic function Run<T>(a: T): T;',
+  'implementation',
+  'generic function Run<T>(a: T): T;',
+  'var i,j,k,l: word;',
+  '  c: char;',
+  'begin',
+  '  for i:=1 to 3 do ;',
+  '  for j:=1+4 to 3*7 do ;',
+  '  for k:=-1 to 2 do l:=l;',
+  '  for c in char do ;',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_GenericFunction_Simple;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'generic function Run<T>(a: T): T;',
+  'implementation',
+  'procedure Fly(w: word = 0); begin end;',
+  'generic function Run<T>(a: T): T;',
+  'begin',
+  '  Fly;',
+  '  Fly();',
+  '  Fly(3);',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_GenericFunction_TryFinally;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'generic function Run<T>(a: T): T;',
+  'implementation',
+  'generic function Run<T>(a: T): T;',
+  'var i: word;',
+  'begin',
+  '  try',
+  '  finally;',
+  '  end;',
+  '  try',
+  '    i:=i;',
+  '  finally;',
+  '  end;',
+  '  try',
+  '  finally;',
+  '    i:=i;',
+  '  end;',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_GenericFunction_TryExcept;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TObject = class end;',
+  '  Exception = class Msg: string; end;',
+  '  EInvalidCast = class(Exception) end;',
+  'generic function Run<T>(a: T): T;',
+  'implementation',
+  'generic function Run<T>(a: T): T;',
+  'var vI: longint;',
+  'begin',
+  '  try',
+  '    vi:=1;',
+  '  except',
+  '    vi:=2',
+  '  end;',
+  '  try',
+  '  except',
+  '    raise;',
+  '  end;',
+  '  try',
+  '    VI:=4;',
+  '  except',
+  '    on einvalidcast do',
+  '      raise;',
+  '    on E: exception do',
+  '      if e.msg='''' then',
+  '        raise e;',
+  '    else',
+  '      vi:=5',
+  '  end;',
+  '  try',
+  '    VI:=6;',
+  '  except',
+  '    on einvalidcast do ;',
+  '  end;',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_GenericFunction_LocalProc;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'generic function Run<T>(a: T): T;',
+  'implementation',
+  'generic function Run<T>(a: T): T;',
+  'var vI: longint;',
+  '  procedure SubA; forward;',
+  '  procedure SubB;',
+  '  begin',
+  '    SubA;',
+  '  end;',
+  '  procedure SubA;',
+  '  begin',
+  '    SubB;',
+  '  end;',
+  'begin',
+  '  SubB;',
   'end;',
   '']);
   WriteReadUnit;
