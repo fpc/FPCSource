@@ -198,7 +198,8 @@ type
 
   TPasAnalyzerOption = (
     paoOnlyExports, // default: use all class members accessible from outside (protected, but not private)
-    paoImplReferences // collect references of top lvl proc implementations, initializationa dn finalization sections
+    paoImplReferences, // collect references of top lvl proc implementations, initializationa dn finalization sections
+    paoSkipGenericProc // ignore generic procedure body
     );
   TPasAnalyzerOptions = set of TPasAnalyzerOption;
 
@@ -1091,7 +1092,12 @@ begin
     // analyze a module
     Templates:=Resolver.GetProcTemplateTypes(DeclProc);
     if (Templates<>nil) and (Templates.Count>0) then
-      // generic template -> analyze
+      begin
+      // generic template
+      if paoSkipGenericProc in Options then
+        exit(true); //
+      // -> analyze
+      end
     else if not Resolver.IsFullySpecialized(DeclProc) then
       // half specialized -> skip
       exit(true);
@@ -1923,9 +1929,9 @@ begin
   if Proc.Parent is TPasMembersType then
     UseClassOrRecType(TPasMembersType(Proc.Parent),paumElement);
 
-  UseScopeReferences(ProcScope.References);
-
   UseProcedureType(Proc.ProcType);
+
+  UseScopeReferences(ProcScope.References);
 
   ImplProc:=Proc;
   if ProcScope.ImplProc<>nil then

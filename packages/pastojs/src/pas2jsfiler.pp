@@ -510,6 +510,14 @@ const
     'ConstInh'
     );
 
+  PCUResolverWithExprScopeFlagNames: array[TPasWithExprScopeFlag] of string = (
+    'NeedTmpVar',
+    'OnlyTypeMembers',
+    'IsClassOf',
+    'ConstParent'
+    );
+
+
 type
   { TPCUInitialFlags }
 
@@ -567,6 +575,7 @@ type
   public
     ModeSwitches: TModeSwitches;
     BoolSwitches: TBoolSwitches;
+    InGeneric: boolean;
   end;
 
   { TPCUFilerPendingElRef }
@@ -825,6 +834,7 @@ type
     procedure WriteImplIfElse(Obj: TJSONObject; El: TPasImplIfElse; aContext: TPCUWriterContext); virtual;
     procedure WriteImplWhileDo(Obj: TJSONObject; El: TPasImplWhileDo; aContext: TPCUWriterContext); virtual;
     procedure WriteImplWithDo(Obj: TJSONObject; El: TPasImplWithDo; aContext: TPCUWriterContext); virtual;
+    procedure WriteImplWithFlags(Obj: TJSONObject; const PropName: string; const Value, DefaultValue: TPasWithExprScopeFlags); virtual;
     procedure WriteImplCaseOf(Obj: TJSONObject; El: TPasImplCaseOf; aContext: TPCUWriterContext); virtual;
     procedure WriteImplCaseStatement(Obj: TJSONObject; El: TPasImplCaseStatement; aContext: TPCUWriterContext); virtual;
     procedure WriteImplCaseElse(Obj: TJSONObject; El: TPasImplCaseElse; aContext: TPCUWriterContext); virtual;
@@ -2937,6 +2947,7 @@ procedure TPCUWriter.WriteResolvedReference(Obj: TJSONObject;
   Ref: TResolvedReference; ErrorEl: TPasElement);
 var
   Ctx: TResolvedRefContext;
+  WithExprScope: TPasWithExprScope;
 begin
   WriteResolvedRefFlags(Obj,'RefFlags',Ref.Flags,[]);
   if Ref.Access<>rraRead then
@@ -2962,6 +2973,16 @@ begin
       RaiseMsg(20180215132849,ErrorEl,GetObjName(Ref.Context));
     end;
   AddReferenceToObj(Obj,'RefDecl',Ref.Declaration);
+  WithExprScope:=Ref.WithExprScope;
+  if WithExprScope<>nil then
+    begin
+    RaiseMsg(20200113182413,ErrorEl);
+    {$IFDEF EnableStoreExprRef}
+    AddReferenceToObj(Obj,'WithEl',WithExprScope.WithScope.Element);
+    if WithExprScope.Index>0 then
+      AddReferenceToObj(Obj,'WithId',WithExprScope.Index);
+    {$ENDIF}
+    end;
 end;
 
 procedure TPCUWriter.WriteExprCustomData(Obj: TJSONObject; Expr: TPasExpr;
@@ -2995,6 +3016,8 @@ procedure TPCUWriter.WriteExprCustomData(Obj: TJSONObject; Expr: TPasExpr;
 var
   Ref: TResolvedReference;
 begin
+  if aContext.InGeneric then
+    exit;// not needed by generic code
   if Expr.CustomData is TResolvedReference then
     begin
     Ref:=TResolvedReference(Expr.CustomData);
@@ -4249,6 +4272,7 @@ var
   DeclProc: TPasProcedure;
   DeclScope: TPas2JsProcedureScope;
   BodyObj: TJSONObject;
+  OldInGeneric: Boolean;
 begin
   WritePasElement(Obj,El,aContext);
   Scope:=El.CustomData as TPas2JSProcedureScope;
@@ -4332,7 +4356,10 @@ begin
 
       BodyObj:=TJSONObject.Create;
       Obj.Add('Body',BodyObj);
+      OldInGeneric:=aContext.InGeneric;
+      aContext.InGeneric:=true;
       WriteProcedureBody(BodyObj,El.Body,aContext);
+      aContext.InGeneric:=OldInGeneric;
       end;
     end;
   if (Scope.BodyJS<>'') and (Scope.ImplProc<>nil) then
@@ -4404,10 +4431,49 @@ end;
 
 procedure TPCUWriter.WriteImplWithDo(Obj: TJSONObject; El: TPasImplWithDo;
   aContext: TPCUWriterContext);
+var
+  Exprs: TFPList;
+  Arr: TJSONArray;
+  i: Integer;
+  Expr: TPasExpr;
+  SubObj: TJSONObject;
 begin
   WritePasElement(Obj,El,aContext);
-  WriteElementList(Obj,El,'Exprs',El.Expressions,aContext);
+
+  // expressions
+  Exprs:=El.Expressions;
+  if (Exprs=nil) or (Exprs.Count=0) then
+    RaiseMsg(20200109170419,El);
+  Arr:=TJSONArray.Create;
+  Obj.Add('Exprs',Arr);
+  for i:=0 to Exprs.Count-1 do
+    begin
+    Expr:=TPasExpr(Exprs[i]);
+    SubObj:=TJSONObject.Create;
+    Arr.Add(SubObj);
+    WriteElement(SubObj,Expr,aContext);
+    {$IFDEF EnableStoreExprRef}
+    WriteExprCustomData(SubObj,Expr,aContext);
+    {$ENDIF}
+    end;
+
+  //WriteImplWithScope(Obj,TPasWithScope(EL.CustomData),aContext);
+
+  // body
   WriteElementProperty(Obj,El,'Body',El.Body,aContext);
+end;
+
+procedure TPCUWriter.WriteImplWithFlags(Obj: TJSONObject;
+  const PropName: string; const Value, DefaultValue: TPasWithExprScopeFlags);
+var
+  Arr: TJSONArray;
+  f: TPasWithExprScopeFlag;
+begin
+  if Value=DefaultValue then exit;
+  Arr:=nil;
+  for f in TPasWithExprScopeFlags do
+    if (f in Value)<>(f in DefaultValue) then
+      AddArrayFlag(Obj,Arr,PropName,PCUResolverWithExprScopeFlagNames[f],f in Value);
 end;
 
 procedure TPCUWriter.WriteImplCaseOf(Obj: TJSONObject; El: TPasImplCaseOf;
@@ -6458,6 +6524,22 @@ begin
     Ref.Context:=TResolvedRefCtxAttrProc.Create;
     ReadElementReference(Obj,Ref,'RefAttrProc',@Set_ResolvedReference_CtxAttrProc);
     end;
+  {$IFDEF EnableStoreExprRef}
+  if ReadInteger(Obj,'WithEl',i,ErrorEl) then
+    begin
+    WithElRef:=GetElReference(Id,Scope.Element);
+    if (WithElRef=nil) or (WithElRef.Element=nil) then
+      RaiseMsg(20200109174947,ErrorEl);
+    if not (WithElRef.Element is TPasImplWithDo) then
+      RaiseMsg(20200109175135,ErrorEl);
+    WithEl:=TPasImplWithDo(WithElRef.Element);
+    if not ReadInteger(Obj,'WithId',i,ErrorEl) then
+      i:=0;
+    if (i<0) or (i>=WithEl.Expressions.Count) then
+      RaiseMsg(20200109175240,ErrorEl);
+    Ref.WithExprScope:=TPasExpr(WithEl.Expressions[i]);
+    end;
+  {$ENDIF}
 end;
 
 procedure TPCUReader.ReadPasExpr(Obj: TJSONObject; Expr: TPasExpr;
@@ -6507,6 +6589,8 @@ var
   NeedEvalValue: Boolean;
   Value: TResEvalValue;
 begin
+  if aContext.InGeneric then
+    exit;// not needed by generic code
   Ref:=TResolvedReference(Expr.CustomData);
   if Obj.Find('RefDecl')<>nil then
     begin
@@ -8381,6 +8465,7 @@ var
   BodyObj, BodyBodyObj: TJSONObject;
   ProcBody: TProcedureBody;
   ImplEl: TPasElement;
+  OldInGeneric: Boolean;
 begin
   ImplScope:=TPas2JSProcedureScope(El.CustomData);
   if ImplScope.ImplProc<>nil then
@@ -8424,7 +8509,10 @@ begin
       ReadDeclarations(BodyObj,ProcBody,aContext);
       if ReadObject(BodyObj,'Impl',BodyBodyObj,ProcBody) then
         begin
+        OldInGeneric:=aContext.InGeneric;
+        aContext.InGeneric:=true;
         ImplEl:=ReadElement(BodyBodyObj,ProcBody,aContext);
+        aContext.InGeneric:=OldInGeneric;
         if not (ImplEl is TPasImplBlock) then
           begin
           s:=GetObjName(ImplEl);
