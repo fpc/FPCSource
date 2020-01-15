@@ -208,6 +208,7 @@ type
     procedure TestPC_GenericFunction_TryFinally;
     procedure TestPC_GenericFunction_TryExcept;
     procedure TestPC_GenericFunction_LocalProc;
+    procedure TestPC_GenericFunction_AnonymousProc;
 
     procedure TestPC_UseUnit;
     procedure TestPC_UseUnit_Class;
@@ -2966,13 +2967,37 @@ begin
   '  procedure SubB;',
   '  begin',
   '    SubA;',
+  '    vI:=vI;',
   '  end;',
   '  procedure SubA;',
   '  begin',
   '    SubB;',
+  '    vI:=vI;',
   '  end;',
   'begin',
   '  SubB;',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_GenericFunction_AnonymousProc;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TFunc = reference to function(x: word): word;',
+  'var Func: TFunc;',
+  'generic function Run<T>(a: T): T;',
+  'implementation',
+  'generic function Run<T>(a: T): T;',
+  'begin',
+  '  Func:=function(b:word): word',
+  '  begin',
+  '    exit(b);',
+  '    exit(Result);',
+  '  end;',
   'end;',
   '']);
   WriteReadUnit;

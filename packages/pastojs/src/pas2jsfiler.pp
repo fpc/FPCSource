@@ -784,6 +784,7 @@ type
     procedure WritePrimitiveExpr(Obj: TJSONObject; Expr: TPrimitiveExpr; aContext: TPCUWriterContext); virtual;
     procedure WriteBoolConstExpr(Obj: TJSONObject; Expr: TBoolConstExpr; aContext: TPCUWriterContext); virtual;
     procedure WriteParamsExpr(Obj: TJSONObject; Expr: TParamsExpr; aContext: TPCUWriterContext); virtual;
+    procedure WriteProcedureExpr(Obj: TJSONObject; Expr: TProcedureExpr; aContext: TPCUWriterContext); virtual;
     procedure WriteRecordValues(Obj: TJSONObject; Expr: TRecordValues; aContext: TPCUWriterContext); virtual;
     procedure WriteArrayValues(Obj: TJSONObject; Expr: TArrayValues; aContext: TPCUWriterContext); virtual;
     procedure WriteResString(Obj: TJSONObject; El: TPasResString; aContext: TPCUWriterContext); virtual;
@@ -1035,6 +1036,7 @@ type
     procedure ReadBinaryExpr(Obj: TJSONObject; Expr: TBinaryExpr; aContext: TPCUReaderContext); virtual;
     procedure ReadBoolConstExpr(Obj: TJSONObject; Expr: TBoolConstExpr; aContext: TPCUReaderContext); virtual;
     procedure ReadParamsExpr(Obj: TJSONObject; Expr: TParamsExpr; aContext: TPCUReaderContext); virtual;
+    procedure ReadProcedureExpr(Obj: TJSONObject; Expr: TProcedureExpr; aContext: TPCUReaderContext); virtual;
     procedure ReadRecordValues(Obj: TJSONObject; Expr: TRecordValues; aContext: TPCUReaderContext); virtual;
     procedure ReadArrayValues(Obj: TJSONObject; Expr: TArrayValues; aContext: TPCUReaderContext); virtual;
     procedure ReadResString(Obj: TJSONObject; El: TPasResString; aContext: TPCUReaderContext); virtual;
@@ -3325,6 +3327,11 @@ begin
     end;
     WriteParamsExpr(Obj,TParamsExpr(El),aContext);
     end
+  else if C=TProcedureExpr then
+    begin
+    Obj.Add('Type','ProcExpr');
+    WriteProcedureExpr(Obj,TProcedureExpr(El),aContext);
+    end
   else if C=TRecordValues then
     begin
     Obj.Add('Type','RecValues');
@@ -3494,6 +3501,10 @@ begin
       Obj.Add('Type','Destructor')
     else if C=TPasClassDestructor then
       Obj.Add('Type','Class Destructor')
+    else if C=TPasAnonymousProcedure then
+      Obj.Add('Type','AnonymousProcedure')
+    else if C=TPasAnonymousFunction then
+      Obj.Add('Type','AnonymousFunction')
     else
       RaiseMsg(20180210130202,El);
     WriteProcedure(Obj,TPasProcedure(El),aContext);
@@ -3644,6 +3655,13 @@ begin
   WritePasExpr(Obj,Expr,Expr.Kind,eopNone,aContext);
   WriteExpr(Obj,Expr,'Value',Expr.Value,aContext);
   WritePasExprArray(Obj,Expr,'Params',Expr.Params,aContext);
+end;
+
+procedure TPCUWriter.WriteProcedureExpr(Obj: TJSONObject; Expr: TProcedureExpr;
+  aContext: TPCUWriterContext);
+begin
+  WritePasExpr(Obj,Expr,Expr.Kind,eopNone,aContext);
+  WriteElementProperty(Obj,Expr,'Proc',Expr.Proc,aContext);
 end;
 
 procedure TPCUWriter.WriteRecordValues(Obj: TJSONObject; Expr: TRecordValues;
@@ -7055,6 +7073,11 @@ begin
       ReadParams(pekFuncParams);
     '[]':
       ReadParams(pekSet);
+    'ProcExpr':
+      begin
+      Result:=CreateElement(TProcedureExpr,Name,Parent);
+      ReadProcedureExpr(Obj,TProcedureExpr(Result),aContext);
+      end;
     'RecValues':
       begin
       Result:=CreateElement(TRecordValues,'',Parent);
@@ -7207,6 +7230,8 @@ begin
     'ClassConstructor': ReadProc(TPasClassConstructor,Name);
     'Destructor': ReadProc(TPasDestructor,Name);
     'ClassDestructor': ReadProc(TPasClassDestructor,Name);
+    'AnonymousProcedure': ReadProc(TPasAnonymousProcedure,Name);
+    'AnonymousFunction': ReadProc(TPasAnonymousFunction,Name);
     'Operator': ReadOper(TPasConstructor,Name);
     'ClassOperator': ReadOper(TPasClassConstructor,Name);
     'Attributes':
@@ -7453,6 +7478,13 @@ begin
   ReadPasExpr(Obj,Expr,Expr.Kind,aContext);
   Expr.Value:=ReadExpr(Obj,Expr,'Value',aContext);
   ReadPasExprArray(Obj,Expr,'Params',Expr.Params,aContext);
+end;
+
+procedure TPCUReader.ReadProcedureExpr(Obj: TJSONObject; Expr: TProcedureExpr;
+  aContext: TPCUReaderContext);
+begin
+  ReadPasExpr(Obj,Expr,Expr.Kind,aContext);
+  Expr.Proc:=TPasAnonymousProcedure(ReadElementProperty(Obj,Expr,'Proc',TPasAnonymousProcedure,aContext));
 end;
 
 procedure TPCUReader.ReadRecordValues(Obj: TJSONObject; Expr: TRecordValues;
