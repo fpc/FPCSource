@@ -26,7 +26,7 @@ unit console;
 interface
 
 uses
-  exec, inputevent, keymap;
+  exec, inputevent, keymap, utility, amigados;
 
 const
 
@@ -112,8 +112,12 @@ const
 var
   ConsoleDevice: PDevice = nil;
 
-function CDInputHandler(Events: PInputEvent location 'a0'; ConsoleDev: PLibrary location 'a1'): PInputEvent; syscall ConsoleDevice 042;
-function RawKeyConvert(Events: PInputEvent location 'a0'; Buffer: PCHAR location 'a1'; Length: LongInt location 'd1'; KeyMap: PKeyMap location 'a2'): LongInt; syscall ConsoleDevice 048;
+function CDInputHandler(Events: PInputEvent; CDIhData: APTR): PInputEvent; syscall ConsoleDevice 7;
+function RawKeyConvert(Events: PInputEvent; Buffer: PChar; Length: LongInt; KeyMap: PKeyMap): LongInt; syscall ConsoleDevice 8;
+function GetConSnip(): APTR; syscall ConsoleDevice 84;
+function SetConSnip(Param: APTR): LongInt; syscall ConsoleDevice 88;
+procedure AddConSnipHook(Hook: PHook); syscall ConsoleDevice 92;
+procedure RemConSnipHook(Hook: PHook); syscall ConsoleDevice 96;
 
 implementation
 
