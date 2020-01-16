@@ -4953,6 +4953,7 @@ packages/ide/fputils.pas svneol=native#text/plain
 packages/ide/fpvars.pas svneol=native#text/plain
 packages/ide/fpviews.pas svneol=native#text/plain
 packages/ide/fpw32.rc -text
+packages/ide/fpx64.lpi svneol=native#text/plain
 packages/ide/gdbmicon.pas svneol=native#text/plain
 packages/ide/gdbmiint.pas svneol=native#text/plain
 packages/ide/gdbmiproc.pas svneol=native#text/plain
