@@ -8959,6 +8959,7 @@ end;
 procedure TFPCustomReport.RunReport;
 begin
   DoBeginReport;
+  ClearPreparedReport;
   StartLayout;
   CollectReportData;
   Validate;
