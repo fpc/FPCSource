@@ -27915,7 +27915,8 @@ begin
   Templates:=GetProcTemplateTypes(Proc);
   if (Templates<>nil) and (Templates.Count>0) then
     exit(false);
-  if ProcScope.SpecializedFromItem=nil then exit(true);
+  if ProcScope.SpecializedFromItem=nil then
+    exit(true);
   Params:=ProcScope.SpecializedFromItem.Params;
   for i:=0 to length(Params)-1 do
     if Params[i] is TPasGenericTemplateType then exit(false);

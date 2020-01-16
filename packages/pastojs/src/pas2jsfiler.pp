@@ -3721,7 +3721,7 @@ begin
     Templ:=TPasGenericTemplateType(GenericTemplateTypes[i]);
     TemplObj:=TJSONObject.Create;
     Arr.Add(TemplObj);
-    TemplObj.Add('Name',Templ.Name);
+    WritePasElement(TemplObj,Templ,aContext);
     WriteElementArray(TemplObj,Parent,'Constraints',Templ.Constraints,aContext,true);
     end;
 end;
@@ -6300,7 +6300,7 @@ var
 begin
   if not ReadArray(Obj,'Declarations',Arr,Decls) then exit;
   {$IFDEF VerbosePCUFiler}
-  writeln('TPCUReader.ReadDeclarations ',GetObjName(Section),' ',Arr.Count);
+  writeln('TPCUReader.ReadDeclarations ',GetObjName(Decls),' ',Arr.Count);
   {$ENDIF}
   for i:=0 to Arr.Count-1 do
     begin
@@ -7551,6 +7551,7 @@ begin
       RaiseMsg(20190720224130,Parent,IntToStr(i));
     GenType:=TPasGenericTemplateType(CreateElement(TPasGenericTemplateType,GenTypeName,Parent));
     GenericTemplateTypes.Add(GenType);
+    ReadPasElement(TemplObj,GenType,aContext);
     ReadElementArray(TemplObj,Parent,'Constraints',GenType.Constraints,
       {$IFDEF CheckPasTreeRefCount}'TPasGenericTemplateType.Constraints'{$ELSE}true{$ENDIF},
       aContext);

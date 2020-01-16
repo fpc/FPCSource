@@ -1171,10 +1171,20 @@ begin
   //writeln('TCustomTestPrecompile.CheckRestoredElement Checking Parent... Orig=',GetObjName(Orig),' Rest=',GetObjName(Rest));
   CheckRestoredReference(Path+'.Parent',Orig.Parent,Rest.Parent);
 
-  //writeln('TCustomTestPrecompile.CheckRestoredElement Checking CustomData... Orig=',GetObjName(Orig),' Rest=',GetObjName(Rest));
-  CheckRestoredCustomData(Path+'.CustomData',Rest,Orig.CustomData,Rest.CustomData,Flags);
-
   C:=Orig.ClassType;
+  //writeln('TCustomTestPrecompile.CheckRestoredElement Checking CustomData... Orig=',GetObjName(Orig),' Rest=',GetObjName(Rest));
+  if C=TPasGenericTemplateType then
+    begin
+    // TPasGenericParamsScope is only needed during parsing
+    if Orig.CustomData=nil then
+    else if not (Orig.CustomData is TPasGenericParamsScope) then
+      Fail(Path+'Orig.CustomData='+GetObjName(Orig.CustomData))
+    else if Rest.CustomData<>nil then
+      CheckRestoredCustomData(Path+'.CustomData',Rest,Orig.CustomData,Rest.CustomData,Flags);
+    end
+  else
+    CheckRestoredCustomData(Path+'.CustomData',Rest,Orig.CustomData,Rest.CustomData,Flags);
+
   if C=TUnaryExpr then
     CheckRestoredUnaryExpr(Path,TUnaryExpr(Orig),TUnaryExpr(Rest),Flags)
   else if C=TBinaryExpr then
@@ -2671,8 +2681,6 @@ end;
 
 procedure TTestPrecompile.TestPC_GenericClass;
 begin
-  exit;
-
   StartUnit(false);
   Add([
   'interface',
@@ -2681,10 +2689,10 @@ begin
   '  end;',
   '  generic TBird<T> = class',
   '    a: T;',
-  '    generic function Run<T>(a: T): T;',
+  '    function Run: T;',
   '  end;',
   'implementation',
-  'function TBird.Run<T>(a: T): T;',
+  'function TBird.Run: T;',
   'var b: T;',
   'begin',
   '  b:=a; Result:=b;',

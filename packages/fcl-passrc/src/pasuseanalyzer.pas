@@ -1079,6 +1079,7 @@ function TPasAnalyzer.CanSkipGenericProc(DeclProc: TPasProcedure): boolean;
 
 var
   Templates: TFPList;
+  Parent: TPasElement;
 begin
   Result:=false;
   if ScopeModule=nil then
@@ -1093,14 +1094,29 @@ begin
     Templates:=Resolver.GetProcTemplateTypes(DeclProc);
     if (Templates<>nil) and (Templates.Count>0) then
       begin
-      // generic template
+      // generic procedure
       if paoSkipGenericProc in Options then
-        exit(true); //
+        exit(true); // emit no hints for generic proc
       // -> analyze
       end
     else if not Resolver.IsFullySpecialized(DeclProc) then
       // half specialized -> skip
-      exit(true);
+      exit(true)
+    else if paoSkipGenericProc in Options then
+      begin
+      Parent:=DeclProc.Parent;
+      while Parent<>nil do
+        begin
+        if (Parent is TPasGenericType) then
+          begin
+          Templates:=TPasGenericType(Parent).GenericTemplateTypes;
+          if (Templates<>nil) and (Templates.Count>0) then
+            // procedure of a generic parent -> emit no hints
+            exit(true);
+          end;
+        Parent:=Parent.Parent;
+        end;
+      end;
     end;
 end;
 
