@@ -3859,6 +3859,11 @@ packages/fcl-report/demos/countries2.inc svneol=native#text/plain
 packages/fcl-report/demos/demos.inc svneol=native#text/plain
 packages/fcl-report/demos/fcldemo.lpi svneol=native#text/plain
 packages/fcl-report/demos/fcldemo.pp svneol=native#text/plain
+packages/fcl-report/demos/fonts/DejaVuSans-Bold.ttf -text
+packages/fcl-report/demos/fonts/DejaVuSans-BoldOblique.ttf -text
+packages/fcl-report/demos/fonts/DejaVuSans-ExtraLight.ttf -text
+packages/fcl-report/demos/fonts/DejaVuSans-Oblique.ttf -text
+packages/fcl-report/demos/fonts/DejaVuSans.ttf -text
 packages/fcl-report/demos/fonts/LiberationSans-Bold.ttf -text
 packages/fcl-report/demos/fonts/LiberationSans-BoldItalic.ttf -text
 packages/fcl-report/demos/fonts/LiberationSans-Italic.ttf -text
@@ -3867,6 +3872,16 @@ packages/fcl-report/demos/fonts/LiberationSerif-Bold.ttf -text
 packages/fcl-report/demos/fonts/LiberationSerif-BoldItalic.ttf -text
 packages/fcl-report/demos/fonts/LiberationSerif-Italic.ttf -text
 packages/fcl-report/demos/fonts/LiberationSerif-Regular.ttf -text
+packages/fcl-report/demos/fonts/Ubuntu-B.ttf -text
+packages/fcl-report/demos/fonts/Ubuntu-BI.ttf -text
+packages/fcl-report/demos/fonts/Ubuntu-C.ttf -text
+packages/fcl-report/demos/fonts/Ubuntu-L.ttf -text
+packages/fcl-report/demos/fonts/Ubuntu-LI.ttf -text
+packages/fcl-report/demos/fonts/Ubuntu-M.ttf -text
+packages/fcl-report/demos/fonts/Ubuntu-MI.ttf -text
+packages/fcl-report/demos/fonts/Ubuntu-R.ttf -text
+packages/fcl-report/demos/fonts/Ubuntu-RI.ttf -text
+packages/fcl-report/demos/fonts/Ubuntu-Th.ttf -text
 packages/fcl-report/demos/laz2fpreport.lpi svneol=native#text/plain
 packages/fcl-report/demos/laz2fpreport.pp svneol=native#text/plain
 packages/fcl-report/demos/pictures/man01.png -text svneol=unset#image/png
@@ -3935,6 +3950,7 @@ packages/fcl-report/src/fpreportjson.pp svneol=native#text/plain
 packages/fcl-report/src/fpreportpdfexport.pp svneol=native#text/plain
 packages/fcl-report/src/fpreportqrcode.pp svneol=native#text/plain
 packages/fcl-report/src/fpreportstreamer.pp svneol=native#text/plain
+packages/fcl-report/test/README.md svneol=native#text/plain
 packages/fcl-report/test/fonts/LiberationSerif-Regular.ttf -text
 packages/fcl-report/test/fonts/calibri.ttf -text
 packages/fcl-report/test/fonts/calibrib.ttf -text
@@ -3946,6 +3962,7 @@ packages/fcl-report/test/regtests.pp svneol=native#text/plain
 packages/fcl-report/test/tcbasereport.pp svneol=native#text/plain
 packages/fcl-report/test/tchtmlparser.pas svneol=native#text/plain
 packages/fcl-report/test/tcreportdom.pp svneol=native#text/plain
+packages/fcl-report/test/tcreportgenerator.pas svneol=native#text/plain
 packages/fcl-report/test/tcreportstreamer.pp svneol=native#text/plain
 packages/fcl-report/test/testfpreport.lpi svneol=native#text/plain
 packages/fcl-report/test/testfpreport.lpr svneol=native#text/plain
