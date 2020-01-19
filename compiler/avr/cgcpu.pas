@@ -202,8 +202,12 @@ unit cgcpu;
                a_load_reg_reg(list,paraloc^.size,paraloc^.size,r,paraloc^.register);
              LOC_REFERENCE,LOC_CREFERENCE:
                begin
-                  reference_reset_base(ref,paraloc^.reference.index,paraloc^.reference.offset,ctempposinvalid,2,[]);
-                  a_load_reg_ref(list,paraloc^.size,paraloc^.size,r,ref);
+                 reference_reset_base(ref,paraloc^.reference.index,paraloc^.reference.offset,ctempposinvalid,2,[]);
+                 if ref.base<>NR_STACK_POINTER_REG then
+                   Internalerror(2020011801);
+
+                 { as AVR allows no stack indirect addressing, everything else than a push makes no sense }
+                 list.concat(taicpu.op_reg(A_PUSH,r));
                end;
              else
                internalerror(2002071004);
@@ -215,91 +219,49 @@ unit cgcpu;
         hp : PCGParaLocation;
 
       begin
-{        if use_push(cgpara) then
-          begin
-            if tcgsize2size[cgpara.Size] > 2 then
-              begin
-                if tcgsize2size[cgpara.Size] <> 4 then
-                  internalerror(2013031101);
-                if cgpara.location^.Next = nil then
-                  begin
-                    if tcgsize2size[cgpara.location^.size] <> 4 then
-                      internalerror(2013031101);
-                  end
-                else
-                  begin
-                    if tcgsize2size[cgpara.location^.size] <> 2 then
-                      internalerror(2013031101);
-                    if tcgsize2size[cgpara.location^.Next^.size] <> 2 then
-                      internalerror(2013031101);
-                    if cgpara.location^.Next^.Next <> nil then
-                      internalerror(2013031101);
-                  end;
+        if not(tcgsize2size[cgpara.Size] in [1..4]) then
+          internalerror(2014011101);
 
-                if tcgsize2size[cgpara.size]>cgpara.alignment then
-                  pushsize:=cgpara.size
-                else
-                  pushsize:=int_cgsize(cgpara.alignment);
-                pushsize2 := int_cgsize(tcgsize2size[pushsize] - 2);
-                list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize2],makeregsize(list,GetNextReg(r),pushsize2)));
-                list.concat(taicpu.op_reg(A_PUSH,S_W,makeregsize(list,r,OS_16)));
+        hp:=cgpara.location;
+
+        i:=0;
+        while i<tcgsize2size[cgpara.Size] do
+          begin
+            if not(assigned(hp)) then
+              internalerror(2014011102);
+
+            inc(i, tcgsize2size[hp^.Size]);
+
+            if hp^.Loc=LOC_REGISTER then
+              begin
+                load_para_loc(r,hp);
+                hp:=hp^.Next;
+                { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
+                if i<tcgsize2size[cgpara.Size] then
+                  r:=GetNextReg(r);
               end
             else
               begin
-                cgpara.check_simple_location;
-                if tcgsize2size[cgpara.location^.size]>cgpara.alignment then
-                  pushsize:=cgpara.location^.size
-                else
-                  pushsize:=int_cgsize(cgpara.alignment);
-                list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
+                load_para_loc(r,hp);
+
+                if i<tcgsize2size[cgpara.Size] then
+                  for i2:=1 to tcgsize2size[hp^.Size] do
+                    r:=GetNextReg(r);
+
+                hp:=hp^.Next;
               end;
-
-          end
-        else }
-          begin
-            if not(tcgsize2size[cgpara.Size] in [1..4]) then
-              internalerror(2014011101);
-
-            hp:=cgpara.location;
-
-            i:=0;
-            while i<tcgsize2size[cgpara.Size] do
-              begin
-                if not(assigned(hp)) then
-                  internalerror(2014011102);
-
-                inc(i, tcgsize2size[hp^.Size]);
-
-                if hp^.Loc=LOC_REGISTER then
-                  begin
-                    load_para_loc(r,hp);
-                    hp:=hp^.Next;
-                    { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
-                    if i<tcgsize2size[cgpara.Size] then
-                      r:=GetNextReg(r);
-                  end
-                else
-                  begin
-                    load_para_loc(r,hp);
-
-                    if i<tcgsize2size[cgpara.Size] then
-                      for i2:=1 to tcgsize2size[hp^.Size] do
-                        r:=GetNextReg(r);
-
-                    hp:=hp^.Next;
-                  end;
-              end;
-            if assigned(hp) then
-              internalerror(2014011103);
           end;
+        if assigned(hp) then
+          internalerror(2014011103);
       end;
 
 
     procedure tcgavr.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const paraloc : TCGPara);
       var
-        i : longint;
+        i,j : longint;
         hp : PCGParaLocation;
         ref: treference;
+        tmpreg: TRegister;
       begin
         if not(tcgsize2size[paraloc.Size] in [1..4]) then
           internalerror(2014011101);
@@ -325,11 +287,13 @@ unit cgcpu;
                 end;
               LOC_REFERENCE,LOC_CREFERENCE:
                 begin
-                  reference_reset(ref,paraloc.alignment,[]);
-                  ref.base:=hp^.reference.index;
-                  ref.offset:=hp^.reference.offset;
-                  a_load_const_ref(list,hp^.size,a shr (8*(i-1)),ref);
-
+                  for j:=1 to tcgsize2size[hp^.size] do
+                    begin
+                      tmpreg:=getintregister(list,OS_8);
+                      a_load_const_reg(list,OS_8,(a shr (8*(i-1+j-1))) and $ff,tmpreg);
+                      { as AVR allows no stack indirect addressing, everything else than a push makes no sense }
+                      list.concat(taicpu.op_reg(A_PUSH,tmpreg));
+                    end;
                   inc(i,tcgsize2size[hp^.size]);
                   hp:=hp^.Next;
                 end;
@@ -345,6 +309,8 @@ unit cgcpu;
         tmpref, ref: treference;
         location: pcgparalocation;
         sizeleft: tcgint;
+        i: Integer;
+        tmpreg: TRegister;
       begin
         location := paraloc.location;
         tmpref := r;
@@ -357,15 +323,14 @@ unit cgcpu;
                 a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
               LOC_REFERENCE:
                 begin
-                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,ctempposinvalid,paraloc.alignment,[]);
-                  { doubles in softemu mode have a strange order of registers and references }
-                  if location^.size=OS_32 then
-                    g_concatcopy(list,tmpref,ref,4)
-                  else
+                  ref:=tmpref;
+                  for i:=1 to sizeleft do
                     begin
-                      g_concatcopy(list,tmpref,ref,sizeleft);
-                      if assigned(location^.next) then
-                        internalerror(2005010710);
+                      tmpreg:=getintregister(list,OS_8);
+                      a_load_ref_reg(list,OS_8,OS_8,tmpref,tmpreg);
+                      { as AVR allows no stack indirect addressing, everything else than a push makes no sense }
+                      list.concat(taicpu.op_reg(A_PUSH,tmpreg));
+                      inc(tmpref.offset);
                     end;
                 end;
               LOC_VOID:
