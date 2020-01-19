@@ -57,7 +57,10 @@ unit cpupara;
 
     function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
-        result:=VOLATILE_INTREGISTERS;
+        if CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype] then
+          result:=VOLATILE_INTREGISTERS-[RS_R18,RS_R19]
+        else
+          result:=VOLATILE_INTREGISTERS;
       end;
 
 
@@ -204,7 +207,8 @@ unit cpupara;
         begin
           { In case of po_delphi_nested_cc, the parent frame pointer
             is always passed on the stack. }
-           if (nextintreg>RS_R9) and
+           if (((nextintreg>RS_R9) and not(CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype])) or
+               (nextintreg>RS_R21)) and
               (not(vo_is_parentfp in hp.varoptions) or
                not(po_delphi_nested_cc in p.procoptions)) then
              begin
@@ -303,7 +307,8 @@ unit cpupara;
                    by adding paralen mod 2, make the size even
                  }
                  nextintreg:=curintreg-(paralen+(paralen mod 2))+1;
-                 if nextintreg>=RS_R8 then
+                 if ((nextintreg>=RS_R8) and not(CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype])) or
+                   (nextintreg>=RS_R20) then
                    curintreg:=nextintreg-1
                  else
                    begin
