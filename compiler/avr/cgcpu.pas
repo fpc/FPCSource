@@ -526,9 +526,9 @@ unit cgcpu;
                  Do last,then optimizer can optimize register moves }
                for i:=1 to b do
                  if op=OP_SHL then
-                   emit_mov(list,GetOffsetReg64(dst,dsthi,i-1),NR_R1)
+                   emit_mov(list,GetOffsetReg64(dst,dsthi,i-1),GetDefaultZeroReg)
                  else
-                   emit_mov(list,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-i),NR_R1);
+                   emit_mov(list,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-i),GetDefaultZeroReg);
            end
          else
            inherited a_op_const_reg_reg(list,op,size,a,src,dst);
@@ -850,7 +850,7 @@ unit cgcpu;
                for i:=1 to tcgsize2size[size] do
                  begin
                    if ((qword(a) and mask) shr shift)=0 then
-                     list.concat(taicpu.op_reg_reg(A_MOV,reg,NR_R1))
+                     list.concat(taicpu.op_reg_reg(A_MOV,reg,GetDefaultZeroReg))
                    else if ((qword(a) and mask) shr shift)<>$ff then
                      begin
                        getcpuregister(list,NR_R26);
@@ -887,7 +887,7 @@ unit cgcpu;
                        { decrease pressure on upper half of registers by using SBC ...,R1 instead
                          of SBCI ...,0 }
                        if curvalue=0 then
-                         list.concat(taicpu.op_reg_reg(A_SBC,reg,NR_R1))
+                         list.concat(taicpu.op_reg_reg(A_SBC,reg,GetDefaultZeroReg))
                        else
                          list.concat(taicpu.op_reg_const(A_SBCI,reg,curvalue));
                      end;
@@ -984,7 +984,7 @@ unit cgcpu;
              begin
                curvalue:=a and mask;
                if curvalue=0 then
-                 list.concat(taicpu.op_reg_reg(A_ADD,reg,NR_R1))
+                 list.concat(taicpu.op_reg_reg(A_ADD,reg,GetDefaultZeroReg))
                else if (curvalue=1) and (tcgsize2size[size]=1) then
                  list.concat(taicpu.op_reg(A_INC,reg))
                else
@@ -1004,7 +1004,7 @@ unit cgcpu;
                        { decrease pressure on upper half of registers by using ADC ...,R1 instead
                          of ADD ...,0 }
                        if curvalue=0 then
-                         list.concat(taicpu.op_reg_reg(A_ADC,reg,NR_R1))
+                         list.concat(taicpu.op_reg_reg(A_ADC,reg,GetDefaultZeroReg))
                        else
                          begin
                            tmpreg:=getintregister(list,OS_8);
@@ -1032,7 +1032,7 @@ unit cgcpu;
                      tmpreg:=reg;
                      for i:=1 to 4 do
                        begin
-                         list.concat(taicpu.op_reg_reg(A_MOV,tmpreg,NR_R1));
+                         list.concat(taicpu.op_reg_reg(A_MOV,tmpreg,GetDefaultZeroReg));
                          tmpreg:=GetNextReg(tmpreg);
                        end;
                    end
@@ -1060,7 +1060,7 @@ unit cgcpu;
          for i:=1 to tcgsize2size[size] do
            begin
              if ((qword(a) and mask) shr shift)=0 then
-               emit_mov(list,reg,NR_R1)
+               emit_mov(list,reg,GetDefaultZeroReg)
              else
                begin
                  getcpuregister(list,NR_R26);
@@ -1270,7 +1270,7 @@ unit cgcpu;
                        else
                          href.addressmode:=AM_UNCHANGED;
 
-                       list.concat(taicpu.op_ref_reg(GetStore(href),href,NR_R1));
+                       list.concat(taicpu.op_ref_reg(GetStore(href),href,GetDefaultZeroReg));
                      end;
                  end;
                OS_S8:
@@ -1282,7 +1282,7 @@ unit cgcpu;
                    if tcgsize2size[tosize]>1 then
                      begin
                        tmpreg:=getintregister(list,OS_8);
-                       emit_mov(list,tmpreg,NR_R1);
+                       emit_mov(list,tmpreg,GetDefaultZeroReg);
                        list.concat(taicpu.op_reg_const(A_SBRC,reg,7));
                        list.concat(taicpu.op_reg(A_COM,tmpreg));
                        for i:=2 to tcgsize2size[tosize] do
@@ -1324,7 +1324,7 @@ unit cgcpu;
                        else
                          href.addressmode:=AM_UNCHANGED;
 
-                       list.concat(taicpu.op_ref_reg(GetStore(href),href,NR_R1));
+                       list.concat(taicpu.op_ref_reg(GetStore(href),href,GetDefaultZeroReg));
                      end;
                  end;
                OS_S16:
@@ -1346,7 +1346,7 @@ unit cgcpu;
                    if tcgsize2size[tosize]>2 then
                      begin
                        tmpreg:=getintregister(list,OS_8);
-                       emit_mov(list,tmpreg,NR_R1);
+                       emit_mov(list,tmpreg,GetDefaultZeroReg);
                        list.concat(taicpu.op_reg_const(A_SBRC,reg,7));
                        list.concat(taicpu.op_reg(A_COM,tmpreg));
                        for i:=3 to tcgsize2size[tosize] do
@@ -1477,7 +1477,7 @@ unit cgcpu;
                    for i:=2 to tcgsize2size[tosize] do
                      begin
                        reg:=GetNextReg(reg);
-                       emit_mov(list,reg,NR_R1);
+                       emit_mov(list,reg,GetDefaultZeroReg);
                      end;
                  end;
                OS_S8:
@@ -1488,7 +1488,7 @@ unit cgcpu;
                    if tcgsize2size[tosize]>1 then
                      begin
                        reg:=GetNextReg(reg);
-                       emit_mov(list,reg,NR_R1);
+                       emit_mov(list,reg,GetDefaultZeroReg);
                        list.concat(taicpu.op_reg_const(A_SBRC,tmpreg,7));
                        list.concat(taicpu.op_reg(A_COM,reg));
                        tmpreg:=reg;
@@ -1515,7 +1515,7 @@ unit cgcpu;
                    for i:=3 to tcgsize2size[tosize] do
                      begin
                        reg:=GetNextReg(reg);
-                       emit_mov(list,reg,NR_R1);
+                       emit_mov(list,reg,GetDefaultZeroReg);
                      end;
                  end;
                OS_S16:
@@ -1532,7 +1532,7 @@ unit cgcpu;
                    tmpreg:=reg;
 
                    reg:=GetNextReg(reg);
-                   emit_mov(list,reg,NR_R1);
+                   emit_mov(list,reg,GetDefaultZeroReg);
                    list.concat(taicpu.op_reg_const(A_SBRC,tmpreg,7));
                    list.concat(taicpu.op_reg(A_COM,reg));
                    tmpreg:=reg;
@@ -1596,7 +1596,7 @@ unit cgcpu;
                    for i:=2 to tcgsize2size[tosize] do
                      begin
                        reg2:=GetNextReg(reg2);
-                       emit_mov(list,reg2,NR_R1);
+                       emit_mov(list,reg2,GetDefaultZeroReg);
                      end;
                  end;
                OS_S8:
@@ -1606,7 +1606,7 @@ unit cgcpu;
                    if tcgsize2size[tosize]>1 then
                      begin
                        reg2:=GetNextReg(reg2);
-                       emit_mov(list,reg2,NR_R1);
+                       emit_mov(list,reg2,GetDefaultZeroReg);
                        list.concat(taicpu.op_reg_const(A_SBRC,reg1,7));
                        list.concat(taicpu.op_reg(A_COM,reg2));
                        tmpreg:=reg2;
@@ -1628,7 +1628,7 @@ unit cgcpu;
                    for i:=3 to tcgsize2size[tosize] do
                      begin
                        reg2:=GetNextReg(reg2);
-                       emit_mov(list,reg2,NR_R1);
+                       emit_mov(list,reg2,GetDefaultZeroReg);
                      end;
                  end;
                OS_S16:
@@ -1642,7 +1642,7 @@ unit cgcpu;
                    if tcgsize2size[tosize]>2 then
                      begin
                        reg2:=GetNextReg(reg2);
-                       emit_mov(list,reg2,NR_R1);
+                       emit_mov(list,reg2,GetDefaultZeroReg);
                        list.concat(taicpu.op_reg_const(A_SBRC,reg1,7));
                        list.concat(taicpu.op_reg(A_COM,reg2));
                        tmpreg:=reg2;
@@ -1734,22 +1734,22 @@ unit cgcpu;
                 for i:=2 to tcgsize2size[size] do
                   reg:=GetNextReg(reg);
 
-                list.concat(taicpu.op_reg_reg(A_CP,reg,NR_R1));
+                list.concat(taicpu.op_reg_reg(A_CP,reg,GetDefaultZeroReg));
               end
             else
               begin
                 if swapped then
-                  list.concat(taicpu.op_reg_reg(A_CP,NR_R1,reg))
+                  list.concat(taicpu.op_reg_reg(A_CP,GetDefaultZeroReg,reg))
                 else
-                  list.concat(taicpu.op_reg_reg(A_CP,reg,NR_R1));
+                  list.concat(taicpu.op_reg_reg(A_CP,reg,GetDefaultZeroReg));
 
                 for i:=2 to tcgsize2size[size] do
                   begin
                     reg:=GetNextReg(reg);
                     if swapped then
-                      list.concat(taicpu.op_reg_reg(A_CPC,NR_R1,reg))
+                      list.concat(taicpu.op_reg_reg(A_CPC,GetDefaultZeroReg,reg))
                     else
-                      list.concat(taicpu.op_reg_reg(A_CPC,reg,NR_R1));
+                      list.concat(taicpu.op_reg_reg(A_CPC,reg,GetDefaultZeroReg));
                   end;
               end;
 
@@ -1859,7 +1859,7 @@ unit cgcpu;
           begin
             tmpflags:=f;
             inverse_flags(tmpflags);
-            emit_mov(reg,NR_R1);
+            emit_mov(reg,GetDefaultZeroReg);
             a_jmp_flags(list,tmpflags,l);
             list.concat(taicpu.op_reg_const(A_LDI,reg,1));
           end
@@ -1871,11 +1871,11 @@ unit cgcpu;
             for i:=2 to tcgsize2size[size] do
               begin
                 hreg:=GetNextReg(hreg);
-                emit_mov(list,hreg,NR_R1);
+                emit_mov(list,hreg,GetDefaultZeroReg);
               end;
 
             a_jmp_flags(list,f,l);
-            emit_mov(list,reg,NR_R1);
+            emit_mov(list,reg,GetDefaultZeroReg);
           end;
         cg.a_label(list,l);
       end;
@@ -1891,21 +1891,21 @@ unit cgcpu;
           {-14..-1:
             begin
               if ((-value) mod 2)<>0 then
-                list.concat(taicpu.op_reg(A_PUSH,NR_R0));
+                list.concat(taicpu.op_reg(A_PUSH,GetDefaultTmpReg));
               for i:=1 to (-value) div 2 do
                 list.concat(taicpu.op_const(A_RCALL,0));
             end;
           1..7:
             begin
               for i:=1 to value do
-                list.concat(taicpu.op_reg(A_POP,NR_R0));
+                list.concat(taicpu.op_reg(A_POP,GetDefaultTmpReg));
             end;}
           else
             begin
               list.concat(taicpu.op_reg_const(A_SUBI,NR_R28,lo(word(-value))));
               list.concat(taicpu.op_reg_const(A_SBCI,NR_R29,hi(word(-value))));
               // get SREG
-              list.concat(taicpu.op_reg_const(A_IN,NR_R0,NIO_SREG));
+              list.concat(taicpu.op_reg_const(A_IN,GetDefaultTmpReg,NIO_SREG));
 
               // block interrupts
               list.concat(taicpu.op_none(A_CLI));
@@ -1914,7 +1914,7 @@ unit cgcpu;
               list.concat(taicpu.op_const_reg(A_OUT,NIO_SP_HI,NR_R29));
 
               // release interrupts
-              list.concat(taicpu.op_const_reg(A_OUT,NIO_SREG,NR_R0));
+              list.concat(taicpu.op_const_reg(A_OUT,NIO_SREG,GetDefaultTmpReg));
 
               // write low SP
               list.concat(taicpu.op_const_reg(A_OUT,NIO_SP_LO,NR_R28));
@@ -2227,12 +2227,12 @@ unit cgcpu;
                 list.concat(taicpu.op_reg(A_PUSH,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
 
             { Save SREG }
-            cg.getcpuregister(list,NR_R0);
-            list.concat(taicpu.op_reg_const(A_IN, NR_R0, $3F));
-            list.concat(taicpu.op_reg(A_PUSH, NR_R0));
-            cg.ungetcpuregister(list,NR_R0);
+            cg.getcpuregister(list,GetDefaultTmpReg);
+            list.concat(taicpu.op_reg_const(A_IN, GetDefaultTmpReg, $3F));
+            list.concat(taicpu.op_reg(A_PUSH, GetDefaultTmpReg));
+            cg.ungetcpuregister(list,GetDefaultTmpReg);
 
-            list.concat(taicpu.op_reg(A_CLR,NR_R1));
+            list.concat(taicpu.op_reg(A_CLR,GetDefaultZeroReg));
 
             if current_procinfo.framepointer<>NR_NO then
               begin
@@ -2309,12 +2309,12 @@ unit cgcpu;
                 include(regs,RS_R1);
 
                 { Reload SREG }
-                regs:=regs+[RS_R0];
+                regs:=regs+[getsupreg(GetDefaultTmpReg)];
 
-                cg.getcpuregister(list,NR_R0);
-                list.concat(taicpu.op_reg(A_POP, NR_R0));
-                list.concat(taicpu.op_const_reg(A_OUT, $3F, NR_R0));
-                cg.ungetcpuregister(list,NR_R0);
+                cg.getcpuregister(list,GetDefaultTmpReg);
+                list.concat(taicpu.op_reg(A_POP, GetDefaultTmpReg));
+                list.concat(taicpu.op_const_reg(A_OUT, $3F, GetDefaultTmpReg));
+                cg.ungetcpuregister(list,GetDefaultTmpReg);
 
                 for reg:=RS_R0 to RS_R31 do
                   if reg in regs then
@@ -2489,16 +2489,16 @@ unit cgcpu;
             cg.getcpuregister(list,NR_R26);
             list.concat(taicpu.op_reg(A_POP,NR_R26));
             cg.a_label(list,l);
-            cg.getcpuregister(list,NR_R0);
-            list.concat(taicpu.op_reg_ref(GetLoad(srcref),NR_R0,srcref));
-            list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,NR_R0));
-            cg.ungetcpuregister(list,NR_R0);
+            cg.getcpuregister(list,GetDefaultTmpReg);
+            list.concat(taicpu.op_reg_ref(GetLoad(srcref),GetDefaultTmpReg,srcref));
+            list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,GetDefaultTmpReg));
+            cg.ungetcpuregister(list,GetDefaultTmpReg);
             if tcgsize2size[countregsize] = 1 then
               list.concat(taicpu.op_reg(A_DEC,countreg))
             else
               begin
                 list.concat(taicpu.op_reg_const(A_SUBI,countreg,1));
-                list.concat(taicpu.op_reg_reg(A_SBC,GetNextReg(countreg),NR_R1));
+                list.concat(taicpu.op_reg_reg(A_SBC,GetNextReg(countreg),GetDefaultZeroReg));
               end;
 
             a_jmp_flags(list,F_NE,l);
@@ -2582,57 +2582,57 @@ unit cgcpu;
                 dstref:=dest;
               end;
 
-              // CC
-              // If dest is an ioreg (31 < offset < srambase) and size = 16 bit then
-              // load high byte first, then low byte
-              if (len = 2) and DestQuickRef
-                and (dest.offset > 31)
-                and (dest.offset < cpuinfo.embedded_controllers[current_settings.controllertype].srambase) then
-                begin
-                  // If src is also a 16 bit ioreg then read low byte then high byte
-                  if SrcQuickRef and (srcref.offset > 31)
-                    and (srcref.offset < cpuinfo.embedded_controllers[current_settings.controllertype].srambase) then
-                    begin
-                      // First read source into temp registers
-                      tmpreg:=getintregister(list, OS_16);
-                      list.concat(taicpu.op_reg_ref(GetLoad(srcref),tmpreg,srcref));
-                      inc(srcref.offset);
-                      tmpreg2:=GetNextReg(tmpreg);
-                      list.concat(taicpu.op_reg_ref(GetLoad(srcref),tmpreg2,srcref));
+            // CC
+            // If dest is an ioreg (31 < offset < srambase) and size = 16 bit then
+            // load high byte first, then low byte
+            if (len = 2) and DestQuickRef
+              and (dest.offset > 31)
+              and (dest.offset < cpuinfo.embedded_controllers[current_settings.controllertype].srambase) then
+              begin
+                // If src is also a 16 bit ioreg then read low byte then high byte
+                if SrcQuickRef and (srcref.offset > 31)
+                  and (srcref.offset < cpuinfo.embedded_controllers[current_settings.controllertype].srambase) then
+                  begin
+                    // First read source into temp registers
+                    tmpreg:=getintregister(list, OS_16);
+                    list.concat(taicpu.op_reg_ref(GetLoad(srcref),tmpreg,srcref));
+                    inc(srcref.offset);
+                    tmpreg2:=GetNextReg(tmpreg);
+                    list.concat(taicpu.op_reg_ref(GetLoad(srcref),tmpreg2,srcref));
 
-                      // then move temp registers to dest in reverse order
-                      inc(dstref.offset);
-                      list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,tmpreg2));
-                      dec(dstref.offset);
-                      list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,tmpreg));
-                    end
-                  else
-                    begin
+                    // then move temp registers to dest in reverse order
+                    inc(dstref.offset);
+                    list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,tmpreg2));
+                    dec(dstref.offset);
+                    list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,tmpreg));
+                  end
+                else
+                  begin
+                    srcref.addressmode:=AM_UNCHANGED;
+                    inc(srcref.offset);
+                    dstref.addressmode:=AM_UNCHANGED;
+                    inc(dstref.offset);
+
+                    cg.getcpuregister(list,GetDefaultTmpReg);
+                    list.concat(taicpu.op_reg_ref(GetLoad(srcref),GetDefaultTmpReg,srcref));
+                    list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,GetDefaultTmpReg));
+                    cg.ungetcpuregister(list,GetDefaultTmpReg);
+
+                    if not(SrcQuickRef) then
+                      srcref.addressmode:=AM_POSTINCREMENT
+                    else
                       srcref.addressmode:=AM_UNCHANGED;
-                      inc(srcref.offset);
-                      dstref.addressmode:=AM_UNCHANGED;
-                      inc(dstref.offset);
 
-                      cg.getcpuregister(list,NR_R0);
-                      list.concat(taicpu.op_reg_ref(GetLoad(srcref),NR_R0,srcref));
-                      list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,NR_R0));
-                      cg.ungetcpuregister(list,NR_R0);
+                    dec(srcref.offset);
+                    dec(dstref.offset);
 
-                      if not(SrcQuickRef) then
-                        srcref.addressmode:=AM_POSTINCREMENT
-                      else
-                        srcref.addressmode:=AM_UNCHANGED;
-
-                      dec(srcref.offset);
-                      dec(dstref.offset);
-
-                      cg.getcpuregister(list,NR_R0);
-                      list.concat(taicpu.op_reg_ref(GetLoad(srcref),NR_R0,srcref));
-                      list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,NR_R0));
-                      cg.ungetcpuregister(list,NR_R0);
-                    end;
-                end
-              else
+                    cg.getcpuregister(list,GetDefaultTmpReg);
+                    list.concat(taicpu.op_reg_ref(GetLoad(srcref),GetDefaultTmpReg,srcref));
+                    list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,GetDefaultTmpReg));
+                    cg.ungetcpuregister(list,GetDefaultTmpReg);
+                  end;
+              end
+            else
               for i:=1 to len do
                 begin
                   if not(SrcQuickRef) and (i<len) then
@@ -2645,10 +2645,10 @@ unit cgcpu;
                   else
                     dstref.addressmode:=AM_UNCHANGED;
 
-                  cg.getcpuregister(list,NR_R0);
-                  list.concat(taicpu.op_reg_ref(GetLoad(srcref),NR_R0,srcref));
-                  list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,NR_R0));
-                  cg.ungetcpuregister(list,NR_R0);
+                  cg.getcpuregister(list,GetDefaultTmpReg);
+                  list.concat(taicpu.op_reg_ref(GetLoad(srcref),GetDefaultTmpReg,srcref));
+                  list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,GetDefaultTmpReg));
+                  cg.ungetcpuregister(list,GetDefaultTmpReg);
 
                   if SrcQuickRef then
                     inc(srcref.offset);
