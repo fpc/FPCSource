@@ -2448,11 +2448,9 @@ unit cgcpu;
             reference_reset(srcref,source.alignment,source.volatility);
             reference_reset(dstref,dest.alignment,source.volatility);
             srcref.base:=NR_R30;
-            if not(CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) then
-              srcref.addressmode:=AM_POSTINCREMENT;
+            srcref.addressmode:=AM_POSTINCREMENT;
             dstref.base:=NR_R26;
-            if not(CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) then
-              dstref.addressmode:=AM_POSTINCREMENT;
+            dstref.addressmode:=AM_POSTINCREMENT;
 
             copysize:=OS_8;
             if len<256 then
@@ -2498,14 +2496,6 @@ unit cgcpu;
             cg.getcpuregister(list,GetDefaultTmpReg);
             list.concat(taicpu.op_reg_ref(GetLoad(srcref),GetDefaultTmpReg,srcref));
             list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,GetDefaultTmpReg));
-
-            if CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype] then
-              begin
-                list.concat(taicpu.op_reg_const(A_SUBI,NR_R30,$ff));
-                list.concat(taicpu.op_reg_const(A_SBCI,NR_R31,$ff));
-                list.concat(taicpu.op_reg_const(A_SUBI,NR_R26,$ff));
-                list.concat(taicpu.op_reg_const(A_SBCI,NR_R27,$ff));
-              end;
             cg.ungetcpuregister(list,GetDefaultTmpReg);
             if tcgsize2size[countregsize] = 1 then
               list.concat(taicpu.op_reg(A_DEC,countreg))
@@ -2655,12 +2645,12 @@ unit cgcpu;
             else
               for i:=1 to len do
                 begin
-                  if not(SrcQuickRef) and (i<len) and not(CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) then
+                  if not(SrcQuickRef) and (i<len) then
                     srcref.addressmode:=AM_POSTINCREMENT
                   else
                     srcref.addressmode:=AM_UNCHANGED;
 
-                  if not(DestQuickRef) and (i<len) and not(CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) then
+                  if not(DestQuickRef) and (i<len) then
                     dstref.addressmode:=AM_POSTINCREMENT
                   else
                     dstref.addressmode:=AM_UNCHANGED;
@@ -2669,14 +2659,6 @@ unit cgcpu;
                   list.concat(taicpu.op_reg_ref(GetLoad(srcref),GetDefaultTmpReg,srcref));
                   list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,GetDefaultTmpReg));
                   cg.ungetcpuregister(list,GetDefaultTmpReg);
-
-                  if (CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) and (i<len) then
-                    begin
-                      list.concat(taicpu.op_reg_const(A_SUBI,srcref.base,$ff));
-                      list.concat(taicpu.op_reg_const(A_SBCI,TRegister(ord(srcref.base)+1),$ff));
-                      list.concat(taicpu.op_reg_const(A_SUBI,dstref.base,$ff));
-                      list.concat(taicpu.op_reg_const(A_SBCI,TRegister(ord(dstref.base)+1),$ff));
-                    end;
 
                   if SrcQuickRef then
                     inc(srcref.offset);
