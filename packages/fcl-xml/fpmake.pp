@@ -21,7 +21,6 @@ begin
     P.Version:='3.2.0-beta';
     P.Options.Add('-S2h');
     D:=P.Dependencies.Add('fcl-base');
-      D.Version:='3.2.0-beta';
     D:=P.Dependencies.Add('iconvenc',[linux,darwin,iphonesim,freebsd,haiku,beos,aix]);
 
     P.Author := 'Sebastian Guenther, Sergei Gorelkin and FPC development team';
