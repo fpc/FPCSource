@@ -190,7 +190,9 @@ begin
   else
     AValue:=D.AsJSON;
   end;
+  {$IFDEF gdebug}
   Writeln(FIndex,' : ',AFieldName,' -> ',AValue);
+  {$ENDIF}
 end;
 
 procedure TFPReportJSONData.DoInitDataFields;
@@ -249,6 +251,7 @@ end;
 procedure TFPReportJSONData.DoClose;
 begin
   inherited DoClose;
+  DataFields.Clear;
   FIndex:=-1;
 end;
 
