@@ -1087,7 +1087,6 @@ unit cgcpu;
 
 
     function tcgavr.normalize_ref(list:TAsmList;ref: treference;tmpreg : tregister) : treference;
-
       var
         tmpref : treference;
         l : tasmlabel;
@@ -1100,9 +1099,6 @@ unit cgcpu;
         { Be sure to have a base register }
         if (ref.base=NR_NO) then
           begin
-            { only symbol+offset? }
-            if ref.index=NR_NO then
-              exit;
             ref.base:=ref.index;
             ref.index:=NR_NO;
           end;
@@ -1190,7 +1186,9 @@ unit cgcpu;
             emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.index));
             ref.base:=tmpreg;
             ref.index:=NR_NO;
-          end;
+          end
+        else
+          Internalerror(2020011901);
         Result:=ref;
       end;
 
