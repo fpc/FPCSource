@@ -229,8 +229,8 @@ unit cpubase;
 *****************************************************************************}
 
       { Stack pointer register }
-      NR_STACK_POINTER_REG = NR_R13;
-      RS_STACK_POINTER_REG = RS_R13;
+      NR_STACK_POINTER_REG = NR_INVALID;
+      RS_STACK_POINTER_REG = RS_INVALID;
       { Frame pointer register }
       RS_FRAME_POINTER_REG = RS_R28;
       NR_FRAME_POINTER_REG = NR_R28;

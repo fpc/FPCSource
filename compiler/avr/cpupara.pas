@@ -355,19 +355,19 @@ unit cpupara;
                       begin
                         if push_addr_param(hp.varspez,paradef,p.proccalloption) then
                           begin
-                            paraloc^.size:=OS_ADDR;
-                            paraloc^.def:=cpointerdef.getreusable_no_free(paradef);
-                            assignintreg
-                          end
+                           paraloc^.size:=OS_ADDR;
+                           paraloc^.def:=cpointerdef.getreusable_no_free(paradef);
+                           assignintreg;
+                         end
                         else
                           begin
-                             paraloc^.def:=hp.vardef;
-                             paraloc^.loc:=LOC_REFERENCE;
-                             paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                             paraloc^.reference.offset:=stack_offset;
-                             inc(stack_offset,hp.vardef.size);
-                          end;
-                        dec(paralen,hp.vardef.size);
+                            paraloc^.def:=hp.vardef;
+                            paraloc^.loc:=LOC_REFERENCE;
+                            paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                            paraloc^.reference.offset:=stack_offset;
+                            inc(stack_offset,paralen);
+                         end;
+                        paralen:=0;
                       end;
                     else
                       internalerror(2002071002);
