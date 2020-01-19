@@ -2343,11 +2343,14 @@ Function ReportExportManager : TFPReportExportManager;
 { this should probably be more configurable or flexible per platform }
 
 Const
+
+  { Note, these are the postscript names, not the human-readable ones. }
+
 {$IFDEF UNIX}
   cDefaultFont = 'LiberationSans';
 {$ELSE}
 {$IFDEF WINDOWS}
-  cDefaultFont = 'Arial';
+  cDefaultFont = 'ArialMT';
 {$ELSE}
   cDefaultFont = 'Helvetica';
 {$ENDIF}
