@@ -459,14 +459,14 @@ Function TLinkerBSD.GetDarwinPrtobjName(isdll: boolean): TCmdStr;
 var
   startupfile: TCmdStr;
 begin
+  result:='';
+
   startupfile:=GetDarwinCrt1ObjName(isdll);
   if startupfile<>'' then
     begin
      if not librarysearchpath.FindFile(startupfile,false,result) then
-       result:='/usr/lib/'+startupfile
-    end
-  else
-    result:='';
+       result:='/usr/lib/'+startupfile;
+    end;
   result:=maybequoted(result);
 end;
 
