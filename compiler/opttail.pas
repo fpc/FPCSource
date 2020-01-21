@@ -123,7 +123,9 @@ unit opttail;
                       begin
                         useaddr:=(paranode.parasym.varspez in [vs_var,vs_constref]) or
                           ((paranode.parasym.varspez=vs_const) and
-                          paramanager.push_addr_param(paranode.parasym.varspez,paranode.parasym.vardef,p.proccalloption));
+                          paramanager.push_addr_param(paranode.parasym.varspez,paranode.parasym.vardef,p.proccalloption)) or
+                          ((paranode.parasym.varspez=vs_value) and
+                          is_open_array(paranode.parasym.vardef));
                         if useaddr then
                           begin
                             tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);

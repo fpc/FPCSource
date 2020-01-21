@@ -56,6 +56,23 @@ begin
   Test3 := Test3(Values, 0);
 end;
 
+function Test4(Values: array of LongInt; Res: LongInt): LongInt;
+begin
+  if not Assigned(stack) then
+    stack := get_frame
+  else if stack <> get_frame then
+    Halt(7);
+  if Length(Values) = 0 then
+    Test4 := Res
+  else
+    Test4 := Test4(Values[0..High(Values) - 1], Res + Values[High(Values)]);
+end;
+
+function Test4(Values: array of LongInt): LongInt;
+begin
+  Test4 := Test4(Values, 0);
+end;
+
 begin
   if Test1([1, 2, 3, 4]) <> 10 then
     Halt(2);
@@ -65,5 +82,8 @@ begin
   stack := Nil;
   if Test3([1, 2, 3, 4]) <> 10 then
     Halt(6);
+  stack := Nil;
+  if Test4([1, 2, 3, 4]) <> 10 then
+    Halt(8);
   writeln('ok');
 end.
