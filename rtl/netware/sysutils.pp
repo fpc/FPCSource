@@ -362,7 +362,7 @@ begin
 end;
 
 
-Function FileGetDate (Handle : THandle) : Longint;
+Function FileGetDate (Handle : THandle) : Int64;
 Var Info : NWStatBufT;
     PTM  : PNWTM;
 begin

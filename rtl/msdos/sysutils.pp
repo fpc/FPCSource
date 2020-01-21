@@ -423,7 +423,7 @@ begin
 end;
 
 
-Function FileGetDate (Handle : THandle) : Longint;
+Function FileGetDate (Handle : THandle) : Int64;
 var
   Regs: registers;
 begin
@@ -434,10 +434,7 @@ begin
   if Regs.Flags and fCarry <> 0 then
    result := -1
   else
-   begin
-     LongRec(result).Lo := Regs.cx;
-     LongRec(result).Hi := Regs.dx;
-   end ;
+   result:=(Regs.dx shl 16) or Regs.cx;
 end;
 
 

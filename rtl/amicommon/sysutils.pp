@@ -182,7 +182,7 @@ begin
 end;
 
 
-function FileGetDate(Handle: THandle) : LongInt;
+function FileGetDate(Handle: THandle) : Int64;
 var
   tmpFIB : PFileInfoBlock;
   tmpDateTime: TDateTime;

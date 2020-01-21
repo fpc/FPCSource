@@ -52,8 +52,7 @@ begin
   result := -1;
 end;
 
-
-function FileGetDate(Handle: LongInt) : LongInt;
+function FileGetDate(Handle: THandle) : Int64;
 begin
   result := -1;
 end;

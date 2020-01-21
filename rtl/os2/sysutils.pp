@@ -356,7 +356,7 @@ begin
 end;
 
 
-function FileGetDate (Handle: THandle): longint;
+function FileGetDate (Handle: THandle): Int64;
 var
   FStat: TFileStatus3;
   Time: Longint;
@@ -376,7 +376,7 @@ begin
   FileGetDate:=Time;
 end;
 
-function FileSetDate (Handle: THandle; Age: longint): longint;
+function FileSetDate (Handle: THandle; Age: Int64): longint;
 var
   FStat: PFileStatus3;
   RC: cardinal;

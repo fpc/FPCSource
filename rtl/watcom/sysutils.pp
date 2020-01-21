@@ -406,7 +406,7 @@ begin
 end;
 
 
-Function FileGetDate (Handle : Longint) : Longint;
+Function FileGetDate (Handle : Longint) : Int64;
 var
   Regs: registers;
 begin
@@ -424,7 +424,7 @@ begin
 end;
 
 
-Function FileSetDate (Handle, Age : Int64) : Longint;
+Function FileSetDate (Handle: longint; Age: Int64) : Longint;
 var
   Regs: registers;
 begin

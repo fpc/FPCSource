@@ -838,7 +838,7 @@ begin
 end;
 
 
-function FileGetDate (Handle: longint): longint; assembler;
+function FileGetDate (Handle: longint): Int64; assembler;
 asm
  push ebx
 {$IFDEF REGCALL}
@@ -854,10 +854,11 @@ asm
  shld eax, ecx, 16
 @FGetDateEnd:
  pop ebx
+ xorl edx,edx
 end {['eax', 'ebx', 'ecx', 'edx']};
 
 
-function FileSetDate (Handle, Age: longint): longint;
+function FileSetDate (Handle: longint; Age: Int64): longint;
 var FStat: PFileStatus3;
     RC: cardinal;
 begin
