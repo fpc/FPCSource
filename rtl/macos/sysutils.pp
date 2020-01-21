@@ -446,7 +446,7 @@ begin
 end;
 
 
-Function FileGetDate (Handle : Longint) : Longint;
+Function FileGetDate (Handle : Longint) : Int64;
 
   (*
 Var Info : Stat;
@@ -462,7 +462,7 @@ begin
 end;
 
 
-Function FileSetDate (Handle,Age : Int64) : Longint;
+Function FileSetDate (Handle: Longint; Age: Int64) : Longint;
 
 begin
   // TODO fix

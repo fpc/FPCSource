@@ -354,7 +354,7 @@ end;
 
 
 
-Function FileGetDate (Handle : THandle) : Longint;
+Function FileGetDate (Handle : THandle) : Int64;
 Var Info : TStat;
     _PTM : PTM;
 begin

@@ -76,7 +76,7 @@ begin
 end;
 
 
-function FileGetDate(Handle: THandle) : LongInt;
+function FileGetDate(Handle: THandle) : Int64;
 var
   td: TDOSTIME;
 begin

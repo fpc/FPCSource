@@ -53,7 +53,7 @@ begin
 end;
 
 
-function FileGetDate(Handle: THandle) : Longint;
+function FileGetDate(Handle: THandle) : Int64;
 begin
   result := -1;
 end;

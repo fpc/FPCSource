@@ -853,7 +853,7 @@ Begin
 end;
 
 
-function FileGetDate(Handle: THandle): Longint;
+function FileGetDate(Handle: THandle): Int64;
 var
   res: NTSTATUS;
   basic: FILE_BASIC_INFORMATION;

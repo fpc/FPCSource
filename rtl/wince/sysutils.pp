@@ -354,7 +354,7 @@ begin
 end;
 
 
-Function FileGetDate (Handle : THandle) : Longint;
+Function FileGetDate (Handle : THandle) : Int64;
 Var
   FT : TFileTime;
 begin

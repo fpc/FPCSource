@@ -484,7 +484,7 @@ end;
 
 type
   TAbstractSearchRec = Record
-    Time : Longint;
+    Time : Int64;
     Size : Int64;
     Attr : Longint;
     { this will be assigned by the generic code; it is actually either a
