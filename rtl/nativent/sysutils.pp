@@ -313,7 +313,7 @@ begin
   aNtTime.QuadPart := local.QuadPart + bias.QuadPart;
 end;
 
-function FileAge(const FileName: UnicodeString): Longint;
+function FileAge(const FileName: UnicodeString): Int64;
 begin
   { TODO }
   Result := -1;
@@ -868,7 +868,7 @@ begin
 end;
 
 
-function FileSetDate(Handle: THandle;Age: Longint): Longint;
+function FileSetDate(Handle: THandle;Age: Int64): Longint;
 var
   res: NTSTATUS;
   basic: FILE_BASIC_INFORMATION;

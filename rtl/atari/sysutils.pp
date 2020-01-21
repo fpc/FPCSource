@@ -87,7 +87,7 @@ begin
 end;
 
 
-function FileSetDate(Handle: THandle; Age: LongInt) : LongInt;
+function FileSetDate(Handle: THandle; Age: Int64) : LongInt;
 var
   td: TDOSTIME;
 begin
@@ -99,7 +99,7 @@ begin
 end;
 
 
-function FileSetDate(const FileName: RawByteString; Age: LongInt) : LongInt;
+function FileSetDate(const FileName: RawByteString; Age: Int64) : LongInt;
 var
   f: THandle;
 begin
@@ -203,7 +203,7 @@ end;
 (****** end of non portable routines ******)
 
 
-function FileAge (const FileName : RawByteString): Longint;
+function FileAge (const FileName : RawByteString): Int64;
 var
   f: THandle;
 begin

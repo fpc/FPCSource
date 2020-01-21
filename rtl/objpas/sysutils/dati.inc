@@ -1250,7 +1250,7 @@ begin
 end ;
 
 
-Function DateTimeToFileDate(DateTime : TDateTime) : Longint;
+Function DateTimeToFileDate(DateTime : TDateTime) : Int64;
 
 Var YY,MM,DD,H,m,s,msec : Word;
 
@@ -1278,7 +1278,7 @@ begin
   Result := SysTime.Year;
 end;
 
-Function FileDateToDateTime (Filedate : Longint) : TDateTime;
+Function FileDateToDateTime (Filedate : Int64) : TDateTime;
 
 {$ifndef unix}
 Var Date,Time : Word;

@@ -201,7 +201,7 @@ begin
   FileUnlock := -1;
 end;
 
-Function FileAge (Const FileName : RawByteString): Longint;
+Function FileAge (Const FileName : RawByteString): Int64;
 var Info : TStat;
     TM  : TTM;
     SystemFileName: RawByteString;

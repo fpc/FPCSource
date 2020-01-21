@@ -315,7 +315,7 @@ begin
 end;
 
 
-Function FileAge (Const FileName : RawByteString): Longint;
+Function FileAge (Const FileName : RawByteString): Int64;
 var Handle: longint;
 begin
   Handle := FileOpen(FileName, 0);
@@ -468,7 +468,7 @@ begin
 end;
 
 
-Function FileSetDate (Handle : THandle; Age : Longint) : Longint;
+Function FileSetDate (Handle : THandle; Age : Int64) : Longint;
 var
   Regs: registers;
 begin

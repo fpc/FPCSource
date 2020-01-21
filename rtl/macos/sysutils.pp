@@ -190,7 +190,7 @@ begin
   *)
 end;
 
-Function FileAge (Const FileName : RawByteString): Longint;
+Function FileAge (Const FileName : RawByteString): Int64;
 
   (*
 Var Info : Stat;
@@ -462,7 +462,7 @@ begin
 end;
 
 
-Function FileSetDate (Handle,Age : Longint) : Longint;
+Function FileSetDate (Handle,Age : Int64) : Longint;
 
 begin
   // TODO fix

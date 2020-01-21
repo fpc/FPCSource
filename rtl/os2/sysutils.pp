@@ -214,7 +214,7 @@ begin
    OSErrorWatch (RC);
 end;
 
-function FileAge (const FileName: RawByteString): longint;
+function FileAge (const FileName: RawByteString): Int64;
 var Handle: longint;
 begin
     Handle := FileOpen (FileName, 0);
