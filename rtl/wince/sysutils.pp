@@ -250,7 +250,7 @@ begin
 end;
 
 
-Function FileAge (Const FileName : UnicodeString): Longint;
+Function FileAge (Const FileName : UnicodeString): Int64;
 var
   Handle: THandle;
   FindData: TWin32FindData;
@@ -365,7 +365,7 @@ begin
 end;
 
 
-Function FileSetDate (Handle : THandle;Age : Longint) : Longint;
+Function FileSetDate (Handle : THandle;Age : Int64) : Longint;
 Var
   FT: TFileTime;
 begin

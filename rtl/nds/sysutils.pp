@@ -76,7 +76,7 @@ begin
 end;
 
 
-function FileSetDate(Handle, Age: LongInt) : LongInt;
+function FileSetDate(Handle, Age: Int64) : LongInt;
 begin
   result := -1;
 end;
@@ -166,7 +166,7 @@ end;
 (****** end of non portable routines ******)
 
 
-Function FileAge (Const FileName : RawByteString): Longint;
+Function FileAge (Const FileName : RawByteString): Int64;
 var 
   info: Stat;
   SystemFileName: RawByteString;

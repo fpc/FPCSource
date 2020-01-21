@@ -394,7 +394,7 @@ begin
 end;
 
 
-Function FileAge (Const FileName : UnicodeString): Longint;
+Function FileAge (Const FileName : UnicodeString): Int64;
 var
   Handle: THandle;
   FindData: TWin32FindDataW;
@@ -634,7 +634,7 @@ begin
   Result:=-1;
 end;
 
-Function FileSetDate (Handle : THandle;Age : Longint) : Longint;
+Function FileSetDate (Handle : THandle;Age : Int64) : Longint;
 Var
   FT: TFileTime;
 begin
@@ -646,7 +646,7 @@ begin
 end;
 
 {$IFDEF OS_FILESETDATEBYNAME}
-Function FileSetDate (Const FileName : UnicodeString;Age : Longint) : Longint;
+Function FileSetDate (Const FileName : UnicodeString;Age : Int64) : Longint;
 Var
   fd : THandle;
 begin
