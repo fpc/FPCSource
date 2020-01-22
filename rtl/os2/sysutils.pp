@@ -365,9 +365,9 @@ begin
   RC := DosQueryFileInfo(Handle, ilStandard, @FStat, SizeOf(FStat));
   if RC = 0 then
   begin
-    Time := FStat.TimeLastWrite + longint (FStat.DateLastWrite) shl 16;
+    Time := FStat.TimeLastWrite + dword (FStat.DateLastWrite) shl 16;
     if Time = 0 then
-      Time := FStat.TimeCreation + longint (FStat.DateCreation) shl 16;
+      Time := FStat.TimeCreation + dword (FStat.DateCreation) shl 16;
   end else
    begin
     Time:=0;
@@ -390,10 +390,10 @@ begin
    end
   else
    begin
-    FStat^.DateLastAccess := Hi (Age);
-    FStat^.DateLastWrite := Hi (Age);
-    FStat^.TimeLastAccess := Lo (Age);
-    FStat^.TimeLastWrite := Lo (Age);
+    FStat^.DateLastAccess := Hi (dword (Age));
+    FStat^.DateLastWrite := Hi (dword (Age));
+    FStat^.TimeLastAccess := Lo (dword (Age));
+    FStat^.TimeLastWrite := Lo (dword (Age));
     RC := DosSetFileInfo (Handle, ilStandard, FStat, SizeOf (FStat^));
     if RC <> 0 then
      begin

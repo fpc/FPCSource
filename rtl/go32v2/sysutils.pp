@@ -445,8 +445,8 @@ var
 begin
   Regs.Ebx := Handle;
   Regs.Eax := $5701;
-  Regs.Ecx := Lo(Age);
-  Regs.Edx := Hi(Age);
+  Regs.Ecx := Lo(dword(Age));
+  Regs.Edx := Hi(dword(Age));
   RealIntr($21, Regs);
   if Regs.Flags and CarryFlag <> 0 then
    result := -Regs.Ax

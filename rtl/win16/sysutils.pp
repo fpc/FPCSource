@@ -471,8 +471,8 @@ var
 begin
   Regs.bx := Handle;
   Regs.ax := $5701;
-  Regs.cx := Lo(Age);
-  Regs.dx := Hi(Age);
+  Regs.cx := Lo(dword(Age));
+  Regs.dx := Hi(dword(Age));
   ZeroSegRegs(Regs);
   MsDos(Regs);
   if Regs.Flags and fCarry <> 0 then

@@ -871,10 +871,10 @@ begin
                 FileSetDate := -1
             else
                 begin
-                    FStat^.DateLastAccess := Hi (Age);
-                    FStat^.DateLastWrite := Hi (Age);
-                    FStat^.TimeLastAccess := Lo (Age);
-                    FStat^.TimeLastWrite := Lo (Age);
+                    FStat^.DateLastAccess := Hi (dword (Age));
+                    FStat^.DateLastWrite := Hi (dword (Age));
+                    FStat^.TimeLastAccess := Lo (dword (Age));
+                    FStat^.TimeLastWrite := Lo (dword (Age));
                     RC := DosSetFileInfo (Handle, ilStandard, FStat,
                                                               SizeOf (FStat^));
                     if RC <> 0 then
