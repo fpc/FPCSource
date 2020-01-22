@@ -8364,7 +8364,7 @@ procedure TPasResolver.FinishArgument(El: TPasArgument);
 var
   IsDelphi: Boolean;
 begin
-  if not (El.Access in [argDefault,argConst,argVar,argOut]) then
+  if not (El.Access in [argDefault,argConst,argVar,argOut,argConstRef]) then
     RaiseMsg(20191018235644,nNotYetImplemented,sNotYetImplemented,[AccessDescriptions[El.Access]],El);
   if El.ArgType<>nil then
     CheckUseAsType(El.ArgType,20190123100049,El);
