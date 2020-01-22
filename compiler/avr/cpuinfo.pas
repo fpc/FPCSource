@@ -289,7 +289,7 @@ Const
         ,(controllertypestr:'ATTINY44A'; controllerunitstr:'ATTINY44A'; cputype: cpu_avr25; fputype:fpu_soft; flashbase:0; flashsize:4096; srambase:96; sramsize:256; eeprombase:0; eepromsize:256)
         ,(controllertypestr:'ATMEGA649A'; controllerunitstr:'ATMEGA649A'; cputype: cpu_avr5; fputype:fpu_soft; flashbase:0; flashsize:65536; srambase:256; sramsize:4096; eeprombase:0; eepromsize:2048)
         ,(controllertypestr:'ATMEGA32U4'; controllerunitstr:'ATMEGA32U4'; cputype: cpu_avr5; fputype:fpu_soft; flashbase:0; flashsize:32768; srambase:256; sramsize:2560; eeprombase:0; eepromsize:1024)
-        ,(controllertypestr:'ATTINY26'; controllerunitstr:'ATTINY26'; cputype: cpu_avr25; fputype:fpu_soft; flashbase:0; flashsize:2048; srambase:96; sramsize:128; eeprombase:0; eepromsize:128)
+        ,(controllertypestr:'ATTINY26'; controllerunitstr:'ATTINY26'; cputype: cpu_avr2; fputype:fpu_soft; flashbase:0; flashsize:2048; srambase:96; sramsize:128; eeprombase:0; eepromsize:128)
         ,(controllertypestr:'AT90USB1287'; controllerunitstr:'AT90USB1287'; cputype: cpu_avr51; fputype:fpu_soft; flashbase:0; flashsize:131072; srambase:256; sramsize:8192; eeprombase:0; eepromsize:4096)
         ,(controllertypestr:'AT90PWM161'; controllerunitstr:'AT90PWM161'; cputype: cpu_avr5; fputype:fpu_soft; flashbase:0; flashsize:16384; srambase:256; sramsize:1024; eeprombase:0; eepromsize:512)
         ,(controllertypestr:'ATTINY48'; controllerunitstr:'ATTINY48'; cputype: cpu_avr25; fputype:fpu_soft; flashbase:0; flashsize:4096; srambase:256; sramsize:256; eeprombase:0; eepromsize:64)
@@ -464,7 +464,7 @@ Const
      ( { cpu_none    } [],
        { cpu_avrtiny } [CPUAVR_16_REGS,CPUAVR_2_BYTE_PC],
        { cpu_avr1    } [CPUAVR_2_BYTE_PC],
-       { cpu_avr2    } [CPUAVR_2_BYTE_PC],
+       { cpu_avr2    } [CPUAVR_HAS_LPMX,CPUAVR_2_BYTE_PC],
        { cpu_avr25   } [CPUAVR_HAS_MOVW,CPUAVR_HAS_LPMX,CPUAVR_2_BYTE_PC],
        { cpu_avr3    } [CPUAVR_HAS_JMP_CALL,CPUAVR_2_BYTE_PC],
        { cpu_avr31   } [CPUAVR_HAS_JMP_CALL,CPUAVR_HAS_RAMPZ,CPUAVR_HAS_ELPM,CPUAVR_2_BYTE_PC],
