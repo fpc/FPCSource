@@ -618,6 +618,10 @@ begin
       ct_nrf52840_xxaa,
       
       ct_sc32442b,
+
+      { Raspberry Pi 2 }
+      ct_raspi2,
+
       ct_thumb2bare:
         begin
          with embedded_controllers[current_settings.controllertype] do
