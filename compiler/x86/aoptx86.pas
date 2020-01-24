@@ -82,6 +82,7 @@ unit aoptx86;
         function OptPass2Jmp(var p : tai) : boolean;
         function OptPass2Jcc(var p : tai) : boolean;
         function OptPass2Lea(var p: tai): Boolean;
+        function OptPass2SUB(var p: tai): Boolean;
 
         function PostPeepholeOptMov(var p : tai) : Boolean;
 {$ifdef x86_64} { These post-peephole optimisations only affect 64-bit registers. [Kit] }
@@ -3507,6 +3508,7 @@ unit aoptx86;
        end;
 
       var
+        NewRef: TReference;
        hp1,hp2,hp3: tai;
 {$ifndef x86_64}
        hp4: tai;
@@ -3533,6 +3535,50 @@ unit aoptx86;
             { If OptPass2JMP returned False, no optimisations were done to
               the jump and there are no further optimisations that can be done
               to the MOV instruction on this pass }
+          end
+        else if MatchOpType(taicpu(p),top_reg,top_reg) and
+          (taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) and
+          MatchInstruction(hp1,A_ADD,A_SUB,[taicpu(p).opsize]) and
+          MatchOpType(taicpu(hp1),top_const,top_reg) and
+          (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) and
+          { be lazy, checking separately for sub would be slightly better }
+          (abs(taicpu(hp1).oper[0]^.val)<=$7fffffff) then
+          begin
+            { Change:
+                movl/q %reg1,%reg2      movl/q %reg1,%reg2
+                addl/q $x,%reg2         subl/q $x,%reg2
+              To:
+                leal/q x(%reg1),%reg2   leal/q -x(%reg1),%reg2
+            }
+            if not GetNextInstruction(hp1, hp2) or
+              { The FLAGS register isn't always tracked properly, so do not
+                perform this optimisation if a conditional statement follows }
+              not MatchInstruction(hp2, [A_Jcc, A_SETcc, A_CMOVcc], []) then
+              begin
+                reference_reset(NewRef, 1, []);
+                NewRef.base := taicpu(p).oper[0]^.reg;
+                NewRef.scalefactor := 1;
+
+                if taicpu(hp1).opcode = A_ADD then
+                  begin
+                    DebugMsg(SPeepholeOptimization + 'MovAdd2Lea', p);
+                    NewRef.offset := taicpu(hp1).oper[0]^.val;
+                  end
+                else
+                  begin
+                    DebugMsg(SPeepholeOptimization + 'MovSub2Lea', p);
+                    NewRef.offset := -taicpu(hp1).oper[0]^.val;
+                  end;
+
+                taicpu(p).opcode := A_LEA;
+                taicpu(p).loadref(0, NewRef);
+
+                Asml.Remove(hp1);
+                hp1.Free;
+
+                Result := True;
+                Exit;
+              end;
           end
         else if MatchOpType(taicpu(p),top_reg,top_reg) and
 {$ifdef x86_64}
@@ -5035,6 +5081,50 @@ unit aoptx86;
             taicpu(p).opcode:=A_ADD;
             DebugMsg(SPeepholeOptimization + 'Lea2AddIndex done',p);
             result:=true;
+          end;
+      end;
+
+
+    function TX86AsmOptimizer.OptPass2SUB(var p: tai): Boolean;
+      var
+        hp1, hp2: tai; NewRef: TReference;
+      begin
+        { Change:
+            subl/q $x,%reg1
+            movl/q %reg1,%reg2
+          To:
+            leal/q $-x(%reg1),%reg2
+            subl/q $x,%reg1
+
+          Breaks the dependency chain and potentially permits the removal of
+          a CMP instruction if one follows.
+        }
+        Result := False;
+        if not (cs_opt_size in current_settings.optimizerswitches) and
+          (taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) and
+          MatchOpType(taicpu(p),top_const,top_reg) and
+          GetNextInstruction(p, hp1) and
+          MatchInstruction(hp1, A_MOV, [taicpu(p).opsize]) and
+          (taicpu(hp1).oper[1]^.typ = top_reg) and
+          MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^.reg) then
+          begin
+            { Change the MOV instruction to a LEA instruction, and update the
+              first operand }
+            reference_reset(NewRef, 1, []);
+            NewRef.base := taicpu(p).oper[1]^.reg;
+            NewRef.scalefactor := 1;
+            NewRef.offset := -taicpu(p).oper[0]^.val;
+
+            taicpu(hp1).opcode := A_LEA;
+            taicpu(hp1).loadref(0, NewRef);
+
+            { Move what is now the LEA instruction to before the SUB instruction }
+            Asml.Remove(hp1);
+            Asml.InsertBefore(hp1, p);
+            AllocRegBetween(taicpu(hp1).oper[1]^.reg, hp1, p, UsedRegs);
+
+            DebugMsg(SPeepholeOptimization + 'SubMov2LeaSub', p);
+            Result := True;
           end;
       end;
 
