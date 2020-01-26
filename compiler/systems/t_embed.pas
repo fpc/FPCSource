@@ -813,6 +813,8 @@ begin
          Add('OUTPUT_ARCH(avr:51)');
        cpu_avr6:
          Add('OUTPUT_ARCH(avr:6)');
+       cpu_avrxmega3:
+         Add('OUTPUT_ARCH(avr:103)');
        else
          Internalerror(2015072701);
       end;
