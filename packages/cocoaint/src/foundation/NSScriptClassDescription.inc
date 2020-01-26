@@ -1,45 +1,14 @@
 { Parsed from Foundation.framework NSScriptClassDescription.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSSCRIPTCLASSDESCRIPTION_PAS_T}
-{$define NSSCRIPTCLASSDESCRIPTION_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSSCRIPTCLASSDESCRIPTION_PAS_R}
-{$define NSSCRIPTCLASSDESCRIPTION_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSSCRIPTCLASSDESCRIPTION_PAS_F}
-{$define NSSCRIPTCLASSDESCRIPTION_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSSCRIPTCLASSDESCRIPTION_PAS_S}
-{$define NSSCRIPTCLASSDESCRIPTION_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSScriptClassDescription = objcclass;
-  NSScriptClassDescriptionPointer = ^NSScriptClassDescription;
-  NSScriptClassDescriptionPtr = NSScriptClassDescriptionPointer;
-
+type
+  NSScriptClassDescriptionPtr = ^NSScriptClassDescription;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSSCRIPTCLASSDESCRIPTION_PAS_C}
-{$define NSSCRIPTCLASSDESCRIPTION_PAS_C}
 
-{ NSScriptClassDescription }
+type
   NSScriptClassDescription = objcclass external (NSClassDescription)
   private
     _suiteName: NSString;
@@ -51,40 +20,39 @@
     _toManyRelationshipDescriptions: NSArray;
     _commandMethodSelectorsByName: NSDictionary;
     _moreVars: id;
-    
   public
-    class function classDescriptionForClass(aClass: Pobjc_class): NSScriptClassDescription; message 'classDescriptionForClass:';
-    function initWithSuiteName_className_dictionary(suiteName_: NSString; className_: NSString; classDeclaration: NSDictionary): id; message 'initWithSuiteName:className:dictionary:';
+    class function classDescriptionForClass (aClass: pobjc_class): NSScriptClassDescription; message 'classDescriptionForClass:';
+    function initWithSuiteName_className_dictionary (suiteName: NSString; className: NSString; classDeclaration: NSDictionary): instancetype; message 'initWithSuiteName:className:dictionary:'; { NS_DESIGNATED_INITIALIZER }
     function suiteName: NSString; message 'suiteName';
     function className: NSString; message 'className';
     function implementationClassName: NSString; message 'implementationClassName';
     function superclassDescription: NSScriptClassDescription; message 'superclassDescription';
     function appleEventCode: FourCharCode; message 'appleEventCode';
-    function matchesAppleEventCode(appleEventCode_: FourCharCode): ObjCBOOL; message 'matchesAppleEventCode:';
-    function supportsCommand(commandDescription: NSScriptCommandDescription): ObjCBOOL; message 'supportsCommand:';
-    function selectorForCommand(commandDescription: NSScriptCommandDescription): SEL; message 'selectorForCommand:';
-    function typeForKey(key: NSString): NSString; message 'typeForKey:';
-    function classDescriptionForKey(key: NSString): NSScriptClassDescription; message 'classDescriptionForKey:';
-    function appleEventCodeForKey(key: NSString): FourCharCode; message 'appleEventCodeForKey:';
-    function keyWithAppleEventCode(appleEventCode_: FourCharCode): NSString; message 'keyWithAppleEventCode:';
+    function matchesAppleEventCode (appleEventCode_: FourCharCode): ObjCBOOL; message 'matchesAppleEventCode:';
+    function supportsCommand (commandDescription: NSScriptCommandDescription): ObjCBOOL; message 'supportsCommand:';
+    function selectorForCommand (commandDescription: NSScriptCommandDescription): SEL; message 'selectorForCommand:';
+    function typeForKey (key: NSString): NSString; message 'typeForKey:';
+    function classDescriptionForKey (key: NSString): NSScriptClassDescription; message 'classDescriptionForKey:';
+    function appleEventCodeForKey (key: NSString): FourCharCode; message 'appleEventCodeForKey:';
+    function keyWithAppleEventCode (appleEventCode_: FourCharCode): NSString; message 'keyWithAppleEventCode:';
     function defaultSubcontainerAttributeKey: NSString; message 'defaultSubcontainerAttributeKey';
-    function isLocationRequiredToCreateForKey(toManyRelationshipKey: NSString): ObjCBOOL; message 'isLocationRequiredToCreateForKey:';
-    function hasPropertyForKey(key: NSString): ObjCBOOL; message 'hasPropertyForKey:';
-    function hasOrderedToManyRelationshipForKey(key: NSString): ObjCBOOL; message 'hasOrderedToManyRelationshipForKey:';
-    function hasReadablePropertyForKey(key: NSString): ObjCBOOL; message 'hasReadablePropertyForKey:';
-    function hasWritablePropertyForKey(key: NSString): ObjCBOOL; message 'hasWritablePropertyForKey:';
+    function isLocationRequiredToCreateForKey (toManyRelationshipKey: NSString): ObjCBOOL; message 'isLocationRequiredToCreateForKey:';
+    function hasPropertyForKey (key: NSString): ObjCBOOL; message 'hasPropertyForKey:'; { available in 10_5, NA }
+    function hasOrderedToManyRelationshipForKey (key: NSString): ObjCBOOL; message 'hasOrderedToManyRelationshipForKey:'; { available in 10_5, NA }
+    function hasReadablePropertyForKey (key: NSString): ObjCBOOL; message 'hasReadablePropertyForKey:'; { available in 10_5, NA }
+    function hasWritablePropertyForKey (key: NSString): ObjCBOOL; message 'hasWritablePropertyForKey:'; { available in 10_5, NA }
   end;
 
-{ NSDeprecated_NSScriptClassDescriptionCategory }
-  NSDeprecated_NSScriptClassDescriptionCategory = objccategory external name 'NSDeprecated' (NSScriptClassDescription)
-    function isReadOnlyKey(key: NSString): ObjCBOOL; message 'isReadOnlyKey:'; deprecated 'in Mac OS X 10.5 and later';
+
+type
+  NSDeprecated = objccategory external (NSScriptClassDescription)
+    function isReadOnlyKey (key: NSString): ObjCBOOL; message 'isReadOnlyKey:'; deprecated 'in 10_0, 10_5, NA, NA';
   end;
 
-{ NSScriptClassDescription_NSObjectCategory }
-  NSScriptClassDescription_NSObjectCategory = objccategory external name 'NSScriptClassDescription' (NSObject)
+type
+  NSObject_NSScriptClassDescription = objccategory external name 'NSScriptClassDescription' (NSObject)
     function classCode: FourCharCode; message 'classCode';
     function className: NSString; message 'className';
   end;
+{$endif}
 
-{$endif}
-{$endif}

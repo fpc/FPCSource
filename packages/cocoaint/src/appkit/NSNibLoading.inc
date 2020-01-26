@@ -1,51 +1,23 @@
-{ Parsed from Appkit.framework NSNibLoading.h }
-
-{$ifdef TYPES}
-{$ifndef NSNIBLOADING_PAS_T}
-{$define NSNIBLOADING_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSNIBLOADING_PAS_R}
-{$define NSNIBLOADING_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSNIBLOADING_PAS_F}
-{$define NSNIBLOADING_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSNIBLOADING_PAS_S}
-{$define NSNIBLOADING_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-
-{$endif}
+{ Parsed from AppKit.framework NSNibLoading.h }
 
 {$ifdef CLASSES}
-{$ifndef NSNIBLOADING_PAS_C}
-{$define NSNIBLOADING_PAS_C}
 
-{ NSNibLoadingCategory }
-  NSNibLoadingCategory = objccategory external (NSBundle)
-    class function loadNibFile_externalNameTable_withZone(fileName: NSString; context: NSDictionary; zone_: NSZonePtr): ObjCBOOL; message 'loadNibFile:externalNameTable:withZone:';
-    class function loadNibNamed_owner(nibName: NSString; owner: id): ObjCBOOL; message 'loadNibNamed:owner:';
+type
+  NSNibLoading = objccategory external (NSBundle)
+    function loadNibNamed_owner_topLevelObjects (nibName: NSString; owner: id; topLevelObjects: NSArrayPtr): ObjCBOOL; message 'loadNibNamed:owner:topLevelObjects:'; { available in 10_8 }
   end;
 
-{ NSNibAwakingCategory }
-  NSNibAwakingCategory = objccategory external (NSObject)
+type
+  NSNibAwaking = objccategory external (NSObject)
     procedure awakeFromNib; message 'awakeFromNib';
+    procedure prepareForInterfaceBuilder; message 'prepareForInterfaceBuilder'; { available in 10_10 }
   end;
 
+type
+  NSNibLoadingDeprecated = objccategory external (NSBundle)
+    class function loadNibFile_externalNameTable_withZone (fileName: NSString; context: NSDictionary; zone: NSZonePtr): ObjCBOOL; message 'loadNibFile:externalNameTable:withZone:'; deprecated 'in 10_0, 10_8';
+    class function loadNibNamed_owner (nibName: NSString; owner: id): ObjCBOOL; message 'loadNibNamed:owner:'; deprecated 'in 10_0, 10_8';
+    function loadNibFile_externalNameTable_withZone_ (fileName: NSString; context: NSDictionary; zone: NSZonePtr): ObjCBOOL; message 'loadNibFile:externalNameTable:withZone:'; deprecated 'in 10_0, 10_8';
+  end;
 {$endif}
-{$endif}
+

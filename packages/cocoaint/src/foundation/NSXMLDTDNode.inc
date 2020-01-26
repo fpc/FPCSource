@@ -1,10 +1,15 @@
 { Parsed from Foundation.framework NSXMLDTDNode.h }
 
-{$ifdef TYPES}
-{$ifndef NSXMLDTDNODE_PAS_T}
-{$define NSXMLDTDNODE_PAS_T}
 
-{ Constants }
+{$ifdef TYPES}
+type
+  NSXMLDTDNodePtr = ^NSXMLDTDNode;
+{$endif}
+
+{$ifdef TYPES}
+type
+  NSXMLDTDNodeKind = NSUInteger;
+  NSXMLDTDNodeKindPtr = ^NSXMLDTDNodeKind;
 
 const
   NSXMLEntityGeneralKind = 1;
@@ -27,48 +32,11 @@ const
   NSXMLElementDeclarationAnyKind = 18;
   NSXMLElementDeclarationMixedKind = 19;
   NSXMLElementDeclarationElementKind = 20;
-
-{ Types }
-type
-  NSXMLDTDNodeKind = NSUInteger;
-  NSXMLDTDNodeKindPtr = ^NSXMLDTDNodeKind;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSXMLDTDNODE_PAS_R}
-{$define NSXMLDTDNODE_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSXMLDTDNODE_PAS_F}
-{$define NSXMLDTDNODE_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSXMLDTDNODE_PAS_S}
-{$define NSXMLDTDNODE_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSXMLDTDNode = objcclass;
-  NSXMLDTDNodePointer = ^NSXMLDTDNode;
-  NSXMLDTDNodePtr = NSXMLDTDNodePointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSXMLDTDNODE_PAS_C}
-{$define NSXMLDTDNODE_PAS_C}
 
-{ NSXMLDTDNode }
+type
   NSXMLDTDNode = objcclass external (NSXMLNode)
   private
     _DTDKind: NSXMLDTDNodeKind;
@@ -76,19 +44,19 @@ type
     _notationName: NSString;
     _publicID: NSString;
     _systemID: NSString;
-    
   public
-    function initWithXMLString(string_: NSString): id; message 'initWithXMLString:';
-    procedure setDTDKind(kind_: NSXMLDTDNodeKind); message 'setDTDKind:';
+    function initWithXMLString (string_: NSString): instancetype; message 'initWithXMLString:'; { NS_DESIGNATED_INITIALIZER }
+    function initWithKind_options (kind_: NSXMLNodeKind; options: NSUInteger): instancetype; message 'initWithKind:options:'; { NS_DESIGNATED_INITIALIZER }
+    function init: instancetype; message 'init'; { NS_DESIGNATED_INITIALIZER }
+    procedure setDTDKind(newValue: NSXMLDTDNodeKind); message 'setDTDKind:';
     function DTDKind: NSXMLDTDNodeKind; message 'DTDKind';
     function isExternal: ObjCBOOL; message 'isExternal';
-    procedure setPublicID(publicID_: NSString); message 'setPublicID:';
+    procedure setPublicID(newValue: NSString); message 'setPublicID:';
     function publicID: NSString; message 'publicID';
-    procedure setSystemID(systemID_: NSString); message 'setSystemID:';
+    procedure setSystemID(newValue: NSString); message 'setSystemID:';
     function systemID: NSString; message 'systemID';
-    procedure setNotationName(notationName_: NSString); message 'setNotationName:';
+    procedure setNotationName(newValue: NSString); message 'setNotationName:';
     function notationName: NSString; message 'notationName';
   end;
+{$endif}
 
-{$endif}
-{$endif}

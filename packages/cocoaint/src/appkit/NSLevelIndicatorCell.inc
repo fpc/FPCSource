@@ -1,58 +1,26 @@
-{ Parsed from Appkit.framework NSLevelIndicatorCell.h }
+{ Parsed from AppKit.framework NSLevelIndicatorCell.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSLEVELINDICATORCELL_PAS_T}
-{$define NSLEVELINDICATORCELL_PAS_T}
+type
+  NSLevelIndicatorCellPtr = ^NSLevelIndicatorCell;
+{$endif}
 
-{ Constants }
+{$ifdef TYPES}
+type
+  NSLevelIndicatorStyle = NSUInteger;
+  NSLevelIndicatorStylePtr = ^NSLevelIndicatorStyle;
 
 const
   NSRelevancyLevelIndicatorStyle = 0;
   NSContinuousCapacityLevelIndicatorStyle = 1;
   NSDiscreteCapacityLevelIndicatorStyle = 2;
   NSRatingLevelIndicatorStyle = 3;
-
-{ Types }
-type
-  NSLevelIndicatorStyle = NSUInteger;
-  NSLevelIndicatorStylePtr = ^NSLevelIndicatorStyle;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSLEVELINDICATORCELL_PAS_R}
-{$define NSLEVELINDICATORCELL_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSLEVELINDICATORCELL_PAS_F}
-{$define NSLEVELINDICATORCELL_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSLEVELINDICATORCELL_PAS_S}
-{$define NSLEVELINDICATORCELL_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSLevelIndicatorCell = objcclass;
-  NSLevelIndicatorCellPointer = ^NSLevelIndicatorCell;
-  NSLevelIndicatorCellPtr = NSLevelIndicatorCellPointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSLEVELINDICATORCELL_PAS_C}
-{$define NSLEVELINDICATORCELL_PAS_C}
 
-{ NSLevelIndicatorCell }
+type
   NSLevelIndicatorCell = objcclass external (NSActionCell)
   private
     _value: double;
@@ -62,45 +30,43 @@ type
     _criticalValue: double;
     _numberOfTickMarks: cint;
     _numberOfMajorTickMarks: cint;
-    __liFlags: record
+    _liFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSLevelIndicatorCell0: cuint);
-       1: (data: bitpacked record
-        indicatorStyle: 0..((1 shl 4)-1);
-        _tickMarkPosition: 0..1;
-        selectable: 0..1;
-        reserved: 0..((1 shl 26)-1);
-       end;
-      );
+        0: (_anonBitField__liFlags0: cuint);
+        1: (
+          indicatorStyle: 0..((1 shl 4)-1);
+          tickMarkPosition: 0..1;
+          selectable: 0..1;
+          ratingPlaceholder: 0..1;
+          reserved: 0..((1 shl 25)-1);
+        );
       end;
     _cellFrame: NSRect;
     _reserved1: cint;
     _reserved2: cint;
     _reserved3: cint;
     _reserved4: cint;
-    
   public
-    function initWithLevelIndicatorStyle(levelIndicatorStyle_: NSLevelIndicatorStyle): id; message 'initWithLevelIndicatorStyle:';
+    function initWithLevelIndicatorStyle (levelIndicatorStyle: NSLevelIndicatorStyle): instancetype; message 'initWithLevelIndicatorStyle:';
+    procedure setLevelIndicatorStyle(newValue: NSLevelIndicatorStyle); message 'setLevelIndicatorStyle:';
     function levelIndicatorStyle: NSLevelIndicatorStyle; message 'levelIndicatorStyle';
-    procedure setLevelIndicatorStyle(levelIndicatorStyle_: NSLevelIndicatorStyle); message 'setLevelIndicatorStyle:';
+    procedure setMinValue(newValue: double); message 'setMinValue:';
     function minValue: double; message 'minValue';
-    procedure setMinValue(minValue_: double); message 'setMinValue:';
+    procedure setMaxValue(newValue: double); message 'setMaxValue:';
     function maxValue: double; message 'maxValue';
-    procedure setMaxValue(maxValue_: double); message 'setMaxValue:';
+    procedure setWarningValue(newValue: double); message 'setWarningValue:';
     function warningValue: double; message 'warningValue';
-    procedure setWarningValue(warningValue_: double); message 'setWarningValue:';
+    procedure setCriticalValue(newValue: double); message 'setCriticalValue:';
     function criticalValue: double; message 'criticalValue';
-    procedure setCriticalValue(criticalValue_: double); message 'setCriticalValue:';
-    procedure setTickMarkPosition(position: NSTickMarkPosition); message 'setTickMarkPosition:';
+    procedure setTickMarkPosition(newValue: NSTickMarkPosition); message 'setTickMarkPosition:';
     function tickMarkPosition: NSTickMarkPosition; message 'tickMarkPosition';
-    procedure setNumberOfTickMarks(count: NSInteger); message 'setNumberOfTickMarks:';
+    procedure setNumberOfTickMarks(newValue: NSInteger); message 'setNumberOfTickMarks:';
     function numberOfTickMarks: NSInteger; message 'numberOfTickMarks';
-    procedure setNumberOfMajorTickMarks(count: NSInteger); message 'setNumberOfMajorTickMarks:';
+    procedure setNumberOfMajorTickMarks(newValue: NSInteger); message 'setNumberOfMajorTickMarks:';
     function numberOfMajorTickMarks: NSInteger; message 'numberOfMajorTickMarks';
-    function rectOfTickMarkAtIndex(index: NSInteger): NSRect; message 'rectOfTickMarkAtIndex:';
-    function tickMarkValueAtIndex(index: NSInteger): double; message 'tickMarkValueAtIndex:';
-    procedure setImage(image_: NSImage); message 'setImage:';
+    function rectOfTickMarkAtIndex (index: NSInteger): NSRect; message 'rectOfTickMarkAtIndex:';
+    function tickMarkValueAtIndex (index: NSInteger): double; message 'tickMarkValueAtIndex:';
+    procedure setImage (image_: NSImage); message 'setImage:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

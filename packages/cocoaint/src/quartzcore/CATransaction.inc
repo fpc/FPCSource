@@ -1,54 +1,21 @@
-{ Parsed from Quartzcore.framework CATransaction.h }
+{ Parsed from QuartzCore.framework CATransaction.h }
+
+
+{ Types from CATransaction }
+{$ifdef TYPES}
+
+{$endif}
+
 
 {$ifdef TYPES}
-{$ifndef CATRANSACTION_PAS_T}
-{$define CATRANSACTION_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef CATRANSACTION_PAS_R}
-{$define CATRANSACTION_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef CATRANSACTION_PAS_F}
-{$define CATRANSACTION_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef CATRANSACTION_PAS_S}
-{$define CATRANSACTION_PAS_S}
-
-{ External string constants }
-var
-  kCATransactionAnimationDuration: NSString; cvar; external;
-  kCATransactionDisableActions: NSString; cvar; external;
-  kCATransactionAnimationTimingFunction: NSString; cvar; external;
-  kCATransactionCompletionBlock: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  CATransaction = objcclass;
-  CATransactionPointer = ^CATransaction;
-  CATransactionPtr = CATransactionPointer;
-
+type
+  CATransactionPtr = ^CATransaction;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef CATRANSACTION_PAS_C}
-{$define CATRANSACTION_PAS_C}
 
-{ CATransaction }
+type
   CATransaction = objcclass external (NSObject)
-    
   public
     class procedure begin_; message 'begin';
     class procedure commit; message 'commit';
@@ -56,14 +23,25 @@ var
     class procedure lock; message 'lock';
     class procedure unlock; message 'unlock';
     class function animationDuration: CFTimeInterval; message 'animationDuration';
-    class procedure setAnimationDuration(dur: CFTimeInterval); message 'setAnimationDuration:';
+    class procedure setAnimationDuration (dur: CFTimeInterval); message 'setAnimationDuration:';
     class function animationTimingFunction: CAMediaTimingFunction; message 'animationTimingFunction';
-    class procedure setAnimationTimingFunction(function_: CAMediaTimingFunction); message 'setAnimationTimingFunction:';
+    class procedure setAnimationTimingFunction (function_: CAMediaTimingFunction); message 'setAnimationTimingFunction:';
     class function disableActions: ObjCBOOL; message 'disableActions';
-    class procedure setDisableActions(flag: ObjCBOOL); message 'setDisableActions:';
-    class function valueForKey(key: NSString): id; message 'valueForKey:';
-    class procedure setValue_forKey(anObject: id; key: NSString); message 'setValue:forKey:';
+    class procedure setDisableActions (flag: ObjCBOOL); message 'setDisableActions:';
+    {$if defined(__BLOCKS__)}
+    class function (void))completionBlock: void (^; message '(void))completionBlock';
+    class procedure setCompletionBlock (block: OpaqueCBlock); message 'setCompletionBlock:';
+    {$endif}
+    class function valueForKey (key: NSString): id; message 'valueForKey:';
+    class procedure setValue_forKey (anObject: id; key: NSString); message 'setValue:forKey:';
   end;
+{$endif}
 
+{$ifdef EXTERNAL_SYMBOLS}
+var
+  kCATransactionAnimationDuration: NSString { available starting in __MAC_10_5, __IPHONE_2_0 }; cvar; external;
+  kCATransactionDisableActions: NSString { available starting in __MAC_10_5, __IPHONE_2_0 }; cvar; external;
+  kCATransactionAnimationTimingFunction: NSString { available starting in __MAC_10_6, __IPHONE_3_0 }; cvar; external;
+  kCATransactionCompletionBlock: NSString { available starting in __MAC_10_6, __IPHONE_4_0 }; cvar; external;
 {$endif}
-{$endif}
+

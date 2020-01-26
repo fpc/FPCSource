@@ -1,49 +1,31 @@
-{ Parsed from Appkit.framework NSPrintInfo.h }
+{ Parsed from AppKit.framework NSPrintInfo.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSPRINTINFO_PAS_T}
-{$define NSPRINTINFO_PAS_T}
+type
+  NSPrintInfoPtr = ^NSPrintInfo;
+{$endif}
 
-{ Constants }
+{$ifdef TYPES}
+type
+  NSPaperOrientation = NSInteger;
+  NSPaperOrientationPtr = ^NSPaperOrientation;
 
 const
-  NSPortraitOrientation = 0;
-  NSLandscapeOrientation = 1;
+  NSPaperOrientationPortrait = 0;
+  NSPaperOrientationLandscape = 1;
+
+type
+  NSPrintingPaginationMode = NSUInteger;
+  NSPrintingPaginationModePtr = ^NSPrintingPaginationMode;
 
 const
   NSAutoPagination = 0;
   NSFitPagination = 1;
   NSClipPagination = 2;
-
-{ Types }
-type
-  NSPrintingOrientation = NSUInteger;
-  NSPrintingOrientationPtr = ^NSPrintingOrientation;
-  NSPrintingPaginationMode = NSUInteger;
-  NSPrintingPaginationModePtr = ^NSPrintingPaginationMode;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSPRINTINFO_PAS_R}
-{$define NSPRINTINFO_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSPRINTINFO_PAS_F}
-{$define NSPRINTINFO_PAS_F}
-
-{$endif}
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPRINTINFO_PAS_S}
-{$define NSPRINTINFO_PAS_S}
-
-{ External string constants }
 var
   NSPrintSpoolJob: NSString; cvar; external;
   NSPrintPreviewJob: NSString; cvar; external;
@@ -75,94 +57,97 @@ var
   NSPrintDetailedErrorReporting: NSString; cvar; external;
   NSPrintFaxNumber: NSString; cvar; external;
   NSPrintPrinterName: NSString; cvar; external;
-  NSPrintSelectionOnly: NSString; cvar; external;
-  NSPrintJobSavingURL: NSString; cvar; external;
-  NSPrintJobSavingFileNameExtensionHidden: NSString; cvar; external;
+  NSPrintSelectionOnly: NSString { available in 10_6 }; cvar; external;
+  NSPrintJobSavingURL: NSString { available in 10_6 }; cvar; external;
+  NSPrintJobSavingFileNameExtensionHidden: NSString { available in 10_6 }; cvar; external;
   NSPrintHeaderAndFooter: NSString; cvar; external;
-  NSPrintFormName: NSString deprecated 'in Mac OS X 10.2 and later'; cvar; external;
-  NSPrintJobFeatures: NSString deprecated 'in Mac OS X 10.2 and later'; cvar; external;
-  NSPrintManualFeed: NSString deprecated 'in Mac OS X 10.2 and later'; cvar; external;
-  NSPrintPagesPerSheet: NSString deprecated 'in Mac OS X 10.2 and later'; cvar; external;
-  NSPrintPaperFeed: NSString deprecated 'in Mac OS X 10.2 and later'; cvar; external;
-  NSPrintSavePath: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSPrintInfo = objcclass;
-  NSPrintInfoPointer = ^NSPrintInfo;
-  NSPrintInfoPtr = NSPrintInfoPointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSPRINTINFO_PAS_C}
-{$define NSPRINTINFO_PAS_C}
 
-{ NSPrintInfo }
+type
   NSPrintInfo = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _attributes: NSMutableDictionary;
     _moreVars: id;
-    
   public
-    class procedure setSharedPrintInfo(printInfo: NSPrintInfo); message 'setSharedPrintInfo:';
+    class procedure setSharedPrintInfo (printInfo: NSPrintInfo); message 'setSharedPrintInfo:';
     class function sharedPrintInfo: NSPrintInfo; message 'sharedPrintInfo';
-    function initWithDictionary(attributes: NSDictionary): id; message 'initWithDictionary:';
+    function initWithDictionary (attributes: NSDictionary): instancetype; message 'initWithDictionary:';
     function dictionary: NSMutableDictionary; message 'dictionary';
-    procedure setPaperName(name: NSString); message 'setPaperName:';
-    procedure setPaperSize(size: NSSize); message 'setPaperSize:';
-    procedure setOrientation(orientation_: NSPrintingOrientation); message 'setOrientation:';
-    procedure setScalingFactor(scalingFactor_: CGFloat); message 'setScalingFactor:';
+    procedure setPaperName(newValue: NSString); message 'setPaperName:';
     function paperName: NSString; message 'paperName';
+    procedure setPaperSize(newValue: NSSize); message 'setPaperSize:';
     function paperSize: NSSize; message 'paperSize';
-    function orientation: NSPrintingOrientation; message 'orientation';
+    procedure setOrientation(newValue: NSPaperOrientation); message 'setOrientation:';
+    function orientation: NSPaperOrientation; message 'orientation';
+    procedure setScalingFactor(newValue: CGFloat); message 'setScalingFactor:';
     function scalingFactor: CGFloat; message 'scalingFactor';
-    procedure setLeftMargin(margin: CGFloat); message 'setLeftMargin:';
-    procedure setRightMargin(margin: CGFloat); message 'setRightMargin:';
-    procedure setTopMargin(margin: CGFloat); message 'setTopMargin:';
-    procedure setBottomMargin(margin: CGFloat); message 'setBottomMargin:';
+    procedure setLeftMargin(newValue: CGFloat); message 'setLeftMargin:';
     function leftMargin: CGFloat; message 'leftMargin';
+    procedure setRightMargin(newValue: CGFloat); message 'setRightMargin:';
     function rightMargin: CGFloat; message 'rightMargin';
+    procedure setTopMargin(newValue: CGFloat); message 'setTopMargin:';
     function topMargin: CGFloat; message 'topMargin';
+    procedure setBottomMargin(newValue: CGFloat); message 'setBottomMargin:';
     function bottomMargin: CGFloat; message 'bottomMargin';
-    procedure setHorizontallyCentered(flag: ObjCBOOL); message 'setHorizontallyCentered:';
-    procedure setVerticallyCentered(flag: ObjCBOOL); message 'setVerticallyCentered:';
+    procedure setHorizontallyCentered(newValue: ObjCBOOL); message 'setHorizontallyCentered:';
     function isHorizontallyCentered: ObjCBOOL; message 'isHorizontallyCentered';
+    procedure setVerticallyCentered(newValue: ObjCBOOL); message 'setVerticallyCentered:';
     function isVerticallyCentered: ObjCBOOL; message 'isVerticallyCentered';
-    procedure setHorizontalPagination(mode: NSPrintingPaginationMode); message 'setHorizontalPagination:';
-    procedure setVerticalPagination(mode: NSPrintingPaginationMode); message 'setVerticalPagination:';
+    procedure setHorizontalPagination(newValue: NSPrintingPaginationMode); message 'setHorizontalPagination:';
     function horizontalPagination: NSPrintingPaginationMode; message 'horizontalPagination';
+    procedure setVerticalPagination(newValue: NSPrintingPaginationMode); message 'setVerticalPagination:';
     function verticalPagination: NSPrintingPaginationMode; message 'verticalPagination';
-    procedure setJobDisposition(disposition: NSString); message 'setJobDisposition:';
+    procedure setJobDisposition(newValue: NSString); message 'setJobDisposition:';
     function jobDisposition: NSString; message 'jobDisposition';
-    procedure setPrinter(printer_: NSPrinter); message 'setPrinter:';
+    procedure setPrinter(newValue: NSPrinter); message 'setPrinter:';
     function printer: NSPrinter; message 'printer';
     procedure setUpPrintOperationDefaultValues; message 'setUpPrintOperationDefaultValues';
     function imageablePageBounds: NSRect; message 'imageablePageBounds';
     function localizedPaperName: NSString; message 'localizedPaperName';
     class function defaultPrinter: NSPrinter; message 'defaultPrinter';
     function printSettings: NSMutableDictionary; message 'printSettings';
-    function PMPrintSession: Pointer; message 'PMPrintSession';
-    function PMPageFormat: Pointer; message 'PMPageFormat';
-    function PMPrintSettings: Pointer; message 'PMPrintSettings';
-    procedure updateFromPMPageFormat; message 'updateFromPMPageFormat';
-    procedure updateFromPMPrintSettings; message 'updateFromPMPrintSettings';
-    procedure setSelectionOnly(selectionOnly: ObjCBOOL); message 'setSelectionOnly:';
+    function PMPrintSession: pointer; message 'PMPrintSession'; { available in 10_5 }
+    function PMPageFormat: pointer; message 'PMPageFormat'; { available in 10_5 }
+    function PMPrintSettings: pointer; message 'PMPrintSettings'; { available in 10_5 }
+    procedure updateFromPMPageFormat; message 'updateFromPMPageFormat'; { available in 10_5 }
+    procedure updateFromPMPrintSettings; message 'updateFromPMPrintSettings'; { available in 10_5 }
+    procedure setSelectionOnly(newValue: ObjCBOOL); message 'setSelectionOnly:';
     function isSelectionOnly: ObjCBOOL; message 'isSelectionOnly';
+    procedure takeSettingsFromPDFInfo (inPDFInfo: NSPDFInfo); message 'takeSettingsFromPDFInfo:'; { available in 10_9 }
 
-    { Adopted Protocols }
-    function copyWithZone(zone_: NSZonePtr): id;
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
   end;
 
-{ NSDeprecated_NSPrintInfoCategory }
-  NSDeprecated_NSPrintInfoCategory = objccategory external name 'NSDeprecated' (NSPrintInfo)
-    class procedure setDefaultPrinter(printer_: NSPrinter); message 'setDefaultPrinter:'; deprecated 'in Mac OS X 10.2 and later';
-    class function sizeForPaperName(name: NSString): NSSize; message 'sizeForPaperName:'; deprecated 'in Mac OS X 10.2 and later';
-  end;
 
+type
+  NSPrintInfo_NSDeprecated = objccategory external name 'NSDeprecated' (NSPrintInfo)
+    class procedure setDefaultPrinter (printer_: NSPrinter); message 'setDefaultPrinter:'; deprecated 'in 10_0, 10_2';
+    class function sizeForPaperName (name: NSString): NSSize; message 'sizeForPaperName:'; deprecated 'in 10_0, 10_2';
+  end;
 {$endif}
+
+{$ifdef EXTERNAL_SYMBOLS}
+var
+  NSPrintFormName: NSString deprecated 'in 10_0, 10_2'; cvar; external;
+  NSPrintJobFeatures: NSString deprecated 'in 10_0, 10_2'; cvar; external;
+  NSPrintManualFeed: NSString deprecated 'in 10_0, 10_2'; cvar; external;
+  NSPrintPagesPerSheet: NSString deprecated 'in 10_0, 10_2'; cvar; external;
+  NSPrintPaperFeed: NSString deprecated 'in 10_0, 10_2'; cvar; external;
+  NSPrintSavePath: NSString deprecated 'in 10_0, 10_6, "Use NSPrintJobSavingURL instead"'; cvar; external;
 {$endif}
+
+{$ifdef TYPES}
+type
+  NSPrintingOrientation = NSUInteger;
+  NSPrintingOrientationPtr = ^NSPrintingOrientation;
+
+const
+  NSPortraitOrientation = 0;
+  NSLandscapeOrientation = 1;
+{$endif}
+

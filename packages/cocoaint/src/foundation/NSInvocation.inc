@@ -1,95 +1,85 @@
 { Parsed from Foundation.framework NSInvocation.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSINVOCATION_PAS_T}
-{$define NSINVOCATION_PAS_T}
-
-{ Constants }
-
-const
-  NSObjCNoType = 0;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSINVOCATION_PAS_R}
-{$define NSINVOCATION_PAS_R}
-
-{ Records }
 type
-  value = record
-    _type: NSInteger;
-    charValue: char;
-    shortValue: cshort;
-    longValue: clong;
-    longlongValue: clonglong;
-    floatValue: single;
-    doubleValue: double;
-    boolValue: cbool;
-    selectorValue: SEL;
-    objectValue: id;
-    pointerValue: Pointer;
-    structLocation: Pointer;
-    cStringLocation: PChar;
-  end deprecated 'in Mac OS X 10.5 and later';
-valuePtr = ^value;
-
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSINVOCATION_PAS_F}
-{$define NSINVOCATION_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSINVOCATION_PAS_S}
-{$define NSINVOCATION_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSInvocation = objcclass;
-  NSInvocationPointer = ^NSInvocation;
-  NSInvocationPtr = NSInvocationPointer;
-
+  NSInvocationPtr = ^NSInvocation;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSINVOCATION_PAS_C}
-{$define NSINVOCATION_PAS_C}
 
-{ NSInvocation }
+type
   NSInvocation = objcclass external (NSObject)
   private
-    _frame: Pointer;
-    _retdata: Pointer;
+    _frame: pointer;
+    _retdata: pointer;
     _signature: id;
     _container: id;
     _retainedArgs: cuint8;
-    _reserved: array[0..(15)-1] of cuint8;
-    
+    _reserved:array[0..14] of cuint8;
   public
-    class function invocationWithMethodSignature(sig: NSMethodSignature): NSInvocation; message 'invocationWithMethodSignature:';
+    class function invocationWithMethodSignature (sig: NSMethodSignature): NSInvocation; message 'invocationWithMethodSignature:';
     function methodSignature: NSMethodSignature; message 'methodSignature';
     procedure retainArguments; message 'retainArguments';
     function argumentsRetained: ObjCBOOL; message 'argumentsRetained';
+    procedure setTarget(newValue: id); message 'setTarget:';
     function target: id; message 'target';
-    procedure setTarget(target_: id); message 'setTarget:';
+    procedure setSelector(newValue: SEL); message 'setSelector:';
     function selector: SEL; message 'selector';
-    procedure setSelector(selector_: SEL); message 'setSelector:';
-    procedure getReturnValue(retLoc: Pointer); message 'getReturnValue:';
-    procedure setReturnValue(retLoc: Pointer); message 'setReturnValue:';
-    procedure getArgument_atIndex(argumentLocation: Pointer; idx: NSInteger); message 'getArgument:atIndex:';
-    procedure setArgument_atIndex(argumentLocation: Pointer; idx: NSInteger); message 'setArgument:atIndex:';
+    procedure getReturnValue (retLoc: pointer); message 'getReturnValue:';
+    procedure setReturnValue (retLoc: pointer); message 'setReturnValue:';
+    procedure getArgument_atIndex (argumentLocation: pointer; idx: NSInteger); message 'getArgument:atIndex:';
+    procedure setArgument_atIndex (argumentLocation: pointer; idx: NSInteger); message 'setArgument:atIndex:';
     procedure invoke; message 'invoke';
-    procedure invokeWithTarget(target_: id); message 'invokeWithTarget:';
+    procedure invokeWithTarget (target_: id); message 'invokeWithTarget:';
   end;
+{$endif}
+
+{$if (defined(TARGET_OS_MAC) and not (defined(TARGET_OS_EMBEDDED) or defined(TARGET_OS_IPHONE)))}
+
+{$if (MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_5)}
+{$ifdef TYPES}
+const
+  NSObjCNoType = 0;
+  NSObjCVoidType = 'v';
+  NSObjCCharType = 'c';
+  NSObjCShortType = 's';
+  NSObjCLongType = 'l';
+  NSObjCLonglongType = 'q';
+  NSObjCFloatType = 'f';
+  NSObjCDoubleType = 'd';
+  NSObjCBoolType = 'B';
+  NSObjCSelectorType = ':';
+  NSObjCObjectType = '@';
+  NSObjCStructType = '{';
+  NSObjCPointerType = '^';
+  NSObjCStringType = '*';
+  NSObjCArrayType = '[';
+  NSObjCUnionType = '';
+  NSObjCBitfield = 'b';
+
+type
+  NSObjCValue = record
+    type_: NSInteger deprecated 'in 10_0, 10_5, 2_0, 2_0';
+    value: record
+      case longint of
+        0: (charValue: char);
+        1: (shortValue: cshort);
+        2: (longValue: clong);
+        3: (longlongValue: clonglong);
+        4: (floatValue: single);
+        5: (doubleValue: double);
+        6: (boolValue: cbool);
+        7: (selectorValue: SEL);
+        8: (objectValue: id);
+        9: (pointerValue: pointer);
+        10: (structLocation: pointer);
+        11: (cStringLocation: PChar);
+    end;
+  end;
+type
+  NSObjCValuePtr = ^NSObjCValue;
+{$endif}
 
 {$endif}
 {$endif}

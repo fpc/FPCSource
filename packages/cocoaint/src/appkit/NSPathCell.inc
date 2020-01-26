@@ -1,58 +1,26 @@
-{ Parsed from Appkit.framework NSPathCell.h }
+{ Parsed from AppKit.framework NSPathCell.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSPATHCELL_PAS_T}
-{$define NSPATHCELL_PAS_T}
+type
+  NSPathCellPtr = ^NSPathCell;
+  NSPathCellDelegateProtocolPtr = ^NSPathCellDelegateProtocol;
+{$endif}
 
-{ Constants }
-
-const
-  NSPathStyleStandard = 0;
-  NSPathStyleNavigationBar = 1;
-  NSPathStylePopUp = 2;
-
-{ Types }
+{$ifdef TYPES}
 type
   NSPathStyle = NSInteger;
   NSPathStylePtr = ^NSPathStyle;
 
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSPATHCELL_PAS_R}
-{$define NSPATHCELL_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSPATHCELL_PAS_F}
-{$define NSPATHCELL_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPATHCELL_PAS_S}
-{$define NSPATHCELL_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSPathCellDelegateProtocol = objcprotocol;
-  NSPathCell = objcclass;
-  NSPathCellPointer = ^NSPathCell;
-  NSPathCellPtr = NSPathCellPointer;
-
+const
+  NSPathStyleStandard = 0;
+  NSPathStylePopUp = 2;
+  NSPathStyleNavigationBar = 1 deprecated 'in 10_5, 10_7';
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSPATHCELL_PAS_C}
-{$define NSPATHCELL_PAS_C}
 
-{ NSPathCell }
+type
   NSPathCell = objcclass external (NSActionCell, NSOpenSavePanelDelegateProtocol)
   private
     _backgroundColor: NSColor;
@@ -66,65 +34,60 @@ type
     _allowedTypes: NSArray;
     _doubleAction: SEL;
     _delegate: id;
-    __piFlags: record
+    _piFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSPathCell0: cuint);
-       1: (data: bitpacked record
-        reserved: 0..((1 shl 32)-1);
-       end;
-      );
+        0: (_anonBitField__piFlags0: cuint);
+        1: (
+          cbs: 0..((1 shl 4)-1);
+          reserved: 0..((1 shl 28)-1);
+        );
       end;
     _pathStyle: NSPathStyle;
     _aux: id;
-    
   public
+    procedure setPathStyle(newValue: NSPathStyle); message 'setPathStyle:';
     function pathStyle: NSPathStyle; message 'pathStyle';
-    procedure setPathStyle(style: NSPathStyle); message 'setPathStyle:';
+    procedure setURL(newValue: NSURL); message 'setURL:';
     function URL: NSURL; message 'URL';
-    procedure setURL(url_: NSURL); message 'setURL:';
-    procedure setObjectValue(obj: NSCopyingProtocol); message 'setObjectValue:';
+    procedure setObjectValue (obj: NSCopyingProtocol); message 'setObjectValue:';
+    procedure setAllowedTypes(newValue: NSArray); message 'setAllowedTypes:';
     function allowedTypes: NSArray; message 'allowedTypes';
-    procedure setAllowedTypes(allowedTypes_: NSArray); message 'setAllowedTypes:';
+    procedure setDelegate(newValue: NSPathCellDelegateProtocol); message 'setDelegate:';
     function delegate: NSPathCellDelegateProtocol; message 'delegate';
-    procedure setDelegate(value: NSPathCellDelegateProtocol); message 'setDelegate:';
-    class function pathComponentCellClass: Pobjc_class; message 'pathComponentCellClass';
+    class function pathComponentCellClass: pobjc_class; message 'pathComponentCellClass';
+    procedure setPathComponentCells(newValue: NSArray); message 'setPathComponentCells:';
     function pathComponentCells: NSArray; message 'pathComponentCells';
-    procedure setPathComponentCells(cells: NSArray); message 'setPathComponentCells:';
-    function rectOfPathComponentCell_withFrame_inView(cell: NSPathComponentCell; frame: NSRect; view: NSView): NSRect; message 'rectOfPathComponentCell:withFrame:inView:';
-    function pathComponentCellAtPoint_withFrame_inView(point: NSPoint; frame: NSRect; view: NSView): NSPathComponentCell; message 'pathComponentCellAtPoint:withFrame:inView:';
+    function rectOfPathComponentCell_withFrame_inView (cell: NSPathComponentCell; frame: NSRect; view: NSView): NSRect; message 'rectOfPathComponentCell:withFrame:inView:';
+    function pathComponentCellAtPoint_withFrame_inView (point: NSPoint; frame: NSRect; view: NSView): NSPathComponentCell; message 'pathComponentCellAtPoint:withFrame:inView:';
     function clickedPathComponentCell: NSPathComponentCell; message 'clickedPathComponentCell';
-    procedure mouseEntered_withFrame_inView(event: NSEvent; frame: NSRect; view: NSView); message 'mouseEntered:withFrame:inView:';
-    procedure mouseExited_withFrame_inView(event: NSEvent; frame: NSRect; view: NSView); message 'mouseExited:withFrame:inView:';
+    procedure mouseEntered_withFrame_inView (event: NSEvent; frame: NSRect; view: NSView); message 'mouseEntered:withFrame:inView:';
+    procedure mouseExited_withFrame_inView (event: NSEvent; frame: NSRect; view: NSView); message 'mouseExited:withFrame:inView:';
+    procedure setDoubleAction(newValue: SEL); message 'setDoubleAction:';
     function doubleAction: SEL; message 'doubleAction';
-    procedure setDoubleAction(action_: SEL); message 'setDoubleAction:';
-    procedure setBackgroundColor(color: NSColor); message 'setBackgroundColor:';
+    procedure setBackgroundColor(newValue: NSColor); message 'setBackgroundColor:';
     function backgroundColor: NSColor; message 'backgroundColor';
-    procedure setPlaceholderString(string_: NSString); message 'setPlaceholderString:';
+    procedure setPlaceholderString(newValue: NSString); message 'setPlaceholderString:';
     function placeholderString: NSString; message 'placeholderString';
-    procedure setPlaceholderAttributedString(string_: NSAttributedString); message 'setPlaceholderAttributedString:';
+    procedure setPlaceholderAttributedString(newValue: NSAttributedString); message 'setPlaceholderAttributedString:';
     function placeholderAttributedString: NSAttributedString; message 'placeholderAttributedString';
-    procedure setControlSize(size: NSControlSize); message 'setControlSize:';
 
-    { Adopted Protocols }
-    function panel_shouldEnableURL(sender: id; url: NSURL): ObjCBOOL;
-    function panel_validateURL_error(sender: id; url: NSURL; outError: NSErrorPointer): ObjCBOOL;
-    procedure panel_didChangeToDirectoryURL(sender: id; url: NSURL);
-    function panel_userEnteredFilename_confirmed(sender: id; filename: NSString; okFlag: ObjCBOOL): NSString;
-    procedure panel_willExpand(sender: id; expanding: ObjCBOOL);
-    procedure panelSelectionDidChange(sender: id);
+    { Adopted protocols }
+    procedure panel_didChangeToDirectoryURL (sender: id; url: NSURL); message 'panel:didChangeToDirectoryURL:'; { available in 10_6 }
+    function panel_shouldEnableURL (sender: id; url: NSURL): ObjCBOOL; message 'panel:shouldEnableURL:'; { available in 10_6 }
+    function panel_userEnteredFilename_confirmed (sender: id; filename: NSString; okFlag: ObjCBOOL): NSString; message 'panel:userEnteredFilename:confirmed:';
+    function panel_validateURL_error (sender: id; url: NSURL; outError: NSErrorPtr): ObjCBOOL; message 'panel:validateURL:error:'; { available in 10_6 }
+    procedure panel_willExpand (sender: id; expanding: ObjCBOOL); message 'panel:willExpand:';
+    procedure panelSelectionDidChange (sender: id); message 'panelSelectionDidChange:';
   end;
+{$endif}
 
-{$endif}
-{$endif}
 {$ifdef PROTOCOLS}
-{$ifndef NSPATHCELL_PAS_P}
-{$define NSPATHCELL_PAS_P}
-  
-{ NSPathCellDelegate Protocol }
-  NSPathCellDelegateProtocol = objcprotocol external name 'NSPathCellDelegate'
+
+type
+  NSPathCellDelegateProtocol = objcprotocol external name 'NSPathCellDelegate' (NSObjectProtocol)
   optional
-    procedure pathCell_willDisplayOpenPanel(pathCell: NSPathCell; openPanel: NSOpenPanel); message 'pathCell:willDisplayOpenPanel:';
-    procedure pathCell_willPopUpMenu(pathCell: NSPathCell; menu: NSMenu); message 'pathCell:willPopUpMenu:';
+    procedure pathCell_willDisplayOpenPanel (pathCell: NSPathCell; openPanel: NSOpenPanel); message 'pathCell:willDisplayOpenPanel:';
+    procedure pathCell_willPopUpMenu (pathCell: NSPathCell; menu: NSMenu); message 'pathCell:willPopUpMenu:';
   end;
 {$endif}
-{$endif}
+

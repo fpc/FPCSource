@@ -11,6 +11,8 @@
                      http://bugs.freepascal.org
  
 }
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, June 2018 }
+
 {
     Modified for use with Free Pascal
     Version 308
@@ -19,6 +21,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -402,8 +405,8 @@ type
 		encoding: TextEncoding;
 		maxErrors: ItemCount;
 		maxFeatures: ItemCount;
-		textInputBuffer: TextPtr;
-		textInputBufferEnd: TextPtr;
+		textInputBuffer: ConstTextPtr;
+		textInputBufferEnd: ConstTextPtr;
 		numFeatures: ItemCount;
 		numErrors: ItemCount;
                                               { private - manipulated only within Plugin}

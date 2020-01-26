@@ -1,63 +1,36 @@
-{ Parsed from Appkit.framework NSAlert.h }
+{ Parsed from AppKit.framework NSAlert.h }
 
+
+{ Types from NSAlert }
 {$ifdef TYPES}
-{$ifndef NSALERT_PAS_T}
-{$define NSALERT_PAS_T}
-
-{ Constants }
-
-const
-  NSWarningAlertStyle = 0;
-  NSInformationalAlertStyle = 1;
-  NSCriticalAlertStyle = 2;
 
 const
   NSAlertFirstButtonReturn = 1000;
   NSAlertSecondButtonReturn = 1001;
   NSAlertThirdButtonReturn = 1002;
+{$endif}
 
-{ Types }
+
+{$ifdef TYPES}
+type
+  NSAlertPtr = ^NSAlert;
+  NSAlertDelegateProtocolPtr = ^NSAlertDelegateProtocol;
+{$endif}
+
+{$ifdef TYPES}
 type
   NSAlertStyle = NSUInteger;
   NSAlertStylePtr = ^NSAlertStyle;
 
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSALERT_PAS_R}
-{$define NSALERT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSALERT_PAS_F}
-{$define NSALERT_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSALERT_PAS_S}
-{$define NSALERT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSAlertDelegateProtocol = objcprotocol;
-  NSAlert = objcclass;
-  NSAlertPointer = ^NSAlert;
-  NSAlertPtr = NSAlertPointer;
-
+const
+  NSWarningAlertStyle = 0;
+  NSInformationalAlertStyle = 1;
+  NSCriticalAlertStyle = 2;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSALERT_PAS_C}
-{$define NSALERT_PAS_C}
 
-{ NSAlert }
+type
   NSAlert = objcclass external (NSObject)
   private
     _informationField: NSTextField;
@@ -90,48 +63,44 @@ type
     reserved: ObjCBOOL;
     _suppressionButton: id;
     _accessoryView: id;
-    
   public
-    class function alertWithError(error: NSError): NSAlert; message 'alertWithError:';
-    class function alertWithMessageText_defaultButton_alternateButton_otherButton_informativeTextWithFormat(message: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; firstKey: id): NSAlert; varargs; message 'alertWithMessageText:defaultButton:alternateButton:otherButton:informativeTextWithFormat:';
-    procedure setMessageText(messageText_: NSString); message 'setMessageText:';
-    procedure setInformativeText(informativeText_: NSString); message 'setInformativeText:';
+    class function alertWithError (error: NSError): NSAlert; message 'alertWithError:';
+    class function alertWithMessageText_defaultButton_alternateButton_otherButton_informativeTextWithFormat (message_: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; format: NSString): NSAlert; varargs; message 'alertWithMessageText:defaultButton:alternateButton:otherButton:informativeTextWithFormat:'; deprecated 'in 10_3, 10_10, "Use -init instead"';
+    procedure setMessageText(newValue: NSString); message 'setMessageText:';
     function messageText: NSString; message 'messageText';
+    procedure setInformativeText(newValue: NSString); message 'setInformativeText:';
     function informativeText: NSString; message 'informativeText';
-    procedure setIcon(icon_: NSImage); message 'setIcon:';
+    procedure setIcon(newValue: NSImage); message 'setIcon:';
     function icon: NSImage; message 'icon';
-    function addButtonWithTitle(title: NSString): NSButton; message 'addButtonWithTitle:';
+    function addButtonWithTitle (title: NSString): NSButton; message 'addButtonWithTitle:';
     function buttons: NSArray; message 'buttons';
-    procedure setShowsHelp(showsHelp_: ObjCBOOL); message 'setShowsHelp:';
+    procedure setShowsHelp(newValue: ObjCBOOL); message 'setShowsHelp:';
     function showsHelp: ObjCBOOL; message 'showsHelp';
-    procedure setHelpAnchor(anchor: NSString); message 'setHelpAnchor:';
+    procedure setHelpAnchor(newValue: NSString); message 'setHelpAnchor:';
     function helpAnchor: NSString; message 'helpAnchor';
-    procedure setAlertStyle(style: NSAlertStyle); message 'setAlertStyle:';
+    procedure setAlertStyle(newValue: NSAlertStyle); message 'setAlertStyle:';
     function alertStyle: NSAlertStyle; message 'alertStyle';
-    procedure setDelegate(delegate_: NSAlertDelegateProtocol); message 'setDelegate:';
+    procedure setDelegate(newValue: NSAlertDelegateProtocol); message 'setDelegate:';
     function delegate: NSAlertDelegateProtocol; message 'delegate';
-    procedure setShowsSuppressionButton(flag: ObjCBOOL); message 'setShowsSuppressionButton:';
+    procedure setShowsSuppressionButton(newValue: ObjCBOOL); message 'setShowsSuppressionButton:';
     function showsSuppressionButton: ObjCBOOL; message 'showsSuppressionButton';
     function suppressionButton: NSButton; message 'suppressionButton';
-    procedure setAccessoryView(view: NSView); message 'setAccessoryView:';
+    procedure setAccessoryView(newValue: NSView); message 'setAccessoryView:';
     function accessoryView: NSView; message 'accessoryView';
-    procedure layout; message 'layout';
-    function runModal: NSInteger; message 'runModal';
-    procedure alertDidEnd_returnCode_contextInfo(alert: NSAlert; returnCode: NSInteger; contextInfo: Pointer); message 'alertDidEnd:returnCode:contextInfo:';
-    procedure beginSheetModalForWindow_modalDelegate_didEndSelector_contextInfo(window_: NSWindow; delegate_: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginSheetModalForWindow:modalDelegate:didEndSelector:contextInfo:';
+    procedure layout; message 'layout'; { available in 10_5 }
+    function runModal: NSModalResponse; message 'runModal';
+    procedure beginSheetModalForWindow_modalDelegate_didEndSelector_contextInfo (window: NSWindow; delegate_: id; didEndSelector: SEL; contextInfo: pointer); message 'beginSheetModalForWindow:modalDelegate:didEndSelector:contextInfo:'; deprecated 'in 10_3, 10_10, "Use -beginSheetModalForWindow:completionHandler: instead"';
+    procedure beginSheetModalForWindow_completionHandler (sheetWindow: NSWindow; handler: OpaqueCBlock); message 'beginSheetModalForWindow:completionHandler:'; { available in 10_9 }
     function window: id; message 'window';
   end;
+{$endif}
 
-{$endif}
-{$endif}
 {$ifdef PROTOCOLS}
-{$ifndef NSALERT_PAS_P}
-{$define NSALERT_PAS_P}
-  
-{ NSAlertDelegate Protocol }
-  NSAlertDelegateProtocol = objcprotocol external name 'NSAlertDelegate'
+
+type
+  NSAlertDelegateProtocol = objcprotocol external name 'NSAlertDelegate' (NSObjectProtocol)
   optional
-    function alertShowHelp(alert: NSAlert): ObjCBOOL; message 'alertShowHelp:';
+    function alertShowHelp (alert: NSAlert): ObjCBOOL; message 'alertShowHelp:';
   end;
 {$endif}
-{$endif}
+

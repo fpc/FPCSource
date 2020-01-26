@@ -1,136 +1,100 @@
-{ Parsed from Appkit.framework NSPopUpButtonCell.h }
+{ Parsed from AppKit.framework NSPopUpButtonCell.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSPOPUPBUTTONCELL_PAS_T}
-{$define NSPOPUPBUTTONCELL_PAS_T}
+type
+  NSPopUpButtonCellPtr = ^NSPopUpButtonCell;
+{$endif}
 
-{ Constants }
+{$ifdef TYPES}
+type
+  NSPopUpArrowPosition = NSUInteger;
+  NSPopUpArrowPositionPtr = ^NSPopUpArrowPosition;
 
 const
   NSPopUpNoArrow = 0;
   NSPopUpArrowAtCenter = 1;
   NSPopUpArrowAtBottom = 2;
-
-{ Types }
-type
-  NSPopUpArrowPosition = NSUInteger;
-  NSPopUpArrowPositionPtr = ^NSPopUpArrowPosition;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSPOPUPBUTTONCELL_PAS_R}
-{$define NSPOPUPBUTTONCELL_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSPOPUPBUTTONCELL_PAS_F}
-{$define NSPOPUPBUTTONCELL_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPOPUPBUTTONCELL_PAS_S}
-{$define NSPOPUPBUTTONCELL_PAS_S}
-
-{ External string constants }
-var
-  NSPopUpButtonCellWillPopUpNotification: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSPopUpButtonCell = objcclass;
-  NSPopUpButtonCellPointer = ^NSPopUpButtonCell;
-  NSPopUpButtonCellPtr = NSPopUpButtonCellPointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSPOPUPBUTTONCELL_PAS_C}
-{$define NSPOPUPBUTTONCELL_PAS_C}
 
-{ NSPopUpButtonCell }
+type
   NSPopUpButtonCell = objcclass external (NSMenuItemCell)
   private
     _menu: NSMenu;
     _selectedIndex: cint;
-    __pbcFlags: record
+    __pbcFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSPopUpButtonCell0: cuint);
-       1: (data: bitpacked record
-        _pullsDown: 0..1;
-        _preferredEdge: 0..((1 shl 3)-1);
-        menuIsAttached: 0..1;
-        _usesItemFromMenu: 0..1;
-        _altersStateOfSelectedItem: 0..1;
-        decoding: 0..1;
-        _arrowPosition: 0..((1 shl 2)-1);
-        ignoreMenuLayout: 0..1;
-        drawing: 0..1;
-        menuShouldBeUniquedAgainstMain: 0..1;
-        RESERVED: 0..((1 shl 19)-1);
-       end;
-      );
+        0: (_anonBitField___pbcFlags0: cuint);
+        1: (
+          pullsDown: 0..1;
+          preferredEdge: 0..((1 shl 3)-1);
+          menuIsAttached: 0..1;
+          usesItemFromMenu: 0..1;
+          altersStateOfSelectedItem: 0..1;
+          decoding: 0..1;
+          arrowPosition: 0..((1 shl 2)-1);
+          ignoreMenuLayout: 0..1;
+          drawing: 0..1;
+          menuShouldBeUniquedAgainstMain: 0..1;
+          RESERVED: 0..((1 shl 19)-1);
+        );
       end;
-    {$ifdef cpu64}
+    {$if defined(__LP64__)}
     _popupReserved: id;
     {$endif}
-    
   public
-    function initTextCell_pullsDown(stringValue_: NSString; pullDown: ObjCBOOL): id; message 'initTextCell:pullsDown:';
-    procedure setMenu(menu_: NSMenu); message 'setMenu:';
+    function initTextCell_pullsDown (stringValue_: NSString; pullDown: ObjCBOOL): instancetype; message 'initTextCell:pullsDown:';
+    procedure setMenu(newValue: NSMenu); message 'setMenu:';
     function menu: NSMenu; message 'menu';
-    procedure setPullsDown(flag: ObjCBOOL); message 'setPullsDown:';
+    procedure setPullsDown(newValue: ObjCBOOL); message 'setPullsDown:';
     function pullsDown: ObjCBOOL; message 'pullsDown';
-    procedure setAutoenablesItems(flag: ObjCBOOL); message 'setAutoenablesItems:';
+    procedure setAutoenablesItems(newValue: ObjCBOOL); message 'setAutoenablesItems:';
     function autoenablesItems: ObjCBOOL; message 'autoenablesItems';
-    procedure setPreferredEdge(edge: NSRectEdge); message 'setPreferredEdge:';
+    procedure setPreferredEdge(newValue: NSRectEdge); message 'setPreferredEdge:';
     function preferredEdge: NSRectEdge; message 'preferredEdge';
-    procedure setUsesItemFromMenu(flag: ObjCBOOL); message 'setUsesItemFromMenu:';
+    procedure setUsesItemFromMenu(newValue: ObjCBOOL); message 'setUsesItemFromMenu:';
     function usesItemFromMenu: ObjCBOOL; message 'usesItemFromMenu';
-    procedure setAltersStateOfSelectedItem(flag: ObjCBOOL); message 'setAltersStateOfSelectedItem:';
+    procedure setAltersStateOfSelectedItem(newValue: ObjCBOOL); message 'setAltersStateOfSelectedItem:';
     function altersStateOfSelectedItem: ObjCBOOL; message 'altersStateOfSelectedItem';
-    procedure addItemWithTitle(title_: NSString); message 'addItemWithTitle:';
-    procedure addItemsWithTitles(itemTitles_: NSArray); message 'addItemsWithTitles:';
-    procedure insertItemWithTitle_atIndex(title_: NSString; index: NSInteger); message 'insertItemWithTitle:atIndex:';
-    procedure removeItemWithTitle(title_: NSString); message 'removeItemWithTitle:';
-    procedure removeItemAtIndex(index: NSInteger); message 'removeItemAtIndex:';
+    procedure addItemWithTitle (title_: NSString); message 'addItemWithTitle:';
+    procedure addItemsWithTitles (itemTitles: NSArray); message 'addItemsWithTitles:';
+    procedure insertItemWithTitle_atIndex (title_: NSString; index: NSInteger); message 'insertItemWithTitle:atIndex:';
+    procedure removeItemWithTitle (title_: NSString); message 'removeItemWithTitle:';
+    procedure removeItemAtIndex (index: NSInteger); message 'removeItemAtIndex:';
     procedure removeAllItems; message 'removeAllItems';
     function itemArray: NSArray; message 'itemArray';
     function numberOfItems: NSInteger; message 'numberOfItems';
-    function indexOfItem(item: NSMenuItem): NSInteger; message 'indexOfItem:';
-    function indexOfItemWithTitle(title_: NSString): NSInteger; message 'indexOfItemWithTitle:';
-    function indexOfItemWithTag(tag_: NSInteger): NSInteger; message 'indexOfItemWithTag:';
-    function indexOfItemWithRepresentedObject(obj: id): NSInteger; message 'indexOfItemWithRepresentedObject:';
-    function indexOfItemWithTarget_andAction(target_: id; actionSelector: SEL): NSInteger; message 'indexOfItemWithTarget:andAction:';
-    function itemAtIndex(index: NSInteger): NSMenuItem; message 'itemAtIndex:';
-    function itemWithTitle(title_: NSString): NSMenuItem; message 'itemWithTitle:';
+    function indexOfItem (item: NSMenuItem): NSInteger; message 'indexOfItem:';
+    function indexOfItemWithTitle (title_: NSString): NSInteger; message 'indexOfItemWithTitle:';
+    function indexOfItemWithTag (tag_: NSInteger): NSInteger; message 'indexOfItemWithTag:';
+    function indexOfItemWithRepresentedObject (obj: id): NSInteger; message 'indexOfItemWithRepresentedObject:';
+    function indexOfItemWithTarget_andAction (target_: id; actionSelector: SEL): NSInteger; message 'indexOfItemWithTarget:andAction:';
+    function itemAtIndex (index: NSInteger): NSMenuItem; message 'itemAtIndex:';
+    function itemWithTitle (title_: NSString): NSMenuItem; message 'itemWithTitle:';
     function lastItem: NSMenuItem; message 'lastItem';
-    procedure selectItem(item: NSMenuItem); message 'selectItem:';
-    procedure selectItemAtIndex(index: NSInteger); message 'selectItemAtIndex:';
-    procedure selectItemWithTitle(title_: NSString); message 'selectItemWithTitle:';
-    function selectItemWithTag(tag_: NSInteger): ObjCBOOL; message 'selectItemWithTag:';
-    procedure setTitle(aString: NSString); message 'setTitle:';
+    procedure selectItem (item: NSMenuItem); message 'selectItem:';
+    procedure selectItemAtIndex (index: NSInteger); message 'selectItemAtIndex:';
+    procedure selectItemWithTitle (title_: NSString); message 'selectItemWithTitle:';
+    function selectItemWithTag (tag_: NSInteger): ObjCBOOL; message 'selectItemWithTag:';
+    procedure setTitle (aString: NSString); message 'setTitle:';
     function selectedItem: NSMenuItem; message 'selectedItem';
     function indexOfSelectedItem: NSInteger; message 'indexOfSelectedItem';
     procedure synchronizeTitleAndSelectedItem; message 'synchronizeTitleAndSelectedItem';
-    function itemTitleAtIndex(index: NSInteger): NSString; message 'itemTitleAtIndex:';
+    function itemTitleAtIndex (index: NSInteger): NSString; message 'itemTitleAtIndex:';
     function itemTitles: NSArray; message 'itemTitles';
     function titleOfSelectedItem: NSString; message 'titleOfSelectedItem';
-    procedure attachPopUpWithFrame_inView(cellFrame: NSRect; controlView_: NSView); message 'attachPopUpWithFrame:inView:';
+    procedure attachPopUpWithFrame_inView (cellFrame: NSRect; controlView_: NSView); message 'attachPopUpWithFrame:inView:';
     procedure dismissPopUp; message 'dismissPopUp';
-    procedure performClickWithFrame_inView(frame: NSRect; controlView_: NSView); message 'performClickWithFrame:inView:';
+    procedure performClickWithFrame_inView (frame: NSRect; controlView_: NSView); message 'performClickWithFrame:inView:';
+    procedure setArrowPosition(newValue: NSPopUpArrowPosition); message 'setArrowPosition:';
     function arrowPosition: NSPopUpArrowPosition; message 'arrowPosition';
-    procedure setArrowPosition(position: NSPopUpArrowPosition); message 'setArrowPosition:';
-    function objectValue: id; message 'objectValue';
-    procedure setObjectValue(obj: id); message 'setObjectValue:';
   end;
+{$endif}
 
+{$ifdef EXTERNAL_SYMBOLS}
+var
+  NSPopUpButtonCellWillPopUpNotification: NSString; cvar; external;
 {$endif}
-{$endif}
+

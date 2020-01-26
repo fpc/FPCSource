@@ -1,62 +1,29 @@
-{ Parsed from Webkit.framework DOMHTMLOptionElement.h }
+{ Parsed from WebKit.framework DOMHTMLOptionElement.h }
+
 
 {$ifdef TYPES}
-{$ifndef DOMHTMLOPTIONELEMENT_PAS_T}
-{$define DOMHTMLOPTIONELEMENT_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef DOMHTMLOPTIONELEMENT_PAS_R}
-{$define DOMHTMLOPTIONELEMENT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMHTMLOPTIONELEMENT_PAS_F}
-{$define DOMHTMLOPTIONELEMENT_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMHTMLOPTIONELEMENT_PAS_S}
-{$define DOMHTMLOPTIONELEMENT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  DOMHTMLOptionElement = objcclass;
-  DOMHTMLOptionElementPointer = ^DOMHTMLOptionElement;
-  DOMHTMLOptionElementPtr = DOMHTMLOptionElementPointer;
-
+type
+  DOMHTMLOptionElementPtr = ^DOMHTMLOptionElement;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef DOMHTMLOPTIONELEMENT_PAS_C}
-{$define DOMHTMLOPTIONELEMENT_PAS_C}
 
-{ DOMHTMLOptionElement }
+type
   DOMHTMLOptionElement = objcclass external (DOMHTMLElement)
-    
   public
+    procedure setDisabled(newValue: ObjCBOOL); message 'setDisabled:';
+    function disabled: ObjCBOOL; message 'disabled';
     function form: DOMHTMLFormElement; message 'form';
-    procedure setDefaultSelected (newValue: ObjCBOOL); message 'setDefaultSelected:';
+    procedure setLabel(newValue: NSString); message 'setLabel:';
+    function label_: NSString; message 'label';
+    procedure setDefaultSelected(newValue: ObjCBOOL); message 'setDefaultSelected:';
     function defaultSelected: ObjCBOOL; message 'defaultSelected';
+    procedure setSelected(newValue: ObjCBOOL); message 'setSelected:';
+    function selected: ObjCBOOL; message 'selected';
+    procedure setValue(newValue: NSString); message 'setValue:';
+    function value: NSString; message 'value';
     function text: NSString; message 'text';
     function index: cint; message 'index';
-    procedure setDisabled (newValue: ObjCBOOL); message 'setDisabled:';
-    function disabled: ObjCBOOL; message 'disabled';
-    procedure setLabel (newValue: NSString); message 'setLabel:';
-    function label_: NSString; message 'label_';
-    procedure setSelected (newValue: ObjCBOOL); message 'setSelected:';
-    function selected: ObjCBOOL; message 'selected';
-    procedure setValue (newValue: NSString); message 'setValue:';
-    function value: NSString; message 'value';
   end;
+{$endif}
 
-{$endif}
-{$endif}

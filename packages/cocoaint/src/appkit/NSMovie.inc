@@ -1,75 +1,53 @@
-{ Parsed from Appkit.framework NSMovie.h }
+{ Parsed from AppKit.framework NSMovie.h }
+
+
+{ Types from NSMovie }
+{$ifdef TYPES}
+
+{$endif}
+
 
 {$ifdef TYPES}
-{$ifndef NSMOVIE_PAS_T}
-{$define NSMOVIE_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSMOVIE_PAS_R}
-{$define NSMOVIE_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSMOVIE_PAS_F}
-{$define NSMOVIE_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSMOVIE_PAS_S}
-{$define NSMOVIE_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSMovie = objcclass;
-  NSMoviePointer = ^NSMovie;
-  NSMoviePtr = NSMoviePointer;
-
+type
+  NSMoviePtr = ^NSMovie;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSMOVIE_PAS_C}
-{$define NSMOVIE_PAS_C}
 
-{ NSMovie }
-  NSMovie = objcclass external (NSObject, NSCodingProtocol)
+type
+  NSMovie = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    _movie: Pointer;
+    _movie: pointer;
     _url: NSURL;
-    __movieFlags: record
+    _movieFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSMovie0: cint);
-       1: (data: bitpacked record
-        _dispose: 0..1;
-        reserved: 0..((1 shl 31)-1);
-       end;
-      );
+        0: (_anonBitField__movieFlags0: cuint);
+        1: (
+          dispose_: 0..1;
+          reserved: 0..((1 shl 31)-1);
+        );
       end;
     _reserved1: clong;
     _reserved2: clong;
-    
   public
-    function initWithMovie(movie: Pointer): id; message 'initWithMovie:'; deprecated 'in Mac OS X 10.5 and later';
-    function initWithURL_byReference(url_: NSURL; byRef: ObjCBOOL): id; message 'initWithURL:byReference:'; deprecated 'in Mac OS X 10.5 and later';
-    function initWithPasteboard(pasteboard: NSPasteboard): id; message 'initWithPasteboard:'; deprecated 'in Mac OS X 10.5 and later';
-    function QTMovie_: Pointer; message 'QTMovie'; deprecated 'in Mac OS X 10.5 and later';
-    function URL: NSURL; message 'URL'; deprecated 'in Mac OS X 10.5 and later';
-    class function movieUnfilteredFileTypes: NSArray; message 'movieUnfilteredFileTypes'; deprecated 'in Mac OS X 10.5 and later';
-    class function movieUnfilteredPasteboardTypes: NSArray; message 'movieUnfilteredPasteboardTypes'; deprecated 'in Mac OS X 10.5 and later';
-    class function canInitWithPasteboard(pasteboard: NSPasteboard): ObjCBOOL; message 'canInitWithPasteboard:'; deprecated 'in Mac OS X 10.5 and later';
+    {$if  not defined(__LP64__)}
+    function initWithMovie (movie: pointer): id; message 'initWithMovie:'; deprecated 'in 10_0, 10_5';
+    function initWithURL_byReference (url: NSURL; byRef: ObjCBOOL): id; message 'initWithURL:byReference:'; deprecated 'in 10_0, 10_5';
+    function initWithPasteboard (pasteboard: NSPasteboard): id; message 'initWithPasteboard:'; deprecated 'in 10_0, 10_5';
+    function QTMovie_: pointer; message 'QTMovie'; deprecated 'in 10_0, 10_5';
+    function URL: NSURL; message 'URL'; deprecated 'in 10_0, 10_5';
+    class function movieUnfilteredFileTypes: NSArray; message 'movieUnfilteredFileTypes'; deprecated 'in 10_0, 10_5';
+    class function movieUnfilteredPasteboardTypes: NSArray; message 'movieUnfilteredPasteboardTypes'; deprecated 'in 10_0, 10_5';
+    class function canInitWithPasteboard (pasteboard: NSPasteboard): ObjCBOOL; message 'canInitWithPasteboard:'; deprecated 'in 10_0, 10_5';
+    {$else}
+    function initWithMovie (movie: QTMovie): id; message 'initWithMovie:';
+    function QTMovie_: QTMovie; message 'QTMovie';
+    {$endif}
 
-    { Adopted Protocols }
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

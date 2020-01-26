@@ -1,44 +1,59 @@
-{ Parsed from Appkit.framework NSKeyValueBinding.h }
-
-{$ifdef TYPES}
-{$ifndef NSKEYVALUEBINDING_PAS_T}
-{$define NSKEYVALUEBINDING_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSKEYVALUEBINDING_PAS_R}
-{$define NSKEYVALUEBINDING_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSKEYVALUEBINDING_PAS_F}
-{$define NSKEYVALUEBINDING_PAS_F}
-
-{ Functions }
-function NSIsControllerMarker(object_: id): ObjCBOOL; cdecl; external;
-
-{$endif}
-{$endif}
+{ Parsed from AppKit.framework NSKeyValueBinding.h }
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSKEYVALUEBINDING_PAS_S}
-{$define NSKEYVALUEBINDING_PAS_S}
-
-{ External symbols }
 var
   NSMultipleValuesMarker: id; cvar; external;
   NSNoSelectionMarker: id; cvar; external;
   NSNotApplicableMarker: id; cvar; external;
+{$endif}
 
-{ External string constants }
+{$ifdef FUNCTIONS}
+function NSIsControllerMarker(object_: id): ObjCBOOL; cdecl; external;
+{$endif}
+
+{$ifdef EXTERNAL_SYMBOLS}
 var
   NSObservedObjectKey: NSString; cvar; external;
   NSObservedKeyPathKey: NSString; cvar; external;
   NSOptionsKey: NSString; cvar; external;
+{$endif}
+
+{$ifdef CLASSES}
+
+type
+  NSKeyValueBindingCreation = objccategory external (NSObject)
+    class procedure exposeBinding (binding: NSString); message 'exposeBinding:';
+    function exposedBindings: NSArray; message 'exposedBindings';
+    function valueClassForBinding (binding: NSString): pobjc_class; message 'valueClassForBinding:';
+    procedure bind_toObject_withKeyPath_options (binding: NSString; observable: id; keyPath: NSString; options: NSDictionary); message 'bind:toObject:withKeyPath:options:';
+    procedure unbind (binding: NSString); message 'unbind:';
+    function infoForBinding (binding: NSString): NSDictionary; message 'infoForBinding:';
+    function optionDescriptionsForBinding (aBinding: NSString): NSArray; message 'optionDescriptionsForBinding:'; { available in 10_5 }
+  end;
+
+type
+  NSPlaceholders = objccategory external (NSObject)
+    class procedure setDefaultPlaceholder_forMarker_withBinding (placeholder: id; marker: id; binding: NSString); message 'setDefaultPlaceholder:forMarker:withBinding:';
+    class function defaultPlaceholderForMarker_withBinding (marker: id; binding: NSString): id; message 'defaultPlaceholderForMarker:withBinding:';
+  end;
+
+type
+  NSEditorRegistration = objccategory external (NSObject)
+    procedure objectDidBeginEditing (editor: id); message 'objectDidBeginEditing:';
+    procedure objectDidEndEditing (editor: id); message 'objectDidEndEditing:';
+  end;
+
+type
+  NSEditor = objccategory external (NSObject)
+    procedure discardEditing; message 'discardEditing';
+    function commitEditing: ObjCBOOL; message 'commitEditing';
+    procedure commitEditingWithDelegate_didCommitSelector_contextInfo (delegate: id; didCommitSelector: SEL; contextInfo: pointer); message 'commitEditingWithDelegate:didCommitSelector:contextInfo:';
+    function commitEditingAndReturnError (error: NSErrorPtr): ObjCBOOL; message 'commitEditingAndReturnError:'; { available in 10_7 }
+  end;
+{$endif}
+
+{$ifdef EXTERNAL_SYMBOLS}
+var
   NSAlignmentBinding: NSString; cvar; external;
   NSAlternateImageBinding: NSString; cvar; external;
   NSAlternateTitleBinding: NSString; cvar; external;
@@ -49,7 +64,7 @@ var
   NSContentArrayBinding: NSString; cvar; external;
   NSContentArrayForMultipleSelectionBinding: NSString; cvar; external;
   NSContentBinding: NSString; cvar; external;
-  NSContentDictionaryBinding: NSString; cvar; external;
+  NSContentDictionaryBinding: NSString { available in 10_5 }; cvar; external;
   NSContentHeightBinding: NSString; cvar; external;
   NSContentObjectBinding: NSString; cvar; external;
   NSContentObjectsBinding: NSString; cvar; external;
@@ -65,7 +80,7 @@ var
   NSDoubleClickTargetBinding: NSString; cvar; external;
   NSEditableBinding: NSString; cvar; external;
   NSEnabledBinding: NSString; cvar; external;
-  NSExcludedKeysBinding: NSString; cvar; external;
+  NSExcludedKeysBinding: NSString { available in 10_5 }; cvar; external;
   NSFilterPredicateBinding: NSString; cvar; external;
   NSFontBinding: NSString; cvar; external;
   NSFontBoldBinding: NSString; cvar; external;
@@ -76,12 +91,12 @@ var
   NSHeaderTitleBinding: NSString; cvar; external;
   NSHiddenBinding: NSString; cvar; external;
   NSImageBinding: NSString; cvar; external;
-  NSIncludedKeysBinding: NSString; cvar; external;
-  NSInitialKeyBinding: NSString; cvar; external;
-  NSInitialValueBinding: NSString; cvar; external;
+  NSIncludedKeysBinding: NSString { available in 10_5 }; cvar; external;
+  NSInitialKeyBinding: NSString { available in 10_5 }; cvar; external;
+  NSInitialValueBinding: NSString { available in 10_5 }; cvar; external;
   NSIsIndeterminateBinding: NSString; cvar; external;
   NSLabelBinding: NSString; cvar; external;
-  NSLocalizedKeyDictionaryBinding: NSString; cvar; external;
+  NSLocalizedKeyDictionaryBinding: NSString { available in 10_5 }; cvar; external;
   NSManagedObjectContextBinding: NSString; cvar; external;
   NSMaximumRecentsBinding: NSString; cvar; external;
   NSMaxValueBinding: NSString; cvar; external;
@@ -91,6 +106,7 @@ var
   NSMixedStateImageBinding: NSString; cvar; external;
   NSOffStateImageBinding: NSString; cvar; external;
   NSOnStateImageBinding: NSString; cvar; external;
+  NSPositioningRectBinding: NSString { available in 10_7 }; cvar; external;
   NSPredicateBinding: NSString; cvar; external;
   NSRecentSearchesBinding: NSString; cvar; external;
   NSRepresentedFilenameBinding: NSString; cvar; external;
@@ -110,7 +126,7 @@ var
   NSTextColorBinding: NSString; cvar; external;
   NSTitleBinding: NSString; cvar; external;
   NSToolTipBinding: NSString; cvar; external;
-  NSTransparentBinding: NSString; cvar; external;
+  NSTransparentBinding: NSString { available in 10_5 }; cvar; external;
   NSValueBinding: NSString; cvar; external;
   NSValuePathBinding: NSString; cvar; external;
   NSValueURLBinding: NSString; cvar; external;
@@ -128,7 +144,7 @@ var
   NSDeletesObjectsOnRemoveBindingsOption: NSString; cvar; external;
   NSDisplayNameBindingOption: NSString; cvar; external;
   NSDisplayPatternBindingOption: NSString; cvar; external;
-  NSContentPlacementTagBindingOption: NSString; cvar; external;
+  NSContentPlacementTagBindingOption: NSString { available in 10_5 }; cvar; external;
   NSHandlesContentAsCompoundValueBindingOption: NSString; cvar; external;
   NSInsertsNullPlaceholderBindingOption: NSString; cvar; external;
   NSInvokesSeparatelyWithArrayObjectsBindingOption: NSString; cvar; external;
@@ -143,47 +159,5 @@ var
   NSValidatesImmediatelyBindingOption: NSString; cvar; external;
   NSValueTransformerNameBindingOption: NSString; cvar; external;
   NSValueTransformerBindingOption: NSString; cvar; external;
-
-{$endif}
 {$endif}
 
-{$ifdef FORWARD}
-
-{$endif}
-
-{$ifdef CLASSES}
-{$ifndef NSKEYVALUEBINDING_PAS_C}
-{$define NSKEYVALUEBINDING_PAS_C}
-
-{ NSKeyValueBindingCreationCategory }
-  NSKeyValueBindingCreationCategory = objccategory external (NSObject)
-    class procedure exposeBinding(binding: NSString); message 'exposeBinding:';
-    function exposedBindings: NSArray; message 'exposedBindings';
-    function valueClassForBinding(binding: NSString): Pobjc_class; message 'valueClassForBinding:';
-    procedure bind_toObject_withKeyPath_options(binding: NSString; observable: id; keyPath: NSString; options: NSDictionary); message 'bind:toObject:withKeyPath:options:';
-    procedure unbind(binding: NSString); message 'unbind:';
-    function infoForBinding(binding: NSString): NSDictionary; message 'infoForBinding:';
-    function optionDescriptionsForBinding(aBinding: NSString): NSArray; message 'optionDescriptionsForBinding:';
-  end;
-
-{ NSPlaceholdersCategory }
-  NSPlaceholdersCategory = objccategory external (NSObject)
-    class procedure setDefaultPlaceholder_forMarker_withBinding(placeholder: id; marker: id; binding: NSString); message 'setDefaultPlaceholder:forMarker:withBinding:';
-    class function defaultPlaceholderForMarker_withBinding(marker: id; binding: NSString): id; message 'defaultPlaceholderForMarker:withBinding:';
-  end;
-
-{ NSEditorRegistrationCategory }
-  NSEditorRegistrationCategory = objccategory external (NSObject)
-    procedure objectDidBeginEditing(editor: id); message 'objectDidBeginEditing:';
-    procedure objectDidEndEditing(editor: id); message 'objectDidEndEditing:';
-  end;
-
-{ NSEditorCategory }
-  NSEditorCategory = objccategory external (NSObject)
-    procedure discardEditing; message 'discardEditing';
-    function commitEditing: ObjCBOOL; message 'commitEditing';
-    procedure commitEditingWithDelegate_didCommitSelector_contextInfo(delegate: id; didCommitSelector: SEL; contextInfo: Pointer); message 'commitEditingWithDelegate:didCommitSelector:contextInfo:';
-  end;
-
-{$endif}
-{$endif}

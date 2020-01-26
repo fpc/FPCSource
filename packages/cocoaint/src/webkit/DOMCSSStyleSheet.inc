@@ -1,61 +1,29 @@
-{ Parsed from Webkit.framework DOMCSSStyleSheet.h }
+{ Parsed from WebKit.framework DOMCSSStyleSheet.h }
+
 
 {$ifdef TYPES}
-{$ifndef DOMCSSSTYLESHEET_PAS_T}
-{$define DOMCSSSTYLESHEET_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef DOMCSSSTYLESHEET_PAS_R}
-{$define DOMCSSSTYLESHEET_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMCSSSTYLESHEET_PAS_F}
-{$define DOMCSSSTYLESHEET_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMCSSSTYLESHEET_PAS_S}
-{$define DOMCSSSTYLESHEET_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  DOMCSSStyleSheet = objcclass;
-  DOMCSSStyleSheetPointer = ^DOMCSSStyleSheet;
-  DOMCSSStyleSheetPtr = DOMCSSStyleSheetPointer;
-
+type
+  DOMCSSStyleSheetPtr = ^DOMCSSStyleSheet;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef DOMCSSSTYLESHEET_PAS_C}
-{$define DOMCSSSTYLESHEET_PAS_C}
 
-{ DOMCSSStyleSheet }
+type
   DOMCSSStyleSheet = objcclass external (DOMStyleSheet)
-    
   public
     function ownerRule: DOMCSSRule; message 'ownerRule';
     function cssRules: DOMCSSRuleList; message 'cssRules';
     function rules: DOMCSSRuleList; message 'rules';
-    function insertRule_index(rule: NSString; index: cuint): cuint; message 'insertRule:index:';
-    procedure deleteRule(index: cuint); message 'deleteRule:';
-    function addRule_style_index(selector: NSString; style: NSString; index: cuint): cint; message 'addRule:style:index:';
-    procedure removeRule(index: cuint); message 'removeRule:';
+    function insertRule_index (rule: NSString; index: cuint): cuint; message 'insertRule:index:'; { available in 10_5 }
+    procedure deleteRule (index: cuint); message 'deleteRule:';
+    function addRule_style_index (selector: NSString; style: NSString; index: cuint): cint; message 'addRule:style:index:'; { available in 10_6 }
+    procedure removeRule (index: cuint); message 'removeRule:'; { available in 10_6 }
   end;
 
-{ DOMCSSStyleSheetDeprecatedCategory }
-  DOMCSSStyleSheetDeprecatedCategory = objccategory external (DOMCSSStyleSheet)
-    function insertRule(rule: NSString; index: cuint): cuint; message 'insertRule:rule:'; deprecated 'in_webkit_version_3 and later';
-  end;
 
+type
+  DOMCSSStyleSheetDeprecated = objccategory external (DOMCSSStyleSheet)
+    function insertRule (rule: NSString): cuint; message 'insertRule:'; deprecated 'in 10_4, 10_5';
+  end;
 {$endif}
-{$endif}
+

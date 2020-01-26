@@ -1,94 +1,60 @@
-{ Parsed from Appkit.framework NSDockTile.h }
+{ Parsed from AppKit.framework NSDockTile.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSDOCKTILE_PAS_T}
-{$define NSDOCKTILE_PAS_T}
+type
+  NSDockTilePtr = ^NSDockTile;
+  NSDockTilePlugInProtocolPtr = ^NSDockTilePlugInProtocol;
+{$endif}
 
-{ Defines }
+{$ifdef TYPES}
 const
   NSAppKitVersionNumberWithDockTilePlugInSupport = 1001.0;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSDOCKTILE_PAS_R}
-{$define NSDOCKTILE_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSDOCKTILE_PAS_F}
-{$define NSDOCKTILE_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSDOCKTILE_PAS_S}
-{$define NSDOCKTILE_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSDockTilePlugInProtocol = objcprotocol;
-  NSDockTile = objcclass;
-  NSDockTilePointer = ^NSDockTile;
-  NSDockTilePtr = NSDockTilePointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSDOCKTILE_PAS_C}
-{$define NSDOCKTILE_PAS_C}
 
-{ NSDockTile }
+type
   NSDockTile = objcclass external (NSObject)
   private
     _owner: id;
-    _dockContextRef: Pointer;
+    _dockContextRef: pointer;
     _contentView: NSView;
     _frameView: NSView;
     _backstopView: NSView;
     _badgeLabel: NSString;
-    __dFlags: record
+    _dFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSDockTile0: cuint);
-       1: (data: bitpacked record
-        showsAppBadge: 0..1;
-        reserved: 0..((1 shl 31)-1);
-       end;
-      );
+        0: (_anonBitField__dFlags0: cuint);
+        1: (
+          showsAppBadge: 0..1;
+          reserved: 0..((1 shl 31)-1);
+        );
       end;
     _dockTileSize: NSSize;
-    reserved: array[0..(5)-1] of id;
-    
+    _miniViewController: id;
+    reserved:array[0..3] of id;
   public
     function size: NSSize; message 'size';
-    procedure setContentView(view: NSView); message 'setContentView:';
+    procedure setContentView(newValue: NSView); message 'setContentView:';
     function contentView: NSView; message 'contentView';
     procedure display; message 'display';
-    procedure setShowsApplicationBadge(flag: ObjCBOOL); message 'setShowsApplicationBadge:';
+    procedure setShowsApplicationBadge(newValue: ObjCBOOL); message 'setShowsApplicationBadge:';
     function showsApplicationBadge: ObjCBOOL; message 'showsApplicationBadge';
-    procedure setBadgeLabel(string_: NSString); message 'setBadgeLabel:';
+    procedure setBadgeLabel(newValue: NSString); message 'setBadgeLabel:';
     function badgeLabel: NSString; message 'badgeLabel';
     function owner: id; message 'owner';
   end;
+{$endif}
 
-{$endif}
-{$endif}
 {$ifdef PROTOCOLS}
-{$ifndef NSDOCKTILE_PAS_P}
-{$define NSDOCKTILE_PAS_P}
-  
-{ NSDockTilePlugIn Protocol }
-  NSDockTilePlugInProtocol = objcprotocol external name 'NSDockTilePlugIn'
+
+type
+  NSDockTilePlugInProtocol = objcprotocol external name 'NSDockTilePlugIn' (NSObjectProtocol)
   required
-    procedure setDockTile(dockTile: NSDockTile); message 'setDockTile:';
+    procedure setDockTile (dockTile: NSDockTile); message 'setDockTile:';
   optional
     function dockMenu: NSMenu; message 'dockMenu';
   end;
 {$endif}
-{$endif}
+

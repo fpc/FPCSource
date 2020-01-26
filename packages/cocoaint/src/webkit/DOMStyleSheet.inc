@@ -1,50 +1,18 @@
-{ Parsed from Webkit.framework DOMStyleSheet.h }
+{ Parsed from WebKit.framework DOMStyleSheet.h }
+
 
 {$ifdef TYPES}
-{$ifndef DOMSTYLESHEET_PAS_T}
-{$define DOMSTYLESHEET_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef DOMSTYLESHEET_PAS_R}
-{$define DOMSTYLESHEET_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMSTYLESHEET_PAS_F}
-{$define DOMSTYLESHEET_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMSTYLESHEET_PAS_S}
-{$define DOMSTYLESHEET_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  DOMStyleSheet = objcclass;
-  DOMStyleSheetPointer = ^DOMStyleSheet;
-  DOMStyleSheetPtr = DOMStyleSheetPointer;
-
+type
+  DOMStyleSheetPtr = ^DOMStyleSheet;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef DOMSTYLESHEET_PAS_C}
-{$define DOMSTYLESHEET_PAS_C}
 
-{ DOMStyleSheet }
+type
   DOMStyleSheet = objcclass external (DOMObject)
-    
   public
-    function type_: NSString; message 'type_';
-    procedure setDisabled (newValue: ObjCBOOL); message 'setDisabled:';
+    function type_: NSString; message 'type';
+    procedure setDisabled(newValue: ObjCBOOL); message 'setDisabled:';
     function disabled: ObjCBOOL; message 'disabled';
     function ownerNode: DOMNode; message 'ownerNode';
     function parentStyleSheet: DOMStyleSheet; message 'parentStyleSheet';
@@ -52,6 +20,5 @@
     function title: NSString; message 'title';
     function media: DOMMediaList; message 'media';
   end;
+{$endif}
 
-{$endif}
-{$endif}

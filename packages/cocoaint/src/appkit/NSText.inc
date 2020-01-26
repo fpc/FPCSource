@@ -1,11 +1,13 @@
-{ Parsed from Appkit.framework NSText.h }
+{ Parsed from AppKit.framework NSText.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSTEXT_PAS_T}
-{$define NSTEXT_PAS_T}
+type
+  NSTextPtr = ^NSText;
+  NSTextDelegateProtocolPtr = ^NSTextDelegateProtocol;
+{$endif}
 
-{ Constants }
-
+{$ifdef TYPES}
 const
   NSEnterCharacter = $0003;
   NSBackspaceCharacter = $0008;
@@ -18,6 +20,10 @@ const
   NSLineSeparatorCharacter = $2028;
   NSParagraphSeparatorCharacter = $2029;
 
+type
+  NSTextAlignment = NSUInteger;
+  NSTextAlignmentPtr = ^NSTextAlignment;
+
 const
   NSLeftTextAlignment = 0;
   NSRightTextAlignment = 1;
@@ -25,15 +31,17 @@ const
   NSJustifiedTextAlignment = 3;
   NSNaturalTextAlignment = 4;
 
+type
+  NSWritingDirection = NSInteger;
+  NSWritingDirectionPtr = ^NSWritingDirection;
+
 const
   NSWritingDirectionNatural = -1;
   NSWritingDirectionLeftToRight = 0;
   NSWritingDirectionRightToLeft = 1;
-
 const
   NSTextWritingDirectionEmbedding = 0 shl 1;
   NSTextWritingDirectionOverride = 1 shl 1;
-
 const
   NSIllegalTextMovement = 0;
   NSReturnTextMovement = $10;
@@ -45,152 +53,111 @@ const
   NSDownTextMovement = $16;
   NSCancelTextMovement = $17;
   NSOtherTextMovement = 0;
+{$endif}
 
-{ Types }
+{$ifdef CLASSES}
+
 type
-  NSTextAlignment = NSUInteger;
-  NSTextAlignmentPtr = ^NSTextAlignment;
-  NSWritingDirection = NSInteger;
-  NSWritingDirectionPtr = ^NSWritingDirection;
+  NSText = objcclass external (NSView, NSChangeSpellingProtocol, NSIgnoreMisspelledWordsProtocol)
+  private
+    _ivars: id;
+  public
+    function initWithFrame (frameRect: NSRect): instancetype; message 'initWithFrame:'; { NS_DESIGNATED_INITIALIZER }
+    function initWithCoder (coder: NSCoder): instancetype; message 'initWithCoder:'; { NS_DESIGNATED_INITIALIZER }
+    procedure setString(newValue: NSString); message 'setString:';
+    function string_: NSString; message 'string';
+    procedure replaceCharactersInRange_withString (range: NSRange; aString: NSString); message 'replaceCharactersInRange:withString:';
+    procedure replaceCharactersInRange_withRTF (range: NSRange; rtfData: NSData); message 'replaceCharactersInRange:withRTF:';
+    procedure replaceCharactersInRange_withRTFD (range: NSRange; rtfdData: NSData); message 'replaceCharactersInRange:withRTFD:';
+    function RTFFromRange (range: NSRange): NSData; message 'RTFFromRange:';
+    function RTFDFromRange (range: NSRange): NSData; message 'RTFDFromRange:';
+    function writeRTFDToFile_atomically (path: NSString; flag: ObjCBOOL): ObjCBOOL; message 'writeRTFDToFile:atomically:';
+    function readRTFDFromFile (path: NSString): ObjCBOOL; message 'readRTFDFromFile:';
+    procedure setDelegate(newValue: NSTextDelegateProtocol); message 'setDelegate:';
+    function delegate: NSTextDelegateProtocol; message 'delegate';
+    procedure setEditable(newValue: ObjCBOOL); message 'setEditable:';
+    function isEditable: ObjCBOOL; message 'isEditable';
+    procedure setSelectable(newValue: ObjCBOOL); message 'setSelectable:';
+    function isSelectable: ObjCBOOL; message 'isSelectable';
+    procedure setRichText(newValue: ObjCBOOL); message 'setRichText:';
+    function isRichText: ObjCBOOL; message 'isRichText';
+    procedure setImportsGraphics(newValue: ObjCBOOL); message 'setImportsGraphics:';
+    function importsGraphics: ObjCBOOL; message 'importsGraphics';
+    procedure setFieldEditor(newValue: ObjCBOOL); message 'setFieldEditor:';
+    function isFieldEditor: ObjCBOOL; message 'isFieldEditor';
+    procedure setUsesFontPanel(newValue: ObjCBOOL); message 'setUsesFontPanel:';
+    function usesFontPanel: ObjCBOOL; message 'usesFontPanel';
+    procedure setDrawsBackground(newValue: ObjCBOOL); message 'setDrawsBackground:';
+    function drawsBackground: ObjCBOOL; message 'drawsBackground';
+    procedure setBackgroundColor(newValue: NSColor); message 'setBackgroundColor:';
+    function backgroundColor: NSColor; message 'backgroundColor';
+    function isRulerVisible: ObjCBOOL; message 'isRulerVisible';
+    procedure setSelectedRange(newValue: NSRange); message 'setSelectedRange:';
+    function selectedRange: NSRange; message 'selectedRange';
+    procedure scrollRangeToVisible (range: NSRange); message 'scrollRangeToVisible:';
+    procedure setFont(newValue: NSFont); message 'setFont:';
+    function font: NSFont; message 'font';
+    procedure setTextColor(newValue: NSColor); message 'setTextColor:';
+    function textColor: NSColor; message 'textColor';
+    procedure setAlignment(newValue: NSTextAlignment); message 'setAlignment:';
+    function alignment: NSTextAlignment; message 'alignment';
+    procedure setBaseWritingDirection(newValue: NSWritingDirection); message 'setBaseWritingDirection:';
+    function baseWritingDirection: NSWritingDirection; message 'baseWritingDirection';
+    procedure setTextColor_range (color: NSColor; range: NSRange); message 'setTextColor:range:';
+    procedure setFont_range (font_: NSFont; range: NSRange); message 'setFont:range:';
+    procedure setMaxSize(newValue: NSSize); message 'setMaxSize:';
+    function maxSize: NSSize; message 'maxSize';
+    procedure setMinSize(newValue: NSSize); message 'setMinSize:';
+    function minSize: NSSize; message 'minSize';
+    procedure setHorizontallyResizable(newValue: ObjCBOOL); message 'setHorizontallyResizable:';
+    function isHorizontallyResizable: ObjCBOOL; message 'isHorizontallyResizable';
+    procedure setVerticallyResizable(newValue: ObjCBOOL); message 'setVerticallyResizable:';
+    function isVerticallyResizable: ObjCBOOL; message 'isVerticallyResizable';
+    procedure sizeToFit; message 'sizeToFit';
+    procedure copy_ (sender: id); message 'copy:';
+    procedure copyFont (sender: id); message 'copyFont:';
+    procedure copyRuler (sender: id); message 'copyRuler:';
+    procedure cut (sender: id); message 'cut:';
+    procedure delete (sender: id); message 'delete:';
+    procedure paste (sender: id); message 'paste:';
+    procedure pasteFont (sender: id); message 'pasteFont:';
+    procedure pasteRuler (sender: id); message 'pasteRuler:';
+    procedure selectAll (sender: id); message 'selectAll:';
+    procedure changeFont (sender: id); message 'changeFont:';
+    procedure alignLeft (sender: id); message 'alignLeft:';
+    procedure alignRight (sender: id); message 'alignRight:';
+    procedure alignCenter (sender: id); message 'alignCenter:';
+    procedure subscript (sender: id); message 'subscript:';
+    procedure superscript (sender: id); message 'superscript:';
+    procedure underline (sender: id); message 'underline:';
+    procedure unscript (sender: id); message 'unscript:';
+    procedure showGuessPanel (sender: id); message 'showGuessPanel:';
+    procedure checkSpelling (sender: id); message 'checkSpelling:';
+    procedure toggleRuler (sender: id); message 'toggleRuler:';
 
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSTEXT_PAS_R}
-{$define NSTEXT_PAS_R}
-
-{$endif}
+    { Adopted protocols }
+    procedure changeSpelling (sender: id); message 'changeSpelling:';
+    procedure ignoreSpelling (sender: id); message 'ignoreSpelling:';
+  end;
 {$endif}
 
-{$ifdef FUNCTIONS}
-{$ifndef NSTEXT_PAS_F}
-{$define NSTEXT_PAS_F}
+{$ifdef PROTOCOLS}
 
-{$endif}
+type
+  NSTextDelegateProtocol = objcprotocol external name 'NSTextDelegate' (NSObjectProtocol)
+  optional
+    function textShouldBeginEditing (textObject: NSText): ObjCBOOL; message 'textShouldBeginEditing:';
+    function textShouldEndEditing (textObject: NSText): ObjCBOOL; message 'textShouldEndEditing:';
+    procedure textDidBeginEditing (notification: NSNotification); message 'textDidBeginEditing:';
+    procedure textDidEndEditing (notification: NSNotification); message 'textDidEndEditing:';
+    procedure textDidChange (notification: NSNotification); message 'textDidChange:';
+  end;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSTEXT_PAS_S}
-{$define NSTEXT_PAS_S}
-
-{ External string constants }
 var
   NSTextDidBeginEditingNotification: NSString; cvar; external;
   NSTextDidEndEditingNotification: NSString; cvar; external;
   NSTextDidChangeNotification: NSString; cvar; external;
-
-{$endif}
 {$endif}
 
-{$ifdef FORWARD}
-  NSTextDelegateProtocol = objcprotocol;
-  NSText = objcclass;
-  NSTextPointer = ^NSText;
-  NSTextPtr = NSTextPointer;
-
-{$endif}
-
-{$ifdef CLASSES}
-{$ifndef NSTEXT_PAS_C}
-{$define NSTEXT_PAS_C}
-
-{ NSText }
-  NSText = objcclass external (NSView, NSChangeSpellingProtocol, NSIgnoreMisspelledWordsProtocol)
-  private
-    _ivars: id;
-    
-  public
-    function string_: NSString; message 'string';
-    procedure setString(string__: NSString); message 'setString:';
-    procedure replaceCharactersInRange_withString(range: NSRange; aString: NSString); message 'replaceCharactersInRange:withString:';
-    procedure replaceCharactersInRange_withRTF(range: NSRange; rtfData: NSData); message 'replaceCharactersInRange:withRTF:';
-    procedure replaceCharactersInRange_withRTFD(range: NSRange; rtfdData: NSData); message 'replaceCharactersInRange:withRTFD:';
-    function RTFFromRange(range: NSRange): NSData; message 'RTFFromRange:';
-    function RTFDFromRange(range: NSRange): NSData; message 'RTFDFromRange:';
-    function writeRTFDToFile_atomically(path: NSString; flag: ObjCBOOL): ObjCBOOL; message 'writeRTFDToFile:atomically:';
-    function readRTFDFromFile(path: NSString): ObjCBOOL; message 'readRTFDFromFile:';
-    function delegate: NSTextDelegateProtocol; message 'delegate';
-    procedure setDelegate(anObject: NSTextDelegateProtocol); message 'setDelegate:';
-    function isEditable: ObjCBOOL; message 'isEditable';
-    procedure setEditable(flag: ObjCBOOL); message 'setEditable:';
-    function isSelectable: ObjCBOOL; message 'isSelectable';
-    procedure setSelectable(flag: ObjCBOOL); message 'setSelectable:';
-    function isRichText: ObjCBOOL; message 'isRichText';
-    procedure setRichText(flag: ObjCBOOL); message 'setRichText:';
-    function importsGraphics: ObjCBOOL; message 'importsGraphics';
-    procedure setImportsGraphics(flag: ObjCBOOL); message 'setImportsGraphics:';
-    function isFieldEditor: ObjCBOOL; message 'isFieldEditor';
-    procedure setFieldEditor(flag: ObjCBOOL); message 'setFieldEditor:';
-    function usesFontPanel: ObjCBOOL; message 'usesFontPanel';
-    procedure setUsesFontPanel(flag: ObjCBOOL); message 'setUsesFontPanel:';
-    function drawsBackground: ObjCBOOL; message 'drawsBackground';
-    procedure setDrawsBackground(flag: ObjCBOOL); message 'setDrawsBackground:';
-    function backgroundColor: NSColor; message 'backgroundColor';
-    procedure setBackgroundColor(color: NSColor); message 'setBackgroundColor:';
-    function isRulerVisible: ObjCBOOL; message 'isRulerVisible';
-    function selectedRange: NSRange; message 'selectedRange';
-    procedure setSelectedRange(range: NSRange); message 'setSelectedRange:';
-    procedure scrollRangeToVisible(range: NSRange); message 'scrollRangeToVisible:';
-    procedure setFont(obj: NSFont); message 'setFont:';
-    function font: NSFont; message 'font';
-    procedure setTextColor(color: NSColor); message 'setTextColor:';
-    function textColor: NSColor; message 'textColor';
-    function alignment: NSTextAlignment; message 'alignment';
-    procedure setAlignment(mode: NSTextAlignment); message 'setAlignment:';
-    function baseWritingDirection: NSWritingDirection; message 'baseWritingDirection';
-    procedure setBaseWritingDirection(writingDirection: NSWritingDirection); message 'setBaseWritingDirection:';
-    procedure setTextColor_range(color: NSColor; range: NSRange); message 'setTextColor:range:';
-    procedure setFont_range(font_: NSFont; range: NSRange); message 'setFont:range:';
-    function maxSize: NSSize; message 'maxSize';
-    procedure setMaxSize(newMaxSize: NSSize); message 'setMaxSize:';
-    function minSize: NSSize; message 'minSize';
-    procedure setMinSize(newMinSize: NSSize); message 'setMinSize:';
-    function isHorizontallyResizable: ObjCBOOL; message 'isHorizontallyResizable';
-    procedure setHorizontallyResizable(flag: ObjCBOOL); message 'setHorizontallyResizable:';
-    function isVerticallyResizable: ObjCBOOL; message 'isVerticallyResizable';
-    procedure setVerticallyResizable(flag: ObjCBOOL); message 'setVerticallyResizable:';
-    procedure sizeToFit; message 'sizeToFit';
-    procedure copy_(sender: id); message 'copy:';
-    procedure copyFont(sender: id); message 'copyFont:';
-    procedure copyRuler(sender: id); message 'copyRuler:';
-    procedure cut(sender: id); message 'cut:';
-    procedure delete(sender: id); message 'delete:';
-    procedure paste(sender: id); message 'paste:';
-    procedure pasteFont(sender: id); message 'pasteFont:';
-    procedure pasteRuler(sender: id); message 'pasteRuler:';
-    procedure selectAll(sender: id); message 'selectAll:';
-    procedure changeFont(sender: id); message 'changeFont:';
-    procedure alignLeft(sender: id); message 'alignLeft:';
-    procedure alignRight(sender: id); message 'alignRight:';
-    procedure alignCenter(sender: id); message 'alignCenter:';
-    procedure subscript(sender: id); message 'subscript:';
-    procedure superscript(sender: id); message 'superscript:';
-    procedure underline(sender: id); message 'underline:';
-    procedure unscript(sender: id); message 'unscript:';
-    procedure showGuessPanel(sender: id); message 'showGuessPanel:';
-    procedure checkSpelling(sender: id); message 'checkSpelling:';
-    procedure toggleRuler(sender: id); message 'toggleRuler:';
-
-    { Adopted Protocols }
-    procedure changeSpelling(sender: id);
-    procedure ignoreSpelling(sender: id);
-  end;
-
-{$endif}
-{$endif}
-{$ifdef PROTOCOLS}
-{$ifndef NSTEXT_PAS_P}
-{$define NSTEXT_PAS_P}
-  
-{ NSTextDelegate Protocol }
-  NSTextDelegateProtocol = objcprotocol external name 'NSTextDelegate'
-  optional
-    function textShouldBeginEditing(textObject: NSText): ObjCBOOL; message 'textShouldBeginEditing:';
-    function textShouldEndEditing(textObject: NSText): ObjCBOOL; message 'textShouldEndEditing:';
-    procedure textDidBeginEditing(notification: NSNotification); message 'textDidBeginEditing:';
-    procedure textDidEndEditing(notification: NSNotification); message 'textDidEndEditing:';
-    procedure textDidChange(notification: NSNotification); message 'textDidChange:';
-  end;
-{$endif}
-{$endif}

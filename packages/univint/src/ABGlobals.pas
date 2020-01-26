@@ -2,12 +2,13 @@
  *  ABGlobalsC.h
  *  AddressBook Framework
  *
- *  Copyright (c) 2003-2007 Apple Inc.  All rights reserved.
+ *  Copyright (c) 2003-2010 Apple Inc.  All rights reserved.
  *
  }
 {	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {   Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, Feburary 2006 }
 {	  Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, November 2009 }
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2018 }
 
 {
     Modified for use with Free Pascal
@@ -17,6 +18,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -249,9 +251,12 @@ var kABURLsProperty: CFStringRef; external name '_kABURLsProperty'; (* attribute
 var kABHomePageLabel: CFStringRef; external name '_kABHomePageLabel'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *) // Homepage URL
 
+var kABCalendarURIsProperty: CFStringRef; external name '_kABCalendarURIsProperty'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *) // Calendar URIs - kABMultiStringProperty
+
 var kABEmailProperty: CFStringRef; external name '_kABEmailProperty'; (* attribute const *)                 // Email(s) - kABMultiStringProperty
-var kABEmailWorkLabel: CFStringRef; external name '_kABEmailWorkLabel'; (* attribute const *)        // Home email
-var kABEmailHomeLabel: CFStringRef; external name '_kABEmailHomeLabel'; (* attribute const *)        // Work email
+var kABEmailWorkLabel: CFStringRef; external name '_kABEmailWorkLabel'; (* attribute const *)        // Work email
+var kABEmailHomeLabel: CFStringRef; external name '_kABEmailHomeLabel'; (* attribute const *)        // Home email
 
 var kABAddressProperty: CFStringRef; external name '_kABAddressProperty'; (* attribute const *)                // Street Addresses - kABMultiDictionaryProperty
 var kABAddressStreetKey: CFStringRef; external name '_kABAddressStreetKey'; (* attribute const *)           // Street
@@ -360,10 +365,10 @@ var kABManagerLabel: CFStringRef; external name '_kABManagerLabel'; (* attribute
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 var kABDepartmentProperty: CFStringRef; external name '_kABDepartmentProperty'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)     // Department name - (Person)
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)         // Department name - kABStringProperty - (Person)
 
 var kABPersonFlags: CFStringRef; external name '_kABPersonFlags'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)     // Various flags - kABIntegerProperty
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)     // Various flags - kABIntegerProperty - (Person)
 
 const	
 	kABShowAsMask = 7;
@@ -384,27 +389,75 @@ var kABPhoneHomeFAXLabel: CFStringRef; external name '_kABPhoneHomeFAXLabel'; (*
 var kABPhoneWorkFAXLabel: CFStringRef; external name '_kABPhoneWorkFAXLabel'; (* attribute const *)      // FAX number
 var kABPhonePagerLabel: CFStringRef; external name '_kABPhonePagerLabel'; (* attribute const *)        // Pager number
 
-var kABAIMInstantProperty: CFStringRef; external name '_kABAIMInstantProperty'; (* attribute const *)             // AIM Instant Messaging - kABMultiStringProperty
+
+// Deprecated in Mac OS 10.7. You should use kABInstantMessageProperty.
+var kABAIMInstantProperty: CFStringRef; external name '_kABAIMInstantProperty'; (* attribute const *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)	// AIM Instant Messaging - kABMultiStringProperty
 var kABAIMWorkLabel: CFStringRef; external name '_kABAIMWorkLabel'; (* attribute const *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 var kABAIMHomeLabel: CFStringRef; external name '_kABAIMHomeLabel'; (* attribute const *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
-var kABJabberInstantProperty: CFStringRef; external name '_kABJabberInstantProperty'; (* attribute const *)          // Jabber Instant Messaging - kABMultiStringProperty
+// Deprecated in Mac OS 10.7. You should use kABInstantMessageProperty.
+var kABJabberInstantProperty: CFStringRef; external name '_kABJabberInstantProperty'; (* attribute const *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)	// Jabber Instant Messaging - kABMultiStringProperty
 var kABJabberWorkLabel: CFStringRef; external name '_kABJabberWorkLabel'; (* attribute const *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 var kABJabberHomeLabel: CFStringRef; external name '_kABJabberHomeLabel'; (* attribute const *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
-var kABMSNInstantProperty: CFStringRef; external name '_kABMSNInstantProperty'; (* attribute const *)             // MSN Instant Messaging  - kABMultiStringProperty
+// Deprecated in Mac OS 10.7. You should use kABInstantMessageProperty.
+var kABMSNInstantProperty: CFStringRef; external name '_kABMSNInstantProperty'; (* attribute const *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)	// MSN Instant Messaging - kABMultiStringProperty
 var kABMSNWorkLabel: CFStringRef; external name '_kABMSNWorkLabel'; (* attribute const *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 var kABMSNHomeLabel: CFStringRef; external name '_kABMSNHomeLabel'; (* attribute const *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
-var kABYahooInstantProperty: CFStringRef; external name '_kABYahooInstantProperty'; (* attribute const *)           // Yahoo Instant Messaging  - kABMultiStringProperty
+// Deprecated in Mac OS 10.7. You should use kABInstantMessageProperty.
+var kABYahooInstantProperty: CFStringRef; external name '_kABYahooInstantProperty'; (* attribute const *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)	// Yahoo Instant Messaging - kABMultiStringProperty
 var kABYahooWorkLabel: CFStringRef; external name '_kABYahooWorkLabel'; (* attribute const *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 var kABYahooHomeLabel: CFStringRef; external name '_kABYahooHomeLabel'; (* attribute const *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
-var kABICQInstantProperty: CFStringRef; external name '_kABICQInstantProperty'; (* attribute const *)             // ICQ Instant Messaging  - kABMultiStringProperty
+// Deprecated in Mac OS 10.7. You should use kABInstantMessageProperty.
+var kABICQInstantProperty: CFStringRef; external name '_kABICQInstantProperty'; (* attribute const *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)	// ICQ Instant Messaging - kABMultiStringProperty
 var kABICQWorkLabel: CFStringRef; external name '_kABICQWorkLabel'; (* attribute const *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 var kABICQHomeLabel: CFStringRef; external name '_kABICQHomeLabel'; (* attribute const *)
+(* DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER *)
 
-var kABNoteProperty: CFStringRef; external name '_kABNoteProperty'; (* attribute const *)                   // Note - kABStringProperty
+var kABInstantMessageProperty: CFStringRef; external name '_kABInstantMessageProperty'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)	// Instant Messaging - kABMultiDictionaryProperty
+var kABInstantMessageUsernameKey: CFStringRef; external name '_kABInstantMessageUsernameKey'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)		// dictionary key for the instant messaging handle/username
+var kABInstantMessageServiceKey: CFStringRef; external name '_kABInstantMessageServiceKey'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)		// dictionary key for the service type; possible values follow
+var kABInstantMessageServiceAIM: CFStringRef; external name '_kABInstantMessageServiceAIM'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)		// AIM
+var kABInstantMessageServiceFacebook: CFStringRef; external name '_kABInstantMessageServiceFacebook'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)		// Facebook
+var kABInstantMessageServiceGaduGadu: CFStringRef; external name '_kABInstantMessageServiceGaduGadu'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)		// Gadu-Gadu
+var kABInstantMessageServiceGoogleTalk: CFStringRef; external name '_kABInstantMessageServiceGoogleTalk'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)		// Google Talk
+var kABInstantMessageServiceICQ: CFStringRef; external name '_kABInstantMessageServiceICQ'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)		// ICQ
+var kABInstantMessageServiceJabber: CFStringRef; external name '_kABInstantMessageServiceJabber'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)		// Jabber
+var kABInstantMessageServiceMSN: CFStringRef; external name '_kABInstantMessageServiceMSN'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)		// MSN
+var kABInstantMessageServiceQQ: CFStringRef; external name '_kABInstantMessageServiceQQ'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)		// QQ
+var kABInstantMessageServiceSkype: CFStringRef; external name '_kABInstantMessageServiceSkype'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)		// Skype
+var kABInstantMessageServiceYahoo: CFStringRef; external name '_kABInstantMessageServiceYahoo'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)		// Yahoo!
+
+var kABNoteProperty: CFStringRef; external name '_kABNoteProperty'; (* attribute const *)                    // Note (string)
 
 var kABMiddleNameProperty: CFStringRef; external name '_kABMiddleNameProperty'; (* attribute const *)             // kABStringProperty
 var kABMiddleNamePhoneticProperty: CFStringRef; external name '_kABMiddleNamePhoneticProperty'; (* attribute const *)     // kABStringProperty
@@ -428,15 +481,20 @@ var kABHomeLabel: CFStringRef; external name '_kABHomeLabel'; (* attribute const
     // Can be used with any multi-value property
 var kABOtherLabel: CFStringRef; external name '_kABOtherLabel'; (* attribute const *)
 
+    // MobileMe - for AIM or email values
+var kABMobileMeLabel: CFStringRef; external name '_kABMobileMeLabel'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_7_AND_LATER *)
+
+
 // ================================================================
 //      RecordTypes
 // ================================================================
 
     // Type of a ABPersonRef
-var kABPersonRecordType : CFStringRef; external name '_kABPersonRecordType'; (* attribute const *)
+var kABPersonRecordType: CFStringRef; external name '_kABPersonRecordType'; (* attribute const *)
 
     // Type of a ABGroupRef
-var kABGroupRecordType : CFStringRef; external name '_kABGroupRecordType'; (* attribute const *)
+var kABGroupRecordType: CFStringRef; external name '_kABGroupRecordType'; (* attribute const *)
 
 // ================================================================
 //      Notifications published when something changes
@@ -450,11 +508,9 @@ var kABDatabaseChangedNotification: CFStringRef; external name '_kABDatabaseChan
     // Another process has changed the DB
 var kABDatabaseChangedExternallyNotification: CFStringRef; external name '_kABDatabaseChangedExternallyNotification'; (* attribute const *)
 
-    // The user info (dictionary) in the above notification will contain
-    // the following 3 keys. Value for each keys is an array of
-    // uniqueId of the Inserted/Updated/Deleted Records.
-    // If all three values are nil assume that everything has changed (could be the case
-    // when restoring from backup)
+    // The user info in the above notifications will contain
+    // the following 3 keys, the values of the keys in the dictionary
+    // will be the uniqueIds of the Inserted/Updated/Deleted Records
 var kABInsertedRecords: CFStringRef; external name '_kABInsertedRecords'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 var kABUpdatedRecords: CFStringRef; external name '_kABUpdatedRecords'; (* attribute const *)

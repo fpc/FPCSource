@@ -1,46 +1,34 @@
-{ Parsed from Appkit.framework NSInputManager.h }
+{ Parsed from AppKit.framework NSInputManager.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSINPUTMANAGER_PAS_T}
-{$define NSINPUTMANAGER_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSINPUTMANAGER_PAS_R}
-{$define NSINPUTMANAGER_PAS_R}
-
-{$endif}
+type
+  NSInputManagerPtr = ^NSInputManager;
+  NSTextInputProtocolPtr = ^NSTextInputProtocol;
 {$endif}
 
-{$ifdef FUNCTIONS}
-{$ifndef NSINPUTMANAGER_PAS_F}
-{$define NSINPUTMANAGER_PAS_F}
+{$ifdef PROTOCOLS}
 
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSINPUTMANAGER_PAS_S}
-{$define NSINPUTMANAGER_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSTextInputProtocol = objcprotocol;
-  NSInputManager = objcclass;
-  NSInputManagerPointer = ^NSInputManager;
-  NSInputManagerPtr = NSInputManagerPointer;
-
+type
+  NSTextInputProtocol = objcprotocol external name 'NSTextInput'
+    procedure insertText (aString: id); message 'insertText:'; deprecated 'in 10_0, 10_6';
+    procedure doCommandBySelector (aSelector: SEL); message 'doCommandBySelector:'; deprecated 'in 10_0, 10_6';
+    procedure setMarkedText_selectedRange (aString: id; selRange: NSRange); message 'setMarkedText:selectedRange:'; deprecated 'in 10_0, 10_6';
+    procedure unmarkText; message 'unmarkText'; deprecated 'in 10_0, 10_6';
+    function hasMarkedText: ObjCBOOL; message 'hasMarkedText'; deprecated 'in 10_0, 10_6';
+    function conversationIdentifier: NSInteger; message 'conversationIdentifier'; deprecated 'in 10_0, 10_6';
+    function attributedSubstringFromRange (theRange: NSRange): NSAttributedString; message 'attributedSubstringFromRange:'; deprecated 'in 10_0, 10_6';
+    function markedRange: NSRange; message 'markedRange'; deprecated 'in 10_0, 10_6';
+    function selectedRange: NSRange; message 'selectedRange'; deprecated 'in 10_0, 10_6';
+    function firstRectForCharacterRange (theRange: NSRange): NSRect; message 'firstRectForCharacterRange:'; deprecated 'in 10_0, 10_6';
+    function characterIndexForPoint (thePoint: NSPoint): NSUInteger; message 'characterIndexForPoint:'; deprecated 'in 10_0, 10_6';
+    function validAttributesForMarkedText: NSArray; message 'validAttributesForMarkedText'; deprecated 'in 10_0, 10_6';
+  end;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSINPUTMANAGER_PAS_C}
-{$define NSINPUTMANAGER_PAS_C}
 
-{ NSInputManager }
+type
   NSInputManager = objcclass external (NSObject, NSTextInputProtocol)
   private
     _currentClient: id;
@@ -58,58 +46,35 @@
     _flags: cuint;
     _keyBindingsName: NSString;
     _reservedInputManager2: cint;
-    
   public
-    class function currentInputManager: NSInputManager; message 'currentInputManager';
-    class procedure cycleToNextInputLanguage(sender: id); message 'cycleToNextInputLanguage:';
-    class procedure cycleToNextInputServerInLanguage(sender: id); message 'cycleToNextInputServerInLanguage:';
-    function initWithName_host(inputServerName: NSString; hostName: NSString): NSInputManager; message 'initWithName:host:'; deprecated 'in Mac OS X 10.6 and later';
-    function localizedInputManagerName: NSString; message 'localizedInputManagerName'; deprecated 'in Mac OS X 10.6 and later';
-    procedure markedTextAbandoned(cli: id); message 'markedTextAbandoned:';
-    procedure markedTextSelectionChanged_client(newSel: NSRange; cli: id); message 'markedTextSelectionChanged:client:';
-    function wantsToInterpretAllKeystrokes: ObjCBOOL; message 'wantsToInterpretAllKeystrokes'; deprecated 'in Mac OS X 10.6 and later';
-    function language: NSString; message 'language'; deprecated 'in Mac OS X 10.6 and later';
-    function image: NSImage; message 'image'; deprecated 'in Mac OS X 10.6 and later';
-    function server: NSInputServer; message 'server'; deprecated 'in Mac OS X 10.6 and later';
-    function wantsToHandleMouseEvents: ObjCBOOL; message 'wantsToHandleMouseEvents';
-    function handleMouseEvent(theMouseEvent: NSEvent): ObjCBOOL; message 'handleMouseEvent:';
-    function wantsToDelayTextChangeNotifications: ObjCBOOL; message 'wantsToDelayTextChangeNotifications'; deprecated 'in Mac OS X 10.6 and later';
+    class function currentInputManager: NSInputManager; message 'currentInputManager'; deprecated 'in 10_0, 10_6';
+    class procedure cycleToNextInputLanguage (sender: id); message 'cycleToNextInputLanguage:'; deprecated 'in 10_0, 10_6';
+    class procedure cycleToNextInputServerInLanguage (sender: id); message 'cycleToNextInputServerInLanguage:'; deprecated 'in 10_0, 10_6';
+    function initWithName_host (inputServerName: NSString; hostName: NSString): NSInputManager; message 'initWithName:host:'; deprecated 'in 10_0, 10_6';
+    function localizedInputManagerName: NSString; message 'localizedInputManagerName'; deprecated 'in 10_0, 10_6';
+    procedure markedTextAbandoned (cli: id); message 'markedTextAbandoned:'; deprecated 'in 10_0, 10_6';
+    procedure markedTextSelectionChanged_client (newSel: NSRange; cli: id); message 'markedTextSelectionChanged:client:'; deprecated 'in 10_0, 10_6';
+    function wantsToInterpretAllKeystrokes: ObjCBOOL; message 'wantsToInterpretAllKeystrokes'; deprecated 'in 10_0, 10_6';
+    function language: NSString; message 'language'; deprecated 'in 10_0, 10_6';
+    function image: NSImage; message 'image'; deprecated 'in 10_0, 10_6';
+    function server: NSInputServer; message 'server'; deprecated 'in 10_0, 10_6';
+    function wantsToHandleMouseEvents: ObjCBOOL; message 'wantsToHandleMouseEvents'; deprecated 'in 10_0, 10_6';
+    function handleMouseEvent (theMouseEvent: NSEvent): ObjCBOOL; message 'handleMouseEvent:'; deprecated 'in 10_0, 10_6';
+    function wantsToDelayTextChangeNotifications: ObjCBOOL; message 'wantsToDelayTextChangeNotifications'; deprecated 'in 10_0, 10_6';
 
-    { Adopted Protocols }
-    procedure insertText(aString: id);
-    procedure doCommandBySelector(aSelector: SEL);
-    procedure setMarkedText_selectedRange(aString: id; selRange: NSRange);
-    procedure unmarkText;
-    function hasMarkedText: ObjCBOOL;
-    function conversationIdentifier: NSInteger;
-    function attributedSubstringFromRange(theRange: NSRange): NSAttributedString;
-    function markedRange: NSRange;
-    function selectedRange: NSRange;
-    function firstRectForCharacterRange(theRange: NSRange): NSRect;
-    function characterIndexForPoint(thePoint: NSPoint): NSUInteger;
-    function validAttributesForMarkedText: NSArray;
-  end;
-
-{$endif}
-{$endif}
-{$ifdef PROTOCOLS}
-{$ifndef NSINPUTMANAGER_PAS_P}
-{$define NSINPUTMANAGER_PAS_P}
-  
-{ NSTextInput Protocol }
-  NSTextInputProtocol = objcprotocol external name 'NSTextInput'
-    procedure insertText(aString: id); message 'insertText:';
-    procedure doCommandBySelector(aSelector: SEL); message 'doCommandBySelector:';
-    procedure setMarkedText_selectedRange(aString: id; selRange: NSRange); message 'setMarkedText:selectedRange:';
-    procedure unmarkText; message 'unmarkText';
-    function hasMarkedText: ObjCBOOL; message 'hasMarkedText';
-    function conversationIdentifier: NSInteger; message 'conversationIdentifier';
-    function attributedSubstringFromRange(theRange: NSRange): NSAttributedString; message 'attributedSubstringFromRange:';
-    function markedRange: NSRange; message 'markedRange';
-    function selectedRange: NSRange; message 'selectedRange';
-    function firstRectForCharacterRange(theRange: NSRange): NSRect; message 'firstRectForCharacterRange:';
-    function characterIndexForPoint(thePoint: NSPoint): NSUInteger; message 'characterIndexForPoint:';
-    function validAttributesForMarkedText: NSArray; message 'validAttributesForMarkedText';
+    { Adopted protocols }
+    function attributedSubstringFromRange (theRange: NSRange): NSAttributedString; message 'attributedSubstringFromRange:'; deprecated 'in 10_0, 10_6';
+    function characterIndexForPoint (thePoint: NSPoint): NSUInteger; message 'characterIndexForPoint:'; deprecated 'in 10_0, 10_6';
+    function conversationIdentifier: NSInteger; message 'conversationIdentifier'; deprecated 'in 10_0, 10_6';
+    procedure doCommandBySelector (aSelector: SEL); message 'doCommandBySelector:'; deprecated 'in 10_0, 10_6';
+    function firstRectForCharacterRange (theRange: NSRange): NSRect; message 'firstRectForCharacterRange:'; deprecated 'in 10_0, 10_6';
+    function hasMarkedText: ObjCBOOL; message 'hasMarkedText'; deprecated 'in 10_0, 10_6';
+    procedure insertText (aString: id); message 'insertText:'; deprecated 'in 10_0, 10_6';
+    function markedRange: NSRange; message 'markedRange'; deprecated 'in 10_0, 10_6';
+    function selectedRange: NSRange; message 'selectedRange'; deprecated 'in 10_0, 10_6';
+    procedure setMarkedText_selectedRange (aString: id; selRange: NSRange); message 'setMarkedText:selectedRange:'; deprecated 'in 10_0, 10_6';
+    procedure unmarkText; message 'unmarkText'; deprecated 'in 10_0, 10_6';
+    function validAttributesForMarkedText: NSArray; message 'validAttributesForMarkedText'; deprecated 'in 10_0, 10_6';
   end;
 {$endif}
-{$endif}
+

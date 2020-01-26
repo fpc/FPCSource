@@ -1,79 +1,46 @@
-{ Parsed from Appkit.framework NSStepperCell.h }
+{ Parsed from AppKit.framework NSStepperCell.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSSTEPPERCELL_PAS_T}
-{$define NSSTEPPERCELL_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSSTEPPERCELL_PAS_R}
-{$define NSSTEPPERCELL_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSSTEPPERCELL_PAS_F}
-{$define NSSTEPPERCELL_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSSTEPPERCELL_PAS_S}
-{$define NSSTEPPERCELL_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSStepperCell = objcclass;
-  NSStepperCellPointer = ^NSStepperCell;
-  NSStepperCellPtr = NSStepperCellPointer;
-
+type
+  NSStepperCellPtr = ^NSStepperCell;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSSTEPPERCELL_PAS_C}
-{$define NSSTEPPERCELL_PAS_C}
 
-{ NSStepperCell }
+type
   NSStepperCell = objcclass external (NSActionCell)
   private
     _value: double;
     _minValue: double;
     _maxValue: double;
     _increment: double;
-    __stFlags: record
+    _stFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSStepperCell0: cuint);
-       1: (data: bitpacked record
-        _valueWraps: 0..1;
-        _autorepeat: 0..1;
-        drawing: 0..1;
-        reserved: 0..((1 shl 29)-1);
-       end;
-      );
+        0: (_anonBitField__stFlags0: cuint);
+        1: (
+          valueWraps: 0..1;
+          autorepeat: 0..1;
+          drawing: 0..1;
+          stats1: 0..1;
+          reserved: 0..((1 shl 28)-1);
+        );
       end;
     _reserved1: cuint;
     _reserved2: cuint;
     _reserved3: cuint;
     _reserved4: cuint;
-    
   public
+    procedure setMinValue(newValue: double); message 'setMinValue:';
     function minValue: double; message 'minValue';
-    procedure setMinValue(minValue_: double); message 'setMinValue:';
+    procedure setMaxValue(newValue: double); message 'setMaxValue:';
     function maxValue: double; message 'maxValue';
-    procedure setMaxValue(maxValue_: double); message 'setMaxValue:';
+    procedure setIncrement(newValue: double); message 'setIncrement:';
     function increment: double; message 'increment';
-    procedure setIncrement(increment_: double); message 'setIncrement:';
+    procedure setValueWraps(newValue: ObjCBOOL); message 'setValueWraps:';
     function valueWraps: ObjCBOOL; message 'valueWraps';
-    procedure setValueWraps(valueWraps_: ObjCBOOL); message 'setValueWraps:';
+    procedure setAutorepeat(newValue: ObjCBOOL); message 'setAutorepeat:';
     function autorepeat: ObjCBOOL; message 'autorepeat';
-    procedure setAutorepeat(autorepeat_: ObjCBOOL); message 'setAutorepeat:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

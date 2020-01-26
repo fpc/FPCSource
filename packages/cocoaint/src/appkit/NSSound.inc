@@ -1,109 +1,90 @@
-{ Parsed from Appkit.framework NSSound.h }
+{ Parsed from AppKit.framework NSSound.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSSOUND_PAS_T}
-{$define NSSOUND_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSSOUND_PAS_R}
-{$define NSSOUND_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSSOUND_PAS_F}
-{$define NSSOUND_PAS_F}
-
-{$endif}
+type
+  NSSoundPtr = ^NSSound;
+  NSSoundDelegateProtocolPtr = ^NSSoundDelegateProtocol;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSSOUND_PAS_S}
-{$define NSSOUND_PAS_S}
-
-{ External string constants }
 var
   NSSoundPboardType: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSSoundDelegateProtocol = objcprotocol;
-  NSSound = objcclass;
-  NSSoundPointer = ^NSSound;
-  NSSoundPtr = NSSoundPointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSSOUND_PAS_C}
-{$define NSSOUND_PAS_C}
 
-{ NSSound }
-  NSSound = objcclass external (NSObject)
+type
+  NSSound = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol, NSPasteboardReadingProtocol, NSPasteboardWritingProtocol)
   private
     _delegate: id;
     _info: id;
-    _reserved: array[0..(6)-1] of id;
-    _sFlags: NSUInteger;
-    
+    _reserved:array[0..5] of id;
+    _sFlags: cuint32;
   public
-    class function soundNamed(name_: NSString): id; message 'soundNamed:';
-    function initWithContentsOfURL_byReference(url: NSURL; byRef: ObjCBOOL): id; message 'initWithContentsOfURL:byReference:';
-    function initWithContentsOfFile_byReference(path: NSString; byRef: ObjCBOOL): id; message 'initWithContentsOfFile:byReference:';
-    function initWithData(data: NSData): id; message 'initWithData:';
-    function setName(string_: NSString): ObjCBOOL; message 'setName:';
+    class function soundNamed (name: NSString): NSSound; message 'soundNamed:';
+    function initWithContentsOfURL_byReference (url: NSURL; byRef: ObjCBOOL): instancetype; message 'initWithContentsOfURL:byReference:';
+    function initWithContentsOfFile_byReference (path: NSString; byRef: ObjCBOOL): instancetype; message 'initWithContentsOfFile:byReference:';
+    function initWithData (data: NSData): instancetype; message 'initWithData:';
+    function setName (string_: NSString): ObjCBOOL; message 'setName:';
     function name: NSString; message 'name';
-    class function canInitWithPasteboard(pasteboard: NSPasteboard): ObjCBOOL; message 'canInitWithPasteboard:';
-    class function soundUnfilteredTypes: NSArray; message 'soundUnfilteredTypes';
-    function initWithPasteboard(pasteboard: NSPasteboard): id; message 'initWithPasteboard:';
-    procedure writeToPasteboard(pasteboard: NSPasteboard); message 'writeToPasteboard:';
+    class function canInitWithPasteboard (pasteboard: NSPasteboard): ObjCBOOL; message 'canInitWithPasteboard:';
+    class function soundUnfilteredTypes: NSArray; message 'soundUnfilteredTypes'; { available in 10_5 }
+    function initWithPasteboard (pasteboard: NSPasteboard): instancetype; message 'initWithPasteboard:';
+    procedure writeToPasteboard (pasteboard: NSPasteboard); message 'writeToPasteboard:';
     function play: ObjCBOOL; message 'play';
     function pause: ObjCBOOL; message 'pause';
     function resume: ObjCBOOL; message 'resume';
     function stop: ObjCBOOL; message 'stop';
     function isPlaying: ObjCBOOL; message 'isPlaying';
+    procedure setDelegate(newValue: NSSoundDelegateProtocol); message 'setDelegate:';
     function delegate: NSSoundDelegateProtocol; message 'delegate';
-    procedure setDelegate(aDelegate: NSSoundDelegateProtocol); message 'setDelegate:';
     function duration: NSTimeInterval; message 'duration';
-    procedure setVolume(volume_: single); message 'setVolume:';
+    procedure setVolume(newValue: single); message 'setVolume:';
     function volume: single; message 'volume';
+    procedure setCurrentTime(newValue: NSTimeInterval); message 'setCurrentTime:';
     function currentTime: NSTimeInterval; message 'currentTime';
-    procedure setCurrentTime(seconds: NSTimeInterval); message 'setCurrentTime:';
-    procedure setLoops(val: ObjCBOOL); message 'setLoops:';
+    procedure setLoops(newValue: ObjCBOOL); message 'setLoops:';
     function loops: ObjCBOOL; message 'loops';
-    procedure setPlaybackDeviceIdentifier(deviceUID: NSString); message 'setPlaybackDeviceIdentifier:';
+    procedure setPlaybackDeviceIdentifier(newValue: NSString); message 'setPlaybackDeviceIdentifier:';
     function playbackDeviceIdentifier: NSString; message 'playbackDeviceIdentifier';
-    procedure setChannelMapping(channelMapping_: NSArray); message 'setChannelMapping:';
-    function channelMapping: NSArray; message 'channelMapping';
+    procedure setChannelMapping (channelMapping: NSArray); message 'setChannelMapping:'; deprecated 'in 10_5, 10_9';
+    function channelMapping: NSArray; message 'channelMapping'; deprecated 'in 10_5, 10_9';
+
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
+    function initWithPasteboardPropertyList_ofType (propertyList: id; type_: NSString): id; message 'initWithPasteboardPropertyList:ofType:';
+    function pasteboardPropertyListForType (type_: NSString): id; message 'pasteboardPropertyListForType:';
+    class function readableTypesForPasteboard (pasteboard: NSPasteboard): NSArray; message 'readableTypesForPasteboard:';
+    class function readingOptionsForType_pasteboard (type_: NSString; pasteboard: NSPasteboard): NSPasteboardReadingOptions; message 'readingOptionsForType:pasteboard:';
+    function writableTypesForPasteboard (pasteboard: NSPasteboard): NSArray; message 'writableTypesForPasteboard:';
+    function writingOptionsForType_pasteboard (type_: NSString; pasteboard: NSPasteboard): NSPasteboardWritingOptions; message 'writingOptionsForType:pasteboard:';
   end;
 
-{ NSDeprecated_NSSoundCategory }
-  NSDeprecated_NSSoundCategory = objccategory external name 'NSDeprecated' (NSSound)
-    class function soundUnfilteredFileTypes: NSArray; message 'soundUnfilteredFileTypes'; deprecated 'in Mac OS X 10.5 and later';
-    class function soundUnfilteredPasteboardTypes: NSArray; message 'soundUnfilteredPasteboardTypes'; deprecated 'in Mac OS X 10.5 and later';
-  end;
 
-{ NSBundleSoundExtensionsCategory }
-  NSBundleSoundExtensionsCategory = objccategory external (NSBundle)
-    function pathForSoundResource(name: NSString): NSString; message 'pathForSoundResource:';
+type
+  NSSound_NSDeprecated = objccategory external name 'NSDeprecated' (NSSound)
+    class function soundUnfilteredFileTypes: NSArray; message 'soundUnfilteredFileTypes'; deprecated 'in 10_0, 10_5';
+    class function soundUnfilteredPasteboardTypes: NSArray; message 'soundUnfilteredPasteboardTypes'; deprecated 'in 10_0, 10_5';
   end;
-
 {$endif}
-{$endif}
+
 {$ifdef PROTOCOLS}
-{$ifndef NSSOUND_PAS_P}
-{$define NSSOUND_PAS_P}
-  
-{ NSSoundDelegate Protocol }
-  NSSoundDelegateProtocol = objcprotocol external name 'NSSoundDelegate'
+
+type
+  NSSoundDelegateProtocol = objcprotocol external name 'NSSoundDelegate' (NSObjectProtocol)
   optional
-    procedure sound_didFinishPlaying(sound: NSSound; aBool: ObjCBOOL); message 'sound:didFinishPlaying:';
+    procedure sound_didFinishPlaying (sound: NSSound; aBool: ObjCBOOL); message 'sound:didFinishPlaying:';
   end;
 {$endif}
+
+{$ifdef CLASSES}
+
+type
+  NSBundleSoundExtensions = objccategory external (NSBundle)
+    function pathForSoundResource (name: NSString): NSString; message 'pathForSoundResource:';
+  end;
 {$endif}
+

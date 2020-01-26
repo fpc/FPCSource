@@ -1,11 +1,22 @@
 { Parsed from Foundation.framework NSScriptObjectSpecifiers.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSSCRIPTOBJECTSPECIFIERS_PAS_T}
-{$define NSSCRIPTOBJECTSPECIFIERS_PAS_T}
+type
+  NSScriptObjectSpecifierPtr = ^NSScriptObjectSpecifier;
+  NSIndexSpecifierPtr = ^NSIndexSpecifier;
+  NSMiddleSpecifierPtr = ^NSMiddleSpecifier;
+  NSNameSpecifierPtr = ^NSNameSpecifier;
+  NSPositionalSpecifierPtr = ^NSPositionalSpecifier;
+  NSPropertySpecifierPtr = ^NSPropertySpecifier;
+  NSRandomSpecifierPtr = ^NSRandomSpecifier;
+  NSRangeSpecifierPtr = ^NSRangeSpecifier;
+  NSRelativeSpecifierPtr = ^NSRelativeSpecifier;
+  NSUniqueIDSpecifierPtr = ^NSUniqueIDSpecifier;
+  NSWhoseSpecifierPtr = ^NSWhoseSpecifier;
+{$endif}
 
-{ Constants }
-
+{$ifdef TYPES}
 const
   NSNoSpecifierError = 0;
   NSNoTopLevelContainersSpecifierError = 1;
@@ -15,6 +26,10 @@ const
   NSInternalSpecifierError = 5;
   NSOperationNotSupportedForKeySpecifierError = 6;
 
+type
+  NSInsertionPosition = NSUInteger;
+  NSInsertionPositionPtr = ^NSInsertionPosition;
+
 const
   NSPositionAfter = 0;
   NSPositionBefore = 1;
@@ -22,9 +37,17 @@ const
   NSPositionEnd = 3;
   NSPositionReplace = 4;
 
+type
+  NSRelativePosition = NSUInteger;
+  NSRelativePositionPtr = ^NSRelativePosition;
+
 const
   NSRelativeAfter = 0;
   NSRelativeBefore = 1;
+
+type
+  NSWhoseSubelementIdentifier = NSUInteger;
+  NSWhoseSubelementIdentifierPtr = ^NSWhoseSubelementIdentifier;
 
 const
   NSIndexSubelement = 0;
@@ -32,82 +55,11 @@ const
   NSMiddleSubelement = 2;
   NSRandomSubelement = 3;
   NSNoSubelement = 4;
-
-{ Types }
-type
-  NSInsertionPosition = NSUInteger;
-  NSInsertionPositionPtr = ^NSInsertionPosition;
-  NSRelativePosition = NSUInteger;
-  NSRelativePositionPtr = ^NSRelativePosition;
-  NSWhoseSubelementIdentifier = NSUInteger;
-  NSWhoseSubelementIdentifierPtr = ^NSWhoseSubelementIdentifier;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSSCRIPTOBJECTSPECIFIERS_PAS_R}
-{$define NSSCRIPTOBJECTSPECIFIERS_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSSCRIPTOBJECTSPECIFIERS_PAS_F}
-{$define NSSCRIPTOBJECTSPECIFIERS_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSSCRIPTOBJECTSPECIFIERS_PAS_S}
-{$define NSSCRIPTOBJECTSPECIFIERS_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSScriptObjectSpecifier = objcclass;
-  NSScriptObjectSpecifierPointer = ^NSScriptObjectSpecifier;
-  NSScriptObjectSpecifierPtr = NSScriptObjectSpecifierPointer;
-  NSIndexSpecifier = objcclass;
-  NSIndexSpecifierPointer = ^NSIndexSpecifier;
-  NSIndexSpecifierPtr = NSIndexSpecifierPointer;
-  NSMiddleSpecifier = objcclass;
-  NSMiddleSpecifierPointer = ^NSMiddleSpecifier;
-  NSMiddleSpecifierPtr = NSMiddleSpecifierPointer;
-  NSNameSpecifier = objcclass;
-  NSNameSpecifierPointer = ^NSNameSpecifier;
-  NSNameSpecifierPtr = NSNameSpecifierPointer;
-  NSPositionalSpecifier = objcclass;
-  NSPositionalSpecifierPointer = ^NSPositionalSpecifier;
-  NSPositionalSpecifierPtr = NSPositionalSpecifierPointer;
-  NSPropertySpecifier = objcclass;
-  NSPropertySpecifierPointer = ^NSPropertySpecifier;
-  NSPropertySpecifierPtr = NSPropertySpecifierPointer;
-  NSRandomSpecifier = objcclass;
-  NSRandomSpecifierPointer = ^NSRandomSpecifier;
-  NSRandomSpecifierPtr = NSRandomSpecifierPointer;
-  NSRangeSpecifier = objcclass;
-  NSRangeSpecifierPointer = ^NSRangeSpecifier;
-  NSRangeSpecifierPtr = NSRangeSpecifierPointer;
-  NSRelativeSpecifier = objcclass;
-  NSRelativeSpecifierPointer = ^NSRelativeSpecifier;
-  NSRelativeSpecifierPtr = NSRelativeSpecifierPointer;
-  NSUniqueIDSpecifier = objcclass;
-  NSUniqueIDSpecifierPointer = ^NSUniqueIDSpecifier;
-  NSUniqueIDSpecifierPtr = NSUniqueIDSpecifierPointer;
-  NSWhoseSpecifier = objcclass;
-  NSWhoseSpecifierPointer = ^NSWhoseSpecifier;
-  NSWhoseSpecifierPtr = NSWhoseSpecifierPointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSSCRIPTOBJECTSPECIFIERS_PAS_C}
-{$define NSSCRIPTOBJECTSPECIFIERS_PAS_C}
 
-{ NSScriptObjectSpecifier }
+type
   NSScriptObjectSpecifier = objcclass external (NSObject, NSCodingProtocol)
   private
     _container: NSScriptObjectSpecifier;
@@ -116,82 +68,86 @@ type
     _containerClassDescription: NSScriptClassDescription;
     _containerIsObjectBeingTested: ObjCBOOL;
     _containerIsRangeContainerObject: ObjCBOOL;
-    _padding: array[0..(2)-1] of char;
+    _padding:array[0..1] of char;
     _descriptor: NSAppleEventDescriptor;
     _error: NSInteger;
-    
   public
-    class function objectSpecifierWithDescriptor(descriptor_: NSAppleEventDescriptor): NSScriptObjectSpecifier; message 'objectSpecifierWithDescriptor:';
-    function initWithContainerSpecifier_key(container: NSScriptObjectSpecifier; property_: NSString): id; message 'initWithContainerSpecifier:key:';
-    function initWithContainerClassDescription_containerSpecifier_key(classDesc: NSScriptClassDescription; container: NSScriptObjectSpecifier; property_: NSString): id; message 'initWithContainerClassDescription:containerSpecifier:key:';
+    class function objectSpecifierWithDescriptor (descriptor: NSAppleEventDescriptor): NSScriptObjectSpecifier; message 'objectSpecifierWithDescriptor:'; { available in 10_5, NA }
+    function initWithContainerSpecifier_key (container: NSScriptObjectSpecifier; property_: NSString): instancetype; message 'initWithContainerSpecifier:key:';
+    function initWithContainerClassDescription_containerSpecifier_key (classDesc: NSScriptClassDescription; container: NSScriptObjectSpecifier; property_: NSString): instancetype; message 'initWithContainerClassDescription:containerSpecifier:key:'; { NS_DESIGNATED_INITIALIZER }
+    function initWithCoder (inCoder: NSCoder): instancetype; message 'initWithCoder:'; { NS_DESIGNATED_INITIALIZER }
+    procedure setChildSpecifier(newValue: NSScriptObjectSpecifier); message 'setChildSpecifier:';
     function childSpecifier: NSScriptObjectSpecifier; message 'childSpecifier';
-    procedure setChildSpecifier(child: NSScriptObjectSpecifier); message 'setChildSpecifier:';
+    procedure setContainerSpecifier(newValue: NSScriptObjectSpecifier); message 'setContainerSpecifier:';
     function containerSpecifier: NSScriptObjectSpecifier; message 'containerSpecifier';
-    procedure setContainerSpecifier(subRef: NSScriptObjectSpecifier); message 'setContainerSpecifier:';
+    procedure setContainerIsObjectBeingTested(newValue: ObjCBOOL); message 'setContainerIsObjectBeingTested:';
     function containerIsObjectBeingTested: ObjCBOOL; message 'containerIsObjectBeingTested';
-    procedure setContainerIsObjectBeingTested(flag: ObjCBOOL); message 'setContainerIsObjectBeingTested:';
+    procedure setContainerIsRangeContainerObject(newValue: ObjCBOOL); message 'setContainerIsRangeContainerObject:';
     function containerIsRangeContainerObject: ObjCBOOL; message 'containerIsRangeContainerObject';
-    procedure setContainerIsRangeContainerObject(flag: ObjCBOOL); message 'setContainerIsRangeContainerObject:';
+    procedure setKey(newValue: NSString); message 'setKey:';
     function key: NSString; message 'key';
-    procedure setKey(key_: NSString); message 'setKey:';
+    procedure setContainerClassDescription(newValue: NSScriptClassDescription); message 'setContainerClassDescription:';
     function containerClassDescription: NSScriptClassDescription; message 'containerClassDescription';
-    procedure setContainerClassDescription(classDesc: NSScriptClassDescription); message 'setContainerClassDescription:';
     function keyClassDescription: NSScriptClassDescription; message 'keyClassDescription';
-    function indicesOfObjectsByEvaluatingWithContainer_count(container: id; count: NSIntegerPtr): NSIntegerPtr; message 'indicesOfObjectsByEvaluatingWithContainer:count:';
-    function objectsByEvaluatingWithContainers(containers: id): id; message 'objectsByEvaluatingWithContainers:';
+    function indicesOfObjectsByEvaluatingWithContainer_count (container: id; count: NSIntegerPtr): NSIntegerPtr; message 'indicesOfObjectsByEvaluatingWithContainer:count:';
+    function objectsByEvaluatingWithContainers (containers: id): id; message 'objectsByEvaluatingWithContainers:';
     function objectsByEvaluatingSpecifier: id; message 'objectsByEvaluatingSpecifier';
+    procedure setEvaluationErrorNumber(newValue: NSInteger); message 'setEvaluationErrorNumber:';
     function evaluationErrorNumber: NSInteger; message 'evaluationErrorNumber';
-    procedure setEvaluationErrorNumber(error: NSInteger); message 'setEvaluationErrorNumber:';
     function evaluationErrorSpecifier: NSScriptObjectSpecifier; message 'evaluationErrorSpecifier';
     function descriptor: NSAppleEventDescriptor; message 'descriptor';
 
-    { Adopted Protocols }
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
+    { Adopted protocols }
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
   end;
 
-{ NSIndexSpecifier }
+
+type
+  NSScriptObjectSpecifiers = objccategory external (NSObject)
+    function objectSpecifier: NSScriptObjectSpecifier; message 'objectSpecifier';
+    function indicesOfObjectsByEvaluatingObjectSpecifier (specifier: NSScriptObjectSpecifier): NSArray; message 'indicesOfObjectsByEvaluatingObjectSpecifier:';
+  end;
+
+
+type
   NSIndexSpecifier = objcclass external (NSScriptObjectSpecifier)
   private
     _index: NSInteger;
-    
   public
-    function initWithContainerClassDescription_containerSpecifier_key_index(classDesc: NSScriptClassDescription; container: NSScriptObjectSpecifier; property_: NSString; index_: NSInteger): id; message 'initWithContainerClassDescription:containerSpecifier:key:index:';
+    function initWithContainerClassDescription_containerSpecifier_key_index (classDesc: NSScriptClassDescription; container: NSScriptObjectSpecifier; property_: NSString; index: NSInteger): instancetype; message 'initWithContainerClassDescription:containerSpecifier:key:index:'; { NS_DESIGNATED_INITIALIZER }
+    procedure setIndex(newValue: NSInteger); message 'setIndex:';
     function index: NSInteger; message 'index';
-    procedure setIndex(index_: NSInteger); message 'setIndex:';
   end;
 
-{ NSMiddleSpecifier }
+type
   NSMiddleSpecifier = objcclass external (NSScriptObjectSpecifier)
-    
-  public
+  private
   end;
 
-{ NSNameSpecifier }
+type
   NSNameSpecifier = objcclass external (NSScriptObjectSpecifier)
   private
     _name: NSString;
-    
   public
-    function initWithContainerClassDescription_containerSpecifier_key_name(classDesc: NSScriptClassDescription; container: NSScriptObjectSpecifier; property_: NSString; name_: NSString): id; message 'initWithContainerClassDescription:containerSpecifier:key:name:';
+    function initWithCoder (inCoder: NSCoder): instancetype; message 'initWithCoder:'; { NS_DESIGNATED_INITIALIZER }
+    function initWithContainerClassDescription_containerSpecifier_key_name (classDesc: NSScriptClassDescription; container: NSScriptObjectSpecifier; property_: NSString; name: NSString): instancetype; message 'initWithContainerClassDescription:containerSpecifier:key:name:'; { NS_DESIGNATED_INITIALIZER }
+    procedure setName(newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
-    procedure setName(name_: NSString); message 'setName:';
   end;
 
-{ NSPositionalSpecifier }
+type
   NSPositionalSpecifier = objcclass external (NSObject)
   private
     _specifier: NSScriptObjectSpecifier;
     _unadjustedPosition: NSInsertionPosition;
     _insertionClassDescription: NSScriptClassDescription;
     _moreVars: id;
-    _reserved0: Pointer;
-    
+    _reserved0: pointer;
   public
-    function initWithPosition_objectSpecifier(position_: NSInsertionPosition; specifier: NSScriptObjectSpecifier): id; message 'initWithPosition:objectSpecifier:';
+    function initWithPosition_objectSpecifier (position: NSInsertionPosition; specifier: NSScriptObjectSpecifier): instancetype; message 'initWithPosition:objectSpecifier:'; { NS_DESIGNATED_INITIALIZER }
     function position: NSInsertionPosition; message 'position';
     function objectSpecifier: NSScriptObjectSpecifier; message 'objectSpecifier';
-    procedure setInsertionClassDescription(classDescription: NSScriptClassDescription); message 'setInsertionClassDescription:';
+    procedure setInsertionClassDescription (classDescription: NSScriptClassDescription); message 'setInsertionClassDescription:';
     procedure evaluate; message 'evaluate';
     function insertionContainer: id; message 'insertionContainer';
     function insertionKey: NSString; message 'insertionKey';
@@ -199,58 +155,56 @@ type
     function insertionReplaces: ObjCBOOL; message 'insertionReplaces';
   end;
 
-{ NSPropertySpecifier }
+type
   NSPropertySpecifier = objcclass external (NSScriptObjectSpecifier)
-    
-  public
+  private
   end;
 
-{ NSRandomSpecifier }
+type
   NSRandomSpecifier = objcclass external (NSScriptObjectSpecifier)
-    
-  public
+  private
   end;
 
-{ NSRangeSpecifier }
+type
   NSRangeSpecifier = objcclass external (NSScriptObjectSpecifier)
   private
     _startSpec: NSScriptObjectSpecifier;
     _endSpec: NSScriptObjectSpecifier;
-    
   public
-    function initWithContainerClassDescription_containerSpecifier_key_startSpecifier_endSpecifier(classDesc: NSScriptClassDescription; container: NSScriptObjectSpecifier; property_: NSString; startSpec: NSScriptObjectSpecifier; endSpec: NSScriptObjectSpecifier): id; message 'initWithContainerClassDescription:containerSpecifier:key:startSpecifier:endSpecifier:';
+    function initWithCoder (inCoder: NSCoder): instancetype; message 'initWithCoder:'; { NS_DESIGNATED_INITIALIZER }
+    function initWithContainerClassDescription_containerSpecifier_key_startSpecifier_endSpecifier (classDesc: NSScriptClassDescription; container: NSScriptObjectSpecifier; property_: NSString; startSpec: NSScriptObjectSpecifier; endSpec: NSScriptObjectSpecifier): instancetype; message 'initWithContainerClassDescription:containerSpecifier:key:startSpecifier:endSpecifier:'; { NS_DESIGNATED_INITIALIZER }
+    procedure setStartSpecifier(newValue: NSScriptObjectSpecifier); message 'setStartSpecifier:';
     function startSpecifier: NSScriptObjectSpecifier; message 'startSpecifier';
-    procedure setStartSpecifier(startSpec: NSScriptObjectSpecifier); message 'setStartSpecifier:';
+    procedure setEndSpecifier(newValue: NSScriptObjectSpecifier); message 'setEndSpecifier:';
     function endSpecifier: NSScriptObjectSpecifier; message 'endSpecifier';
-    procedure setEndSpecifier(endSpec: NSScriptObjectSpecifier); message 'setEndSpecifier:';
   end;
 
-{ NSRelativeSpecifier }
+type
   NSRelativeSpecifier = objcclass external (NSScriptObjectSpecifier)
   private
     _relativePosition: NSRelativePosition;
     _baseSpecifier: NSScriptObjectSpecifier;
-    
   public
-    function initWithContainerClassDescription_containerSpecifier_key_relativePosition_baseSpecifier(classDesc: NSScriptClassDescription; container: NSScriptObjectSpecifier; property_: NSString; relPos: NSRelativePosition; baseSpecifier_: NSScriptObjectSpecifier): id; message 'initWithContainerClassDescription:containerSpecifier:key:relativePosition:baseSpecifier:';
+    function initWithCoder (inCoder: NSCoder): instancetype; message 'initWithCoder:'; { NS_DESIGNATED_INITIALIZER }
+    function initWithContainerClassDescription_containerSpecifier_key_relativePosition_baseSpecifier (classDesc: NSScriptClassDescription; container: NSScriptObjectSpecifier; property_: NSString; relPos: NSRelativePosition; baseSpecifier: NSScriptObjectSpecifier): instancetype; message 'initWithContainerClassDescription:containerSpecifier:key:relativePosition:baseSpecifier:'; { NS_DESIGNATED_INITIALIZER }
+    procedure setRelativePosition(newValue: NSRelativePosition); message 'setRelativePosition:';
     function relativePosition: NSRelativePosition; message 'relativePosition';
-    procedure setRelativePosition(relPos: NSRelativePosition); message 'setRelativePosition:';
+    procedure setBaseSpecifier(newValue: NSScriptObjectSpecifier); message 'setBaseSpecifier:';
     function baseSpecifier: NSScriptObjectSpecifier; message 'baseSpecifier';
-    procedure setBaseSpecifier(baseSpecifier_: NSScriptObjectSpecifier); message 'setBaseSpecifier:';
   end;
 
-{ NSUniqueIDSpecifier }
+type
   NSUniqueIDSpecifier = objcclass external (NSScriptObjectSpecifier)
   private
     _uniqueID: id;
-    
   public
-    function initWithContainerClassDescription_containerSpecifier_key_uniqueID(classDesc: NSScriptClassDescription; container: NSScriptObjectSpecifier; property_: NSString; uniqueID_: id): id; message 'initWithContainerClassDescription:containerSpecifier:key:uniqueID:';
+    function initWithCoder (inCoder: NSCoder): instancetype; message 'initWithCoder:'; { NS_DESIGNATED_INITIALIZER }
+    function initWithContainerClassDescription_containerSpecifier_key_uniqueID (classDesc: NSScriptClassDescription; container: NSScriptObjectSpecifier; property_: NSString; uniqueID: id): instancetype; message 'initWithContainerClassDescription:containerSpecifier:key:uniqueID:'; { NS_DESIGNATED_INITIALIZER }
+    procedure setUniqueID(newValue: id); message 'setUniqueID:';
     function uniqueID: id; message 'uniqueID';
-    procedure setUniqueID(uniqueID_: id); message 'setUniqueID:';
   end;
 
-{ NSWhoseSpecifier }
+type
   NSWhoseSpecifier = objcclass external (NSScriptObjectSpecifier)
   private
     _test: NSScriptWhoseTest;
@@ -258,26 +212,19 @@ type
     _startSubelementIndex: NSInteger;
     _endSubelementIdentifier: NSWhoseSubelementIdentifier;
     _endSubelementIndex: NSInteger;
-    
   public
-    function initWithContainerClassDescription_containerSpecifier_key_test(classDesc: NSScriptClassDescription; container: NSScriptObjectSpecifier; property_: NSString; test_: NSScriptWhoseTest): id; message 'initWithContainerClassDescription:containerSpecifier:key:test:';
+    function initWithCoder (inCoder: NSCoder): instancetype; message 'initWithCoder:'; { NS_DESIGNATED_INITIALIZER }
+    function initWithContainerClassDescription_containerSpecifier_key_test (classDesc: NSScriptClassDescription; container: NSScriptObjectSpecifier; property_: NSString; test: NSScriptWhoseTest): instancetype; message 'initWithContainerClassDescription:containerSpecifier:key:test:'; { NS_DESIGNATED_INITIALIZER }
+    procedure setTest(newValue: NSScriptWhoseTest); message 'setTest:';
     function test: NSScriptWhoseTest; message 'test';
-    procedure setTest(test_: NSScriptWhoseTest); message 'setTest:';
+    procedure setStartSubelementIdentifier(newValue: NSWhoseSubelementIdentifier); message 'setStartSubelementIdentifier:';
     function startSubelementIdentifier: NSWhoseSubelementIdentifier; message 'startSubelementIdentifier';
-    procedure setStartSubelementIdentifier(subelement: NSWhoseSubelementIdentifier); message 'setStartSubelementIdentifier:';
+    procedure setStartSubelementIndex(newValue: NSInteger); message 'setStartSubelementIndex:';
     function startSubelementIndex: NSInteger; message 'startSubelementIndex';
-    procedure setStartSubelementIndex(index: NSInteger); message 'setStartSubelementIndex:';
+    procedure setEndSubelementIdentifier(newValue: NSWhoseSubelementIdentifier); message 'setEndSubelementIdentifier:';
     function endSubelementIdentifier: NSWhoseSubelementIdentifier; message 'endSubelementIdentifier';
-    procedure setEndSubelementIdentifier(subelement: NSWhoseSubelementIdentifier); message 'setEndSubelementIdentifier:';
+    procedure setEndSubelementIndex(newValue: NSInteger); message 'setEndSubelementIndex:';
     function endSubelementIndex: NSInteger; message 'endSubelementIndex';
-    procedure setEndSubelementIndex(index: NSInteger); message 'setEndSubelementIndex:';
   end;
-
-{ NSScriptObjectSpecifiersCategory }
-  NSScriptObjectSpecifiersCategory = objccategory external (NSObject)
-    function objectSpecifier: NSScriptObjectSpecifier; message 'objectSpecifier';
-    function indicesOfObjectsByEvaluatingObjectSpecifier(specifier: NSScriptObjectSpecifier): NSArray; message 'indicesOfObjectsByEvaluatingObjectSpecifier:';
-  end;
-
 {$endif}
-{$endif}
+

@@ -1,63 +1,31 @@
-{ Parsed from Webkit.framework DOMHTMLButtonElement.h }
+{ Parsed from WebKit.framework DOMHTMLButtonElement.h }
+
 
 {$ifdef TYPES}
-{$ifndef DOMHTMLBUTTONELEMENT_PAS_T}
-{$define DOMHTMLBUTTONELEMENT_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef DOMHTMLBUTTONELEMENT_PAS_R}
-{$define DOMHTMLBUTTONELEMENT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMHTMLBUTTONELEMENT_PAS_F}
-{$define DOMHTMLBUTTONELEMENT_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMHTMLBUTTONELEMENT_PAS_S}
-{$define DOMHTMLBUTTONELEMENT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  DOMHTMLButtonElement = objcclass;
-  DOMHTMLButtonElementPointer = ^DOMHTMLButtonElement;
-  DOMHTMLButtonElementPtr = DOMHTMLButtonElementPointer;
-
+type
+  DOMHTMLButtonElementPtr = ^DOMHTMLButtonElement;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef DOMHTMLBUTTONELEMENT_PAS_C}
-{$define DOMHTMLBUTTONELEMENT_PAS_C}
 
-{ DOMHTMLButtonElement }
+type
   DOMHTMLButtonElement = objcclass external (DOMHTMLElement)
-    
   public
-    function form: DOMHTMLFormElement; message 'form';
-    procedure setAccessKey (newValue: NSString); message 'setAccessKey:';
-    function accessKey: NSString; message 'accessKey';
-    procedure setDisabled (newValue: ObjCBOOL); message 'setDisabled:';
-    function disabled: ObjCBOOL; message 'disabled';
-    procedure setAutofocus (newValue: ObjCBOOL); message 'setAutofocus:';
+    procedure setAutofocus(newValue: ObjCBOOL); message 'setAutofocus:';
     function autofocus: ObjCBOOL; message 'autofocus';
-    procedure setName (newValue: NSString); message 'setName:';
+    procedure setDisabled(newValue: ObjCBOOL); message 'setDisabled:';
+    function disabled: ObjCBOOL; message 'disabled';
+    function form: DOMHTMLFormElement; message 'form';
+    procedure setName(newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
-    function type_: NSString; message 'type_';
-    procedure setValue (newValue: NSString); message 'setValue:';
+    procedure setType(newValue: NSString); message 'setType:';
+    function type_: NSString; message 'type';
+    procedure setValue(newValue: NSString); message 'setValue:';
     function value: NSString; message 'value';
     function willValidate: ObjCBOOL; message 'willValidate';
-    procedure click; message 'click';
+    procedure setAccessKey(newValue: NSString); message 'setAccessKey:';
+    function accessKey: NSString; message 'accessKey';
+    procedure click; message 'click'; { available in 10_5 }
   end;
+{$endif}
 
-{$endif}
-{$endif}

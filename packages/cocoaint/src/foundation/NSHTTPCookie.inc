@@ -1,31 +1,12 @@
 { Parsed from Foundation.framework NSHTTPCookie.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSHTTPCOOKIE_PAS_T}
-{$define NSHTTPCOOKIE_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSHTTPCOOKIE_PAS_R}
-{$define NSHTTPCOOKIE_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSHTTPCOOKIE_PAS_F}
-{$define NSHTTPCOOKIE_PAS_F}
-
-{$endif}
+type
+  NSHTTPCookiePtr = ^NSHTTPCookie;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSHTTPCOOKIE_PAS_S}
-{$define NSHTTPCOOKIE_PAS_S}
-
-{ External string constants }
 var
   NSHTTPCookieName: NSString; cvar; external;
   NSHTTPCookieValue: NSString; cvar; external;
@@ -40,31 +21,19 @@ var
   NSHTTPCookieDiscard: NSString; cvar; external;
   NSHTTPCookieMaximumAge: NSString; cvar; external;
   NSHTTPCookiePort: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSHTTPCookie = objcclass;
-  NSHTTPCookiePointer = ^NSHTTPCookie;
-  NSHTTPCookiePtr = NSHTTPCookiePointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSHTTPCOOKIE_PAS_C}
-{$define NSHTTPCOOKIE_PAS_C}
 
-{ NSHTTPCookie }
+type
   NSHTTPCookie = objcclass external (NSObject)
   private
     _cookiePrivate: NSHTTPCookieInternal;
-    
   public
-    function initWithProperties(properties_: NSDictionary): id; message 'initWithProperties:';
-    class function cookieWithProperties(properties_: NSDictionary): id; message 'cookieWithProperties:';
-    class function requestHeaderFieldsWithCookies(cookies: NSArray): NSDictionary; message 'requestHeaderFieldsWithCookies:';
-    class function cookiesWithResponseHeaderFields_forURL(headerFields: NSDictionary; URL: NSURL): NSArray; message 'cookiesWithResponseHeaderFields:forURL:';
+    function initWithProperties (properties: NSDictionary): instancetype; message 'initWithProperties:';
+    class function cookieWithProperties (properties: NSDictionary): NSHTTPCookie; message 'cookieWithProperties:';
+    class function requestHeaderFieldsWithCookies (cookies: NSArray): NSDictionary; message 'requestHeaderFieldsWithCookies:';
+    class function cookiesWithResponseHeaderFields_forURL (headerFields: NSDictionary; URL: NSURL): NSArray; message 'cookiesWithResponseHeaderFields:forURL:';
     function properties: NSDictionary; message 'properties';
     function version: NSUInteger; message 'version';
     function name: NSString; message 'name';
@@ -79,6 +48,5 @@ var
     function commentURL: NSURL; message 'commentURL';
     function portList: NSArray; message 'portList';
   end;
+{$endif}
 
-{$endif}
-{$endif}

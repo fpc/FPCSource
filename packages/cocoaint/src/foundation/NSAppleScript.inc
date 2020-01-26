@@ -1,72 +1,40 @@
 { Parsed from Foundation.framework NSAppleScript.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSAPPLESCRIPT_PAS_T}
-{$define NSAPPLESCRIPT_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSAPPLESCRIPT_PAS_R}
-{$define NSAPPLESCRIPT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSAPPLESCRIPT_PAS_F}
-{$define NSAPPLESCRIPT_PAS_F}
-
-{$endif}
+type
+  NSAppleScriptPtr = ^NSAppleScript;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSAPPLESCRIPT_PAS_S}
-{$define NSAPPLESCRIPT_PAS_S}
-
-{ External string constants }
 var
-  NSAppleScriptErrorMessage: NSString; cvar; external;
-  NSAppleScriptErrorNumber: NSString; cvar; external;
-  NSAppleScriptErrorAppName: NSString; cvar; external;
-  NSAppleScriptErrorBriefMessage: NSString; cvar; external;
-  NSAppleScriptErrorRange: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSAppleScript = objcclass;
-  NSAppleScriptPointer = ^NSAppleScript;
-  NSAppleScriptPtr = NSAppleScriptPointer;
-
+  NSAppleScriptErrorMessage: NSString { available in 10_2, NA }; cvar; external;
+  NSAppleScriptErrorNumber: NSString { available in 10_2, NA }; cvar; external;
+  NSAppleScriptErrorAppName: NSString { available in 10_2, NA }; cvar; external;
+  NSAppleScriptErrorBriefMessage: NSString { available in 10_2, NA }; cvar; external;
+  NSAppleScriptErrorRange: NSString { available in 10_2, NA }; cvar; external;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSAPPLESCRIPT_PAS_C}
-{$define NSAPPLESCRIPT_PAS_C}
 
-{ NSAppleScript }
+type
   NSAppleScript = objcclass external (NSObject, NSCopyingProtocol)
   private
     _source: NSString;
     _compiledScriptID: cuint;
-    _reserved1: Pointer;
-    _reserved2: Pointer;
-    
+    _reserved1: pointer;
+    _reserved2: pointer;
   public
-    function initWithContentsOfURL_error(url: NSURL; errorInfo: NSDictionaryPointer): id; message 'initWithContentsOfURL:error:';
-    function initWithSource(source_: NSString): id; message 'initWithSource:';
+    function initWithContentsOfURL_error (url: NSURL; errorInfo: NSDictionaryPtr): instancetype; message 'initWithContentsOfURL:error:'; { NS_DESIGNATED_INITIALIZER }
+    function initWithSource (source: NSString): instancetype; message 'initWithSource:'; { NS_DESIGNATED_INITIALIZER }
     function source: NSString; message 'source';
     function isCompiled: ObjCBOOL; message 'isCompiled';
-    function compileAndReturnError(errorInfo: NSDictionaryPointer): ObjCBOOL; message 'compileAndReturnError:';
-    function executeAndReturnError(errorInfo: NSDictionaryPointer): NSAppleEventDescriptor; message 'executeAndReturnError:';
-    function executeAppleEvent_error(event: NSAppleEventDescriptor; errorInfo: NSDictionaryPointer): NSAppleEventDescriptor; message 'executeAppleEvent:error:';
+    function compileAndReturnError (errorInfo: NSDictionaryPtr): ObjCBOOL; message 'compileAndReturnError:';
+    function executeAndReturnError (errorInfo: NSDictionaryPtr): NSAppleEventDescriptor; message 'executeAndReturnError:';
+    function executeAppleEvent_error (event: NSAppleEventDescriptor; errorInfo: NSDictionaryPtr): NSAppleEventDescriptor; message 'executeAppleEvent:error:';
 
-    { Adopted Protocols }
-    function copyWithZone(zone_: NSZonePtr): id;
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

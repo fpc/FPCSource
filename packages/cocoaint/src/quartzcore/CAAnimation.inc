@@ -1,188 +1,164 @@
-{ Parsed from Quartzcore.framework CAAnimation.h }
+{ Parsed from QuartzCore.framework CAAnimation.h }
+
 
 {$ifdef TYPES}
-{$ifndef CAANIMATION_PAS_T}
-{$define CAANIMATION_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef CAANIMATION_PAS_R}
-{$define CAANIMATION_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef CAANIMATION_PAS_F}
-{$define CAANIMATION_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef CAANIMATION_PAS_S}
-{$define CAANIMATION_PAS_S}
-
-{ External string constants }
-var
-  kCAAnimationLinear: NSString; cvar; external;
-  kCAAnimationDiscrete: NSString; cvar; external;
-  kCAAnimationPaced: NSString; cvar; external;
-  kCAAnimationRotateAuto: NSString; cvar; external;
-  kCAAnimationRotateAutoReverse: NSString; cvar; external;
-  kCATransitionFade: NSString; cvar; external;
-  kCATransitionMoveIn: NSString; cvar; external;
-  kCATransitionPush: NSString; cvar; external;
-  kCATransitionReveal: NSString; cvar; external;
-  kCATransitionFromRight: NSString; cvar; external;
-  kCATransitionFromLeft: NSString; cvar; external;
-  kCATransitionFromTop: NSString; cvar; external;
-  kCATransitionFromBottom: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  CAAnimation = objcclass;
-  CAAnimationPointer = ^CAAnimation;
-  CAAnimationPtr = CAAnimationPointer;
-  CAPropertyAnimation = objcclass;
-  CAPropertyAnimationPointer = ^CAPropertyAnimation;
-  CAPropertyAnimationPtr = CAPropertyAnimationPointer;
-  CABasicAnimation = objcclass;
-  CABasicAnimationPointer = ^CABasicAnimation;
-  CABasicAnimationPtr = CABasicAnimationPointer;
-  CAKeyframeAnimation = objcclass;
-  CAKeyframeAnimationPointer = ^CAKeyframeAnimation;
-  CAKeyframeAnimationPtr = CAKeyframeAnimationPointer;
-  CATransition = objcclass;
-  CATransitionPointer = ^CATransition;
-  CATransitionPtr = CATransitionPointer;
-  CAAnimationGroup = objcclass;
-  CAAnimationGroupPointer = ^CAAnimationGroup;
-  CAAnimationGroupPtr = CAAnimationGroupPointer;
-
+type
+  CAAnimationPtr = ^CAAnimation;
+  CAPropertyAnimationPtr = ^CAPropertyAnimation;
+  CABasicAnimationPtr = ^CABasicAnimation;
+  CAKeyframeAnimationPtr = ^CAKeyframeAnimation;
+  CATransitionPtr = ^CATransition;
+  CAAnimationGroupPtr = ^CAAnimationGroup;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef CAANIMATION_PAS_C}
-{$define CAANIMATION_PAS_C}
 
-{ CAAnimation }
+type
   CAAnimation = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol, CAMediaTimingProtocol, CAActionProtocol)
   private
-    __attr: Pointer;
+    _attr: pointer;
     _flags: cuint32;
-    
   public
-    class function animation: id; message 'animation';
-    class function defaultValueForKey(key: NSString): id; message 'defaultValueForKey:';
-    function shouldArchiveValueForKey(key: NSString): ObjCBOOL; message 'shouldArchiveValueForKey:';
-    procedure setTimingFunction (newValue: CAMediaTimingFunction); message 'setTimingFunction:';
+    class function animation: instancetype; message 'animation';
+    class function defaultValueForKey (key: NSString): id; message 'defaultValueForKey:';
+    function shouldArchiveValueForKey (key: NSString): ObjCBOOL; message 'shouldArchiveValueForKey:';
+    procedure setTimingFunction(newValue: CAMediaTimingFunction); message 'setTimingFunction:';
     function timingFunction: CAMediaTimingFunction; message 'timingFunction';
-    procedure setDelegate (newValue: id); message 'setDelegate:';
+    procedure setDelegate(newValue: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
-    procedure setRemovedOnCompletion (newValue: ObjCBOOL); message 'setRemovedOnCompletion:';
+    procedure setRemovedOnCompletion(newValue: ObjCBOOL); message 'setRemovedOnCompletion:';
     function isRemovedOnCompletion: ObjCBOOL; message 'isRemovedOnCompletion';
 
-    { Adopted Protocols }
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
-    function copyWithZone(zone_: NSZonePtr): id;
-    procedure setBeginTime (newValue: CFTimeInterval);
-    function beginTime: CFTimeInterval;
-    procedure setDuration (newValue: CFTimeInterval);
-    function duration: CFTimeInterval;
-    procedure setSpeed (newValue: single);
-    function speed: single;
-    procedure setTimeOffset (newValue: CFTimeInterval);
-    function timeOffset: CFTimeInterval;
-    procedure setRepeatCount (newValue: single);
-    function repeatCount: single;
-    procedure setRepeatDuration (newValue: CFTimeInterval);
-    function repeatDuration: CFTimeInterval;
-    procedure setAutoreverses (newValue: ObjCBOOL);
-    function autoreverses: ObjCBOOL;
-    procedure setFillMode (newValue: NSString);
-    function fillMode: NSString;
+    { Adopted protocols }
+    procedure setAutoreverses(newValue: ObjCBOOL); message 'setAutoreverses:';
+    function autoreverses: ObjCBOOL; message 'autoreverses';
+    procedure setBeginTime(newValue: CFTimeInterval); message 'setBeginTime:';
+    function beginTime: CFTimeInterval; message 'beginTime';
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure setDuration(newValue: CFTimeInterval); message 'setDuration:';
+    function duration: CFTimeInterval; message 'duration';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    procedure setFillMode(newValue: NSString); message 'setFillMode:';
+    function fillMode: NSString; message 'fillMode';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
+    procedure setRepeatCount(newValue: single); message 'setRepeatCount:';
+    function repeatCount: single; message 'repeatCount';
+    procedure setRepeatDuration(newValue: CFTimeInterval); message 'setRepeatDuration:';
+    function repeatDuration: CFTimeInterval; message 'repeatDuration';
+    procedure runActionForKey_object_arguments (event: NSString; anObject: id; dict: NSDictionary); message 'runActionForKey:object:arguments:';
+    procedure setSpeed(newValue: single); message 'setSpeed:';
+    function speed: single; message 'speed';
+    procedure setTimeOffset(newValue: CFTimeInterval); message 'setTimeOffset:';
+    function timeOffset: CFTimeInterval; message 'timeOffset';
   end;
 
-{ CAPropertyAnimation }
+
+type
+  CAAnimationDelegate = objccategory external (NSObject)
+    procedure animationDidStart (anim: CAAnimation); message 'animationDidStart:';
+    procedure animationDidStop_finished (anim: CAAnimation; flag: ObjCBOOL); message 'animationDidStop:finished:';
+  end;
+
+
+type
   CAPropertyAnimation = objcclass external (CAAnimation)
-    
   public
-    class function animationWithKeyPath(path: NSString): id; message 'animationWithKeyPath:';
-    procedure setKeyPath (newValue: NSString); message 'setKeyPath:';
+    class function animationWithKeyPath (path: NSString): instancetype; message 'animationWithKeyPath:';
+    procedure setKeyPath(newValue: NSString); message 'setKeyPath:';
     function keyPath: NSString; message 'keyPath';
-    procedure setAdditive (newValue: ObjCBOOL); message 'setAdditive:';
+    procedure setAdditive(newValue: ObjCBOOL); message 'setAdditive:';
     function isAdditive: ObjCBOOL; message 'isAdditive';
-    procedure setCumulative (newValue: ObjCBOOL); message 'setCumulative:';
+    procedure setCumulative(newValue: ObjCBOOL); message 'setCumulative:';
     function isCumulative: ObjCBOOL; message 'isCumulative';
-    procedure setValueFunction (newValue: CAValueFunction); message 'setValueFunction:';
+    procedure setValueFunction(newValue: CAValueFunction); message 'setValueFunction:';
     function valueFunction: CAValueFunction; message 'valueFunction';
   end;
 
-{ CABasicAnimation }
+type
   CABasicAnimation = objcclass external (CAPropertyAnimation)
-    
   public
-    procedure setFromValue (newValue: id); message 'setFromValue:';
+    procedure setFromValue(newValue: id); message 'setFromValue:';
     function fromValue: id; message 'fromValue';
-    procedure setToValue (newValue: id); message 'setToValue:';
+    procedure setToValue(newValue: id); message 'setToValue:';
     function toValue: id; message 'toValue';
-    procedure setByValue (newValue: id); message 'setByValue:';
+
+    procedure setByValue(newValue: id); message 'setByValue:';
     function byValue: id; message 'byValue';
   end;
 
-{ CAKeyframeAnimation }
+type
   CAKeyframeAnimation = objcclass external (CAPropertyAnimation)
-    
   public
-    procedure setValues (newValue: NSArray); message 'setValues:';
+    procedure setValues(newValue: NSArray); message 'setValues:';
     function values: NSArray; message 'values';
-    procedure setPath (newValue: CGPathRef); message 'setPath:';
+    procedure setPath(newValue: CGPathRef); message 'setPath:';
     function path: CGPathRef; message 'path';
-    procedure setKeyTimes (newValue: NSArray); message 'setKeyTimes:';
+    procedure setKeyTimes(newValue: NSArray); message 'setKeyTimes:';
     function keyTimes: NSArray; message 'keyTimes';
-    procedure setTimingFunctions (newValue: NSArray); message 'setTimingFunctions:';
+    procedure setTimingFunctions(newValue: NSArray); message 'setTimingFunctions:';
     function timingFunctions: NSArray; message 'timingFunctions';
-    procedure setCalculationMode (newValue: NSString); message 'setCalculationMode:';
+    procedure setCalculationMode(newValue: NSString); message 'setCalculationMode:';
     function calculationMode: NSString; message 'calculationMode';
-    procedure setRotationMode (newValue: NSString); message 'setRotationMode:';
+    procedure setTensionValues(newValue: NSArray); message 'setTensionValues:';
+    function tensionValues: NSArray; message 'tensionValues';
+    procedure setContinuityValues(newValue: NSArray); message 'setContinuityValues:';
+    function continuityValues: NSArray; message 'continuityValues';
+
+    procedure setBiasValues(newValue: NSArray); message 'setBiasValues:';
+    function biasValues: NSArray; message 'biasValues';
+    procedure setRotationMode(newValue: NSString); message 'setRotationMode:';
     function rotationMode: NSString; message 'rotationMode';
   end;
+{$endif}
 
-{ CATransition }
+{$ifdef EXTERNAL_SYMBOLS}
+var
+  kCAAnimationLinear: NSString { available starting in __MAC_10_5, __IPHONE_2_0 }; cvar; external;
+  kCAAnimationDiscrete: NSString { available starting in __MAC_10_5, __IPHONE_2_0 }; cvar; external;
+  kCAAnimationPaced: NSString { available starting in __MAC_10_5, __IPHONE_2_0 }; cvar; external;
+  kCAAnimationCubic: NSString { available starting in __MAC_10_7, __IPHONE_4_0 }; cvar; external;
+  kCAAnimationCubicPaced: NSString { available starting in __MAC_10_7, __IPHONE_4_0 }; cvar; external;
+  kCAAnimationRotateAuto: NSString { available starting in __MAC_10_5, __IPHONE_2_0 }; cvar; external;
+  kCAAnimationRotateAutoReverse: NSString { available starting in __MAC_10_5, __IPHONE_2_0 }; cvar; external;
+{$endif}
+
+{$ifdef CLASSES}
+
+type
   CATransition = objcclass external (CAAnimation)
-    
   public
-    procedure setType (newValue: NSString); message 'setType:';
-    function type_: NSString; message 'type_';
-    procedure setSubtype (newValue: NSString); message 'setSubtype:';
+    procedure setType(newValue: NSString); message 'setType:';
+    function type_: NSString; message 'type';
+    procedure setSubtype(newValue: NSString); message 'setSubtype:';
     function subtype: NSString; message 'subtype';
-    procedure setStartProgress (newValue: single); message 'setStartProgress:';
+    procedure setStartProgress(newValue: single); message 'setStartProgress:';
     function startProgress: single; message 'startProgress';
-    procedure setEndProgress (newValue: single); message 'setEndProgress:';
+    procedure setEndProgress(newValue: single); message 'setEndProgress:';
     function endProgress: single; message 'endProgress';
-    procedure setFilter (newValue: id); message 'setFilter:';
+    procedure setFilter(newValue: id); message 'setFilter:';
     function filter: id; message 'filter';
   end;
+{$endif}
 
-{ CAAnimationGroup }
+{$ifdef EXTERNAL_SYMBOLS}
+var
+  kCATransitionFade: NSString { available starting in __MAC_10_5, __IPHONE_2_0 }; cvar; external;
+  kCATransitionMoveIn: NSString { available starting in __MAC_10_5, __IPHONE_2_0 }; cvar; external;
+  kCATransitionPush: NSString { available starting in __MAC_10_5, __IPHONE_2_0 }; cvar; external;
+  kCATransitionReveal: NSString { available starting in __MAC_10_5, __IPHONE_2_0 }; cvar; external;
+  kCATransitionFromRight: NSString { available starting in __MAC_10_5, __IPHONE_2_0 }; cvar; external;
+  kCATransitionFromLeft: NSString { available starting in __MAC_10_5, __IPHONE_2_0 }; cvar; external;
+  kCATransitionFromTop: NSString { available starting in __MAC_10_5, __IPHONE_2_0 }; cvar; external;
+  kCATransitionFromBottom: NSString { available starting in __MAC_10_5, __IPHONE_2_0 }; cvar; external;
+{$endif}
+
+{$ifdef CLASSES}
+
+type
   CAAnimationGroup = objcclass external (CAAnimation)
-    
   public
-    procedure setAnimations (newValue: NSArray); message 'setAnimations:';
+    procedure setAnimations(newValue: NSArray); message 'setAnimations:';
     function animations: NSArray; message 'animations';
   end;
-
-{ CAAnimationDelegateCategory }
-  CAAnimationDelegateCategory = objccategory external (NSObject)
-    procedure animationDidStart(anim: CAAnimation); message 'animationDidStart:';
-    procedure animationDidStop_finished(anim: CAAnimation; flag: ObjCBOOL); message 'animationDidStop:finished:';
-  end;
-
 {$endif}
-{$endif}
+

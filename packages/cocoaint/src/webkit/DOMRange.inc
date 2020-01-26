@@ -1,11 +1,12 @@
-{ Parsed from Webkit.framework DOMRange.h }
+{ Parsed from WebKit.framework DOMRange.h }
+
 
 {$ifdef TYPES}
-{$ifndef DOMRANGE_PAS_T}
-{$define DOMRANGE_PAS_T}
+type
+  DOMRangePtr = ^DOMRange;
+{$endif}
 
-{ Constants }
-
+{$ifdef TYPES}
 const
   DOM_START_TO_START = 0;
   DOM_START_TO_END = 1;
@@ -15,45 +16,12 @@ const
   DOM_NODE_AFTER = 1;
   DOM_NODE_BEFORE_AND_AFTER = 2;
   DOM_NODE_INSIDE = 3;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef DOMRANGE_PAS_R}
-{$define DOMRANGE_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMRANGE_PAS_F}
-{$define DOMRANGE_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMRANGE_PAS_S}
-{$define DOMRANGE_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  DOMRange = objcclass;
-  DOMRangePointer = ^DOMRange;
-  DOMRangePtr = DOMRangePointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef DOMRANGE_PAS_C}
-{$define DOMRANGE_PAS_C}
 
-{ DOMRange }
+type
   DOMRange = objcclass external (DOMObject)
-    
   public
     function startContainer: DOMNode; message 'startContainer';
     function startOffset: cint; message 'startOffset';
@@ -62,37 +30,37 @@ const
     function collapsed: ObjCBOOL; message 'collapsed';
     function commonAncestorContainer: DOMNode; message 'commonAncestorContainer';
     function text: NSString; message 'text';
-    procedure setStart_offset(refNode: DOMNode; offset: cint); message 'setStart:offset:';
-    procedure setEnd_offset(refNode: DOMNode; offset: cint); message 'setEnd:offset:';
-    procedure setStartBefore(refNode: DOMNode); message 'setStartBefore:';
-    procedure setStartAfter(refNode: DOMNode); message 'setStartAfter:';
-    procedure setEndBefore(refNode: DOMNode); message 'setEndBefore:';
-    procedure setEndAfter(refNode: DOMNode); message 'setEndAfter:';
-    procedure collapse(toStart: ObjCBOOL); message 'collapse:';
-    procedure selectNode(refNode: DOMNode); message 'selectNode:';
-    procedure selectNodeContents(refNode: DOMNode); message 'selectNodeContents:';
-    function compareBoundaryPoints_sourceRange(how: cushort; sourceRange: DOMRange): cshort; message 'compareBoundaryPoints:sourceRange:';
+    procedure setStart_offset (refNode: DOMNode; offset: cint); message 'setStart:offset:'; { available in 10_5 }
+    procedure setEnd_offset (refNode: DOMNode; offset: cint); message 'setEnd:offset:'; { available in 10_5 }
+    procedure setStartBefore (refNode: DOMNode); message 'setStartBefore:';
+    procedure setStartAfter (refNode: DOMNode); message 'setStartAfter:';
+    procedure setEndBefore (refNode: DOMNode); message 'setEndBefore:';
+    procedure setEndAfter (refNode: DOMNode); message 'setEndAfter:';
+    procedure collapse (toStart: ObjCBOOL); message 'collapse:';
+    procedure selectNode (refNode: DOMNode); message 'selectNode:';
+    procedure selectNodeContents (refNode: DOMNode); message 'selectNodeContents:';
+    function compareBoundaryPoints_sourceRange (how: cushort; sourceRange: DOMRange): cshort; message 'compareBoundaryPoints:sourceRange:'; { available in 10_5 }
     procedure deleteContents; message 'deleteContents';
     function extractContents: DOMDocumentFragment; message 'extractContents';
     function cloneContents: DOMDocumentFragment; message 'cloneContents';
-    procedure insertNode(newNode: DOMNode); message 'insertNode:';
-    procedure surroundContents(newParent: DOMNode); message 'surroundContents:';
+    procedure insertNode (newNode: DOMNode); message 'insertNode:';
+    procedure surroundContents (newParent: DOMNode); message 'surroundContents:';
     function cloneRange: DOMRange; message 'cloneRange';
     function toString: NSString; message 'toString';
     procedure detach; message 'detach';
-    function createContextualFragment(html: NSString): DOMDocumentFragment; message 'createContextualFragment:';
-    function intersectsNode(refNode: DOMNode): ObjCBOOL; message 'intersectsNode:';
-    function compareNode(refNode: DOMNode): cshort; message 'compareNode:';
-    function comparePoint_offset(refNode: DOMNode; offset: cint): cshort; message 'comparePoint:offset:';
-    function isPointInRange_offset(refNode: DOMNode; offset: cint): ObjCBOOL; message 'isPointInRange:offset:';
+    function createContextualFragment (html: NSString): DOMDocumentFragment; message 'createContextualFragment:'; { available in 10_5 }
+    function intersectsNode (refNode: DOMNode): ObjCBOOL; message 'intersectsNode:'; { available in 10_5 }
+    function compareNode (refNode: DOMNode): cshort; message 'compareNode:'; { available in 10_5 }
+    function comparePoint_offset (refNode: DOMNode; offset: cint): cshort; message 'comparePoint:offset:'; { available in 10_5 }
+    function isPointInRange_offset (refNode: DOMNode; offset: cint): ObjCBOOL; message 'isPointInRange:offset:'; { available in 10_5 }
   end;
 
-{ DOMRangeDeprecatedCategory }
-  DOMRangeDeprecatedCategory = objccategory external (DOMRange)
-    procedure setStart(refNode: DOMNode; offset: cint); message 'setStart:refNode:'; deprecated 'in_webkit_version_3 and later';
-    procedure setEnd(refNode: DOMNode; offset: cint); message 'setEnd:refNode:'; deprecated 'in_webkit_version_3 and later';
-    function compareBoundaryPoints(how: cushort; sourceRange: DOMRange): cshort; message 'compareBoundaryPoints:how:'; deprecated 'in_webkit_version_3 and later';
-  end;
 
+type
+  DOMRangeDeprecated = objccategory external (DOMRange)
+    procedure setStart (refNode: DOMNode); message 'setStart:'; deprecated 'in 10_4, 10_5';
+    procedure setEnd (refNode: DOMNode); message 'setEnd:'; deprecated 'in 10_4, 10_5';
+    function compareBoundaryPoints (how: cushort): cshort; message 'compareBoundaryPoints:'; deprecated 'in 10_4, 10_5';
+  end;
 {$endif}
-{$endif}
+

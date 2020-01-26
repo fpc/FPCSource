@@ -1,76 +1,41 @@
-{ Parsed from Appkit.framework NSSpeechRecognizer.h }
+{ Parsed from AppKit.framework NSSpeechRecognizer.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSSPEECHRECOGNIZER_PAS_T}
-{$define NSSPEECHRECOGNIZER_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSSPEECHRECOGNIZER_PAS_R}
-{$define NSSPEECHRECOGNIZER_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSSPEECHRECOGNIZER_PAS_F}
-{$define NSSPEECHRECOGNIZER_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSSPEECHRECOGNIZER_PAS_S}
-{$define NSSPEECHRECOGNIZER_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSSpeechRecognizerDelegateProtocol = objcprotocol;
-  NSSpeechRecognizer = objcclass;
-  NSSpeechRecognizerPointer = ^NSSpeechRecognizer;
-  NSSpeechRecognizerPtr = NSSpeechRecognizerPointer;
-
+type
+  NSSpeechRecognizerPtr = ^NSSpeechRecognizer;
+  NSSpeechRecognizerDelegateProtocolPtr = ^NSSpeechRecognizerDelegateProtocol;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSSPEECHRECOGNIZER_PAS_C}
-{$define NSSPEECHRECOGNIZER_PAS_C}
 
-{ NSSpeechRecognizer }
+type
   NSSpeechRecognizer = objcclass external (NSObject)
   private
     _privateNSSpeechRecognizerVars: id;
-    
   public
-    function init: id; message 'init';
+    function init: instancetype; message 'init';
     procedure startListening; message 'startListening';
     procedure stopListening; message 'stopListening';
+    procedure setDelegate(newValue: NSSpeechRecognizerDelegateProtocol); message 'setDelegate:';
     function delegate: NSSpeechRecognizerDelegateProtocol; message 'delegate';
-    procedure setDelegate(anObject: NSSpeechRecognizerDelegateProtocol); message 'setDelegate:';
+    procedure setCommands(newValue: NSArray); message 'setCommands:';
     function commands: NSArray; message 'commands';
-    procedure setCommands(commands_: NSArray); message 'setCommands:';
+    procedure setDisplayedCommandsTitle(newValue: NSString); message 'setDisplayedCommandsTitle:';
     function displayedCommandsTitle: NSString; message 'displayedCommandsTitle';
-    procedure setDisplayedCommandsTitle(title: NSString); message 'setDisplayedCommandsTitle:';
+    procedure setListensInForegroundOnly(newValue: ObjCBOOL); message 'setListensInForegroundOnly:';
     function listensInForegroundOnly: ObjCBOOL; message 'listensInForegroundOnly';
-    procedure setListensInForegroundOnly(flag: ObjCBOOL); message 'setListensInForegroundOnly:';
+    procedure setBlocksOtherRecognizers(newValue: ObjCBOOL); message 'setBlocksOtherRecognizers:';
     function blocksOtherRecognizers: ObjCBOOL; message 'blocksOtherRecognizers';
-    procedure setBlocksOtherRecognizers(flag: ObjCBOOL); message 'setBlocksOtherRecognizers:';
   end;
+{$endif}
 
-{$endif}
-{$endif}
 {$ifdef PROTOCOLS}
-{$ifndef NSSPEECHRECOGNIZER_PAS_P}
-{$define NSSPEECHRECOGNIZER_PAS_P}
-  
-{ NSSpeechRecognizerDelegate Protocol }
-  NSSpeechRecognizerDelegateProtocol = objcprotocol external name 'NSSpeechRecognizerDelegate'
+
+type
+  NSSpeechRecognizerDelegateProtocol = objcprotocol external name 'NSSpeechRecognizerDelegate' (NSObjectProtocol)
   optional
-    procedure speechRecognizer_didRecognizeCommand(sender: NSSpeechRecognizer; command: id); message 'speechRecognizer:didRecognizeCommand:';
+    procedure speechRecognizer_didRecognizeCommand (sender: NSSpeechRecognizer; command: id); message 'speechRecognizer:didRecognizeCommand:';
   end;
 {$endif}
-{$endif}
+

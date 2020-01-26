@@ -1,115 +1,83 @@
-{ Parsed from Appkit.framework NSButton.h }
+{ Parsed from AppKit.framework NSButton.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSBUTTON_PAS_T}
-{$define NSBUTTON_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSBUTTON_PAS_R}
-{$define NSBUTTON_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSBUTTON_PAS_F}
-{$define NSBUTTON_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSBUTTON_PAS_S}
-{$define NSBUTTON_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSButton = objcclass;
-  NSButtonPointer = ^NSButton;
-  NSButtonPtr = NSButtonPointer;
-
+type
+  NSButtonPtr = ^NSButton;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSBUTTON_PAS_C}
-{$define NSBUTTON_PAS_C}
 
-{ NSButton }
-  NSButton = objcclass external (NSControl, NSUserInterfaceValidationsProtocol)
-    
+type
+  NSButton = objcclass external (NSControl, NSUserInterfaceValidationsProtocol, NSAccessibilityButtonProtocol)
   public
+    procedure setTitle(newValue: NSString); message 'setTitle:';
     function title: NSString; message 'title';
-    procedure setTitle(aString: NSString); message 'setTitle:';
+    procedure setAlternateTitle(newValue: NSString); message 'setAlternateTitle:';
     function alternateTitle: NSString; message 'alternateTitle';
-    procedure setAlternateTitle(aString: NSString); message 'setAlternateTitle:';
+    procedure setImage(newValue: NSImage); message 'setImage:';
     function image: NSImage; message 'image';
-    procedure setImage(image_: NSImage); message 'setImage:';
+    procedure setAlternateImage(newValue: NSImage); message 'setAlternateImage:';
     function alternateImage: NSImage; message 'alternateImage';
-    procedure setAlternateImage(image_: NSImage); message 'setAlternateImage:';
+    procedure setImagePosition(newValue: NSCellImagePosition); message 'setImagePosition:';
     function imagePosition: NSCellImagePosition; message 'imagePosition';
-    procedure setImagePosition(aPosition: NSCellImagePosition); message 'setImagePosition:';
-    procedure setButtonType(aType: NSButtonType); message 'setButtonType:';
+    procedure setButtonType (aType: NSButtonType); message 'setButtonType:';
+    procedure setState(newValue: NSInteger); message 'setState:';
     function state: NSInteger; message 'state';
-    procedure setState(value: NSInteger); message 'setState:';
+    procedure setBordered(newValue: ObjCBOOL); message 'setBordered:';
     function isBordered: ObjCBOOL; message 'isBordered';
-    procedure setBordered(flag: ObjCBOOL); message 'setBordered:';
+    procedure setTransparent(newValue: ObjCBOOL); message 'setTransparent:';
     function isTransparent: ObjCBOOL; message 'isTransparent';
-    procedure setTransparent(flag: ObjCBOOL); message 'setTransparent:';
-    procedure setPeriodicDelay_interval(delay: single; interval: single); message 'setPeriodicDelay:interval:';
-    procedure getPeriodicDelay_interval(delay: psingle; interval: psingle); message 'getPeriodicDelay:interval:';
+    procedure setPeriodicDelay_interval (delay: single; interval: single); message 'setPeriodicDelay:interval:';
+    procedure getPeriodicDelay_interval (delay: psingle; interval: psingle); message 'getPeriodicDelay:interval:';
+    procedure setKeyEquivalent(newValue: NSString); message 'setKeyEquivalent:';
     function keyEquivalent: NSString; message 'keyEquivalent';
-    procedure setKeyEquivalent(charCode: NSString); message 'setKeyEquivalent:';
+    procedure setKeyEquivalentModifierMask(newValue: NSUInteger); message 'setKeyEquivalentModifierMask:';
     function keyEquivalentModifierMask: NSUInteger; message 'keyEquivalentModifierMask';
-    procedure setKeyEquivalentModifierMask(mask: NSUInteger); message 'setKeyEquivalentModifierMask:';
-    procedure highlight(flag: ObjCBOOL); message 'highlight:';
-    function performKeyEquivalent(key: NSEvent): ObjCBOOL; message 'performKeyEquivalent:';
+    procedure highlight (flag: ObjCBOOL); message 'highlight:';
+    function performKeyEquivalent (key: NSEvent): ObjCBOOL; message 'performKeyEquivalent:';
 
-    { Adopted Protocols }
-    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): ObjCBOOL;
+    { Adopted protocols }
+    function validateUserInterfaceItem (anItem: NSValidatedUserInterfaceItemProtocol): ObjCBOOL; message 'validateUserInterfaceItem:';
   end;
 
-{ NSKeyboardUI_NSButtonCategory }
-  NSKeyboardUI_NSButtonCategory = objccategory external name 'NSKeyboardUI' (NSButton)
-    procedure setTitleWithMnemonic(stringWithAmpersand: NSString); message 'setTitleWithMnemonic:';
-  end;
 
-{ NSButtonAttributedStringMethodsCategory }
-  NSButtonAttributedStringMethodsCategory = objccategory external (NSButton)
+type
+  NSButtonAttributedStringMethods = objccategory external (NSButton)
+    procedure setAttributedTitle(newValue: NSAttributedString); message 'setAttributedTitle:';
     function attributedTitle: NSAttributedString; message 'attributedTitle';
-    procedure setAttributedTitle(aString: NSAttributedString); message 'setAttributedTitle:';
+    procedure setAttributedAlternateTitle(newValue: NSAttributedString); message 'setAttributedAlternateTitle:';
     function attributedAlternateTitle: NSAttributedString; message 'attributedAlternateTitle';
-    procedure setAttributedAlternateTitle(obj: NSAttributedString); message 'setAttributedAlternateTitle:';
   end;
 
-{ NSButtonBezelStylesCategory }
-  NSButtonBezelStylesCategory = objccategory external (NSButton)
-    procedure setBezelStyle(bezelStyle_: NSBezelStyle); message 'setBezelStyle:';
+type
+  NSButtonBezelStyles = objccategory external (NSButton)
+    procedure setBezelStyle(newValue: NSBezelStyle); message 'setBezelStyle:';
     function bezelStyle: NSBezelStyle; message 'bezelStyle';
   end;
 
-{ NSButtonMixedStateCategory }
-  NSButtonMixedStateCategory = objccategory external (NSButton)
-    procedure setAllowsMixedState(flag: ObjCBOOL); message 'setAllowsMixedState:';
+type
+  NSButtonMixedState = objccategory external (NSButton)
+    procedure setAllowsMixedState(newValue: ObjCBOOL); message 'setAllowsMixedState:';
     function allowsMixedState: ObjCBOOL; message 'allowsMixedState';
     procedure setNextState; message 'setNextState';
   end;
 
-{ NSButtonBorderCategory }
-  NSButtonBorderCategory = objccategory external (NSButton)
-    procedure setShowsBorderOnlyWhileMouseInside(show: ObjCBOOL); message 'setShowsBorderOnlyWhileMouseInside:';
+type
+  NSButtonBorder = objccategory external (NSButton)
+    procedure setShowsBorderOnlyWhileMouseInside(newValue: ObjCBOOL); message 'setShowsBorderOnlyWhileMouseInside:';
     function showsBorderOnlyWhileMouseInside: ObjCBOOL; message 'showsBorderOnlyWhileMouseInside';
   end;
 
-{ NSButtonSoundExtensionsCategory }
-  NSButtonSoundExtensionsCategory = objccategory external (NSButton)
-    procedure setSound(aSound: NSSound); message 'setSound:';
+type
+  NSButtonSoundExtensions = objccategory external (NSButton)
+    procedure setSound(newValue: NSSound); message 'setSound:';
     function sound: NSSound; message 'sound';
   end;
 
+type
+  NSButton_NSKeyboardUI = objccategory external name 'NSKeyboardUI' (NSButton)
+    procedure setTitleWithMnemonic (stringWithAmpersand: NSString); message 'setTitleWithMnemonic:'; deprecated 'in 10_0, 10_8';
+  end;
 {$endif}
-{$endif}
+

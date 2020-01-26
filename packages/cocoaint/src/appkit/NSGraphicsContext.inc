@@ -1,96 +1,83 @@
-{ Parsed from Appkit.framework NSGraphicsContext.h }
+{ Parsed from AppKit.framework NSGraphicsContext.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSGRAPHICSCONTEXT_PAS_T}
-{$define NSGRAPHICSCONTEXT_PAS_T}
-
-{ Constants }
-
-const
-  NSImageInterpolationDefault = 0;
-  NSImageInterpolationNone = 1;
-  NSImageInterpolationLow = 2;
-  NSImageInterpolationMedium = 4;
-  NSImageInterpolationHigh = 3;
-
-{ Types }
 type
-  NSImageInterpolation = NSUInteger;
-  NSImageInterpolationPtr = ^NSImageInterpolation;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSGRAPHICSCONTEXT_PAS_R}
-{$define NSGRAPHICSCONTEXT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSGRAPHICSCONTEXT_PAS_F}
-{$define NSGRAPHICSCONTEXT_PAS_F}
-
-{$endif}
+  NSGraphicsContextPtr = ^NSGraphicsContext;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSGRAPHICSCONTEXT_PAS_S}
-{$define NSGRAPHICSCONTEXT_PAS_S}
-
-{ External string constants }
 var
   NSGraphicsContextDestinationAttributeName: NSString; cvar; external;
   NSGraphicsContextRepresentationFormatAttributeName: NSString; cvar; external;
   NSGraphicsContextPSFormat: NSString; cvar; external;
   NSGraphicsContextPDFFormat: NSString; cvar; external;
-
-{$endif}
 {$endif}
 
-{$ifdef FORWARD}
-  NSGraphicsContext = objcclass;
-  NSGraphicsContextPointer = ^NSGraphicsContext;
-  NSGraphicsContextPtr = NSGraphicsContextPointer;
+{$ifdef TYPES}
+type
+  NSImageInterpolation = NSUInteger;
+  NSImageInterpolationPtr = ^NSImageInterpolation;
 
+const
+  NSImageInterpolationDefault = 0;
+  NSImageInterpolationNone = 1;
+  NSImageInterpolationLow = 2;
+  NSImageInterpolationMedium = 4 { available in 10_6 };
+  NSImageInterpolationHigh = 3;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSGRAPHICSCONTEXT_PAS_C}
-{$define NSGRAPHICSCONTEXT_PAS_C}
 
-{ NSGraphicsContext }
+type
   NSGraphicsContext = objcclass external (NSObject)
-    
+  private
   public
-    class function graphicsContextWithAttributes(attributes_: NSDictionary): NSGraphicsContext; message 'graphicsContextWithAttributes:';
-    class function graphicsContextWithWindow(window: NSWindow): NSGraphicsContext; message 'graphicsContextWithWindow:';
-    class function graphicsContextWithBitmapImageRep(bitmapRep: NSBitmapImageRep): NSGraphicsContext; message 'graphicsContextWithBitmapImageRep:';
-    class function graphicsContextWithGraphicsPort_flipped(graphicsPort_: Pointer; initialFlippedState: ObjCBOOL): NSGraphicsContext; message 'graphicsContextWithGraphicsPort:flipped:';
+    class function graphicsContextWithAttributes (attributes: NSDictionary): NSGraphicsContext; message 'graphicsContextWithAttributes:';
+    class function graphicsContextWithWindow (window: NSWindow): NSGraphicsContext; message 'graphicsContextWithWindow:';
+    class function graphicsContextWithBitmapImageRep (bitmapRep: NSBitmapImageRep): NSGraphicsContext; message 'graphicsContextWithBitmapImageRep:';
+    class function graphicsContextWithCGContext_flipped (graphicsPort: CGContextRef; initialFlippedState: ObjCBOOL): NSGraphicsContext; message 'graphicsContextWithCGContext:flipped:'; { available in 10_10 }
     class function currentContext: NSGraphicsContext; message 'currentContext';
-    class procedure setCurrentContext(context: NSGraphicsContext); message 'setCurrentContext:';
+    class procedure setCurrentContext (context: NSGraphicsContext); message 'setCurrentContext:';
     class function currentContextDrawingToScreen: ObjCBOOL; message 'currentContextDrawingToScreen';
-    class procedure saveGraphicsState; message 'saveGraphicsState';
-    class procedure restoreGraphicsState; message 'restoreGraphicsState';
-    class procedure setGraphicsState(gState: NSInteger); message 'setGraphicsState:';
+    class procedure classSaveGraphicsState; message 'saveGraphicsState';
+    class procedure classRestoreGraphicsState; message 'restoreGraphicsState';
     function attributes: NSDictionary; message 'attributes';
     function isDrawingToScreen: ObjCBOOL; message 'isDrawingToScreen';
+    procedure saveGraphicsState; message 'saveGraphicsState';
+    procedure restoreGraphicsState; message 'restoreGraphicsState';
     procedure flushGraphics; message 'flushGraphics';
-    function graphicsPort: Pointer; message 'graphicsPort';
+    function CGContext: CGContextRef; message 'CGContext';
     function isFlipped: ObjCBOOL; message 'isFlipped';
   end;
 
-{ NSQuartzCoreAdditionsCategory }
-  NSQuartzCoreAdditionsCategory = objccategory external (NSGraphicsContext)
-    function CIContext: CIContext; message 'CIContext';
+
+type
+  NSGraphicsContext_RenderingOptions = objccategory external (NSGraphicsContext)
+    procedure setShouldAntialias(newValue: ObjCBOOL); message 'setShouldAntialias:';
+    function shouldAntialias: ObjCBOOL; message 'shouldAntialias';
+    procedure setImageInterpolation(newValue: NSImageInterpolation); message 'setImageInterpolation:';
+    function imageInterpolation: NSImageInterpolation; message 'imageInterpolation';
+    procedure setPatternPhase(newValue: NSPoint); message 'setPatternPhase:';
+    function patternPhase: NSPoint; message 'patternPhase';
+    procedure setCompositingOperation(newValue: NSCompositingOperation); message 'setCompositingOperation:';
+    function compositingOperation: NSCompositingOperation; message 'compositingOperation';
+    procedure setColorRenderingIntent(newValue: NSColorRenderingIntent); message 'setColorRenderingIntent:';
+    function colorRenderingIntent: NSColorRenderingIntent; message 'colorRenderingIntent';
   end;
 
-{ NSGraphicsContextDeprecatedCategory }
-  NSGraphicsContextDeprecatedCategory = objccategory external (NSGraphicsContext)
-    function focusStack: id; message 'focusStack';
-    procedure setFocusStack(stack: id); message 'setFocusStack:';
+type
+  NSGraphicsContext_NSQuartzCoreAdditions = objccategory external name 'NSQuartzCoreAdditions' (NSGraphicsContext)
+    function CIContext_: CIContext; message 'CIContext';
   end;
 
+type
+  NSGraphicsContextDeprecated = objccategory external (NSGraphicsContext)
+    class procedure setGraphicsState (gState: NSInteger); message 'setGraphicsState:'; deprecated 'in 10_0, 10_10';
+    function focusStack: id; message 'focusStack'; deprecated 'in 10_0, 10_6';
+    procedure setFocusStack (stack: id); message 'setFocusStack:'; deprecated 'in 10_0, 10_6';
+    class function graphicsContextWithGraphicsPort_flipped (graphicsPort: pointer; initialFlippedState: ObjCBOOL): NSGraphicsContext; message 'graphicsContextWithGraphicsPort:flipped:';
+    function graphicsPort: pointer; message 'graphicsPort';
+  end;
 {$endif}
-{$endif}
+

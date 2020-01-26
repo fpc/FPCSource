@@ -1,77 +1,45 @@
-{ Parsed from Webkit.framework DOMHTMLSelectElement.h }
+{ Parsed from WebKit.framework DOMHTMLSelectElement.h }
+
 
 {$ifdef TYPES}
-{$ifndef DOMHTMLSELECTELEMENT_PAS_T}
-{$define DOMHTMLSELECTELEMENT_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef DOMHTMLSELECTELEMENT_PAS_R}
-{$define DOMHTMLSELECTELEMENT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMHTMLSELECTELEMENT_PAS_F}
-{$define DOMHTMLSELECTELEMENT_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMHTMLSELECTELEMENT_PAS_S}
-{$define DOMHTMLSELECTELEMENT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  DOMHTMLSelectElement = objcclass;
-  DOMHTMLSelectElementPointer = ^DOMHTMLSelectElement;
-  DOMHTMLSelectElementPtr = DOMHTMLSelectElementPointer;
-
+type
+  DOMHTMLSelectElementPtr = ^DOMHTMLSelectElement;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef DOMHTMLSELECTELEMENT_PAS_C}
-{$define DOMHTMLSELECTELEMENT_PAS_C}
 
-{ DOMHTMLSelectElement }
+type
   DOMHTMLSelectElement = objcclass external (DOMHTMLElement)
-    
   public
-    function type_: NSString; message 'type_';
-    procedure setSelectedIndex (newValue: cint); message 'setSelectedIndex:';
-    function selectedIndex: cint; message 'selectedIndex';
-    procedure setValue (newValue: NSString); message 'setValue:';
-    function value: NSString; message 'value';
-    function length: cint; message 'length';
-    function form: DOMHTMLFormElement; message 'form';
-    function willValidate: ObjCBOOL; message 'willValidate';
-    function options: DOMHTMLOptionsCollection; message 'options';
-    procedure setDisabled (newValue: ObjCBOOL); message 'setDisabled:';
-    function disabled: ObjCBOOL; message 'disabled';
-    procedure setAutofocus (newValue: ObjCBOOL); message 'setAutofocus:';
+    procedure setAutofocus(newValue: ObjCBOOL); message 'setAutofocus:';
     function autofocus: ObjCBOOL; message 'autofocus';
-    procedure setMultiple (newValue: ObjCBOOL); message 'setMultiple:';
+    procedure setDisabled(newValue: ObjCBOOL); message 'setDisabled:';
+    function disabled: ObjCBOOL; message 'disabled';
+    function form: DOMHTMLFormElement; message 'form';
+    procedure setMultiple(newValue: ObjCBOOL); message 'setMultiple:';
     function multiple: ObjCBOOL; message 'multiple';
-    procedure setName (newValue: NSString); message 'setName:';
+    procedure setName(newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
-    procedure setSize (newValue: cint); message 'setSize:';
+    procedure setSize(newValue: cint); message 'setSize:';
     function size: cint; message 'size';
-    procedure add_before(element: DOMHTMLElement; before: DOMHTMLElement); message 'add:before:';
-    procedure remove(index: cint); message 'remove:';
-    function item(index: cuint): DOMNode; message 'item:';
-    function namedItem(name_: NSString): DOMNode; message 'namedItem:';
+    function type_: NSString; message 'type';
+    function options: DOMHTMLOptionsCollection; message 'options';
+    function length: cint; message 'length';
+    procedure setSelectedIndex(newValue: cint); message 'setSelectedIndex:';
+    function selectedIndex: cint; message 'selectedIndex';
+    procedure setValue(newValue: NSString); message 'setValue:';
+    function value: NSString; message 'value';
+    function willValidate: ObjCBOOL; message 'willValidate';
+    function item (index: cuint): DOMNode; message 'item:'; { available in 10_6 }
+    function namedItem (name_: NSString): DOMNode; message 'namedItem:'; { available in 10_6 }
+    procedure add_before (element: DOMHTMLElement; before: DOMHTMLElement); message 'add:before:'; { available in 10_5 }
+    procedure remove (index: cint); message 'remove:';
   end;
 
-{ DOMHTMLSelectElementDeprecatedCategory }
-  DOMHTMLSelectElementDeprecatedCategory = objccategory external (DOMHTMLSelectElement)
-    procedure add(element: DOMHTMLElement; before: DOMHTMLElement); message 'add:element:'; deprecated 'in_webkit_version_3 and later';
-  end;
 
+type
+  DOMHTMLSelectElementDeprecated = objccategory external (DOMHTMLSelectElement)
+    procedure add (element: DOMHTMLElement); message 'add:'; deprecated 'in 10_4, 10_5';
+  end;
 {$endif}
-{$endif}
+

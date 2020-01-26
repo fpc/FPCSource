@@ -1,51 +1,18 @@
-{ Parsed from Webkit.framework DOMHTMLMenuElement.h }
+{ Parsed from WebKit.framework DOMHTMLMenuElement.h }
+
 
 {$ifdef TYPES}
-{$ifndef DOMHTMLMENUELEMENT_PAS_T}
-{$define DOMHTMLMENUELEMENT_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef DOMHTMLMENUELEMENT_PAS_R}
-{$define DOMHTMLMENUELEMENT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMHTMLMENUELEMENT_PAS_F}
-{$define DOMHTMLMENUELEMENT_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMHTMLMENUELEMENT_PAS_S}
-{$define DOMHTMLMENUELEMENT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  DOMHTMLMenuElement = objcclass;
-  DOMHTMLMenuElementPointer = ^DOMHTMLMenuElement;
-  DOMHTMLMenuElementPtr = DOMHTMLMenuElementPointer;
-
+type
+  DOMHTMLMenuElementPtr = ^DOMHTMLMenuElement;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef DOMHTMLMENUELEMENT_PAS_C}
-{$define DOMHTMLMENUELEMENT_PAS_C}
 
-{ DOMHTMLMenuElement }
+type
   DOMHTMLMenuElement = objcclass external (DOMHTMLElement)
-    
   public
-    procedure setCompact (newValue: ObjCBOOL); message 'setCompact:';
+    procedure setCompact(newValue: ObjCBOOL); message 'setCompact:';
     function compact: ObjCBOOL; message 'compact';
   end;
+{$endif}
 
-{$endif}
-{$endif}

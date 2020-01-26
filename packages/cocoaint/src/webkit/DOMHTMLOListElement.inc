@@ -1,55 +1,22 @@
-{ Parsed from Webkit.framework DOMHTMLOListElement.h }
+{ Parsed from WebKit.framework DOMHTMLOListElement.h }
+
 
 {$ifdef TYPES}
-{$ifndef DOMHTMLOLISTELEMENT_PAS_T}
-{$define DOMHTMLOLISTELEMENT_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef DOMHTMLOLISTELEMENT_PAS_R}
-{$define DOMHTMLOLISTELEMENT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMHTMLOLISTELEMENT_PAS_F}
-{$define DOMHTMLOLISTELEMENT_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMHTMLOLISTELEMENT_PAS_S}
-{$define DOMHTMLOLISTELEMENT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  DOMHTMLOListElement = objcclass;
-  DOMHTMLOListElementPointer = ^DOMHTMLOListElement;
-  DOMHTMLOListElementPtr = DOMHTMLOListElementPointer;
-
+type
+  DOMHTMLOListElementPtr = ^DOMHTMLOListElement;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef DOMHTMLOLISTELEMENT_PAS_C}
-{$define DOMHTMLOLISTELEMENT_PAS_C}
 
-{ DOMHTMLOListElement }
+type
   DOMHTMLOListElement = objcclass external (DOMHTMLElement)
-    
   public
-    procedure setCompact (newValue: ObjCBOOL); message 'setCompact:';
+    procedure setCompact(newValue: ObjCBOOL); message 'setCompact:';
     function compact: ObjCBOOL; message 'compact';
-    procedure setStart (newValue: cint); message 'setStart:';
+    procedure setStart(newValue: cint); message 'setStart:';
     function start: cint; message 'start';
-    procedure setType (newValue: NSString); message 'setType:';
-    function type_: NSString; message 'type_';
+    procedure setType(newValue: NSString); message 'setType:';
+    function type_: NSString; message 'type';
   end;
+{$endif}
 
-{$endif}
-{$endif}
