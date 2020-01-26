@@ -1785,22 +1785,18 @@ implementation
         fromtemp:=nil;
         storefilepos:=current_filepos;
         current_filepos:=fileinfo;
-        do_loopvar_at_end:=(lnf_dont_mind_loopvar_on_exit in loopflags)
-        { if the loop is unrolled and there is a jump into the loop,
-          then we can't do the trick with incrementing the loop var only at the
-          end
-        }
-          and not(assigned(entrylabel));
+        do_loopvar_at_end:=(lnf_dont_mind_loopvar_on_exit in loopflags) and
+          (right.nodetype=ordconstn) and (t1.nodetype=ordconstn) and
+          { we cannot test at the end after the inc/dec if the to value is equal to the max. value of the counter variable }
+          not(not(is_signed(left.resultdef)) and (tordconstnode(t1).value<>((1 shl (left.resultdef.size*8))-1))) and
+          not(is_signed(left.resultdef) and (tordconstnode(t1).value<>((1 shl (left.resultdef.size*8-1))-1))) and
+          { if the loop is unrolled and there is a jump into the loop,
+            then we can't do the trick with incrementing the loop var only at the
+            end
+          }
+          not(assigned(entrylabel));
 
-         { calculate pointer value and check if changeable and if so
-           load into temporary variable                              }
-         if (right.nodetype<>ordconstn) or (t1.nodetype<>ordconstn) then
-           begin
-             do_loopvar_at_end:=false;
-             needsifblock:=true;
-           end
-         else
-           needsifblock:=false;
+        needsifblock:=(right.nodetype<>ordconstn) or (t1.nodetype<>ordconstn);
 
         { convert the for loop into a while loop }
         result:=internalstatements(statements);
