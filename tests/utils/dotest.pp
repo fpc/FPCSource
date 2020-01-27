@@ -1292,6 +1292,7 @@ var
   execres  : boolean;
   EndTicks,
   StartTicks : int64;
+  OldExecuteResult: longint;
 begin
   RunExecutable:=false;
   execres:=true;
@@ -1369,6 +1370,7 @@ begin
       if (deAfter in DelExecutable) and
          not Config.NeededAfter then
         begin
+          { Delete executable if not needed after }
           execcmd:=execcmd+' ; rm ';
           if rshprog <> 'adb' then
             execcmd:=execcmd+'-f ';
@@ -1395,7 +1397,16 @@ begin
                 execcmd:=execcmd + 'rm ' + s;
               execcmd:=execcmd + '; ';
             end;
-          ExecuteRemote(rshprog,execcmd+'}'+rquote,StartTicks,EndTicks);
+          execcmd:=execcmd+'}'+rquote;
+          // Save ExecuteResult and EXELogFile
+          OldExecuteResult:=ExecuteResult;
+          s:=EXELogFile;
+          // Output results of cleanup commands to stdout
+          EXELogFile:='';
+          ExecuteRemote(rshprog,execcmd,StartTicks,EndTicks);
+          // Restore
+          EXELogFile:=s;
+          ExecuteResult:=OldExecuteResult;
         end;
     end
   else
