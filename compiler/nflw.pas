@@ -1293,6 +1293,7 @@ implementation
          if (lnf_testatbegin in loopflags) and
             (left.nodetype=ordconstn) and
             (tordconstnode(left).value.uvalue=0) and
+            not(nf_internal in left.flags) and
             assigned(right) then
            CGMessagePos(right.fileinfo,cg_w_unreachable_code);
       end;
@@ -1556,7 +1557,7 @@ implementation
                   else
                     result:=cnothingnode.create;
                   right:=nil;
-                  if warn and assigned(t1) then
+                  if warn and assigned(t1) and not(nf_internal in left.flags) then
                     CGMessagePos(t1.fileinfo,cg_w_unreachable_code);
                end
              else
@@ -1566,7 +1567,7 @@ implementation
                   else
                     result:=cnothingnode.create;
                   t1:=nil;
-                  if warn and assigned(right) then
+                  if warn and assigned(right) and not(nf_internal in left.flags) then
                     CGMessagePos(right.fileinfo,cg_w_unreachable_code);
                end;
           end;
