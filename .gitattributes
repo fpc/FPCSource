@@ -12905,6 +12905,13 @@ tests/test/cg/obj/aix/powerpc64/tcext4.o -text
 tests/test/cg/obj/aix/powerpc64/tcext5.o -text
 tests/test/cg/obj/aix/powerpc64/tcext6.o -text
 tests/test/cg/obj/amiga/m68k/ctest.o -text
+tests/test/cg/obj/android/aarch64/cpptcl1.o -text
+tests/test/cg/obj/android/aarch64/cpptcl2.o -text
+tests/test/cg/obj/android/aarch64/ctest.o -text
+tests/test/cg/obj/android/aarch64/tcext3.o -text
+tests/test/cg/obj/android/aarch64/tcext4.o -text
+tests/test/cg/obj/android/aarch64/tcext5.o -text
+tests/test/cg/obj/android/aarch64/tcext6.o -text
 tests/test/cg/obj/android/arm-eabi/cpptcl1.o -text
 tests/test/cg/obj/android/arm-eabi/cpptcl2.o -text
 tests/test/cg/obj/android/arm-eabi/ctest.o -text
@@ -12933,6 +12940,13 @@ tests/test/cg/obj/android/mipsel/tcext3.o -text
 tests/test/cg/obj/android/mipsel/tcext4.o -text
 tests/test/cg/obj/android/mipsel/tcext5.o -text
 tests/test/cg/obj/android/mipsel/tcext6.o -text
+tests/test/cg/obj/android/x86_64/cpptcl1.o -text
+tests/test/cg/obj/android/x86_64/cpptcl2.o -text
+tests/test/cg/obj/android/x86_64/ctest.o -text
+tests/test/cg/obj/android/x86_64/tcext3.o -text
+tests/test/cg/obj/android/x86_64/tcext4.o -text
+tests/test/cg/obj/android/x86_64/tcext5.o -text
+tests/test/cg/obj/android/x86_64/tcext6.o -text
 tests/test/cg/obj/beos/i386/ctest.o -text
 tests/test/cg/obj/beos/i386/tcext3.o -text
 tests/test/cg/obj/beos/i386/tcext4.o -text
