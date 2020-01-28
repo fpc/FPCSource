@@ -944,9 +944,13 @@ implementation
                LOC_REGISTER:
                  begin
                    if not(is_constnode(right)) or (tarraydef(left.resultdef).elementdef.size<>alusinttype.size) then
-                     hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
-                   { we use location here only to get the right offset }
-                   location_reset_ref(location,LOC_REFERENCE,OS_NO,1,[]);
+                     begin
+                       hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+                       location_copy(location,left.location);
+                     end
+                   else
+                     { we use location here only to get the right offset }
+                     location_reset_ref(location,LOC_REFERENCE,OS_NO,1,[]);
                  end;
                LOC_CSUBSETREG,
                LOC_CMMREGISTER,
