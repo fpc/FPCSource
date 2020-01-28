@@ -857,7 +857,9 @@ implementation
          temp : longint;
          hreg : tregister;
          indexdef : tdef;
+         {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
          i : Integer;
+         {$endif}
       begin
          paraloc1.init;
          paraloc2.init;

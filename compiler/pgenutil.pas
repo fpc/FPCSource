@@ -453,16 +453,11 @@ uses
 
     function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;parsedtype:tdef;symname:string;parsedpos:tfileposinfo):tdef;
       var
-        pt2 : tnode;
         found,
-        first,
         err : boolean;
         i,
         gencount : longint;
-        def : tstoreddef;
         countstr,genname,ugenname : string;
-        srsym : tsym;
-        st : tsymtable;
         tmpstack : tfpobjectlist;
       begin
         context:=nil;
