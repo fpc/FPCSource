@@ -504,7 +504,7 @@ implementation
          isunique,
          istyperenaming : boolean;
          generictypelist : tfphashobjectlist;
-         generictokenbuf : tdynamicarray;
+         localgenerictokenbuf : tdynamicarray;
          vmtbuilder : TVMTBuilder;
          p:tnode;
          gendef : tstoreddef;
@@ -527,7 +527,7 @@ implementation
            defpos:=current_tokenpos;
            istyperenaming:=false;
            generictypelist:=nil;
-           generictokenbuf:=nil;
+           localgenerictokenbuf:=nil;
 
            { fpc generic declaration? }
            if first then
@@ -584,8 +584,8 @@ implementation
            { Start recording a generic template }
            if assigned(generictypelist) then
              begin
-               generictokenbuf:=tdynamicarray.create(256);
-               current_scanner.startrecordtokens(generictokenbuf);
+               localgenerictokenbuf:=tdynamicarray.create(256);
+               current_scanner.startrecordtokens(localgenerictokenbuf);
              end;
 
            { is the type already defined? -- must be in the current symtable,
@@ -973,7 +973,7 @@ implementation
            if assigned(generictypelist) then
              begin
                current_scanner.stoprecordtokens;
-               tstoreddef(hdef).generictokenbuf:=generictokenbuf;
+               tstoreddef(hdef).generictokenbuf:=localgenerictokenbuf;
                { Generic is never a type renaming }
                hdef.typesym:=newtype;
                generictypelist.free;
