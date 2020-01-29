@@ -1628,7 +1628,9 @@ const
          (mask:pi_has_except_table_data;
          str:' has except table data '),
          (mask:pi_needs_tls;
-         str:' uses TLS data pointer ')
+         str:' uses TLS data pointer '),
+         (mask:pi_uses_get_frame;
+         str:' uses get_frame')
   );
 var
   procinfooptions : tprocinfoflags;

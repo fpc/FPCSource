@@ -208,6 +208,12 @@ implementation
             exit;
           end;
 
+        if pi_uses_get_frame in current_procinfo.flags then
+          begin
+            _no_inline('get_frame');
+            exit;
+          end;
+
         for i:=0 to procdef.paras.count-1 do
           begin
             currpara:=tparavarsym(procdef.paras[i]);
