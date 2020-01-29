@@ -2652,24 +2652,40 @@ unit aoptx86;
             lea offset2(reg1), reg1
             to
             lea offset1+offset2(regX), reg1 }
-        if GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[1]^.reg) and
-          MatchInstruction(hp1,A_LEA,[S_L]) and
+
+        { for now, we do not mess with the stack pointer, thought it might be usefull to remove
+          unneeded lea sequences on the stack pointer, it needs to be tested in detail }
+        if (taicpu(p).oper[1]^.reg <> NR_STACK_POINTER_REG) and
+          GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[1]^.reg) and
+          MatchInstruction(hp1,A_LEA,[taicpu(p).opsize]) and
           MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and
           (taicpu(hp1).oper[0]^.ref^.base=taicpu(p).oper[1]^.reg) and
-          (taicpu(p).oper[0]^.ref^.index=NR_NO) and
           (taicpu(p).oper[0]^.ref^.relsymbol=nil) and
-          (taicpu(p).oper[0]^.ref^.scalefactor in [0,1]) and
           (taicpu(p).oper[0]^.ref^.segment=NR_NO) and
           (taicpu(p).oper[0]^.ref^.symbol=nil) and
-          (taicpu(p).oper[0]^.ref^.index=taicpu(hp1).oper[0]^.ref^.index) and
+          (((taicpu(p).oper[0]^.ref^.scalefactor in [0,1]) and
+            (taicpu(p).oper[0]^.ref^.index=NR_NO) and
+            (taicpu(p).oper[0]^.ref^.index=taicpu(hp1).oper[0]^.ref^.index) and
+            (taicpu(p).oper[0]^.ref^.scalefactor=taicpu(hp1).oper[0]^.ref^.scalefactor)
+           ) or
+           ((taicpu(hp1).oper[0]^.ref^.scalefactor in [0,1]) and
+            (taicpu(p).oper[0]^.ref^.base=NR_NO) and
+            not(RegUsedBetween(taicpu(p).oper[0]^.ref^.index,p,hp1)))
+          ) and
+          not(RegUsedBetween(taicpu(p).oper[0]^.ref^.base,p,hp1)) and
           (taicpu(p).oper[0]^.ref^.relsymbol=taicpu(hp1).oper[0]^.ref^.relsymbol) and
-          (taicpu(p).oper[0]^.ref^.scalefactor=taicpu(hp1).oper[0]^.ref^.scalefactor) and
           (taicpu(p).oper[0]^.ref^.segment=taicpu(hp1).oper[0]^.ref^.segment) and
           (taicpu(p).oper[0]^.ref^.symbol=taicpu(hp1).oper[0]^.ref^.symbol) then
           begin
             DebugMsg(SPeepholeOptimization + 'LeaLea2Lea done',p);
             inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.ref^.offset);
             taicpu(hp1).oper[0]^.ref^.base:=taicpu(p).oper[0]^.ref^.base;
+            if taicpu(p).oper[0]^.ref^.index<>NR_NO then
+              begin
+                taicpu(hp1).oper[0]^.ref^.base:=taicpu(hp1).oper[0]^.ref^.index;
+                taicpu(hp1).oper[0]^.ref^.index:=taicpu(p).oper[0]^.ref^.index;
+                taicpu(hp1).oper[0]^.ref^.scalefactor:=taicpu(p).oper[0]^.ref^.scalefactor;
+              end;
             RemoveCurrentP(p);
             result:=true;
             exit;
