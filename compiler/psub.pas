@@ -211,6 +211,9 @@ implementation
         if pi_uses_get_frame in current_procinfo.flags then
           begin
             _no_inline('get_frame');
+            { for LLVM: it can inline things that FPC can't, but it mustn't
+              inline this one }
+            include(current_procinfo.procdef.implprocoptions,pio_inline_forbidden);
             exit;
           end;
 
