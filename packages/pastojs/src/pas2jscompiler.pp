@@ -125,6 +125,7 @@ type
     // features
     coAllowCAssignments,
     coAllowMacros,
+    coWriteableConst,
     // output
     coLowerCase,
     coUseStrict,
@@ -153,7 +154,7 @@ type
   TResourceMode = (rmNone,rmHTML,rmJS);
 
 const
-  DefaultP2jsCompilerOptions = [coShowErrors,coSourceMapXSSIHeader,coUseStrict];
+  DefaultP2jsCompilerOptions = [coShowErrors,coWriteableConst,coUseStrict,coSourceMapXSSIHeader];
   DefaultP2JSResourceStringFile = rsfProgram;
   DefaultP2jsRTLVersionCheck = rvcNone;
   DefaultResourceMode = rmHTML;
@@ -185,6 +186,7 @@ const
     'Assertions',
     'Allow C assignments',
     'Allow macros',
+    'Allows typed constants to be writeable',
     'Lowercase identifiers',
     'Use strict',
     'Write pas2jsdebug.log',
@@ -1008,8 +1010,12 @@ var
   bs: TBoolSwitches;
 begin
   bs:=[bsLongStrings,bsWriteableConst];
-  if coAllowMacros in Compiler.Options then
-    Include(bs,bsMacro);
+  if coShowHints in Compiler.Options then
+    Include(bs,bsHints);
+  if coShowNotes in Compiler.Options then
+    Include(bs,bsNotes);
+  if coShowWarnings in Compiler.Options then
+    Include(bs,bsWarnings);
   if coOverflowChecks in Compiler.Options then
     Include(bs,bsOverflowChecks);
   if coRangeChecks in Compiler.Options then
@@ -1018,12 +1024,10 @@ begin
     Include(bs,bsObjectChecks);
   if coAssertions in Compiler.Options then
     Include(bs,bsAssertions);
-  if coShowHints in Compiler.Options then
-    Include(bs,bsHints);
-  if coShowNotes in Compiler.Options then
-    Include(bs,bsNotes);
-  if coShowWarnings in Compiler.Options then
-    Include(bs,bsWarnings);
+  if coAllowMacros in Compiler.Options then
+    Include(bs,bsMacro);
+  if not (coWriteableConst in Compiler.Options) then
+    Exclude(bs,bsWriteableConst);
   Result:=bs;
 end;
 
@@ -3990,7 +3994,7 @@ var
   Enabled, Disabled: string;
   i: Integer;
 begin
-  ReadSingleLetterOptions(Param,p,'2acdm',Enabled,Disabled);
+  ReadSingleLetterOptions(Param,p,'2acdmj',Enabled,Disabled);
   for i:=1 to length(Enabled) do begin
     case Enabled[i] of
     '2': Mode:=p2jmObjFPC;
@@ -3998,6 +4002,7 @@ begin
     'c': Options:=Options+[coAllowCAssignments];
     'd': Mode:=p2jmDelphi;
     'm': Options:=Options+[coAllowMacros];
+    'j': Options:=Options+[coWriteableConst];
     end;
   end;
   for i:=1 to length(Disabled) do begin
@@ -4007,6 +4012,7 @@ begin
     'c': Options:=Options-[coAllowCAssignments];
     'd': ;
     'm': Options:=Options-[coAllowMacros];
+    'j': Options:=Options-[coWriteableConst];
     end;
   end;
 end;
