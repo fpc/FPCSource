@@ -1403,6 +1403,8 @@ implementation
             ((n.nodetype in [derefn,vecn,subscriptn]) or
              ((n.nodetype in [addn,subn,muln,divn,slashn,unaryminusn]) and (n.localswitches*[cs_check_overflow,cs_check_range]<>[]))
             )
+           ) or
+           ((n.nodetype=loadn) and (tloadnode(n).symtableentry.typ=absolutevarsym) and (tabsolutevarsym(tloadnode(n).symtableentry).abstyp=toaddr)
            ) then
           result:=fen_norecurse_true;
       end;
