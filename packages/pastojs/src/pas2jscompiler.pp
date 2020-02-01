@@ -4672,11 +4672,12 @@ begin
   w('    -Pecmascript5: default');
   w('    -Pecmascript6');
   w('  -S<x>  : Syntax options. <x> is a combination of the following letters:');
+  w('    2    : Same as -Mobjfpc (default)');
   w('    a    : Turn on assertions');
   w('    c    : Support operators like C (*=,+=,/= and -=)');
   w('    d    : Same as -Mdelphi');
+  w('    j    : Allows typed constants to be writeable (default)');
   w('    m    : Enables macro replacements');
-  w('    2    : Same as -Mobjfpc (default)');
   w('  -SI<x>  : Set interface style to <x>');
   w('    -SIcom  : COM, reference counted interface (default)');
   w('    -SIcorba: CORBA interface');
