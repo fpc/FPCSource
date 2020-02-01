@@ -240,7 +240,9 @@ Type
       ct_attiny1617,
       ct_attiny3214,
       ct_attiny3216,
-      ct_attiny3217
+      ct_attiny3217,
+      ct_attiny102,
+      ct_attiny104
      );
 
    tcontrollerdatatype = record
@@ -502,6 +504,8 @@ Const
         ,(controllertypestr:'ATTINY3214'; controllerunitstr:'ATTINY3214'; cputype: cpu_avrxmega3; fputype:fpu_soft; flashbase:0; flashsize:32768; srambase:14336; sramsize:2048; eeprombase:5120; eepromsize:256)
         ,(controllertypestr:'ATTINY3216'; controllerunitstr:'ATTINY3216'; cputype: cpu_avrxmega3; fputype:fpu_soft; flashbase:0; flashsize:32768; srambase:14336; sramsize:2048; eeprombase:5120; eepromsize:256)
         ,(controllertypestr:'ATTINY3217'; controllerunitstr:'ATTINY3217'; cputype: cpu_avrxmega3; fputype:fpu_soft; flashbase:0; flashsize:32768; srambase:14336; sramsize:2048; eeprombase:5120; eepromsize:256)
+        ,(controllertypestr:'ATTINY102'; controllerunitstr:'ATTINY102'; cputype: cpu_avrtiny; fputype:fpu_soft; flashbase:0; flashsize:1024; srambase:64; sramsize:32; eeprombase:0; eepromsize:0)
+        ,(controllertypestr:'ATTINY104'; controllerunitstr:'ATTINY104'; cputype: cpu_avrtiny; fputype:fpu_soft; flashbase:0; flashsize:1024; srambase:64; sramsize:32; eeprombase:0; eepromsize:0)
    );
 
    { Supported optimizations, only used for information }
