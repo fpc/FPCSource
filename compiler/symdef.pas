@@ -88,7 +88,6 @@ interface
           genericdef      : tstoreddef;
           genericdefderef : tderef;
           generictokenbuf : tdynamicarray;
-          generic_buf_needs_swapping : boolean;
           { this list contains references to the symbols that make up the
             generic parameters; the symbols are not owned by this list
             Note: this list is allocated on demand! }
@@ -1812,7 +1811,6 @@ implementation
          fileinfo := current_filepos;
 {$endif}
          generictokenbuf:=nil;
-         generic_buf_needs_swapping:=false;
          genericdef:=nil;
          typesymderef.reset;
          genericdefderef.reset;
@@ -1906,7 +1904,6 @@ implementation
            begin
              sizeleft:=ppufile.getlongint;
              initgeneric;
-             generic_buf_needs_swapping:=ppufile.change_endian;
              while sizeleft>0 do
                begin
                  if sizeleft>sizeof(buf) then
