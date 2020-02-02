@@ -1523,11 +1523,13 @@ implementation
             begin
               result:=caddnode.create(muln,getcopy,cordconstnode.create(10000,resultdef,false));
               include(result.flags,nf_is_currency);
+              include(taddnode(result).left.flags,nf_internal);
             end
            else if is_currency(left.resultdef) then
             begin
               result:=cmoddivnode.create(divn,getcopy,cordconstnode.create(10000,resultdef,false));
               include(result.flags,nf_is_currency);
+              include(taddnode(result).left.flags,nf_internal);
             end;
          end;
       end;
@@ -3138,6 +3140,7 @@ implementation
               else if (convtype=tc_int_2_int) and
                 is_currency(resultdef) then
                 begin
+                  printnode(self);
                   v:=tordconstnode(left).value;
                   if not(nf_internal in flags) and not(is_currency(left.resultdef)) then
                     v:=v*10000;
