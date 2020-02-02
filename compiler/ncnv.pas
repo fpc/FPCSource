@@ -3140,7 +3140,6 @@ implementation
               else if (convtype=tc_int_2_int) and
                 is_currency(resultdef) then
                 begin
-                  printnode(self);
                   v:=tordconstnode(left).value;
                   if not(nf_internal in flags) and not(is_currency(left.resultdef)) then
                     v:=v*10000;
