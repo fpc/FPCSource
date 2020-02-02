@@ -935,7 +935,11 @@ type
         end;
       );
       3 :(
+        {$ifdef CPU64}
+        dol_Misc: array[0..39] of Byte;
+        {$else}
         dol_Misc: array[0..23] of Byte;
+        {$endif}
         dol_Name: BSTR;           {    bptr to bcpl name }
       );
     end;
