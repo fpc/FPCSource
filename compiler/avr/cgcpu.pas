@@ -2521,7 +2521,7 @@ unit cgcpu;
             SrcQuickRef:=false;
             DestQuickRef:=false;
             if ((CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) and
-              not((source.Base=NR_NO) and (source.Index=NR_NO) and (source.symbol=nil) and (source.Offset in [0..64-len]))) or
+              not((source.Base=NR_NO) and (source.Index=NR_NO) and (source.symbol=nil) and (source.Offset in [0..192-len]))) or
               (
                  not((source.addressmode=AM_UNCHANGED) and
                      (source.symbol=nil) and
@@ -2543,7 +2543,7 @@ unit cgcpu;
               end;
 
             if ((CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) and
-              not((dest.Base=NR_NO) and (dest.Index=NR_NO) and (dest.symbol=nil) and (dest.Offset in [0..64-len]))) or
+              not((dest.Base=NR_NO) and (dest.Index=NR_NO) and (dest.symbol=nil) and (dest.Offset in [0..192-len]))) or
               (
                  not((dest.addressmode=AM_UNCHANGED) and
                    (dest.symbol=nil) and
