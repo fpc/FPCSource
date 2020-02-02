@@ -226,9 +226,6 @@ implementation
         result.intsize:=intsize;
         result.def:=def;
         result.Temporary:=Temporary;
-{$ifdef powerpc}
-        result.composite:=composite;
-{$endif powerpc}
       end;
 
 
