@@ -3900,10 +3900,16 @@ unit aoptx86;
               To:
                 leal/q x(%reg1),%reg2   leal/q -x(%reg1),%reg2
             }
+            TransferUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+            UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
             if not GetNextInstruction(hp1, hp2) or
+              (
               { The FLAGS register isn't always tracked properly, so do not
                 perform this optimisation if a conditional statement follows }
-              not MatchInstruction(hp2, [A_Jcc, A_SETcc, A_CMOVcc], []) then
+                not RegReadByInstruction(NR_DEFAULTFLAGS, hp2) and
+                not RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp2, TmpUsedRegs)
+              ) then
               begin
                 reference_reset(NewRef, 1, []);
                 NewRef.base := taicpu(p).oper[0]^.reg;
