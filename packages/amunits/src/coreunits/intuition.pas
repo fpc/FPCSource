@@ -2378,7 +2378,7 @@ Const
 
 { these are the definitions for the printer configurations }
     FILENAME_SIZE       = 30;           { Filename size }
-
+    DEVNAME_SIZE        = 16;
     POINTERSIZE         = (1 + 16 + 1) * 2;     { Size of Pointer data buffer }
 
 { These defines are for the default font size.   These actually describe the
@@ -2469,8 +2469,11 @@ Type
                              { lower nibble = (value for Handshake mode) }
         LaceWB          : Byte;         { if workbench is to be interlaced      }
 
-        WorkName        : Array [0..FILENAME_SIZE-1] of Char;
+        Pad             : array[0..11] of Byte;
+        PrtDevName      : array [0..DEVNAME_SIZE-1] of Char;
                                         { temp file for printer         }
+        DefaultPrtUnit: Byte;
+        DefaultSerUnit: Byte;
 
         RowSizeChange   : Shortint;
         ColumnSizeChange : Shortint;
@@ -4233,6 +4236,7 @@ function CoerceMethodA(Cl: PIClass; Obj: PObject_; Msg: APTR): PtrUInt;
 function SetSuperAttrsA(Cl: PIClass; Obj: PObject_; Msg : APTR): PtrUInt;
 
 function DoMethod(Obj: PObject_; Params: array of PtrUInt): LongWord; inline;
+function DoSuperMethod(Cl: PIClass; Obj: PObject_; const Params: array of PtrUInt): PtrUInt; inline;
 
 IMPLEMENTATION
 
@@ -4442,6 +4446,11 @@ begin
     DoSuperMethodA := CallHookPkt(@Cl^.cl_Super^.cl_Dispatcher, Obj, Msg)
   else
     DoSuperMethodA := 0;
+end;
+
+function DoSuperMethod(Cl: PIClass; Obj: PObject_; const Params: array of PtrUInt): PTrUInt;
+begin
+  DoSuperMethod := DoSuperMethodA(Cl, Obj, @Params);
 end;
 
 function CoerceMethodA(Cl: PIClass; Obj: PObject_; Msg: APTR): PtrUInt;
