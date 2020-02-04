@@ -851,7 +851,7 @@ asm
  shld eax, ecx, 16
 @FGetDateEnd:
  pop ebx
- xorl edx,edx
+ xor edx,edx
 end {['eax', 'ebx', 'ecx', 'edx']};
 
 
