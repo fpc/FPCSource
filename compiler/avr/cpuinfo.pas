@@ -242,7 +242,19 @@ Type
       ct_attiny3216,
       ct_attiny3217,
       ct_attiny102,
-      ct_attiny104
+      ct_attiny104,
+      // Controller board aliases
+      ct_arduinoleonardo,
+      ct_arduinomega,
+      ct_arduinomicro,
+      ct_arduinonano,
+      ct_arduinonanoevery,
+      ct_arduinouno,
+      ct_atmega324xpro,
+      ct_atmega1284pxplained,
+      ct_atmega4809xpro,
+      ct_attiny817xpro,
+      ct_attiny3217xpro
      );
 
    tcontrollerdatatype = record
@@ -506,6 +518,18 @@ Const
         ,(controllertypestr:'ATTINY3217'; controllerunitstr:'ATTINY3217'; cputype: cpu_avrxmega3; fputype:fpu_soft; flashbase:0; flashsize:32768; srambase:14336; sramsize:2048; eeprombase:5120; eepromsize:256)
         ,(controllertypestr:'ATTINY102'; controllerunitstr:'ATTINY102'; cputype: cpu_avrtiny; fputype:fpu_soft; flashbase:0; flashsize:1024; srambase:64; sramsize:32; eeprombase:0; eepromsize:0)
         ,(controllertypestr:'ATTINY104'; controllerunitstr:'ATTINY104'; cputype: cpu_avrtiny; fputype:fpu_soft; flashbase:0; flashsize:1024; srambase:64; sramsize:32; eeprombase:0; eepromsize:0)
+        // Controller board aliases
+        ,(controllertypestr:'ARDUINOLEONARDO'; controllerunitstr:'ATMEGA32U4'; cputype: cpu_avr5; fputype:fpu_soft; flashbase:0; flashsize:32768; srambase:256; sramsize:2560; eeprombase:0; eepromsize:1024)
+        ,(controllertypestr:'ARDUINOMEGA'; controllerunitstr:'ATMEGA2560'; cputype: cpu_avr6; fputype:fpu_soft; flashbase:0; flashsize:262144; srambase:512; sramsize:8192; eeprombase:0; eepromsize:4096)
+        ,(controllertypestr:'ARDUINOMICRO'; controllerunitstr:'ATMEGA32U4'; cputype: cpu_avr5; fputype:fpu_soft; flashbase:0; flashsize:32768; srambase:256; sramsize:2560; eeprombase:0; eepromsize:1024)
+        ,(controllertypestr:'ARDUINONANO'; controllerunitstr:'ATMEGA328P'; cputype: cpu_avr5; fputype:fpu_soft; flashbase:0; flashsize:32768; srambase:256; sramsize:2048; eeprombase:0; eepromsize:1024)
+        ,(controllertypestr:'ARDUINONANOEVERY'; controllerunitstr:'ATMEGA4809'; cputype: cpu_avrxmega3; fputype:fpu_soft; flashbase:0; flashsize:49152; srambase:10240; sramsize:6144; eeprombase:5120; eepromsize:256)
+        ,(controllertypestr:'ARDUINOUNO'; controllerunitstr:'ATMEGA328P'; cputype: cpu_avr5; fputype:fpu_soft; flashbase:0; flashsize:32768; srambase:256; sramsize:2048; eeprombase:0; eepromsize:1024)
+        ,(controllertypestr:'ATMEGA324XPRO'; controllerunitstr:'ATMEGA324P'; cputype: cpu_avr5; fputype:fpu_soft; flashbase:0; flashsize:32768; srambase:256; sramsize:2048; eeprombase:0; eepromsize:1024)
+        ,(controllertypestr:'ATMEGA1284PXPLAINED'; controllerunitstr:'ATMEGA1284P'; cputype: cpu_avr51; fputype:fpu_soft; flashbase:0; flashsize:131072; srambase:256; sramsize:16384; eeprombase:0; eepromsize:4096)
+        ,(controllertypestr:'ATMEGA4809XPRO'; controllerunitstr:'ATMEGA4809'; cputype: cpu_avrxmega3; fputype:fpu_soft; flashbase:0; flashsize:49152; srambase:10240; sramsize:6144; eeprombase:5120; eepromsize:256)
+        ,(controllertypestr:'ATTINY817XPRO'; controllerunitstr:'ATTINY817'; cputype: cpu_avrxmega3; fputype:fpu_soft; flashbase:0; flashsize:8192; srambase:15872; sramsize:512; eeprombase:5120; eepromsize:128)
+        ,(controllertypestr:'ATTINY3217XPRO'; controllerunitstr:'ATTINY3217'; cputype: cpu_avrxmega3; fputype:fpu_soft; flashbase:0; flashsize:32768; srambase:14336; sramsize:2048; eeprombase:5120; eepromsize:256)
    );
 
    { Supported optimizations, only used for information }
