@@ -2935,7 +2935,7 @@ ifeq ($(findstring $(CPU_TARGET), $(BuildOnlyBaseCPUs)),)
 endif
 singlezipinstall: zipinstallall
 zipinstallall: $(BUILDSTAMP)
-ifeq($(FULL_SOURCE),$(FULL_TARGET))
+ifeq ($(FULL_SOURCE),$(FULL_TARGET))
 	$(MAKE) fpc_zipinstall ZIPTARGET=install FULLZIPNAME=fpc-$(PACKAGE_VERSION).$(TARGETSUFFIX) $(INSTALLOPTS)
 else
 	$(MAKE) fpc_zipinstall ZIPTARGET=install FULLZIPNAME=fpc-$(PACKAGE_VERSION).$(TARGETSUFFIX).built.on.$(SOURCESUFFIX) $(INSTALLOPTS)
