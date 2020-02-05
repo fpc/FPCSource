@@ -241,6 +241,7 @@ const
   AsmModeListPlaceholder = '$ASMMODES';
   ControllerListPlaceholder = '$CONTROLLERTYPES';
   FeatureListPlaceholder = '$FEATURELIST';
+  ModeSwitchListPlaceholder = '$MODESWITCHES';
 
   procedure SplitLine (var OrigString: TCmdStr; const Placeholder: TCmdStr;
                                                  var RemainderString: TCmdStr);
@@ -285,7 +286,7 @@ const
      begin
       hs1:=targetinfos[target]^.shortname;
       if OrigString = '' then
-       WriteLn (hs1)
+       Comment (V_Normal, hs1)
       else
        begin
         hs := OrigString;
@@ -311,13 +312,14 @@ const
       if (OrigString = '') then
        begin
         if CPUTypeStr [CPU] <> '' then
-         WriteLn (CPUTypeStr [CPU]);
+         Comment (V_Normal, CPUTypeStr [CPU]);
        end
       else
        begin
         if length(hs1+cputypestr[cpu])>70 then
          begin
           hs:=OrigString;
+          HS1 := HS1 + ',';
           Replace(hs,CPUListPlaceholder,hs1);
           Comment(V_Normal,hs);
           hs1:=''
@@ -350,13 +352,14 @@ const
       if (OrigString = '') then
        begin
         if FPUTypeStr [FPU] <> '' then
-         WriteLn (FPUTypeStr [FPU]);
+         Comment (V_Normal, FPUTypeStr [FPU]);
        end
       else
        begin
         if length(hs1+fputypestr[fpu])>70 then
          begin
           hs:=OrigString;
+          HS1 := HS1 + ',';
           Replace(hs,FPUListPlaceholder,hs1);
           Comment(V_Normal,hs);
           hs1:=''
@@ -391,7 +394,7 @@ const
       if hs1<>'' then
        begin
         if OrigString = '' then
-         WriteLn (HS1)
+         Comment (V_Normal, HS1)
         else
          begin
           hs:=OrigString;
@@ -417,7 +420,7 @@ const
         if hs1<>'' then
          begin
           if OrigString = '' then
-           WriteLn (hs1)
+           Comment (V_Normal, hs1)
           else
            begin
             hs:=OrigString;
@@ -446,7 +449,7 @@ const
         if hs1<>'' then
          begin
           if OrigString = '' then
-           WriteLn (hs1)
+           Comment (V_Normal, hs1)
           else
            begin
             hs:=OrigString;
@@ -472,7 +475,7 @@ const
       if hs1<>'' then
        begin
         if OrigString = '' then
-         WriteLn (hs1)
+         Comment (V_Normal, hs1)
         else
          begin
           hs:=OrigString;
@@ -500,7 +503,7 @@ const
         if (OrigString = '') then
          begin
           if Embedded_Controllers [ControllerType].ControllerTypeStr <> '' then
-           WriteLn (Embedded_Controllers [ControllerType].ControllerTypeStr);
+           Comment (V_Normal, Embedded_Controllers [ControllerType].ControllerTypeStr);
          end
         else
          begin
@@ -508,6 +511,7 @@ const
                                                                        >70 then
            begin
             hs:=OrigString;
+            HS1 := HS1 + ',';
             Replace(hs,ControllerListPlaceholder,hs1);
             Comment(V_Normal,hs);
             hs1:=''
@@ -542,13 +546,14 @@ const
       if (OrigString = '') then
        begin
         if FeatureStr [Feature] <> '' then
-         WriteLn (FeatureStr [Feature]);
+         Comment (V_Normal, FeatureStr [Feature]);
        end
       else
        begin
         if Length (HS1 + FeatureStr [Feature]) > 70 then
          begin
           HS := OrigString;
+          HS1 := HS1 + ',';
           Replace (HS, FeatureListPlaceholder, HS1);
           Comment (V_Normal, HS);
           HS1 := ''
@@ -568,6 +573,46 @@ const
      end;
     OrigString := HS3;
     SplitLine (OrigString, FeatureListPlaceholder, HS3);
+  end;
+
+  procedure ListModeswitches (OrigString: TCmdStr);
+  var
+    Modeswitch: TModeswitch;
+  begin
+    SplitLine (OrigString, ModeswitchListPlaceholder, HS3);
+    HS1 := '';
+    for Modeswitch := Low (TModeswitch) to High (TModeswitch) do
+     begin
+      if (OrigString = '') then
+       begin
+        if ModeswitchStr [Modeswitch] <> '' then
+         Comment (V_Normal, ModeswitchStr [Modeswitch]);
+       end
+      else
+       begin
+        if Length (HS1 + ModeswitchStr [Modeswitch]) > 60 then
+         begin
+          HS := OrigString;
+          HS1 := HS1 + ',';
+          Replace (HS, ModeswitchListPlaceholder, HS1);
+          Comment (V_Normal, HS);
+          HS1 := ''
+         end
+        else if HS1 <> '' then
+         HS1 := HS1 + ',';
+        if ModeswitchStr [Modeswitch] <> '' then
+         HS1 := HS1 + ModeswitchStr [Modeswitch];
+       end;
+     end;
+    if (OrigString <> '') and (HS1 <> '') then
+     begin
+      HS := OrigString;
+      Replace (HS, ModeswitchListPlaceholder, HS1);
+      Comment (V_Normal, HS);
+      HS1 := ''
+     end;
+    OrigString := HS3;
+    SplitLine (OrigString, ModeswitchListPlaceholder, HS3);
   end;
 
 begin
@@ -591,6 +636,8 @@ begin
        ListOptimizations (S)
       else if pos(WPOListPlaceholder,s)>0 then
        ListWPOptimizations (S)
+      else if Pos (ModeswitchListPlaceholder, S) > 0 then
+       ListModeswitches (S)
       else if pos(AsmModeListPlaceholder,s)>0 then
        ListAsmModes (S)
       else if pos(ControllerListPlaceholder,s)>0 then
@@ -607,12 +654,13 @@ begin
     while J <= Length (More) do
      begin
       if J > 1 then
-       WriteLn;  (* Put empty line between multiple sections *)
+       Comment(V_Normal,'');  (* Put empty line between multiple sections *)
       case More [J] of
        'a': ListABITargets ('');
        'c': ListCPUInstructionSets ('');
        'f': ListFPUInstructionSets ('');
        'i': ListAsmModes ('');
+       'm': ListModeswitches ('');
        'o': ListOptimizations ('');
        'r': ListFeatures ('');
        't': ListOSTargets ('');
@@ -1828,7 +1876,7 @@ begin
            'i' :
              begin
                if (More='') or
-                    (More [1] in ['a', 'c', 'f', 'i', 'o', 'r', 't', 'u', 'w']) then
+                    (More [1] in ['a', 'c', 'f', 'i', 'm', 'o', 'r', 't', 'u', 'w']) then
                  WriteInfo (More)
                else
                  QuickInfo:=QuickInfo+More;
