@@ -22,7 +22,6 @@ begin
     P.Description := 'Convert pascal sources to javascript.';
     P.Email := 'michael@freepascal.org';
     P.NeedLibC:= false;
-    P.ShortName:='p2js';
 
     P.Directory:=ADirectory;
     P.Version:='3.3.1';
