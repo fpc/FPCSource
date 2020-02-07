@@ -406,8 +406,8 @@ CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr4)
 CPU_UNITS=at90pwm1 at90pwm2b at90pwm3b at90pwm81 ata6285 ata6286 atmega8 \
-          atmega8a atmega48 atmega48a atmega48p atmega48pa atmega88 atmega88a \
-          atmega88p atmega88pa atmega8515 atmega8535
+          atmega8a atmega48 atmega48a atmega48p atmega48pa atmega48pb atmega88 atmega88a \
+          atmega88p atmega88pa atmega88pb atmega8515 atmega8535
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr5)
@@ -416,9 +416,9 @@ CPU_UNITS=avrsim at90can32 at90can64 at90pwm161 at90pwm216 at90pwm316 \
           atmega16u4 atmega32 atmega32a atmega32c1 atmega32hvb atmega32m1 \
           atmega32u4 atmega64 atmega64a atmega64c1 atmega64m1 atmega162 \
           atmega164a atmega164p atmega164pa atmega165a atmega165p atmega165pa \
-          atmega168p atmega168pa atmega168 atmega168a atmega169a atmega169p \
-          atmega169pa atmega324a atmega324p atmega324pa atmega325 atmega325a \
-          atmega325p atmega325pa atmega328 atmega328p atmega329 atmega329a \
+          atmega168 atmega168a atmega168p atmega168pa atmega168pb atmega169a atmega169p \
+          atmega169pa atmega324a atmega324p atmega324pa atmega324pb atmega325 atmega325a \
+          atmega325p atmega325pa atmega328 atmega328p atmega328pb atmega329 atmega329a \
           atmega329p atmega329pa atmega640 atmega644 atmega644a atmega644p \
           atmega644pa atmega645 atmega645a atmega645p atmega649 atmega649a \
           atmega649p atmega3250 atmega3250a atmega3250p atmega3250pa atmega3290 \
