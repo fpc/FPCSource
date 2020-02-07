@@ -2810,7 +2810,7 @@ Begin
       end
     else if Item.IsDirectory then
       begin
-        if (NOT Flat) then CreateDir(OutputFileName);
+        if (NOT Flat) then ForceDirectories(OutputFileName);
       end
     else
       begin
