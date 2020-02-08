@@ -503,7 +503,7 @@ Const
         ,(controllertypestr:'ATTINY24A';controllerunitstr:'ATTINY24A';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:2048;srambase:96;sramsize:128;eeprombase:0;eepromsize:128)
         ,(controllertypestr:'ATTINY25';controllerunitstr:'ATTINY25';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:2048;srambase:96;sramsize:128;eeprombase:0;eepromsize:128)
         ,(controllertypestr:'ATTINY26';controllerunitstr:'ATTINY26';cputype:cpu_avr2;fputype:fpu_soft;flashbase:0;flashsize:2048;srambase:96;sramsize:128;eeprombase:0;eepromsize:128)
-        ,(controllertypestr:'ATTINY28';controllerunitstr:'ATTINY28';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:2048;srambase:0;sramsize:0;eeprombase:0;eepromsize:0)
+        ,(controllertypestr:'ATTINY28';controllerunitstr:'ATTINY28';cputype:cpu_avr1;fputype:fpu_soft;flashbase:0;flashsize:2048;srambase:0;sramsize:0;eeprombase:0;eepromsize:0)
         ,(controllertypestr:'ATTINY40';controllerunitstr:'ATTINY40';cputype:cpu_avrtiny;fputype:fpu_soft;flashbase:0;flashsize:4096;srambase:64;sramsize:256;eeprombase:0;eepromsize:0)
         ,(controllertypestr:'ATTINY43U';controllerunitstr:'ATTINY43U';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:4096;srambase:96;sramsize:256;eeprombase:0;eepromsize:64)
         ,(controllertypestr:'ATTINY44';controllerunitstr:'ATTINY44';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:4096;srambase:96;sramsize:256;eeprombase:0;eepromsize:256)
