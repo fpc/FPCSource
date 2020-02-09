@@ -26274,9 +26274,6 @@ begin
             Result:=CheckSrcIsADstType(FromResolved,ToResolved);
             if Result=cIncompatible then
               Result:=CheckSrcIsADstType(ToResolved,FromResolved);
-            if RaiseOnError then
-              WarnClassTypesAreNotRelated(FromClassType,ToClassType);
-            Result:=cCompatible;
             end
           else if ToClassType.ObjKind=okInterface then
             begin
@@ -26298,6 +26295,12 @@ begin
             end;
           if Result=cIncompatible then
             Result:=CheckTypeCastClassInstanceToClass(FromResolved,ToResolved,ErrorEl);
+          if (Result=cIncompatible) and (FromClassType.ObjKind=ToClassType.ObjKind) then
+            begin
+            if RaiseOnError then
+              WarnClassTypesAreNotRelated(FromClassType,ToClassType);
+            Result:=cTypeConversion;
+            end;
           end
         else if FromTypeEl.ClassType=TPasGenericTemplateType then
           begin
