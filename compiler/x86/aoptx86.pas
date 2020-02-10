@@ -2578,11 +2578,24 @@ unit aoptx86;
           result)
         }
         if IsExitCode(hp1) and
-          MatchOpType(taicpu(p),top_reg,top_ref) and
-          (taicpu(p).oper[1]^.ref^.base = current_procinfo.FramePointer) and
-          not(assigned(current_procinfo.procdef.funcretsym) and
-             (taicpu(p).oper[1]^.ref^.offset < tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
-          (taicpu(p).oper[1]^.ref^.index = NR_NO) then
+          (taicpu(p).oper[1]^.typ = top_ref) and
+          (taicpu(p).oper[1]^.ref^.index = NR_NO) and
+          (
+            (
+              (taicpu(p).oper[1]^.ref^.base = current_procinfo.FramePointer) and
+              not (
+                assigned(current_procinfo.procdef.funcretsym) and
+                (taicpu(p).oper[1]^.ref^.offset <= tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)
+              )
+            ) or
+            { Also discard writes to the stack that are below the base pointer,
+              as this is temporary storage rather than a function result on the
+              stack, say. }
+            (
+              (taicpu(p).oper[1]^.ref^.base = NR_STACK_POINTER_REG) and
+              (taicpu(p).oper[1]^.ref^.offset < current_procinfo.final_localsize)
+            )
+          ) then
           begin
             asml.remove(p);
             p.free;
