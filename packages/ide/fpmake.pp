@@ -140,6 +140,15 @@ begin
     end;
 end;
 
+procedure add_ide_comandlineoptions();
+begin
+  AddCustomFpmakeCommandlineOption('CompilerTarget','Target CPU for the IDE''s compiler');
+  AddCustomFpmakeCommandlineOption('NoGDB','If value=1 or ''Y'', no GDB support');
+  AddCustomFpmakeCommandlineOption('NoGDBMI','If value=1 or ''Y'', explicitly disable GDB/MI option');
+  AddCustomFpmakeCommandlineOption('GDBMI','If value=1 or ''Y'', builds IDE with GDB/MI support (no need for LibGDB)');
+  AddCustomFpmakeCommandlineOption('NoIDE','If value=1 or ''Y'', the IDE will be skipped');
+end;
+
 procedure add_ide(const ADirectory: string);
 
 Var
@@ -150,12 +159,12 @@ Var
   s: string;
 
 begin
-  AddCustomFpmakeCommandlineOption('CompilerTarget','Target CPU for the IDE''s compiler');
-  AddCustomFpmakeCommandlineOption('NoGDB','If value=1 or ''Y'', no GDB support');
-  AddCustomFpmakeCommandlineOption('NOGDBMI','If value=1 or ''Y'', explicitly disable GDB/MI option');
-  AddCustomFpmakeCommandlineOption('GDBMI','If value=1 or ''Y'', builds IDE with GDB/MI support (no need for LibGDB)');
   With Installer do
     begin
+    s := GetCustomFpmakeCommandlineOptionValue('NoIDE');
+    if (s='1') or (s='Y') then
+      Exit;
+
     s := GetCustomFpmakeCommandlineOptionValue('NoGDB');
     if (s='1') or (s='Y') then
      NoGDBOption := true;
@@ -319,6 +328,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
+  add_ide_comandlineoptions();
   add_ide('');
   Installer.Run;
 end.
