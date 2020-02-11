@@ -147,6 +147,7 @@ begin
   AddCustomFpmakeCommandlineOption('NoGDBMI','If value=1 or ''Y'', explicitly disable GDB/MI option');
   AddCustomFpmakeCommandlineOption('GDBMI','If value=1 or ''Y'', builds IDE with GDB/MI support (no need for LibGDB)');
   AddCustomFpmakeCommandlineOption('NoIDE','If value=1 or ''Y'', the IDE will be skipped');
+  AddCustomFpmakeCommandlineOption('IDE','If value=1 or ''Y'', the IDE will be build for each target');
 end;
 
 procedure add_ide(const ADirectory: string);
@@ -202,6 +203,12 @@ begin
 {$ifdef ALLPACKAGES}
         P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
+
+        s :=GetCustomFpmakeCommandlineOptionValue('IDE');
+        if (s='1') or (s='Y') then
+          P.OSes := AllOSes
+        else
+          P.OSes := AllOSes-[darwin];
 
         P.Dependencies.Add('rtl-extra');
         P.Dependencies.Add('fv');
