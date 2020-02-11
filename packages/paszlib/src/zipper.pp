@@ -1498,7 +1498,10 @@ Begin
         Raise EZipError.CreateFmt(SErrMissingFileName,[I]);
       If FindFirst(F.DiskFileName, STDATTR, Info)=0 then
         try
-          F.Size:=Info.Size;
+          if Info.Attr and faDirectory <> 0 then //in Linux directory Size <> 0
+            F.Size := 0
+          else
+            F.Size:=Info.Size;
           F.DateTime:=FileDateToDateTime(Info.Time);
         {$IFDEF UNIX}
           if fplstat(F.DiskFileName, @UnixInfo) = 0 then
