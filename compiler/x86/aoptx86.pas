@@ -5038,16 +5038,18 @@ unit aoptx86;
     function TX86AsmOptimizer.OptPass1Movx(var p : tai) : boolean;
       var
         hp1,hp2: tai;
+        reg_and_hp1_is_instr: Boolean;
       begin
         result:=false;
-        if (taicpu(p).oper[1]^.typ = top_reg) and
-           GetNextInstruction(p,hp1) and
-           (hp1.typ = ait_instruction) and
-           IsFoldableArithOp(taicpu(hp1),taicpu(p).oper[1]^.reg) and
-           GetNextInstruction(hp1,hp2) and
-           MatchInstruction(hp2,A_MOV,[]) and
-           (taicpu(hp2).oper[0]^.typ = top_reg) and
-           OpsEqual(taicpu(hp2).oper[1]^,taicpu(p).oper[0]^) and
+        reg_and_hp1_is_instr:=(taicpu(p).oper[1]^.typ = top_reg) and
+          GetNextInstruction(p,hp1) and
+          (hp1.typ = ait_instruction);
+        if reg_and_hp1_is_instr and
+          IsFoldableArithOp(taicpu(hp1),taicpu(p).oper[1]^.reg) and
+          GetNextInstruction(hp1,hp2) and
+          MatchInstruction(hp2,A_MOV,[]) and
+          (taicpu(hp2).oper[0]^.typ = top_reg) and
+          OpsEqual(taicpu(hp2).oper[1]^,taicpu(p).oper[0]^) and
 {$ifdef i386}
            { not all registers have byte size sub registers on i386 }
            ((taicpu(hp2).opsize<>S_B) or (getsupreg(taicpu(hp1).oper[0]^.reg) in [RS_EAX, RS_EBX, RS_ECX, RS_EDX])) and
@@ -5105,12 +5107,9 @@ unit aoptx86;
         else if taicpu(p).opcode=A_MOVZX then
           begin
             { removes superfluous And's after movzx's }
-            if (taicpu(p).oper[1]^.typ = top_reg) and
-              GetNextInstruction(p, hp1) and
-              (tai(hp1).typ = ait_instruction) and
+            if reg_and_hp1_is_instr and
               (taicpu(hp1).opcode = A_AND) and
-              (taicpu(hp1).oper[0]^.typ = top_const) and
-              (taicpu(hp1).oper[1]^.typ = top_reg) and
+              MatchOpType(taicpu(hp1),top_const,top_reg) and
               (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
               begin
                 case taicpu(p).opsize Of
@@ -5144,8 +5143,7 @@ unit aoptx86;
               end;
             { changes some movzx constructs to faster synonyms (all examples
               are given with eax/ax, but are also valid for other registers)}
-            if (taicpu(p).oper[1]^.typ = top_reg) then
-              if (taicpu(p).oper[0]^.typ = top_reg) then
+            if MatchOpType(taicpu(p),top_reg,top_reg) then
                 begin
                   case taicpu(p).opsize of
                     { Technically, movzbw %al,%ax cannot be encoded in 32/64-bit mode
@@ -5176,8 +5174,7 @@ unit aoptx86;
                           GetNextInstruction(p, hp1) and
                           (tai(hp1).typ = ait_instruction) and
                           (taicpu(hp1).opcode = A_AND) and
-                          (taicpu(hp1).oper[0]^.typ = top_const) and
-                          (taicpu(hp1).oper[1]^.typ = top_reg) and
+                          MatchOpType(taicpu(hp1),top_const,top_reg) and
                           (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
                         { Change "movzbw %reg1, %reg2; andw $const, %reg2"
                           to "movw %reg1, reg2; andw $(const1 and $ff), %reg2"}
@@ -5214,8 +5211,7 @@ unit aoptx86;
                           GetNextInstruction(p, hp1) and
                           (tai(hp1).typ = ait_instruction) and
                           (taicpu(hp1).opcode = A_AND) and
-                          (taicpu(hp1).oper[0]^.typ = top_const) and
-                          (taicpu(hp1).oper[1]^.typ = top_reg) and
+                          MatchOpType(taicpu(hp1),top_const,top_reg) and
                           (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
                           { Change "movzbl %reg1, %reg2; andl $const, %reg2"
                             to "movl %reg1, reg2; andl $(const1 and $ff), %reg2"}
