@@ -68,6 +68,7 @@ interface
 {$ENDIF}
 
 uses
+  Math, // Min
   Classes, // TStrings in Split method
   SysUtils; // Exception
 
