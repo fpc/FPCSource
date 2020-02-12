@@ -1848,7 +1848,7 @@ unit aoptx86;
                         case taicpu(p).opsize of
                           S_W:
                             if taicpu(hp1).opsize = S_B then
-                              taicpu(hp1).opsize := S_BW
+                              taicpu(hp1).opsize := S_BL
                             else
                               InternalError(2020012911);
                           S_L{$ifdef x86_64}, S_Q{$endif x86_64}:
