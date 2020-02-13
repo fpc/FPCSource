@@ -3962,32 +3962,6 @@ unit aoptx86;
               end;
           end
         else if MatchOpType(taicpu(p),top_reg,top_reg) and
-{$ifdef x86_64}
-          MatchInstruction(hp1,[A_MOV,A_MOVZX,A_MOVSX,A_MOVSXD],[]) and
-{$else x86_64}
-          MatchInstruction(hp1,A_MOV,A_MOVZX,A_MOVSX,[]) and
-{$endif x86_64}
-          MatchOpType(taicpu(hp1),top_ref,top_reg) and
-          ((taicpu(hp1).oper[0]^.ref^.base = taicpu(p).oper[1]^.reg)
-           or
-           (taicpu(hp1).oper[0]^.ref^.index = taicpu(p).oper[1]^.reg)
-            ) and
-          (getsupreg(taicpu(hp1).oper[1]^.reg) = getsupreg(taicpu(p).oper[1]^.reg)) then
-          { mov reg1, reg2
-            mov/zx/sx (reg2, ..), reg2      to   mov/zx/sx (reg1, ..), reg2}
-          begin
-            if (taicpu(hp1).oper[0]^.ref^.base = taicpu(p).oper[1]^.reg) then
-              taicpu(hp1).oper[0]^.ref^.base := taicpu(p).oper[0]^.reg;
-            if (taicpu(hp1).oper[0]^.ref^.index = taicpu(p).oper[1]^.reg) then
-              taicpu(hp1).oper[0]^.ref^.index := taicpu(p).oper[0]^.reg;
-            DebugMsg(SPeepholeOptimization + 'MovMovXX2MoVXX 1 done',p);
-            asml.remove(p);
-            p.free;
-            p := hp1;
-            Result:=true;
-            exit;
-          end
-        else if MatchOpType(taicpu(p),top_reg,top_reg) and
           MatchInstruction(hp1, A_SAR, []) then
           begin
             if MatchOperand(taicpu(hp1).oper[0]^, 31) then
