@@ -39,8 +39,7 @@ type
 
     // generic external class
     procedure TestGen_ExtClass_Array;
-    // ToDo: TestGen_ExtClass_GenJSValueAssign  TExt<JSValue> := TExt<Word>
-    // ToDo: TestGen_ExtClass_TypeCastJSValue  TExt<Word>(aTExt<JSValue>) and vice versa
+    procedure TestGen_ExtClass_GenJSValueAssign;
 
     // statements
     Procedure TestGen_InlineSpec_Constructor;
@@ -784,6 +783,42 @@ begin
     '$mod.wa[11] = $mod.w;',
     '$mod.w = $mod.wa[12];',
     '']));
+end;
+
+procedure TTestGenerics.TestGen_ExtClass_GenJSValueAssign;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExt<T> = class external name ''Ext''',
+  '    F: T;',
+  '  end;',
+  '  TExtWord = TExt<Word>;',
+  '  TExtAny = TExt<JSValue>;',
+  'procedure Run(e: TExtAny);',
+  'begin end;',
+  'var',
+  '  w: TExtWord;',
+  '  a: TExtAny;',
+  'begin',
+  '  a:=w;',
+  '  Run(w);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_ExtClass_GenJSValueAssign',
+    LinesToStr([ // statements
+    'this.Run = function (e) {',
+    '};',
+    'this.w = null;',
+    'this.a = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.a = $mod.w;',
+    '$mod.Run($mod.w);',
+    '']));
+  CheckResolverUnexpectedHints();
 end;
 
 procedure TTestGenerics.TestGen_InlineSpec_Constructor;

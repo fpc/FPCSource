@@ -1433,6 +1433,8 @@ type
     procedure CheckAssignExprRangeToCustom(
       const LeftResolved: TPasResolverResult; RValue: TResEvalValue;
       RHS: TPasExpr); override;
+    function CheckAssignCompatibilityClasses(LType, RType: TPasClassType
+      ): integer; override;
     function HasStaticArrayCloneFunc(Arr: TPasArrayType): boolean;
     function IsTGUID(TypeEl: TPasRecordType): boolean; override;
     function GetAssignGUIDString(TypeEl: TPasRecordType; Expr: TPasExpr; out GUID: TGuid): boolean;
@@ -5677,6 +5679,43 @@ begin
 
   if RHS=nil then ;
   if RValue=nil then ;
+end;
+
+function TPas2JSResolver.CheckAssignCompatibilityClasses(LType,
+  RType: TPasClassType): integer;
+// LType and RType are not related
+var
+  LeftScope, RightScope: TPas2JSClassScope;
+  LeftSpecItem, RightSpecItem: TPRSpecializedItem;
+  i: Integer;
+  LeftParam, RightParam: TPasType;
+begin
+  Result:=cIncompatible;
+  if LType.IsExternal and RType.IsExternal then
+    begin
+    LeftScope:=TPas2JSClassScope(LType.CustomData);
+    RightScope:=TPas2JSClassScope(RType.CustomData);
+    LeftSpecItem:=LeftScope.SpecializedFromItem;
+    RightSpecItem:=RightScope.SpecializedFromItem;
+    if (LeftSpecItem<>nil) and (RightSpecItem<>nil)
+        and (LeftSpecItem.GenericEl=RightSpecItem.GenericEl) then
+      begin
+      Result:=cExact;
+      for i:=0 to length(LeftSpecItem.Params)-1 do
+        begin
+        LeftParam:=LeftSpecItem.Params[i];
+        RightParam:=RightSpecItem.Params[i];
+        if IsSameType(LeftParam,RightParam,prraAlias)
+            or IsJSBaseType(LeftParam,pbtJSValue) then
+          // e.g. TExt<jsvalue>:=aExt<word>
+        else
+          begin
+          Result:=cIncompatible;
+          break;
+          end;
+        end;
+      end;
+    end;
 end;
 
 function TPas2JSResolver.HasStaticArrayCloneFunc(Arr: TPasArrayType): boolean;
