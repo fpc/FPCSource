@@ -4739,18 +4739,55 @@ end;
 
 function TPas2JSResolver.CheckTypeCastClassInstanceToClass(const FromClassRes,
   ToClassRes: TPasResolverResult; ErrorEl: TPasElement): integer;
+// type cast not related classes
 var
-  ToClass: TPasClassType;
-  ClassScope: TPasClassScope;
+  ToClass, FromClass: TPasClassType;
+  ToClassScope, FromClassScope: TPas2JSClassScope;
+  ToSpecItem, FromSpecItem: TPRSpecializedItem;
+  i: Integer;
+  ToParam, FromParam: TPasType;
 begin
   if FromClassRes.BaseType=btNil then exit(cExact);
   ToClass:=ToClassRes.LoTypeEl as TPasClassType;
-  ClassScope:=ToClass.CustomData as TPasClassScope;
-  if ClassScope.AncestorScope=nil then
+  ToClassScope:=ToClass.CustomData as TPas2JSClassScope;
+  if ToClassScope.AncestorScope=nil then
     // type cast to root class
-    Result:=cTypeConversion+1
-  else
-    Result:=cIncompatible;
+    exit(cTypeConversion+1);
+
+  ToSpecItem:=ToClassScope.SpecializedFromItem;
+  if ToSpecItem<>nil then
+    begin
+    FromClass:=FromClassRes.LoTypeEl as TPasClassType;
+    FromClassScope:=FromClass.CustomData as TPas2JSClassScope;
+    FromSpecItem:=FromClassScope.SpecializedFromItem;
+    if FromSpecItem<>nil then
+      begin
+      // typecast a specialized instance to a specialized type TA<>(aB<>)
+      if FromSpecItem.GenericEl=ToSpecItem.GenericEl then
+        begin
+        // typecast to same generic class
+        Result:=cTypeConversion+1;
+        for i:=0 to length(FromSpecItem.Params)-1 do
+          begin
+          FromParam:=FromSpecItem.Params[i];
+          ToParam:=ToSpecItem.Params[i];
+          if IsSameType(FromParam,ToParam,prraAlias)
+              or IsJSBaseType(FromParam,pbtJSValue)
+              or IsJSBaseType(ToParam,pbtJSValue) then
+            // ok
+          else
+            begin
+            Result:=cIncompatible;
+            break;
+            end;
+          end;
+        if Result<cIncompatible then
+          exit; // e.g. TGen<JSValue>(aGen<Word>) or TGen<Word>(aGen<JSValue>)
+        end;
+      end;
+    end;
+
+  Result:=cIncompatible;
   if ErrorEl=nil then ;
 end;
 

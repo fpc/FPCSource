@@ -35,6 +35,7 @@ type
     Procedure TestGen_Class_ClassConstructor;
     // ToDo: rename local const T
     Procedure TestGen_Class_TypeCastSpecializesWarn;
+    Procedure TestGen_Class_TypeCastSpecializesJSValueNoWarn;
 
     // generic external class
     procedure TestGen_ExtClass_Array;
@@ -675,6 +676,54 @@ begin
     '$mod.w = $mod.c;',
     '']));
   CheckHint(mtWarning,nClassTypesAreNotRelatedXY,'Class types "TBird$G2<Char>" and "TBird$G1<Word>" are not related');
+  CheckResolverUnexpectedHints();
+end;
+
+procedure TTestGenerics.TestGen_Class_TypeCastSpecializesJSValueNoWarn;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TBird<T> = class F: T; end;',
+  '  TBirdWord = TBird<Word>;',
+  '  TBirdAny = TBird<JSValue>;',
+  'var',
+  '  w: TBirdWord;',
+  '  a: TBirdAny;',
+  'begin',
+  '  w:=TBirdWord(a);',
+  '  a:=TBirdAny(w);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_Class_TypeCastSpecializesJSValueNoWarn',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird$G1", $mod.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
+    '    this.F = 0;',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird$G2", $mod.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
+    '    this.F = undefined;',
+    '  };',
+    '});',
+    'this.w = null;',
+    'this.a = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.w = $mod.a;',
+    '$mod.a = $mod.w;',
+    '']));
   CheckResolverUnexpectedHints();
 end;
 

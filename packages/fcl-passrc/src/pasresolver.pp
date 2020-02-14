@@ -1736,7 +1736,7 @@ type
     procedure CheckIsClass(El: TPasElement; const ResolvedEl: TPasResolverResult);
     function CheckTypeCastClassInstanceToClass(
       const FromClassRes, ToClassRes: TPasResolverResult;
-      ErrorEl: TPasElement): integer; virtual;
+      ErrorEl: TPasElement): integer; virtual; // type cast not related classes
     procedure CheckSetLitElCompatible(Left, Right: TPasExpr;
       const LHS, RHS: TPasResolverResult);
     function CheckIsOrdinal(const ResolvedEl: TPasResolverResult;
