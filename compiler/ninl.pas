@@ -4367,6 +4367,9 @@ implementation
            end;
 
          resultnode := hp.getcopy;
+         { get varstates right }
+         node_reset_flags(resultnode,[nf_pass1_done,nf_modify]);
+
          { avoid type errors from the addn/subn }
          if not is_integer(resultnode.resultdef) then
            begin
