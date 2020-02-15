@@ -280,7 +280,7 @@ type
     {$IFDEF UnicodeWordDetection}
     FUseUnicodeWordDetection: boolean;
     {$ENDIF}
-    FEmptyImputRaisesError : Boolean;
+    FEmptyInputRaisesError : Boolean;
     
     CharCheckers: TRegExprCharCheckerArray;
     CharCheckerInfos: TRegExprCharCheckerInfos;
@@ -619,7 +619,7 @@ type
     property SlowChecksSizeMax: integer read fSlowChecksSizeMax write fSlowChecksSizeMax;
 
      // Raise error when input string is empty
-    Property EmptyImputRaisesError : Boolean Read FEmptyImputRaisesError Write FEmptyImputRaisesError;
+    Property EmptyInputRaisesError : Boolean Read FEmptyInputRaisesError Write FEmptyInputRaisesError;
   end;
 
 type
@@ -4180,7 +4180,7 @@ begin
   // Check InputString presence
   if fInputString = '' then
   begin
-    if EmptyImputRaisesError then
+    if EmptyInputRaisesError then
       Error(reeNoInputStringSpecified);
     Exit;
   end;
@@ -4394,7 +4394,7 @@ begin
     Exit;
   if fInputString = '' then
   begin
-    if EmptyImputRaisesError then
+    if EmptyInputRaisesError then
       Error(reeNoInputStringSpecified);
     Exit;
   end;
