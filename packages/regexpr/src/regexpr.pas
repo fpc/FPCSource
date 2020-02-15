@@ -50,7 +50,7 @@ interface
 
 {$MODE DELPHI} // Delphi-compatible mode in FreePascal
 // Disabling for now, seems to cause bug in Lazarus (bug ID 36603)
-{ $INLINE ON}
+{$INLINE ON}
 
 // ======== Define base compiler options
 {$BOOLEVAL OFF}
@@ -1438,6 +1438,7 @@ begin
   programm := nil;
   fExpression := '';
   fInputString := '';
+  FEmptyInputRaisesError := False;
 
   regexpBegin := nil;
   regexpIsCompiled := False;
