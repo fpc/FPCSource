@@ -1380,6 +1380,31 @@ unit aoptx86;
                         exit;
                       end
                   end
+              else if ((MatchInstruction(p,[A_MOVAPS,A_VMOVAPS],[S_NO]) and
+                 MatchInstruction(hp1,[A_MOVSS,A_VMOVSS],[S_NO])) or
+                 ((MatchInstruction(p,[A_MOVAPD,A_VMOVAPD],[S_NO]) and
+                 MatchInstruction(hp1,[A_MOVSD,A_VMOVSD],[S_NO])))
+                ) and
+                MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) then
+                begin
+                  { vmova* reg1,reg2
+                    vmovs* reg2,<op>
+                    dealloc reg2
+                    =>
+                    vmovs* reg1,reg3 }
+                  TransferUsedRegs(TmpUsedRegs);
+                  UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                  if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
+                    begin
+                      DebugMsg(SPeepholeOptimization + '(V)MOVA*(V)MOVS*2(V)MOVS* 1',p);
+                      taicpu(p).opcode:=taicpu(hp1).opcode;
+                      taicpu(p).loadoper(1,taicpu(hp1).oper[1]^);
+                      asml.Remove(hp1);
+                      hp1.Free;
+                      result:=true;
+                      exit;
+                    end
+                end;
             end;
           if GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[1]^.reg) then
             begin
