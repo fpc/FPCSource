@@ -2531,7 +2531,7 @@ begin
   ST^.GrowMode:=gfGrowHiX;
   Insert(ST);
   GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,1); R.B.Y:=R.A.Y+1;
-  New(ST, Init(R, CharStr('ħ, MaxViewWidth)));
+  New(ST, Init(R, CharStr('Ä', MaxViewWidth)));
   ST^.GrowMode:=gfGrowHiX;
   Insert(ST);
   GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,2);Dec(R.B.Y,5);
