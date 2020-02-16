@@ -1742,7 +1742,14 @@ implementation
         regsstored: boolean;
         sr: tsuperregister;
       begin
-        if not nostackframe then
+        if not(nostackframe) and
+          { we do not need an exit stack frame when we never return
+
+            * the final ret is left so the peephole optimizer can easily do call/ret -> jmp or call conversions
+            * the entry stack frame must be normally generated because the subroutine could be still left by
+              an exception and then the unwinding code might need to restore the registers stored by the entry code
+          }
+          not(po_noreturn in current_procinfo.procdef.procoptions) then
           begin
             { if no registers have been stored, we don't have to subtract the
               allocated temp space from the stack pointer }
