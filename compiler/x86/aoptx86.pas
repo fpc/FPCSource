@@ -5742,15 +5742,23 @@ unit aoptx86;
             jmp    procname
 
           but do it only on level 4 because it destroys stack back traces
+
+          else if the subroutine is marked as no return, remove the ret
         }
-        if (cs_opt_level4 in current_settings.optimizerswitches) and
+        if ((cs_opt_level4 in current_settings.optimizerswitches) or
+          (po_noreturn in current_procinfo.procdef.procoptions)) and
           GetNextInstruction(p, hp1) and
           MatchInstruction(hp1,A_RET,[S_NO]) and
           (taicpu(hp1).ops=0) then
           begin
-            taicpu(p).opcode := A_JMP;
-            taicpu(p).is_jmp := true;
-            DebugMsg(SPeepholeOptimization + 'CallRet2Jmp done',p);
+            if cs_opt_level4 in current_settings.optimizerswitches then
+              begin
+                taicpu(p).opcode := A_JMP;
+                taicpu(p).is_jmp := true;
+                DebugMsg(SPeepholeOptimization + 'CallRet2Jmp done',p);
+              end
+            else
+              DebugMsg(SPeepholeOptimization + 'CallRet2Call done',p);
             asml.remove(hp1);
             hp1.free;
             Result:=true;
