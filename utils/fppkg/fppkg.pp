@@ -38,6 +38,7 @@ uses
   ,pkgwget
   ,pkglnet
   ,pkgfphttp
+  ,opensslsockets
 {$endif}
   ;
 
