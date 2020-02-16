@@ -105,6 +105,9 @@ implementation
              paranr:=paranr_result_leftright
            else
 {$endif}
+           if is_managed_type(pd.returndef) then
+             paranr:=paranr_result_managed
+           else
              paranr:=paranr_result;
            { Generate result variable accessing function result }
            vs:=cparavarsym.create('$result',paranr,vs_var,pd.returndef,[vo_is_funcret,vo_is_hidden_para]);
