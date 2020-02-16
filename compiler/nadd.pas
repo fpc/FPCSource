@@ -3903,6 +3903,10 @@ implementation
                  ((right.nodetype = ordconstn) and
                   ispowerof2(tordconstnode(right).value,i2))) then
                begin
+                 { it could be that we are converting a 32x32 -> 64 multiplication:
+                   in this case, we have to restore the type conversion }
+                 inserttypeconv_internal(left,resultdef);
+                 inserttypeconv_internal(right,resultdef);
                  if ((left.nodetype = ordconstn) and
                      ispowerof2(tordconstnode(left).value,i)) then
                    begin
