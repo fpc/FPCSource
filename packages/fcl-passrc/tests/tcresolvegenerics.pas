@@ -88,6 +88,7 @@ type
     procedure TestGen_Class_Self;
     procedure TestGen_Class_MemberTypeConstructor;
     procedure TestGen_Class_AliasMemberType;
+    procedure TestGen_Class_AccessGenericMemberTypeFail;
     procedure TestGen_Class_ReferenceTo; // ToDo
     procedure TestGen_Class_List;
     // ToDo: different modeswitches at parse time and specialize time
@@ -1414,6 +1415,25 @@ begin
   'begin',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_AccessGenericMemberTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '',
+  '  generic TBird<T> = class',
+  '  public type',
+  '    TRun = reference to function (aValue : T) : T;',
+  '  end;',
+  '  TBirdRun = TBird.TRun;',
+  'begin',
+  '']);
+  CheckResolverException('Generics without specialization cannot be used as a type for a reference',
+    nGenericsWithoutSpecializationAsType);
 end;
 
 procedure TTestResolveGenerics.TestGen_Class_ReferenceTo;

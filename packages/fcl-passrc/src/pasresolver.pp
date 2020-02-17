@@ -20560,6 +20560,10 @@ begin
       NeedPop:=true;
       if CurScopeEl is TPasType then
         begin
+        if (CurScopeEl is TPasGenericType)
+            and not IsFullySpecialized(TPasGenericType(CurScopeEl)) then
+          RaiseMsg(20200217131215,nGenericsWithoutSpecializationAsType,
+            sGenericsWithoutSpecializationAsType,['reference'],ErrorEl);
         CurScope:=PushDotScope(TPasType(CurScopeEl));
         if CurScope=nil then
           RaiseMsg(20190122122529,nIllegalQualifierAfter,sIllegalQualifierAfter,
