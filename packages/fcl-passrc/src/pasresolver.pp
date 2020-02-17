@@ -10381,6 +10381,7 @@ begin
       Include(LeftResolved.Flags,rrfWritable);
       end;
 
+    //writeln('TPasResolver.ResolveSubIdent ',GetObjPath(El),' ',GetObjPath(LLoTypeEl));
     if LLoTypeEl.ClassType=TPasClassType then
       begin
       ClassEl:=TPasClassType(LLoTypeEl);
@@ -20563,6 +20564,7 @@ begin
         if CurScope=nil then
           RaiseMsg(20190122122529,nIllegalQualifierAfter,sIllegalQualifierAfter,
             ['.',LeftPath],ErrorEl);
+        CurScope.OnlyTypeMembers:=true;
         end
       else if CurScopeEl is TPasModule then
         PushModuleDotScope(TPasModule(CurScopeEl))
@@ -20887,7 +20889,7 @@ begin
         Include(Ref.Flags,rrfConstInherited);
       end;
     end
-  else if StartScope.ClassType=ScopeClass_WithExpr then
+  else if StartScope.ClassType=FScopeClass_WithExpr then
     begin
     OnlyTypeMembers:=wesfOnlyTypeMembers in TPasWithExprScope(StartScope).Flags;
     IsClassOf:=wesfIsClassOf in TPasWithExprScope(StartScope).Flags;

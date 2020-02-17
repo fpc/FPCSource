@@ -40,6 +40,7 @@ type
     // generic external class
     procedure TestGen_ExtClass_Array;
     procedure TestGen_ExtClass_GenJSValueAssign;
+    procedure TestGen_ExtClass_AliasMemberType;
 
     // statements
     Procedure TestGen_InlineSpec_Constructor;
@@ -819,6 +820,28 @@ begin
     '$mod.Run($mod.w);',
     '']));
   CheckResolverUnexpectedHints();
+end;
+
+procedure TTestGenerics.TestGen_ExtClass_AliasMemberType;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  generic TExt<T> = class external name ''Ext''',
+  '  public type TRun = reference to function(a: T): T;',
+  '  end;',
+  '  TExtWord = specialize TExt<word>;',
+  '  TExtWordRun = TExtWord.TRun;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_ExtClass_AliasMemberType',
+    LinesToStr([ // statements
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
 end;
 
 procedure TTestGenerics.TestGen_InlineSpec_Constructor;
