@@ -2152,6 +2152,8 @@ type
       out GotDesc, ExpDesc: String); overload;
     procedure GetIncompatibleTypeDesc(const GotType, ExpType: TPasType;
       out GotDesc, ExpDesc: String); overload;
+    procedure GetIncompatibleProcParamsDesc(GotType, ExpType: TPasProcedureType;
+      out GotDesc, ExpDesc: string);
     procedure RaiseMsg(const Id: TMaxPrecInt; MsgNumber: integer; const Fmt: String;
       Args: Array of {$ifdef pas2js}jsvalue{$else}const{$endif};
       ErrorPosEl: TPasElement); virtual;
@@ -22784,17 +22786,26 @@ begin
     end
   else if (GotType.LoTypeEl<>nil) and (ExpType.LoTypeEl<>nil) then
     begin
-    GotDesc:=GetTypeDescription(GotType);
-    ExpDesc:=GetTypeDescription(ExpType);
-    if GotDesc<>ExpDesc then exit;
-    if GotType.HiTypeEl<>ExpType.HiTypeEl then
+    if (GotType.LoTypeEl.ClassType=ExpType.LoTypeEl.ClassType)
+        and (GotType.LoTypeEl is TPasProcedureType) then
+      // procedural types
+      GetIncompatibleProcParamsDesc(TPasProcedureType(GotType.LoTypeEl),
+        TPasProcedureType(ExpType.LoTypeEl),GotDesc,ExpDesc)
+    else
       begin
-      GotDesc:=GetTypeDescription(GotType.HiTypeEl);
-      ExpDesc:=GetTypeDescription(ExpType.HiTypeEl);
-      if GotDesc<>ExpDesc then exit;
+      GotDesc:=GetTypeDescription(GotType);
+      ExpDesc:=GetTypeDescription(ExpType);
+      if (GotDesc=ExpDesc) and (GotType.HiTypeEl<>ExpType.HiTypeEl) then
+        begin
+        GotDesc:=GetTypeDescription(GotType.HiTypeEl);
+        ExpDesc:=GetTypeDescription(ExpType.HiTypeEl);
+        end;
+      if GotDesc=ExpDesc then
+        begin
+        GotDesc:=GetTypeDescription(GotType,true);
+        ExpDesc:=GetTypeDescription(ExpType,true);
+        end;
       end;
-    GotDesc:=GetTypeDescription(GotType,true);
-    ExpDesc:=GetTypeDescription(ExpType,true);
     end
   else
     begin
@@ -22816,6 +22827,114 @@ begin
   if GotDesc<>ExpDesc then exit;
   GotDesc:=GetTypeDescription(GotType,true);
   ExpDesc:=GetTypeDescription(ExpType,true);
+end;
+
+procedure TPasResolver.GetIncompatibleProcParamsDesc(GotType,
+  ExpType: TPasProcedureType; out GotDesc, ExpDesc: string);
+
+  procedure AppendClass(ProcType: TPasProcedureType; var Desc: string);
+  var
+    C: TClass;
+  begin
+    C:=ProcType.ClassType;
+    if C=TPasProcedureType then
+      Desc:=Desc+'procedure'
+    else if C=TPasFunctionType then
+      Desc:=Desc+'function'
+    else
+      RaiseNotYetImplemented(20200216114419,ProcType,ProcType.ClassName);
+  end;
+
+var
+  i: Integer;
+  GotArg, ExpArg: TPasArgument;
+  GotArgs, ExpArgs: TFPList;
+  GotArgDesc, ExpArgDesc: String;
+  GotArgType, ExpArgType: TPasType;
+begin
+  GotDesc:='';
+  ExpDesc:='';
+  // reference to
+  if (ptmReferenceTo in GotType.Modifiers) and not (ptmReferenceTo in ExpType.Modifiers) then
+    GotDesc:='reference to '
+  else if not (ptmReferenceTo in GotType.Modifiers) and (ptmReferenceTo in ExpType.Modifiers) then
+    ExpDesc:='reference to ';
+
+  // type
+  AppendClass(GotType,GotDesc);
+  AppendClass(ExpType,ExpDesc);
+
+  // Args
+  GotDesc:=GotDesc+'(';
+  ExpDesc:=ExpDesc+'(';
+  GotArgs:=GotType.Args;
+  ExpArgs:=ExpType.Args;
+  for i:=0 to GotArgs.Count-1 do
+    begin
+    if i>0 then
+      GotDesc:=GotDesc+';';
+    GotArg:=TPasArgument(GotArgs[i]);
+    GotArgType:=ResolveAliasType(GotArg.ArgType);
+    if i<ExpArgs.Count then
+      begin
+      if i>0 then
+        ExpDesc:=ExpDesc+';';
+      ExpArg:=TPasArgument(ExpArgs[i]);
+      ExpArgType:=ResolveAliasType(ExpArg.ArgType);
+      if GotArgType=ExpArgType then
+        begin
+        GotDesc:=GotDesc+GetTypeDescription(GotArgType);
+        ExpDesc:=ExpDesc+GetTypeDescription(ExpArgType);
+        end
+      else
+        begin
+        GetIncompatibleTypeDesc(GotArgType,ExpArgType,GotArgDesc,ExpArgDesc);
+        GotDesc:=GotDesc+GotArgDesc;
+        ExpDesc:=ExpDesc+ExpArgDesc;
+        end;
+      end
+    else
+      begin
+      // GotType has more args than ExpType
+      GotDesc:=GotDesc+GetTypeDescription(GotArgType);
+      end;
+    end;
+  for i:=GotArgs.Count to ExpArgs.Count-1 do
+    begin
+    // ExpType has more args then GotType
+    if i>0 then
+      ExpDesc:=ExpDesc+';';
+    ExpArg:=TPasArgument(ExpArgs[i]);
+    ExpArgType:=ResolveAliasType(ExpArg.ArgType);
+    ExpDesc:=ExpDesc+GetTypeDescription(ExpArgType);
+    end;
+  GotDesc:=GotDesc+')';
+  ExpDesc:=ExpDesc+')';
+
+  // modifiers
+  if (ptmOfObject in GotType.Modifiers) and not (ptmOfObject in ExpType.Modifiers) then
+    GotDesc:=GotDesc+' of Object'
+  else if not (ptmOfObject in GotType.Modifiers) and (ptmOfObject in ExpType.Modifiers) then
+    ExpDesc:=ExpDesc+' of Object';
+  if (ptmIsNested in GotType.Modifiers) and not (ptmIsNested in ExpType.Modifiers) then
+    GotDesc:=GotDesc+' is nested'
+  else if not (ptmIsNested in GotType.Modifiers) and (ptmIsNested in ExpType.Modifiers) then
+    ExpDesc:=ExpDesc+' is nested';
+  if (ptmStatic in GotType.Modifiers) and not (ptmStatic in ExpType.Modifiers) then
+    GotDesc:=GotDesc+'; static'
+  else if not (ptmStatic in GotType.Modifiers) and (ptmStatic in ExpType.Modifiers) then
+    ExpDesc:=ExpDesc+'; static';
+  if (ptmVarargs in GotType.Modifiers) and not (ptmVarargs in ExpType.Modifiers) then
+    GotDesc:=GotDesc+'; varargs'
+  else if not (ptmVarargs in GotType.Modifiers) and (ptmVarargs in ExpType.Modifiers) then
+    ExpDesc:=ExpDesc+'; varargs';
+
+  // calling convention
+  if GotType.CallingConvention<>ExpType.CallingConvention then
+    begin
+    GotDesc:=GotDesc+';'+cCallingConventions[GotType.CallingConvention];
+    ExpDesc:=ExpDesc+';'+cCallingConventions[ExpType.CallingConvention];
+    end;
 end;
 
 function TPasResolver.CheckCallProcCompatibility(ProcType: TPasProcedureType;

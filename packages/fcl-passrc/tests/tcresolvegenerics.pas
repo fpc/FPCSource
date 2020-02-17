@@ -87,6 +87,8 @@ type
     procedure TestGen_Class_Enums_NotPropagating;
     procedure TestGen_Class_Self;
     procedure TestGen_Class_MemberTypeConstructor;
+    procedure TestGen_Class_AliasMemberType;
+    procedure TestGen_Class_ReferenceTo; // ToDo
     procedure TestGen_Class_List;
     // ToDo: different modeswitches at parse time and specialize time
 
@@ -1384,6 +1386,66 @@ begin
   '  Result:=TMyAnt.Create(Self);',
   'end;',
   'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_AliasMemberType;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TObject = class end;',
+  '',
+  '  generic TBird<T> = class',
+  '  public type',
+  '    TRun = reference to function (aValue : T) : T;',
+  '  end;',
+  '  TBirdWord = specialize TBird<Word>;',
+  '  TBirdWordRun = TBirdWord.TRun;',
+  '',
+  '  generic TExt<T> = class external name ''Ext''',
+  '  public type',
+  '    TRun = reference to function (aValue : T) : T;',
+  '  end;',
+  '  TExtWord = specialize TExt<Word>;',
+  '  TExtWordRun = TExtWord.TRun;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_Class_ReferenceTo;
+begin
+  exit;
+
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  generic TGJSPromise<T> = class',
+  '  public type',
+  '    TGJSPromiseResolver = reference to function (aValue : T) : T;',
+  '    TGJSPromiseExecutor = reference to procedure (resolve,reject : TGJSPromiseResolver);',
+  '  public',
+  '    constructor new(Executor : TGJSPromiseExecutor);',
+  '  end;',
+  '',
+  '  TJSPromise = specialize TGJSPromise<Word>;',
+  '  TJSPromiseResolver = reference to function (aValue : Word) : Word;',
+  '',
+  '  TURLLoader = Class(TObject)',
+  '    procedure dofetch(resolve, reject: TJSPromiseResolver);',
+  '    Function fetch : TJSPromise;',
+  '  end;',
+  'function TURLLoader.fetch : TJSPromise;',
+  'begin',
+  '  Result:=TJSPromise.New(@Dofetch);',
+  'end;',
+  'begin',
+  '']);
   ParseProgram;
 end;
 
