@@ -1438,8 +1438,6 @@ end;
 
 procedure TTestResolveGenerics.TestGen_Class_ReferenceTo;
 begin
-  exit;
-
   StartProgram(false);
   Add([
   '{$mode objfpc}',
@@ -1452,12 +1450,16 @@ begin
   '  public',
   '    constructor new(Executor : TGJSPromiseExecutor);',
   '  end;',
+  'constructor TGJSPromise.new(Executor : TGJSPromiseExecutor);',
+  'begin',
+  'end;',
   '',
+  'type',
   '  TJSPromise = specialize TGJSPromise<Word>;',
   '  TJSPromiseResolver = reference to function (aValue : Word) : Word;',
   '',
   '  TURLLoader = Class(TObject)',
-  '    procedure dofetch(resolve, reject: TJSPromiseResolver);',
+  '    procedure dofetch(resolve, reject: TJSPromiseResolver); virtual; abstract;',
   '    Function fetch : TJSPromise;',
   '  end;',
   'function TURLLoader.fetch : TJSPromise;',

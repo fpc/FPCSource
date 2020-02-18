@@ -23390,8 +23390,9 @@ var
   C: TClass;
   Arr1, Arr2: TPasArrayType;
   TemplType1, TemplType2: TPasGenericTemplateType;
-  Templates1, Templates2: TFPList;
+  Templates1, Templates2, ProcArgs1, ProcArgs2: TFPList;
   i: Integer;
+  Proc1, Proc2: TPasProcedureType;
 begin
   if Arg1=Arg2 then exit(cExact);
   ComputeElement(Arg1,Arg1Resolved,[rcType]);
@@ -23439,6 +23440,7 @@ begin
     if IsSameType(Arg1Resolved.LoTypeEl,Arg2Resolved.LoTypeEl,prraNone) then
       exit(cExact);
     end;
+
   if Arg1Resolved.BaseType=btContext then
     begin
     C:=Arg1Resolved.LoTypeEl.ClassType;
@@ -23454,6 +23456,33 @@ begin
         RaiseNotYetImplemented(20170328093733,Arr1.Ranges[0],'anonymous static array');
       Result:=CheckElTypeCompatibility(GetArrayElType(Arr1),GetArrayElType(Arr2),ResolveAlias);
       exit;
+      end
+    else if (C.InheritsFrom(TPasProcedureType))
+        and not (msDelphi in CurrentParser.CurrentModeswitches) then
+      begin
+      // FPC checks proc types arguments by signature, Delphi checks by type
+      Proc1:=TPasProcedureType(Arg1Resolved.LoTypeEl);
+      Proc2:=TPasProcedureType(Arg2Resolved.LoTypeEl);
+      if Proc1.CallingConvention<>Proc2.CallingConvention then
+        exit(cIncompatible);
+      if Proc1.Modifiers<>Proc2.Modifiers then
+        exit(cIncompatible);
+      if Proc1.VarArgsType<>Proc2.VarArgsType then
+        begin
+        Result:=CheckElTypeCompatibility(Proc1.VarArgsType,Proc2.VarArgsType,ResolveAlias);
+        if Result=cIncompatible then exit;
+        end;
+      ProcArgs1:=Proc1.Args;
+      ProcArgs2:=Proc2.Args;
+      if ProcArgs1.Count<>ProcArgs2.Count then
+        exit(cIncompatible);
+      for i:=0 to ProcArgs1.Count-1 do
+        begin
+        Result:=CheckProcArgCompatibility(TPasArgument(ProcArgs1[i]),TPasArgument(ProcArgs2[i]));
+        if Result>cGenericExact then
+          exit(cIncompatible);
+        end;
+      exit(cExact);
       end;
     end;
 

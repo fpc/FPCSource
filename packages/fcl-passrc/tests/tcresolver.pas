@@ -853,7 +853,7 @@ type
     Procedure TestAssignProcToFunctionFail;
     Procedure TestAssignProcWrongArgsFail;
     Procedure TestAssignProcWrongArgAccessFail;
-    Procedure TestProcType_SameSignatureObjFPC; // ToDo
+    Procedure TestProcType_SameSignatureObjFPC;
     Procedure TestProcType_AssignNestedProcFail;
     Procedure TestArrayOfProc;
     Procedure TestProcType_Assigned;
@@ -15633,7 +15633,6 @@ end;
 
 procedure TTestResolver.TestProcType_SameSignatureObjFPC;
 begin
-  exit;
   StartProgram(false);
   Add([
   '{$mode objfpc}',
