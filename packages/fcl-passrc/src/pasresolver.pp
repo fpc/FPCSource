@@ -22613,16 +22613,10 @@ procedure TPasResolver.RaiseIncompatibleType(id: TMaxPrecInt; MsgNumber: integer
   const Args: array of {$ifdef pas2js}jsvalue{$else}const{$endif};
   GotType, ExpType: TPasType; ErrorEl: TPasElement);
 var
-  DescA, DescB: String;
+  GotDesc, ExpDesc: String;
 begin
-  DescA:=GetTypeDescription(GotType);
-  DescB:=GetTypeDescription(ExpType);
-  if DescA=DescB then
-    begin
-    DescA:=GetTypeDescription(GotType,true);
-    DescB:=GetTypeDescription(ExpType,true);
-    end;
-  RaiseIncompatibleTypeDesc(id,MsgNumber,Args,DescA,DescB,ErrorEl);
+  GetIncompatibleTypeDesc(GotType,ExpType,GotDesc,ExpDesc);
+  RaiseIncompatibleTypeDesc(id,MsgNumber,Args,GotDesc,ExpDesc,ErrorEl);
 end;
 
 procedure TPasResolver.RaiseIncompatibleTypeRes(id: TMaxPrecInt; MsgNumber: integer;
@@ -22784,50 +22778,66 @@ begin
       ExpDesc:=BaseTypeNames[btPointer]
     else
       ExpDesc:=GetBaseDescription(ExpType);
-    if GotDesc=ExpDesc then
-      begin
-      GotDesc:=GetBaseDescription(GotType,true);
-      ExpDesc:=GetBaseDescription(ExpType,true);
-      end;
+    if GotDesc<>ExpDesc then
+      exit;
+    GotDesc:=GetBaseDescription(GotType,true);
+    ExpDesc:=GetBaseDescription(ExpType,true);
     end
   else if (GotType.LoTypeEl<>nil) and (ExpType.LoTypeEl<>nil) then
     begin
     if (GotType.LoTypeEl.ClassType=ExpType.LoTypeEl.ClassType)
         and (GotType.LoTypeEl is TPasProcedureType) then
+      begin
       // procedural types
       GetIncompatibleProcParamsDesc(TPasProcedureType(GotType.LoTypeEl),
-        TPasProcedureType(ExpType.LoTypeEl),GotDesc,ExpDesc)
-    else
-      begin
-      GotDesc:=GetTypeDescription(GotType);
-      ExpDesc:=GetTypeDescription(ExpType);
-      if (GotDesc=ExpDesc) and (GotType.HiTypeEl<>ExpType.HiTypeEl) then
-        begin
-        GotDesc:=GetTypeDescription(GotType.HiTypeEl);
-        ExpDesc:=GetTypeDescription(ExpType.HiTypeEl);
-        end;
-      if GotDesc=ExpDesc then
-        begin
-        GotDesc:=GetTypeDescription(GotType,true);
-        ExpDesc:=GetTypeDescription(ExpType,true);
-        end;
+        TPasProcedureType(ExpType.LoTypeEl),GotDesc,ExpDesc);
+      if GotDesc<>ExpDesc then
+        exit;
       end;
+    GotDesc:=GetTypeDescription(GotType);
+    ExpDesc:=GetTypeDescription(ExpType);
+    if GotDesc<>ExpDesc then
+      exit;
+    if GotType.HiTypeEl<>ExpType.HiTypeEl then
+      begin
+      GotDesc:=GetTypeDescription(GotType.HiTypeEl);
+      ExpDesc:=GetTypeDescription(ExpType.HiTypeEl);
+      if GotDesc<>ExpDesc then
+        exit;
+      end;
+    GotDesc:=GetTypeDescription(GotType,true);
+    ExpDesc:=GetTypeDescription(ExpType,true);
     end
   else
     begin
     GotDesc:=GetResolverResultDescription(GotType,true);
     ExpDesc:=GetResolverResultDescription(ExpType,true);
-    if GotDesc=ExpDesc then
-      begin
-      GotDesc:=GetResolverResultDescription(GotType,false);
-      ExpDesc:=GetResolverResultDescription(ExpType,false);
-      end;
+    if GotDesc<>ExpDesc then
+      exit;
+    GotDesc:=GetResolverResultDescription(GotType,false);
+    ExpDesc:=GetResolverResultDescription(ExpType,false);
     end;
 end;
 
 procedure TPasResolver.GetIncompatibleTypeDesc(const GotType,
   ExpType: TPasType; out GotDesc, ExpDesc: String);
+var
+  GotLoType, ExpLoType: TPasType;
 begin
+  GotLoType:=ResolveAliasType(GotType);
+  ExpLoType:=ResolveAliasType(ExpType);
+  if (GotLoType<>nil) and (ExpLoType<>nil) then
+    begin
+    if (GotLoType.ClassType=ExpLoType.ClassType)
+        and (GotLoType is TPasProcedureType) then
+      begin
+      // procedural types
+      GetIncompatibleProcParamsDesc(TPasProcedureType(GotLoType),
+        TPasProcedureType(ExpLoType),GotDesc,ExpDesc);
+      if GotDesc<>ExpDesc then
+        exit;
+      end;
+    end;
   GotDesc:=GetTypeDescription(GotType);
   ExpDesc:=GetTypeDescription(ExpType);
   if GotDesc<>ExpDesc then exit;

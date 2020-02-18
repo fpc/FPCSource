@@ -853,6 +853,7 @@ type
     Procedure TestAssignProcToFunctionFail;
     Procedure TestAssignProcWrongArgsFail;
     Procedure TestAssignProcWrongArgAccessFail;
+    Procedure TestProcType_SameSignatureObjFPC; // ToDo
     Procedure TestProcType_AssignNestedProcFail;
     Procedure TestArrayOfProc;
     Procedure TestProcType_Assigned;
@@ -15628,6 +15629,26 @@ begin
   Add('  p:=@ProcA;');
   CheckResolverException('Incompatible type arg no. 1: Got "access modifier const", expected "default"',
     nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestProcType_SameSignatureObjFPC;
+begin
+  exit;
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TRun = procedure(a: Word);',
+  '  TRunIt = procedure(a: TRun);',
+  '  TFly = procedure(a: Word);',
+  'procedure FlyIt(a: TFly);',
+  'begin',
+  'end;',
+  'var RunIt: TRunIt;',
+  'begin',
+  '  RunIt:=@FlyIt;',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestProcType_AssignNestedProcFail;
