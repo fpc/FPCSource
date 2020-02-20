@@ -60,7 +60,7 @@ type
     procedure TestGenProc_TypeInfo;
     procedure TestGenProc_Infer_Widen;
     procedure TestGenProc_Infer_PassAsArg;
-    // ToDo: FuncName:=
+    // ToDo: FuncName:= instead of Result:=
 
     // generic methods
     procedure TestGenMethod_ObjFPC;

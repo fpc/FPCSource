@@ -172,7 +172,8 @@ type
     procedure TestGenMethod_TemplNameDifferFail;
     procedure TestGenMethod_ImplConstraintFail;
     procedure TestGenMethod_NestedSelf;
-    procedure TestGenMethod_OverloadTypeParamCnt;
+    procedure TestGenMethod_OverloadTypeParamCntObjFPC;
+    procedure TestGenMethod_OverloadTypeParamCntDelphi;
     procedure TestGenMethod_OverloadArgs;
   end;
 
@@ -2628,7 +2629,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolveGenerics.TestGenMethod_OverloadTypeParamCnt;
+procedure TTestResolveGenerics.TestGenMethod_OverloadTypeParamCntObjFPC;
 begin
   StartProgram(false);
   Add([
@@ -2649,6 +2650,32 @@ begin
   'begin',
   '  obj.specialize {@A}Run<word>(3);',
   '  obj.specialize {@B}Run<word,char>(4);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenMethod_OverloadTypeParamCntDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '    procedure {#A}Run<T>(a: T); overload;',
+  '    procedure {#B}Run<M,N>(a: M); overload;',
+  '  end;',
+  'procedure TObject.Run<T>(a: T);',
+  'begin',
+  'end;',
+  'procedure TObject.Run<M,N>(a: M);',
+  'begin',
+  '  {@A}Run<M>(a);',
+  '  {@B}Run<double,char>(1.3);',
+  'end;',
+  'var obj: TObject;',
+  'begin',
+  '  obj.{@A}Run<word>(3);',
+  '  obj.{@B}Run<word,char>(4);',
   '']);
   ParseProgram;
 end;

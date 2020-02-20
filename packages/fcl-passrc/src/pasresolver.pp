@@ -1666,7 +1666,6 @@ type
     procedure FinishProcedureType(El: TPasProcedureType); virtual;
     procedure FinishMethodDeclHeader(Proc: TPasProcedure); virtual;
     procedure FinishMethodImplHeader(ImplProc: TPasProcedure); virtual;
-    procedure FinishSpecializations(Scope: TPasGenericScope); virtual;
     procedure FinishExceptOnExpr; virtual;
     procedure FinishExceptOnStatement; virtual;
     procedure FinishWithDo(El: TPasImplWithDo); virtual;
@@ -1794,8 +1793,6 @@ type
       CheckConstraints: boolean);
     function CreateInferenceTypesForCall(Params: TParamsExpr;
       TargetProc: TPasProcedure): TFPList;
-    function GetSpecializedEl(El: TPasElement; GenericEl: TPasElement;
-      Params: TFPList): TPasElement;
     function CheckGenericConstraintFitsParam(ParamType: TPasType;
       SpecializedItem: TPRSpecializedItem; // set to specialize constraints
       TemplType: TPasGenericTemplateType; ConEl: TPasElement;
@@ -2323,6 +2320,10 @@ type
     function GetTypeParameterCount(aType: TPasGenericType): integer;
     function GetGenericConstraintKeyword(El: TPasElement): TToken;
     function GetGenericConstraintErrorEl(ConstraintEl, TemplType: TPasElement): TPasElement;
+    function GetSpecializedEl(El: TPasElement; GenericEl: TPasElement;
+      Params: TFPList): TPasElement; virtual;
+    procedure FinishSpecializedClassOrRecIntf(Scope: TPasGenericScope); virtual;
+    procedure FinishSpecializations(Scope: TPasGenericScope); virtual;
     function IsFullySpecialized(El: TPasGenericType): boolean; overload;
     function IsFullySpecialized(Proc: TPasProcedure): boolean; overload;
     function IsInterfaceType(const ResolvedEl: TPasResolverResult;
@@ -6102,9 +6103,10 @@ var
 begin
   if TopScope.Element<>El then
     RaiseNotYetImplemented(20190801232042,El);
-  Scope:=El.CustomData as TPasRecordScope;
-  Scope.GenericStep:=psgsInterfaceParsed;
   PopScope;
+
+  Scope:=El.CustomData as TPasRecordScope;
+  FinishSpecializedClassOrRecIntf(Scope);
 end;
 
 procedure TPasResolver.FinishClassType(El: TPasClassType);
@@ -6133,9 +6135,6 @@ var
   ProcName, IntfProcName: String;
   Expr: TPasExpr;
   SectionScope: TPasSectionScope;
-  SpecializedItems: TObjectList;
-  SpecializedItem: TPRSpecializedTypeItem;
-  OldScopeState: TScopeStashState;
 begin
   Resolutions:=nil;
   ClassScope:=nil;
@@ -6301,32 +6300,7 @@ begin
     PopGenericParamScope(El);
 
   if not El.IsForward then
-    begin
-    ClassScope.GenericStep:=psgsInterfaceParsed;
-    SpecializedItems:=ClassScope.SpecializedItems;
-    if SpecializedItems<>nil then
-      // finish interfaces of started specializations
-      for i:=0 to SpecializedItems.Count-1 do
-        begin
-        SpecializedItem:=TPRSpecializedTypeItem(SpecializedItems[i]);
-        SpecializedItem.GenericEl:=El;
-        if SpecializedItem.Step<>prssNone then continue;
-        InitSpecializeScopes(El,OldScopeState);
-        {$IFDEF VerbosePasResolver}
-        WriteScopesShort('TPasResolver.FinishClassType Finishing specialize interface: '+GetObjName(SpecializedItem.SpecializedType));
-        {$ENDIF}
-        SpecializeGenericIntf(SpecializedItem);
-
-        {$IFDEF VerbosePasResolver}
-        WriteScopesShort('TPasResolver.FinishClassType Finished specialize interface: '+GetObjName(SpecializedItem.SpecializedType));
-        {$ENDIF}
-
-        RestoreSpecializeScopes(OldScopeState);
-        {$IFDEF VerbosePasResolver}
-        WriteScopesShort('TPasResolver.FinishClassType RestoreStashedScopes '+GetObjName(SpecializedItem.SpecializedType));
-        {$ENDIF}
-        end;
-    end;
+    FinishSpecializedClassOrRecIntf(ClassScope);
 end;
 
 procedure TPasResolver.FinishClassOfType(El: TPasClassOfType);
@@ -7359,17 +7333,6 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishMethodImplHeader END "',ImplProc.Name,'" ...');
   {$ENDIF}
-end;
-
-procedure TPasResolver.FinishSpecializations(Scope: TPasGenericScope);
-var
-  SpecializedItems: TObjectList;
-  i: Integer;
-begin
-  SpecializedItems:=Scope.SpecializedItems;
-  if SpecializedItems=nil then exit;
-  for i:=0 to SpecializedItems.Count-1 do
-    SpecializeGenericImpl(TPRSpecializedItem(SpecializedItems[i]));
 end;
 
 procedure TPasResolver.FinishExceptOnExpr;
@@ -15838,135 +15801,6 @@ begin
         if InferenceTypes[i].InferType<>nil then
           InferenceTypes[i].InferType.Release{$IFDEF CheckPasTreeRefCount}(RefIdInferenceParamsExpr){$ENDIF};
   end;
-end;
-
-function TPasResolver.GetSpecializedEl(El: TPasElement; GenericEl: TPasElement;
-  Params: TFPList): TPasElement;
-var
-  Data: TPasSpecializeTypeData;
-  GenScope: TPasGenericScope;
-  GenericTemplateList: TFPList;
-  i, j: Integer;
-  Param: TPasElement;
-  ParamsResolved: TPasTypeArray;
-  ResolvedEl: TPasResolverResult;
-  SpecializedElList: TObjectList;
-  Item: TPRSpecializedItem;
-  SrcModule: TPasModule;
-  SrcModuleScope: TPasModuleScope;
-  SrcResolver: TPasResolver;
-  IsSelf: Boolean;
-  GenericType: TPasGenericType;
-  GenericProc: TPasProcedure;
-  ProcScope: TPasProcedureScope;
-begin
-  Result:=nil;
-  if El.CustomData<>nil then
-    RaiseNotYetImplemented(20190726142522,El);
-
-  // check if there is already such a specialization
-  GenScope:=nil;
-  GenericType:=nil;
-  GenericProc:=nil;
-  if GenericEl is TPasGenericType then
-    begin
-    GenericType:=TPasGenericType(GenericEl);
-    if not (GenericEl.CustomData is TPasGenericScope) then
-      RaiseMsg(20190726194316,nTypeXIsNotYetCompletelyDefined,sTypeXIsNotYetCompletelyDefined,
-        [GetTypeDescription(GenericType)],El);
-    GenScope:=TPasGenericScope(GenericEl.CustomData);
-
-    if (not (GenericType is TPasClassType))
-        and (GenScope.GenericStep<psgsInterfaceParsed) then
-      RaiseMsg(20190807205038,nTypeXIsNotYetCompletelyDefined,sTypeXIsNotYetCompletelyDefined,
-        [GetTypeDescription(GenericType)],El);
-    GenericTemplateList:=GenericType.GenericTemplateTypes;
-    end
-  else if GenericEl is TPasProcedure then
-    begin
-    GenericProc:=TPasProcedure(GenericEl);
-    if not (GenericProc.CustomData is TPasProcedureScope) then
-      RaiseMsg(20190919132733,nIdentifierNotFound,sIdentifierNotFound,
-        [GenericProc.Name],El);
-    ProcScope:=TPasProcedureScope(GenericProc.CustomData);
-    if ProcScope.DeclarationProc<>nil then
-      RaiseNotYetImplemented(20190920182602,El);
-    GenScope:=ProcScope;
-
-    if GenScope.GenericStep<psgsInterfaceParsed then
-      RaiseMsg(20190920120649,nTypeXIsNotYetCompletelyDefined,sTypeXIsNotYetCompletelyDefined,
-        [GetElementDbgPath(GenericProc)],El);
-    GenericTemplateList:=GetProcTemplateTypes(GenericProc);
-    end
-  else
-    RaiseNotYetImplemented(20190919132603,GenericEl);
-
-  SpecializedElList:=GenScope.SpecializedItems;
-  if GenericTemplateList=nil then
-    RaiseMsg(20190905111703,nXExpectedButYFound,sXExpectedButYFound,
-      ['generic templates',GenericEl.Name],El);
-  if GenericTemplateList.Count<>Params.Count then
-    RaiseMsg(20190905111704,nXExpectedButYFound,sXExpectedButYFound,
-      ['type with '+IntToStr(Params.Count)+' generic template(s)',
-       GenericEl.Name+GetGenericParamCommas(GenericTemplateList.Count)],El);
-
-  SetLength(ParamsResolved,Params.Count);
-  IsSelf:=true;
-  for i:=0 to Params.Count-1 do
-    begin
-    Param:=TPasElement(Params[i]);
-    ComputeElement(Param,ResolvedEl,[rcType]);
-    ParamsResolved[i]:=ResolvedEl.LoTypeEl;
-    if ResolvedEl.LoTypeEl<>TPasType(GenericTemplateList[i]) then
-      IsSelf:=false;
-    end;
-  if IsSelf then
-    exit(GenericEl);
-
-  if SpecializedElList=nil then
-    begin
-    SpecializedElList:=TObjectList.Create(true);
-    if GenScope<>nil then
-      GenScope.SpecializedItems:=SpecializedElList
-    else
-      RaiseNotYetImplemented(20190919133159,El);
-    end;
-  i:=SpecializedElList.Count-1;
-  Item:=nil;
-  while i>=0 do
-    begin
-    Item:=TPRSpecializedItem(SpecializedElList[i]);
-    j:=length(Item.Params)-1;
-    while j>=0 do
-      begin
-      if not IsSameType(Item.Params[j],ParamsResolved[j],prraNone)
-          and (CheckElTypeCompatibility(Item.Params[j],ParamsResolved[j],prraNone)>cExact) then
-        break;
-      dec(j);
-      end;
-    if j<0 then
-      break;
-    Item:=nil;
-    dec(i);
-    end;
-  if Item=nil then
-    begin
-    // new specialization
-    SrcModule:=GenericEl.GetModule;
-    SrcModuleScope:=SrcModule.CustomData as TPasModuleScope;
-    SrcResolver:=SrcModuleScope.Owner as TPasResolver;
-    Item:=SrcResolver.CreateSpecializedItem(El,GenericEl,ParamsResolved)
-    end;
-
-  Result:=Item.SpecializedEl;
-
-  if El.ClassType=TPasSpecializeType then
-    begin
-    Data:=TPasSpecializeTypeData.Create;
-    // add to free list
-    AddResolveData(El,Data,lkModule);
-    Data.SpecializedType:=Result as TPasGenericType;
-    end;
 end;
 
 function TPasResolver.CheckGenericConstraintFitsParam(ParamType: TPasType;
@@ -28086,6 +27920,183 @@ begin
     Result:=ConstraintEl
   else
     Result:=TemplType;
+end;
+
+function TPasResolver.GetSpecializedEl(El: TPasElement; GenericEl: TPasElement;
+  Params: TFPList): TPasElement;
+var
+  Data: TPasSpecializeTypeData;
+  GenScope: TPasGenericScope;
+  GenericTemplateList: TFPList;
+  i, j: Integer;
+  Param: TPasElement;
+  ParamsResolved: TPasTypeArray;
+  ResolvedEl: TPasResolverResult;
+  SpecializedElList: TObjectList;
+  Item: TPRSpecializedItem;
+  SrcModule: TPasModule;
+  SrcModuleScope: TPasModuleScope;
+  SrcResolver: TPasResolver;
+  IsSelf: Boolean;
+  GenericType: TPasGenericType;
+  GenericProc: TPasProcedure;
+  ProcScope: TPasProcedureScope;
+begin
+  Result:=nil;
+  if El.CustomData<>nil then
+    RaiseNotYetImplemented(20190726142522,El);
+
+  // check if there is already such a specialization
+  GenScope:=nil;
+  GenericType:=nil;
+  GenericProc:=nil;
+  if GenericEl is TPasGenericType then
+    begin
+    GenericType:=TPasGenericType(GenericEl);
+    if not (GenericEl.CustomData is TPasGenericScope) then
+      RaiseMsg(20190726194316,nTypeXIsNotYetCompletelyDefined,sTypeXIsNotYetCompletelyDefined,
+        [GetTypeDescription(GenericType)],El);
+    GenScope:=TPasGenericScope(GenericEl.CustomData);
+
+    if (not (GenericType is TPasClassType))
+        and (GenScope.GenericStep<psgsInterfaceParsed) then
+      RaiseMsg(20190807205038,nTypeXIsNotYetCompletelyDefined,sTypeXIsNotYetCompletelyDefined,
+        [GetTypeDescription(GenericType)],El);
+    GenericTemplateList:=GenericType.GenericTemplateTypes;
+    end
+  else if GenericEl is TPasProcedure then
+    begin
+    GenericProc:=TPasProcedure(GenericEl);
+    if not (GenericProc.CustomData is TPasProcedureScope) then
+      RaiseMsg(20190919132733,nIdentifierNotFound,sIdentifierNotFound,
+        [GenericProc.Name],El);
+    ProcScope:=TPasProcedureScope(GenericProc.CustomData);
+    if ProcScope.DeclarationProc<>nil then
+      RaiseNotYetImplemented(20190920182602,El);
+    GenScope:=ProcScope;
+
+    if GenScope.GenericStep<psgsInterfaceParsed then
+      RaiseMsg(20190920120649,nTypeXIsNotYetCompletelyDefined,sTypeXIsNotYetCompletelyDefined,
+        [GetElementDbgPath(GenericProc)],El);
+    GenericTemplateList:=GetProcTemplateTypes(GenericProc);
+    end
+  else
+    RaiseNotYetImplemented(20190919132603,GenericEl);
+
+  SpecializedElList:=GenScope.SpecializedItems;
+  if GenericTemplateList=nil then
+    RaiseMsg(20190905111703,nXExpectedButYFound,sXExpectedButYFound,
+      ['generic templates',GenericEl.Name],El);
+  if GenericTemplateList.Count<>Params.Count then
+    RaiseMsg(20190905111704,nXExpectedButYFound,sXExpectedButYFound,
+      ['type with '+IntToStr(Params.Count)+' generic template(s)',
+       GenericEl.Name+GetGenericParamCommas(GenericTemplateList.Count)],El);
+
+  SetLength(ParamsResolved,Params.Count);
+  IsSelf:=true;
+  for i:=0 to Params.Count-1 do
+    begin
+    Param:=TPasElement(Params[i]);
+    ComputeElement(Param,ResolvedEl,[rcType]);
+    ParamsResolved[i]:=ResolvedEl.LoTypeEl;
+    if ResolvedEl.LoTypeEl<>TPasType(GenericTemplateList[i]) then
+      IsSelf:=false;
+    end;
+  if IsSelf then
+    exit(GenericEl);
+
+  if SpecializedElList=nil then
+    begin
+    SpecializedElList:=TObjectList.Create(true);
+    if GenScope<>nil then
+      GenScope.SpecializedItems:=SpecializedElList
+    else
+      RaiseNotYetImplemented(20190919133159,El);
+    end;
+  i:=SpecializedElList.Count-1;
+  Item:=nil;
+  while i>=0 do
+    begin
+    Item:=TPRSpecializedItem(SpecializedElList[i]);
+    j:=length(Item.Params)-1;
+    while j>=0 do
+      begin
+      if not IsSameType(Item.Params[j],ParamsResolved[j],prraNone)
+          and (CheckElTypeCompatibility(Item.Params[j],ParamsResolved[j],prraNone)>cExact) then
+        break;
+      dec(j);
+      end;
+    if j<0 then
+      break;
+    Item:=nil;
+    dec(i);
+    end;
+  if Item=nil then
+    begin
+    // new specialization
+    SrcModule:=GenericEl.GetModule;
+    SrcModuleScope:=SrcModule.CustomData as TPasModuleScope;
+    SrcResolver:=SrcModuleScope.Owner as TPasResolver;
+    Item:=SrcResolver.CreateSpecializedItem(El,GenericEl,ParamsResolved)
+    end;
+
+  Result:=Item.SpecializedEl;
+
+  if El.ClassType=TPasSpecializeType then
+    begin
+    Data:=TPasSpecializeTypeData.Create;
+    // add to free list
+    AddResolveData(El,Data,lkModule);
+    Data.SpecializedType:=Result as TPasGenericType;
+    end;
+end;
+
+procedure TPasResolver.FinishSpecializedClassOrRecIntf(Scope: TPasGenericScope);
+var
+  El: TPasGenericType;
+  SpecializedItems: TObjectList;
+  i: Integer;
+  SpecializedItem: TPRSpecializedTypeItem;
+  OldScopeState: TScopeStashState;
+begin
+  El:=Scope.Element as TPasGenericType;
+  if Scope.GenericStep<>psgsNone then
+    RaiseNotYetImplemented(20200219124544,El);
+  Scope.GenericStep:=psgsInterfaceParsed;
+  SpecializedItems:=Scope.SpecializedItems;
+  if SpecializedItems<>nil then
+    // finish interfaces of started specializations
+    for i:=0 to SpecializedItems.Count-1 do
+      begin
+      SpecializedItem:=TPRSpecializedTypeItem(SpecializedItems[i]);
+      SpecializedItem.GenericEl:=El;
+      if SpecializedItem.Step<>prssNone then continue;
+      InitSpecializeScopes(El,OldScopeState);
+      {$IFDEF VerbosePasResolver}
+      WriteScopesShort('TPasResolver.FinishSpecializedClassOrRecIntf Finishing specialize interface: '+GetObjName(SpecializedItem.SpecializedType));
+      {$ENDIF}
+      SpecializeGenericIntf(SpecializedItem);
+
+      {$IFDEF VerbosePasResolver}
+      WriteScopesShort('TPasResolver.FinishSpecializedClassOrRecIntf Finished specialize interface: '+GetObjName(SpecializedItem.SpecializedType));
+      {$ENDIF}
+
+      RestoreSpecializeScopes(OldScopeState);
+      {$IFDEF VerbosePasResolver}
+      WriteScopesShort('TPasResolver.FinishSpecializedClassOrRecIntf RestoreStashedScopes '+GetObjName(SpecializedItem.SpecializedType));
+      {$ENDIF}
+      end;
+end;
+
+procedure TPasResolver.FinishSpecializations(Scope: TPasGenericScope);
+var
+  SpecializedItems: TObjectList;
+  i: Integer;
+begin
+  SpecializedItems:=Scope.SpecializedItems;
+  if SpecializedItems=nil then exit;
+  for i:=0 to SpecializedItems.Count-1 do
+    SpecializeGenericImpl(TPRSpecializedItem(SpecializedItems[i]));
 end;
 
 function TPasResolver.IsFullySpecialized(El: TPasGenericType): boolean;

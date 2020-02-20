@@ -3265,6 +3265,13 @@ end;
 
 procedure TPCUWriter.WriteElement(Obj: TJSONObject;
   El: TPasElement; aContext: TPCUWriterContext);
+
+  function IsSpecialized(GenEl: TPasGenericType): boolean;
+  begin
+    Result:=(GenEl.CustomData is TPasGenericScope)
+        and (TPasGenericScope(GenEl.CustomData).SpecializedFromItem<>nil);
+  end;
+
 var
   C: TClass;
   Kind: TPasExprKind;
@@ -3384,6 +3391,7 @@ begin
     end
   else if C=TPasArrayType then
     begin
+    if IsSpecialized(TPasGenericType(El)) then exit;
     Obj.Add('Type','ArrType');
     WriteArrayType(Obj,TPasArrayType(El),aContext);
     end
@@ -3414,11 +3422,13 @@ begin
     end
   else if C=TPasRecordType then
     begin
+    if IsSpecialized(TPasGenericType(El)) then exit;
     Obj.Add('Type','Record');
     WriteRecordType(Obj,TPasRecordType(El),aContext);
     end
   else if C=TPasClassType then
     begin
+    if IsSpecialized(TPasGenericType(El)) then exit;
     Obj.Add('Type',PCUObjKindNames[TPasClassType(El).ObjKind]);
     WriteClassType(Obj,TPasClassType(El),aContext);
     end
@@ -3429,6 +3439,7 @@ begin
     end
   else if C=TPasProcedureType then
     begin
+    if IsSpecialized(TPasGenericType(El)) then exit;
     Obj.Add('Type','ProcType');
     WriteProcedureType(Obj,TPasProcedureType(El),aContext);
     end
@@ -3743,9 +3754,19 @@ end;
 
 procedure TPCUWriter.WriteSpecializeType(Obj: TJSONObject;
   El: TPasSpecializeType; aContext: TPCUWriterContext);
+var
+  SpecTypeData: TPasSpecializeTypeData;
+  SpecType: TPasGenericType;
 begin
   WriteAliasType(Obj,El,aContext);
-  WriteElementList(Obj,El,'Params',El.Params,aContext);
+  WriteElementList(Obj,El,'Params',El.Params,aContext,true);
+  if not (El.CustomData is TPasSpecializeTypeData) then
+    RaiseMsg(20200219122421,El,GetObjName(El.CustomData));
+  SpecTypeData:=TPasSpecializeTypeData(El.CustomData);
+  SpecType:=SpecTypeData.SpecializedType;
+  if SpecType=nil then
+    RaiseMsg(20200219122520,El,GetObjName(El.CustomData));
+  Obj.Add('SpecName',SpecType.Name);
 end;
 
 procedure TPCUWriter.WriteInlineSpecializeExpr(Obj: TJSONObject;
@@ -3753,7 +3774,7 @@ procedure TPCUWriter.WriteInlineSpecializeExpr(Obj: TJSONObject;
 begin
   WritePasExpr(Obj,Expr,pekSpecialize,eopNone,aContext);
   WriteExpr(Obj,Expr,'Name',Expr.NameExpr,aContext);
-  WriteElementList(Obj,Expr,'Params',Expr.Params,aContext);
+  WriteElementList(Obj,Expr,'Params',Expr.Params,aContext,true);
 end;
 
 procedure TPCUWriter.WriteRangeType(Obj: TJSONObject; El: TPasRangeType;
@@ -7575,11 +7596,36 @@ end;
 
 procedure TPCUReader.ReadSpecializeType(Obj: TJSONObject;
   El: TPasSpecializeType; aContext: TPCUReaderContext);
+var
+  GenType: TPasGenericType;
+  GenericTemplateTypes: TFPList;
+  SpecType: TPasElement;
+  ExpName: string;
 begin
   ReadAliasType(Obj,El,aContext);
+  if not (El.DestType is TPasGenericType) then
+    RaiseMsg(20200219121250,El,GetObjPath(El.DestType));
+  GenType:=TPasGenericType(El.DestType);
+  GenericTemplateTypes:=GenType.GenericTemplateTypes;
+  if (GenericTemplateTypes=nil) or (GenericTemplateTypes.Count=0) then
+    RaiseMsg(20200219121415,El,GetObjPath(El.DestType));
+
   ReadElementList(Obj,El,'Params',El.Params,
     {$IFDEF CheckPasTreeRefCount}'TPasSpecializeType.Params'{$ELSE}true{$ENDIF},
     aContext);
+  if El.Params.Count=0 then
+    RaiseMsg(20200219121447,El);
+  if El.Params.Count<>GenType.GenericTemplateTypes.Count then
+    RaiseMsg(20200219121521,El,GetObjPath(GenType));
+
+  // specialize
+  SpecType:=Resolver.GetSpecializedEl(El,GenType,El.Params);
+
+  // check old specialized name is the same
+  if not ReadString(Obj,'SpecName',ExpName,El) then
+    RaiseMsg(20200219122919,El);
+  if ExpName<>SpecType.Name then
+    RaiseMsg(20200219123003,El,'Expected="'+ExpName+'", but found "'+SpecType.Name+'"');
 end;
 
 procedure TPCUReader.ReadInlineSpecializeExpr(Obj: TJSONObject;
@@ -7731,6 +7777,8 @@ begin
     aContext);
 
   ReadRecordScope(Obj,Scope,aContext);
+  Resolver.FinishSpecializedClassOrRecIntf(Scope);
+  Resolver.FinishSpecializations(Scope);
 end;
 
 function TPCUReader.ReadClassInterfaceType(Obj: TJSONObject;
@@ -8067,7 +8115,6 @@ begin
     {$IFDEF CheckPasTreeRefCount}'TPasClassType.Members'{$ELSE}true{$ENDIF},
     aContext);
 
-
   if Scope<>nil then
     begin
     ReadClassScopeAbstractProcs(Obj,Scope);
@@ -8089,6 +8136,9 @@ begin
         Parent:=Parent.Parent;
         end;
       end;
+
+    Resolver.FinishSpecializedClassOrRecIntf(Scope);
+    Resolver.FinishSpecializations(Scope);
     end;
 end;
 
