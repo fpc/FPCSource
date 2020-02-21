@@ -1617,7 +1617,7 @@ parser_e_generic_constraints_not_allowed_here=03355_E_Generic constraint not all
 %
 # Type Checking
 #
-# 04126 is the last used one
+# 04127 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -2057,6 +2057,10 @@ type_e_cblock_callconv=04126_E_C block reference must use CDECL or MWPASCAL call
 % When declaring a C block reference ensure that it uses either the \var{cdecl} or \var{mwpascal}
 % calling convention either by adding the corresponding function directive or by using the
 % \var{\{\$Calling\}} compiler directive.
+type_e_forward_interface_type_does_not_match=04127_E_The interface type of the forward declaration and the declared interface type do not match for interface $1
+% When declaring an interface forward, the interface type must be the same as at the actual declaration of the interface.
+% This is in particular important with regard to the parent interface which implicitly sets the interface type for the
+% child interface.
 % \end{description}
 #
 # Symtable
