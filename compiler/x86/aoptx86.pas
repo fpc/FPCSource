@@ -2021,7 +2021,6 @@ unit aoptx86;
                           begin
                             DebugMsg(SPeepholeOptimization + 'MovMovXX2MovXX 1 done',p);
                             taicpu(hp1).loadref(0,taicpu(p).oper[0]^.ref^);
-                            writeln(taicpu(hp1).oper[0]^.typ);
                             RemoveCurrentP(p);
                             Result:=True;
                             Exit;
