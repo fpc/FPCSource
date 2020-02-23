@@ -35,12 +35,43 @@ unit aoptx86;
       aopt,aoptobj;
 
     type
+      TOptsToCheck = (
+        aoc_MovAnd2Mov_3
+      );
+
       TX86AsmOptimizer = class(TAsmOptimizer)
+        { some optimizations are very expensive to check, so the
+          pre opt pass can be used to set some flags, depending on the found
+          instructions if it is worth to check a certain optimization }
+        OptsToCheck : set of TOptsToCheck;
         function RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean; override;
         function InstructionLoadsFromReg(const reg : TRegister; const hp : tai) : boolean; override;
         function RegReadByInstruction(reg : TRegister; hp : tai) : boolean;
         function RegInInstruction(Reg: TRegister; p1: tai): Boolean;override;
         function GetNextInstructionUsingReg(Current: tai; out Next: tai; reg: TRegister): Boolean;
+        {
+          In comparison with GetNextInstructionUsingReg, GetNextInstructionUsingRegTrackingUse tracks
+          the use of a register by allocs/dealloc, so it can ignore calls.
+
+          In the following example, GetNextInstructionUsingReg will return the second movq,
+          GetNextInstructionUsingRegTrackingUse won't.
+
+          movq	%rdi,%rax
+          # Register rdi released
+
+          # Register rdi allocated
+          movq	%rax,%rdi
+
+          While in this example:
+
+          movq	%rdi,%rax
+          call  proc
+          movq	%rdi,%rax
+
+          GetNextInstructionUsingRegTrackingUse will return the second instruction while GetNextInstructionUsingReg
+          won't.
+        }
+        function GetNextInstructionUsingRegTrackingUse(Current: tai; out Next: tai; reg: TRegister): Boolean;
         function RegModifiedByInstruction(Reg: TRegister; p1: tai): boolean; override;
       protected
         class function IsMOVZXAcceptable: Boolean; static; inline;
@@ -149,7 +180,7 @@ unit aoptx86;
       cpuinfo,
       procinfo,
       aasmbase,
-      aoptutils,
+      aoptbase,aoptutils,
       symconst,symsym,
       cgx86,
       itcpugas;
@@ -316,6 +347,31 @@ unit aoptx86;
             (Next.typ<>ait_instruction) or
             RegInInstruction(reg,Next) or
             is_calljmp(taicpu(Next).opcode);
+    end;
+
+
+  function TX86AsmOptimizer.GetNextInstructionUsingRegTrackingUse(Current: tai; out Next: tai; reg: TRegister): Boolean;
+    begin
+      if not(cs_opt_level3 in current_settings.optimizerswitches) then
+        begin
+          Result:=GetNextInstruction(Current,Next);
+          exit;
+        end;
+      Next:=tai(Current.Next);
+      Result:=false;
+      while assigned(Next) do
+        begin
+          if ((Next.typ=ait_instruction) and is_calljmp(taicpu(Next).opcode) and not(taicpu(Next).opcode=A_CALL)) or
+            ((Next.typ=ait_regalloc) and (getsupreg(tai_regalloc(Next).reg)=getsupreg(reg))) or
+            ((Next.typ=ait_label) and not(labelCanBeSkipped(Tai_Label(Next)))) then
+            exit
+          else if (Next.typ=ait_instruction) and RegInInstruction(reg,Next) and not(taicpu(Next).opcode=A_CALL) then
+            begin
+              Result:=true;
+              exit;
+            end;
+          Next:=tai(Next.Next);
+        end;
     end;
 
 
@@ -1774,7 +1830,7 @@ unit aoptx86;
 
     function TX86AsmOptimizer.OptPass1MOV(var p : tai) : boolean;
       var
-        hp1, hp2: tai;
+        hp1, hp2, hp4: tai;
         GetNextInstruction_p, TempRegUsed: Boolean;
         PreMessage, RegName1, RegName2, InputVal, MaskNum: string;
         NewSize: topsize;
@@ -2595,6 +2651,34 @@ unit aoptx86;
                   end;
                 else
                   Internalerror(2019103001);
+              end;
+          end;
+
+        if (aoc_MovAnd2Mov_3 in OptsToCheck) and
+          (taicpu(p).oper[1]^.typ = top_reg) and
+          (taicpu(p).opsize = S_L) and
+          GetNextInstructionUsingRegTrackingUse(p,hp2,taicpu(p).oper[1]^.reg) and
+          (taicpu(hp2).opcode = A_AND) and
+          (MatchOpType(taicpu(hp2),top_const,top_reg) or
+           (MatchOpType(taicpu(hp2),top_reg,top_reg) and
+            MatchOperand(taicpu(hp2).oper[0]^,taicpu(hp2).oper[1]^))
+           ) then
+          begin
+            if SuperRegistersEqual(taicpu(p).oper[1]^.reg,taicpu(hp2).oper[1]^.reg) then
+              begin
+                if ((taicpu(hp2).oper[0]^.typ=top_const) and (taicpu(hp2).oper[0]^.val = $ffffffff)) or
+                  ((taicpu(hp2).oper[0]^.typ=top_reg) and (taicpu(hp2).opsize=S_L)) then
+                  begin
+                    { Optimize out:
+                        mov x, %reg
+                        and ffffffffh, %reg
+                    }
+                    DebugMsg(SPeepholeOptimization + 'MovAnd2Mov 3 done',p);
+                    asml.remove(hp2);
+                    hp2.free;
+                    Result:=true;
+                    exit;
+                  end;
               end;
           end;
 
@@ -5400,7 +5484,9 @@ unit aoptx86;
               ((taicpu(p).oper[0]^.val = $FFFF) and (taicpu(p).opsize = S_W)) or
               ((taicpu(p).oper[0]^.val = $FFFFFFFF) and (taicpu(p).opsize = S_L)) then
               begin
-                taicpu(p).loadreg(0, taicpu(p).oper[1]^.reg)
+                taicpu(p).loadreg(0, taicpu(p).oper[1]^.reg);
+                if taicpu(p).opsize = S_L then
+                  Include(OptsToCheck,aoc_MovAnd2Mov_3);
               end;
           end;
 
