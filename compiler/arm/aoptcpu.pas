@@ -1270,6 +1270,22 @@ Implementation
                               Result:=true;
                               exit;
                             end
+                        else if (taicpu(p).oper[1]^.typ = top_const) and
+                          (taicpu(p).oper[1]^.val=0) and
+                          MatchInstruction(hp1, A_MLA, [taicpu(p).condition], [taicpu(p).oppostfix]) and
+                          MatchOperand(taicpu(p).oper[3]^, taicpu(hp1).oper[1]^) then
+                            begin
+                              TransferUsedRegs(TmpUsedRegs);
+                              UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                              UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
+                              DebugMsg('Peephole MovMLA2MUL 1 done', p);
+                              taicpu(hp1).ops:=3;
+                              taicpu(hp1).opcode:=A_MUL;
+                              if not(RegUsedAfterInstruction(taicpu(hp1).oper[0]^.reg,hp1,TmpUsedRegs)) then
+                                RemoveCurrentP(p);
+                              Result:=true;
+                              exit;
+                            end
                         {
                           This changes the very common
                           mov r0, #0
