@@ -275,6 +275,8 @@ unit optloop;
             end;
           typeconvn:
             result:=is_loop_invariant(loop,ttypeconvnode(expr).left);
+          addn,subn:
+            result:=is_loop_invariant(loop,taddnode(expr).left) and is_loop_invariant(loop,taddnode(expr).right);
           else
             ;
         end;
