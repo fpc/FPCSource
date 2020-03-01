@@ -176,6 +176,7 @@ unit aoptx86;
 
     uses
       cutils,verbose,
+      systems,
       globals,
       cpuinfo,
       procinfo,
@@ -5902,7 +5903,9 @@ unit aoptx86;
           MatchInstruction(hp1,A_RET,[S_NO]) and
           (taicpu(hp1).ops=0) then
           begin
-            if cs_opt_level4 in current_settings.optimizerswitches then
+            if (cs_opt_level4 in current_settings.optimizerswitches) and
+              { we might destroy stack alignment here if we do not do a call }
+              (target_info.stackalign<=sizeof(SizeUInt)) then
               begin
                 taicpu(p).opcode := A_JMP;
                 taicpu(p).is_jmp := true;
