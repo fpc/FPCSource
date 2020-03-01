@@ -4750,7 +4750,11 @@ unit aoptx86;
             symbol := TAsmLabel(taicpu(p).oper[0]^.ref^.symbol);
 
             if (hp1.typ=ait_instruction) and
-               GetNextInstruction(hp1,hp2) and (hp2.typ=ait_label) and
+               GetNextInstruction(hp1,hp2) and
+               ((hp2.typ=ait_label) or
+                 { trick to skip align }
+                ((hp2.typ=ait_align) and GetNextInstruction(hp2,hp2) and (hp2.typ=ait_label))
+               ) and
                (Tasmlabel(symbol) = Tai_label(hp2).labsym) then
                  { jb @@1                            cmc
                    inc/dec operand           -->     adc/sbb operand,0
@@ -4765,9 +4769,17 @@ unit aoptx86;
                 carryadd_opcode:=A_NONE;
                 if Taicpu(p).condition in [C_NAE,C_B] then
                   begin
-                    if Taicpu(hp1).opcode=A_INC then
+                    if (Taicpu(hp1).opcode=A_INC) or
+                      ((Taicpu(hp1).opcode=A_ADD) and
+                       MatchOptype(Taicpu(hp1),top_const,top_reg) and
+                       (Taicpu(hp1).oper[0]^.val=1)
+                      ) then
                       carryadd_opcode:=A_ADC;
-                    if Taicpu(hp1).opcode=A_DEC then
+                    if (Taicpu(hp1).opcode=A_DEC) or
+                      ((Taicpu(hp1).opcode=A_SUB) and
+                       MatchOptype(Taicpu(hp1),top_const,top_reg) and
+                       (Taicpu(hp1).oper[0]^.val=1)
+                      ) then
                       carryadd_opcode:=A_SBB;
                     if carryadd_opcode<>A_NONE then
                       begin
@@ -4776,28 +4788,43 @@ unit aoptx86;
                         Taicpu(p).is_jmp:=false;
                         Taicpu(p).opcode:=A_CMC;
                         Taicpu(p).condition:=C_NONE;
+                        DebugMsg(SPeepholeOptimization+'JccAdd/Inc/Dec2CmcAdc/Sbb',p);
                         Taicpu(hp1).ops:=2;
-                        Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[0]^);
+                        if (Taicpu(hp1).opcode=A_ADD) or (Taicpu(hp1).opcode=A_SUB) then
+                          Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[1]^)
+                        else
+                          Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[0]^);
                         Taicpu(hp1).loadconst(0,0);
                         Taicpu(hp1).opcode:=carryadd_opcode;
                         result:=true;
                         exit;
                       end;
-                  end;
-                if Taicpu(p).condition in [C_AE,C_NB] then
+                  end
+                else if Taicpu(p).condition in [C_AE,C_NB] then
                   begin
-                    if Taicpu(hp1).opcode=A_INC then
+                    if (Taicpu(hp1).opcode=A_INC) or
+                      ((Taicpu(hp1).opcode=A_ADD) and
+                       MatchOptype(Taicpu(hp1),top_const,top_reg) and
+                       (Taicpu(hp1).oper[0]^.val=1)
+                      ) then
                       carryadd_opcode:=A_ADC;
-                    if Taicpu(hp1).opcode=A_DEC then
+                    if (Taicpu(hp1).opcode=A_DEC) or
+                      ((Taicpu(hp1).opcode=A_SUB) and
+                       MatchOptype(Taicpu(hp1),top_const,top_reg) and
+                       (Taicpu(hp1).oper[0]^.val=1)
+                      ) then
                       carryadd_opcode:=A_SBB;
                     if carryadd_opcode<>A_NONE then
                       begin
-                        asml.remove(p);
-                        p.free;
                         Taicpu(hp1).ops:=2;
-                        Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[0]^);
+                        DebugMsg(SPeepholeOptimization+'JccAdd/Inc/Dec2Adc/Sbb',p);
+                        if (Taicpu(hp1).opcode=A_ADD) or (Taicpu(hp1).opcode=A_SUB) then
+                          Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[1]^)
+                        else
+                          Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[0]^);
                         Taicpu(hp1).loadconst(0,0);
                         Taicpu(hp1).opcode:=carryadd_opcode;
+                        RemoveCurrentP(p);
                         p:=hp1;
                         result:=true;
                         exit;
