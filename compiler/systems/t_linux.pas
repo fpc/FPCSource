@@ -576,7 +576,7 @@ begin
 
       { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
         here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
-      if (isdll) then
+      if isdll and not linklibc then
        begin
          Add('INPUT(');
          Add(sysrootpath+info.DynamicLinker);
