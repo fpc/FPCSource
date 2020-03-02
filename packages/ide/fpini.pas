@@ -117,6 +117,7 @@ const
   iePrimaryFile      = 'PrimaryFile';
   ieCompileMode      = 'CompileMode';
   iePalette          = 'Palette';
+  ieHelpFiles        = 'Files';
   ieHelpFile        = 'File';
   ieDefaultTabSize   = 'DefaultTabSize';
   ieDefaultIndentSize = 'DefaultIndentSize';
@@ -456,6 +457,15 @@ begin
         SwitchesMode:=ts;
     end;
   { Help }
+  { Reading single string with help-file names }
+  S:=INIFile^.GetEntry(secHelp,ieHelpFiles,'');
+  repeat
+    P:=Pos(';',S); if P=0 then P:=length(S)+1;
+    PS:=copy(S,1,P-1);
+    if PS<>'' then HelpFiles^.Insert(NewStr(PS));
+    Delete(S,1,P);
+  until S='';
+  { Reading separate strings with help-file names }
   I:=1;
   repeat
     S:=INIFile^.GetEntry(secHelp,ieHelpFile + IntToStr(I),'');
@@ -672,7 +682,10 @@ begin
   { Compile }
   INIFile^.SetEntry(secCompile,iePrimaryFile,PrimaryFile);
   INIFile^.SetEntry(secCompile,ieCompileMode,SwitchesModeStr[SwitchesMode]);
-  { Help }
+  { Deleting single string with help-files list }
+  INIFile^.DeleteEntry(secHelp, ieHelpFiles);
+  { Saving help-files as separate strings }
+  { Will it produce compatibility problems? }
   HelpFileCount:=HelpFiles^.Count;
   for I := 1 to HelpFileCount do
     begin
