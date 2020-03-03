@@ -74,6 +74,7 @@ CONST CommCtrlDLL = 'comctl32.dll';
 {$define NTDDI_WIN7}
 
 {$ifdef win64}
+  {$define _win32}
   {$define _win64}
 {$endif win64}
 
