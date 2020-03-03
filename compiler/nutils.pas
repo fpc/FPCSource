@@ -756,6 +756,7 @@ implementation
                   result:=2;
                   exit;
                 end;
+              rttin,
               setconstn,
               stringconstn,
               temprefn,
