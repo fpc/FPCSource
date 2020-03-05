@@ -1395,8 +1395,7 @@ unit aoptx86;
             if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
               begin
                 GetNextInstruction(p,hp1);
-                asml.Remove(p);
-                p.Free;
+                RemoveCurrentP(p);
                 p:=hp1;
                 result:=true;
                 exit;
@@ -1539,8 +1538,7 @@ unit aoptx86;
                     if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2,TmpUsedRegs)) then
                       begin
                         taicpu(hp1).loadoper(2,taicpu(p).oper[0]^);
-                        asml.Remove(p);
-                        p.Free;
+                        RemoveCurrentP(p);
                         asml.Remove(hp2);
                         hp2.Free;
                         p:=hp1;
@@ -1579,10 +1577,7 @@ unit aoptx86;
                         { we cannot eliminate the first move if
                           the operations uses the same register for source and dest }
                         if not(OpsEqual(taicpu(hp1).oper[1]^,taicpu(hp1).oper[0]^)) then
-                          begin
-                            asml.remove(p);
-                            p.Free;
-                          end;
+                          RemoveCurrentP(p);
                         taicpu(hp1).loadoper(1, taicpu(hp2).oper[1]^);
                         asml.remove(hp2);
                         hp2.Free;
@@ -1847,9 +1842,7 @@ unit aoptx86;
           begin
             DebugMsg(SPeepholeOptimization + 'Mov2Nop 1 done',p);
             { take care of the register (de)allocs following p }
-            UpdateUsedRegs(tai(p.next));
-            asml.remove(p);
-            p.free;
+            RemoveCurrentP(p);
             p:=hp1;
             Result:=true;
             exit;
@@ -2094,10 +2087,7 @@ unit aoptx86;
               else
                 begin
                   DebugMsg(SPeepholeOptimization + 'Mov2Nop 5 done',p);
-                  { take care of the register (de)allocs following p }
-                  UpdateUsedRegs(tai(p.next));
-                  asml.remove(p);
-                  p.free;
+                  RemoveCurrentP(p);
                   p:=hp1;
                   Result := True;
                   Exit;
@@ -2576,10 +2566,7 @@ unit aoptx86;
 
                           { We can remove the original MOV too }
                           DebugMsg(SPeepholeOptimization + 'MovMov2NopNop 6b done',p);
-                          { take care of the register (de)allocs following p }
-                          UpdateUsedRegs(tai(p.next));
-                          asml.remove(p);
-                          p.free;
+                          RemoveCurrentP(p);
                           p:=hp1;
                           Result:=true;
                           Exit;
@@ -2601,10 +2588,7 @@ unit aoptx86;
                       else
                         begin
                           DebugMsg(SPeepholeOptimization + 'MovMov2Mov 6 done',p);
-                          { take care of the register (de)allocs following p }
-                          UpdateUsedRegs(tai(p.next));
-                          asml.remove(p);
-                          p.free;
+                          RemoveCurrentP(p);
                           p:=hp1;
                           Result:=true;
                           Exit;
@@ -2640,10 +2624,7 @@ unit aoptx86;
                         else
                           begin
                             DebugMsg(SPeepholeOptimization + 'MovMov2Mov 7 done',p);
-                            { take care of the register (de)allocs following p }
-                            UpdateUsedRegs(tai(p.next));
-                            asml.remove(p);
-                            p.free;
+                            RemoveCurrentP(p);
                             p:=hp1;
                             Result:=true;
                             Exit;
@@ -5435,11 +5416,7 @@ unit aoptx86;
                   ((MaskLength+taicpu(hp1).oper[0]^.val)>=topsize2memsize[taicpu(hp1).opsize]) then
                   begin
                     DebugMsg(SPeepholeOptimization + 'AndShlToShl done',p);
-
-                    { take care of the register (de)allocs following p }
-                    UpdateUsedRegs(tai(p.next));
-                    asml.remove(p);
-                    p.free;
+                    RemoveCurrentP(p);
                     p:=hp1;
                     Result:=true;
                     exit;
