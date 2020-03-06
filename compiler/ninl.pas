@@ -5402,7 +5402,13 @@ implementation
          p: tnode;
        begin
          if count=1 then
-           set_varstate(left,vs_read,[vsf_must_be_valid])
+           begin
+             // Sometimes there are more callparanodes
+             if left is tcallparanode then
+               set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid])
+             else
+               set_varstate(left,vs_read,[vsf_must_be_valid])
+           end
          else
            begin
              p:=left;
