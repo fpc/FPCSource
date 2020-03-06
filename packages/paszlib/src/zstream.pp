@@ -271,7 +271,7 @@ begin
   else
     err:=inflateInit(Fstream);
   if err<>Z_OK then
-    raise Ecompressionerror.create(zerror(err));
+    raise Edecompressionerror.create(zerror(err));
 end;
 
 function Tdecompressionstream.read(var buffer;count:longint):longint;
