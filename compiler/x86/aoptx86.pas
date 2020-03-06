@@ -3784,9 +3784,9 @@ unit aoptx86;
                                DebugMsg(SPeepholeOptimization + 'Cmpcc2Testcc - condition B/C/NAE/O --> Never (set -> mov 0)', hp1);
                                { Convert "set(c) %reg" instruction to "movb 0,%reg" }
                                taicpu(hp1).opcode := A_MOV;
+                               taicpu(hp1).ops := 2;
                                taicpu(hp1).condition := C_None;
                                taicpu(hp1).opsize := S_B;
-                               taicpu(hp1).allocate_oper(2);
                                taicpu(hp1).loadreg(1,taicpu(hp1).oper[0]^.reg);
                                taicpu(hp1).loadconst(0, 0);
                              end;
@@ -3818,9 +3818,9 @@ unit aoptx86;
                              begin
                                { Convert "set(c) %reg" instruction to "movb 1,%reg" }
                                taicpu(hp1).opcode := A_MOV;
+                               taicpu(hp1).ops := 2;
                                taicpu(hp1).condition := C_None;
                                taicpu(hp1).opsize := S_B;
-                               taicpu(hp1).allocate_oper(2);
                                taicpu(hp1).loadreg(1,taicpu(hp1).oper[0]^.reg);
                                taicpu(hp1).loadconst(0, 1);
                              end;
