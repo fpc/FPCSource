@@ -17,7 +17,7 @@ unit pkgoptions;
 interface
 
 // pkgglobals must be AFTER fpmkunit
-uses Classes, Sysutils, Inifiles, fpTemplate, fpmkunit, pkgglobals, fgl;
+uses Classes, Sysutils, Inifiles, StrUtils, fpTemplate, fpmkunit, pkgglobals, fgl;
 
 Const
   UnitConfigFileName   = 'fpunits.cfg';
@@ -323,6 +323,7 @@ Const
   KeyCompilerOS            = 'OS';
   KeyCompilerCPU           = 'CPU';
   KeyCompilerVersion       = 'Version';
+  KeyCompilerOptions       = 'CompilerOptions';
 
 { TFppkgIncludeFilesOptionSection }
 
@@ -1167,6 +1168,8 @@ end;
 procedure TCompilerOptions.LoadCompilerFromFile(const AFileName: String);
 Var
   Ini : TMemIniFile;
+  S,sOptions : UTF8String;
+
 begin
   Ini:=TMemIniFile.Create(AFileName);
   try
@@ -1192,6 +1195,10 @@ begin
         FCompiler:=ReadString(SDefaults,KeyCompiler,FCompiler);
         FCompilerOS:=StringToOS(ReadString(SDefaults,KeyCompilerOS,OSToString(CompilerOS)));
         FCompilerCPU:=StringToCPU(ReadString(SDefaults,KeyCompilerCPU,CPUtoString(CompilerCPU)));
+        sOptions:=ReadString(SDefaults,KeyCompilerOptions,'');
+        if (sOptions<>'') then
+          for S in SplitCommandline(sOptions) do
+             self.Options.Add(S);
         CompilerVersion:=ReadString(SDefaults,KeyCompilerVersion,FCompilerVersion);
       end;
   finally
@@ -1221,6 +1228,8 @@ begin
           WriteString(SDefaults,KeyCompilerOS,OSToString(CompilerOS));
           WriteString(SDefaults,KeyCompilerCPU,CPUtoString(CompilerCPU));
           WriteString(SDefaults,KeyCompilerVersion,FCompilerVersion);
+          if HasOptions then
+            WriteString(SDefaults,KeyCompilerOptions,Self.Options.Text);
           FSaveInifileChanges:=False;
         end;
       Ini.UpdateFile;
