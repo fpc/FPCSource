@@ -187,35 +187,15 @@ interface
         tmpreg1,tmpreg2 : tregister;
         i : longint;
       begin
-        //pass_left_right;
-        //force_reg_left_right(true,true);
-        //
-        //unsigned:=not(is_signed(left.resultdef)) or
-        //          not(is_signed(right.resultdef));
-        //
-        //if getresflags(unsigned)=F_NotPossible then
-        //  begin
-        //    swapleftright;
-        //    { if we have to swap back and left is a constant, force it to a register because we cannot generate
-        //      the needed code using a constant }
-        //    if (left.location.loc=LOC_CONSTANT) and (left.location.value<>0) then
-        //      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-        //  end;
-        //
-        //if right.location.loc=LOC_CONSTANT then
-        //  begin
-        //    { decrease register pressure on registers >= r16 }
-        //    if (right.location.value and $ff)=0 then
-        //      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,NR_R1))
-        //    else
-        //      current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CPI,left.location.register,right.location.value and $ff))
-        //  end
-        //{ on the left side, we allow only a constant if it is 0 }
-        //else if (left.location.loc=LOC_CONSTANT) and (left.location.value=0) then
-        //  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,NR_R1,right.location.register))
-        //else
-        //  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,right.location.register));
-        //
+        pass_left_right;
+        // force_reg_left_right(true,true);
+
+        unsigned:=not(is_signed(left.resultdef)) or
+                  not(is_signed(right.resultdef));
+
+        cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_8,GetByteLoc(left.location,0),NR_A);
+        cg.a_op_loc_reg(current_asmdata.CurrAsmList,OP_SUB,GetByteLoc(right.location,0),NR_A);
+
         //tmpreg1:=left.location.register;
         //tmpreg2:=right.location.register;
         //

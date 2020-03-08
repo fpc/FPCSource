@@ -204,7 +204,8 @@ unit cpupara;
         begin
           { In case of po_delphi_nested_cc, the parent frame pointer
             is always passed on the stack. }
-           if (nextintreg<>RS_HL) and
+           if false and { no fastcall yet }
+              (nextintreg=RS_HL) and
               (not(vo_is_parentfp in hp.varoptions) or
                not(po_delphi_nested_cc in p.procoptions)) then
              begin
@@ -345,7 +346,7 @@ unit cpupara;
                             inc(nextintreg);
                           end
                         else
-                          { parameters are always passed completely in registers or in memory on avr }
+                          { parameters are always passed completely in registers or in memory on Z80 }
                           internalerror(2015041002);
                         dec(paralen,tcgsize2size[paraloc^.size]);
                       end;
@@ -365,7 +366,7 @@ unit cpupara;
                              paraloc^.reference.offset:=stack_offset;
                              inc(stack_offset,hp.vardef.size);
                           end;
-                        dec(paralen,hp.vardef.size);
+                        paralen:=0;
                       end;
                     else
                       internalerror(2002071002);

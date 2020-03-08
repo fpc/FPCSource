@@ -297,6 +297,7 @@ unit cgobj;
           procedure a_op_ref_reg(list : TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); virtual;
           procedure a_op_reg_loc(list : TAsmList; Op: TOpCG; reg: tregister; const loc: tlocation);
           procedure a_op_ref_loc(list : TAsmList; Op: TOpCG; const ref: TReference; const loc: tlocation);
+          procedure a_op_loc_reg(list : TAsmList; Op: TOpCG; const loc: tlocation; reg: tregister);
 
           { trinary operations for processors that support them, 'emulated' }
           { on others. None with "ref" arguments since I don't think there  }
@@ -640,7 +641,8 @@ implementation
       end;
 
 
-    function Tcg.makeregsize(list:TAsmList;reg:Tregister;size:Tcgsize):Tregister;
+        function tcg.makeregsize(list : TAsmList; reg : Tregister; size : Tcgsize
+     ) : Tregister;
       var
         subreg:Tsubregister;
       begin
@@ -1741,10 +1743,8 @@ implementation
 
 
     procedure tcg.a_op_ref_loc(list : TAsmList; Op: TOpCG; const ref: TReference; const loc: tlocation);
-
       var
         tmpreg: tregister;
-
       begin
         case loc.loc of
           LOC_REGISTER,LOC_CREGISTER:
@@ -1761,8 +1761,22 @@ implementation
       end;
 
 
-    procedure Tcg.a_op_const_reg_reg(list:TAsmList;op:Topcg;size:Tcgsize;
-                                     a:tcgint;src,dst:Tregister);
+    procedure tcg.a_op_loc_reg(list : TAsmList; Op : TOpCG;
+      const loc : tlocation; reg : tregister);
+      begin
+        case loc.loc of
+          LOC_REGISTER,LOC_CREGISTER:
+            a_op_reg_reg(list,op,loc.size,loc.register,reg);
+          LOC_REFERENCE,LOC_CREFERENCE:
+            a_op_ref_reg(list,op,loc.size,loc.reference,reg);
+          else
+            internalerror(2019020903);
+        end;
+      end;
+
+
+  procedure tcg.a_op_const_reg_reg(list : TAsmList; op : TOpCg;
+     size : tcgsize; a : tcgint; src,dst : tregister);
     begin
       optimize_op_const(size, op, a);
       case op of
@@ -2095,7 +2109,8 @@ implementation
       end;
 
 
-    procedure tcg.a_loadmm_intreg_reg(list: tasmlist; fromsize,tosize: tcgsize; intreg,mmreg: tregister; shuffle: pmmshuffle);
+        procedure tcg.a_loadmm_intreg_reg(list : TAsmList; fromsize,
+     tosize : tcgsize; intreg,mmreg : tregister; shuffle : pmmshuffle);
       var
         tmpref: treference;
       begin
@@ -2109,7 +2124,8 @@ implementation
       end;
 
 
-    procedure tcg.a_loadmm_reg_intreg(list: tasmlist; fromsize,tosize: tcgsize; mmreg,intreg: tregister; shuffle: pmmshuffle);
+        procedure tcg.a_loadmm_reg_intreg(list : TAsmList; fromsize,
+     tosize : tcgsize; mmreg,intreg : tregister; shuffle : pmmshuffle);
       var
         tmpref: treference;
       begin
@@ -2477,7 +2493,8 @@ implementation
       end;
 
 
-    procedure tcg.a_mul_reg_reg_pair(list: TAsmList; size: TCgSize; src1,src2,dstlo,dsthi: TRegister);
+        procedure tcg.a_mul_reg_reg_pair(list : TAsmList; size : tcgsize; src1,src2,
+     dstlo,dsthi : TRegister);
       begin
         internalerror(2014060801);
       end;
