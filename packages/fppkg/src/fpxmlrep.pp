@@ -128,6 +128,7 @@ Const
   SNodeCPUS         = 'cpus';
   SNodeOS           = 'os';
   SNodeCPU          = 'cpu';
+  SNodeKeywords     = 'keywords';
 
   // Mirrors
   SNodeURL          = 'url';
@@ -690,6 +691,8 @@ begin
         P.Support:=NodeText(N)
       else if (N.NodeName=sNodeDependencies) then
         DoXMlToDependencies(N,P.Dependencies)
+      else if (N.NodeName=SNodeKeywords) then
+        P.Keywords:=NodeText(N)
       else if (N.NodeName=sNodeCategory) then
         P.Category:=NodeText(N)
       else if Not IgnoreUnknownNodes then
