@@ -196,6 +196,7 @@ Type
   TFppkgOptions = class(TPersistent)
   private
     FOptionParser: TTemplateParser;
+    FPreferGlobal: Boolean;
     FSectionList: TFppkgOptionSectionList;
     function GetCommandLineSection: TFppkgCommandLineOptionSection;
     function GetGlobalSection: TFppkgGLobalOptionSection;
@@ -213,7 +214,7 @@ Type
     procedure AddRepositoriesForCompilerSettings(ACompilerOptions: TCompilerOptions);
     function AddRepositoryOptionSection(ASectionClass: TFppkgRepositoryOptionSectionClass): TFppkgRepositoryOptionSection;
     function AddIncludeFilesOptionSection(AFileMask: string): TFppkgIncludeFilesOptionSection;
-
+    property PreferGlobal : Boolean Read FPreferGlobal Write FPreferGLobal;
     property SectionList: TFppkgOptionSectionList read GetSectionList;
     property GlobalSection: TFppkgGLobalOptionSection read GetGlobalSection;
     property CommandLineSection: TFppkgCommandLineOptionSection read GetCommandLineSection;
@@ -806,7 +807,7 @@ begin
     end;
 end;
 
-constructor TFppkgOptions.Create;
+constructor TFppkgOptions.Create();
 begin
   FOptionParser := TTemplateParser.Create;
   FOptionParser.Values['AppConfigDir'] := GetFppkgConfigDir(false);
