@@ -17341,9 +17341,10 @@ begin
     '  TObject = class',
     '  public',
     '    Id: word;',
+    '    FSize: string;',
     '  end;',
-    '  TObjHelper = class helper for TObject',
-    '    property Size: word read ID write ID;',
+    '  TOb21Helper = class helper for TObject',
+    '    property Size: string read FSize write FSize;',
     '  end;',
     '']),
     '');
@@ -17351,7 +17352,7 @@ begin
     LinesToStr([
     'uses unit2;',
     'type',
-    '  TObjHelper = class helper for TObject',
+    '  TOb3Helper = class helper for TObject',
     '    property Size: word read ID write ID;',
     '  end;',
     '']),
@@ -17361,6 +17362,7 @@ begin
   'uses unit2, unit3;',
   'var o: TObject;',
   'begin',
+  '  o.Size:=3;', // last unit wins
   '  o.Size:=o.Size;']);
   ParseProgram;
 end;
