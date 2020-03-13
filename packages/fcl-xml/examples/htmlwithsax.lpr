@@ -9,8 +9,9 @@ Type
   TMyApp = Class(TCustomApplication)
   Private
     Indent : string;
-    MyReader : THTMLReader;
+    procedure DoEndDocument(Sender: TObject);
     procedure DoEndElement(Sender: TObject; const NamespaceURI, LocalName, QName: SAXString);
+    procedure DoFile(const aFileName: String);
     procedure DoStartDocument(Sender: TObject);
     procedure DoStartElement(Sender: TObject; const NamespaceURI, LocalName, QName: SAXString; Atts: TSAXAttributes);
   Protected
@@ -20,22 +21,43 @@ Type
 
 { TMyApp }
 
-procedure TMyApp.DoRun;
+procedure TMyApp.DoFile(const aFileName : String);
+
 var
   F : TFileStream;
+  MyReader : THTMLReader;
+
 begin
-  StopOnException:=True;
-  Terminate;
-  F:=TFileStream.Create(Params[1],fmOpenRead or fmShareDenyWrite);
+  MyReader:=Nil;
+  F:=TFileStream.Create(aFileName,fmOpenRead or fmShareDenyWrite);
   try
     MyReader:=THTMLReader.Create;
     MyReader.OnStartDocument:=@DoStartDocument;
     MyReader.OnStartElement:=@DoStartElement;
     MyReader.OnEndElement:=@DoEndElement;
+    MyReader.OnEndDocument:=@DoEndDocument;
     MyReader.ParseStream(F);
   finally
+    FreeAndNil(MyReader);
     F.Free;
   end;
+end;
+
+procedure TMyApp.DoRun;
+
+var
+  I : Integer;
+
+begin
+  StopOnException:=True;
+  Terminate;
+  if ParamCount<1 then
+    begin
+    Writeln('Usage : ',ExtractFileName(ExeName),' <htmlfile1> [htmlfile2 [htmlfile3]]');
+    Exit;
+    end;
+  for I:=1 to ParamCount do
+      DoFile(Params[i]);
 end;
 
 procedure TMyApp.DoStartDocument(Sender: TObject);
@@ -47,6 +69,12 @@ end;
 procedure TMyApp.DoEndElement(Sender: TObject; const NamespaceURI, LocalName, QName: SAXString);
 begin
   Indent:=Copy(Indent,1,Length(Indent)-2);
+end;
+
+procedure TMyApp.DoEndDocument(Sender: TObject);
+begin
+  Writeln('Document end');
+  Indent:='';
 end;
 
 procedure TMyApp.DoStartElement(Sender: TObject; const NamespaceURI, LocalName, QName: SAXString; Atts: TSAXAttributes);
