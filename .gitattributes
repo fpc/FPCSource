@@ -4633,6 +4633,7 @@ packages/fcl-xml/Makefile.fpc svneol=native#text/plain
 packages/fcl-xml/Makefile.fpc.fpcmake svneol=native#text/plain
 packages/fcl-xml/buildfclxml.lpi svneol=native#text/plain
 packages/fcl-xml/buildfclxml.pp svneol=native#text/plain
+packages/fcl-xml/examples/htmlwithsax.lpr svneol=native#text/plain
 packages/fcl-xml/examples/reducexml.lpi svneol=native#text/plain
 packages/fcl-xml/examples/reducexml.pp svneol=native#text/plain
 packages/fcl-xml/examples/test.html svneol=native#text/html
