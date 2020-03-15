@@ -167,7 +167,9 @@ Function ResolveHostByAddr(HostAddr : THostAddr; Var H : THostEntry) : Boolean;
 Function ResolveHostByName6(Hostname : String; Var H : THostEntry6) : Boolean;
 Function ResolveHostByAddr6(HostAddr : THostAddr6; Var H : THostEntry6) : Boolean;
 
+// H.Addr is returned in the host byte order
 Function GetHostByName(HostName: String;  Var H : THostEntry) : boolean;
+// Addr is specified in the host byte order
 Function GetHostByAddr(Addr: THostAddr;  Var H : THostEntry) : boolean;
 
 // N.Addr is returned in the net byte order
@@ -1803,12 +1805,12 @@ end;
 
 Function GetHostByName(HostName: String;  Var H : THostEntry) : boolean;
 begin
-  Result:=ResolveHostByName(HostName, H);
+  Result:=False;
 end;
 
 Function GetHostByAddr(Addr: THostAddr;  Var H : THostEntry) : boolean;
 begin
-  Result:=ResolveHostByAddr(Addr, H);
+  Result:=False;
 end;
 
 function PPCharToString(list: PPChar): string;
