@@ -59,7 +59,13 @@ interface
     const
       Version='2.0.0';
       Title='FPCMake Version '+Version;
-      TitleDate=Title;
+{$ifdef REVINC}
+      DateRevision={$i revision.inc};
+{$else}
+      DateRevision={$I %DATE%}+' no revision';
+{$endif}
+      TitleNoDate=Title;
+      TitleDate=Title+' '+DateRevision;
 
     type
       TCpu=(
