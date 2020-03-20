@@ -549,6 +549,12 @@ interface
         asmcputype : cpu_none;
         fputype : fpu_fd;
   {$endif riscv64}
+  {$ifdef xtensa}
+        cputype : cpu_none;
+        optimizecputype : cpu_none;
+        asmcputype : cpu_none;
+        fputype : fpu_none;
+  {$endif xtensa}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
 {$ifndef jvm}

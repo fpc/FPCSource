@@ -54,7 +54,8 @@
              cpu_wasm,                     { 17 }
              cpu_sparc64,                  { 18 }
              cpu_riscv32,                  { 19 }
-             cpu_riscv64                   { 20 }
+             cpu_riscv64,                  { 20 }
+             cpu_xtensa                    { 21 }
        );
 
        tasmmode= (asmmode_none
@@ -188,7 +189,8 @@
              system_riscv32_embedded,   { 99 }
              system_aarch64_android,    { 100 }
              system_x86_64_android,     { 101 }
-             system_x86_64_haiku        { 102 }
+             system_x86_64_haiku,       { 102 }
+             system_xtensa_embedded     { 103 }
        );
 
      type

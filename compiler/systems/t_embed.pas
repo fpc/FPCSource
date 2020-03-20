@@ -1423,7 +1423,7 @@ begin
   if success and not(cs_link_nolink in current_settings.globalswitches) then
     success:=PostProcessExecutable(FixedExeFileName,false);
 
-  if success and (target_info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded]) then
+  if success and (target_info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded]) then
     begin
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
         FixedExeFileName+' '+
@@ -1647,4 +1647,9 @@ initialization
   RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_riscv64_embedded_info);
 {$endif riscv64}
+
+{$ifdef xtensa}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_xtensa_embedded_info);
+{$endif xtensa}
 end.

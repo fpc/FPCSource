@@ -424,7 +424,7 @@ interface
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086',
-             'aarch64', 'wasm', 'sparc64','riscv32','riscv64');
+             'aarch64', 'wasm', 'sparc64', 'riscv32', 'riscv64', 'xtensa');
 
        abiinfo : array[tabi] of tabiinfo = (
          (name: 'DEFAULT'; supported: true),
