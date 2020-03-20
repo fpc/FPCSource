@@ -348,6 +348,17 @@ Type
   {$endif}
 {$endif CPURISCV64}
 
+{$ifdef CPUXTENSA}
+  {$define DEFAULT_DOUBLE}
+
+  {$ifndef FPUNONE}
+    {$define SUPPORT_SINGLE}
+    {$define SUPPORT_DOUBLE}
+
+    ValReal = Double;
+  {$endif}
+{$endif CPUXTENSA}
+
 {$if not declared(FarPointer)}
   FarPointer = Pointer;
 {$endif}
