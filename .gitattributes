@@ -663,6 +663,7 @@ compiler/ppcsparc.lpi svneol=native#text/plain
 compiler/ppcsparc64.lpi svneol=native#text/plain
 compiler/ppcx64.lpi svneol=native#text/plain
 compiler/ppcx64llvm.lpi svneol=native#text/plain
+compiler/ppcxtensa.lpi svneol=native#text/plain
 compiler/ppheap.pas svneol=native#text/plain
 compiler/ppu.pas svneol=native#text/plain
 compiler/procdefutil.pas svneol=native#text/plain
