@@ -48,7 +48,11 @@ Type
 
 Type
    tcontrollertype =
-     (ct_none);
+     (ct_none,
+      ct_esp32_d0wd,
+      ct_esp32_d2wd,
+      ct_esp32_sOwd
+     );
 
    tcontrollerdatatype = record
       controllertypestr, controllerunitstr: string[20];
@@ -98,7 +102,10 @@ Const
 
    embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
    (
-      (controllertypestr:'';		controllerunitstr:'';	cputype:cpu_none; fputype:fpu_none; flashbase:0)
+      (controllertypestr:'';		controllerunitstr:'';	cputype:cpu_none; fputype:fpu_none; flashbase:0),
+      (controllertypestr:'ESP32_D0WD';	controllerunitstr:'ESP32_D0WD';	cputype:cpu_lx6; fputype:fpu_none; flashbase:$40000000; flashsize:448*1024; srambase:$40070000; sramsize: 520*1024),
+      (controllertypestr:'ESP32_D2WD';	controllerunitstr:'ESP32_D2WD';	cputype:cpu_lx6; fputype:fpu_none; flashbase:$40000000; flashsize:448*1024; srambase:$40070000; sramsize: 520*1024),
+      (controllertypestr:'ESP32_S0WD';	controllerunitstr:'ESP32_S0WD';	cputype:cpu_lx6; fputype:fpu_none; flashbase:$40000000; flashsize:448*1024; srambase:$40070000; sramsize: 520*1024)
    );
 
    { Supported optimizations, only used for information }
