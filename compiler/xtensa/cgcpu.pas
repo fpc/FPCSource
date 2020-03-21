@@ -450,9 +450,38 @@ implementation
 
 
     procedure tcgcpu.a_cmp_reg_reg_label(list : TAsmList; size : tcgsize;
-      cmp_op : topcmp; reg1,reg2 : tregister; l : tasmlabel);
+        cmp_op : topcmp; reg1,reg2 : tregister; l : tasmlabel);
+      const
+        cmp2cond: array[TOpCmp] of TAsmCond = (
+          C_None,
+          C_EQ,
+          C_None,
+          C_LT,
+          C_GE,
+          C_None,
+          C_NE,
+          C_None,
+          C_LTU,
+          C_GEU,
+          C_None
+        );
+      var
+        tmpreg: TRegister;
+        instr: taicpu;
       begin
-        list.Concat(taicpu.op_none(A_NOP));
+        if cmp2cond[cmp_op]=C_None then
+          begin
+            cmp_op:=swap_opcmp(cmp_op);
+            tmpreg:=reg1;
+            reg1:=reg2;
+            reg2:=tmpreg;
+          end;
+
+        if cmp2cond[cmp_op]=C_None then
+          writeln('t');
+        instr:=taicpu.op_reg_reg_sym(A_Bcc,reg1,reg2,l);
+        instr.condition:=cmp2cond[cmp_op];
+        list.concat(instr);
       end;
 
 
