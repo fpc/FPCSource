@@ -36,6 +36,8 @@ interface
 
     type
       tcgcpu=class(tcg)
+      private
+       procedure fixref(list : TAsmList; var ref : treference);
       public
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
@@ -244,7 +246,6 @@ implementation
 
             current_asmdata.getjumplabel(l);
             cg.a_label(current_procinfo.aktlocaldata,l);
-//            hr.symboldata:=current_procinfo.aktlocaldata.last;
             current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
 
             hr.symbol:=l;
@@ -253,10 +254,102 @@ implementation
       end;
 
 
-    procedure tcgcpu.a_loadaddr_ref_reg(list : TAsmList;
-     const ref : TReference; r : tregister);
+    procedure tcgcpu.fixref(list : TAsmList;var ref : treference);
+      var
+        tmpreg, tmpreg2 : tregister;
+        tmpref : treference;
+        l : tasmlabel;
       begin
-        list.Concat(taicpu.op_none(A_NOP));
+        { absolute symbols can't be handled directly, we've to store the symbol reference
+          in the text segment and access it pc relative
+
+          For now, we assume that references where base or index equals to PC are already
+          relative, all other references are assumed to be absolute and thus they need
+          to be handled extra.
+
+          A proper solution would be to change refoptions to a set and store the information
+          if the symbol is absolute or relative there.
+        }
+        { create consts entry }
+        reference_reset(tmpref,4,[]);
+        current_asmdata.getjumplabel(l);
+        cg.a_label(current_procinfo.aktlocaldata,l);
+        tmpreg:=NR_NO;
+
+        if assigned(ref.symbol) then
+          current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
+        else
+          current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
+
+        { load consts entry }
+        tmpreg:=getintregister(list,OS_INT);
+        tmpref.symbol:=l;
+        list.concat(taicpu.op_reg_ref(A_L32R,tmpreg,tmpref));
+
+        if ref.base<>NR_NO then
+          begin
+            if ref.index<>NR_NO then
+              begin
+                list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
+                ref.base:=tmpreg;
+              end
+            else
+              ref.base:=tmpreg;
+          end
+        else
+          ref.base:=tmpreg;
+        if ref.index<>NR_NO then
+          begin
+            list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.index,tmpreg));
+            ref.index:=NR_NO;
+          end;
+        ref.offset:=0;
+        ref.symbol:=nil;
+      end;
+
+
+    procedure tcgcpu.a_loadaddr_ref_reg(list : TAsmList;
+      const ref : TReference; r : tregister);
+       var
+        b : byte;
+        tmpref : treference;
+        instr : taicpu;
+      begin
+        tmpref:=ref;
+        { Be sure to have a base register }
+        if tmpref.base=NR_NO then
+          begin
+            tmpref.base:=tmpref.index;
+            tmpref.index:=NR_NO;
+          end;
+
+        if assigned(tmpref.symbol) then
+          fixref(list,tmpref);
+
+        { expect a base here if there is an index }
+        if (tmpref.base=NR_NO) and (tmpref.index<>NR_NO) then
+          internalerror(200312022);
+
+        if tmpref.index<>NR_NO then
+          begin
+            a_op_reg_reg_reg(list,OP_ADD,OS_ADDR,tmpref.base,tmpref.index,r);
+            if tmpref.offset<>0 then
+              a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tmpref.offset,r,r);
+          end
+        else
+          begin
+            if tmpref.base=NR_NO then
+              a_load_const_reg(list,OS_ADDR,tmpref.offset,r)
+            else
+              if tmpref.offset<>0 then
+                a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tmpref.offset,tmpref.base,r)
+              else
+                begin
+                  instr:=taicpu.op_reg_reg(A_MOV,r,tmpref.base);
+                  list.concat(instr);
+                  add_move_instruction(instr);
+                end;
+          end;
       end;
 
 
