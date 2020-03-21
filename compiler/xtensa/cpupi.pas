@@ -65,8 +65,16 @@ unit cpupi;
         inherited create(aparent);
         maxpushedparasize := 0;
         framepointer:=NR_FRAME_POINTER_REG;
-        callins:=A_CALL8;
-        callxins:=A_CALLX8;
+        if target_info.abi=abi_xtensa_windowed then
+          begin
+            callins:=A_CALL8;
+            callxins:=A_CALLX8;
+          end
+        else
+          begin
+            callins:=A_CALL0;
+            callxins:=A_CALLX0;
+          end
       end;
 
 

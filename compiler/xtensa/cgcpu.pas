@@ -434,14 +434,18 @@ implementation
     procedure tcgcpu.g_proc_entry(list : TAsmList; localsize : longint;
      nostackframe : boolean);
       begin
-        list.Concat(taicpu.op_reg_const(A_ENTRY,NR_STACK_POINTER_REG,32));
+        if target_info.abi=abi_xtensa_windowed then
+          list.Concat(taicpu.op_reg_const(A_ENTRY,NR_STACK_POINTER_REG,32));
       end;
 
 
     procedure tcgcpu.g_proc_exit(list : TAsmList; parasize : longint;
      nostackframe : boolean);
       begin
-        list.Concat(taicpu.op_none(A_RETW));
+        if target_info.abi=abi_xtensa_windowed then
+          list.Concat(taicpu.op_none(A_RETW))
+        else
+          list.Concat(taicpu.op_none(A_RET));
       end;
 
 

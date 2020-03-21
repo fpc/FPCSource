@@ -19,7 +19,8 @@ Unit CPUInfo;
 Interface
 
   uses
-    globtype;
+    globtype,
+    systems;
 
 Type
    bestreal = double;
@@ -35,6 +36,7 @@ Type
    { possible supported processors for this target }
    tcputype =
       (cpu_none,
+       cpu_lx106,
        cpu_lx6
       );
 
@@ -49,6 +51,7 @@ Type
 Type
    tcontrollertype =
      (ct_none,
+      ct_esp8266,
       ct_esp32_d0wd,
       ct_esp32_d2wd,
       ct_esp32_sOwd
@@ -56,7 +59,7 @@ Type
 
    tcontrollerdatatype = record
       controllertypestr, controllerunitstr: string[20];
-      cputype: tcputype; fputype: tfputype;
+      cputype: tcputype; fputype: tfputype; abi: tabi;
       flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize, bootbase, bootsize: dword;
    end;
 
@@ -86,6 +89,7 @@ Const
 
    cputypestr : array[tcputype] of string[8] = (
      '',
+     'LX106',
      'LX6'
    );
 
@@ -102,10 +106,11 @@ Const
 
    embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
    (
-      (controllertypestr:'';		controllerunitstr:'';	cputype:cpu_none; fputype:fpu_none; flashbase:0),
-      (controllertypestr:'ESP32_D0WD';	controllerunitstr:'ESP32_D0WD';	cputype:cpu_lx6; fputype:fpu_none; flashbase:$40000000; flashsize:448*1024; srambase:$40070000; sramsize: 520*1024),
-      (controllertypestr:'ESP32_D2WD';	controllerunitstr:'ESP32_D2WD';	cputype:cpu_lx6; fputype:fpu_none; flashbase:$40000000; flashsize:448*1024; srambase:$40070000; sramsize: 520*1024),
-      (controllertypestr:'ESP32_S0WD';	controllerunitstr:'ESP32_S0WD';	cputype:cpu_lx6; fputype:fpu_none; flashbase:$40000000; flashsize:448*1024; srambase:$40070000; sramsize: 520*1024)
+      (controllertypestr:'';		controllerunitstr:'';	cputype:cpu_none; fputype:fpu_none; abi: abi_default; flashbase:0),
+      (controllertypestr:'ESP8266';	controllerunitstr:'ESP8266';	cputype:cpu_lx106; fputype:fpu_none; abi: abi_xtensa_call0; { flashbase:$40000000; flashsize:448*1024; srambase:$40070000; sramsize: 520*1024 }),
+      (controllertypestr:'ESP32_D0WD';	controllerunitstr:'ESP32_D0WD';	cputype:cpu_lx6; fputype:fpu_none; abi: abi_xtensa_windowed; flashbase:$40000000; flashsize:448*1024; srambase:$40070000; sramsize: 520*1024),
+      (controllertypestr:'ESP32_D2WD';	controllerunitstr:'ESP32_D2WD';	cputype:cpu_lx6; fputype:fpu_none; abi: abi_xtensa_windowed; flashbase:$40000000; flashsize:448*1024; srambase:$40070000; sramsize: 520*1024),
+      (controllertypestr:'ESP32_S0WD';	controllerunitstr:'ESP32_S0WD';	cputype:cpu_lx6; fputype:fpu_none; abi: abi_xtensa_windowed; flashbase:$40000000; flashsize:448*1024; srambase:$40070000; sramsize: 520*1024)
    );
 
    { Supported optimizations, only used for information }
@@ -126,7 +131,7 @@ Const
  type
    tcpuflags =
       (
-        CPUXTENSA_DUMMY
+        CPUXTENSA_REGWINDOW
       );
 
    tfpuflags =
@@ -138,7 +143,8 @@ Const
    cpu_capabilities : array[tcputype] of set of tcpuflags =
      (
        { cpu_none     } [],
-       { cpu_lx6      } []
+       { cpu_lx106    } [],
+       { cpu_lx6      } [CPUXTENSA_REGWINDOW]
      );
 
    fpu_capabilities : array[tfputype] of set of tfpuflags =

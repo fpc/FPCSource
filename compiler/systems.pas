@@ -438,7 +438,9 @@ interface
          (name: 'OLDWIN32GNU'; supported:{$ifdef I386}true{$else}false{$endif}),
          (name: 'AARCH64IOS'; supported:{$ifdef aarch64}true{$else}false{$endif}),
          (name: 'RISCVHF'; supported:{$if defined(riscv32) or defined(riscv64)}true{$else}false{$endif}),
-         (name: 'LINUX386_SYSV'; supported:{$if defined(i386)}true{$else}false{$endif})
+         (name: 'LINUX386_SYSV'; supported:{$if defined(i386)}true{$else}false{$endif}),
+         (name: 'WINDOWED'; supported:{$if defined(xtensa)}true{$else}false{$endif}),
+         (name: 'CALL0'; supported:{$if defined(xtensa)}true{$else}false{$endif})
        );
 
        { x86 asm modes with an Intel-style syntax }

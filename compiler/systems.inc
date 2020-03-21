@@ -329,6 +329,8 @@
               may still be removed by the callee (and then the stack needs to
               be restored by the caller) }
             ,abi_i386_dynalignedstack
+            ,abi_xtensa_windowed
+            ,abi_xtensa_call0
        );
 
      const
