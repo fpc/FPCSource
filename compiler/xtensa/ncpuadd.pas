@@ -74,9 +74,9 @@ interface
       var
         tmpreg : tregister;
       begin
-        //pass_left_right;
-        //location_reset(location,LOC_FLAGS,OS_NO);
-        //force_reg_left_right(false,false);
+        pass_left_right;
+        location_reset(location,LOC_FLAGS,OS_NO);
+        force_reg_left_right(false,false);
         //
         //case nodetype of
         //  equaln:
@@ -106,6 +106,7 @@ interface
         //  else
         //    internalerror(2004012401);
         //end;
+        location_copy(location,left.location);
       end;
 
 
@@ -212,7 +213,8 @@ interface
         //
         //location_reset(location,LOC_FLAGS,OS_NO);
         //location.resflags:=getresflags(unsigned);
-        location.loc:=LOC_REGISTER;
+        //location.loc:=LOC_REGISTER;
+        location_copy(location,left.location);
         current_asmdata.CurrAsmList.Concat(taicpu.op_none(A_NOP));
       end;
 
@@ -220,7 +222,6 @@ interface
     procedure TCPUAddNode.second_cmp64bit;
       begin
         second_cmp;
-        location.loc:=LOC_REGISTER;
       end;
 
 

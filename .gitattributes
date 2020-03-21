@@ -1027,6 +1027,7 @@ compiler/xtensa/itcpugas.pas svneol=native#text/pascal
 compiler/xtensa/ncpuadd.pas svneol=native#text/pascal
 compiler/xtensa/ncpucnv.pas svneol=native#text/pascal
 compiler/xtensa/ncpumat.pas svneol=native#text/pascal
+compiler/xtensa/ncpuutil.pas svneol=native#text/pascal
 compiler/xtensa/racpugas.pas svneol=native#text/pascal
 compiler/xtensa/raxtensa.pas svneol=native#text/pascal
 compiler/xtensa/rgcpu.pas svneol=native#text/pascal

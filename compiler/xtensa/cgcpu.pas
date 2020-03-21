@@ -63,6 +63,8 @@ interface
         procedure a_jmp_always(list: TAsmList; l: TAsmLabel);override;
 
         procedure g_concatcopy(list: TAsmList; const source, dest: treference; len: tcgint);override;
+
+        procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
 {$ifdef dummy}
        protected
         { changes register size without adding register allocation info }
@@ -124,9 +126,13 @@ interface
       end;
 
     procedure create_codegen;
-{
+
     const
-      TOpCG2AsmOpReg: array[topcg] of TAsmOp = (
+      TOpCG2AsmOp: array[topcg] of TAsmOp = (
+        A_NONE,A_MOV,A_ADD,A_AND,A_NONE,A_NONE,A_MULL,A_MULL,A_NEG,A_NONE,A_OR,A_SRA,A_SLL,A_SRL,A_SUB,A_XOR,A_NONE,A_NONE
+      );
+{
+      );TOpCG2AsmOpReg: array[topcg] of TAsmOp = (
         A_NONE,A_MOV,A_ADD,A_AND,A_UDIV,A_SDIV,A_MUL,A_MUL,A_NEG,A_MVN,A_ORR,A_ASRV,A_LSLV,A_LSRV,A_SUB,A_EOR,A_NONE,A_RORV
       );
       TOpCG2AsmOpImm: array[topcg] of TAsmOp = (
@@ -168,9 +174,46 @@ implementation
 
     procedure tcgcpu.a_load_reg_reg(list : TAsmList; fromsize,tosize : tcgsize;
       reg1,reg2 : tregister);
+      var
+        conv_done : Boolean;
+        instr : taicpu;
       begin
-        list.Concat(taicpu.op_none(A_NOP));
-      end;
+         if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
+           internalerror(2020030710);
+
+         conv_done:=false;
+         if tosize<>fromsize then
+           begin
+             conv_done:=true;
+             if tcgsize2size[tosize]<=tcgsize2size[fromsize] then
+              fromsize:=tosize;
+             case fromsize of
+                OS_8:
+                  list.concat(taicpu.op_reg_reg_const_const(A_EXTUI,reg2,reg1,0,8));
+                OS_S8:
+                  begin
+                    list.concat(taicpu.op_reg_reg_const(A_SEXT,reg2,reg1,7));
+                    if tosize=OS_16 then
+                      list.concat(taicpu.op_reg_reg_const_const(A_EXTUI,reg2,reg2,0,16));
+                  end;
+                OS_16:
+                  list.concat(taicpu.op_reg_reg_const_const(A_EXTUI,reg2,reg1,0,16));
+                OS_S16:
+                  list.concat(taicpu.op_reg_reg_const(A_SEXT,reg2,reg1,15));
+                else
+                  conv_done:=false;
+              end;
+           end;
+         if not conv_done and (reg1<>reg2) then
+           begin
+             { same size, only a register mov required }
+             instr:=taicpu.op_reg_reg(A_MOV,reg2,reg1);
+             list.Concat(instr);
+             { Notify the register allocator that we have written a move instruction so
+               it can try to eliminate it. }
+             add_move_instruction(instr);
+           end;
+       end;
 
 
     procedure tcgcpu.a_load_reg_ref(list : TAsmList; fromsize,tosize : tcgsize;
@@ -188,9 +231,25 @@ implementation
 
 
     procedure tcgcpu.a_load_const_reg(list : TAsmList; size : tcgsize;
-     a : tcgint; reg : tregister);
+      a : tcgint; reg : tregister);
+      var
+        hr : treference;
+        l : TAsmLabel;
       begin
-        list.Concat(taicpu.op_none(A_NOP));
+        if (a>=-2048) and (a<=2047) then
+          list.Concat(taicpu.op_reg_const(A_MOVI,reg,a))
+        else
+          begin
+            reference_reset(hr,4,[]);
+
+            current_asmdata.getjumplabel(l);
+            cg.a_label(current_procinfo.aktlocaldata,l);
+//            hr.symboldata:=current_procinfo.aktlocaldata.last;
+            current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
+
+            hr.symbol:=l;
+            list.concat(taicpu.op_reg_ref(A_L32R,reg,hr));
+          end;
       end;
 
 
@@ -216,28 +275,66 @@ implementation
 
 
     procedure tcgcpu.a_op_reg_reg_reg(list : TAsmList; op : topcg;
-       size : tcgsize; src1,src2,dst : tregister);
-       begin
-         list.Concat(taicpu.op_none(A_NOP));
+      size : tcgsize; src1,src2,dst : tregister);
+      var
+        tmpreg : TRegister;
+      begin
+        if op=OP_NOT then
+          begin
+            tmpreg:=getintregister(list,size);
+            list.concat(taicpu.op_reg_const(A_MOVI,tmpreg,-1));
+            maybeadjustresult(list,op,size,dst);
+          end
+        else if op=OP_NEG then
+          begin
+            list.concat(taicpu.op_reg_reg(A_NEG,dst,src1));
+            maybeadjustresult(list,op,size,dst);
+          end
+        else if op in [OP_SAR,OP_SHL,OP_SHR] then
+          begin
+            if op=OP_SHL then
+              list.concat(taicpu.op_reg(A_SSL,src1))
+            else
+              list.concat(taicpu.op_reg(A_SSR,src1));
+            list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],dst,src2));
+            maybeadjustresult(list,op,size,dst);
+          end
+        else
+          case op of
+            OP_MOVE:
+              a_load_reg_reg(list,size,size,src1,dst);
+            else
+              begin
+                list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],dst,src2,src1));
+                maybeadjustresult(list,op,size,dst);
+              end;
+          end;
        end;
 
 
     procedure tcgcpu.a_call_name(list : TAsmList; const s : string;
       weak : boolean);
       begin
-        list.Concat(taicpu.op_none(A_NOP));
+        if not weak then
+          list.concat(taicpu.op_sym(txtensaprocinfo(current_procinfo).callins,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
+        else
+          list.concat(taicpu.op_sym(txtensaprocinfo(current_procinfo).callins,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)));
       end;
 
 
     procedure tcgcpu.a_call_reg(list : TAsmList; Reg : tregister);
       begin
-        list.Concat(taicpu.op_none(A_NOP));
+        list.concat(taicpu.op_reg(txtensaprocinfo(current_procinfo).callxins,reg));
       end;
 
 
     procedure tcgcpu.a_jmp_name(list : TAsmList; const s : string);
+      var
+        ai : taicpu;
       begin
-        list.Concat(taicpu.op_none(A_NOP));
+        ai:=TAiCpu.op_sym(A_J,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
+        ai.is_jmp:=true;
+        list.Concat(ai);
       end;
 
 
@@ -263,8 +360,12 @@ implementation
 
 
     procedure tcgcpu.a_jmp_always(list : TAsmList; l : TAsmLabel);
+      var
+        ai : taicpu;
       begin
-        list.Concat(taicpu.op_none(A_NOP));
+        ai:=taicpu.op_sym(A_J,l);
+        ai.is_jmp:=true;
+        list.concat(ai);
       end;
 
 
@@ -272,6 +373,13 @@ implementation
       dest : treference; len : tcgint);
       begin
         list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcgcpu.maybeadjustresult(list : TAsmList; op : TOpCg;
+      size : tcgsize; dst : tregister);
+      begin
+
       end;
 
 

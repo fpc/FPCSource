@@ -38,6 +38,7 @@ interface
   type
     thlcgxtensa = class(thlcg2ll)
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+      procedure record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);override;
     end;
 
 implementation
@@ -59,6 +60,23 @@ implementation
   procedure thlcgxtensa.g_intf_wrapper(list : TAsmList; procdef : tprocdef;
    const labelname : string; ioffset : longint);
     begin
+    end;
+
+
+  procedure thlcgxtensa.record_generated_code_for_procdef(pd : tprocdef; code,
+    data : TAsmList);
+    var
+      alt : TAsmListType;
+    begin
+      if not(po_assembler in pd.procoptions) then
+        alt:=al_procedures
+      else
+        alt:=al_pure_assembler;
+      { Xtensa needs the data before the subroutine }
+      if assigned(data) and
+         (not data.empty) then
+        current_asmdata.asmlists[alt].concatlist(data);
+      inherited record_generated_code_for_procdef(pd,code,nil);
     end;
 
 begin

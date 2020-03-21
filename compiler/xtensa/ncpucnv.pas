@@ -79,9 +79,9 @@ implementation
         hlabel    : tasmlabel;
         newsize   : tcgsize;
       begin
-//         secondpass(left);
-//         if codegenerror then
-//          exit;
+         secondpass(left);
+         if codegenerror then
+           exit;
 //
 //         { Explicit typecasts from any ordinal type to a boolean type }
 //         { must not change the ordinal value                          }
@@ -188,7 +188,7 @@ implementation
 //         else
 //{$endif cpu64bitalu}
 //           location.register:=hreg1;
-        location.loc:=LOC_REGISTER;
+        location_copy(location,left.location);
         current_asmdata.CurrAsmList.Concat(taicpu.op_none(A_NOP));
       end;
 

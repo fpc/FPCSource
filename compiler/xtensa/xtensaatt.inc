@@ -1,5 +1,7 @@
 (
 'none',
+'add',
+'and',
 'bcc',
 'bt',
 'call0',
@@ -11,17 +13,30 @@
 'callx8',
 'callx12',
 'entry',
+'extui',
 'l32i',
+'l32r',
 'lsi',
 'j',
 'mov',
 'mov.s',
 'movi',
+'mull',
+'neg',
 'nop',
+'or',
 'ret',
 'retw',
 's32i',
-'ssi'
+'sext',
+'sll',
+'sra',
+'srl',
+'ssi',
+'ssl',
+'ssr',
+'sub',
+'xor'
 );
 
 

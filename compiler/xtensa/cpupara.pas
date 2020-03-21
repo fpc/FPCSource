@@ -59,7 +59,7 @@ unit cpupara;
 
     function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
-        result:=[RS_A0..RS_A15];
+        result:=[RS_A0..RS_A7];
       end;
 
 

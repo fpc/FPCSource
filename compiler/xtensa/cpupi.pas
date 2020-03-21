@@ -29,15 +29,13 @@ unit cpupi;
 
     uses
        cutils,globtype,
+       cpubase,
        cgbase,aasmdata,
        procinfo,cpuinfo,psub;
 
     type
       txtensaprocinfo = class(tcgprocinfo)
-          { for arm thumb, we need to know the stackframe size before
-            starting procedure compilation, so this contains the stack frame size, the compiler
-            should assume
-            if this size is too little the procedure must be compiled again with a larger value }
+          callins,callxins : TAsmOp;
           stackframesize,
           floatregstart : aint;
           stackpaddingreg: TSuperRegister;
@@ -55,7 +53,6 @@ unit cpupi;
 
     uses
        globals,systems,
-       cpubase,
        tgobj,
        symconst,symtype,symsym,symcpu,paramgr,
        cgutils,
@@ -67,6 +64,9 @@ unit cpupi;
       begin
         inherited create(aparent);
         maxpushedparasize := 0;
+        framepointer:=NR_FRAME_POINTER_REG;
+        callins:=A_CALL8;
+        callxins:=A_CALLX8;
       end;
 
 
