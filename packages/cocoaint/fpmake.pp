@@ -40,7 +40,6 @@ begin
     T:=P.Targets.AddUnit('CoreAudio.pas');
     T:=P.Targets.AddUnit('CoreAudioKit.pas');
     T:=P.Targets.AddUnit('CoreBluetooth.pas');
-    T:=P.Targets.AddUnit('CoreGraphics.pas');
     T:=P.Targets.AddUnit('CoreLocation.pas');
     T:=P.Targets.AddUnit('CoreMedia.pas');
     T:=P.Targets.AddUnit('CoreMediaIO.pas');
