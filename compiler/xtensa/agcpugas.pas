@@ -150,6 +150,8 @@ unit agcpugas;
       op:=taicpu(hp).opcode;
       postfix:='';
       s:=#9+gas_op2str[op];
+      if taicpu(hp).condition<>C_None then
+        s:=s+cond2str[taicpu(hp).condition];
       if taicpu(hp).ops<>0 then
         begin
           sep:=#9;

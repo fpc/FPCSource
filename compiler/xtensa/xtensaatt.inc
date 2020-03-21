@@ -2,7 +2,7 @@
 'none',
 'add',
 'and',
-'bcc',
+'b',
 'bt',
 'call0',
 'call4',

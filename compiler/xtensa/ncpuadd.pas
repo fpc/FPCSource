@@ -57,165 +57,62 @@ interface
 *****************************************************************************}
 
    procedure TCPUAddNode.second_cmpsmallset;
-
-      procedure gencmp(tmpreg1,tmpreg2 : tregister);
-        var
-          i : byte;
-        begin
-          //current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,tmpreg2));
-          //for i:=2 to tcgsize2size[left.location.size] do
-          //  begin
-          //    tmpreg1:=cg.GetNextReg(tmpreg1);
-          //    tmpreg2:=cg.GetNextReg(tmpreg2);
-          //    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
-          //  end;
-        end;
-
       var
         tmpreg : tregister;
+        cond: TOpCmp;
+        instr: taicpu;
+        truelab, falselab: TAsmLabel;
       begin
         pass_left_right;
-        location_reset(location,LOC_FLAGS,OS_NO);
+        current_asmdata.getjumplabel(truelab);
+        current_asmdata.getjumplabel(falselab);
+
+        location_reset_jump(location,truelab,falselab);
         force_reg_left_right(false,false);
-        //
-        //case nodetype of
-        //  equaln:
-        //    begin
-        //      gencmp(left.location.register,right.location.register);
-        //      location.resflags:=F_EQ;
-        //    end;
-        //  unequaln:
-        //    begin
-        //      gencmp(left.location.register,right.location.register);
-        //      location.resflags:=F_NE;
-        //    end;
-        //  lten,
-        //  gten:
-        //    begin
-        //      if (not(nf_swapped in flags) and
-        //          (nodetype = lten)) or
-        //         ((nf_swapped in flags) and
-        //          (nodetype = gten)) then
-        //        swapleftright;
-        //      tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-        //      cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,location.size,
-        //        left.location.register,right.location.register,tmpreg);
-        //      gencmp(tmpreg,right.location.register);
-        //      location.resflags:=F_EQ;
-        //    end;
-        //  else
-        //    internalerror(2004012401);
-        //end;
-        location_copy(location,left.location);
+
+        case nodetype of
+          equaln:   cond:=OC_EQ;
+          unequaln: cond:=OC_NE;
+          ltn:      cond:=OC_LT;
+          lten:     cond:=OC_LT;
+          gtn:      cond:=OC_GT;
+          gten:     cond:=OC_GTE;
+        else
+          internalerror(2020030801);
+        end;
+
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,left.location.register,right.location.register,location.truelabel);
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(A_J,location.falselabel));
       end;
 
 
     procedure TCPUAddNode.second_cmp;
       var
-        unsigned : boolean;
-        tmpreg1,tmpreg2 : tregister;
-        i : longint;
+        cond: TOpCmp;
+        instr: taicpu;
+        truelab, falselab: TAsmLabel;
       begin
         pass_left_right;
-        force_reg_left_right(true,true);
-        //
-        //unsigned:=not(is_signed(left.resultdef)) or
-        //          not(is_signed(right.resultdef));
-        //
-        //if getresflags(unsigned)=F_NotPossible then
-        //  begin
-        //    swapleftright;
-        //    { if we have to swap back and left is a constant, force it to a register because we cannot generate
-        //      the needed code using a constant }
-        //    if (left.location.loc=LOC_CONSTANT) and (left.location.value<>0) then
-        //      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-        //  end;
-        //
-        //if (not unsigned) and
-        //  (right.location.loc=LOC_CONSTANT) and
-        //  (right.location.value=0) and
-        //  (getresflags(unsigned) in [F_LT,F_GE]) then
-        //  begin
-        //    { This is a simple sign test, where we can just test the msb }
-        //    tmpreg1:=left.location.register;
-        //    for i:=2 to tcgsize2size[left.location.size] do
-        //      begin
-        //        if i=5 then
-        //          tmpreg1:=left.location.registerhi
-        //        else
-        //          tmpreg1:=cg.GetNextReg(tmpreg1);
-        //      end;
-        //
-        //    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,GetDefaultZeroReg));
-        //
-        //    location_reset(location,LOC_FLAGS,OS_NO);
-        //    location.resflags:=getresflags(unsigned);
-        //
-        //    exit;
-        //  end;
-        //
-        //if right.location.loc=LOC_CONSTANT then
-        //  begin
-        //    { decrease register pressure on registers >= r16 }
-        //    if (right.location.value and $ff)=0 then
-        //      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,GetDefaultZeroReg))
-        //    else
-        //      begin
-        //        cg.getcpuregister(current_asmdata.CurrAsmList,NR_R26);
-        //        current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LDI,NR_R26,right.location.value and $ff));
-        //        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,NR_R26));
-        //        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R26);
-        //      end;
-        //  end
-        //{ on the left side, we allow only a constant if it is 0 }
-        //else if (left.location.loc=LOC_CONSTANT) and (left.location.value=0) then
-        //  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,GetDefaultZeroReg,right.location.register))
-        //else
-        //  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,right.location.register));
-        //
-        //tmpreg1:=left.location.register;
-        //tmpreg2:=right.location.register;
-        //
-        //for i:=2 to tcgsize2size[left.location.size] do
-        //  begin
-        //    if i=5 then
-        //      begin
-        //        if left.location.loc<>LOC_CONSTANT then
-        //          tmpreg1:=left.location.registerhi;
-        //        if right.location.loc<>LOC_CONSTANT then
-        //          tmpreg2:=right.location.registerhi;
-        //      end
-        //    else
-        //      begin
-        //        if left.location.loc<>LOC_CONSTANT then
-        //          tmpreg1:=cg.GetNextReg(tmpreg1);
-        //        if right.location.loc<>LOC_CONSTANT then
-        //          tmpreg2:=cg.GetNextReg(tmpreg2);
-        //      end;
-        //    if right.location.loc=LOC_CONSTANT then
-        //      begin
-        //        { just use R1? }
-        //        if ((right.location.value64 shr ((i-1)*8)) and $ff)=0 then
-        //          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,GetDefaultZeroReg))
-        //        else
-        //          begin
-        //            tmpreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
-        //            cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_8,(right.location.value64 shr ((i-1)*8)) and $ff,tmpreg2);
-        //            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
-        //          end;
-        //      end
-        //    { above it is checked, if left=0, then a constant is allowed }
-        //    else if (left.location.loc=LOC_CONSTANT) and (left.location.value=0) then
-        //      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,GetDefaultZeroReg,tmpreg2))
-        //    else
-        //      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
-        //  end;
-        //
-        //location_reset(location,LOC_FLAGS,OS_NO);
-        //location.resflags:=getresflags(unsigned);
-        //location.loc:=LOC_REGISTER;
-        location_copy(location,left.location);
-        current_asmdata.CurrAsmList.Concat(taicpu.op_none(A_NOP));
+
+        current_asmdata.getjumplabel(truelab);
+        current_asmdata.getjumplabel(falselab);
+
+        location_reset_jump(location,truelab,falselab);
+        force_reg_left_right(false,false);
+
+        case nodetype of
+          equaln:   cond:=OC_EQ;
+          unequaln: cond:=OC_NE;
+          ltn:      cond:=OC_LT;
+          lten:     cond:=OC_LT;
+          gtn:      cond:=OC_GT;
+          gten:     cond:=OC_GTE;
+        else
+          internalerror(2020030801);
+        end;
+
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,left.location.register,right.location.register,location.truelabel);
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(A_J,location.falselabel));
       end;
 
 

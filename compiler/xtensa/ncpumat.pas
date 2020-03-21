@@ -78,39 +78,11 @@ implementation
       var
         tmpreg : TRegister;
       begin
-        location.loc:=LOC_REGISTER;
-        //{ if the location is LOC_JUMP, we do the secondpass after the
-        //  labels are allocated
-        //}
-        //if not handle_locjump then
-        //  begin
-        //    secondpass(left);
-        //    case left.location.loc of
-        //      LOC_FLAGS :
-        //        begin
-        //          location_copy(location,left.location);
-        //          inverse_flags(location.resflags);
-        //        end;
-        //      LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE,
-        //      LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF :
-        //        begin
-        //          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-        //          cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-        //          if is_64bit(resultdef) then
-        //            begin
-        //              tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-        //              { OR low and high parts together }
-        //              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,tmpreg,left.location.register64.reglo,left.location.register64.reghi),PF_S));
-        //            end
-        //          else
-        //            current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
-        //          location_reset(location,LOC_FLAGS,OS_NO);
-        //          location.resflags:=F_EQ;
-        //        end;
-        //      else
-        //        internalerror(2003042401);
-        //    end;
-        //  end;
+        secondpass(left);
+
+        location:=left.location;
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,resultdef,resultdef,false);
+        cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,def_cgsize(resultdef), location.register, location.register);
       end;
 
 {*****************************************************************************
@@ -123,106 +95,43 @@ implementation
         fdef : tdef;
       begin
         Result:=nil;
-        //if (current_settings.fputype=fpu_soft) and
-        //   (left.resultdef.typ=floatdef) then
-        //  begin
-        //    result:=nil;
-        //    firstpass(left);
-        //    expectloc:=LOC_REGISTER;
-        //    exit;
-        //  end;
-        //
-        //if not(FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype]) or
-        //  (tfloatdef(resultdef).floattype=s32real) then
-        //  exit(inherited pass_1);
-        //
-        //result:=nil;
-        //firstpass(left);
-        //if codegenerror then
-        //  exit;
-        //
-        //if (left.resultdef.typ=floatdef) then
-        //  begin
-        //    case tfloatdef(resultdef).floattype of
-        //      s64real:
-        //        begin
-        //          procname:='float64_sub';
-        //          fdef:=search_system_type('FLOAT64').typedef;
-        //        end;
-        //      else
-        //        internalerror(2005082801);
-        //    end;
-        //    result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
-        //      ctypeconvnode.create_internal(left,fDef),
-        //      ccallparanode.create(ctypeconvnode.create_internal(crealconstnode.create(0,resultdef),fdef),nil))),resultdef);
-        //
-        //    left:=nil;
-        //  end
-        //else
-        //  begin
-        //    if (left.resultdef.typ=floatdef) then
-        //      expectloc:=LOC_FPUREGISTER
-        //     else if (left.resultdef.typ=orddef) then
-        //       expectloc:=LOC_REGISTER;
-        //  end;
+        if (current_settings.fputype=fpu_soft) and
+           (left.resultdef.typ=floatdef) then
+          begin
+            result:=nil;
+            firstpass(left);
+            expectloc:=LOC_REGISTER;
+            exit;
+          end;
+
+        result:=nil;
+        firstpass(left);
+        if codegenerror then
+          exit;
+
+        expectloc:=LOC_REGISTER;
       end;
 
     procedure tcpuunaryminusnode.second_float;
       begin
-        //secondpass(left);
-        //case current_settings.fputype of
-        //  fpu_fpa,
-        //  fpu_fpa10,
-        //  fpu_fpa11:
-        //    begin
-        //      hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
-        //      location:=left.location;
-        //      current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_const(A_RSF,
-        //        location.register,left.location.register,0),
-        //        cgsize2fpuoppostfix[def_cgsize(resultdef)]));
-        //    end;
-        //  fpu_soft:
-        //    begin
-        //      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-        //      location:=left.location;
-        //      case location.size of
-        //        OS_32:
-        //          cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.register);
-        //        OS_64:
-        //          cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.registerhi);
-        //      else
-        //        internalerror(2014033101);
-        //      end;
-        //    end
-        //  else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[init_settings.fputype] then
-        //    begin
-        //      hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-        //      location:=left.location;
-        //      if (left.location.loc=LOC_CMMREGISTER) then
-        //        location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-        //
-        //      if (tfloatdef(left.resultdef).floattype=s32real) then
-        //        pf:=PF_F32
-        //      else
-        //        pf:=PF_F64;
-        //
-        //      current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VNEG,
-        //        location.register,left.location.register), pf));
-        //      cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
-        //    end
-        //  else if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[init_settings.fputype] then
-        //    begin
-        //      hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-        //      location:=left.location;
-        //      if (left.location.loc=LOC_CMMREGISTER) then
-        //        location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-        //      current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VNEG,
-        //        location.register,left.location.register), PF_F32));
-        //      cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
-        //    end
-        //  else
-        //    internalerror(2009112602);
-        //end;
+        secondpass(left);
+        case current_settings.fputype of
+          fpu_soft:
+            begin
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              location:=left.location;
+              case location.size of
+                OS_32:
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.register);
+                OS_64:
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.registerhi);
+              else
+                internalerror(2014033101);
+              end;
+            end
+          else
+            internalerror(2009112602);
+        end;
       end;
 
     procedure tcpushlshrnode.second_64bit;
@@ -287,14 +196,15 @@ implementation
           //cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
         end;
 
-      begin
+      begin         
+        inherited;
         //if GenerateThumbCode or GenerateThumb2Code then
         //begin
         //  inherited;
         //  exit;
         //end;
         //
-        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        //location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         //location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
         //location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
         //

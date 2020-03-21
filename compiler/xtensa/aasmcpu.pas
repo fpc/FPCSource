@@ -78,6 +78,7 @@ uses
         constructor op_sym(op : tasmop;_op1 : tasmsymbol);
         constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:aint);
         constructor op_reg_sym(op : tasmop;_op1 : tregister;_op2:tasmsymbol);
+        constructor op_reg_reg_sym(op : tasmop;_op1, _op2 : tregister;_op3:tasmsymbol);
         constructor op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:tasmsymbol;_op2ofs : aint);
         constructor op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:aint;const _op2 : treference);
 
@@ -367,6 +368,15 @@ uses cutils, cclasses;
          loadsymbol(1,_op2,0);
       end;
 
+     constructor taicpu.op_reg_reg_sym(op: tasmop; _op1, _op2: tregister; _op3: tasmsymbol);
+       begin
+         inherited create(op);
+         ops:=3;
+         loadreg(0,_op1);
+         loadreg(1,_op2);
+         loadsymbol(2,_op3,0);
+       end;
+
 
      constructor taicpu.op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:tasmsymbol;_op2ofs : aint);
       begin
@@ -429,9 +439,9 @@ uses cutils, cclasses;
       begin
         case getregtype(r) of
           R_INTREGISTER:
-            result:=taicpu.op_reg_ref(A_L32I,r,ref);
+            result:=taicpu.op_reg_reg_const(A_L32I,r,ref.base,ref.offset);
           R_FPUREGISTER:
-            result:=taicpu.op_reg_ref(A_LSI,r,ref);
+            result:=taicpu.op_reg_reg_const(A_LSI,r,ref.base,ref.offset);
           else
             internalerror(2020030701);
         end;
@@ -442,9 +452,9 @@ uses cutils, cclasses;
       begin
         case getregtype(r) of
           R_INTREGISTER:
-            result:=taicpu.op_reg_ref(A_S32I,r,ref);
+            result:=taicpu.op_reg_reg_const(A_S32I,r,ref.base,ref.offset);
           R_FPUREGISTER:
-            result:=taicpu.op_reg_ref(A_SSI,r,ref);
+            result:=taicpu.op_reg_reg_const(A_SSI,r,ref.base,ref.offset);
           else
             internalerror(2020030701);
         end;

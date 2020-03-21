@@ -105,21 +105,24 @@ unit cpubase;
 
     type
       TAsmCond=(C_None,
-        C_EQ,C_NE,C_CS,C_CC,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
-        C_GE,C_LT,C_GT,C_LE,C_AL,C_NV
+        C_EQ,C_NE,
+        C_GE,C_LT,C_GEU,C_LTU,
+        C_ANY,C_BNONE,C_ALL,C_NALL,C_BC,C_BS
       );
 
       TAsmConds = set of TAsmCond;
 
     const
-      cond2str : array[TAsmCond] of string[2]=('',
-        'eq','ne','cs','cc','mi','pl','vs','vc','hi','ls',
-        'ge','lt','gt','le','al','nv'
+      cond2str : array[TAsmCond] of string[4]=('',
+        'eq','ne',                         
+        'ge','lt','geu','ltu',
+        'any','none','all','nall','bc','bs'
       );
 
-      uppercond2str : array[TAsmCond] of string[2]=('',
-        'EQ','NE','CS','CC','MI','PL','VS','VC','HI','LS',
-        'GE','LT','GT','LE','AL','NV'
+      uppercond2str : array[TAsmCond] of string[4]=('',
+        'EQ','NE',
+        'GE','LT','GEU','LTU',
+        'ANY','NONE','ALL','NALL','BC','BS'
       );
 
 {*****************************************************************************
@@ -248,7 +251,6 @@ unit cpubase;
     function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
     function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
     procedure inverse_flags(var f: TResFlags);
-    function flags_to_cond(const f: TResFlags) : TAsmCond;
     function findreg_by_number(r:Tregister):tregisterindex;
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
@@ -349,18 +351,6 @@ unit cpubase;
       end;
 
 
-    function flags_to_cond(const f: TResFlags) : TAsmCond;
-      const
-        flag_2_cond: array[F_EQ..F_LE] of TAsmCond =
-          (C_EQ,C_NE,C_CS,C_CC,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
-           C_GE,C_LT,C_GT,C_LE);
-      begin
-        if f>high(flag_2_cond) then
-          internalerror(200112301);
-        result:=flag_2_cond[f];
-      end;
-
-
     function findreg_by_number(r:Tregister):tregisterindex;
       begin
         result:=rgBase.findreg_by_number_table(r,regnumber_index);
@@ -388,8 +378,9 @@ unit cpubase;
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
         inverse: array[TAsmCond] of TAsmCond=(C_None,
-          C_NE,C_EQ,C_CC,C_CS,C_PL,C_MI,C_VC,C_VS,C_LS,C_HI,
-          C_LT,C_GE,C_LE,C_GT,C_None,C_None
+          C_NE,C_EQ,
+          C_LT,C_GE,C_LTU,C_GEU,
+          C_BNONE,C_ANY,C_NALL,C_BNONE,C_BS,C_BC
         );
       begin
         result := inverse[c];
@@ -408,17 +399,7 @@ unit cpubase;
         Result := (c = C_None) or conditions_equal(Subset, c);
 
         { Please update as necessary. [Kit] }
-        if not Result then
-          case Subset of
-            C_EQ:
-              Result := (c in [C_GE, C_LE]);
-            C_LT:
-              Result := (c in [C_LE]);
-            C_GT:
-              Result := (c in [C_GE]);
-            else
-              Result := False;
-          end;
+        Result := False;
       end;
 
 
