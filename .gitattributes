@@ -10613,6 +10613,7 @@ rtl/embedded/system.pp svneol=native#text/plain
 rtl/embedded/systhrd.inc svneol=native#text/plain
 rtl/embedded/sysutils.pp svneol=native#text/pascal
 rtl/embedded/tthread.inc svneol=native#text/plain
+rtl/embedded/xtensa/esp8266.pp svneol=native#text/pascal
 rtl/emx/Makefile svneol=native#text/plain
 rtl/emx/Makefile.fpc svneol=native#text/plain
 rtl/emx/dos.pas svneol=native#text/plain
