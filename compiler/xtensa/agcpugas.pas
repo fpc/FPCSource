@@ -65,7 +65,7 @@ unit agcpugas;
 
     function TXtensaGNUAssembler.MakeCmdLine: TCmdStr;
       begin
-        Result:='';
+        result:=inherited MakeCmdLine;
       end;
 
 {****************************************************************************}
@@ -121,7 +121,7 @@ unit agcpugas;
           top_reg:
             getopstr:=gas_regname(o.reg);
           top_const:
-            getopstr:='#'+tostr(longint(o.val));
+            getopstr:=tostr(longint(o.val));
           top_ref:
             if o.ref^.refaddr=addr_full then
               begin
@@ -182,3 +182,4 @@ unit agcpugas;
 begin
   RegisterAssembler(as_xtensa_gas_info,TXtensaGNUAssembler);
 end.
+

@@ -39,7 +39,7 @@
 { This fake CPU is used to allow incorporation of globtype unit
   into utils/ppudump without any CPU specific code PM }
 {$ifdef generic_cpu}
-  {$define cpu32bit}
+  {$define #cpu32bit}
   {$define cpu32bitaddr}
   {$define cpu32bitalu}
   {$define cpuflags}

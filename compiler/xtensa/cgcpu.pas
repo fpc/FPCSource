@@ -31,10 +31,38 @@ interface
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,
        node,symconst,SymType,symdef,
-       rgcpu;
+       rgcpu,
+       cg64f32;
 
     type
       tcgcpu=class(tcg)
+      public
+        procedure init_register_allocators;override;
+        procedure done_register_allocators;override;
+
+       { move instructions }
+        procedure a_load_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister);override;
+        procedure a_load_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister;const ref: TReference);override;
+        procedure a_load_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: TReference; reg: tregister);override;
+        procedure a_load_const_reg(list: TAsmList; size: tcgsize; a: tcgint; reg: tregister);override;
+        procedure a_loadaddr_ref_reg(list: TAsmList; const ref: TReference; r: tregister);override;
+
+        procedure a_op_reg_reg(list: TAsmList; op: topcg; size: tcgsize; src, dst: tregister);override;
+        procedure a_op_const_reg(list: TAsmList; op: topcg; size: tcgsize; a: tcgint; reg: tregister);override;
+        procedure a_op_reg_reg_reg(list: TAsmList; op: topcg; size: tcgsize; src1, src2, dst: tregister);override;
+
+        procedure a_call_name(list:TAsmList;const s:string; weak: boolean);override;
+        procedure a_call_reg(list:TAsmList;Reg:tregister);override;
+        procedure a_jmp_name(list: TAsmList; const s: string);override;
+
+        procedure g_proc_entry(list: TAsmList; localsize: longint; nostackframe: boolean);override;
+        procedure g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);override;
+
+        { comparison operations }
+        procedure a_cmp_reg_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);override;
+        procedure a_jmp_always(list: TAsmList; l: TAsmLabel);override;
+
+        procedure g_concatcopy(list: TAsmList; const source, dest: treference; len: tcgint);override;
 {$ifdef dummy}
        protected
         { changes register size without adding register allocation info }
@@ -46,60 +74,34 @@ interface
         procedure make_simple_ref(list:TAsmList; var op: tasmop; size: tcgsize; oppostfix: toppostfix; var ref: treference; preferred_newbasereg: tregister);
         function getfpuregister(list: TAsmList; size: Tcgsize): Tregister; override;
         procedure handle_reg_imm12_reg(list: TAsmList; op: Tasmop; size: tcgsize; src: tregister; a: tcgint; dst: tregister; tmpreg: tregister; setflags, usedest: boolean);
-        procedure init_register_allocators;override;
-        procedure done_register_allocators;override;
         function  getmmregister(list:TAsmList;size:tcgsize):tregister;override;
         function handle_load_store(list:TAsmList; op: tasmop; size: tcgsize; oppostfix: toppostfix; reg: tregister; ref: treference):treference;
-        procedure a_call_name(list:TAsmList;const s:string; weak: boolean);override;
-        procedure a_call_reg(list:TAsmList;Reg:tregister);override;
         { General purpose instructions }
         procedure maybeadjustresult(list: TAsmList; op: topcg; size: tcgsize; dst: tregister);
-        procedure a_op_const_reg(list: TAsmList; op: topcg; size: tcgsize; a: tcgint; reg: tregister);override;
-        procedure a_op_reg_reg(list: TAsmList; op: topcg; size: tcgsize; src, dst: tregister);override;
         procedure a_op_const_reg_reg(list: TAsmList; op: topcg; size: tcgsize; a: tcgint; src, dst: tregister);override;
-        procedure a_op_reg_reg_reg(list: TAsmList; op: topcg; size: tcgsize; src1, src2, dst: tregister);override;
         procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: topcg; size: tcgsize; a: tcgint; src, dst: tregister; setflags : boolean; var ovloc : tlocation);override;
         procedure a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: topcg; size: tcgsize; src1, src2, dst: tregister; setflags : boolean; var ovloc : tlocation);override;
         { move instructions }
-        procedure a_load_const_reg(list: TAsmList; size: tcgsize; a: tcgint; reg: tregister);override;
         procedure a_load_const_ref(list: TAsmList; size: tcgsize; a: tcgint; const ref: treference); override;
-        procedure a_load_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister;const ref: TReference);override;
         procedure a_load_reg_ref_unaligned(list: TAsmList; fromsize, tosize: tcgsize; register: tregister; const ref: treference); override;
-        procedure a_load_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: TReference; reg: tregister);override;
         procedure a_load_ref_reg_unaligned(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; register: tregister); override;
-        procedure a_load_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister);override;
-        procedure a_loadaddr_ref_reg(list: TAsmList; const ref: TReference; r: tregister);override;
         { fpu move instructions (not used, all floating point is vector unit-based) }
         procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
-        procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister;shuffle : pmmshuffle);override;
-        procedure a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: TReference; reg: tregister; shuffle: pmmshuffle);override;
-        procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: TReference; shuffle: pmmshuffle);override;
-
-        procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize: tcgsize; intreg, mmreg: tregister; shuffle: pmmshuffle); override;
-        procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize: tcgsize; mmreg, intreg: tregister; shuffle: pmmshuffle); override;
-
-        procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size: tcgsize; src, dst: tregister; shuffle: pmmshuffle); override;
 
         procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister); override;
         { comparison operations }
         procedure a_cmp_const_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);override;
-        procedure a_cmp_reg_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);override;
-        procedure a_jmp_always(list: TAsmList; l: TAsmLabel);override;
-        procedure a_jmp_name(list: TAsmList; const s: string);override;
         procedure a_jmp_cond(list: TAsmList; cond: TOpCmp; l: tasmlabel);{ override;}
         procedure a_jmp_flags(list: TAsmList; const f: tresflags; l: tasmlabel);override;
         procedure g_flags2reg(list: TAsmList; size: tcgsize; const f:tresflags; reg: tregister);override;
         procedure g_overflowcheck(list: TAsmList; const loc: tlocation; def: tdef);override;
         procedure g_overflowcheck_loc(list: TAsmList; const loc: tlocation; def: tdef; ovloc: tlocation);override;
-        procedure g_proc_entry(list: TAsmList; localsize: longint; nostackframe: boolean);override;
-        procedure g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);override;
         procedure g_maybe_got_init(list: TAsmList); override;
         procedure g_restore_registers(list: TAsmList);override;
         procedure g_save_registers(list: TAsmList);override;
         procedure g_concatcopy_move(list: TAsmList; const source, dest: treference; len: tcgint);
-        procedure g_concatcopy(list: TAsmList; const source, dest: treference; len: tcgint);override;
         procedure g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: tcgint);override;
         procedure g_check_for_fpu_exception(list: TAsmList; force, clear: boolean);override;
         procedure g_profilecode(list: TAsmList);override;
@@ -107,6 +109,18 @@ interface
         function save_regs(list: TAsmList; rt: tregistertype; lowsr, highsr: tsuperregister; sub: tsubregister): longint;
         procedure load_regs(list: TAsmList; rt: tregistertype; lowsr, highsr: tsuperregister; sub: tsubregister);
 {$endif dummy}
+      end;
+
+      tcg64fxtensa = class(tcg64f32)
+        procedure a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
+        procedure a_op64_const_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64);override;
+        procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
+        //procedure a_op64_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);override;
+        //procedure a_op64_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);override;
+        //procedure a_op64_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
+        //procedure a_op64_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
+        //procedure a_loadmm_intreg64_reg(list: TAsmList; mmsize: tcgsize; intreg: tregister64; mmreg: tregister);override;
+        //procedure a_loadmm_reg_intreg64(list: TAsmList; mmsize: tcgsize; mmreg: tregister; intreg: tregister64);override;
       end;
 
     procedure create_codegen;
@@ -130,10 +144,158 @@ implementation
     paramgr,fmodule,
     symtable,symsym,
     tgobj,
-    procinfo,cpupi,
-    cg64f32;
+    procinfo,cpupi;
 
- {$ifdef dummy}
+    procedure tcgcpu.init_register_allocators;
+      begin
+        inherited init_register_allocators;
+        rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
+            [RS_A2,RS_A3,RS_A4,RS_A5,RS_A6,RS_A7,RS_A8,RS_A9,
+             RS_A10,RS_A11,RS_A12,RS_A13,RS_A14,RS_A15],first_int_imreg,[]);
+        rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
+            [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,RS_F9,
+             RS_F10,RS_F11,RS_F12,RS_F13,RS_F14,RS_F15],first_fpu_imreg,[]);
+      end;
+
+
+    procedure tcgcpu.done_register_allocators;
+      begin
+        rg[R_INTREGISTER].free;
+        rg[R_FPUREGISTER].free;
+        inherited done_register_allocators;
+      end;
+
+
+    procedure tcgcpu.a_load_reg_reg(list : TAsmList; fromsize,tosize : tcgsize;
+      reg1,reg2 : tregister);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcgcpu.a_load_reg_ref(list : TAsmList; fromsize,tosize : tcgsize;
+      reg : tregister; const ref : TReference);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcgcpu.a_load_ref_reg(list : TAsmList; fromsize,tosize : tcgsize;
+      const ref : TReference; reg : tregister);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcgcpu.a_load_const_reg(list : TAsmList; size : tcgsize;
+     a : tcgint; reg : tregister);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcgcpu.a_loadaddr_ref_reg(list : TAsmList;
+     const ref : TReference; r : tregister);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcgcpu.a_op_reg_reg(list : TAsmList; op : topcg; size : tcgsize;
+      src,dst : tregister);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcgcpu.a_op_const_reg(list : TAsmList; op : topcg;
+     size : tcgsize; a : tcgint; reg : tregister);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcgcpu.a_op_reg_reg_reg(list : TAsmList; op : topcg;
+       size : tcgsize; src1,src2,dst : tregister);
+       begin
+         list.Concat(taicpu.op_none(A_NOP));
+       end;
+
+
+    procedure tcgcpu.a_call_name(list : TAsmList; const s : string;
+      weak : boolean);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcgcpu.a_call_reg(list : TAsmList; Reg : tregister);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcgcpu.a_jmp_name(list : TAsmList; const s : string);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcgcpu.g_proc_entry(list : TAsmList; localsize : longint;
+     nostackframe : boolean);
+      begin
+        list.Concat(taicpu.op_reg_const(A_ENTRY,NR_STACK_POINTER_REG,32));
+      end;
+
+
+    procedure tcgcpu.g_proc_exit(list : TAsmList; parasize : longint;
+     nostackframe : boolean);
+      begin
+        list.Concat(taicpu.op_none(A_RETW));
+      end;
+
+
+    procedure tcgcpu.a_cmp_reg_reg_label(list : TAsmList; size : tcgsize;
+      cmp_op : topcmp; reg1,reg2 : tregister; l : tasmlabel);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcgcpu.a_jmp_always(list : TAsmList; l : TAsmLabel);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcgcpu.g_concatcopy(list : TAsmList; const source,
+      dest : treference; len : tcgint);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcg64fxtensa.a_op64_reg_reg(list : TAsmList; op : TOpCG;
+      size : tcgsize; regsrc,regdst : tregister64);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcg64fxtensa.a_op64_const_reg_reg(list : TAsmList; op : TOpCG;
+      size : tcgsize; value : int64; regsrc,regdst : tregister64);
+      begin
+         list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcg64fxtensa.a_op64_const_reg(list : TAsmList; op : TOpCG;
+      size : tcgsize; value : int64; reg : tregister64);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+{$ifdef dummy}
     procedure tcgaarch64.make_simple_ref(list:TAsmList; var op: tasmop; size: tcgsize; oppostfix: toppostfix; var ref: treference; preferred_newbasereg: tregister);
       var
         href: treference;
@@ -2317,10 +2479,11 @@ implementation
       end;
 {$endif dummy}
 
+{$warnings off}
     procedure create_codegen;
       begin
-//!!!        cg:=tcgcpu.Create;
-//!!!        cg64:=tcg64.Create;
+        cg:=tcgcpu.Create;
+        cg64:=tcg64fxtensa.Create;
       end;
 
 end.

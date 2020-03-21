@@ -3751,6 +3751,7 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('FPC_COMP_IS_INT64');
         def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
       {$endif riscv32}
+
       {$ifdef riscv64}
         def_system_macro('CPURISCV');
         def_system_macro('CPURISCV64');
@@ -3759,6 +3760,14 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('FPC_COMP_IS_INT64');
         def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
       {$endif riscv64}
+
+      {$ifdef xtensa}
+        def_system_macro('CPUXTENSA');
+        def_system_macro('CPU32');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+        def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+      {$endif xtensa}
 
       {$if defined(cpu8bitalu)}
         def_system_macro('CPUINT8');

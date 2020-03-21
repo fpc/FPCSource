@@ -1110,6 +1110,11 @@ begin
 {$ifdef riscv64}
   default_target(system_riscv64_linux);
 {$endif riscv64}
+
+{$ifdef xtensa}
+  default_target(system_xtensa_embedded);
+{$endif xtensa}
+
 end;
 
 

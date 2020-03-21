@@ -75,6 +75,7 @@
             ,asmmode_i8086_intel
             ,asmmode_i8086_att
             ,asmmode_arm_gas_unified
+            ,asmmode_xtensa_gas
        );
 
      (* IMPORTANT NOTE:

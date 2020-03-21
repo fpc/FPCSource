@@ -10,12 +10,16 @@
 'callx4',
 'callx8',
 'callx12',
+'entry',
 'l32i',
 'lsi',
 'j',
 'mov',
 'mov.s',
+'movi',
 'nop',
+'ret',
+'retw',
 's32i',
 'ssi'
 );

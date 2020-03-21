@@ -1024,12 +1024,20 @@ Unit racpugas;
 const
   asmmode_xtensa_att_info : tasmmodeinfo =
           (
-            id    : asmmode_arm_gas;
+            id    : asmmode_xtensa_gas;
             idtxt : 'DIVIDED';
+            casmreader : txtensaattreader;
+          );
+
+  asmmode_xtensa_standard_info : tasmmodeinfo =
+          (
+            id    : asmmode_standard;
+            idtxt : 'STANDARD';
             casmreader : txtensaattreader;
           );
 
 initialization
   RegisterAsmMode(asmmode_xtensa_att_info);
+  RegisterAsmMode(asmmode_xtensa_standard_info);
 end.
 
