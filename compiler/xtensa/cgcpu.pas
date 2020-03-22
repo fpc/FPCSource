@@ -401,8 +401,23 @@ implementation
 
     procedure tcgcpu.a_op_reg_reg(list : TAsmList; op : topcg; size : tcgsize;
       src,dst : tregister);
+      var
+        tmpreg : TRegister;
       begin
-        list.Concat(taicpu.op_none(A_NOP));
+        if op = OP_NEG then
+          begin
+            list.concat(taicpu.op_reg_reg(A_NEG,dst,src));
+            maybeadjustresult(list,OP_NEG,size,dst);
+          end
+        else if op = OP_NOT then
+          begin
+            tmpreg:=getintregister(list,size);
+            list.concat(taicpu.op_reg_const(A_MOVI,tmpreg,-1));
+            list.concat(taicpu.op_reg_reg_reg(A_XOR,dst,tmpreg,src));
+            maybeadjustresult(list,OP_NOT,size,dst);
+          end
+        else
+          a_op_reg_reg_reg(list,op,size,src,dst,dst);
       end;
 
 
