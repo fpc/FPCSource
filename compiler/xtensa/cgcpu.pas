@@ -227,8 +227,33 @@ implementation
 
     procedure tcgcpu.a_load_ref_reg(list : TAsmList; fromsize,tosize : tcgsize;
       const ref : TReference; reg : tregister);
+      var
+        href: treference;
+        op: TAsmOp;
+        tmpreg: TRegister;
       begin
-        list.Concat(taicpu.op_none(A_NOP));
+        href:=ref;
+        fixref(list,href);
+
+        case fromsize of
+          OS_8: op:=A_L8UI;
+          OS_16: op:=A_L16UI;
+          OS_S8: op:=A_L8UI;
+          OS_S16: op:=A_L16SI;
+
+          OS_64,OS_S64, { This only happens if tosize is smaller than fromsize }
+          { We can therefore only consider the low 32-bit of the 64bit value }
+          OS_32,
+          OS_S32: op:=A_L32I;
+        else
+          internalerror(2020030801);
+        end;
+
+        list.concat(taicpu.op_reg_ref(op,reg,href));
+        if (fromsize=OS_S8) and not(tosize in [OS_S8,OS_8]) then
+          list.concat(taicpu.op_reg_reg_const(A_SEXT,reg,reg,7));
+        if (fromsize<>tosize) and (not (tosize in [OS_SINT,OS_INT])) then
+          a_load_reg_reg(list,fromsize,tosize,reg,reg);
       end;
 
 

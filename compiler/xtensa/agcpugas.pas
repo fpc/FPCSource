@@ -100,11 +100,8 @@ unit agcpugas;
               begin
                 s:=gas_regname(base);
                 if index<>NR_NO then
-                  begin
-                     s:=s+gas_regname(index);
-                  end
-                else if offset<>0 then
-                  s:=s+','+tostr(offset);
+                  Internalerror(2020030802);
+                s:=s+','+tostr(offset);
               end;
           end;
         getreferencestring:=s;
