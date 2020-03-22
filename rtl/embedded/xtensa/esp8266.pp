@@ -18,8 +18,8 @@ const
 
   //Interrupt remap control registers
   EDGE_INT_ENABLE_REG = (PERIPHS_DPORT_BASEADDR+$04);
-  // TM1_EDGE_INT_ENABLE() = SET_PERI_REG_MASK(EDGE_INT_ENABLE_REG, BIT1);
-  // TM1_EDGE_INT_DISABLE() = CLEAR_PERI_REG_MASK(EDGE_INT_ENABLE_REG, BIT1);
+  // TM1_EDGE_INT_ENABLE() = SET_PERI_REG_MASK(EDGE_INT_ENABLE_REG, $2);
+  // TM1_EDGE_INT_DISABLE() = CLEAR_PERI_REG_MASK(EDGE_INT_ENABLE_REG, $2);
 
   //GPIO reg
   // GPIO_REG_READ(reg) = READ_PERI_REG(PERIPHS_GPIO_BASEADDR + reg);
@@ -42,7 +42,7 @@ const
 
   GPIO_RTC_CALIB_SYNC = PERIPHS_GPIO_BASEADDR+$6c;
   //first write to zero, then to one to start
-  RTC_CALIB_START = BIT31;
+  RTC_CALIB_START = $80000000;
   //max 8ms
   RTC_PERIOD_NUM_MASK = $3ff;
   GPIO_RTC_CALIB_VALUE = PERIPHS_GPIO_BASEADDR+$70;
@@ -134,16 +134,16 @@ const
   //PIN Mux reg
   PERIPHS_IO_MUX_FUNC = $13;
   PERIPHS_IO_MUX_FUNC_S = 4;
-  PERIPHS_IO_MUX_PULLUP = BIT7;
-  PERIPHS_IO_MUX_PULLUP2 = BIT6;
-  PERIPHS_IO_MUX_SLEEP_PULLUP = BIT3;
-  PERIPHS_IO_MUX_SLEEP_PULLUP2 = BIT2;
-  PERIPHS_IO_MUX_SLEEP_OE = BIT1;
-  PERIPHS_IO_MUX_OE = BIT0;
+  PERIPHS_IO_MUX_PULLUP = $80;
+  PERIPHS_IO_MUX_PULLUP2 = $40;
+  PERIPHS_IO_MUX_SLEEP_PULLUP = $8;
+  PERIPHS_IO_MUX_SLEEP_PULLUP2 = $4;
+  PERIPHS_IO_MUX_SLEEP_OE = $2;
+  PERIPHS_IO_MUX_OE = $1;
 
   PERIPHS_IO_MUX_CONF_U = (PERIPHS_IO_MUX + $00);
-  SPI0_CLK_EQU_SYS_CLK = BIT8;
-  SPI1_CLK_EQU_SYS_CLK = BIT9;
+  SPI0_CLK_EQU_SYS_CLK = $100;
+  SPI1_CLK_EQU_SYS_CLK = $200;
   PERIPHS_IO_MUX_MTDI_U = (PERIPHS_IO_MUX + $04);
   FUNC_GPIO12 = 3;
   PERIPHS_IO_MUX_MTCK_U = (PERIPHS_IO_MUX + $08);
@@ -211,7 +211,7 @@ procedure Pascalmain; external name 'PASCALMAIN';
 procedure HaltProc; assembler; nostackframe; public name'_haltproc';
 asm
 .Lloop:
-   b .Lloop
+  j .Lloop
 end;
 
 procedure Startup;
@@ -243,12 +243,15 @@ end;
 
 procedure LowLevelStartup; assembler; nostackframe;
 asm
+  j .Lstart
+  .align 4
+.Lstack_ptr:
+  .long _stack_top
+  .align 4
+.Lstart:
   l32r a1, .Lstack_ptr
 
   j Startup
-
-.Lstack_ptr:
-  .long _stack_top
 end;
 
 end.
