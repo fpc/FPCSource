@@ -399,8 +399,7 @@ implementation
       end;
 
 
-    procedure tcgcpu.a_op_reg_reg(list : TAsmList; op : topcg; size : tcgsize;
-      src,dst : tregister);
+    procedure tcgcpu.a_op_reg_reg(list : TAsmList; op : topcg; size : tcgsize; src,dst : tregister);
       var
         tmpreg : TRegister;
       begin
@@ -421,10 +420,9 @@ implementation
       end;
 
 
-    procedure tcgcpu.a_op_const_reg(list : TAsmList; op : topcg;
-     size : tcgsize; a : tcgint; reg : tregister);
+    procedure tcgcpu.a_op_const_reg(list : TAsmList; op : topcg; size : tcgsize; a : tcgint; reg : tregister);
       begin
-        list.Concat(taicpu.op_none(A_NOP));
+        a_op_const_reg_reg(list,op,size,a,reg,reg);
       end;
 
 
