@@ -21,11 +21,10 @@
   *********************************************************************
   * }
 
-{$PACKRECORDS 2}
 
 type
   PClockData = ^TClockData;
-  TClockData = record
+  TClockData = packed record
     sec  : Word;
     min  : Word;
     hour : Word;
@@ -48,7 +47,7 @@ type
 type
   PPTagItem = ^PTagItem;
   PTagItem = ^TTagItem;
-  TTagItem = record
+  TTagItem = packed record
     ti_Tag : Tag;
     ti_Data: Cardinal;
   end;
@@ -81,7 +80,7 @@ const
 
 type
   PNamedObject = ^TNamedObject;
-  TNamedObject = record
+  TNamedObject = packed record
     no_Object: Pointer;
   end;
 

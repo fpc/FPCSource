@@ -21,7 +21,6 @@
   *********************************************************************
   * }
 
-{$PACKRECORDS 2}
 
 const
   UtilityName = 'utility.library';
@@ -29,7 +28,7 @@ const
 
 type
   PUtilityBase = ^TUtilityName;
-  TUtilityName = record
+  TUtilityName = packed record
     ub_LibNode : TLibrary;
     ub_Language: Byte;
     ub_Reserved: Byte;
@@ -44,7 +43,7 @@ type
 
 type
   PHook = ^THook;
-  THook = record
+  THook = packed record
     h_MinNode : TMinNode;
     h_Entry   : Cardinal;
     h_SubEntry: Cardinal;
