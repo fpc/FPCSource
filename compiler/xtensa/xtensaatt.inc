@@ -30,6 +30,8 @@
 'or',
 'ret',
 'retw',
+'s8i',
+'s16i',
 's32i',
 'sext',
 'sll',

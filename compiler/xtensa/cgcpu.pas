@@ -220,9 +220,30 @@ implementation
 
     procedure tcgcpu.a_load_reg_ref(list : TAsmList; fromsize,tosize : tcgsize;
       reg : tregister; const ref : TReference);
-      begin
-        list.Concat(taicpu.op_none(A_NOP));
-      end;
+       var
+         op: TAsmOp;
+         href : treference;
+       begin
+        href:=ref;
+        fixref(list,href);
+         if (TCGSize2Size[FromSize] >= TCGSize2Size[ToSize]) then
+           FromSize := ToSize;
+         case tosize of
+           { signed integer registers }
+           OS_8,
+           OS_S8:
+             op:=A_S8I;
+           OS_16,
+           OS_S16:
+             op:=A_S16I;
+           OS_32,
+           OS_S32:
+             op:=A_S32I;
+           else
+             InternalError(2020030804);
+         end;
+         list.concat(taicpu.op_reg_ref(op,reg,href));
+       end;
 
 
     procedure tcgcpu.a_load_ref_reg(list : TAsmList; fromsize,tosize : tcgsize;
