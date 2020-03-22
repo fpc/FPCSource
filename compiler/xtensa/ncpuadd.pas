@@ -100,16 +100,28 @@ interface
         location_reset_jump(location,truelab,falselab);
         force_reg_left_right(false,false);
 
-        case nodetype of
-          equaln:   cond:=OC_EQ;
-          unequaln: cond:=OC_NE;
-          ltn:      cond:=OC_LT;
-          lten:     cond:=OC_LT;
-          gtn:      cond:=OC_GT;
-          gten:     cond:=OC_GTE;
+        if is_signed(left.resultdef) then
+          case nodetype of
+            equaln:   cond:=OC_EQ;
+            unequaln: cond:=OC_NE;
+            ltn:      cond:=OC_LT;
+            lten:     cond:=OC_LTE;
+            gtn:      cond:=OC_GT;
+            gten:     cond:=OC_GTE;
+          else
+            internalerror(2020030801);
+          end
         else
-          internalerror(2020030801);
-        end;
+          case nodetype of
+            equaln:   cond:=OC_EQ;
+            unequaln: cond:=OC_NE;
+            ltn:      cond:=OC_B;
+            lten:     cond:=OC_BE;
+            gtn:      cond:=OC_A;
+            gten:     cond:=OC_AE;
+          else
+            internalerror(2020030801);
+          end;
 
         cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,left.location.register,right.location.register,location.truelabel);
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(A_J,location.falselabel));
