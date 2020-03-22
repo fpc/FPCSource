@@ -52,6 +52,7 @@ interface
         procedure a_op_reg_reg(list: TAsmList; op: topcg; size: tcgsize; src, dst: tregister);override;
         procedure a_op_const_reg(list: TAsmList; op: topcg; size: tcgsize; a: tcgint; reg: tregister);override;
         procedure a_op_reg_reg_reg(list: TAsmList; op: topcg; size: tcgsize; src1, src2, dst: tregister);override;
+        procedure a_op_const_reg_reg(list : TAsmList; op : TOpCg; size : tcgsize; a : tcgint; src,dst : tregister);override;
 
         procedure a_call_name(list:TAsmList;const s:string; weak: boolean);override;
         procedure a_call_reg(list:TAsmList;Reg:tregister);override;
@@ -417,6 +418,12 @@ implementation
           end
         else
           a_op_reg_reg_reg(list,op,size,src,dst,dst);
+      end;
+
+
+    procedure tcgcpu.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
       end;
 
 
