@@ -1,6 +1,7 @@
 (
 A_NONE,
 A_ADD,
+A_ADDI,
 A_AND,
 A_Bcc,
 A_BT,

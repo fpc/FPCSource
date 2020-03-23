@@ -449,7 +449,8 @@ implementation
           it saves us a register }
         else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a,l1) then
           a_op_const_reg_reg(list,OP_SHL,size,l1,src,dst)
-
+        else if (op=OP_ADD) and (a>=-128) and (a<=127) then
+          list.concat(taicpu.op_reg_reg_const(A_ADDI,dst,src,a))
         else
           begin
             tmpreg:=getintregister(list,size);

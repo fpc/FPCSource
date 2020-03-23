@@ -1,6 +1,7 @@
 (
 'none',
 'add',
+'addi',
 'and',
 'b',
 'bt',
