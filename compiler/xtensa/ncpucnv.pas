@@ -75,7 +75,6 @@ implementation
         hreg1,
         hregister : tregister;
         href      : treference;
-        resflags  : tresflags;
         hlabel    : tasmlabel;
         newsize   : tcgsize;
       begin

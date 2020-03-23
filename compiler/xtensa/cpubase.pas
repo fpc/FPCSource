@@ -107,7 +107,8 @@ unit cpubase;
       TAsmCond=(C_None,
         C_EQ,C_NE,
         C_GE,C_LT,C_GEU,C_LTU,
-        C_ANY,C_BNONE,C_ALL,C_NALL,C_BC,C_BS
+        C_ANY,C_BNONE,C_ALL,C_NALL,C_BC,C_BS,
+        C_EQZ,C_NEZ
       );
 
       TAsmConds = set of TAsmCond;
@@ -116,39 +117,24 @@ unit cpubase;
       cond2str : array[TAsmCond] of string[4]=('',
         'eq','ne',                         
         'ge','lt','geu','ltu',
-        'any','none','all','nall','bc','bs'
+        'any','none','all','nall','bc','bs',
+        'eqz','nez'
       );
 
       uppercond2str : array[TAsmCond] of string[4]=('',
         'EQ','NE',
         'GE','LT','GEU','LTU',
-        'ANY','NONE','ALL','NALL','BC','BS'
+        'ANY','NONE','ALL','NALL','BC','BS',
+        'EQZ','NEZ'
       );
-
-{*****************************************************************************
-                                   Flags
-*****************************************************************************}
-
-    type
-      TResFlags = (F_EQ,F_NE,F_CS,F_CC,F_MI,F_PL,F_VS,F_VC,F_HI,F_LS,
-        F_GE,F_LT,F_GT,F_LE);
 
 {*****************************************************************************
                                 Operands
 *****************************************************************************}
 
-      taddressmode = (AM_OFFSET,AM_PREINDEXED,AM_POSTINDEXED);
-      tshiftmode = (SM_None,SM_LSL,SM_LSR,SM_ASR,SM_ROR,SM_RRX);
 
+    type
       tupdatereg = (UR_None,UR_Update);
-
-      pshifterop = ^tshifterop;
-
-      tshifterop = record
-        shiftmode : tshiftmode;
-        rs : tregister;
-        shiftimm : byte;
-      end;
 
       tcpumodeflag = (mfA, mfI, mfF);
       tcpumodeflags = set of tcpumodeflag;
@@ -250,7 +236,6 @@ unit cpubase;
     function reg_cgsize(const reg: tregister) : tcgsize;
     function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
     function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
-    procedure inverse_flags(var f: TResFlags);
     function findreg_by_number(r:Tregister):tregisterindex;
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
@@ -341,16 +326,6 @@ unit cpubase;
       end;
 
 
-    procedure inverse_flags(var f: TResFlags);
-      const
-        inv_flags: array[TResFlags] of TResFlags =
-          (F_NE,F_EQ,F_CC,F_CS,F_PL,F_MI,F_VC,F_VS,F_LS,F_HI,
-          F_LT,F_GE,F_LE,F_GT);
-      begin
-        f:=inv_flags[f];
-      end;
-
-
     function findreg_by_number(r:Tregister):tregisterindex;
       begin
         result:=rgBase.findreg_by_number_table(r,regnumber_index);
@@ -380,7 +355,8 @@ unit cpubase;
         inverse: array[TAsmCond] of TAsmCond=(C_None,
           C_NE,C_EQ,
           C_LT,C_GE,C_LTU,C_GEU,
-          C_BNONE,C_ANY,C_NALL,C_BNONE,C_BS,C_BC
+          C_BNONE,C_ANY,C_NALL,C_BNONE,C_BS,C_BC,C_NEZ,
+          C_EQZ
         );
       begin
         result := inverse[c];

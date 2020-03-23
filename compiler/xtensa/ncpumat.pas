@@ -137,7 +137,6 @@ implementation
     procedure tcpushlshrnode.second_64bit;
       var
         v : TConstExprInt;
-        so: tshifterop;
         lreg, resreg: TRegister64;
 
       procedure emit_instr(p: tai);
@@ -157,7 +156,7 @@ implementation
          subs  shiftval2, shiftval1, #32
          movpl dstlo, srchi, lsr shiftval2
       }
-      procedure shift_by_variable(srchi, srclo, dsthi, dstlo, shiftval: TRegister; sm: TShiftMode);
+      procedure shift_by_variable(srchi, srclo, dsthi, dstlo, shiftval: TRegister);
         var
           shiftval1,shiftval2:TRegister;
         begin

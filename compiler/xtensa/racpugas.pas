@@ -165,23 +165,6 @@ Unit racpugas;
         end;
 
 
-      function is_shifter_ref_operation(var a : tshiftmode) : boolean;
-        begin
-          a := SM_NONE;
-          if      (actasmpattern='LSL') then
-            a := SM_LSL
-          else if (actasmpattern='LSR') then
-            a := SM_LSR
-          else if (actasmpattern='ASR') then
-            a := SM_ASR
-          else if (actasmpattern='ROR') then
-            a := SM_ROR
-          else if (actasmpattern='RRX') then
-            a := SM_RRX;
-          is_shifter_ref_operation := not(a=SM_NONE);
-        end;
-
-
       procedure read_index_shift(require_rbracket : boolean);
         var
           shift : aint;
