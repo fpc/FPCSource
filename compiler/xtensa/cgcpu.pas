@@ -37,7 +37,8 @@ interface
     type
       tcgcpu=class(tcg)
       private
-       procedure fixref(list : TAsmList; var ref : treference);
+        procedure fixref(list : TAsmList; var ref : treference);
+        procedure g_concatcopy_move(list : tasmlist; const Source,dest : treference; len : tcgint);
       public
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
@@ -65,7 +66,7 @@ interface
         procedure a_cmp_reg_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);override;
         procedure a_jmp_always(list: TAsmList; l: TAsmLabel);override;
 
-        procedure g_concatcopy(list: TAsmList; const source, dest: treference; len: tcgint);override;
+        procedure g_concatcopy(list : TAsmList; const source,dest : treference; len : tcgint);override;
 
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
 {$ifdef dummy}
@@ -595,10 +596,143 @@ implementation
       end;
 
 
-    procedure tcgcpu.g_concatcopy(list : TAsmList; const source,
-      dest : treference; len : tcgint);
+    procedure tcgcpu.g_concatcopy_move(list: tasmlist; const Source, dest: treference; len: tcgint);
+      var
+        paraloc1, paraloc2, paraloc3: TCGPara;
+        pd: tprocdef;
       begin
-        list.Concat(taicpu.op_none(A_NOP));
+        pd:=search_system_proc('MOVE');
+        paraloc1.init;
+        paraloc2.init;
+        paraloc3.init;
+        paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
+        paramanager.getcgtempparaloc(list, pd, 2, paraloc2);
+        paramanager.getcgtempparaloc(list, pd, 3, paraloc3);
+        a_load_const_cgpara(list, OS_SINT, len, paraloc3);
+        a_loadaddr_ref_cgpara(list, dest, paraloc2);
+        a_loadaddr_ref_cgpara(list, Source, paraloc1);
+        paramanager.freecgpara(list, paraloc3);
+        paramanager.freecgpara(list, paraloc2);
+        paramanager.freecgpara(list, paraloc1);
+        alloccpuregisters(list, R_INTREGISTER, paramanager.get_volatile_registers_int(pocall_default));
+        alloccpuregisters(list, R_FPUREGISTER, paramanager.get_volatile_registers_fpu(pocall_default));
+        a_call_name(list, 'FPC_MOVE', false);
+        dealloccpuregisters(list, R_FPUREGISTER, paramanager.get_volatile_registers_fpu(pocall_default));
+        dealloccpuregisters(list, R_INTREGISTER, paramanager.get_volatile_registers_int(pocall_default));
+        paraloc3.done;
+        paraloc2.done;
+        paraloc1.done;
+      end;
+
+
+    procedure tcgcpu.g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);
+      var
+        tmpreg1, hreg, countreg: TRegister;
+        src, dst, src2, dst2: TReference;
+        lab:      tasmlabel;
+        Count, count2: aint;
+
+        function reference_is_reusable(const ref: treference): boolean;
+          begin
+            result:=(ref.base<>NR_NO) and (ref.index=NR_NO) and
+               (ref.symbol=nil);
+          end;
+
+      begin
+        src2:=source;
+        fixref(list,src2);
+
+        dst2:=dest;
+        fixref(list,dst2);
+
+        if len > high(longint) then
+          internalerror(2002072704);
+        { A call (to FPC_MOVE) requires the outgoing parameter area to be properly
+          allocated on stack. This can only be done before tmipsprocinfo.set_first_temp_offset,
+          i.e. before secondpass. Other internal procedures request correct stack frame
+          by setting pi_do_call during firstpass, but for this particular one it is impossible.
+          Therefore, if the current procedure is a leaf one, we have to leave it that way. }
+
+        { anybody wants to determine a good value here :)? }
+        if (len > 100) and
+           assigned(current_procinfo) and
+           (pi_do_call in current_procinfo.flags) then
+          g_concatcopy_move(list, src2, dst2, len)
+        else
+        begin
+          Count := len div 4;
+          if (count<=4) and reference_is_reusable(src2) then
+            src:=src2
+          else
+            begin
+              reference_reset(src,sizeof(aint),[]);
+              { load the address of src2 into src.base }
+              src.base := GetAddressRegister(list);
+              a_loadaddr_ref_reg(list, src2, src.base);
+            end;
+          if (count<=4) and reference_is_reusable(dst2) then
+            dst:=dst2
+          else
+            begin
+              reference_reset(dst,sizeof(aint),[]);
+              { load the address of dst2 into dst.base }
+              dst.base := GetAddressRegister(list);
+              a_loadaddr_ref_reg(list, dst2, dst.base);
+            end;
+          { generate a loop }
+          if Count > 4 then
+          begin
+            countreg := GetIntRegister(list, OS_INT);
+            tmpreg1  := GetIntRegister(list, OS_INT);
+            a_load_const_reg(list, OS_INT, Count, countreg);
+            current_asmdata.getjumplabel(lab);
+            a_label(list, lab);
+            list.concat(taicpu.op_reg_ref(A_L32I, tmpreg1, src));
+            list.concat(taicpu.op_reg_ref(A_S32I, tmpreg1, dst));
+            list.concat(taicpu.op_reg_reg_const(A_ADDI, src.base, src.base, 4));
+            list.concat(taicpu.op_reg_reg_const(A_ADDI, dst.base, dst.base, 4));
+            list.concat(taicpu.op_reg_reg_const(A_ADDI, countreg, countreg, -1));
+            a_cmp_const_reg_label(list,OS_INT,OC_GT,0,countreg,lab);
+            len := len mod 4;
+          end;
+          { unrolled loop }
+          Count := len div 4;
+          if Count > 0 then
+          begin
+            tmpreg1 := GetIntRegister(list, OS_INT);
+            for count2 := 1 to Count do
+            begin
+              list.concat(taicpu.op_reg_ref(A_L32I, tmpreg1, src));
+              list.concat(taicpu.op_reg_ref(A_S32I, tmpreg1, dst));
+              Inc(src.offset, 4);
+              Inc(dst.offset, 4);
+            end;
+            len := len mod 4;
+          end;
+          if (len and 4) <> 0 then
+          begin
+            hreg := GetIntRegister(list, OS_INT);
+            a_load_ref_reg(list, OS_32, OS_32, src, hreg);
+            a_load_reg_ref(list, OS_32, OS_32, hreg, dst);
+            Inc(src.offset, 4);
+            Inc(dst.offset, 4);
+          end;
+          { copy the leftovers }
+          if (len and 2) <> 0 then
+          begin
+            hreg := GetIntRegister(list, OS_INT);
+            a_load_ref_reg(list, OS_16, OS_16, src, hreg);
+            a_load_reg_ref(list, OS_16, OS_16, hreg, dst);
+            Inc(src.offset, 2);
+            Inc(dst.offset, 2);
+          end;
+          if (len and 1) <> 0 then
+          begin
+            hreg := GetIntRegister(list, OS_INT);
+            a_load_ref_reg(list, OS_8, OS_8, src, hreg);
+            a_load_reg_ref(list, OS_8, OS_8, hreg, dst);
+          end;
+        end;
       end;
 
 
