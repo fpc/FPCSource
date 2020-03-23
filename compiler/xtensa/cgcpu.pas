@@ -422,8 +422,41 @@ implementation
 
 
     procedure tcgcpu.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister);
+      var
+        l1 : longint;
+        tmpreg : TRegister;
       begin
-        list.Concat(taicpu.op_none(A_NOP));
+        optimize_op_const(size, op, a);
+        case op of
+          OP_NONE:
+            begin
+              if src <> dst then
+                a_load_reg_reg(list, size, size, src, dst);
+              exit;
+            end;
+          OP_MOVE:
+            begin
+              a_load_const_reg(list, size, a, dst);
+              exit;
+            end;
+          else
+            ;
+        end;
+        { there could be added some more sophisticated optimizations }
+        if (op in [OP_IMUL,OP_IDIV]) and (a=-1) then
+          a_op_reg_reg(list,OP_NEG,size,src,dst)
+        { we do this here instead in the peephole optimizer because
+          it saves us a register }
+        else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a,l1) then
+          a_op_const_reg_reg(list,OP_SHL,size,l1,src,dst)
+
+        else
+          begin
+            tmpreg:=getintregister(list,size);
+            a_load_const_reg(list,size,a,tmpreg);
+            a_op_reg_reg_reg(list,op,size,tmpreg,src,dst);
+          end;
+        maybeadjustresult(list,op,size,dst);
       end;
 
 
