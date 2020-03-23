@@ -12079,6 +12079,7 @@ rtl/xtensa/cpuh.inc svneol=native#text/plain
 rtl/xtensa/int64p.inc svneol=native#text/plain
 rtl/xtensa/makefile.cpu svneol=native#text/plain
 rtl/xtensa/math.inc svneol=native#text/plain
+rtl/xtensa/mathu.inc svneol=native#text/plain
 rtl/xtensa/set.inc svneol=native#text/plain
 rtl/xtensa/setjump.inc svneol=native#text/plain
 rtl/xtensa/setjumph.inc svneol=native#text/plain
