@@ -151,7 +151,10 @@ unit agcpugas;
         s:=s+cond2str[taicpu(hp).condition];
       if taicpu(hp).ops<>0 then
         begin
-          sep:=#9;
+          if length(s)<5 then
+            sep:=#9#9
+          else
+            sep:=#9;
           for i:=0 to taicpu(hp).ops-1 do
             begin
                s:=s+sep+getopstr(taicpu(hp).oper[i]^);
