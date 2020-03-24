@@ -63,6 +63,7 @@ interface
         procedure g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);override;
 
         { comparison operations }
+        procedure a_cmp_const_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel); override;
         procedure a_cmp_reg_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);override;
         procedure a_jmp_always(list: TAsmList; l: TAsmLabel);override;
 
@@ -156,6 +157,21 @@ implementation
     symtable,symsym,
     tgobj,
     procinfo,cpupi;
+                  
+  const
+    TOpCmp2AsmCond: array[TOpCmp] of TAsmCond = (
+      C_None,
+      C_EQ,
+      C_None,
+      C_LT,
+      C_GE,
+      C_None,
+      C_NE,
+      C_None,
+      C_LTU,
+      C_GEU,
+      C_None
+    );
 
     procedure tcgcpu.init_register_allocators;
       begin
@@ -550,28 +566,91 @@ implementation
           list.Concat(taicpu.op_none(A_RET));
       end;
 
+    procedure tcgcpu.a_cmp_const_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
+
+      function is_b4const(v: tcgint): boolean;
+        begin
+          case v of
+            -1,1,2,3,4,5,6,7,8,
+            10,12,16,32,64,128,256:
+              result:=true;
+          else
+            result:=false;
+          end;
+        end;
+
+      function is_b4constu(v: tcgint): boolean;
+        begin
+          case v of
+            32768,65536,
+            2,3,4,5,6,7,8,
+            10,12,16,32,64,128,256:
+              result:=true;
+          else
+            result:=false;
+          end;
+        end;
+
+      var
+        op: TAsmCond;
+        instr: taicpu;
+      begin
+        if (a=0) and (cmp_op in [OC_EQ,OC_NE,OC_LT,OC_GTE]) then
+          begin
+            case cmp_op of
+              OC_EQ: op:=C_EQZ;
+              OC_NE: op:=C_NEZ;
+              OC_LT: op:=C_LTZ;
+              OC_GTE: op:=C_GEZ;
+            else
+              Internalerror(2020030801);
+            end;     
+            instr:=taicpu.op_reg_sym(A_Bcc,reg,l);
+            instr.condition:=op;
+            list.concat(instr);
+          end
+        else if is_b4const(a) and
+                (cmp_op in [OC_EQ,OC_NE,OC_LT,OC_GTE]) then
+          begin
+            case cmp_op of
+              OC_EQ: op:=C_EQI;
+              OC_NE: op:=C_NEI;
+              OC_LT: op:=C_LTI;
+              OC_GTE: op:=C_GEI;
+            else
+              Internalerror(2020030801);
+            end;
+
+            instr:=taicpu.op_reg_const_sym(A_Bcc,reg,a,l);
+            instr.condition:=op;
+            list.concat(instr);
+          end
+        else if is_b4constu(a) and
+                (cmp_op in [OC_B,OC_AE]) then
+          begin
+            case cmp_op of
+              OC_B: op:=C_LTUI;
+              OC_AE: op:=C_GEUI;
+            else
+              Internalerror(2020030801);
+            end;
+
+            instr:=taicpu.op_reg_const_sym(A_Bcc,reg,a,l);
+            instr.condition:=op;
+            list.concat(instr);
+          end
+        else
+          inherited a_cmp_const_reg_label(list, size, cmp_op, a, reg, l);
+      end;
+
 
     procedure tcgcpu.a_cmp_reg_reg_label(list : TAsmList; size : tcgsize;
         cmp_op : topcmp; reg1,reg2 : tregister; l : tasmlabel);
-      const
-        cmp2cond: array[TOpCmp] of TAsmCond = (
-          C_None,
-          C_EQ,
-          C_None,
-          C_LT,
-          C_GE,
-          C_None,
-          C_NE,
-          C_None,
-          C_LTU,
-          C_GEU,
-          C_None
-        );
       var
         tmpreg: TRegister;
         instr: taicpu;
       begin
-        if cmp2cond[cmp_op]=C_None then
+        if TOpCmp2AsmCond[cmp_op]=C_None then
           begin
             cmp_op:=swap_opcmp(cmp_op);
             tmpreg:=reg1;
@@ -579,10 +658,8 @@ implementation
             reg2:=tmpreg;
           end;
 
-        if cmp2cond[cmp_op]=C_None then
-          writeln('t');
         instr:=taicpu.op_reg_reg_sym(A_Bcc,reg1,reg2,l);
-        instr.condition:=cmp2cond[cmp_op];
+        instr.condition:=TOpCmp2AsmCond[cmp_op];
         list.concat(instr);
       end;
 

@@ -108,7 +108,8 @@ unit cpubase;
         C_EQ,C_NE,
         C_GE,C_LT,C_GEU,C_LTU,
         C_ANY,C_BNONE,C_ALL,C_NALL,C_BC,C_BS,
-        C_EQZ,C_NEZ
+        C_EQZ,C_NEZ,C_LTZ,C_GEZ,
+        C_EQI,C_NEI,C_LTI,C_GEI,C_LTUI,C_GEUI
       );
 
       TAsmConds = set of TAsmCond;
@@ -118,14 +119,16 @@ unit cpubase;
         'eq','ne',                         
         'ge','lt','geu','ltu',
         'any','none','all','nall','bc','bs',
-        'eqz','nez'
+        'eqz','nez','ltz','gez',
+        'eqi','nei','lti','gei','ltui','geui'
       );
 
       uppercond2str : array[TAsmCond] of string[4]=('',
         'EQ','NE',
         'GE','LT','GEU','LTU',
         'ANY','NONE','ALL','NALL','BC','BS',
-        'EQZ','NEZ'
+        'EQZ','NEZ','LTZ','GEZ',
+        'EQI','NEI','LTI','GEI','LTUI','GEUI'
       );
 
 {*****************************************************************************
@@ -355,8 +358,10 @@ unit cpubase;
         inverse: array[TAsmCond] of TAsmCond=(C_None,
           C_NE,C_EQ,
           C_LT,C_GE,C_LTU,C_GEU,
-          C_BNONE,C_ANY,C_NALL,C_BNONE,C_BS,C_BC,C_NEZ,
-          C_EQZ
+          C_BNONE,C_ANY,C_NALL,C_BNONE,C_BS,C_BC,
+
+          C_NEZ,C_EQZ,C_GEZ,C_LTZ,
+          C_NEI,C_EQI,C_GEI,C_LTI,C_GEUI,C_LTUI
         );
       begin
         result := inverse[c];

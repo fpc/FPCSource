@@ -98,8 +98,9 @@ interface
         current_asmdata.getjumplabel(falselab);
 
         location_reset_jump(location,truelab,falselab);
-        force_reg_left_right(false,false);
 
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                                            
         if is_signed(left.resultdef) then
           case nodetype of
             equaln:   cond:=OC_EQ;
@@ -123,7 +124,13 @@ interface
             internalerror(2020030801);
           end;
 
-        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,left.location.register,right.location.register,location.truelabel);
+        if right.nodetype=ordconstn then
+          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,right.location.value,left.location.register,location.truelabel)
+        else
+          begin
+            force_reg_left_right(false,false);
+            cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,left.location.register,right.location.register,location.truelabel);
+          end;                                                                                                                                
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(A_J,location.falselabel));
       end;
 
