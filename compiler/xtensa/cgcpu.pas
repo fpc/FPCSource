@@ -469,6 +469,10 @@ implementation
           a_op_const_reg_reg(list,OP_SHL,size,l1,src,dst)
         else if (op=OP_ADD) and (a>=-128) and (a<=127) then
           list.concat(taicpu.op_reg_reg_const(A_ADDI,dst,src,a))
+        else if (op=OP_SHL) and (a>=1) and (a<=31) then
+          list.concat(taicpu.op_reg_reg_const(A_SLLI,dst,src,a))
+        else if (op=OP_SHR) and (a>=0) and (a<=15) then
+          list.concat(taicpu.op_reg_reg_const(A_SRLI,dst,src,a))
         else
           begin
             tmpreg:=getintregister(list,size);
