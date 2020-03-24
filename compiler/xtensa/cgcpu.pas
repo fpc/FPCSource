@@ -744,10 +744,31 @@ implementation
 
 
     procedure tcg64fxtensa.a_op64_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);
-      var
-        ovloc : tlocation;
       begin
-        list.Concat(taicpu.op_none(A_NOP));
+        case op of
+          OP_NEG,
+          OP_NOT :
+            internalerror(2020030810);
+          else
+            ;
+        end;
+        case op of
+          OP_AND,OP_OR,OP_XOR:
+            begin
+              cg.a_op_reg_reg_reg(list,op,OS_32,regsrc1.reglo,regsrc2.reglo,regdst.reglo);
+              cg.a_op_reg_reg_reg(list,op,OS_32,regsrc1.reghi,regsrc2.reghi,regdst.reghi);
+            end;
+          OP_ADD:
+            begin
+              list.Concat(taicpu.op_none(A_NOP));
+            end;
+          OP_SUB:
+            begin
+              list.Concat(taicpu.op_none(A_NOP));
+            end;
+          else
+            internalerror(2020030813);
+        end;
       end;
 
 
