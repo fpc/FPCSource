@@ -488,10 +488,10 @@ implementation
         else if op in [OP_SAR,OP_SHL,OP_SHR] then
           begin
             if op=OP_SHL then
-              list.concat(taicpu.op_reg(A_SSL,src1))
+              list.concat(taicpu.op_reg(A_SSL,src2))
             else
-              list.concat(taicpu.op_reg(A_SSR,src1));
-            list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],dst,src2));
+              list.concat(taicpu.op_reg(A_SSR,src2));
+            list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],dst,src1));
             maybeadjustresult(list,op,size,dst);
           end
         else
