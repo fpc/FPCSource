@@ -121,6 +121,7 @@ interface
         procedure a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
         procedure a_op64_const_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64);override;
         procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
+        procedure a_op64_reg_reg_reg(list : TAsmList; op : TOpCG;size : tcgsize; regsrc1,regsrc2,regdst : tregister64);override;
         //procedure a_op64_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);override;
         //procedure a_op64_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);override;
         //procedure a_op64_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
@@ -736,29 +737,54 @@ implementation
       end;
 
 
-    procedure tcgcpu.maybeadjustresult(list : TAsmList; op : TOpCg;
-      size : tcgsize; dst : tregister);
+    procedure tcgcpu.maybeadjustresult(list : TAsmList; op : TOpCg; size : tcgsize; dst : tregister);
       begin
 
       end;
 
 
-    procedure tcg64fxtensa.a_op64_reg_reg(list : TAsmList; op : TOpCG;
-      size : tcgsize; regsrc,regdst : tregister64);
+    procedure tcg64fxtensa.a_op64_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);
+      var
+        ovloc : tlocation;
       begin
         list.Concat(taicpu.op_none(A_NOP));
       end;
 
 
-    procedure tcg64fxtensa.a_op64_const_reg_reg(list : TAsmList; op : TOpCG;
-      size : tcgsize; value : int64; regsrc,regdst : tregister64);
+    procedure tcg64fxtensa.a_op64_reg_reg(list : TAsmList; op : TOpCG; size : tcgsize; regsrc,regdst : tregister64);
+      var
+        tmpreg : TRegister;
+        instr : taicpu;
       begin
-         list.Concat(taicpu.op_none(A_NOP));
+        case op of
+          OP_NEG:
+            begin
+              tmpreg:=cg.GetIntRegister(list, OS_INT);
+              list.concat(taicpu.op_reg_reg(A_NEG,regdst.reglo,regsrc.reglo));
+              list.concat(taicpu.op_reg_reg(A_NEG,regdst.reghi,regsrc.reghi));
+              list.concat(taicpu.op_reg_reg_const(A_ADDI,tmpreg,regdst.reghi,-1));
+              instr:=taicpu.op_reg_reg_reg(A_MOV,regdst.reghi,tmpreg,regdst.reglo);
+              instr.condition:=C_EQZ;
+              list.concat(instr);
+            end;
+          OP_NOT:
+            begin
+              cg.a_op_reg_reg(list,OP_NOT,OS_INT,regsrc.reglo,regdst.reglo);
+              cg.a_op_reg_reg(list,OP_NOT,OS_INT,regsrc.reghi,regdst.reghi);
+            end;
+          else
+            a_op64_reg_reg_reg(list,op,size,regsrc,regdst,regdst);
+        end;
       end;
 
 
-    procedure tcg64fxtensa.a_op64_const_reg(list : TAsmList; op : TOpCG;
-      size : tcgsize; value : int64; reg : tregister64);
+    procedure tcg64fxtensa.a_op64_const_reg_reg(list : TAsmList; op : TOpCG; size : tcgsize; value : int64; regsrc,regdst : tregister64);
+      begin
+        list.Concat(taicpu.op_none(A_NOP));
+      end;
+
+
+    procedure tcg64fxtensa.a_op64_const_reg(list : TAsmList; op : TOpCG; size : tcgsize; value : int64; reg : tregister64);
       begin
         list.Concat(taicpu.op_none(A_NOP));
       end;
