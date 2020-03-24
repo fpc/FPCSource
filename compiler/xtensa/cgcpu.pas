@@ -825,6 +825,11 @@ implementation
 
 
     procedure tcg64fxtensa.a_op64_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);
+      var
+        signed: Boolean;
+        tmplo, carry, tmphi, hreg: TRegister;
+        instr: taicpu;
+        no_carry: TAsmLabel;
       begin
         case op of
           OP_NEG,
@@ -841,11 +846,95 @@ implementation
             end;
           OP_ADD:
             begin
-              list.Concat(taicpu.op_none(A_NOP));
+              signed:=(size in [OS_S64]);
+                                                       
+              tmplo := cg.GetIntRegister(list,OS_S32);
+              carry := cg.GetIntRegister(list,OS_S32);
+
+              list.concat(taicpu.op_reg_reg_reg(A_ADD, tmplo, regsrc2.reglo, regsrc1.reglo));
+              if signed then
+                begin
+                  list.concat(taicpu.op_reg_reg_reg(A_ADD, regdst.reghi, regsrc2.reghi, regsrc1.reghi));
+
+                  current_asmdata.getjumplabel(no_carry);
+                  instr:=taicpu.op_reg_reg_sym(A_Bcc,tmplo, regsrc2.reglo, no_carry);
+                  instr.condition:=C_GEU;
+                  list.concat(instr);
+                  list.concat(taicpu.op_reg_reg_const(A_ADDI, regdst.reghi, regdst.reghi, 1));
+                  cg.a_label(list,no_carry);
+                end
+              else
+                begin
+                  cg.a_load_const_reg(list,OS_INT,1,carry);
+                  current_asmdata.getjumplabel(no_carry);
+                  cg.a_cmp_reg_reg_label(list,OS_INT,OC_B,tmplo, regsrc2.reglo,no_carry);
+                  cg.a_load_const_reg(list,OS_INT,0,carry);
+                  cg.a_label(list,no_carry);
+
+                  cg.a_load_reg_reg(list,OS_INT,OS_INT,tmplo,regdst.reglo);
+
+                  tmphi:=cg.GetIntRegister(list,OS_INT);
+                  hreg:=cg.GetIntRegister(list,OS_INT);
+                  cg.a_load_const_reg(list,OS_INT,$80000000,hreg);
+                  // first add carry to one of the addends
+                  list.concat(taicpu.op_reg_reg_reg(A_ADD, tmphi, regsrc2.reghi, carry));
+
+                  cg.a_load_const_reg(list,OS_INT,1,carry);
+                  current_asmdata.getjumplabel(no_carry);
+                  cg.a_cmp_reg_reg_label(list,OS_INT,OC_B,tmphi, regsrc2.reghi,no_carry);
+                  cg.a_load_const_reg(list,OS_INT,0,carry);
+                  cg.a_label(list,no_carry);
+
+                  list.concat(taicpu.op_reg_reg_reg(A_SUB, carry, hreg, carry));
+                  // then add another addend
+                  list.concat(taicpu.op_reg_reg_reg(A_ADD, regdst.reghi, tmphi, regsrc1.reghi));
+                end;
             end;
           OP_SUB:
             begin
-              list.Concat(taicpu.op_none(A_NOP));
+              signed:=(size in [OS_S64]);
+
+              tmplo := cg.GetIntRegister(list,OS_S32);
+              carry := cg.GetIntRegister(list,OS_S32);
+
+              list.concat(taicpu.op_reg_reg_reg(A_SUB, tmplo, regsrc2.reglo, regsrc1.reglo));
+              if signed then
+                begin
+                  list.concat(taicpu.op_reg_reg_reg(A_SUB, regdst.reghi, regsrc2.reghi, regsrc1.reghi));
+
+                  current_asmdata.getjumplabel(no_carry);
+                  instr:=taicpu.op_reg_reg_sym(A_Bcc, regsrc2.reglo, tmplo, no_carry);
+                  instr.condition:=C_GEU;
+                  list.concat(instr);
+                  list.concat(taicpu.op_reg_reg_const(A_ADDI, regdst.reghi, regdst.reghi, -1));
+                  cg.a_label(list,no_carry);
+                end
+              else
+                begin
+                  cg.a_load_const_reg(list,OS_INT,1,carry);
+                  current_asmdata.getjumplabel(no_carry);
+                  cg.a_cmp_reg_reg_label(list,OS_INT,OC_B, regsrc2.reglo, tmplo, no_carry);
+                  cg.a_load_const_reg(list,OS_INT,0,carry);
+                  cg.a_label(list,no_carry);
+
+                  cg.a_load_reg_reg(list,OS_INT,OS_INT,tmplo,regdst.reglo);
+
+                  tmphi:=cg.GetIntRegister(list,OS_INT);
+                  hreg:=cg.GetIntRegister(list,OS_INT);
+                  cg.a_load_const_reg(list,OS_INT,$80000000,hreg);
+                  // first add carry to one of the addends
+                  list.concat(taicpu.op_reg_reg_reg(A_SUB, regsrc2.reghi, tmplo, carry));
+
+                  cg.a_load_const_reg(list,OS_INT,1,carry);
+                  current_asmdata.getjumplabel(no_carry);
+                  cg.a_cmp_reg_reg_label(list,OS_INT,OC_B,tmphi, regsrc2.reghi,no_carry);
+                  cg.a_load_const_reg(list,OS_INT,0,carry);
+                  cg.a_label(list,no_carry);
+
+                  list.concat(taicpu.op_reg_reg_reg(A_SUB, carry, hreg, carry));
+                  // then add another addend
+                  list.concat(taicpu.op_reg_reg_reg(A_SUB, regdst.reghi, tmphi, regsrc1.reghi));
+                end;
             end;
           else
             internalerror(2020030813);
