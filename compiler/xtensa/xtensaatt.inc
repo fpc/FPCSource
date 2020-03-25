@@ -1,5 +1,6 @@
 (
 'none',
+'abs',
 'add',
 'addi',
 'addmi',

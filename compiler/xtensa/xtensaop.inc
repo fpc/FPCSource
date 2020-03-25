@@ -1,5 +1,6 @@
 (
 A_NONE,
+A_ABS,
 A_ADD,
 A_ADDI,
 A_ADDMI,
