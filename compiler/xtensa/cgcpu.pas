@@ -1022,7 +1022,7 @@ implementation
 
     procedure tcg64fxtensa.a_op64_const_reg(list : TAsmList; op : TOpCG; size : tcgsize; value : int64; reg : tregister64);
       begin
-        list.Concat(taicpu.op_none(A_NOP));
+        a_op64_const_reg_reg(list,op,size,value,reg,reg);
       end;
 
 {$warnings off}
