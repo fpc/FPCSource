@@ -928,8 +928,95 @@ implementation
 
 
     procedure tcg64fxtensa.a_op64_const_reg_reg(list : TAsmList; op : TOpCG; size : tcgsize; value : int64; regsrc,regdst : tregister64);
+      var
+        tmpreg,tmplo,carry,tmphi,hreg: tregister;
+        tmpreg64 : tregister64;
+        b : byte;
+        signed : Boolean;
+        no_carry : TAsmLabel;
+        instr : taicpu;
       begin
-        list.Concat(taicpu.op_none(A_NOP));
+        case op of
+          OP_NEG,
+          OP_NOT :
+            internalerror(2020030904);
+          else
+            ;
+        end;
+        case op of
+          OP_AND,OP_OR,OP_XOR:
+            begin
+              cg.a_op_const_reg_reg(list,op,OS_32,aint(lo(value)),regsrc.reglo,regdst.reglo);
+              cg.a_op_const_reg_reg(list,op,OS_32,aint(hi(value)),regsrc.reghi,regdst.reghi);
+            end;
+          OP_ADD:
+            begin
+              { could do better here (hi(value) in 248..2047), for now we support only the simple cases }
+              if (value>=-2048) and (value<=2047) then
+                begin
+                  signed:=(size in [OS_S64]);
+
+                  tmplo := cg.GetIntRegister(list,OS_S32);
+                  carry := cg.GetIntRegister(list,OS_S32);
+
+                  list.concat(taicpu.op_reg_reg_const(A_ADDI, tmplo, regsrc.reglo, value));
+                  if signed then
+                    begin
+                      list.concat(taicpu.op_reg_reg_const(A_ADDI, regdst.reghi, regsrc.reghi, 0));
+
+                      current_asmdata.getjumplabel(no_carry);
+                      instr:=taicpu.op_reg_reg_sym(A_Bcc,tmplo, regsrc.reglo, no_carry);
+                      instr.condition:=C_GEU;
+                      list.concat(instr);
+                      list.concat(taicpu.op_reg_reg_const(A_ADDI, regdst.reghi, regdst.reghi, 1));
+                      cg.a_label(list,no_carry);
+                    end
+                  else
+                    begin
+                      cg.a_load_const_reg(list,OS_INT,1,carry);
+                      current_asmdata.getjumplabel(no_carry);
+                      cg.a_cmp_reg_reg_label(list,OS_INT,OC_B,tmplo, regsrc.reglo,no_carry);
+                      cg.a_load_const_reg(list,OS_INT,0,carry);
+                      cg.a_label(list,no_carry);
+
+                      cg.a_load_reg_reg(list,OS_INT,OS_INT,tmplo,regdst.reglo);
+
+                      tmphi:=cg.GetIntRegister(list,OS_INT);
+                      hreg:=cg.GetIntRegister(list,OS_INT);
+                      cg.a_load_const_reg(list,OS_INT,$80000000,hreg);
+                      // first add carry to one of the addends
+                      list.concat(taicpu.op_reg_reg_reg(A_ADD, tmphi, regsrc.reghi, carry));
+
+                      cg.a_load_const_reg(list,OS_INT,1,carry);
+                      current_asmdata.getjumplabel(no_carry);
+                      cg.a_cmp_reg_reg_label(list,OS_INT,OC_B,tmphi, regsrc.reghi,no_carry);
+                      cg.a_load_const_reg(list,OS_INT,0,carry);
+                      cg.a_label(list,no_carry);
+
+                      list.concat(taicpu.op_reg_reg_reg(A_SUB, carry, hreg, carry));
+                      // then add another addend
+                      list.concat(taicpu.op_reg_reg_const(A_ADDI, regdst.reghi, tmphi, 0));
+                    end
+                  end
+                else
+                  begin
+                    tmpreg64.reglo := cg.GetIntRegister(list,OS_S32);
+                    tmpreg64.reghi := cg.GetIntRegister(list,OS_S32);
+                    a_load64_const_reg(list,value,tmpreg64);
+                    a_op64_reg_reg_reg(list,op,size,tmpreg64,regsrc,regdst);
+                  end;
+            end;
+          OP_SUB:
+            begin
+              { for now, we take the simple approach }
+              tmpreg64.reglo := cg.GetIntRegister(list,OS_S32);
+              tmpreg64.reghi := cg.GetIntRegister(list,OS_S32);
+              a_load64_const_reg(list,value,tmpreg64);
+              a_op64_reg_reg_reg(list,op,size,tmpreg64,regsrc,regdst);
+            end;
+          else
+            internalerror(2020030901);
+        end;
       end;
 
 
