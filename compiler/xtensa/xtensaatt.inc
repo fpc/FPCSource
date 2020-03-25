@@ -2,6 +2,7 @@
 'none',
 'add',
 'addi',
+'addmi',
 'and',
 'b',
 'bt',

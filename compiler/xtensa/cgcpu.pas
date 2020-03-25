@@ -508,10 +508,78 @@ implementation
 
 
     procedure tcgcpu.g_proc_entry(list : TAsmList; localsize : longint;
-     nostackframe : boolean);
+      nostackframe : boolean);
+      var
+         ref : treference;
+         r : byte;
+         regs : tcpuregisterset;
+         stackmisalignment : pint;
+         regoffset : LongInt;
+         stack_parameters : Boolean;
+         registerarea : PtrInt;
       begin
-        if target_info.abi=abi_xtensa_windowed then
-          list.Concat(taicpu.op_reg_const(A_ENTRY,NR_STACK_POINTER_REG,32));
+        LocalSize:=align(LocalSize,4);
+        stack_parameters:=current_procinfo.procdef.stack_tainting_parameter(calleeside);
+
+        { call instruction does not put anything on the stack }
+        registerarea:=0;
+        if not(nostackframe) then
+          begin
+            regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
+            a_reg_alloc(list,NR_STACK_POINTER_REG);
+            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+              Include(regs,RS_A15);
+            if pi_do_call in current_procinfo.flags then
+              Include(regs,RS_A0);
+            if regs<>[] then
+               begin
+                 for r:=RS_A0 to RS_A15 do
+                   if r in regs then
+                     inc(registerarea,4);
+               end;
+
+            inc(localsize,registerarea);
+            if LocalSize<>0 then
+              begin
+                localsize:=align(localsize,current_settings.alignment.localalignmax);
+                a_reg_alloc(list,NR_STACK_POINTER_REG);
+                list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-localsize));
+              end;
+
+            reference_reset(ref,4,[]);
+            ref.base:=NR_STACK_POINTER_REG;
+            ref.offset:=localsize;
+            if ref.offset>1024 then
+              begin
+                if ref.offset<=1024+32512 then
+                  begin
+                    list.concat(taicpu.op_reg_reg_const(A_ADDMI,NR_A8,NR_STACK_POINTER_REG,ref.offset and $fffffc00));
+                    ref.offset:=ref.offset and $3ff;
+                    ref.base:=NR_A8;
+                  end
+                else
+                  { fix me! }
+                  Internalerror(2020031101);
+              end;
+
+            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+              begin
+                dec(ref.offset,4);
+                list.concat(taicpu.op_reg_ref(A_S32I,NR_A15,ref));
+                a_reg_alloc(list,NR_FRAME_POINTER_REG);
+                list.concat(taicpu.op_reg_reg(A_MOV,NR_A15,NR_STACK_POINTER_REG));
+              end;
+
+            if regs<>[] then
+               begin
+                 for r:=RS_A14 downto RS_A0 do
+                   if r in regs then
+                     begin
+                       dec(ref.offset,4);
+                       list.concat(taicpu.op_reg_ref(A_S32I,newreg(R_INTREGISTER,r,R_SUBWHOLE),ref));
+                     end;
+               end;
+          end;
       end;
 
 

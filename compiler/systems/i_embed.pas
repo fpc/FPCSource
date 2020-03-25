@@ -704,14 +704,14 @@ unit i_embed;
                 varalignmin     : 0;
                 varalignmax     : 4;
                 localalignmin   : 4;
-                localalignmax   : 4;
+                localalignmax   : 16;
                 recordalignmin  : 0;
                 recordalignmax  : 4;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            stacksize    : 262144;
-            stackalign   : 4;
+            stacksize    : 65536;
+            stackalign   : 16;
             abi : abi_default;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
           );
