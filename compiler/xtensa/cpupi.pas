@@ -46,6 +46,7 @@ unit cpupi;
           constructor create(aparent: tprocinfo); override;
           procedure set_first_temp_offset;override;
           function calc_stackframe_size:longint;override;
+          procedure init_framepointer;override;
       end;
 
 
@@ -125,6 +126,20 @@ unit cpupi;
           floatregstart:=-result+maxpushedparasize;
       end;
 
+
+    procedure txtensaprocinfo.init_framepointer;
+      begin
+        if target_info.abi=abi_xtensa_call0 then
+          begin
+            RS_FRAME_POINTER_REG:=RS_A15;
+            NR_FRAME_POINTER_REG:=NR_A15;
+          end
+        else
+          begin
+            RS_FRAME_POINTER_REG:=RS_A7;
+            NR_FRAME_POINTER_REG:=NR_A7;
+          end;
+      end;
 
 begin
    cprocinfo:=txtensaprocinfo;
