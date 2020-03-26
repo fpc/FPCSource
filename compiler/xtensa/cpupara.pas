@@ -59,7 +59,12 @@ unit cpupara;
 
     function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
-        result:=[RS_A0..RS_A7];
+        { we have actually to check what calling instruction is used, but we do not handle this,
+          instead CALL(X)8 is used always }
+        if target_info.abi=abi_xtensa_windowed then
+          result:=[RS_A8..RS_A15]
+        else
+          result:=[RS_A0..RS_A7];
       end;
 
 

@@ -566,58 +566,84 @@ implementation
           begin
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
             a_reg_alloc(list,NR_STACK_POINTER_REG);
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-              Include(regs,RS_A15);
-            if pi_do_call in current_procinfo.flags then
-              Include(regs,RS_A0);
-            if regs<>[] then
-               begin
-                 for r:=RS_A0 to RS_A15 do
-                   if r in regs then
-                     inc(registerarea,4);
-               end;
-
-            inc(localsize,registerarea);
-            if LocalSize<>0 then
-              begin
-                localsize:=align(localsize,current_settings.alignment.localalignmax);
-                a_reg_alloc(list,NR_STACK_POINTER_REG);
-                list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-localsize));
-              end;
-
-            reference_reset(ref,4,[]);
-            ref.base:=NR_STACK_POINTER_REG;
-            ref.offset:=localsize;
-            if ref.offset>1024 then
-              begin
-                if ref.offset<=1024+32512 then
-                  begin
-                    list.concat(taicpu.op_reg_reg_const(A_ADDMI,NR_A8,NR_STACK_POINTER_REG,ref.offset and $fffffc00));
-                    ref.offset:=ref.offset and $3ff;
-                    ref.base:=NR_A8;
-                  end
-                else
-                  { fix me! }
-                  Internalerror(2020031101);
-              end;
-
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-              begin
-                dec(ref.offset,4);
-                list.concat(taicpu.op_reg_ref(A_S32I,NR_A15,ref));
-                a_reg_alloc(list,NR_FRAME_POINTER_REG);
-                list.concat(taicpu.op_reg_reg(A_MOV,NR_A15,NR_STACK_POINTER_REG));
-              end;
-
-            if regs<>[] then
-               begin
-                 for r:=RS_A14 downto RS_A0 do
-                   if r in regs then
+            case target_info.abi of
+              abi_xtensa_call0:
+                begin
+                  if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                    Include(regs,RS_A15);
+                  if pi_do_call in current_procinfo.flags then
+                    Include(regs,RS_A0);
+                  if regs<>[] then
                      begin
-                       dec(ref.offset,4);
-                       list.concat(taicpu.op_reg_ref(A_S32I,newreg(R_INTREGISTER,r,R_SUBWHOLE),ref));
+                       for r:=RS_A0 to RS_A15 do
+                         if r in regs then
+                           inc(registerarea,4);
                      end;
-               end;
+
+                  inc(localsize,registerarea);
+                  if LocalSize<>0 then
+                    begin
+                      localsize:=align(localsize,current_settings.alignment.localalignmax);
+                      a_reg_alloc(list,NR_STACK_POINTER_REG);
+                      list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-localsize));
+                    end;
+
+                  reference_reset(ref,4,[]);
+                  ref.base:=NR_STACK_POINTER_REG;
+                  ref.offset:=localsize;
+                  if ref.offset>1024 then
+                    begin
+                      if ref.offset<=1024+32512 then
+                        begin
+                          list.concat(taicpu.op_reg_reg_const(A_ADDMI,NR_A8,NR_STACK_POINTER_REG,ref.offset and $fffffc00));
+                          ref.offset:=ref.offset and $3ff;
+                          ref.base:=NR_A8;
+                        end
+                      else
+                        { fix me! }
+                        Internalerror(2020031101);
+                    end;
+
+                  if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+                    begin
+                      dec(ref.offset,4);
+                      list.concat(taicpu.op_reg_ref(A_S32I,NR_A15,ref));
+                      a_reg_alloc(list,NR_FRAME_POINTER_REG);
+                      list.concat(taicpu.op_reg_reg(A_MOV,NR_A15,NR_STACK_POINTER_REG));
+                    end;
+
+                  if regs<>[] then
+                    begin
+                      for r:=RS_A14 downto RS_A0 do
+                        if r in regs then
+                          begin
+                            dec(ref.offset,4);
+                            list.concat(taicpu.op_reg_ref(A_S32I,newreg(R_INTREGISTER,r,R_SUBWHOLE),ref));
+                          end;
+                    end;
+                end;
+              abi_xtensa_windowed:
+                begin
+                  if stack_parameters and (pi_estimatestacksize in current_procinfo.flags) then
+                    begin
+                      if localsize>txtensaprocinfo(current_procinfo).stackframesize then
+                        internalerror(2020031402)
+                      else
+                        localsize:=txtensaprocinfo(current_procinfo).stackframesize-registerarea;
+                    end
+                  else
+                    begin
+                      { spill area }
+                      inc(localsize,max(txtensaprocinfo(current_procinfo).maxcall,4)*4);
+
+                      localsize:=align(localsize,current_settings.alignment.localalignmax);
+                    end;
+
+                  list.concat(taicpu.op_reg_const(A_ENTRY,NR_STACK_POINTER_REG,localsize));
+                end;
+              else
+                Internalerror(2020031401);
+            end;
           end;
       end;
 
@@ -625,11 +651,16 @@ implementation
     procedure tcgcpu.g_proc_exit(list : TAsmList; parasize : longint;
      nostackframe : boolean);
       begin
-        if target_info.abi=abi_xtensa_windowed then
-          list.Concat(taicpu.op_none(A_RETW))
-        else
-          list.Concat(taicpu.op_none(A_RET));
+        case target_info.abi of
+          abi_xtensa_windowed:
+            list.Concat(taicpu.op_none(A_RETW));
+          abi_xtensa_call0:
+            list.Concat(taicpu.op_none(A_RET));
+          else
+            Internalerror(2020031403);
+        end;
       end;
+
 
     procedure tcgcpu.a_cmp_const_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
 
