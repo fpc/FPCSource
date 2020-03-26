@@ -213,13 +213,15 @@ implementation
           else
             InternalError(2020030804);
         end;
+
         href:=ref;
         if assigned(href.symbol) or
           (href.index<>NR_NO) or
           ((op=A_S8I) and ((href.offset<0) or (href.offset>255))) or
-          ((op=A_S16I) and ((href.offset<0) or (href.offset>510))) or
-          ((op=A_S32I) and ((href.offset<0) or (href.offset>1020))) then
+          ((op=A_S16I) and ((href.offset<0) or (href.offset>510) or (href.offset mod 2<>0))) or
+          ((op=A_S32I) and ((href.offset<0) or (href.offset>1020) or (href.offset mod 4<>0))) then
           fixref(list,href);
+
         list.concat(taicpu.op_reg_ref(op,reg,href));
       end;
 
@@ -244,14 +246,13 @@ implementation
         else
           internalerror(2020030801);
         end;
-        href:=ref;
-        fixref(list,href);
 
+        href:=ref;
         if assigned(href.symbol) or
           (href.index<>NR_NO) or
           ((op=A_L8UI) and ((href.offset<0) or (href.offset>255))) or
-          ((op in [A_L16SI,A_L16UI]) and ((href.offset<0) or (href.offset>510))) or
-          ((op=A_L32I) and ((href.offset<0) or (href.offset>1020))) then
+          ((op in [A_L16SI,A_L16UI]) and ((href.offset<0) or (href.offset>510) or (href.offset mod 2<>0))) or
+          ((op=A_L32I) and ((href.offset<0) or (href.offset>1020) or (href.offset mod 4<>0))) then
           fixref(list,href);
 
         list.concat(taicpu.op_reg_ref(op,reg,href));
