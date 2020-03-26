@@ -193,30 +193,35 @@ implementation
 
     procedure tcgcpu.a_load_reg_ref(list : TAsmList; fromsize,tosize : tcgsize;
       reg : tregister; const ref : TReference);
-       var
-         op: TAsmOp;
-         href : treference;
-       begin
+      var
+        op: TAsmOp;
+        href : treference;
+      begin
+        if (TCGSize2Size[FromSize] >= TCGSize2Size[ToSize]) then
+          FromSize := ToSize;
+        case tosize of
+          { signed integer registers }
+          OS_8,
+          OS_S8:
+            op:=A_S8I;
+          OS_16,
+          OS_S16:
+            op:=A_S16I;
+          OS_32,
+          OS_S32:
+            op:=A_S32I;
+          else
+            InternalError(2020030804);
+        end;
         href:=ref;
-        fixref(list,href);
-         if (TCGSize2Size[FromSize] >= TCGSize2Size[ToSize]) then
-           FromSize := ToSize;
-         case tosize of
-           { signed integer registers }
-           OS_8,
-           OS_S8:
-             op:=A_S8I;
-           OS_16,
-           OS_S16:
-             op:=A_S16I;
-           OS_32,
-           OS_S32:
-             op:=A_S32I;
-           else
-             InternalError(2020030804);
-         end;
-         list.concat(taicpu.op_reg_ref(op,reg,href));
-       end;
+        if assigned(href.symbol) or
+          (href.index<>NR_NO) or
+          ((op=A_S8I) and ((href.offset<0) or (href.offset>255))) or
+          ((op=A_S16I) and ((href.offset<0) or (href.offset>510))) or
+          ((op=A_S32I) and ((href.offset<0) or (href.offset>1020))) then
+          fixref(list,href);
+        list.concat(taicpu.op_reg_ref(op,reg,href));
+      end;
 
 
     procedure tcgcpu.a_load_ref_reg(list : TAsmList; fromsize,tosize : tcgsize;
@@ -226,9 +231,6 @@ implementation
         op: TAsmOp;
         tmpreg: TRegister;
       begin
-        href:=ref;
-        fixref(list,href);
-
         case fromsize of
           OS_8: op:=A_L8UI;
           OS_16: op:=A_L16UI;
@@ -242,8 +244,18 @@ implementation
         else
           internalerror(2020030801);
         end;
+        href:=ref;
+        fixref(list,href);
+
+        if assigned(href.symbol) or
+          (href.index<>NR_NO) or
+          ((op=A_L8UI) and ((href.offset<0) or (href.offset>255))) or
+          ((op in [A_L16SI,A_L16UI]) and ((href.offset<0) or (href.offset>510))) or
+          ((op=A_L32I) and ((href.offset<0) or (href.offset>1020))) then
+          fixref(list,href);
 
         list.concat(taicpu.op_reg_ref(op,reg,href));
+
         if (fromsize=OS_S8) and not(tosize in [OS_S8,OS_8]) then
           list.concat(taicpu.op_reg_reg_const(A_SEXT,reg,reg,7));
         if (fromsize<>tosize) and (not (tosize in [OS_SINT,OS_INT])) then
@@ -279,47 +291,47 @@ implementation
         tmpref : treference;
         l : tasmlabel;
       begin
-        { absolute symbols can't be handled directly, we've to store the symbol reference
-          in the text segment and access it pc relative
-
-          For now, we assume that references where base or index equals to PC are already
-          relative, all other references are assumed to be absolute and thus they need
-          to be handled extra.
-
-          A proper solution would be to change refoptions to a set and store the information
-          if the symbol is absolute or relative there.
-        }
         { create consts entry }
-        reference_reset(tmpref,4,[]);
-        current_asmdata.getjumplabel(l);
-        cg.a_label(current_procinfo.aktlocaldata,l);
-        tmpreg:=NR_NO;
-
-        if assigned(ref.symbol) then
-          current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
-        else
-          current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
-
-        { load consts entry }
-        tmpreg:=getintregister(list,OS_INT);
-        tmpref.symbol:=l;
-        list.concat(taicpu.op_reg_ref(A_L32R,tmpreg,tmpref));
-
-        if ref.base<>NR_NO then
+        if assigned(ref.symbol) or (ref.offset<>0) then
           begin
-            if ref.index<>NR_NO then
+            reference_reset(tmpref,4,[]);
+            current_asmdata.getjumplabel(l);
+            cg.a_label(current_procinfo.aktlocaldata,l);
+            tmpreg:=NR_NO;
+
+            if assigned(ref.symbol) then
+              current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
+            else if ref.offset<>0 then
+              current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
+
+            { load consts entry }
+            tmpreg:=getintregister(list,OS_INT);
+            tmpref.symbol:=l;
+            list.concat(taicpu.op_reg_ref(A_L32R,tmpreg,tmpref));
+
+            if ref.base<>NR_NO then
               begin
-                list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
-                ref.base:=tmpreg;
+                if ref.index<>NR_NO then
+                  begin
+                    list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
+                    ref.base:=tmpreg;
+                  end
+                else
+                  ref.index:=tmpreg;
               end
             else
               ref.base:=tmpreg;
-          end
-        else
-          ref.base:=tmpreg;
+          end;
         if ref.index<>NR_NO then
           begin
-            list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.index,tmpreg));
+            if ref.base<>NR_NO then
+              begin
+                tmpreg:=getintregister(list,OS_INT);
+                list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,ref.index));
+                ref.base:=tmpreg;
+              end
+            else
+              ref.base:=ref.index;
             ref.index:=NR_NO;
           end;
         ref.offset:=0;
