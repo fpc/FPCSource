@@ -292,7 +292,7 @@ implementation
         l : tasmlabel;
       begin
         { create consts entry }
-        if assigned(ref.symbol) or (ref.offset<>0) then
+        if assigned(ref.symbol) or (ref.offset<-2048) or (ref.offset>2047) then
           begin
             reference_reset(tmpref,4,[]);
             current_asmdata.getjumplabel(l);
@@ -321,7 +321,33 @@ implementation
               end
             else
               ref.base:=tmpreg;
+          end
+        else if ref.offset<>0 then
+          begin
+            tmpreg:=getintregister(list,OS_INT);
+            if (ref.offset>=-128) and (ref.offset<=127) then
+              begin
+                list.concat(taicpu.op_reg_reg_const(A_ADDI,tmpreg,ref.base,ref.offset));
+                ref.base:=tmpreg;
+              end
+            else
+              begin
+                list.concat(taicpu.op_reg_const(A_MOVI,tmpreg,ref.offset));
+                if ref.base<>NR_NO then
+                  begin
+                    if ref.index<>NR_NO then
+                      begin
+                        list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
+                        ref.base:=tmpreg;
+                      end
+                    else
+                      ref.index:=tmpreg;
+                  end
+                else
+                  ref.base:=tmpreg;
+              end;
           end;
+
         if ref.index<>NR_NO then
           begin
             if ref.base<>NR_NO then
