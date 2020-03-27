@@ -33,7 +33,7 @@ interface
 
 
   type
-    tavrnodeutils = class(tnodeutils)
+    txtensanodeutils = class(tnodeutils)
     protected
       class procedure insert_init_final_table(entries:tfplist); override;
     end;
@@ -52,7 +52,7 @@ implementation
       pass_1;
 
 
-  class procedure tavrnodeutils.insert_init_final_table(entries:tfplist);
+  class procedure txtensanodeutils.insert_init_final_table(entries:tfplist);
     var
       op : TAsmOp;
       initList, finalList, header: TAsmList;
@@ -62,39 +62,47 @@ implementation
       initList:=TAsmList.create;
       finalList:=TAsmList.create;
 
-     for i:=0 to entries.count-1 do
-        begin
-          entry:=pinitfinalentry(entries[i]);
-          if entry^.finifunc<>'' then
-            finalList.Concat(taicpu.op_sym(A_CALL0,current_asmdata.RefAsmSymbol(entry^.finifunc,AT_FUNCTION)));
-          if entry^.initfunc<>'' then
-            initList.Concat(taicpu.op_sym(A_CALL0,current_asmdata.RefAsmSymbol(entry^.initfunc,AT_FUNCTION)));
-        end;
+      for i:=0 to entries.count-1 do
+         begin
+           entry:=pinitfinalentry(entries[i]);
+           if entry^.finifunc<>'' then
+             finalList.Concat(taicpu.op_sym(A_CALL0,current_asmdata.RefAsmSymbol(entry^.finifunc,AT_FUNCTION)));
+           if entry^.initfunc<>'' then
+             initList.Concat(taicpu.op_sym(A_CALL0,current_asmdata.RefAsmSymbol(entry^.initfunc,AT_FUNCTION)));
+         end;
 
-      initList.Concat(taicpu.op_none(A_RET));
-      finalList.Concat(taicpu.op_none(A_RET));
-
-      begin
-        header:=TAsmList.create;
-        new_section(header, sec_code, 'FPC_INIT_FUNC_TABLE', 1);
-        header.concat(tai_symbol.Createname_global('FPC_INIT_FUNC_TABLE',AT_FUNCTION,0,voidcodepointertype));
-
-        initList.insertList(header);
-        header.free;
-
-        current_asmdata.AsmLists[al_procedures].concatList(initList);
+      case target_info.abi of
+        abi_xtensa_call0:
+          begin
+            initList.Concat(taicpu.op_none(A_RET));
+            finalList.Concat(taicpu.op_none(A_RET));
+          end;
+        abi_xtensa_windowed:
+          begin
+            initList.Concat(taicpu.op_none(A_RETW));
+            finalList.Concat(taicpu.op_none(A_RETW));
+          end;
+        else
+          Internalerror(2020031410);
       end;
 
-      begin
-        header:=TAsmList.create;
-        new_section(header, sec_code, 'FPC_FINALIZE_FUNC_TABLE', 1);
-        header.concat(tai_symbol.Createname_global('FPC_FINALIZE_FUNC_TABLE',AT_FUNCTION,0,voidcodepointertype));
+      header:=TAsmList.create;
+      new_section(header, sec_code, 'FPC_INIT_FUNC_TABLE', 1);
+      header.concat(tai_symbol.Createname_global('FPC_INIT_FUNC_TABLE',AT_FUNCTION,0,voidcodepointertype));
 
-        finalList.insertList(header);
-        header.free;
+      initList.insertList(header);
+      header.free;
 
-        current_asmdata.AsmLists[al_procedures].concatList(finalList);
-      end;
+      current_asmdata.AsmLists[al_procedures].concatList(initList);
+
+      header:=TAsmList.create;
+      new_section(header, sec_code, 'FPC_FINALIZE_FUNC_TABLE', 1);
+      header.concat(tai_symbol.Createname_global('FPC_FINALIZE_FUNC_TABLE',AT_FUNCTION,0,voidcodepointertype));
+
+      finalList.insertList(header);
+      header.free;
+
+      current_asmdata.AsmLists[al_procedures].concatList(finalList);
 
       initList.Free;
       finalList.Free;
@@ -103,6 +111,6 @@ implementation
     end;
 
 begin
-  cnodeutils:=tavrnodeutils;
+  cnodeutils:=txtensanodeutils;
 end.
 
