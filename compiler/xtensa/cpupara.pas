@@ -44,7 +44,7 @@ unit cpupara;
        private
          { the max. register depends on the used call instruction }
          maxintreg : TSuperRegister;
-         procedure init_values(var curintreg: tsuperregister; var cur_stack_offset: aword);
+         procedure init_values(side: tcallercallee; var curintreg: tsuperregister; var cur_stack_offset: aword);
          function create_paraloc_info_intern(p : tabstractprocdef; side : tcallercallee;
            paras : tparalist; var curintreg : tsuperregister;
            var cur_stack_offset : aword; varargsparas : boolean) : longint;
@@ -228,15 +228,23 @@ unit cpupara;
       end;
 
 
-    procedure tcpuparamanager.init_values(var curintreg: tsuperregister; var cur_stack_offset: aword);
+    procedure tcpuparamanager.init_values(side : tcallercallee; var curintreg: tsuperregister; var cur_stack_offset: aword);
       begin
         cur_stack_offset:=0;
         case target_info.abi of
           abi_xtensa_windowed:
             begin
-              { we use CALL(X)8 only so far }
-              curintreg:=RS_A10;
-              maxintreg:=RS_A15;
+              if side=calleeside then
+                begin
+                  curintreg:=RS_A2;
+                  maxintreg:=RS_A7;
+                end
+              else
+                begin
+                  { we use CALL(X)8 only so far }
+                  curintreg:=RS_A10;
+                  maxintreg:=RS_A15;
+                end;
             end;
           abi_xtensa_call0:
             begin
@@ -295,7 +303,15 @@ unit cpupara;
              begin
                paraloc^.loc:=LOC_REGISTER;
                if side=callerside then
-                 paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
+                 case target_info.abi of
+                   abi_xtensa_call0:
+                     paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
+                   abi_xtensa_windowed:
+                     { only call8 used/supported so far }
+                     paraloc^.register:=newreg(R_INTREGISTER,RS_A10,cgsize2subreg(R_INTREGISTER,retcgsize));
+                   else
+                     Internalerror(2020031502);
+                 end
                else
                  paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
                paraloc^.size:=retcgsize;
@@ -311,7 +327,7 @@ unit cpupara;
         cur_stack_offset: aword;
         curintreg: tsuperregister;
       begin
-        init_values(curintreg,cur_stack_offset);
+        init_values(side,curintreg,cur_stack_offset);
 
         result := create_paraloc_info_intern(p,side,p.paras,curintreg,cur_stack_offset,false);
 
@@ -525,7 +541,7 @@ unit cpupara;
         hp: tparavarsym;
         paraloc: pcgparalocation;
       begin
-        init_values(curintreg,cur_stack_offset);
+        init_values(side,curintreg,cur_stack_offset);
 
         result:=create_paraloc_info_intern(p,side,p.paras,curintreg,cur_stack_offset, false);
         if (p.proccalloption in cstylearrayofconst) then
