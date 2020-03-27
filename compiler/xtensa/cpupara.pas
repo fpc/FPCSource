@@ -33,19 +33,21 @@ unit cpupara;
 
     type
        tcpuparamanager = class(tparamanager)
-          function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
-          function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
-          function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
+         function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
+         function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
+         function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
 
-          procedure getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
-          function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
-          function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
-          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
-         private
-          procedure init_values(var curintreg: tsuperregister; var cur_stack_offset: aword);
-          function create_paraloc_info_intern(p : tabstractprocdef; side : tcallercallee;
+         procedure getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
+         function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
+         function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
+         function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
+       private
+         { the max. register depends on the used call instruction }
+         maxintreg : TSuperRegister;
+         procedure init_values(var curintreg: tsuperregister; var cur_stack_offset: aword);
+         function create_paraloc_info_intern(p : tabstractprocdef; side : tcallercallee;
            paras : tparalist; var curintreg : tsuperregister;
- var cur_stack_offset : aword; varargsparas : boolean) : longint;
+           var cur_stack_offset : aword; varargsparas : boolean) : longint;
        end;
 
   implementation
@@ -229,7 +231,21 @@ unit cpupara;
     procedure tcpuparamanager.init_values(var curintreg: tsuperregister; var cur_stack_offset: aword);
       begin
         cur_stack_offset:=0;
-        curintreg:=RS_A2;
+        case target_info.abi of
+          abi_xtensa_windowed:
+            begin
+              { we use CALL(X)8 only so far }
+              curintreg:=RS_A10;
+              maxintreg:=RS_A15;
+            end;
+          abi_xtensa_call0:
+            begin
+              curintreg:=RS_A2;
+              maxintreg:=RS_A7;
+            end;
+          else
+            Internalerror(2020031404);
+        end;
       end;
 
 
@@ -387,7 +403,7 @@ unit cpupara;
                     paraloc^.loc := LOC_VOID;
                   end
                 else
-                  internalerror(2005011310);
+                  internalerror(2020031407);
               locdef:=paradef;
               firstparaloc:=true;
               { can become < 0 for e.g. 3-byte records }
@@ -397,7 +413,7 @@ unit cpupara;
                   { In case of po_delphi_nested_cc, the parent frame pointer
                     is always passed on the stack. }
                   if (loc = LOC_REGISTER) and
-                     (nextintreg <= RS_A7) and
+                     (nextintreg <= maxintreg) and
                      (not(vo_is_parentfp in hp.varoptions) or
                       not(po_delphi_nested_cc in p.procoptions)) then
                     begin
@@ -433,7 +449,7 @@ unit cpupara;
                       dec(paralen,tcgsize2size[paraloc^.size]);
                     end
                   else if (loc = LOC_FPUREGISTER) and
-                          (nextintreg <= RS_A7) then
+                          (nextintreg <= maxintreg) then
                     begin
                       paraloc^.loc:=loc;
                       paraloc^.size := paracgsize;
@@ -453,7 +469,7 @@ unit cpupara;
                                OS_F32: paraloc^.def:=s32floattype;
                                OS_F64: paraloc^.def:=s64floattype;
                                else
-                                 internalerror(2013060124);
+                                 internalerror(2020031406);
                              end;
                            end;
                          LOC_REGISTER,
@@ -466,7 +482,7 @@ unit cpupara;
                                paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen);
                            end;
                          else
-                           internalerror(2006011101);
+                           internalerror(2020031405);
                        end;
                        if (side = callerside) then
                          paraloc^.reference.index:=NR_STACK_POINTER_REG
@@ -484,7 +500,7 @@ unit cpupara;
 
                        inc(stack_offset,align(paralen,4));
                        while (paralen > 0) and
-                             (nextintreg < RS_A7) do
+                             (nextintreg < maxintreg) do
                           begin
                             inc(nextintreg);
                             dec(paralen,sizeof(pint));
