@@ -16,7 +16,7 @@
  Examples:
    ./testpas2js --suite=TTestPrecompile.TestPC_EmptyUnit
 }
-unit tcfiler;
+unit TCFiler;
 
 {$mode objfpc}{$H+}
 
@@ -212,11 +212,24 @@ type
     procedure TestPC_GenericClass;
     procedure TestPC_GenericMethod;
     procedure TestPC_SpecializeClassSameUnit; // ToDo
-    // ToDo: specialize
-    // ToDo: inline specialize in unit interface
-    // ToDo: inline specialize in unit implementation
-    // ToDo: inline specialize in proc decl
-    // ToDo: inline specialize in proc body
+    // ToDo: specialize local generic type in unit interface
+    // ToDo: specialize local generic type in unit implementation
+    // ToDo: specialize local generic type in proc decl
+    // ToDo: specialize local generic type in proc body
+    // ToDo: inline specialize local generic type in unit interface
+    // ToDo: inline specialize local generic type in unit implementation
+    // ToDo: inline specialize local generic type in proc decl
+    // ToDo: inline specialize local generic type in proc body
+    // ToDo: specialize extern generic type in unit interface
+    // ToDo: specialize extern generic type in unit implementation
+    // ToDo: specialize extern generic type in proc decl
+    // ToDo: specialize extern generic type in proc body
+    // ToDo: inline specialize extern generic type in unit interface
+    // ToDo: inline specialize extern generic type in unit implementation
+    // ToDo: inline specialize extern generic type in proc decl
+    // ToDo: inline specialize extern generic type in proc body
+    // ToDo: half specialize TBird<T> = class a: TAnt<word,T>; end;
+    // ToDo: no specialize: TBird<T> = class a: TBird<T>; end;
     // ToDo: constraints
 
     procedure TestPC_UseUnit;
