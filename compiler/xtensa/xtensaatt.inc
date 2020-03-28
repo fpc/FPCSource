@@ -26,6 +26,7 @@
 'j',
 'mov',
 'mov.s',
+'movnez',
 'movi',
 'mull',
 'neg',
