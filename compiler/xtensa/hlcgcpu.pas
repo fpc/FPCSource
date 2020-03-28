@@ -75,7 +75,10 @@ implementation
       { Xtensa needs the data before the subroutine }
       if assigned(data) and
          (not data.empty) then
-        current_asmdata.asmlists[alt].concatlist(data);
+        begin
+          data.Insert(tai_align.Create(4));
+          current_asmdata.asmlists[alt].concatlist(data);
+        end;
       inherited record_generated_code_for_procdef(pd,code,nil);
     end;
 
