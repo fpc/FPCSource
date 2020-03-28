@@ -2324,6 +2324,7 @@ type
       Params: TFPList): TPasElement; virtual;
     procedure FinishSpecializedClassOrRecIntf(Scope: TPasGenericScope); virtual;
     procedure FinishSpecializations(Scope: TPasGenericScope); virtual;
+    function IsSpecialized(El: TPasGenericType): boolean; overload;
     function IsFullySpecialized(El: TPasGenericType): boolean; overload;
     function IsFullySpecialized(Proc: TPasProcedure): boolean; overload;
     function IsInterfaceType(const ResolvedEl: TPasResolverResult;
@@ -27943,7 +27944,7 @@ var
   ProcScope: TPasProcedureScope;
 begin
   Result:=nil;
-  if El.CustomData<>nil then
+  if (El.ClassType=TPasSpecializeType) and (El.CustomData<>nil) then
     RaiseNotYetImplemented(20190726142522,El);
 
   // check if there is already such a specialization
@@ -28097,6 +28098,12 @@ begin
   if SpecializedItems=nil then exit;
   for i:=0 to SpecializedItems.Count-1 do
     SpecializeGenericImpl(TPRSpecializedItem(SpecializedItems[i]));
+end;
+
+function TPasResolver.IsSpecialized(El: TPasGenericType): boolean;
+begin
+  Result:=(El<>nil) and (El.CustomData is TPasGenericScope)
+      and (TPasGenericScope(El.CustomData).SpecializedFromItem<>nil);
 end;
 
 function TPasResolver.IsFullySpecialized(El: TPasGenericType): boolean;
