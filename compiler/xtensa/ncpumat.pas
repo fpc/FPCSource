@@ -82,7 +82,13 @@ implementation
 
         location:=left.location;
         hlcg.location_force_reg(current_asmdata.CurrAsmList,location,resultdef,resultdef,false);
-        cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,def_cgsize(resultdef), location.register, location.register);
+        { not supported yet }
+        if is_64bit(resultdef) then
+          Internalerror(2020031701);
+        if is_cbool(resultdef) then
+          cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,def_cgsize(resultdef), location.register, location.register)
+        else
+          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,def_cgsize(resultdef),1, location.register, location.register)
       end;
 
 {*****************************************************************************
