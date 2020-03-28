@@ -54,7 +54,7 @@ implementation
 
   class procedure txtensanodeutils.insert_init_final_table(entries:tfplist);
     var
-      op : TAsmOp;
+      callop, retop: TAsmOp;
       initList, finalList, header: TAsmList;
       entry : pinitfinalentry;
       i : longint;
@@ -62,29 +62,39 @@ implementation
       initList:=TAsmList.create;
       finalList:=TAsmList.create;
 
-      for i:=0 to entries.count-1 do
-         begin
-           entry:=pinitfinalentry(entries[i]);
-           if entry^.finifunc<>'' then
-             finalList.Concat(taicpu.op_sym(A_CALL0,current_asmdata.RefAsmSymbol(entry^.finifunc,AT_FUNCTION)));
-           if entry^.initfunc<>'' then
-             initList.Concat(taicpu.op_sym(A_CALL0,current_asmdata.RefAsmSymbol(entry^.initfunc,AT_FUNCTION)));
-         end;
+      initList.Concat(tai_align.Create(target_info.alignment.procalign));
+      finalList.Concat(tai_align.Create(target_info.alignment.procalign));
 
       case target_info.abi of
-        abi_xtensa_call0:
-          begin
-            initList.Concat(taicpu.op_none(A_RET));
-            finalList.Concat(taicpu.op_none(A_RET));
-          end;
+//        abi_xtensa_call0:
+//          begin
+//            initList.Concat(taicpu.op_none(A_RET));
+//            finalList.Concat(taicpu.op_none(A_RET));
+//            callop:=A_CALL0;
+//            retop:=A_RET;
+//          end;
         abi_xtensa_windowed:
           begin
-            initList.Concat(taicpu.op_none(A_RETW));
-            finalList.Concat(taicpu.op_none(A_RETW));
+            initList.Concat(taicpu.op_reg_const(A_ENTRY,NR_A1,16));
+            finalList.Concat(taicpu.op_reg_const(A_ENTRY,NR_A1,16));
+            callop:=A_CALL4;
+            retop:=A_RETW;
           end;
         else
-          Internalerror(2020031410);
+          Internalerror(2020031501);
       end;
+
+      for i:=0 to entries.count-1 do
+        begin
+          entry:=pinitfinalentry(entries[i]);
+          if entry^.finifunc<>'' then
+            finalList.Concat(taicpu.op_sym(callop,current_asmdata.RefAsmSymbol(entry^.finifunc,AT_FUNCTION)));
+          if entry^.initfunc<>'' then
+            initList.Concat(taicpu.op_sym(callop,current_asmdata.RefAsmSymbol(entry^.initfunc,AT_FUNCTION)));
+        end;
+
+      initList.Concat(taicpu.op_none(retop));
+      finalList.Concat(taicpu.op_none(retop));
 
       header:=TAsmList.create;
       new_section(header, sec_code, 'FPC_INIT_FUNC_TABLE', 1);
