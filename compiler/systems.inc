@@ -55,7 +55,8 @@
              cpu_sparc64,                  { 18 }
              cpu_riscv32,                  { 19 }
              cpu_riscv64,                  { 20 }
-             cpu_xtensa                    { 21 }
+             cpu_xtensa,                   { 21 }
+             cpu_sys_z80                   { 22 }
        );
 
        tasmmode= (asmmode_none

@@ -495,7 +495,7 @@ unit i_embed;
             shortname    : 'embedded';
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
                             tf_smartlink_sections];
-            cpu          : cpu_avr;
+            cpu          : cpu_sys_z80;
             unit_env     : '';
             extradefines : '';
             exeext       : '';
