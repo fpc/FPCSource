@@ -754,7 +754,7 @@ implementation
             reg2:=tmpreg;
           end;
 
-        instr:=taicpu.op_reg_reg_sym(A_Bcc,reg1,reg2,l);
+        instr:=taicpu.op_reg_reg_sym(A_Bcc,reg2,reg1,l);
         instr.condition:=TOpCmp2AsmCond[cmp_op];
         list.concat(instr);
       end;
