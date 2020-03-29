@@ -1067,11 +1067,10 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-{$ifndef darwin}
-  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
-{$else darwin}
-  Replace(cmdstr,'$EXE',maybequoted(ExpandFileName(current_module.sharedlibfilename)));
-{$endif darwin}
+  if not(target_info.system in systems_darwin) then
+    Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename))
+  else
+    Replace(cmdstr,'$EXE',maybequoted(ExpandFileName(current_module.sharedlibfilename)));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$TARGET',targetstr);
   Replace(cmdstr,'$EMUL',EmulStr);
