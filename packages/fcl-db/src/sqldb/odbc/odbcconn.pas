@@ -72,6 +72,7 @@ type
     procedure FreeParamBuffers(ODBCCursor:TODBCCursor);
   protected
     // Overrides from TSQLConnection
+    function GetConnectionCharSet: string; override;
     function GetHandle:pointer; override;
     // - Connect/disconnect
     procedure DoInternalConnect; override;
@@ -400,6 +401,7 @@ var
   BufferLength, StrLenOrInd: SQLLEN;
   CType, SqlType, DecimalDigits:SQLSMALLINT;
   APD: SQLHDESC;
+  BytesVal: TBytes;
 begin
   // Note: it is assumed that AParams is the same as the one passed to PrepareStatement, in the sense that
   //       the parameters have the same order and names
@@ -440,43 +442,27 @@ begin
           SqlType:=SQL_BIGINT;
           ColumnSize:=19;
         end;
-      ftString, ftFixedChar, ftBlob, ftMemo, ftGuid,
-      ftBytes, ftVarBytes:
+      ftBlob, ftBytes, ftVarBytes:
         begin
-          StrVal:=AParams[ParamIndex].AsString;
-          StrLenOrInd:=Length(StrVal);
-          if StrVal='' then //HY104
+          BytesVal:=AParams[ParamIndex].AsBytes;
+          StrLenOrInd:=Length(BytesVal);
+          if Length(BytesVal)=0 then //HY104
              begin
-             StrVal:=#0;
+             BytesVal:=[0];
              StrLenOrInd:=SQL_NTS;
              end;
-          PVal:=@StrVal[1];
-          Size:=Length(StrVal);
+          PVal:=@BytesVal[0];
+          Size:=Length(BytesVal);
           ColumnSize:=Size;
           BufferLength:=Size;
+          CType:=SQL_C_BINARY;
           case AParams[ParamIndex].DataType of
-            ftBytes, ftVarBytes:
-              begin
-              CType:=SQL_C_BINARY;
-              SqlType:=SQL_VARBINARY;
-              end;
-            ftBlob:
-              begin
-              CType:=SQL_C_BINARY;
+            ftBytes, ftVarBytes: SqlType:=SQL_VARBINARY;
+            else // ftBlob
               SqlType:=SQL_LONGVARBINARY;
-              end;
-            ftMemo:
-              begin
-              CType:=SQL_C_CHAR;
-              SqlType:=SQL_LONGVARCHAR;
-              end
-            else // ftString, ftFixedChar
-              begin
-              CType:=SQL_C_CHAR;
-              SqlType:=SQL_VARCHAR;
-              end;
           end;
         end;
+      ftString, ftFixedChar, ftMemo, ftGuid, // string parameters must be passed as widestring to support FPC 3.0.x character conversion
       ftWideString, ftFixedWideChar, ftWideMemo:
         begin
           WideStrVal:=AParams[ParamIndex].AsWideString;
@@ -492,7 +478,7 @@ begin
           BufferLength:=Size;
           CType:=SQL_C_WCHAR;
           case AParams[ParamIndex].DataType of
-            ftWideMemo: SqlType:=SQL_WLONGVARCHAR;
+            ftMemo, ftWideMemo: SqlType:=SQL_WLONGVARCHAR;
             else        SqlType:=SQL_WVARCHAR;
           end;
         end;
@@ -563,7 +549,19 @@ begin
           CType:=SQL_C_BIT;
           SqlType:=SQL_BIT;
           ColumnSize:=Size;
-        end
+        end;
+      ftUnknown:
+        begin
+          if AParams[ParamIndex].IsNull then // Null variant is stored as ftUnknown - send it over as TINYINT (it doesn't really matter what type)
+          begin
+            PVal:=nil;
+            Size:=0;
+            CType:=SQL_C_TINYINT;
+            SqlType:=SQL_TINYINT;
+            ColumnSize:=Size;
+          end else
+            raise EDataBaseError.CreateFmt('Not-null unknown Parameter (index %d) is not supported.',[ParamIndex]);
+        end;
       else
         raise EDataBaseError.CreateFmt('Parameter %d is of type %s, which not supported yet',[ParamIndex, Fieldtypenames[AParams[ParamIndex].DataType]]);
     end;
@@ -572,7 +570,8 @@ begin
        StrLenOrInd:=SQL_NULL_DATA;
 
     Buf:=GetMem(Size+SizeOf(StrLenOrInd));
-    Move(PVal^, Buf^, Size);
+    if Size>0 then
+      Move(PVal^, Buf^, Size);
     if StrLenOrInd<>0 then
        begin
        PStrLenOrInd:=Buf + Size;
@@ -616,6 +615,13 @@ begin
     if assigned(ODBCCursor.FParamBuf[i]) then
       FreeMem(ODBCCursor.FParamBuf[i]);
   SetLength(ODBCCursor.FParamBuf,0);
+end;
+
+function TODBCConnection.GetConnectionCharSet: string;
+begin
+  Result := inherited GetConnectionCharSet;
+  if Result='' then
+    Result := TEncoding.ANSI.EncodingName; // by default, ODBC talks in ANSI, which can be different from CP_ACP (DefaultSystemCodePage)
 end;
 
 function TODBCConnection.GetHandle: pointer;
@@ -737,6 +743,7 @@ end;
 procedure TODBCConnection.PrepareStatement(cursor: TSQLCursor; ATransaction: TSQLTransaction; buf: string; AParams: TParams);
 var
   ODBCCursor:TODBCCursor;
+  wbuf: widestring;
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
@@ -759,8 +766,9 @@ begin
   ODBCCursor.FQuery:=Buf;
   if not (ODBCCursor.FSchemaType in [stTables, stSysTables, stColumns, stProcedures, stIndexes]) then
     begin
+      wbuf := buf;
       ODBCCheckResult(
-        SQLPrepare(ODBCCursor.FSTMTHandle, PChar(buf), Length(buf)),
+        SQLPrepareW(ODBCCursor.FSTMTHandle, PWideChar(wbuf), Length(wbuf)),
         SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not prepare statement.'
       );
     end;
@@ -913,7 +921,7 @@ var
   i:integer;
   ColNameLength,TypeNameLength,DataType,DecimalDigits,Nullable:SQLSMALLINT;
   ColumnSize:SQLULEN;
-  ColName,TypeName:string;
+  ColName,TypeName:RawByteString;
   FieldType:TFieldType;
   FieldSize:word;
   AutoIncAttr, FixedPrecScale, Unsigned, Updatable: SQLLEN;
@@ -962,6 +970,9 @@ begin
         SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get column name for column %d.',[i]
       );
     end;
+    // ColName is received in ANSI - convert to DefaultSystemCodePage
+    SetCodePage(ColName, CodePage, False);
+    SetCodePage(ColName, DefaultSystemCodePage, True);
 
     // convert type
     // NOTE: I made some guesses here after I found only limited information about TFieldType; please report any problems
@@ -1115,6 +1126,9 @@ begin
           SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get datasource dependent type name for column %s.',[ColName]
         );
       end;
+      // TypeName is received in ANSI - convert to DefaultSystemCodePage
+      SetCodePage(TypeName, CodePage, False);
+      SetCodePage(TypeName, DefaultSystemCodePage, True);
 
       DatabaseErrorFmt('Column %s has an unknown or unsupported column type. Datasource dependent type name: %s. ODBC SQL data type code: %d.', [ColName, TypeName, DataType]);
     end;
