@@ -19,7 +19,8 @@
 
  ****************************************************************************
 }
-{ This unit implements the GNU Assembler writer for the ARM
+{ This unit implements the assembler writer for the z80asm assembler:
+  http://savannah.nongnu.org/projects/z80asm
 }
 
 unit agz80asm;
@@ -35,7 +36,7 @@ unit agz80asm;
        cpubase;
 
     type
-      TZ80GNUAssembler=class(TExternalAssembler)
+      TZ80AsmAssembler=class(TExternalAssembler)
         procedure WriteTree(p : TAsmList); override;
         function MakeCmdLine: TCmdStr; override;
       end;
@@ -48,7 +49,7 @@ unit agz80asm;
        cpuinfo,
        cgbase,cgutils;
 
-    Procedure TZ80GNUAssembler.WriteTree(p:TAsmList);
+    Procedure TZ80AsmAssembler.WriteTree(p:TAsmList);
 
       function getreferencestring(var ref : treference) : string;
         var
@@ -165,7 +166,7 @@ unit agz80asm;
     end;
 
 
-    function TZ80GNUAssembler.MakeCmdLine: TCmdStr;
+    function TZ80AsmAssembler.MakeCmdLine: TCmdStr;
       begin
         result := {'-mmcu='+lower(cputypestr[current_settings.cputype])+' '+}inherited MakeCmdLine;
       end;
@@ -188,5 +189,5 @@ unit agz80asm;
 
 
 begin
-  RegisterAssembler(as_Z80_asm_info,TZ80GNUAssembler);
+  RegisterAssembler(as_Z80_asm_info,TZ80AsmAssembler);
 end.
