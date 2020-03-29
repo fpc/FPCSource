@@ -36,7 +36,7 @@ implementation
 **************************************}
 
     {$ifndef NOTARGETEMBEDDED}
-      ,t_embed
+      ,t_embed,t_freertos
     {$endif}
 
 {**************************************

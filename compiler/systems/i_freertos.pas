@@ -1,8 +1,7 @@
 {
-    Copyright (c) 1998-2008 by Peter Vreman
+    This unit implements support information structures for the FPC FreeRTOS target
 
-    This unit implements support information structures for FreeBSD/NetBSD
-    and OpenBSD
+    Copyright (c) 1998-2006 by Peter Vreman
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,13 +18,16 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ****************************************************************************
 }
-{ This unit implements support information structures for FreeBSD/NetBSD.
-  OpenBSD is only added for i386 for now, though it exists for most
-  other common CPU's too}
-
-unit i_bsd;
+unit i_freertos;
 
 {$i fpcdefs.inc}
+
+{$ifdef go32v2}
+  { As wlib uses a different Dos-Extender, long-command line
+    encoding for DJGPP does not work here.
+    Put all inside a script file instead }
+  {$define USE_SCRIPTED_WLIB}
+{$endif}
 
   interface
 
@@ -33,42 +35,17 @@ unit i_bsd;
        systems;
 
     const
-       res_macho_info : tresinfo =
-           (
-             id     : res_macho;
-             resbin : 'fpcres';
-             rescmd : '-o $OBJ -a $ARCH -s $SUBARCH -of mach-o $DBG';
-             rcbin  : 'windres';
-             rccmd  : '--include $INC -O res -D FPC -o $RES $RC';
-             resourcefileclass : nil;
-             resflags : [];
-           );
-       res_macosx_ext_info : tresinfo =
+{$ifdef dummy}
+       system_arm_embedded_info : tsysteminfo =
           (
-             id     : res_ext;
-             resbin : 'fpcres';
-             rescmd : '-o $OBJ -a $ENDIAN -of external $DBG';
-             rcbin  : 'windres';
-             rccmd  : '--include $INC -O res -D FPC -o $RES $RC';
-             resourcefileclass : nil;
-             resflags : [res_external_file,res_arch_in_file_name];
-          );
-
-       system_i386_freebsd_info : tsysteminfo =
-          (
-            system       : system_i386_FreeBSD;
-            name         : 'FreeBSD/ELF for i386';
-            shortname    : 'FreeBSD';
-            flags        : [tf_pic_uses_got,tf_files_case_sensitive,
-{$ifdef tls_threadvars}
-                            tf_section_threadvars,
-{$endif tls_threadvars}
-                            tf_needs_symbol_type,tf_needs_symbol_size
-                            ,tf_smartlink_sections,tf_has_winlike_resources
-                            ,tf_supports_hidden_symbols];
-            cpu          : cpu_i386;
-            unit_env     : 'BSDUNITS';
-            extradefines : 'UNIX;BSD;HASUNIX';
+            system       : system_arm_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
+                            tf_smartlink_sections,tf_init_final_units_by_calls];
+            cpu          : cpu_arm;
+            unit_env     : '';
+            extradefines : '';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -92,13 +69,13 @@ unit i_bsd;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_i386_elf32;
+            assem        : as_gas;
             assemextern  : as_gas;
             link         : ld_none;
-            linkextern   : ld_bsd;
+            linkextern   : ld_embedded;
             ar           : ar_gnu_ar;
-            res          : res_elf;
-            dbg          : dbg_stabs;
+            res          : res_none;
+            dbg          : dbg_dwarf2;
             script       : script_unix;
             endian       : endian_little;
             alignment    :
@@ -113,238 +90,29 @@ unit i_bsd;
                 constalignmax   : 4;
                 varalignmin     : 0;
                 varalignmax     : 4;
-                localalignmin   : 0;
+                localalignmin   : 4;
                 localalignmax   : 4;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
+                recordalignmax  : 4;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            stacksize   : 262144;
+            stacksize    : 262144;
             stackalign   : 4;
-            abi          : abi_default;
-            { note: default LLVM stack alignment is 16 bytes for this target }
-            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S32';
+            abi : abi_default;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
           );
 
-
-       system_x86_64_freebsd_info : tsysteminfo =
+       system_avr_embedded_info : tsysteminfo =
           (
-            system       : system_x86_64_freebsd;
-            name         : 'FreeBSD for x86-64';
-            shortname    : 'FreeBSD';
-            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
-                            tf_files_case_sensitive,
-                            tf_dwarf_only_local_labels,
-                            {tf_pic_uses_got,}tf_smartlink_sections,tf_has_winlike_resources,tf_supports_hidden_symbols];
-            cpu          : cpu_x86_64;
-            unit_env     : 'BSDUNITS';
-            extradefines : 'UNIX;HASUNIX;BSD';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            smartext     : '.sl';
-            unitext      : '.ppu';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            staticlibprefix : 'libp';
-            sharedlibprefix : 'lib';
-            sharedClibext : '.so';
-            staticClibext : '.a';
-            staticClibprefix : 'lib';
-            sharedClibprefix : 'lib';
-            importlibprefix : 'libimp';
-            importlibext : '.a';
-            Cprefix      : '';
-            newline      : #10;
-            dirsep       : '/';
-            assem        : as_x86_64_elf64;
-            assemextern  : as_gas;
-            link         : ld_none;
-            linkextern   : ld_bsd;
-            ar           : ar_gnu_ar;
-            res          : res_elf;
-            dbg          : dbg_dwarf2;            //dbg_stabs;
-            script       : script_unix;
-            endian       : endian_little;
-            alignment    :
-              (
-                procalign       : 8;
-                loopalign       : 4;
-                jumpalign       : 0;
-                jumpalignskipmax    : 0;
-                coalescealign   : 0;
-                coalescealignskipmax: 0;
-                constalignmin   : 0;
-                constalignmax   : 16;
-                varalignmin     : 0;
-                varalignmax     : 16;
-                localalignmin   : 4;
-                localalignmax   : 16;
-                recordalignmin  : 0;
-                recordalignmax  : 16;
-                maxCrecordalign : 16
-              );
-            first_parm_offset : 16;
-            stacksize    : 256*1024;
-            stackalign   : 16;
-            abi          : abi_default;
-            llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128';
-          );
-
-
-       system_x86_64_dragonfly_info : tsysteminfo =
-          (
-            system       : system_x86_64_dragonfly;
-            name         : 'DragonFly for x86-64';
-            shortname    : 'DragonFly';
-            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
-                            tf_files_case_sensitive,
-                            tf_dwarf_only_local_labels,
-                            {tf_pic_uses_got,}tf_smartlink_sections,tf_has_winlike_resources,tf_supports_hidden_symbols];
-            cpu          : cpu_x86_64;
-            unit_env     : 'BSDUNITS';
-            extradefines : 'UNIX;HASUNIX;BSD';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            smartext     : '.sl';
-            unitext      : '.ppu';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            staticlibprefix : 'libp';
-            sharedlibprefix : 'lib';
-            sharedClibext : '.so';
-            staticClibext : '.a';
-            staticClibprefix : 'lib';
-            sharedClibprefix : 'lib';
-            importlibprefix : 'libimp';
-            importlibext : '.a';
-            Cprefix      : '';
-            newline      : #10;
-            dirsep       : '/';
-            assem        : as_x86_64_elf64;
-            assemextern  : as_gas;
-            link         : ld_none;
-            linkextern   : ld_bsd;
-            ar           : ar_gnu_ar;
-            res          : res_elf;
-            dbg          : dbg_dwarf2;            //dbg_stabs;
-            script       : script_unix;
-            endian       : endian_little;
-            alignment    :
-              (
-                procalign       : 8;
-                loopalign       : 4;
-                jumpalign       : 0;
-                jumpalignskipmax    : 0;
-                coalescealign   : 0;
-                coalescealignskipmax: 0;
-                constalignmin   : 0;
-                constalignmax   : 16;
-                varalignmin     : 0;
-                varalignmax     : 16;
-                localalignmin   : 4;
-                localalignmax   : 16;
-                recordalignmin  : 0;
-                recordalignmax  : 16;
-                maxCrecordalign : 16
-              );
-            first_parm_offset : 16;
-            stacksize    : 256*1024;
-            stackalign   : 16;
-            abi          : abi_default;
-            llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128';
-          );
-
-
-       system_i386_netbsd_info : tsysteminfo =
-          (
-            system       : system_i386_NetBSD;
-            name         : 'NetBSD for i386';
-            shortname    : 'NetBSD';
-            flags        : [tf_pic_uses_got,tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_has_winlike_resources,
-                            tf_supports_hidden_symbols];
-            cpu          : cpu_i386;
-            unit_env     : 'BSDUNITS';
-            extradefines : 'UNIX;BSD;HASUNIX';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            smartext     : '.sl';
-            unitext      : '.ppu';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            staticlibprefix : 'libp';
-            sharedlibprefix : 'lib';
-            sharedClibext : '.so';
-            staticClibext : '.a';
-            staticClibprefix : 'lib';
-            sharedClibprefix : 'lib';
-            importlibprefix : 'libimp';
-            importlibext : '.a';
-            Cprefix      : '';
-            newline      : #10;
-            dirsep       : '/';
-            assem        : as_i386_elf32;
-            assemextern  : as_gas;
-            link         : ld_none;
-            linkextern   : ld_bsd;
-            ar           : ar_gnu_ar;
-            res          : res_elf;
-            dbg          : dbg_stabs;
-            script       : script_unix;
-            endian       : endian_little;
-            alignment    :
-              (
-                procalign       : 16;
-                loopalign       : 4;
-                jumpalign       : 0;
-                jumpalignskipmax    : 0;
-                coalescealign   : 0;
-                coalescealignskipmax: 0;
-                constalignmin   : 0;
-                constalignmax   : 16;
-                varalignmin     : 0;
-                varalignmax     : 16;
-                localalignmin   : 4;
-                localalignmax   : 8;
-                recordalignmin  : 0;
-                recordalignmax  : 16;
-                maxCrecordalign : 4
-              );
-            first_parm_offset : 8;
-            stacksize   : 262144;
-            stackalign   : 4;
-            abi          : abi_default;
-            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S32';
-          );
-
-       system_i386_openbsd_info : tsysteminfo =
-          (
-            system       : system_i386_OpenBSD;
-            name         : 'OpenBSD for i386';
-            shortname    : 'OpenBSD';
-            flags        : [tf_pic_default,tf_pic_uses_got,tf_under_development,tf_files_case_sensitive,tf_smartlink_sections,tf_has_winlike_resources,
-                            tf_supports_hidden_symbols];
-            cpu          : cpu_i386;
-            unit_env     : 'BSDUNITS';
-            extradefines : 'UNIX;BSD;HASUNIX';
+            system       : system_avr_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
+                            tf_smartlink_sections,tf_init_final_units_by_calls];
+            cpu          : cpu_avr;
+            unit_env     : '';
+            extradefines : '';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -371,153 +139,16 @@ unit i_bsd;
             assem        : as_gas;
             assemextern  : as_gas;
             link         : ld_none;
-            linkextern   : ld_bsd;
+            linkextern   : ld_embedded;
             ar           : ar_gnu_ar;
-            res          : res_elf;
-            dbg          : dbg_stabs;
+            res          : res_none;
+            dbg          : dbg_dwarf3;
             script       : script_unix;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 16;
-                loopalign       : 4;
-                jumpalign       : 0;
-                jumpalignskipmax    : 0;
-                coalescealign   : 0;
-                coalescealignskipmax: 0;
-                constalignmin   : 0;
-                constalignmax   : 16;
-                varalignmin     : 0;
-                varalignmax     : 16;
-                localalignmin   : 4;
-                localalignmax   : 8;
-                recordalignmin  : 0;
-                recordalignmax  : 16;
-                maxCrecordalign : 4
-              );
-            first_parm_offset : 8;
-            stacksize   : 262144;
-            stackalign   : 4;
-            abi          : abi_default;
-            { note: default LLVM stack alignment is 16 bytes for this target }
-            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S32';
-          );
-
-       system_x86_64_openbsd_info : tsysteminfo =
-          (
-            system       : system_x86_64_openbsd;
-            name         : 'OpenBSD for x86-64';
-            shortname    : 'OpenBSD';
-            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
-                            tf_files_case_sensitive, tf_under_development,
-                            tf_dwarf_only_local_labels, tf_pic_default,
-                            { tf_pic_uses_got,}tf_smartlink_sections,tf_has_winlike_resources,tf_supports_hidden_symbols];
-            cpu          : cpu_x86_64;
-            unit_env     : 'BSDUNITS';
-            extradefines : 'UNIX;HASUNIX;BSD';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            smartext     : '.sl';
-            unitext      : '.ppu';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            staticlibprefix : 'libp';
-            sharedlibprefix : 'lib';
-            sharedClibext : '.so';
-            staticClibext : '.a';
-            staticClibprefix : 'lib';
-            sharedClibprefix : 'lib';
-            importlibprefix : 'libimp';
-            importlibext : '.a';
-            Cprefix      : '';
-            newline      : #10;
-            dirsep       : '/';
-            assem        : as_x86_64_elf64;
-            assemextern  : as_gas;
-            link         : ld_none;
-            linkextern   : ld_bsd;
-            ar           : ar_gnu_ar;
-            res          : res_elf;
-            dbg          : dbg_dwarf2;            //dbg_stabs;
-            script       : script_unix;
-            endian       : endian_little;
-            alignment    :
-              (
-                procalign       : 8;
-                loopalign       : 4;
-                jumpalign       : 0;
-                jumpalignskipmax    : 0;
-                coalescealign   : 0;
-                coalescealignskipmax: 0;
-                constalignmin   : 0;
-                constalignmax   : 16;
-                varalignmin     : 0;
-                varalignmax     : 16;
-                localalignmin   : 4;
-                localalignmax   : 16;
-                recordalignmin  : 0;
-                recordalignmax  : 16;
-                maxCrecordalign : 16
-              );
-            first_parm_offset : 16;
-            stacksize    : 256*1024;
-            stackalign   : 16;
-            abi          : abi_default;
-            llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128';
-          );
-
-       system_m68k_netbsd_info : tsysteminfo =
-          (
-            system       : system_m68k_NetBSD;
-            name         : 'NetBSD for m68k';
-            shortname    : 'NetBSD';
-            flags        : [tf_under_development,tf_needs_symbol_size,tf_needs_symbol_type,tf_requires_proper_alignment,
-                            tf_files_case_sensitive,tf_smartlink_sections,tf_has_winlike_resources,tf_supports_hidden_symbols];
-            cpu          : cpu_m68k;
-            unit_env     : 'BSDUNITS';
-            extradefines : 'UNIX;BSD;HASUNIX';
-            exeext       : '';
-            defext       : '.def';
-            scriptext    : '.sh';
-            smartext     : '.sl';
-            unitext      : '.ppu';
-            unitlibext   : '.ppl';
-            asmext       : '.s';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : '.so';
-            staticlibext : '.a';
-            staticlibprefix : 'libp';
-            sharedlibprefix : 'lib';
-            sharedClibext : '.so';
-            staticClibext : '.a';
-            staticClibprefix : 'lib';
-            sharedClibprefix : 'lib';
-            importlibprefix : 'libimp';
-            importlibext : '.a';
-            Cprefix      : '';
-            newline      : #10;
-            dirsep       : '/';
-            assem        : as_gas;
-            assemextern  : as_gas;
-            link         : ld_none;
-            linkextern   : ld_bsd;
-            ar           : ar_gnu_ar;
-            res          : res_elf;
-            dbg          : dbg_stabs;
-            script       : script_unix;
-            endian       : endian_big;
-            alignment    :
-              (
-                procalign       : 4;
-                loopalign       : 4;
+                procalign       : 1;
+                loopalign       : 1;
                 jumpalign       : 0;
                 jumpalignskipmax    : 0;
                 coalescealign   : 0;
@@ -529,25 +160,26 @@ unit i_bsd;
                 localalignmin   : 0;
                 localalignmax   : 1;
                 recordalignmin  : 0;
-                recordalignmax  : 4;
-                maxCrecordalign : 8
+                recordalignmax  : 1;
+                maxCrecordalign : 1
               );
-            first_parm_offset : 8;
-            stacksize   : 262144;
-            stackalign   : 4;
-            abi          : abi_default;
+            first_parm_offset : 0;
+            stacksize    : 1024;
+            stackalign   : 1;
+            abi : abi_default;
             llvmdatalayout : 'todo';
           );
 
-       system_powerpc_netbsd_info : tsysteminfo =
+       system_mipsel_embedded_info : tsysteminfo =
           (
-            system       : system_powerpc_netbsd;
-            name         : 'NetBSD for PowerPC';
-            shortname    : 'NetBSD';
-            flags        : [tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_has_winlike_resources,tf_supports_hidden_symbols];
-            cpu          : cpu_powerpc;
+            system       : system_mipsel_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_smartlink_sections];
+            cpu          : cpu_mipsel;
             unit_env     : '';
-            extradefines : 'UNIX;BSD;HASUNIX';
+            extradefines : '';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -559,7 +191,7 @@ unit i_bsd;
             resext       : '.res';
             resobjext    : '.or';
             sharedlibext : '.so';
-            staticlibext : '.s';
+            staticlibext : '.a';
             staticlibprefix : 'libp';
             sharedlibprefix : 'lib';
             sharedClibext : '.so';
@@ -574,12 +206,12 @@ unit i_bsd;
             assem        : as_gas;
             assemextern  : as_gas;
             link         : ld_none;
-            linkextern   : ld_bsd;
+            linkextern   : ld_embedded;
             ar           : ar_gnu_ar;
-            res          : res_elf;
-            dbg          : dbg_stabs;
+            res          : res_none;
+            dbg          : dbg_dwarf2;
             script       : script_unix;
-            endian       : endian_big;
+            endian       : endian_little;
             alignment    :
               (
                 procalign       : 4;
@@ -592,32 +224,96 @@ unit i_bsd;
                 constalignmax   : 4;
                 varalignmin     : 0;
                 varalignmax     : 4;
-                localalignmin   : 0;
-                localalignmax   : 4;
+                localalignmin   : 4;
+                localalignmax   : 8;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4     // should be 8 probably
+                recordalignmax  : 8;
+                maxCrecordalign : 4
               );
-            first_parm_offset : 8;
-            stacksize    : 32*1024*1024;
-            stackalign   : 16;
-            { abi_powerpc_sysv doesn't work yet }
-            abi : abi_powerpc_aix;
-            llvmdatalayout : 'E-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v128:128:128-n32';
+            first_parm_offset : 0;
+            stacksize    : 262144;
+            stackalign   : 8;
+            abi : abi_default;
+            llvmdatalayout : 'todo';
           );
 
-       system_x86_64_netbsd_info : tsysteminfo =
+       system_i386_embedded_info : tsysteminfo =
           (
-            system       : system_x86_64_netbsd;
-            name         : 'NetBSD for x86-64';
-            shortname    : 'NetBSD';
-            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
-                            tf_files_case_sensitive, tf_under_development,
-                            tf_dwarf_only_local_labels,
-                            { tf_pic_uses_got,}tf_smartlink_sections,tf_has_winlike_resources,tf_supports_hidden_symbols];
+            system       : system_i386_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
+                            tf_smartlink_sections];
+            cpu          : cpu_i386;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_i386_elf32;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_embedded;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_stabs;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 16;
+                loopalign       : 4;
+                jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
+                constalignmin   : 0;
+                constalignmax   : 16;
+                varalignmin     : 0;
+                varalignmax     : 16;
+                localalignmin   : 4;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 16;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 4096;
+            stackalign   : 4;
+            abi : abi_default;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S32';
+          );
+
+       system_x86_64_embedded_info : tsysteminfo =
+          (
+            system       : system_x86_64_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
+                            tf_smartlink_sections];
             cpu          : cpu_x86_64;
-            unit_env     : 'BSDUNITS';
-            extradefines : 'UNIX;HASUNIX;BSD';
+            unit_env     : '';
+            extradefines : '';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -644,16 +340,16 @@ unit i_bsd;
             assem        : as_x86_64_elf64;
             assemextern  : as_gas;
             link         : ld_none;
-            linkextern   : ld_bsd;
+            linkextern   : ld_embedded;
             ar           : ar_gnu_ar;
-            res          : res_elf;
-            dbg          : dbg_dwarf2;            //dbg_stabs;
+            res          : res_none;
+            dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 8;
-                loopalign       : 4;
+                procalign       : 16;
+                loopalign       : 8;
                 jumpalign       : 0;
                 jumpalignskipmax    : 0;
                 coalescealign   : 0;
@@ -669,22 +365,100 @@ unit i_bsd;
                 maxCrecordalign : 16
               );
             first_parm_offset : 16;
-            stacksize    : 256*1024;
+            stacksize    : 8*1024*1024;
             stackalign   : 16;
-            abi          : abi_default;
+            abi : abi_default;
             llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128';
+         );
+
+       system_i8086_embedded_info : tsysteminfo =
+          (
+            system       : system_i8086_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_use_8_3,
+{$ifdef I8086_SMARTLINK_SECTIONS}
+                            tf_smartlink_sections,
+{$else I8086_SMARTLINK_SECTIONS}
+                            tf_smartlink_library,
+                            tf_no_objectfiles_when_smartlinking,
+{$endif I8086_SMARTLINK_SECTIONS}
+                            tf_cld,
+                            tf_no_generic_stackcheck,tf_emit_stklen];
+            cpu          : cpu_i8086;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '.exe';
+            defext       : '.def';
+            scriptext    : '.bat';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.dll';
+            staticlibext : '.a';
+            staticlibprefix : '';
+            sharedlibprefix : '';
+            sharedClibext : '.dll';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : '';
+            importlibprefix : '';
+            importlibext : '.al';
+            Cprefix      : '_';
+            newline      : #13#10;
+            dirsep       : '\';
+            assem        : as_i8086_omf;
+            assemextern  : as_i8086_nasmobj;
+            link         : ld_int_msdos;
+            linkextern   : ld_msdos;
+{$ifdef USE_SCRIPTED_WLIB}
+            ar           : ar_watcom_wlib_omf_scripted;
+{$else}
+            ar           : ar_watcom_wlib_omf;
+{$endif}
+            res          : res_none;
+            dbg          : dbg_dwarf2;
+            script       : script_dos;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 1;
+                loopalign       : 1;
+                jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
+                constalignmin   : 0;
+                constalignmax   : 2;
+                varalignmin     : 0;
+                varalignmax     : 2;
+                localalignmin   : 0;
+                localalignmax   : 2;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 2
+              );
+            first_parm_offset : 4;
+            stacksize    : 0;
+            stackalign   : 2;
+            abi          : abi_default;
+            llvmdatalayout : 'todo';
           );
 
-       system_arm_netbsd_info : tsysteminfo =
+       system_m68k_embedded_info : tsysteminfo =
           (
-            system       : system_arm_netbsd;
-            name         : 'NetBSD for ARMHF';
-            shortname    : 'NetBSD';
-            flags        : [tf_under_development,tf_requires_proper_alignment,tf_files_case_sensitive,tf_smartlink_sections,tf_has_winlike_resources,
-                            tf_supports_hidden_symbols];
-            cpu          : cpu_arm;
+            system       : system_m68k_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_under_development,tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
+                            tf_smartlink_sections];
+            cpu          : cpu_m68k;
             unit_env     : '';
-            extradefines : 'UNIX;BSD;HASUNIX';
+            extradefines : '';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
@@ -696,7 +470,7 @@ unit i_bsd;
             resext       : '.res';
             resobjext    : '.or';
             sharedlibext : '.so';
-            staticlibext : '.s';
+            staticlibext : '.a';
             staticlibprefix : 'libp';
             sharedlibprefix : 'lib';
             sharedClibext : '.so';
@@ -708,12 +482,12 @@ unit i_bsd;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_gas; {as_arm_elf32;}
+            assem        : as_gas;
             assemextern  : as_gas;
             link         : ld_none;
-            linkextern   : ld_bsd;
+            linkextern   : ld_embedded;
             ar           : ar_gnu_ar;
-            res          : res_elf;
+            res          : res_none;
             dbg          : dbg_dwarf2;
             script       : script_unix;
             endian       : endian_big;
@@ -729,62 +503,273 @@ unit i_bsd;
                 constalignmax   : 4;
                 varalignmin     : 0;
                 varalignmax     : 4;
-                localalignmin   : 0;
+                localalignmin   : 4;
                 localalignmax   : 4;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4     // should be 8 probably
+                recordalignmax  : 4;
+                maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            stacksize    : 32*1024*1024;
-            stackalign   : 16;
-            abi : abi_eabihf;
-            llvmdatalayout : 'todo';
+            stacksize    : 32768;
+            stackalign   : 4;
+            abi : abi_default;
+            llvmdatalayout : 'TODO';
           );
 
+       system_riscv32_embedded_info : tsysteminfo =
+          (
+            system       : system_riscv32_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
+                            tf_smartlink_sections];
+            cpu          : cpu_riscv32;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_embedded;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 4;
+                localalignmax   : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 4;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 262144;
+            stackalign   : 4;
+            abi : abi_default;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
+          );
 
+       system_riscv64_embedded_info : tsysteminfo =
+          (
+            system       : system_riscv64_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
+                            tf_smartlink_sections];
+            cpu          : cpu_riscv64;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_embedded;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 4;
+                localalignmax   : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 4;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 16;
+            stacksize    : 262144;
+            stackalign   : 8;
+            abi : abi_default;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
+          );
+{$endif dummy}
 
-  implementation
+       system_xtensa_freertos_info : tsysteminfo =
+          (
+            system       : system_xtensa_freertos;
+            name         : 'FreeRTOS';
+            shortname    : 'freertos';
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
+                            tf_smartlink_sections,tf_init_final_units_by_calls];
+            cpu          : cpu_xtensa;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_freertos;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 4;
+                localalignmax   : 16;
+                recordalignmin  : 0;
+                recordalignmax  : 4;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 65536;
+            stackalign   : 16;
+            abi : abi_default;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
+          );
+
+ implementation
 
 initialization
-{$ifdef cpui386}
-  {$ifdef FreeBSD}
-     set_source_info(system_i386_FreeBSD_info);
-  {$endif}
-  {$ifdef NetBSD}
-     set_source_info(system_i386_NetBSD_info);
-  {$endif}
-  {$ifdef OpenBSD}
-     set_source_info(system_i386_OpenBSD_info);
-  {$endif}
-{$endif cpui386}
-{$ifdef cpux86_64}
-   {$ifdef FreeBSD}
-     set_source_info(system_x86_64_FreeBSD_info);
-   {$endif}
-   {$ifdef DragonFly}
-     set_source_info(system_x86_64_DragonFly_info);
-   {$endif}
-   {$ifdef OpenBSD}
-     set_source_info(system_x86_64_OpenBSD_info);
-   {$endif}
-   {$ifdef NetBSD}
-     set_source_info(system_x86_64_NetBSD_info);
-   {$endif}
-{$endif}
-{$ifdef cpu68}
-  {$ifdef NetBSD}
-     set_source_info(system_m68k_NetBSD_info);
-  {$endif NetBSD}
-{$endif cpu68}
-{$ifdef cpupowerpc32}
-  {$ifdef NetBSD}
-     set_source_info(system_powerpc_netbsd_info);
-  {$endif}
-{$endif cpupowerpc32}
-{$ifdef cpuarm}
-  {$ifdef NetBSD}
-     set_source_info(system_arm_netbsd_info);
-  {$endif}
-{$endif cpuarm}
+{$ifdef CPUARM}
+  {$ifdef embedded}
+    set_source_info(system_arm_freertos_info);
+  {$endif embedded}
+{$endif CPUARM}
+{$ifdef CPUAVR}
+  {$ifdef embedded}
+    set_source_info(system_avr_freertosd_info);
+  {$endif embedded}
+{$endif CPUAVR}
+{$ifdef CPUMIPSEL}
+  {$ifdef embedded}
+    set_source_info(system_mipsel_freertos_info);
+  {$endif embedded}
+{$endif CPUMIPSEL}
+{$ifdef CPUI386}
+  {$ifdef embedded}
+    set_source_info(system_i386_freertos_info);
+  {$endif embedded}
+{$endif CPUI386}
+{$ifdef CPUX86_64}
+  {$ifdef embedded}
+    set_source_info(system_x86_64_freertos_info);
+  {$endif embedded}
+{$endif CPUX86_64}
+{$ifdef cpu8086}
+  {$ifdef embedded}
+    set_source_info(system_i8086_freertos_info);
+  {$endif embedded}
+{$endif cpu8086}
+{$ifdef cpum68k}
+  {$ifdef embedded}
+    set_source_info(system_m68k_freertos_info);
+  {$endif embedded}
+{$endif cpum68k}
+{$ifdef cpuriscv32}
+  {$ifdef embedded}
+    set_source_info(system_riscv32_freertos_info);
+  {$endif embedded}
+{$endif cpuriscv32}
+{$ifdef cpuriscv64}
+  {$ifdef embedded}
+    set_source_info(system_riscv64_freertos_info);
+  {$endif embedded}
+{$endif cpuriscv64}
+{$ifdef cpuxtensa}
+  {$ifdef embedded}
+    set_source_info(system_xtensa_freertos_info);
+  {$endif embedded}
+{$endif cpuxtensa}
 end.
+

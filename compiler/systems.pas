@@ -301,6 +301,9 @@ interface
                            system_i8086_embedded,system_riscv32_embedded,system_riscv64_embedded,
                            system_xtensa_embedded];
 
+       { all FreeRTOS systems }
+       systems_freertos = [system_xtensa_freertos];
+
        { all systems that allow section directive }
        systems_allow_section = systems_embedded;
 

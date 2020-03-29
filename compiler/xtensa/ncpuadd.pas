@@ -53,7 +53,7 @@ interface
       hlcgobj;
 
 {*****************************************************************************
-                               TAVRAddNode
+                               TCPUAddNode
 *****************************************************************************}
 
    procedure TCPUAddNode.second_cmpsmallset;
@@ -124,13 +124,16 @@ interface
             internalerror(2020030801);
           end;
 
-        if right.nodetype=ordconstn then
+        if (right.nodetype=ordconstn) and not(nf_swapped in flags) then
           cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,right.location.value,left.location.register,location.truelabel)
         else
           begin
             force_reg_left_right(false,false);
-            cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,left.location.register,right.location.register,location.truelabel);
-          end;                                                                                                                                
+            if nf_swapped in flags then
+               cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,left.location.register,right.location.register,location.truelabel)
+             else
+               cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,right.location.register,left.location.register,location.truelabel);
+          end;
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(A_J,location.falselabel));
       end;
 
@@ -176,3 +179,4 @@ interface
 begin
   caddnode:=tcpuaddnode;
 end.
+

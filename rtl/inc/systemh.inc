@@ -1606,10 +1606,12 @@ Procedure Halt;{$ifdef SYSTEMINLINE}inline;{$endif}noreturn;
 Procedure SysInitExceptions;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
-{$ifndef EMBEDDED}
+
+{$if not(defined(EMBEDDED)) and not(defined(FREERTOS))}
 procedure SysInitStdIO;
 procedure SysFlushStdIO;
-{$endif EMBEDDED}
+{$endif not(defined(EMBEDDED)) and not(defined(FREERTOS))}
+
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 {$ifndef FPUNONE}
 Procedure SysResetFPU;

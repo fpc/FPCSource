@@ -56,20 +56,24 @@ procedure SetMemoryManager(const MemMgr: TMemoryManager);
 function  IsMemoryManagerSet: Boolean;
 
 { Variables }
-var
-  ReturnNilIfGrowHeapFails : boolean;
-{$ifdef EMBEDDED}
-  {$define FPC_NO_DEFAULT_MEMORYMANAGER}
-{$endif EMBEDDED}
-
-{$ifndef FPC_NO_DEFAULT_MEMORYMANAGER}
 const
   MaxKeptOSChunks: DWord = 4; { if more than MaxKeptOSChunks are free, the heap manager will release
                               chunks back to the OS }
   growheapsizesmall : ptruint=32*1024; { fixed-size small blocks will grow with 32k }
   growheapsize1 : ptruint=256*1024;  { < 256k will grow with 256k }
   growheapsize2 : ptruint=1024*1024; { > 256k will grow with 1m }
+var
+  ReturnNilIfGrowHeapFails : boolean;
 
+{$ifdef EMBEDDED}
+  {$define FPC_NO_DEFAULT_MEMORYMANAGER}
+{$endif EMBEDDED}
+
+{$ifdef FREERTOS}
+  {$define FPC_NO_DEFAULT_MEMORYMANAGER}
+{$endif FREERTOS}
+
+{$ifndef FPC_NO_DEFAULT_MEMORYMANAGER}
 { Default MemoryManager functions }
 Function  SysGetmem(Size:ptruint):Pointer;
 Function  SysFreemem(p:pointer):ptruint;
