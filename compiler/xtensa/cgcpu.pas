@@ -867,6 +867,10 @@ implementation
             list.concat(taicpu.op_reg_reg_const(A_ADDI, dst.base, dst.base, 4));
             list.concat(taicpu.op_reg_reg_const(A_ADDI, countreg, countreg, -1));
             a_cmp_const_reg_label(list,OS_INT,OC_GT,0,countreg,lab);
+            { keep the registers alive }
+            list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
+            list.concat(taicpu.op_reg_reg(A_MOV,src.base,src.base));
+            list.concat(taicpu.op_reg_reg(A_MOV,dst.base,dst.base));
             len := len mod 4;
           end;
           { unrolled loop }
