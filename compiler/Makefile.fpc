@@ -736,13 +736,11 @@ regdatmips : mips/mipsreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkmpsreg.pp
         cd mips && ..$(PATHSEP)utils$(PATHSEP)mkmpsreg$(SRCEXEEXT)
 
-regdat : regdatx86 regdatarm regdatsp regdatavr regdataarch64 regdatmips regdatsp64 regdatz80
-
 regdatz80 : z80/z80reg.dat
             $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkz80reg.pp
         cd z80 && ..$(PATHSEP)utils$(PATHSEP)mkz80reg$(SRCEXEEXT)
 
-regdat : regdatx86 regdatarm regdatsp regdatavr regdataarch64 regdatmips regdatz80
+regdat : regdatx86 regdatarm regdatsp regdatavr regdataarch64 regdatmips regdatsp64 regdatz80
 
 # revision.inc rule
 revision.inc :
