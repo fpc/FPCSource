@@ -167,7 +167,7 @@ unit agz80asm;
 
     function TZ80GNUAssembler.MakeCmdLine: TCmdStr;
       begin
-        result := '-mmcu='+lower(cputypestr[current_settings.cputype])+' '+inherited MakeCmdLine;
+        result := {'-mmcu='+lower(cputypestr[current_settings.cputype])+' '+}inherited MakeCmdLine;
       end;
 
 
