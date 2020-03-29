@@ -1,0 +1,238 @@
+# OpenBSD RTL-to-C structure compatibility checker description file
+#
+# Use
+#   h2paschk t_openbsd.h2paschk
+#
+# ...to generate Pascal and C code, then make sure they both compile and that
+# the Pascal program produces the same output as the C program for each
+# supported architecture.
+
+@Pascal uses baseunix;
+@Pascal {$i ptypes.inc}
+@Pascal {$i ostypes.inc}
+@Pascal begin
+
+# Adds support for M_PIl constant inside math.h header
+@C #include <sys/mman.h>
+@C #include <sys/types.h>
+@C #include <sys/stat.h>
+@C #include <sys/time.h>
+@C #include <sys/times.h>
+@C #include <sys/resource.h>
+@C #include <sys/uio.h>
+@C #include <sys/wait.h>
+@C #include <dirent.h>
+@C #include <poll.h>
+@C #include <utime.h>
+@C #include <fcntl.h>
+@C #include <unistd.h>
+@C #include <stdio.h>
+@C #include <stddef.h>
+@C #include <fcntl.h>
+@C #include <pthread.h>
+@C #include <netdb.h>
+@C #include <semaphore.h>
+@C #include <wchar.h>
+@C #include <math.h>
+@C int main()
+@C {
+
+@type dev_t
+@type gid_t
+@type ino_t
+@type mode_t
+@type nlink_t
+@type off_t
+@type pid_t
+@type size_t
+@type ssize_t
+@type uid_t
+@type wint_t
+@type clock_t
+@type time_t
+@type socklen_t
+
+@record timeval,struct timeval
+.tv_sec
+.tv_usec
+
+@record timespec,struct timespec
+.tv_sec
+.tv_nsec
+
+@type pthread_t
+@type pthread_attr_t
+@type pthread_mutex_t
+@type pthread_mutexattr_t
+@type pthread_cond_t
+@type pthread_condattr_t
+@type pthread_key_t
+@type pthread_rwlock_t
+@type pthread_rwlockattr_t
+@type sem_t
+@type rlim_t
+
+@record pthread_once_t,struct pthread_once
+.state
+.mutex
+
+@constant    F_OK
+@constant    R_OK
+@constant    W_OK
+@constant    X_OK
+@constant    SEEK_SET
+@constant    SEEK_CUR
+@constant    SEEK_END
+@constant O_RDONLY
+@constant O_WRONLY
+@constant O_RDWR
+@constant O_CREAT
+@constant O_EXCL
+@constant O_TRUNC
+@constant O_NOCTTY
+@constant O_APPEND
+@constant O_NONBLOCK
+@constant    S_IRUSR
+@constant    S_IWUSR
+@constant    S_IXUSR
+@constant    S_IRGRP
+@constant    S_IWGRP
+@constant    S_IXGRP
+@constant    S_IROTH
+@constant    S_IWOTH
+@constant    S_IXOTH
+@constant    S_IRWXU
+@constant    S_IRWXG
+@constant    S_IRWXO
+@constant    WNOHANG
+@constant    WUNTRACED
+@constant  F_DUPFD
+@constant  F_GETFD
+@constant  F_SETFD
+@constant  F_GETFL
+@constant  F_SETFL
+@constant  F_GETOWN
+@constant  F_SETOWN
+@constant  F_GETLK
+@constant  F_SETLK
+@constant  F_SETLKW
+@constant  F_DUPFD_CLOEXEC
+@constant  FD_CLOEXEC
+@constant  F_RDLCK
+@constant  F_UNLCK
+@constant  F_WRLCK
+@constant  RLIMIT_CPU
+@constant  RLIMIT_FSIZE
+@constant  RLIMIT_DATA
+@constant  RLIMIT_STACK
+@constant  RLIMIT_CORE
+@constant  RLIMIT_RSS
+@constant  RLIMIT_MEMLOCK
+@constant  RLIMIT_NPROC
+@constant  RLIMIT_NOFILE
+# @constant  RLIMIT_AS alias of RLIMIT_RSS, but not in C headers
+@constant  MAP_PRIVATE
+@constant  MAP_ANONYMOUS
+@constant  POLLIN
+@constant  POLLPRI
+@constant  POLLOUT
+@constant  POLLERR
+@constant  POLLHUP
+@constant  POLLNVAL
+@constant  POLLRDNORM
+@constant  POLLRDBAND
+@constant  POLLWRNORM
+@constant  POLLWRBAND
+
+
+
+
+@floatconstant PI,M_PI
+
+@record stat,struct stat
+.st_mode
+.st_dev
+.st_ino
+.st_nlink
+.st_uid
+.st_gid
+.st_rdev
+.st_atime
+.st_atimensec
+.st_mtime
+.st_mtimensec
+.st_ctime
+.st_ctimensec
+.st_size
+.st_blocks
+.st_blksize
+.st_flags
+.st_gen
+.st_birthtime,__st_birthtime
+.st_birthtimensec,__st_birthtimensec
+
+@record dirent,struct dirent
+.d_fileno
+.d_off
+.d_reclen
+.d_type
+.d_namlen
+.d_padding,__d_padding
+.d_name
+
+@record pollfd,struct pollfd
+.fd
+.events
+.revents
+
+@record utimbuf,struct utimbuf
+.actime
+.modtime
+
+@record flock,struct flock
+.l_start
+.l_len
+.l_pid
+.l_type
+.l_whence
+
+@record tms,struct tms
+.tms_utime
+.tms_stime
+.tms_cutime
+.tms_cstime
+
+@record timezone,struct timezone
+.tz_minuteswest
+.tz_dsttime
+
+@record rusage,struct rusage
+.ru_utime
+.ru_stime
+.ru_maxrss
+.ru_ixrss
+.ru_idrss
+.ru_isrss
+.ru_minflt
+.ru_majflt
+.ru_nswap
+.ru_inblock
+.ru_oublock
+.ru_msgsnd
+.ru_msgrcv
+.ru_nsignals
+.ru_nvcsw
+.ru_nivcsw
+
+@record TRLimit,struct rlimit
+.rlim_cur
+.rlim_max
+
+@record iovec,struct iovec
+.iov_base
+.iov_len
+
+@C   return 0;
+@C }
+
+@Pascal end.

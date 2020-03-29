@@ -14,7 +14,7 @@
 
  **********************************************************************}
 {$asmmode att}
-unit sysinitgprof;
+unit SysInitGProf;
 
   interface
 

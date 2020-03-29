@@ -588,14 +588,19 @@ end;
 function TFPReaderPSD.InternalCheck(Stream: TStream): boolean;
 var
   OldPos: Int64;
+  n: Integer;
+  
 begin
+  Result:=False;
+  if Stream=Nil then 
+    exit;
+  OldPos := Stream.Position;
   try
-    OldPos:=Stream.Position;
-    Stream.Read(FHeader,SizeOf(FHeader));
-    Result:=(FHeader.Signature = '8BPS');
-    Stream.Position:=OldPos;
-  except
-    Result:=False;
+    n := SizeOf(FHeader);
+    Result:=(Stream.Read(FHeader, n) = n) 
+            and (FHeader.Signature = '8BPS')
+  finally
+    Stream.Position := OldPos;
   end;
 end;
 

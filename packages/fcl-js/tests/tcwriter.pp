@@ -99,6 +99,7 @@ type
     Procedure TestVarDeclarationStatement;
     Procedure TestVarListDeclarationStatement;
     Procedure TestVarListDeclarationStatement2Vars;
+    Procedure TestVarListDeclarationStatement3Vars;
     Procedure TestReturnStatement;
     Procedure TestLabeledStatement;
     Procedure TestLabeledStatementCompact;
@@ -134,6 +135,7 @@ type
     Procedure TestForStatementFull;
     Procedure TestForStatementFull1;
     Procedure TestForStatementCompact;
+    Procedure TestForStatement2loops2inits;
     Procedure TestForInStatement;
     Procedure TestWhileStatement;
     Procedure TestDoWhileStatement;
@@ -178,10 +180,11 @@ type
 
   { TTestExpressionWriter }
 
-  TTestExpressionWriter= class(TTestJSWriter)
+  TTestExpressionWriter = class(TTestJSWriter)
   Protected
     Procedure TestUnary(Const Msg : String; AClass : TJSUnaryClass; Result : String);
-    Procedure TestBinary(Const Msg : String; AClass : TJSBinaryClass; Result : String;ACompact : Boolean);
+    Procedure TestBinary(Const Msg : String; AClass : TJSBinaryClass; Result : String; ACompact : Boolean);
+    Procedure TestBinaryNested(Const Msg : String; AClass : TJSBinaryClass; Result : String; ACompact : Boolean);
   Published
     Procedure TestIdent;
     Procedure TestThis;
@@ -199,8 +202,10 @@ type
     Procedure TestPostMinusMinus;
     Procedure TestBinaryLogicalOr;
     Procedure TestBinaryLogicalOrCompact;
+    Procedure TestBinaryLogicalOrNested;
     Procedure TestBinaryLogicalAnd;
     Procedure TestBinaryLogicalAndCompact;
+    Procedure TestBinaryLogicalAndNested;
     Procedure TestBinaryBitwiseOr;
     Procedure TestBinaryBitwiseOrCompact;
     Procedure TestBinaryBitwiseAnd;
@@ -235,16 +240,20 @@ type
     Procedure TestBinaryURShiftOfCompact;
     Procedure TestBinaryPlus;
     Procedure TestBinaryPlusCompact;
+    Procedure TestBinaryPlusNested;
     Procedure TestBinaryMinus;
     Procedure TestBinaryMinusCompact;
+    Procedure TestBinaryMinusNested;
     Procedure TestBinaryMultiply;
     Procedure TestBinaryMultiplyCompact;
+    Procedure TestBinaryMultiplyNested;
     Procedure TestBinaryDivide;
     Procedure TestBinaryDivideCompact;
     Procedure TestBinaryMod;
     Procedure TestBinaryModCompact;
     Procedure TestBinaryComma;
     Procedure TestBinaryCommaCompact;
+    Procedure TestBinaryCallDiv;
     Procedure TestDotMember;
     Procedure TestArgMember;
     Procedure TestNewMember;
@@ -263,7 +272,7 @@ implementation
 
 { TTestExpressionWriter }
 
-Procedure TTestExpressionWriter.TestUnary(Const Msg: String;
+procedure TTestExpressionWriter.TestUnary(const Msg: String;
   AClass: TJSUnaryClass; Result: String);
 Var
   U : TJSUnary;
@@ -274,7 +283,7 @@ begin
   AssertWrite(Msg,Result,U);
 end;
 
-Procedure TTestExpressionWriter.TestBinary(Const Msg: String;
+procedure TTestExpressionWriter.TestBinary(const Msg: String;
   AClass: TJSBinaryClass; Result: String; ACompact: Boolean);
 Var
   U : TJSBinary;
@@ -288,319 +297,392 @@ begin
   AssertWrite(Msg,Result,U);
 end;
 
-Procedure TTestExpressionWriter.TestIdent;
+procedure TTestExpressionWriter.TestBinaryNested(const Msg: String;
+  AClass: TJSBinaryClass; Result: String; ACompact: Boolean);
+var
+  U: TJSBinary;
+begin
+  if ACompact then
+    Writer.Options:=Writer.Options+[woCompact];
+  U:=AClass.Create(0,0);
+  U.A:=AClass.Create(0,0);
+  TJSBinary(U.A).A:=CreateIdent('a');
+  TJSBinary(U.A).B:=CreateIdent('b');
+  U.B:=AClass.Create(0,0);
+  TJSBinary(U.B).A:=CreateIdent('c');
+  TJSBinary(U.B).B:=CreateIdent('d');
+  AssertWrite(Msg,Result,U);
+end;
+
+procedure TTestExpressionWriter.TestIdent;
 
 begin
   AssertWrite('ABC','ABC',CreateIdent('ABC'));
 end;
 
-Procedure TTestExpressionWriter.TestThis;
+procedure TTestExpressionWriter.TestThis;
 begin
   AssertWrite('this','this',TJSPrimaryExpressionThis.Create(0,0));
 end;
 
-Procedure TTestExpressionWriter.TestThrowStatement;
+procedure TTestExpressionWriter.TestThrowStatement;
 
 begin
   TestUnary('Throw expresssion',TJSThrowStatement,'throw a');
 end;
 
-Procedure TTestExpressionWriter.TestUnaryDelete;
+procedure TTestExpressionWriter.TestUnaryDelete;
 begin
   TestUnary('Delete expresssion',TJSUnaryDeleteExpression,'delete a');
 end;
 
-Procedure TTestExpressionWriter.TestUnaryVoid;
+procedure TTestExpressionWriter.TestUnaryVoid;
 begin
   TestUnary('Void expresssion',TJSUnaryVoidExpression,'void a');
 end;
 
-Procedure TTestExpressionWriter.TestUnaryTypeOf;
+procedure TTestExpressionWriter.TestUnaryTypeOf;
 begin
   TestUnary('typeof expresssion',TJSUnaryTypeOfExpression,'typeof a');
 end;
 
-Procedure TTestExpressionWriter.TestPrefixPlusPLus;
+procedure TTestExpressionWriter.TestPrefixPlusPLus;
 begin
   TestUnary('prefix ++ expresssion',TJSUnaryPrePlusPlusExpression,'++a');
 end;
 
-Procedure TTestExpressionWriter.TestPrefixMinusMinus;
+procedure TTestExpressionWriter.TestPrefixMinusMinus;
 begin
   TestUnary('prefix -- expresssion',TJSUnaryPreMinusMinusExpression,'--a');
 end;
 
-Procedure TTestExpressionWriter.TestUnaryMinus;
+procedure TTestExpressionWriter.TestUnaryMinus;
 begin
   TestUnary('unary - expresssion',TJSUnaryMinusExpression,'-a');
 end;
 
-Procedure TTestExpressionWriter.TestUnaryPlus;
+procedure TTestExpressionWriter.TestUnaryPlus;
 begin
   TestUnary('unary + expresssion',TJSUnaryPlusExpression,'+a');
 end;
 
-Procedure TTestExpressionWriter.TestUnaryInv;
+procedure TTestExpressionWriter.TestUnaryInv;
 begin
   TestUnary('unary invert expresssion',TJSUnaryInvExpression,'~a');
 end;
 
-Procedure TTestExpressionWriter.TestUnaryNot;
+procedure TTestExpressionWriter.TestUnaryNot;
 begin
   TestUnary('unary not expresssion',TJSUnaryNotExpression,'!a');
 end;
 
-Procedure TTestExpressionWriter.TestPostPlusPLus;
+procedure TTestExpressionWriter.TestPostPlusPLus;
 begin
   TestUnary('postfix ++ expresssion',TJSUnaryPostPlusPlusExpression,'a++');
 end;
 
-Procedure TTestExpressionWriter.TestPostMinusMinus;
+procedure TTestExpressionWriter.TestPostMinusMinus;
 begin
   TestUnary('postfix -- expresssion',TJSUnaryPostMinusMinusExpression,'a--');
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLogicalOr;
+procedure TTestExpressionWriter.TestBinaryLogicalOr;
 begin
   TestBinary('logical or',TJSLogicalOrExpression,'(a || b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLogicalOrCompact;
+procedure TTestExpressionWriter.TestBinaryLogicalOrCompact;
 begin
   TestBinary('logical or',TJSLogicalOrExpression,'(a||b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLogicalAnd;
+procedure TTestExpressionWriter.TestBinaryLogicalOrNested;
+begin
+  TestBinaryNested('logical or',TJSLogicalOrExpression,'(a||b||c||d)',True);
+end;
+
+procedure TTestExpressionWriter.TestBinaryLogicalAnd;
 begin
   TestBinary('logical or',TJSLogicalAndExpression,'(a && b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLogicalAndCompact;
+procedure TTestExpressionWriter.TestBinaryLogicalAndCompact;
 begin
   TestBinary('logical or',TJSLogicalAndExpression,'(a&&b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryBitwiseOr;
+procedure TTestExpressionWriter.TestBinaryLogicalAndNested;
+begin
+  TestBinaryNested('logical and',TJSLogicalAndExpression,'(a&&b&&c&&d)',True);
+end;
+
+procedure TTestExpressionWriter.TestBinaryBitwiseOr;
 begin
   TestBinary('Bitwise or',TJSBitwiseOrExpression,'(a | b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryBitwiseOrCompact;
+procedure TTestExpressionWriter.TestBinaryBitwiseOrCompact;
 begin
   TestBinary('Bitwise or',TJSBitwiseOrExpression,'(a|b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryBitwiseAnd;
+procedure TTestExpressionWriter.TestBinaryBitwiseAnd;
 begin
   TestBinary('Bitwise and',TJSBitwiseAndExpression,'(a & b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryBitwiseAndCompact;
+procedure TTestExpressionWriter.TestBinaryBitwiseAndCompact;
 begin
   TestBinary('Bitwise and',TJSBitwiseAndExpression,'(a&b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryBitwiseXOr;
+procedure TTestExpressionWriter.TestBinaryBitwiseXOr;
 begin
   TestBinary('Bitwise xor',TJSBitwiseXOrExpression,'(a ^ b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryBitwiseXOrCompact;
+procedure TTestExpressionWriter.TestBinaryBitwiseXOrCompact;
 begin
   TestBinary('Bitwise xor',TJSBitwiseXOrExpression,'(a^b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryEQ;
+procedure TTestExpressionWriter.TestBinaryEQ;
 begin
   TestBinary('Equal',TJSEqualityExpressionEQ,'(a == b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryEQCompact;
+procedure TTestExpressionWriter.TestBinaryEQCompact;
 begin
   TestBinary('Equal',TJSEqualityExpressionEQ,'(a==b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryNE;
+procedure TTestExpressionWriter.TestBinaryNE;
 begin
   TestBinary('Not Equal',TJSEqualityExpressionNE,'(a != b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryNECompact;
+procedure TTestExpressionWriter.TestBinaryNECompact;
 begin
   TestBinary('Not Equal',TJSEqualityExpressionNE,'(a!=b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinarySEQ;
+procedure TTestExpressionWriter.TestBinarySEQ;
 begin
   TestBinary('Strictly Equal',TJSEqualityExpressionSEQ,'(a === b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinarySEQCompact;
+procedure TTestExpressionWriter.TestBinarySEQCompact;
 begin
   TestBinary('Strictly Equal',TJSEqualityExpressionSEQ,'(a===b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinarySNE;
+procedure TTestExpressionWriter.TestBinarySNE;
 begin
   TestBinary('Strictly Equal',TJSEqualityExpressionSNE,'(a !== b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinarySNECompact;
+procedure TTestExpressionWriter.TestBinarySNECompact;
 begin
   TestBinary('Strictly Equal',TJSEqualityExpressionSNE,'(a!==b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLT;
+procedure TTestExpressionWriter.TestBinaryLT;
 begin
   TestBinary('Less than',TJSRelationalExpressionLT,'(a < b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLTCompact;
+procedure TTestExpressionWriter.TestBinaryLTCompact;
 begin
   TestBinary('Less than',TJSRelationalExpressionLT,'(a<b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryGT;
+procedure TTestExpressionWriter.TestBinaryGT;
 begin
   TestBinary('Greater than',TJSRelationalExpressionGT,'(a > b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryGTCompact;
+procedure TTestExpressionWriter.TestBinaryGTCompact;
 begin
   TestBinary('Greater than',TJSRelationalExpressionGT,'(a>b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLE;
+procedure TTestExpressionWriter.TestBinaryLE;
 begin
   TestBinary('Less than or equal',TJSRelationalExpressionLE,'(a <= b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLECompact;
+procedure TTestExpressionWriter.TestBinaryLECompact;
 begin
   TestBinary('Less than or equal',TJSRelationalExpressionLE,'(a<=b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryGE;
+procedure TTestExpressionWriter.TestBinaryGE;
 begin
   TestBinary('Greater than or equal',TJSRelationalExpressionGE,'(a >= b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryGECompact;
+procedure TTestExpressionWriter.TestBinaryGECompact;
 begin
   TestBinary('Greater than or equal',TJSRelationalExpressionGE,'(a>=b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryIN;
+procedure TTestExpressionWriter.TestBinaryIN;
 begin
   TestBinary('Prop in Object',TJSRelationalExpressionIN,'(a in b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryINCompact;
+procedure TTestExpressionWriter.TestBinaryINCompact;
 begin
   TestBinary('Prop in Object',TJSRelationalExpressionIN,'(a in b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryInstanceOf;
+procedure TTestExpressionWriter.TestBinaryInstanceOf;
 begin
   TestBinary('A instanceof Object',TJSRelationalExpressionInStanceOf,'(a instanceof b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryInstanceOfCompact;
+procedure TTestExpressionWriter.TestBinaryInstanceOfCompact;
 begin
   TestBinary('A instanceof Object',TJSRelationalExpressionInStanceOf,'(a instanceof b)',true);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLShift;
+procedure TTestExpressionWriter.TestBinaryLShift;
 begin
   TestBinary('A lshift B',TJSLShiftExpression,'(a << b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLShiftOfCompact;
+procedure TTestExpressionWriter.TestBinaryLShiftOfCompact;
 begin
   TestBinary('A lshift B',TJSLShiftExpression,'(a<<b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryRShift;
+procedure TTestExpressionWriter.TestBinaryRShift;
 begin
   TestBinary('A rshift B',TJSRShiftExpression,'(a >> b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryRShiftOfCompact;
+procedure TTestExpressionWriter.TestBinaryRShiftOfCompact;
 begin
   TestBinary('A rshift B',TJSRShiftExpression,'(a>>b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryURShift;
+procedure TTestExpressionWriter.TestBinaryURShift;
 begin
   TestBinary('A urshift B',TJSURShiftExpression,'(a >>> b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryURShiftOfCompact;
+procedure TTestExpressionWriter.TestBinaryURShiftOfCompact;
 begin
   TestBinary('A urshift B',TJSURShiftExpression,'(a>>>b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryPlus;
+procedure TTestExpressionWriter.TestBinaryPlus;
 begin
   TestBinary('A plus B',TJSAdditiveExpressionPlus,'(a + b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryPlusCompact;
+procedure TTestExpressionWriter.TestBinaryPlusCompact;
 begin
   TestBinary('A plus B',TJSAdditiveExpressionPlus,'(a+b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryMinus;
+procedure TTestExpressionWriter.TestBinaryPlusNested;
+begin
+  TestBinaryNested('(A+B)+(C+D)',TJSAdditiveExpressionPlus,'(a+b+(c+d))',True);
+end;
+
+procedure TTestExpressionWriter.TestBinaryMinus;
 begin
   TestBinary('A minus B',TJSAdditiveExpressionMinus,'(a - b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryMinusCompact;
+procedure TTestExpressionWriter.TestBinaryMinusCompact;
 begin
   TestBinary('A minus B',TJSAdditiveExpressionMinus,'(a-b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryMultiply;
+procedure TTestExpressionWriter.TestBinaryMinusNested;
+begin
+  TestBinaryNested('(A-B)-(C-D)',TJSAdditiveExpressionMinus,'(a-b-(c-d))',True);
+end;
+
+procedure TTestExpressionWriter.TestBinaryMultiply;
 begin
   TestBinary('A multiply B',TJSMultiplicativeExpressionMul,'(a * b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryMultiplyCompact;
+procedure TTestExpressionWriter.TestBinaryMultiplyCompact;
 begin
   TestBinary('A multiply B',TJSMultiplicativeExpressionMul,'(a*b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryDivide;
+procedure TTestExpressionWriter.TestBinaryMultiplyNested;
+begin
+  TestBinaryNested('(A*B)*(C*D)',TJSMultiplicativeExpressionMul,'(a*b*(c*d))',True);
+end;
+
+procedure TTestExpressionWriter.TestBinaryDivide;
 begin
   TestBinary('A divide B',TJSMultiplicativeExpressionDiv,'(a / b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryDivideCompact;
+procedure TTestExpressionWriter.TestBinaryDivideCompact;
 begin
   TestBinary('A divide B',TJSMultiplicativeExpressionDiv,'(a/b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryMod;
+procedure TTestExpressionWriter.TestBinaryMod;
 begin
   TestBinary('A mod B',TJSMultiplicativeExpressionMod,'(a % b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryModCompact;
+procedure TTestExpressionWriter.TestBinaryModCompact;
 begin
   TestBinary('A mod B',TJSMultiplicativeExpressionMod,'(a%b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryComma;
+procedure TTestExpressionWriter.TestBinaryComma;
 begin
-  TestBinary('A comma B',TJSCommaExpression,'(a , b)',False);
+  TestBinary('A comma B',TJSCommaExpression,'(a, b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryCommaCompact;
+procedure TTestExpressionWriter.TestBinaryCommaCompact;
 begin
   TestBinary('A comma B',TJSCommaExpression,'(a,b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestDotMember;
+procedure TTestExpressionWriter.TestBinaryCallDiv;
+var
+  aDiv: TJSMultiplicativeExpressionDiv;
+  LeftMul: TJSMultiplicativeExpressionMul;
+  LeftCall: TJSCallExpression;
+  RightSub: TJSAdditiveExpressionMinus;
+  Expr: String;
+begin
+  // (2*f(3))/(a-4)
+  aDiv:=TJSMultiplicativeExpressionDiv.Create(0,0);
+  // (2*f(3))
+  LeftMul:=TJSMultiplicativeExpressionMul.Create(0,0);
+  aDiv.A:=LeftMul;
+  // 2
+  LeftMul.A:=CreateLiteral(2);
+  // f(3)
+  LeftCall:=TJSCallExpression.Create(0,0);
+  LeftMul.B:=LeftCall;
+  LeftCall.Expr:=CreateIdent('f');
+  LeftCall.Args:=TJSArguments.Create(0,0);
+  LeftCall.AddArg(CreateLiteral(3));
+  // (a-4)
+  RightSub:=TJSAdditiveExpressionMinus.Create(0,0);
+  aDiv.B:=RightSub;
+  RightSub.A:=CreateIdent('a');
+  RightSub.B:=CreateLiteral(4);
+
+  Expr:='((2 * f(3)) / (a - 4))';
+  AssertWrite('keep needed brackets of '+Expr,Expr,aDiv);
+end;
+
+procedure TTestExpressionWriter.TestDotMember;
 Var
   U : TJSDotMemberExpression;
 
@@ -611,7 +693,7 @@ begin
   AssertWrite('member b of object a (a.b)','a.b',U);
 end;
 
-Procedure TTestExpressionWriter.TestArgMember;
+procedure TTestExpressionWriter.TestArgMember;
 Var
   U : TJSBracketMemberExpression;
 
@@ -622,7 +704,7 @@ begin
   AssertWrite('member b of object a (a[b])','a[b]',U);
 end;
 
-Procedure TTestExpressionWriter.TestNewMember;
+procedure TTestExpressionWriter.TestNewMember;
 Var
   U : TJSNewMemberExpression;
 
@@ -635,7 +717,7 @@ begin
   AssertWrite('member b of object a (a[b])','new a(123)',U);
 end;
 
-Procedure TTestExpressionWriter.TestNewMemberCompact;
+procedure TTestExpressionWriter.TestNewMemberCompact;
 
 Var
   U : TJSNewMemberExpression;
@@ -650,7 +732,7 @@ begin
   AssertWrite('new a(123)','new a(123)',U);
 end;
 
-Procedure TTestExpressionWriter.TestNewMemberNoArgs;
+procedure TTestExpressionWriter.TestNewMemberNoArgs;
 Var
   U : TJSNewMemberExpression;
 
@@ -660,7 +742,7 @@ begin
   AssertWrite('new a()','new a()',U);
 end;
 
-Procedure TTestExpressionWriter.TestCall;
+procedure TTestExpressionWriter.TestCall;
 Var
   U : TJSCallExpression;
 
@@ -674,7 +756,7 @@ begin
      'a(123)',U);
 end;
 
-Procedure TTestExpressionWriter.TestCallCompact;
+procedure TTestExpressionWriter.TestCallCompact;
 Var
   U : TJSCallExpression;
 
@@ -688,7 +770,7 @@ begin
   AssertWrite('call a(123)','a(123)',U);
 end;
 
-Procedure TTestExpressionWriter.TestCallCompact2;
+procedure TTestExpressionWriter.TestCallCompact2;
 Var
   U : TJSCallExpression;
 
@@ -705,7 +787,7 @@ begin
 
 end;
 
-Procedure TTestExpressionWriter.TestCallNoArgs;
+procedure TTestExpressionWriter.TestCallNoArgs;
 Var
   U : TJSCallExpression;
 
@@ -715,7 +797,7 @@ begin
   AssertWrite('call a()','a()',U);
 end;
 
-Procedure TTestExpressionWriter.TestConditional;
+procedure TTestExpressionWriter.TestConditional;
 Var
   U : TJSConditionalExpression;
 
@@ -727,7 +809,7 @@ begin
   AssertWrite('a ? b : c','(a ? b : c)',U);
 end;
 
-Procedure TTestExpressionWriter.TestRegularExpressionLiteral;
+procedure TTestExpressionWriter.TestRegularExpressionLiteral;
 
 Var
   S : TJSRegularExpressionLiteral;
@@ -737,7 +819,7 @@ begin
   AssertWrite('/a/','/a/',S);
 end;
 
-Procedure TTestExpressionWriter.TestRegularExpressionLiteralFlags;
+procedure TTestExpressionWriter.TestRegularExpressionLiteralFlags;
 Var
   S : TJSRegularExpressionLiteral;
 begin
@@ -751,7 +833,7 @@ end;
   TTestStatementWriter
   ---------------------------------------------------------------------}
 
-Procedure TTestStatementWriter.TestAssignment(Const Msg: String;
+procedure TTestStatementWriter.TestAssignment(const Msg: String;
   AClass: TJSAssignStatementClass; Result: String; ACompact: Boolean);
 Var
   U : TJSAssignStatement;
@@ -762,7 +844,7 @@ begin
   AssertWrite(Msg,Result,U);
 end;
 
-Function TTestStatementWriter.CreateAssignment(AClass: TJSAssignStatementClass
+function TTestStatementWriter.CreateAssignment(AClass: TJSAssignStatementClass
   ): TJSAssignStatement;
 begin
   if AClass=Nil then
@@ -785,37 +867,37 @@ begin
   Result.B:=CreateAssignment(nil);
 end;
 
-Procedure TTestStatementWriter.TestEmptyStatement;
+procedure TTestStatementWriter.TestEmptyStatement;
 
 begin
   AssertWrite('Empty statement','',TJSEmptyStatement.Create(0,0));
 end;
 
-Procedure TTestStatementWriter.TestEmptyStatementComment;
+procedure TTestStatementWriter.TestEmptyStatementComment;
 begin
   Writer.Options:=[woEmptyStatementAsComment,woUseUTF8];
   AssertWrite('Empty statement as comment','/* Empty statement */',TJSEmptyStatement.Create(0,0));
 end;
 
-Procedure TTestStatementWriter.TestEmptyStatementBlock;
+procedure TTestStatementWriter.TestEmptyStatementBlock;
 begin
   AssertWrite('Empty statement block','{'+sLineBreak+'}',TJSEmptyBlockStatement.Create(0,0));
 end;
 
-Procedure TTestStatementWriter.TestEmptyStatementBlockIndent;
+procedure TTestStatementWriter.TestEmptyStatementBlockIndent;
 begin
   Writer.IndentSize:=2;
   Writer.Indent;
   AssertWrite('Empty statement block','  {'+sLineBreak+'  }',TJSEmptyBlockStatement.Create(0,0));
 end;
 
-Procedure TTestStatementWriter.TestEmptyStatementBlockCompact;
+procedure TTestStatementWriter.TestEmptyStatementBlockCompact;
 begin
   Writer.Options:=[woCompact,woUseUTF8];
   AssertWrite('Empty statement block','{}',TJSEmptyBlockStatement.Create(0,0));
 end;
 
-Procedure TTestStatementWriter.TestVarDeclaration;
+procedure TTestStatementWriter.TestVarDeclaration;
 
 Var
   V : TJSVarDeclaration;
@@ -825,7 +907,7 @@ begin
   AssertWrite('simple var','a',V);
 end;
 
-Procedure TTestStatementWriter.TestVarDeclarationInit;
+procedure TTestStatementWriter.TestVarDeclarationInit;
 Var
   V : TJSVarDeclaration;
 begin
@@ -835,7 +917,7 @@ begin
   AssertWrite('simple var, init ','a = 1',V);
 end;
 
-Procedure TTestStatementWriter.TestVarListDeclaration;
+procedure TTestStatementWriter.TestVarListDeclaration;
 Var
   B,L : TJSVariableDeclarationList;
   V : TJSVarDeclaration;
@@ -854,7 +936,7 @@ begin
   AssertWrite('simple var list ','a, b = 1',L);
 end;
 
-Procedure TTestStatementWriter.TestVarListDeclarationInit;
+procedure TTestStatementWriter.TestVarListDeclarationInit;
 Var
   B,L : TJSVariableDeclarationList;
   V : TJSVarDeclaration;
@@ -873,7 +955,7 @@ begin
   AssertWrite('simple var list ','a, b',L);
 end;
 
-Procedure TTestStatementWriter.TestVarDeclarationStatement;
+procedure TTestStatementWriter.TestVarDeclarationStatement;
 
 Var
   S : TJSVariableStatement;
@@ -886,7 +968,7 @@ begin
   AssertWrite('simple var','var a',S);
 end;
 
-Procedure TTestStatementWriter.TestVarListDeclarationStatement;
+procedure TTestStatementWriter.TestVarListDeclarationStatement;
 
 Var
   S : TJSVariableStatement;
@@ -903,7 +985,7 @@ begin
   AssertWrite('simple var','var a',S);
 end;
 
-Procedure TTestStatementWriter.TestVarListDeclarationStatement2Vars;
+procedure TTestStatementWriter.TestVarListDeclarationStatement2Vars;
 Var
   S : TJSVariableStatement;
   V : TJSVarDeclaration;
@@ -924,7 +1006,34 @@ begin
   AssertWrite('simple 2 vars','var a, b',S);
 end;
 
-Procedure TTestStatementWriter.TestReturnStatement;
+procedure TTestStatementWriter.TestVarListDeclarationStatement3Vars;
+Var
+  S : TJSVariableStatement;
+  V : TJSVarDeclaration;
+  L : TJSVariableDeclarationList;
+
+begin
+  S:=TJSVariableStatement.Create(0,0);
+  L:=TJSVariableDeclarationList.Create(0,0);
+  S.A:=L;
+  V:=TJSVarDeclaration.Create(0,0);
+  L.A:=V;
+  V.Name:='a';
+  V.Init:=CreateLiteral(1);
+  L.B:=TJSVariableDeclarationList.Create(0,0);
+  L:=TJSVariableDeclarationList(L.B);
+  V:=TJSVarDeclaration.Create(0,0);
+  L.A:=V;
+  V.Name:='b';
+  V.Init:=CreateLiteral(2);
+  V:=TJSVarDeclaration.Create(0,0);
+  L.B:=V;
+  V.Name:='c';
+  V.Init:=CreateLiteral(3);
+  AssertWrite('simple 3 vars','var a = 1, b = 2, c = 3',S);
+end;
+
+procedure TTestStatementWriter.TestReturnStatement;
 Var
   S : TJSReturnStatement;
 
@@ -934,7 +1043,7 @@ begin
   AssertWrite('simple return','return a',S);
 end;
 
-Procedure TTestStatementWriter.TestLabeledStatement;
+procedure TTestStatementWriter.TestLabeledStatement;
 Var
   LS : TJSLabeledStatement;
   S : TJSReturnStatement;
@@ -949,7 +1058,7 @@ begin
   AssertWrite('simple return','loc:'+sLineBreak+'return a',LS);
 end;
 
-Procedure TTestStatementWriter.TestLabeledStatementCompact;
+procedure TTestStatementWriter.TestLabeledStatementCompact;
 Var
   LS : TJSLabeledStatement;
   S : TJSReturnStatement;
@@ -965,7 +1074,7 @@ begin
   AssertWrite('simple return','loc: return a',LS);
 end;
 
-Procedure TTestStatementWriter.TestContinueStatement;
+procedure TTestStatementWriter.TestContinueStatement;
 
 Var
   S : TJSContinueStatement;
@@ -975,7 +1084,7 @@ begin
   AssertWrite('simple continue','continue',S);
 end;
 
-Procedure TTestStatementWriter.TestContinueTargetStatement;
+procedure TTestStatementWriter.TestContinueTargetStatement;
 
 Var
   S : TJSContinueStatement;
@@ -986,7 +1095,7 @@ begin
   AssertWrite('continue a','continue a',S);
 end;
 
-Procedure TTestStatementWriter.TestBreakStatement;
+procedure TTestStatementWriter.TestBreakStatement;
 
 Var
   S : TJSBreakStatement;
@@ -996,7 +1105,7 @@ begin
   AssertWrite('simple break','break',S);
 end;
 
-Procedure TTestStatementWriter.TestBreakTargetStatement;
+procedure TTestStatementWriter.TestBreakTargetStatement;
 Var
   S : TJSBreakStatement;
 
@@ -1006,127 +1115,127 @@ begin
   AssertWrite('simple break a','break a',S);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementSimple;
+procedure TTestStatementWriter.TestAssignmentStatementSimple;
 begin
   TestAssignment('Simple assignment',TJSSimpleAssignStatement,'a = b',False);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementSimpleCompact;
+procedure TTestStatementWriter.TestAssignmentStatementSimpleCompact;
 begin
   TestAssignment('Simple assignment',TJSSimpleAssignStatement,'a=b',True);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementAdd;
+procedure TTestStatementWriter.TestAssignmentStatementAdd;
 begin
   TestAssignment('Add assignment',TJSAddEqAssignStatement,'a += b',False);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementAddCompact;
+procedure TTestStatementWriter.TestAssignmentStatementAddCompact;
 begin
   TestAssignment('Add assignment',TJSAddEqAssignStatement,'a+=b',True);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementSubtract;
+procedure TTestStatementWriter.TestAssignmentStatementSubtract;
 begin
   TestAssignment('Subtract assignment',TJSSubEqAssignStatement,'a -= b',False);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementSubtractCompact;
+procedure TTestStatementWriter.TestAssignmentStatementSubtractCompact;
 begin
   TestAssignment('Subtract assignment',TJSSubEqAssignStatement,'a-=b',True);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementMultiply;
+procedure TTestStatementWriter.TestAssignmentStatementMultiply;
 begin
   TestAssignment('Multiply assignment',TJSMulEqAssignStatement,'a *= b',False);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementMultiplyCompact;
+procedure TTestStatementWriter.TestAssignmentStatementMultiplyCompact;
 begin
   TestAssignment('Multiply assignment',TJSMulEqAssignStatement,'a*=b',True);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementDivide;
+procedure TTestStatementWriter.TestAssignmentStatementDivide;
 begin
   TestAssignment('Divide assignment',TJSDivEqAssignStatement,'a /= b',False);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementDivideCompact;
+procedure TTestStatementWriter.TestAssignmentStatementDivideCompact;
 begin
   TestAssignment('Divide assignment',TJSDivEqAssignStatement,'a/=b',True);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementShift;
+procedure TTestStatementWriter.TestAssignmentStatementShift;
 begin
   TestAssignment('Shift assignment',TJSLShiftEqAssignStatement,'a <<= b',False);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementShiftCompact;
+procedure TTestStatementWriter.TestAssignmentStatementShiftCompact;
 begin
   TestAssignment('Shift assignment',TJSLShiftEqAssignStatement,'a<<=b',True);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementRShift;
+procedure TTestStatementWriter.TestAssignmentStatementRShift;
 begin
   TestAssignment('RShift assignment',TJSRShiftEqAssignStatement,'a >>= b',False);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementRShiftCompact;
+procedure TTestStatementWriter.TestAssignmentStatementRShiftCompact;
 begin
   TestAssignment('RShift assignment',TJSRShiftEqAssignStatement,'a>>=b',True);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementURShift;
+procedure TTestStatementWriter.TestAssignmentStatementURShift;
 begin
   TestAssignment('URShift assignment',TJSURShiftEqAssignStatement,'a >>>= b',False);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementURShiftCompact;
+procedure TTestStatementWriter.TestAssignmentStatementURShiftCompact;
 begin
   TestAssignment('URShift assignment',TJSURShiftEqAssignStatement,'a>>>=b',True);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementMod;
+procedure TTestStatementWriter.TestAssignmentStatementMod;
 begin
   TestAssignment('Mod assignment',TJSModEqAssignStatement,'a %= b',False);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementModCompact;
+procedure TTestStatementWriter.TestAssignmentStatementModCompact;
 begin
   TestAssignment('Mod assignment',TJSModEqAssignStatement,'a%=b',True);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementBinaryOr;
+procedure TTestStatementWriter.TestAssignmentStatementBinaryOr;
 begin
   TestAssignment('Binary or assignment',TJSOrEqAssignStatement,'a |= b',False);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementBinaryOrCompact;
+procedure TTestStatementWriter.TestAssignmentStatementBinaryOrCompact;
 begin
   TestAssignment('Binary or assignment',TJSOrEqAssignStatement,'a |= b',False);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementBinaryXOr;
+procedure TTestStatementWriter.TestAssignmentStatementBinaryXOr;
 begin
   TestAssignment('Binary xor assignment',TJSXOrEqAssignStatement,'a ^= b',False);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementBinaryXOrCompact;
+procedure TTestStatementWriter.TestAssignmentStatementBinaryXOrCompact;
 begin
   TestAssignment('Binary xor assignment',TJSXOrEqAssignStatement,'a^=b',True);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementBinaryAnd;
+procedure TTestStatementWriter.TestAssignmentStatementBinaryAnd;
 begin
   TestAssignment('Binary and assignment',TJSAndEqAssignStatement,'a &= b',False);
 end;
 
-Procedure TTestStatementWriter.TestAssignmentStatementBinaryAndCompact;
+procedure TTestStatementWriter.TestAssignmentStatementBinaryAndCompact;
 begin
   TestAssignment('Binary and assignment',TJSAndEqAssignStatement,'a&=b',True);
 end;
 
-Procedure TTestStatementWriter.TestForStatementEmpty;
+procedure TTestStatementWriter.TestForStatementEmpty;
 
 Var
   S : TJSForStatement;
@@ -1136,7 +1245,7 @@ begin
   AssertWrite('neverending for','for (; ; ) {'+sLineBreak+'}',S);
 end;
 
-Procedure TTestStatementWriter.TestForStatementFull;
+procedure TTestStatementWriter.TestForStatementFull;
 
 Var
   S : TJSForStatement;
@@ -1189,7 +1298,7 @@ begin
     +'}',S);
 end;
 
-Procedure TTestStatementWriter.TestForStatementCompact;
+procedure TTestStatementWriter.TestForStatementCompact;
 Var
   S : TJSForStatement;
   UPP : TJSUnaryPostPlusPlusExpression;
@@ -1214,7 +1323,72 @@ begin
   AssertWrite('for i:=0 to 9','for (i=0; i<10; i++) {}',S);
 end;
 
-Procedure TTestStatementWriter.TestForInStatement;
+procedure TTestStatementWriter.TestForStatement2loops2inits;
+var
+  L: TJSStatementList;
+
+  function CreateIdent(aName: string): TJSPrimaryExpressionIdent;
+  begin
+    Result:=TJSPrimaryExpressionIdent.Create(0,0);
+    Result.Name:=TJSString(aName);
+  end;
+
+  function CreateNumber(i: TJSNumber): TJSLiteral;
+  begin
+    Result:=TJSLiteral.Create(0,0);
+    Result.Value.AsNumber:=i;
+  end;
+
+  function CreateAssignSt(LHS, Expr: TJSElement): TJSSimpleAssignStatement;
+  begin
+    Result:=TJSSimpleAssignStatement.Create(0,0);
+    Result.LHS:=LHS;
+    Result.Expr:=Expr;
+  end;
+
+  function CreateFor(LoopVar, LoopEndVar: string; StartExpr, EndExpr: TJSElement;
+    Up: boolean; Target: string): TJSForStatement;
+  var
+    V: TJSVariableStatement;
+    C: TJSCommaExpression;
+  begin
+    Result:=TJSForStatement.Create(0,0);
+    V:=TJSVariableStatement.Create(0,0);
+    Result.Init:=V;
+    C:=TJSCommaExpression.Create(0,0);
+    V.A:=C;
+    C.A:=CreateAssignSt(CreateIdent(LoopVar),StartExpr);
+    C.B:=CreateAssignSt(CreateIdent(LoopEndVar),EndExpr);
+
+    if Up then
+      Result.Cond:=TJSRelationalExpressionLE.Create(0,0)
+    else
+      Result.Cond:=TJSRelationalExpressionGE.Create(0,0);
+    TJSRelationalExpression(Result.Cond).A:=CreateIdent(LoopVar);
+    TJSRelationalExpression(Result.Cond).B:=CreateIdent(LoopEndVar);
+
+    if Up then
+      Result.Incr:=TJSUnaryPostPlusPlusExpression.Create(0,0)
+    else
+      Result.Incr:=TJSUnaryPostMinusMinusExpression.Create(0,0);
+    TJSUnaryExpression(Result.Incr).A:=CreateIdent(LoopVar);
+
+    Result.Body:=CreateAssignSt(CreateIdent(Target),CreateIdent(LoopVar));
+  end;
+
+begin
+  L:=TJSStatementList.Create(0,0);
+  L.A:=CreateFor('$loop1','$loopend2',CreateNumber(3),CreateNumber(5),true,'$mod.i');
+  L.B:=CreateFor('$loop3','$loopend4',CreateNumber(10),CreateNumber(7),false,'$mod.i');
+  AssertWrite('for i:=3 to 5 do ; for i:=10 downto 7 do ;',
+    '{'+LineEnding
+    +'for (var $loop1 = 3, $loopend2 = 5; $loop1 <= $loopend2; $loop1++) $mod.i = $loop1;'+LineEnding
+    +'for (var $loop3 = 10, $loopend4 = 7; $loop3 >= $loopend4; $loop3--) $mod.i = $loop3;'+LineEnding
+    +'}'
+    ,L);
+end;
+
+procedure TTestStatementWriter.TestForInStatement;
 
 Var
   S : TJSForInStatement;
@@ -1227,7 +1401,7 @@ begin
   AssertWrite('for a in b','for (a in b) {'+sLineBreak+'}',S);
 end;
 
-Procedure TTestStatementWriter.TestWhileStatement;
+procedure TTestStatementWriter.TestWhileStatement;
 Var
   S : TJSWhileStatement;
 
@@ -1238,7 +1412,7 @@ begin
   AssertWrite('while a ','while (a) {'+sLineBreak+'}',S);
 end;
 
-Procedure TTestStatementWriter.TestDoWhileStatement;
+procedure TTestStatementWriter.TestDoWhileStatement;
 
 Var
   S : TJSDoWhileStatement;
@@ -1250,7 +1424,7 @@ begin
   AssertWrite('do while a ','do {'+sLineBreak+'} while (a)',S);
 end;
 
-Procedure TTestStatementWriter.TestSwitchStatementEmpty;
+procedure TTestStatementWriter.TestSwitchStatementEmpty;
 Var
   S : TJSSwitchStatement;
 
@@ -1260,7 +1434,7 @@ begin
   AssertWrite('switch ','switch (a) {'+sLineBreak+'}',S);
 end;
 
-Procedure TTestStatementWriter.TestSwitchStatementEmptyCompact;
+procedure TTestStatementWriter.TestSwitchStatementEmptyCompact;
 
 Var
   S : TJSSwitchStatement;
@@ -1272,7 +1446,7 @@ begin
   AssertWrite('switch ','switch (a) {}',S);
 end;
 
-Procedure TTestStatementWriter.TestSwitchStatementOneElement;
+procedure TTestStatementWriter.TestSwitchStatementOneElement;
 
 Var
   S : TJSSwitchStatement;
@@ -1287,7 +1461,7 @@ begin
   AssertWrite('switch ','switch (a) {'+sLineBreak+'case c:'+sLineBreak+'{'+sLineBreak+'}'+sLineBreak+'}',S);
 end;
 
-Procedure TTestStatementWriter.TestSwitchStatementOneElementCompact;
+procedure TTestStatementWriter.TestSwitchStatementOneElementCompact;
 Var
   S : TJSSwitchStatement;
   C : TJSCaseElement;
@@ -1301,7 +1475,7 @@ begin
   AssertWrite('switch ','switch (a) {case c: {}}',S);
 end;
 
-Procedure TTestStatementWriter.TestSwitchStatementTwoElements;
+procedure TTestStatementWriter.TestSwitchStatementTwoElements;
 Var
   S : TJSSwitchStatement;
   C : TJSCaseElement;
@@ -1318,7 +1492,7 @@ begin
   AssertWrite('switch ','switch (a) {'+sLineBreak+'case c:'+sLineBreak+'{'+sLineBreak+'}'+sLineBreak+'case d:'+sLineBreak+'{'+sLineBreak+'}'+sLineBreak+'}',S);
 end;
 
-Procedure TTestStatementWriter.TestSwitchStatementTwoElementsCompact;
+procedure TTestStatementWriter.TestSwitchStatementTwoElementsCompact;
 
 Var
   S : TJSSwitchStatement;
@@ -1336,7 +1510,7 @@ begin
   AssertWrite('switch ','switch (a) {case c: {} case d: {}}',S);
 end;
 
-Procedure TTestStatementWriter.TestSwitchStatementTwoElementsDefault;
+procedure TTestStatementWriter.TestSwitchStatementTwoElementsDefault;
 Var
   S : TJSSwitchStatement;
   C : TJSCaseElement;
@@ -1355,7 +1529,7 @@ begin
   AssertWrite('switch ','switch (a) {'+sLineBreak+'case c:'+sLineBreak+'{'+sLineBreak+'}'+sLineBreak+'case d:'+sLineBreak+'{'+sLineBreak+'}'+sLineBreak+'default:'+sLineBreak+'{'+sLineBreak+'}'+sLineBreak+'}',S);
 end;
 
-Procedure TTestStatementWriter.TestSwitchStatementTwoElementsDefaultCompact;
+procedure TTestStatementWriter.TestSwitchStatementTwoElementsDefaultCompact;
 Var
   S : TJSSwitchStatement;
   C : TJSCaseElement;
@@ -1375,7 +1549,7 @@ begin
   AssertWrite('switch ','switch (a) {case c: {} case d: {} default: {}}',S);
 end;
 
-Procedure TTestStatementWriter.TestSwitchStatementTwoElementsOneEmpty;
+procedure TTestStatementWriter.TestSwitchStatementTwoElementsOneEmpty;
 Var
   S : TJSSwitchStatement;
   C : TJSCaseElement;
@@ -1402,7 +1576,7 @@ begin
     +'}',S);
 end;
 
-Procedure TTestStatementWriter.TestSwitchStatementTwoElementsOneEmptyCompact;
+procedure TTestStatementWriter.TestSwitchStatementTwoElementsOneEmptyCompact;
 Var
   S : TJSSwitchStatement;
   C : TJSCaseElement;
@@ -1421,7 +1595,7 @@ begin
   AssertWrite('switch ','switch (a) {case c: case d: {} default: {}}',S);
 end;
 
-Procedure TTestStatementWriter.TestIfThen;
+procedure TTestStatementWriter.TestIfThen;
 Var
   S : TJSIfStatement;
 
@@ -1433,7 +1607,7 @@ begin
   AssertWrite('if then','if (a) {'+sLineBreak+'}',S);
 end;
 
-Procedure TTestStatementWriter.TestIfThenElse;
+procedure TTestStatementWriter.TestIfThenElse;
 Var
   S : TJSIfStatement;
 
@@ -1449,7 +1623,7 @@ begin
     +'}',S);
 end;
 
-Procedure TTestStatementWriter.TestStatementListEmpty;
+procedure TTestStatementWriter.TestStatementListEmpty;
 Var
   S : TJSStatementList;
 
@@ -1459,7 +1633,7 @@ begin
   AssertWrite('Statement list','{'+sLineBreak+'}',S);
 end;
 
-Procedure TTestStatementWriter.TestStatementListEmptyCompact;
+procedure TTestStatementWriter.TestStatementListEmptyCompact;
 Var
   S : TJSStatementList;
 
@@ -1469,7 +1643,7 @@ begin
   AssertWrite('Statement list','{}',S);
 end;
 
-Procedure TTestStatementWriter.TestStatementListOneStatement;
+procedure TTestStatementWriter.TestStatementListOneStatement;
 Var
   S : TJSStatementList;
 begin
@@ -1482,7 +1656,7 @@ begin
     +'}',S);
 end;
 
-Procedure TTestStatementWriter.TestStatementListOneStatementCompact;
+procedure TTestStatementWriter.TestStatementListOneStatementCompact;
 
 Var
   S : TJSStatementList;
@@ -1494,7 +1668,7 @@ begin
   AssertWrite('Statement list','{a=b}',S);
 end;
 
-Procedure TTestStatementWriter.TestStatementListTwoStatements;
+procedure TTestStatementWriter.TestStatementListTwoStatements;
 Var
   S : TJSStatementList;
 
@@ -1510,7 +1684,7 @@ begin
     +'}',S);
 end;
 
-Procedure TTestStatementWriter.TestStatementListTwoStatementsCompact;
+procedure TTestStatementWriter.TestStatementListTwoStatementsCompact;
 Var
   S : TJSStatementList;
 
@@ -1537,7 +1711,7 @@ begin
     +'}',S);
 end;
 
-Procedure TTestStatementWriter.TestEmptyFunctionDef;
+procedure TTestStatementWriter.TestEmptyFunctionDef;
 
 Var
   FD : TJSFunctionDeclarationStatement;
@@ -1551,7 +1725,7 @@ begin
     +'}',FD);
 end;
 
-Procedure TTestStatementWriter.TestEmptyFunctionDefCompact;
+procedure TTestStatementWriter.TestEmptyFunctionDefCompact;
 
 Var
   FD : TJSFunctionDeclarationStatement;
@@ -1564,7 +1738,7 @@ begin
   AssertWrite('Empty function, compact','function a() {}',FD);
 end;
 
-Procedure TTestStatementWriter.TestFunctionDefParams;
+procedure TTestStatementWriter.TestFunctionDefParams;
 Var
   FD : TJSFunctionDeclarationStatement;
 
@@ -1582,7 +1756,7 @@ begin
     +'}',FD);
 end;
 
-Procedure TTestStatementWriter.TestFunctionDefParamsCompact;
+procedure TTestStatementWriter.TestFunctionDefParamsCompact;
 
 Var
   FD : TJSFunctionDeclarationStatement;
@@ -1598,7 +1772,7 @@ begin
   AssertWrite('Empty function, 3 params, compact','function a(b,c,d) {}',FD);
 end;
 
-Procedure TTestStatementWriter.TestFunctionDefBody1;
+procedure TTestStatementWriter.TestFunctionDefBody1;
 
 Var
   FD : TJSFunctionDeclarationStatement;
@@ -1620,7 +1794,7 @@ begin
     +'}',FD);
 end;
 
-Procedure TTestStatementWriter.TestFunctionDefBody1Compact;
+procedure TTestStatementWriter.TestFunctionDefBody1Compact;
 Var
   FD : TJSFunctionDeclarationStatement;
   R : TJSReturnStatement;
@@ -1638,7 +1812,7 @@ begin
   AssertWrite('1 statement, compact','function a() {return 0; }',FD);
 end;
 
-Procedure TTestStatementWriter.TestFunctionDefBody2;
+procedure TTestStatementWriter.TestFunctionDefBody2;
 Var
   FD : TJSFunctionDeclarationStatement;
   R : TJSReturnStatement;
@@ -1673,7 +1847,7 @@ begin
     +'}',FD);
 end;
 
-Procedure TTestStatementWriter.TestFunctionDefBody2Compact;
+procedure TTestStatementWriter.TestFunctionDefBody2Compact;
 Var
   FD : TJSFunctionDeclarationStatement;
   R : TJSReturnStatement;
@@ -1704,7 +1878,7 @@ begin
   AssertWrite('Function, 2 statements, compact','function a(b) {b=b*10; return b}',FD);
 end;
 
-Procedure TTestStatementWriter.TestTryCatch;
+procedure TTestStatementWriter.TestTryCatch;
 
 Var
   T : TJSTryCatchStatement;
@@ -1734,7 +1908,7 @@ begin
     +'}',T);
 end;
 
-Procedure TTestStatementWriter.TestTryCatchCompact;
+procedure TTestStatementWriter.TestTryCatchCompact;
 Var
   T : TJSTryCatchStatement;
   A : TJSAssignStatement;
@@ -1759,7 +1933,7 @@ begin
   AssertWrite('Try catch compact','try {b=b*10} catch (e) {b=1}',T);
 end;
 
-Procedure TTestStatementWriter.TestTryFinally;
+procedure TTestStatementWriter.TestTryFinally;
 
 Var
   T : TJSTryFinallyStatement;
@@ -1789,7 +1963,7 @@ begin
    +'}',T);
 end;
 
-Procedure TTestStatementWriter.TestTryFinallyCompact;
+procedure TTestStatementWriter.TestTryFinallyCompact;
 
 Var
   T : TJSTryFinallyStatement;
@@ -1815,7 +1989,7 @@ begin
   AssertWrite('Try finally compact','try {b=b*10} finally {b=1}',T);
 end;
 
-Procedure TTestStatementWriter.TestTryCatchFinally;
+procedure TTestStatementWriter.TestTryCatchFinally;
 Var
   T : TJSTryCatchFinallyStatement;
   A : TJSAssignStatement;
@@ -1849,7 +2023,7 @@ begin
     +'  b = 1'+sLineBreak+'}',T);
 end;
 
-Procedure TTestStatementWriter.TestTryCatchFinallyCompact;
+procedure TTestStatementWriter.TestTryCatchFinallyCompact;
 Var
   T : TJSTryCatchFinallyStatement;
   A : TJSAssignStatement;
@@ -1878,7 +2052,7 @@ begin
   AssertWrite('Try finally ','try {b=b*10} catch (e) {b=10} finally {b=1}',T);
 end;
 
-Procedure TTestStatementWriter.TestWith;
+procedure TTestStatementWriter.TestWith;
 Var
   T : TJSWithStatement;
   A : TJSAssignStatement;
@@ -1899,7 +2073,7 @@ begin
   AssertWrite('With statement ','with (e)'+slineBreak+'  b = b * 10',T);
 end;
 
-Procedure TTestStatementWriter.TestWithCompact;
+procedure TTestStatementWriter.TestWithCompact;
 Var
   T : TJSWithStatement;
   A : TJSAssignStatement;
@@ -1920,7 +2094,7 @@ begin
   AssertWrite('With statement ','with (e) b=b*10',T);
 end;
 
-Procedure TTestStatementWriter.TestSourceElements;
+procedure TTestStatementWriter.TestSourceElements;
 Var
   T : TJSSourceElements;
   A : TJSAssignStatement;
@@ -1947,7 +2121,7 @@ begin
   AssertWrite('Statement lists ','b = b * 10;'+sLineBreak+'c = c * 2;'+sLineBreak,T);
 end;
 
-Procedure TTestStatementWriter.TestSourceElementsCompact;
+procedure TTestStatementWriter.TestSourceElementsCompact;
 Var
   T : TJSSourceElements;
   A : TJSAssignStatement;
@@ -2466,18 +2640,36 @@ Procedure TTestJSWriter.AssertResult(Const Msg, Result: String);
 
 Var
   S : AnsiString;
+  p: Integer;
 begin
-  S:=FTextWriter.AsAnsistring;
-  AssertEquals(Msg,Result,S);
+  S:=FTextWriter.AsString;
+  if S=Result then exit;
+  p:=1;
+  while (p<=length(S)) and (p<=length(Result)) and (S[p]=Result[p]) do inc(p);
+  if p>length(S) then
+    AssertEquals(Msg+' (actual too short)',Result,S)
+  else if p>length(Result) then
+    AssertEquals(Msg+' (actual too long)',Result,S)
+  else
+    AssertEquals(Msg+' (diff at '+IntToStr(p)+' "'+S[p]+'")',Result,S);
 end;
 
 Procedure TTestJSWriter.AssertResult(Const Msg: string; Result: UnicodeString);
 
 Var
   S : UnicodeString;
+  p: Integer;
 begin
   S:=FTextWriter.AsUnicodeString;
-  AssertEquals(Msg,String(Result),String(S));
+  if S=Result then exit;
+  p:=1;
+  while (p<=length(S)) and (p<=length(Result)) and (S[p]=Result[p]) do inc(p);
+  if p>length(S) then
+    AssertEquals(Msg+' (actual too short)',String(Result),String(S))
+  else if p>length(Result) then
+    AssertEquals(Msg+' (actual too long)',String(Result),String(S))
+  else
+    AssertEquals(Msg+' (diff at '+IntToStr(p)+' "'+String(S[p])+'")',String(Result),String(S));
 end;
 
 Procedure TTestJSWriter.AssertWrite(Const Msg, Result: String;

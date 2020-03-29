@@ -505,6 +505,11 @@ begin
   inherited Destroy;
 end;
 
+procedure TWriter.FlushBuffer;
+begin
+  Driver.FlushBuffer;
+end;
+
 function TWriter.CreateDriver(Stream: TStream; BufSize: Integer): TAbstractObjectWriter;
 begin
   Result := TBinaryObjectWriter.Create(Stream, BufSize);
@@ -697,8 +702,7 @@ procedure TWriter.WriteChildren(Component : TComponent);
 Var
   SRoot, SRootA : TComponent;
   SList : TStringList;
-  SPos : Integer;
-  I : Integer;
+  SPos, I , SAncestorPos: Integer;
   
 begin
   // Write children list. 
@@ -708,6 +712,7 @@ begin
   SRootA:=FRootAncestor;
   SList:=FAncestors;
   SPos:=FCurrentPos;
+  SAncestorPos:=FAncestorPos;
   try
     FAncestors:=Nil;
     FCurrentPos:=0;
@@ -735,7 +740,7 @@ begin
     FRoot:=SRoot;
     FRootAncestor:=SRootA;
     FCurrentPos:=SPos;
-    FAncestorPos:=Spos;
+    FAncestorPos:=SAncestorPos;
   end;
 end;
 
@@ -944,7 +949,7 @@ begin
           DefValue :=PPropInfo(PropInfo)^.Default;
           DefFloatValue:=PSingle(@PPropInfo(PropInfo)^.Default)^;
           end;
-        if (FloatValue<>DefFloatValue) or (DefValue=longint($80000000)) then
+        if (FloatValue<>DefFloatValue) or (not HasAncestor and (DefValue=longint($80000000))) then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           WriteFloat(FloatValue);
@@ -985,9 +990,12 @@ begin
         if HasAncestor then
           DefStrValue := GetStrProp(Ancestor, PropInfo)
         else
+        begin
+          DefValue :=PPropInfo(PropInfo)^.Default;
           SetLength(DefStrValue, 0);
+        end;
 
-        if StrValue <> DefStrValue then
+        if (StrValue<>DefStrValue) or (not HasAncestor and (DefValue=longint($80000000))) then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           if Assigned(FOnWriteStringProperty) then
@@ -1002,9 +1010,12 @@ begin
         if HasAncestor then
           WDefStrValue := GetWideStrProp(Ancestor, PropInfo)
         else
+        begin
+          DefValue :=PPropInfo(PropInfo)^.Default;
           SetLength(WDefStrValue, 0);
+        end;
 
-        if WStrValue <> WDefStrValue then
+        if (WStrValue<>WDefStrValue) or (not HasAncestor and (DefValue=longint($80000000))) then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           WriteWideString(WStrValue);
@@ -1017,9 +1028,12 @@ begin
         if HasAncestor then
           UDefStrValue := GetUnicodeStrProp(Ancestor, PropInfo)
         else
+        begin
+          DefValue :=PPropInfo(PropInfo)^.Default;
           SetLength(UDefStrValue, 0);
+        end;
 
-        if UStrValue <> UDefStrValue then
+        if (UStrValue<>UDefStrValue) or (not HasAncestor and (DefValue=longint($80000000))) then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           WriteUnicodeString(UStrValue);
@@ -1277,5 +1291,12 @@ end;
 procedure TWriter.WriteUnicodeString(const Value: UnicodeString);
 begin
   Driver.WriteUnicodeString(Value);
+end;
+
+{ TAbstractObjectWriter }
+
+procedure TAbstractObjectWriter.FlushBuffer;
+begin
+  // Do nothing
 end;
 

@@ -17,14 +17,16 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
     P.Author := 'Stefan Heymann';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'http://www.destructor.de/';
     P.Description := 'Library for handling tar-files.';
 
-    P.OSes:=AllOSes-[embedded,win16];
+    P.OSes:=AllOSes-[embedded,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
     T:=P.Targets.AddUnit('libtar.pp');

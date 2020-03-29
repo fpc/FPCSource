@@ -49,7 +49,7 @@ implementation
 
     uses
        sysutils,cutils,cfileutl,cclasses,aasmbase,
-       globtype,globals,systems,verbose,script,fmodule,i_atari;
+       globtype,globals,systems,verbose,cscript,fmodule,i_atari;
 
 
 constructor TLinkerAtari.Create;
@@ -81,9 +81,8 @@ end;
 
 procedure TLinkerAtari.SetDefaultInfo;
 begin
-  case (target_info.system) of
-    system_m68k_Atari:      SetAtariInfo;
-  end;
+  if target_info.system = system_m68k_Atari then
+    SetAtariInfo;
 end;
 
 
@@ -230,7 +229,7 @@ begin
   if UseVLink then
     begin
       if create_smartlink_sections then
-        GCSectionsStr:='-gc-all -sc -sd';
+        GCSectionsStr:='-gc-all -sc';
     end;
 
   ExeName:=current_module.exefilename;

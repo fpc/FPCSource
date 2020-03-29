@@ -211,7 +211,7 @@ const
   SpriteMapping_Bmp_1D_128: TSpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_128) or integer(DISPLAY_SPR_1D_BMP) or integer(DISPLAY_SPR_1D_BMP_SIZE_128) or (5 shl 28) or 2;
   SpriteMapping_Bmp_1D_256: TSpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_256) or integer(DISPLAY_SPR_1D_BMP) or integer(DISPLAY_SPR_1D_BMP_SIZE_256) or (6 shl 28) or 3;
   SpriteMapping_Bmp_2D_128: TSpriteMapping = integer(DISPLAY_SPR_2D) or integer(DISPLAY_SPR_2D_BMP_128)  or (7 shl 28) or 2;
-  SpriteMapping_Bmp_2D_256: TSpriteMapping = integer(DISPLAY_SPR_2D) or integer(DISPLAY_SPR_2D_BMP_256)  or (8 shl 28) or 3;
+  SpriteMapping_Bmp_2D_256: TSpriteMapping = integer(DISPLAY_SPR_2D) or integer(DISPLAY_SPR_2D_BMP_256)  or cint(cuint(8) shl 28) or 3;
 
 type
   SpriteColorFormat = integer;

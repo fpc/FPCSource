@@ -1,4 +1,4 @@
-unit ziputils;
+unit ZipUtils;
 
 { ziputils.pas - IO on .zip files using zlib
   - definitions, declarations and routines used by both
@@ -98,7 +98,7 @@ begin
   fp := nil;
   try
     case mode of
-      fopenread: fp  := TFileStream.Create(strpas(filename), fmOpenRead);
+      fopenread: fp  := TFileStream.Create(strpas(filename), fmOpenRead or fmShareDenyWrite);
       fopenwrite: fp := TFileStream.Create(strpas(filename), fmCreate);
       fappendwrite:
       begin

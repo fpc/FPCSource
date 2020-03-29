@@ -672,7 +672,11 @@ end;
 
 Procedure fpc_textclose_iso(var t : Text);compilerproc;
 begin
+  { reset inout result as this procedure is only called by the compiler and no I/O checking is carried out,
+    so further I/O does not fail }
+  inoutres:=0;
   close(t);
+  inoutres:=0;
 end;
 
 
@@ -1854,6 +1858,8 @@ procedure fpc_Read_Text_Char_intern(var f : Text; out c: char); iocheck; [extern
 function fpc_GetBuf_Text(var f : Text) : pchar; iocheck; compilerproc;
 Begin
   Result:=@TextRec(f).Bufptr^[TextRec(f).BufEnd];
+  if TextRec(f).mode=fmOutput then
+    exit;
   If not CheckRead(f) then
     exit;
   If TextRec(f).BufPos>=TextRec(f).BufEnd Then

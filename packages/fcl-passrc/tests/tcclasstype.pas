@@ -19,7 +19,8 @@ type
     FParent : String;
     FEnded,
     FStarted: Boolean;
-    procedure AssertSpecializedClass(C: TPasClassType);
+    procedure AssertGenericClass(C: TPasClassType);
+    procedure AssertSpecializedClass(C: TPasSpecializeType);
     function GetC(AIndex: Integer): TPasConst;
     function GetF1: TPasVariable;
     function GetM(AIndex : Integer): TPasElement;
@@ -29,7 +30,7 @@ type
     function GetP2: TPasProperty;
     function GetT(AIndex : Integer) : TPasType;
   protected
-    Procedure StartClass (AParent : String = 'TObject'; InterfaceList : String = '');
+    Procedure StartClass (AncestorName : String = 'TObject'; InterfaceList : String = '');
     Procedure StartExternalClass (AParent : String; AExternalName,AExternalNameSpace : String );
     Procedure StartClassHelper (ForType : String = 'TOriginal'; AParent : String = 'TObject');
     Procedure StartInterface (AParent : String = 'IInterface'; UUID : String = ''; Disp : Boolean = False);
@@ -83,6 +84,9 @@ type
     Procedure TestTwoFields;
     Procedure TestTwoFieldsB;
     Procedure TestTwoVarFieldsB;
+    procedure TestNoVarFields;
+    procedure TestVarClassFunction;
+    procedure TestClassVarClassFunction;
     Procedure TestTwoFieldsVisibility;
     Procedure TestConstProtectedEnd;
     Procedure TestTypeProtectedEnd;
@@ -109,6 +113,7 @@ type
     Procedure TestMethodVirtual;
     Procedure TestMethodVirtualSemicolon;
     Procedure TestMethodVirtualAbstract;
+    procedure TestMethodVirtualAbstractFinal;
     Procedure TestMethodOverride;
     procedure TestMethodDynamic;
     procedure TestMethodReintroduce;
@@ -144,6 +149,8 @@ type
     Procedure TestPropertyReadFromRecordField;
     procedure TestPropertyReadFromArrayField;
     procedure TestPropertyReadWriteFromRecordField;
+    procedure TestPropertyDeprecated;
+    procedure TestPropertyDeprecatedMessage;
     Procedure TestExternalClass;
     Procedure TestExternalClassNoNameSpace;
     Procedure TestExternalClassNoNameKeyWord;
@@ -152,6 +159,8 @@ type
     Procedure TestLocalSimpleTypes;
     Procedure TestLocalSimpleConst;
     Procedure TestLocalSimpleConsts;
+    Procedure TestClassTypeAttributes;
+    Procedure TestClassConstAttributes;
     procedure TestClassHelperEmpty;
     procedure TestClassHelperParentedEmpty;
     procedure TestClassHelperOneMethod;
@@ -241,22 +250,24 @@ begin
   Result:=TPasConst(Members[AIndex]);
 end;
 
-procedure TTestClassType.StartClass(AParent: String; InterfaceList: String);
+procedure TTestClassType.StartClass(AncestorName: String; InterfaceList: String);
 
 Var
   S : String;
 begin
+  if FStarted then
+    Fail('TTestClassType.StartClass already started');
   FStarted:=True;
   S:='TMyClass = Class';
-  if (AParent<>'') then
+  if (AncestorName<>'') then
     begin
-    S:=S+'('+AParent;
+    S:=S+'('+AncestorName;
     if (InterfaceList<>'') then
       S:=S+','+InterfaceList;
     S:=S+')';
     end;
   FDecl.Add(S);
-  FParent:=AParent;
+  FParent:=AncestorName;
 end;
 
 procedure TTestClassType.StartExternalClass(AParent: String; AExternalName,
@@ -372,13 +383,15 @@ begin
 end;
 
 procedure TTestClassType.DoParseClass(FromSpecial: Boolean);
+var
+  AncestorType: TPasType;
 begin
   EndClass;
   Add('Type');
   if AddComment then
     begin
     Add('// A comment');
-    engine.NeedComments:=True;
+    Engine.NeedComments:=True;
     end;
   Add('  '+TrimRight(FDecl.Text)+';');
   ParseDeclarations;
@@ -391,7 +404,14 @@ begin
      AssertNotNull('Have parent class',TheClass.AncestorType);
      if FromSpecial then
        begin
-       AssertEquals('Parent class',TPasClassType,TheClass.AncestorType.ClassType);
+       AncestorType:=TheClass.AncestorType;
+       if AncestorType is TPasSpecializeType then
+         begin
+         AncestorType:=TPasSpecializeType(AncestorType).DestType;
+         AssertEquals('Parent class',TPasUnresolvedTypeRef,AncestorType.ClassType);
+         end
+       else
+         AssertEquals('Parent class',TPasClassType,AncestorType.ClassType);
        end
      else
        begin
@@ -410,7 +430,7 @@ end;
 procedure TTestClassType.SetUp;
 begin
   inherited SetUp;
-  FDecl:=TstringList.Create;
+  FDecl:=TStringList.Create;
   FClass:=Nil;
   FParent:='';
   FStarted:=False;
@@ -519,7 +539,7 @@ begin
   AssertEquals('Interface name','ISomethingElse',TPasUnresolvedTypeRef(TheClass.Interfaces[1]).Name);
 end;
 
-procedure TTestClassType.AssertSpecializedClass(C : TPasClassType);
+procedure TTestClassType.AssertGenericClass(C : TPasClassType);
 
 begin
   AssertEquals('Parent class name is empty','',C.Name);
@@ -531,26 +551,38 @@ begin
   AssertEquals('Have generic template types','Integer',TPasElement(C.GenericTemplateTypes[0]).Name);
 end;
 
+procedure TTestClassType.AssertSpecializedClass(C: TPasSpecializeType);
+begin
+  AssertEquals('Parent class name is empty','',C.Name);
+  AssertNotNull('Have dest type',C.DestType);
+  AssertEquals('Have dest type name','TMyList',C.DestType.Name);
+  AssertNotNull('Have param types',C.Params);
+  AssertEquals('Have one param type',1,C.Params.Count);
+  AssertNotNull('First Param ',C.Params[0]);
+  AssertEquals('First Param unresolvedtype',TPasUnresolvedTypeRef,TObject(C.Params[0]).ClassType);
+  AssertEquals('Has specialize param integer','Integer',TPasUnresolvedTypeRef(C.Params[0]).Name);
+end;
+
 procedure TTestClassType.TestOneSpecializedClass;
 
 Var
-  C : TPasClassType;
+  C : TPasSpecializeType;
 
 begin
   StartClass('Specialize TMyList<Integer>','');
   DoParseClass(True);
-  C:=TPasClassType(TheClass.AncestorType);
+  C:=TPasSpecializeType(TheClass.AncestorType);
   AssertSpecializedClass(C);
 end;
 
 procedure TTestClassType.TestOneSpecializedClassInterface;
 Var
-  C : TPasClassType;
+  C : TPasSpecializeType;
 
 begin
   StartClass('Specialize TMyList<Integer>','ISomething');
   DoParseClass(True);
-  C:=TPasClassType(TheClass.AncestorType);
+  C:=TPasSpecializeType(TheClass.AncestorType);
   AssertSpecializedClass(C);
   AssertEquals('Have 1 interface',1,TheClass.Interfaces.Count);
   AssertNotNull('Correct class',TheClass.Interfaces[0]);
@@ -683,6 +715,46 @@ begin
   AssertMemberName('b',Members[1]);
   AssertMemberType(TPasVariable,Members[1]);
   AssertVisibility(visPublic,Members[1]);
+end;
+
+procedure TTestClassType.TestNoVarFields;
+
+begin
+  StartVisibility(visPublic);
+  FDecl.Add('var');
+  AddMember('Function b : integer');
+  ParseClass;
+  AssertEquals('member count',1,TheClass.members.Count);
+  AssertNotNull('Have function',Members[0]);
+  AssertMemberName('b',Members[0]);
+  AssertMemberType(TPasFunction,Members[0]);
+  AssertVisibility(visPublic,Members[0]);
+end;
+
+procedure TTestClassType.TestVarClassFunction;
+begin
+  StartVisibility(visPublic);
+  FDecl.Add('var');
+  AddMember('class Function b : integer');
+  ParseClass;
+  AssertEquals('member count',1,TheClass.members.Count);
+  AssertNotNull('Have function',Members[0]);
+  AssertMemberName('b',Members[0]);
+  AssertMemberType(TPasClassFunction,Members[0]);
+  AssertVisibility(visPublic,Members[0]);
+end;
+
+procedure TTestClassType.TestClassVarClassFunction;
+begin
+  StartVisibility(visPublic);
+  FDecl.Add('class var');
+  AddMember('class Function b : integer');
+  ParseClass;
+  AssertEquals('member count',1,TheClass.members.Count);
+  AssertNotNull('Have function',Members[0]);
+  AssertMemberName('b',Members[0]);
+  AssertMemberType(TPasClassFunction,Members[0]);
+  AssertVisibility(visPublic,Members[0]);
 end;
 
 procedure TTestClassType.TestTwoFieldsVisibility;
@@ -998,6 +1070,16 @@ begin
   DefaultMethod;
   AssertEquals('Default visibility',visDefault,Method1.Visibility);
   AssertEquals('Virtual, abstract modifiers',[pmVirtual,pmAbstract],Method1.Modifiers);
+  AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
+end;
+
+procedure TTestClassType.TestMethodVirtualAbstractFinal;
+begin
+  AddMember('Procedure DoSomething(A : Integer) virtual; abstract; final');
+  ParseClass;
+  DefaultMethod;
+  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Virtual, abstract modifiers',[pmVirtual,pmAbstract,pmFinal],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
 
@@ -1435,7 +1517,7 @@ Var
   A : TPasArgument;
 begin
   StartVisibility(visPublished);
-  AddMember('Property Somethings[ACol : Integer,ARow : Integer] : integer Read GetF; default');
+  AddMember('Property Somethings[ACol : Integer; ARow : Integer] : integer Read GetF; default');
   ParseClass;
   AssertProperty(Property1,visPublished,'Somethings','GetF','','','',2,True,False);
   AssertEquals('Published property',vispublished,Property1.Visibility);
@@ -1476,6 +1558,40 @@ begin
   AssertNull('No default expression',Property1.DefaultExpr);
   Assertequals('Default value','',Property1.DefaultValue);
 
+end;
+
+procedure TTestClassType.TestPropertyDeprecated;
+
+begin
+  StartVisibility(visPublished);
+  AddMember('Property Something : AInterface Read FSomething; deprecated');
+  ParseClass;
+  AssertProperty(Property1,visPublished,'Something','FSomething','','','',0,False,False);
+  AssertNotNull('Have type',Property1.VarType);
+  AssertEquals('Property type class type',TPasUnresolvedTypeRef,Property1.vartype.ClassType);
+  AssertEquals('Property type name','AInterface',Property1.vartype.name);
+  Assertequals('No index','',Property1.IndexValue);
+  AssertNull('No Index expression',Property1.IndexExpr);
+  AssertNull('No default expression',Property1.DefaultExpr);
+  Assertequals('Default value','',Property1.DefaultValue);
+  AssertTrue('Deprecated',[hDeprecated]=Property1.Hints);
+end;
+
+procedure TTestClassType.TestPropertyDeprecatedMessage;
+
+begin
+  StartVisibility(visPublished);
+  AddMember('Property Something : AInterface Read FSomething; deprecated ''this is no longer used'' ');
+  ParseClass;
+  AssertProperty(Property1,visPublished,'Something','FSomething','','','',0,False,False);
+  AssertNotNull('Have type',Property1.VarType);
+  AssertEquals('Property type class type',TPasUnresolvedTypeRef,Property1.vartype.ClassType);
+  AssertEquals('Property type name','AInterface',Property1.vartype.name);
+  Assertequals('No index','',Property1.IndexValue);
+  AssertNull('No Index expression',Property1.IndexExpr);
+  AssertNull('No default expression',Property1.DefaultExpr);
+  Assertequals('Default value','',Property1.DefaultValue);
+  AssertTrue('Deprecated',[hDeprecated]=Property1.Hints);
 end;
 
 procedure TTestClassType.TestPropertyImplementsFullyQualifiedName;
@@ -1650,6 +1766,44 @@ begin
   AssertSame('Type parent is class',TheClass, Const2.Parent);
   AssertNotNull('Member 3 is procedure',Method3);
   AssertEquals('method name','Something', Method3.Name);
+end;
+
+procedure TTestClassType.TestClassTypeAttributes;
+begin
+  Add([
+  '{$modeswitch prefixedattributes}',
+  'type',
+  '  TObject = class',
+  '  [Black]',
+  '  type',
+  '    [Red]',
+  '    [White]',
+  '    TWord = word;',
+  '    [Blue]',
+  '    [Green]',
+  '    TChar = char;',
+  '  end;',
+  '']);
+  ParseDeclarations;
+end;
+
+procedure TTestClassType.TestClassConstAttributes;
+begin
+  Add([
+  '{$modeswitch prefixedattributes}',
+  'type',
+  '  TObject = class',
+  '  [Black]',
+  '  const',
+  '    [Red]',
+  '    [White]',
+  '    A = 1;',
+  '    [Blue]',
+  '    [Green]',
+  '    B = 2;',
+  '  end;',
+  '']);
+  ParseDeclarations;
 end;
 
 procedure TTestClassType.TestClassHelperEmpty;

@@ -20,13 +20,17 @@ Unit System;
                                     interface
 {*****************************************************************************}
 
+{$define FPC_SYSTEM_HAS_STACKTOP}
+
 {$define FPC_IS_SYSTEM}
 {$define HAS_CMDLINE}
 
 { currently, the avr compiler cannot compile complex procedures especially dealing with int64
-  which are probaly anyways rarely used on avr }
+  which are probably anyways rarely used on avr
+
+  meanwhile, the avr compiler can deal with them (FK) }
 {$ifdef CPUAVR}
-{$define EXCLUDE_COMPLEX_PROCS}
+{ $define EXCLUDE_COMPLEX_PROCS}
 {$endif CPUAVR}
 
 { $define USE_NOTHREADMANAGER}
@@ -37,6 +41,9 @@ Unit System;
 {$define FPC_NO_DEFAULT_HEAP}
 
 {$define FPC_ANSI_TEXTFILEREC}
+
+{ make output and stdout as well as input and stdin equal to save memory }
+{$define FPC_STDOUT_TRUE_ALIAS}
 
 {$ifdef CPUI8086}
   {$DEFINE FPC_INCLUDE_SOFTWARE_MUL}
@@ -135,6 +142,7 @@ var
 {$undef fpc_softfpu_interface}
 
 {$endif FPC_HAS_FEATURE_SOFTFPU}
+
 {$endif FPUNONE}
 
 {$ifdef CPUI8086}
@@ -194,11 +202,20 @@ const calculated_cmdline:Pchar=nil;
 {$endif FPC_HAS_FEATURE_SOFTFPU}
 {$endif FPUNONE}
 
+{$define FPC_SYSTEM_EXIT_NO_RETURN}
 {$I system.inc}
 
 {*****************************************************************************
                        Misc. System Dependent Functions
 *****************************************************************************}
+var
+ _stack_top: record end; external name '_stack_top';
+
+function StackTop: pointer;
+begin
+  StackTop:=@_stack_top;
+end;
+
 
 procedure haltproc;cdecl;external name '_haltproc';
 
@@ -273,7 +290,7 @@ begin
 end;
 
 var
-  initialstkptr : Pointer; // external name '__stkptr';
+  initialstkptr : record end; external name '_stack_top';
 {$endif FPC_HAS_FEATURE_STACKCHECK}
 
 begin
@@ -290,7 +307,7 @@ begin
 
 {$ifdef FPC_HAS_FEATURE_STACKCHECK}
   StackLength := CheckInitialStkLen(initialStkLen);
-  StackBottom := initialstkptr - StackLength;
+  StackBottom := @initialstkptr - StackLength;
 {$endif FPC_HAS_FEATURE_STACKCHECK}
 
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}

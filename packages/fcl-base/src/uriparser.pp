@@ -40,11 +40,11 @@ function EncodeURI(const URI: TURI): String;
 function ParseURI(const URI: String; Decode : Boolean = True):  TURI; overload;
 function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word; Decode : Boolean = True):  TURI; overload;
 
-function ResolveRelativeURI(const BaseUri, RelUri: WideString;
-  out ResultUri: WideString): Boolean; overload;
-
-function ResolveRelativeURI(const BaseUri, RelUri: AnsiString;
-  out ResultUri: AnsiString): Boolean; overload;
+function ResolveRelativeURI(const BaseUri, RelUri: UnicodeString;out ResultUri: UnicodeString): Boolean; overload;
+{$ifdef WINDOWS}  
+function ResolveRelativeURI(const BaseUri, RelUri: WideString; out ResultUri: WideString): Boolean; overload;
+{$ENDIF}
+function ResolveRelativeURI(const BaseUri, RelUri: AnsiString;  out ResultUri: AnsiString): Boolean; overload;
 
 function URIToFilename(const URI: string; out Filename: string): Boolean;
 function FilenameToURI(const Filename: string; Encode : Boolean = True): string;
@@ -167,11 +167,14 @@ begin
 end;
 
 function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word;Decode : Boolean = True):  TURI;
+
 var
   s, Authority: String;
   i,j: Integer;
   PortValid: Boolean;
+  
 begin
+  Result:=Default(TURI);
   Result.Protocol := LowerCase(DefaultProtocol);
   Result.Port := DefaultPort;
 
@@ -332,8 +335,7 @@ begin
   end;
 end;
 
-function ResolveRelativeURI(const BaseUri, RelUri: AnsiString;
-  out ResultUri: AnsiString): Boolean;
+function ResolveRelativeURI(const BaseUri, RelUri: AnsiString; out ResultUri: AnsiString): Boolean;
 var
   Base, Rel: TUri;
 begin
@@ -381,8 +383,21 @@ begin
   ResultUri := EncodeUri(Rel);
 end;
 
-function ResolveRelativeURI(const BaseUri, RelUri: WideString;
-  out ResultUri: WideString): Boolean;
+{$IFDEF WINDOWS}
+function ResolveRelativeURI(const BaseUri, RelUri: WideString; out ResultUri: WideString): Boolean;
+
+Var
+  Res : AnsiString;
+
+begin
+  Result := ResolveRelativeURI(UTF8Encode(BaseUri), UTF8Encode(RelUri), Res);
+  if Result then
+    ResultURI := UTF8Decode(res);
+end;
+{$ENDIF}
+
+function ResolveRelativeURI(const BaseUri, RelUri: UnicodeString;
+  out ResultUri: UnicodeString): Boolean;
 var
   rslt: AnsiString;
 begin

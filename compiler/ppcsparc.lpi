@@ -1,7 +1,7 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
@@ -32,12 +32,10 @@
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="pp"/>
       </Unit0>
       <Unit1>
         <Filename Value="sparc\aasmcpu.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="aasmcpu"/>
       </Unit1>
     </Units>
   </ProjectOptions>
@@ -48,8 +46,8 @@
       <Filename Value="sparc\pp"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="sparc"/>
-      <OtherUnitFiles Value="sparc;systems"/>
+      <IncludeFiles Value="sparc;sparcgen"/>
+      <OtherUnitFiles Value="sparc;sparcgen;systems"/>
       <UnitOutputDirectory Value="sparc\lazbuild"/>
     </SearchPaths>
     <Parsing>
@@ -70,7 +68,6 @@
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
       <CustomOptions Value="-dsparc"/>
-      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
 </CONFIG>

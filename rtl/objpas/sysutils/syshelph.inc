@@ -5,6 +5,28 @@ Type
   TStringArray = Array of string;
   TCharArray = Array of char;
   TEndian = ObjPas.TEndian;
+  TByteBitIndex = 0..7;
+  TShortIntBitIndex = 0..7;
+  TWordBitIndex = 0..15;
+  TSmallIntBitIndex = 0..15;
+  TCardinalBitIndex = 0..31;
+  TIntegerBitIndex = 0..31;
+  TLongIntBitIndex = TIntegerBitIndex;
+  TQwordBitIndex = 0..63;
+  TInt64BitIndex = 0..63;
+{$IFDEF cpu16}
+  TNativeUIntBitIndex = TWordBitIndex;
+  TNativeIntBitIndex = TSmallIntBitIndex;
+{$ENDIF}
+{$IFDEF cpu32}
+  TNativeUIntBitIndex = TCardinalBitIndex;
+  TNativeIntBitIndex = TIntegerBitIndex;
+{$ENDIF}
+{$IFDEF cpu64}
+  TNativeUIntBitIndex = TQWordBitIndex;
+  TNativeIntBitIndex = TInt64BitIndex;
+{$ENDIF}
+
   
 Const
   CPUEndian = {$IFDEF FPC_LITTLE_ENDIAN}TEndian.Little{$ELSE}TEndian.Big{$ENDIF};
@@ -37,24 +59,24 @@ Type
 
   TStringHelper = Type Helper for AnsiString
   Private
-    Function GetChar(AIndex : Integer) : Char;
-    Function GetLength : Integer;
+    Function GetChar(AIndex : SizeInt) : Char;
+    Function GetLength : SizeInt;
   public
     const Empty = '';
     // Methods
     Class Function Compare(const A: string; const B: string): Integer; overload; static; //inline;
     Class Function Compare(const A: string; const B: string; IgnoreCase: Boolean): Integer; overload; static; //inline; //deprecated 'Use same with TCompareOptions';
     Class Function Compare(const A: string; const B: string; Options: TCompareOptions): Integer; overload; static; // inline;
-    Class Function Compare(const A: string; IndexA: Integer; const B: string; IndexB: Integer; ALen: Integer): Integer; overload; static; // inline;
-    Class Function Compare(const A: string; IndexA: Integer; const B: string; IndexB: Integer; ALen: Integer; IgnoreCase: Boolean): Integer; overload; static; // inline; //deprecated 'Use same with TCompareOptions';
-    Class Function Compare(const A: string; IndexA: Integer; const B: string; IndexB: Integer; ALen: Integer; Options: TCompareOptions): Integer; overload; static;//  inline;
+    Class Function Compare(const A: string; IndexA: SizeInt; const B: string; IndexB: SizeInt; ALen: SizeInt): Integer; overload; static; // inline;
+    Class Function Compare(const A: string; IndexA: SizeInt; const B: string; IndexB: SizeInt; ALen: SizeInt; IgnoreCase: Boolean): Integer; overload; static; // inline; //deprecated 'Use same with TCompareOptions';
+    Class Function Compare(const A: string; IndexA: SizeInt; const B: string; IndexB: SizeInt; ALen: SizeInt; Options: TCompareOptions): Integer; overload; static;//  inline;
     Class Function CompareOrdinal(const A: string; const B: string): Integer; overload; static;
-    Class Function CompareOrdinal(const A: string; IndexA: Integer; const B: string; IndexB: Integer; ALen: Integer): Integer; overload; static;
+    Class Function CompareOrdinal(const A: string; IndexA: SizeInt; const B: string; IndexB: SizeInt; ALen: SizeInt): Integer; overload; static;
     Class Function CompareText(const A: string; const B: string): Integer; static; inline;
     Class Function Copy(const Str: string): string; inline; static;
-    Class Function Create(AChar: Char; ACount: Integer): string; overload; inline; static;
+    Class Function Create(AChar: Char; ACount: SizeInt): string; overload; inline; static;
     Class Function Create(const AValue: array of Char): string; overload; static;
-    Class Function Create(const AValue: array of Char; StartIndex: Integer; ALen: Integer): string; overload; static;
+    Class Function Create(const AValue: array of Char; StartIndex: SizeInt; ALen: SizeInt): string; overload; static;
     Class Function EndsText(const ASubText, AText: string): Boolean; static;
     Class Function Equals(const a: string; const b: string): Boolean; overload; static;
     Class Function Format(const AFormat: string; const args: array of const): string; overload; static;
@@ -62,7 +84,7 @@ Type
     Class Function IsNullOrWhiteSpace(const AValue: string): Boolean; static;
     Class Function Join(const Separator: string; const Values: array of const): string; overload; static;
     Class Function Join(const Separator: string; const Values: array of string): string; overload; static;
-    Class Function Join(const Separator: string; const Values: array of string; StartIndex: Integer; ACount: Integer): string; overload; static;
+    Class Function Join(const Separator: string; const Values: array of string; StartIndex: SizeInt; ACount: SizeInt): string; overload; static;
     Class Function LowerCase(const S: string): string; overload; static; inline;
     Class Function Parse(const AValue: Boolean): string; overload; static; inline;
     Class Function Parse(const AValue: Extended): string; overload; static;inline;
@@ -77,8 +99,8 @@ Type
     Class Function UpperCase(const S: string): string; overload; static; inline;
     Function CompareTo(const B: string): Integer;
     Function Contains(const AValue: string): Boolean;
-    procedure CopyTo(SourceIndex: Integer; var destination: array of Char; DestinationIndex: Integer; ACount: Integer);
-    Function CountChar(const C: Char): Integer;
+    procedure CopyTo(SourceIndex: SizeInt; var destination: array of Char; DestinationIndex: SizeInt; ACount: SizeInt);
+    Function CountChar(const C: Char): SizeInt;
     Function DeQuotedString: string; overload;
     Function DeQuotedString(const AQuoteChar: Char): string; overload;
     Function EndsWith(const AValue: string): Boolean; overload; inline;
@@ -86,71 +108,71 @@ Type
     Function Equals(const AValue: string): Boolean; overload;
     Function Format(const args: array of const): string; overload;
     Function GetHashCode: Integer;
-    Function IndexOf(AValue: Char): Integer; overload; inline;
-    Function IndexOf(const AValue: string): Integer; overload; inline;
-    Function IndexOf(AValue: Char; StartIndex: Integer): Integer; overload;
-    Function IndexOf(const AValue: string; StartIndex: Integer): Integer; overload;
-    Function IndexOf(AValue: Char; StartIndex: Integer; ACount: Integer): Integer; overload;
-    Function IndexOf(const AValue: string; StartIndex: Integer; ACount: Integer): Integer; overload;
-    Function IndexOfUnQuoted(const AValue: string; StartQuote, EndQuote: Char; StartIndex: Integer = 0): Integer; overload;
-    Function IndexOfAny(const AnyOf: array of Char): Integer; overload;
-    Function IndexOfAny(const AnyOf: array of Char; StartIndex: Integer): Integer; overload;
-    Function IndexOfAny(const AnyOf: array of Char; StartIndex: Integer; ACount: Integer): Integer; overload;
-    Function IndexOfAny(const AnyOf: array of String): Integer; overload;
-    Function IndexOfAny(const AnyOf: array of String; StartIndex: Integer): Integer; overload;
-    Function IndexOfAny(const AnyOf: array of String; StartIndex: Integer; ACount: Integer): Integer; overload;
-    Function IndexOfAny(const AnyOf: array of String; StartIndex: Integer; ACount: Integer; Out AMatch : Integer): Integer; overload;
-    Function IndexOfAnyUnquoted(const AnyOf: array of Char; StartQuote, EndQuote: Char): Integer; overload;
-    Function IndexOfAnyUnquoted(const AnyOf: array of Char; StartQuote, EndQuote: Char; StartIndex: Integer): Integer; overload;
-    Function IndexOfAnyUnquoted(const AnyOf: array of Char; StartQuote, EndQuote: Char; StartIndex: Integer; ACount: Integer): Integer; overload;
-    function IndexOfAnyUnquoted(const AnyOf: array of string; StartQuote, EndQuote: Char; StartIndex: Integer; Out Matched: Integer): Integer; overload;
-    Function Insert(StartIndex: Integer; const AValue: string): string;
-    Function IsDelimiter(const Delimiters: string; Index: Integer): Boolean;
+    Function IndexOf(AValue: Char): SizeInt; overload; inline;
+    Function IndexOf(const AValue: string): SizeInt; overload; inline;
+    Function IndexOf(AValue: Char; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOf(const AValue: string; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOf(AValue: Char; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function IndexOf(const AValue: string; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function IndexOfUnQuoted(const AValue: string; StartQuote, EndQuote: Char; StartIndex: SizeInt = 0): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of Char): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of Char; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of Char; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of String): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of String; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of String; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function IndexOfAny(const AnyOf: array of String; StartIndex: SizeInt; ACount: SizeInt; Out AMatch : SizeInt): SizeInt; overload;
+    Function IndexOfAnyUnquoted(const AnyOf: array of Char; StartQuote, EndQuote: Char): SizeInt; overload;
+    Function IndexOfAnyUnquoted(const AnyOf: array of Char; StartQuote, EndQuote: Char; StartIndex: SizeInt): SizeInt; overload;
+    Function IndexOfAnyUnquoted(const AnyOf: array of Char; StartQuote, EndQuote: Char; StartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    function IndexOfAnyUnquoted(const AnyOf: array of string; StartQuote, EndQuote: Char; StartIndex: SizeInt; Out Matched: SizeInt): SizeInt; overload;
+    Function Insert(StartIndex: SizeInt; const AValue: string): string;
+    Function IsDelimiter(const Delimiters: string; Index: SizeInt): Boolean;
     Function IsEmpty: Boolean;
-    Function LastDelimiter(const Delims: string): Integer;
-    Function LastIndexOf(AValue: Char): Integer; overload;
-    Function LastIndexOf(const AValue: string): Integer; overload;
-    Function LastIndexOf(AValue: Char; AStartIndex: Integer): Integer; overload;
-    Function LastIndexOf(const AValue: string; AStartIndex: Integer): Integer; overload;
-    Function LastIndexOf(AValue: Char; AStartIndex: Integer; ACount: Integer): Integer; overload;
-    Function LastIndexOf(const AValue: string; AStartIndex: Integer; ACount: Integer): Integer; overload;
-    Function LastIndexOfAny(const AnyOf: array of Char): Integer; overload;
-    Function LastIndexOfAny(const AnyOf: array of Char; AStartIndex: Integer): Integer; overload;
-    Function LastIndexOfAny(const AnyOf: array of Char; AStartIndex: Integer; ACount: Integer): Integer; overload;
-    Function PadLeft(ATotalWidth: Integer): string; overload; inline;
-    Function PadLeft(ATotalWidth: Integer; PaddingChar: Char): string; overload; inline;
-    Function PadRight(ATotalWidth: Integer): string; overload; inline;
-    Function PadRight(ATotalWidth: Integer; PaddingChar: Char): string; overload; inline;
+    Function LastDelimiter(const Delims: string): SizeInt;
+    Function LastIndexOf(AValue: Char): SizeInt; overload;
+    Function LastIndexOf(const AValue: string): SizeInt; overload;
+    Function LastIndexOf(AValue: Char; AStartIndex: SizeInt): SizeInt; overload;
+    Function LastIndexOf(const AValue: string; AStartIndex: SizeInt): SizeInt; overload;
+    Function LastIndexOf(AValue: Char; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function LastIndexOf(const AValue: string; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function LastIndexOfAny(const AnyOf: array of Char): SizeInt; overload;
+    Function LastIndexOfAny(const AnyOf: array of Char; AStartIndex: SizeInt): SizeInt; overload;
+    Function LastIndexOfAny(const AnyOf: array of Char; AStartIndex: SizeInt; ACount: SizeInt): SizeInt; overload;
+    Function PadLeft(ATotalWidth: SizeInt): string; overload; inline;
+    Function PadLeft(ATotalWidth: SizeInt; PaddingChar: Char): string; overload; inline;
+    Function PadRight(ATotalWidth: SizeInt): string; overload; inline;
+    Function PadRight(ATotalWidth: SizeInt; PaddingChar: Char): string; overload; inline;
     Function QuotedString: string; overload;
     Function QuotedString(const AQuoteChar: Char): string; overload;
-    Function Remove(StartIndex: Integer): string; overload; inline;
-    Function Remove(StartIndex: Integer; ACount: Integer): string; overload; inline;
+    Function Remove(StartIndex: SizeInt): string; overload; inline;
+    Function Remove(StartIndex: SizeInt; ACount: SizeInt): string; overload; inline;
     Function Replace(OldChar: Char; NewChar: Char): string; overload;
     Function Replace(OldChar: Char; NewChar: Char; ReplaceFlags: TReplaceFlags): string; overload;
     Function Replace(const OldValue: string; const NewValue: string): string; overload;
     Function Replace(const OldValue: string; const NewValue: string; ReplaceFlags: TReplaceFlags): string; overload;
     Function Split(const Separators: array of Char): TStringArray; overload;
-    Function Split(const Separators: array of Char; ACount: Integer): TStringArray; overload;
+    Function Split(const Separators: array of Char; ACount: SizeInt): TStringArray; overload;
     Function Split(const Separators: array of Char; Options: TStringSplitOptions): TStringArray; overload;
-    Function Split(const Separators: array of Char; ACount: Integer; Options: TStringSplitOptions): TStringArray; overload;
+    Function Split(const Separators: array of Char; ACount: SizeInt; Options: TStringSplitOptions): TStringArray; overload;
     Function Split(const Separators: array of string): TStringArray; overload;
-    Function Split(const Separators: array of string; ACount: Integer): TStringArray; overload;
+    Function Split(const Separators: array of string; ACount: SizeInt): TStringArray; overload;
     Function Split(const Separators: array of string; Options: TStringSplitOptions): TStringArray; overload;
-    Function Split(const Separators: array of string; ACount: Integer; Options: TStringSplitOptions): TStringArray; overload;
+    Function Split(const Separators: array of string; ACount: SizeInt; Options: TStringSplitOptions): TStringArray; overload;
     Function Split(const Separators: array of Char; AQuote: Char): TStringArray; overload;
     Function Split(const Separators: array of Char; AQuoteStart, AQuoteEnd: Char): TStringArray; overload;
     Function Split(const Separators: array of Char; AQuoteStart, AQuoteEnd: Char; Options: TStringSplitOptions): TStringArray; overload;
-    Function Split(const Separators: array of Char; AQuoteStart, AQuoteEnd: Char; ACount: Integer): TStringArray; overload;
-    Function Split(const Separators: array of Char; AQuoteStart, AQuoteEnd: Char; ACount: Integer; Options: TStringSplitOptions): TStringArray; overload;
+    Function Split(const Separators: array of Char; AQuoteStart, AQuoteEnd: Char; ACount: SizeInt): TStringArray; overload;
+    Function Split(const Separators: array of Char; AQuoteStart, AQuoteEnd: Char; ACount: SizeInt; Options: TStringSplitOptions): TStringArray; overload;
     Function Split(const Separators: array of string; AQuote: Char): TStringArray; overload;
     Function Split(const Separators: array of string; AQuoteStart, AQuoteEnd: Char): TStringArray; overload;
     Function Split(const Separators: array of string; AQuoteStart, AQuoteEnd: Char; Options: TStringSplitOptions): TStringArray; overload;
-    Function Split(const Separators: array of string; AQuoteStart, AQuoteEnd: Char; ACount: Integer): TStringArray; overload;
-    Function Split(const Separators: array of string; AQuoteStart, AQuoteEnd: Char; ACount: Integer; Options: TStringSplitOptions): TStringArray; overload;
+    Function Split(const Separators: array of string; AQuoteStart, AQuoteEnd: Char; ACount: SizeInt): TStringArray; overload;
+    Function Split(const Separators: array of string; AQuoteStart, AQuoteEnd: Char; ACount: SizeInt; Options: TStringSplitOptions): TStringArray; overload;
     Function StartsWith(const AValue: string): Boolean; overload; inline;
     Function StartsWith(const AValue: string; IgnoreCase: Boolean): Boolean; overload;
-    Function Substring(AStartIndex: Integer): string; overload;
-    Function Substring(AStartIndex: Integer; ALen: Integer): string; overload;
+    Function Substring(AStartIndex: SizeInt): string; overload;
+    Function Substring(AStartIndex: SizeInt; ALen: SizeInt): string; overload;
     Function ToBoolean: Boolean; overload; inline;
     Function ToInteger: Integer; overload; inline;
     Function ToInt64: Int64; overload; inline;
@@ -158,7 +180,7 @@ Type
     Function ToDouble: Double; overload; inline;
     Function ToExtended: Extended; overload; inline;
     Function ToCharArray: TCharArray; overload;
-    Function ToCharArray(AStartIndex: Integer; ALen: Integer): TCharArray; overload;
+    Function ToCharArray(AStartIndex: SizeInt; ALen: SizeInt): TCharArray; overload;
     Function ToLower: string; overload; inline;
     Function ToLowerInvariant: string;
     Function ToUpper: string; overload; inline;
@@ -171,8 +193,8 @@ Type
     Function TrimRight(const ATrimChars: array of Char): string; overload;
     Function TrimEnd(const ATrimChars: array of Char): string; deprecated 'Use TrimRight';
     Function TrimStart(const ATrimChars: array of Char): string; deprecated 'Use TrimLeft';
-    property Chars[AIndex: Integer]: Char read GetChar;
-    property Length: Integer read GetLength;
+    property Chars[AIndex: SizeInt]: Char read GetChar;
+    property Length: SizeInt read GetLength;
   end;
 
 {$IFDEF FPC_HAS_TYPE_SINGLE}
@@ -373,10 +395,15 @@ Type
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
+    Function ToBinString:string;
     Function ToHexString(const AMinDigits: Integer): string; overload; inline;
     Function ToHexString: string; overload; inline;
     Function ToSingle: Single; inline;
     Function ToString: string; overload; inline;
+    Function SetBit(const Index: TByteBitIndex) : Byte; inline;
+    Function ClearBit(const Index: TByteBitIndex) : Byte; inline;
+    Function ToggleBit(const Index: TByteBitIndex) : Byte; inline;
+    Function TestBit(const Index:TByteBitIndex):Boolean; inline;
   end;
 
   TShortIntHelper = Type Helper for ShortInt
@@ -393,10 +420,15 @@ Type
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
+    Function ToBinString:string; inline;
     Function ToHexString(const AMinDigits: Integer): string; overload; inline;
     Function ToHexString: string; overload; inline;
     Function ToSingle: Single; inline;
     Function ToString: string; overload; inline;
+    Function SetBit(const Index: TShortIntBitIndex): Shortint; inline;
+    Function ClearBit(const Index: TShortIntBitIndex): Shortint; inline;
+    Function ToggleBit(const Index: TShortIntBitIndex): Shortint; inline;
+    Function TestBit(const Index:TShortIntBitIndex):Boolean;
   end;
 
   TSmallIntHelper = Type Helper for SmallInt
@@ -412,11 +444,16 @@ Type
   public
     Function ToString: string; overload; inline;
     Function ToBoolean: Boolean; inline;
+    Function ToBinString:string; inline;
     Function ToHexString: string; overload; inline;
     Function ToHexString(const AMinDigits: Integer): string; overload; inline;
     Function ToSingle: Single; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
+    Function SetBit(const Index: TSmallIntBitIndex) : Smallint; inline;
+    Function ClearBit(const Index: TSmallIntBitIndex) : Smallint; inline;
+    Function ToggleBit(const Index: TSmallIntBitIndex) : Smallint; inline;
+    Function TestBit(const Index:TSmallIntBitIndex):Boolean;    
   end;
 
   TWordHelper = Type Helper for Word
@@ -433,10 +470,15 @@ Type
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
+    Function ToBinString:string; inline;
     Function ToHexString(const AMinDigits: Integer): string; overload; inline;
     Function ToHexString: string; overload; inline;
     Function ToSingle: Single; inline;
     Function ToString: string; overload; inline;
+    Function SetBit(const Index: TWordBitIndex) : Word; inline;
+    Function ClearBit(const Index: TWordBitIndex) : Word; inline;
+    Function ToggleBit(const Index: TWordBitIndex) : Word; inline;
+    Function TestBit(const Index:TWordBitIndex):Boolean; inline;    
   end;
 
   TCardinalHelper = Type Helper for Cardinal { for LongWord Type too }
@@ -453,10 +495,15 @@ Type
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
+    Function ToBinString:string; inline;
     Function ToHexString(const AMinDigits: Integer): string; overload; inline;
     Function ToHexString: string; overload; inline;
     Function ToSingle: Single; inline;
     Function ToString: string; overload; inline;
+    Function SetBit(const Index: TCardinalBitIndex) : Cardinal; inline;
+    Function ClearBit(const Index: TCardinalBitIndex) : Cardinal; inline;
+    Function ToggleBit(const Index: TCardinalBitIndex) : Cardinal; inline;
+    Function TestBit(const Index:TCardinalBitIndex):Boolean; inline;   
   end;
 
   TIntegerHelper = Type Helper for Integer { for LongInt Type too }
@@ -473,10 +520,15 @@ Type
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
+    Function ToBinString:string; inline;
     Function ToHexString(const AMinDigits: Integer): string; overload; inline;
     Function ToHexString: string; overload; inline;
     Function ToSingle: Single; inline;
     Function ToString: string; overload; inline;
+    Function SetBit(const Index: TIntegerBitIndex) : Integer; inline;
+    Function ClearBit(const Index: TIntegerBitIndex) : Integer; inline;
+    Function ToggleBit(const Index: TIntegerBitIndex) : Integer; inline;
+    Function TestBit(const Index:TIntegerBitIndex):Boolean; inline;   
   end;
 
   TInt64Helper = Type Helper for Int64
@@ -493,10 +545,15 @@ Type
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
+    Function ToBinString:string; inline;
     Function ToHexString(const AMinDigits: Integer): string; overload; inline;
     Function ToHexString: string; overload; inline;
     Function ToSingle: Single; inline;
     Function ToString: string; overload; inline;
+    Function SetBit(const Index: TInt64BitIndex) : Int64; inline;
+    Function ClearBit(const Index: TInt64BitIndex) : Int64; inline;
+    Function ToggleBit(const Index: TInt64BitIndex) : Int64; inline;
+    Function TestBit(const Index:TInt64BitIndex):Boolean; inline; 
   end;
 
   TQWordHelper = Type Helper for QWord
@@ -513,22 +570,22 @@ Type
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
+    Function ToBinString:string; inline;
     Function ToHexString(const AMinDigits: Integer): string; overload; inline;
     Function ToHexString: string; overload; inline;
     Function ToSingle: Single; inline;
     Function ToString: string; overload; inline;
+    Function SetBit(const Index: TQwordBitIndex) : QWord; inline;
+    Function ClearBit(const Index: TQwordBitIndex) : QWord; inline;
+    Function ToggleBit(const Index: TQwordBitIndex) : QWord; inline;
+    Function TestBit(const Index:TQwordBitIndex):Boolean; inline; 
   end;
 
   TNativeIntHelper = Type Helper for NativeInt
   public
     const
-{$IFDEF CPU64BITS}
-      MaxValue = 9223372036854775807;
-      MinValue = -9223372036854775808;
-{$ELSE !CPU64BITS}
-      MaxValue = 2147483647;
-      MinValue = -2147483648;
-{$ENDIF CPU64BITS}
+      MaxValue = High(NativeInt);
+      MinValue = Low(NativeInt);
   Public
     Class Function Parse(const AString: string): NativeInt; inline; static;
     Class Function Size: Integer; inline; static;
@@ -538,20 +595,21 @@ Type
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
+    Function ToBinString:string; inline;
     Function ToHexString(const AMinDigits: Integer): string; overload; inline;
     Function ToHexString: string; overload; inline;
     Function ToSingle: Single; inline;
     Function ToString: string; overload; inline;
+    Function SetBit(const Index: TNativeIntBitIndex) : NativeInt; inline;
+    Function ClearBit(const Index: TNativeIntBitIndex) : NativeInt; inline;
+    Function ToggleBit(const Index: TNativeIntBitIndex) : NativeInt; inline;
+    Function TestBit(const Index:TNativeIntBitIndex):Boolean; inline; 
   end;
 
   TNativeUIntHelper = Type Helper for NativeUInt
   public
     const
-{$IFDEF CPU64BITS}
-      MaxValue = 18446744073709551615;
-{$ELSE !CPU64BITS}
-      MaxValue = 4294967295;
-{$ENDIF CPU64BITS}
+      MaxValue = High(NativeUInt);
       MinValue = 0;
   Public
     Class Function Parse(const AString: string): NativeUInt; inline; static;
@@ -562,10 +620,15 @@ Type
     Function ToBoolean: Boolean; inline;
     Function ToDouble: Double; inline;
     Function ToExtended: Extended; inline;
+    Function ToBinString:string; inline;
     Function ToHexString(const AMinDigits: Integer): string; overload; inline;
     Function ToHexString: string; overload; inline;
     Function ToSingle: Single; inline;
     Function ToString: string; overload; inline;
+    Function SetBit(const Index: TNativeUIntBitIndex) : NativeUint; inline;
+    Function ClearBit(const Index: TNativeUIntBitIndex): NativeUint; inline;
+    Function ToggleBit(const Index: TNativeUIntBitIndex) : NativeUint; inline;
+    Function TestBit(const Index:TNativeUIntBitIndex) :Boolean; inline;
   end;
 
   {$SCOPEDENUMS ON}

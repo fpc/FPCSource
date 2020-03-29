@@ -52,8 +52,6 @@ interface
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
     end;
 
-  procedure create_hlcodegen;
-
 implementation
 
   uses
@@ -90,10 +88,10 @@ implementation
                      (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
                     begin
                       cg.g_stackpointer_alloc(list,stacksize);
-                      reference_reset_base(href,voidstackpointertype,NR_STACK_POINTER_REG,0,voidstackpointertype.size,[]);
+                      reference_reset_base(href,voidstackpointertype,NR_STACK_POINTER_REG,0,ctempposinvalid,voidstackpointertype.size,[]);
                     end
                   else
-                    reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment,[]);
+                    reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
                   cg.a_loadfpu_reg_ref(list,locsize,locsize,l.register,href);
                 end;
               LOC_FPUREGISTER:
@@ -135,10 +133,10 @@ implementation
                      (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
                     begin
                       cg.g_stackpointer_alloc(list,stacksize);
-                      reference_reset_base(href,voidstackpointertype,NR_STACK_POINTER_REG,0,voidstackpointertype.size,[]);
+                      reference_reset_base(href,voidstackpointertype,NR_STACK_POINTER_REG,0,ctempposinvalid,voidstackpointertype.size,[]);
                     end
                   else
-                    reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment,[]);
+                    reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
                   cg.a_loadmm_reg_ref(list,locsize,locsize,l.register,href,mms_movescalar);
                 end;
               LOC_FPUREGISTER:
@@ -164,7 +162,7 @@ implementation
                     cg.a_load_ref_cgpara(list,locsize,l.reference,cgpara)
                   else
                     begin
-                      reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment,[]);
+                      reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
                       cg.g_concatcopy(list,l.reference,href,stacksize);
                     end;
                 end;
@@ -198,6 +196,7 @@ implementation
         { Alloc EBX }
         getcpuregister(list, NR_PIC_OFFSET_REG);
         list.concat(taicpu.op_reg_reg(A_MOV,S_L,current_procinfo.got,NR_PIC_OFFSET_REG));
+        include(current_procinfo.flags,pi_needs_got);
       end;
     Result:=inherited a_call_name(list, pd, s, paras, forceresdef, weak);
     { Free EBX }
@@ -230,7 +229,7 @@ implementation
 
   procedure thlcgcpu.g_exception_reason_save(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const href: treference);
     begin
-      if not paramanager.use_fixed_stack then
+      if not(paramanager.use_fixed_stack) and not(tf_use_psabieh in target_info.flags) then
         list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[def_cgsize(tosize)],reg))
       else
         inherited
@@ -239,7 +238,7 @@ implementation
 
   procedure thlcgcpu.g_exception_reason_save_const(list: TAsmList; size: tdef; a: tcgint; const href: treference);
     begin
-      if not paramanager.use_fixed_stack then
+      if not(paramanager.use_fixed_stack) and not(tf_use_psabieh in target_info.flags) then
         list.concat(Taicpu.op_const(A_PUSH,tcgsize2opsize[def_cgsize(size)],a))
       else
         inherited;
@@ -248,7 +247,7 @@ implementation
 
   procedure thlcgcpu.g_exception_reason_load(list: TAsmList; fromsize, tosize: tdef; const href: treference; reg: tregister);
     begin
-      if not paramanager.use_fixed_stack then
+      if not(paramanager.use_fixed_stack) and not(tf_use_psabieh in target_info.flags) then
         list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[def_cgsize(tosize)],reg))
       else
         inherited;
@@ -257,7 +256,7 @@ implementation
 
   procedure thlcgcpu.g_exception_reason_discard(list: TAsmList; size: tdef; href: treference);
     begin
-      if not paramanager.use_fixed_stack then
+      if not(paramanager.use_fixed_stack) and not(tf_use_psabieh in target_info.flags) then
         begin
           getcpuregister(list,NR_FUNCTION_RESULT_REG);
           list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[def_cgsize(size)],NR_FUNCTION_RESULT_REG));
@@ -334,7 +333,7 @@ implementation
               selfoffsetfromsp:=2*sizeof(aint)
             else
               selfoffsetfromsp:=sizeof(aint);
-            reference_reset_base(href,voidstackpointertype,NR_ESP,selfoffsetfromsp+offs,4,[]);
+            reference_reset_base(href,voidstackpointertype,NR_ESP,selfoffsetfromsp+offs,ctempposinvalid,4,[]);
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
           end;
       end;
@@ -344,7 +343,7 @@ implementation
         href : treference;
       begin
         { mov  0(%eax),%reg ; load vmt}
-        reference_reset_base(href,voidpointertype,NR_EAX,0,4,[]);
+        reference_reset_base(href,voidpointertype,NR_EAX,0,ctempposinvalid,4,[]);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,reg);
       end;
 
@@ -355,7 +354,7 @@ implementation
         if (procdef.extnumber=$ffff) then
           Internalerror(200006139);
         { call/jmp  vmtoffs(%reg) ; method offs }
-        reference_reset_base(href,voidpointertype,reg,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4,[]);
+        reference_reset_base(href,voidpointertype,reg,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,4,[]);
         list.concat(taicpu.op_ref(op,S_L,href));
       end;
 
@@ -367,7 +366,7 @@ implementation
         if (procdef.extnumber=$ffff) then
           Internalerror(200006139);
         { mov vmtoffs(%eax),%eax ; method offs }
-        reference_reset_base(href,voidpointertype,NR_EAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4,[]);
+        reference_reset_base(href,voidpointertype,NR_EAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,4,[]);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
       end;
 
@@ -395,7 +394,7 @@ implementation
       if make_global then
         List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0,procdef))
       else
-        List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0,procdef));
+        List.concat(Tai_symbol.Createname_hidden(labelname,AT_FUNCTION,0,procdef));
 
       { set param1 interface to self  }
       g_adjust_self_value(list,procdef,ioffset);
@@ -412,7 +411,7 @@ implementation
               loadvmtto(NR_EAX);
               loadmethodoffstoeax;
               { mov %eax,4(%esp) }
-              reference_reset_base(href,voidstackpointertype,NR_ESP,4,4,[]);
+              reference_reset_base(href,voidstackpointertype,NR_ESP,4,ctempposinvalid,4,[]);
               list.concat(taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
               { pop  %eax }
               list.concat(taicpu.op_reg(A_POP,S_L,NR_EAX));
@@ -443,7 +442,7 @@ implementation
     end;
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_cpu;
     begin
       hlcg:=thlcgcpu.create;
       create_codegen;
@@ -453,4 +452,5 @@ implementation
 
 begin
   chlcgobj:=thlcgcpu;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.

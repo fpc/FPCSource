@@ -1,4 +1,4 @@
-Unit stdole2;
+Unit StdOle2;
 
 //  Imported on 24/12/2011 13:43:11 from C:\WINDOWS\system32\stdole2.tlb
 //  Modified by Ludo Brands to remove redeclarations

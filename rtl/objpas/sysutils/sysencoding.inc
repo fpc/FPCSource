@@ -17,13 +17,22 @@
 
 class function TEncoding.GetANSI: TEncoding;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
   try
+{$endif}
     if not Assigned(FStandardEncodings[seAnsi]) then
-      FStandardEncodings[seAnsi] := TMBCSEncoding.Create(DefaultSystemCodePage);
+    begin
+      if Assigned(widestringmanager.GetStandardCodePageProc) then
+        FStandardEncodings[seAnsi] := TMBCSEncoding.Create(widestringmanager.GetStandardCodePageProc(scpAnsi))
+      else
+        FStandardEncodings[seAnsi] := TMBCSEncoding.Create(DefaultSystemCodePage);
+    end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);
   end;
+{$endif}
   Result := FStandardEncodings[seAnsi];
 end;
 
@@ -52,80 +61,142 @@ end;
 
 class function TEncoding.GetASCII: TEncoding;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
   try
+{$endif}
     if not Assigned(FStandardEncodings[seAscii]) then
       FStandardEncodings[seAscii] := TMBCSEncoding.Create(CP_ASCII);
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);
   end;
+{$endif}
   Result := FStandardEncodings[seAscii];
 end;
 
 class function TEncoding.GetBigEndianUnicode: TEncoding;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
   try
+{$endif}
     if not Assigned(FStandardEncodings[seBigEndianUnicode]) then
       FStandardEncodings[seBigEndianUnicode] := TBigEndianUnicodeEncoding.Create;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);
   end;
+{$endif}
   Result := FStandardEncodings[seBigEndianUnicode];
 end;
 
 class function TEncoding.GetDefault: TEncoding;
 begin
-  Result := GetANSI;
+  Result := GetSystemEncoding;
+end;
+
+class function TEncoding.GetSystemEncoding: TEncoding;
+var
+  I: Integer;
+begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalSection(FLock);
+  try
+{$endif}
+    for I := Low(FSystemEncodings) to High(FSystemEncodings) do
+    begin
+      if FSystemEncodings[I].CodePage=DefaultSystemCodePage then
+      begin
+        Result := FSystemEncodings[I];
+        if I<>Low(FSystemEncodings) then // exchange with first position to find it faster the next time
+        begin
+          FSystemEncodings[I] := FSystemEncodings[Low(FSystemEncodings)];
+          FSystemEncodings[Low(FSystemEncodings)] := Result;
+        end;
+        Exit;
+      end;
+    end;
+    // not found - create new encoding at first position
+    Result := TMBCSEncoding.Create(DefaultSystemCodePage);
+    SetLength(FSystemEncodings, Length(FSystemEncodings)+1);
+    if High(FSystemEncodings)<>Low(FSystemEncodings) then
+      FSystemEncodings[High(FSystemEncodings)] := FSystemEncodings[Low(FSystemEncodings)];
+    FSystemEncodings[Low(FSystemEncodings)] := Result;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalSection(FLock);
+  end;
+{$endif}
 end;
 
 class function TEncoding.GetUnicode: TEncoding;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
   try
+{$endif}
     if not Assigned(FStandardEncodings[seUnicode]) then
       FStandardEncodings[seUnicode] := TUnicodeEncoding.Create;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);
   end;
+{$endif}
   Result := FStandardEncodings[seUnicode];
 end;
 
 class function TEncoding.GetUTF7: TEncoding;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
   try
+{$endif}
     if not Assigned(FStandardEncodings[seUTF7]) then
       FStandardEncodings[seUTF7] := TUTF7Encoding.Create;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);
   end;
+{$endif}
   Result := FStandardEncodings[seUTF7];
 end;
 
 class function TEncoding.GetUTF8: TEncoding;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
   try
+{$endif}
     if not Assigned(FStandardEncodings[seUTF8]) then
       FStandardEncodings[seUTF8] := TUTF8Encoding.Create;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);
   end;
+{$endif}
   Result := FStandardEncodings[seUTF8];
 end;
 
 class procedure TEncoding.FreeEncodings;
 var
   E: TStandardEncoding;
+  I: Integer;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(FLock);
   try
+{$endif}
     for E := Low(FStandardEncodings) to High(FStandardEncodings) do
-      FStandardEncodings[E].Free;
+      FreeAndNil(FStandardEncodings[E]);
+    for I := Low(FSystemEncodings) to High(FSystemEncodings) do
+      FSystemEncodings[I].Free;
+    SetLength(FSystemEncodings, 0);
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);
   end;
+{$endif}
 end;
 
 class constructor TEncoding.Create;
@@ -134,13 +205,17 @@ var
 begin
   for E := Low(FStandardEncodings) to High(FStandardEncodings) do
     FStandardEncodings[E] := nil;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   InitCriticalSection(FLock);
+{$endif}
 end;
 
 class destructor TEncoding.Destroy;
 begin
   FreeEncodings;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   DoneCriticalSection(FLock);
+{$endif}
 end;
 
 function TEncoding.Clone: TEncoding;
@@ -165,9 +240,14 @@ var
   Encoding: TEncoding;
 begin
   if Assigned(AEncoding) then
+  begin
     for Encoding in FStandardEncodings do
       if Encoding = AEncoding then
         Exit(True);
+    for Encoding in FSystemEncodings do
+      if Encoding = AEncoding then
+        Exit(True);
+  end;
   Result := False;
 end;
 
@@ -446,6 +526,11 @@ begin
   FCodePage := ACodePage;
   FMBToWCharFlags := MBToWCharFlags;
   FWCharToMBFlags := WCharToMBFlags;
+  case ACodePage of
+    CP_UTF7, CP_UTF8, CP_UTF16, CP_UTF16BE: FIsSingleByte := False;
+  else
+    FIsSingleByte := True;
+  end;
 end;
 
 function TMBCSEncoding.Clone: TEncoding;
@@ -484,7 +569,29 @@ end;
 
 function TMBCSEncoding.GetPreamble: TBytes;
 begin
-  Result := nil;
+  case CodePage of
+    CP_UTF8:
+    begin
+      SetLength(Result, 3);
+      Result[0] := $EF;
+      Result[1] := $BB;
+      Result[2] := $BF;
+    end;
+    CP_UTF16:
+    begin
+      SetLength(Result, 2);
+      Result[0] := $FF;
+      Result[1] := $FE;
+    end;
+    CP_UTF16BE:
+    begin
+      SetLength(Result, 2);
+      Result[0] := $FE;
+      Result[1] := $FF;
+    end;
+  else
+    Result := nil;
+  end;
 end;
 
 { TUTF7Encoding }

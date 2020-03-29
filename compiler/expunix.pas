@@ -27,10 +27,10 @@ unit expunix;
 interface
 
 uses
-  cutils,cclasses,
+  cclasses,
   systems,
   export,
-  symtype,symdef,symsym,
+  symdef,symsym,
   aasmbase;
 
 type
@@ -55,15 +55,14 @@ implementation
 
 uses
   symconst,
-  globtype,globals,
-  aasmdata,aasmtai,aasmcpu,
+  globals,
+  aasmdata,aasmtai,
   fmodule,
   {$ifdef cpuhighleveltarget}
   symcreat,
   {$endif}
-  cgbase,cgutils,cpubase,cgobj,
-  cgcpu,hlcgobj,hlcgcpu,
-  ncgutil,
+  cgbase,
+  hlcgobj,hlcgcpu,
   verbose;
 
 
@@ -140,6 +139,7 @@ begin
       anyhasalias:=false;
       { if the procedure has the exported name as one of its aliases, we don't
         need a separate stub }
+      pd:=nil;
       for i:=0 to tprocsym(hp.sym).procdeflist.count-1 do
         begin
           pd:=tprocdef(tprocsym(hp.sym).procdeflist[i]);

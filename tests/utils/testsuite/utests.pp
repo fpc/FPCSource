@@ -207,7 +207,14 @@ type
     ver_2_7_1,
     ver_3_0_0,
     ver_3_0_1,
-    ver_3_1_1);
+    ver_3_0_2,
+    ver_3_0_3,
+    ver_3_0_4,
+    ver_3_0_5,
+    ver_3_1_1,
+    ver_3_2_0,
+    ver_3_2_1,
+    ver_3_3_1);
 
 const
   ver_trunk = high (known_versions);
@@ -248,7 +255,14 @@ const
    '2.7.1',
    '3.0.0',
    '3.0.1',
-   '3.1.1'
+   '3.0.2',
+   '3.0.3',
+   '3.0.4',
+   '3.0.5',
+   '3.1.1',
+   '3.2.0',
+   '3.2.1',
+   '3.3.1'
   );
 
   ver_branch : array [known_versions] of string =
@@ -283,9 +297,16 @@ const
    'tags/release_2_6_4',
    'tags/release_2_6_4',
    'branches/fixes_2_6',
-   'trunk',
    'branches/release_3_0_0',
+   'branches/release_3_0_0',
+   'branches/release_3_0_2',
+   'branches/release_3_0_2',
+   'branches/release_3_0_4',
+   'branches/release_3_0_4',
    'branches/fixes_3_0',
+   'branches/fixes_3_2',
+   'branches/fixes_3_2',
+   'branches/fixes_3_2',
    'trunk'
   );
 
@@ -1470,7 +1491,7 @@ begin
           Open;
           while not EOF do
             Next;
-          RecNo:=0;
+          RecNo:=1;
 
           DumpLn(Format('<p>Record count: %d </p>',[Q.RecordCount]));
           Try
@@ -1969,9 +1990,9 @@ begin
       if FRunID<>'' then
         S:=S+' AND (TR_TESTRUN_FK='+FRunID+')';
       If FOnlyFailed then
-        S:=S+' AND (TR_OK="-")';
+        S:=S+' AND (NOT TR_OK)';
       If FNoSkipped then
-        S:=S+' AND (TR_SKIP="-")';
+        S:=S+' AND (NOT TR_SKIP)';
       If FCond<>'' then
         S:=S+' AND ('+FCond+')';
 
@@ -2079,7 +2100,7 @@ begin
 
           DumpLn(Format('<p>Record count: %d </p>',[Q.RecordCount]));
           if RecordCount>0 then
-            RecNo:=0;
+            RecNo:=1;
 
           Try
            { if FDebug then
@@ -2103,7 +2124,7 @@ begin
           version_ind:=FieldByName('TV_ID').Index;
           date_ind:=FieldByName('Date').Index;
           run_ind:=FieldByName('TU_ID').Index;
-          For i:=0 to Q.RecordCount-1 do
+          For i:=1 to Q.RecordCount do
             begin
               Q.RecNo:=i;
               inc(total_count);
@@ -2273,7 +2294,7 @@ begin
                 CellEnd;
                 if assigned(cpu_count) then
                   begin
-                    for i:=0 to cpu_last do
+                    for i:=1 to cpu_last do
                       if cpu_count^[i,TS]>0 then
                         begin
                           RowNext;
@@ -2297,7 +2318,7 @@ begin
                   end;
                 if assigned(os_count) then
                   begin
-                    for i:=0 to os_last do
+                    for i:=1 to os_last do
                       if os_count^[i,TS]>0 then
                         begin
                           RowNext;
@@ -2324,7 +2345,7 @@ begin
 
                 if assigned(version_count) then
                   begin
-                    for i:=0 to version_last do
+                    for i:=1 to version_last do
                       if version_count^[i,TS]>0 then
                         begin
                           RowNext;
@@ -2353,7 +2374,7 @@ begin
           if total_count>0 then
             begin
               TableEnd;
-              RecNo:=0;
+              RecNo:=1;
             end;
           If FDebug or FListAll then
            begin

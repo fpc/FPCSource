@@ -17,12 +17,15 @@
 {$include timers.inc}
 {$include fifomessages.inc} 
 {$include input.inc} 
+{$include rsa.inc} 
+{$include sha1.inc} 
  
 {$ifdef ARM9}
   {$include arm9/dynamicArray.inc}
   {$include arm9/linkedlist.inc}
   {$include arm9/sassert.inc}
   {$include arm9/background.inc}
+  {$include arm9/cache_asm.inc}
   {$include arm9/cache.inc}
   {$include arm9/console.inc}
   {$include arm9/keyboard.inc}
@@ -30,6 +33,7 @@
   {$include arm9/image.inc}
   {$include arm9/input.inc}
   {$include arm9/math.inc}
+  {$include arm9/nand.inc}
   {$include arm9/pcx.inc}
   {$include arm9/rumble.inc}
   {$include arm9/sound.inc}
@@ -44,13 +48,16 @@
   {$include arm9/guitarGrip.inc}
   {$include arm9/paddle.inc}
   {$include arm9/piano.inc}
+  {$include arm9/dldi_asm.inc}
   {$include arm9/dldi.inc}
   {$include arm9/window.inc}
 {$endif ARM9}
 
 {$ifdef ARM7}
+  {$include arm7/aes.inc}
   {$include arm7/audio.inc}
   {$include arm7/clock.inc}
+  {$include arm7/codec.inc}
   {$include arm7/input.inc}
   {$include arm7/i2c.inc}
   {$include arm7/serial.inc}

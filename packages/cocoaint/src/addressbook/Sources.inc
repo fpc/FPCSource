@@ -1,0 +1,11 @@
+{$define FRAMEWORK_LOADED_ADDRESSBOOK}
+{$include AddressBook.inc}
+{$include ABTypedefs.inc}
+{$include ABGlobals.inc}
+{$include ABAddressBook.inc}
+{$include ABRecord.inc}
+{$include ABGroup.inc}
+{$include ABPerson.inc}
+{$include ABImageLoading.inc}
+{$include ABSearchElement.inc}
+{$include ABMultiValue.inc}

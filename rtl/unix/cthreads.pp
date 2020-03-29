@@ -67,6 +67,9 @@ Procedure SetCThreadManager;
 implementation
 
 Uses
+{$if defined(Linux) and not defined(Android)}
+  Linux,
+{$endif}
   BaseUnix,
   unix,
   unixtype,
@@ -115,6 +118,10 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         {$ifdef cpusparc}
         threadvarblocksize:=align(threadvarblocksize,16);
         {$endif cpusparc}
+        
+        {$ifdef cpusparc64}
+        threadvarblocksize:=align(threadvarblocksize,16);
+        {$endif cpusparc64}
 
         {$ifdef cpupowerpc}
         threadvarblocksize:=align(threadvarblocksize,8);
@@ -155,6 +162,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       var
         dataindex : pointer;
       begin
+{$ifndef FPC_SECTION_THREADVARS}
         { we've to allocate the memory from system  }
         { because the FPC heap management uses      }
         { exceptions which use threadvars but       }
@@ -163,6 +171,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         DataIndex:=Pointer(Fpmmap(nil,threadvarblocksize,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0));
         FillChar(DataIndex^,threadvarblocksize,0);
         pthread_setspecific(tlskey,dataindex);
+{$endif FPC_SECTION_THREADVARS}
       end;
 
 
@@ -227,7 +236,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
     procedure CReleaseThreadVars;
       begin
+{$ifndef FPC_SECTION_THREADVARS}
         Fpmunmap(pointer(pthread_getspecific(tlskey)),threadvarblocksize);
+{$endif FPC_SECTION_THREADVARS}
       end;
 
 { Include OS independent Threadvar initialization }
@@ -294,9 +305,11 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         fpwrite(0,s[1],length(s));
 {$endif DEBUG_MT}
         ti:=pthreadinfo(param)^;
-        dispose(pthreadinfo(param));
+
         { Initialize thread }
         InitThread(ti.stklen);
+
+        dispose(pthreadinfo(param));
         { Start thread function }
 {$ifdef DEBUG_MT}
         writeln('Jumping to thread function');
@@ -357,7 +370,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       writeln('Starting new thread');
 {$endif DEBUG_MT}
       pthread_attr_init(@thread_attr);
-      {$if not defined(HAIKU) and not defined(ANDROID)}
+      {$if not defined(HAIKU)and not defined(BEOS) and not defined(ANDROID)}
       {$if defined (solaris) or defined (netbsd) }
       pthread_attr_setinheritsched(@thread_attr, PTHREAD_INHERIT_SCHED);
       {$else not solaris}
@@ -543,6 +556,10 @@ type
      TPthreadMutex = pthread_mutex_t;
      Tbasiceventstate=record
          FCondVar: TPthreadCondition;
+{$if defined(Linux) and not defined(Android)}         
+         FAttr: pthread_condattr_t;
+         FClockID: longint;
+{$ifend}        
          FEventSection: TPthreadMutex;
          FWaiters: longint;
          FIsSet,
@@ -561,19 +578,67 @@ Const
 function IntBasicEventCreate(EventAttributes : Pointer; AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
 var
   MAttr : pthread_mutexattr_t;
-  res   : cint;
+  res   : cint;  
+{$if defined(Linux) and not defined(Android)}  
+  timespec: ttimespec;
+{$ifend}  
 begin
   new(plocaleventstate(result));
   plocaleventstate(result)^.FManualReset:=AManualReset;
   plocaleventstate(result)^.FWaiters:=0;
   plocaleventstate(result)^.FDestroying:=False;
   plocaleventstate(result)^.FIsSet:=InitialState;
+{$if defined(Linux) and not defined(Android)}  
+  res := pthread_condattr_init(@plocaleventstate(result)^.FAttr);
+  if (res <> 0) then
+  begin
+    FreeMem(result);
+    fpc_threaderror;  
+  end;
+  
+  if clock_gettime(CLOCK_MONOTONIC_RAW, @timespec) = 0 then
+  begin
+    res := pthread_condattr_setclock(@plocaleventstate(result)^.FAttr, CLOCK_MONOTONIC_RAW);
+  end
+  else
+  begin
+    res := -1; // No support for CLOCK_MONOTONIC_RAW   
+  end;
+  
+  if (res = 0) then
+  begin
+    plocaleventstate(result)^.FClockID := CLOCK_MONOTONIC_RAW;
+  end
+  else
+  begin
+    res := pthread_condattr_setclock(@plocaleventstate(result)^.FAttr, CLOCK_MONOTONIC);
+    if (res = 0) then
+    begin
+      plocaleventstate(result)^.FClockID := CLOCK_MONOTONIC;
+    end
+    else
+    begin
+      pthread_condattr_destroy(@plocaleventstate(result)^.FAttr);
+      FreeMem(result);
+      fpc_threaderror;  
+    end;    
+  end;  
+
+  res := pthread_cond_init(@plocaleventstate(result)^.FCondVar, @plocaleventstate(result)^.FAttr);
+  if (res <> 0) then
+  begin
+    pthread_condattr_destroy(@plocaleventstate(result)^.FAttr);  
+    FreeMem(result);
+    fpc_threaderror;
+  end;
+{$else}
   res := pthread_cond_init(@plocaleventstate(result)^.FCondVar, nil);
   if (res <> 0) then
   begin
     FreeMem(result);
     fpc_threaderror;
-  end;
+  end; 
+{$ifend} 
 
   res:=pthread_mutexattr_init(@MAttr);
   if res=0 then
@@ -591,6 +656,9 @@ begin
   if res <> 0 then
     begin
       pthread_cond_destroy(@plocaleventstate(result)^.FCondVar);
+{$if defined(Linux) and not defined(Android)}  
+      pthread_condattr_destroy(@plocaleventstate(result)^.FAttr);	
+{$ifend}      
       FreeMem(result);
       fpc_threaderror;
     end;
@@ -612,6 +680,9 @@ begin
 
   { and clean up }
   pthread_cond_destroy(@plocaleventstate(state)^.Fcondvar);
+{$if defined(Linux) and not defined(Android)}  
+  pthread_condattr_destroy(@plocaleventstate(state)^.FAttr);	
+{$ifend}  
   pthread_mutex_destroy(@plocaleventstate(state)^.FEventSection);
   dispose(plocaleventstate(state));
 end;
@@ -642,6 +713,7 @@ var
   isset: boolean;
   tnow : timeval;
 begin
+
   { safely check whether we are being destroyed, if so immediately return. }
   { otherwise (under the same mutex) increase the number of waiters        }
   pthread_mutex_lock(@plocaleventstate(state)^.feventsection);
@@ -663,18 +735,33 @@ begin
     end
   else
     begin
-      //Wait with timeout using pthread_cont_timedwait
-      fpgettimeofday(@tnow,nil);
+      //Wait with timeout using pthread_cond_timedwait
+{$if defined(Linux) and not defined(Android)}
+      if clock_gettime(plocaleventstate(state)^.FClockID, @timespec) <> 0 then
+      begin
+        Result := Ord(wrError);
+        Exit;
+      end;
+      timespec.tv_sec  := timespec.tv_sec + (clong(timeout) div 1000);
+      timespec.tv_nsec := ((clong(timeout) mod 1000) * 1000000) + (timespec.tv_nsec);
+{$else}
+      // TODO: FIX-ME: Also use monotonic clock for other *nix targets
+      fpgettimeofday(@tnow, nil);
       timespec.tv_sec  := tnow.tv_sec + (clong(timeout) div 1000);
-      timespec.tv_nsec := (clong(timeout) mod 1000)*1000000 + tnow.tv_usec*1000;
+      timespec.tv_nsec := ((clong(timeout) mod 1000) * 1000000) + (tnow.tv_usec * 1000);
+{$ifend}
       if timespec.tv_nsec >= 1000000000 then
         begin
           inc(timespec.tv_sec);
           dec(timespec.tv_nsec, 1000000000);
         end;
-      errres:=0;
-      while (not plocaleventstate(state)^.FDestroying) and (not plocaleventstate(state)^.FIsSet) and (errres<>ESysETIMEDOUT) do
-        errres:=pthread_cond_timedwait(@plocaleventstate(state)^.Fcondvar, @plocaleventstate(state)^.feventsection, @timespec);
+      errres := 0;
+      while (not plocaleventstate(state)^.FDestroying) and
+            (not plocaleventstate(state)^.FIsSet) and 
+            (errres<>ESysETIMEDOUT) do
+        errres := pthread_cond_timedwait(@plocaleventstate(state)^.Fcondvar,
+                                         @plocaleventstate(state)^.feventsection, 
+                                         @timespec);
     end;
 
   isset := plocaleventstate(state)^.FIsSet;

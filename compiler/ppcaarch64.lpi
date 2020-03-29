@@ -43,7 +43,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="aarch64"/>
-      <OtherUnitFiles Value="aarch64;systems"/>
+      <OtherUnitFiles Value="armgen;aarch64;systems"/>
       <UnitOutputDirectory Value="aarch64\lazbuild"/>
     </SearchPaths>
     <Parsing>

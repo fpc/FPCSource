@@ -234,8 +234,6 @@ uses
 
     end;
 
-  procedure create_hlcodegen;
-
 
   const
     opcmp2if: array[topcmp] of tasmop = (A_None,
@@ -348,6 +346,8 @@ implementation
               a:=shortint(a);
             u16bit:
               a:=smallint(a);
+            else
+              ;
           end;
         end;
       a_load_const_stack(list,size,a,typ);
@@ -643,6 +643,8 @@ implementation
                      (fromloc.reference.indexbase<>NR_STACK_POINTER_REG) then
                     g_allocload_reg_reg(list,voidpointertype,fromloc.reference.indexbase,toloc.reference.indexbase,R_ADDRESSREGISTER);
                 end;
+              else
+                ;
             end;
           end;
         else
@@ -726,6 +728,8 @@ implementation
                     end;
                   procvardef:
                     g_call_system_proc(list,'fpc_initialize_array_procvar',[],nil);
+                  else
+                    internalerror(2019051025);
                 end;
                 tg.ungettemp(list,recref);
               end;
@@ -856,6 +860,8 @@ implementation
             a_op_const_stack(list,OP_XOR,size,cardinal($80000000));
           OS_64,OS_S64:
             a_op_const_stack(list,OP_XOR,size,tcgint($8000000000000000));
+          else
+            ;
         end;
       end;
 
@@ -871,7 +877,11 @@ implementation
           OS_32,OS_S32:
             result:=a xor cardinal($80000000);
           OS_64,OS_S64:
+{$push}{$r-}
             result:=a xor tcgint($8000000000000000);
+{$pop}
+          else
+            ;
         end;
       end;
 
@@ -1033,7 +1043,7 @@ implementation
               end;
             art_indexref:
               begin
-                cgutils.reference_reset_base(href,ref.indexbase,ref.indexoffset,4,ref.volatility);
+                cgutils.reference_reset_base(href,ref.indexbase,ref.indexoffset,ref.temppos,4,ref.volatility);
                 href.symbol:=ref.indexsymbol;
                 a_load_ref_stack(list,s32inttype,href,prepare_stack_for_ref(list,href,false));
               end;
@@ -1241,7 +1251,7 @@ implementation
           if not ((size.typ=pointerdef) or
                  ((size.typ=orddef) and
                   (torddef(size).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
-                                            pasbool8,pasbool16,pasbool32,pasbool64]))) then
+                                             pasbool1,pasbool8,pasbool16,pasbool32,pasbool64]))) then
             begin
               a_load_reg_stack(list,size,src1);
               if op in [OP_SUB,OP_IMUL] then
@@ -1346,7 +1356,7 @@ implementation
         orddef:
           begin
             case torddef(eledef).ordtype of
-              pasbool8,s8bit,u8bit,bool8bit,uchar,
+              pasbool1,pasbool8,s8bit,u8bit,bool8bit,uchar,
               s16bit,u16bit,bool16bit,pasbool16,
               uwidechar,
               s32bit,u32bit,bool32bit,pasbool32,
@@ -1371,7 +1381,7 @@ implementation
             else
               begin
                 { deepcopy=true }
-                a_load_const_stack(list,pasbool8type,1,R_INTREGISTER);
+                a_load_const_stack(list,pasbool1type,1,R_INTREGISTER);
                 { ndim }
                 a_load_const_stack(list,s32inttype,ndim,R_INTREGISTER);
                 { eletype }
@@ -1520,6 +1530,8 @@ implementation
                 handled:=true;
               end;
           end;
+        else
+          ;
       end;
       if not handled then
         inherited;
@@ -1791,7 +1803,7 @@ implementation
               { passed by reference in array of single element; l contains the
                 base address of the array }
               location_reset_ref(tmploc,LOC_REFERENCE,OS_ADDR,4,ref.volatility);
-              cgutils.reference_reset_base(tmploc.reference,getaddressregister(list,java_jlobject),0,4,ref.volatility);
+              cgutils.reference_reset_base(tmploc.reference,getaddressregister(list,java_jlobject),0,tmploc.reference.temppos,4,ref.volatility);
               tmploc.reference.arrayreftype:=art_indexconst;
               tmploc.reference.indexoffset:=0;
               a_load_loc_reg(list,java_jlobject,java_jlobject,l,tmploc.reference.base);
@@ -1858,7 +1870,7 @@ implementation
       case current_procinfo.procdef.proctypeoption of
         potype_unitinit:
           begin
-            cgutils.reference_reset_base(ref,NR_NO,0,1,[]);
+            cgutils.reference_reset_base(ref,NR_NO,0,ctempposinvalid,1,[]);
             if assigned(current_module.globalsymtable) then
               allocate_implicit_structs_for_st_with_base_ref(list,current_module.globalsymtable,ref,staticvarsym);
             allocate_implicit_structs_for_st_with_base_ref(list,current_module.localsymtable,ref,staticvarsym);
@@ -1868,7 +1880,7 @@ implementation
             { also initialise local variables, if any }
             inherited;
             { initialise class fields }
-            cgutils.reference_reset_base(ref,NR_NO,0,1,[]);
+            cgutils.reference_reset_base(ref,NR_NO,0,ctempposinvalid,1,[]);
             allocate_implicit_structs_for_st_with_base_ref(list,tabstractrecorddef(current_procinfo.procdef.owner.defowner).symtable,ref,staticvarsym);
           end
         else
@@ -2237,6 +2249,8 @@ implementation
               a_op_const_stack(list,OP_AND,s32inttype,65535);
           OS_S16:
             list.concat(taicpu.op_none(a_i2s));
+          else
+            ;
         end;
     end;
 
@@ -2418,7 +2432,7 @@ implementation
         internalerror(2011033001);
       selfreg:=getaddressregister(list,selfpara.vardef);
       a_load_loc_reg(list,obj,obj,selfpara.localloc,selfreg);
-      cgutils.reference_reset_base(ref,selfreg,0,1,[]);
+      cgutils.reference_reset_base(ref,selfreg,0,ctempposinvalid,1,[]);
       allocate_implicit_structs_for_st_with_base_ref(list,obj.symtable,ref,fieldvarsym);
     end;
 
@@ -2553,7 +2567,7 @@ implementation
       result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_cpu;
     begin
       hlcg:=thlcgjvm.create;
       create_codegen;
@@ -2561,4 +2575,5 @@ implementation
 
 begin
   chlcgobj:=thlcgjvm;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.

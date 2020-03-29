@@ -83,7 +83,7 @@ implementation
          (target_info.abi<>abi_eabihf) and
          (procdefinition.proccalloption<>pocall_hardfloat) and
          ((cs_fp_emulation in current_settings.moduleswitches) or
-          (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16,fpu_fpv4_s16])) then
+          (current_settings.fputype in [fpu_vfp_first..fpu_vfp_last])) then
         begin
           { keep the fpu values in integer registers for now, the code
             generator will move them to memory or an mmregister when necessary

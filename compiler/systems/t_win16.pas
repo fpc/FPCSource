@@ -32,7 +32,7 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,script,
+       globtype,globals,systems,verbose,cscript,
        import,export,fmodule,i_win16,
        link,aasmbase,cpuinfo,
        omfbase,ogbase,ogomf,owbase,owomflib,
@@ -67,6 +67,29 @@ implementation
          constructor Create;override;
          procedure SetDefaultInfo;override;
          function  MakeExecutable:boolean;override;
+         function  MakeSharedLibrary:boolean;override;
+      end;
+
+      { TInternalLinkerWin16 }
+
+      TInternalLinkerWin16=class(tinternallinker)
+      protected
+        function GetCodeSize(aExeOutput: TExeOutput): QWord;override;
+        function GetDataSize(aExeOutput: TExeOutput): QWord;override;
+        function GetBssSize(aExeOutput: TExeOutput): QWord;override;
+        procedure DefaultLinkScript;override;
+      public
+        constructor create;override;
+      end;
+
+      { TDLLScannerWin16 }
+
+      TDLLScannerWin16=class(tDLLScanner)
+      private
+        importfound : boolean;
+{        procedure CheckDLLFunc(const dllname,funcname:string);}
+      public
+        function Scan(const binname:string):boolean;override;
       end;
 
 {****************************************************************************
@@ -101,7 +124,7 @@ begin
       for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
         begin
           ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
-          AddImport(ImportLibrary.Name,ImportSymbol.Name,ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
+          AddImport(StripDllExt(ImportLibrary.Name),ImportSymbol.Name,ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
         end;
     end;
   ObjOutput.Free;
@@ -144,9 +167,8 @@ var
   i: Integer;
   hp: texported_item;
   ModEnd: TOmfRecord_MODEND;
-  DllExport_COMENT: TOmfRecord_COMENT;
-  expflag: Byte;
-  internal_name: TSymStr;
+  DllExport_COMENT: TOmfRecord_COMENT=nil;
+  DllExport_COMENT_EXPDEF: TOmfRecord_COMENT_EXPDEF=nil;
 begin
   if EList.Count=0 then
     exit;
@@ -169,30 +191,30 @@ begin
       hp:=texported_item(EList[i]);
 
       { write EXPDEF record }
-      DllExport_COMENT:=TOmfRecord_COMENT.Create;
-      DllExport_COMENT.CommentClass:=CC_OmfExtension;
-      expflag:=0;
-      if eo_index in hp.options then
-        expflag:=expflag or $80;
-      if eo_resident in hp.options then
-        expflag:=expflag or $40;
+      DllExport_COMENT_EXPDEF:=TOmfRecord_COMENT_EXPDEF.Create;
+      DllExport_COMENT_EXPDEF.ExportByOrdinal:=eo_index in hp.options;
+      DllExport_COMENT_EXPDEF.ResidentName:=eo_resident in hp.options;
+      DllExport_COMENT_EXPDEF.ExportedName:=hp.name^;
       if assigned(hp.sym) then
         case hp.sym.typ of
           staticvarsym:
-            internal_name:=tstaticvarsym(hp.sym).mangledname;
+            DllExport_COMENT_EXPDEF.InternalName:=tstaticvarsym(hp.sym).mangledname;
           procsym:
-            internal_name:=tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname;
+            DllExport_COMENT_EXPDEF.InternalName:=tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname;
           else
             internalerror(2015092701);
         end
       else
-        internal_name:=hp.name^;
-      DllExport_COMENT.CommentString:=#2+Chr(expflag)+Chr(Length(hp.name^))+hp.name^+Chr(Length(internal_name))+internal_name;
+        DllExport_COMENT_EXPDEF.InternalName:=hp.name^;
       if eo_index in hp.options then
-        DllExport_COMENT.CommentString:=DllExport_COMENT.CommentString+Chr(Byte(hp.index))+Chr(Byte(hp.index shr 8));
+        DllExport_COMENT_EXPDEF.ExportOrdinal:=hp.index;
+
+      DllExport_COMENT:=TOmfRecord_COMENT.Create;
+      DllExport_COMENT_EXPDEF.EncodeTo(DllExport_COMENT);
+      FreeAndNil(DllExport_COMENT_EXPDEF);
       DllExport_COMENT.EncodeTo(RawRecord);
+      FreeAndNil(DllExport_COMENT);
       RawRecord.WriteTo(ObjWriter);
-      DllExport_COMENT.Free;
     end;
 
   { write MODEND record }
@@ -228,8 +250,14 @@ begin
 
   LinkRes.Add('option quiet');
 
+  LinkRes.Add('option description '+maybequoted_for_script(description,script_unix));
+
   if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
-    LinkRes.Add('debug dwarf');
+    LinkRes.Add('debug dwarf')
+  else if target_dbg.id=dbg_codeview then
+    LinkRes.Add('debug codeview');
+  if cs_link_separate_dbg_file in current_settings.globalswitches then
+    LinkRes.Add('option symfile');
 
   { add objectfiles, start with prt0 always }
   case current_settings.x86memorymodel of
@@ -252,11 +280,17 @@ begin
     if s<>'' then
       LinkRes.Add('library '+MaybeQuoted(s));
   end;
-  LinkRes.Add('format windows');
+  if isdll then
+    LinkRes.Add('format windows dll')
+  else
+    LinkRes.Add('format windows');
   LinkRes.Add('option heapsize='+tostr(heapsize));
   if (cs_link_map in current_settings.globalswitches) then
     LinkRes.Add('option map='+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
-  LinkRes.Add('name ' + maybequoted(current_module.exefilename));
+  if isdll then
+    LinkRes.Add('name ' + maybequoted(current_module.sharedlibfilename))
+  else
+    LinkRes.Add('name ' + maybequoted(current_module.exefilename));
   LinkRes.Add('option dosseg');
 
   { Write and Close response }
@@ -279,6 +313,7 @@ begin
   with Info do
    begin
      ExeCmd[1]:='wlink $OPT $RES';
+     DllCmd[1]:='wlink $OPT $RES';
    end;
 end;
 
@@ -307,14 +342,165 @@ begin
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
 
+function TExternalLinkerWin16WLink.MakeSharedLibrary:boolean;
+var
+  binstr,
+  cmdstr  : TCmdStr;
+  success : boolean;
+begin
+  if not(cs_link_nolink in current_settings.globalswitches) then
+    Message1(exec_i_linking,current_module.sharedlibfilename);
+
+  { Write used files and libraries and our own tlink script }
+  WriteResponsefile(true);
+
+  { Call linker }
+  SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
+  Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
+
+  { Remove ReponseFile }
+  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+    DeleteFile(outputexedir+Info.ResName);
+
+  MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
+end;
+
+
+{****************************************************************************
+                               TInternalLinkerWin16
+****************************************************************************}
+
+function TInternalLinkerWin16.GetCodeSize(aExeOutput: TExeOutput): QWord;
+begin
+  { todo }
+  Result:=0;
+end;
+
+function TInternalLinkerWin16.GetDataSize(aExeOutput: TExeOutput): QWord;
+begin
+  { todo }
+  Result:=0;
+end;
+
+function TInternalLinkerWin16.GetBssSize(aExeOutput: TExeOutput): QWord;
+begin
+  { todo }
+  Result:=0;
+end;
+
+procedure TInternalLinkerWin16.DefaultLinkScript;
+var
+  s: TCmdStr;
+begin
+  if IsSharedLibrary then
+    LinkScript.Concat('ISSHAREDLIBRARY');
+  { add objectfiles, start with prt0 always }
+  case current_settings.x86memorymodel of
+    mm_small:   LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0s','',false)));
+    mm_medium:  LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0m','',false)));
+    mm_compact: LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0c','',false)));
+    mm_large:   LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0l','',false)));
+    mm_huge:    LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0h','',false)));
+    else
+      internalerror(2019061501);
+  end;
+  while not ObjectFiles.Empty do
+  begin
+    s:=ObjectFiles.GetFirst;
+    if s<>'' then
+      LinkScript.Concat('READOBJECT ' + maybequoted(s));
+  end;
+  LinkScript.Concat('GROUP');
+  while not StaticLibFiles.Empty do
+  begin
+    s:=StaticLibFiles.GetFirst;
+    if s<>'' then
+      LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s));
+  end;
+  LinkScript.Concat('ENDGROUP');
+
+  LinkScript.Concat('EXESECTION .NE_code');
+  LinkScript.Concat('  OBJSECTION _TEXT||CODE');
+  LinkScript.Concat('  OBJSECTION *||CODE');
+  LinkScript.Concat('ENDEXESECTION');
+  LinkScript.Concat('EXESECTION .NE_data');
+  LinkScript.Concat('  OBJSECTION *||FAR_DATA');
+  LinkScript.Concat('  OBJSECTION _NULL||BEGDATA');
+  LinkScript.Concat('  OBJSECTION _AFTERNULL||BEGDATA');
+  LinkScript.Concat('  OBJSECTION *||BEGDATA');
+  LinkScript.Concat('  OBJSECTION *||DATA');
+  LinkScript.Concat('  SYMBOL _edata');
+  LinkScript.Concat('  OBJSECTION *||BSS');
+  LinkScript.Concat('  SYMBOL _end');
+  LinkScript.Concat('  OBJSECTION *||STACK');
+  LinkScript.Concat('  OBJSECTION *||HEAP');
+  LinkScript.Concat('ENDEXESECTION');
+
+  if (cs_debuginfo in current_settings.moduleswitches) and
+     (target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
+    begin
+      LinkScript.Concat('EXESECTION .debug_info');
+      LinkScript.Concat('  OBJSECTION .DEBUG_INFO||DWARF');
+      LinkScript.Concat('ENDEXESECTION');
+      LinkScript.Concat('EXESECTION .debug_abbrev');
+      LinkScript.Concat('  OBJSECTION .DEBUG_ABBREV||DWARF');
+      LinkScript.Concat('ENDEXESECTION');
+      LinkScript.Concat('EXESECTION .debug_line');
+      LinkScript.Concat('  OBJSECTION .DEBUG_LINE||DWARF');
+      LinkScript.Concat('ENDEXESECTION');
+      LinkScript.Concat('EXESECTION .debug_aranges');
+      LinkScript.Concat('  OBJSECTION .DEBUG_ARANGES||DWARF');
+      LinkScript.Concat('ENDEXESECTION');
+    end;
+
+  LinkScript.Concat('ENTRYNAME ..start');
+end;
+
+constructor TInternalLinkerWin16.create;
+begin
+  inherited create;
+  CArObjectReader:=TOmfLibObjectReader;
+  CExeOutput:=TNewExeOutput;
+  CObjInput:=TOmfObjInput;
+end;
+
+{****************************************************************************
+                               TDLLScannerWin16
+****************************************************************************}
+
+function TDLLScannerWin16.Scan(const binname: string): boolean;
+var
+  hs,
+  dllname : TCmdStr;
+begin
+  result:=false;
+  { is there already an import library the we will use that one }
+  if FindLibraryFile(binname,target_info.staticClibprefix,target_info.staticClibext,hs) then
+    exit;
+  { check if we can find the dll }
+  hs:=binname;
+  if ExtractFileExt(hs)='' then
+    hs:=ChangeFileExt(hs,target_info.sharedlibext);
+  if not FindDll(hs,dllname) then
+    exit;
+  importfound:=false;
+  {todo: ReadDLLImports(dllname,@CheckDLLFunc);}
+  if importfound then
+    current_module.dllscannerinputlist.Pack;
+  result:=importfound;
+end;
 
 {*****************************************************************************
                                      Initialize
 *****************************************************************************}
 
 initialization
+  RegisterLinker(ld_int_win16,TInternalLinkerWin16);
   RegisterLinker(ld_win16,TExternalLinkerWin16WLink);
   RegisterImport(system_i8086_win16,TImportLibWin16);
   RegisterExport(system_i8086_win16,TExportLibWin16);
+  RegisterDLLScanner(system_i8086_win16,TDLLScannerWin16);
   RegisterTarget(system_i8086_win16_info);
 end.

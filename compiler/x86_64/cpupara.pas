@@ -29,7 +29,6 @@ unit cpupara;
       globtype,
       cpubase,cgbase,cgutils,
       symconst,symtype,symsym,symdef,
-      aasmtai,aasmdata,
       parabase,paramgr;
 
     type
@@ -44,8 +43,10 @@ unit cpupara;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
+          function get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;override;
+          function get_saved_registers_mm(calloption: tproccalloption):tcpuregisterarray;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
-          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
+          function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
        end;
 
@@ -54,9 +55,10 @@ unit cpupara;
     uses
        cutils,verbose,
        systems,
-       defutil,
-       symtable,
-       cpupi;
+       globals,defutil,
+       symtable,symutil,
+       cpupi,
+       cgx86,cgobj,cgcpu;
 
     const
       paraintsupregs : array[0..5] of tsuperregister = (RS_RDI,RS_RSI,RS_RDX,RS_RCX,RS_R8,RS_R9);
@@ -64,7 +66,7 @@ unit cpupara;
 
       paraintsupregs_winx64 : array[0..3] of tsuperregister = (RS_RCX,RS_RDX,RS_R8,RS_R9);
       parammsupregs_winx64 : array[0..3] of tsuperregister = (RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3);
-
+      parammsupregs_vectorcall : array[0..5] of tsuperregister = (RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5);
 {
    The argument classification code largely comes from libffi:
 
@@ -96,7 +98,9 @@ unit cpupara;
 }
 
     const
-      MAX_PARA_CLASSES = 4;
+      { This many classes are required in order to support 4 YMMs (_m256) in a
+        homogeneous vector aggregate under vectorcall. [Kit] }
+      MAX_PARA_CLASSES = 16;
 
     type
       tx64paraclasstype = (
@@ -177,7 +181,7 @@ unit cpupara;
                  as per the x86-64 ABI -> do the same }
                if not assigned(cl.def) or
                   not is_pasbool(cl.def) or
-                  (size>1) then
+                  (torddef(cl.def).ordtype<>pasbool1) then
                  cl.def:=u32inttype;
              end
            else
@@ -293,13 +297,22 @@ unit cpupara;
       end;
 
 
-    function classify_argument(calloption: tproccalloption; def: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; byte_offset: aint): longint; forward;
+    function classify_argument(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; byte_offset: aint; round_to_8: Boolean): longint; forward;
 
-    function init_aggregate_classification(calloption: tproccalloption; def: tdef; varspez: tvarspez; byte_offset: aint; out words: longint; out classes: tx64paraclasses): longint;
+    function init_aggregate_classification(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; byte_offset: aint; out words: longint; out classes: tx64paraclasses): longint;
       var
         i: longint;
       begin
         words:=0;
+
+        { we'll be merging the classes elements with the subclasses
+          elements, so initialise them first }
+        for i:=low(classes) to high(classes) do
+          begin
+            classes[i].typ:=X86_64_NO_CLASS;
+            classes[i].def:=nil;
+          end;
+
         { win64 follows a different convention here }
         if x86_64_use_ms_abi(calloption) then
           begin
@@ -309,9 +322,38 @@ unit cpupara;
                 classes[0].def:=def;
                 result:=1;
               end
+            else if (calloption = pocall_vectorcall) then
+              begin
+                words := (def.size+byte_offset mod 8+7) div 8;
+                case words of
+                0:
+                  Exit(0);
+                1..4:
+                  { Aligned vector or array elements }
+                  Result := words;
+                else
+                  if ((def.aggregatealignment mod (words shl 3)) = 0) or
+                    Assigned(parentdef) and ((parentdef.aggregatealignment mod 16) = 0)
+                    then
+                      begin
+                        { Field of aligned vector type }
+                        if words = 0 then
+                          begin
+                            classes[0].typ:=X86_64_NO_CLASS;
+                            classes[0].def:=def;
+                            Result := 1;
+                          end
+                        else
+                          Result := words;
+                      end
+                  else
+                    Result := 0;
+                end;
+              end
             else
-              result:=0;
-            exit;
+              Result := 0;
+
+            Exit;
           end;
 
         (* If the struct is larger than 32 bytes, pass it on the stack.  *)
@@ -331,27 +373,21 @@ unit cpupara;
             exit(1);
           end;
 
-        { we'll be merging the classes elements with the subclasses
-          elements, so initialise them first }
-        for i:=low(classes) to high(classes) do
-          begin
-            classes[i].typ:=X86_64_NO_CLASS;
-            classes[i].def:=nil;
-          end;
         result:=words;
       end;
 
 
-    function classify_aggregate_element(calloption: tproccalloption; def: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; new_byte_offset: aint): longint;
+    function classify_aggregate_element(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; new_byte_offset: aint): longint;
       var
         subclasses: tx64paraclasses;
         i,
         pos: longint;
       begin
         fillchar(subclasses,sizeof(subclasses),0);
-        result:=classify_argument(calloption,def,varspez,real_size,subclasses,new_byte_offset mod 8);
+        result:=classify_argument(calloption,def,parentdef,varspez,real_size,subclasses,new_byte_offset, True);
         if (result=0) then
           exit;
+
         pos:=new_byte_offset div 8;
         if result-1+pos>high(classes) then
           internalerror(2010053108);
@@ -364,30 +400,91 @@ unit cpupara;
       end;
 
 
-    function finalize_aggregate_classification(def: tdef; words: longint; var classes: tx64paraclasses): longint;
+    function finalize_aggregate_classification(calloption: tproccalloption; def: tdef; words: longint; var classes: tx64paraclasses): longint;
       var
-        i: longint;
+        i, vecsize, maxvecsize: longint;
       begin
+        { Workaround: It's not immediately possible to determine if a Double is
+          by itself or is part of an aligned vector. If the latter, correct the
+          class definitions here. [Kit] }
+
+        if (classes[0].typ = X86_64_SSEDF_CLASS) and (classes[1].typ = X86_64_SSEUP_CLASS) then
+          classes[0].typ := X86_64_SSE_CLASS;
+
         if (words>2) then
           begin
-            (* When size > 16 bytes, if the first one isn't
-               X86_64_SSE_CLASS or any other ones aren't
-               X86_64_SSEUP_CLASS, everything should be passed in
-               memory.  *)
+            { When size > 16 bytes, if the first one isn't
+              X86_64_SSE_CLASS or any other ones aren't
+              X86_64_SSEUP_CLASS, everything should be passed in
+              memory... }
             if (classes[0].typ<>X86_64_SSE_CLASS) then
-              exit(0);
+              begin
+                { ... except if the calling convention is 'vectorcall', then
+                  check to see if we don't have an HFA of 3 or 4 Doubles }
+                if (calloption <> pocall_vectorcall) or (words > 4) then
+                  Exit(0);
+
+                for i := 0 to words - 1 do
+                  if classes[i].typ <> X86_64_SSEDF_CLASS then
+                    Exit(0);
+
+                Exit(words);
+              end;
+
+            if ((words shl 3) > def.aggregatealignment) then
+              { The alignment is wrong for this vector size, hence it is unaligned }
+              Exit(0);
+
+            vecsize := 1;
+            maxvecsize := words;
 
             for i:=1 to words-1 do
-              if (classes[i].typ<>X86_64_SSEUP_CLASS) then
-                exit(0);
-          end;
+              if (classes[i].typ=X86_64_SSEUP_CLASS) then
+                Inc(vecsize)
+              else
+                begin
+                  { Exceptional case. Check that we're not dealing an array of
+                    aligned vectors that is itself aligned to a stricter
+                    boundary (e.g. 4 XMM registers that can be merged into a
+                    single ZMM register). }
+                  if
+                    (classes[i].typ <> X86_64_SSE_CLASS) or { Easy case first - is it actually another SSE vector? }
+                    ((vecsize and (vecsize - 1)) <> 0) or { If vecsize is not a power of two, then it is definitely not a valid vector }
+                    (vecsize > maxvecsize) or ((maxvecsize < words) and (vecsize <> maxvecsize)) { Mixture of XMMs and YMMs, for example, is not valid }
+                  then
+                    Exit(0);
 
+                  classes[i].typ := X86_64_SSEUP_CLASS;
+                  maxvecsize := vecsize;
+                  vecsize := 1;
+                end;
+
+            if vecsize <> maxvecsize then
+              { Last vector is of a different size }
+              Exit(0);
+
+            if vecsize > 2 then
+              begin
+                { Cannot use 256-bit and 512-bit vectors if we're not using AVX }
+                if not UseAVX then
+                  Exit(0);
+
+                { WARNING: There is currently no support for 256-bit and 512-bit
+                  aligned vectors, so if an aggregate contains more than two
+                  eightbyte words, it must be passed in memory. When 256-bit and
+                  512-bit vectors are fully supported, remove the following
+                  line. [Kit] }
+                Exit(0);
+              end;
+          end;
+		
         (* Final merger cleanup.  *)
         (* The first one must never be X86_64_SSEUP_CLASS or
            X86_64_X87UP_CLASS.  *)
         if (classes[0].typ=X86_64_SSEUP_CLASS) or
            (classes[0].typ=X86_64_X87UP_CLASS) then
           internalerror(2010021402);
+
         for i:=0 to words-1 do
           begin
             (* If one class is MEMORY, everything should be passed in
@@ -447,6 +544,8 @@ unit cpupara;
                   classes[0].typ:=X86_64_SSE_CLASS;
                   classes[0].def:=carraydef.getreusable_no_free(s32floattype,2);
                 end;
+              else
+                ;
             end;
           { 2) the second part is 32 bit, but the total size is > 12 bytes }
           if (def.size>12) then
@@ -461,13 +560,190 @@ unit cpupara;
                   classes[1].typ:=X86_64_SSE_CLASS;
                   classes[1].def:=carraydef.getreusable_no_free(s32floattype,2);
                 end;
+              else
+                ;
             end;
 {$endif not llvm}
           result:=words;
       end;
 
 
-    function classify_record(calloption: tproccalloption; def: tdef; varspez: tvarspez; var classes: tx64paraclasses; byte_offset: aint): longint;
+    function try_build_homogeneous_aggregate(def: tdef; words: longint; var classes: tx64paraclasses): longint;
+      var
+        i, vecsize, maxvecsize, veccount: longint;
+        {size, }byte_offset: aint;
+        vs: TFieldVarSym;
+        checkalignment: Boolean;
+      begin
+        if (words = 0) then
+          { Should be at least 1 word at this point }
+          InternalError(2018013100);
+
+        case classes[0].typ of
+          X86_64_SSESF_CLASS:
+            begin
+              { Should be an HFA of only a Single }
+              for i := 1 to High(classes) do
+                if classes[i].typ <> X86_64_NO_CLASS then
+                  Exit(0);
+
+              result := 1;
+            end;
+          X86_64_SSEDF_CLASS:
+            begin
+              { Possibly an HFA of Doubles }
+
+              if TAbstractRecordDef(def).symtable.symlist.count = 0 then
+                Exit(0);
+
+              { Get the information and position on the last entry }
+              vs:=TFieldVarSym(TAbstractRecordDef(def).symtable.symlist[TAbstractRecordDef(def).symtable.symlist.count - 1]);
+              //size:=vs.vardef.size;
+
+              checkalignment:=true;
+              if not TAbstractRecordSymtable(TAbstractRecordDef(def).symtable).is_packed then
+                begin
+                  byte_offset:=vs.fieldoffset;
+                  //size:=vs.vardef.size;
+                end
+              else
+                begin
+                  byte_offset:=vs.fieldoffset div 8;
+                  if (vs.vardef.typ in [orddef,enumdef]) then
+                    begin
+                      { calculate the number of bytes spanned by
+                        this bitpacked field }
+                      //size:=((vs.fieldoffset+vs.vardef.packedbitsize+7) div 8)-(vs.fieldoffset div 8);
+                      { our bitpacked fields are interpreted as always being
+                        aligned, because unlike in C we don't have char:1, int:1
+                        etc (so everything is basically a char:x) }
+                      checkalignment:=false;
+                    end
+                  else
+                    ;//size:=vs.vardef.size;
+                end;
+              { If [..] an object [..] contains unaligned fields, it has class
+                MEMORY }
+              if checkalignment and
+                 (align(byte_offset,vs.vardef.structalignment)<>byte_offset) then
+                begin
+                  result:=0;
+                  exit;
+                end;
+
+              if words > 4 then
+                { HFA too large }
+                Exit(0);
+
+              for i := 1 to words - 1 do
+                if classes[i].typ <> X86_64_SSEDF_CLASS then
+                  Exit(0);
+
+              result := words;
+            end;
+          X86_64_SSE_CLASS:
+            begin
+              { Determine the nature of the classes.
+                - If the SSE is by itself, then it is an HFA consisting of 2 Singles.
+                - If the SSE is followed by an SSESF, then it is an HFA consisting of 3 Singles.
+                - If the SSE is followed by an SSE and nothing else, then it is an HFA consisting of 4 Singles.
+                - If the SSE is followed by an SSE, but another class follows, then it is an HFA that is too large.
+                - If the SSE is followed by an SSEUP, then it is an HVA of some kind.
+              }
+              case classes[1].typ of
+                X86_64_NO_CLASS:
+                  begin
+                    for i := 2 to words - 1 do
+                      if classes[i].typ <> X86_64_NO_CLASS then
+                        { Compound type }
+                        Exit(0);
+
+                    { Split into 2 Singles again so they correctly fall into separate XMM registers }
+                    classes[0].typ := X86_64_SSESF_CLASS;
+                    classes[0].def := tdef(tarraydef(classes[0].def).elementdef); { Break up the array }
+                    classes[1].typ := X86_64_SSESF_CLASS;
+                    classes[1].def := classes[0].def;
+                    result := 2;
+                  end;
+                X86_64_SSESF_CLASS:
+                  begin
+                    for i := 2 to words - 1 do
+                      if classes[i].typ <> X86_64_NO_CLASS then
+                        { Compound type }
+                        Exit(0);
+
+                    classes[2].typ := X86_64_SSESF_CLASS;
+                    classes[2].def := classes[1].def; { Transfer class 1 to class 2 }
+                    classes[0].typ := X86_64_SSESF_CLASS;
+                    classes[0].def := tdef(tarraydef(classes[0].def).elementdef); { Break up the array }
+                    classes[1].typ := X86_64_SSESF_CLASS;
+                    classes[1].def := classes[0].def;
+                    result := 3;
+                  end;
+                X86_64_SSE_CLASS:
+                  begin
+                    for i := 2 to words - 1 do
+                      if classes[i].typ <> X86_64_NO_CLASS then
+                        { HFA too large (or not a true HFA) }
+                        Exit(0);
+
+                    classes[0].def := tdef(tarraydef(classes[0].def).elementdef); { Break up the arrays }
+                    classes[2].def := tdef(tarraydef(classes[1].def).elementdef);
+                    classes[1].def := classes[0].def;
+                    classes[3].def := classes[2].def;
+
+                    classes[0].typ := X86_64_SSESF_CLASS;
+                    classes[1].typ := X86_64_SSESF_CLASS;
+                    classes[2].typ := X86_64_SSESF_CLASS;
+                    classes[3].typ := X86_64_SSESF_CLASS;
+                    result := 4;
+                  end;
+                X86_64_SSEUP_CLASS:
+                  begin
+                    { Determine vector size }
+                    veccount := 1;
+                    vecsize := 2;
+                    maxvecsize := words;
+
+                    for i := 2 to words - 1 do
+                      if (classes[i].typ=X86_64_SSEUP_CLASS) then
+                        Inc(vecsize)
+                      else
+                        begin
+                          if
+                            (classes[i].typ <> X86_64_SSE_CLASS) or { Easy case first - is it actually another SSE vector? }
+                            ((vecsize and (vecsize - 1)) <> 0) or { If vecsize is not a power of two, then it is definitely not a valid aggregate }
+                            (vecsize > maxvecsize) or ((maxvecsize < words) and (vecsize <> maxvecsize)) { Mixture of XMMs and YMMs, for example, is not valid }
+                          then
+                            Exit(0);
+
+                          Inc(veccount);
+                          maxvecsize := vecsize;
+                          vecsize := 1;
+                        end;
+
+                    if vecsize <> maxvecsize then
+                      { Last vector is of a different size }
+                      Exit(0);
+
+                    if veccount > 4 then
+                      { HVA too large }
+                      Exit(0);
+
+                    Result := words;
+                  end;
+                else
+                  Exit(0);
+              end;
+            end;
+          else
+            Exit(0);
+        end;
+
+      end;
+
+	
+    function classify_record(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; var classes: tx64paraclasses; byte_offset: aint): longint;
       var
         vs: tfieldvarsym;
         size,
@@ -477,17 +753,16 @@ unit cpupara;
         num: longint;
         checkalignment: boolean;
       begin
-        result:=init_aggregate_classification(calloption,def,varspez,byte_offset,words,classes);
+        result:=init_aggregate_classification(calloption,def,parentdef,varspez,byte_offset,words,classes);
         if (words=0) then
           exit;
 
         (* Merge the fields of the structure.  *)
         for i:=0 to tabstractrecorddef(def).symtable.symlist.count-1 do
           begin
-            if tsym(tabstractrecorddef(def).symtable.symlist[i]).typ<>fieldvarsym then
+            if not is_normal_fieldvarsym(tsym(tabstractrecorddef(def).symtable.symlist[i])) then
               continue;
             vs:=tfieldvarsym(tabstractrecorddef(def).symtable.symlist[i]);
-            num:=-1;
             checkalignment:=true;
             if not tabstractrecordsymtable(tabstractrecorddef(def).symtable).is_packed then
               begin
@@ -518,16 +793,39 @@ unit cpupara;
                 result:=0;
                 exit;
               end;
-            num:=classify_aggregate_element(calloption,vs.vardef,varspez,size,classes,new_byte_offset);
+            num:=classify_aggregate_element(calloption,vs.vardef,def,varspez,size,classes,new_byte_offset);
             if (num=0) then
               exit(0);
           end;
 
-        result:=finalize_aggregate_classification(def,words,classes);
+        result:=finalize_aggregate_classification(calloption,def,words,classes);
+
+        { There is still one case where it might not have to be passed on the
+          stack, and that's a homogeneous vector aggregate (HVA) or a
+          homogeneous float aggregate (HFA) under vectorcall. }
+        if (calloption = pocall_vectorcall) then
+          begin
+            if (result = 0) then
+              result := try_build_homogeneous_aggregate(def,words,classes)
+            else
+              { If we're dealing with an HFA that has 3 or 4 Singles, pairs of
+                Singles may be merged into a single SSE_CLASS, which must be
+                split into separate SSESF_CLASS references for vectorcall; this
+                is only performed in "try_build_homogeneous_aggregate" and not
+                elsewhere, so accommodate for this exceptional case. [Kit] }
+              if (result = 2) then
+                begin
+                  num := try_build_homogeneous_aggregate(def,words,classes);
+                  if num <> 0 then
+                    { If it's equal to zero, just pass 2 and handle the record
+                      type normally }
+                    result := num;
+                end;
+          end;
       end;
 
 
-    function classify_normal_array(calloption: tproccalloption; def: tarraydef; varspez: tvarspez; var classes: tx64paraclasses; byte_offset: aint): longint;
+    function classify_normal_array(calloption: tproccalloption; def: tarraydef; parentdef: tdef; varspez: tvarspez; var classes: tx64paraclasses; byte_offset: aint): longint;
       var
         i, elecount: aword;
         size,
@@ -540,7 +838,7 @@ unit cpupara;
       begin
         size:=0;
         bitoffset:=0;
-        result:=init_aggregate_classification(calloption,def,varspez,byte_offset,words,classes);
+        result:=init_aggregate_classification(calloption,def,parentdef,varspez,byte_offset,words,classes);
 
         if (words=0) then
           exit;
@@ -582,46 +880,68 @@ unit cpupara;
               { bit offset of next element }
               inc(bitoffset,elesize);
             end;
-          num:=classify_aggregate_element(calloption,def.elementdef,varspez,size,classes,new_byte_offset);
+          num:=classify_aggregate_element(calloption,def.elementdef,def,varspez,size,classes,new_byte_offset);
           if (num=0) then
             exit(0);
           inc(i);
         until (i=elecount);
 
-        result:=finalize_aggregate_classification(def,words,classes);
+        result:=finalize_aggregate_classification(calloption,def,words,classes);
       end;
 
 
-    function classify_argument(calloption: tproccalloption; def: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; byte_offset: aint): longint;
+    function classify_argument(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; byte_offset: aint; round_to_8: Boolean): longint;
+      var
+        rounded_offset: aint;
       begin
+        if round_to_8 then
+	  rounded_offset := byte_offset mod 8
+        else
+          rounded_offset := byte_offset;
+		
         case def.typ of
           orddef,
           enumdef,
           pointerdef,
           classrefdef:
-            result:=classify_as_integer_argument(def,real_size,classes,byte_offset);
+            result:=classify_as_integer_argument(def,real_size,classes,rounded_offset);
           formaldef:
-            result:=classify_as_integer_argument(voidpointertype,voidpointertype.size,classes,byte_offset);
+            result:=classify_as_integer_argument(voidpointertype,voidpointertype.size,classes,rounded_offset);
           floatdef:
             begin
               classes[0].def:=def;
               case tfloatdef(def).floattype of
                 s32real:
                   begin
-                    if byte_offset=0 then
-                      classes[0].typ:=X86_64_SSESF_CLASS
+                    if (byte_offset mod 8) = 0 then { Check regardless of the round_to_8 flag }
+                      begin
+                        if Assigned(parentdef) and ((parentdef.aggregatealignment mod 16) = 0) and ((byte_offset mod parentdef.aggregatealignment) <> 0) then
+                          { Third element of an aligned vector }
+                          classes[0].typ:=X86_64_SSEUP_CLASS
+                        else
+                          classes[0].typ:=X86_64_SSESF_CLASS
+                      end
                     else
                       begin
-                        { if we have e.g. a record with two successive "single"
-                          fields, we need a 64 bit rather than a 32 bit load }
-                        classes[0].typ:=X86_64_SSE_CLASS;
+                        if Assigned(parentdef) and ((parentdef.aggregatealignment mod 16) = 0) then
+                          { Fourth element of an aligned vector }
+                          classes[0].typ:=X86_64_SSEUP_CLASS
+                        else
+                          { if we have e.g. a record with two successive "single"
+                            fields, we need a 64 bit rather than a 32 bit load }
+                          classes[0].typ:=X86_64_SSE_CLASS;
+
                         classes[0].def:=carraydef.getreusable_no_free(s32floattype,2);
                       end;
                     result:=1;
                   end;
                 s64real:
                   begin
-                    classes[0].typ:=X86_64_SSEDF_CLASS;
+                    if Assigned(parentdef) and ((parentdef.aggregatealignment mod 16) = 0) and ((byte_offset mod parentdef.aggregatealignment) <> 0) then
+                      { Aligned vector of type double }
+                      classes[0].typ:=X86_64_SSEUP_CLASS
+                    else
+                      classes[0].typ:=X86_64_SSEDF_CLASS;
                     result:=1;
                   end;
                 s80real,
@@ -646,12 +966,10 @@ unit cpupara;
                     classes[1].def:=carraydef.getreusable_no_free(s32floattype,2);
                     result:=2;
                   end;
-                else
-                  internalerror(2010060301);
               end;
             end;
           recorddef:
-            result:=classify_record(calloption,def,varspez,classes,byte_offset);
+            result:=classify_record(calloption,def,parentdef,varspez,classes,rounded_offset);
           objectdef:
             begin
               if is_object(def) then
@@ -659,12 +977,12 @@ unit cpupara;
                 result:=0
               else
                 { all kinds of pointer types: class, objcclass, interface, ... }
-                result:=classify_as_integer_argument(def,voidpointertype.size,classes,byte_offset);
+                result:=classify_as_integer_argument(def,voidpointertype.size,classes,rounded_offset);
             end;
           setdef:
             begin
               if is_smallset(def) then
-                result:=classify_as_integer_argument(def,def.size,classes,byte_offset)
+                result:=classify_as_integer_argument(def,def.size,classes,rounded_offset)
               else
                 result:=0;
             end;
@@ -673,20 +991,20 @@ unit cpupara;
               if (tstringdef(def).stringtype in [st_shortstring,st_longstring]) then
                 result:=0
               else
-                result:=classify_as_integer_argument(def,def.size,classes,byte_offset);
+                result:=classify_as_integer_argument(def,def.size,classes,rounded_offset);
             end;
           arraydef:
             begin
               { a dynamic array is treated like a pointer }
               if is_dynamic_array(def) then
-                result:=classify_as_integer_argument(def,voidpointertype.size,classes,byte_offset)
+                result:=classify_as_integer_argument(def,voidpointertype.size,classes,rounded_offset)
               { other special arrays are passed on the stack }
               else if is_open_array(def) or
                       is_array_of_const(def) then
                 result:=0
               else
               { normal array }
-                result:=classify_normal_array(calloption,tarraydef(def),varspez,classes,byte_offset);
+                result:=classify_normal_array(calloption,tarraydef(def),parentdef,varspez,classes,rounded_offset);
             end;
           { the file record is definitely too big }
           filedef:
@@ -697,17 +1015,17 @@ unit cpupara;
                 begin
                   { treat as TMethod record }
                   def:=search_system_type('TMETHOD').typedef;
-                  result:=classify_argument(calloption,def,varspez,def.size,classes,byte_offset);
+                  result:=classify_argument(calloption,def,parentdef,varspez,def.size,classes,rounded_offset, False);
                 end
               else
                 { pointer }
-                result:=classify_as_integer_argument(def,def.size,classes,byte_offset);
+                result:=classify_as_integer_argument(def,def.size,classes,rounded_offset);
             end;
           variantdef:
             begin
               { same as tvardata record }
               def:=search_system_type('TVARDATA').typedef;
-              result:=classify_argument(calloption,def,varspez,def.size,classes,byte_offset);
+              result:=classify_argument(calloption,def,parentdef,varspez,def.size,classes,rounded_offset, False);
             end;
           undefineddef:
             { show shall we know?
@@ -724,11 +1042,129 @@ unit cpupara;
       end;
 
 
-    procedure getvalueparaloc(calloption: tproccalloption;varspez:tvarspez;def:tdef;var loc1,loc2:tx64paraclass);
+    { Returns the size of a single element in the aggregate, or the entire vector, if it is one of these types, 0 otherwise }
+    function is_simd_vector_type_or_homogeneous_aggregate(calloption: tproccalloption; def: tdef; varspez: tvarspez): aint;
+      var
+        numclasses,i,vecsize,veccount,maxvecsize:longint;
+        classes: tx64paraclasses;
+        firstclass: tx64paraclasstype;
+      begin
+        for i := Low(classes) to High(classes) do
+          begin
+            classes[i].typ := X86_64_NO_CLASS;
+            classes[i].def := nil;
+          end;
+
+        numclasses:=classify_argument(calloption,def,nil,vs_value,def.size,classes,0,False);
+        if numclasses = 0 then
+          Exit(0);
+
+        firstclass := classes[0].typ;
+        case firstclass of
+          X86_64_SSESF_CLASS: { Only valid if the aggregate contains a lone Single }
+            begin
+              if (numclasses = 1) and (calloption = pocall_vectorcall) then
+                Result := 4
+              else
+                Result := 0;
+              Exit;
+            end;
+          X86_64_SSEDF_CLASS:
+            begin
+              if (numclasses > 1) and (calloption <> pocall_vectorcall) then
+                Result := 0
+              else
+                begin
+                  for i := 1 to numclasses - 1 do
+                    if classes[i].typ <> X86_64_SSEDF_CLASS then
+                    begin
+                      Result := 0;
+                      Exit;
+                    end;
+
+                  if (def.size div 8) <> numclasses then
+                    { Wrong alignment or compound size }
+                    Result := 0
+                  else
+                    Result := 8;
+                end;
+            end;
+          X86_64_SSE_CLASS:
+            begin
+              maxvecsize := numclasses * 2;
+
+              if numclasses = 1 then
+                begin
+                  { 2 Singles }
+                  if calloption = pocall_vectorcall then
+                    Result := 4
+                  else
+                    Result := 0;
+
+                  Exit;
+                end;
+
+              if classes[1].typ = X86_64_SSESF_CLASS then
+                begin
+                  { 3 Singles }
+                  if numclasses <> 2 then
+                    Result := 0
+                  else
+                    Result := 4;
+
+                  Exit;
+                end;
+
+              vecsize := 2;
+              veccount := 1;
+              for i := 1 to numclasses - 1 do
+                case classes[i].typ of
+                  X86_64_SSEUP_CLASS:
+                    Inc(vecsize, 2);
+                  X86_64_SSE_CLASS:
+                    begin
+                      if (maxvecsize < numclasses * 2) and (vecsize <> maxvecsize) then
+                        { Different vector sizes }
+                        Exit(0);
+
+                      maxvecsize := vecsize;
+                      vecsize := 2;
+                      Inc(veccount);
+                    end;
+                  else
+                    Exit(0);
+                end;
+
+              if vecsize <> maxvecsize then
+                { Last vector has to be the same size }
+                Exit(0);
+
+              { Either an HFA with 4 Singles, or an HVA with up to 4 vectors
+                (or a lone SIMD vector if veccount = 1) }
+              if (veccount < 4) then
+                begin
+                  if (veccount > 1) and (calloption <> pocall_vectorcall) then
+                    Result := 0
+                  else
+                    if vecsize = 2 then
+                      { Packed, unaligned array of Singles }
+                      Result := 4
+                    else
+                      Result := vecsize * 8
+                end
+              else
+                Result := 0;
+            end;
+          else
+            Exit(0);
+        end;
+      end;
+
+
+    procedure getvalueparaloc(calloption: tproccalloption;varspez:tvarspez;def:tdef;var classes: tx64paraclasses);
       var
         size: aint;
         i: longint;
-        classes: tx64paraclasses;
         numclasses: longint;
       begin
         { init the classes array, because even if classify_argument inits only
@@ -738,6 +1174,7 @@ unit cpupara;
             classes[i].typ:=X86_64_NO_CLASS;
             classes[i].def:=nil;
           end;
+
         { def.size internalerrors for open arrays and dynamic arrays, since
           their size cannot be determined at compile-time.
           classify_argument does not look at the realsize argument for arrays
@@ -746,26 +1183,24 @@ unit cpupara;
           size:=-1
         else
           size:=def.size;
-        numclasses:=classify_argument(calloption,def,varspez,size,classes,0);
+        numclasses:=classify_argument(calloption,def,nil,varspez,size,classes,0,False);
         case numclasses of
           0:
            begin
-             loc1.typ:=X86_64_MEMORY_CLASS;
-             loc1.def:=def;
-             loc2.typ:=X86_64_NO_CLASS;
+             classes[0].typ:=X86_64_MEMORY_CLASS;
+             classes[0].def:=def;
            end;
-          1,2:
+          1..4:
             begin
               { If the class is X87, X87UP or COMPLEX_X87, it is passed in memory }
-              if classes[0].typ in [X86_64_X87_CLASS,X86_64_X87UP_CLASS,X86_64_COMPLEX_X87_CLASS] then
-                classes[0].typ:=X86_64_MEMORY_CLASS;
-              if classes[1].typ in [X86_64_X87_CLASS,X86_64_X87UP_CLASS,X86_64_COMPLEX_X87_CLASS] then
-                classes[1].typ:=X86_64_MEMORY_CLASS;
-              loc1:=classes[0];
-              loc2:=classes[1];
-            end
+              for i := 0 to numclasses - 1 do
+                begin
+                  if classes[i].typ in [X86_64_X87_CLASS,X86_64_X87UP_CLASS,X86_64_COMPLEX_X87_CLASS] then
+                    classes[i].typ:=X86_64_MEMORY_CLASS;
+                end;
+            end;
           else
-            { 4 can only happen for _m256 vectors, not yet supported }
+            { 8 can happen for _m512 vectors, but are not yet supported }
             internalerror(2010021501);
         end;
       end;
@@ -785,7 +1220,7 @@ unit cpupara;
           { make sure we handle 'procedure of object' correctly }
           procvardef:
             begin
-              numclasses:=classify_argument(pd.proccalloption,def,vs_value,def.size,classes,0);
+              numclasses:=classify_argument(pd.proccalloption,def,nil,vs_value,def.size,classes,0,False);
               result:=(numclasses=0);
             end;
           else
@@ -842,7 +1277,17 @@ unit cpupara;
                 result:=true
               { Win ABI depends on size to pass it in a register or not }
               else if x86_64_use_ms_abi(calloption) then
-                result:=not aggregate_in_registers_win64(varspez,def.size)
+                begin
+                  if calloption = pocall_vectorcall then
+                    begin
+                      { "vectorcall" has the addition that it allows for aligned SSE types }
+                      result :=
+                        not aggregate_in_registers_win64(varspez,def.size) and
+                        (is_simd_vector_type_or_homogeneous_aggregate(pocall_vectorcall,def,vs_value) = 0);
+                    end
+                  else
+                    result:=not aggregate_in_registers_win64(varspez,def.size)
+                end
               { pass constant parameters that would be passed via memory by
                 reference for non-cdecl/cppdecl, and make sure that the tmethod
                 record (size=16) is passed the same way as a complex procvar }
@@ -850,7 +1295,7 @@ unit cpupara;
                        not(calloption in cdecl_pocalls)) or
                       (def.size=16) then
                 begin
-                  numclasses:=classify_argument(calloption,def,vs_value,def.size,classes,0);
+                  numclasses:=classify_argument(calloption,def,nil,vs_value,def.size,classes,0,False);
                   result:=numclasses=0;
                 end
               else
@@ -865,6 +1310,11 @@ unit cpupara;
                   is_array_of_const(def)) or
                  is_dynamic_array(def) then
                 result:=false
+              else if (calloption = pocall_vectorcall) then
+                begin
+                  { Pass all arrays by reference unless they are a valid, aligned SIMD type (arrays can't be homogeneous aggregates) }
+                  result := (is_simd_vector_type_or_homogeneous_aggregate(pocall_vectorcall,def,vs_value) = 0);
+                end
               else
                 { pass all arrays by reference to be compatible with C (passing
                   an array by value (= copying it on the stack) does not exist,
@@ -887,9 +1337,11 @@ unit cpupara;
           procvardef,
           setdef :
             begin
-              numclasses:=classify_argument(calloption,def,vs_value,def.size,classes,0);
+              numclasses:=classify_argument(calloption,def,nil,vs_value,def.size,classes,0,False);
               result:=numclasses=0;
             end;
+          else
+            ;
         end;
       end;
 
@@ -918,13 +1370,39 @@ unit cpupara;
       end;
 
 
+    function tcpuparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
+      const
+        win64_saved_std_regs : {$ifndef VER3_0}tcpuregisterarray{$else}array[0..7] of tsuperregister{$endif} = (RS_RBX,RS_RDI,RS_RSI,RS_R12,RS_R13,RS_R14,RS_R15,RS_RBP);
+        others_saved_std_regs : {$ifndef VER3_0}tcpuregisterarray{$else}array[0..4] of tsuperregister{$endif} = (RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15);
+      begin
+        if tcgx86_64(cg).use_ms_abi then
+          result:=win64_saved_std_regs
+        else
+          result:=others_saved_std_regs;
+      end;
+
+
+    function tcpuparamanager.get_saved_registers_mm(calloption: tproccalloption):tcpuregisterarray;
+      const
+        win64_saved_xmm_regs : {$ifndef VER3_0}tcpuregisterarray{$else}array[0..9] of tsuperregister{$endif} = (RS_XMM6,RS_XMM7,
+          RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15);
+      begin
+        if tcgx86_64(cg).use_ms_abi then
+          result:=win64_saved_xmm_regs
+        else
+          SetLength(result,0);
+      end;
+
+
     function tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       const
         intretregs: array[0..1] of tregister = (NR_FUNCTION_RETURN_REG,NR_FUNCTION_RETURN_REG_HIGH);
         mmretregs: array[0..1] of tregister = (NR_MM_RESULT_REG,NR_MM_RESULT_REG_HIGH);
+        mmretregs_vectorcall: array[0..3] of tregister = (NR_XMM0,NR_XMM1,NR_XMM2,NR_XMM3);
+
       var
         classes: tx64paraclasses;
-        i,
+        i,j,
         numclasses: longint;
         intretregidx,
         mmretregidx: longint;
@@ -973,16 +1451,19 @@ unit cpupara;
          { Return in register }
           begin
             fillchar(classes,sizeof(classes),0);
-            numclasses:=classify_argument(p.proccalloption,result.def,vs_value,result.def.size,classes,0);
+            numclasses:=classify_argument(p.proccalloption,result.def,nil,vs_value,result.def.size,classes,0,False);
             { this would mean a memory return }
             if (numclasses=0) then
               internalerror(2010021502);
-            { this would mean an _m256 vector (valid, but not yet supported) }
-            if (numclasses>2) then
+
+            if (numclasses > MAX_PARA_CLASSES) then
               internalerror(2010021503);
+
             intretregidx:=0;
             mmretregidx:=0;
-            for i:=0 to numclasses-1 do
+            i := 0;
+            { We can't use a for-loop here because the treatment of the SSEUP class requires skipping over i's }
+            while i < numclasses do
               begin
                 paraloc:=result.add_location;
                 paraloc^.def:=classes[i].def;
@@ -1017,7 +1498,12 @@ unit cpupara;
                   X86_64_SSEDF_CLASS:
                     begin
                       paraloc^.loc:=LOC_MMREGISTER;
-                      paraloc^.register:=mmretregs[mmretregidx];
+
+                      if p.proccalloption = pocall_vectorcall then
+                        paraloc^.register:=mmretregs_vectorcall[mmretregidx]
+                      else
+                        paraloc^.register:=mmretregs[mmretregidx];
+
                       case classes[i].typ of
                         X86_64_SSESF_CLASS:
                           begin
@@ -1029,11 +1515,55 @@ unit cpupara;
                             setsubreg(paraloc^.register,R_SUBMMD);
                             paraloc^.size:=OS_F64;
                           end;
-                        else
+                        X86_64_SSE_CLASS:
                           begin
-                            setsubreg(paraloc^.register,R_SUBQ);
-                            paraloc^.size:=OS_M64;
+                            j := 1;
+                            if not (x86_64_use_ms_abi(p.proccalloption) and (p.proccalloption <> pocall_vectorcall)) then
+                              while i + j <= numclasses do
+                                begin
+                                  if classes[i+j].typ <> X86_64_SSEUP_CLASS then
+                                    Break;
+
+                                  Inc(j);
+                                end;
+
+                            { j  = MM word count }
+                            Inc(i, j - 1);
+                            case j of
+                              1:
+                                begin
+                                  setsubreg(paraloc^.register,R_SUBQ);
+                                  paraloc^.size:=OS_M64;
+                                end;
+                              2:
+                                begin
+                                  setsubreg(paraloc^.register,R_SUBMMX);
+                                  paraloc^.size:=OS_M128;
+                                end;
+                              4:
+                                begin
+                                  setsubreg(paraloc^.register,R_SUBMMY);
+                                  paraloc^.size:=OS_M256; { Currently unsupported }
+                                end;
+                              8:
+                                begin
+                                  setsubreg(paraloc^.register,R_SUBMMZ);
+                                  paraloc^.size:=OS_M512; { Currently unsupported }
+                                end;
+                              else
+                                InternalError(2018012901);
+                            end;
+                            paraloc^.def:=carraydef.getreusable_no_free_vector(paraloc^.def,j);
                           end;
+                        else
+                          if (x86_64_use_ms_abi(p.proccalloption) and (p.proccalloption <> pocall_vectorcall)) then
+                            begin
+                              setsubreg(paraloc^.register,R_SUBQ);
+                              paraloc^.size:=OS_M64;
+                            end
+                          else
+                            { Should not get here }
+                            InternalError(2018012900);
                       end;
                       inc(mmretregidx);
                     end;
@@ -1061,6 +1591,7 @@ unit cpupara;
                   else
                     internalerror(2010021504);
                 end;
+                Inc(i);
               end;
           end;
       end;
@@ -1076,12 +1607,15 @@ unit cpupara;
         subreg     : tsubregister;
         pushaddr   : boolean;
         paracgsize : tcgsize;
-        loc        : array[1..2] of tx64paraclass;
+        { loc[2] onwards are only used for _m256 under vectorcall/SysV, and
+          homogeneous vector aggregates and homogeneous float aggreates under
+          the vectorcall calling convention. [Kit] }
+        loc        : tx64paraclasses;
         needintloc,
         needmmloc,
         paralen,
         locidx,
-        i,
+        i,j,
         varalign,
         paraalign  : longint;
         use_ms_abi : boolean;
@@ -1106,18 +1640,48 @@ unit cpupara;
             pushaddr:=push_addr_param(hp.varspez,paradef,p.proccalloption);
             if pushaddr then
               begin
-                loc[1].typ:=X86_64_INTEGER_CLASS;
-                loc[2].typ:=X86_64_NO_CLASS;
+                loc[0].typ:=X86_64_INTEGER_CLASS;
+                loc[1].typ:=X86_64_NO_CLASS;
                 paracgsize:=OS_ADDR;
                 paralen:=sizeof(pint);
                 paradef:=cpointerdef.getreusable_no_free(paradef);
-                loc[1].def:=paradef;
+                loc[0].def:=paradef;
+                loc[1].def:=nil;
+                for j:=2 to high(loc) do
+                  begin
+                    loc[j].typ:=X86_64_NO_CLASS;
+                    loc[j].def:=nil;
+                  end;
               end
             else
               begin
-                getvalueparaloc(p.proccalloption,hp.varspez,paradef,loc[1],loc[2]);
+                getvalueparaloc(p.proccalloption,hp.varspez,paradef,loc);
                 paralen:=push_size(hp.varspez,paradef,p.proccalloption);
-                paracgsize:=def_cgsize(paradef);
+                if p.proccalloption = pocall_vectorcall then
+                  begin
+                    { TODO: Can this set of instructions be put into 'defutil' without it relying on the argument classification? [Kit] }
+
+                    { The SIMD vector types have to be OS_M128 etc., not OS_128 etc.}
+                    case is_simd_vector_type_or_homogeneous_aggregate(pocall_vectorcall,paradef,vs_value) of
+                      0:
+                        { Not a vector or valid aggregate }
+                        paracgsize:=def_cgsize(paradef);
+                      4:
+                        paracgsize:=OS_F32;
+                      8:
+                        paracgsize:=OS_F64;
+                      16:
+                        paracgsize:=OS_M128;
+                      32:
+                        paracgsize:=OS_M256;
+                      64:
+                        paracgsize:=OS_M512;
+                      else
+                        InternalError(2018012910);
+                    end;
+                  end
+                else
+                  paracgsize:=def_cgsize(paradef);
               end;
 
             { cheat for now, we should copy the value to an mm reg as well (FK) }
@@ -1125,20 +1689,20 @@ unit cpupara;
                use_ms_abi and
                (paradef.typ = floatdef) then
               begin
-                loc[2].typ:=X86_64_NO_CLASS;
+                loc[1].typ:=X86_64_NO_CLASS;
                 if paracgsize=OS_F64 then
                   begin
-                    loc[1].typ:=X86_64_INTEGER_CLASS;
+                    loc[0].typ:=X86_64_INTEGER_CLASS;
                     paracgsize:=OS_64;
                     paradef:=u64inttype;
                   end
                 else
                   begin
-                    loc[1].typ:=X86_64_INTEGERSI_CLASS;
+                    loc[0].typ:=X86_64_INTEGERSI_CLASS;
                     paracgsize:=OS_32;
                     paradef:=u32inttype;
                   end;
-                loc[1].def:=paradef;
+                loc[0].def:=paradef;
               end;
 
             hp.paraloc[side].reset;
@@ -1156,16 +1720,20 @@ unit cpupara;
                     X86_64_INTEGER_CLASS,
                     X86_64_INTEGERSI_CLASS:
                       inc(needintloc);
+                    { Note, do NOT include X86_64_SSEUP_CLASS because this links with
+                      X86_64_SSE_CLASS and we only need one register, not two. [Kit] }
                     X86_64_SSE_CLASS,
                     X86_64_SSESF_CLASS,
-                    X86_64_SSEDF_CLASS,
-                    X86_64_SSEUP_CLASS:
+                    X86_64_SSEDF_CLASS:
                       inc(needmmloc);
+                    else
+                      ;
                   end;
                 { the "-1" is because we can also use the current register }
                 if (use_ms_abi and
                     ((intparareg+needintloc-1 > high(paraintsupregs_winx64)) or
-                     (mmparareg+needmmloc-1 > high(parammsupregs_winx64)))) or
+                     ((p.proccalloption = pocall_vectorcall) and (mmparareg+needmmloc-1 > high(parammsupregs_vectorcall))) or
+                     ((p.proccalloption <> pocall_vectorcall) and (mmparareg+needmmloc-1 > high(parammsupregs_winx64))))) or
                    (not use_ms_abi and
                     ((intparareg+needintloc-1 > high(paraintsupregs)) or
                      (mmparareg+needmmloc-1 > high(parammsupregs)))) then
@@ -1179,9 +1747,9 @@ unit cpupara;
                       loc[locidx].typ:=X86_64_NO_CLASS;
                   end;
 
-                locidx:=1;
+                locidx:=0;
                 while (paralen>0) and
-                      (locidx<=2) and
+                      (locidx<=high(loc)) and
                       (loc[locidx].typ<>X86_64_NO_CLASS) do
                   begin
                     { Allocate }
@@ -1192,7 +1760,7 @@ unit cpupara;
                           paraloc:=hp.paraloc[side].add_location;
                           paraloc^.loc:=LOC_REGISTER;
                           paraloc^.def:=loc[locidx].def;
-                          if (paracgsize=OS_NO) or (loc[2].typ<>X86_64_NO_CLASS) then
+                          if (paracgsize=OS_NO) or ((locidx<high(loc)) and (loc[locidx+1].typ<>X86_64_NO_CLASS)) then
                             begin
                               if loc[locidx].typ=X86_64_INTEGER_CLASS then
                                 begin
@@ -1234,8 +1802,7 @@ unit cpupara;
                         end;
                       X86_64_SSE_CLASS,
                       X86_64_SSESF_CLASS,
-                      X86_64_SSEDF_CLASS,
-                      X86_64_SSEUP_CLASS:
+                      X86_64_SSEDF_CLASS:
                         begin
                           paraloc:=hp.paraloc[side].add_location;
                           paraloc^.loc:=LOC_MMREGISTER;
@@ -1252,16 +1819,67 @@ unit cpupara;
                                 subreg:=R_SUBMMD;
                                 paraloc^.size:=OS_F64;
                               end;
-                            else
+                            X86_64_SSE_CLASS:
                               begin
                                 subreg:=R_SUBQ;
                                 paraloc^.size:=OS_M64;
+                                j := 1;
+                                if not (use_ms_abi and (p.proccalloption <> pocall_vectorcall)) then
+                                  while locidx + j <= high(loc) do
+                                    begin
+                                      if loc[locidx+j].typ <> X86_64_SSEUP_CLASS then
+                                        Break;
+
+                                      Inc(j);
+                                    end;
+
+                                { j = MM word count }
+                                Inc(locidx, j - 1);
+                                case j of
+                                  1:
+                                    begin
+                                      subreg:=R_SUBQ;
+                                      paraloc^.size:=OS_M64;
+                                    end;
+                                  2:
+                                    begin
+                                      subreg:=R_SUBMMX;
+                                      paraloc^.size:=OS_M128;
+                                    end;
+                                  4:
+                                    begin
+                                      subreg:=R_SUBMMY;
+                                      paraloc^.size:=OS_M256; { Currently unsupported }
+                                    end;
+                                  8:
+                                    begin
+                                      subreg:=R_SUBMMZ;
+                                      paraloc^.size:=OS_M512; { Currently unsupported }
+                                    end;
+                                  else
+                                    InternalError(2018012903);
+                                end;
+                                paraloc^.def:=carraydef.getreusable_no_free_vector(paraloc^.def,j);
                               end;
+                            else
+                              if (use_ms_abi and (p.proccalloption <> pocall_vectorcall)) then
+                                begin
+                                  subreg:=R_SUBQ;
+                                  paraloc^.size:=OS_M64;
+                                end
+                              else
+                                { Should not get here }
+                                InternalError(2018012902);
                           end;
 
                           { winx64 uses different registers }
                           if use_ms_abi then
-                            paraloc^.register:=newreg(R_MMREGISTER,parammsupregs_winx64[mmparareg],subreg)
+                            begin
+                              if p.proccalloption = pocall_vectorcall then
+                                paraloc^.register:=newreg(R_MMREGISTER,parammsupregs_vectorcall[mmparareg],subreg)
+                              else
+                                paraloc^.register:=newreg(R_MMREGISTER,parammsupregs_winx64[mmparareg],subreg);
+                            end
                           else
                             paraloc^.register:=newreg(R_MMREGISTER,parammsupregs[mmparareg],subreg);
 
@@ -1336,7 +1954,7 @@ unit cpupara;
       end;
 
 
-    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
       var
         intparareg,mmparareg,
         parasize : longint;
@@ -1348,11 +1966,18 @@ unit cpupara;
         else
           parasize:=0;
         { calculate the registers for the normal parameters }
-        create_paraloc_info_intern(p,callerside,p.paras,intparareg,mmparareg,parasize,false);
+        create_paraloc_info_intern(p,side,p.paras,intparareg,mmparareg,parasize,false);
         { append the varargs }
-        create_paraloc_info_intern(p,callerside,varargspara,intparareg,mmparareg,parasize,true);
-        { store used no. of SSE registers, that needs to be passed in %AL }
-        varargspara.mmregsused:=mmparareg;
+        if assigned(varargspara) then
+          begin
+            if side=callerside then
+              create_paraloc_info_intern(p,side,varargspara,intparareg,mmparareg,parasize,true)
+            else
+              internalerror(2019021917);
+            { store used no. of SSE registers, that needs to be passed in %AL }
+            varargspara.mmregsused:=mmparareg;
+          end;
+        create_funcretloc_info(p,side);
         result:=parasize;
       end;
 

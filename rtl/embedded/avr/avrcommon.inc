@@ -1,24 +1,19 @@
+  uses
+    intrinsics;
+
     procedure PASCALMAIN; external name 'PASCALMAIN';
 
-    procedure _FPC_haltproc; assembler; nostackframe; public name '_haltproc';noreturn;
-      asm
-        cli
-      .Lhalt:
-{$ifdef RELBRANCHES}
-        rjmp .Lhalt
-{$else RELBRANCHES}
-        jmp .Lhalt
-{$endif RELBRANCHES}
+    procedure _FPC_haltproc; public name '_haltproc';noreturn;
+      begin
+        avr_cli;
+        while true do
+          ;
       end;
 
-    procedure Default_IRQ_handler; assembler; nostackframe; public name '_Default_IRQ_handler';noreturn;
-      asm
-      .Lloop:
-{$ifdef RELBRANCHES}
-        rjmp .Lloop
-{$else RELBRANCHES}
-        jmp .Lloop
-{$endif RELBRANCHES}
+    procedure Default_IRQ_handler; public name '_Default_IRQ_handler';noreturn;
+      begin
+        while true do
+          ;
       end;
 
     var

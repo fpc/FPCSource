@@ -48,6 +48,8 @@ unit cpubase;
     type
       TAsmOp= {$i a64op.inc}
 
+      TAsmOps = set of TAsmOp;
+
       { This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];
 
@@ -104,7 +106,7 @@ unit cpubase;
       std_param_align = 8;
 
       { TODO: Calculate bsstart}
-      regnumber_count_bsstart = 128;
+      regnumber_count_bsstart = 256;
 
       regnumber_table : array[tregisterindex] of tregister = (
         {$i ra64num.inc}
@@ -120,9 +122,6 @@ unit cpubase;
       { registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [RS_X0..RS_X18,RS_X30];
       VOLATILE_MMREGISTERS =  [RS_D0..RS_D7,RS_D16..RS_D31];
-
-    type
-      totherregisterset = set of tregisterindex;
 
 {*****************************************************************************
                           Instruction post fixes
@@ -200,7 +199,7 @@ unit cpubase;
       tshiftmode = (SM_None,
                     { shifted register instructions. LSL can also be used for
                       the index register of certain loads/stores }
-                    SM_LSL,SM_LSR,SM_ASR,
+                    SM_LSL,SM_LSR,SM_ASR,SM_ROR,
                     { extended register instructions: zero/sign extension +
                         optional shift (interpreted as LSL after extension)
                        -- the index register of certain loads/stores can be
@@ -306,25 +305,6 @@ unit cpubase;
       RS_DEFAULTFLAGS = RS_NZCV;
 
 {*****************************************************************************
-                       GCC /ABI linking information
-*****************************************************************************}
-
-    const
-      { Registers which must be saved when calling a routine declared as
-        cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
-        saved should be the ones as defined in the target ABI and / or GCC.
-
-        This value can be deduced from the CALLED_USED_REGISTERS array in the
-        GCC source.
-      }
-      saved_standard_registers : array[0..9] of tsuperregister =
-        (RS_X19,RS_X20,RS_X21,RS_X22,RS_X23,RS_X24,RS_X25,RS_X26,RS_X27,RS_X28);
-      saved_mm_registers : array[0..7] of tsuperregister = (RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15);
-
-      { this is only for the generic code which is not used for this architecture }
-      saved_address_registers : array[0..0] of tsuperregister = (RS_INVALID);
-
-{*****************************************************************************
                                   Helpers
 *****************************************************************************}
 
@@ -341,11 +321,17 @@ unit cpubase;
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+
     procedure shifterop_reset(var so : tshifterop); {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
     function dwarf_reg(r:tregister):shortint;
+    function dwarf_reg_no_error(r:tregister):shortint;
+    function eh_return_data_regno(nr: longint): longint;
 
     function is_shifter_const(d: aint; size: tcgsize): boolean;
+    function IsFloatImmediate(ft : tfloattype;value : bestreal) : boolean;
 
 
   implementation
@@ -384,8 +370,11 @@ unit cpubase;
           R_MMREGISTER:
             begin
               case s of
+                { records }
+                OS_32,
                 OS_F32:
                   cgsize2subreg:=R_SUBMMS;
+                OS_64,
                 OS_F64:
                   cgsize2subreg:=R_SUBMMD;
                 else
@@ -502,6 +491,26 @@ unit cpubase;
       end;
 
 
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+      begin
+        Result := (c = C_None) or conditions_equal(Subset, c);
+
+        { Please update as necessary. [Kit] }
+        if not Result then
+          case Subset of
+            C_EQ:
+              Result := (c in [C_GE, C_LE]);
+            C_LT:
+              Result := (c in [C_LE]);
+            C_GT:
+              Result := (c in [C_GE]);
+            else
+              Result := False;
+          end;
+      end;
+
+
     function dwarf_reg(r:tregister):shortint;
       begin
         result:=regdwarf_table[findreg_by_number(r)];
@@ -509,6 +518,10 @@ unit cpubase;
           internalerror(200603251);
       end;
 
+    function dwarf_reg_no_error(r:tregister):shortint;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+      end;
 
     function is_shifter_const(d: aint; size: tcgsize): boolean;
       var
@@ -617,5 +630,44 @@ unit cpubase;
             patternlen:=patternlen*2;
           end;
       end;
+
+
+  function eh_return_data_regno(nr: longint): longint;
+    begin
+      if (nr>=0) and (nr<2) then
+        result:=nr
+      else
+        result:=-1;
+    end;
+
+
+  function IsFloatImmediate(ft : tfloattype;value : bestreal) : boolean;
+    var
+      singlerec : tcompsinglerec;
+      doublerec : tcompdoublerec;
+    begin
+      Result:=false;
+      case ft of
+        s32real:
+          begin
+            singlerec.value:=value;
+            singlerec:=tcompsinglerec(NtoLE(DWord(singlerec)));
+            Result:=(singlerec.bytes[0]=0) and (singlerec.bytes[1]=0) and ((singlerec.bytes[2] and 7)=0)  and
+              (((singlerec.bytes[3] and $7e)=$40) or ((singlerec.bytes[3] and $7e)=$3e));
+          end;
+        s64real:
+          begin
+            doublerec.value:=value;
+            doublerec:=tcompdoublerec(NtoLE(QWord(doublerec)));
+            Result:=(doublerec.bytes[0]=0) and (doublerec.bytes[1]=0) and (doublerec.bytes[2]=0) and
+                    (doublerec.bytes[3]=0) and (doublerec.bytes[4]=0) and (doublerec.bytes[5]=0) and
+                    ((((doublerec.bytes[6] and $c0)=$0) and ((doublerec.bytes[7] and $7f)=$40)) or
+                     (((doublerec.bytes[6] and $c0)=$c0) and ((doublerec.bytes[7] and $7f)=$3f)));
+          end;
+        else
+          ;
+      end;
+    end;
+
 
 end.

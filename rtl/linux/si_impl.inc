@@ -13,3 +13,46 @@
  **********************************************************************}
 
 procedure PascalMain; external name 'PASCALMAIN';
+
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+procedure SysEntry(constref info: TEntryInformation); external name 'FPC_SysEntry';
+procedure SysEntry_InitTLS(constref info: TEntryInformation); external name 'FPC_SysEntry_InitTLS';
+
+var
+  InitFinalTable : record end; external name 'INITFINAL';
+  ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
+  {$ifdef FPC_HAS_RESSTRINITS}
+  ResStrInitTables : record end; external name 'FPC_RESSTRINITTABLES';
+  {$endif}
+  ResourceStringTables : record end; external name 'FPC_RESOURCESTRINGTABLES';
+  ResLocation : Pointer; external name 'FPC_RESLOCATION';
+  StackLength : SizeUInt; external name '__stklen';
+
+const
+  SysInitEntryInformation : TEntryInformation = (
+    InitFinalTable : @InitFinalTable;
+{$ifdef FPC_SECTION_THREADVARS}
+    ThreadvarTablesTable : nil;
+{$else FPC_SECTION_THREADVARS}
+    ThreadvarTablesTable : @ThreadvarTablesTable;
+{$endif FPC_SECTION_THREADVARS}
+    ResourceStringTables : @ResourceStringTables;
+{$ifdef FPC_HAS_RESSTRINITS}
+    ResStrInitTables : @ResStrInitTables;
+{$else}
+    ResStrInitTables : nil;
+{$endif}
+    ResLocation : @ResLocation;
+    PascalMain : @PascalMain;
+    valgrind_used : false;
+    OS: (
+        argc: 0;
+        argv: nil;
+        envp: nil;
+        stkptr: nil;
+        stklen: 0;
+        haltproc: nil;
+      );
+    );
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+

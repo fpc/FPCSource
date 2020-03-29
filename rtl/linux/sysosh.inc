@@ -23,6 +23,8 @@ type
   { pthread_t is defined as an "unsigned long" }
   TThreadID = PtrUInt;
 
+  TOSTimestamp = Int64;
+
   PRTLCriticalSection = ^TRTLCriticalSection;
 {$macro on}
 {$define MUTEXTYPENAME := TRTLCriticalSection}
@@ -30,5 +32,14 @@ type
 {$undef MUTEXTYPENAME}
 {$macro off}
 
+  {$define HAS_ENTRYINFORMATION_OS}
+  TEntryInformationOS = record
+    argc: longint;
+    argv: ppchar;
+    envp: ppchar;
+    stkptr: pointer;
+    stklen: sizeuint;
+    haltproc: procedure(e:longint);cdecl;
+  end;
 
 

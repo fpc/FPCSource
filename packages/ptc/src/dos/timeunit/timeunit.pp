@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2010, 2017 Nikolay Nikolov (nickysn@users.sourceforge.net)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -110,32 +110,32 @@ Label
 
 Asm
   mov CpuFlags, 0
-  pushf
+  pushfd
   pop eax
   mov ecx, eax
   xor eax, 40000h
   push eax
-  popf
-  pushf
+  popfd
+  pushfd
   pop eax
   xor eax, ecx
   jz nocpuid
   push ecx
-  popf
+  popfd
   mov eax, ecx
   xor eax, 200000h
   push eax
-  popf
-  pushf
+  popfd
+  pushfd
   pop eax
   xor eax, ecx
   je nocpuid
 
-  pusha
+  pushad
   mov eax, 1
   cpuid
   mov CpuFlags, edx
-  popa
+  popad
 
 nocpuid:
 end;

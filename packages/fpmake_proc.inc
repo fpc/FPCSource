@@ -72,6 +72,12 @@ begin
 {$include dbus/fpmake.pp}
 end;
 
+procedure add_libmagic(const ADirectory: string);
+begin
+  with Installer do
+{$include libmagic/fpmake.pp}
+end;
+
 procedure add_dts(const ADirectory: string);
 begin
   with Installer do
@@ -176,11 +182,7 @@ begin
 {$include fcl-stl/fpmake.pp}
 end;
 
-procedure add_fcl_web(const ADirectory: string);
-begin
-  with Installer do
 {$include fcl-web/fpmake.pp}
-end;
 
 procedure add_fcl_xml(const ADirectory: string);
 begin
@@ -348,6 +350,18 @@ procedure add_libcurl(const ADirectory: string);
 begin
   with Installer do
 {$include libcurl/fpmake.pp}
+end;
+
+procedure add_libcups(const ADirectory: string);
+begin
+  with Installer do
+{$include libcups/fpmake.pp}
+end;
+
+procedure add_libffi(const ADirectory: string);
+begin
+  with Installer do
+{$include libffi/fpmake.pp}
 end;
 
 procedure add_libgbafpc(const ADirectory: string);
@@ -521,6 +535,12 @@ procedure add_openssl(const ADirectory: string);
 begin
   with Installer do
 {$include openssl/fpmake.pp}
+end;
+
+procedure add_gnutls(const ADirectory: string);
+begin
+  with Installer do
+{$include gnutls/fpmake.pp}
 end;
 
 procedure add_oracle(const ADirectory: string);
@@ -758,3 +778,36 @@ begin
   with Installer do
 {$include pastojs/fpmake.pp}
 end;
+
+procedure add_libgc(const ADirectory: string);
+begin
+  with Installer do
+{$include libgc/fpmake.pp}
+end;
+
+procedure add_libfontconfig(const ADirectory: string);
+begin
+  with Installer do
+{$include libfontconfig/fpmake.pp}
+end;
+
+procedure add_fcl_report(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-report/fpmake.pp}
+end;
+
+procedure add_webidl(const ADirectory: string);
+begin
+  with Installer do
+{$include webidl/fpmake.pp}
+end;
+
+procedure add_vclcompat(const ADirectory: string);
+begin
+  with Installer do
+{$include vcl-compat/fpmake.pp}
+end;
+
+
+{$include ide/fpmake.pp}

@@ -30,6 +30,7 @@ type
     FCompilerOptions: TCompilerOptions;
     FFpmakeCompilerOptions: TCompilerOptions;
     FCurrentRemoteRepositoryURL: String;
+    FConfigurationFilename: string;
     function IncludeRepositoryTypeForPackageKind(ARepositoryType: TFPRepositoryType;
       APackageKind: TpkgPackageKind): Boolean;
     procedure ScanPackagesOnDisk(ACompilerOptions: TCompilerOptions; APackageKind: TpkgPackageKind; ARepositoryList: TComponentList);
@@ -42,6 +43,7 @@ type
     procedure LeaveFindBrokenpackages;
 
     procedure ClearRepositories(ARepositoryList: TComponentList);
+    function GetConfigurationFilename: string;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -52,7 +54,7 @@ type
     procedure ScanAvailablePackages;
     procedure ScanPackages;
 
-    function PackageIsBroken(APackage: TFPPackage; ARepository: TFPRepository): Boolean;
+    function PackageIsBroken(APackage: TFPPackage; out Reason: string; ARepository: TFPRepository): Boolean;
 
     function FPMakeRepoFindPackage(APackageName: string; APackageKind: TpkgPackageKind): TFPPackage;
     function FindPackage(APackageName: string; APackageKind: TpkgPackageKind): TFPPackage;
@@ -61,7 +63,8 @@ type
     function FindRepository(ARepositoryName: string): TFPRepository;
     function RepositoryByName(ARepositoryName: string): TFPRepository;
 
-    function GetInstallRepository(APackage: TFPPackage): TFPRepository;
+    function GetInstallRepository(ASourcePackage: TFPPackage): TFPRepository;
+    function DetermineSourcePackage(APackageName: String): TFPPackage;
     function PackageLocalArchive(APackage:TFPPackage): String;
     function PackageBuildPath(APackage:TFPPackage):String;
 
@@ -77,6 +80,7 @@ type
     property FpmakeCompilerOptions: TCompilerOptions read FFpmakeCompilerOptions;
     property FPMakeRepositoryList: TComponentList read FFPMakeRepositoryList;
     property RepositoryList: TComponentList read FRepositoryList;
+    property ConfigurationFilename: string read GetConfigurationFilename;
   public
 
   end;
@@ -169,16 +173,16 @@ begin
   else
     begin
       // Now try if a local config-file exists
-      cfgfile:=GetAppConfigFile(False,False);
+      cfgfile:=GetFppkgConfigFile(Options.PreferGlobal,False);
       if not FileExists(cfgfile) then
         begin
           // If not, try to find a global configuration file
-          cfgfile:=GetAppConfigFile(True,False);
+          cfgfile:=GetFppkgConfigFile(not Options.PreferGlobal,False);
           if not FileExists(cfgfile) then
             begin
               // Create a new configuration file
               if not IsSuperUser then // Make a local, not global, configuration file
-                cfgfile:=GetAppConfigFile(False,False);
+                cfgfile:=GetFppkgConfigFile(False,False);
               ForceDirectories(ExtractFilePath(cfgfile));
               FOptions.SaveToFile(cfgfile);
               GeneratedConfig:=true;
@@ -191,19 +195,12 @@ begin
       FOptions.LoadFromFile(cfgfile);
     end;
   FOptions.CommandLineSection.CompilerConfig:=FOptions.GlobalSection.CompilerConfig;
-  if FOptions.GlobalSection.InstallRepository <> '' then
-    FOptions.CommandLineSection.InstallRepository:=FOptions.GlobalSection.InstallRepository
-  else
-    begin
-      FirstRepoConf :=  FOptions.GetSectionByName('Repository');
-      if Assigned(FirstRepoConf) then
-        FOptions.CommandLineSection.InstallRepository := (FirstRepoConf as TFppkgRepositoryOptionSection).RepositoryName;
-    end;
   // Tracing of what we've done above, need to be done after the verbosity is set
   if GeneratedConfig then
     pkgglobals.Log(llDebug,SLogGeneratingGlobalConfig,[cfgfile])
   else
     pkgglobals.Log(llDebug,SLogLoadingGlobalConfig,[cfgfile]);
+  FConfigurationFilename := CfgFile;
   // Log configuration
   FOptions.LogValues(llDebug);
 end;
@@ -218,18 +215,22 @@ begin
   if FileExists(S) then
     begin
       pkgglobals.Log(llDebug,SLogLoadingCompilerConfig,[S]);
-      FCompilerOptions.LoadCompilerFromFile(S)
+      FCompilerOptions.LoadCompilerFromFile(S);
+      if FCompilerOptions.SaveInifileChanges then
+        // The file is in an old format, try to update the file but ignore
+        // any failures.
+        FCompilerOptions.SaveCompilerToFile(S);
     end
   else
     begin
-      // Generate a default configuration if it doesn't exists
-      if FOptions.GlobalSection.CompilerConfig='default' then
+      if FCompilerOptions.SaveInifileChanges then
+        // A new fppkg.cfg has been created, try to create a new compiler-configuration
+        // file too.
         begin
           pkgglobals.Log(llDebug,SLogGeneratingCompilerConfig,[S]);
           FCompilerOptions.InitCompilerDefaults;
-          FCompilerOptions.SaveCompilerToFile(S);
-          if FCompilerOptions.SaveInifileChanges then
-            FCompilerOptions.SaveCompilerToFile(S);
+          if not FCompilerOptions.SaveCompilerToFile(S) then
+            Error(SErrMissingCompilerConfig,[S]);
         end
       else
         Error(SErrMissingCompilerConfig,[S]);
@@ -244,6 +245,8 @@ begin
       pkgglobals.Log(llDebug,SLogLoadingFPMakeCompilerConfig,[S]);
       FFPMakeCompilerOptions.LoadCompilerFromFile(S);
       if FFPMakeCompilerOptions.SaveInifileChanges then
+        // The file is in an old format, try to update the file but ignore
+        // any failures.
         FFPMakeCompilerOptions.SaveCompilerToFile(S);
     end
   else
@@ -327,7 +330,7 @@ begin
   ScanAvailablePackages;
 end;
 
-function TpkgFPpkg.PackageIsBroken(APackage: TFPPackage; ARepository: TFPRepository): Boolean;
+function TpkgFPpkg.PackageIsBroken(APackage: TFPPackage; out Reason: string; ARepository: TFPRepository): Boolean;
 var
   j, i, ThisRepositoryIndex: Integer;
   Dependency: TFPDependency;
@@ -336,10 +339,9 @@ var
   HashPtr: PtrInt;
 begin
   result:=false;
-
+  Reason := '';
   if Assigned(APackage.Repository) and (APackage.Repository.RepositoryType <> fprtInstalled) then
     begin
-    Result := False;
     Exit;
     end;
 
@@ -361,6 +363,16 @@ begin
       begin
       // We should only check for dependencies in this repository, or repositories
       // with a lower priority.
+
+      // This behaviour seems obsolete. The idea behind it was that each repository
+      // should be useable, only using other repositories with a lower priority.
+      // In practice this does not work, you have to consider the installation
+      // as a whole, using all repositories. One specific user might not be able
+      // to 'fix' the global fpc-repository, and so end up with broken packages
+      // which he/she can not fix. Or packages may be forced to be installed in
+      // a specific repository.
+      // The functionality is kept for now, maybe there is a need for it in the
+      // future... But for now, ARepository will be always nil.
       ThisRepositoryIndex := -1;
       for i := RepositoryList.Count -1 downto 0 do
         begin
@@ -387,10 +399,11 @@ begin
 
             if assigned(DepPackage) then
               begin
-                if PackageIsBroken(DepPackage, ARepository) then
+                if PackageIsBroken(DepPackage, Reason, ARepository) then
                   begin
                     log(llInfo,SLogPackageDepBroken,[APackage.Name,APackage.Repository.RepositoryName,Dependency.PackageName,Repository.RepositoryName]);
                     result:=true;
+                    Reason := Format(SInfoPackageDepBroken, [Dependency.PackageName, Repository.RepositoryName]);
                     FBrokenPackagesDictionary.Add(APackage.Name, Pointer(1));
                     exit;
                   end;
@@ -398,6 +411,7 @@ begin
                   begin
                     log(llInfo,SLogPackageChecksumChanged,[APackage.Name,APackage.Repository.RepositoryName,Dependency.PackageName,Repository.RepositoryName]);
                     result:=true;
+                    Reason := Format(SInfoPackageChecksumChanged, [Dependency.PackageName, Repository.RepositoryName]);
                     FBrokenPackagesDictionary.Add(APackage.Name, Pointer(1));
                     exit;
                   end;
@@ -406,6 +420,7 @@ begin
               begin
                 log(llInfo,SDbgObsoleteDependency,[APackage.Name,Dependency.PackageName]);
                 result:=true;
+                Reason :=Format(SInfoObsoleteDependency, [Dependency.PackageName]);
                 FBrokenPackagesDictionary.Add(APackage.Name, Pointer(1));
                 exit;
               end;
@@ -559,22 +574,60 @@ begin
     Raise EPackage.CreateFmt(SErrMissingInstallRepo,[ARepositoryName]);
 end;
 
-function TpkgFPpkg.GetInstallRepository(APackage: TFPPackage): TFPRepository;
+function TpkgFPpkg.GetInstallRepository(ASourcePackage: TFPPackage): TFPRepository;
 var
-  InstRepositoryName: string;
-  Repo: TFPRepository;
+  SourceRepository: TFPRepository;
+  RepoName: string;
+  i: Integer;
 begin
-  Result := RepositoryByName(Options.CommandLineSection.InstallRepository);
-  if Assigned(APackage) and Assigned(APackage.Repository) and Assigned(APackage.Repository.DefaultPackagesStructure) then
+  // Determine the repository to install a package into. See the
+  // repositorylogics.dia file.
+  pkgglobals.Log(llDebug, SLogDetermineInstallRepo, [ASourcePackage.GetDebugName]);
+  RepoName := Options.CommandLineSection.InstallRepository;
+  if RepoName <> '' then
+    // If an install-repository is given on the command line, this overrides
+    // everything.
+    pkgglobals.Log(llDebug, SLogUseCommandLineRepo, [RepoName])
+  else
     begin
-      InstRepositoryName := APackage.Repository.DefaultPackagesStructure.InstallRepositoryName;
-      if (InstRepositoryName<>'') then
+      // The source-repository is already determined by the source-package, which
+      // is a member of the source-repository.
+      SourceRepository := ASourcePackage.Repository;
+      Assert(Assigned(SourceRepository));
+      Assert(SourceRepository.RepositoryType = fprtAvailable);
+
+      // For now, skip the check for original sources of already installed packages.
+
+      Assert(Assigned(SourceRepository.DefaultPackagesStructure));
+      RepoName := SourceRepository.DefaultPackagesStructure.InstallRepositoryName;
+      if RepoName<>'' then
+        pkgglobals.Log(llDebug, SLogUseSourceRepoInstRepo, [RepoName, SourceRepository.RepositoryName])
+      else
         begin
-          Repo := FindRepository(InstRepositoryName);
-          if Assigned(Repo) then
-            Result := Repo;
+          RepoName := Options.GlobalSection.InstallRepository;
+          if RepoName<>'' then
+            pkgglobals.Log(llDebug, SLogUseConfigurationRepo, [RepoName])
+          else
+            begin
+              for i := RepositoryList.Count-1 downto 0 do
+                begin
+                  if (RepositoryList[i] as TFPRepository).RepositoryType = fprtInstalled then
+                    begin
+                      Result := TFPRepository(RepositoryList[i]);
+                      pkgglobals.Log(llDebug, SLogUseLastRepo, [Result.RepositoryName]);
+                      Exit;
+                    end;
+                end;
+              raise EPackage.Create(SErrNoInstallRepoAvailable);
+            end;
         end;
     end;
+  Result := RepositoryByName(RepoName);
+end;
+
+function TpkgFPpkg.DetermineSourcePackage(APackageName: String): TFPPackage;
+begin
+  Result := FindPackage(APackageName, pkgpkAvailable);
 end;
 
 function TpkgFPpkg.PackageLocalArchive(APackage: TFPPackage): String;
@@ -593,19 +646,22 @@ var
   Repo, AvailableRepo: TFPRepository;
   AvailStruc: TFPOriginalSourcePackagesStructure;
 begin
-  for i := FRepositoryList.Count-1 downto 0 do
+  for i := 0 to FRepositoryList.Count-1 do
     begin
       Repo := FRepositoryList.Items[i] as TFPRepository;
-
-      AvailableRepo := TFPRepository.Create(Self);
-      FRepositoryList.Add(AvailableRepo);
-      AvailableRepo.RepositoryType := fprtAvailable;
-      AvailableRepo.RepositoryName := Repo.RepositoryName + '_source';
-      AvailableRepo.Description := Repo.Description + ' (original sources)';
-      AvailStruc := TFPOriginalSourcePackagesStructure.Create(Self, Repo);
-      AvailStruc.InitializeWithOptions(nil, FOptions, FCompilerOptions);
-      AvailStruc.AddPackagesToRepository(AvailableRepo);
-      AvailableRepo.DefaultPackagesStructure := AvailStruc;
+      if Repo.RepositoryType = fprtInstalled then
+        begin
+          AvailableRepo := TFPRepository.Create(Self);
+          FRepositoryList.Add(AvailableRepo);
+          AvailableRepo.RepositoryType := fprtAvailable;
+          AvailableRepo.RepositoryName := Repo.RepositoryName + '_source';
+          AvailableRepo.Description := Repo.Description + ' (original sources)';
+          AvailStruc := TFPOriginalSourcePackagesStructure.Create(Self, Repo);
+          AvailStruc.InitializeWithOptions(nil, FOptions, FCompilerOptions);
+          AvailStruc.InstallRepositoryName := Repo.RepositoryName;
+          AvailStruc.AddPackagesToRepository(AvailableRepo);
+          AvailableRepo.DefaultPackagesStructure := AvailStruc;
+        end;
     end;
 end;
 
@@ -655,6 +711,7 @@ function TpkgFPpkg.FindBrokenPackages(SL: TStrings): Boolean;
 var
   i,j,k : integer;
   P : TFPPackage;
+  s : string;
   Repo: TFPRepository;
 begin
   SL.Clear;
@@ -668,8 +725,15 @@ begin
             for j := 0 to Repo.PackageCount-1 do
               begin
                 P := Repo.Packages[j];
-                if (P = FindPackage(P.Name, pkgpkInstalled)) and PackageIsBroken(P, nil) then
-                  SL.Add(P.Name);
+                if (P = FindPackage(P.Name, pkgpkInstalled)) and PackageIsBroken(P, s, nil) then
+                  begin
+                    if P.IsFPMakeAddIn then
+                      // Make sure that FPMakeAddIn's are fixed first, so
+                      // as much packages are compiled with them.
+                      SL.Insert(0, P.Name)
+                    else
+                      SL.Add(P.Name);
+                  end;
               end;
           end;
       end;
@@ -717,6 +781,11 @@ begin
     Result:=APackage.DownloadURL
   else
     Result:=GetRemoteRepositoryURL(APackage.FileName);
+end;
+
+function TpkgFPpkg.GetConfigurationFilename: string;
+begin
+  Result := FConfigurationFilename;
 end;
 
 end.

@@ -55,10 +55,10 @@ Unit racpugas;
       globtype,verbose,
       systems,aasmbase,aasmtai,aasmdata,aasmcpu,
       { symtable }
-      symconst,symsym,
+      symconst,symsym,symdef,
       procinfo,
       rabase,rautils,
-      cgbase,cgutils;
+      cgbase,cgutils,paramgr;
 
 
     function taarch64attreader.is_register(const s:string):boolean;
@@ -461,7 +461,7 @@ Unit racpugas;
 
       const
         shiftmode2str: array[SM_LSL..SM_SXTX] of string[4] =
-          ('LSL','LSR','ASR',
+          ('LSL','LSR','ASR','ROR',
            'UXTB','UXTH','UXTW','UXTX',
            'SXTB','SXTH','SXTW','SXTX');
       var
@@ -485,8 +485,8 @@ Unit racpugas;
                       useszr:=false;
                       for i:=low(instr.operands) to pred(opnr) do
                         begin
-                          if (instr.operands[1].opr.typ=OPR_REGISTER) then
-                            case getsupreg(instr.operands[1].opr.reg) of
+                          if (instr.operands[i].opr.typ=OPR_REGISTER) then
+                            case getsupreg(instr.operands[i].opr.reg) of
                               RS_XZR:
                                 useszr:=true;
                               RS_SP:
@@ -494,7 +494,10 @@ Unit racpugas;
                             end;
                         end;
                       result:=valid_shifter_operand(instr.opcode,useszr,usessp,instr.Is64bit,sm,instr.operands[opnr].opr.shifterop.shiftimm);
-                    end
+                      if result then
+                        instr.Ops:=opnr;
+                    end;
+                  break;
                 end;
           end;
       end;
@@ -520,6 +523,8 @@ Unit racpugas;
                     end;
                 end;
             end;
+          else
+            ;
         end;
         result:=C_None;;
       end;
@@ -560,7 +565,8 @@ Unit racpugas;
                oper.opr.symbol:=hl;
              end
             else if (actopcode=A_ADR) or
-               (actopcode=A_ADRP) then
+               (actopcode=A_ADRP) or
+               (actopcode=A_LDR) then
               begin
                 oper.InitRef;
                 MaybeAddGotAddrMode;
@@ -607,10 +613,8 @@ Unit racpugas;
                   { don't allow direct access to fields of parameters, because that
                     will generate buggy code. Allow it only for explicit typecasting }
                   if hasdot and
-                     (not oper.hastype) and
-                     (tabstractnormalvarsym(oper.opr.localsym).owner.symtabletype=parasymtable) and
-                     (current_procinfo.procdef.proccalloption<>pocall_register) then
-                    Message(asmr_e_cannot_access_field_directly_for_parameters);
+                     (not oper.hastype) then
+                    checklocalsubscript(oper.opr.localsym);
                   inc(oper.opr.localsymofs,l)
                 end;
               OPR_CONSTANT :
@@ -935,7 +939,6 @@ Unit racpugas;
         j  : longint;
         hs : string;
         maxlen : longint;
-        icond : tasmcond;
       Begin
         { making s a value parameter would break other assembler readers }
         hs:=s;

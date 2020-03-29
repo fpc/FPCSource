@@ -39,16 +39,16 @@ const
   LUA_DBLIBNAME = 'debug';
   LUA_LOADLIBNAME = 'package';
 
-function luaopen_base(L: Plua_State): LongBool; cdecl;
-function luaopen_table(L: Plua_State): LongBool; cdecl;
-function luaopen_io(L: Plua_State): LongBool; cdecl;
-function luaopen_string(L: Plua_State): LongBool; cdecl;
-function luaopen_math(L: Plua_State): LongBool; cdecl;
-function luaopen_debug(L: Plua_State): LongBool; cdecl;
-function luaopen_package(L: Plua_State): LongBool; cdecl;
+function luaopen_base(L: Plua_State): LongBool; cdecl; external LUA_LIB_NAME;
+function luaopen_table(L: Plua_State): LongBool; cdecl; external LUA_LIB_NAME;
+function luaopen_io(L: Plua_State): LongBool; cdecl; external LUA_LIB_NAME;
+function luaopen_string(L: Plua_State): LongBool; cdecl; external LUA_LIB_NAME;
+function luaopen_math(L: Plua_State): LongBool; cdecl; external LUA_LIB_NAME;
+function luaopen_debug(L: Plua_State): LongBool; cdecl; external LUA_LIB_NAME;
+function luaopen_package(L: Plua_State): LongBool; cdecl; external LUA_LIB_NAME;
 
 (* open all previous libraries *)
-procedure luaL_openlibs(L: Plua_State); cdecl;
+procedure luaL_openlibs(L: Plua_State); cdecl; external LUA_LIB_NAME;
 
 (* compatibility code *)
 
@@ -60,16 +60,6 @@ function lua_mathlibopen(L: Plua_State): LongBool;
 function lua_dblibopen(L: Plua_State): LongBool;
 
 implementation
-
-function luaopen_base(L: Plua_State): LongBool; cdecl; external LUA_LIB_NAME;
-function luaopen_table(L: Plua_State): LongBool; cdecl; external LUA_LIB_NAME;
-function luaopen_io(L: Plua_State): LongBool; cdecl; external LUA_LIB_NAME;
-function luaopen_string(L: Plua_State): LongBool; cdecl; external LUA_LIB_NAME;
-function luaopen_math(L: Plua_State): LongBool; cdecl; external LUA_LIB_NAME;
-function luaopen_debug(L: Plua_State): LongBool; cdecl; external LUA_LIB_NAME;
-function luaopen_package(L: Plua_State): LongBool; cdecl; external LUA_LIB_NAME;
-
-procedure luaL_openlibs(L: Plua_State); cdecl; external LUA_LIB_NAME;
 
 function lua_baselibopen(L: Plua_State): LongBool;
 begin

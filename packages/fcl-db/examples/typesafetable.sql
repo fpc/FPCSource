@@ -1,0 +1,20 @@
+create table mytable (
+  myString varchar(30),
+  myfixedchar char(30),
+  myWideString varchar(20),
+  myunicodestring varchar(20),
+  myutf8string varchar(20),
+  myfixedwidestring char(10),
+  myinteger int PRIMARY KEY,
+  mybyteinteger SMALLINT,
+  mysmallintInteger smallint,
+  myshortintinteger smallint,
+  mycardinalinteger int,
+  mydatetime timestamp,
+  myfloat float,
+  myword int,
+  myboolean smallint,
+  myint64 bigint,
+  myqwordlargeint bigint,
+  myblob blob
+);

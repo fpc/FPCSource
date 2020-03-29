@@ -19,7 +19,7 @@
   from the system unit interface; macro's have to be on at this point
   because they're use to propagate the MUTEXTYPENAME here }
 
-{$if defined(CPUMIPS) or defined(cpuaarch64)}
+{$if defined(CPUMIPS) or defined(cpuaarch64) or defined(cpusparc64)}
 {$define USE_PTHREAD_SIZEOF}
 
 {$if defined(cpuaarch64)}
@@ -30,7 +30,7 @@
   {$define __SIZEOF_PTHREAD_MUTEX_T := 24}
 {$endif CPU64}
 
-{$endif MIPS}
+{$endif defined(CPUMIPS) or defined(cpuaarch64) or defined(cpusparc64)}
 
   MUTEXTYPENAME = record
     case byte of

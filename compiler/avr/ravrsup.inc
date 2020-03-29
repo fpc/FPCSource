@@ -32,4 +32,7 @@ RS_R28 = $1c;
 RS_R29 = $1d;
 RS_R30 = $1e;
 RS_R31 = $1f;
+RS_X = $1a;
+RS_Y = $1c;
+RS_Z = $1e;
 RS_SREG = $00;

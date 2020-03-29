@@ -26,7 +26,7 @@ unit switches;
 interface
 
 uses
-  globtype;
+  systems,globtype;
 
 procedure HandleSwitch(switch,state:char);
 function CheckSwitch(switch,state:char):boolean;
@@ -37,11 +37,15 @@ procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
 procedure recordpendinglocalfullswitch(const switches: tlocalswitches);
 procedure recordpendingverbosityfullswitch(verbosity: longint);
 procedure recordpendingcallingswitch(const str: shortstring);
+procedure recordpendingalignmentfullswitch(const alignment : talignmentinfo);
+procedure recordpendingsetalloc(alloc:shortint);
+procedure recordpendingpackenum(size:shortint);
+procedure recordpendingpackrecords(size:shortint);
 procedure flushpendingswitchesstate;
 
 implementation
 uses
-  systems,cpuinfo,
+  cpuinfo,
 {$ifdef llvm}
   { override optimizer switches }
   llvminfo,
@@ -294,6 +298,7 @@ procedure recordpendingverbosityswitch(sw: char; state: char);
     pendingstate.nextverbositystr:=pendingstate.nextverbositystr+sw+state;
   end;
 
+
 procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
   var
     pstate : pmessagestaterecord;
@@ -305,9 +310,10 @@ procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
     pendingstate.nextmessagerecord:=pstate;
   end;
 
+
 procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
   begin
-    if not pendingstate.localswitcheschanged then
+    if not (psf_local_switches_changed in pendingstate.flags) then
        pendingstate.nextlocalswitches:=current_settings.localswitches;
     if state='-' then
       exclude(pendingstate.nextlocalswitches,sw)
@@ -320,14 +326,21 @@ procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
         else
          exclude(pendingstate.nextlocalswitches,sw);
       end;
-    pendingstate.localswitcheschanged:=true;
+    include(pendingstate.flags,psf_local_switches_changed);
+  end;
+
+
+procedure recordpendingalignmentfullswitch(const alignment : talignmentinfo);
+  begin
+    pendingstate.nextalignment:=alignment;
+    include(pendingstate.flags,psf_alignment_changed);
   end;
 
 
 procedure recordpendinglocalfullswitch(const switches: tlocalswitches);
   begin
     pendingstate.nextlocalswitches:=switches;
-    pendingstate.localswitcheschanged:=true;
+    include(pendingstate.flags,psf_local_switches_changed);
   end;
 
 
@@ -335,12 +348,33 @@ procedure recordpendingverbosityfullswitch(verbosity: longint);
   begin
     pendingstate.nextverbositystr:='';
     pendingstate.nextverbosityfullswitch:=verbosity;
-    pendingstate.verbosityfullswitched:=true;
+    include(pendingstate.flags,psf_verbosity_full_switched);
   end;
 
 procedure recordpendingcallingswitch(const str: shortstring);
   begin
     pendingstate.nextcallingstr:=str;
+  end;
+
+
+procedure recordpendingsetalloc(alloc:shortint);
+  begin
+    pendingstate.nextsetalloc:=alloc;
+    include(pendingstate.flags,psf_setalloc_changed);
+  end;
+
+
+procedure recordpendingpackenum(size:shortint);
+  begin
+    pendingstate.nextpackenum:=size;
+    include(pendingstate.flags,psf_packenum_changed);
+  end;
+
+
+procedure recordpendingpackrecords(size:shortint);
+  begin
+    pendingstate.nextpackrecords:=size;
+    include(pendingstate.flags,psf_packrecords_changed);
   end;
 
 
@@ -350,17 +384,38 @@ procedure flushpendingswitchesstate;
     fstate, pstate : pmessagestaterecord;
   begin
     { process pending localswitches (range checking, etc) }
-    if pendingstate.localswitcheschanged then
+    if psf_local_switches_changed in pendingstate.flags then
       begin
         current_settings.localswitches:=pendingstate.nextlocalswitches;
-        pendingstate.localswitcheschanged:=false;
+        exclude(pendingstate.flags,psf_local_switches_changed);
       end;
     { process pending verbosity changes (warnings on, etc) }
-    if pendingstate.verbosityfullswitched then
+    if psf_verbosity_full_switched in pendingstate.flags then
       begin
         status.verbosity:=pendingstate.nextverbosityfullswitch;
-        pendingstate.verbosityfullswitched:=false;
+        exclude(pendingstate.flags,psf_verbosity_full_switched);
       end;
+    if psf_alignment_changed in pendingstate.flags then
+      begin
+        current_settings.alignment:=pendingstate.nextalignment;
+        exclude(pendingstate.flags,psf_alignment_changed);
+      end;
+    if psf_packenum_changed in pendingstate.flags then
+      begin
+        current_settings.packenum:=pendingstate.nextpackenum;
+        exclude(pendingstate.flags,psf_packenum_changed);
+      end;
+    if psf_packrecords_changed in pendingstate.flags then
+      begin
+        current_settings.packrecords:=pendingstate.nextpackrecords;
+        exclude(pendingstate.flags,psf_packrecords_changed);
+      end;
+    if psf_setalloc_changed in pendingstate.flags then
+      begin
+        current_settings.setalloc:=pendingstate.nextsetalloc;
+        exclude(pendingstate.flags,psf_setalloc_changed);
+      end;
+    { process pending verbosity changes (warnings on, etc) }
     if pendingstate.nextverbositystr<>'' then
       begin
         setverbosity(pendingstate.nextverbositystr);

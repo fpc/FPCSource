@@ -595,6 +595,7 @@ asm
   jmp     SmallBackwardMove_3
 end; {Backwards_MMX}
 
+{$ifndef FASTMOVE_DISABLE_SSE3}
 {-------------------------------------------------------------------------}
 {Dest MUST be 16-Byes Aligned, Count MUST be multiple of 16 }
 procedure AlignedFwdMoveSSE_3(const Source; var Dest; Count: Integer);assembler;nostackframe;
@@ -832,6 +833,7 @@ asm
   pop     ebx
   jmp     SmallBackwardMove_3
 end; {Backwards_SSE}
+{$endif ndef FASTMOVE_DISABLE_SSE3}
 
 const
    fastmoveproc_forward : pointer = @Forwards_IA32_3;
@@ -886,13 +888,13 @@ procedure setup_fastmove;{$ifdef SYSTEMINLINE}inline;{$endif}
         fastmoveproc_forward:=@Forwards_Valgrind;
         fastmoveproc_backward:=@Backwards_Valgrind;
       end
-    else
-
-    if has_sse_support then
+{$ifndef FASTMOVE_DISABLE_SSE3}
+    else if has_sse_support then
       begin
         fastmoveproc_forward:=@Forwards_SSE_3;
         fastmoveproc_backward:=@Backwards_SSE_3;
       end
+{$endif ndef FASTMOVE_DISABLE_SSE3}
    else if has_mmx_support then
       begin
         fastmoveproc_forward:=@Forwards_MMX_3;

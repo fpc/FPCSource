@@ -28,21 +28,46 @@ Unit System;
 {$define FPC_IS_SYSTEM}
 {$define HAS_CMDLINE}
 {$define USE_NOTHREADMANAGER}
+{$ifdef CPUM68K}
+{$define FPC_68K_SYSTEM_HAS_FPU_EXCEPTIONS}
+{$endif}
 
 {$i osdefs.inc}
 
 {$I sysunixh.inc}
 
+{$if defined(VER3_0) and defined(CPUX86_64)}
+{$define FPC_BOOTSTRAP_INDIRECT_ENTRY}
+const
+  { this constant only exists during bootstrapping of the RTL with FPC 3.0.x,
+    so that the whole condition doesn't need to be repeated in si_intf }
+  indirect_bootstrap = true;
+{$endif defined(VER3_0) and defined(CPUX86_64)}
+
+
 function get_cmdline:Pchar; deprecated 'use paramstr' ;
 property cmdline:Pchar read get_cmdline;
 
-{$if defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$if defined(CPURISCV32) or defined(CPURISCV64) or defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$define FPC_LOAD_SOFTFPU}
+{$endif defined(CPURISCV32) or defined(CPURISCV64) or defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
 
+{$ifdef FPC_SOFT_FPUX80}
+{$define FPC_SOFTFLOAT_FLOATX80}
+{$define LOAD_SOFTFPU}
+{$endif}
+
+{$ifdef FPC_SOFT_FPU128}
+{$define FPC_SOFTFLOAT_FLOAT128}
+{$define FPC_LOAD_SOFTFPU}
+{$endif}
+
+{$ifdef FPC_LOAD_SOFTFPU}
 {$define fpc_softfpu_interface}
 {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
+{$endif FPC_LOAD_SOFTFPU}
 
-{$endif defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
 
 {$ifdef android}
   {$I sysandroidh.inc}
@@ -57,12 +82,20 @@ var
   sysenter_supported: LongInt = 0;
 {$endif}
 
-const 
+const
   calculated_cmdline:Pchar=nil;
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+{$define FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
+procedure OsSetupEntryInformation(constref info: TEntryInformation); forward;
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
-{$if defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$ifdef FPC_LOAD_SOFTFPU}
 
 {$define fpc_softfpu_implementation}
+{$if defined(CPUM68K)}
+{$define softfpu_compiler_mul32to64}
+{$define softfpu_inline}
+{$endif}
 {$i softfpu.pp}
 {$undef fpc_softfpu_implementation}
 
@@ -78,7 +111,7 @@ const
 {$define FPC_SYSTEM_HAS_extractFloat32Exp}
 {$define FPC_SYSTEM_HAS_extractFloat32Sign}
 
-{$endif defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$endif FPC_LOAD_SOFTFPU}
 
 {$I system.inc}
 
@@ -87,14 +120,272 @@ const
 {$endif android}
 
 {*****************************************************************************
-                       Misc. System Dependent Functions
+                               TLS handling
 *****************************************************************************}
+
+{$if defined(CPUARM)}
+{$define INITTLS}
+Function fpset_tls(p : pointer;size : SizeUInt):cint;
+begin
+  Result:=do_syscall(syscall_nr___ARM_NR_set_tls,TSysParam(p));
+end;
+{$endif defined(CPUARM)}
+
+{$if defined(CPUI386)}
+{$define INITTLS}
+Function fpset_tls(p : pointer;size : SizeUInt):cint;
+var
+  desc : record
+    entry_number : dword;
+    base_addr : dword;
+    limit : dword;
+    flags : dword;
+  end;
+  selector : word;
+begin
+  // get descriptor from the kernel
+  desc.entry_number:=$ffffffff;
+  // TLS is accessed by negative offsets, only the TCB pointer is at offset 0
+  desc.base_addr:=dword(p)+size-SizeOf(Pointer);
+  // 4 GB, limit is given in pages
+  desc.limit:=$fffff;
+  // seg_32bit:1, contents:0, read_exec_only:0, limit_in_pages:1, seg_not_present:0, useable:1
+  desc.flags:=%1010001;
+  Result:=do_syscall(syscall_nr_set_thread_area,TSysParam(@desc));
+  if Result=0 then
+    begin
+      selector:=desc.entry_number*8+3;
+      asm
+        movw selector,%gs
+        movl desc.base_addr,%eax
+        movl %eax,%gs:0
+      end;
+    end;
+end;
+{$endif defined(CPUI386)}
+
+{$if defined(CPUX86_64)}
+{$define INITTLS}
+const
+  ARCH_SET_FS = $1002;
+
+Function fpset_tls(p : pointer;size : SizeUInt):cint;
+begin
+  p:=pointer(qword(p)+size-SizeOf(Pointer));
+  Result:=do_syscall(syscall_nr_arch_prctl,TSysParam(ARCH_SET_FS),TSysParam(p));
+  if Result=0 then
+    begin
+      asm
+        movq p,%rax
+        movq %rax,%fs:0
+      end;
+    end;
+end;
+{$endif defined(CPUX86_64)}
+
+
+{$ifdef INITTLS}
+{ This code initialized the TLS segment for single threaded and static programs.
+
+  In case of multithreaded and/or dynamically linked programs it is assumed that they
+  dependent anyways on glibc which initializes tls properly.
+
+  As soon as a purely FPC dynamic loading or multithreading is implemented, the code
+  needs to be extended to handle these cases as well.
+}
+
+procedure InitTLS; [public,alias:'FPC_INITTLS'];
+  const
+    PT_TLS = 7;
+    PT_DYNAMIC = 2;
+
+  type
+{$ifdef CPU64}
+    tphdr = record
+      p_type,
+      p_flags : dword;
+      p_offset,
+      p_vaddr,
+      p_paddr,
+      p_filesz,
+      p_memsz,
+      p_align : qword;
+    end;
+{$else CPU64}
+    tphdr = record
+      p_type,
+      p_offset,
+      p_vaddr,
+      p_paddr,
+      p_filesz,
+      p_memsz,
+      p_flags,
+      p_align : dword;
+    end;
+{$endif CPU64}
+    pphdr = ^tphdr;
+
+  var
+    phdr : pphdr;
+    phnum : dword;
+    i   : integer;
+    tls : pointer;
+    auxp : ppointer;
+    found : boolean;
+    size : SizeUInt;
+  begin
+    auxp:=ppointer(envp);
+    { skip environment }
+    while assigned(auxp^) do
+      inc(auxp);
+    inc(auxp);
+    phdr:=nil;
+    phnum:=0;
+    { now we are at the auxillary vector }
+    while assigned(auxp^) do
+      begin
+        case plongint(auxp)^ of
+          3:
+            phdr:=pphdr(ppointer(auxp+1)^);
+          5:
+            phnum:=pdword(auxp+1)^;
+        end;
+        inc(auxp,2);
+      end;
+    found:=false;
+    size:=0;
+    for i:=1 to phnum do
+      begin
+        case phdr^.p_type of
+          PT_TLS:
+            begin
+              found:=true;
+              inc(size,phdr^.p_memsz);
+              size:=Align(size,phdr^.p_align);
+            end;
+          PT_DYNAMIC:
+            { if the program header contains a dynamic section, the program
+              is linked dynamically so the dynamic linker takes care of the
+              allocation of the TLS segment.
+
+              We cannot allocate it by ourself anyways as PT_TLS provides only
+              the size of TLS data of the executable itself
+             }
+            exit;
+        end;
+        inc(phdr);
+      end;
+    if found then
+      begin
+{$ifdef CPUI386}
+        { threadvars should start at a page boundary,
+          add extra space for the TCB }
+        size:=Align(size,4096)+sizeof(Pointer);
+{$endif CPUI386}
+{$ifdef CPUX86_64}
+        { threadvars should start at a page boundary,
+          add extra space for the TCB }
+        size:=Align(size,4096)+sizeof(Pointer);
+{$endif CPUX86_64}
+        tls:=Fpmmap(nil,size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
+        fpset_tls(tls,size);
+      end;
+  end;
+{$endif INITTLS}
+
+{*****************************************************************************
+                       Indirect Entry Point
+*****************************************************************************}
+
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+var
+  initialstkptr : Pointer;
+
+procedure OsSetupEntryInformation(constref info: TEntryInformation);
+begin
+  argc := info.OS.argc;
+  argv := info.OS.argv;
+  envp := info.OS.envp;
+  initialstkptr := info.OS.stkptr;
+  initialstklen := info.OS.stklen;
+end;
+
+{ we need two variants here because TLS must be initialized by FPC only if no libc is linked however,
+  InitTLS cannot be called from the start up files because when they are run, envp is not setup yet.}
+procedure SysEntry(constref info: TEntryInformation);[public,alias:'FPC_SysEntry'];
+begin
+  SetupEntryInformation(info);
+{$ifdef cpui386}
+  Set8087CW(Default8087CW);
+{$endif cpui386}
+  info.PascalMain();
+end;
+
+procedure SysEntry_InitTLS(constref info: TEntryInformation);[public,alias:'FPC_SysEntry_InitTLS'];
+begin
+  SetupEntryInformation(info);
+{$ifdef INITTLS}
+  InitTLS;
+{$endif INITTLS}
+{$ifdef cpui386}
+  Set8087CW(Default8087CW);
+{$endif cpui386}
+  info.PascalMain();
+end;
+
+{$else}
+var
+{$ifndef FPC_BOOTSTRAP_INDIRECT_ENTRY}
+  initialstkptr : Pointer;external name '__stkptr';
+{$else FPC_BOOTSTRAP_INDIRECT_ENTRY}
+  initialstkptr : Pointer; public name '__stkptr';
+  operatingsystem_parameter_envp : Pointer; public name 'operatingsystem_parameter_envp';
+  operatingsystem_parameter_argc : LongInt; public name 'operatingsystem_parameter_argc';
+  operatingsystem_parameter_argv : Pointer; public name 'operatingsystem_parameter_argv';
+
+
+{ we need two variants here because TLS must be initialized by FPC only if no libc is linked however,
+  InitTLS cannot be called from the start up files because when they are run, envp is not setup yet.}
+procedure SysEntry(constref info: TEntryInformation);[public,alias:'FPC_SysEntry'];
+begin
+  initialstkptr := info.OS.stkptr;
+  operatingsystem_parameter_envp := info.OS.envp;
+  operatingsystem_parameter_argc := info.OS.argc;
+  operatingsystem_parameter_argv := info.OS.argv;
+{$ifdef cpui386}
+  Set8087CW(Default8087CW);
+{$endif cpui386}
+  info.PascalMain();
+end;
+
+
+procedure SysEntry_InitTLS(constref info: TEntryInformation);[public,alias:'FPC_SysEntry_InitTLS'];
+begin
+  initialstkptr := info.OS.stkptr;
+  operatingsystem_parameter_envp := info.OS.envp;
+  operatingsystem_parameter_argc := info.OS.argc;
+  operatingsystem_parameter_argv := info.OS.argv;
+{$ifdef INITTLS}
+  InitTLS;
+{$endif INITTLS}
+{$ifdef cpui386}
+  Set8087CW(Default8087CW);
+{$endif cpui386}
+  info.PascalMain();
+end;
+
+{$endif FPC_BOOTSTRAP_INDIRECT_ENTRY}
 
 {$if defined(CPUARM) and defined(FPC_ABI_EABI)}
 procedure haltproc(e:longint);cdecl;external name '_haltproc_eabi';
 {$else}
 procedure haltproc(e:longint);cdecl;external name '_haltproc';
 {$endif}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+
+{*****************************************************************************
+                       Misc. System Dependent Functions
+*****************************************************************************}
 
 {$ifdef FPC_USE_LIBC}
 function  FpPrCtl(options : cInt; const args : ptruint) : cint; cdecl; external clib name 'prctl';
@@ -102,7 +393,11 @@ function  FpPrCtl(options : cInt; const args : ptruint) : cint; cdecl; external 
 
 procedure System_exit;
 begin
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+  EntryInformation.OS.haltproc(ExitCode);
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   haltproc(ExitCode);
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 End;
 
 
@@ -130,12 +425,26 @@ end;}
 var
  execpathstr : shortstring;
 
+procedure SysInitExecPath;
+var
+  i    : longint;
+begin
+  execpathstr[0]:=#0;
+  i:=Fpreadlink('/proc/self/exe',@execpathstr[1],high(execpathstr));
+  { it must also be an absolute filename, linux 2.0 points to a memory
+    location so this will skip that }
+  if (i>0) and (execpathstr[1]='/') then
+     execpathstr[0]:=char(i);
+end;
+
 function paramstr(l: longint) : string;
  begin
    { stricly conforming POSIX applications  }
    { have the executing filename as argv[0] }
    if l=0 then
      begin
+       if execpathstr='' then
+         SysInitExecPath;
        paramstr := execpathstr;
      end
    else if (l < argc) then
@@ -292,6 +601,9 @@ begin
   OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+{$ifdef android}
+  InitStdIOAndroid;
+{$endif android}
 end;
 
 Procedure RestoreOldSignalHandlers;
@@ -300,19 +612,6 @@ begin
   FpSigAction(SIGSEGV,@oldsigsegv,nil);
   FpSigAction(SIGBUS,@oldsigbus,nil);
   FpSigAction(SIGILL,@oldsigill,nil);
-end;
-
-
-procedure SysInitExecPath;
-var
-  i    : longint;
-begin
-  execpathstr[0]:=#0;
-  i:=Fpreadlink('/proc/self/exe',@execpathstr[1],high(execpathstr));
-  { it must also be an absolute filename, linux 2.0 points to a memory
-    location so this will skip that }
-  if (i>0) and (execpathstr[1]='/') then
-     execpathstr[0]:=char(i);
 end;
 
 function GetProcessID: SizeUInt;
@@ -325,6 +624,15 @@ end;
     { there is no ugetrlimit libc call, just map it to the getrlimit call in these cases }
 function FpUGetRLimit(resource : cInt; rlim : PRLimit) : cInt; cdecl; external clib name 'getrlimit';
 {$endif}
+{$endif}
+
+{$if defined(CPUPOWERPC) or defined(CPUPOWERPC64)}
+const
+  page_size = $10000;
+  {$define LAST_PAGE_GENERATES_SIGNAL}
+{$else}
+const
+  page_size = $1000;
 {$endif}
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
@@ -347,8 +655,12 @@ begin
     result := stklen;
 end;
 
-var
-  initialstkptr : Pointer;external name '__stkptr';
+{$if FPC_FULLVERSION>30200}
+{$if defined(CPUI386) or defined(CPUARM)}
+{$I abitag.inc}
+{$endif defined(CPUI386) or defined(CPUARM)}
+{$endif FPC_FULLVERSION>30200}
+
 begin
 {$if defined(i386) and not defined(FPC_USE_LIBC)}
   InitSyscallIntf;
@@ -363,7 +675,10 @@ begin
 {$endif}
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(initialStkLen);
-  StackBottom := initialstkptr - StackLength;
+  StackBottom := pointer(ptruint((ptruint(initialstkptr) or (page_size - 1)) + 1 - StackLength));
+{$ifdef LAST_PAGE_GENERATES_SIGNAL}
+  StackBottom:=StackBottom + page_size;
+{$endif}
   { Set up signals handlers (may be needed by init code to test cpu features) }
   InstallSignals;
 {$if defined(cpui386) or defined(cpuarm)}
@@ -376,8 +691,6 @@ begin
   initunicodestringmanager;
   { Setup stdin, stdout and stderr }
   SysInitStdIO;
-  { Arguments }
-  SysInitExecPath;
   { Reset IO Error }
   InOutRes:=0;
   { threading }

@@ -191,6 +191,13 @@ type
     property Image : TFPCustomImage read fimage;
   end;
 
+  { TFPBoxInterpolation }
+
+  TFPBoxInterpolation = class(TFPCustomInterpolation)
+  public
+    procedure Execute (x,y,w,h:integer); override;
+  end;
+
   { TFPBaseInterpolation }
 
   TFPBaseInterpolation = class (TFPCustomInterpolation)
@@ -226,6 +233,9 @@ type
     function IsPointInRegion(AX, AY: Integer): Boolean; override;
   end;
 
+  TFPDrawingMode = (dmOpaque, dmAlphaBlend, dmCustom);
+  TFPCanvasCombineColors = function(const color1, color2: TFPColor): TFPColor of object;
+
   { TFPCustomCanvas }
 
   TFPCustomCanvas = class(TPersistent)
@@ -236,6 +246,8 @@ type
     FHelpers : TList;
     FLocks : integer;
     FInterpolation : TFPCustomInterpolation;
+    FDrawingMode : TFPDrawingMode;
+    FOnCombineColors : TFPCanvasCombineColors;
     function AllowFont (AFont : TFPCustomFont) : boolean;
     function AllowBrush (ABrush : TFPCustomBrush) : boolean;
     function AllowPen (APen : TFPCustomPen) : boolean;
@@ -278,6 +290,10 @@ type
     procedure DoGetTextSize (text:string; var w,h:integer); virtual; abstract;
     function  DoGetTextHeight (text:string) : integer; virtual; abstract;
     function  DoGetTextWidth (text:string) : integer; virtual; abstract;
+    procedure DoTextOut (x,y:integer;text:unicodestring); virtual; 
+    procedure DoGetTextSize (text:unicodestring; var w,h:integer); virtual; 
+    function  DoGetTextHeight (text:unicodestring) : integer; virtual; 
+    function  DoGetTextWidth (text:unicodestring) : integer; virtual; 
     procedure DoRectangle (Const Bounds:TRect); virtual; abstract;
     procedure DoRectangleFill (Const Bounds:TRect); virtual; abstract;
     procedure DoRectangleAndFill (Const Bounds:TRect); virtual;
@@ -317,6 +333,13 @@ type
     function TextExtent(const Text: string): TSize; virtual;
     function TextHeight(const Text: string): Integer; virtual;
     function TextWidth(const Text: string): Integer; virtual;
+    procedure TextOut (x,y:integer;text:unicodestring); virtual;
+    procedure GetTextSize (text:unicodestring; var w,h:integer);
+    function GetTextHeight (text:unicodestring) : integer;
+    function GetTextWidth (text:unicodestring) : integer;
+    function TextExtent(const Text: unicodestring): TSize; virtual;
+    function TextHeight(const Text: unicodestring): Integer; virtual;
+    function TextWidth(const Text: unicodestring): Integer; virtual;
     // using pen and brush
     procedure Arc(ALeft, ATop, ARight, ABottom, Angle16Deg, Angle16DegLength: Integer); virtual;
     procedure Arc(ALeft, ATop, ARight, ABottom, SX, SY, EX, EY: Integer); virtual;
@@ -348,10 +371,11 @@ type
     procedure Line (const p1,p2:TPoint);
     procedure Line (const points:TRect);
     // other procedures
-    procedure CopyRect (x,y:integer; canvas:TFPCustomCanvas; SourceRect:TRect);
-    procedure Draw (x,y:integer; image:TFPCustomImage);
-    procedure StretchDraw (x,y,w,h:integer; source:TFPCustomImage);
+    procedure CopyRect (x,y:integer; canvas:TFPCustomCanvas; SourceRect:TRect); virtual;
+    procedure Draw (x,y:integer; image:TFPCustomImage); virtual;
+    procedure StretchDraw (x,y,w,h:integer; source:TFPCustomImage); virtual;
     procedure Erase;virtual;
+    procedure DrawPixel(const x, y: integer; const newcolor: TFPColor);
     // properties
     property LockCount: Integer read FLocks;
     property Font : TFPCustomFont read GetFont write SetFont;
@@ -366,6 +390,8 @@ type
     property Height : integer read GetHeight write SetHeight;
     property Width : integer read GetWidth write SetWidth;
     property ManageResources: boolean read FManageResources write FManageResources;
+    property DrawingMode : TFPDrawingMode read FDrawingMode write FDrawingMode;
+    property OnCombineColors : TFPCanvasCombineColors read FOnCombineColors write FOnCombineColors;
   end;
 
   TFPCustomDrawFont = class (TFPCustomFont)
@@ -374,11 +400,19 @@ type
     procedure GetTextSize (text:string; var w,h:integer);
     function GetTextHeight (text:string) : integer;
     function GetTextWidth (text:string) : integer;
+    procedure DrawText (x,y:integer; text:unicodestring);
+    procedure GetTextSize (text: unicodestring; var w,h:integer);
+    function GetTextHeight (text: unicodestring) : integer;
+    function GetTextWidth (text: unicodestring) : integer;
   protected
     procedure DoDrawText (x,y:integer; text:string); virtual; abstract;
     procedure DoGetTextSize (text:string; var w,h:integer); virtual; abstract;
     function DoGetTextHeight (text:string) : integer; virtual; abstract;
     function DoGetTextWidth (text:string) : integer; virtual; abstract;
+    procedure DoDrawText (x,y:integer; text:unicodestring); virtual;
+    procedure DoGetTextSize (text: unicodestring; var w,h:integer); virtual; 
+    function DoGetTextHeight (text: unicodestring) : integer; virtual; 
+    function DoGetTextWidth (text: unicodestring) : integer; virtual; 
   end;
 
   TFPEmptyFont = class (TFPCustomFont)

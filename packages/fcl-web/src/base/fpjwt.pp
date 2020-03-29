@@ -39,9 +39,12 @@ Type
     Constructor Create; virtual;
     Procedure LoadFromJSON(JSON : TJSONObject);
     Procedure SaveToJSON(JSON : TJSONObject; All : Boolean);
-    // Decode Base64 string. Padds the String with = to a multiple of 4
+    // Base64url conversion functions (RFC7515)
+    class function Base64ToBase64URL(AValue: string): string;
+    class function Base64URLToBase64(AValue: string): string;
+    // Decode Base64url string.
     Class Function DecodeString(S : String) : String;
-    // Decode Base64 string and return a JSON Object. Padds the String with = to a multiple of 4
+    // Decode Base64url string and return a JSON Object.
     Class Function DecodeStringToJSON(S : String) : TJSONObject;
     // Get/Set as string. This is normally the JSON form.
     Property AsString : TJSONStringType Read GetAsString Write SetAsString;
@@ -160,8 +163,8 @@ end;
 
 function TJWT.GetAsString: TJSONStringType;
 begin
-  Result:=EncodeStringBase64(JOSE.AsString);
-  Result:=Result+'.'+EncodeStringBase64(Claims.AsString);
+  Result:=Base64ToBase64URL(EncodeStringBase64(JOSE.AsString));
+  Result:=Result+'.'+Base64ToBase64URL(EncodeStringBase64(Claims.AsString));
   If (Signature<>'') then
     Result:=Result+'.'+Signature;
 end;
@@ -209,7 +212,7 @@ end;
 
 function TBaseJWT.GetAsEncodedString: String;
 begin
-  Result:=EncodeStringBase64(AsString)
+  Result:=Base64ToBase64URL(EncodeStringBase64(AsString));
 end;
 
 procedure TBaseJWT.SetAsEncodedString(AValue: String);
@@ -389,16 +392,25 @@ begin
   DoSaveToJSon(JSON,All);
 end;
 
-class function TBaseJWT.DecodeString(S: String): String;
-
-Var
-  R : Integer;
-
+class function TBaseJWT.Base64ToBase64URL(AValue: string): string;
 begin
-  R:=(length(S) mod 4);
-  if R<>0 then
-    S:=S+StringOfChar('=',4-r);
-  Result:=DecodeStringBase64(S);
+  Result := StringsReplace(AValue, ['+', '/'], ['-', '_'], [rfReplaceAll]);
+  Result := TrimRightSet(Result, ['=']);
+end;
+
+class function TBaseJWT.Base64URLToBase64(AValue: string): string;
+var
+  i,l: integer;
+begin
+  Result := StringsReplace(AValue, ['-', '_'], ['+', '/'], [rfReplaceAll]);
+  l := length(Result) mod 4;
+  if l > 0 then
+    Result:=Result+StringOfChar('=',4-l);
+end;
+
+class function TBaseJWT.DecodeString(S: String): String;
+begin
+  Result:=DecodeStringBase64(Base64URLToBase64(S), True);
 end;
 
 class function TBaseJWT.DecodeStringToJSON(S: String): TJSONObject;

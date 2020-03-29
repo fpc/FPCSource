@@ -1,8 +1,7 @@
 {
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    Routines for the code generation of data structures
-    like VMT, Messages, VTables, Interfaces descs
+    Builds data structures like VMT, Messages, VTables, Interfaces descs
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,25 +45,28 @@ interface
         procedure prot_get_procdefs_recursive(ImplProt:TImplementedInterface;ProtDef:TObjectDef);
         procedure intf_optimize_vtbls;
         procedure intf_allocate_vtbls;
-        procedure generate_vmt_def;
+        procedure create_vmt_def;
+        procedure build_interface_mappings;
       public
         constructor create(c:tobjectdef);
-        procedure  generate_vmt;
-        procedure  build_interface_mappings;
+        procedure build;
       end;
+
+
+{ convenince routine to build the VMT for an objectdef
+  Note: also ensures that the procdefs of the objectdef have their hidden
+  parameters inserted }
+procedure build_vmt(def:tobjectdef);
 
 
 implementation
 
     uses
-       SysUtils,
-       globals,verbose,systems,fmodule,
+       globals,verbose,systems,
        node,
-       symbase,symtable,symconst,symtype,defcmp,defutil,
-       symcpu,
-       dbgbase,
-       wpobase
-       ;
+       symbase,symtable,symconst,symtype,symcpu,
+       defcmp,
+       pparautl;
 
 
 {*****************************************************************************
@@ -515,6 +517,7 @@ implementation
         hclass : tobjectdef;
         hashedid : THashedIDString;
         srsym      : tsym;
+        overload: boolean;
       begin
         result:=nil;
         hashedid.id:=name;
@@ -523,11 +526,16 @@ implementation
           begin
             srsym:=tsym(hclass.symtable.FindWithHash(hashedid));
             if assigned(srsym) and
-               (srsym.typ=procsym) then
+               (srsym.typ=procsym) and
+               ((hclass=_class) or
+                is_visible_for_object(srsym,_class)) then
               begin
+                overload:=false;
                 for i:=0 to Tprocsym(srsym).ProcdefList.Count-1 do
                   begin
                     implprocdef:=tprocdef(tprocsym(srsym).ProcdefList[i]);
+                    if po_overload in implprocdef.procoptions then
+                      overload:=true;
                     if (implprocdef.procsym=tprocsym(srsym)) and
                        (compare_paras(proc.paras,implprocdef.paras,cp_all,[cpo_ignorehidden,cpo_ignoreuniv])>=te_equal) and
                        (compare_defs(proc.returndef,implprocdef.returndef,nothingn)>=te_equal) and
@@ -545,9 +553,14 @@ implementation
                           MessagePos2(implprocdef.fileinfo,type_w_interface_lower_visibility,proc.fullprocname(false),implprocdef.fullprocname(false));
 {$endif}
                         result:=implprocdef;
+                        addsymref(result.procsym,result);
                         exit;
                       end;
                   end;
+                { like with normal procdef resolution (in htypechk), stop if
+                  we encounter a proc without the overload directive }
+                if not overload then
+                  exit;
               end;
             hclass:=hclass.childof;
           end;
@@ -787,13 +800,12 @@ implementation
       end;
 
 
-    procedure TVMTBuilder.generate_vmt_def;
+    procedure TVMTBuilder.create_vmt_def;
       var
         i: longint;
         vmtdef: trecorddef;
         systemvmt: tdef;
         sym: tsym;
-        vmtdefname: TIDString;
       begin
         { these types don't have an actual VMT, we only use the other methods
           in TVMTBuilder to determine duplicates/overrides }
@@ -818,16 +830,17 @@ implementation
         if _class.objecttype = odt_cppclass then
           exit;
 
-        { the VMT definition may already exist in case of generics }
-        vmtdefname:=internaltypeprefixName[itp_vmtdef]+_class.mangledparaname;
-        if assigned(try_search_current_module_type(vmtdefname)) then
-          exit;
         { create VMT type definition }
         vmtdef:=crecorddef.create_global_internal(
-          vmtdefname,
+          internaltypeprefixName[itp_vmtdef]+_class.mangledparaname,
           0,
-          target_info.alignment.recordalignmin,
-          target_info.alignment.maxCrecordalign);
+          target_info.alignment.recordalignmin);
+{$ifdef llvm}
+        { in case of a class declared in the implementation section of unit
+          whose method is called from an inline routine -- LLVM needs to be able
+          to access the vmt def to create signatures }
+        vmtdef.register_def;
+{$endif}
         { standard VMT fields }
         case _Class.objecttype of
           odt_class:
@@ -883,7 +896,7 @@ implementation
       end;
 
 
-    procedure TVMTBuilder.generate_vmt;
+    procedure TVMTBuilder.build;
       var
         i : longint;
         def : tdef;
@@ -893,15 +906,9 @@ implementation
         old_current_structdef:=current_structdef;
         current_structdef:=_class;
 
-        _class.resetvmtentries;
-
         { inherit (copy) VMT from parent object }
         if assigned(_class.childof) then
-          begin
-            if not assigned(_class.childof.vmtentries) then
-              internalerror(200810281);
-            _class.copyvmtentries(_class.childof);
-          end;
+          _class.copyvmtentries(_class.childof);
 
         { process all procdefs, we must process the defs to
           keep the same order as that is written in the source
@@ -916,6 +923,7 @@ implementation
                   add_new_vmt_entry(tprocdef(def),overridesclasshelper);
               end;
           end;
+        insert_struct_hidden_paras(_class);
         build_interface_mappings;
         if assigned(_class.ImplementedInterfaces) and
            not(is_objc_class_or_protocol(_class)) and
@@ -926,7 +934,7 @@ implementation
             { Allocate interface tables }
             intf_allocate_vtbls;
           end;
-        generate_vmt_def;
+        create_vmt_def;
         current_structdef:=old_current_structdef;
       end;
 
@@ -974,6 +982,16 @@ implementation
                 internalerror(2009091801);
             end
           end;
+      end;
+
+
+    procedure build_vmt(def:tobjectdef);
+      var
+        vmtbuilder : TVMTBuilder;
+      begin
+        vmtbuilder:=TVMTBuilder.create(def);
+        vmtbuilder.build;
+        vmtbuilder.free;
       end;
 
 end.

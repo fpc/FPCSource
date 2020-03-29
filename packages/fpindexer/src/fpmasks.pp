@@ -19,7 +19,7 @@
  *                                                                           *
  *****************************************************************************
 }
-unit fpmasks;
+unit FPMasks;
 
 {$mode objfpc}{$H+}
 
@@ -54,17 +54,17 @@ type
   private
     FMask: TMaskString;
   public
-    constructor Create(const AValue: String);
+    constructor Create(const AValue: UTF8string);
     destructor Destroy; override;
     
-    function Matches(const AFileName: String): Boolean;
+    function Matches(const AFileName: UTF8string): Boolean;
   end;
   
   { TParseStringList }
 
   TParseStringList = class(TStringList)
   public
-    constructor Create(const AText, ASeparators: String);
+    constructor Create(const AText, ASeparators: UTF8string);
   end;
   
   { TMaskList }
@@ -75,21 +75,21 @@ type
     function GetCount: Integer;
     function GetItem(Index: Integer): TMask;
   public
-    constructor Create(const AValue: String; ASeparator: Char = ';');
+    constructor Create(const AValue: UTF8string; ASeparator: Char = ';');
     destructor Destroy; override;
     
-    function Matches(const AFileName: String): Boolean;
+    function Matches(const AFileName: UTF8string): Boolean;
     
     property Count: Integer read GetCount;
     property Items[Index: Integer]: TMask read GetItem;
   end;
 
-function MatchesMask(const FileName, Mask: String): Boolean;
-function MatchesMaskList(const FileName, Mask: String; Separator: Char = ';'): Boolean;
+function MatchesMask(const FileName, Mask: UTF8string): Boolean;
+function MatchesMaskList(const FileName, Mask: UTF8string; Separator: Char = ';'): Boolean;
 
 implementation
 
-function MatchesMask(const FileName, Mask: String): Boolean;
+function MatchesMask(const FileName, Mask: UTF8string): Boolean;
 var
   AMask: TMask;
 begin
@@ -101,7 +101,7 @@ begin
   end;
 end;
 
-function MatchesMaskList(const FileName, Mask: String; Separator: Char): Boolean;
+function MatchesMaskList(const FileName, Mask: UTF8string; Separator: Char): Boolean;
 var
   AMaskList: TMaskList;
 begin
@@ -115,7 +115,7 @@ end;
 
 { TMask }
 
-constructor TMask.Create(const AValue: String);
+constructor TMask.Create(const AValue: UTF8string);
 var
   I: Integer;
   SkipAnyText: Boolean;
@@ -260,10 +260,10 @@ begin
   inherited Destroy;
 end;
 
-function TMask.Matches(const AFileName: String): Boolean;
+function TMask.Matches(const AFileName: UTF8string): Boolean;
 var
   L: Integer;
-  S: String;
+  S: UTF8string;
   
   function MatchToEnd(MaskIndex, CharIndex: Integer): Boolean;
   var
@@ -331,7 +331,7 @@ end;
 
 { TParseStringList }
 
-constructor TParseStringList.Create(const AText, ASeparators: String);
+constructor TParseStringList.Create(const AText, ASeparators: UTF8string);
 var
   I, S: Integer;
 begin
@@ -362,7 +362,7 @@ begin
   Result := FMasks.Count;
 end;
 
-constructor TMaskList.Create(const AValue: String; ASeparator: Char);
+constructor TMaskList.Create(const AValue: UTF8string; ASeparator: Char);
 var
   S: TParseStringList;
   I: Integer;
@@ -385,7 +385,7 @@ begin
   inherited Destroy;
 end;
 
-function TMaskList.Matches(const AFileName: String): Boolean;
+function TMaskList.Matches(const AFileName: UTF8string): Boolean;
 var
   I: Integer;
 begin

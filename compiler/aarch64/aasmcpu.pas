@@ -157,6 +157,8 @@ uses
          oppostfix : TOpPostfix;
          procedure loadshifterop(opidx:longint;const so:tshifterop);
          procedure loadconditioncode(opidx: longint; const c: tasmcond);
+         procedure loadrealconst(opidx: longint; const _value: bestreal);
+
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -168,6 +170,7 @@ uses
          constructor op_reg_cond(op: tasmop; _op1: tregister; _op2: tasmcond);
          constructor op_reg_const(op:tasmop; _op1: tregister; _op2: aint);
          constructor op_reg_const_shifterop(op : tasmop;_op1: tregister; _op2: aint;_op3 : tshifterop);
+         constructor op_reg_realconst(op: tasmop; _op1: tregister; _op2: bestreal);
 
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
          constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
@@ -179,7 +182,6 @@ uses
          constructor op_reg_reg_shifterop(op : tasmop;_op1,_op2 : tregister;_op3 : tshifterop);
          constructor op_reg_reg_reg_shifterop(op : tasmop;_op1,_op2,_op3 : tregister; const _op4 : tshifterop);
          constructor op_reg_reg_reg_cond(op : tasmop;_op1,_op2,_op3 : tregister; const _op4: tasmcond);
-
 
          { this is for Jmp instructions }
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
@@ -276,6 +278,19 @@ implementation
               end;
             cc:=c;
             typ:=top_conditioncode;
+          end;
+      end;
+
+
+    procedure taicpu.loadrealconst(opidx:longint;const _value:bestreal);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+          begin
+            if typ<>top_realconst then
+              clearop(opidx);
+            val_real:=_value;
+            typ:=top_realconst;
           end;
       end;
 
@@ -379,6 +394,15 @@ implementation
          loadreg(1,_op2);
          loadreg(2,_op3);
          loadreg(3,_op4);
+      end;
+
+
+    constructor taicpu.op_reg_realconst(op : tasmop; _op1 : tregister; _op2 : bestreal);
+      begin
+         inherited create(op);
+         ops:=2;
+         loadreg(0,_op1);
+         loadrealconst(1,_op2);
       end;
 
 
@@ -528,7 +552,7 @@ implementation
       const
         { invalid sizes for aarch64 are 0 }
         subreg2bytesize: array[TSubRegister] of byte =
-          (0,0,0,0,4,8,0,0,0,4,8,0,0,0);
+          (0,0,0,0,4,8,0,0,0,4,8,0,0,0,0,0,0,0,0,0,0,0,0,8,16,0);
       var
         scalefactor: byte;
       begin
@@ -554,16 +578,17 @@ implementation
       begin
         result:=sr_complex;
         if not assigned(ref.symboldata) and
-           not(ref.refaddr in [addr_gotpageoffset,addr_gotpage,addr_pageoffset,addr_page]) then
+           not(ref.refaddr in [addr_pic,addr_gotpageoffset,addr_gotpage,addr_pageoffset,addr_page]) then
           exit;
         { can't use pre-/post-indexed mode here (makes no sense either) }
         if ref.addressmode<>AM_OFFSET then
           exit;
         { "ldr literal" must be a 32/64 bit LDR and have a symbol }
-        if assigned(ref.symboldata) and
+        if (ref.refaddr=addr_pic) and
            ((op<>A_LDR) or
             not(oppostfix in [PF_NONE,PF_W,PF_SW]) or
-            not assigned(ref.symbol)) then
+            (not assigned(ref.symbol) and
+             not assigned(ref.symboldata))) then
           exit;
         { if this is a (got) page offset load, we must have a base register and a
           symbol }
@@ -592,7 +617,6 @@ implementation
 
     function simple_ref_type(op: tasmop; size:tcgsize; oppostfix: toppostfix; const ref: treference): tsimplereftype;
       var
-        maxoffs: asizeint;
         accesssize: longint;
       begin
         result:=sr_internal_illegal;
@@ -867,10 +891,13 @@ implementation
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
         case opcode of
-          A_B,A_BL,
+          A_B,A_BL,A_BR,A_BLR,
           A_CMN,A_CMP,
           A_CCMN,A_CCMP,
-          A_TST:
+          A_TST,
+          A_FCMP,A_FCMPE,
+          A_CBZ,A_CBNZ,
+          A_RET:
             result:=operand_read;
           A_STR,A_STUR:
             if opnr=0 then
@@ -903,11 +930,78 @@ implementation
                  { check for pre/post indexed in spilling_get_operation_type_ref }
                  result:=operand_read;
              end;
+{$ifdef EXTDEBUG}
+           { play save to avoid hard to find bugs, better fail at compile time }
+           A_ADD,
+           A_ADRP,
+           A_AND,
+           A_ASR,
+           A_BFI,
+           A_BFXIL,
+           A_CLZ,
+           A_CSEL,
+           A_CSET,
+           A_CSETM,
+           A_FABS,
+           A_EON,
+           A_EOR,
+           A_FADD,
+           A_FCVT,
+           A_FDIV,
+           A_FMADD,
+           A_FMOV,
+           A_FMSUB,
+           A_FMUL,
+           A_FNEG,
+           A_FNMADD,
+           A_FNMSUB,
+           A_FRINTX,
+           A_FSQRT,
+           A_FSUB,
+           A_ORR,
+           A_LSL,
+           A_LSLV,
+           A_LSR,
+           A_LSRV,
+           A_MOV,
+           A_MOVK,
+           A_MOVN,
+           A_MOVZ,
+           A_MSUB,
+           A_MUL,
+           A_MVN,
+           A_NEG,
+           A_LDR,
+           A_LDUR,
+           A_RBIT,
+           A_ROR,
+           A_RORV,
+           A_SBFX,
+           A_SCVTF,
+           A_FCVTZS,
+           A_SDIV,
+           A_SMULL,
+           A_SUB,
+           A_SXT,
+           A_UBFIZ,
+           A_UBFX,
+           A_UCVTF,
+           A_UDIV,
+           A_UMULL,
+           A_UXT:
+             if opnr=0 then
+               result:=operand_write
+             else
+               result:=operand_read;
+           else
+             Internalerror(2019090802);
+{$else EXTDEBUG}
            else
              if opnr=0 then
                result:=operand_write
              else
                result:=operand_read;
+{$endif EXTDEBUG}
         end;
       end;
 
@@ -922,8 +1016,8 @@ implementation
 
 
     procedure BuildInsTabCache;
-      var
-        i : longint;
+//      var
+//        i : longint;
       begin
 (*        new(instabcache);
         FillChar(instabcache^,sizeof(tinstabcache),$ff);
@@ -1006,6 +1100,7 @@ implementation
 *)
 
     procedure insertpcrelativedata(list,listtoinsert : TAsmList);
+(*
       var
         curinspos,
         penalty,
@@ -1021,6 +1116,7 @@ implementation
         l : tasmlabel;
         doinsert,
         removeref : boolean;
+*)
       begin
 (*
         curdata:=TAsmList.create;

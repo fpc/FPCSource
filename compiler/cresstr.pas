@@ -39,7 +39,7 @@ uses
    cutils,globtype,globals,systems,
    symbase,symconst,symtype,symdef,symsym,symtable,
    verbose,fmodule,ppu,
-   aasmbase,aasmtai,aasmdata,aasmcnst,
+   aasmtai,aasmdata,aasmcnst,
    aasmcpu;
 
     Type
@@ -119,7 +119,7 @@ uses
 
     Constructor Tresourcestrings.Create;
       begin
-        List:=TLinkedList.Create;
+        List:=TAsmList.Create;
       end;
 
 
@@ -197,8 +197,7 @@ uses
         tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_vectorized_dead_strip_end,tcalo_data_force_indirect,tcalo_is_public_asm]);
         tcb.begin_anonymous_record(internaltypeprefixName[itp_emptyrec],
           default_settings.packrecords,sizeof(pint),
-          targetinfos[target_info.system]^.alignment.recordalignmin,
-          targetinfos[target_info.system]^.alignment.maxCrecordalign);
+          targetinfos[target_info.system]^.alignment.recordalignmin);
         current_asmdata.AsmLists[al_resourcestrings].concatList(
           tcb.get_final_asmlist_vectorized_dead_strip(
             tcb.end_anonymous_record,'RESSTR','',current_module.localsymtable,sizeof(pint)
@@ -308,7 +307,7 @@ uses
         resstrs.RegisterResourceStrings;
         if not resstrs.List.Empty then
           begin
-            current_module.flags:=current_module.flags or uf_has_resourcestrings;
+            include(current_module.moduleflags,mf_has_resourcestrings);
             resstrs.CreateResourceStringData;
             resstrs.WriteRSJFile;
           end;

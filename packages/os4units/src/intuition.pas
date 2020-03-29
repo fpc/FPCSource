@@ -1122,7 +1122,7 @@ type
     MaxWidth, MaxHeight: Word;     // maximums
     // the type variable describes the Screen in which you want this Window to open.  The type value can either be CUSTOMSCREEN or one of the
     // system standard Screen Types such as WBENCHSCREEN.  See the type definitions under the Screen structure
-    Type_: Word;
+    WType: Word;
   end;
 
 // The following structure is the future NewWindow.  Compatibility issues require that the size of NewWindow not change.

@@ -171,7 +171,6 @@ asm
         orl     %edi,%edi
         jz      .LStrEndNil
         movl    $0xffffffff,%ecx
-        xorl    %eax,%eax
         repne
         scasb
         movl    %edi,%eax
@@ -183,7 +182,7 @@ end;
 
 
 
-{$ifndef FPC_UNIT_HAS_STREND}
+{$ifndef FPC_UNIT_HAS_STRCOMP}
 {$define FPC_UNIT_HAS_STRCOMP}
 function strcomp(str1,str2 : pchar) : longint;assembler;
 var
@@ -212,7 +211,7 @@ asm
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
-{$endif FPC_UNIT_HAS_STREND}
+{$endif FPC_UNIT_HAS_STRCOMP}
 
 
 

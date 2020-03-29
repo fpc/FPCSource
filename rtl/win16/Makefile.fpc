@@ -6,8 +6,9 @@ main=rtl
 [target]
 loaders=prt0s prt0m prt0c prt0l prt0h 
 units=system uuchar objpas strings iso7185 extpas dos \
-      wintypes winprocs win31 dynlibs \
-      sysconst rtlconst
+      wintypes winprocs win31 ports dynlibs sortbase \
+      sysconst rtlconst sysutils math types typinfo fgl \
+      classes
 
 
 [require]
@@ -55,15 +56,20 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 # Loaders
 #
-prt0s$(OEXT) : prt0s.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+prt0s$(OEXT) : prt0s.asm prt0comn.asm
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
         $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0s$(OEXT) prt0s.asm
-prt0m$(OEXT) : prt0m.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+prt0m$(OEXT) : prt0m.asm prt0comn.asm
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
         $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0m$(OEXT) prt0m.asm
-prt0c$(OEXT) : prt0c.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+prt0c$(OEXT) : prt0c.asm prt0comn.asm
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
         $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0c$(OEXT) prt0c.asm
-prt0l$(OEXT) : prt0l.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+prt0l$(OEXT) : prt0l.asm prt0comn.asm
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
         $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0l$(OEXT) prt0l.asm
-prt0h$(OEXT) : prt0h.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+prt0h$(OEXT) : prt0h.asm prt0comn.asm
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
         $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0h$(OEXT) prt0h.asm
 #
 # System Units (System, Objpas, Strings)
@@ -71,7 +77,7 @@ prt0h$(OEXT) : prt0h.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
 system$(PPUEXT) : system.pp $(SYSDEPS) wintypes.inc winprocsh.inc winprocs.inc \
                   glbheap.inc glbheaph.inc locheap.inc locheaph.inc \
                   sysdl.inc sysdlh.inc
-        $(COMPILER) -Us -Sg system.pp
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
 	$(EXECPPAS)
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
@@ -117,6 +123,10 @@ win31$(PPUEXT) : wintypes$(PPUEXT) win31.pp
 # $(SYSTEMUNIT) Dependent Units
 #
 
+ports$(PPUEXT) : ports.pp system$(PPUEXT)
+	$(COMPILER) ports.pp
+	$(EXECPPAS)
+
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas dynlibs.inc objpas$(PPUEXT)
 	$(COMPILER) $(INC)/dynlibs.pas
 
@@ -132,6 +142,35 @@ dos$(PPUEXT) : dos.pp registers.inc \
 #
 # Delphi Compatible Units
 #
+sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
+                    objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT) \
+                    wintypes$(PPUEXT) winprocs$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+	$(EXECPPAS)
+
+classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) \
+                   types$(PPUEXT) fgl$(PPUEXT) objpas$(PPUEXT) \
+                   winprocs$(PPUEXT) wintypes$(PPUEXT) sortbase$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+	$(EXECPPAS)
+
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconst$(PPUEXT) objpas$(PPUEXT) sortbase$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fgl.pp
+	$(EXECPPAS)
+
+math$(PPUEXT): $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc objpas$(PPUEXT) sysutils$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/math.pp
+	$(EXECPPAS)
+
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) objpas$(PPUEXT) rtlconst$(PPUEXT)
+        $(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
+	$(EXECPPAS)
+
+types$(PPUEXT) : $(OBJPASDIR)/types.pp math$(PPUEXT) wintypes$(PPUEXT) objpas$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/types.pp
+	$(EXECPPAS)
+
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
 	$(EXECPPAS)
@@ -139,3 +178,6 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp $(OBJPASDIR)/rtlconst.inc objpas$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
 	$(EXECPPAS)
+
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<

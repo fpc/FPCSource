@@ -23,7 +23,7 @@
 
 } 
  
-unit sqlite3conn;
+unit SQLite3Conn;
 {$mode objfpc}
 {$h+}
 
@@ -43,12 +43,34 @@ type
  
   TArrayStringArray = Array of TStringArray;
   PArrayStringArray = ^TArrayStringArray;
- 
-  { TSQLite3Connection }
 
+  // VFS not supported at this time.
+  // Do not change the order. See NativeFlags constant in GetSQLiteOpenFlags.
+
+  TSQLiteOpenFlag = (
+    sofReadOnly,
+    sofReadWrite,
+    sofCreate,
+    sofNoMutex,
+    sofFullMutex,
+    sofSharedCache,
+    sofPrivateCache,
+    sofURI,
+    sofMemory
+  );
+  TSQLiteOpenFlags = set of TSQLiteOpenFlag;
+
+Const
+  DefaultOpenFlags = [sofReadWrite,sofCreate];
+
+  { TSQLite3Connection }
+Type
   TSQLite3Connection = class(TSQLConnection)
   private
     fhandle: psqlite3;
+    FOpenFlags: TSQLiteOpenFlags;
+    function GetSQLiteOpenFlags: Integer;
+    procedure SetOpenFlags(AValue: TSQLiteOpenFlags);
   protected
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -85,6 +107,9 @@ type
     procedure checkerror(const aerror: integer);
     function stringsquery(const asql: string): TArrayStringArray;
     procedure execsql(const asql: string);
+    function GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string; override;
+    function GetAlwaysUseBigint : Boolean; virtual;
+    Procedure SetAlwaysUseBigint(aValue : Boolean); virtual;
   public
     constructor Create(AOwner : TComponent); override;
     procedure GetFieldNames(const TableName : string; List :  TStrings); override;
@@ -97,7 +122,10 @@ type
     // Warning: UTF8CompareCallback needs a wide string manager on Linux such as cwstring
     // Warning: CollationName has to be a UTF-8 string
     procedure CreateCollation(const CollationName: string; eTextRep: integer; Arg: Pointer=nil; Compare: xCompare=nil);
-    procedure LoadExtension(LibraryFile: string);
+    procedure LoadExtension(const LibraryFile: string);
+  Published
+    Property OpenFlags : TSQLiteOpenFlags Read FOpenFlags Write SetOpenFlags default DefaultOpenFlags;
+    Property AlwaysUseBigint : Boolean Read GetAlwaysUseBigint Write SetAlwaysUseBigint;
   end;
 
   { TSQLite3ConnectionDef }
@@ -146,7 +174,6 @@ type
  public
    RowsAffected : Largeint;
  end;
-
 procedure freebindstring(astring: pointer); cdecl;
 begin
   StrDispose(astring);
@@ -272,9 +299,36 @@ end;
 constructor TSQLite3Connection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FConnOptions := [sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction, sqLastInsertID];
+  FConnOptions := [sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction, sqLastInsertID, sqSequences];
   FieldNameQuoteChars:=DoubleQuotes;
+  FOpenFlags:=DefaultOpenFlags;
 end;
+
+Const
+  SUseBigint = 'AlwaysUseBigint';
+
+function TSQLite3Connection.GetAlwaysUseBigint : Boolean; 
+
+begin
+  Result:=Params.Values[SUseBigint]='1'
+end;
+
+Procedure TSQLite3Connection.SetAlwaysUseBigint(aValue : Boolean); 
+
+Var
+  I : Integer;
+
+begin
+  if aValue then 
+    Params.Values[SUseBigint]:='1'
+  else
+    begin
+    I:=Params.IndexOfName(SUseBigint);
+    if I<>-1 then 
+      Params.Delete(I);
+    end;    
+end;
+
 
 procedure TSQLite3Connection.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction);
 
@@ -478,6 +532,11 @@ begin
     size1:=0;
     size2:=0;
     case FT of
+      ftInteger,
+      ftSMallint,
+      ftWord: 
+        If AlwaysUseBigint then
+          ft:=ftLargeInt;
       ftString,
       ftFixedChar,
       ftFixedWideChar,
@@ -766,6 +825,38 @@ begin
   execsql('BEGIN');
 end;
 
+function TSQLite3Connection.GetSQLiteOpenFlags: Integer;
+
+Const
+  NativeFlags : Array[TSQLiteOpenFlag] of Integer = (
+    SQLITE_OPEN_READONLY,
+    SQLITE_OPEN_READWRITE,
+    SQLITE_OPEN_CREATE,
+    SQLITE_OPEN_NOMUTEX,
+    SQLITE_OPEN_FULLMUTEX,
+    SQLITE_OPEN_SHAREDCACHE,
+    SQLITE_OPEN_PRIVATECACHE,
+    SQLITE_OPEN_URI,
+    SQLITE_OPEN_MEMORY
+  );
+Var
+  F : TSQLiteOpenFlag;
+
+begin
+  Result:=0;
+  For F in TSQLiteOpenFlags do
+    if F in FOpenFlags then
+      Result:=Result or NativeFlags[F];
+end;
+
+
+procedure TSQLite3Connection.SetOpenFlags(AValue: TSQLiteOpenFlags);
+begin
+  if FOpenFlags=AValue then Exit;
+  CheckDisConnected;
+  FOpenFlags:=AValue;
+end;
+
 procedure TSQLite3Connection.DoInternalConnect;
 var
   filename: ansistring;
@@ -775,7 +866,7 @@ begin
     DatabaseError(SErrNoDatabaseName,self);
   InitializeSQLite;
   filename := DatabaseName;
-  checkerror(sqlite3_open(PAnsiChar(filename),@fhandle));
+  checkerror(sqlite3_open_v2(PAnsiChar(filename),@fhandle,GetSQLiteOpenFlags,Nil));
   if (Length(Password)>0) and assigned(sqlite3_key) then
     checkerror(sqlite3_key(fhandle,PChar(Password),StrLen(PChar(Password))));
   if Params.IndexOfName('foreign_keys') <> -1 then
@@ -836,6 +927,11 @@ begin
    databaseerror(str1);
 end;
 
+function TSQLite3Connection.GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string;
+begin
+  Result:=Format('SELECT seq+%d FROM sqlite_sequence WHERE (name=''%s'')',[IncrementBy,SequenceName]);
+end;
+
 function execcallback(adata: pointer; ncols: longint; //adata = PStringArray
                 avalues: PPchar; anames: PPchar):longint; cdecl;
 var
@@ -882,6 +978,14 @@ begin
     stTables     : result := 'select name as table_name from sqlite_master where type = ''table'' order by 1';
     stSysTables  : result := 'select ''sqlite_master'' as table_name';
     stColumns    : result := 'pragma table_info(''' + (SchemaObjectName) + ''')';
+    stSequences  : Result := 'SELECT 1 as recno, '+
+                          '''' + DatabaseName + ''' as sequence_catalog,' +
+                          '''''                     as sequence_schema,' +
+                          'name as sequence_name ' +
+                        'FROM ' +
+                          'sqlite_sequence ' +
+                        'ORDER BY ' +
+                          'name';
   else
     DatabaseError(SMetadataUnavailable)
   end; {case}
@@ -1050,7 +1154,7 @@ begin
   CheckError(sqlite3_create_collation(fhandle, PChar(CollationName), eTextRep, Arg, Compare));
 end;
 
-procedure TSQLite3Connection.LoadExtension(LibraryFile: string);
+procedure TSQLite3Connection.LoadExtension(const LibraryFile: string);
 var
   LoadResult: integer;
 begin

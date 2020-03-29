@@ -7,17 +7,22 @@
 
 { This reduces the memory requirements a lot }
 {$PACKENUM 1}
-{$ifndef FPC_BIG_ENDIAN}
-{ $define USE_PACKSET1}
-{$endif}
-
-{$ifdef USE_PACKSET1}
 {$PACKSET 1}
-{$endif USE_PACKSET1}
 
 { We don't use exceptions, so turn off the implicit
   exceptions in the constructors }
 {$IMPLICITEXCEPTIONS OFF}
+
+{ We don't want C operators to be used inside the compiler }
+{$COPERATORS OFF}
+
+{ This define enables codepage-aware compiler messages handling. Turning it on
+  forces code page conversion from the codepage, specified in the .msg file to
+  CP_ACP, before printing the message to the console. Enable this for host
+  platforms, that have code page conversion support in their RTL. }
+{$if defined(win32) or defined(win64) or defined(unix)}
+  {$define cpawaremessages}
+{$endif}
 
 { Inline small functions, but not when EXTDEBUG is used }
 {$ifndef EXTDEBUG}
@@ -26,10 +31,15 @@
 
 {$define USEEXCEPT}
 
+{$ifdef VER3_0}
+  { fix bootstrapping dfa gives warnings on 3.2+ code due to changed case behaviour }
+  {$OPTIMIZATION NODFA}
+{$endif VER3_0}
+
 { This fake CPU is used to allow incorporation of globtype unit
   into utils/ppudump without any CPU specific code PM }
 {$ifdef generic_cpu}
-  {$define cpu32bit}
+  {$define #cpu32bit}
   {$define cpu32bitaddr}
   {$define cpu32bitalu}
   {$define cpuflags}
@@ -50,7 +60,7 @@
   {//$define SUPPORT_MMX}
   {$define cpumm}
   {$define fewintregisters}
-  {//$define cpurox}
+  {$define cpurox}
   {$define cpurefshaveindexreg}
   {$define SUPPORT_SAFECALL}
   {$define cpuneedsmulhelper}
@@ -58,6 +68,14 @@
   {$define cpuneedsdivhelper}
   {$define VOLATILE_ES}
   {$define SUPPORT_GET_FRAME}
+  {$define cpucg64shiftsupport}
+  {$define OMFOBJSUPPORT}
+  {$ifdef go32v2}
+    { go32v2 uses cwsdpmi extender which is incompatible with watcom extender
+      thus we use the internal smartlink sections by default in that case. }
+    {$define I8086_SMARTLINK_SECTIONS}
+    {$define i8086_link_intern_debuginfo}
+  {$endif go32v2}
 {$endif i8086}
 
 {$ifdef i386}
@@ -75,6 +93,8 @@
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
   {$define cpucapabilities}
+  {$define fpucapabilities}
+  {$define cpucg64shiftsupport}
 {$endif i386}
 
 {$ifdef x86_64}
@@ -91,6 +111,7 @@
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
   {$define cpucapabilities}
+  {$define fpucapabilities}
 {$endif x86_64}
 
 {$ifdef sparc}
@@ -100,8 +121,26 @@
   {$define cpuflags}
   {$define cputargethasfixedstack}
   {$define cpurefshaveindexreg}
+  {$define cpudelayslot}
   {$define SUPPORT_SAFECALL}
+  {$define sparcgen}
+
+  { the official name of the 32 Bit SPARC port is still "sparc" but
+    using the sparc32 define makes things more clear }
+  {$define sparc32}
 {$endif sparc}
+
+{$ifdef sparc64}
+  {$define cpu64bit}
+  {$define cpu64bitaddr}
+  {$define cpu64bitalu}
+  {$define cpuflags}
+  {$define cputargethasfixedstack}
+  {$define cpurefshaveindexreg}
+  {$define cpudelayslot}
+  {$define SUPPORT_SAFECALL}
+  {$define sparcgen}
+{$endif sparc64}
 
 {$ifdef powerpc}
   {$define cpu32bit}
@@ -112,6 +151,8 @@
   {$define cpumm}
   {$define cpurox}
   {$define cpurefshaveindexreg}
+  {$define SUPPORT_SAFECALL}
+  {$define SUPPORT_GET_FRAME}
 {$endif powerpc}
 
 {$ifdef powerpc64}
@@ -123,6 +164,7 @@
   {$define cpurox}
   {$define cpurefshaveindexreg}
   {$define cpuno32bitops}
+  {$define SUPPORT_SAFECALL}
 {$endif powerpc64}
 
 {$ifdef arm}
@@ -136,6 +178,7 @@
   {$define cputargethasfixedstack}
   {$define cpurefshaveindexreg}
   {$define cpucapabilities}
+  {$define fpucapabilities}
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
   { default to armel }
@@ -161,11 +204,16 @@
   {$define cpu32bitaddr}
   {$define cpu32bitalu}
   {$define cpuflags}
+  {$define cpurox}
   {$define cpufpemu}
   {$define cpurefshaveindexreg}
   {$define cpucapabilities}
+  {$define fpucapabilities}
+  {$define cpuneedsmulhelper}
   {$define cpuneedsdivhelper}
   {$define cpu_uses_separate_address_registers}
+  {$define SUPPORT_SAFECALL}
+  {$define SUPPORT_GET_FRAME}
 {$endif m68k}
 
 {$ifdef avr}
@@ -208,6 +256,7 @@
   {$define cpurequiresproperalignment}
   { define cpumm}
   {$define cpurefshaveindexreg}
+  {$define cpudelayslot}
   {$define SUPPORT_GET_FRAME}
   {$define SUPPORT_SAFECALL}
 {$endif mips}
@@ -230,7 +279,21 @@
   {$define cputargethasfixedstack}
   {$define cpurefshaveindexreg}
   {$define SUPPORT_GET_FRAME}
+  {$define SUPPORT_SAFECALL}
 {$endif aarch64}
+
+{$ifdef riscv32}
+  {$define riscv}
+  {$define cpu32bit}
+  {$define cpu32bitaddr}
+  {$define cpu32bitalu}
+  {$define cpufpemu}
+  {$define cputargethasfixedstack}
+  {$define cpuneedsmulhelper}
+  {$define cpuneedsdivhelper}
+  {$define cpucapabilities}
+  {$define cpurequiresproperalignment}
+{$endif riscv32}
 
 {$ifdef z80}
   {$define cpu8bit}
@@ -248,6 +311,31 @@
 {$DEFINE USE_FAKE_SYSUTILS}
 {$ENDIF MACOS}
 
+{$ifdef riscv64}
+  {$define riscv}
+  {$define cpu64bit}
+  {$define cpu64bitaddr}
+  {$define cpu64bitalu}
+  {$define cpufpemu}
+  {$define cputargethasfixedstack}
+  {$define cpuneedsmulhelper}
+  {$define cpuneedsdivhelper}
+  {$define cpucapabilities}
+  {$define cpurequiresproperalignment}
+{$endif riscv64}
+
+{$ifdef xtensa}
+  {$define cpu32bit}
+  {$define cpu32bitaddr}
+  {$define cpu32bitalu}
+  {$define cpufpemu}
+  {$define cputargethasfixedstack}
+  {$define cpuneedsmulhelper}
+  {$define cpuneedsdivhelper}
+  {$define cpucapabilities}
+  {$define cpurequiresproperalignment}
+{$endif xtensa}
+
 { Stabs is not officially supported on 64 bit targets by gdb, except on Mac OS X
   (but there we don't support it)
 }
@@ -258,7 +346,9 @@
 {$endif}
 
 {$if not defined(FPC_HAS_TYPE_EXTENDED) and defined(i386)}
+{$ifndef FPC_SOFT_FPUX80}
 {$error Cross-compiling from systems without support for an 80 bit extended floating point type to i386 is not yet supported at this time }
+{$endif}
 {$endif}
 
 { llvm backends partially use other backends for parameter info calculation,
@@ -266,9 +356,9 @@
 }
 {$ifdef llvm}
   {$undef SUPPORT_MMX}
-  {$undef cpu16bitalu}
-  {$undef cpu32bitalu}
-  {$define cpu64bitalu}
+  {$undef cpuneedsmulhelper}
+  {$undef cpuneedsdivhelper}
   {$define cpuhighleveltarget}
+  {$define cpucg64shiftsupport}
   {$define symansistr}
 {$endif}

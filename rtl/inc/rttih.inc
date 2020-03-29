@@ -11,6 +11,32 @@
 
  **********************************************************************}
 
+{ sadly MinEnumSize is not handled by Push/Pop :'( }
+{$MINENUMSIZE 1   this saves a lot of memory }
+
+type
+  { If you change one of the following enumeration types you have also to
+    change the compiler and unit typeinfo in an appropriate way!
+    Also if you add managed types you'll need to update tkManagedTypes in
+    rtti.inc }
+  TTypeKind = (tkUnknown,tkInteger,tkChar,tkEnumeration,tkFloat,
+              tkSet,tkMethod,tkSString,tkLString,tkAString,
+              tkWString,tkVariant,tkArray,tkRecord,tkInterface,
+              tkClass,tkObject,tkWChar,tkBool,tkInt64,tkQWord,
+              tkDynArray,tkInterfaceRaw,tkProcVar,tkUString,tkUChar,
+              tkHelper,tkFile,tkClassRef,tkPointer);
+
+{$MINENUMSIZE DEFAULT}
+
+const
+  { some Delphi-compatible aliases }
+  tkAnsiChar = tkChar;
+  tkWideChar = tkWChar;
+  tkShortString = tkSString;
+  tkAnsiString = tkAString;
+  tkWideString = tkWString;
+  tkUnicodeString = tkUString;
+
 procedure InitializeArray(p, typeInfo: Pointer; count: SizeInt);
 procedure FinalizeArray(p, typeInfo: Pointer; count: SizeInt);
 procedure CopyArray(dest, source, typeInfo: Pointer; count: SizeInt);

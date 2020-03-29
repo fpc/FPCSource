@@ -13,12 +13,13 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('aspell');
+    P.ShortName := 'asp';
 
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
     P.Author := 'header:Aleš Katona, library: Kevin Atkinson';
     P.License := 'header: LGPL with modification, library: LGPL 2.0 or 2.1';
@@ -44,7 +45,7 @@ begin
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('example.pas');
-    
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

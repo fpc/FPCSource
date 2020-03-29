@@ -295,7 +295,13 @@ unit cpubase;
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+
     function dwarf_reg(r:tregister):byte;
+    function dwarf_reg_no_error(r:tregister):shortint;
+    function eh_return_data_regno(nr: longint): longint;
+
     function GetHigh(const r : TRegister) : TRegister;
 
     { returns the next virtual register }
@@ -414,6 +420,16 @@ unit cpubase;
       end;
 
 
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+      begin
+        Result := {(c.cond = C_None) or} conditions_equal(Subset, c);
+
+        { TODO: Can a PowerPC programmer please update this procedure to
+          actually detect subsets? Thanks. [Kit] }
+      end;
+
+
     function rotl(d : dword;b : byte) : dword;
       begin
          result:=(d shr (32-b)) or (d shl b);
@@ -428,6 +444,18 @@ unit cpubase;
         if reg=-1 then
           internalerror(200603251);
         result:=reg;
+      end;
+
+
+    function dwarf_reg_no_error(r:tregister):shortint;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+      end;
+
+
+    function eh_return_data_regno(nr: longint): longint;
+      begin
+        result:=-1;
       end;
 
 

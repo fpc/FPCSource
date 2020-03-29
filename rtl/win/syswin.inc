@@ -166,12 +166,27 @@ end;
 
 procedure TranslateMxcsr(mxcsr: longword; var code: longint);
 begin
-  case (mxcsr and $3f) of
-    1,32:  code:=-207;  { InvalidOp, Precision }
-    2,16:  code:=-206;  { Denormal, Underflow }
-    4:     code:=-208;  { !!reZeroDivide }
-    8:     code:=-205;  { reOverflow }
-  end;
+  { we can return only one value, further one's are lost }
+  { InvalidOp }
+  if (mxcsr and 1)<>0 then
+    code:=-207
+  { Denormal }
+  else if (mxcsr and 2)<>0 then
+    code:=-206
+  { !!reZeroDivide }
+  else if (mxcsr and 4)<>0 then
+    code:=-208
+  { reOverflow }
+  else if (mxcsr and 8)<>0 then
+    code:=-205
+  { Underflow }
+  else if (mxcsr and 16)<>0 then
+    code:=-206
+  { Precision }
+  else if (mxcsr and 32)<>0 then
+    code:=-207
+  else { this should not happen }
+    code:=-255
 end;
 
 function FilterException(var rec:TExceptionRecord; imagebase: PtrUInt; filterRva: DWord; errcode: Longint): Pointer;
@@ -194,7 +209,7 @@ begin
     CurFilt:=@PFilterRec(Filter+sizeof(Longint))[i];
     if (CurFilt^.RvaClass=$FFFFFFFF) or
       { TODO: exception might be coming from another module, need more advanced comparing }
-      (ExClass.InheritsFrom(TClass(imagebase+CurFilt^.RvaClass))) then
+      (ExClass.InheritsFrom({$if not defined(ver3_0) and not defined(ver3_2)}PClass(imagebase+CurFilt^.RvaClass)^{$else}TClass(imagebase+CurFilt^.RvaClass){$endif})) then
     begin
       result:=Pointer(imagebase+CurFilt^.RvaHandler);
       exit;
@@ -356,6 +371,10 @@ Var
   DLLInitState : Longint = -1;
   DLLBuf : Jmp_buf;
 
+{$if defined(FPC_USE_WIN32_SEH) or defined(FPC_USE_WIN64_SEH)}
+{$define FPC_USE_SEH}
+{$endif}
+
 function Dll_entry{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}(constref info : TEntryInformation){$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION} : longbool; [public,alias:'_FPC_DLL_Entry'];
   begin
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
@@ -371,12 +390,21 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}(constref info : TE
 
            If SetJmp(DLLBuf) = 0 then
              begin
+{$ifdef FPC_USE_SEH}
+               try
+{$endif}
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
                EntryInformation.PascalMain();
 {$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
                PascalMain;
 {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
                Dll_entry:=true;
+{$ifdef FPC_USE_SEH}
+               except
+                 DoUnHandledException;
+                 Dll_entry:=false;
+               end;
+{$endif}
              end
            else
              Dll_entry:=(ExitCode=0);
@@ -576,10 +604,13 @@ procedure Win32Ansi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:Unico
   begin
     // retrieve length including trailing #0
     // not anymore, because this must also be usable for single characters
-    if cp=CP_UTF8 then
-      dwFlags:=0
-    else
-      dwFlags:=MB_PRECOMPOSED;
+    case cp of
+    // Under https://docs.microsoft.com/en-us/windows/desktop/api/stringapiset/nf-stringapiset-multibytetowidechar
+      CP_UTF8, CP_UTF7, 50220, 50221, 50222, 50225, 50227, 50229, 57002..57011, 42:
+                           dwFlags:=0
+      else
+        dwFlags:=MB_PRECOMPOSED;
+      end;
     destlen:=MultiByteToWideChar(cp, dwFlags, source, len, nil, 0);
     // this will null-terminate
     setlength(dest, destlen);

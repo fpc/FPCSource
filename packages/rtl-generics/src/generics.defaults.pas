@@ -1,11 +1,11 @@
 {
-    This file is part of the Free Pascal run time library.
+    This file is part of the Free Pascal/NewPascal run time library.
     Copyright (c) 2014 by Maciej Izak (hnb)
-    member of the Free Sparta development team (http://freesparta.com)
+    member of the NewPascal development team (http://newpascal.org)
 
-    Copyright(c) 2004-2014 DaThoX
+    Copyright(c) 2004-2018 DaThoX
 
-    It contains the Free Pascal generics library
+    It contains the generics collections library
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -13,6 +13,14 @@
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+    Acknowledgment
+
+    Thanks to Sphere 10 Software (http://sphere10.com) for sponsoring
+    many new types and major refactoring of entire library
+
+    Thanks to mORMot (http://synopse.info) project for the best implementations
+    of hashing functions like crc32c and xxHash32 :)
 
  **********************************************************************}
 
@@ -221,8 +229,8 @@ type
       _Release: CodePointer;
       Equals: CodePointer;
       GetHashCode: CodePointer;
-      __Reserved: Pointer; // initially or TExtendedEqualityComparerVMT compatibility
-                           // (important when ExtendedEqualityComparer is calling Binary method)
+      __Reserved: CodePointer; // initially or TExtendedEqualityComparerVMT compatibility
+                               // (important when ExtendedEqualityComparer is calling Binary method)
       __ClassRef: THashFactoryClass; // hidden field in VMT. For class ref THashFactoryClass
     end;
 
@@ -294,6 +302,7 @@ type
     class procedure UInt8        (constref AValue: UInt8        ; AHashList: PUInt32); overload;
     class procedure UInt16       (constref AValue: UInt16       ; AHashList: PUInt32); overload;
     class procedure UInt32       (constref AValue: UInt32       ; AHashList: PUInt32); overload;
+
     class procedure UInt64       (constref AValue: UInt64       ; AHashList: PUInt32); overload;
     class procedure Single       (constref AValue: Single       ; AHashList: PUInt32); overload;
     class procedure Double       (constref AValue: Double       ; AHashList: PUInt32); overload;
@@ -504,6 +513,7 @@ type
 
   TExtendedHashService = class(THashService)
   public
+    class function LookupEqualityComparer(ATypeInfo: PTypeInfo; ASize: SizeInt): Pointer; override;
     class function LookupExtendedEqualityComparer(ATypeInfo: PTypeInfo; ASize: SizeInt): Pointer; virtual; abstract;
   end;
 
@@ -554,7 +564,7 @@ type
     EqualityComparer_Method_VMT : THashFactory.TEqualityComparerVMT = (STD_RAW_INTERFACE_METHODS; Equals: @TEquals.Method ; GetHashCode: @THashFactory.Method );
     EqualityComparer_Variant_VMT: THashFactory.TEqualityComparerVMT = (STD_RAW_INTERFACE_METHODS; Equals: @TEquals.Variant; GetHashCode: @THashFactory.Variant);
     EqualityComparer_Pointer_VMT: THashFactory.TEqualityComparerVMT = (STD_RAW_INTERFACE_METHODS; Equals: @TEquals.Pointer; GetHashCode: @THashFactory.Pointer);
-{$WARNINGS ON}
+{.$WARNINGS ON} // do not enable warnings ever in this unit, or you will get many warnings about uninitialized TEqualityComparerVMT fields
   private class var
     // IEqualityComparer VMT
     FEqualityComparer_Int8_VMT  : THashFactory.TEqualityComparerVMT;
@@ -673,7 +683,7 @@ type
     ExtendedEqualityComparer_Method_VMT : TExtendedHashFactory.TExtendedEqualityComparerVMT = (STD_RAW_INTERFACE_METHODS; Equals: @TEquals.Method ; GetHashCode: @THashFactory.Method ; GetHashList: @TExtendedHashFactory.Method );
     ExtendedEqualityComparer_Variant_VMT: TExtendedHashFactory.TExtendedEqualityComparerVMT = (STD_RAW_INTERFACE_METHODS; Equals: @TEquals.Variant; GetHashCode: @THashFactory.Variant; GetHashList: @TExtendedHashFactory.Variant);
     ExtendedEqualityComparer_Pointer_VMT: TExtendedHashFactory.TExtendedEqualityComparerVMT = (STD_RAW_INTERFACE_METHODS; Equals: @TEquals.Pointer; GetHashCode: @THashFactory.Pointer; GetHashList: @TExtendedHashFactory.Pointer);
-{$WARNINGS ON}
+{.$WARNINGS ON} // do not enable warnings ever in this unit, or you will get many warnings about uninitialized TEqualityComparerVMT fields
   private class var
     // IExtendedEqualityComparer VMT
     FExtendedEqualityComparer_Int8_VMT  : TExtendedHashFactory.TExtendedEqualityComparerVMT;
@@ -857,6 +867,30 @@ type
     class function GetHashCode(AKey: Pointer; ASize: SizeInt; AInitVal: UInt32 = 0): UInt32; override;
   end;
 
+  { TGenericsHashFactory }
+
+  TGenericsHashFactory = class(THashFactory)
+  public
+    class function GetHashService: THashServiceClass; override;
+    class function GetHashCode(AKey: Pointer; ASize: SizeInt; AInitVal: UInt32 = 0): UInt32; override;
+  end;
+
+  { TxxHash32HashFactory }
+
+  TxxHash32HashFactory = class(THashFactory)
+  public
+    class function GetHashService: THashServiceClass; override;
+    class function GetHashCode(AKey: Pointer; ASize: SizeInt; AInitVal: UInt32 = 0): UInt32; override;
+  end;
+
+  { TxxHash32PascalHashFactory }
+
+  TxxHash32PascalHashFactory = class(THashFactory)
+  public
+    class function GetHashService: THashServiceClass; override;
+    class function GetHashCode(AKey: Pointer; ASize: SizeInt; AInitVal: UInt32 = 0): UInt32; override;
+  end;
+
   { TAdler32HashFactory }
 
   TAdler32HashFactory = class(THashFactory)
@@ -922,7 +956,7 @@ type
     class procedure GetHashList(AKey: Pointer; ASize: SizeInt; AHashList: PUInt32; AOptions: TGetHashListOptions = []); override;
   end;
 
-  TDefaultHashFactory = TDelphiQuadrupleHashFactory;
+  TDefaultHashFactory = TGenericsHashFactory;
 
   TDefaultGenericInterface = (giComparer, giEqualityComparer, giExtendedEqualityComparer);
 
@@ -2154,6 +2188,13 @@ begin
   Result.SelectorInstance := ASelectorInstance;
 end;
 
+{ TExtendedHashService }
+
+class function TExtendedHashService.LookupEqualityComparer(ATypeInfo: PTypeInfo; ASize: SizeInt): Pointer;
+begin
+  Result := LookupExtendedEqualityComparer(ATypeInfo, ASize);
+end;
+
 { THashService }
 
 class function THashService<T>.SelectIntegerEqualityComparer(ATypeData: PTypeData; ASize: SizeInt): Pointer;
@@ -2782,6 +2823,44 @@ begin
   Result := DelphiHashLittle(AKey, ASize, AInitVal);
 end;
 
+{ TGenericsHashFactory }
+
+class function TGenericsHashFactory.GetHashService: THashServiceClass;
+begin
+  Result := THashService<TGenericsHashFactory>;
+end;
+
+class function TGenericsHashFactory.GetHashCode(AKey: Pointer; ASize: SizeInt; AInitVal: UInt32): UInt32;
+begin
+  Result := mORMotHasher(AInitVal, AKey, ASize);
+end;
+
+{ TxxHash32HashFactory }
+
+class function TxxHash32HashFactory.GetHashService: THashServiceClass;
+begin
+  Result := THashService<TxxHash32HashFactory>;
+end;
+
+class function TxxHash32HashFactory.GetHashCode(AKey: Pointer; ASize: SizeInt;
+  AInitVal: UInt32): UInt32;
+begin
+  Result := xxHash32(AInitVal, AKey, ASize);
+end;
+
+{ TxxHash32PascalHashFactory }
+
+class function TxxHash32PascalHashFactory.GetHashService: THashServiceClass;
+begin
+  Result := THashService<TxxHash32PascalHashFactory>;
+end;
+
+class function TxxHash32PascalHashFactory.GetHashCode(AKey: Pointer; ASize: SizeInt;
+  AInitVal: UInt32): UInt32;
+begin
+  Result := xxHash32Pascal(AInitVal, AKey, ASize);
+end;
+
 { TAdler32HashFactory }
 
 class function TAdler32HashFactory.GetHashService: THashServiceClass;
@@ -2879,7 +2958,7 @@ begin
   else
     raise EArgumentOutOfRangeException.CreateRes(@SArgumentOutOfRange);
   end;
-{$WARNINGS ON}
+{.$WARNINGS ON} // do not enable warnings ever in this unit, or you will get many warnings about uninitialized TEqualityComparerVMT fields
 end;
 
 { TDelphiQuadrupleHashFactory }
@@ -3255,7 +3334,7 @@ begin
     giEqualityComparer:
       begin
         if AFactory = nil then
-          AFactory := TDelphiHashFactory;
+          AFactory := TDefaultHashFactory;
 
         Exit(
           AFactory.GetHashService.LookupEqualityComparer(ATypeInfo, ASize));

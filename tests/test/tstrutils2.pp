@@ -1,6 +1,15 @@
 {$codepage utf8}
 program tstrutils2;
 
+{$ifdef go32v2}
+  {$define USE_INTERNAL_UNICODE}
+{$endif}
+
+{$ifdef USE_INTERNAL_UNICODE}
+  {$define USE_FPWIDESTRING_UNIT}
+  {$define USE_UNICODEDUCET_UNIT}
+  {$define USE_CPALL_UNIT}
+{$endif}
 // tests MBCS compatibility of strutils ansistartstext and -endstext.
 // (case-insensitive)
 
@@ -8,11 +17,22 @@ program tstrutils2;
 {$h+}
 
 uses
-  StrUtils
+{$ifndef USE_INTERNAL_UNICODE}
 {$ifdef unix}
-  ,{$ifdef darwin}iosxwstr{$else}cwstring{$endif}
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
 {$endif unix}
-  ;
+{$else USE_INTERNAL_UNICODE}
+ {$ifdef USE_UNICODEDUCET_UNIT}
+  unicodeducet,
+ {$endif}
+ {$ifdef USE_FPWIDESTRING_UNIT}
+  fpwidestring,
+ {$endif}
+ {$ifdef USE_CPALL_UNIT}
+  cpall,
+ {$endif}
+{$endif def USE_INTERNAL_UNICODE}
+  StrUtils;
 
 var
   ResultCounter: Integer = 0;
@@ -109,8 +129,8 @@ function TestOK: Boolean;
 begin
   TestOK :=
     // AnsiStartsText
-{1}    TestValue(not AnsiStartsText(a(Str_Empty), a(Str_Empty)),'not AnsiStartsText', Str_Empty, Str_Empty)
-{2}    and TestValue(not AnsiStartsText(a(Str_Empty), a(Str_ab)),'not AnsiStartsText', Str_Empty, Str_ab)
+{1}    TestValue( AnsiStartsText(a(Str_Empty), a(Str_Empty)),'not AnsiStartsText', Str_Empty, Str_Empty)
+{2}    and TestValue( AnsiStartsText(a(Str_Empty), a(Str_ab)),'not AnsiStartsText', Str_Empty, Str_ab)
 {3}    and TestValue(not AnsiStartsText(a(Str_ab), a(Str_Empty)),'not AnsiStartsText', Str_ab, Str_Empty)
 {4}    and TestValue(AnsiStartsText(a(Str_abc), a(Str_abc)),'AnsiStartsText',Str_abc, Str_abc)
 {5}    and TestValue(not AnsiStartsText(a(Str_abc), a(Str_def)),'not AnsiStartsText', Str_abc, Str_def)

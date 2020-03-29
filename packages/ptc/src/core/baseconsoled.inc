@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003, 2006, 2007, 2009-2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2013, 2016  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -69,6 +69,9 @@ type
     procedure SetKeyReleaseEnabled(AValue: Boolean);
     function GetKeyReleaseEnabled: Boolean;
     property KeyReleaseEnabled: Boolean read GetKeyReleaseEnabled write SetKeyReleaseEnabled;
+
+    { mouse handling }
+    function MoveMouseTo(X, Y: Integer): Boolean;
 
     property Pages: Integer read GetPages;
     property Name: string read GetName;

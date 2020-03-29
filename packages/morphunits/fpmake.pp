@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('morphunits');
+    P.ShortName := 'mrph';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
     P.Author := 'Karoly Balogh';
     P.License := 'LGPL with modification';
@@ -60,6 +61,9 @@ begin
     T:=P.Targets.AddUnit('icon.pas');
     T:=P.Targets.AddUnit('locale.pas');
     T:=P.Targets.AddUnit('commodities.pas');
+    T:=P.Targets.AddUnit('serial.pas');
+    T:=P.Targets.AddUnit('console.pas');
+    T:=P.Targets.AddUnit('conunit.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

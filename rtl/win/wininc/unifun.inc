@@ -110,7 +110,7 @@ function GetDiskFreeSpaceW(lpRootPathName:LPCWSTR; lpSectorsPerCluster:LPDWORD; 
 function CreateDirectoryW(lpPathName:LPCWSTR; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):WINBOOL; external 'kernel32' name 'CreateDirectoryW';
 function CreateDirectoryExW(lpTemplateDirectory:LPCWSTR; lpNewDirectory:LPCWSTR; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):WINBOOL; external 'kernel32' name 'CreateDirectoryExW';
 function RemoveDirectoryW(lpPathName:LPCWSTR):WINBOOL; external 'kernel32' name 'RemoveDirectoryW';
-function GetFullPathNameW(lpFileName:LPCWSTR; nBufferLength:DWORD; lpBuffer:LPWSTR; var lpFilePart:LPWSTR):DWORD; external 'kernel32' name 'GetFullPathNameW';
+function GetFullPathNameW(lpFileName:LPCWSTR; nBufferLength:DWORD; lpBuffer:LPWSTR; lpFilePart:PLPWSTR):DWORD; external 'kernel32' name 'GetFullPathNameW';
 function DefineDosDeviceW(dwFlags:DWORD; lpDeviceName:LPCWSTR; lpTargetPath:LPCWSTR):WINBOOL; external 'kernel32' name 'DefineDosDeviceW';
 function QueryDosDeviceW(lpDeviceName:LPCWSTR; lpTargetPath:LPWSTR; ucchMax:DWORD):DWORD; external 'kernel32' name 'QueryDosDeviceW';
 function CreateFileW(lpFileName:LPCWSTR; dwDesiredAccess:DWORD; dwShareMode:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; dwCreationDisposition:DWORD;dwFlagsAndAttributes:DWORD; hTemplateFile:HANDLE):HANDLE; external 'kernel32' name 'CreateFileW';
@@ -484,6 +484,20 @@ function FindFirstFileExW(lpfilename : LPCWStr;fInfoLevelId:FINDEX_INFO_LEVELS ;
 function FindFirstFileTransactedW(lpfilename : LPCWStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword;htransaction : HANDLE):Handle; stdcall; external 'kernel32' name 'FindFirstFileTransactedW';
 function CopyFileExW(lpExistingFileName,lpNewFileName : LPCWSTR;lpProgressRoutine:LPPROGRESS_ROUTINE;lpdata:Pointer;pbcancel:LPBOOL;dwCopyFlags:DWord):DWord; stdcall; external 'kernel32' name 'CopyFileExW';
 
+
+function PeekConsoleInputW(hConsoleInput:HANDLE; lpBuffer:PINPUT_RECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):BOOL;stdcall;external 'kernel32' name 'PeekConsoleInputW';
+function WriteConsoleInputW(hConsoleInput:HANDLE; var lpBuffer:INPUT_RECORD; nLength:DWORD; lpNumberOfEventsWritten:LPDWORD):BOOL;stdcall;external 'kernel32' name 'WriteConsoleInputW';
+function ScrollConsoleScreenBufferW(hConsoleOutput:HANDLE; var lpScrollRectangle:SMALL_RECT; var lpClipRectangle:SMALL_RECT; dwDestinationOrigin:COORD; lpFill:PCHAR_INFO):BOOL;stdcall;external 'kernel32' name 'ScrollConsoleScreenBufferW';
+function GetConsoleOriginalTitleW(lpConsoleTitle:LPWSTR; nSize:DWORD):DWORD;stdcall;external 'kernel32' name 'GetConsoleOriginalTitleW';
+function AddConsoleAliasW(Source:LPWSTR; Target:LPWSTR; ExeName:LPWSTR):BOOL;stdcall;external 'kernel32' name 'AddConsoleAliasW';
+function GetConsoleAliasW(Source:LPWSTR; TargetBuffer:LPWSTR; TargetBufferLength:DWORD; ExeName:LPWSTR):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasW';
+function GetConsoleAliasesLengthW(ExeName:LPWSTR):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasesLengthW';
+function GetConsoleAliasExesLengthW:DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasExesLengthW';
+function GetConsoleAliasesW(AliasBuffer:LPWSTR; AliasBufferLength:DWORD; ExeName:LPWSTR):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasesW';
+function GetConsoleAliasExesW(ExeNameBuffer:LPWSTR; ExeNameBufferLength:DWORD):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasExesW';
+function GetComputerNameExW(NameType:COMPUTER_NAME_FORMAT;lpbuffer:LPWSTR;nSize:LPDWORD):BOOL;stdcall;external 'kernel32' name 'GetComputerNameExW';
+function QueryFullProcessImageNameW(hProcess:THandle;dwFlags:DWord; lpexename :lpwstr;lpdwsize:pdword):BOOL; stdcall; external 'kernel32.dll' name 'QueryFullProcessImageNameW';
+function RealGetWindowClassW(Wnd : HWND;ClassnameBuffer : pwidechar;ClassnameBufferSize : DWORD): DWORD; stdcall; external 'user32.dll' name 'RealGetWindowClassW';
 {$endif read_interface}
 
 

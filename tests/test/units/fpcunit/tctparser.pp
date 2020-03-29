@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry;
 
   { TTestToString }
-
+type
   TTestToString= class(TTestCase)
   private
     fStream : TMemoryStream;
@@ -362,7 +362,7 @@ begin
   fPar:=TParser.Create(fStream);
   try
     try
-      fPar.CheckToken(toString);
+      fPar.CheckToken(Classes.toString);
     except
       on e : EParserError do Fail('CheckToken failed');
     end;
@@ -381,7 +381,7 @@ begin
   fPar:=TParser.Create(fStream);
   try
     try
-      fPar.CheckToken(toString);
+      fPar.CheckToken(Classes.toString);
     except
       on e : EParserError do Fail('CheckToken failed');
     end;
@@ -400,7 +400,7 @@ begin
   fPar:=TParser.Create(fStream);
   try
     try
-      fPar.CheckToken(toString);
+      fPar.CheckToken(Classes.toString);
     except
       on e : EParserError do Fail('CheckToken failed');
     end;

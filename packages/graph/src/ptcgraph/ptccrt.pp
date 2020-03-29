@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2010, 2011, 2013 by Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (c) 2010, 2011, 2013, 2017 by Nikolay Nikolov (nickysn@users.sourceforge.net)
 
     This file implements keyboard input support for ptcgraph
 
@@ -35,10 +35,12 @@ type
 {$ELSE HasCRT}
   tcrtcoord = 1..255;
 {$ENDIF HasCRT}
+  tkeymode = (kmTP7, kmGO32, kmFPWINCRT);
 
 var
   DirectVideo: Boolean {$IFDEF HasCRT}absolute crt.DirectVideo{$ENDIF HasCRT};
   TextAttr: Byte {$IFDEF HasCRT}absolute crt.TextAttr{$ENDIF HasCRT};
+  KeyMode: TKeyMode = kmTP7;
 
 function KeyPressed: Boolean;
 function ReadKey: Char;
@@ -132,6 +134,9 @@ begin
               if KeyEv.Alt then
               begin
                 case KeyEv.Code of
+                  PTCKEY_ESCAPE:
+                    if KeyMode = kmGO32 then
+                      KeyBufAdd(#0#1);
                   PTCKEY_F1:     KeyBufAdd(#0#104);
                   PTCKEY_F2:     KeyBufAdd(#0#105);
                   PTCKEY_F3:     KeyBufAdd(#0#106);
@@ -142,6 +147,12 @@ begin
                   PTCKEY_F8:     KeyBufAdd(#0#111);
                   PTCKEY_F9:     KeyBufAdd(#0#112);
                   PTCKEY_F10:    KeyBufAdd(#0#113);
+                  PTCKEY_F11:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#139);
+                  PTCKEY_F12:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#140);
                   PTCKEY_ONE:    KeyBufAdd(#0#120);
                   PTCKEY_TWO:    KeyBufAdd(#0#121);
                   PTCKEY_THREE:  KeyBufAdd(#0#122);
@@ -180,6 +191,89 @@ begin
                   PTCKEY_B:      KeyBufAdd(#0#48);
                   PTCKEY_N:      KeyBufAdd(#0#49);
                   PTCKEY_M:      KeyBufAdd(#0#50);
+                  PTCKEY_BACKQUOTE:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#41);
+                  PTCKEY_BACKSPACE:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#14);
+                  PTCKEY_TAB:
+                    if KeyMode = kmGO32 then
+                      KeyBufAdd(#0#165);
+                  PTCKEY_OPENBRACKET:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#26);
+                  PTCKEY_CLOSEBRACKET:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#27);
+                  PTCKEY_BACKSLASH:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#43);
+                  PTCKEY_SEMICOLON:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#39);
+                  PTCKEY_QUOTE:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#40);
+                  PTCKEY_ENTER:
+                    if KeyMode = kmGO32 then
+                      if pmkNumPadKey in KeyEv.ModifierKeys then
+                        KeyBufAdd(#0#166)
+                      else
+                        KeyBufAdd(#0#28);
+                  PTCKEY_COMMA:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#51);
+                  PTCKEY_PERIOD:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#52);
+                  PTCKEY_SLASH:
+                    if KeyMode = kmFPWINCRT then
+                      KeyBufAdd(#0#164)
+                    else if KeyMode = kmGO32 then
+                      KeyBufAdd(#0#53);
+                  PTCKEY_INSERT:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#162);
+                  PTCKEY_DELETE:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#163);
+                  PTCKEY_HOME:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#151);
+                  PTCKEY_END:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#159);
+                  PTCKEY_PAGEUP:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#153);
+                  PTCKEY_PAGEDOWN:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#161);
+                  PTCKEY_UP:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#152);
+                  PTCKEY_LEFT:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#155);
+                  PTCKEY_RIGHT:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#157);
+                  PTCKEY_DOWN:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#160);
+                  PTCKEY_DIVIDE:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#164);
+                  PTCKEY_MULTIPLY:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#55);
+                  PTCKEY_SUBTRACT:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#74);
+                  PTCKEY_ADD:
+                    if KeyMode in [kmGO32, kmFPWINCRT] then
+                      KeyBufAdd(#0#78);
                 end;
               end
               else
@@ -197,7 +291,50 @@ begin
                     PTCKEY_F8:            KeyBufAdd(#0#101);
                     PTCKEY_F9:            KeyBufAdd(#0#102);
                     PTCKEY_F10:           KeyBufAdd(#0#103);
+                    PTCKEY_F11:
+                      if KeyMode in [kmGO32, kmFPWINCRT] then
+                        KeyBufAdd(#0#137);
+                    PTCKEY_F12:
+                      if KeyMode in [kmGO32, kmFPWINCRT] then
+                        KeyBufAdd(#0#138);
+                    PTCKEY_ONE:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#2);
                     PTCKEY_TWO:           KeyBufAdd(#0#3);
+                    PTCKEY_THREE:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#4);
+                    PTCKEY_FOUR:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#5);
+                    PTCKEY_FIVE:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#6);
+                    PTCKEY_SIX:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#7)
+                      else
+                        KeyBufAdd(#30);
+                    PTCKEY_SEVEN:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#8);
+                    PTCKEY_EIGHT:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#9);
+                    PTCKEY_NINE:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#10);
+                    PTCKEY_ZERO:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#11);
+                    PTCKEY_MINUS:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#12)
+                      else
+                        KeyBufAdd(#31);
+                    PTCKEY_EQUALS:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#13);
                     PTCKEY_BACKSPACE:     KeyBufAdd(#127);
                     PTCKEY_A:             KeyBufAdd(#1);
                     PTCKEY_B:             KeyBufAdd(#2);
@@ -228,8 +365,6 @@ begin
                     PTCKEY_OPENBRACKET:   KeyBufAdd(#27);
                     PTCKEY_BACKSLASH:     KeyBufAdd(#28);
                     PTCKEY_CLOSEBRACKET:  KeyBufAdd(#29);
-                    PTCKEY_SIX:           KeyBufAdd(#30);
-                    PTCKEY_MINUS:         KeyBufAdd(#31);
                     PTCKEY_ENTER:         KeyBufAdd(#10);
                     PTCKEY_LEFT:          KeyBufAdd(#0#115);
                     PTCKEY_RIGHT:         KeyBufAdd(#0#116);
@@ -237,6 +372,57 @@ begin
                     PTCKEY_END:           KeyBufAdd(#0#117);
                     PTCKEY_PAGEUP:        KeyBufAdd(#0#132);
                     PTCKEY_PAGEDOWN:      KeyBufAdd(#0#118);
+                    PTCKEY_BACKQUOTE:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#41);
+                    PTCKEY_TAB:
+                      if KeyMode in [kmGO32, kmFPWINCRT] then
+                        KeyBufAdd(#0#148);
+                    PTCKEY_SEMICOLON:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#39);
+                    PTCKEY_QUOTE:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#40);
+                    PTCKEY_COMMA:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#51);
+                    PTCKEY_PERIOD:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#52);
+                    PTCKEY_SLASH:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#149);
+                    PTCKEY_INSERT:
+                      if KeyMode in [kmGO32, kmFPWINCRT] then
+                        KeyBufAdd(#0#146);
+                    PTCKEY_DELETE:
+                      if KeyMode in [kmGO32, kmFPWINCRT] then
+                        KeyBufAdd(#0#147);
+                    PTCKEY_UP:
+                      if KeyMode in [kmGO32, kmFPWINCRT] then
+                        KeyBufAdd(#0#141);
+                    PTCKEY_DOWN:
+                      if KeyMode in [kmGO32, kmFPWINCRT] then
+                        KeyBufAdd(#0#145);
+                    PTCKEY_DIVIDE:
+                      if KeyMode in [kmGO32, kmFPWINCRT] then
+                        KeyBufAdd(#0#149);
+                    PTCKEY_MULTIPLY:
+                      if KeyMode in [kmGO32, kmFPWINCRT] then
+                        KeyBufAdd(#0#150);
+                    PTCKEY_SUBTRACT:
+                      if KeyMode in [kmGO32, kmFPWINCRT] then
+                        KeyBufAdd(#0#142);
+                    PTCKEY_ADD:
+                      if KeyMode = kmFPWINCRT then
+                        KeyBufAdd(#0#78)
+                      else if KeyMode = kmGO32 then
+                        KeyBufAdd(#0#144);
+                    PTCKEY_CLEAR,
+                    PTCKEY_NUMPAD5:
+                      if KeyMode in [kmGO32, kmFPWINCRT] then
+                        KeyBufAdd(#0#143);
                   end;
                 end
                 else
@@ -254,6 +440,12 @@ begin
                       PTCKEY_F8:        KeyBufAdd(#0#91);
                       PTCKEY_F9:        KeyBufAdd(#0#92);
                       PTCKEY_F10:       KeyBufAdd(#0#93);
+                      PTCKEY_F11:
+                        if KeyMode in [kmGO32, kmFPWINCRT] then
+                          KeyBufAdd(#0#135);
+                      PTCKEY_F12:
+                        if KeyMode in [kmGO32, kmFPWINCRT] then
+                          KeyBufAdd(#0#136);
                       PTCKEY_BACKSPACE: KeyBufAdd(#8);
                       PTCKEY_TAB:       KeyBufAdd(#0#15);
                       PTCKEY_ENTER:     KeyBufAdd(#13);
@@ -286,6 +478,12 @@ begin
                       PTCKEY_F8:        KeyBufAdd(#0#66);
                       PTCKEY_F9:        KeyBufAdd(#0#67);
                       PTCKEY_F10:       KeyBufAdd(#0#68);
+                      PTCKEY_F11:
+                        if KeyMode in [kmGO32, kmFPWINCRT] then
+                          KeyBufAdd(#0#133);
+                      PTCKEY_F12:
+                        if KeyMode in [kmGO32, kmFPWINCRT] then
+                          KeyBufAdd(#0#134);
                       PTCKEY_BACKSPACE: KeyBufAdd(#8);
                       PTCKEY_TAB:       KeyBufAdd(#9);
                       PTCKEY_ENTER:     KeyBufAdd(#13);
@@ -299,6 +497,9 @@ begin
                       PTCKEY_END:       KeyBufAdd(#0#79);
                       PTCKEY_PAGEUP:    KeyBufAdd(#0#73);
                       PTCKEY_PAGEDOWN:  KeyBufAdd(#0#81);
+                      PTCKEY_CLEAR:
+                        if KeyMode in [kmGO32, kmFPWINCRT] then
+                          KeyBufAdd(#0#76);
                       else
                         if (KeyEv.Unicode >= 32) and (KeyEv.Unicode <= 127) then
                           KeyBufAdd(Chr(KeyEv.Unicode));

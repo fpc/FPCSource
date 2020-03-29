@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2007, 2009, 2010, 2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2007, 2009, 2010, 2013, 2016  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -62,6 +62,7 @@ type
 
     procedure SetWindowArea(AWindowX1, AWindowY1, AWindowX2, AWindowY2: Integer);
     procedure SetConsoleSize(AConsoleWidth, AConsoleHeight: Integer);
+    function MoveMouseTo(X, Y: Integer): Boolean;
 
     { control }
     procedure Enable;

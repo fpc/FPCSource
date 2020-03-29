@@ -4,10 +4,10 @@
 
 [package]
 name=fpc
-version=3.1.1
+version=3.3.1
 
 [target]
-dirs=compiler rtl utils packages ide installer
+dirs=compiler rtl utils packages installer
 
 [require]
 nortl=y
@@ -20,7 +20,7 @@ fpcdir=.
 rule=help
 
 [prerules]
-REQUIREDVERSION=3.0.0
+REQUIREDVERSION=3.0.4
 REQUIREDVERSION2=3.0.2
 
 
@@ -48,6 +48,9 @@ PPSUF=x64
 endif
 ifeq ($(CPU_TARGET),sparc)
 PPSUF=sparc
+endif
+ifeq ($(CPU_TARGET),sparc64)
+PPSUF=sparc64
 endif
 ifeq ($(CPU_TARGET),powerpc)
 PPSUF=ppc
@@ -81,6 +84,15 @@ PPSUF=avr
 endif
 ifeq ($(CPU_TARGET),aarch64)
 PPSUF=a64
+endif
+ifeq ($(CPU_TARGET),riscv32)
+PPSUF=rv32
+endif
+ifeq ($(CPU_TARGET),riscv64)
+PPSUF=rv64
+endif
+ifeq ($(CPU_TARGET),xtensa)
+PPSUF=xtensa
 endif
 
 # cross compilers uses full cpu_target, not just ppc-suffix
@@ -188,42 +200,24 @@ endif
 ifneq ($(OPT),)
 OPTNEW+=$(OPT)
 endif
+
+# some targets do not generate PIC by default so we have select explicitly 
+# the general threading model when compiling the final versions of rtl and packages
+ifneq ($(findstring $(OS_TARGET),linux),)
+ifneq ($(findstring $(CPU_TARGET),i386 arm),)
+override OPTNEW+=-CVglobal-dynamic
+endif
+endif
+
 CLEANOPTS=FPC=$(PPNEW)
-BUILDOPTS=FPC=$(PPNEW) FPCFPMAKE=$(FPCFPMAKENEW) RELEASE=1 'OPT=$(OPTNEW)'
+BUILDOPTS=FPC=$(PPNEW) FPCFPMAKE=$(FPCFPMAKENEW) RELEASE=1 'OPT=$(OPTNEW)' 'FPCMAKEOPT=$(OPT)'
 INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
-
-# This list should be the same as in fpcbuild/Makefile.fpc and in ide/Makefile.fpc
-GDBMI_DEFAULT_OS_LIST=aix freebsd haiku linux netbsd openbsd solaris win32 win64
-#  Determine if we should use GDBMI for Text Mode IDE compilation
-ifndef NOGDBMI
-ifneq ($(findstring $(OS_TARGET),$(GDBMI_DEFAULT_OS_LIST)),)
-export GDBMI=1
-endif
-endif
-
-# Compile also IDE now enabled even for cross-compilation
-# if GDBMI is set
-ifdef GDBMI
-ifneq ($(GDBMI),0)
-IDE=1
-endif
-else # not GDBMI
-# Skipped by default for cross compiles, because it depends on libc
-ifndef CROSSCOMPILE
-ifneq ($(wildcard ide),)
-IDETARGETS=go32v2 win32 win64 linux freebsd os2 emx beos haiku
-ifneq ($(findstring $(OS_TARGET),$(IDETARGETS)),)
-IDE=1
-endif
-endif
-endif
-endif # not GDBMI
 
 # CPU targets for which we only build the compiler/rtl
 BuildOnlyBaseCPUs=jvm
 
 ifneq ($(wildcard utils),)
-NOUTILSTARGETS=embedded gba nds msdos win16 $(BuildOnlyBaseCPUs)
+NOUTILSTARGETS=embedded gba nds msdos win16 macos $(BuildOnlyBaseCPUs)
 ifeq ($(findstring $(OS_TARGET),$(NOUTILSTARGETS)),)
 ifdef BUILDFULLNATIVE
 UTILS=1
@@ -325,19 +319,11 @@ endif
 ifdef UTILS
         $(MAKE) utils_clean $(CLEANOPTS)
 endif
-ifdef IDE
-        $(MAKE) ide_clean $(CLEANOPTS)
-        $(MAKE) installer_clean $(CLEANOPTS)
-endif
 # build everything
         $(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) packages_$(ALLTARGET) $(BUILDOPTS)
 ifdef UTILS
         $(MAKE) utils_all $(BUILDOPTS)
-endif
-ifdef IDE
-        $(MAKE) ide_all $(BUILDOPTS)
-        $(MAKE) installer_all $(BUILDOPTS)
 endif
         $(ECHOREDIR) Build > $(BUILDSTAMP)
         $(ECHOREDIR) Build > base.$(BUILDSTAMP)
@@ -370,9 +356,6 @@ installother:
 ifdef UTILS
         $(MAKE) utils_$(INSTALLTARGET) $(INSTALLOPTS)
 endif
-ifdef IDE
-        $(MAKE) ide_$(INSTALLTARGET) $(BUILDOPTS)
-endif
 
 zipinstallbase:
         $(MAKE) fpc_zipinstall ZIPTARGET=installbase ZIPNAME=base $(INSTALLOPTS)
@@ -381,9 +364,6 @@ zipinstallother:
         $(MAKE) packages_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGUNITSPRE)
 ifdef UTILS
         $(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS)
-endif
-ifdef IDE
-        $(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS)
 endif
 
 
@@ -395,7 +375,11 @@ endif
 
 singlezipinstall: zipinstallall
 zipinstallall: $(BUILDSTAMP)
-        $(MAKE) fpc_zipinstall ZIPTARGET=install FULLZIPNAME=fpc-$(PACKAGE_VERSION).$(TARGETSUFFIX) $(INSTALLOPTS)
+ifeq ($(FULL_SOURCE),$(FULL_TARGET))
+	$(MAKE) fpc_zipinstall ZIPTARGET=install FULLZIPNAME=fpc-$(PACKAGE_VERSION).$(TARGETSUFFIX) $(INSTALLOPTS)
+else
+	$(MAKE) fpc_zipinstall ZIPTARGET=install FULLZIPNAME=fpc-$(PACKAGE_VERSION).$(TARGETSUFFIX).built.on.$(SOURCESUFFIX) $(INSTALLOPTS)
+endif
 
 
 ##########################################################################
@@ -414,4 +398,4 @@ crosszipinstall:
         $(MAKE) zipinstall CROSSINSTALL=1
 
 crosssinglezipinstall:
-        $(MAKE) fpc_zipinstall ZIPTARGET=crossinstall ZIPNAME=fpc $(INSTALLOPTS)
+	$(MAKE) fpc_zipinstall ZIPTARGET=crossinstall FULLZIPNAME=fpc-$(PACKAGE_VERSION).$(SOURCESUFFIX).cross.$(TARGETSUFFIX) $(INSTALLOPTS)

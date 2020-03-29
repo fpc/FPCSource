@@ -293,6 +293,8 @@ begin
   testBCDDivide(100, -2, -50);
   testBCDDivide(1007, 5, 201.4);
 
+  testBCDDivide(StrToBCD('224518.0639999999994919',FS), IntegerToBCD(6615), StrToBCD('33.94075041572184421646258503401360544217687074829931972789115646',FS)); // bug #33795
+
   // test BCDCompare:
   testBCDCompare(100, 100, 0);
   testBCDCompare(-100.1, -100.1, 0);

@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('libcurl');
+    P.ShortName := 'lcur';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
     P.Author := 'Library: Daniel Stenberg, header: Free Pascal development team';
     P.License := 'Library: MIT, header: LGPL with modification, ';

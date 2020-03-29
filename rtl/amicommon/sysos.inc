@@ -44,6 +44,15 @@
                     System Dependent Structures/Consts
 *****************************************************************************}
 
+{$packrecords default}
+
+{$ifndef FPC_SYSTEM_HAS_STACKTOP}
+{$define FPC_SYSTEM_HAS_STACKTOP}
+function StackTop: pointer;
+begin
+  StackTop:=FindTask(nil)^.tc_SPUpper;
+end;
+{$endif FPC_SYSTEM_HAS_STACKTOP}
 
 const
   CTRL_C           = 20;      { Error code on CTRL-C press }

@@ -31,7 +31,11 @@ type
     using packed causes the compiler to handle arrays of text wrongly, see  see tw0754 e.g. on arm  }
   FileRec = {$ifdef VER2_6} packed {$endif} Record
     Handle    : THandle;
+{$if defined(CPU8) or defined(CPU16)}
+    Mode      : Word;
+{$else}
     Mode      : longint;
+{$endif}
     RecSize   : SizeInt;
     _private  : array[1..3 * SizeOf(SizeInt) + 5 * SizeOf (pointer)] of byte;
     UserData  : array[1..32] of byte;

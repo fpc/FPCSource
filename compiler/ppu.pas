@@ -26,7 +26,7 @@ unit ppu;
 interface
 
   uses
-    systems,globtype,constexp,cstreams,entfile;
+    constexp,entfile;
 
 { Also write the ppu if only crc if done, this can be used with ppudump to
   see the differences between the intf and implementation }
@@ -43,45 +43,65 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 191;
+  { only update this version if something change in the tppuheader:
+     * the unit flags listed below
+     * the format of the header itslf
+    This number cannot become bigger than 255 (it's stored in a byte) }
+  CurrentPPUVersion = 207;
+  { for any other changes to the ppu format, increase this version number
+    (it's a cardinal) }
+  CurrentPPULongVersion = 8;
 
 { unit flags }
-  uf_init                = $000001; { unit has initialization section }
-  uf_finalize            = $000002; { unit has finalization section   }
   uf_big_endian          = $000004;
-//uf_has_browser         = $000010;
   uf_in_library          = $000020; { is the file in another file than <ppufile>.* ? }
   uf_smart_linked        = $000040; { the ppu can be smartlinked }
   uf_static_linked       = $000080; { the ppu can be linked static }
   uf_shared_linked       = $000100; { the ppu can be linked shared }
-//uf_local_browser       = $000200;
-  uf_checkpointer_called = $000200; { Unit uses experimental checkpointer test code }
+  uf_lto_linked          = $000200; { the ppu can be used with LTO }
   uf_no_link             = $000400; { unit has no .o generated, but can still have external linking! }
-  uf_has_resourcestrings = $000800; { unit has resource string section }
   uf_little_endian       = $001000;
-  uf_release             = $002000; { unit was compiled with -Ur option }
-  uf_threadvars          = $004000; { unit has threadvars }
   uf_fpu_emulation       = $008000; { this unit was compiled with fpu emulation on }
-  uf_has_stabs_debuginfo = $010000; { this unit has stabs debuginfo generated }
-  uf_local_symtable      = $020000; { this unit has a local symtable stored }
-  uf_uses_variants       = $040000; { this unit uses variants }
-  uf_has_resourcefiles   = $080000; { this unit has external resources (using $R directive)}
-  uf_has_exports         = $100000; { this module or a used unit has exports }
-  uf_has_dwarf_debuginfo = $200000; { this unit has dwarf debuginfo generated }
-  uf_wideinits           = $400000; { this unit has winlike widestring typed constants }
-  uf_classinits          = $800000; { this unit has class constructors/destructors }
-  uf_resstrinits        = $1000000; { this unit has string consts referencing resourcestrings }
-  uf_i8086_far_code     = $2000000; { this unit uses an i8086 memory model with far code (i.e. medium, large or huge) }
-  uf_i8086_far_data     = $4000000; { this unit uses an i8086 memory model with far data (i.e. compact or large) }
-  uf_i8086_huge_data    = $8000000; { this unit uses an i8086 memory model with huge data (i.e. huge) }
-  uf_i8086_cs_equals_ds = $10000000; { this unit uses an i8086 memory model with CS=DS (i.e. tiny) }
-  uf_package_deny       = $20000000; { this unit must not be part of a package }
-  uf_package_weak       = $40000000; { this unit may be completely contained in a package }
-  uf_i8086_ss_equals_ds = $80000000; { this unit uses an i8086 memory model with SS=DS (i.e. tiny, small or medium) }
 
 type
   { bestreal is defined based on the target architecture }
   ppureal=bestreal;
+
+  { set type aliases. We cast all sets to a corresponding array type so
+    that if the set changes size, compilation will fail and we know that
+    we have have to increase the ppu version }
+  tppuset1 = array[0..0] of byte;
+  tppuset2 = array[0..1] of byte;
+  { tppuset3 = array[0..2] of byte; (sets of 3 bytes are rounded up to 4 bytes) }
+  tppuset4 = array[0..3] of byte;
+  tppuset5 = array[0..4] of byte;
+  tppuset6 = array[0..5] of byte;
+  tppuset7 = array[0..6] of byte;
+  tppuset8 = array[0..7] of byte;
+  tppuset9 = array[0..8] of byte;
+  tppuset10 = array[0..9] of byte;
+  tppuset11 = array[0..10] of byte;
+  tppuset12 = array[0..11] of byte;
+  tppuset13 = array[0..12] of byte;
+  tppuset14 = array[0..13] of byte;
+  tppuset15 = array[0..14] of byte;
+  tppuset16 = array[0..15] of byte;
+  tppuset17 = array[0..16] of byte;
+  tppuset18 = array[0..17] of byte;
+  tppuset19 = array[0..18] of byte;
+  tppuset20 = array[0..19] of byte;
+  tppuset21 = array[0..20] of byte;
+  tppuset22 = array[0..21] of byte;
+  tppuset23 = array[0..22] of byte;
+  tppuset24 = array[0..23] of byte;
+  tppuset25 = array[0..24] of byte;
+  tppuset26 = array[0..25] of byte;
+  tppuset27 = array[0..26] of byte;
+  tppuset28 = array[0..27] of byte;
+  tppuset29 = array[0..28] of byte;
+  tppuset30 = array[0..29] of byte;
+  tppuset31 = array[0..30] of byte;
+  tppuset32 = array[0..31] of byte;
 
   tppuerror=(ppuentrytoobig,ppuentryerror);
 
@@ -119,6 +139,9 @@ type
     function getheadersize:longint;override;
     function getheaderaddr:pentryheader;override;
     procedure resetfile;override;
+{$ifdef DEBUG_PPU}
+    procedure ppu_log(st :string);override;
+{$endif}
   public
     header           : tppuheader;
     { crc for the entire unit }
@@ -150,8 +173,7 @@ implementation
 {$ifdef Test_Double_checksum}
     comphook,
 {$endif def Test_Double_checksum}
-    fpccrc,
-    cutils;
+    fpccrc;
 
 function swapendian_ppureal(d:ppureal):ppureal;
 
@@ -253,6 +275,30 @@ begin
   result:=not crc_only;
 end;
 
+{$ifdef DEBUG_PPU}
+procedure tppufile.ppu_log(st :string);
+begin
+  inherited ppu_log(st);
+  if flog_open then
+    begin
+      if do_crc and (ppu_log_idx < bufstart+bufidx) then
+        begin
+          writeln(flog,'New crc : ',hexstr(dword(crc),8));
+          writeln(flog,'New interface crc : ',hexstr(dword(interface_crc),8));
+          writeln(flog,'New indirect crc : ',hexstr(dword(indirect_crc),8));
+          ppu_log_idx:=bufstart+bufidx;
+         end;
+    end;
+{$ifdef IN_PPUDUMP}
+  if update_crc then
+    begin
+      writeln('New crc : ',hexstr(dword(crc),8));
+      writeln('New interface crc : ',hexstr(dword(interface_crc),8));
+      writeln('New indirect crc : ',hexstr(dword(indirect_crc),8));
+    end;
+{$endif}
+end;
+{$endif}
 
 {*****************************************************************************
                                 TPPUFile Reading

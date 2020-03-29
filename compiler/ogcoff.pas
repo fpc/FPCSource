@@ -31,7 +31,7 @@ interface
        { target }
        systems,
        { assembler }
-       cpuinfo,cpubase,aasmbase,assemble,link,
+       aasmbase,assemble,
        { output }
        ogbase,
        owbase;
@@ -119,7 +119,7 @@ interface
          coffrelocs,
          coffrelocpos : aword;
        public
-         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
+         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
          procedure writereloc_internal(aTarget:TObjSection;offset:aword;len:byte;reltype:TObjRelocationType);override;
        end;
 
@@ -133,7 +133,7 @@ interface
          constructor createcoff(const n:string;awin32:boolean;acObjSection:TObjSectionClass);
          procedure CreateDebugSections;override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
-         function  sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;override;
+         class function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;override;
          procedure writereloc(data:aint;len:aword;p:TObjSymbol;reloctype:TObjRelocationType);override;
        end;
 
@@ -300,7 +300,8 @@ implementation
 {$endif win32}
        SysUtils,
        cutils,verbose,globals,
-       fmodule,aasmtai,aasmdata,
+       cpubase,cpuinfo,
+       fmodule,
        ogmap,
        owar,
        version
@@ -378,6 +379,13 @@ implementation
        PE_SCN_ALIGN_16BYTES          = $00500000; { Default alignment if no others are specified. }
        PE_SCN_ALIGN_32BYTES          = $00600000;
        PE_SCN_ALIGN_64BYTES          = $00700000;
+       PE_SCN_ALIGN_128BYTES         = $00800000;
+       PE_SCN_ALIGN_256BYTES         = $00900000;
+       PE_SCN_ALIGN_512BYTES         = $00A00000;
+       PE_SCN_ALIGN_1024BYTES        = $00B00000;
+       PE_SCN_ALIGN_2048BYTES        = $00C00000;
+       PE_SCN_ALIGN_4096BYTES        = $00D00000;
+       PE_SCN_ALIGN_8192BYTES        = $00E00000;
        PE_SCN_LNK_NRELOC_OVFL        = $01000000; { Section contains extended relocations. }
        PE_SCN_MEM_NOT_CACHED         = $04000000; { Section is not cachable.               }
        PE_SCN_MEM_NOT_PAGED          = $08000000; { Section is not pageable.               }
@@ -489,6 +497,7 @@ implementation
          select  : byte;
          empty   : array[0..2] of char;
        end;
+       pcoffsectionrec=^coffsectionrec;
        coffreloc=packed record
          address  : longword;
          sym      : longword;
@@ -583,7 +592,9 @@ implementation
           '.obcj_nlcatlist',
           '.objc_protolist',
           '.stack',
-          '.heap'
+          '.heap',
+          '.gcc_except_table',
+          '.ARM.attributes'
         );
 
 const go32v2stub : array[0..2047] of byte=(
@@ -776,7 +787,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    function peencodesechdrflags(aoptions:TObjSectionOptions;aalign:shortint):longword;
+    function peencodesechdrflags(aoptions:TObjSectionOptions;aalign:longint):longword;
       begin
         if oso_executable in aoptions then
           result:=PE_SCN_CNT_CODE or PE_SCN_MEM_EXECUTE
@@ -801,12 +812,19 @@ const pemagic : array[0..3] of byte = (
           16 : result:=result or PE_SCN_ALIGN_16BYTES;
           32 : result:=result or PE_SCN_ALIGN_32BYTES;
           64 : result:=result or PE_SCN_ALIGN_64BYTES;
+         128 : result:=result or PE_SCN_ALIGN_128BYTES;
+         256 : result:=result or PE_SCN_ALIGN_256BYTES;
+         512 : result:=result or PE_SCN_ALIGN_512BYTES;
+        1024 : result:=result or PE_SCN_ALIGN_1024BYTES;
+        2048 : result:=result or PE_SCN_ALIGN_2048BYTES;
+        4096 : result:=result or PE_SCN_ALIGN_4096BYTES;
+        8192 : result:=result or PE_SCN_ALIGN_8192BYTES;
           else result:=result or PE_SCN_ALIGN_16BYTES;
         end;
       end;
 
 
-    procedure pedecodesechdrflags(const aname:string;flags:longword;out aoptions:TObjSectionOptions;out aalign:shortint);
+    procedure pedecodesechdrflags(const aname:string;flags:longword;out aoptions:TObjSectionOptions;out aalign:longint);
       var
         alignflag : longword;
       begin
@@ -819,12 +837,28 @@ const pemagic : array[0..3] of byte = (
           include(aoptions,oso_data);
         if (flags and (PE_SCN_LNK_REMOVE or PE_SCN_MEM_DISCARDABLE)=0) then
           include(aoptions,oso_load);
+        if flags and PE_SCN_LNK_COMDAT<>0 then
+          include(aoptions,oso_comdat);
         { read/write }
         if flags and PE_SCN_MEM_WRITE<>0 then
           include(aoptions,oso_write);
         { alignment }
         alignflag:=flags and PE_SCN_ALIGN_MASK;
-        if alignflag=PE_SCN_ALIGN_64BYTES then
+        if alignflag=PE_SCN_ALIGN_8192BYTES then
+          aalign:=8192
+        else if alignflag=PE_SCN_ALIGN_4096BYTES then
+          aalign:=4096
+        else if alignflag=PE_SCN_ALIGN_2048BYTES then
+          aalign:=2048
+        else if alignflag=PE_SCN_ALIGN_1024BYTES then
+          aalign:=1024
+        else if alignflag=PE_SCN_ALIGN_512BYTES then
+          aalign:=512
+        else if alignflag=PE_SCN_ALIGN_256BYTES then
+          aalign:=256
+        else if alignflag=PE_SCN_ALIGN_128BYTES then
+          aalign:=128
+        else if alignflag=PE_SCN_ALIGN_64BYTES then
           aalign:=64
         else if alignflag=PE_SCN_ALIGN_32BYTES then
           aalign:=32
@@ -849,7 +883,7 @@ const pemagic : array[0..3] of byte = (
                                TCoffObjSection
 ****************************************************************************}
 
-    constructor TCoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:shortint;aoptions:TObjSectionOptions);
+    constructor TCoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:longint;aoptions:TObjSectionOptions);
       begin
         inherited create(AList,aname,aalign,aoptions);
       end;
@@ -900,6 +934,8 @@ const pemagic : array[0..3] of byte = (
               RELOC_ABSOLUTE:
                 address_size:=8;
 {$endif cpu64bitaddr}
+              else
+                ;
             end;
 
             address:=0;
@@ -1090,7 +1126,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    function TCoffObjData.sectiontype2options(aType:TAsmSectionType): TObjSectionOptions;
+    class function TCoffObjData.sectiontype2options(aType:TAsmSectionType): TObjSectionOptions;
       begin
         if (aType in [sec_rodata,sec_rodata_norel]) then
           begin
@@ -1456,7 +1492,8 @@ const pemagic : array[0..3] of byte = (
                if (objsym.bind=AB_LOCAL) then
                  continue;
                case objsym.bind of
-                 AB_GLOBAL :
+                 AB_GLOBAL,
+                 AB_PRIVATE_EXTERN:
                    begin
                      globalval:=COFF_SYM_GLOBAL;
                      sectionval:=objsym.objsection.index;
@@ -1799,11 +1836,13 @@ const pemagic : array[0..3] of byte = (
         strname   : string;
         auxrec    : array[0..sizeof(coffsymbol)-1] of byte;
         boauxrec  : array[0..sizeof(coffbigobjsymbol)-1] of byte;
+        secrec    : pcoffsectionrec;
         objsec    : TObjSection;
         secidx    : longint;
         symvalue  : longword;
         auxcount  : byte;
         symcls    : byte;
+        comdatsel : TObjSectionComdatSelection;
 
         { keeps string manipulations out of main routine }
         procedure UnsupportedSymbolType;
@@ -1934,6 +1973,63 @@ const pemagic : array[0..3] of byte = (
               end;
               FSymTbl^[symidx]:=objsym;
               { read aux records }
+
+              { handle COMDAT symbols }
+              if (symcls=COFF_SYM_LOCAL) and (auxcount=1) and (symvalue=0) and (oso_comdat in objsym.objsection.SecOptions) then
+                begin
+                  if bigobj then
+                    begin
+                      FCoffSyms.Read(boauxrec,sizeof(boauxrec));
+                      secrec:=pcoffsectionrec(@boauxrec[0]);
+                    end
+                  else
+                    begin
+                      FCoffSyms.Read(auxrec,sizeof(auxrec));
+                      secrec:=pcoffsectionrec(@auxrec);
+                    end;
+
+                  case secrec^.select of
+                    IMAGE_COMDAT_SELECT_NODUPLICATES:
+                      comdatsel:=oscs_none;
+                    IMAGE_COMDAT_SELECT_ANY:
+                      comdatsel:=oscs_any;
+                    IMAGE_COMDAT_SELECT_SAME_SIZE:
+                      comdatsel:=oscs_same_size;
+                    IMAGE_COMDAT_SELECT_EXACT_MATCH:
+                      comdatsel:=oscs_exact_match;
+                    IMAGE_COMDAT_SELECT_ASSOCIATIVE:
+                      comdatsel:=oscs_associative;
+                    IMAGE_COMDAT_SELECT_LARGEST:
+                      comdatsel:=oscs_largest;
+                    else begin
+                      comdatsel:=oscs_none;
+                      Message2(link_e_comdat_select_unsupported,inttostr(secrec^.select),objsym.objsection.name);
+                    end;
+                  end;
+
+                  if comdatsel in [oscs_associative,oscs_exact_match] then
+                    { only temporary }
+                    Comment(V_Error,'Associative or exact match COMDAT sections are not yet supported (symbol: '+objsym.objsection.Name+')')
+                  else if (comdatsel=oscs_associative) and (secrec^.assoc=0) then
+                    Message1(link_e_comdat_associative_section_expected,objsym.objsection.name)
+                  else if (objsym.objsection.ComdatSelection<>oscs_none) and (comdatsel<>oscs_none) and (objsym.objsection.ComdatSelection<>comdatsel) then
+                    Message2(link_e_comdat_not_matching,objsym.objsection.Name,objsym.Name)
+                  else
+                    begin
+                      objsym.objsection.ComdatSelection:=comdatsel;
+
+                      if (secrec^.assoc<>0) and not assigned(objsym.objsection.AssociativeSection) then
+                        begin
+                          objsym.objsection.AssociativeSection:=GetSection(secrec^.assoc);
+                          if not assigned(objsym.objsection.AssociativeSection) then
+                            Message1(link_e_comdat_associative_section_not_found,objsym.objsection.Name);
+                        end;
+                    end;
+
+                  dec(auxcount);
+                  inc(symidx);
+                end;
+
               for i:=1 to auxcount do
                begin
                  if bigobj then
@@ -1969,7 +2065,7 @@ const pemagic : array[0..3] of byte = (
 
     function  TCoffObjInput.ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;
       var
-        secalign : shortint;
+        secalign : longint;
         secofs,
         strpos,
         i        : longint;
@@ -2558,15 +2654,39 @@ const pemagic : array[0..3] of byte = (
             peoptheader.ImageBase:=ImageBase;
             peoptheader.SectionAlignment:=SectionMemAlign;
             peoptheader.FileAlignment:=SectionDataAlign;
-            peoptheader.MajorOperatingSystemVersion:=4;
-            peoptheader.MinorOperatingSystemVersion:=0;
-            peoptheader.MajorImageVersion:=dllmajor;
-            peoptheader.MinorImageVersion:=dllminor;
-            if target_info.system in systems_wince then
-              peoptheader.MajorSubsystemVersion:=3
+            if SetPEOSVersionSetExplicitely then
+              begin
+                peoptheader.MajorOperatingSystemVersion:=peosversionmajor;
+                peoptheader.MinorOperatingSystemVersion:=peosversionminor;
+              end
             else
-              peoptheader.MajorSubsystemVersion:=4;
-            peoptheader.MinorSubsystemVersion:=0;
+              begin
+                peoptheader.MajorOperatingSystemVersion:=4;
+                peoptheader.MinorOperatingSystemVersion:=0;
+              end;
+            if SetPEUserVersionSetExplicitely then
+              begin
+                peoptheader.MajorImageVersion:=peuserversionmajor;
+                peoptheader.MinorImageVersion:=peuserversionminor;
+              end
+            else
+              begin
+                peoptheader.MajorImageVersion:=dllmajor;
+                peoptheader.MinorImageVersion:=dllminor;
+              end;
+            if SetPESubSysVersionSetExplicitely then
+              begin
+                peoptheader.MajorSubsystemVersion:=pesubsysversionmajor;
+                peoptheader.MinorSubsystemVersion:=pesubsysversionminor;
+              end
+            else
+              begin
+                if target_info.system in systems_wince then
+                  peoptheader.MajorSubsystemVersion:=3
+                else
+                  peoptheader.MajorSubsystemVersion:=4;
+                peoptheader.MinorSubsystemVersion:=0;
+              end;
             peoptheader.Win32Version:=0;
             peoptheader.SizeOfImage:=Align(CurrMemPos,SectionMemAlign);
             peoptheader.SizeOfHeaders:=textExeSec.DataPos;

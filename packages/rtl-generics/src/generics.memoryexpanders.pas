@@ -1,11 +1,11 @@
 {
-    This file is part of the Free Pascal run time library.
+    This file is part of the Free Pascal/NewPascal run time library.
     Copyright (c) 2014 by Maciej Izak (hnb)
-    member of the Free Sparta development team (http://freesparta.com)
+    member of the NewPascal development team (http://newpascal.org)
 
-    Copyright(c) 2004-2014 DaThoX
+    Copyright(c) 2004-2018 DaThoX
 
-    It contains the Free Pascal generics library
+    It contains the generics collections library
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -21,6 +21,8 @@ unit Generics.MemoryExpanders;
 
 {$mode delphi}
 {$MACRO ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
 {.$WARN 5024 OFF}
 {.$WARN 4079 OFF}
 

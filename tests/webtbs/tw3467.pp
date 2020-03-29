@@ -36,7 +36,7 @@ procedure tthread1.execute;
 var
   i: integer;
 begin
-  writeln('thread 1 var is @', ptrint(@athreadvar));
+  writeln('thread 1 var is @$', hexstr(@athreadvar));
     athreadvar := 1;
     p:=@athreadvar;
    Sleep(2000);
@@ -53,7 +53,7 @@ procedure tthread2.execute;
 var
   i: integer;
 begin
-  writeln('thread 2 var is @', ptrint(@athreadvar));
+  writeln('thread 2 var is @$', hexstr(@athreadvar));
     athreadvar := 9;
     p:=@athreadvar;
    Sleep(2000);

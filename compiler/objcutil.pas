@@ -53,13 +53,13 @@ implementation
 
     uses
       globtype,
-      cutils,cclasses,
+      cutils,
       pass_1,
       verbose,systems,
-      symtable,symconst,symsym,
+      symconst,symsym,
       objcdef,
       defutil,paramgr,
-      nbas,nmem,ncal,nld,ncon,ncnv,
+      nmem,ncal,nld,ncon,ncnv,
       export;
 
 

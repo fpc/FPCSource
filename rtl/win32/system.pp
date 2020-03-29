@@ -16,6 +16,7 @@
 unit System;
 interface
 
+{$define FPC_IS_SYSTEM}
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}
 {$endif SYSTEMDEBUG}
@@ -424,7 +425,7 @@ procedure JumpToHandleErrorFrame;
 
 function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;stdcall;
   var
-    res: longint;
+    res,ssecode: longint;
     err: byte;
     must_reset_fpu: boolean;
   begin
@@ -494,6 +495,17 @@ function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;s
           begin
             err := 218;
             must_reset_fpu := false;
+          end;
+        STATUS_FLOAT_MULTIPLE_FAULTS,
+        STATUS_FLOAT_MULTIPLE_TRAPS:
+          begin
+            { dumping ExtendedRegisters and comparing with the actually value of mxcsr revealed 24 }
+            TranslateMxcsr(excep^.ContextRecord^.ExtendedRegisters[24],ssecode);
+{$ifdef SYSTEMEXCEPTIONDEBUG}
+            if IsConsole then
+              Writeln(stderr,'MXSR: ',hexstr(excep^.ContextRecord^.ExtendedRegisters[24], 2),' SSECODE: ',ssecode);
+{$endif SYSTEMEXCEPTIONDEBUG}
+            err:=-ssecode;
           end;
         else
           begin

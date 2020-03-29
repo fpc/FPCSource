@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2013, 2016 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -44,6 +44,7 @@ type
     FCursorVisible: Boolean;
     FGrabMouse: Boolean;
     FMouseGrabbed: Boolean;
+    FRelativeMouseMode: Boolean;
     FX11InvisibleCursor: TCursor; { Blank cursor }
     FFullScreen: Boolean; { Keeps a snapshot of the PTC_X11_FULLSCREEN option
                              taken at the time 'open' was called }
@@ -61,6 +62,13 @@ type
 {$IFDEF ENABLE_X11_EXTENSION_GLX}
     FGLXFBConfig: TX11GLXFBConfig;
 {$ENDIF ENABLE_X11_EXTENSION_GLX}
+
+{$IFDEF ENABLE_X11_EXTENSION_XINPUT2}
+    FXInput2Enabled: Boolean;
+    FXInput2MajorOpCode: cint;
+    FXInput2FirstEvent: cint;
+    FXInput2FirstError: cint;
+{$ENDIF ENABLE_X11_EXTENSION_XINPUT2}
 
     procedure EnterFullScreen;
     procedure LeaveFullScreen;
@@ -99,6 +107,8 @@ type
     function IsOpen: Boolean; override;
     procedure SetCursor(AVisible: Boolean); override;
     procedure SetMouseGrab(AGrabMouse: Boolean); override;
+    function SetRelativeMouseMode(ARelativeMouseMode: Boolean): Boolean; override;
+    function MoveMouseTo(X, Y: Integer): Boolean; override;
 {$IFDEF ENABLE_X11_EXTENSION_GLX}
     procedure OpenGL_SwapBuffers; override;
     procedure OpenGL_SetSwapInterval(AInterval: Integer); override;

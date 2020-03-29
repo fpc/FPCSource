@@ -13,7 +13,7 @@
 
  **********************************************************************}
 unit Workbench;
-{$PACKRECORDS C}
+{$PACKRECORDS 2}
 
 Interface
 

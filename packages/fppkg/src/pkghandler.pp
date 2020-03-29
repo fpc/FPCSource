@@ -44,8 +44,8 @@ type
   Public
     Constructor Create(AOwner:TComponent; APackageManager:TpkgFPpkg; const APackageName:string); virtual;
     function PackageLogPrefix:String;
-    procedure ExecuteAction(const APackageName,AAction:string);
-    procedure Execute; virtual; abstract;
+    function ExecuteAction(const APackageName,AAction:string): Boolean;
+    function Execute: Boolean; virtual; abstract;
     Property PackageName:string Read FPackageName;
   end;
   TPackageHandlerClass = class of TPackageHandler;
@@ -55,7 +55,7 @@ type
 // Actions/PkgHandler
 procedure RegisterPkgHandler(const AAction:string;pkghandlerclass:TPackageHandlerClass);
 function GetPkgHandler(const AAction:string):TPackageHandlerClass;
-procedure ExecuteAction(const APackageName,AAction:string; PackageManager: TpkgFPpkg);
+function ExecuteAction(const APackageName,AAction:string; PackageManager: TpkgFPpkg): Boolean;
 
 function PackageManifestFile(APackage:TFPPackage): String;
 procedure ClearExecutedAction;
@@ -94,11 +94,12 @@ begin
 end;
 
 
-procedure ExecuteAction(const APackageName,AAction:string; PackageManager: TpkgFPpkg);
+function ExecuteAction(const APackageName,AAction:string; PackageManager: TpkgFPpkg): Boolean;
 var
   pkghandlerclass : TPackageHandlerClass;
   FullActionName : string;
 begin
+  Result := True;
   // Check if we have already executed or are executing the action
   FullActionName:=APackageName+AAction;
   if ExecutedActions.Find(FullActionName)<>nil then
@@ -114,7 +115,7 @@ begin
   With pkghandlerclass.Create(nil,PackageManager,APackageName) do
     try
       Log(llDebug,SLogRunAction+' start',[AAction]);
-      Execute;
+      Result := Execute;
       Log(llDebug,SLogRunAction+' end',[AAction]);
     finally
       Free;
@@ -178,7 +179,7 @@ var
 
         if ch in [#10, #13] then
         begin
-          log(llProgres,sLine);
+          log(llProgress,sLine);
           sLine := '';
           BuffPos := ConsoleOutput.Position;
         end
@@ -255,9 +256,9 @@ begin
 end;
 
 
-procedure TPackageHandler.ExecuteAction(const APackageName,AAction:string);
+function TPackageHandler.ExecuteAction(const APackageName, AAction: string): Boolean;
 begin
-  pkghandler.ExecuteAction(APackageName,AAction,PackageManager);
+  Result := pkghandler.ExecuteAction(APackageName,AAction,PackageManager);
 end;
 
 

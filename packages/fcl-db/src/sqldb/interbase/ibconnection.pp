@@ -61,7 +61,8 @@ type
     FDatabaseInfo          : TDatabaseInfo;
     FDialect               : integer;
     FBlobSegmentSize       : word; //required for backward compatibilty; not used
-
+    FUseConnectionCharSetIfNone: Boolean;
+    FWireCompression       : Boolean;
     procedure ConnectFB;
 
     procedure AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
@@ -132,6 +133,8 @@ type
     property Params;
     property OnLogin;
     Property Port stored false;
+    Property UseConnectionCharSetIfNone : Boolean Read FUseConnectionCharSetIfNone Write FUseConnectionCharSetIfNone;
+    property WireCompression: Boolean read FWireCompression write FWireCompression default False;
   end;
   
   { TIBConnectionDef }
@@ -186,9 +189,10 @@ constructor TIBConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams, sqEscapeRepeat, sqSupportReturning];
+  FConnOptions := FConnOptions + [sqSupportParams, sqEscapeRepeat, sqSupportReturning, sqSequences];
   FBlobSegmentSize := 65535; //Shows we're using the maximum segment size
   FDialect := INVALID_DATA;
+  FWireCompression := False;
   ResetDatabaseInfo;
 end;
 
@@ -609,6 +613,9 @@ end;
 
 
 procedure TIBConnection.ConnectFB;
+const
+  isc_dpb_config = 87;
+  CStr_WireCompression = 'WireCompression=true';
 var
   ADatabaseName: String;
   DPB: string;
@@ -626,6 +633,9 @@ begin
      DPB := DPB + chr(isc_dpb_sql_role_name) + chr(Length(Role)) + Role;
   if Length(CharSet) > 0 then
     DPB := DPB + Chr(isc_dpb_lc_ctype) + Chr(Length(CharSet)) + CharSet;
+  if WireCompression or (SameText(Params.values['WireCompression'],'true')) then
+    DPB := DPB + Chr(isc_dpb_config) + Chr(Length(CStr_WireCompression)) +
+           CStr_WireCompression;
 
   FDatabaseHandle := nil;
   HN:=HostName;
@@ -988,7 +998,8 @@ begin
         TransType, TransLen, TransPrec);
 
       // [var]char or blob column character set NONE or OCTETS overrides connection charset
-      if ((TransType in [ftString, ftFixedChar]) and (PSQLVar^.sqlsubtype and $FF in [CS_NONE,CS_BINARY])) or
+      if (((TransType in [ftString, ftFixedChar]) and (PSQLVar^.sqlsubtype and $FF in [CS_NONE,CS_BINARY])) and not UseConnectionCharSetIfNone)
+         or
          ((TransType = ftMemo) and (PSQLVar^.relname_length>0) and (PSQLVar^.sqlname_length>0) and (GetBlobCharset(@PSQLVar^.relname,@PSQLVar^.sqlname) in [CS_NONE,CS_BINARY])) then
         FieldDefs.Add(PSQLVar^.AliasName, TransType, TransLen, TransPrec, (PSQLVar^.sqltype and 1)=0, False, i+1, CP_NONE)
       else
@@ -1431,6 +1442,13 @@ begin
       {$ELSE}
       PISC_TIMESTAMP(CurrBuff)^.timestamp_date := Trunc(PTime) + IBDateOffset;
       PISC_TIMESTAMP(CurrBuff)^.timestamp_time := Round(abs(Frac(PTime)) * IBTimeFractionsPerDay);
+      if PISC_TIMESTAMP(CurrBuff)^.timestamp_time = IBTimeFractionsPerDay then
+        begin
+        // If PTime is for example 0.99999999999999667, the time-portion of the
+        // TDateTime is rounded into a whole day. Firebird does not accept that.
+        inc(PISC_TIMESTAMP(CurrBuff)^.timestamp_date);
+        PISC_TIMESTAMP(CurrBuff)^.timestamp_time := 0;
+        end;
       {$ENDIF}
       end
   else

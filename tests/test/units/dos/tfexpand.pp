@@ -281,6 +281,7 @@ begin
 {$ENDIF DIRECT}
 {$I+}
  GetDir (0, CurDir);
+ Writeln('CurDir is "',CurDir,'"');
 {$IFDEF DIRECT}
  {$IFNDEF FPC_FEXPAND_DRIVES}
  I := Pos (System.DriveSeparator, CurDir);
@@ -290,6 +291,7 @@ begin
 {$ENDIF DIRECT}
 {$IFNDEF NODRIVEC}
  GetDir (3, CDir);
+ Writeln('GetDir(3,X) gives X="',CurDir,'"');
 {$ENDIF NODRIVEC}
  Check (' ', CurDir + DirSep + ' ');
 {$IFDEF HASAMIGA}
@@ -395,6 +397,13 @@ if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
  Check ('..', TestDir + TestDir1Name);
  Check ('.' + DirSep + '..', TestDir + TestDir1Name);
  Check ('..' + DirSep + '.', TestDir + TestDir1Name);
+ Check (TestDir + TestDir1Name + DirSep + DirSep + '..' + DirSep, TestDir);
+ Check (TestDir + TestDir1Name + DirSep + '/' + DirSep + '..' + DirSep, TestDir);
+ Check (TestDir + TestDir1Name + DirSep + DirSep + DirSep + '..' + DirSep, TestDir);
+ Check (TestDir + TestDir1Name + DirSep + DirSep + TestDir2Name + DirSep + DirSep + '..',
+                                                                  TestDir + TestDir1Name);
+ Check (TestDir + TestDir1Name + DirSep + DirSep + TestDir2Name + DirSep + DirSep + '..'
+                                               + DirSep + DirSep, TestDir + TestDir1Name + DirSep);
  {$ENDIF NODOTS}
 {$ENDIF MACOS}
 {$IFDEF NETWARE}
@@ -470,22 +479,35 @@ if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
 {$I+}
   {$IFDEF FPC}
  Check ('d\d/d', CurDir + DirSep + 'd' + DirSep + 'd' + DirSep + 'd');
- Check ('\\server\share\directory', '\\server\share\directory');
- Check ('\\server\share\directory1\directory2\..',
-                                                  '\\server\share\directory1');
- Check ('\\', '\\');
- Check ('\\.', '\\.\');
- Check ('\\.\', '\\.\');
- Check ('\\.\.', '\\.\.');
- Check ('\\.\..', '\\.\..');
- Check ('\\.\...', '\\.\...');
- Check ('\\.\TEST', '\\.\TEST');
- Check ('\\..\', '\\..\');
- Check ('\\..\TEST', '\\..\TEST');
- Check ('\\..\TEST\.', '\\..\TEST');
- Check ('\\..\TEST1\TEST2\..', '\\..\TEST1');
- Check ('\\..\TEST\..', '\\..\TEST');
- Check ('\\..\TEST\..\..', '\\..\TEST');
+{$ifdef go32v2}
+ { for go32v2 target UNC paths are only handled if LFNSupport is true }
+ { Remark: The previous statement may not be correct, UNC paths were already  }
+ { supported with IBM / Microsoft LAN Manager client on plain DOS before LFN  }
+ { / W95 availability, but that probably doesn't matter for our purposes.     }
+ { See e.g. http://www.drdobbs.com/undocumented-corner/184408984 (TH).        }
+ if not LFNSupport then
+   writeln('Go32v2 without LFN, no UNC support')
+ else
+{$endif}
+ begin
+   { Check UNC style paths }
+   Check ('\\server\share\directory', '\\server\share\directory');
+   Check ('\\server\share\directory1\directory2\..',
+          '\\server\share\directory1');
+   Check ('\\', '\\');
+   Check ('\\.', '\\.\');
+   Check ('\\.\', '\\.\');
+   Check ('\\.\.', '\\.\.');
+   Check ('\\.\..', '\\.\..');
+   Check ('\\.\...', '\\.\...');
+   Check ('\\.\TEST', '\\.\TEST');
+   Check ('\\..\', '\\..\');
+   Check ('\\..\TEST', '\\..\TEST');
+   Check ('\\..\TEST\.', '\\..\TEST');
+   Check ('\\..\TEST1\TEST2\..', '\\..\TEST1');
+   Check ('\\..\TEST\..', '\\..\TEST');
+   Check ('\\..\TEST\..\..', '\\..\TEST');
+ end;
   {$ENDIF FPC}
  {$ENDIF NODRIVEC}
 {$ENDIF UNIX}

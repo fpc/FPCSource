@@ -23,7 +23,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('odata');
-    P.ShortName:='odata';
+    P.ShortName:='odat';
     P.Author := 'Michael Van Canneyt';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -32,7 +32,7 @@ begin
     P.NeedLibC:= false;
     P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly];
     P.Directory:=ADirectory;
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('rtl-extra');
     P.Dependencies.Add('rtl-objpas');

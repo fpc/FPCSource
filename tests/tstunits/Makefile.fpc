@@ -36,14 +36,24 @@ override TESTOPT+=-CX
 endif
 TESTCOMPILER:=$(FPC) $(TESTOPT)
 
+FPCFPMAKE=$(NATIVE_FPC)
+
 ifdef CROSSCOMPILE
 override CROSSOPT:=$(OPT)
 override OPT=
+override BUILDFULLNATIVE=
+
+# Check if there is a native compiler (ppc) which is built during building a cross-compiler.
+DEV_FPC=$(wildcard $(CURDIR)/../../compiler/ppc$(SRCEXEEXT))
+ifneq ($(DEV_FPC), )
+  # Use this native compiler to build fpmake, since RTL is already compiled by this compiler
+  # and using an other native compiler may produce PPU incompatibility errors.
+  FPCFPMAKE=$(DEV_FPC)
 endif
 
-ifndef BASEFPCDIR
-BASEFPCDIR=../..
 endif
+
+export FPCFPMAKE
 
 #############################
 # RTL
@@ -54,11 +64,11 @@ INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPIL
 
 rtl-stamp.$(FULL_TARGET):
 ifneq ($(inOS2),)
-        $(MAKE) -C ../../rtl all "OPT=$(OPT) -n" "CROSSOPT=$(CROSSOPT)"
+        $(MAKE) -C ../../rtl all "OPT=$(OPT) -n" "CROSSOPT=$(CROSSOPT)" FPC=$(FPC)
 else
-        $(MAKE) -C ../../rtl all 'OPT=$(OPT) -n' 'CROSSOPT=$(CROSSOPT)'
+        $(MAKE) -C ../../rtl all 'OPT=$(OPT) -n' 'CROSSOPT=$(CROSSOPT)' FPC=$(FPC)
 endif
-        $(MAKE) -C ../../rtl install $(INSTALLOPT) OPT= CROSSOPT=
+        $(MAKE) -C ../../rtl install $(INSTALLOPT) OPT= CROSSOPT= FPC=$(FPC)
         $(ECHO) Compiled > rtl-stamp.$(FULL_TARGET)
 
 cleanrtl:
@@ -77,7 +87,7 @@ rtl : rtl-stamp.$(FULL_TARGET)
 
 DUMMYINSTALLDIR=$(BASEDIR)/tmp
 INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPILER_TARGETDIR)
-FPCUNITDIR=$(BASEFPCDIR)/packages/fcl-fpcunit/src
+FPCUNITDIR=$(FPCDIR)/packages/fcl-fpcunit/src
 
 fpcunit-stamp.$(FULL_TARGET):
 ifneq ($(OS_TARGET),msdos)
@@ -107,15 +117,15 @@ fpcunit : fpcunit-stamp.$(FULL_TARGET)
 
 DUMMYINSTALLDIR=$(BASEDIR)/tmp
 INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPILER_TARGETDIR)
-PACKAGESDIR=$(BASEFPCDIR)/packages
+PACKAGESDIR=$(FPCDIR)/packages
 
 packages-stamp.$(FULL_TARGET):
 ifneq ($(inOS2),)
-        $(MAKE) -C ../../packages all "OPT=$(OPT) -n" "CROSSOPT=$(CROSSOPT)"
+        $(MAKE) -C ../../packages all "OPT=$(OPT) -n" "CROSSOPT=$(CROSSOPT)" FPC=$(FPC)
 else
-        $(MAKE) -C ../../packages all 'OPT=$(OPT) -n' 'CROSSOPT=$(CROSSOPT)'
+        $(MAKE) -C ../../packages all 'OPT=$(OPT) -n' 'CROSSOPT=$(CROSSOPT)' FPC=$(FPC)
 endif
-        $(MAKE) -C ../../packages install $(INSTALLOPT) OPT= CROSSOPT=
+        $(MAKE) -C ../../packages install $(INSTALLOPT) OPT= CROSSOPT= FPC=$(FPC)
         $(ECHO) Compiled > packages-stamp.$(FULL_TARGET)
 
 cleanpackages:
@@ -157,6 +167,40 @@ endif
 extra : erroru$(PPUEXT) ptest$(PPUEXT) popuperr$(PPUEXT)
 
 
+#####################################################################
+# PPU testing targets
+#####################################################################
+
+PPULIST:=$(wildcard */*.ppu) $(wildcard units/*/*.ppu)
+PPULOGLIST:=$(subst .ppu,.log-ppu,$(PPULIST))
+RMPPULOGLIST:=$(subst .ppu,.rm-log-ppu,$(PPULIST))
+
+.PHONY : ppulogs cleanppulogs testppudump $(RMPPULOGLIST)
+
+ppulogs : $(PPULOGLIST)
+
+vpath %.ppu $(ALLPPUDIRS)
+vpath %.log-ppu $(ALLPPUDIRS)
+vpath %.rm-log-ppu $(ALLPPUDIRS)
+
+%.log-ppu : %.ppu ../../compiler/utils/ppudump$(EXEEXT)
+	..$(PATHSEP)..$(PATHSEP)compiler$(PATHSEP)utils$(PATHSEP)ppudump -VA -M $< > $@
+
+%.rm-log-ppu : %.ppu ../../compiler/utils/ppudump$(EXEEXT)
+	-$(RMPROG) $<
+
+
+../../compiler/utils/ppudump$(EXEEXT):
+	$(MAKE) -C $(COMPILERDIR)/utils ppudump$(EXEEXT)
+
+ppuinfo :
+	echo PPU list is "$(PPULIST)"
+	echo PPULOG list is "$(PPULOGLIST)"
+
+cleanppulogs : $(RMPPULOGLIST)
+
+testppudump :
+        $(MAKE) cleanppulogs ppulogs
 
 #############################
 # Main rules
@@ -176,6 +220,7 @@ clean : cleanrtl cleanall cleanfpcunit cleanpackages
 
 distclean : clean distcleanrtl distcleanfpcunit distcleanpackages
 	-$(DELTREE) $(TEMPDIRS)
+	-$(DELTREE) $(BASEDIR)/units
 	-$(DEL) $(STAMPFILES)
 
 clean_ctest :

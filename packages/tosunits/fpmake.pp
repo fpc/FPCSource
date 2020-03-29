@@ -13,6 +13,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('tosunits');
+    P.ShortName := 'tos';
 
     P.Author := 'FPC core team';
     P.License := 'LGPL with modification';
@@ -22,17 +23,20 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.SourcePath.Add('src');
 
     P.OSes:=[atari];
 
     T:=P.Targets.AddUnit('gemdos.pas');
     T:=P.Targets.AddUnit('xbios.pas');
+    T:=P.Targets.AddUnit('vdi.pas');
     T:=P.Targets.AddUnit('aes.pas');
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('higem.pas');
+    T:=P.Targets.AddExampleProgram('gemwin.pas');
+    T:=P.Targets.AddExampleProgram('gemcube.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

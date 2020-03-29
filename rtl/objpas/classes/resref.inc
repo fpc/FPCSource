@@ -27,12 +27,12 @@ type
     Function RootMatches(ARoot : TComponent) : Boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE} // True if Froot matches or ARoot is nil.
     Function NextRef : TUnresolvedReference; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
   end;
-  
+
   TLocalUnResolvedReference = class(TUnresolvedReference)
     Finstance : TPersistent;
   end;
 
-  // Linked list of TPersistent items that have unresolved properties.  
+  // Linked list of TPersistent items that have unresolved properties.
 
   { TUnResolvedInstance }
 
@@ -51,12 +51,12 @@ type
     Procedure Add(Item : TlinkedListItem); // Add TUnResolvedInstance item to list. Create list if needed
     Destructor Destroy; override; // All elements in list (if any) are removed from the global list.
   end;
-  
+
   // Visitor used to try and resolve instances in the global list
   TResolveReferenceVisitor = Class(TBuildListVisitor)
     Function Visit(Item : TLinkedListItem) : Boolean; override;
   end;
-  
+
   // Visitor used to remove all references to a certain component.
   TRemoveReferenceVisitor = Class(TBuildListVisitor)
     FRef : String;
@@ -73,7 +73,7 @@ type
     Constructor Create(ARoot : TComponent;AList : TStrings);
   end;
 
-  // Visitor used to collect instance names.  
+  // Visitor used to collect instance names.
   TReferenceInstancesVisitor = Class(TLinkedListVisitor)
     FList : TStrings;
     FRef  : String;
@@ -81,7 +81,7 @@ type
     Function Visit(Item : TLinkedListItem) : Boolean; override;
     Constructor Create(ARoot : TComponent;Const ARef : String; AList : TStrings);
   end;
-  
+
   // Visitor used to redirect links to another root component.
   TRedirectReferenceVisitor = Class(TLinkedListVisitor)
     FOld,
@@ -90,7 +90,7 @@ type
     Function Visit(Item : TLinkedListItem) : Boolean; override;
     Constructor Create(ARoot : TComponent;Const AOld,ANew : String);
   end;
-  
+
 var
   NeedResolving : TLinkedList;
   ResolveSection : TRTLCriticalSection;
@@ -100,17 +100,21 @@ Function FindUnresolvedInstance(AInstance: TPersistent) : TUnResolvedInstance;
 
 begin
   Result:=Nil;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(ResolveSection);
   Try
+{$endif}
     If Assigned(NeedResolving) then
       begin
       Result:=TUnResolvedInstance(NeedResolving.Root);
       While (Result<>Nil) and (Result.Instance<>AInstance) do
         Result:=TUnResolvedInstance(Result.Next);
       end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(ResolveSection);
   end;
+{$endif}
 end;
 
 Function AddtoResolveList(AInstance: TPersistent) : TUnResolvedInstance;
@@ -119,53 +123,65 @@ begin
   Result:=FindUnresolvedInstance(AInstance);
   If (Result=Nil) then
     begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
     EnterCriticalSection(ResolveSection);
     Try
+{$endif}
       If not Assigned(NeedResolving) then
         NeedResolving:=TLinkedList.Create(TUnResolvedInstance);
       Result:=NeedResolving.Add as TUnResolvedInstance;
       Result.Instance:=AInstance;
+{$ifdef FPC_HAS_FEATURE_THREADING}
     finally
       LeaveCriticalSection(ResolveSection);
     end;
+{$endif}
     end;
 end;
 
-// Walk through the global list of instances to be resolved.  
+// Walk through the global list of instances to be resolved.
 
 Procedure VisitResolveList(V : TLinkedListVisitor);
 
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(ResolveSection);
   Try
+{$endif}
     try
       NeedResolving.Foreach(V);
     Finally
       FreeAndNil(V);
-    end;  
+    end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   Finally
     LeaveCriticalSection(ResolveSection);
-  end;  
+  end;
+{$endif}
 end;
 
 procedure GlobalFixupReferences;
 
 begin
-  If (NeedResolving=Nil) then 
+  If (NeedResolving=Nil) then
     Exit;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   GlobalNameSpace.BeginWrite;
   try
+{$endif}
     VisitResolveList(TResolveReferenceVisitor.Create);
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     GlobalNameSpace.EndWrite;
   end;
+{$endif}
 end;
 
 
 procedure GetFixupReferenceNames(Root: TComponent; Names: TStrings);
 
 begin
-  If (NeedResolving=Nil) then 
+  If (NeedResolving=Nil) then
     Exit;
   VisitResolveList(TReferenceNamesVisitor.Create(Root,Names));
 end;
@@ -236,7 +252,7 @@ begin
     If Result then
       SetObjectProp(Instance, FPropInfo,C);
     end;
-end; 
+end;
 
 Function TUnresolvedReference.RootMatches(ARoot : TComponent) : Boolean; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
 
@@ -270,7 +286,7 @@ begin
   Result.FRoot:=ARoot;
 end;
 
-Function TUnResolvedInstance.RootUnresolved : TUnresolvedReference; 
+Function TUnResolvedInstance.RootUnresolved : TUnresolvedReference;
 
 begin
   Result:=Nil;
@@ -314,7 +330,7 @@ begin
   While (R<>Nil) do
     begin
     If R.RootMatches(FRoot) then
-      If (FList.IndexOf(R.FGlobal)=-1) then 
+      If (FList.IndexOf(R.FGlobal)=-1) then
         FList.Add(R.FGlobal);
     R:=R.NextRef;
     end;
@@ -390,7 +406,7 @@ Var
   UI : TUnResolvedInstance;
   R : TUnresolvedReference;
   L : TFPList;
-  
+
 begin
   UI:=TUnResolvedInstance(Item);
   R:=UI.RootUnresolved;
@@ -434,7 +450,7 @@ begin
   If (List=Nil) then
     List:=TFPList.Create;
   List.Add(Item);
-end;  
+end;
 
 Destructor TBuildListVisitor.Destroy;
 
@@ -451,10 +467,10 @@ end;
 
 { TResolveReferenceVisitor }
 
-Function TResolveReferenceVisitor.Visit(Item : TLinkedListItem) : Boolean; 
+Function TResolveReferenceVisitor.Visit(Item : TLinkedListItem) : Boolean;
 
 begin
   If TUnResolvedInstance(Item).ResolveReferences then
     Add(Item);
-  Result:=True;  
+  Result:=True;
 end;

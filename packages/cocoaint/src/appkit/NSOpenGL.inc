@@ -1,30 +1,37 @@
-{ Parsed from Appkit.framework NSOpenGL.h }
+{ Parsed from AppKit.framework NSOpenGL.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSOPENGL_PAS_T}
-{$define NSOPENGL_PAS_T}
+type
+  NSOpenGLPixelFormatPtr = ^NSOpenGLPixelFormat;
+  NSOpenGLPixelBufferPtr = ^NSOpenGLPixelBuffer;
+  NSOpenGLContextPtr = ^NSOpenGLContext;
+{$endif}
 
-{ Defines }
+{$ifdef TYPES}
 const
   NSOPENGL_CURRENT_VERSION = 1;
-
-{ Types }
-type
-  
-  NSOpenGLGlobalOption = culong;
-  
-  NSOpenGLContextParameter = culong;
-
-{ Constants }
 
 const
   NSOpenGLGOFormatCacheSize = 501;
   NSOpenGLGOClearFormatCache = 502;
   NSOpenGLGORetainRenderers = 503;
-  NSOpenGLGOResetLibrary = 504;
+  NSOpenGLGOUseBuildCache = 506;
+  NSOpenGLGOResetLibrary = 504 deprecated 'in 10_0, 10_4';
+type
+  NSOpenGLGlobalOption = clong;
+{$endif}
 
+{$ifdef FUNCTIONS}
+procedure NSOpenGLSetOption(pname: NSOpenGLGlobalOption; param: GLint); cdecl; external;
+procedure NSOpenGLGetOption(pname: NSOpenGLGlobalOption; param: GLintPtr); cdecl; external;
+procedure NSOpenGLGetVersion(major: GLintPtr; minor: GLintPtr); cdecl; external;
+{$endif}
+
+{$ifdef TYPES}
 const
   NSOpenGLPFAAllRenderers = 1;
+  NSOpenGLPFATripleBuffer = 3;
   NSOpenGLPFADoubleBuffer = 5;
   NSOpenGLPFAStereo = 6;
   NSOpenGLPFAAuxBuffers = 7;
@@ -35,8 +42,6 @@ const
   NSOpenGLPFAAccumSize = 14;
   NSOpenGLPFAMinimumPolicy = 51;
   NSOpenGLPFAMaximumPolicy = 52;
-  NSOpenGLPFAOffScreen = 53;
-  NSOpenGLPFAFullScreen = 54;
   NSOpenGLPFASampleBuffers = 55;
   NSOpenGLPFASamples = 56;
   NSOpenGLPFAAuxDepthStencil = 57;
@@ -45,163 +50,148 @@ const
   NSOpenGLPFASupersample = 60;
   NSOpenGLPFASampleAlpha = 61;
   NSOpenGLPFARendererID = 70;
-  NSOpenGLPFASingleRenderer = 71;
   NSOpenGLPFANoRecovery = 72;
   NSOpenGLPFAAccelerated = 73;
   NSOpenGLPFAClosestPolicy = 74;
-  NSOpenGLPFARobust = 75;
   NSOpenGLPFABackingStore = 76;
-  NSOpenGLPFAMPSafe = 78;
-  NSOpenGLPFAWindow = 80;
-  NSOpenGLPFAMultiScreen = 81;
-  NSOpenGLPFACompliant = 83;
   NSOpenGLPFAScreenMask = 84;
-  NSOpenGLPFAPixelBuffer = 90;
-  NSOpenGLPFARemotePixelBuffer = 91;
-  NSOpenGLPFAAllowOfflineRenderers = 96;
+  NSOpenGLPFAAllowOfflineRenderers = 96 { available in 10_5 };
   NSOpenGLPFAAcceleratedCompute = 97;
   NSOpenGLPFAVirtualScreenCount = 128;
+  NSOpenGLPFAOpenGLProfile = 99 { available in 10_7 };
+  NSOpenGLPFAOffScreen = 53 deprecated 'in 10_0, 10_7';
+  NSOpenGLPFAFullScreen = 54 deprecated 'in 10_0, 10_6';
+  NSOpenGLPFASingleRenderer = 71 deprecated 'in 10_0, 10_9';
+  NSOpenGLPFAWindow = 80 deprecated 'in 10_0, 10_9';
+  NSOpenGLPFACompliant = 83 deprecated 'in 10_0, 10_9';
+  NSOpenGLPFAPixelBuffer = 90 deprecated 'in 10_3, 10_7';
+  NSOpenGLPFARemotePixelBuffer = 91 deprecated 'in 10_3, 10_7';
+  NSOpenGLPFARobust = 75 deprecated 'in 10_0, 10_5';
+  NSOpenGLPFAMPSafe = 78 deprecated 'in 10_0, 10_5';
+  NSOpenGLPFAMultiScreen = 81 deprecated 'in 10_0, 10_5';
 
-const
-  NSOpenGLCPSwapRectangle = 200;
-  NSOpenGLCPSwapRectangleEnable = 201;
-  NSOpenGLCPRasterizationEnable = 221;
-  NSOpenGLCPSwapInterval = 222;
-  NSOpenGLCPSurfaceOrder = 235;
-  NSOpenGLCPSurfaceOpacity = 236;
-  NSOpenGLCPStateValidation = 301;
-
-{ Types }
 type
   NSOpenGLPixelFormatAttribute = cuint32;
   NSOpenGLPixelFormatAttributePtr = ^NSOpenGLPixelFormatAttribute;
-  _CGLPixelFormatObject = record end;
-  NSOpenGLPixelFormatAuxiliary = _CGLPixelFormatObject;
-  NSOpenGLPixelFormatAuxiliaryPtr = ^NSOpenGLPixelFormatAuxiliary;
-  _CGLContextObject = record end;
-  NSOpenGLContextAuxiliary = _CGLContextObject;
-  NSOpenGLContextAuxiliaryPtr = ^NSOpenGLContextAuxiliary;
 
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSOPENGL_PAS_R}
-{$define NSOPENGL_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSOPENGL_PAS_F}
-{$define NSOPENGL_PAS_F}
-
-{ Functions }
-procedure NSOpenGLSetOption(pname: NSOpenGLGlobalOption; param: GLint); cdecl; external;
-procedure NSOpenGLGetOption(pname: NSOpenGLGlobalOption; param: GLintPtr); cdecl; external;
-procedure NSOpenGLGetVersion(major: GLintPtr; minor: GLintPtr); cdecl; external;
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSOPENGL_PAS_S}
-{$define NSOPENGL_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSOpenGLPixelFormat = objcclass;
-  NSOpenGLPixelFormatPointer = ^NSOpenGLPixelFormat;
-  NSOpenGLPixelFormatPtr = NSOpenGLPixelFormatPointer;
-  NSOpenGLPixelBuffer = objcclass;
-  NSOpenGLPixelBufferPointer = ^NSOpenGLPixelBuffer;
-  NSOpenGLPixelBufferPtr = NSOpenGLPixelBufferPointer;
-  NSOpenGLContext = objcclass;
-  NSOpenGLContextPointer = ^NSOpenGLContext;
-  NSOpenGLContextPtr = NSOpenGLContextPointer;
-
+const
+  NSOpenGLProfileVersionLegacy = $1000 { available in 10_7 };
+  NSOpenGLProfileVersion3_2Core = $3200 { available in 10_7 };
+  NSOpenGLProfileVersion4_1Core = $4100 { available in 10_10 };
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSOPENGL_PAS_C}
-{$define NSOPENGL_PAS_C}
 
-{ NSOpenGLPixelFormat }
+type
   NSOpenGLPixelFormat = objcclass external (NSObject, NSCodingProtocol)
   private
-    _pixelFormatAuxiliary: NSOpenGLPixelFormatAuxiliaryPtr;
-    _pixelAttributes: NSData;
-    _reserved1: NSInteger;
-    _reserved2: NSInteger;
-    _reserved3: NSInteger;
-    
+    _CGLPixelFormat: _CGLPixelFormatObjectPtr;
+    _reserved1: pointer;
+    _reserved2: pointer;
+    _reserved3: pointer;
+    _reserved4: pointer;
   public
-    function initWithAttributes(attribs: NSOpenGLPixelFormatAttributePtr): id; message 'initWithAttributes:';
-    function initWithData(attribs: NSData): id; message 'initWithData:';
-    function initWithCGLPixelFormatObj(format: Pointer): id; message 'initWithCGLPixelFormatObj:';
-    function attributes: NSData; message 'attributes';
-    procedure setAttributes(attribs: NSData); message 'setAttributes:';
-    procedure getValues_forAttribute_forVirtualScreen(vals: GLintPtr; attrib: NSOpenGLPixelFormatAttribute; screen: GLint); message 'getValues:forAttribute:forVirtualScreen:';
+    function initWithAttributes (attribs: NSOpenGLPixelFormatAttributePtr): instancetype; message 'initWithAttributes:';
+    function initWithData (attribs: NSData): id; message 'initWithData:'; deprecated 'in 10_0, 10_6, "Use -initWithAttributes: instead"';
+    function initWithCGLPixelFormatObj (format: _CGLPixelFormatObjectPtr): NSOpenGLPixelFormat; message 'initWithCGLPixelFormatObj:'; { available in 10_6 }
+    function attributes: NSData; message 'attributes'; deprecated 'in 10_0, 10_6';
+    procedure setAttributes (attribs: NSData); message 'setAttributes:'; deprecated 'in 10_0, 10_6';
+    procedure getValues_forAttribute_forVirtualScreen (vals: GLintPtr; attrib: NSOpenGLPixelFormatAttribute; screen: GLint); message 'getValues:forAttribute:forVirtualScreen:';
     function numberOfVirtualScreens: GLint; message 'numberOfVirtualScreens';
-    function CGLPixelFormatObj: Pointer; message 'CGLPixelFormatObj';
+    function CGLPixelFormatObj: _CGLPixelFormatObjectPtr; message 'CGLPixelFormatObj';
 
-    { Adopted Protocols }
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
+    { Adopted protocols }
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
   end;
 
-{ NSOpenGLPixelBuffer }
+type
   NSOpenGLPixelBuffer = objcclass external (NSObject)
   private
-    __pixelBufferAuxiliary: Pointer;
-    _reserved1: Pointer;
-    _reserved2: Pointer;
-    
+    _CGLPBuffer: _CGLPBufferObjectPtr;
+    _reserved1: pointer;
+    _reserved2: pointer;
   public
-    function initWithTextureTarget_textureInternalFormat_textureMaxMipMapLevel_pixelsWide_pixelsHigh(target: GLenum; format: GLenum; maxLevel: GLint; pixelsWide_: GLsizei; pixelsHigh_: GLsizei): id; message 'initWithTextureTarget:textureInternalFormat:textureMaxMipMapLevel:pixelsWide:pixelsHigh:';
-    function initWithCGLPBufferObj(pbuffer: Pointer): id; message 'initWithCGLPBufferObj:';
-    function CGLPBufferObj: Pointer; message 'CGLPBufferObj';
-    function pixelsWide: GLsizei; message 'pixelsWide';
-    function pixelsHigh: GLsizei; message 'pixelsHigh';
-    function textureTarget: GLenum; message 'textureTarget';
-    function textureInternalFormat: GLenum; message 'textureInternalFormat';
-    function textureMaxMipMapLevel: GLint; message 'textureMaxMipMapLevel';
+    function initWithTextureTarget_textureInternalFormat_textureMaxMipMapLevel_pixelsWide_pixelsHigh (target: GLenum; format: GLenum; maxLevel: GLint; pixelsWide: GLsizei; pixelsHigh: GLsizei): instancetype; message 'initWithTextureTarget:textureInternalFormat:textureMaxMipMapLevel:pixelsWide:pixelsHigh:'; deprecated 'in 10_2, 10_7';
+    function initWithCGLPBufferObj (pbuffer: _CGLPBufferObjectPtr): NSOpenGLPixelBuffer; message 'initWithCGLPBufferObj:'; deprecated 'in 10_6, 10_7';
+    function CGLPBufferObj: _CGLPBufferObjectPtr; message 'CGLPBufferObj'; { available in 10_6 }
+    function pixelsWide: GLsizei; message 'pixelsWide'; deprecated 'in 10_2, 10_7';
+    function pixelsHigh: GLsizei; message 'pixelsHigh'; deprecated 'in 10_2, 10_7';
+    function textureTarget: GLenum; message 'textureTarget'; deprecated 'in 10_2, 10_7';
+    function textureInternalFormat: GLenum; message 'textureInternalFormat'; deprecated 'in 10_2, 10_7';
+    function textureMaxMipMapLevel: GLint; message 'textureMaxMipMapLevel'; deprecated 'in 10_2, 10_7';
   end;
+{$endif}
 
-{ NSOpenGLContext }
-  NSOpenGLContext = objcclass external (NSObject)
+{$ifdef TYPES}
+type
+  NSOpenGLContextParameter = NSInteger;
+  NSOpenGLContextParameterPtr = ^NSOpenGLContextParameter;
+
+const
+  NSOpenGLCPSwapInterval = 222;
+  NSOpenGLCPSurfaceOrder = 235;
+  NSOpenGLCPSurfaceOpacity = 236;
+  NSOpenGLCPSurfaceBackingSize = 304;
+  NSOpenGLCPReclaimResources = 308;
+  NSOpenGLCPCurrentRendererID = 309;
+  NSOpenGLCPGPUVertexProcessing = 310;
+  NSOpenGLCPGPUFragmentProcessing = 311;
+  NSOpenGLCPHasDrawable = 314;
+  NSOpenGLCPMPSwapsInFlight = 315;
+  NSOpenGLCPSwapRectangle = 200;
+  NSOpenGLCPSwapRectangleEnable = 201;
+  NSOpenGLCPRasterizationEnable = 221;
+  NSOpenGLCPStateValidation = 301;
+  NSOpenGLCPSurfaceSurfaceVolatile = 306;
+
+type
+  NSOpenGLContextAuxiliary = OpaqueType;
+  NSOpenGLContextAuxiliaryPtr = ^NSOpenGLContextAuxiliary;
+{$endif}
+
+{$ifdef CLASSES}
+
+type
+  NSOpenGLContext = objcclass external (NSObject, NSLockingProtocol)
   private
     _view: NSView;
-    _contextAuxiliary: NSOpenGLContextAuxiliaryPtr;
-    
+    _CGLContext: _CGLContextObjectPtr;
   public
-    function initWithFormat_shareContext(format: NSOpenGLPixelFormat; share: NSOpenGLContext): id; message 'initWithFormat:shareContext:';
-    function initWithCGLContextObj(context: Pointer): id; message 'initWithCGLContextObj:';
-    procedure setView(view_: NSView); message 'setView:';
+    function initWithFormat_shareContext (format: NSOpenGLPixelFormat; share: NSOpenGLContext): instancetype; message 'initWithFormat:shareContext:';
+    function initWithCGLContextObj (context: _CGLContextObjectPtr): NSOpenGLContext; message 'initWithCGLContextObj:'; { available in 10_6 }
+    function pixelFormat: NSOpenGLPixelFormat; message 'pixelFormat';
+    procedure setView(newValue: NSView); message 'setView:';
     function view: NSView; message 'view';
-    procedure setFullScreen; message 'setFullScreen';
-    procedure setOffScreen_width_height_rowbytes(baseaddr: Pointer; width: GLsizei; height: GLsizei; rowbytes: GLint); message 'setOffScreen:width:height:rowbytes:';
+    procedure setFullScreen; message 'setFullScreen'; deprecated 'in 10_0, 10_7, "Use a fullscreen NSOpenGLView instead"';
+    procedure setOffScreen_width_height_rowbytes (baseaddr: pointer; width: GLsizei; height: GLsizei; rowbytes: GLint); message 'setOffScreen:width:height:rowbytes:'; deprecated 'in 10_0, 10_7';
     procedure clearDrawable; message 'clearDrawable';
     procedure update; message 'update';
     procedure flushBuffer; message 'flushBuffer';
     procedure makeCurrentContext; message 'makeCurrentContext';
     class procedure clearCurrentContext; message 'clearCurrentContext';
     class function currentContext: NSOpenGLContext; message 'currentContext';
-    procedure copyAttributesFromContext_withMask(context: NSOpenGLContext; mask: GLbitfield); message 'copyAttributesFromContext:withMask:';
-    procedure setValues_forParameter(vals: GLintPtr; param: NSOpenGLContextParameter); message 'setValues:forParameter:';
-    procedure getValues_forParameter(vals: GLintPtr; param: NSOpenGLContextParameter); message 'getValues:forParameter:';
-    procedure setCurrentVirtualScreen(screen: GLint); message 'setCurrentVirtualScreen:';
+    procedure copyAttributesFromContext_withMask (context: NSOpenGLContext; mask: GLbitfield); message 'copyAttributesFromContext:withMask:'; deprecated 'in 10_0, 10_8';
+    procedure setValues_forParameter (vals: GLintPtr; param: NSOpenGLContextParameter); message 'setValues:forParameter:';
+    procedure getValues_forParameter (vals: GLintPtr; param: NSOpenGLContextParameter); message 'getValues:forParameter:';
+    procedure setCurrentVirtualScreen(newValue: GLint); message 'setCurrentVirtualScreen:';
     function currentVirtualScreen: GLint; message 'currentVirtualScreen';
-    procedure createTexture_fromView_internalFormat(target: GLenum; view_: NSView; format: GLenum); message 'createTexture:fromView:internalFormat:';
-    function CGLContextObj: Pointer; message 'CGLContextObj';
-    procedure setPixelBuffer_cubeMapFace_mipMapLevel_currentVirtualScreen(pixelBuffer_: NSOpenGLPixelBuffer; face: GLenum; level: GLint; screen: GLint); message 'setPixelBuffer:cubeMapFace:mipMapLevel:currentVirtualScreen:';
-    function pixelBuffer: NSOpenGLPixelBuffer; message 'pixelBuffer';
-    function pixelBufferCubeMapFace: GLenum; message 'pixelBufferCubeMapFace';
-    function pixelBufferMipMapLevel: GLint; message 'pixelBufferMipMapLevel';
-    procedure setTextureImageToPixelBuffer_colorBuffer(pixelBuffer_: NSOpenGLPixelBuffer; source: GLenum); message 'setTextureImageToPixelBuffer:colorBuffer:';
+    procedure createTexture_fromView_internalFormat (target: GLenum; view_: NSView; format: GLenum); message 'createTexture:fromView:internalFormat:'; deprecated 'in 10_2, 10_8';
+    function CGLContextObj: _CGLContextObjectPtr; message 'CGLContextObj';
+
+    { Adopted protocols }
+    procedure lock; message 'lock';
+    procedure unlock; message 'unlock';
   end;
 
+
+type
+  NSOpenGLPixelBufer = objccategory external (NSOpenGLContext)
+    procedure setPixelBuffer_cubeMapFace_mipMapLevel_currentVirtualScreen (pixelBuffer: NSOpenGLPixelBuffer; face: GLenum; level: GLint; screen: GLint); message 'setPixelBuffer:cubeMapFace:mipMapLevel:currentVirtualScreen:'; deprecated 'in 10_3, 10_7';
+    function pixelBuffer: NSOpenGLPixelBuffer; message 'pixelBuffer'; deprecated 'in 10_3, 10_7';
+    function pixelBufferCubeMapFace: GLenum; message 'pixelBufferCubeMapFace'; deprecated 'in 10_3, 10_7';
+    function pixelBufferMipMapLevel: GLint; message 'pixelBufferMipMapLevel'; deprecated 'in 10_3, 10_7';
+    procedure setTextureImageToPixelBuffer_colorBuffer (pixelBuffer_: NSOpenGLPixelBuffer; source: GLenum); message 'setTextureImageToPixelBuffer:colorBuffer:'; deprecated 'in 10_3, 10_7';
+  end;
 {$endif}
-{$endif}
+

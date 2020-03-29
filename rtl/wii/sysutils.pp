@@ -37,6 +37,8 @@ interface
 { OS has an ansistring/single byte environment variable API }
 {$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
 
+{$DEFINE executeprocuni} (* Only 1 byte version of ExecuteProcess is provided by the OS *)
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -58,13 +60,13 @@ begin
 end;
 
 
-function FileGetDate(Handle: LongInt) : LongInt;
+function FileGetDate(Handle: LongInt) : Int64;
 begin
   result := -1;
 end;
 
 
-function FileSetDate(Handle, Age: LongInt) : LongInt;
+function FileSetDate(Handle: Longint; Age: Int64) : LongInt;
 begin
   result := -1;
 end;
@@ -136,13 +138,19 @@ end;
 (****** end of non portable routines ******)
 
 
-Function FileAge (Const FileName : RawByteString): Longint;
+Function FileAge (Const FileName : RawByteString): Int64;
 begin
   result := -1;
 end;
 
 
-Function FileExists (Const FileName : RawByteString) : Boolean;
+function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
+Function FileExists (Const FileName : RawByteString; FollowLink : Boolean) : Boolean;
 Begin
   result := false;
 end;
@@ -200,7 +208,7 @@ Begin
 End;
 
 
-function DirectoryExists(const Directory: RawByteString): Boolean;
+function DirectoryExists(const Directory: RawByteString; FollowLink : Boolean): Boolean;
 begin
   result := false;
 end;
@@ -267,13 +275,13 @@ begin
   result := '';
 end;
 
-function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: RawByteString; const ComLine: RawByteString;Flags:TExecuteFlags=[]): integer;
 begin
   result := -1;
 end;
 
-function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: RawByteString;
+                                  const ComLine: array of RawByteString;Flags:TExecuteFlags=[]): integer;
 begin
   result := -1;
 end;
@@ -286,5 +294,6 @@ end;
 Initialization
   InitExceptions;
 Finalization
+  FreeTerminateProcs;
   DoneExceptions;
 end.

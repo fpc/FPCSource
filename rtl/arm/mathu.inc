@@ -12,6 +12,11 @@
 
  **********************************************************************}
 
+ { for bootstrapping with 3.0.x/3.2.x }
+{$if defined(darwin) or defined(FPUVFPV2) or defined(FPUVFPV3) or defined(FPUVFPV4) or defined(FPUVFPV3_d16) or defined(FPUFPV4_s16)}
+{$define FPUARM_HAS_VFP_EXTENSION}
+{$endif}
+
 {$if defined(wince)}
 
 const
@@ -132,7 +137,7 @@ procedure ClearExceptions(RaisePending: Boolean =true);
 begin
 end;
 
-{$elseif defined(darwin) or defined(FPUVFPV2) or defined(FPUVFPV3) or defined(FPUVFPV4) or defined(FPUVFPV3_d16) or defined(FPUFPV4_s16)}
+{$elseif defined(FPUARM_HAS_VFP_EXTENSION)}
 
 const
   _VFP_ENABLE_IM  =  1 shl 8;         { invalid operation      }
@@ -245,7 +250,12 @@ function VFPCw2ExceptionMask(cw: dword): TFPUExceptionMask;
 
 function GetExceptionMask: TFPUExceptionMask;
   begin
-    Result:=VFPCw2ExceptionMask(VFP_GetCW);
+    { some ARM CPUs ignore writing to the hardware mask and just return 0, so we need to return
+      the softfloat mask which should be in sync with the hard one }
+    if VFP_GetCW=0 then
+      Result:=softfloat_exception_mask
+    else
+      Result:=VFPCw2ExceptionMask(VFP_GetCW);
   end;
 
 
@@ -285,9 +295,10 @@ procedure ClearExceptions(RaisePending: Boolean =true);
   begin
     { RaisePending has no effect on ARM, it always raises them at the correct location }
     VFP_SetCW(VFP_GetCW and (not _VFP_EXCEPTIONS_PENDING_MASK));
+    softfloat_exception_flags:=[];
   end;
 
-{$else wince/darwin/vfpv2/vfpv3}
+{$else FPUARM_HAS_VFP_EXTENSION}
 
 {*****************************************************************************
                                    FPA code

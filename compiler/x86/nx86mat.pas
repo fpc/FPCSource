@@ -26,7 +26,7 @@ unit nx86mat;
 interface
 
     uses
-      node,nmat,ncgmat;
+      node,ncgmat;
 
     type
       tx86unaryminusnode = class(tcgunaryminusnode)
@@ -48,18 +48,25 @@ interface
          procedure pass_generate_code;override;
       end;
 
+      tx86shlshrnode = class(tcgshlshrnode)
+{$ifdef SUPPORT_MMX}
+         procedure second_mmx;override;
+{$endif SUPPORT_MMX}
+      end;
+
   implementation
 
     uses
       globtype,
-      systems,constexp,
+      constexp,
       cutils,verbose,globals,
       symconst,symdef,
-      aasmbase,aasmtai,aasmdata,defutil,
+      aasmbase,aasmtai,aasmcpu,aasmdata,defutil,
       cgbase,pass_1,pass_2,
       ncon,
-      cpubase,procinfo,
-      cga,ncgutil,cgobj,hlcgobj,cgx86,cgutils;
+      cpubase,cpuinfo,
+      cga,cgobj,hlcgobj,cgx86,cgutils,
+      tgobj;
 
 
 {*****************************************************************************
@@ -133,6 +140,8 @@ interface
                op:=A_PSUBSW;
              mmxu16bit:
                op:=A_PSUBUSW;
+             else
+               ;
           end
         else
           case mmx_type(resultdef) of
@@ -142,6 +151,8 @@ interface
                op:=A_PSUBW;
              mmxs32bit,mmxu32bit:
                op:=A_PSUBD;
+             else
+               ;
           end;
         if op = A_NONE then
           internalerror(201408202);
@@ -308,14 +319,14 @@ interface
                  if is_64bit(resultdef) then
                    begin
                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
-                     emit_reg_reg(A_OR,S_W,GetNextReg(left.location.register64.reghi),left.location.register64.reghi);
-                     emit_reg_reg(A_OR,S_W,GetNextReg(left.location.register64.reglo),left.location.register64.reglo);
+                     emit_reg_reg(A_OR,S_W,cg.GetNextReg(left.location.register64.reghi),left.location.register64.reghi);
+                     emit_reg_reg(A_OR,S_W,cg.GetNextReg(left.location.register64.reglo),left.location.register64.reglo);
                      emit_reg_reg(A_OR,S_W,left.location.register64.reghi,left.location.register64.reglo);
                    end
                  else if is_32bit(resultdef) then
                    begin
                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
-                     emit_reg_reg(A_OR,S_L,GetNextReg(left.location.register),left.location.register);
+                     emit_reg_reg(A_OR,S_L,cg.GetNextReg(left.location.register),left.location.register);
                    end
                  else
 {$endif}
@@ -358,6 +369,8 @@ interface
             location.register:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
             emit_ref_reg(A_MOVQ,S_NO,left.location.reference,location.register);
           end;
+        else
+          internalerror(2019050906);
       end;
       { load mask }
       hreg:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
@@ -378,15 +391,18 @@ interface
 
     procedure tx86moddivnode.pass_generate_code;
       var
-        hreg1,hreg2,rega,regd:Tregister;
+        hreg1,hreg2,hreg3,rega,regd,tempreg:Tregister;
         power:longint;
+        instr:TAiCpu;
         op:Tasmop;
         cgsize:TCgSize;
         opsize:topsize;
         e, sm: aint;
         d,m: aword;
-        m_add: boolean;
+        m_add, invertsign: boolean;
         s: byte;
+      label
+        DefaultDiv;
       begin
         secondpass(left);
         if codegenerror then
@@ -409,31 +425,42 @@ interface
 
         if (nodetype=divn) and (right.nodetype=ordconstn) then
           begin
-            if ispowerof2(int64(tordconstnode(right).value),power) then
+            if isabspowerof2(tordconstnode(right).value,power) then
               begin
                 { for signed numbers, the numerator must be adjusted before the
-                  shift instruction, but not wih unsigned numbers! Otherwise,
+                  shift instruction, but not with unsigned numbers! Otherwise,
                   "Cardinal($ffffffff) div 16" overflows! (JM) }
                 if is_signed(left.resultdef) Then
                   begin
+                    invertsign:=tordconstnode(right).value<0;
                     { use a sequence without jumps, saw this in
                       comp.compilers (JM) }
                     { no jumps, but more operations }
                     hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                     emit_reg_reg(A_MOV,opsize,hreg1,hreg2);
-                    {If the left value is signed, hreg2=$ffffffff, otherwise 0.}
-                    emit_const_reg(A_SAR,opsize,resultdef.size*8-1,hreg2);
-                    {If signed, hreg2=right value-1, otherwise 0.}
-                    { (don't use emit_const_reg, because if value>high(longint)
-                       then it must first be loaded into a register) }
-                    cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,cgsize,tordconstnode(right).value-1,hreg2);
+                    if power=1 then
+                      begin
+                        {If the left value is negative, hreg2=(1 shl power)-1=1, otherwise 0.}
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,resultdef.size*8-1,hreg2);
+                      end
+                    else
+                      begin
+                        {If the left value is negative, hreg2=$ffffffff, otherwise 0.}
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,cgsize,resultdef.size*8-1,hreg2);
+                        {If negative, hreg2=(1 shl power)-1, otherwise 0.}
+                        { (don't use emit_const_reg, because if value>high(longint)
+                           then it must first be loaded into a register) }
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,cgsize,(aint(1) shl power)-1,hreg2);
+                      end;
                     { add to the left value }
                     emit_reg_reg(A_ADD,opsize,hreg2,hreg1);
                     { do the shift }
-                    emit_const_reg(A_SAR,opsize,power,hreg1);
+                    cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,cgsize,power,hreg1);
+                    if invertsign then
+                      emit_reg(A_NEG,opsize,hreg1);
                   end
                 else
-                  emit_const_reg(A_SHR,opsize,power,hreg1);
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,power,hreg1);
                 location.register:=hreg1;
               end
             else
@@ -471,8 +498,15 @@ interface
                     d:=tordconstnode(right).value.svalue;
                     if d>=aword(1) shl (left.resultdef.size*8-1) then
                       begin
+                        location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                        { Ensure that the whole register is 0, since SETcc only sets the lowest byte }
+
+                        { If the operands are 64 bits, this XOR routine will be shrunk by the
+                          peephole optimizer. [Kit] }
+                        emit_reg_reg(A_XOR,opsize,location.register,location.register);
+
                         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                        if (cgsize in [OS_64,OS_S64]) then
+                        if (cgsize in [OS_64,OS_S64]) then { Cannot use 64-bit constants in CMP }
                           begin
                             hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                             emit_const_reg(A_MOV,opsize,aint(d),hreg2);
@@ -480,9 +514,17 @@ interface
                           end
                         else
                           emit_const_reg(A_CMP,opsize,aint(d),hreg1);
-                        location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
-                        emit_const_reg(A_MOV,opsize,0,location.register);
-                        emit_const_reg(A_SBB,opsize,-1,location.register);
+                        { NOTE: SBB and SETAE are both 3 bytes long without the REX prefix,
+                          both use an ALU for their execution and take a single cycle to
+                          run. The only difference is that SETAE does not modify the flags,
+                          allowing for some possible reuse. [Kit] }
+
+                        { Emit a SETcc instruction that depends on the carry bit being zero,
+                          that is, the numerator is greater than or equal to the denominator. }
+                        tempreg:=cg.makeregsize(current_asmdata.CurrAsmList,location.register,OS_8);
+                        instr:=TAiCpu.op_reg(A_SETcc,S_B,tempreg);
+                        instr.condition:=C_AE;
+                        current_asmdata.CurrAsmList.concat(instr);
                         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                       end
                     else
@@ -510,8 +552,100 @@ interface
                   end;
               end;
           end
+        else if (nodetype=modn) and (right.nodetype=ordconstn) and not(is_signed(left.resultdef)) then
+          begin
+            { unsigned modulus by a (+/-)power-of-2 constant? }
+            if isabspowerof2(tordconstnode(right).value,power) then
+              begin
+                emit_const_reg(A_AND,opsize,(aint(1) shl power)-1,hreg1);
+                location.register:=hreg1;
+              end
+            else
+              begin
+                d:=tordconstnode(right).value.svalue;
+                if d>=aword(1) shl (left.resultdef.size*8-1) then
+                  begin
+
+                    if not (CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) then
+                      goto DefaultDiv;
+
+                    location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    hreg3:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+
+                    m := aword(-aint(d)); { Two's complement of d }
+
+                    if (cgsize in [OS_64,OS_S64]) then { Cannot use 64-bit constants in CMP }
+                      begin
+                        hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                        emit_const_reg(A_MOV,opsize,aint(d),hreg2);
+                        emit_const_reg(A_MOV,opsize,aint(m),hreg3);
+                        emit_reg_reg(A_XOR,opsize,location.register,location.register);
+                        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                        emit_reg_reg(A_CMP,opsize,hreg2,hreg1);
+                      end
+                    else
+                      begin
+                        emit_const_reg(A_MOV,opsize,aint(m),hreg3);
+                        emit_reg_reg(A_XOR,opsize,location.register,location.register);
+
+                        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                        emit_const_reg(A_CMP,opsize,aint(d),hreg1);
+                      end;
+
+                    { Emit conditional move that depends on the carry flag being zero,
+                      that is, the comparison result is above or equal }
+                    instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,hreg3,location.register);
+                    instr.condition := C_AE;
+                    current_asmdata.CurrAsmList.concat(instr);
+                    cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+
+                    emit_reg_reg(A_ADD,opsize,hreg1,location.register);
+                  end
+                else
+                  begin
+                    { Convert the division to a multiplication }
+                    calc_divconst_magic_unsigned(resultdef.size*8,d,m,m_add,s);
+                    cg.getcpuregister(current_asmdata.CurrAsmList,rega);
+                    emit_const_reg(A_MOV,opsize,aint(m),rega);
+                    cg.getcpuregister(current_asmdata.CurrAsmList,regd);
+                    emit_reg(A_MUL,opsize,hreg1);
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
+                    hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    emit_reg_reg(A_MOV,opsize,hreg1,hreg2);
+                    if m_add then
+                      begin
+                        { addition can overflow, shift first bit considering carry,
+                          then shift remaining bits in regular way. }
+                        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                        emit_reg_reg(A_ADD,opsize,hreg1,regd);
+                        emit_const_reg(A_RCR,opsize,1,regd);
+                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                        dec(s);
+                      end;
+                    if s<>0 then
+                      emit_const_reg(A_SHR,opsize,aint(s),regd); { R/EDX now contains the quotient }
+
+                    { Now multiply the quotient by the original denominator and
+                      subtract the product from the original numerator to get
+                      the remainder. }
+                    if (cgsize in [OS_64,OS_S64]) then { Cannot use 64-bit constants in IMUL }
+                      begin
+                        hreg3:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                        emit_const_reg(A_MOV,opsize,aint(d),hreg3);
+                        emit_reg_reg(A_IMUL,opsize,hreg3,regd);
+                      end
+                    else
+                      emit_const_reg(A_IMUL,opsize,aint(d),regd);
+
+                    emit_reg_reg(A_SUB,opsize,regd,hreg2);
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
+                    location.register:=hreg2;
+                  end;
+              end;
+          end
         else
           begin
+DefaultDiv:
             {Bring denominator to a register.}
             cg.getcpuregister(current_asmdata.CurrAsmList,rega);
             emit_reg_reg(A_MOV,opsize,hreg1,rega);
@@ -558,5 +692,98 @@ interface
               cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,regd,location.register);
           end;
       end;
+
+
+{$ifdef SUPPORT_MMX}
+    procedure tx86shlshrnode.second_mmx;
+      var
+        op         : TAsmOp;
+        mmxbase    : tmmxtype;
+        hregister  : tregister;
+      begin
+        secondpass(left);
+        if codegenerror then
+          exit;
+        secondpass(right);
+        if codegenerror then
+          exit;
+
+        op:=A_NOP;
+
+        mmxbase:=mmx_type(left.resultdef);
+        location_reset(location,LOC_MMXREGISTER,def_cgsize(resultdef));
+        case nodetype of
+          shrn :
+            case mmxbase of
+               mmxs16bit,mmxu16bit,mmxfixed16:
+                 op:=A_PSRLW;
+               mmxs32bit,mmxu32bit:
+                 op:=A_PSRLD;
+               mmxs64bit,mmxu64bit:
+                 op:=A_PSRLQ;
+               else
+                 Internalerror(2018022504);
+            end;
+          shln :
+            case mmxbase of
+               mmxs16bit,mmxu16bit,mmxfixed16:
+                 op:=A_PSLLW;
+               mmxs32bit,mmxu32bit:
+                 op:=A_PSLLD;
+               mmxs64bit,mmxu64bit:
+                 op:=A_PSLLD;
+               else
+                 Internalerror(2018022503);
+            end;
+          else
+            internalerror(2018022502);
+        end;
+
+        { left and right no register?  }
+        { then one must be demanded    }
+        if (left.location.loc<>LOC_MMXREGISTER) then
+         begin
+           { register variable ? }
+           if (left.location.loc=LOC_CMMXREGISTER) then
+            begin
+              hregister:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
+              emit_reg_reg(A_MOVQ,S_NO,left.location.register,hregister);
+            end
+           else
+            begin
+              if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+               internalerror(2018022505);
+
+              hregister:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
+              tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
+              emit_ref_reg(A_MOVQ,S_NO,left.location.reference,hregister);
+            end;
+
+           location_reset(left.location,LOC_MMXREGISTER,OS_NO);
+           left.location.register:=hregister;
+         end;
+
+        { at this point, left.location.loc should be LOC_MMXREGISTER }
+        case right.location.loc of
+          LOC_MMXREGISTER,LOC_CMMXREGISTER:
+            begin
+              emit_reg_reg(op,S_NO,right.location.register,left.location.register);
+              location.register:=left.location.register;
+            end;
+          LOC_CONSTANT:
+            emit_const_reg(op,S_NO,right.location.value,left.location.register);
+          LOC_REFERENCE,LOC_CREFERENCE:
+            begin
+              tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
+              emit_ref_reg(op,S_NO,right.location.reference,left.location.register);
+            end;
+          else
+            internalerror(2018022506);
+        end;
+        location.register:=left.location.register;
+
+        location_freetemp(current_asmdata.CurrAsmList,right.location);
+      end;
+{$endif SUPPORT_MMX}
 
 end.

@@ -1,74 +1,41 @@
-{ Parsed from Appkit.framework NSColorWell.h }
+{ Parsed from AppKit.framework NSColorWell.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSCOLORWELL_PAS_T}
-{$define NSCOLORWELL_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSCOLORWELL_PAS_R}
-{$define NSCOLORWELL_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSCOLORWELL_PAS_F}
-{$define NSCOLORWELL_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSCOLORWELL_PAS_S}
-{$define NSCOLORWELL_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSColorWell = objcclass;
-  NSColorWellPointer = ^NSColorWell;
-  NSColorWellPtr = NSColorWellPointer;
-
+type
+  NSColorWellPtr = ^NSColorWell;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSCOLORWELL_PAS_C}
-{$define NSCOLORWELL_PAS_C}
 
-{ NSColorWell }
+type
   NSColorWell = objcclass external (NSControl)
   private
     _color: NSColor;
-    _target: id;
-    _action: SEL;
-    __cwFlags: record
+    _reserved: id;
+    _reserved2: SEL;
+    _cwFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSColorWell0: cuint);
-       1: (data: bitpacked record
-        _isActive: 0..1;
-        _isBordered: 0..1;
-        cantDraw: 0..1;
-        isNotContinuous: 0..1;
-        reservedColorWell: 0..((1 shl 28)-1);
-       end;
-      );
+        0: (_anonBitField__cwFlags0: cuint);
+        1: (
+          isActive: 0..1;
+          isBordered: 0..1;
+          cantDraw: 0..1;
+          isNotContinuous: 0..1;
+          refusesFR: 0..1;
+          reservedColorWell: 0..((1 shl 27)-1);
+        );
       end;
-    
   public
     procedure deactivate; message 'deactivate';
-    procedure activate(exclusive: Boolean); message 'activate:';
-    function isActive: Boolean; message 'isActive';
-    procedure drawWellInside(insideRect: NSRect); message 'drawWellInside:';
-    function isBordered: Boolean; message 'isBordered';
-    procedure setBordered(flag: Boolean); message 'setBordered:';
-    procedure takeColorFrom(sender: id); message 'takeColorFrom:';
-    procedure setColor(color_: NSColor); message 'setColor:';
+    procedure activate (exclusive: ObjCBOOL); message 'activate:';
+    function isActive: ObjCBOOL; message 'isActive';
+    procedure drawWellInside (insideRect: NSRect); message 'drawWellInside:';
+    procedure setBordered(newValue: ObjCBOOL); message 'setBordered:';
+    function isBordered: ObjCBOOL; message 'isBordered';
+    procedure takeColorFrom (sender: id); message 'takeColorFrom:';
+    procedure setColor(newValue: NSColor); message 'setColor:';
     function color: NSColor; message 'color';
   end;
+{$endif}
 
-{$endif}
-{$endif}

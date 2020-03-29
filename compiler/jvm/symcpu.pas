@@ -100,6 +100,7 @@ type
     procedure buildderef;override;
     procedure deref;override;
     function getcopy: tstoreddef; override;
+    function generate_safecall_wrapper: boolean; override;
   end;
   tcpuprocvardefclass = class of tcpuprocvardef;
 
@@ -109,6 +110,8 @@ type
     exprasmlist      : TAsmList;
     function  jvmmangledbasename(signature: boolean): TSymStr;
     function mangledname: TSymStr; override;
+    function get_funcretsym_info(out ressym: tsym; out resdef: tdef): boolean; override;
+    function generate_safecall_wrapper: boolean; override;
     destructor destroy; override;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
@@ -221,7 +224,7 @@ implementation
   uses
     verbose,cutils,cclasses,globals,
     symconst,symbase,symtable,symcreat,jvmdef,
-    pdecsub,pjvm,
+    pdecsub,pparautl,pjvm,
     paramgr;
 
 
@@ -333,7 +336,7 @@ implementation
                           proc_add_definition will give an error }
                       end;
                     { add method with the correct visibility }
-                    pd:=tprocdef(parentpd.getcopy);
+                    pd:=tprocdef(parentpd.getcopyas(procdef,pc_normal_no_hidden,''));
                     { get rid of the import accessorname for inherited virtual class methods,
                       it has to be regenerated rather than amended }
                     if [po_classmethod,po_virtualmethod]<=pd.procoptions then
@@ -393,7 +396,7 @@ implementation
           begin
             { getter/setter could have parameters in case of indexed access
               -> copy original procdef }
-            pd:=tprocdef(orgaccesspd.getcopy);
+            pd:=tprocdef(orgaccesspd.getcopyas(procdef,pc_normal_no_hidden,''));
             exclude(pd.procoptions,po_abstractmethod);
             exclude(pd.procoptions,po_overridingmethod);
             { can only construct the artificial accessorname now, because it requires
@@ -487,11 +490,8 @@ implementation
           done already }
         if not assigned(orgaccesspd) then
           begin
-            { calling convention, self, ... }
-            if obj.typ=recorddef then
-              handle_calling_convention(pd,[hcc_check])
-            else
-              handle_calling_convention(pd,hcc_all);
+            { calling convention }
+            handle_calling_convention(pd,hcc_default_actions_intf_struct);
             { register forward declaration with procsym }
             proc_add_definition(pd);
           end;
@@ -691,7 +691,6 @@ implementation
       the JVM, this only sets the importname, however) }
     if assigned(paras) then
       begin
-        init_paraloc_info(callerside);
         for i:=0 to paras.count-1 do
           begin
             vs:=tparavarsym(paras[i]);
@@ -752,6 +751,22 @@ implementation
     end;
 
 
+  function tcpuprocdef.get_funcretsym_info(out ressym: tsym; out resdef: tdef): boolean;
+    begin
+      { constructors don't have a result on the JVM platform }
+      if proctypeoption<>potype_constructor then
+        result:=inherited
+      else
+        result:=false;
+    end;
+
+
+  function tcpuprocdef.generate_safecall_wrapper: boolean;
+    begin
+      result:=false;
+    end;
+
+
   destructor tcpuprocdef.destroy;
     begin
       exprasmlist.free;
@@ -793,6 +808,12 @@ implementation
     begin
       result:=inherited;
       tcpuprocvardef(result).classdef:=classdef;
+    end;
+
+
+  function tcpuprocvardef.generate_safecall_wrapper: boolean;
+    begin
+      result:=false;
     end;
 
 

@@ -496,6 +496,8 @@ end;
 
 function TField.GetAsBytes: TBytes;
 begin
+  Result:=Default(TBytes);
+//  Writeln('Allocating ',Datasize,' bytes');
   SetLength(Result, DataSize);
   if assigned(result) and not GetData(@Result[0], False) then
     Result := nil;
@@ -877,7 +879,8 @@ begin
     try
       SetVarValue(AValue);
     except
-      on EVariantError do DatabaseErrorFmt(SFieldValueError, [DisplayName]);
+      on EVariantError do
+        DatabaseErrorFmt(SFieldError+SInvalidVariant, [DisplayName]);
     end;
 end;
 
@@ -933,7 +936,7 @@ procedure TField.SetData(Buffer: Pointer; NativeFormat : Boolean);
 
 begin
   If Not Assigned(FDataset) then
-    DatabaseErrorFmt(SNoDataset,[FieldName]);
+    DatabaseErrorFmt(SNoDataset,[DisplayName]);
   FDataSet.SetFieldData(Self,Buffer, NativeFormat);
 end;
 
@@ -1202,7 +1205,10 @@ var s : rawbytestring;
 
 begin
   If GetValue(s) then
+    begin
+    SetCodePage(s, CP_ACP, True); 
     Result:=s
+    end
   else
     Result:=Null;
 end;
@@ -1513,7 +1519,7 @@ end;
 procedure TNumericField.RangeError(AValue, Min, Max: Double);
 
 begin
-  DatabaseErrorFmt(SRangeError,[AValue,Min,Max,FieldName]);
+  DatabaseErrorFmt(SFieldError+SRangeError2,[DisplayName,AValue,Min,Max]);
 end;
 
 procedure TNumericField.SetDisplayFormat(const AValue: string);
@@ -1685,7 +1691,7 @@ begin
     If Code=0 then
       SetAsInteger(L)
     else
-      DatabaseErrorFmt(SNotAnInteger,[AValue]);
+      DatabaseErrorFmt(SFieldError+SNotAnInteger,[DisplayName,AValue]);
     end;
 end;
 
@@ -1840,7 +1846,7 @@ begin
     If Code=0 then
       SetAsLargeInt(L)
     else
-      DatabaseErrorFmt(SNotAnInteger,[AValue]);
+      DatabaseErrorFmt(SFieldError+SNotAnInteger,[DisplayName,AValue]);
     end;
 end;
 
@@ -2071,11 +2077,10 @@ begin
   If (AValue='') then
     Clear
   else  
-    try
-      f := StrToFloat(AValue);
-      SetAsFloat(f);
-    except
+    begin
+    If not TryStrToFloat(AValue,F) then
       DatabaseErrorFmt(SNotAFloat, [AValue]);
+    SetAsFloat(f);
     end;
 end;
 
@@ -2218,7 +2223,7 @@ begin
     begin
     I:=Pos(';',AValue);
     If (I<2) or (I=Length(AValue)) then
-      DatabaseErrorFmt(SInvalidDisplayValues,[AValue]);
+      DatabaseErrorFmt(SFieldError+SInvalidDisplayValues,[DisplayName,AValue]);
     FdisplayValues:=AValue;
     // Store display values and their uppercase equivalents;
     FDisplays[False,True]:=Copy(AValue,1,I-1);
@@ -2384,7 +2389,7 @@ class procedure TBinaryField.CheckTypeSize(AValue: Longint);
 begin
   // Just check for really invalid stuff; actual size is
   // dependent on the record...
-  If AValue<1 then
+  If AValue<0 then // MSSQL can have a null/0 field length in a view
     DatabaseErrorFmt(SInvalidFieldSize,[AValue]);
 end;
 
@@ -3495,7 +3500,7 @@ procedure TFields.CheckfieldKind(Fieldkind: TFieldKind; Field: TField);
 
 begin
   If Not (FieldKind in ValidFieldKinds) Then
-    DatabaseErrorFmt(SInvalidFieldKind,[Field.FieldName]);
+    DatabaseErrorFmt(SInvalidFieldKind,[Field.DisplayName]);
 end;
 
 function TFields.GetCount: Longint;

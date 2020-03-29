@@ -15,6 +15,13 @@
 
  **********************************************************************}
 
+{ IMPORTANT!
+  Never use the "BLX label" instruction! Use "BL label" instead.
+  The linker will always change BL to BLX if necessary, but not vice versa (linker version dependent).
+  "BLX label" ALWAYS changes the instruction set. It changes a processor in ARM state to Thumb state,
+  or a processor in Thumb state to ARM state.
+}
+
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_FPC_MOVE}
 {$endif FPC_SYSTEM_HAS_MOVE}
@@ -28,7 +35,15 @@ const
 {$if not(defined(wince)) and not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
-{$if not defined(darwin) and not defined(FPUVFPV2) and not defined(FPUVFPV3) and not defined(FPUVFPV4) and not defined(FPUVFPV3_D16)}
+
+{ for bootstrapping with 3.0.x/3.2.x }
+{$if not defined(darwin) and not defined(FPUVFPV2) and not defined(FPUVFPV3) and not defined(FPUVFPV4) and not defined(FPUVFPV3_D16) and not defined(FPUARM_HAS_VFP_EXTENSION))}
+{$define FPUARM_HAS_FPA}
+{$else}
+{$define FPUARM_HAS_VFP_EXTENSION}
+{$endif}
+
+{$if defined(FPUARM_HAS_FPA)}
 Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
@@ -39,7 +54,92 @@ begin
     wfs r0
   end;
 end;
-{$else}
+{$elseif defined(FPUARM_HAS_VFP_EXTENSION)}
+
+
+const
+  fpu_nx = 1 shl 0;
+  fpu_uf = 1 shl 1;
+  fpu_of = 1 shl 2;
+  fpu_dz = 1 shl 3;
+  fpu_nv = 1 shl 4;
+
+function getfpscr: sizeuint; nostackframe; assembler;
+  asm
+    fmrx r0,fpscr
+  end;
+
+
+procedure setfpscr(flags : sizeuint); nostackframe; assembler;
+  asm
+    fmxr fpscr,r0
+  end;
+
+
+const
+  FPSCR_IOC = 1;
+  FPSCR_DZC = 1 shl 1;
+  FPSCR_OFC = 1 shl 2;
+  FPSCR_UFC = 1 shl 3;
+  FPSCR_IXC = 1 shl 4;
+  FPSCR_IDC = 1 shl 7;
+  FPSCR_EXCEPTIONS = FPSCR_IOC or FPSCR_DZC or FPSCR_OFC or FPSCR_UFC or FPSCR_IXC or FPSCR_IDC;
+
+procedure RaisePendingExceptions;
+  var
+    fpscr : longint;
+    f: TFPUException;
+  begin
+    { at this point, we know already, that an exception will be risen }
+    fpscr:=getfpscr;
+
+    if (fpscr and FPSCR_DZC) <> 0 then
+      float_raise(exZeroDivide);
+    if (fpscr and FPSCR_OFC) <> 0 then
+      float_raise(exOverflow);
+    if (fpscr and FPSCR_UFC) <> 0 then
+      float_raise(exUnderflow);
+    if (fpscr and FPSCR_IOC) <> 0 then
+      float_raise(exInvalidOp);
+    if (fpscr and FPSCR_IXC) <> 0 then
+      float_raise(exPrecision);
+    if (fpscr and FPSCR_IDC) <> 0 then
+      float_raise(exDenormalized);
+
+    { now the soft float exceptions }
+    for f in softfloat_exception_flags do
+      float_raise(f);
+  end;
+
+
+procedure fpc_throwfpuexception;[public,alias:'FPC_THROWFPUEXCEPTION'];
+  var
+    fpscr : dword;
+    f: TFPUException;
+  begin
+    { at this point, we know already, that an exception will be risen }
+    fpscr:=getfpscr;
+
+    { check, if the exception is masked, as ARM without hardware exceptions have no masking functionality,
+      we use the software mask }
+    if ((fpscr and FPSCR_DZC) <> 0) and (exZeroDivide in softfloat_exception_mask) then
+      fpscr:=fpscr and not(FPSCR_DZC);
+    if ((fpscr and FPSCR_OFC) <> 0) and (exOverflow in softfloat_exception_mask) then
+      fpscr:=fpscr and not(FPSCR_OFC);
+    if ((fpscr and FPSCR_UFC) <> 0) and (exUnderflow in softfloat_exception_mask) then
+      fpscr:=fpscr and not(FPSCR_UFC);
+    if ((fpscr and FPSCR_IOC) <> 0) and (exInvalidOp in softfloat_exception_mask) then
+      fpscr:=fpscr and not(FPSCR_IOC);
+    if ((fpscr and FPSCR_IXC) <> 0) and (exPrecision in softfloat_exception_mask) then
+      fpscr:=fpscr and not(FPSCR_IXC);
+    if ((fpscr and FPSCR_IDC) <> 0) and (exDenormalized in softfloat_exception_mask) then
+      fpscr:=fpscr and not(FPSCR_IDC);
+    setfpscr(fpscr);
+    if (fpscr and FPSCR_EXCEPTIONS)<>0 then
+      RaisePendingExceptions;
+  end;
+
+
 Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
@@ -61,7 +161,18 @@ begin
 {$endif}
     fmxr fpscr,r0
   end;
+  softfloat_exception_mask:=[float_flag_underflow,float_flag_inexact,float_flag_denormal];
+  softfloat_exception_flags:=[];
 end;
+
+{$define FPC_SYSTEM_HAS_SYSRESETFPU}
+Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  softfloat_exception_flags:=[];
+  setfpscr(getfpscr and not(FPSCR_EXCEPTIONS));
+end;
+
+
 {$endif}
 {$endif}
 
@@ -88,6 +199,15 @@ begin
   _controlfp($000C0003, $030F031F);
 end;
 {$endif wince}
+
+{$ifdef linux}
+function fpc_read_tp : pointer; [public, alias: 'fpc_read_tp'];assembler; nostackframe;
+asm
+  // Helper is located at 0xffff0fe0
+  mvn r0,#0x0000f000 // mov r0, #0xffff0fff
+  sub pc,r0,#0x1f    // Jump to helper
+end;
+{$endif linux}
 
 {****************************************************************************
                        stack frame related stuff
@@ -547,14 +667,7 @@ asm
 {$endif}
   stmfd   sp!, {r1, lr}
   sub     r0, r1, #8
-
-// We use always bl, as newer binutils apparently never translate blx into bl
-// {$if defined(CPUARM_HAS_BLX_LABEL) and not(defined(WINCE))}
-//   blx     InterLockedDecrement
-// {$else defined(CPUARM_HAS_BLX_LABEL) and not(defined(WINCE))}
   bl      InterLockedDecrement
-// {$endif defined(CPUARM_HAS_BLX_LABEL) and not(defined(WINCE))}
-
   // InterLockedDecrement is a nice guy and sets the z flag for us
   // if the reference count dropped to 0
   ldmnefd sp!, {r1, pc}
@@ -659,11 +772,7 @@ asm
 // lock
   {$ifdef FPC_PIC}
     push {r0,lr}
-    {$ifdef CPUARM_HAS_BLX}
-      blx get_fpc_system_lock_ptr
-    {$else}
-      bl get_fpc_system_lock_ptr
-    {$endif CPUARM_HAS_BLX}
+    bl get_fpc_system_lock_ptr
     mov r3,r0
     pop {r0,lr}
   {$else FPC_PIC}
@@ -744,11 +853,7 @@ asm
 // lock
   {$ifdef FPC_PIC}
     push {r0,lr}
-    {$ifdef CPUARM_HAS_BLX}
-      blx get_fpc_system_lock_ptr
-    {$else}
-      bl get_fpc_system_lock_ptr
-    {$endif CPUARM_HAS_BLX}
+    bl get_fpc_system_lock_ptr
     mov r3,r0
     pop {r0,lr}
   {$else FPC_PIC}
@@ -829,11 +934,7 @@ asm
 // lock
   {$ifdef FPC_PIC}
     push {r0,r1,lr}
-    {$ifdef CPUARM_HAS_BLX}
-      blx get_fpc_system_lock_ptr
-    {$else}
-      bl get_fpc_system_lock_ptr
-    {$endif CPUARM_HAS_BLX}
+    bl get_fpc_system_lock_ptr
     mov r3,r0
     pop {r0,r1,lr}
   {$else FPC_PIC}
@@ -919,11 +1020,7 @@ asm
 // lock
   {$ifdef FPC_PIC}
     push {r0,r1,lr}
-    {$ifdef CPUARM_HAS_BLX}
-      blx get_fpc_system_lock_ptr
-    {$else}
-      bl get_fpc_system_lock_ptr
-    {$endif CPUARM_HAS_BLX}
+    bl get_fpc_system_lock_ptr
     mov r3,r0
     pop {r0,r1,lr}
   {$else FPC_PIC}
@@ -1012,11 +1109,7 @@ asm
 // lock
   {$ifdef FPC_PIC}
     push {r0,r1,r2,lr}
-    {$ifdef CPUARM_HAS_BLX}
-      blx get_fpc_system_lock_ptr
-    {$else}
-      bl get_fpc_system_lock_ptr
-    {$endif CPUARM_HAS_BLX}
+    bl get_fpc_system_lock_ptr
     mov r12,r0
     pop {r0,r1,r2,lr}
   {$else FPC_PIC}

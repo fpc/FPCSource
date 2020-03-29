@@ -28,8 +28,8 @@ interface
 
     uses
        globtype,
-       cpuinfo,cpubase,cgbase,cgutils,
-       symconst,symtype,symdef,aasmbase,aasmtai,aasmdata,aasmcpu;
+       cpubase,cgbase,cgutils,
+       aasmbase,aasmdata,aasmcpu;
 
     procedure emit_none(i : tasmop;s : topsize);
 
@@ -53,8 +53,7 @@ interface
 implementation
 
     uses
-       cutils,
-       systems,verbose,
+       verbose,
        cgobj,cgx86;
 
 

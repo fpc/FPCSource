@@ -107,7 +107,7 @@ begin
    end;
 
    if FSize < MaxBitRec then
-     result := FSize * 32;  {first bit of next record}
+     result := FBSize;  {first bit of next record}
 end;
 
 { ******************** TBits ***************************** }
@@ -173,6 +173,12 @@ begin
       result := (FBits^[n] and (longint(1) shl (bit and MASK))) <> 0;
 end;
 
+procedure TBits.CopyBits(BitSet : TBits);
+begin
+  setSize(bitset.Size);
+  Move(bitset.FBits^,FBits^,FSize*SizeOf(cardinal));
+end;
+
 procedure TBits.andbits(bitset : TBits);
 var
    n : longint;
@@ -193,7 +199,6 @@ end;
 procedure TBits.notbits(bitset : TBits);
 var
    n : longint;
-   jj : cardinal;
    loop : longint;
 begin
    if FSize < bitset.getFSize then
@@ -202,10 +207,7 @@ begin
       n := bitset.getFSize - 1;
 
    for loop := 0 to n do
-   begin
-      jj := FBits^[loop];
-      FBits^[loop] := FBits^[loop] and (jj xor bitset.FBits^[loop]);
-   end;
+      FBits^[loop] := FBits^[loop] xor bitset.FBits^[loop];
 end;
 
 procedure TBits.orbits(bitset : TBits);

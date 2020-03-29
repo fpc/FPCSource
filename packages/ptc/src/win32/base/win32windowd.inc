@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003, 2006, 2007, 2009, 2010, 2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009, 2010, 2012, 2017  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -48,6 +48,7 @@ type
     FMultithreaded: Boolean;
     FCursorConfineInEffect: Boolean;
     FInterceptClose: Boolean;
+    FIsUnicode: Boolean;
 
 {    class function WndProcSingleThreaded(hWnd: HWND; message: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; StdCall;
     class function WndProcMultiThreaded(hWnd: HWND; message: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; StdCall;}
@@ -73,4 +74,5 @@ type
     property Managed: Boolean read FManaged;
     property Multithreaded: Boolean read FMultithreaded;
     property InterceptClose: Boolean read FInterceptClose write FInterceptClose;
+    property IsUnicode: Boolean read FIsUnicode;
   end;

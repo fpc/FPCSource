@@ -7,13 +7,16 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=$(SYSTEMUNIT) heaptrc uuchar objpas macpas iso7185 extpas lineinfo buildrtl cpall
+units=$(SYSTEMUNIT) heaptrc uuchar objpas macpas iso7185 extpas buildrtl cpall
 implicitunits=$(SYSINITUNITS) athreads dos sysutils \
       ctypes strings rtlconsts sysconst math types \
-      typinfo fgl classes charset character getopts \
-      fpintres exeinfo \
+      typinfo sortbase fgl classes charset character getopts \
+      fpwidestring fpintres exeinfo $(LINEINFOUNIT) \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 \
+      cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 \
+      cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 \
+      cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 \
+      cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u \
       unicodedata unicodenumtable
 
 rsts=math rtlconsts typinfo classes sysconst
@@ -55,6 +58,11 @@ endif
 # Paths
 OBJPASDIR=$(RTL)/objpas
 
+ifeq ($(ARCH),i386)
+LINEINFOUNIT=lineinfo
+endif
+
+
 [rules]
 .NOTPARALLEL:
 # Get the system independent include file names.
@@ -85,7 +93,7 @@ prt0$(OEXT) : $(CPU_TARGET)/prt0.as
 #
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
@@ -102,10 +110,8 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT) heaptrc$(PP
 iso7185$(PPUEXT) : $(INC)/iso7185.pp buildrtl$(PPUEXT) heaptrc$(PPUEXT)
         $(COMPILER) $(INC)/iso7185.pp
 
-extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) heaptrc$(PPUEXT)
+extpas$(PPUEXT) : $(INC)/extpas.pp buildrtl$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) heaptrc$(PPUEXT)
         $(COMPILER) $(INC)/extpas.pp
-
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
 buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -Fu$(AMIINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl

@@ -110,10 +110,11 @@ Function SetThreadManager(Const NewTM : TThreadManager; Var OldTM : TThreadManag
 Function SetThreadManager(Const NewTM : TThreadManager) : Boolean;
 {$ifndef DISABLE_NO_THREAD_MANAGER}
 {$endif DISABLE_NO_THREAD_MANAGER}
-// Needs to be exported, so the manager can call it.
-{$ifndef FPC_SECTION_THREADVARS}
+{ Needs to be exported, so the manager can call it.
+  It needs to be exported even if FPC_SECTION_THREADVARS is set as it relocates also the
+  heap
+}
 procedure InitThreadVars(RelocProc : TRelocateThreadVarHandler);
-{$endif FPC_SECTION_THREADVARS}
 procedure InitThread(stklen:SizeUInt);
 procedure DoneThread;
 
@@ -153,20 +154,20 @@ function  GetCurrentThreadId : TThreadID;
 { it is also used to make the heap management      }
 { thread safe                                      }
 procedure InitCriticalSection(var cs : TRTLCriticalSection);
-procedure DoneCriticalsection(var cs : TRTLCriticalSection);
-procedure EnterCriticalsection(var cs : TRTLCriticalSection);
-procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
-function  TryEnterCriticalsection(var cs : TRTLCriticalSection):longint;
+procedure DoneCriticalSection(var cs : TRTLCriticalSection);
+procedure EnterCriticalSection(var cs : TRTLCriticalSection);
+procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
+function  TryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
 function  BasicEventCreate(EventAttributes : Pointer; AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
-procedure basiceventdestroy(state:peventstate);
-procedure basiceventResetEvent(state:peventstate);
-procedure basiceventSetEvent(state:peventstate);
-function  basiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+procedure BasicEventDestroy(state:peventstate);
+procedure BasicEventResetEvent(state:peventstate);
+procedure BasicEventSetEvent(state:peventstate);
+function  BasicEventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
 
 function  RTLEventCreate :PRTLEvent;
-procedure RTLeventdestroy(state:pRTLEvent);
-procedure RTLeventSetEvent(state:pRTLEvent);
-procedure RTLeventResetEvent(state:pRTLEvent);
-procedure RTLeventWaitFor(state:pRTLEvent);
-procedure RTLeventWaitFor(state:pRTLEvent;timeout : longint);
+procedure RTLEventDestroy(state:pRTLEvent);
+procedure RTLEventSetEvent(state:pRTLEvent);
+procedure RTLEventResetEvent(state:pRTLEvent);
+procedure RTLEventWaitFor(state:pRTLEvent);
+procedure RTLEventWaitFor(state:pRTLEvent;timeout : longint);
 

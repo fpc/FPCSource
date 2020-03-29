@@ -52,12 +52,13 @@ type
 
    { a simple data element; the value is stored as a tai }
    tai_simpletypedconst = class(tai_abstracttypedconst)
-   private
+    private
      procedure setval(AValue: tai);
     protected
      fval: tai;
     public
-     constructor create(_adetyp: ttypedconstkind; _def: tdef; _val: tai);
+     constructor create(_def: tdef; _val: tai);
+     destructor destroy; override;
      property val: tai read fval write setval;
    end;
 
@@ -69,7 +70,7 @@ type
      { iterator to walk over all individual items in the aggregate }
      tadeenumerator = class(tobject)
       private
-       fvalues: tfplist;
+       fvalues: tfpobjectlist;
        fvaluespos: longint;
        function getcurrent: tai_abstracttypedconst;
       public
@@ -80,7 +81,7 @@ type
      end;
 
     protected
-     fvalues: tfplist;
+     fvalues: tfpobjectlist;
      fisstring: boolean;
 
      { converts the existing data to a single tai_string }
@@ -89,10 +90,10 @@ type
     public
      constructor create(_adetyp: ttypedconstkind; _fdef: tdef);
      function getenumerator: tadeenumerator;
-     procedure addvalue(val: tai_abstracttypedconst);
+     procedure addvalue(val: tai_abstracttypedconst); virtual;
      function valuecount: longint;
      procedure insertvaluebeforepos(val: tai_abstracttypedconst; pos: longint);
-     function replacevalueatpos(val: tai_abstracttypedconst; pos: longint): tai_abstracttypedconst;
+     procedure replacevalueatpos(val: tai_abstracttypedconst; pos: longint);
      { change the type to a record, regardless of how the aggregate was created;
        the size of the original type and the record must match }
      procedure changetorecord(_def: trecorddef);
@@ -268,6 +269,10 @@ type
      function aggregate_kind(def: tdef): ttypedconstkind; virtual;
      { finalize the asmlist: add the necessary symbols etc }
      procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
+     procedure finalize_asmlist_add_indirect_sym(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
+     { prepare finalization (common for the default and overridden versions }
+     procedure finalize_asmlist_prepare(const options: ttcasmlistoptions; var alignment: shortint);
+
      { functionality of the above for vectorized dead strippable sections }
      procedure finalize_vectorized_dead_strip_asmlist(def: tdef; const basename, itemname: TSymStr; st: tsymtable; alignment: shortint; options: ttcasmlistoptions); virtual;
 
@@ -346,6 +351,12 @@ type
      { emits a tasmlabofs as returned by emit_*string_const }
      procedure emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);virtual;
 
+     { emits a tasmlabofs as returned by begin_dynarray_const }
+     procedure emit_dynarray_offset(const ll:tasmlabofs;const arrlength:asizeint;const arrdef:tarraydef; const arrconstdatadef: trecorddef);virtual;
+     { starts a dynamic array constant so that its data can be emitted directly afterwards }
+     function begin_dynarray_const(arrdef:tdef;var startlab:tasmlabel;out arrlengthloc:ttypedconstplaceholder):tasmlabofs;virtual;
+     function end_dynarray_const(arrdef:tdef;arrlength:asizeint;arrlengthloc:ttypedconstplaceholder):tdef;virtual;
+
      { emit a shortstring constant, and return its def }
      function emit_shortstring_const(const str: shortstring): tdef;
      { emit a pchar string constant (the characters, not a pointer to them), and return its def }
@@ -356,6 +367,9 @@ type
      procedure emit_procdef_const(pd: tprocdef);
      { emit an ordinal constant }
      procedure emit_ord_const(value: int64; def: tdef);
+
+     { emit a reference to a pooled shortstring constant }
+     procedure emit_pooled_shortstring_const_ref(const str:shortstring);
 
      { begin a potential aggregate type. Must be called for any type
        that consists of multiple tai constant data entries, or that
@@ -379,7 +393,7 @@ type
         maxcrecordalign: specify maximum C record alignment (no equivalent in
           source code)
      }
-     function begin_anonymous_record(const optionalname: string; packrecords, recordalign, recordalignmin, maxcrecordalign: shortint): trecorddef; virtual;
+     function begin_anonymous_record(const optionalname: string; packrecords, recordalign, recordalignmin: shortint): trecorddef; virtual;
      function end_anonymous_record: trecorddef; virtual;
 
      { add a placeholder element at the current position that later can be
@@ -442,6 +456,12 @@ type
        supported this is equal to the header size }
      class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; virtual;
 
+     { returns the offset of the array data relatve to dynamic array constant
+       labels. On most platforms, this is 0 (with the header at a negative
+       offset), but on some platforms such negative offsets are not supported
+       and thus this is equal to the header size }
+     class function get_dynarray_symofs:pint;virtual;
+
      { set the fieldvarsym whose data we will emit next; needed
        in case of variant records, so we know which part of the variant gets
        initialised. Also in case of objects, because the fieldvarsyms are spread
@@ -451,9 +471,10 @@ type
        record (also if that field is a nested anonymous record) }
      property next_field_name: TIDString write set_next_field_name;
     protected
-     { this one always return the actual offset, called by the above (and
+     { these ones always return the actual offset, called by the above (and
        overridden versions) }
      class function get_string_header_size(typ: tstringtype; winlikewidestring: boolean): pint;
+     class function get_dynarray_header_size:pint;
    end;
    ttai_typedconstbuilderclass = class of ttai_typedconstbuilder;
 
@@ -491,7 +512,7 @@ implementation
      cutils,
      verbose,globals,systems,widestr,
      fmodule,
-     symtable,defutil;
+     symtable,symutil,defutil;
 
 {****************************************************************************
                        taggregateinformation
@@ -568,8 +589,7 @@ implementation
             repeat
               inc(i);
               sym:=tsym(tabstractrecorddef(def).symtable.symlist[i]);
-            until (sym.typ=fieldvarsym) and
-              not(sp_static in sym.symoptions);
+            until is_normal_fieldvarsym(sym);
             curfield:=tfieldvarsym(sym);
             nextoffset:=curfield.fieldoffset;
             curindex:=i;
@@ -619,10 +639,17 @@ implementation
       end;
 
 
-   constructor tai_simpletypedconst.create(_adetyp: ttypedconstkind; _def: tdef; _val: tai);
+   constructor tai_simpletypedconst.create(_def: tdef; _val: tai);
      begin
-       inherited create(_adetyp,_def);
+       inherited create(tck_simple,_def);
        fval:=_val;
+     end;
+
+
+   destructor tai_simpletypedconst.destroy;
+     begin
+       fval.free;
+       inherited destroy;
      end;
 
 
@@ -682,7 +709,7 @@ implementation
        { the "nil" def will be replaced with an array def of the appropriate
          size once we're finished adding data, so we don't create intermediate
          arraydefs all the time }
-       fvalues.add(tai_simpletypedconst.create(tck_simple,nil,newstr));
+       fvalues.add(tai_simpletypedconst.create(nil,newstr));
      end;
 
    procedure tai_aggregatetypedconst.add_to_string(strtai: tai_string; othertai: tai);
@@ -716,7 +743,7 @@ implementation
      begin
        inherited;
        fisstring:=false;
-       fvalues:=tfplist.create;
+       fvalues:=tfpobjectlist.create(true);
      end;
 
 
@@ -766,9 +793,9 @@ implementation
      end;
 
 
-   function tai_aggregatetypedconst.replacevalueatpos(val: tai_abstracttypedconst; pos: longint): tai_abstracttypedconst;
+   procedure tai_aggregatetypedconst.replacevalueatpos(val: tai_abstracttypedconst; pos: longint);
      begin
-       result:=tai_abstracttypedconst(fvalues[pos]);
+       { since fvalues owns its elements, it will automatically free the old value }
        fvalues[pos]:=val;
      end;
 
@@ -910,13 +937,7 @@ implementation
      end;
 
 
-   procedure ttai_typedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
-     var
-       prelist: tasmlist;
-       ptrdef : tdef;
-       symind : tasmsymbol;
-       indtcb : ttai_typedconstbuilder;
-       indsecname : tsymstr;
+   procedure ttai_typedconstbuilder.finalize_asmlist_prepare(const options: ttcasmlistoptions; var alignment: shortint);
      begin
        if tcalo_apply_constalign in options then
          alignment:=const_align(alignment);
@@ -932,7 +953,14 @@ implementation
              tcalo_vectorized_dead_strip_end]*options)<>[]) and
           not fvectorized_finalize_called then
          internalerror(2015110602);
+     end;
 
+
+   procedure ttai_typedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
+     var
+       prelist: tasmlist;
+     begin
+       finalize_asmlist_prepare(options, alignment);
        prelist:=tasmlist.create;
        { only now add items based on the symbolname, because it may be
          modified by the "section" specifier in case of a typed constant }
@@ -949,7 +977,14 @@ implementation
            new_section(prelist,section,secname,alignment);
          end
        else if tcalo_new_section in options then
-         new_section(prelist,section,secname,alignment)
+         begin
+           { insert ait_cutobject for smart-linking on targets
+             that do not support smarlinking based on sections,
+             like msdos }
+           if not (tf_smartlink_sections in target_info.flags) then
+             maybe_new_object_file(prelist);
+           new_section(prelist,section,secname,alignment);
+         end
        else
          prelist.concat(cai_align.Create(alignment));
 
@@ -987,11 +1022,19 @@ implementation
        fasmlist.concat(tai_symbol_end.Createname(sym.name));
        { free the temporary list }
        prelist.free;
+     end;
 
+
+   procedure ttai_typedconstbuilder.finalize_asmlist_add_indirect_sym(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
+     var
+       ptrdef : tdef;
+       symind : tasmsymbol;
+       indtcb : ttai_typedconstbuilder;
+       indsecname : tsymstr;
+     begin
        if (tcalo_data_force_indirect in options) and
-           not fvectorized_finalize_called and
-           (sym.bind in [AB_GLOBAL,AB_COMMON]) and
-           (sym.typ=AT_DATA) then
+          (sym.bind in [AB_GLOBAL,AB_COMMON]) and
+          (sym.typ=AT_DATA) then
          begin
            ptrdef:=cpointerdef.getreusable(def);
            symind:=current_asmdata.DefineAsmSymbol(sym.name,AB_INDIRECT,AT_DATA,ptrdef);
@@ -1067,6 +1110,7 @@ implementation
              secname:=make_mangledname(basename,st,'2_'+itemname);
            exclude(options,tcalo_vectorized_dead_strip_item);
          end;
+       current_module.linkorderedsymbols.concat(sym.Name);
        finalize_asmlist(sym,def,sectype,secname,alignment,options);
      end;
 
@@ -1083,6 +1127,7 @@ implementation
        if not fasmlist_finalized then
          begin
            finalize_asmlist(sym,def,section,secname,alignment,foptions);
+           finalize_asmlist_add_indirect_sym(sym,def,section,secname,alignment,foptions);
            fasmlist_finalized:=true;
          end;
        result:=fasmlist;
@@ -1107,6 +1152,16 @@ implementation
          result:=0
        else
          result:=get_string_header_size(typ,winlikewidestring);
+     end;
+
+
+   class function ttai_typedconstbuilder.get_dynarray_symofs:pint;
+     begin
+       { darwin's linker does not support negative offsets }
+       if not (target_info.system in systems_darwin) then
+         result:=0
+       else
+         result:=get_dynarray_header_size;
      end;
 
 
@@ -1142,6 +1197,16 @@ implementation
          else
            result:=0;
        end;
+     end;
+
+
+   class function ttai_typedconstbuilder.get_dynarray_header_size:pint;
+     begin
+       result:=
+         { reference count }
+         ptrsinttype.size +
+         { high value }
+         sizesinttype.size;
      end;
 
 
@@ -1331,7 +1396,7 @@ implementation
        result.ofs:=0;
        { pack the data, so that we don't add unnecessary null bytes after the
          constant string }
-       begin_anonymous_record('$'+get_dynstring_rec_name(stringtype,false,len),1,sizeof(TConstPtrUInt),1,1);
+       begin_anonymous_record('$'+get_dynstring_rec_name(stringtype,false,len),1,sizeof(TConstPtrUInt),1);
        string_symofs:=get_string_symofs(stringtype,false);
        { encoding }
        emit_tai(tai_const.create_16bit(encoding),u16inttype);
@@ -1543,7 +1608,7 @@ implementation
        if (typ<>st_widestring) or
           not winlike then
          begin
-           result:=crecorddef.create_global_internal('$'+name,1,1,1);
+           result:=crecorddef.create_global_internal('$'+name,1,1);
            { encoding }
            result.add_field_by_def('',u16inttype);
            { element size }
@@ -1569,8 +1634,7 @@ implementation
        else
          begin
            result:=crecorddef.create_global_internal('$'+name,4,
-             targetinfos[target_info.system]^.alignment.recordalignmin,
-             targetinfos[target_info.system]^.alignment.maxCrecordalign);
+             targetinfos[target_info.system]^.alignment.recordalignmin);
            { length in bytes }
            result.add_field_by_def('',s32inttype);
            streledef:=cwidechartype;
@@ -1601,7 +1665,7 @@ implementation
        datatcb.emit_tai(tai_string.create_pchar(s,len+1),datadef);
        datatcb.maybe_end_aggregate(datadef);
        ansistrrecdef:=datatcb.end_anonymous_record;
-       finish_internal_data_builder(datatcb,startlab,ansistrrecdef,const_align(sizeof(pointer)));
+       finish_internal_data_builder(datatcb,startlab,ansistrrecdef,const_align(voidpointertype.alignment));
      end;
 
 
@@ -1621,8 +1685,7 @@ implementation
            result.lab:=startlab;
            datatcb.begin_anonymous_record('$'+get_dynstring_rec_name(st_widestring,true,strlength),
              4,4,
-             targetinfos[target_info.system]^.alignment.recordalignmin,
-             targetinfos[target_info.system]^.alignment.maxCrecordalign);
+             targetinfos[target_info.system]^.alignment.recordalignmin);
            datatcb.emit_tai(Tai_const.Create_32bit(strlength*cwidechartype.size),s32inttype);
            { can we optimise by placing the string constant label at the
              required offset? }
@@ -1657,13 +1720,59 @@ implementation
        else
          { code generation for other sizes must be written }
          internalerror(200904271);
-       finish_internal_data_builder(datatcb,startlab,unicodestrrecdef,const_align(sizeof(pint)));
+       finish_internal_data_builder(datatcb,startlab,unicodestrrecdef,const_align(voidpointertype.alignment));
      end;
 
 
    procedure ttai_typedconstbuilder.emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);
      begin
        emit_tai(Tai_const.Create_sym_offset(ll.lab,ll.ofs),get_dynstring_def_for_type(st,winlikewidestring));
+     end;
+
+
+   procedure ttai_typedconstbuilder.emit_dynarray_offset(const ll:tasmlabofs;const arrlength:asizeint;const arrdef:tarraydef; const arrconstdatadef: trecorddef);
+     begin
+       emit_tai(tai_const.create_sym_offset(ll.lab,ll.ofs),arrdef);
+     end;
+
+
+   function ttai_typedconstbuilder.begin_dynarray_const(arrdef:tdef;var startlab:tasmlabel;out arrlengthloc:ttypedconstplaceholder):tasmlabofs;
+     var
+       dynarray_symofs: asizeint;
+     begin
+       result.lab:=startlab;
+       result.ofs:=0;
+       { pack the data, so that we don't add unnecessary null bytes after the
+         constant string }
+       begin_anonymous_record('',1,sizeof(TConstPtrUInt),1);
+       dynarray_symofs:=get_dynarray_symofs;
+       { what to do if ptrsinttype <> sizesinttype??? }
+       emit_tai(tai_const.create_sizeint(-1),ptrsinttype);
+       inc(result.ofs,ptrsinttype.size);
+       arrlengthloc:=emit_placeholder(sizesinttype);
+       inc(result.ofs,sizesinttype.size);
+       if dynarray_symofs=0 then
+         begin
+           { results in slightly more efficient code }
+           emit_tai(tai_label.create(result.lab),arrdef);
+           result.ofs:=0;
+           { create new label of the same kind (including whether or not the
+             name starts with target_asm.labelprefix in case it's AB_LOCAL,
+             so we keep the difference depending on whether the original was
+             allocated via getstatic/getlocal/getglobal datalabel) }
+           startlab:=tasmlabel.create(current_asmdata.AsmSymbolDict,startlab.name+'$dynarrlab',startlab.bind,startlab.typ);
+         end;
+       { sanity check }
+       if result.ofs<>dynarray_symofs then
+         internalerror(2018020601);
+     end;
+
+
+   function ttai_typedconstbuilder.end_dynarray_const(arrdef:tdef;arrlength:asizeint;arrlengthloc:ttypedconstplaceholder):tdef;
+     begin
+       { we emit the high value, not the count }
+       arrlengthloc.replace(tai_const.Create_sizeint(arrlength-1),sizesinttype);
+       result:=end_anonymous_record;
      end;
 
 
@@ -1752,6 +1861,56 @@ implementation
      end;
 
 
+   procedure ttai_typedconstbuilder.emit_pooled_shortstring_const_ref(const str:shortstring);
+     var
+       pool : thashset;
+       entry : phashsetitem;
+       strlab : tasmlabel;
+       l : longint;
+       pc : pansichar;
+       datadef : tdef;
+       strtcb : ttai_typedconstbuilder;
+     begin
+       pool:=current_asmdata.ConstPools[sp_shortstr];
+
+       entry:=pool.FindOrAdd(@str[1],length(str));
+
+       { :-(, we must generate a new entry }
+       if not assigned(entry^.Data) then
+         begin
+           current_asmdata.getglobaldatalabel(strlab);
+
+           { include length and terminating zero for quick conversion to pchar }
+           l:=length(str);
+           getmem(pc,l+2);
+           move(str[1],pc[1],l);
+           pc[0]:=chr(l);
+           pc[l+1]:=#0;
+
+           datadef:=carraydef.getreusable(cansichartype,l+2);
+
+           { we start a new constbuilder as we don't know whether we're called
+             from inside an internal constbuilder }
+           strtcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
+
+           strtcb.maybe_begin_aggregate(datadef);
+           strtcb.emit_tai(Tai_string.Create_pchar(pc,l+2),datadef);
+           strtcb.maybe_end_aggregate(datadef);
+
+           current_asmdata.asmlists[al_typedconsts].concatList(
+             strtcb.get_final_asmlist(strlab,datadef,sec_rodata_norel,strlab.name,const_align(sizeof(pint)))
+           );
+           strtcb.free;
+
+           entry^.Data:=strlab;
+         end
+       else
+         strlab:=tasmlabel(entry^.Data);
+
+       emit_tai(tai_const.Create_sym(strlab),charpointertype);
+     end;
+
+
    procedure ttai_typedconstbuilder.maybe_begin_aggregate(def: tdef);
      begin
        begin_aggregate_internal(def,false);
@@ -1764,7 +1923,7 @@ implementation
      end;
 
 
-   function ttai_typedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords, recordalign, recordalignmin, maxcrecordalign: shortint): trecorddef;
+   function ttai_typedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords, recordalign, recordalignmin: shortint): trecorddef;
      var
        anonrecorddef: trecorddef;
        typesym: ttypesym;
@@ -1785,7 +1944,7 @@ implementation
              end;
          end;
        { create skeleton def }
-       anonrecorddef:=crecorddef.create_global_internal(optionalname,packrecords,recordalignmin,maxcrecordalign);
+       anonrecorddef:=crecorddef.create_global_internal(optionalname,packrecords,recordalignmin);
        trecordsymtable(anonrecorddef.symtable).recordalignment:=recordalign;
        { generic aggregate housekeeping }
        begin_aggregate_internal(anonrecorddef,true);
@@ -1924,7 +2083,7 @@ implementation
          begin
            sym:=search_struct_member_no_helper(tabstractrecorddef(curdef),fields[i]);
            if not assigned(sym) or
-              (sym.typ<>fieldvarsym) or
+              not is_normal_fieldvarsym(sym) or
               ((i<>high(fields)) and
                not(tfieldvarsym(sym).vardef.typ in [objectdef,recorddef])) then
              internalerror(2015071505);
@@ -2040,7 +2199,7 @@ implementation
    procedure tlowleveltypedconstplaceholder.replace(ai: tai; d: tdef);
      begin
        if d<>def then
-         internalerror(2015091001);
+         internalerror(2015091007);
        list.insertafter(ai,insertpos);
        list.remove(insertpos);
        insertpos.free;

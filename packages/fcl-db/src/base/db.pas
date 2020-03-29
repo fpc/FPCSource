@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit db;
+unit DB;
 
 {$mode objfpc}
 
@@ -192,6 +192,7 @@ type
     property CharSize: Word read GetCharSize;
     property InternalCalcField: Boolean read FInternalCalcField write FInternalCalcField;
     property Required: Boolean read FRequired write SetRequired;
+    Property Codepage : TSystemCodePage Read FCodePage;
   Published
     property Attributes: TFieldAttributes read FAttributes write SetAttributes default [];
     property DataType: TFieldType read FDataType write SetDataType;
@@ -428,7 +429,6 @@ type
     property FieldNo: Longint read FFieldNo;
     property IsIndexField: Boolean read FIsIndexField;
     property IsNull: Boolean read GetIsNull;
-    property Lookup: Boolean read GetLookup write SetLookup; deprecated;
     property NewValue: Variant read GetNewValue write SetNewValue;
     property Offset: word read FOffset;
     property Size: Integer read FSize write SetSize;
@@ -455,6 +455,7 @@ type
     property LookupDataSet: TDataSet read FLookupDataSet write FLookupDataSet;
     property LookupKeyFields: string read FLookupKeyFields write FLookupKeyFields;
     property LookupResultField: string read FLookupResultField write FLookupResultField;
+    property Lookup: Boolean read GetLookup write SetLookup stored false; deprecated;
     property Origin: string read FOrigin write FOrigin;
     property ProviderFlags : TProviderFlags read FProviderFlags write FProviderFlags;
     property ReadOnly: Boolean read FReadOnly write SetReadOnly;
@@ -1068,7 +1069,7 @@ type
     Procedure SetItem(Index: Integer; Value: TIndexDef);
   public
     constructor Create(ADataSet: TDataSet); virtual; overload;
-    procedure Add(const Name, Fields: string; Options: TIndexOptions);
+    procedure Add(const Name, Fields: string; Options: TIndexOptions); overload;
     Function AddIndexDef: TIndexDef;
     function Find(const IndexName: string): TIndexDef;
     function FindIndexForFields(const Fields: string): TIndexDef;
@@ -1163,7 +1164,7 @@ type
 
 { TParam }
 
-  TBlobData = AnsiString;  // Delphi defines it as alias to TBytes
+  TBlobData = TBytes;
 
   TParamBinding = array of integer;
 
@@ -1247,7 +1248,7 @@ type
     Procedure SetBlobData(Buffer: Pointer; ASize: Integer);
     Procedure SetData(Buffer: Pointer);
     Property AsBCD : Currency read GetAsCurrency write SetAsBCD;
-    Property AsBlob : TBlobData read GetAsAnsiString write SetAsBlob;
+    Property AsBlob : TBlobData read GetAsBytes write SetAsBlob;
     Property AsBoolean : Boolean read GetAsBoolean write SetAsBoolean;
     Property AsBytes : TBytes read GetAsBytes write SetAsBytes;
     Property AsCurrency : Currency read GetAsCurrency write SetAsCurrency;
@@ -1296,6 +1297,8 @@ type
   end;
 
 { TParams }
+  TSQLParseOption = (spoCreate,spoEscapeSlash,spoEscapeRepeat,spoUseMacro);
+  TSQLParseOptions = Set of TSQLParseOption;
 
   TParams = class(TCollection)
   private
@@ -1305,6 +1308,8 @@ type
     Procedure SetItem(Index: Integer; Value: TParam);
     Procedure SetParamValue(const ParamName: string; const Value: Variant);
   protected
+    Function CreateParseOpts(DoCreate, EscapeSlash, EscapeRepeat : Boolean) : TSQLParseOptions;
+    function DoParseSQL(SQL: String; Options : TSQLParseOptions; ParameterStyle: TParamStyle; out  ParamBinding: TParambinding; MacroChar: Char; out ReplaceString: string): String; virtual;
     Procedure AssignTo(Dest: TPersistent); override;
     Function  GetDataSet: TDataSet;
     Function  GetOwner: TPersistent; override;
@@ -1325,6 +1330,7 @@ type
     Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle): String; overload;
     Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding): String; overload;
     Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding; out ReplaceString : string): String; overload;
+    function  ParseSQL(SQL: String; Options : TSQLParseOptions; ParameterStyle: TParamStyle; out ParamBinding: TParambinding; MacroChar: Char; out ReplaceString: string): String;
     Procedure RemoveParam(Value: TParam);
     Procedure CopyParamValuesFromDataset(ADataset : TDataset; CopyBound : Boolean);
     Property Dataset : TDataset Read GetDataset;
@@ -1490,6 +1496,8 @@ type
     Procedure DoInsertAppend(DoAppend : Boolean);
     Procedure DoInternalOpen;
     Function  GetBuffer (Index : longint) : TRecordBuffer;
+    function GetDatasourceCount: Integer;
+    function GetDatasources(aIndex : integer): TDatasource;
     Function  GetField (Index : Longint) : TField;
     Procedure RegisterDataSource(ADataSource : TDataSource);
     Procedure RemoveField (Field : TField);
@@ -1561,7 +1569,7 @@ type
     function  GetRecordCount: Longint; virtual;
     function  GetRecNo: Longint; virtual;
     procedure InitFieldDefs; virtual;
-    procedure InitFieldDefsFromfields;
+    procedure InitFieldDefsFromFields;
     procedure InitRecord(Buffer: TRecordBuffer); virtual;
     procedure InternalCancel; virtual;
     procedure InternalEdit; virtual;
@@ -1620,6 +1628,8 @@ type
     procedure SetUniDirectional(const Value: Boolean);
     class function FieldDefsClass : TFieldDefsClass; virtual;
     class function FieldsClass : TFieldsClass; virtual;
+    Property MyDataSources[aIndex : integer] : TDatasource Read GetDatasources;
+    Property MyDataSourceCount : Integer Read GetDatasourceCount;
   protected { abstract methods }
     function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
     procedure InternalClose; virtual; abstract;
@@ -1898,6 +1908,8 @@ type
     FOnDataChange: TDataChangeEvent;
     FOnUpdateData: TNotifyEvent;
     procedure DistributeEvent(Event: TDataEvent; Info: Ptrint);
+    function GetLink(AIndex : Integer): TDataLink;
+    function GetLinkCount: Integer;
     procedure RegisterDataLink(DataLink: TDataLink);
     Procedure ProcessEvent(Event : TDataEvent; Info : Ptrint);
     procedure SetDataSet(ADataSet: TDataSet);
@@ -1908,11 +1920,13 @@ type
     Procedure DoStateChange; virtual;
     Procedure DoUpdateData;
     property DataLinks: TList read FDataLinks;
+    Property DataLink[AIndex : Integer] : TDataLink Read GetLink;
+    Property DataLinkCount : Integer Read GetLinkCount;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Edit;
-    function IsLinkedTo(ADataSet: TDataSet): Boolean;
+    function IsLinkedTo(ADataset: TDataSet): Boolean;
     property State: TDataSetState read FState;
   published
     property AutoEdit: Boolean read FAutoEdit write FAutoEdit default True;
@@ -1947,7 +1961,7 @@ type
   Private
     FActive        : boolean;
     FDatabase      : TDatabase;
-    FDataSets      : TList;
+    FDataSets      : TThreadList;
     FOpenAfterRead : boolean;
     Function GetDataSetCount : Longint;
     Function GetDataset(Index : longint) : TDBDataset;
@@ -2038,8 +2052,8 @@ type
   private
     FConnected : Boolean;
     FDataBaseName : String;
-    FDataSets : TList;
-    FTransactions : TList;
+    FDataSets : TThreadList;
+    FTransactions : TThreadList;
     FDirectory : String;
     FKeepConnection : Boolean;
     FParams : TStrings;
@@ -2112,7 +2126,7 @@ const
       {ftCursor} varError,
       {ftFixedChar} varOleStr,
       {ftWideString} varOleStr,
-      {ftLargeint} varError,
+      {ftLargeint} varint64,
       {ftADT} varError,
       {ftArray} varError,
       {ftReference} varError,
@@ -2474,14 +2488,19 @@ end;
 Function TIndexDefs.AddIndexDef: TIndexDef;
 
 begin
-//  Result := inherited add as TIndexDef;
-  Result:=TIndexDef.Create(Self,'','',[]);
+  Result := inherited add as TIndexDef;
 end;
 
 procedure TIndexDefs.Add(const Name, Fields: string; Options: TIndexOptions);
 
+Var
+  D : TIndexDef;
+
 begin
-  TIndexDef.Create(Self,Name,Fields,Options);
+  D:=AddIndexDef;
+  D.Name:=Name;
+  D.Fields:=Fields;
+  D.Options:=Options;
 end;
 
 function TIndexDefs.Find(const IndexName: string): TIndexDef;

@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2013, 2016, 2017 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -31,6 +31,11 @@
 }
 
 constructor TX11WindowDisplay.Create(ADisplay: PDisplay; AScreen: Integer; const AFlags: TX11Flags);
+{$IFDEF ENABLE_X11_EXTENSION_XINPUT2}
+var
+  MajorVer, MinorVer: cint;
+  QueryVersionResult: TStatus;
+{$ENDIF ENABLE_X11_EXTENSION_XINPUT2}
 begin
   inherited;
   FFocus := True;
@@ -38,6 +43,34 @@ begin
   FCursorVisible := True;
   FGrabMouse := False;
   FMouseGrabbed := False;
+{$IFDEF ENABLE_X11_EXTENSION_XINPUT2}
+  if PTC_X11_TRY_XINPUT2 in FFlags then
+  begin
+    LOG('Querying the XInput2 extension...');
+    if XQueryExtension(FDisplay, 'XInputExtension', @FXInput2MajorOpCode, @FXInput2FirstEvent, @FXInput2FirstError) then
+    begin
+      LOG('There is an XInput extension, now let''s query its version...');
+      MajorVer := 2;
+      MinorVer := 0;
+      LOG('We want version ' + IntToStr(MajorVer) + '.' + IntToStr(MinorVer));
+      QueryVersionResult := XIQueryVersion(FDisplay, @MajorVer, @MinorVer);
+      if QueryVersionResult = Success then
+      begin
+        LOG('XInput2 extension is available (version ' + IntToStr(MajorVer) + '.' + IntToStr(MinorVer) + ')');
+        FXInput2Enabled := True;
+      end
+      else
+      begin
+        LOG('The required XInput version is not available (version ' + IntToStr(MajorVer) + '.' + IntToStr(MinorVer) + ' only)');
+      end;
+    end
+    else
+    begin
+      LOG('XInput2 extension not available');
+      FXInput2Enabled := False;
+    end;
+  end;
+{$ENDIF ENABLE_X11_EXTENSION_XINPUT2}
 end;
 
 destructor TX11WindowDisplay.Destroy;
@@ -45,6 +78,14 @@ begin
   Close;
   inherited Destroy;
 end;
+
+{$warning remove, when fix added to xlib}
+function XGetIMValues(para1:PXIM; dotdotdot:array of const):Pchar;cdecl;external libX11;
+function XGetICValues(para1:PXIC; dotdotdot:array of const):Pchar;cdecl;external libX11;
+
+{function fpsetlocale(category: cint; locale: Pchar): PChar;cdecl;external 'c' name 'setlocale';
+const
+  LC_ALL = 6;}
 
 procedure TX11WindowDisplay.Open(ATitle: AnsiString; AWidth, AHeight: Integer; AFormat: IPTCFormat; const AOpenGLAttributes: IPTCOpenGLAttributes);
 var
@@ -62,6 +103,119 @@ var
   BlankCursorData: array [1..8] of Byte = (0, 0, 0, 0, 0, 0, 0, 0);
   CreateWindow_Depth: cint;
   CreateWindow_Visual: PVisual;
+{$IFDEF ENABLE_X11_EXTENSION_XINPUT2}
+  XInput2EventMask: TXIEventMask;
+{$ENDIF ENABLE_X11_EXTENSION_XINPUT2}
+  selected_im_style: TXIMStyle = 0;
+  im_event_mask: clong = 0;
+
+  function IMStyleToStr(style: TXIMStyle): string;
+  begin
+    Result := '';
+    if (style and XIMPreeditArea) <> 0 then
+      Result := Result + ' XIMPreeditArea';
+    if (style and XIMPreeditCallbacks) <> 0 then
+      Result := Result + ' XIMPreeditCallbacks';
+    if (style and XIMPreeditPosition) <> 0 then
+      Result := Result + ' XIMPreeditPosition';
+    if (style and XIMPreeditNothing) <> 0 then
+      Result := Result + ' XIMPreeditNothing';
+    if (style and XIMPreeditNone) <> 0 then
+      Result := Result + ' XIMPreeditNone';
+    if (style and XIMStatusArea) <> 0 then
+      Result := Result + ' XIMStatusArea';
+    if (style and XIMStatusCallbacks) <> 0 then
+      Result := Result + ' XIMStatusCallbacks';
+    if (style and XIMStatusNothing) <> 0 then
+      Result := Result + ' XIMStatusNothing';
+    if (style and XIMStatusNone) <> 0 then
+      Result := Result + ' XIMStatusNone';
+    if Length(Result) > 0 then
+      Delete(Result, 1, 1);
+    Result := IntToStr(style) + ' (' + Result + ')';
+  end;
+
+  procedure TryCreateIM;
+  const
+    PreferredStyle = XIMPreeditNothing or XIMStatusNothing;
+{    PreferredStyle = XIMPreeditNone or XIMStatusNone;}
+  var
+    im_supported_styles: PXIMStyles;
+    locale_modifiers: PChar;
+    I: Integer;
+  begin
+{    LOG('setting locale');
+    if fpsetlocale(LC_ALL, '') = nil then
+      LOG('set locale failed');}
+
+    { Check if X11 supports the current locale }
+    LOG('checking X11 support for the current locale');
+    if XSupportsLocale = 0 then
+    begin
+      LOG('locale not supported');
+      exit;
+    end;
+    LOG('locale supported');
+
+    LOG('setting locale modifiers');
+    locale_modifiers := XSetLocaleModifiers('@im=none');
+    if locale_modifiers = nil then
+    begin
+      LOG('XSetLocaleModifiers failed');
+    end
+    else
+    begin
+      LOG('XSetLocaleModifiers success; returned', locale_modifiers);
+    end;
+
+    { Open IM }
+    LOG('opening input method');
+    FXIM := XOpenIM(FDisplay, nil, '', '');
+    LOG('input method (ptr)', HexStr(FXIM));
+
+    { Select IM input style }
+    if Assigned(FXIM) then
+    begin
+      LOG('querying the supported input styles');
+      XGetIMValues(FXIM, [XNQueryInputStyle, @im_supported_styles, nil]);
+
+      if Assigned(im_supported_styles) then
+      begin
+        LOG('number of styles', im_supported_styles^.count_styles);
+        for I := 0 to im_supported_styles^.count_styles - 1 do
+        begin
+          LOG('style', IMStyleToStr(im_supported_styles^.supported_styles[I]));
+          if (im_supported_styles^.supported_styles[I] and PreferredStyle) = PreferredStyle then
+            selected_im_style := im_supported_styles^.supported_styles[I];
+        end;
+        XFree(im_supported_styles);
+        LOG('selected style', IMStyleToStr(selected_im_style));
+      end;
+    end;
+  end;
+
+  procedure TryCreateIC;
+  begin
+    if Assigned(FXIM) and (selected_im_style <> 0) then
+    begin
+      LOG('creating input context');
+      FXIC := XCreateIC(FXIM, [XNInputStyle, selected_im_style,
+                               XNClientWindow, FWindow,
+                               XNFocusWindow, FWindow, nil]);
+      LOG('input context (ptr)', HexStr(FXIC));
+
+      if Assigned(FXIC) then
+      begin
+        LOG('setting input context focus');
+        XSetICFocus(FXIC);
+
+        LOG('getting the IM event mask');
+        XGetICValues(FXIC, [XNFilterEvents, @im_event_mask, nil]);
+        LOG('IM event mask', im_event_mask);
+      end;
+    end;
+  end;
+
 begin
   FHeight := AHeight;
   FWidth := AWidth;
@@ -81,6 +235,10 @@ begin
   BlackColor.red := 0;
   BlackColor.green := 0;
   BlackColor.blue := 0;
+
+  { Try to open an input method }
+  if PTC_X11_TRY_XIM in FFlags then
+    TryCreateIM;
 
   { Create the mode switcher object }
   if (FModeSwitcher = Nil) and FFullScreen then
@@ -205,12 +363,39 @@ begin
     if e._type = MapNotify then
       Break;
   until False;
+
+  { Try to create an input context for the input method }
+  if PTC_X11_TRY_XIM in FFlags then
+    TryCreateIC;
+
   { Get keyboard input and sync }
   XSelectInput(FDisplay, FWindow, KeyPressMask or KeyReleaseMask or
                                   StructureNotifyMask or FocusChangeMask or
                                   ButtonPressMask or ButtonReleaseMask or
-                                  PointerMotionMask or ExposureMask);
+                                  PointerMotionMask or ExposureMask or
+                                  EnterWindowMask or LeaveWindowMask or im_event_mask);
   XSync(FDisplay, False);
+
+{$IFDEF ENABLE_X11_EXTENSION_XINPUT2}
+  { enable XInput2 raw mouse input for the window as well }
+  if FXInput2Enabled then
+  begin
+    FillChar(XInput2EventMask, SizeOf(XInput2EventMask), 0);
+    XInput2EventMask.deviceid := XIAllMasterDevices;
+
+    XInput2EventMask.mask_len := XIMaskLen(XI_LASTEVENT);
+    XInput2EventMask.mask := AllocMem(XInput2EventMask.mask_len);
+    try
+      XISetMask(XInput2EventMask.mask, XI_RawMotion);
+      XISetMask(XInput2EventMask.mask, XI_RawButtonPress);
+      XISetMask(XInput2EventMask.mask, XI_RawButtonRelease);
+
+      XISelectEvents(FDisplay, RootWindow(FDisplay, FScreen){FWindow}, @XInput2EventMask, 1);
+    finally
+      FreeMem(XInput2EventMask.mask);
+    end;
+  end;
+{$ENDIF ENABLE_X11_EXTENSION_XINPUT2}
 
   if not (PTC_X11_USE_OPENGL in FFlags) then
   begin
@@ -266,6 +451,20 @@ begin
 {$IFDEF ENABLE_X11_EXTENSION_GLX}
   FreeAndNil(FGLXFBConfig);
 {$ENDIF ENABLE_X11_EXTENSION_GLX}
+
+  if Assigned(FXIC) then
+  begin
+    LOG('destroying input context');
+    XDestroyIC(FXIC);
+    FXIC := nil;
+  end;
+
+  if Assigned(FXIM) then
+  begin
+    LOG('closing input method');
+    XCloseIM(FXIM);
+    FXIM := nil;
+  end;
 
   {pthreads?!}
   if FCMap <> 0 then
@@ -392,6 +591,15 @@ begin
     internal_GrabMouse(FGrabMouse);
 end;
 
+function TX11WindowDisplay.SetRelativeMouseMode(ARelativeMouseMode: Boolean): Boolean;
+begin
+{$IFDEF ENABLE_X11_EXTENSION_XINPUT2}
+  if FXInput2Enabled then
+    FRelativeMouseMode := ARelativeMouseMode;
+{$ENDIF ENABLE_X11_EXTENSION_XINPUT2}
+  Result := ARelativeMouseMode = FRelativeMouseMode;
+end;
+
 procedure TX11WindowDisplay.EnterFullScreen;
 begin
   { try to switch mode }
@@ -480,6 +688,22 @@ var
     before, after: Boolean;
     cstate: TPTCMouseButtonState;
   begin
+{$IFDEF ENABLE_X11_EXTENSION_XINPUT2}
+    { if XInput2 is enabled, and we're in relative mouse mode, then don't handle
+    the regular mouse events -> use the XInput2 raw mouse events in this case }
+    if FXInput2Enabled and FRelativeMouseMode then
+      exit;
+{$ENDIF ENABLE_X11_EXTENSION_XINPUT2}
+    if not FPreviousMousePositionSaved then
+    begin
+      FPreviousMouseX := -1; { -1 indicates relative mouse mode }
+      FPreviousMouseY := -1; { -1 indicates relative mouse mode }
+      FPreviousMouseButtonState := [];
+      PTCMouseButtonState := [];
+    end
+    else
+      PTCMouseButtonState := FPreviousMouseButtonState
+        - [PTCMouseButton1, PTCMouseButton2, PTCMouseButton3, PTCMouseButton4, PTCMouseButton5];
     case e._type of
       MotionNotify: begin
         x := e.xmotion.x;
@@ -498,6 +722,8 @@ var
             Button3: state := state or Button3Mask;
             Button4: state := state or Button4Mask;
             Button5: state := state or Button5Mask;
+            6..Ord(High(TPTCMouseButton))+1:
+              Include(PTCMouseButtonState, TPTCMouseButton((Ord(PTCMouseButton6)-6)+e.xbutton.button));
           end;
         end
         else
@@ -508,6 +734,8 @@ var
             Button3: state := state and (not Button3Mask);
             Button4: state := state and (not Button4Mask);
             Button5: state := state and (not Button5Mask);
+            6..Ord(High(TPTCMouseButton))+1:
+              Exclude(PTCMouseButtonState, TPTCMouseButton((Ord(PTCMouseButton6)-6)+e.xbutton.button));
           end;
         end;
       end;
@@ -515,10 +743,8 @@ var
         raise TPTCError.Create('Internal Error');
     end;
 
-    if (state and Button1Mask) = 0 then
-      PTCMouseButtonState := []
-    else
-      PTCMouseButtonState := [PTCMouseButton1];
+    if (state and Button1Mask) <> 0 then
+      PTCMouseButtonState := PTCMouseButtonState + [PTCMouseButton1];
     if (state and Button2Mask) <> 0 then
       PTCMouseButtonState := PTCMouseButtonState + [PTCMouseButton3];
     if (state and Button3Mask) <> 0 then
@@ -535,6 +761,12 @@ var
         FPreviousMouseX := x; { first DeltaX will be 0 }
         FPreviousMouseY := y; { first DeltaY will be 0 }
         FPreviousMouseButtonState := [];
+      end
+      { there's a previous mouse state saved, but it was in relative mouse mode? }
+      else if (FPreviousMouseX = -1) or (FPreviousMouseY = -1) then
+      begin
+        FPreviousMouseX := x; { first DeltaX after relative mouse mode will be 0 }
+        FPreviousMouseY := y; { first DeltaY after relative mouse mode will be 0 }
       end;
 
       { movement? }
@@ -581,11 +813,149 @@ var
     FPreviousHeight := e.xconfigure.height;
   end;
 
+{$IFDEF ENABLE_X11_EXTENSION_XINPUT2}
+  procedure HandleXInput2RawEvent(const xi2e: TXIRawEvent);
+  var
+    I: Integer;
+    MovementXAccelerated: cdouble = 0;
+    MovementXRaw: cdouble = 0;
+    MovementXRawInt: Integer = 0;
+    MovementXAvailable: Boolean = False;
+    MovementYAccelerated: cdouble = 0;
+    MovementYRaw: cdouble = 0;
+    MovementYRawInt: Integer = 0;
+    MovementYAvailable: Boolean = False;
+    valptr, rawptr: Pcdouble;
+    PTCMouseButtonState: TPTCMouseButtonState;
+
+    button: TPTCMouseButton;
+    before, after: Boolean;
+    cstate: TPTCMouseButtonState;
+  begin
+{    Writeln(xi2e.evtype, ' ', xi2e.detail);
+    valptr := xi2e.valuators.values;
+    rawptr := xi2e.raw_values;
+    for I := 0 to xi2e.valuators.mask_len*8 - 1 do
+      if XIMaskIsSet(xi2e.valuators.mask, I) then
+      begin
+        Writeln('Valuator ', I, ' value=', valptr^:0:50, ' raw=', rawptr^:0:50);
+        Inc(valptr);
+        Inc(rawptr);
+      end;}
+
+    { when not in relative mouse mode, we use the regular X11 mouse events }
+    if not FRelativeMouseMode then
+      exit;
+
+    if not FPreviousMousePositionSaved then
+    begin
+      FPreviousMouseX := -1; { -1 indicates relative mouse mode }
+      FPreviousMouseY := -1; { -1 indicates relative mouse mode }
+      FPreviousMouseButtonState := [];
+    end;
+
+    if (xi2e.evtype = XI_RawButtonPress) or (xi2e.evtype = XI_RawButtonRelease) then
+    begin
+      PTCMouseButtonState := FPreviousMouseButtonState;
+      if xi2e.evtype = XI_RawButtonPress then
+        case xi2e.detail of
+          Button1: PTCMouseButtonState := PTCMouseButtonState + [PTCMouseButton1];
+          Button2: PTCMouseButtonState := PTCMouseButtonState + [PTCMouseButton3];
+          Button3: PTCMouseButtonState := PTCMouseButtonState + [PTCMouseButton2];
+          Button4: PTCMouseButtonState := PTCMouseButtonState + [PTCMouseButton4];
+          Button5: PTCMouseButtonState := PTCMouseButtonState + [PTCMouseButton5];
+          6..Ord(High(TPTCMouseButton))+1:
+            Include(PTCMouseButtonState, TPTCMouseButton((Ord(PTCMouseButton6)-6)+xi2e.detail));
+        end
+      else
+        case xi2e.detail of
+          Button1: PTCMouseButtonState := PTCMouseButtonState - [PTCMouseButton1];
+          Button2: PTCMouseButtonState := PTCMouseButtonState - [PTCMouseButton3];
+          Button3: PTCMouseButtonState := PTCMouseButtonState - [PTCMouseButton2];
+          Button4: PTCMouseButtonState := PTCMouseButtonState - [PTCMouseButton4];
+          Button5: PTCMouseButtonState := PTCMouseButtonState - [PTCMouseButton5];
+          6..Ord(High(TPTCMouseButton))+1:
+            Exclude(PTCMouseButtonState, TPTCMouseButton((Ord(PTCMouseButton6)-6)+xi2e.detail));
+        end;
+    end
+    else
+      PTCMouseButtonState := FPreviousMouseButtonState;
+
+    if xi2e.valuators.mask_len > 0 then
+    begin
+      valptr := xi2e.valuators.values;
+      rawptr := xi2e.raw_values;
+      if XIMaskIsSet(xi2e.valuators.mask, 0) then
+      begin
+        MovementXAccelerated := valptr^;
+        MovementXRaw := rawptr^;
+        MovementXRawInt := Round(MovementXRaw);
+        MovementXAvailable := True;
+        Inc(valptr);
+        Inc(rawptr);
+      end;
+      if XIMaskIsSet(xi2e.valuators.mask, 1) then
+      begin
+        MovementYAccelerated := valptr^;
+        MovementYRaw := rawptr^;
+        MovementYRawInt := Round(MovementYRaw);
+        MovementYAvailable := True;
+        Inc(valptr);
+        Inc(rawptr);
+      end;
+    end;
+
+    { movement? }
+    if (MovementXRawInt <> 0) or (MovementYRawInt <> 0) then
+      FEventQueue.AddEvent(TPTCMouseEvent.Create(-1, -1, MovementXRawInt, MovementYRawInt, FPreviousMouseButtonState));
+
+    { button presses/releases? }
+    cstate := FPreviousMouseButtonState;
+    for button := Low(button) to High(button) do
+    begin
+      before := button In FPreviousMouseButtonState;
+      after := button In PTCMouseButtonState;
+      if after and (not before) then
+      begin
+        { button was pressed }
+        cstate := cstate + [button];
+        FEventQueue.AddEvent(TPTCMouseButtonEvent.Create(-1, -1, 0, 0, cstate, True, button));
+      end
+      else
+        if before and (not after) then
+        begin
+          { button was released }
+          cstate := cstate - [button];
+          FEventQueue.AddEvent(TPTCMouseButtonEvent.Create(-1, -1, 0, 0, cstate, False, button));
+        end;
+    end;
+
+    FPreviousMouseX := -1;
+    FPreviousMouseY := -1;
+    FPreviousMouseButtonState := PTCMouseButtonState;
+    FPreviousMousePositionSaved := True;
+  end;
+{$ENDIF ENABLE_X11_EXTENSION_XINPUT2}
+
+var
+{$IFDEF ENABLE_X11_EXTENSION_XINPUT2}
+  XInput2Event: PXIDeviceEvent;
+{$ENDIF ENABLE_X11_EXTENSION_XINPUT2}
+  eaten_by_im: Boolean = False;
 begin
   NewFocusSpecified := False;
   while UsefulEventsPending do
   begin
     XNextEvent(FDisplay, @e);
+    { maybe send the event to the Input Method for processing. Only non-key
+      events are sent here (key events are sent in HandleKeyEvent instead) }
+    if Assigned(FXIM) and Assigned(FXIC) and
+      (e._type <> KeyPress) and (e._type <> KeyRelease) then
+    begin
+      eaten_by_im := XFilterEvent(@e, FWindow);
+      if eaten_by_im then
+        exit;
+    end;
     case e._type of
       FocusIn: begin
         NewFocus := True;
@@ -609,6 +979,30 @@ begin
       ConfigureNotify: HandleConfigureNotifyEvent;
       KeyPress, KeyRelease: HandleKeyEvent(e.xkey);
       ButtonPress, ButtonRelease, MotionNotify: HandleMouseEvent;
+      EnterNotify: begin
+        { clear the high (>=6) numbered mouse buttons, because the mouse events contain no state information for them }
+        FPreviousMouseButtonState := FPreviousMouseButtonState
+          * [PTCMouseButton1, PTCMouseButton2, PTCMouseButton3, PTCMouseButton4, PTCMouseButton5];
+      end;
+{$IFDEF ENABLE_X11_EXTENSION_XINPUT2}
+      GenericEvent: begin
+        if e.xcookie.extension = FXInput2MajorOpCode then
+        begin
+          if XGetEventData(FDisplay, @e.xcookie) then
+            try
+              XInput2Event := e.xcookie.data;
+              case XInput2Event^.evtype of
+                XI_RawButtonPress,
+                XI_RawButtonRelease,
+                XI_RawMotion:
+                  HandleXInput2RawEvent(PXIRawEvent(XInput2Event)^);
+              end;
+            finally
+              XFreeEventData(FDisplay, @e.xcookie);
+            end;
+        end;
+      end;
+{$ENDIF ENABLE_X11_EXTENSION_XINPUT2}
     end;
   end;
   if NewFocusSpecified then
@@ -616,6 +1010,14 @@ begin
 
   if FFocus then
     internal_GrabMouse(FGrabMouse);
+end;
+
+function TX11WindowDisplay.MoveMouseTo(X, Y: Integer): Boolean;
+begin
+  if not FOpen or (X < 0) or (Y < 0) or (X >= FWidth) or (Y >= FHeight) then
+    exit(False);
+  XWarpPointer(FDisplay, None, FWindow, 0, 0, 0, 0, X, Y);
+  Result := True;
 end;
 
 procedure TX11WindowDisplay.Draw;

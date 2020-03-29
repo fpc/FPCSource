@@ -259,6 +259,8 @@ const
 
 implementation
 
+{$define RELBRANCHES}
+
 {$i avrcommon.inc}
 
 procedure INT0_ISR; external name 'INT0_ISR'; // Interrupt 1 External Interrupt Request 0
@@ -287,25 +289,25 @@ label
    .init
    .globl _start
 
-   jmp _start
-   jmp INT0_ISR
-   jmp INT1_ISR
-   jmp TIMER2_COMP_ISR
-   jmp TIMER2_OVF_ISR
-   jmp TIMER1_CAPT_ISR
-   jmp TIMER1_COMPA_ISR
-   jmp TIMER1_COMPB_ISR
-   jmp TIMER1_OVF_ISR
-   jmp TIMER0_OVF_ISR
-   jmp SPI__STC_ISR
-   jmp USART__RXC_ISR
-   jmp USART__UDRE_ISR
-   jmp USART__TXC_ISR
-   jmp ADC_ISR
-   jmp EE_RDY_ISR
-   jmp ANA_COMP_ISR
-   jmp TWI_ISR
-   jmp SPM_RDY_ISR
+   rjmp _start
+   rjmp INT0_ISR
+   rjmp INT1_ISR
+   rjmp TIMER2_COMP_ISR
+   rjmp TIMER2_OVF_ISR
+   rjmp TIMER1_CAPT_ISR
+   rjmp TIMER1_COMPA_ISR
+   rjmp TIMER1_COMPB_ISR
+   rjmp TIMER1_OVF_ISR
+   rjmp TIMER0_OVF_ISR
+   rjmp SPI__STC_ISR
+   rjmp USART__RXC_ISR
+   rjmp USART__UDRE_ISR
+   rjmp USART__TXC_ISR
+   rjmp ADC_ISR
+   rjmp EE_RDY_ISR
+   rjmp ANA_COMP_ISR
+   rjmp TWI_ISR
+   rjmp SPM_RDY_ISR
 
    {$i start.inc}
 

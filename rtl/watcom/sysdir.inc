@@ -2,11 +2,12 @@
                            Directory Handling
 *****************************************************************************}
 
-procedure DosDir(func:byte;const s:rawbytestring);
+procedure DosDir(func:byte;s:rawbytestring);
 var
   buffer : array[0..255] of char;
   regs   : trealregs;
 begin
+  DoDirSeparators(s);
   if length(s)>255 then
     begin
       inoutres:=3;
@@ -14,7 +15,6 @@ begin
     end;
   move(s[1],buffer,length(s));
   buffer[length(s)]:=#0;
-  DoDirSeparators(pchar(@buffer));
   { True DOS does not like backslashes at end
     Win95 DOS accepts this !!
     but "\" and "c:\" should still be kept and accepted hopefully PM }

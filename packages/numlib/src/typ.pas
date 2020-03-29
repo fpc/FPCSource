@@ -35,21 +35,28 @@ Also some stuff had to be added to get ipf running (vector object and
 complex.inp and scale methods)
  }
 
+{$mode objfpc}{$H+}
+{$modeswitch nestedprocvars}
+
 unit typ;
 
 {$I DIRECT.INC}                 {Contains "global" compilerswitches which
                                   are imported into every unit of the library }
 
-{$DEFINE ArbExtended}
 
 interface
+
+uses
+  Math;
+
+{$if sizeof(extended)=10}
+{$DEFINE ArbExtended}
+{$endif}
 
 
 CONST numlib_version=2;         {used to detect version conflicts between
                                   header unit and dll}
-      highestelement=20000;     {Maximal n x m dimensions of matrix.
-                                 +/- highestelement*SIZEOF(arbfloat) is
-                                  minimal size of matrix.}
+
 type {Definition of base types}
 {$IFDEF ArbExtended}
       ArbFloat    = extended;
@@ -68,10 +75,8 @@ CONST {Some constants for the variables below, in binary formats.}
     TC1 :  Float8Arb  = ($00,$00,$00,$00,$00,$00,$B0,$3C);
     TC2 :  Float8Arb  = ($FF,$FF,$FF,$FF,$FF,$FF,$EF,$7F);
     TC3 :  Float8Arb  = ($00,$00,$00,$00,$01,$00,$10,$00);
-    TC4 :  Float8Arb  = ($00,$00,$00,$00,$00,$00,$F0,$7F);
     TC5 :  Float8Arb  = ($EF,$39,$FA,$FE,$42,$2E,$86,$40);
     TC6 :  Float8Arb  = ($D6,$BC,$FA,$BC,$2B,$23,$86,$C0);
-    TC7 :  Float8Arb  = ($FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF);
 {$ENDIF}
 
      {For Extended}
@@ -79,10 +84,8 @@ CONST {Some constants for the variables below, in binary formats.}
     TC1 : Float10Arb = (0,0,$00,$00,$00,$00,0,128,192,63);         {Eps}
     TC2 : Float10Arb = ($FF,$FF,$FF,$FF,$FF,$FF,$FF,$D6,$FE,127);  {9.99188560553925115E+4931}
     TC3 : Float10Arb = (1,0,0,0,0,0,0,0,0,0);                      {3.64519953188247460E-4951}
-    TC4 : Float10Arb = (0,0,0,0,0,0,0,$80,$FF,$7F);                {Inf}
     TC5 : Float10Arb = (18,25,219,91,61,101,113,177,12,64);        {1.13563488668777920E+0004}
     TC6 : Float10Arb = (108,115,3,170,182,56,27,178,12,192);       {-1.13988053843083006E+0004}
-    TC7 : Float10Arb = ($FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF);  {NaN}
 {$ENDIF}
   { numdig  is the number of useful (safe) decimal places of an "ArbFloat"
             for display.
@@ -100,11 +103,8 @@ var
                                         the smallest ArbFloat > 1}
     giant    : ArbFloat absolute TC2;  { the largest ArbFloat}
     midget   : ArbFloat absolute TC3;  { the smallest positive ArbFloat}
-    infinity : ArbFloat absolute TC4;  { INF as defined in IEEE-754(double)
-                                         or intel (for extended)}
     LnGiant  : ArbFloat absolute TC5;  {ln of giant}
     LnMidget : ArbFloat absolute TC6;  {ln of midget}
-    NaN      : ArbFloat absolute TC7;  {Not A Number}
 
 {Copied from Det. Needs ArbExtended conditional}
 const               {  og = 8^-maxexp, ogý>=midget,
@@ -182,10 +182,9 @@ type
                        offsetx, offsety, scalex, scaley: ArbFloat
                  end;
 
-
-
      {Standard Functions used in NumLib}
      rfunc1r    = Function(x : ArbFloat): ArbFloat;
+     rfunc1rn   = Function(x : ArbFloat): ArbFloat is nested;
      rfunc2r    = Function(x, y : ArbFloat): ArbFloat;
 
      {Complex version}
@@ -195,33 +194,47 @@ type
      oderk1n    = procedure(x: ArbFloat; var y, f: ArbFloat);
      roofnrfunc = procedure(var x, fx: ArbFloat; var deff: boolean);
 
+
+ {Maximal n x m dimensions of matrix.
+  +/- highestelement*SIZEOF(elementtype) is
+  minimal size of matrix.}
+const
+  highestfloatelement = High(ArbInt) div SizeOf(ArbFloat);
+  highestptrelement = High(ArbInt) div SizeOf(Pointer);
+  highestintelement = High(ArbInt) div SizeOf(ArbInt);
+  highestboolelement = High(ArbInt) div SizeOf(boolean);
+  highestcomplexelement = High(ArbInt) div SizeOf(complex);
+  highestvectorelement = High(ArbInt) div SizeOf(vector);
+
+
+type
      {Definition of matrix types in NumLib. First some vectors.
       The high boundery is a maximal number only. Vectors can be smaller, but
       not bigger. The difference is the starting number}
-     arfloat0   = array[0..highestelement] of ArbFloat;
-     arfloat1   = array[1..highestelement] of ArbFloat;
-     arfloat2   = array[2..highestelement] of ArbFloat;
-     arfloat_1  = array[-1..highestelement] of ArbFloat;
+     arfloat0   = array[0..highestfloatelement-1] of ArbFloat;
+     arfloat1   = array[1..highestfloatelement] of ArbFloat;
+     arfloat2   = array[2..highestfloatelement+1] of ArbFloat;
+     arfloat_1  = array[-1..highestfloatelement-2] of ArbFloat;
 
      {A matrix is an array of floats}
-     ar2dr      = array[0..highestelement] of ^arfloat0;
-     ar2dr1     = array[1..highestelement] of ^arfloat1;
+     ar2dr      = array[0..highestptrelement-1] of ^arfloat0;
+     ar2dr1     = array[1..highestptrelement] of ^arfloat1;
 
      {Matrices can get big, so we mosttimes allocate them on the heap.}
      par2dr1    = ^ar2dr1;
 
      {Integer vectors}
-     arint0     = array[0..highestelement] of ArbInt;
-     arint1     = array[1..highestelement] of ArbInt;
+     arint0     = array[0..highestintelement-1] of ArbInt;
+     arint1     = array[1..highestintelement] of ArbInt;
 
      {Boolean (true/false) vectors}
-     arbool1    = array[1..highestelement] of boolean;
+     arbool1    = array[1..highestboolelement] of boolean;
 
      {Complex vectors}
-     arcomp0    = array[0..highestelement] of complex;
-     arcomp1    = array[1..highestelement] of complex;
-     arvect0    = array[0..highestelement] of vector;
-     vectors    = array[1..highestelement] of vector;
+     arcomp0    = array[0..highestcomplexelement-1] of complex;
+     arcomp1    = array[1..highestcomplexelement] of complex;
+     arvect0    = array[0..highestvectorelement-1] of vector;
+     vectors    = array[1..highestvectorelement] of vector;
 
      parcomp    = ^arcomp1;
 

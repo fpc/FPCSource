@@ -15,7 +15,19 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-fprcp');
-    P.ShortName:='fprcp';
+    P.ShortName:='fprc';
+    { java and jvm-android do not support 
+      getmem/freemem and new/dispose used in
+      these sources }
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+    { palmos does not have classes }
+    P.OSes := P.OSes - [palmos];
+    { Program does not fit in 16-bit memory constraints }
+    P.OSes := P.OSes - [msdos,win16];
+    { avr-embedded and i8086-embedded have not floating point support by default }
+    if Defaults.CPU in [avr,i8086] then
+      P.OSes := P.OSes - [embedded];
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
@@ -27,7 +39,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
     T:=P.Targets.AddProgram('fprcp.pp');
     T.Dependencies.AddUnit('comments');

@@ -12,6 +12,7 @@ unit avrsim;
       OUTPUTREG   : byte absolute $20;
       EXITCODEREG : byte absolute $21;
       HALTREQUEST : byte absolute $22;
+      EXCEPTIONJMPZERO : boolean absolute 52;
 
     {$define DOCALL:=call}
     {$define DOJMP:=jmp}
@@ -23,8 +24,7 @@ unit avrsim;
 
     procedure PASCALMAIN; external name 'PASCALMAIN';
 
-    procedure _FPC_haltproc(exitcode : longint); public name '_haltproc'; noreturn;
-
+    procedure _FPC_haltproc; public name '_haltproc'; noreturn;
       begin
         EXITCODEREG:=exitcode;
         HALTREQUEST:=1;
@@ -72,10 +72,10 @@ unit avrsim;
 
 
 begin
+  EXCEPTIONJMPZERO:=true;
   OpenIO(Input, @WriteChar, @ReadChar, fmInput, nil);
   OpenIO(Output, @WriteChar, @ReadChar, fmOutput, nil);
   OpenIO(ErrOutput, @WriteChar, @ReadChar, fmOutput, nil);
   OpenIO(StdOut, @WriteChar, @ReadChar, fmOutput, nil);
   OpenIO(StdErr, @WriteChar, @ReadChar, fmOutput, nil);
 end.
-

@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2007, 2009-2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2007, 2009-2013, 2016  Nikolay Nikolov (nickysn@users.sourceforge.net)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -154,7 +154,9 @@ type
     function NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; override;
     function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent; override;
 
+    function MoveMouseTo(X, Y: Integer): Boolean; override;
+
     procedure OpenGL_SwapBuffers; override;
-	procedure OpenGL_SetSwapInterval(AInterval: Integer); override;
-	function OpenGL_GetSwapInterval: Integer; override;
+    procedure OpenGL_SetSwapInterval(AInterval: Integer); override;
+    function OpenGL_GetSwapInterval: Integer; override;
   end;

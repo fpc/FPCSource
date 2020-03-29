@@ -16,9 +16,6 @@ Unit Unix;
 Interface
 
 Uses
-{$ifdef android}
-  cwstring,
-{$endif android}
   BaseUnix,UnixType;
 // If you deprecated new symbols, please annotate the version.
 // this makes it easier to decide if they can already be removed.
@@ -917,6 +914,8 @@ var
   pl   : ^cint;
 begin
   AssignStream:=-1;
+  if fpAccess(prog,X_OK)<>0 then
+    exit(-1);
   if AssignPipe(streamin,pipo)=-1 Then
    exit(-1);
   if AssignPipe(pipi,streamout)=-1 Then
@@ -988,7 +987,8 @@ var
   pl: ^cint;
 begin
   AssignStream := -1;
-
+  if fpAccess(prog,X_OK)<>0 then
+    exit(-1);
   // Assign pipes
   if AssignPipe(StreamIn, PipeOut)=-1 Then
    Exit(-1);

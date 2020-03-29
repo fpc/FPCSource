@@ -559,6 +559,11 @@ begin
             FScriptEndTag := '</' + HTMLElementProps[FStack[FNesting-1]].Name;
             FScriptEndMatchPos := 1;
           end;
+          if (efSubcontent*HTMLElementProps[FStack[FNesting-1]].Flags=[]) then begin
+            // do not push empty elements, don't wait for AutoClose
+            DoEndElement('', TagName, '');
+            NamePop;
+          end;
         end;
         if Assigned(Attr) then
           Attr.Free;
@@ -570,8 +575,8 @@ begin
     scScript:
       begin
         DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
-        DoEndElement('', HTMLElementProps[FStack[FNesting-1]].Name, '');
-        namePop;
+        DoEndElement('', Copy(FScriptEndTag, 3), '');
+        NamePop;
         FScriptEndTag := '';
       end;
   end;
@@ -668,6 +673,7 @@ begin
   NodeInfo := THTMLNodeInfo.Create;
   NodeInfo.NodeType := ntTag;
   NodeInfo.DOMNode := Element;
+  NodeInfo.Closed := false;
   if IsFragmentMode then
   begin
     if not FragmentRootSet then

@@ -30,7 +30,7 @@ const
   { Length constants. }
   Tab_Stop_Length = 74;
 
-{$ifdef PPC_BP}
+{$ifdef BIT_16}
   MaxLineLength  = 1024;
   MinBufLength   = $1000;
   MaxBufLength   = $ff00;
@@ -1180,7 +1180,7 @@ procedure TIndicator.Draw;
 VAR
   Color : Byte;
   Frame : Char;
-  L     : array[0..1] of Longint;
+  L     : array[0..1] of PtrInt;
   S     : String[15];
   B     : TDrawBuffer;
 begin

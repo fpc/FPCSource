@@ -30,10 +30,6 @@ interface
       globtype,
       symconst,symtype,symbase,symdef,symsym;
 
-    { the JVM specs require that you add a default parameterless
-      constructor in case the programmer hasn't specified any }
-    procedure maybe_add_public_default_java_constructor(obj: tabstractrecorddef);
-
     { records are emulated via Java classes. They require a default constructor
       to initialise temps, a deep copy helper for assignments, and clone()
       to initialse dynamic arrays }
@@ -56,136 +52,9 @@ implementation
     verbose,globals,systems,
     fmodule,
     parabase,aasmdata,
-    pdecsub,ngenutil,pparautl,
+    ngenutil,pparautl,
     symtable,symcreat,defcmp,jvmdef,symcpu,nobj,
     defutil,paramgr;
-
-
-    { the JVM specs require that you add a default parameterless
-      constructor in case the programmer hasn't specified any }
-    procedure maybe_add_public_default_java_constructor(obj: tabstractrecorddef);
-      var
-        sym: tsym;
-        ps: tprocsym;
-        pd: tprocdef;
-        topowner: tdefentry;
-        i: longint;
-        sstate: tscannerstate;
-        needclassconstructor: boolean;
-      begin
-        ps:=nil;
-        { if there is at least one constructor for a class, do nothing (for
-           records, we'll always also need a parameterless constructor) }
-        if not is_javaclass(obj) or
-           not (oo_has_constructor in obj.objectoptions) then
-          begin
-            { check whether the parent has a parameterless constructor that we can
-              call (in case of a class; all records will derive from
-              java.lang.Object or a shim on top of that with a parameterless
-              constructor) }
-            if is_javaclass(obj) then
-              begin
-                pd:=nil;
-                { childof may not be assigned in case of a parser error }
-                if not assigned(tobjectdef(obj).childof) then
-                  exit;
-                sym:=tsym(tobjectdef(obj).childof.symtable.find('CREATE'));
-                if assigned(sym) and
-                   (sym.typ=procsym) then
-                  pd:=tprocsym(sym).find_bytype_parameterless(potype_constructor);
-                if not assigned(pd) then
-                  begin
-                    Message(sym_e_no_matching_inherited_parameterless_constructor);
-                    exit
-                  end;
-              end;
-            { we call all constructors CREATE, because they don't have a name in
-              Java and otherwise we can't determine whether multiple overloads
-              are created with the same parameters }
-            sym:=tsym(obj.symtable.find('CREATE'));
-            if assigned(sym) then
-              begin
-                { does another, non-procsym, symbol already exist with that name? }
-                if (sym.typ<>procsym) then
-                  begin
-                    Message1(sym_e_duplicate_id_create_java_constructor,sym.realname);
-                    exit;
-                  end;
-                ps:=tprocsym(sym);
-                { is there already a parameterless function/procedure create? }
-                pd:=ps.find_bytype_parameterless(potype_function);
-                if not assigned(pd) then
-                  pd:=ps.find_bytype_parameterless(potype_procedure);
-                if assigned(pd) then
-                  begin
-                    Message1(sym_e_duplicate_id_create_java_constructor,pd.fullprocname(false));
-                    exit;
-                  end;
-              end;
-            if not assigned(sym) then
-              begin
-                ps:=cprocsym.create('Create');
-                obj.symtable.insert(ps);
-              end;
-            { determine symtable level }
-            topowner:=obj;
-            while not(topowner.owner.symtabletype in [staticsymtable,globalsymtable]) do
-              topowner:=topowner.owner.defowner;
-            { create procdef }
-            pd:=cprocdef.create(topowner.owner.symtablelevel+1,true);
-            if df_generic in obj.defoptions then
-              include(pd.defoptions,df_generic);
-            { method of this objectdef }
-            pd.struct:=obj;
-            { associated procsym }
-            pd.procsym:=ps;
-            { constructor }
-            pd.proctypeoption:=potype_constructor;
-            { needs to be exported }
-            include(pd.procoptions,po_global);
-            { by default do not include this routine when looking for overloads }
-            include(pd.procoptions,po_ignore_for_overload_resolution);
-            { generate anonymous inherited call in the implementation }
-            pd.synthetickind:=tsk_anon_inherited;
-            { public }
-            pd.visibility:=vis_public;
-            { result type }
-            pd.returndef:=obj;
-            { calling convention, self, ... (not for advanced records, for those
-              this is handled later) }
-            if obj.typ=recorddef then
-              handle_calling_convention(pd,[hcc_check])
-            else
-              handle_calling_convention(pd,hcc_all);
-            { register forward declaration with procsym }
-            proc_add_definition(pd);
-          end;
-
-        { also add class constructor if class fields that need wrapping, and
-          if none was defined }
-        if obj.find_procdef_bytype(potype_class_constructor)=nil then
-          begin
-            needclassconstructor:=false;
-            for i:=0 to obj.symtable.symlist.count-1 do
-              begin
-                if (tsym(obj.symtable.symlist[i]).typ=staticvarsym) and
-                   jvmimplicitpointertype(tstaticvarsym(obj.symtable.symlist[i]).vardef) then
-                  begin
-                    needclassconstructor:=true;
-                    break;
-                  end;
-              end;
-            if needclassconstructor then
-              begin
-                replace_scanner('custom_class_constructor',sstate);
-                if str_parse_method_dec('constructor fpc_jvm_class_constructor;',potype_class_constructor,true,obj,pd) then
-                  pd.synthetickind:=tsk_empty
-                else
-                  internalerror(2011040501);
-                restore_scanner(sstate);
-              end;
-          end;
-      end;
 
 
     procedure add_java_default_record_methods_intf(def: trecorddef);
@@ -271,7 +140,6 @@ implementation
 
     procedure jvm_maybe_create_enum_class(const name: TIDString; def: tdef);
       var
-        vmtbuilder: tvmtbuilder;
         arrdef: tarraydef;
         arrsym: ttypesym;
         juhashmap: tdef;
@@ -307,11 +175,11 @@ implementation
           name that can be used in generated Pascal code without risking an
           identifier conflict (since it is local to this class; the global name
           is unique because it's an identifier that contains $-signs) }
-        enumclass.symtable.insert(ctypesym.create('__FPC_TEnumClassAlias',enumclass,true));
+        enumclass.symtable.insert(ctypesym.create('__FPC_TEnumClassAlias',enumclass));
 
         { also create an alias for the enum type so that we can iterate over
           all enum values when creating the body of the class constructor }
-        temptypesym:=ctypesym.create('__FPC_TEnumAlias',nil,true);
+        temptypesym:=ctypesym.create('__FPC_TEnumAlias',nil);
         { don't pass def to the ttypesym constructor, because then it
           will replace the current (real) typesym of that def with the alias }
         temptypesym.typedef:=def;
@@ -343,14 +211,14 @@ implementation
         { create static fields representing all enums }
         for i:=0 to tenumdef(def).symtable.symlist.count-1 do
           begin
-            fsym:=cfieldvarsym.create(tenumsym(tenumdef(def).symtable.symlist[i]).realname,vs_final,enumclass,[],true);
+            fsym:=cfieldvarsym.create(tenumsym(tenumdef(def).symtable.symlist[i]).realname,vs_final,enumclass,[]);
             enumclass.symtable.insert(fsym);
             sym:=make_field_static(enumclass.symtable,fsym);
             { add alias for the field representing ordinal(0), for use in
               initialization code }
             if tenumsym(tenumdef(def).symtable.symlist[i]).value=0 then
               begin
-                aliassym:=cstaticvarsym.create('__FPC_Zero_Initializer',vs_final,enumclass,[vo_is_external],true);
+                aliassym:=cstaticvarsym.create('__FPC_Zero_Initializer',vs_final,enumclass,[vo_is_external]);
                 enumclass.symtable.insert(aliassym);
                 aliassym.set_raw_mangledname(sym.mangledname);
               end;
@@ -359,7 +227,7 @@ implementation
           (used internally by the JDK) }
         arrdef:=carraydef.create(0,tenumdef(def).symtable.symlist.count-1,s32inttype);
         arrdef.elementdef:=enumclass;
-        arrsym:=ctypesym.create('__FPC_TEnumValues',arrdef,true);
+        arrsym:=ctypesym.create('__FPC_TEnumValues',arrdef);
         enumclass.symtable.insert(arrsym);
         { insert "public static values: array of enumclass" that returns $VALUES.clone()
           (rather than a dynamic array and using clone --which we don't support yet for arrays--
@@ -373,12 +241,12 @@ implementation
         if tenumdef(def).has_jumps then
           begin
             { add field for the value }
-            fsym:=cfieldvarsym.create('__fpc_fenumval',vs_final,s32inttype,[],true);
+            fsym:=cfieldvarsym.create('__fpc_fenumval',vs_final,s32inttype,[]);
             enumclass.symtable.insert(fsym);
             tobjectsymtable(enumclass.symtable).addfield(fsym,vis_strictprivate);
             { add class field with hash table that maps from FPC-declared ordinal value -> enum instance }
             juhashmap:=search_system_type('JUHASHMAP').typedef;
-            fsym:=cfieldvarsym.create('__fpc_ord2enum',vs_final,juhashmap,[],true);
+            fsym:=cfieldvarsym.create('__fpc_ord2enum',vs_final,juhashmap,[]);
             enumclass.symtable.insert(fsym);
             make_field_static(enumclass.symtable,fsym);
             { add custom constructor }
@@ -435,7 +303,7 @@ implementation
           "Values" instance method -- that's also the reason why we insert the
           field only now, because we cannot disable duplicate identifier
           checking when creating the "Values" method }
-        fsym:=cfieldvarsym.create('$VALUES',vs_final,arrdef,[],true);
+        fsym:=cfieldvarsym.create('$VALUES',vs_final,arrdef,[]);
         fsym.visibility:=vis_strictprivate;
         enumclass.symtable.insert(fsym,false);
         sym:=make_field_static(enumclass.symtable,fsym);
@@ -450,9 +318,7 @@ implementation
 
         symtablestack.pop(enumclass.symtable);
 
-        vmtbuilder:=TVMTBuilder.Create(enumclass);
-        vmtbuilder.generate_vmt;
-        vmtbuilder.free;
+        build_vmt(enumclass);
 
         restore_after_new_class(sstate,islocal,oldsymtablestack);
         current_structdef:=old_current_structdef;
@@ -461,7 +327,6 @@ implementation
 
     procedure jvm_create_procvar_class_intern(const name: TIDString; def: tdef; force_no_callback_intf: boolean);
       var
-        vmtbuilder: tvmtbuilder;
         oldsymtablestack: tsymtablestack;
         pvclass,
         pvintf: tobjectdef;
@@ -491,7 +356,7 @@ implementation
         if df_generic in def.defoptions then
           include(pvclass.defoptions,df_generic);
         { associate typesym }
-        pvclass.symtable.insert(ctypesym.create('__FPC_TProcVarClassAlias',pvclass,true));
+        pvclass.symtable.insert(ctypesym.create('__FPC_TProcVarClassAlias',pvclass));
         { set external name to match procvar type name }
         if not islocal then
           pvclass.objextname:=stringdup(name)
@@ -505,16 +370,14 @@ implementation
 
         { add a method to call the procvar using unwrapped arguments, which
           then wraps them and calls through to JLRMethod.invoke }
-        methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc));
+        methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc,''));
         finish_copied_procdef(methoddef,'invoke',pvclass.symtable,pvclass);
-        insert_self_and_vmt_para(methoddef);
-        insert_funcret_para(methoddef);
         methoddef.synthetickind:=tsk_jvm_procvar_invoke;
         methoddef.calcparas;
 
         { add local alias for the procvartype that we can use when implementing
           the invoke method }
-        temptypesym:=ctypesym.create('__FPC_ProcVarAlias',nil,true);
+        temptypesym:=ctypesym.create('__FPC_ProcVarAlias',nil);
         { don't pass def to the ttypesym constructor, because then it
           will replace the current (real) typesym of that def with the alias }
         temptypesym.typedef:=def;
@@ -535,15 +398,13 @@ implementation
             if df_generic in def.defoptions then
               include(pvintf.defoptions,df_generic);
             { associate typesym }
-            pvclass.symtable.insert(ctypesym.create('Callback',pvintf,true));
+            pvclass.symtable.insert(ctypesym.create('Callback',pvintf));
 
             { add a method prototype matching the procvar (like the invoke
               in the procvarclass itself) }
             symtablestack.push(pvintf.symtable);
-            methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc));
+            methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc,''));
             finish_copied_procdef(methoddef,name+'Callback',pvintf.symtable,pvintf);
-            insert_self_and_vmt_para(methoddef);
-            insert_funcret_para(methoddef);
             { can't be final/static/private/protected, and must be virtual
               since it's an interface method }
             methoddef.procoptions:=methoddef.procoptions-[po_staticmethod,po_finalmethod];
@@ -564,9 +425,7 @@ implementation
 
         symtablestack.pop(pvclass.symtable);
 
-        vmtbuilder:=TVMTBuilder.Create(pvclass);
-        vmtbuilder.generate_vmt;
-        vmtbuilder.free;
+        build_vmt(pvclass);
 
         restore_after_new_class(sstate,islocal,oldsymtablestack);
       end;
@@ -608,7 +467,7 @@ implementation
         { wrapper is part of the same symtable as the original procdef }
         symtablestack.push(pd.owner);
         { get a copy of the virtual class method }
-        wrapperpd:=tprocdef(pd.getcopy);
+        wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_normal_no_hidden,''));
         { this one is not virtual nor override }
         exclude(wrapperpd.procoptions,po_virtualmethod);
         exclude(wrapperpd.procoptions,po_overridingmethod);
@@ -639,14 +498,14 @@ implementation
         wrapperpd.synthetickind:=tsk_jvm_virtual_clmethod;
         wrapperpd.skpara:=pd;
         { also create procvar type that we can use in the implementation }
-        wrapperpv:=tcpuprocvardef(pd.getcopyas(procvardef,pc_normal));
-        wrapperpv.calcparas;
+        wrapperpv:=tcpuprocvardef(pd.getcopyas(procvardef,pc_normal_no_hidden,''));
+        handle_calling_convention(wrapperpv,hcc_default_actions_intf);
         { no use in creating a callback wrapper here, this procvar type isn't
           for public consumption }
         jvm_create_procvar_class_intern('__fpc_virtualclassmethod_pv_t'+wrapperpd.unique_id_str,wrapperpv,true);
         { create alias for the procvar type so we can use it in generated
           Pascal code }
-        typ:=ctypesym.create('__fpc_virtualclassmethod_pv_t'+wrapperpd.unique_id_str,wrapperpv,true);
+        typ:=ctypesym.create('__fpc_virtualclassmethod_pv_t'+wrapperpd.unique_id_str,wrapperpv);
         wrapperpv.classdef.typesym.visibility:=vis_strictprivate;
         symtablestack.top.insert(typ);
         symtablestack.pop(pd.owner);
@@ -667,7 +526,7 @@ implementation
         { wrapper is part of the same symtable as the original procdef }
         symtablestack.push(pd.owner);
         { get a copy of the constructor }
-        wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_bareproc));
+        wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_bareproc,''));
         { this one is a class method rather than a constructor }
         include(wrapperpd.procoptions,po_classmethod);
         wrapperpd.proctypeoption:=potype_function;
@@ -682,11 +541,6 @@ implementation
           in callnodes, we will have to replace the calls to virtual
           constructors with calls to the wrappers) }
         finish_copied_procdef(wrapperpd,pd.procsym.realname+'__fpcvirtconstrwrapper__',pd.owner,tabstractrecorddef(pd.owner.defowner));
-        { since it was a bare copy, insert the self parameter (we can't just
-          copy the vmt parameter from the constructor, that's different) }
-        insert_self_and_vmt_para(wrapperpd);
-        insert_funcret_para(wrapperpd);
-        wrapperpd.calcparas;
         { implementation: call through to the constructor
           Exception: if the current class is abstract, do not call the
             constructor, since abstract class cannot be constructed (and the
@@ -740,7 +594,7 @@ implementation
             begin
               { make sure we don't emit a definition for this field (we'll do
                 that for the constsym already) -> mark as external }
-              ssym:=cstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,csym.constdef,[vo_is_external],true);
+              ssym:=cstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,csym.constdef,[vo_is_external]);
               csym.owner.insert(ssym);
               { alias storage to the constsym }
               ssym.set_mangledname(csym.realname);
@@ -778,7 +632,7 @@ implementation
                 has been compiler -> insert a copy in the unit's staticsymtable
               }
               symtablestack.push(current_module.localsymtable);
-              ssym:=cstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,tsetdef(csym.constdef).getcopy,[vo_is_external,vo_has_local_copy],true);
+              ssym:=cstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,tsetdef(csym.constdef).getcopy,[vo_is_external,vo_has_local_copy]);
               symtablestack.top.insert(ssym);
               symtablestack.pop(current_module.localsymtable);
               { alias storage to the constsym }

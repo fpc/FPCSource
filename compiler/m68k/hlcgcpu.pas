@@ -43,9 +43,9 @@ interface
       procedure a_bit_set_reg_ref(list: TAsmList; doset: boolean; fromsize, tosize: tdef; bitnumber: tregister; const ref: treference); override;
       procedure a_bit_set_const_ref(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; const ref: treference); override;
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
-    end;
 
-  procedure create_hlcodegen;
+      procedure gen_load_loc_function_result(list: TAsmList; vardef: tdef; const l: tlocation);override;
+    end;
 
 implementation
 
@@ -55,7 +55,8 @@ implementation
     aasmtai, aasmcpu,
     defutil,
     hlcgobj,
-    cpuinfo, cgobj, cpubase, cgcpu;
+    cpuinfo, cgobj, cpubase, cgcpu,
+    parabase, procinfo;
 
 
 
@@ -114,6 +115,15 @@ implementation
 
   procedure thlcgcpu.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
 
+    procedure putselfa0tostack(offs: longint);
+      var
+        href: treference;
+      begin
+        { move a0 which is self out of the way to the stack }
+        reference_reset_base(href,voidpointertype,NR_STACK_POINTER_REG,offs,ctempposinvalid,4,[]);
+        list.concat(taicpu.op_reg_ref(A_MOVE,S_L,NR_A0,href));
+      end;
+
     procedure getselftoa0(offs:longint);
       var
         href : treference;
@@ -126,7 +136,7 @@ implementation
           selfoffsetfromsp:=sizeof(aint)
         else
           selfoffsetfromsp:=0;
-        reference_reset_base(href, voidstackpointertype, NR_SP,selfoffsetfromsp+offs,4,[]);
+        reference_reset_base(href, voidstackpointertype, NR_SP,selfoffsetfromsp+offs,ctempposinvalid,4,[]);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_A0);
       end;
 
@@ -135,8 +145,38 @@ implementation
         href : treference;
       begin
         { move.l  (%a0),%a0 ; load vmt}
-        reference_reset_base(href, voidpointertype, NR_A0,0,4,[]);
+        reference_reset_base(href, voidpointertype, NR_A0,0,ctempposinvalid,4,[]);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_A0);
+      end;
+
+    procedure op_onmethodaddrviastack(offs: longint);
+      var
+        href : treference;
+        href2 : treference;
+      begin
+        if (procdef.extnumber=$ffff) then
+          internalerror(2017061401);
+        reference_reset_base(href,voidpointertype,NR_A0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,4,[]);
+
+        { handle-too-large-for-68k offsets }
+        { I'm not even sure this is handled elsewhere in the compiler for VMTs, but lets play safe... (KB) }
+        if href.offset >= high(smallint) then
+          begin
+            list.concat(taicpu.op_const_reg(A_ADD,S_L,href.offset,NR_A0));
+            href.offset:=0;
+          end;
+
+        { push the method address to the stack }
+        reference_reset_base(href2,voidpointertype,NR_STACK_POINTER_REG,0,ctempposinvalid,4,[]);
+        href2.direction:=dir_dec;
+        list.concat(taicpu.op_ref_ref(A_MOVE,S_L,href,href2));
+
+        { restore A0 from the stack }
+        reference_reset_base(href2,voidpointertype,NR_STACK_POINTER_REG,offs+4,ctempposinvalid,4,[]); { offs+4, because we used dir_dec above }
+        list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href2,NR_A0));
+
+        { pop the method address from the stack, and jump to it }
+        list.concat(taicpu.op_none(A_RTS,S_NO));
       end;
 
     procedure op_ona0methodaddr;
@@ -145,9 +185,9 @@ implementation
       begin
         if (procdef.extnumber=$ffff) then
           Internalerror(2013100701);
-        reference_reset_base(href,voidpointertype,NR_A0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4,[]);
+        reference_reset_base(href,voidpointertype,NR_A0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,4,[]);
         list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,NR_A0));
-        reference_reset_base(href,voidpointertype,NR_A0,0,4,[]);
+        reference_reset_base(href,voidpointertype,NR_A0,0,ctempposinvalid,4,[]);
         list.concat(taicpu.op_ref(A_JMP,S_NO,href));
       end;
 
@@ -172,7 +212,7 @@ implementation
       if make_global then
         List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0,procdef))
       else
-        List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0,procdef));
+        List.concat(Tai_symbol.Createname_hidden(labelname,AT_FUNCTION,0,procdef));
 
       { set param1 interface to self  }
       g_adjust_self_value(list,procdef,ioffset);
@@ -181,9 +221,18 @@ implementation
       if (po_virtualmethod in procdef.procoptions) and
           not is_objectpascal_helper(procdef.struct) then
         begin
-          getselftoa0(4);
-          loadvmttoa0;
-          op_ona0methodaddr;
+          if (procdef.proccalloption in [pocall_register]) then
+            begin
+              putselfa0tostack(-8);
+              loadvmttoa0;
+              op_onmethodaddrviastack(-8);
+            end
+          else
+            begin
+              getselftoa0(4);
+              loadvmttoa0;
+              op_ona0methodaddr;
+            end;
         end
       { case 0 }
       else
@@ -193,7 +242,27 @@ implementation
     end;
 
 
-  procedure create_hlcodegen;
+  procedure thlcgcpu.gen_load_loc_function_result(list: TAsmList; vardef: tdef; const l: tlocation);
+    var
+      cgpara: tcgpara;
+    begin
+      inherited;
+
+      { Kludge:
+        GCC (and SVR4 in general maybe?) requires a pointer
+        result on the A0 register, as well as D0. So when we
+        have a result in A0, also copy it to D0. See the decision
+        making code in tcpuparamanager.get_funcretloc (KB) }
+      cgpara:=current_procinfo.procdef.funcretloc[calleeside];
+      if ((cgpara.location^.loc = LOC_REGISTER) and
+          (isaddressregister(cgpara.location^.register))) then
+        begin
+          cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_RETURN_ADDRESS_REG,NR_FUNCTION_RESULT_REG);
+        end;
+    end;
+
+
+  procedure create_hlcodegen_cpu;
     begin
       hlcg:=thlcgcpu.create;
       create_codegen;
@@ -201,4 +270,5 @@ implementation
 
 begin
   chlcgobj:=thlcgcpu;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.

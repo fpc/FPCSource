@@ -28,9 +28,9 @@ unit agx86att;
 interface
 
     uses
-      cclasses,cpubase,systems,
-      globals,globtype,cgutils,
-      aasmbase,aasmtai,aasmdata,assemble,aggas;
+      cpubase,systems,
+      globtype,cgutils,
+      aasmtai,assemble,aggas;
 
     type
       Tx86ATTAssembler=class(TGNUassembler)
@@ -164,20 +164,37 @@ interface
              owner.writer.AsmWrite(symbol.name);
            if assigned(relsymbol) then
              owner.writer.AsmWrite('-'+relsymbol.name);
-           if ref.refaddr=addr_pic then
-             begin
-               { @GOT and @GOTPCREL references are only allowed for symbol alone,
-                 indexing, relsymbol or offset cannot be present. }
-               if assigned(relsymbol) or (offset<>0) or (index<>NR_NO) then
-                 InternalError(2015011801);
+           case ref.refaddr of
+             addr_pic:
+               begin
+                 { @GOT and @GOTPCREL references are only allowed for symbol alone,
+                   indexing, relsymbol or offset cannot be present. }
+                 if assigned(relsymbol) or (offset<>0) or (index<>NR_NO) then
+                   InternalError(2015011801);
 {$ifdef x86_64}
-               if (base<>NR_RIP) then
-                 InternalError(2015011802);
-               owner.writer.AsmWrite('@GOTPCREL');
+                 if (base<>NR_RIP) then
+                   InternalError(2015011802);
+                 owner.writer.AsmWrite('@GOTPCREL');
 {$else x86_64}
-               owner.writer.AsmWrite('@GOT');
+                 owner.writer.AsmWrite('@GOT');
 {$endif x86_64}
-             end;
+               end;
+{$ifdef i386}
+             addr_ntpoff:
+               owner.writer.AsmWrite('@ntpoff');
+             addr_tlsgd:
+               owner.writer.AsmWrite('@tlsgd');
+{$endif i386}
+{$ifdef x86_64}
+             addr_tpoff:
+               owner.writer.AsmWrite('@tpoff');
+             addr_tlsgd:
+               owner.writer.AsmWrite('@tlsgd');
+{$endif x86_64}
+             else
+               ;
+           end;
+
            if offset<0 then
              owner.writer.AsmWrite(tostr(offset))
            else
@@ -192,20 +209,10 @@ interface
              owner.writer.AsmWrite('0');
            if (index<>NR_NO) and (base=NR_NO) then
             begin
-              if scalefactor in [0,1] then
-                { Switching index to base position gives shorter
-                  assembler instructions }
-                begin
-                  owner.writer.AsmWrite('('+gas_regname(index)+')');
-                end
-              else
-                begin
-                  owner.writer.AsmWrite('(,'+gas_regname(index));
-                  if scalefactor<>0 then
-                   owner.writer.AsmWrite(','+tostr(scalefactor)+')')
-                  else
-                   owner.writer.AsmWrite(')');
-                end;
+              owner.writer.AsmWrite('(,'+gas_regname(index));
+              if scalefactor<>0 then
+                owner.writer.AsmWrite(','+tostr(scalefactor));
+              owner.writer.AsmWrite(')');
             end
            else
             if (index=NR_NO) and (base<>NR_NO) then
@@ -224,6 +231,21 @@ interface
 
     procedure Tx86InstrWriter.WriteOper(const o:toper);
       begin
+        if o.vopext and OTVE_VECTOR_SAE = OTVE_VECTOR_SAE then
+         owner.writer.AsmWrite('{sae},');
+
+        if o.vopext and OTVE_VECTOR_ER_MASK = OTVE_VECTOR_RNSAE then
+         owner.writer.AsmWrite('{rn-sae},');
+
+        if o.vopext and OTVE_VECTOR_ER_MASK = OTVE_VECTOR_RDSAE then
+         owner.writer.AsmWrite('{rd-sae},');
+
+        if o.vopext and OTVE_VECTOR_ER_MASK = OTVE_VECTOR_RUSAE then
+         owner.writer.AsmWrite('{ru-sae},');
+
+        if o.vopext and OTVE_VECTOR_ER_MASK = OTVE_VECTOR_RZSAE then
+         owner.writer.AsmWrite('{rz-sae},');
+
         case o.typ of
           top_reg :
             { Solaris assembler does not accept %st instead of %st(0) }
@@ -232,7 +254,10 @@ interface
             else
               owner.writer.AsmWrite(gas_regname(o.reg));
           top_ref :
-            if o.ref^.refaddr in [addr_no,addr_pic,addr_pic_no_got] then
+            if o.ref^.refaddr in [addr_no,addr_pic,addr_pic_no_got
+              {$ifdef i386},addr_ntpoff,addr_tlsgd{$endif i386}
+              {$ifdef x86_64},addr_tpoff,addr_tlsgd{$endif x86_64}
+              ] then
               WriteReference(o.ref^)
             else
               begin
@@ -253,6 +278,26 @@ interface
           else
             internalerror(10001);
         end;
+
+           if o.vopext and OTVE_VECTOR_WRITEMASK = OTVE_VECTOR_WRITEMASK then
+            begin
+              owner.writer.AsmWrite('{%k' + tostr(o.vopext and $07) + '} ');
+              if o.vopext and OTVE_VECTOR_ZERO = OTVE_VECTOR_ZERO then
+               owner.writer.AsmWrite('{z}');
+            end;
+
+
+           if o.vopext and OTVE_VECTOR_BCST = OTVE_VECTOR_BCST then
+            begin
+              case o.vopext and (OTVE_VECTOR_BCST2 or OTVE_VECTOR_BCST4 or OTVE_VECTOR_BCST8 or OTVE_VECTOR_BCST16) of
+                 OTVE_VECTOR_BCST2: owner.writer.AsmWrite('{1to2}');
+                 OTVE_VECTOR_BCST4: owner.writer.AsmWrite('{1to4}');
+                 OTVE_VECTOR_BCST8: owner.writer.AsmWrite('{1to8}');
+                OTVE_VECTOR_BCST16: owner.writer.AsmWrite('{1to16}');
+                               else ; //TG TODO errormsg
+              end;
+            end;
+
       end;
 
 
@@ -322,6 +367,9 @@ interface
           are (xmm) arguments }
         if (op=A_MOVSD) and (taicpu(hp).ops>0) then
           owner.writer.AsmWrite('movsd')
+        { the same applies to cmpsd as well }
+        else if (op=A_CMPSD) and (taicpu(hp).ops>0) then
+          owner.writer.AsmWrite('cmpsd')
         else
           owner.writer.AsmWrite(gas_op2str[op]);
         owner.writer.AsmWrite(cond2str[taicpu(hp).condition]);
@@ -389,7 +437,8 @@ interface
             supported_targets : [system_x86_64_linux,system_x86_64_freebsd,
                                  system_x86_64_win64,system_x86_64_embedded,
                                  system_x86_64_openbsd,system_x86_64_netbsd,
-                                 system_x86_64_dragonfly,system_x86_64_aros];
+                                 system_x86_64_dragonfly,system_x86_64_aros,
+                                 system_x86_64_android,system_x86_64_haiku];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
@@ -458,7 +507,7 @@ interface
             asmbin : 'clang';
             asmcmd : '-c -o $OBJ $EXTRAOPT -arch x86_64 $DARWINVERSION -x assembler $ASM';
             supported_targets : [system_x86_64_darwin,system_x86_64_iphonesim];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_no_stabs];
             labelprefix : 'L';
             comment : '# ';
             dollarsign: '$';
@@ -472,7 +521,7 @@ interface
             asmbin : 'as';
             asmcmd : '--32 -o $OBJ $BIGOBJ $EXTRAOPT $ASM';
             supported_targets : [system_i386_GO32V2,system_i386_linux,system_i386_Win32,system_i386_freebsd,system_i386_solaris,system_i386_beos,
-                                system_i386_netbsd,system_i386_Netware,system_i386_qnx,system_i386_wdosx,system_i386_openbsd,
+                                system_i386_netbsd,system_i386_Netware,system_i386_wdosx,system_i386_openbsd,
                                 system_i386_netwlibc,system_i386_wince,system_i386_embedded,system_i386_symbian,system_i386_haiku,system_x86_6432_linux,
                                 system_i386_nativent,system_i386_android,system_i386_aros];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
@@ -488,7 +537,7 @@ interface
             asmbin : 'yasm';
             asmcmd : '-a x86 -p gas -f $FORMAT -o $OBJ $EXTRAOPT $ASM';
             supported_targets : [system_i386_GO32V2,system_i386_linux,system_i386_Win32,system_i386_freebsd,system_i386_solaris,system_i386_beos,
-                                system_i386_netbsd,system_i386_Netware,system_i386_qnx,system_i386_wdosx,system_i386_openbsd,
+                                system_i386_netbsd,system_i386_Netware,system_i386_wdosx,system_i386_openbsd,
                                 system_i386_netwlibc,system_i386_wince,system_i386_embedded,system_i386_symbian,system_i386_haiku,system_x86_6432_linux,
                                 system_i386_nativent];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
@@ -532,7 +581,7 @@ interface
             asmbin : 'clang';
             asmcmd : '-c -o $OBJ $EXTRAOPT -arch i386 $DARWINVERSION -x assembler $ASM';
             supported_targets : [system_i386_darwin,system_i386_iphonesim];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_no_stabs];
             labelprefix : 'L';
             comment : '# ';
             dollarsign: '$';
@@ -545,7 +594,7 @@ interface
             asmbin : 'gas';
             asmcmd : '--32 -o $OBJ $EXTRAOPT $ASM';
             supported_targets : [system_i386_GO32V2,system_i386_linux,system_i386_Win32,system_i386_freebsd,system_i386_solaris,system_i386_beos,
-                                system_i386_netbsd,system_i386_Netware,system_i386_qnx,system_i386_wdosx,system_i386_openbsd,
+                                system_i386_netbsd,system_i386_Netware,system_i386_wdosx,system_i386_openbsd,
                                 system_i386_netwlibc,system_i386_wince,system_i386_embedded,system_i386_symbian,system_i386_haiku,
                                 system_x86_6432_linux,system_i386_android];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];

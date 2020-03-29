@@ -154,44 +154,17 @@ const
 
 //!!! function UDAControl(var ioObject: UDAObjectType; parameter: UInt16, ...): Err; syscall sysTrapUdaMgrDispatch, sysUdaControl;
 
-function UDAExchangeReaderNew(var socket: ExgSocketType): UDAReaderPtr;
+function UDAExchangeReaderNew(var socket: ExgSocketType): UDAReaderPtr; syscall sysTrapUdaMgrDispatch, sysUdaExchangeReaderNew;
 
-function UDAExchangeWriterNew(var socket: ExgSocketType; bufferSize: UDABufferSize): UDAWriterPtr;
+function UDAExchangeWriterNew(var socket: ExgSocketType; bufferSize: UDABufferSize): UDAWriterPtr; syscall sysTrapUdaMgrDispatch, sysUdaExchangeWriterNew;
 
  (***********************************************************************
  * Memory reader
  ************************************************************************)
 
-function UDAMemoryReaderNew(var bufferP: UInt8; bufferSizeInBytes: UDABufferSize): UDAReaderPtr;
+function UDAMemoryReaderNew(var bufferP: UInt8; bufferSizeInBytes: UDABufferSize): UDAReaderPtr; syscall sysTrapUdaMgrDispatch, sysUdaMemoryReaderNew;
+
 
 implementation
-
-function __UDAExchangeReaderNew(var socket: ExgSocketType): UDAReaderPtr; syscall sysTrapUdaMgrDispatch;
-function __UDAExchangeWriterNew(var socket: ExgSocketType; bufferSize: UDABufferSize): UDAWriterPtr; syscall sysTrapUdaMgrDispatch;
-function __UDAMemoryReaderNew(var bufferP: UInt8; bufferSizeInBytes: UDABufferSize): UDAReaderPtr; syscall sysTrapUdaMgrDispatch;
-
-function UDAExchangeReaderNew(var socket: ExgSocketType): UDAReaderPtr;
-begin
- asm
-  move.l #$sysUdaExchangeReaderNew, D2;
- end;
- UDAExchangeReaderNew := __UDAExchangeReaderNew(socket);
-end;
-
-function UDAExchangeWriterNew(var socket: ExgSocketType; bufferSize: UDABufferSize): UDAWriterPtr;
-begin
- asm
-  move.l #$sysUdaExchangeWriterNew, D2;
- end;
- UDAExchangeWriterNew := __UDAExchangeWriterNew(socket, bufferSize);
-end;
-
-function UDAMemoryReaderNew(var bufferP: UInt8; bufferSizeInBytes: UDABufferSize): UDAReaderPtr;
-begin
- asm
-  move.l #$sysUdaMemoryReaderNew, D2;
- end;
- UDAMemoryReaderNew := __UDAMemoryReaderNew(bufferP, bufferSizeInBytes);
-end;
 
 end.

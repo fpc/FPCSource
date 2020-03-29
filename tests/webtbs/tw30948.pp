@@ -4,6 +4,10 @@ program BugInline;
 uses
   sysutils;
 
+{ Explicitly disable range and overflow checking }
+{$R-}
+{$Q-}
+
 procedure Add64x2(HA,LA,HB,LB: QWord; out HR,LR: QWord); inline;
 begin
   Inc(LA,LB);

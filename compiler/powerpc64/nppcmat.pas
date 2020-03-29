@@ -169,7 +169,7 @@ var
       end;
     end else begin
       cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, divCgOps[is_signed(right.resultdef)], OS_INT,
-        tordconstnode(right).value, numerator, resultreg);
+        tordconstnode(right).value.svalue, numerator, resultreg);
       cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, tordconstnode(right).value.svalue, resultreg,
         resultreg);
       cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT, resultreg, numerator, resultreg);
@@ -202,7 +202,7 @@ begin
   if (cs_opt_level1 in current_settings.optimizerswitches) and (right.nodetype = ordconstn) then begin
     if (nodetype = divn) then
       cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, divCgOps[is_signed(right.resultdef)],
-        size, tordconstnode(right).value, numerator, resultreg)
+        size, tordconstnode(right).value.svalue, numerator, resultreg)
     else
       genOrdConstNodeMod;
     done := true;

@@ -633,6 +633,7 @@ procedure TJSONToPascal.MaybeEmitType;
 begin
   if FinType then exit;
   Undent;
+  AddLn('');
   AddLn('Type');
   Indent;
   FinType:=True;
@@ -646,8 +647,6 @@ Var
   IP : String;
 
 begin
-  AddLn('');
-  MaybeEmitType;
   M:=FPropertyMap.FindPath(APath);
   If M=Nil then
     begin
@@ -671,6 +670,7 @@ begin
     IP:=AddToPath(M.Path,'[0]');
     GenerateDeclaration(IP,J.Items[0]);
     MaybeEmitType;
+    Addln('');
     GenerateArrayDeclaration(M,TJSONarray(J));
     end
   else if J is TJSONObject then
@@ -682,6 +682,7 @@ begin
       end;
     M.ParentTypeName:=GetDefaultParentName;
     MaybeEmitType;
+    Addln('');
     GenerateObjectDeclaration(M,TJSONObject(J));
     end;
 end;

@@ -29,14 +29,13 @@ unit procinfo;
       { common }
       cclasses,
       { global }
-      globtype,globals,verbose,
+      globtype,
       { symtable }
       symconst,symtype,symdef,symsym,
+      node,
       { aasm }
-      cpubase,cpuinfo,cgbase,cgutils,
-      aasmbase,aasmtai,aasmdata,
-      optutils
-      ;
+      cpubase,cgbase,cgutils,
+      aasmbase,aasmdata;
 
     const
       inherited_inlining_flags : tprocinfoflags =
@@ -52,9 +51,6 @@ unit procinfo;
        { This object gives information on the current routine being
          compiled.
        }
-
-       { tprocinfo }
-
        tprocinfo = class(tlinkedlistitem)
        private
           { list to store the procinfo's of the nested procedures }
@@ -97,6 +93,11 @@ unit procinfo;
           got : tregister;
           CurrGOTLabel : tasmlabel;
 
+          { register containing the tlsoffset }
+          tlsoffset : tregister;
+          { reference label for tls addresses }
+          tlslabel : tasmlabel;
+
           { Holds the reference used to store all saved registers. }
           save_regs_ref : treference;
 
@@ -124,7 +125,7 @@ unit procinfo;
           aktlocaldata : TAsmList;
 
           { max. of space need for parameters }
-          maxpushedparasize : aint;
+          maxpushedparasize : SizeInt;
 
           { some architectures need to know a stack size before the first compilation pass
             estimatedtempsize contains an estimated value how big temps will get }
@@ -134,6 +135,15 @@ unit procinfo;
             (either inherited, or another constructor of the same class)?
             Requires different entry code for some targets. }
           ConstructorCallingConstructor: boolean;
+
+          { true, if an FPU instruction has been generated which could raise an exception and where the flags
+            need to be checked explicitly like on RISC-V or certain ARM architectures }
+          FPUExceptionCheckNeeded : Boolean;
+
+          { local symbols and defs referenced by global functions; these need
+            to be exported in case the function gets inlined }
+          localrefsyms : tfpobjectlist;
+          localrefdefs : tfpobjectlist;
 
           constructor create(aparent:tprocinfo);virtual;
           destructor destroy;override;
@@ -152,6 +162,9 @@ unit procinfo;
           { Allocate got register }
           procedure allocate_got_register(list: TAsmList);virtual;
 
+          { Allocate tls register }
+          procedure allocate_tls_register(list: TAsmList);virtual;
+
           { get frame pointer }
           procedure init_framepointer; virtual;
 
@@ -161,6 +174,13 @@ unit procinfo;
           function get_first_nestedproc: tprocinfo;
           function has_nestedprocs: boolean;
           function get_normal_proc: tprocinfo;
+
+          procedure add_local_ref_sym(sym:tsym);
+          procedure export_local_ref_syms;
+          procedure add_local_ref_def(def:tdef);
+          procedure export_local_ref_defs;
+
+          function create_for_outlining(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef; entrynodeinfo: tnode): tprocinfo;
 
           { Add to parent's list of nested procedures even if parent is a 'main' procedure }
           procedure force_nested;
@@ -172,6 +192,16 @@ unit procinfo;
           procedure updatestackalignment(alignment: longint);
           { Specific actions after the code has been generated }
           procedure postprocess_code; virtual;
+
+          { set exception handling info }
+          procedure set_eh_info; virtual;
+
+          procedure setup_eh; virtual;
+          procedure finish_eh; virtual;
+          { called to insert needed eh info into the entry code }
+          procedure start_eh(list : TAsmList); virtual;
+          { called to insert needed eh info into the exit code }
+          procedure end_eh(list : TAsmList); virtual;
        end;
        tcprocinfo = class of tprocinfo;
 
@@ -183,7 +213,8 @@ unit procinfo;
 implementation
 
     uses
-      cutils,systems;
+      globals,cutils,systems,verbose,
+      procdefutil;
 
 {****************************************************************************
                                  TProcInfo
@@ -223,6 +254,8 @@ implementation
          nestedprocs.free;
          aktproccode.free;
          aktlocaldata.free;
+         localrefsyms.free;
+         localrefdefs.free;
       end;
 
     procedure tprocinfo.destroy_tree;
@@ -267,6 +300,65 @@ implementation
           result:=result.parent;
       end;
 
+    procedure tprocinfo.add_local_ref_sym(sym:tsym);
+      begin
+        if not assigned(localrefsyms) then
+          localrefsyms:=tfpobjectlist.create(false);
+        if localrefsyms.indexof(sym)<0 then
+          localrefsyms.add(sym);
+      end;
+
+    procedure tprocinfo.export_local_ref_syms;
+      var
+        i : longint;
+        sym : tsym;
+      begin
+        if not assigned(localrefsyms) then
+          exit;
+        for i:=0 to localrefsyms.count-1 do
+          begin
+            sym:=tsym(localrefsyms[i]);
+            if sym.typ<>staticvarsym then
+              internalerror(2019110901);
+            include(tstaticvarsym(sym).varoptions,vo_has_global_ref);
+          end;
+      end;
+
+    procedure tprocinfo.add_local_ref_def(def:tdef);
+      begin
+        if not assigned(localrefdefs) then
+          localrefdefs:=tfpobjectlist.create(false);
+        if localrefdefs.indexof(def)<0 then
+          localrefdefs.add(def);
+      end;
+
+    procedure tprocinfo.export_local_ref_defs;
+      var
+        i : longint;
+        def : tdef;
+      begin
+        if not assigned(localrefdefs) then
+          exit;
+        for i:=0 to localrefdefs.count-1 do
+          begin
+            def:=tdef(localrefdefs[i]);
+            if def.typ<>symconst.procdef then
+              internalerror(2019111801);
+            include(tprocdef(def).defoptions,df_has_global_ref);
+          end;
+      end;
+
+    function tprocinfo.create_for_outlining(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef; entrynodeinfo: tnode): tprocinfo;
+      begin
+        result:=cprocinfo.create(self);
+        result.force_nested;
+        result.procdef:=create_outline_procdef(basesymname,astruct,potype,resultdef);
+        result.entrypos:=entrynodeinfo.fileinfo;
+        result.entryswitches:=entrynodeinfo.localswitches;
+        result.exitpos:=current_filepos; // filepos of last node?
+        result.exitswitches:=current_settings.localswitches; // localswitches of last node?
+      end;
+
     procedure tprocinfo.allocate_push_parasize(size:longint);
       begin
         if size>maxpushedparasize then
@@ -290,13 +382,49 @@ implementation
         { most os/cpu combo's don't use this yet, so not yet abstract }
       end;
 
+    procedure tprocinfo.allocate_tls_register(list : TAsmList);
+      begin
+      end;
+
+
     procedure tprocinfo.init_framepointer;
       begin
         { most targets use a constant, but some have a typed constant that must
           be initialized }
       end;
 
+
     procedure tprocinfo.postprocess_code;
+      begin
+        { no action by default }
+      end;
+
+
+    procedure tprocinfo.set_eh_info;
+      begin
+        { default code is in tcgprocinfo }
+      end;
+
+
+    procedure tprocinfo.setup_eh;
+      begin
+        { no action by default }
+      end;
+
+
+    procedure tprocinfo.finish_eh;
+      begin
+        { no action by default }
+      end;
+
+
+    procedure tprocinfo.start_eh(list: TAsmList);
+      begin
+        { no action by default }
+      end;
+
+
+    procedure tprocinfo.end_eh(list: TAsmList);
       begin
         { no action by default }
       end;

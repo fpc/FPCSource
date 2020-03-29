@@ -75,11 +75,12 @@ interface
          patternw : pcompilerwidestring;
          settings : tsettings;
          tokenbuf : tdynamicarray;
+         tokenbuf_needs_swapping : boolean;
          next     : treplaystack;
          constructor Create(atoken: ttoken;aidtoken:ttoken;
            const aorgpattern,apattern:string;const acstringpattern:ansistring;
            apatternw:pcompilerwidestring;asettings:tsettings;
-           atokenbuf:tdynamicarray;anext:treplaystack);
+           atokenbuf:tdynamicarray;change_endian:boolean;anext:treplaystack);
          destructor destroy;override;
        end;
 
@@ -143,6 +144,11 @@ interface
           preproc_pattern : string;
           preproc_token   : ttoken;
 
+          { true, if we are parsing preprocessor expressions }
+          in_preproc_comp_expr : boolean;
+          { true if tokens must be converted to opposite endianess}
+          change_endian_for_replay : boolean;
+
           constructor Create(const fn:string; is_macro: boolean = false);
           destructor Destroy;override;
         { File buffer things }
@@ -179,7 +185,7 @@ interface
           procedure stoprecordtokens;
           function is_recording_tokens:boolean;
           procedure replaytoken;
-          procedure startreplaytokens(buf:tdynamicarray);
+          procedure startreplaytokens(buf:tdynamicarray; change_endian:boolean);
           { bit length asizeint is target depend }
           procedure tokenwritesizeint(val : asizeint);
           procedure tokenwritelongint(val : longint);
@@ -209,7 +215,7 @@ interface
           procedure readnumber;
           function  readid:string;
           function  readval:longint;
-          function  readcomment:string;
+          function  readcomment(include_special_char: boolean = false):string;
           function  readquotedstring:string;
           function  readstate:char;
           function  readoptionalstate(fallback:char):char;
@@ -231,7 +237,7 @@ interface
          spacefound,
          eolfound : boolean;
          constructor create(const fn:string);
-         destructor  destroy;
+         destructor  destroy; override;
          procedure Add(const s:string);
          procedure AddSpace;
        end;
@@ -281,7 +287,7 @@ implementation
       symbase,symtable,symtype,symsym,symconst,symdef,defutil,
       { This is needed for tcputype }
       cpuinfo,
-      fmodule,
+      fmodule,fppu,
       { this is needed for $I %CURRENTROUTINE%}
       procinfo
 {$if FPC_FULLVERSION<20700}
@@ -518,12 +524,17 @@ implementation
 
            HandleModeSwitches(m_none,changeinit);
 
-           { turn on bitpacking for mode macpas and iso pascal as well as extended pascal }
+           { turn on bitpacking and case checking for mode macpas and iso pascal,
+             as well as extended pascal }
            if ([m_mac,m_iso,m_extpas] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.localswitches,cs_bitpacking);
+               include(current_settings.localswitches,cs_check_all_case_coverage);
                if changeinit then
-                 include(init_settings.localswitches,cs_bitpacking);
+                 begin
+                   include(init_settings.localswitches,cs_bitpacking);
+                   include(init_settings.localswitches,cs_check_all_case_coverage);
+                 end;
              end;
 
            { support goto/label by default in delphi/tp7/mac/iso/extpas modes }
@@ -569,13 +580,15 @@ implementation
            { Default to intel assembler for delphi/tp7 on i386/i8086 }
            if (m_delphi in current_settings.modeswitches) or
               (m_tp7 in current_settings.modeswitches) then
+             begin
 {$ifdef i8086}
-             current_settings.asmmode:=asmmode_i8086_intel;
+               current_settings.asmmode:=asmmode_i8086_intel;
 {$else i8086}
-             current_settings.asmmode:=asmmode_i386_intel;
+               current_settings.asmmode:=asmmode_i386_intel;
 {$endif i8086}
-           if changeinit then
-             init_settings.asmmode:=current_settings.asmmode;
+               if changeinit then
+                 init_settings.asmmode:=current_settings.asmmode;
+             end;
 {$endif i386 or i8086}
 
            { Exception support explicitly turned on (mainly for macpas, to }
@@ -603,7 +616,11 @@ implementation
               undef_system_macro('FPC_GPC')
 {$endif}
             else if (m_mac in oldmodeswitches) then
-              undef_system_macro('FPC_MACPAS');
+              undef_system_macro('FPC_MACPAS')
+            else if (m_iso in oldmodeswitches) then
+              undef_system_macro('FPC_ISO')
+            else if (m_extpas in oldmodeswitches) then
+              undef_system_macro('FPC_EXTENDEDPASCAL');
 
             { define new symbol in delphi,objfpc,tp,gpc,macpas mode }
             if (m_delphi in current_settings.modeswitches) then
@@ -617,7 +634,11 @@ implementation
               def_system_macro('FPC_GPC')
 {$endif}
             else if (m_mac in current_settings.modeswitches) then
-              def_system_macro('FPC_MACPAS');
+              def_system_macro('FPC_MACPAS')
+            else if (m_iso in current_settings.modeswitches) then
+              def_system_macro('FPC_ISO')
+            else if (m_extpas in current_settings.modeswitches) then
+              def_system_macro('FPC_EXTENDEDPASCAL');
          end;
 
         SetCompileMode:=b;
@@ -922,7 +943,7 @@ type
         that we use the base types instead of the cpu-specific ones. }
       sintdef:=torddef.create(s64bit,low(int64),high(int64),false);
       uintdef:=torddef.create(u64bit,low(qword),high(qword),false);
-      booldef:=torddef.create(pasbool8,0,1,false);
+      booldef:=torddef.create(pasbool1,0,1,false);
       strdef:=tstringdef.createansi(0,false);
       setdef:=tsetdef.create(sintdef,0,255,false);
       realdef:=tfloatdef.create(s80real,false);
@@ -1478,7 +1499,9 @@ type
                               tokentoconsume:=_STRING;
                             end;
                         end
-                      end;
+                      else
+                        ;
+                    end;
                   end
                 else
                   begin
@@ -1991,6 +2014,8 @@ type
                                     result.free;
                                     result:=texprvalue.create_int(tenumsym(srsym).value);
                                   end;
+                                else
+                                  ;
                               end;
                           end
                         end
@@ -2117,10 +2142,12 @@ type
         end;
 
      begin
+       current_scanner.in_preproc_comp_expr:=true;
        current_scanner.skipspace;
        { start preproc expression scanner }
        current_scanner.preproc_token:=current_scanner.readpreproc;
        preproc_comp_expr:=preproc_sub_expr(opcompare,true);
+       current_scanner.in_preproc_comp_expr:=false;
      end;
 
     function boolean_compile_time_expr(var valuedescr: string): Boolean;
@@ -2434,6 +2461,36 @@ type
                hs:=gettimestr;
              'DATE':
                hs:=getdatestr;
+             'DATEYEAR':
+               begin
+                 hs:=tostr(startsystime.Year);
+                 macroIsString:=false;
+               end;
+             'DATEMONTH':
+               begin
+                 hs:=tostr(startsystime.Month);
+                 macroIsString:=false;
+               end;
+             'DATEDAY':
+               begin
+                 hs:=tostr(startsystime.Day);
+                 macroIsString:=false;
+               end;
+             'TIMEHOUR':
+               begin
+                 hs:=tostr(startsystime.Hour);
+                 macroIsString:=false;
+               end;
+             'TIMEMINUTE':
+               begin
+                 hs:=tostr(startsystime.Minute);
+                 macroIsString:=false;
+               end;
+             'TIMESECOND':
+               begin
+                 hs:=tostr(startsystime.Second);
+                 macroIsString:=false;
+               end;
              'FILE':
                hs:=current_module.sourcefiles.get_file_name(current_filepos.fileindex);
              'LINE':
@@ -2489,6 +2546,9 @@ type
               if (not found) then
                found:=findincludefile(path,ChangeFileExt(name,pasext),foundfile);
             end;
+           { if the name ends in dot, try without the dot }
+           if (not found) and (ExtractFileExt(name)=ExtensionSeparator) and (Length(name)>=2) then
+             found:=findincludefile(path,Copy(name,1,Length(name)-1),foundfile);
            if current_scanner.inputfilecount<max_include_nesting then
              begin
                inc(current_scanner.inputfilecount);
@@ -2523,6 +2583,7 @@ type
 {$ifdef PREPROCWRITE}
     constructor tpreprocfile.create(const fn:string);
       begin
+        inherited create;
       { open outputfile }
         assign(f,fn);
         {$push}{$I-}
@@ -2585,7 +2646,7 @@ type
     constructor treplaystack.Create(atoken:ttoken;aidtoken:ttoken;
       const aorgpattern,apattern:string;const acstringpattern:ansistring;
       apatternw:pcompilerwidestring;asettings:tsettings;
-      atokenbuf:tdynamicarray;anext:treplaystack);
+      atokenbuf:tdynamicarray;change_endian:boolean;anext:treplaystack);
       begin
         token:=atoken;
         idtoken:=aidtoken;
@@ -2600,6 +2661,7 @@ type
           end;
         settings:=asettings;
         tokenbuf:=atokenbuf;
+        tokenbuf_needs_swapping:=change_endian;
         next:=anext;
       end;
 
@@ -2657,6 +2719,7 @@ type
         lasttoken:=NOTOKEN;
         nexttoken:=NOTOKEN;
         ignoredirectives:=TFPHashList.Create;
+        change_endian_for_replay:=false;
       end;
 
 
@@ -2829,17 +2892,11 @@ type
 
     procedure tscannerfile.tokenwritesizeint(val : asizeint);
       begin
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
         recordtokenbuf.write(val,sizeof(asizeint));
       end;
 
     procedure tscannerfile.tokenwritelongint(val : longint);
       begin
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
         recordtokenbuf.write(val,sizeof(longint));
       end;
 
@@ -2850,17 +2907,11 @@ type
 
     procedure tscannerfile.tokenwriteword(val : word);
       begin
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
         recordtokenbuf.write(val,sizeof(word));
       end;
 
     procedure tscannerfile.tokenwritelongword(val : longword);
       begin
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
         recordtokenbuf.write(val,sizeof(longword));
       end;
 
@@ -2869,9 +2920,8 @@ type
         val : asizeint;
       begin
         replaytokenbuf.read(val,sizeof(asizeint));
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
+        if change_endian_for_replay then
+          val:=swapendian(val);
         result:=val;
       end;
 
@@ -2880,9 +2930,8 @@ type
         val : longword;
       begin
         replaytokenbuf.read(val,sizeof(longword));
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
+        if change_endian_for_replay then
+          val:=swapendian(val);
         result:=val;
       end;
 
@@ -2891,9 +2940,8 @@ type
         val : longint;
       begin
         replaytokenbuf.read(val,sizeof(longint));
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
+        if change_endian_for_replay then
+          val:=swapendian(val);
         result:=val;
       end;
 
@@ -2918,9 +2966,8 @@ type
         val : smallint;
       begin
         replaytokenbuf.read(val,sizeof(smallint));
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
+        if change_endian_for_replay then
+          val:=swapendian(val);
         result:=val;
       end;
 
@@ -2929,9 +2976,8 @@ type
         val : word;
       begin
         replaytokenbuf.read(val,sizeof(word));
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
+        if change_endian_for_replay then
+          val:=swapendian(val);
         result:=val;
       end;
 
@@ -2948,16 +2994,13 @@ type
    end;
 
    procedure tscannerfile.tokenreadset(var b;size : longint);
-{$ifdef FPC_BIG_ENDIAN}
    var
      i : longint;
-{$endif}
    begin
      replaytokenbuf.read(b,size);
-{$ifdef FPC_BIG_ENDIAN}
-     for i:=0 to size-1 do
-       Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
-{$endif}
+     if change_endian_for_replay then
+       for i:=0 to size-1 do
+         Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
    end;
 
    procedure tscannerfile.tokenwriteenum(var b;size : longint);
@@ -2966,22 +3009,8 @@ type
    end;
 
    procedure tscannerfile.tokenwriteset(var b;size : longint);
-{$ifdef FPC_BIG_ENDIAN}
-   var
-     i: longint;
-     tmpset: array[0..31] of byte;
-{$endif}
    begin
-{$ifdef FPC_BIG_ENDIAN}
-     { satisfy DFA because it assumes that size may be 0 and doesn't know that
-       recordtokenbuf.write wouldn't use tmpset in that case }
-     tmpset[0]:=0;
-     for i:=0 to size-1 do
-       tmpset[i]:=reverse_byte(Pbyte(@b)[i]);
-     recordtokenbuf.write(tmpset,size);
-{$else}
      recordtokenbuf.write(b,size);
-{$endif}
    end;
 
 
@@ -3004,6 +3033,9 @@ type
             alignment.procalign:=tokenreadlongint;
             alignment.loopalign:=tokenreadlongint;
             alignment.jumpalign:=tokenreadlongint;
+            alignment.jumpalignskipmax:=tokenreadlongint;
+            alignment.coalescealign:=tokenreadlongint;
+            alignment.coalescealignskipmax:=tokenreadlongint;
             alignment.constalignmin:=tokenreadlongint;
             alignment.constalignmax:=tokenreadlongint;
             alignment.varalignmin:=tokenreadlongint;
@@ -3044,6 +3076,8 @@ type
             minfpconstprec:=tfloattype(tokenreadenum(sizeof(tfloattype)));
 
             disabledircache:=boolean(tokenreadbyte);
+
+            tlsmodel:=ttlsmodel(tokenreadenum(sizeof(ttlsmodel)));
 { TH: Since the field was conditional originally, it was not stored in PPUs.  }
 { While adding ControllerSupport constant, I decided not to store ct_none     }
 { on targets not supporting controllers, but this might be changed here and   }
@@ -3084,6 +3118,9 @@ type
             tokenwritelongint(alignment.procalign);
             tokenwritelongint(alignment.loopalign);
             tokenwritelongint(alignment.jumpalign);
+            tokenwritelongint(alignment.jumpalignskipmax);
+            tokenwritelongint(alignment.coalescealign);
+            tokenwritelongint(alignment.coalescealignskipmax);
             tokenwritelongint(alignment.constalignmin);
             tokenwritelongint(alignment.constalignmax);
             tokenwritelongint(alignment.varalignmin);
@@ -3122,6 +3159,9 @@ type
             tokenwriteenum(minfpconstprec,sizeof(tfloattype));
 
             recordtokenbuf.write(byte(disabledircache),1);
+
+            tokenwriteenum(tlsmodel,sizeof(tlsmodel));
+
 { TH: See note about controllertype field in tokenreadsettings. }
 {$PUSH}
  {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
@@ -3196,6 +3236,15 @@ type
           end;
 
         { file pos changes? }
+        if current_tokenpos.fileindex<>last_filepos.fileindex then
+          begin
+            s:=ST_FILEINDEX;
+            writetoken(t);
+            recordtokenbuf.write(s,1);
+            tokenwriteword(current_tokenpos.fileindex);
+            last_filepos.fileindex:=current_tokenpos.fileindex;
+            last_filepos.line:=0;
+          end;
         if current_tokenpos.line<>last_filepos.line then
           begin
             s:=ST_LINE;
@@ -3203,6 +3252,7 @@ type
             recordtokenbuf.write(s,1);
             tokenwritelongint(current_tokenpos.line);
             last_filepos.line:=current_tokenpos.line;
+            last_filepos.column:=0;
           end;
         if current_tokenpos.column<>last_filepos.column then
           begin
@@ -3220,14 +3270,6 @@ type
                 tokenwriteword(current_tokenpos.column);
               end;
             last_filepos.column:=current_tokenpos.column;
-          end;
-        if current_tokenpos.fileindex<>last_filepos.fileindex then
-          begin
-            s:=ST_FILEINDEX;
-            writetoken(t);
-            recordtokenbuf.write(s,1);
-            tokenwriteword(current_tokenpos.fileindex);
-            last_filepos.fileindex:=current_tokenpos.fileindex;
           end;
 
         writetoken(token);
@@ -3266,21 +3308,27 @@ type
               recordtokenbuf.write(orgpattern[0],1);
               recordtokenbuf.write(orgpattern[1],length(orgpattern));
             end;
+          else
+            ;
         end;
       end;
 
 
-    procedure tscannerfile.startreplaytokens(buf:tdynamicarray);
+    procedure tscannerfile.startreplaytokens(buf:tdynamicarray; change_endian:boolean);
       begin
         if not assigned(buf) then
           internalerror(200511175);
+
         { save current scanner state }
         replaystack:=treplaystack.create(token,idtoken,orgpattern,pattern,
-          cstringpattern,patternw,current_settings,replaytokenbuf,replaystack);
+          cstringpattern,patternw,current_settings,replaytokenbuf,change_endian_for_replay,replaystack);
         if assigned(inputpointer) then
           dec(inputpointer);
         { install buffer }
         replaytokenbuf:=buf;
+
+        { Initialize value of change_endian_for_replay variable }
+        change_endian_for_replay:=change_endian;
 
         { reload next token }
         replaytokenbuf.seek(0);
@@ -3323,6 +3371,7 @@ type
             move(replaystack.patternw^.data^,patternw^.data^,replaystack.patternw^.len*sizeof(tcompilerwidechar));
             cstringpattern:=replaystack.cstringpattern;
             replaytokenbuf:=replaystack.tokenbuf;
+            change_endian_for_replay:=replaystack.tokenbuf_needs_swapping;
             { restore compiler settings }
             current_settings:=replaystack.settings;
             popreplaystack;
@@ -3433,11 +3482,11 @@ type
                         current_tokenpos.fileindex:=tokenreadword;
                         current_filepos:=current_tokenpos;
                       end;
-                    else
-                      internalerror(2006103010);
                   end;
                 continue;
               end;
+            else
+              ;
           end;
           break;
         until false;
@@ -3782,14 +3831,14 @@ type
         valuedescr: String;
       begin
         if assigned(preprocstack) and
-           (preprocstack.typ in [pp_if,pp_elseif]) then
+           (preprocstack.typ in [pp_if,pp_ifdef,pp_ifndef,pp_elseif]) then
          begin
            { when the branch is accepted we use pp_elseif so we know that
              all the next branches need to be rejected. when this branch is still
              not accepted then leave it at pp_if }
            if (preprocstack.typ=pp_elseif) then
              preprocstack.accept:=false
-           else if (preprocstack.typ=pp_if) and preprocstack.accept then
+           else if (preprocstack.typ in [pp_if,pp_ifdef,pp_ifndef]) and preprocstack.accept then
                begin
                  preprocstack.accept:=false;
                  preprocstack.typ:=pp_elseif;
@@ -3885,11 +3934,14 @@ type
 {$ifdef PREPROCWRITE}
          if parapreprocess then
           begin
-            t:=Get_Directive(hs);
-            if not(is_conditional(t) or (t=_DIR_DEFINE) or (t=_DIR_UNDEF)) then
+            if not (m_mac in current_settings.modeswitches) then
+              t:=tdirectiveitem(turbo_scannerdirectives.Find(hs))
+            else
+              t:=tdirectiveitem(mac_scannerdirectives.Find(hs));
+            if assigned(t) and not(t.is_conditional) then
              begin
-               preprocfile^.AddSpace;
-               preprocfile^.Add('{$'+hs+current_scanner.readcomment+'}');
+               preprocfile.AddSpace;
+               preprocfile.Add('{$'+hs+current_scanner.readcomment+'}');
                exit;
              end;
           end;
@@ -4097,7 +4149,7 @@ type
       end;
 
 
-    function tscannerfile.readcomment:string;
+    function tscannerfile.readcomment(include_special_char: boolean):string;
       var
         i : longint;
       begin
@@ -4106,15 +4158,29 @@ type
           case c of
             '{' :
               begin
+                if (include_special_char) and (i<255) then
+                begin
+                  inc(i);
+                  readcomment[i]:=c;
+                end;
+
                 if current_commentstyle=comment_tp then
                   inc_comment_level;
               end;
             '}' :
               begin
+                if (include_special_char) and (i<255) then
+                begin
+                  inc(i);
+                  readcomment[i]:=c;
+                end;
+
                 if current_commentstyle=comment_tp then
                   begin
                     readchar;
                     dec_comment_level;
+
+
                     if comment_level=0 then
                       break
                     else
@@ -4543,7 +4609,11 @@ type
                    if found=3 then
                     found:=4
                    else
-                    found:=1;
+                    begin
+                      if found=4 then
+                        inc_comment_level;
+                      found:=1;
+                    end;
                  end;
                ')' :
                  begin
@@ -4586,6 +4656,7 @@ type
     procedure tscannerfile.readtoken(allowrecordtoken:boolean);
       var
         code    : integer;
+        d : cardinal;
         len,
         low,high,mid : longint;
         w : word;
@@ -5064,7 +5135,7 @@ type
                              begin
                                readchar; { read leading $ }
                                asciinr:='$';
-                               while (upcase(c) in ['A'..'F','0'..'9']) and (length(asciinr)<=5) do
+                               while (upcase(c) in ['A'..'F','0'..'9']) and (length(asciinr)<=7) do
                                  begin
                                    asciinr:=asciinr+c;
                                    readchar;
@@ -5074,7 +5145,7 @@ type
                              begin
                                readchar; { read leading $ }
                                asciinr:='&';
-                               while (upcase(c) in ['0'..'7']) and (length(asciinr)<=7) do
+                               while (upcase(c) in ['0'..'7']) and (length(asciinr)<=8) do
                                  begin
                                    asciinr:=asciinr+c;
                                    readchar;
@@ -5084,7 +5155,7 @@ type
                              begin
                                readchar; { read leading $ }
                                asciinr:='%';
-                               while (upcase(c) in ['0','1']) and (length(asciinr)<=17) do
+                               while (upcase(c) in ['0','1']) and (length(asciinr)<=22) do
                                  begin
                                    asciinr:=asciinr+c;
                                    readchar;
@@ -5093,7 +5164,7 @@ type
                            else
                              begin
                                asciinr:='';
-                               while (c in ['0'..'9']) and (length(asciinr)<=5) do
+                               while (c in ['0'..'9']) and (length(asciinr)<=8) do
                                  begin
                                    asciinr:=asciinr+c;
                                    readchar;
@@ -5105,7 +5176,7 @@ type
                            Message(scan_e_illegal_char_const)
                          else if (m<0) or (m>255) or (length(asciinr)>3) then
                            begin
-                              if (m>=0) and (m<=65535) then
+                              if (m>=0) and (m<=$10FFFF) then
                                 begin
                                   if not iswidestring then
                                    begin
@@ -5116,7 +5187,15 @@ type
                                      iswidestring:=true;
                                      len:=0;
                                    end;
-                                  concatwidestringchar(patternw,tcompilerwidechar(m));
+                                  if m<=$FFFF then
+                                    concatwidestringchar(patternw,tcompilerwidechar(m))
+                                  else
+                                    begin
+                                      { split into surrogate pair }
+                                      dec(m,$10000);
+                                      concatwidestringchar(patternw,tcompilerwidechar((m shr 10) + $D800));
+                                      concatwidestringchar(patternw,tcompilerwidechar((m and $3FF) + $DC00));
+                                    end;
                                 end
                               else
                                 Message(scan_e_illegal_char_const)
@@ -5160,9 +5239,35 @@ type
                                    iswidestring:=true;
                                    len:=0;
                                  end;
-                               { four or more chars aren't handled }
+                               { four chars }
                                if (ord(c) and $f0)=$f0 then
-                                 message(scan_e_utf8_bigger_than_65535)
+                                 begin
+                                   { this always represents a surrogate pair, so
+                                     read as 32-bit value and then split into
+                                     the corresponding pair of two wchars }
+                                   d:=ord(c) and $f;
+                                   readchar;
+                                   if (ord(c) and $c0)<>$80 then
+                                     message(scan_e_utf8_malformed);
+                                   d:=(d shl 6) or (ord(c) and $3f);
+                                   readchar;
+                                   if (ord(c) and $c0)<>$80 then
+                                     message(scan_e_utf8_malformed);
+                                   d:=(d shl 6) or (ord(c) and $3f);
+                                   readchar;
+                                   if (ord(c) and $c0)<>$80 then
+                                     message(scan_e_utf8_malformed);
+                                   d:=(d shl 6) or (ord(c) and $3f);
+                                   if d<$10000 then
+                                     message(scan_e_utf8_malformed);
+                                   d:=d-$10000;
+                                   { high surrogate }
+                                   w:=$d800+(d shr 10);
+                                   concatwidestringchar(patternw,w);
+                                   { low surrogate }
+                                   w:=$dc00+(d and $3ff);
+                                   concatwidestringchar(patternw,w);
+                                 end
                                { three chars }
                                else if (ord(c) and $e0)=$e0 then
                                  begin

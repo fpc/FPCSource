@@ -118,8 +118,19 @@ type
   End;
 {$elseif defined(darwin) }
 {$packrecords 4}
-{ This is also the strcut for FreeBSD up to version 7
-  renamed ipc_perm_old in /usr/include/sys/ipc.h in version 8 and after }
+  {$ifdef cpu64}
+    TIPC_Perm = record
+          cuid  : uid_t;    { creator user id }
+          cgid  : gid_t;    { creator group id }
+          uid   : uid_t;    { user id }
+          gid   : gid_t;    { group id }
+          mode  : mode_t;   { r/w permission }
+          seq   : cushort;  { sequence # (to generate unique msg/sem/shm id) }
+          key   : key_t;    { user specified msg/sem/shm key }
+    End;
+  {$else}
+    { This is also the struct for FreeBSD up to version 7
+      renamed ipc_perm_old in /usr/include/sys/ipc.h in version 8 and after }
   TIPC_Perm = record
         cuid  : cushort;  { creator user id }
         cgid  : cushort;  { creator group id }
@@ -129,6 +140,7 @@ type
         seq   : cushort;  { sequence # (to generate unique msg/sem/shm id) }
         key   : key_t;    { user specified msg/sem/shm key }
   End;
+  {$endif}
 {$packrecords c}
 {$elseif defined(NetBSD) or defined(OpenBSD) or defined(FreeBSD) or defined(dragonfly)}
   TIPC_Perm = record
@@ -167,7 +179,7 @@ type
         cgid  : kernel_gid_t;
         mode  : kernel_mode_t;
 {$if sizeof(kernel_mode_t) < 4}
-        __pad1    : array[1..4-sizeof(mode_t)];
+        __pad1    : array[1..4-sizeof(mode_t)] of byte;
 {$endif}
 {$ifdef cpupowerpc}
         seq       : cuint;
@@ -673,13 +685,13 @@ const
 {$endif}
 
 {$if not defined(aix)}
-  SEM_GETNCNT = 3;   { Return the value of sempid (READ)  }
-  SEM_GETPID  = 4;   { Return the value of semval (READ)  }
-  SEM_GETVAL  = 5;   { Return semvals into arg.array (READ)  }
-  SEM_GETALL  = 6;   { Return the value of semzcnt (READ)  }
-  SEM_GETZCNT = 7;   { Set the value of semval to arg.val (ALTER)  }
-  SEM_SETVAL  = 8;   { Set semvals from arg.array (ALTER)  }
-  SEM_SETALL  = 9;
+  SEM_GETNCNT = 3;   { Return the value of semncnt (READ)  }
+  SEM_GETPID  = 4;   { Return the value of sempid (READ)  }
+  SEM_GETVAL  = 5;   { Return the value of semval (READ)  }
+  SEM_GETALL  = 6;   { Return semvals into arg.array (READ)  }
+  SEM_GETZCNT = 7;   { Return the value of semzcnt (READ)  }
+  SEM_SETVAL  = 8;   { Set the value of semval to arg.val (ALTER)  }
+  SEM_SETALL  = 9;   { Set semvals from arg.array (ALTER)  }
 {$endif}
 
   { Permissions  }
@@ -876,7 +888,7 @@ uses Syscall;
 
 {$ifndef FPC_USE_LIBC}
  {$if defined(Linux)}
-  {$if defined(cpux86_64) or defined(cpuaarch64) or defined(NO_SYSCALL_IPC)}
+  {$if defined(cpux86_64) or defined(cpuaarch64) or defined(cpuriscv32) or defined(cpuriscv64) or defined(NO_SYSCALL_IPC)}
     {$i ipcsys.inc}
   {$else}
     {$i ipccall.inc}

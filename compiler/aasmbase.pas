@@ -39,8 +39,10 @@ interface
     type
        TAsmsymbind=(
          AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL,AB_WEAK_EXTERNAL,
-         { global in the current program/library, but not visible outside it }
-         AB_PRIVATE_EXTERN,AB_LAZY,AB_IMPORT,
+         { global in the current program/library, but not visible outside it
+           (= "hidden" in ELF) }
+         AB_PRIVATE_EXTERN,
+         AB_LAZY,AB_IMPORT,
          { a symbol that's internal to the compiler and used as a temp }
          AB_TEMP,
          { a global symbol that points to another global symbol and is only used
@@ -74,10 +76,10 @@ interface
        { is the label only there for getting an DataOffset (e.g. for i/o
          checks -> alt_addr) or is it a jump target (alt_jump), for debug
          info alt_dbgline and alt_dbgfile, etc. }
-       TAsmLabelType = (alt_jump,alt_addr,alt_data,alt_dbgline,alt_dbgfile,alt_dbgtype,alt_dbgframe);
+       TAsmLabelType = (alt_jump,alt_addr,alt_data,alt_dbgline,alt_dbgfile,alt_dbgtype,alt_dbgframe,alt_eh_begin,alt_eh_end);
 
     const
-       asmlabeltypeprefix : array[TAsmLabeltype] of char = ('j','a','d','l','f','t','c');
+       asmlabeltypeprefix : array[TAsmLabeltype] of string[2] = ('j','a','d','l','f','t','c','eb','ee');
        asmsymbindname : array[TAsmsymbind] of string[23] = ('none', 'external','common',
        'local','global','weak external','private external','lazy','import','internal temp',
        'indirect','external indirect');
@@ -166,12 +168,19 @@ interface
          { stack segment for 16-bit DOS }
          sec_stack,
          { initial heap segment for 16-bit DOS }
-         sec_heap
+         sec_heap,
+         { dwarf based/gcc style exception handling }
+         sec_gcc_except_table,
+         sec_arm_attribute
        );
 
        TObjCAsmSectionType = sec_objc_class..sec_objc_protolist;
 
        TAsmSectionOrder = (secorder_begin,secorder_default,secorder_end);
+
+       TSectionFlag = (SF_A,SF_W,SF_X);
+       TSectionFlags = set of TSectionFlag;
+       TSectionProgbits = (SPB_None,SPB_PROGBITS,SPB_NOBITS,SPB_NOTE,SPB_ARM_ATTRIBUTES);
 
        TAsmSymbol = class(TFPHashObject)
        private
@@ -219,6 +228,8 @@ interface
          labelnr   : longint;
          labeltype : TAsmLabelType;
          is_set    : boolean;
+         is_public : boolean;
+         defined_in_asmstatement : boolean;
          constructor Createlocal(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
          constructor Createstatic(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
          constructor Createglobal(AList: TFPHashObjectList; const modulename: TSymStr; nr: longint; ltyp: TAsmLabelType);
@@ -228,11 +239,6 @@ interface
     function create_smartlink_sections:boolean;inline;
     function create_smartlink_library:boolean;inline;
     function create_smartlink:boolean;inline;
-
-    function LengthUleb128(a: qword) : byte;
-    function LengthSleb128(a: int64) : byte;
-    function EncodeUleb128(a: qword;out buf) : byte;
-    function EncodeSleb128(a: int64;out buf) : byte;
 
     function ReplaceForbiddenAsmSymbolChars(const s: ansistring): ansistring;
 
@@ -279,109 +285,6 @@ implementation
                  (cs_Create_smart in current_settings.moduleswitches) and
                  (tf_smartlink_library in target_info.flags)
                 );
-      end;
-
-
-    function LengthUleb128(a: qword) : byte;
-      begin
-        result:=0;
-        repeat
-          a := a shr 7;
-          inc(result);
-          if a=0 then
-            break;
-        until false;
-      end;
-
-
-    function LengthSleb128(a: int64) : byte;
-      var
-        b, size: byte;
-        asign : int64;
-        neg, more: boolean;
-      begin
-        more := true;
-        neg := a < 0;
-        size := sizeof(a)*8;
-        result:=0;
-        repeat
-          b := a and $7f;
-          a := a shr 7;
-          if neg then
-            begin
-              { Use a variable to be sure that the correct or mask is generated }
-              asign:=1;
-              asign:=asign shl (size - 7);
-              a := a or -asign;
-            end;
-          if (((a = 0) and
-               (b and $40 = 0)) or
-              ((a = -1) and
-               (b and $40 <> 0))) then
-            more := false;
-          inc(result);
-          if not(more) then
-            break;
-        until false;
-      end;
-
-
-    function EncodeUleb128(a: qword;out buf) : byte;
-      var
-        b: byte;
-        pbuf : pbyte;
-      begin
-        result:=0;
-        pbuf:=@buf;
-        repeat
-          b := a and $7f;
-          a := a shr 7;
-          if a<>0 then
-            b := b or $80;
-          pbuf^:=b;
-          inc(pbuf);
-          inc(result);
-          if a=0 then
-            break;
-        until false;
-      end;
-
-
-    function EncodeSleb128(a: int64;out buf) : byte;
-      var
-        b, size: byte;
-        asign : int64;
-        neg, more: boolean;
-        pbuf : pbyte;
-      begin
-        more := true;
-        neg := a < 0;
-        size := sizeof(a)*8;
-        result:=0;
-        pbuf:=@buf;
-        repeat
-          b := a and $7f;
-          a := a shr 7;
-          if neg then
-            begin
-              { Use a variable to be sure that the correct or mask is generated }
-              asign:=1;
-              asign:=asign shl (size - 7);
-              a := a or -asign;
-            end;
-          if (((a = 0) and
-               (b and $40 = 0)) or
-              ((a = -1) and
-               (b and $40 <> 0))) then
-            more := false
-          else
-            b := b or $80;
-          pbuf^:=b;
-          inc(pbuf);
-          inc(result);
-          if not(more) then
-            break;
-        until false;
       end;
 
 

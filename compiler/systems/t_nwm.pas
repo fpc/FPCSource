@@ -95,7 +95,7 @@ implementation
     SysUtils,
     cutils,cfileutl,
     verbose,systems,globtype,globals,
-    symconst,script,
+    symconst,cscript,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
     import,export,link,i_nwm,ogbase, ogcoff, ognlm, owar, cclasses
     {$ifdef netware} ,dos {$endif}

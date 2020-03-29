@@ -87,6 +87,14 @@ interface
        AIntBits = 8;
 {$endif cpu8bitalu}
 
+     { Maximum possible size of locals space (stack frame) }
+     Const
+{$if defined(cpu16bitaddr)}
+       MaxLocalsSize = High(PUint);
+{$else}
+       MaxLocalsSize = High(longint) - 15;
+{$endif}
+
      Type
        PAWord = ^AWord;
        PAInt = ^AInt;
@@ -123,6 +131,12 @@ interface
            0 : (bytes:array[0..7] of byte);
            1 : (value:double);
        end;
+       { Use a variant record to be sure that the array if aligned correctly }
+       tcompsinglerec=record
+         case byte of
+           0 : (bytes:array[0..3] of byte);
+           1 : (value:single);
+       end;
        tcompextendedrec=record
          case byte of
            0 : (bytes:array[0..9] of byte);
@@ -142,6 +156,8 @@ interface
          cs_full_boolean_eval,cs_typed_const_writable,cs_allow_enum_calc,
          cs_do_inline,cs_fpu_fwait,cs_ieee_errors,
          cs_check_low_addr_load,cs_imported_data,
+         cs_excessprecision,cs_check_fpu_exceptions,
+         cs_check_all_case_coverage,
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }
@@ -180,7 +196,9 @@ interface
          cs_huge_code,
          cs_win16_smartcallbacks,
          { Record usage of checkpointer experimental feature }
-         cs_checkpointer_called
+         cs_checkpointer_called,
+         { enable link time optimisation (both unit code generation and optimising the whole program/library) }
+         cs_lto
        );
        tmoduleswitches = set of tmoduleswitch;
 
@@ -209,7 +227,9 @@ interface
          cs_link_map,cs_link_pthread,cs_link_no_default_lib_order,
          cs_link_native,
          cs_link_pre_binutils_2_19,
-         cs_link_vlink
+         cs_link_vlink,
+         { disable LTO for the system unit (needed to work around linker bugs on macOS) }
+         cs_lto_nosystem
        );
        tglobalswitches = set of tglobalswitch;
 
@@ -232,7 +252,15 @@ interface
           ds_dwarf_method_class_prefix,
           { Simulate C++ debug information in DWARF. It can be used for }
           { debuggers, which do not support Pascal.                     }
-          ds_dwarf_cpp
+          ds_dwarf_cpp,
+          { emit line number information in LINNUM/LINNUM32 records,    }
+          { using the MS LINK format, for targets that use the OMF      }
+          { object format. This option is useful for compatibility with }
+          { the Open Watcom Debugger and the Open Watcom Linker. Even   }
+          { though, they support and use dwarf debug information in the }
+          { final executable file, they expect LINNUM records in the    }
+          { object modules for the line number information.             }
+          ds_dwarf_omf_linnum
        );
        tdebugswitches = set of tdebugswitch;
 
@@ -313,7 +341,8 @@ interface
          cs_opt_remove_emtpy_proc,
          cs_opt_constant_propagate,
          cs_opt_dead_store_eliminate,
-         cs_opt_forcenostackframe
+         cs_opt_forcenostackframe,
+         cs_opt_use_load_modify_store
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -323,6 +352,35 @@ interface
          cs_wpo_symbol_liveness
        );
        twpoptimizerswitches = set of twpoptimizerswitch;
+
+       { module flags (extra unit flags not in ppu header) }
+       tmoduleflag = (
+         mf_init,                     { unit has initialization section }
+         mf_finalize,                 { unit has finalization section   }
+         mf_checkpointer_called,      { Unit uses experimental checkpointer test code }
+         mf_has_resourcestrings,      { unit has resource string section }
+         mf_release,                  { unit was compiled with -Ur option }
+         mf_threadvars,               { unit has threadvars }
+         mf_has_stabs_debuginfo,      { this unit has stabs debuginfo generated }
+         mf_local_symtable,           { this unit has a local symtable stored }
+         mf_uses_variants,            { this unit uses variants }
+         mf_has_resourcefiles,        { this unit has external resources (using $R directive)}
+         mf_has_exports,              { this module or a used unit has exports }
+         mf_has_dwarf_debuginfo,      { this unit has dwarf debuginfo generated }
+         mf_wideinits,                { this unit has winlike widestring typed constants }
+         mf_classinits,               { this unit has class constructors/destructors }
+         mf_resstrinits,              { this unit has string consts referencing resourcestrings }
+         mf_i8086_far_code,           { this unit uses an i8086 memory model with far code (i.e. medium, large or huge) }
+         mf_i8086_far_data,           { this unit uses an i8086 memory model with far data (i.e. compact or large) }
+         mf_i8086_huge_data,          { this unit uses an i8086 memory model with huge data (i.e. huge) }
+         mf_i8086_cs_equals_ds,       { this unit uses an i8086 memory model with CS=DS (i.e. tiny) }
+         mf_i8086_ss_equals_ds,       { this unit uses an i8086 memory model with SS=DS (i.e. tiny, small or medium) }
+         mf_package_deny,             { this unit must not be part of a package }
+         mf_package_weak,             { this unit may be completely contained in a package }
+         mf_llvm,                     { compiled for LLVM code generator, not compatible with regular compiler because of different nodes in inline functions }
+         mf_symansistr                { symbols are ansistrings (for ppudump) }
+       );
+       tmoduleflags = set of tmoduleflag;
 
     type
        ttargetswitchinfo = record
@@ -335,21 +393,21 @@ interface
        end;
 
     const
-       OptimizerSwitchStr : array[toptimizerswitch] of string[17] = ('',
+       OptimizerSwitchStr : array[toptimizerswitch] of string[18] = ('',
          'LEVEL1','LEVEL2','LEVEL3','LEVEL4',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','LOOPUNROLL','TAILREC','CSE',
          'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP','USERBP',
          'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS',
          'CONSTPROP',
-         'DEADSTORE','FORCENOSTACKFRAME'
+         'DEADSTORE','FORCENOSTACKFRAME','USELOADMODIFYSTORE'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
        );
 
        DebugSwitchStr : array[tdebugswitch] of string[22] = ('',
-         'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX','DWARFCPP');
+         'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX','DWARFCPP','DWARFOMFLINNUM');
 
        TargetSwitchStr : array[ttargetswitch] of ttargetswitchinfo = (
          (name: '';                    hasvalue: false; isglobal: true ; define: ''),
@@ -368,7 +426,7 @@ interface
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1,cs_opt_peephole];
        genericlevel2optimizerswitches = [cs_opt_level2,cs_opt_remove_emtpy_proc];
-       genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate,cs_opt_nodedfa];
+       genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate,cs_opt_nodedfa{$ifndef llvm},cs_opt_use_load_modify_store{$endif},cs_opt_loopunroll];
        genericlevel4optimizerswitches = [cs_opt_level4,cs_opt_reorder_fields,cs_opt_dead_values,cs_opt_fastmath];
 
        { whole program optimizations whose information generation requires
@@ -389,7 +447,7 @@ interface
        tmodeswitch = (m_none,
          { generic }
          m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,m_extpas,
-         {$ifdef fpc_mode}m_gpc,{$endif}
+         {$ifdef gpc_mode}m_gpc,{$endif}
          { more specific }
          m_class,               { delphi class model }
          m_objpas,              { load objpas unit }
@@ -424,12 +482,16 @@ interface
                                   fields in Java) }
          m_default_unicodestring, { makes the default string type in $h+ mode unicodestring rather than
                                     ansistring; similarly, char becomes unicodechar rather than ansichar }
-         m_type_helpers,        { allows the declaration of "type helper" (non-Delphi) or "record helper"
-                                  (Delphi) for primitive types }
+         m_type_helpers,        { allows the declaration of "type helper" for all supported types
+                                  (primitive types, records, classes, interfaces) }
          m_blocks,              { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
          m_isolike_io,          { I/O as it required by an ISO compatible compiler }
          m_isolike_program_para, { program parameters as it required by an ISO compatible compiler }
-         m_isolike_mod          { mod operation as it is required by an iso compatible compiler }
+         m_isolike_mod,         { mod operation as it is required by an iso compatible compiler }
+         m_array_operators,     { use Delphi compatible array operators instead of custom ones ("+") }
+         m_multi_helpers,       { helpers can appear in multiple scopes simultaneously }
+         m_array2dynarray,      { regular arrays can be implicitly converted to dynamic arrays }
+         m_prefixed_attributes  { enable attributes that are defined before the type they belong to }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -538,7 +600,9 @@ interface
          pocall_sysv_abi_cdecl,
          { for x86-64: forces Microsoft ABI (Pascal resp. C) }
          pocall_ms_abi_default,
-         pocall_ms_abi_cdecl
+         pocall_ms_abi_cdecl,
+         { for x86-64: Microsoft's "vectorcall" ABI }
+         pocall_vectorcall
        );
        tproccalloptions = set of tproccalloption;
 
@@ -559,9 +623,10 @@ interface
            'Interrupt',
            'HardFloat',
            'SysV_ABI_Default',
-           'MS_ABI_CDecl',
+           'SysV_ABI_CDecl',
            'MS_ABI_Default',
-           'MS_ABI_CDecl'
+           'MS_ABI_CDecl',
+           'VectorCall'
          );
 
        { Default calling convention }
@@ -579,7 +644,7 @@ interface
 
        modeswitchstr : array[tmodeswitch] of string[18] = ('',
          '','','','','','','',
-         {$ifdef fpc_mode}'',{$endif}
+         {$ifdef gpc_mode}'',{$endif}
          { more specific }
          'CLASS',
          'OBJPAS',
@@ -614,7 +679,11 @@ interface
          'CBLOCKS',
          'ISOIO',
          'ISOPROGRAMPARAS',
-         'ISOMOD'
+         'ISOMOD',
+         'ARRAYOPERATORS',
+         'MULTIHELPERS',
+         'ARRAYTODYNARRAY',
+         'PREFIXEDATTRIBUTES'
          );
 
 
@@ -671,9 +740,29 @@ interface
            for i8086 cpu huge memory model,
            as this changes SP register it requires special handling
            to restore DS segment register  }
-         pi_has_open_array_parameter
+         pi_has_open_array_parameter,
+         { subroutine uses threadvars }
+         pi_uses_threadvar,
+         { set if the procedure has generated data which shall go in an except table }
+         pi_has_except_table_data,
+         { subroutine needs to load and maintain a tls register }
+         pi_needs_tls,
+         { subroutine uses get_frame }
+         pi_uses_get_frame
        );
        tprocinfoflags=set of tprocinfoflag;
+
+       ttlsmodel = (tlsm_none,
+         { elf tls model: works for all kind of code and thread vars }
+         tlsm_global_dynamic,
+         { elf tls model: works only if the thread vars are declared and used in the same module,
+           regardless when the module is loaded }
+         tlsm_local_dynamic,
+         { elf tls model: works only if the thread vars are declared and used in modules and executables loaded at startup }
+         tlsm_initial_exec,
+         { elf tls model: works only if the thread vars are declared and used in the same executable }
+         tlsm_local_exec
+       );
 
     type
       { float types -- warning, this enum/order is used internally by the RTL
@@ -730,6 +819,7 @@ interface
        link_static  = $2;
        link_smart   = $4;
        link_shared  = $8;
+       link_lto     = $10;
 
     type
       { a message state }

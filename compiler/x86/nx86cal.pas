@@ -86,12 +86,20 @@ implementation
 
 
   function tx86callnode.can_call_ref(var ref: treference): boolean;
+    const
+{$if defined(i8086)}
+      save_all_regs=[pocall_pascal];
+{$elseif defined(i386)}
+      save_all_regs=[pocall_far16,pocall_oldfpccall];
+{$elseif defined(x86_64)}
+      save_all_regs=[];
+{$endif}
     begin
       tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
       { do not use a ref. for calling conventions which allocate all registers, the reg. allocator cannot handle this, see
         also issue #28639, I were not able to create a simple example though to cause the resulting endless spilling }
       result:=((getsupreg(ref.base)<first_int_imreg) and (getsupreg(ref.index)<first_int_imreg)) or
-              not(procdefinition.proccalloption in [pocall_far16,pocall_pascal,pocall_oldfpccall]);
+              not(procdefinition.proccalloption in save_all_regs);
     end;
 
 

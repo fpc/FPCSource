@@ -17,8 +17,11 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.OSes := AllUnixOSes+AllWindowsOSes-[qnx,win16];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
@@ -44,7 +47,9 @@ begin
           AddUnit('sqlite');
         end;
     T:=P.Targets.AddUnit('sqlite.pp');
-
+    T:=P.Targets.AddUnit('sqlite3ext.pp');
+      T.Dependencies.AddUnit('sqlite');
+ 
     P.ExamplePath.Add('tests/');
     P.Targets.AddExampleProgram('testapiv3x.pp');
     P.Targets.AddExampleProgram('test.pas');

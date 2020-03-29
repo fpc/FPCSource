@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2013, 2016, 2017 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -37,7 +37,8 @@ begin
   inherited Create;
 
   { default flags }
-  FFlags := [PTC_X11_TRY_XSHM, PTC_X11_TRY_XF86VIDMODE];
+  FFlags := [PTC_X11_TRY_XSHM, PTC_X11_TRY_XF86VIDMODE, PTC_X11_TRY_XINPUT2,
+             PTC_X11_TRY_XIM];
 
   FTitle := '';
 
@@ -170,6 +171,26 @@ begin
     FFlags := FFlags - [PTC_X11_TRY_XSHM];
     exit;
   end;
+  if (AOption = 'xinput2') or (AOption = 'xinput2 on') then
+  begin
+    FFlags := FFlags + [PTC_X11_TRY_XINPUT2];
+    exit;
+  end;
+  if AOption = 'xinput2 off' then
+  begin
+    FFlags := FFlags - [PTC_X11_TRY_XINPUT2];
+    exit;
+  end;
+  if (AOption = 'xim') or (AOption = 'xim on') then
+  begin
+    FFlags := FFlags + [PTC_X11_TRY_XIM];
+    exit;
+  end;
+  if AOption = 'xim off' then
+  begin
+    FFlags := FFlags - [PTC_X11_TRY_XIM];
+    exit;
+  end;
   if AOption = 'default cursor' then
   begin
     FFlags := FFlags - [PTC_X11_FULLSCREEN_CURSOR_VISIBLE, PTC_X11_WINDOWED_CURSOR_INVISIBLE];
@@ -198,6 +219,18 @@ begin
   begin
     FFlags := FFlags - [PTC_X11_GRAB_MOUSE];
     UpdateMouseGrab;
+    exit;
+  end;
+  if AOption = 'relative mouse on' then
+  begin
+    FFlags := FFlags + [PTC_X11_RELATIVE_MOUSE_MODE];
+    Result := UpdateRelativeMouseMode;
+    exit;
+  end;
+  if AOption = 'relative mouse off' then
+  begin
+    FFlags := FFlags - [PTC_X11_RELATIVE_MOUSE_MODE];
+    Result := UpdateRelativeMouseMode;
     exit;
   end;
   if AOption = 'intercept window close' then
@@ -573,6 +606,22 @@ procedure TX11Console.UpdateMouseGrab;
 begin
   if Assigned(FX11Display) then
     FX11Display.SetMouseGrab(PTC_X11_GRAB_MOUSE in FFlags);
+end;
+
+function TX11Console.UpdateRelativeMouseMode: Boolean;
+begin
+  if Assigned(FX11Display) then
+    Result := FX11Display.SetRelativeMouseMode(PTC_X11_RELATIVE_MOUSE_MODE in FFlags)
+  else
+    Result := True;
+end;
+
+function TX11Console.MoveMouseTo(X, Y: Integer): Boolean;
+begin
+  if Assigned(FX11Display) then
+    Result := FX11Display.MoveMouseTo(X, Y)
+  else
+    Result := False;
 end;
 
 procedure TX11Console.OpenGL_SwapBuffers;

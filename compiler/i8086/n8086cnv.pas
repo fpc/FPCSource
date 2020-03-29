@@ -65,21 +65,28 @@ implementation
 
     function t8086typeconvnode.typecheck_proc_to_procvar: tnode;
       begin
-        if (current_settings.x86memorymodel in x86_far_code_models) and
-          not is_proc_far(tabstractprocdef(left.resultdef)) then
-          CGMessage1(type_e_procedure_must_be_far,left.resultdef.GetTypeName);
         Result:=inherited typecheck_proc_to_procvar;
+        if tcnf_proc_2_procvar_get_offset_only in convnodeflags then
+          begin
+            if resultdef.typ<>procvardef then
+              internalerror(2018040401);
+            exclude(tprocvardef(resultdef).procoptions,po_far);
+          end
+        else if (tcnf_proc_2_procvar_2_voidpointer in convnodeflags) and
+                (current_settings.x86memorymodel in x86_far_code_models) then
+          begin
+            if resultdef.typ<>procvardef then
+              internalerror(2018040402);
+            include(tprocvardef(resultdef).procoptions,po_far);
+          end;
       end;
 
 
     procedure t8086typeconvnode.second_proc_to_procvar;
       begin
-        if is_proc_far(tabstractprocdef(resultdef))<>
-           (current_settings.x86memorymodel in x86_far_code_models) then
-          internalerror(2014041302);
-        if is_proc_far(tabstractprocdef(left.resultdef))<>
-           (current_settings.x86memorymodel in x86_far_code_models) then
-          internalerror(2014041303);
+        if (tcnf_proc_2_procvar_get_offset_only in convnodeflags) and
+            is_proc_far(tabstractprocdef(resultdef)) then
+          internalerror(2018040403);
         inherited;
       end;
 

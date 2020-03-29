@@ -87,6 +87,8 @@ type
     function GetClassInfo(Index: integer): TClassInfo;
   end;
 
+  TMatchType = (mtNone, mtExact, mtWildcard, mtParams);
+
   { TWriter }
 
   TWriter = class
@@ -98,10 +100,14 @@ type
     FThisUnit: TUnitDef;
     FIntegerType: TDef;
     FRecords: TObjectList;
+    FRealClasses: TObjectList;
 
     function DoCheckItem(const ItemName: string): TCheckItemResult;
+    procedure WriteClassTable;
 
     procedure WriteFileComment(st: TTextOutStream);
+    function FindInStringList(list: TStringList; const s: string): integer;
+    function FindInStringListEx(list: TStringList; const s: string; AllMatch: boolean; out MatchType: TMatchType): integer;
 
     procedure ProcessRules(d: TDef; const Prefix: string = '');
     function GetUniqueNum: integer;
@@ -140,6 +146,7 @@ type
     procedure WriteProcType(d: TProcDef; PreInfo: boolean);
     procedure WriteSet(d: TSetDef);
     procedure WritePointer(d: TPointerDef; PreInfo: boolean);
+    procedure WriteClassRef(d: TClassRefDef; PreInfo: boolean);
     procedure WriteUnit(u: TUnitDef);
     procedure WriteOnLoad;
     procedure WriteRecordSizes;
@@ -152,6 +159,7 @@ type
     JavaOutPath: string;
     IncludeList: TStringList;
     ExcludeList: TStringList;
+    LibAutoLoad: boolean;
 
     constructor Create;
     destructor Destroy; override;
@@ -173,7 +181,7 @@ const
 
   TextIndent = 2;
 
-  ExcludeStd: array[1..44] of string = (
+  ExcludeStd: array[1..45] of string = (
     'classes.TStream.ReadComponent', 'classes.TStream.ReadComponentRes', 'classes.TStream.WriteComponent', 'classes.TStream.WriteComponentRes',
     'classes.TStream.WriteDescendent', 'classes.TStream.WriteDescendentRes', 'classes.TStream.WriteResourceHeader', 'classes.TStream.FixupResourceHeader',
     'classes.TStream.ReadResHeader', 'classes.TComponent.WriteState', 'classes.TComponent.ExecuteAction', 'classes.TComponent.UpdateAction',
@@ -185,17 +193,28 @@ const
     'system.TObject.FieldAddress', 'classes.TComponent.ComponentState', 'classes.TComponent.ComponentStyle', 'classes.TList.GetEnumerator',
     'classes.TList.List', 'classes.TList.FPOAttachObserver', 'classes.TList.FPODetachObserver', 'classes.TList.FPONotifyObservers',
     'classes.TPersistent.FPOAttachObserver', 'classes.TPersistent.FPODetachObserver', 'classes.TPersistent.FPONotifyObservers',
-    'system.fma'
+    'system.fma', 'system.TExtended80Rec'
   );
 
-  ExcludeDelphi7: array[1..25] of string = (
+  ExcludeDelphi7: array[1..57] of string = (
     'system.TObject.StringMessageTable', 'system.TObject.GetInterfaceEntryByStr', 'system.TObject.UnitName', 'system.TObject.Equals',
-    'system.TObject.GetHashCode', 'system.TObject.ToString','classes.TStream.ReadByte', 'classes.TStream.ReadWord',
+    'system.TObject.GetHashCode', 'system.TObject.ToString','system.TObject.QualifiedClassName',
+    'sysutils.TEncoding',
+    'classes.TStream.ReadByte', 'classes.TStream.ReadWord',
     'classes.TStream.ReadDWord', 'classes.TStream.ReadQWord', 'classes.TStream.ReadAnsiString', 'classes.TStream.WriteByte',
     'classes.TStream.WriteWord', 'classes.TStream.WriteDWord', 'classes.TStream.WriteQWord', 'classes.TStream.WriteAnsiString',
+    'classes.TStream.ReadData', 'classes.TStream.ReadBufferData', 'classes.TStream.WriteData', 'classes.TStream.WriteBufferData',
     'classes.TCollection.Exchange', 'classes.TStrings.Equals', 'classes.TStrings.GetNameValue', 'classes.TStrings.ExtractName',
     'classes.TStrings.TextLineBreakStyle', 'classes.TStrings.StrictDelimiter', 'classes.TStrings.GetEnumerator', 'classes.TStringList.OwnsObjects',
-    'classes.TList.AddList'
+    'classes.TStrings.Filter', 'classes.TStrings.ForEach', 'classes.TStrings.Reduce', 'classes.TStrings.Map', 'classes.TStrings.AddPair',
+    'classes.TStrings.AddText', 'classes.TStrings.Fill', 'classes.TStrings.LastIndexOf', 'classes.TStrings.Pop', 'classes.TStrings.Reverse',
+    'classes.TStrings.Shift', 'classes.TStrings.Slice', 'classes.TStrings.AlwaysQuote', 'classes.TStrings.LineBreak',
+    'classes.TStrings.MissingNameValueSeparatorAction', 'classes.TStrings.SkipLastLineBreak', 'classes.TStrings.TrailingLineBreak', 'classes.TStrings.WriteBOM',
+    'classes.TStrings.AddStrings#ClearFirst', 'classes.TStrings.IndexOf#aStart', 'classes.TStrings.LoadFromFile#IgnoreEncoding',
+    'classes.TStrings.LoadFromStream#IgnoreEncoding',
+    'classes.TStringList.SortStyle',
+    'classes.TList.AddList', 'classes.TCustomMemoryStream.SizeBoundsSeek', 'classes.TBytesStream',
+    'sortbase'
   );
 
   SUnsupportedType = '<unsupported type>';
@@ -320,7 +339,7 @@ begin
       case d.DefType of
         dtType:
           Result:=JNIType[TTypeDef(d).BasicType];
-        dtClass, dtEnum:
+        dtClass, dtEnum, dtClassRef:
           Result:='jobject';
         dtProcType:
           if poMethodPtr in TProcDef(d).ProcOpt then
@@ -354,11 +373,11 @@ end;
 
 function TWriter.DoCheckItem(const ItemName: string): TCheckItemResult;
 begin
-  if IncludeList.IndexOf(ItemName) >= 0 then
-    Result:=crInclude
+  if FindInStringList(ExcludeList, ItemName) >= 0 then
+    Result:=crExclude
   else
-    if ExcludeList.IndexOf(ItemName) >= 0 then
-      Result:=crExclude
+    if FindInStringList(IncludeList, ItemName) >= 0 then
+      Result:=crInclude
     else
       Result:=crDefault;
 end;
@@ -369,10 +388,66 @@ begin
   st.WriteLn('// Do not edit this file.');
 end;
 
+function TWriter.FindInStringList(list: TStringList; const s: string): integer;
+var
+  mt: TMatchType;
+begin
+  Result:=FindInStringListEx(list, s, False, mt);
+end;
+
+function TWriter.FindInStringListEx(list: TStringList; const s: string; AllMatch: boolean; out MatchType: TMatchType): integer;
+var
+  len, cnt: integer;
+  ss: string;
+begin
+  MatchType:=mtNone;
+  if list.Find(s, Result) then begin
+    MatchType:=mtExact;
+    exit;
+  end;
+  if Result < 0 then
+    exit;
+  if Result < list.Count then begin
+    cnt:=3;
+    if Result > 0 then
+      Dec(Result)
+    else
+      Dec(cnt);
+    if Result + cnt > list.Count then
+      Dec(cnt);
+    while cnt > 0 do begin
+      ss:=list[Result];
+      len:=Length(ss);
+      if len > 1 then begin
+        if ss[len] = '*' then begin
+          Dec(len);
+          MatchType:=mtWildcard;
+        end
+        else
+          if AllMatch then begin
+            len:=Pos('#', ss) - 1;
+            MatchType:=mtParams;
+          end
+          else
+            len:=0;
+
+        if (len > 0) and (AnsiCompareText(Copy(s, 1, len), Copy(ss, 1, len)) = 0) then
+          exit;
+      end;
+      Inc(Result);
+      Dec(cnt);
+    end;
+  end;
+  MatchType:=mtNone;
+  Result:=-1;
+end;
+
 procedure TWriter.ProcessRules(d: TDef; const Prefix: string);
 var
   i: integer;
-  s: string;
+  s, c: string;
+  b: boolean;
+  mt: TMatchType;
 begin
   if d.DefType = dtClass then
     with TClassDef(d) do
@@ -380,20 +455,31 @@ begin
         SetNotUsed;
         exit;
       end;
-  s:=Prefix + d.Name;
-  i:=IncludeList.IndexOf(s);
-  if i >= 0 then begin
-    i:=ptruint(IncludeList.Objects[i]);
-    if (i = 0) or (d.Count = i - 1) then
-      d.IsUsed:=True;
+  s:=Prefix + d.AliasName;
+  if FindInStringListEx(ExcludeList, s, (d.DefType = dtProc), mt) >= 0 then begin
+    if mt <> mtParams then begin
+      if d.DefType = dtParam then
+        d.Parent.SetNotUsed
+      else
+        d.SetNotUsed;
+    end;
   end
   else
-    if ExcludeList.IndexOf(s) >= 0 then begin
-      d.SetNotUsed;
-    end;
-  if not (d.DefType in [dtUnit, dtClass]) then
+    if FindInStringList(IncludeList, s) >= 0 then
+      d.IsUsed:=True;
+  b:=not (d.DefType in [dtUnit, dtClass]);
+  // Check exclusion rules for parameters of overloaded procs
+  if (d.DefType = dtProc) and (mt = mtParams) then begin
+    b:=False;
+    c:='#';
+  end
+  else
+    c:='.';
+
+  if b then
     exit;
-  s:=s + '.';
+
+  s:=s + c;
   for i:=0 to d.Count - 1 do
     ProcessRules(d[i], s);
 end;
@@ -412,7 +498,7 @@ begin
     case d.DefType of
       dtType:
         Result:=JNITypeSig[TTypeDef(d).BasicType];
-      dtClass, dtProcType, dtSet, dtEnum:
+      dtClass, dtProcType, dtSet, dtEnum, dtClassRef:
         Result:='L' + GetJavaClassPath(d) + ';';
       dtPointer:
         if TPointerDef(d).IsObjPtr then
@@ -437,7 +523,7 @@ begin
       case d.DefType of
         dtType:
           Result:=JavaType[TTypeDef(d).BasicType];
-        dtClass, dtProcType, dtSet, dtEnum:
+        dtClass, dtProcType, dtSet, dtEnum, dtClassRef:
           Result:=d.Name;
         dtPointer:
           if TPointerDef(d).IsObjPtr then
@@ -515,6 +601,7 @@ var
   procedure WriteConstructors;
   var
     cc: TStringList;
+    i: integer;
   begin
     if not TClassDef(d).HasAbstractMethods then begin
       // Writing all constructors including parent's
@@ -525,6 +612,11 @@ var
       finally
         cc.Free;
       end;
+    end;
+    if d.CType = ctClass then begin
+      i:=FRealClasses.Add(d);
+      Fjs.WriteLn(Format('public static %s Class() { return new %0:s(system.GetClassRef(%d)); }', [d.AliasName, i]));
+      Fjs.WriteLn(Format('public static system.TClass TClass() { return system.GetTClass(%d); }', [i]));
     end;
   end;
 
@@ -550,6 +642,8 @@ var
                 WriteProc(TProcDef(p), nil, d);
               dtProp, dtField:
                 WriteVar(TVarDef(p), d);
+              else
+                ; // no action
             end;
           end;
         end;
@@ -586,6 +680,8 @@ var
             WriteProc(TProcDef(it));
         dtProp, dtField:
           WriteVar(TVarDef(it));
+        else
+          ; // no action
       end;
     end;
   end;
@@ -702,6 +798,8 @@ begin
         end;
         Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { super(objptr, cleanup); }', [d.Name]));
       end;
+    else
+      ; // no action
   end;
 
   WriteTypeCast(n, False);
@@ -770,6 +868,9 @@ begin
   pi:=TProcInfo.Create;
   with d do
   try
+    IsObj:=(d.Parent.DefType = dtClass) and (TClassDef(d.Parent).CType = ctObject);
+    if not IsObj and (poClassMethod in ProcOpt) and (Name = 'ClassType') then
+      ProcOpt:=ProcOpt - [poClassMethod];
     pi.Name:=Name;
     s:=GetClassPrefix(d.Parent) + pi.Name;
     pi.JniName:=s;
@@ -805,7 +906,6 @@ begin
         s:='procedure';
       s:=s + ' ' + pi.JniName + '(_env: PJNIEnv; _jobj: jobject';
 
-      IsObj:=(d.Parent.DefType = dtClass) and (TClassDef(d.Parent).CType = ctObject);
       if IsObj and (ProcType in [ptConstructor, ptDestructor]) then
         TempRes:='__tempres';
 
@@ -820,10 +920,13 @@ begin
           if (VarType <> nil) and (VarType.DefType = dtJniEnv) then
             continue;
           s:=s + '; ' + Name + ': ';
+          ss:=DefToJniType(VarType, err);
           if not IsJavaVarParam(vd) then
-            s:=s + DefToJniType(VarType, err)
+            s:=s + ss
           else begin
-            s:=s + 'jarray';
+            if not err then
+              ss:='jarray';
+            s:=s + ss;
             if tempvars = nil then
               tempvars:=TStringList.Create;
             if VarType = nil then
@@ -847,6 +950,12 @@ begin
       Fps.WriteLn(s);
       if err then
         exit;
+
+      if (poClassMethod in ProcOpt) and not IsObj then begin
+        Fps.WriteLn(Format('type _classt = %s;', [Parent.Parent.Name + '.' + Parent.Name]));
+        Fps.WriteLn('type _class = class of _classt;');
+      end;
+
       if (tempvars <> nil) or UseTempObjVar or (TempRes <> '') then begin
         s:='';
         Fps.WriteLn('var');
@@ -916,7 +1025,10 @@ begin
           if ProcType = ptConstructor then
             s:=Parent.Parent.Name + '.' + Parent.Name + '.'
           else
-            s:=JniToPasType(d.Parent, '_jobj', True) + '.';
+            if (poClassMethod in ProcOpt) and not IsObj then
+              s:='_class(_GetClass(_env, _jobj, ' + GetTypeInfoVar(d.Parent) + '))' + '.'
+            else
+              s:=JniToPasType(d.Parent, '_jobj', True) + '.';
 
       if Variable = nil then begin
         // Regular proc
@@ -1096,6 +1208,7 @@ procedure TWriter.WriteVar(d: TVarDef; AParent: TDef);
         if (VarType.DefType = dtType) and (TTypeDef(VarType).BasicType in [btByte, btShortInt, btSmallInt]) then
           VarType:=FIntegerType;
         VarOpt:=[voRead];
+        IsUsed:=True;
       end;
       Result:=ad.ElType;
       ad:=TArrayDef(Result);
@@ -1253,11 +1366,15 @@ begin
               v:='true'
             else
               v:='false';
+          else
+            ; // no action
         end;
       dtArray:
         with TArrayDef(d.VarType) do
           if (ElType.DefType = dtType) and (TTypeDef(ElType).BasicType in [btChar, btWideChar]) then
             s:='String';
+      else
+        ; // no action
     end;
     if s = '' then
       s:=DefToJavaType(d.VarType);
@@ -1404,6 +1521,8 @@ begin
     if d.ProcType = ptFunction then
       s:=Format('Result:=%s', [JniToPasType(d.ReturnType, s, False)]);
     Fps.WriteLn(s + ';');
+    // Java exception check
+    Fps.WriteLn('_HandleJavaException(_env);');
     // Processing var/out parameters
     for i:=0 to d.Count - 1 do begin
       vd:=TVarDef(d[i]);
@@ -1508,6 +1627,26 @@ begin
   Fjs.WriteLn(Format('public %s(long objptr) { super(objptr); }', [d.Name]));
   Fjs.DecI;
   Fjs.WriteLn('}');
+  Fjs.WriteLn;
+end;
+
+procedure TWriter.WriteClassRef(d: TClassRefDef; PreInfo: boolean);
+begin
+  if not d.IsUsed then
+    exit;
+  if PreInfo then begin
+    RegisterPseudoClass(d);
+    WriteClassInfoVar(d);
+    exit;
+  end;
+
+  WriteComment(d, 'class ref');
+  Fjs.WriteLn(Format('public static class %s extends %s {', [d.Name, d.ClassRef.Name]));
+  Fjs.IncI;
+  Fjs.WriteLn(Format('public %s(PascalObject obj) { super(obj); }', [d.Name]));
+  Fjs.DecI;
+  Fjs.WriteLn('}');
+  Fjs.WriteLn;
 end;
 
 procedure TWriter.WriteUnit(u: TUnitDef);
@@ -1582,29 +1721,41 @@ begin
 
       for i:=0 to u.Count - 1 do begin
         d:=u[i];
-        if (d.DefType = dtType) and (TTypeDef(d).BasicType = btLongInt) then begin
+        if (d.DefType = dtType) and (TTypeDef(d).BasicType = btLongInt) and (Copy(d.Name, 1, 1) <> '$') then begin
           FIntegerType:=d;
           break;
         end;
       end;
 
-      Fjs.WriteLn('static private boolean _JniLibLoaded = false;');
-      Fjs.WriteLn('public static void InitJni() {');
-      Fjs.WriteLn('if (!_JniLibLoaded) {', 1);
-      Fjs.WriteLn('_JniLibLoaded=true;', 2);
-      Fjs.WriteLn(Format('System.loadLibrary("%s");', [LibName]), 2);
-      Fjs.WriteLn('}', 1);
-      Fjs.WriteLn('}');
+      if FIntegerType = nil then
+        raise Exception.Create('LongInt type has not been found in the System unit.');
 
-      // Support functions
+      if LibAutoLoad then begin
+        Fjs.WriteLn('static private boolean _JniLibLoaded = false;');
+        Fjs.WriteLn('public static void InitJni() {');
+        Fjs.WriteLn('if (!_JniLibLoaded) {', 1);
+        Fjs.WriteLn('_JniLibLoaded=true;', 2);
+        Fjs.WriteLn(Format('System.loadLibrary("%s");', [LibName]), 2);
+        Fjs.WriteLn('}', 1);
+        Fjs.WriteLn('}');
+      end;
+
+      // Public support functions
       Fjs.WriteLn('public native static long AllocMemory(int Size);');
       AddNativeMethod(u, '_AllocMemory', 'AllocMemory', '(I)J');
+
+      Fjs.WriteLn('public native static byte[] GetMemoryAsArray(long SrcBuf, int BufSize);');
+      AddNativeMethod(u, '_GetMemoryAsArray', 'GetMemoryAsArray', '(JI)[B');
+
+      Fjs.WriteLn('public native static void SetMemoryFromArray(long DstBuf, byte[] SrcArray);');
+      AddNativeMethod(u, '_SetMemoryFromArray', 'SetMemoryFromArray', '(J[B)V');
 
       // Base object
       Fjs.WriteLn;
       Fjs.WriteLn('public static class PascalObject {');
       Fjs.IncI;
-      Fjs.WriteLn(Format('static { %s.system.InitJni(); }', [JavaPackage]));
+      if LibAutoLoad then
+        Fjs.WriteLn(Format('static { %s.system.InitJni(); }', [JavaPackage]));
       Fjs.WriteLn('protected long _pasobj = 0;');
       Fjs.WriteLn('protected PascalObject() { }');
       Fjs.WriteLn('protected PascalObject(PascalObject obj) { if (obj != null) _pasobj=obj._pasobj; }');
@@ -1775,6 +1926,8 @@ begin
       Fps.WriteLn('var mpi: _TMethodPtrInfo;');
       Fps.WriteLn('begin');
       Fps.IncI;
+      Fps.WriteLn('Result:=nil;');
+      Fps.WriteLn('if (m.Data = nil) and (m.Code = nil) then exit;');
       Fps.WriteLn('_MethodPointersCS.Enter;');
       Fps.WriteLn('try');
       Fps.IncI;
@@ -1961,9 +2114,9 @@ begin
 
       Fjs.WriteLn('private native static long InterfaceCast(long objptr, String objid);');
       Fjs.WriteLn;
-      Fjs.WriteLn('public static class PascalInterface extends PascalObjectEx {');
+      Fjs.WriteLn('public static abstract class PascalInterface extends PascalObjectEx {');
       Fjs.IncI;
-      Fjs.WriteLn('protected void __Init() { }');
+      Fjs.WriteLn('abstract protected void __Init();');
       Fjs.WriteLn('public void __TypeCast(PascalObject obj, String intfId) {');
       Fjs.WriteLn('if (obj != null) {', 1);
       Fjs.WriteLn('if (obj instanceof PascalInterface) {', 2);
@@ -1979,8 +2132,10 @@ begin
       Fjs.WriteLn;
 
     end;
-    Fjs.WriteLn(Format('static { %s.system.InitJni(); }', [JavaPackage]));
-    Fjs.WriteLn;
+    if LibAutoLoad then begin
+      Fjs.WriteLn(Format('static { %s.system.InitJni(); }', [JavaPackage]));
+      Fjs.WriteLn;
+    end;
 
     // First pass
     for i:=0 to u.Count - 1 do begin
@@ -1996,6 +2151,10 @@ begin
           WriteProcType(TProcDef(d), True);
         dtPointer:
           WritePointer(TPointerDef(d), True);
+        dtClassRef:
+          WriteClassRef(TClassRefDef(d), True);
+        else
+          ; // no action
       end;
     end;
 
@@ -2021,7 +2180,19 @@ begin
           WriteConst(TConstDef(d));
         dtPointer:
           WritePointer(TPointerDef(d), False);
+        dtClassRef:
+          WriteClassRef(TClassRefDef(d), False);
+        else
+          ; // no action
       end;
+    end;
+
+    // Class ref helpers
+    if (u.Name = 'system') and (FClasses.IndexOf('system.TClass', nil) >= 0) then begin
+      Fjs.WriteLn('native static long GetClassRef(int index);');
+      AddNativeMethod(u, '_GetClassRef', 'GetClassRef', '(I)J');
+      Fjs.WriteLn('static TClass GetTClass(int index) { TClass c = new TClass(null); c._pasobj=GetClassRef(index); return c; }');
+      Fjs.WriteLn;
     end;
 
     Fjs.DecI;
@@ -2151,6 +2322,7 @@ begin
       if j > 20 then begin
         Fps.WriteLn(s);
         s:='';
+        j:=0;
       end;
       s:=s + IntToStr(TClassDef(FRecords[i]).Size);
     end;
@@ -2166,7 +2338,49 @@ begin
   Fps.WriteLn('end;');
 end;
 
+procedure TWriter.WriteClassTable;
+var
+  i: integer;
+  s,ss: string;
+begin
+  Fps.WriteLn;
+  Fps.WriteLn('function _GetClassRef(env: PJNIEnv; jobj: jobject; index: jint): jlong;' + JniCaliing);
+  if FRealClasses.Count > 0 then begin
+    Fps.WriteLn(Format('const cls: array[0..%d] of TClass =', [FRealClasses.Count - 1]));
+    Fps.IncI;
+    s:='(';
+    for i:=0 to FRealClasses.Count - 1 do begin
+      if i > 0 then
+        s:=s + ',';
+      if Length(s) > 100 then begin
+        Fps.WriteLn(s);
+        s:='';
+      end;
+      with TClassDef(FRealClasses[i]) do
+        ss:=Parent.Name + '.' + Name;
+      s:=s + ss;
+    end;
+    Fps.WriteLn(s + ');');
+    Fps.DecI;
+  end;
+  Fps.WriteLn('begin');
+  if FRealClasses.Count > 0 then
+    s:='cls[index]'
+  else
+    s:='nil';
+  Fps.WriteLn('Result:=-jlong(ptruint(pointer(' + s + ')));', 1);
+  Fps.WriteLn('end;');
+end;
+
 function TWriter.JniToPasType(d: TDef; const v: string; CheckNil: boolean): string;
+
+  function _GetFullName(d: TDef): string;
+  begin
+    Result:=Format('%s.%s', [d.Parent.Name, d.Name]);
+    if Result = 'types.TDuplicates' then
+      Result:='classes.TDuplicates';  // Hack for Delphi 7 compatibility
+  end;
+
 var
   n: string;
 begin
@@ -2211,7 +2425,7 @@ begin
     dtProcType:
       Result:=Format('%sGetHandler(_env, %s, %s)', [GetClassPrefix(d), Result, GetTypeInfoVar(d)]);
     dtEnum:
-      Result:=Format('%s.%s(_GetIntObjValue(_env, %s, %s))', [d.Parent.Name, d.Name, Result, GetTypeInfoVar(d)]);
+      Result:=Format('%s(_GetIntObjValue(_env, %s, %s))', [_GetFullName(d), Result, GetTypeInfoVar(d)]);
     dtSet:
       Result:=Format('%s.%s(%s(_GetIntObjValue(_env, %s, %s)))', [d.Parent.Name, d.Name, GetPasIntType(TSetDef(d).Size), Result, GetTypeInfoVar(d)]);
     dtPointer:
@@ -2221,6 +2435,13 @@ begin
         else
           Result:=Format('pointer(ptruint(%s))', [Result]);
       end;
+    dtClassRef:
+      begin
+        Result:=Format('_GetClass(_env, %s, %s)', [Result, GetTypeInfoVar(d)]);
+        Result:=Format('%s.%s(%s)', [d.Parent.Name, d.Name, Result]);
+      end;
+    else
+      ; // no action
   end;
 end;
 
@@ -2245,6 +2466,8 @@ begin
             Result:=Format('jint(%s)', [Result]);
           btGuid:
             Result:=Format('_StringToJString(_env, _JNIString(GUIDToString(%s)))', [Result]);
+          else
+            ; // no action
         end;
     dtClass:
       case TClassDef(d).CType of
@@ -2266,6 +2489,10 @@ begin
         Result:=Format('_CreateJavaObj(_env, %s, %s)', [Result, GetTypeInfoVar(d)])
       else
         Result:=Format('ptruint(pointer(%s))', [Result]);
+    dtClassRef:
+      Result:=Format('_CreateJavaObj(_env, -jlong(ptruint(pointer(%s))), %s)', [Result, GetTypeInfoVar(d)])
+    else
+      ; // no action
   end;
 end;
 
@@ -2342,6 +2569,7 @@ begin
 
     if s <> '' then
       s:='(' + s + ')';
+    ss:='';
     case ProcType of
       ptConstructor:
         ss:='constructor';
@@ -2351,8 +2579,6 @@ begin
         ss:='procedure';
       ptFunction:
         ss:='function';
-      else
-        ss:='';
     end;
     if ProcType in [ptConstructor, ptFunction] then
       s:=s + ': ' + GetPasType(ReturnType, FullTypeNames);
@@ -2618,8 +2844,6 @@ begin
 end;
 }
 constructor TWriter.Create;
-var
-  i: integer;
 begin
   Units:=TStringList.Create;
   FClasses:=TClassList.Create;
@@ -2628,14 +2852,10 @@ begin
   IncludeList.Duplicates:=dupIgnore;
   ExcludeList:=TStringList.Create;
   ExcludeList.Duplicates:=dupIgnore;
-
-  for i:=Low(ExcludeStd) to High(ExcludeStd) do
-    ExcludeList.Add(ExcludeStd[i]);
-  for i:=Low(ExcludeDelphi7) to High(ExcludeDelphi7) do
-    ExcludeList.Add(ExcludeDelphi7[i]);
-
   FThisUnit:=TUnitDef.Create(nil, dtUnit);
   FRecords:=TObjectList.Create(False);
+  FRealClasses:=TObjectList.Create(False);
+  LibAutoLoad:=True;
 end;
 
 function DoCanUseDef(def, refdef: TDef): boolean;
@@ -2659,6 +2879,7 @@ begin
   ExcludeList.Free;
   FThisUnit.Free;
   FRecords.Free;
+  FRealClasses.Free;
   inherited Destroy;
 end;
 
@@ -2714,6 +2935,13 @@ begin
   for i:=0 to ExcludeList.Count - 1 do
     ExcludeList[i]:=Trim(ExcludeList[i]);
   ExcludeList.Sorted:=True;
+
+  for i:=Low(ExcludeStd) to High(ExcludeStd) do
+    if IncludeList.IndexOf(ExcludeStd[i]) < 0 then
+      ExcludeList.Add(ExcludeStd[i]);
+  for i:=Low(ExcludeDelphi7) to High(ExcludeDelphi7) do
+    if IncludeList.IndexOf(ExcludeDelphi7[i]) < 0 then
+      ExcludeList.Add(ExcludeDelphi7[i]);
 
   FThisUnit.Name:=LibName;
   FThisUnit.AliasName:='system';
@@ -2807,13 +3035,13 @@ begin
     Fps.WriteLn('end;');
 
     Fps.WriteLn;
-    Fps.WriteLn('function _CreateJavaObj(env: PJNIEnv; PasObj: pointer; const ci: _TJavaClassInfo; cleanup: boolean = True): jobject;');
+    Fps.WriteLn('function _CreateJavaObj(env: PJNIEnv; PasObj: jlong; const ci: _TJavaClassInfo; cleanup: boolean = True): jobject; overload;');
     Fps.WriteLn('var v: array [0..1] of jvalue;');
     Fps.WriteLn('begin');
     Fps.IncI;
     Fps.WriteLn('Result:=nil;');
-    Fps.WriteLn('if PasObj = nil then exit;');
-    Fps.WriteLn('v[0].J:=Int64(ptruint(PasObj));');
+    Fps.WriteLn('if PasObj = 0 then exit;');
+    Fps.WriteLn('v[0].J:=PasObj;');
     Fps.WriteLn('if ci.ConstrId = nil then begin');
     Fps.WriteLn('Result:=env^^.AllocObject(env, ci.ClassRef);', 1);
     Fps.WriteLn('if Result = nil then exit;', 1);
@@ -2823,6 +3051,11 @@ begin
     Fps.WriteLn('Result:=env^^.NewObjectA(env, ci.ClassRef, ci.ConstrId, @v);', 1);
     Fps.WriteLn('end;');
     Fps.DecI;
+    Fps.WriteLn('end;');
+    Fps.WriteLn;
+    Fps.WriteLn('function _CreateJavaObj(env: PJNIEnv; PasObj: pointer; const ci: _TJavaClassInfo; cleanup: boolean = True): jobject; overload;');
+    Fps.WriteLn('begin');
+    Fps.WriteLn('Result:=_CreateJavaObj(env, jlong(ptruint(PasObj)), ci, cleanup)', 1);
     Fps.WriteLn('end;');
 
     Fps.WriteLn;
@@ -2841,8 +3074,25 @@ begin
     Fps.WriteLn('end;');
 
     Fps.WriteLn;
+    Fps.WriteLn('function _GetClass(env: PJNIEnv; jobj: jobject; const ci: _TJavaClassInfo): TClass;');
+    Fps.WriteLn('var pasobj: jlong;');
+    Fps.WriteLn('begin');
+    Fps.IncI;
+    Fps.WriteLn('if jobj <> nil then');
+    Fps.WriteLn('pasobj:=env^^.GetLongField(env, jobj, ci.ObjFieldId)', 1);
+    Fps.WriteLn('else');
+    Fps.WriteLn('pasobj:=0;', 1);
+    Fps.WriteLn('if pasobj > 0 then');
+    Fps.WriteLn('Result:=TObject(ptruint(pasobj)).ClassType', 1);
+    Fps.WriteLn('else');
+    Fps.WriteLn('Result:=TClass(ptruint(-pasobj));', 1);
+    Fps.DecI;
+    Fps.WriteLn('end;');
+
+    Fps.WriteLn;
     Fps.WriteLn('procedure _HandleJNIException(env: PJNIEnv);');
     Fps.WriteLn('begin');
+    Fps.WriteLn('if env^^.ExceptionCheck(env) <> 0 then exit;', 1);
     if p.OnExceptionProc <> nil then begin
       Fps.WriteLn(Format('%s.%s;', [p.OnExceptionProc.Parent.Name, p.OnExceptionProc.Name]), 1);
       p.OnExceptionProc.SetNotUsed;
@@ -2851,10 +3101,18 @@ begin
     Fps.WriteLn('end;');
 
     Fps.WriteLn;
+    Fps.WriteLn('procedure _HandleJavaException(env: PJNIEnv);');
+    Fps.WriteLn('begin');
+    Fps.WriteLn('if env^^.ExceptionCheck(env) <> 0 then raise Exception.Create(''Java exception.'');', 1);
+    Fps.WriteLn('end;');
+
+    Fps.WriteLn;
     Fps.WriteLn('procedure _RaiseVarParamException(const VarName: string);');
     Fps.WriteLn('begin');
     Fps.WriteLn('raise Exception.CreateFmt(''An array with only single element must be passed as parameter "%s".'', [VarName]);', 1);
     Fps.WriteLn('end;');
+
+    // Public support functions
 
     Fps.WriteLn;
     Fps.WriteLn('function _AllocMemory(env: PJNIEnv; jobj: jobject; size: jint): jlong;' + JniCaliing);
@@ -2863,6 +3121,19 @@ begin
     Fps.WriteLn('GetMem(p, size);', 1);
     Fps.WriteLn('FillChar(p^, size, 0);', 1);
     Fps.WriteLn('Result:=ptruint(p);', 1);
+    Fps.WriteLn('end;');
+
+    Fps.WriteLn;
+    Fps.WriteLn('function _GetMemoryAsArray(env: PJNIEnv; jobj: jobject; SrcBuf: jlong; BufSize: jint): jarray;' + JniCaliing);
+    Fps.WriteLn('begin');
+    Fps.WriteLn('Result:=env^^.NewByteArray(env, BufSize);', 1);
+    Fps.WriteLn('env^^.SetByteArrayRegion(env, Result, 0, BufSize, pointer(ptruint(SrcBuf)));', 1);
+    Fps.WriteLn('end;');
+
+    Fps.WriteLn;
+    Fps.WriteLn('procedure _SetMemoryFromArray(env: PJNIEnv; jobj: jobject; DstBuf: jlong; SrcArray: jarray);' + JniCaliing);
+    Fps.WriteLn('begin');
+    Fps.WriteLn('env^^.GetByteArrayRegion(env, SrcArray, 0, env^^.GetArrayLength(env, SrcArray), pointer(ptruint(DstBuf)));', 1);
     Fps.WriteLn('end;');
 
     // Set support
@@ -2898,6 +3169,7 @@ begin
       end;
 
     WriteRecordSizes;
+    WriteClassTable;
 
     WriteOnLoad;
 

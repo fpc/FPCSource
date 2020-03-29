@@ -118,6 +118,10 @@ Type
     procedure SetOnGetAction(const AValue: TGetActionEvent);
     procedure SetTemplate(const AValue: TFPTemplate);
   Protected
+    // Override these 3 if you want to have customized versions of the appropriate properties...
+    function CreateTemplateVars: TTemplateVars; virtual;
+    function CreateTemplate: TFPTemplate; virtual;
+    function CreateActions: TFPWebActions; virtual;
     Function HandleActions(ARequest : TRequest): Boolean; virtual;
     procedure DoOnRequest(ARequest: TRequest; AResponse: TResponse; var AHandled: Boolean); virtual;
     Procedure DoBeforeRequest(ARequest : TRequest); virtual;
@@ -160,6 +164,7 @@ Type
     Property OnNewSession;
     Property OnSessionExpired;
     Property AfterInitModule;
+    Property CORS;
   end;
 
   EFPWebError = Class(EHTTP);
@@ -435,9 +440,9 @@ end;
 constructor TCustomFPWebModule.CreateNew(AOwner: TComponent; CreateMode : Integer);
 begin
   inherited;
-  FActions:=TFPWebActions.Create(TFPWebAction);
-  FTemplate:=TFPWebTemplate.Create(Self);
-  FTemplateVars:=TTemplateVars.Create(TTemplateVar);
+  FActions:=CreateActions;
+  FTemplate:=CreateTemplate;
+  FTemplateVars:=CreateTemplateVars
 end;
 
 destructor TCustomFPWebModule.Destroy;
@@ -448,6 +453,23 @@ begin
   inherited Destroy;
 end;
 
+Function TCustomFPWebModule.CreateTemplateVars : TTemplateVars;
+
+begin
+  Result:=TTemplateVars.Create(TTemplateVar);
+end;
+
+Function TCustomFPWebModule.CreateTemplate : TFPTemplate;
+
+begin
+  Result:=TFPWebTemplate.Create(Self);
+end;
+
+Function TCustomFPWebModule.CreateActions : TFPWebActions;
+
+begin
+  Result:=TFPWebActions.Create(TFPWebAction);
+end;
 
 procedure TCustomFPWebModule.DoOnRequest(ARequest: TRequest; AResponse: TResponse; Var AHandled : Boolean);
 
@@ -467,31 +489,37 @@ begin
 {$endif cgidebug}
   FRequest := ARequest; //So everything in the web module can access the current request variables
   FResponse := AResponse;//So everything in the web module can access the current response variables
-  CheckSession(ARequest);
-  DoBeforeRequest(ARequest);
-  B:=False;
-  InitSession(AResponse);
-  DoOnRequest(ARequest,AResponse,B);
-  If B then
-    begin
-    if not AResponse.ContentSent then
-      AResponse.SendContent;
-    end
-  else
-    if FTemplate.HasContent then
-      GetTemplateContent(ARequest,AResponse)
-    else if HandleActions(ARequest) then
+  try
+    CheckSession(ARequest);
+    DoBeforeRequest(ARequest);
+    B:=False;
+    InitSession(AResponse);
+    if not CORS.HandleRequest(aRequest,aResponse,[hcDetect,hcSend]) then
       begin
-      Actions.HandleRequest(ARequest,AResponse,B);
-      FTemplate.Template := '';//if apache mod, then need to clear for next call because it is a webmodule global property,
-      FTemplate.FileName := '';//so following calls are OK and the above FTemplate.HasContent is not becoming True
-      If Not B then
-        Raise EFPWebError.Create(SErrRequestNotHandled);
+      DoOnRequest(ARequest,AResponse,B);
+      If B then
+        begin
+        if not AResponse.ContentSent then
+          AResponse.SendContent;
+        end
+      else
+        if FTemplate.HasContent then
+          GetTemplateContent(ARequest,AResponse)
+        else if HandleActions(ARequest) then
+          begin
+          Actions.HandleRequest(ARequest,AResponse,B);
+          FTemplate.Template := '';//if apache mod, then need to clear for next call because it is a webmodule global property,
+          FTemplate.FileName := '';//so following calls are OK and the above FTemplate.HasContent is not becoming True
+          If Not B then
+            Raise EFPWebError.Create(SErrRequestNotHandled);
+          end;
       end;
-  DoAfterResponse(AResponse);
-  UpdateSession(AResponse);
-  FRequest := Nil;
-  FResponse := Nil;
+    DoAfterResponse(AResponse);
+    UpdateSession(AResponse);
+  finally
+    FRequest := Nil;
+    FResponse := Nil;
+  end;
   // Clean up session for the case the webmodule is used again
   DoneSession;
 {$ifdef cgidebug}

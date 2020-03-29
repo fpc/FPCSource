@@ -46,8 +46,6 @@ uses
       procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr);override;
   end;
 
-  procedure create_hlcodegen;
-
 implementation
 
   uses
@@ -137,6 +135,8 @@ implementation
                 fromreg:=cg.getintregister(list,OS_INT);
                 cg.a_load_const_reg(list,OS_INT,-1,fromreg);
               end;
+            else
+              ;
           end;
           list.concat(taicpu.op_reg_reg_const_const(A_INS,sreg.subsetreg,fromreg,
             sreg.startbit,sreg.bitlen));
@@ -204,7 +204,7 @@ implementation
     if make_global then
       List.concat(Tai_symbol.Createname_global(labelname, AT_FUNCTION, 0, procdef))
     else
-      List.concat(Tai_symbol.Createname(labelname, AT_FUNCTION, 0, procdef));
+      List.concat(Tai_symbol.Createname_hidden(labelname, AT_FUNCTION, 0, procdef));
 
     IsVirtual:=(po_virtualmethod in procdef.procoptions) and
         not is_objectpascal_helper(procdef.struct);
@@ -245,7 +245,7 @@ implementation
     if IsVirtual then
     begin
       { load VMT pointer }
-      reference_reset_base(href,voidpointertype,paraloc^.register,0,sizeof(aint),[]);
+      reference_reset_base(href,voidpointertype,paraloc^.register,0,ctempposinvalid,sizeof(aint),[]);
       list.concat(taicpu.op_reg_ref(A_LW,NR_VMT,href));
 
       if (procdef.extnumber=$ffff) then
@@ -253,7 +253,7 @@ implementation
 
       { TODO: case of large VMT is not handled }
       { We have no reason not to use $t9 even in non-PIC mode. }
-      reference_reset_base(href, voidpointertype, NR_VMT, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), sizeof(aint), []);
+      reference_reset_base(href, voidpointertype, NR_VMT, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), ctempposinvalid, sizeof(aint), []);
       list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));
       list.concat(taicpu.op_reg(A_JR, NR_PIC_FUNC));
     end
@@ -275,7 +275,7 @@ implementation
   end;
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_cpu;
     begin
       hlcg:=thlcgmips.create;
       create_codegen;
@@ -283,4 +283,5 @@ implementation
 
 begin
   chlcgobj:=thlcgmips;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.

@@ -1,24 +1,18 @@
 {
-    Copyright (c) 2000-2002 by Marco van de Voort
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2002 Marco van de Voort
+    member of the Free Pascal development team.
 
     Target dependent defines used when compileing the baseunix unit
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-    MA 02110-1301, USA.
-
- ****************************************************************************}
+ **********************************************************************}
 
 {$ifndef cpux86_64}
   {$define usestime}              // Use stime() syscall instead of settimeofday
@@ -57,7 +51,7 @@
   {$define NO_SYSCALL_IPC}
 {$endif}
 
- {$ifdef CPUARM}
+{$ifdef CPUARM}
 {$define WAIT4}
 {$endif CPUARM}
 
@@ -88,4 +82,33 @@
 {$ifdef cpuaarch64}
   {$define generic_linux_syscalls}
   {$undef usestime}
+  {$define userenameat}
 {$endif cpuaarch64}
+
+{$ifdef cpusparc64}
+  {$define FPC_USEGETTIMEOFDAY}
+{$endif cpusparc64}
+
+{$ifdef cpuriscv32}
+  {$define generic_linux_syscalls}
+  {$undef usestime}
+{$endif cpuriscv32}
+
+{$ifdef cpuriscv64}
+  {$define generic_linux_syscalls}
+  {$undef usestime}
+{$endif cpuriscv64}
+
+{$ifdef android}
+  {$define generic_linux_syscalls}
+  {$ifdef cpuarm}
+    {$define NO_SYSCALL_PSELECT6}
+    {$define NO_SYSCALL_PPOLL}
+  {$endif cpuarm}
+  {$define userenameat}
+  {$undef usestime}
+  {$undef OLDMMAP}
+  {$ifndef cpu64}
+    {$define MMAP2}
+  {$endif}
+{$endif android}

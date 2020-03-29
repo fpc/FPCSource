@@ -2,7 +2,7 @@
 %%% Contains all comments from errorptu.msg
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2009 by the Free Pascal Development team
+#   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
 #   Portuguese (UTF-8) language file for Free Pascal Compiler
 #   Contributed by Marcelo B Paula, based on errore.msg SVN Rev.19883
@@ -15,6 +15,9 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
+
+# CodePage 65001
+
 #
 # The constants are build in the following order:
 # <part>_<type>_<txtidentifier>
@@ -818,7 +821,7 @@ parser_e_function_already_declared_public_forward=03120_E_Função já declarada
 % declaration in the \var{implementation} section.
 parser_e_not_external_and_export=03121_E_Impossível usar ambos EXPORT e EXTERNAL
 % These two procedure directives are mutually exclusive.
-parser_h_not_supported_for_inline=03123_H_"$1" não suportado ainda dentro procedimento/função em linha
+parser_n_not_supported_for_inline=03123_N_"$1" não suportado ainda dentro procedimento/função em linha
 % Inline procedures don't support this declaration.
 parser_h_inlining_disabled=03124_H_Procedimentos em linha desabilitados
 % Inlining of procedures is disabled.
@@ -3511,7 +3514,7 @@ wpo_cant_create_feedback_file=12019_E_Impossível criar arquivo retorno otimiza�
 #
 option_logo=11023_[
 Compilador Free Pascal versão $FPCFULLVERSION [$FPCDATE] para $FPCCPU
-Copyright (c) 1993-2017 by Florian Klaempfl and others
+Copyright (c) 1993-2020 by Florian Klaempfl and others
 ]
 
 #
@@ -3758,7 +3761,6 @@ S*2Aas_Monta usando o GNU AS
 3*2Tnetwlibc_Módulo Novell Netware (libc)
 3*2Topenbsd_OpenBSD
 3*2Tos2_OS/2 / eComStation
-3*2Tsunos_SunOS/Solaris
 3*2Tsymbian_Symbian OS
 3*2Tsolaris_Solaris
 3*2Twatcom_Watcom compatible DOS extender

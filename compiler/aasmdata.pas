@@ -96,7 +96,8 @@ interface
          sp_objcprotocolrefs,
          sp_varsets,
          sp_floats,
-         sp_guids
+         sp_guids,
+         sp_paraloc
       );
       
     const
@@ -134,6 +135,22 @@ interface
          section_count : longint;
          constructor create;
          function  getlasttaifilepos : pfileposinfo;
+         { inserts another List at the begin and make this List empty }
+         procedure insertList(p : TLinkedList); override;
+         { inserts another List before the provided item and make this List empty }
+         procedure insertListBefore(Item:TLinkedListItem;p : TLinkedList); override;
+         { inserts another List after the provided item and make this List empty }
+         procedure insertListAfter(Item:TLinkedListItem;p : TLinkedList); override;
+         { concats another List at the end and make this List empty }
+         procedure concatList(p : TLinkedList); override;
+         { concats another List at the start and makes a copy
+           the list is ordered in reverse.
+         }
+         procedure insertListcopy(p : TLinkedList); override;
+         { concats another List at the end and makes a copy }
+         procedure concatListcopy(p : TLinkedList); override;
+         { removes all items from the list, the items are not freed }
+         procedure RemoveAll; override;
       end;
 
       TAsmCFI=class
@@ -143,10 +160,13 @@ interface
         procedure generate_code(list:TAsmList);virtual;
         procedure start_frame(list:TAsmList);virtual;
         procedure end_frame(list:TAsmList);virtual;
+        procedure outmost_frame(list:TAsmList);virtual;
         procedure cfa_offset(list:TAsmList;reg:tregister;ofs:longint);virtual;
         procedure cfa_restore(list:TAsmList;reg:tregister);virtual;
         procedure cfa_def_cfa_register(list:TAsmList;reg:tregister);virtual;
         procedure cfa_def_cfa_offset(list:TAsmList;ofs:longint);virtual;
+        function get_frame_start: TAsmLabel;virtual;
+        function get_cfa_list : TAsmList;virtual;
       end;
       TAsmCFIClass=class of TAsmCFI;
 
@@ -178,6 +198,7 @@ interface
         { asmsymbol }
         function  DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype; def: tdef) : TAsmSymbol; virtual;
         function  DefineAsmSymbol(const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype; def: tdef) : TAsmSymbol;
+        function  DefineProcAsmSymbol(pd: tdef; const s: TSymStr; global: boolean): TAsmSymbol;
         function  WeakRefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype) : TAsmSymbol;
         function  RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype;indirect:boolean=false) : TAsmSymbol;
         function  GetAsmSymbol(const s : TSymStr) : TAsmSymbol;
@@ -228,6 +249,7 @@ implementation
 
     uses
       verbose,
+      globals,
       symconst,
       aasmtai;
 
@@ -268,6 +290,11 @@ implementation
       end;
 
 
+    procedure TAsmCFI.outmost_frame(list: TAsmList);
+      begin
+      end;
+
+
     procedure TAsmCFI.cfa_offset(list:TAsmList;reg:tregister;ofs:longint);
       begin
       end;
@@ -285,6 +312,18 @@ implementation
 
     procedure TAsmCFI.cfa_def_cfa_offset(list:TAsmList;ofs:longint);
       begin
+      end;
+
+
+    function TAsmCFI.get_frame_start: TAsmLabel;
+      begin
+        Result:=nil;
+      end;
+
+
+    function TAsmCFI.get_cfa_list: TAsmList;
+      begin
+        Result:=nil;
       end;
 
 {*****************************************************************************
@@ -334,6 +373,59 @@ implementation
                    getlasttaifilepos:=@tailineinfo(hp).fileinfo
                end;
            end;
+      end;
+
+
+    procedure TAsmList.insertList(p : TLinkedList);
+      begin
+        inherited insertList(p);
+        inc(section_count,TAsmList(p).section_count);
+        TAsmList(p).section_count:=0;
+      end;
+
+
+    procedure TAsmList.insertListBefore(Item : TLinkedListItem; p : TLinkedList);
+      begin
+        inherited insertListBefore(Item,p);
+        inc(section_count,TAsmList(p).section_count);
+        TAsmList(p).section_count:=0;
+      end;
+
+
+    procedure TAsmList.insertListAfter(Item : TLinkedListItem; p : TLinkedList);
+      begin
+        inherited insertListAfter(Item,p);
+        inc(section_count,TAsmList(p).section_count);
+        TAsmList(p).section_count:=0;
+      end;
+
+
+    procedure TAsmList.concatList(p : TLinkedList);
+      begin
+        inherited concatList(p);
+        inc(section_count,TAsmList(p).section_count);
+        TAsmList(p).section_count:=0;
+      end;
+
+
+    procedure TAsmList.insertListcopy(p : TLinkedList);
+      begin
+        inherited insertListcopy(p);
+        inc(section_count,TAsmList(p).section_count);
+     end;
+
+
+    procedure TAsmList.concatListcopy(p : TLinkedList);
+      begin
+        inherited concatListcopy(p);
+        inc(section_count,TAsmList(p).section_count);
+      end;
+
+
+    procedure TAsmList.RemoveAll;
+      begin
+         inherited RemoveAll;
+         section_count:=0;
       end;
 
 
@@ -423,8 +515,8 @@ implementation
         CurrAsmList:=TAsmList.create;
         for hal:=low(TAsmListType) to high(TAsmListType) do
           AsmLists[hal]:=TAsmList.create;
-        WideInits :=TLinkedList.create;
-        ResStrInits:=TLinkedList.create;
+        WideInits :=TAsmList.create;
+        ResStrInits:=TAsmList.create;
         { CFI }
         FAsmCFI:=CAsmCFI.Create;
       end;
@@ -481,6 +573,21 @@ implementation
         result:=DefineAsmSymbolByClass(TAsmSymbol,s,_bind,_typ,def);
       end;
 
+
+    function TAsmData.DefineProcAsmSymbol(pd: tdef; const s: TSymStr; global: boolean): TAsmSymbol;
+      begin
+        { The condition to use global or local symbol must match
+          the code written in hlcg.gen_proc_symbol to
+          avoid change from AB_LOCAL to AB_GLOBAL, which generates
+          erroneous code (at least for targets using GOT) }
+        if global or
+           (cs_profile in current_settings.moduleswitches) then
+          result:=DefineAsmSymbol(s,AB_GLOBAL,AT_FUNCTION,pd)
+        else if tf_supports_hidden_symbols in target_info.flags then
+          result:=DefineAsmSymbol(s,AB_PRIVATE_EXTERN,AT_FUNCTION,pd)
+        else
+          result:=DefineAsmSymbol(s,AB_LOCAL,AT_FUNCTION,pd);
+      end;
 
     function TAsmData.RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype;indirect:boolean) : TAsmSymbol;
       var
@@ -604,7 +711,8 @@ initialization
   memasmlists:=TMemDebug.create('AsmLists');
   memasmlists.stop;
 {$endif MEMDEBUG}
-  CAsmCFI:=TAsmCFI;
+  if not(assigned(CAsmCFI)) then
+    CAsmCFI:=TAsmCFI;
 
 finalization
 {$ifdef MEMDEBUG}

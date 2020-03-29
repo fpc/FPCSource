@@ -110,7 +110,7 @@ function GetDiskFreeSpaceA(lpRootPathName:LPCSTR; lpSectorsPerCluster:LPDWORD; l
 function CreateDirectoryA(lpPathName:LPCSTR; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):WINBOOL; external 'kernel32' name 'CreateDirectoryA';
 function CreateDirectoryExA(lpTemplateDirectory:LPCSTR; lpNewDirectory:LPCSTR; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):WINBOOL; external 'kernel32' name 'CreateDirectoryExA';
 function RemoveDirectoryA(lpPathName:LPCSTR):WINBOOL; external 'kernel32' name 'RemoveDirectoryA';
-function GetFullPathNameA(lpFileName:LPCSTR; nBufferLength:DWORD; lpBuffer:LPSTR; var lpFilePart:LPSTR):DWORD; external 'kernel32' name 'GetFullPathNameA';
+function GetFullPathNameA(lpFileName:LPCSTR; nBufferLength:DWORD; lpBuffer:LPSTR; lpFilePart:PLPSTR):DWORD; external 'kernel32' name 'GetFullPathNameA';
 function DefineDosDeviceA(dwFlags:DWORD; lpDeviceName:LPCSTR; lpTargetPath:LPCSTR):WINBOOL; external 'kernel32' name 'DefineDosDeviceA';
 function QueryDosDeviceA(lpDeviceName:LPCSTR; lpTargetPath:LPSTR; ucchMax:DWORD):DWORD; external 'kernel32' name 'QueryDosDeviceA';
 function CreateFileA(lpFileName:LPCSTR; dwDesiredAccess:DWORD; dwShareMode:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; dwCreationDisposition:DWORD;dwFlagsAndAttributes:DWORD; hTemplateFile:HANDLE):HANDLE; external 'kernel32' name 'CreateFileA';
@@ -482,7 +482,19 @@ function OpenWaitableTimerA(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerNam
 function FindFirstFileExA(lpfilename : LPCStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword):Handle; stdcall; external 'kernel32' name 'FindFirstFileExA';
 // winver>$0600
 function FindFirstFileTransactedA(lpfilename : LPCStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword;htransaction : HANDLE):Handle; stdcall; external 'kernel32' name 'FindFirstFileTransactedA';
-
+// Wincon.h
+function WriteConsoleInputA(hConsoleInput:HANDLE; var lpBuffer:INPUT_RECORD; nLength:DWORD; lpNumberOfEventsWritten:LPDWORD):BOOL;stdcall;external 'kernel32' name 'WriteConsoleInputA';
+function ScrollConsoleScreenBufferA(hConsoleOutput:HANDLE; var lpScrollRectangle:SMALL_RECT; var lpClipRectangle:SMALL_RECT; dwDestinationOrigin:COORD; lpFill:PCHAR_INFO):BOOL;stdcall;external 'kernel32' name 'ScrollConsoleScreenBufferA';
+function GetConsoleOriginalTitleA(lpConsoleTitle:LPSTR; nSize:DWORD):DWORD;stdcall;external 'kernel32' name 'GetConsoleOriginalTitleA';
+function AddConsoleAliasA(Source:LPSTR; Target:LPSTR; ExeName:LPSTR):BOOL;stdcall;external 'kernel32' name 'AddConsoleAliasA';
+function GetConsoleAliasA(Source:LPSTR; TargetBuffer:LPSTR; TargetBufferLength:DWORD; ExeName:LPSTR):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasA';
+function GetConsoleAliasesLengthA(ExeName:LPSTR):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasesLengthA';
+function GetConsoleAliasExesLengthA:DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasExesLengthA';
+function GetConsoleAliasesA(AliasBuffer:LPSTR; AliasBufferLength:DWORD; ExeName:LPSTR):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasesA';
+function GetConsoleAliasExesA(ExeNameBuffer:LPSTR; ExeNameBufferLength:DWORD):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasExesA';
+function GetComputerNameExA(NameType:COMPUTER_NAME_FORMAT;lpbuffer:LPSTR;nSize:LPDWORD):BOOL;stdcall;external 'kernel32' name 'GetComputerNameExA';
+function QueryFullProcessImageNameA(hProcess:THandle;dwFlags:DWord; lpexename :lpstr;lpdwsize:pdword):BOOL; stdcall; external 'kernel32.dll' name 'QueryFullProcessImageNameA';
+function RealGetWindowClassA(Wnd : HWND;ClassnameBuffer : pansichar;ClassnameBufferSize : DWORD): DWORD; stdcall; external 'user32.dll' name 'RealGetWindowClassA';
 {$endif read_interface}
 
 

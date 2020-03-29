@@ -47,61 +47,60 @@
 
     nils.sjoholm@mailbox.swipnet.se
 }
-
+{$INLINE ON}
 {$mode objfpc}
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-    {$smartlink on}
-{$endif use_amiga_smartlink}
-
-unit amigalib;
+unit amigalib
+  deprecated 'Unit will be removed. Functions are moved to exec, intuition, utility and commodities unit.';
 
 
 INTERFACE
 
 uses exec,intuition,utility,commodities,inputevent,amigados;
 
+// moved to exec, use them from there
 {*  Exec support functions from amiga.lib  *}
 
-procedure BeginIO (ioRequest: pIORequest);
-function CreateExtIO (port: pMsgPort; size: Longint): pIORequest;
-procedure DeleteExtIO (ioReq: pIORequest);
-function CreateStdIO (port: pMsgPort): pIOStdReq;
-procedure DeleteStdIO (ioReq: pIOStdReq);
-function CreatePort (name: PChar; pri: longint): pMsgPort;
-procedure DeletePort (port: pMsgPort);
+procedure BeginIO (ioRequest: pIORequest); inline;
+function CreateExtIO (port: pMsgPort; size: Longint): pIORequest; inline;
+procedure DeleteExtIO (ioReq: pIORequest); inline;
+function CreateStdIO (port: pMsgPort): pIOStdReq; inline;
+procedure DeleteStdIO (ioReq: pIOStdReq); inline;
+function CreatePort (name: PChar; pri: longint): pMsgPort; inline;
+procedure DeletePort (port: pMsgPort); inline;
 function CreateTask (name: STRPTR; pri: longint;
                      initPC : Pointer;
-             stackSize : ULONG): pTask;
-procedure DeleteTask (task: pTask);
-procedure NewList (list: pList);
+             stackSize : ULONG): pTask; inline;
+procedure DeleteTask (task: pTask); inline;
+procedure NewList (list: pList); inline;
 
+// moved to commodities, use them from there
 {* Commodities support functions from amiga.lib *}
-procedure FreeIEvents (events: pInputEvent);
+procedure FreeIEvents (events: pInputEvent); inline;
 function CxCustom
                 (action: pointer;
-                id: longint): pCxObj;
+                id: longint): pCxObj; inline;
 
-function CxDebug (id: long): pCxObj;
-function CxFilter (d: STRPTR): pCxObj;
+function CxDebug (id: long): pCxObj; inline;
+function CxFilter (d: STRPTR): pCxObj; inline;
 function CxSender
                 (port: pMsgPort;
-                id: longint): pCxObj;
+                id: longint): pCxObj; inline;
 
 function CxSignal
                 (task: pTask;
-                sig: byte): pCxObj;
+                sig: byte): pCxObj; inline;
 
-function CxTranslate (ie: pInputEvent): pCxObj;
+function CxTranslate (ie: pInputEvent): pCxObj; inline;
 
-
-function DoMethodA(obj : pObject_; msg : APTR): ulong;
-function DoSuperMethodA(cl : pIClass; obj : pObject_; msg : APTR): ulong;
-function CoerceMethodA(cl : pIClass; obj : pObject_; msg : APTR): ulong;
-function SetSuperAttrsA(cl : pIClass; obj: pObject_; msg : APTR): ulong;
+// moved to intuition, use them from there
+function DoMethodA(obj : pObject_; msg : APTR): ulong; inline;
+function DoSuperMethodA(cl : pIClass; obj : pObject_; msg : APTR): ulong; inline;
+function CoerceMethodA(cl : pIClass; obj : pObject_; msg : APTR): ulong; inline;
+function SetSuperAttrsA(cl : pIClass; obj: pObject_; msg : APTR): ulong; inline;
 
 function DoMethod(obj: PObject_; Params: array of DWord): LongWord; inline;
 
+// moved to utility, use them from there
 procedure HookEntry;
 procedure HookEntryPas;
 
@@ -171,231 +170,115 @@ IMPLEMENTATION
 
 {*  Exec support functions from amiga.lib  *}
 
-procedure BeginIO (ioRequest: pIORequest);
+procedure BeginIO (ioRequest: pIORequest); inline;
 begin
-   asm
-      move.l  a6,-(a7)
-      move.l  ioRequest,a1    ; get IO Request
-      move.l  20(a1),a6      ; extract Device ptr
-      jsr     -30(a6)        ; call BEGINIO directly
-      move.l  (a7)+,a6
-   end;
+  Exec.BeginIO(ioRequest);
 end;
 
-function CreateExtIO (port: pMsgPort; size: Longint): pIORequest;
-var
-   IOReq: pIORequest;
+function CreateExtIO (port: pMsgPort; size: Longint): pIORequest; inline;
 begin
-    IOReq := NIL;
-    if port <> NIL then
-    begin
-        IOReq := ExecAllocMem(size, MEMF_CLEAR or MEMF_PUBLIC);
-        if IOReq <> NIL then
-        begin
-            IOReq^.io_Message.mn_Node.ln_Type   := NT_REPLYMSG;
-            IOReq^.io_Message.mn_Length    := size;
-            IOReq^.io_Message.mn_ReplyPort := port;
-        end;
-    end;
-    CreateExtIO := IOReq;
+  CreateExtIO := Exec.CreateExtIO(port, size);
 end;
 
-
-procedure DeleteExtIO (ioReq: pIORequest);
+procedure DeleteExtIO (ioReq: pIORequest); inline;
 begin
-    if ioReq <> NIL then
-    begin
-        ioReq^.io_Message.mn_Node.ln_Type := $FF;
-        ioReq^.io_Message.mn_ReplyPort    := pMsgPort(-1);
-        ioReq^.io_Device                  := pDevice(-1);
-        ExecFreeMem(ioReq, ioReq^.io_Message.mn_Length);
-    end
+  Exec.DeleteExtIO(ioReq);
 end;
 
-
-function CreateStdIO (port: pMsgPort): pIOStdReq;
+function CreateStdIO (port: pMsgPort): pIOStdReq; inline;
 begin
-    CreateStdIO := pIOStdReq(CreateExtIO(port, sizeof(tIOStdReq)))
+    CreateStdIO := Exec.CreateStdIO(port)
 end;
 
-
-procedure DeleteStdIO (ioReq: pIOStdReq);
+procedure DeleteStdIO (ioReq: pIOStdReq); inline;
 begin
-    DeleteExtIO(pIORequest(ioReq))
+    Exec.DeleteStdIO(ioReq)
+end;
+
+function Createport(name : PChar; pri : longint): pMsgPort; inline;
+begin
+  Createport := Exec.Createport(name, pri);
+end;
+
+procedure DeletePort (port: pMsgPort); inline;
+begin
+  Exec.DeletePort(port);
+end;
+
+function CreateTask (name: STRPTR; pri: longint; initPC: pointer; stackSize: ULONG): pTask; inline;
+begin
+  CreateTask := Exec.CreateTask(name, pri, initPC, stacksize);
+end;
+
+procedure DeleteTask (task: pTask); inline;
+begin
+  Exec.DeleteTask(task)
+end;
+
+procedure NewList (list: pList); inline;
+begin
+  Exec.NewList(list);
 end;
 
 
-function Createport(name : PChar; pri : longint): pMsgPort;
-var
-   sigbit : Byte;
-   port    : pMsgPort;
+procedure FreeIEvents (events: pInputEvent); inline;
 begin
-   sigbit := AllocSignal(-1);
-   if sigbit = -1 then CreatePort := nil;
-   port := ExecAllocmem(sizeof(tMsgPort),MEMF_CLEAR or MEMF_PUBLIC);
-   if port = nil then begin
-      FreeSignal(sigbit);
-      CreatePort := nil;
-   end;
-   with port^ do begin
-       if assigned(name) then
-       mp_Node.ln_Name := name
-       else mp_Node.ln_Name := nil;
-       mp_Node.ln_Pri := pri;
-       mp_Node.ln_Type := NT_MsgPort;
-       mp_Flags := PA_Signal;
-       mp_SigBit := sigbit;
-       mp_SigTask := FindTask(nil);
-   end;
-   if assigned(name) then AddPort(port)
-   else NewList(addr(port^.mp_MsgList));
-   CreatePort := port;
+  Commodities.FreeIEvents(events);
 end;
 
-procedure DeletePort (port: pMsgPort);
+function CxCustom(action: pointer; id: longint): pCxObj; inline;
 begin
-    if port <> NIL then
-    begin
-        if port^.mp_Node.ln_Name <> NIL then
-            RemPort(port);
-
-        port^.mp_Node.ln_Type     := $FF;
-        port^.mp_MsgList.lh_Head  := pNode(-1);
-        FreeSignal(port^.mp_SigBit);
-        ExecFreeMem(port, sizeof(tMsgPort));
-    end;
+  CxCustom := Commodities.CxCustom(action, id)
 end;
 
-
-function CreateTask (name: STRPTR; pri: longint;
-        initPC: pointer; stackSize: ULONG): pTask;
-var
-   memlist : pMemList;
-   task    : pTask;
-   totalsize : Longint;
+function CxDebug(id: long): pCxObj; inline;
 begin
-    task  := NIL;
-    stackSize   := (stackSize + 3) and not 3;
-    totalsize := sizeof(tMemList) + sizeof(tTask) + stackSize;
-
-    memlist := ExecAllocMem(totalsize, MEMF_PUBLIC + MEMF_CLEAR);
-    if memlist <> NIL then begin
-       memlist^.ml_NumEntries := 1;
-       memlist^.ml_ME[0].me_Un.meu_Addr := Pointer(memlist + 1);
-       memlist^.ml_ME[0].me_Length := totalsize - sizeof(tMemList);
-
-       task := pTask(memlist + sizeof(tMemList) + stackSize);
-       task^.tc_Node.ln_Pri := pri;
-       task^.tc_Node.ln_Type := NT_TASK;
-       task^.tc_Node.ln_Name := name;
-       task^.tc_SPLower := Pointer(memlist + sizeof(tMemList));
-       task^.tc_SPUpper := Pointer(task^.tc_SPLower + stackSize);
-       task^.tc_SPReg := task^.tc_SPUpper;
-
-       NewList(@task^.tc_MemEntry);
-       AddTail(@task^.tc_MemEntry,@memlist^.ml_Node);
-
-       AddTask(task,initPC,NIL)
-    end;
-    CreateTask := task;
+  CxDebug := Commodities.CxDebug(id)
 end;
 
-
-procedure DeleteTask (task: pTask);
+function CxFilter(d: STRPTR): pCxObj; inline;
 begin
-    RemTask(task)
+  CxFilter := Commodities.CxFilter(d);
 end;
 
-
-procedure NewList (list: pList);
+function CxSender(port: pMsgPort; id: longint): pCxObj; inline;
 begin
-    with list^ do
-    begin
-        lh_Head     := pNode(@lh_Tail);
-        lh_Tail     := NIL;
-        lh_TailPred := pNode(@lh_Head)
-    end
+  CxSender := Commodities.CxSender(port, id)
 end;
 
-procedure FreeIEvents (events: pInputEvent);
+function CxSignal(task: pTask; sig: byte): pCxObj; inline;
 begin
-        while events <> NIL do
-        begin
-                FreeMem (events, sizeof (tInputEvent));
-                events := events^.ie_NextEvent
-        end
-end;
-
-function CxCustom
-                (action: pointer;
-                id: longint): pCxObj;
-begin
-        CxCustom := CreateCxObj(CX_CUSTOM, longint(action), id)
-end;
-
-function CxDebug (id: long): pCxObj;
-begin
-        CxDebug := CreateCxObj(CX_DEBUG, id, 0)
-end;
-
-function CxFilter (d: STRPTR): pCxObj;
-begin
-        CxFilter := CreateCxObj(CX_FILTER, longint(d), 0)
-end;
-
-function CxSender
-                (port: pMsgPort;
-                id: longint): pCxObj;
-begin
-        CxSender := CreateCxObj(CX_SEND, longint(port), id)
-end;
-
-function CxSignal
-                (task: pTask;
-                sig: byte): pCxObj;
-begin
-        CxSignal:= CreateCxObj(CX_SIGNAL, longint(task), sig)
+  CxSignal:= Commodities.CxSignal(task, sig)
 end;
 
 function CxTranslate (ie: pInputEvent): pCxObj;
 begin
-        CxTranslate := CreateCxObj(CX_TRANSLATE, longint(ie), 0)
+  CxTranslate := Commodities.CxTranslate(ie)
 end;
 
-function DoMethodA(obj : pObject_; msg : APTR): ulong;
+function DoMethodA(obj : pObject_; msg : APTR): ulong; inline;
 begin
-    if assigned(obj) then begin
-       DoMethodA := CallHookPkt(@THook(OCLASS(obj)^.cl_Dispatcher), obj, msg);
-    end else DoMethodA := 0;
+  DoMethodA := Intuition.DoMethodA(obj, msg);
 end;
 
-function DoMethod(obj: PObject_; Params: array of DWord): LongWord;
+function DoMethod(obj: PObject_; Params: array of DWord): LongWord; inline;
 begin
-  DoMethod := DoMethodA(obj, @Params);
+  DoMethod := Intuition.DoMethodA(obj, @Params);
 end;
 
-function DoSuperMethodA(cl : pIClass; obj : pObject_; msg : APTR): ulong;
+function DoSuperMethodA(cl : pIClass; obj : pObject_; msg : APTR): ulong; inline;
 begin
-    if assigned(obj) and assigned(cl) then
-       DoSuperMethodA := CallHookPkt(@cl^.cl_Super^.cl_Dispatcher,obj,msg)
-    else DoSuperMethodA := 0;
+  DoSuperMethodA := Intuition.DoSuperMethodA(cl, obj, msg);
 end;
 
-function CoerceMethodA(cl : pIClass; obj : pObject_; msg : APTR): ulong;
+function CoerceMethodA(cl : pIClass; obj : pObject_; msg : APTR): ulong; inline;
 begin
-    if assigned(cl) and assigned(obj) then
-       CoerceMethodA := CallHookPkt(@cl^.cl_Dispatcher,obj,msg)
-    else CoerceMethodA := 0;
+  CoerceMethodA := Intuition.CoerceMethodA(cl, obj, msg);
 end;
 
-function SetSuperAttrsA(cl : pIClass; obj: pObject_; msg : APTR): ulong;
-var
-    arr : array[0..2] of longint;
+function SetSuperAttrsA(cl : pIClass; obj: pObject_; msg : APTR): ulong; inline;
 begin
-    arr[0] := OM_SET;
-    arr[1] := longint(msg);
-    arr[2] := 0;
-    SetSuperAttrsA := DoSuperMethodA(cl, obj, @arr);
+  SetSuperAttrsA := Intuition.SetSuperAttrsA(cl, obj, msg);
 end;
 
 { Do *NOT* change this to nostackframe! }

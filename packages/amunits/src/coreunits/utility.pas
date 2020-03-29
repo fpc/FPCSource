@@ -308,7 +308,7 @@ CONST
  TAG_SKIP          = 3; { skip this AND the next ti_Data items         }
 
 { differentiates user tags from control tags }
- TAG_USER          = LongInt($80000000);    { differentiates user tags from system tags}
+ TAG_USER          = DWord($80000000);    { differentiates user tags from system tags}
 
 {* If the TAG_USER bit is set in a tag number, it tells utility.library that
  * the tag is not a control tag (like TAG_DONE, TAG_IGNORE, TAG_MORE) and is
@@ -402,6 +402,9 @@ function AsTag(value: pchar): PtrUInt; overload; inline;
 function AsTag(value: boolean): PtrUInt; overload; inline;
 function AsTag(value: LongInt): PtrUInt; overload; inline;
 function AsTag(Value: LongWord): PtrUInt; overload; inline;
+
+procedure HookEntry;
+procedure HookEntryPas;
 
 IMPLEMENTATION
 
@@ -505,6 +508,35 @@ end;
 function AsTag(Value: LongWord): PtrUInt; inline;
 begin
   AsTag := PtrUInt(Value);
+end;
+
+{ Do *NOT* change this to nostackframe! }
+{ The compiler will build a stackframe with link/unlk. So that will actually correct
+  the stackpointer for both Pascal/StdCall and Cdecl functions, so the stackpointer
+  will be correct on exit. It also needs no manual RTS. The argument push order is
+  also correct for both. (KB) }
+procedure HookEntry; assembler;
+asm
+  move.l a1,-(a7)    // Msg
+  move.l a2,-(a7)    // Obj
+  move.l a0,-(a7)    // PHook
+  move.l 12(a0),a0   // h_SubEntry = Offset 12
+  jsr (a0)           // Call the SubEntry
+end;
+
+{ This is to be used with when the subentry function uses FPC's register calling
+  convention, also see the comments above HookEntry. It is advised to actually
+  declare Hook functions with cdecl instead of using this function, especially
+  when writing code which is platform independent. (KB) }
+procedure HookEntryPas; assembler;
+asm
+  move.l a2,-(a7)
+  move.l a1,-(a7)    // Msg
+  move.l a2,a1       // Obj
+                     // PHook is in a0 already
+  move.l 12(a0),a2   // h_SubEntry = Offset 12
+  jsr (a2)           // Call the SubEntry
+  move.l (a7)+,a2
 end;
 
 initialization

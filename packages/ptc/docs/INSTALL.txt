@@ -1,13 +1,16 @@
-The supported platforms are Linux, FreeBSD, Windows, Windows Mobile and DOS.
+The supported platforms are Linux, FreeBSD, Windows, Windows Mobile and 32-bit
+DOS (go32v2).
 
 Generally you need the latest stable version of the Free Pascal Compiler, which
-currently means version 2.6.2.
+currently means version 3.0.4. Note that Windows 95/98/ME and NT 4.0 are still
+supported, when this library is compiled with FPC 2.6.4. However, using
+FPC 2.6.4 isn't guaranteed to work for any other platforms, besides Windows.
 
  - Compiling the library:
 Before starting make sure the FPCDIR environment variable is set correctly.
-For example: (windows, fpc version 2.6.2, default install dir)
+For example: (windows, fpc version 3.0.4, default install dir)
 
-  set FPCDIR=c:\fpc\2.6.2
+  set FPCDIR=c:\fpc\3.0.4
 
 To compile the library type:
 

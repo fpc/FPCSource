@@ -201,7 +201,7 @@ begin
   FileUnlock := -1;
 end;
 
-Function FileAge (Const FileName : RawByteString): Longint;
+Function FileAge (Const FileName : RawByteString): Int64;
 var Info : TStat;
     TM  : TTM;
     SystemFileName: RawByteString;
@@ -218,7 +218,13 @@ begin
 end;
 
 
-Function FileExists (Const FileName : RawByteString) : Boolean;
+function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
+Function FileExists (Const FileName : RawByteString; FollowLink : Boolean) : Boolean;
 VAR Info : TStat;
     SystemFileName: RawByteString;
 begin
@@ -348,7 +354,7 @@ end;
 
 
 
-Function FileGetDate (Handle : THandle) : Longint;
+Function FileGetDate (Handle : THandle) : Int64;
 Var Info : TStat;
     _PTM : PTM;
 begin
@@ -503,7 +509,7 @@ Begin
 End;
 
 
-function DirectoryExists (const Directory: RawByteString): boolean;
+function DirectoryExists (const Directory: RawByteString; FollowLink : Boolean): boolean;
 var
   Info : TStat;
   SystemFileName: RawByteString;
@@ -722,5 +728,6 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
 Finalization
+  FreeTerminateProcs;
   DoneExceptions;
 end.

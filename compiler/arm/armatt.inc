@@ -324,6 +324,7 @@
 'svc',
 'bxj',
 'udf',
+'veor',
 'tan',
 'sqt',
 'suf',

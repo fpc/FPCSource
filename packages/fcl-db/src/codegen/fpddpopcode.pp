@@ -1,4 +1,4 @@
-unit fpddpopcode;
+unit FPDDPopCode;
 
 {$mode objfpc}{$H+}
 

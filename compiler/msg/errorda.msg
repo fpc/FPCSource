@@ -3,7 +3,7 @@
 #$
 #   $Id: errorda.msg 621 2006-07-02 15:44:03Z chrivers 
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2000 by the Free Pascal Development team
+#   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
 #   Danish Language File for Free Pascal
 #
@@ -18,6 +18,9 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
+
+# CodePage 65001
+
 #
 # The constants are build in the following order:
 # <part>_<type>_<txtidentifier>
@@ -841,7 +844,7 @@ parser_e_function_already_declared_public_forward=03120_E_Funktionen "$1" er all
 % declaration in the \var{implmentation} section.
 parser_e_not_external_and_export=03121_E_Kan ikke bruge både EXPORT og EXTERNAL
 % These two procedure directives are mutually exclusive
-parser_h_not_supported_for_inline=03123_H_Deklarationen "$1" er endnu ikke understøttet i inline procedurer/funktioner
+parser_n_not_supported_for_inline=03123_N_Deklarationen "$1" er endnu ikke understøttet i inline procedurer/funktioner
 % Inline procedures don't support this declaration.
 parser_h_inlining_disabled=03124_H_Inlining slået fra
 % Inlining of procedures is disabled.
@@ -3532,7 +3535,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] til $FPCTARGET
-Copyright (c) 1993-2017 Florian Klaempfl and others
+Copyright (c) 1993-2020 Florian Klaempfl and others
 ]
 
 #
@@ -3724,7 +3727,6 @@ option_help_pages=11025_[
 3*2Tnetware_Novell Netware Module (clib)
 3*2Tnetwlibc_Novell Netware Module (libc)
 3*2Tos2_OS/2 / eComStation
-3*2Tsunos_SunOS/Solaris
 3*2Twatcom_Watcom kompatibel DOS extender
 3*2Twdosx_WDOSX DOS extender
 3*2Twin32_Windows 32 Bit

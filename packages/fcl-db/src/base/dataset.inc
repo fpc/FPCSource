@@ -52,12 +52,9 @@ begin
   Active:=False;
   FFieldDefs.Free;
   FFieldList.Free;
-  With FDataSources do
-    begin
-    While Count>0 do
-      TDataSource(Items[Count - 1]).DataSet:=Nil;
-    Free;
-    end;
+  While MyDatasourceCount>0 do
+    MyDataSources[MyDatasourceCount - 1].DataSet:=Nil;
+  FDatasources.Free;
   for i := 0 to FBufferCount do
     FreeRecordBuffer(FBuffers[i]);
   FConstraints.Free;
@@ -270,8 +267,8 @@ begin
   end;
 
   if not ControlsDisabled and (FState <> dsBlockRead) then begin
-    for i := 0 to FDataSources.Count - 1 do
-      TDataSource(FDataSources[i]).ProcessEvent(Event, Info);
+    for i := 0 to MyDataSourceCount - 1 do
+      MyDataSources[i].ProcessEvent(Event, Info);
   end;
 end;
 
@@ -476,6 +473,16 @@ begin
   Result:=FBuffers[Index];
 end;
 
+function TDataSet.GetDatasourceCount: Integer;
+begin
+  Result:=FDataSources.Count;
+end;
+
+function TDataSet.GetDatasources(aIndex : integer): TDatasource;
+begin
+  Result:=TDatasource(FDataSources[aIndex]);
+end;
+
 procedure TDataSet.GetCalcFields(Buffer: TRecordBuffer);
 
 begin
@@ -542,23 +549,6 @@ end;
 procedure TDataSet.DataConvert(aField: TField; aSource, aDest: Pointer;
   aToNative: Boolean);
 
- // There seems to be no WStrCopy defined, this is a copy of
- // the generic StrCopy function, adapted for WideChar.
- Function WStrCopy(Dest, Source:PWideChar): PWideChar;
- var
-   counter : SizeInt;
- Begin
-   counter := 0;
-   while Source[counter] <> #0 do
-   begin
-     Dest[counter] := char(Source[counter]);
-     Inc(counter);
-   end;
-   { terminate the string }
-   Dest[counter] := #0;
-   WStrCopy := Dest;
- end;
-
 var
   DT : TFieldType;
 
@@ -574,7 +564,7 @@ begin
   // See notes from mantis bug-report 8204 for more information
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
-      ftWideString              : WStrCopy(PWideChar(aDest), PWideChar(aSource));
+      ftWideString              : StrCopy(PWideChar(aDest), PWideChar(aSource));
       end
     end
   else
@@ -586,7 +576,7 @@ begin
       ftFMTBCD                  : TBcd(aDest^) := TBcd(aSource^);
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
-      ftWideString              : WStrCopy(PWideChar(aDest), PWideChar(aSource));
+      ftWideString              : StrCopy(PWideChar(aDest), PWideChar(aSource));
       end
     end
 end;
@@ -1152,10 +1142,10 @@ begin
   else
     ABufferCount := DefaultBufferCount;
 
-  for i := 0 to FDataSources.Count - 1 do
-    for j := 0 to TDataSource(FDataSources[i]).DataLinks.Count - 1 do
+  for i := 0 to MyDataSourceCount - 1 do
+    for j := 0 to MyDataSources[i].DataLinkCount - 1 do
       begin
-      DataLink:=TDataLink(TDataSource(FDataSources[i]).DataLinks[j]);
+      DataLink:=MyDataSources[i].DataLink[j];
       if ABufferCount<DataLink.BufferCount then
         ABufferCount:=DataLink.BufferCount;
       end;
@@ -1184,6 +1174,9 @@ begin
     ' FBufferCount= ',FBufferCount,
     ' FRecordCount=',FRecordCount);
 {$Endif}
+  for i := 0 to MyDataSourceCount - 1 do
+    for j := 0 to MyDataSources[i].DataLinkCount - 1 do
+       MyDataSources[i].DataLink[j].CalcRange;
 end;
 
 procedure TDataSet.SetBookmarkStr(const Value: TBookmarkStr);
@@ -1348,30 +1341,45 @@ end;
 
 procedure TDataSet.SetName(const Value: TComponentName);
 
-function CheckName(const FieldName: string): string;
-var i,j: integer;
-begin
-  Result := FieldName;
-  i := 0;
-  j := 0;
-  while (i < Fields.Count) do begin
-    if Result = Fields[i].FieldName then begin
-      inc(j);
-      Result := FieldName + IntToStr(j);
-    end else Inc(i);
+  function CheckName(const FieldName: string): string;
+
+  var i,j: integer;
+
+  begin
+    Result := FieldName;
+    i := 0;
+    j := 0;
+    // Check if fieldname exists.
+    while (i < Fields.Count) do
+      if Not SameText(Result,Fields[i].Name) then
+        inc(i)
+      else
+        begin
+        inc(j);
+        Result := FieldName + IntToStr(j);
+        i := 0;
+        end;
+    // Check if component with the same name exists.
+    if Assigned(Owner) then
+      While Owner.FindComponent(Result)<>Nil do
+        begin
+        Inc(J);
+        Result := FieldName + IntToStr(j);
+        end;
   end;
-end;
-var i: integer;
-    nm: string;
-    old: string;
+
+var
+  i: integer;
+  OldName, OldFieldName: string;
+
 begin
   if Self.Name = Value then Exit;
-  old := Self.Name;
+  OldName := Self.Name;
   inherited SetName(Value);
   if (csDesigning in ComponentState) then
     for i := 0 to Fields.Count - 1 do begin
-      nm := old + Fields[i].FieldName;
-      if Copy(Fields[i].Name, 1, Length(nm)) = nm then
+      OldFieldName := OldName + Fields[i].FieldName;
+      if Copy(Fields[i].Name, 1, Length(OldFieldName)) = OldFieldName then
         Fields[i].Name := CheckName(Value + Fields[i].FieldName);
     end;
 end;
@@ -1521,6 +1529,8 @@ procedure TDataSet.ClearFields;
 
 
 begin
+  if not (State in dsEditModes) then
+    DatabaseError(SNotEditing, Self);
   DataEvent(deCheckBrowseMode, 0);
   FreeFieldBuffers;
   InternalInitRecord(ActiveBuffer);
@@ -2150,8 +2160,6 @@ begin
 {$endif}
       // nothing found, invalidate buffer and bail out.
       ClearBuffers;
-      // Make sure that the active record is 'empty', ie: that all fields are null
-      InternalInitRecord(ActiveBuffer);
       DataEvent(deDatasetChange,0);
       exit;
       end;

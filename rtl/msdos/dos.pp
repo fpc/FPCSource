@@ -316,6 +316,7 @@ end;
 procedure setverify(verify : boolean);
 begin
   dosregs.ah:=$2e;
+  dosregs.dl:=0;
   dosregs.al:=ord(verify);
   msdos(dosregs);
 end;
@@ -755,6 +756,8 @@ end;
 procedure SwapVectors;
 begin
   SwapIntVec(0, SaveInt00);
+  SwapIntVec($10, SaveInt10);
+  SwapIntVec($75, SaveInt75);
 end;
 
 
@@ -936,8 +939,8 @@ begin
   r:=ToSingleByteFileSystemEncodedFileName(filerec(f).Name);
   path:=pchar(r);
 {$endif}
-  dosregs.dx:=Ofs(path);
-  dosregs.ds:=Seg(path);
+  dosregs.dx:=Ofs(path^);
+  dosregs.ds:=Seg(path^);
   if LFNSupport then
    begin
      dosregs.ax:=$7143;

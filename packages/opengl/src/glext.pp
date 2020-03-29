@@ -5088,6 +5088,7 @@ var
   glGetBufferParameteri64v: procedure(target: GLenum; pname: GLenum; params: PGLint64); extdecl;
   glProgramParameteri: procedure(_program: GLuint; pname: GLenum; value: GLint); extdecl;
   glFramebufferTexture: procedure(target: GLenum; attachment: GLenum; texture: GLuint; level: GLint); extdecl;
+  glVertexAttribDivisor: procedure(index: GLuint; divisor: GLuint); extdecl;
 
 function Load_GL_VERSION_3_2(): Boolean;
 
@@ -11281,6 +11282,8 @@ begin
   if not Assigned(glProgramParameteri) then allOK := false;
   glFramebufferTexture := wglGetProcAddress('glFramebufferTexture');
   if not Assigned(glFramebufferTexture) then allOK := false;
+  glVertexAttribDivisor := wglGetProcAddress('glVertexAttribDivisor');
+  if not Assigned(glVertexAttribDivisor) then allOK := false;
   if not Load_GL_ARB_draw_elements_base_vertex(true) then allOK := false;
   if not Load_GL_ARB_provoking_vertex(true) then allOK := false;
   if not Load_GL_ARB_sync(true) then allOK := false;

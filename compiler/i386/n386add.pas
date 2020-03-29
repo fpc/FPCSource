@@ -50,6 +50,7 @@ interface
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,procinfo,
       ncon,nset,cgutils,tgobj,
+      cpuinfo,
       cga,ncgutil,cgobj,cg64f32,cgx86,
       hlcgobj;
 
@@ -64,7 +65,7 @@ interface
 
     function ti386addnode.use_generic_mul64bit: boolean;
     begin
-      result:=(cs_check_overflow in current_settings.localswitches) or
+      result:=needoverflowcheck or
         (cs_opt_size in current_settings.optimizerswitches);
     end;
 
@@ -78,7 +79,7 @@ interface
                 not(is_signed(right.resultdef));
       { use IMUL instead of MUL in case overflow checking is off and we're
         doing a 32->32-bit multiplication }
-      if not (cs_check_overflow in current_settings.localswitches) and
+      if not needoverflowcheck and
          not is_64bit(resultdef) then
         unsigned:=false;
       if (nodetype=muln) and (unsigned or is_64bit(resultdef)) then
@@ -213,7 +214,7 @@ interface
         { is in unsigned VAR!!                              }
         if mboverflow then
          begin
-           if cs_check_overflow in current_settings.localswitches  then
+           if needoverflowcheck then
             begin
               current_asmdata.getjumplabel(hl4);
               if unsigned then
@@ -280,6 +281,8 @@ interface
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
               unequaln:
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+              else
+                internalerror(2019050905);
            end;
         end;
 
@@ -305,6 +308,8 @@ interface
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
                    cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
                 end;
+              else
+                internalerror(2019050904);
            end;
         end;
 
@@ -332,6 +337,8 @@ interface
             case getresflags(true) of
               F_AE: hlab:=location.truelabel ;
               F_B:  hlab:=location.falselabel;
+              else
+                ;
             end;
           end;
 
@@ -440,7 +447,7 @@ interface
 
     procedure ti386addnode.second_mul(unsigned: boolean);
 
-    var reg:Tregister;
+    var reg,reghi,reglo:Tregister;
         ref:Treference;
         use_ref:boolean;
         hl4 : tasmlabel;
@@ -467,30 +474,58 @@ interface
         end
       else
         begin
-          {LOC_CONSTANT for example.}
+          { LOC_CONSTANT for example.}
           reg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,osuinttype,left.location,reg);
         end;
-      {Allocate EAX.}
-      cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-      {Load the right value.}
-      hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_EAX);
-      {Also allocate EDX, since it is also modified by a mul (JM).}
-      cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
-      if use_ref then
-        emit_ref(asmops[unsigned],S_L,ref)
-      else
-        emit_reg(asmops[unsigned],S_L,reg);
-      if (cs_check_overflow in current_settings.localswitches) and
+
+      if (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) and
+        (not(needoverflowcheck) or
         { 32->64 bit cannot overflow }
-        (not is_64bit(resultdef)) then
+        is_64bit(resultdef)) then
         begin
-          current_asmdata.getjumplabel(hl4);
-          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
-          cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
-          cg.a_label(current_asmdata.CurrAsmList,hl4);
+          cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
+          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_EDX);
+          cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EDX);
+          reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+          reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+          if use_ref then
+            current_asmdata.CurrAsmList.concat(Taicpu.Op_ref_reg_reg(A_MULX,S_L,ref,reglo,reghi))
+          else
+            emit_reg_reg_reg(A_MULX,S_L,reg,reglo,reghi);
+
+          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+          location.register64.reglo:=reglo;
+
+          if is_64bit(resultdef) then
+            location.register64.reghi:=reghi;
+
+          location_freetemp(current_asmdata.CurrAsmList,left.location);
+          location_freetemp(current_asmdata.CurrAsmList,right.location);
+        end
+      else
+        begin
+          { Allocate EAX. }
+          cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+          { Load the right value. }
+          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_EAX);
+          { Also allocate EDX, since it is also modified by a mul (JM). }
+          cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
+          if use_ref then
+            emit_ref(asmops[unsigned],S_L,ref)
+          else
+            emit_reg(asmops[unsigned],S_L,reg);
+          if needoverflowcheck and
+            { 32->64 bit cannot overflow }
+            (not is_64bit(resultdef)) then
+            begin
+              current_asmdata.getjumplabel(hl4);
+              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
+              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
+              cg.a_label(current_asmdata.CurrAsmList,hl4);
+            end;
+          set_mul_result_location;
         end;
-      set_mul_result_location;
     end;
 
 

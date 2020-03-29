@@ -29,7 +29,6 @@ unit optdead;
     uses
       globtype,
       cclasses,
-      symtype,
       wpobase;
 
     type

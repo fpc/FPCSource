@@ -31,7 +31,7 @@ interface
        { target }
        systems,
        { assembler }
-       cpuinfo,cpubase,aasmbase,aasmtai,aasmdata,assemble,
+       aasmbase,assemble,
        { ELF definitions }
        elfbase,
        { output }
@@ -53,8 +53,8 @@ interface
           shlink,
           shinfo,
           shentsize : longint;
-          constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
-          constructor create_ext(aobjdata:TObjData;const Aname:string;Ashtype,Ashflags:longint;Aalign:shortint;Aentsize:longint);
+          constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
+          constructor create_ext(aobjdata:TObjData;const Aname:string;Ashtype,Ashflags:longint;Aalign:longint;Aentsize:longint);
           constructor create_reloc(aobjdata:TObjData;const Aname:string;allocflag:boolean);
           procedure writeReloc_internal(aTarget:TObjSection;offset:aword;len:byte;reltype:TObjRelocationType);override;
        end;
@@ -380,248 +380,6 @@ implementation
         end;
 {$endif cpu64bitaddr}
 
-      procedure MayBeSwapHeader(var h : telf32header);
-        begin
-          if source_info.endian<>target_info.endian then
-            with h do
-              begin
-                e_type:=swapendian(e_type);
-                e_machine:=swapendian(e_machine);
-                e_version:=swapendian(e_version);
-                e_entry:=swapendian(e_entry);
-                e_phoff:=swapendian(e_phoff);
-                e_shoff:=swapendian(e_shoff);
-                e_flags:=swapendian(e_flags);
-                e_ehsize:=swapendian(e_ehsize);
-                e_phentsize:=swapendian(e_phentsize);
-                e_phnum:=swapendian(e_phnum);
-                e_shentsize:=swapendian(e_shentsize);
-                e_shnum:=swapendian(e_shnum);
-                e_shstrndx:=swapendian(e_shstrndx);
-              end;
-        end;
-
-
-      procedure MayBeSwapHeader(var h : telf64header);
-        begin
-          if source_info.endian<>target_info.endian then
-            with h do
-              begin
-                e_type:=swapendian(e_type);
-                e_machine:=swapendian(e_machine);
-                e_version:=swapendian(e_version);
-                e_entry:=swapendian(e_entry);
-                e_phoff:=swapendian(e_phoff);
-                e_shoff:=swapendian(e_shoff);
-                e_flags:=swapendian(e_flags);
-                e_ehsize:=swapendian(e_ehsize);
-                e_phentsize:=swapendian(e_phentsize);
-                e_phnum:=swapendian(e_phnum);
-                e_shentsize:=swapendian(e_shentsize);
-                e_shnum:=swapendian(e_shnum);
-                e_shstrndx:=swapendian(e_shstrndx);
-              end;
-        end;
-
-
-      procedure MayBeSwapHeader(var h : telf32proghdr);
-        begin
-          if source_info.endian<>target_info.endian then
-            with h do
-              begin
-                p_align:=swapendian(p_align);
-                p_filesz:=swapendian(p_filesz);
-                p_flags:=swapendian(p_flags);
-                p_memsz:=swapendian(p_memsz);
-                p_offset:=swapendian(p_offset);
-                p_paddr:=swapendian(p_paddr);
-                p_type:=swapendian(p_type);
-                p_vaddr:=swapendian(p_vaddr);
-              end;
-        end;
-
-
-      procedure MayBeSwapHeader(var h : telf64proghdr);
-        begin
-          if source_info.endian<>target_info.endian then
-            with h do
-              begin
-                p_align:=swapendian(p_align);
-                p_filesz:=swapendian(p_filesz);
-                p_flags:=swapendian(p_flags);
-                p_memsz:=swapendian(p_memsz);
-                p_offset:=swapendian(p_offset);
-                p_paddr:=swapendian(p_paddr);
-                p_type:=swapendian(p_type);
-                p_vaddr:=swapendian(p_vaddr);
-              end;
-        end;
-
-
-      procedure MaybeSwapSecHeader(var h : telf32sechdr);
-        begin
-          if source_info.endian<>target_info.endian then
-            with h do
-              begin
-                sh_name:=swapendian(sh_name);
-                sh_type:=swapendian(sh_type);
-                sh_flags:=swapendian(sh_flags);
-                sh_addr:=swapendian(sh_addr);
-                sh_offset:=swapendian(sh_offset);
-                sh_size:=swapendian(sh_size);
-                sh_link:=swapendian(sh_link);
-                sh_info:=swapendian(sh_info);
-                sh_addralign:=swapendian(sh_addralign);
-                sh_entsize:=swapendian(sh_entsize);
-              end;
-        end;
-
-
-      procedure MaybeSwapSecHeader(var h : telf64sechdr);
-        begin
-          if source_info.endian<>target_info.endian then
-            with h do
-              begin
-                sh_name:=swapendian(sh_name);
-                sh_type:=swapendian(sh_type);
-                sh_flags:=swapendian(sh_flags);
-                sh_addr:=swapendian(sh_addr);
-                sh_offset:=swapendian(sh_offset);
-                sh_size:=swapendian(sh_size);
-                sh_link:=swapendian(sh_link);
-                sh_info:=swapendian(sh_info);
-                sh_addralign:=swapendian(sh_addralign);
-                sh_entsize:=swapendian(sh_entsize);
-              end;
-        end;
-
-
-      procedure MaybeSwapElfSymbol(var h : telf32symbol);
-        begin
-          if source_info.endian<>target_info.endian then
-            with h do
-              begin
-                st_name:=swapendian(st_name);
-                st_value:=swapendian(st_value);
-                st_size:=swapendian(st_size);
-                st_shndx:=swapendian(st_shndx);
-              end;
-        end;
-
-
-      procedure MaybeSwapElfSymbol(var h : telf64symbol);
-        begin
-          if source_info.endian<>target_info.endian then
-            with h do
-              begin
-                st_name:=swapendian(st_name);
-                st_value:=swapendian(st_value);
-                st_size:=swapendian(st_size);
-                st_shndx:=swapendian(st_shndx);
-              end;
-        end;
-
-
-      procedure MaybeSwapElfReloc(var h : telf32reloc);
-        begin
-          if source_info.endian<>target_info.endian then
-            with h do
-              begin
-                address:=swapendian(address);
-                info:=swapendian(info);
-                addend:=swapendian(addend);
-              end;
-        end;
-
-
-      procedure MaybeSwapElfReloc(var h : telf64reloc);
-        begin
-          if source_info.endian<>target_info.endian then
-            with h do
-              begin
-                address:=swapendian(address);
-                info:=swapendian(info);
-                addend:=swapendian(addend);
-              end;
-        end;
-
-
-      procedure MaybeSwapElfDyn(var h : telf32dyn);
-        begin
-          if source_info.endian<>target_info.endian then
-            with h do
-              begin
-                d_tag:=swapendian(d_tag);
-                d_val:=swapendian(d_val);
-              end;
-        end;
-
-
-      procedure MaybeSwapElfDyn(var h : telf64dyn);
-        begin
-          if source_info.endian<>target_info.endian then
-            with h do
-              begin
-                d_tag:=swapendian(d_tag);
-                d_val:=swapendian(d_val);
-              end;
-        end;
-
-
-      procedure MaybeSwapElfverdef(var h: TElfverdef);
-        begin
-          if source_info.endian<>target_info.endian then
-            with h do
-              begin
-                vd_version:=swapendian(vd_version);
-                vd_flags:=swapendian(vd_flags);
-                vd_ndx:=swapendian(vd_ndx);
-                vd_cnt:=swapendian(vd_cnt);
-                vd_hash:=swapendian(vd_hash);
-                vd_aux:=swapendian(vd_aux);
-                vd_next:=swapendian(vd_next);
-              end;
-        end;
-
-
-      procedure MaybeSwapElfverdaux(var h: TElfverdaux);
-        begin
-          if source_info.endian<>target_info.endian then
-            with h do
-              begin
-                vda_name:=swapendian(vda_name);
-                vda_next:=swapendian(vda_next);
-              end;
-        end;
-
-
-      procedure MaybeSwapElfverneed(var h: TElfverneed);
-        begin
-          if source_info.endian<>target_info.endian then
-            with h do
-              begin
-                vn_version:=swapendian(vn_version);
-                vn_cnt:=swapendian(vn_cnt);
-                vn_file:=swapendian(vn_file);
-                vn_aux:=swapendian(vn_aux);
-                vn_next:=swapendian(vn_next);
-              end;
-        end;
-
-
-      procedure MaybeSwapElfvernaux(var h: TElfvernaux);
-        begin
-          if source_info.endian<>target_info.endian then
-            with h do
-              begin
-                vna_hash:=swapendian(vna_hash);
-                vna_flags:=swapendian(vna_flags);
-                vna_other:=swapendian(vna_other);
-                vna_name:=swapendian(vna_name);
-                vna_next:=swapendian(vna_next);
-              end;
-        end;
-
 
 {****************************************************************************
                                 Helpers
@@ -630,11 +388,16 @@ implementation
     procedure encodesechdrflags(aoptions:TObjSectionOptions;out AshType:longint;out Ashflags:longint);
       begin
         { Section Type }
-        AshType:=SHT_PROGBITS;
         if oso_strings in aoptions then
           AshType:=SHT_STRTAB
         else if not(oso_data in aoptions) then
-          AshType:=SHT_NOBITS;
+          AshType:=SHT_NOBITS
+        else if oso_note in aoptions then
+          AshType:=SHT_NOTE
+        else if oso_arm_attributes in aoptions then
+          AshType:=SHT_ARM_ATTRIBUTES
+        else
+          AshType:=SHT_PROGBITS;
         { Section Flags }
         Ashflags:=0;
         if oso_load in aoptions then
@@ -643,6 +406,8 @@ implementation
           Ashflags:=Ashflags or SHF_EXECINSTR;
         if oso_write in aoptions then
           Ashflags:=Ashflags or SHF_WRITE;
+        if oso_threadvar in aoptions then
+          Ashflags:=Ashflags or SHF_TLS;
       end;
 
 
@@ -661,6 +426,8 @@ implementation
           include(aoptions,oso_write);
         if Ashflags and SHF_EXECINSTR<>0 then
           include(aoptions,oso_executable);
+        if Ashflags and SHF_TLS<>0 then
+          include(aoptions,oso_threadvar);
       end;
 
 
@@ -668,7 +435,7 @@ implementation
                                TElfObjSection
 ****************************************************************************}
 
-    constructor TElfObjSection.create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);
+    constructor TElfObjSection.create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);
       begin
         inherited create(AList,Aname,Aalign,aoptions);
         index:=0;
@@ -681,7 +448,7 @@ implementation
       end;
 
 
-    constructor TElfObjSection.create_ext(aobjdata:TObjData;const Aname:string;Ashtype,Ashflags:longint;Aalign:shortint;Aentsize:longint);
+    constructor TElfObjSection.create_ext(aobjdata:TObjData;const Aname:string;Ashtype,Ashflags:longint;Aalign:longint;Aentsize:longint);
       var
         aoptions : TObjSectionOptions;
       begin
@@ -799,7 +566,9 @@ implementation
           '.obcj_nlcatlist',
           '.objc_protolist',
           '.stack',
-          '.heap'
+          '.heap',
+          '.gcc_except_table',
+          '.ARM.attributes'
         );
       var
         sep : string[3];
@@ -816,6 +585,15 @@ implementation
                 result:=secname+'.'+aname;
                 exit;
               end;
+
+            if atype=sec_threadvar then
+              begin
+                if (target_info.system in (systems_windows+systems_wince)) then
+                  secname:='.tls'
+                else if (target_info.system in systems_linux) then
+                  secname:='.tbss';
+              end;
+
             if create_smartlink_sections and (aname<>'') then
               begin
                 case aorder of
@@ -894,7 +672,7 @@ implementation
         if assigned(objreloc) then
           begin
             objreloc.size:=len;
-            if reltype in [RELOC_RELATIVE{$ifdef x86},RELOC_PLT32{$endif}{$ifdef x86_64},RELOC_GOTPCREL{$endif}] then
+            if reltype in [RELOC_RELATIVE{$ifdef x86},RELOC_PLT32{$endif}{$ifdef x86_64},RELOC_TLSGD,RELOC_GOTPCREL{$endif}] then
               dec(data,len);
             if ElfTarget.relocs_use_addend then
               begin
@@ -983,7 +761,10 @@ implementation
         if objsym.ThumbFunc then
           inc(elfsym.st_value);
 {$endif ARM}
-
+        { hidden symbols should have been converted to local symbols in
+          the linking pass in case we're writing an exe/library; don't
+          convert them to local here as well, as that would potentially
+          hide a bug there. }
         case objsym.bind of
           AB_LOCAL :
             begin
@@ -1002,11 +783,16 @@ implementation
             elfsym.st_info:=STB_WEAK shl 4;
           AB_GLOBAL :
             elfsym.st_info:=STB_GLOBAL shl 4;
+          AB_PRIVATE_EXTERN :
+            begin
+              elfsym.st_info:=STB_GLOBAL shl 4;
+              SetElfSymbolVisibility(elfsym.st_other,STV_HIDDEN);
+            end
         else
           InternalError(2012111801);
         end;
-        { External symbols must be NOTYPE in relocatable files }
-        if (objsym.bind<>AB_EXTERNAL) or (kind<>esk_obj) then
+        { External symbols must be NOTYPE in relocatable files except if they are TLS symbols }
+        if (objsym.bind<>AB_EXTERNAL) or (kind<>esk_obj) or (objsym.typ=AT_TLS) then
           begin
             case objsym.typ of
               AT_FUNCTION :
@@ -1018,7 +804,9 @@ implementation
                 elfsym.st_info:=elfsym.st_info or STT_TLS;
               AT_GNU_IFUNC:
                 elfsym.st_info:=elfsym.st_info or STT_GNU_IFUNC;
-            { other types are implicitly mapped to STT_NOTYPE }
+              { other types are implicitly mapped to STT_NOTYPE }
+              else
+                ;
             end;
           end;
         if objsym.bind<>AB_COMMON then
@@ -1260,7 +1048,7 @@ implementation
            { section data }
            layoutsections(datapos);
            { section headers }
-           shoffset:=datapos;
+           shoffset:=align(datapos,dword(Sizeof(AInt)));
            inc(datapos,(nsections+1)*sizeof(telfsechdr));
 
            { Write ELF Header }
@@ -1298,6 +1086,9 @@ implementation
            writer.writezeros($40-sizeof(header)); { align }
            { Sections }
            WriteSectionContent(data);
+
+           { Align header }
+           Writer.Writezeros(Align(Writer.Size,Sizeof(AInt))-Writer.Size);
            { section headers, start with an empty header for sh_undef }
            writer.writezeros(sizeof(telfsechdr));
            ObjSectionList.ForEachCall(@section_write_sechdr,nil);
@@ -1423,6 +1214,8 @@ implementation
                 STB_GLOBAL:
                   if sym.st_shndx=SHN_UNDEF then
                     bind:=AB_EXTERNAL
+                  else if GetElfSymbolVisibility(sym.st_other)=STV_HIDDEN then
+                    bind:=AB_PRIVATE_EXTERN
                   else
                     bind:=AB_GLOBAL;
                 STB_WEAK:

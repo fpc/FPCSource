@@ -56,6 +56,8 @@ type
     Function InternalGetFieldDataset : TDataSet; override;
   public
     procedure TryDropIfExist(ATableName : String);
+    procedure TryCreateSequence(ASequenceName : String);
+    procedure TryDropSequence(ASequenceName: String);
     destructor Destroy; override;
     constructor Create; override;
     procedure ExecuteDirect(const SQL: string);
@@ -245,14 +247,10 @@ begin
     ssMSSQL, ssSybase:
       // todo: Sybase: copied over MSSQL; verify correctness
       // note: test database should have case-insensitive collation
-      // todo: SQL Server 2008 and later supports DATE, TIME and DATETIME2 data types,
-      //       but these are not supported by FreeTDS yet
       begin
       FieldtypeDefinitions[ftBoolean] := 'BIT';
       FieldtypeDefinitions[ftFloat]   := 'FLOAT';
       FieldtypeDefinitions[ftCurrency]:= 'MONEY';
-      FieldtypeDefinitions[ftDate]    := 'DATETIME';
-      FieldtypeDefinitions[ftTime]    := '';
       FieldtypeDefinitions[ftDateTime]:= 'DATETIME';
       FieldtypeDefinitions[ftBytes]   := 'BINARY(5)';
       FieldtypeDefinitions[ftVarBytes]:= 'VARBINARY(10)';
@@ -392,10 +390,7 @@ begin
   if SQLServerType in [ssMSSQL, ssSybase] then
     // Some DB's do not support datetime values before 1753-01-01
     for i := 18 to testValuesCount-1 do
-      begin
-      testValues[ftDate,i] := testValues[ftDate,0];
       testValues[ftDateTime,i] := testValues[ftDateTime,0];
-      end;
 
   // DecimalSeparator must correspond to monetary locale (lc_monetary) set on PostgreSQL server
   // Here we assume, that locale on client side is same as locale on server
@@ -690,6 +685,53 @@ begin
     FTransaction.RollbackRetaining;
   end;
 end;
+
+procedure TSQLDBConnector.TryDropSequence(ASequenceName: String);
+
+var
+  NoSeq : Boolean;
+
+begin
+  NoSeq:=False;
+  try
+    case SQLServerType of
+      ssInterbase,
+      ssFirebird: FConnection.ExecuteDirect('DROP GENERATOR '+ASequenceName);
+      ssOracle,
+      ssPostgreSQL,
+      ssSybase,
+      ssMSSQL : FConnection.ExecuteDirect('DROP SEQUENCE '+ASequenceName+' START WITH 1 INCREMENT BY 1');
+      ssSQLite : FConnection.ExecuteDirect('delete from sqlite_sequence where (name='''+ASequenceName+''')');
+    else
+      NoSeq:=True;
+    end;
+  except
+    FTransaction.RollbackRetaining;
+  end;
+  if NoSeq then
+    Raise EDatabaseError.Create('Engine does not support sequences');
+end;
+
+procedure TSQLDBConnector.TryCreateSequence(ASequenceName: String);
+
+var
+  NoSeq : Boolean;
+
+begin
+  NoSeq:=False;
+  case SQLServerType of
+    ssInterbase,
+    ssFirebird: FConnection.ExecuteDirect('CREATE GENERATOR '+ASequenceName);
+    ssOracle,
+    ssPostgreSQL,
+    ssSybase,
+    ssMSSQL : FConnection.ExecuteDirect('CREATE SEQUENCE '+ASequenceName+' START WITH 1 INCREMENT BY 1');
+    ssSQLite : FConnection.ExecuteDirect('insert into sqlite_sequence (name,seq) values ('''+ASequenceName+''',1)');
+  else
+    Raise EDatabaseError.Create('Engine does not support sequences');
+  end;
+end;
+
 
 procedure TSQLDBConnector.ExecuteDirect(const SQL: string);
 begin

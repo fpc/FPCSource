@@ -195,7 +195,7 @@ begin
                         dirlist:='';
                     end;
                 if (newdir<>'') and
-                      not (newdir[length(newdir)] in AllowDirectorySeparators+DriveSeparator) then
+                      not (newdir[length(newdir)] in AllowDirectorySeparators+AllowDriveSeparators) then
                     newdir:=newdir+DirectorySeparator;
                 if CheckFile (NewDir + Path + #0) then
                     NewDir := NewDir + Path

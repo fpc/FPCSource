@@ -51,6 +51,7 @@ implementation
       aasmtai,aasmdata,aasmcpu,
       ncal,nbas,nmem,nld,ncnv,
       hlcgobj,
+      symcpu,
       cga,cgobj,cgx86,cpuinfo;
 
 
@@ -118,7 +119,7 @@ implementation
 
     function ti8086callnode.do_call_ref(ref: treference): tcgpara;
       begin
-        if current_settings.x86memorymodel in x86_far_code_models then
+        if is_proc_far(procdefinition) then
           current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_FAR,ref))
         else
           current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,ref));

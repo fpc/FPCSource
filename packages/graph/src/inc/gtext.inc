@@ -227,7 +227,13 @@ end;
     function unpack(buf: pchar; index: smallint; var Stroke: TStrokes): smallint;
 
      var
+{$ifdef CPU16}
+      { TStrokes is too big for small MSDOS Stacks,
+        use individual TStroke instead }
+      spo : TStroke; 
+{$else}
       po: TStrokes;
+{$endif}
       num_ops: smallint;
       opcode, i, opc: word;
       counter: smallint;
@@ -251,12 +257,20 @@ end;
 
        for i:=0 to num_ops-1 do    {    /* For each opcode in buffer    */ }
          Begin
+{$ifdef CPU16}
+           opc := decode(buf[counter], buf[counter+1], Stroke[lindex].x, Stroke[lindex].y);  {* Decode the data field   *}
+           inc(counter,2);
+	   Stroke[lindex].opcode := opc;
+{$else}
            opc := decode(buf[counter], buf[counter+1], po[lindex].x, po[lindex].y);  {* Decode the data field   *}
            inc(counter,2);
            po[lindex].opcode := opc;      {* Save the opcode            *}
+{$endif}
            Inc(lindex);
          end;
+{$ifndef CPU16}
        Stroke:=po;
+{$endif}
        unpack := num_ops;       {* return OPS count             *}
      end;
 

@@ -24,27 +24,54 @@ program pp;
 {
   possible compiler switches:
   -----------------------------------------------------------------
-  CMEM                use cmem unit for better memory debugging
+  Supported CPUs, alphabetically sorted
+  -----------------------------------------------------------------
+  AARCH64             generate a compiler for the AARCH64 (64bit ARM)
+  ARM                 generate a compiler for the ARM
+  AVR                 generate a compiler for the AVR
   I8086               generate a compiler for the Intel 8086+
   I386                generate a compiler for the Intel i386+
-  x86_64              generate a compiler for the AMD x86-64 architecture
+  JVM                 generate a compiler for the JVM (Java Virtual Machine)
   M68K                generate a compiler for the M68000
-  SPARC               generate a compiler for SPARC
+  MIPS                generate a compiler for the MIPS (Big Endian)
+  MIPSEL              generate a compiler for the MIPSEL (Littel Endian)
   POWERPC             generate a compiler for the PowerPC
   POWERPC64           generate a compiler for the PowerPC64 architecture
   Z80                 generate a compiler for Z80
+  RISCV64             generate a compiler for the RiscV64 architecture
+  SPARC               generate a compiler for SPARC
+  SPARC64             generate a compiler for SPARC64
+  X86_64              generate a compiler for the AMD x86-64 architecture
+
+  -----------------------------------------------------------------
+  Other compiler switches
+  -----------------------------------------------------------------
+  CMEM                use cmem unit for better memory debugging
+=======
   DEBUG               version with debug code is generated
   EXTDEBUG            some extra debug code is executed
-  SUPPORT_MMX         only i386: releases the compiler switch
-                      MMX which allows the compiler to generate
-                      MMX instructions
   EXTERN_MSG          Don't compile the msgfiles in the compiler, always
                       use external messagefiles, default for TP
+  LLVM                Create an LLVM-based code generator for the selected
+                      target architecture (not supported for all targets)
+
+  -----------------------------------------------------------------
+  ARM specfic switches
+  -----------------------------------------------------------------
   FPC_ARMEL           create an arm eabi compiler
   FPC_ARMEB           create an arm big endian compiler
   FPC_OARM            create an arm oabi compiler, only needed when the host
                       compiler is ARMEL or ARMEB
   FPC_ARMHF           create an armhf (eabi vfp variant) compiler
+
+  -----------------------------------------------------------------
+  I386 specfic switches
+  -----------------------------------------------------------------
+  SUPPORT_MMX         only i386: releases the compiler switch
+                      MMX which allows the compiler to generate
+                      MMX instructions
+  -----------------------------------------------------------------
+  Switches automatically inside fpcdefs.inc  
   -----------------------------------------------------------------
   cpuflags            The target processor has status flags (on by default)
   cpufpemu            The target compiler will also support emitting software
@@ -105,6 +132,12 @@ program pp;
   {$endif CPUDEFINED}
   {$define CPUDEFINED}
 {$endif SPARC}
+{$ifdef SPARC64}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif SPARC64}
 {$ifdef ARM}
   {$ifdef CPUDEFINED}
     {$fatal ONLY one of the switches for the CPU type must be defined}
@@ -135,6 +168,24 @@ program pp;
   {$endif CPUDEFINED}
   {$define CPUDEFINED}
 {$endif AARCH64}
+{$ifdef RISCV32}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif RISCV32}
+{$ifdef RISCV64}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif RISCV64}
+{$ifdef XTENSA}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif XTENSA}
 {$ifdef Z80}
   {$ifdef CPUDEFINED}
     {$fatal ONLY one of the switches for the CPU type must be defined}

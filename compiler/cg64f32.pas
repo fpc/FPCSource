@@ -739,7 +739,10 @@ unit cg64f32;
         tempreg.reghi:=cg.getintregister(list,OS_32);
         tempreg.reglo:=cg.getintregister(list,OS_32);
         a_load64_ref_reg(list,ref,tempreg);
-        a_op64_reg_reg(list,op,size,reg,tempreg);
+        if op in [OP_NEG,OP_NOT] then
+          a_op64_reg_reg(list,op,size,tempreg,tempreg)
+        else
+          a_op64_reg_reg(list,op,size,reg,tempreg);
         a_load64_reg_ref(list,tempreg,ref);
       end;
 

@@ -347,7 +347,12 @@ var zn:byte;
 begin
   if group_pos=0 then
     begin
-      inc(group_no);
+      { Code changed to avoid range/overflow check errors
+        where compiled with -Cr or -Co options. }
+      if group_no=high(group_no) then
+        group_no:=0
+      else
+        inc(group_no);
       group_pos:=group_size;
       gsel:=selector[group_no];
       gminlen:=minlens[gsel];

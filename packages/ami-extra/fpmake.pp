@@ -13,7 +13,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('ami-extra');
-
+    P.ShortName := 'ami';
     P.Author := 'FPC core team';
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
@@ -29,7 +29,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.SourcePath.Add('src');
 
     P.OSes:=AllAmigaLikeOSes;

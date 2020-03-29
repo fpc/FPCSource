@@ -44,9 +44,9 @@ interface
     uses
        cutils,cclasses,cfileutl,
        globtype,finput,ogbase,fpkg,
-       symbase,symconst,symsym,
+       symbase,symsym,
        wpobase,
-       aasmbase,aasmtai,aasmdata;
+       aasmbase,aasmdata;
 
 
     const
@@ -128,9 +128,12 @@ interface
         crc,
         interface_crc,
         indirect_crc  : cardinal;
-        flags         : cardinal;  { the PPU flags }
+        headerflags   : cardinal;  { the PPU header flags }
+        longversion   : cardinal;  { longer version than what fits in the ppu header }
+        moduleflags   : tmoduleflags; { ppu flags that do not need to be known by just reading the ppu header }
         islibrary     : boolean;  { if it is a library (win32 dll) }
         IsPackage     : boolean;
+        change_endian : boolean;  { if the unit is loaded on a system with a different endianess than it was compiled on }
         moduleid      : longint;
         unitmap       : punitmap; { mapping of all used units }
         unitmapsize   : longint;  { number of units in the map }
@@ -147,8 +150,11 @@ interface
         procaddrdefs  : THashSet; { list of procvardefs created when getting the address of a procdef (not saved/restored) }
 {$ifdef llvm}
         llvmdefs      : THashSet; { defs added for llvm-specific reasons (not saved/restored) }
-        llvmusedsyms  : TFPObjectList; { a list of tllvmdecls of all symbols that need to be added to llvm.used (so they're not removed by llvm optimisation passes nor by the linker) }
-        llvmcompilerusedsyms : TFPObjectList; { a list of tllvmdecls of all symbols that need to be added to llvm.compiler.used (so they're not removed by llvm optimisation passes) }
+        llvmusedsyms  : TFPObjectList; { a list of asmsymbols and their defs that need to be added to llvm.used (so they're not removed by llvm optimisation passes nor by the linker) }
+        llvmcompilerusedsyms : TFPObjectList; { a list of asmsymbols and their defs that need to be added to llvm.compiler.used (so they're not removed by llvm optimisation passes) }
+        llvminitprocs,
+        llvmfiniprocs : TFPList;
+        llvmmetadatastrings: TFPHashList; { metadata strings (mapping string -> superregister) }
 {$endif llvm}
         ansistrdef    : tobject; { an ansistring def redefined for the current module }
         wpoinfo       : tunitwpoinfobase; { whole program optimization-related information that is generated during the current run for this unit }
@@ -167,7 +173,8 @@ interface
         loaded_from   : tmodule;
         _exports      : tlinkedlist;
         dllscannerinputlist : TFPHashList;
-        resourcefiles : TCmdStrList;
+        resourcefiles,
+        linkorderedsymbols : TCmdStrList;
         linkunitofiles,
         linkunitstaticlibs,
         linkunitsharedlibs,
@@ -202,6 +209,9 @@ interface
         { contains a list of specializations for which the method bodies need
           to be generated }
         pendingspecializations : TFPHashObjectList;
+        { list of attributes that are used and thus need their construction
+          functions generated }
+        used_rtti_attrs: tfpobjectlist;
 
         { this contains a list of units that needs to be waited for until the
           unit can be finished (code generated, etc.); this is needed to handle
@@ -562,6 +572,7 @@ implementation
         used_units:=TLinkedList.Create;
         dependent_units:=TLinkedList.Create;
         resourcefiles:=TCmdStrList.Create;
+        linkorderedsymbols:=TCmdStrList.Create;
         linkunitofiles:=TLinkContainer.Create;
         linkunitstaticlibs:=TLinkContainer.Create;
         linkunitsharedlibs:=TLinkContainer.Create;
@@ -574,7 +585,9 @@ implementation
         crc:=0;
         interface_crc:=0;
         indirect_crc:=0;
-        flags:=0;
+        headerflags:=0;
+        longversion:=0;
+        moduleflags:=[];
         scanner:=nil;
         unitmap:=nil;
         unitmapsize:=0;
@@ -590,8 +603,11 @@ implementation
         procaddrdefs:=THashSet.Create(64,true,false);
 {$ifdef llvm}
         llvmdefs:=THashSet.Create(64,true,false);
-        llvmusedsyms:=TFPObjectList.Create(false);
-        llvmcompilerusedsyms:=TFPObjectList.Create(false);
+        llvmusedsyms:=TFPObjectList.Create(true);
+        llvmcompilerusedsyms:=TFPObjectList.Create(true);
+        llvminitprocs:=TFPList.Create;
+        llvmfiniprocs:=TFPList.Create;
+        llvmmetadatastrings:=TFPHashList.Create;
 {$endif llvm}
         ansistrdef:=nil;
         wpoinfo:=nil;
@@ -601,6 +617,7 @@ implementation
         pendingspecializations:=tfphashobjectlist.create(false);
         waitingforunit:=tfpobjectlist.create(false);
         waitingunits:=tfpobjectlist.create(false);
+        used_rtti_attrs:=tfpobjectlist.create(false);
         globalsymtable:=nil;
         localsymtable:=nil;
         globalmacrosymtable:=nil;
@@ -618,6 +635,7 @@ implementation
         is_unit:=_is_unit;
         islibrary:=false;
         ispackage:=false;
+        change_endian:=false;
         is_dbginfo_written:=false;
         mode_switch_allowed:= true;
         moduleoptions:=[];
@@ -681,6 +699,7 @@ implementation
         used_units.free;
         dependent_units.free;
         resourcefiles.Free;
+        linkorderedsymbols.Free;
         linkunitofiles.Free;
         linkunitstaticlibs.Free;
         linkunitsharedlibs.Free;
@@ -698,6 +717,7 @@ implementation
         pendingspecializations.free;
         waitingforunit.free;
         waitingunits.free;
+        used_rtti_attrs.free;
         stringdispose(asmprefix);
         stringdispose(deprecatedmsg);
         stringdispose(namespace);
@@ -720,6 +740,9 @@ implementation
         llvmdefs.free;
         llvmusedsyms.free;
         llvmcompilerusedsyms.free;
+        llvminitprocs.free;
+        llvmfiniprocs.free;
+        llvmmetadatastrings.free;
 {$endif llvm}
         ansistrdef:=nil;
         wpoinfo.free;
@@ -791,9 +814,15 @@ implementation
         llvmdefs.free;
         llvmdefs:=THashSet.Create(64,true,false);
         llvmusedsyms.free;
-        llvmusedsyms:=TFPObjectList.Create(false);
+        llvmusedsyms:=TFPObjectList.Create(true);
         llvmcompilerusedsyms.free;
-        llvmcompilerusedsyms:=TFPObjectList.Create(false);
+        llvmcompilerusedsyms:=TFPObjectList.Create(true);
+        llvminitprocs.free;
+        llvminitprocs:=TFPList.Create;
+        llvmfiniprocs.free;
+        llvmfiniprocs:=TFPList.Create;
+        llvmmetadatastrings.free;
+        llvmmetadatastrings:=TFPHashList.Create;
 {$endif llvm}
         wpoinfo.free;
         wpoinfo:=nil;
@@ -837,6 +866,8 @@ implementation
         dependent_units:=TLinkedList.Create;
         resourcefiles.Free;
         resourcefiles:=TCmdStrList.Create;
+        linkorderedsymbols.Free;
+        linkorderedsymbols:=TCmdStrList.Create;;
         pendingspecializations.free;
         pendingspecializations:=tfphashobjectlist.create(false);
         if assigned(waitingforunit) and
@@ -886,7 +917,9 @@ implementation
         crc:=0;
         interface_crc:=0;
         indirect_crc:=0;
-        flags:=0;
+        headerflags:=0;
+        longversion:=0;
+        moduleflags:=[];
         mainfilepos.line:=0;
         mainfilepos.column:=0;
         mainfilepos.fileindex:=0;
@@ -1061,7 +1094,7 @@ implementation
                   this is for units with an initialization/finalization }
                 if (unitmap[pu.u.moduleid].refs=0) and
                    pu.in_uses and
-                   ((pu.u.flags and (uf_init or uf_finalize))=0) then
+                   ((pu.u.moduleflags * [mf_init,mf_finalize])=[]) then
                   CGMessagePos2(pu.unitsym.fileinfo,sym_n_unit_not_used,pu.u.realmodulename^,realmodulename^);
               end;
             pu:=tused_unit(pu.next);

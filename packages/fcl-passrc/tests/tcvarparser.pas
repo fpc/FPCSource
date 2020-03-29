@@ -33,7 +33,11 @@ Type
     Procedure TestSimpleVarInitialized;
     procedure TestSimpleVarInitializedDeprecated;
     procedure TestSimpleVarInitializedPlatform;
+    Procedure TestSimpleVarAbsolute;
+    Procedure TestSimpleVarAbsoluteDot;
+    Procedure TestSimpleVarAbsolute2Dots;
     Procedure TestVarProcedure;
+    Procedure TestVarFunctionINitialized;
     Procedure TestVarProcedureDeprecated;
     Procedure TestVarRecord;
     Procedure TestVarRecordDeprecated;
@@ -181,10 +185,47 @@ begin
   AssertExpression('Variable value',TheVar.expr,pekNumber,'123');
 end;
 
+procedure TTestVarParser.TestSimpleVarAbsolute;
+begin
+  ParseVar('q absolute v','');
+  AssertVariableType('q');
+  AssertExpression('correct absolute location',TheVar.AbsoluteExpr,pekIdent,'v');
+end;
+
+procedure TTestVarParser.TestSimpleVarAbsoluteDot;
+var
+  B: TBinaryExpr;
+begin
+  ParseVar('q absolute v.w','');
+  AssertVariableType('q');
+  B:=AssertExpression('binary',TheVar.AbsoluteExpr,eopSubIdent);
+  AssertExpression('correct absolute expr v',B.left,pekIdent,'v');
+  AssertExpression('correct absolute expr w',B.right,pekIdent,'w');
+end;
+
+procedure TTestVarParser.TestSimpleVarAbsolute2Dots;
+var
+  B: TBinaryExpr;
+begin
+  ParseVar('q absolute v.w.x','');
+  AssertVariableType('q');
+  B:=AssertExpression('binary',TheVar.AbsoluteExpr,eopSubIdent);
+  AssertExpression('correct absolute expr x',B.right,pekIdent,'x');
+  B:=AssertExpression('binary',B.left,eopSubIdent);
+  AssertExpression('correct absolute expr w',B.right,pekIdent,'w');
+  AssertExpression('correct absolute expr v',B.left,pekIdent,'v');
+end;
+
 procedure TTestVarParser.TestVarProcedure;
 begin
   ParseVar('procedure','');
   AssertVariableType(TPasProcedureType);
+end;
+
+procedure TTestVarParser.TestVarFunctionINitialized;
+begin
+  ParseVar('function (device: pointer): pointer; cdecl = nil','');
+  AssertVariableType(TPasFunctionType);
 end;
 
 procedure TTestVarParser.TestVarProcedureDeprecated;

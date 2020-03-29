@@ -41,7 +41,7 @@ unit i_embed;
             name         : 'Embedded';
             shortname    : 'embedded';
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
-                            tf_smartlink_sections];
+                            tf_smartlink_sections,tf_init_final_units_by_calls];
             cpu          : cpu_arm;
             unit_env     : '';
             extradefines : '';
@@ -82,6 +82,9 @@ unit i_embed;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 4;
                 varalignmin     : 0;
@@ -105,7 +108,7 @@ unit i_embed;
             name         : 'Embedded';
             shortname    : 'embedded';
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
-                            tf_smartlink_sections];
+                            tf_smartlink_sections,tf_init_final_units_by_calls];
             cpu          : cpu_avr;
             unit_env     : '';
             extradefines : '';
@@ -138,7 +141,7 @@ unit i_embed;
             linkextern   : ld_embedded;
             ar           : ar_gnu_ar;
             res          : res_none;
-            dbg          : dbg_dwarf2;
+            dbg          : dbg_dwarf3;
             script       : script_unix;
             endian       : endian_little;
             alignment    :
@@ -146,6 +149,9 @@ unit i_embed;
                 procalign       : 1;
                 loopalign       : 1;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 1;
                 varalignmin     : 0;
@@ -210,6 +216,9 @@ unit i_embed;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 4;
                 varalignmin     : 0;
@@ -274,8 +283,11 @@ unit i_embed;
                 procalign       : 16;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
-                constalignmax   : 8;
+                constalignmax   : 16;
                 varalignmin     : 0;
                 varalignmax     : 16;
                 localalignmin   : 4;
@@ -338,8 +350,11 @@ unit i_embed;
                 procalign       : 16;
                 loopalign       : 8;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
-                constalignmax   : 8;
+                constalignmax   : 16;
                 varalignmin     : 0;
                 varalignmax     : 16;
                 localalignmin   : 4;
@@ -360,8 +375,14 @@ unit i_embed;
             system       : system_i8086_embedded;
             name         : 'Embedded';
             shortname    : 'embedded';
-            flags        : [tf_use_8_3,tf_smartlink_library,
-                            tf_no_objectfiles_when_smartlinking,tf_cld,
+            flags        : [tf_use_8_3,
+{$ifdef I8086_SMARTLINK_SECTIONS}
+                            tf_smartlink_sections,
+{$else I8086_SMARTLINK_SECTIONS}
+                            tf_smartlink_library,
+                            tf_no_objectfiles_when_smartlinking,
+{$endif I8086_SMARTLINK_SECTIONS}
+                            tf_cld,
                             tf_no_generic_stackcheck,tf_emit_stklen];
             cpu          : cpu_i8086;
             unit_env     : '';
@@ -407,6 +428,9 @@ unit i_embed;
                 procalign       : 1;
                 loopalign       : 1;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 2;
                 varalignmin     : 0;
@@ -471,6 +495,9 @@ unit i_embed;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 4;
                 varalignmin     : 0;
@@ -486,6 +513,207 @@ unit i_embed;
             stackalign   : 4;
             abi : abi_default;
             llvmdatalayout : 'TODO';
+          );
+
+       system_riscv32_embedded_info : tsysteminfo =
+          (
+            system       : system_riscv32_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
+                            tf_smartlink_sections];
+            cpu          : cpu_riscv32;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_embedded;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 4;
+                localalignmax   : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 4;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 262144;
+            stackalign   : 4;
+            abi : abi_default;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
+          );
+
+       system_riscv64_embedded_info : tsysteminfo =
+          (
+            system       : system_riscv64_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
+                            tf_smartlink_sections];
+            cpu          : cpu_riscv64;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_embedded;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 4;
+                localalignmax   : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 4;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 16;
+            stacksize    : 262144;
+            stackalign   : 8;
+            abi : abi_default;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
+          );
+
+       system_xtensa_embedded_info : tsysteminfo =
+          (
+            system       : system_xtensa_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
+                            tf_smartlink_sections,tf_init_final_units_by_calls];
+            cpu          : cpu_xtensa;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_embedded;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 4;
+                localalignmax   : 16;
+                recordalignmin  : 0;
+                recordalignmax  : 4;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 65536;
+            stackalign   : 16;
+            abi : abi_default;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
           );
 
        system_z80_embedded_info : tsysteminfo =
@@ -532,18 +760,21 @@ unit i_embed;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 1;
-                loopalign       : 1;
-                jumpalign       : 0;
-                constalignmin   : 0;
-                constalignmax   : 1;
-                varalignmin     : 0;
-                varalignmax     : 1;
-                localalignmin   : 0;
-                localalignmax   : 1;
-                recordalignmin  : 0;
-                recordalignmax  : 1;
-                maxCrecordalign : 1
+                procalign            : 1;
+                loopalign            : 1;
+                jumpalign            : 0;
+                jumpalignskipmax     : 0;
+                coalescealign        : 0;
+                coalescealignskipmax : 0;
+                constalignmin        : 0;
+                constalignmax        : 1;
+                varalignmin          : 0;
+                varalignmax          : 1;
+                localalignmin        : 0;
+                localalignmax        : 1;
+                recordalignmin       : 0;
+                recordalignmax       : 1;
+                maxCrecordalign      : 1
               );
             first_parm_offset : 0;
             stacksize    : 1024;
@@ -552,7 +783,7 @@ unit i_embed;
             llvmdatalayout : 'todo';
           );
 
-  implementation
+ implementation
 
 initialization
 {$ifdef CPUARM}
@@ -590,6 +821,21 @@ initialization
     set_source_info(system_m68k_embedded_info);
   {$endif embedded}
 {$endif cpum68k}
+{$ifdef cpuriscv32}
+  {$ifdef embedded}
+    set_source_info(system_riscv32_embedded_info);
+  {$endif embedded}
+{$endif cpuriscv32}
+{$ifdef cpuriscv64}
+  {$ifdef embedded}
+    set_source_info(system_riscv64_embedded_info);
+  {$endif embedded}
+{$endif cpuriscv64}
+{$ifdef cpuxtensa}
+  {$ifdef embedded}
+    set_source_info(system_xtensa_embedded_info);
+  {$endif embedded}
+{$endif cpuxtensa}
 {$ifdef CPUZ80}
   {$ifdef embedded}
     set_source_info(system_z80_embedded_info);

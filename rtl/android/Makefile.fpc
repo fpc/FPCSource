@@ -12,11 +12,14 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       fpintres heaptrc lineinfo lnfodwrf termio unix linux initc cmem \
       linuxvcs sysutils typinfo math charset cpall character \
       getopts errors dl dynlibs \
-      types  sysconst cthreads classes fgl  \
+      types  sysconst cthreads sortbase classes fgl  \
       rtlconsts dos cwstring fpcylix unixcp fpwidestring
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 \
+      cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 \
+      cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 \
+      cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 \
+      cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u \
       unicodedata  unicodenumtable
 rsts=math  typinfo  sysconst rtlconsts
 
@@ -44,7 +47,7 @@ libunits=$(SYSTEMUNIT) objpas strings dos \
       sysutils typinfo math \
       $(CPU_UNITS) getopts \
       errors sockets \
-      classes fgl sysconst rtlconsts \
+      sortbase classes fgl sysconst rtlconsts \
 
 [prerules]
 RTL=..
@@ -62,8 +65,11 @@ SYSINIT_UNITS=
 
 LOADERS=prt0 dllprt0
 
+ifeq ($(findstring $(ARCH),i386 x86_64 arm),$(ARCH))
+CPU_UNITS=cpu
+endif
 ifeq ($(ARCH),i386)
-CPU_UNITS=cpu mmx
+CPU_UNITS+=mmx
 endif
 
 SYSTEMUNIT=system
@@ -104,23 +110,28 @@ ifeq ($(ARCH),mipsel)
   ASTARGET=-mips32 -KPIC
 endif
 
+ifneq ($(findstring $(ARCH),aarch64 x86_64),)
+  CPUBITS=64
+else
+  CPUBITS=32
+endif
 
 #
 # Loaders
 #
 
-prt0$(OEXT) : $(ARCH)/prt0.as
-        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(ARCH)/prt0.as
+prt0$(OEXT) : prt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) --defsym CPU$(CPUBITS)=1 prt0.as
 
-dllprt0$(OEXT) : $(ARCH)/dllprt0.as
-        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
+dllprt0$(OEXT) : dllprt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) --defsym CPU$(CPUBITS)=1 dllprt0.as
 
 #
 # $(SYSTEMUNIT) Units ($(SYSTEMUNIT), Objpas, Strings)
 #
 
 $(SYSTEMUNIT)$(PPUEXT) : $(LINUXINC)/$(SYSTEMUNIT).pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg $(LINUXINC)/$(SYSTEMUNIT).pp
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(LINUXINC)/$(SYSTEMUNIT).pp
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 	$(COMPILER) $(INC)/uuchar.pp
@@ -187,7 +198,7 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT)
@@ -199,10 +210,10 @@ character$(PPUEXT): $(OBJPASDIR)/character.pas objpas$(PPUEXT) sysutils$(PPUEXT)
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
 
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
 
-types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -295,3 +306,5 @@ linux$(PPUEXT) : $(LINUXINC)/linux.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) u
 linuxvcs$(PPUEXT) : $(LINUXINC)/linuxvcs.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) strings$(PPUEXT)
         $(COMPILER) $(LINUXINC)/linuxvcs.pp
 
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/sortbase.pp

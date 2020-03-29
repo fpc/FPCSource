@@ -21,38 +21,50 @@
 
   const
     baseFDataSize = 8;             // must be > 0
+{$IFDEF FPUNONE}
+    maxLoadingFactor = 1;
+{$ELSE}
     maxLoadingFactor = 1.0;
+{$ENDIF}
 
   {
     THash should have the class functions
       hash(a: TKey, n: SizeUInt): SizeUInt;
-      	      return uniformly distributed i value in range <0,n-1> base only on arguments,
-	      n will be always power of 2
+              return uniformly distributed i value in range <0,n-1> base only on arguments,
+              n will be always power of 2
       equal(const AKey1, AKey2: TKey): Boolean;            [when STL_INTERFACE_EXT is defined]
               return the boolean test for equality of the two keys.  Typically this is operator=,
               but it doesn't have to be (e.g. case-insensitive string comparison)
   }
 
   type
-    generic THashmapIterator<TKey, TValue, T, TTable>=class
-      public
-      type PValue=^TValue;
-      var
-        Fh,Fp:SizeUInt;
-        FData:TTable;
-        function Next:boolean;inline;
-        function Prev:boolean;inline;
-        function GetData:T;inline;
-        function GetKey:TKey;inline;
-        function GetValue:TValue;inline;
-        function GetMutable:PValue;inline;
-        procedure SetValue(value:TValue);inline;
-        property Data:T read GetData;
-        property Key:TKey read GetKey;
-        property Value:TValue read GetValue write SetValue;
-        property MutableValue:PValue read GetMutable;
-    end;
 
+    { THashmapIterator }
+
+    generic THashmapIterator<TKey, TValue, T, TTable>=class
+         public
+         type PValue=^TValue;
+              TIntIterator = specialize THashmapIterator<TKey, TValue, T, TTable>;
+         var
+           Fh,Fp:SizeUInt;
+           FData:TTable;
+           function Next:boolean;inline;
+           function MoveNext:boolean;inline;
+           function Prev:boolean;inline;
+           function GetData:T;inline;
+           function GetKey:TKey;inline;
+           function GetValue:TValue;inline;
+           function GetMutable:PValue;inline;
+           procedure SetValue(value:TValue);inline;
+           function GetEnumerator : TIntIterator; inline;
+           property Data:T read GetData;
+           property Key:TKey read GetKey;
+           property Value:TValue read GetValue write SetValue;
+           property MutableValue:PValue read GetMutable;
+           property Current : T read GetData;
+       end;
+
+    { THashmap }
     generic THashmap<TKey, TValue, Thash>=class
       public
       type
@@ -72,20 +84,19 @@
       public 
       type
         TIterator = specialize THashmapIterator<TKey, TValue, TPair, TTable>;
-        constructor create;
-        destructor destroy;override;
+        constructor Create;
+        destructor Destroy;override;
         procedure insert(key:TKey;value:TValue);inline;
         function contains(key:TKey):boolean;inline;
-        function size:SizeUInt;inline;
+        function Size:SizeUInt;inline;
         procedure delete(key:TKey);inline;
         procedure erase(iter:TIterator);inline;
         function IsEmpty:boolean;inline;
         function GetData(key:TKey):TValue;inline;
         function GetValue(key:TKey;out value:TValue):boolean;inline;
-
-        property Items[i : TKey]: TValue read GetData write Insert; default;
-
         function Iterator:TIterator;
+        function getenumerator :TIterator;
+        property Items[i : TKey]: TValue read GetData write Insert; default;
   end;
 
 implementation
@@ -107,7 +118,7 @@ begin
   FData.Destroy;
 end;
 
-function THashmap.IsEmpty(): boolean;
+function THashmap.IsEmpty: boolean;
 begin
   IsEmpty := Size()=0;
 end;
@@ -141,7 +152,7 @@ begin
   end;
 end;
 
-constructor THashmap.create;
+constructor THashmap.Create;
 var i: SizeUInt;
 begin
   FDataSize:=0;
@@ -286,6 +297,22 @@ begin
   exit(false);
 end;
 
+function THashmapIterator.MoveNext: boolean;
+begin
+  Assert(Fh < FData.size);      // assumes FData.size>0 (i.e. buckets don't shrink) and cannot call Next again after reaching end
+  inc(Fp);
+  if (Fp < (FData[Fh]).size) then
+    exit(true);
+  Fp:=0; Inc(Fh);
+  while Fh < FData.size do begin
+    if ((FData[Fh]).size > 0) then
+      exit(true);
+    Inc(Fh);
+  end;
+  //Assert((Fp = 0) and (Fh = FData.size));
+  exit(false);
+end;
+
 function THashmapIterator.Prev: boolean;
 var bs:SizeUInt;
 begin
@@ -326,6 +353,11 @@ begin
   Iterator.FData := FData;
 end;
 
+function THashmap.getenumerator: TIterator;
+begin
+  result:=iterator;
+end;
+
 function THashmapIterator.GetKey: TKey;
 begin
   GetKey:=((FData[Fh])[Fp]).Key;
@@ -344,6 +376,11 @@ end;
 procedure THashmapIterator.SetValue(value:TValue);
 begin
   ((FData[Fh]).mutable[Fp])^.Value := value;
+end;
+
+function THashmapIterator.getenumerator: TIntIterator;
+begin
+  result:=self;
 end;
 
 end.

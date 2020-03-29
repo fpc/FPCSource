@@ -51,7 +51,7 @@ implementation
 
     uses
       globtype,systems,constexp,
-      cutils,verbose,globals,
+      cutils,verbose,globals,compinnr,
       symconst,symdef,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,

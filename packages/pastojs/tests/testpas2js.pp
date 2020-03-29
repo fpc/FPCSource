@@ -17,7 +17,11 @@ program testpas2js;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, tcconverter, tcmodules, tcoptimizations;
+  {$IFDEF EnableMemCheck}
+  MemCheck,
+  {$ENDIF}
+  Classes, consoletestrunner, tcconverter, TCModules, tcoptimizations, tcsrcmap,
+  tcfiler, tcunitsearch, tcprecompile, TCGenerics;
 
 type
 
@@ -33,7 +37,6 @@ begin
   DefaultRunAllTests:=True;
   Application := TMyTestRunner.Create(nil);
   Application.Initialize;
-  Application.Title:='Pascal to Javascript converter tests';
   Application.Run;
   Application.Free;
 end.

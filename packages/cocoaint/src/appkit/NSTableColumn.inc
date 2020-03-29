@@ -1,51 +1,26 @@
-{ Parsed from Appkit.framework NSTableColumn.h }
+{ Parsed from AppKit.framework NSTableColumn.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSTABLECOLUMN_PAS_T}
-{$define NSTABLECOLUMN_PAS_T}
+type
+  NSTableColumnPtr = ^NSTableColumn;
+{$endif}
 
-{ Constants }
+{$ifdef TYPES}
+type
+  NSTableColumnResizingOptions = NSUInteger;
+  NSTableColumnResizingOptionsPtr = ^NSTableColumnResizingOptions;
 
 const
   NSTableColumnNoResizing = 0;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSTABLECOLUMN_PAS_R}
-{$define NSTABLECOLUMN_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSTABLECOLUMN_PAS_F}
-{$define NSTABLECOLUMN_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSTABLECOLUMN_PAS_S}
-{$define NSTABLECOLUMN_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSTableColumn = objcclass;
-  NSTableColumnPointer = ^NSTableColumn;
-  NSTableColumnPtr = NSTableColumnPointer;
-
+  NSTableColumnAutoresizingMask = 1 shl 0;
+  NSTableColumnUserResizingMask = 1 shl 1;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSTABLECOLUMN_PAS_C}
-{$define NSTABLECOLUMN_PAS_C}
 
-{ NSTableColumn }
-  NSTableColumn = objcclass external (NSObject, NSCodingProtocol)
+type
+  NSTableColumn = objcclass external (NSObject, NSCodingProtocol, NSUserInterfaceItemIdentificationProtocol)
   private
     _identifier: id;
     _width: CGFloat;
@@ -54,62 +29,62 @@ const
     _tableView: NSTableView;
     _headerCell: NSCell;
     _dataCell: NSCell;
-    __cFlags: record
+    _cFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSTableColumn0: cuint);
-       1: (data: bitpacked record
-        oldIsResizable: 0..1;
-        _isEditable: 0..1;
-        resizedPostingDisableCount: 0..((1 shl 8)-1);
-        canUseReorderResizeImageCache: 0..1;
-        userResizingAllowed: 0..1;
-        autoResizingAllowed: 0..1;
-        hidden: 0..1;
-        RESERVED: 0..((1 shl 18)-1);
-       end;
-      );
+        0: (_anonBitField__cFlags0: cuint);
+        1: (
+          oldIsResizable: 0..1;
+          isEditable: 0..1;
+          resizedPostingDisableCount: 0..((1 shl 8)-1);
+          canUseReorderResizeImageCache: 0..1;
+          userResizingAllowed: 0..1;
+          autoResizingAllowed: 0..1;
+          hidden: 0..1;
+          RESERVED: 0..((1 shl 18)-1);
+        );
       end;
     _tcAuxiliaryStorage: id;
-    
   public
-    function initWithIdentifier(identifier_: id): id; message 'initWithIdentifier:';
-    procedure setIdentifier(identifier_: id); message 'setIdentifier:';
-    function identifier: id; message 'identifier';
-    procedure setTableView(tableView_: NSTableView); message 'setTableView:';
+    function initWithIdentifier (identifier: NSString): instancetype; message 'initWithIdentifier:';
+    procedure setIdentifier(newValue: NSString); message 'setIdentifier:';
+    function identifier: NSString; message 'identifier';
+    procedure setTableView(newValue: NSTableView); message 'setTableView:';
     function tableView: NSTableView; message 'tableView';
-    procedure setWidth(width_: CGFloat); message 'setWidth:';
+    procedure setWidth(newValue: CGFloat); message 'setWidth:';
     function width: CGFloat; message 'width';
-    procedure setMinWidth(minWidth_: CGFloat); message 'setMinWidth:';
+    procedure setMinWidth(newValue: CGFloat); message 'setMinWidth:';
     function minWidth: CGFloat; message 'minWidth';
-    procedure setMaxWidth(maxWidth_: CGFloat); message 'setMaxWidth:';
+    procedure setMaxWidth(newValue: CGFloat); message 'setMaxWidth:';
     function maxWidth: CGFloat; message 'maxWidth';
-    procedure setHeaderCell(cell: NSCell); message 'setHeaderCell:';
+    procedure setTitle(newValue: NSString); message 'setTitle:';
+    function title: NSString; message 'title';
+    procedure setHeaderCell(newValue: id); message 'setHeaderCell:';
     function headerCell: id; message 'headerCell';
-    procedure setDataCell(cell: NSCell); message 'setDataCell:';
-    function dataCell: id; message 'dataCell';
-    function dataCellForRow(row: NSInteger): id; message 'dataCellForRow:';
-    procedure setEditable(flag: Boolean); message 'setEditable:';
-    function isEditable: Boolean; message 'isEditable';
+    procedure setEditable(newValue: ObjCBOOL); message 'setEditable:';
+    function isEditable: ObjCBOOL; message 'isEditable';
     procedure sizeToFit; message 'sizeToFit';
-    procedure setSortDescriptorPrototype(sortDescriptor: NSSortDescriptor); message 'setSortDescriptorPrototype:';
+    procedure setSortDescriptorPrototype(newValue: NSSortDescriptor); message 'setSortDescriptorPrototype:';
     function sortDescriptorPrototype: NSSortDescriptor; message 'sortDescriptorPrototype';
-    procedure setResizingMask(resizingMask_: NSUInteger); message 'setResizingMask:';
-    function resizingMask: NSUInteger; message 'resizingMask';
-    procedure setHeaderToolTip(string_: NSString); message 'setHeaderToolTip:';
+    procedure setResizingMask(newValue: NSTableColumnResizingOptions); message 'setResizingMask:';
+    function resizingMask: NSTableColumnResizingOptions; message 'resizingMask';
+    procedure setHeaderToolTip(newValue: NSString); message 'setHeaderToolTip:';
     function headerToolTip: NSString; message 'headerToolTip';
-    function isHidden: Boolean; message 'isHidden';
-    procedure setHidden(hidden: Boolean); message 'setHidden:';
+    procedure setHidden(newValue: ObjCBOOL); message 'setHidden:';
+    function isHidden: ObjCBOOL; message 'isHidden';
 
-    { Adopted Protocols }
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
+    { Adopted protocols }
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
   end;
 
-{ NSDeprecated_NSTableColumnCategory }
-  NSDeprecated_NSTableColumnCategory = objccategory external name 'NSDeprecated' (NSTableColumn)
-    procedure setResizable(flag: Boolean); message 'setResizable:'; deprecated 'in Mac OS X 10.4 and later';
-    function isResizable: Boolean; message 'isResizable'; deprecated 'in Mac OS X 10.4 and later';
-  end;
 
+type
+  NSTableColumn_NSDeprecated = objccategory external name 'NSDeprecated' (NSTableColumn)
+    procedure setResizable (flag: ObjCBOOL); message 'setResizable:'; deprecated 'in 10_0, 10_4';
+    function isResizable: ObjCBOOL; message 'isResizable'; deprecated 'in 10_0, 10_4';
+    procedure setDataCell(newValue: id); message 'setDataCell:';
+    function dataCell: id; message 'dataCell';
+    function dataCellForRow (row: NSInteger): id; message 'dataCellForRow:';
+  end;
 {$endif}
-{$endif}
+

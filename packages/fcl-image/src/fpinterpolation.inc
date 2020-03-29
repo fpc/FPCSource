@@ -6,6 +6,20 @@ begin
   fcanvas := acanvas;
 end;
 
+{ TFPBoxInterpolation }
+
+procedure TFPBoxInterpolation.Execute(x,y,w,h:integer);
+var
+  dx, dy, iw, ih: Integer;
+begin
+  iw := Image.Width;
+  ih := Image.Height;
+
+  for dx := 0 to w-1 do
+    for dy := 0 to h-1 do
+      Canvas.DrawPixel(x+dx,y+dy, Image.Colors[dx*iw div w, dy*ih div h]);
+end;
+
 { TFPBaseInterpolation }
 
 procedure TFPBaseInterpolation.CreatePixelWeights(OldSize, NewSize: integer;
@@ -125,7 +139,6 @@ var
   yEntry: Pointer;
   SrcStartY: LongInt;
   LastSrcStartY: LongInt;
-  LastyEntry: Pointer;
   sy: Integer;
   xEntry: Pointer;
   sx: LongInt;
@@ -148,7 +161,6 @@ begin
     // current y line
     GetMem(HorzResized,w*ySupport*SizeOf(TFPColor));
 
-    LastyEntry:=nil;
     SrcStartY:=0;
     for dy:=0 to h-1 do
     begin
@@ -159,7 +171,6 @@ begin
         NewSupportLines:=ySupport;
       end else
       begin
-        LastyEntry:=yEntry;
         LastSrcStartY:=SrcStartY;
         inc(yEntry,yEntrySize);
         SrcStartY:=PInteger(yEntry)^;
@@ -209,7 +220,7 @@ begin
           NewCol.blue:=Min(NewCol.blue+round(Col.blue*f),$ffff);
           NewCol.alpha:=Min(NewCol.alpha+round(Col.alpha*f),$ffff);
         end;
-        Canvas.Colors[x+dx,y+dy]:=NewCol;
+        Canvas.DrawPixel(x+dx,y+dy, NewCol);
       end;
     end;
   finally

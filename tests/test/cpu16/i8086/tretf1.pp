@@ -12,6 +12,8 @@
 
 program tretf1;
 
+{$hugecode off}
+
 uses
   dos;
 

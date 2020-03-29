@@ -64,7 +64,7 @@ Const
 { Added to interface so that there is no need to implement it
   both in dos and sysutils units }
 
-//procedure exec_ansistring(path : string;comline : ansistring);
+procedure exec_ansistring(path : string;comline : ansistring);
 
 procedure Intr(IntNo: Byte; var Regs: Registers);
 procedure MsDos(var Regs: Registers); external name 'FPC_MSDOS';
@@ -86,9 +86,8 @@ type
 {$DEFINE HAS_SETVERIFY}
 {$DEFINE HAS_GETVERIFY}
 {//$DEFINE HAS_SWAPVECTORS}
-{//$DEFINE HAS_GETINTVEC}
-{//$DEFINE HAS_SETINTVEC}
-{//$DEFINE HAS_KEEP}
+{$DEFINE HAS_GETINTVEC}
+{$DEFINE HAS_SETINTVEC}
 {$DEFINE HAS_GETSHORTNAME}
 {$DEFINE HAS_GETLONGNAME}
 
@@ -215,96 +214,49 @@ end;
                                --- Exec ---
 ******************************************************************************}
 
-const
-  DOS_MAX_COMMAND_LINE_LENGTH = 126;
-
-(*procedure exec_ansistring(path : string;comline : ansistring);
-type
-  realptr = packed record
-    ofs,seg : word;
-  end;
-  texecblock = packed record
-    envseg    : word;
-    comtail   : realptr;
-    firstFCB  : realptr;
-    secondFCB : realptr;
-    iniStack  : realptr;
-    iniCSIP   : realptr;
-  end;
+procedure exec_ansistring(path : string;comline : ansistring);
 var
-  execblock       : texecblock;
-  c               : ansistring;
-  p               : string;
-  arg_ofs         : integer;
-  fcb1            : array [0..15] of byte;
-  fcb2            : array [0..15] of byte;
+  c: ansistring;
+  pc: PChar;
+  p: string;
+  winexec_result: Word;
+  m: MSG;
 begin
   { create command line }
-  c:=comline;
-  if length(c)>DOS_MAX_COMMAND_LINE_LENGTH then
-    begin
-      writeln(stderr,'Dos.exec command line truncated to ',
-              DOS_MAX_COMMAND_LINE_LENGTH,' chars');
-      writeln(stderr,'Before: "',c,'"');
-      setlength(c, DOS_MAX_COMMAND_LINE_LENGTH);
-      writeln(stderr,'After: "',c,'"');
-    end;
   p:=path;
   { allow slash as backslash }
   DoDirSeparators(p);
-  if LFNSupport then
-    GetShortName(p);
-  { allocate FCB see dosexec code }
-  arg_ofs:=1;
-  while (arg_ofs<length(c)) and (c[arg_ofs] in [' ',#9]) do
-    inc(arg_ofs);
-  dosregs.ax:=$2901;
-  dosregs.ds:=Seg(c[arg_ofs]);
-  dosregs.si:=Ofs(c[arg_ofs]);
-  dosregs.es:=Seg(fcb1);
-  dosregs.di:=Ofs(fcb1);
-  msdos(dosregs);
-  { allocate second FCB see dosexec code }
-  dosregs.ax:=$2901;
-  dosregs.ds:=Seg(c[arg_ofs]);
-  dosregs.si:=Ofs(c[arg_ofs]);
-  dosregs.es:=Seg(fcb2);
-  dosregs.di:=Ofs(fcb2);
-  msdos(dosregs);
-
-  c := Chr(Length(c)) + c + #13 + #0;
-  with execblock do
-  begin
-    envseg:={la_env shr 4}0;
-    comtail.seg:=Seg(c[1]);
-    comtail.ofs:=Ofs(c[1]);
-    firstFCB.seg:=Seg(fcb1);
-    firstFCB.ofs:=Ofs(fcb1);
-    secondFCB.seg:=Seg(fcb2);
-    secondFCB.ofs:=Ofs(fcb2);
-  end;
-
-  p := p + #0;
-  dosregs.dx:=Ofs(p[1]);
-  dosregs.ds:=Seg(p[1]);
-  dosregs.bx:=Ofs(execblock);
-  dosregs.es:=Seg(execblock);
-  dosregs.ax:=$4b00;
-  msdos(dosregs);
-  LoadDosError;
-  if DosError=0 then
-   begin
-     dosregs.ax:=$4d00;
-     msdos(dosregs);
-     LastDosExitCode:=DosRegs.al
-   end
+  if Pos(' ',p)<>0 then
+    c:='"'+p+'" '+comline
   else
-   LastDosExitCode:=0;
-end;*)
+    c:=p+' '+comline;
+  pc:=PChar(c);
+  winexec_result:=WinExec(FarAddr(pc^),SW_SHOW);
+  if winexec_result<32 then
+  begin
+    doserror:=winexec_result;
+    LastDosExitCode:=0;
+  end
+  else
+  begin
+    doserror:=0;
+    { wait until the hinstance terminates }
+    while GetModuleUsage(winexec_result)>0 do
+    begin
+      while PeekMessage(FarAddr(m),0,0,0,1) do
+      begin
+        TranslateMessage(FarAddr(m));
+        DispatchMessage(FarAddr(m));
+      end;
+    end;
+    { TODO: is there actually a way to receive the child exit code in win16??? }
+    LastDosExitCode:=0;
+  end;
+end;
 
 procedure exec(const path : pathstr;const comline : comstr);
 begin
-//  exec_ansistring(path, comline);
+  exec_ansistring(path, comline);
 end;
 
 
@@ -1060,7 +1012,7 @@ end;
                              --- Get/SetIntVec ---
 ******************************************************************************}
 
-(*procedure GetIntVec(intno: Byte; var vector: farpointer); assembler;
+procedure GetIntVec(intno: Byte; var vector: farpointer); assembler;
 asm
   mov al, intno
   mov ah, 35h
@@ -1092,22 +1044,7 @@ asm
   lds dx, word [vector]
   int 21h
   pop ds
-end;*)
-
-{******************************************************************************
-                                  --- Keep ---
-******************************************************************************}
-
-{Procedure Keep(exitcode: word); assembler;
-asm
-  mov bx, PrefixSeg
-  dec bx
-  mov es, bx
-  mov dx, es:[3]
-  mov ax, exitcode
-  mov ah, 31h
-  int 21h
-end;}
+end;
 
 {$ifdef DEBUG_LFN}
 begin

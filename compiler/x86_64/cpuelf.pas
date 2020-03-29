@@ -171,9 +171,25 @@ implementation
           result:=R_X86_64_GOTPCREL;
         RELOC_PLT32 :
           result:=R_X86_64_PLT32;
-      else
-        result:=0;
-        InternalError(2012082302);
+        RELOC_TPOFF:
+          if objrel.size=8 then
+            result:=R_X86_64_TPOFF64
+          else if objrel.size=4 then
+            result:=R_X86_64_TPOFF32
+          else
+            InternalError(2019091701);
+        RELOC_TLSGD:
+          result:=R_X86_64_TLSGD;
+        RELOC_DTPOFF:
+          if objrel.size=8 then
+            result:=R_X86_64_DTPOFF64
+          else if objrel.size=4 then
+            result:=R_X86_64_DTPOFF32
+          else
+            InternalError(2019091701);
+        else
+          result:=0;
+          InternalError(2012082302);
       end;
     end;
 
@@ -400,6 +416,8 @@ implementation
                 data.Write(zero,4);
                 continue;
               end;
+            else
+              ;
           end;
 
           if (objreloc.flags and rf_raw)=0 then
@@ -677,7 +695,8 @@ implementation
         supported_targets : [system_x86_64_linux,system_x86_64_freebsd,
                              system_x86_64_openbsd,system_x86_64_netbsd,
                              system_x86_64_dragonfly,system_x86_64_solaris,
-                             system_x86_64_aros];
+                             system_x86_64_aros,system_x86_64_android,
+                             system_x86_64_haiku];
         flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
         labelprefix : '.L';
         comment : '';

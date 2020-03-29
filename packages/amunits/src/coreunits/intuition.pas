@@ -2378,7 +2378,7 @@ Const
 
 { these are the definitions for the printer configurations }
     FILENAME_SIZE       = 30;           { Filename size }
-
+    DEVNAME_SIZE        = 16;
     POINTERSIZE         = (1 + 16 + 1) * 2;     { Size of Pointer data buffer }
 
 { These defines are for the default font size.   These actually describe the
@@ -2433,7 +2433,7 @@ Type
         ViewInitX,
         ViewInitY       : smallint;        { View initial offset values      }
 
-        EnableCLI       : Boolean;      { CLI availability switch }
+        EnableCLI       : WordBool;      { CLI availability switch }
 
     { printer configurations }
         PrinterType     : Word;        { printer type                     }
@@ -2469,8 +2469,11 @@ Type
                              { lower nibble = (value for Handshake mode) }
         LaceWB          : Byte;         { if workbench is to be interlaced      }
 
-        WorkName        : Array [0..FILENAME_SIZE-1] of Char;
+        Pad             : array[0..11] of Byte;
+        PrtDevName      : array [0..DEVNAME_SIZE-1] of Char;
                                         { temp file for printer         }
+        DefaultPrtUnit: Byte;
+        DefaultSerUnit: Byte;
 
         RowSizeChange   : Shortint;
         ColumnSizeChange : Shortint;
@@ -3905,8 +3908,8 @@ Type
    pSGWork = ^tSGWork;
    tSGWork = record
     { set up when gadget is first activated    }
-    Gad       : pGadget;         { the contestant itself        }   { Gadget in C-Includes }
-    StrInfo   : pStringInfo;     { easy access to sinfo         }   { StrInfo in C-Includes }
+    Gadget     : pGadget;         { the contestant itself        }   { Gadget in C-Includes }
+    StringInfo : pStringInfo;     { easy access to sinfo         }   { StrInfo in C-Includes }
     WorkBuffer : STRPTR;           { intuition's planned result   }
     PrevBuffer : STRPTR;           { what was there before        }
     Modes      : ULONG;          { current mode                 }
@@ -3919,7 +3922,7 @@ Type
     Actions    : ULONG;          { what Intuition will do       }
     LongInt_   : Longint;          { temp storage for longint     }
 
-    GInfo      : pGadgetInfo;    { see cghooks.h                }   { GadgetInfo in C-Includes }
+    GadgetInfo      : pGadgetInfo;    { see cghooks.h                }   { GadgetInfo in C-Includes }
     EditOp     : Word;            { from constants below         }
    END;
 
@@ -4227,6 +4230,14 @@ PROCEDURE SetDefaultPubScreen(const name : string);
 FUNCTION TimedDisplayAlert(alertNumber : ULONG;const string_ : string; height : ULONG; time : ULONG) : BOOLEAN;
 PROCEDURE UnlockPubScreen(const name : string; screen : pScreen);
 
+function DoMethodA(Obj: PObject_; Msg: APTR): PtrUInt;
+function DoSuperMethodA(Cl: PIClass; Obj: PObject_; Msg: APTR): PtrUInt;
+function CoerceMethodA(Cl: PIClass; Obj: PObject_; Msg: APTR): PtrUInt;
+function SetSuperAttrsA(Cl: PIClass; Obj: PObject_; Msg : APTR): PtrUInt;
+
+function DoMethod(Obj: PObject_; Params: array of PtrUInt): LongWord; inline;
+function DoSuperMethod(Cl: PIClass; Obj: PObject_; const Params: array of PtrUInt): PtrUInt; inline;
+
 IMPLEMENTATION
 
 function OpenScreenTags(newScreen : pNewScreen; tagList : array of PtrUInt) : pScreen;
@@ -4411,6 +4422,53 @@ end;
 PROCEDURE UnlockPubScreen(const name : string; screen : pScreen);
 begin
       UnlockPubScreen(PChar(RawByteString(name)),screen);
+end;
+
+
+function DoMethodA(Obj: PObject_; Msg: APTR): PtrUInt;
+begin
+  if Assigned(Obj) then
+  begin
+    DoMethodA := CallHookPkt(@THook(OCLASS(Obj)^.cl_Dispatcher), Obj, Msg);
+  end
+  else
+    DoMethodA := 0;
+end;
+
+function DoMethod(Obj: PObject_; Params: array of PtrUInt): PtrUInt;
+begin
+  DoMethod := DoMethodA(Obj, @Params);
+end;
+
+function DoSuperMethodA(Cl: PIClass; Obj: PObject_; Msg: APTR): PtrUInt;
+begin
+  if Assigned(Obj) and Assigned(Cl) then
+    DoSuperMethodA := CallHookPkt(@Cl^.cl_Super^.cl_Dispatcher, Obj, Msg)
+  else
+    DoSuperMethodA := 0;
+end;
+
+function DoSuperMethod(Cl: PIClass; Obj: PObject_; const Params: array of PtrUInt): PTrUInt;
+begin
+  DoSuperMethod := DoSuperMethodA(Cl, Obj, @Params);
+end;
+
+function CoerceMethodA(Cl: PIClass; Obj: PObject_; Msg: APTR): PtrUInt;
+begin
+  if Assigned(Cl) and Assigned(Obj) then
+    CoerceMethodA := CallHookPkt(@Cl^.cl_Dispatcher, Obj, Msg)
+  else
+    CoerceMethodA := 0;
+end;
+
+function SetSuperAttrsA(Cl: PIClass; Obj: PObject_; Msg: APTR): PtrUInt;
+var
+  arr: array[0..2] of PtrUInt;
+begin
+  arr[0] := OM_SET;
+  arr[1] := PtrUInt(Msg);
+  arr[2] := 0;
+  SetSuperAttrsA := DoSuperMethodA(Cl, Obj, @arr);
 end;
 
 initialization

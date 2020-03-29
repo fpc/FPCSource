@@ -76,6 +76,7 @@ type
   published
     procedure TestCreateDefaults;
     procedure TestTerminator;
+    procedure TestTerminatorNoFinal;
     procedure TestSetTerm;
     procedure TestUseSetTerm;
     procedure TestComments;
@@ -298,6 +299,15 @@ begin
   script.terminator := '!';
   Add('doe!iets!');
   Add('anders!');
+  script.execute;
+  AssertStatDir('doe,iets,anders', '');
+end;
+
+procedure TTestSQLScript.TestTerminatorNoFinal;
+begin
+  script.terminator := '!';
+  Add('doe!iets!');
+  Add('anders');
   script.execute;
   AssertStatDir('doe,iets,anders', '');
 end;

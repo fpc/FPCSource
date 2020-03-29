@@ -33,6 +33,7 @@ interface
 {$DEFINE OS_FILESETDATEBYNAME}
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
+{$DEFINE HAS_TEMPDIR}
 
 {OS has only 1 byte version for ExecuteProcess}
 {$define executeprocuni}
@@ -181,7 +182,7 @@ begin
 end;
 
 
-function FileGetDate(Handle: THandle) : LongInt;
+function FileGetDate(Handle: THandle) : Int64;
 var
   tmpFIB : PFileInfoBlock;
   tmpDateTime: TDateTime;
@@ -204,7 +205,7 @@ begin
 end;
 
 
-function FileSetDate(Handle: THandle; Age: LongInt) : LongInt;
+function FileSetDate(Handle: THandle; Age: Int64) : LongInt;
 var
   tmpDateStamp: TDateStamp;
   tmpName: array[0..255] of char;
@@ -222,7 +223,7 @@ begin
 end;
 
 
-function FileSetDate(const FileName: RawByteString; Age: LongInt) : LongInt;
+function FileSetDate(const FileName: RawByteString; Age: Int64) : LongInt;
 var
   tmpDateStamp: TDateStamp;
   SystemFileName: RawByteString;
@@ -367,7 +368,7 @@ end;
 (****** end of non portable routines ******)
 
 
-function FileAge (const FileName : RawByteString): Longint;
+function FileAge (const FileName : RawByteString): Int64;
 var
   tmpLock: BPTR;
   tmpFIB : PFileInfoBlock;
@@ -395,7 +396,13 @@ begin
 end;
 
 
-function FileExists (const FileName : RawByteString) : Boolean;
+function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
+function FileExists (const FileName : RawByteString; FollowLink : Boolean) : Boolean;
 var
   tmpLock: BPTR;
   tmpFIB : PFileInfoBlock;
@@ -432,9 +439,13 @@ begin
 
   new(Anchor);
   FillChar(Anchor^,sizeof(TAnchorPath),#0);
-
-  if MatchFirst(pchar(tmpStr),Anchor)<>0 then exit;
   Rslt.FindHandle := Anchor;
+
+  if MatchFirst(pchar(tmpStr),Anchor)<>0 then
+    begin
+      InternalFindClose(Rslt.FindHandle);
+      exit;
+    end;
 
   with Anchor^.ap_Info do begin
     Name := fib_FileName;
@@ -442,7 +453,11 @@ begin
 
     Rslt.Size := fib_Size;
     Rslt.Time := DateTimeToFileDate(AmigaFileDateToDateTime(fib_Date,validDate));
-    if not validDate then exit;
+    if not validDate then 
+      begin
+        InternalFindClose(Rslt.FindHandle);
+        exit;
+      end;
 
     { "128" is Windows "NORMALFILE" attribute. Some buggy code depend on this... :( (KB) }
     Rslt.Attr := 128;
@@ -487,10 +502,10 @@ end;
 
 Procedure InternalFindClose(var Handle: Pointer);
 var
-  Anchor: PAnchorPath;
+  Anchor: PAnchorPath absolute Handle;
 begin
-  Anchor:=PAnchorPath(Handle);
-  if not assigned(Anchor) then exit;
+  if not assigned(Anchor) then
+    exit;
   MatchEnd(Anchor);
   Dispose(Anchor);
   Handle:=nil;
@@ -693,7 +708,7 @@ begin
   DiskFree := DiskFree(DeviceList[Drive]);
 end;
 
-function DirectoryExists(const Directory: RawByteString): Boolean;
+function DirectoryExists(const Directory: RawByteString; FollowLink : Boolean): Boolean;
 var
   tmpLock: BPTR;
   FIB    : PFileInfoBlock;
@@ -909,6 +924,23 @@ begin
 end;
 
 
+function GetTempDir(Global: Boolean): string;
+begin
+  if Assigned(OnGetTempDir) then
+    Result := OnGetTempDir(Global)
+  else
+  begin
+    Result := GetEnvironmentVariable('TEMP');
+    if Result = '' Then
+      Result:=GetEnvironmentVariable('TMP');
+    if Result = '' then
+      Result := 'T:'; // fallback.
+  end;
+  if Result <> '' then
+    Result := IncludeTrailingPathDelimiter(Result);
+end;
+
+
 {****************************************************************************
                               Initialization code
 ****************************************************************************}
@@ -922,5 +954,6 @@ Initialization
 
   RefreshDeviceList;
 Finalization
+  FreeTerminateProcs;
   DoneExceptions;
 end.

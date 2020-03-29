@@ -13,7 +13,7 @@
     Note these functions were in the windows unit in older versions
 
  **********************************************************************}
-unit commdlg;
+unit CommDlg;
 
 interface
 {$mode delphi} // interface

@@ -129,7 +129,29 @@ type
     _p1,
     _p2     : APTR;       // system reserved
     reserved: LongInt;    // system use
-    Flags   : LongInt;    // only exists in layer allocation
+  end;
+  PLayer_Info = ^TLayer_Info;
+  TLayer_Info = record
+    Top_Layer: Player;
+    check_lp: PLayer;
+    Obs: PClipRect;
+    FreeClipRects: PClipRect;
+
+    PrivateReserve1: LongInt;
+    PrivateReserve2: LongInt;
+
+    Lock: TSignalSemaphore;
+    gs_Head: TMinList;
+
+    PrivateReserve3: SmallInt;
+    PrivateReserve4: APTR;
+
+    Flags: Word;               // LIFLG_SUPPORTS_OFFSCREEN_LAYERS
+    fatten_count: ShortInt;
+    LockLayersCount: ShortInt;
+    PrivateReserve5: SmallInt;
+    BlankHook: APTR;
+    LayerInfo_extra: APTR;
   end;
 
 
@@ -275,12 +297,12 @@ type
       NxtList: PCopList;
       );
     1:(
-      VWaitPos: SmallInt; // vertical wait position
       DestAddr: SmallInt; // destination Pointer
+      DestData: SmallInt; // data to send
       );
     2:(
+      VWaitPos: SmallInt; // vertical wait position
       HWaitPos: SmallInt; // horizontal wait position
-      DestData: SmallInt; // data to send
       );
   end;
 
@@ -288,7 +310,7 @@ type
   PCprList = ^TCprList;
   TCprList = record
     Next: PCprList;
-    Start: Word;         // start of copper list
+    Start: PWord;         // start of copper list
     MaxCount: SmallInt;  // number of long instructions
   end;
 
@@ -1903,9 +1925,9 @@ type
     VBCounter: LongWord;
 
     HashTableSemaphore: PSignalSemaphore;  // Semaphore for hash_table access, private in fact
-
-    ChunkyToPlanarPtr: PLongWord;  // HWEmul[0];
-    HWEmul: array[1..8] of PLongWord;
+    case boolean of
+      true: ( ChunkyToPlanarPtr: PLongWord;);  // HWEmul[0];
+      false: (HWEmul: array[0..8] of PLongWord;);
   end;
 
 const
@@ -2096,10 +2118,12 @@ function GetAPen(Rp: PRastPort location 'a0'): LongWord; SysCall GfxBase 858;
 function GetBPen(Rp: PRastPort location 'a0'): LongWord; SysCall GfxBase 864;
 function GetDrMd(Rp: PRastPort location 'a0'): LongWord; SysCall GfxBase 870;
 function GetOutlinePen(Rp: PRastPort location 'a0'): LongWord; SysCall GfxBase 876;
-procedure LoadRGB32(Vp: PViewPort location 'a0'; var Table: LongWord location 'a1'); SysCall GfxBase 882;
+procedure LoadRGB32(Vp: PViewPort location 'a0'; var Table: LongWord location 'a1'); SysCall GfxBase 882; overload;
+procedure LoadRGB32(Vp: PViewPort location 'a0'; Table: PLongWord location 'a1'); SysCall GfxBase 882; overload;
 function SetChipRev(Want: LongWord location 'd0'): LongWord; SysCall GfxBase 888;
 procedure SetABPenDrMd(Rp: PRastPort location 'a1'; APen: LongWord location 'd0'; BPen: LongWord location 'd1'; DrawMode: LongWord location 'd2'); SysCall GfxBase 894;
-procedure GetRGB32(Cm: PColorMap location 'a0'; FirstColor: LongWord location 'd0'; NColors: LongWord location 'd1'; var Table: LongWord location 'a1'); SysCall GfxBase 900;
+procedure GetRGB32(Cm: PColorMap location 'a0'; FirstColor: LongWord location 'd0'; NColors: LongWord location 'd1'; var Table: LongWord location 'a1'); SysCall GfxBase 900; overload;
+procedure GetRGB32(Cm: PColorMap location 'a0'; FirstColor: LongWord location 'd0'; NColors: LongWord location 'd1'; Table: PLongWord location 'a1'); SysCall GfxBase 900; overload;
 function AllocBitMap(SizeX: LongWord location 'd0'; SizeY: LongWord location 'd1'; Depth: LongWord location 'd2'; Flags: LongWord location 'd3'; Friend_Bitmap: PBitMap location 'a0'): PBitMap; SysCall GfxBase 918;
 procedure FreeBitMap(Bm: PBitMap location 'a0'); SysCall GfxBase 924;
 function GetExtSpriteA(Ss: PExtSprite location 'a2'; Tags: PTagItem location 'a1'): LongInt; SysCall GfxBase 930;

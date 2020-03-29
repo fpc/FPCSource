@@ -16,6 +16,8 @@
 {$mode objfpc}
 unit ccharset;
 
+{$i fpcdefs.inc}
+
   interface
 
     type
@@ -23,7 +25,6 @@ unit ccharset;
        tunicodestring = ^tunicodechar;
 
        tcsconvert = class
-         // !!!!!!1constructor create;
        end;
 
        tunicodecharmappingflag = (umf_noinfo,umf_leadbyte,umf_undefined,
@@ -203,7 +204,7 @@ unit ccharset;
               hp:=hp^.next;
            end;
          getmap:=nil;
-      end;////////
+      end;
 
     function getmap(cp : word) : punicodemap;
 

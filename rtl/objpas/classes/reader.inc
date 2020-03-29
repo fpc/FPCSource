@@ -544,6 +544,13 @@ type
     Name: ShortString;
   end;
 
+{$ifdef VER3_0}
+  PersistentClassRef = TPersistentClass;
+{$else VER3_0}
+  PPersistentClass = ^TPersistentClass;
+  PersistentClassRef = PPersistentClass;
+{$endif VER3_0}
+
   PFieldClassTable = ^TFieldClassTable;
   TFieldClassTable =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -551,7 +558,7 @@ type
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
     Count: Word;
-    Entries: array[{$ifdef cpu16}0..16384 div sizeof(TPersistentClass){$else}Word{$endif}] of TPersistentClass;
+    Entries: array[{$ifdef cpu16}0..16384 div sizeof(PersistentClassRef){$else}Word{$endif}] of PersistentClassRef;
   end;
 
   PFieldTable = ^TFieldTable;
@@ -584,7 +591,7 @@ begin
       ClassTable := FieldTable^.ClassTable;
       for i := 0 to ClassTable^.Count - 1 do
       begin
-        Result := ClassTable^.Entries[i];
+        Result := ClassTable^.Entries[i]{$ifndef VER3_0}^{$endif};
         if Result.ClassNameIs(ShortClassName) then
           exit;
       end;
@@ -602,12 +609,37 @@ begin
   If (Stream=Nil) then
     Raise EReadError.Create(SEmptyStreamIllegalReader);
   FDriver := CreateDriver(Stream, BufSize);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  InitCriticalSection(FLock);
+{$ENDIF}  
 end;
 
 destructor TReader.Destroy;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  DoneCriticalSection(FLock);
+{$ENDIF}  
   FDriver.Free;
   inherited Destroy;
+end;
+
+procedure TReader.Lock;
+begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalSection(FLock);
+{$ENDIF}  
+end;
+
+procedure TReader.Unlock;
+begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  LeaveCriticalSection(FLock);
+{$ENDIF}  
+end;
+
+procedure TReader.FlushBuffer;
+begin
+  Driver.FlushBuffer;
 end;
 
 function TReader.CreateDriver(Stream: TStream; BufSize: Integer): TAbstractObjectReader;
@@ -708,6 +740,8 @@ Var
   C : TComponent;
   P : integer;
   L : TLinkedList;
+  RI: Pointer; // raw interface
+  IIDStr: ShortString;
   
 begin
   If Assigned(FFixups) then
@@ -724,6 +758,16 @@ begin
       If Assigned(C) then
         if R.FPropInfo^.PropType^.Kind = tkInterface then
           SetInterfaceProp(R.FInstance,R.FPropInfo,C)
+        else if R.FPropInfo^.PropType^.Kind = tkInterfaceRaw then
+        begin
+          IIDStr := GetTypeData(R.FPropInfo^.PropType)^.IIDStr;
+          if IIDStr = '' then
+            raise EReadError.CreateFmt(SInterfaceNoIIDStr, [R.FPropInfo^.PropType^.Name]);
+          if C.GetInterface(IIDStr, RI) then
+            SetRawInterfaceProp(R.FInstance,R.FPropInfo,RI)
+          else
+            raise EReadError.CreateFmt(SComponentDoesntImplement, [C.ClassName, IIDStr]);
+        end
         else
           SetObjectProp(R.FInstance,R.FPropInfo,C)
       else
@@ -843,14 +887,14 @@ function TReader.ReadComponent(Component: TComponent): TComponent;
 var
   Flags: TFilerFlags;
 
-  function Recover(var Component: TComponent): Boolean;
+  function Recover(var aComponent: TComponent): Boolean;
   begin
     Result := False;
     if ExceptObject.InheritsFrom(Exception) then
     begin
       if not ((ffInherited in Flags) or Assigned(Component)) then
-        Component.Free;
-      Component := nil;
+        aComponent.Free;
+      aComponent := nil;
       FDriver.SkipComponent(False);
       Result := Error(Exception(ExceptObject).Message);
     end;
@@ -1390,7 +1434,7 @@ begin
       begin
         SetVariantProp(Instance,PropInfo,ReadVariant);
       end;
-    tkClass, tkInterface:
+    tkClass, tkInterface, tkInterfaceRaw:
       case FDriver.NextValue of
         vaNil:
           begin
@@ -1452,12 +1496,17 @@ begin
           { Don't use Result.Name directly, as this would influence
             FindGlobalComponent in successive loop runs }
           ResultName := CompName;
-          while Assigned(FindGlobalComponent(ResultName)) do
-          begin
-            Inc(i);
-            ResultName := CompName + '_' + IntToStr(i);
+          Lock;
+          try
+            while Assigned(FindGlobalComponent(ResultName)) do
+            begin
+              Inc(i);
+              ResultName := CompName + '_' + IntToStr(i);
+            end;
+            Result.Name := ResultName;
+          finally
+            Unlock;
           end;
-          Result.Name := ResultName;
         end;
       end;
 
@@ -1701,7 +1750,7 @@ var
         FieldClassTable := FieldTable^.ClassTable;
         for i := 0 to FieldClassTable^.Count -1 do
         begin
-          Entry := FieldClassTable^.Entries[i];
+          Entry := FieldClassTable^.Entries[i]{$ifndef VER3_0}^{$endif};
           //writeln(format('Looking for %s in field table of class %s. Found %s',
             //[AClassName, ComponentClassType.ClassName, Entry.ClassName]));
           if Entry.ClassNameIs(ShortClassName) and
@@ -1738,4 +1787,11 @@ begin
     raise EClassNotFound.CreateFmt(SClassNotFound, [AClassName]);
 end;
 
+
+{ TAbstractObjectReader }
+
+procedure TAbstractObjectReader.FlushBuffer;
+begin
+  // Do nothing
+end;
 

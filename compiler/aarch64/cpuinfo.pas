@@ -14,6 +14,8 @@
 
 Unit CPUInfo;
 
+{$i fpcdefs.inc}
+
 Interface
 
   uses
@@ -56,13 +58,15 @@ Type
 
 
 Const
+   fputypestrllvm : array[tfputype] of string[6] = ('',
+     ''
+   );
+
    { Is there support for dealing with multiple microcontrollers available }
    { for this platform? }
    ControllerSupport = false; (* Not yet at least ;-) *)
    {# Size of native extended floating point type }
    extended_size = 8;
-   {# Size of a multimedia register               }
-   mmreg_size = 16;
    { target cpu string (used by compiler options) }
    target_cpu_string = 'aarch64';
 
@@ -108,12 +112,12 @@ Const
                                  genericlevel3optimizerswitches-
                                  { no need to write info about those }
                                  [cs_opt_level1,cs_opt_level2,cs_opt_level3]+
-                                 [cs_opt_regvar,cs_opt_loopunroll,cs_opt_tailrecursion,
+                                 [{$ifndef llvm}cs_opt_regvar,{$endif}cs_opt_loopunroll,cs_opt_tailrecursion,
 				  cs_opt_nodecse,cs_opt_reorder_fields,cs_opt_fastmath];
 
    level1optimizerswitches = genericlevel1optimizerswitches;
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
-     [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
+     [{$ifndef llvm}cs_opt_regvar,{$endif}cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
 

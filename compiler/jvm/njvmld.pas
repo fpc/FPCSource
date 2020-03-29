@@ -61,7 +61,7 @@ type
 implementation
 
 uses
-  verbose,globals,
+  verbose,globals,compinnr,
   nbas,nld,ncal,ncon,ninl,nmem,ncnv,nutils,
   symconst,symsym,symdef,symtable,defutil,jvmdef,
   paramgr,
@@ -132,7 +132,7 @@ function tjvmassignmentnode.pass_1: tnode;
         { call ShortstringClass(@shortstring).setChar(index,char) }
         tvecnode(target).left:=caddrnode.create_internal(tvecnode(target).left);
         { avoid useless typecheck when casting to shortstringclass }
-        include(tvecnode(target).left.flags,nf_typedaddr);
+        include(taddrnode(tvecnode(target).left).addrnodeflags,anf_typedaddr);
         inserttypeconv_explicit(tvecnode(target).left,java_shortstring);
         psym:=search_struct_member(tabstractrecorddef(java_shortstring),'SETCHAR');
         if not assigned(psym) or
@@ -288,7 +288,7 @@ procedure tjvmarrayconstructornode.makearrayref(var ref: treference; eledef: tde
     { arrays are implicitly dereferenced }
     basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,java_jlobject,java_jlobject,ref,basereg);
-    reference_reset_base(ref,basereg,0,1,[]);
+    reference_reset_base(ref,basereg,0,ctempposinvalid,1,[]);
     ref.arrayreftype:=art_indexconst;
     ref.indexoffset:=0;
   end;

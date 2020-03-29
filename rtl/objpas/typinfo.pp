@@ -16,7 +16,7 @@
 { This unit provides the same Functionality as the TypInfo Unit }
 { of Delphi                                                     }
 
-unit typinfo;
+unit TypInfo;
 
   interface
 
@@ -38,14 +38,45 @@ unit typinfo;
 { for Delphi compatibility }
 {$packset 1}
 {$endif}
-       // if you change one of the following enumeration types
-       // you have also to change the compiler in an appropriate way !
-       TTypeKind = (tkUnknown,tkInteger,tkChar,tkEnumeration,tkFloat,
-                   tkSet,tkMethod,tkSString,tkLString,tkAString,
-                   tkWString,tkVariant,tkArray,tkRecord,tkInterface,
-                   tkClass,tkObject,tkWChar,tkBool,tkInt64,tkQWord,
-                   tkDynArray,tkInterfaceRaw,tkProcVar,tkUString,tkUChar,
-                   tkHelper,tkFile,tkClassRef,tkPointer);
+
+       { this alias and the following constant aliases are for backwards
+         compatibility before TTypeKind was moved to System unit }
+       TTypeKind = System.TTypeKind;
+
+    const
+
+       tkUnknown = System.tkUnknown;
+       tkInteger = System.tkInteger;
+       tkChar = System.tkChar;
+       tkEnumeration = System.tkEnumeration;
+       tkFloat = System.tkFloat;
+       tkSet = System.tkSet;
+       tkMethod = System.tkMethod;
+       tkSString = System.tkSString;
+       tkLString = System.tkLString;
+       tkAString = System.tkAString;
+       tkWString = System.tkWString;
+       tkVariant = System.tkVariant;
+       tkArray = System.tkArray;
+       tkRecord = System.tkRecord;
+       tkInterface = System.tkInterface;
+       tkClass = System.tkClass;
+       tkObject = System.tkObject;
+       tkWChar = System.tkWChar;
+       tkBool = System.tkBool;
+       tkInt64 = System.tkInt64;
+       tkQWord = System.tkQWord;
+       tkDynArray = System.tkDynArray;
+       tkInterfaceRaw = System.tkInterfaceRaw;
+       tkProcVar = System.tkProcVar;
+       tkUString = System.tkUString;
+       tkUChar = System.tkUChar;
+       tkHelper = System.tkHelper;
+       tkFile = System.tkFile;
+       tkClassRef = System.tkClassRef;
+       tkPointer = System.tkPointer;
+
+    type
 
        TOrdType  = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong,otSQWord,otUQWord);
 
@@ -64,8 +95,8 @@ unit typinfo;
        TIntfFlagsBase = set of TIntfFlag;
 
        // don't rely on integer values of TCallConv since it includes all conventions
-       // which both delphi and fpc support. In the future delphi can support more and
-       // fpc own conventions will be shifted/reordered accordinly
+       // which both Delphi and FPC support. In the future Delphi can support more and
+       // FPC's own conventions will be shifted/reordered accordingly
        TCallConv = (ccReg, ccCdecl, ccPascal, ccStdCall, ccSafeCall,
                     ccCppdecl, ccFar16, ccOldFPCCall, ccInternProc,
                     ccSysCall, ccSoftFloat, ccMWPascal);
@@ -151,15 +182,31 @@ unit typinfo;
         property Tail: Pointer read GetTail;
       end;
 
+      PVmtFieldClassTab = ^TVmtFieldClassTab;
+      TVmtFieldClassTab =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Count: Word;
+        ClassRef: array[0..0] of PClass;
+      end;
+
       PVmtFieldEntry = ^TVmtFieldEntry;
       TVmtFieldEntry =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
+      private
+        function GetNext: PVmtFieldEntry; inline;
+        function GetTail: Pointer; inline;
+      public
         FieldOffset: PtrUInt;
         TypeIndex: Word;
         Name: ShortString;
+        property Tail: Pointer read GetTail;
+        property Next: PVmtFieldEntry read GetNext;
       end;
 
       PVmtFieldTable = ^TVmtFieldTable;
@@ -168,14 +215,19 @@ unit typinfo;
       packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
+      private
+        function GetField(aIndex: Word): PVmtFieldEntry;
+      public
         Count: Word;
-        ClassTab: Pointer;
+        ClassTab: PVmtFieldClassTab;
         { should be array[Word] of TFieldInfo;  but
           Elements have variant size! force at least proper alignment }
-        Fields: array[0..0] of TVmtFieldEntry
+        Fields: array[0..0] of TVmtFieldEntry;
+        property Field[aIndex: Word]: PVmtFieldEntry read GetField;
       end;
 
 {$PACKRECORDS 1}
+
       TTypeInfo = record
          Kind : TTypeKind;
          Name : ShortString;
@@ -196,6 +248,41 @@ unit typinfo;
 {$endif}
 
 {$PACKRECORDS C}
+
+{$if not defined(VER3_0) and not defined(VER3_2)}
+{$define PROVIDE_ATTR_TABLE}
+{$endif}
+
+      TAttributeProc = function : TCustomAttribute;
+
+      TAttributeEntry =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif}
+      record
+        AttrType: PPTypeInfo;
+        AttrCtor: CodePointer;
+        AttrProc: TAttributeProc;
+        ArgLen: Word;
+        ArgData: Pointer;
+      end;
+
+{$ifdef CPU16}
+      TAttributeEntryList = array[0..(High(SizeUInt) div SizeOf(TAttributeEntry))-1] of TAttributeEntry;
+{$else CPU16}
+      TAttributeEntryList = array[0..$ffff] of TAttributeEntry;
+{$endif CPU16}
+
+      TAttributeTable =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif}
+      record
+        AttributeCount: word;
+        AttributesList: TAttributeEntryList;
+      end;
+      PAttributeTable = ^TAttributeTable;
+
       // members of TTypeData
       TArrayTypeData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -277,15 +364,15 @@ unit typinfo;
       {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
       private
-        function GetParaLocs: PParameterLocations; inline;
         function GetTail: Pointer; inline;
         function GetNext: PVmtMethodParam; inline;
+        function GetName: ShortString; inline;
       public
         ParamType: PPTypeInfo;
         Flags: TParamFlags;
-        Name: ShortString;
-        { ParaLocs: TParameterLocations; }
-        property ParaLocs: PParameterLocations read GetParaLocs;
+        NamePtr: PShortString;
+        ParaLocs: PParameterLocations;
+        property Name: ShortString read GetName;
         property Tail: Pointer read GetTail;
         property Next: PVmtMethodParam read GetNext;
       end;
@@ -301,15 +388,17 @@ unit typinfo;
         function GetResultLocs: PParameterLocations; inline;
         function GetTail: Pointer; inline;
         function GetNext: PIntfMethodEntry; inline;
+        function GetName: ShortString; inline;
       public
         ResultType: PPTypeInfo;
         CC: TCallConv;
         Kind: TMethodKind;
         ParamCount: Word;
         StackSize: SizeInt;
-        Name: ShortString;
+        NamePtr: PShortString;
         { Params: array[0..ParamCount - 1] of TVmtMethodParam }
-        { ResultLocs: TParameterLocations (if ResultType != Nil) }
+        { ResultLocs: PParameterLocations (if ResultType != Nil) }
+        property Name: ShortString read GetName;
         property Param[Index: Word]: PVmtMethodParam read GetParam;
         property ResultLocs: PParameterLocations read GetResultLocs;
         property Tail: Pointer read GetTail;
@@ -332,19 +421,74 @@ unit typinfo;
         property Method[Index: Word]: PIntfMethodEntry read GetMethod;
       end;
 
+      PVmtMethodEntry = ^TVmtMethodEntry;
+      TVmtMethodEntry =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Name: PShortString;
+        CodeAddress: CodePointer;
+      end;
+
+      PVmtMethodTable = ^TVmtMethodTable;
+      TVmtMethodTable =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+      private
+        function GetEntry(Index: LongWord): PVmtMethodEntry; inline;
+      public
+        Count: LongWord;
+        property Entry[Index: LongWord]: PVmtMethodEntry read GetEntry;
+      private
+        Entries: array[0..0] of TVmtMethodEntry;
+      end;
+
+      TRecOpOffsetEntry =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        ManagementOperator: CodePointer;
+        FieldOffset: SizeUInt;
+      end;
+
+      TRecOpOffsetTable =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Count: LongWord;
+        Entries: array[0..0] of TRecOpOffsetEntry;
+      end;
+      PRecOpOffsetTable = ^TRecOpOffsetTable;
+
       PRecInitData = ^TRecInitData;
       TRecInitData =
       {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
       {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
-        Terminator: Pointer;
-        Size: Integer;
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
-        ManagementOp: Pointer;
+        {$ifdef PROVIDE_ATTR_TABLE}
+        AttributeTable : PAttributeTable;
+        {$endif}
+        case TTypeKind of
+          tkRecord: (
+            Terminator: Pointer;
+            Size: Integer;
+{$ifndef VER3_0}
+            InitOffsetOp: PRecOpOffsetTable;
+            ManagementOp: Pointer;
 {$endif}
-        ManagedFieldCount: Integer;
-        { ManagedFields: array[0..ManagedFieldCount - 1] of TInitManagedField ; }
+            ManagedFieldCount: Integer;
+          { ManagedFields: array[0..ManagedFieldCount - 1] of TInitManagedField ; }
+          );
+          { include for proper alignment }
+          tkInt64: (
+            dummy : Int64
+          );
       end;
 
       PInterfaceData = ^TInterfaceData;
@@ -358,16 +502,31 @@ unit typinfo;
         function GetPropertyTable: PPropData; inline;
         function GetMethodTable: PIntfMethodTable; inline;
       public
-        Parent: PPTypeInfo;
-        Flags: TIntfFlagsBase;
-        GUID: TGUID;
         property UnitName: ShortString read GetUnitName;
         property PropertyTable: PPropData read GetPropertyTable;
         property MethodTable: PIntfMethodTable read GetMethodTable;
-      private
-        UnitNameField: ShortString;
-        { PropertyTable: TPropData }
-        { MethodTable: TIntfMethodTable }
+      public
+      {$ifdef PROVIDE_ATTR_TABLE}
+        AttributeTable : PAttributeTable;
+      {$endif}
+      case TTypeKind of
+        tkInterface: (
+          Parent: PPTypeInfo;
+          Flags: TIntfFlagsBase;
+          GUID: TGUID;
+          UnitNameField: ShortString;
+          { PropertyTable: TPropData }
+          { MethodTable: TIntfMethodTable }
+        );
+        { include for proper alignment }
+        tkInt64: (
+          dummy : Int64
+        );
+{$ifndef FPUNONE}
+        tkFloat:
+          (FloatType : TFloatType
+        );
+{$endif}
       end;
 
       PInterfaceRawData = ^TInterfaceRawData;
@@ -382,17 +541,67 @@ unit typinfo;
         function GetPropertyTable: PPropData; inline;
         function GetMethodTable: PIntfMethodTable; inline;
       public
-        Parent: PPTypeInfo;
-        Flags : TIntfFlagsBase;
-        IID: TGUID;
         property UnitName: ShortString read GetUnitName;
         property IIDStr: ShortString read GetIIDStr;
         property PropertyTable: PPropData read GetPropertyTable;
         property MethodTable: PIntfMethodTable read GetMethodTable;
+      public
+      {$ifdef PROVIDE_ATTR_TABLE}
+        AttributeTable : PAttributeTable;
+      {$endif}
+        case TTypeKind of
+          tkInterface: (
+            Parent: PPTypeInfo;
+            Flags : TIntfFlagsBase;
+            IID: TGUID;
+            UnitNameField: ShortString;
+            { IIDStr: ShortString; }
+            { PropertyTable: TPropData }
+          );
+          { include for proper alignment }
+          tkInt64: (
+            dummy : Int64
+          );
+{$ifndef FPUNONE}
+          tkFloat:
+            (FloatType : TFloatType
+          );
+{$endif}
+      end;
+
+      PClassData = ^TClassData;
+      TClassData =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
       private
-        UnitNameField: ShortString;
-        { IIDStr: ShortString; }
-        { PropertyTable: TPropData }
+        function GetUnitName: ShortString; inline;
+        function GetPropertyTable: PPropData; inline;
+      public
+        property UnitName: ShortString read GetUnitName;
+        property PropertyTable: PPropData read GetPropertyTable;
+      public
+        {$ifdef PROVIDE_ATTR_TABLE}
+        AttributeTable : PAttributeTable;
+        {$endif}
+        case TTypeKind of
+          tkClass: (
+            ClassType : TClass;
+            Parent : PPTypeInfo;
+            PropCount : SmallInt;
+            UnitNameField : ShortString;
+            { PropertyTable: TPropData }
+          );
+          { include for proper alignment }
+          tkInt64: (
+            dummy: Int64;
+          );
+{$ifndef FPUNONE}
+          tkFloat: (
+            FloatType : TFloatType
+          );
+{$endif}
       end;
 
       PTypeData = ^TTypeData;
@@ -444,6 +653,9 @@ unit typinfo;
         { tkPointer }
         property RefType: PTypeInfo read GetRefType;
       public
+         {$ifdef PROVIDE_ATTR_TABLE}
+         AttributeTable : PAttributeTable;
+         {$endif}
          case TTypeKind of
             tkUnKnown,tkLString,tkWString,tkVariant,tkUString:
               ();
@@ -473,7 +685,12 @@ unit typinfo;
                     (MinQWordValue, MaxQWordValue: QWord);
 {$endif VER3_0}
                   tkSet:
-                    (CompTypeRef : TypeInfoPtr)
+                    (
+{$ifndef VER3_0}
+                     SetSize : SizeInt;
+{$endif VER3_0}
+                     CompTypeRef : TypeInfoPtr
+                    )
               );
 {$ifndef FPUNONE}
             tkFloat:
@@ -485,7 +702,7 @@ unit typinfo;
               (ClassType : TClass;
                ParentInfoRef : TypeInfoPtr;
                PropCount : SmallInt;
-               UnitName : ShortString
+               UnitName : ShortString;
                // here the properties follow as array of TPropInfo
               );
             tkRecord:
@@ -509,7 +726,10 @@ unit typinfo;
             tkMethod:
               (MethodKind : TMethodKind;
                ParamCount : Byte;
-               ParamList : array[0..1023] of Char
+               case Boolean of
+                 False: (ParamList : array[0..1023] of Char);
+                 { dummy for proper alignment }
+                 True: (ParamListDummy : Word);
              {in reality ParamList is a array[1..ParamCount] of:
                   record
                     Flags : TParamFlags;
@@ -603,6 +823,9 @@ unit typinfo;
         //     6 : true, constant index property
         PropProcs : Byte;
 
+        {$ifdef PROVIDE_ATTR_TABLE}
+        AttributeTable : PAttributeTable;
+        {$endif}
         Name : ShortString;
         property PropType: PTypeInfo read GetPropType;
         property Tail: Pointer read GetTail;
@@ -624,6 +847,8 @@ unit typinfo;
 // general property handling
 Function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
 Function AlignTypeData(p : Pointer) : Pointer; inline;
+Function AlignTParamFlags(p : Pointer) : Pointer; inline;
+Function AlignPTypeInfo(p : Pointer) : Pointer; inline;
 
 Function GetPropInfo(TypeInfo: PTypeInfo;const PropName: string): PPropInfo;
 Function GetPropInfo(TypeInfo: PTypeInfo;const PropName: string; AKinds: TTypeKinds): PPropInfo;
@@ -645,6 +870,12 @@ function GetPropList(Instance: TObject; out PropList: PPropList): Integer;
 
 
 // Property information routines.
+Function IsReadableProp(PropInfo : PPropInfo) : Boolean;
+Function IsReadableProp(Instance: TObject; const PropName: string): Boolean;
+Function IsReadableProp(AClass: TClass; const PropName: string): Boolean;
+Function IsWriteableProp(PropInfo : PPropInfo) : Boolean;
+Function IsWriteableProp(Instance: TObject; const PropName: string): Boolean;
+Function IsWriteableProp(AClass: TClass; const PropName: string): Boolean;
 Function IsStoredProp(Instance: TObject;PropInfo : PPropInfo) : Boolean;
 Function IsStoredProp(Instance: TObject; const PropName: string): Boolean;
 Function IsPublishedProp(Instance: TObject; const PropName: string): Boolean;
@@ -685,6 +916,12 @@ Function GetUnicodeStrProp(Instance: TObject; PropInfo: PPropInfo): UnicodeStrin
 Function GetUnicodeStrProp(Instance: TObject; const PropName: string): UnicodeString;
 Procedure SetUnicodeStrProp(Instance: TObject; const PropName: string; const Value: UnicodeString);
 Procedure SetUnicodeStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: UnicodeString);
+
+Function GetRawbyteStrProp(Instance: TObject; PropInfo: PPropInfo): RawByteString;
+Function GetRawByteStrProp(Instance: TObject; const PropName: string): RawByteString;
+Procedure SetRawByteStrProp(Instance: TObject; const PropName: string; const Value: RawByteString);
+Procedure SetRawByteStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: RawByteString);
+
 
 {$ifndef FPUNONE}
 Function  GetFloatProp(Instance: TObject; PropInfo : PPropInfo) : Extended;
@@ -738,16 +975,30 @@ function GetDynArrayProp(Instance: TObject; PropInfo: PPropInfo): Pointer;
 procedure SetDynArrayProp(Instance: TObject; const PropName: string; const Value: Pointer);
 procedure SetDynArrayProp(Instance: TObject; PropInfo: PPropInfo; const Value: Pointer);
 
+// Extended RTTI
+function GetAttributeTable(TypeInfo: PTypeInfo): PAttributeTable;
+
+function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: Word): TCustomAttribute; inline;
+
+function GetAttribute(AttributeTable: PAttributeTable; AttributeNr: Word): TCustomAttribute;
+
 // Auxiliary routines, which may be useful
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 Function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
 function GetEnumNameCount(enum1: PTypeInfo): SizeInt;
+procedure AddEnumElementAliases(aTypeInfo: PTypeInfo; const aNames: array of string; aStartValue: Integer = 0);
+procedure RemoveEnumElementAliases(aTypeInfo: PTypeInfo);
+function GetEnumeratedAliasValue(aTypeInfo: PTypeInfo; const aName: string): Integer;
 
-function SetToString(TypeInfo: PTypeInfo; Value: Integer; Brackets: Boolean) : String;
-function SetToString(PropInfo: PPropInfo; Value: Integer; Brackets: Boolean) : String;
-function SetToString(PropInfo: PPropInfo; Value: Integer) : String;
-function StringToSet(PropInfo: PPropInfo; const Value: string): Integer;
-function StringToSet(TypeInfo: PTypeInfo; const Value: string): Integer;
+function SetToString(TypeInfo: PTypeInfo; Value: LongInt; Brackets: Boolean) : String;
+function SetToString(PropInfo: PPropInfo; Value: LongInt; Brackets: Boolean) : String;
+function SetToString(PropInfo: PPropInfo; Value: LongInt) : String;
+function SetToString(TypeInfo: PTypeInfo; Value: Pointer; Brackets: Boolean = False) : String;
+function SetToString(PropInfo: PPropInfo; Value: Pointer; Brackets: Boolean = False) : String;
+function StringToSet(PropInfo: PPropInfo; const Value: string): LongInt;
+function StringToSet(TypeInfo: PTypeInfo; const Value: string): LongInt;
+procedure StringToSet(PropInfo: PPropInfo; const Value: String; Result: Pointer);
+procedure StringToSet(TypeInfo: PTypeInfo; const Value: String; Result: Pointer);
 
 const
     BooleanIdents: array[Boolean] of String = ('False', 'True');
@@ -784,11 +1035,15 @@ type
 
 function aligntoptr(p : pointer) : pointer;inline;
    begin
+{$ifdef CPUM68K}
+     result:=AlignTypeData(p);
+{$else CPUM68K}
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
      result:=align(p,sizeof(p));
 {$else FPC_REQUIRES_PROPER_ALIGNMENT}
      result:=p;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+{$endif CPUM68K}
    end;
 
 
@@ -804,6 +1059,45 @@ begin
 {$endif}
 end;
 
+function GetAttributeTable(TypeInfo: PTypeInfo): PAttributeTable;
+{$ifdef PROVIDE_ATTR_TABLE}
+var
+  TD: PTypeData;
+begin
+  TD := GetTypeData(TypeInfo);
+  Result:=TD^.AttributeTable;
+{$else}
+begin
+  Result:=Nil;
+{$endif}
+end;
+
+function GetPropData(TypeInfo : PTypeInfo; TypeData: PTypeData) : PPropData; inline;
+var
+  p: PtrUInt;
+begin
+  p := PtrUInt(@TypeData^.UnitName) + SizeOf(TypeData^.UnitName[0]) + Length(TypeData^.UnitName);
+  Result := PPropData(aligntoptr(Pointer(p)));
+end;
+
+function GetAttribute(AttributeTable: PAttributeTable; AttributeNr: Word): TCustomAttribute;
+begin
+  if (AttributeTable=nil) or (AttributeNr>=AttributeTable^.AttributeCount) then
+    result := nil
+  else
+    begin
+      result := AttributeTable^.AttributesList[AttributeNr].AttrProc();
+    end;
+end;
+
+function GetPropAttribute(PropInfo: PPropInfo; AttributeNr: Word): TCustomAttribute;
+begin
+{$ifdef PROVIDE_ATTR_TABLE}
+  Result := GetAttribute(PropInfo^.AttributeTable, AttributeNr);
+{$else}
+  Result := Nil;
+{$endif}
+end;
 
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 
@@ -867,6 +1161,8 @@ begin
          PS:=PShortString(pointer(PS)+PByte(PS)^+1);
          Inc(Count);
        end;
+     if Result=-1 then
+       Result:=GetEnumeratedAliasValue(TypeInfo,Name);
    end;
 end;
 
@@ -897,53 +1193,93 @@ begin
 end;
 
 
-Function SetToString(PropInfo: PPropInfo; Value: Integer; Brackets: Boolean) : String;
+Function SetToString(PropInfo: PPropInfo; Value: LongInt; Brackets: Boolean) : String;
 
 begin
-  Result:=SetToString(PropInfo^.PropType,Value,Brackets);
+  Result:=SetToString(PropInfo^.PropType, Value, Brackets);
 end;
 
-Function SetToString(TypeInfo: PTypeInfo; Value: Integer; Brackets: Boolean) : String;
-
-type
-  tsetarr = bitpacked array[0..SizeOf(Integer)*8-1] of 0..1;
-Var
-  I : Integer;
-  PTI : PTypeInfo;
-
+Function SetToString(TypeInfo: PTypeInfo; Value: LongInt; Brackets: Boolean) : String;
 begin
 {$if defined(FPC_BIG_ENDIAN)}
-  { On big endian systems, set element 0 is in the most significant bit,
-    and the same goes for the elements of bitpacked arrays there.  }
+  { correctly adjust packed sets that are smaller than 32-bit }
   case GetTypeData(TypeInfo)^.OrdType of
-    otSByte,otUByte: Value:=Value shl (SizeOf(Integer)*8-8);
-    otSWord,otUWord: Value:=Value shl (SizeOf(Integer)*8-16);
+    otSByte,otUByte: Value := Value shl (SizeOf(Integer)*8-8);
+    otSWord,otUWord: Value := Value shl (SizeOf(Integer)*8-16);
   end;
 {$endif}
+  Result := SetToString(TypeInfo, @Value, Brackets);
+end;
 
-  PTI:=GetTypeData(TypeInfo)^.CompType;
+function SetToString(TypeInfo: PTypeInfo; Value: Pointer; Brackets: Boolean): String;
+type
+  tsetarr = bitpacked array[0..SizeOf(LongInt)*8-1] of 0..1;
+Var
+  I,El,Els,Rem,V,Max : Integer;
+  PTI : PTypeInfo;
+  PTD : PTypeData;
+  ValueArr : PLongInt;
+begin
+  PTD := GetTypeData(TypeInfo);
+  PTI:=PTD^.CompType;
+  ValueArr := PLongInt(Value);
   Result:='';
-  For I:=0 to SizeOf(Integer)*8-1 do
+{$ifdef ver3_0}
+  case PTD^.OrdType of
+    otSByte, otUByte: begin
+      Els := 0;
+      Rem := 1;
+    end;
+    otSWord, otUWord: begin
+      Els := 0;
+      Rem := 2;
+    end;
+    otSLong, otULong: begin
+      Els := 1;
+      Rem := 0;
+    end;
+  end;
+{$else}
+  Els := PTD^.SetSize div SizeOf(LongInt);
+  Rem := PTD^.SetSize mod SizeOf(LongInt);
+{$endif}
+
+{$ifdef ver3_0}
+  El := 0;
+{$else}
+  for El := 0 to (PTD^.SetSize - 1) div SizeOf(LongInt) do
+{$endif}
     begin
-      if (tsetarr(Value)[i]<>0) then
+      if El = Els then
+        Max := Rem
+      else
+        Max := SizeOf(LongInt);
+      For I:=0 to Max*8-1 do
         begin
-          If Result='' then
-            Result:=GetEnumName(PTI,i)
-          else
-            Result:=Result+','+GetEnumName(PTI,I);
+          if (tsetarr(ValueArr[El])[i]<>0) then
+            begin
+              V := I + SizeOf(LongInt) * 8 * El;
+              If Result='' then
+                Result:=GetEnumName(PTI,V)
+              else
+                Result:=Result+','+GetEnumName(PTI,V);
+            end;
         end;
     end;
   if Brackets then
     Result:='['+Result+']';
 end;
 
-
-Function SetToString(PropInfo: PPropInfo; Value: Integer) : String;
+Function SetToString(PropInfo: PPropInfo; Value: LongInt) : String;
 
 begin
   Result:=SetToString(PropInfo,Value,False);
 end;
 
+function SetToString(PropInfo: PPropInfo; Value: Pointer; Brackets: Boolean): String;
+begin
+  Result := SetToString(PropInfo^.PropType, Value, Brackets);
+end;
 
 Const
   SetDelim = ['[',']',',',' '];
@@ -963,21 +1299,41 @@ begin
     end;
 end;
 
-Function StringToSet(PropInfo: PPropInfo; const Value: string): Integer;
+Function StringToSet(PropInfo: PPropInfo; const Value: string): LongInt;
 
 begin
   Result:=StringToSet(PropInfo^.PropType,Value);
 end;
 
-Function StringToSet(TypeInfo: PTypeInfo; const Value: string): Integer;
+Function StringToSet(TypeInfo: PTypeInfo; const Value: string): LongInt;
+begin
+  StringToSet(TypeInfo, Value, @Result);
+{$if defined(FPC_BIG_ENDIAN)}
+  { correctly adjust packed sets that are smaller than 32-bit }
+  case GetTypeData(TypeInfo)^.OrdType of
+    otSByte,otUByte: Result := Result shr (SizeOf(Integer)*8-8);
+    otSWord,otUWord: Result := Result shr (SizeOf(Integer)*8-16);
+  end;
+{$endif}
+end;
+
+procedure StringToSet(TypeInfo: PTypeInfo; const Value: String; Result: Pointer);
 Var
   S,T : String;
-  I : Integer;
+  I, ElOfs, BitOfs : Integer;
+  PTD: PTypeData;
   PTI : PTypeInfo;
+  ResArr: PLongWord;
 
 begin
-  Result:=0;
-  PTI:=GetTypeData(TypeInfo)^.Comptype;
+  PTD:=GetTypeData(TypeInfo);
+{$ifndef ver3_0}
+  FillChar(Result^, PTD^.SetSize, 0);
+{$else}
+  PInteger(Result)^ := 0;
+{$endif}
+  PTI:=PTD^.Comptype;
+  ResArr := PLongWord(Result);
   S:=Value;
   I:=1;
   If Length(S)>0 then
@@ -994,21 +1350,31 @@ begin
           I:=GetEnumValue(PTI,T);
           if (I<0) then
             raise EPropertyError.CreateFmt(SErrUnknownEnumValue, [T]);
-          Result:=Result or (1 shl i);
+          ElOfs := I shr 5;
+          BitOfs := I and $1F;
+{$ifdef FPC_BIG_ENDIAN}
+          { on Big Endian systems enum values start from the MSB, thus we need
+            to reverse the shift }
+          BitOfs := 31 - BitOfs;
+{$endif}
+          ResArr[ElOfs] := ResArr[ElOfs] or (LongInt(1) shl BitOfs);
         end;
     end;
 end;
 
+procedure StringToSet(PropInfo: PPropInfo; const Value: String; Result: Pointer);
+begin
+  StringToSet(PropInfo^.PropType, Value, Result);
+end;
 
 Function AlignTypeData(p : Pointer) : Pointer;
-{$push}
 {$packrecords c}
   type
     TAlignCheck = record
       b : byte;
       q : qword;
     end;
-{$pop}
+{$packrecords default}
 begin
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
 {$ifdef VER3_0}
@@ -1016,6 +1382,40 @@ begin
 {$else VER3_0}
   Result:=Pointer(align(p,PtrInt(@TAlignCheck(nil^).q)))
 {$endif VER3_0}
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+  Result:=p;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+end;
+
+
+Function AlignTParamFlags(p : Pointer) : Pointer; inline;
+{$packrecords c}
+  type
+    TAlignCheck = record
+      b : byte;
+      w : word;
+    end;
+{$packrecords default}
+begin
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  Result:=Pointer(align(p,PtrInt(@TAlignCheck(nil^).w)))
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+  Result:=p;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+end;
+
+
+Function AlignPTypeInfo(p : Pointer) : Pointer; inline;
+{$packrecords c}
+  type
+    TAlignCheck = record
+      b : byte;
+      p : pointer;
+    end;
+{$packrecords default}
+begin
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  Result:=Pointer(align(p,PtrInt(@TAlignCheck(nil^).p)))
 {$else FPC_REQUIRES_PROPER_ALIGNMENT}
   Result:=p;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -1037,7 +1437,7 @@ var
   hp : PTypeData;
   i : longint;
   p : shortstring;
-  pd : ^TPropData;
+  pd : PPropData;
 begin
   P:=PropName;  // avoid Ansi<->short conversion in a loop
   while Assigned(TypeInfo) do
@@ -1045,7 +1445,7 @@ begin
       // skip the name
       hp:=GetTypeData(Typeinfo);
       // the class info rtti the property rtti follows immediatly
-      pd:=aligntoptr(pointer(pointer(@hp^.UnitName)+Length(hp^.UnitName)+1));
+      pd := GetPropData(TypeInfo,hp);
       Result:=PPropInfo(@pd^.PropList);
       for i:=1 to pd^.PropCount do
         begin
@@ -1127,6 +1527,35 @@ begin
     Raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName]);
 end;
 
+function IsReadableProp(PropInfo: PPropInfo): Boolean;
+begin
+  Result:=(((PropInfo^.PropProcs) and 3) in [ptField,ptStatic,ptVirtual]);
+end;
+
+function IsReadableProp(Instance: TObject; const PropName: string): Boolean;
+begin
+  Result:=IsReadableProp(FindPropInfo(Instance,PropName));
+end;
+
+function IsReadableProp(AClass: TClass; const PropName: string): Boolean;
+begin
+  Result:=IsReadableProp(FindPropInfo(AClass,PropName));
+end;
+
+function IsWriteableProp(PropInfo: PPropInfo): Boolean;
+begin
+  Result:=(((PropInfo^.PropProcs shr 2) and 3) in [ptField,ptStatic,ptVirtual]);
+end;
+
+function IsWriteableProp(Instance: TObject; const PropName: string): Boolean;
+begin
+  Result:=IsWriteableProp(FindPropInfo(Instance,PropName));
+end;
+
+function IsWriteableProp(AClass: TClass; const PropName: string): Boolean;
+begin
+  Result:=IsWriteableProp(FindPropInfo(AClass,PropName));
+end;
 
 Function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
 type
@@ -1175,7 +1604,7 @@ begin
   repeat
     TD:=GetTypeData(TypeInfo);
     // published properties count for this object
-    TP:=aligntoptr(PPropInfo(aligntoptr((Pointer(@TD^.UnitName)+Length(TD^.UnitName)+1))));
+    TP:=PPropInfo(GetPropData(TypeInfo, TD));
     Count:=PWord(TP)^;
     // Now point TP to first propinfo record.
     Inc(Pointer(TP),SizeOF(Word));
@@ -1288,6 +1717,7 @@ end;
   ---------------------------------------------------------------------}
 
 Function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Int64;
+
 type
   TGetInt64ProcIndex=function(index:longint):Int64 of object;
   TGetInt64Proc=function():Int64 of object;
@@ -1310,6 +1740,7 @@ begin
   Signed := false;
   DataSize := 4;
   case TypeInfo^.Kind of
+// We keep this for backwards compatibility, but internally it is no longer used.
 {$ifdef cpu64}
     tkInterface,
     tkInterfaceRaw,
@@ -1391,10 +1822,14 @@ begin
           end;
         end;
       end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotReadProperty, [PropInfo^.Name]);
   end;
 end;
 
+
 Procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;Value : Int64);
+
 type
   TSetInt64ProcIndex=procedure(index:longint;i:Int64) of object;
   TSetInt64Proc=procedure(i:Int64) of object;
@@ -1463,6 +1898,8 @@ begin
               TSetIntegerProc(AMethod)(Value);
           end;
       end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
   end;
 end;
 
@@ -1573,6 +2010,73 @@ begin
 end;
 
 { ---------------------------------------------------------------------
+  Pointer properties - internal only
+  ---------------------------------------------------------------------}
+
+Function GetPointerProp(Instance: TObject; PropInfo : PPropInfo): Pointer;
+
+Type
+  TGetPointerProcIndex = function (index:longint): Pointer of object;
+  TGetPointerProc = function (): Pointer of object;
+
+var
+  AMethod : TMethod;
+
+begin
+  case (PropInfo^.PropProcs) and 3 of
+  ptField:
+    Result := PPointer(Pointer(Instance) + LongWord(PropInfo^.GetProc))^;
+  ptStatic,
+  ptVirtual:
+    begin
+      if (PropInfo^.PropProcs and 3)=ptStatic then
+        AMethod.Code:=PropInfo^.GetProc
+      else
+        AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
+      AMethod.Data:=Instance;
+      if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+        Result:=TGetPointerProcIndex(AMethod)(PropInfo^.Index)
+      else
+        Result:=TGetPointerProc(AMethod)();
+    end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotReadProperty, [PropInfo^.Name]);
+  end;
+end;
+
+Procedure SetPointerProp(Instance: TObject; PropInfo : PPropInfo;  Value: Pointer);
+
+type
+  TSetPointerProcIndex = procedure(index: longint; p: pointer) of object;
+  TSetPointerProc = procedure(p: pointer) of object;
+
+var
+  AMethod : TMethod;
+
+begin
+  case (PropInfo^.PropProcs shr 2) and 3 of
+    ptField:
+      PPointer(Pointer(Instance) + LongWord(PropInfo^.SetProc))^:=Value;
+    ptStatic,
+    ptVirtual:
+      begin
+        if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
+          AMethod.Code:=PropInfo^.SetProc
+        else
+          AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+        AMethod.Data:=Instance;
+        if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+          TSetPointerProcIndex(AMethod)(PropInfo^.Index,Value)
+        else
+          TSetPointerProc(AMethod)(Value);
+      end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
+  end;
+end;
+
+
+{ ---------------------------------------------------------------------
   Object properties
   ---------------------------------------------------------------------}
 
@@ -1596,11 +2100,7 @@ end;
 
 Function GetObjectProp(Instance: TObject; PropInfo : PPropInfo; MinClass: TClass): TObject;
 begin
-{$ifdef cpu64}
-  Result:=TObject(GetInt64Prop(Instance,PropInfo));
-{$else cpu64}
-  Result:=TObject(PtrInt(GetOrdProp(Instance,PropInfo)));
-{$endif cpu64}
+  Result:=TObject(GetPointerProp(Instance,PropInfo));
   If (MinClass<>Nil) and (Result<>Nil) Then
     If Not Result.InheritsFrom(MinClass) then
       Result:=Nil;
@@ -1614,12 +2114,9 @@ end;
 
 
 Procedure SetObjectProp(Instance: TObject; PropInfo : PPropInfo;  Value: TObject);
+
 begin
-{$ifdef cpu64}
-  SetInt64Prop(Instance,PropInfo,Int64(Value));
-{$else cpu64}
-  SetOrdProp(Instance,PropInfo,PtrInt(Value));
-{$endif cpu64}
+  SetPointerProp(Instance,PropInfo,Pointer(Value));
 end;
 
 
@@ -1627,6 +2124,7 @@ Function GetObjectPropClass(Instance: TObject; const PropName: string): TClass;
 begin
   Result:=GetTypeData(FindPropInfo(Instance,PropName,[tkClass])^.PropType)^.ClassType;
 end;
+
 
 Function  GetObjectPropClass(AClass: TClass; const PropName: string): TClass;
 begin
@@ -1669,6 +2167,8 @@ begin
         else
           Result:=TGetInterfaceProc(AMethod)();
       end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotReadProperty, [PropInfo^.Name]);
   end;
 end;
 
@@ -1680,11 +2180,14 @@ begin
 end;
 
 procedure SetInterfaceProp(Instance: TObject; PropInfo: PPropInfo; const Value: IInterface);
+
 type
   TSetIntfStrProcIndex=procedure(index:longint;const i:IInterface) of object;
   TSetIntfStrProc=procedure(i:IInterface) of object;
+
 var
   AMethod : TMethod;
+
 begin
   case Propinfo^.PropType^.Kind of
     tkInterface:
@@ -1705,6 +2208,8 @@ begin
               else
                 TSetIntfStrProc(AMethod)(Value);
             end;
+        else
+          raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
         end;
       end;
     tkInterfaceRaw:
@@ -1726,11 +2231,7 @@ end;
 function GetRawInterfaceProp(Instance: TObject; PropInfo: PPropInfo): Pointer;
 
 begin
-{$ifdef cpu64}
-  Result:=Pointer(GetInt64Prop(Instance,PropInfo));
-{$else cpu64}
-  Result:=Pointer(PtrInt(GetOrdProp(Instance,PropInfo)));
-{$endif cpu64}
+  Result:=GetPointerProp(Instance,PropInfo);
 end;
 
 procedure SetRawInterfaceProp(Instance: TObject; const PropName: string; const Value: Pointer);
@@ -1740,36 +2241,9 @@ begin
 end;
 
 procedure SetRawInterfaceProp(Instance: TObject; PropInfo: PPropInfo; const Value: Pointer);
-type
-  TSetPointerProcIndex=procedure(index:longint;const i:Pointer) of object;
-  TSetPointerProc=procedure(i:Pointer) of object;
-var
-  AMethod : TMethod;
+
 begin
-  case Propinfo^.PropType^.Kind of
-    tkInterfaceRaw:
-      begin
-        case (PropInfo^.PropProcs shr 2) and 3 of
-          ptField:
-            PPointer(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
-          ptStatic,
-          ptVirtual:
-            begin
-              if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
-                AMethod.Code:=PropInfo^.SetProc
-              else
-                AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
-              AMethod.Data:=Instance;
-              if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
-                TSetPointerProcIndex(AMethod)(PropInfo^.Index,Value)
-              else
-                TSetPointerProc(AMethod)(Value);
-            end;
-        end;
-      end;
-    tkInterface:
-      Raise Exception.Create('Cannot set interface from RAW interface');
-  end;
+  SetPointerProp(Instance,PropInfo,Value);
 end;
 
 { ---------------------------------------------------------------------
@@ -1782,14 +2256,17 @@ begin
 end;
 
 function GetDynArrayProp(Instance: TObject; PropInfo: PPropInfo): Pointer;
+
 type
   { we need a dynamic array as that type is usually passed differently from
     a plain pointer }
   TDynArray=array of Byte;
   TGetDynArrayProc=function:TDynArray of object;
   TGetDynArrayProcIndex=function(index:longint):TDynArray of object;
+
 var
   AMethod : TMethod;
+
 begin
   Result:=nil;
   if PropInfo^.PropType^.Kind<>tkDynArray then
@@ -1810,6 +2287,8 @@ begin
         else
           Result:=Pointer(TGetDynArrayProc(AMethod)());
       end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotReadProperty, [PropInfo^.Name]);
   end;
 end;
 
@@ -1819,14 +2298,17 @@ begin
 end;
 
 procedure SetDynArrayProp(Instance: TObject; PropInfo: PPropInfo; const Value: Pointer);
+
 type
   { we need a dynamic array as that type is usually passed differently from
     a plain pointer }
   TDynArray=array of Byte;
   TSetDynArrayProcIndex=procedure(index:longint;const i:TDynArray) of object;
   TSetDynArrayProc=procedure(i:TDynArray) of object;
+
 var
   AMethod: TMethod;
+
 begin
   if PropInfo^.PropType^.Kind<>tkDynArray then
     Exit;
@@ -1846,6 +2328,8 @@ begin
         else
           TSetDynArrayProc(AMethod)(TDynArray(Value));
       end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
   end;
 end;
 
@@ -1854,13 +2338,16 @@ end;
   ---------------------------------------------------------------------}
 
 Function GetStrProp(Instance: TObject; PropInfo: PPropInfo): AnsiString;
+
 type
   TGetShortStrProcIndex=function(index:longint):ShortString of object;
   TGetShortStrProc=function():ShortString of object;
   TGetAnsiStrProcIndex=function(index:longint):AnsiString of object;
   TGetAnsiStrProc=function():AnsiString of object;
+
 var
   AMethod : TMethod;
+
 begin
   Result:='';
   case Propinfo^.PropType^.Kind of
@@ -1886,6 +2373,8 @@ begin
               else
                 Result:=TGetShortStrProc(AMethod)();
             end;
+        else
+          raise EPropertyError.CreateFmt(SErrCannotReadProperty, [PropInfo^.Name]);
         end;
       end;
     tkAString:
@@ -1906,6 +2395,8 @@ begin
               else
                 Result:=TGetAnsiStrProc(AMethod)();
             end;
+        else
+          raise EPropertyError.CreateFmt(SErrCannotReadProperty, [PropInfo^.Name]);
         end;
       end;
   end;
@@ -1913,13 +2404,16 @@ end;
 
 
 Procedure SetStrProp(Instance : TObject;PropInfo : PPropInfo; const Value : AnsiString);
+
 type
   TSetShortStrProcIndex=procedure(index:longint;const s:ShortString) of object;
   TSetShortStrProc=procedure(const s:ShortString) of object;
   TSetAnsiStrProcIndex=procedure(index:longint;s:AnsiString) of object;
   TSetAnsiStrProc=procedure(s:AnsiString) of object;
+
 var
   AMethod : TMethod;
+
 begin
   case Propinfo^.PropType^.Kind of
     tkWString:
@@ -1944,6 +2438,8 @@ begin
               else
                 TSetShortStrProc(AMethod)(Value);
             end;
+        else
+          raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
         end;
       end;
     tkAString:
@@ -1964,6 +2460,8 @@ begin
               else
                 TSetAnsiStrProc(AMethod)(Value);
             end;
+          else
+            raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
         end;
       end;
   end;
@@ -2025,6 +2523,8 @@ begin
               else
                 Result:=TGetWideStrProc(AMethod)();
             end;
+        else
+          raise EPropertyError.CreateFmt(SErrCannotReadProperty, [PropInfo^.Name]);
         end;
       end;
   end;
@@ -2061,29 +2561,36 @@ begin
               else
                 TSetWideStrProc(AMethod)(Value);
             end;
+        else
+          raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
         end;
       end;
   end;
 end;
 
 Function GetUnicodeStrProp(Instance: TObject; const PropName: string): UnicodeString;
+
 begin
   Result:=GetUnicodeStrProp(Instance, FindPropInfo(Instance, PropName));
 end;
 
 
 procedure SetUnicodeStrProp(Instance: TObject; const PropName: string; const Value: UnicodeString);
+
 begin
   SetUnicodeStrProp(Instance,FindPropInfo(Instance,PropName),Value);
 end;
 
 
 Function GetUnicodeStrProp(Instance: TObject; PropInfo: PPropInfo): UnicodeString;
+
 type
   TGetUnicodeStrProcIndex=function(index:longint):UnicodeString of object;
   TGetUnicodeStrProc=function():UnicodeString of object;
+
 var
   AMethod : TMethod;
+
 begin
   Result:='';
   case Propinfo^.PropType^.Kind of
@@ -2109,6 +2616,8 @@ begin
               else
                 Result:=TGetUnicodeStrProc(AMethod)();
             end;
+        else
+          raise EPropertyError.CreateFmt(SErrCannotReadProperty, [PropInfo^.Name]);
         end;
       end;
   end;
@@ -2116,11 +2625,14 @@ end;
 
 
 Procedure SetUnicodeStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: UnicodeString);
+
 type
   TSetUnicodeStrProcIndex=procedure(index:longint;s:UnicodeString) of object;
   TSetUnicodeStrProc=procedure(s:UnicodeString) of object;
+
 var
   AMethod : TMethod;
+
 begin
   case Propinfo^.PropType^.Kind of
     tkSString,tkAString:
@@ -2145,9 +2657,107 @@ begin
               else
                 TSetUnicodeStrProc(AMethod)(Value);
             end;
+        else
+          raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
         end;
       end;
   end;
+end;
+
+function GetRawbyteStrProp(Instance: TObject; PropInfo: PPropInfo): RawByteString;
+
+type
+  TGetRawByteStrProcIndex=function(index:longint): RawByteString of object;
+  TGetRawByteStrProc=function():RawByteString of object;
+
+var
+  AMethod : TMethod;
+
+begin
+  Result:='';
+  case Propinfo^.PropType^.Kind of
+    tkWString:
+      Result:=RawByteString(GetWideStrProp(Instance,PropInfo));
+    tkUString:
+      Result:=RawByteString(GetUnicodeStrProp(Instance,PropInfo));
+    tkSString:
+      Result:=RawByteString(GetStrProp(Instance,PropInfo));
+    tkAString:
+      begin
+        case (PropInfo^.PropProcs) and 3 of
+          ptField:
+            Result := PAnsiString(Pointer(Instance) + LongWord(PropInfo^.GetProc))^;
+          ptStatic,
+          ptVirtual:
+            begin
+              if (PropInfo^.PropProcs and 3)=ptStatic then
+                AMethod.Code:=PropInfo^.GetProc
+              else
+                AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
+              AMethod.Data:=Instance;
+              if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+                Result:=TGetRawByteStrProcIndex(AMethod)(PropInfo^.Index)
+              else
+                Result:=TGetRawByteStrProc(AMethod)();
+            end;
+          else
+            raise EPropertyError.CreateFmt(SErrCannotReadProperty, [PropInfo^.Name]);
+        end;
+      end;
+  end;
+end;
+
+function GetRawByteStrProp(Instance: TObject; const PropName: string): RawByteString;
+begin
+  Result:=GetRawByteStrProp(Instance,FindPropInfo(Instance,PropName));
+end;
+
+procedure SetRawByteStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: RawByteString);
+
+type
+  TSetRawByteStrProcIndex=procedure(index:longint;s:RawByteString) of object;
+  TSetRawByteStrProc=procedure(s:RawByteString) of object;
+
+var
+  AMethod : TMethod;
+
+begin
+  case Propinfo^.PropType^.Kind of
+    tkWString:
+      SetWideStrProp(Instance,PropInfo,WideString(Value));
+    tkUString:
+       SetUnicodeStrProp(Instance,PropInfo,UnicodeString(Value));
+    tkSString:
+      SetStrProp(Instance,PropInfo,Value); // Not 100% sure about this.
+    tkAString:
+      begin
+        case (PropInfo^.PropProcs shr 2) and 3 of
+          ptField:
+            PAnsiString(Pointer(Instance) + LongWord(PropInfo^.SetProc))^:=Value;
+          ptStatic,
+          ptVirtual:
+            begin
+              if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
+                AMethod.Code:=PropInfo^.SetProc
+              else
+                AMethod.Code:=PCodePointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+              AMethod.Data:=Instance;
+              if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+                TSetRawByteStrProcIndex(AMethod)(PropInfo^.Index,Value)
+              else
+                TSetRawByteStrProc(AMethod)(Value);
+            end;
+        else
+          raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
+        end;
+      end;
+  end;
+end;
+
+procedure SetRawByteStrProp(Instance: TObject; const PropName: string; const Value: RawByteString);
+
+begin
+  SetRawByteStrProp(Instance,FindPropInfo(Instance,PropName),Value);
 end;
 
 
@@ -2159,6 +2769,7 @@ end;
   ---------------------------------------------------------------------}
 
 function GetFloatProp(Instance : TObject;PropInfo : PPropInfo) : Extended;
+
 type
   TGetExtendedProc = function:Extended of object;
   TGetExtendedProcIndex = function(Index: integer): Extended of object;
@@ -2168,8 +2779,10 @@ type
   TGetSingleProcIndex = function(Index: integer):Single of object;
   TGetCurrencyProc = function : Currency of object;
   TGetCurrencyProcIndex = function(Index: integer) : Currency of object;
+
 var
   AMethod : TMethod;
+
 begin
   Result:=0.0;
   case PropInfo^.PropProcs and 3 of
@@ -2217,11 +2830,14 @@ begin
               Result:=TGetCurrencyProcIndex(AMethod)(PropInfo^.Index);
         end;
       end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotReadProperty, [PropInfo^.Name]);
   end;
 end;
 
 
 Procedure SetFloatProp(Instance : TObject;PropInfo : PPropInfo; Value : Extended);
+
 type
   TSetExtendedProc = procedure(const AValue: Extended) of object;
   TSetExtendedProcIndex = procedure(Index: integer; AValue: Extended) of object;
@@ -2231,8 +2847,10 @@ type
   TSetSingleProcIndex = procedure(Index: integer; AValue: Single) of object;
   TSetCurrencyProc = procedure(const AValue: Currency) of object;
   TSetCurrencyProcIndex = procedure(Index: integer;  AValue: Currency) of object;
+
 Var
   AMethod : TMethod;
+
 begin
   case (PropInfo^.PropProcs shr 2) and 3 of
     ptfield:
@@ -2284,6 +2902,8 @@ begin
               TSetCurrencyProcIndex(AMethod)(PropInfo^.Index,Value);
         end;
       end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
   end;
 end;
 
@@ -2307,12 +2927,15 @@ end;
 
 
 Function GetMethodProp(Instance : TObject;PropInfo : PPropInfo) : TMethod;
+
 type
   TGetMethodProcIndex=function(Index: Longint): TMethod of object;
   TGetMethodProc=function(): TMethod of object;
+
 var
   value: PMethod;
   AMethod : TMethod;
+
 begin
   Result.Code:=nil;
   Result.Data:=nil;
@@ -2336,16 +2959,21 @@ begin
         else
           Result:=TGetMethodProc(AMethod)();
       end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotReadProperty, [PropInfo^.Name]);
   end;
 end;
 
 
 Procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo; const Value : TMethod);
+
 type
   TSetMethodProcIndex=procedure(index:longint;p:TMethod) of object;
   TSetMethodProc=procedure(p:TMethod) of object;
+
 var
   AMethod : TMethod;
+
 begin
   case (PropInfo^.PropProcs shr 2) and 3 of
     ptField:
@@ -2363,6 +2991,8 @@ begin
         else
           TSetMethodProc(AMethod)(Value);
       end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
   end;
 end;
 
@@ -2399,8 +3029,8 @@ end;
 
 Procedure SetVariantProp(Instance : TObject;PropInfo : PPropInfo; const Value: Variant);
 begin
-   CheckVariantEvent(CodePointer(OnSetVariantProp));
-   OnSetVariantProp(Instance,PropInfo,Value);
+  CheckVariantEvent(CodePointer(OnSetVariantProp));
+  OnSetVariantProp(Instance,PropInfo,Value);
 end;
 
 
@@ -2588,19 +3218,19 @@ end;
 
 { TVmtMethodParam }
 
-function TVmtMethodParam.GetParaLocs: PParameterLocations;
-begin
-  Result := PParameterLocations(aligntoptr(PByte(@Name[0]) + Length(Name) + Sizeof(Name[0])));
-end;
-
 function TVmtMethodParam.GetTail: Pointer;
 begin
-  Result := ParaLocs^.Tail;
+  Result := PByte(@ParaLocs) + SizeOf(ParaLocs);
 end;
 
 function TVmtMethodParam.GetNext: PVmtMethodParam;
 begin
   Result := PVmtMethodParam(aligntoptr(Tail));
+end;
+
+function TVmtMethodParam.GetName: ShortString;
+begin
+  Result := NamePtr^;
 end;
 
 { TIntfMethodEntry }
@@ -2610,44 +3240,34 @@ begin
   if Index >= ParamCount then
     Result := Nil
   else
-    begin
-      Result := PVmtMethodParam(aligntoptr(PByte(@Name[0]) + SizeOf(Name[0]) + Length(Name)));
-      while Index > 0 do
-        begin
-          Result := Result^.Next;
-          Dec(Index);
-        end;
-    end;
+    Result := PVmtMethodParam(PByte(aligntoptr(PByte(@NamePtr) + SizeOf(NamePtr))) + Index * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam)))));
 end;
 
 function TIntfMethodEntry.GetResultLocs: PParameterLocations;
 begin
   if not Assigned(ResultType) then
     Result := Nil
-  else if ParamCount = 0 then
-    Result := PParameterLocations(aligntoptr(PByte(@Name[0]) + SizeOf(Name[0]) + Length(Name)))
   else
-    Result := PParameterLocations(aligntoptr(Param[ParamCount - 1]^.Tail));
+    Result := PParameterLocations(PByte(aligntoptr(PByte(@NamePtr) + SizeOf(NamePtr))) + ParamCount * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam)))));
 end;
 
 function TIntfMethodEntry.GetTail: Pointer;
-var
-  retloc: PParameterLocations;
 begin
+  Result := PByte(@NamePtr) + SizeOf(NamePtr);
+  if ParamCount > 0 then
+    Result := PByte(aligntoptr(Result)) + ParamCount * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam))));
   if Assigned(ResultType) then
-    begin
-      retloc := ResultLocs;
-      Result := PByte(@retloc^.Count) + SizeOf(retloc^.Count) + SizeOf(TParameterLocation) * retloc^.Count;
-    end
-  else if ParamCount = 0 then
-    Result := PByte(@Name[0]) + Length(Name) + SizeOf(Byte)
-  else
-    Result := Param[ParamCount - 1]^.Tail;
+    Result := PByte(aligntoptr(Result)) + SizeOf(PParameterLocations);
 end;
 
 function TIntfMethodEntry.GetNext: PIntfMethodEntry;
 begin
   Result := PIntfMethodEntry(aligntoptr(Tail));
+end;
+
+function TIntfMethodEntry.GetName: ShortString;
+begin
+  Result := NamePtr^;
 end;
 
 { TIntfMethodTable }
@@ -2665,6 +3285,41 @@ begin
           Dec(Index);
         end;
     end;
+end;
+
+{ TVmtMethodTable }
+
+function TVmtMethodTable.GetEntry(Index: LongWord): PVmtMethodEntry;
+begin
+  Result := PVmtMethodEntry(@Entries[0]) + Index;
+end;
+
+{ TVmtFieldTable }
+
+function TVmtFieldTable.GetField(aIndex: Word): PVmtFieldEntry;
+var
+  c: Word;
+begin
+  if aIndex >= Count then
+    Exit(Nil);
+  c := aIndex;
+  Result := @Fields;
+  while c > 0 do begin
+    Result := Result^.Next;
+    Dec(c);
+  end;
+end;
+
+{ TVmtFieldEntry }
+
+function TVmtFieldEntry.GetNext: PVmtFieldEntry;
+begin
+  Result := aligntoptr(Tail);
+end;
+
+function TVmtFieldEntry.GetTail: Pointer;
+begin
+  Result := PByte(@Name) + Length(Name) + SizeOf(Byte);
 end;
 
 { TInterfaceData }
@@ -2711,6 +3366,21 @@ end;
 function TInterfaceRawData.GetMethodTable: PIntfMethodTable;
 begin
   Result := aligntoptr(PropertyTable^.Tail);
+end;
+
+{ TClassData }
+
+function TClassData.GetUnitName: ShortString;
+begin
+  Result := UnitNameField;
+end;
+
+function TClassData.GetPropertyTable: PPropData;
+var
+  p: PByte;
+begin
+  p := PByte(@UnitNameField[0]) + SizeOf(UnitNameField[0]) + Length(UnitNameField);
+  Result := AlignToPtr(p);
 end;
 
 { TTypeData }
@@ -2823,5 +3493,144 @@ function TPropInfo.GetNext: PPropInfo;
 begin
   Result := PPropInfo(aligntoptr(Tail));
 end;
+
+type
+  TElementAlias = record
+    Ordinal : Integer;
+    Alias : string;
+  end;
+  TElementAliasArray = Array of TElementAlias;
+  PElementAliasArray = ^TElementAliasArray;
+
+  TEnumeratedAliases = record
+    TypeInfo: PTypeInfo;
+    Aliases: TElementAliasArray;
+  end;
+  TEnumeratedAliasesArray = Array of TEnumeratedAliases;
+
+Var
+  EnumeratedAliases : TEnumeratedAliasesArray;
+
+Function IndexOfEnumeratedAliases(aTypeInfo : PTypeInfo) : integer;
+
+begin
+  Result:=Length(EnumeratedAliases)-1;
+  while (Result>=0) and (EnumeratedAliases[Result].TypeInfo<>aTypeInfo) do
+    Dec(Result);
+end;
+
+Function GetEnumeratedAliases(aTypeInfo : PTypeInfo) : PElementAliasArray;
+
+Var
+  I : integer;
+
+begin
+  I:=IndexOfEnumeratedAliases(aTypeInfo);
+  if I=-1 then
+    Result:=Nil
+  else
+    Result:=@EnumeratedAliases[i].Aliases
+end;
+
+Function AddEnumeratedAliases(aTypeInfo : PTypeInfo) : PElementAliasArray;
+
+Var
+  L : Integer;
+
+begin
+  L:=Length(EnumeratedAliases);
+  SetLength(EnumeratedAliases,L+1);
+  EnumeratedAliases[L].TypeInfo:=aTypeInfo;
+  Result:=@EnumeratedAliases[L].Aliases;
+end;
+
+procedure RemoveEnumElementAliases(aTypeInfo: PTypeInfo);
+
+Var
+  I,L : integer;
+  A : TEnumeratedAliases;
+
+begin
+  I:=IndexOfEnumeratedAliases(aTypeInfo);
+  if I=-1 then
+    exit;
+  A:=EnumeratedAliases[i];
+  A.Aliases:=Nil;
+  A.TypeInfo:=Nil;
+  L:=Length(EnumeratedAliases)-1;
+  EnumeratedAliases[i]:=EnumeratedAliases[L];
+  EnumeratedAliases[L]:=A;
+  SetLength(EnumeratedAliases,L);
+end;
+
+Resourcestring
+  SErrNotAnEnumerated = 'Type information points to non-enumerated type';
+  SErrInvalidEnumeratedCount = 'Invalid number of enumerated values';
+  SErrDuplicateEnumerated = 'Duplicate alias for enumerated value';
+
+procedure AddEnumElementAliases(aTypeInfo: PTypeInfo; const aNames: array of string; aStartValue: Integer = 0);
+
+var
+  Aliases: PElementAliasArray;
+  A : TElementAliasArray;
+  L, I, J : Integer;
+  N : String;
+  PT : PTypeData;
+
+
+begin
+  if (aTypeInfo^.Kind<>tkEnumeration) then
+    raise EArgumentException.Create(SErrNotAnEnumerated);
+  PT:=GetTypeData(aTypeInfo);
+  if (High(aNames)=-1) or ((aStartValue+High(aNames))> PT^.MaxValue) then
+    raise EArgumentException.Create(SErrInvalidEnumeratedCount);
+  Aliases:=GetEnumeratedAliases(aTypeInfo);
+  if (Aliases=Nil) then
+    Aliases:=AddEnumeratedAliases(aTypeInfo);
+  A:=Aliases^;
+  I:=0;
+  L:=Length(a);
+  SetLength(a,L+High(aNames)+1);
+  try
+    for N in aNames do
+      begin
+      for J:=0 to (L+I)-1 do
+        if SameText(N,A[J].Alias) then
+          raise EArgumentException.Create(SErrDuplicateEnumerated);
+      with A[L+I] do
+        begin
+        Ordinal:=aStartValue+I;
+        alias:=N;
+        end;
+      Inc(I);
+      end;
+  finally
+    // In case of exception, we need to correct the length.
+    if Length(A)<>I+L then
+      SetLength(A,I+L);
+    Aliases^:=A;
+  end;
+end;
+
+function GetEnumeratedAliasValue(aTypeInfo: PTypeInfo; const aName: string): Integer;
+
+var
+  I : Integer;
+  Aliases: PElementAliasArray;
+
+begin
+  Result:=-1;
+  Aliases:=GetEnumeratedAliases(aTypeInfo);
+  if (Aliases=Nil) then
+    Exit;
+  I:=Length(Aliases^)-1;
+  While (Result=-1) and (I>=0) do
+    begin
+    if SameText(Aliases^[I].Alias, aName) then
+      Result:=Aliases^[I].Ordinal;
+    Dec(I);
+    end;
+end;
+
 
 end.

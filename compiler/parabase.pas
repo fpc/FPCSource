@@ -26,13 +26,16 @@ unit parabase;
 
     uses
        cclasses,globtype,
-       aasmbase,cpubase,cgbase,cgutils,
-       symtype, ppu;
+{$ifdef llvm}
+       aasmbase,
+{$endif}
+       cgbase,cgutils,
+       symtype;
 
     type
        TCGParaReference = record
           index       : tregister;
-          offset      : aint;
+          offset      : asizeint;
        end;
 
        PCGParaLocation = ^TCGParaLocation;
@@ -61,7 +64,7 @@ unit parabase;
                if llvmvalueloc=false: must be a tempreg. Means that the value is
                stored in a temp with this register as base address }
              LOC_REGISTER:  (reg: tregister);
-             LOC_CONSTANT:  (value: tcgint);
+             LOC_CONSTANT:  (value: int64);
          end;
 {$endif llvm}
          case TCGLoc of
@@ -103,7 +106,7 @@ unit parabase;
           Location  : PCGParalocation;
           IntSize   : tcgint; { size of the total location in bytes }
           DefDeref  : tderef;
-          Alignment : ShortInt;
+          Alignment : ShortInt; { in case of LLVM, a negative alignment mean: force write the alignment }
           Size      : TCGSize;  { Size of the parameter included in all locations }
           Temporary : boolean;  { created on the fly, no permanent references exist to this somewhere that will cause it to be disposed }
           constructor init;
@@ -115,6 +118,7 @@ unit parabase;
           function    add_location:pcgparalocation;
           procedure   get_location(var newloc:tlocation);
           function    locations_count:integer;
+          function    isempty: boolean; { no data, and not varargs para }
 
           procedure   buildderef;
           procedure   deref;
@@ -158,7 +162,7 @@ implementation
 
     uses
       systems,verbose,
-      symsym;
+      symsym,defutil;
 
 
 {****************************************************************************
@@ -221,6 +225,7 @@ implementation
         result.size:=size;
         result.intsize:=intsize;
         result.def:=def;
+        result.Temporary:=Temporary;
       end;
 
 
@@ -265,7 +270,7 @@ implementation
         case location^.loc of
           LOC_REGISTER :
             begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
               if size in [OS_64,OS_S64] then
                 begin
                   if not assigned(location^.next) then
@@ -296,6 +301,10 @@ implementation
               newloc.reference.offset:=location^.reference.offset;
               newloc.reference.alignment:=alignment;
             end;
+          LOC_VOID:
+            ;
+          else
+            internalerror(2019050705);
         end;
       end;
 
@@ -313,6 +322,25 @@ implementation
           end;
       end;
 
+
+    function TCGPara.isempty: boolean;
+      var
+        hlocation: pcgparalocation;
+      begin
+        { can happen if e.g. [] is passed to a cdecl varargs para }
+        if not assigned(def) then
+          exit(true);
+        if is_array_of_const(def) then
+          exit(false);
+        hlocation:=location;
+        while assigned(hlocation) do
+          begin
+            if hlocation^.Loc<>LOC_VOID then
+              exit(false);
+            hlocation:=hlocation^.next;
+          end;
+        result:=true;
+      end;
 
     procedure TCGPara.buildderef;
       begin

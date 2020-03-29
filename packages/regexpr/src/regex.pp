@@ -214,7 +214,7 @@ const
 
 
 {===Helper routines==================================================}
-function SystemUpcase(aCh : AnsiChar) : AnsiChar; far;
+function SystemUpcase(aCh : AnsiChar) : AnsiChar;
 begin
   Result := System.Upcase(aCh);
 end;

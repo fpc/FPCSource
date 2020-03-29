@@ -11,10 +11,11 @@ begin
     begin
 {$endif ALLPACKAGES}
     P:=AddPackage('objcrtl');
+    P.ShortName := 'objc';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.OSes:=[darwin,iphonesim];
     P.Author := 'Library: Apple, header: Dmitry "skalogryz" Boyarintsev';
     P.License := 'Library: Apple, header: LGPL with modification, ';

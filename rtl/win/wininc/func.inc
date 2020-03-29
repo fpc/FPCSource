@@ -53,7 +53,7 @@ function FreeResource(hResData:HGLOBAL):WINBOOL; external 'kernel32' name 'FreeR
 function LockResource(hResData:HGLOBAL):LPVOID; external 'kernel32' name 'LockResource';
 {$ifdef Unknown_functions}
 { WARNING: function not found !!}
-function WinMain(hInstance:HINST; hPrevInstance:HINST; lpCmdLine:LPSTR; nShowCmd:longint):longint; external External_library name 'WinMain';
+function WinMain(hInstance:HINST; hPrevInstance:HINST; lpCmdLine:LPSTR; nShowCmd:longint):longint; external 'kernel32' name 'WinMain';
 {$endif Unknown_functions}
 function FreeLibrary(hLibModule:HINST):WINBOOL; external 'kernel32' name 'FreeLibrary';
 procedure FreeLibraryAndExitThread(hLibModule:HMODULE; dwExitCode:DWORD); external 'kernel32' name 'FreeLibraryAndExitThread';
@@ -137,6 +137,7 @@ function GetExitCodeThread(hThread:HANDLE; lpExitCode:LPDWORD):WINBOOL; external
 function GetThreadSelectorEntry(hThread:HANDLE; dwSelector:DWORD; lpSelectorEntry:LPLDT_ENTRY):WINBOOL; external 'kernel32' name 'GetThreadSelectorEntry';
 function GetLastError:DWORD; external 'kernel32' name 'GetLastError';
 procedure SetLastError(dwErrCode:DWORD); external 'kernel32' name 'SetLastError';
+function GetErrorMode : DWORD; stdcall; external 'kernel32' name 'GetErrorMode';
 function CreateIoCompletionPort(FileHandle:HANDLE; ExistingCompletionPort:HANDLE; CompletionKey:ULONG_PTR; NumberOfConcurrentThreads:DWORD):HANDLE; external 'kernel32' name 'CreateIoCompletionPort';
 function SetErrorMode(uMode:UINT):UINT; external 'kernel32' name 'SetErrorMode';
 function ReadProcessMemory(hProcess:HANDLE; lpBaseAddress:LPCVOID; lpBuffer:LPVOID; nSize:PTRUINT; lpNumberOfBytesRead:PPTRUINT):WINBOOL; external 'kernel32' name 'ReadProcessMemory';
@@ -721,6 +722,8 @@ function FrameRgn(_para1:HDC; _para2:HRGN; _para3:HBRUSH; _para4:longint; _para5
 function GetROP2(_para1:HDC):longint; external 'gdi32' name 'GetROP2';
 function GetAspectRatioFilterEx(_para1:HDC; _para2:LPSIZE):WINBOOL; external 'gdi32' name 'GetAspectRatioFilterEx';
 function GetBkColor(_para1:HDC):COLORREF; external 'gdi32' name 'GetBkColor';
+function GetDCBrushColor(_para1:HDC):COLORREF; external 'gdi32' name 'GetDCBrushColor';
+function GetDCPenColor(_para1:HDC):COLORREF; external 'gdi32' name 'GetDCPenColor';
 function GetBkMode(_para1:HDC):longint; external 'gdi32' name 'GetBkMode';
 function GetBitmapBits(_para1:HBITMAP; _para2:LONG; _para3:LPVOID):LONG; external 'gdi32' name 'GetBitmapBits';
 function GetBitmapDimensionEx(_para1:HBITMAP; _para2:LPSIZE):WINBOOL; external 'gdi32' name 'GetBitmapDimensionEx';
@@ -791,6 +794,8 @@ function SetMetaRgn(_para1:HDC):longint; external 'gdi32' name 'SetMetaRgn';
 function SelectObject(_para1:HDC; _para2:HGDIOBJ):HGDIOBJ; external 'gdi32' name 'SelectObject';
 function SelectPalette(_para1:HDC; _para2:HPALETTE; _para3:WINBOOL):HPALETTE; external 'gdi32' name 'SelectPalette';
 function SetBkColor(_para1:HDC; _para2:COLORREF):COLORREF; external 'gdi32' name 'SetBkColor';
+function SetDCBrushColor(_para1:HDC; _para2:COLORREF):COLORREF; external 'gdi32' name 'SetDCBrushColor';
+function SetDCPenColor(_para1:HDC; _para2:COLORREF):COLORREF; external 'gdi32' name 'SetDCPenColor';
 function SetBkMode(_para1:HDC; _para2:longint):longint; external 'gdi32' name 'SetBkMode';
 function SetBitmapBits(_para1:HBITMAP; _para2:DWORD; _para3:pointer):LONG; external 'gdi32' name 'SetBitmapBits';
 function SetBoundsRect(_para1:HDC; const _para2:RECT; _para3:UINT):UINT; external 'gdi32' name 'SetBoundsRect';
@@ -835,7 +840,7 @@ function AngleArc(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _par
 function PolyPolyline(_para1:HDC; var _para2:POINT; var _para3:DWORD; _para4:DWORD):WINBOOL; external 'gdi32' name 'PolyPolyline';
 function GetWorldTransform(_para1:HDC; _para2:LPXFORM):WINBOOL; external 'gdi32' name 'GetWorldTransform';
 function SetWorldTransform(_para1:HDC; var _para2:XFORM):WINBOOL; external 'gdi32' name 'SetWorldTransform';
-function ModifyWorldTransform(_para1:HDC; var _para2:XFORM; _para3:DWORD):WINBOOL; external 'gdi32' name 'ModifyWorldTransform';
+function ModifyWorldTransform(_para1:HDC; _para2:PXFORM; _para3:DWORD):WINBOOL; external 'gdi32' name 'ModifyWorldTransform';
 function CombineTransform(_para1:LPXFORM; var _para2:XFORM; var _para3:XFORM):WINBOOL; external 'gdi32' name 'CombineTransform';
 function CreateDIBSection(_para1:HDC; var _para2:BITMAPINFO; _para3:UINT; var _para4:pointer; _para5:HANDLE;_para6:DWORD):HBITMAP; external 'gdi32' name 'CreateDIBSection';
 function GetDIBColorTable(_para1:HDC; _para2:UINT; _para3:UINT; var _para4:RGBQUAD):UINT; external 'gdi32' name 'GetDIBColorTable';
@@ -1061,6 +1066,8 @@ procedure SHFreeNameMappings(_para1:HANDLE); external 'shell32' name 'SHFreeName
 function SHGetFileInfo(_para1:LPCTSTR; _para2:DWORD; var _para3:SHFILEINFO; _para4:UINT; _para5:UINT):DWORD_PTR; external 'shell32' name 'SHGetFileInfo';
 function SHGetPathFromIDList(_para1:LPCITEMIDLIST; _para2:LPTSTR):WINBOOL; external 'shell32' name 'SHGetPathFromIDList';
 function SHGetSpecialFolderLocation(_para1:HWND; _para2:longint; var _para3:LPITEMIDLIST):HRESULT; external 'shell32' name 'SHGetSpecialFolderLocation';
+function FlashWindowEx(pfwi : PFLASHWINFO) : BOOL; stdcall; external 'user32' name 'FlashWindowEx';
+function EnumTimeFormatsEx(TimeFormatsExEnum : TIMEFMT_ENUMPROCEX; LocaleName : LPCWSTR;Flags : DWORD;AppData : LPARAM) : BOOL; external 'kernel32' name 'EnumTimeFormatsEx';
 
 { was missing, bug report 1808 PM }
 {
@@ -1292,6 +1299,38 @@ function GET_DEVICE_CHANGE_WPARAM(wParam: WPARAM): WORD; inline;
 function GET_DEVICE_CHANGE_LPARAM(lParam: LPARAM): WORD; inline;
 //#endif /* (_WIN32_WINNT >= 0x0601) */
 
+function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE; 
+  function CONSOLE_REAL_INPUT_HANDLE : HANDLE; 
+  function GetConsoleScreenBufferInfoEx(hConsoleOutput:HANDLE; lpConsoleScreenBufferInfoEx:PCONSOLE_SCREEN_BUFFER_INFOEX):BOOL;stdcall;external 'kernel32' name 'GetConsoleScreenBufferInfoEx';
+  function SetConsoleScreenBufferInfoEx(hConsoleOutput:HANDLE; lpConsoleScreenBufferInfoEx:PCONSOLE_SCREEN_BUFFER_INFOEX):BOOL;stdcall;external 'kernel32' name 'SetConsoleScreenBufferInfoEx';
+ // function GetLargestConsoleWindowSize(hConsoleOutput:HANDLE):COORD;stdcall;external 'kernel32' name 'GetLargestConsoleWindowSize';
+  function GetCurrentConsoleFont(hConsoleOutput:HANDLE; bMaximumWindow:BOOL; lpConsoleCurrentFont:PCONSOLE_FONT_INFO):BOOL;stdcall;external 'kernel32' name 'GetCurrentConsoleFont';
+  function GetCurrentConsoleFontEx(hConsoleOutput:HANDLE; bMaximumWindow:BOOL; lpConsoleCurrentFontEx:PCONSOLE_FONT_INFOEX):BOOL;stdcall;external 'kernel32' name 'GetCurrentConsoleFontEx';
+  function SetCurrentConsoleFontEx(hConsoleOutput:HANDLE; bMaximumWindow:BOOL; lpConsoleCurrentFontEx:PCONSOLE_FONT_INFOEX):BOOL;stdcall;external 'kernel32' name 'SetCurrentConsoleFontEx';
+  function GetConsoleHistoryInfo(lpConsoleHistoryInfo:PCONSOLE_HISTORY_INFO):BOOL;stdcall;external 'kernel32' name 'GetConsoleHistoryInfo';
+  function SetConsoleHistoryInfo(lpConsoleHistoryInfo:PCONSOLE_HISTORY_INFO):BOOL;stdcall;external 'kernel32' name 'SetConsoleHistoryInfo';
+  function GetConsoleFontSize(hConsoleOutput:HANDLE; nFont:DWORD):COORD;stdcall;external 'kernel32' name 'GetConsoleFontSize';
+  function GetConsoleSelectionInfo(lpConsoleSelectionInfo:PCONSOLE_SELECTION_INFO):BOOL;stdcall;external 'kernel32' name 'GetConsoleSelectionInfo';
+  function AttachConsole(dwProcessId:DWORD):BOOL;stdcall;external 'kernel32' name 'AttachConsole';
+  function ATTACH_PARENT_PROCESS : DWORD;    
+
+
+  function GetConsoleDisplayMode(lpModeFlags:LPDWORD):BOOL;stdcall;external 'kernel32' name 'GetConsoleDisplayMode';
+  function SetConsoleDisplayMode(hConsoleOutput:HANDLE; dwFlags:DWORD; lpNewScreenBufferDimensions:PCOORD):BOOL;stdcall;external 'kernel32' name 'SetConsoleDisplayMode';
+  function GetConsoleWindow:HWND;stdcall;external 'kernel32' name 'GetConsoleWindow';
+  function GetConsoleProcessList(lpdwProcessList:LPDWORD; dwProcessCount:DWORD):DWORD;stdcall;external 'kernel32' name 'GetConsoleProcessList';
+  function ReadDirectoryChangesW(hDirectory: HANDLE; lpBuffer: LPVOID;nBufferLength: DWORD; bWatchSubtree: BOOL; dwNotifyFilter: DWORD;lpBytesReturned: LPDWORD;lpOverlapped: LPOVERLAPPED;lpCompletionRoutine: LPOVERLAPPED_COMPLETION_ROUTINE): BOOL; stdcall; external 'kernel32' name 'ReadDirectoryChangesW';  
+  function IsDebuggerPresent : BOOL; stdcall; external 'kernel32.dll' name 'IsDebuggerPresent';
+  function Wow64DisableWow64FsRedirection(RedirectionState : ppointer) : BOOL; stdcall;   external 'kernel32.dll' name 'Wow64DisableWow64FsRedirection';
+  function Wow64EnableWow64FsRedirection(Wow64FsEnableRedirection:BYTE) : BOOL; stdcall;   external 'kernel32.dll' name 'Wow64EnableWow64FsRedirection';
+  function Wow64RevertWow64FsRedirection(RedirectionState : pointer) : BOOL; stdcall; external 'kernel32.dll' name 'Wow64RevertWow64FsRedirection';
+  function IsWow64Process(hProcess:THandle; Wow64Process:PBOOL):BOOL;stdcall; external 'kernel32.dll' name 'IsWow64Process';
+  function GetPhysicallyInstalledSystemMemory(TotalMemoryInKilobytes: PULONGLONG ):BOOL; stdcall; external 'kernel32.dll' name 'GetPhysicallyInstalledSystemMemory';
+  function OpenThread(DesiredAccess : DWORD; InheritHandle : BOOL; ThreadId : DWORD) : THANDLE; stdcall; external 'kernel32.dll' name 'OpenThread';
+  function GetShellWindow:HWND; stdcall; external 'user32.dll' name 'GetShellWindow';
+  function RealChildWindowFromPoint(Parent : HWND; Pt : TPOINT): HWND; stdcall; external 'user32.dll' name 'RealChildWindowFromPoint';
+  function GetGuiResources(ProcessHandle : THANDLE; ResourceType : DWORD): DWORD; stdcall; external 'user32.dll' name 'GetGuiResources';
+  function SendInput(InputsCount : UINT; InputsPtr : PINPUT; Size : WINT) : UINT; stdcall; external 'user32.dll' name 'SendInput';
 {$endif read_interface}
 
 
@@ -2433,6 +2472,21 @@ end;
 function GET_DEVICE_CHANGE_LPARAM(lParam: LPARAM): WORD;
 begin
   GET_DEVICE_CHANGE_LPARAM:=LOWORD(lParam);
+end;
+
+function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE; 
+begin
+  CONSOLE_REAL_OUTPUT_HANDLE:=HANDLE(-(2));
+end;
+
+function CONSOLE_REAL_INPUT_HANDLE : HANDLE;
+begin
+  CONSOLE_REAL_INPUT_HANDLE:=HANDLE(-(3));
+end;
+
+function ATTACH_PARENT_PROCESS : DWORD;
+begin
+  ATTACH_PARENT_PROCESS:=DWORD(-(1));
 end;
 
 {$endif read_implementation}

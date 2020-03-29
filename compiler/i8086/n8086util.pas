@@ -42,7 +42,7 @@ implementation
 
   uses
     sysutils,cutils,
-    globtype,globals,cpuinfo,
+    globtype,globals,cpuinfo,systems,
     aasmbase,aasmdata,aasmtai,
     symdef;
 
@@ -52,7 +52,8 @@ implementation
       inherited;
       if current_settings.x86memorymodel<>mm_tiny then
         InsertStackSegment;
-      InsertHeapSegment;
+      if target_info.system<>system_i8086_win16 then
+        InsertHeapSegment;
       if current_settings.x86memorymodel in x86_near_data_models then
         InsertStackPlusHeapSize;
     end;
@@ -75,7 +76,7 @@ implementation
       while stacksizeleft>0 do
         begin
           stackblock:=min(stacksizeleft,high(aint));
-          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create('___stackblock'+IntToStr(i),stackblock,carraydef.getreusable(u8inttype,stackblock)));
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create('___stackblock'+IntToStr(i),stackblock,carraydef.getreusable(u8inttype,stackblock),AT_DATA));
           dec(stacksizeleft,stackblock);
           inc(i);
         end;
@@ -100,7 +101,7 @@ implementation
       while heapsizeleft>0 do
         begin
           heapblock:=min(heapsizeleft,high(aint));
-          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create('___heapblock'+IntToStr(i),heapblock,carraydef.getreusable(u8inttype,heapblock)));
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create('___heapblock'+IntToStr(i),heapblock,carraydef.getreusable(u8inttype,heapblock),AT_DATA));
           dec(heapsizeleft,heapblock);
           inc(i);
         end;

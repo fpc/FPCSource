@@ -14,7 +14,7 @@ const
 (* stream. Will Terminate executing program, as well as display info     *)
 (* on the type of error encountered.                                     *)
 (*************************************************************************)
-Procedure StreamErrorProcedure(Var S: TStream); FAR;
+Procedure StreamErrorProcedure(Var S: TStream);
 Begin
  If S.Status = StError then
  Begin

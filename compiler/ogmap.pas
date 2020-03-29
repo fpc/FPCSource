@@ -27,9 +27,9 @@ interface
 
     uses
        { common }
-       cclasses,globtype,systems,
+       globtype,
        { object writer }
-       aasmbase,ogbase
+       ogbase
        ;
 
     type
@@ -40,6 +40,7 @@ interface
        public
          constructor Create(const s:string);
          destructor Destroy;override;
+         procedure Flush;
          procedure Add(const s:string);
          procedure AddHeader(const s:string);
          procedure AddCommonSymbolsHeader;
@@ -57,9 +58,7 @@ interface
 implementation
 
     uses
-      cutils,cfileutl,
-      globals,verbose;
-
+      cutils,cfileutl;
 
     const
       HexTbl : array[0..15] of char='0123456789abcdef';
@@ -110,6 +109,12 @@ implementation
      destructor TExeMap.Destroy;
        begin
          Close(t);
+       end;
+
+
+     procedure TExeMap.Flush;
+       begin
+         System.Flush(t);
        end;
 
 
@@ -166,7 +171,7 @@ implementation
      procedure TExeMap.AddMemoryMapExeSection(p:texesection);
        begin
          { .text           0x000018a8     0xd958 }
-         Add(PadSpace(p.name,15)+PadSpace(' 0x'+HexStr(p.mempos+Fimagebase,sizeof(pint)*2),12)+
+         Add(PadSpace(p.name,15)+PadSpace(' '+p.MemPosStr(Fimagebase),12)+
              ' '+PadSpaceLeft(sizestr(p.size),9));
        end;
 

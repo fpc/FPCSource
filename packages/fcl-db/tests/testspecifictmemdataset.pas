@@ -5,6 +5,7 @@ unit TestSpecificTMemDataSet;
 }
 
 {$mode objfpc}{$H+}
+{$codepage UTF8}
 
 interface
 
@@ -25,6 +26,7 @@ type
     procedure TestFileName;
     procedure TestCopyFromDataset; //is copied dataset identical to original?
     procedure TestCopyFromDatasetMoved; //move record then copy. Is copy identical? Has record position changed?
+    Procedure TestLocateUTF8;
   end;
 
 implementation
@@ -96,12 +98,18 @@ end;
 
 procedure TTestSpecificTMemDataset.TestCopyFromDataset;
 var memds1, memds2: TMemDataset;
+    i: integer;
 begin
   memds1:=DBConnector.GetFieldDataset as TMemDataset;
   memds2:=DBConnector.GetNDataset(0) as TMemDataset;
 
   memds1.Open;
+  // insert 1st row with all NULL values
+  memds1.Insert; memds1.Post;
   memds2.CopyFromDataset(memds1);
+  // check if 1st row has all NULL values
+  for i:=0 to memds2.FieldCount-1 do CheckTrue(memds2.Fields[i].IsNull, 'IsNull');
+  memds2.Delete;
   CheckFieldDatasetValues(memds2);
 end;
 
@@ -120,6 +128,43 @@ begin
   CheckFieldDatasetValues(memds2);
   NewID:=memds1.FieldByName('ID').AsInteger;
   CheckEquals(CurrentID,NewID,'Mismatch between ID field contents - the record has moved.');
+end;
+
+procedure TTestSpecificTMemDataset.TestLocateUTF8;
+Var
+  MemDataset1: TMemDataset;
+  S : UTF8String;
+begin
+  MemDataset1:=TMemDataset.Create(Nil);
+  With MemDataset1 do
+    try
+    FieldDefs.Add('first',ftString,40,0,true,False,1,cp_UTF8);
+    FieldDefs.Add('second',ftString,40,0,true,False,2,cp_ACP);
+    CreateTable;
+    Active:=True;
+    Append;
+    Fields[0].AsUTF8String:='♯abcd';
+    Fields[1].AsString:='native';
+    Post;
+    Append;
+    Fields[0].AsUTF8String:='défaut';
+    Fields[1].AsString:='morenative';
+    Post;
+    First;
+    While not eof do
+      begin
+      S:=fields[0].AsUTF8String;
+      Writeln(S);
+      next;
+      end;
+    First;
+    AssertTrue('UTF8 1 ok',Locate('first','♯abcd',[]));
+    AssertTrue('UTF8 2 ok',Locate('first','défaut',[]));
+    AssertTrue('ANSI 1 ok',Locate('second','native',[]));
+    AssertTrue('ANSI 1 ok',Locate('second','morenative',[]));
+  finally
+    Free;
+  end;
 end;
 
 

@@ -70,16 +70,16 @@ unit cpubase;
          a_mov3q,a_mvz,a_mvs,a_sats,a_byterev,a_ff1,a_remu,a_rems,
          { fpu processor instructions - directly supported }
          { ieee aware and misc. condition codes not supported   }
-         a_fabs,a_fadd,
+         a_fabs,a_fsabs,a_fdabs,a_fadd,a_fsadd,a_fdadd,
          a_fbeq,a_fbne,a_fbngt,a_fbgt,a_fbge,a_fbnge,
          a_fblt,a_fbnlt,a_fble,a_fbgl,a_fbngl,a_fbgle,a_fbngle,
          a_fdbeq,a_fdbne,a_fdbgt,a_fdbngt,a_fdbge,a_fdbnge,
          a_fdblt,a_fdbnlt,a_fdble,a_fdbgl,a_fdbngl,a_fdbgle,a_fdbngle,
          a_fseq,a_fsne,a_fsgt,a_fsngt,a_fsge,a_fsnge,
          a_fslt,a_fsnlt,a_fsle,a_fsgl,a_fsngl,a_fsgle,a_fsngle,
-         a_fcmp,a_fdiv,a_fmove,a_fmovem,
-         a_fmul,a_fneg,a_fnop,a_fsqrt,a_fsub,a_fsgldiv,
-         a_fsflmul,a_ftst,
+         a_fcmp,a_fdiv,a_fsdiv,a_fddiv,a_fmove,a_fsmove,a_fdmove,a_fmovem,
+         a_fmul,a_fsmul,a_fdmul,a_fneg,a_fsneg,a_fdneg,a_fnop,a_fsqrt,a_fssqrt,a_fdsqrt,
+         a_fsub,a_fssub,a_fdsub,a_fsgldiv,a_fsglmul,a_ftst,
          a_ftrapeq,a_ftrapne,a_ftrapgt,a_ftrapngt,a_ftrapge,a_ftrapnge,
          a_ftraplt,a_ftrapnlt,a_ftraple,a_ftrapgl,a_ftrapngl,a_ftrapgle,a_ftrapngle,
          a_fint,a_fintrz,
@@ -116,7 +116,7 @@ unit cpubase;
       {$i r68ksup.inc}
       RS_SP = RS_A7;
 
-      R_SUBWHOLE = R_SUBNONE;
+      R_SUBWHOLE = R_SUBD;
 
       { Available Registers }
       {$i r68kcon.inc}
@@ -157,10 +157,6 @@ unit cpubase;
       VOLATILE_INTREGISTERS = [RS_D0,RS_D1];
       VOLATILE_FPUREGISTERS = [RS_FP0,RS_FP1];
       VOLATILE_ADDRESSREGISTERS = [RS_A0,RS_A1];
-
-    type
-      totherregisterset = set of tregisterindex;
-
 
 {*****************************************************************************
                                 Conditions
@@ -268,7 +264,8 @@ unit cpubase;
       NR_STACK_POINTER_REG = NR_SP;
       RS_STACK_POINTER_REG = RS_SP;
       {# Frame pointer register }
-{ Frame pointer register (initialized in tcpuprocinfo.init_framepointer) }
+
+      { Frame pointer register (initialized in tcpuprocinfo.init_framepointer) }
       RS_FRAME_POINTER_REG: tsuperregister = RS_NO;
       NR_FRAME_POINTER_REG: tregister = NR_NO;
 
@@ -276,11 +273,12 @@ unit cpubase;
          such as in PIC code. The exact meaning is ABI specific. For
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
       }
-{ TODO: FIX ME!!! pic offset reg conflicts with frame pointer?}
-      NR_PIC_OFFSET_REG = NR_A5;
+      RS_PIC_OFFSET_REG: tsuperregister = RS_NO;
+      NR_PIC_OFFSET_REG: tregister = NR_NO;
+
       { Return address for DWARF }
-{ TODO: just a guess!}
       NR_RETURN_ADDRESS_REG = NR_A0;
+      RS_RETURN_ADDRESS_REG = RS_A0;
       { Results are returned in this register (32-bit values) }
       NR_FUNCTION_RETURN_REG = NR_D0;
       RS_FUNCTION_RETURN_REG = RS_D0;
@@ -303,26 +301,20 @@ unit cpubase;
       {# Floating point results will be placed into this register }
       NR_FPU_RESULT_REG = NR_FP0;
 
+      {# This is m68k C ABI specific. Some ABIs expect the address of the
+         return struct result value in this register. Note that it could be
+         either A0 or A1, so later it must be decided on target/ABI specific
+         basis. We start with A1 now, because that's what Linux/m68k does
+         currently. (KB) }
+      RS_M68K_STRUCT_RESULT_REG: tsuperregister = RS_A1;
+      NR_M68K_STRUCT_RESULT_REG: tregister = NR_A1;
+
       NR_DEFAULTFLAGS = NR_SR;
       RS_DEFAULTFLAGS = RS_SR;
 
 {*****************************************************************************
                        GCC /ABI linking information
 *****************************************************************************}
-
-      {# Registers which must be saved when calling a routine declared as
-         cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
-         saved should be the ones as defined in the target ABI and / or GCC.
-
-         This value can be deduced from CALLED_USED_REGISTERS array in the
-         GCC source.
-      }
-      saved_standard_registers : array[0..5] of tsuperregister = (RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7);
-      saved_address_registers : array[0..4] of tsuperregister = (RS_A2,RS_A3,RS_A4,RS_A5,RS_A6);
-      saved_fpu_registers : array[0..5] of tsuperregister = (RS_FP2,RS_FP3,RS_FP4,RS_FP5,RS_FP6,RS_FP7);
-
-      { this is only for the generic code which is not used for this architecture }
-      saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
 
       {# Required parameter alignment when calling a routine declared as
          stdcall and cdecl. The alignment value should be the one defined
@@ -347,8 +339,7 @@ unit cpubase;
       tcgsize2opsize: Array[tcgsize] of topsize =
         (S_NO,S_B,S_W,S_L,S_L,S_NO,S_B,S_W,S_L,S_L,S_NO,
          S_FS,S_FD,S_FX,S_NO,S_NO,
-         S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,
-         S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
+         S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
 
     function  is_calljmp(o:tasmop):boolean;
 
@@ -370,7 +361,13 @@ unit cpubase;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+
     function dwarf_reg(r:tregister):shortint;
+    function dwarf_reg_no_error(r:tregister):shortint;
+    function eh_return_data_regno(nr: longint): longint;
 
     function isvalue8bit(val: tcgint): boolean;
     function isvalue16bit(val: tcgint): boolean;
@@ -403,9 +400,16 @@ implementation
 
     function is_calljmp(o:tasmop):boolean;
       begin
-        is_calljmp :=
-          o in [A_BXX,A_FBXX,A_DBXX,A_BCC..A_BVS,A_DBCC..A_DBVS,A_FBEQ..A_FSNGLE,
-                A_JSR,A_BSR,A_JMP];
+        case o of
+          A_BXX,A_FBXX,A_DBXX,
+          A_BCC..A_BVS,
+          A_DBCC..A_DBVS,
+          A_FBEQ..A_FSNGLE,
+          A_JSR,A_BSR,A_JMP:
+            is_calljmp:=true;
+          else
+            is_calljmp:=false;
+        end;
       end;
 
 
@@ -451,40 +455,43 @@ implementation
       end;
 
     function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
-      var p: pointer;
       begin
-        case s of
-          OS_NO: begin
-{ TODO: FIX ME!!! results in bad code generation}
+        case regtype of
+          R_INTREGISTER:
+            if (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[current_settings.cputype]) then
+              case s of
+                OS_8,OS_S8:
+                  cgsize2subreg:=R_SUBL;
+                OS_16,OS_S16:
+                  cgsize2subreg:=R_SUBW;
+                OS_32,OS_S32:
+                  cgsize2subreg:=R_SUBD;
+                OS_64,OS_S64:
+                  cgsize2subreg:=R_SUBWHOLE;
+                OS_NO:
+                  cgsize2subreg:=R_SUBNONE;
+              else
+                internalerror(2019090801);
+              end
+            else
+              case s of
+                OS_8,OS_S8,
+                OS_16,OS_S16,
+                OS_32,OS_S32,
+                OS_64,OS_S64:
+                  cgsize2subreg:=R_SUBWHOLE;
+                OS_NO:
+                  cgsize2subreg:=R_SUBNONE;
+              else
+                internalerror(2019090803);
+              end;
+          R_ADDRESSREGISTER:
             cgsize2subreg:=R_SUBWHOLE;
-            end;
+          R_FPUREGISTER:
+            cgsize2subreg:=R_SUBNONE;
 
-          OS_8,OS_S8:
-            cgsize2subreg:=R_SUBWHOLE;
-          OS_16,OS_S16:
-            cgsize2subreg:=R_SUBWHOLE;
-          OS_32,OS_S32:
-            cgsize2subreg:=R_SUBWHOLE;
-          OS_64,OS_S64:
-            begin
-             cgsize2subreg:=R_SUBWHOLE;
-            end;
-          OS_F32 :
-            cgsize2subreg:=R_SUBFS;
-          OS_F64 :
-            cgsize2subreg:=R_SUBFD;
-{
-            begin
-              // is this correct? (KB)
-              cgsize2subreg:=R_SUBNONE;
-            end;
-}
-          else begin
-    // this supposed to be debug
-    //        p:=nil; dword(p^):=0;
-    //        internalerror(200301231);
-            cgsize2subreg:=R_SUBWHOLE;
-          end;
+          else
+            internalerror(2019090802);
         end;
       end;
 
@@ -586,6 +593,26 @@ implementation
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         result := c1 = c2;
+    end;
+
+
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+      begin
+        Result := (c = C_None) or conditions_equal(Subset, c);
+
+        { Please update as necessary. [Kit] }
+        if not Result then
+          case Subset of
+            C_EQ:
+              Result := (c in [C_GE, C_LE]);
+            C_LT:
+              Result := (c in [C_LE]);
+            C_GT:
+              Result := (c in [C_GE]);
+            else
+              Result := False;
+          end;
       end;
 
 
@@ -596,6 +623,15 @@ implementation
           internalerror(200603251);
       end;
 
+    function dwarf_reg_no_error(r:tregister):shortint;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+      end;
+
+    function eh_return_data_regno(nr: longint): longint;
+      begin
+        result:=-1;
+      end;
 
     { returns true if given value fits to an 8bit signed integer }
     function isvalue8bit(val: tcgint): boolean;

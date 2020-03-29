@@ -101,7 +101,7 @@ type
     { library symbol for AROS }
     libsym : tsym;
     libsymderef : tderef;
-    function getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef; override;
+    function getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp; const paraprefix: string): tstoreddef; override;
     procedure buildderef; override;
     procedure deref; override;
   end;
@@ -208,7 +208,7 @@ implementation
     end;
 
 
-  function tcpuprocdef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef;
+  function tcpuprocdef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp; const paraprefix: string): tstoreddef;
     begin
       result:=inherited;
       if newtyp=procdef then

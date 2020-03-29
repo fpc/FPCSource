@@ -37,14 +37,15 @@ type
       tcpuregisterset; override;
     function get_volatile_registers_fpu(calloption: tproccalloption):
       tcpuregisterset; override;
+    function get_saved_registers_int(calloption: tproccalloption):
+      tcpuregisterarray; override;
     function push_addr_param(varspez: tvarspez; def: tdef; calloption:
       tproccalloption): boolean; override;
     function ret_in_param(def: tdef; pd: tabstractprocdef): boolean; override;
 
-    procedure getintparaloc(list: TAsmList; pd : tabstractprocdef; nr: longint; var cgpara: tcgpara); override;
+    procedure getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr: longint; var cgpara: tcgpara); override;
     function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
-    function create_varargs_paraloc_info(p: tabstractprocdef; varargspara:
-      tvarargsparalist): longint; override;
+    function create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee; varargspara: tvarargsparalist): longint; override;
     function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
 
   private
@@ -79,7 +80,19 @@ begin
   result := [RS_F0..RS_F13];
 end;
 
-procedure tcpuparamanager.getintparaloc(list: TAsmList; pd : tabstractprocdef; nr: longint; var cgpara: tcgpara);
+function tcpuparamanager.get_saved_registers_int(calloption: tproccalloption):
+  tcpuregisterarray;
+const
+  saved_regs: {$ifndef VER3_0}tcpuregisterarray{$else}array[0..17] of tsuperregister{$endif} = (
+    RS_R14, RS_R15, RS_R16, RS_R17, RS_R18, RS_R19,
+    RS_R20, RS_R21, RS_R22, RS_R23, RS_R24, RS_R25,
+    RS_R26, RS_R27, RS_R28, RS_R29, RS_R30, RS_R31
+    );
+begin
+  result:=saved_regs;
+end;
+
+procedure tcpuparamanager.getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr: longint; var cgpara: tcgpara);
 var
   paraloc: pcgparalocation;
   psym: tparavarsym;
@@ -201,6 +214,8 @@ begin
       result := not is_smallset(def);
     stringdef:
       result := tstringdef(def).stringtype in [st_shortstring, st_longstring];
+    else
+      ;
   end;
 end;
 
@@ -253,6 +268,8 @@ function tcpuparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
               result:=def.size>8;
             recorddef:
               result:=true;
+            else
+              ;
           end;
         end;
       { Darwin: if completely passed in registers -> returned by registers;
@@ -262,21 +279,31 @@ function tcpuparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
         begin
           case def.typ of
             recorddef:
-              { todo: fix once the Darwin/ppc64 abi is fully implemented, as it
-                requires individual fields to be passed in individual registers,
-                so a record with 9 bytes may need to be passed via memory }
-              if def.size>8*sizeof(aint) then
-                result:=true;
+              begin
+                { todo: fix once the Darwin/ppc64 abi is fully implemented, as it
+                  requires individual fields to be passed in individual registers,
+                  so a record with 9 bytes may need to be passed via memory }
+                if def.size>8*sizeof(aint) then
+                  result:=true;
+              end;
+            else
+              ;
           end;
         end;
+      else
+        internalerror(2019051030);
     end;
   end;
 
 procedure tcpuparamanager.init_values(var curintreg, curfloatreg, curmmreg:
   tsuperregister; var cur_stack_offset: aword);
 begin
-  { register parameter save area begins at 48(r2) }
-  cur_stack_offset := 48;
+  case target_info.abi of
+    abi_powerpc_elfv2:
+      cur_stack_offset := 32;
+    else
+      cur_stack_offset := 48;
+  end;
   curintreg := RS_R3;
   curfloatreg := RS_F1;
   curmmreg := RS_M2;
@@ -729,7 +756,7 @@ implemented
   end;
 end;
 
-function tcpuparamanager.create_varargs_paraloc_info(p: tabstractprocdef;
+function tcpuparamanager.create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee;
   varargspara: tvarargsparalist): longint;
 var
   cur_stack_offset: aword;
@@ -742,33 +769,28 @@ begin
   init_values(curintreg, curfloatreg, curmmreg, cur_stack_offset);
   firstfloatreg := curfloatreg;
 
-  result := create_paraloc_info_intern(p, callerside, p.paras, curintreg,
+  result := create_paraloc_info_intern(p, side, p.paras, curintreg,
     curfloatreg, curmmreg, cur_stack_offset, false);
-  if (p.proccalloption in cstylearrayofconst) then begin
-    { just continue loading the parameters in the registers }
-    result := create_paraloc_info_intern(p, callerside, varargspara, curintreg,
-      curfloatreg, curmmreg, cur_stack_offset, true);
-    { varargs routines have to reserve at least 64 bytes for the PPC64 ABI }
-    if (result < 64) then
-      result := 64;
-  end else begin
-    parasize := cur_stack_offset;
-    for i := 0 to varargspara.count - 1 do begin
-      hp := tparavarsym(varargspara[i]);
-      hp.paraloc[callerside].alignment := 8;
-      paraloc := hp.paraloc[callerside].add_location;
-      paraloc^.loc := LOC_REFERENCE;
-      paraloc^.size := def_cgsize(hp.vardef);
-      paraloc^.def := hp.vardef;
-      paraloc^.reference.index := NR_STACK_POINTER_REG;
-      l := push_size(hp.varspez, hp.vardef, p.proccalloption);
-      paraloc^.reference.offset := parasize;
-      parasize := parasize + l;
-    end;
-    result := parasize;
-  end;
+  if (p.proccalloption in cstylearrayofconst) then
+    begin
+      { just continue loading the parameters in the registers }
+      if assigned(varargspara) then
+        begin
+          if side=callerside then
+            result := create_paraloc_info_intern(p, side, varargspara, curintreg,
+              curfloatreg, curmmreg, cur_stack_offset, true)
+          else
+            internalerror(2019021920);
+        end;
+      { varargs routines have to reserve at least 64 bytes for the PPC64 ABI }
+      if (result < 64) then
+        result := 64;
+    end
+  else
+    internalerror(2019021911);
   if curfloatreg <> firstfloatreg then
     include(varargspara.varargsinfo, va_uses_float_reg);
+  create_funcretloc_info(p, side);
 end;
 
 function tcpuparamanager.parseparaloc(p: tparavarsym; const s: string): boolean;

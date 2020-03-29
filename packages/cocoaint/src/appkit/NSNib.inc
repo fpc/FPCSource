@@ -1,78 +1,54 @@
-{ Parsed from Appkit.framework NSNib.h }
+{ Parsed from AppKit.framework NSNib.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSNIB_PAS_T}
-{$define NSNIB_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSNIB_PAS_R}
-{$define NSNIB_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSNIB_PAS_F}
-{$define NSNIB_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSNIB_PAS_S}
-{$define NSNIB_PAS_S}
-
-{ External string constants }
-var
-  NSNibOwner: NSString; cvar; external;
-  NSNibTopLevelObjects: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSNib = objcclass;
-  NSNibPointer = ^NSNib;
-  NSNibPtr = NSNibPointer;
-
+type
+  NSNibPtr = ^NSNib;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSNIB_PAS_C}
-{$define NSNIB_PAS_C}
 
-{ NSNib }
+type
   NSNib = objcclass external (NSObject, NSCodingProtocol)
   private
     _data: NSData;
     _images: NSArray;
     _sounds: NSArray;
     _bundle: NSBundle;
-    __flags: record
+    _flags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSNib0: cuint);
-       1: (data: bitpacked record
-        _isKeyed: 0..1;
-        _reserved: 0..((1 shl 31)-1);
-       end;
-      );
+        0: (_anonBitField__flags0: cuint);
+        1: (
+          _isKeyed: 0..1;
+          _inheritsDecodeTimeBundle: 0..1;
+          _inheritsDecodeTimePath: 0..1;
+          _reserved: 0..((1 shl 29)-1);
+        );
       end;
     _path: NSString;
     reserved2: id;
-    
   public
-    function initWithContentsOfURL(nibFileURL: NSURL): id; message 'initWithContentsOfURL:';
-    function initWithNibNamed_bundle(nibName: NSString; bundle: NSBundle): id; message 'initWithNibNamed:bundle:';
-    function instantiateNibWithExternalNameTable(externalNameTable: NSDictionary): Boolean; message 'instantiateNibWithExternalNameTable:';
-    function instantiateNibWithOwner_topLevelObjects(owner: id; topLevelObjects: NSArrayPointer): Boolean; message 'instantiateNibWithOwner:topLevelObjects:';
+    function initWithNibNamed_bundle (nibName: NSString; bundle: NSBundle): instancetype; message 'initWithNibNamed:bundle:';
+    function initWithNibData_bundle (nibData: NSData; bundle: NSBundle): instancetype; message 'initWithNibData:bundle:'; { available in 10_8 }
+    function instantiateWithOwner_topLevelObjects (owner: id; topLevelObjects: NSArrayPtr): ObjCBOOL; message 'instantiateWithOwner:topLevelObjects:'; { available in 10_8 }
 
-    { Adopted Protocols }
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
+    { Adopted protocols }
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
   end;
 
+
+type
+  NSNib_NSDeprecated = objccategory external name 'NSDeprecated' (NSNib)
+    function initWithContentsOfURL (nibFileURL: NSURL): id; message 'initWithContentsOfURL:'; deprecated 'in 10_0, 10_8';
+    function instantiateNibWithExternalNameTable (externalNameTable: NSDictionary): ObjCBOOL; message 'instantiateNibWithExternalNameTable:'; deprecated 'in 10_0, 10_8';
+    function instantiateNibWithOwner_topLevelObjects (owner: id; topLevelObjects: NSArrayPtr): ObjCBOOL; message 'instantiateNibWithOwner:topLevelObjects:'; deprecated 'in 10_3, 10_8';
+  end;
 {$endif}
+
+{$ifdef EXTERNAL_SYMBOLS}
+var
+  NSNibOwner: NSString deprecated 'in 10_0, 10_8'; cvar; external;
+  NSNibTopLevelObjects: NSString deprecated 'in 10_0, 10_8'; cvar; external;
 {$endif}
+

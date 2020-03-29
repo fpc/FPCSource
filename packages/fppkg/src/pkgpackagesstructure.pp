@@ -31,6 +31,7 @@ type
   protected
     function GetPath: string; virtual;
     procedure SetPath(AValue: string); virtual;
+    procedure AddPackageToRepository(ARepository: TFPRepository; APackageName: string; APackageFilename: string);
   public
     property Path: string read GetPath write SetPath;
   end;
@@ -59,6 +60,17 @@ type
   public
     function AddPackagesToRepository(ARepository: TFPRepository): Boolean; override;
     function GetBuildPathDirectory(APackage: TFPPackage): string; override;
+  end;
+
+  { TFPArchiveFilenamePackagesStructure }
+
+  TFPArchiveFilenamePackagesStructure = class(TFPCustomPackagesStructure)
+  private
+    FArchiveFileName: string;
+  public
+    function AddPackagesToRepository(ARepository: TFPRepository): Boolean; override;
+    function UnzipBeforeUse: Boolean; override;
+    property ArchiveFileName: string read FArchiveFileName write FArchiveFileName;
   end;
 
   { TFPOriginalSourcePackagesStructure }
@@ -94,6 +106,23 @@ uses
   pkgrepos,
   pkgglobals;
 
+{ TFPArchiveFilenamePackagesStructure }
+
+function TFPArchiveFilenamePackagesStructure.AddPackagesToRepository(ARepository: TFPRepository): Boolean;
+var
+  Package: TFPPackage;
+begin
+  Result := True;
+  Package := ARepository.AddPackage(CmdLinePackageName);
+  Package.LocalFileName := FArchiveFileName;
+  Package.PackagesStructure := Self;
+end;
+
+function TFPArchiveFilenamePackagesStructure.UnzipBeforeUse: Boolean;
+begin
+  Result := True;
+end;
+
 { TFPCustomFileSystemPackagesStructure }
 
 function TFPCustomFileSystemPackagesStructure.GetPath: string;
@@ -104,6 +133,26 @@ end;
 procedure TFPCustomFileSystemPackagesStructure.SetPath(AValue: string);
 begin
   FPath := AValue;
+end;
+
+procedure TFPCustomFileSystemPackagesStructure.AddPackageToRepository(ARepository: TFPRepository; APackageName: string; APackageFilename: string);
+var
+  P: TFPPackage;
+begin
+  P:=ARepository.AddPackage(APackageName);
+  try
+    P.LoadUnitConfigFromFile(APackageFilename);
+    P.PackagesStructure:=Self;
+    log(llDebug,SLogFoundPackageInFile,[P.Name, APackageFilename]);
+    if P.IsFPMakeAddIn then
+      AddFPMakeAddIn(P);
+  except
+    on E: Exception do
+      begin
+      log(llWarning,SLogFailedLoadingPackage,[APackageName, APackageFilename, E.Message]);
+      P.Free;
+      end;
+  end;
 end;
 
 { TFPTemporaryDirectoryPackagesStructure }
@@ -283,6 +332,7 @@ var
 begin
   Result:=false;
   FpmkDir:=IncludeTrailingPathDelimiter(FPath)+'fpmkinst'+PathDelim+FCompilerOptions.CompilerTarget+PathDelim;
+  DirectoryExistsLog(FpmkDir);
   if FindFirst(IncludeTrailingPathDelimiter(FpmkDir)+'*'+FpmkExt,faDirectory,SR)=0 then
     begin
       log(llDebug,SLogFindInstalledPackages,[FpmkDir]);
@@ -290,12 +340,7 @@ begin
         if ((SR.Attr and faDirectory)=0) then
           begin
             // Try new .fpm-file
-            UF:=FpmkDir+SR.Name;
-            P:=ARepository.AddPackage(ChangeFileExt(SR.Name,''));
-            P.LoadUnitConfigFromFile(UF);
-            P.PackagesStructure:=Self;
-            if P.IsFPMakeAddIn then
-              AddFPMakeAddIn(P);
+            AddPackageToRepository(ARepository, ChangeFileExt(SR.Name,''), FpmkDir+SR.Name);
           end;
       until FindNext(SR)<>0;
     end;
@@ -303,6 +348,7 @@ begin
 
   // Search for non-fpmkunit packages
   UnitDir:=IncludeTrailingPathDelimiter(FPath)+'units'+PathDelim+FCompilerOptions.CompilerTarget+PathDelim;
+  DirectoryExistsLog(UnitDir);
   if FindFirst(IncludeTrailingPathDelimiter(UnitDir)+AllFiles,faDirectory,SR)=0 then
     begin
       log(llDebug,SLogFindInstalledPackages,[UnitDir]);
@@ -316,11 +362,7 @@ begin
               begin
                 if not Assigned(ARepository.FindPackage(SR.Name)) then
                   begin
-                    P:=ARepository.AddPackage(SR.Name);
-                    P.PackagesStructure:=Self;
-                    P.LoadUnitConfigFromFile(UF);
-                    if P.IsFPMakeAddIn then
-                      AddFPMakeAddIn(P);
+                    AddPackageToRepository(ARepository, SR.Name, UF);
                   end;
               end
             else
@@ -334,6 +376,7 @@ begin
                         P:=ARepository.AddPackage(SR.Name);
                         P.PackagesStructure:=Self;
                         LoadPackagefpcFromFile(P,UF);
+                        log(llDebug,SLogFoundPackageInFile,[P.Name, UF]);
                       end;
                   end;
               end;

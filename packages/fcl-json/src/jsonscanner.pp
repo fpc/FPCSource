@@ -14,6 +14,7 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{ $INLINE ON}
 
 unit jsonscanner;
 
@@ -24,7 +25,7 @@ uses SysUtils, Classes;
 resourcestring
   SErrInvalidCharacter = 'Invalid character at line %d, pos %d: ''%s''';
   SUnterminatedComment = 'Unterminated comment at line %d, pos %d: ''%s''';
-  SErrOpenString = 'string exceeds end of line';
+  SErrOpenString = 'string exceeds end of line %d';
 
 type
 
@@ -48,7 +49,7 @@ type
     tkUnknown
     );
 
-  EScannerError       = class(EParserError);
+  EScannerError = class(EParserError);
 
   TJSONOption = (joUTF8,joStrict,joComments,joIgnoreTrailingComma);
   TJSONOptions = set of TJSONOption;
@@ -62,30 +63,32 @@ Type
 
   TJSONScanner = class
   private
-    FSource : TStringList;
+    FSource: RawByteString;
+    FCurPos : PAnsiChar; // Position inside total string
     FCurRow: Integer;
     FCurToken: TJSONToken;
     FCurTokenString: string;
-    FCurLine: string;
-    TokenStr: PChar;
+    FCurLine: PChar;
+    FTokenStr:  PAnsiChar; // position inside FCurLine
+    FEOL : PAnsiChar; // EOL
     FOptions : TJSONOptions;
     function GetCurColumn: Integer; inline;
+    function GetCurLine: string;
     function GetO(AIndex: TJSONOption): Boolean;
     procedure SetO(AIndex: TJSONOption; AValue: Boolean);
   protected
     procedure Error(const Msg: string);overload;
-    procedure Error(const Msg: string; Const Args: array of Const);overload;
-    function DoFetchToken: TJSONToken; inline;
+    procedure Error(const Msg: string;  Const Args: array of const);overload;
+//    function DoFetchToken: TJSONToken; inline;
   public
     constructor Create(Source : TStream; AUseUTF8 : Boolean = True); overload; deprecated 'use options form instead';
-    constructor Create(const Source : String; AUseUTF8 : Boolean = True); overload; deprecated  'use options form instead';
     constructor Create(Source: TStream; AOptions: TJSONOptions); overload;
-    constructor Create(const Source: String; AOptions: TJSONOptions); overload;
-    destructor Destroy; override;
+    constructor Create(const aSource : RawByteString; AUseUTF8 : Boolean = True); overload; deprecated  'use options form instead';
+    constructor Create(const aSource: RawByteString; AOptions: TJSONOptions); overload;
+
     function FetchToken: TJSONToken;
 
-
-    property CurLine: string read FCurLine;
+    property CurLine: string read GetCurLine;
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
 
@@ -136,7 +139,20 @@ begin
   Create(Source,O);
 end;
 
-constructor TJSONScanner.Create(const Source : String; AUseUTF8 : Boolean = True);
+constructor TJSONScanner.Create(Source: TStream; AOptions: TJSONOptions);
+
+Var
+  S : RawByteString;
+
+begin
+  S:='';
+  SetLength(S,Source.Size);
+  if Length(S)>0 then
+    Source.ReadBuffer(S[1],Length(S));
+  Create(S,AOptions)
+end;
+
+constructor TJSONScanner.Create(const aSource : RawByteString; AUseUTF8 : Boolean = True);
 Var
   O : TJSONOptions;
 
@@ -146,35 +162,21 @@ begin
     Include(O,joUTF8)
   else
     Exclude(O,joUTF8);
-  Create(Source,O);
+  Create(aSource,O);
 end;
 
-constructor TJSONScanner.Create(Source: TStream; AOptions: TJSONOptions);
+constructor TJSONScanner.Create(const aSource: RawByteString; AOptions: TJSONOptions);
 begin
-  FSource:=TStringList.Create;
-  FSource.LoadFromStream(Source);
+  FSource:=aSource;
+  FCurPos:=PAnsiChar(FSource);
   FOptions:=AOptions;
 end;
 
-constructor TJSONScanner.Create(const Source: String; AOptions: TJSONOptions);
+function TJSONScanner.GetCurColumn: Integer;
 begin
-  FSource:=TStringList.Create;
-  FSource.Text:=Source;
-  FOptions:=AOptions;
+  Result := FTokenStr - FCurLine;
 end;
 
-destructor TJSONScanner.Destroy;
-begin
-  FreeAndNil(FSource);
-  Inherited;
-end;
-
-
-function TJSONScanner.FetchToken: TJSONToken;
-  
-begin
-  Result:=DoFetchToken;
-end;
 
 procedure TJSONScanner.Error(const Msg: string);
 begin
@@ -186,21 +188,35 @@ begin
   raise EScannerError.CreateFmt(Msg, Args);
 end;
 
-function TJSONScanner.DoFetchToken: TJSONToken;
+function TJSONScanner.FetchToken: TJSONToken;
+
 
   function FetchLine: Boolean;
+
+
   begin
-    Result:=FCurRow<FSource.Count;
+    Result:=(FCurPos<>Nil) and (FCurPos^<>#0);
     if Result then
       begin
-      FCurLine:=FSource[FCurRow];
-      TokenStr:=PChar(FCurLine);
-      Inc(FCurRow);
+      FCurLine:=FCurPos;
+      FTokenStr:=FCurPos;
+      While Not (FCurPos^ in [#0,#10,#13]) do
+        Inc(FCurPos);
+      FEOL:=FCurPos;
+      if (FCurPos^<>#0) then
+        begin
+        if (FCurPos^=#13) and (FCurPos[1]=#10) then
+          Inc(FCurPos); // Skip CR-LF
+        Inc(FCurPos); // To start of next line
+        Inc(FCurRow); // Increase line index
+        end;
+//      Len:=FEOL-FTokenStr;
+//      FTokenStr:=PAnsiChar(FCurLine);
       end
     else             
       begin
-      FCurLine:='';
-      TokenStr:=nil;
+      FCurLine:=Nil;
+      FTokenStr:=nil;
       end;
   end;
 
@@ -208,13 +224,33 @@ var
   TokenStart: PChar;
   it : TJSONToken;
   I : Integer;
-  OldLength, SectionLength,  tstart,tcol: Integer;
-  C : char;
-  S : String;
+  OldLength, SectionLength,  tstart,tcol, u1,u2: Integer;
+  C , c2: char;
+  S : String[4];
   IsStar,EOC: Boolean;
 
+  Procedure MaybeAppendUnicode;
+
+  Var
+    u : UTF8String;
+
+  begin
+  // if there is a leftover \u, append
+  if (u1<>0) then
+    begin
+    if (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8) then
+      U:=Utf8Encode(WideString(WideChar(u1))) // ToDo: use faster function
+    else
+      U:=String(WideChar(u1)); // WideChar converts the encoding. Should it warn on loss?
+    FCurTokenString:=FCurTokenString+U;
+    OldLength:=Length(FCurTokenString);
+    u1:=0;
+    end;
+  end;
+
+
 begin
-  if TokenStr = nil then
+  if (FTokenStr = nil) or (FTokenStr=FEOL) then
     if not FetchLine then
       begin
       Result := tkEOF;
@@ -223,44 +259,44 @@ begin
       end;
 
   FCurTokenString := '';
-
-  case TokenStr[0] of
+  case FTokenStr^ of
     #0:         // Empty line
       begin
       FetchLine;
       Result := tkWhitespace;
       end;
-    #9, ' ':
+    #9, ' ', #10, #13:
       begin
       Result := tkWhitespace;
       repeat
-        Inc(TokenStr);
-        if TokenStr[0] = #0 then
+        Inc(FTokenStr);
+        if FTokenStr[0] = #0 then
           if not FetchLine then
           begin
             FCurToken := Result;
             exit;
           end;
-      until not (TokenStr[0] in [#9, ' ']);
+      until not (FTokenStr[0] in [#9, ' ']);
       end;
     '"','''':
       begin
-        C:=TokenStr[0];
+        C:=FTokenStr^;
         If (C='''') and (joStrict in Options) then
-          Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]]);
-        Inc(TokenStr);
-        TokenStart := TokenStr;
+          Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
+        Inc(FTokenStr);
+        TokenStart := FTokenStr;
         OldLength := 0;
         FCurTokenString := '';
-        while not (TokenStr[0] in [#0,C]) do
+        u1:=0;
+        while not (FTokenStr^ in [#0,C]) do
           begin
-          if (TokenStr[0]='\') then
+          if (FTokenStr^='\') then
             begin
             // Save length
-            SectionLength := TokenStr - TokenStart;
-            Inc(TokenStr);
+            SectionLength := FTokenStr - TokenStart;
+            Inc(FTokenStr);
             // Read escaped token
-            Case TokenStr[0] of
+            Case FTokenStr^ of
               '"' : S:='"';
               '''' : S:='''';
               't' : S:=#9;
@@ -272,86 +308,112 @@ begin
               '/' : S:='/';
               'u' : begin
                     S:='0000';
+                    u2:=0;
                     For I:=1 to 4 do
                       begin
-                      Inc(TokenStr);
-                      Case TokenStr[0] of
-                        '0'..'9','A'..'F','a'..'f' :
-                          S[i]:=Upcase(TokenStr[0]);
+                      Inc(FTokenStr);
+                      c2:=FTokenStr^;
+                      Case c2 of
+                        '0'..'9': u2:=u2*16+ord(c2)-ord('0');
+                        'A'..'F': u2:=u2*16+ord(c2)-ord('A')+10;
+                        'a'..'f': u2:=u2*16+ord(c2)-ord('a')+10;
                       else
-                        Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]]);
+                        Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
                       end;
                       end;
-                    // WideChar takes care of conversion...  
-                    if (joUTF8 in Options) then
-                      S:=Utf8Encode(WideString(WideChar(StrToInt('$'+S))))
+                    // ToDo: 4-bytes UTF16
+                    if u1<>0 then
+                      begin
+                      if (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8) then
+                        S:=Utf8Encode(WideString(WideChar(u1)+WideChar(u2))) // ToDo: use faster function
+                      else
+                        S:=String(WideChar(u1)+WideChar(u2)); // WideChar converts the encoding. Should it warn on loss?
+                      u1:=0;
+                      end
                     else
-                      S:=WideChar(StrToInt('$'+S));  
+                      begin
+                      S:='';
+                      u1:=u2;
+                      end
                     end;
-              #0  : Error(SErrOpenString);
+              #0  : Error(SErrOpenString,[FCurRow]);
             else
-              Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]]);
+              Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
             end;
-            SetLength(FCurTokenString, OldLength + SectionLength+1+Length(S));
-            if SectionLength > 0 then
-              Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
-            Move(S[1],FCurTokenString[OldLength + SectionLength+1],Length(S));
-            Inc(OldLength, SectionLength+Length(S));
+            I:=Length(S);
+            if (SectionLength+I>0) then
+              begin
+              // If length=1, we know it was not \uXX, but u1 can be nonzero, and we must first append it.
+              // example: \u00f8\"
+              if (I=1) and (u1<>0) then
+                MaybeAppendUnicode;
+              SetLength(FCurTokenString, OldLength + SectionLength+i);
+              if SectionLength > 0 then
+                Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
+              if I>0 then
+                Move(S[1],FCurTokenString[OldLength + SectionLength+1],i);
+              Inc(OldLength, SectionLength+I);
+              end;
             // Next char
-            // Inc(TokenStr);
-            TokenStart := TokenStr+1;
-            end;
-          if TokenStr[0] = #0 then
-            Error(SErrOpenString);
-          Inc(TokenStr);
+            TokenStart := FTokenStr+1;
+            end
+          else if u1<>0 then
+            MaybeAppendUnicode;
+          if FTokenStr^ = #0 then
+            Error(SErrOpenString,[FCurRow]);
+          Inc(FTokenStr);
           end;
-        if TokenStr[0] = #0 then
-          Error(SErrOpenString);
-        SectionLength := TokenStr - TokenStart;
+        if FTokenStr^ = #0 then
+          Error(SErrOpenString,[FCurRow]);
+        if u1<>0 then
+          MaybeAppendUnicode;
+        SectionLength := FTokenStr - TokenStart;
         SetLength(FCurTokenString, OldLength + SectionLength);
         if SectionLength > 0 then
           Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkString;
       end;
     ',':
       begin
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkComma;
       end;
     '0'..'9','.','-':
       begin
-        TokenStart := TokenStr;
+        TokenStart := FTokenStr;
         while true do
         begin
-          Inc(TokenStr);
-          case TokenStr[0] of
+          Inc(FTokenStr);
+          case FTokenStr^ of
             '.':
               begin
-                if TokenStr[1] in ['0'..'9', 'e', 'E'] then
+                if FTokenStr[1] in ['0'..'9', 'e', 'E'] then
                 begin
-                  Inc(TokenStr);
+                  Inc(FTokenStr);
                   repeat
-                    Inc(TokenStr);
-                  until not (TokenStr[0] in ['0'..'9', 'e', 'E','-','+']);
+                    Inc(FTokenStr);
+                  until not (FTokenStr^ in ['0'..'9', 'e', 'E','-','+']);
                 end;
                 break;
               end;
             '0'..'9': ;
             'e', 'E':
               begin
-                Inc(TokenStr);
-                if TokenStr[0] in ['-','+']  then
-                  Inc(TokenStr);
-                while TokenStr[0] in ['0'..'9'] do
-                  Inc(TokenStr);
+                Inc(FTokenStr);
+                if FTokenStr^ in ['-','+']  then
+                  Inc(FTokenStr);
+                while FTokenStr^ in ['0'..'9'] do
+                  Inc(FTokenStr);
                 break;
               end;
-            else
-              break;
+          else
+            if {(FTokenStr<>FEOL) and }not (FTokenStr^ in [#13,#10,#0,'}',']',',',#9,' ']) then
+               Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
+            break;
           end;
         end;
-        SectionLength := TokenStr - TokenStart;
+        SectionLength := FTokenStr - TokenStart;
         FCurTokenString:='';
         SetString(FCurTokenString, TokenStart, SectionLength);
         If (FCurTokenString[1]='.') then
@@ -360,74 +422,74 @@ begin
       end;
     ':':
       begin
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkColon;
       end;
     '{':
       begin
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkCurlyBraceOpen;
       end;
     '}':
       begin
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkCurlyBraceClose;
       end;  
     '[':
       begin
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkSquaredBraceOpen;
       end;
     ']':
       begin
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkSquaredBraceClose;
       end;
     '/' :
       begin
       if Not (joComments in Options) then
-        Error(SErrInvalidCharacter, [CurRow,CurCOlumn,TokenStr[0]]);
-      TokenStart:=TokenStr;
-      Inc(TokenStr);
-      Case Tokenstr[0] of
+        Error(SErrInvalidCharacter, [CurRow,CurCOlumn,FTokenStr[0]]);
+      TokenStart:=FTokenStr;
+      Inc(FTokenStr);
+      Case FTokenStr^ of
         '/' : begin
-              SectionLength := Length(FCurLine)- (TokenStr - PChar(FCurLine));
-              Inc(TokenStr);
+              SectionLength := Length(FCurLine)- (FTokenStr - PChar(FCurLine));
+              Inc(FTokenStr);
               FCurTokenString:='';
-              SetString(FCurTokenString, TokenStr, SectionLength);
+              SetString(FCurTokenString, FTokenStr, SectionLength);
               Fetchline;
               end;
         '*' :
           begin
           IsStar:=False;
-          Inc(TokenStr);
-          TokenStart:=TokenStr;
+          Inc(FTokenStr);
+          TokenStart:=FTokenStr;
           Repeat
-            if (TokenStr[0]=#0) then
+            if (FTokenStr^=#0) then
               begin
-              SectionLength := (TokenStr - TokenStart);
+              SectionLength := (FTokenStr - TokenStart);
               S:='';
               SetString(S, TokenStart, SectionLength);
               FCurtokenString:=FCurtokenString+S;
               if not fetchLine then
-                Error(SUnterminatedComment, [CurRow,CurCOlumn,TokenStr[0]]);
-              TokenStart:=TokenStr;
+                Error(SUnterminatedComment, [CurRow,CurCOlumn,FTokenStr[0]]);
+              TokenStart:=FTokenStr;
               end;
-            IsStar:=TokenStr[0]='*';
-            Inc(TokenStr);
-            EOC:=(isStar and (TokenStr[0]='/'));
+            IsStar:=FTokenStr^='*';
+            Inc(FTokenStr);
+            EOC:=(isStar and (FTokenStr^='/'));
           Until EOC;
           if EOC then
             begin
-            SectionLength := (TokenStr - TokenStart-1);
+            SectionLength := (FTokenStr - TokenStart-1);
             S:='';
             SetString(S, TokenStart, SectionLength);
             FCurtokenString:=FCurtokenString+S;
-            Inc(TokenStr);
+            Inc(FTokenStr);
             end;
           end;
       else
-        Error(SErrInvalidCharacter, [CurRow,CurCOlumn,TokenStr[0]]);
+        Error(SErrInvalidCharacter, [CurRow,CurCOlumn,FTokenStr[0]]);
       end;
       Result:=tkComment;
       end;
@@ -435,11 +497,11 @@ begin
       begin
         tstart:=CurRow;
         Tcol:=CurColumn;
-        TokenStart := TokenStr;
+        TokenStart := FTokenStr;
         repeat
-          Inc(TokenStr);
-        until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
-        SectionLength := TokenStr - TokenStart;
+          Inc(FTokenStr);
+        until not (FTokenStr^ in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
+        SectionLength := FTokenStr - TokenStart;
         FCurTokenString:='';
         SetString(FCurTokenString, TokenStart, SectionLength);
         for it := tkTrue to tkNull do
@@ -455,15 +517,26 @@ begin
           Result:=tkIdentifier;
       end;
   else
-    Error(SErrInvalidCharacter, [CurRow,CurCOlumn,TokenStr[0]]);
+    Error(SErrInvalidCharacter, [CurRow,CurColumn,FTokenStr[0]]);
   end;
-
   FCurToken := Result;
 end;
 
-function TJSONScanner.GetCurColumn: Integer;
+{function TJSONScanner.FetchToken: TJSONToken;
+
 begin
-  Result := TokenStr - PChar(CurLine);
+  Result:=DoFetchToken;
+end;}
+
+function TJSONScanner.GetCurLine: string;
+begin
+  Result:='';
+  if FCurLine<>Nil then
+    begin
+    SetLength(Result,FEOL-FCurLine);
+    if Length(Result)>0 then
+      Move(FCurLine^,Result[1],Length(Result));
+    end;
 end;
 
 function TJSONScanner.GetO(AIndex: TJSONOption): Boolean;

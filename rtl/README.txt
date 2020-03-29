@@ -24,11 +24,4 @@ available in high-level language form), as well as optimized versions of
 the pascal generic routines (the generic routine source code is localed in
 the inc subdirectory).
 
-The following directories are not supported officially and may not work
-correctly with FreePascal v1.0:
-
-go32v1 - The DJGPP go32v1 DOS extender (no longer supported)
-palmos - The PalmOS directory for the Dragonball (incomplete)
-
-
 Enjoy.

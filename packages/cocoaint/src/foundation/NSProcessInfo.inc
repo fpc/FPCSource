@@ -1,11 +1,12 @@
 { Parsed from Foundation.framework NSProcessInfo.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSPROCESSINFO_PAS_T}
-{$define NSPROCESSINFO_PAS_T}
+type
+  NSProcessInfoPtr = ^NSProcessInfo;
+{$endif}
 
-{ Constants }
-
+{$ifdef TYPES}
 const
   NSWindowsNTOperatingSystem = 1;
   NSWindows95OperatingSystem = 2;
@@ -15,69 +16,77 @@ const
   NSSunOSOperatingSystem = 6;
   NSOSF1OperatingSystem = 7;
 
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSPROCESSINFO_PAS_R}
-{$define NSPROCESSINFO_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSPROCESSINFO_PAS_F}
-{$define NSPROCESSINFO_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPROCESSINFO_PAS_S}
-{$define NSPROCESSINFO_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSProcessInfo = objcclass;
-  NSProcessInfoPointer = ^NSProcessInfo;
-  NSProcessInfoPtr = NSProcessInfoPointer;
-
+type
+  NSOperatingSystemVersion = record
+    majorVersion: NSInteger;
+    minorVersion: NSInteger;
+    patchVersion: NSInteger;
+  end;
+type
+  NSOperatingSystemVersionPtr = ^NSOperatingSystemVersion;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSPROCESSINFO_PAS_C}
-{$define NSPROCESSINFO_PAS_C}
 
-{ NSProcessInfo }
+type
   NSProcessInfo = objcclass external (NSObject)
   private
-    _environment: NSDictionary;
-    _arguments: NSArray;
-    _hostName: NSString;
+    environment_: NSDictionary;
+    arguments_: NSArray;
+    hostName_: NSString;
     name: NSString;
-    reserved: Pointer;
-    
+    automaticTerminationOptOutCounter: NSInteger;
   public
     class function processInfo: NSProcessInfo; message 'processInfo';
     function environment: NSDictionary; message 'environment';
     function arguments: NSArray; message 'arguments';
     function hostName: NSString; message 'hostName';
+    procedure setProcessName(newValue: NSString); message 'setProcessName:';
     function processName: NSString; message 'processName';
     function processIdentifier: cint; message 'processIdentifier';
-    procedure setProcessName(newName: NSString); message 'setProcessName:';
     function globallyUniqueString: NSString; message 'globallyUniqueString';
-    function operatingSystem: NSUInteger; message 'operatingSystem';
-    function operatingSystemName: NSString; message 'operatingSystemName';
+    function operatingSystem: NSUInteger; message 'operatingSystem'; deprecated 'in 10_0, 10_10, 2_0, 8_0, "-operatingSystem always returns NSMACHOperatingSystem, use -operatingSystemVersion or -isOperatingSystemAtLeastVersion: instead"';
+    function operatingSystemName: NSString; message 'operatingSystemName'; deprecated 'in 10_0, 10_10, 2_0, 8_0, "-operatingSystemName always returns NSMACHOperatingSystem, use -operatingSystemVersionString instead"';
     function operatingSystemVersionString: NSString; message 'operatingSystemVersionString';
+    function operatingSystemVersion: NSOperatingSystemVersion; message 'operatingSystemVersion';
     function processorCount: NSUInteger; message 'processorCount';
     function activeProcessorCount: NSUInteger; message 'activeProcessorCount';
     function physicalMemory: culonglong; message 'physicalMemory';
+    function isOperatingSystemAtLeastVersion (version: NSOperatingSystemVersion): ObjCBOOL; message 'isOperatingSystemAtLeastVersion:'; { available in 10_10, 8_0 }
     function systemUptime: NSTimeInterval; message 'systemUptime';
-    procedure disableSuddenTermination; message 'disableSuddenTermination';
-    procedure enableSuddenTermination; message 'enableSuddenTermination';
+    procedure disableSuddenTermination; message 'disableSuddenTermination'; { available in 10_6, NA }
+    procedure enableSuddenTermination; message 'enableSuddenTermination'; { available in 10_6, NA }
+    procedure disableAutomaticTermination (reason: NSString); message 'disableAutomaticTermination:'; { available in 10_7, NA }
+    procedure enableAutomaticTermination (reason: NSString); message 'enableAutomaticTermination:'; { available in 10_7, NA }
+    procedure setAutomaticTerminationSupportEnabled(newValue: ObjCBOOL); message 'setAutomaticTerminationSupportEnabled:';
+    function automaticTerminationSupportEnabled: ObjCBOOL; message 'automaticTerminationSupportEnabled';
   end;
+{$endif}
 
+{$ifdef TYPES}
+type
+  NSActivityOptions = cuint64;
+  NSActivityOptionsPtr = ^NSActivityOptions;
+
+const
+  NSActivityIdleDisplaySleepDisabled = 1 shl 40;
+  NSActivityIdleSystemSleepDisabled = 1 shl 20;
+  NSActivitySuddenTerminationDisabled = 1 shl 14;
+  NSActivityAutomaticTerminationDisabled = 1 shl 15;
+  NSActivityUserInitiated = $00FFFFFF + NSActivityIdleSystemSleepDisabled;
+  NSActivityUserInitiatedAllowingIdleSystemSleep = NSActivityUserInitiated and NSActivityIdleSystemSleepDisabled;
+  NSActivityBackground = $000000FF;
+  NSActivityLatencyCritical = $FF00000000;
 {$endif}
+
+{$ifdef CLASSES}
+
+type
+  NSProcessInfo_NSObject = objcclass external (NSObject)
+  public
+    function beginActivityWithOptions_reason (options: NSActivityOptions; reason: NSString): NSObjectProtocol; message 'beginActivityWithOptions:reason:'; { available in 10_9, 7_0 }
+    procedure endActivity (activity: NSObjectProtocol); message 'endActivity:'; { available in 10_9, 7_0 }
+    procedure performActivityWithOptions_reason_usingBlock (options: NSActivityOptions; reason: NSString; block: OpaqueCBlock); message 'performActivityWithOptions:reason:usingBlock:'; { available in 10_9, 7_0 }
+  end;
 {$endif}
+

@@ -20,7 +20,7 @@ unit sysinit;
   implementation
 
    var
-      SysInstance : LongInt;
+      SysInstance : QWord;
       TlsKeyVar: DWord = $ffffffff;
 
       InitFinalTable : record end; external name 'INITFINAL';
@@ -55,7 +55,7 @@ unit sysinit;
     function GetConsoleMode(hConsoleHandle: THandle; var lpMode: DWORD): Boolean; stdcall; external 'kernel32' name 'GetConsoleMode';
 
     const
-      STD_INPUT_HANDLE = qword(-10);
+      STD_INPUT_HANDLE = dword(-10);
       SysInitEntryInformation : TEntryInformation = (
         InitFinalTable : @InitFinalTable;
         ThreadvarTablesTable : @ThreadvarTablesTable;

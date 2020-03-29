@@ -167,9 +167,8 @@ begin
   Try
     T:=TDaemonThread.Create(FDaemon);
     T.FreeOnTerminate:=True;
+    T.OnTerminate := @FDaemon.DoThreadTerminate;
     T.Resume;
-    T.WaitFor;
-    FDaemon.FThread:=Nil;
   except
     On E : Exception do
       FDaemon.Logmessage(Format(SErrDaemonStartFailed,[FDaemon.Definition.Name,E.Message]));
@@ -188,22 +187,32 @@ function TDaemonController.ReportStatus: Boolean;
 
 Var
   S : String;
+  doLog : Boolean;
 
 begin
   S:='';
+  DoLog:=True;
   If Assigned(FDaemon) then
     With FDaemon do
+      begin
       S:=Format(SDaemonStatus,[Definition.DisplayName,
                                CurrentStatusNames[Status]]);
-  Application.Log(etInfo,S);
+      if Assigned(Definition) then
+        doLog:=Definition.LogStatusReport;
+      end;  
+  if DoLog then    
+    Application.Log(etInfo,S);
 end;
 
 { ---------------------------------------------------------------------
   Global initialization/Finalization
   ---------------------------------------------------------------------}
-
+ 
+{$if defined(BeOS) and not defined(Haiku)}
+Procedure DoShutDown(Sig : Longint; SigContext: PSigContextRec; uContext : Pvregs);cdecl;
+{$else}
 Procedure DoShutDown(Sig : Longint; Info : PSigInfo; Context : PSigContext); cdecl;
-
+{$endif}
 begin
   Application.StopDaemons(True);
   Application.Terminate;
@@ -211,14 +220,22 @@ end;
 
 Procedure SysInitDaemonApp;
 
-Var
-  old,new : SigactionRec;
+  Procedure installhandler(aSig : Longint);
+
+  Var
+    old,new : SigactionRec;
+
+  begin
+    FillChar(New,SizeOf(Sigactionrec),#0);
+    FillChar(Old,SizeOf(Sigactionrec),#0);
+    New.sa_handler:=@DoShutDown;
+    fpSigaction(aSig,@New,@Old);
+  end;
 
 begin
-  New.sa_handler:=@DoShutDown;
-  fpSigaction(SIGQUIT,@New,@Old);
-  fpSigaction(SIGTERM,@New,@Old);
-  fpSigaction(SIGINT,@New,@Old);
+  InstallHandler(SIGQUIT);
+  InstallHandler(SIGTERM);
+  InstallHandler(SIGINT);
 end;
 
 

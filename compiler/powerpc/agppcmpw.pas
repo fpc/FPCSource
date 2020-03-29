@@ -57,7 +57,7 @@ interface
 
     uses
       cutils,globtype,systems,cclasses,
-      verbose,finput,fmodule,script,cpuinfo,
+      verbose,finput,fmodule,cscript,cpuinfo,
       cgbase,cgutils,
       itcpugas
       ;
@@ -82,6 +82,8 @@ interface
         'csect','csect','csect','csect','csect',
         'csect','csect','csect',
          '','','','','','','','','','','','','','',
+        '',
+        '',
         '',
         '',
         '',
@@ -275,9 +277,7 @@ interface
                 internalerror(2011122701);
               hs:=o.ref^.symbol.name;
               ReplaceForbiddenChars(hs);
-              if o.ref^.symbol.bind=AB_EXTERNAL then
-                hs:=hs+'[TC]';
-              hs:=hs+'(RTOC)';
+              hs:=hs+'[TC](RTOC)';
               getopstr:=hs;
             end
           else
@@ -306,12 +306,18 @@ interface
         case o of
           A_BCCTR,A_BCCTRL: tempstr := 'ctr';
           A_BCLR,A_BCLRL: tempstr := 'lr';
+          else
+            ;
         end;
         case o of
           A_BL,A_BLA,A_BCL,A_BCLA,A_BCCTRL,A_BCLRL: tempstr := tempstr+'l';
+          else
+            ;
         end;
         case o of
           A_BA,A_BLA,A_BCA,A_BCLA: tempstr:=tempstr+'a';
+          else
+            ;
         end;
         branchmode := tempstr;
       end;
@@ -721,8 +727,6 @@ interface
       consttype : taiconst_type;
       do_line,DoNotSplitLine,
       quoted   : boolean;
-      sin      : single;
-      d        : double;
 
     begin
       if not assigned(p) then
@@ -915,6 +919,8 @@ interface
                        until false;
                        writer.AsmLn;
                      end;
+                   else
+                     internalerror(2019050950);
                 end;
               end;
 
@@ -1098,9 +1104,9 @@ interface
         replaced: boolean;
 
       begin
-        if tasmsymbol(p).bind=AB_EXTERNAL then
+        if tasmsymbol(p).bind in [AB_EXTERNAL,AB_EXTERNAL_INDIRECT] then
           begin
-            //Writeln('ZZZ ',p.name,' ',p.classname,' ',Ord(tasmsymbol(p).typ));
+            //Writeln('ZZZ ',p.name,' ',p.typ);
             s:= p.name;
             replaced:= ReplaceForbiddenChars(s);
 
@@ -1200,8 +1206,8 @@ interface
       hal : tasmlisttype;
     begin
 {$ifdef EXTDEBUG}
-      if assigned(current_module.mainsource) then
-       comment(v_info,'Start writing MPW-styled assembler output for '+current_module.mainsource^);
+      if current_module.mainsource<>'' then
+       comment(v_info,'Start writing MPW-styled assembler output for '+current_module.mainsource);
 {$endif}
 
       WriteAsmFileHeader;
@@ -1218,8 +1224,8 @@ interface
       writer.AsmLn;
 
 {$ifdef EXTDEBUG}
-      if assigned(current_module.mainsource) then
-       comment(v_info,'Done writing MPW-styled assembler output for '+current_module.mainsource^);
+      if current_module.mainsource<>'' then
+       comment(v_info,'Done writing MPW-styled assembler output for '+current_module.mainsource);
 {$endif EXTDEBUG}
    end;
 

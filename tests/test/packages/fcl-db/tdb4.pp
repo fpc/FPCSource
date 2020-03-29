@@ -1,3 +1,4 @@
+{ %skiptarget=msdos,go32v2 }
 program TestMemDs;
 
 {$mode objfpc}{$H+}

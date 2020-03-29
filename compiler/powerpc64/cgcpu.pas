@@ -334,22 +334,22 @@ begin
     tempreg := getintregister(list, OS_INT);
     { load actual function entry (reg contains the reference to the function descriptor)
     into tempreg }
-    reference_reset_base(tmpref, reg, 0, sizeof(pint), []);
+    reference_reset_base(tmpref, reg, 0, ctempposinvalid, sizeof(pint), []);
     a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, tempreg);
 
     { save TOC pointer in stackframe }
-    reference_reset_base(tmpref, NR_STACK_POINTER_REG, get_rtoc_offset, 8, []);
+    reference_reset_base(tmpref, NR_STACK_POINTER_REG, get_rtoc_offset, ctempposinvalid, 8, []);
     a_load_reg_ref(list, OS_ADDR, OS_ADDR, NR_RTOC, tmpref);
 
     { move actual function pointer to CTR register }
     list.concat(taicpu.op_reg(A_MTCTR, tempreg));
 
     { load new TOC pointer from function descriptor into RTOC register }
-    reference_reset_base(tmpref, reg, tcgsize2size[OS_ADDR], 8, []);
+    reference_reset_base(tmpref, reg, tcgsize2size[OS_ADDR], ctempposinvalid, 8, []);
     a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_RTOC);
 
     { load new environment pointer from function descriptor into R11 register }
-    reference_reset_base(tmpref, reg, 2*tcgsize2size[OS_ADDR], 8, []);
+    reference_reset_base(tmpref, reg, 2*tcgsize2size[OS_ADDR], ctempposinvalid, 8, []);
     a_reg_alloc(list, NR_R11);
     a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_R11);
     { call function }
@@ -365,7 +365,7 @@ begin
   end;
 
   { we need to load the old RTOC from stackframe because we changed it}
-  reference_reset_base(tmpref, NR_STACK_POINTER_REG, get_rtoc_offset, 8, []);
+  reference_reset_base(tmpref, NR_STACK_POINTER_REG, get_rtoc_offset, ctempposinvalid, 8, []);
   a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_RTOC);
 
   include(current_procinfo.flags, pi_do_call);
@@ -1047,6 +1047,8 @@ begin
     LOC_MMREGISTER, LOC_CMMREGISTER:
       { not supported }
       internalerror(2006041801);
+    else
+      ;
   end;
 end;
 
@@ -1063,6 +1065,8 @@ begin
     LOC_MMREGISTER, LOC_CMMREGISTER:
       { not supported }
       internalerror(2006041802);
+    else
+      ;
   end;
 end;
 
@@ -1155,7 +1159,7 @@ var
         mayNeedLRStore := true;
     end else begin
       { save registers, FPU first, then GPR }
-      reference_reset_base(href, NR_STACK_POINTER_REG, -8, 8, []);
+      reference_reset_base(href, NR_STACK_POINTER_REG, -8, ctempposinvalid, 8, []);
       if (fprcount > 0) then
         for regcount := RS_F31 downto firstregfpu do begin
           a_loadfpu_reg_ref(list, OS_FLOAT, OS_FLOAT, newreg(R_FPUREGISTER,
@@ -1176,7 +1180,7 @@ var
 
     { we may need to store R0 (=LR) ourselves }
     if ((cs_profile in init_settings.moduleswitches) or (mayNeedLRStore)) and (needslinkreg) then begin
-      reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, 8, []);
+      reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, ctempposinvalid, 8, []);
       list.concat(taicpu.op_reg_ref(A_STD, NR_R0, href));
     end;
   end;
@@ -1242,10 +1246,10 @@ begin
   if (not nostackframe) and (localsize > 0) and
      tcpuprocinfo(current_procinfo).needstackframe then begin
     if (localsize <= high(smallint)) then begin
-      reference_reset_base(href, NR_STACK_POINTER_REG, -localsize, 8, []);
+      reference_reset_base(href, NR_STACK_POINTER_REG, -localsize, ctempposinvalid, 8, []);
       a_load_store(list, A_STDU, NR_STACK_POINTER_REG, href);
     end else begin
-      reference_reset_base(href, NR_NO, -localsize, 8, []);
+      reference_reset_base(href, NR_NO, -localsize, ctempposinvalid, 8, []);
 
       { Use R0 for loading the constant (which is definitely > 32k when entering
        this branch).
@@ -1327,7 +1331,7 @@ var
     end else begin
       needsExitCode := true;
       { restore registers, FPU first, GPR next }
-      reference_reset_base(href, NR_STACK_POINTER_REG, -tcgsize2size[OS_FLOAT], 8, []);
+      reference_reset_base(href, NR_STACK_POINTER_REG, -tcgsize2size[OS_FLOAT], ctempposinvalid, 8, []);
       if (fprcount > 0) then
         for regcount := RS_F31 downto firstregfpu do begin
           a_loadfpu_ref_reg(list, OS_FLOAT, OS_FLOAT, href, newreg(R_FPUREGISTER, regcount,
@@ -1348,7 +1352,7 @@ var
 
       { restore LR (if needed) }
       if (needslinkreg) then begin
-        reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, 8, []);
+        reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, ctempposinvalid, 8, []);
         list.concat(taicpu.op_reg_ref(A_LD, NR_R0, href));
         list.concat(taicpu.op_reg(A_MTLR, NR_R0));
       end;
@@ -1385,7 +1389,7 @@ begin
     if (localsize <= high(smallint)) then begin
       list.concat(taicpu.op_reg_reg_const(A_ADDI, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, localsize));
     end else begin
-      reference_reset_base(href, NR_NO, localsize, 8, []);
+      reference_reset_base(href, NR_NO, localsize, ctempposinvalid, 8, []);
 
       { use R0 for loading the constant (which is definitely > 32k when entering
        this branch)
@@ -1510,8 +1514,6 @@ var
 
 begin
 {$IFDEF extdebug}
-  if len > high(aint) then
-    internalerror(2002072704);
   list.concat(tai_comment.create(strpnew('g_concatcopy1 ' + inttostr(len) + ' bytes left ')));
 {$ENDIF extdebug}
   { if the references are equal, exit, there is no need to copy anything }
@@ -1710,6 +1712,8 @@ procedure tcgppc.a_load_store(list: TAsmList; op: tasmop; reg: tregister;
             end;
             ref.offset := (ref.offset div 4) * 4;
           end;
+        else
+          ;
       end;
     end;
 

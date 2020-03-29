@@ -32,4 +32,7 @@ tregister($0100001c),
 tregister($0100001d),
 tregister($0100001e),
 tregister($0100001f),
+tregister($0103001a),
+tregister($0103001c),
+tregister($0103001e),
 tregister($05000000)

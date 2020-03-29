@@ -26,7 +26,7 @@ unit nx86cnv;
 interface
 
     uses
-      node,ncgcnv,defutil,defcmp;
+      node,ncgcnv,defutil;
 
     type
        tx86typeconvnode = class(tcgtypeconvnode)
@@ -58,13 +58,14 @@ interface
 implementation
 
    uses
-      verbose,systems,globals,globtype,
+      verbose,globals,globtype,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symconst,symdef,
-      cgbase,cga,procinfo,pass_1,pass_2,
-      ncon,ncal,ncnv,
-      cpubase,cpuinfo,
-      cgutils,cgobj,hlcgobj,cgx86,ncgutil,
+      cgbase,cga,pass_1,pass_2,
+      cpuinfo,
+      ncnv,
+      cpubase,
+      cgutils,cgobj,hlcgobj,cgx86,
       tgobj;
 
 
@@ -162,13 +163,13 @@ implementation
                  begin
                    hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.register64.reglo,hregister);
-                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,GetNextReg(left.location.register64.reglo),hregister);
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,cg.GetNextReg(left.location.register64.reglo),hregister);
                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.register64.reghi,hregister);
-                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,GetNextReg(left.location.register64.reghi),hregister);
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,cg.GetNextReg(left.location.register64.reghi),hregister);
                  end
                 else
                   if left.location.size in [OS_32,OS_S32] then
-                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.register,GetNextReg(left.location.register))
+                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.register,cg.GetNextReg(left.location.register))
                 else
 {$endif}
                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
@@ -317,6 +318,8 @@ implementation
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,opsize,left.location.register,location.register,location.register))
                 else
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,opsize,left.location.register,location.register));
+              else
+                internalerror(2019050708);
             end;
           end
         else
@@ -331,13 +334,13 @@ implementation
     {$elseif defined(cpu32bitalu)}
                     emit_const_reg(A_BT,S_L,31,left.location.register64.reghi);
     {$elseif defined(cpu16bitalu)}
-                    emit_const_reg(A_BT,S_W,15,GetNextReg(left.location.register64.reghi));
+                    emit_const_reg(A_BT,S_W,15,cg.GetNextReg(left.location.register64.reghi));
     {$endif}
                   end
                 else
                   begin
     {$ifdef i8086}
-                    emit_const_reg(A_TEST,S_W,aint($8000),GetNextReg(left.location.register64.reghi));
+                    emit_const_reg(A_TEST,S_W,aint($8000),cg.GetNextReg(left.location.register64.reghi));
     {$else i8086}
                     internalerror(2013052510);
     {$endif i8086}

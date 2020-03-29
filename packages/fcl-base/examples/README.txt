@@ -76,3 +76,5 @@ testtimer.pp Test for TFPTimer (MVC)
 testini.pp   Test/Demo for inifiles, ReadSectionValues.
 contit.pp    Test/Demo for iterators in contnr.pp
 csvbom.pp    Test/Demo for BOM detection in CSV document. (needs databom.txt)
+testappexit.pp Test/Demo for TApplication exit code handling. (ExitCode and ExceptionExitcode)
+demoio.pp    Demo for AssignStream from streamio unit.

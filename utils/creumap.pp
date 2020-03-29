@@ -63,6 +63,7 @@ const
        BlockWrite(nef,AMap^.reversemap^,h.reverseMapLength);
        Close(nef);
 
+       FillChar(th,SizeOf(th),0);
        th.cpName := h.cpName;
        th.cp := SwapEndian(h.cp);
        th.mapLength := SwapEndian(h.mapLength);
@@ -72,6 +73,7 @@ const
        Rewrite(oef);
        BlockWrite(oef,th,SizeOf(th));
        pum := AMap^.map;
+       FillChar(um,SizeOf(um),0);
        for k := 0 to AMap^.lastchar do begin
           um.flag := pum^.flag;
           um.reserved := pum^.reserved;
@@ -80,6 +82,7 @@ const
           Inc(pum);
        end;
        prm := AMap^.reversemap;
+       FillChar(rm,SizeOf(rm),0);
        for k := 0 to AMap^.reversemaplength - 1 do begin
          rm.unicode := SwapEndian(prm^.unicode);
          rm.char1 := prm^.char1;

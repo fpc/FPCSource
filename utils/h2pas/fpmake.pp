@@ -15,7 +15,18 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-h2pas');
-    P.ShortName:='h2pas';
+    P.ShortName:='h2pa';
+    { java and jvm-android do not support 
+      fpc_get_output used in these sources }
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+    { palmos does not support command line parameters }
+    P.OSes := P.OSes - [palmos];
+    { Program does not fit in 16-bit memory constraints }
+    P.OSes := P.OSes - [msdos,win16];
+    { avr-embedded and i8086-embedded do not support all needed features by default }
+    if Defaults.CPU in [avr,i8086] then
+      P.OSes := P.OSes - [embedded];
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
@@ -25,7 +36,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
     P.Options.Add('-Sg');
 
@@ -45,6 +56,8 @@ begin
     T.Dependencies.AddUnit('h2poptions');
 
     T:=P.Targets.AddProgram('h2paspp.pas');
+
+    T:=P.Targets.AddProgram('h2paschk.pas');
 
     P.Targets.AddUnit('h2poptions.pas').install:=false;
     P.Targets.AddUnit('h2plexlib.pas').install:=false;

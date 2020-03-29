@@ -4,7 +4,7 @@
 
 [package]
 name=fcl-process
-version=3.1.1
+version=3.3.1
 
 [target]
 units=pipes process
@@ -17,8 +17,8 @@ units_solaris=simpleipc dbugmsg dbugintf pipesipc
 units_netbsd=simpleipc dbugmsg dbugintf pipesipc
 units_openbsd=simpleipc dbugmsg dbugintf pipesipc
 units_linux=simpleipc dbugmsg dbugintf pipesipc
-units_win32=simpleipc dbugmsg dbugintf
-units_win64=simpleipc dbugmsg dbugintf
+units_win32=simpleipc dbugmsg dbugintf processunicode
+units_win64=simpleipc dbugmsg dbugintf processunicode
 units_wince=simpleipc dbugmsg dbugintf
 units_qnx=simpleipc dbugmsg dbugintf pipesipc
 units_os2=simpleipc dbugmsg dbugintf

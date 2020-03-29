@@ -706,7 +706,7 @@ begin
   if P<>nil then Delete(P);
 end;
 begin
-  ForEach(@DeleteViews);
+  ForEach(TCallbackProcParam(@DeleteViews));
   inherited Done;
   P:=TabDefs;
   while P<>nil do

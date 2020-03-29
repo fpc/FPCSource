@@ -55,7 +55,7 @@ begin
      if BeginThread({$ifdef fpc}@{$endif}f,pointer(i)) <> tthreadid(0) then
        inc(started);
 
-   while finished<started do
+   while volatile(finished)<started do
      {$ifdef wince}sleep(10){$endif};
    writeln(finished);
 end.

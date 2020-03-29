@@ -14,7 +14,7 @@
  **********************************************************************}
 
 {$mode objfpc}{$H+}
-unit winutils;
+unit WinUtils;
 
 Interface
 

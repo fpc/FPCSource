@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('imagemagick');
+    P.ShortName := 'imgm';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
     P.Author := 'Library: ImageMagick Studio LLC , header: Felipe Monteiro de Carvalho';
     P.License := 'Library: Imagemagick license, header: LGPL with modification, ';
@@ -25,6 +26,8 @@ begin
     P.Description := 'Header to Imagemagick, a graphics manipulation program .';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
     P.OSes := AllUnixOSes+[win32,win64]-[qnx];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

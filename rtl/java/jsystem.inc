@@ -23,46 +23,6 @@ type
   ObjpasInt = LongInt;
 {$endif CPU16}
 
-{ The RTTI is implemented through a series of constants : }
-
-Const
-   // please update tkManagedTypes below if you add new
-   // values
-   tkUnknown        = 0;
-   tkInteger        = 1;
-   tkChar           = 2;
-   tkEnumeration    = 3;
-   tkFloat          = 4;
-   tkSet            = 5;
-   tkMethod         = 6;
-   tkSString        = 7;
-   tkString         = tkSString;
-   tkLString        = 8;
-   tkAString        = 9;
-   tkWString        = 10;
-   tkVariant        = 11;
-   tkArray          = 12;
-   tkRecord         = 13;
-   tkInterface      = 14;
-   tkClass          = 15;
-   tkObject         = 16;
-   tkWChar          = 17;
-   tkBool           = 18;
-   tkInt64          = 19;
-   tkQWord          = 20;
-   tkDynArray       = 21;
-   tkInterfaceCorba = 22;
-   tkProcVar        = 23;
-   tkUString        = 24;
-   tkHelper         = 26;
-   tkFile           = 27;
-   tkClassRef       = 28;
-   tkPointer        = 29;
-
-  // all potentially managed types
-  tkManagedTypes   = [tkAstring,tkWstring,tkUstring,tkArray,
-                     tkObject,tkRecord,tkDynArray,tkInterface,tkVariant];
-
 {****************************************************************************
                                 Local types
 ****************************************************************************}
@@ -449,6 +409,20 @@ function aligntoptr(p : pointer) : pointer;inline;
 
 {$i aliases.inc}
 
+{****************************************************************************
+                  Run-Time Type Information (RTTI) declarations
+****************************************************************************}
+
+(*
+type
+  PTypeKind = ^TTypeKind;
+*)
+
+const
+  // all potentially managed types
+  tkManagedTypes   = [tkAstring,tkWstring,tkUstring,tkArray,
+                     tkObject,tkRecord,tkDynArray,tkInterface,tkVariant];
+
 {*****************************************************************************
                         Dynamic Array support
 *****************************************************************************}
@@ -766,7 +740,7 @@ end;
 
 procedure fpc_threaderror; [public,alias:'FPC_THREADERROR'];
 begin
-  HandleErrorAddrFrameInd(6,get_pc_addr,get_frame);
+  HandleErrorAddrFrameInd(236{RuntimeErrorExitCodes[reThreadError]},get_pc_addr,get_frame);
 end;
 
 
@@ -1067,7 +1041,7 @@ end;
 procedure internal_do_exit; external name 'fpc_do_exit';
 
 
-Procedure lib_exit;[Public,Alias:'FPC_LIB_EXIT'];
+Procedure fpc_lib_exit;[Public,Alias:'FPC_LIB_EXIT'];
 begin
   InternalExit;
 end;

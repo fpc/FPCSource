@@ -134,11 +134,16 @@ end;
 procedure AfterCompile_gdbint(Sender: TObject);
 var
   L : TStrings;
+  P : TPackage;
 begin
   // Remove the generated gdbver.inc
   L := TStringList.Create;
+  P := Sender as TPackage;
   try
-    L.add(IncludeTrailingPathDelimiter(Installer.BuildEngine.StartDir)+'src/gdbver.inc');
+    if P.Directory<>'' then
+      L.add(IncludeTrailingPathDelimiter(P.Directory)+'src'+DirectorySeparator+'gdbver.inc')
+    else
+      L.add(IncludeTrailingPathDelimiter(Installer.BuildEngine.StartDir)+'src'+DirectorySeparator+'gdbver.inc');
     Installer.BuildEngine.CmdDeleteFiles(L);
   finally
     L.Free;
@@ -156,7 +161,7 @@ begin
     P:=AddPackage('gdbint');
     P.ShortName:='gdb';
     P.Directory:=ADirectory;
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Author := 'Library : Cygnus, header: Peter Vreman';
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

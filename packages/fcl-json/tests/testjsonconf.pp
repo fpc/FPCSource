@@ -3,6 +3,7 @@ program testjsonconf;
 {$mode objfpc}{$H+}
 
 uses
+  {$ifdef unix}cwstring,{$endif}
   Classes, consoletestrunner, jsonconftest, jsonconf;
 
 type

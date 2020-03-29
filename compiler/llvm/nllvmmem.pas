@@ -48,7 +48,7 @@ interface
         procedure pass_generate_code; override;
         procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint); override;
         procedure update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l: aint); override;
-        procedure update_reference_offset(var ref: treference; index, mulsize: aint); override;
+        procedure update_reference_offset(var ref: treference; index, mulsize: ASizeInt); override;
       end;
 
 
@@ -88,7 +88,7 @@ implementation
               left.resultdef,
               cpointerdef.getreusable(fielddef),
               location.reference,newbase);
-            reference_reset_base(location.reference,newbase,0,location.reference.alignment,location.reference.volatility);
+            reference_reset_base(location.reference,newbase,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
             result:=false;
           end
         else
@@ -157,7 +157,7 @@ implementation
           else
             current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,left.resultdef,
               locref^,ptruinttype,constarrayoffset,false));
-          reference_reset_base(locref^,hreg,0,locref^.alignment,locref^.volatility);
+          reference_reset_base(locref^,hreg,0,locref^.temppos,locref^.alignment,locref^.volatility);
         end;
 
       { see comment in getarrelementptrdef }
@@ -216,7 +216,7 @@ implementation
         { the array is already a pointer -> just index }
         current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(hreg,left.resultdef,
           location.reference,ptruinttype,maybe_const_reg,false));
-      reference_reset_base(location.reference,hreg,0,location.reference.alignment,location.reference.volatility);
+      reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
       location.reference.alignment:=newalignment(location.reference.alignment,l);
     end;
 
@@ -278,7 +278,7 @@ implementation
       current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(basereg,cpointerdef.getreusable(left.resultdef),
         sref.ref,ptruinttype,offsetreg,true));
       arraytopointerconverted:=true;
-      reference_reset_base(sref.ref,basereg,0,sref.ref.alignment,sref.ref.volatility);
+      reference_reset_base(sref.ref,basereg,0,sref.ref.temppos,sref.ref.alignment,sref.ref.volatility);
       { calculate the bit index inside that chunk: mask out
         the chunk index part }
       hreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
@@ -294,7 +294,7 @@ implementation
     end;
 
 
-  procedure tllvmvecnode.update_reference_offset(var ref: treference; index, mulsize: aint);
+  procedure tllvmvecnode.update_reference_offset(var ref: treference; index, mulsize: ASizeInt);
     begin
       if not is_packed_array(left.resultdef) or
          not (tarraydef(left.resultdef).elementdef.typ in [enumdef,orddef]) then

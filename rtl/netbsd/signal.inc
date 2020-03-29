@@ -293,6 +293,18 @@ enum { _FRAME_GREG(GREG_OFFSETS) _NGREG = 26 };
             {$WARNING FIXME! SigContextRec}
         end;
 {$endif m68k}
+{$ifdef CPUPOWERPC}
+        SigContextRec = record
+            sc_args : array[0..6] of clong;
+            {$WARNING FIXME! SigContextRec}
+        end;
+{$endif powerpc}
+{$ifdef CPUARM}
+        SigContextRec = record
+            sc_args : array[0..6] of clong;
+            {$WARNING FIXME! SigContextRec}
+        end;
+{$endif m68k}
 
   SignalHandler   = Procedure(Sig : Longint);cdecl;
   PSignalHandler  = ^SignalHandler;

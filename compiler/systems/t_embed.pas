@@ -32,7 +32,7 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,comphook,script,fmodule,i_embed,link,
+       globtype,globals,systems,verbose,comphook,cscript,fmodule,i_embed,link,
        cpuinfo;
 
     type
@@ -74,7 +74,7 @@ const
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld -g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE -T $RES';
+     ExeCmd[1]:='ld -g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE -T $RES';
    end;
 end;
 
@@ -96,7 +96,7 @@ Var
 begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
-{$if defined(ARM) or defined(i386) or defined(x86_64) or defined(AVR) or defined(MIPSEL)}
+{$if defined(ARM) or defined(i386) or defined(x86_64) or defined(AVR) or defined(MIPSEL) or defined(RISCV32) or defined(XTENSA)}
   prtobj:='';
 {$else}
   prtobj:='prt0';
@@ -359,6 +359,13 @@ begin
       ct_stm32f051r6,
       ct_stm32f051r8,
 
+      ct_stm32f091cc,
+      ct_stm32f091cb,
+      ct_stm32f091rc,
+      ct_stm32f091rb,
+      ct_stm32f091vc,
+      ct_stm32f091vb,
+
       ct_stm32f100x4,
       ct_stm32f100x6,
       ct_stm32f100x8,
@@ -611,6 +618,10 @@ begin
       ct_nrf52840_xxaa,
       
       ct_sc32442b,
+
+      { Raspberry Pi 2 }
+      ct_raspi2,
+
       ct_thumb2bare:
         begin
          with embedded_controllers[current_settings.controllertype] do
@@ -672,6 +683,7 @@ begin
       Add('    *(.strings)');
       Add('    *(.rodata .rodata.*)');
       Add('    *(.comment)');
+      Add('    . = ALIGN(4);');
       Add('    _etext = .;');
       if embedded_controllers[current_settings.controllertype].flashsize<>0 then
         begin
@@ -812,6 +824,10 @@ begin
          Add('OUTPUT_ARCH(avr:51)');
        cpu_avr6:
          Add('OUTPUT_ARCH(avr:6)');
+       cpu_avrxmega3:
+         Add('OUTPUT_ARCH(avr:103)');
+       cpu_avrtiny:
+         Add('OUTPUT_ARCH(avr:100)');
        else
          Internalerror(2015072701);
       end;
@@ -1114,9 +1130,6 @@ begin
               Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
             end;
         end
-    else
-      if not (cs_link_nolink in current_settings.globalswitches) then
-      	 internalerror(200902011);
   end;
 
   with linkres do
@@ -1236,6 +1249,313 @@ begin
     end;
 {$endif MIPSEL}
 
+{$ifdef RISCV32}
+  with linkres do
+    begin
+      Add('OUTPUT_ARCH("riscv")');
+      Add('ENTRY(_START)');
+      Add('MEMORY');
+      with embedded_controllers[current_settings.controllertype] do
+        begin
+          Add('{');
+          Add('  flash      (rx)   : ORIGIN = 0x'+IntToHex(flashbase,6)+', LENGTH = 0x'+IntToHex(flashsize,6));
+          Add('  ram        (rw!x) : ORIGIN = 0x'+IntToHex(srambase,6)+', LENGTH = 0x'+IntToHex(sramsize,6));
+          Add('}');
+          Add('_stack_top = 0x' + IntToHex(srambase+sramsize-1,4) + ';');
+        end;
+      Add('SECTIONS');
+      Add('{');
+      Add('  .text :');
+      Add('  {');
+      Add('    _text_start = .;');
+      Add('    KEEP(*(.init .init.*))');
+      Add('    *(.text .text.*)');
+      Add('    *(.strings)');
+      Add('    *(.rodata .rodata.*)');
+      Add('    *(.comment)');
+      Add('    . = ALIGN(4);');
+      Add('    _etext = .;');
+      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+        begin
+          Add('  } >flash');
+          //Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >flash ');
+        end
+      else
+        begin
+          Add('  } >ram');
+          //Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >ram ');
+        end;
+
+      Add('  .data :');
+      Add('  {');
+      Add('    _data = .;');
+      Add('    *(.data .data.*)');
+      Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+      Add('    _edata = .;');
+      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+        begin
+          Add('  } >ram AT >flash');
+        end
+      else
+        begin
+          Add('  } >ram');
+        end;
+      Add('  .bss :');
+      Add('  {');
+      Add('    _bss_start = .;');
+      Add('    *(.bss .bss.*)');
+      Add('    *(COMMON)');
+      Add('  } >ram');
+      Add('  . = ALIGN(4);');
+      Add('  _bss_end = . ;');
+      Add('  /* Stabs debugging sections.  */');
+      Add('  .stab          0 : { *(.stab) }');
+      Add('  .stabstr       0 : { *(.stabstr) }');
+      Add('  .stab.excl     0 : { *(.stab.excl) }');
+      Add('  .stab.exclstr  0 : { *(.stab.exclstr) }');
+      Add('  .stab.index    0 : { *(.stab.index) }');
+      Add('  .stab.indexstr 0 : { *(.stab.indexstr) }');
+      Add('  .comment       0 : { *(.comment) }');
+      Add('  /* DWARF debug sections.');
+      Add('     Symbols in the DWARF debugging sections are relative to the beginning');
+      Add('     of the section so we begin them at 0.  */');
+      Add('  /* DWARF 1 */');
+      Add('  .debug          0 : { *(.debug) }');
+      Add('  .line           0 : { *(.line) }');
+      Add('  /* GNU DWARF 1 extensions */');
+      Add('  .debug_srcinfo  0 : { *(.debug_srcinfo) }');
+      Add('  .debug_sfnames  0 : { *(.debug_sfnames) }');
+      Add('  /* DWARF 1.1 and DWARF 2 */');
+      Add('  .debug_aranges  0 : { *(.debug_aranges) }');
+      Add('  .debug_pubnames 0 : { *(.debug_pubnames) }');
+      Add('  /* DWARF 2 */');
+      Add('  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }');
+      Add('  .debug_abbrev   0 : { *(.debug_abbrev) }');
+      Add('  .debug_line     0 : { *(.debug_line) }');
+      Add('  .debug_frame    0 : { *(.debug_frame) }');
+      Add('  .debug_str      0 : { *(.debug_str) }');
+      Add('  .debug_loc      0 : { *(.debug_loc) }');
+      Add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
+      Add('  /* SGI/MIPS DWARF 2 extensions */');
+      Add('  .debug_weaknames 0 : { *(.debug_weaknames) }');
+      Add('  .debug_funcnames 0 : { *(.debug_funcnames) }');
+      Add('  .debug_typenames 0 : { *(.debug_typenames) }');
+      Add('  .debug_varnames  0 : { *(.debug_varnames) }');
+      Add('  /* DWARF 3 */');
+      Add('  .debug_pubtypes 0 : { *(.debug_pubtypes) }');
+      Add('  .debug_ranges   0 : { *(.debug_ranges) }');
+
+      Add('}');
+      Add('_end = .;');
+
+    end;
+  {$endif RISCV32}
+
+  {$ifdef XTENSA}
+  with linkres do
+    begin
+      Add('/* Script for -z combreloc: combine and sort reloc sections */');
+      Add('/* Copyright (C) 2014-2018 Free Software Foundation, Inc.');
+      Add('   Copying and distribution of this script, with or without modification,');
+      Add('   are permitted in any medium without royalty provided the copyright');
+      Add('   notice and this notice are preserved.  */');
+      Add('ENTRY(_start)');
+      Add('SEARCH_DIR("=/builds/idf/crosstool-NG/builds/xtensa-esp32-elf/xtensa-esp32-elf/lib"); SEARCH_DIR("=/usr/local/lib"); SEARCH_DIR("=/lib"); SEARCH_DIR("=/usr/lib");');
+      Add('SECTIONS');
+      Add('{');
+      Add('  /* Read-only sections, merged into text segment: */');
+      Add('  PROVIDE (__executable_start = 0x400000); . = 0x400000 + SIZEOF_HEADERS;');
+      Add('  .interp         : { *(.interp) }');
+      Add('  .note.gnu.build-id : { *(.note.gnu.build-id) }');
+      Add('  .hash           : { *(.hash) }');
+      Add('  .gnu.hash       : { *(.gnu.hash) }');
+      Add('  .dynsym         : { *(.dynsym) }');
+      Add('  .dynstr         : { *(.dynstr) }');
+      Add('  .gnu.version    : { *(.gnu.version) }');
+      Add('  .gnu.version_d  : { *(.gnu.version_d) }');
+      Add('  .gnu.version_r  : { *(.gnu.version_r) }');
+      Add('  .rela.dyn       :');
+      Add('    {');
+      Add('      *(.rela.init)');
+      Add('      *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)');
+      Add('      *(.rela.fini)');
+      Add('      *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)');
+      Add('      *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)');
+      Add('      *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*)');
+      Add('      *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*)');
+      Add('      *(.rela.ctors)');
+      Add('      *(.rela.dtors)');
+      Add('      *(.rela.got)');
+      Add('      *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)');
+      Add('    }');
+      Add('  .rela.plt       : { *(.rela.plt) }');
+      Add('  /* .plt* sections are embedded in .text */');
+      Add('  .text           :');
+      Add('  {');
+      Add('    *(.got.plt* .plt*)');
+      Add('    KEEP (*(.init.literal))');
+      Add('    KEEP (*(SORT_NONE(.init)))');
+      Add('    *(.literal .text .stub .literal.* .text.* .gnu.linkonce.literal.* .gnu.linkonce.t.*.literal .gnu.linkonce.t.*)');
+      Add('    /* .gnu.warning sections are handled specially by elf32.em.  */');
+      Add('    *(.gnu.warning)');
+      Add('    KEEP (*(.fini.literal))');
+      Add('    KEEP (*(SORT_NONE(.fini)))');
+      Add('  } =0');
+      Add('  PROVIDE (__etext = .);');
+      Add('  PROVIDE (_etext = .);');
+      Add('  PROVIDE (etext = .);');
+      Add('  .rodata         : { *(.rodata .rodata.* .gnu.linkonce.r.*) }');
+      Add('  .rodata1        : { *(.rodata1) }');
+      Add('  .got.loc        : { *(.got.loc) }');
+      Add('  .xt_except_table   : ONLY_IF_RO { KEEP (*(.xt_except_table .xt_except_table.* .gnu.linkonce.e.*)) }');
+      Add('  .eh_frame_hdr : { *(.eh_frame_hdr) }');
+      Add('  .eh_frame       : ONLY_IF_RO { KEEP (*(.eh_frame)) }');
+      Add('  .gcc_except_table   : ONLY_IF_RO { *(.gcc_except_table .gcc_except_table.*) }');
+      Add('  /* Adjust the address for the data segment.  We want to adjust up to');
+      Add('     the same address within the page on the next page up.  */');
+      Add('  . = ALIGN(CONSTANT (MAXPAGESIZE)) + (. & (CONSTANT (MAXPAGESIZE) - 1));');
+      Add('  /* Exception handling  */');
+      Add('  .eh_frame       : ONLY_IF_RW { KEEP (*(.eh_frame)) }');
+      Add('  .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }');
+      Add('  /* Thread Local Storage sections  */');
+      Add('  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }');
+      Add('  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }');
+      Add('  .preinit_array     :');
+      Add('  {');
+      Add('    PROVIDE_HIDDEN (__preinit_array_start = .);');
+      Add('    KEEP (*(.preinit_array))');
+      Add('    PROVIDE_HIDDEN (__preinit_array_end = .);');
+      Add('  }');
+      Add('  .init_array     :');
+      Add('  {');
+      Add('     PROVIDE_HIDDEN (__init_array_start = .);');
+      Add('     KEEP (*(SORT(.init_array.*)))');
+      Add('     KEEP (*(.init_array))');
+      Add('     PROVIDE_HIDDEN (__init_array_end = .);');
+      Add('  }');
+      Add('  .fini_array     :');
+      Add('  {');
+      Add('    PROVIDE_HIDDEN (__fini_array_start = .);');
+      Add('    KEEP (*(SORT(.fini_array.*)))');
+      Add('    KEEP (*(.fini_array))');
+      Add('    PROVIDE_HIDDEN (__fini_array_end = .);');
+      Add('  }');
+      Add('  .ctors          :');
+      Add('  {');
+      Add('    /* gcc uses crtbegin.o to find the start of');
+      Add('       the constructors, so we make sure it is');
+      Add('       first.  Because this is a wildcard, it');
+      Add('       doesn''t matter if the user does not');
+      Add('       actually link against crtbegin.o; the');
+      Add('       linker won''t look for a file to match a');
+      Add('       wildcard.  The wildcard also means that it');
+      Add('       doesn''t matter which directory crtbegin.o');
+      Add('       is in.  */');
+      Add('    KEEP (*crtbegin.o(.ctors))');
+      Add('    KEEP (*crtbegin?.o(.ctors))');
+      Add('    /* We don''t want to include the .ctor section from');
+      Add('       the crtend.o file until after the sorted ctors.');
+      Add('       The .ctor section from the crtend file contains the');
+      Add('       end of ctors marker and it must be last */');
+      Add('    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .ctors))');
+      Add('    KEEP (*(SORT(.ctors.*)))');
+      Add('    KEEP (*(.ctors))');
+      Add('  }');
+      Add('  .dtors          :');
+      Add('  {');
+      Add('    KEEP (*crtbegin.o(.dtors))');
+      Add('    KEEP (*crtbegin?.o(.dtors))');
+      Add('    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .dtors))');
+      Add('    KEEP (*(SORT(.dtors.*)))');
+      Add('    KEEP (*(.dtors))');
+      Add('  }');
+      Add('  .jcr            : { KEEP (*(.jcr)) }');
+      Add('  .data.rel.ro : { *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*) *(.data.rel.ro .data.rel.ro.* .gnu.linkonce.d.rel.ro.*) }');
+      Add('  .xt_except_table   : ONLY_IF_RW { KEEP (*(.xt_except_table .xt_except_table.* .gnu.linkonce.e.*)) }');
+      Add('  .dynamic        : { *(.dynamic) }');
+      Add('  .got            : { *(.got) }');
+      Add('  .data           :');
+      Add('  {');
+      Add('    *(.data .data.* .gnu.linkonce.d.*)');
+      Add('    SORT(CONSTRUCTORS)');
+      Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+      Add('  }');
+      Add('  .data1          : { *(.data1) }');
+      Add('  .xt_except_desc   :');
+      Add('  {');
+      Add('    *(.xt_except_desc .xt_except_desc.* .gnu.linkonce.h.*)');
+      Add('    *(.xt_except_desc_end)');
+      Add('  }');
+      Add('  .lit4           :');
+      Add('  {');
+      Add('    PROVIDE (_lit4_start = .);');
+      Add('    *(.lit4 .lit4.* .gnu.linkonce.lit4.*)');
+      Add('    PROVIDE (_lit4_end = .);');
+      Add('  }');
+      Add('  _edata = .; PROVIDE (edata = .);');
+      Add('  __bss_start = .;');
+      Add('  .bss            :');
+      Add('  {');
+      Add('   *(.dynbss)');
+      Add('   *(.bss .bss.* .gnu.linkonce.b.*)');
+      Add('   *(COMMON)');
+      Add('   /* Align here to ensure that the .bss section occupies space up to');
+      Add('      _end.  Align after .bss to ensure correct alignment even if the');
+      Add('      .bss section disappears because there are no input sections.');
+      Add('      FIXME: Why do we need it? When there is no .bss section, we don''t');
+      Add('      pad the .data section.  */');
+      Add('   . = ALIGN(. != 0 ? 32 / 8 : 1);');
+      Add('  }');
+      Add('  . = ALIGN(32 / 8);');
+      Add('  . = ALIGN(32 / 8);');
+      Add('  _end = .; PROVIDE (end = .);');
+      Add('  /* Stabs debugging sections.  */');
+      Add('  .stab          0 : { *(.stab) }');
+      Add('  .stabstr       0 : { *(.stabstr) }');
+      Add('  .stab.excl     0 : { *(.stab.excl) }');
+      Add('  .stab.exclstr  0 : { *(.stab.exclstr) }');
+      Add('  .stab.index    0 : { *(.stab.index) }');
+      Add('  .stab.indexstr 0 : { *(.stab.indexstr) }');
+      Add('  .comment       0 : { *(.comment) }');
+      Add('  /* DWARF debug sections.');
+      Add('     Symbols in the DWARF debugging sections are relative to the beginning');
+      Add('     of the section so we begin them at 0.  */');
+      Add('  /* DWARF 1 */');
+      Add('  .debug          0 : { *(.debug) }');
+      Add('  .line           0 : { *(.line) }');
+      Add('  /* GNU DWARF 1 extensions */');
+      Add('  .debug_srcinfo  0 : { *(.debug_srcinfo) }');
+      Add('  .debug_sfnames  0 : { *(.debug_sfnames) }');
+      Add('  /* DWARF 1.1 and DWARF 2 */');
+      Add('  .debug_aranges  0 : { *(.debug_aranges) }');
+      Add('  .debug_pubnames 0 : { *(.debug_pubnames) }');
+      Add('  /* DWARF 2 */');
+      Add('  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }');
+      Add('  .debug_abbrev   0 : { *(.debug_abbrev) }');
+      Add('  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }');
+      Add('  .debug_frame    0 : { *(.debug_frame) }');
+      Add('  .debug_str      0 : { *(.debug_str) }');
+      Add('  .debug_loc      0 : { *(.debug_loc) }');
+      Add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
+      Add('  /* SGI/MIPS DWARF 2 extensions */');
+      Add('  .debug_weaknames 0 : { *(.debug_weaknames) }');
+      Add('  .debug_funcnames 0 : { *(.debug_funcnames) }');
+      Add('  .debug_typenames 0 : { *(.debug_typenames) }');
+      Add('  .debug_varnames  0 : { *(.debug_varnames) }');
+      Add('  /* DWARF 3 */');
+      Add('  .debug_pubtypes 0 : { *(.debug_pubtypes) }');
+      Add('  .debug_ranges   0 : { *(.debug_ranges) }');
+      Add('  /* DWARF Extension.  */');
+      Add('  .debug_macro    0 : { *(.debug_macro) }');
+      Add('  .debug_addr     0 : { *(.debug_addr) }');
+      Add('  .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }');
+      Add('  .xt.lit       0 : { KEEP (*(.xt.lit .xt.lit.* .gnu.linkonce.p.*)) }');
+      Add('  .xt.insn      0 : { KEEP (*(.xt.insn .gnu.linkonce.x.*)) }');
+      Add('  .xt.prop      0 : { KEEP (*(.xt.prop .xt.prop.* .gnu.linkonce.prop.*)) }');
+      Add('  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink)  *(.gnu.lto_*) }');
+      Add('}');
+    end;
+{$endif XTENSA}
 
   { Write and Close response }
   linkres.writetodisk;
@@ -1249,22 +1569,29 @@ end;
 function TlinkerEmbedded.MakeExecutable:boolean;
 var
   binstr,
-  cmdstr  : TCmdStr;
+  cmdstr,
+  mapstr: TCmdStr;
   success : boolean;
   StaticStr,
   GCSectionsStr,
   DynLinkStr,
-  StripStr: string;
+  StripStr,
+  FixedExeFileName: string;
 begin
   { for future use }
   StaticStr:='';
   StripStr:='';
+  mapstr:='';
   DynLinkStr:='';
+  FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
 
   GCSectionsStr:='--gc-sections';
   //if not(cs_link_extern in current_settings.globalswitches) then
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename);
+
+  if (cs_link_map in current_settings.globalswitches) then
+   mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
 
 { Write used files and libraries }
   WriteResponseFile();
@@ -1274,19 +1601,21 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if not(cs_link_on_target in current_settings.globalswitches) then
    begin
-    Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')))));
+    Replace(cmdstr,'$EXE',FixedExeFileName);
     Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
+    Replace(cmdstr,'$MAP',mapstr);
     Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
     Replace(cmdstr,'$DYNLINK',DynLinkStr);
    end
   else
    begin
-    Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf'))));
+    Replace(cmdstr,'$EXE',FixedExeFileName);
     Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
+    Replace(cmdstr,'$MAP',mapstr);
     Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
     Replace(cmdstr,'$DYNLINK',DynLinkStr);
    end;
@@ -1298,17 +1627,17 @@ begin
 
 { Post process }
   if success and not(cs_link_nolink in current_settings.globalswitches) then
-    success:=PostProcessExecutable(current_module.exefilename+'.elf',false);
+    success:=PostProcessExecutable(FixedExeFileName,false);
 
-  if success and (target_info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded]) then
+  if success and (target_info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded]) then
     begin
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
-        ChangeFileExt(current_module.exefilename,'.elf')+' '+
-        ChangeFileExt(current_module.exefilename,'.hex'),true,false);
+        FixedExeFileName+' '+
+        maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.hex'))),true,false);
       if success then
         success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
-          ChangeFileExt(current_module.exefilename,'.elf')+' '+
-          ChangeFileExt(current_module.exefilename,'.bin'),true,false);
+          FixedExeFileName+' '+
+          maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
     end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -1514,6 +1843,21 @@ initialization
   RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_m68k_embedded_info);
 {$endif m68k}
+
+{$ifdef riscv32}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_riscv32_embedded_info);
+{$endif riscv32}
+
+{$ifdef riscv64}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_riscv64_embedded_info);
+{$endif riscv64}
+
+{$ifdef xtensa}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_xtensa_embedded_info);
+{$endif xtensa}
 
 {$ifdef z80}
   RegisterLinker(ld_embedded,TLinkerEmbedded);

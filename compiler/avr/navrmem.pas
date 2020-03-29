@@ -76,7 +76,7 @@ unit navrmem;
                if nf_internal in flags then
                  hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef)
                else
-                 internalerror(2006111510);
+                 internalerror(2017072801);
              hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
            end;
       end;

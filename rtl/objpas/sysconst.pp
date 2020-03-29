@@ -12,14 +12,12 @@
 
  **********************************************************************}
 {$mode objfpc}
-{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-{$H+}
-{$endif FPC_HAS_FEATURE_ANSISTRINGS}
-unit sysconst;
+unit SysConst;
 
 interface
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+{$H+}
 resourcestring
 {$else FPC_HAS_FEATURE_ANSISTRINGS}
 const
@@ -100,6 +98,7 @@ const
   SStackOverflow         = 'Stack overflow';
   SSafecallException     = 'Exception in safecall method';
   SiconvError            = 'iconv error';
+  SThreadError           = 'Thread error';
 
   STooManyOpenFiles      = 'Too many open files';
   SUnKnownRunTimeError   = 'Unknown Run-Time error : %3.3d';

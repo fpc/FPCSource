@@ -1,7 +1,7 @@
 unit mkfpdoc;
 
 {$mode objfpc}{$H+}
-
+{$WARN 5024 off : Parameter "$1" not used}
 interface
 
 uses
@@ -270,18 +270,21 @@ begin
     for i := 0 to APackage.Inputs.Count - 1 do
       try
         SplitInputFileOption(APackage.Inputs[i],Cmd,Arg);
-        Cmd:=FixInputFIle(Cmd);
+        Cmd:=FixInputFile(Cmd);
         if FProcessedUnits.IndexOf(Cmd)=-1 then
           begin
           FProcessedUnits.Add(Cmd);
-          ParseSource(Engine,Cmd+' '+Arg, Options.OSTarget, Options.CPUTarget);
+          ParseSource(Engine,Cmd+' '+Arg, Options.OSTarget, Options.CPUTarget,[poUseStreams,poSkipDefaultDefs]);
           end;
       except
-        on e: EParserError do
+        on E: EParserError do
           If Options.StopOnParseError then
             Raise
           else
-            DoLog('%s(%d,%d): %s',[e.Filename, e.Row, e.Column, e.Message]);
+            begin
+            DoLog('Error: %s(%d,%d): %s',[E.Filename, E.Row, E.Column, E.Message]);
+            DoLog('Ignoring error, continuing with next unit (if any).');
+            end;
       end;
     if Not ParseOnly then
       begin

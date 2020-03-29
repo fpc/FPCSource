@@ -20,7 +20,7 @@ unit fphttpserver;
 interface
 
 uses
-  Classes, SysUtils, sockets, ssockets, resolve, httpdefs;
+  Classes, SysUtils, sockets, sslbase, sslsockets, ssockets, resolve, httpdefs;
 
 Const
   ReadBufLen = 4096;
@@ -30,6 +30,8 @@ Type
   TFPHTTPConnectionThread = Class;
   TFPCustomHttpServer = Class;
   TRequestErrorHandler = Procedure (Sender : TObject; E : Exception) of object;
+  TGetSocketHandlerEvent = Procedure (Sender : TObject; Const UseSSL : Boolean; Out AHandler : TSocketHandler) of object;
+  TSocketHandlerCreatedEvent = Procedure (Sender : TObject; AHandler : TSocketHandler) of object;
 
   { TFPHTTPConnectionRequest }
 
@@ -104,8 +106,11 @@ Type
     FAcceptIdleTimeout: Cardinal;
     FAdminMail: string;
     FAdminName: string;
+    FAfterSocketHandlerCreated: TSocketHandlerCreatedEvent;
+    FCertificateData: TCertificateData;
     FOnAcceptIdle: TNotifyEvent;
     FOnAllowConnect: TConnectQuery;
+    FOnGetSocketHandler: TGetSocketHandlerEvent;
     FOnRequest: THTTPServerRequestHandler;
     FOnRequestError: TRequestErrorHandler;
     FAddress: string;
@@ -117,9 +122,14 @@ Type
     FLookupHostNames,
     FThreaded: Boolean;
     FConnectionCount : Integer;
+    FUseSSL: Boolean;
+    procedure DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
     function GetActive: Boolean;
+    function GetHostName: string;
     procedure SetAcceptIdleTimeout(AValue: Cardinal);
     procedure SetActive(const AValue: Boolean);
+    procedure SetCertificateData(AValue: TCertificateData);
+    procedure SetHostName(AValue: string);
     procedure SetIdle(AValue: TNotifyEvent);
     procedure SetOnAllowConnect(const AValue: TConnectQuery);
     procedure SetAddress(const AValue: string);
@@ -129,6 +139,12 @@ Type
     procedure SetupSocket;
     procedure WaitForRequests;
   Protected
+    // Override this to create descendent
+    function CreateSSLSocketHandler: TSocketHandler;
+    // Override this to create descendent
+    Function CreateCertificateData : TCertificateData; virtual;
+    // Override this to create descendent
+    Function GetSocketHandler(Const UseSSL : Boolean) : TSocketHandler;  virtual;
     // Override these to create descendents of the request/response instead.
     Function CreateRequest : TFPHTTPConnectionRequest; virtual;
     Function CreateResponse(ARequest : TFPHTTPConnectionRequest) : TFPHTTPConnectionResponse; virtual;
@@ -189,6 +205,17 @@ Type
     property AdminName: string read FAdminName write FAdminName;
     property ServerBanner: string read FServerBanner write FServerBanner;
     Property LookupHostNames : Boolean Read FLookupHostNames Write FLookupHostNames;
+    // You need to set this if you want to use SSL
+    property HostName : string Read GetHostName Write SetHostName; deprecated 'Use certificatedata instead';
+    // Properties to use when doing SSL handshake
+    Property CertificateData  : TCertificateData Read FCertificateData Write SetCertificateData;
+    // Set to true if you want to use SSL
+    Property UseSSL : Boolean Read FUseSSL Write FUseSSL;
+    // Called to create socket handler. If not set, or Nil is returned, a standard socket handler is created.
+    Property OnGetSocketHandler : TGetSocketHandlerEvent Read FOnGetSocketHandler Write FOnGetSocketHandler;
+    // Called after create socket handler was created, with the created socket handler.
+    Property AfterSocketHandlerCreate : TSocketHandlerCreatedEvent Read FAfterSocketHandlerCreated Write FAfterSocketHandlerCreated;
+
   end;
 
   TFPHttpServer = Class(TFPCustomHttpServer)
@@ -255,6 +282,18 @@ begin
     415 :  Result:='Unsupported Media Type';
     416 :  Result:='Requested range not satisfiable';
     417 :  Result:='Expectation Failed';
+    418 :  Result:='I''m a teapot';
+    421 :  Result:='Misdirected Request';
+    422 :  Result:='Unprocessable Entity';
+    423 :  Result:='Locked';
+    424 :  Result:='Failed Dependency';
+    425 :  Result:='Too Early';
+    426 :  Result:='Upgrade Required';
+    428 :  Result:='Precondition Required';
+    429 :  Result:='Too Many Requests';
+    431 :  Result:='Request Header Fields Too Large';
+    451 :  Result:='Unavailable For Legal Reasons';
+
     500 :  Result:='Internal Server Error';
     501 :  Result:='Not Implemented';
     502 :  Result:='Bad Gateway';
@@ -455,6 +494,8 @@ Var
   I : Integer;
   
 begin
+  if aStartLine='' then 
+    exit;
   Request.Method:=GetNextWord(AStartLine);
   Request.URL:=GetNextWord(AStartLine);
   S:=Request.URL;
@@ -467,7 +508,7 @@ begin
     S:='';
   Request.PathInfo:=S;
   S:=GetNextWord(AStartLine);
-  If (Pos('HTTP/',S)<>1) then
+  If (S<>'') and (Pos('HTTP/',S)<>1) then
     Raise EHTTPServer.CreateHelp(SErrMissingProtocol,400);
   Delete(S,1,5);
   Request.ProtocolVersion:=trim(S);
@@ -480,6 +521,7 @@ Var
   S : String;
 
 begin
+  S:='';
   L:=ARequest.ContentLength;
   If (L>0) then
     begin
@@ -648,6 +690,16 @@ begin
     Result:=Assigned(FServer);
 end;
 
+procedure TFPCustomHttpServer.DoCreateClientHandler(Sender: TObject; out AHandler: TSocketHandler);
+begin
+  AHandler:=GetSocketHandler(UseSSL);
+end;
+
+function TFPCustomHttpServer.GetHostName: string;
+begin
+  Result:=FCertificateData.HostName;
+end;
+
 procedure TFPCustomHttpServer.SetAcceptIdleTimeout(AValue: Cardinal);
 begin
   if FAcceptIdleTimeout=AValue then Exit;
@@ -675,6 +727,17 @@ begin
       end
     else
       StopServerSocket;
+end;
+
+procedure TFPCustomHttpServer.SetCertificateData(AValue: TCertificateData);
+begin
+  if FCertificateData=AValue then Exit;
+  FCertificateData:=AValue;
+end;
+
+procedure TFPCustomHttpServer.SetHostName(AValue: string);
+begin
+  FCertificateData.HostName:=aValue;
 end;
 
 procedure TFPCustomHttpServer.SetIdle(AValue: TNotifyEvent);
@@ -787,11 +850,13 @@ begin
 end;
 
 procedure TFPCustomHttpServer.CreateServerSocket;
+
 begin
   if FAddress='' then
     FServer:=TInetServer.Create(FPort)
   else
     FServer:=TInetServer.Create(FAddress,FPort);
+  FServer.OnCreateClientSocketHandler:=@DoCreateClientHandler;
   FServer.MaxConnections:=-1;
   FServer.OnConnectQuery:=OnAllowConnect;
   FServer.OnConnect:=@DOConnect;
@@ -824,7 +889,8 @@ begin
   inherited Create(AOwner);
   FPort:=80;
   FQueueSize:=5;
-  FServerBanner := 'Freepascal';
+  FServerBanner := 'FreePascal';
+  FCertificateData:=CreateCertificateData;
 end;
 
 procedure TFPCustomHttpServer.WaitForRequests;
@@ -845,11 +911,57 @@ begin
     end;
 end;
 
+function TFPCustomHttpServer.CreateCertificateData: TCertificateData;
+begin
+  Result:=TCertificateData.Create;
+end;
+
+function TFPCustomHttpServer.CreateSSLSocketHandler : TSocketHandler;
+
+Var
+  S : TSSLSocketHandler;
+  CK : TCertAndKey;
+
+begin
+  S:=TSSLSocketHandler.GetDefaultHandler;
+  try
+    // We must create the certificate once in our global copy of CertificateData !
+    if CertificateData.NeedCertificateData then
+      begin
+      S.CertGenerator.HostName:=CertificateData.Hostname;
+      CK:=S.CertGenerator.CreateCertificateAndKey;
+      CertificateData.Certificate.Value:=CK.Certificate;
+      CertificateData.PrivateKey.Value:=CK.PrivateKey;
+      end;
+    S.CertificateData:=Self.CertificateData;
+    Result:=S;
+  except
+    S.free;
+    Raise;
+  end;
+end;
+
+function TFPCustomHttpServer.GetSocketHandler(const UseSSL: Boolean): TSocketHandler;
+
+begin
+  Result:=Nil;
+  if Assigned(FonGetSocketHandler) then
+    FOnGetSocketHandler(Self,UseSSL,Result);
+  if (Result=Nil) then
+    If UseSSL then
+      Result:=CreateSSLSocketHandler
+    else
+      Result:=TSocketHandler.Create;
+  if Assigned(FAfterSocketHandlerCreated) then
+    FAfterSocketHandlerCreated(Self,Result);
+end;
+
 destructor TFPCustomHttpServer.Destroy;
 begin
   Active:=False;
   if Threaded and (FConnectionCount>0) then
     WaitForRequests;
+  FreeAndNil(FCertificateData);
   inherited Destroy;
 end;
 

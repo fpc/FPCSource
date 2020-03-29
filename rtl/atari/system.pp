@@ -16,18 +16,21 @@
  **********************************************************************}
 unit System;
 
-{--------------------------------------------------------------------}
-{ LEFT TO DO:                                                        }
-{--------------------------------------------------------------------}
-{ o SBrk                                                             }
-{ o Implement truncate                                               }
-{ o Implement paramstr(0)                                            }
-{--------------------------------------------------------------------}
+interface
 
+{$define FPC_IS_SYSTEM}
+{$define FPC_STDOUT_TRUE_ALIAS}
+{$define FPC_ANSI_TEXTFILEREC}
+{$define FPC_ATARI_USE_TINYHEAP}
 
-  interface
+{$ifdef FPC_ATARI_USE_TINYHEAP}
+{$define HAS_MEMORYMANAGER}
+{$endif FPC_ATARI_USE_TINYHEAP}
 
-    {$I systemh.inc}
+{$i systemh.inc}
+{$ifdef FPC_ATARI_USE_TINYHEAP}
+{$i tnyheaph.inc}
+{$endif FPC_ATARI_USE_TINYHEAP}
 
 {Platform specific information}
 const
@@ -76,6 +79,8 @@ var
     {$if defined(FPUSOFT)}
 
     {$define fpc_softfpu_implementation}
+    {$define softfpu_compiler_mul32to64}
+    {$define softfpu_inline}
     {$i softfpu.pp}
     {$undef fpc_softfpu_implementation}
 
@@ -93,35 +98,21 @@ var
 
     {$endif defined(FPUSOFT)}
 
-    {$I system.inc}
-    {$I syspara.inc}
+    {$i system.inc}
+    {$ifdef FPC_ATARI_USE_TINYHEAP}
+    {$i tinyheap.inc}
+    {$endif FPC_ATARI_USE_TINYHEAP}
+    {$i syspara.inc}
 
   var
     basepage: PPD; external name '__base';
 
-function GetProcessID:SizeUInt;
-begin
-  {$WARNING To be checked by platform maintainer}
-   GetProcessID := 1;
-end;
 
-
-
-{$S-}
-(*    procedure Stack_Check; assembler;
-    { Check for local variable allocation }
-    { On Entry -> d0 : size of local stack we are trying to allocate }
-         asm
-          XDEF STACKCHECK
-           move.l  sp,d1            { get value of stack pointer            }
-           sub.l   d0,d1            {  sp - stack_size                      }
-           sub.l   #2048,d1
-           cmp.l   __BREAK,d1
-           bgt     @st1nosweat
-           move.l  #202,d0
-           jsr     HALT_ERROR
-         @st1nosweat:
-         end;*)
+  function GetProcessID:SizeUInt;
+  begin
+    {$WARNING To be checked by platform maintainer}
+    GetProcessID := 1;
+  end;
 
 
   procedure SysInitParamsAndEnv;
@@ -129,15 +120,6 @@ end;
     // [0] index contains the args length...
     args:=@basepage^.p_cmdlin[1];
     GenerateArgs;
-  end;
-
-  { This routine is used to grow the heap.  }
-  { But here we do a trick, we say that the }
-  { heap cannot be regrown!                 }
-  function sbrk( size: longint): pointer;
-  { on exit nil = if fails.               }
-  Begin
-   sbrk:=nil;
   end;
 
 
@@ -163,10 +145,11 @@ procedure SysInitStdIO;
 begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
-  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-
-  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
   OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+{$ifndef FPC_STDOUT_TRUE_ALIAS}
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+{$endif FPC_STDOUT_TRUE_ALIAS}
 end;
 
 function CheckInitialStkLen (StkLen: SizeUInt): SizeUInt;
@@ -179,10 +162,14 @@ begin
   StackLength := CheckInitialStkLen (InitialStkLen);
 { Initialize ExitProc }
   ExitProc:=Nil;
+{$ifndef FPC_ATARI_USE_TINYHEAP}
 { Setup heap }
   InitHeap;
+{$endif FPC_ATARI_USE_TINYHEAP}
   SysInitExceptions;
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
   InitUnicodeStringManager;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
 { Reset IO Error }
@@ -191,5 +178,5 @@ begin
   SysInitParamsAndEnv;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   InitSystemThreads;
-{$endif}
+{$endif FPC_HAS_FEATURE_THREADING}
 end.

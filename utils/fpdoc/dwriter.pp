@@ -22,7 +22,7 @@ unit dWriter;
 
 {$MODE objfpc}
 {$H+}
-
+{$WARN 5024 off : Parameter "$1" not used}
 interface
 
 uses Classes, DOM, dGlobals, PasTree, SysUtils;
@@ -117,6 +117,8 @@ type
     procedure DescrEndBold; virtual; abstract;
     procedure DescrBeginItalic; virtual; abstract;
     procedure DescrEndItalic; virtual; abstract;
+    procedure DescrBeginUnderline; virtual; abstract;
+    procedure DescrEndUnderline; virtual; abstract;
     procedure DescrBeginEmph; virtual; abstract;
     procedure DescrEndEmph; virtual; abstract;
     procedure DescrWriteImageEl(const AFileName, ACaption,ALinkName : DOMString); virtual; 
@@ -571,7 +573,7 @@ function TFPDocWriter.ConvertBaseShort(AContext: TPasElement;
     begin
       s := Node.NodeValue;
       i := 1;
-      SetLength(Result, 0);
+      Result:='';
       while i <= Length(s) do
         if s[i] = #13 then
         begin
@@ -604,7 +606,7 @@ function TFPDocWriter.ConvertBaseShort(AContext: TPasElement;
 
   function ConvertTextContent: DOMString;
   begin
-    SetLength(Result, 0);
+    Result:='';
     Node := Node.FirstChild;
     while Assigned(Node) do
     begin
@@ -615,7 +617,6 @@ function TFPDocWriter.ConvertBaseShort(AContext: TPasElement;
 
 var
   El, DescrEl: TDOMElement;
-  FPEl: TPasElement;
   hlp : TPasElement;
 begin
   Result := True;
@@ -638,6 +639,12 @@ begin
       ConvertBaseShortList(AContext, Node, False);
       DescrEndEmph;
     end else
+    if Node.NodeName = 'u' then
+    begin
+      DescrBeginUnderline;
+      ConvertBaseShortList(AContext, Node, False);
+      DescrEndUnderline;
+    end else
     if Node.NodeName = 'file' then
       DescrWriteFileEl(ConvertTextContent)
     else if Node.NodeName = 'kw' then
@@ -650,7 +657,7 @@ begin
         hlp:=hlp.parent;
       if not (hlp is TPasModule) then
         hlp:=nil;
-      DescrEl := Engine.FindShortDescr(TPasModule(hlp), El['id']);
+      DescrEl := Engine.FindShortDescr(TPasModule(hlp), UTF8Encode(El['id']));
       if Assigned(DescrEl) then
         ConvertShort(AContext, DescrEl)
       else
@@ -859,7 +866,7 @@ function TFPDocWriter.ConvertNonSectionBlock(AContext: TPasElement;
     end;
 
   var
-    s: String;
+    s: DOMString;
     HasBorder, CaptionPossible, HeadRowPossible: Boolean;
     ColCount, ThisRowColCount: Integer;
     Subnode: TDOMNode;
@@ -1031,12 +1038,12 @@ function TFPDocWriter.ConvertSimpleBlock(AContext: TPasElement;
     i, j: Integer;
   begin
     Node := Node.FirstChild;
-    SetLength(s, 0);
+    S:='';
     while Assigned(Node) do
     begin
       if Node.NodeType = TEXT_NODE then
       begin
-        s := s + Node.NodeValue;
+        s := s + UTF8Encode(Node.NodeValue);
         j := 1;
         for i := 1 to Length(s) do
           // In XML, linefeeds are normalized to #10 by the parser!
@@ -1055,7 +1062,7 @@ function TFPDocWriter.ConvertSimpleBlock(AContext: TPasElement;
   end;
 
 var
-  s: String;
+  s: DOMString;
   HasBorder: Boolean;
 begin
   if Node.NodeType <> ELEMENT_NODE then
@@ -1081,7 +1088,7 @@ begin
         Warning(AContext, SErrInvalidBorderValue, ['<code>']);
     end;
 
-    DescrBeginCode(HasBorder, TDOMElement(Node)['highlighter']);
+    DescrBeginCode(HasBorder, UTF8Encode(TDOMElement(Node)['highlighter']));
     ProcessCodeBody(Node);
     DescrEndCode;
     Result := True;
@@ -1128,7 +1135,7 @@ begin
   FN:=El['file'];
   Cap:=El['caption'];
   LinkName:=El['name'];
-  FN:=ChangeFileExt(FN,ImageExtension);
+  FN:=UTF8decode(ChangeFileExt(UTF8Encode(FN),ImageExtension));
   DescrWriteImageEl(FN,Cap,LinkName);
 end;
 
@@ -1136,7 +1143,7 @@ procedure TFPDocWriter.DescrEmitNotesHeader(AContext: TPasElement);
 begin
   DescrWriteLinebreak;
   DescrBeginBold;
-  DescrWriteText(SDocNotes);
+  DescrWriteText(UTF8Decode(SDocNotes));
   DescrEndBold;
   DescrWriteLinebreak;
 end;

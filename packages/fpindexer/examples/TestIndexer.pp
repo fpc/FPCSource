@@ -23,14 +23,14 @@ uses
   {$endif}
    fpIndexer,
   //indexer readers
-  IReaderTXT, IReaderPAS, IReaderHTML, fpTextCat;
+  IReaderTXT, IReaderPAS, IReaderHTML;
 
 Type
 
   { TProgressLog }
 
   TProgressLog = Class(TObject)
-    procedure DoLog(Sender : TObject; Const ACurrent,ACount : Integer; Const AURL : String);
+    procedure DoLog(Sender : TObject; Const ACurrent,ACount : Integer; Const AURL : UTF8String);
   end;
 
 {$ifdef usefirebird}
@@ -139,7 +139,7 @@ end;
 { TProgressLog }
 
 procedure TProgressLog.DoLog(Sender: TObject; const ACurrent, ACount: Integer;
-  const AURL: String);
+  const AURL: UTF8String);
 begin
   Writeln((ACurrent/ACount*100):5:2,'% : ',ACurrent,'/',ACount,' : ',AURL);
 end;

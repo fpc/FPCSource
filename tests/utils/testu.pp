@@ -5,11 +5,15 @@ unit testu;
 
 Interface
 
+uses
+  dos;
 { ---------------------------------------------------------------------
     utility functions, shared by several programs of the test suite
   ---------------------------------------------------------------------}
 
 type
+  TCharSet = set of char;
+
   TVerboseLevel=(V_Abort,V_Error,V_Warning,V_Normal,V_Debug,V_SQL);
 
   TConfig = record
@@ -41,6 +45,8 @@ type
     Category      : string;
     Note          : string;
     Files         : string;
+    ConfigFileSrc : string;
+    ConfigFileDst : string;
     WpoParas      : string;
     WpoPasses     : longint;
     DelFiles      : string;
@@ -49,6 +55,8 @@ type
 Const
   DoVerbose : boolean = false;
   DoSQL     : boolean = false;
+  MaxLogSize : LongInt = 50000;
+
 
 procedure TrimB(var s:string);
 procedure TrimE(var s:string);
@@ -57,7 +65,159 @@ procedure Verbose(lvl:TVerboseLevel;const s:string);
 function GetConfig(const fn:string;var r:TConfig):boolean;
 Function GetFileContents (FN : String) : String;
 
+const
+{ Constants used in IsAbsolute function }
+  TargetHasDosStyleDirectories : boolean = false;
+  TargetAmigaLike : boolean = false;
+  TargetIsMacOS : boolean = false;
+  TargetIsUnix : boolean = false;
+
+{ File path helper functions }
+function SplitPath(const s:string):string;
+function SplitBasePath(const s:string): string;
+Function SplitFileName(const s:string):string;
+Function SplitFileBase(const s:string):string;
+Function SplitFileExt(const s:string):string;
+Function FileExists (Const F : String) : Boolean;
+Function PathExists (Const F : String) : Boolean;
+Function IsAbsolute (Const F : String) : boolean;
+function GetToken(var s: string; Delims: TCharSet = [' ']):string;
+
 Implementation
+
+function GetToken(var s: string; Delims: TCharSet = [' ']):string;
+var
+  i : longint;
+  p: PChar;
+begin
+  p:=PChar(s);
+  i:=0;
+  while (p^ <> #0) and not (p^ in Delims) do begin
+    Inc(p);
+    Inc(i);
+  end;
+  GetToken:=Copy(s,1,i);
+  Delete(s,1,i+1);
+end;
+
+function SplitPath(const s:string):string;
+var
+  i : longint;
+begin
+  i:=Length(s);
+  while (i>0) and not(s[i] in ['/','\'{$IFDEF MACOS},':'{$ENDIF}]) do
+   dec(i);
+  SplitPath:=Copy(s,1,i);
+end;
+
+
+function SplitBasePath(const s:string): string;
+var
+  i : longint;
+begin
+  i:=1;
+  while (i<length(s)) and not(s[i] in ['/','\'{$IFDEF MACOS},':'{$ENDIF}]) do
+   inc(i);
+  if s[i] in  ['/','\'{$IFDEF MACOS},':'{$ENDIF}] then
+    dec(i);
+  SplitBasePath:=Copy(s,1,i);
+end;
+
+Function SplitFileName(const s:string):string;
+var
+  p : dirstr;
+  n : namestr;
+  e : extstr;
+begin
+  FSplit(s,p,n,e);
+  SplitFileName:=n+e;
+end;
+
+Function SplitFileBase(const s:string):string;
+var
+  p : dirstr;
+  n : namestr;
+  e : extstr;
+begin
+  FSplit(s,p,n,e);
+  SplitFileBase:=n;
+end;
+
+Function SplitFileExt(const s:string):string;
+var
+  p : dirstr;
+  n : namestr;
+  e : extstr;
+begin
+  FSplit(s,p,n,e);
+  SplitFileExt:=e;
+end;
+
+
+Function FileExists (Const F : String) : Boolean;
+{
+  Returns True if the file exists, False if not.
+}
+Var
+  info : searchrec;
+begin
+  FindFirst (F,anyfile,Info);
+  FileExists:=DosError=0;
+  FindClose (Info);
+end;
+
+
+Function PathExists (Const F : String) : Boolean;
+{
+  Returns True if the file exists, False if not.
+}
+Var
+  info : searchrec;
+begin
+  FindFirst (F,anyfile,Info);
+  PathExists:=(DosError=0) and (Info.Attr and Directory=Directory);
+  FindClose (Info);
+end;
+
+{ extracted from rtl/macos/macutils.inc }
+
+function IsMacFullPath (const path: string): Boolean;
+  begin
+    if Pos(':', path) = 0 then    {its partial}
+      IsMacFullPath := false
+    else if path[1] = ':' then
+      IsMacFullPath := false
+    else
+      IsMacFullPath := true
+  end;
+
+
+Function IsAbsolute (Const F : String) : boolean;
+{
+  Returns True if the name F is a absolute file name
+}
+begin
+  IsAbsolute:=false;
+  if TargetHasDosStyleDirectories then
+    begin
+      if (F[1]='/') or (F[1]='\') then
+        IsAbsolute:=true;
+      if (Length(F)>2) and (F[2]=':') and ((F[3]='\') or (F[3]='/')) then
+        IsAbsolute:=true;
+    end
+  else if TargetAmigaLike then
+    begin
+      if (length(F)>0) and (Pos(':',F) <> 0) then
+        IsAbsolute:=true;
+    end
+  else if TargetIsMacOS then
+    begin
+      IsAbsolute:=IsMacFullPath(F);
+    end
+  { generic case }
+  else if (F[1]='/') then
+    IsAbsolute:=true;
+end;
 
 procedure Verbose(lvl:TVerboseLevel;const s:string);
 begin
@@ -283,6 +443,25 @@ begin
                if GetEntry('FILES') then
                 r.Files:=res
               else
+                if GetEntry('CONFIGFILE') then
+                  begin
+                    l:=Pos(' ',res);
+                    if l>0 then
+                      begin
+                        r.ConfigFileSrc:=Copy(res,1,l-1);
+                        r.ConfigFileDst:=Copy(res,l+1,Length(res)-l+1);
+                        if r.ConfigFileSrc='' then
+                          Verbose(V_Error,'Config file source is empty');
+                        if r.ConfigFileDst='' then
+                          Verbose(V_Error,'Config file destination is empty');
+                      end
+                    else
+                      begin
+                        r.ConfigFileSrc:=res;
+                        r.ConfigFileDst:=res;
+                      end;
+                  end
+              else
                 if GetEntry('WPOPARAS') then
                  r.wpoparas:=res
               else
@@ -320,7 +499,8 @@ begin
   While Not(EOF(F)) do
     begin
     ReadLn(F,S);
-    Result:=Result+S+LineEnding;
+    if length(Result)<MaxLogSize then
+      Result:=Result+S+LineEnding;
     end;
   Close(F);
 end;

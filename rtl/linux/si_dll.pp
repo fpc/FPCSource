@@ -14,6 +14,11 @@
 
 unit si_dll;
 
+{$ifdef CPUSPARC64}
+  { Force PIC code for sparc64 cpu }
+  {$PIC ON}
+{$endif CPUSPARC64}
+
 interface
 
 {$i si_intf.inc}

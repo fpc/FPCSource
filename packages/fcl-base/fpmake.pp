@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Dependencies.Add('univint',[Darwin,iPhoneSim]);
     P.Dependencies.Add('fcl-res');
     p.Dependencies.Add('rtl-objpas');
@@ -27,7 +27,9 @@ begin
     P.Email := '';
     P.Description := 'Base library of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos,win16];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/$(OS)');
@@ -42,6 +44,7 @@ begin
     T:=P.Targets.AddUnit('ascii85.pp');
     T:=P.Targets.AddUnit('avl_tree.pp');
     T:=P.Targets.AddUnit('base64.pp');
+    T:=P.Targets.AddUnit('pascodegen.pp');
     T:=P.Targets.AddUnit('fpobserver.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('blowfish.pp');
@@ -75,12 +78,14 @@ begin
           AddUnit('inifiles');
         end;
     T:=P.Targets.AddUnit('inifiles.pp');
+      T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('contnrs');
         end;
     T:=P.Targets.AddUnit('iostream.pp');
     T:=P.Targets.AddUnit('nullstream.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('maskutils.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('pooledmm.pp');
@@ -93,11 +98,13 @@ begin
     T:=P.Targets.AddUnit('streamcoll.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('streamex.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('streamio.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fptemplate.pp');
       T.ResourceStrings:=true;
-    T:=P.Targets.AddUnit('syncobjs.pp',AllOSes-[GO32v2,EMX,nativent]);
+    T:=P.Targets.AddUnit('syncobjs.pp',AllOSes-[go32v2,nativent,atari]);
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('uriparser.pp');
     T:=P.Targets.AddUnit('wformat.pp');
     T:=P.Targets.AddUnit('whtml.pp');
@@ -114,7 +121,7 @@ begin
       T.ResourceStrings:=true;
 
     T:=P.Targets.AddUnit('fileinfo.pp');
-    T:=P.Targets.addUnit('fpmimetypes.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('csvreadwrite.pp');
     T:=P.Targets.addUnit('csvdocument.pp');
     With T.Dependencies do
@@ -122,10 +129,10 @@ begin
       AddUnit('csvreadwrite');
       AddUnit('contnrs');
       end;
-    T:=P.Targets.addUnit('advancedipc.pp');
+    T:=P.Targets.addUnit('advancedipc.pp',AllOSes-[atari]);
       T.ResourceStrings:=true;
-    T:=P.Targets.addUnit('advancedsingleinstance.pas');
-      T.ResourceStrings:=true;	  
+    T:=P.Targets.addUnit('advancedsingleinstance.pas',AllOSes-[atari]);
+      T.ResourceStrings:=true;
     // Additional sources
     P.Sources.AddSrcFiles('src/win/fclel.*', P.Directory);
     // Install windows resources
@@ -151,8 +158,6 @@ begin
       T:=P.Targets.AddExampleProgram('fpdoc.dtd');
       T:=P.Targets.AddExampleProgram('fstream.pp');
       T:=P.Targets.AddExampleProgram('htdump.pp');
-      T:=P.Targets.AddExampleProgram('ipcclient.pp');
-      T:=P.Targets.AddExampleProgram('ipcserver.pp');
       T:=P.Targets.AddExampleProgram('isockcli.pp');
       T:=P.Targets.AddExampleProgram('isocksvr.pp');
       T:=P.Targets.AddExampleProgram('istream.pp');

@@ -23,8 +23,20 @@ type
 
   { TTestSpecificTBufDataset }
 
+  { TMyBufDataset }
+
+  TMyBufDataset = Class(TBufDataset)
+  protected
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField); override;
+  end;
+
+
   TTestSpecificTBufDataset = class(TDBBasicsTestCase)
   private
+    FAfterScrollCount:integer;
+    FBeforeScrollCount:integer;
+    procedure DoAfterScrollCount(DataSet: TDataSet);
+    procedure DoBeforeScrollCount(DataSet: TDataSet);
     procedure TestDataset(ABufDataset: TBufDataset; AutoInc: boolean = false);
     function GetAutoIncDataset: TBufDataset;
     procedure IntTestAutoIncFieldStreaming(XML: boolean);
@@ -39,6 +51,9 @@ type
     procedure TestAutoIncField;
     procedure TestAutoIncFieldStreaming;
     procedure TestAutoIncFieldStreamingXML;
+    Procedure TestLocateScrollEventCount;
+    Procedure TestLookupScrollEventCount;
+    procedure TestLookupEmpty;
     Procedure TestRecordCount;
     Procedure TestClear;
     procedure TestCopyFromDataset; //is copied dataset identical to original?
@@ -53,6 +68,13 @@ uses
 {$endif fpc}
   variants,
   FmtBCD;
+
+{ TMyBufDataset }
+
+procedure TMyBufDataset.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField);
+begin
+  Raise ENotImplemented.Create('LoadBlobIntoBuffer not implemented');
+end;
 
 { TTestSpecificTBufDataset }
 
@@ -79,12 +101,22 @@ begin
   CheckTrue(ABufDataset.EOF);
 end;
 
+procedure TTestSpecificTBufDataset.DoAfterScrollCount(DataSet: TDataSet);
+begin
+  Inc(FAfterScrollCount);
+end;
+
+procedure TTestSpecificTBufDataset.DoBeforeScrollCount(DataSet: TDataSet);
+begin
+  Inc(FBeforeScrollCount);
+end;
+
 function TTestSpecificTBufDataset.GetAutoIncDataset: TBufDataset;
 var
   ds : TBufDataset;
   f: TField;
 begin
-  ds := TBufDataset.Create(nil);
+  ds := TMyBufDataset.Create(nil);
   F := TAutoIncField.Create(ds);
   F.FieldName:='ID';
   F.DataSet:=ds;
@@ -112,7 +144,7 @@ begin
   DS.Close;
   ds.Free;
 
-  ds := TBufDataset.Create(nil);
+  ds := TMyBufDataset.Create(nil);
   ds.LoadFromFile(fn);
   ds.Last;
   CheckEquals(10,ds.FieldByName('Id').AsInteger);
@@ -127,6 +159,8 @@ end;
 
 procedure TTestSpecificTBufDataset.SetUp;
 begin
+  FAfterScrollCount:=0;
+  FBeforeScrollCount:=0;
   DBConnector.StartTest(TestName);
 end;
 
@@ -138,7 +172,7 @@ end;
 procedure TTestSpecificTBufDataset.CreateDatasetFromFielddefs;
 var ds : TBufDataset;
 begin
-  ds := TBufDataset.Create(nil);
+  ds := TMyBufDataset.Create(nil);
   DS.FieldDefs.Add('ID',ftInteger);
   DS.FieldDefs.Add('NAME',ftString,50);
   DS.CreateDataset;
@@ -152,7 +186,7 @@ procedure TTestSpecificTBufDataset.CreateDatasetFromFields;
 var ds : TBufDataset;
     f: TField;
 begin
-  ds := TBufDataset.Create(nil);
+  ds := TMyBufDataset.Create(nil);
   F := TIntegerField.Create(ds);
   F.FieldName:='ID';
   F.DataSet:=ds;
@@ -171,7 +205,7 @@ procedure TTestSpecificTBufDataset.TestOpeningNonExistingDataset;
 var ds : TBufDataset;
     f: TField;
 begin
-  ds := TBufDataset.Create(nil);
+  ds := TMyBufDataset.Create(nil);
   F := TIntegerField.Create(ds);
   F.FieldName:='ID';
   F.DataSet:=ds;
@@ -179,7 +213,7 @@ begin
   CheckException(ds.Open,EDatabaseError);
   ds.Free;
 
-  ds := TBufDataset.Create(nil);
+  ds := TMyBufDataset.Create(nil);
   DS.FieldDefs.Add('ID',ftInteger);
 
   CheckException(ds.Open,EDatabaseError);
@@ -191,7 +225,7 @@ var ds : TBufDataset;
     f: TField;
     i: integer;
 begin
-  ds := TBufDataset.Create(nil);
+  ds := TMyBufDataset.Create(nil);
   try
     F := TIntegerField.Create(ds);
     F.FieldName:='ID';
@@ -255,12 +289,68 @@ begin
   IntTestAutoIncFieldStreaming(true);
 end;
 
+procedure TTestSpecificTBufDataset.TestLocateScrollEventCount;
+
+begin
+  with DBConnector.GetNDataset(10) as TBufDataset do
+    begin
+    Open;
+    AfterScroll:=DoAfterScrollCount;
+    BeforeScroll:=DoBeforeScrollCount;
+    Locate('ID',5,[]);
+    AssertEquals('Current record OK',5,FieldByName('ID').AsInteger);
+    AssertEquals('After scroll count',1,FAfterScrollCount);
+    AssertEquals('After scroll count',1,FBeforeScrollCount);
+    end;
+end;
+
+
+procedure TTestSpecificTBufDataset.TestLookupEmpty;
+
+// Test for issue 36086
+
+Var
+  V : Variant;
+
+begin
+  with DBConnector.GetNDataset(0) as TBufDataset do
+    begin
+    Open;
+    V:=Lookup('ID',5,'NAME');
+    AssertTrue('Null',Null=V);
+    end;
+end;
+
+procedure TTestSpecificTBufDataset.TestLookupScrollEventCount;
+
+Var
+  V : Variant;
+  S : String;
+  ID : Integer;
+
+begin
+  with DBConnector.GetNDataset(10) as TBufDataset do
+    begin
+    Open;
+    ID:=FieldByName('ID').AsInteger;
+    AfterScroll:=DoAfterScrollCount;
+    BeforeScroll:=DoBeforeScrollCount;
+    V:=Lookup('ID',5,'NAME');
+    AssertTrue('Not null',Null<>V);
+    S:=V;
+    AssertEquals('Result','TestName5',S);
+    AssertEquals('After scroll count',0,FAfterScrollCount);
+    AssertEquals('After scroll count',0,FBeforeScrollCount);
+    AssertEquals('Current record unchanged',ID,FieldByName('ID').AsInteger);
+    end;
+end;
+
 procedure TTestSpecificTBufDataset.TestRecordCount;
 var
   BDS:TBufDataSet;
 
 begin
-  BDS:=TBufDataSet.Create(nil);
+  BDS:=TMyBufDataset.Create(nil);
   BDS.FieldDefs.Add('ID',ftLargeint);
   BDS.CreateDataSet;
   BDS.AppendRecord([1]);

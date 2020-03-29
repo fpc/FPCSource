@@ -630,7 +630,7 @@ const
   inetLastEvent             = firstINetLibEvent + 1;
 
 type
-  generic = record
+  iNetEventGeneric = record
     datum: array [0..7] of UInt16;
   end;
 
@@ -655,7 +655,7 @@ type
     screenX: Int16;
     screenY: Int16;
     case Integer of
-      0: (generic: generic);
+      0: (inetGeneric: inetEventGeneric);
       1: (inetSockReady: inetSockReady);
       2: (inetSockStatusChange: inetSockStatusChange);
   end;

@@ -37,6 +37,9 @@ interface
 {$if defined(go32v2) or defined(watcom)}
       Dos,
 {$endif}
+{$ifdef macos}
+      macutils,
+{$endif macos}
 {$IFNDEF USE_FAKE_SYSUTILS}
       SysUtils,
 {$ELSE}
@@ -96,7 +99,7 @@ interface
 
       TSearchPathList = class(TCmdStrList)
         procedure AddPath(s:TCmdStr;addfirst:boolean);overload;
-        procedure AddPath(SrcPath,s:TCmdStr;addfirst:boolean);overload;
+        procedure AddLibraryPath(const sysroot: TCmdStr; s:TCmdStr;addfirst:boolean);overload;
         procedure AddList(list:TSearchPathList;addfirst:boolean);
         function  FindFile(const f : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
       end;
@@ -146,7 +149,7 @@ interface
 {$NOTE TODO Amiga: implement PathConv() in System unit, which works with AnsiString}
 function Unix2AmigaPath(path: ShortString): ShortString; external name 'PATHCONV';
 {$ELSE}
-function Unix2AmigaPath(path: String): String;{$IFDEF USEINLINE}inline;{$ENDIF}
+function Unix2AmigaPath(path: String): String;
 {$ENDIF}
 
 {$if FPC_FULLVERSION < 20701}
@@ -191,7 +194,7 @@ implementation
 {$IFNDEF HASAMIGA}
 { Stub function for Unix2Amiga Path conversion functionality, only available in
   Amiga/MorphOS RTL. I'm open for better solutions. (KB) }
-function Unix2AmigaPath(path: String): String;{$IFDEF USEINLINE}inline;{$ENDIF}
+function Unix2AmigaPath(path: String): String;
 begin
   Unix2AmigaPath:=path;
 end;
@@ -495,6 +498,7 @@ end;
       var
          i : longint;
       begin
+        Result:='';
         setlength(bstoslash,length(s));
         for i:=1to length(s) do
          if s[i]='\' then
@@ -991,11 +995,11 @@ end;
 
     procedure TSearchPathList.AddPath(s:TCmdStr;addfirst:boolean);
       begin
-        AddPath('',s,AddFirst);
+        AddLibraryPath('',s,AddFirst);
       end;
 
 
-   procedure TSearchPathList.AddPath(SrcPath,s:TCmdStr;addfirst:boolean);
+   procedure TSearchPathList.AddLibraryPath(const sysroot: TCmdStr; s:TCmdStr;addfirst:boolean);
      var
        staridx,
        i,j      : longint;
@@ -1070,7 +1074,10 @@ end;
 
          { fix pathname }
          DePascalQuote(currPath);
-         currPath:=SrcPath+FixPath(currPath,false);
+         { GNU LD convention: if library search path starts with '=', it's relative to the
+           sysroot; otherwise, interpret it as a regular path }
+         if (length(currPath) >0) and (currPath[1]='=') then
+           currPath:=sysroot+FixPath(copy(currPath,2,length(currPath)-1),false);
          if currPath='' then
            currPath:= CurDirRelPath(source_info)
          else
@@ -1280,8 +1287,16 @@ end;
 
 
    function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
+     var
+       b : TCmdStr;
      begin
-       FindExe:=FindFileInExeLocations(ChangeFileExt(bin,source_info.exeext),allowcache,foundfile);
+       { change extension only on platforms that use an exe extension, otherwise on OpenBSD
+         'ld.bfd' gets converted to 'ld' }
+       if source_info.exeext<>'' then
+         b:=ChangeFileExt(bin,source_info.exeext)
+       else
+         b:=bin;
+       FindExe:=FindFileInExeLocations(b,allowcache,foundfile);
      end;
 
 
@@ -1299,6 +1314,7 @@ end;
         GetShortName:=n;
 {$ifdef win32}
         hs:=n+#0;
+        hs2:='';
         { may become longer in case of e.g. ".a" -> "a~1" or so }
         setlength(hs2,length(hs)*2);
         i:=Windows.GetShortPathName(@hs[1],@hs2[1],length(hs)*2);

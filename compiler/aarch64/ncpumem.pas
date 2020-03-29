@@ -113,7 +113,7 @@ implementation
           location.reference.offset:=0;
           base:=cg.getaddressregister(current_asmdata.CurrAsmList);
           cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,base);
-          reference_reset_base(location.reference,base,oldoffset,location.reference.alignment,location.reference.volatility);
+          reference_reset_base(location.reference,base,oldoffset,location.reference.temppos,location.reference.alignment,location.reference.volatility);
         end;
       shift:=BsfDWord(l);
       location.reference.index:=maybe_const_reg;

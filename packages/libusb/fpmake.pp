@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('libusb');
+    P.ShortName := 'lusb';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Description := 'Headers for the libusb library';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
     P.OSes := [linux,win32,win64];

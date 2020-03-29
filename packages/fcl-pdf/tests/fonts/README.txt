@@ -1,4 +1,4 @@
-These sets of unit tests requires four font files of specific versions
+These sets of unit tests requires 5 font files of specific versions
 each. Here is what the tests were designed against.
 
  Font File                  |  Size (bytes)   |  Version
@@ -6,6 +6,7 @@ each. Here is what the tests were designed against.
 DejaVuSans.ttf              |    622,280      |    2.30
 FreeSans.ttf                |  1,563,256      |  412.2268
 LiberationSans-Regular.ttf  |    350,200      |    2.00.1
+LiberationSans-Italic.ttf   |    355,608      |    2.00.1
 Ubuntu-R.ttf                |    353,824      |    0.80
 
 
@@ -48,10 +49,10 @@ License:
 Liberation
 ==========
 Official website: 
-    https://fedorahosted.org/liberation-fonts/
+    https://pagure.io/liberation-fonts
 
 Download URL:
-    https://fedorahosted.org/releases/l/i/liberation-fonts/liberation-fonts-ttf-2.00.1.tar.gz
+    https://releases.pagure.org/liberation-fonts/liberation-fonts-ttf-2.00.1.tar.gz
 
 Description:
     The Liberation(tm) Fonts is a font family which aims at metric compatibility

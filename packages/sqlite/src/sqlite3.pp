@@ -1,4 +1,4 @@
-unit sqlite3;
+unit SQLite3;
 
 {$i sqlite3.inc}
 

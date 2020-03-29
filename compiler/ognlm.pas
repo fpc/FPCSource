@@ -314,7 +314,7 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
        end;
 
       TNLMCoffObjSection = class(TCoffObjSection)
-         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
+         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
        end;
 
 implementation
@@ -1452,7 +1452,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                                TNLMoffObjSection
 ****************************************************************************}
 
-    constructor TNLMCoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:shortint;aoptions:TObjSectionOptions);
+    constructor TNLMCoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:longint;aoptions:TObjSectionOptions);
       begin
         inherited create(alist,aname,aalign,aoptions);
       end;

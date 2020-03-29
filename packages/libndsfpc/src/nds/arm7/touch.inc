@@ -17,7 +17,7 @@ const
   TSC_MEASURE_AUX      = $E4;
   TSC_MEASURE_TEMP2    = $F4;
 
-
+procedure touchInit(); cdecl; external;
 procedure touchReadXY(var touchPos: touchPosition); cdecl; external;
 
 function touchRead(command: cuint32): cuint16; cdecl; external;

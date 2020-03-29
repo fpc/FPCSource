@@ -26,9 +26,9 @@ unit nx86mem;
 interface
     uses
       globtype,
-      cgbase,cpuinfo,cpubase,
+      cgbase,cpubase,
       symtype,
-      node,nmem,ncgmem;
+      nmem,ncgmem;
 
     type
       tx86derefnode = class(tcgderefnode)
@@ -43,9 +43,9 @@ implementation
 
     uses
       cutils,verbose,
-      aasmtai,aasmdata,
+      aasmdata,
       cgutils,cgobj,
-      symconst,symdef,symcpu;
+      symconst,symcpu;
 
 {*****************************************************************************
                            TX86DEREFNODE
@@ -69,8 +69,6 @@ implementation
            x86pt_far: internalerror(2013050401);
            x86pt_huge: internalerror(2013050402);
 {$endif i8086}
-           else
-             internalerror(2013050403);
          end;
        end;
 
@@ -120,7 +118,7 @@ implementation
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
             { reference_reset_base kills the segment, so make sure we preserve it }
             saveseg:=location.reference.segment;
-            reference_reset_base(location.reference,hreg,0,location.reference.alignment,location.reference.volatility);
+            reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
             location.reference.segment:=saveseg;
           end;
          { insert the new index register and scalefactor or

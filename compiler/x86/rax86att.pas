@@ -61,14 +61,14 @@ Implementation
       globtype,verbose,
       systems,
       { aasm }
-      aasmbase,aasmtai,aasmdata,aasmcpu,
+      aasmbase,aasmdata,aasmcpu,
       { symtable }
-      symconst,
+      symconst,symsym,symdef,
       { parser }
       scanner,
       procinfo,
       itcpugas,
-      rabase,
+      paramgr,
       cgbase
       ;
 
@@ -117,6 +117,8 @@ Implementation
                 opcode:=A_MOV;
 {$endif x86_64}
             end;
+          else
+            ;
         end;
       end;
 
@@ -330,7 +332,7 @@ Implementation
       var
         relsym: string;
         asmsymtyp: tasmsymtype;
-        l: aint;
+        l: tcgint;
         sym: tasmsymbol;
       begin
         case actasmtoken of
@@ -393,6 +395,8 @@ Implementation
               else
                 dec(oper.opr.ref.offset,l);
             end;
+          else
+            ;
         end;
       end;
 
@@ -401,7 +405,7 @@ Implementation
       var
         tempstr,
         expr : string;
-        typesize,l,k : aint;
+        typesize,l,k : tcgint;
 
 
         procedure AddLabelOperand(hl:tasmlabel);
@@ -426,7 +430,7 @@ Implementation
             hasdot  : boolean;
             l,
             toffset,
-            tsize   : aint;
+            tsize   : tcgint;
           begin
             if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
              exit;
@@ -447,6 +451,8 @@ Implementation
                    case oper.opr.typ of
                      OPR_REFERENCE: oper.opr.varsize := tsize;
                          OPR_LOCAL: oper.opr.localvarsize := tsize;
+                     else
+                       ;
                    end;
 
                  end;
@@ -459,10 +465,8 @@ Implementation
                   { don't allow direct access to fields of parameters, because that
                     will generate buggy code. Allow it only for explicit typecasting }
                   if hasdot and
-                     (not oper.hastype) and
-                     (oper.opr.localsym.owner.symtabletype=parasymtable) and
-                     (current_procinfo.procdef.proccalloption<>pocall_register) then
-                    Message(asmr_e_cannot_access_field_directly_for_parameters);
+                     (not oper.hastype) then
+                    checklocalsubscript(oper.opr.localsym);
                   inc(oper.opr.localsymofs,l);
                   inc(oper.opr.localconstoffset,l);
                 end;
@@ -561,6 +565,8 @@ Implementation
                      case oper.opr.typ of
                        OPR_REFERENCE: oper.opr.varsize := k;
                            OPR_LOCAL: oper.opr.localvarsize := k;
+                       else
+                         ;
                      end;
                    end;
                   MaybeGetPICModifier(oper);
@@ -607,7 +613,7 @@ Implementation
               { Constant memory offset }
               { This must absolutely be followed by (  }
               oper.InitRef;
-              oper.opr.ref.offset:=BuildConstExpression(True,False);
+              oper.opr.ref.offset:=asizeint(BuildConstExpression(True,False));
               if actasmtoken<>AS_LPAREN then
                 Message(asmr_e_invalid_reference_syntax)
               else
@@ -747,6 +753,12 @@ Implementation
                Begin
                  Consume(AS_COLON);
                  oper.InitRef;
+                 if not is_segment_reg(tempreg) then
+                   Message(asmr_e_invalid_seg_override);
+{$ifdef x86_64}
+                 if (tempreg=NR_CS) or (tempreg=NR_DS) or (tempreg=NR_SS) or (tempreg=NR_ES) then
+                   Message1(asmr_w_segment_override_ignored_in_64bit_mode,gas_regname(tempreg));
+{$endif x86_64}
                  oper.opr.ref.segment:=tempreg;
                  { This must absolutely be followed by a reference }
                  if not MaybeBuildReference then
@@ -783,6 +795,7 @@ Implementation
       var
         operandnum : longint;
         PrefixOp,OverrideOp: tasmop;
+        di_param, si_param: ShortInt;
       Begin
         PrefixOp:=A_None;
         OverrideOp:=A_None;
@@ -871,6 +884,106 @@ Implementation
           end; { end case }
         until false;
         instr.Ops:=operandnum;
+        { handle string instructions with parameters }
+        with instr do
+          if is_x86_parameterless_string_op(opcode) and
+             (Ops>=1) and (Ops<=2) then
+            begin
+              if opcode=A_MOVSD then
+                begin
+                  { distinguish between MOVS and the SSE MOVSD instruction:
+                    MOVS must have memory 2 reference operands (there's no need
+                    to distinguish from SSE CMPSD, because the SSE version has 3
+                    arguments and we've already checked that above) }
+                  if (Ops=2) and (operands[1].opr.typ=OPR_REFERENCE) and (operands[2].opr.typ=OPR_REFERENCE) then
+                    begin
+                      opcode:=A_MOVS;
+                      opsize:=S_L;
+                    end;
+                end
+              else
+                begin
+                  opsize:=get_x86_string_op_size(opcode);
+                  opcode:=x86_param2paramless_string_op(opcode);
+                end;
+            end;
+        { Check for invalid ES: overrides }
+        if is_x86_parameterized_string_op(instr.opcode) then
+          begin
+            si_param:=get_x86_string_op_si_param(instr.opcode);
+            if si_param<>-1 then
+              begin
+                si_param:=x86_parameterized_string_op_param_count(instr.opcode)-si_param;
+                if si_param<=operandnum then
+                  with instr.operands[si_param] do
+                    if (opr.typ=OPR_REFERENCE) then
+                      begin
+                        if not((((opr.ref.index<>NR_NO) and
+                                 (opr.ref.base=NR_NO) and
+                                 (getregtype(opr.ref.index)=R_INTREGISTER) and
+                                 (getsupreg(opr.ref.index)=RS_ESI)) or
+                                ((opr.ref.index=NR_NO) and
+                                 (opr.ref.base<>NR_NO) and
+                                 (getregtype(opr.ref.base)=R_INTREGISTER) and
+                                 (getsupreg(opr.ref.base)=RS_ESI))) and
+                               (opr.ref.offset=0) and
+                               (opr.ref.scalefactor<=1) and
+                               (opr.ref.refaddr=addr_no) and
+                               (opr.ref.symbol=nil) and
+                               (opr.ref.relsymbol=nil)) then
+{$if defined(i8086)}
+                          Message1(asmr_w_invalid_reference,'(%si)');
+{$elseif defined(i386)}
+                          Message1(asmr_w_invalid_reference,'(%esi)');
+{$elseif defined(x86_64)}
+                          Message1(asmr_w_invalid_reference,'(%rsi)');
+{$endif}
+                      end;
+              end;
+            di_param:=get_x86_string_op_di_param(instr.opcode);
+            if di_param<>-1 then
+              begin
+                di_param:=x86_parameterized_string_op_param_count(instr.opcode)-di_param;
+                if di_param<=operandnum then
+                  with instr.operands[di_param] do
+                    if (opr.typ=OPR_REFERENCE) then
+                      begin
+                        if (opr.ref.segment<>NR_NO) and
+                           (opr.ref.segment<>NR_ES) then
+                          Message(asmr_e_cannot_override_es_segment);
+                        if not((((opr.ref.index<>NR_NO) and
+                                 (opr.ref.base=NR_NO) and
+                                 (getregtype(opr.ref.index)=R_INTREGISTER) and
+                                 (getsupreg(opr.ref.index)=RS_EDI)) or
+                                ((opr.ref.index=NR_NO) and
+                                 (opr.ref.base<>NR_NO) and
+                                 (getregtype(opr.ref.base)=R_INTREGISTER) and
+                                 (getsupreg(opr.ref.base)=RS_EDI))) and
+                               (opr.ref.offset=0) and
+                               (opr.ref.scalefactor<=1) and
+                               (opr.ref.refaddr=addr_no) and
+                               (opr.ref.symbol=nil) and
+                               (opr.ref.relsymbol=nil)) then
+{$if defined(i8086)}
+                          Message1(asmr_w_invalid_reference,'(%di)');
+{$elseif defined(i386)}
+                          Message1(asmr_w_invalid_reference,'(%edi)');
+{$elseif defined(x86_64)}
+                          Message1(asmr_w_invalid_reference,'(%rdi)');
+{$endif}
+                      end;
+              end;
+            { if two memory parameters, check whether their address sizes are equal }
+            if (si_param<>-1) and (di_param<>-1) and
+               (si_param<=operandnum) and (di_param<=operandnum) and
+               (instr.operands[si_param].opr.typ=OPR_REFERENCE) and
+               (instr.operands[di_param].opr.typ=OPR_REFERENCE) then
+              begin
+                if get_ref_address_size(instr.operands[si_param].opr.ref)<>
+                   get_ref_address_size(instr.operands[di_param].opr.ref) then
+                  Message(asmr_e_address_sizes_do_not_match);
+              end;
+          end;
       end;
 
 
@@ -906,6 +1019,13 @@ Implementation
                     this cannot be expressed by the instruction table format so we have to hack around this here }
                   if (actopcode = A_NONE) and (upper(s) = 'MOVSD') then
                     actopcode := A_MOVSD;
+                  { cmpsd also needs special handling for pretty much the same reasons as movsd }
+                  if (actopcode = A_NONE) and (upper(s) = 'CMPSD') then
+                    actopcode := A_CMPSD;
+                  { disambiguation between A_MOVS (movsb/movsw/movsl/movsq) and
+                    A_MOVSX (movsbw/movsbl/movswl/movsbq/movswq) }
+                  if (actopcode = A_MOVS) and (suflen=2) then
+                    actopcode := A_MOVSX;
 
                   { two-letter suffix is allowed by just a few instructions (movsx,movzx),
                     and it is always required whenever allowed }

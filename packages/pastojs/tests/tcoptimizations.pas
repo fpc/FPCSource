@@ -24,30 +24,30 @@ unit tcoptimizations;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, fppas2js, pastree,
-  PScanner, PasUseAnalyzer, PasResolver,
+  Classes, SysUtils, testregistry, fppas2js, pastree,
+  PScanner, Pas2jsUseAnalyzer, PasResolver, PasResolveEval,
   tcmodules;
 
 type
-
 
   { TCustomTestOptimizations }
 
   TCustomTestOptimizations = class(TCustomTestModule)
   private
-    FAnalyzerModule: TPasAnalyzer;
-    FAnalyzerProgram: TPasAnalyzer;
+    FAnalyzerModule: TPas2JSAnalyzer;
+    FAnalyzerProgram: TPas2JSAnalyzer;
     FWholeProgramOptimization: boolean;
-    function OnConverterIsElementUsed(Sender: TObject; El: TPasElement
-      ): boolean;
+    function OnConverterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
+    function OnConverterIsTypeInfoUsed(Sender: TObject; El: TPasElement): boolean;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
     procedure ParseModule; override;
     procedure ParseProgram; override;
+    function CreateConverter: TPasToJSConverter; override;
   public
-    property AnalyzerModule: TPasAnalyzer read FAnalyzerModule;
-    property AnalyzerProgram: TPasAnalyzer read FAnalyzerProgram;
+    property AnalyzerModule: TPas2JSAnalyzer read FAnalyzerModule;
+    property AnalyzerProgram: TPas2JSAnalyzer read FAnalyzerProgram;
     property WholeProgramOptimization: boolean read FWholeProgramOptimization
         write FWholeProgramOptimization;
   end;
@@ -68,15 +68,24 @@ type
     procedure TestWPO_OmitRecordMember;
     procedure TestWPO_OmitNotUsedTObject;
     procedure TestWPO_TObject;
-    procedure TestWPO_OmitClassField;
-    procedure TestWPO_OmitClassMethod;
-    procedure TestWPO_OmitClassClassMethod;
-    procedure TestWPO_OmitPropertyGetter1;
-    procedure TestWPO_OmitPropertyGetter2;
-    procedure TestWPO_OmitPropertySetter1;
-    procedure TestWPO_OmitPropertySetter2;
+    procedure TestWPO_Class_Property;
+    procedure TestWPO_Class_OmitField;
+    procedure TestWPO_Class_OmitMethod;
+    procedure TestWPO_Class_OmitClassMethod;
+    procedure TestWPO_Class_OmitPropertyGetter1;
+    procedure TestWPO_Class_OmitPropertyGetter2;
+    procedure TestWPO_Class_OmitPropertySetter1;
+    procedure TestWPO_Class_OmitPropertySetter2;
+    procedure TestWPO_Class_KeepNewInstance;
     procedure TestWPO_CallInherited;
     procedure TestWPO_UseUnit;
+    procedure TestWPO_ArrayOfConst_Use;
+    procedure TestWPO_ArrayOfConst_NotUsed;
+    procedure TestWPO_Class_PropertyInOtherUnit;
+    procedure TestWPO_ProgramPublicDeclaration;
+    procedure TestWPO_ConstructorDefaultValueConst;
+    procedure TestWPO_RTTI_PublishedField;
+    procedure TestWPO_RTTI_TypeInfo;
   end;
 
 implementation
@@ -86,15 +95,44 @@ implementation
 function TCustomTestOptimizations.OnConverterIsElementUsed(Sender: TObject;
   El: TPasElement): boolean;
 var
-  A: TPasAnalyzer;
+  A: TPas2JSAnalyzer;
 begin
   if WholeProgramOptimization then
     A:=AnalyzerProgram
+  else if Sender=Converter then
+    A:=AnalyzerModule
   else
-    A:=AnalyzerModule;
+    begin
+    {$IF defined(VerbosePas2JS) or defined(VerbosePasAnalyzer)}
+    writeln('TCustomTestOptimizations.OnConverterIsElementUsed El=',GetObjName(El),' WPO=',WholeProgramOptimization,' Sender=',GetObjName(Sender));
+    {$ENDIF}
+    Fail('converting other unit without WPO');
+    end;
   Result:=A.IsUsed(El);
   {$IF defined(VerbosePas2JS) or defined(VerbosePasAnalyzer)}
   writeln('TCustomTestOptimizations.OnConverterIsElementUsed El=',GetObjName(El),' WPO=',WholeProgramOptimization,' Result=',Result);
+  {$ENDIF}
+end;
+
+function TCustomTestOptimizations.OnConverterIsTypeInfoUsed(Sender: TObject;
+  El: TPasElement): boolean;
+var
+  A: TPas2JSAnalyzer;
+begin
+  if WholeProgramOptimization then
+    A:=AnalyzerProgram
+  else if Sender=Converter then
+    A:=AnalyzerModule
+  else
+    begin
+    {$IF defined(VerbosePas2JS) or defined(VerbosePasAnalyzer)}
+    writeln('TCustomTestOptimizations.OnConverterIsTypeInfoUsed El=',GetObjName(El),' WPO=',WholeProgramOptimization,' Sender=',GetObjName(Sender));
+    {$ENDIF}
+    Fail('converting other unit without WPO');
+    end;
+  Result:=A.IsTypeInfoUsed(El);
+  {$IF defined(VerbosePas2JS) or defined(VerbosePasAnalyzer)}
+  writeln('TCustomTestOptimizations.OnConverterIsTypeInfoUsed El=',GetObjName(El),' WPO=',WholeProgramOptimization,' Result=',Result);
   {$ENDIF}
 end;
 
@@ -102,11 +140,10 @@ procedure TCustomTestOptimizations.SetUp;
 begin
   inherited SetUp;
   FWholeProgramOptimization:=false;
-  FAnalyzerModule:=TPasAnalyzer.Create;
+  FAnalyzerModule:=TPas2JSAnalyzer.Create;
   FAnalyzerModule.Resolver:=Engine;
-  FAnalyzerProgram:=TPasAnalyzer.Create;
+  FAnalyzerProgram:=TPas2JSAnalyzer.Create;
   FAnalyzerProgram.Resolver:=Engine;
-  Converter.OnIsElementUsed:=@OnConverterIsElementUsed;
 end;
 
 procedure TCustomTestOptimizations.TearDown;
@@ -141,6 +178,13 @@ begin
   {$ENDIF}
 end;
 
+function TCustomTestOptimizations.CreateConverter: TPasToJSConverter;
+begin
+  Result:=inherited CreateConverter;
+  Result.OnIsElementUsed:=@OnConverterIsElementUsed;
+  Result.OnIsTypeInfoUsed:=@OnConverterIsTypeInfoUsed;
+end;
+
 { TTestOptimizations }
 
 procedure TTestOptimizations.TestWPO_OmitLocalVar;
@@ -154,7 +198,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitLocalVar',
     'this.b = 0;',
-    'this.b = 3;');
+    '$mod.b = 3;');
 end;
 
 procedure TTestOptimizations.TestWPO_OmitLocalProc;
@@ -171,7 +215,7 @@ begin
     '};',
     '']),
     LinesToStr([
-    'this.DoIt();',
+    '$mod.DoIt();',
     '']));
 end;
 
@@ -191,7 +235,7 @@ begin
     '};',
     '']),
     LinesToStr([
-    'this.DoIt();',
+    '$mod.DoIt();',
     '']));
 end;
 
@@ -220,7 +264,7 @@ begin
     '};',
     '']),
     LinesToStr([
-    'this.DoIt();',
+    '$mod.DoIt();',
     '']));
 end;
 
@@ -245,12 +289,12 @@ begin
     'var d = 6;',
     'this.DoIt = function () {',
     '  var Result = 0;',
-    '  Result = b + d;',
+    '  Result = 4 + d;',
     '  return Result;',
     '};',
     '']),
     LinesToStr([
-    'this.DoIt();',
+    '$mod.DoIt();',
     '']));
 end;
 
@@ -276,7 +320,7 @@ begin
     '};',
     '']),
     LinesToStr([
-    'this.DoIt();',
+    '$mod.DoIt();',
     '']));
 end;
 
@@ -301,7 +345,7 @@ begin
     '};',
     '']),
     LinesToStr([
-    'this.DoIt();',
+    '$mod.DoIt();',
     '']));
 end;
 
@@ -328,7 +372,7 @@ begin
     '};',
     '']),
     LinesToStr([
-    'this.DoIt();',
+    '$mod.DoIt();',
     '']));
 end;
 
@@ -346,20 +390,20 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitRecordMember',
     LinesToStr([
-    'this.TRec = function (s) {',
-    '  if (s) {',
+    'rtl.recNewT($mod, "TRec", function () {',
+    '  this.a = 0;',
+    '  this.$eq = function (b) {',
+    '    return this.a === b.a;',
+    '  };',
+    '  this.$assign = function (s) {',
     '    this.a = s.a;',
-    '  } else {',
-    '    this.a = 0;',
+    '    return this;',
     '  };',
-    '  this.$equal = function (b) {',
-    '    return this.a == b.a;',
-    '  };',
-    '};',
-    'this.r = new this.TRec();',
+    '});',
+    'this.r = $mod.TRec.$new();',
     '']),
     LinesToStr([
-    'this.r.a = 3;',
+    '$mod.r.a = 3;',
     '']));
 end;
 
@@ -394,7 +438,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_TObject',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -407,10 +451,52 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'this.o = null;']));
+    '$mod.o = null;']));
 end;
 
-procedure TTestOptimizations.TestWPO_OmitClassField;
+procedure TTestOptimizations.TestWPO_Class_Property;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  private',
+  '    const CA = 3;',
+  '  private',
+  '    FA: longint;',
+  '    function GetA: longint;',
+  '    procedure SetA(Value: longint);',
+  '    function IsStoredA: boolean;',
+  '    property A: longint read GetA write SetA stored IsStoredA default CA;',
+  '  end;',
+  'function tobject.geta: longint; begin end;',
+  'procedure tobject.seta(value: longint); begin end;',
+  'function tobject.isstoreda: boolean; begin end;',
+  'var o: TObject;',
+  'begin',
+  '  o.A:=o.A;']);
+  ConvertProgram;
+  CheckSource('TestWPO_Class_TObject',
+    LinesToStr([
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.GetA = function () {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '  this.SetA = function (Value) {',
+    '  };',
+    '});',
+    'this.o = null;',
+    '']),
+    LinesToStr([
+    '$mod.o.SetA($mod.o.GetA());']));
+end;
+
+procedure TTestOptimizations.TestWPO_Class_OmitField;
 begin
   StartProgram(false);
   Add('type');
@@ -424,7 +510,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassField',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.a = 0;',
     '  };',
@@ -434,10 +520,10 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'this.o.a = 3;']));
+    '$mod.o.a = 3;']));
 end;
 
-procedure TTestOptimizations.TestWPO_OmitClassMethod;
+procedure TTestOptimizations.TestWPO_Class_OmitMethod;
 begin
   StartProgram(false);
   Add('type');
@@ -453,7 +539,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassMethod',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -464,10 +550,10 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'this.o.ProcB();']));
+    '$mod.o.ProcB();']));
 end;
 
-procedure TTestOptimizations.TestWPO_OmitClassClassMethod;
+procedure TTestOptimizations.TestWPO_Class_OmitClassMethod;
 begin
   StartProgram(false);
   Add('type');
@@ -483,7 +569,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassMethod',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -494,10 +580,10 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'this.o.$class.ProcB();']));
+    '$mod.o.$class.ProcB();']));
 end;
 
-procedure TTestOptimizations.TestWPO_OmitPropertyGetter1;
+procedure TTestOptimizations.TestWPO_Class_OmitPropertyGetter1;
 begin
   StartProgram(false);
   Add('type');
@@ -519,7 +605,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassPropertyGetter1',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFoo = false;',
     '  };',
@@ -529,11 +615,11 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'if (this.o.FFoo);',
+    'if ($mod.o.FFoo);',
     '']));
 end;
 
-procedure TTestOptimizations.TestWPO_OmitPropertyGetter2;
+procedure TTestOptimizations.TestWPO_Class_OmitPropertyGetter2;
 begin
   StartProgram(false);
   Add('type');
@@ -550,7 +636,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassPropertyGetter2',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFoo = false;',
     '  };',
@@ -565,11 +651,11 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'if (this.o.GetFoo()) ;',
+    'if ($mod.o.GetFoo()) ;',
     '']));
 end;
 
-procedure TTestOptimizations.TestWPO_OmitPropertySetter1;
+procedure TTestOptimizations.TestWPO_Class_OmitPropertySetter1;
 begin
   StartProgram(false);
   Add('type');
@@ -591,7 +677,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassPropertySetter1',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFoo = false;',
     '  };',
@@ -601,11 +687,11 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'this.o.FFoo = true;',
+    '$mod.o.FFoo = true;',
     '']));
 end;
 
-procedure TTestOptimizations.TestWPO_OmitPropertySetter2;
+procedure TTestOptimizations.TestWPO_Class_OmitPropertySetter2;
 begin
   StartProgram(false);
   Add('type');
@@ -622,7 +708,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_OmitClassPropertySetter2',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FFoo = false;',
     '  };',
@@ -635,7 +721,57 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([
-    'this.o.SetFoo(true);',
+    '$mod.o.SetFoo(true);',
+    '']));
+end;
+
+procedure TTestOptimizations.TestWPO_Class_KeepNewInstance;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExt = class external name ''Object''',
+  '  end;',
+  '  TBird = class(TExt)',
+  '  protected',
+  '    class function NewInstance(fnname: string; const paramarray): TBird; virtual;',
+  '  public',
+  '    constructor Create;',
+  '  end;',
+  'class function TBird.NewInstance(fnname: string; const paramarray): TBird;',
+  'begin',
+  '  asm',
+  '  Result = Object.create();',
+  '  end;',
+  'end;',
+  'constructor TBird.Create;',
+  'begin',
+  '  inherited;',
+  'end;',
+  'begin',
+  '  TBird.Create;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestWPO_Class_KeepNewInstance',
+    LinesToStr([
+    'rtl.createClassExt($mod, "TBird", Object, "NewInstance", function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.NewInstance = function (fnname, paramarray) {',
+    '    var Result = null;',
+    '    Result = Object.create();',
+    '    return Result;',
+    '  };',
+    '  this.Create = function () {',
+    '    return this;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '$mod.TBird.$create("Create");',
     '']));
 end;
 
@@ -668,7 +804,7 @@ begin
   ConvertProgram;
   CheckSource('TestWPO_CallInherited',
     LinesToStr([
-    'rtl.createClass(this, "TObject", null, function () {',
+    'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
     '  this.$final = function () {',
@@ -678,19 +814,19 @@ begin
     '  this.DoB = function () {',
     '  };',
     '});',
-    ' rtl.createClass(this, "TMobile", this.TObject, function () {',
+    ' rtl.createClass($mod, "TMobile", $mod.TObject, function () {',
     '  this.DoA$1 = function () {',
-    '    pas.program.TObject.DoA.apply(this, arguments);',
+    '    $mod.TObject.DoA.call(this);',
     '  };',
     '  this.DoC = function () {',
-    '    pas.program.TObject.DoB.call(this);',
+    '    $mod.TObject.DoB.call(this);',
     '  };',
     '});',
     'this.o = null;',
     '']),
     LinesToStr([
-    'this.o.DoA$1();',
-    'this.o.DoC();',
+    '$mod.o.DoA$1();',
+    '$mod.o.DoC();',
     '']));
 end;
 
@@ -719,15 +855,288 @@ begin
   Add('begin');
   Add('  j:=3;');
   ConvertProgram;
-  ActualSrc:=JSToStr(JSModule);
+  ActualSrc:=ConvertJSModuleToString(JSModule);
   ExpectedSrc:=LinesToStr([
     'rtl.module("program", ["system", "unit2"], function () {',
-    '  this.$main = function () {',
+    '  var $mod = this;',
+    '  $mod.$main = function () {',
     '    pas.unit2.j = 3;',
     '  };',
     '});',
     '']);
   CheckDiff('TestWPO_UseUnit',ExpectedSrc,ActualSrc);
+end;
+
+procedure TTestOptimizations.TestWPO_ArrayOfConst_Use;
+begin
+  StartProgram(true,[supTVarRec]);
+  Add([
+  'procedure Say(arr: array of const);',
+  'begin',
+  'end;',
+  'begin',
+  '  Say([true]);']);
+  ConvertProgram;
+  CheckUnit('system.pp',
+  LinesToStr([
+  'rtl.module("system", [], function () {',
+  '  var $mod = this;',
+  '  rtl.recNewT($mod, "TVarRec", function () {',
+  '    this.VType = 0;',
+  '    this.VJSValue = undefined;',
+  '    this.$eq = function (b) {',
+  '      return (this.VType === b.VType) && (this.VJSValue === b.VJSValue);',
+  '    };',
+  '    this.$assign = function (s) {',
+  '      this.VType = s.VType;',
+  '      this.VJSValue = s.VJSValue;',
+  '      return this;',
+  '    };',
+  '  });',
+  '  this.VarRecs = function () {',
+  '    var Result = [];',
+  '    var v = null;',
+  '    v.VType = 1;',
+  '    v.VJSValue = 2;',
+  '    return Result;',
+  '  };',
+  '});',
+  '']));
+end;
+
+procedure TTestOptimizations.TestWPO_ArrayOfConst_NotUsed;
+begin
+  StartProgram(true,[supTVarRec]);
+  Add([
+  'procedure Say(arr: array of const);',
+  'begin',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckUnit('system.pp',
+  LinesToStr([
+  'rtl.module("system", [], function () {',
+  '  var $mod = this;',
+  '});',
+  '']));
+end;
+
+procedure TTestOptimizations.TestWPO_Class_PropertyInOtherUnit;
+begin
+  AddModuleWithIntfImplSrc('unit1.pp',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '  private',
+    '    const CA = 3;',
+    '  private',
+    '    FOther: string;',
+    '    FA: longint;',
+    '    function GetA: longint;',
+    '    procedure SetA(Value: longint);',
+    '    function IsStoredA: boolean;',
+    '  public',
+    '    property A: longint read GetA write SetA stored IsStoredA default CA;',
+    '  end;',
+    '']),
+    LinesToStr([
+    'function TObject.geta: longint;',
+    'begin',
+    'end;',
+    'procedure TObject.seta(value: longint);',
+    'begin',
+    '  FA:=Value;',
+    'end;',
+    'function TObject.isstoreda: boolean; begin end;',
+    '']));
+  StartProgram(true);
+  Add([
+  'uses unit1;',
+  'var o: TObject;',
+  'begin',
+  '  o.A:=o.A;']);
+  ConvertProgram;
+  CheckUnit('unit1.pp',
+  LinesToStr([
+  'rtl.module("unit1", ["system"], function () {',
+  '  var $mod = this;',
+  '  rtl.createClass($mod, "TObject", null, function () {',
+  '    this.$init = function () {',
+  '      this.FA = 0;',
+  '    };',
+  '    this.$final = function () {',
+  '    };',
+  '    this.GetA = function () {',
+  '      var Result = 0;',
+  '      return Result;',
+  '    };',
+  '    this.SetA = function (Value) {',
+  '      this.FA = Value;',
+  '    };',
+  '  });',
+  '});',
+  '']));
+end;
+
+procedure TTestOptimizations.TestWPO_ProgramPublicDeclaration;
+var
+  ActualSrc, ExpectedSrc: String;
+begin
+  StartProgram(true);
+  Add('var');
+  Add('  vPublic: longint; public;');
+  Add('  vPrivate: longint;');
+  Add('procedure DoPublic; public; begin end;');
+  Add('procedure DoPrivate; begin end;');
+  Add('begin');
+  ConvertProgram;
+  ActualSrc:=ConvertJSModuleToString(JSModule);
+  ExpectedSrc:=LinesToStr([
+    'rtl.module("program", ["system"], function () {',
+    '  var $mod = this;',
+    '  this.vPublic = 0;',
+    '  this.DoPublic =function(){',
+    '  };',
+    '  $mod.$main = function () {',
+    '  };',
+    '});',
+    '']);
+  CheckDiff('TestWPO_ProgramPublicDeclaration',ExpectedSrc,ActualSrc);
+end;
+
+procedure TTestOptimizations.TestWPO_ConstructorDefaultValueConst;
+var
+  ActualSrc, ExpectedSrc: String;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(true);
+  Add([
+  'const gcBlack = 0;',
+  'type',
+  '  TColor = longint;',
+  '  TObject = class',
+  '  private',
+  '    FColor: TColor;',
+  '  public',
+  '    property Color: TColor read FColor write FColor;',
+  '    constructor Create(const AColor: TColor = gcBlack);',
+  '  end;',
+  'constructor TObject.Create(const AColor: TColor = gcBlack);',
+  'begin',
+  '  FColor := AColor;',
+  'end;',
+  'var T: TObject;',
+  'begin',
+  '  T := TObject.Create;',
+  '']);
+  ConvertProgram;
+  ActualSrc:=ConvertJSModuleToString(JSModule);
+  ExpectedSrc:=LinesToStr([
+  'rtl.module("program",["system"],function () {',
+  '  var $mod = this;',
+  '  this.gcBlack = 0;',
+  '  rtl.createClass($mod,"TObject",null,function () {',
+  '    this.$init = function () {',
+  '      this.FColor = 0;',
+  '    };',
+  '    this.$final = function () {',
+  '    };',
+  '    this.Create = function (AColor) {',
+  '      this.FColor = AColor;',
+  '      return this;',
+  '    };',
+  '  });',
+  '  this.T = null;',
+  '  $mod.$main = function () {',
+  '    $mod.T = $mod.TObject.$create("Create",[0]);',
+  '  };',
+  '});',
+  '']);
+  CheckDiff('TestWPO_ConstructorDefaultValueConst',ExpectedSrc,ActualSrc);
+end;
+
+procedure TTestOptimizations.TestWPO_RTTI_PublishedField;
+var
+  ActualSrc, ExpectedSrc: String;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(true);
+  Add('type');
+  Add('  TArrA = array of char;');
+  Add('  TArrB = array of string;');
+  Add('  TObject = class');
+  Add('  public');
+  Add('    PublicA: TArrA;');
+  Add('  published');
+  Add('    PublishedB: TArrB;');
+  Add('  end;');
+  Add('var');
+  Add('  C: TObject;');
+  Add('begin');
+  Add('  C.PublicA:=nil;');
+  ConvertProgram;
+  ActualSrc:=ConvertJSModuleToString(JSModule);
+  ExpectedSrc:=LinesToStr([
+    'rtl.module("program", ["system"], function () {',
+    '  var $mod = this;',
+    '  $mod.$rtti.$DynArray("TArrB", {',
+    '    eltype: rtl.string',
+    '  });',
+    '  rtl.createClass($mod, "TObject", null, function () {',
+    '    this.$init = function () {',
+    '      this.PublicA = [];',
+    '      this.PublishedB = [];',
+    '    };',
+    '    this.$final = function () {',
+    '      this.PublicA = undefined;',
+    '      this.PublishedB = undefined;',
+    '    };',
+    '    var $r = this.$rtti;',
+    '    $r.addField("PublishedB", $mod.$rtti["TArrB"]);',
+    '  });',
+    '  this.C = null;',
+    '  $mod.$main = function () {',
+    '    $mod.C.PublicA = [];',
+    '  };',
+    '});',
+    '']);
+  CheckDiff('TestWPO_RTTI_PublishedField',ExpectedSrc,ActualSrc);
+end;
+
+procedure TTestOptimizations.TestWPO_RTTI_TypeInfo;
+var
+  ActualSrc, ExpectedSrc: String;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(true);
+  Add('type');
+  Add('  TArrA = array of char;');
+  Add('  TArrB = array of string;');
+  Add('var');
+  Add('  A: TArrA;');
+  Add('  B: TArrB;');
+  Add('  p: pointer;');
+  Add('begin');
+  Add('  A:=nil;');
+  Add('  p:=typeinfo(B);');
+  ConvertProgram;
+  ActualSrc:=ConvertJSModuleToString(JSModule);
+  ExpectedSrc:=LinesToStr([
+    'rtl.module("program", ["system"], function () {',
+    '  var $mod = this;',
+    '  $mod.$rtti.$DynArray("TArrB", {',
+    '    eltype: rtl.string',
+    '  });',
+    '  this.A = [];',
+    '  this.B = [];',
+    '  this.p = null;',
+    '  $mod.$main = function () {',
+    '    $mod.A = [];',
+    '    $mod.p = $mod.$rtti["TArrB"];',
+    '  };',
+    '});',
+    '']);
+  CheckDiff('TestWPO_RTTI_TypeInfo',ExpectedSrc,ActualSrc);
 end;
 
 Initialization

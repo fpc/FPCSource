@@ -1019,9 +1019,9 @@ type
    TXIC = record
      end;
 
-   TXIMProc = procedure (para1:TXIM; para2:TXPointer; para3:TXPointer);cdecl;
+   TXIMProc = procedure (para1:PXIM; para2:TXPointer; para3:TXPointer);cdecl;
 
-   TXICProc = function (para1:TXIC; para2:TXPointer; para3:TXPointer):TBoolResult;cdecl;
+   TXICProc = function (para1:PXIC; para2:TXPointer; para3:TXPointer):TBoolResult;cdecl;
 
    TXIDProc = procedure (para1:PDisplay; para2:TXPointer; para3:TXPointer);cdecl;
 
@@ -1756,20 +1756,20 @@ procedure Xutf8DrawImageString(para1:PDisplay; para2:TDrawable; para3:TXFontSet;
             para6:cint; para7:Pchar; para8:cint);cdecl;external libX11;
 function XOpenIM(para1:PDisplay; para2:PXrmHashBucketRec; para3:Pchar; para4:Pchar):PXIM;cdecl;external libX11;
 function XCloseIM(para1:PXIM):TStatus;cdecl;external libX11;
-function XGetIMValues(para1:TXIM; dotdotdot:array of const):Pchar;cdecl;external libX11;
-function XSetIMValues(para1:TXIM; dotdotdot:array of const):Pchar;cdecl;external libX11;
-function XDisplayOfIM(para1:TXIM):PDisplay;cdecl;external libX11;
-function XLocaleOfIM(para1:TXIM):Pchar;cdecl;external libX11;
+function XGetIMValues(para1:PXIM; dotdotdot:array of const):Pchar;cdecl;external libX11;
+function XSetIMValues(para1:PXIM; dotdotdot:array of const):Pchar;cdecl;external libX11;
+function XDisplayOfIM(para1:PXIM):PDisplay;cdecl;external libX11;
+function XLocaleOfIM(para1:PXIM):Pchar;cdecl;external libX11;
 function XCreateIC(para1:PXIM; dotdotdot:array of const):PXIC;cdecl;external libX11;
 procedure XDestroyIC(para1:PXIC);cdecl;external libX11;
 procedure XSetICFocus(para1:PXIC);cdecl;external libX11;
 procedure XUnsetICFocus(para1:PXIC);cdecl;external libX11;
-function XwcResetIC(para1:TXIC):PWideChar;cdecl;external libX11;
-function XmbResetIC(para1:TXIC):Pchar;cdecl;external libX11;
+function XwcResetIC(para1:PXIC):PWideChar;cdecl;external libX11;
+function XmbResetIC(para1:PXIC):Pchar;cdecl;external libX11;
 function Xutf8ResetIC(para1:PXIC):Pchar;cdecl;external libX11;
-function XSetICValues(para1:TXIC; dotdotdot:array of const):Pchar;cdecl;external libX11;
-function XGetICValues(para1:TXIC; dotdotdot:array of const):Pchar;cdecl;external libX11;
-function XIMOfIC(para1:TXIC):TXIM;cdecl;external libX11;
+function XSetICValues(para1:PXIC; dotdotdot:array of const):Pchar;cdecl;external libX11;
+function XGetICValues(para1:PXIC; dotdotdot:array of const):Pchar;cdecl;external libX11;
+function XIMOfIC(para1:PXIC):PXIM;cdecl;external libX11;
 function XFilterEvent(para1:PXEvent; para2:TWindow):TBoolResult;cdecl;external libX11;
 function XmbLookupString(para1:PXIC; para2:PXKeyPressedEvent; para3:Pchar; para4:cint; para5:PKeySym;
            para6:PStatus):cint;cdecl;external libX11;

@@ -289,6 +289,7 @@ Type
     CharBase:  PTTFEncodingNames;
     PostScriptName: string;
     FamilyName: string;
+    HumanFriendlyName: string; // aka FullName
     destructor Destroy; override;
     { Returns the Glyph Index value in the TTF file, where AValue is the ordinal value of a character. }
     function  GetGlyphIndex(AValue: word): word;
@@ -531,7 +532,7 @@ begin
     FSubtables[i].Offset:=ReadUInt32(AStream); // 4 bytes - Offset of subtable
     end;
   UE:=FCMapH.SubtableCount-1;
-  if UE=0 then
+  if UE=-1 then
     // No CMap subtable entries, this is not an error, just exit.
     exit;
   While (UE>=0) and ((FSubtables[UE].PlatformID<>3) or (FSubtables[UE].EncodingID<> 1)) do
@@ -660,15 +661,23 @@ begin
       writeln('NameID = ', E[i].Info.NameID);
       writeln('Value = ', E[i].Value);
     {$ENDIF}
+
     if (PostScriptName='')
        and (E[i].Info.NameID=NameIDPostScriptName)
        and (E[i].Info.EncodingID=NameMSEncodingUGL) then
       PostScriptName:=E[i].Value;
+
     if (FamilyName = '')
         and (E[i].Info.NameID = NameIDFontFamily)
         and (E[i].Info.LanguageID = 1033)
         and (E[i].Info.EncodingID = 1) then
       FamilyName := E[i].Value;
+
+    if (HumanFriendlyName = '')
+        and (E[i].Info.NameID = NameIDFullFontName)
+        and (E[i].Info.LanguageID = 1033)
+        and (E[i].Info.EncodingID = 1) then
+      HumanFriendlyName := E[i].Value;
   end; { for i ... }
 end;
 

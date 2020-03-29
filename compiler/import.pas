@@ -25,10 +25,7 @@ unit import;
 interface
 
 uses
-  cutils,cclasses,
-  systems,
-  aasmbase,
-  symdef,symsym;
+  systems;
 
 type
    timportlib=class

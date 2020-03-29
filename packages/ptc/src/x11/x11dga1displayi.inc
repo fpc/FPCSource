@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2012, 2016 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -481,6 +481,12 @@ end;
 procedure TX11DGA1Display.SetMouseGrab(AGrabMouse: Boolean);
 begin
   {...}
+end;
+
+function TX11DGA1Display.SetRelativeMouseMode(ARelativeMouseMode: Boolean): Boolean;
+begin
+  {...}
+  Result := not ARelativeMouseMode;
 end;
 
 {$ENDIF ENABLE_X11_EXTENSION_XF86DGA1}

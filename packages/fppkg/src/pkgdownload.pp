@@ -16,12 +16,12 @@ Type
     FBackupFile : Boolean;
   Protected
     // Needs overriding.
-    Procedure FTPDownload(Const URL : String; Dest : TStream); Virtual;
-    Procedure HTTPDownload(Const URL : String; Dest : TStream); Virtual;
-    Procedure FileDownload(Const URL : String; Dest : TStream); Virtual;
+    function FTPDownload(Const URL : String; Dest : TStream): Boolean; Virtual;
+    function HTTPDownload(Const URL : String; Dest : TStream): Boolean; Virtual;
+    function FileDownload(Const URL : String; Dest : TStream): Boolean; Virtual;
   Public
-    Procedure Download(Const URL,DestFileName : String);
-    Procedure Download(Const URL : String; Dest : TStream);
+    function Download(Const URL,DestFileName : String): Boolean;
+    function Download(Const URL : String; Dest : TStream): Boolean;
     Property BackupFiles : Boolean Read FBackupFile Write FBackupFile;
   end;
   TBaseDownloaderClass = Class of TBaseDownloader;
@@ -30,13 +30,13 @@ Type
 
   TDownloadPackage = Class(TPackagehandler)
   Public
-    Procedure Execute;override;
+    function Execute: Boolean;override;
   end;
 
 procedure RegisterDownloader(const AName:string;Downloaderclass:TBaseDownloaderClass);
 function GetDownloader(const AName:string):TBaseDownloaderClass;
 
-procedure DownloadFile(const RemoteFile,LocalFile:String; PackageManager: TpkgFPpkg);
+function DownloadFile(const RemoteFile,LocalFile:String; PackageManager: TpkgFPpkg): Boolean;
 
 
 implementation
@@ -72,14 +72,14 @@ begin
 end;
 
 
-procedure DownloadFile(const RemoteFile,LocalFile:String; PackageManager: TpkgFPpkg);
+function DownloadFile(const RemoteFile,LocalFile:String; PackageManager: TpkgFPpkg): Boolean;
 var
   DownloaderClass : TBaseDownloaderClass;
 begin
   DownloaderClass:=GetDownloader(PackageManager.Options.GlobalSection.Downloader);
   with DownloaderClass.Create(nil) do
     try
-      Download(RemoteFile,LocalFile);
+      Result := Download(RemoteFile,LocalFile);
     finally
       Free;
     end;
@@ -88,83 +88,93 @@ end;
 
 { TBaseDownloader }
 
-procedure TBaseDownloader.FTPDownload(const URL: String; Dest: TStream);
+function TBaseDownloader.FTPDownload(Const URL: String; Dest: TStream): Boolean;
 begin
   Error(SErrNoFTPDownload);
+  Result := False;
 end;
 
-procedure TBaseDownloader.HTTPDownload(const URL: String; Dest: TStream);
+function TBaseDownloader.HTTPDownload(Const URL: String; Dest: TStream): Boolean;
 begin
   Error(SErrNoHTTPDownload);
+  Result := False;
 end;
 
-procedure TBaseDownloader.FileDownload(const URL: String; Dest: TStream);
+function TBaseDownloader.FileDownload(Const URL: String; Dest: TStream): Boolean;
 
 Var
   FN : String;
   F : TFileStream;
 
 begin
+  Result := False;
   URIToFilename(URL,FN);
   If Not FileExists(FN) then
     Error(SErrNoSuchFile,[FN]);
   F:=TFileStream.Create(FN,fmOpenRead);
   Try
     Dest.CopyFrom(F,0);
+    Result := True;
   Finally
     F.Free;
   end;
 end;
 
-procedure TBaseDownloader.Download(const URL, DestFileName: String);
+function TBaseDownloader.Download(Const URL, DestFileName: String): Boolean;
 
 Var
   F : TFileStream;
 
 begin
+  Result := False;
   If FileExists(DestFileName) and BackupFiles then
     BackupFile(DestFileName);
   try
     F:=TFileStream.Create(DestFileName,fmCreate);
     try
-      Download(URL,F);
+      Result := Download(URL,F);
     finally
       F.Free;
     end;
-  except
-    DeleteFile(DestFileName);
-    raise;
+  finally
+    if not Result then
+      DeleteFile(DestFileName);
   end;
 end;
 
-procedure TBaseDownloader.Download(const URL: String; Dest: TStream);
+function TBaseDownloader.Download(Const URL: String; Dest: TStream): Boolean;
 
 Var
   URI : TURI;
   P : String;
 
 begin
+  Result := False;
   URI:=ParseURI(URL);
   P:=URI.Protocol;
   If CompareText(P,'ftp')=0 then
-    FTPDownload(URL,Dest)
-  else if CompareText(P,'http')=0 then
-    HTTPDownload(URL,Dest)
+    Result := FTPDownload(URL,Dest)
+  else if (CompareText(P,'http')=0) or (CompareText(P,'https')=0) then
+    Result := HTTPDownload(URL,Dest)
   else if CompareText(P,'file')=0 then
-    FileDownload(URL,Dest)
+    Result := FileDownload(URL,Dest)
   else
-    Error(SErrUnknownProtocol,[P, URL]);
+    begin
+      Error(SErrUnknownProtocol,[P, URL]);
+      Result := False;
+    end;
 end;
 
 
 { TDownloadPackage }
 
-procedure TDownloadPackage.Execute;
+function TDownloadPackage.Execute: Boolean;
 var
   DownloaderClass : TBaseDownloaderClass;
   P : TFPPackage;
   RemoteArchive: string;
 begin
+  Result := False;
   P:=PackageManager.PackageByName(PackageName, pkgpkAvailable);
   DownloaderClass:=GetDownloader(PackageManager.Options.GlobalSection.Downloader);
   if Assigned(DownloaderClass) then
@@ -175,13 +185,14 @@ begin
           if RemoteArchive <> '' then
             begin
               Log(llCommands,SLogDownloading,[RemoteArchive,PackageManager.PackageLocalArchive(P)]);
-              pkgglobals.log(llProgres,SProgrDownloadPackage,[P.Name, P.Version.AsString]);
+              pkgglobals.log(llProgress,SProgrDownloadPackage,[P.Name, P.Version.AsString]);
 
               // Force the existing of the archives-directory if it is being used
               if (P.Name<>CurrentDirPackageName) and (P.Name<>CmdLinePackageName) then
                 ForceDirectories(PackageManager.Options.GlobalSection.ArchivesDir);
 
               Download(RemoteArchive,PackageManager.PackageLocalArchive(P));
+              Result := True;
             end
           else
             Error(SErrDownloadPackageFailed);

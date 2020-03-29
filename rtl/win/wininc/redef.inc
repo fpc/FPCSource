@@ -104,7 +104,6 @@ const
   SIF_TRACKPOS = $10;
   CP_UTF7 = 65000;
   CP_UTF8 = 65001;
-  CREATE_NO_WINDOW = $08000000;
 
   WHEEL_DELTA = 120;
   WHEEL_PAGESCROLL = MAXDWORD;
@@ -389,8 +388,8 @@ function EnumDisplaySettingsA(lpszDeviceName: LPCSTR; iModeNum: DWORD; var lpDev
 function EnumDisplaySettingsW(lpszDeviceName: LPWSTR; iModeNum: DWORD; var lpDevMode: TDeviceModeW): BOOL; external 'user32' name 'EnumDisplaySettingsW';
 //function EnumEnhMetaFile(DC: HDC; p2: HENHMETAFILE; p3: TFNEnhMFEnumProc; p4: Pointer; const p5: TRect): BOOL; external 'gdi32' name 'EnumEnhMetaFile';
 function EnumFontFamiliesEx(DC: HDC; var p2: TLogFont; p3: FONTENUMEXPROC; p4: LPARAM; p5: DWORD): BOOL;external 'gdi32' name 'EnumFontFamiliesExA';
-function EnumFontFamiliesExA(DC: HDC; var p2: TLogFontA; p3: FONTENUMEXPROC; p4: LPARAM; p5: DWORD): BOOL; external 'gdi32' name 'EnumFontFamiliesExA';
-function EnumFontFamiliesExW(DC: HDC; var p2: TLogFontW; p3: FONTENUMEXPROC; p4: LPARAM; p5: DWORD): BOOL; external 'gdi32' name 'EnumFontFamiliesExW';
+function EnumFontFamiliesExA(DC: HDC; var p2: TLogFontA; p3: FONTENUMEXPROCA; p4: LPARAM; p5: DWORD): BOOL; external 'gdi32' name 'EnumFontFamiliesExA';
+function EnumFontFamiliesExW(DC: HDC; var p2: TLogFontW; p3: FONTENUMEXPROCW; p4: LPARAM; p5: DWORD): BOOL; external 'gdi32' name 'EnumFontFamiliesExW';
 //function EqualRect(const lprc1, lprc2: TRect): BOOL; external 'user32' name 'EqualRect';
 function ExtCreatePen(PenStyle, Width: DWORD; const Brush: TLogBrush; StyleCount: DWORD; Style: Pointer): HPEN; external 'gdi32' name 'ExtCreatePen';
 function ExtCreateRegion(p1: PXForm; p2: DWORD; const p3: TRgnData): HRGN; external 'gdi32' name 'ExtCreateRegion';
@@ -509,10 +508,15 @@ function GetFileInformationByHandle(hFile: THandle; var lpFileInformation: TByHa
 function GetFileVersionInfoSize(lptstrFilename: PChar; var lpdwHandle: DWORD): DWORD;external 'version' name 'GetFileVersionInfoSizeA';
 function GetFileVersionInfoSizeA(lptstrFilename: LPCSTR; var lpdwHandle: DWORD): DWORD; external 'version' name 'GetFileVersionInfoSizeA';
 function GetFileVersionInfoSizeW(lptstrFilename: LPWSTR; var lpdwHandle: DWORD): DWORD; external 'version' name 'GetFileVersionInfoSizeW';
-// removed because old definition was wrong !
-// function GetFullPathName(lpFileName: PChar; nBufferLength: DWORD; lpBuffer: PChar; var lpFilePart: PChar): DWORD;external 'kernel32' name 'GetFullPathNameA';
-// function GetFullPathNameA(lpFileName: LPCSTR; nBufferLength: DWORD; lpBuffer: LPCSTR; var lpFilePart: LPCSTR): DWORD; external 'kernel32' name 'GetFullPathNameA';
-// function GetFullPathNameW(lpFileName: LPWSTR; nBufferLength: DWORD; lpBuffer: LPWSTR; var lpFilePart: LPWSTR): DWORD; external 'kernel32' name 'GetFullPathNameW';
+
+{$ifdef Unicode}
+ function GetFullPathName (lpFileName: LPCWSTR; nBufferLength: DWORD; lpBuffer: LPWSTR; var lpFilePart: LPWSTR): DWORD; external 'kernel32' name 'GetFullPathNameW';
+{$else}
+ function GetFullPathName (lpFileName: LPCSTR;  nBufferLength: DWORD; lpBuffer: LPSTR;  var lpFilePart: LPSTR):  DWORD; external 'kernel32' name 'GetFullPathNameA';
+{$endif}
+ function GetFullPathNameW(lpFileName: LPCWSTR; nBufferLength: DWORD; lpBuffer: LPWSTR; var lpFilePart: LPWSTR): DWORD; external 'kernel32' name 'GetFullPathNameW';
+ function GetFullPathNameA(lpFileName: LPCSTR;  nBufferLength: DWORD; lpBuffer: LPSTR;  var lpFilePart: LPSTR):  DWORD; external 'kernel32' name 'GetFullPathNameA';
+
 function GetGlyphOutline(DC: HDC; p2, p3: UINT; const p4: TGlyphMetrics; p5: DWORD; p6: Pointer; const p7: TMat2): DWORD;external 'gdi32' name 'GetGlyphOutlineA';
 function GetGlyphOutlineA(DC: HDC; p2, p3: UINT; const p4: TGlyphMetrics; p5: DWORD; p6: Pointer; const p7: TMat2): DWORD; external 'gdi32' name 'GetGlyphOutlineA';
 function GetGlyphOutlineW(DC: HDC; p2, p3: UINT; const p4: TGlyphMetrics; p5: DWORD; p6: Pointer; const p7: TMat2): DWORD; external 'gdi32' name 'GetGlyphOutlineW';
@@ -694,7 +698,7 @@ function MapWindowPoints(hWndFrom, hWndTo: HWND; var lpPoints; cPoints: UINT): I
 function MessageBoxIndirect(const MsgBoxParams: TMsgBoxParams): BOOL;external 'user32' name 'MessageBoxIndirectA';
 function MessageBoxIndirectA(const MsgBoxParams: TMsgBoxParamsA): BOOL; external 'user32' name 'MessageBoxIndirectA';
 //function MessageBoxIndirectW(const MsgBoxParams: TMsgBoxParamsW): BOOL; external 'user32' name 'MessageBoxIndirectW';
-//function ModifyWorldTransform(DC: HDC; const p2: TXForm; p3: DWORD): BOOL; external 'gdi32' name 'ModifyWorldTransform';
+function ModifyWorldTransform(_para1:HDC; var _para2:XFORM; _para3:DWORD):WINBOOL; external 'gdi32' name 'ModifyWorldTransform';
 function MsgWaitForMultipleObjects(nCount: DWORD; var pHandles; fWaitAll: BOOL; dwMilliseconds, dwWakeMask: DWORD): DWORD;external 'user32' name 'MsgWaitForMultipleObjects';
 {$ifndef NO_SMART_LINK}
 function MsgWaitForMultipleObjectsEx(nCount: DWORD; var pHandles; dwMilliseconds, dwWakeMask, dwFlags: DWORD): DWORD;external 'user32' name 'MsgWaitForMultipleObjectsEx';
@@ -823,9 +827,9 @@ function ScrollWindowEx(hWnd:HWND; dx:longint; dy:longint; prcScroll:lpRECT; prc
 //function SearchPathA(lpPath, lpFileName, lpExtension: LPCSTR; nBufferLength: DWORD; lpBuffer: LPCSTR; var lpFilePart: LPCSTR): DWORD; external 'kernel32' name 'SearchPathA';
 //function SearchPathW(lpPath, lpFileName, lpExtension: LPWSTR; nBufferLength: DWORD; lpBuffer: LPWSTR; var lpFilePart: LPWSTR): DWORD; external 'kernel32' name 'SearchPathW';
 //function SendInput(cInputs: UINT; var pInputs: TInput; cbSize: Integer): UINT;external 'user32' name 'SendInput';
-function SendMessageTimeout(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: DWORD): LRESULT;external 'user32' name 'SendMessageTimeoutA';
-function SendMessageTimeoutA(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: DWORD): LRESULT; external 'user32' name 'SendMessageTimeoutA';
-function SendMessageTimeoutW(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: DWORD): LRESULT; external 'user32' name 'SendMessageTimeoutW';
+function SendMessageTimeout(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: DWORD_PTR): LRESULT;external 'user32' name 'SendMessageTimeoutA';
+function SendMessageTimeoutA(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: DWORD_PTR): LRESULT; external 'user32' name 'SendMessageTimeoutA';
+function SendMessageTimeoutW(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: DWORD_PTR): LRESULT; external 'user32' name 'SendMessageTimeoutW';
 //function SetAclInformation(var pAcl: TACL; pAclInformation: Pointer; nAclInformationLength: DWORD; dwAclInformationClass: TAclInformationClass): BOOL; external 'advapi32' name 'SetAclInformation';
 //function SetColorAdjustment(DC: HDC; const p2: TColorAdjustment): BOOL; external 'gdi32' name 'SetColorAdjustment';
 function SetCommConfig(hCommDev: THandle; const lpCC: TCommConfig; dwSize: DWORD): BOOL; external 'kernel32' name 'SetCommConfig';

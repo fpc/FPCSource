@@ -26,6 +26,12 @@ const
    mode with displacement. (CPU SPECIFIC) }
 
 {$ifdef cpu68k}
+  {$define use_small}
+{$endif}
+{$ifdef cpui8086}
+  {$define use_small}
+{$endif}
+{$ifdef use_small}
  MAX_DISP = 32767;
 {$else}
  MAX_DISP = 65535;

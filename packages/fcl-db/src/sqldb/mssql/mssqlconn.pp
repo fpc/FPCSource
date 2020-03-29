@@ -34,7 +34,7 @@
                "TextSize=16777216" - set maximum size of text/image data returned
                "ApplicationName=YourAppName" - Set the app name for the connection. MSSQL 2000 and higher only
 }
-unit mssqlconn;
+unit MSSQLConn;
 
 {$mode objfpc}{$H+}
 
@@ -65,6 +65,7 @@ type
     function CheckError(const Ret: RETCODE): RETCODE;
     procedure Execute(const cmd: string); overload;
     procedure ExecuteDirectSQL(const Query: string);
+    procedure CancelQuery;
     procedure GetParameters(cursor: TSQLCursor; AParams: TParams);
     function TranslateFldType(SQLDataType: integer): TFieldType;
     function AutoCommit: boolean;
@@ -226,9 +227,10 @@ var
   ParamBinding : TParamBinding;
 begin
   if assigned(AParams) and (AParams.Count > 0) then
-    FQuery:=AParams.ParseSQL(Buf, false, sqEscapeSlash in FConnection.ConnOptions, sqEscapeRepeat in FConnection.ConnOptions, psSimulated, ParamBinding, FParamReplaceString)
+    FQuery := AParams.ParseSQL(Buf, False, sqEscapeSlash in FConnection.ConnOptions, sqEscapeRepeat in FConnection.ConnOptions, psSimulated, ParamBinding, FParamReplaceString)
   else
-    FQuery:=Buf;
+    FQuery := Buf;
+  FPrepared := True;
 end;
 
 function TDBLibCursor.ReplaceParams(AParams: TParams): string;
@@ -315,7 +317,7 @@ end;
 constructor TMSSQLConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FConnOptions := [sqSupportEmptyDatabaseName, sqEscapeRepeat, sqImplicitTransaction, sqLastInsertID];
+  FConnOptions := [sqSupportEmptyDatabaseName, sqEscapeRepeat, sqImplicitTransaction, sqLastInsertID, sqSequences];
   //FieldNameQuoteChars:=DoubleQuotes; //default
   Ftds := DBTDS_UNKNOWN;
 end;
@@ -342,6 +344,17 @@ begin
   finally
     Close;
     DatabaseName:=ADatabaseName;
+  end;
+end;
+
+procedure TMSSQLConnection.CancelQuery;
+begin
+  // Cancel the query currently being retrieved, discarding all pending rows and all remaining resultsets
+  if Fstatus = MORE_ROWS then begin
+    repeat
+      dbcanquery(FDBProc);
+    until dbresults(FDBProc) <> SUCCEED;
+    Fstatus := NO_MORE_ROWS;
   end;
 end;
 
@@ -375,6 +388,9 @@ begin
         //  Result := '0x' + StrToHex(Param.AsString)
         //else
         Result := 'N' + inherited GetAsSQLText(Param);
+      ftDateTime:
+        // ISO 8601 format is unambiguous; is not affected by the SET DATEFORMAT or SET LANGUAGE setting.
+        Result := '''' + FormatDateTime('yyyy-mm-dd"T"hh:nn:ss.zzz', Param.AsDateTime, FSQLFormatSettings) + '''';
       ftBlob, ftBytes, ftVarBytes:
         Result := '0x' + StrToHex(Param.AsString);
       else
@@ -394,7 +410,7 @@ end;
 
 procedure TMSSQLConnection.DoInternalConnect;
 const
-  DBVERSION: array[boolean] of BYTE = (DBVER60, DBVERSION_100);
+  DBVERSION: array[boolean] of BYTE = (DBVERSION_73, DBVERSION_100);
   IMPLICIT_TRANSACTIONS_OFF: array[boolean] of shortstring = ('SET IMPLICIT_TRANSACTIONS OFF', 'SET CHAINED OFF');
   ANSI_DEFAULTS_ON: array[boolean] of shortstring = ('SET ANSI_DEFAULTS ON', 'SET QUOTED_IDENTIFIER ON');
   CURSOR_CLOSE_ON_COMMIT_OFF: array[boolean] of shortstring = ('SET CURSOR_CLOSE_ON_COMMIT OFF', 'SET CLOSE ON ENDTRAN OFF');
@@ -571,8 +587,8 @@ end;
 
 procedure TMSSQLConnection.UnPrepareStatement(cursor: TSQLCursor);
 begin
-  if assigned(FDBProc) and (Fstatus <> NO_MORE_ROWS) then
-    dbcanquery(FDBProc);
+  CancelQuery;
+  cursor.FPrepared := False;
 end;
 
 procedure TMSSQLConnection.Execute(const cmd: string);
@@ -607,7 +623,9 @@ begin
 
     if not c.FSelectable then  //Sybase stored proc.
     begin
-      repeat until dbnextrow(FDBProc) = NO_MORE_ROWS;
+      repeat
+        Fstatus := dbnextrow(FDBProc);
+      until (Fstatus = NO_MORE_ROWS) or (Fstatus = FAIL);
       res := CheckError( dbresults(FDBProc) );
       // stored procedure information (return status and output parameters)
       // are available only after normal results are processed
@@ -742,12 +760,18 @@ begin
   // Compute rows resulting from the COMPUTE clause are not processed
   repeat
     Fstatus := dbnextrow(FDBProc);
+    // In case of network failure FAIL is returned
+    // Use dbsettime() to specify query timeout, else on Windows TCP KeepAliveTime is used, which defaults to 2 hours 
     Result  := Fstatus=REG_ROW;
-  until Result or (Fstatus = NO_MORE_ROWS);
+  until Result or (Fstatus = NO_MORE_ROWS) or (Fstatus = FAIL);
 
   if Fstatus = NO_MORE_ROWS then
     while dbresults(FDBProc) <> NO_MORE_RESULTS do // process remaining results if there are any
-      repeat until dbnextrow(FDBProc) = NO_MORE_ROWS;
+      repeat
+        Fstatus := dbnextrow(FDBProc);
+      until (Fstatus = NO_MORE_ROWS) or (Fstatus = FAIL);
+
+  if Fstatus = FAIL then CheckError(FAIL);
 end;
 
 function TMSSQLConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef;
@@ -911,7 +935,8 @@ end;
 
 procedure TMSSQLConnection.FreeFldBuffers(cursor: TSQLCursor);
 begin
-  inherited FreeFldBuffers(cursor);
+  CancelQuery;
+  inherited;
 end;
 
 procedure TMSSQLConnection.UpdateIndexDefs(IndexDefs: TIndexDefs; TableName: string);

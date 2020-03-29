@@ -33,11 +33,52 @@
 
     function Get8087CW:word;assembler;
       asm
-	    push ax
-		mov bx, sp
-		fnstcw word ptr ss:[bx]
-		pop ax
+        push ax
+	mov bx, sp
+	fnstcw word ptr ss:[bx]
+	pop ax
       end;
+
+    procedure Handle_I8086_Error(InterruptNumber : dword); public name 'FPC_HANDLE_I8086_ERROR';
+      var
+        FpuStatus : word;
+        OutError : dword;
+      begin
+        OutError:=InterruptNumber;
+        case InterruptNumber of
+         0 : OutError:=200;    {'Division by Zero'}
+         5 : OutError:=201;    {'Bounds Check', not caught yet }
+         12 : OutError:=202;   {'Stack Fault', not caught yet }
+         7,                    {'Coprocessor not available', not caught yet }
+         9,                    {'Coprocessor overrun', not caught yet }
+         16,$75 :
+          begin
+            { This needs special handling }
+            { to discriminate between 205,206 and 207 }
+            asm
+              fnstsw fpustatus { This for is available for 8086 already }
+              fnclex
+            end;
+            if (FpuStatus and FPU_Invalid)<>0 then
+              OutError:=216
+            else if (FpuStatus and FPU_Denormal)<>0 then
+              OutError:=216
+            else if (FpuStatus and FPU_DivisionByZero)<>0 then
+              OutError:=200
+            else if (FpuStatus and FPU_Overflow)<>0 then
+              OutError:=205
+            else if (FpuStatus and FPU_Underflow)<>0 then
+              OutError:=206
+            else
+              OutError:=207;  {'Coprocessor Error'}
+            { if exceptions then Reset FPU and reload control word }
+            if (FPUStatus and FPU_ExceptionMask)<>0 then
+              SysResetFPU;
+          end;
+        end;
+        HandleError(OutError);
+      end;
+
 
 {****************************************************************************
                        EXTENDED data type routines
@@ -102,7 +143,7 @@
         fld tbyte [d]
         ftst
         fstsw sw
-        mov ah, [sw + 1]
+        mov ah, byte [sw + 1]
         sahf
         jb @@negative
 
@@ -110,7 +151,7 @@
         fld1  // 1 d
         fcom
         fstsw sw
-        mov ah, [sw + 1]
+        mov ah, byte [sw + 1]
         sahf
         jb @@greater_than_one
         jz @@equal_to_one
@@ -140,7 +181,7 @@
         fld1                       // 1   -d
         fcom
         fstsw sw
-        mov ah, [sw + 1]
+        mov ah, byte [sw + 1]
         sahf
         jb @@less_than_minus_one
         jz @@equal_to_minus_one
@@ -190,7 +231,7 @@
         fsub st, st(1)                 // l2e*d-round(l2e*d)    round(l2e*d)
         ftst                           // l2e*d-round(l2e*d)<0?
         fstsw sw1
-        mov ah, [sw1 + 1]
+        mov ah, byte [sw1 + 1]
         sahf
         jb @@negative
 

@@ -34,6 +34,8 @@ uses
 { OS has an ansistring/single byte environment variable API }
 {$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
 
+{$DEFINE executeprocuni} (* Only 1 byte version of ExecuteProcess is provided by the OS *)
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -475,7 +477,7 @@ asm
  xor eax, 112
  jz @FOpenDefSharing
  cmp eax, 64
- jbe FOpen1
+ jbe @FOpen1
 @FOpenDefSharing:
  or ecx, 64
 @FOpen1:
@@ -535,7 +537,7 @@ var
   SystemFileName: RawByteString;
 begin
   SystemFileName := ToSingleByteFileSystemEncodedFileName(FileName);
-  FileOpen := FileCreate(pointer(SystemFileName),ShareMode,Rights);
+  FileCreate := FileCreate(pointer(SystemFileName),ShareMode,Rights);
 end;
 
 function FileRead (Handle: longint; Out Buffer; Count: longint): longint;
@@ -645,7 +647,7 @@ asm
 end {['eax', 'ebx', 'ecx', 'edx']};
 
 
-function FileAge (const FileName: RawByteString): longint;
+function FileAge (const FileName: RawByteString): Int64;
 var Handle: longint;
 begin
     Handle := FileOpen (FileName, 0);
@@ -659,7 +661,13 @@ begin
 end;
 
 
-function FileExists (const FileName: RawByteString): boolean;
+function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
+function FileExists (const FileName: RawByteString; FollowLink : Boolean): boolean;
 var
   L: longint;
 begin
@@ -676,9 +684,6 @@ end;
 
 
 type
-  TRec = record
-   T, D: word;
-  end;
   PSearchRec = ^SearchRec;
 
 Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
@@ -693,7 +698,7 @@ var
 begin
   if os_mode = osOS2 then
    begin
-    SystemEncodedPath:=ToSingleByteEncodedFileName(Path);
+    SystemEncodedPath:=ToSingleByteFileSystemEncodedFileName(Path);
     New (FStat);
     Rslt.FindHandle := THandle ($FFFFFFFF);
     Count := 1;
@@ -705,12 +710,12 @@ begin
             Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandard);
     if (Err = 0) and (Count = 0) then
      Err := 18;
-    FindFirst := -Err;
+    InternalFindFirst := -Err;
     if Err = 0 then
      begin
       Rslt.ExcludeAttr := 0;
-      TRec (Rslt.Time).T := FStat^.TimeLastWrite;
-      TRec (Rslt.Time).D := FStat^.DateLastWrite;
+      Rslt.Time := cardinal (FStat^.DateLastWrite) shl 16 +
+                                                          FStat^.TimeLastWrite;
       if FSApi64 then
        begin
         Rslt.Size := FStat^.FileSize;
@@ -726,7 +731,7 @@ begin
       SetCodePage(Name, DefaultFileSystemCodePage, false);
      end
     else
-     FindClose (Rslt);
+     InternalFindClose (Rslt.FindHandle);
     Dispose (FStat);
    end
   else
@@ -735,7 +740,7 @@ begin
     GetMem (SR, SizeOf (SearchRec));
     Rslt.FindHandle := longint(SR);
     DOS.FindFirst (Path, Attr, SR^);
-    FindFirst := -DOS.DosError;
+    InternalFindFirst := -DOS.DosError;
     if DosError = 0 then
      begin
       Rslt.Time := SR^.Time;
@@ -767,12 +772,12 @@ begin
     Err := DosFindNext (Rslt.FindHandle, FStat, SizeOf (FStat^), Count);
     if (Err = 0) and (Count = 0) then
      Err := 18;
-    FindNext := -Err;
+    InternalFindNext := -Err;
     if Err = 0 then
      begin
       Rslt.ExcludeAttr := 0;
-      TRec (Rslt.Time).T := FStat^.TimeLastWrite;
-      TRec (Rslt.Time).D := FStat^.DateLastWrite;
+      Rslt.Time := cardinal (FStat^.DateLastWrite) shl 16 +
+                                                          FStat^.TimeLastWrite;
       if FSApi64 then
        begin
         Rslt.Size := FStat^.FileSize;
@@ -795,7 +800,7 @@ begin
     if SR <> nil then
      begin
       DOS.FindNext (SR^);
-      FindNext := -DosError;
+      InternalFindNext := -DosError;
       if DosError = 0 then
        begin
         Rslt.Time := SR^.Time;
@@ -830,7 +835,7 @@ begin
 end;
 
 
-function FileGetDate (Handle: longint): longint; assembler;
+function FileGetDate (Handle: longint): Int64; assembler;
 asm
  push ebx
 {$IFDEF REGCALL}
@@ -846,10 +851,11 @@ asm
  shld eax, ecx, 16
 @FGetDateEnd:
  pop ebx
+ xor edx,edx
 end {['eax', 'ebx', 'ecx', 'edx']};
 
 
-function FileSetDate (Handle, Age: longint): longint;
+function FileSetDate (Handle: longint; Age: Int64): longint;
 var FStat: PFileStatus3;
     RC: cardinal;
 begin
@@ -862,10 +868,10 @@ begin
                 FileSetDate := -1
             else
                 begin
-                    FStat^.DateLastAccess := Hi (Age);
-                    FStat^.DateLastWrite := Hi (Age);
-                    FStat^.TimeLastAccess := Lo (Age);
-                    FStat^.TimeLastWrite := Lo (Age);
+                    FStat^.DateLastAccess := Hi (dword (Age));
+                    FStat^.DateLastWrite := Hi (dword (Age));
+                    FStat^.TimeLastAccess := Lo (dword (Age));
+                    FStat^.TimeLastWrite := Lo (dword (Age));
                     RC := DosSetFileInfo (Handle, ilStandard, FStat,
                                                               SizeOf (FStat^));
                     if RC <> 0 then
@@ -892,7 +898,7 @@ begin
 end;
 
 
-function FileGetAttr (const FileName: string): longint; assembler;
+function FileGetAttr (const FileName: rawbytestring): longint; assembler;
 asm
 {$IFDEF REGCALL}
  mov edx, eax
@@ -924,7 +930,7 @@ begin
   end ['eax', 'ecx', 'edx'];
 end;
 
-function DeleteFile (const FileName: string): boolean;
+function DeleteFile (const FileName: rawbytestring): boolean;
 var
   SystemFileName: RawByteString;
 begin
@@ -935,12 +941,12 @@ begin
    call syscall
    mov @result, 0
    jc @FDeleteEnd
-   moc @result, 1
+   mov @result, 1
   @FDeleteEnd:
   end ['eax', 'edx'];
 end;
 
-function RenameFile (const OldName, NewName: string): boolean;
+function RenameFile (const OldName, NewName: rawbytestring): boolean;
 var
   OldSystemFileName, NewSystemFileName: RawByteString;
 Begin
@@ -1048,7 +1054,7 @@ begin
 end;
 
 
-function DirectoryExists (const Directory: RawByteString): boolean;
+function DirectoryExists (const Directory: RawByteString; FollowLink : Boolean): boolean;
 var
   L: longint;
 begin
@@ -1125,9 +1131,6 @@ end {['eax', 'ecx', 'edx', 'edi']};
                               Misc Functions
 ****************************************************************************}
 
-procedure Beep;
-begin
-end;
 
 
 {****************************************************************************
@@ -1240,7 +1243,7 @@ end;
 {$ASMMODE DEFAULT}
 
 
-function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]):
+function ExecuteProcess (const Path: RawByteString; const ComLine: RawByteString;Flags:TExecuteFlags=[]):
                                                                        integer;
 var
  HQ: THandle;
@@ -1252,7 +1255,7 @@ var
  CISize: cardinal;
  Prio: byte;
  E: EOSError;
- CommandLine: ansistring;
+ CommandLine: rawbytestring;
 
 begin
  if os_Mode = osOS2 then
@@ -1308,11 +1311,11 @@ begin
 end;
 
 
-function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: RawByteString;
+                                  const ComLine: array of RawByteString;Flags:TExecuteFlags=[]): integer;
 
 var
-  CommandLine: AnsiString;
+  CommandLine: RawByteString;
   I: integer;
 
 begin
@@ -1335,5 +1338,6 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
 Finalization
+  FreeTerminateProcs;
   DoneExceptions;
 end.

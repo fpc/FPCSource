@@ -39,7 +39,7 @@ interface
     function class_destructor_head(astruct: tabstractrecorddef):tprocdef;
     function constructor_head:tprocdef;
     function destructor_head:tprocdef;
-    procedure struct_property_dec(is_classproperty:boolean);
+    procedure struct_property_dec(is_classproperty:boolean;var rtti_attrs_def: trtti_attribute_list);
 
 implementation
 
@@ -47,14 +47,14 @@ implementation
       sysutils,cutils,
       globals,verbose,systems,tokens,
       symbase,symsym,symtable,symcreat,defcmp,
-      node,nld,nmem,ncon,ncnv,ncal,
+      node,ncon,
       fmodule,scanner,
-      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl,pgenutil,ppu,
+      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl,pgenutil,pparautl,ppu
 {$ifdef jvm}
-      pjvm,
-{$endif}
-      parabase
+      ,jvmdef,pjvm;
+{$else}
       ;
+{$endif}
 
     const
       { Please leave this here, this module should NOT use
@@ -72,19 +72,20 @@ implementation
           recorddef:
             begin
               parse_record_proc_directives(pd);
-              // we can't add hidden params here because record is not yet defined
-              // and therefore record size which has influence on paramter passing rules may change too
-              // look at record_dec to see where calling conventions are applied (issue #0021044)
-              handle_calling_convention(pd,[hcc_check]);
             end;
           objectdef:
             begin
               parse_object_proc_directives(pd);
-              handle_calling_convention(pd);
             end
           else
             internalerror(2011040502);
         end;
+        // We can't add hidden params here because record is not yet defined
+        // and therefore record size which has influence on paramter passing rules may change too
+        // look at record_dec to see where calling conventions are applied (issue #0021044).
+        // The same goes for objects/classes due to the calling convention that may only be set
+        // later (mantis #35233).
+        handle_calling_convention(pd,hcc_default_actions_intf_struct);
 
         { add definition to procsym }
         proc_add_definition(pd);
@@ -115,7 +116,7 @@ implementation
           Message(parser_e_no_paras_for_class_constructor);
         consume(_SEMICOLON);
         include(astruct.objectoptions,oo_has_class_constructor);
-        current_module.flags:=current_module.flags or uf_classinits;
+        include(current_module.moduleflags,mf_classinits);
         { no return value }
         pd.returndef:=voidtype;
         constr_destr_finish_head(pd,astruct);
@@ -161,7 +162,7 @@ implementation
       end;
 
 
-    procedure struct_property_dec(is_classproperty:boolean);
+    procedure struct_property_dec(is_classproperty:boolean;var rtti_attrs_def: trtti_attribute_list);
       var
         p : tpropertysym;
       begin
@@ -213,6 +214,8 @@ implementation
               Message(parser_e_enumerator_identifier_required);
             consume(_SEMICOLON);
           end;
+        trtti_attribute_list.bind(rtti_attrs_def,p.rtti_attribute_list);
+
         { hint directives, these can be separated by semicolons here,
           that needs to be handled here with a loop (PFV) }
         while try_consume_hintdirective(p.symoptions,p.deprecatedmsg) do
@@ -237,7 +240,7 @@ implementation
           Message(parser_e_no_paras_for_class_destructor);
         consume(_SEMICOLON);
         include(astruct.objectoptions,oo_has_class_destructor);
-        current_module.flags:=current_module.flags or uf_classinits;
+        include(current_module.moduleflags,mf_classinits);
         { no return value }
         pd.returndef:=voidtype;
         constr_destr_finish_head(pd,astruct);
@@ -521,6 +524,8 @@ implementation
           odt_objcclass,odt_objcprotocol,odt_objccategory:
             get_objc_class_or_protocol_external_status(current_objectdef);
           odt_helper: ; // nothing
+          else
+            ;
         end;
       end;
 
@@ -639,6 +644,8 @@ implementation
                          Message(type_e_helper_type_expected);
                          childof:=nil;
                        end;
+                   else
+                     ;
                 end;
               end;
             hasparentdefined:=true;
@@ -662,6 +669,8 @@ implementation
                 { inherit from TObject by default for compatibility }
                 if current_objectdef<>java_jlobject then
                   childof:=class_tobject;
+              else
+                ;
             end;
           end;
 
@@ -701,8 +710,12 @@ implementation
 
       procedure validate_extendeddef_typehelper(var def:tdef);
         begin
-          if def.typ in [undefineddef,procvardef,procdef,objectdef,recorddef,
-              filedef,classrefdef,abstractdef,forwarddef,formaldef] then
+          if (def.typ in [undefineddef,procvardef,procdef,
+              filedef,classrefdef,abstractdef,forwarddef,formaldef]) or
+              (
+                (def.typ=objectdef) and
+                not (tobjectdef(def).objecttype in objecttypes_with_helpers)
+              ) then
             begin
               Message1(type_e_type_not_allowed_for_type_helper,def.typename);
               def:=generrordef;
@@ -721,13 +734,26 @@ implementation
             end;
         end;
 
+      procedure check_inheritance_class_helper(var def:tdef);
+        begin
+          if (def.typ<>errordef) and assigned(current_objectdef.childof) then
+            begin
+              if (current_objectdef.childof.extendeddef.typ<>objectdef) or
+                 not (tobjectdef(current_objectdef.childof.extendeddef).objecttype in objecttypes_with_helpers) then
+                Internalerror(2011021101);
+              if not def_is_related(def,current_objectdef.childof.extendeddef) then
+                begin
+                  Message1(type_e_class_helper_must_extend_subclass,current_objectdef.childof.extendeddef.typename);
+                  def:=generrordef;
+                end;
+            end;
+        end;
+
       var
         hdef: tdef;
       begin
         if not is_objectpascal_helper(current_structdef) then
           Internalerror(2011021103);
-        if helpertype=ht_none then
-          Internalerror(2011021001);
 
         consume(_FOR);
         single_type(hdef,[stoParseClassParent]);
@@ -740,6 +766,8 @@ implementation
                 Message(type_e_record_type_expected);
               ht_type:
                 Message1(type_e_type_id_expected,hdef.typename);
+              else
+                internalerror(2019050532);
             end;
           end
         else
@@ -753,13 +781,7 @@ implementation
                   begin
                     { a class helper must extend the same class or a subclass
                       of the class extended by the parent class helper }
-                    if assigned(current_objectdef.childof) then
-                      begin
-                        if not is_class(current_objectdef.childof.extendeddef) then
-                          Internalerror(2011021101);
-                        if not def_is_related(hdef,current_objectdef.childof.extendeddef) then
-                          Message1(type_e_class_helper_must_extend_subclass,current_objectdef.childof.extendeddef.typename);
-                      end;
+                    check_inheritance_class_helper(hdef);
                   end;
               ht_record:
                 if (hdef.typ=objectdef) or
@@ -767,7 +789,7 @@ implementation
                       { primitive types are allowed for record helpers in mode
                         delphi }
                       (hdef.typ<>recorddef) and
-                      not (m_type_helpers in current_settings.modeswitches)
+                      not (m_delphi in current_settings.modeswitches)
                     ) then
                   Message1(type_e_record_type_expected,hdef.typename)
                 else
@@ -783,10 +805,16 @@ implementation
               ht_type:
                 begin
                   validate_extendeddef_typehelper(hdef);
-                  { a type helper must extend the same type as the
-                    parent helper }
-                  check_inheritance_record_type_helper(hdef);
+                  if (hdef.typ=objectdef) and
+                      (tobjectdef(hdef).objecttype in objecttypes_with_helpers) then
+                    check_inheritance_class_helper(hdef)
+                  else
+                    { a type helper must extend the same type as the
+                      parent helper }
+                    check_inheritance_record_type_helper(hdef);
                 end;
+              else
+                internalerror(2019050531);
             end;
           end;
 
@@ -899,11 +927,14 @@ implementation
                   { for record and type helpers only static class methods are
                     allowed }
                   if is_objectpascal_helper(astruct) and
-                     (tobjectdef(astruct).extendeddef.typ<>objectdef) and
+                     (
+                       (tobjectdef(astruct).extendeddef.typ<>objectdef) or
+                       (tobjectdef(tobjectdef(astruct).extendeddef).objecttype<>odt_class)
+                     ) and
                      is_classdef and not (po_staticmethod in result.procoptions) then
                     MessagePos(result.fileinfo,parser_e_class_methods_only_static_in_records);
 
-                  handle_calling_convention(result);
+                  handle_calling_convention(result,hcc_default_actions_intf_struct);
 
                   { add definition to procsym }
                   proc_add_definition(result);
@@ -915,6 +946,9 @@ implementation
                     include(astruct.objectoptions,oo_has_msgstr);
                   if (po_virtualmethod in result.procoptions) then
                     include(astruct.objectoptions,oo_has_virtual);
+
+                  if result.is_generic then
+                    astruct.symtable.includeoption(sto_has_generic);
 
                   chkcpp(result);
                   chkobjc(result);
@@ -1020,9 +1054,11 @@ implementation
         typedconstswritable: boolean;
         object_member_blocktype : tblock_type;
         hadgeneric,
-        fields_allowed, is_classdef, class_fields, is_final, final_fields: boolean;
+        fields_allowed, is_classdef, class_fields, is_final, final_fields,
+        threadvar_fields : boolean;
         vdoptions: tvar_dec_options;
         fieldlist: tfpobjectlist;
+        rtti_attrs_def: trtti_attribute_list;
 
 
       procedure parse_const;
@@ -1036,18 +1072,22 @@ implementation
         end;
 
 
-      procedure parse_var;
+      procedure parse_var(isthreadvar:boolean);
         begin
           if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass]) and
              { Java interfaces can contain static final class vars }
              not((current_objectdef.objecttype=odt_interfacejava) and
                  is_final and is_classdef) then
             Message(parser_e_type_var_const_only_in_records_and_classes);
-          consume(_VAR);
+          if isthreadvar then
+            consume(_THREADVAR)
+          else
+            consume(_VAR);
           fields_allowed:=true;
           object_member_blocktype:=bt_general;
           class_fields:=is_classdef;
           final_fields:=is_final;
+          threadvar_fields:=isthreadvar;
           is_classdef:=false;
           is_final:=false;
         end;
@@ -1060,7 +1100,7 @@ implementation
           consume(_CLASS);
           { class modifier is only allowed for procedures, functions, }
           { constructors, destructors, fields and properties          }
-          if not((token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_DESTRUCTOR]) or (token=_CONSTRUCTOR)) then
+          if not((token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_DESTRUCTOR,_THREADVAR]) or (token=_CONSTRUCTOR)) then
             Message(parser_e_procedure_or_function_expected);
 
           { Java interfaces can contain final class vars }
@@ -1094,8 +1134,18 @@ implementation
           fields_allowed:=true;
           is_classdef:=false;
           class_fields:=false;
+          threadvar_fields:=false;
           is_final:=false;
           object_member_blocktype:=bt_general;
+        end;
+
+
+      procedure check_unbound_attributes;
+        begin
+          if assigned(rtti_attrs_def) and (rtti_attrs_def.get_attribute_count>0) then
+            Message1(parser_e_unbound_attribute,trtti_attribute(rtti_attrs_def.rtti_attributes[0]).typesym.prettyname);
+          rtti_attrs_def.free;
+          rtti_attrs_def:=nil;
         end;
 
 
@@ -1115,13 +1165,16 @@ implementation
         class_fields:=false;
         is_final:=false;
         final_fields:=false;
+        rtti_attrs_def:=nil;
         hadgeneric:=false;
+        threadvar_fields:=false;
         object_member_blocktype:=bt_general;
         fieldlist:=tfpobjectlist.create(false);
         repeat
           case token of
             _TYPE :
               begin
+                check_unbound_attributes;
                 if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass,odt_interfacejava]) then
                   Message(parser_e_type_var_const_only_in_records_and_classes);
                 consume(_TYPE);
@@ -1129,14 +1182,30 @@ implementation
               end;
             _VAR :
               begin
-                parse_var;
+                check_unbound_attributes;
+                rtti_attrs_def := nil;
+                parse_var(false);
               end;
             _CONST:
               begin
+                check_unbound_attributes;
+                rtti_attrs_def := nil;
                 parse_const
+              end;
+            _THREADVAR :
+              begin
+                check_unbound_attributes;
+                if not is_classdef then
+                  begin
+                    Message(parser_e_threadvar_must_be_class);
+                    { for error recovery we enforce class fields }
+                    is_classdef:=true;
+                  end;
+                parse_var(true);
               end;
             _ID :
               begin
+                check_unbound_attributes;
                 if is_objcprotocol(current_structdef) and
                    ((idtoken=_REQUIRED) or
                     (idtoken=_OPTIONAL)) then
@@ -1192,6 +1261,7 @@ implementation
                         fields_allowed:=true;
                         is_classdef:=false;
                         class_fields:=false;
+                        threadvar_fields:=false;
                         is_final:=false;
                         final_fields:=false;
                         object_member_blocktype:=bt_general;
@@ -1216,9 +1286,13 @@ implementation
                       begin
                         if object_member_blocktype=bt_general then
                           begin
+                            rtti_attrs_def := nil;
                             if (idtoken=_GENERIC) and
                                 not (m_delphi in current_settings.modeswitches) and
-                                not fields_allowed then
+                                (
+                                  not fields_allowed or
+                                  is_objectpascal_helper(current_structdef)
+                                ) then
                               begin
                                 if hadgeneric then
                                   Message(parser_e_procedure_or_function_expected);
@@ -1254,11 +1328,13 @@ implementation
                                   include(vdoptions,vd_canreorder);
                                 if final_fields then
                                   include(vdoptions,vd_final);
+                                if threadvar_fields then
+                                  include(vdoptions,vd_threadvar);
                                 read_record_fields(vdoptions,fieldlist,nil,hadgeneric);
                               end;
                           end
                         else if object_member_blocktype=bt_type then
-                          types_dec(true,hadgeneric)
+                          types_dec(true,hadgeneric, rtti_attrs_def)
                         else if object_member_blocktype=bt_const then
                           begin
                             typedconstswritable:=false;
@@ -1281,12 +1357,18 @@ implementation
               end;
             _PROPERTY :
               begin
-                struct_property_dec(is_classdef);
+                { for now attributes are only allowed on published properties }
+                if current_structdef.symtable.currentvisibility<>vis_published then
+                  check_unbound_attributes;
+                struct_property_dec(is_classdef, rtti_attrs_def);
                 fields_allowed:=false;
                 is_classdef:=false;
               end;
             _CLASS:
               begin
+                { class properties currently can't have attributes, so it's safe
+                  to check for unbound attributes here }
+                check_unbound_attributes;
                 parse_class;
               end;
             _PROCEDURE,
@@ -1294,13 +1376,23 @@ implementation
             _CONSTRUCTOR,
             _DESTRUCTOR :
               begin
+                check_unbound_attributes;
+                rtti_attrs_def := nil;
                 method_dec(current_structdef,is_classdef,hadgeneric);
                 fields_allowed:=false;
                 is_classdef:=false;
                 hadgeneric:=false;
               end;
+            _LECKKLAMMER:
+              begin
+                if m_prefixed_attributes in current_settings.modeswitches then
+                  parse_rttiattributes(rtti_attrs_def)
+                else
+                  consume(_ID);
+              end;
             _END :
               begin
+                check_unbound_attributes;
                 consume(_END);
                 break;
               end;
@@ -1361,6 +1453,7 @@ implementation
 
             { create new class }
             current_structdef:=cobjectdef.create(objecttype,n,nil,true);
+            tobjectdef(current_structdef).helpertype:=helpertype;
 
             { include always the forward flag, it'll be removed after the parent class have been
               added. This is to prevent circular childof loops }
@@ -1403,6 +1496,8 @@ implementation
                       else if (current_objectdef.objname^='FPCBASEPROCVARTYPE') then
                         java_procvarbase:=current_objectdef;
                     end;
+                  else
+                    ;
                 end;
               end;
             if (current_module.modulename^='OBJCBASE') then
@@ -1411,6 +1506,8 @@ implementation
                   odt_objcclass:
                     if (current_objectdef.objname^='Protocol') then
                       objc_protocoltype:=current_objectdef;
+                  else
+                    ;
                 end;
               end;
           end;

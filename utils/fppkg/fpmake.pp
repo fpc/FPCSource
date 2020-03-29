@@ -8,17 +8,18 @@ uses fpmkunit;
 procedure add_fppkg_util(const ADirectory: string);
 
 const
-  lnetOSes = [linux,beos,haiku,freebsd,netbsd,openbsd,darwin,iphonesim,solaris,win32,win64,wince,aix];
-
+  lnetOSes = [linux,beos,haiku,freebsd,netbsd,openbsd,darwin,iphonesim,solaris,win32,win64,wince,aix,dragonfly];
+  WindowsOSes = [win32,win64,wince];
 Var
   P : TPackage;
   T : TTarget;
+  VS: string;
 
 begin
   With Installer do
     begin
     P:=AddPackage('utils-fppkg');
-    P.ShortName:='fppkg';
+    P.ShortName:='fpkg';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
@@ -28,12 +29,26 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
+
+    P.OSes := P.OSes - [embedded,nativent,msdos,go32v2,win16,atari,macos,palmos,symbian];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('lnet',lnetOSes);
     P.IncludePath.Add('lnet/sys',lnetOSes);
 
     P.SupportBuildModes:=[bmOneByOne];
+
+    P.Options.Add('-Sm');
+    Str(P.PackageVersion.Major, VS);
+    P.Options.Add('-dpackage_version_major:='+VS);
+    Str(P.PackageVersion.Minor, VS);
+    P.Options.Add('-dpackage_version_minor:='+VS);
+    Str(P.PackageVersion.Micro, VS);
+    P.Options.Add('-dpackage_version_micro:='+VS);
+    Str(P.PackageVersion.Build, VS);
+    P.Options.Add('-dpackage_version_build:='+VS);
 
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
@@ -67,6 +82,7 @@ begin
     P.Targets.AddUnit('lnet/lnet.pp', lnetOSes).install:=false;
     P.Targets.AddUnit('lnet/lstrbuffer.pp', lnetOSes).install:=false;
     P.Targets.AddUnit('lnet/ltimer.pp', lnetOSes).install:=false;
+    P.Targets.AddUnit('lnet/lws2tcpip.pp', WindowsOSes).install:=false;
 
     P.Sources.AddSrc('lnet/lsmtp.pp');
     P.Sources.AddSrc('lnet/lwebserver.pp');

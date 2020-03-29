@@ -42,7 +42,9 @@ unit cgcpu;
         cgsetflags : boolean;
 
         procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const paraloc : TCGPara);override;
-        procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
+       protected
+         procedure a_load_ref_cgparalocref(list: TAsmList; sourcesize: tcgsize; sizeleft: tcgint; const ref, paralocref: treference; const cgpara: tcgpara; const location: PCGParaLocation); override;
+       public
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
@@ -58,6 +60,8 @@ unit cgcpu;
         procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
+
+        procedure g_check_for_fpu_exception(list : TAsmList; force,clear : boolean); override;
 
         procedure a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const paraloc : TCGPara);override;
         {  comparison operations }
@@ -107,13 +111,15 @@ unit cgcpu;
         { try to generate optimized 32 Bit multiplication, returns true if successful generated }
         function try_optimized_mul32_const_reg_reg(list: TAsmList; a: tcgint; src, dst: tregister) : boolean;
 
-        { clear out potential overflow bits from 8 or 16 bit operations  }
-        { the upper 24/16 bits of a register after an operation          }
+        { clear out potential overflow bits from 8 or 16 bit operations
+          the upper 24/16 bits of a register after an operation          }
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
 
         { mla for thumb requires that none of the registers is equal to r13/r15, this method ensures this }
         procedure safe_mla(list: TAsmList;op1,op2,op3,op4 : TRegister);
 
+
+        procedure g_maybe_tls_init(list : TAsmList); override;
       end;
 
       { tcgarm is shared between normal arm and thumb-2 }
@@ -241,6 +247,10 @@ unit cgcpu;
        procinfo,cpupi,
        paramgr;
 
+{ Range check must be disabled explicitly as conversions between signed and unsigned
+  32-bit values are done without explicit typecasts }
+{$R-}
+
 
     function get_fpu_postfix(def : tdef) : toppostfix;
       begin
@@ -290,7 +300,7 @@ unit cgcpu;
           non-overlapping subregs per register, so we can only use
           half the single precision registers for now (as sub registers of the
           double precision ones). }
-        if current_settings.fputype in [fpu_vfpv3,fpu_vfpv4] then
+        if FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype] then
           rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
               [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
                RS_D16,RS_D17,RS_D18,RS_D19,RS_D20,RS_D21,RS_D22,RS_D23,RS_D24,RS_D25,RS_D26,RS_D27,RS_D28,RS_D29,RS_D30,RS_D31,
@@ -405,7 +415,7 @@ unit cgcpu;
                      begin
                        tmpreg2:=getintregister(list,OS_INT);
                        a_loadaddr_ref_reg(list,ref,tmpreg2);
-                       reference_reset_base(usedtmpref,tmpreg2,0,ref.alignment,ref.volatility);
+                       reference_reset_base(usedtmpref,tmpreg2,0,ref.temppos,ref.alignment,ref.volatility);
                      end
                    else
                      usedtmpref:=ref;
@@ -437,7 +447,7 @@ unit cgcpu;
                      begin
                        tmpreg2:=getintregister(list,OS_INT);
                        a_loadaddr_ref_reg(list,ref,tmpreg2);
-                       reference_reset_base(usedtmpref,tmpreg2,0,ref.alignment,ref.volatility);
+                       reference_reset_base(usedtmpref,tmpreg2,0,ref.temppos,ref.alignment,ref.volatility);
                      end
                    else
                      usedtmpref:=ref;
@@ -526,7 +536,7 @@ unit cgcpu;
                   begin
                     { offset in the wrapper needs to be adjusted for the stored
                       return address }
-                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint),sizeof(pint),[]);
+                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint),ctempposinvalid,sizeof(pint),[]);
                     if is_shifter_const(ioffset,shift) then
                       a_op_const_ref(list,OP_SUB,size,ioffset,href)
                     else
@@ -565,52 +575,16 @@ unit cgcpu;
       end;
 
 
-    procedure tbasecgarm.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);
-      var
-        tmpref, ref: treference;
-        location: pcgparalocation;
-        sizeleft: aint;
+    procedure tbasecgarm.a_load_ref_cgparalocref(list: TAsmList; sourcesize: tcgsize; sizeleft: tcgint; const ref, paralocref: treference; const cgpara: tcgpara; const location: PCGParaLocation);
       begin
-        location := paraloc.location;
-        tmpref := r;
-        sizeleft := paraloc.intsize;
-        while assigned(location) do
+        { doubles in softemu mode have a strange order of registers and references }
+        if (cgpara.size=OS_F64) and
+           (location^.size=OS_32) then
           begin
-            paramanager.allocparaloc(list,location);
-            case location^.loc of
-              LOC_REGISTER,LOC_CREGISTER:
-                a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
-              LOC_REFERENCE:
-                begin
-                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,paraloc.alignment,[]);
-                  { doubles in softemu mode have a strange order of registers and references }
-                  if location^.size=OS_32 then
-                    g_concatcopy(list,tmpref,ref,4)
-                  else
-                    begin
-                      g_concatcopy(list,tmpref,ref,sizeleft);
-                      if assigned(location^.next) then
-                        internalerror(2005010710);
-                    end;
-                end;
-              LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                case location^.size of
-                   OS_F32, OS_F64:
-                     a_loadfpu_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
-                   else
-                     internalerror(2002072801);
-                end;
-              LOC_VOID:
-                begin
-                  // nothing to do
-                end;
-              else
-                internalerror(2002081103);
-            end;
-            inc(tmpref.offset,tcgsize2size[location^.size]);
-            dec(sizeleft,tcgsize2size[location^.size]);
-            location := location^.next;
-          end;
+            g_concatcopy(list,ref,paralocref,4)
+          end
+        else
+          inherited;
       end;
 
 
@@ -645,15 +619,9 @@ unit cgcpu;
         r : treference;
         sym : TAsmSymbol;
       begin
-        { check not really correct: should only be used for non-Thumb cpus }
-        // if (CPUARM_HAS_BLX_LABEL in cpu_capabilities[current_settings.cputype]) and
-        //   { WinCE GNU AS (not sure if this applies in general) does not support BLX imm }
-        // (target_info.system<>system_arm_wince) then
-        //   branchopcode:=A_BLX
-        // else
         { use always BL as newer binutils do not translate blx apparently
           generating BL is also what clang and gcc do by default }
-          branchopcode:=A_BL;
+        branchopcode:=A_BL;
         if not(weak) then
           sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION)
         else
@@ -932,9 +900,11 @@ unit cgcpu;
               a_load_const_reg(list, size, a, dst);
               exit;
             end;
+          else
+            ;
         end;
         ovloc.loc:=LOC_VOID;
-        if {$ifopt R+}(a<>-2147483648) and{$endif} not setflags and is_shifter_const(-a,shift) then
+        if (a<>-2147483648) and not setflags and is_shifter_const(-a,shift) then
           case op of
             OP_ADD:
               begin
@@ -946,6 +916,8 @@ unit cgcpu;
                 op:=OP_ADD;
                 a:=aint(dword(-a));
               end
+            else
+              ;
           end;
 
         if is_shifter_const(a,shift) and not(op in [OP_IMUL,OP_MUL]) then
@@ -994,6 +966,8 @@ unit cgcpu;
                       ovloc.resflags:=F_CS;
                     OP_SUB:
                       ovloc.resflags:=F_CC;
+                    else
+                      internalerror(2019050922);
                   end;
                 end;
           end
@@ -1037,7 +1011,7 @@ unit cgcpu;
             { Doing two shifts instead of two bics might allow the peephole optimizer to fold the second shift
               into the following instruction}
             else if (op = OP_AND) and
-                    is_continuous_mask(a, lsb, width) and
+                    is_continuous_mask(aword(a), lsb, width) and
                     ((lsb = 0) or ((lsb + width) = 32)) then
               begin
                 shifterop_reset(so);
@@ -1689,7 +1663,7 @@ unit cgcpu;
                 end;
               LOC_REFERENCE :
                 begin
-                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,paraloc.alignment,[]);
+                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,ctempposinvalid,paraloc.alignment,[]);
                   { concatcopy should choose the best way to copy the data }
                   g_concatcopy(list,href,href2,tcgsize2size[hloc^.size]);
                 end;
@@ -1746,6 +1720,34 @@ unit cgcpu;
          end;
          handle_load_store(list,A_STF,oppostfix,reg,ref);
        end;
+
+
+    procedure tbasecgarm.g_check_for_fpu_exception(list: TAsmList;force,clear : boolean);
+      var
+        r : TRegister;
+        ai: taicpu;
+        l: TAsmLabel;
+      begin
+        if ((cs_check_fpu_exceptions in current_settings.localswitches) and
+            not(FPUARM_HAS_EXCEPTION_TRAPPING in fpu_capabilities[current_settings.fputype]) and
+            (force or current_procinfo.FPUExceptionCheckNeeded)) then
+          begin
+            r:=getintregister(list,OS_INT);
+            list.concat(taicpu.op_reg_reg(A_FMRX,r,NR_FPSCR));
+            list.concat(setoppostfix(taicpu.op_reg_reg_const(A_AND,r,r,$9f),PF_S));
+            current_asmdata.getjumplabel(l);
+            ai:=taicpu.op_sym(A_B,l);
+            ai.is_jmp:=true;
+            ai.condition:=C_EQ;
+            list.concat(ai);
+            alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+            cg.a_call_name(list,'FPC_THROWFPUEXCEPTION',false);
+            dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+            a_label(list,l);
+            if clear then
+              current_procinfo.FPUExceptionCheckNeeded:=false;
+          end;
+      end;
 
 
     {  comparison operations }
@@ -1905,6 +1907,10 @@ unit cgcpu;
             firstfloatreg:=RS_NO;
             mmregs:=[];
             case current_settings.fputype of
+              fpu_none,
+              fpu_soft,
+              fpu_libgcc:
+                ;
               fpu_fpa,
               fpu_fpa10,
               fpu_fpa11:
@@ -1920,16 +1926,22 @@ unit cgcpu;
                         inc(registerarea,12);
                       end;
                 end;
-              fpu_vfpv2,
-              fpu_vfpv3,
-              fpu_vfpv4,
-              fpu_vfpv3_d16:
+              else if FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype] then
                 begin;
                   { the *[0..31] is a hack to prevent that the compiler tries to save odd single-type registers,
                     they have numbers>$1f which is not really correct as they should simply have the same numbers
                     as the even ones by with a different subtype as it is done on x86 with al/ah }
                   mmregs:=(rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall))*[0..31];
-                end;
+                end
+              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+                begin;
+                  { the *[0..15] is a hack to prevent that the compiler tries to save odd single-type registers,
+                    they have numbers>$1f which is not really correct as they should simply have the same numbers
+                    as the even ones by with a different subtype as it is done on x86 with al/ah }
+                  mmregs:=(rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall))*[0..15];
+                end
+              else
+                internalerror(2019050924);
             end;
             a_reg_alloc(list,NR_STACK_POINTER_REG);
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
@@ -2072,7 +2084,7 @@ unit cgcpu;
              begin
                reference_reset(ref,4,[]);
                if (tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023) or
-                  (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16]) then
+                 (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
                  begin
                    if not is_shifter_const(tcpuprocinfo(current_procinfo).floatregstart,shift) then
                      begin
@@ -2099,10 +2111,7 @@ unit cgcpu;
                      list.concat(taicpu.op_reg_const_ref(A_SFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
                        lastfloatreg-firstfloatreg+1,ref));
                    end;
-                 fpu_vfpv2,
-                 fpu_vfpv3,
-                 fpu_vfpv4,
-                 fpu_vfpv3_d16:
+                 else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
                    begin
                      ref.index:=ref.base;
                      ref.base:=NR_NO;
@@ -2113,10 +2122,12 @@ unit cgcpu;
                        postfix:=PF_IAD;}
                      if mmregs<>[] then
                        list.concat(taicpu.op_ref_regset(A_VSTM,ref,R_MMREGISTER,R_SUBFD,mmregs));
-                   end;
+                   end
+                 else
+                   internalerror(2019050923);
                end;
              end;
-        end;
+          end;
       end;
 
 
@@ -2143,6 +2154,10 @@ unit cgcpu;
             mmregs:=[];
             saveregs:=[];
             case current_settings.fputype of
+              fpu_none,
+              fpu_soft,
+              fpu_libgcc:
+                ;
               fpu_fpa,
               fpu_fpa10,
               fpu_fpa11:
@@ -2161,17 +2176,16 @@ unit cgcpu;
                         }
                       end;
                 end;
-              fpu_vfpv2,
-              fpu_vfpv3,
-              fpu_vfpv4,
-              fpu_vfpv3_d16:
-                begin;
+              else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+                begin
                   { restore vfp registers? }
                   { the *[0..31] is a hack to prevent that the compiler tries to save odd single-type registers,
                     they have numbers>$1f which is not really correct as they should simply have the same numbers
                     as the even ones by with a different subtype as it is done on x86 with al/ah }
                   mmregs:=(rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall))*[0..31];
-                end;
+                end
+              else
+                internalerror(2019050926);
             end;
 
             if (firstfloatreg<>RS_NO) or
@@ -2179,7 +2193,7 @@ unit cgcpu;
               begin
                 reference_reset(ref,4,[]);
                 if (tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023) or
-                   (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16]) then
+                   (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
                   begin
                     if not is_shifter_const(tcpuprocinfo(current_procinfo).floatregstart,shift) then
                       begin
@@ -2205,10 +2219,7 @@ unit cgcpu;
                       list.concat(taicpu.op_reg_const_ref(A_LFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
                         lastfloatreg-firstfloatreg+1,ref));
                     end;
-                  fpu_vfpv2,
-                  fpu_vfpv3,
-                  fpu_vfpv4,
-                  fpu_vfpv3_d16:
+                  else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
                     begin
                       ref.index:=ref.base;
                       ref.base:=NR_NO;
@@ -2219,7 +2230,9 @@ unit cgcpu;
                         mmpostfix:=PF_IAD;}
                      if mmregs<>[] then
                        list.concat(taicpu.op_ref_regset(A_VLDM,ref,R_MMREGISTER,R_SUBFD,mmregs));
-                    end;
+                    end
+                  else
+                    internalerror(2019050921);
                 end;
               end;
 
@@ -2478,6 +2491,19 @@ unit cgcpu;
                     a_op_const_reg(list,OP_ADD,OS_ADDR,ref.offset,tmpreg);
                 indirection_done:=true;
               end
+            else if ref.refaddr=addr_gottpoff then
+              current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_gottpoff,ref.symbol,ref.relsymbol,ref.offset))
+            else if ref.refaddr=addr_tlsgd then
+              current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsgd,ref.symbol,ref.relsymbol,ref.offset))
+            else if ref.refaddr=addr_tlsdesc then
+              current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsdesc,ref.symbol,ref.relsymbol,ref.offset))
+            else if ref.refaddr=addr_tpoff then
+              begin
+                if assigned(ref.relsymbol) or (ref.offset<>0) then
+                  Internalerror(2019092804);
+
+                current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_tpoff,ref.symbol));
+              end
             else if (cs_create_pic in current_settings.moduleswitches) then
               if (tf_pic_uses_got in target_info.flags) then
                 current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_got,ref.symbol))
@@ -2518,6 +2544,11 @@ unit cgcpu;
                (tf_pic_uses_got in target_info.flags) and
                assigned(ref.symbol) then
               begin
+                {$ifdef EXTDEBUG}
+                if not (pi_needs_got in current_procinfo.flags) then
+                	Comment(V_warning,'pi_needs_got not included');
+                {$endif EXTDEBUG}
+                Include(current_procinfo.flags,pi_needs_got);
                 reference_reset(tmpref,4,[]);
                 tmpref.base:=current_procinfo.got;
                 tmpref.index:=tmpreg;
@@ -2580,9 +2611,9 @@ unit cgcpu;
         paraloc1.init;
         paraloc2.init;
         paraloc3.init;
-        paramanager.getintparaloc(list,pd,1,paraloc1);
-        paramanager.getintparaloc(list,pd,2,paraloc2);
-        paramanager.getintparaloc(list,pd,3,paraloc3);
+        paramanager.getcgtempparaloc(list,pd,1,paraloc1);
+        paramanager.getcgtempparaloc(list,pd,2,paraloc2);
+        paramanager.getcgtempparaloc(list,pd,3,paraloc3);
         a_load_const_cgpara(list,OS_SINT,len,paraloc3);
         a_loadaddr_ref_cgpara(list,dest,paraloc2);
         a_loadaddr_ref_cgpara(list,source,paraloc1);
@@ -2682,6 +2713,21 @@ unit cgcpu;
           list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
           list.concat(taicpu.op_reg_reg(A_MOV,srcreg,srcreg));
           list.concat(taicpu.op_reg_reg(A_MOV,destreg,destreg));
+        end;
+
+      { save estimation, if a creating a separate ref is needed or
+        if we can keep the original reference while copying }
+      function SimpleRef(const ref : treference) : boolean;
+        begin
+          result:=((ref.base=NR_PC) and (ref.addressmode=AM_OFFSET) and (ref.refaddr in [addr_full,addr_no])) or
+              ((ref.symbol=nil) and
+               (ref.addressmode=AM_OFFSET) and
+               (((ref.offset>=0) and (ref.offset+len<=31)) or
+                (not(GenerateThumbCode) and (ref.offset>=-255) and (ref.offset+len<=255)) or
+                { ldrh has a limited offset range }
+                (not(GenerateThumbCode) and ((len mod 4) in [0,1]) and (ref.offset>=-4095) and (ref.offset+len<=4095))
+               )
+              );
         end;
 
       { will never be called with count<=4 }
@@ -2790,19 +2836,17 @@ unit cgcpu;
           begin
             tmpregi:=0;
 
-            srcreg:=getintregister(list,OS_ADDR);
-
-            { explicit pc relative addressing, could be
-              e.g. a floating point constant }
-            if source.base=NR_PC then
+            { loading address in a separate register needed? }
+            if SimpleRef(source) then
               begin
                 { ... then we don't need a loadaddr }
                 srcref:=source;
               end
             else
               begin
+                srcreg:=getintregister(list,OS_ADDR);
                 a_loadaddr_ref_reg(list,source,srcreg);
-                reference_reset_base(srcref,srcreg,0,source.alignment,source.volatility);
+                reference_reset_base(srcref,srcreg,0,source.temppos,source.alignment,source.volatility);
               end;
 
             while (len div 4 <> 0) and (tmpregi<maxtmpreg) do
@@ -2814,9 +2858,15 @@ unit cgcpu;
                 dec(len,4);
               end;
 
-            destreg:=getintregister(list,OS_ADDR);
-            a_loadaddr_ref_reg(list,dest,destreg);
-            reference_reset_base(dstref,destreg,0,dest.alignment,dest.volatility);
+            { loading address in a separate register needed? }
+            if SimpleRef(dest) then
+              dstref:=dest
+            else
+              begin
+                destreg:=getintregister(list,OS_ADDR);
+                a_loadaddr_ref_reg(list,dest,destreg);
+                reference_reset_base(dstref,destreg,0,dest.temppos,dest.alignment,dest.volatility);
+              end;
             tmpregi2:=1;
             while (tmpregi2<=tmpregi) do
               begin
@@ -2884,11 +2934,11 @@ unit cgcpu;
               begin{unaligned & 4<len<helpsize **or** aligned/unaligned & len>helpsize}
                 destreg:=getintregister(list,OS_ADDR);
                 a_loadaddr_ref_reg(list,dest,destreg);
-                reference_reset_base(dstref,destreg,0,dest.alignment,dest.volatility);
+                reference_reset_base(dstref,destreg,0,dest.temppos,dest.alignment,dest.volatility);
 
                 srcreg:=getintregister(list,OS_ADDR);
                 a_loadaddr_ref_reg(list,source,srcreg);
-                reference_reset_base(srcref,srcreg,0,source.alignment,source.volatility);
+                reference_reset_base(srcref,srcreg,0,dest.temppos,source.alignment,source.volatility);
 
                 countreg:=getintregister(list,OS_32);
 
@@ -2948,7 +2998,7 @@ unit cgcpu;
               if not((def.typ=pointerdef) or
                     ((def.typ=orddef) and
                      (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
-                                               pasbool8,pasbool16,pasbool32,pasbool64]))) then
+                                               pasbool1,pasbool8,pasbool16,pasbool32,pasbool64]))) then
                  ai.SetCondition(C_VC)
               else
                 if TAiCpu(List.Last).opcode in [A_RSB,A_RSC,A_SBC,A_SUB] then
@@ -3051,7 +3101,11 @@ unit cgcpu;
         list.concat(instr);
         case instr.opcode of
           A_VMOV:
+            { VMOV cannot generate an FPU exception, so we do not need a check here }
             add_move_instruction(instr);
+          else
+            { VCVT can generate an exception }
+            maybe_check_for_fpu_exception(list);
         end;
       end;
 
@@ -3081,6 +3135,10 @@ unit cgcpu;
               if (fromsize<>tosize) then
                 internalerror(2009112901);
             end;
+          OS_F32,OS_F64:
+            ;
+          else
+            internalerror(2019050920);
         end;
 
         if (fromsize<>tosize) then
@@ -3108,9 +3166,7 @@ unit cgcpu;
             end;
           end
         else
-          begin
-             handle_load_store(list,A_VLDR,PF_None,tmpmmreg,ref);
-          end;
+          handle_load_store(list,A_VLDR,PF_None,tmpmmreg,ref);
 
         if (tmpmmreg<>reg) then
           a_loadmm_reg_reg(list,fromsize,tosize,tmpmmreg,reg,shuffle);
@@ -3142,6 +3198,10 @@ unit cgcpu;
               if (fromsize<>tosize) then
                 internalerror(2009112901);
             end;
+          OS_F32,OS_F64:
+            ;
+          else
+            internalerror(2019050919);
         end;
 
         if (fromsize<>tosize) then
@@ -3172,9 +3232,8 @@ unit cgcpu;
             end;
           end
         else
-          begin
-             handle_load_store(list,A_VSTR,PF_None,tmpmmreg,ref);
-          end;
+          handle_load_store(list,A_VSTR,PF_None,tmpmmreg,ref);
+        { VSTR cannot generate an FPU exception, VCVT is handled seperately, so we do not need a check here }
       end;
 
 
@@ -3190,6 +3249,7 @@ unit cgcpu;
            not shufflescalar(shuffle) then
           internalerror(2009112516);
         list.concat(taicpu.op_reg_reg(A_VMOV,mmreg,intreg));
+        { VMOV cannot generate an FPU exception, so we do not need a check here }
       end;
 
 
@@ -3205,6 +3265,7 @@ unit cgcpu;
            not shufflescalar(shuffle) then
           internalerror(2009112514);
         list.concat(taicpu.op_reg_reg(A_VMOV,intreg,mmreg));
+        { VMOV cannot generate an FPU exception, so we do not need a check here }
       end;
 
 
@@ -3218,20 +3279,30 @@ unit cgcpu;
           case op of
             OP_XOR:
               begin
-                if (src<>dst) or
-                   (reg_cgsize(src)<>size) or
-                   assigned(shuffle) then
-                  internalerror(2009112907);
-                tmpreg:=getintregister(list,OS_32);
-                a_load_const_reg(list,OS_32,0,tmpreg);
-                case size of
-                  OS_F32:
-                    list.concat(taicpu.op_reg_reg(A_VMOV,dst,tmpreg));
-                  OS_F64:
-                    list.concat(taicpu.op_reg_reg_reg(A_VMOV,dst,tmpreg,tmpreg));
-                  else
-                    internalerror(2009112908);
-                end;
+                if (FPUARM_HAS_NEON in fpu_capabilities[current_settings.fputype]) and (size in [OS_F64]) then
+                  begin
+                    if (reg_cgsize(src)<>size) or
+                       assigned(shuffle) then
+                      internalerror(2019081301);
+                    list.concat(taicpu.op_reg_reg_reg(A_VEOR,dst,dst,src));
+                  end
+                else
+                  begin
+                    if (src<>dst) or
+                       (reg_cgsize(src)<>size) or
+                       assigned(shuffle) then
+                      internalerror(2009112907);
+                    tmpreg:=getintregister(list,OS_32);
+                    a_load_const_reg(list,OS_32,0,tmpreg);
+                    case size of
+                      OS_F32:
+                        list.concat(taicpu.op_reg_reg(A_VMOV,dst,tmpreg));
+                      OS_F64:
+                        list.concat(taicpu.op_reg_reg_reg(A_VMOV,dst,tmpreg,tmpreg));
+                      else
+                        internalerror(2009112908);
+                    end;
+                  end;
               end
             else
               internalerror(2009112906);
@@ -3270,6 +3341,18 @@ unit cgcpu;
         checkreg(op3);
         checkreg(op4);
         list.concat(taicpu.op_reg_reg_reg_reg(A_MLA,op1,op2,op3,op4));
+      end;
+
+
+    procedure tbasecgarm.g_maybe_tls_init(list : TAsmList);
+      begin
+        if pi_needs_tls in current_procinfo.flags then
+          begin
+            list.concat(tai_regalloc.alloc(NR_R0,nil));
+            a_call_name(list,'fpc_read_tp',false);
+            a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_R0,current_procinfo.tlsoffset);
+            list.concat(tai_regalloc.dealloc(NR_R0,nil));
+          end;
       end;
 
 
@@ -3323,6 +3406,7 @@ unit cgcpu;
         if (mmsize<>OS_F64) then
           internalerror(2009112405);
         list.concat(taicpu.op_reg_reg_reg(A_VMOV,mmreg,intreg.reglo,intreg.reghi));
+        { VMOV cannot generate an FPU exception, so we do not need a check here }
       end;
 
 
@@ -3333,6 +3417,7 @@ unit cgcpu;
         if (mmsize<>OS_F64) then
           internalerror(2009112406);
         list.concat(taicpu.op_reg_reg_reg(A_VMOV,intreg.reglo,intreg.reghi,mmreg));
+        { VMOV cannot generate an FPU exception, so we do not need a check here }
       end;
 
 
@@ -3346,6 +3431,8 @@ unit cgcpu;
           OP_NEG,
           OP_NOT :
             internalerror(2012022501);
+          else
+            ;
         end;
         if (setflags or tbasecgarm(cg).cgsetflags) and (op in [OP_ADD,OP_SUB]) then
           begin
@@ -3410,6 +3497,8 @@ unit cgcpu;
                     ovloc.resflags:=F_CS;
                   OP_SUB:
                     ovloc.resflags:=F_CC;
+                  else
+                    internalerror(2019050918);
                 end;
               end;
           end
@@ -3483,6 +3572,8 @@ unit cgcpu;
           OP_NEG,
           OP_NOT :
             internalerror(2012022502);
+          else
+            ;
         end;
         if (setflags or tbasecgarm(cg).cgsetflags) and (op in [OP_ADD,OP_SUB]) then
           begin
@@ -3511,6 +3602,8 @@ unit cgcpu;
                     ovloc.resflags:=F_CS;
                   OP_SUB:
                     ovloc.resflags:=F_CC;
+                  else
+                    internalerror(2019050917);
                 end;
               end;
           end
@@ -3794,7 +3887,7 @@ unit cgcpu;
                      begin
                        tmpreg2:=getintregister(list,OS_INT);
                        a_loadaddr_ref_reg(list,ref,tmpreg2);
-                       reference_reset_base(usedtmpref,tmpreg2,0,ref.alignment,ref.volatility);
+                       reference_reset_base(usedtmpref,tmpreg2,0,ref.temppos,ref.alignment,ref.volatility);
                      end
                    else
                      usedtmpref:=ref;
@@ -3827,7 +3920,7 @@ unit cgcpu;
                      begin
                        tmpreg2:=getintregister(list,OS_INT);
                        a_loadaddr_ref_reg(list,ref,tmpreg2);
-                       reference_reset_base(usedtmpref,tmpreg2,0,ref.alignment,ref.volatility);
+                       reference_reset_base(usedtmpref,tmpreg2,0,ref.temppos,ref.alignment,ref.volatility);
                      end
                    else
                      usedtmpref:=ref;
@@ -3941,7 +4034,7 @@ unit cgcpu;
                   begin
                     { offset in the wrapper needs to be adjusted for the stored
                       return address }
-                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint),sizeof(pint),[]);
+                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint),ctempposinvalid,sizeof(pint),[]);
                     if is_thumb_imm(ioffset) then
                       a_op_const_ref(list,OP_SUB,size,ioffset,href)
                     else
@@ -4008,7 +4101,7 @@ unit cgcpu;
             tmpreg:=getintregister(list,OS_ADDR);
             a_loadaddr_ref_reg(list,ref,tmpreg);
 
-            reference_reset_base(href,tmpreg,0,ref.alignment,ref.volatility);
+            reference_reset_base(href,tmpreg,0,ref.temppos,ref.alignment,ref.volatility);
           end
         else if (op=A_LDR) and
            (oppostfix in [PF_None]) and
@@ -4018,7 +4111,7 @@ unit cgcpu;
             tmpreg:=getintregister(list,OS_ADDR);
             a_loadaddr_ref_reg(list,ref,tmpreg);
 
-            reference_reset_base(href,tmpreg,0,ref.alignment,ref.volatility);
+            reference_reset_base(href,tmpreg,0,ref.temppos,ref.alignment,ref.volatility);
           end
         else if (op=A_LDR) and
            ((oppostfix in [PF_SH,PF_SB]) or
@@ -4027,7 +4120,7 @@ unit cgcpu;
             tmpreg:=getintregister(list,OS_ADDR);
             a_loadaddr_ref_reg(list,ref,tmpreg);
 
-            reference_reset_base(href,tmpreg,0,ref.alignment,ref.volatility);
+            reference_reset_base(href,tmpreg,0,ref.temppos,ref.alignment,ref.volatility);
           end;
 
         Result:=inherited handle_load_store(list, op, oppostfix, reg, href);
@@ -4086,6 +4179,8 @@ unit cgcpu;
                 op:=OP_ADD;
                 a:=aint(dword(-a));
               end
+            else
+              ;
           end;
 
         if is_thumb_imm(a) and (op in [OP_ADD,OP_SUB]) then
@@ -4104,6 +4199,8 @@ unit cgcpu;
                     ;
                   OP_SUB:
                     //!!! ovloc.resflags:=F_CC;
+                    ;
+                  else
                     ;
                 end;
               end;
@@ -4231,13 +4328,13 @@ unit cgcpu;
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
 
-        if current_settings.fputype in [fpu_vfpv3,fpu_vfpv4] then
+        if FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype] then
           rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
               [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
                RS_D16,RS_D17,RS_D18,RS_D19,RS_D20,RS_D21,RS_D22,RS_D23,RS_D24,RS_D25,RS_D26,RS_D27,RS_D28,RS_D29,RS_D30,RS_D31,
                RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
               ],first_mm_imreg,[])
-        else if current_settings.fputype in [fpu_fpv4_s16,fpu_vfpv3_d16] then
+        else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
           rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
               [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
                RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
@@ -4345,7 +4442,7 @@ unit cgcpu;
                      begin
                        tmpreg2:=getintregister(list,OS_INT);
                        a_loadaddr_ref_reg(list,ref,tmpreg2);
-                       reference_reset_base(usedtmpref,tmpreg2,0,ref.alignment,ref.volatility);
+                       reference_reset_base(usedtmpref,tmpreg2,0,ref.temppos,ref.alignment,ref.volatility);
                      end
                    else
                      usedtmpref:=ref;
@@ -4377,7 +4474,7 @@ unit cgcpu;
                      begin
                        tmpreg2:=getintregister(list,OS_INT);
                        a_loadaddr_ref_reg(list,ref,tmpreg2);
-                       reference_reset_base(usedtmpref,tmpreg2,0,ref.alignment,ref.volatility);
+                       reference_reset_base(usedtmpref,tmpreg2,0,ref.temppos,ref.alignment,ref.volatility);
                      end
                    else
                      usedtmpref:=ref;
@@ -4434,6 +4531,11 @@ unit cgcpu;
               OS_S8: list.concat(taicpu.op_reg_reg(A_SXTB,dst,dst));
               OS_16: list.concat(taicpu.op_reg_reg(A_UXTH,dst,dst));
               OS_S16: list.concat(taicpu.op_reg_reg(A_SXTH,dst,dst));
+              OS_32,
+              OS_S32:
+                ;
+              else
+                internalerror(2019050916);
             end;
           end
         else
@@ -4449,7 +4551,7 @@ unit cgcpu;
         l1 : longint;
       begin
         ovloc.loc:=LOC_VOID;
-        if {$ifopt R+}(a<>-2147483648) and{$endif} is_shifter_const(-a,shift) then
+        if (a<>-2147483648) and is_shifter_const(-a,shift) then
           case op of
             OP_ADD:
               begin
@@ -4461,6 +4563,8 @@ unit cgcpu;
                 op:=OP_ADD;
                 a:=aint(dword(-a));
               end
+            else
+              ;
           end;
 
         if is_shifter_const(a,shift) and not(op in [OP_IMUL,OP_MUL]) then
@@ -4565,6 +4669,8 @@ unit cgcpu;
                       ovloc.resflags:=F_CS;
                     OP_SUB:
                       ovloc.resflags:=F_CC;
+                    else
+                      ;
                   end;
                 end;
           end
@@ -4622,7 +4728,7 @@ unit cgcpu;
               list.concat(taicpu.op_reg_reg(A_UXTH,dst,src))
             else if (op = OP_AND) and is_thumb32_imm(not(dword(a))) then
               list.concat(taicpu.op_reg_reg_const(A_BIC,dst,src,not(dword(a))))
-            else if (op = OP_AND) and is_continuous_mask(not(a), shift, width) then
+            else if (op = OP_AND) and is_continuous_mask(aword(not(a)), shift, width) then
               begin
                 a_load_reg_reg(list,size,size,src,dst);
                 list.concat(taicpu.op_reg_const_const(A_BFC,dst,shift,width))
@@ -4953,7 +5059,7 @@ unit cgcpu;
               end;
 
             if regs=[] then
-              list.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14))
+              list.concat(taicpu.op_reg(A_BX,NR_R14))
             else
               begin
                 reference_reset(ref,4,[]);
@@ -4963,7 +5069,7 @@ unit cgcpu;
               end;
           end
         else
-          list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14));
+          list.concat(taicpu.op_reg(A_BX,NR_R14));
       end;
 
 
@@ -5028,7 +5134,21 @@ unit cgcpu;
                 cg.a_label(current_procinfo.aktlocaldata,l);
                 tmpref.symboldata:=current_procinfo.aktlocaldata.last;
 
-                current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset));
+                if ref.refaddr=addr_gottpoff then
+                  current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_gottpoff,ref.symbol,ref.relsymbol,ref.offset))
+                else if ref.refaddr=addr_tlsgd then
+                  current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsgd,ref.symbol,ref.relsymbol,ref.offset))
+                else if ref.refaddr=addr_tlsdesc then
+                  current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsdesc,ref.symbol,ref.relsymbol,ref.offset))
+                else if ref.refaddr=addr_tpoff then
+                  begin
+                    if assigned(ref.relsymbol) or (ref.offset<>0) then
+                      Internalerror(2019092805);
+
+                    current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_tpoff,ref.symbol));
+                  end
+                else
+                  current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset));
 
                 { load consts entry }
                 tmpref.symbol:=l;
@@ -5139,6 +5259,7 @@ unit cgcpu;
             instr:=setoppostfix(taicpu.op_reg_reg(A_VMOV,reg2,reg1), PF_F32);
             list.Concat(instr);
             add_move_instruction(instr);
+            { VMOV cannot generate an FPU exception, so we do not need a check here }
           end
         else if (fromsize=OS_F64) and
           (tosize=OS_F64) then
@@ -5164,6 +5285,7 @@ unit cgcpu;
     procedure tthumb2cgarm.a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference; shuffle: pmmshuffle);
       begin
         handle_load_store(list,A_VSTR,PF_None,reg,ref);
+        { VSTR cannot generate an FPU exception, so we do not need a check here }
       end;
 
 
@@ -5181,7 +5303,10 @@ unit cgcpu;
       begin
         if //(shuffle=nil) and
           (fromsize=OS_F32) then
-          list.Concat(taicpu.op_reg_reg(A_VMOV,intreg,mmreg))
+          begin
+            list.Concat(taicpu.op_reg_reg(A_VMOV,intreg,mmreg));
+            { VMOV cannot generate an FPU exception, so we do not need a check here }
+          end
         else
           internalerror(2012100814);
       end;

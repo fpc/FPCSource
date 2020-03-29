@@ -8,12 +8,12 @@ uses
 
 {$i rtldefs.inc}
 
-  function SetActiveCollation(const AName : TCollationName) : Boolean;
+  function SetActiveCollation(const AName : UnicodeString) : Boolean;
   function SetActiveCollation(const ACollation : PUCA_DataBook) : Boolean;
   function GetActiveCollation() : PUCA_DataBook;
 
 var
-  DefaultCollationName : TCollationName = '';
+  DefaultCollationName : UnicodeString = '';
 
 implementation
 uses
@@ -42,16 +42,21 @@ Var
 {$endif FPC_HAS_FEATURE_THREADING}
   current_DefaultSystemCodePage : TSystemCodePage;
   current_Map : punicodemap;
-  current_Collation : PUCA_DataBook;
+  current_Collation : record
+    DataPtr : PUCA_DataBook;
+    Data    : TUCA_DataBook;
+  end;
 
 function SetActiveCollation(const ACollation : PUCA_DataBook) : Boolean;
 begin
   Result := (ACollation <> nil);
-  if Result then
-    current_Collation := ACollation;
+  if Result then begin
+    current_Collation.Data := ACollation^;
+    current_Collation.DataPtr := @current_Collation.Data;
+  end;
 end;
 
-function SetActiveCollation(const AName : TCollationName) : Boolean;
+function SetActiveCollation(const AName : UnicodeString) : Boolean;
 var
   c : PUCA_DataBook;
 begin
@@ -63,7 +68,7 @@ end;
 
 function GetActiveCollation() : PUCA_DataBook;
 begin
-  Result := current_Collation;
+  Result := current_Collation.DataPtr;
 end;
 
 {procedure error_CpNotFound(ACodePage:TSystemCodePage);
@@ -82,7 +87,8 @@ begin
     c:=FindCollation(DefaultCollationName);
   if (c=nil) and (GetCollationCount()>0) then
     c:=FindCollation(0);
-  current_Collation:=c;
+  if (c<>nil) then
+    SetActiveCollation(c);
 end;
 
 procedure FiniThread;
@@ -248,7 +254,7 @@ begin
   if (cp=CP_UTF8) then
     begin
       destLen:=UnicodeToUtf8(nil,High(SizeUInt),source,len);
-      SetLength(dest,destLen);
+      SetLength(dest,destLen-1);
       UnicodeToUtf8(@dest[1],destLen,source,len);
       SetCodePage(dest,cp,False);
       exit;
@@ -297,7 +303,7 @@ end;
 procedure Ansi2UnicodeMove(source:PAnsiChar; cp:TSystemCodePage; var dest:UnicodeString; len:SizeInt);
 var
   locMap : punicodemap;
-  destLen : SizeInt;
+  destLen : SizeUInt;
 begin
   if (len<=0) then
     begin
@@ -307,12 +313,12 @@ begin
 
   if (cp=CP_UTF8) then
     begin
-      destLen:=Utf8ToUnicode(nil,source,len);
+      destLen:=Utf8ToUnicode(nil,high(SizeUint),source,len);
       if destLen > 0 then
         SetLength(dest,destLen-1)
       else
         SetLength(dest,0);
-      Utf8ToUnicode(@dest[1],source,len);
+      Utf8ToUnicode(@dest[1],destLen,source,len);
       exit;
     end;
   if (cp=CP_UTF16) then
@@ -392,7 +398,7 @@ end;
 
 function CompareUnicodeStringUCA(p1,p2:PUnicodeChar; l1,l2:PtrInt) : PtrInt;inline;
 begin
-  Result := IncrementalCompareString(p1,l1,p2,l2,current_Collation);
+  Result := IncrementalCompareString(p1,l1,p2,l2,current_Collation.DataPtr);
 end;
 
 function CompareUnicodeString(p1,p2:PUnicodeChar; l1,l2:PtrInt) : PtrInt;inline;
@@ -406,52 +412,84 @@ begin
   Result := CompareUnicodeStringUCA(p1,p2,l1,l2);
 end;
 
+type
+  TChangedPropsRecord = record
+    ComparisonStrength : Byte;
+  end;
+
+const
+  SECONDARY_STRENGTH_LEVEL = 2;
+
 function CompareUnicodeString(const s1, s2 : UnicodeString;Options : TCompareOptions) : PtrInt;
-Var
-  us1,us2 : UnicodeString;
-begin
-  if (current_Collation=nil) then
-    exit(OldManager.CompareUnicodeStringProc(s1,s2,Options));
-  if (coIgnoreCase in Options) then
-    begin
-    us1:=UpperUnicodeString(s1);
-    us2:=UpperUnicodeString(s2);
-    end
-  else
-    begin
-    us1:=S1;
-    us2:=S2;
+
+  function DoCompare() : PtrInt;
+  var
+    changedProps : TChangedPropsRecord;
+  begin
+    changedProps.ComparisonStrength := current_Collation.Data.ComparisonStrength;
+    try
+      if (coIgnoreCase in Options) then
+        current_Collation.Data.ComparisonStrength := SECONDARY_STRENGTH_LEVEL;
+      Result:=CompareUnicodeString(
+                PUnicodeChar(Pointer(s1)),
+                PUnicodeChar(Pointer(s2)),
+                Length(s1),Length(s2)
+              );
+    finally
+      current_Collation.Data.ComparisonStrength := changedProps.ComparisonStrength;
     end;
-  Result:=CompareUnicodeString(
-            PUnicodeChar(Pointer(us1)),
-            PUnicodeChar(Pointer(us2)),
-            Length(us1),Length(us2)
-          );
+  end;
+
+begin
+  if (current_Collation.DataPtr=nil) then
+    exit(OldManager.CompareUnicodeStringProc(s1,s2,Options));
+  if (Options=[]) then begin
+    exit(
+      CompareUnicodeString(
+           PUnicodeChar(Pointer(s1)),
+           PUnicodeChar(Pointer(s2)),
+           Length(s1),Length(s2)
+      )
+    );
+  end;
+
+  Result:=DoCompare();
 end;
 
 function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
 
-Var
-  us1,us2 : WideString;
+  function DoCompare() : PtrInt;
+  var
+    changedProps : TChangedPropsRecord;
+  begin
+    changedProps.ComparisonStrength := current_Collation.Data.ComparisonStrength;
+    try
+      if (coIgnoreCase in Options) then
+        current_Collation.Data.ComparisonStrength := SECONDARY_STRENGTH_LEVEL;
+      Result:=CompareUnicodeString(
+                PUnicodeChar(Pointer(s1)),
+                PUnicodeChar(Pointer(s2)),
+                Length(s1),Length(s2)
+              );
+    finally
+      current_Collation.Data.ComparisonStrength := changedProps.ComparisonStrength;
+    end;
+  end;
 
 begin
-  if (current_Collation=nil) then
-    exit(OldManager.CompareWideStringProc(s1,s2,Options));
-  if (coIgnoreCase in Options) then
-    begin
-    us1:=UpperWideString(s1);
-    us2:=UpperWideString(s2);
-    end
-  else
-    begin
-    us1:=S1;
-    us2:=S2;
-    end;
-  Result:=CompareUnicodeString(
-            PUnicodeChar(Pointer(us1)),
-            PUnicodeChar(Pointer(us2)),
-            Length(us1),Length(us2)
-          );
+  if (current_Collation.DataPtr=nil) then
+    exit(OldManager.CompareUnicodeStringProc(s1,s2,Options));
+  if (Options=[]) then begin
+    exit(
+      CompareUnicodeString(
+           PUnicodeChar(Pointer(s1)),
+           PUnicodeChar(Pointer(s2)),
+           Length(s1),Length(s2)
+      )
+    );
+  end;
+
+  Result:=DoCompare();
 end;
 
 function CompareTextUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
@@ -483,13 +521,12 @@ end;
 function UpperAnsiString(const s : ansistring) : ansistring;
 var
   p        : PAnsiChar;
-  i, slen,
-  resindex : SizeInt;
+  i,resindex : SizeInt;
   mblen    : SizeInt;
   us,usl   : UnicodeString;
   locMap   : punicodemap;
-  ulen,k,
-  aalen,ai : SizeInt;
+  ulen,slen : SizeUint;
+  k,aalen,ai : SizeInt;
   aa       : array[0..8] of AnsiChar;
 begin
   if (Length(s)=0) then
@@ -497,14 +534,14 @@ begin
   if (DefaultSystemCodePage=CP_UTF8) then
     begin
       //convert to UnicodeString,uppercase,convert back to utf8
-      ulen:=Utf8ToUnicode(nil,@s[1],Length(s));
+      ulen:=Utf8ToUnicode(nil,high(SizeUint),@s[1],Length(s));
       if ulen>0 then
         SetLength(us,ulen-1);
-      Utf8ToUnicode(@us[1],@s[1],Length(s));
+      Utf8ToUnicode(@us[1],ulen,@s[1],Length(s));
       us:=UpperUnicodeString(us);
 
       ulen:=Length(us);
-      slen:=UnicodeToUtf8(nil,0,@us[1],ulen);
+      slen:=UnicodeToUtf8(nil,high(SizeUInt),@us[1],ulen);
       SetLength(Result,slen);
       UnicodeToUtf8(@Result[1],slen,@us[1],ulen);
       exit;
@@ -550,13 +587,12 @@ end;
 function LowerAnsiString(const s : ansistring) : ansistring;
 var
   p        : PAnsiChar;
-  i, slen,
-  resindex : SizeInt;
+  i,resindex : SizeInt;
   mblen    : SizeInt;
   us,usl   : UnicodeString;
   locMap   : punicodemap;
-  ulen,k,
-  aalen,ai : SizeInt;
+  k,aalen,ai : SizeInt;
+  slen, ulen : SizeUInt;
   aa       : array[0..8] of AnsiChar;
 begin
   if (Length(s)=0) then
@@ -564,14 +600,14 @@ begin
   if (DefaultSystemCodePage=CP_UTF8) then
     begin
       //convert to UnicodeString,lowercase,convert back to utf8
-      ulen:=Utf8ToUnicode(nil,@s[1],Length(s));
+      ulen:=Utf8ToUnicode(nil,high(SizeUInt),@s[1],Length(s));
       if ulen>0 then
         SetLength(us,ulen-1);
-      Utf8ToUnicode(@us[1],@s[1],Length(s));
+      Utf8ToUnicode(@us[1],ulen,@s[1],Length(s));
       us:=LowerUnicodeString(us);
 
       ulen:=Length(us);
-      slen:=UnicodeToUtf8(nil,0,@us[1],ulen);
+      slen:=UnicodeToUtf8(nil,high(SizeUInt),@us[1],ulen);
       SetLength(Result,slen);
       UnicodeToUtf8(@Result[1],slen,@us[1],ulen);
       exit;
@@ -680,6 +716,8 @@ end;
 
 function StrLCompAnsiString(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
 begin
+  if (current_Collation.DataPtr=nil) then
+    exit(OldManager.StrLCompAnsiStringProc(s1,s2,MaxLen));
   if (MaxLen=0) then
     exit(0);
   Result := InternalCompareStrAnsiString(S1,S2,MaxLen,MaxLen);
@@ -689,18 +727,15 @@ function CompareStrAnsiString(const S1, S2: ansistring): PtrInt;
 var
   l1, l2 : PtrInt;
 begin
+  if (current_Collation.DataPtr=nil) then
+    exit(OldManager.CompareStrAnsiStringProc(s1,s2));
   if (Pointer(S1)=Pointer(S2)) then
     exit(0);
   l1:=Length(S1);
   l2:=Length(S2);
-  if (l1=0) then begin
-    if (l2=0) then
-      exit(0);
-    exit(-l2);
-  end;
-  if (l2=0) then
-    exit(-l1);
-  Result := InternalCompareStrAnsiString(@S1[1],@S2[2],l1,l2);
+  if (l1=0) or (l2=0) then
+    exit(l1-l2);
+  Result := InternalCompareStrAnsiString(@S1[1],@S2[1],l1,l2);
 end;
 
 function CompareTextAnsiString(const S1, S2: ansistring): PtrInt;
@@ -716,6 +751,8 @@ function StrCompAnsiString(S1, S2: PChar): PtrInt;
 var
   l1,l2 : PtrInt;
 begin
+  if (current_Collation.DataPtr=nil) then
+    exit(OldManager.StrCompAnsiStringProc(s1,s2));
   l1:=strlen(S1);
   l2:=strlen(S2);
   Result := InternalCompareStrAnsiString(S1,S2,l1,l2);
@@ -832,7 +869,7 @@ end;
 
 
 initialization
-  current_Collation := nil;
+  current_Collation.DataPtr := nil;
   SetPascalWideStringManager();
   InitThread();
 

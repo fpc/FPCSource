@@ -31,7 +31,7 @@ end;
 // Global vars
 var
   pTempStream: PMyStream;
-  mem : sizeint;
+  mem : sizeuint;
   f : file;
 begin
   DoMem(mem);

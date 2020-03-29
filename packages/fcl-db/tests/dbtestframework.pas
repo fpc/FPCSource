@@ -7,6 +7,9 @@ program dbtestframework;
 {$APPTYPE CONSOLE}
 
 uses
+{$ifdef unix}
+  cwstring,
+{$endif}
   SysUtils,
   fpcunit,  testreport, testregistry,
   DigestTestReport,
@@ -17,8 +20,12 @@ uses
   bufdatasettoolsunit,
   memdstoolsunit,
   SdfDSToolsUnit,
-  tcsdfdata,
+ {$IFDEF TEST_SQLITE3DS}
+   Sqlite3DSToolsUnit,
+   TestSpecificTSqlite3Dataset,
+ {$ENDIF}
 // Units wich contain the tests
+  tcsdfdata,
   TestBasics,
   TestDBBasics,
   TestFieldTypes,

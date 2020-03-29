@@ -48,11 +48,11 @@ interface
 implementation
 
   uses
-    verbose,globtype,globals,cutils,constexp,
+    verbose,globtype,cutils,constexp,
     pass_1,pparautl,fmodule,
     aasmdata,
     nbas,ncon,nmem,nutils,
-    symbase,symconst,symtable,symsym,symcreat,objcutil,objcdef,defutil,
+    symbase,symconst,symtable,symsym,symcreat,objcutil,defutil,
     paramgr;
 
 
@@ -174,7 +174,7 @@ implementation
       { find the type of the descriptor structure }
       descriptordef:=search_named_unit_globaltype('BLOCKRTL','FPC_BLOCK_DESCRIPTOR_SIMPLE',true).typedef;
       { create new static variable }
-      descriptor:=cstaticvarsym.create(name,vs_value,descriptordef,[],true);
+      descriptor:=cstaticvarsym.create(name,vs_value,descriptordef,[]);
       symtablestack.top.insert(descriptor);
       include(descriptor.symoptions,sp_internal);
       { create typed constant for the descriptor }
@@ -207,7 +207,7 @@ implementation
           exit;
         end;
       { bare copy, so that self etc are not inserted }
-      result:=tprocdef(orgpd.getcopyas(procdef,pc_bareproc));
+      result:=tprocdef(orgpd.getcopyas(procdef,pc_bareproc,''));
       { will be called accoding to the ABI conventions }
       result.proccalloption:=pocall_cdecl;
       { add po_is_block so that a block "self" pointer gets added (of the type
@@ -227,7 +227,7 @@ implementation
         begin
           { alias for the type to invoke the procvar, used in the symcreat
             handling of tsk_block_invoke_procvar }
-          result.localst.insert(ctypesym.create('__FPC_BLOCK_INVOKE_PV_TYPE',orgpv,true));
+          result.localst.insert(ctypesym.create('__FPC_BLOCK_INVOKE_PV_TYPE',orgpv));
           result.synthetickind:=tsk_block_invoke_procvar;
         end;
     end;
@@ -253,7 +253,7 @@ implementation
       result:=cstaticvarsym.create(
         '$'+literalname,
         vs_value,
-        blockliteraldef,[],true);
+        blockliteraldef,[]);
       include(result.symoptions,sp_internal);
       symtablestack.top.insert(result);
       { initialise it }

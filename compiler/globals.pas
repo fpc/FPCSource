@@ -54,7 +54,8 @@ interface
          [m_delphi,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
           m_out,m_default_para,m_duplicate_names,m_hintdirective,
-          m_property,m_default_inline,m_except,m_advanced_records,m_type_helpers];
+          m_property,m_default_inline,m_except,m_advanced_records,
+          m_array_operators,m_prefixed_attributes];
        delphiunicodemodeswitches = delphimodeswitches + [m_systemcodepage,m_default_unicodestring];
        fpcmodeswitches =
          [m_fpc,m_string_pchar,m_nested_comment,m_repeat_forward,
@@ -163,6 +164,8 @@ interface
 
          disabledircache : boolean;
 
+         tlsmodel : ttlsmodel;
+
 {$if defined(i8086)}
          x86memorymodel  : tx86memorymodel;
 {$endif defined(i8086)}
@@ -213,6 +216,15 @@ interface
         property items[I:longint]:TLinkRec read getlinkrec; default;
       end;
 
+      tpendingstateflag = (
+        psf_alignment_changed,
+        psf_verbosity_full_switched,
+        psf_local_switches_changed,
+        psf_packenum_changed,
+        psf_packrecords_changed,
+        psf_setalloc_changed
+      );
+      tpendingstateflags = set of tpendingstateflag;
 
       tpendingstate = record
         nextverbositystr : shortstring;
@@ -220,8 +232,11 @@ interface
         nextverbosityfullswitch: longint;
         nextcallingstr : shortstring;
         nextmessagerecord : pmessagestaterecord;
-        verbosityfullswitched,
-        localswitcheschanged : boolean;
+        nextalignment : talignmentinfo;
+        nextpackenum : shortint;
+        nextpackrecords : shortint;
+        nextsetalloc : shortint;
+        flags : tpendingstateflags;
       end;
 
 
@@ -278,6 +293,8 @@ interface
        includesearchpath,
        frameworksearchpath  : TSearchPathList;
        packagesearchpath     : TSearchPathList;
+       { list of default namespaces }
+       namespacelist : TCmdStrList;
        { contains tpackageentry entries }
        packagelist : TFPHashList;
        autoloadunits      : string;
@@ -287,6 +304,9 @@ interface
        description   : string;
        SetPEFlagsSetExplicity,
        SetPEOptFlagsSetExplicity,
+       SetPEOSVersionSetExplicitely,
+       SetPESubSysVersionSetExplicitely,
+       SetPEUserVersionSetExplicitely,
        ImageBaseSetExplicity,
        MinStackSizeSetExplicity,
        MaxStackSizeSetExplicity,
@@ -296,6 +316,12 @@ interface
        dllminor,
        dllrevision   : word;  { revision only for netware }
        { win pe  }
+       peosversionminor,
+       peosversionmajor,
+       pesubsysversionminor,
+       pesubsysversionmajor,
+       peuserversionminor,
+       peuserversionmajor : word;
        peoptflags,
        peflags : longint;
        minstacksize,
@@ -373,6 +399,9 @@ interface
        defaultmainaliasname = 'main';
        mainaliasname : string = defaultmainaliasname;
 
+       custom_attribute_suffix = 'ATTRIBUTE';
+
+      LTOExt: TCmdStr = '';
 
     const
       default_settings : TSettings = (
@@ -380,6 +409,9 @@ interface
           procalign : 0;
           loopalign : 0;
           jumpalign : 0;
+          jumpalignskipmax    : 0;
+          coalescealign   : 0;
+          coalescealignskipmax: 0;
           constalignmin : 0;
           constalignmax : 0;
           varalignmin : 0;
@@ -398,7 +430,11 @@ interface
         optimizerswitches : [];
         genwpoptimizerswitches : [];
         dowpoptimizerswitches : [];
+{$ifdef i8086}
+        debugswitches : [ds_dwarf_sets,ds_dwarf_omf_linnum];
+{$else i8086}
         debugswitches : [ds_dwarf_sets];
+{$endif i8086}
 
         setalloc : 0;
         packenum : 4;
@@ -449,6 +485,12 @@ interface
         asmcputype : cpu_none;
         fputype : fpu_hard;
   {$endif sparc}
+  {$ifdef sparc64}
+        cputype : cpu_SPARC_V9;
+        optimizecputype : cpu_SPARC_V9;
+        asmcputype : cpu_none;
+        fputype : fpu_hard;
+  {$endif sparc64}
   {$ifdef arm}
         cputype : cpu_armv4;
         optimizecputype : cpu_armv4;
@@ -495,6 +537,24 @@ interface
         asmcputype : cpu_none;
         fputype : fpu_x87;
   {$endif i8086}
+  {$ifdef riscv32}
+        cputype : cpu_rv32ima;
+        optimizecputype : cpu_rv32ima;
+        asmcputype : cpu_none;
+        fputype : fpu_fd;
+  {$endif riscv32}
+  {$ifdef riscv64}
+        cputype : cpu_rv64imac;
+        optimizecputype : cpu_rv64imac;
+        asmcputype : cpu_none;
+        fputype : fpu_fd;
+  {$endif riscv64}
+  {$ifdef xtensa}
+        cputype : cpu_none;
+        optimizecputype : cpu_none;
+        asmcputype : cpu_none;
+        fputype : fpu_none;
+  {$endif xtensa}
   {$ifdef z80}
         cputype : cpu_z80;
         optimizecputype : cpu_z80;
@@ -517,6 +577,8 @@ interface
         minfpconstprec : s32real;
 
         disabledircache : false;
+
+        tlsmodel : tlsm_none;
 {$if defined(i8086)}
         x86memorymodel : mm_small;
 {$endif defined(i8086)}
@@ -524,7 +586,7 @@ interface
         instructionset : is_arm;
 {$endif defined(ARM)}
 {$if defined(LLVM) and not defined(GENERIC_CPU)}
-        llvmversion    : llvmver_3_6_0;
+        llvmversion    : llvmver_7_0;
 {$endif defined(LLVM) and not defined(GENERIC_CPU)}
         controllertype : ct_none;
         pmessage : nil;
@@ -532,10 +594,12 @@ interface
 
     var
       starttime  : real;
+      startsystime : TSystemTime;
 
     function getdatestr:string;
     function gettimestr:string;
     function filetimestring( t : longint) : string;
+    function getrealtime(const st: TSystemTime) : real;
     function getrealtime : real;
 
     procedure DefaultReplacements(var s:ansistring);
@@ -565,12 +629,13 @@ interface
 
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
+    function size_2_align(len : asizeuint) : longint;
     function var_align(want_align: longint): shortint;
-    function var_align_size(siz: longint): shortint;
+    function var_align_size(siz: asizeuint): shortint;
     {# Routine to get the required alignment for size of data, which will
        be placed in data/const segment, according to the current alignment requirements }
     function const_align(want_align: longint): shortint;
-    function const_align_size(siz: longint): shortint;
+    function const_align_size(siz: asizeuint): shortint;
 {$ifdef ARM}
     function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
 {$endif ARM}
@@ -584,14 +649,13 @@ interface
 
 implementation
 
+{$if defined(macos)}
     uses
-{$ifdef macos}
-      macutils,
+      macutils;
+{$elseif defined(mswindows)}
+    uses
+      windirs;
 {$endif}
-{$ifdef mswindows}
-      windirs,
-{$endif}
-      comphook;
 
 {****************************************************************************
                                  TLinkStrMap
@@ -819,13 +883,17 @@ implementation
        Result := L0(Year)+'/'+L0(Month)+'/'+L0(Day)+' '+L0(Hour)+':'+L0(min)+':'+L0(sec);
      end;
 
+   function getrealtime(const st: TSystemTime) : real;
+     begin
+       result := st.Hour*3600.0 + st.Minute*60.0 + st.Second + st.MilliSecond/1000.0;
+     end;
 
    function getrealtime : real;
      var
        st:TSystemTime;
      begin
        GetLocalTime(st);
-       result:=st.Hour*3600.0+st.Minute*60.0+st.Second+st.MilliSecond/1000.0;
+       result:=getrealtime(st);
      end;
 
 {****************************************************************************
@@ -844,6 +912,30 @@ implementation
          end;
 
 {$endif mswindows}
+{$ifdef openbsd}
+       function GetOpenBSDLocalBase: ansistring;
+         var
+           envvalue: pchar;
+         begin
+           envvalue := GetEnvPChar('LOCALBASE');
+           if assigned(envvalue) then
+             Result:=envvalue
+           else
+             Result:='/usr/local';
+           FreeEnvPChar(envvalue);
+         end;
+       function GetOpenBSDX11Base: ansistring;
+         var
+           envvalue: pchar;
+         begin
+           envvalue := GetEnvPChar('X11BASE');
+           if assigned(envvalue) then
+             Result:=envvalue
+           else
+             Result:='/usr/X11R6';
+           FreeEnvPChar(envvalue);
+         end;
+{$endif openbsd}
        var
          envstr: string;
          envvalue: pchar;
@@ -876,6 +968,10 @@ implementation
          ReplaceSpecialFolder('$PROGRAM_FILES_COMMON',CSIDL_PROGRAM_FILES_COMMON);
          ReplaceSpecialFolder('$PROFILE',CSIDL_PROFILE);
 {$endif mswindows}
+{$ifdef openbsd}
+         Replace(s,'$OPENBSD_LOCALBASE',GetOpenBSDLocalBase);
+         Replace(s,'$OPENBSD_X11BASE',GetOpenBSDX11Base);
+{$endif openbsd}
          { Replace environment variables between dollar signs }
          i := pos('$',s);
          while i>0 do
@@ -1106,7 +1202,8 @@ implementation
          'SYSV_ABI_DEFAULT',
          'SYSV_ABI_CDECL',
          'MS_ABI_DEFAULT',
-         'MS_ABI_CDECL'
+         'MS_ABI_CDECL',
+         'VECTORCALL'
         );
       var
         t  : tproccalloption;
@@ -1290,13 +1387,30 @@ implementation
       end;
 
 
+    function size_2_align(len : asizeuint) : longint;
+      begin
+         if len>16 then
+           size_2_align:=32
+         else if len>8 then
+           size_2_align:=16
+         else if len>4 then
+           size_2_align:=8
+         else if len>2 then
+           size_2_align:=4
+         else if len>1 then
+           size_2_align:=2
+         else
+           size_2_align:=1;
+      end;
+
+
     function var_align(want_align: longint): shortint;
       begin
         var_align := used_align(want_align,current_settings.alignment.varalignmin,current_settings.alignment.varalignmax);
       end;
 
 
-    function var_align_size(siz: longint): shortint;
+    function var_align_size(siz: asizeuint): shortint;
       begin
         siz := size_2_align(siz);
         var_align_size := var_align(siz);
@@ -1309,7 +1423,7 @@ implementation
       end;
 
 
-    function const_align_size(siz: longint): shortint;
+    function const_align_size(siz: asizeuint): shortint;
       begin
         siz := size_2_align(siz);
         const_align_size := const_align(siz);
@@ -1375,7 +1489,7 @@ implementation
        if localexepath='' then
         begin
           hs1 := ExtractFileName(exeName);
-          ChangeFileExt(hs1,source_info.exeext);
+	  hs1 := ChangeFileExt(hs1,source_info.exeext);
 {$ifdef macos}
           FindFile(hs1,GetEnvironmentVariable('Commands'),false,localExepath);
 {$else macos}
@@ -1479,6 +1593,7 @@ implementation
        LinkLibraryAliases.Free;
        LinkLibraryOrder.Free;
        packagesearchpath.Free;
+       namespacelist.Free;
      end;
 
    procedure InitGlobals;
@@ -1515,6 +1630,7 @@ implementation
         objectsearchpath:=TSearchPathList.Create;
         frameworksearchpath:=TSearchPathList.Create;
         packagesearchpath:=TSearchPathList.Create;
+        namespacelist:=TCmdStrList.Create;
 
         { Def file }
         usewindowapi:=false;
@@ -1522,6 +1638,9 @@ implementation
         DescriptionSetExplicity:=false;
         SetPEFlagsSetExplicity:=false;
         SetPEOptFlagsSetExplicity:=false;
+        SetPEOSVersionSetExplicitely:=false;
+        SetPESubSysVersionSetExplicitely:=false;
+        SetPEUserVersionSetExplicitely:=false;
         ImageBaseSetExplicity:=false;
         MinStackSizeSetExplicity:=false;
         MaxStackSizeSetExplicity:=false;

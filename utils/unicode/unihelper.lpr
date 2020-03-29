@@ -186,8 +186,10 @@ begin
       end;
     end;
     WriteLn(
-      'UCA, Version = ',ucaBook.Version,'; entries count = ',Length(ucaBook.Lines),' ; Hangul # = ',k,
-      'Max Weights Length = ',WL
+      'UCA, Version = ',ucaBook.Version,
+      '; entries count = ',Length(ucaBook.Lines),
+      '; characters (Decomposition) count = ',k,
+      '; Max Weights Length = ',WL
     );
 { $ENDIF UCA_TEST}
     WriteLn('Construct UCA Property Book ...');
@@ -234,8 +236,8 @@ begin
     binStreamOE.Clear();
 // Binary DUCET
     FillChar(serializedHeader,SizeOf(TSerializedCollationHeader),0);
-    serializedHeader.Version := ucaBook.Version;
-    serializedHeader.CollationName := 'DUCET';//'Default Unicode Collation Element Table (DUCET)';
+    StringToByteArray(ucaBook.Version,serializedHeader.Version);
+    StringToByteArray('DUCET',serializedHeader.CollationName); //'Default Unicode Collation Element Table (DUCET)';
     serializedHeader.VariableWeight := Ord(ucaBook.VariableWeight);
     SetBit(serializedHeader.Backwards,0,ucaBook.Backwards[0]);
     SetBit(serializedHeader.Backwards,1,ucaBook.Backwards[1]);

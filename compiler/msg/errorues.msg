@@ -2,7 +2,7 @@
 %%% Contains all comments from errorues.msg
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2000 by the Free Pascal Development team
+#   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
 #   Spanish Language File for Free Pascal
 #
@@ -13,6 +13,9 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
+
+# CodePage 65001
+
 #
 # The constants are build in the following order:
 # <part>_<type>_<txtidentifier>
@@ -814,7 +817,7 @@ parser_e_function_already_declared_public_forward=03120_E_La función esta actua
 % declaration in the \var{implmentation} section.
 parser_e_not_external_and_export=03121_E_No se pueden usar ambos EXPORT y EXTERNAL
 % These two procedure directives are mutually exclusive
-parser_h_not_supported_for_inline=03123_H_"$1" aún no soportado en procedimientos/funciones inline
+parser_n_not_supported_for_inline=03123_N_"$1" aún no soportado en procedimientos/funciones inline
 % Inline procedures don't support this declaration.
 parser_h_inlining_disabled=03124_H_Inlining deshabilitado
 % Inlining of procedures is disabled.
@@ -3468,7 +3471,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2017 by Florian Klaempfl and others
+Copyright (c) 1993-2020 by Florian Klaempfl and others
 ]
 
 #
@@ -3673,7 +3676,6 @@ S*2Aas_ensamblar usando GNU AS
 3*2Tnetwlibc_Novell Netware Module (libc)
 3*2Topenbsd_OpenBSD
 3*2Tos2_OS/2 / eComStation
-3*2Tsunos_SunOS/Solaris
 3*2Twatcom_extensor DOS compatible Watcom
 3*2Twdosx_extensor WDOSX DOS
 3*2Twin32_Windows 32 Bit

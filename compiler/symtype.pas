@@ -33,7 +33,7 @@ interface
       { symtable }
       symconst,symbase,
       { aasm }
-      aasmbase,ppu,cpuinfo
+      aasmbase,ppu
       ;
 
     type
@@ -49,12 +49,15 @@ interface
                      TDef
 ************************************************}
 
-      tgeTSymtable = (gs_none,gs_record,gs_local,gs_para);
+      tgetsymtable = (gs_none,gs_record,gs_local,gs_para);
 
       tdef = class(TDefEntry)
         protected
          { whether this def is already registered in the unit's def list }
          function registered : boolean;
+         { initialize the defid field; only call from a constructor as it threats
+           0 as an invalid value! }
+         procedure init_defid;
         public
          typesym    : tsym;  { which type the definition was generated this def }
          { stabs debugging }
@@ -82,11 +85,14 @@ interface
          function  alignment:shortint;virtual;abstract;
          { alignment when this type appears in a record/class/... }
          function  structalignment:shortint;virtual;
+         function  aggregatealignment:shortint;virtual;
          function  getvardef:longint;virtual;abstract;
          function  getparentdef:tdef;virtual;
-         function  geTSymtable(t:tgeTSymtable):TSymtable;virtual;
+         function  getsymtable(t:tgetsymtable):TSymtable;virtual;
          function  is_publishable:boolean;virtual;abstract;
          function  needs_inittable:boolean;virtual;abstract;
+         { contains a (managed) child that is not initialized to 0/Nil }
+         function  has_non_trivial_init_child(check_parent:boolean):boolean;virtual;abstract;
          function  needs_separate_initrtti:boolean;virtual;abstract;
          procedure ChangeOwner(st:TSymtable);
          function getreusablesymtab: tsymtable;
@@ -193,18 +199,18 @@ interface
          procedure checkerror;
          procedure getguid(var g: tguid);
          function  getexprint:Tconstexprint;
-         function  getptruint:TConstPtrUInt;
          procedure getposinfo(var p:tfileposinfo);
          procedure getderef(var d:tderef);
          function  getpropaccesslist:tpropaccesslist;
          function  getasmsymbol:tasmsymbol;
          procedure putguid(const g: tguid);
          procedure putexprint(const v:tconstexprint);
-         procedure PutPtrUInt(v:TConstPtrUInt);
          procedure putposinfo(const p:tfileposinfo);
          procedure putderef(const d:tderef);
          procedure putpropaccesslist(p:tpropaccesslist);
          procedure putasmsymbol(s:tasmsymbol);
+       protected
+         procedure RaiseAssertion(Code: Longint); override;
        end;
 
 {$ifdef MEMDEBUG}
@@ -270,6 +276,13 @@ implementation
       end;
 
 
+    procedure tdef.init_defid;
+      begin
+        if defid=0 then
+          defid:=defid_not_registered;
+      end;
+
+
     constructor tdef.create(dt:tdeftyp);
       begin
          inherited create;
@@ -279,7 +292,7 @@ implementation
          defoptions:=[];
          dbg_state:=dbg_state_unused;
          stab_number:=0;
-         defid:=defid_not_registered;
+         init_defid;
       end;
 
 
@@ -364,7 +377,7 @@ implementation
       end;
 
 
-    function tdef.geTSymtable(t:tgeTSymtable):TSymtable;
+    function tdef.getsymtable(t:tgetsymtable):TSymtable;
       begin
         result:=nil;
       end;
@@ -379,6 +392,14 @@ implementation
     function tdef.structalignment: shortint;
       begin
         result:=alignment;
+      end;
+
+    function tdef.aggregatealignment: shortint;
+      begin
+        if Assigned(Owner) and Assigned(Owner.defowner) and (Owner.defowner is TDef) and (Owner.defowner <> Self) then
+          Result := max(structalignment, TDef(Owner.defowner).aggregatealignment)
+        else
+          Result := structalignment;
       end;
 
 
@@ -861,8 +882,6 @@ implementation
                   if len<>1 then
                     internalerror(200306232);
                 end;
-              else
-                internalerror(200212277);
             end;
           end;
       end;
@@ -878,6 +897,10 @@ implementation
          Message(unit_f_ppu_read_error);
       end;
 
+    procedure tcompilerppufile.RaiseAssertion(Code: Longint);
+      begin
+        InternalError(Code);
+      end;
 
     procedure tcompilerppufile.getguid(var g: tguid);
       begin
@@ -892,19 +915,9 @@ implementation
 
     begin
       getexprint.overflow:=false;
-      getexprint.signed:=boolean(getbyte);
+      getexprint.signed:=getboolean;
       getexprint.svalue:=getint64;
     end;
-
-
-    function tcompilerppufile.getPtrUInt:TConstPtrUInt;
-      begin
-        {$if sizeof(TConstPtrUInt)=8}
-          result:=tconstptruint(getint64);
-        {$else}
-          result:=TConstPtrUInt(getlongint);
-        {$endif}
-      end;
 
 
     procedure tcompilerppufile.getposinfo(var p:tfileposinfo);
@@ -979,8 +992,6 @@ implementation
                 getderef(hderef);
                 p.addconstderef(slt,idx,hderef);
               end;
-            else
-              internalerror(200110204);
           end;
         until false;
         getpropaccesslist:=tpropaccesslist(p);
@@ -1093,19 +1104,9 @@ implementation
     begin
       if v.overflow then
         internalerror(200706102);
-      putbyte(byte(v.signed));
+      putboolean(v.signed);
       putint64(v.svalue);
     end;
-
-
-    procedure tcompilerppufile.PutPtrUInt(v:TConstPtrUInt);
-      begin
-        {$if sizeof(TConstPtrUInt)=8}
-          putint64(int64(v));
-        {$else}
-          putlongint(longint(v));
-        {$endif}
-      end;
 
 
     procedure tcompilerppufile.putderef(const d:tderef);
@@ -1114,7 +1115,10 @@ implementation
       begin
         oldcrc:=do_crc;
         do_crc:=false;
-        putlongint(d.dataidx);
+        if d.dataidx=-1 then
+          internalerror(2019022201)
+        else
+          putlongint(d.dataidx);
         do_crc:=oldcrc;
       end;
 

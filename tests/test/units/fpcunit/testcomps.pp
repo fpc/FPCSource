@@ -1,5 +1,7 @@
 unit testcomps;
 
+{$mode objfpc}
+
 interface
 
 uses classes, sysutils;
@@ -626,7 +628,11 @@ end;
 constructor TCompComponent.Create(AOwner: TComponent);
 begin
   inherited;
+{$ifdef FPC_COMP_IS_INT64}
+  F:=round(4.56);
+{$else FPC_COMP_IS_INT64}
   F:=4.56;
+{$endif FPC_COMP_IS_INT64}  
 end;
 
 { TCurrencyComponent }

@@ -133,6 +133,29 @@ begin
 end;
 
 
+procedure teststrupperstrlower;
+  const
+    P : PChar = 'This is a PCHAR string.@AZ[`az{';
+  var
+    buf: array [0..511] of Char;
+    Q: PChar;
+  begin
+    StrCopy(buf, P);
+    Q := StrUpper(buf);
+    if Q <> @buf then
+      failed;
+    if strpas(buf) <> 'THIS IS A PCHAR STRING.@AZ[`AZ{' then
+      failed;
+
+    StrCopy(buf, P);
+    Q := StrLower(buf);
+    if Q <> @buf then
+      failed;
+    if strpas(buf) <> 'this is a pchar string.@az[`az{' then
+      failed;
+  end;
+
+
 begin
    write('Testing strlen ... ');
    teststrlen;
@@ -157,5 +180,8 @@ begin
    writeln('Success.');
    write('Testing strscan/strrscan ... ');
    teststrscanstrrscan;
+   writeln('Success.');
+   write('Testing strupper/strlower ... ');
+   teststrupperstrlower;
    writeln('Success.');
 end.

@@ -102,6 +102,9 @@ Begin
   if FileRec(f).mode=0 then
     DoAssign(f);
 
+  { use _private[1] to track eof }
+  FileRec(f)._private[1]:=0;
+
   Reset(UnTypedFile(f),Size);
   BlockRead(UntypedFile(f),(pbyte(@f)+sizeof(FileRec))^,1);
 End;
@@ -128,6 +131,9 @@ Begin
   { create file name? }
   if FileRec(f).mode=0 then
     Assign(f,FileName);
+
+  { use _private[1] to track eof }
+  FileRec(f)._private[1]:=0;
 
   Reset(UnTypedFile(f),Size);
   BlockRead(UntypedFile(f),(pbyte(@f)+sizeof(FileRec))^,1);
@@ -183,6 +189,8 @@ Begin
   move((pbyte(@f)+sizeof(TypedFile))^,Buf,TypeSize);
   if not(eof(f)) then
     BlockRead(f,(pbyte(@f)+sizeof(FileRec))^,1)
+  else
+    FileRec(f)._private[1]:=1;
 End;
 
 

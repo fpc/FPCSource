@@ -1,21 +1,21 @@
 {$mode objfpc}{$h+}
 program Drawing;
 
-uses classes, sysutils,
-     FPImage, FPCanvas, FPImgCanv, ftFont,
-     FPWritePNG, FPReadPNG;
+uses 
+  {$IFDEF UNIX}cwstring,{$ENDIF} classes, sysutils, FPImage, FPCanvas, FPImgCanv, FPWritePNG, FPReadPNG;
 
 const
   MyColor : TFPColor = (Red: $7FFF; Green: $0000; Blue: $FFFF; Alpha: alphaOpaque);
 
 procedure DoDraw;
-var canvas : TFPcustomCAnvas;
-    ci, image : TFPCustomImage;
-    writer : TFPCustomImageWriter;
-    reader : TFPCustomImageReader;
-    f : TFreeTypeFont;
+
+var
+  canvas : TFPcustomCAnvas;
+  ci,image : TFPCustomImage;
+  writer : TFPCustomImageWriter;
+  reader : TFPCustomImageReader;
+
 begin
-  f:=Nil;
   image := TFPMemoryImage.Create (100,100);
   ci := TFPMemoryImage.Create (20,20);
   Canvas := TFPImageCanvas.Create (image);
@@ -29,7 +29,7 @@ begin
     GrayScale := false;
     end;
   try
-//    ci.LoadFromFile ('test.png', reader);
+    ci.LoadFromFile ('pattern.png', reader);
     with Canvas as TFPImageCanvas do
       begin
       brush.FPcolor:=colwhite;
@@ -54,14 +54,14 @@ begin
         blue := green;
         end;
       pen.style := psSolid;
+
       RelativeBrushImage := true;
-{
       brush.image := ci;
       brush.style := bsimage;
       with brush.FPColor do
         green := green div 2;
       Ellipse (11,11, 89,89);
-}
+
 
       brush.style := bsSolid;
       brush.FPColor := MyColor;
@@ -74,36 +74,18 @@ begin
       pen.FPColor := colCyan;
       ellipseC (50,50, 1,1);
 
-      InitEngine;
-      F:=TFreeTypeFont.Create;
-      F.Angle:=StrToFloatDef(ParamStr(1),0);
-      Font:=F;
-{$IFDEF UNIX}      
-      Font.Name:='/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf';
-{$ELSE}      
-      // On windows, this should be present
-      Font.Name:='arial.ttf';
-{$ENDIF}
-      Font.Size:=10;
-      Font.FPColor:=colWhite;
-//      Font.Orientation:=StrToIntDef(ParamStr(1),0);
-      
-      Canvas.TextOut(10,90,'abc');
       end;
       writeln ('Saving to "DrawTest.png" for inspection !');
-    image.SaveToFile ('DrawTest.png', writer);
+     image.SaveToFile ('DrawTest.png', writer);
   finally
-    F.Free;
     Canvas.Free;
+    ci.free;
     image.Free;
     writer.Free;
-    ci.free;
     reader.Free;
   end;
 end;
 
 begin
-//  DefaultFontPath := '/usr/share/fonts/truetype/ttf-dejavu/';
   DoDraw;
-
 end.

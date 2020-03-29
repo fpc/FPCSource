@@ -119,7 +119,6 @@ uses
     type
       { Number of registers used for indexing in tables }
       tregisterindex=0..{$i rjvmnor.inc}-1;
-      totherregisterset = set of tregisterindex;
 
     const
       { Available Superregisters }
@@ -255,17 +254,6 @@ uses
 
       { dummies, not used for JVM }
 
-      {# Registers which must be saved when calling a routine
-
-      }
-      saved_standard_registers : array[0..0] of tsuperregister = (
-        RS_NO
-      );
-
-      { this is only for the generic code which is not used for this architecture }
-      saved_address_registers : array[0..0] of tsuperregister = (RS_INVALID);
-      saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
-
       {# Required parameter alignment when calling a routine
       }
       std_param_align = 1;
@@ -287,6 +275,8 @@ uses
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
     function findreg_by_number(r:Tregister):tregisterindex;
+
+    function eh_return_data_regno(nr: longint): longint;
 
     { since we don't use tasmconds, don't call this routine
       (it will internalerror). We need it anyway to get aoptobj
@@ -351,6 +341,10 @@ uses
           result:=generic_regname(r);
       end;
 
+    function eh_return_data_regno(nr: longint): longint;
+      begin
+        result:=-1;
+      end;
 
     function inverse_cond(const c: TAsmCond): Tasmcond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin

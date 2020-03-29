@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
-    Borland Pascal 7 Compatible CRT Unit - win32 implentation
+    Borland Pascal 7 Compatible CRT Unit - win32 implementation
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -18,6 +18,8 @@ interface
 
 {$i crth.inc}
 
+procedure SetSafeCPSwitching(Switching:Boolean);
+procedure SetUseACP(ACP:Boolean);
 procedure Window32(X1,Y1,X2,Y2: DWord);
 procedure GotoXY32(X,Y: DWord);
 function WhereX32: DWord;
@@ -34,6 +36,17 @@ uses
 var
     SaveCursorSize: Longint;
     Win32Platform : Longint; // pulling in sysutils changes exception behaviour
+
+    UseACP        : Boolean; (* True means using active process codepage for
+                                console output, False means use the original
+                                setting (usually OEM codepage). *)
+    SafeCPSwitching : Boolean; (* True in combination with UseACP means that
+                                  the console codepage will be set on every
+                                  output, False means that the console codepage
+                                  will only be set on Initialization and
+                                  Finalization *)
+    OriginalConsoleOutputCP : Word;
+ 
 
 {****************************************************************************
                            Low level Routines
@@ -94,6 +107,30 @@ end;
                              Public Crt Functions
 ****************************************************************************}
 
+procedure SetSafeCPSwitching(Switching:Boolean);
+begin
+    SafeCPSwitching:=Switching;
+    if SafeCPSwitching then
+      SetConsoleOutputCP(OriginalConsoleOutputCP)  // Set Console back to Original since it will now be switched
+                                                   // every read and write
+    else
+      if UseACP then
+        SetConsoleOutputCP(GetACP);   // Set Console only once here if SafeCPSwitching is False and
+                                      // if UseACP is true
+end;
+
+procedure SetUseACP(ACP:Boolean);
+begin
+    UseACP:=ACP;
+    if not(SafeCPSwitching) then
+     begin
+      if UseACP then
+        SetConsoleOutputCP(GetACP)   // Set console CP only once here if SafeCPSwitching is False and
+                                     // if UseACP is True
+      else
+        SetConsoleOutputCP(OriginalConsoleOutputCP)    // Set console back to original if UseACP is False
+     end;
+end;
 
 procedure TextMode (Mode: word);
 begin
@@ -260,7 +297,7 @@ var
    DoingNumChars: Boolean;
    DoingNumCode: Byte;
 
-Function RemapScanCode (ScanCode: byte; CtrlKeyState: byte; keycode:longint): byte;
+Function RemapScanCode (ScanCode: word; CtrlKeyState: dword; keycode:word): byte;
   { Several remappings of scancodes are necessary to comply with what
     we get with MSDOS. Special Windows keys, as Alt-Tab, Ctrl-Esc etc.
     are excluded }
@@ -753,8 +790,11 @@ var
   s : string;
   OldConsoleOutputCP : Word;
 begin
-  OldConsoleOutputCP:=GetConsoleOutputCP;
-  SetConsoleOutputCP(GetACP);
+  if SafeCPSwitching and UseACP then    //Switch codepage on every Write.
+    begin
+      OldConsoleOutputCP:=GetConsoleOutputCP;
+      SetConsoleOutputCP(GetACP);
+    end;
 
   GetScreenCursor(CurrX, CurrY);
   s:='';
@@ -781,7 +821,8 @@ begin
     WriteStr(s);
   SetScreenCursor(CurrX, CurrY);
 
-  SetConsoleOutputCP(OldConsoleOutputCP);
+  if SafeCPSwitching and UseACP then     //restore codepage on every write if set previously
+    SetConsoleOutputCP(OldConsoleOutputCP);
 
   f.bufpos:=0;
 end;
@@ -802,9 +843,12 @@ Procedure CrtRead(Var F: TextRec);
 var
   ch : Char;
   OldConsoleOutputCP : Word;
-Begin
-  OldConsoleOutputCP:=GetConsoleOutputCP;
-  SetConsoleOutputCP(GetACP);
+begin
+  if SafeCPSwitching and UseACP then    //Switch codepage on every Read
+    begin
+      OldConsoleOutputCP:=GetConsoleOutputCP;
+      SetConsoleOutputCP(GetACP);
+    end;
 
   GetScreenCursor(CurrX,CurrY);
   f.bufpos:=0;
@@ -883,7 +927,8 @@ Begin
       end;
   until false;
 
-  SetConsoleOutputCP(OldConsoleOutputCP);
+  if SafeCPSwitching and UseACP then    //Restore codepage on every Read if set previously
+    SetConsoleOutputCP(OldConsoleOutputCP);
 	
   f.bufpos:=0;
   SetScreenCursor(CurrX, CurrY);
@@ -985,6 +1030,13 @@ Initialization
 
   SetActiveWindow(0);
 
+  OriginalConsoleOutputCP:=GetConsoleOutputCP;  //Always save the original console codepage so it can be restored on exit.
+  UseACP:=True;  // Default to use GetACP CodePage to remain compatible with previous CRT version.
+  SafeCPSwitching:=True;  // Default to switch codepage on every read and write to remain compatible with previous CRT version.
+
+  //SetSafeCPSwitching(False); // With these defaults the code page does not need to be changed here. If SafeCPSwitching defaulted
+                               // to False and UseACP to True then SetSafeCPSwitching(False) needs to be run here.
+
   {--------------------- Get the cursor size and such -----------------------}
   FillChar(CursorInfo, SizeOf(CursorInfo), 00);
   GetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), CursorInfo);
@@ -1030,4 +1082,6 @@ finalization
     CloseHandle(beeperDevice);
     DefineDosDevice(DDD_REMOVE_DEFINITION,'DosBeep','\Device\Beep');
   end;
+  SetConsoleOutputCP(OriginalConsoleOutputCP);  //Always put the console back the way it was on start;
+                                                //useful if the program is executed from command line.
 end. { unit Crt }

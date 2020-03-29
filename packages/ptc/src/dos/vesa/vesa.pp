@@ -298,7 +298,7 @@ function LFBNearPtrAccessPtr: Pointer;
 implementation
 
 uses
-  go32fix;
+  go32;
 
 type
   TVBEInfoBlock = packed record

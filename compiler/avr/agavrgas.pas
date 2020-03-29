@@ -75,6 +75,9 @@ unit agavrgas;
 
     Procedure TAVRInstrWriter.WriteInstruction(hp : tai);
 
+      var
+        op: TAsmOp;
+
       function getreferencestring(var ref : treference) : string;
         var
           s : string;
@@ -104,22 +107,26 @@ unit agavrgas;
                     NR_R30:
                       s:=s+'Z';
                     else
-                      s:=gas_regname(base);
+                      s:=s+gas_regname(base);
                   end;
                   if addressmode=AM_POSTINCREMENT then
-                    s:=s+'+';
-
-                  if offset>0 then
-                    s:=s+'+'+tostr(offset)
-                  else if offset<0 then
-                    s:=s+tostr(offset)
+                    s:=s+'+'
+                  else if addressmode = AM_UNCHANGED then
+                    begin
+                      if (offset>0) or ((offset=0) and (op in [A_LDD,A_STD])) then
+                        s:=s+'+'+tostr(offset)
+                      else if offset<0 then
+                        s:=s+tostr(offset);
+                    end;
                 end
               else if assigned(symbol) or (offset<>0) then
                 begin
                   if assigned(symbol) then
                     s:=ReplaceForbiddenAsmSymbolChars(symbol.name);
 
-                  if offset<0 then
+                  if s='' then
+                    s:=tostr(offset)
+                  else if offset<0 then
                     s:=s+tostr(offset)
                   else if offset>0 then
                     s:=s+'+'+tostr(offset);
@@ -135,7 +142,10 @@ unit agavrgas;
                     else
                       s:='('+s+')';
                   end;
-                end;
+                end
+              { reference to address 0? }
+              else if not(assigned(symbol)) and (offset=0) then
+                s:='(0)';
             end;
           getreferencestring:=s;
         end;
@@ -157,9 +167,8 @@ unit agavrgas;
                 begin
                   hs:=ReplaceForbiddenAsmSymbolChars(o.ref^.symbol.name);
                   if o.ref^.offset>0 then
-                   hs:=hs+'+'+tostr(o.ref^.offset)
-                  else
-                   if o.ref^.offset<0 then
+                    hs:=hs+'+'+tostr(o.ref^.offset)
+                  else if o.ref^.offset<0 then
                     hs:=hs+tostr(o.ref^.offset);
                   getopstr:=hs;
                 end
@@ -170,10 +179,10 @@ unit agavrgas;
           end;
         end;
 
-    var op: TAsmOp;
-        s: string;
-        i: byte;
-        sep: string[3];
+    var
+      s: string;
+      i: byte;
+      sep: string[3];
     begin
       op:=taicpu(hp).opcode;
       s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition];

@@ -1,121 +1,88 @@
-{
-    This file is part of the Free Component Library (FCL)
-    Copyright (c) 2014 by Michael Van Canneyt
+{ Author: Mattias Gaertner  2018  mattias@freepascal.org
 
-    Pascal to Javascript converter program.
-
-    See the file COPYING.FPC, included in this distribution,
-    for details about the copyright.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
- **********************************************************************}
-
-{$mode objfpc}
-{$h+}
+  Abstract:
+    Command line interface for the pas2js compiler.
+}
 program pas2js;
 
+{$mode objfpc}{$H+}
+
 uses
-  sysutils, classes, pparser, fppas2js, pastree, jstree, jswriter;
+  {$IFDEF UNIX}
+  cthreads, cwstring,
+  {$ENDIF}
+  Classes, SysUtils, CustApp,
+  Pas2jsFileUtils, Pas2jsLogger, Pas2jsCompiler,
+  Pas2JSFSCompiler, Pas2JSCompilerPP, Pas2JSCompilerCfg;
 
 Type
 
-  { TContainer }
+  { TPas2jsCLI }
 
-  TContainer = Class(TPasTreeContainer)
-
+  TPas2jsCLI = class(TCustomApplication)
+  private
+    FCompiler: TPas2JSFSCompiler;
+    FWriteOutputToStdErr: Boolean;
+  protected
+    procedure DoRun; override;
   public
-    function CreateElement(AClass: TPTreeElement; const AName: String;
-      AParent: TPasElement; AVisibility: TPasMemberVisibility;
-      const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
-      overload; override;
-    function FindElement(const AName: String): TPasElement; override;
+    constructor Create(TheOwner: TComponent); override;
+    destructor Destroy; override;
+    property Compiler: TPas2JSFSCompiler read FCompiler;
+    property WriteOutputToStdErr: Boolean read FWriteOutputToStdErr write FWriteOutputToStdErr;
   end;
 
-  { TConvertPascal }
-
-  TConvertPascal = Class(TComponent)
-     Procedure ConvertSource(ASource, ADest : String);
-  end;
-
-{ TContainer }
-
-function TContainer.CreateElement(AClass: TPTreeElement; const AName: String;
-  AParent: TPasElement; AVisibility: TPasMemberVisibility;
-  const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
+procedure TPas2jsCLI.DoRun;
+var
+  ParamList: TStringList;
+  i: Integer;
 begin
-  Result:=AClass.Create(AName,AParent);
-end;
-
-function TContainer.FindElement(const AName: String): TPasElement;
-begin
-  Result:=Nil;
-end;
-
-{ TConvertPascal }
-
-Procedure TConvertPascal.ConvertSource(ASource, ADest: String);
-
-Var
-  p : TPasParser;
-  C : TPAsTreeContainer;
-  M : TPasModule;
-  CV : TPasToJSConverter;
-  JS : TJSElement;
-  W : TJSWriter;
-
-begin
-  C:=TContainer.Create;
+  ParamList:=TStringList.Create;
   try
-    M:=ParseSource(C,ASource,'','',True);
+    for i:=1 to ParamCount do
+      ParamList.Add(Params[i]);
     try
-      CV:=TPasToJSConverter.Create;
-      try
-        JS:=CV.ConvertElement(M);
-        If JS=nil then
-          Writeln('No result');
-      finally
-        CV.Free;
+      Compiler.Run(ParamStr(0),GetCurrentDirPJ,ParamList);
+    except
+      on E: ECompilerTerminate do ;
+      on E: Exception do
+      begin
+        {AllowWriteln}
+        writeln(E.Message);
+        {AllowWriteln-}
+        if ExitCode=0 then
+          ExitCode:=ExitCodeErrorInternal;
       end;
-      W:=TJSWriter.Create(ADest);
-      try
-        W.Options:=[woUseUTF8,woCompactArrayLiterals,woCompactObjectLiterals,woCompactArguments];
-        W.IndentSize:=2;
-        W.WriteJS(JS);
-      finally
-        W.Free;
-      end;
-    finally
-      M.Free;
     end;
   finally
-    C.Free;
+    ParamList.Free;
+    Compiler.Log.CloseOutputFile;
   end;
 
+  // stop program loop
+  Terminate; // Keep ExitCode!
 end;
 
-Var
-  Src,Dest : String;
-
+constructor TPas2jsCLI.Create(TheOwner: TComponent);
 begin
-  Src:=Paramstr(1);
-  Dest:=ParamStr(2);
-  if Dest='' then
-    Dest:=ChangeFileExt(Src,'.js');
-  With TConvertPascal.Create(Nil) do
-    try
-      ConvertSource(Src,Dest);
-    finally
-      Free;
-    end;
-  With TStringList.Create do
-    try
-      LoadFromFile(Dest);
-      Writeln(Text);
-    finally
-      Free;
-    end;
+  inherited Create(TheOwner);
+  StopOnException:=True;
+  FCompiler:=TPas2JSFSCompiler.Create;
+  FCompiler.ConfigSupport:=TPas2JSFileConfigSupport.Create(FCompiler);
+  FCompiler.PostProcessorSupport:=TPas2JSFSPostProcessorSupport.Create(FCompiler);
+end;
+
+destructor TPas2jsCLI.Destroy;
+begin
+  FreeAndNil(FCompiler);
+  inherited Destroy;
+end;
+
+var
+  Application: TPas2jsCLI;
+begin
+  Application:=TPas2jsCLI.Create(nil);
+  Application.Run;
+  Application.Free;
 end.
 

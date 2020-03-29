@@ -1098,7 +1098,7 @@ are stored at the locations pointed to by `z0Ptr' and `z1Ptr'.
 *}
 Procedure
  add64(
-     a0:bits32; a1:bits32; b0:bits32; b1:bits32; VAR z0Ptr:bits32; VAR z1Ptr:bits32 );
+     a0:bits32; a1:bits32; b0:bits32; b1:bits32; VAR z0Ptr:bits32; VAR z1Ptr:bits32 );{$IFDEF SOFTFPU_INLINE}inline;{$ENDIF}
 Var
     z1: bits32;
 Begin
@@ -1179,7 +1179,7 @@ end;
 | are stored at the locations pointed to by `z0Ptr' and `z1Ptr'.
 *----------------------------------------------------------------------------*}
 
-procedure add128( a0, a1, b0, b1 : bits64; var z0Ptr, z1Ptr : bits64);inline;
+procedure add128( a0, a1, b0, b1 : bits64; var z0Ptr, z1Ptr : bits64);{$IFDEF SOFTFPU_INLINE}inline;{$ENDIF}
 var
     z1 : bits64;
 begin
@@ -1225,7 +1225,7 @@ Subtracts the 64-bit value formed by concatenating `b0' and `b1' from the
 *}
 Procedure
  sub64(
-     a0: bits32; a1 : bits32; b0 :bits32; b1: bits32; VAR z0Ptr:bits32; VAR z1Ptr: bits32 );
+     a0: bits32; a1 : bits32; b0 :bits32; b1: bits32; VAR z0Ptr:bits32; VAR z1Ptr: bits32 );{$IFDEF SOFTFPU_INLINE}inline;{$ENDIF}
 Begin
     z1Ptr := a1 - b1;
     z0Ptr := a0 - b0 - bits32( a1 < b1 );
@@ -1317,6 +1317,16 @@ into two 32-bit pieces which are stored at the locations pointed to by
 `z0Ptr' and `z1Ptr'.
 -------------------------------------------------------------------------------
 *}
+{$IFDEF SOFTFPU_COMPILER_MUL32TO64}
+Procedure mul32To64( a:bits32; b:bits32; VAR z0Ptr: bits32; VAR z1Ptr :bits32 );{$IFDEF SOFTFPU_INLINE}inline;{$ENDIF}
+var
+  tmp: qword;
+begin
+  tmp:=qword(a) * b;
+  z0ptr:=hi(tmp);
+  z1ptr:=lo(tmp);
+end;
+{$ELSE}
 Procedure mul32To64( a:bits32; b:bits32; VAR z0Ptr: bits32; VAR z1Ptr
 :bits32 );
 Var
@@ -1339,6 +1349,7 @@ Begin
     z1Ptr := z1;
     z0Ptr := z0;
 End;
+{$ENDIF}
 
 {*
 -------------------------------------------------------------------------------
@@ -1681,7 +1692,7 @@ than or equal to the 64-bit value formed by concatenating `b0' and `b1'.
 Otherwise, returns 0.
 -------------------------------------------------------------------------------
 *}
-Function le64( a0: bits32; a1:bits32 ;b0:bits32; b1:bits32 ): flag;
+Function le64( a0: bits32; a1:bits32 ;b0:bits32; b1:bits32 ): flag;{$IFDEF SOFTFPU_INLINE}inline;{$ENDIF}
 Begin
 
     le64:= flag( a0 < b0 ) or flag( ( a0 = b0 ) and ( a1 <= b1 ) );
@@ -1695,7 +1706,7 @@ than the 64-bit value formed by concatenating `b0' and `b1'.  Otherwise,
 returns 0.
 -------------------------------------------------------------------------------
 *}
-Function lt64( a0: bits32; a1:bits32 ;b0:bits32; b1:bits32 ): flag;
+Function lt64( a0: bits32; a1:bits32 ;b0:bits32; b1:bits32 ): flag;{$IFDEF SOFTFPU_INLINE}inline;{$ENDIF}
 Begin
     lt64 := flag( a0 < b0 ) or flag( ( a0 = b0 ) and ( a1 < b1 ) );
 End;
@@ -1708,6 +1719,17 @@ const
 (*****************************************************************************)
 (*                      End Low-Level arithmetic                             *)
 (*****************************************************************************)
+
+{*----------------------------------------------------------------------------
+| Returns 1 if the 128-bit value formed by concatenating `a0' and `a1' is less
+| than the 128-bit value formed by concatenating `b0' and `b1'.  Otherwise,
+| returns 0.
+*----------------------------------------------------------------------------*}
+
+function lt128(a0: bits64; a1: bits64; b0: bits64; b1 : bits64): flag;inline;
+begin
+    result := ord(( a0 < b0 ) or ( ( a0 = b0 ) and ( a1 < b1 ) ));
+end;
 
 
 {*
@@ -1772,7 +1794,7 @@ Returns the result of converting the single-precision floating-point NaN
 exception is raised.
 -------------------------------------------------------------------------------
 *}
-Procedure float32ToCommonNaN( a: float32; VAR c:commonNaNT  );
+function float32ToCommonNaN(a: float32) : commonNaNT;
 var
     z : commonNaNT ;
 Begin
@@ -1781,8 +1803,7 @@ Begin
     z.sign := a shr 31;
     z.low := 0;
     z.high := a shl 9;
-    c := z;
-
+    result := z;
 End;
 
 {*
@@ -1903,18 +1924,6 @@ Returns the result of converting the double-precision floating-point NaN
 exception is raised.
 -------------------------------------------------------------------------------
 *}
-Procedure float64ToCommonNaN( a : float64; VAR c:commonNaNT );
-Var
-    z : commonNaNT;
-Begin
-    if ( float64_is_signaling_nan( a )<>0 ) then
-        float_raise( float_flag_invalid );
-    z.sign := a.high shr 31;
-    shortShift64Left( a.high, a.low, 12, z.high, z.low );
-    c := z;
-
-End;
-
 function float64ToCommonNaN( a : float64 ) : commonNaNT;
 Var
     z : commonNaNT;
@@ -1932,13 +1941,13 @@ Returns the result of converting the canonical NaN `a' to the double-
 precision floating-point format.
 -------------------------------------------------------------------------------
 *}
-Procedure commonNaNToFloat64( a : commonNaNT; VAR c: float64  );
+function commonNaNToFloat64( a : commonNaNT) : float64;
 Var
     z: float64;
 Begin
     shift64Right( a.high, a.low, 12, z.high, z.low );
     z.high := z.high or ( ( bits32 (a.sign) ) shl 31 ) or $7FF80000;
-    c := z;
+    result := z;
 End;
 
 {*
@@ -2001,17 +2010,6 @@ Begin
         exit;
     End;
 End;
-
-{*----------------------------------------------------------------------------
-| Returns 1 if the 128-bit value formed by concatenating `a0' and `a1' is less
-| than the 128-bit value formed by concatenating `b0' and `b1'.  Otherwise,
-| returns 0.
-*----------------------------------------------------------------------------*}
-
-function lt128(a0: bits64; a1: bits64; b0: bits64; b1 : bits64): flag;inline;
-begin
-    result := ord(( a0 < b0 ) or ( ( a0 = b0 ) and ( a1 < b1 ) ));
-end;
 
 {*----------------------------------------------------------------------------
 | Returns 1 if the quadruple-precision floating-point value `a' is a NaN;
@@ -2168,7 +2166,7 @@ function float32_is_signaling_nan(a: float32):flag;
 | `a' to the canonical NaN format.  If `a' is a signaling NaN, the invalid
 | exception is raised.
 *----------------------------------------------------------------------------*)
-Procedure float32ToCommonNaN( a: float32; VAR c:commonNaNT  );
+function float32ToCommonNaN( a: float32) : commonNaNT;
  var
   z: commonNANT;
  begin
@@ -2177,7 +2175,7 @@ Procedure float32ToCommonNaN( a: float32; VAR c:commonNaNT  );
    z.sign := a shr 31;
    z.low := 0;
    z.high := a shl 9;
-   c:=z;
+   result:=z;
  end;
 
 (*----------------------------------------------------------------------------
@@ -2254,7 +2252,7 @@ function float64_is_signaling_nan( a:float64): flag;
 | `a' to the canonical NaN format.  If `a' is a signaling NaN, the invalid
 | exception is raised.
 *----------------------------------------------------------------------------*)
-Procedure float64ToCommonNaN( a : float64; VAR c:commonNaNT );
+function float64ToCommonNaN( a : float64)  : commonNaNT;
  var
    z : commonNaNT;
  begin
@@ -2262,20 +2260,20 @@ Procedure float64ToCommonNaN( a : float64; VAR c:commonNaNT );
         float_raise( float_flag_invalid );
     z.sign := a.high shr 31;
     shortShift64Left( a.high, a.low, 12, z.high, z.low );
-    c:=z;
+    result:=z;
  end;
 
 (*----------------------------------------------------------------------------
 | Returns the result of converting the canonical NaN `a' to the double-
 | precision floating-point format.
 *----------------------------------------------------------------------------*)
-Procedure commonNaNToFloat64( a : commonNaNT; VAR c: float64  );
+function commonNaNToFloat64( a : commonNaNT): float64;
  var
   z: float64;
  begin
     shift64Right( a.high, a.low, 12, z.high, z.low );
     z.high := z.high or ( ( bits32 (a.sign) ) shl 31 ) or $7FF80000;
-    c:=z;
+    result:=z;
  end;
 
 (*----------------------------------------------------------------------------
@@ -2304,6 +2302,120 @@ var
     else
         c := a;
  end;
+
+{*----------------------------------------------------------------------------
+| Returns 1 if the quadruple-precision floating-point value `a' is a NaN;
+| otherwise returns 0.
+*----------------------------------------------------------------------------*}
+
+function float128_is_nan( a : float128): flag;
+begin
+    result:= ord(( bits64( $FFFE000000000000 ) <= bits64( a.high shl 1 ) )
+        and ( (a.low<>0) or (( a.high and int64( $0000FFFFFFFFFFFF ) )<>0 ) ));
+end;
+
+{*----------------------------------------------------------------------------
+| Returns 1 if the quadruple-precision floating-point value `a' is a
+| signaling NaN; otherwise returns 0.
+*----------------------------------------------------------------------------*}
+
+function float128_is_signaling_nan( a : float128): flag;
+begin
+    result:=ord(( ( ( a.high shr 47 ) and $FFFF ) = $FFFE ) and
+        ( (a.low<>0) or (( a.high and int64( $00007FFFFFFFFFFF ) )<>0) ));
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the quadruple-precision floating-point NaN
+| `a' to the canonical NaN format.  If `a' is a signaling NaN, the invalid
+| exception is raised.
+*----------------------------------------------------------------------------*}
+
+function float128ToCommonNaN( a : float128): commonNaNT;
+var
+    z: commonNaNT;
+    qhigh,qlow : qword;
+begin
+    if ( float128_is_signaling_nan( a )<>0)  then
+      float_raise( float_flag_invalid );
+    z.sign := a.high shr 63;
+    shortShift128Left( a.high, a.low, 16, qhigh, qlow );
+    z.high:=qhigh shr 32;
+    z.low:=qhigh and $ffffffff;
+    result:=z;
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the canonical NaN `a' to the quadruple-
+| precision floating-point format.
+*----------------------------------------------------------------------------*}
+
+function commonNaNToFloat128( a : commonNaNT): float128;
+var
+    z: float128;
+begin
+    shift128Right( a.high, a.low, 16, z.high, z.low );
+    z.high := z.high or ( ( bits64(a.sign) ) shl 63 ) or int64( $7FFF800000000000 );
+    result:=z;
+end;
+
+{*----------------------------------------------------------------------------
+| Takes two quadruple-precision floating-point values `a' and `b', one of
+| which is a NaN, and returns the appropriate NaN result.  If either `a' or
+| `b' is a signaling NaN, the invalid exception is raised.
+*----------------------------------------------------------------------------*}
+
+function propagateFloat128NaN( a: float128; b : float128): float128;
+var
+    aIsNaN, aIsSignalingNaN, bIsNaN, bIsSignalingNaN: flag;
+label
+    returnLargerSignificand;
+begin
+    aIsNaN := float128_is_nan( a );
+    aIsSignalingNaN := float128_is_signaling_nan( a );
+    bIsNaN := float128_is_nan( b );
+    bIsSignalingNaN := float128_is_signaling_nan( b );
+    a.high := a.high or int64( $0000800000000000 );
+    b.high := b.high or int64( $0000800000000000 );
+    if ( aIsSignalingNaN or bIsSignalingNaN )<>0 then
+       float_raise( float_flag_invalid );
+    if ( aIsSignalingNaN )<>0 then
+    begin
+        if ( bIsSignalingNaN )<>0 then
+          goto returnLargerSignificand;
+        if bIsNaN<>0 then
+          result := b
+        else
+          result := a;
+        exit;
+    end
+    else if ( aIsNaN )<>0 then
+    begin
+        if ( bIsSignalingNaN or not( bIsNaN) )<>0 then
+          begin
+          	result := a;
+          	exit;
+          end;
+ returnLargerSignificand:
+        if ( lt128( a.high shl 1, a.low, b.high shl 1, b.low ) )<>0 then
+          begin
+          	result := b;
+          	exit;
+          end;
+        if ( lt128( b.high shl 1, b.low, a.high shl 1, a.low ) )<>0 then
+          begin
+          	result := a;
+          	exit
+          end;
+        if ( a.high < b.high ) then
+          result := a
+        else
+          result := b;
+        exit;
+    end
+    else
+    result:=b;
+end;
 
 {$ENDIF}
 
@@ -3261,8 +3373,8 @@ Function float32_to_float64( a : float32rec) : Float64;compilerproc;
       Begin
         if ( aSig<>0 ) then
           Begin
-            float32ToCommonNaN(a.float32, tmp);
-            commonNaNToFloat64(tmp , result);
+            tmp:=float32ToCommonNaN(a.float32);
+            result:=commonNaNToFloat64(tmp);
             exit;
           End;
           packFloat64( aSign, $7FF, 0, 0, result);
@@ -3317,7 +3429,7 @@ begin
     aSign := extractFloat32Sign( a );
     if ( aExp = $FF ) then begin
         if ( aSig <> 0 ) then begin
-            float32ToCommonNaN( a, tmp );
+            tmp:=float32ToCommonNaN(a);
             result := commonNaNToFloatx80( tmp );
             exit;
         end;
@@ -3358,7 +3470,7 @@ begin
     aSign := extractFloat32Sign( a );
     if ( aExp = $FF ) then begin
         if ( aSig <> 0 ) then begin
-            float32ToCommonNaN( a, tmp );
+            tmp:=float32ToCommonNaN(a);
             result := commonNaNToFloat128( tmp );
             exit;
         end;
@@ -4568,7 +4680,7 @@ Begin
     Begin
         if ( aSig0 OR  aSig1 ) <> 0 then
         Begin
-            float64ToCommonNaN( a, tmp );
+            tmp:=float64ToCommonNaN(a);
             float64_to_float32.float32 := commonNaNToFloat32( tmp );
             exit;
         End;
@@ -6733,7 +6845,7 @@ begin
     aSign := extractFloatx80Sign( a );
     if ( aExp = $7FFF ) then begin
         if bits64( aSig shl 1 ) <> 0 then begin
-            commonNaNToFloat64( floatx80ToCommonNaN( a ), result );
+            result:=commonNaNToFloat64(floatx80ToCommonNaN(a));
             exit;
         end;
         result := packFloat64( aSign, $7FF, 0 );
@@ -8165,7 +8277,7 @@ begin
     begin
         if ( aSig0 or aSig1 )<>0 then
         begin
-            commonNaNToFloat64( float128ToCommonNaN( a ),result);
+            result:=commonNaNToFloat64(float128ToCommonNaN(a));
             exit;
         end;
         result:=packFloat64( aSign, $7FF, 0);

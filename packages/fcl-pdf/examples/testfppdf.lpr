@@ -33,8 +33,10 @@ type
     FRawJPEG,
     FImageCompression,
     FTextCompression,
-    FFontCompression: boolean;
+    FFontCompression,
+    FImageTransparency: boolean;
     FNoFontEmbedding: boolean;
+    FAddMetadata : Boolean;
     FSubsetFontEmbedding: boolean;
     FDoc: TPDFDocument;
     function    SetUpDocument: TPDFDocument;
@@ -76,6 +78,7 @@ begin
   Result.Infos.Producer := 'fpGUI Toolkit 1.4.1';
   Result.Infos.ApplicationName := ApplicationName;
   Result.Infos.CreationDate := Now;
+  Result.Infos.KeyWords:='fcl-pdf demo PDF support Free Pascal';
 
   lOpts := [poPageOriginAtTop];
   if FSubsetFontEmbedding then
@@ -91,8 +94,12 @@ begin
     Include(lOpts,poCompressText);
   if FImageCompression then
     Include(lOpts,poCompressImages);
+  if FImageTransparency then
+    Include(lOpts,poUseImageTransparency);
   if FRawJPEG then
     Include(lOpts,poUseRawJPEG);
+  if FAddMetadata then
+    Include(lOpts,poMetadataEntry);  
   Result.Options := lOpts;
 
   Result.StartDocument;
@@ -170,8 +177,11 @@ begin
   // strike-through text
   P.WriteText(25, 64, 'Strike-Through text', 0, false, true);
 
-  // strike-through text
+  // underline text
   P.WriteText(65, 64, 'Underlined text', 0, true);
+
+  // underline and strikethrough text
+  P.WriteText(120, 64, 'Underlined and strikethrough text', 0, true, true);
 
   // rotated text
   P.SetColor(clBlue, false);
@@ -295,7 +305,7 @@ procedure TPDFTestApp.SimpleImage(D: TPDFDocument; APage: integer);
 Var
   P: TPDFPage;
   FtTitle: integer;
-  IDX: Integer;
+  IDX, IDX_Diamond: Integer;
   W, H: Integer;
 begin
   P := D.Pages[APage];
@@ -316,6 +326,10 @@ begin
   { full size image }
   P.DrawImageRawSize(25, 130, W, H, IDX);  // left-bottom coordinate of image
   P.WriteText(145, 90, '[Full size (defined in pixels)]');
+  P.WriteText(145, 95, '+alpha-transparent overlay (if enabled)');
+
+  IDX_Diamond := D.Images.AddFromFile('diamond.png',False);
+  P.DrawImageRawSize(30, 125, D.Images[IDX_Diamond].Width, D.Images[IDX_Diamond].Height, IDX_Diamond);
 
   { quarter size image }
   P.DrawImageRawSize(25, 190, W shr 1, H shr 1, IDX); // could also have used: Integer(W div 2), Integer(H div 2)
@@ -775,7 +789,7 @@ begin
   StopOnException:=True;
   inherited DoRun;
   // quick check parameters
-  ErrorMsg := CheckOptions('hp:f:t:i:j:ns', '');
+  ErrorMsg := CheckOptions('hp:f:t:i:j:nsm:', '');
   if ErrorMsg <> '' then
   begin
     WriteLn('ERROR:  ' + ErrorMsg);
@@ -810,6 +824,8 @@ begin
   FFontCompression := BoolFlag('f',true);
   FTextCompression := BoolFlag('t',False);
   FImageCompression := BoolFlag('i',False);
+  FImageTransparency := BoolFlag('t',False);
+  FAddMetadata :=  BoolFlag('m',False);
   FRawJPEG:=BoolFlag('j',False);
 
   gTTFontCache.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'fonts');
@@ -863,6 +879,7 @@ begin
           '                generated.', [cPageCount]));
   writeln('    -n          If specified, no fonts will be embedded.');
   writeln('    -s          If specified, subset TTF font embedding will occur.');
+  writeln('    -m <0|1>    Toggle metadata generation.');
   writeln('    -f <0|1>    Toggle embedded font compression. A value of 0' + LineEnding +
           '                disables compression. A value of 1 enables compression.' + LineEnding +
           '                If -n is specified, this option is ignored.');
@@ -872,6 +889,8 @@ begin
           '                disables compression. A value of 1 enables compression.');
   writeln('    -j <0|1>    Toggle use of JPEG. A value of 0' + LineEnding +
           '                disables use of JPEG images. A value of 1 writes jpeg file as-is');
+  writeln('    -t <0|1>    Toggle image transparency support. A value of 0' + LineEnding +
+          '                disables transparency. A value of 1 enables transparency.');
   writeln('');
 end;
 

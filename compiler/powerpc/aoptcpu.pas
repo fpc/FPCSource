@@ -218,6 +218,8 @@ Implementation
                               if taicpu(next1).oper[l1]^.ref^.index = taicpu(p).oper[0]^.reg then
                                 taicpu(next1).oper[l1]^.ref^.index := taicpu(p).oper[1]^.reg;
                             end;
+                          else
+                            ;
                         end;
                       asml.remove(p);
                       p.free;
@@ -286,6 +288,8 @@ Implementation
                           taicpu(p).loadconst(2,(32-taicpu(p).oper[2]^.val) and 31);
                           result := true;
                         end;
+                      else
+                        internalerror(2019050941);
                     end;
                 end;
               A_RLWINM:
@@ -361,8 +365,12 @@ Implementation
                       end;
                     end;
                 end;
+              else
+                ;
             end;
           end;
+        else
+          ;
       end;
     end;
 
@@ -464,6 +472,8 @@ Implementation
                         taicpu(p).opercnt := 3;
                       end;
                 end;
+              else
+                ;
             end;
 
             // change "integer operation with destination reg" followed by a
@@ -492,6 +502,8 @@ Implementation
                 result := true;
               end;
           end;
+        else
+          ;
       end;
     end;
 

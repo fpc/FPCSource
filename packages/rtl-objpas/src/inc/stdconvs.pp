@@ -15,7 +15,7 @@
 
 **********************************************************************}
 
-unit stdconvs;
+unit StdConvs;
 
 interface
 
@@ -25,6 +25,39 @@ interface
 {$ifndef FPUNONE}
 Uses convutils;
 
+const
+  // Powers of 10
+  siYocto = 1E-24;
+  siZepto = 1E-21;
+  siAtto  = 1E-18;
+  siFemto = 1E-15;
+  siPico  = 1E-12;
+  siNano  = 1E-9;
+  siMicro = 1E-6;
+  siMilli = 1E-3;
+  siCenti = 1E-2;
+  siDeci  = 1E-1;
+  
+  siDeca  = 10;
+  siHecto = siDeca*10;
+  siKilo  = siHecto*10; 
+  siMega  = siKilo*1000; 
+  siGiga  = siMega*1000; 
+  siTera  = Int64(siGiga*1000); 
+  siPeta  = Int64(siTera*1000); 
+  siExa   = Int64(siPeta*1000);
+  siZetta = 1E21;  
+  siYotta = 1E24;
+  
+  // Powers of 2
+  iecKibi = 1024;                 // 10
+  iecMebi = iecKibi*1024;         // 20
+  iecGibi = iecMebi*1024;         // 30 
+  iecTebi = Int64(iecGibi*1024);  // 40
+  iecPebi = Int64(iecTebi*1024);  // 50
+  iecExbi = Int64(iecPebi*1024);  // 60
+  iecZebi = Double(iecExbi)*1024;  // 70
+  iecYobi = iecZebi*1024;  // 80;
 
 var
 {cbArea family}
@@ -199,7 +232,7 @@ implementation
 
 function FahrenheitToCelsius(const AValue: Double): Double;
 begin
-  result:= (5.0/9.0)  * (Avalue - 32.0);
+  result:= (double(5.0)/9.0)  * (Avalue - 32.0);
 end;
 
 function CelsiusToFahrenheit(const AValue: Double): Double;

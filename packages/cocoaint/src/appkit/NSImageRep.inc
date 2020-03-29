@@ -1,124 +1,92 @@
-{ Parsed from Appkit.framework NSImageRep.h }
+{ Parsed from AppKit.framework NSImageRep.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSIMAGEREP_PAS_T}
-{$define NSIMAGEREP_PAS_T}
+type
+  NSImageRepPtr = ^NSImageRep;
+{$endif}
 
-{ Constants }
-
+{$ifdef TYPES}
 const
   NSImageRepMatchesDevice = 0;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSIMAGEREP_PAS_R}
-{$define NSIMAGEREP_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSIMAGEREP_PAS_F}
-{$define NSIMAGEREP_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSIMAGEREP_PAS_S}
-{$define NSIMAGEREP_PAS_S}
-
-{ External string constants }
-var
-  NSImageRepRegistryDidChangeNotification: NSString; cvar; external;
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSImageRep = objcclass;
-  NSImageRepPointer = ^NSImageRep;
-  NSImageRepPtr = NSImageRepPointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSIMAGEREP_PAS_C}
-{$define NSIMAGEREP_PAS_C}
 
-{ NSImageRep }
+type
   NSImageRep = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __repFlags: record
+    _repFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSImageRep0: cuint);
-       1: (data: bitpacked record
-        _hasAlpha: 0..1;
-        _isOpaque: 0..1;
-        cacheParamsComputed: 0..1 deprecated;
-        cacheAlphaComputed: 0..1 deprecated;
-        loadState: 0..((1 shl 2)-1);
-        keepCacheWindow: 0..1 deprecated;
-        reserved: 0..1;
-        _bitsPerSample: 0..((1 shl 8)-1);
-        gsaved: 0..((1 shl 16)-1);
-       end;
-      );
+        0: (_anonBitField__repFlags0: cuint);
+        1: (
+          hasAlpha: 0..1;
+          isOpaque: 0..1;
+          cacheParamsComputed: 0..1 deprecated;
+          cacheAlphaComputed: 0..1 deprecated;
+          loadState: 0..((1 shl 2)-1);
+          keepCacheWindow: 0..1 deprecated;
+          reserved: 0..1;
+          bitsPerSample: 0..((1 shl 8)-1);
+          gsaved: 0..((1 shl 16)-1);
+        );
       end;
     _colorSpaceName: NSString;
     _size: NSSize;
     _pixelsWide: cint;
     _pixelsHigh: cint;
-    
   public
-    function draw: Boolean; message 'draw';
-    function drawAtPoint(point: NSPoint): Boolean; message 'drawAtPoint:';
-    function drawInRect(rect: NSRect): Boolean; message 'drawInRect:';
-    function drawInRect_fromRect_operation_fraction_respectFlipped_hints(dstSpacePortionRect: NSRect; srcSpacePortionRect: NSRect; op: NSCompositingOperation; requestedAlpha: CGFloat; respectContextIsFlipped: Boolean; hints: NSDictionary): Boolean; message 'drawInRect:fromRect:operation:fraction:respectFlipped:hints:';
-    procedure setSize(aSize: NSSize); message 'setSize:';
+    function init: instancetype; message 'init'; { NS_DESIGNATED_INITIALIZER }
+    function initWithCoder (coder: NSCoder): instancetype; message 'initWithCoder:'; { NS_DESIGNATED_INITIALIZER }
+    function draw: ObjCBOOL; message 'draw';
+    function drawAtPoint (point: NSPoint): ObjCBOOL; message 'drawAtPoint:';
+    function drawInRect (rect: NSRect): ObjCBOOL; message 'drawInRect:';
+    function drawInRect_fromRect_operation_fraction_respectFlipped_hints (dstSpacePortionRect: NSRect; srcSpacePortionRect: NSRect; op: NSCompositingOperation; requestedAlpha: CGFloat; respectContextIsFlipped: ObjCBOOL; hints: NSDictionary): ObjCBOOL; message 'drawInRect:fromRect:operation:fraction:respectFlipped:hints:'; { available in 10_6 }
+    procedure setSize(newValue: NSSize); message 'setSize:';
     function size: NSSize; message 'size';
-    procedure setAlpha(flag: Boolean); message 'setAlpha:';
-    function hasAlpha: Boolean; message 'hasAlpha';
-    procedure setOpaque(flag: Boolean); message 'setOpaque:';
-    function isOpaque: Boolean; message 'isOpaque';
-    procedure setColorSpaceName(string_: NSString); message 'setColorSpaceName:';
+    procedure setAlpha(newValue: ObjCBOOL); message 'setAlpha:';
+    function hasAlpha: ObjCBOOL; message 'hasAlpha';
+    procedure setOpaque(newValue: ObjCBOOL); message 'setOpaque:';
+    function isOpaque: ObjCBOOL; message 'isOpaque';
+    procedure setColorSpaceName(newValue: NSString); message 'setColorSpaceName:';
     function colorSpaceName: NSString; message 'colorSpaceName';
-    procedure setBitsPerSample(anInt: NSInteger); message 'setBitsPerSample:';
+    procedure setBitsPerSample(newValue: NSInteger); message 'setBitsPerSample:';
     function bitsPerSample: NSInteger; message 'bitsPerSample';
-    procedure setPixelsWide(anInt: NSInteger); message 'setPixelsWide:';
+    procedure setPixelsWide(newValue: NSInteger); message 'setPixelsWide:';
     function pixelsWide: NSInteger; message 'pixelsWide';
-    procedure setPixelsHigh(anInt: NSInteger); message 'setPixelsHigh:';
+    procedure setPixelsHigh(newValue: NSInteger); message 'setPixelsHigh:';
     function pixelsHigh: NSInteger; message 'pixelsHigh';
-    class procedure registerImageRepClass(imageRepClass: Pobjc_class); message 'registerImageRepClass:';
-    class procedure unregisterImageRepClass(imageRepClass: Pobjc_class); message 'unregisterImageRepClass:';
+    class procedure registerImageRepClass (imageRepClass: pobjc_class); message 'registerImageRepClass:';
+    class procedure unregisterImageRepClass (imageRepClass: pobjc_class); message 'unregisterImageRepClass:';
     class function registeredImageRepClasses: NSArray; message 'registeredImageRepClasses';
-    class function imageRepClassForFileType(type_: NSString): Pobjc_class; message 'imageRepClassForFileType:';
-    class function imageRepClassForPasteboardType(type_: NSString): Pobjc_class; message 'imageRepClassForPasteboardType:';
-    class function imageRepClassForType(type_: NSString): Pobjc_class; message 'imageRepClassForType:';
-    class function imageRepClassForData(data: NSData): Pobjc_class; message 'imageRepClassForData:';
-    class function canInitWithData(data: NSData): Boolean; message 'canInitWithData:';
-    class function imageUnfilteredFileTypes: NSArray; message 'imageUnfilteredFileTypes';
-    class function imageUnfilteredPasteboardTypes: NSArray; message 'imageUnfilteredPasteboardTypes';
-    class function imageFileTypes: NSArray; message 'imageFileTypes';
-    class function imagePasteboardTypes: NSArray; message 'imagePasteboardTypes';
-    class function imageUnfilteredTypes: NSArray; message 'imageUnfilteredTypes';
-    class function imageTypes: NSArray; message 'imageTypes';
-    class function canInitWithPasteboard(pasteboard: NSPasteboard): Boolean; message 'canInitWithPasteboard:';
-    class function imageRepsWithContentsOfFile(filename: NSString): NSArray; message 'imageRepsWithContentsOfFile:';
-    class function imageRepWithContentsOfFile(filename: NSString): id; message 'imageRepWithContentsOfFile:';
-    class function imageRepsWithContentsOfURL(url: NSURL): NSArray; message 'imageRepsWithContentsOfURL:';
-    class function imageRepWithContentsOfURL(url: NSURL): id; message 'imageRepWithContentsOfURL:';
-    class function imageRepsWithPasteboard(pasteboard: NSPasteboard): NSArray; message 'imageRepsWithPasteboard:';
-    class function imageRepWithPasteboard(pasteboard: NSPasteboard): id; message 'imageRepWithPasteboard:';
-    function CGImageForProposedRect_context_hints(proposedDestRect: NSRectPtr; context: NSGraphicsContext; hints: NSDictionary): CGImageRef; message 'CGImageForProposedRect:context:hints:';
+    class function imageRepClassForFileType (type_: NSString): pobjc_class; message 'imageRepClassForFileType:'; deprecated 'in 10_0, 10_10, "Use +imageRepClassForType: instead"';
+    class function imageRepClassForPasteboardType (type_: NSString): pobjc_class; message 'imageRepClassForPasteboardType:'; deprecated 'in 10_0, 10_10, "Use +imageRepClassForType: instead"';
+    class function imageRepClassForType (type_: NSString): pobjc_class; message 'imageRepClassForType:'; { available in 10_5 }
+    class function imageRepClassForData (data: NSData): pobjc_class; message 'imageRepClassForData:';
+    class function canInitWithData (data: NSData): ObjCBOOL; message 'canInitWithData:';
+    class function imageUnfilteredFileTypes: NSArray; message 'imageUnfilteredFileTypes'; deprecated 'in 10_0, 10_10, "Use +imageUnfilteredTypes instead"';
+    class function imageUnfilteredPasteboardTypes: NSArray; message 'imageUnfilteredPasteboardTypes'; deprecated 'in 10_0, 10_10, "Use +imageUnfilteredTypes instead"';
+    class function imageFileTypes: NSArray; message 'imageFileTypes'; deprecated 'in 10_0, 10_10, "Use +imageTypes instead"';
+    class function imagePasteboardTypes: NSArray; message 'imagePasteboardTypes'; deprecated 'in 10_0, 10_10, "Use +imageTypes instead"';
+    class function imageUnfilteredTypes: NSArray; message 'imageUnfilteredTypes'; { available in 10_5 }
+    class function imageTypes: NSArray; message 'imageTypes'; { available in 10_5 }
+    class function canInitWithPasteboard (pasteboard: NSPasteboard): ObjCBOOL; message 'canInitWithPasteboard:';
+    class function imageRepsWithContentsOfFile (filename: NSString): NSArray; message 'imageRepsWithContentsOfFile:';
+    class function imageRepWithContentsOfFile (filename: NSString): id; message 'imageRepWithContentsOfFile:';
+    class function imageRepsWithContentsOfURL (url: NSURL): NSArray; message 'imageRepsWithContentsOfURL:';
+    class function imageRepWithContentsOfURL (url: NSURL): id; message 'imageRepWithContentsOfURL:';
+    class function imageRepsWithPasteboard (pasteboard: NSPasteboard): NSArray; message 'imageRepsWithPasteboard:';
+    class function imageRepWithPasteboard (pasteboard: NSPasteboard): id; message 'imageRepWithPasteboard:';
+    function CGImageForProposedRect_context_hints (proposedDestRect: NSRectPtr; context: NSGraphicsContext; hints: NSDictionary): CGImageRef; message 'CGImageForProposedRect:context:hints:'; { available in 10_6 }
 
-    { Adopted Protocols }
-    function copyWithZone(zone_: NSZonePtr): id;
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
   end;
+{$endif}
 
+{$ifdef EXTERNAL_SYMBOLS}
+var
+  NSImageRepRegistryDidChangeNotification: NSString; cvar; external;
 {$endif}
-{$endif}
+

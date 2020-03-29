@@ -47,11 +47,18 @@ type
   TPersistentBufDataSet=class(TBufDataset)
     private
       TempFileName:string;
+    protected
+      procedure LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField); override;
     public
       destructor Destroy; override;
   end;
 
 { TPersistentBufDataSet }
+
+procedure TPersistentBufDataSet.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField);
+begin
+  Raise ENotImplemented.Create('LoadBlobIntoBuffer not implemented');
+end;
 
 destructor TPersistentBufDataSet.Destroy;
 begin

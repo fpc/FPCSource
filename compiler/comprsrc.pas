@@ -26,7 +26,7 @@ unit comprsrc;
 interface
 
   uses
-    Systems, cstreams, Script;
+    Systems, cstreams, cscript;
 
 type
    tresoutput = (roRES, roOBJ);

@@ -11,7 +11,7 @@ function guitarGripIsInserted(): cbool; cdecl; external;
 procedure guitarGripScanKeys(); cdecl; external;
 
 function guitarGripKeysHeld(): cuint8; cdecl; external;
-function guitarGripKeysDown(): cuint8; cdecl; external;
-function guitarGripKeysUp(): cuint8; cdecl; external;
+function guitarGripKeysDown(): cuint16; cdecl; external;
+function guitarGripKeysUp(): cuint16; cdecl; external;
 
 {$endif NDS_INTERFACE}

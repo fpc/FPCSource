@@ -18,7 +18,7 @@
 
 {$macro on}
 {$define PathStr:=UnicodeString}
-{$define PathPChar:=PWideChar}
+{$define PathPChar:=PUnicodeChar}
 {$define SYSUTILSUNICODE}
   { Read filename handling functions implementation }
   {$i fina.inc}
@@ -41,9 +41,7 @@
   {$i varerror.inc}
   
   { Type helpers}
-  {$IFNDEF VER2_6}
   {$i syshelp.inc}
-  {$ENDIF}
 
   {$ifndef OS_FILEISREADONLY}
   Function FileIsReadOnly(const FileName: RawByteString): Boolean;
@@ -60,7 +58,7 @@
 
 
   {$ifndef OS_FILESETDATEBYNAME}
-  Function FileSetDate (Const FileName : RawByteString;Age : Longint) : Longint;
+  Function FileSetDate (Const FileName : RawByteString;Age : Int64) : Longint;
   Var
     fd : THandle;
   begin
@@ -81,7 +79,7 @@
   end;
 
 
-  Function FileSetDate (Const FileName : UnicodeString;Age : Longint) : Longint;
+  Function FileSetDate (Const FileName : UnicodeString;Age : Int64) : Longint;
   Var
     fd : THandle;
   begin
@@ -288,13 +286,13 @@ end;
        ErrCode:=Code;
     end;
 
-{$ifdef windows}
+{$if defined(win32) or defined(win64) or defined (wince)}
 function EExternal.GetExceptionRecord: PExceptionRecord;
 begin
   result:=@FExceptionRecord;
 end;
 
-{$endif windows}
+{$endif win32 or win64 or wince}
 
 {$push}
 {$S-}
@@ -342,7 +340,7 @@ type
   end;
 
 const
-  exceptmap: array[0..29] of TExceptMapEntry = (
+  exceptmap: array[0..30] of TExceptMapEntry = (
     (code: 200; cls: EDivByZero;     msg: @SDivByZero),
     (code: 201; cls: ERangeError;    msg: @SRangeError),
     (code: 202; cls: EStackOverflow; msg: @SStackOverflow),
@@ -371,9 +369,10 @@ const
     (code: 229; cls: ESafecallException; msg: @SSafecallException),
     (code: 231; cls: EConvertError;  msg: @SiconvError),
     (code: 232; cls: ENoThreadSupport; msg: @SNoThreadSupport),
-    (code: 233; cls: ENoWideStringSupport; msg: @SSigQuit),
+    (code: 233; cls: ESigQuit; msg: @SSigQuit),
     (code: 234; cls: ENoWideStringSupport; msg: @SMissingWStringManager),
-    (code: 235; cls: ENoDynLibsSupport; msg: @SNoDynLibsSupport)
+    (code: 235; cls: ENoDynLibsSupport; msg: @SNoDynLibsSupport),
+    (code: 236; cls: EThreadError; msg: @SThreadError)
   );
 
 function FindExceptMapEntry(err: longint): PExceptMapEntry;
@@ -471,6 +470,13 @@ begin
 end;
 
 {$endif}
+
+procedure CheckOSError(LastError: Integer);
+begin
+  if LastError <> 0 then
+    RaiseLastOSError(LastError);
+end;
+
 Procedure AssertErrorHandler (Const Msg,FN : ShortString;LineNo:longint; TheAddr : pointer);
 Var
   S : String;
@@ -647,6 +653,19 @@ begin
     end;
 end;
 
+procedure FreeTerminateProcs;
+var
+  TPR1, TPR2: PPRecord;
+begin
+  TPR1 := TPList;
+  TPList := Nil;
+  while Assigned(TPR1) do begin
+    TPR2 := TPR1^.NextFunc;
+    Dispose(TPR1);
+    TPR1 := TPR2;
+  end;
+end;
+
 { ---------------------------------------------------------------------
     Diskh functions, OS independent.
   ---------------------------------------------------------------------}
@@ -702,55 +721,70 @@ begin
 end;
 
 
-function SafeLoadLibrary(const FileName: AnsiString;
-  ErrorMode: DWord = {$ifdef windows}SEM_NOOPENFILEERRORBOX{$else windows}0{$endif windows}): HMODULE;
-{$if defined(cpui386) or defined(cpux86_64)}
-  var
-    mode : DWord;
-    fpucw : Word;
-    ssecw : DWord;
-{$endif}
-  begin
-{$if defined(win64) or defined(win32)}
-    mode:=SetErrorMode(ErrorMode);
-{$endif}
-    try
-{$if defined(cpui386) or defined(cpux86_64)}
-      fpucw:=Get8087CW;
-{$ifdef cpui386}
-      if has_sse_support then
-{$endif cpui386}
-        ssecw:=GetMXCSR;
-{$endif}
-{$if defined(windows) or defined(win32)}
-      Result:=LoadLibraryA(PChar(Filename));
-{$else}
-      Result:=0;
-{$endif}
-      finally
-{$if defined(cpui386) or defined(cpux86_64)}
-      Set8087CW(fpucw);
-{$ifdef cpui386}
-      if has_sse_support then
-{$endif cpui386}
-        SetMXCSR(ssecw);
-{$endif}
-{$if defined(win64) or defined(win32)}
-      SetErrorMode(mode);
-{$endif}
-    end;
-  end;
+function SafeLoadLibrary(const FileName: AnsiString; ErrorMode: DWord = {$ifdef windows}SEM_NOOPENFILEERRORBOX{$else windows}0{$endif windows}): HMODULE;
 
-function GetModuleName(Module: HMODULE): string;
+{$if defined(win64) or defined(win32)}
+var
+  mode : DWord;
 
 begin
-{$ifdef MSWINDOWS}
-  SetLength(Result,MAX_PATH);
-  SetLength(Result,GetModuleFileNameA(Module, Pchar(Result),Length(Result)));
-{$ELSE}
-  Result:='';
-{$ENDIF}
+  mode:=SetErrorMode(ErrorMode);
+  try
+    Result:=System.SafeLoadLibrary(FileName);
+  finally
+    SetErrorMode(mode);
+  end;
 end;
+{$else}
+begin
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
+  Result:=System.SafeLoadLibrary(FileName);
+{$else}
+  Result:=HModule(nil);
+{$endif not FPC_HAS_FEATURE_DYNLIBS}
+end;
+{$endif}
+
+{$if defined(win32) or defined(win64) or defined(wince)}
+function GetModuleName(Module: HMODULE): string;
+var
+  ResultLength, BufferLength: DWORD;
+  Buffer: UnicodeString;
+begin
+  BufferLength := MAX_PATH div 2;
+  repeat
+    Inc(BufferLength, BufferLength);
+    SetLength(Buffer, BufferLength);
+    ResultLength := GetModuleFileNameW(Module, Pointer(Buffer), BufferLength);
+    if ResultLength = 0 then
+      Exit('');
+  until ResultLength < BufferLength;
+  SetLength(Buffer, ResultLength);
+  Result := Buffer;
+end;
+{$elseif defined(win16)}
+function GetModuleName(Module: HMODULE): string;
+var
+  ResultLength, BufferLength: DWORD;
+  Buffer: RawByteString;
+begin
+  BufferLength := MAX_PATH div 2;
+  repeat
+    Inc(BufferLength, BufferLength);
+    SetLength(Buffer, BufferLength);
+    ResultLength := GetModuleFileName(Module, FarAddr(Buffer[1]), BufferLength);
+    if ResultLength = 0 then
+      Exit('');
+  until ResultLength < BufferLength;
+  SetLength(Buffer, ResultLength);
+  Result := Buffer;
+end;
+{$else}
+function GetModuleName(Module: HMODULE): string;
+begin
+  Result:='';
+end;
+{$endif}
 
 { Beep support }
 
@@ -778,3 +812,15 @@ begin
   result:=ExecuteProcess(ToSingleByteFileSystemEncodedFileName(Path),ComLineA);
 end;
 {$endif}
+
+
+// generic ifthen..
+{$IFNDEF VER3_0}
+generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inline; overload;
+begin
+  if val then 
+    Result := ifTrue
+  else
+    Result:=ifFalse;  
+end;
+{$ENDIF}

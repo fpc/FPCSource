@@ -150,6 +150,7 @@ uses coffconsts;
 
 constructor TCoffStringTable.Create;
   begin
+    inherited create;
     fSize:=4;
     Duplicates:=dupIgnore;
   end;

@@ -1,3 +1,4 @@
+
 (**
  Copyright (c) 2000-2010 by Stefan Heymann
 
@@ -302,6 +303,8 @@ BEGIN
   (*$ENDIF *) (*$WARNINGS ON *)
   (*$IFDEF Unix *)
      IF SearchRec.Attr AND faDirectory = 0 THEN BEGIN
+       FillChar(TimeVal, SizeOf(TimeVal), #0);
+       FillChar(TimeZone, SizeOf(TimeZone), #0);      
        Result := FileDateToDateTime (SearchRec.Time);
        {$IFDEF Kylix}
        GetTimeOfDay (TimeVal, TimeZone);
@@ -598,7 +601,7 @@ FUNCTION  TTarArchive.FindNext (VAR DirRec : TTarDirRec) : BOOLEAN;
           // The Stream pointer must point to the first byte of the tar header
 VAR
   Rec          : ARRAY [0..RECORDSIZE-1] OF CHAR;
-  CurFilePos   : INTEGER;
+  CurFilePos   : int64;
   Header       : TTarHeader ABSOLUTE Rec;
   I            : INTEGER;
   HeaderChkSum : WORD;

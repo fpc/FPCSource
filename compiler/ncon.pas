@@ -27,13 +27,18 @@ interface
 
     uses
       globtype,widestr,constexp,
-      cclasses,
       node,
-      aasmbase,aasmtai,aasmdata,cpuinfo,globals,
+      aasmbase,aasmcnst,cpuinfo,globals,
       symconst,symtype,symdef,symsym;
 
     type
-       trealconstnode = class(tnode)
+       tconstnode = class abstract(tnode)
+         { directly emit a node's constant data as a constant and return the
+           amount of data written }
+         function emit_data(tcb:ttai_typedconstbuilder):sizeint;virtual;abstract;
+       end;
+
+       trealconstnode = class(tconstnode)
           typedef : tdef;
           typedefderef : tderef;
           value_real : bestreal;
@@ -49,10 +54,14 @@ interface
           function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
           procedure printnodedata(var t:text);override;
+          function emit_data(tcb:ttai_typedconstbuilder):sizeint; override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
        end;
        trealconstnodeclass = class of trealconstnode;
 
-       tordconstnode = class(tnode)
+       tordconstnode = class(tconstnode)
           typedef : tdef;
           typedefderef : tderef;
           value : TConstExprInt;
@@ -71,10 +80,15 @@ interface
           function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
           procedure printnodedata(var t:text);override;
+          function emit_data(tcb:ttai_typedconstbuilder):sizeint; override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeInfo(var T: Text); override;
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
        end;
        tordconstnodeclass = class of tordconstnode;
 
-       tpointerconstnode = class(tnode)
+       tpointerconstnode = class(tconstnode)
           typedef : tdef;
           typedefderef : tderef;
           value   : TConstPtrUInt;
@@ -88,6 +102,10 @@ interface
           function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
           procedure printnodedata(var t : text); override;
+          function emit_data(tcb:ttai_typedconstbuilder):sizeint; override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
        end;
        tpointerconstnodeclass = class of tpointerconstnode;
 
@@ -100,7 +118,7 @@ interface
          cst_unicodestring
        );
 
-       tstringconstnode = class(tnode)
+       tstringconstnode = class(tconstnode)
           value_str : pchar;
           len     : longint;
           lab_str : tasmlabel;
@@ -122,6 +140,13 @@ interface
           function docompare(p: tnode) : boolean; override;
           procedure changestringtype(def:tdef);
           function fullcompare(p: tstringconstnode): longint;
+          function emit_data(tcb:ttai_typedconstbuilder):sizeint; override;
+          { returns whether this platform uses the nil pointer to represent
+            empty dynamic strings }
+          class function emptydynstrnil: boolean; virtual;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
        end;
        tstringconstnodeclass = class of tstringconstnode;
 
@@ -142,17 +167,19 @@ interface
           function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
           function elements : AInt;
+          function emit_data(tcb:ttai_typedconstbuilder):sizeint;
        end;
        tsetconstnodeclass = class of tsetconstnode;
 
-       tnilnode = class(tnode)
+       tnilnode = class(tconstnode)
           constructor create;virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
+          function emit_data(tcb:ttai_typedconstbuilder):sizeint; override;
        end;
        tnilnodeclass = class of tnilnode;
 
-       tguidconstnode = class(tnode)
+       tguidconstnode = class(tconstnode)
           value : tguid;
           lab_set : tasmsymbol;
           constructor create(const g:tguid);virtual;
@@ -162,6 +189,7 @@ interface
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
+          function emit_data(tcb:ttai_typedconstbuilder):sizeint; override;
        end;
        tguidconstnodeclass = class of tguidconstnode;
 
@@ -190,9 +218,10 @@ implementation
 
     uses
       cutils,
-      verbose,systems,sysutils,
+      verbose,systems,sysutils,ppu,
       defcmp,defutil,procinfo,
-      cpubase,cgbase,
+      aasmdata,aasmtai,
+      cgbase,
       nld;
 
     function genintconstnode(const v : TConstExprInt) : tordconstnode;
@@ -232,6 +261,7 @@ implementation
         stringVal: string;
         pWideStringVal: pcompilerwidestring;
       begin
+        stringVal:='';
         if is_constcharnode(p) then
           begin
             SetLength(stringVal,1);
@@ -338,6 +368,19 @@ implementation
             internalerror(2008022401);
          inherited create(realconstn);
          typedef:=def;
+         case tfloatdef(def).floattype of
+           s32real:
+             v:=single(v);
+           s64real:
+             v:=double(v);
+           s80real,
+           sc80real,
+           s64comp,
+           s64currency:
+             v:=extended(v);
+           s128real:
+             internalerror(2013102701);
+         end;
          value_real:=v;
          value_currency:=v;
          lab_real:=nil;
@@ -436,8 +479,6 @@ implementation
                   if ts128real(value_real)=MathInf.Value then
                     CGMessage(parser_e_range_check_error);
                 end;
-              else
-                internalerror(2016112902);
             end;
           end;
       end;
@@ -447,8 +488,6 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_CREFERENCE;
-         if (cs_create_pic in current_settings.moduleswitches) then
-           include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -476,12 +515,46 @@ implementation
       end;
 
 
-    procedure Trealconstnode.printnodedata(var t:text);
+    procedure trealconstnode.printnodedata(var t: text);
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'value = ',value_real);
+        write(t,printnodeindention,'value = ',value_real);
+        if is_currency(resultdef) then
+          writeln(', value_currency = ',value_currency)
+        else
+          writeln;
       end;
 
+    function trealconstnode.emit_data(tcb:ttai_typedconstbuilder):sizeint;
+      begin
+        case tfloatdef(typedef).floattype of
+          s32real:
+            tcb.emit_tai(tai_realconst.create_s32real(value_real),typedef);
+          s64real:
+            tcb.emit_tai(tai_realconst.create_s64real(value_real),typedef);
+          s80real:
+            tcb.emit_tai(tai_realconst.create_s80real(value_real,s80floattype.size),typedef);
+          sc80real:
+            tcb.emit_tai(tai_realconst.create_s80real(value_real,sc80floattype.size),typedef);
+          s64comp:
+            { the round is necessary for native compilers where comp isn't a float }
+            tcb.emit_tai(tai_realconst.create_s64compreal(round(value_real)),typedef);
+          s64currency:
+            { we don't need to multiply by 10000 here }
+            tcb.emit_tai(tai_realconst.create_s64compreal(round(value_real)),typedef);
+          s128real:
+            internalerror(2019070804);
+        end;
+        result:=resultdef.size;
+      end;
+
+{$ifdef DEBUG_NODE_XML}
+    procedure TRealConstNode.XMLPrintNodeData(var T: Text);
+      begin
+        inherited XMLPrintNodeData(T);
+        WriteLn(T, printnodeindention, '<value>', value_real, '</value>');
+      end;
+{$endif DEBUG_NODE_XML}
 
 {*****************************************************************************
                               TORDCONSTNODE
@@ -550,7 +623,7 @@ implementation
         { only do range checking when explicitly asked for it
           and if the type can be range checked, see tests/tbs/tb0539.pp }
         if (resultdef.typ in [orddef,enumdef]) then
-           testrange(resultdef,value,not rangecheck,false)
+          adaptrange(resultdef,value,nf_internal in flags,not rangecheck,rangecheck)
       end;
 
     function tordconstnode.pass_1 : tnode;
@@ -568,12 +641,32 @@ implementation
       end;
 
 
-    procedure Tordconstnode.printnodedata(var t:text);
+        procedure tordconstnode.printnodedata(var t: text);
       begin
         inherited printnodedata(t);
         writeln(t,printnodeindention,'value = ',tostr(value));
       end;
 
+    function tordconstnode.emit_data(tcb:ttai_typedconstbuilder):sizeint;
+      begin
+        tcb.emit_ord_const(value,resultdef);
+        result:=resultdef.size;
+      end;
+
+{$ifdef DEBUG_NODE_XML}
+    procedure TOrdConstNode.XMLPrintNodeInfo(var T: Text);
+      begin
+        inherited XMLPrintNodeInfo(T);
+        Write(T, ' rangecheck="', rangecheck, '"');
+      end;
+
+
+    procedure TOrdConstNode.XMLPrintNodeData(var T: Text);
+      begin
+        inherited XMLPrintNodeData(T);
+        WriteLn(T, printnodeindention, '<value>', tostr(value), '</value>');
+      end;
+{$endif DEBUG_NODE_XML}
 
 {*****************************************************************************
                             TPOINTERCONSTNODE
@@ -656,6 +749,22 @@ implementation
         writeln(t,printnodeindention,'value = $',hexstr(PUInt(value),sizeof(PUInt)*2));
       end;
 
+    function tpointerconstnode.emit_data(tcb: ttai_typedconstbuilder): sizeint;
+      begin
+        if tpointerdef(resultdef).compatible_with_pointerdef_size(tpointerdef(voidpointertype)) then
+          tcb.emit_tai(tai_const.Create_int_dataptr(value),voidpointertype)
+        else
+          tcb.emit_tai(tai_const.Create_int_codeptr(value),voidcodepointertype);
+        result:=resultdef.size;
+      end;
+
+{$ifdef DEBUG_NODE_XML}
+    procedure TPointerConstNode.XMLPrintNodeData(var T: Text);
+      begin
+        inherited XMLPrintNodeData(T);
+        WriteLn(T, PrintNodeIndention, '<value>$', hexstr(PUInt(value),sizeof(PUInt)*2), '</value>');
+      end;
+{$endif DEBUG_NODE_XML}
 
 {*****************************************************************************
                              TSTRINGCONSTNODE
@@ -850,9 +959,6 @@ implementation
           end
         else
           expectloc:=LOC_CREFERENCE;
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (expectloc <> LOC_CONSTANT) then
-          include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -961,9 +1067,13 @@ implementation
                       if (cp2=CP_UTF8) then
                         begin
                           if not cpavailable(cp1) then
-                            Message1(option_code_page_not_available,IntToStr(cp1));
+                            begin
+                              Message1(option_code_page_not_available,IntToStr(cp1));
+                              exit;
+                            end;
                           initwidestring(pw);
                           setlengthwidestring(pw,len);
+                          { returns room for terminating 0 }
                           l:=Utf8ToUnicode(PUnicodeChar(pw^.data),len,value_str,len);
                           if (l<>getlengthwidestring(pw)) then
                             begin
@@ -971,6 +1081,7 @@ implementation
                               ReAllocMem(value_str,l);
                             end;
                           unicode2ascii(pw,value_str,cp1);
+                          len:=l-1;
                           donewidestring(pw);
                         end
                       else
@@ -978,10 +1089,14 @@ implementation
                       if (cp1=CP_UTF8) then
                         begin
                           if not cpavailable(cp2) then
-                            Message1(option_code_page_not_available,IntToStr(cp2));
+                            begin
+                              Message1(option_code_page_not_available,IntToStr(cp2));
+                              exit;
+                            end;
                           initwidestring(pw);
                           setlengthwidestring(pw,len);
                           ascii2unicode(value_str,len,cp2,pw);
+                          { returns room for terminating 0 }
                           l:=UnicodeToUtf8(nil,0,PUnicodeChar(pw^.data),len);
                           if l<>len then
                             ReAllocMem(value_str,l);
@@ -1013,6 +1128,90 @@ implementation
         else
           result:=compareansistrings(value_str,p.value_str,len,p.len);
       end;
+
+    function tstringconstnode.emit_data(tcb:ttai_typedconstbuilder):sizeint;
+      var
+        ss : shortstring;
+        labofs : tasmlabofs;
+        winlikewidestring : boolean;
+      begin
+        case tstringdef(resultdef).stringtype of
+          st_shortstring:
+            begin
+              setlength(ss,len);
+              move(value_str^,ss[1],len);
+              tcb.emit_shortstring_const(ss);
+              result:=len+1;
+            end;
+          st_longstring:
+            internalerror(2019070801);
+          st_ansistring:
+            begin
+              labofs:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_typedconsts],value_str,len,tstringdef(resultdef).encoding);
+              tcb.emit_string_offset(labofs,len,tstringdef(resultdef).stringtype,false,charpointertype);
+              result:=voidpointertype.size;
+            end;
+          st_widestring,
+          st_unicodestring:
+            begin
+              winlikewidestring:=(cst_type=cst_widestring) and (tf_winlikewidestring in target_info.flags);
+              labofs:=tcb.emit_unicodestring_const(current_asmdata.asmlists[al_typedconsts],value_str,tstringdef(resultdef).encoding,winlikewidestring);
+              tcb.emit_string_offset(labofs,len,tstringdef(resultdef).stringtype,false,widecharpointertype);
+              result:=voidpointertype.size;
+            end;
+        end;
+      end;
+
+    class function tstringconstnode.emptydynstrnil: boolean;
+      begin
+        result:=true;
+      end;
+
+{$ifdef DEBUG_NODE_XML}
+    procedure TStringConstNode.XMLPrintNodeData(var T: Text);
+      var
+        OutputStr: ansistring;
+      begin
+        inherited XMLPrintNodeData(T);
+        Write(T, printnodeindention, '<stringtype>');
+        case cst_type of
+        cst_conststring:
+          Write(T, 'conststring');
+        cst_shortstring:
+          Write(T, 'shortstring');
+        cst_longstring:
+          Write(T, 'longstring');
+        cst_ansistring:
+          Write(T, 'ansistring');
+        cst_widestring:
+          Write(T, 'widestring');
+        cst_unicodestring:
+          Write(T, 'unicodestring');
+        end;
+        WriteLn(T, '</stringtype>');
+        WriteLn(T, printnodeindention, '<length>', len, '</length>');
+
+        if len = 0 then
+          begin
+            WriteLn(T, printnodeindention, '<value />');
+            Exit;
+          end;
+
+        case cst_type of
+        cst_widestring, cst_unicodestring:
+          begin
+            { value_str is of type PCompilerWideString }
+            SetLength(OutputStr, len);
+            UnicodeToUtf8(PChar(OutputStr), PUnicodeChar(PCompilerWideString(value_str)^.data), len + 1); { +1 for the null terminator }
+          end;
+        else
+          OutputStr := ansistring(value_str);
+          SetLength(OutputStr, len);
+        end;
+
+        WriteLn(T, printnodeindention, '<value>', SanitiseXMLString(OutputStr), '</value>');
+      end;
+{$endif DEBUG_NODE_XML}
 
 {*****************************************************************************
                              TSETCONSTNODE
@@ -1046,7 +1245,7 @@ implementation
         inherited ppuload(t,ppufile);
         ppufile.getderef(typedefderef);
         new(value_set);
-        ppufile.getnormalset(value_set^);
+        ppufile.getset(tppuset32(value_set^));
       end;
 
 
@@ -1054,7 +1253,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putderef(typedefderef);
-        ppufile.putnormalset(value_set^);
+        ppufile.putset(tppuset32(value_set^));
       end;
 
 
@@ -1134,9 +1333,6 @@ implementation
           expectloc:=LOC_CONSTANT
          else
           expectloc:=LOC_CREFERENCE;
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (expectloc <> LOC_CONSTANT) then
-          include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -1158,6 +1354,61 @@ implementation
           result:=result+ PopCnt(Psetbytes(value_set)^[i]);
       end;
 
+    function tsetconstnode.emit_data(tcb:ttai_typedconstbuilder):sizeint;
+      type
+        setbytes=array[0..31] of byte;
+        Psetbytes=^setbytes;
+      var
+        setval : aint;
+        i : sizeint;
+      begin
+        if is_smallset(resultdef) then
+          begin
+            if (source_info.endian=target_info.endian) then
+              begin
+                { not plongint, because that will "sign extend" the set on 64 bit platforms }
+                { if changed to "paword", please also modify "32-resultdef.size*8" and      }
+                { cross-endian code below                                                   }
+                { Extra aint type cast to avoid range errors                                }
+                 setval:=aint(pCardinal(value_set)^)
+              end
+            else
+              begin
+                setval:=aint(swapendian(Pcardinal(value_set)^));
+                setval:=aint(
+                                   reverse_byte (setval         and $ff)         or
+                                  (reverse_byte((setval shr  8) and $ff) shl  8) or
+                                  (reverse_byte((setval shr 16) and $ff) shl 16) or
+                                  (reverse_byte((setval shr 24) and $ff) shl 24)
+                                );
+              end;
+            if (target_info.endian=endian_big) then
+              setval:=setval shr (32-resultdef.size*8);
+            case resultdef.size of
+              1:
+                tcb.emit_ord_const(byte(setval),u8inttype);
+              2:
+                tcb.emit_ord_const(word(setval),u16inttype);
+              4:
+                tcb.emit_ord_const(longword(setval),u32inttype);
+              8:
+                tcb.emit_ord_const(qword(setval),u64inttype);
+              else
+                internalerror(2019070802);
+            end;
+          end
+        else
+          begin
+            if (source_info.endian=target_info.endian) then
+              for i:=0 to resultdef.size-1 do
+                tcb.emit_tai(tai_const.create_8bit(Psetbytes(value_set)^[i]),u8inttype)
+            else
+              for i:=0 to resultdef.size-1 do
+                tcb.emit_tai(tai_const.create_8bit(reverse_byte(Psetbytes(value_set)^[i])),u8inttype);
+          end;
+        result:=resultdef.size;
+      end;
+
 
 {*****************************************************************************
                                TNILNODE
@@ -1173,6 +1424,15 @@ implementation
       begin
         result:=nil;
         resultdef:=voidpointertype;
+      end;
+
+    function tnilnode.emit_data(tcb: ttai_typedconstbuilder): sizeint;
+      begin
+        if tpointerdef(resultdef).compatible_with_pointerdef_size(tpointerdef(voidpointertype)) then
+          tcb.emit_tai(tai_const.Create_nil_dataptr,voidpointertype)
+        else
+          tcb.emit_tai(tai_const.Create_nil_codeptr,voidcodepointertype);
+        result:=resultdef.size;
       end;
 
     function tnilnode.pass_1 : tnode;
@@ -1228,9 +1488,6 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_CREFERENCE;
-        if (cs_create_pic in current_settings.moduleswitches) and
-          (tf_pic_uses_got in target_info.flags) then
-          include(current_procinfo.flags,pi_needs_got);
       end;
 
 
@@ -1239,6 +1496,12 @@ implementation
         docompare :=
           inherited docompare(p) and
           (guid2string(value) = guid2string(tguidconstnode(p).value));
+      end;
+
+    function tguidconstnode.emit_data(tcb: ttai_typedconstbuilder): sizeint;
+      begin
+        tcb.emit_guid_const(value);
+        result:=resultdef.size;
       end;
 
 end.

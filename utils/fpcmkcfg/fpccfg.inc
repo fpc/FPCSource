@@ -39,26 +39,27 @@ const DefaultConfig : array[0..30,1..240] of char=(
   '  -gl'#010+
   '  -Crtoi'#010+
   '  #WRITE Compiling Debug Versi','on'#010+
+  '#ELSE'#010+
+  '  # Strip debuginfo from the executable if not in debug mode'#010+
+  '  -Xs'#010+
   '#ENDIF'#010+
   #010+
   '# assembling'#010+
   '#ifdef darwin'#010+
   '# use pipes instead of temporary files for assembling'#010+
   '-ap'#010+
-  '# path to Xcode 4.3+ utilities (no problem if it doesn'#039't exist)'#010+
-  '-FD/Applications/Xcode.app/Contents/Developer/usr/bin'#010+
   '#endif'#010+
   #010+
-  '# ----------------',#010+
+  '# ----------------'#010+
   '# Parsing switches'#010+
   '# ----------------'#010+
   #010+
-  '# Pascal language mode'#010+
+  '# Pas','cal language mode'#010+
   '#      -Mfpc      free pascal dialect (default)'#010+
   '#      -Mobjfpc   switch some Delphi 2 extensions on'#010+
   '#      -Mdelphi   tries to be Delphi compatible'#010+
-  '#      -Mtp       tries to b','e TP/BP 7.0 compatible'#010+
-  '#      -Mgpc      tries to be gpc compatible'#010+
+  '#      -Mtp       tries to be TP/BP 7.0 compatible'#010+
+  '#      -Mgpc      trie','s to be gpc compatible'#010+
   '#      -Mmacpas   tries to be compatible to the macintosh pascal diale'+
   'cts'#010+
   '#'#010+
@@ -66,8 +67,8 @@ const DefaultConfig : array[0..30,1..240] of char=(
   '#-Mobjfpc'#010+
   #010+
   '# Assembler reader mode'#010+
-  '#      -Rdefaul','t  use default assembler'#010+
-  '#      -Ratt      read AT&T style assembler'#010+
+  '#      -Rdefault  use default assembler'#010+
+  '#      -Ratt      re','ad AT&T style assembler'#010+
   '#      -Rintel    read Intel style assembler'#010+
   '#'#010+
   '# All assembler blocks are AT&T styled by default'#010+
@@ -75,31 +76,31 @@ const DefaultConfig : array[0..30,1..240] of char=(
   #010+
   '# Semantic checking'#010+
   '#      -S2        same as -Mobjfpc'#010+
-  '#      -Sc ','       supports operators like C (*=,+=,/= and -=)'#010+
+  '#      -Sc        supports operators like C (*=,+=,/= an','d -=)'#010+
   '#      -Sa        include assertion code.'#010+
   '#      -Sd        same as -Mdelphi'#010+
   '#      -Se<x>     error options. <x> is a combination of the following'+
   ':'#010+
-  '#         <n> : compiler stops after <n>',' errors (default is 1)'#010+
-  '#         w   : compiler stops also after warnings'#010+
+  '#         <n> : compiler stops after <n> errors (default is 1)'#010+
+  '#         w   : compil','er stops also after warnings'#010+
   '#         n   : compiler stops also after notes'#010+
   '#         h   : compiler stops also after hints'#010+
   '#      -Sg        allow LABEL and GOTO'#010+
-  '#      -Sh        Use ansistrin','gs'#010+
-  '#      -Si        support C++ styled INLINE'#010+
+  '#      -Sh        Use ansistrings'#010+
+  '#      -Si        support C++ styled INLIN','E'#010+
   '#      -Sk        load fpcylix unit'#010+
   '#      -SI<x>     set interface style to <x>'#010+
   '#         -SIcom    COM compatible interface (default)'#010+
   '#         -SIcorba  CORBA compatible interface'#010+
-  '#      -Sm','        support macros like C (global)'#010+
-  '#      -So        same as -Mtp'#010+
+  '#      -Sm        support macros like C (global)'#010+
+  '#     ',' -So        same as -Mtp'#010+
   '#      -Sp        same as -Mgpc'#010+
   '#      -Ss        constructor name must be init (destructor must be do'+
   'ne)'#010+
-  '#      -Sx        enable exception keywords (default in Delphi/O','bjFP'+
-  'C modes)'#010+
+  '#      -Sx        enable exception keywords (default in Delphi/ObjFPC '+
+  'modes)'#010+
   '#'#010+
-  '# Allow goto, inline, C-operators, C-vars'#010+
+  '# Allow goto, inline, C-operat','ors, C-vars'#010+
   '-Sgic'#010+
   #010+
   '# ---------------'#010+
@@ -108,11 +109,11 @@ const DefaultConfig : array[0..30,1..240] of char=(
   #010+
   '# Uncomment the next line if you always want static/dynamic units by d'+
   'efault'#010+
-  '# (can be overruled with -CD, -CS at the com','mandline)'#010+
+  '# (can be overruled with -CD, -CS at the commandline)'#010+
   '#-CS'#010+
   '#-CD'#010+
   #010+
-  '# Set the default heapsize to 8Mb'#010+
+  '# Set the default heapsi','ze to 8Mb'#010+
   '#-Ch8000000'#010+
   #010+
   '# Set default codegeneration checks (iocheck, overflow, range, stack)'#010+
@@ -123,21 +124,22 @@ const DefaultConfig : array[0..30,1..240] of char=(
   #010+
   '# Optimizer switches'#010+
   '# -Os        generate smaller code'#010+
-  '# -Oa=N      set alignmen','t to N'#010+
-  '# -O1        level 1 optimizations (quick optimizations, debuggable)'#010+
+  '# -Oa=N      set alignment to N'#010+
+  '# -O1        level 1 optimizations (qu','ick optimizations, debuggable)'+
+  #010+
   '# -O2        level 2 optimizations (-O1 + optimizations which make deb'+
   'ugging more difficult)'#010+
   '# -O3        level 3 optimizations (-O2 + optimizations which also may'+
-  ' ','make the program slower rather than faster)'#010+
-  '# -Oo<x>     switch on optimalization x. See fpc -i for possible value'+
-  's'#010+
+  ' make the program slower rather than faster)'#010+
+  '#',' -Oo<x>     switch on optimalization x. See fpc -i for possible val'+
+  'ues'#010+
   '# -OoNO<x>   switch off optimalization x. See fpc -i for possible valu'+
   'es'#010+
-  '# -Op<x>     set target cpu for optimizing, see fpc',' -i for possible '+
-  'values'#010+
+  '# -Op<x>     set target cpu for optimizing, see fpc -i for possible va'+
+  'lues'#010+
   #010+
   '#ifdef darwin'#010+
-  '#ifdef cpui386'#010+
+  '#ifdef',' cpui386'#010+
   '-Cppentiumm'#010+
   '-Oppentiumm'#010+
   '#endif'#010+
@@ -149,7 +151,7 @@ const DefaultConfig : array[0..30,1..240] of char=(
   #010+
   '# Both slashes and backslashes are allowed in paths'#010+
   #010+
-  '# path to the m','essagefile, not necessary anymore but can be used to '+
+  '# path to the messagefile, not necessary anymore but can be ','used to '+
   'override'#010+
   '# the default language'#010+
   '#-Fr%basepath%/msg/errore.msg'#010+
@@ -158,22 +160,25 @@ const DefaultConfig : array[0..30,1..240] of char=(
   '#-Fr%basepath%/msg/errord.msg'#010+
   '#-Fr%basepath%/msg/errorr.msg'#010+
   #010+
-  '# s','earch path for unicode binary files (FPC 2.x does not know this s'+
+  '# search path for unicode binary files (FPC 2.x ','does not know this s'+
   'witch)'#010+
   '#ifndef VER2'#010+
   '-FM%sharepath%/unicode/'#010+
   '#endif'#010+
   #010+
-  '# searchpath for units and other system dependent things'#010+
-  '-Fu%basepath%/units/$fpctarget'#010+
-  '-Fu%basepath%/units/$fpctarget/*'#010+
-  '-F','u%basepath%/units/$fpctarget/rtl'#010+
-  #010+
+  '# Search for $fpctarget/$fpcsubarch-$fpcmemorymodel/ subdirectory firs'+
+  't'#010+
+  '# for i8086 CPU'#010+
   '#ifdef cpui8086'#010+
   '-Fu%basepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel'#010+
-  '-Fu%basepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel/*'#010+
+  '-Fu%b','asepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel/*'#010+
   '-Fu%basepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel/rtl'#010+
-  '#endif'#010,
+  '#endif'#010+
+  #010+
+  '# searchpath for units and other system dependent things'#010+
+  '-Fu%basepath%/units/$fpctarget'#010+
+  '-Fu%basepath%/units/$fpct','arget/*'#010+
+  '-Fu%basepath%/units/$fpctarget/rtl'#010+
   #010+
   '#IFDEF FPCAPACHE_1_3'#010+
   '-Fu%basepath%/units/$fpctarget/httpd13/'#010+
@@ -185,8 +190,11 @@ const DefaultConfig : array[0..30,1..240] of char=(
   '#ENDIF'#010+
   '#ENDIF'#010+
   #010+
-  '# searchpath for fppkg user-specific packages'#010+
-  '-Fu%lo','calbasepath%/units/$FPCTARGET/*'#010+
+  '# searchp','ath for fppkg user-specific packages'#010+
+  '-Fu%localbasepath%/units/$FPCTARGET/*'#010+
+  #010+
+  '# searchpath for tools'#010+
+  '-FD%basepath%/bin/$FPCTARGET'#010+
   #010+
   '# path to the gcclib'#010+
   '%gcclibpath%'#010+
@@ -194,12 +202,9 @@ const DefaultConfig : array[0..30,1..240] of char=(
   '# searchpath for libraries'#010+
   '#-Fl%basepath%/lib'#010+
   '#-Fl/lib;/usr/lib'#010+
-  '-Fl%basepath%/lib/$FPCTARGET'#010+
+  '-Fl%basepath','%/lib/$FPCTARGET'#010+
   #010+
-  '# searchpath for tools'#010+
-  '-FD%basepath%/bin/$FPCTARGET'#010+
-  #010+
-  '%NEEDCROSSBINUTILSIFDEF%'#010,
+  '%NEEDCROSSBINUTILSIFDEF%'#010+
   #010+
   '# never need cross-prefix when targeting the JVM'#010+
   '# (no native compiler, always cross-compiling)'#010+
@@ -208,18 +213,18 @@ const DefaultConfig : array[0..30,1..240] of char=(
   '#endif'#010+
   #010+
   '# for android cross-prefix is set by compiler'#010+
-  '#ifdef android'#010+
+  '#ifdef ','android'#010+
   '#undef NEEDCROSSBINUTILS'#010+
   '#endif'#010+
   #010+
-  '# ','never need cross-prefix when targeting the i8086'#010+
+  '# never need cross-prefix when targeting the i8086'#010+
   '# (no native compiler, always cross-compiling)'#010+
   '#ifdef cpui8086'#010+
   '#undef NEEDCROSSBINUTILS'#010+
   '#endif'#010+
   #010+
   '# never need cross-prefix when targeting the i8086'#010+
-  '# (no native compiler, always cross-compilin','g)'#010+
+  '#',' (no native compiler, always cross-compiling)'#010+
   '#ifdef cpujvm'#010+
   '#undef NEEDCROSSBINUTILS'#010+
   '#endif'#010+
@@ -233,29 +238,25 @@ const DefaultConfig : array[0..30,1..240] of char=(
   #010+
   #010+
   '# -------------'#010+
-  '# Linking'#010+
+  '# Linking',#010+
   '# -------------'#010+
   #010+
-  '# generate always debuggi','ng information for GDB (slows down the comp'+
-  'iling'#010+
+  '# generate always debugging information for GDB (slows down the compil'+
+  'ing'#010+
   '# process)'#010+
   '#      -gc        generate checks for pointers'#010+
   '#      -gd        use dbx'#010+
   '#      -gg        use gsym'#010+
-  '#      -gh        use heap trace unit (for memory leak debugging)'#010+
-  '#      -gl    ','    use line info unit to show more info for backtrace'+
-  's'#010+
+  '#      -gh        use heap trace unit',' (for memory leak debugging)'#010+
+  '#      -gl        use line info unit to show more info for backtraces'#010+
   '#      -gv        generates programs tracable with valgrind'#010+
   '#      -gw        generate dwarf debugging info'#010+
   '#'#010+
-  '# Enable debuginfo and use the line info unit by default'#010+
+  '# Enable debuginfo and use the ','line info unit by default'#010+
   '#-gl'#010+
   #010+
-  '# always pa','ss an option to the linker'#010+
+  '# always pass an option to the linker'#010+
   '#-k-s'#010+
-  #010+
-  '# Always strip debuginfo from the executable'#010+
-  '-Xs'#010+
   #010+
   '# Always use smartlinking on i8086, because the system unit exceeds th'+
   'e 64kb'#010+
@@ -268,7 +269,7 @@ const DefaultConfig : array[0..30,1..240] of char=(
   #010+
   '# -------------'#010+
   '# Miscellaneous'#010+
-  '#',' -------------'#010+
+  '# ------','-------'#010+
   #010+
   '# Write always a nice FPC logo ;)'#010+
   '-l'#010+
@@ -276,19 +277,19 @@ const DefaultConfig : array[0..30,1..240] of char=(
   '# Verbosity'#010+
   '#      e : Show errors (default)       d : Show debug info'#010+
   '#      w : Show warnings               u : Show unit info'#010+
-  '#      n : Show notes                  t : Show tried/use','d files'#010+
+  '#      n : Show notes                  t : Show tried/used files',#010+
   '#      h : Show hints                  s : Show time stamps'#010+
   '#      i : Show general info           q : Show message numbers'#010+
   '#      l : Show linenumbers            c : Show conditionals'#010+
-  '#      a : Show everything             0 : Show',' nothing (except erro'+
+  '#      a : Show everything             0 : Show nothin','g (except erro'+
   'rs)'#010+
   '#      b : Write file names messages   r : Rhide/GCC compatibility mod'+
   'e'#010+
   '#          with full path              x : Executable info (Win32 only'+
   ')'#010+
   '#      v : write fpcdebug.txt with     p : Write tree.log with parse t'+
-  'r','ee'#010+
-  '#          lots of debugging info'#010+
+  'ree'#010+
+  '#   ','       lots of debugging info'#010+
   '#'#010+
   '# Display Info, Warnings and Notes'#010+
   '-viwn'#010+

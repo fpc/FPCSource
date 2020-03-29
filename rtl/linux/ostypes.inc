@@ -173,7 +173,7 @@ type
                 l_start : kernel_off_t; { starting offset }
                 l_len   : kernel_off_t; { len = 0 means until end of file }
                 l_pid   : pid_t;        { lock owner }
-{$ifdef cpusparc}
+{$if defined(cpusparc) or defined(cpusparc64)}
                 __pad   : cshort;
 {$endif}
                End;
@@ -200,8 +200,9 @@ type
    TTms      = tms;
    PTms      = ^tms;
 
- TFDSet    = ARRAY[0..(FD_MAXFDSET div BITSINWORD)-1] of cuLong;
- pFDSet    = ^TFDSet;
+  TFDSetEl  = cuLong;
+  TFDSet    = ARRAY[0..(FD_MAXFDSET div BITSINWORD)-1] of TFDSetEl;
+  pFDSet    = ^TFDSet;
 
   timezone = record
     tz_minuteswest,tz_dsttime:cint;
@@ -250,7 +251,7 @@ CONST
     O_RDONLY  =          0;        { Open read-only.  }
     O_WRONLY  =          1;        { Open write-only. }
     O_RDWR    =          2;        { Open read/write. }
-{$ifdef cpusparc}
+{$if defined(cpusparc) or defined(cpusparc64)}
     O_APPEND  =          8;
     O_CREAT   =       $200;
     O_TRUNC   =       $400;
@@ -262,7 +263,7 @@ CONST
     O_DIRECTORY =   $10000;
     O_NOFOLLOW =    $20000;
     O_DIRECT  =    $100000;
-{$else : not cpusparc}
+{$else : not (cpusparc or cpusparc64)}
 {$ifdef cpumips}
     O_CREAT   =       $100;
     O_EXCL    =       $400;
@@ -288,14 +289,24 @@ CONST
     O_DIRECTORY =   $10000;
     O_NOFOLLOW =    $20000;
 {$endif not cpumips}
-{$endif not cpusparc}
+{$endif not (cpusparc or cpusparc64)}
 
     AT_FDCWD = -100;
+    AT_SYMLINK_NOFOLLOW = $100;
     AT_REMOVEDIR = $200;
-    clone_flags_fork = $01200011;
-      { SIGCHLD | CLONE_CHILD_CLEARTID | CLONE_CHILD_SETTID }
+    AT_SYMLINK_FOLLOW = $400;
+    AT_NO_AUTOMOUNT = $800;
+    AT_EMPTY_PATH = $1000;
+    AT_STATX_SYNC_TYPE = $6000;
+    AT_STATX_SYNC_AS_STAT = $0000;
+    AT_STATX_FORCE_SYNC = $2000;
+    AT_STATX_DONT_SYNC = $4000;
+    AT_RECURSIVE = $8000;
 
-{$if defined(cpuarm) or defined(cpualpha) or defined(cpublackfin) or defined(cpum68k) or defined(aarch64)}
+    { SIGCHLD or CLONE_CHILD_CLEARTID or CLONE_CHILD_SETTID }
+    clone_flags_fork = $01200011;
+
+{$if defined(cpuarm) or defined(cpualpha) or defined(cpublackfin) or defined(cpum68k) or defined(aarch64) or defined(riscv32) or defined(riscv64)}
     O_LARGEFILE =   $20000;
 {$endif}
 {$if defined(cpusparc) or defined(cpusparc64)}
@@ -337,6 +348,9 @@ CONST
   S_IFREG = 32768; { regular }
   S_IFLNK = 40960; { symbolic link }
   S_IFSOCK= 49152; { socket }
+  S_ISUID = &4000;
+  S_ISGID = &2000;
+  S_ISVTX = &1000;
 
   { Constansts for MMAP }
  {$IFDEF FPC_IS_SYSTEM}

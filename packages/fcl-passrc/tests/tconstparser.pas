@@ -5,7 +5,7 @@ unit tconstparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, pastree, pscanner, tcbaseparser, testregistry;
+  Classes, SysUtils, fpcunit, pastree, pscanner, tcbaseparser, testregistry, pparser;
 
 Type
     { TTestConstParser }
@@ -16,6 +16,7 @@ Type
     FExpr: TPasExpr;
     FHint : string;
     FTyped: String;
+    procedure DoParseConstUnTypedRange;
   Protected
     Function ParseConst(ASource : String) : TPasConst;
     Procedure CheckExprNameKindClass(AKind : TPasExprKind; AClass : TClass);
@@ -78,6 +79,7 @@ Type
     Procedure TestRecordConst;
     Procedure TestArrayConst;
     Procedure TestRangeConst;
+    Procedure TestRangeConstUnTyped;
     Procedure TestArrayOfRangeConst;
   end;
 
@@ -516,6 +518,17 @@ begin
   ParseConst('1');
   AssertEquals('Range type',TPasRangeType,TheConst.VarType.ClassType);
   AssertExpression('Float const', TheExpr,pekNumber,'1');
+end;
+
+procedure TTestConstParser.DoParseConstUnTypedRange;
+
+begin
+  ParseConst('1..2');
+end;
+
+procedure TTestConstParser.TestRangeConstUnTyped;
+begin
+  AssertException('Range const is not allowed',EParserError,@DoParseConstUnTypedRange);
 end;
 
 procedure TTestConstParser.TestArrayOfRangeConst;

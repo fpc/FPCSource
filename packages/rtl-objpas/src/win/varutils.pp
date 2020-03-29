@@ -19,11 +19,11 @@
 {$smartlink on}
 {$endif}
 
-Unit varutils;
+Unit VarUtils;
 
 Interface
 
-Uses sysutils;
+Uses sysutils,Types;
 
 {$i varutilh.inc}
 
@@ -68,5 +68,8 @@ function SafeArrayPutElement(psa: PVarArray; Indices: PVarArrayCoorArray;  const
 function SafeArrayRedim(psa: PVarArray; const NewBound: TVarArrayBound): HRESULT; stdcall;external oleaut;
 function SafeArrayUnaccessData(psa: PVarArray): HRESULT; stdcall;external oleaut;
 function SafeArrayUnlock(psa: PVarArray): HRESULT; stdcall;external oleaut;
+
+function VarDateFromStr(const strIn: POleStr; alcid: DWORD; dwFlags: Longint; out dateOut: Double): HRESULT; stdcall; external oleaut; overload;
+function VarDateFromStr(const strIn: POleStr; alcid: DWORD; dwFlags: Longint; out dateOut: TDateTime): HRESULT; stdcall; external oleaut; overload;
 
 end.

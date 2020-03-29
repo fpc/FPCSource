@@ -262,6 +262,13 @@ PROCEDURE SetTranslate(translator : pCxObj location 'a0'; events : pInputEvent l
 FUNCTION ParseIX(description : rawbytestring; ix : pInputXpression) : LONGINT;
 PROCEDURE SetFilter(filter : pCxObj; text : rawbytestring);
 
+procedure FreeIEvents(Events: PInputEvent);
+function CxCustom(Action: Pointer; Id: LongInt): PCxObj;
+function CxDebug(Id: LongInt): PCxObj;
+function CxFilter(d: STRPTR): PCxObj;
+function CxSender(Port: PMsgPort; Id: LongInt): PCxObj;
+function CxSignal(Task: PTask; Sig: Byte): PCxObj;
+function CxTranslate(Ie: PInputEvent): PCxObj;
 
 IMPLEMENTATION
 
@@ -274,6 +281,45 @@ end;
 PROCEDURE SetFilter(filter : pCxObj; text : rawbytestring);
 begin
   SetFilter(filter,pchar(text));
+end;
+
+procedure FreeIEvents(Events: PInputEvent);
+begin
+  while Events <> nil do
+  begin
+    FreeMem(Events, SizeOf(TInputEvent));
+    Events := Events^.ie_NextEvent;
+  end
+end;
+
+function CxCustom(Action: Pointer; Id: LongInt): PCxObj;
+begin
+  CxCustom := CreateCxObj(CX_CUSTOM, LongInt(Action), Id);
+end;
+
+function CxDebug(Id: LongInt): PCxObj;
+begin
+  CxDebug := CreateCxObj(CX_DEBUG, Id, 0);
+end;
+
+function CxFilter(d: STRPTR): PCxObj;
+begin
+  CxFilter := CreateCxObj(CX_FILTER, LongInt(d), 0);
+end;
+
+function CxSender(Port: PMsgPort; Id: LongInt): PCxObj;
+begin
+  CxSender := CreateCxObj(CX_SEND, LongInt(Port), Id);
+end;
+
+function CxSignal(Task: PTask; Sig: Byte): PCxObj;
+begin
+  CxSignal:= CreateCxObj(CX_SIGNAL, LongInt(Task), Sig);
+end;
+
+function CxTranslate(Ie: PInputEvent): PCxObj;
+begin
+  CxTranslate := CreateCxObj(CX_TRANSLATE, LongInt(Ie), 0);
 end;
 
 const

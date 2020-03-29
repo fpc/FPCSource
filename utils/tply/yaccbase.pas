@@ -83,9 +83,9 @@ tokleng   : Integer; (* length of current token *)
 const
 
 {$IFDEF MsDos}
-max_elems  = 50;  (* maximum size of integer sets *)
+max_elems  =  50; (* maximum size of integer sets *)
 {$ELSE}
-max_elems  = 75; (* maximum size of integer sets *)
+max_elems  = 150; (* maximum size of integer sets *)
 {$ENDIF}
 
 type
@@ -640,7 +640,7 @@ function path(filename : String) : String;
   var i : Integer;
   begin
     i := length(filename);
-    while (i>0) and (filename[i]<>'\') and (filename[i]<>':') do
+    while (i>0) and (filename[i]<>DirectorySeparator) and (filename[i]<>':') do
       dec(i);
     path := copy(filename, 1, i);
   end(*path*);
@@ -656,10 +656,10 @@ function root(filename : String) : String;
             root := copy(filename, 1, i-1);
             exit
           end;
-        '\': exit;
+        DirectorySeparator: exit;
         else
       end;
-  end(*addExt*);
+  end(*root*);
 function addExt(filename, ext : String) : String;
   (* implemented with goto for maximum efficiency *)
   label x;
@@ -670,7 +670,7 @@ function addExt(filename, ext : String) : String;
     for i := length(filename) downto 1 do
       case filename[i] of
         '.' : exit;
-        '\': goto x;
+        DirectorySeparator : goto x;
         else
       end;
     x : addExt := filename+'.'+ext

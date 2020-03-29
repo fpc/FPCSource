@@ -53,6 +53,7 @@ var
 
   msgidxmax  : array[1..msgparts] of longint;
   msgs       : array[0..msgparts,0..999] of boolean;
+  msgcodepage: TSystemCodePage;
 
 procedure LoadMsgFile(const fn:string);
 var
@@ -75,6 +76,7 @@ var
 
 begin
   Writeln('Loading messagefile ',fn);
+  msgcodepage:=CP_ACP;
 {Read the message file}
   assign(f,fn);
   {$push} {$I-}
@@ -100,7 +102,7 @@ begin
       begin
         if s=']' then
          multiline:=false
-        else
+        else if (s='') or (s[1] <> '#') then
          inc(msgsize,length(s)+1); { +1 for linebreak }
       end
      else
@@ -150,6 +152,12 @@ begin
             end
            else
             err('no = found');
+         end
+        else if (Length(s)>11) and (Copy(s,1,11)='# CodePage ') then
+         begin
+           val(Copy(s,12,Length(s)-11),msgcodepage,code);
+           if code<>0 then
+             err('illegal code page number: '+s);
          end;
       end;
    end;
@@ -183,7 +191,7 @@ begin
            ptxt^:=#0;
            inc(ptxt);
          end
-        else
+        else if (s='') or (s[1] <> '#') then
          begin
            move(s[1],ptxt^,length(s));
            inc(ptxt,length(s));
@@ -329,6 +337,7 @@ begin
 {Open textfile}
   assign(t,fn);
   rewrite(t);
+  writeln(t,'const '+constname+'_codepage=',msgcodepage:5,';');
   writeln(t,'{$ifdef Delphi}');
   writeln(t,'const '+constname+' : array[0..000000] of string[',maxslen,']=(');
   writeln(t,'{$else Delphi}');
@@ -402,12 +411,12 @@ begin
   writeln(t,');');
   close(t);
 {update arraysize}
-  s:=l0(msgsize div maxslen); { we start with 0 }
+  s:=l0((msgsize-1) div maxslen); { we start with 0 }
   assign(f,fn);
   reset(f,1);
-  seek(f,34+eollen+length(constname));
+  seek(f,22+34+2*eollen+2*length(constname));
   blockwrite(f,s[1],5);
-  seek(f,90+3*eollen+2*length(constname));
+  seek(f,22+90+4*eollen+3*length(constname));
   blockwrite(f,s[1],5);
   close(f);
 end;
@@ -705,7 +714,7 @@ begin
                end;
               if s[i+k]='_' then
                inc(i,k+1);
-              writeln(t,'\item ['+s1+escapestring(Copy(s,i,255))+']');
+              writeln(t,'\item ['+s1+escapestring(Copy(s,i,255))+'] \hfill \\');
             end
            else
             writeln('error in line: ',line,' skipping');

@@ -14,7 +14,7 @@
 {$mode objfpc}
 {$H+}
 {$inline on}
-unit comobj;
+unit ComObj;
 
   interface
 
@@ -92,7 +92,7 @@ unit comobj;
         destructor Destroy; override;
         procedure AddObjectFactory(factory: TComObjectFactory);
         procedure RemoveObjectFactory(factory: TComObjectFactory);
-        procedure ForEachFactory(ComServer: TComServerObject; FactoryProc: TFactoryProc);
+        procedure ForEachFactory(ComServer: TComServerObject; FactoryProc: TFactoryProc;const bBackward:boolean=false);
         function GetFactoryFromClass(ComClass: TClass): TComObjectFactory;
         function GetFactoryFromClassID(const ClassID: TGUID): TComObjectFactory;
       end;
@@ -159,11 +159,12 @@ unit comobj;
         FErrorIID: TGUID;
         FInstancing: TClassInstancing;
         FLicString: WideString;
-        //FRegister: Longint;
+        FIsRegistered: dword;
         FShowErrors: Boolean;
         FSupportsLicensing: Boolean;
         FThreadingModel: TThreadingModel;
         function GetProgID: string;
+        function reg_flags(): integer;
       protected
         { IUnknown }
         function QueryInterface(constref IID: TGUID; out Obj): HResult; stdcall;
@@ -694,7 +695,7 @@ implementation
       end;
 
     procedure TComClassManager.ForEachFactory(ComServer: TComServerObject;
-      FactoryProc: TFactoryProc);
+      FactoryProc: TFactoryProc;const bBackward:boolean=false);
       var
         i: Integer;
         obj: TComObjectFactory;
@@ -703,12 +704,20 @@ implementation
          if printcom then 
         WriteLn('ForEachFactory');
 {$endif}
+        if not bBackward then
         for i := 0 to fClassFactoryList.Count - 1 do
         begin
           obj := TComObjectFactory(fClassFactoryList[i]);
           if obj.ComServer = ComServer then
             FactoryProc(obj);
-        end;
+        end
+        else
+        for i := fClassFactoryList.Count - 1 downto 0 do
+        begin
+          obj := TComObjectFactory(fClassFactoryList[i]);
+          if obj.ComServer = ComServer then
+            FactoryProc(obj);
+        end
       end;
 
 
@@ -937,8 +946,13 @@ implementation
          if printcom then 
         WriteLn('LockServer: ', fLock);
 {$endif}
-        RunError(217);
-        Result:=0;
+{$ifndef wince}
+          Result := CoLockObjectExternal(Self, fLock, True);
+          ComServer.CountObject(fLock);
+{$else}
+          RunError(217);
+          Result:=0;
+{$endif}
       end;
 
 
@@ -1003,13 +1017,16 @@ implementation
         FComClass := ComClass;
         FInstancing := Instancing;;
         ComClassManager.AddObjectFactory(Self);
+        fIsRegistered := dword(-1);
       end;
 
 
     destructor TComObjectFactory.Destroy;
       begin
+{$ifndef wince}
+        if fIsRegistered <> dword(-1) then CoRevokeClassObject(fIsRegistered);
+{$endif}
         ComClassManager.RemoveObjectFactory(Self);
-        //RunError(217);
       end;
 
 
@@ -1023,15 +1040,31 @@ implementation
         Result := TComClass(FComClass).Create();
       end;
 
+    function TComObjectFactory.reg_flags():integer;inline;
+    begin
+       Result:=0;
+       case Self.FInstancing of
+       ciSingleInstance: Result:=Result or REGCLS_SINGLEUSE;
+       ciMultiInstance: Result:=Result or REGCLS_MULTIPLEUSE;
+       end;
+       if FComServer.StartSuspended then
+         Result:=Result or REGCLS_SUSPENDED;
+    end;
 
     procedure TComObjectFactory.RegisterClassObject;
-      begin
+    begin
       {$ifdef DEBUG_COM}
          if printcom then 
         WriteLn('TComObjectFactory.RegisterClassObject');
       {$endif}
-        RunError(217);
-      end;
+{$ifndef wince}
+      if FInstancing <> ciInternal then
+      OleCheck(CoRegisterClassObject(FClassID, Self, CLSCTX_LOCAL_SERVER,
+         reg_flags(), @FIsRegistered));
+{$else}
+      RunError(217);
+{$endif}
+    end;
 
 
 (* Copy from Sample.RGS (http://www.codeproject.com/KB/atl/RegistryMap.aspx)
@@ -1066,6 +1099,7 @@ HKCR
     procedure TComObjectFactory.UpdateRegistry(Register: Boolean);
       var
         classidguid: String;
+        srv_type: string;
 
         function ThreadModelToString(model: TThreadingModel): String;
         begin
@@ -1086,12 +1120,14 @@ HKCR
 {$endif}
         if Instancing = ciInternal then Exit;
 
+        if System.ModuleIsLib then srv_type:='InprocServer32' else srv_type:='LocalServer32';
+
         if Register then
         begin
           classidguid := GUIDToString(ClassID);
-          CreateRegKey('CLSID\' + classidguid + '\InprocServer32', '', FComServer.ServerFileName);
+          CreateRegKey('CLSID\' + classidguid + '\'+srv_type, '', FComServer.ServerFileName);
           //tmSingle, tmApartment, tmFree, tmBoth, tmNeutral
-          CreateRegKey('CLSID\' + classidguid + '\InprocServer32', 'ThreadingModel', ThreadModelToString(ThreadingModel));
+          CreateRegKey('CLSID\' + classidguid + '\'+srv_type, 'ThreadingModel', ThreadModelToString(ThreadingModel));
           CreateRegKey('CLSID\' + classidguid, '', Description);
           if ClassName <> '' then
           begin
@@ -1115,7 +1151,7 @@ HKCR
         end else
         begin
           classidguid := GUIDToString(ClassID);
-          DeleteRegKey('CLSID\' + classidguid + '\InprocServer32');
+          DeleteRegKey('CLSID\' + classidguid + '\'+srv_type);
           DeleteRegKey('CLSID\' + classidguid + '\VersionIndependentProgID');
           if ClassName <> '' then
           begin
@@ -1875,4 +1911,3 @@ finalization
   if Initialized then
     CoUninitialize;
 end.
-

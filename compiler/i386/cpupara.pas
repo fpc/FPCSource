@@ -40,8 +40,9 @@ unit cpupara;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
+          function get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
-          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
+          function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): TCGPara;override;
        private
@@ -56,7 +57,7 @@ unit cpupara;
        cutils,sysutils,
        systems,verbose,
        symtable,
-       defutil;
+       globals,defutil;
 
       const
         parasupregs : array[0..2] of tsuperregister = (RS_EAX,RS_EDX,RS_ECX);
@@ -112,6 +113,8 @@ unit cpupara;
                        exit;
                      end;
                   end;
+                else
+                  ;
               end;
             end;
           system_i386_os2,
@@ -129,6 +132,8 @@ unit cpupara;
                        exit;
                      end;
                   end;
+                else
+                  ;
               end;
             end;
           system_i386_freebsd,
@@ -156,9 +161,13 @@ unit cpupara;
                         result:=false;
                         exit;
                       end;
+                    else
+                      ;
                   end;
               end;
             end;
+          else
+            ;
         end;
         result:=inherited ret_in_param(def,pd);
       end;
@@ -233,6 +242,8 @@ unit cpupara;
             result:=not(calloption in cdecl_pocalls) and not tprocvardef(def).is_addressonly;
           setdef :
             result:=not(calloption in cdecl_pocalls) and (not is_smallset(def));
+          else
+            ;
         end;
       end;
 
@@ -262,10 +273,10 @@ unit cpupara;
           pocall_cdecl,
           pocall_syscall,
           pocall_cppdecl,
-          pocall_mwpascal :
+          pocall_mwpascal,
+          pocall_pascal:
             result:=[RS_EAX,RS_EDX,RS_ECX];
           pocall_far16,
-          pocall_pascal,
           pocall_oldfpccall :
             result:=[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI,RS_EBX];
           else
@@ -283,6 +294,31 @@ unit cpupara;
     function tcpuparamanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[0..first_mm_imreg-1];
+      end;
+
+
+    function tcpuparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
+      const
+        saveregs : {$ifndef VER3_0}tcpuregisterarray{$else}array[0..3] of tsuperregister{$endif} = (RS_EBX,RS_ESI,RS_EDI,RS_EBP);
+        saveregs_oldfpccall : {$ifndef VER3_0}tcpuregisterarray{$else}array[0..0] of tsuperregister{$endif} = (RS_EBP);
+      begin
+        case calloption of
+          pocall_internproc,
+          pocall_register,
+          pocall_safecall,
+          pocall_stdcall,
+          pocall_cdecl,
+          pocall_syscall,
+          pocall_cppdecl,
+          pocall_mwpascal,
+          pocall_pascal:
+            result:=saveregs;
+          pocall_far16,
+          pocall_oldfpccall :
+            result:=saveregs_oldfpccall;
+          else
+            internalerror(2018050401);
+        end;
       end;
 
 
@@ -397,7 +433,7 @@ unit cpupara;
         { we push Flags and CS as long
           to cope with the IRETD
           and we save 6 register + 4 selectors }
-        if po_interrupt in p.procoptions then
+        if (po_interrupt in p.procoptions) and (side=calleeside) then
           inc(parasize,8+6*4+4*2);
         { Offset is calculated like:
            sub esp,12
@@ -421,7 +457,8 @@ unit cpupara;
             { syscall for AROS can have already a paraloc set }
             if (vo_has_explicit_paraloc in hp.varoptions) then
               begin
-                if not(vo_is_syscall_lib in hp.varoptions) then
+                { on AROS-i386, only the libbase can have explicit paraloc }
+                if not (vo_is_syscall_lib in hp.varoptions) then
                   internalerror(2016090105);
                 if p.proccalloption in pushleftright_pocalls then
                   dec(i)
@@ -440,25 +477,23 @@ unit cpupara;
             else
               begin
                 paralen:=push_size(hp.varspez,paradef,p.proccalloption);
-                { darwin/x86 requires that parameters < sizeof(aint) are sign/ }
-                { zero extended to sizeof(aint)                                }
-                if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-                   (side = callerside) and
-                   (paralen > 0) and
-                   (paralen < sizeof(aint)) then
-                  begin
-                    paralen:=sizeof(aint);
-                    paracgsize:=OS_SINT;
-                    paradef:=sinttype;
-                  end
-                else
-                  paracgsize:=def_cgsize(paradef);
+                paracgsize:=def_cgsize(paradef);
               end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].intsize:=paralen;
             hp.paraloc[side].def:=paradef;
             hp.paraloc[side].Alignment:=paraalign;
+            { darwin/x86 requires that parameters < sizeof(aint) are sign/ }
+            { zero extended to sizeof(aint)                                }
+            if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
+               (side = callerside) and
+               (paralen > 0) and
+               (paralen < sizeof(aint)) then
+              begin
+                paracgsize:=OS_SINT;
+                paradef:=sinttype;
+              end;
             { Copy to stack? }
             if (paracgsize=OS_NO) or
                (use_fixed_stack) then
@@ -743,15 +778,22 @@ unit cpupara;
       end;
 
 
-    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
       var
         parasize : longint;
       begin
         parasize:=0;
         { calculate the registers for the normal parameters }
-        create_stdcall_paraloc_info(p,callerside,p.paras,parasize);
+        create_stdcall_paraloc_info(p,side,p.paras,parasize);
         { append the varargs }
-        create_stdcall_paraloc_info(p,callerside,varargspara,parasize);
+        if assigned(varargspara) then
+          begin
+            if side=callerside then
+              create_stdcall_paraloc_info(p,side,varargspara,parasize)
+            else
+              internalerror(2019021926);
+          end;
+        create_funcretloc_info(p,side);
         result:=parasize;
       end;
 

@@ -143,23 +143,16 @@ const
     zero_fill_size : 0;
     flags : 0;
   ); cvar; public;
-
 {$ifdef win64}
-  { This is a hack to support external linking.
+  { This was a hack to support external linking.
     All released win64 versions of GNU binutils miss proper prefix handling
     when searching for _tls_used and expect two leading underscores.
     The issue has been fixed in binutils snapshots, but not released yet.
 
-    TODO: This should be removed as soon as next version of binutils (>2.21) is
-    released and we upgrade to it. }
-    __tls_used : TTlsDirectory = (
-      data_start : @tls_data_start;
-      data_end : @tls_data_end;
-      index_pointer : @_tls_index;
-      callbacks_pointer : @tls_callbacks;
-      zero_fill_size : 0;
-      flags : 0;
-    ); cvar; public;
+    Using alias allows to support both older and newer binutils.
+    }
+  alias = '__tls_used';
 {$endif win64}
+
 {$endif FPC_USE_TLS_DIRECTORY}
 

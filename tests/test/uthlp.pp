@@ -99,21 +99,25 @@ type
 
   TShortStringHelper = record helper for ShortString
     function Test: LongInt;
+    class function TestClass: LongInt; static;
     constructor Create(aArg: ShortString);
   end;
 
   TAnsiStringHelper = record helper for AnsiString
     function Test: LongInt;
+    class function TestClass: LongInt; static;
     constructor Create(aArg: AnsiString);
   end;
 
   TWideStringHelper = record helper for WideString
     function Test: LongInt;
+    class function TestClass: LongInt; static;
     constructor Create(aArg: WideString);
   end;
 
   TUnicodeStringHelper = record helper for UnicodeString
     function Test: LongInt;
+    class function TestClass: LongInt; static;
     constructor Create(aArg: UnicodeString);
   end;
 
@@ -334,6 +338,11 @@ begin
   Result := 4;
 end;
 
+class function TUnicodeStringHelper.TestClass: LongInt;
+begin
+  Result := 4;
+end;
+
 constructor TUnicodeStringHelper.Create(aArg: UnicodeString);
 begin
   Self := aArg;
@@ -342,6 +351,11 @@ end;
 { TWideStringHelper }
 
 function TWideStringHelper.Test: LongInt;
+begin
+  Result := 3;
+end;
+
+class function TWideStringHelper.TestClass: LongInt;
 begin
   Result := 3;
 end;
@@ -358,6 +372,11 @@ begin
   Result := 2;
 end;
 
+class function TAnsiStringHelper.TestClass: LongInt;
+begin
+  Result := 2;
+end;
+
 constructor TAnsiStringHelper.Create(aArg: AnsiString);
 begin
   Self := aArg;
@@ -366,6 +385,11 @@ end;
 { TShortStringHelper }
 
 function TShortStringHelper.Test: LongInt;
+begin
+  Result := 1;
+end;
+
+class function TShortStringHelper.TestClass: LongInt;
 begin
   Result := 1;
 end;

@@ -224,7 +224,7 @@ begin
 end;
 
 procedure TFPReaderBMP.InternalRead(Stream:TStream; Img:TFPCustomImage);
-
+// NOTE: Assumes that BMP header already has been read
 Var
   Row, i, pallen : Integer;
   BadCompression : boolean;
@@ -504,16 +504,23 @@ begin
 end;
 
 function  TFPReaderBMP.InternalCheck (Stream:TStream) : boolean;
-
+// NOTE: Does not rewind the stream!
 var
   BFH:TBitMapFileHeader;
+  n: Int64;
 begin
-  stream.Read(BFH,SizeOf(BFH));
-  {$IFDEF ENDIAN_BIG}
-  SwapBMPFileHeader(BFH);
-  {$ENDIF}
-  With BFH do
-    Result:=(bfType=BMmagic); // Just check magic number
+  Result:=False;
+  if Stream=nil then
+    exit;
+  n:=SizeOf(BFH);
+  Result:=Stream.Read(BFH,n)=n;
+  if Result then 
+    begin
+   {$IFDEF ENDIAN_BIG}
+    SwapBMPFileHeader(BFH);
+   {$ENDIF}
+    Result := BFH.bfType = BMmagic; // Just check magic number
+    end;
 end;
 
 initialization

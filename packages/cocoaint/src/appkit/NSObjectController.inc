@@ -1,108 +1,76 @@
-{ Parsed from Appkit.framework NSObjectController.h }
+{ Parsed from AppKit.framework NSObjectController.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSOBJECTCONTROLLER_PAS_T}
-{$define NSOBJECTCONTROLLER_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSOBJECTCONTROLLER_PAS_R}
-{$define NSOBJECTCONTROLLER_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSOBJECTCONTROLLER_PAS_F}
-{$define NSOBJECTCONTROLLER_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSOBJECTCONTROLLER_PAS_S}
-{$define NSOBJECTCONTROLLER_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSObjectController = objcclass;
-  NSObjectControllerPointer = ^NSObjectController;
-  NSObjectControllerPtr = NSObjectControllerPointer;
-
+type
+  NSObjectControllerPtr = ^NSObjectController;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSOBJECTCONTROLLER_PAS_C}
-{$define NSOBJECTCONTROLLER_PAS_C}
 
-{ NSObjectController }
+type
   NSObjectController = objcclass external (NSController)
   private
-    _reserved3: Pointer;
+    _reserved3: pointer;
     _managedProxy: id;
-    __objectControllerFlags: record
+    _objectControllerFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSObjectController0: cuint);
-       1: (data: bitpacked record
-        _editable: 0..1;
-        _automaticallyPreparesContent: 0..1;
-        _hasLoadedData: 0..1;
-        _explicitlyCannotAdd: 0..1;
-        _explicitlyCannotRemove: 0..1;
-        _isUsingManagedProxy: 0..1;
-        _hasFetched: 0..1;
-        _batches: 0..1;
-        _reservedObjectController: 0..((1 shl 24)-1);
-       end;
-      );
+        0: (_anonBitField__objectControllerFlags0: cuint);
+        1: (
+          _editable: 0..1;
+          _automaticallyPreparesContent: 0..1;
+          _hasLoadedData: 0..1;
+          _explicitlyCannotAdd: 0..1;
+          _explicitlyCannotRemove: 0..1;
+          _isUsingManagedProxy: 0..1;
+          _hasFetched: 0..1;
+          _batches: 0..1;
+          _reservedObjectController: 0..((1 shl 24)-1);
+        );
       end;
     _objectClassName: NSString;
-    _objectClass: Pobjc_class;
+    _objectClass: pobjc_class;
     _contentObjectArray: NSArray;
     _content: id;
     _objectHandler: id;
-    
   public
-    function initWithContent(content_: id): id; message 'initWithContent:';
-    procedure setContent(content_: id); message 'setContent:';
+    function initWithContent (content: id): instancetype; message 'initWithContent:'; { NS_DESIGNATED_INITIALIZER }
+    function initWithCoder (coder: NSCoder): instancetype; message 'initWithCoder:'; { NS_DESIGNATED_INITIALIZER }
+    procedure setContent(newValue: id); message 'setContent:';
     function content: id; message 'content';
     function selection: id; message 'selection';
     function selectedObjects: NSArray; message 'selectedObjects';
-    procedure setAutomaticallyPreparesContent(flag: Boolean); message 'setAutomaticallyPreparesContent:';
-    function automaticallyPreparesContent: Boolean; message 'automaticallyPreparesContent';
+    procedure setAutomaticallyPreparesContent(newValue: ObjCBOOL); message 'setAutomaticallyPreparesContent:';
+    function automaticallyPreparesContent: ObjCBOOL; message 'automaticallyPreparesContent';
     procedure prepareContent; message 'prepareContent';
-    procedure setObjectClass(objectClass_: Pobjc_class); message 'setObjectClass:';
-    function objectClass: Pobjc_class; message 'objectClass';
+    procedure setObjectClass(newValue: pobjc_class); message 'setObjectClass:';
+    function objectClass: pobjc_class; message 'objectClass';
     function newObject: id; message 'newObject';
-    procedure addObject(object_: id); message 'addObject:';
-    procedure removeObject(object_: id); message 'removeObject:';
-    procedure setEditable(flag: Boolean); message 'setEditable:';
-    function isEditable: Boolean; message 'isEditable';
-    procedure add(sender: id); message 'add:';
-    function canAdd: Boolean; message 'canAdd';
-    procedure remove(sender: id); message 'remove:';
-    function canRemove: Boolean; message 'canRemove';
-    function validateUserInterfaceItem(item: NSValidatedUserInterfaceItemProtocol): Boolean; message 'validateUserInterfaceItem:';
+    procedure addObject (object_: id); message 'addObject:';
+    procedure removeObject (object_: id); message 'removeObject:';
+    procedure setEditable(newValue: ObjCBOOL); message 'setEditable:';
+    function isEditable: ObjCBOOL; message 'isEditable';
+    procedure add (sender: id); message 'add:';
+    function canAdd: ObjCBOOL; message 'canAdd';
+    procedure remove (sender: id); message 'remove:';
+    function canRemove: ObjCBOOL; message 'canRemove';
+    function validateUserInterfaceItem (item: NSValidatedUserInterfaceItemProtocol): ObjCBOOL; message 'validateUserInterfaceItem:';
   end;
 
-{ NSManagedControllerCategory }
-  NSManagedControllerCategory = objccategory external (NSObjectController)
+
+type
+  NSManagedController = objccategory external (NSObjectController)
+    procedure setManagedObjectContext(newValue: NSManagedObjectContext); message 'setManagedObjectContext:';
     function managedObjectContext: NSManagedObjectContext; message 'managedObjectContext';
-    procedure setManagedObjectContext(managedObjectContext_: NSManagedObjectContext); message 'setManagedObjectContext:';
+    procedure setEntityName(newValue: NSString); message 'setEntityName:';
     function entityName: NSString; message 'entityName';
-    procedure setEntityName(entityName_: NSString); message 'setEntityName:';
+    procedure setFetchPredicate(newValue: NSPredicate); message 'setFetchPredicate:';
     function fetchPredicate: NSPredicate; message 'fetchPredicate';
-    procedure setFetchPredicate(predicate: NSPredicate); message 'setFetchPredicate:';
-    function fetchWithRequest_merge_error(fetchRequest: NSFetchRequest; merge: Boolean; error: NSErrorPointer): Boolean; message 'fetchWithRequest:merge:error:';
-    procedure fetch(sender: id); message 'fetch:';
-    procedure setUsesLazyFetching(enabled: Boolean); message 'setUsesLazyFetching:';
-    function usesLazyFetching: Boolean; message 'usesLazyFetching';
-    function defaultFetchRequest: NSFetchRequest; message 'defaultFetchRequest';
+    function fetchWithRequest_merge_error (fetchRequest: NSFetchRequest; merge: ObjCBOOL; error: NSErrorPtr): ObjCBOOL; message 'fetchWithRequest:merge:error:';
+    procedure fetch (sender: id); message 'fetch:';
+    procedure setUsesLazyFetching(newValue: ObjCBOOL); message 'setUsesLazyFetching:';
+    function usesLazyFetching: ObjCBOOL; message 'usesLazyFetching';
+    function defaultFetchRequest: NSFetchRequest; message 'defaultFetchRequest'; { available in 10_5 }
   end;
+{$endif}
 
-{$endif}
-{$endif}

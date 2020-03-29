@@ -42,9 +42,11 @@ interface
     {# Returns the minimal value between @var(a) and @var(b) }
     function min(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
     function min(a,b : int64) : int64;{$ifdef USEINLINE}inline;{$endif}
+    function min(a,b : qword) : qword;{$ifdef USEINLINE}inline;{$endif}
     {# Returns the maximum value between @var(a) and @var(b) }
     function max(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
     function max(a,b : int64) : int64;{$ifdef USEINLINE}inline;{$endif}
+    function max(a,b : qword) : qword;{$ifdef USEINLINE}inline;{$endif}
 
     { These functions are intenionally put here and not in the constexp unit.
       Since Tconstexprint may be automatically converted to int, which causes
@@ -69,12 +71,13 @@ interface
     function reverse_byte(b: byte): byte;
     {# Return @var(w) with the bit order reversed }
     function reverse_word(w: word): word;
+    {# Return @var(l) with the bit order reversed }
+    function reverse_longword(l: longword): longword;
 
     function next_prime(l: longint): longint;
 
-    function used_align(varalign,minalign,maxalign:shortint):shortint;
+    function used_align(varalign,minalign,maxalign:longint):longint;
     function isbetteralignedthan(new, org, limit: cardinal): boolean;
-    function size_2_align(len : longint) : shortint;
     function packedbitsloadsize(bitlen: int64) : int64;
     procedure Replace(var s:string;s1:string;const s2:string);
     procedure Replace(var s:AnsiString;s1:string;const s2:AnsiString);
@@ -108,6 +111,10 @@ interface
     }
     function ispowerof2(value : int64;out power : longint) : boolean;
     function ispowerof2(const value : Tconstexprint;out power : longint) : boolean;
+    {# Returns true if abs(value) is a power of 2, the actual
+       exponent value is returned in power.
+    }
+    function isabspowerof2(const value : Tconstexprint;out power : longint) : boolean;
     function nextpowerof2(value : int64; out power: longint) : int64;
 {$ifdef VER2_6}  { only 2.7.1+ has a popcnt function in the system unit }
     function PopCnt(AValue : Byte): Byte;
@@ -136,7 +143,8 @@ interface
 
     { allocates mem for a copy of s, copies s to this mem and returns }
     { a pointer to this mem                                           }
-    function stringdup(const s : string) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
+    function stringdup(const s : shortstring) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
+    function stringdup(const s : ansistring) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
 
     {# Allocates memory for the string @var(s) and copies s as zero
        terminated string to that allocated memory and returns a pointer
@@ -170,6 +178,11 @@ interface
     function minilzw_decode(const s:string):string;
 
     Function nextafter(x,y:double):double;
+
+    function LengthUleb128(a: qword) : byte;
+    function LengthSleb128(a: int64) : byte;
+    function EncodeUleb128(a: qword;out buf;len: byte) : byte;
+    function EncodeSleb128(a: int64;out buf;len: byte) : byte;
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const
@@ -221,6 +234,18 @@ implementation
       end;
 
 
+    function min(a,b : qword) : qword;
+    {
+      return the minimal of a and b
+    }
+      begin
+         if a<=b then
+           min:=a
+         else
+           min:=b;
+      end;
+
+
     function max(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
     {
       return the maximum of a and b
@@ -234,6 +259,18 @@ implementation
 
 
     function max(a,b : int64) : int64;{$ifdef USEINLINE}inline;{$endif}
+    {
+      return the maximum of a and b
+    }
+      begin
+         if a>=b then
+           max:=a
+         else
+           max:=b;
+      end;
+
+
+    function max(a,b : qword) : qword;{$ifdef USEINLINE}inline;{$endif}
     {
       return the maximum of a and b
     }
@@ -288,6 +325,21 @@ implementation
         TWordRec(reverse_word).lo := reverse_byte(TWordRec(w).hi);
       end;
 
+
+    function reverse_longword(l: longword): longword;
+      type
+        TLongWordRec = packed record
+          b: array[0..3] of Byte;
+        end;
+
+      begin
+        TLongWordRec(reverse_longword).b[0] := reverse_byte(TLongWordRec(l).b[3]);
+        TLongWordRec(reverse_longword).b[1] := reverse_byte(TLongWordRec(l).b[2]);
+        TLongWordRec(reverse_longword).b[2] := reverse_byte(TLongWordRec(l).b[1]);
+        TLongWordRec(reverse_longword).b[3] := reverse_byte(TLongWordRec(l).b[0]);
+      end;
+
+
     function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
     {
       return value <i> aligned <a> boundary
@@ -299,9 +351,9 @@ implementation
         else
           begin
             if i<0 then
-              result:=((i-a+1) div a) * a
+              result:=((i+1-a) div a) * a
             else
-              result:=((i+a-1) div a) * a;
+              result:=((i-1+a) div a) * a;
           end;
       end;
 
@@ -317,9 +369,9 @@ implementation
         else
           begin
             if i<0 then
-              result:=((i-a+1) div a) * a
+              result:=((i+1-a) div a) * a
             else
-              result:=((i+a-1) div a) * a;
+              result:=((i-1+a) div a) * a;
           end;
       end;
 
@@ -330,27 +382,10 @@ implementation
     }
       begin
         { for 0 and 1 no aligning is needed }
-        if a<=1 then
+        if (a<=1) or (i=0) then
           result:=i
         else
-          result:=((i+a-1) div a) * a;
-      end;
-
-
-    function size_2_align(len : longint) : shortint;
-      begin
-         if len>16 then
-           size_2_align:=32
-         else if len>8 then
-           size_2_align:=16
-         else if len>4 then
-           size_2_align:=8
-         else if len>2 then
-           size_2_align:=4
-         else if len>1 then
-           size_2_align:=2
-         else
-           size_2_align:=1;
+          result:=((i-1+a) div a) * a;
       end;
 
 
@@ -431,7 +466,7 @@ implementation
       end;
 
 
-    function used_align(varalign,minalign,maxalign:shortint):shortint;
+    function used_align(varalign,minalign,maxalign:longint):longint;
       begin
         { varalign  : minimum alignment required for the variable
           minalign  : Minimum alignment of this structure, 0 = undefined
@@ -616,6 +651,7 @@ implementation
       var
         i  : longint;
       begin
+        Result:='';
         setlength(upper,length(s));
         for i:=1 to length(s) do
           upper[i]:=uppertbl[s[i]];
@@ -651,6 +687,7 @@ implementation
       var
         i : longint;
       begin
+        Result:='';
         setlength(lower,length(s));
         for i:=1 to length(s) do
           lower[i]:=lowertbl[s[i]];
@@ -906,7 +943,7 @@ implementation
       return if value is a power of 2. And if correct return the power
     }
       begin
-        if (value = 0) or (value and (value - 1) <> 0) then
+        if (value <= 0) or (value and (value - 1) <> 0) then
           exit(false);
         power:=BsfQWord(value);
         result:=true;
@@ -924,6 +961,17 @@ implementation
             result:=true;
             power:=63;
           end
+        else
+          result:=false;
+      end;
+
+
+    function isabspowerof2(const value : Tconstexprint;out power : longint) : boolean;
+      begin
+        if ispowerof2(value,power) then
+          result:=true
+        else if value.signed and (value.svalue<0) and (value.svalue<>low(int64)) and ispowerof2(-value.svalue,power) then
+          result:=true
         else
           result:=false;
       end;
@@ -1045,6 +1093,7 @@ implementation
         t: string;
         ch: Char;
     begin
+      t:='';
       DePascalQuote:= false;
       len:= length(s);
       if (len >= 1) and (s[1] = '''') then
@@ -1160,12 +1209,18 @@ implementation
       end;
 
 
-    function stringdup(const s : string) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
+    function stringdup(const s : shortstring) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
       begin
          getmem(result,length(s)+1);
          result^:=s;
       end;
 
+
+    function stringdup(const s : ansistring) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
+      begin
+         getmem(result,length(s)+1);
+         result^:=s;
+      end;
 
     function CompareStr(const S1, S2: string): Integer;
       var
@@ -1228,7 +1283,7 @@ implementation
             exit(res);
           { if one of the two is at the end while the other isn't, add a '.0' }
           if (i1>length(s1)) and
-             (i2<=length(s1)) then
+             (i2<=length(s2)) then
             s1:=s1+'.0'
           else if i2>length(s2) then
             s2:=s2+'.0';
@@ -1561,6 +1616,89 @@ implementation
     nextafter:=x;
 
     end;
+
+
+    function LengthUleb128(a: qword) : byte;
+      begin
+        result:=0;
+        repeat
+          a := a shr 7;
+          inc(result);
+          if a=0 then
+            break;
+        until false;
+      end;
+
+
+    function LengthSleb128(a: int64) : byte;
+      var
+        b: byte;
+        more: boolean;
+      begin
+        more := true;
+        result:=0;
+        repeat
+          b := a and $7f;
+          a := SarInt64(a, 7);
+
+          if (
+            ((a = 0) and (b and $40 = 0)) or
+            ((a = -1) and (b and $40 <> 0))
+          ) then
+            more := false;
+          inc(result);
+          if not(more) then
+            break;
+        until false;
+      end;
+
+
+    function EncodeUleb128(a: qword;out buf;len : byte) : byte;
+      var
+        b: byte;
+        pbuf : pbyte;
+      begin
+        result:=0;
+        pbuf:=@buf;
+        repeat
+          b := a and $7f;
+          a := a shr 7;
+          if a<>0 then
+            b := b or $80;
+          pbuf^:=b;
+          inc(pbuf);
+          inc(result);
+          if (a=0) and  (result>=len) then
+            break;
+        until false;
+      end;
+
+
+    function EncodeSleb128(a: int64;out buf;len : byte) : byte;
+      var
+        b: byte;
+        more: boolean;
+        pbuf : pbyte;
+      begin
+        more := true;
+        result:=0;
+        pbuf:=@buf;
+        repeat
+          b := a and $7f;
+          a := SarInt64(a, 7);
+
+          if (result+1>=len) and (
+            ((a = 0) and (b and $40 = 0)) or
+            ((a = -1) and (b and $40 <> 0))
+          ) then
+            more := false
+          else
+            b := b or $80;
+          pbuf^:=b;
+          inc(pbuf);
+          inc(result);
+        until not more;
+      end;
 
 
 initialization

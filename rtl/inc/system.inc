@@ -23,46 +23,6 @@ type
   ObjpasInt = LongInt;
 {$endif CPU16}
 
-{ The RTTI is implemented through a series of constants : }
-
-Const
-   // please update tkManagedTypes below if you add new
-   // values
-   tkUnknown        = 0;
-   tkInteger        = 1;
-   tkChar           = 2;
-   tkEnumeration    = 3;
-   tkFloat          = 4;
-   tkSet            = 5;
-   tkMethod         = 6;
-   tkSString        = 7;
-   tkString         = tkSString;
-   tkLString        = 8;
-   tkAString        = 9;
-   tkWString        = 10;
-   tkVariant        = 11;
-   tkArray          = 12;
-   tkRecord         = 13;
-   tkInterface      = 14;
-   tkClass          = 15;
-   tkObject         = 16;
-   tkWChar          = 17;
-   tkBool           = 18;
-   tkInt64          = 19;
-   tkQWord          = 20;
-   tkDynArray       = 21;
-   tkInterfaceCorba = 22;
-   tkProcVar        = 23;
-   tkUString        = 24;
-   tkHelper         = 26;
-   tkFile           = 27;
-   tkClassRef       = 28;
-   tkPointer        = 29;
-
-  // all potentially managed types
-  tkManagedTypes   = [tkAstring,tkWstring,tkUstring,tkArray,
-                     tkObject,tkRecord,tkDynArray,tkInterface,tkVariant];
-
 {****************************************************************************
                                 Local types
 ****************************************************************************}
@@ -84,7 +44,11 @@ type
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 const
+{$ifdef CPUAVR}
+  STACK_MARGIN = 64;    { Stack size margin for stack checking }
+{$else}
   STACK_MARGIN = 16384;    { Stack size margin for stack checking }
+{$endif}
 { Random / Randomize constants }
   OldRandSeed : Cardinal = 0;
 
@@ -168,6 +132,10 @@ function do_isdevice(handle:thandle):boolean;forward;
 ****************************************************************************}
 
 {$ifdef FPC_USE_LIBC}
+{$ifdef USE_CPU_MOVE}
+  { Avoid use of generic C code for move procedure }
+  {$define FPC_SYSTEM_HAS_MOVE}
+{$endif}
 { Under Haiku, bcopy cause a problem when searching for include file
   in the compiler. So, we use the internal implementation for now
   under BeOS and Haiku.  }
@@ -176,6 +144,10 @@ function do_isdevice(handle:thandle):boolean;forward;
 {$i cgeneric.inc}
 { is now declared as external reference to another routine in the interface }
 {$i cgenstr.inc}
+{$endif}
+{$ifdef USE_CPU_MOVE}
+  { Avoid use of generic C code for move procedure }
+  {$undef FPC_SYSTEM_HAS_MOVE}
 {$endif}
 {$endif FPC_USE_LIBC}
 
@@ -251,6 +223,14 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$define SYSPROCDEFINED}
 {$endif cpusparc}
 
+{$ifdef cpusparc64}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i sparc64.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpusparc64}
+
 {$ifdef cpuarm}
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
@@ -300,6 +280,30 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$i aarch64.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
 {$endif cpuaarch64}
+
+{$ifdef cpuriscv32}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i riscv32.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpuriscv32}
+
+{$ifdef cpuriscv64}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i riscv64.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpuriscv64}
+
+{$ifdef cpuxtensa}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i xtensa.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpuxtensa}
 
 {$ifdef cpuz80}
   {$ifdef SYSPROCDEFINED}
@@ -470,6 +474,28 @@ function aligntoqword(p : pointer) : pointer;inline;
   end;
 
 
+function AlignTypeData(p : pointer) : pointer; inline;
+  begin
+{$if defined(CPUM68K) and not defined(VER3_0)}
+    result := aligntoqword(p);
+{$else CPUM68K and not VER3_0}
+    result := aligntoptr(p);
+{$endif CPUM68K and not VER3_0}
+  end;
+
+
+{$if not defined(VER3_0) and not defined(VER3_2)}
+type
+  TRttiDataCommon =
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif}
+  record
+    Attrs: Pointer;
+  end;
+{$endif not VER3_0 and not VER3_2}
+
+
 {****************************************************************************
                   Subroutines for String handling
 ****************************************************************************}
@@ -495,6 +521,14 @@ function aligntoqword(p : pointer) : pointer;inline;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {$i aliases.inc}
+
+{****************************************************************************
+                  Run-Time Type Information (RTTI) declarations
+****************************************************************************}
+
+{$ifdef FPC_HAS_FEATURE_RTTI}
+{$i rttidecl.inc}
+{$endif FPC_HAS_FEATURE_RTTI}
 
 {*****************************************************************************
                         Dynamic Array support
@@ -674,16 +708,37 @@ begin
 end;
 
 function random(l:int64): int64;
+var
+ a, b, c, d: cardinal;
+ q, bd, ad, bc, ac: qword;
+ carry: qword;
 begin
-  { always call random, so the random generator cycles (TP-compatible) (JM) }
-  { also do it in two separate steps, so the order in which the two calls
-    are performed is predictable (JM) }
-  random:=mtwist_u32rand;
-  random:=random or ((qword(mtwist_u32rand) shl 32) and high(int64));
-  if (l<>0) then
-    random := random mod l
+  if (l < 0) then
+    begin
+      inc(l);
+      q:=qword(-l)
+    end
   else
-    random := 0;
+    q:=qword(l);
+
+  a:=mtwist_u32rand;
+  b:=mtwist_u32rand;
+
+  c:=q shr 32;
+  d:=cardinal(q);
+
+  bd:=qword(b)*d;
+  ad:=qword(a)*d;
+  bc:=qword(b)*c;
+  ac:=qword(a)*c;
+
+  // We only need the carry bit
+  carry:=((bd shr 32)+cardinal(ad)+cardinal(bc)) shr 32;
+
+  // Calculate the final result
+  result:=int64(carry+(ad shr 32)+(bc shr 32)+ac);
+  if l<0 then
+    result:=-result;
 end;
 
 {$ifndef FPUNONE}
@@ -741,7 +796,11 @@ End;
 {$ifndef FPC_SYSTEM_HAS_STACKTOP}
 function StackTop: pointer;
 begin
-  result:=StackBottom+StackLength;
+  { Avoid wrap to zero on 32-bit }
+  if ptruint(StackBottom) > high(ptruint) - StackLength then
+    result:=pointer(ptruint(high(ptruint)))
+  else
+    result:=StackBottom + StackLength;
 end;
 {$endif FPC_SYSTEM_HAS_STACKTOP}
 
@@ -772,6 +831,42 @@ begin
 end;
 {$endif ndef FPC_SYSTEM_HAS_GET_CALLER_STACKINFO}
 
+{$ifdef FPC_HAS_EXPLICIT_INTERLOCKED_POINTER}
+{$ifndef FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER}
+
+function InterLockedDecrement (var Target: pointer) : pointer;
+  begin
+    Result := Pointer(InterLockedDecrement(PtrInt(Target)));
+  end;
+
+function InterLockedIncrement (var Target: pointer) : pointer;
+  begin
+    Result := Pointer(InterLockedIncrement(PtrInt(Target)));
+  end;
+
+function InterLockedExchange (var Target: pointer; Source : pointer) : pointer;
+  begin
+    Result := Pointer(InterLockedExchange(PtrInt(Target), PtrInt(Source)));
+  end;
+
+function InterLockedExchangeAdd (var Target: pointer; Source : pointer) : pointer;
+  begin
+    Result := Pointer(InterLockedExchangeAdd(PtrInt(Target), PtrInt(Source)));
+  end;
+
+function InterLockedCompareExchange (var Target: pointer; NewValue: pointer; Comperand: pointer): pointer;
+  begin
+    Result := Pointer(InterLockedCompareExchange(PtrInt(Target), PtrInt(NewValue), PtrInt(Comperand)));
+  end;
+
+function InterLockedCompareExchangePointer (var Target: pointer; NewValue: pointer; Comperand: pointer): pointer;
+  begin
+    Result := Pointer(InterLockedCompareExchange(PtrInt(Target), PtrInt(NewValue), PtrInt(Comperand)));
+  end;
+
+{$endif FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER}
+{$endif FPC_HAS_EXPLICIT_INTERLOCKED_POINTER}
+
 procedure fpc_objecterror; compilerproc;
 begin
   HandleErrorAddrFrameInd(210,get_pc_addr,get_frame);
@@ -797,7 +892,7 @@ end;
 
 procedure fpc_threaderror; [public,alias:'FPC_THREADERROR'];
 begin
-  HandleErrorAddrFrameInd(6,get_pc_addr,get_frame);
+    HandleErrorAddrFrameInd(236{RuntimeErrorExitCodes[reThreadError]},get_pc_addr,get_frame);
 end;
 
 
@@ -872,15 +967,27 @@ begin
   { Avoid recursive calls when called from the exit routines }
   if StackError then
    exit;
-  { don't use sack_size, since the stack pointer has already been
+  { check stack alignment }
+{$ifdef CPUI386}
+{$ifdef FPC_STACKALIGNMENT}
+{$if FPC_STACKALIGNMENT=16}
+  if ((PtrUInt(Sptr)+4) mod 16)<>0 then
+    begin
+      StackError:=true;
+      HandleError(202);
+    end;
+{$endif FPC_STACKALIGNMENT=16}
+{$endif FPC_STACKALIGNMENT}
+{$endif CPUI386}
+  { don't use stack_size, since the stack pointer has already been
     decreased when this routine is called
   }
   c := Sptr - STACK_MARGIN;
   if (c <= StackBottom) then
-   begin
-     StackError:=true;
-     HandleError(202);
-   end;
+    begin
+      StackError:=true;
+      HandleError(202);
+    end;
 end;
 {$POP}
 
@@ -917,23 +1024,16 @@ var
 procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 var
   i : ALUUInt;
-{$ifdef DEBUG}
   pt : PInitFinalTable;
-{$endif}
 begin
   { call cpu/fpu initialisation routine }
   fpc_cpuinit;
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
-{$ifdef DEBUG}
   pt := PInitFinalTable(EntryInformation.InitFinalTable);
-{$endif}
-  with PInitFinalTable(EntryInformation.InitFinalTable)^ do
 {$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
-{$ifdef DEBUG}
   pt := @InitFinalTable;
-{$endif}
-  with InitFinalTable do
 {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+  with pt^ do
    begin
      for i:=1 to ALUUInt(TableCount) do
       begin
@@ -960,10 +1060,10 @@ begin
 end;
 
 
-{$ifdef CPUAVR}
+{$ifdef FPC_INIT_FINAL_UNITS_BY_CALLS}
 procedure FinalizeUnits; external name 'FPC_FINALIZE_FUNC_TABLE';
 
-{$else CPUAVR}
+{$else FPC_INIT_FINAL_UNITS_BY_CALLS}
 procedure FinalizeUnits;[public,alias:'FPC_FINALIZEUNITS'];
 begin
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
@@ -982,13 +1082,14 @@ begin
       end;
    end;
 end;
-{$endif CPUAVR}
+{$endif FPC_INIT_FINAL_UNITS_BY_CALLS}
 
 {*****************************************************************************
                           Error / Exit / ExitProc
 *****************************************************************************}
 
-Procedure system_exit;forward;
+Procedure system_exit;forward;{$ifdef FPC_SYSTEM_EXIT_NO_RETURN}noreturn;{$endif}
+
 {$ifdef FPC_HAS_FEATURE_HEAP}
 {$ifndef HAS_MEMORYMANAGER}
 //not needed if independant memory manager
@@ -1004,10 +1105,12 @@ begin
     Flush(Output);
   if Textrec(ErrOutput).Mode=fmOutput then
     Flush(ErrOutput);
+{$ifndef FPC_STDOUT_TRUE_ALIAS}
   if Textrec(stdout).Mode=fmOutput then
     Flush(stdout);
   if Textrec(StdErr).Mode=fmOutput then
     Flush(StdErr);
+{$endif FPC_STDOUT_TRUE_ALIAS}
 end;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 
@@ -1107,13 +1210,13 @@ end;
 procedure internal_do_exit; external name 'FPC_DO_EXIT';
 
 
-Procedure lib_exit;[Public,Alias:'FPC_LIB_EXIT'];
+Procedure fpc_lib_exit;[Public,Alias:'FPC_LIB_EXIT'];
 begin
   InternalExit;
 end;
 
 
-Procedure Halt(ErrNum: Longint);
+Procedure Halt(ErrNum: Longint);noreturn;
 Begin
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
 {$ifdef FPC_LIMITED_EXITCODE}
@@ -1209,7 +1312,7 @@ begin
 end;
 
 
-procedure RunError(w : word);[alias: 'FPC_RUNERROR'];
+procedure RunError(w : word);[alias: 'FPC_RUNERROR'];noreturn;
 var
   bp : pointer;
   pcaddr : codepointer;
@@ -1224,13 +1327,13 @@ begin
 end;
 
 
-Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}noreturn;
 Begin
   RunError (0);
 End;
 
 
-Procedure Halt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure Halt;{$ifdef SYSTEMINLINE}inline;{$endif}noreturn;
 Begin
   Halt(0);
 End;
@@ -1360,6 +1463,11 @@ End;
 {$ifdef FPC_HAS_FEATURE_HEAP}
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 // Extra allocate reserveentries pchar's at the beginning (default param=0 after 1.0.x ?)
 // Note: for internal use by skilled programmers only
 // if "s" goes out of scope in the parent procedure, the pointer is dangling.
@@ -1382,6 +1490,7 @@ begin
   p[high(s)+1+Reserveentries]:=nil;
   ArrayStringToPPchar:=p;
 end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 
 Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
@@ -1537,10 +1646,8 @@ end;
 { Generic threadmanager }
 {$i thread.inc}
 
-{$ifndef FPC_SECTION_THREADVARS}
 { Generic threadvar support }
 {$i threadvr.inc}
-{$endif FPC_SECTION_THREADVARS}
 
 {$ifdef DISABLE_NO_THREAD_MANAGER}
 { OS Dependent implementation }

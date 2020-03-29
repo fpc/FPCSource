@@ -102,9 +102,6 @@ unit cpubase;
       VOLATILE_INTREGISTERS = [RS_R0..RS_R3,RS_R12..RS_R15];
       VOLATILE_FPUREGISTERS = [RS_F0..RS_F3];
 
-    type
-      totherregisterset = set of tregisterindex;
-
 {*****************************************************************************
                                 Conditions
 *****************************************************************************}
@@ -238,20 +235,6 @@ unit cpubase;
 *****************************************************************************}
 
     const
-      { Registers which must be saved when calling a routine declared as
-        cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
-        saved should be the ones as defined in the target ABI and / or GCC.
-
-        This value can be deduced from the CALLED_USED_REGISTERS array in the
-        GCC source.
-      }
-      saved_standard_registers : array[0..0] of tsuperregister =
-        (RS_NO);
-
-      { this is only for the generic code which is not used for this architecture }
-      saved_address_registers : array[0..0] of tsuperregister = (RS_INVALID);
-      saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
-
       { Required parameter alignment when calling a routine declared as
         stdcall and cdecl. The alignment value should be the one defined
         by GCC or the target ABI.
@@ -276,6 +259,9 @@ unit cpubase;
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+
     { Returns the tcgsize corresponding with the size of reg.}
     function reg_cgsize(const reg: tregister) : tcgsize;
     function cgsize2subreg(regtype: tregistertype; s:tcgsize):tsubregister;
@@ -284,6 +270,8 @@ unit cpubase;
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
     function dwarf_reg(r:tregister):shortint;
+    function dwarf_reg_no_error(r:tregister):shortint;
+    function eh_return_data_regno(nr: longint): longint;
 
   implementation
 
@@ -369,6 +357,8 @@ unit cpubase;
             setsubreg(r, R_SUBFS);
           R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
             setsubreg(r, R_SUBD);
+          else
+            ;
         end;
         result:=rgBase.findreg_by_number_table(r,regnumber_index);
       end;
@@ -377,6 +367,30 @@ unit cpubase;
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         result := c1 = c2;
+      end;
+
+
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+      begin
+        Result := (c = C_None) or conditions_equal(Subset, c);
+
+        { Please update as necessary. [Kit] }
+        if not Result then
+          case Subset of
+            C_EQ:
+              Result := (c in [C_GE, C_LE, C_GEU, C_LEU]);
+            C_LT:
+              Result := (c in [C_LE]);
+            C_LTU:
+              Result := (c in [C_LEU]);
+            C_GT:
+              Result := (c in [C_GE]);
+            C_GTU:
+              Result := (c in [C_GEU]);
+            else
+              Result := False;
+          end;
       end;
 
 
@@ -397,6 +411,8 @@ unit cpubase;
             setsubreg(hr, R_SUBFS);
           R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
             setsubreg(hr, R_SUBD);
+          else
+            ;
         end;
         p:=findreg_by_number_table(hr,regnumber_index);
         if p<>0 then
@@ -414,11 +430,35 @@ unit cpubase;
             setsubreg(r, R_SUBFS);
           R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
             setsubreg(r, R_SUBD);
+          else
+            ;
         end;
         result:=regdwarf_table[findreg_by_number(r)];
         if result=-1 then
           internalerror(200603251);
       end;
+
+    function dwarf_reg_no_error(r:tregister):shortint;
+      begin
+        case getsubreg(r) of
+          R_SUBFD:
+            setsubreg(r, R_SUBFS);
+          R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
+            setsubreg(r, R_SUBD);
+          else
+            ;
+        end;
+        result:=regdwarf_table[findreg_by_number(r)];
+      end;
+
+    function eh_return_data_regno(nr: longint): longint;
+      begin
+        if (nr>=0) and (nr<2) then
+          result:=nr+4
+        else
+          result:=-1;
+      end;
+
 
 begin
 end.

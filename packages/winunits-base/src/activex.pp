@@ -1115,6 +1115,12 @@ Const
     XFORMCOORDS_CONTAINERTOHIMETRIC       = $8;
     XFORMCOORDS_EVENTCOMPAT               = $10;
 
+    REGCLS_SINGLEUSE      = 0;  // class object only generates one instance
+    REGCLS_MULTIPLEUSE    = 1;  // same class object genereates multiple inst.
+    REGCLS_MULTI_SEPARATE = 2;  // multiple use, but separate control over each
+    REGCLS_SUSPENDED      = 4;  // register is as suspended, will be activated
+    REGCLS_SURROGATE      = 8;  // must be used when a surrogate process
+
 TYPE
     TVarType            = USHORT;
 
@@ -2788,7 +2794,7 @@ TYPE
        Function GetDataHere(CONST pformatetc : FormatETC; Out medium : STGMEDIUM):HRESULT; STDCALL;
        Function QueryGetData(const pformatetc : FORMATETC):HRESULT; STDCALL;
        Function GetCanonicalFormatEtc(const pformatetcIn : FORMATETC;Out pformatetcOut : FORMATETC):HResult; STDCALl;
-       Function SetData (Const pformatetc : FORMATETC;const medium:STGMEDIUM;FRelease : BOOL):HRESULT; StdCall;
+       Function SetData (Const pformatetc : FORMATETC;var medium:STGMEDIUM;FRelease : BOOL):HRESULT; StdCall;
        Function EnumFormatEtc(dwDirection : DWord; OUT enumformatetcpara : IENUMFORMATETC):HRESULT; StdCall;
        Function DAdvise(const formatetc : FORMATETC;advf :DWORD; CONST AdvSink : IAdviseSink;OUT dwConnection:DWORD):HRESULT;StdCall;
        Function DUnadvise(dwconnection :DWord) :HRESULT;StdCall;
@@ -4060,7 +4066,7 @@ type
        function Uncache(dwConnection:LongWord):HRESULT;stdcall;
        function EnumCache(out ppenumSTATDATA:IEnumSTATDATA):HRESULT;stdcall;
        function InitCache(pDataObject:IDataObject):HRESULT;stdcall;
-       function SetData(var pFormatetc:tagFORMATETC;var pmedium:wireSTGMEDIUM;fRelease:Bool):HRESULT;stdcall;
+       function SetData(var pFormatetc:tagFORMATETC;var medium:TSTGMEDIUM;fRelease:Bool):HRESULT;stdcall;
       end;
 
     IOleCache2 = interface(IOleCache)
@@ -4554,7 +4560,8 @@ type
   function StgSetTimes(_para1:POLESTR; _para2:PFILETIME; _para3:PFILETIME; _para4:PFILETIME):HRESULT;stdcall; external  'ole32.dll' name 'StgSetTimes';
   function CoGetObject(pszname:lpwstr; bndop:PBind_Opts; const riid:TIID; out ppv):HRESULT; stdcall; external  'ole32.dll' name 'CoGetObject';
   function BindMoniker(_para1:IMoniker; _para2:DWORD; const _para3:TIID; out _para4):HRESULT;stdcall; external  'ole32.dll' name 'BindMoniker';
-  function MkParseDisplayName(_para1:IBindCtx; _para2:POLESTR; out _para3:PULONG; out _para4:IMoniker):HRESULT;stdcall; external  'ole32.dll' name 'MkParseDisplayName';
+  function MkParseDisplayName(_para1:IBindCtx; _para2:POLESTR; out _para3:ULONG; out _para4:IMoniker):HRESULT;stdcall; external  'ole32.dll' name 'MkParseDisplayName';
+  function MkParseDisplayName(_para1:IBindCtx; _para2:POLESTR; _para3:PULONG; out _para4:IMoniker):HRESULT;stdcall; external  'ole32.dll' name 'MkParseDisplayName';
   function MonikerRelativePathTo(_para1:IMoniker; _para2:IMoniker; out _para3:IMoniker; _para4:BOOL):HRESULT;stdcall; external  'ole32.dll' name 'MonikerRelativePathTo';
   function MonikerCommonPrefixWith(_para1:IMoniker; _para2:IMoniker; _para3:PIMoniker):HRESULT;stdcall; external  'ole32.dll' name 'MonikerCommonPrefixWith';
 {$endif wince}

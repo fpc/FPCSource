@@ -32,14 +32,15 @@
   -gl
   -Crtoi
   #WRITE Compiling Debug Version
+#ELSE
+  # Strip debuginfo from the executable if not in debug mode
+  -Xs
 #ENDIF
 
 # assembling
 #ifdef darwin
 # use pipes instead of temporary files for assembling
 -ap
-# path to Xcode 4.3+ utilities (no problem if it doesn't exist)
--FD/Applications/Xcode.app/Contents/Developer/usr/bin
 #endif
 
 # ----------------
@@ -145,16 +146,18 @@
 -FM%sharepath%/unicode/
 #endif
 
-# searchpath for units and other system dependent things
--Fu%basepath%/units/$fpctarget
--Fu%basepath%/units/$fpctarget/*
--Fu%basepath%/units/$fpctarget/rtl
-
+# Search for $fpctarget/$fpcsubarch-$fpcmemorymodel/ subdirectory first
+# for i8086 CPU
 #ifdef cpui8086
 -Fu%basepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel
 -Fu%basepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel/*
 -Fu%basepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel/rtl
 #endif
+
+# searchpath for units and other system dependent things
+-Fu%basepath%/units/$fpctarget
+-Fu%basepath%/units/$fpctarget/*
+-Fu%basepath%/units/$fpctarget/rtl
 
 #IFDEF FPCAPACHE_1_3
 -Fu%basepath%/units/$fpctarget/httpd13/
@@ -169,6 +172,9 @@
 # searchpath for fppkg user-specific packages
 -Fu%localbasepath%/units/$FPCTARGET/*
 
+# searchpath for tools
+-FD%basepath%/bin/$FPCTARGET
+
 # path to the gcclib
 %gcclibpath%
 
@@ -176,9 +182,6 @@
 #-Fl%basepath%/lib
 #-Fl/lib;/usr/lib
 -Fl%basepath%/lib/$FPCTARGET
-
-# searchpath for tools
--FD%basepath%/bin/$FPCTARGET
 
 %NEEDCROSSBINUTILSIFDEF%
 
@@ -232,9 +235,6 @@
 
 # always pass an option to the linker
 #-k-s
-
-# Always strip debuginfo from the executable
--Xs
 
 # Always use smartlinking on i8086, because the system unit exceeds the 64kb
 # code limit

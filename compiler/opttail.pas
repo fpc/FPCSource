@@ -36,7 +36,7 @@ unit opttail;
       globtype,
       symconst,symsym,
       defcmp,defutil,
-      nutils,nbas,nflw,ncal,nld,ncnv,
+      nutils,nbas,nflw,ncal,nld,ncnv,nmem,
       pass_1,
       paramgr;
 
@@ -77,6 +77,7 @@ unit opttail;
           tempnode : ttempcreatenode;
           loadnode : tloadnode;
           oldnodetree : tnode;
+          useaddr : boolean;
         begin
           { no tail call found and replaced so far }
           result:=false;
@@ -120,20 +121,41 @@ unit opttail;
                     paranode:=tcallparanode(usedcallnode.left);
                     while assigned(paranode) do
                       begin
-                        tempnode:=ctempcreatenode.create(paranode.left.resultdef,paranode.left.resultdef.size,tt_persistent,true);
-                        addstatement(calcstatements,tempnode);
-                        addstatement(calcstatements,
-                          cassignmentnode.create(
-                            ctemprefnode.create(tempnode),
-                            paranode.left
-                            ));
+                        useaddr:=(paranode.parasym.varspez in [vs_var,vs_constref]) or
+                          ((paranode.parasym.varspez=vs_const) and
+                          paramanager.push_addr_param(paranode.parasym.varspez,paranode.parasym.vardef,p.proccalloption)) or
+                          ((paranode.parasym.varspez=vs_value) and
+                          is_open_array(paranode.parasym.vardef));
+                        if useaddr then
+                          begin
+                            tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
+                            addstatement(calcstatements,tempnode);
+                            addstatement(calcstatements,
+                              cassignmentnode.create(
+                                ctemprefnode.create(tempnode),
+                                caddrnode.create_internal(paranode.left)
+                                ));
+                          end
+                        else
+                          begin
+                            tempnode:=ctempcreatenode.create(paranode.left.resultdef,paranode.left.resultdef.size,tt_persistent,true);
+                            addstatement(calcstatements,tempnode);
+                            addstatement(calcstatements,
+                              cassignmentnode.create_internal(
+                                ctemprefnode.create(tempnode),
+                                paranode.left
+                                ));
+                          end;
 
                         { "cast" away const varspezs }
                         loadnode:=cloadnode.create(paranode.parasym,paranode.parasym.owner);
                         include(tloadnode(loadnode).loadnodeflags,loadnf_isinternal_ignoreconst);
 
+                        { load the address of the symbol instead of symbol }
+                        if useaddr then
+                          include(tloadnode(loadnode).loadnodeflags,loadnf_load_addr);
                         addstatement(copystatements,
-                          cassignmentnode.create(
+                          cassignmentnode.create_internal(
                             loadnode,
                             ctemprefnode.create(tempnode)
                             ));
@@ -176,6 +198,8 @@ unit opttail;
               end;
             blockn:
               result:=find_and_replace_tailcalls(tblocknode(n).left);
+            else
+              ;
           end;
         end;
 
@@ -188,14 +212,12 @@ unit opttail;
         { check if the parameters actually would support tail recursion elimination }
         for i:=0 to p.paras.count-1 do
           with tparavarsym(p.paras[i]) do
-            if (varspez in [vs_out,vs_var,vs_constref]) or
-              ((varspez=vs_const) and
-               (paramanager.push_addr_param(varspez,vardef,p.proccalloption)) or
+            if (varspez=vs_out) or
                { parameters requiring tables are too complicated to handle
                  and slow down things anyways so a tail recursion call
                  makes no sense
                }
-               is_managed_type(vardef)) then
+               is_managed_type(vardef) then
                exit;
 
         labelsym:=clabelsym.create('$opttail');

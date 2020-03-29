@@ -48,7 +48,7 @@ procedure CGAFree;
 implementation
 
 uses
-  go32fix, crt;
+  go32, crt;
 
 const
   palette: array[0..15, 0..2] of Byte = (

@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.OSes:=[beos,haiku,freebsd,solaris,netbsd,openbsd,linux,os2,emx,aix,dragonfly];
     // Do not build x11 on iPhone (=arm-darwin)
     if Defaults.CPU<>arm then
@@ -27,6 +27,10 @@ begin
 
     T:=P.Targets.AddUnit('cursorfont.pp');
     T:=P.Targets.AddUnit('keysym.pp');
+    T:=P.Targets.AddUnit('deckeysym.pp');
+    T:=P.Targets.AddUnit('hpkeysym.pp');
+    T:=P.Targets.AddUnit('sunkeysym.pp');
+    T:=P.Targets.AddUnit('xf86keysym.pp');
     T:=P.Targets.AddUnit('xatom.pp');
     T:=P.Targets.AddUnit('xcms.pp');
       with T.Dependencies do

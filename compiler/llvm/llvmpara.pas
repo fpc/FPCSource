@@ -28,7 +28,7 @@ unit llvmpara;
     uses
       globtype,aasmdata,
       symconst,symtype,symdef,symsym,
-      parabase,
+      parabase,cgbase,
       cpupara;
 
     type
@@ -45,14 +45,18 @@ unit llvmpara;
         architecture-specific code, or whether we will have to integrate parts
         into the various tcpuparamanager classes }
       tllvmparamanager = class(tcpuparamanager)
-        procedure getintparaloc(list: TAsmList; pd: tabstractprocdef; nr: longint; var cgpara: tcgpara); override;
+        procedure getcgtempparaloc(list: TAsmList; pd: tabstractprocdef; nr: longint; var cgpara: tcgpara); override;
         function param_use_paraloc(const cgpara: tcgpara): boolean; override;
         procedure createtempparaloc(list: TAsmList; calloption: tproccalloption; parasym: tparavarsym; can_use_final_stack_loc: boolean; var cgpara: TCGPara); override;
         function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
+        function create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee; varargspara: tvarargsparalist): longint; override;
         function get_funcretloc(p: tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara; override;
        private
+        procedure create_paraloc_info_internllvm(p: tabstractprocdef; side: tcallercallee);
         procedure set_llvm_paraloc_name(p: tabstractprocdef; hp: tparavarsym; var para: tcgpara);
         procedure add_llvm_callee_paraloc_names(p: tabstractprocdef);
+        procedure reducetosingleregparaloc(paraloc: PCGParaLocation; def: tdef; reg: tregister);
+        procedure reduceparalocs(p: tabstractprocdef; side: tcallercallee; paras: tparalist);
       end;
 
 
@@ -63,11 +67,11 @@ unit llvmpara;
       aasmbase,
       llvmsym,
       paramgr,defutil,llvmdef,
-      cgbase,cgutils,tgobj,hlcgobj;
+      cgutils,tgobj,hlcgobj;
 
   { tllvmparamanager }
 
-  procedure tllvmparamanager.getintparaloc(list: TAsmList; pd: tabstractprocdef; nr: longint; var cgpara: tcgpara);
+  procedure tllvmparamanager.getcgtempparaloc(list: TAsmList; pd: tabstractprocdef; nr: longint; var cgpara: tcgpara);
     begin
       if (nr<1) or (nr>pd.paras.count) then
         InternalError(2015040401);
@@ -88,10 +92,55 @@ unit llvmpara;
     end;
 
 
+  procedure tllvmparamanager.reducetosingleregparaloc(paraloc: PCGParaLocation; def: tdef; reg: tregister);
+    var
+      nextloc: pcgparalocation;
+    begin
+      paraloc^.def:=def;
+      paraloc^.size:=def_cgsize(def);
+      paraloc^.register:=reg;
+      paraloc^.shiftval:=0;
+      { remove all other paralocs }
+      while assigned(paraloc^.next) do
+        begin
+          nextloc:=paraloc^.next;
+          paraloc^.next:=nextloc^.next;
+          dispose(nextloc);
+        end;
+    end;
+
+
+  procedure tllvmparamanager.reduceparalocs(p: tabstractprocdef; side: tcallercallee; paras: tparalist);
+    var
+      paranr: longint;
+      hp: tparavarsym;
+      paraloc: PCGParaLocation;
+    begin
+      for paranr:=0 to paras.count-1 do
+        begin
+          hp:=tparavarsym(paras[paranr]);
+          paraloc:=hp.paraloc[side].location;
+          if assigned(paraloc) and
+             assigned(paraloc^.next) and
+             (hp.paraloc[side].def.typ in [orddef,enumdef,floatdef]) then
+            begin
+              if not(paraloc^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
+                internalerror(2019011902);
+              reducetosingleregparaloc(paraloc,hp.paraloc[side].def,paraloc^.register);
+            end
+          else if paraloc^.def=llvm_metadatatype then
+            begin
+              paraloc^.Loc:=LOC_REGISTER;
+              // will be overwritten with a "register" whose superregister is an index in the LLVM metadata table
+              paraloc^.register:=NR_INVALID;
+            end;
+        end;
+    end;
+
   procedure tllvmparamanager.createtempparaloc(list: TAsmList; calloption: tproccalloption; parasym: tparavarsym; can_use_final_stack_loc: boolean; var cgpara: TCGPara);
     var
-      paraloc,
-      nextloc: pcgparalocation;
+      paraloc: pcgparalocation;
+      paralocdef: tdef;
     begin
       inherited;
       paraloc:=cgpara.location;
@@ -99,8 +148,21 @@ unit llvmpara;
         paralocs }
       while assigned(paraloc) do
         begin
-          if vo_is_funcret in parasym.varoptions then
+          if (vo_is_funcret in parasym.varoptions)
+ {$ifdef aarch64}
+             { see AArch64's tcpuparamanager.create_paraloc_info_intern() }
+             and not is_managed_type(parasym.vardef)
+ {$endif aarch64}
+             then
             paraloc^.retvalloc:=true;
+          { ordinal parameters must be passed as a single paraloc }
+          if (cgpara.def.typ in [orddef,enumdef,floatdef]) and
+             assigned(paraloc^.next) then
+            begin
+              paraloc^.loc:=LOC_REGISTER;
+              reducetosingleregparaloc(paraloc,cgpara.def,hlcg.getintregister(list,cgpara.def));
+            end;
+
           { varargs parameters do not have a parasym.owner, but they're always
             by value }
           if (assigned(parasym.owner) and
@@ -149,18 +211,9 @@ unit llvmpara;
                 a pointer to the value that it should place on the stack (or
                 passed in registers, in some cases) }
               paraloc^.llvmvalueloc:=false;
-              paraloc^.def:=cpointerdef.getreusable_no_free(paraloc^.def);
-              paraloc^.size:=def_cgsize(paraloc^.def);
               paraloc^.loc:=LOC_REGISTER;
-              paraloc^.register:=hlcg.getaddressregister(list,paraloc^.def);
-              paraloc^.shiftval:=0;
-              { remove all other paralocs }
-              while assigned(paraloc^.next) do
-                begin
-                  nextloc:=paraloc^.next;
-                  paraloc^.next:=nextloc^.next;
-                  dispose(nextloc);
-                end;
+              paralocdef:=cpointerdef.getreusable_no_free(paraloc^.def);
+              reducetosingleregparaloc(paraloc,paralocdef,hlcg.getaddressregister(list,paralocdef));
             end;
           paraloc^.llvmloc.loc:=paraloc^.loc;
           paraloc^.llvmloc.reg:=paraloc^.register;
@@ -171,13 +224,17 @@ unit llvmpara;
 
   function tllvmparamanager.create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint;
     begin
-      result:=inherited create_paraloc_info(p, side);
-      { on the calleeside, llvm declares the parameters similar to Pascal or C
-        (a list of parameters and their types), but they correspond more
-        closely to parameter locations than to parameters -> add names to the
-        locations }
-      if side=calleeside then
-        add_llvm_callee_paraloc_names(p)
+      result:=inherited;
+      create_paraloc_info_internllvm(p,side);
+    end;
+
+
+  function tllvmparamanager.create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee; varargspara: tvarargsparalist): longint;
+    begin
+      result:=inherited;
+      create_paraloc_info_internllvm(p,side);
+      if assigned(varargspara) then
+        reduceparalocs(p,side,varargspara);
     end;
 
 
@@ -191,6 +248,35 @@ unit llvmpara;
         paraloc^.llvmvalueloc:=true;
         paraloc:=paraloc^.next;
       until not assigned(paraloc);
+      paraloc:=result.location;
+      if assigned(paraloc^.next) and
+         (result.def.typ in [orddef,enumdef,floatdef]) and
+         ((side=callerside) or
+          not(po_assembler in p.procoptions)) then
+        begin
+          if not(paraloc^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
+            internalerror(2019011902);
+          reducetosingleregparaloc(paraloc,result.def,paraloc^.register);
+        end;
+    end;
+
+
+  procedure tllvmparamanager.create_paraloc_info_internllvm(p: tabstractprocdef; side: tcallercallee);
+    begin
+      { on the calleeside, llvm declares the parameters similar to Pascal or C
+        (a list of parameters and their types), but they correspond more
+        closely to parameter locations than to parameters -> add names to the
+        locations }
+      if (side=calleeside) and
+         not(po_assembler in p.procoptions) then
+        begin
+          add_llvm_callee_paraloc_names(p);
+          reduceparalocs(p,side,p.paras);
+        end
+      else if side=callerside then
+        begin
+          reduceparalocs(p,side,p.paras);
+        end;
     end;
 
 
@@ -231,6 +317,11 @@ unit llvmpara;
     end;
 
 begin
+  if not assigned(paramanager) then
+    begin
+      writeln('Internalerror 2018052006');
+      halt(1);
+    end;
   { replace the native parameter manager. Maybe this has to be moved to a
     procedure like the creations of the code generators, but possibly not since
     we still call the original paramanager }

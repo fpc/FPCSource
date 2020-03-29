@@ -15,6 +15,9 @@
  **********************************************************************}
 unit video;
 
+{ smart callbacks: on }
+{$K+}
+
 interface
 
 uses
@@ -51,37 +54,41 @@ var
   ch: TVideoCell;
   CharWidth,CharHeight: SmallInt;
 begin
-  dc:=BeginPaint(hwnd,@ps);
-  oldfont:=SelectObject(dc,GetStockObject(OEM_FIXED_FONT));
-  GetTextMetrics(dc,@Metrics);
-  CharWidth:=Metrics.tmMaxCharWidth;
-  CharHeight:=Metrics.tmHeight+Metrics.tmExternalLeading;
-  x1:=ps.rcPaint.left div CharWidth;
-  x2:=1+ps.rcPaint.right div CharWidth;
-  y1:=ps.rcPaint.top div CharHeight;
-  y2:=1+ps.rcPaint.bottom div CharHeight;
-  if x1<0 then
-    x1:=0;
-  if y1<0 then
-    y1:=0;
-  if x2>=ScreenWidth then
-    x2:=ScreenWidth-1;
-  if y2>=ScreenHeight then
-    y2:=ScreenHeight-1;
-  oldtextcolor:=GetTextColor(dc);
-  oldbkcolor:=GetBkColor(dc);
-  for y:=y1 to y2 do
-    for x:=x1 to x2 do
-    begin
-      ch:=videobuf^[y*ScreenWidth+x];
-      SetTextColor(dc,ColorRefs[(ch shr 8) and 15]);
-      SetBkColor(dc,ColorRefs[(ch shr 12) and 15]);
-      TextOut(dc,x*CharWidth,y*CharHeight,@ch,1);
-    end;
-  SetTextColor(dc,oldtextcolor);
-  SetBkColor(dc,oldbkcolor);
-  SelectObject(dc,oldfont);
-  EndPaint(hwnd,@ps);
+  dc:=BeginPaint(hwnd,FarAddr(ps));
+  { don't do anything, before the video unit has been fully initialized... }
+  if videobuf<>nil then
+  begin
+    oldfont:=SelectObject(dc,GetStockObject(OEM_FIXED_FONT));
+    GetTextMetrics(dc,FarAddr(Metrics));
+    CharWidth:=Metrics.tmMaxCharWidth;
+    CharHeight:=Metrics.tmHeight+Metrics.tmExternalLeading;
+    x1:=ps.rcPaint.left div CharWidth;
+    x2:=1+ps.rcPaint.right div CharWidth;
+    y1:=ps.rcPaint.top div CharHeight;
+    y2:=1+ps.rcPaint.bottom div CharHeight;
+    if x1<0 then
+      x1:=0;
+    if y1<0 then
+      y1:=0;
+    if x2>=ScreenWidth then
+      x2:=ScreenWidth-1;
+    if y2>=ScreenHeight then
+      y2:=ScreenHeight-1;
+    oldtextcolor:=GetTextColor(dc);
+    oldbkcolor:=GetBkColor(dc);
+    for y:=y1 to y2 do
+      for x:=x1 to x2 do
+      begin
+        ch:=videobuf^[y*ScreenWidth+x];
+        SetTextColor(dc,ColorRefs[(ch shr 8) and 15]);
+        SetBkColor(dc,ColorRefs[(ch shr 12) and 15]);
+        TextOut(dc,x*CharWidth,y*CharHeight,FarAddr(ch),1);
+      end;
+    SetTextColor(dc,oldtextcolor);
+    SetBkColor(dc,oldbkcolor);
+    SelectObject(dc,oldfont);
+  end;
+  EndPaint(hwnd,FarAddr(ps));
 end;
 
 function MainWndProc(hwnd: HWND; msg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; export;
@@ -95,7 +102,10 @@ begin
     WM_PAINT:
       WindowPaint(hwnd);
     WM_DESTROY:
-      PostQuitMessage(0);
+      begin
+        VideoWindow:=0;
+        PostQuitMessage(0);
+      end;
     else
       MainWndProc:=DefWindowProc(hwnd,msg,wParam,lParam);
   end;
@@ -115,7 +125,7 @@ begin
   wc.hbrBackground:=GetStockObject(BLACK_BRUSH);
   wc.lpszMenuName:=nil;
   wc.lpszClassName:='FPCConsoleWndClass';
-  if not RegisterClass(wc) then
+  if not RegisterClass(FarAddr(wc)) then
   begin
     MessageBox(0,'Error registering window class',nil,MB_OK or MB_ICONHAND or MB_TASKMODAL);
     Halt(1);
@@ -149,10 +159,10 @@ procedure ProcessMessages;
 var
   m: MSG;
 begin
-  while PeekMessage(@m,0,0,0,1) do
+  while PeekMessage(FarAddr(m),0,0,0,1) do
   begin
-    TranslateMessage(@m);
-    DispatchMessage(@m);
+    TranslateMessage(FarAddr(m));
+    DispatchMessage(FarAddr(m));
   end;
 end;
 
@@ -168,6 +178,12 @@ end;
 
 procedure SysDoneVideo;
 begin
+  if VideoWindow<>0 then
+  begin
+    if not DestroyWindow(VideoWindow) then
+      MessageBox(0,'Error destroying window',nil,MB_OK or MB_ICONHAND or MB_TASKMODAL);
+    VideoWindow:=0;
+  end;
 end;
 
 procedure SysUpdateScreen(Force: Boolean);
@@ -180,29 +196,37 @@ var
   ch: TVideoCell;
   CharWidth,CharHeight: SmallInt;
 begin
-  dc:=GetDC(VideoWindow);
-  oldfont:=SelectObject(dc,GetStockObject(OEM_FIXED_FONT));
-  GetTextMetrics(dc,@Metrics);
-  CharWidth:=Metrics.tmMaxCharWidth;
-  CharHeight:=Metrics.tmHeight+Metrics.tmExternalLeading;
-  oldtextcolor:=GetTextColor(dc);
-  oldbkcolor:=GetBkColor(dc);
-  for y:=0 to ScreenHeight-1 do
-    for x:=0 to ScreenWidth-1 do
+  if VideoWindow<>0 then
+  begin
+    dc:=GetDC(VideoWindow);
+    if dc=0 then
     begin
-      ch:=videobuf^[y*ScreenWidth+x];
-      if force or (ch<>oldvideobuf^[y*ScreenWidth+x]) then
-      begin
-        oldvideobuf^[y*ScreenWidth+x]:=videobuf^[y*ScreenWidth+x];
-        SetTextColor(dc,ColorRefs[(ch shr 8) and 15]);
-        SetBkColor(dc,ColorRefs[(ch shr 12) and 15]);
-        TextOut(dc,x*CharWidth,y*CharHeight,@ch,1);
-      end;
+      MessageBox(0,'GetDC() failed',nil,MB_OK or MB_ICONHAND or MB_TASKMODAL);
+      exit;
     end;
-  SetTextColor(dc,oldtextcolor);
-  SetBkColor(dc,oldbkcolor);
-  SelectObject(dc,oldfont);
-  ReleaseDC(VideoWindow,dc);
+    oldfont:=SelectObject(dc,GetStockObject(OEM_FIXED_FONT));
+    GetTextMetrics(dc,FarAddr(Metrics));
+    CharWidth:=Metrics.tmMaxCharWidth;
+    CharHeight:=Metrics.tmHeight+Metrics.tmExternalLeading;
+    oldtextcolor:=GetTextColor(dc);
+    oldbkcolor:=GetBkColor(dc);
+    for y:=0 to ScreenHeight-1 do
+      for x:=0 to ScreenWidth-1 do
+      begin
+        ch:=videobuf^[y*ScreenWidth+x];
+        if force or (ch<>oldvideobuf^[y*ScreenWidth+x]) then
+        begin
+          oldvideobuf^[y*ScreenWidth+x]:=videobuf^[y*ScreenWidth+x];
+          SetTextColor(dc,ColorRefs[(ch shr 8) and 15]);
+          SetBkColor(dc,ColorRefs[(ch shr 12) and 15]);
+          TextOut(dc,x*CharWidth,y*CharHeight,FarAddr(ch),1);
+        end;
+      end;
+    SetTextColor(dc,oldtextcolor);
+    SetBkColor(dc,oldbkcolor);
+    SelectObject(dc,oldfont);
+    ReleaseDC(VideoWindow,dc);
+  end;
   ProcessMessages;
 end;
 

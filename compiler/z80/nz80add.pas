@@ -194,7 +194,7 @@ interface
                   not(is_signed(right.resultdef));
 
         cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_8,GetByteLoc(left.location,0),NR_A);
-        cg.a_op_loc_reg(current_asmdata.CurrAsmList,OP_SUB,GetByteLoc(right.location,0),NR_A);
+        cg.a_op_loc_reg(current_asmdata.CurrAsmList,OP_SUB,OS_8,GetByteLoc(right.location,0),NR_A);
 
         //tmpreg1:=left.location.register;
         //tmpreg2:=right.location.register;

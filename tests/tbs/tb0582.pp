@@ -1,4 +1,5 @@
 { %norun }
+{ %skiptarget=$nosharedlib }
 { %delfiles=tb0582 }
 library liba;
 

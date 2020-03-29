@@ -222,7 +222,7 @@ Implementation
       alloc, dealloc: tai_regalloc;
       i: integer;
       l: TAsmLabel;
-      TmpUsedRegs : TAllUsedRegs;
+      //TmpUsedRegs : TAllUsedRegs;
     begin
       result := false;
       case p.typ of

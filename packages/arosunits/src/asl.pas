@@ -497,34 +497,28 @@ const
 var
   ASLBase: PLibrary;
 
-function AllocAslRequestA(ReqType: LongWord; TagList: PTagItem): Pointer; syscall ASLBase 8;
+function AllocAslRequest(ReqType: LongWord; TagList: PTagItem): Pointer; syscall ASLBase 8;
 function AllocFileRequest: PFileRequester; syscall ASLBase 5;
-function AslRequestA(Requester: Pointer; TagList: PTagItem): LongBool; syscall ASLBase 10;
+function AslRequest(Requester: Pointer; TagList: PTagItem): LongBool; syscall ASLBase 10;
 procedure FreeAslRequest(Requester: Pointer); syscall ASLBase 9;
 procedure FreeFileRequest(FileReq: PFileRequester); syscall ASLBase 6;
 function RequestFile(FileReq: PFileRequester): LongBool; syscall ASLBase 7;
 procedure AbortAslRequest(Requester: Pointer); syscall ASLBase 13;
 procedure ActivateAslRequest(Requester: Pointer); syscall ASLBase 14;
 
-function AllocAslRequest(ReqType: LongWord; const Tags: array of PtrUInt): Pointer;
-function AslRequest(Requester: Pointer; const Tags: array of PtrUInt): LongBool;
-function AslRequestTags(Requester: Pointer; const Tags: array of PtrUInt): LongBool;
+function AllocAslRequestTags(ReqType: LongWord; const Tags: array of PtrUInt): Pointer; inline;
+function AslRequestTags(Requester: Pointer; const Tags: array of PtrUInt): LongBool; inline;
 
 implementation
 
-function AllocAslRequest(ReqType: LongWord; const Tags: array of PtrUInt): Pointer; inline;
+function AllocAslRequestTags(ReqType: LongWord; const Tags: array of PtrUInt): Pointer; inline;
 begin
-  AllocAslRequest := AllocAslRequestA(reqType, @Tags);
-end;
-
-function AslRequest(Requester: Pointer; const Tags: array of PtrUInt): LongBool; inline;
-begin
-  AslRequest := AslRequestA(Requester, @Tags);
+  AllocAslRequestTags := AllocAslRequest(ReqType, @Tags);
 end;
 
 function AslRequestTags(Requester: Pointer; const Tags: array of PtrUInt): LongBool; inline;
 begin
-  AslRequestTags := AslRequestA(Requester, @Tags);
+  AslRequestTags := AslRequest(Requester, @Tags);
 end;
 
 initialization

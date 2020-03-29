@@ -1,3 +1,4 @@
+{ %skiptarget=msdos,go32v2 }
 program LookupIsNull;
 
 uses db, memds, variants;

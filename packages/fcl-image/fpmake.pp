@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Dependencies.Add('pasjpeg');
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('fcl-base');
@@ -28,11 +28,12 @@ begin
     P.Email := '';
     P.Description := 'Image loading and conversion parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes := P.OSes - [embedded,nativent,msdos,win16];
+    P.OSes := P.OSes - [embedded,nativent,msdos,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
-
     T:=P.Targets.AddUnit('bmpcomn.pp');
       with T.Dependencies do
         begin
@@ -224,6 +225,10 @@ begin
           AddUnit('fpimage');
         end;
     T:=P.Targets.AddUnit('freetypeh.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
+    T.Dependencies.AddInclude('libfreetype.inc');
+    T:=P.Targets.AddUnit('freetypehdyn.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
+      T.ResourceStrings:=true;
+    T.Dependencies.AddInclude('libfreetype.inc');
     T:=P.Targets.AddUnit('freetype.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
       with T.Dependencies do
         begin
@@ -237,6 +242,7 @@ begin
           AddUnit('fpimgcmn');
           AddUnit('freetype');
           AddUnit('freetypeh');
+          AddUnit('freetypehdyn');
           AddUnit('fpimage');
         end;
     T:=P.Targets.AddUnit('pcxcomn.pas');
@@ -265,10 +271,30 @@ begin
     T:=P.Targets.AddUnit('fpimggauss.pp');
     With T.Dependencies do
       AddUnit('fpimage');
+      
+    T:=P.Targets.AddUnit('fpbarcode.pp');
+    T:=P.Targets.AddUnit('fpimgbarcode.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fpimage');
+      AddUnit('fpcanvas');
+      Addunit('fpimgcmn');
+      AddUnit('fpbarcode');
+      end;
+    T:=P.Targets.AddUnit('fpqrcodegen.pp');
+    T:=P.Targets.AddUnit('fpimgqrcode.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fpimage');
+      AddUnit('fpcanvas');
+      Addunit('fpimgcmn');
+      AddUnit('fpqrcodegen');
+      end;
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('drawing.pp');
     T:=P.Targets.AddExampleProgram('imgconv.pp');
+    T:=P.Targets.AddExampleProgram('createbarcode.lpr');
 
 {$ifndef ALLPACKAGES}
     Run;

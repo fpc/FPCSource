@@ -189,8 +189,8 @@ var
   ICode: Word;           // save items from Message
   IQual: Word;
   IClass: Longword;
-  MouseX: Integer;
-  MouseY: Integer;
+  MouseX: LongInt;
+  MouseY: LongInt;
   KeyUp: Boolean;        // Event is a key up event
   Buff: array[0..19] of Char;
   ie: TInputEvent;       // for mapchar
@@ -237,8 +237,7 @@ begin
           end;
         IDCMP_INTUITICKS: begin
             ToggleCursor(false);
-            MouseX := (MouseX - VideoWindow^.BorderLeft) div 8;
-            MouseY := (MouseY - VideoWindow^.BorderTop) div 16;
+            TranslateToCharXY(MouseX - VideoWindow^.BorderLeft, MouseY - VideoWindow^.BorderTop, MouseX, MouseY);
             if (MouseX >= 0) and (MouseY >= 0) and
                (MouseX < Video.ScreenWidth) and (MouseY < Video.ScreenHeight) and
                ((MouseX <> OldMouseX) or (MouseY <> OldmouseY))
@@ -268,8 +267,9 @@ begin
           end;
         IDCMP_MOUSEBUTTONS: begin
             MouseEvent := True;
-            me.x := (MouseX - videoWindow^.BorderLeft) div 8;  // calculate char position
-            me.y := (MouseY - videoWindow^.BorderTop) div 16;
+            TranslateToCharXY(MouseX - videoWindow^.BorderLeft, MouseY - videoWindow^.BorderTop, MouseX, MouseY);
+            me.x := MouseX;
+            me.y := MouseY;
             case ICode of
               SELECTDOWN: begin
                   //writeln('left down!');
@@ -306,8 +306,7 @@ begin
             { IDCMP_MOUSEMOVE is disabled now in the video unit,
               according to autodocs INTUITICKS should be enough
               to handle most moves, esp. in a "textmode" app }
-            MouseX := (MouseX - VideoWindow^.BorderLeft) div 8;
-            MouseY := (MouseY - VideoWindow^.BorderTop) div 16;
+            TranslateToCharXY(MouseX - VideoWindow^.BorderLeft, MouseY - VideoWindow^.BorderTop, MouseX, MouseY);
             if (MouseX >= 0) and (MouseY >= 0) and
                (MouseX < Video.ScreenWidth) and (MouseY < Video.ScreenHeight) and
                ((MouseX <> OldMouseX) or (MouseY <> OldmouseY))

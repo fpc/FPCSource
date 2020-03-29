@@ -13,17 +13,22 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('pthreads');
+    P.ShortName := 'pthr';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,aix,dragonfly];
+    P.Version:='3.3.1';
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,aix,dragonfly,android];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('pthreads.pp');
     with T.Dependencies do
       begin
+        AddInclude('pthrandroid.inc',[Android]);
         AddInclude('pthrlinux.inc',[Linux]);
         AddInclude('pthrbeos.inc',[Beos]);
         AddInclude('pthrsnos.inc',[Solaris]);

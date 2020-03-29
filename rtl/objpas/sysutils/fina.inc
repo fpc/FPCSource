@@ -131,6 +131,7 @@ begin
     Result := '';
 end;
 
+{$ifndef HASEXTRACTSHORTPATHNAME}
 function ExtractShortPathName(Const FileName : PathStr) : PathStr;
 {$if defined(MSWINDOWS) and not defined(SYSUTILSUNICODE)}
 var
@@ -151,6 +152,7 @@ begin
   Result:=FileName;
 {$endif MSWindows}
 end;
+{$endif HASEXTRACTSHORTPATHNAME}
 
 {$DEFINE FPC_FEXPAND_SYSUTILS}
 {$I fexpand.inc}
@@ -165,6 +167,15 @@ Begin
  Result:=Fexpand(S);
 end;
 
+function ExpandFileName (Const FileName, BasePath : PathStr): PathStr;
+
+Var S : PathStr;
+
+Begin
+ S:=FileName;
+ DoDirSeparators(S);
+ Result:=Fexpand(S,BasePath);
+end;
 
 {$ifndef HASEXPANDUNCFILENAME}
 function ExpandUNCFileName (Const FileName : PathStr): PathStr;

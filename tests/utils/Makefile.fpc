@@ -19,7 +19,7 @@ programs_win64=prepup
 programs_go32v2=prepup
 
 [clean]
-programs=dbdigest dbconfig
+programs=dbdigest dbconfig dosbox/dosbox_wrapper
 
 [prerules]
 
@@ -34,8 +34,26 @@ endif
 
 utils: all
 
+dbconfig$(SRCEXEEXT): dbconfig.pp teststr$(PPUEXT) testu$(PPUEXT) tresults$(PPUEXT) dbtests$(PPUEXT)
+        $(COMPILER) $<
+
+dbdigest$(SRCEXEEXT): dbdigest.pp teststr$(PPUEXT) testu$(PPUEXT) tresults$(PPUEXT) dbtests$(PPUEXT)
+        $(COMPILER) $<
+
+digest$(SRCEXEEXT): digest.pp teststr$(PPUEXT)
+        $(COMPILER) $<
+
 dosbox/dosbox_wrapper$(SRCEXEEXT): dosbox/dosbox_wrapper.pas  
 	$(COMPILER) -FE./dosbox $<
+
+dotest$(SRCEXEEXT): dotest.pp bench$(PPUEXT) teststr$(PPUEXT) redir$(PPUEXT) testu$(PPUEXT)
+        $(COMPILER) $<
+
+fptime$(SRCEXEEXT): fptime.pp bench$(PPUEXT)
+        $(COMPILER) $<
+
+testfail$(SRCEXEEXT): testfail.pp redir$(PPUEXT)
+        $(COMPILER) $<
 
 utilsdb:
         $(MAKE) utils DBDIGEST="dbdigest dbconfig"

@@ -24,8 +24,6 @@ __progname:
 	.globl	_start			
 _start:					
 __start:				
-	movq	%rbx,%r9		
-	movq	%rcx,%r8		
 	movq	%rdx,%rcx		
 	movq	(%rsp),%rdi		
 	leaq	16(%rsp,%rdi,8),%rdx	
@@ -76,7 +74,8 @@ ___start:
 	addq	$1, %rax
 	movq	%rax, __progname(%rip)
 .L6:
-	movq	$__progname_storage, -16(%rbp)
+	leaq	__progname_storage(%rip), %rax
+	movq	%rax, -16(%rbp)
 	jmp	.L7
 .L8:
 	movq	__progname(%rip), %rcx
@@ -91,13 +90,14 @@ ___start:
 	movzbl	(%rax), %eax
 	testb	%al, %al
 	je	.L9
-	movq	$__progname_storage+255, %rax
+	leaq	__progname_storage+255(%rip), %rax
 	cmpq	%rax, -16(%rbp)
 	jb	.L8
 .L9:
+	leaq	__progname_storage(%rip), %rax
+	movq	%rax, __progname(%rip)
 	movq	-16(%rbp), %rax
 	movb	$0, (%rax)
-	movq	$__progname_storage, __progname(%rip)
 .L2:
 	# movl	$_mcleanup, %edi
 	# call	atexit
@@ -125,21 +125,9 @@ ___start:
 
 _haltproc:
            movq $1,%rax
-           movzwq operatingsystem_result(%rip),%rbx
-           pushq   %rbx
-           call .Lactualsyscall
-           addq  $8,%rsp
+           movzwq operatingsystem_result(%rip),%rdi
+           syscall
            jmp   _haltproc
-
-.Lactualsyscall:
-         int $0x80
-         jb .LErrorcode
-         xor %rbx,%rbx
-         ret
-.LErrorcode:
-         movq  %rax,%rbx
-         movq  $-1,%rax
-	 ret
 .LFE9:
 	.size	___start, .-___start
 	.type	_strrchr, @function
@@ -185,7 +173,7 @@ _strrchr:
         .comm   operatingsystem_parameter_envp,8,8
         .comm   operatingsystem_parameter_argc,8,8
         .comm   operatingsystem_parameter_argv,8,8
-	.section	.eh_frame,"a",@progbits
+	.section	.eh_frame,"a",@unwind
 .Lframe1:
 	.long	.LECIE1-.LSCIE1
 .LSCIE1:
@@ -208,7 +196,7 @@ _strrchr:
 	.long	.LEFDE1-.LASFDE1
 .LASFDE1:
 	.long	.LASFDE1-.Lframe1
-	.long	.LFB9
+	.long	.LFB9-.
 	.long	.LFE9-.LFB9
 	.uleb128 0x0
 	.byte	0x4
@@ -227,7 +215,7 @@ _strrchr:
 	.long	.LEFDE3-.LASFDE3
 .LASFDE3:
 	.long	.LASFDE3-.Lframe1
-	.long	.LFB10
+	.long	.LFB10-.
 	.long	.LFE10-.LFB10
 	.uleb128 0x0
 	.byte	0x4

@@ -34,7 +34,7 @@ implementation
     sysutils,
     cutils,cfileutl,cclasses,
     verbose,systems,globtype,globals,
-    symconst,script,
+    symconst,cscript,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
     import,export,link,comprsrc,rescmn,i_bsd,expunix,
     cgutils,cgbase,cgobj,cpuinfo,ogbase;
@@ -60,9 +60,13 @@ implementation
     private
       LdSupportsNoResponseFile : boolean;
       LibrarySuffix : Char;
+      prtobj : string[80];
+      ReOrder : Boolean;
+      linklibc : boolean;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
       function GetDarwinCrt1ObjName(isdll: boolean): TCmdStr;
       Function GetDarwinPrtobjName(isdll: boolean): TCmdStr;
+      Function WriteSymbolOrderFile: TCmdStr;
     public
       constructor Create;override;
       procedure SetDefaultInfo;override;
@@ -72,6 +76,27 @@ implementation
       procedure InitSysInitUnitName; override;
     end;
 
+
+function ModulesLinkToLibc:boolean;
+var
+  hp: tmodule;
+begin
+  { This is called very early, ImportLibraryList is not yet merged into linkothersharedlibs.
+    The former contains library names qualified with prefix and suffix (coming from
+    "external 'c' name 'foo' declarations), the latter contains raw names (from "$linklib c"
+    directives). }
+  hp:=tmodule(loaded_units.first);
+  while assigned(hp) do
+    begin
+      result:=Assigned(hp.ImportLibraryList.find(target_info.sharedClibprefix+'c'+target_info.sharedClibext));
+      if result then break;
+      result:=hp.linkothersharedlibs.find(target_info.sharedClibprefix+'c'+target_info.sharedClibext);
+      if result then break;
+      result:=hp.linkothersharedlibs.find('c');
+      if result then break;
+      hp:=tmodule(hp.next);
+    end;
+end;
 
 
 {*****************************************************************************
@@ -126,11 +151,13 @@ Constructor TLinkerBSD.Create;
 begin
   Inherited Create;
   if not Dontlinkstdlibpath Then
-   if not(target_info.system in systems_darwin) then
-     LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib',true)
-   else
+   if target_info.system in systems_darwin then
      { Mac OS X doesn't have a /lib }
-     LibrarySearchPath.AddPath(sysrootpath,'/usr/lib',true)
+     LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib',true)
+   else if target_info.system in systems_openbsd then
+     LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib;=$OPENBSD_X11BASE/lib;=$OPENBSD_LOCALBASE/lib',true)
+   else
+     LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib',true);
 end;
 
 
@@ -138,7 +165,11 @@ procedure TLinkerBSD.SetDefaultInfo;
 {
   This will also detect which libc version will be used
 }
+var
+  LdProgram: string='ld';
 begin
+  if target_info.system in (systems_openbsd+[system_x86_64_dragonfly]) then
+    LdProgram:='ld.bfd';
   LibrarySuffix:=' ';
   LdSupportsNoResponseFile := (target_info.system in ([system_m68k_netbsd]+systems_darwin));
   with Info do
@@ -147,8 +178,8 @@ begin
        begin
          if not(target_info.system in systems_darwin) then
            begin
-             ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE $CATRES';
-             DllCmd[1]:='ld $TARGET $EMUL $OPT -shared -L. -o $EXE $CATRES'
+             ExeCmd[1]:=LdProgram+' $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS -L. -o $EXE $CATRES $FILELIST';
+             DllCmd[1]:=LdProgram+' $TARGET $EMUL $OPT $MAP $LTO $ORDERSYMS -shared -L. -o $EXE $CATRES $FILELIST'
            end
          else
            begin
@@ -167,22 +198,22 @@ begin
                programs with problems that require Valgrind will have more
                than 60KB of data (first 4KB of address space is always invalid)
              }
-               ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES';
+             ExeCmd[1]:=LdProgram+' $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
              if not(cs_gdb_valgrind in current_settings.globalswitches) then
                ExeCmd[1]:=ExeCmd[1]+' -pagezero_size 0x10000';
 {$else ndef cpu64bitaddr}
-             ExeCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE $CATRES';
+             ExeCmd[1]:=LdProgram+' $PRTOBJ $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST';
 {$endif ndef cpu64bitaddr}
              if (apptype<>app_bundle) then
-               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES'
+               DllCmd[1]:=LdProgram+' $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS $MAP $LTO $ORDERSYMS -dynamic -dylib -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
              else
-               DllCmd[1]:='ld $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES'
+               DllCmd[1]:=LdProgram+' $PRTOBJ $TARGET $EMUL $OPT $GCSECTIONS $MAP $LTO $ORDERSYMS -dynamic -bundle -multiply_defined suppress -L. -o $EXE $CATRES $FILELIST'
            end
        end
      else
        begin
-         ExeCmd[1]:='ld $TARGET $EMUL $OPT $DYNLINK $STATIC  $GCSECTIONS $STRIP -L. -o $EXE $RES';
-         DllCmd[1]:='ld $TARGET $EMUL $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
+         ExeCmd[1]:=LdProgram+' $TARGET $EMUL $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS -L. -o $EXE $RES';
+         DllCmd[1]:=LdProgram+' $TARGET $EMUL $OPT $INIT $FINI $SONAME $MAP $LTO $ORDERSYMS -shared -L. -o $EXE $RES';
        end;
      if not(target_info.system in systems_darwin) then
        DllCmd[2]:='strip --strip-unneeded $EXE'
@@ -228,11 +259,67 @@ End;
 
 
 procedure TLinkerBSD.InitSysInitUnitName;
+var
+  cprtobj,
+  gprtobj,
+  si_cprt,
+  si_gprt : string[80];
 begin
   if target_info.system in systems_darwin then
-    SysInitUnit:='sysinit'
+    begin
+      { for darwin: always link dynamically against libc }
+      linklibc := true;
+      reorder:=reorderentries;
+      prtobj:='';
+      SysInitUnit:='sysinit';
+    end
   else
-    inherited InitSysInitUnitName;
+    begin
+      linklibc:=ModulesLinkToLibc;
+      if current_module.islibrary and
+         (target_info.system in systems_bsd) then
+        begin
+          prtobj:='dllprt0';
+          cprtobj:='dllprt0';
+          gprtobj:='dllprt0';
+          SysInitUnit:='si_dll';
+          si_cprt:='si_dll';
+          si_gprt:='si_dll';
+        end
+      else
+        begin
+          prtobj:='prt0';
+          cprtobj:='cprt0';
+          gprtobj:='gprt0';
+          SysInitUnit:='si_prc';
+          si_cprt:='si_c';
+          si_gprt:='si_g';
+        end;
+      // this one is a bit complex.
+      // Only reorder for now if -XL or -XO params are given
+      // or when -Xf.
+      reorder:= linklibc and
+                (
+                  ReorderEntries
+                   or
+                  (cs_link_pthread in current_settings.globalswitches));
+      if cs_profile in current_settings.moduleswitches then
+       begin
+         prtobj:=gprtobj;
+         SysInitUnit:=si_gprt;
+         AddSharedLibrary('c');
+         LibrarySuffix:='p';
+         linklibc:=true;
+       end
+      else
+       begin
+         if linklibc then
+           begin
+             prtobj:=cprtobj;
+             SysInitUnit:=si_cprt;
+           end;
+       end;
+    end;
 end;
 
 
@@ -284,6 +371,8 @@ begin
             system_aarch64_darwin:
               { never anything }
               exit('');
+            else
+              Internalerror(2019050709);
           end;
           { nothing special -> default }
           result:='crt1.o';
@@ -327,6 +416,8 @@ begin
                 if (CompareVersionStrings(iPhoneOSVersionMin,'8.1')>0) then
                   exit('');
               end;
+            else
+              Internalerror(2019050710);
           end;
           result:='bundle1.o';
         end
@@ -362,6 +453,8 @@ begin
                 if (CompareVersionStrings(iPhoneOSVersionMin,'8.1')>0) then
                   exit('');
               end;
+            else
+              Internalerror(2019050711);
           end;
           result:='dylib1.o';
         end;
@@ -373,32 +466,52 @@ Function TLinkerBSD.GetDarwinPrtobjName(isdll: boolean): TCmdStr;
 var
   startupfile: TCmdStr;
 begin
+  result:='';
+
   startupfile:=GetDarwinCrt1ObjName(isdll);
   if startupfile<>'' then
     begin
      if not librarysearchpath.FindFile(startupfile,false,result) then
-       result:='/usr/lib/'+startupfile
-    end
-  else
-    result:='';
+       result:='/usr/lib/'+startupfile;
+    end;
   result:=maybequoted(result);
 end;
+
+
+function tlinkerbsd.WriteSymbolOrderFile: TCmdStr;
+  var
+    item: TCmdStrListItem;
+    symfile: TScript;
+  begin
+    result:='';
+    { only for darwin for now; can also enable for other platforms when using
+      the LLVM linker }
+    if (OrderedSymbols.Empty) or
+       not(tf_supports_symbolorderfile in target_info.flags) then
+      exit;
+    symfile:=TScript.Create(outputexedir+'symbol_order.fpc');
+    item:=TCmdStrListItem(OrderedSymbols.First);
+    while assigned(item) do
+      begin
+        symfile.add(item.str);
+        item:=TCmdStrListItem(item.next);
+      end;
+    symfile.WriteToDisk;
+    result:=symfile.fn;
+    symfile.Free;
+  end;
 
 
 Function TLinkerBSD.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres      : TLinkRes;
+  FilesList    : TLinkRes;
   i            : longint;
-  cprtobj,
-  gprtobj,
-  prtobj       : string[80];
   HPath        : TCmdStrListItem;
   s,s1,s2      : TCmdStr;
-  linkdynamic,
-  linklibc     : boolean;
+  linkdynamic  : boolean;
   Fl1,Fl2      : Boolean;
   IsDarwin     : Boolean;
-  ReOrder      : Boolean;
 
 begin
   WriteResponseFile:=False;
@@ -408,47 +521,11 @@ begin
 { set special options for some targets }
   if not IsDarwin Then
     begin
-      if isdll and
-         (target_info.system in systems_bsd) then
-        begin
-          prtobj:='dllprt0';
-          cprtobj:='dllprt0';
-          gprtobj:='dllprt0';
-        end
-      else
-        begin
-          prtobj:='prt0';
-          cprtobj:='cprt0';
-          gprtobj:='gprt0';
-        end;
       linkdynamic:=not(SharedLibFiles.empty);
-      linklibc:=(SharedLibFiles.Find('c')<>nil);
-      // this one is a bit complex.
-      // Only reorder for now if -XL or -XO params are given
-      // or when -Xf.
-      reorder:= linklibc and
-                (
-                  ReorderEntries
-                   or
-                  (cs_link_pthread in current_settings.globalswitches));
-      if cs_profile in current_settings.moduleswitches then
-       begin
-         prtobj:=gprtobj;
-         AddSharedLibrary('c');
-         LibrarySuffix:='p';
-         linklibc:=true;
-       end
-      else
-       begin
-         if linklibc then
-          prtobj:=cprtobj;
-       end;
       // after this point addition of shared libs not allowed.
     end
   else
     begin
-      { for darwin: always link dynamically against libc }
-      linklibc := true;
 {$ifdef MACOSX104ORHIGHER}
       { not sure what this is for, but gcc always links against it }
       if not(cs_profile in current_settings.moduleswitches) then
@@ -456,8 +533,6 @@ begin
       else
         AddSharedLibrary('SystemStubs_profile');
 {$endif MACOSX104ORHIGHER}
-      reorder:=reorderentries;
-      prtobj:='';
     end;
 
   if reorder Then
@@ -542,33 +617,34 @@ begin
          HPath:=TCmdStrListItem(HPath.Next);
        end;
     end;
-      { force local symbol resolution (i.e., inside the shared }
-      { library itself) for all non-exorted symbols, otherwise }
-      { several RTL symbols of FPC-compiled shared libraries   }
-      { will be bound to those of a single shared library or   }
-      { to the main program                                    }
-      if (isdll) and (target_info.system in systems_bsd) then
+
+  { force local symbol resolution (i.e., inside the shared }
+  { library itself) for all non-exorted symbols, otherwise }
+  { several RTL symbols of FPC-compiled shared libraries   }
+  { will be bound to those of a single shared library or   }
+  { to the main program                                    }
+  if (isdll) and (target_info.system in systems_bsd) then
+    begin
+      LinkRes.add('VERSION');
+      LinkRes.add('{');
+      LinkRes.add('  {');
+      if not texportlibunix(exportlib).exportedsymnames.empty then
         begin
-          LinkRes.add('VERSION');
-          LinkRes.add('{');
-          LinkRes.add('  {');
-          if not texportlibunix(exportlib).exportedsymnames.empty then
-            begin
-              LinkRes.add('    global:');
-              repeat
-                LinkRes.add('      '+texportlibunix(exportlib).exportedsymnames.getfirst+';');
-              until texportlibunix(exportlib).exportedsymnames.empty;
-            end;
-          LinkRes.add('    local:');
-          LinkRes.add('      *;');
-          LinkRes.add('  };');
-          LinkRes.add('}');
+          LinkRes.add('    global:');
+          repeat
+            LinkRes.add('      '+texportlibunix(exportlib).exportedsymnames.getfirst+';');
+          until texportlibunix(exportlib).exportedsymnames.empty;
         end;
+      LinkRes.add('    local:');
+      LinkRes.add('      *;');
+      LinkRes.add('  };');
+      LinkRes.add('}');
+    end;
 
   if not LdSupportsNoResponseFile then
     LinkRes.Add('INPUT(');
   { add objectfiles, start with prt0 always }
-  if prtobj<>'' then
+  if not (target_info.system in systems_internal_sysinit) and (prtobj<>'') then
    LinkRes.AddFileName(FindObjectFile(prtobj,'',false));
   { try to add crti and crtbegin if linking to C }
   if linklibc and
@@ -576,7 +652,10 @@ begin
    begin
      if librarysearchpath.FindFile('crti.o',false,s) then
       LinkRes.AddFileName(s);
-     if cs_create_pic in current_settings.moduleswitches then
+     if ((cs_create_pic in current_settings.moduleswitches) and
+         not (target_info.system in systems_openbsd)) or
+        (current_module.islibrary and
+         (target_info.system in systems_openbsd)) then
        begin
          if librarysearchpath.FindFile('crtbeginS.o',false,s) then
            LinkRes.AddFileName(s);
@@ -588,16 +667,37 @@ begin
          else if librarysearchpath.FindFile('crtbegin.o',false,s) then
              LinkRes.AddFileName(s);
    end;
+
   { main objectfiles }
-  while not ObjectFiles.Empty do
+
+  if (target_info.system in systems_darwin) then
    begin
-     s:=ObjectFiles.GetFirst;
-     if s<>'' then
-      if LdSupportsNoResponseFile then
-        LinkRes.AddFileName(s)
-      else
-        LinkRes.AddFileName(maybequoted(s));
+     FilesList:=TLinkRes.Create(outputexedir+'linkfiles.res',false);
+     while not ObjectFiles.Empty do
+      begin
+        s:=ObjectFiles.GetFirst;
+        if s<>'' then
+         begin
+           s:=TargetFixFileName(s);
+           FilesList.Add(s);
+         end;
+      end;
+     FilesList.writetodisk;
+     FilesList.Free;
+   end
+  else
+   begin
+     while not ObjectFiles.Empty do
+      begin
+        s:=ObjectFiles.GetFirst;
+        if s<>'' then
+          if LdSupportsNoResponseFile then
+            LinkRes.AddFileName(s)
+          else
+            LinkRes.AddFileName(maybequoted(s));
+      end;
    end;
+
   if not LdSupportsNoResponseFile then
    LinkRes.Add(')');
 
@@ -653,7 +753,8 @@ begin
      { when we have -static for the linker the we also need libgcc }
      if (cs_link_staticflag in current_settings.globalswitches) then
       LinkRes.Add('-lgcc');
-     if linkdynamic and (Info.DynamicLinker<>'') then
+     if linkdynamic and (Info.DynamicLinker<>'') and
+        not(target_info.system in systems_openbsd) then
       LinkRes.AddFileName(Info.DynamicLinker);
      if not LdSupportsNoResponseFile then
        LinkRes.Add(')');
@@ -671,7 +772,10 @@ begin
   if linklibc and
      not IsDarwin Then
    begin
-     if cs_create_pic in current_settings.moduleswitches then
+     if ((cs_create_pic in current_settings.moduleswitches) and
+         not (target_info.system in systems_openbsd)) or
+        (current_module.islibrary and
+         (target_info.system in systems_openbsd)) then
        Fl1:=librarysearchpath.FindFile('crtendS.o',false,s1)
      else
        Fl1:=librarysearchpath.FindFile('crtend.o',false,s1);
@@ -698,10 +802,13 @@ function TLinkerBSD.MakeExecutable:boolean;
 var
   binstr,
   cmdstr,
+  mapstr,
   targetstr,
   emulstr,
   extdbgbinstr,
-  extdbgcmdstr: TCmdStr;
+  extdbgcmdstr,
+  ltostr,
+  ordersymfile: TCmdStr;
   linkscript: TAsmScript;
   DynLinkStr : string[60];
   GCSectionsStr,
@@ -719,6 +826,10 @@ begin
   DynLinkStr:='';
   GCSectionsStr:='';
   linkscript:=nil;
+  mapstr:='';
+  ltostr:='';
+  if (cs_link_map in current_settings.globalswitches) then
+    mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
   { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
     to avoid creation of a i386:x86_64 arch binary }
 
@@ -757,7 +868,9 @@ begin
 
    if(not(target_info.system in systems_darwin) and
       (cs_profile in current_settings.moduleswitches)) or
-     ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
+     ((Info.DynamicLinker<>'') and
+      ((not SharedLibFiles.Empty) or
+       (target_info.system in systems_openbsd))) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
 
   if CShared Then
@@ -767,14 +880,31 @@ begin
     else
      DynLinKStr:=DynLinkStr+' -dynamic'; // one dash!
    end;
-   
-{ Use -nopie on OpenBSD }
+
+  { add custom LTO library if using custom clang }
+  if (target_info.system in systems_darwin) and
+     (cs_lto in current_settings.moduleswitches) and
+     not(cs_link_on_target in current_settings.globalswitches) and
+     (utilsdirectory<>'') and
+     FileExists(utilsdirectory+'/../lib/libLTO.dylib',true) then
+    begin
+      ltostr:='-lto_library '+maybequoted(utilsdirectory+'/../lib/libLTO.dylib');
+    end;
+
+{ Use -nopie on OpenBSD if PIC support is turned off }
   if (target_info.system in systems_openbsd) and
-     (target_info.system <> system_x86_64_openbsd) then
+     not(cs_create_pic in current_settings.moduleswitches) then
     Info.ExtraOptions:=Info.ExtraOptions+' -nopie';
-    
+
+{ -N seems to be needed on NetBSD/earm }
+  if (target_info.system in [system_arm_netbsd]) then
+    Info.ExtraOptions:=Info.ExtraOptions+' -N';
+
 { Write used files and libraries }
   WriteResponseFile(false);
+
+{ Write symbol order file }
+  ordersymfile:=WriteSymbolOrderFile;
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
@@ -782,8 +912,24 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$TARGET',targetstr);
   Replace(cmdstr,'$EMUL',EmulStr);
+  Replace(cmdstr,'$MAP',mapstr);
   Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$LTO',ltostr);
+  if ordersymfile<>'' then
+    begin
+      if target_info.system in systems_darwin then
+        Replace(cmdstr,'$ORDERSYMS','-order_file '+maybequoted(ordersymfile))
+      else
+        Replace(cmdstr,'$ORDERSYMS','--symbol-ordering-file '+maybequoted(ordersymfile))
+    end
+  else
+    Replace(cmdstr,'$ORDERSYMS','');
+
+  if (target_info.system in systems_darwin) then
+    Replace(cmdstr,'$FILELIST','-filelist '+maybequoted(outputexedir+'linkfiles.res'))
+  else
+    Replace(cmdstr,'$FILELIST','');
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
@@ -807,14 +953,17 @@ begin
      not(cs_link_nolink in current_settings.globalswitches) then
     begin
       { we have to use a script to use the IFS hack }
-      linkscript:=TAsmScriptUnix.create(outputexedir+'ppaslink');
+      linkscript:=GenerateScript(outputexedir+'ppaslink');
       linkscript.AddLinkCommand(BinStr,CmdStr,'');
       if (extdbgcmdstr<>'') then
         linkscript.AddLinkCommand(extdbgbinstr,extdbgcmdstr,'');
       linkscript.WriteToDisk;
       BinStr:=linkscript.fn;
       if not path_absolute(BinStr) then
-        BinStr:='./'+BinStr;
+        if cs_link_on_target in current_settings.globalswitches then
+          BinStr:='.'+target_info.dirsep+BinStr
+        else
+          BinStr:='.'+source_info.dirsep+BinStr;
       CmdStr:='';
     end;
 
@@ -829,11 +978,15 @@ begin
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    begin
      DeleteFile(outputexedir+Info.ResName);
+     if ordersymfile<>'' then
+       DeleteFile(ordersymfile);
      if LdSupportsNoResponseFile Then
        begin
          DeleteFile(linkscript.fn);
          linkscript.free
        end;
+     if target_info.system in systems_darwin then
+       DeleteFile(outputexedir+'linkfiles.res');
    end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -848,6 +1001,9 @@ var
   linkscript: TAsmScript;
   binstr,
   cmdstr,
+  mapstr,
+  ltostr,
+  ordersymfile,
   targetstr,
   emulstr,
   extdbgbinstr,
@@ -858,12 +1014,17 @@ var
 begin
   MakeSharedLibrary:=false;
   GCSectionsStr:='';
+  mapstr:='';
+  ltostr:='';
   linkscript:=nil;
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename);
 
 { Write used files and libraries }
   WriteResponseFile(true);
+
+{ Write symbol order file }
+  ordersymfile:=WriteSymbolOrderFile;
 
   if (cs_link_smart in current_settings.globalswitches) and
      (tf_smartlink_sections in target_info.flags) then
@@ -872,6 +1033,19 @@ begin
       GCSectionsStr:='--gc-sections' }
     else
       GCSectionsStr:='-dead_strip -no_dead_strip_inits_and_terms';
+
+  if (cs_link_map in current_settings.globalswitches) then
+    mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
+
+  { add custom LTO library if using custom clang }
+  if (target_info.system in systems_darwin) and
+     (cs_lto in current_settings.moduleswitches) and
+     not(cs_link_on_target in current_settings.globalswitches) and
+     (utilsdirectory<>'') and
+     FileExists(utilsdirectory+'/../lib/libLTO.dylib',true) then
+    begin
+      ltostr:='-lto_library '+maybequoted(utilsdirectory+'/../lib/libLTO.dylib');
+    end;
 
   { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
     to avoid creation of a i386:x86_64 arch binary }
@@ -902,11 +1076,26 @@ begin
   Replace(cmdstr,'$TARGET',targetstr);
   Replace(cmdstr,'$EMUL',EmulStr);
   Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
+  if (target_info.system in systems_darwin) then
+    Replace(cmdstr,'$FILELIST','-filelist '+maybequoted(outputexedir+'linkfiles.res'))
+  else
+    Replace(cmdstr,'$FILELIST','');
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$INIT',InitStr);
   Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
+  Replace(cmdstr,'$MAP',mapstr);
+  Replace(cmdstr,'$LTO',ltostr);
+  if ordersymfile<>'' then
+    begin
+      if target_info.system in systems_darwin then
+        Replace(cmdstr,'$ORDERSYMS','-order_file '+maybequoted(ordersymfile))
+      else
+        Replace(cmdstr,'$ORDERSYMS','--symbol-ordering-file '+maybequoted(ordersymfile))
+    end
+  else
+    Replace(cmdstr,'$ORDERSYMS','');
   if (target_info.system in systems_darwin) then
     Replace(cmdstr,'$PRTOBJ',GetDarwinPrtobjName(true));
   BinStr:=FindUtil(utilsprefix+BinStr);
@@ -941,14 +1130,17 @@ begin
      not(cs_link_nolink in current_settings.globalswitches) then
     begin
       { we have to use a script to use the IFS hack }
-      linkscript:=TAsmScriptUnix.create(outputexedir+'ppaslink');
+      linkscript:=GenerateScript(outputexedir+'ppaslink');
       linkscript.AddLinkCommand(BinStr,CmdStr,'');
       if (extdbgbinstr<>'') then
         linkscript.AddLinkCommand(extdbgbinstr,extdbgcmdstr,'');
       linkscript.WriteToDisk;
       BinStr:=linkscript.fn;
       if not path_absolute(BinStr) then
-        BinStr:='./'+BinStr;
+        if cs_link_on_target in current_settings.globalswitches then
+          BinStr:='.'+target_info.dirsep+BinStr
+        else
+          BinStr:='.'+source_info.dirsep+BinStr;
       CmdStr:='';
     end;
 
@@ -970,13 +1162,18 @@ begin
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     begin
       DeleteFile(outputexedir+Info.ResName);
+      if ordersymfile<>'' then
+        DeleteFile(ordersymfile);
       if LdSupportsNoResponseFile Then
         begin
           DeleteFile(linkscript.fn);
           linkscript.free
         end;
       if (target_info.system in systems_darwin) then
-        DeleteFile(outputexedir+'linksyms.fpc');
+        begin
+          DeleteFile(outputexedir+'linksyms.fpc');
+          DeleteFile(outputexedir+'linkfiles.res');
+        end;
     end;
 
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
@@ -1050,6 +1247,10 @@ initialization
   RegisterImport(system_arm_darwin,timportlibdarwin);
   RegisterExport(system_arm_darwin,texportlibdarwin);
   RegisterTarget(system_arm_darwin_info);
+
+  RegisterImport(system_arm_netbsd,timportlibbsd);
+  RegisterExport(system_arm_netbsd,texportlibbsd);
+  RegisterTarget(system_arm_netbsd_info);
 {$endif arm}
 {$ifdef aarch64}
   RegisterImport(system_aarch64_darwin,timportlibdarwin);

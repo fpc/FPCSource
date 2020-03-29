@@ -180,8 +180,6 @@ implementation
               result:=result+';far';
             x86pt_huge:
               result:=result+';huge';
-            else
-              internalerror(2013050301);
           end;
         end;
     end;
@@ -210,7 +208,7 @@ implementation
     begin
       result:=
         inherited and
-        (tx86pointerdef(voidcodepointertype).x86pointertyp=tx86pointerdef(ptr).x86pointertyp);
+        (tx86pointerdef(address_type).x86pointertyp=tx86pointerdef(ptr).x86pointertyp);
     end;
 
 
@@ -223,7 +221,7 @@ implementation
       begin
         result:=
           inherited and
-          (tx86pointerdef(voidcodepointertype).x86pointertyp=tx86pointerdef(ptr).x86pointertyp);
+          (tx86pointerdef(address_type).x86pointertyp=tx86pointerdef(ptr).x86pointertyp);
       end;
 
 

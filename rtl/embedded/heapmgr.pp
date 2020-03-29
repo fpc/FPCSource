@@ -49,10 +49,10 @@ Unit heapmgr;
         p, prev: PHeapBlock;
         AllocSize, RestSize: ptruint;
       begin
-        if size<MinBlock then
+        if size+sizeof(PtrUInt)<MinBlock then
           AllocSize := MinBlock
         else
-          AllocSize := align(size, sizeof(pointer));
+          AllocSize := align(size+sizeof(PtrUInt), sizeof(pointer));
 
         p := Blocks;
         prev := nil;

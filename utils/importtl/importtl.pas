@@ -3,7 +3,29 @@ program importtl;
 {$mode objfpc}{$H+}
 {$apptype console}
 uses
-  classes,typelib,sysutils;
+  classes,typelib,sysutils,getopts;
+
+var
+  theopts : array[1..2] of TOption;
+
+procedure InitOptions;
+
+begin
+  with theopts[1] do
+   begin
+    name:='ref-style';
+    has_arg:=Required_Argument;
+    flag:=nil;
+    value:=#0;
+  end;
+  with theopts[2] do
+   begin
+    name:='';
+    has_arg:=0;
+    flag:=nil;
+    value:=#0;
+  end;
+end;
 
 var
   unitname,sPackageSource,sPackageRegUnitSource:string;
@@ -11,41 +33,53 @@ var
   F:text;
   slDep:TStringList;
   i:integer;
+  FileName : string;
   bNoRecurse,bHelp,bActiveX,bPackage,bRemoveStructTag:boolean;
+  InRefStyle : TParamInputRefType;
+  optionindex : Longint;
+  c:char;
 begin
+  InitOptions;
   slDep:=TStringList.Create;
   bNoRecurse:=false;
   bHelp:=false;
   bActiveX:=false;
   bPackage:=false;
-  i:=1;
-  while i<=Paramcount do
-    begin
-    if pos('-n',ParamStr(i))>0 then bNoRecurse:=true
-    else if pos('-a',ParamStr(i))>0 then bActiveX:=true
-    else if pos('-h',ParamStr(i))>0 then bHelp:=true
-    else if pos('-p',ParamStr(i))>0 then bPackage:=true
-    else if pos('-t',ParamStr(i))>0 then bRemoveStructTag:=true
-    else if pos('-d',ParamStr(i))>0 then
-      begin
-      sOutDir:=trim(copy(ParamStr(i), pos('-d',ParamStr(i))+2, 260));  // windows MAX_PATH
-      if sOutDir='' then
-        if i<Paramcount-1 then
-          begin
-          i:=i+1;
-          sOutDir:=trim(ParamStr(i));
-          end
-        else
-          begin
-          bHelp:=true;
-          sOutDir:='\';
-          end;
-      if not (sOutDir[length(sOutDir)] in [':','\']) then
-        sOutDir:=sOutDir+'\';
-      end;
-    i:=i+1;
-    end;
-  if bHelp or (Paramcount=0) or (pos('-',paramstr(Paramcount))=1) then
+  InRefStyle:=ParamInputVar;
+
+  repeat
+    c:=getlongopts('ad:hnpt',@theopts[1],optionindex);
+    case c of
+       #0 : begin
+             case optionindex-1 of
+               0 : if lowercase(optarg)='var' then
+                     InRefStyle:=ParamInputVar
+                   else
+                    if lowercase(optarg)='constref' then
+                     InRefStyle:=ParamInputConstRef
+                   else
+                     if lowercase(optarg)='constrefdelphi' then
+                       InRefStyle:=ParamInputConstRefDelphi
+              end;
+           end;
+      'n' : bNoRecurse:=true;
+      'a' : bActiveX:=true;
+      'p' : bPackage:=true;
+      'h' : bHelp:=true;
+      't' : bRemoveStructTag:=true;
+      'd' :  if (length(optarg)>0) and (optarg[1]='-') then
+                bHelp:=true
+              else
+                sOutDir:=IncludeTrailingPathDelimiter(optarg);
+      '?',':' : writeln ('Error parsing option : ',optopt);
+   end; { case }
+ until c=endofoptions;
+
+ FileName:='';
+ if optind=paramcount then
+   FileName:=paramstr(optind);
+
+ if bHelp or (Paramcount=0) or (filename='')then
     begin
     writeln('Usage:  importtl [options] file');
     writeln('Reads type information from "file" and converts it into a freepascal binding');
@@ -58,13 +92,15 @@ begin
     writeln('          dependencies.');
     writeln('  -p    : create lazarus package for ActiveXContainer descendants');
     writeln('  -t    : remove "tag" prefix from structs');
-    exit;
+    writeln('  --ref-style st : input parameter style, parameter st=var,constref');
+    writeln('            or constrefdelphi (= XE3+ const [ref])');
+    halt;
     end;
   slDep.Add(paramstr(Paramcount));
   i:=0;
   repeat
     writeln('Reading typelib from '+slDep[i]+ ' ...');
-    sTL:=ImportTypelib(slDep[i],unitname,slDep,bActiveX,bPackage,bRemoveStructTag,sPackageSource,sPackageRegUnitSource);
+    sTL:=ImportTypelib(slDep[i],unitname,slDep,bActiveX,bPackage,bRemoveStructTag,sPackageSource,sPackageRegUnitSource,InRefStyle);
     unitname:=sOutDir+unitname;
     if (bPackage) and (sPackageSource<>'') then
       begin

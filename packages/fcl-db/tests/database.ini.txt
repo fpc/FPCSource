@@ -35,6 +35,9 @@ password=masterkey
 ; of the database server
 hostname=localhost
 
+; connection character set
+charset=
+
 ; SQL command log file (for sqldb databases)
 ; will be appended to each run
 ; uncomment to use
@@ -57,42 +60,7 @@ name=fbembedtest.fdb
 user=sysdba
 password=masterkey
 hostname=
-
-[mysql40]
-; MySQL 4.0 database:
-connector=sql
-connectorparams=mysql40
-name=testdb
-user=root
-password=
-hostname=127.0.0.1
-
-[mysql41]
-; MySQL 4.1 database:
-connector=sql
-connectorparams=mysql41
-name=testdb
-user=root
-password=
-hostname=127.0.0.1
-
-[mysql50]
-; MySQL 5.0 database:
-connector=sql
-connectorparams=mysql50
-name=testdb
-user=root
-password=
-hostname=127.0.0.1
-
-[mysql51]
-; MySQL 5.1 database:
-connector=sql
-connectorparams=mysql51
-name=testdb
-user=root
-password=
-hostname=127.0.0.1
+charset=
 
 [mysql55]
 ; MySQL 5.5 database:
@@ -112,6 +80,16 @@ user=root
 password=
 hostname=127.0.0.1
 
+[mysql57]
+; MySQL 5.7 database:
+connector=sql
+connectorparams=mysql57
+name=testdb
+user=root
+password=
+hostname=127.0.0.1
+charset=utf8mb4
+
 [mssql]
 ; MS SQL Server database:
 connector=sql
@@ -127,6 +105,7 @@ password=
 ; hostname=127.0.0.1\SQLEXPRESS
 ; See mssqlconn documentation
 hostname=127.0.0.1
+charset=utf8
 
 [odbc]
 ; ODBC database:
@@ -161,6 +140,7 @@ hostname=127.0.0.1
 connector=sql
 connectorparams=sqlite3
 name=test.db
+charset=utf-8
 
 [sybase]
 ; Sybase ASE database

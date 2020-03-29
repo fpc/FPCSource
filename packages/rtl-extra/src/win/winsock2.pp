@@ -387,6 +387,7 @@ const
   PF_MAX          = AF_MAX;
 
 type
+  ADDRESS_FAMILY = USHORT;
 
   SunB = record
     s_b1, s_b2, s_b3, s_b4: u_char;
@@ -976,8 +977,35 @@ Const
 
 { SockAddr Information }
 
+const
+        _SS_MAXSIZE = 128;
+        _SS_ALIGNSIZE = SizeOf(Int64);
+
+        _SS_PAD1SIZE_XP = _SS_ALIGNSIZE - SizeOf(SmallInt);
+        _SS_PAD2SIZE_XP = _SS_MAXSIZE - (SizeOf(SmallInt) + _SS_PAD1SIZE_XP + _SS_ALIGNSIZE);
+
+        _SS_PAD1SIZE_LH = _SS_ALIGNSIZE - SizeOf(USHORT);
+        _SS_PAD2SIZE_LH = _SS_MAXSIZE - (SizeOf(USHORT) + _SS_PAD1SIZE_LH + _SS_ALIGNSIZE);
 
 Type
+        SOCKADDR_STORAGE_XP = record
+          ss_family: SmallInt;
+          __ss_pad1: array[0.._SS_PAD1SIZE_XP - 1] of Byte;
+          __ss_align: Int64;
+          __ss_pad2: array[0.._SS_PAD2SIZE_XP - 1] of Byte;
+        end;
+
+        SOCKADDR_STORAGE_LH = record
+          ss_family: ADDRESS_FAMILY;
+          __ss_pad1: array[0.._SS_PAD1SIZE_LH - 1] of Byte;
+          __ss_align: Int64;
+          __ss_pad2: array[0.._SS_PAD2SIZE_LH - 1] of Byte;
+        end;
+
+        SOCKADDR_STORAGE = SOCKADDR_STORAGE_LH;
+        PSOCKADDR_STORAGE = ^SOCKADDR_STORAGE_LH;
+        LPSOCKADDR_STORAGE = ^SOCKADDR_STORAGE_LH;
+
         SOCKET_ADDRESS = record
                 lpSockaddr : PSockAddr;
                 iSockaddrLength : Longint;

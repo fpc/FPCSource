@@ -26,7 +26,7 @@ const
     SEM_SAFE=255;
 type
 
-    dev_t    = cuint32;         { used for device numbers      }
+    dev_t    = cuint64;         { used for device numbers      }
     TDev     = dev_t;
     pDev     = ^dev_t;
 
@@ -35,11 +35,7 @@ type
     pGid     = ^gid_t;
     TIOCtlRequest = cuLong;
 
-    {$ifdef CPU64}
-     ino_t    = cuint32;           { used for file serial numbers }
-    {$else}	
-     ino_t    = clong;           { used for file serial numbers }
-    {$endif}
+    ino_t    = cuint64;           { used for file serial numbers }
     TIno     = ino_t;
     pIno     = ^ino_t;
 
@@ -47,7 +43,7 @@ type
     TMode    = mode_t;
     pMode    = ^mode_t;
 
-    nlink_t  = cuint16;         { used for link counts         }
+    nlink_t  = cuint64;         { used for link counts         }
     TnLink   = nlink_t;
     pnLink   = ^nlink_t;
 

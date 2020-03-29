@@ -17,8 +17,9 @@ begin
   With Installer do
     begin
       P:=AddPackage('fpindexer');
+      P.ShortName := 'fpi';
       P.Directory:=ADirectory;
-      P.Version:='3.1.1';
+      P.Version:='3.3.1';
       P.OSes := [beos,haiku,freebsd,darwin,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,dragonfly];
       P.Dependencies.Add('fcl-base');
       P.Dependencies.Add('fcl-db');
@@ -59,6 +60,9 @@ begin
       T.Dependencies.AddUnit('fpindexer');
       
       T:=P.Targets.AddUnit('fbindexdb.pp',SqliteOSes);
+      T.Dependencies.AddUnit('fpindexer');
+      
+      T:=P.Targets.AddUnit('pgindexdb.pp',SqldbConnectionOSes);
       T.Dependencies.AddUnit('fpindexer');
       
       T:=P.Targets.AddUnit('dbindexer.pp',SqldbConnectionOSes);

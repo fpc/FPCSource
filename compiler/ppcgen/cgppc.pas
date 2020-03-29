@@ -153,11 +153,29 @@ unit cgppc;
 
      function cgsize2string(const size : TCgSize) : string;
        const
-         cgsize_strings : array[TCgSize] of string[8] = (
-           'OS_NO', 'OS_8', 'OS_16', 'OS_32', 'OS_64', 'OS_128', 'OS_S8', 'OS_S16', 'OS_S32',
-           'OS_S64', 'OS_S128', 'OS_F32', 'OS_F64', 'OS_F80', 'OS_C64', 'OS_F128',
-           'OS_M8', 'OS_M16', 'OS_M32', 'OS_M64', 'OS_M128', 'OS_M256', 'OS_MS8', 'OS_MS16', 'OS_MS32',
-           'OS_MS64', 'OS_MS128', 'OS_MS256');
+       (* TCgSize = (OS_NO,
+                  OS_8,   OS_16,   OS_32,   OS_64,   OS_128,
+                  OS_S8,  OS_S16,  OS_S32,  OS_S64,  OS_S128,
+                 { single, double, extended, comp, float128 }
+                  OS_F32, OS_F64,  OS_F80,  OS_C64,  OS_F128,
+                 { multi-media sizes: split in byte, word, dword, ... }
+                 { entities, then the signed counterparts             }
+                  OS_M8,  OS_M16,  OS_M32,  OS_M64,  OS_M128,  OS_M256,  OS_M512,
+                  OS_MS8, OS_MS16, OS_MS32, OS_MS64, OS_MS128, OS_MS256, OS_MS512,
+                 { multi-media sizes: single-precision floating-point }
+                  OS_MF32, OS_MF128, OS_MF256, OS_MF512,
+                 { multi-media sizes: double-precision floating-point }
+                  OS_MD64, OS_MD128, OS_MD256, OS_MD512); *)
+
+          cgsize_strings : array[TCgSize] of string[8] = (
+           'OS_NO',
+           'OS_8', 'OS_16', 'OS_32', 'OS_64', 'OS_128',
+           'OS_S8', 'OS_S16', 'OS_S32', 'OS_S64', 'OS_S128',
+           'OS_F32', 'OS_F64', 'OS_F80', 'OS_C64', 'OS_F128',
+           'OS_M8', 'OS_M16', 'OS_M32', 'OS_M64', 'OS_M128', 'OS_M256', 'OS_M512',
+           'OS_MS8', 'OS_MS16', 'OS_MS32', 'OS_MS64', 'OS_MS128', 'OS_MS256', 'OS_MS512',
+           'OS_MF32', 'OS_MF128', 'OS_MF256', 'OS_MF512',
+           'OS_MD64', 'OS_MD128', 'OS_MD256', 'OS_MD512');
        begin
          result := cgsize_strings[size];
        end;
@@ -298,6 +316,8 @@ unit cgppc;
                        not(pi_do_call in current_procinfo.flags) then
                       list.concat(taicpu.op_reg_reg(A_MTSPR,NR_LR,NR_R0));
                   end;
+                else
+                  ;
               end;
           end;
       end;
@@ -477,21 +497,21 @@ unit cgppc;
         if target_info.system in systems_aix then
           begin
             { load function address in R0, and swap "reg" for R0 }
-            reference_reset_base(tmpref,reg,0,sizeof(pint),[]);
+            reference_reset_base(tmpref,reg,0,ctempposinvalid,sizeof(pint),[]);
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_R0);
             tmpreg:=reg;
             { no need to allocate/free R0, is already allocated by call node
               because it's a volatile register }
             reg:=NR_R0;
             { save current TOC }
-            reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_RTOC_AIX,sizeof(pint),[]);
+            reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_RTOC_AIX,ctempposinvalid,sizeof(pint),[]);
             a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,tmpref);
           end;
         list.concat(taicpu.op_reg(A_MTCTR,reg));
         if target_info.system in systems_aix then
           begin
             { load target TOC and possible link register }
-            reference_reset_base(tmpref,tmpreg,sizeof(pint),sizeof(pint),[]);
+            reference_reset_base(tmpref,tmpreg,sizeof(pint),ctempposinvalid,sizeof(pint),[]);
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_RTOC);
             tmpref.offset:=2*sizeof(pint);
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_R11);
@@ -499,7 +519,7 @@ unit cgppc;
         else if target_info.abi=abi_powerpc_elfv2 then
           begin
             { save current TOC }
-            reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_RTOC_ELFV2,sizeof(pint),[]);
+            reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_RTOC_ELFV2,ctempposinvalid,sizeof(pint),[]);
             a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,tmpref);
             { functions must be called via R12 for this ABI }
             if reg<>NR_R12 then
@@ -520,7 +540,7 @@ unit cgppc;
               toc_offset:=LA_RTOC_AIX
             else
               toc_offset:=LA_RTOC_ELFV2;
-            reference_reset_base(tmpref,NR_STACK_POINTER_REG,toc_offset,sizeof(pint),[]);
+            reference_reset_base(tmpref,NR_STACK_POINTER_REG,toc_offset,ctempposinvalid,sizeof(pint),[]);
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_RTOC);
           end;
         include(current_procinfo.flags,pi_do_call);
@@ -543,7 +563,6 @@ unit cgppc;
         );
     var
       ref2: TReference;
-      tmpreg: tregister;
       op: TAsmOp;
     begin
       if not (fromsize in [OS_8..OS_INT,OS_S8..OS_SINT]) then
@@ -655,7 +674,7 @@ unit cgppc;
       if not ((def.typ=pointerdef) or
              ((def.typ=orddef) and
               (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
-                                        pasbool8,pasbool16,pasbool32,pasbool64]))) then
+                                        pasbool1,pasbool8,pasbool16,pasbool32,pasbool64]))) then
         begin
           if (current_settings.optimizecputype >= cpu_ppc970) or
              (current_settings.cputype >= cpu_ppc970) then
@@ -692,7 +711,7 @@ unit cgppc;
         begin
           pd:=search_system_proc('mcount');
           paraloc1.init;
-          paramanager.getintparaloc(list,pd,1,paraloc1);
+          paramanager.getcgtempparaloc(list,pd,1,paraloc1);
           a_load_reg_cgpara(list,OS_ADDR,NR_R0,paraloc1);
           paramanager.freecgpara(list,paraloc1);
           paraloc1.done;
@@ -727,6 +746,8 @@ unit cgppc;
             list.concat(taicpu.op_const_const_const(A_CROR,testbit,testbit,testbit+2));
             f2.flag:=F_LT;
           end;
+        else
+          ;
       end;
       c := flags_to_cond(f2);
       a_jmp(list,A_BC,c.cond,c.cr-RS_CR0,l);
@@ -790,9 +811,6 @@ unit cgppc;
       AutoDirectTOCLimit = (high(smallint) div sizeof(pint)) - 500;
     var
       tmpref: treference;
-      { can have more than 16384 (32 bit) or 8192 (64 bit) toc entries and, as
-        as consequence, toc subsections -> 5 extra characters for the number}
-      tocsecname: string[length('tocsubtable')+5];
       nlsymname: string;
       newsymname: ansistring;
       sym: TAsmSymbol;

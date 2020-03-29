@@ -103,7 +103,7 @@ end;
 {$ENDIF FPC_FEXPAND_VOLUMES}
 
 
-function FExpand (const Path: PathStr): PathStr;
+function FExpand (const Path, BasePath: PathStr): PathStr;
 
 (* LFNSupport boolean constant, variable or function must be declared for all
    the platforms, at least locally in the Dos unit implementation part.
@@ -160,11 +160,12 @@ begin
 {$IFNDEF FPC_FEXPAND_SYSUTILS}
 (* Allow both '/' and '\' as directory separators *)
 (* by converting all to the native one.           *)
+{$push}
 {$warnings off}
 	  for I := 1 to Length (Pa) do
 	    if CharInSet(Pa [I], AllowDirectorySeparators)  then
 	      Pa [I] := DirectorySeparator;
-{$warnings on}
+{$pop}
 {$ENDIF not FPC_FEXPAND_SYSUTILS}
 
 (* PathStart is amount of characters to strip to get beginning *)
@@ -185,7 +186,7 @@ begin
 {$IFDEF FPC_FEXPAND_TILDE}
     {Replace ~/ with $HOME/}
     if (Length (Pa) >= 1) and (Pa [1] = '~') and
-                      ((Pa [2] = DirectorySeparator) or (Length (Pa) = 1)) then
+                      ((Length (Pa) = 1) or (Pa [2] = DirectorySeparator)) then
         begin
  {$IFDEF FPC_FEXPAND_SYSUTILS}
    {$IFDEF SYSUTILSUNICODE}
@@ -298,8 +299,15 @@ begin
 {$ENDIF FPC_FEXPAND_DRIVES}
         begin
 
-(* Get current directory on selected drive/volume. *)
-            GetDirIO (0, S);
+(* Get base path *)
+{$IF defined(FPC_FEXPAND_SYSUTILS) and not defined(SYSUTILSUNICODE)}
+            S := ToSingleByteFileSystemEncodedFileName (BasePath);
+{$ELSE FPC_FEXPAND_SYSUTILS and not SYSUTILSUNICODE}
+            S := BasePath;
+{$ENDIF FPC_FEXPAND_SYSUTILS and not SYSUTILSUNICODE}
+            if not FileNameCasePreserving then
+              S := UpCase(S);
+
 {$IFDEF FPC_FEXPAND_VOLUMES}
  {$IFDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
             PathStart := Pos (DriveSeparator, S);
@@ -442,6 +450,23 @@ begin
 
     {Get string of directories to only process relative references on this one}
     Dirs := Copy (Pa, Succ (PathStart), Length (Pa) - PathStart);
+
+{$IFNDEF FPC_FEXPAND_DIRSEP_IS_CURDIR}
+ {$IFNDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+    {Before anything else, remove doubled DirectorySeparator characters
+     - technically invalid or at least useless, but ignored by most operating
+     systems except for plain DOS.}
+    I := Pos (DirectorySeparator + DirectorySeparator, Dirs);
+    while I <> 0 do
+        begin
+            J := Succ (I);
+            while (Length (Dirs) > J) and (Dirs [Succ (J)] = DirectorySeparator) do
+                Inc (J);
+            Delete (Dirs, Succ (I), J - I);
+            I := Pos (DirectorySeparator + DirectorySeparator, Dirs);
+        end;
+ {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+{$ENDIF FPC_FEXPAND_DIRSEP_IS_CURDIR}
 
 {$IFNDEF FPC_FEXPAND_NO_CURDIR}
  {$IFNDEF FPC_FEXPAND_DIRSEP_IS_CURDIR}
@@ -593,6 +618,19 @@ begin
 {$ENDIF FPC_FEXPAND_SYSUTILS and not SYSUTILSUNICODE}
     FExpand := Pa;
 end;
+
+function FExpand (const Path: PathStr): PathStr;
+var
+  BaseDir: {$IF defined(FPC_FEXPAND_SYSUTILS) and not defined(SYSUTILSUNICODE)}RawByteString{$else}PathStr{$endif};
+begin
+  GetDirIO(0, BaseDir);
+{$IF defined(FPC_FEXPAND_SYSUTILS) and not defined(SYSUTILSUNICODE)}
+  { convert BaseDir to expected code page }
+  SetCodePage(BaseDir,DefaultRTLFileSystemCodePage);
+{$ENDIF FPC_FEXPAND_SYSUTILS and not SYSUTILSUNICODE}
+  FExpand := FExpand(Path, PathStr(BaseDir));
+end;
+
 
 (* Description of individual conditional defines supported for FExpand
    (disregard the used directory separators in examples, constant

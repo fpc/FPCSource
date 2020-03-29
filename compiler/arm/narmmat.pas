@@ -51,7 +51,7 @@ interface
 implementation
 
     uses
-      globtype,
+      globtype,compinnr,
       cutils,verbose,globals,constexp,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
@@ -75,7 +75,7 @@ implementation
         if not(cs_check_overflow in current_settings.localswitches) and
            (right.nodetype=ordconstn) and
            (nodetype=divn) and
-           not(is_64bitint(resultdef)) and
+           not(is_64bit(resultdef)) and
            {Only the ARM and thumb2-isa support umull and smull, which are required for arbitary division by const optimization}
            (GenerateArmCode or
             GenerateThumb2Code or
@@ -87,11 +87,11 @@ implementation
           result:=nil
         else if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[current_settings.cputype])) and
           (nodetype=divn) and
-          not(is_64bitint(resultdef)) then
+          not(is_64bit(resultdef)) then
           result:=nil
         else if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[current_settings.cputype])) and
           (nodetype=modn) and
-          not(is_64bitint(resultdef)) then
+          not(is_64bit(resultdef)) then
           begin
             if (right.nodetype=ordconstn) and
               ispowerof2(tordconstnode(right).value,power) and
@@ -164,7 +164,7 @@ implementation
                       cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,helper1);
                     if GenerateThumbCode then
                       begin
-                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,32-power,helper1);
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,32-power,helper1);
                         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,helper2,numerator,helper1));
                       end
                     else
@@ -179,9 +179,12 @@ implementation
                else
                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,power,numerator,resultreg)
              end
-           else {Everything else is handled the generic code}
+           else if CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype] then
+             {Everything else is handled the generic code}
              cg.g_div_const_reg_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),
-               tordconstnode(right).value.svalue,numerator,resultreg);
+               tordconstnode(right).value.svalue,numerator,resultreg)
+           else
+             internalerror(2019012601);
          end;
 
 {
@@ -286,8 +289,7 @@ implementation
                 resultreg:=cg.getintregister(current_asmdata.CurrAsmList,size);
               end;
 
-            if (right.nodetype=ordconstn) and
-               (CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) then
+            if (right.nodetype=ordconstn) then
               begin
                 if nodetype=divn then
                   genOrdConstNodeDiv
@@ -310,6 +312,8 @@ implementation
 *****************************************************************************}
 
     procedure tarmnotnode.second_boolean;
+      var
+        tmpreg : TRegister;
       begin
         { if the location is LOC_JUMP, we do the secondpass after the
           labels are allocated
@@ -328,7 +332,14 @@ implementation
                 begin
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                   cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
+                  if is_64bit(resultdef) then
+                    begin
+                      tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+                      { OR low and high parts together }
+                      current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,tmpreg,left.location.register64.reglo,left.location.register64.reghi),PF_S));
+                    end
+                  else
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_EQ;
                 end;
@@ -356,7 +367,7 @@ implementation
             exit;
           end;
 
-        if (current_settings.fputype<>fpu_fpv4_s16) or
+        if not(FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype]) or
           (tfloatdef(resultdef).floattype=s32real) then
           exit(inherited pass_1);
 
@@ -407,10 +418,20 @@ implementation
                 location.register,left.location.register,0),
                 cgsize2fpuoppostfix[def_cgsize(resultdef)]));
             end;
-          fpu_vfpv2,
-          fpu_vfpv3,
-          fpu_vfpv4,
-          fpu_vfpv3_d16:
+          fpu_soft:
+            begin
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+              location:=left.location;
+              case location.size of
+                OS_32:
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.register);
+                OS_64:
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.registerhi);
+              else
+                internalerror(2014033101);
+              end;
+            end
+          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[init_settings.fputype] then
             begin
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location:=left.location;
@@ -424,8 +445,9 @@ implementation
 
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VNEG,
                 location.register,left.location.register), pf));
-            end;
-          fpu_fpv4_s16:
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+            end
+          else if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[init_settings.fputype] then
             begin
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location:=left.location;
@@ -433,19 +455,7 @@ implementation
                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VNEG,
                 location.register,left.location.register), PF_F32));
-            end;
-          fpu_soft:
-            begin
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-              location:=left.location;
-              case location.size of
-                OS_32:
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.register);
-                OS_64:
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.registerhi);
-              else
-                internalerror(2014033101);
-              end;
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end
           else
             internalerror(2009112602);

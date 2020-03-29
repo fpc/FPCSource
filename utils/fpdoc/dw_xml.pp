@@ -84,8 +84,8 @@ var
     if not FShowSourceInfo then
       Exit;
     SourceNode := Doc.CreateElement('source');
-    SourceNode['line'] := IntToStr(ADecl.SourceLinenumber);
-    SourceNode['file'] := ADecl.SourceFilename;
+    SourceNode['line'] := UTF8Decode(IntToStr(ADecl.SourceLinenumber));
+    SourceNode['file'] := UTF8Decode(ADecl.SourceFilename);
     AElement.AppendChild(SourceNode);
   end;
 
@@ -100,7 +100,7 @@ var
       Node['virtual'] := 'true';
     if pmAbstract in ADecl.Modifiers then
       Node['abstract'] := 'true';
-    if pmStatic in ADecl.Modifiers then
+    if assigned(ADecl.ProcType) and (ptmStatic in ADecl.ProcType.Modifiers) then
       Node['static'] := 'true';
     if pmReintroduce in ADecl.Modifiers then
       Node['reintroduce'] := 'true';
@@ -114,7 +114,7 @@ var
 
   procedure AddTypeNode(ToNode: TDOMElement; AType: String);
   begin
-    ToNode.AttribStrings['type'] := AType;
+    ToNode.AttribStrings['type'] := UTF8Decode(AType);
   end;
 
   function AddTypeNode(ToNode: TDOMElement; AType: TPasType): Boolean;
@@ -141,7 +141,7 @@ var
     begin
       Arg := TPasArgument(Args.Items[i]);
       ArgNode := Doc.CreateElement('argument');
-      ArgNode.AttribStrings['name'] := Arg.Name;
+      ArgNode.AttribStrings['name'] := UTF8Decode(Arg.Name);
       AddTypeNode(ArgNode, Arg.ArgType);
       ProcNode.AppendChild(ArgNode);
     end;
@@ -150,7 +150,7 @@ var
   procedure DoVisibility(PasEl: TPasElement; Element: TDOMElement);
   begin
     if PasEl.Visibility <> visDefault then
-      Element['visibility'] := VisibilityToString(PasEl.Visibility);
+      Element['visibility'] := UTF8Decode(VisibilityToString(PasEl.Visibility));
   end;
 
   function ProcessProcedure(Proc: TPasProcedure; Element: TDOMElement): TDOMElement;
@@ -159,9 +159,9 @@ var
     ReturnEl: TDOMElement;
   begin
     Result := nil;
-    ProcEl := Doc.CreateElement(Sanitize(Proc.TypeName));
+    ProcEl := Doc.CreateElement(UTF8Decode(Sanitize(Proc.TypeName)));
     Element.AppendChild(ProcEl);
-    ProcEl['name'] := Proc.Name;
+    ProcEl['name'] := UTF8Decode(Proc.Name);
 
     DoVisibility(Proc, ProcEl);
 
@@ -185,10 +185,10 @@ var
     TypeEl: TDOMElement;
   begin
     TypeEl := Doc.CreateElement('array');
-    TypeEl['name'] := AType.Name;
+    TypeEl['name'] := UTF8Decode(AType.Name);
     if not AddTypeNode(TypeEl, AType.ElType) then
       TypeEl['const'] := 'true';
-    TypeEl['range'] := AType.IndexRange;
+    TypeEl['range'] := UTF8Decode(AType.IndexRange);
     DoVisibility(AType, Element);
     AddSourceInfo(AType,Element);
     Element.AppendChild(TypeEl);
@@ -199,7 +199,7 @@ var
     TypeEl: TDOMElement;
   begin
     TypeEl := Doc.CreateElement('pointer');
-    TypeEl['name'] := AType.Name;
+    TypeEl['name'] := UTF8Decode(AType.Name);
     AddTypeNode(TypeEl, AType.DestType);
     DoVisibility(AType, Element);
     AddSourceInfo(AType,Element);
@@ -212,7 +212,7 @@ var
     TypeEl: TDOMElement;
   begin
     TypeEl := Doc.CreateElement('alias');
-    TypeEl['name'] := AType.Name;
+    TypeEl['name'] := UTF8Decode(AType.Name);
     AddTypeNode(TypeEl, AType.DestType);
     DoVisibility(AType, Element);
     AddSourceInfo(AType,Element);
@@ -225,7 +225,7 @@ var
   begin
     VarEl := Result.CreateElement('var');
     Element.AppendChild(VarEl);
-    VarEl['name'] := AVar.Name;
+    VarEl['name'] := UTF8Decode(AVar.Name);
     if not AVar.VarType.InheritsFrom(TPasArrayType) then
       AddTypeNode(VarEl, AVar.VarType)
     else
@@ -244,14 +244,14 @@ var
     PropEl := Doc.CreateElement('property');
     Element.AppendChild(PropEl);
 
-    PropEl.AttribStrings['name'] := AProp.Name;
+    PropEl.AttribStrings['name'] := UTF8Decode(AProp.Name);
     AddTypeNode(PropEL, AProp.ResolvedType);
 
     if AProp.IndexValue <> '' then
-      PropEl['index'] := AProp.IndexValue;
+      PropEl['index'] := UTF8Decode(AProp.IndexValue);
 
     if AProp.DefaultValue <> '' then
-      PropEl['default'] := AProp.DefaultValue;
+      PropEl['default'] := UTF8Decode(AProp.DefaultValue);
 
 
     if AProp.WriteAccessorName <> '' then
@@ -283,8 +283,8 @@ var
     ConstEl: TDOMElement;
   begin
     ConstEl := Doc.CreateElement('const');
-    ConstEl['name'] := AConst.name;
-    ConstEl['value'] := AConst.Value;
+    ConstEl['name'] := UTF8Decode(AConst.name);
+    ConstEl['value'] := UTF8Decode(AConst.Value);
     Element.AppendChild(ConstEl);
     AddSourceInfo(AConst,ConstEl);
   end;
@@ -296,13 +296,13 @@ var
     i: Integer;
   begin
     TypeEl := Doc.CreateElement('enum');
-    TypeEl['name'] := AType.name;
+    TypeEl['name'] := UTF8Decode(AType.name);
     AddSourceInfo(AType,TypeEl);
     //ConstEl['value'] := AConst.Value;
     for i := 0 to AType.Values.Count-1 do
     begin
       ValEl := Doc.CreateElement('enumvalue');
-      ValEl['name'] := TPasEnumValue(AType.Values.Items[i]).Name;
+      ValEl['name'] := UTF8Decode(TPasEnumValue(AType.Values.Items[i]).Name);
       AddSourceInfo(TPasEnumValue(AType.Values.Items[i]),ValEl);
       TypeEl.AppendChild(ValEl);
 
@@ -315,7 +315,7 @@ var
     SetEl: TDOMElement;
   begin
     SetEl := Doc.CreateElement('set');
-    SetEl['name'] := AType.name;
+    SetEl['name'] := UTF8Decode(AType.name);
     AddTypeNode(SetEl, AType.EnumType);
     AddSourceInfo(AType,SetEl);
     Element.AppendChild(SetEl);
@@ -325,8 +325,8 @@ var
   var
     TypeEl: TDOMElement;
   begin
-    TypeEl := Doc.CreateElement(AType.TypeName);
-    TypeEl['name'] := AType.name;
+    TypeEl := Doc.CreateElement(UTF8Decode(AType.TypeName));
+    TypeEl['name'] := UTF8Decode(AType.name);
     TypeEl['istype'] := 'true';
     if AType.IsOfObject then
       TypeEl['object'] := 'true';
@@ -342,7 +342,7 @@ var
     i: Integer;
   begin
     TypeEl := Doc.CreateElement('record');
-    TypeEl['name'] := AType.name;
+    TypeEl['name'] := UTF8Decode(AType.name);
 
     Element.AppendChild(TypeEl);
     AddSourceInfo(AType,TypeEl);
@@ -369,7 +369,7 @@ var
     for i := 0 to AGenericTypes.Count-1 do
     begin
       Node := Doc.CreateElement('t');
-      Node['name'] := TPasGenericTemplateType(AGenericTypes.Items[i]).Name;
+      Node['name'] := UTF8Decode(TPasGenericTemplateType(AGenericTypes.Items[i]).Name);
       ANode.AppendChild(Node);
       AddSourceInfo(TPasGenericTemplateType(AGenericTypes.Items[i]),Node);
     end;
@@ -380,9 +380,9 @@ var
     TypeEl: TDOMElement;
   begin
     TypeEl := Doc.CreateElement('range');
-    TypeEl['name'] := AType.Name;
-    TypeEl['start'] := AType.RangeStart;
-    TypeEl['end'] := AType.RangeEnd;
+    TypeEl['name'] := UTF8Decode(AType.Name);
+    TypeEl['start'] := UTF8Decode(AType.RangeStart);
+    TypeEl['end'] := UTF8Decode(AType.RangeEnd);
     AddSourceInfo(AType,TypeEl);
 
     Element.AppendChild(TypeEl);
@@ -439,7 +439,6 @@ var
       okClass: ClassEl := Result.CreateElement('class');
       okObject: ClassEl := Result.CreateElement('object');
       okInterface: ClassEl := Result.CreateElement('interface');
-      okSpecialize: ClassEl := Result.CreateElement('classspecialized');
       //okGeneric: Result.CreateElement('generic');
       //okClassHelper: Result.CreateElement('classhelper');
       //okRecordHelper: Result.CreateElement('recordhelper');
@@ -453,14 +452,10 @@ var
     if Assigned(ClassEl) then
     begin
       Element.AppendChild(ClassEl);
-      ClassEl['name'] := AClass.Name;
+      ClassEl['name'] := UTF8Decode(AClass.Name);
       if Assigned(AClass.AncestorType) then
-        ClassEl['parentclass'] := AClass.AncestorType.Name;
+        ClassEl['parentclass'] := UTF8Decode(AClass.AncestorType.Name);
 
-      if AClass.ObjKind = okSpecialize then
-      begin
-        ProcessGenericTypes(AClass.GenericTemplateTypes, ClassEl);
-      end;
       AddSourceInfo(AClass,ClassEl);
 
       if Assigned(AClass.Interfaces) then
@@ -468,7 +463,7 @@ var
         begin
           InterfaceEl := Doc.CreateElement('interface');
           ClassEl.AppendChild(InterfaceEl);
-          InterfaceEl['name'] := TPasElement(AClass.Interfaces.Items[i]).Name;
+          InterfaceEl['name'] := UTF8Decode(TPasElement(AClass.Interfaces.Items[i]).Name);
         end;
 
       if Assigned(AClass.Members) then
@@ -526,7 +521,7 @@ var
       for i := 0 to ASection.UsesList.Count - 1 do
       begin
         UnitElement := Result.CreateElement('unit-ref');
-        UnitElement['name'] := TPasType(ASection.UsesList[i]).Name;
+        UnitElement['name'] := UTF8Decode(TPasType(ASection.UsesList[i]).Name);
         UsesElement.AppendChild(UnitElement);
       end;
     end;
@@ -580,10 +575,10 @@ var
 
 begin
   Result := TXMLDocument.Create;
-  Result.AppendChild(Result.CreateComment(SDocGeneratedByComment));
+  Result.AppendChild(Result.CreateComment(UTF8Decode(SDocGeneratedByComment)));
   Result.AppendChild(Result.CreateElement('fp-refdoc'));
   ModuleElement := Result.CreateElement('unit');
-  ModuleElement['name'] := AModule.Name;
+  ModuleElement['name'] := UTF8Decode(AModule.Name);
   Result.DocumentElement.AppendChild(ModuleElement);
   ProcessSection(AModule.InterfaceSection, 'interface');
 end;

@@ -57,9 +57,9 @@ Type
 type
   PEGLConfig  = ^EGLConfig;
   PEGLint  = ^EGLint;
-     EGLint = {$ifdef win64}int64{$else}longint{$endif}; // Why int64 only on win64 and not even on 64-bit linux???
+  EGLint = longint;
 
-     EGLConfig = pointer;
+  EGLConfig = pointer;
 
   { EGL Types  }
   { EGLint is defined in eglplatform.h  }

@@ -128,7 +128,7 @@ procedure dump_320x(y0, y1: Integer; buffer: PInteger);
 implementation
 
 uses
-  go32fix;
+  go32;
 
 { $define __USE_178NOT176}
  { uncomment to use 75% char instead of 25% char }

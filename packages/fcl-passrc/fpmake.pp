@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Dependencies.Add('fcl-base');
     P.Author := 'Sebastian Guenther';
     P.License := 'LGPL with modification, ';
@@ -25,7 +25,9 @@ begin
     P.Email := '';
     P.Description := 'Pascal parsing parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos,win16];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
 
@@ -34,6 +36,7 @@ begin
     T:=P.Targets.AddUnit('pscanner.pp');
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('pparser.pp');
+      T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('pastree');
@@ -46,7 +49,6 @@ begin
           AddUnit('pscanner');
           AddUnit('pparser');
         end;
-    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('pastounittest.pp');
       with T.Dependencies do
         begin
@@ -69,10 +71,18 @@ begin
         begin
           AddUnit('pastree');
         end;
+    T:=P.Targets.AddUnit('pasresolveeval.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('pastree');
+          AddUnit('pscanner');
+        end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('pasuseanalyzer.pas');
       with T.Dependencies do
         begin
           AddUnit('pastree');
+          AddUnit('pasresolver');
         end;
 
 {$ifndef ALLPACKAGES}

@@ -543,16 +543,16 @@ end;
 Function  TComponent.FindComponent(const AName: string): TComponent;
 
 Var I : longint;
-
+    C : TComponent;
 begin
   Result:=Nil;
   If (AName='') or Not assigned(FComponents) then exit;
   For i:=0 to FComponents.Count-1 do
-    if (CompareText(TComponent(FComponents[I]).Name,AName)=0) then
-      begin
-      Result:=TComponent(FComponents.Items[I]);
-      exit;
-      end;
+    Begin
+      c:=TComponent(FComponents[I]);
+      If (CompareText(C.Name,AName)=0) then
+        Exit(C);
+    End;
 end;
 
 

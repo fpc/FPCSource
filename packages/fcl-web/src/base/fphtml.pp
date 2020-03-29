@@ -488,7 +488,7 @@ type
 
   { TCustomHTMLModule }
 
-  TCustomHTMLModule = Class(TCustomHTTPModule)
+  TCustomHTMLModule = Class(TSessionHTTPModule)
   private
     FDocument : THTMLDocument;
     FActions: THTMLContentActions;
@@ -506,14 +506,20 @@ type
   Public
     Constructor Create(AOwner : TComponent);override;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
+    Property Document : THTMLDocument Read FDocument;
   end;
   
   TFPHTMLModule=Class(TCustomHTMLModule)
   Published
-    Property OnGetContent;
     Property Actions;
+    Property CreateSession;
+    Property Session;
     Property OnCreateDocument;
     Property OnCreateWriter;
+    Property OnGetContent;
+    Property OnNewSession;
+    Property OnSessionExpired;
+    Property CORS;
   end;
   
   EHTMLError = Class(EHTTP);
@@ -1153,6 +1159,7 @@ Var
   FWriter : THTMLWriter;
   B : Boolean;
   M : TMemoryStream;
+
   
 begin
   FDocument := CreateDocument;
@@ -1160,16 +1167,28 @@ begin
     FWriter:=CreateWriter(FDocument);
     Try
       B:=False;
-      If Assigned(OnGetContent) then
-        OnGetContent(Self,ARequest,FWriter,B);
-      If Not B then
-        Raise EHTMLError.Create(SErrRequestNotHandled);
-      If (AResponse.ContentStream=Nil) then
-        begin
-        M:=TMemoryStream.Create;
-        AResponse.ContentStream:=M;
-        end;
-      FDocument.SaveToStream(AResponse.ContentStream);
+      if Not CORS.HandleRequest(aRequest,aResponse,[hcDetect,hcSend]) then
+        If Assigned(OnGetContent) then
+          OnGetContent(Self,ARequest,FWriter,B);
+        If Not B then
+          Actions.HandleRequest(ARequest,FWriter,B);
+        If Not B then
+          Raise EHTMLError.Create(SErrRequestNotHandled);
+        If (AResponse.ContentStream=Nil) then
+          begin
+          M:=TMemoryStream.Create;
+          AResponse.ContentStream:=M;
+          AResponse.FreeContentStream:=True;
+          end;
+        if not AResponse.ContentSent then
+          begin
+          FDocument.SaveToStream(AResponse.ContentStream);
+          AResponse.ContentStream.Position:=0;
+          if (AResponse.ContentType='') then
+             AResponse.ContentType:='text/html';
+          AResponse.ContentLength:=AResponse.ContentStream.Size;
+          AResponse.SendContent;
+          end;
     Finally
       FreeAndNil(FWriter);
     end;

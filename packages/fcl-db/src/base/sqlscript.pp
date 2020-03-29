@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit sqlscript;
+unit SQLScript;
 
 {$mode objfpc}{$H+}
 
@@ -519,10 +519,9 @@ function TCustomSQLScript.NextStatement: AnsiString;
 
 var
   pnt: AnsiString;
-  b,isExtra,terminator_found: Boolean;
+  b,isExtra: Boolean;
 
 begin
-  terminator_found:=False;
   ClearStatement;
   while FLine <= FSQL.Count do
     begin
@@ -530,7 +529,6 @@ begin
     if (pnt=FTerminator) then
       begin
       FCol:=FCol + length(pnt);
-      terminator_found:=True;
       break;
       end
     else if pnt = '/*' then
@@ -583,8 +581,6 @@ begin
         FCol:=FCol + length(pnt);
       end;
     end;
-  if not terminator_found then
-    ClearStatement;
   while (FCurrentStatement.Count > 0) and (trim(FCurrentStatement.Strings[0]) = '') do
     FCurrentStatement.Delete(0);
   while (FCurrentStripped.Count > 0) and (trim(FCurrentStripped.Strings[0]) = '') do
@@ -645,28 +641,33 @@ begin
 end;
 
 procedure TCustomSQLScript.DefaultDirectives;
+
+  Procedure Add(S : String);
+  
+  begin
+    if FDirectives.IndexOf(S)=-1 then
+      FDirectives.Add(S);
+  end;
+
 begin
-  With FDirectives do
+  // Insertion order matters as testing for directives will be done with StartsWith
+  if FUseSetTerm then
+    Add('SET TERM');
+  if FUseCommit then
+  begin
+    Add('COMMIT WORK'); {SQL Standard, equivalent to commit}
+    Add('COMMIT RETAIN'); {Firebird/Interbase; probably won't hurt on other dbs}
+    Add('COMMIT'); {Shorthand used in many dbs, e.g. Firebird}
+  end;
+  if FUseDefines then
     begin
-    // Insertion order matters as testing for directives will be done with StartsWith
-    if FUseSetTerm then
-      Add('SET TERM');
-    if FUseCommit then
-    begin
-      Add('COMMIT WORK'); {SQL Standard, equivalent to commit}
-      Add('COMMIT RETAIN'); {Firebird/Interbase; probably won't hurt on other dbs}
-      Add('COMMIT'); {Shorthand used in many dbs, e.g. Firebird}
-    end;
-    if FUseDefines then
-      begin
-      Add('#IFDEF');
-      Add('#IFNDEF');
-      Add('#ELSE');
-      Add('#ENDIF');
-      Add('#DEFINE');
-      Add('#UNDEF');
-      Add('#UNDEFINE');
-      end;
+    Add('#IFDEF');
+    Add('#IFNDEF');
+    Add('#ELSE');
+    Add('#ENDIF');
+    Add('#DEFINE');
+    Add('#UNDEF');
+    Add('#UNDEFINE');
     end;
 end;
 

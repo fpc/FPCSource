@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('libxml2');
+    P.ShortName := 'lxml';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.OSes := [freebsd,linux,win32];
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

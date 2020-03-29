@@ -3,15 +3,21 @@
 { This verifies if the strings are
   correctly aligned, normally the generated assembler
   should be verified manually.
-
-  I consider this test as flawed, or is there a reason, why a
-  shortstring should be aligned to pointer boundaries? (FK)
 }
 program talign2;
 
 {$ifdef fpc}
 {$mode objfpc}
 {$define haswidestring}
+{$ifdef go32v2}
+  {$define USE_INTERNAL_UNICODE}
+{$endif}
+
+{$ifdef USE_INTERNAL_UNICODE}
+  {$define USE_FPWIDESTRING_UNIT}
+  {$define USE_UNICODEDUCET_UNIT}
+  {$define USE_CPALL_UNIT}
+{$endif}
 {$else}
   {$ifndef ver70}
     {$define haswidestring}
@@ -19,10 +25,23 @@ program talign2;
 {$endif}
 
 {$ifdef fpc}
+{$ifndef USE_INTERNAL_UNICODE}
 {$ifdef unix}
 uses
   {$ifdef darwin}iosxwstr{$else}cwstring{$endif};
-{$endif}
+{$endif unix}
+{$else USE_INTERNAL_UNICODE}
+uses
+ {$ifdef USE_UNICODEDUCET_UNIT}
+  unicodeducet,
+ {$endif}
+ {$ifdef USE_FPWIDESTRING_UNIT}
+  fpwidestring,
+ {$endif}
+ {$ifdef USE_CPALL_UNIT}
+  cpall;
+ {$endif}
+{$endif USE_INTERNAL_UNICODE}
 {$endif}
 
 {$ifdef CPUI8086}
@@ -56,16 +75,12 @@ const
 {$ifdef haswidestring}
   widestr : widestring = 'simple widestring';
 {$endif}
-  shortstr :shortstring = 'simple shortstring';
 begin
   test(length(ansistr)=17);
 {$ifdef haswidestring}
   test(length(widestr)=17);
 {$endif}
-  test(length(shortstr)=18);
   { verify if the address are correctly aligned! }
-  pt:=@shortstr;
-  test((ptruint(pt) mod pointer_alignment)=0);
   pt:=p;
   test((ptruint(pt) mod pointer_alignment)=0);
   pt:=pchar(ansistr);

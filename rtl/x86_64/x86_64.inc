@@ -640,27 +640,35 @@ asm
     mov    %rsi, %rdx
     mov    %rdi, %rcx
 {$endif win64}
-    testq   %r8,%r8
-    je      .LCmpbyteZero
+    negq    %r8
+    jz      .LCmpbyteZero
 
-    .balign 8
+    subq    %r8, %rcx
+    subq    %r8, %rdx
+
+    .balign 16
 .LCmpbyteLoop:
-    movb    (%rcx),%r9b
-    cmpb    (%rdx),%r9b
-    leaq    1(%rcx),%rcx
-    leaq    1(%rdx),%rdx
+{$ifdef oldbinutils}
+// for the reason why this alternate coding of movzbl is given here
+// see the comments in FillChar above
+    .byte 0x42,0x0F,0xB6,0x04,0x01
+{$else}
+    movzbl  (%rcx,%r8), %eax
+{$endif}    cmpb    (%rdx,%r8), %al
     jne     .LCmpbyteExitFast
-    decq    %r8
+    incq     %r8
     jne     .LCmpbyteLoop
-.LCmpbyteExitFast:
-     movzbq  -1(%rdx),%r8     { Compare last position }
-     movzbq  %r9b,%rax
-     subq    %r8,%rax
-     ret
-
 .LCmpbyteZero:
-     movq    $0,%rax
-     ret
+     xorl    %eax, %eax
+     retq
+
+.LCmpbyteExitFast:
+{$ifdef oldbinutils}
+    .byte 0x42,0x0F,0xB6,0x0C,0x02
+{$else}
+     movzbl  (%rdx,%r8), %ecx    { Compare last position }
+{$endif}
+     subq    %rcx, %rax
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 
@@ -925,13 +933,20 @@ const
   FPU_StackOverflow = $40;
   FPU_ExceptionMask = $ff;
 
+  MM_Invalid = 1;
+  MM_Denormal = 2;
+  MM_DivisionByZero = 4;
+  MM_Overflow = 8;
+  MM_Underflow = $10;
+  MM_Precicion = $20;
+  MM_ExceptionMask = $3f;
+
   MM_MaskInvalidOp = %0000000010000000;
   MM_MaskDenorm    = %0000000100000000;
   MM_MaskDivZero   = %0000001000000000;
   MM_MaskOverflow  = %0000010000000000;
   MM_MaskUnderflow = %0000100000000000;
   MM_MaskPrecision = %0001000000000000;
-
 
 procedure fpc_cpuinit;
   begin
@@ -1058,3 +1073,33 @@ asm
 {$endif win64}
   bswap %rax
 end;
+
+
+{$ifndef win64}
+{$define FPC_SYSTEM_HAS_U128_DIV_U64_TO_U64}
+function u128_div_u64_to_u64( const xh, xl: qword; const y: qword; out quotient, remainder: qword ): boolean;nostackframe;assembler;
+{
+  SysV:
+  xh: RDI
+  xl: RSI
+  y: RDX
+  quotient: RCX
+  remainder: R8
+}
+label
+  dodiv;
+asm
+  cmpq %rdi,%rdx
+  ja   dodiv
+  xorl %eax,%eax
+  ret
+dodiv:
+  movq %rdx,%r9
+  movq %rsi,%rax
+  movq %rdi,%rdx
+  divq %r9
+  movq %rax,(%rcx)
+  movq %rdx,(%r8)
+  movl $1,%eax
+end;
+{$endif win64}

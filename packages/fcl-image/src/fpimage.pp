@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
-    fpImage base definitions.
+    FPImage base definitions.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
-unit FPimage;
+unit FPImage;
 
 interface
 
@@ -31,7 +31,7 @@ type
   FPImageException = class (exception);
 
   TFPColor = record
-    red,green,blue,alpha : word;
+    Red,Green,Blue,Alpha : word;
   end;
   PFPColor = ^TFPColor;
 
@@ -125,10 +125,12 @@ type
                          PercentDone: Byte;  RedrawNow: Boolean; const R: TRect;
                          const Msg: AnsiString; var Continue: Boolean); Virtual;
     public
-      constructor create (AWidth,AHeight:integer); virtual;
-      destructor destroy; override;
+      constructor Create (AWidth,AHeight:integer); virtual;
+      destructor Destroy; override;
       procedure Assign(Source: TPersistent); override;
       // Image handlers
+      class function FindHandlerFromStream(Str:TStream): TIHData;
+      class function FindReaderFromStream(Str:TStream): TFPCustomImageReaderClass;
       class function FindHandlerFromExtension(extension:String): TIHData;
       class function FindReaderFromFileName(const filename:String): TFPCustomImageReaderClass;
       class function FindReaderFromExtension(const extension:String): TFPCustomImageReaderClass;
@@ -182,8 +184,8 @@ type
       procedure SetInternalPixel (x,y:integer; Value:integer); override;
       function GetInternalPixel (x,y:integer) : integer; override;
     public
-      constructor create (AWidth,AHeight:integer); override;
-      destructor destroy; override;
+      constructor Create (AWidth,AHeight:integer); override;
+      destructor Destroy; override;
       procedure SetSize (AWidth, AHeight : integer); override;
   end;
 
@@ -262,6 +264,7 @@ type
                    AReader:TFPCustomImageReaderClass);
       procedure RegisterImageWriter (const ATypeName,TheExtensions:string;
                    AWriter:TFPCustomImageWriterClass);
+      procedure UnregisterImageHandlers(const ATypeName: string; ARemoveReader: boolean = True; ARemoveWriter: boolean = True);
       property Count : integer read GetCount;
       property ImageReader [const TypeName:string] : TFPCustomImageReaderClass read GetReader;
       property ImageWriter [const TypeName:string] : TFPCustomImageWriterClass read GetWriter;
@@ -283,7 +286,7 @@ function ConvertColor (const From : TFPColor; Fmt : TColorFormat) : TDeviceColor
 function ConvertColor (const From : TDeviceColor; Fmt : TColorFormat) : TDeviceColor;
 *)
 
-function AlphaBlend(color1, color2: TFPColor): TFPColor;
+function AlphaBlend(const color1, color2: TFPColor): TFPColor;
 
 function FPColor (r,g,b,a:word) : TFPColor;
 function FPColor (r,g,b:word) : TFPColor;
@@ -314,7 +317,8 @@ type
     StrNoCorrectReaderFound,
     StrReadWithError,
     StrWriteWithError,
-    StrNoPaletteAvailable
+    StrNoPaletteAvailable,
+    StrInvalidHTMLColor
     );
 
 const
@@ -335,7 +339,8 @@ const
      'Can''t determine image type of stream',
      'Error while reading stream: %s',
      'Error while writing stream: %s',
-     'No palette available'
+     'No palette available',
+     'Invalid HTML color : %s'
      );
 
 {$i fpcolors.inc}
@@ -392,7 +397,7 @@ Type
   end;
 
   TFPCompactImgGrayAlpha16BitValue = packed record
-    g,a: word;
+    G,A: word;
   end;
   PFPCompactImgGrayAlpha16BitValue = ^TFPCompactImgGrayAlpha16BitValue;
 
@@ -427,7 +432,7 @@ Type
   end;
 
   TFPCompactImgGrayAlpha8BitValue = packed record
-    g,a: byte;
+    G,A: byte;
   end;
   PFPCompactImgGrayAlpha8BitValue = ^TFPCompactImgGrayAlpha8BitValue;
 
@@ -447,7 +452,7 @@ Type
   end;
 
   TFPCompactImgRGBA8BitValue = packed record
-    r,g,b,a: byte;
+    R,G,B,A: byte;
   end;
   PFPCompactImgRGBA8BitValue = ^TFPCompactImgRGBA8BitValue;
 
@@ -467,7 +472,7 @@ Type
   end;
 
   TFPCompactImgRGB8BitValue = packed record
-    r,g,b: byte;
+    R,G,B: byte;
   end;
   PFPCompactImgRGB8BitValue = ^TFPCompactImgRGB8BitValue;
 
@@ -487,7 +492,7 @@ Type
   end;
 
   TFPCompactImgRGB16BitValue = packed record
-    r,g,b: word;
+    R,G,B: word;
   end;
   PFPCompactImgRGB16BitValue = ^TFPCompactImgRGB16BitValue;
 
@@ -553,6 +558,11 @@ Pass FreeImg=true to call Img.Free }
 function GetMinimumFPCompactImg(Img: TFPCustomImage; FreeImg: boolean;
 FuzzyDepth: word = 4): TFPCustomImage;
 
+{ HTML Color support. RRGGBB or color name. Only W3 color names s are supported}
+
+function TryHtmlToFPColor(const S: String; out FPColor: TFPColor): Boolean;
+function HtmlToFPColorDef(const S: String; out FPColor: TFpColor; const Def: TFPColor): TFPColor;
+function HtmlToFPColor(const S: String): TFPColor;
 
 
 implementation
@@ -603,12 +613,12 @@ begin
             (c.Alpha = d.Alpha);
 end;
 
-function GetFullColorData (color:TFPColor) : TColorData;
+function GetFullColorData (const color:TFPColor) : TColorData;
 begin
   result := PColorData(@color)^;
 end;
 
-function SetFullColorData (color:TColorData) : TFPColor;
+function SetFullColorData (const color:TColorData) : TFPColor;
 begin
   result := PFPColor (@color)^;
 end;
@@ -644,6 +654,124 @@ begin
     end;
 end;
 {$endif}
+
+type
+  THtmlColorName = (
+    hcnWhite, hcnSilver, hcnGray, hcnBlack,
+    hcnRed, hcnMaroon, hcnYellow, hcnOlive,
+    hcnLime, hcnGreen, hcnAqua, hcnTeal, hcnBlue,
+    hcnNavy, hcnFuchsia, hcnPurple);
+
+const
+  HtmlColorNameToFPColorMap: array[THtmlColorName] of TFPColor = (
+    (red: $ff; green: $ff; blue: $ff; alpha: alphaOpaque), //hcnWhite
+    (red: $c0; green: $c0; blue: $c0; alpha: alphaOpaque), //hcnSilver
+    (red: $80; green: $80; blue: $80; alpha: alphaOpaque), //hcnGray
+    (red: $00; green: $00; blue: $00; alpha: alphaOpaque), //hcnBlack
+    (red: $ff; green: $00; blue: $00; alpha: alphaOpaque), //hcnRed
+    (red: $80; green: $00; blue: $00; alpha: alphaOpaque), //hcnMaroon
+    (red: $ff; green: $ff; blue: $00; alpha: alphaOpaque), //hcnYellow
+    (red: $80; green: $80; blue: $00; alpha: alphaOpaque), //hcnOlive
+    (red: $00; green: $ff; blue: $00; alpha: alphaOpaque), //hcnLime
+    (red: $00; green: $80; blue: $00; alpha: alphaOpaque), //hcnGreen
+    (red: $00; green: $ff; blue: $ff; alpha: alphaOpaque), //hcnAqua
+    (red: $00; green: $80; blue: $80; alpha: alphaOpaque), //hcnTeal
+    (red: $00; green: $00; blue: $ff; alpha: alphaOpaque), //hcnBlue
+    (red: $00; green: $00; blue: $80; alpha: alphaOpaque), //hcnNavy
+    (red: $ff; green: $00; blue: $ff; alpha: alphaOpaque), //hcnFuchsia
+    (red: $80; green: $00; blue: $80; alpha: alphaOpaque)  //hcnPurple
+  );
+
+function TryStrToHtmlColorName(const S: String; out AName: THtmlColorName): Boolean;
+begin
+   Result := True;
+   case LowerCase(S) of
+     'white'  : AName := hcnWhite;
+     'silver' : AName := hcnSilver;
+     'gray'   : AName := hcnGray;
+     'black'  : AName := hcnBlack;
+     'red'    : AName := hcnRed;
+     'maroon' : AName := hcnMaroon;
+     'yellow' : AName := hcnYellow;
+     'olive'  : AName := hcnOlive;
+     'lime'   : AName := hcnLime;
+     'green'  : AName := hcnGreen;
+     'aqua'   : AName := hcnAqua;
+     'teal'   : AName := hcnTeal;
+     'blue'   : AName := hcnBlue;
+     'navy'   : AName := hcnNavy;
+     'fuchsia': AName := hcnFuchsia;
+     'purple' : AName := hcnPurple;
+  else
+    Result := False;
+  end;
+end;
+
+{ Try to translate HTML color code into TFPColor
+  Supports following formats
+    '#rgb'
+    '#rrggbb'
+    W3C Html color name
+}
+function TryHtmlToFPColor(const S: String; out FPColor: TFPColor): Boolean;
+
+  function TryHexStrToWord(const Hex: String; out W: Word): Boolean;
+  var
+    Code: Integer;
+  begin
+    Val('$'+Hex, W, Code);
+    Result := (Code = 0);
+    if Result then
+      W := W or (W shl 8)
+    else
+      W := 0;
+  end;
+
+var
+  AName: THtmlColorName;
+begin
+  Result := False;
+  FPColor.red := 0;
+  FPColor.green := 0;
+  FPColor.blue := 0;
+  FPColor.alpha := alphaOpaque;
+  if (Length(S) = 0) then
+    Exit;
+  if (S[1] = '#') then
+  begin
+    if Length(S) = 4 then
+    begin  // #rgb
+      Result := (TryHexstrToWord(S[2]+S[2], FPColor.red) and
+                 TryHexstrToWord(S[3]+S[3], FPColor.green) and
+                 TryHexstrToWord(S[4]+S[4], FPColor.blue));
+    end
+    else if Length(S) = 7 then
+    begin  // #rrggbb
+      Result := (TryHexstrToWord(S[2]+S[3], FPColor.red) and
+                 TryHexstrToWord(S[4]+S[5], FPColor.green) and
+                 TryHexstrToWord(S[6]+S[7], FPColor.blue));
+    end;
+  end
+  else
+  begin
+    Result := TryStrToHtmlColorName(S, AName);
+    if Result then
+      FPColor := HtmlColorNameToFPColorMap[AName];
+  end;
+end;
+
+function HtmlToFPColorDef(const S: String; out FPColor: TFpColor; const Def: TFPColor): TFPColor;
+begin
+  if not TryHtmlToFPColor(S, Result) then
+    Result := Def;
+end;
+
+function HtmlToFpColor(const S: String): TFPColor;
+begin
+  if not TryHtmlToFpColor(S, Result) then
+    raise EConvertError.CreateFmt(ErrorText[StrInvalidHTMLColor], [S]);
+end;
+
 
 initialization
   ImageHandlers := TImageHandlersManager.Create;

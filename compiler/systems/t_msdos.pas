@@ -34,7 +34,7 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,script,
+       globtype,globals,systems,verbose,cscript,
        fmodule,i_msdos,
        link,aasmbase,cpuinfo,
        omfbase,ogbase,ogomf,owomflib;
@@ -267,8 +267,12 @@ begin
 
   if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
     LinkRes.Add('debug dwarf')
+  else if target_dbg.id=dbg_codeview then
+    LinkRes.Add('debug codeview')
   else if cs_debuginfo in current_settings.moduleswitches then
     LinkRes.Add('debug watcom all');
+  if cs_link_separate_dbg_file in current_settings.globalswitches then
+    LinkRes.Add('option symfile');
 
   { add objectfiles, start with prt0 always }
   case current_settings.x86memorymodel of
@@ -425,7 +429,8 @@ end;
 
 function TInternalLinkerMsDos.GetDataSize(aExeOutput: TExeOutput): QWord;
 begin
-  Result:=GetTotalSizeForSegmentClass(aExeOutput,'DATA');
+  Result:=GetTotalSizeForSegmentClass(aExeOutput,'DATA')+
+          GetTotalSizeForSegmentClass(aExeOutput,'FAR_DATA');
 end;
 
 function TInternalLinkerMsDos.GetBssSize(aExeOutput: TExeOutput): QWord;
@@ -464,6 +469,7 @@ begin
   LinkScript.Concat('EXESECTION .MZ_flat_content');
   if current_settings.x86memorymodel=mm_tiny then
     begin
+      LinkScript.Concat('  OBJSECTION _TEXT||CODE');
       LinkScript.Concat('  OBJSECTION *||CODE');
       LinkScript.Concat('  OBJSECTION *||DATA');
       LinkScript.Concat('  SYMBOL _edata');
@@ -486,6 +492,23 @@ begin
       LinkScript.Concat('  OBJSECTION *||HEAP');
     end;
   LinkScript.Concat('ENDEXESECTION');
+
+  if (cs_debuginfo in current_settings.moduleswitches) and
+     (target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
+    begin
+      LinkScript.Concat('EXESECTION .debug_info');
+      LinkScript.Concat('  OBJSECTION .DEBUG_INFO||DWARF');
+      LinkScript.Concat('ENDEXESECTION');
+      LinkScript.Concat('EXESECTION .debug_abbrev');
+      LinkScript.Concat('  OBJSECTION .DEBUG_ABBREV||DWARF');
+      LinkScript.Concat('ENDEXESECTION');
+      LinkScript.Concat('EXESECTION .debug_line');
+      LinkScript.Concat('  OBJSECTION .DEBUG_LINE||DWARF');
+      LinkScript.Concat('ENDEXESECTION');
+      LinkScript.Concat('EXESECTION .debug_aranges');
+      LinkScript.Concat('  OBJSECTION .DEBUG_ARANGES||DWARF');
+      LinkScript.Concat('ENDEXESECTION');
+    end;
 
   LinkScript.Concat('ENTRYNAME ..start');
 end;

@@ -27,10 +27,13 @@ interface
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
 
+{OS has only 1 byte version for ExecuteProcess}
+{$define executeprocuni}
+
 uses
   MacOSTP;
 
-//{$DEFINE HAS_SLEEP}     TODO
+{$DEFINE HAS_SLEEP}   {Dummy implementation:  TODO }
 //{$DEFINE HAS_OSERROR}   TODO
 //{$DEFINE HAS_OSCONFIG}  TODO
 
@@ -57,7 +60,7 @@ type
 implementation
 
 uses
-  Dos, Sysconst; // For some included files.
+  Dos, Sysconst, macutils; // For some included files.
 
 {$DEFINE FPC_FEXPAND_VOLUMES}
 {$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
@@ -187,7 +190,7 @@ begin
   *)
 end;
 
-Function FileAge (Const FileName : RawByteString): Longint;
+Function FileAge (Const FileName : RawByteString): Int64;
 
   (*
 Var Info : Stat;
@@ -207,7 +210,13 @@ begin
 end;
 
 
-Function FileExists (Const FileName : RawByteString) : Boolean;
+function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
+Function FileExists (Const FileName : RawByteString; FollowLink : Boolean) : Boolean;
 
   (*
 Var Info : Stat;
@@ -220,7 +229,7 @@ begin
 end;
 
 
-Function DirectoryExists (Const Directory : RawByteString) : Boolean;
+Function DirectoryExists (Const Directory : RawByteString; FollowLink : Boolean) : Boolean;
 
   (*
 Var Info : Stat;
@@ -304,7 +313,8 @@ procedure DoFind (var F: TSearchRec; var retname: RawByteString; firstTime: Bool
     s: Str255;
 
 begin
-  with Rslt, findData, paramBlock do
+(* TODO fix
+   with Rslt, findData, paramBlock do
     begin
       ioVRefNum := searchFSSpec.vRefNum;
       if firstTime then
@@ -345,6 +355,7 @@ begin
             end;
         end;
     end;
+*)
 end;
 
 
@@ -353,6 +364,7 @@ Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt
     s: Str255;
 
 begin
+(* TODO fix
   if path = '' then
     begin
       Result := 3;
@@ -402,16 +414,19 @@ begin
             DoFind(Rslt, name, true);
           end;
       end;
+*)
 end;
 
 
 Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 
 begin
+(* TODO fix
   if F.exactMatch then
     Result := 18
   else
     Result:=DoFind (Rslt, Name, false);
+*)
 end;
 
 
@@ -431,7 +446,7 @@ begin
 end;
 
 
-Function FileGetDate (Handle : Longint) : Longint;
+Function FileGetDate (Handle : Longint) : Int64;
 
   (*
 Var Info : Stat;
@@ -447,7 +462,7 @@ begin
 end;
 
 
-Function FileSetDate (Handle,Age : Longint) : Longint;
+Function FileSetDate (Handle: Longint; Age: Int64) : Longint;
 
 begin
   // TODO fix
@@ -568,15 +583,6 @@ Begin
   *)
 End;
 
-{****************************************************************************
-                              Misc Functions
-****************************************************************************}
-
-procedure Beep;
-begin
-//TODO fix
-end;
-
 
 {****************************************************************************
                               Locale Functions
@@ -655,11 +661,121 @@ begin
   Result:='';
 end;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
+{ Create a DoScript AppleEvent that targets the given application with text as the direct object. }
+function CreateDoScriptEvent (applCreator: OSType; scriptText: PChar; var theEvent: AppleEvent): OSErr;
+
+  var
+   err: OSErr;
+   targetAddress: AEDesc;
+   s: signedByte;
+
+begin
+  err := AECreateDesc(FourCharCodeToLongword(typeApplSignature), @applCreator, sizeof(applCreator), targetAddress);
+  if err = noErr then
+    begin
+      err := AECreateAppleEvent(FourCharCodeToLongword('misc'), FourCharCodeToLongword('dosc'),
+          targetAddress, kAutoGenerateReturnID, kAnyTransactionID, theEvent);
+
+      if err = noErr then
+          { Add script text as the direct object parameter. }
+          err := AEPutParamPtr(theEvent, FourCharCodeToLongword('----'),
+                    FourCharCodeToLongword('TEXT'), scriptText, Length(scriptText));
+
+      if err <> noErr then
+        AEDisposeDesc(theEvent);
+      AEDisposeDesc(targetAddress);
+    end;
+
+  CreateDoScriptEvent := err;
+end;
+
+Procedure Fpc_WriteBuffer(var f:Text;const b;len:longint);[external name 'FPC_WRITEBUFFER'];
+{declared in text.inc}
+
+procedure WriteAEDescTypeCharToFile(desc: AEDesc; var f: Text);
+
+begin
+  if desc.descriptorType = FourCharCodeToLongword(typeChar) then
+    begin
+      HLock(desc.dataHandle);
+      Fpc_WriteBuffer(f, PChar(desc.dataHandle^)^, GetHandleSize(desc.dataHandle));
+      Flush(f);
+      HUnLock(desc.dataHandle);
+    end;
+end;
+
+function ExecuteToolserverScript(scriptText: PChar; var statusCode: Longint): OSErr;
+
+  var
+    err: OSErr;
+    err2: OSErr;  {Non serious error}
+    theEvent: AppleEvent;
+    reply: AppleEvent;
+    aresult: AEDesc;
+    applFileSpec: FSSpec;
+    p: SignedByte;
+
+  const
+    applCreator = 'MPSX'; {Toolserver}
+
+begin
+  statusCode:= 3; //3 according to MPW.
+  err:= CreateDoScriptEvent (FourCharCodeToLongword(applCreator), scriptText, theEvent);
+  if err = noErr then
+    begin
+      err := AESend(theEvent, reply, kAEWaitReply, kAENormalPriority, kAEDefaultTimeOut, nil, nil);
+
+      if err = connectionInvalid then  { Toolserver not available }
+        begin
+          err := FindApplication(FourCharCodeToLongword(applCreator), applFileSpec);
+          if err = noErr then
+            err := LaunchFSSpec(false, applFileSpec);
+          if err = noErr then
+            err := AESend(theEvent, reply, kAEWaitReply, kAENormalPriority, kAEDefaultTimeOut, nil, nil);
+        end;
+
+      if err = noErr then
+        begin
+          err:= AEGetParamDesc(reply, FourCharCodeToLongword('stat'),
+                    FourCharCodeToLongword(typeLongInteger), aresult);
+
+          if err = noErr then
+            if aresult.descriptorType = FourCharCodeToLongword(typeLongInteger) then
+              statusCode:= LongintPtr(aresult.dataHandle^)^;
+
+          {If there is no output below, we get a non zero error code}
+
+          err2:= AEGetParamDesc(reply, FourCharCodeToLongword('----'),
+                    FourCharCodeToLongword(typeChar), aresult);
+          if err2 = noErr then
+             WriteAEDescTypeCharToFile(aresult, stdout);
+
+          err2:= AEGetParamDesc(reply, FourCharCodeToLongword('diag'),
+                    FourCharCodeToLongword(typeChar), aresult);
+          if err2 = noErr then
+            WriteAEDescTypeCharToFile(aresult, stderr);
+
+          AEDisposeDesc(reply);
+
+          {$IFDEF TARGET_API_MAC_CARBON }
+          {$ERROR FIXME AEDesc data is not allowed to be directly accessed}
+          {$ENDIF}
+        end;
+
+      AEDisposeDesc(theEvent);
+    end;
+
+  ExecuteToolserverScript:= err;
+end;
+
+
+function ExecuteProcess (const Path: RawByteString; const ComLine: RawByteString;Flags:TExecuteFlags=[]):
+                                                                       integer;
 var
   s: AnsiString;
-  wdpath: AnsiString;
+  wdpath: RawByteString;
   laststatuscode : longint;
+  E: EOSError;
 Begin
   {Make ToolServers working directory in sync with our working directory}
   PathArgToFullPath(':', wdpath);
@@ -675,9 +791,12 @@ Begin
     Result := 900
   else
     Result := MacOSErr2RTEerr(Result);
-  if Result <> 0
-  then
-    raise EOSErr;
+  if Result <> 0 then
+    begin
+      E := EOSError.CreateFmt (SExecuteProcessFailed, [Comline, DosError]);
+      E.ErrorCode := DosError;
+      raise E;
+    end;
   //TODO Better dos error codes
   if laststatuscode <> 0 then
     begin
@@ -690,12 +809,29 @@ Begin
     Result := 0;
 End;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array Of AnsiString;Flags:TExecuteFlags=[]):integer;
+
+function ExecuteProcess (const Path: RawByteString;
+                                  const ComLine: array of RawByteString;Flags:TExecuteFlags=[]): integer;
+var
+  CommandLine: RawByteString;
+  I: integer;
+
 begin
+  Commandline := '';
+  for I := 0 to High (ComLine) do
+   if Pos (' ', ComLine [I]) <> 0 then
+    CommandLine := CommandLine + ' ' + '"' + ToSingleByteFileSystemEncodedFileName(ComLine [I]) + '"'
+   else
+    CommandLine := CommandLine + ' ' + ToSingleByteFileSystemEncodedFileName(Comline [I]);
+  ExecuteProcess := ExecuteProcess (Path, CommandLine);
 end;
+
+
+procedure C_usleep(val : uint32); external 'StdCLib' name 'usleep';
 
 procedure Sleep(milliseconds: Cardinal);
 begin
+  C_usleep(milliseconds*1000);
 end;
 
 (*
@@ -713,5 +849,6 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
 Finalization
+  FreeTerminateProcs;
   DoneExceptions;
 end.

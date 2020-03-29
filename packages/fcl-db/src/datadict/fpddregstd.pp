@@ -25,7 +25,7 @@
   are registered.
 
 }
-unit fpddregstd;
+unit FPDDRegStd;
 
 {$mode objfpc}{$H+}
 
@@ -35,12 +35,12 @@ uses
   Classes, SysUtils, fpdatadict;
 
 Type
-  TDataDictEngine = (teDBF,teFirebird,teOracle,teMySQL40,teMySQL41,teMySQL50,
+  TDataDictEngine = (teDBF,teFirebird,teOracle,teMySQL40,teMySQL41,teMySQL50,teMySQL55,teMySQL56,teMySQL57,
                        tePostgreSQL,teSQLite3,teODBC, teMSSQL);
   TDataDictEngines = set of TDataDictEngine;
 
 Const
-  AllStdDDEngines = [teDBF,teFirebird,teOracle,teMySQL40,teMySQL41,teMySQL50,
+  AllStdDDEngines = [teDBF,teFirebird,teOracle,teMySQL40,teMySQL41,teMySQL50,teMySQL55,teMySQL56,teMySQL57,
                      tePostgreSQL,teSQLite3,teODBC,teMSSQL];
                      
 Type
@@ -78,6 +78,9 @@ uses
   fpddmysql40,
   fpddmysql41,
   fpddmysql50,
+  fpddmysql55,
+  fpddmysql56,
+  fpddmysql57,
   fpddmssql,
   fpddodbc;
   
@@ -86,19 +89,25 @@ Const
   StdEngineClasses : Array [TDataDictEngine] of TFPDDEngineClass
                    = (TDBFDDEngine, TSQLDBFBDDEngine, TSQLDBOracleDDEngine,
                       TSQLDBMySql40DDEngine, TSQLDBMySql41DDEngine ,
-                      TSQLDBMySql5DDEngine, TSQLDBPostGreSQLDDEngine,
+                      TSQLDBMySql5DDEngine, TSQLDBMySql55DDEngine, 
+                      TSQLDBMySql56DDEngine, TSQLDBMySql57DDEngine, 
+                      TSQLDBPostGreSQLDDEngine,
                       TSQLDBSQLite3DDEngine,TSQLDBODBCDDEngine, TSQLDBMSSQLDDEngine);
 
   StdEngineRegs : Array [TDataDictEngine] of procedure
                 = (@InitDBFImporter, @RegisterFBDDEngine, @RegisterOracleDDEngine,
                   @RegisterMySQL40DDEngine, @RegisterMySQL41DDEngine,
-                  @RegisterMySQL50DDEngine, @RegisterPostgreSQLDDengine,
+                  @RegisterMySQL50DDEngine, @RegisterMySQL55DDEngine,
+                  @RegisterMySQL56DDEngine, @RegisterMySQL57DDEngine,
+                  @RegisterPostgreSQLDDengine,
                   @RegisterSQLite3DDEngine, @RegisterODBCDDengine,@RegisterMSSQLDDEngine);
 
   StdEngineUnRegs : Array [TDataDictEngine] of procedure
                 = (@DoneDBFImporter, @UnRegisterFBDDEngine, @UnRegisterOracleDDEngine,
                   @UnRegisterMySQL40DDEngine, @UnRegisterMySQL41DDEngine,
-                  @UnRegisterMySQL50DDEngine, @UnRegisterPostgreSQLDDengine,
+                  @UnRegisterMySQL50DDEngine, @UnRegisterMySQL55DDEngine, 
+                  @UnRegisterMySQL56DDEngine, @UnRegisterMySQL57DDEngine, 
+                  @UnRegisterPostgreSQLDDengine,
                   @UnRegisterSQLite3DDEngine, @UnRegisterODBCDDengine,@UnRegisterMSSQLDDEngine);
                   
 function RegisterStdDDEngines(Engines: TDataDictEngines): TDataDictEngines;

@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003, 2006, 2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2012, 2016, 2017  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -46,6 +46,8 @@ begin
   defaults;
   FWindow := window;
   FManaged := False;
+  FIsUnicode := IsWindowUnicode(window);
+  LOG('IsUnicode', IsUnicode);
 end;
 
 function WndProcSingleThreaded(hWnd: HWND; message: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall; forward;
@@ -59,33 +61,73 @@ var
   rectangle: RECT;
   display_width, display_height: Integer;
   wc: WNDCLASSEXA;
+  wcw: WNDCLASSEXW;
+  WinVer: OSVERSIONINFO;
+  AWndClassW, ATitleW: WideString;
 begin
   LOG('creating managed window');
   Defaults;
   FMultithreaded := AMultithreaded;
   try
+    FillChar(WinVer, SizeOf(WinVer), 0);
+    WinVer.dwOSVersionInfoSize := SizeOf(WinVer);
+    if not GetVersionEx(WinVer) then
+      raise TPTCError.Create('GetVersionEx failed');
+    { Win32s on Windows 3.1 and Win32 on Windows 95/98/ME don't support unicode }
+    FIsUnicode := (WinVer.dwPlatformId <> VER_PLATFORM_WIN32s) and
+      (WinVer.dwPlatformId <> VER_PLATFORM_WIN32_WINDOWS);
+    LOG('IsUnicode', IsUnicode);
+
     FInterceptClose := AInterceptClose;
     program_instance := GetModuleHandle(nil);
 {    library_instance := program_instance;}
-    wc.cbSize := SizeOf(wc);
-    wc.hInstance := program_instance;
-    wc.lpszClassName := PChar(AWndClass);
-    wc.style := AClassStyle;
-    wc.hIcon := 0{LoadIcon(library_instance, 'IDI_PTC_ICON')};
-    wc.hIconSm := 0;
-    wc.lpszMenuName := nil;
-    wc.cbClsExtra := 0;
-    wc.cbWndExtra := 0;
-    wc.hbrBackground := 0;{(HBRUSH) GetStockObject(BLACK_BRUSH)}
-    if AMultithreaded then
-      wc.lpfnWndProc := @WndProcMultiThreaded
+    if IsUnicode then
+    begin
+      AWndClassW := AWndClass;
+      ATitleW := ATitle;
+
+      wcw.cbSize := SizeOf(wcw);
+      wcw.hInstance := program_instance;
+      wcw.lpszClassName := PWideChar(AWndClassW);
+      wcw.style := AClassStyle;
+      wcw.hIcon := 0{LoadIcon(library_instance, 'IDI_PTC_ICON')};
+      wcw.hIconSm := 0;
+      wcw.lpszMenuName := nil;
+      wcw.cbClsExtra := 0;
+      wcw.cbWndExtra := 0;
+      wcw.hbrBackground := 0;{(HBRUSH) GetStockObject(BLACK_BRUSH)}
+      if AMultithreaded then
+        wcw.lpfnWndProc := @WndProcMultiThreaded
+      else
+        wcw.lpfnWndProc := @WndProcSingleThreaded;
+      if ACursor then
+        wcw.hCursor := LoadCursorW(0, PWideChar(IDC_ARROW))
+      else
+        wcw.hCursor := 0;
+      RegisterClassExW(wcw);
+    end
     else
-      wc.lpfnWndProc := @WndProcSingleThreaded;
-    if ACursor then
-      wc.hCursor := LoadCursor(0, IDC_ARROW)
-    else
-      wc.hCursor := 0;
-    RegisterClassExA(wc);
+    begin
+      wc.cbSize := SizeOf(wc);
+      wc.hInstance := program_instance;
+      wc.lpszClassName := PChar(AWndClass);
+      wc.style := AClassStyle;
+      wc.hIcon := 0{LoadIcon(library_instance, 'IDI_PTC_ICON')};
+      wc.hIconSm := 0;
+      wc.lpszMenuName := nil;
+      wc.cbClsExtra := 0;
+      wc.cbWndExtra := 0;
+      wc.hbrBackground := 0;{(HBRUSH) GetStockObject(BLACK_BRUSH)}
+      if AMultithreaded then
+        wc.lpfnWndProc := @WndProcMultiThreaded
+      else
+        wc.lpfnWndProc := @WndProcSingleThreaded;
+      if ACursor then
+        wc.hCursor := LoadCursorA(0, IDC_ARROW)
+      else
+        wc.hCursor := 0;
+      RegisterClassExA(wc);
+    end;
     with rectangle do
     begin
       left := 0;
@@ -117,7 +159,10 @@ begin
     end
     else
     begin
-      FWindow := CreateWindowExA(FExtra, PChar(FName), PChar(FTitle), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, Self);
+      if IsUnicode then
+        FWindow := CreateWindowExW(FExtra, PWideChar(AWndClassW), PWideChar(ATitleW), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, Self)
+      else
+        FWindow := CreateWindowExA(FExtra, PChar(FName), PChar(FTitle), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, Self);
       if not IsWindow(FWindow) then
         raise TPTCError.Create('could not create window');
       ShowWindow(FWindow, FShow);
@@ -140,16 +185,20 @@ end;
 procedure TWin32Window.Cursor(AFlag: Boolean);
 begin
   if AFlag then
-  begin
-//    SetClassLong(FWindow, GCL_HCURSOR, LoadCursor(0, IDC_ARROW));
-    SetClassLongPtr(FWindow, GCLP_HCURSOR, LoadCursor(0, IDC_ARROW));
-  end
+    if IsUnicode then
+      SetClassLongPtrW(FWindow, GCLP_HCURSOR, LoadCursorW(0, PWideChar(IDC_ARROW)))
+    else
+      SetClassLongPtrA(FWindow, GCLP_HCURSOR, LoadCursorA(0, IDC_ARROW))
   else
-  begin
-//    SetClassLong(FWindow, GCL_HCURSOR, 0);
-    SetClassLongPtr(FWindow, GCLP_HCURSOR, 0);
-  end;
-  SendMessage(FWindow, WM_SETCURSOR, 0, 0);
+    if IsUnicode then
+      SetClassLongPtrW(FWindow, GCLP_HCURSOR, 0)
+    else
+      SetClassLongPtrA(FWindow, GCLP_HCURSOR, 0);
+
+  if IsUnicode then
+    SendMessageW(FWindow, WM_SETCURSOR, 0, 0)
+  else
+    SendMessageA(FWindow, WM_SETCURSOR, 0, 0);
 end;
 
 procedure TWin32Window.ConfineCursor(AFlag: Boolean);
@@ -216,18 +265,43 @@ begin
     { updated to pump all window messages, and not just for our FWindow;
       this fixes keyboard layout switching and maybe other bugs and side effects...
       Seems like Windows wants everything pumped :) }
+
+    { TranslateMessage isn't called, because it's incompatible with the
+      ToAscii/ToUnicode functions, which we use for translating keys to
+      characters. Both ToAscii/ToUnicode and TranslateMessage modify the kernel
+      key state, in such a way, which assumes that only one of these functions
+      is called per key event, so when both are called, they kill the dead key
+      support (because the dead key pressed state is toggled twice or something
+      like that). TODO: maybe we should call TranslateMessage for windows, which
+      aren't managed by us? }
     if AWaitForMessage then
     begin
-      GetMessage(message, {FWindow}0, 0, 0);
-      TranslateMessage(message);
-      DispatchMessage(message);
+      if IsUnicode then
+      begin
+        GetMessageW(message, {FWindow}0, 0, 0);
+        //TranslateMessage(message);
+        DispatchMessageW(message);
+      end
+      else
+      begin
+        GetMessageA(message, {FWindow}0, 0, 0);
+        //TranslateMessage(message);
+        DispatchMessageA(message);
+      end;
     end
     else
-      while PeekMessage(message, {FWindow}0, 0, 0, PM_REMOVE) do
-      begin
-        TranslateMessage(message);
-        DispatchMessage(message);
-      end;
+      if IsUnicode then
+        while PeekMessageW(message, {FWindow}0, 0, 0, PM_REMOVE) do
+        begin
+          //TranslateMessage(message);
+          DispatchMessageW(message);
+        end
+      else
+        while PeekMessageA(message, {FWindow}0, 0, 0, PM_REMOVE) do
+        begin
+          //TranslateMessage(message);
+          DispatchMessageA(message);
+        end;
   end
   else
     Sleep(0);
@@ -251,7 +325,10 @@ begin
       begin
         pCreate := PCREATESTRUCT(lParam);
         WindowObject := TWin32Window(pCreate^.lpCreateParams);
-        SetWindowLongPtr(hWnd, GWLP_USERDATA, LONG_PTR(WindowObject));
+        if IsWindowUnicode(hWnd) then
+          SetWindowLongPtrW(hWnd, GWLP_USERDATA, LONG_PTR(WindowObject))
+        else
+          SetWindowLongPtrA(hWnd, GWLP_USERDATA, LONG_PTR(WindowObject));
         Result := WindowObject.WMCreate(hWnd, message, wParam, lParam);
       end;
     WM_DESTROY:
@@ -259,22 +336,35 @@ begin
         WindowObject := TWin32Window(GetWindowLongPtr(hWnd, GWLP_USERDATA));
         Result := WindowObject.WMDestroy(hWnd, message, wParam, lParam);
       end;
+    WM_MOUSEMOVE,
+    WM_LBUTTONDOWN, WM_LBUTTONUP, WM_LBUTTONDBLCLK,
+    WM_MBUTTONDOWN, WM_MBUTTONUP, WM_MBUTTONDBLCLK,
+    WM_RBUTTONDOWN, WM_RBUTTONUP, WM_RBUTTONDBLCLK,
+    WM_XBUTTONDOWN, WM_XBUTTONUP, WM_XBUTTONDBLCLK,
+    WM_MOUSEWHEEL, WM_MOUSEHWHEEL:
+      Result := 0;
     WM_SYSCOMMAND:
       begin
         { this fixes the pausing of the application when the Alt or F10 key is pressed }
         if wParam = SC_KEYMENU then
-	  Result := 0
-	else
-          Result := DefWindowProcA(hWnd, message, wParam, lParam);
+          Result := 0
+        else
+          if IsWindowUnicode(hWnd) then
+            Result := DefWindowProcW(hWnd, message, wParam, lParam)
+          else
+            Result := DefWindowProcA(hWnd, message, wParam, lParam);
       end;
     WM_SETCURSOR: begin
       if (LOWORD(lParam) = HTCLIENT) and (GetClassLongPtr(hWnd, GCLP_HCURSOR) = 0) then
       begin
         SetCursor(0);
-	Result := 1;
+        Result := 1;
       end
       else
-        Result := DefWindowProcA(hWnd, message, wParam, lParam);
+        if IsWindowUnicode(hWnd) then
+          Result := DefWindowProcW(hWnd, message, wParam, lParam)
+        else
+          Result := DefWindowProcA(hWnd, message, wParam, lParam);
     end;
     WM_CLOSE: begin
       LOG('TWin32Window WM_CLOSE');
@@ -285,7 +375,10 @@ begin
         Halt(0);
     end;
     else
-      Result := DefWindowProcA(hWnd, message, wParam, lParam);
+      if IsWindowUnicode(hWnd) then
+        Result := DefWindowProcW(hWnd, message, wParam, lParam)
+      else
+        Result := DefWindowProcA(hWnd, message, wParam, lParam);
   end;
 end;
 
@@ -297,18 +390,24 @@ begin
       begin
         { this fixes the pausing of the application when the Alt or F10 key is pressed }
         if wParam = SC_KEYMENU then
-	  Result := 0
-	else
-          Result := DefWindowProcA(hWnd, message, wParam, lParam);
+          Result := 0
+        else
+          if IsWindowUnicode(hWnd) then
+            Result := DefWindowProcW(hWnd, message, wParam, lParam)
+          else
+            Result := DefWindowProcA(hWnd, message, wParam, lParam);
       end;
     WM_SETCURSOR: begin
       if (LOWORD(lParam) = HTCLIENT) and (GetClassLongPtr(hWnd, GCLP_HCURSOR) = 0) then
       begin
         SetCursor(0);
-	Result := 1;
+        Result := 1;
       end
       else
-        Result := DefWindowProcA(hWnd, message, wParam, lParam);
+        if IsWindowUnicode(hWnd) then
+          Result := DefWindowProcW(hWnd, message, wParam, lParam)
+        else
+          Result := DefWindowProcA(hWnd, message, wParam, lParam);
     end;
     WM_DESTROY: begin
       LOG('TWin32Window WM_DESTROY');
@@ -319,7 +418,10 @@ begin
       Halt(0);
     end;
     else
-      Result := DefWindowProcA(hWnd, message, wParam, lParam);
+      if IsWindowUnicode(hWnd) then
+        Result := DefWindowProcW(hWnd, message, wParam, lParam)
+      else
+        Result := DefWindowProcA(hWnd, message, wParam, lParam);
   end;
 end;
 
@@ -406,10 +508,16 @@ end;
 
 function TWin32Window.WMCreate(hWnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT;
 begin
-  Result := DefWindowProcA(hWnd, uMsg, wParam, lParam);
+  if IsUnicode then
+    Result := DefWindowProcW(hWnd, uMsg, wParam, lParam)
+  else
+    Result := DefWindowProcA(hWnd, uMsg, wParam, lParam);
 end;
 
 function TWin32Window.WMDestroy(hWnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT;
 begin
-  Result := DefWindowProcA(hWnd, uMsg, wParam, lParam);
+  if IsUnicode then
+    Result := DefWindowProcW(hWnd, uMsg, wParam, lParam)
+  else
+    Result := DefWindowProcA(hWnd, uMsg, wParam, lParam);
 end;

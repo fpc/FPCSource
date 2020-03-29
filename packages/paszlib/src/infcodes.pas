@@ -25,7 +25,7 @@ function inflate_codes(var s : inflate_blocks_state;
                        var z : z_stream;
                        r : integer) : integer;
 
-procedure inflate_codes_free(c : pInflate_codes_state;
+procedure inflate_codes_free(var c : pInflate_codes_state;
                              var z : z_stream);
 
 implementation
@@ -155,8 +155,13 @@ begin
           if s.last then
           begin
             t := c^.sub.code.tree;
-            if t^.exop and 32 <> 0 then
-              break;
+            { update t (like as in following code), and check, if requested
+              bits are available }
+            Inc(t, cardinal(b) and inflate_mask[j]);
+            if k >= t^.bits then
+            { now, we can examine t^.exop value }
+              if t^.exop and 32 <> 0 then
+                break;
           end;
 
           exit;
@@ -570,10 +575,11 @@ begin
 end;
 
 
-procedure inflate_codes_free(c : pInflate_codes_state;
+procedure inflate_codes_free(var c : pInflate_codes_state;
                              var z : z_stream);
 begin
   dispose(c);
+  c := nil;
   {$IFDEF ZLIB_DEBUG}  
   Tracev('inflate:       codes free');
   {$ENDIF}

@@ -2,5 +2,5 @@
 # Here we set processor dependent include file names.
 #
 
-CPUNAMES=mips math set
+CPUNAMES=mips math set cpuh
 CPUINCNAMES=$(addsuffix .inc,$(CPUNAMES))

@@ -47,6 +47,7 @@ function HasActiveWindow: boolean;
 procedure GotInactiveWindow;
 function HasInactiveWindow: boolean;
 procedure SetWindowTitle(const winTitle: AnsiString; const screenTitle: AnsiString);
+procedure TranslateToCharXY(const X,Y: LongInt; var CX,CY: LongInt);
 
 var
   VideoWindow: PWindow;
@@ -70,6 +71,8 @@ var
 var
   VideoColorMap         : PColorMap;
   VideoPens             : array[0..15] of LongInt;
+  VideoFont             : PByte;
+  VideoFontHeight       : DWord;
 
   OldSH, OldSW          : longint;
 
@@ -160,7 +163,14 @@ const
   VIDEO_WFLG_DEFAULTS = WFLG_RMBTRAP or WFLG_SMART_REFRESH;
 
 Function GetWindow: PWindow;
+var
+  envBuf: array[0..15] of char;
+  videoDefaultFlags: PtrUInt;
 begin
+  videoDefaultFlags:=VIDEO_WFLG_DEFAULTS;
+  if GetVar('FPC_VIDEO_SIMPLEREFRESH',@envBuf,sizeof(envBuf),0) > -1 then
+    videoDefaultFlags:=videoDefaultFlags and not WFLG_SMART_REFRESH;
+
   if FPC_VIDEO_FULLSCREEN then
   begin
     OS_Screen := GetScreen;
@@ -190,7 +200,7 @@ begin
       WA_Left       , LastL,
       WA_Top        , LastT,
       WA_InnerWidth , LastW*8,
-      WA_InnerHeight, LastH*16,
+      WA_InnerHeight, LastH*VideoFontHeight,
       WA_MaxWidth   , 32768,
       WA_MaxHeight  , 32768,
       WA_Title      , PtrUInt(PChar('FPC Video Window Output')),
@@ -229,6 +239,7 @@ var
   Counter2: LongInt;
   P: PWord;
   flags: DWord;
+  envBuf: array[0..15] of char;
 begin
 {$IFDEF MORPHOS}
   InitGraphicsLibrary;
@@ -242,6 +253,27 @@ begin
   else
     WriteLn('DEBUG: Recognized windowed mode');
   {$endif}
+
+  { FIXME/TODO: next to the hardwired selection, there could be some heuristics,
+    which sets the font size correctly on screens according to the aspect 
+    ratio. (KB) }
+  VideoFont:=@vgafont;
+  VideoFontHeight:=16;
+  if GetVar('FPC_VIDEO_BUILTINFONT',@envBuf,sizeof(envBuf),0) > -1 then
+    begin
+      case lowerCase(envBuf) of
+        'vga8':
+          begin
+            VideoFont:=@vgafont8;
+            VideoFontHeight:=8;
+          end;
+        'vga14':
+          begin
+            VideoFont:=@vgafont14;
+            VideoFontHeight:=14;
+          end;
+      end;
+    end;
 
   // fill videobuf and oldvideobuf with different bytes, to allow proper first draw
   FillDword(VideoBuf^, VideoBufSize div 4, $1234D3AD);
@@ -263,7 +295,7 @@ begin
     // Can happen for instance when the window does not hide its
     // borders or titlebar as intended.
     ScreenWidth := VideoWindow^.GZZWidth div 8;
-    ScreenHeight := VideoWindow^.GZZHeight div 16;
+    ScreenHeight := VideoWindow^.GZZHeight div VideoFontHeight;
     ScreenColor := False;
 
     {$ifdef VIDEODEBUG}
@@ -296,7 +328,7 @@ begin
    end;
 
    { Obtain Friend bitmap for font blitting }
-   FontBitmap:=AllocBitMap(16,16*256,1,0,VideoWindow^.RPort^.Bitmap);
+   FontBitmap:=AllocBitMap(16,VideoFontHeight*256,1,0,VideoWindow^.RPort^.Bitmap);
 
    if (FontBitmap <> nil) then
    begin
@@ -312,9 +344,9 @@ begin
          miserably on classics (tested on 3.1 + AGA) }
        p:=PWord(FontBitmap^.Planes[0]);
        for counter:=0 to 255 do
-         for counter2:=0 to 15 do
+         for counter2:=0 to VideoFontHeight-1 do
          begin
-           p^:=vgafont[counter,counter2] shl 8;
+           p^:=VideoFont[counter * VideoFontHeight + counter2] shl 8;
            inc(p);
          end;
        Permit();
@@ -407,7 +439,7 @@ begin
     if not FPC_VIDEO_FULLSCREEN then
     begin
       dx := (Mode.col * 8) - VideoWindow^.GZZWidth;
-      dy := (Mode.row * 16) - VideoWindow^.GZZHeight;
+      dy := (Mode.row * VideoFontHeight) - VideoWindow^.GZZHeight;
       SizeWindow(videoWindow, dx, dy);
     end;
   ScreenWidth := Mode.col;
@@ -440,7 +472,7 @@ begin
   TmpBGColor := (TmpCharData shr 12) and %00000111;
 
   sX := x * 8 + videoWindow^.borderLeft;
-  sY := y * 16 + videoWindow^.borderTop;
+  sY := y * VideoFontHeight + videoWindow^.borderTop;
 
   if crType <> crBlock then
   begin
@@ -453,15 +485,22 @@ begin
   end;
 
   if FontBitmap <> nil then
-    BltTemplate(@(PWord(FontBitmap^.Planes[0])[tmpChar * 16]), 0, 2, rp, sX, sY, 8, 16)
+    BltTemplate(@(PWord(FontBitmap^.Planes[0])[tmpChar * VideoFontHeight]), 0, 2, rp, sX, sY, 8, VideoFontHeight)
   else
-    BltTemplate(@Vgafont[tmpChar, 0], 0, 1, rp, sX, sY, 8, 16);
+    BltTemplate(@VideoFont[tmpChar * VideoFontHeight], 0, 1, rp, sX, sY, 8, VideoFontHeight);
 
   if crType = crUnderLine then
   begin
     { draw two lines at the bottom of the char, in case of underline cursor }
-    GfxMove(rp, sX, sY + 14); Draw(rp, sX + 7, sY + 14);
-    GfxMove(rp, sX, sY + 15); Draw(rp, sX + 7, sY + 15);
+    if videoFontHeight = 8 then
+      begin
+        GfxMove(rp, sX, sY + 7); Draw(rp, sX + 7, sY + 7);
+      end
+    else
+      begin
+        GfxMove(rp, sX, sY + videoFontHeight - 2); Draw(rp, sX + 7, sY + videoFontHeight - 2);
+        GfxMove(rp, sX, sY + videoFontHeight - 1); Draw(rp, sX + 7, sY + videoFontHeight - 1);
+      end;
   end;
 end;
 
@@ -619,7 +658,7 @@ begin
     if Assigned(VideoWindow) then
     begin
       WinW := VideoWindow^.GZZWidth div 8;
-      WinH := VideoWindow^.GZZHeight div 16;
+      WinH := VideoWindow^.GZZHeight div VideoFontHeight;
 //      writeln('resize', winw, ' ',winh);
       LastW := WinW;
       LastH := WinH;
@@ -720,6 +759,12 @@ begin
   end;
 end;
 
+procedure TranslateToCharXY(const X,Y: LongInt; var CX,CY: LongInt);
+begin
+  CX:=X div 8;
+  CY:=Y div VideoFontHeight;
+end;
+
 function SysGetVideoModeCount: Word;
 begin
   SysGetVideoModeCount := 2;
@@ -738,7 +783,7 @@ begin
     1: begin
         Screen := LockPubScreen('Workbench');
         Mode.Col := Screen^.Width div 8;
-        Mode.Row := Screen^.Height div 16;
+        Mode.Row := Screen^.Height div VideoFontHeight;
         UnlockPubScreen('Workbench', Screen);
         Mode.Color := False;
       end;

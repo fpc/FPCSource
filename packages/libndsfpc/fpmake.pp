@@ -13,12 +13,13 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('libndsfpc');
+    P.ShortName := 'lnds';
     P.OSes:=[nds];
     P.CPUs:=[arm];
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Author := 'Library: libnds, dswifi, maxmod and gl2d from devkitARM; headers: Francesco Lombardi';
     P.License := 'LGPL';
     P.HomepageURL := 'www.freepascal.org';
@@ -109,7 +110,7 @@ begin
        AddInclude('dswifi9.inc');
        AddInclude('dswifi7.inc');
        AddInclude('netdb.inc');
-       AddInclude('sgIp_errno.inc');
+       AddInclude('sgIP_errno.inc');
      end;
      T.IncludePath.Add('src/dswifi/inc/netinet');
        T.Dependencies.AddInclude('in.inc');

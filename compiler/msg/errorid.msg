@@ -2,7 +2,7 @@
 %%% Contains all comments from errorid.msg
 #   $Id: errorid.msg,v 1.124 2007/09/20 02:52:50 zaenal Exp $
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2008 by the Free Pascal Development team
+#   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
 #   Indonesian Language File for Free Pascal
 #   Contributed by Zaenal Mutaqin <ade999 at gmail.com>
@@ -14,6 +14,9 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
+
+# CodePage 20127
+
 #
 # The constants are build in the following order:
 # <part>_<type>_<txtidentifier>
@@ -824,7 +827,7 @@ parser_e_function_already_declared_public_forward=03120_E_Fungsi sudah dideklara
 % \var{forward} dalam seksi \var{implmentation}.
 parser_e_not_external_and_export=03121_E_Tidak bisa menggunakan EXPORT dan EXTERNAL
 % Dua prosedur ini adalah mutual eksklusif
-parser_h_not_supported_for_inline=03123_H_"$1" belum didukung di dalam inline procedure/function
+parser_n_not_supported_for_inline=03123_N_"$1" belum didukung di dalam inline procedure/function
 % Inline procedures tidak mendukung deklarasi ini.
 parser_h_inlining_disabled=03124_H_Inlining dimatikan
 % Inlining dari prosedur dimatikan.
@@ -3501,7 +3504,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler versi $FPCFULLVERSION [$FPCDATE] untuk $FPCCPU
-Hak Cipta (c) 1993-2017 oleh Florian Klaempfl and others
+Hak Cipta (c) 1993-2020 oleh Florian Klaempfl and others
 ]
 
 #
@@ -3715,7 +3718,6 @@ S*2Aas_Rangkai menggunakan GNU AS
 3*2Tnetwlibc_Novell Netware Module (libc)
 3*2Topenbsd_OpenBSD
 3*2Tos2_OS/2 / eComStation
-3*2Tsunos_SunOS/Solaris
 3*2Twatcom_Watcom kompatibel DOS extender
 3*2Twdosx_WDOSX DOS extender
 3*2Twin32_Windows 32 Bit

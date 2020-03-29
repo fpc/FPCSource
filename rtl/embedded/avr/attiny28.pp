@@ -6,31 +6,31 @@ interface
 
 var
   // PORTD
-  PORTD : byte absolute $00+$12; // Port D Data Register
-  DDRD : byte absolute $00+$11; // Port D Data Direction Register
-  PIND : byte absolute $00+$10; // Port D Input Pins
+  PORTD : byte absolute $00+$32; // Port D Data Register
+  DDRD : byte absolute $00+$31; // Port D Data Direction Register
+  PIND : byte absolute $00+$30; // Port D Input Pins
   // CPU
   SREG : byte absolute $00+$3F; // Status Register
-  ICR : byte absolute $00+$06; // Interrupt Control Register
-  MCUCS : byte absolute $00+$07; // MCU Control and Status Register
-  OSCCAL : byte absolute $00+$00; // Status Register
+  ICR : byte absolute $00+$26; // Interrupt Control Register
+  MCUCS : byte absolute $00+$27; // MCU Control and Status Register
+  OSCCAL : byte absolute $00+$20; // Status Register
   // ANALOG_COMPARATOR
-  ACSR : byte absolute $00+$08; // Analog Comparator Control And Status Register
+  ACSR : byte absolute $00+$28; // Analog Comparator Control And Status Register
   // TIMER_COUNTER_0
-  IFR : byte absolute $00+$05; // Interrupt Flag register
-  TCCR0 : byte absolute $00+$04; // Timer/Counter0 Control Register
-  TCNT0 : byte absolute $00+$03; // Timer Counter 0
+  IFR : byte absolute $00+$25; // Interrupt Flag register
+  TCCR0 : byte absolute $00+$24; // Timer/Counter0 Control Register
+  TCNT0 : byte absolute $00+$23; // Timer Counter 0
   // WATCHDOG
-  WDTCR : byte absolute $00+$01; // Watchdog Timer Control Register
+  WDTCR : byte absolute $00+$21; // Watchdog Timer Control Register
   // EXTERNAL_INTERRUPT
   // PORTA
-  PORTA : byte absolute $00+$1B; // Port A Data Register
-  PACR : byte absolute $00+$1A; // Port A Control Register
-  PINA : byte absolute $00+$19; // Port A Input Pins
+  PORTA : byte absolute $00+$3B; // Port A Data Register
+  PACR : byte absolute $00+$3A; // Port A Control Register
+  PINA : byte absolute $00+$39; // Port A Input Pins
   // PORTB
-  PINB : byte absolute $00+$16; // Port B Input Pins
+  PINB : byte absolute $00+$36; // Port B Input Pins
   // MODULATOR
-  MODCR : byte absolute $00+$02; // Modulation Control Register
+  MODCR : byte absolute $00+$22; // Modulation Control Register
 
 const
   // SREG

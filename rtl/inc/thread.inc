@@ -96,6 +96,13 @@ Var
           CurrentTM.ReleaseThreadVars;
       end;
 
+
+    procedure InitThread;
+      begin
+        { we should find a reasonable value here }
+        InitThread($1000000);
+      end;
+
 {*****************************************************************************
                             Overloaded functions
 *****************************************************************************}
@@ -211,25 +218,25 @@ begin
   CurrentTM.InitCriticalSection(cs);
 end;
 
-procedure DoneCriticalsection(var cs : TRTLCriticalSection);
+procedure DoneCriticalSection(var cs : TRTLCriticalSection);
 
 begin
   CurrentTM.DoneCriticalSection(cs);
 end;
 
-procedure EnterCriticalsection(var cs : TRTLCriticalSection);
+procedure EnterCriticalSection(var cs : TRTLCriticalSection);
 
 begin
   CurrentTM.EnterCriticalSection(cs);
 end;
 
-function TryEnterCriticalsection(var cs : TRTLCriticalSection):longint;
+function TryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
 
 begin
   result:=CurrentTM.TryEnterCriticalSection(cs);
 end;
 
-procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
+procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
 
 begin
   CurrentTM.LeaveCriticalSection(cs);
@@ -269,65 +276,65 @@ begin
   result:=currenttm.BasicEventCreate(EventAttributes,AManualReset,InitialState, Name);
 end;
 
-procedure basiceventdestroy(state:peventstate);
+procedure BasicEventDestroy(state:peventstate);
 
 begin
-  currenttm.basiceventdestroy(state);
+  currenttm.BasicEventDestroy(state);
 end;
 
-procedure basiceventResetEvent(state:peventstate);
+procedure BasicEventResetEvent(state:peventstate);
 
 begin
-  currenttm.basiceventResetEvent(state);
+  currenttm.BasicEventResetEvent(state);
 end;
 
-procedure basiceventSetEvent(state:peventstate);
+procedure BasicEventSetEvent(state:peventstate);
 
 begin
-  currenttm.basiceventSetEvent(state);
+  currenttm.BasicEventSetEvent(state);
 end;
 
-function  basiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+function  BasicEventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
 
 begin
- result:=currenttm.basiceventWaitFor(Timeout,state);
+ result:=currenttm.BasicEventWaitFor(Timeout,state);
 end;
 
 function  RTLEventCreate :PRTLEvent;
 
 begin
-  result:=currenttm.rtleventcreate();
+  result:=currenttm.RTLEventCreate();
 end;
 
 
-procedure RTLeventdestroy(state:pRTLEvent);
+procedure RTLeventDestroy(state:pRTLEvent);
 
 begin
-  currenttm.rtleventdestroy(state);
+  currenttm.RTLEventDestroy(state);
 end;
 
 procedure RTLeventSetEvent(state:pRTLEvent);
 
 begin
-  currenttm.rtleventsetEvent(state);
+  currenttm.RTLEventSetEvent(state);
 end;
 
 procedure RTLeventResetEvent(state:pRTLEvent);
 
 begin
-  currenttm.rtleventResetEvent(state);
+  currenttm.RTLEventResetEvent(state);
 end;
 
 procedure RTLeventWaitFor(state:pRTLEvent);
 
 begin
-  currenttm.rtleventWaitFor(state);
+  currenttm.RTLEventWaitFor(state);
 end;
 
 procedure RTLeventWaitFor(state:pRTLEvent;timeout : longint);
 
 begin
-  currenttm.rtleventWaitForTimeout(state,timeout);
+  currenttm.RTLEventWaitForTimeout(state,timeout);
 end;
 
 { ---------------------------------------------------------------------
@@ -521,16 +528,16 @@ const
          AllocateThreadVars     : @NoThreadError;
          ReleaseThreadVars      : @NoThreadError;
          BasicEventCreate       : TBasicEventCreateHandler(@NoThreadError);
-         basiceventdestroy      : TBasicEventHandler(@NoThreadError);
-         basiceventResetEvent   : TBasicEventHandler(@NoThreadError);
-         basiceventSetEvent     : TBasicEventHandler(@NoThreadError);
-         basiceventWaitFor      : TBasicEventWaitForHandler(@NoThreadError);
-         rtlEventCreate         : TRTLCreateEventHandler(@NoThreadError);
-         rtleventdestroy        : TRTLEventHandler(@NoThreadError);
-         rtleventSetEvent       : TRTLEventHandler(@NoThreadError);
-         rtleventResetEvent     : TRTLEventHandler(@NoThreadError);
-         rtleventWaitFor        : TRTLEventHandler(@NoThreadError);
-         rtleventwaitfortimeout : TRTLEventHandlerTimeout(@NoThreadError);
+         BasicEventdestroy      : TBasicEventHandler(@NoThreadError);
+         BasicEventResetEvent   : TBasicEventHandler(@NoThreadError);
+         BasicEventSetEvent     : TBasicEventHandler(@NoThreadError);
+         BasicEventWaitFor      : TBasicEventWaitForHandler(@NoThreadError);
+         RTLEventCreate         : TRTLCreateEventHandler(@NoThreadError);
+         RTLEventdestroy        : TRTLEventHandler(@NoThreadError);
+         RTLEventSetEvent       : TRTLEventHandler(@NoThreadError);
+         RTLEventResetEvent     : TRTLEventHandler(@NoThreadError);
+         RTLEventWaitFor        : TRTLEventHandler(@NoThreadError);
+         RTLEventwaitfortimeout : TRTLEventHandlerTimeout(@NoThreadError);
 {$else EMBEDDED}
          BeginThread            : @NoBeginThread;
          EndThread              : @NoEndThread;
@@ -553,16 +560,16 @@ const
          AllocateThreadVars     : @NoThreadError;
          ReleaseThreadVars      : @NoThreadError;
          BasicEventCreate       : @NoBasicEventCreate;
-         basiceventdestroy      : @NoBasicEvent;
-         basiceventResetEvent   : @NoBasicEvent;
-         basiceventSetEvent     : @NoBasicEvent;
-         basiceventWaitFor      : @NoBasiceventWaitFor;
-         rtlEventCreate         : @NoRTLEventCreate;
-         rtleventdestroy        : @NoRTLevent;
-         rtleventSetEvent       : @NoRTLevent;
-         rtleventResetEvent     : @NoRTLEvent;
-         rtleventWaitFor        : @NoRTLEvent;
-         rtleventwaitfortimeout : @NoRTLEventWaitForTimeout;
+         BasicEventDestroy      : @NoBasicEvent;
+         BasicEventResetEvent   : @NoBasicEvent;
+         BasicEventSetEvent     : @NoBasicEvent;
+         BasicEventWaitFor      : @NoBasiceventWaitFor;
+         RTLEventCreate         : @NoRTLEventCreate;
+         RTLEventDestroy        : @NoRTLevent;
+         RTLEventSetEvent       : @NoRTLevent;
+         RTLEventResetEvent     : @NoRTLEvent;
+         RTLEventWaitFor        : @NoRTLEvent;
+         RTLEventWaitforTimeout : @NoRTLEventWaitForTimeout;
 {$endif EMBEDDED}
       );
 

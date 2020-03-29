@@ -112,7 +112,7 @@ type
     procedure TestErrorOnEmptyStatement;
     procedure TestExceptOnsecClose;
 
-    procedure TestServerFilter; // bug 15456
+    procedure TestServerFilter; // bug 15456, 35887
     procedure TestRowsAffected; // bug 9758
     procedure TestLocateNull;
     procedure TestLocateOnMoreRecords;
@@ -133,11 +133,15 @@ type
     procedure TestQueryAfterReconnect; // bug 16438
 
     procedure TestStringsReplace;
+    // Test SQLIte3 AlwaysUseBigInt, introduced after bug ID 36486.
+    Procedure TestAlwaysUseBigint;
   end;
+
 
 implementation
 
 uses sqldbtoolsunit,toolsunit, variants, sqldb, bufdataset, strutils, dbconst, FmtBCD;
+
 
 Type HackedDataset = class(TDataset);
 
@@ -438,7 +442,7 @@ var
 
 begin
   CreateTableWithFieldType(ftString,'VARCHAR(10)');
-  TestFieldDeclaration(ftString,11);
+  TestFieldDeclaration(ftString,10*DBConnector.CharSize+1);
 
   for i := 0 to testValuesCount-1 do
     TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''' + testValues[i] + ''')');
@@ -934,8 +938,9 @@ var
   i             : integer;
 
 begin
+  // Firebird has limit 32765 bytes, so this is 8191 characters when using UNICODE character set
   CreateTableWithFieldType(ftString,'VARCHAR(9000)');
-  TestFieldDeclaration(ftString,9001);
+  TestFieldDeclaration(ftString,9000*DBConnector.CharSize+1);
 
   setlength(s,9000);
   for i := 1 to 9000 do
@@ -1006,7 +1011,7 @@ begin
   with TSQLDBConnector(DBConnector).Query do
     begin
     sql.clear;
-    sql.append('insert into FPDEV2 (plant,sampling_type,batch,sampling_datetime,status,batch_commentary) values (''ZUBNE PASTE'',''OTISCI POVR￿INA'',''000037756'',''2005-07-01'',''NE ODGOVARA'',''Ovdje se upisuje komentar o kontrolnom broju..............'')');
+    sql.append('insert into FPDEV2 (plant,sampling_type,batch,sampling_datetime,status,batch_commentary) values (''ZUBNE PASTE'',''OTISCI POVRŠINA'',''000037756'',''2005-07-01'',''NE ODGOVARA'',''Ovdje se upisuje komentar o kontrolnom broju..............'')');
     ExecSQL;
 
     sql.clear;
@@ -1618,15 +1623,15 @@ begin
                       Params.ParamByName('field1').AsDate := StrToDate(testDateValues[i],'yyyy/mm/dd','-');
         ftDateTime: Params.ParamByName('field1').AsDateTime := StrToDateTime(testValues[ADataType,i], DBConnector.FormatSettings);
         ftFMTBcd  : Params.ParamByName('field1').AsFMTBCD := StrToBCD(ParamValues[i], DBConnector.FormatSettings);
-        ftBlob    : Params.ParamByName('field1').AsBlob := testBlobValues[i];
+        ftBlob    : Params.ParamByName('field1').AsBlob := BytesOf(testBlobValues[i]);
         ftBytes   : if cross then
                       Params.ParamByName('field1').Value := StringToByteArray(testBytesValues[i])
                     else
-                      Params.ParamByName('field1').AsBytes := StringToBytes(testBytesValues[i]);
+                      Params.ParamByName('field1').AsBytes := BytesOf(testBytesValues[i]);
         ftVarBytes: if cross then
                       Params.ParamByName('field1').AsString := testBytesValues[i]
                     else
-                      Params.ParamByName('field1').AsBytes := StringToBytes(testBytesValues[i]);
+                      Params.ParamByName('field1').AsBytes := BytesOf(testBytesValues[i]);
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -1689,7 +1694,7 @@ begin
       begin
       case asWhat of
         0: Params.ParamByName('blobParam').AsMemo   := TestBlobValues[i];
-        1: Params.ParamByName('blobParam').AsBlob   := TestBlobValues[i];
+        1: Params.ParamByName('blobParam').AsBlob   := BytesOf(TestBlobValues[i]);
         2: Params.ParamByName('blobParam').AsString := TestBlobValues[i];
       end;
       ExecSQL;
@@ -2045,6 +2050,15 @@ begin
     Open;
     CheckTrue(CanModify, SQL.Text);
     Close;
+
+    // tests change of ServerFilter, while DataSet is opened and not all records were fetched
+    PacketRecords:=2;
+    ServerFilter:='ID>=1';
+    Open;
+    CheckEquals(1, FieldByName('ID').AsInteger);
+    ServerFilter:='ID>=21';
+    CheckEquals(21, FieldByName('ID').AsInteger);
+    Close;
   end;
 end;
 
@@ -2055,7 +2069,7 @@ begin
     begin
     Query2 := GetNDataset(0) as TSQLQuery;
 
-    AssertEquals(-1, Query.RowsAffected);
+    CheckEquals(-1, Query.RowsAffected, 'Inactive dataset');
     Connection.ExecuteDirect('create table FPDEV2 (' +
                               '  ID INT NOT NULL,  ' +
                               '  NAME VARCHAR(250),' +
@@ -2211,7 +2225,6 @@ end;
 
 procedure TTestFieldTypes.TestFieldNames;
 var FieldList : TStringList;
-    i         : integer;
 begin
   FieldList := TStringList.Create;
   try
@@ -2416,6 +2429,34 @@ begin
     inherited RunTest;
 end;
 
+Procedure TTestFieldTypes.TestAlwaysUseBigint;
+
+var
+  I : byte;
+
+begin
+  If SQLConnType<>sqlite3 then
+    Ignore('Test only for SQLite');
+  TSQLDBConnector(DBConnector).Connection.Params.Values['AlwaysUseBigint']:='1';
+
+  CreateTableWithFieldType(ftInteger,'INT');
+  TestFieldDeclaration(ftLargeInt,8);
+
+  for i := 0 to testIntValuesCount-1 do
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + inttostr(testIntValues[i]) + ')');
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    Open;
+    for i := 0 to testIntValuesCount-1 do
+      begin
+      AssertEquals(testIntValues[i],fields[0].AsLargeInt);
+      Next;
+      end;
+    close;
+    end;
+    
+end;
 
 initialization
   // Only test if using sqldb

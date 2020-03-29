@@ -5,7 +5,10 @@ program tucawsm;
     * CollationTest_NON_IGNORABLE_SHORT.txt
     * CollationTest_SHIFTED_SHORT.txt
   These files are in the zip archive at
-    http://www.unicode.org/Public/UCA/6.2.0/CollationAuxiliary.zip
+    http://www.unicode.org/Public/cldr/30/core.zip
+    in the "\common\uca" folder and named 
+      CollationTest_CLDR_NON_IGNORABLE_SHORT.txt and
+      CollationTest_CLDR_SHIFTED_SHORT.txt
 }
 
 {$mode objfpc}{$H+}
@@ -46,7 +49,7 @@ begin
   end;
 end;
 
-procedure CheckContent(ADataAStream : TMemoryStream);
+procedure CheckContent(ADataAStream : TMemoryStream; ACollation : PUCA_DataBook);
 const LINE_LENGTH        = 1024;
 var
   p : PAnsiChar;
@@ -157,6 +160,7 @@ var
   a, b : UnicodeString;
   errorCount : Integer;
 begin
+  SetActiveCollation(ACollation);
   errorCount := 0;
   lineCount := 0;
   SetLength(a,3);
@@ -174,12 +178,10 @@ begin
     b := ParseLine();
     if (b = '') then
       Break;
-    //if (CompareSortKey(kb,ka) < 0) then begin
     if (UnicodeCompareStr(b,a) < 0) then begin
       Inc(errorCount);
 {$ifdef stop_on_error}
       Inc(TotalErrorCount,errorCount);
-      //IncrementalCompareString(b,a,ACollation);
       WriteLn('Error #',errorCount, '; Line #',lineCount);
       Write('    s1 = ');DumpString(a);Write('    ');DumpKey(ComputeSortKey(a,ACollation)); WriteLn();
       Write('    s2 = ');DumpString(b);Write('    ');DumpKey(ComputeSortKey(b,ACollation)); WriteLn();
@@ -215,21 +217,20 @@ begin
 {$endif WINCE}
   DefaultCollationName := 'DUCET';
   collation := FindCollation('DUCET');
-  SetActiveCollation(collation);
   stream := TMemoryStream.Create();
   try
     collation^.VariableWeight := TUCA_VariableKind.ucaNonIgnorable;
     stream.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'CollationTest_NON_IGNORABLE_SHORT.txt');
     stream.Position := 0;
     WriteLn('Testing CollationTest_NON_IGNORABLE_SHORT.txt ...');
-    CheckContent(stream);
+    CheckContent(stream,collation);
     WriteLn();WriteLn();
 
     collation^.VariableWeight := TUCA_VariableKind.ucaShifted;
     stream.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'CollationTest_SHIFTED_SHORT.txt');
     stream.Position := 0;
     WriteLn('Testing CollationTest_SHIFTED_SHORT.txt ...');
-    CheckContent(stream);
+    CheckContent(stream,collation);
   finally
     stream.Free();
   end;

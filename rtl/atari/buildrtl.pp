@@ -10,8 +10,9 @@ unit buildrtl;
 
       ctypes, strings,
       rtlconsts, sysconst, math, types,
-      typinfo, fgl, classes,
-      charset, character, getopts;
+      typinfo, sortbase, fgl, classes,
+      charset, character, getopts,
+      fpwidestring;
 
   implementation
 

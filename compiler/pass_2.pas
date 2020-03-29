@@ -58,15 +58,16 @@ procedure secondpass(p : tnode);
 implementation
 
    uses
-{$ifdef EXTDEBUG}
      cutils,
-{$endif}
-     globtype,systems,verbose,
+     globtype,verbose,
      globals,
-     paramgr,
-     aasmtai,aasmdata,
-     cgbase,
-     nflw,cgobj;
+     aasmdata,
+     cgobj
+{$ifdef EXTDEBUG}
+     ,cgbase
+     ,aasmtai
+{$endif}
+     ;
 
 {*****************************************************************************
                               SecondPass
@@ -131,7 +132,6 @@ implementation
              'while_repeat', {whilerepeatn}
              'for',         {forn}
              'exitn',       {exitn}
-             'with',        {withn}
              'case',        {casen}
              'label',       {labeln}
              'goto',        {goton}
@@ -155,7 +155,8 @@ implementation
              'loadparentfpn',
              'objselectorn',
              'objcprotocoln',
-             'specializen'
+             'specializen',
+             'finalizetemps'
              );
       var
         p: pchar;
@@ -179,6 +180,7 @@ implementation
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
          oldpos    : tfileposinfo;
+         oldexecutionweight : longint;
       begin
          if not assigned(p) then
           internalerror(200208221);
@@ -190,6 +192,11 @@ implementation
             current_filepos:=p.fileinfo;
             current_settings.localswitches:=p.localswitches;
             codegenerror:=false;
+            oldexecutionweight:=cg.executionweight;
+            if assigned(p.optinfo) then
+              cg.executionweight:=min(p.optinfo^.executionweight,high(cg.executionweight))
+            else
+              cg.executionweight:=100;
 {$ifdef EXTDEBUG}
             if (p.expectloc=LOC_INVALID) then
               Comment(V_Warning,'ExpectLoc is not set before secondpass: '+nodetype2str[p.nodetype]);
@@ -205,7 +212,14 @@ implementation
             if (not codegenerror) then
              begin
                if (p.location.loc<>p.expectloc) then
-                 Comment(V_Warning,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype]);
+                 begin
+                   if ((p.location.loc=loc_register) and (p.expectloc=loc_cregister))
+                      or ((p.location.loc=loc_fpuregister) and (p.expectloc=loc_cfpuregister))
+                      or ((p.location.loc=loc_reference) and (p.expectloc=loc_creference)) then
+                     Comment(V_Note,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype])
+                   else
+                     Comment(V_Warning,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype]);
+                 end;
                if (p.location.loc=LOC_INVALID) then
                  Comment(V_Warning,'Location not set in secondpass: '+nodetype2str[p.nodetype]);
              end;
@@ -215,6 +229,7 @@ implementation
             codegenerror:=codegenerror or oldcodegenerror;
             current_settings.localswitches:=oldlocalswitches;
             current_filepos:=oldpos;
+            cg.executionweight:=oldexecutionweight;
           end
          else
            codegenerror:=true;

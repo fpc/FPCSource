@@ -1,5 +1,5 @@
 { Converted by H2Pas from richedit.h }
-unit richedit;
+unit RichEdit;
 
 {$mode objfpc}
 {$calling stdcall}

@@ -2,7 +2,7 @@
 %%% Contains all comments from errorn.msg
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2008 by the Free Pascal Development team
+#   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
 #   Dutch Language File for Free Pascal in CP850 (just one line in help affected)
 #   Latest updates contributed by Matthijs Willemstein <matthijs at willemstein.net>
@@ -15,6 +15,9 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
+
+# CodePage 850
+
 #
 # The constants are build in the following order:
 # <part>_<type>_<txtidentifier>
@@ -825,7 +828,7 @@ parser_e_function_already_declared_public_forward=03120_E_Functie is al publiek/
 % declaration in the \var{implmentation} section.
 parser_e_not_external_and_export=03121_E_Kan niet zowel EXPORT als EXTERNAL gebruiken
 % These two procedure directives are mutually exclusive
-parser_h_not_supported_for_inline=03123_H_$1 wordt niet ondersteund voor inline procedure/functie
+parser_n_not_supported_for_inline=03123_N_$1 wordt niet ondersteund voor inline procedure/functie
 % Inline procedures don't support this declaration.
 parser_h_inlining_disabled=03124_H_Inlining uitgeschakeld
 % Inlining of procedures is disabled.
@@ -3482,7 +3485,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler versie $FPCFULLVERSION [$FPCDATE] voor $FPCTARGET
-Copyright (c) 1993-2017 door Florian Klaempfl en anderen
+Copyright (c) 1993-2020 door Florian Klaempfl en anderen
 ]
 #
 # Info (option -i)

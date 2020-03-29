@@ -30,21 +30,27 @@ unit cpunode;
     uses
        { generic nodes }
        ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,ncgopt,ncgmat,ncgobjc,
+       { symtable }
+       symcpu,
+       aasmdef,
        { to be able to only parts of the generic code,
          the processor specific nodes must be included
          after the generic one (FK)
        }
+{$ifndef llvm}
        narmadd,
        narmcal,
        narmmat,
        narminl,
+       narmld,
        narmcnv,
        narmcon,
        narmset,
        narmmem,
-       { symtable }
-       symcpu,
-       aasmdef
+       narmutil
+{$else}
+       llvmnode
+{$endif}
        ;
 
 

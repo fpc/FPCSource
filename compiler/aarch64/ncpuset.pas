@@ -31,9 +31,10 @@ interface
     type
        taarch64casenode = class(tcgcasenode)
          protected
-           procedure optimizevalues(var max_linear_list: aint; var max_dist: aword);override;
+           procedure optimizevalues(var max_linear_list: int64; var max_dist: qword);override;
            function  has_jumptable: boolean;override;
-           procedure genjumptable(hp: pcaselabel ;min_, max_: aint);override;
+           procedure genjumptable(hp: pcaselabel ;min_, max_: int64);override;
+           procedure genlinearlist(hp: pcaselabel);override;
        end;
 
 
@@ -56,7 +57,7 @@ implementation
 *****************************************************************************}
 
 
-    procedure taarch64casenode.optimizevalues(var max_linear_list: aint; var max_dist: aword);
+    procedure taarch64casenode.optimizevalues(var max_linear_list: int64; var max_dist: qword);
       begin
         max_linear_list:=10;
       end;
@@ -68,7 +69,121 @@ implementation
       end;
 
 
-    procedure taarch64casenode.genjumptable(hp: pcaselabel; min_, max_: aint);
+    procedure taarch64casenode.genlinearlist(hp : pcaselabel);
+      var
+        first : boolean;
+        lastrange : boolean;
+        last : TConstExprInt;
+        cond_lt,cond_le : tresflags;
+        opcgsize, unsigned_opcgsize: tcgsize;
+
+        procedure genitem(t : pcaselabel);
+          var
+           ovloc: tlocation;
+          begin
+            if assigned(t^.less) then
+              genitem(t^.less);
+            { need we to test the first value }
+            if first and (t^._low>get_min_value(left.resultdef)) then
+              begin
+                cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
+              end;
+            if t^._low=t^._high then
+              begin
+                 if t^._low-last=0 then
+                   cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
+                 else
+                   begin
+                     { use unsigned_opcgsize here to avoid uncessary sign extensions, at this place hregister will never be negative, because
+                       then genlinearlist wouldn't be used }
+                     cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue-last.svalue), hregister, hregister,
+                       true,ovloc);
+                     cg.a_jmp_flags(current_asmdata.CurrAsmList,F_EQ,blocklabel(t^.blockid));
+                   end;
+                 last:=t^._low;
+                 lastrange:=false;
+              end
+            else
+              begin
+                 { it begins with the smallest label, if the value }
+                 { is even smaller then jump immediately to the    }
+                 { ELSE-label                                }
+                 if first then
+                   begin
+                      { have we to ajust the first value ? }
+                      if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
+                        begin
+                          { use unsigned_opcgsize here to avoid uncessary sign extensions, at this place hregister will never be negative, because
+                            then genlinearlist wouldn't be use }
+                          cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue), hregister, hregister,
+                            true,ovloc);
+                        end;
+                   end
+                 else
+                   begin
+                     { if there is no unused label between the last and the }
+                     { present label then the lower limit can be checked    }
+                     { immediately. else check the range in between:       }
+
+                     { use unsigned_opcgsize here to avoid uncessary sign extensions, at this place hregister will never be negative, because
+                       then genlinearlist wouldn't be use }
+                     cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList, OP_SUB, unsigned_opcgsize, aint(t^._low.svalue - last.svalue), hregister, hregister,
+                       true,ovloc);
+                     { no jump necessary here if the new range starts at }
+                     { at the value following the previous one           }
+                     if (aint(t^._low.svalue - last.svalue) <> 1) or
+                        (not lastrange) then
+                       cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
+                   end;
+                 { use unsigned_opcgsize here to avoid uncessary sign extensions, at this place hregister will never be negative, because
+                   then genlinearlist wouldn't be use }
+                 cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,unsigned_opcgsize,aint(t^._high.svalue - t^._low.svalue), hregister, hregister,
+                   true,ovloc);
+                 cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
+
+                 last:=t^._high;
+                 lastrange:=true;
+              end;
+            first:=false;
+            if assigned(t^.greater) then
+              genitem(t^.greater);
+          end;
+
+        begin
+           opcgsize:=def_cgsize(opsize);
+           case opcgsize of
+             OS_8,OS_16,OS_32,OS_S8,OS_S16,OS_S32:
+               unsigned_opcgsize:=OS_32;
+             OS_64,OS_S64:
+               unsigned_opcgsize:=OS_64;
+             else
+               Internalerror(2019090902);
+           end;
+           if with_sign then
+             begin
+                cond_lt:=F_LT;
+                cond_le:=F_LE;
+             end
+           else
+              begin
+                cond_lt:=F_CC;
+                cond_le:=F_LS;
+             end;
+           { do we need to generate cmps? }
+           if (with_sign and (min_label<0)) then
+             genlinearcmplist(hp)
+           else
+             begin
+                last:=0;
+                lastrange:=false;
+                first:=true;
+                genitem(hp);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
+             end;
+        end;
+
+
+    procedure taarch64casenode.genjumptable(hp: pcaselabel; min_, max_: int64);
       var
         last: TConstExprInt;
         tablelabel: TAsmLabel;
@@ -80,7 +195,7 @@ implementation
 
       procedure genitem(list:TAsmList;t : pcaselabel);
         var
-          i : aint;
+          i : int64;
         begin
           if assigned(t^.less) then
             genitem(list,t^.less);
@@ -128,7 +243,7 @@ implementation
         basereg:=cg.getaddressregister(current_asmdata.CurrAsmList);
         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,basereg);
         { load table slot, 32-bit sign extended }
-        reference_reset_base(href,basereg,0,4,[]);
+        reference_reset_base(href,basereg,0,href.temppos,4,[]);
         href.index:=indexreg;
         href.shiftmode:=SM_LSL;
         href.shiftimm:=2;

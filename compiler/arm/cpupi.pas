@@ -49,13 +49,15 @@ unit cpupi;
           procedure generate_parameter_info;override;
           procedure allocate_got_register(list : TAsmList);override;
           procedure postprocess_code;override;
+
+          procedure allocate_tls_register(list : TAsmList);override;
        end;
 
 
   implementation
 
     uses
-       globals,systems,
+       globals,systems,verbose,
        cpubase,
        tgobj,
        symconst,symtype,symsym,symcpu,paramgr,
@@ -154,6 +156,10 @@ unit cpupi;
             maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
             floatsavesize:=0;
             case current_settings.fputype of
+              fpu_none,
+              fpu_soft,
+              fpu_libgcc:
+                ;
               fpu_fpa,
               fpu_fpa10,
               fpu_fpa11:
@@ -172,18 +178,15 @@ unit cpupi;
                   if firstfloatreg<>RS_NO then
                     floatsavesize:=(lastfloatreg-firstfloatreg+1)*12;
                 end;
-              fpu_vfpv2,
-              fpu_vfpv3,
-              fpu_vfpv4,
-              fpu_vfpv3_d16:
+              else if FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype] then
                 begin
                   floatsavesize:=0;
                   regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
                   for r:=RS_D0 to RS_D31 do
                     if r in regs then
                       inc(floatsavesize,8);
-                end;
-              fpu_fpv4_s16:
+                end
+              else
                 begin
                   floatsavesize:=0;
                   regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
@@ -274,6 +277,12 @@ unit cpupi;
       begin
         { because of the limited constant size of the arm, all data access is done pc relative }
         finalizearmcode(aktproccode,aktlocaldata);
+      end;
+
+
+    procedure tcpuprocinfo.allocate_tls_register(list: TAsmList);
+      begin
+        current_procinfo.tlsoffset:=cg.getaddressregister(list);
       end;
 
 begin

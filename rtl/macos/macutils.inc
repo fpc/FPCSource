@@ -334,7 +334,7 @@ end;
  a path to the directory, where the file or directory is located,
  is returned. Functioning even with System 6.}
 
-function FSpGetFullPath (spec: FSSpec; var fullPath: AnsiString;
+function FSpGetFullPath (spec: FSSpec; var fullPath: RawByteString;
   parent: Boolean): OSErr;
 
   var
@@ -406,7 +406,7 @@ begin
     PathArgToFSSpec := 3; {Empty paths are invalid paths}
 end;
 
-function PathArgToFullPath(s: string; var fullpath: AnsiString): Integer;
+function PathArgToFullPath(s: string; var fullpath: RawByteString): Integer;
 
 var
   err: OSErr;

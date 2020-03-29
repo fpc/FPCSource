@@ -1,11 +1,11 @@
 {
-    This file is part of the Free Pascal run time library.
+    This file is part of the Free Pascal/NewPascal run time library.
     Copyright (c) 2014 by Maciej Izak (hnb)
-    member of the Free Sparta development team (http://freesparta.com)
+    member of the NewPascal development team (http://newpascal.org)
 
-    Copyright(c) 2004-2014 DaThoX
+    Copyright(c) 2004-2018 DaThoX
 
-    It contains the Free Pascal generics library
+    It contains the generics collections library
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -24,7 +24,10 @@ interface
 
 resourcestring
   SArgumentOutOfRange = 'Argument out of range';
+  SArgumentNilNode = 'Node is nil';
   SDuplicatesNotAllowed = 'Duplicates not allowed in dictionary';
+  SCollectionInconsistency = 'Collection inconsistency';
+  SCollectionDuplicate = 'Collection does not allow duplicates';
   SDictionaryKeyDoesNotExist = 'Dictionary key does not exist';
   SItemNotFound = 'Item not found';
 

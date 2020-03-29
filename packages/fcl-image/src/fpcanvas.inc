@@ -64,7 +64,6 @@ end;
 
 procedure TFPCustomCanvas.RemoveHelpers;
 var r : integer;
-    OldState : boolean;
 begin
   for r := FHelpers.count-1 downto 0 do
     with TFPCanvasHelper(FHelpers[r]) do
@@ -334,6 +333,7 @@ end;
 
 function TFPCustomCanvas.TextExtent(const Text: string): TSize;
 begin
+  Result:=Default(TSize);
   GetTextSize(Text, Result.cx, Result.cy);
 end;
 
@@ -351,6 +351,78 @@ begin
     result := TFPCustomDrawFont(Font).GetTextWidth (text)
   else
     result := DoGetTextWidth (Text);
+end;
+
+procedure TFPCustomCanvas.TextOut (x,y:integer;text:unicodestring);
+begin
+  if Font is TFPCustomDrawFont then
+    TFPCustomDrawFont(Font).DrawText(x,y, text)
+  else
+    DoTextOut (x,y, text);
+end;
+
+procedure TFPCustomCanvas.GetTextSize (text:unicodestring; var w,h:integer);
+begin
+  if Font is TFPCustomDrawFont then
+    TFPCustomDrawFont(Font).GetTextSize (text, w, h)
+  else
+    DoGetTextSize (Text, w, h);
+end;
+
+function TFPCustomCanvas.GetTextHeight (text:unicodestring) : integer;
+begin
+  Result := TextHeight(Text);
+end;
+
+function TFPCustomCanvas.GetTextWidth (text:unicodestring) : integer;
+begin
+  Result := TextWidth(Text);
+end;
+
+function TFPCustomCanvas.TextExtent(const Text: unicodestring): TSize;
+begin
+  Result:=Default(TSize);
+  GetTextSize(Text, Result.cx, Result.cy);
+end;
+
+function TFPCustomCanvas.TextHeight(const Text: unicodestring): Integer;
+begin
+  if Font is TFPCustomDrawFont then
+    result := TFPCustomDrawFont(Font).GetTextHeight (text)
+  else
+    result := DoGetTextHeight (Text);
+end;
+
+function TFPCustomCanvas.TextWidth(const Text: unicodestring): Integer;
+begin
+  if Font is TFPCustomDrawFont then
+    result := TFPCustomDrawFont(Font).GetTextWidth (text)
+  else
+    result := DoGetTextWidth (Text);
+end;
+
+procedure TFPCustomCanvas.DoTextOut (x,y:integer;text:unicodestring); 
+
+begin
+  DoTextOut(x,y,string(text));
+end;
+
+procedure TFPCustomCanvas.DoGetTextSize (text:unicodestring; var w,h:integer); 
+
+begin
+  DoGetTextSize(String(Text),w,h);
+end;
+
+function  TFPCustomCanvas.DoGetTextHeight (text:unicodestring) : integer; 
+
+begin
+  Result:=DoGetTextHeight(String(text));
+end;
+
+function  TFPCustomCanvas.DoGetTextWidth (text:unicodestring) : integer; 
+
+begin
+  Result:=DoGetTextWidth(String(text));
 end;
 
 procedure TFPCustomCanvas.Arc(ALeft, ATop, ARight, ABottom, Angle16Deg,
@@ -500,6 +572,16 @@ begin
     end;
 end;
 
+procedure TFPCustomCanvas.DrawPixel(const x, y: integer;
+  const newcolor: TFPColor);
+begin
+  case FDrawingMode of
+    dmOpaque: Colors[x,y] := newcolor;
+    dmAlphaBlend: Colors[x,y] := AlphaBlend(Colors[x,y], newcolor);
+    dmCustom: Colors[x,y] := FOnCombineColors(Colors[x,y], newcolor);
+  end;
+end;
+
 procedure TFPCustomCanvas.Erase;
 var
   x,y:Integer;
@@ -603,7 +685,7 @@ begin
 end;
         
 procedure TFPCustomCanvas.Rectangle (const Bounds:TRect);
-var np,nb,dp,db,pb : boolean;
+var np,nb,dp,db: boolean;
 begin
   np:= Pen.style <> psClear; // Need pen ?
   nb:= Brush.style <> bsClear;  // Need brush ?
@@ -700,25 +782,28 @@ procedure TFPCustomCanvas.Draw (x,y:integer; image:TFPCustomImage);
 var xx,xi,yi,xm,ym,r,t : integer;
 begin
   xm := x + image.width-1;
+  if (xm<0) or (x>width) then exit;
   if xm >= width then
     xm := width - 1;
   ym := y + image.height-1;
+  if (ym<0) or (y>width) then exit;
   if ym >= height then
     ym := height - 1;
   xi := x;
   yi := y;
   if clipping then
-    CheckRectClipping (ClipRect, xi,yi, xm,ym);
+    if not CheckRectClipping (ClipRect, xi,yi, xm,ym) then
+      exit;
   for r := xi to xm do
     begin
     xx := r - x;
     for t := yi to ym do
-      colors [r,t] := image.colors[xx,t-y];
+      DrawPixel(r,t, image.colors[xx,t-y]);
     end;
 end;
 
 procedure TFPCustomCanvas.StretchDraw(x, y, w, h: integer; source: TFPCustomImage);
-var i : TFPCustomInterpolation;
+var
     FreeInterpolation : boolean;
     IP : TFPCustomInterpolation;
 begin

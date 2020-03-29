@@ -64,6 +64,9 @@ uses
   procedure test16c();
   procedure test16d();
   procedure test16e();
+  procedure test17a();
+  procedure test17b();
+  procedure test17c();
 
   procedure test_parser_1();
   procedure test_parser_2();
@@ -94,6 +97,8 @@ uses
   procedure test_parser_special_char_5();
   procedure test_parser_special_char_6();
   procedure test_parser_special_char_7();
+  procedure test_parser_special_char_8();
+  procedure test_parser_special_char_9();
   procedure test_parser_skip_comment_1();
   procedure test_parser_skip_comment_2();
   procedure test_parser_skip_comment_3();
@@ -122,6 +127,23 @@ uses
 
   procedure test_parser_multi_line_statements_1();
 
+  procedure test_parser_setting_1();
+  procedure test_parser_setting_2();
+  procedure test_parser_setting_3();
+  procedure test_parser_setting_4();
+  procedure test_parser_setting_5();
+  procedure test_parser_setting_6();
+  procedure test_parser_setting_7();
+  procedure test_parser_setting_8();
+  procedure test_parser_setting_multi_statement_1();
+  procedure test_parser_setting_multi_statement_2();
+  procedure test_parser_setting_multi_statement_3();
+  procedure test_parser_setting_multi_statement_4();
+  procedure test_parser_setting_unicodeset_1();
+  procedure test_parser_setting_unicodeset_2();
+  procedure test_parser_setting_unicodeset_3();
+  procedure test_parser_setting_unicodeset_4();
+
   procedure test_collation_parser_HeaderParsing();
   procedure test_collation_parser_HeaderParsing_2();
   procedure test_collation_parser_FullParsing();
@@ -133,27 +155,54 @@ uses
   procedure test_unicode_set_2();
   procedure test_unicode_set_3();
 
+const
+  UNICODE_LINE_BREAK = #10;
+
 implementation
 uses
   typinfo;
 
-procedure do_exec_test(ATest : TProcedure; const APropagateException : Boolean);
+function inner_do_exec_test(
+        ATest               : TProcedure;
+  const APropagateException : Boolean
+) : Boolean;
 begin
+  Result := False;
   if APropagateException then begin
     ATest();
+    Result := True;
   end else begin
     try
       ATest();
+      Result := True;
     except
       on e : Exception do begin
+        writeln('Failure:');
         writeln(e.Message);
       end;
     end;
   end;
 end;
 
-procedure exec_utils_tests(const APropagateException : Boolean);
+procedure exec_utils_tests(
+  const APropagateException : Boolean;
+    out ATotal,
+        AErrors             : Integer
+);
+
+  procedure do_exec_test(
+          ATest               : TProcedure;
+    const APropagateException : Boolean
+  );
+  begin
+    ATotal := ATotal+1;
+    if not inner_do_exec_test(ATest,APropagateException) then
+      AErrors := AErrors+1;
+  end;
+
 begin
+  ATotal := 0;
+  AErrors := 0;
   WriteLn;WriteLn;WriteLn;WriteLn;
   WriteLn('UTILITIES TESTS - START');
   WriteLn('***************************** TEST UNICODESET 1 ******************');
@@ -170,8 +219,25 @@ begin
   WriteLn;
 end;
 
-procedure exec_parser_tests(const APropagateException : Boolean);
+procedure exec_parser_tests(
+  const APropagateException : Boolean;
+    out ATotal,
+        AErrors             : Integer
+);
+
+  procedure do_exec_test(
+          ATest               : TProcedure;
+    const APropagateException : Boolean
+  );
+  begin
+    ATotal := ATotal+1;
+    if not inner_do_exec_test(ATest,APropagateException) then
+      AErrors := AErrors+1;
+  end;
+
 begin
+  ATotal := 0;
+  AErrors := 0;
   WriteLn;WriteLn;WriteLn;WriteLn;
   WriteLn('PARSER TESTS');
   WriteLn('***************************** TEST PARSER 1 ******************');
@@ -263,6 +329,12 @@ begin
   WriteLn('***************************** TEST SPECIAL CHAR 7 ******************');
   do_exec_test(@test_parser_special_char_7,APropagateException);
   WriteLn;
+  WriteLn('***************************** TEST SPECIAL CHAR 8 ******************');
+  do_exec_test(@test_parser_special_char_8,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SPECIAL CHAR 9 ******************');
+  do_exec_test(@test_parser_special_char_9,APropagateException);
+  WriteLn;
   WriteLn('***************************** TEST SKIP COMMENT 1 ******************');
   do_exec_test(@test_parser_skip_comment_1,APropagateException);
   WriteLn;
@@ -341,6 +413,55 @@ begin
   WriteLn('***************************** TEST MULTI LINE STATEMENTS 1 ******************');
   do_exec_test(@test_parser_multi_line_statements_1,APropagateException);
   WriteLn;
+  WriteLn('***************************** TEST SETTING STATEMENT 1 ******************');
+  do_exec_test(@test_parser_setting_1,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SETTING STATEMENT 2 ******************');
+  do_exec_test(@test_parser_setting_2,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SETTING STATEMENT 3 ******************');
+  do_exec_test(@test_parser_setting_3,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SETTING STATEMENT 4 ******************');
+  do_exec_test(@test_parser_setting_4,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SETTING STATEMENT 5 ******************');
+  do_exec_test(@test_parser_setting_5,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SETTING STATEMENT 6 ******************');
+  do_exec_test(@test_parser_setting_6,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SETTING STATEMENT 7 ******************');
+  do_exec_test(@test_parser_setting_7,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SETTING STATEMENT 8 ******************');
+  do_exec_test(@test_parser_setting_8,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SETTING MULTI STATEMENT 1 ******************');
+  do_exec_test(@test_parser_setting_multi_statement_1,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SETTING MULTI STATEMENT 2 ******************');
+  do_exec_test(@test_parser_setting_multi_statement_2,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SETTING MULTI STATEMENT 3 ******************');
+  do_exec_test(@test_parser_setting_multi_statement_3,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SETTING MULTI STATEMENT 4 ******************');
+  do_exec_test(@test_parser_setting_multi_statement_4,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SETTING UNICODE SET 1 ******************');
+  do_exec_test(@test_parser_setting_unicodeset_1,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SETTING UNICODE SET 2 ******************');
+  do_exec_test(@test_parser_setting_unicodeset_2,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SETTING UNICODE SET 3 ******************');
+  do_exec_test(@test_parser_setting_unicodeset_3,APropagateException);
+  WriteLn;
+  WriteLn('***************************** TEST SETTING UNICODE SET 4 ******************');
+  do_exec_test(@test_parser_setting_unicodeset_4,APropagateException);
+  WriteLn;
+
   WriteLn;
   WriteLn('***************************** TEST REPOSITORY 1 ******************');
   do_exec_test(@test_collation_parser_HeaderParsing,APropagateException);
@@ -363,16 +484,30 @@ begin
 
   WriteLn;
   WriteLn;
-end;
-
-procedure exec_tests(const APropagateException : Boolean);
-begin
-  exec_utils_tests(APropagateException);
-
-  exec_parser_tests(APropagateException);
 
   WriteLn('END PARSER TESTS');
   WriteLn('*******************************************************');
+end;
+
+procedure exec_basic_tests(
+  const APropagateException : Boolean;
+    out ATotal,
+        AErrors             : Integer
+);
+
+  procedure do_exec_test(
+          ATest               : TProcedure;
+    const APropagateException : Boolean
+  );
+  begin
+    ATotal := ATotal+1;
+    if not inner_do_exec_test(ATest,APropagateException) then
+      AErrors := AErrors+1;
+  end;
+
+begin
+  ATotal := 0;
+  AErrors := 0;
 
   WriteLn('***************************** TEST 1 ******************');
   do_exec_test(@test1,APropagateException);
@@ -414,8 +549,40 @@ begin
   do_exec_test(@test16d,APropagateException);
   WriteLn('***************************** TEST 16 E ******************');
   do_exec_test(@test16e,APropagateException);
+  WriteLn('***************************** TEST 17 A ******************');
+  do_exec_test(@test17a,APropagateException);
+  WriteLn('***************************** TEST 17 B ******************');
+  do_exec_test(@test17b,APropagateException);
+  WriteLn('***************************** TEST 17 C ******************');
+  do_exec_test(@test17c,APropagateException);
+end;
 
-  WriteLn('****  END TESTS');
+procedure exec_tests(const APropagateException : Boolean);
+var
+  total, errors, t, e : Integer;
+begin
+  total := 0;
+  errors := 0;
+
+  exec_utils_tests(APropagateException,t,e);
+    total := total+t;
+    errors := errors+e;
+
+  exec_parser_tests(APropagateException,t,e);
+    total := total+t;
+    errors := errors+e;
+
+  exec_basic_tests(APropagateException,t,e);
+    total := total+t;
+    errors := errors+e;
+
+  WriteLn('****  END TESTS',sLineBreak,sLineBreak);
+
+  WriteLn('------------------  RESULTS => START ------------------------------');
+  WriteLn(Format('    %d Total tests',[total]));
+  WriteLn(Format('    %d tests failed',[errors]));
+
+  WriteLn('------------------  RESULTS => END ------------------------------');
 end;
 
 function ToAnsiChars(const AValue : array of TUnicodeCodePoint) : string;
@@ -465,7 +632,10 @@ begin
       if p^.IsVirtual() then
         WriteStr(s,s,' [',GetEnumName(TypeInfo(TReorderLogicalReset),Ord(p^.VirtualPosition)),'] ')
       else
-        WriteStr(s,s,'<',(1+Ord(p^.WeigthKind)),' ',ToAnsiChars(p^.Characters),' ');
+        WriteStr(s,s,'<',(1+Ord(p^.WeigthKind)),' ',ToAnsiChars(p^.Characters));
+      if (Length(p^.Context) > 0) then
+        WriteStr(s,s,'[',ToAnsiChars(p^.Context),']');
+      WriteStr(s,s,' ');
       Inc(p);
     end;
   end;
@@ -625,7 +795,7 @@ begin
     end;
   end;
 
-  ABook.Version := AInitDataBook.Version;
+  StringToByteArray(AInitDataBook.Version,PByte(@ABook.Version[1]),Length(ABook.Version));
   ABook.VariableWeight := unicodedata.TUCA_VariableKind(Ord(AInitDataBook.VariableWeight));
   ABook.Backwards := AInitDataBook.Backwards;
   ABook.PropCount := AInitPropBook^.ItemSize;
@@ -658,6 +828,10 @@ begin
     dataBook.Lines[i].Stored := True;
   end;
   MakeUCA_Props(@dataBook,propBook);
+  FillChar(firstTable,SizeOf(firstTable),0);
+  secondTable := nil;
+  FillChar(ofirstTable,SizeOf(ofirstTable),0);
+  osecondTable := nil;
   MakeUCA_BmpTables(firstTable,secondTable,propBook);
   MakeUCA_OBmpTables(ofirstTable,osecondTable,propBook);
   FillByte(AUnicodeBook,SizeOf(AUnicodeBook),0);
@@ -665,7 +839,7 @@ begin
     AUnicodeBook,firstTable,secondTable,ofirstTable,osecondTable,
     dataBook,propBook
   );
-  AUnicodeBook.CollationName := ACollationName;
+  StringToByteArray(ACollationName,PByte(@AUnicodeBook.CollationName[1]),Length(AUnicodeBook.CollationName));
   AUnicodeBook.Base := ABase;
 end;
 
@@ -700,11 +874,15 @@ end;
 procedure CheckInf(A,B : UnicodeString; ACollation : unicodedata.PUCA_DataBook);
 var
   keyA, keyB : TUCASortKey;
+  s : string;
 begin
   keyA := ComputeSortKey(A,ACollation);
   keyB := ComputeSortKey(B,ACollation);
-  if (CompareSortKey(keyA,keyB) >= 0) then
-    raise Exception.CreateFmt('"%s" >= "%s" !',[A,B]);
+  if (CompareSortKey(keyA,keyB) >= 0) then begin
+      s := Format('  KeyA=%s%s  KeyB=%s',[DumpKey(keyA),sLineBreak,DumpKey(keyB)]);
+      s := Format('"%s" >= "%s" %s%s',[A,B,sLineBreak,s])+sLineBreak;
+    raise Exception.Create(s);
+  end;
 end;
 
 procedure CheckInf(AStrings : array of UnicodeString; ACollation : unicodedata.PUCA_DataBook);
@@ -2439,8 +2617,8 @@ begin
 // for 'b'
   p := ABook.Props;
   CheckSimpleProps(p,False,True,0,False);
-  CheckWeigths(p,[$15F0,0,0, $15F0,0,0]);
-  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15F0,0,0, $15F0,0,0]);
+  CheckWeigths(p,[$15F0,0,0]);// CheckWeigths(p,[$15F0,0,0, $15F0,0,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15F0,0,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size');
   sizeTotal:= sizeTotal+size;
@@ -2448,8 +2626,8 @@ begin
 // for 'c'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,False,True,0,False);
-  CheckWeigths(p,[$15F0,0,0, $15F1,0,0]);
-  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15F0,0,0, $15F0,0,0]);
+  CheckWeigths(p,[$15F1,0,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15F1,0,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size');
   sizeTotal:= sizeTotal+size;
@@ -2466,10 +2644,10 @@ begin
 // for 'y'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,True,True,0,False);
-  CheckWeigths(p,[$15F0,0,0, $15F2,0,0]);
+  CheckWeigths(p,[$15F2,0,0]);
   size := SizeOf(TUCA_PropItemRec) +
           SizeOf(UInt24) +
-          CalcWeigthSize([$15F0,0,0, $15F2,0,0]);
+          CalcWeigthSize([$15F2,0,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(y)');
 
@@ -2488,8 +2666,8 @@ begin
 // for 'b'
   p := ABook.Props;
   CheckSimpleProps(p,False,True,0,False);
-  CheckWeigths(p,[$15EF,$121,0, $15EF,0,0]);
-  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$121,0, $15EF,0,0]);
+  CheckWeigths(p,[$15EF,$121,0]); //CheckWeigths(p,[$15EF,$121,0, $15EF,0,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$121,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size');
   sizeTotal:= sizeTotal+size;
@@ -2497,8 +2675,8 @@ begin
 // for 'c'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,False,True,0,False);
-  CheckWeigths(p,[$15EF,$122,0, $15EF,0,0]);
-  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$122,0, $15EF,0,0]);
+  CheckWeigths(p,[$15EF,$122,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$122,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size');
   sizeTotal:= sizeTotal+size;
@@ -2515,10 +2693,10 @@ begin
 // for 'i'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,True,True,0,False);
-  CheckWeigths(p,[$15EF,$123,0, $15EF,0,0]);
+  CheckWeigths(p,[$15EF,$123,0]);
   size := SizeOf(TUCA_PropItemRec) +
           SizeOf(UInt24) +
-          CalcWeigthSize([$15EF,$123,0, $15EF,0,0]);
+          CalcWeigthSize([$15EF,$123,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(i)');
   sizeTotal:= sizeTotal+size;
@@ -2528,8 +2706,8 @@ begin
 // for 'k'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,False,True,0,False);
-  CheckWeigths(p,[$15EF,$123,1, $15EF,0,0]);
-  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$123,1, $15EF,0,0]);
+  CheckWeigths(p,[$15EF,$123,1]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$123,1]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(k)');
   sizeTotal:= sizeTotal+size;
@@ -2546,8 +2724,8 @@ begin
 // for 'b'
   p := ABook.Props;
   CheckSimpleProps(p,False,True,0,False);
-  CheckWeigths(p,[$15EF,$121,0, $15EF,0,0]);
-  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$121,0, $15EF,0,0]);
+  CheckWeigths(p,[$15EF,$121,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$121,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size');
   sizeTotal:= sizeTotal+size;
@@ -2556,8 +2734,8 @@ begin
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   pc := p;
   CheckSimpleProps(p,False,True,1,False);
-  CheckWeigths(p,[$15EF,$122,0, $15EF,0,0]);
-  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$122,0, $15EF,0,0]);
+  CheckWeigths(p,[$15EF,$122,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$122,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   t := size;
   sizeTotal:= sizeTotal+size;
@@ -2565,10 +2743,10 @@ begin
 // for 'i'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,True,True,0,False);
-  CheckWeigths(p,[$15EF,$123,0, $15EF,0,0]);
+  CheckWeigths(p,[$15EF,$123,0]);
   size := SizeOf(TUCA_PropItemRec) +
           SizeOf(UInt24) +
-          CalcWeigthSize([$15EF,$123,0, $15EF,0,0]);
+          CalcWeigthSize([$15EF,$123,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(i)');
   sizeTotal:= sizeTotal+size;
@@ -2578,8 +2756,8 @@ begin
 // for 'k'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,False,True,0,False);
-  CheckWeigths(p,[$15EF,$123,1, $15EF,0,0]);
-  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$123,1, $15EF,0,0]);
+  CheckWeigths(p,[$15EF,$123,1]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$123,1]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(k)');
   sizeTotal:= sizeTotal+size;
@@ -2596,8 +2774,8 @@ begin
 // for 'b'
   p := ABook.Props;
   CheckSimpleProps(p,False,True,0,False);
-  CheckWeigths(p,[$15EF,$121,0, $15EF,0,0]);
-  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$121,0, $15EF,0,0]);
+  CheckWeigths(p,[$15EF,$121,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$121,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size');
   sizeTotal:= sizeTotal+size;
@@ -2606,8 +2784,8 @@ begin
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   pc := p;
   CheckSimpleProps(p,False,True,2,False);
-  CheckWeigths(p,[$15EF,$122,0, $15EF,0,0]);
-  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$122,0, $15EF,0,0]);
+  CheckWeigths(p,[$15EF,$122,0]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$122,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   t := size;
   sizeTotal:= sizeTotal+size;
@@ -2615,10 +2793,10 @@ begin
 // for 'i' as in 'ci'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,True,True,0,False);
-  CheckWeigths(p,[$15EF,$123,0, $15EF,0,0]);
+  CheckWeigths(p,[$15EF,$123,0]);
   size := SizeOf(TUCA_PropItemRec) +
           SizeOf(UInt24) +
-          CalcWeigthSize([$15EF,$123,0, $15EF,0,0]);
+          CalcWeigthSize([$15EF,$123,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(i)');
   t := t+size;
@@ -2627,10 +2805,10 @@ begin
 // for 's' as in 'cs'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,True,True,0,False);
-  CheckWeigths(p,[$15EF,$123,1, $15F0,0,0]);
+  CheckWeigths(p,[$15EF+1,0,0]);
   size := SizeOf(TUCA_PropItemRec) +
           SizeOf(UInt24) +
-          CalcWeigthSize([$15EF,$123,1, $15F0,0,0]);
+          CalcWeigthSize([$15EF+1,0,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(s)');
   t := t+size;
@@ -2641,8 +2819,8 @@ begin
 // for 'k'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,False,True,0,False);
-  CheckWeigths(p,[$15EF,$123,1, $15EF,0,0]);
-  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$123,1, $15EF,0,0]);
+  CheckWeigths(p,[$15EF,$123,1]);
+  size := SizeOf(TUCA_PropItemRec) + CalcWeigthSize([$15EF,$123,1]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(k)');
   sizeTotal:= sizeTotal+size;
@@ -2795,10 +2973,10 @@ begin
 // for 'u' as in 'bu'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,True,True,0,False,False);
-  CheckWeigths(p,[$15F0,0,0, $15F0,0,0]);
+  CheckWeigths(p,[$15F0,0,0]);
   size := SizeOf(TUCA_PropItemRec) +
           SizeOf(UInt24) +
-          CalcWeigthSize([$15F0,0,0, $15F0,0,0]);
+          CalcWeigthSize([$15F0,0,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(u)');
   t := t+size;
@@ -2828,10 +3006,10 @@ begin
 // for 'u' as in 'bu'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,True,True,0,False,False);
-  CheckWeigths(p,[$15F0,0,0, $15F0,0,0]);
+  CheckWeigths(p,[$15F0,0,0]);
   size := SizeOf(TUCA_PropItemRec) +
           SizeOf(UInt24) +
-          CalcWeigthSize([$15F0,0,0, $15F0,0,0]);
+          CalcWeigthSize([$15F0,0,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(u)');
   t := t+size;
@@ -2842,9 +3020,9 @@ begin
 // for 'c'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,False,True,0,False,False);
-  CheckWeigths(p,[$15F0,0,0, $15F1,0,0]);
+  CheckWeigths(p,[$15F1,0,0]);
   size := SizeOf(TUCA_PropItemRec) +
-          CalcWeigthSize([$15F0,0,0, $15F1,0,0]);
+          CalcWeigthSize([$15F1,0,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(c)');
   sizeTotal:= sizeTotal+size;
@@ -2959,11 +3137,11 @@ begin
   Check(ctxItem^.Left=0,'ctxItem^.Left');
   Check(ctxItem^.Right=0,'ctxItem^.Right');
   Check(ctxItem^.Data.CodePointCount=1,'ctxItem^.Data.CodePointCount');
-  Check(ctxItem^.Data.WeightCount=2,'ctxItem^.Data.WeightCount');
+  Check(ctxItem^.Data.WeightCount=1,'ctxItem^.Data.WeightCount');
   pb := PByte(PtrUInt(@ctxItem^.Data)+SizeOf(ctxItem^.Data));
   Check(Cardinal(PUInt24(pb)^)=Ord('a'),'Context CodePoint');
   pb := pb + (ctxItem^.Data.CodePointCount*SizeOf(UInt24));
-  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$120,$3, $15EF,0,0]);
+  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$120,$3]);
 
   size := SizeOf(TUCA_PropItemRec)+
           SizeOf(UInt24){codepoint}+
@@ -3000,11 +3178,11 @@ begin
   Check(ctxItem^.Left=0,'ctxItem^.Left');
   Check(ctxItem^.Right=0,'ctxItem^.Right');
   Check(ctxItem^.Data.CodePointCount=1,'ctxItem^.Data.CodePointCount');
-  Check(ctxItem^.Data.WeightCount=2,'ctxItem^.Data.WeightCount');
+  Check(ctxItem^.Data.WeightCount=1,'ctxItem^.Data.WeightCount');
   pb := PByte(PtrUInt(@ctxItem^.Data)+SizeOf(ctxItem^.Data));
   Check(Cardinal(PUInt24(pb)^)=Ord('a'),'Context CodePoint');
   pb := pb + (ctxItem^.Data.CodePointCount*SizeOf(UInt24));
-  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$120,$3, $15EF,0,0]);
+  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$120,$3]);
   size := SizeOf(TUCA_PropItemRec)+
           SizeOf(UInt24){codepoint}+
           SizeOf(TUCA_PropItemContextTreeRec.Size)+
@@ -3017,9 +3195,9 @@ begin
 // for 'c'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,False,True,0,False,False);
-  CheckWeigths(p,[$15EF,$120,$3, $15F0,0,0]);
+  CheckWeigths(p,[$15F0,$0,$0]);
   size := SizeOf(TUCA_PropItemRec) +
-          CalcWeigthSize([$15EF,$120,$3, $15F0,0,0]);
+          CalcWeigthSize([$15F0,$0,$0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(u)');
   sizeTotal:= sizeTotal+size;
@@ -3049,11 +3227,11 @@ begin
   Check(ctxItem^.Left=0,'ctxItem^.Left');
   Check(ctxItem^.Right<>0,'ctxItem^.Right');
   Check(ctxItem^.Data.CodePointCount=1,'ctxItem^.Data.CodePointCount');
-  Check(ctxItem^.Data.WeightCount=2,'ctxItem^.Data.WeightCount');
+  Check(ctxItem^.Data.WeightCount=1,'ctxItem^.Data.WeightCount');
   pb := PByte(PtrUInt(@ctxItem^.Data)+SizeOf(ctxItem^.Data));
   Check(Cardinal(PUInt24(pb)^)=Ord('a'),'Context CodePoint');
   pb := pb + (ctxItem^.Data.CodePointCount*SizeOf(UInt24));
-  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$120,$3, $15EF,0,0]);
+  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$120,$3]);
 
   t := SizeOf(TUCA_PropItemContextTreeNodeRec) +
        (ctxItem^.Data.CodePointCount*SizeOf(UInt24))+
@@ -3067,7 +3245,7 @@ begin
   pb := PByte(PtrUInt(@ctxItem^.Data)+SizeOf(ctxItem^.Data));
   Check(Cardinal(PUInt24(pb)^)=Ord('f'),'Context CodePoint');
   pb := pb + (ctxItem^.Data.CodePointCount*SizeOf(UInt24));
-  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$120,$4, $15F1,0,0]);
+  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15F1,$0,$1, $1,0,0]);
 
   size := SizeOf(TUCA_PropItemRec)+
           SizeOf(UInt24){codepoint}+
@@ -3082,9 +3260,9 @@ begin
 // for 'e'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,False,True,0,False,False);
-  CheckWeigths(p,[$15EF,$120,$3, $15F0,0,0]);
+  CheckWeigths(p,[$15F0,$0,$0]);
   size := SizeOf(TUCA_PropItemRec) +
-          CalcWeigthSize([$15EF,$120,$3, $15F0,0,0]);
+          CalcWeigthSize([$15F0,$0,$0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(e)');
   sizeTotal:= sizeTotal+size;
@@ -3092,9 +3270,9 @@ begin
 // for 'f'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,False,True,0,False,False);
-  CheckWeigths(p,[$15EF,$120,$3, $15F1,0,0]);
+  CheckWeigths(p,[$15F1,$0,$0, $1,0,0]);
   size := SizeOf(TUCA_PropItemRec) +
-          CalcWeigthSize([$15EF,$120,$3, $15F1,0,0]);
+          CalcWeigthSize([$15F1,$0,$0, $1,0,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(f)');
   sizeTotal:= sizeTotal+size;
@@ -3130,7 +3308,7 @@ begin
   pb := PByte(PtrUInt(@ctxItem^.Data)+SizeOf(ctxItem^.Data));
   Check(Cardinal(PUInt24(pb)^)=Ord('f'),'Context CodePoint');
   pb := pb + (ctxItem^.Data.CodePointCount*SizeOf(UInt24));
-  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$120,$4, $15F1,0,0]);
+  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15F1,$0,$1, $1,0,0]);
   t := SizeOf(TUCA_PropItemContextTreeNodeRec) +
        (ctxItem^.Data.CodePointCount*SizeOf(UInt24))+
        (ctxItem^.Data.WeightCount*SizeOf(TUCA_PropWeights));
@@ -3141,11 +3319,11 @@ begin
   Check(ctxItem^.Left=0,'ctxItem^.Left');
   Check(ctxItem^.Right=0,'ctxItem^.Right');
   Check(ctxItem^.Data.CodePointCount=1,'ctxItem^.Data.CodePointCount');
-  Check(ctxItem^.Data.WeightCount=2,'ctxItem^.Data.WeightCount');
+  Check(ctxItem^.Data.WeightCount=1,'ctxItem^.Data.WeightCount');
   pb := PByte(PtrUInt(@ctxItem^.Data)+SizeOf(ctxItem^.Data));
   Check(Cardinal(PUInt24(pb)^)=Ord('a'),'Context CodePoint');
   pb := pb + (ctxItem^.Data.CodePointCount*SizeOf(UInt24));
-  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$120,$3, $15EF,0,0]);
+  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$120,$3]);
   t := SizeOf(TUCA_PropItemContextTreeNodeRec) +
        (ctxItem^.Data.CodePointCount*SizeOf(UInt24))+
        (ctxItem^.Data.WeightCount*SizeOf(TUCA_PropWeights));
@@ -3159,7 +3337,7 @@ begin
   pb := PByte(PtrUInt(@ctxItem^.Data)+SizeOf(ctxItem^.Data));
   Check(Cardinal(PUInt24(pb)^)=Ord('h'),'Context CodePoint');
   pb := pb + (ctxItem^.Data.CodePointCount*SizeOf(UInt24));
-  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15EF,$121,$6, $15F1,0,0]);
+  CheckWeigths(PUCA_PropWeights(pb),ctxItem^.Data.WeightCount,[$15F1,$1,$1, $1,0,0]);
   t := SizeOf(TUCA_PropItemContextTreeNodeRec) +
        (ctxItem^.Data.CodePointCount*SizeOf(UInt24))+
        (ctxItem^.Data.WeightCount*SizeOf(TUCA_PropWeights));
@@ -3176,9 +3354,9 @@ begin
 // for 'e'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,False,True,0,False,False);
-  CheckWeigths(p,[$15EF,$120,$3, $15F0,0,0]);
+  CheckWeigths(p,[$15F0,$0,$0]);
   size := SizeOf(TUCA_PropItemRec) +
-          CalcWeigthSize([$15EF,$120,$3, $15F0,0,0]);
+          CalcWeigthSize([$15F0,$0,$0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(e)');
   sizeTotal:= sizeTotal+size;
@@ -3186,9 +3364,9 @@ begin
 // for 'f'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,False,True,0,False,False);
-  CheckWeigths(p,[$15EF,$120,$3, $15F1,0,0]);
+  CheckWeigths(p,[$15F1,$0,$0, $1,0,0]);
   size := SizeOf(TUCA_PropItemRec) +
-          CalcWeigthSize([$15EF,$120,$3, $15F1,0,0]);
+          CalcWeigthSize([$15F1,$0,$0, $1,0,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(f)');
   sizeTotal:= sizeTotal+size;
@@ -3196,9 +3374,9 @@ begin
 // for 'g'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,False,True,0,False,False);
-  CheckWeigths(p,[$15EF,$120,$5, $15F1,0,0]);
+  CheckWeigths(p,[$15F1,$0,$2, $1,0,0]);
   size := SizeOf(TUCA_PropItemRec) +
-          CalcWeigthSize([$15EF,$120,$5, $15F1,0,0]);
+          CalcWeigthSize([$15F1,$0,$2, $1,0,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(g)');
   sizeTotal:= sizeTotal+size;
@@ -3206,9 +3384,9 @@ begin
 // for 'h'
   p := PUCA_PropItemRec(PtrUInt(p)+size);
   CheckSimpleProps(p,False,True,0,False,False);
-  CheckWeigths(p,[$15EF,$121,$5, $15F1,0,0]);
+  CheckWeigths(p,[$15F1,$1,$0, $1,0,0]);
   size := SizeOf(TUCA_PropItemRec) +
-          CalcWeigthSize([$15EF,$121,$5, $15F1,0,0]);
+          CalcWeigthSize([$15F1,$1,$0, $1,0,0]);
   Check(p^.GetSelfOnlySize() = size,'GetSelfOnlySize');
   Check(p^.Size = size,'size(h)');
   sizeTotal:= sizeTotal+size;
@@ -3848,6 +4026,165 @@ begin
     WriteLn('    -- test 1 - ok');
 end;
 
+procedure test17a_prepareWeigth(var AData : TUCA_LineRecArray);
+var
+  p : PUCA_LineRec;
+begin
+  SetLength(AData,3);
+  p := @AData[Low(AData)];
+    p^.CodePoints := CodePointToArray(Ord('a'));
+    p^.Weights := ToWeight($15EF,$0020,$0002);
+  Inc(p);
+    p^.CodePoints := CodePointToArray(Ord('b'));
+    p^.Weights := ToWeight([$1605,$0020,$0002, $17FE,$0300,$0400]);
+  Inc(p);
+    p^.CodePoints := CodePointToArray(Ord('c'));
+    p^.Weights := ToWeight($161D,$0020,$0002);
+end;
+
+procedure test17a();
+var
+  sequence : TOrderedCharacters;
+  statement : TReorderSequence;
+  wfirst, wresult : TUCA_LineRecArray;
+  i : Integer;
+  unicodeBook1, unicodeBook2 : unicodedata.TUCA_DataBook;
+begin
+  // test17* are about "Weights" generation
+  statement.Clear();
+  test17a_prepareWeigth(wfirst);
+  sequence := TOrderedCharacters.Create();
+  sequence.Append(TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,1));
+  sequence.Append(TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,2));
+  sequence.Append(TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,3));
+  for i := 0 to sequence.ActualLength - 1 do
+    sequence.Data[i].Changed := False;
+  WriteLn('Initial = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  WriteLn(DumpLines(wfirst),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wfirst,'test1','first',nil,unicodeBook1);
+  CheckInf(['a','b','c'],@unicodeBook1);
+
+  // --- test 1
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('b');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('x'),TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('Statement #1 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wresult,'test1','1',@unicodeBook1,unicodeBook2);
+  CheckInf(['a','b','x'{*},'c'],@unicodeBook2);
+    WriteLn('    -- test 1 - ok');
+end;
+
+procedure test17b_prepareWeigth(var AData : TUCA_LineRecArray);
+var
+  p : PUCA_LineRec;
+begin
+  SetLength(AData,3);
+  p := @AData[Low(AData)];
+    p^.CodePoints := CodePointToArray(Ord('a'));
+    p^.Weights := ToWeight($15EF,$0020,$0002);
+  Inc(p);
+    p^.CodePoints := CodePointToArray(Ord('b'));
+    p^.Weights := ToWeight([$1605,$0020,$0002]);
+  Inc(p);
+    p^.CodePoints := CodePointToArray(Ord('c'));
+    p^.Weights := ToWeight($1606,$0020,$0002);
+end;
+
+procedure test17b();
+var
+  sequence : TOrderedCharacters;
+  statement : TReorderSequence;
+  wfirst, wresult : TUCA_LineRecArray;
+  i : Integer;
+  unicodeBook1, unicodeBook2 : unicodedata.TUCA_DataBook;
+begin
+  // test17* are about "Weights" generation
+  statement.Clear();
+  test17b_prepareWeigth(wfirst);
+  sequence := TOrderedCharacters.Create();
+  sequence.Append(TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,1));
+  sequence.Append(TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,2));
+  sequence.Append(TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,3));
+  for i := 0 to sequence.ActualLength - 1 do
+    sequence.Data[i].Changed := False;
+  WriteLn('Initial = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  WriteLn(DumpLines(wfirst),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wfirst,'test1','first',nil,unicodeBook1);
+  CheckInf(['a','b','c'],@unicodeBook1);
+
+  // --- test 1
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('b');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('x'),TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('Statement #1 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wresult,'test1','1',@unicodeBook1,unicodeBook2);
+  CheckInf(['a','b','x'{*},'c'],@unicodeBook2);
+    WriteLn('    -- test 1 - ok');
+end;
+
+procedure test17c_prepareWeigth(var AData : TUCA_LineRecArray);
+var
+  p : PUCA_LineRec;
+begin
+  SetLength(AData,3);
+  p := @AData[Low(AData)];
+    p^.CodePoints := CodePointToArray(Ord('a'));
+    p^.Weights := ToWeight($15EF,$0020,$0002);
+  Inc(p);
+    p^.CodePoints := CodePointToArray(Ord('b'));
+    p^.Weights := ToWeight([$1605,$0020,$0002, $17FE,$0300,$0400]);
+  Inc(p);
+    p^.CodePoints := CodePointToArray(Ord('c'));
+    p^.Weights := ToWeight($1606,$0020,$0002);
+end;
+
+procedure test17c();
+var
+  sequence : TOrderedCharacters;
+  statement : TReorderSequence;
+  wfirst, wresult : TUCA_LineRecArray;
+  i : Integer;
+  unicodeBook1, unicodeBook2 : unicodedata.TUCA_DataBook;
+begin
+  // test17* are about "Weights" generation
+  statement.Clear();
+  test17c_prepareWeigth(wfirst);
+  sequence := TOrderedCharacters.Create();
+  sequence.Append(TReorderUnit.From(Ord('a'),TReorderWeigthKind.Primary,1));
+  sequence.Append(TReorderUnit.From(Ord('b'),TReorderWeigthKind.Primary,2));
+  sequence.Append(TReorderUnit.From(Ord('c'),TReorderWeigthKind.Primary,3));
+  for i := 0 to sequence.ActualLength - 1 do
+    sequence.Data[i].Changed := False;
+  WriteLn('Initial = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  WriteLn(DumpLines(wfirst),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wfirst,'test1','first',nil,unicodeBook1);
+  CheckInf(['a','b','c'],@unicodeBook1);
+
+  // --- test 1
+  SetLength(statement.Reset,1);
+  statement.Reset[0] := Ord('b');
+  SetLength(statement.Elements,1);
+  statement.Elements[0] := TReorderUnit.From(Ord('x'),TReorderWeigthKind.Primary,0);
+  sequence.ApplyStatement(@statement);
+  WriteLn('Statement #1 = ',sLineBreak,'  ',DumpSequenceAnsi(sequence),sLineBreak);
+  wresult := nil;
+  ComputeWeigths(@sequence.Data[0],sequence.ActualLength,wfirst,wresult);
+  WriteLn(DumpLines(wresult),sLineBreak+sLineBreak);
+  ConstructUnicodeBook(wresult,'test1','1',@unicodeBook1,unicodeBook2);
+  CheckInf(['a','b','x'{*},'c'],@unicodeBook2);
+    WriteLn('    -- test 1 - ok');
+end;
+
 procedure CheckEqual(A,B : array of TUnicodeCodePoint; const AMsg : string);overload;
 var
   i : Integer;
@@ -3885,6 +4222,25 @@ begin
     CheckEqual(A.Elements[i],B.Elements[i],Format('Elements[%d]',[i]));
 end;
 
+procedure CheckEqual(AActual, AExpected : UTF8String; const AMsg : string);overload;
+begin
+  Check(
+    (AActual=AExpected),
+    Format('%s, Expected "%s" Found "%s".',[AMsg,AExpected,AActual])
+  );
+end;
+
+procedure CheckEqual(AActual, AExpected : TSettingRec);overload;
+var
+  i : Integer;
+begin
+  CheckEqual(AActual.Name,AExpected.Name,'Name');
+  Check((AActual.OptionValue=AExpected.OptionValue),'OptionValue <>');
+  Check((Length(AActual.Values)=Length(AExpected.Values)),'Length(Values) <>');
+  for i := Low(AActual.Values) to High(AExpected.Values) do
+    CheckEqual(AActual.Values[i],AExpected.Values[i],Format('Values[%d]',[i]));
+end;
+
 function CountLines(const AStr : ansistring) : Integer;
 var
   c, i : Integer;
@@ -3909,7 +4265,7 @@ var
   locTextPointer : PAnsiChar;
   locStartPosition,
   locMaxLen        : Integer;
-  locStatement     : TReorderSequence;
+  locStatement     : TParsedStatement;
   locNextPos,
   locLineCount     : Integer;
 begin
@@ -3920,13 +4276,14 @@ begin
   locStartPosition := 0;
   locNextPos := 0;
   locLineCount := 0;
-  locStatement.Clear();
+  Clear(locStatement);
   Check(
     ParseStatement(
       locTextPointer,locStartPosition,locMaxLen,@locStatement,locNextPos,locLineCount
     ),
     'Fail to Parse : "%s".', [locText]
   );
+  Check((locStatement.Kind=TStatementKind.Sequence),'Fail to Parse(StatementKind) : "%s".', [locText]);
   if (locLineCount > 1) then
     WriteLn;
   WriteLn('    Next Position : ',locNextPos);
@@ -3935,7 +4292,7 @@ begin
     Check((locNextPos>=locMaxLen),'Next Position');
   if (ALineCount > 0) then
     Check((locLineCount=ALineCount),'Line Count');
-  CheckEqual(locStatement,AExpected);
+  CheckEqual(locStatement.ReorderSequence,AExpected);
 
   WriteLn('    -- test  ok');
 end;
@@ -3943,6 +4300,65 @@ end;
 procedure do_test_parser(AText : ansistring; const AExpected : TReorderSequence);inline;overload;
 begin
   do_test_parser(AText,AExpected,1);
+end;
+
+procedure do_test_parser_for_setting(
+        AText          : ansistring;
+  const ASettingName   : UTF8String;
+  const ASettingValues : array of UTF8String;
+  const AOption        : TSettingOption;
+  const ALineCount     : Integer
+);overload;
+var
+  locText : UTF8String;
+  locTextPointer : PAnsiChar;
+  locStartPosition,
+  locMaxLen        : Integer;
+  locStatement     : TParsedStatement;
+  locNextPos,
+  locLineCount, i  : Integer;
+begin
+  locText := AText;
+  WriteLn('Parsing "',locText,'" ...');
+  locTextPointer := @locText[1];
+  locMaxLen := Length(locText);
+  locStartPosition := 0;
+  locNextPos := 0;
+  locLineCount := 0;
+  Clear(locStatement);
+  Check(
+    ParseStatement(
+      locTextPointer,locStartPosition,locMaxLen,@locStatement,locNextPos,locLineCount
+    ),
+    'Fail to Parse : "%s".', [locText]
+  );
+  Check((locStatement.Kind=TStatementKind.Setting),'Fail to Parse(StatementKind) : "%s".', [locText]);
+  if (locLineCount > 1) then
+    WriteLn;
+  WriteLn('    Next Position : ',locNextPos);
+  WriteLn('    Line Count : ',locLineCount);
+  if (CountLines(locText) = 1) then
+    Check((locNextPos>=locMaxLen),'Next Position');
+  if (ALineCount > 0) then
+    Check((locLineCount=ALineCount),'Line Count');
+  CheckEqual(locStatement.Setting.Name,ASettingName,'Setting Name');
+  Check((Length(locStatement.Setting.Values) = Length(ASettingValues)),'Values should not be empty');
+  for i := 0 to Length(ASettingValues)-1 do begin
+    CheckEqual(locStatement.Setting.Values[i],ASettingValues[i],'Setting Value');
+  end;
+  Check((locStatement.Setting.OptionValue = AOption),'Option');
+
+  WriteLn('    -- test  ok');
+end;
+
+procedure do_test_parser_for_setting(
+        AText         : ansistring;
+  const ASettingName  : UTF8String;
+  const ASettingValue : UTF8String;
+  const AOption        : TSettingOption
+);inline;overload;
+begin
+  do_test_parser_for_setting(AText,ASettingName,ASettingValue,AOption,1);
 end;
 
 procedure test_parser_1();
@@ -3954,6 +4370,62 @@ begin
   locStatement.SetElementCount(1);
   locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Identity,0);
   do_test_parser('& [last tertiary ignorable] = a',locStatement);
+end;
+
+procedure do_test_parser_for_setting_multi(
+        AText      : ansistring;
+  const ASettings  : array of TSettingRec
+);overload;
+var
+  locText : UTF8String;
+  locTextPointer : PAnsiChar;
+  locStartPosition,
+  locMaxLen        : Integer;
+  locStatement     : TParsedStatement;
+  locNextPos,
+  locLineCount, i, k : Integer;
+  locStatements : TSettingRecArray;
+begin
+  locText := AText;
+  WriteLn('Parsing "',locText,'" ...');
+  locTextPointer := @locText[1];
+  locMaxLen := Length(locText);
+  SetLength(locStatements,12);
+  locStartPosition := 0;
+  locNextPos := 0;
+  locLineCount := 0;
+  k := 0;
+  while (locStartPosition < locMaxLen) do begin
+    Clear(locStatement);
+    if not ParseStatement(
+             locTextPointer,locStartPosition,locMaxLen,@locStatement,
+             locNextPos,locLineCount
+            )
+    then begin
+      break;
+    end;
+    if (locStatement.Kind <> TStatementKind.Setting) then
+      break;
+    locStatements[k].Assign(@locStatement.Setting);
+    locStartPosition := locNextPos;
+    k := k+1;
+    if (k > Length(ASettings)) then
+      raise Exception.CreateFmt(
+                        '%d Statements expected, more was parsed.',
+                        [Length(ASettings)]
+                      );
+  end;
+  Check((k=Length(ASettings)), 'Statement Count');
+  for i := 0 to Length(ASettings)-1 do begin
+    try
+      CheckEqual(locStatements[i],ASettings[i]);
+    except
+      WriteLn(Format('  Setting[%d] Fails',[i]));
+      raise;
+    end;
+  end;
+
+  WriteLn('    -- test  ok');
 end;
 
 procedure test_parser_2();
@@ -4349,6 +4821,30 @@ begin
   do_test_parser('&x < '']''',locStatement);
 end;
 
+procedure test_parser_special_char_8();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('[');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('a'),TReorderWeigthKind.Identity,0);
+  do_test_parser('&''[''=a',locStatement);
+end;
+
+procedure test_parser_special_char_9();
+var
+  locStatement     : TReorderSequence;
+begin
+  locStatement.Clear();
+  SetLength(locStatement.Reset,1);
+  locStatement.Reset[0] := Ord('\');
+  locStatement.SetElementCount(1);
+  locStatement.Elements[0] := TReorderUnit.From(Ord('c'),TReorderWeigthKind.Identity,0);
+  do_test_parser('&''\\''=c',locStatement);
+end;
+
 procedure test_parser_skip_comment_1();
 var
   locStatement     : TReorderSequence;
@@ -4666,7 +5162,7 @@ procedure test_parser_multi_statement_line_1();
 const STATEMENT_BUFFER : UTF8String = '&r <<a &s <<< b';
 var
   locStatements : array of TReorderSequence;
-  locStatement : PReorderSequence;
+  locStatement : TParsedStatement;
   locExpectedStatement : TReorderSequence;
   lineCount, i, bufferLength, k, nextPost : Integer;
   buffer : PAnsiChar;
@@ -4680,10 +5176,12 @@ begin
   i := 0;
   k := 0;
   while (i < bufferLength) do begin
-    locStatement := @locStatements[k];
-    locStatement^.Clear();
-    if not ParseStatement(buffer,i,bufferLength,locStatement,nextPost,lineCount) then
+    Clear(locStatement);
+    if not ParseStatement(buffer,i,bufferLength,@locStatement,nextPost,lineCount) then
       Break;
+    if (locStatement.Kind <> TStatementKind.Sequence) then
+      break;
+    locStatements[k].Assign(@locStatement.ReorderSequence);
     i := nextPost;
     k := k+1;
     if (k > 2) then
@@ -4714,7 +5212,7 @@ procedure test_parser_multi_statement_line_2();
 const STATEMENT_BUFFER : UTF8String = '&r <a <b <<B &s <<< b <c';
 var
   locStatements : array of TReorderSequence;
-  locStatement : PReorderSequence;
+  locStatement : TParsedStatement;
   locExpectedStatement : TReorderSequence;
   lineCount, i, bufferLength, k, nextPost : Integer;
   buffer : PAnsiChar;
@@ -4728,10 +5226,12 @@ begin
   i := 0;
   k := 0;
   while (i < bufferLength) do begin
-    locStatement := @locStatements[k];
-    locStatement^.Clear();
-    if not ParseStatement(buffer,i,bufferLength,locStatement,nextPost,lineCount) then
+    Clear(locStatement);
+    if not ParseStatement(buffer,i,bufferLength,@locStatement,nextPost,lineCount) then
       Break;
+    if (locStatement.Kind <> TStatementKind.Sequence) then
+      break;
+    locStatements[k].Assign(@locStatement.ReorderSequence);
     i := nextPost;
     k := k+1;
     if (k > 2) then
@@ -4768,7 +5268,7 @@ procedure test_parser_multi_statement_line_3();
 const STATEMENT_BUFFER : UTF8String = '&r <a <b <<B &s <<< b <c &x <A <W';
 var
   locStatements : array of TReorderSequence;
-  locStatement : PReorderSequence;
+  locStatement : TParsedStatement;
   locExpectedStatement : TReorderSequence;
   lineCount, i, bufferLength, k, nextPost : Integer;
   buffer : PAnsiChar;
@@ -4782,10 +5282,12 @@ begin
   i := 0;
   k := 0;
   while (i < bufferLength) do begin
-    locStatement := @locStatements[k];
-    locStatement^.Clear();
-    if not ParseStatement(buffer,i,bufferLength,locStatement,nextPost,lineCount) then
+    Clear(locStatement);
+    if not ParseStatement(buffer,i,bufferLength,@locStatement,nextPost,lineCount) then
       Break;
+    if (locStatement.Kind <> TStatementKind.Sequence) then
+      break;
+    locStatements[k].Assign(@locStatement.ReorderSequence);
     i := nextPost;
     k := k+1;
     if (k > 3) then
@@ -4833,7 +5335,7 @@ const STATEMENT_BUFFER : UTF8String =
         '        &r <a <b    <<B      &s <<< b    <c &x <A <W';
 var
   locStatements : array of TReorderSequence;
-  locStatement : PReorderSequence;
+  locStatement : TParsedStatement;
   locExpectedStatement : TReorderSequence;
   lineCount, i, bufferLength, k, nextPost : Integer;
   buffer : PAnsiChar;
@@ -4847,10 +5349,12 @@ begin
   i := 0;
   k := 0;
   while (i < bufferLength) do begin
-    locStatement := @locStatements[k];
-    locStatement^.Clear();
-    if not ParseStatement(buffer,i,bufferLength,locStatement,nextPost,lineCount) then
+    Clear(locStatement);
+    if not ParseStatement(buffer,i,bufferLength,@locStatement,nextPost,lineCount) then
       Break;
+    if (locStatement.Kind <> TStatementKind.Sequence) then
+      break;
+    locStatements[k].Assign(@locStatement.ReorderSequence);
     i := nextPost;
     k := k+1;
     if (k > 3) then
@@ -4899,7 +5403,7 @@ const STATEMENT_BUFFER : UTF8String =
         '&s <<< b ';
 var
   locStatements : array of TReorderSequence;
-  locStatement : PReorderSequence;
+  locStatement : TParsedStatement;
   locExpectedStatement : TReorderSequence;
   lineCount, i, bufferLength, k, nextPost : Integer;
   buffer : PAnsiChar;
@@ -4913,10 +5417,12 @@ begin
   i := 0;
   k := 0;
   while (i < bufferLength) do begin
-    locStatement := @locStatements[k];
-    locStatement^.Clear();
-    if not ParseStatement(buffer,i,bufferLength,locStatement,nextPost,lineCount) then
+    Clear(locStatement);
+    if not ParseStatement(buffer,i,bufferLength,@locStatement,nextPost,lineCount) then
       Break;
+    if (locStatement.Kind <> TStatementKind.Sequence) then
+      break;
+    locStatements[k].Assign(@locStatement.ReorderSequence);
     i := nextPost;
     k := k+1;
     if (k > 2) then
@@ -4943,9 +5449,138 @@ begin
   WriteLn('    -- test  ok');
 end;
 
+procedure test_parser_setting_1;
+begin
+  do_test_parser_for_setting('[strength 1]','strength','1',TSettingOption.Strength);
+end;
+
+procedure test_parser_setting_2;
+begin
+  do_test_parser_for_setting('[alternate shifted]','alternate','shifted',TSettingOption.Alternate);
+end;
+
+procedure test_parser_setting_3;
+begin
+  do_test_parser_for_setting('[alternate non-ignorable]','alternate','non-ignorable',TSettingOption.Alternate);
+end;
+
+procedure test_parser_setting_4;
+begin
+  do_test_parser_for_setting('[reorder Grek digit]','reorder',['Grek','digit'],TSettingOption.Reorder,1);
+end;
+
+procedure test_parser_setting_5;
+begin
+  do_test_parser_for_setting(
+    '[azerty one two three four five]','azerty',
+    ['one','two','three', 'four', 'five'],TSettingOption.Unknown, 1
+  );
+end;
+
+procedure test_parser_setting_6;
+begin
+  do_test_parser_for_setting(
+    '[strength'+ UNICODE_LINE_BREAK +
+    ' 1]',
+    'strength',['1'],TSettingOption.Strength,2
+  );
+  do_test_parser_for_setting(
+    '[ strength '+ UNICODE_LINE_BREAK +
+    ' 1'+ UNICODE_LINE_BREAK+' ] ',
+    'strength',['1'],TSettingOption.Strength,3
+  );
+end;
+
+procedure test_parser_setting_7;
+begin
+  do_test_parser_for_setting(
+    '[Backwards  # sample comment'+ UNICODE_LINE_BREAK +
+    ' one]',
+    'Backwards',['one'],TSettingOption.Backwards,2
+  );
+end;
+
+procedure test_parser_setting_8;
+begin
+  do_test_parser_for_setting('[STRENGTH 1]','STRENGTH','1',TSettingOption.Strength);
+  do_test_parser_for_setting('[STRengTH 1]','STRengTH','1',TSettingOption.Strength);
+end;
+
+procedure test_parser_setting_multi_statement_1;
+begin
+  do_test_parser_for_setting_multi(
+    '[strength 1]' + UNICODE_LINE_BREAK +
+    '[alternate shifted]',
+    [ TSettingRec.From('strength',['1'],TSettingOption.Strength),
+      TSettingRec.From('alternate',['shifted'],TSettingOption.Alternate)
+    ]
+  );
+end;
+
+procedure test_parser_setting_multi_statement_2;
+begin
+  do_test_parser_for_setting_multi(
+    '[strength 1][alternate shifted]',
+    [ TSettingRec.From('strength',['1'],TSettingOption.Strength),
+      TSettingRec.From('alternate',['shifted'],TSettingOption.Alternate)
+    ]
+  );
+end;
+
+procedure test_parser_setting_multi_statement_3;
+begin
+  do_test_parser_for_setting_multi(
+    '[strength 1] [alternate shifted]',
+    [ TSettingRec.From('strength',['1'],TSettingOption.Strength),
+      TSettingRec.From('alternate',['shifted'],TSettingOption.Alternate)
+    ]
+  );
+end;
+
+procedure test_parser_setting_multi_statement_4;
+begin
+  do_test_parser_for_setting_multi(
+    '[strength 1] [alternate non-ignorable][normalization off]',
+    [ TSettingRec.From('strength',['1'],TSettingOption.Strength),
+      TSettingRec.From('alternate',['non-ignorable'],TSettingOption.Alternate),
+      TSettingRec.From('normalization',['off'],TSettingOption.Normalization)
+    ]
+  );
+end;
+
+procedure test_parser_setting_unicodeset_1;
+begin
+  do_test_parser_for_setting(
+    '[suppressContractions [d-k]]','suppressContractions',
+    '[d-k]',TSettingOption.SuppressContractions
+  );
+end;
+
+procedure test_parser_setting_unicodeset_2;
+begin
+  do_test_parser_for_setting(
+    '[optimize [x]]','optimize','[x]',TSettingOption.Optimize
+  );
+end;
+
+procedure test_parser_setting_unicodeset_3;
+begin
+  do_test_parser_for_setting(
+    '[suppressContractions [a {ab} {ac}]]','suppressContractions',
+    '[a {ab} {ac}]',TSettingOption.SuppressContractions
+  );
+end;
+
+procedure test_parser_setting_unicodeset_4;
+begin
+  do_test_parser_for_setting(
+    '[suppressContractions [[a-c][a {ab}]]]','suppressContractions',
+    '[[a-c][a {ab}]]',TSettingOption.SuppressContractions
+  );
+end;
+
 //----------------------------------------------------------------------------//
 const
-  UNICODE_LINE_BREAK = #10;
   COLLATION_XML_TEXT =
     '<ldml>' + UNICODE_LINE_BREAK +
     '	<identity>' + UNICODE_LINE_BREAK +
@@ -4956,10 +5591,11 @@ const
     '	<collations  >' + UNICODE_LINE_BREAK +
     '		<defaultCollation>one</defaultCollation>' + UNICODE_LINE_BREAK +
     '		<collation type="abc" >' + UNICODE_LINE_BREAK +
-    '			<import source="xy" type="private-two"/>' + UNICODE_LINE_BREAK +
-    '			<import source="xy" type="one"/>' + UNICODE_LINE_BREAK +
-    '                   <suppress_contractions>[qh]</suppress_contractions>' + UNICODE_LINE_BREAK +
     '			<cr><![CDATA[' + UNICODE_LINE_BREAK +
+    '				[import xy-u-co-private-two]' + UNICODE_LINE_BREAK +
+    '				[import xy-u-co-one]' + UNICODE_LINE_BREAK +
+    '				[import xy]' + UNICODE_LINE_BREAK +
+    '				[suppressContractions [qh]]' + UNICODE_LINE_BREAK +
     '				&w<u<v' + UNICODE_LINE_BREAK +
     '			]]></cr>' + UNICODE_LINE_BREAK +
     '		</collation>' + UNICODE_LINE_BREAK +
@@ -4974,7 +5610,7 @@ const
     '				&q<qh<<<p' + UNICODE_LINE_BREAK +
     '			]]></cr>' + UNICODE_LINE_BREAK +
     '		</collation  >' + UNICODE_LINE_BREAK +
-    '		<collation type="three" >' + UNICODE_LINE_BREAK +
+    '		<collation type="standard" >' + UNICODE_LINE_BREAK +
     '			<cr><![CDATA[' + UNICODE_LINE_BREAK +
     '				&d<c<b<a' + UNICODE_LINE_BREAK +
     '			]]></cr>' + UNICODE_LINE_BREAK +
@@ -4996,8 +5632,12 @@ const
     '			]]></cr>' + UNICODE_LINE_BREAK +
     '		</collation>' + UNICODE_LINE_BREAK +
     '		<collation type="wend" >' + UNICODE_LINE_BREAK +
-    '			<import source="xy" type="one"/>' + UNICODE_LINE_BREAK +
     '			<cr><![CDATA[' + UNICODE_LINE_BREAK +
+    '				[import xy-u-co-one]' + UNICODE_LINE_BREAK +
+    '				[backwards 2]' + UNICODE_LINE_BREAK +
+    '				[alternate non-ignorable]' + UNICODE_LINE_BREAK +
+    '				[normalization off]' + UNICODE_LINE_BREAK +
+    '				[strength 2]' + UNICODE_LINE_BREAK +
     '				&F<<P<<<C' + UNICODE_LINE_BREAK +
     '				&L<a<<<Z' + UNICODE_LINE_BREAK +
     '			]]></cr>' + UNICODE_LINE_BREAK +
@@ -5044,7 +5684,7 @@ begin
     Check(col.ItemCount=4, 'col.ItemCount');
     Check(col.Find('one')<>nil, 'col.Find()');
     Check(col.Find('private-two')<>nil, 'col.Find()');
-    Check(col.Find('three')<>nil, 'col.Find()');
+    Check(col.Find('standard')<>nil, 'col.Find()');
     Check(col.Find('abc')<>nil, 'col.Find()');
 
     WriteLn('  - Step 2 ok');
@@ -5056,24 +5696,12 @@ begin
 
     Check(col.Find('one').Imports.Count=0, 'one.imports=0');
     Check(col.Find('private-two').Imports.Count=0, 'private-two.imports=0');
-    Check(col.Find('three').Imports.Count=0, 'three.imports=0');
+    Check(col.Find('standard').Imports.Count=0, 'standard.imports=0');
 
     WriteLn('  - Step 4 ok');
 
     typ := col.Find('abc');
-    check(typ.Imports.Count=2,'abc.imports=2');
-    imp := typ.Imports[0];
-      check(imp<>nil, 'abc.Imports[0]');
-      check(
-        (imp.Source = 'xy') and (imp.TypeName = 'private-two'),
-        'abc.Imports[0]'
-      );
-    imp := typ.Imports[1];
-      check(imp<>nil, 'abc.Imports[1]');
-      check(
-        (imp.Source = 'xy') and (imp.TypeName = 'one'),
-        'abc.Imports[1]'
-      );
+    check(typ.Imports.Count=0,'abc.imports=0');
 
     WriteLn('  - Step 5 ok');
   finally
@@ -5104,13 +5732,7 @@ begin
     WriteLn('  - Step 2 ok');
 
     typ := col.Find('wend');
-    check(typ.Imports.Count=1,'wend.imports=1');
-    imp := typ.Imports[0];
-      check(imp<>nil, 'wend.Imports[0]');
-      check(
-        (imp.Source = 'xy') and (imp.TypeName = 'one'),
-        'wend.Imports[0]'
-      );
+    check(typ.Imports.Count=0,'wend.imports=0');
 
     WriteLn('  - Step 3 ok');
   finally
@@ -5122,7 +5744,7 @@ end;
 
 function ParseSingleStatement(
   const AText       : UnicodeString;
-        AStatement  : PReorderSequence
+    var AStatement  : TParsedStatement
 ) : Boolean;
 var
   np, lc : Integer;
@@ -5131,7 +5753,7 @@ begin
   u8 := UTF8Encode(AText);
   np := 0;
   lc := 0;
-  Result := ParseStatement(@u8[1],0,Length(u8),AStatement,np,lc);
+  Result := ParseStatement(@u8[1],0,Length(u8),@AStatement,np,lc);
 end;
 
 function ParseMultiStatements(
@@ -5144,6 +5766,7 @@ var
   u8 : UTF8String;
   buffer : PAnsiChar;
   statement, lastStatement : PReorderSequence;
+  ps : TParsedStatement;
 begin
   u8 := UTF8Encode(AText);
   c := Length(u8);
@@ -5154,9 +5777,12 @@ begin
   statement := AStatementList;
   lastStatement := AStatementList+AListLength;
   while (i < c) and (statement < lastStatement) do begin
-    statement^.Clear();
-    if not ParseStatement(buffer,i,c,statement,nextPos,lineCount) then
+    Clear(ps);
+    if not ParseStatement(buffer,i,c,@ps,nextPos,lineCount) then
       Break;
+    if (ps.Kind <> TStatementKind.Sequence) then
+      break;
+    statement^.Assign(@ps.ReorderSequence);
     i := nextPos;
     Inc(statement);
   end;
@@ -5192,7 +5818,7 @@ var
   col : TCldrCollation;
   typ : TCldrCollationItem;
   imp : TCldrImport;
-  locStatement : TReorderSequence;
+  locStatement : TParsedStatement;
   locStatementList : TReorderSequenceArray;
   c, i : Integer;
 begin
@@ -5211,7 +5837,7 @@ begin
     Check(col.ItemCount=4, 'col.ItemCount');
     Check(col.Find('one')<>nil, 'col.Find()');
     Check(col.Find('private-two')<>nil, 'col.Find()');
-    Check(col.Find('three')<>nil, 'col.Find()');
+    Check(col.Find('standard')<>nil, 'col.Find()');
     Check(col.Find('abc')<>nil, 'col.Find()');
 
     WriteLn('  - Step 2 ok');
@@ -5223,12 +5849,12 @@ begin
 
     Check(col.Find('one').Imports.Count=0, 'one.imports=0');
     Check(col.Find('private-two').Imports.Count=0, 'private-two.imports=0');
-    Check(col.Find('three').Imports.Count=0, 'three.imports=0');
+    Check(col.Find('standard').Imports.Count=0, 'standard.imports=0');
 
     WriteLn('  - Step 4 ok');
 
     typ := col.Find('abc');
-    check(typ.Imports.Count=2,'abc.imports=2');
+    check(typ.Imports.Count=3,'abc.imports=3');
     imp := typ.Imports[0];
       check(imp<>nil, 'abc.Imports[0]');
       check(
@@ -5241,6 +5867,13 @@ begin
         (imp.Source = 'xy') and (imp.TypeName = 'one'),
         'abc.Imports[1]'
       );
+    imp := typ.Imports[2];
+      check(imp<>nil, 'abc.Imports[2]');
+      check(
+        (imp.Source = 'xy') and (imp.TypeName = 'standard'),
+        'abc.Imports[2]'
+      );
+    Check((typ.ChangedFields = []), 'ChangedFields');
     Check(Length(typ.Rules)=2,'Length(abc.Rules)=2');
     Check(Length(typ.Rules[0].Elements)=2,'Length(typ.Rules[0].Elements)=2');
     Check(typ.Rules[0].Elements[0].WeigthKind=TReorderWeigthKind.Deletion,'typ.Rules[0].Elements[0].WeigthKind=TReorderWeigthKind.Deletion');
@@ -5251,9 +5884,10 @@ begin
 
     typ := col.Find('one');
     Check(Length(typ.Rules)>0, 'one.Rules <> nil');
-    locStatement.Clear();
-    Check(ParseSingleStatement('&h<z<b',@locStatement));
-    CheckEqual(locStatement,typ.Rules[0]);
+    Clear(locStatement);
+    Check(ParseSingleStatement('&h<z<b',locStatement));
+    Check((locStatement.Kind = TStatementKind.Sequence));
+    CheckEqual(locStatement.ReorderSequence,typ.Rules[0]);
     WriteLn('  - Step 6 ok');
 
     typ := col.Find('private-two');
@@ -5271,11 +5905,16 @@ begin
       CheckEqual(locStatementList[i],typ.Rules[i]);
     WriteLn('  - Step 7 ok');
 
-    typ := col.Find('three');
-    Check(Length(typ.Rules)>0, 'three.Rules <> nil');
-    locStatement.Clear();
-    Check(ParseSingleStatement('&d<c<b<a',@locStatement));
-    CheckEqual(locStatement,typ.Rules[0]);
+    typ := col.Find('standard');
+    Check((typ.Backwards = False), 'typ.Backwards = False');
+    Check((typ.Normalization = True), 'typ.Normalization = True');
+    Check((typ.Strength = TComparisonStrength.Tertiary), 'typ.Strength = Tertiary');
+    Check((typ.VariableWeight = Low(helper.TUCA_VariableKind)), 'typ.VariableWeight = Low(TUCA_VariableKind)');
+    Check(Length(typ.Rules)>0, 'standard.Rules <> nil');
+    Clear(locStatement);
+    Check(ParseSingleStatement('&d<c<b<a',locStatement));
+    Check((locStatement.Kind = TStatementKind.Sequence));
+    CheckEqual(locStatement.ReorderSequence,typ.Rules[0]);
     WriteLn('  - Step 8 ok');
   finally
     rep.Free();
@@ -5312,6 +5951,18 @@ begin
         'wend.Imports[0]'
       );
     Check(Length(typ.Rules)>0, 'wend.Rules <> nil');
+    Check((typ.Backwards = True),'typ.Backwards = True');
+    Check((typ.Normalization = False), 'typ.Normalization = False');
+    Check((typ.Strength = TComparisonStrength.Secondary), 'typ.Strength = Secondary');
+    Check((typ.VariableWeight = ucaNonIgnorable), 'typ.VariableWeight = ucaNonIgnorable');
+    Check(
+      (typ.ChangedFields =
+        [ cldrhelper.TCollationField.BackWards,cldrhelper.TCollationField.Alternate,
+          cldrhelper.TCollationField.Normalization,cldrhelper.TCollationField.Strength
+        ]
+      ),
+      'ChangedFields'
+    );
     c := 2;
     SetLength(locStatementList,5);
     Check(
@@ -5364,13 +6015,20 @@ begin
     locData.ActualLengh := 0;
     SetLength(locData.Data,23);
     Check(ForEachRule(typ,@CopyVisitorFunc,@locData), 'ForEachRule(abc) - 1');
-    Check(locData.ActualLengh = 2+2{private-two}+1{one}, 'ForEachRule(abc) - 2');
+    Check(
+      locData.ActualLengh = 2+2{private-two}+1{one}+1{standard},
+      'ForEachRule(abc) - 2'
+    );
     xtyp := col.Find('private-two');
     c := 0;
     for i := 0 to Length(xtyp.Rules)-1 do
       CheckEqual(locData.Data[c+i],xtyp.Rules[i]);
     c := c+Length(xtyp.Rules);
     xtyp := col.Find('one');
+    for i := 0 to Length(xtyp.Rules)-1 do
+      CheckEqual(locData.Data[c+i],xtyp.Rules[i]);
+    c := c+Length(xtyp.Rules);
+    xtyp := col.Find('standard');
     for i := 0 to Length(xtyp.Rules)-1 do
       CheckEqual(locData.Data[c+i],xtyp.Rules[i]);
     c := c+Length(xtyp.Rules);
@@ -5499,6 +6157,13 @@ begin
   end;
 
   WriteLn('    -- test  ok');
+end;
+
+procedure test_collation_table_empty();
+{var
+  stackItem : TCollationTable;  }
+begin
+
 end;
 
 end.

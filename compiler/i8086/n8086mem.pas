@@ -34,8 +34,8 @@ interface
     type
        ti8086addrnode = class(ti86addrnode)
         protected
+         procedure set_labelsym_resultdef; override;
          procedure set_absvarsym_resultdef; override;
-         function typecheck_non_proc(realsource: tnode; out res: tnode): boolean; override;
          procedure pass_generate_code;override;
         public
          get_offset_only: boolean;
@@ -69,29 +69,21 @@ implementation
                              TI8086ADDRNODE
 *****************************************************************************}
 
-    procedure ti8086addrnode.set_absvarsym_resultdef;
+    procedure ti8086addrnode.set_labelsym_resultdef;
       begin
-        if not(nf_typedaddr in flags) then
-          resultdef:=voidfarpointertype
+        if anf_ofs in addrnodeflags then
+          resultdef:=voidnearcspointertype
         else
-          resultdef:=tcpupointerdefclass(cpointerdef).createx86(left.resultdef,x86pt_far);
+          inherited;
       end;
 
 
-    function ti8086addrnode.typecheck_non_proc(realsource: tnode; out res: tnode): boolean;
+    procedure ti8086addrnode.set_absvarsym_resultdef;
       begin
-        res:=nil;
-        if (realsource.nodetype=loadn) and
-           (tloadnode(realsource).symtableentry.typ=labelsym) then
-          begin
-            if current_settings.x86memorymodel in x86_far_code_models then
-              resultdef:=voidfarpointertype
-            else
-              resultdef:=voidnearpointertype;
-            result:=true
-          end
+        if not(anf_typedaddr in addrnodeflags) then
+          resultdef:=voidfarpointertype
         else
-          result:=inherited;
+          resultdef:=tcpupointerdefclass(cpointerdef).createx86(left.resultdef,x86pt_far);
       end;
 
 
@@ -140,7 +132,7 @@ implementation
                  begin
                    hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,true);
                    location.reference.base := left.location.register;
-                   location.reference.segment := GetNextReg(left.location.register);
+                   location.reference.segment := cg.GetNextReg(left.location.register);
                  end;
                LOC_CREFERENCE,
                LOC_REFERENCE:
@@ -176,7 +168,7 @@ implementation
                  internalerror(2012010601);
                pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
                paraloc1.init;
-               paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
+               paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
                hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference,paraloc1);
                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                paraloc1.done;

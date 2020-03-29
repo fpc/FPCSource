@@ -71,14 +71,13 @@ interface
 
     uses
       cutils,verbose,globtype,globals,
-      aasmbase,aasmtai,aasmdata,aasmcpu,symconst,symdef,symtable,paramgr,
-      nutils,ncon,ncal,
+      aasmbase,aasmdata,symconst,symdef,symtable,
+      nutils,ncon,
       cpubase,systems,
-      procinfo,pass_2,
+      pass_2,
       cgbase,
       cgutils,cgobj,hlcgobj,
       fmodule,
-      ncgutil,
       tgobj
       ;
 
@@ -218,6 +217,9 @@ interface
         resflags.reg1:=NR_NO;
         resflags.reg2:=NR_NO;
         resflags.cond:=OC_NONE;
+{$elseif defined(sparcgen)}
+        { Load left node into flag F_NE/F_E }
+        resflags.Init(NR_ICC,F_NE);
 {$else}
         { Load left node into flag F_NE/F_E }
         resflags:=F_NE;
@@ -246,7 +248,7 @@ interface
             end;
           LOC_REGISTER,LOC_CREGISTER :
             begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
               if left.location.size in [OS_64,OS_S64] then
                begin
                  hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -254,7 +256,7 @@ interface
                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reghi,hregister);
                end
               else
-{$endif cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
                begin
                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
                end;
@@ -332,8 +334,6 @@ interface
                {!!!!!!!}
                internalerror(8888);
              end;
-           else
-             internalerror(200808241);
          end;
       end;
 
@@ -386,7 +386,7 @@ interface
                 end
               else
             {$endif}
-                hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,location.reference.alignment,location.reference.volatility);
+                hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,ctempposinvalid,location.reference.alignment,location.reference.volatility);
             end;
           LOC_REFERENCE,
           LOC_CREFERENCE,
@@ -397,7 +397,7 @@ interface
           LOC_CSUBSETREF:
             begin
               hlcg.reference_reset_base(location.reference,left.resultdef,
-                hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,location.reference.alignment,[]);
+                hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,ctempposinvalid,location.reference.alignment,[]);
               hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
                 location.reference.base);
               if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
@@ -421,10 +421,10 @@ interface
          case tstringdef(resultdef).stringtype of
            st_shortstring :
              begin
-               tg.gethltemp(current_asmdata.CurrAsmList,cshortstringtype,256,tt_normal,location.reference);
+               tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
                tmpref:=location.reference;
                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
-                 cpointerdef.getreusable(cshortstringtype),
+                 cpointerdef.getreusable(resultdef),
                  cpointerdef.getreusable(left.resultdef),tmpref);
                hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
                  tmpref);
@@ -546,18 +546,18 @@ interface
       begin
         if tabstractprocdef(resultdef).is_addressonly then
           begin
-            location_reset(location,LOC_REGISTER,def_cgsize(voidcodepointertype));
+            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
             { only a code pointer? (when taking the address of classtype.method
               we also only get a code pointer even though the resultdef is a
               procedure of object, and hence is_addressonly would return false)
              }
-	    if left.location.size = def_cgsize(voidcodepointertype) then
+	    if left.location.size = def_cgsize(tabstractprocdef(left.resultdef).address_type) then
               begin
                 case left.location.loc of
                   LOC_REFERENCE,LOC_CREFERENCE:
                     begin
                       { the procedure symbol is encoded in reference.symbol -> take address }
-                      location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidcodepointertype);
+                      location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
                       hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
                     end;
                   else
@@ -572,7 +572,7 @@ interface
                     begin
                       location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
                       { code field is the first one }
-                      hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(tprocvardef(tprocdef(left.resultdef).getcopyas(procvardef,pc_normal))),cpointerdef.getreusable(resultdef),left.location.reference);
+                      hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(tprocvardef(tprocdef(left.resultdef).getcopyas(procvardef,pc_normal,''))),cpointerdef.getreusable(resultdef),left.location.reference);
                       hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,left.location.reference,location.register);
                     end;
                   LOC_REGISTER,LOC_CREGISTER:

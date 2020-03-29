@@ -41,13 +41,14 @@ type
     procedure a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tdef; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
   end;
 
-   procedure create_hlcodegen;
-
 implementation
 
   uses
     cpubase,aasmcpu,
     defutil,
+{$ifdef extdebug}
+    aasmtai,cutils,cgppc,
+{$endif}
     cgobj,cgcpu;
 
   { thlcgcpu }
@@ -58,7 +59,7 @@ implementation
     begin
       subsetcgsize:=def_cgsize(subsetsize);
 {$ifdef extdebug}
-      list.concat(tai_comment.create(strpnew('a_load_subsetreg_reg subsetregsize = ' + cgsize2string(sreg.subsetregsize) + ' subsetsize = ' + cgsize2string(subsetcgsize) + ' startbit = ' + intToStr(sreg.startbit) + ' tosize = ' + cgsize2string(def_cgsize(tosize)))));
+      list.concat(tai_comment.create(strpnew('a_load_subsetreg_reg subsetregsize = ' + cgsize2string(sreg.subsetregsize) + ' subsetsize = ' + cgsize2string(subsetcgsize) + ' startbit = ' + ToStr(sreg.startbit) + ' tosize = ' + cgsize2string(def_cgsize(tosize)))));
 {$endif}
       { do the extraction if required and then extend the sign correctly. (The latter is actually required only for signed subsets
       and if that subset is not >= the tosize). }
@@ -91,7 +92,7 @@ implementation
       tmpreg : TRegister;
     begin
 {$ifdef extdebug}
-      list.concat(tai_comment.create(strpnew('a_load_const_subsetreg subsetregsize = ' + cgsize2string(sreg.subsetregsize) + ' subsetsize = ' + cgsize2string(def_cgsize(subsetsize)) + ' startbit = ' + intToStr(sreg.startbit) + ' a = ' + intToStr(a))));
+      list.concat(tai_comment.create(strpnew('a_load_const_subsetreg subsetregsize = ' + cgsize2string(sreg.subsetregsize) + ' subsetsize = ' + cgsize2string(def_cgsize(tosubsetsize)) + ' startbit = ' + ToStr(sreg.startbit) + ' a = ' + ToStr(a))));
 {$endif}
       { loading the constant into the lowest bits of a temp register and then inserting is
         better than loading some usually large constants and do some masking and shifting on ppc64 }
@@ -104,7 +105,7 @@ implementation
   procedure thlcgcpu.a_load_regconst_subsetreg_intern(list: TAsmList; fromsize, subsetsize: tdef; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt);
     begin
 {$ifdef extdebug}
-      list.concat(tai_comment.create(strpnew('a_load_reg_subsetreg fromsize = ' + cgsize2string(def_cgsize(fromsize)) + ' subsetregsize = ' + cgsize2string(sreg.subsetregsize) + ' subsetsize = ' + cgsize2string(def_cgsize(subsetsize)) + ' startbit = ' + IntToStr(sreg.startbit))));
+      list.concat(tai_comment.create(strpnew('a_load_reg_subsetreg fromsize = ' + cgsize2string(def_cgsize(fromsize)) + ' subsetregsize = ' + cgsize2string(sreg.subsetregsize) + ' subsetsize = ' + cgsize2string(def_cgsize(subsetsize)) + ' startbit = ' + ToStr(sreg.startbit))));
 {$endif}
       if slopt in [SL_SETZERO,SL_SETMAX] then
         inherited a_load_regconst_subsetreg_intern(list,fromsize,subsetsize,fromreg,sreg,slopt)
@@ -116,7 +117,7 @@ implementation
     end;
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_cpu;
     begin
       hlcg:=thlcgcpu.create;
       create_codegen;
@@ -126,4 +127,5 @@ implementation
 
 begin
   chlcgobj:=thlcgcpu;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.

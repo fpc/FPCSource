@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="10"/>
+    <Version Value="12"/>
     <General>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
+        <CompatibilityMode Value="True"/>
+      </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <Title Value="Pascal to Javascript converter tests"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
@@ -13,15 +18,16 @@
       <EnableI18N LFM="False"/>
     </i18n>
     <BuildModes Count="1">
-      <Item1 Name="Default" Default="True"/>
+      <Item1 Name="default" Default="True"/>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <FormatVersion Value="1"/>
-      </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default"/>
+      </Modes>
     </RunParams>
     <RequiredPackages Count="2">
       <Item1>
@@ -31,7 +37,7 @@
         <PackageName Value="FCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="5">
+    <Units Count="13">
       <Unit0>
         <Filename Value="testpas2js.pp"/>
         <IsPartOfProject Value="True"/>
@@ -43,15 +49,56 @@
       <Unit2>
         <Filename Value="../src/fppas2js.pp"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="FPPas2Js"/>
       </Unit2>
       <Unit3>
         <Filename Value="tcmodules.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="TCModules"/>
       </Unit3>
       <Unit4>
         <Filename Value="tcoptimizations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit4>
+      <Unit5>
+        <Filename Value="tcsrcmap.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="../src/fppjssrcmap.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="FPPJsSrcMap"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="tcfiler.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TCFiler"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="../src/pas2jsfiler.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Pas2JsFiler"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="tcunitsearch.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TCUnitSearch"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="tcprecompile.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TCPrecompile"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="../src/pas2jsuseanalyzer.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Pas2jsUseAnalyzer"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="tcgenerics.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TCGenerics"/>
+      </Unit12>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -61,7 +108,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../src;../../fcl-js/src;../../fcl-passrc/src;../../pastojs/tests"/>
+      <OtherUnitFiles Value="../src;../../fcl-js/src;../../fcl-json/src;../../fcl-passrc/src;../../pastojs/tests"/>
       <UnitOutputDirectory Value="lib"/>
     </SearchPaths>
     <CodeGeneration>

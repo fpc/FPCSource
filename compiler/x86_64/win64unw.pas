@@ -394,6 +394,9 @@ begin
     ash_savexmm:
       current_unw.save_xmm(objdata,data.reg,data.offset);
     ash_pushframe: {TBD};
+    ash_pushnv,
+    ash_savenv:
+      internalerror(2019050712);
   end;
 end;
 

@@ -65,7 +65,7 @@ program test_fail;
     end;
 
   var
-    mem : sizeint;
+    mem : sizeuint;
   begin
      require_error(210);
 

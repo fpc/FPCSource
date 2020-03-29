@@ -26,7 +26,8 @@ uses
   sysutils,
   rtlconsts,
   types,  
-  typinfo;
+  typinfo,
+  sortbase;
 
 {$i classesh.inc}
 

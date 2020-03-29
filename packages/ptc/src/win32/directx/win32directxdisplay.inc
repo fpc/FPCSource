@@ -119,8 +119,8 @@ begin
       if not found then
       begin
         LOG('adding 320x200x8 to mode list');
-	
-	Inc(FModesCount);
+
+        Inc(FModesCount);
         SetLength(FModes, FModesCount);
         FModes[FModesCount - 1] := TPTCMode.Create(320, 200, format8);
       end;
@@ -133,7 +133,7 @@ begin
       begin
         LOG('adding 320x240x8 to mode list');
 
-	Inc(FModesCount);
+        Inc(FModesCount);
         SetLength(FModes, FModesCount);
         FModes[FModesCount - 1] := TPTCMode.Create(320, 240, format8);
       end;

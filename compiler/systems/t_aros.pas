@@ -27,7 +27,7 @@ unit t_aros;
 interface
 
     uses
-      rescmn, comprsrc, import, export,  link, ogbase;
+      rescmn, comprsrc, import, link, ogbase;
 
 
 type
@@ -55,7 +55,7 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,aasmbase,
-       globtype,globals,systems,verbose,script,fmodule,i_aros;
+       globtype,globals,systems,verbose,cscript,fmodule,i_aros;
 
 
 procedure timportlibaros.generatelib;

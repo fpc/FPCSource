@@ -344,10 +344,12 @@ begin
   MN:=Sender.ModuleName;
   // Modules expect the path info to contain the action name as the first part. (See getmodulename);
   ARequest.GetNextPathInfo;
-  if Sender.SkipStreaming then
-    M:=MC.CreateNew(Self)
-  else
-    M:=MC.Create(Self);
+  M:=FindModule(MC);
+  if (M=Nil) then
+    if Sender.SkipStreaming then
+      M:=MC.CreateNew(Self)
+    else
+      M:=MC.Create(Self);
   DoCallModule(M,MN,ARequest,AResponse);
 end;
 
@@ -534,6 +536,7 @@ end;
 destructor TWebHandler.Destroy;
 begin
   ModuleFactory.OnModuleRequest:=@HandleModuleRequest;
+  Inherited;
 end;
 
 { TCustomWebApplication }
@@ -730,6 +733,7 @@ begin
   FWebHandler.Free;
   if assigned(FEventLog) then
     FEventLog.Free;
+  Inherited;
 end;
 
 procedure TCustomWebApplication.CreateForm(AClass: TComponentClass; out Reference);

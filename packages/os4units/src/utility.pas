@@ -152,7 +152,7 @@ const
   TAG_SKIP   = 3; // skip this and the next ti_Data items
 
 // differentiates user tags from control tags
-  TAG_USER = $80000000;    { differentiates user tags from system tags}
+  TAG_USER = DWord($80000000);    { differentiates user tags from system tags}
 
 { If the TAG_USER bit is set in a tag number, it tells utility.library that
   the tag is not a control tag (like TAG_DONE, TAG_IGNORE, TAG_MORE) and is

@@ -1,4 +1,4 @@
-unit sqldblib;
+unit SQLDBLib;
 
 {$mode objfpc}{$H+}
 
@@ -38,12 +38,12 @@ implementation
 Resourcestring
    SErrConnnected = 'This operation is not allowed while the datatabase is loaded';
    SErrInvalidConnectionType = 'Invalid connection type : "%s"';
+
 { TSQLDBLibraryLoader }
 
 procedure TSQLDBLibraryLoader.CheckDisabled;
-
 begin
-  If Enabled then
+  If not (csLoading in ComponentState) and Enabled then
     DatabaseError(SErrConnnected,Self);
 end;
 

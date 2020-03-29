@@ -28,9 +28,8 @@ unit rgx86;
   interface
 
     uses
-      cclasses,globtype,
-      cpubase,cpuinfo,cgbase,cgutils,
-      aasmbase,aasmtai,aasmdata,aasmsym,aasmcpu,
+      cpubase,cgbase,cgutils,
+      aasmtai,aasmdata,aasmsym,aasmcpu,
       rgobj;
 
     type
@@ -83,7 +82,6 @@ unit rgx86;
 implementation
 
     uses
-       systems,
        verbose;
 
     const
@@ -276,6 +274,13 @@ implementation
                               A_UNPCKLPD,
                               A_UNPCKLPS :
                                 replaceoper:=-1;
+
+                              { movlhps/movhlps requires the second parameter to be XMM registers }
+                              A_MOVHLPS,
+                              A_MOVLHPS:
+                                replaceoper:=-1;
+                              else
+                                ;
                             end;
                           end;
                         1 :
@@ -408,6 +413,8 @@ implementation
                         opcode:=A_VMOVSS;
                       A_VMOVAPD:
                         opcode:=A_VMOVSD;
+                      else
+                        ;
                     end;
                   end;
                 result:=true;

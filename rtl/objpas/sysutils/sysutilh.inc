@@ -38,7 +38,7 @@ type
 
    TProcedure = procedure;
 
-   TFilename = String;
+   TFileName = type string;
 
    TIntegerSet = Set of 0..SizeOf(Integer)*8-1;
 
@@ -129,7 +129,7 @@ type
    ExceptClass = class of Exception;
 
    EExternal = class(Exception)
-{$ifdef windows}
+{$if defined(win32) or defined(win64) or defined(wince)}
    { OS-provided exception record is stored on stack and has very limited lifetime.
      Therefore store a complete copy. }
    private
@@ -137,7 +137,7 @@ type
      function GetExceptionRecord: PExceptionRecord;
    public
      property ExceptionRecord : PExceptionRecord read GetExceptionRecord;
-{$endif windows}
+{$endif win32 or win64 or wince}
    end;
 
    { integer math exceptions }
@@ -192,6 +192,8 @@ type
    EAbstractError   = Class(Exception);
    EAssertionFailed = Class(Exception);
    EObjectCheck     = Class(Exception);
+   EThreadError     = Class(Exception);
+   ESigQuit         = Class(Exception);
 
    EPropReadOnly = class(Exception);
    EPropWriteOnly = class(Exception);
@@ -264,6 +266,9 @@ type
   procedure AddTerminateProc(TermProc: TTerminateProc);
   function CallTerminateProcs: Boolean;
 
+{$IFNDEF VER3_0}
+generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inline; overload;
+{$ENDIF}
 
 Var
    OnShowException : Procedure (Msg : ShortString);
@@ -301,7 +306,7 @@ Type
 
 {$macro on}
 {$define PathStr:=UnicodeString}
-{$define PathPChar:=PWideChar}
+{$define PathPChar:=PUnicodeChar}
   { Read filename handling functions declaration }
   {$i finah.inc}
 {$define PathStr:=RawByteString}
@@ -321,9 +326,7 @@ Type
   {$i systhrdh.inc}
 
   { Type Helpers}
-  {$IFNDEF VER2_6}
   {$i syshelph.inc}
-  {$ENDIF}
   
   procedure FreeAndNil(var obj);
   procedure FreeMemAndNil(var p);

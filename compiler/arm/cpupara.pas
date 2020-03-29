@@ -30,32 +30,36 @@ unit cpupara;
        globtype,globals,
        aasmdata,
        cpuinfo,cpubase,cgbase,cgutils,
-       symconst,symtype,symdef,parabase,paramgr;
+       symconst,symtype,symdef,parabase,paramgr,armpara;
 
     type
-       tcpuparamanager = class(tparamanager)
+       tcpuparamanager = class(tarmgenparamanager)
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
+          function get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
-          procedure getintparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
+          procedure getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
-          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
+          function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
          private
+          function usemmpararegs(calloption: tproccalloption; variadic: boolean): boolean;
+          function getparaloc(calloption : tproccalloption; p : tdef; isvariadic: boolean) : tcgloc;
           procedure init_values(p: tabstractprocdef; side: tcallercallee; var curintreg,
             curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword;
             var sparesinglereg: tregister);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
             var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; var sparesinglereg: tregister; isvariadic: boolean):longint;
+          procedure paradeftointparaloc(paradef: tdef; paracgsize: tcgsize; out paralocdef: tdef; out paralocsize: tcgsize);
        end;
 
   implementation
 
     uses
        verbose,systems,cutils,
-       defutil,symsym,symcpu,symtable,
+       defutil,symsym,symcpu,symtable,symutil,
        { PowerPC uses procinfo as well in cpupara, so this should not hurt }
        procinfo;
 
@@ -81,7 +85,16 @@ unit cpupara;
       end;
 
 
-    procedure tcpuparamanager.getintparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
+    function tcpuparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
+      const
+        saved_regs : {$ifndef VER3_0}tcpuregisterarray{$else}array[0..6] of tsuperregister{$endif} =
+          (RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,RS_R10);
+      begin
+        result:=saved_regs;
+      end;
+
+
+    procedure tcpuparamanager.getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
         psym : tparavarsym;
@@ -120,7 +133,9 @@ unit cpupara;
       end;
 
 
-    function getparaloc(calloption : tproccalloption; p : tdef; isvariadic: boolean) : tcgloc;
+    function tcpuparamanager.getparaloc(calloption : tproccalloption; p : tdef; isvariadic: boolean) : tcgloc;
+      var
+        basedef: tdef;
       begin
          { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
            if push_addr_param for the def is true
@@ -134,7 +149,7 @@ unit cpupara;
                 getparaloc:=LOC_MMREGISTER
               else if (calloption in cdecl_pocalls) or
                  (cs_fp_emulation in current_settings.moduleswitches) or
-                 (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16,fpu_fpv4_s16]) then
+                 (current_settings.fputype in [fpu_vfp_first..fpu_vfp_last]) then
                 { the ARM eabi also allows passing VFP values via VFP registers,
                   but Mac OS X doesn't seem to do that and linux only does it if
                   built with the "-mfloat-abi=hard" option }
@@ -150,7 +165,11 @@ unit cpupara;
             classrefdef:
               getparaloc:=LOC_REGISTER;
             recorddef:
-              getparaloc:=LOC_REGISTER;
+              if usemmpararegs(calloption,isvariadic) and
+                 is_hfa(p,basedef) then
+                getparaloc:=LOC_MMREGISTER
+              else
+                getparaloc:=LOC_REGISTER;
             objectdef:
               getparaloc:=LOC_REGISTER;
             stringdef:
@@ -165,6 +184,9 @@ unit cpupara;
             arraydef:
               if is_dynamic_array(p) then
                 getparaloc:=LOC_REGISTER
+              else if usemmpararegs(calloption,isvariadic) and
+                 is_hfa(p,basedef) then
+                getparaloc:=LOC_MMREGISTER
               else
                 getparaloc:=LOC_REFERENCE;
             setdef:
@@ -210,6 +232,8 @@ unit cpupara;
             result:=not is_smallset(def);
           stringdef :
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
+          else
+            ;
         end;
       end;
 
@@ -218,12 +242,19 @@ unit cpupara;
       var
         i: longint;
         sym: tsym;
+        basedef: tdef;
       begin
         if handle_common_ret_in_param(def,pd,result) then
           exit;
         case def.typ of
           recorddef:
             begin
+              if usemmpararegs(pd.proccalloption,is_c_variadic(pd)) and
+                 is_hfa(def,basedef) then
+                begin
+                  result:=false;
+                  exit;
+                end;
               result:=def.size>4;
               if not result and
                  (target_info.abi in [abi_default,abi_armeb]) then
@@ -263,7 +294,7 @@ unit cpupara;
                   for i:=0 to trecorddef(def).symtable.SymList.count-1 do
                     begin
                       sym:=tsym(trecorddef(def).symtable.SymList[i]);
-                      if sym.typ<>fieldvarsym then
+                      if not is_normal_fieldvarsym(sym) then
                         continue;
                       { bitfield -> ignore }
                       if (trecordsymtable(trecorddef(def).symtable).usefieldalignment=bit_alignment) and
@@ -316,11 +347,13 @@ unit cpupara;
 
       var
         nextintreg,nextfloatreg,nextmmreg : tsuperregister;
-        paradef : tdef;
+        paradef,
+        hfabasedef : tdef;
         paraloc : pcgparalocation;
         stack_offset : aword;
         hp : tparavarsym;
         loc : tcgloc;
+        hfabasesize  : tcgsize;
         paracgsize   : tcgsize;
         paralen : longint;
         i : integer;
@@ -348,6 +381,31 @@ unit cpupara;
         end;
 
 
+      procedure updatemmregs(paradef, basedef: tdef);
+        var
+          regsavailable,
+          regsneeded: longint;
+          basesize: asizeint;
+        begin
+          basesize:=basedef.size;
+          regsneeded:=paradef.size div basesize;
+          regsavailable:=ord(RS_D7)-ord(nextmmreg)+1;
+          case basesize of
+            4:
+              regsavailable:=regsavailable*2+ord(sparesinglereg<>NR_NO);
+            8:
+              ;
+            else
+              internalerror(2019022301);
+          end;
+          if regsavailable<regsneeded then
+            begin
+              nextmmreg:=succ(RS_D7);
+              sparesinglereg:=NR_NO;
+            end;
+        end;
+
+
       begin
         result:=0;
         nextintreg:=curintreg;
@@ -367,6 +425,11 @@ unit cpupara;
             if (p.proccalloption in cstylearrayofconst) and
                is_array_of_const(paradef) then
               begin
+                hp.paraloc[side].def:=paradef;
+                hp.paraloc[side].size:=OS_NO;
+                hp.paraloc[side].alignment:=std_param_align;
+                hp.paraloc[side].intsize:=0;
+
                 paraloc:=hp.paraloc[side].add_location;
                 { hack: the paraloc must be valid, but is not actually used }
                 paraloc^.loc:=LOC_REGISTER;
@@ -413,6 +476,18 @@ unit cpupara;
              hp.paraloc[side].def:=paradef;
              firstparaloc:=true;
 
+             if (loc=LOC_MMREGISTER) and
+                is_hfa(paradef,hfabasedef) then
+               begin
+                 updatemmregs(paradef,hfabasedef);
+                 hfabasesize:=def_cgsize(hfabasedef);
+               end
+             else
+               begin
+                 hfabasedef:=nil;
+                 hfabasesize:=OS_NO;
+               end;
+
 {$ifdef EXTDEBUG}
              if paralen=0 then
                internalerror(200410311);
@@ -420,59 +495,44 @@ unit cpupara;
              while paralen>0 do
                begin
                  paraloc:=hp.paraloc[side].add_location;
-
-                 if (loc=LOC_REGISTER) and (paracgsize in [OS_F32,OS_F64,OS_F80]) then
-                   case paracgsize of
-                     OS_F32:
-                       begin
-                         paraloc^.size:=OS_32;
-                         paraloc^.def:=u32inttype;
-                       end;
-                     OS_F64:
-                       begin
-                         paraloc^.size:=OS_32;
-                         paraloc^.def:=u32inttype;
-                       end;
-                     else
-                       internalerror(2005082901);
-                   end
-                 else if (paracgsize in [OS_NO,OS_64,OS_S64]) then
-                   begin
-                     paraloc^.size:=OS_32;
-                     paraloc^.def:=u32inttype;
-                   end
-                 else
-                   begin
-                     paraloc^.size:=paracgsize;
-                     paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
-                   end;
                  case loc of
                     LOC_REGISTER:
                       begin
+                        if paracgsize in [OS_F32,OS_F64,OS_F80] then
+                          case paracgsize of
+                            OS_F32,
+                            OS_F64:
+                              begin
+                                paraloc^.size:=OS_32;
+                                paraloc^.def:=u32inttype;
+                              end;
+                            else
+                              internalerror(2005082901);
+                          end;
                         { align registers for eabi }
                         if (target_info.abi in [abi_eabi,abi_eabihf]) and
                            firstparaloc and
                            (paradef.alignment=8) then
                           begin
+                            hp.paraloc[side].Alignment:=8;
                             if (nextintreg in [RS_R1,RS_R3]) then
                               inc(nextintreg)
                             else if nextintreg>RS_R3 then
                               stack_offset:=align(stack_offset,8);
                           end;
-                        { this is not abi compliant
-                          why? (FK) }
                         if nextintreg<=RS_R3 then
                           begin
+                            paradeftointparaloc(paradef,paracgsize,paraloc^.def,paraloc^.size);
                             paraloc^.loc:=LOC_REGISTER;
                             paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
                             inc(nextintreg);
                           end
                         else
                           begin
-                            { LOC_REFERENCE always contains everything that's left }
+                            { LOC_REFERENCE always contains everything that's left as a multiple of 4 bytes}
                             paraloc^.loc:=LOC_REFERENCE;
-                            paraloc^.size:=int_cgsize(paralen);
-                            paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen);
+                            paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
+                            paraloc^.size:=def_cgsize(paraloc^.def);
                             if (side=callerside) then
                               paraloc^.reference.index:=NR_STACK_POINTER_REG;
                             paraloc^.reference.offset:=stack_offset;
@@ -482,6 +542,8 @@ unit cpupara;
                       end;
                     LOC_FPUREGISTER:
                       begin
+                        paraloc^.size:=paracgsize;
+                        paraloc^.def:=paradef;
                         if nextfloatreg<=RS_F3 then
                           begin
                             paraloc^.loc:=LOC_FPUREGISTER;
@@ -509,8 +571,18 @@ unit cpupara;
                       end;
                     LOC_MMREGISTER:
                       begin
+                        if assigned(hfabasedef) then
+                          begin
+                            paraloc^.def:=hfabasedef;
+                            paraloc^.size:=hfabasesize;
+                          end
+                        else
+                          begin
+                            paraloc^.size:=paracgsize;
+                            paraloc^.def:=paradef;
+                          end;
                         if (nextmmreg<=RS_D7) or
-                           ((paraloc^.size = OS_F32) and
+                           ((paraloc^.size=OS_F32) and
                             (sparesinglereg<>NR_NO)) then
                           begin
                             paraloc^.loc:=LOC_MMREGISTER;
@@ -546,7 +618,6 @@ unit cpupara;
                             { LOC_REFERENCE always contains everything that's left }
                             paraloc^.loc:=LOC_REFERENCE;
                             paraloc^.size:=int_cgsize(paralen);
-                            paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen);
                             if (side=callerside) then
                               paraloc^.reference.index:=NR_STACK_POINTER_REG;
                             paraloc^.reference.offset:=stack_offset;
@@ -556,6 +627,8 @@ unit cpupara;
                       end;
                     LOC_REFERENCE:
                       begin
+                        paraloc^.size:=paracgsize;
+                        paraloc^.def:=paradef;
                         if push_addr_param(hp.varspez,paradef,p.proccalloption) then
                           begin
                             paraloc^.size:=OS_ADDR;
@@ -568,10 +641,11 @@ unit cpupara;
                             if (target_info.abi in [abi_eabi,abi_eabihf]) and
                                firstparaloc and
                                (paradef.alignment=8) then
-                              stack_offset:=align(stack_offset,8);
+                              begin
+                                stack_offset:=align(stack_offset,8);
+                                hp.paraloc[side].Alignment:=8;
+                              end;
 
-                             paraloc^.size:=paracgsize;
-                             paraloc^.def:=paradef;
                              paraloc^.loc:=LOC_REFERENCE;
                              paraloc^.reference.index:=NR_STACK_POINTER_REG;
                              paraloc^.reference.offset:=stack_offset;
@@ -614,41 +688,101 @@ unit cpupara;
       end;
 
 
+    procedure tcpuparamanager.paradeftointparaloc(paradef: tdef; paracgsize: tcgsize; out paralocdef: tdef; out paralocsize: tcgsize);
+      begin
+        if not(paracgsize in [OS_32,OS_S32]) or
+           (paradef.typ in [arraydef,recorddef]) or
+           is_object(paradef) then
+          begin
+            paralocsize:=OS_32;
+            paralocdef:=u32inttype;
+          end
+        else
+          begin
+            paralocsize:=paracgsize;
+            paralocdef:=paradef;
+          end;
+      end;
+
+
     function  tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
-        paraloc : pcgparalocation;
+        paraloc: pcgparalocation;
         retcgsize  : tcgsize;
+        basedef: tdef;
+        i: longint;
+        sparesinglereg: tregister;
+        mmreg : TSuperRegister;
       begin
          if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
            exit;
 
         paraloc:=result.add_location;
         { Return in FPU register? }
-        if result.def.typ=floatdef then
+        basedef:=nil;
+        sparesinglereg:=NR_NO;
+        if (result.def.typ=floatdef) or
+           is_hfa(result.def,basedef) then
           begin
-            if (target_info.abi=abi_eabihf) or (p.proccalloption=pocall_hardfloat) then
+            if usemmpararegs(p.proccalloption,is_c_variadic(p)) then
               begin
-                paraloc^.loc:=LOC_MMREGISTER;
+                if assigned(basedef) then
+                  begin
+                    for i:=2 to result.def.size div basedef.size do
+                      result.add_location;
+                    retcgsize:=def_cgsize(basedef);
+                  end
+                else
+                  basedef:=result.def;
                 case retcgsize of
                   OS_64,
                   OS_F64:
                     begin
-                      paraloc^.register:=NR_MM_RESULT_REG;
+                      mmreg:=RS_D0;
                     end;
                   OS_32,
                   OS_F32:
                     begin
-                      paraloc^.register:=NR_S0;
+                      mmreg:=RS_S0;
                     end;
                   else
                     internalerror(2012032501);
                 end;
-                paraloc^.size:=retcgsize;
-                paraloc^.def:=result.def;
+                repeat
+                  paraloc^.loc:=LOC_MMREGISTER;
+                  { mm registers are strangly ordered in the arm compiler }
+                  case retcgsize of
+                    OS_32,OS_F32:
+                      begin
+                        if sparesinglereg=NR_NO then
+                          begin
+                            paraloc^.register:=newreg(R_MMREGISTER,mmreg,R_SUBFS);
+                            sparesinglereg:=newreg(R_MMREGISTER,mmreg-RS_S0+RS_S1,R_SUBFS);
+                            inc(mmreg);
+                          end
+                        else
+                          begin
+                            paraloc^.register:=sparesinglereg;
+                            sparesinglereg:=NR_NO;
+                          end;
+                      end;
+                    OS_64,OS_F64:
+                      begin
+                        paraloc^.register:=newreg(R_MMREGISTER,mmreg,R_SUBFD);
+                        inc(mmreg);
+                      end;
+                    else
+                      Internalerror(2019081201);
+                  end;
+
+                  paraloc^.size:=retcgsize;
+                  paraloc^.def:=basedef;
+                  paraloc:=paraloc^.next;
+                until not assigned(paraloc);
               end
             else if (p.proccalloption in [pocall_softfloat]) or
                (cs_fp_emulation in current_settings.moduleswitches) or
-               (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16,fpu_fpv4_s16]) then
+               (current_settings.fputype in [fpu_vfp_first..fpu_vfp_last]) then
               begin
                 case retcgsize of
                   OS_64,
@@ -730,12 +864,19 @@ unit cpupara;
                     end;
                   else
                     begin
-                      paraloc^.size:=retcgsize;
-                      paraloc^.def:=result.def;
+                      paradeftointparaloc(result.def,result.size,paraloc^.def,paraloc^.size);
                     end;
                 end;
               end;
           end;
+      end;
+
+
+    function tcpuparamanager.usemmpararegs(calloption: tproccalloption; variadic: boolean): boolean;
+      begin
+        result:=
+         ((target_info.abi=abi_eabihf) or (calloption=pocall_hardfloat)) and
+          (not variadic);
       end;
 
 
@@ -753,20 +894,30 @@ unit cpupara;
      end;
 
 
-    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
       var
         cur_stack_offset: aword;
         curintreg, curfloatreg, curmmreg: tsuperregister;
         sparesinglereg:tregister;
       begin
-        init_values(p,callerside,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg);
+        init_values(p,side,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg);
 
-        result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg,true);
+        result:=create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg,true);
         if (p.proccalloption in cstylearrayofconst) then
-          { just continue loading the parameters in the registers }
-          result:=create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg,true)
+          begin
+            { just continue loading the parameters in the registers }
+            if assigned(varargspara) then
+              begin
+                if side=callerside then
+                  result:=create_paraloc_info_intern(p,side,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset,sparesinglereg,true)
+                else
+                  internalerror(2019021915);
+              end;
+          end
         else
           internalerror(200410231);
+
+        create_funcretloc_info(p,side);
       end;
 
 begin

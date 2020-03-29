@@ -7,9 +7,12 @@ interface
 uses Classes,pkgdownload,pkgoptions,fprepos;
 
 Type
+
+  { TFPHTTPDownloader }
+
   TFPHTTPDownloader = Class(TBaseDownloader)
   Protected
-    Procedure HTTPDownload(Const URL : String; Dest : TStream); override;
+    function HTTPDownload(Const URL : String; Dest : TStream): Boolean; override;
  end;
 
 implementation
@@ -17,13 +20,16 @@ implementation
 uses
   sysutils,fphttpclient, pkgglobals, pkgmessages;
 
-Procedure TFPHTTPDownloader.HTTPDownload(Const URL : String; Dest : TStream);
+function TFPHTTPDownloader.HTTPDownload(Const URL: String; Dest: TStream): Boolean;
 
 begin
+  Result := False;
   With TFPHTTPClient.Create(Nil) do
     try
+      AllowRedirect := True;
       Get(URL,Dest);
       Dest.Position:=0;
+      Result := True;
     finally
       Free;
     end;

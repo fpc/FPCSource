@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2009 by the Free Pascal Development team
+#   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
 #   Russian (cp866) Language File for Free Pascal
 #
@@ -14,6 +14,9 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
+
+# CodePage 866
+
 #
 # Константы записываются в следyющем виде:
 # <part>_<type>_<txtidentifier>
@@ -710,7 +713,7 @@ parser_e_function_already_declared_public_forward=03120_E_Функция "$1" уже объяв
 % в секции \var{implmentation}.
 parser_e_not_external_and_export=03121_E_Hельзя использовать EXPORT совместно с EXTERNAL
 % ти две директивы являются взаимоисключающими
-parser_h_not_supported_for_inline=03123_H_"$1" не поддеpживается внyтpи INLINE пpоцедypы/фyнкции
+parser_n_not_supported_for_inline=03123_N_"$1" не поддеpживается внyтpи INLINE пpоцедypы/фyнкции
 % Встраиваемые процедуры не поддерживают этот тип объявления.
 parser_h_inlining_disabled=03124_H_Встраивание (INLINE) отключено
 % Встраивание процедур отключено.
@@ -2503,7 +2506,7 @@ wpo_cant_create_feedback_file=12019_E_евозможно создать файл обратной связи "$1"
 #
 option_logo=11023_[
 Компилятор Free Pascal версии $FPCFULLVERSION [$FPCDATE] для $FPCCPU
-Copyright (c) 1993-2017 by Florian Klaempfl and others
+Copyright (c) 1993-2020 by Florian Klaempfl and others
 ]
 
 #
@@ -2736,7 +2739,6 @@ S*2Aas_Ассемблер GNU AS
 3*2Tnetwlibc_Модуль Novell Netware (libc)
 3*2Topenbsd_OpenBSD
 3*2Tos2_OS/2 / eComStation
-3*2Tsunos_SunOS/Solaris
 3*2Tsymbian_Symbian OS
 3*2Twatcom_Watcom-совместимый расширитель DOS
 3*2Twdosx_асширитель DOS WDOSX

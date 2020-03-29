@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('libsee');
+    P.ShortName := 'lsee';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Author := 'David Leonard';
     P.License := 'BSD style';
     P.HomepageURL := 'http://www.adaptive-enterprises.com.au/~d/software/see/';

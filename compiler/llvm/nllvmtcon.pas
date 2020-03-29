@@ -103,11 +103,13 @@ interface
       procedure emit_tai(p: tai; def: tdef); override;
       procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); override;
       procedure emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef); override;
+      procedure emit_dynarray_offset(const ll: tasmlabofs; const arrlength: asizeint; const arrdef: tarraydef; const arrconstdatadef: trecorddef); override;
       procedure queue_init(todef: tdef); override;
       procedure queue_vecn(def: tdef; const index: tconstexprint); override;
       procedure queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym); override;
       procedure queue_typeconvn(fromdef, todef: tdef); override;
       procedure queue_emit_staticvar(vs: tstaticvarsym); override;
+      procedure queue_emit_label(l: tlabelsym); override;
       procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); override;
       procedure queue_emit_ordconst(value: int64; def: tdef); override;
 
@@ -116,6 +118,7 @@ interface
       function emit_placeholder(def: tdef): ttypedconstplaceholder; override;
 
       class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; override;
+      class function get_dynarray_symofs: pint; override;
 
       property appendingdef: boolean write fappendingdef;
     end;
@@ -126,8 +129,10 @@ implementation
   uses
     verbose,systems,fmodule,
     aasmdata,
+    procinfo,
     cpubase,cpuinfo,llvmbase,
-    symtable,llvmdef,defutil,defcmp;
+    symtable,llvmdef,defutil,defcmp,
+    ngenutil;
 
   { tllvmaggregateinformation }
 
@@ -159,15 +164,12 @@ implementation
 
 
   procedure tllvmtypedconstplaceholder.replace(ai: tai; d: tdef);
-    var
-      oldconst: tai_abstracttypedconst;
     begin
       if d<>def then
         internalerror(2015091002);
-      oldconst:=agginfo.aggai.replacevalueatpos(
-        tai_simpletypedconst.create(tck_simple,d,ai),pos
+      agginfo.aggai.replacevalueatpos(
+        tai_simpletypedconst.create(d,ai),pos
       );
-      oldconst.free;
     end;
 
 
@@ -184,6 +186,7 @@ implementation
       newasmlist: tasmlist;
       decl: taillvmdecl;
     begin
+      finalize_asmlist_prepare(options,alignment);
       newasmlist:=tasmlist.create;
       if assigned(foverriding_def) then
         def:=foverriding_def;
@@ -211,9 +214,9 @@ implementation
           why it's done like this, but this is how Clang does it) }
         if (target_info.system in systems_darwin) and
            (section in [low(TObjCAsmSectionType)..high(TObjCAsmSectionType)]) then
-          current_module.llvmcompilerusedsyms.add(decl)
+          cnodeutils.RegisterUsedAsmSym(sym,def,false)
         else
-          current_module.llvmusedsyms.add(decl);
+          cnodeutils.RegisterUsedAsmSym(sym,def,true);
       newasmlist.concat(decl);
       fasmlist:=newasmlist;
     end;
@@ -251,7 +254,7 @@ implementation
 
   function tllvmtai_typedconstbuilder.wrap_with_type(p: tai; def: tdef): tai;
     begin
-      result:=tai_simpletypedconst.create(tck_simple,def,p);
+      result:=tai_simpletypedconst.create(def,p);
     end;
 
 
@@ -288,7 +291,7 @@ implementation
         begin
           kind:=tck_simple;
           { finalise the queued expression }
-          ai:=tai_simpletypedconst.create(kind,def,p);
+          ai:=tai_simpletypedconst.create(def,p);
           { set the new index to -1, so we internalerror should we try to
             add anything further }
           update_queued_tai(def,ai,ai,-1);
@@ -299,7 +302,7 @@ implementation
           fqueued_tai:=nil;
         end
       else
-        stc:=tai_simpletypedconst.create(tck_simple,def,p);
+        stc:=tai_simpletypedconst.create(def,p);
       info:=tllvmaggregateinformation(curagginfo);
       { these elements can be aggregates themselves, e.g. a shortstring can
         be emitted as a series of bytes and string data arrays }
@@ -353,7 +356,7 @@ implementation
       fillbytes:=info.prepare_next_field(def);
       while fillbytes>0 do
         begin
-          info.aggai.insertvaluebeforepos(tai_simpletypedconst.create(tck_simple,u8inttype,tai_const.create_8bit(0)),info.anonrecalignpos);
+          info.aggai.insertvaluebeforepos(tai_simpletypedconst.create(u8inttype,tai_const.create_8bit(0)),info.anonrecalignpos);
           dec(fillbytes);
         end;
     end;
@@ -382,13 +385,15 @@ implementation
             arraydef:
               { in an array, all elements come right after each other ->
                 replace with a packed record }
-              newdef:=crecorddef.create_global_internal('',1,1,1);
+              newdef:=crecorddef.create_global_internal('',1,1);
             recorddef,
             objectdef:
-              newdef:=crecorddef.create_global_internal('',
-                tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignment,
-                tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignmin,
-                tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).maxCrecordalign);
+              begin
+                newdef:=crecorddef.create_global_internal('',
+                  tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).usefieldalignment,
+                  tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignmin);
+                tabstractrecordsymtable(newdef.symtable).recordalignment:=tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignment;
+              end
             else
               internalerror(2015122401);
           end;
@@ -410,13 +415,12 @@ implementation
 
   procedure tllvmtai_typedconstbuilder.emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);
     var
-      srsym     : tsym;
-      srsymtable: tsymtable;
       strrecdef : trecorddef;
       strdef: tdef;
       offset: pint;
       field: tfieldvarsym;
       dataptrdef: tdef;
+      typesym: ttypesym;
     begin
       { nil pointer? }
       if not assigned(ll.lab) then
@@ -432,9 +436,10 @@ implementation
       if ll.ofs<>0 then
         begin
           { get the recorddef for this string constant }
-          if not searchsym_type(ctai_typedconstbuilder.get_dynstring_rec_name(st,winlikewidestring,strlength),srsym,srsymtable) then
+          typesym:=try_search_current_module_type(ctai_typedconstbuilder.get_dynstring_rec_name(st,winlikewidestring,strlength));
+          if not assigned(typesym) then
             internalerror(2014080406);
-          strrecdef:=trecorddef(ttypesym(srsym).typedef);
+          strrecdef:=trecorddef(typesym.typedef);
           { offset in the record of the the string data }
           offset:=ctai_typedconstbuilder.get_string_symofs(st,winlikewidestring);
           { field corresponding to this offset }
@@ -452,6 +457,40 @@ implementation
        { since llvm doesn't support labels in the middle of structs, this
          offset should never be 0  }
        internalerror(2014080506);
+    end;
+
+
+  procedure tllvmtai_typedconstbuilder.emit_dynarray_offset(const ll: tasmlabofs; const arrlength: asizeint; const arrdef: tarraydef; const arrconstdatadef: trecorddef);
+    var
+      field: tfieldvarsym;
+      dataptrdef: tdef;
+    begin
+      { nil pointer? }
+      if not assigned(ll.lab) then
+        begin
+          if ll.ofs<>0 then
+            internalerror(2015030701);
+          inherited;
+          exit;
+        end;
+      { if the returned offset is <> 0, then the string data
+        starts at that offset -> translate to a field for the
+        high level code generator }
+      if ll.ofs<>0 then
+        begin
+          { field corresponding to this offset }
+          field:=trecordsymtable(arrconstdatadef.symtable).findfieldbyoffset(ll.ofs);
+          { pointerdef to the string data array }
+          dataptrdef:=cpointerdef.getreusable(field.vardef);
+          { the fields of the resourcestring record are declared as ansistring }
+          queue_init(dataptrdef);
+          queue_subscriptn(arrconstdatadef,field);
+          queue_emit_asmsym(ll.lab,arrconstdatadef);
+        end
+      else
+       { since llvm doesn't support labels in the middle of structs, this
+         offset should never be 0  }
+       internalerror(2018112401);
     end;
 
 
@@ -623,8 +662,6 @@ implementation
             st_widestring,
             st_unicodestring:
               eledef:=cwidechartype;
-            else
-              internalerror(2014062202);
           end;
         else
           internalerror(2014062203);
@@ -729,6 +766,8 @@ implementation
             todef:=tmpintdef;
             op:=firstop
           end;
+        else
+          ;
       end;
       ai:=taillvm.op_reg_tai_size(op,NR_NO,nil,todef);
       typedai:=wrap_with_type(ai,todef);
@@ -743,6 +782,36 @@ implementation
         the tasmsymbol }
       fqueue_offset:=0;
       inherited;
+    end;
+
+
+  procedure tllvmtai_typedconstbuilder.queue_emit_label(l: tlabelsym);
+    var
+      ai: taillvm;
+      typedai: tai;
+      tmpintdef: tdef;
+      op,
+      firstop,
+      secondop: tllvmop;
+    begin
+      if not assigned(l.asmblocklabel) or
+         not l.asmblocklabel.defined_in_asmstatement then
+        begin
+          ai:=taillvm.blockaddress(voidcodepointertype,
+              current_asmdata.RefAsmSymbol(current_procinfo.procdef.mangledname,AT_FUNCTION),
+              current_asmdata.RefAsmSymbol(l.mangledname,AT_LABEL)
+            );
+          emit_tai(ai,voidcodepointertype);
+          fqueue_offset:=low(fqueue_offset);
+        end
+      else
+        begin
+          { we've already incorporated the offset via the inserted operations above,
+            make sure it doesn't get emitted again as part of the tai_const for
+            the tasmsymbol }
+          fqueue_offset:=0;
+          inherited;
+        end;
     end;
 
 
@@ -812,6 +881,13 @@ implementation
     begin
       { LLVM does not support labels in the middle of a declaration }
       result:=get_string_header_size(typ,winlikewidestring);
+    end;
+
+
+  class function tllvmtai_typedconstbuilder.get_dynarray_symofs: pint;
+    begin
+      { LLVM does not support labels in the middle of a declaration }
+      result:=get_dynarray_header_size;
     end;
 
 

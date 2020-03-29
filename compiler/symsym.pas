@@ -26,17 +26,15 @@ interface
 
     uses
        { common }
-       cutils,
+       cutils,compinnr,
        { target }
        globtype,globals,widestr,constexp,
        { symtable }
        symconst,symbase,symtype,symdef,defcmp,
-       { ppu }
-       ppu,finput,
        cclasses,
        { aasm }
        aasmbase,
-       cpuinfo,cpubase,cgbase,cgutils,parabase
+       cpuinfo,cgbase,cgutils,parabase
        ;
 
     type
@@ -48,10 +46,17 @@ interface
           procedure ppuwrite_platform(ppufile: tcompilerppufile);virtual;
           procedure ppuload_platform(ppufile: tcompilerppufile);virtual;
        public
-          constructor create(st:tsymtyp;const n : string;doregister:boolean);
+          { this is Nil if the symbol has no RTTI attributes }
+          rtti_attribute_list : trtti_attribute_list;
+          constructor create(st:tsymtyp;const n : string);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
+          { this is called directly after ppuload }
+          procedure ppuload_subentries(ppufile:tcompilerppufile);virtual;
+          { this is called directly after ppuwrite }
+          procedure ppuwrite_subentries(ppufile:tcompilerppufile);virtual;
+          procedure deref; override;
           procedure buildderef; override;
           procedure register_sym; override;
        end;
@@ -157,7 +162,7 @@ interface
           typedef      : tdef;
           typedefderef : tderef;
           fprettyname : ansistring;
-          constructor create(const n : string;def:tdef;doregister:boolean);virtual;
+          constructor create(const n : string;def:tdef);virtual;
           destructor destroy;override;
           constructor ppuload(ppufile:tcompilerppufile);
           { do not override this routine in platform-specific subclasses,
@@ -174,12 +179,10 @@ interface
           varspez       : tvarspez;  { sets the type of access }
           varregable    : tvarregable;
           varstate      : tvarstate;
-          { Has the address of this variable potentially escaped the }
-          { block in which is was declared?                          }
-          { could also be part of tabstractnormalvarsym, but there's }
-          { one byte left here till the next 4 byte alignment        }
-          addr_taken     : boolean;
-          constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);
+          {could also be part of tabstractnormalvarsym, but there's
+           one byte left here till the next 4 byte alignment        }
+          varsymaccess  : tvarsymaccessflags;
+          constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
@@ -191,11 +194,17 @@ interface
           _vardef     : tdef;
           vardefderef : tderef;
 
+          function get_addr_taken: boolean;
+          function get_different_scope: boolean;
           procedure setregable;
           procedure setvardef(const def: tdef);
           procedure setvardef_and_regable(def:tdef);
+          procedure set_addr_taken(AValue: boolean);
+          procedure set_different_scope(AValue: boolean);
         public
           property vardef: tdef read _vardef write setvardef_and_regable;
+          property addr_taken: boolean read get_addr_taken write set_addr_taken;
+          property different_scope: boolean read get_different_scope write set_different_scope;
       end;
 
       tfieldvarsym = class(tabstractvarsym)
@@ -217,7 +226,7 @@ interface
 {$else symansistr}
           cachedmangledname: pshortstring; { mangled name for ObjC or Java }
 {$endif symansistr}
-          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);virtual;
+          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
@@ -240,7 +249,7 @@ interface
           { the variable is not living at entry of the scope, so it does not need to be initialized if it is a reg. var
             (not written to ppu, because not important and would change interface crc) }
           noregvarinitneeded : boolean;
-          constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);
+          constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           function globalasmsym: boolean;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -249,7 +258,7 @@ interface
       end;
 
       tlocalvarsym = class(tabstractnormalvarsym)
-          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);virtual;
+          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
@@ -296,7 +305,7 @@ interface
             to the symbol of the corresponding class field }
           fieldvarsym : tfieldvarsym;
           fieldvarsymderef : tderef;
-          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);virtual;
+          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);virtual;
           constructor create_dll(const n : string;vsp:tvarspez;def:tdef);virtual;
           constructor create_C(const n: string; const mangled : TSymStr;vsp:tvarspez;def:tdef);virtual;
           constructor create_from_fieldvar(const n:string;fieldvar:tfieldvarsym);virtual;
@@ -417,8 +426,8 @@ interface
        tenumsymclass = class of tenumsym;
 
        tsyssym = class(Tstoredsym)
-          number : longint;
-          constructor create(const n : string;l : longint);virtual;
+          number : tinlinenumber;
+          constructor create(const n : string;l : tinlinenumber);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           { do not override this routine in platform-specific subclasses,
@@ -495,12 +504,12 @@ implementation
        { tree }
        node,
        { aasm }
-       aasmtai,aasmdata,
+       aasmdata,
        { codegen }
        paramgr,
        procinfo,
        { ppu }
-       entfile
+       entfile,ppu
        ;
 
 {****************************************************************************
@@ -548,7 +557,7 @@ implementation
                           TSYM (base for all symtypes)
 ****************************************************************************}
 
-    constructor tstoredsym.create(st:tsymtyp;const n : string;doregister:boolean);
+    constructor tstoredsym.create(st:tsymtyp;const n : string);
       begin
          inherited create(st,n);
       end;
@@ -561,11 +570,12 @@ implementation
          current_module.symlist[SymId]:=self;
          ppufile.getposinfo(fileinfo);
          visibility:=tvisibility(ppufile.getbyte);
-         ppufile.getsmallset(symoptions);
+         ppufile.getset(tppuset2(symoptions));
          if sp_has_deprecated_msg in symoptions then
            deprecatedmsg:=ppufile.getpshortstring
          else
            deprecatedmsg:=nil;
+         rtti_attribute_list:=trtti_attribute_list.ppuload(ppufile);
       end;
 
 
@@ -586,10 +596,31 @@ implementation
          }
          oldintfcrc:=ppufile.do_interface_crc;
          ppufile.do_interface_crc:=false;
-         ppufile.putsmallset(symoptions);
+         ppufile.putset(tppuset2(symoptions));
          if sp_has_deprecated_msg in symoptions then
            ppufile.putstring(deprecatedmsg^);
          ppufile.do_interface_crc:=oldintfcrc;
+         trtti_attribute_list.ppuwrite(rtti_attribute_list,ppufile);
+      end;
+
+
+    procedure tstoredsym.ppuload_subentries(ppufile: tcompilerppufile);
+      begin
+        trtti_attribute_list.ppuload_subentries(rtti_attribute_list,ppufile);
+      end;
+
+
+    procedure tstoredsym.ppuwrite_subentries(ppufile: tcompilerppufile);
+      begin
+        trtti_attribute_list.ppuwrite_subentries(rtti_attribute_list,ppufile);
+      end;
+
+
+    procedure tstoredsym.deref;
+      begin
+        inherited;
+        if assigned(rtti_attribute_list) then
+          rtti_attribute_list.deref;
       end;
 
 
@@ -598,6 +629,8 @@ implementation
         inherited;
         if not registered then
           register_sym;
+        if assigned(rtti_attribute_list) then
+          rtti_attribute_list.buildderef;
       end;
 
 
@@ -621,6 +654,7 @@ implementation
 
     destructor tstoredsym.destroy;
       begin
+        rtti_attribute_list.free;
         inherited destroy;
       end;
 
@@ -645,7 +679,7 @@ implementation
 
     constructor tlabelsym.create(const n : string);
       begin
-         inherited create(labelsym,n,true);
+         inherited create(labelsym,n);
          used:=false;
          defined:=false;
          nonlocal:=false;
@@ -694,7 +728,7 @@ implementation
 
     constructor tunitsym.create(const n : string;amodule : tobject);
       begin
-         inherited create(unitsym,n,true);
+         inherited create(unitsym,n);
          module:=amodule;
       end;
 
@@ -723,7 +757,7 @@ implementation
 
     constructor tprogramparasym.create(const n : string; i : dword);
       begin
-         inherited create(programparasym,n,true);
+         inherited create(programparasym,n);
          isoindex:=i;
       end;
 
@@ -751,8 +785,9 @@ implementation
 
     constructor tnamespacesym.create(const n : string);
       begin
-         inherited create(namespacesym,n,true);
+         inherited create(namespacesym,n);
          unitsym:=nil;
+         unitsymderef.reset;
       end;
 
     constructor tnamespacesym.ppuload(ppufile:tcompilerppufile);
@@ -792,7 +827,7 @@ implementation
       begin
          if not(ts_lowercase_proc_start in current_settings.targetswitches) or
             (n='') then
-           inherited create(procsym,n,true)
+           inherited create(procsym,n)
          else
            begin
              { YToX -> yToX
@@ -811,7 +846,7 @@ implementation
                    end;
                  inc(i);
                end;
-             inherited create(procsym,lower(copy(n,1,i-1))+copy(n,i,length(n)),true);
+             inherited create(procsym,lower(copy(n,1,i-1))+copy(n,i,length(n)));
            end;
          FProcdefList:=TFPObjectList.Create(false);
          FProcdefderefList:=nil;
@@ -1328,12 +1363,14 @@ implementation
       var
         pap : tpropaccesslisttypes;
       begin
-         inherited create(propertysym,n,true);
+         inherited create(propertysym,n);
          propoptions:=[];
          index:=0;
          default:=0;
          propdef:=nil;
+         propdefderef.reset;
          indexdef:=nil;
+         indexdefderef.reset;
          parast:=nil;
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap]:=tpropaccesslist.create;
@@ -1345,7 +1382,7 @@ implementation
         pap : tpropaccesslisttypes;
       begin
          inherited ppuload(propertysym,ppufile);
-         ppufile.getsmallset(propoptions);
+         ppufile.getset(tppuset2(propoptions));
          if ppo_overrides in propoptions then
            ppufile.getderef(overriddenpropsymderef);
          ppufile.getderef(propdefderef);
@@ -1567,7 +1604,7 @@ implementation
         pap : tpropaccesslisttypes;
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putsmallset(propoptions);
+        ppufile.putset(tppuset2(propoptions));
         if ppo_overrides in propoptions then
           ppufile.putderef(overriddenpropsymderef);
         ppufile.putderef(propdefderef);
@@ -1586,10 +1623,11 @@ implementation
                             TABSTRACTVARSYM
 ****************************************************************************}
 
-    constructor tabstractvarsym.create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);
+    constructor tabstractvarsym.create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
-         inherited create(st,n,doregister);
+         inherited create(st,n);
          vardef:=def;
+         vardefderef.reset;
          varspez:=vsp;
          varstate:=vs_declared;
          varoptions:=vopts;
@@ -1602,9 +1640,9 @@ implementation
          varstate:=vs_readwritten;
          varspez:=tvarspez(ppufile.getbyte);
          varregable:=tvarregable(ppufile.getbyte);
-         addr_taken:=boolean(ppufile.getbyte);
+         ppufile.getset(tppuset1(varsymaccess));
          ppufile.getderef(vardefderef);
-         ppufile.getsmallset(varoptions);
+         ppufile.getset(tppuset4(varoptions));
       end;
 
 
@@ -1634,10 +1672,10 @@ implementation
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
          ppufile.putbyte(byte(varregable));
-         ppufile.putbyte(byte(addr_taken));
+         ppufile.putset(tppuset1(varsymaccess));
          ppufile.do_crc:=oldintfcrc;
          ppufile.putderef(vardefderef);
-         ppufile.putsmallset(varoptions);
+         ppufile.putset(tppuset4(varoptions));
       end;
 
 
@@ -1674,7 +1712,6 @@ implementation
                 not(pi_has_assembler_block in current_procinfo.flags) and
                 not(pi_uses_exceptions in current_procinfo.flags) and
                 not(pi_has_interproclabel in current_procinfo.flags) and
-                not(vo_has_local_copy in varoptions) and
                 ((refpara and
                   (varregable <> vr_none)) or
                  (not refpara and
@@ -1690,12 +1727,32 @@ implementation
     procedure tabstractvarsym.setvardef_and_regable(def:tdef);
       begin
         setvardef(def);
-         setregable;
+        setregable;
+      end;
+
+
+    procedure tabstractvarsym.set_addr_taken(AValue: boolean);
+      begin
+        if AValue then
+          include(varsymaccess, vsa_addr_taken)
+        else
+          exclude(varsymaccess, vsa_addr_taken);
+      end;
+
+
+    procedure tabstractvarsym.set_different_scope(AValue: boolean);
+      begin
+        if AValue then
+          include(varsymaccess, vsa_different_scope)
+        else
+          exclude(varsymaccess, vsa_different_scope);
       end;
 
 
     procedure tabstractvarsym.setregable;
       begin
+        if vo_volatile in varoptions then
+          exit;
          { can we load the value into a register ? }
         if not assigned(owner) or
            (owner.symtabletype in [localsymtable, parasymtable]) or
@@ -1727,8 +1784,25 @@ implementation
                   varregable:=vr_mmreg
                 else
                   varregable:=vr_fpureg;
+              end
+            else if is_vector(vardef) and
+              fits_in_mm_register(vardef) then
+              begin
+                varregable:=vr_mmreg;
               end;
           end;
+      end;
+
+
+    function tabstractvarsym.get_addr_taken: boolean;
+      begin
+        result:=vsa_addr_taken in varsymaccess;
+      end;
+
+
+    function tabstractvarsym.get_different_scope: boolean;
+      begin
+        result:=vsa_different_scope in varsymaccess;
       end;
 
 
@@ -1742,9 +1816,9 @@ implementation
                                TFIELDVARSYM
 ****************************************************************************}
 
-    constructor tfieldvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);
+    constructor tfieldvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
-         inherited create(fieldvarsym,n,vsp,def,vopts,doregister);
+         inherited create(fieldvarsym,n,vsp,def,vopts);
          fieldoffset:=-1;
       end;
 
@@ -1752,7 +1826,7 @@ implementation
     constructor tfieldvarsym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(fieldvarsym,ppufile);
-         fieldoffset:=ppufile.getaint;
+         fieldoffset:=ppufile.getasizeint;
          if (vo_has_mangledname in varoptions) then
            externalname:=ppufile.getpshortstring
          else
@@ -1764,7 +1838,7 @@ implementation
     procedure tfieldvarsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.putaint(fieldoffset);
+         ppufile.putasizeint(fieldoffset);
          if (vo_has_mangledname in varoptions) then
            ppufile.putstring(externalname^);
          writeentry(ppufile,ibfieldvarsym);
@@ -1832,12 +1906,13 @@ implementation
                         TABSTRACTNORMALVARSYM
 ****************************************************************************}
 
-    constructor tabstractnormalvarsym.create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);
+    constructor tabstractnormalvarsym.create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
-         inherited create(st,n,vsp,def,vopts,doregister);
+         inherited create(st,n,vsp,def,vopts);
          fillchar(localloc,sizeof(localloc),0);
          fillchar(initialloc,sizeof(initialloc),0);
          defaultconstsym:=nil;
+         defaultconstsymderef.reset;
       end;
 
 
@@ -1861,7 +1936,8 @@ implementation
             { globalasmsym is called normally before the body of a subroutine is parsed
               so we cannot know if it will be auto inlined, so make all symbols of it
               global if asked }
-            (cs_opt_autoinline in current_settings.optimizerswitches))
+            (not(po_noinline in current_procinfo.procdef.procoptions) and
+             (cs_opt_autoinline in current_settings.optimizerswitches)))
           ) or
           (vo_is_public in varoptions);
       end;
@@ -1892,9 +1968,10 @@ implementation
                              Tstaticvarsym
 ****************************************************************************}
 
-    constructor tstaticvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);
+    constructor tstaticvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
-         inherited create(staticvarsym,n,vsp,def,vopts,doregister);
+         inherited create(staticvarsym,n,vsp,def,vopts);
+         fieldvarsymderef.reset;
 {$ifdef symansistr}
          _mangledname:='';
 {$else symansistr}
@@ -1905,20 +1982,20 @@ implementation
 
     constructor tstaticvarsym.create_dll(const n : string;vsp:tvarspez;def:tdef);
       begin
-         tstaticvarsym(self).create(n,vsp,def,[vo_is_dll_var],true);
+         tstaticvarsym(self).create(n,vsp,def,[vo_is_dll_var]);
       end;
 
 
     constructor tstaticvarsym.create_C(const n: string; const mangled : TSymStr;vsp:tvarspez;def:tdef);
       begin
-         tstaticvarsym(self).create(n,vsp,def,[],true);
+         tstaticvarsym(self).create(n,vsp,def,[]);
          set_mangledname(mangled);
       end;
 
 
     constructor tstaticvarsym.create_from_fieldvar(const n: string;fieldvar:tfieldvarsym);
       begin
-        create(internal_static_field_name(n),vs_value,fieldvar.vardef,[],true);
+        create(internal_static_field_name(n),fieldvar.varspez,fieldvar.vardef,[]);
         fieldvarsym:=fieldvar;
       end;
 
@@ -2087,9 +2164,9 @@ implementation
                                TLOCALVARSYM
 ****************************************************************************}
 
-    constructor tlocalvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);
+    constructor tlocalvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
-         inherited create(localvarsym,n,vsp,def,vopts,doregister);
+         inherited create(localvarsym,n,vsp,def,vopts);
       end;
 
 
@@ -2113,7 +2190,7 @@ implementation
 
     constructor tparavarsym.create(const n : string;nr:word;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
-         inherited create(paravarsym,n,vsp,def,vopts,true);
+         inherited create(paravarsym,n,vsp,def,vopts);
          if (vsp in [vs_var,vs_value,vs_const,vs_constref]) and
             not(vo_is_funcret in vopts) then
            varstate := vs_initialised;
@@ -2135,7 +2212,7 @@ implementation
       begin
          inherited ppuload(paravarsym,ppufile);
          paranr:=ppufile.getword;
-         univpara:=boolean(ppufile.getbyte);
+         univpara:=ppufile.getboolean;
 
          { The var state of parameter symbols is fixed after writing them so
            we write them to the unit file.
@@ -2161,7 +2238,7 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putword(paranr);
-         ppufile.putbyte(byte(univpara));
+         ppufile.putboolean(univpara);
 
          { The var state of parameter symbols is fixed after writing them so
            we write them to the unit file.
@@ -2201,14 +2278,14 @@ implementation
 
     constructor tabsolutevarsym.create(const n : string;def:tdef);
       begin
-        inherited create(absolutevarsym,n,vs_value,def,[],true);
+        inherited create(absolutevarsym,n,vs_value,def,[]);
         ref:=nil;
       end;
 
 
     constructor tabsolutevarsym.create_ref(const n : string;def:tdef;_ref:tpropaccesslist);
       begin
-        inherited create(absolutevarsym,n,vs_value,def,[],true);
+        inherited create(absolutevarsym,n,vs_value,def,[]);
         ref:=_ref;
       end;
 
@@ -2233,7 +2310,7 @@ implementation
            toasm :
              asmname:=ppufile.getpshortstring;
            toaddr :
-             addroffset:=ppufile.getaword;
+             addroffset:=ppufile.getpuint;
          end;
          ppuload_platform(ppufile);
       end;
@@ -2249,7 +2326,7 @@ implementation
            toasm :
              ppufile.putstring(asmname^);
            toaddr :
-             ppufile.putaword(addroffset);
+             ppufile.putpuint(addroffset);
          end;
          writeentry(ppufile,ibabsolutevarsym);
       end;
@@ -2291,37 +2368,40 @@ implementation
 
     constructor tconstsym.create_ord(const n : string;t : tconsttyp;v : tconstexprint;def:tdef);
       begin
-         inherited create(constsym,n,true);
+         inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueord:=v;
          constdef:=def;
+         constdefderef.reset;
       end;
 
 
     constructor tconstsym.create_ordptr(const n : string;t : tconsttyp;v : tconstptruint;def:tdef);
       begin
-         inherited create(constsym,n,true);
+         inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueordptr:=v;
          constdef:=def;
+         constdefderef.reset;
       end;
 
 
     constructor tconstsym.create_ptr(const n : string;t : tconsttyp;v : pointer;def:tdef);
       begin
-         inherited create(constsym,n,true);
+         inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueptr:=v;
          constdef:=def;
+         constdefderef.reset;
       end;
 
 
     constructor tconstsym.create_string(const n : string;t : tconsttyp;str:pchar;l:longint;def: tdef);
       begin
-         inherited create(constsym,n,true);
+         inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueptr:=str;
@@ -2329,17 +2409,19 @@ implementation
            constdef:=def
          else
            constdef:=carraydef.getreusable(cansichartype,l);
+         constdefderef.reset;
          value.len:=l;
       end;
 
 
     constructor tconstsym.create_wstring(const n : string;t : tconsttyp;pw:pcompilerwidestring);
       begin
-         inherited create(constsym,n,true);
+         inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          pcompilerwidestring(value.valueptr):=pw;
          constdef:=carraydef.getreusable(cwidechartype,getlengthwidestring(pw));
+         constdefderef.reset;
          value.len:=getlengthwidestring(pw);
       end;
 
@@ -2406,7 +2488,7 @@ implementation
              begin
                ppufile.getderef(constdefderef);
                new(ps);
-               ppufile.getnormalset(ps^);
+               ppufile.getset(tppuset32(ps^));
                value.valueptr:=ps;
              end;
            constguid :
@@ -2427,6 +2509,12 @@ implementation
     destructor tconstsym.destroy;
       begin
         case consttyp of
+          constnone:
+            internalerror(2019050703);
+          constord,
+          constpointer,
+          constnil:
+            ;
           conststring,
           constresourcestring :
             freemem(pchar(value.valueptr),value.len+1);
@@ -2508,7 +2596,7 @@ implementation
            constset :
              begin
                ppufile.putderef(constdefderef);
-               ppufile.putnormalset(value.valueptr^);
+               ppufile.putset(tppuset32(value.valueptr^));
              end;
            constguid :
              begin
@@ -2528,8 +2616,9 @@ implementation
 
     constructor tenumsym.create(const n : string;def : tenumdef;v : longint);
       begin
-         inherited create(enumsym,n,true);
+         inherited create(enumsym,n);
          definition:=def;
+         definitionderef.reset;
          value:=v;
       end;
 
@@ -2569,11 +2658,12 @@ implementation
 ****************************************************************************}
 
 
-    constructor ttypesym.create(const n : string;def:tdef;doregister:boolean);
+    constructor ttypesym.create(const n : string;def:tdef);
 
       begin
-        inherited create(typesym,n,doregister);
+        inherited create(typesym,n);
         typedef:=def;
+        typedefderef.reset;
         { register the typesym for the definition }
         if assigned(typedef) and
            (typedef.typ<>errordef) and
@@ -2636,13 +2726,13 @@ implementation
       syssym_list : TFPHashObjectList;
 
 
-    constructor tsyssym.create(const n : string;l : longint);
+    constructor tsyssym.create(const n : string;l : tinlinenumber);
       var
         s : shortstring;
       begin
-         inherited create(syssym,n,true);
+         inherited create(syssym,n);
          number:=l;
-         str(l,s);
+         str(longint(l),s);
          if assigned(syssym_list.find(s)) then
            internalerror(2016060303);
          syssym_list.add(s,self);
@@ -2653,9 +2743,9 @@ implementation
         s : shortstring;
       begin
          inherited ppuload(syssym,ppufile);
-         number:=ppufile.getlongint;
+         number:=tinlinenumber(ppufile.getlongint);
          ppuload_platform(ppufile);
-         str(number,s);
+         str(longint(number),s);
          if assigned(syssym_list.find(s)) then
            internalerror(2016060304);
          syssym_list.add(s,self);
@@ -2669,7 +2759,7 @@ implementation
     procedure tsyssym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.putlongint(number);
+         ppufile.putlongint(longint(number));
          writeentry(ppufile,ibsyssym);
       end;
 
@@ -2688,7 +2778,7 @@ implementation
 
     constructor tmacro.create(const n : string);
       begin
-         inherited create(macrosym,n,true);
+         inherited create(macrosym,n);
          owner:=nil;
          defined:=false;
          is_used:=false;
@@ -2700,8 +2790,8 @@ implementation
     constructor tmacro.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(macrosym,ppufile);
-         defined:=boolean(ppufile.getbyte);
-         is_compiler_var:=boolean(ppufile.getbyte);
+         defined:=ppufile.getboolean;
+         is_compiler_var:=ppufile.getboolean;
          is_used:=false;
          buflen:= ppufile.getlongint;
          if buflen > 0 then
@@ -2723,8 +2813,8 @@ implementation
     procedure tmacro.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.putbyte(byte(defined));
-         ppufile.putbyte(byte(is_compiler_var));
+         ppufile.putboolean(defined);
+         ppufile.putboolean(is_compiler_var);
          ppufile.putlongint(buflen);
          if buflen > 0 then
            ppufile.putdata(buftext^,buflen);

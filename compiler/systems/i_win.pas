@@ -39,7 +39,7 @@ unit i_win;
                             tf_winlikewidestring,tf_no_pic_supported,
                             tf_no_generic_stackcheck,tf_has_winlike_resources,
                             tf_dwarf_only_local_labels,
-                            tf_safecall_exceptions,tf_no_backquote_support];
+                            tf_safecall_exceptions,tf_no_backquote_support,tf_supports_hidden_symbols];
             cpu          : cpu_i386;
             unit_env     : 'WIN32UNITS';
             extradefines : 'MSWINDOWS;WINDOWS';
@@ -79,7 +79,10 @@ unit i_win;
               (
                 procalign       : 16;
                 loopalign       : 8;
-                jumpalign       : 4;
+                jumpalign       : 16;
+                jumpalignskipmax    : 10;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 16;
                 varalignmin     : 0;
@@ -107,7 +110,7 @@ unit i_win;
                             tf_winlikewidestring,tf_no_pic_supported,
                             tf_dwarf_only_local_labels,
                             tf_no_generic_stackcheck,tf_has_winlike_resources,
-                            tf_safecall_exceptions,tf_no_backquote_support];
+                            tf_safecall_exceptions,tf_no_backquote_support,tf_supports_hidden_symbols];
             cpu          : cpu_x86_64;
             unit_env     : 'WIN64UNITS';
             extradefines : 'MSWINDOWS;WINDOWS';
@@ -147,12 +150,15 @@ unit i_win;
               (
                 procalign       : 16;
                 loopalign       : 8;
-                jumpalign       : 4;
+                jumpalign       : 16;
+                jumpalignskipmax    : 10;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 16;
                 varalignmin     : 0;
                 varalignmax     : 16;
-                localalignmin   : 8;
+                localalignmin   : 4;
                 localalignmax   : 16;
                 recordalignmin  : 0;
                 recordalignmax  : 8;
@@ -173,7 +179,7 @@ unit i_win;
             flags        : [tf_files_case_aware{,tf_winlikewidestring},
                             tf_smartlink_sections,tf_requires_proper_alignment,tf_no_pic_supported,
                             tf_has_winlike_resources,
-                            tf_safecall_exceptions,tf_no_backquote_support];
+                            tf_safecall_exceptions,tf_no_backquote_support,tf_supports_hidden_symbols];
             cpu          : cpu_arm;
             unit_env     : '';
             extradefines : 'UNDER_CE;WINDOWS;FPC_OS_UNICODE';
@@ -214,6 +220,9 @@ unit i_win;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 4;
                 varalignmin     : 0;
@@ -239,7 +248,7 @@ unit i_win;
             flags        : [tf_files_case_aware
                             {,tf_winlikewidestring},tf_smartlink_sections,tf_no_pic_supported,
                             tf_has_winlike_resources,
-                            tf_safecall_exceptions,tf_no_backquote_support];
+                            tf_safecall_exceptions,tf_no_backquote_support,tf_supports_hidden_symbols];
             cpu          : cpu_i386;
             unit_env     : '';
             extradefines : 'UNDER_CE;WINDOWS;FPC_OS_UNICODE';
@@ -280,6 +289,9 @@ unit i_win;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 4;
                 varalignmin     : 0;

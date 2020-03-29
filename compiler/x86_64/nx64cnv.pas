@@ -26,7 +26,7 @@ unit nx64cnv;
 interface
 
     uses
-      node,ncgcnv,defutil,defcmp,pass_1,
+      node,defutil,pass_1,
       nx86cnv;
 
     type
@@ -59,14 +59,13 @@ interface
 implementation
 
     uses
-      verbose,systems,globals,globtype,
+      verbose,globals,globtype,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symconst,symdef,
-      cgbase,cga,procinfo,pass_2,
-      ncon,ncal,ncnv,
+      cgbase,cga,
+      ncnv,
       cpubase,
-      cgutils,cgobj,hlcgobj,cgx86,ncgutil,
-      tgobj;
+      cgutils,cgobj,hlcgobj,cgx86;
 
 
     function tx8664typeconvnode.first_int_to_real : tnode;

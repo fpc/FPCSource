@@ -46,9 +46,9 @@ interface
 {$ifdef SUPPORT_MMX}
          procedure second_mmx;virtual;abstract;
 {$endif SUPPORT_MMX}
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
          procedure second_64bit;virtual;
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
          procedure second_integer;virtual;
          procedure second_float;virtual;
          procedure second_float_emulated;virtual;
@@ -83,7 +83,7 @@ interface
            been done and emitted, so this should really a do a modulo.
          }
          procedure emit_mod_reg_reg(signed: boolean;denum,num : tregister);virtual;abstract;
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
          { This routine must do an actual 64-bit division, be it
            signed or unsigned. The result must set into the the
            @var(num) register.
@@ -98,13 +98,16 @@ interface
            64-bit systems, otherwise a helper is called in 1st pass.
          }
          procedure emit64_div_reg_reg(signed: boolean;denum,num : tregister64);virtual;
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
       end;
 
       tcgshlshrnode = class(tshlshrnode)
-{$ifndef cpu64bitalu}
+{$ifdef SUPPORT_MMX}
+         procedure second_mmx;virtual;abstract;
+{$endif SUPPORT_MMX}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
          procedure second_64bit;virtual;
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
          procedure second_integer;virtual;
          procedure pass_generate_code;override;
       end;
@@ -116,9 +119,9 @@ interface
 {$ifdef SUPPORT_MMX}
          procedure second_mmx;virtual;abstract;
 {$endif SUPPORT_MMX}
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
          procedure second_64bit;virtual;
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
          procedure second_integer;virtual;
       public
          procedure pass_generate_code;override;
@@ -130,15 +133,11 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symtable,symconst,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
+      symtable,symconst,symdef,aasmbase,aasmdata,aasmcpu,defutil,
       parabase,
       pass_2,
       ncon,
-      tgobj,ncgutil,cgobj,cgutils,paramgr,hlcgobj,procinfo
-{$ifndef cpu64bitalu}
-      ,cg64f32
-{$endif not cpu64bitalu}
-      ;
+      tgobj,cgobj,cgutils,paramgr,hlcgobj;
 
 {*****************************************************************************
                           TCGUNARYMINUSNODE
@@ -198,7 +197,7 @@ implementation
       end;
 
 
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
     procedure tcgunaryminusnode.second_64bit;
       var
         tr: tregister;
@@ -224,7 +223,7 @@ implementation
             cg.a_label(current_asmdata.CurrAsmList,hl);
           end;
       end;
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
 
 
     procedure tcgunaryminusnode.second_float_emulated;
@@ -236,7 +235,11 @@ implementation
           OS_32:
             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.register);
           OS_64:
+{$ifdef cpu64bitalu}
+            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_64,tcgint($80000000),location.register);
+{$else  cpu64bitalu}
             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.registerhi);
+{$endif cpu64bitalu}
         else
           internalerror(2014033101);
         end;
@@ -312,7 +315,7 @@ implementation
           begin
             current_asmdata.getjumplabel(hl);
             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,torddef(opsize).low.svalue,location.register,hl);
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil);
+            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil).resetiftemp;
             hlcg.a_label(current_asmdata.CurrAsmList,hl);
           end;
       end;
@@ -320,11 +323,11 @@ implementation
 
     procedure tcgunaryminusnode.pass_generate_code;
       begin
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
          if is_64bit(left.resultdef) then
            second_64bit
          else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
 {$ifdef SUPPORT_MMX}
            if (cs_mmx in current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
              second_mmx
@@ -346,7 +349,7 @@ implementation
                              TCGMODDIVNODE
 *****************************************************************************}
 
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
     procedure tcgmoddivnode.emit64_div_reg_reg(signed: boolean; denum,num:tregister64);
       begin
         { handled in pass_1 already, unless pass_1 is
@@ -355,7 +358,7 @@ implementation
         { should be handled in pass_1 (JM) }
         internalerror(200109052);
       end;
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
 
 
     procedure tcgmoddivnode.pass_generate_code;
@@ -377,7 +380,7 @@ implementation
           exit;
          location_copy(location,left.location);
 
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
          if is_64bit(resultdef) then
            begin
              if is_signed(left.resultdef) then
@@ -396,7 +399,7 @@ implementation
                joinreg64(location.register64.reglo,location.register64.reghi));
            end
          else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
            begin
               if is_signed(left.resultdef) then
                 begin
@@ -452,7 +455,7 @@ implementation
                       cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,0,hdenom,hl);
                       paraloc1.init;
                       pd:=search_system_proc('fpc_handleerror');
-                      paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
+                      paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
                       cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_S32,aint(200),paraloc1);
                       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                       cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);
@@ -476,19 +479,19 @@ implementation
 *****************************************************************************}
 
 
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
     procedure tcgshlshrnode.second_64bit;
       begin
          { already hanled in 1st pass }
          internalerror(2002081501);
       end;
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
 
 
     procedure tcgshlshrnode.second_integer;
       var
          op : topcg;
-         opdef: tdef;
+         opdef,shiftcountdef: tdef;
          hcountreg : tregister;
          opsize : tcgsize;
          shiftval : longint;
@@ -503,6 +506,7 @@ implementation
 {$ifdef cpunodefaultint}
         opsize:=left.location.size;
         opdef:=left.resultdef;
+        shiftcountdef:=opdef;
 {$else cpunodefaultint}
         if left.resultdef.size<=4 then
           begin
@@ -517,8 +521,13 @@ implementation
                 else
                   begin
                     opdef:=s32inttype;
-                    opsize:=OS_S32
-                  end
+                    opsize:=OS_S32;
+                  end;
+{$ifdef cpu16bitalu}
+                shiftcountdef:=s16inttype;
+{$else cpu16bitalu}
+                shiftcountdef:=opdef;
+{$endif cpu16bitalu}
               end
             else
               begin
@@ -532,7 +541,12 @@ implementation
                   begin
                     opdef:=u32inttype;
                     opsize:=OS_32;
-                  end
+                  end;
+{$ifdef cpu16bitalu}
+                shiftcountdef:=u16inttype;
+{$else cpu16bitalu}
+                shiftcountdef:=opdef;
+{$endif cpu16bitalu}
               end
           end
         else
@@ -547,6 +561,7 @@ implementation
                 opdef:=u64inttype;
                 opsize:=OS_64;
               end;
+            shiftcountdef:=opdef;
           end;
 {$endif cpunodefaultint}
 
@@ -576,7 +591,7 @@ implementation
                 is done since most target cpu which will use this
                 node do not support a shift count in a mem. location (cec)
               }
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,opdef,true);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,shiftcountdef,true);
               hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opdef,right.location.register,left.location.register,location.register);
            end;
          { shl/shr nodes return the same type as left, which can be different
@@ -594,11 +609,16 @@ implementation
       begin
          secondpass(left);
          secondpass(right);
-{$ifndef cpu64bitalu}
+{$ifdef SUPPORT_MMX}
+           if (cs_mmx in current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
+             second_mmx
+         else
+{$endif SUPPORT_MMX}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
          if is_64bit(left.resultdef) then
            second_64bit
          else
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
            second_integer;
       end;
 
@@ -607,7 +627,7 @@ implementation
                                TCGNOTNODE
 *****************************************************************************}
 
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
     procedure tcgnotnode.second_64bit;
       begin
         secondpass(left);
@@ -619,7 +639,7 @@ implementation
         { perform the NOT operation }
         cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_NOT,location.size,left.location.register64,location.register64);
       end;
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
 
 
     procedure tcgnotnode.second_integer;
@@ -660,10 +680,10 @@ implementation
         else if (cs_mmx in current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
           second_mmx
 {$endif SUPPORT_MMX}
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
         else if is_64bit(left.resultdef) then
           second_64bit
-{$endif not cpu64bitalu}
+{$endif not cpu64bitalu and not cpuhighleveltarget}
         else
           second_integer;
       end;

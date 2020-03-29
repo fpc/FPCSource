@@ -20,6 +20,7 @@ unit athreads;
 interface
 
 procedure SetAThreadBaseName(s: String);
+function GetAThreadProcess(threadID: TThreadID): Pointer;
 
 
 implementation
@@ -46,6 +47,7 @@ var
   SubThreadBaseName: String = 'FPC Subthread';
 
 {.$define DEBUG_MT}
+{.$define DEBUG_AMIEVENT}
 type
   TThreadOperation = ( toNone, toStart, toResume, toExit );
 
@@ -274,6 +276,18 @@ begin
   ReleaseSemaphore(@AThreadListSemaphore);
 end;
 
+function GetAThreadProcess(threadID: TThreadID): Pointer;
+begin
+  GetAThreadProcess:=nil;
+  ObtainSemaphoreShared(@AThreadListSemaphore);
+  with PThreadInfo(threadID)^ do
+    begin
+      if not exited then
+        GetAThreadProcess:=threadPtr;
+    end;
+  ReleaseSemaphore(@AThreadListSemaphore);
+end;
+
 
 procedure AInitThreadvar(var offset : dword;size : dword);
 begin
@@ -408,7 +422,7 @@ begin
   WaitPort(@thisThread^.pr_MsgPort);
   threadMsg:=PThreadMsg(GetMsg(@thisThread^.pr_MsgPort));
 
-  { fetch existing threadinfo from the start message, and set 
+  { fetch existing threadinfo from the start message, and set
     it to tc_userData, so we can proceed with threadvars }
   threadInfo:=threadMsg^.tm_ThreadInfo;
   thisThread^.pr_Task.tc_userData:=threadInfo;
@@ -471,6 +485,7 @@ begin
 {$endif}
   Forbid();
   threadInfo^.exited:=true;
+  threadInfo^.threadPtr:=nil;
 
   { Finally, Release our exit mutex. }
   ReleaseSemaphore(@threadInfo^.mutex);
@@ -726,6 +741,7 @@ end;
 Type  PINTRTLEvent = ^TINTRTLEvent;
       TINTRTLEvent = record
         isset: boolean;
+        Sem: TSignalSemaphore; // Semaphore to protect the whole stuff
       end;
 
 Function intRTLEventCreate: PRTLEvent;
@@ -734,6 +750,8 @@ var p:pintrtlevent;
 
 begin
   new(p);
+  p^.isset:=false;
+  InitSemaphore(@p^.Sem);
   result:=PRTLEVENT(p);
 end;
 
@@ -751,7 +769,9 @@ var p:pintrtlevent;
 
 begin
   p:=pintrtlevent(aevent);
+  ObtainSemaphore(@p^.Sem);
   p^.isset:=true;
+  ReleaseSemaphore(@p^.Sem);
 end;
 
 
@@ -760,7 +780,9 @@ var p:pintrtlevent;
 
 begin
   p:=pintrtlevent(aevent);
+  ObtainSemaphore(@p^.Sem);
   p^.isset:=false;
+  ReleaseSemaphore(@p^.Sem);
 end;
 
 
@@ -769,7 +791,15 @@ var p:pintrtlevent;
 
 begin
   p:=pintrtlevent(aevent);
+  ObtainSemaphore(@p^.Sem);
+  while not p^.isset do 
+    begin
+      ReleaseSemaphore(@p^.Sem);
+      DOSDelay(1);
+      ObtainSemaphore(@p^.Sem);
+    end;
   p^.isset:=false;
+  ReleaseSemaphore(@p^.Sem);
 end;
 
 procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
@@ -777,6 +807,17 @@ var
   p : pintrtlevent;
 begin
   p:=pintrtlevent(aevent);
+  timeout:=timeout div 20; // DOSDelay expects (1/50 seconds)
+  ObtainSemaphore(@p^.Sem);
+  while (not p^.isset) and (timeout > 0) do
+    begin
+      ReleaseSemaphore(@p^.Sem);
+      DOSDelay(1);
+      dec(timeout);
+      ObtainSemaphore(@p^.Sem);
+    end;
+  p^.isset:=false;
+  ReleaseSemaphore(@p^.Sem);
 end;
 
 
@@ -831,26 +872,317 @@ begin
 end;
 
 
+// Event Stuff
+
+// Return values for WaitFor
+const
+  wrSignaled  = 0;
+  wrTimeout   = 1;
+  wrAbandoned = 2;
+  wrError     = 3;
+
+// the internal AmigaEvent
+type
+  TAmiEvent = record
+    IsSet: Boolean;  // the actual Event setting
+    Manual: Boolean; // do not automatically reset the event
+    Name: string; // Name for the event structure (needed for cross process)
+    Waiter: Integer; // number of WaitFor waiting for this event
+    Destroyed: Boolean; // the event is going to be destroyed, all WaitFor please leave first
+    Sem: TSignalSemaphore; // Semaphore to protect the whole stuff
+  end;
+  PAmiEvent = ^TAmiEvent;
+
+// Create an Event
 function intBasicEventCreate(EventAttributes : Pointer;
 AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
+var
+  AmiEvent: PAmiEvent;
 begin
+  New(AmiEvent);
+  AmiEvent^.isSet := InitialState;
+  AmiEvent^.Name := Name;
+  AmiEvent^.Waiter := 0;
+  AmiEvent^.Manual := AManualReset;
+  AmiEvent^.Destroyed := False;
+  InitSemaphore(@AmiEvent^.Sem);
+  Result := AmiEvent;
 end;
 
 procedure intbasiceventdestroy(state:peventstate);
+var
+  AmiEvent: PAmiEvent absolute State;
+  Waiter: Integer;
 begin
+  if Assigned(AmiEvent) then
+  begin
+    ObtainSemaphore(@AmiEvent^.Sem);
+    AmiEvent^.Destroyed := True; // we destroy the event
+    ReleaseSemaphore(@AmiEvent^.Sem);
+    repeat
+      DosDelay(1);
+    until AmiEvent^.Waiter <= 0;
+    ObtainSemaphore(@AmiEvent^.Sem); // is there anyone still waiting for it?
+    ReleaseSemaphore(@AmiEvent^.Sem);
+    Dispose(AmiEvent);
+  end;
 end;
 
 procedure intbasiceventResetEvent(state:peventstate);
+var
+  AmiEvent: PAmiEvent absolute State;
 begin
+  if Assigned(AmiEvent) then
+  begin
+    {$IFDEF DEBUG_AMIEVENT}
+    SysDebugLn('AmiEvent: Reset Event');
+    {$ENDIF}
+    ObtainSemaphore(@AmiEvent^.Sem);
+    AmiEvent^.IsSet := False;
+    ReleaseSemaphore(@AmiEvent^.Sem);
+  end;
 end;
 
 procedure intbasiceventSetEvent(state:peventstate);
+var
+  AmiEvent: PAmiEvent absolute State;
 begin
+  if Assigned(AmiEvent) then
+  begin
+    {$IFDEF DEBUG_AMIEVENT}
+    SysDebugLn('AmiEvent: Set Event');
+    {$ENDIF}
+    ObtainSemaphore(@AmiEvent^.Sem);
+    AmiEvent^.IsSet := True;
+    ReleaseSemaphore(@AmiEvent^.Sem);
+  end;
 end;
 
-function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+// Timer stuff
+procedure NewList(List: PList); inline;
 begin
+  with List^ do
+  begin
+    lh_Head := PNode(@lh_Tail);
+    lh_Tail := nil;
+    lh_TailPred := PNode(@lh_Head)
+  end;
 end;
+
+function CreatePort(Name: PChar; Pri: LongInt): PMsgPort;
+var
+  SigBit: ShortInt;
+  Port: PMsgPort;
+begin
+  Sigbit := AllocSignal(-1);
+  if sigbit = -1 then
+    CreatePort := nil;
+  Port := ExecAllocMem(SizeOf(TMsgPort), MEMF_CLEAR);
+  if Port = nil then
+  begin
+    FreeSignal(SigBit);
+    CreatePort := nil;
+  end;
+  with port^ do
+  begin
+    if Assigned(Name) then
+      mp_Node.ln_Name := Name
+    else
+      mp_Node.ln_Name := nil;
+    mp_Node.ln_Pri := pri;
+    mp_Node.ln_Type := 4;
+    mp_Flags := 0;
+    mp_SigBit := SigBit;
+    mp_SigTask := FindTask(nil);
+  end;
+  if Assigned(Name) then
+    AddPort(Port)
+  else
+    NewList(Addr(Port^.mp_MsgList));
+  CreatePort := Port;
+end;
+
+procedure DeletePort(Port: PMsgPort);
+begin
+  if port <> nil then
+  begin
+    if Port^.mp_Node.ln_Name <> nil then
+      RemPort(Port);
+
+    Port^.mp_Node.ln_Type := $FF;
+    Port^.mp_MsgList.lh_Head := PNode(-1);
+    FreeSignal(Port^.mp_SigBit);
+    ExecFreeMem(Port, SizeOf(TMsgPort));
+  end;
+end;
+
+function CreateExtIO(Port: PMsgPort; Size: LongInt): PIORequest;
+begin
+  Result := nil;
+  if Port <> nil then
+  begin
+    Result := ExecAllocMem(Size, MEMF_CLEAR);
+    if Result <> nil then
+    begin
+      Result^.io_Message.mn_Node.ln_Type := 7;
+      Result^.io_Message.mn_Length := Size;
+      Result^.io_Message.mn_ReplyPort := Port;
+    end;
+  end;
+end;
+
+procedure DeleteExtIO (IoReq: PIORequest);
+begin
+  if IoReq <> nil then
+  begin
+    IoReq^.io_Message.mn_Node.ln_Type := $FF;
+    IoReq^.io_Message.mn_ReplyPort := PMsgPort(-1);
+    IoReq^.io_Device := PDevice(-1);
+    ExecFreeMem(IoReq, IoReq^.io_Message.mn_Length);
+  end
+end;
+
+function Create_Timer(TheUnit: LongInt): PTimeRequest;
+var
+  TimerPort: PMsgPort;
+begin
+  Result := nil;
+  TimerPort := CreatePort(nil, 0);
+  if TimerPort = nil then
+    Exit;
+  Result := PTimeRequest(CreateExtIO(TimerPort, SizeOf(TTimeRequest)));
+  if Result = Nil then
+  begin
+    DeletePort(TimerPort);
+    Exit;
+  end;
+  if OpenDevice(TIMERNAME, TheUnit, PIORequest(Result), 0) <> 0 then
+  begin
+    DeleteExtIO(PIORequest(Result));
+    DeletePort(TimerPort);
+    Result := nil;
+  end;
+end;
+
+Procedure Delete_Timer(WhichTimer: PTimeRequest);
+var
+  WhichPort: PMsgPort;
+begin
+  WhichPort := WhichTimer^.tr_Node.io_Message.mn_ReplyPort;
+  if assigned(WhichTimer) then
+  begin
+    CloseDevice(PIORequest(WhichTimer));
+    DeleteExtIO(PIORequest(WhichTimer));
+  end;
+  if Assigned(WhichPort) then
+    DeletePort(WhichPort);
+end;
+
+function GetEventTime(TR: PTimeRequest): Int64;
+begin
+  Result := -1;
+  if tr = nil then
+    Exit;
+  tr^.tr_node.io_Command := TR_GETSYSTIME;
+  DoIO(PIORequest(tr));
+  // structure assignment
+  Result := Int64(tr^.tr_time.TV_Secs) * 1000 + tr^.tr_time.TV_Micro div 1000;
+end;
+// End timer stuff
+
+// the mighty Waitfor routine
+function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+var
+  AmiEvent: PAmiEvent absolute State;
+  Tr: PTimeRequest = nil;
+  StartTime, CurTime: Int64;
+begin
+  {$IFDEF DEBUG_AMIEVENT}
+  SysDebugLn('AmiEvent: Enter WaitFor');
+  {$ENDIF}
+  Result := wrError;
+  if Assigned(AmiEvent) then
+  begin
+    // we do an initial Check
+    ObtainSemaphore(@AmiEvent^.Sem);
+    if AmiEvent^.Destroyed then
+    begin
+      Result := wrAbandoned; // we got destroyed, so we just leave
+      {$IFDEF DEBUG_AMIEVENT}
+      SysDebugLn('AmiEvent: WaitFor Early Destroy');
+      {$ENDIF}
+      Exit;
+    end;
+    if AmiEvent^.IsSet then
+    begin
+      Result := wrSignaled; // signal Already set
+      if not AmiEvent^.Manual then
+        AmiEvent^.IsSet := False;
+      {$IFDEF DEBUG_AMIEVENT}
+      SysDebugLn('AmiEvent: WaitFor Early Signaled');
+      {$ENDIF}
+      Exit;
+    end;
+    // signal not set, so we add this call to the waiterlist
+    Inc(AmiEvent^.Waiter);
+    ReleaseSemaphore(@AmiEvent^.Sem);
+    // that means we have to wait and care about the timeout -> need a timer
+    Tr := create_timer(UNIT_MICROHZ);
+    if not Assigned(Tr) then // cannot create timer :-O
+      Exit;
+    // time we started the actual waiting
+    StartTime := GetEventTime(TR);
+    try
+      // the main loop, notice the breaks are inside the Obtain/Release
+      // therefore the finally block must release it, (and no other exit allowed!)
+      repeat
+        CurTime := GetEventTime(TR); // to check the timeout, outside obtain/release to save some time
+        ObtainSemaphore(@AmiEvent^.Sem);
+        // check the status of event
+        if AmiEvent^.Destroyed then
+        begin
+          Result := wrAbandoned; // we got destroyed
+          {$IFDEF DEBUG_AMIEVENT}
+          SysDebugLn('AmiEvent: WaitFor Destroy');
+          {$ENDIF}
+          break;
+        end;
+        if AmiEvent^.IsSet then
+        begin
+          Result := wrSignaled; // signal got set
+          {$IFDEF DEBUG_AMIEVENT}
+          SysDebugLn('AmiEvent: WaitFor Signaled');
+          {$ENDIF}
+          Break;
+        end;
+        if CurTime - StartTime > Timeout then
+        begin
+          Result := wrTimeOut; // we got a timeout
+          {$IFDEF DEBUG_AMIEVENT}
+          SysDebugLn('AmiEvent: WaitFor TimeOut');
+          {$ENDIF}
+          Break;
+        end;
+        // if we reach here, nothing happend...
+        // we release the semaphore and wait for other threads to do something
+        ReleaseSemaphore(@AmiEvent^.Sem);
+        DosDelay(1);
+      until False;
+    finally
+      // reset the Event if needed
+      if (Result = wrSignaled) and (not AmiEvent^.Manual) then
+        AmiEvent^.IsSet := False;
+      // we finished so get us away from waiter list
+      Dec(AmiEvent^.Waiter);
+      ReleaseSemaphore(@AmiEvent^.Sem); // unlock the event
+      Delete_timer(tr); // timer not needed anymore
+    end;
+  end;
+  {$IFDEF DEBUG_AMIEVENT}
+  SysDebugLn('AmiEvent: Leave WaitFor');
+  {$ENDIF}
+end;
+// end Event stuff
 
 
 function AInitThreads : Boolean;

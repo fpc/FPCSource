@@ -60,7 +60,7 @@
 
       TinyHeapAllocGranularity = sizeof(TTinyHeapBlock);
 
-    procedure RegisterTinyHeapBlock(AAddress: pointer; ASize: ptruint); forward;
+    procedure RegisterTinyHeapBlock(AAddress: Pointer; ASize:{$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif}); forward;
 
     function EncodeTinyHeapFreeBlockSize(Size: PtrUInt): TTinyHeapFreeBlockSize; inline;
       begin
@@ -148,13 +148,18 @@
                  p:=SysOSAlloc(AllocSize);
                  if assigned(p) then
                    begin
+                     { This needs toi be fixed because
+                       HeapEnd and HeapSize are not updated correctly
                      if p > HeapPtr then
                        begin
                          prev:=HeapPtr;
                          HeapPtr:=p;
                        end
-                     else
+                     else }
                        begin
+{$ifdef DEBUG_TINY_HEAP}
+                         Writeln('SysAlloc returned: ',HexStr(p));
+{$endif DEBUG_TINY_HEAP}
                          RegisterTinyHeapBlock(p,AllocSize);
                          { Recursive call }
                          SysGetMem:=SysGetMem(Size);
@@ -163,10 +168,13 @@
                    end
                  else
                    begin
-              if ReturnNilIfGrowHeapFails then
-                Result := nil
-              else
-                 HandleError(203);
+                     if ReturnNilIfGrowHeapFails then
+                       begin
+                         Result := nil;
+                         exit;
+                       end
+                     else
+                       HandleError(203);
                    end;
               end;
             result := @PTinyHeapMemBlockSize(HeapPtr)[1];
@@ -496,7 +504,7 @@
         FreeList := p;
       end;
 
-    procedure InternalTinyAlign(var AAddress: Pointer; ASize: PtrUInt);
+    procedure InternalTinyAlign(var AAddress: Pointer; var ASize: {$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif});
       var
         alignment_inc: smallint;
       begin
@@ -509,7 +517,7 @@
     { Strongly simplified version of RegisterTinyHeapBlock, which can be used when
       the heap is only a single contiguous memory block. If you want to add
       multiple blocks to the heap, you should use RegisterTinyHeapBlock instead. }
-    procedure RegisterTinyHeapBlock_Simple(AAddress: Pointer; ASize: PtrUInt);
+    procedure RegisterTinyHeapBlock_Simple(AAddress: Pointer; ASize:{$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif});
       begin
 {$ifdef DEBUG_TINY_HEAP}
         Writeln('RegisterTinyHeapBlock_Simple(', HexStr(AAddress), ',', ASize, ')');
@@ -525,7 +533,7 @@
     { Strongly simplified version of RegisterTinyHeapBlock, which can be used when
       the heap is only a single contiguous memory block and the address and size
       are already aligned on a TinyHeapAllocGranularity boundary. }
-    procedure RegisterTinyHeapBlock_Simple_Prealigned(AAddress: Pointer; ASize: PtrUInt);
+    procedure RegisterTinyHeapBlock_Simple_Prealigned(AAddress: Pointer; ASize: {$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif});
       begin
 {$ifdef DEBUG_TINY_HEAP}
         Writeln('RegisterTinyHeapBlock_Simple_Prealigned(', HexStr(AAddress), ',', ASize, ')');
@@ -537,7 +545,7 @@
         HeapEnd:=Pointer(TTinyHeapPointerArithmeticType(AAddress)+ASize);
       end;
 
-    procedure RegisterTinyHeapBlock(AAddress: pointer; ASize: ptruint);
+    procedure RegisterTinyHeapBlock(AAddress: pointer; ASize: {$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif});
       var
         alignment_inc: smallint;
         p: PTinyHeapBlock;
@@ -569,7 +577,7 @@
                         p:=FreeList;
                         while p^.Next<>HeapPtr do
                           p:=p^.Next;
-                        PTinyHeapBlock(HeapPtr)^.Next:=AAddress;
+                        PTinyHeapBlock(p)^.Next:=AAddress;
                       end;
                   end
                 else

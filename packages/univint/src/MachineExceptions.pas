@@ -6,6 +6,8 @@
  
      Copyright:  © 1993-2011 by Apple Inc. All rights reserved.
 }
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, June 2018 }
+
 {
     Modified for use with Free Pascal
     Version 308
@@ -14,6 +16,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -396,16 +399,14 @@ type
 type
   Vector128intel = record
 		case SInt16 of
-{ requires vector support
 		0: (
-			s: single_128_bit_vector
+			s: array [0..3] of Float32;
 			);
-}
 		1: (
-			si: array [0..3] of UInt32;
+			si: array [0..1] of SInt64;
 			);
 		2: (
-			s: array [0..1] of Float64;
+			sd: array [0..1] of Float64;
 			);
 		3: (
 			c: packed array [0..15] of UInt8;

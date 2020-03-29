@@ -62,6 +62,7 @@ begin
   For I:=1 to ParamCount do
     CmdLine:=CmdLine+' '+Paramstr(i);
   E := TSimpleEngine.Create;
+  M := nil;
   try
     M := ParseSource(E, cmdline, 'linux', 'i386');
  
@@ -84,6 +85,8 @@ begin
           (TObject(Decls[I]) as TPasElement).Name);
     end;
  
+  finally
     FreeAndNil(M);
-  finally FreeAndNil(E) end;
+    FreeAndNil(E)
+  end;
 end.

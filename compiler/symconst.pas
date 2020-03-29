@@ -111,6 +111,9 @@ const
   pfVmt      = 1024;
   pfResult   = 2048;
 
+  riifNonTrivialChild          = 1;
+  riifParentHasNonTrivialChild = 2;
+
   unknown_level         = 0;
   main_program_level    = 1;
   normal_function_level = 2;
@@ -119,26 +122,33 @@ const
     and will increase with 10 for each parameter. The high parameters
     will be inserted with n+1 }
   paranr_blockselfpara = 1;
-  paranr_parentfp = 2;
   paranr_parentfp_delphi_cc_leftright = 2;
-{$ifndef aarch64}
+{$if defined(aarch64) and defined(llvm)}
+  { for AArch64 on LLVM, the "sret" parameter must always be the first
+    (it gets passed in a dedicated register, so it won't shift the register
+     assignments) -> give it a lower number; can't do it for other platforms,
+     because that would change the register assignment/parameter order }
+  paranr_result = 2;
+  paranr_parentfp = 3;
+  paranr_self = 4;
+{$else}
+  paranr_parentfp = 2;
   paranr_self = 3;
   paranr_result = 4;
-{$else aarch64}
-  { on AArch64, the result parameter is passed in a special register, so its
-    order doesn't really matter -- except for LLVM, where the "sret" parameter
-    must always be the first -> give it a higher number; can't do it for other
-    platforms, because that would change the register assignment/parameter order
-    and the current one is presumably Delphi-compatible }
-  paranr_result = 3;
-  paranr_self = 4;
-{$endif aarch64}
-  paranr_vmt = 5;
+{$endif}
+  { pointers to managed result parameters must always be passed in the same way as the first regular
+    parameter, regardless of ABI conventions, because the RTL expects the two following declarations
+    to be handled in the same way:
+      function f: com_interface;
+      procedure p(out o: obj);
+  }
+  paranr_result_managed = 5;
+  paranr_vmt = 6;
 
   { the implicit parameters for Objective-C methods need to come
     after the hidden result parameter }
-  paranr_objc_self = 5;
-  paranr_objc_cmd = 6;
+  paranr_objc_self = 7;
+  paranr_objc_cmd = 8;
 
   { Required to support variations of syscalls on Amiga-likes }
   paranr_syscall_lib_first   = 9;             { for basefirst on MorphOS/ppc and AmigaOS4/ppc }
@@ -229,7 +239,9 @@ type
       because we have to access this information in the symtable unit }
     df_llvm_no_struct_packing,
     { internal def that's not for any export }
-    df_internal
+    df_internal,
+    { the local def is referenced from a public function }
+    df_has_global_ref
   );
   tdefoptions=set of tdefoption;
 
@@ -267,9 +279,9 @@ type
     uvoid,
     u8bit,u16bit,u32bit,u64bit,u128bit,
     s8bit,s16bit,s32bit,s64bit,s128bit,
-    pasbool8,pasbool16,pasbool32,pasbool64,
+    pasbool1,pasbool8,pasbool16,pasbool32,pasbool64,
     bool8bit,bool16bit,bool32bit,bool64bit,
-    uchar,uwidechar,scurrency
+    uchar,uwidechar,scurrency,customint
   );
 
   tordtypeset = set of tordtype;
@@ -305,7 +317,8 @@ type
     potype_propsetter,
     potype_exceptfilter,      { SEH exception filter or termination handler }
     potype_mainstub,          { "main" function that calls through to FPC_SYSTEMMAIN }
-    potype_pkgstub            { stub for a package file, that tells OS that all is OK }
+    potype_pkgstub,           { stub for a package file, that tells OS that all is OK }
+    potype_libmainstub        { "main" function for a library that calls through to FPC_LIBMAIN }
   );
   tproctypeoptions=set of tproctypeoption;
 
@@ -355,6 +368,8 @@ type
     po_syscall_basereg,
     { Used to record the fact that a symbol is associated to this syscall }
     po_syscall_has_libsym,
+    { Syscall uses the import Nr. }
+    po_syscall_has_importnr,
     { Procedure can be inlined }
     po_inline,
     { Procedure is used for internal compiler calls }
@@ -398,6 +413,8 @@ type
     po_auto_raised_visibility,
     { procedure is far (x86 only) }
     po_far,
+    { near/far call model is specified explicitly (x86 only) }
+    po_hasnearfarcallmodel,
     { the procedure never returns, this information is usefull for dfa }
     po_noreturn,
     { procvar is a function reference }
@@ -407,7 +424,14 @@ type
     { procedure is an automatically generated property getter }
     po_is_auto_getter,
     { procedure is an automatically generated property setter }
-    po_is_auto_setter
+    po_is_auto_setter,
+    { must never be inlined          by auto-inlining }
+    po_noinline,
+    { same as po_varargs, but with an array-of-const parameter instead of with the
+      "varargs" modifier or Mac-Pascal ".." parameter }
+    po_variadic,
+    { implicitly return same type as the class instance to which the message is sent }
+    po_objc_related_result_type
   );
   tprocoptions=set of tprocoption;
 
@@ -417,7 +441,17 @@ type
     { the routine contains no code }
     pio_empty,
     { the inline body of this routine is available }
-    pio_has_inlininginfo
+    pio_has_inlininginfo,
+    { inline is not possible (has assembler block, etc) }
+    pio_inline_not_possible,
+    { a nested routine accesses a local variable from this routine }
+    pio_nested_access,
+    { a stub/thunk }
+    pio_thunk,
+    { compiled with fastmath enabled }
+    pio_fastmath,
+    { inline is forbidden (calls get_frame) }
+    pio_inline_forbidden
   );
   timplprocoptions = set of timplprocoption;
 
@@ -532,7 +566,8 @@ type
     ado_IsConstructor,      // array constructor (e.g. something = [1,2,3])
     ado_IsArrayOfConst,     // array of const
     ado_IsConstString,      // string constant
-    ado_IsBitPacked         // bitpacked array
+    ado_IsBitPacked,        // bitpacked array
+    ado_IsVector            // Vector
   );
   tarraydefoptions=set of tarraydefoption;
 
@@ -584,9 +619,22 @@ type
     vo_force_finalize,
     { this is an internal variable that is used for Default() intrinsic in code
       sections }
-    vo_is_default_var
+    vo_is_default_var,
+    { i8086 'external far' (can only be used in combination with vo_is_external) }
+    vo_is_far,
+    { a static symbol that is referenced from a global function }
+    vo_has_global_ref
   );
   tvaroptions=set of tvaroption;
+
+  { variable symbol access flags }
+  tvarsymaccessflag = (
+    { this symbol's address has been taken }
+    vsa_addr_taken,
+    { this symbol is accessed from a different scope }
+    vsa_different_scope
+  );
+  tvarsymaccessflags = set of tvarsymaccessflag;
 
   tmanagementoperator=(mop_none,
     mop_initialize,
@@ -629,8 +677,11 @@ type
     sto_has_helper,       { contains at least one helper symbol }
     sto_has_generic,      { contains at least one generic symbol }
     sto_has_operator,     { contains at least one operator overload }
-    sto_needs_init_final  { the symtable needs initialization and/or
+    sto_needs_init_final, { the symtable needs initialization and/or
                             finalization of variables/constants }
+    sto_has_non_trivial_init { contains at least on managed type that is not
+                               initialized to zero (e.g. a record with management
+                               operators }
   );
   tsymtableoptions = set of tsymtableoption;
 
@@ -707,18 +758,37 @@ type
     itp_vmt_afterconstruction_local,
     itp_rttidef,
     itp_rtti_header,
+    itp_rtti_outer,
+    itp_rtti_case,
+    itp_rtti_common_data,
     itp_rtti_prop,
     itp_rtti_ansistr,
+    itp_rtti_attr_list,
+    itp_rtti_attr_entry,
     itp_rtti_ord_outer,
+    itp_rtti_ord_middle,
     itp_rtti_ord_inner,
     itp_rtti_ord_64bit,
     itp_rtti_normal_array,
+    itp_rtti_normal_array_inner,
     itp_rtti_dyn_array,
+    itp_rtti_dyn_array_inner,
+    itp_rtti_pointer,
+    itp_rtti_classref,
+    itp_rtti_float,
     itp_rtti_proc_param,
     itp_rtti_enum_size_start_rec,
+    itp_rtti_enum_size_start_rec2,
     itp_rtti_enum_min_max_rec,
     itp_rtti_enum_basetype_array_rec,
+    itp_rtti_ref,
+    itp_rtti_set_outer,
+    itp_rtti_set_middle,
+    itp_rtti_set_inner,
+    itp_rtti_record,
+    itp_rtti_record_inner,
     itp_init_record_operators,
+    itp_init_mop_offset_entry,
     itp_threadvar_record,
     itp_objc_method_list,
     itp_objc_proto_list,
@@ -798,14 +868,8 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
              oo_can_have_published];
 {$endif not jvm}
 
-{$ifdef i386}
-   { we only take this into account on i386, on other platforms we always
-     push in the same order
-   }
-   pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
-{$endif}
-{$ifdef i8086}
-   { we only take this into account on i386, on other platforms we always
+{$if defined(i8086) or defined(i386)}
+   { we only take this into account on i8086 and i386, on other platforms we always
      push in the same order
    }
    pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
@@ -849,18 +913,37 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
        '$vmt_afterconstruction_local',
        '$rttidef$',
        '$rtti_header$',
+       '$rtti_outer$',
+       '$rtti_case$',
+       '$rtti_common_data$',
        '$rtti_prop$',
        '$rtti_ansistr$',
+       '$rtti_attr_list$',
+       '$rtti_attr_entry$',
        '$rtti_ord_outer$',
+       '$rtti_ord_middle$',
        '$rtti_ord_inner$',
        '$rtti_ord_64bit$',
        '$rtti_normal_array$',
+       '$rtti_normal_array_inner$',
        '$rtti_dyn_array$',
+       '$rtti_dyn_array_inner$',
+       '$rtti_dyn_pointer$',
+       '$rtti_dyn_classref$',
+       '$rtti_dyn_float$',
        '$rtti_proc_param$',
        '$rtti_enum_size_start_rec$',
+       '$rtti_enum_size_start_rec2$',
        '$rtti_enum_min_max_rec$',
        '$rtti_enum_basetype_array_rec$',
+       '$rtti_ref$',
+       '$rtti_set_outer$',
+       '$rtti_set_middle$',
+       '$rtti_set_inner$',
+       '$rtti_record$',
+       '$rtti_record_inner$',
        '$init_record_operators$',
+       '$init_mop_offset_entry$',
        '$threadvar_record$',
        '$objc_method_list$',
        '$objc_proto_list$',
@@ -884,6 +967,8 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
 {$else not jvm}
      default_class_type=odt_javaclass;
 {$endif not jvm}
+
+     objecttypes_with_helpers=[odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface];
 
 { !! Be sure to keep these in sync with ones in rtl/inc/varianth.inc }
       varempty = 0;
@@ -925,6 +1010,92 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
 
       { suffix for indirect symbols (AB_INDIRECT) }
       suffix_indirect = '$indirect';
+
+    { TProcTypeOption string identifiers for error messsages }
+    ProcTypeOptionKeywords: array[tproctypeoption] of ShortString = (
+      'potype_none',        {potype_none}
+      'program initialization',{potype_proginit}
+      '"INITIALIZATION"',   {potype_unitinit}
+      '"FINALIZATION"',     {potype_unitfinalize}
+      '"CONSTRUCTOR"',      {potype_constructor}
+      '"DESTRUCTOR"',       {potype_destructor}
+      '"OPERATOR"',         {potype_operator}
+      '"PROCEDURE"',        {potype_procedure}
+      '"FUNCTION"',         {potype_function}
+      '"CLASS CONSTRUCTOR"',{potype_class_constructor}
+      '"CLASS DESTRUCTOR"', {potype_class_destructor}
+      'property getters',   {potype_propgetter}
+      'property setters',   {potype_propsetter}
+      'exception filters',  {potype_exceptfilter}
+      '"main" stub',        {potype_mainstub}
+      'package stub',       {potype_pkgstub}
+      'lib "main" stub'     {potype_libmainstub}
+    );
+
+    { TProcOption string identifiers for error messages }
+    ProcOptionKeywords: array[tprocoption] of ShortString = (
+      'po_none',            {po_none}
+      '"CLASS"',            {po_classmethod}
+      '"VIRTUAL"',          {po_virtualmethod}
+      '"ABSTRACT"',         {po_abstractmethod}
+      '"FINAL"',            {po_finalmethod}
+      '"STATIC"',           {po_staticmethod}
+      '"OVERRIDE"',         {po_overridingmethod}
+      'method pointers',    {po_methodpointer}
+      '"INTERRUPT"',        {po_interrupt}
+      'po_iocheck',         {po_iocheck}
+      '"ASSEMBLER"',        {po_assembler}
+      '"MESSAGE"',          {po_msgstr}
+      '"MESSAGE"',          {po_msgint}
+      '"EXPORT"',           {po_exports}
+      '"EXTERNAL"',         {po_external}
+      '"OVERLOAD"',         {po_overload}
+      'variable argument lists',{po_varargs}
+      'po_internconst',     {po_internconst}
+      'po_addressonly',     {po_addressonly}
+      '"PUBLIC"',           {po_public}
+      'po_hascallingconvention',{po_hascallingconvention}
+      '"REINTRODUCE"',      {po_reintroduce}
+      'po_explicitparaloc', {po_explicitparaloc}
+      '"NOSTACKFRAME"',     {po_nostackframe}
+      'po_has_mangledname', {po_has_mangledname}
+      'po_has_public_name', {po_has_public_name}
+      '"FORWARD"',          {po_forward}
+      'global routines',    {po_global}
+      '"SYSCALL"',          {po_syscall}
+      '"SYSCALL"',          {po_syscall_legacy}
+      '"SYSCALL"',          {po_syscall_basenone}
+      '"SYSCALL"',          {po_syscall_basefirst}
+      '"SYSCALL"',          {po_syscall_baselast}
+      '"SYSCALL"',          {po_syscall_basereg}
+      '"SYSCALL"',          {po_syscall_has_libsym}
+      '"SYSCALL"',          {po_syscall_has_importnr}
+      '"INLINE"',           {po_inline}
+      '"COMPILERPROC"',     {po_compilerproc}
+      'po_has_importdll',   {po_has_importdll}
+      'po_has_importname',  {po_has_importname}
+      'po_kylixlocal',      {po_kylixlocal}
+      '"DISPID"',           {po_dispid}
+      'po_weakexternal',    {po_weakexternal}
+      'po_objc',            {po_objc}
+      'po_enumerator_movenext',{po_enumerator_movenext}
+      'po_optional',        {po_optional}
+      'po_delphi_nested_cc',{po_delphi_nested_cc}
+      'RTL procedures',     {po_rtlproc}
+      'non-virtual Java methods',{po_java_nonvirtual}
+      'po_ignore_for_overload_resolution',{po_ignore_for_overload_resolution}
+      'po_auto_raised_visibility',{po_auto_raised_visibility}
+      '"FAR"',              {po_far}
+      'po_hasnearfarcallmodel',{po_hasnearfarcallmodel}
+      '"NORETURN"',{po_noreturn}
+      'po_is_function_ref',{po_is_function_ref}
+      'C-style blocks',{po_is_block}
+      'po_is_auto_getter',{po_is_auto_getter}
+      'po_is_auto_setter',{po_is_auto_setter}
+      'po_noinline',{po_noinline}
+      'C-style array-of-const', {po_variadic}
+      'objc-related-result-type' {po_objc_related_result_type}
+    );
 
 implementation
 

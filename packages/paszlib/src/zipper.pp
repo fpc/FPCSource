@@ -13,7 +13,7 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
-unit zipper;
+unit Zipper;
 
 Interface
 
@@ -34,6 +34,7 @@ Const
   ZIP64_HEADER_ID                            = $0001;
   // infozip unicode path
   INFOZIP_UNICODE_PATH_ID                    = $7075;
+  EFS_LANGUAGE_ENCODING_FLAG                 = $800;
 
 const
   OS_FAT  = 0; //MS-DOS and OS/2 (FAT/VFAT/FAT32)
@@ -71,7 +72,6 @@ Type
    Local_File_Header_Type = Packed Record //1 per zipped file
      Signature              :  LongInt; //4 bytes
      Extract_Version_Reqd   :  Word; //if zip64: >= 45
-     {$warning TODO implement EFS/language enooding using UTF-8}
      Bit_Flag               :  Word; //"General purpose bit flag in PKZip appnote
      Compress_Method        :  Word;
      Last_Mod_Time          :  Word;
@@ -433,6 +433,7 @@ Type
     FOnEndOfFile    : TOnEndOfFileEvent;
     FOnStartFile    : TOnStartFileEvent;
     FCurrentCompressor : TCompressor;
+    FUseLanguageEncoding: Boolean;
     function CheckEntries: Integer;
     procedure SetEntries(const AValue: TZipFileEntries);
   Protected
@@ -453,15 +454,25 @@ Type
     Destructor Destroy;override;
     Procedure ZipAllFiles; virtual;
     // Saves zip to file and changes FileName
-    Procedure SaveToFile(AFileName: RawByteString);
+    Procedure SaveToFile(const AFileName: RawByteString);
     // Saves zip to stream
     Procedure SaveToStream(AStream: TStream);
     // Zips specified files into a zip with name AFileName
-    Procedure ZipFiles(AFileName : RawByteString; FileList : TStrings);
+    Procedure ZipFile(const aFileToBeZipped : RawByteString);
+    Procedure ZipFile(const AZipFileName,aFileToBeZipped : RawByteString);
+    Procedure ZipFiles(const AZipFileName : RawByteString; FileList : TStrings);
+    Procedure ZipFiles(const AZipFileName : RawByteString; const FileList : Array of RawbyteString);
+    Procedure ZipFiles(const aFileList : Array of RawbyteString);
     Procedure ZipFiles(FileList : TStrings);
     // Zips specified entries into a zip with name AFileName
-    Procedure ZipFiles(AFileName : RawByteString; Entries : TZipFileEntries);
+    Procedure ZipFiles(const AZipFileName : RawByteString; Entries : TZipFileEntries);
     Procedure ZipFiles(Entries : TZipFileEntries);
+    // Easy access method
+    // Zip single file
+    Class Procedure Zip(const AZipFileName : RawByteString; const aFileToBeZipped: RawByteString);
+    // Zip multiple file
+    Class Procedure Zip(const AZipFileName : RawByteString; aFileList : Array of RawByteString);
+    Class Procedure Zip(const AZipFileName : RawByteString; aFileList : TStrings);
     Procedure Clear;
     Procedure Terminate;
   Public
@@ -477,6 +488,8 @@ Type
     Property InMemSize : Int64 Read FInMemSize Write FInMemSize;
     Property Entries : TZipFileEntries Read FEntries Write SetEntries;
     Property Terminated : Boolean Read FTerminated;
+    // EFS/language encoding using UTF-8
+    Property UseLanguageEncoding : Boolean Read FUseLanguageEncoding Write FUseLanguageEncoding;
   end;
 
   { TFullZipFileEntry }
@@ -522,7 +535,8 @@ Type
     FFileComment: String;
     FEntries    : TFullZipFileEntries;
     FFiles      : TStrings;
-    FUseUTF8: Boolean;
+    FUseUTF8    : Boolean;
+    FFlat       : Boolean;
     FZipStream  : TStream;     { I/O file variables                         }
     LocalHdr    : Local_File_Header_Type; //Local header, before compressed file data
     LocalZip64Fld   : Zip64_Extended_Info_Field_Type; //header is in LocalZip64ExtHdr
@@ -560,9 +574,20 @@ Type
     Constructor Create;
     Destructor Destroy;override;
     Procedure UnZipAllFiles; virtual;
-    Procedure UnZipFiles(AFileName : RawByteString; FileList : TStrings);
-    Procedure UnZipFiles(FileList : TStrings);
-    Procedure UnZipAllFiles(AFileName : RawByteString);
+    Procedure UnZipFile(const aExtractFileName: RawByteString);
+    Procedure UnZipFile(const AZipFileName, aExtractFileName: RawByteString);
+    Procedure UnZipFiles(const AZipFileName : RawByteString; FileList : TStrings);
+    Procedure UnZipFiles(const AZipFileName : RawByteString; aFileList : Array of RawBytestring);
+    Procedure UnZipFiles(aFileList : TStrings);
+    Procedure UnZipAllFiles(const AZipFileName : RawByteString);
+    // Easy access methods. No instance needed, uses default options.
+    // Unzip all files
+    Class Procedure Unzip(const AZipFileName : RawByteString);
+    // Unzip a single file.
+    Class Procedure Unzip(const AZipFileName : RawByteString;aExtractFileName : RawByteString);
+    // Unzip several files
+    Class Procedure Unzip(const AZipFileName : RawByteString; aFileList : Array of RawByteString);
+    Class Procedure Unzip(const AZipFileName : RawByteString; aFileList : TStrings);
     Procedure Clear;
     Procedure Examine;
     Procedure Terminate;
@@ -583,6 +608,7 @@ Type
     Property Files : TStrings Read FFiles;
     Property Entries : TFullZipFileEntries Read FEntries;
     Property UseUTF8 : Boolean Read FUseUTF8 Write FUseUTF8;
+    Property Flat : Boolean Read FFlat Write FFlat; // enable flat extraction, like -j when using unzip
     Property Terminated : Boolean Read FTerminated;
   end;
 
@@ -631,16 +657,33 @@ Type
 
 
   constructor TFileStream.Create(const AFileName: rawbytestring; Mode: Word; Rights: Cardinal);
+    {$ifdef Windows}
+    function FixLongFilename(const Fn: RawByteString): RawByteString;
+    begin
+      Result := Fn;
+      if (Length(Fn)>MAX_PATH) and not ((Pos('\\?\', Fn)=1) or (Pos('\\.\', Fn)=1) or (Pos('\\?\UNC\', Fn)=1)) then
+        begin
+          if (Pos('\\', Fn)=1) and (length(FN)>2) then
+            Insert('?\UNC\',Result,3)
+          else
+            Result:='\\?\'+Fn;
+        end;
+    end;
+    {$endif}
 
   Var
     H : Thandle;
 
   begin
+    {$ifdef Windows}
+    FFileName:=FixLongFilename(AFileName);
+    {$else}
     FFileName:=AFileName;
+    {$endif}
     If (Mode and fmCreate) > 0 then
-      H:=FileCreate(AFileName,Mode,Rights)
+      H:=FileCreate(FFileName,Mode,Rights)
     else
-      H:=FileOpen(AFileName,Mode);
+      H:=FileOpen(FFileName,Mode);
 
     If (THandle(H)=feInvalidHandle) then
       If Mode=fmcreate then
@@ -1027,7 +1070,7 @@ begin
         Count:=C.Read(Buf^,FBufferSize);
         For I:=0 to Count-1 do
           UpdC32(Buf[i]);
-        FOutFile.Write(Buf^,Count);
+        FOutFile.WriteBuffer(Buf^,Count);
         inc(BytesNow,Count);
         if BytesNow>NextMark Then
            begin
@@ -1455,7 +1498,10 @@ Begin
         Raise EZipError.CreateFmt(SErrMissingFileName,[I]);
       If FindFirst(F.DiskFileName, STDATTR, Info)=0 then
         try
-          F.Size:=Info.Size;
+          if Info.Attr and faDirectory <> 0 then //in Linux directory Size <> 0
+            F.Size := 0
+          else
+            F.Size:=Info.Size;
           F.DateTime:=FileDateToDateTime(Info.Time);
         {$IFDEF UNIX}
           if fplstat(F.DiskFileName, @UnixInfo) = 0 then
@@ -1564,12 +1610,16 @@ function TZipper.UpdateZipHeader(Item: TZipFileEntry; FZip: TStream;
 var
   IsZip64           : boolean; //Must the local header be in zip64 format?
   // Separate from zip64 status of entire zip file.
-  ZFileName         : String;
+  ZFileName         : RawByteString;
 Begin
   ZFileName := Item.ArchiveFileName;
   IsZip64 := false;
   With LocalHdr do
     begin
+    if FUseLanguageEncoding then begin
+      SetCodePage(ZFileName, CP_UTF8, True);
+      Bit_Flag := Bit_Flag or EFS_LANGUAGE_ENCODING_FLAG;
+    end;
     FileName_Length := Length(ZFileName);
     Crc32 := ACRC;
     if LocalZip64Fld.Original_Size > 0 then
@@ -1607,6 +1657,8 @@ Begin
       begin
         Compressed_Size := FZip.Size;
         LocalZip64Fld.Compressed_Size := 0;
+        if LocalZip64Fld.Original_Size > 0 then
+          IsZip64 := true;
       end;
       if AZipVersionReqd > Extract_Version_Reqd then
         Extract_Version_Reqd := AZipVersionReqd;
@@ -1621,7 +1673,6 @@ Begin
   FOutStream.WriteBuffer(ZFileName[1],Length(ZFileName));
   if IsZip64 then
   begin
-    LocalZip64ExtHdr.Header_ID:=ZIP64_HEADER_ID;
     FOutStream.WriteBuffer({$IFDEF ENDIAN_BIG}SwapEDFH{$ENDIF}(LocalZip64ExtHdr),SizeOf(LocalZip64ExtHdr));
     FOutStream.WriteBuffer({$IFDEF ENDIAN_BIG}SwapZ64EIF{$ENDIF}(LocalZip64Fld),SizeOf(LocalZip64Fld));
   end;
@@ -1680,7 +1731,7 @@ Begin
             end;
           end;
       // Move past extra fields
-      FOutStream.Seek(SavePos+LocalHdr.Extra_Field_Length,soFromBeginning);
+      //FOutStream.Seek(SavePos+LocalHdr.Extra_Field_Length,soFromBeginning);
       end;
     SavePos := FOutStream.Position;
     FillChar(CentralHdr,SizeOf(CentralHdr),0);
@@ -1730,9 +1781,16 @@ Begin
       else
         Local_Header_Offset := HdrPos;
       end;
+
+      if IsZip64 then
+      begin
+          CentralHdr.Extra_Field_Length:=SizeOf(LocalZip64ExtHdr)+SizeOf(LocalZip64Fld);
+      end else CentralHdr.Extra_Field_Length :=0;
+
     FOutStream.Seek(0,soEnd);
     FOutStream.WriteBuffer({$IFDEF FPC_BIG_ENDIAN}SwapCFH{$ENDIF}(CentralHdr),SizeOf(CentralHdr));
     FOutStream.WriteBuffer(ZFileName[1],Length(ZFileName));
+
     if IsZip64 then
       begin
       FOutStream.Seek(0,soEnd);
@@ -1742,7 +1800,7 @@ Begin
 
     Inc(ACount);
     // Move past compressed file data to next header:
-    if Iszip64 then
+    if LocalZip64Fld.Compressed_Size > 0 then
       FOutStream.Seek(SavePos + LocalZip64Fld.Compressed_Size,soBeginning)
     else
       FOutStream.Seek(SavePos + LocalHdr.Compressed_Size,soBeginning);
@@ -1848,7 +1906,8 @@ Var
   ZVersionReqd : Word;
   ZBitFlag : Word;
   ZipStream : TStream;
-  TmpFileName : String;
+  TmpFileName, Start : String;
+  I : Integer;
 
 Begin
   OpenInput(Item);
@@ -1858,9 +1917,12 @@ Begin
       ZipStream:=TMemoryStream.Create
     else
       begin
-      TmpFileName:=ChangeFileExt(FFileName,'.tmp');
-      if TmpFileName=FFileName then
-        TmpFileName:=TmpFileName+'.tmp';
+      Start := ChangeFileExt(FFileName, '');
+      I := 0;
+      repeat
+        TmpFileName := Format('%s%.5d.tmp', [Start, I]);
+        Inc(I);
+      until not FileExists(TmpFileName);
       ZipStream:=TFileStream.Create(TmpFileName,fmCreate);
       end;
     Try
@@ -1902,7 +1964,7 @@ begin
   SaveToFile(FileName);
 end;
 
-procedure TZipper.SaveToFile(AFileName: RawByteString);
+procedure TZipper.SaveToFile(const AFileName: RawByteString);
 var
   lStream: TFileStream;
 begin
@@ -1942,6 +2004,17 @@ begin
   end;
 end;
 
+procedure TZipper.ZipFile(const aFileToBeZipped: RawByteString);
+begin
+  ZipFiles([aFileToBeZipped]);
+end;
+
+procedure TZipper.ZipFile(const AZipFileName, aFileToBeZipped: RawByteString);
+begin
+  FileName:=aZipFileName;
+  ZipFile(aFileToBeZipped);
+end;
+
 
 Procedure TZipper.SetBufSize(Value : LongWord);
 
@@ -1960,11 +2033,34 @@ begin
   FFileName:=Value;
 end;
 
-Procedure TZipper.ZipFiles(AFileName : RawByteString; FileList : TStrings);
+Procedure TZipper.ZipFiles(Const AZipFileName : RawByteString; FileList : TStrings);
 
 begin
-  FFileName:=AFileName;
+  FFileName:=AZipFileName;
   ZipFiles(FileList);
+end;
+
+procedure TZipper.ZipFiles(const AZipFileName: RawByteString; const FileList: array of RawbyteString);
+
+begin
+  FileName:=aZipFileName;
+  ZipFiles(FileList);
+end;
+
+procedure TZipper.ZipFiles(const aFileList: array of RawbyteString);
+Var
+  L : TStringList;
+  S : RawByteString;
+begin
+  L:=TStringList.Create;
+  try
+    L.Capacity:=Length(aFileList);
+    for S in aFileList do
+      L.Add(S);
+    ZipFiles(L);
+  finally
+    L.Free;
+  end;
 end;
 
 procedure TZipper.ZipFiles(FileList: TStrings);
@@ -1973,9 +2069,9 @@ begin
   ZipAllFiles;
 end;
 
-procedure TZipper.ZipFiles(AFileName: RawByteString; Entries: TZipFileEntries);
+procedure TZipper.ZipFiles(const AZipFileName: RawByteString; Entries: TZipFileEntries);
 begin
-  FFileName:=AFileName;
+  FFileName:=AZipFileName;
   ZipFiles(Entries);
 end;
 
@@ -1983,6 +2079,36 @@ procedure TZipper.ZipFiles(Entries: TZipFileEntries);
 begin
   FEntries.Assign(Entries);
   ZipAllFiles;
+end;
+
+class procedure TZipper.Zip(const AZipFileName: RawByteString; const aFileToBeZipped: RawByteString);
+begin
+  With Self.Create do
+    try
+      ZipFile(aZipFileName,aFileToBeZipped);
+    finally
+      Free;
+    end;
+end;
+
+class procedure TZipper.Zip(const AZipFileName: RawByteString; aFileList: array of RawByteString);
+begin
+  With Self.Create do
+    try
+      ZipFiles(aZipFileName,aFileList);
+    finally
+      Free;
+    end;
+end;
+
+class procedure TZipper.Zip(const AZipFileName: RawByteString; aFileList: TStrings);
+begin
+  With Self.Create do
+    try
+      ZipFiles(aZipFileName,aFileList);
+    finally
+      Free;
+    end;
 end;
 
 Procedure TZipper.DoEndOfFile;
@@ -2087,7 +2213,7 @@ function TUnZipper.OpenOutput(OutFileName: RawByteString;
 Var
   Path: RawByteString;
   OldDirectorySeparators: set of char;
-  
+
 Begin
   { the default RTL behavior is broken on Unix platforms
     for Windows compatibility: it allows both '/' and '\'
@@ -2116,7 +2242,7 @@ Begin
   If Assigned(FOnCreateStream) then
     FOnCreateStream(Self, OutStream, Item);
   // If FOnCreateStream didn't create one, we create one now.
-  If (OutStream=Nil) then
+  If (OutStream=Nil) and (not Item.IsDirectory) then
     begin
     if (Path<>'') then
       ForceDirectories(Path);
@@ -2142,7 +2268,8 @@ Begin
     OutStream := nil;
   end
   else
-    FreeAndNil(OutStream);
+    if Assigned(OutStream) then
+      FreeAndNil(OutStream);
   DoEndOfFile;
 end;
 
@@ -2158,7 +2285,7 @@ end;
 
 procedure TUnZipper.ReadZipHeader(Item: TFullZipFileEntry; out AMethod: Word);
 Var
-  S : String;
+  S : RawByteString;
   U : UTF8String;
   D : TDateTime;
   ExtraFieldHdr: Extensible_Data_Field_Header_Type;
@@ -2178,6 +2305,8 @@ Begin
       Item.FBitFlags:=Bit_Flag;
       SetLength(S,Filename_Length);
       FZipStream.ReadBuffer(S[1],Filename_Length);
+      if Bit_Flag and EFS_LANGUAGE_ENCODING_FLAG <> 0 then
+        SetCodePage(S, CP_UTF8, False);
       Item.ArchiveFileName:=S;
       Item.DiskFileName:=S;
       SavePos:=FZipStream.Position; //after filename, before extra fields
@@ -2280,7 +2409,7 @@ var
           AEndHdr := SwapECD(AEndHdr);
           {$ENDIF}
           if (AEndHdr.Signature = END_OF_CENTRAL_DIR_SIGNATURE) and
-             (I + SizeOf(AEndHdr) + AEndHdr.ZipFile_Comment_Length = BufSize) then
+             (I + SizeOf(AEndHdr) + AEndHdr.ZipFile_Comment_Length <= BufSize) then
           begin
             AEndHdrPos := FZipStream.Size - BufSize + I;
             FZipStream.Seek(AEndHdrPos + SizeOf(AEndHdr), soBeginning);
@@ -2389,7 +2518,7 @@ Var
   Zip64Field: Zip64_Extended_Info_Field_Type;
   NewNode   : TFullZipFileEntry;
   D : TDateTime;
-  S : String;
+  S : RawByteString;
   U : UTF8String;
   // infozip unicode path
   Infozip_unicode_path_ver : byte; // always 1
@@ -2444,6 +2573,8 @@ Begin
       NewNode.FBitFlags:=Bit_Flag;
       SetLength(S,Filename_Length);
       FZipStream.ReadBuffer(S[1],Filename_Length);
+      if Bit_Flag and EFS_LANGUAGE_ENCODING_FLAG <> 0 then
+        SetCodePage(S, CP_UTF8, False);
       SavePos:=FZipStream.Position; //After fixed part of central directory...
       // and the filename; before any extra field(s)
       NewNode.ArchiveFileName:=S;
@@ -2515,7 +2646,10 @@ Begin
           end;
         end;
       // Move past extra fields and file comment to next header
-      FZipStream.Seek(SavePos+Extra_Field_Length+File_Comment_Length,soFromBeginning);
+      if File_Comment_Length > 0 then
+          FZipStream.Seek(File_Comment_Length,soFromCurrent);
+      // this doesn't work properly when zip file size is over 4Gb, so commented off
+      //FZipStream.Seek(SavePos+Extra_Field_Length+File_Comment_Length,soFromBeginning);
       end;
     end;
 end;
@@ -2599,7 +2733,7 @@ Var
           OnProgress:=Self.OnProgress;
           OnPercent:=Self.OnPercent;
           DeCompress;
-          Self.FTotPos := FTotPos; 
+          Self.FTotPos := FTotPos;
           if Item.CRC32 <> Crc32Val then
             raise EZipError.CreateFmt(SErrInvalidCRC,[Item.ArchiveFileName]);
         Finally
@@ -2628,10 +2762,15 @@ Var
             U[i]:=DirectorySeparator;
       OutputFileName:=UTF8Encode(U);
       end;
-    if (Not IsCustomStream) and (FOutputPath<>'') then
+    if (Not IsCustomStream) then
       begin
-      // Do not use IncludeTrailingPathdelimiter
-      OutputFileName:=FOutputPath+OutputFileName;
+      if Flat then
+        OutputFileName:=ExtractFileName(OutputFileName);
+      if (FOutputPath<>'') then
+        begin
+        // Do not use IncludeTrailingPathdelimiter
+        OutputFileName:=FOutputPath+OutputFileName;
+        end;
       end;
   end;
 
@@ -2679,7 +2818,9 @@ Begin
       {$ENDIF}
       end
     else if Item.IsDirectory then
-      CreateDir(OutputFileName)
+      begin
+        if (NOT Flat) then ForceDirectories(OutputFileName);
+      end
     else
       begin
       try
@@ -2790,24 +2931,104 @@ begin
     end;
 end;
 
-procedure TUnZipper.UnZipFiles(AFileName: RawByteString; FileList: TStrings);
-
+procedure TUnZipper.UnZipFile(const aExtractFileName: RawByteString);
 begin
-  FFileName:=AFileName;
-  UNzipFiles(FileList);
+  UnzipFile(FFileName, aExtractFileName);
 end;
 
-procedure TUnZipper.UnZipFiles(FileList: TStrings);
+procedure TUnZipper.UnZipFile(const AZipFileName, aExtractFileName: RawByteString);
+var
+  L: TStrings;
 begin
-  FFiles.Assign(FileList);
+  FFileName := AZipFileName;
+  L := TStringList.Create;
+  try
+    L.Add(aExtractFileName);
+    UnzipFiles(L);
+  finally
+    L.Free;
+  end;
+end;
+
+procedure TUnZipper.UnZipFiles(const AZipFileName: RawByteString; FileList: TStrings);
+
+begin
+  FFileName:=AZipFileName;
+  UnZipFiles(FileList);
+end;
+
+procedure TUnZipper.UnZipFiles(const AZipFileName: RawByteString; aFileList: array of RawBytestring);
+
+Var
+  L : TStringList;
+  S : RawByteString;
+
+begin
+  L:=TStringList.Create;
+  try
+    L.Capacity:=Length(aFileList);
+    for S in aFileList do
+      L.Add(S);
+    UnZipFiles(aZipFileName,L);
+  finally
+    L.Free;
+  end;
+end;
+
+procedure TUnZipper.UnZipFiles(aFileList: TStrings);
+begin
+  FFiles.Assign(aFileList);
   UnZipAllFiles;
 end;
 
-procedure TUnZipper.UnZipAllFiles(AFileName: RawByteString);
+procedure TUnZipper.UnZipAllFiles(const AZipFileName: RawByteString);
 
 begin
-  FFileName:=AFileName;
+  FFileName:=AZipFileName;
   UnZipAllFiles;
+end;
+
+class procedure TUnZipper.Unzip(const AZipFileName: RawByteString);
+
+begin
+  With Self.Create do
+    try
+      FileName:=aZipFileName;
+      UnZipAllFiles;
+    finally
+      Free;
+    end;
+end;
+
+class procedure TUnZipper.Unzip(const AZipFileName: RawByteString; aExtractFileName: RawByteString);
+
+begin
+  With Self.Create do
+    try
+      UnZipFile(aZipFileName,aExtractFileName);
+    finally
+      Free;
+    end;
+end;
+
+class procedure TUnZipper.Unzip(const AZipFileName: RawByteString; aFileList: array of RawByteString);
+begin
+  With Self.Create do
+    try
+      UnZipFiles(aZipFileName,aFileList);
+    finally
+      Free;
+    end;
+end;
+
+class procedure TUnZipper.Unzip(const AZipFileName: RawByteString; aFileList: TStrings);
+begin
+  With Self.Create do
+    try
+      UnZipFiles(aZipFileName,aFileList);
+    finally
+      Free;
+    end;
 end;
 
 procedure TUnZipper.DoEndOfFile;

@@ -25,8 +25,8 @@ uses
     ole2, activex, shellapi, shlobj, oleserver,  shfolder, richedit,
     imagehlp, wininet, uxtheme, dwmapi, multimon, htmlhelp, winutils,
     comserv, winspool, imm, imm_dyn, nb30, stdole2,
-    eventsink, typelib, libkinect10, urlmon,
-    shlwapi;
+    eventsink, typelib, libkinect10, urlmon, winhttp,
+    shlwapi, httpapi;
 
 implementation
 

@@ -10,7 +10,7 @@ interface
 
   procedure require_error(num : longint);
 
-function DoMem (Var StartMem : sizeint): sizeint;
+function DoMem (Var StartMem : sizeuint): int64;
 
 
 implementation
@@ -85,9 +85,9 @@ begin
 end;
 
 
-function DoMem (Var StartMem : sizeint): sizeint;
+function DoMem (Var StartMem : sizeuint): int64;
 
-  function getsize(l:sizeint):string;
+  function getsize(l:sizeuint):string;
   begin
     if l<16*1024 then
       begin

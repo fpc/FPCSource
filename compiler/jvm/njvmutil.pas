@@ -26,8 +26,9 @@ unit njvmutil;
 interface
 
   uses
+    cclasses,
     node,nbas,
-    ngenutil,
+    fmodule,ngenutil,
     symtype,symconst,symsym,symdef;
 
 
@@ -35,6 +36,7 @@ interface
     tjvmnodeutils = class(tnodeutils)
       class function initialize_data_node(p:tnode; force: boolean):tnode; override;
       class function finalize_data_node(p:tnode):tnode; override;
+      class procedure append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode); override;
       class function force_init: boolean; override;
       class procedure insertbssdata(sym: tstaticvarsym); override;
       class function create_main_procdef(const name: string; potype: tproctypeoption; ps: tprocsym): tdef; override;
@@ -43,7 +45,6 @@ interface
       class function  trashable_sym(p: tsym): boolean; override;
       class procedure maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode); override;
 
-      class procedure InsertInitFinalTable; override;
       class procedure InsertThreadvarTablesTable; override;
       class procedure InsertThreadvars; override;
       class procedure InsertWideInitsTablesTable; override;
@@ -53,6 +54,8 @@ interface
       class procedure InsertResStrTablesTable; override;
       class procedure InsertResStrInits; override;
       class procedure InsertMemorySizes; override;
+     protected
+       class procedure insert_init_final_table(entries:tfplist); override;
      strict protected
        class procedure add_main_procdef_paras(pd: tdef); override;
     end;
@@ -61,7 +64,7 @@ interface
 implementation
 
     uses
-      verbose,cutils,globtype,globals,constexp,fmodule,
+      verbose,cutils,globtype,globals,constexp,compinnr,
       aasmdata,aasmtai,cpubase,aasmbase,aasmcpu,
       symbase,symcpu,symtable,defutil,jvmdef,
       ncnv,ncon,ninl,ncal,nld,nmem,
@@ -123,7 +126,7 @@ implementation
               if jvmimplicitpointertype(p.resultdef) then
                 begin
                   p:=caddrnode.create(p);
-                  include(p.flags,nf_typedaddr);
+                  include(taddrnode(p).addrnodeflags,anf_typedaddr);
                 end;
               paras:=ccallparanode.create(ctypeconvnode.create_explicit(p,
                 search_system_type('TJOBJECTARRAY').typedef),nil);
@@ -170,6 +173,12 @@ implementation
     end;
 
 
+  class procedure tjvmnodeutils.append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode);
+    begin
+      { class constructors are implicitly called by the JVM runtime and cannot be called explicitly }
+    end;
+
+
   class function tjvmnodeutils.force_init: boolean;
     begin
       { we need an initialisation in case the al_globals list is not empty
@@ -204,7 +213,7 @@ implementation
         begin
           vs:=cstaticvarsym.create(sym.realname+'$threadvar',sym.varspez,
             jvmgetthreadvardef(sym.vardef),
-            sym.varoptions - [vo_is_thread_var],true);
+            sym.varoptions - [vo_is_thread_var]);
           sym.owner.insert(vs);
           { make sure that the new sym does not get allocated (we will allocate
             it when encountering the original sym, because only then we know
@@ -378,7 +387,7 @@ implementation
         inherited;
     end;
 
-  class procedure tjvmnodeutils.InsertInitFinalTable;
+  class procedure tjvmnodeutils.insert_init_final_table(entries:tfplist);
     var
       hp : tused_unit;
       unitinits : TAsmList;
@@ -386,6 +395,8 @@ implementation
       mainpsym: tsym;
       mainpd: tprocdef;
     begin
+      { JVM does not use the entries list }
+
       unitinits:=TAsmList.Create;
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do
@@ -393,7 +404,7 @@ implementation
           { class constructors are automatically handled by the JVM }
 
           { call the unit init code and make it external }
-          if (hp.u.flags and (uf_init or uf_finalize))<>0 then
+          if (hp.u.moduleflags*[mf_init,mf_finalize])<>[] then
             begin
               { trigger init code by referencing the class representing the
                 unit; if necessary, it will register the fini code to run on

@@ -28,7 +28,7 @@ interface
     const
        { version string }
        version_nr = '3';
-       release_nr = '1';
+       release_nr = '3';
        patch_nr   = '1';
        minorpatch = '';
 
@@ -59,6 +59,9 @@ interface
 {$ifdef cpusparc}
         source_cpu_string = 'sparc';
 {$endif cpusparc}
+{$ifdef cpusparc64}
+        source_cpu_string = 'sparc64';
+{$endif cpusparc64}
 {$ifdef cpuarm}
         source_cpu_string = 'arm';
 {$endif cpuarm}
@@ -71,6 +74,12 @@ interface
 {$ifdef cpuaarch64}
         source_cpu_string = 'aarch64';
 {$endif cpuaarch64}
+{$ifdef cpuriscv64}
+        source_cpu_string = 'riscv64';
+{$endif cpuriscv64}
+{$ifdef cpuriscv32}
+        source_cpu_string = 'riscv32';
+{$endif cpuriscv32}
 
 function version_string:string;
 function full_version_string:string;

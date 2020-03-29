@@ -41,6 +41,9 @@ implementation
     {$ifndef NOTARGETBSD}
       ,t_bsd
     {$endif}
+    {$ifndef NOTARGETANDROID}
+      ,t_android
+    {$endif}
 
 {**************************************
              Assemblers

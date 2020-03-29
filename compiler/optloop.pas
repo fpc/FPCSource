@@ -24,6 +24,7 @@ unit optloop;
 {$i fpcdefs.inc}
 
 { $define DEBUG_OPTSTRENGTH}
+{ $define DEBUG_OPTFORLOOP}
 
   interface
 
@@ -32,11 +33,12 @@ unit optloop;
 
     function unroll_loop(node : tnode) : tnode;
     function OptimizeInductionVariables(node : tnode) : boolean;
+    function OptimizeForLoop(var node : tnode) : boolean;
 
   implementation
 
     uses
-      cutils,cclasses,
+      cutils,cclasses,compinnr,
       globtype,globals,constexp,
       verbose,
       symdef,symsym,
@@ -51,13 +53,17 @@ unit optloop;
 
     function number_unrolls(node : tnode) : cardinal;
       begin
+        { calculate how often a loop shall be unrolled.
+
+          The term (60*ord(node_count_weighted(node)<15)) is used to get small loops  unrolled more often as
+          the counter management takes more time in this case. }
 {$ifdef i386}
         { multiply by 2 for CPUs with a long pipeline }
         if current_settings.optimizecputype in [cpu_Pentium4] then
-          number_unrolls:=60 div node_count(node)
+          number_unrolls:=trunc(round((60+(60*ord(node_count_weighted(node)<15)))/max(node_count_weighted(node),1)))
         else
 {$endif i386}
-          number_unrolls:=30 div node_count(node);
+          number_unrolls:=trunc(round((30+(60*ord(node_count_weighted(node)<15)))/max(node_count_weighted(node),1)));
 
         if number_unrolls=0 then
           number_unrolls:=1;
@@ -70,9 +76,9 @@ unit optloop;
       end;
       preplaceinfo = ^treplaceinfo;
 
-    function checkbreakcontinue(var n:tnode; arg: pointer): foreachnoderesult;
+    function checkcontrollflowstatements(var n:tnode; arg: pointer): foreachnoderesult;
       begin
-        if n.nodetype in [breakn,continuen] then
+        if n.nodetype in [breakn,continuen,goton,labeln,exitn,raisen] then
           result:=fen_norecurse_true
         else
           result:=fen_false;
@@ -101,7 +107,7 @@ unit optloop;
         unrollblock : tblocknode;
         getridoffor : boolean;
         replaceinfo : treplaceinfo;
-        usesbreakcontinue : boolean;
+        hascontrollflowstatements : boolean;
       begin
         result:=nil;
         if (cs_opt_size in current_settings.optimizerswitches) then
@@ -109,7 +115,14 @@ unit optloop;
         if not(node.nodetype in [forn]) then
           exit;
         unrolls:=number_unrolls(tfornode(node).t2);
-        if unrolls>1 then
+        if (unrolls>1) and
+          ((tfornode(node).left.nodetype<>loadn) or
+           { the address of the counter variable might be taken if it is passed by constref to a
+             subroutine, so really check if it is not taken }
+           ((tfornode(node).left.nodetype=loadn) and (tloadnode(tfornode(node).left).symtableentry is tabstractvarsym) and
+            not(tabstractvarsym(tloadnode(tfornode(node).left).symtableentry).addr_taken) and
+            not(tabstractvarsym(tloadnode(tfornode(node).left).symtableentry).different_scope))
+           ) then
           begin
             { number of executions known? }
             if (tfornode(node).right.nodetype=ordconstn) and (tfornode(node).t1.nodetype=ordconstn) then
@@ -119,21 +132,21 @@ unit optloop;
                 else
                   counts:=tordconstnode(tfornode(node).t1).value-tordconstnode(tfornode(node).right).value+1;
 
-                usesbreakcontinue:=foreachnodestatic(tfornode(node).t2,@checkbreakcontinue,nil);
+                hascontrollflowstatements:=foreachnodestatic(tfornode(node).t2,@checkcontrollflowstatements,nil);
 
                 { don't unroll more than we need,
 
                   multiply unroll by two here because we can get rid
                   of the counter variable completely and replace it by a constant
                   if unrolls=counts }
-                if unrolls*2>counts then
+                if unrolls*2>=counts then
                   unrolls:=counts;
 
                 { create block statement }
                 unrollblock:=internalstatements(unrollstatement);
 
                 { can we get rid completly of the for ? }
-                getridoffor:=(unrolls=counts) and not(usesbreakcontinue) and
+                getridoffor:=(unrolls=counts) and not(hascontrollflowstatements) and
                   { TP/Macpas allows assignments to the for-variables, so we cannot get rid of the for }
                   ([m_tp7,m_mac]*current_settings.modeswitches=[]);
 
@@ -141,7 +154,11 @@ unit optloop;
                   begin
                     replaceinfo.node:=tfornode(node).left;
                     replaceinfo.value:=tordconstnode(tfornode(node).right).value;
-                  end;
+                  end
+                else
+                  { we consider currently unrolling not beneficial, if we cannot get rid of the for completely, this
+                    might change if a more sophisticated heuristics is used (FK) }
+                  exit;
 
                 { let's unroll (and rock of course) }
                 for i:=1 to unrolls do
@@ -247,11 +264,12 @@ unit optloop;
             begin
               if (pi_dfaavailable in current_procinfo.flags) and
                 assigned(loop.optinfo) and
-                assigned(expr.optinfo) then
+                assigned(expr.optinfo) and
+                not(expr.isequal(tfornode(loop).left)) then
                 { no aliasing? }
-                result:=not(tabstractvarsym(tloadnode(expr).symtableentry).addr_taken) and
+                result:=(([nf_write,nf_modify]*expr.flags)=[]) and not(tabstractvarsym(tloadnode(expr).symtableentry).addr_taken) and
                 { no definition in the loop? }
-                  not(DFASetIn(loop.optinfo^.defsum,expr.optinfo^.index));
+                  not(DFASetIn(tfornode(loop).t2.optinfo^.defsum,expr.optinfo^.index));
             end;
           vecn:
             begin
@@ -260,6 +278,10 @@ unit optloop;
             end;
           typeconvn:
             result:=is_loop_invariant(loop,ttypeconvnode(expr).left);
+          addn,subn:
+            result:=is_loop_invariant(loop,taddnode(expr).left) and is_loop_invariant(loop,taddnode(expr).right);
+          else
+            ;
         end;
       end;
 
@@ -270,6 +292,7 @@ unit optloop;
       function findpreviousstrengthreduction : boolean;
         var
           i : longint;
+          hp : tnode;
         begin
           result:=false;
           for i:=0 to inductionexprs.count-1 do
@@ -277,16 +300,17 @@ unit optloop;
               { do we already maintain one expression? }
               if tnode(inductionexprs[i]).isequal(n) then
                 begin
-                  n.free;
                   case n.nodetype of
                     muln:
-                      n:=ctemprefnode.create(ttempcreatenode(templist[i]));
+                      hp:=ctemprefnode.create(ttempcreatenode(templist[i]));
                     vecn:
-                      n:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(
+                      hp:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(
                         ttempcreatenode(templist[i]))),n.resultdef);
                     else
                       internalerror(200809211);
                   end;
+                  n.free;
+                  n:=hp;
                   result:=true;
                   exit;
                 end;
@@ -356,8 +380,7 @@ unit optloop;
 
                       addstatement(initcodestatements,tempnode);
                       addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode),
-                        caddnode.create(muln,
-                          caddnode.create(subn,tfornode(arg).right.getcopy,cordconstnode.create(1,tfornode(arg).right.resultdef,false)),
+                        caddnode.create(muln,tfornode(arg).right.getcopy,
                           taddnode(n).right.getcopy)
                         )
                       );
@@ -377,6 +400,7 @@ unit optloop;
             begin
               { is the index the counter variable? }
               if not(is_special_array(tvecnode(n).left.resultdef)) and
+                not(is_packed_array(tvecnode(n).left.resultdef)) and
                 (tvecnode(n).right.isequal(tfornode(arg).left) or
                  { fpc usually creates a type cast to access an array }
                  ((tvecnode(n).right.nodetype=typeconvn) and
@@ -412,14 +436,14 @@ unit optloop;
 
                       if lnf_backward in tfornode(arg).loopflags then
                         addstatement(calccodestatements,
-                          geninlinenode(in_dec_x,false,
+                          cinlinenode.createintern(in_dec_x,false,
                           ccallparanode.create(ctemprefnode.create(tempnode),ccallparanode.create(
-                          cordconstnode.create(tcgvecnode(n).get_mul_size,tfornode(arg).right.resultdef,false),nil))))
+                          cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false),nil))))
                       else
                         addstatement(calccodestatements,
-                          geninlinenode(in_inc_x,false,
+                          cinlinenode.createintern(in_inc_x,false,
                           ccallparanode.create(ctemprefnode.create(tempnode),ccallparanode.create(
-                          cordconstnode.create(tcgvecnode(n).get_mul_size,tfornode(arg).right.resultdef,false),nil))));
+                          cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false),nil))));
 
                       addstatement(initcodestatements,tempnode);
                       addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode),
@@ -439,6 +463,8 @@ unit optloop;
                   result:=fen_norecurse_false;
                 end;
             end;
+          else
+            ;
         end;
       end;
 
@@ -499,7 +525,7 @@ unit optloop;
       end;
 
 
-    function iterforloops(var n: tnode; arg: pointer): foreachnoderesult;
+    function OptimizeInductionVariables_iterforloops(var n: tnode; arg: pointer): foreachnoderesult;
       var
         hp : tnode;
       begin
@@ -529,7 +555,74 @@ unit optloop;
     function OptimizeInductionVariables(node : tnode) : boolean;
       begin
         changedforloop:=false;
-        foreachnodestatic(pm_postprocess,node,@iterforloops,nil);
+        foreachnodestatic(pm_postprocess,node,@OptimizeInductionVariables_iterforloops,nil);
+        Result:=changedforloop;
+      end;
+
+
+    function OptimizeForLoop_iterforloops(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        hp : tnode;
+      begin
+        Result:=fen_false;
+        if (n.nodetype=forn) and
+          not(lnf_backward in tfornode(n).loopflags) and
+          (lnf_dont_mind_loopvar_on_exit in tfornode(n).loopflags) and
+          is_constintnode(tfornode(n).right) and
+          { this is not strictly necessary, but we do it for now }
+          is_constnode(tfornode(n).t1) and
+          (([cs_check_overflow,cs_check_range]*n.localswitches)=[]) and
+          (([cs_check_overflow,cs_check_range]*tfornode(n).left.localswitches)=[]) and
+          ((tfornode(n).left.nodetype=loadn) and (tloadnode(tfornode(n).left).symtableentry is tabstractvarsym) and
+            not(tabstractvarsym(tloadnode(tfornode(n).left).symtableentry).addr_taken) and
+            not(tabstractvarsym(tloadnode(tfornode(n).left).symtableentry).different_scope)) then
+          begin
+            { do we have DFA available? }
+            if pi_dfaavailable in current_procinfo.flags then
+              begin
+                CalcUseSum(tfornode(n).t2);
+                CalcDefSum(tfornode(n).t2);
+              end
+            else
+              Internalerror(2017122801);
+            if not(assigned(tfornode(n).left.optinfo)) then
+              exit;
+            if not(DFASetIn(tfornode(n).t2.optinfo^.usesum,tfornode(n).left.optinfo^.index)) and
+              not(DFASetIn(tfornode(n).t2.optinfo^.defsum,tfornode(n).left.optinfo^.index))  then
+              begin
+                { convert the loop from i:=a to b into i:=b-a+1 to 1 as this simplifies the
+                  abort condition }
+{$ifdef DEBUG_OPTFORLOOP}
+                writeln('**********************************************************************************');
+                writeln('Found loop for reverting: ');
+                printnode(n);
+                writeln('**********************************************************************************');
+{$endif DEBUG_OPTFORLOOP}
+                include(tfornode(n).loopflags,lnf_backward);
+                tfornode(n).right:=caddnode.create_internal(addn,caddnode.create_internal(subn,tfornode(n).t1,tfornode(n).right),
+                  cordconstnode.create(1,tfornode(n).left.resultdef,false));
+                tfornode(n).t1:=cordconstnode.create(1,tfornode(n).left.resultdef,false);
+                include(tfornode(n).loopflags,lnf_counter_not_used);
+                exclude(n.flags,nf_pass1_done);
+                do_firstpass(n);
+{$ifdef DEBUG_OPTFORLOOP}
+                writeln('Loop reverted: ');
+                printnode(n);
+                writeln('**********************************************************************************');
+{$endif DEBUG_OPTFORLOOP}
+                changedforloop:=true;
+              end;
+          end;
+      end;
+
+
+    function OptimizeForLoop(var node : tnode) : boolean;
+      begin
+        Result:=false;
+        if not(pi_dfaavailable in current_procinfo.flags) then
+          exit;
+        changedforloop:=false;
+        foreachnodestatic(pm_postprocess,node,@OptimizeForLoop_iterforloops,nil);
         Result:=changedforloop;
       end;
 

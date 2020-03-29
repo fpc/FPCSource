@@ -57,9 +57,15 @@ const
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
 {$if not defined(solaris) and not defined(darwin) and not defined(aix)}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+var argc:longint;
+    argv:PPchar;
+    envp:PPchar;
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 var argc:longint;external name 'operatingsystem_parameter_argc';
     argv:PPchar;external name 'operatingsystem_parameter_argv';
     envp:PPchar;external name 'operatingsystem_parameter_envp';
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 {$endif}
 
 {$ifdef unix}

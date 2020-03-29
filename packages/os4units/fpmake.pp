@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('os4units');
+    P.ShortName := 'os4';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
     P.Author := 'Marcus Sackrow';
     P.License := 'LGPL with modification';
@@ -49,6 +50,11 @@ begin
     T:=P.Targets.AddUnit('icon.pas');
     T:=P.Targets.AddUnit('picasso96api.pas');
     T:=P.Targets.AddUnit('cybergraphics.pas');
+    T:=P.Targets.AddUnit('locale.pas');
+    T:=P.Targets.AddUnit('datatypes.pas');
+    T:=P.Targets.AddUnit('serial.pas');
+    T:=P.Targets.AddUnit('console.pas');
+    T:=P.Targets.AddUnit('conunit.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

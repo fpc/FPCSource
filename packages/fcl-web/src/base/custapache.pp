@@ -481,6 +481,7 @@ begin
   SetHTTPVariable(hvURL,FRequest^.unparsed_uri);
   SetHTTPVariable(hvQuery,MaybeP(FRequest^.args));
   SetHeader(hhHost,MaybeP(FRequest^.HostName));
+  ReadContent;
 end;
 
 constructor TApacheRequest.CreateReq(App: TApacheHandler; ARequest: PRequest_rec

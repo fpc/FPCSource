@@ -37,6 +37,7 @@ unit cpunode;
        ,navradd
        ,navrmat
        ,navrcnv
+       ,navrinl
        ,navrmem
        ,navrutil,
        { symtable }

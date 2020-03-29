@@ -19,7 +19,9 @@
 
 {$IFNDEF LINUX}
 {$IFNDEF MORPHOS}
+{$IFNDEF AIX}
     {$DEFINE USE_DCBZ}
+{$ENDIF AIX}
 {$ENDIF MORPHOS}
 {$ENDIF LINUX}
 
@@ -241,7 +243,10 @@ asm
           subfe   r10,r10,r10
 
           {  count < 63 ? (32 + max. alignment (31) }
-          cmpwi   cr7,r5,63
+          { change to 64, because for overlap, we do not re-increment r5,
+            which could then lead to a counter being zero at start and thus
+            running forever }
+          cmpwi   cr7,r5,64
 
           {  if count <= 0, stop  }
           ble     cr0,.LMoveDone
@@ -288,7 +293,9 @@ asm
 {$endif non ppc603}
           { we are going to copy one byte again (the one at the newly }
           { aligned address), so increase count byte 1                }
-          addi    r5,r5,1
+          { This is only true if there is no overlap, thus            }
+          { use r5:=r5-r6; which does what is needed.                 }
+          sub    r5,r5,r6
           { count div 4 for number of dwords to copy }
           srwi    r0,r5,2
           {  if 11 <= count < 63, copy using dwords }
@@ -1011,8 +1018,11 @@ asm
       mr      r10,r4
       mtctr   r10
       { at LStrPasDone, we set the length of the result to 255 - r10 - r4 }
-      { = 255 - 255 - 0 if the soure = nil -> perfect :)                  }
-      beq     .LStrPasDone
+      bne     .LStrPasStart
+      { put zero into r10 }
+      mr      r10, r8
+      b       .LStrPasDone
+.LStrPasStart:
       { save address for at the end and use r7 in loop }
       mr      r7,r3
       { no "subi r7,r7,1" because the first byte = length byte }
@@ -1030,11 +1040,11 @@ asm
       { if r10 was zero (-> stopped because of zero byte), then r4 will be 32 }
       { (32 leading zero bits) -> shr 5 = 1, otherwise this will be zero      }
       srwi    r4,r4,5
-.LStrPasDone:
       subfic  r10,r10,255
       sub     r10,r10,r4
 
       { store length }
+.LStrPasDone:
       stb     r10,0(r3)
 end;
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
@@ -1047,12 +1057,14 @@ function fpc_pchar_length(p:pchar):sizeint;assembler;[public,alias:'FPC_PCHAR_LE
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
 
+{$ifndef INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
   { all abi's I know use r1 as stack pointer }
   mr r3, r1
 end;
+{$endif INTERNAL_BACKTRACE}
 
 {NOTE: On MACOS, 68000 code might call powerpc code, through the MixedMode manager,
 (even in the OS in system 9). The pointer to the switching stack frame is then

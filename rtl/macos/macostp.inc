@@ -41,12 +41,13 @@ type
   SignedByte = shortint;
   SignedBytePtr = ^SignedByte;
 
-  SInt8                               = -128..127;
-  SInt16                              = INTEGER;
+  SInt8                               = ShortInt; //-128..127;
+  SInt16                              = SmallInt; // INTEGER;
   SInt32                              = LONGINT;
-  UInt8                               = 0..255;
-  UInt16                              = WORD;
-  UInt32                              = LONGWORD;
+  // Overlapping types are now declared in the System unit (KB)
+  //UInt8                               = 0..255;
+  //UInt16                              = WORD;
+  //UInt32                              = LONGWORD;
 
   IntegerPtr              = ^INTEGER;
   LongIntPtr              = ^LONGINT;
@@ -1038,7 +1039,8 @@ external 'InterfaceLib';
 {************** from Quickdraw ***************}
 
 TYPE
-  Bits16                = ARRAY [0..15] OF INTEGER;
+  { this was called 'Bits16', but that conflicts with softfpu internal types on m68k (KB) }
+  MacBits16                = ARRAY [0..15] OF INTEGER;
 
   PatternPtr = ^Pattern;
   Pattern = RECORD
@@ -1056,8 +1058,8 @@ TYPE
 
   CursorPtr = ^Cursor;
   Cursor = RECORD
-    data:          Bits16;
-    mask:          Bits16;
+    data:          MacBits16;
+    mask:          MacBits16;
     hotSpot:        Point;
   END;
   CursPtr = ^Cursor;

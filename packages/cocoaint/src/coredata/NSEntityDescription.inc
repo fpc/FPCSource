@@ -1,117 +1,88 @@
-{ Parsed from Coredata.framework NSEntityDescription.h }
+{ Parsed from CoreData.framework NSEntityDescription.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSENTITYDESCRIPTION_PAS_T}
-{$define NSENTITYDESCRIPTION_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSENTITYDESCRIPTION_PAS_R}
-{$define NSENTITYDESCRIPTION_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSENTITYDESCRIPTION_PAS_F}
-{$define NSENTITYDESCRIPTION_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSENTITYDESCRIPTION_PAS_S}
-{$define NSENTITYDESCRIPTION_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSEntityDescription = objcclass;
-  NSEntityDescriptionPointer = ^NSEntityDescription;
-  NSEntityDescriptionPtr = NSEntityDescriptionPointer;
-
+type
+  NSEntityDescriptionPtr = ^NSEntityDescription;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSENTITYDESCRIPTION_PAS_C}
-{$define NSENTITYDESCRIPTION_PAS_C}
 
-{ NSEntityDescription }
+type
   NSEntityDescription = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol, NSFastEnumerationProtocol)
   private
     _cd_rc: cint32;
-    _reserved1: id;
+    _snapshotClass: id;
     _versionHashModifier: NSString;
     _versionHash: NSData;
-    _model: NSManagedObjectModel; {garbage collector: __weak }
+    _model: NSManagedObjectModel;
     _classNameForEntity: NSString;
-    _instanceClass: Pobjc_class;
+    _instanceClass: pobjc_class;
     _name: NSString;
-    _rootentity: NSEntityDescription; {garbage collector: __weak }
-    _superentity: NSEntityDescription; {garbage collector: __weak }
+    _rootentity: NSEntityDescription;
+    _superentity: NSEntityDescription;
     _subentities: NSMutableDictionary;
     _properties: NSMutableDictionary;
     _propertyMapping: id;
-    _propertyRanges: NSRangePtr; {garbage collector: __strong }
-    __entityDescriptionFlags: record
+    _propertyRanges: NSRangePtr;
+    _entityDescriptionFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSEntityDescription0: cuint);
-       1: (data: bitpacked record
-        _isAbstract: 0..1;
-        _shouldValidateOnSave: 0..1;
-        _isImmutable: 0..1;
-        _isFlattened: 0..1;
-        _skipValidation: 0..1;
-        _hasPropertiesIndexedBySpotlight: 0..1;
-        _hasPropertiesStoredInTruthFile: 0..1;
-        _reservedEntityDescription: 0..((1 shl 25)-1);
-       end;
-      );
+        0: (_anonBitField__entityDescriptionFlags0: cuint);
+        1: (
+          _isAbstract: 0..1;
+          _shouldValidateOnSave: 0..1;
+          _isImmutable: 0..1;
+          _isFlattened: 0..1;
+          _skipValidation: 0..1;
+          _hasPropertiesIndexedBySpotlight: 0..1;
+          _hasPropertiesStoredInTruthFile: 0..1;
+          _rangesAreInDataBlob: 0..1;
+          _hasAttributesWithExternalDataReferences: 0..1;
+          _hasNonstandardPrimitiveProperties: 0..((1 shl 2)-1);
+          _reservedEntityDescription: 0..((1 shl 21)-1);
+        );
       end;
-    _extraIvars: Pointer; {garbage collector: __strong }
+    _extraIvars: pointer;
     _userInfo: NSMutableDictionary;
     _flattenedSubentities: id;
-    _kvcPropertyAccessors: idPtrPtr;
+    _kvcPropertyAccessors: idPtr;
     _modelsReferenceIDForEntity: clong;
-    
   public
-    class function entityForName_inManagedObjectContext(entityName: NSString; context: NSManagedObjectContext): NSEntityDescription; message 'entityForName:inManagedObjectContext:';
-    class function insertNewObjectForEntityForName_inManagedObjectContext(entityName: NSString; context: NSManagedObjectContext): id; message 'insertNewObjectForEntityForName:inManagedObjectContext:';
+    class function entityForName_inManagedObjectContext (entityName: NSString; context: NSManagedObjectContext): NSEntityDescription; message 'entityForName:inManagedObjectContext:';
+    class function insertNewObjectForEntityForName_inManagedObjectContext (entityName: NSString; context: NSManagedObjectContext): id; message 'insertNewObjectForEntityForName:inManagedObjectContext:';
     function managedObjectModel: NSManagedObjectModel; message 'managedObjectModel';
+    procedure setManagedObjectClassName(newValue: NSString); message 'setManagedObjectClassName:';
     function managedObjectClassName: NSString; message 'managedObjectClassName';
-    procedure setManagedObjectClassName(name_: NSString); message 'setManagedObjectClassName:';
+    procedure setName(newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
-    procedure setName(name_: NSString); message 'setName:';
-    function isAbstract: Boolean; message 'isAbstract';
-    procedure setAbstract(flag: Boolean); message 'setAbstract:';
+    procedure setAbstract(newValue: ObjCBOOL); message 'setAbstract:';
+    function isAbstract: ObjCBOOL; message 'isAbstract';
     function subentitiesByName: NSDictionary; message 'subentitiesByName';
+    procedure setSubentities(newValue: NSArray); message 'setSubentities:';
     function subentities: NSArray; message 'subentities';
-    procedure setSubentities(array_: NSArray); message 'setSubentities:';
     function superentity: NSEntityDescription; message 'superentity';
     function propertiesByName: NSDictionary; message 'propertiesByName';
+    procedure setProperties(newValue: NSArray); message 'setProperties:';
     function properties: NSArray; message 'properties';
-    procedure setProperties(properties_: NSArray); message 'setProperties:';
+    procedure setUserInfo(newValue: NSDictionary); message 'setUserInfo:';
     function userInfo: NSDictionary; message 'userInfo';
-    procedure setUserInfo(dictionary: NSDictionary); message 'setUserInfo:';
     function attributesByName: NSDictionary; message 'attributesByName';
     function relationshipsByName: NSDictionary; message 'relationshipsByName';
-    function relationshipsWithDestinationEntity(entity: NSEntityDescription): NSArray; message 'relationshipsWithDestinationEntity:';
-    function isKindOfEntity(entity: NSEntityDescription): Boolean; message 'isKindOfEntity:';
+    function relationshipsWithDestinationEntity (entity: NSEntityDescription): NSArray; message 'relationshipsWithDestinationEntity:';
+    function isKindOfEntity (entity: NSEntityDescription): ObjCBOOL; message 'isKindOfEntity:'; { available in 10_5,3_0 }
     function versionHash: NSData; message 'versionHash';
+    procedure setVersionHashModifier(newValue: NSString); message 'setVersionHashModifier:';
     function versionHashModifier: NSString; message 'versionHashModifier';
-    procedure setVersionHashModifier(modifierString: NSString); message 'setVersionHashModifier:';
+    procedure setRenamingIdentifier(newValue: NSString); message 'setRenamingIdentifier:';
     function renamingIdentifier: NSString; message 'renamingIdentifier';
-    procedure setRenamingIdentifier(value: NSString); message 'setRenamingIdentifier:';
+    procedure setCompoundIndexes(newValue: NSArray); message 'setCompoundIndexes:';
+    function compoundIndexes: NSArray; message 'compoundIndexes';
 
-    { Adopted Protocols }
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
-    function copyWithZone(zone_: NSZonePtr): id;
-    function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePtr; stackbuf: idPtr; len: NSUInteger): NSUInteger;
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    function countByEnumeratingWithState_objects_count (state: NSFastEnumerationStatePtr; buffer: idPtr { variable size array of id }; len: NSUInteger): NSUInteger; message 'countByEnumeratingWithState:objects:count:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

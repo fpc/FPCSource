@@ -313,14 +313,20 @@ begin
   aNtTime.QuadPart := local.QuadPart + bias.QuadPart;
 end;
 
-function FileAge(const FileName: UnicodeString): Longint;
+function FileAge(const FileName: UnicodeString): Int64;
 begin
   { TODO }
   Result := -1;
 end;
 
 
-function FileExists(const FileName: UnicodeString): Boolean;
+function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
+function FileExists(const FileName: UnicodeString; FollowLink : Boolean): Boolean;
 var
   ntstr: UNICODE_STRING;
   objattr: OBJECT_ATTRIBUTES;
@@ -341,7 +347,7 @@ begin
 end;
 
 
-function DirectoryExists(const Directory : UnicodeString) : Boolean;
+function DirectoryExists(const Directory : UnicodeString; FollowLink : Boolean) : Boolean;
 var
   ntstr: UNICODE_STRING;
   objattr: OBJECT_ATTRIBUTES;
@@ -847,7 +853,7 @@ Begin
 end;
 
 
-function FileGetDate(Handle: THandle): Longint;
+function FileGetDate(Handle: THandle): Int64;
 var
   res: NTSTATUS;
   basic: FILE_BASIC_INFORMATION;
@@ -862,7 +868,7 @@ begin
 end;
 
 
-function FileSetDate(Handle: THandle;Age: Longint): Longint;
+function FileSetDate(Handle: THandle;Age: Int64): Longint;
 var
   res: NTSTATUS;
   basic: FILE_BASIC_INFORMATION;
@@ -1257,5 +1263,6 @@ initialization
   InitInternational;    { Initialize internationalization settings }
   OnBeep := @SysBeep;
 finalization
+  FreeTerminateProcs;
   DoneExceptions;
 end.

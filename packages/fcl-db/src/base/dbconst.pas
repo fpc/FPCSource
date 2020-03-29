@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-unit dbconst;
+unit DBConst;
 
 Interface
 
@@ -65,6 +65,7 @@ Resourcestring
   SNotEditing              = 'Operation not allowed, dataset "%s" is not in an edit or insert state.';
   SParameterNotFound       = 'Parameter "%s" not found';
   SRangeError              = '%f is not between %f and %f for %s';
+  SRangeError2              = '%f is not between %f and %f.';
   SReadOnlyField           = 'Field %s cannot be modified, it is read-only.';
   STransactionRegistered   = 'Transaction already registered : "%s"';
   SUniDirectional          = 'Operation cannot be performed on an unidirectional dataset';
@@ -90,7 +91,7 @@ Resourcestring
   SOnUpdateError           = 'An error occurred while applying the updates in a record: %s';
   SApplyRecNotSupported    = 'Applying updates is not supported by this TDataset descendent';
   SNoWhereFields           = 'No %s query specified and failed to generate one. (No fields for inclusion in where statement found)';
-  SNoUpdateFields          = 'No %s query specified and failed to generate one. (No fields found for insert- or update-statement found)';
+  SNoUpdateFields          = 'No %s query specified and failed to generate one. (No fields for insert- or update-statement found)';
   SNotSupported            = 'Operation is not supported by this type of database';
   SDBCreateDropFailed      = 'Creation or dropping of database failed';
   SMaxIndexes              = 'The maximum amount of indexes is reached';
@@ -102,7 +103,7 @@ Resourcestring
   SNoFieldIndexes          = 'No index currently active';
   SNotIndexField           = 'Field ''%s'' is not indexed and cannot be modified';
   SErrUnknownConnectorType = 'Unknown connector type: "%s"';
-  SNoIndexFieldNameGiven   = 'There are no fields selected to base the index on';
+  SNoIndexFieldNameGiven   = 'Cannot create index "%s": No fields available.';
   SStreamNotRecognised     = 'The data-stream format is not recognized';
   SNoReaderClassRegistered = 'There is no TDatapacketReaderClass registered for this kind of data-stream';
   SErrCircularDataSourceReferenceNotAllowed = 'Circular datasource references are not allowed.';
@@ -124,6 +125,8 @@ Resourcestring
   SErrNoKeyFieldForRefreshClause = 'No key field found to construct refresh SQL WHERE clause';
   SErrFailedToFetchReturningResult = 'Failed to fetch returning result';
   SLogParamValue              = 'Parameter "%s" value : "%s"';
+  SFieldError                 = 'Field "%s" error: ';
+  SInvalidVariant             = 'Invalid variant value';
 
 Implementation
 

@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2000 by the Free Pascal Development team
+#   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
 #   Polish (ISO 8859-2) Language File for Free Pascal
 #
@@ -11,6 +11,9 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
+
+# CodePage 28592
+
 #
 # The constants are build in the following order:
 # <part>_<type>_<txtidentifier>
@@ -723,7 +726,7 @@ parser_e_function_already_declared_public_forward=03120_E_Funkcja jest ju¿ zadek
 % declaration in the \var{implmentation} section.
 parser_e_not_external_and_export=03121_E_Nie mo¿na u¿yæ jednocze¶nie EXPORT i EXTERNAL
 % These two procedure directives are mutually exclusive
-parser_h_not_supported_for_inline=03123_H_$1 nieobs³ugiwane w procedurze/funkcji inline
+parser_n_not_supported_for_inline=03123_N_$1 nieobs³ugiwane w procedurze/funkcji inline
 % Inline procedures don't support this declaration.
 parser_h_inlining_disabled=03124_H_Inline wy³±czone
 % Inlining of procedures is disabled.
@@ -2116,7 +2119,7 @@ option_code_page_not_available=11039_E_Nieznana strona kodowa
 #
 option_logo=11023_[
 Free Pascal Compiler wersja $FPCFULLVERSION [$FPCDATE] dla $FPCCPU
-Copyright (c) 1993-2017 by Florian Klaempfl and others
+Copyright (c) 1993-2020 by Florian Klaempfl and others
 ]
 
 #
@@ -2321,7 +2324,6 @@ S*2Aas_asemblacja przy u¿yciu GNU AS
 3*2Tnetwlibc_Novell Netware Module (libc)
 3*2Topenbsd_OpenBSD
 3*2Tos2_OS/2 / eComStation
-3*2Tsunos_SunOS/Solaris
 3*2Twatcom_DOS extendery zgodne z Watcomem
 3*2Twdosx_WDOSX DOS extender
 3*2Twin32_32-bitowy Windows

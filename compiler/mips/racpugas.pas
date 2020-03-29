@@ -53,14 +53,14 @@ Interface
       { aasm }
       cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
       { symtable }
-      symconst,symsym,
+      symconst,symsym,symdef,
       { parser }
       scanner,
       procinfo,
       rabase,
       rgbase,
       itcpugas,
-      cgobj
+      cgobj,paramgr
       ;
 
 
@@ -93,7 +93,7 @@ Interface
         len:=1;
         actasmpattern[len]:='%';
         c:=current_scanner.asmgetchar;
-        while c in ['a'..'z','A'..'Z','0'..'9'] do
+        while c in ['a'..'z','A'..'Z','0'..'9','_'] do
           Begin
             inc(len);
             actasmpattern[len]:=c;
@@ -102,12 +102,26 @@ Interface
          actasmpattern[0]:=chr(len);
          uppervar(actasmpattern);
          actrel:=addr_no;
-         if (actasmpattern='%HI') then
-           actrel:=addr_high
-         else if (actasmpattern='%LO')then
-           actrel:=addr_low
-         else
-           Message(asmr_e_invalid_reference_syntax);
+         case actasmpattern of
+           '%CALL_LO':
+             actrel:=addr_low_call;
+           '%CALL_HI':
+             actrel:=addr_high_call;
+           '%GOT':
+             actrel:=addr_pic;
+           '%HIGH':
+             actrel:=addr_high;
+           '%LO':
+             actrel:=addr_low;
+           '%CALL16':
+             actrel:=addr_pic_call16;
+           '%GOT_LO':
+             actrel:=addr_low_pic;
+           '%GOT_HI':
+             actrel:=addr_high_pic;
+           else
+             Message(asmr_e_invalid_reference_syntax);
+         end;
          if actrel<>addr_no then
            actasmtoken:=AS_RELTYPE;
       end;
@@ -116,7 +130,7 @@ Interface
     Procedure TMipsReader.BuildOperand(oper : TOperand);
       var
         expr : string;
-        typesize,l : aint;
+        typesize,l : tcgint;
 
         procedure AddLabelOperand(hl:tasmlabel);
           begin
@@ -140,7 +154,7 @@ Interface
             hasdot  : boolean;
             l,
             toffset,
-            tsize   : aint;
+            tsize   : tcgint;
           begin
             if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
              exit;
@@ -167,10 +181,8 @@ Interface
                   { don't allow direct access to fields of parameters, because that
                     will generate buggy code. Allow it only for explicit typecasting }
                   if hasdot and
-                     (not oper.hastype) and
-                     (tabstractnormalvarsym(oper.opr.localsym).owner.symtabletype=parasymtable) and
-                     (current_procinfo.procdef.proccalloption<>pocall_register) then
-                    Message(asmr_e_cannot_access_field_directly_for_parameters);
+                     (not oper.hastype) then
+                     checklocalsubscript(oper.opr.localsym);
                   inc(oper.opr.localsymofs,l)
                 end;
               OPR_CONSTANT :

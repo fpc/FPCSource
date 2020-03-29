@@ -20,14 +20,22 @@ const RED=true;
 const BLACK=false;
 
 type
+
+  { TSetIterator }
+
   generic TSetIterator<T, TNode>=class
     public
     type PNode=^TNode;
+         TLSetIterator = specialize TSetIterator<T, TNode>;
+
     var FNode:PNode;
-    function GetData:T;
+    function GetData:T; Inline;
     function Next:boolean;
+    function MoveNext:boolean; Inline;
+    function GetEnumerator : TLSetIterator; Inline;
     function Prev:boolean;
     property Data:T read GetData;
+    property Current:T read GetData;
   end;
 
   generic TSet<T, TCompare>=class
@@ -53,7 +61,7 @@ type
     function RotateLeft(nod:PNode):PNode;inline;
     procedure FlipColors(nod:PNode);inline;
     function IsRed(nod:PNode):boolean;inline;
-    function Insert(value:T; nod:PNode; var position:PNode):PNode;
+    function Insert(value:T; nod:PNode; out position:PNode):PNode;
     function FixUp(nod:PNode):PNode;inline;
     function MoveRedLeft(nod:PNode):PNode;inline;
     function MoveRedRight(nod:PNode):PNode;inline;
@@ -413,7 +421,7 @@ begin
   InsertAndGetIterator := ret;
 end;
 
-function TSet.Insert(value:T; nod:PNode; var position:PNode):PNode;
+function TSet.Insert(value:T; nod:PNode; out position:PNode):PNode;
 begin
   if(nod=nil) then begin
     nod:=CreateNode(value);
@@ -502,6 +510,11 @@ begin
 end;
 
 function TSetIterator.Next:boolean;
+begin
+  Result:=MoveNext;
+end;
+
+function TSetIterator.MoveNext: boolean;
 var temp:PNode;
 begin
   if(FNode=nil) then exit(false);
@@ -519,7 +532,12 @@ begin
   end;
   if (temp = nil) then exit(false);
   FNode:=temp;
-  Next:=true;
+  Result:=true;
+end;
+
+function TSetIterator.GetEnumerator: TLSetIterator;
+begin
+  result:=self;
 end;
 
 function TSetIterator.Prev:boolean;
