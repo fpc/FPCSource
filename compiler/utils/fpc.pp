@@ -94,7 +94,7 @@ program fpc;
          ppcbin:=extrapath+ppcbin;
          findexe:=true;
        end
-      else if FileExists(path+ppcbin) then
+      else if (path<>'') and FileExists(path+ppcbin) then
        begin
          ppcbin:=path+ppcbin;
          findexe:=true;
