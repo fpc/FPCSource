@@ -101,7 +101,7 @@ interface
         'palmos','macos','darwin','emx','watcom','morphos','netwlibc',
         'win64','wince','gba','nds','embedded','symbian','nativent',
         'iphonesim', 'wii', 'aix', 'java', 'android', 'msdos', 'aros',
-        'dragonfly', 'win16', 'wasm', 'FreeRTOS'
+        'dragonfly', 'win16', 'wasm', 'freertos'
       );
 
       OSSuffix : array[TOS] of string=(

@@ -2538,7 +2538,7 @@ begin
                       begin
 {$push}
 {$warn 6018 off} { Unreachable code due to compile time evaluation }
-                        if (target_info.system in systems_embedded) and
+                        if ((target_info.system in systems_embedded) or (target_info.system in systems_freertos)) and
                           ControllerSupport then
                           begin
                             s:=upper(copy(more,j+1,length(more)-j));
@@ -4634,7 +4634,7 @@ begin
 
 {$push}
 {$warn 6018 off} { Unreachable code due to compile time evaluation }
-  if ControllerSupport and (target_info.system in systems_embedded) and
+  if ControllerSupport and (target_info.system in (systems_embedded+systems_freertos)) and
     (init_settings.controllertype<>ct_none) then
     begin
       with embedded_controllers[init_settings.controllertype] do
