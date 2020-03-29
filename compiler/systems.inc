@@ -258,6 +258,7 @@
              ld_android,
              ld_beos,
              ld_bsd,
+             ld_darwin,
              ld_embedded,
              ld_emx,
              ld_gba,
