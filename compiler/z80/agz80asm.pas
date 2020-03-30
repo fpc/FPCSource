@@ -50,6 +50,9 @@ unit agz80asm;
        cpuinfo,
        cgbase,cgutils;
 
+    const
+      line_length = 70;
+
         procedure TZ80AsmAssembler.WriteTree(p: TAsmList);
 
       function getreferencestring(var ref : treference) : string;
@@ -154,6 +157,8 @@ unit agz80asm;
     var
       hp: tai;
       s: string;
+      counter,lines,i,j: longint;
+      quoted: Boolean;
     begin
       if not assigned(p) then
        exit;
@@ -175,6 +180,82 @@ unit agz80asm;
                    writer.AsmWrite(tai_label(hp).labsym.name);
                    writer.AsmWriteLn(':');
                  end;
+              end;
+            ait_string :
+              begin
+                counter := 0;
+                lines := tai_string(hp).len div line_length;
+                { separate lines in different parts }
+                if tai_string(hp).len > 0 then
+                 Begin
+                   for j := 0 to lines-1 do
+                    begin
+                      writer.AsmWrite(#9#9'DB'#9);
+                      quoted:=false;
+                      for i:=counter to counter+line_length-1 do
+                         begin
+                           { it is an ascii character. }
+                           if (ord(tai_string(hp).str[i])>31) and
+                              (ord(tai_string(hp).str[i])<127) and
+                              (tai_string(hp).str[i]<>'"') then
+                               begin
+                                 if not(quoted) then
+                                     begin
+                                       if i>counter then
+                                         writer.AsmWrite(',');
+                                       writer.AsmWrite('"');
+                                     end;
+                                 writer.AsmWrite(tai_string(hp).str[i]);
+                                 quoted:=true;
+                               end { if > 31 and < 127 and ord('"') }
+                           else
+                               begin
+                                   if quoted then
+                                       writer.AsmWrite('"');
+                                   if i>counter then
+                                       writer.AsmWrite(',');
+                                   quoted:=false;
+                                   writer.AsmWrite(tostr(ord(tai_string(hp).str[i])));
+                               end;
+                        end; { end for i:=0 to... }
+                      if quoted then writer.AsmWrite('"');
+                        writer.AsmWrite(target_info.newline);
+                      counter := counter+line_length;
+                   end; { end for j:=0 ... }
+                 { do last line of lines }
+                 if counter<tai_string(hp).len then
+                   writer.AsmWrite(#9#9'DB'#9);
+                 quoted:=false;
+                 for i:=counter to tai_string(hp).len-1 do
+                   begin
+                     { it is an ascii character. }
+                     if (ord(tai_string(hp).str[i])>31) and
+                        (ord(tai_string(hp).str[i])<128) and
+                        (tai_string(hp).str[i]<>'"') then
+                         begin
+                           if not(quoted) then
+                               begin
+                                 if i>counter then
+                                   writer.AsmWrite(',');
+                                 writer.AsmWrite('"');
+                               end;
+                           writer.AsmWrite(tai_string(hp).str[i]);
+                           quoted:=true;
+                         end { if > 31 and < 128 and " }
+                     else
+                         begin
+                           if quoted then
+                             writer.AsmWrite('"');
+                           if i>counter then
+                               writer.AsmWrite(',');
+                           quoted:=false;
+                           writer.AsmWrite(tostr(ord(tai_string(hp).str[i])));
+                         end;
+                   end; { end for i:=0 to... }
+                 if quoted then
+                   writer.AsmWrite('"');
+                 end;
+                writer.AsmLn;
               end;
             else
               begin
