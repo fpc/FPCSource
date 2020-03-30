@@ -38,6 +38,7 @@ unit agz80asm;
     type
       TZ80AsmAssembler=class(TExternalAssembler)
         procedure WriteTree(p : TAsmList); override;
+        procedure WriteAsmList;override;
         function MakeCmdLine: TCmdStr; override;
       end;
 
@@ -49,7 +50,7 @@ unit agz80asm;
        cpuinfo,
        cgbase,cgutils;
 
-    Procedure TZ80AsmAssembler.WriteTree(p:TAsmList);
+        procedure TZ80AsmAssembler.WriteTree(p: TAsmList);
 
       function getreferencestring(var ref : treference) : string;
         var
@@ -146,11 +147,45 @@ unit agz80asm;
           //end;
         end;
 
-    var op: TAsmOp;
-        s: string;
-        i: byte;
-        sep: string[3];
+    //var op: TAsmOp;
+    //    s: string;
+    //    i: byte;
+    //    sep: string[3];
+    var
+      hp: tai;
+      s: string;
     begin
+      if not assigned(p) then
+       exit;
+      hp:=tai(p.first);
+      while assigned(hp) do
+        begin
+          prefetch(pointer(hp.next)^);
+          case hp.typ of
+            ait_comment :
+              begin
+                writer.AsmWrite(asminfo^.comment);
+                writer.AsmWritePChar(tai_comment(hp).str);
+                writer.AsmLn;
+              end;
+            ait_label :
+              begin
+                if tai_label(hp).labsym.is_used then
+                 begin
+                   writer.AsmWrite(tai_label(hp).labsym.name);
+                   writer.AsmWriteLn(':');
+                 end;
+              end;
+            else
+              begin
+                writer.AsmWrite(asminfo^.comment);
+                writer.AsmWrite('WARNING: not yet implemented in assembler output: ');
+                Str(hp.typ,s);
+                writer.AsmWriteLn(s);
+              end;
+          end;
+          hp:=tai(hp.next);
+        end;
       //op:=taicpu(hp).opcode;
       //s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition];
       //if taicpu(hp).ops<>0 then
@@ -164,6 +199,19 @@ unit agz80asm;
       //  end;
       //owner.writer.AsmWriteLn(s);
     end;
+
+
+    procedure TZ80AsmAssembler.WriteAsmList;
+      var
+        hal: TAsmListType;
+      begin
+        for hal:=low(TasmlistType) to high(TasmlistType) do
+          begin
+            writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmListTypeStr[hal]);
+            writetree(current_asmdata.asmlists[hal]);
+            writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmListTypeStr[hal]);
+          end;
+      end;
 
 
     function TZ80AsmAssembler.MakeCmdLine: TCmdStr;
@@ -183,7 +231,7 @@ unit agz80asm;
             supported_targets : [system_Z80_embedded];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
-            comment : '# ';
+            comment : '; ';
             dollarsign: 's';
           );
 
