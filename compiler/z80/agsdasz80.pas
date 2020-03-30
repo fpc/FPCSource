@@ -60,11 +60,11 @@ unit agsdasz80;
       line_length = 70;
       max_tokens : longint = 25;
       ait_const2str : array[aitconst_128bit..aitconst_64bit_unaligned] of string[20]=(
-        #9''#9,#9'DQ'#9,#9'DD'#9,#9'.dw'#9,#9'.db'#9,
+        #9''#9,#9'FIXMEDQ'#9,#9'FIXMEDD'#9,#9'.dw'#9,#9'.db'#9,
         #9'FIXMESLEB',#9'FIXEMEULEB',
-        #9'DD RVA'#9,#9'DD SECREL32'#9,
+        #9'FIXMEDD RVA'#9,#9'FIXMEDD SECREL32'#9,
         #9'FIXME',#9'FIXME',#9'FIXME',#9'FIXME',
-        #9'DW'#9,#9'DD'#9,#9'DQ'#9
+        #9'.dw'#9,#9'FIXMEDD'#9,#9'FIXMEDQ'#9
       );
 
     function TSdccSdasZ80Assembler.EscapeLabel(s: ansistring): ansistring;
