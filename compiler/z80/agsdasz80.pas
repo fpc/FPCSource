@@ -60,7 +60,7 @@ unit agsdasz80;
       line_length = 70;
       max_tokens : longint = 25;
       ait_const2str : array[aitconst_128bit..aitconst_64bit_unaligned] of string[20]=(
-        #9''#9,#9'DQ'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
+        #9''#9,#9'DQ'#9,#9'DD'#9,#9'.dw'#9,#9'.db'#9,
         #9'FIXMESLEB',#9'FIXEMEULEB',
         #9'DD RVA'#9,#9'DD SECREL32'#9,
         #9'FIXME',#9'FIXME',#9'FIXME',#9'FIXME',
@@ -188,9 +188,10 @@ unit agsdasz80;
     var
       hp: tai;
       s: string;
-      counter,lines,i,j,l,tokens: longint;
+      counter,lines,i,j,l,tokens,pos: longint;
       quoted: Boolean;
       consttype: taiconst_type;
+      ch: Char;
     begin
       if not assigned(p) then
        exit;
@@ -306,79 +307,32 @@ unit agsdasz80;
               end;
             ait_string :
               begin
-                counter := 0;
-                lines := tai_string(hp).len div line_length;
-                { separate lines in different parts }
-                if tai_string(hp).len > 0 then
-                 Begin
-                   for j := 0 to lines-1 do
-                    begin
-                      writer.AsmWrite(#9#9'DB'#9);
-                      quoted:=false;
-                      for i:=counter to counter+line_length-1 do
-                         begin
-                           { it is an ascii character. }
-                           if (ord(tai_string(hp).str[i])>31) and
-                              (ord(tai_string(hp).str[i])<127) and
-                              (tai_string(hp).str[i]<>'"') then
-                               begin
-                                 if not(quoted) then
-                                     begin
-                                       if i>counter then
-                                         writer.AsmWrite(',');
-                                       writer.AsmWrite('"');
-                                     end;
-                                 writer.AsmWrite(tai_string(hp).str[i]);
-                                 quoted:=true;
-                               end { if > 31 and < 127 and ord('"') }
-                           else
-                               begin
-                                   if quoted then
-                                       writer.AsmWrite('"');
-                                   if i>counter then
-                                       writer.AsmWrite(',');
-                                   quoted:=false;
-                                   writer.AsmWrite(tostr(ord(tai_string(hp).str[i])));
-                               end;
-                        end; { end for i:=0 to... }
-                      if quoted then writer.AsmWrite('"');
-                        writer.AsmWrite(target_info.newline);
-                      counter := counter+line_length;
-                   end; { end for j:=0 ... }
-                 { do last line of lines }
-                 if counter<tai_string(hp).len then
-                   writer.AsmWrite(#9#9'DB'#9);
-                 quoted:=false;
-                 for i:=counter to tai_string(hp).len-1 do
-                   begin
-                     { it is an ascii character. }
-                     if (ord(tai_string(hp).str[i])>31) and
-                        (ord(tai_string(hp).str[i])<128) and
-                        (tai_string(hp).str[i]<>'"') then
-                         begin
-                           if not(quoted) then
-                               begin
-                                 if i>counter then
-                                   writer.AsmWrite(',');
-                                 writer.AsmWrite('"');
-                               end;
-                           writer.AsmWrite(tai_string(hp).str[i]);
-                           quoted:=true;
-                         end { if > 31 and < 128 and " }
-                     else
-                         begin
-                           if quoted then
-                             writer.AsmWrite('"');
-                           if i>counter then
-                               writer.AsmWrite(',');
-                           quoted:=false;
-                           writer.AsmWrite(tostr(ord(tai_string(hp).str[i])));
-                         end;
-                   end; { end for i:=0 to... }
-                 if quoted then
-                   writer.AsmWrite('"');
-                 end;
-                writer.AsmLn;
+                pos:=0;
+                for i:=1 to tai_string(hp).len do
+                  begin
+                    if pos=0 then
+                      begin
+                        writer.AsmWrite(#9'.ascii'#9'"');
+                        pos:=20;
+                      end;
+                    ch:=tai_string(hp).str[i-1];
+                    case ch of
+                              #0, {This can't be done by range, because a bug in FPC}
+                         #1..#31,
+                      #128..#255 : s:='\'+tostr(ord(ch) shr 6)+tostr((ord(ch) and 63) shr 3)+tostr(ord(ch) and 7);
+                             '"' : s:='\"';
+                             '\' : s:='\\';
+                    else
+                      s:=ch;
+                    end;
+                    writer.AsmWrite(s);
+                    inc(pos,length(s));
+                    if (pos>line_length) or (i=tai_string(hp).len) then
+                      begin
+                        writer.AsmWriteLn('"');
+                        pos:=0;
+                      end;
+                  end;
               end;
             else
               begin
