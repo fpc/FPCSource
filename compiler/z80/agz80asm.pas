@@ -272,7 +272,7 @@ unit agz80asm;
                           s:=tostr(tai_const(hp).value);
                         writer.AsmWrite(s);
                         inc(l,length(s));
- 		       inc(tokens);
+ 		        inc(tokens);
                         if (l>line_length) or
                            (tokens>max_tokens) or
                            (hp.next=nil) or
