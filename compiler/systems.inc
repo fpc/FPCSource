@@ -251,6 +251,7 @@
              ,as_powerpc_gas_legacy    { for systems with very old GAS versions only, which don't support eg. named sections }
              ,as_llvm_clang
              ,as_z80asm
+             ,as_sdcc_sdasz80
        );
 
        tlink = (ld_none,

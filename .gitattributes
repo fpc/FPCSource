@@ -1052,6 +1052,7 @@ compiler/xtensa/xtensaatt.inc svneol=native#text/plain
 compiler/xtensa/xtensaop.inc svneol=native#text/plain
 compiler/xtensa/xtensareg.dat svneol=native#text/plain
 compiler/z80/aasmcpu.pas svneol=native#text/plain
+compiler/z80/agsdasz80.pas svneol=native#text/plain
 compiler/z80/agz80asm.pas svneol=native#text/plain
 compiler/z80/aoptcpu.pas svneol=native#text/plain
 compiler/z80/aoptcpub.pas svneol=native#text/plain

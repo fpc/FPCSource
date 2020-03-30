@@ -46,6 +46,9 @@ implementation
     {$ifndef NOAGZ80ASM}
       ,agz80asm
     {$endif}
+    {$ifndef NOAGSDASZ80}
+      ,agsdasz80
+    {$endif}
 
 {**************************************
         Assembler Readers
