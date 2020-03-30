@@ -1341,7 +1341,7 @@ begin
                       end;
 {$endif arm}
 {$ifdef llvm}
-                    'L':
+                    'l':
                       begin
                         l:=j+1;
                         while l<=length(More) do
@@ -1363,14 +1363,14 @@ begin
                                            exclude(init_settings.moduleswitches,cs_lto);
                                        end;
                                      'ltonosystem':
-                                         begin
-                                           if not disable then
-                                             begin
-                                               include(init_settings.globalswitches,cs_lto_nosystem);
-                                             end
-                                           else
-                                             exclude(init_settings.globalswitches,cs_lto_nosystem);
-                                         end;
+                                       begin
+                                         if not disable then
+                                           begin
+                                             include(init_settings.globalswitches,cs_lto_nosystem);
+                                           end
+                                         else
+                                           exclude(init_settings.globalswitches,cs_lto_nosystem);
+                                       end;
                                     else
                                       begin
                                         IllegalPara(opt);
@@ -2677,7 +2677,25 @@ begin
                         else
                           include(init_settings.globalswitches,cs_link_native);
                       end;
-
+{$ifdef llvm}
+                    'l' :
+                      begin
+                        if j=length(more) then
+                          IllegalPara(opt)
+                        else
+                          begin
+                             case more[j+1] of
+                               'S':
+                                 begin
+                                   llvmutilssuffix:=copy(more,j+2,length(more));
+                                   j:=length(more);
+                                 end
+                               else
+                                 IllegalPara(opt);
+                             end;
+                          end;
+                      end;
+{$endif}
                     'm' :
                       begin
                         If UnsetBool(More, j, opt, false) then

@@ -76,6 +76,7 @@ interface
          ,af_no_debug
          ,af_stabs_use_function_absolute_addresses
          ,af_no_stabs
+         ,af_llvm
        );
 
        pasminfo = ^tasminfo;

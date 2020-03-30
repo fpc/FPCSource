@@ -273,6 +273,10 @@ interface
        utilsdirectory : TPathStr;
        { targetname specific prefix used by these utils (options -XP<path>) }
        utilsprefix    : TCmdStr;
+
+       { Suffix for LLVM utilities, e.g. '-7' for clang-7 }
+       llvmutilssuffix     : TCmdStr;
+
        cshared        : boolean;        { pass --shared to ld to link C libs shared}
        Dontlinkstdlibpath: Boolean;     { Don't add std paths to linkpath}
        rlinkpath      : TCmdStr;        { rpath-link linkdir override}
@@ -1608,6 +1612,7 @@ implementation
         { Utils directory }
         utilsdirectory:='';
         utilsprefix:='';
+        llvmutilssuffix:='';
         cshared:=false;
         rlinkpath:='';
         sysrootpath:='';
