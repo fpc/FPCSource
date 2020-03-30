@@ -85,11 +85,7 @@ unit cpupara;
             orddef:
               result:=LOC_REGISTER;
             floatdef:
-              if (cs_fp_emulation in current_settings.moduleswitches) or
-                 (current_settings.fputype in [fpu_soft]) then
-                result := LOC_REGISTER
-              else
-                result := LOC_FPUREGISTER;
+              result:=LOC_REGISTER;
             enumdef:
               result:=LOC_REGISTER;
             pointerdef:
@@ -227,57 +223,60 @@ unit cpupara;
           exit;
 
         paraloc:=result.add_location;
-        { Return in FPU register? }
-        if (result.def.typ=floatdef) and
-           (not ((cs_fp_emulation in current_settings.moduleswitches) or
-                 (current_settings.fputype in [fpu_soft]))) then
+        if retcgsize in [OS_64,OS_S64] then
           begin
-            paraloc^.loc:=LOC_FPUREGISTER;
-            paraloc^.register:=NR_FPU_RESULT_REG;
-            paraloc^.size:=retcgsize;
-            paraloc^.def:=result.def;
+            { low 32bits }
+            paraloc^.loc:=LOC_REGISTER;
+            paraloc^.size:=OS_32;
+            paraloc^.def:=u32inttype;
+            if side=callerside then
+              case target_info.abi of
+                abi_xtensa_call0:
+              paraloc^.register:=NR_A2;
+                abi_xtensa_windowed:
+                  { only call8 used/supported so far }
+                  paraloc^.register:=newreg(R_INTREGISTER,RS_A10,cgsize2subreg(R_INTREGISTER,retcgsize));
+                else
+                  Internalerror(2020032201);
+              end
+            else
+              paraloc^.register:=NR_A2;
+
+            { high 32bits }
+            paraloc:=result.add_location;
+            paraloc^.loc:=LOC_REGISTER;
+            paraloc^.size:=OS_32;
+            paraloc^.def:=u32inttype;
+            if side=callerside then
+              case target_info.abi of
+                abi_xtensa_call0:
+              paraloc^.register:=NR_A3;
+                abi_xtensa_windowed:
+                  { only call8 used/supported so far }
+                  paraloc^.register:=newreg(R_INTREGISTER,RS_A11,cgsize2subreg(R_INTREGISTER,retcgsize));
+                else
+                  Internalerror(2020032202);
+              end
+            else
+              paraloc^.register:=NR_A3;
           end
         else
-         { Return in register }
           begin
-            if retcgsize in [OS_64,OS_S64] then
-             begin
-               { low 32bits }
-               paraloc^.loc:=LOC_REGISTER;
-               if side=callerside then
-                 paraloc^.register:=NR_A3
-               else
-                 paraloc^.register:=NR_A3;
-               paraloc^.size:=OS_32;
-               paraloc^.def:=u32inttype;
-               { high 32bits }
-               paraloc:=result.add_location;
-               paraloc^.loc:=LOC_REGISTER;
-               if side=callerside then
-                 paraloc^.register:=NR_A2
-               else
-                 paraloc^.register:=NR_A2;
-               paraloc^.size:=OS_32;
-               paraloc^.def:=u32inttype;
-             end
+            paraloc^.loc:=LOC_REGISTER;
+            if side=callerside then
+              case target_info.abi of
+                abi_xtensa_call0:
+                  paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
+                abi_xtensa_windowed:
+                  { only call8 used/supported so far }
+                  paraloc^.register:=newreg(R_INTREGISTER,RS_A10,cgsize2subreg(R_INTREGISTER,retcgsize));
+                else
+                  Internalerror(2020031502);
+              end
             else
-             begin
-               paraloc^.loc:=LOC_REGISTER;
-               if side=callerside then
-                 case target_info.abi of
-                   abi_xtensa_call0:
-                     paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
-                   abi_xtensa_windowed:
-                     { only call8 used/supported so far }
-                     paraloc^.register:=newreg(R_INTREGISTER,RS_A10,cgsize2subreg(R_INTREGISTER,retcgsize));
-                   else
-                     Internalerror(2020031502);
-                 end
-               else
-                 paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
-               paraloc^.size:=retcgsize;
-               paraloc^.def:=result.def;
-             end;
+              paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
+            paraloc^.size:=retcgsize;
+            paraloc^.def:=result.def;
           end;
       end;
 
