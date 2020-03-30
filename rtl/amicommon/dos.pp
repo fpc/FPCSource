@@ -230,7 +230,7 @@ begin
   dosSetProtection:=SetProtection(buffer,mask) <> 0;
 end;
 
-function dosSetFileDate(name: string; p : PDateStamp): Boolean;
+function dosSetFileDate(const name: string; p : PDateStamp): Boolean;
 var
   buffer : array[0..255] of Char;
 begin
@@ -405,11 +405,11 @@ begin
     tr^.tr_node.io_Command := TR_GETSYSTIME;
     DoIO(pIORequest(tr));
 
-   { structure assignment }
-   tv^ := tr^.tr_time;
+    { structure assignment }
+    tv^ := tr^.tr_time;
 
-   delete_timer(tr);
-   get_sys_time := 0;
+    delete_timer(tr);
+    get_sys_time := 0;
 end;
 
 procedure GetDate(Var Year, Month, MDay, WDay: Word);
