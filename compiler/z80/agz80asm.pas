@@ -52,6 +52,14 @@ unit agz80asm;
 
     const
       line_length = 70;
+      max_tokens : longint = 25;
+      ait_const2str : array[aitconst_128bit..aitconst_64bit_unaligned] of string[20]=(
+        #9''#9,#9'DQ'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
+        #9'FIXMESLEB',#9'FIXEMEULEB',
+        #9'DD RVA'#9,#9'DD SECREL32'#9,
+        #9'FIXME',#9'FIXME',#9'FIXME',#9'FIXME',
+        #9'DW'#9,#9'DD'#9,#9'DQ'#9
+      );
 
         procedure TZ80AsmAssembler.WriteTree(p: TAsmList);
 
@@ -157,8 +165,9 @@ unit agz80asm;
     var
       hp: tai;
       s: string;
-      counter,lines,i,j: longint;
+      counter,lines,i,j,l,tokens: longint;
       quoted: Boolean;
+      consttype: taiconst_type;
     begin
       if not assigned(p) then
        exit;
@@ -180,6 +189,89 @@ unit agz80asm;
                    writer.AsmWrite(tai_label(hp).labsym.name);
                    writer.AsmWriteLn(':');
                  end;
+              end;
+            ait_symbol :
+              begin
+                if tai_symbol(hp).has_value then
+                  internalerror(2009090802);
+                { wasm is case insensitive, we nned to use only uppercase version
+                  if both a lowercase and an uppercase version are provided }
+                {if (asminfo^.id = as_i386_wasm) then
+                  begin
+                    nhp:=tai(hp.next);
+                    while assigned(nhp) and (nhp.typ in [ait_function_name,ait_force_line]) do
+                      nhp:=tai(nhp.next);
+                    if assigned(nhp) and (tai(nhp).typ=ait_symbol) and
+                       (lower(tai_symbol(nhp).sym.name)=tai_symbol(hp).sym.name) then
+                      begin
+                        writer.AsmWriteln(asminfo^.comment+' '+tai_symbol(hp).sym.name+' removed');
+                        hp:=tai(nhp);
+                      end;
+                  end;}
+                {if tai_symbol(hp).is_global then
+                  writer.AsmWriteLn(#9'PUBLIC'#9+tai_symbol(hp).sym.name);}
+                writer.AsmWrite(tai_symbol(hp).sym.name);
+                {if assigned(hp.next) and not(tai(hp.next).typ in
+                   [ait_const,ait_realconst,ait_string]) then}
+                  writer.AsmWriteLn(':');
+              end;
+            ait_const:
+              begin
+                consttype:=tai_const(hp).consttype;
+                case consttype of
+                  {aitconst_uleb128bit,
+                  aitconst_sleb128bit,
+                  aitconst_128bit,
+                  aitconst_64bit,
+                  aitconst_32bit,}
+                  aitconst_16bit,
+                  aitconst_8bit,
+                  aitconst_16bit_unaligned{,
+                  aitconst_32bit_unaligned,
+                  aitconst_64bit_unaligned,
+                  aitconst_rva_symbol,
+                  aitconst_secrel32_symbol} :
+                    begin
+                      writer.AsmWrite(ait_const2str[consttype]);
+                      l:=0;
+ 		      tokens:=1;
+                      repeat
+                        if assigned(tai_const(hp).sym) then
+                          begin
+                            if assigned(tai_const(hp).endsym) then
+                              s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
+                            else
+                              s:=tai_const(hp).sym.name;
+                            if tai_const(hp).value<>0 then
+                              s:=s+tostr_with_plus(tai_const(hp).value);
+                          end
+                        else
+                          s:=tostr(tai_const(hp).value);
+                        writer.AsmWrite(s);
+                        inc(l,length(s));
+ 		       inc(tokens);
+                        if (l>line_length) or
+                           (tokens>max_tokens) or
+                           (hp.next=nil) or
+                           (tai(hp.next).typ<>ait_const) or
+                           (tai_const(hp.next).consttype<>consttype) then
+                          break;
+                        hp:=tai(hp.next);
+                        writer.AsmWrite(',');
+                      until false;
+                      { Substract section start for secrel32 type }
+                      if consttype=aitconst_secrel32_symbol then
+                        writer.AsmWrite(' - $$');
+                      writer.AsmLn;
+                    end;
+                  else
+                    begin
+                      writer.AsmWrite(asminfo^.comment);
+                      writer.AsmWrite('WARNING: not yet implemented in assembler output: ');
+                      Str(consttype,s);
+                      writer.AsmWriteLn(s);
+                    end;
+                end;
               end;
             ait_string :
               begin
