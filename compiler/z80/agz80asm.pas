@@ -36,7 +36,13 @@ unit agz80asm;
        cpubase;
 
     type
+
+      { TZ80AsmAssembler }
+
       TZ80AsmAssembler=class(TExternalAssembler)
+      private
+        function EscapeLabel(s: ansistring): ansistring;
+      public
         procedure WriteTree(p : TAsmList); override;
         procedure WriteAsmList;override;
         function MakeCmdLine: TCmdStr; override;
@@ -61,7 +67,24 @@ unit agz80asm;
         #9'DW'#9,#9'DD'#9,#9'DQ'#9
       );
 
-        procedure TZ80AsmAssembler.WriteTree(p: TAsmList);
+    function TZ80AsmAssembler.EscapeLabel(s: ansistring): ansistring;
+      var
+        i: Integer;
+      begin
+        result:='';
+        for i:=1 to length(s) do
+          if ((s[i]>='a') and (s[i]<='z')) or
+             ((s[i]>='A') and (s[i]<='Z')) or
+             ((s[i]>='0') and (s[i]<='9')) or
+             (s[i]='.') then
+            result:=result+s[i]
+          else if s[i]='_' then
+            result:=result+'__'
+          else
+            result:=result+('_'+HexStr(Ord(s[i]),2));
+      end;
+
+    procedure TZ80AsmAssembler.WriteTree(p: TAsmList);
 
       function getreferencestring(var ref : treference) : string;
         var
@@ -186,7 +209,7 @@ unit agz80asm;
               begin
                 if tai_label(hp).labsym.is_used then
                  begin
-                   writer.AsmWrite(tai_label(hp).labsym.name);
+                   writer.AsmWrite(EscapeLabel(tai_label(hp).labsym.name));
                    writer.AsmWriteLn(':');
                  end;
               end;
@@ -210,7 +233,7 @@ unit agz80asm;
                   end;}
                 {if tai_symbol(hp).is_global then
                   writer.AsmWriteLn(#9'PUBLIC'#9+tai_symbol(hp).sym.name);}
-                writer.AsmWrite(tai_symbol(hp).sym.name);
+                writer.AsmWrite(EscapeLabel(tai_symbol(hp).sym.name));
                 {if assigned(hp.next) and not(tai(hp.next).typ in
                    [ait_const,ait_realconst,ait_string]) then}
                   writer.AsmWriteLn(':');
@@ -239,9 +262,9 @@ unit agz80asm;
                         if assigned(tai_const(hp).sym) then
                           begin
                             if assigned(tai_const(hp).endsym) then
-                              s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
+                              s:=EscapeLabel(tai_const(hp).endsym.name)+'-'+EscapeLabel(tai_const(hp).sym.name)
                             else
-                              s:=tai_const(hp).sym.name;
+                              s:=EscapeLabel(tai_const(hp).sym.name);
                             if tai_const(hp).value<>0 then
                               s:=s+tostr_with_plus(tai_const(hp).value);
                           end
