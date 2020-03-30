@@ -251,16 +251,57 @@ unit agsdasz80;
               begin
                 consttype:=tai_const(hp).consttype;
                 case consttype of
+                  aitconst_64bit,
+                  aitconst_64bit_unaligned,
+                  aitconst_32bit,
+                  aitconst_32bit_unaligned:
+                    begin
+                      writer.AsmWrite(#9'.dw'#9);
+                      l:=0;
+ 		      tokens:=1;
+                      repeat
+                        if assigned(tai_const(hp).sym) then
+                          begin
+                            if assigned(tai_const(hp).endsym) then
+                              s:=EscapeLabel(tai_const(hp).endsym.name)+'-'+EscapeLabel(tai_const(hp).sym.name)
+                            else
+                              s:=EscapeLabel(tai_const(hp).sym.name);
+                            if tai_const(hp).value<>0 then
+                              s:=s+tostr_with_plus(tai_const(hp).value);
+                            if consttype in [aitconst_64bit,aitconst_64bit_unaligned] then
+                              s:=s+',0,0,0'
+                            else
+                              s:=s+',0';
+                          end
+                        else
+                          if consttype in [aitconst_64bit,aitconst_64bit_unaligned] then
+                            s:=tostr(Word(tai_const(hp).value))       +','+tostr(Word(tai_const(hp).value shr 16))+
+                               tostr(Word(tai_const(hp).value shr 32))+','+tostr(Word(tai_const(hp).value shr 48))
+                          else
+                            s:=tostr(Word(tai_const(hp).value))+','+tostr(Word(tai_const(hp).value shr 16));
+                        writer.AsmWrite(s);
+                        inc(l,length(s));
+ 		        inc(tokens);
+                        if (l>line_length) or
+                           (tokens>max_tokens) or
+                           (hp.next=nil) or
+                           (tai(hp.next).typ<>ait_const) or
+                           (tai_const(hp.next).consttype<>consttype) then
+                          break;
+                        hp:=tai(hp.next);
+                        writer.AsmWrite(',');
+                      until false;
+                      { Substract section start for secrel32 type }
+                      {if consttype=aitconst_secrel32_symbol then
+                        writer.AsmWrite(' - $$');}
+                      writer.AsmLn;
+                    end;
                   {aitconst_uleb128bit,
                   aitconst_sleb128bit,
-                  aitconst_128bit,
-                  aitconst_64bit,
-                  aitconst_32bit,}
+                  aitconst_128bit,}
                   aitconst_16bit,
                   aitconst_8bit,
                   aitconst_16bit_unaligned{,
-                  aitconst_32bit_unaligned,
-                  aitconst_64bit_unaligned,
                   aitconst_rva_symbol,
                   aitconst_secrel32_symbol} :
                     begin
