@@ -205,6 +205,11 @@ unit agz80asm;
                 writer.AsmWritePChar(tai_comment(hp).str);
                 writer.AsmLn;
               end;
+            ait_align :
+              begin
+                if tai_align_abstract(hp).aligntype>1 then
+                  writer.AsmWriteLn(asminfo^.comment+'Unsupported ALIGN '+tostr(tai_align_abstract(hp).aligntype));
+              end;
             ait_label :
               begin
                 if tai_label(hp).labsym.is_used then
