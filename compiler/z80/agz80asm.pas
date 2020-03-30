@@ -243,6 +243,9 @@ unit agz80asm;
                    [ait_const,ait_realconst,ait_string]) then}
                   writer.AsmWriteLn(':');
               end;
+            ait_symbol_end :
+              begin
+              end;
             ait_const:
               begin
                 consttype:=tai_const(hp).consttype;
