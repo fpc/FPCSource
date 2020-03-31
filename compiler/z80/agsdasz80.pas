@@ -242,14 +242,15 @@ unit agsdasz80;
               end;
             ait_symbol :
               begin
-                if tai_symbol(hp).has_value then
-                  internalerror(2009090802);
                 if tai_symbol(hp).is_global then
                   begin
                     writer.AsmWrite('.globl'#9);
                     writer.AsmWriteln(tai_symbol(hp).sym.name);
                   end;
-                writer.AsmWriteLn(tai_symbol(hp).sym.name + ':');
+                if not(tai_symbol(hp).has_value) then
+                  writer.AsmWriteLn(tai_symbol(hp).sym.name + ':')
+                else
+                  writer.AsmWriteLn(tai_symbol(hp).sym.name + '=' + tostr(tai_symbol(hp).value));
               end;
             ait_symbol_end :
               begin
