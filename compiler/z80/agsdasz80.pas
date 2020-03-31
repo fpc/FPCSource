@@ -230,10 +230,15 @@ unit agsdasz80;
             ait_label :
               begin
                 if tai_label(hp).labsym.is_used then
-                 begin
-                   writer.AsmWrite(tai_label(hp).labsym.name);
-                   writer.AsmWriteLn(':');
-                 end;
+                  begin
+                    if tai_label(hp).labsym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN] then
+                      begin
+                        writer.AsmWrite('.globl'#9);
+                        writer.AsmWriteLn(tai_label(hp).labsym.name);
+                      end;
+                    writer.AsmWrite(tai_label(hp).labsym.name);
+                    writer.AsmWriteLn(':');
+                  end;
               end;
             ait_symbol :
               begin
