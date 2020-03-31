@@ -107,8 +107,7 @@ uses
   llvminfo,
 {$endif llvm}
   dirparse,
-  pkgutil,
-  i_bsd;
+  pkgutil;
 
 const
   page_size = 24;
@@ -2432,7 +2431,6 @@ begin
                       begin
                         if (target_info.system in systems_darwin) then
                           begin
-                            RegisterRes(res_macosx_ext_info,TWinLikeResourceFile);
                             set_target_res(res_ext);
                             target_info.resobjext:='.fpcres';
                           end
