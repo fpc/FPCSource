@@ -41,7 +41,6 @@ unit agsdasz80;
 
       TSdccSdasZ80Assembler=class(TExternalAssembler)
       private
-        function EscapeLabel(s: ansistring): ansistring;
         procedure WriteDecodedSleb128(a: int64);
         procedure WriteDecodedUleb128(a: qword);
       public
@@ -68,23 +67,6 @@ unit agsdasz80;
         #9'FIXME',#9'FIXME',#9'FIXME',#9'FIXME',
         #9'.dw'#9,#9'FIXMEDD'#9,#9'FIXMEDQ'#9
       );
-
-    function TSdccSdasZ80Assembler.EscapeLabel(s: ansistring): ansistring;
-      var
-        i: Integer;
-      begin
-        result:='';
-        for i:=1 to length(s) do
-          if ((s[i]>='a') and (s[i]<='z')) or
-             ((s[i]>='A') and (s[i]<='Z')) or
-             ((s[i]>='0') and (s[i]<='9')) or
-             (s[i]='.') then
-            result:=result+s[i]
-          else if s[i]='_' then
-            result:=result+'__'
-          else
-            result:=result+('_'+HexStr(Ord(s[i]),2));
-      end;
 
     procedure TSdccSdasZ80Assembler.WriteDecodedSleb128(a: int64);
       var
@@ -249,7 +231,7 @@ unit agsdasz80;
               begin
                 if tai_label(hp).labsym.is_used then
                  begin
-                   writer.AsmWrite(EscapeLabel(tai_label(hp).labsym.name));
+                   writer.AsmWrite(tai_label(hp).labsym.name);
                    writer.AsmWriteLn(':');
                  end;
               end;
@@ -273,7 +255,7 @@ unit agsdasz80;
                   end;}
                 {if tai_symbol(hp).is_global then
                   writer.AsmWriteLn(#9'PUBLIC'#9+tai_symbol(hp).sym.name);}
-                writer.AsmWrite(EscapeLabel(tai_symbol(hp).sym.name));
+                writer.AsmWrite(tai_symbol(hp).sym.name);
                 {if assigned(hp.next) and not(tai(hp.next).typ in
                    [ait_const,ait_realconst,ait_string]) then}
                   writer.AsmWriteLn(':');
@@ -301,9 +283,9 @@ unit agsdasz80;
                         if assigned(tai_const(hp).sym) then
                           begin
                             if assigned(tai_const(hp).endsym) then
-                              s:=EscapeLabel(tai_const(hp).endsym.name)+'-'+EscapeLabel(tai_const(hp).sym.name)
+                              s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
                             else
-                              s:=EscapeLabel(tai_const(hp).sym.name);
+                              s:=tai_const(hp).sym.name;
                             if tai_const(hp).value<>0 then
                               s:=s+tostr_with_plus(tai_const(hp).value);
                             if consttype in [aitconst_64bit,aitconst_64bit_unaligned] then
@@ -348,9 +330,9 @@ unit agsdasz80;
                         if assigned(tai_const(hp).sym) then
                           begin
                             if assigned(tai_const(hp).endsym) then
-                              s:=EscapeLabel(tai_const(hp).endsym.name)+'-'+EscapeLabel(tai_const(hp).sym.name)
+                              s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
                             else
-                              s:=EscapeLabel(tai_const(hp).sym.name);
+                              s:=tai_const(hp).sym.name;
                             if tai_const(hp).value<>0 then
                               s:=s+tostr_with_plus(tai_const(hp).value);
                           end
