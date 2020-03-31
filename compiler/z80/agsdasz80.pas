@@ -31,7 +31,7 @@ unit agsdasz80;
 
     uses
        globtype,systems,
-       aasmtai,aasmdata,
+       aasmbase,aasmtai,aasmdata,
        assemble,
        cpubase;
 
@@ -43,6 +43,9 @@ unit agsdasz80;
       private
         procedure WriteDecodedSleb128(a: int64);
         procedure WriteDecodedUleb128(a: qword);
+        function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
+        procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;
+          secflags:TSectionFlags=[];secprogbits:TSectionProgbits=SPB_None);
       public
         procedure WriteTree(p : TAsmList); override;
         procedure WriteAsmList;override;
@@ -53,7 +56,7 @@ unit agsdasz80;
 
     uses
        cutils,globals,verbose,
-       aasmbase,aasmcpu,
+       aasmcpu,
        cpuinfo,
        cgbase,cgutils;
 
@@ -98,6 +101,188 @@ unit agsdasz80;
             writer.AsmWrite(tostr(buf[i]));
           end;
         writer.AsmWriteLn(#9'; uleb '+tostr(a));
+      end;
+
+    function TSdccSdasZ80Assembler.sectionname(atype: TAsmSectiontype;
+        const aname: string; aorder: TAsmSectionOrder): string;
+      const
+        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
+          '_CODE',
+          '_DATA',
+          '_DATA',
+          '.rodata',
+          '.bss',
+          '.threadvar',
+          '.pdata',
+          '', { stubs }
+          '__DATA,__nl_symbol_ptr',
+          '__DATA,__la_symbol_ptr',
+          '__DATA,__mod_init_func',
+          '__DATA,__mod_term_func',
+          '.stab',
+          '.stabstr',
+          '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+          '.eh_frame',
+          '.debug_frame','.debug_info','.debug_line','.debug_abbrev','.debug_aranges','.debug_ranges',
+          '.fpc',
+          '.toc',
+          '.init',
+          '.fini',
+          '.objc_class',
+          '.objc_meta_class',
+          '.objc_cat_cls_meth',
+          '.objc_cat_inst_meth',
+          '.objc_protocol',
+          '.objc_string_object',
+          '.objc_cls_meth',
+          '.objc_inst_meth',
+          '.objc_cls_refs',
+          '.objc_message_refs',
+          '.objc_symbols',
+          '.objc_category',
+          '.objc_class_vars',
+          '.objc_instance_vars',
+          '.objc_module_info',
+          '.objc_class_names',
+          '.objc_meth_var_types',
+          '.objc_meth_var_names',
+          '.objc_selector_strs',
+          '.objc_protocol_ext',
+          '.objc_class_ext',
+          '.objc_property',
+          '.objc_image_info',
+          '.objc_cstring_object',
+          '.objc_sel_fixup',
+          '__DATA,__objc_data',
+          '__DATA,__objc_const',
+          '.objc_superrefs',
+          '__DATA, __datacoal_nt,coalesced',
+          '.objc_classlist',
+          '.objc_nlclasslist',
+          '.objc_catlist',
+          '.obcj_nlcatlist',
+          '.objc_protolist',
+          '.stack',
+          '.heap',
+          '.gcc_except_table',
+          '.ARM.attributes'
+        );
+      begin
+        result:=secnames[atype];
+      end;
+
+    procedure TSdccSdasZ80Assembler.WriteSection(atype: TAsmSectiontype;
+        const aname: string; aorder: TAsmSectionOrder; secalign: longint;
+        secflags: TSectionFlags; secprogbits: TSectionProgbits);
+      var
+        s : string;
+        secflag: TSectionFlag;
+        sectionprogbits,
+        sectionflags: boolean;
+      begin
+        writer.AsmLn;
+        sectionflags:=false;
+        sectionprogbits:=false;
+        writer.AsmWrite(#9'.area ');
+        { sectionname may rename those sections, so we do not write flags/progbits for them,
+          the assembler will ignore them/spite out a warning anyways }
+        if not(atype in [sec_data,sec_rodata,sec_rodata_norel]) then
+          begin
+            sectionflags:=true;
+            sectionprogbits:=true;
+          end;
+        s:=sectionname(atype,aname,aorder);
+        writer.AsmWrite(s);
+        { flags explicitly defined? }
+        (*if (sectionflags or sectionprogbits) and
+           ((secflags<>[]) or
+            (secprogbits<>SPB_None)) then
+          begin
+            if sectionflags then
+              begin
+                s:=',"';
+                for secflag in secflags do
+                  case secflag of
+                    SF_A:
+                      s:=s+'a';
+                    SF_W:
+                      s:=s+'w';
+                    SF_X:
+                      s:=s+'x';
+                  end;
+                writer.AsmWrite(s+'"');
+              end;
+            if sectionprogbits then
+              begin
+                case secprogbits of
+                  SPB_PROGBITS:
+                    writer.AsmWrite(',%progbits');
+                  SPB_NOBITS:
+                    writer.AsmWrite(',%nobits');
+                  SPB_NOTE:
+                    writer.AsmWrite(',%note');
+                  SPB_None:
+                    ;
+                  else
+                    InternalError(2019100801);
+                end;
+              end;
+          end
+        else
+          case atype of
+            sec_fpc :
+              if aname = 'resptrs' then
+                writer.AsmWrite(', "a", @progbits');
+            sec_stub :
+              begin
+                case target_info.system of
+                  { there are processor-independent shortcuts available    }
+                  { for this, namely .symbol_stub and .picsymbol_stub, but }
+                  { they don't work and gcc doesn't use them either...     }
+                  system_powerpc_darwin,
+                  system_powerpc64_darwin:
+                    if (cs_create_pic in current_settings.moduleswitches) then
+                      writer.AsmWriteln('__TEXT,__picsymbolstub1,symbol_stubs,pure_instructions,32')
+                    else
+                      writer.AsmWriteln('__TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16');
+                  system_i386_darwin,
+                  system_i386_iphonesim:
+                    writer.AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
+                  system_arm_darwin:
+                    if (cs_create_pic in current_settings.moduleswitches) then
+                      writer.AsmWriteln('__TEXT,__picsymbolstub4,symbol_stubs,none,16')
+                    else
+                      writer.AsmWriteln('__TEXT,__symbol_stub4,symbol_stubs,none,12')
+                  { darwin/(x86-64/AArch64) uses PC-based GOT addressing, no
+                    explicit symbol stubs }
+                  else
+                    internalerror(2006031101);
+                end;
+              end;
+          else
+            { GNU AS won't recognize '.text.n_something' section name as belonging
+              to '.text' and assigns default attributes to it, which is not
+              always correct. We have to fix it.
+
+              TODO: This likely applies to all systems which smartlink without
+              creating libraries }
+            begin
+              if is_smart_section(atype) and (aname<>'') then
+                begin
+                  s:=sectionattrs(atype);
+                  if (s<>'') then
+                    writer.AsmWrite(',"'+s+'"');
+                end;
+              if target_info.system in systems_aix then
+                begin
+                  s:=sectionalignment_aix(atype,secalign);
+                  if s<>'' then
+                    writer.AsmWrite(','+s);
+                end;
+            end;
+          end;*)
+        writer.AsmLn;
+        LastSecType:=atype;
       end;
 
     procedure TSdccSdasZ80Assembler.WriteTree(p: TAsmList);
@@ -221,6 +406,19 @@ unit agsdasz80;
                 writer.AsmWrite(asminfo^.comment);
                 writer.AsmWritePChar(tai_comment(hp).str);
                 writer.AsmLn;
+              end;
+            ait_section :
+              begin
+                if tai_section(hp).sectype<>sec_none then
+                  WriteSection(tai_section(hp).sectype,tai_section(hp).name^,tai_section(hp).secorder,
+                    tai_section(hp).secalign,tai_section(hp).secflags,tai_section(hp).secprogbits)
+                else
+                  begin
+{$ifdef EXTDEBUG}
+                    writer.AsmWrite(asminfo^.comment);
+                    writer.AsmWriteln(' sec_none');
+{$endif EXTDEBUG}
+                 end;
               end;
             ait_align :
               begin
