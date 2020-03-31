@@ -249,10 +249,7 @@ unit agsdasz80;
                     writer.AsmWrite('.globl'#9);
                     writer.AsmWriteln(tai_symbol(hp).sym.name);
                   end;
-                writer.AsmWrite(tai_symbol(hp).sym.name);
-                {if assigned(hp.next) and not(tai(hp.next).typ in
-                   [ait_const,ait_realconst,ait_string]) then}
-                  writer.AsmWriteLn(':');
+                writer.AsmWriteLn(tai_symbol(hp).sym.name + ':');
               end;
             ait_symbol_end :
               begin
