@@ -244,20 +244,6 @@ unit agsdasz80;
               begin
                 if tai_symbol(hp).has_value then
                   internalerror(2009090802);
-                { wasm is case insensitive, we nned to use only uppercase version
-                  if both a lowercase and an uppercase version are provided }
-                {if (asminfo^.id = as_i386_wasm) then
-                  begin
-                    nhp:=tai(hp.next);
-                    while assigned(nhp) and (nhp.typ in [ait_function_name,ait_force_line]) do
-                      nhp:=tai(nhp.next);
-                    if assigned(nhp) and (tai(nhp).typ=ait_symbol) and
-                       (lower(tai_symbol(nhp).sym.name)=tai_symbol(hp).sym.name) then
-                      begin
-                        writer.AsmWriteln(asminfo^.comment+' '+tai_symbol(hp).sym.name+' removed');
-                        hp:=tai(nhp);
-                      end;
-                  end;}
                 if tai_symbol(hp).is_global then
                   begin
                     writer.AsmWrite('.globl'#9);
