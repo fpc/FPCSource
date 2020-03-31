@@ -429,26 +429,29 @@ unit agsdasz80;
               begin
                 if tai_label(hp).labsym.is_used then
                   begin
-                    if tai_label(hp).labsym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN] then
-                      begin
-                        writer.AsmWrite('.globl'#9);
-                        writer.AsmWriteLn(tai_label(hp).labsym.name);
-                      end;
                     writer.AsmWrite(tai_label(hp).labsym.name);
-                    writer.AsmWriteLn(':');
+                    if tai_label(hp).labsym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN] then
+                      writer.AsmWriteLn('::')
+                    else
+                      writer.AsmWriteLn(':');
                   end;
               end;
             ait_symbol :
               begin
-                if tai_symbol(hp).is_global then
-                  begin
-                    writer.AsmWrite('.globl'#9);
-                    writer.AsmWriteln(tai_symbol(hp).sym.name);
-                  end;
                 if not(tai_symbol(hp).has_value) then
-                  writer.AsmWriteLn(tai_symbol(hp).sym.name + ':')
+                  begin
+                    if tai_symbol(hp).is_global then
+                      writer.AsmWriteLn(tai_symbol(hp).sym.name + '::')
+                    else
+                      writer.AsmWriteLn(tai_symbol(hp).sym.name + ':');
+                  end
                 else
-                  writer.AsmWriteLn(tai_symbol(hp).sym.name + '=' + tostr(tai_symbol(hp).value));
+                  begin
+                    if tai_symbol(hp).is_global then
+                      writer.AsmWriteLn(tai_symbol(hp).sym.name + '==' + tostr(tai_symbol(hp).value))
+                    else
+                      writer.AsmWriteLn(tai_symbol(hp).sym.name + '=' + tostr(tai_symbol(hp).value));
+                  end;
               end;
             ait_symbol_end :
               begin
