@@ -4238,7 +4238,8 @@ begin
      ((target_info.system in [system_arm_wince,system_arm_gba,
          system_m68k_amiga,system_m68k_atari,
          system_arm_nds,system_arm_embedded,
-         system_riscv32_embedded,system_riscv64_embedded,system_xtensa_embedded])
+         system_riscv32_embedded,system_riscv64_embedded,system_xtensa_embedded,
+         system_xtensa_freertos])
 {$ifdef arm}
       or (target_info.abi=abi_eabi)
 {$endif arm}
