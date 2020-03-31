@@ -760,6 +760,9 @@ begin
 {$ifdef llvm}
       'L',
 {$endif}
+{$ifdef z80}
+      'Z',
+{$endif}
       '*' : show:=true;
      end;
      if show then

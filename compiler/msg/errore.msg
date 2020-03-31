@@ -3810,6 +3810,7 @@ new features, etc.):
 #    S = Sparc targets
 #    s = Sparc64 targets
 #    V = AVR
+#    Z = Z80
 # The second character also indicates who will display this line,
 # (if the above character was TRUE) the current possibilities are :
 #    * = everyone
@@ -3872,6 +3873,8 @@ F*0*_Only options valid for the default or selected platform are listed.
 A*2Aas_Assemble using GNU AS
 P*2Aas_Assemble using GNU AS
 S*2Aas_Assemble using GNU AS
+Z*2Asdcc-sdasz80_Assemble using SDCC-SDASZ80
+Z*2Az80asm_Assemble using z80asm
 # Used only internally by IDE
 **1b_Generate browser info
 **2bl_Generate local symbol info
