@@ -429,7 +429,7 @@ unit agz80asm;
           (
             id     : as_z80asm;
 
-            idtxt  : 'Z80Asm';
+            idtxt  : 'Z80ASM';
             asmbin : 'z80asm';
             asmcmd : '-o $OBJ $EXTRAOPT $ASM';
             supported_targets : [system_Z80_embedded];
