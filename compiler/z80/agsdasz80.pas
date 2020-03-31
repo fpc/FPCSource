@@ -258,8 +258,11 @@ unit agsdasz80;
                         hp:=tai(nhp);
                       end;
                   end;}
-                {if tai_symbol(hp).is_global then
-                  writer.AsmWriteLn(#9'PUBLIC'#9+tai_symbol(hp).sym.name);}
+                if tai_symbol(hp).is_global then
+                  begin
+                    writer.AsmWrite('.globl'#9);
+                    writer.AsmWriteln(tai_symbol(hp).sym.name);
+                  end;
                 writer.AsmWrite(tai_symbol(hp).sym.name);
                 {if assigned(hp.next) and not(tai(hp.next).typ in
                    [ait_const,ait_realconst,ait_string]) then}
