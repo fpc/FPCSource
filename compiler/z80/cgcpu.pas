@@ -1141,93 +1141,24 @@ unit cgcpu;
          tmpreg : tregister;
          i : integer;
        begin
-         list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_load_reg_reg')));
-         //if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
-         //  internalerror(2011021310);
-         //
-         //conv_done:=false;
-         //if tosize<>fromsize then
-         //  begin
-         //    conv_done:=true;
-         //    if tcgsize2size[tosize]<=tcgsize2size[fromsize] then
-         //      fromsize:=tosize;
-         //    case fromsize of
-         //      OS_8:
-         //        begin
-         //          emit_mov(list,reg2,reg1);
-         //          for i:=2 to tcgsize2size[tosize] do
-         //            begin
-         //              reg2:=GetNextReg(reg2);
-         //              emit_mov(list,reg2,NR_R1);
-         //            end;
-         //        end;
-         //      OS_S8:
-         //        begin
-         //          emit_mov(list,reg2,reg1);
-         //
-         //          if tcgsize2size[tosize]>1 then
-         //            begin
-         //              reg2:=GetNextReg(reg2);
-         //              emit_mov(list,reg2,NR_R1);
-         //              list.concat(taicpu.op_reg_const(A_SBRC,reg1,7));
-         //              list.concat(taicpu.op_reg(A_COM,reg2));
-         //              tmpreg:=reg2;
-         //              for i:=3 to tcgsize2size[tosize] do
-         //                begin
-         //                  reg2:=GetNextReg(reg2);
-         //                  emit_mov(list,reg2,tmpreg);
-         //                end;
-         //            end;
-         //        end;
-         //      OS_16:
-         //        begin
-         //          emit_mov(list,reg2,reg1);
-         //
-         //          reg1:=GetNextReg(reg1);
-         //          reg2:=GetNextReg(reg2);
-         //          emit_mov(list,reg2,reg1);
-         //
-         //          for i:=3 to tcgsize2size[tosize] do
-         //            begin
-         //              reg2:=GetNextReg(reg2);
-         //              emit_mov(list,reg2,NR_R1);
-         //            end;
-         //        end;
-         //      OS_S16:
-         //        begin
-         //          emit_mov(list,reg2,reg1);
-         //
-         //          reg1:=GetNextReg(reg1);
-         //          reg2:=GetNextReg(reg2);
-         //          emit_mov(list,reg2,reg1);
-         //
-         //          if tcgsize2size[tosize]>2 then
-         //            begin
-         //              reg2:=GetNextReg(reg2);
-         //              emit_mov(list,reg2,NR_R1);
-         //              list.concat(taicpu.op_reg_const(A_SBRC,reg1,7));
-         //              list.concat(taicpu.op_reg(A_COM,reg2));
-         //              tmpreg:=reg2;
-         //              for i:=4 to tcgsize2size[tosize] do
-         //                begin
-         //                  reg2:=GetNextReg(reg2);
-         //                  emit_mov(list,reg2,tmpreg);
-         //                end;
-         //            end;
-         //        end;
-         //      else
-         //        conv_done:=false;
-         //    end;
-         //  end;
-         //if not conv_done and (reg1<>reg2) then
-         //  begin
-         //    for i:=1 to tcgsize2size[fromsize] do
-         //      begin
-         //        emit_mov(list,reg2,reg1);
-         //        reg1:=GetNextReg(reg1);
-         //        reg2:=GetNextReg(reg2);
-         //      end;
-         //  end;
+         if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
+           internalerror(2011021310);
+
+         if tosize=fromsize then
+           begin
+             if reg1<>reg2 then
+               for i:=tcgsize2size[fromsize] downto 1 do
+                 begin
+                   emit_mov(list,reg2,reg1);
+                   if i<>1 then
+                     begin
+                       reg1:=GetNextReg(reg1);
+                       reg2:=GetNextReg(reg2);
+                     end;
+                 end;
+           end
+         else
+           list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_load_reg_reg')));
        end;
 
 
