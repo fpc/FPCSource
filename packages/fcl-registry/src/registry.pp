@@ -160,8 +160,8 @@ type
     procedure RenameValue(const OldName, NewName: String);
     procedure WriteCurrency(const Name: UnicodeString; Value: Currency);
     procedure WriteCurrency(const Name: String; Value: Currency);
-    procedure WriteBinaryData(const Name: UnicodeString; var Buffer; BufSize: Integer);
-    procedure WriteBinaryData(const Name: String; var Buffer; BufSize: Integer);
+    procedure WriteBinaryData(const Name: UnicodeString; const Buffer; BufSize: Integer);
+    procedure WriteBinaryData(const Name: String; const Buffer; BufSize: Integer);
     procedure WriteBool(const Name: UnicodeString; Value: Boolean);
     procedure WriteBool(const Name: String; Value: Boolean);
     procedure WriteDate(const Name: UnicodeString; Value: TDateTime);
@@ -794,12 +794,12 @@ begin
   Result:=ValueExists(UnicodeString(Name));
 end;
 
-procedure TRegistry.WriteBinaryData(const Name: UnicodeString; var Buffer; BufSize: Integer);
+procedure TRegistry.WriteBinaryData(const Name: UnicodeString; const Buffer; BufSize: Integer);
 begin
   PutData(Name, @Buffer, BufSize, rdBinary);
 end;
 
-procedure TRegistry.WriteBinaryData(const Name: String; var Buffer;
+procedure TRegistry.WriteBinaryData(const Name: String; const Buffer;
   BufSize: Integer);
 begin
   WriteBinaryData(UnicodeString(Name), Buffer, BufSize);
