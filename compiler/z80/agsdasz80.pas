@@ -552,6 +552,16 @@ unit agsdasz80;
             ait_symbol_end :
               begin
               end;
+            ait_datablock :
+              begin
+                if tai_datablock(hp).is_global or SmartAsm then
+                  writer.AsmWrite(tai_datablock(hp).sym.name + '::')
+                else
+                  writer.AsmWrite(tai_datablock(hp).sym.name + ':');
+                {if SmartAsm then
+                  AddSymbol(tai_datablock(hp).sym.name,true);}
+                writer.AsmWriteLn(#9'.rs'#9+tostr(tai_datablock(hp).size));
+              end;
             ait_const:
               begin
                 consttype:=tai_const(hp).consttype;
