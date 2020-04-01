@@ -307,20 +307,60 @@ unit agsdasz80;
 
     procedure TSdccSdasZ80Assembler.WriteOper(const o: toper; s: topsize;
       opcode: tasmop; ops: longint; dest: boolean);
-    begin
-      case o.typ of
-        top_reg :
-          writer.AsmWrite(std_regname(o.reg));
-        top_const :
-          begin
-{            if (ops=1) and (opcode<>A_RET) then
-              writer.AsmWrite(sizestr(s,dest));}
-            writer.AsmWrite('#'+tostr(longint(o.val)));
-          end;
-        else
-          internalerror(10001);
+      var
+        need_plus: Boolean;
+      begin
+        case o.typ of
+          top_reg :
+            writer.AsmWrite(std_regname(o.reg));
+          top_const :
+            begin
+{              if (ops=1) and (opcode<>A_RET) then
+                writer.AsmWrite(sizestr(s,dest));}
+              writer.AsmWrite('#'+tostr(longint(o.val)));
+            end;
+          top_ref:
+            begin
+              writer.AsmWrite('(');
+              need_plus:=false;
+              if o.ref^.base<>NR_NO then
+                begin
+                  if o.ref^.index<>NR_NO then
+                    internalerror(2020040201);
+                  writer.AsmWrite(std_regname(o.ref^.base));
+                  need_plus:=true;
+                end
+              else if o.ref^.index<>NR_NO then
+                begin
+                  if o.ref^.scalefactor>1 then
+                    internalerror(2020040202);
+                  writer.AsmWrite(std_regname(o.ref^.index));
+                  need_plus:=true;
+                end;
+              if assigned(o.ref^.symbol) then
+                begin
+                  {if SmartAsm then
+                    AddSymbol(o.ref^.symbol.name,false);}
+                  if need_plus then
+                    writer.AsmWrite('+');
+                  writer.AsmWrite(o.ref^.symbol.name);
+                  need_plus:=true;
+                end;
+              if o.ref^.offset>0 then
+                begin
+                  if need_plus then
+                    writer.AsmWrite('+');
+                  writer.AsmWrite(tostr(o.ref^.offset));
+                  need_plus:=true;
+                end;
+              if not need_plus then
+                writer.AsmWrite('0');
+              writer.AsmWrite(')');
+            end;
+          else
+            internalerror(10001);
+        end;
       end;
-    end;
 
     procedure TSdccSdasZ80Assembler.WriteTree(p: TAsmList);
 
