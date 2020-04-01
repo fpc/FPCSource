@@ -54,13 +54,22 @@ unit cpubase;
 
 
       { This should define the array of instructions as string }
-      op2strtable=array[tasmop] of string[11];
+      op2strtable=array[tasmop] of string[4];
 
     const
       { First value of opcode enumeration }
       firstop = low(tasmop);
       { Last value of opcode enumeration  }
       lastop  = high(tasmop);
+
+      std_op2str:op2strtable=('',
+        'ADD','ADC','AND','BIT','CALL','CCF','CP','CPD','CPDR',
+        'CPI','CPIR','CPL','DAA','DEC','DI','DJNZ','EI','EX',
+        'EXX','HALT','IM','IN','INC','IND','INDR','INI','INIR',
+        'JP','JR','LD','LDD','LDDR','LDI','LDIR','NEG','NOP','OR',
+        'OTDR','OTIR','OUT','OUTD','OUTI','POP','PUSH','RES','RET','RETI',
+        'RETN','RL','RLA','RLC','RLCA','RLD','RR','RRA','RRC',
+        'RRCA','RRD','RST','SBC','SCF','SET','SLA','SRA','SRL','SUB','XOR');
 
       { call/reg instructions are not considered as jmp instructions for the usage cases of
         this set }

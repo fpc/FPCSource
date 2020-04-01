@@ -31,7 +31,7 @@ unit agsdasz80;
 
     uses
        globtype,systems,
-       aasmbase,aasmtai,aasmdata,
+       aasmbase,aasmtai,aasmdata,aasmcpu,
        assemble,
        cpubase;
 
@@ -46,6 +46,7 @@ unit agsdasz80;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;
           secflags:TSectionFlags=[];secprogbits:TSectionProgbits=SPB_None);
+        procedure WriteInstruction(hp: taicpu);
       public
         procedure WriteTree(p : TAsmList); override;
         procedure WriteAsmList;override;
@@ -56,7 +57,6 @@ unit agsdasz80;
 
     uses
        cutils,globals,verbose,
-       aasmcpu,
        cpuinfo,
        cgbase,cgutils;
 
@@ -283,6 +283,22 @@ unit agsdasz80;
           end;*)
         writer.AsmLn;
         LastSecType:=atype;
+      end;
+
+    procedure TSdccSdasZ80Assembler.WriteInstruction(hp: taicpu);
+      begin
+        writer.AsmWrite(#9#9+std_op2str[hp.opcode]);
+        {if taicpu(hp).ops<>0 then
+          begin
+            for i:=0 to taicpu(hp).ops-1 do
+             begin
+               if i=0 then
+                writer.AsmWrite(#9)
+               else
+                writer.AsmWrite(',');
+               WriteOper(taicpu(hp).oper[i]^,taicpu(hp).opsize,fixed_opcode,taicpu(hp).ops,(i=2));
+             end;
+          end;}
       end;
 
     procedure TSdccSdasZ80Assembler.WriteTree(p: TAsmList);
@@ -598,6 +614,10 @@ unit agsdasz80;
                         pos:=0;
                       end;
                   end;
+              end;
+            ait_instruction :
+              begin
+                WriteInstruction(taicpu(hp));
               end;
             else
               begin
