@@ -348,7 +348,22 @@ unit cpubase;
 
     function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
       begin
-        cgsize2subreg:=R_SUBWHOLE;
+        case s of
+          OS_8,OS_S8:
+            cgsize2subreg:=R_SUBL;
+          OS_16,OS_S16:
+            cgsize2subreg:=R_SUBW;
+          OS_32,OS_S32:
+            cgsize2subreg:=R_SUBD;
+          OS_64,OS_S64:
+            cgsize2subreg:=R_SUBQ;
+          OS_NO:
+            { error message should have been thrown already before, so avoid only
+              an internal error }
+            cgsize2subreg:=R_SUBNONE;
+          else
+            internalerror(200301231);
+        end;
       end;
 
 
