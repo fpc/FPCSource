@@ -1719,11 +1719,12 @@ unit cgcpu;
         reg : TSuperRegister;
         LocalSize : longint;
       begin
-        { every byte counts for avr, so if a subroutine is marked as non-returning, we do
+        { every byte counts for Z80, so if a subroutine is marked as non-returning, we do
           not generate any exit code, so we really trust the noreturn directive
         }
-        //if po_noreturn in current_procinfo.procdef.procoptions then
-        //  exit;
+        if po_noreturn in current_procinfo.procdef.procoptions then
+          exit;
+        list.concat(taicpu.op_none(A_RET));
         //if po_interrupt in current_procinfo.procdef.procoptions then
         //  begin
         //    regs:=rg[R_INTREGISTER].used_in_proc;
