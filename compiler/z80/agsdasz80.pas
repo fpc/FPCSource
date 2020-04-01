@@ -287,7 +287,7 @@ unit agsdasz80;
 
     procedure TSdccSdasZ80Assembler.WriteInstruction(hp: taicpu);
       begin
-        writer.AsmWrite(#9#9+std_op2str[hp.opcode]);
+        writer.AsmWriteLn(#9#9+std_op2str[hp.opcode]);
         {if taicpu(hp).ops<>0 then
           begin
             for i:=0 to taicpu(hp).ops-1 do
