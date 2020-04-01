@@ -947,191 +947,33 @@ unit cgcpu;
      procedure tcgz80.a_load_reg_ref(list : TAsmList; fromsize, tosize: tcgsize; reg : tregister;const ref : treference);
        var
          href : treference;
-         conv_done: boolean;
-         tmpreg : tregister;
          i : integer;
-         QuickRef : Boolean;
        begin
-         list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_load_reg_ref')));
-         QuickRef:=false;
+         href:=Ref;
+         { ensure, href.base contains a valid register if there is any register used }
+         if href.base=NR_NO then
+           begin
+             href.base:=href.index;
+             href.index:=NR_NO;
+           end;
 
-         //href:=Ref;
-         //{ ensure, href.base contains a valid register if there is any register used }
-         //if href.base=NR_NO then
-         //  begin
-         //    href.base:=href.index;
-         //    href.index:=NR_NO;
-         //  end;
-         //
-         //{ try to use std/sts }
-         //if not((href.Base=NR_NO) and (href.Index=NR_NO)) then
-         //  begin
-         //    if not((href.addressmode=AM_UNCHANGED) and
-         //           (href.symbol=nil) and
-         //            (href.Index=NR_NO) and
-         //            (href.Offset in [0..64-tcgsize2size[fromsize]])) then
-         //      href:=normalize_ref(list,href,NR_R30)
-         //    else
-         //      begin
-         //        if (href.base<>NR_R28) and (href.base<>NR_R30) then
-         //          begin
-         //            maybegetcpuregister(list,NR_R30);
-         //            emit_mov(list,NR_R30,href.base);
-         //            maybegetcpuregister(list,NR_R31);
-         //            emit_mov(list,NR_R31,GetNextReg(href.base));
-         //            href.base:=NR_R30;
-         //          end;
-         //        QuickRef:=true;
-         //      end;
-         //  end
-         //else
-         //  QuickRef:=true;
-         //
-         //if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
-         //  internalerror(2011021307);
-         //
-         //conv_done:=false;
-         //if tosize<>fromsize then
-         //  begin
-         //    conv_done:=true;
-         //    if tcgsize2size[tosize]<=tcgsize2size[fromsize] then
-         //      fromsize:=tosize;
-         //    case fromsize of
-         //      OS_8:
-         //        begin
-         //          if not(QuickRef) and (tcgsize2size[tosize]>1) then
-         //            href.addressmode:=AM_POSTINCREMENT;
-         //
-         //          list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
-         //          for i:=2 to tcgsize2size[tosize] do
-         //            begin
-         //              if QuickRef then
-         //                inc(href.offset);
-         //
-         //              if not(QuickRef) and (i<tcgsize2size[fromsize]) then
-         //                href.addressmode:=AM_POSTINCREMENT
-         //              else
-         //                href.addressmode:=AM_UNCHANGED;
-         //
-         //              list.concat(taicpu.op_ref_reg(GetStore(href),href,NR_R1));
-         //            end;
-         //        end;
-         //      OS_S8:
-         //        begin
-         //          if not(QuickRef) and (tcgsize2size[tosize]>1) then
-         //            href.addressmode:=AM_POSTINCREMENT;
-         //          list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
-         //
-         //          if tcgsize2size[tosize]>1 then
-         //            begin
-         //              tmpreg:=getintregister(list,OS_8);
-         //              emit_mov(list,tmpreg,NR_R1);
-         //              list.concat(taicpu.op_reg_const(A_SBRC,reg,7));
-         //              list.concat(taicpu.op_reg(A_COM,tmpreg));
-         //              for i:=2 to tcgsize2size[tosize] do
-         //                begin
-         //                  if QuickRef then
-         //                    inc(href.offset);
-         //
-         //                  if not(QuickRef) and (i<tcgsize2size[fromsize]) then
-         //                    href.addressmode:=AM_POSTINCREMENT
-         //                  else
-         //                    href.addressmode:=AM_UNCHANGED;
-         //                  list.concat(taicpu.op_ref_reg(GetStore(href),href,tmpreg));
-         //                end;
-         //            end;
-         //        end;
-         //      OS_16:
-         //        begin
-         //          if not(QuickRef) and (tcgsize2size[tosize]>1) then
-         //            href.addressmode:=AM_POSTINCREMENT;
-         //
-         //          list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
-         //          if QuickRef then
-         //            inc(href.offset)
-         //          else if not(QuickRef) and (tcgsize2size[fromsize]>2) then
-         //            href.addressmode:=AM_POSTINCREMENT
-         //          else
-         //            href.addressmode:=AM_UNCHANGED;
-         //
-         //          reg:=GetNextReg(reg);
-         //          list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
-         //
-         //          for i:=3 to tcgsize2size[tosize] do
-         //            begin
-         //              if QuickRef then
-         //                inc(href.offset);
-         //
-         //              if not(QuickRef) and (i<tcgsize2size[fromsize]) then
-         //                href.addressmode:=AM_POSTINCREMENT
-         //              else
-         //                href.addressmode:=AM_UNCHANGED;
-         //
-         //              list.concat(taicpu.op_ref_reg(GetStore(href),href,NR_R1));
-         //            end;
-         //        end;
-         //      OS_S16:
-         //        begin
-         //          if not(QuickRef) and (tcgsize2size[tosize]>1) then
-         //            href.addressmode:=AM_POSTINCREMENT;
-         //
-         //          list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
-         //          if QuickRef then
-         //            inc(href.offset)
-         //          else if not(QuickRef) and (tcgsize2size[fromsize]>2) then
-         //            href.addressmode:=AM_POSTINCREMENT
-         //          else
-         //            href.addressmode:=AM_UNCHANGED;
-         //
-         //          reg:=GetNextReg(reg);
-         //          list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
-         //
-         //          if tcgsize2size[tosize]>2 then
-         //            begin
-         //              tmpreg:=getintregister(list,OS_8);
-         //              emit_mov(list,tmpreg,NR_R1);
-         //              list.concat(taicpu.op_reg_const(A_SBRC,reg,7));
-         //              list.concat(taicpu.op_reg(A_COM,tmpreg));
-         //              for i:=3 to tcgsize2size[tosize] do
-         //                begin
-         //                  if QuickRef then
-         //                    inc(href.offset);
-         //
-         //                  if not(QuickRef) and (i<tcgsize2size[fromsize]) then
-         //                    href.addressmode:=AM_POSTINCREMENT
-         //                  else
-         //                    href.addressmode:=AM_UNCHANGED;
-         //                  list.concat(taicpu.op_ref_reg(GetStore(href),href,tmpreg));
-         //                end;
-         //            end;
-         //        end;
-         //      else
-         //        conv_done:=false;
-         //    end;
-         //  end;
-         //if not conv_done then
-         //  begin
-         //    for i:=1 to tcgsize2size[fromsize] do
-         //      begin
-         //          if not(QuickRef) and (i<tcgsize2size[fromsize]) then
-         //            href.addressmode:=AM_POSTINCREMENT
-         //          else
-         //            href.addressmode:=AM_UNCHANGED;
-         //
-         //        list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
-         //
-         //        if QuickRef then
-         //          inc(href.offset);
-         //
-         //        reg:=GetNextReg(reg);
-         //      end;
-         //  end;
-         //
-         //if not(QuickRef) then
-         //  begin
-         //    ungetcpuregister(list,href.base);
-         //    ungetcpuregister(list,GetNextReg(href.base));
-         //  end;
+         if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
+           internalerror(2011021307);
+
+         if fromsize=tosize then
+           begin
+             for i:=tcgsize2size[fromsize] downto 1 do
+             begin
+               list.concat(taicpu.op_ref_reg(A_LD,href,reg));
+               if i<>1 then
+                 begin
+                   inc(href.offset);
+                   reg:=GetNextReg(reg);
+                 end;
+             end;
+           end
+         else
+           list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_load_reg_ref')));
        end;
 
 
