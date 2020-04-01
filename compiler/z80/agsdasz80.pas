@@ -382,20 +382,34 @@ unit agsdasz80;
           //end;
         end;
 
+
+      procedure doalign(alignment: byte; use_op: boolean; fillop: byte; maxbytes: byte; out last_align: longint;lasthp:tai);
+        var
+          i: longint;
+          alignment64 : int64;
+        begin
+          last_align:=alignment;
+          if alignment>1 then
+            writer.AsmWriteLn(#9'.bndry '+tostr(alignment));
+        end;
+
     //var op: TAsmOp;
     //    s: string;
     //    i: byte;
     //    sep: string[3];
     var
+      lasthp,
       hp: tai;
       s: string;
-      counter,lines,i,j,l,tokens,pos: longint;
+      counter,lines,i,j,l,tokens,pos,last_align: longint;
       quoted: Boolean;
       consttype: taiconst_type;
       ch: Char;
     begin
       if not assigned(p) then
        exit;
+      last_align:=1;
+      lasthp:=nil;
       hp:=tai(p.first);
       while assigned(hp) do
         begin
@@ -422,8 +436,7 @@ unit agsdasz80;
               end;
             ait_align :
               begin
-                if tai_align_abstract(hp).aligntype>1 then
-                  writer.AsmWriteLn(asminfo^.comment+'Unsupported ALIGN '+tostr(tai_align_abstract(hp).aligntype));
+                doalign(tai_align_abstract(hp).aligntype,tai_align_abstract(hp).use_op,tai_align_abstract(hp).fillop,tai_align_abstract(hp).maxbytes,last_align,lasthp);
               end;
             ait_label :
               begin
@@ -594,6 +607,7 @@ unit agsdasz80;
                 writer.AsmWriteLn(s);
               end;
           end;
+          lasthp:=hp;
           hp:=tai(hp.next);
         end;
       //op:=taicpu(hp).opcode;
