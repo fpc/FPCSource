@@ -962,15 +962,18 @@ unit cgcpu;
 
          if fromsize=tosize then
            begin
+             getcpuregister(list,NR_A);
              for i:=tcgsize2size[fromsize] downto 1 do
              begin
-               list.concat(taicpu.op_ref_reg(A_LD,href,reg));
+               a_load_reg_reg(list,OS_8,OS_8,reg,NR_A);
+               list.concat(taicpu.op_ref_reg(A_LD,href,NR_A));
                if i<>1 then
                  begin
                    inc(href.offset);
                    reg:=GetNextReg(reg);
                  end;
              end;
+             ungetcpuregister(list,NR_A);
            end
          else
            list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_load_reg_ref')));
