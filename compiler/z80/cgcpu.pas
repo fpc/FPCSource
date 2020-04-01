@@ -812,6 +812,7 @@ unit cgcpu;
          shift : byte;
          i : byte;
        begin
+         list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_load_const_reg')));
          mask:=$ff;
          shift:=0;
          for i:=1 to tcgsize2size[size] do
@@ -958,6 +959,7 @@ unit cgcpu;
          i : integer;
          QuickRef : Boolean;
        begin
+         list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_load_reg_ref')));
          QuickRef:=false;
 
          //href:=Ref;
@@ -1149,6 +1151,7 @@ unit cgcpu;
          i : integer;
          QuickRef : boolean;
        begin
+         list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_load_ref_reg')));
          QuickRef:=false;
 
          //href:=Ref;
@@ -1300,6 +1303,7 @@ unit cgcpu;
          tmpreg : tregister;
          i : integer;
        begin
+         list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_load_reg_reg')));
          //if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
          //  internalerror(2011021310);
          //
@@ -1415,6 +1419,7 @@ unit cgcpu;
         tmpreg : tregister;
         i : byte;
       begin
+        list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_cmp_const_reg_label')));
         //if a=0 then
         //  begin
         //    swapped:=false;
@@ -1470,6 +1475,7 @@ unit cgcpu;
         tmpreg : tregister;
         i : byte;
       begin
+        list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_cmp_reg_reg_label')));
         //swapped:=false;
         //{ swap parameters? }
         //case cmp_op of
@@ -1537,6 +1543,7 @@ unit cgcpu;
       var
         ai : taicpu;
       begin
+        list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_jmp_flags')));
 //        ai:=setcondition(taicpu.op_sym(A_BRxx,l),flags_to_cond(f));
         ai.is_jmp:=true;
         list.concat(ai);
@@ -1548,6 +1555,7 @@ unit cgcpu;
         l : TAsmLabel;
         tmpflags : TResFlags;
       begin
+        list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: g_flags2reg')));
         current_asmdata.getjumplabel(l);
         {
         if flags_to_cond(f) then
@@ -1770,6 +1778,7 @@ unit cgcpu;
       var
         tmpref : treference;
       begin
+        list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_loadaddr_ref_reg')));
         // if ref.addressmode<>AM_UNCHANGED then
         //   internalerror(2011021701);
         //
@@ -1863,6 +1872,7 @@ unit cgcpu;
         i : longint;
         SrcQuickRef, DestQuickRef : Boolean;
       begin
+        list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: g_concatcopy')));
         //if len>16 then
         //  begin
         //    current_asmdata.getjumplabel(l);
@@ -2016,6 +2026,7 @@ unit cgcpu;
         ai : taicpu;
         cond : TAsmCond;
       begin
+        list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: g_overflowCheck')));
         //if not(cs_check_overflow in current_settings.localswitches) then
         // exit;
         //current_asmdata.getjumplabel(hl);
@@ -2053,6 +2064,7 @@ unit cgcpu;
         ai1,ai2 : taicpu;
         hl : TAsmLabel;
       begin
+        list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_jmp_cond')));
         //ai1:=Taicpu.Op_sym(A_BRxx,l);
         //ai1.is_jmp:=true;
         //hl:=nil;
