@@ -63,13 +63,13 @@ unit cpubase;
       lastop  = high(tasmop);
 
       std_op2str:op2strtable=('',
-        'ADD','ADC','AND','BIT','CALL','CCF','CP','CPD','CPDR',
-        'CPI','CPIR','CPL','DAA','DEC','DI','DJNZ','EI','EX',
-        'EXX','HALT','IM','IN','INC','IND','INDR','INI','INIR',
-        'JP','JR','LD','LDD','LDDR','LDI','LDIR','NEG','NOP','OR',
-        'OTDR','OTIR','OUT','OUTD','OUTI','POP','PUSH','RES','RET','RETI',
-        'RETN','RL','RLA','RLC','RLCA','RLD','RR','RRA','RRC',
-        'RRCA','RRD','RST','SBC','SCF','SET','SLA','SRA','SRL','SUB','XOR');
+        'add','adc','and','bit','call','ccf','cp','cpd','cpdr',
+        'cpi','cpir','cpl','daa','dec','di','djnz','ei','ex',
+        'exx','halt','im','in','inc','ind','indr','ini','inir',
+        'jp','jr','ld','ldd','lddr','ldi','ldir','neg','nop','or',
+        'otdr','otir','out','outd','outi','pop','push','res','ret','reti',
+        'retn','rl','rla','rlc','rlca','rld','rr','rra','rrc',
+        'rrca','rrd','rst','sbc','scf','set','sla','sra','srl','sub','xor');
 
       { call/reg instructions are not considered as jmp instructions for the usage cases of
         this set }
