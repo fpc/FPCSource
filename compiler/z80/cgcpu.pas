@@ -812,24 +812,17 @@ unit cgcpu;
          shift : byte;
          i : byte;
        begin
-         list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_load_const_reg')));
          mask:=$ff;
          shift:=0;
-         for i:=1 to tcgsize2size[size] do
+         for i:=tcgsize2size[size] downto 1 do
            begin
-             //if ((qword(a) and mask) shr shift)=0 then
-             //  emit_mov(list,reg,NR_R1)
-             //else
-             //  begin
-             //    getcpuregister(list,NR_R26);
-             //    list.concat(taicpu.op_reg_const(A_LDI,NR_R26,(qword(a) and mask) shr shift));
-             //    a_load_reg_reg(list,OS_8,OS_8,NR_R26,reg);
-             //    ungetcpuregister(list,NR_R26);
-             //  end;
-             //
-             //mask:=mask shl 8;
-             //inc(shift,8);
-             //reg:=GetNextReg(reg);
+             list.Concat(taicpu.op_reg_const(A_LD,reg,(qword(a) and mask) shr shift));
+             if i<>1 then
+               begin
+                 mask:=mask shl 8;
+                 inc(shift,8);
+                 reg:=GetNextReg(reg);
+               end;
            end;
        end;
 
