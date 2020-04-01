@@ -104,8 +104,8 @@ type
     function HasSubKeys: Boolean;
     function KeyExists(const Key: UnicodeString): Boolean;
     function KeyExists(const Key: String): Boolean;
-    function LoadKey(const Key, FileName: UnicodeString): Boolean;
-    function LoadKey(const Key, FileName: String): Boolean;
+    function LoadKey(const Key, FileName: UnicodeString): Boolean;  unimplemented;
+    function LoadKey(const Key, FileName: String): Boolean;  unimplemented;
     function OpenKey(const Key: UnicodeString; CanCreate: Boolean): Boolean;
     function OpenKey(const Key: String; CanCreate: Boolean): Boolean;
     function OpenKeyReadOnly(const Key: UnicodeString): Boolean;
@@ -136,10 +136,10 @@ type
     function ReadTime(const Name: String): TDateTime;
     function RegistryConnect(const UNCName: UnicodeString): Boolean;
     function RegistryConnect(const UNCName: String): Boolean;
-    function ReplaceKey(const Key, FileName, BackUpFileName: UnicodeString): Boolean;
-    function ReplaceKey(const Key, FileName, BackUpFileName: String): Boolean;
-    function RestoreKey(const Key, FileName: UnicodeString): Boolean;
-    function RestoreKey(const Key, FileName: String): Boolean;
+    function ReplaceKey(const Key, FileName, BackUpFileName: UnicodeString): Boolean; unimplemented;
+    function ReplaceKey(const Key, FileName, BackUpFileName: String): Boolean;  unimplemented;
+    function RestoreKey(const Key, FileName: UnicodeString): Boolean;  unimplemented;
+    function RestoreKey(const Key, FileName: String): Boolean;  unimplemented;
     function SaveKey(const Key, FileName: UnicodeString): Boolean;
     function SaveKey(const Key, FileName: String): Boolean;
     function UnLoadKey(const Key: UnicodeString): Boolean;
@@ -154,8 +154,8 @@ type
     procedure GetValueNames(Strings: TStrings);
     //ToDo
     function GetValueNames: TUnicodeStringArray;
-    procedure MoveKey(const OldName, NewName: UnicodeString; Delete: Boolean);
-    procedure MoveKey(const OldName, NewName: String; Delete: Boolean);
+    procedure MoveKey(const OldName, NewName: UnicodeString; Delete: Boolean);  unimplemented;
+    procedure MoveKey(const OldName, NewName: String; Delete: Boolean);  unimplemented;
     procedure RenameValue(const OldName, NewName: UnicodeString);
     procedure RenameValue(const OldName, NewName: String);
     procedure WriteCurrency(const Name: UnicodeString; Value: Currency);
@@ -251,7 +251,7 @@ type
     function ReadFloat(const Section, Name: string; Default: Double): Double; override;
     function ReadString(const Section, Name, Default: string): string; override;
     function ReadTime(const Section, Name: string; Default: TDateTime): TDateTime; override;
-    function ReadBinaryStream(const Section, Name: string; Value: TStream): Integer; override;
+    function ReadBinaryStream(const Section, Name: string; Value: TStream): Integer; override; unimplemented;
     procedure WriteDate(const Section, Name: string; Value: TDateTime); override;
     procedure WriteDateTime(const Section, Name: string; Value: TDateTime); override;
     procedure WriteFloat(const Section, Name: string; Value: Double); override;
