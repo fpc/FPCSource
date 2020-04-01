@@ -633,8 +633,11 @@ implementation
                     end
                   else
                     begin
-                      { spill area }
-                      inc(localsize,max(txtensaprocinfo(current_procinfo).maxcall,4)*4);
+                      { default spill area }
+                      inc(localsize,4*4);
+                      { additional spill area? }
+                      if pi_do_call in current_procinfo.flags then
+                        inc(localsize,txtensaprocinfo(current_procinfo).maxcall*4);
 
                       localsize:=align(localsize,current_settings.alignment.localalignmax);
                     end;
