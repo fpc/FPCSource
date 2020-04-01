@@ -106,7 +106,7 @@ unit cgcpu;
         procedure maybegetcpuregister(list : tasmlist; reg : tregister);
       end;
 
-      tcg64favr = class(tcg64f32)
+      tcg64fz80 = class(tcg64f32)
         procedure a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
         procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
       end;
@@ -1913,7 +1913,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64favr.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
+    procedure tcg64fz80.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
       begin
          if not(size in [OS_S64,OS_64]) then
            internalerror(2012102402);
@@ -1921,7 +1921,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64favr.a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
+    procedure tcg64fz80.a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
       begin
         tcgz80(cg).a_op_const_reg_internal(list,Op,size,value,reg.reglo,reg.reghi);
       end;
@@ -1958,7 +1958,7 @@ unit cgcpu;
     procedure create_codegen;
       begin
         cg:=tcgz80.create;
-        cg64:=tcg64favr.create;
+        cg64:=tcg64fz80.create;
       end;
 
 end.
