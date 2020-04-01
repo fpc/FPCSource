@@ -458,6 +458,12 @@ unit agsdasz80;
                 writer.AsmWritePChar(tai_comment(hp).str);
                 writer.AsmLn;
               end;
+            ait_regalloc :
+              begin
+                if (cs_asm_regalloc in current_settings.globalswitches) then
+                  writer.AsmWriteLn(#9#9+asminfo^.comment+'Register '+std_regname(tai_regalloc(hp).reg)+' '+
+                    regallocstr[tai_regalloc(hp).ratype]);
+              end;
             ait_section :
               begin
                 if tai_section(hp).sectype<>sec_none then
