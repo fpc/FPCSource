@@ -423,8 +423,6 @@ Function TRegistry.SysPutData(const Name: UnicodeString; Buffer: Pointer;
 
 Var
   RegDataType: DWORD;
-  B : Pchar;
-  S : String;
 
 begin
   RegDataType:=RegDataWords[RegData];

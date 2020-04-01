@@ -546,9 +546,7 @@ end;
 function TRegistry.ReadDate(const Name: UnicodeString): TDateTime;
 
 begin
-  Result:=Default(TDateTime);
-  ReadBinaryData(Name, Result, SizeOf(TDateTime));
-  Result:=Trunc(Result);
+  Result:=Trunc(ReadDateTime(Name));
 end;
 
 function TRegistry.ReadDate(const Name: String): TDateTime;
