@@ -47,6 +47,7 @@ unit agsdasz80;
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;
           secflags:TSectionFlags=[];secprogbits:TSectionProgbits=SPB_None);
         procedure WriteInstruction(hp: taicpu);
+        procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
       public
         procedure WriteTree(p : TAsmList); override;
         procedure WriteAsmList;override;
@@ -286,20 +287,40 @@ unit agsdasz80;
       end;
 
     procedure TSdccSdasZ80Assembler.WriteInstruction(hp: taicpu);
+      var
+        i: Integer;
       begin
-        writer.AsmWriteLn(#9#9+std_op2str[hp.opcode]);
-        {if taicpu(hp).ops<>0 then
+        writer.AsmWrite(#9#9+std_op2str[hp.opcode]);
+        if taicpu(hp).ops<>0 then
           begin
             for i:=0 to taicpu(hp).ops-1 do
-             begin
-               if i=0 then
-                writer.AsmWrite(#9)
-               else
-                writer.AsmWrite(',');
-               WriteOper(taicpu(hp).oper[i]^,taicpu(hp).opsize,fixed_opcode,taicpu(hp).ops,(i=2));
-             end;
-          end;}
+              begin
+                if i=0 then
+                 writer.AsmWrite(#9)
+                else
+                 writer.AsmWrite(',');
+                WriteOper(taicpu(hp).oper[i]^,S_B{taicpu(hp).opsize},hp.opcode,taicpu(hp).ops,(i=2));
+              end;
+          end;
+        writer.AsmLn;
       end;
+
+    procedure TSdccSdasZ80Assembler.WriteOper(const o: toper; s: topsize;
+      opcode: tasmop; ops: longint; dest: boolean);
+    begin
+      case o.typ of
+        top_reg :
+          writer.AsmWrite(std_regname(o.reg));
+        top_const :
+          begin
+{            if (ops=1) and (opcode<>A_RET) then
+              writer.AsmWrite(sizestr(s,dest));}
+            writer.AsmWrite('#'+tostr(longint(o.val)));
+          end;
+        else
+          internalerror(10001);
+      end;
+    end;
 
     procedure TSdccSdasZ80Assembler.WriteTree(p: TAsmList);
 
