@@ -59,7 +59,8 @@ unit agsdasz80;
     uses
        cutils,globals,verbose,
        cpuinfo,
-       cgbase,cgutils;
+       cgbase,cgutils,
+       finput;
 
     const
       line_length = 70;
@@ -479,18 +480,47 @@ unit agsdasz80;
       hp: tai;
       s: string;
       counter,lines,i,j,l,tokens,pos,last_align: longint;
-      quoted: Boolean;
+      quoted, do_line: Boolean;
       consttype: taiconst_type;
       ch: Char;
+      InlineLevel : longint;
+      prevfileinfo : tfileposinfo;
+      previnfile : tinputfile;
     begin
       if not assigned(p) then
        exit;
+      InlineLevel:=0;
       last_align:=1;
       lasthp:=nil;
+      { lineinfo is only needed for al_procedures (PFV) }
+      do_line:=(cs_asm_source in current_settings.globalswitches) or
+               ((cs_lineinfo in current_settings.moduleswitches)
+                 and (p=current_asmdata.asmlists[al_procedures]));
       hp:=tai(p.first);
       while assigned(hp) do
         begin
           prefetch(pointer(hp.next)^);
+          if not(hp.typ in SkipLineInfo) then
+            begin
+              previnfile:=lastinfile;
+              prevfileinfo:=lastfileinfo;
+              current_filepos:=tailineinfo(hp).fileinfo;
+
+              { no line info for inlined code }
+              if do_line and (inlinelevel=0) then
+                WriteSourceLine(hp as tailineinfo);
+              (*if (lastfileinfo.line<>prevfileinfo.line) or
+                 (previnfile<>lastinfile) then
+                begin
+                  { +0 postfix means no line increment per assembler instruction }
+                  writer.AsmWrite('%LINE '+tostr(current_filepos.line)+'+0');
+                  if assigned(lastinfile) and ((previnfile<>lastinfile) or NewObject) then
+                    writer.AsmWriteLn(' '+lastinfile.name)
+                  else
+                    writer.AsmLn;
+                  NewObject:=false;
+                end;*)
+            end;
           case hp.typ of
             ait_comment :
               begin
