@@ -97,8 +97,6 @@ unit cgcpu;
         procedure emit_mov(list: TAsmList;reg2: tregister; reg1: tregister);
 
         procedure a_adjust_sp(list: TAsmList; value: longint);
-        function GetLoad(const ref : treference) : tasmop;
-        function GetStore(const ref: treference): tasmop;
 
       protected
         procedure a_op_reg_reg_internal(list: TAsmList; Op: TOpCG; size: TCGSize; src, srchi, dst, dsthi: TRegister);
@@ -1394,28 +1392,6 @@ unit cgcpu;
         //      list.concat(taicpu.op_const_reg(A_OUT,NIO_SP_LO,NR_R28));
         //    end;
         //end;
-      end;
-
-
-    function tcgz80.GetLoad(const ref: treference) : tasmop;
-      begin
-        //if (ref.base=NR_NO) and (ref.index=NR_NO) then
-        //  result:=A_LDS
-        //else if (ref.base<>NR_NO) and (ref.offset<>0) then
-        //  result:=A_LDD
-        //else
-        //  result:=A_LD;
-      end;
-
-
-    function tcgz80.GetStore(const ref: treference) : tasmop;
-      begin
-        //if (ref.base=NR_NO) and (ref.index=NR_NO) then
-        //  result:=A_STS
-        //else if (ref.base<>NR_NO) and (ref.offset<>0) then
-        //  result:=A_STD
-        //else
-        //  result:=A_ST;
       end;
 
 
