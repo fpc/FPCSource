@@ -58,31 +58,13 @@ unit rgcpu;
         supreg,i : Tsuperregister;
       begin
         case getsubreg(reg) of
-          { Let 64bit floats conflict with all odd float regs }
-          R_SUBFD:
+          R_SUBL,R_SUBH:
             begin
-            {
+              { Some registers have no 8-bit subregister }
               supreg:=getsupreg(reg);
-              i:=RS_F1;
-              while (i<=RS_F31) do
-                begin
-                  add_edge(supreg,i);
-                  inc(i,2);
-                end;
-            }
-            end;
-          { Let 64bit ints conflict with all odd int regs }
-          R_SUBQ:
-            begin
-              supreg:=getsupreg(reg);
-              {
-              i:=RS_G1;
-              while (i<=RS_I7) do
-                begin
-                  add_edge(supreg,i);
-                  inc(i,2);
-                end;
-              }
+              add_edge(supreg,RS_IX);
+              add_edge(supreg,RS_IY);
+              add_edge(supreg,RS_SP);
             end;
         end;
       end;
