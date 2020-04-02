@@ -503,13 +503,16 @@ unit cgcpu;
 
            OP_NOT:
              begin
-               for i:=1 to tcgsize2size[size] do
+               getcpuregister(list,NR_A);
+               for i:=tcgsize2size[size] downto 1 do
                  begin
-                   if src<>dst then
-                     a_load_reg_reg(list,OS_8,OS_8,src,dst);
-                   list.concat(taicpu.op_reg(A_CPL,dst));
-                   NextSrcDst;
+                   a_load_reg_reg(list,OS_8,OS_8,src,NR_A);
+                   list.concat(taicpu.op_none(A_CPL));
+                   a_load_reg_reg(list,OS_8,OS_8,NR_A,dst);
+                   if i<>1 then
+                     NextSrcDst;
                  end;
+               ungetcpuregister(list,NR_A);
              end;
 
            OP_MUL,OP_IMUL:
