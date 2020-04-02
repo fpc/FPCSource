@@ -696,6 +696,9 @@ unit agsdasz80;
               begin
                 WriteInstruction(taicpu(hp));
               end;
+            ait_stab,
+            ait_force_line,
+            ait_function_name : ;
             else
               begin
                 writer.AsmWrite(asminfo^.comment);
