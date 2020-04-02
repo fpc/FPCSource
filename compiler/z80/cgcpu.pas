@@ -984,49 +984,38 @@ unit cgcpu;
        const Ref : treference;reg : tregister);
        var
          href : treference;
-         conv_done: boolean;
-         tmpreg : tregister;
          i : integer;
-         QuickRef : boolean;
        begin
-         list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_load_ref_reg')));
-         QuickRef:=false;
+         href:=Ref;
+         { ensure, href.base contains a valid register if there is any register used }
+         if href.base=NR_NO then
+           begin
+             href.base:=href.index;
+             href.index:=NR_NO;
+           end;
 
-         //href:=Ref;
-         //{ ensure, href.base contains a valid register if there is any register used }
-         //if href.base=NR_NO then
-         //  begin
-         //    href.base:=href.index;
-         //    href.index:=NR_NO;
-         //  end;
-         //
-         //{ try to use ldd/lds }
-         //if not((href.Base=NR_NO) and (href.Index=NR_NO)) then
-         //  begin
-         //    if not((href.addressmode=AM_UNCHANGED) and
-         //           (href.symbol=nil) and
-         //            (href.Index=NR_NO) and
-         //            (href.Offset in [0..64-tcgsize2size[fromsize]])) then
-         //      href:=normalize_ref(list,href,NR_R30)
-         //    else
-         //      begin
-         //        if (href.base<>NR_R28) and (href.base<>NR_R30) then
-         //          begin
-         //            maybegetcpuregister(list,NR_R30);
-         //            emit_mov(list,NR_R30,href.base);
-         //            maybegetcpuregister(list,NR_R31);
-         //            emit_mov(list,NR_R31,GetNextReg(href.base));
-         //            href.base:=NR_R30;
-         //          end;
-         //        QuickRef:=true;
-         //      end;
-         //  end
-         //else
-         //  QuickRef:=true;
-         //
-         //if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
-         //  internalerror(2011021307);
-         //
+         if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
+           internalerror(2011021307);
+
+         if tosize=fromsize then
+           begin
+             getcpuregister(list,NR_A);
+             for i:=tcgsize2size[fromsize] downto 1 do
+               begin
+                 list.concat(taicpu.op_reg_ref(A_LD,NR_A,href));
+                 a_load_reg_reg(list,OS_8,OS_8,NR_A,reg);
+
+                 if i<>1 then
+                   begin
+                     inc(href.offset);
+                     reg:=GetNextReg(reg);
+                   end;
+               end;
+             ungetcpuregister(list,NR_A);
+           end
+         else
+           list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_load_ref_reg')));
+
          //conv_done:=false;
          //if tosize<>fromsize then
          //  begin
