@@ -92,7 +92,7 @@ procedure tllvmloadnode.pass_generate_code;
             (resultdef.typ in [symconst.procdef,procvardef]) and
              not tabstractprocdef(resultdef).is_addressonly then
             begin
-              pvdef:=tprocvardef(procdef.getcopyas(procvardef,pc_normal,''));
+              pvdef:=cprocvardef.getreusableprocaddr(procdef,pc_normal);
               { on little endian, location.register contains proc and
                 location.registerhi contains self; on big endian, it's the
                 other way around }
