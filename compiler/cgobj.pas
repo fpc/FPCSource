@@ -754,8 +754,10 @@ implementation
 {$endif AVR}
         if getregtype(r)<>R_INTREGISTER then
           internalerror(2017091101);
+{$ifndef Z80}
         if getsubreg(r)<>R_SUBWHOLE then
           internalerror(2017091102);
+{$endif Z80}
         result:=TRegister(longint(r)+1);
       end;
 {$endif cpu8bitalu or cpu16bitalu}
