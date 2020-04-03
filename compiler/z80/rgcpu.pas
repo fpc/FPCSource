@@ -216,6 +216,17 @@ unit rgcpu;
                     instr.loadref(1,spilltemp);
                     result:=true;
                   end;
+              end
+            { Replace 'inc orgreg' with 'inc spilltemp'
+              and     'dec orgreg' with 'dec spilltemp' }
+            else if (opcode in [A_INC,A_DEC]) and (ops=1) and (oper[0]^.typ=top_reg) then
+              begin
+                if (getregtype(oper[0]^.reg)=regtype) and
+                   (get_alias(getsupreg(oper[0]^.reg))=orgreg) then
+                  begin
+                    instr.loadref(0,spilltemp);
+                    result:=true;
+                  end;
               end;
           end;
       end;
