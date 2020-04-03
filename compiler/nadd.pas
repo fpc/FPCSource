@@ -3635,6 +3635,8 @@ implementation
         fdef : tdef;
       begin
         notnode:=false;
+        result:=nil;
+        fdef:=nil;
         if not(target_info.system in systems_wince) then
           begin
             case tfloatdef(left.resultdef).floattype of

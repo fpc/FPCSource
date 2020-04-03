@@ -1519,10 +1519,10 @@ implementation
           objectdef :
             result:=int_cgsize(def.size);
           floatdef:
-            if (cs_fp_emulation in current_settings.moduleswitches) or
+            if (cs_fp_emulation in current_settings.moduleswitches)
 {$ifdef xtensa}
-              not(tfloatdef(def).floattype=s32real) or
-              not(FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype])
+              or not(tfloatdef(def).floattype=s32real) or
+              or not(FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype])
 {$endif xtensa}
               then
               result:=int_cgsize(def.size)
