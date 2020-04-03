@@ -194,6 +194,28 @@ unit rgcpu;
                     opcode:=A_LD;
                     result:=true;
                   end;
+              end
+            { Replace 'add A,orgreg' with 'add A,spilltemp'
+              and     'adc A,orgreg' with 'adc A,spilltemp'
+              and     'sub A,orgreg' with 'sub A,spilltemp'
+              and     'sbc A,orgreg' with 'sbc A,spilltemp'
+              and     'and A,orgreg' with 'and A,spilltemp'
+              and     'or  A,orgreg' with 'or  A,spilltemp'
+              and     'xor A,orgreg' with 'xor A,spilltemp'
+              and     'cp  A,orgreg' with 'cp  A,spilltemp'
+              }
+            else if (opcode in [A_ADD,A_ADC,A_SUB,A_SBC,A_AND,A_OR,A_XOR,A_CP]) and (ops=2) and (oper[1]^.typ=top_reg) and (oper[0]^.typ=top_reg) then
+              begin
+                { we don't really need to check whether the first register is 'A',
+                  because that's the only register allowed as a destination for
+                  these instructions }
+                if (getregtype(oper[1]^.reg)=regtype) and
+                   (get_alias(getsupreg(oper[1]^.reg))=orgreg) and
+                   (get_alias(getsupreg(oper[0]^.reg))<>orgreg) then
+                  begin
+                    instr.loadref(1,spilltemp);
+                    result:=true;
+                  end;
               end;
           end;
       end;
