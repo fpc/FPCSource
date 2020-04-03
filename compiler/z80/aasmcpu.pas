@@ -248,45 +248,23 @@ implementation
 
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
       begin
-        internalerror(2017032602);
-        {
         case getregtype(r) of
           R_INTREGISTER :
-            if ref.offset<>0 then
-              result:=taicpu.op_reg_ref(A_LDD,r,ref)
-            else
-              result:=taicpu.op_reg_ref(A_LD,r,ref);
-          R_ADDRESSREGISTER :
-            if ref.offset<>0 then
-              result:=taicpu.op_reg_ref(A_LDD,r,ref)
-            else
-              result:=taicpu.op_reg_ref(A_LD,r,ref);
+            result:=taicpu.op_reg_ref(A_LD,r,ref)
           else
             internalerror(200401041);
         end;
-        }
       end;
 
 
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
       begin
-        internalerror(2017032601);
-        {
         case getregtype(r) of
           R_INTREGISTER :
-            if ref.offset<>0 then
-              result:=taicpu.op_ref_reg(A_STD,ref,r)
-            else
-              result:=taicpu.op_ref_reg(A_ST,ref,r);
-          R_ADDRESSREGISTER :
-            if ref.offset<>0 then
-              result:=taicpu.op_ref_reg(A_STD,ref,r)
-            else
-              result:=taicpu.op_ref_reg(A_ST,ref,r);
+            result:=taicpu.op_ref_reg(A_LD,ref,r);
           else
             internalerror(200401041);
         end;
-        }
       end;
 
 
