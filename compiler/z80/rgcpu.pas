@@ -158,7 +158,7 @@ unit rgcpu;
         b : byte;
       begin
         result:=false;
-        if not(spilltemp.offset in [0..63]) then
+        if not(spilltemp.offset in [-128..127]) then
           exit;
 
         { Replace 'mov  dst,orgreg' with 'ld  dst,spilltemp'
