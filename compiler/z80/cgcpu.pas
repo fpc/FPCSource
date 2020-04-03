@@ -59,6 +59,7 @@ unit cgcpu;
 
         { move instructions }
         procedure a_load_const_reg(list : TAsmList; size: tcgsize; a : tcgint;reg : tregister);override;
+        procedure a_load_const_ref(list : TAsmList;size : tcgsize;a : tcgint;const ref : treference);override;
         procedure a_load_reg_ref(list : TAsmList; fromsize, tosize: tcgsize; reg : tregister;const ref : treference);override;
         procedure a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : TAsmList; fromsize, tosize : tcgsize;reg1,reg2 : tregister);override;
@@ -846,6 +847,41 @@ unit cgcpu;
                  reg:=GetNextReg(reg);
                end;
            end;
+       end;
+
+
+     procedure tcgz80.a_load_const_ref(list: TAsmList; size: tcgsize; a: tcgint; const ref: treference);
+       var
+         mask : qword;
+         shift : byte;
+         href: treference;
+         i: Integer;
+       begin
+         mask:=$ff;
+         shift:=0;
+         href:=ref;
+         if (href.base=NR_NO) and (href.index<>NR_NO) then
+           begin
+             href.base:=href.index;
+             href.index:=NR_NO;
+           end;
+         if not assigned(href.symbol) and
+           ((href.base=NR_IX) or (href.base=NR_IY) or
+            ((href.base=NR_HL) and (size in [OS_8,OS_S8]) and (href.offset=0))) then
+           begin
+             for i:=tcgsize2size[size] downto 1 do
+               begin
+                 list.Concat(taicpu.op_ref_const(A_LD,href,(qword(a) and mask) shr shift));
+                 if i<>1 then
+                   begin
+                     mask:=mask shl 8;
+                     inc(shift,8);
+                     inc(href.offset);
+                   end;
+               end;
+           end
+         else
+           inherited;
        end;
 
 

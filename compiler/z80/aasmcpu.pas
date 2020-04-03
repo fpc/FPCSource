@@ -51,6 +51,8 @@ uses
 
       pinsentry=^tinsentry;
 
+      { taicpu }
+
       taicpu = class(tai_cpu_abstract_sym)
          constructor op_none(op : tasmop);
 
@@ -63,6 +65,7 @@ uses
          constructor op_reg_const(op:tasmop; _op1: tregister; _op2: LongInt);
          constructor op_const_reg(op:tasmop; _op1: LongInt; _op2: tregister);
          constructor op_ref_reg(op : tasmop;const _op1 : treference;_op2 : tregister);
+         constructor op_ref_const(op:tasmop; _op1: treference; _op2: LongInt);
 
          { this is for Jmp instructions }
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
@@ -176,6 +179,15 @@ implementation
          ops:=2;
          loadref(0,_op1);
          loadreg(1,_op2);
+      end;
+
+
+    constructor taicpu.op_ref_const(op: tasmop; _op1: treference; _op2: LongInt);
+      begin
+        inherited create(op);
+        ops:=2;
+        loadref(0,_op1);
+        loadconst(1,aint(_op2));
       end;
 
 
