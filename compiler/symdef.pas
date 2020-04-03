@@ -2357,9 +2357,9 @@ implementation
 {$ifdef x86}
        result:=use_vectorfpu(self);
 {$else x86}
-       result:=(typ=floatdef) and not(cs_fp_emulation in current_settings.moduleswitches) and
+       result:=(typ=floatdef) and not(cs_fp_emulation in current_settings.moduleswitches)
 {$ifdef xtensa}
-         (FPUXTENSA_SINGLE in fpu_capabilities[init_settings.fputype]) and (tfloatdef(self).floattype=s32real)
+         and (FPUXTENSA_SINGLE in fpu_capabilities[init_settings.fputype]) and (tfloatdef(self).floattype=s32real)
 {$endif xtensa}
          ;
 {$endif x86}
