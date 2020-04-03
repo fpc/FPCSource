@@ -218,8 +218,16 @@ unit rgcpu;
                   end;
               end
             { Replace 'inc orgreg' with 'inc spilltemp'
-              and     'dec orgreg' with 'dec spilltemp' }
-            else if (opcode in [A_INC,A_DEC]) and (ops=1) and (oper[0]^.typ=top_reg) then
+              and     'dec orgreg' with 'dec spilltemp'
+              and     'add orgreg' with 'add spilltemp'
+              and     'adc orgreg' with 'adc spilltemp'
+              and     'sub orgreg' with 'sub spilltemp'
+              and     'sbc orgreg' with 'sbc spilltemp'
+              and     'and orgreg' with 'and spilltemp'
+              and     'or  orgreg' with 'or  spilltemp'
+              and     'xor orgreg' with 'xor spilltemp'
+              and     'cp  orgreg' with 'cp  spilltemp' }
+            else if (opcode in [A_INC,A_DEC,A_ADD,A_ADC,A_SUB,A_SBC,A_AND,A_OR,A_XOR,A_CP]) and (ops=1) and (oper[0]^.typ=top_reg) then
               begin
                 if (getregtype(oper[0]^.reg)=regtype) and
                    (get_alias(getsupreg(oper[0]^.reg))=orgreg) then
