@@ -73,6 +73,10 @@ interface
 
         procedure g_concatcopy(list : TAsmList; const source,dest : treference; len : tcgint);override;
 
+        procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister);override;
+        procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister);override;
+        procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
+
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
       end;
 
@@ -943,6 +947,49 @@ implementation
           end;
         end;
       end;
+
+
+     procedure tcgcpu.a_loadfpu_reg_reg(list: TAsmList; fromsize,tosize: tcgsize; reg1, reg2: tregister);
+       begin
+         if not(fromsize in [OS_32,OS_F32]) then
+           InternalError(2020032603);
+         list.concat(taicpu.op_reg_reg(A_MOV_S,reg2,reg1));
+       end;
+
+
+     procedure tcgcpu.a_loadfpu_ref_reg(list: TAsmList; fromsize,tosize: tcgsize; const ref: treference; reg: tregister);
+       var
+         href: treference;
+       begin
+         if not(fromsize in [OS_32,OS_F32]) then
+           InternalError(2020032602);
+         href:=ref;
+         if assigned(href.symbol) or
+           (href.index<>NR_NO) or
+           (((href.offset<0) or (href.offset>1020) or (href.offset mod 4<>0))) then
+           fixref(list,href);
+
+         list.concat(taicpu.op_reg_ref(A_LSI,reg,href));
+
+         if fromsize<>tosize then
+           a_loadfpu_reg_reg(list,fromsize,tosize,reg,reg);
+       end;
+
+
+     procedure tcgcpu.a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference);
+       var
+         href: treference;
+       begin
+         if not(fromsize in [OS_32,OS_F32]) then
+           InternalError(2020032604);
+         href:=ref;
+         if assigned(href.symbol) or
+           (href.index<>NR_NO) or
+           (((href.offset<0) or (href.offset>1020) or (href.offset mod 4<>0))) then
+           fixref(list,href);
+
+         list.concat(taicpu.op_reg_ref(A_SSI,reg,href));
+       end;
 
 
     procedure tcgcpu.maybeadjustresult(list : TAsmList; op : TOpCg; size : tcgsize; dst : tregister);
