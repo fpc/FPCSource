@@ -1521,7 +1521,7 @@ implementation
           floatdef:
             if (cs_fp_emulation in current_settings.moduleswitches)
 {$ifdef xtensa}
-              or not(tfloatdef(def).floattype=s32real) or
+              or not(tfloatdef(def).floattype=s32real)
               or not(FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype])
 {$endif xtensa}
               then
