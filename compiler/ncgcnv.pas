@@ -220,6 +220,9 @@ interface
 {$elseif defined(sparcgen)}
         { Load left node into flag F_NE/F_E }
         resflags.Init(NR_ICC,F_NE);
+{$elseif defined(xtensa)}
+        { Xtensa uses its own implementation }
+        Internalerror(2020032901);
 {$else}
         { Load left node into flag F_NE/F_E }
         resflags:=F_NE;

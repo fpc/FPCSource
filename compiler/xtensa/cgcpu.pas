@@ -57,7 +57,9 @@ interface
 
         procedure a_call_name(list:TAsmList;const s:string; weak: boolean);override;
         procedure a_call_reg(list:TAsmList;Reg:tregister);override;
+
         procedure a_jmp_name(list: TAsmList; const s: string);override;
+        procedure a_jmp_flags(list: TAsmList; const f: TResFlags; l: tasmlabel);override;
 
         procedure g_proc_entry(list: TAsmList; localsize: longint; nostackframe: boolean);override;
         procedure g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);override;
@@ -66,6 +68,8 @@ interface
         procedure a_cmp_const_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel); override;
         procedure a_cmp_reg_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);override;
         procedure a_jmp_always(list: TAsmList; l: TAsmLabel);override;
+
+        procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister);override;
 
         procedure g_concatcopy(list : TAsmList; const source,dest : treference; len : tcgint);override;
 
@@ -546,6 +550,16 @@ implementation
       end;
 
 
+    procedure tcgcpu.a_jmp_flags(list: TAsmList; const f: TResFlags; l: tasmlabel);
+      var
+        instr: taicpu;
+      begin
+        instr:=taicpu.op_reg_sym(A_Bcc,f.register,l);
+        instr.condition:=flags_to_cond(f.flag);
+        list.concat(instr);
+      end;
+
+
     procedure tcgcpu.g_proc_entry(list : TAsmList; localsize : longint;
       nostackframe : boolean);
       var
@@ -770,6 +784,20 @@ implementation
         ai:=taicpu.op_sym(A_J,l);
         ai.is_jmp:=true;
         list.concat(ai);
+      end;
+
+
+    procedure tcgcpu.g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister);
+      var
+        hregister: TRegister;
+        instr: taicpu;
+      begin
+        a_load_const_reg(list,size,0,reg);
+        hregister:=getintregister(list,size);
+        a_load_const_reg(list,size,1,hregister);
+        instr:=taicpu.op_reg_reg_reg(A_MOV,reg,hregister,f.register);
+        instr.condition:=flags_to_cond(f.flag);
+        list.concat(instr);
       end;
 
 
