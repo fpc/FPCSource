@@ -35,6 +35,9 @@ unit cgcpu;
        cpubase,cpuinfo,node,cg64f32,rgcpu;
 
     type
+
+      { tcgz80 }
+
       tcgz80 = class(tcg)
         { true, if the next arithmetic operation should modify the flags }
         cgsetflags : boolean;
@@ -76,6 +79,7 @@ unit cgcpu;
 
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
+        procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize : longint;nostackframe:boolean); override;
 
@@ -1353,6 +1357,17 @@ unit cgcpu;
       end;
 
 
+    procedure tcgz80.g_stackpointer_alloc(list: TAsmList; localsize: longint);
+      begin
+        if localsize>0 then
+          begin
+            list.Concat(taicpu.op_reg_const(A_LD,NR_HL,-localsize));
+            list.Concat(taicpu.op_reg_reg(A_ADD,NR_HL,NR_SP));
+            list.Concat(taicpu.op_reg_reg(A_LD,NR_SP,NR_HL));
+          end;
+      end;
+
+
     procedure tcgz80.a_adjust_sp(list : TAsmList; value : longint);
       var
         i : integer;
@@ -1397,81 +1412,63 @@ unit cgcpu;
 
     procedure tcgz80.g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);
       var
-         regs : tcpuregisterset;
-         reg : tsuperregister;
+        regsize,stackmisalignment: longint;
       begin
-        //if po_interrupt in current_procinfo.procdef.procoptions then
-        //  begin
-        //    { check if the framepointer is actually used, this is done here because
-        //      we have to know the size of the locals (must be 0), avr does not know
-        //      an sp based stack }
-        //
-        //    if not(current_procinfo.procdef.stack_tainting_parameter(calleeside)) and
-        //      (localsize=0) then
-        //      current_procinfo.framepointer:=NR_NO;
-        //
-        //    { save int registers,
-        //      but only if the procedure returns }
-        //    if not(po_noreturn in current_procinfo.procdef.procoptions) then
-        //      regs:=rg[R_INTREGISTER].used_in_proc
-        //    else
-        //      regs:=[];
-        //    { if the framepointer is potentially used, save it always because we need a proper stack frame,
-        //      even if the procedure never returns, the procedure could be e.g. a nested one accessing
-        //      an outer stackframe }
-        //    if current_procinfo.framepointer<>NR_NO then
-        //      regs:=regs+[RS_R28,RS_R29];
-        //
-        //    regs:=regs+[RS_R0];
-        //
-        //    for reg:=RS_R31 downto RS_R0 do
-        //      if reg in regs then
-        //        list.concat(taicpu.op_reg(A_PUSH,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
-        //
-        //    { Save SREG }
-        //    list.concat(taicpu.op_reg_const(A_IN, NR_R0, $3F));
-        //    list.concat(taicpu.op_reg(A_PUSH, NR_R0));
-        //
-        //    if current_procinfo.framepointer<>NR_NO then
-        //      begin
-        //        list.concat(taicpu.op_reg_const(A_IN,NR_R28,NIO_SP_LO));
-        //        list.concat(taicpu.op_reg_const(A_IN,NR_R29,NIO_SP_HI));
-        //        a_adjust_sp(list,-localsize);
-        //      end;
-        //  end
-        //else if not(nostackframe) then
-        //  begin
-        //    { check if the framepointer is actually used, this is done here because
-        //      we have to know the size of the locals (must be 0), avr does not know
-        //      an sp based stack }
-        //
-        //    if not(current_procinfo.procdef.stack_tainting_parameter(calleeside)) and
-        //      (localsize=0) then
-        //      current_procinfo.framepointer:=NR_NO;
-        //
-        //    { save int registers,
-        //      but only if the procedure returns }
-        //    if not(po_noreturn in current_procinfo.procdef.procoptions) then
-        //      regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)
-        //    else
-        //      regs:=[];
-        //    { if the framepointer is potentially used, save it always because we need a proper stack frame,
-        //      even if the procedure never returns, the procedure could be e.g. a nested one accessing
-        //      an outer stackframe }
-        //    if current_procinfo.framepointer<>NR_NO then
-        //      regs:=regs+[RS_R28,RS_R29];
-        //
-        //    for reg:=RS_R31 downto RS_R0 do
-        //      if reg in regs then
-        //        list.concat(taicpu.op_reg(A_PUSH,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
-        //
-        //    if current_procinfo.framepointer<>NR_NO then
-        //      begin
-        //        list.concat(taicpu.op_reg_const(A_IN,NR_R28,NIO_SP_LO));
-        //        list.concat(taicpu.op_reg_const(A_IN,NR_R29,NIO_SP_HI));
-        //        a_adjust_sp(list,-localsize);
-        //      end;
-        //  end;
+        regsize:=0;
+        stackmisalignment:=0;
+        { save old framepointer }
+        if not nostackframe then
+          begin
+            { return address }
+            inc(stackmisalignment,2);
+            list.concat(tai_regalloc.alloc(current_procinfo.framepointer,nil));
+            if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
+              begin
+                { push <frame_pointer> }
+                inc(stackmisalignment,2);
+                include(rg[R_INTREGISTER].preserved_by_proc,RS_FRAME_POINTER_REG);
+                list.concat(Taicpu.op_reg(A_PUSH,NR_FRAME_POINTER_REG));
+                { Return address and FP are both on stack }
+                current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*2);
+                current_asmdata.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*2));
+                if current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
+                  begin
+                    list.concat(Taicpu.op_reg_const(A_LD,NR_FRAME_POINTER_REG,0));
+                    list.concat(Taicpu.op_reg_reg(A_ADD,NR_FRAME_POINTER_REG,NR_STACK_POINTER_REG))
+                  end
+                else
+                  begin
+                    internalerror(2020040301);
+                    (*push_regs;
+                    gen_load_frame_for_exceptfilter(list);
+                    { Need only as much stack space as necessary to do the calls.
+                      Exception filters don't have own local vars, and temps are 'mapped'
+                      to the parent procedure.
+                      maxpushedparasize is already aligned at least on x86_64. }
+                    localsize:=current_procinfo.maxpushedparasize;*)
+                  end;
+                current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
+              end
+            else
+              begin
+                CGmessage(cg_d_stackframe_omited);
+              end;
+
+            { allocate stackframe space }
+            if (localsize<>0) or
+               ((target_info.stackalign>sizeof(pint)) and
+                (stackmisalignment <> 0) and
+                ((pi_do_call in current_procinfo.flags) or
+                 (po_assembler in current_procinfo.procdef.procoptions))) then
+              begin
+                if target_info.stackalign>sizeof(pint) then
+                  localsize := align(localsize+stackmisalignment,target_info.stackalign)-stackmisalignment;
+                g_stackpointer_alloc(list,localsize);
+                if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+                  current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
+                current_procinfo.final_localsize:=localsize;
+              end
+          end;
       end;
 
 
@@ -1486,45 +1483,33 @@ unit cgcpu;
         }
         if po_noreturn in current_procinfo.procdef.procoptions then
           exit;
+
+        { remove stackframe }
+        if not nostackframe then
+          begin
+            stacksize:=current_procinfo.calc_stackframe_size;
+            if (target_info.stackalign>4) and
+               ((stacksize <> 0) or
+                (pi_do_call in current_procinfo.flags) or
+                { can't detect if a call in this case -> use nostackframe }
+                { if you (think you) know what you are doing              }
+                (po_assembler in current_procinfo.procdef.procoptions)) then
+              stacksize := align(stacksize+sizeof(aint),target_info.stackalign) - sizeof(aint);
+            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+              begin
+                internalerror(2020040302);
+                {if (stacksize<>0) then
+                  cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);}
+              end
+            else
+              begin
+                list.Concat(taicpu.op_reg_reg(A_LD,NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG));
+                list.Concat(taicpu.op_reg(A_POP,NR_FRAME_POINTER_REG));
+              end;
+            list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
+          end;
+
         list.concat(taicpu.op_none(A_RET));
-        //if po_interrupt in current_procinfo.procdef.procoptions then
-        //  begin
-        //    regs:=rg[R_INTREGISTER].used_in_proc;
-        //    if current_procinfo.framepointer<>NR_NO then
-        //      begin
-        //        regs:=regs+[RS_R28,RS_R29];
-        //        LocalSize:=current_procinfo.calc_stackframe_size;
-        //        a_adjust_sp(list,LocalSize);
-        //      end;
-        //
-        //    { Reload SREG }
-        //    regs:=regs+[RS_R0];
-        //
-        //    list.concat(taicpu.op_reg(A_POP, NR_R0));
-        //    list.concat(taicpu.op_const_reg(A_OUT, $3F, NR_R0));
-        //
-        //    for reg:=RS_R0 to RS_R31 do
-        //      if reg in regs then
-        //        list.concat(taicpu.op_reg(A_POP,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
-        //
-        //    list.concat(taicpu.op_none(A_RETI));
-        //  end
-        //else if not(nostackframe) then
-        //  begin
-        //    regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
-        //    if current_procinfo.framepointer<>NR_NO then
-        //      begin
-        //        regs:=regs+[RS_R28,RS_R29];
-        //        LocalSize:=current_procinfo.calc_stackframe_size;
-        //        a_adjust_sp(list,LocalSize);
-        //      end;
-        //    for reg:=RS_R0 to RS_R31 do
-        //      if reg in regs then
-        //        list.concat(taicpu.op_reg(A_POP,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
-        //    list.concat(taicpu.op_none(A_RET));
-        //  end
-        //else
-        //  list.concat(taicpu.op_none(A_RET));
       end;
 
 
