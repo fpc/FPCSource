@@ -69,13 +69,7 @@ interface
 
     type
       TCpu=(
-<<<<<<< .working
-        c_i386,c_m68k,c_powerpc,c_sparc,c_x86_64,c_arm,c_powerpc64,c_avr,c_armeb,c_armel,c_mips,c_mipsel,c_mips64,c_mips64el,c_jvm,c_i8086,c_aarch64,c_wasm,c_z80
-||||||| .merge-left.r35662
-        c_i386,c_m68k,c_powerpc,c_sparc,c_x86_64,c_arm,c_powerpc64,c_avr,c_armeb,c_armel,c_mips,c_mipsel,c_mips64,c_mips64el,c_jvm,c_i8086,c_aarch64,c_wasm
-=======
-        c_i386,c_m68k,c_powerpc,c_sparc,c_x86_64,c_arm,c_powerpc64,c_avr,c_armeb,c_armel,c_mips,c_mipsel,c_mips64,c_mips64el,c_jvm,c_i8086,c_aarch64,c_wasm,c_sparc64,c_riscv32,c_riscv64,c_xtensa
->>>>>>> .merge-right.r44393
+        c_i386,c_m68k,c_powerpc,c_sparc,c_x86_64,c_arm,c_powerpc64,c_avr,c_armeb,c_armel,c_mips,c_mipsel,c_mips64,c_mips64el,c_jvm,c_i8086,c_aarch64,c_wasm,c_sparc64,c_riscv32,c_riscv64,c_xtensa,c_z80
       );
 
       TOS=(
@@ -90,33 +84,15 @@ interface
 
     const
       CpuStr : array[TCpu] of string=(
-<<<<<<< .working
-        'i386','m68k','powerpc','sparc','x86_64','arm','powerpc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','i8086','aarch64','wasm','z80'
-||||||| .merge-left.r35662
-        'i386','m68k','powerpc','sparc','x86_64','arm','powerpc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','i8086','aarch64','wasm'
-=======
-        'i386','m68k','powerpc','sparc','x86_64','arm','powerpc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','i8086','aarch64','wasm','sparc64','riscv32','riscv64','xtensa'
->>>>>>> .merge-right.r44393
+        'i386','m68k','powerpc','sparc','x86_64','arm','powerpc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','i8086','aarch64','wasm','sparc64','riscv32','riscv64','xtensa','z80'
       );
 
       CpuSuffix : array[TCpu] of string=(
-<<<<<<< .working
-        '_i386','_m68k','_powerpc','_sparc','_x86_64','_arm','_powerpc64','_avr','_armeb', '_armel', '_mips', '_mipsel', '_mips64', '_mips64el', '_jvm','_i8086','_aarch64','_wasm','_z80'
-||||||| .merge-left.r35662
-        '_i386','_m68k','_powerpc','_sparc','_x86_64','_arm','_powerpc64','_avr','_armeb', '_armel', '_mips', '_mipsel', '_mips64', '_mips64el', '_jvm','_i8086','_aarch64','_wasm'
-=======
-        '_i386','_m68k','_powerpc','_sparc','_x86_64','_arm','_powerpc64','_avr','_armeb', '_armel', '_mips', '_mipsel', '_mips64', '_mips64el', '_jvm','_i8086','_aarch64','_wasm','_sparc64','_riscv32','_riscv64','xtensa'
->>>>>>> .merge-right.r44393
+        '_i386','_m68k','_powerpc','_sparc','_x86_64','_arm','_powerpc64','_avr','_armeb', '_armel', '_mips', '_mipsel', '_mips64', '_mips64el', '_jvm','_i8086','_aarch64','_wasm','_sparc64','_riscv32','_riscv64','xtensa','_z80'
       );
 
       ppcSuffix : array[TCpu] of string=(
-<<<<<<< .working
-        '386','m68k','ppc','sparc','x86_64','arm','ppc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','8086','aarch64','wasm','z80'
-||||||| .merge-left.r35662
-        '386','m68k','ppc','sparc','x86_64','arm','ppc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','8086','aarch64','wasm'
-=======
-        '386','68k','ppc','sparc','x64','arm','ppc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','8086','a64','wasm','sparc64','rv32','rv64','xtensa'
->>>>>>> .merge-right.r44393
+        '386','68k','ppc','sparc','x64','arm','ppc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','8086','a64','wasm','sparc64','rv32','rv64','xtensa','z80'
       );
 
       OSStr : array[TOS] of string=(
