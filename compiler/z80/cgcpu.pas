@@ -137,7 +137,7 @@ unit cgcpu;
       begin
         inherited init_register_allocators;
         rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
-            [RS_BC,RS_DE,RS_HL],first_int_imreg,[]);
+            [RS_A,RS_B,RS_C,RS_D,RS_E,RS_H,RS_L],first_int_imreg,[]);
       end;
 
 

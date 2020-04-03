@@ -89,7 +89,7 @@ unit cpubase;
       {$i rz80sup.inc}
 
       { No Subregisters }
-      R_SUBWHOLE = R_SUBW;
+      R_SUBWHOLE = R_SUBL;
 
       { Available Registers }
       {$i rz80con.inc}
