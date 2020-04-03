@@ -161,8 +161,8 @@ unit rgcpu;
         if not(spilltemp.offset in [-128..127]) then
           exit;
 
-        { Replace 'mov  dst,orgreg' with 'ld  dst,spilltemp'
-          and     'mov  orgreg,src' with 'st  dst,spilltemp' }
+        { Replace 'ld  orgreg,src' with 'ld  spilltemp,src'
+          and     'ld  dst,orgreg' with 'ld  dst,spilltemp' }
         with instr do
           begin
             if (opcode=A_LD) and (ops=2) and (oper[1]^.typ=top_reg) and (oper[0]^.typ=top_reg) then
@@ -171,8 +171,7 @@ unit rgcpu;
                    (get_alias(getsupreg(oper[0]^.reg))=orgreg) and
                    (get_alias(getsupreg(oper[1]^.reg))<>orgreg) then
                   begin
-                    instr.loadreg(0,oper[1]^.reg);
-                    instr.loadref(1,spilltemp);
+                    instr.loadref(0,spilltemp);
                     opcode:=A_LD;
                     result:=true;
                   end
@@ -180,7 +179,7 @@ unit rgcpu;
                    (get_alias(getsupreg(oper[1]^.reg))=orgreg) and
                    (get_alias(getsupreg(oper[0]^.reg))<>orgreg) then
                   begin
-                    instr.loadref(0,spilltemp);
+                    instr.loadref(1,spilltemp);
                     opcode:=A_LD;
                     result:=true;
                   end;
