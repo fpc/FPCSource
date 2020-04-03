@@ -363,11 +363,6 @@ Type
   {$endif}
 {$endif CPUXTENSA}
 
-{$if not declared(FarPointer)}
-  FarPointer = Pointer;
-{$endif}
-
-
 {$ifdef CPUZ80}
   {$define DEFAULT_SINGLE}
 
@@ -384,12 +379,13 @@ Type
     ValReal = Real;
   {$endif}
 
-  { map comp to int64, but this doesn't mean we compile the comp support in! }
-  Comp = Int64;
-  PComp = ^Comp;
-
   FarPointer = Pointer;
 {$endif CPUZ80}
+
+
+{$if not declared(FarPointer)}
+  FarPointer = Pointer;
+{$endif}
 
 
 {$ifdef CPU64}
