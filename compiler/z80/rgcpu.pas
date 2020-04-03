@@ -183,6 +183,17 @@ unit rgcpu;
                     opcode:=A_LD;
                     result:=true;
                   end;
+              end
+            { Replace 'ld  orgreg,const' with 'ld  spilltemp,const' }
+            else if (opcode=A_LD) and (ops=2) and (oper[1]^.typ=top_const) and (oper[0]^.typ=top_reg) then
+              begin
+                if (getregtype(oper[0]^.reg)=regtype) and
+                   (get_alias(getsupreg(oper[0]^.reg))=orgreg) then
+                  begin
+                    instr.loadref(0,spilltemp);
+                    opcode:=A_LD;
+                    result:=true;
+                  end;
               end;
           end;
       end;
