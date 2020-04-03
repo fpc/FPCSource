@@ -347,9 +347,9 @@ unit agsdasz80;
                   writer.AsmWrite(o.ref^.symbol.name);
                   need_plus:=true;
                 end;
-              if o.ref^.offset>0 then
+              if o.ref^.offset<>0 then
                 begin
-                  if need_plus then
+                  if need_plus and (o.ref^.offset>0) then
                     writer.AsmWrite('+');
                   writer.AsmWrite(tostr(o.ref^.offset));
                   need_plus:=true;
