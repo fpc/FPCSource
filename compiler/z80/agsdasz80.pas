@@ -322,41 +322,64 @@ unit agsdasz80;
             end;
           top_ref:
             begin
-              writer.AsmWrite('(');
-              need_plus:=false;
-              if o.ref^.base<>NR_NO then
+              if not assigned(o.ref^.symbol) and
+                 ((o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO)) and
+                 (o.ref^.offset<>0) then
                 begin
-                  if o.ref^.index<>NR_NO then
-                    internalerror(2020040201);
-                  writer.AsmWrite(std_regname(o.ref^.base));
-                  need_plus:=true;
-                end
-              else if o.ref^.index<>NR_NO then
-                begin
-                  if o.ref^.scalefactor>1 then
-                    internalerror(2020040202);
-                  writer.AsmWrite(std_regname(o.ref^.index));
-                  need_plus:=true;
-                end;
-              if assigned(o.ref^.symbol) then
-                begin
-                  {if SmartAsm then
-                    AddSymbol(o.ref^.symbol.name,false);}
-                  if need_plus then
-                    writer.AsmWrite('+');
-                  writer.AsmWrite(o.ref^.symbol.name);
-                  need_plus:=true;
-                end;
-              if o.ref^.offset<>0 then
-                begin
-                  if need_plus and (o.ref^.offset>0) then
-                    writer.AsmWrite('+');
                   writer.AsmWrite(tostr(o.ref^.offset));
-                  need_plus:=true;
+                  writer.AsmWrite(' (');
+                  if o.ref^.base<>NR_NO then
+                    begin
+                      if o.ref^.index<>NR_NO then
+                        internalerror(2020040201);
+                      writer.AsmWrite(std_regname(o.ref^.base));
+                    end
+                  else if o.ref^.index<>NR_NO then
+                    begin
+                      if o.ref^.scalefactor>1 then
+                        internalerror(2020040202);
+                      writer.AsmWrite(std_regname(o.ref^.index));
+                    end;
+                  writer.AsmWrite(')');
+                end
+              else
+                begin
+                  writer.AsmWrite('(');
+                  need_plus:=false;
+                  if o.ref^.base<>NR_NO then
+                    begin
+                      if o.ref^.index<>NR_NO then
+                        internalerror(2020040201);
+                      writer.AsmWrite(std_regname(o.ref^.base));
+                      need_plus:=true;
+                    end
+                  else if o.ref^.index<>NR_NO then
+                    begin
+                      if o.ref^.scalefactor>1 then
+                        internalerror(2020040202);
+                      writer.AsmWrite(std_regname(o.ref^.index));
+                      need_plus:=true;
+                    end;
+                  if assigned(o.ref^.symbol) then
+                    begin
+                      {if SmartAsm then
+                        AddSymbol(o.ref^.symbol.name,false);}
+                      if need_plus then
+                        writer.AsmWrite('+');
+                      writer.AsmWrite(o.ref^.symbol.name);
+                      need_plus:=true;
+                    end;
+                  if o.ref^.offset<>0 then
+                    begin
+                      if need_plus and (o.ref^.offset>0) then
+                        writer.AsmWrite('+');
+                      writer.AsmWrite(tostr(o.ref^.offset));
+                      need_plus:=true;
+                    end;
+                  if not need_plus then
+                    writer.AsmWrite('0');
+                  writer.AsmWrite(')');
                 end;
-              if not need_plus then
-                writer.AsmWrite('0');
-              writer.AsmWrite(')');
             end;
           else
             internalerror(10001);
