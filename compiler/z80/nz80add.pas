@@ -62,20 +62,21 @@ interface
       begin
         case NodeType of
           equaln:
-            GetResFlags:=F_EQ;
+            GetResFlags:=F_E;
           unequaln:
             GetResFlags:=F_NE;
           else
             if not(unsigned) then
               begin
+                { signed }
                 if nf_swapped in flags then
                   case NodeType of
                     ltn:
                       GetResFlags:=F_NotPossible;
                     lten:
-                      GetResFlags:=F_GE;
+                      GetResFlags:=F_NotPossible;
                     gtn:
-                      GetResFlags:=F_LT;
+                      GetResFlags:=F_NotPossible;
                     gten:
                       GetResFlags:=F_NotPossible;
                     else
@@ -84,27 +85,28 @@ interface
                 else
                   case NodeType of
                     ltn:
-                      GetResFlags:=F_LT;
+                      GetResFlags:=F_NotPossible;
                     lten:
                       GetResFlags:=F_NotPossible;
                     gtn:
                       GetResFlags:=F_NotPossible;
                     gten:
-                      GetResFlags:=F_GE;
+                      GetResFlags:=F_NotPossible;
                     else
                       internalerror(2014082021);
                   end;
               end
             else
               begin
+                { unsigned }
                 if nf_swapped in Flags then
                   case NodeType of
                     ltn:
                       GetResFlags:=F_NotPossible;
                     lten:
-                      GetResFlags:=F_SH;
+                      GetResFlags:=F_NC;
                     gtn:
-                      GetResFlags:=F_LO;
+                      GetResFlags:=F_C;
                     gten:
                       GetResFlags:=F_NotPossible;
                     else
@@ -113,13 +115,13 @@ interface
                 else
                   case NodeType of
                     ltn:
-                      GetResFlags:=F_LO;
+                      GetResFlags:=F_C;
                     lten:
                       GetResFlags:=F_NotPossible;
                     gtn:
                       GetResFlags:=F_NotPossible;
                     gten:
-                      GetResFlags:=F_SH;
+                      GetResFlags:=F_NC;
                     else
                       internalerror(2014082023);
                   end;

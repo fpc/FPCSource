@@ -118,19 +118,16 @@ unit cpubase;
 
     type
       TAsmCond=(C_None,
-        C_CC,C_CS,C_EQ,C_GE,C_HC,C_HS,C_ID,C_IE,C_LO,C_LT,
-        C_MI,C_NE,C_PL,C_SH,C_TC,C_TS,C_VC,C_VS
+        C_NZ,C_Z,C_NC,C_C,C_PO,C_PE,C_P,C_M
       );
 
     const
       cond2str : array[TAsmCond] of string[2]=('',
-        'cc','cs','eq','ge','hc','hs','id','ie','lo','lt',
-        'mi','ne','pl','sh','tc','ts','vc','vs'
+        'nz','z','nc','c','po','pe','p','m'
       );
 
       uppercond2str : array[TAsmCond] of string[2]=('',
-        'CC','CS','EQ','GE','HC','HS','ID','IE','LO','LT',
-        'MI','NE','PL','SH','TC','TS','VC','VS'
+        'NZ','Z','NC','C','PO','PE','P','M'
       );
 
 {*****************************************************************************
@@ -138,8 +135,7 @@ unit cpubase;
 *****************************************************************************}
 
     type
-      TResFlags = (F_NotPossible,F_CC,F_CS,F_EQ,F_GE,F_LO,F_LT,
-        F_NE,F_SH,F_VC,F_VS);
+      TResFlags = (F_NotPossible,F_NE,F_E,F_NC,F_C,F_PO,F_PE,F_P,F_M);
 
 {*****************************************************************************
                                 Operands
@@ -369,8 +365,7 @@ unit cpubase;
     procedure inverse_flags(var f: TResFlags);
       const
         inv_flags: array[TResFlags] of TResFlags =
-          (F_NotPossible,F_CS,F_CC,F_NE,F_LT,F_SH,F_GE,
-           F_NE,F_LO,F_VS,F_VC);
+          (F_NotPossible,F_E,F_NE,F_C,F_NC,F_PE,F_PO,F_M,F_P);
       begin
         f:=inv_flags[f];
       end;
@@ -378,9 +373,8 @@ unit cpubase;
 
     function flags_to_cond(const f: TResFlags) : TAsmCond;
       const
-        flag_2_cond: array[F_CC..F_VS] of TAsmCond =
-          (C_CC,C_CS,C_EQ,C_GE,C_LO,C_LT,
-           C_NE,C_SH,C_VC,C_VS);
+        flag_2_cond: array[F_NE..F_M] of TAsmCond =
+          (C_NZ,C_Z,C_NC,C_C,C_PO,C_PE,C_P,C_M);
       begin
         if f=F_NotPossible then
           internalerror(2011022101);
@@ -417,8 +411,7 @@ unit cpubase;
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
         inverse: array[TAsmCond] of TAsmCond=(C_None,
-          C_CS,C_CC,C_NE,C_LT,C_HS,C_HC,C_IE,C_ID,C_SH,C_GE,
-          C_PL,C_EQ,C_MI,C_LO,C_TS,C_TC,C_VS,C_VC);
+          C_Z,C_NZ,C_C,C_NC,C_PE,C_PO,C_M,C_P);
       begin
         result := inverse[c];
       end;
