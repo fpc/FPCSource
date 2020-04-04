@@ -1079,6 +1079,7 @@ compiler/z80/rz80sta.inc svneol=native#text/plain
 compiler/z80/rz80std.inc svneol=native#text/plain
 compiler/z80/rz80sup.inc svneol=native#text/plain
 compiler/z80/symcpu.pas svneol=native#text/plain
+compiler/z80/z80ins.dat svneol=native#text/plain
 compiler/z80/z80reg.dat svneol=native#text/plain
 /fpmake.pp svneol=native#text/plain
 /fpmake_add1.inc svneol=native#text/plain
