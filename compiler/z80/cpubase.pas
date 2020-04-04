@@ -43,14 +43,7 @@ unit cpubase;
 *****************************************************************************}
 
     type
-      TAsmOp=(A_None,
-        A_ADD,A_ADC,A_AND,A_BIT,A_CALL,A_CCF,A_CP,A_CPD,A_CPDR,
-        A_CPI,A_CPIR,A_CPL,A_DAA,A_DEC,A_DI,A_DJNZ,A_EI,A_EX,
-        A_EXX,A_HALT,A_IM,A_IN,A_INC,A_IND,A_INDR,A_INI,A_INIR,
-        A_JP,A_JR,A_LD,A_LDD,A_LDDR,A_LDI,A_LDIR,A_NEG,A_NOP,A_OR,
-        A_OTDR,A_OTIR,A_OUT,A_OUTD,A_OUTI,A_POP,A_PUSH,A_RES,A_RET,A_RETI,
-        A_RETN,A_RL,A_RLA,A_RLC,A_RLCA,A_RLD,A_RR,A_RRA,A_RRC,
-        A_RRCA,A_RRD,A_RST,A_SBC,A_SCF,A_SET,A_SLA,A_SRA,A_SRL,A_SUB,A_XOR);
+      TAsmOp={$i z80op.inc}
 
 
       { This should define the array of instructions as string }
@@ -62,14 +55,7 @@ unit cpubase;
       { Last value of opcode enumeration  }
       lastop  = high(tasmop);
 
-      std_op2str:op2strtable=('',
-        'add','adc','and','bit','call','ccf','cp','cpd','cpdr',
-        'cpi','cpir','cpl','daa','dec','di','djnz','ei','ex',
-        'exx','halt','im','in','inc','ind','indr','ini','inir',
-        'jp','jr','ld','ldd','lddr','ldi','ldir','neg','nop','or',
-        'otdr','otir','out','outd','outi','pop','push','res','ret','reti',
-        'retn','rl','rla','rlc','rlca','rld','rr','rra','rrc',
-        'rrca','rrd','rst','sbc','scf','set','sla','sra','srl','sub','xor');
+      std_op2str:op2strtable={$i z80stdopnames.inc}
 
       { call/reg instructions are not considered as jmp instructions for the usage cases of
         this set }

@@ -34,6 +34,9 @@
 ; (IX+d) - memory contents at address in register IX+d, d is in [-128..127]
 ; (IY+d) - memory contents at address in register IX+d, d is in [-128..127]
 
+[None]
+void
+
 [ADC]
 A,r
 A,n
