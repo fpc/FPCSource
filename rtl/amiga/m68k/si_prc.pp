@@ -30,6 +30,20 @@ var
 {$include execd.inc}
 {$include execf.inc}
 
+{$if defined(AMIGA_V1_0_ONLY) or defined(AMIGA_V1_2_ONLY)}
+{$define AMIGA_LEGACY}
+{$endif}
+
+{$ifdef AMIGA_LEGACY}
+var
+  args: pointer; public name '__fpc_args';
+  arglen: dword; public name '__fpc_arglen';
+
+function AllocVec(byteSize    : Cardinal; requirements: Cardinal): Pointer; external name '_fpc_amiga_allocvec';
+procedure FreeVec(memoryBlock: Pointer); external name '_fpc_amiga_freevec';
+procedure StackSwap(newStack: PStackSwapStruct); external name '_fpc_amiga_stackswap';
+{$endif}
+
 var
   sst: TStackSwapStruct;
 
@@ -42,6 +56,12 @@ var
   newStack: Pointer;
   task: PTask;
 begin
+{$IFDEF AMIGA_LEGACY}
+  asm
+    move.l d0, arglen
+    move.l a0, args
+  end;
+{$ENDIF}
   AOS_ExecBase:=realExecBase;
   newStack:=nil;
 
