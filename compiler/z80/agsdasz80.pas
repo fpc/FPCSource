@@ -298,9 +298,13 @@ unit agsdasz80;
             for i:=0 to taicpu(hp).ops-1 do
               begin
                 if i=0 then
-                 writer.AsmWrite(#9)
+                  begin
+                    writer.AsmWrite(#9);
+                    if hp.is_jmp and (hp.condition<>C_None) then
+                      writer.AsmWrite(uppercond2str[hp.condition]+',');
+                  end
                 else
-                 writer.AsmWrite(',');
+                  writer.AsmWrite(',');
                 if hp.is_jmp then
                   WriteOper_jmp(taicpu(hp).oper[i]^,hp)
                 else
