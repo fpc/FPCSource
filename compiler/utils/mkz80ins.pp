@@ -24,6 +24,50 @@ const
   Version = '1.0.0';
   HeaderStr = '{ don''t edit, this file is generated from z80ins.dat; to regenerate, run ''make insdat'' in the compiler directory }';
 
+  ParamTypes: array [0..40] of string = (
+    'void',
+    'r',
+    'r''',
+    'b',
+    'n',
+    'p',
+    'e',
+    'nn',
+    '0',
+    '1',
+    '2',
+    'cc',
+    'C',
+    'NC',
+    'Z',
+    'NZ',
+    'dd',
+    'qq',
+    'pp',
+    'rr',
+    'A',
+    'I',
+    'R',
+    'IX',
+    'IY',
+    'SP',
+    'DE',
+    'HL',
+    'AF',
+    'AF''',
+    '(C)',
+    '(n)',
+    '(nn)',
+    '(BC)',
+    '(DE)',
+    '(HL)',
+    '(SP)',
+    '(IX)',
+    '(IY)',
+    '(IX+d)',
+    '(IY+d)'
+  );
+
 type
 
   { TZ80InsDatOutputFiles }
@@ -61,12 +105,23 @@ destructor TZ80InsDatOutputFiles.Destroy;
     inherited Destroy;
   end;
 
+function FindParamType(const ParamTypeStr: string): Integer;
+var
+  I: Integer;
+begin
+  for I:=Low(ParamTypes) to High(ParamTypes) do
+    if ParamTypes[I]=ParamTypeStr then
+      exit(I);
+  raise Exception.Create('Invalid param type: '''+ParamTypeStr+'''');
+end;
+
 var
   InsDatFile: TextFile;
   OutputFiles: TZ80InsDatOutputFiles=nil;
-  S, op: string;
+  S, op, ParamsStr, S_Param: string;
   FirstIns: Boolean=true;
   OpCount: Integer=0;
+  S_Split, S_Params: TStringArray;
 begin
   writeln('FPC Z80 Instruction Table Converter Version ',Version);
   AssignFile(InsDatFile,'../z80/z80ins.dat');
@@ -94,6 +149,10 @@ begin
         else if S<>'' then
           begin
             Inc(OpCount);
+            S_Split:=S.Split(' ',TStringSplitOptions.ExcludeEmpty);
+            S_Params:=S_Split[0].Split(',',TStringSplitOptions.ExcludeEmpty);
+            for S_Param in S_Params do
+              FindParamType(S_Param);
           end;
       end;
     Writeln(OutputFiles.OpFile,');');

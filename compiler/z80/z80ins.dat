@@ -6,6 +6,9 @@
 ; p      - immediate value in [$00,$08,$10,$18,$20,$28,$30,$38]
 ; e      - 8-bit relative jump offset
 ; nn     - 16-bit immediate value
+; 0      - the immediate value 0
+; 1      - the immediate value 1
+; 2      - the immediate value 2
 ; cc     - condition: NZ/Z/NC/C/PO/PE/P/M
 ; C      - condition C
 ; NC     - condition NC
@@ -26,13 +29,16 @@
 ; AF     - 16-bit register pair AF
 ; AF'    - alternate register set, 16-bit register pair AF'
 ; (C)    - implied parameter of the IN and OUT instructions
+; (n)    - 8-bit immediate port number for the IN and OUT instructions
 ; (nn)   - memory contents at address (nn = 16-bit immediate address)
 ; (BC)   - memory contents at address in register BC
 ; (DE)   - memory contents at address in register DE
 ; (HL)   - memory contents at address in register HL
 ; (SP)   - memory contents at address in register SP
+; (IX)   - memory contents at address in register IX
+; (IY)   - memory contents at address in register IY
 ; (IX+d) - memory contents at address in register IX+d, d is in [-128..127]
-; (IY+d) - memory contents at address in register IX+d, d is in [-128..127]
+; (IY+d) - memory contents at address in register IY+d, d is in [-128..127]
 
 [None]
 void
