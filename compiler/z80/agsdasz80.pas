@@ -49,6 +49,7 @@ unit agsdasz80;
         procedure WriteInstruction(hp: taicpu);
         procedure WriteOper(const o:toper; opcode: tasmop;ops:longint;dest : boolean);
         procedure WriteOper_jmp(const o:toper; ai : taicpu);
+        procedure WriteExternals;
       public
         procedure WriteTree(p : TAsmList); override;
         procedure WriteAsmList;override;
@@ -424,6 +425,21 @@ unit agsdasz80;
           else
             internalerror(10001);
         end;
+      end;
+
+    procedure TSdccSdasZ80Assembler.WriteExternals;
+      var
+        sym : TAsmSymbol;
+        i   : longint;
+      begin
+        writer.AsmWriteln('; Begin externals');
+        for i:=0 to current_asmdata.AsmSymbolDict.Count-1 do
+          begin
+            sym:=TAsmSymbol(current_asmdata.AsmSymbolDict[i]);
+            if sym.bind in [AB_EXTERNAL,AB_EXTERNAL_INDIRECT] then
+              writer.AsmWriteln(#9'.globl'#9+sym.name);
+          end;
+        writer.AsmWriteln('; End externals');
       end;
 
     procedure TSdccSdasZ80Assembler.WriteTree(p: TAsmList);
@@ -827,6 +843,8 @@ unit agsdasz80;
       var
         hal: TAsmListType;
       begin
+        WriteExternals;
+
         for hal:=low(TasmlistType) to high(TasmlistType) do
           begin
             writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmListTypeStr[hal]);
