@@ -162,26 +162,71 @@ begin
   SetFileSize:=-1;
 end;
 
-
-function GetProgramDir: LongInt;
-begin
-{$warning GetProgramDir unimplemented!}
-  GetProgramDir:=0;
-end;
-
-
 function GetProgramName(buf: PChar;
                         len: LongInt): LongBool;
+var
+  pr: PProcess;
+  pn: PChar;
+  pl: longint;
+  pcli: PCommandLineInterface;
 begin
-{$warning GetProgramName unimplemented!}
   GetProgramName:=false;
+  pl:=0;
+
+  if len > 0 then
+    begin
+      pr:=PProcess(FindTask(nil));
+      pcli:=PCommandLineInterface(pr^.pr_CLI shl 2);
+      if (pcli <> nil) and (pcli^.cli_CommandName <> 0) then
+        begin
+          pn:=PChar(pcli^.cli_CommandName shl 2) + 1;
+          pl:=Byte(pn[-1]);
+          if pl > len-1 then 
+            pl:=len-1;
+          move(pn[0],buf[0],pl);
+          GetProgramName:=true;
+        end;
+      buf[pl]:=#0;
+    end;
 end;
 
+function GetProgramDir: LongInt;
+var
+  cmd: array[0..255] of char;
+  prglock: LongInt;
+begin
+  { this is quite minimalistic and only covers the simplest cases }
+  if GetProgramName(cmd,length(cmd)) then
+    begin
+      prglock:=Lock(cmd,SHARED_LOCK);
+      GetProgramDir:=ParentDir(prglock);
+      Unlock(prglock);
+    end
+  else
+    GetProgramDir:=0;
+end;
 
 var
   __fpc_global_args: pchar; external name '__fpc_args';
+  __fpc_global_arglen: dword; external name '__fpc_arglen';
+  __fpc_args_buffer: pchar;
 
 function GetArgStr: PChar;
+var
+  len: dword;
 begin
-  GetArgStr:=__fpc_global_args;
+  { the string we get from pre-v2.0 OS is not empty
+    or zero terminated on start, so we need to copy it
+    to an alternate buffer, and zero terminate according
+    to the length. This allocation will be freed on exit
+    by the memory pool. }
+  if __fpc_args_buffer = nil then
+    begin
+      len:=__fpc_global_arglen-1;
+      __fpc_args_buffer:=SysAllocMem(len+1);
+      if len > 0 then
+        move(__fpc_global_args^,__fpc_args_buffer^,len);
+      __fpc_args_buffer[len]:=#0;
+    end;
+  GetArgStr:=__fpc_args_buffer;
 end;
