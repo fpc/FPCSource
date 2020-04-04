@@ -246,52 +246,6 @@ interface
           end
         else
           internalerror(2020040401);
-
-        // force_reg_left_right(true,true);
-
-        //cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_8,GetByteLoc(left.location,0),NR_A);
-        //cg.a_op_loc_reg(current_asmdata.CurrAsmList,OP_SUB,OS_8,GetByteLoc(right.location,0),NR_A);
-
-        //tmpreg1:=left.location.register;
-        //tmpreg2:=right.location.register;
-        //
-        //for i:=2 to tcgsize2size[left.location.size] do
-        //  begin
-        //    if i=5 then
-        //      begin
-        //        if left.location.loc<>LOC_CONSTANT then
-        //          tmpreg1:=left.location.registerhi;
-        //        if right.location.loc<>LOC_CONSTANT then
-        //          tmpreg2:=right.location.registerhi;
-        //      end
-        //    else
-        //      begin
-        //        if left.location.loc<>LOC_CONSTANT then
-        //          tmpreg1:=GetNextReg(tmpreg1);
-        //        if right.location.loc<>LOC_CONSTANT then
-        //          tmpreg2:=GetNextReg(tmpreg2);
-        //      end;
-        //    if right.location.loc=LOC_CONSTANT then
-        //      begin
-        //        { just use R1? }
-        //        if ((right.location.value64 shr ((i-1)*8)) and $ff)=0 then
-        //          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,NR_R1))
-        //        else
-        //          begin
-        //            tmpreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
-        //            cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_8,(right.location.value64 shr ((i-1)*8)) and $ff,tmpreg2);
-        //            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
-        //          end;
-        //      end
-        //    { above it is checked, if left=0, then a constant is allowed }
-        //    else if (left.location.loc=LOC_CONSTANT) and (left.location.value=0) then
-        //      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,NR_R1,tmpreg2))
-        //    else
-        //      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
-        //  end;
-        //
-        //location_reset(location,LOC_FLAGS,OS_NO);
-        //location.resflags:=getresflags(unsigned);
       end;
 
 
