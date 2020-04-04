@@ -48,6 +48,7 @@ unit agsdasz80;
           secflags:TSectionFlags=[];secprogbits:TSectionProgbits=SPB_None);
         procedure WriteInstruction(hp: taicpu);
         procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
+        procedure WriteOper_jmp(const o:toper; ai : taicpu);
       public
         procedure WriteTree(p : TAsmList); override;
         procedure WriteAsmList;override;
@@ -300,7 +301,10 @@ unit agsdasz80;
                  writer.AsmWrite(#9)
                 else
                  writer.AsmWrite(',');
-                WriteOper(taicpu(hp).oper[i]^,S_B{taicpu(hp).opsize},hp.opcode,taicpu(hp).ops,(i=2));
+                if hp.is_jmp then
+                  WriteOper_jmp(taicpu(hp).oper[i]^,hp)
+                else
+                  WriteOper(taicpu(hp).oper[i]^,S_B{taicpu(hp).opsize},hp.opcode,taicpu(hp).ops,(i=2));
               end;
           end;
         writer.AsmLn;
@@ -379,6 +383,39 @@ unit agsdasz80;
                   if not need_plus then
                     writer.AsmWrite('0');
                   writer.AsmWrite(')');
+                end;
+            end;
+          else
+            internalerror(10001);
+        end;
+      end;
+
+    procedure TSdccSdasZ80Assembler.WriteOper_jmp(const o: toper; ai: taicpu);
+      begin
+        case o.typ of
+          top_reg :
+            writer.AsmWrite(std_regname(o.reg));
+          top_const :
+            begin
+              writer.AsmWrite('#'+tostr(longint(o.val)));
+            end;
+          top_ref:
+            begin
+              if o.ref^.refaddr=addr_no then
+                begin
+                  writer.AsmWrite('TODO:indirect jump ref');
+                  //WriteReference(o.ref^);
+                end
+              else
+                begin
+                  writer.AsmWrite(o.ref^.symbol.name);
+                  //if SmartAsm then
+                  //  AddSymbol(o.ref^.symbol.name,false);
+                  if o.ref^.offset>0 then
+                   writer.AsmWrite('+'+tostr(o.ref^.offset))
+                  else
+                   if o.ref^.offset<0 then
+                    writer.AsmWrite(tostr(o.ref^.offset));
                 end;
             end;
           else
