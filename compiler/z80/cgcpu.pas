@@ -1382,8 +1382,7 @@ unit cgcpu;
       var
         ai : taicpu;
       begin
-        list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_jmp_flags')));
-//        ai:=setcondition(taicpu.op_sym(A_BRxx,l),flags_to_cond(f));
+        ai:=taicpu.op_cond_sym(A_JP,flags_to_cond(f),l);
         ai.is_jmp:=true;
         list.concat(ai);
       end;
