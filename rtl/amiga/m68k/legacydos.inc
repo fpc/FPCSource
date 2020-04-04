@@ -23,7 +23,7 @@
 }
 
 
-function CreateNewProc(tags: PTagItem): PProcess;
+function CreateNewProc(tags: PTagItem): PProcess; public name '_fpc_amiga_createproc';
 begin
 {$warning CreateNewProc unimplemented!}
   CreateNewProc:=nil;
@@ -31,7 +31,7 @@ end;
 
 function NameFromLock(lock  : LongInt;
                       buffer: PChar;
-                      len   : LongInt): LongBool;
+                      len   : LongInt): LongBool; public name '_fpc_amiga_namefromlock';
 var
   fib_area: array[1..sizeof(TFileInfoBlock) + sizeof(longint)] of byte;
   fib: pfileinfoblock;
@@ -82,57 +82,57 @@ end;
 
 function NameFromFH(fh    : BPTR;
                     buffer: PChar;
-                    len   : LongInt): LongBool;
+                    len   : LongInt): LongBool; public name '_fpc_amiga_namefromfh';
 begin
 {$warning NameFromFH unimplemented!}
   NameFromFH:=false;
 end;
 
 function ExamineFH(fh : BPTR;
-                   fib: PFileInfoBlock): LongBool;
+                   fib: PFileInfoBlock): LongBool; public name '_fpc_amiga_examinefh';
 begin
 {$warning ExamineFH unimplemented!}
   ExamineFH:=false;
 end;
 
-function LockDosList(flags: Cardinal): PDosList;
+function LockDosList(flags: Cardinal): PDosList; public name '_fpc_amiga_lockdoslist';
 begin
 {$warning LockDosList unimplemented!}
   LockDosList:=nil;
 end;
 
-procedure UnLockDosList(flags: Cardinal);
+procedure UnLockDosList(flags: Cardinal); public name '_fpc_amiga_unlockdoslist';
 begin
 {$warning UnlockDosList unimplemented!}
 end;
 
 function NextDosEntry(dlist: PDosList;
-                      flags: Cardinal): PDosList;
+                      flags: Cardinal): PDosList; public name '_fpc_amiga_nextdosentry';
 begin
 {$warning NextDosEntry unimplemented!}
   NextDosEntry:=nil;
 end;
 
 function MatchFirst(pat   : PChar;
-                    anchor: PAnchorPath): LongInt;
+                    anchor: PAnchorPath): LongInt; public name '_fpc_amiga_matchfirst';
 begin
 {$warning MatchFirst unimplemented!}
   MatchFirst:=-1;
 end;
 
-function MatchNext(anchor: PAnchorPath): LongInt;
+function MatchNext(anchor: PAnchorPath): LongInt; public name '_fpc_amiga_matchnext';
 begin
 {$warning MatchNext unimplemented!}
   MatchNext:=-1;
 end;
 
-procedure MatchEnd(anchor: PAnchorPath);
+procedure MatchEnd(anchor: PAnchorPath); public name '_fpc_amiga_matchend';
 begin
 {$warning MatchEnd unimplemented!}
 end;
 
 function SystemTagList(command: PChar;
-                       tags   : PTagItem): LongInt;
+                       tags   : PTagItem): LongInt; public name '_fpc_amiga_systemtaglist';
 begin
 {$warning SystemTagList unimplemented!}
   SystemTagList:=-1;
@@ -141,14 +141,14 @@ end;
 function GetVar(name  : PChar;
                 buffer: PChar;
                 size  : LongInt;
-                flags : LongInt): LongInt;
+                flags : LongInt): LongInt; public name '_fpc_amiga_getvar';
 begin
 {$warning GetVar unimplemented!}
   GetVar:=-1;
 end;
 
 function SetFileDate(name: PChar;
-                     date: PDateStamp): LongBool;
+                     date: PDateStamp): LongBool; public name '_fpc_amiga_setfiledate';
 begin
 {$warning SetFileDate unimplemented!}
   SetFileDate:=false;
@@ -156,14 +156,14 @@ end;
 
 function SetFileSize(fh  : LongInt;
                      pos : LongInt;
-                     mode: LongInt): LongInt;
+                     mode: LongInt): LongInt; public name '_fpc_amiga_setfilesize';
 begin
 {$warning SetFileSize unimplemented!}
   SetFileSize:=-1;
 end;
 
 function GetProgramName(buf: PChar;
-                        len: LongInt): LongBool;
+                        len: LongInt): LongBool; public name '_fpc_amiga_getprogramname';
 var
   pr: PProcess;
   pn: PChar;
@@ -190,7 +190,7 @@ begin
     end;
 end;
 
-function GetProgramDir: LongInt;
+function GetProgramDir: LongInt; public name '_fpc_amiga_getprogramdir';
 var
   cmd: array[0..255] of char;
   prglock: LongInt;
@@ -211,7 +211,7 @@ var
   __fpc_global_arglen: dword; external name '__fpc_arglen';
   __fpc_args_buffer: pchar;
 
-function GetArgStr: PChar;
+function GetArgStr: PChar; public name '_fpc_amiga_getargstr';
 var
   len: dword;
 begin

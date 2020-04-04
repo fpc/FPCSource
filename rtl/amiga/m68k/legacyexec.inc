@@ -62,7 +62,7 @@ type
 
 function CreatePool(requirements: Cardinal;
                     puddleSize  : Cardinal;
-                    threshSize  : Cardinal): Pointer;
+                    threshSize  : Cardinal): Pointer; public name '_fpc_amiga_createpool';
 var
   p: PAmigaLegacyPool;
 begin
@@ -76,7 +76,7 @@ begin
 end;
 
 function AllocPooled(poolHeader: Pointer;
-                     memSize   : Cardinal): Pointer;
+                     memSize   : Cardinal): Pointer; public name '_fpc_amiga_allocpooled';
 var
   p: PAmigaLegacyPoolEntry;
   ph: PAmigaLegacyPool absolute poolHeader;
@@ -97,7 +97,7 @@ end;
 
 procedure FreePooled(poolHeader: Pointer;
                     memory    : Pointer;
-                    memSize   : Cardinal);
+                    memSize   : Cardinal); public name '_fpc_amiga_freepooled';
 var
   p: PAmigaLegacyPoolEntry;
   ph: PAmigaLegacyPool absolute poolHeader;
@@ -115,7 +115,7 @@ begin
     end;
 end;
 
-procedure DeletePool(poolHeader: Pointer);
+procedure DeletePool(poolHeader: Pointer); public name '_fpc_amiga_deletepool';
 var
   p: PAmigaLegacyPool absolute poolHeader;
   pe: PAmigaLegacyPoolEntry;
@@ -172,7 +172,7 @@ asm
     rts
 end;
 
-procedure ObtainSemaphoreShared(sigSem: PSignalSemaphore);
+procedure ObtainSemaphoreShared(sigSem: PSignalSemaphore); public name '_fpc_amiga_obtainsemaphoreshared';
 begin
   { NOTE: this still needs v33+ (OS v1.2 or later) }
   { ObtainSemaphoreShared is used by athreads, and simply replacing
