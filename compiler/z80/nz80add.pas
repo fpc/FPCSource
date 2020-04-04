@@ -26,7 +26,7 @@ unit nz80add;
 interface
 
     uses
-       node,ncgadd,cpubase;
+       node,ncgadd, symtype,cpubase;
 
     type
        TZ80AddNode = class(tcgaddnode)
@@ -188,15 +188,36 @@ interface
         unsigned : boolean;
         tmpreg1,tmpreg2 : tregister;
         i : longint;
+        opdef: tdef;
+        opsize: TCgSize;
       begin
-        pass_left_right;
-        // force_reg_left_right(true,true);
-
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
+        opdef:=left.resultdef;
+        opsize:=def_cgsize(opdef);
 
-        cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_8,GetByteLoc(left.location,0),NR_A);
-        cg.a_op_loc_reg(current_asmdata.CurrAsmList,OP_SUB,OS_8,GetByteLoc(right.location,0),NR_A);
+        pass_left_right;
+
+        if opsize=OS_8 then
+          begin
+            force_reg_left_right(true,true);
+
+            cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+            cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_CP,NR_A,right.location.register));
+            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+
+            location_reset(location,LOC_FLAGS,OS_NO);
+            location.resflags:=getresflags(unsigned);
+            writeln(location.resflags);
+          end
+        else
+          internalerror(2020040401);
+
+        // force_reg_left_right(true,true);
+
+        //cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_8,GetByteLoc(left.location,0),NR_A);
+        //cg.a_op_loc_reg(current_asmdata.CurrAsmList,OP_SUB,OS_8,GetByteLoc(right.location,0),NR_A);
 
         //tmpreg1:=left.location.register;
         //tmpreg2:=right.location.register;
