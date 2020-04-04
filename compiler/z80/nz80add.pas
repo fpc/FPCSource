@@ -198,7 +198,7 @@ interface
 
         pass_left_right;
 
-        if opsize=OS_8 then
+        if (opsize=OS_8) or ((opsize=OS_S8) and (NodeType in [equaln,unequaln])) then
           begin
             if getresflags(unsigned)=F_NotPossible then
               swapleftright;
