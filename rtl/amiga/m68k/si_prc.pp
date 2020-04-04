@@ -32,16 +32,13 @@ var
 
 {$if defined(AMIGA_V1_0_ONLY) or defined(AMIGA_V1_2_ONLY)}
 {$define AMIGA_LEGACY}
+{$include legacyexech.inc}
 {$endif}
 
 {$ifdef AMIGA_LEGACY}
 var
   args: pointer; public name '__fpc_args';
   arglen: dword; public name '__fpc_arglen';
-
-function AllocVec(byteSize    : Cardinal; requirements: Cardinal): Pointer; external name '_fpc_amiga_allocvec';
-procedure FreeVec(memoryBlock: Pointer); external name '_fpc_amiga_freevec';
-procedure StackSwap(newStack: PStackSwapStruct); external name '_fpc_amiga_stackswap';
 {$endif}
 
 var
