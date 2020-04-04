@@ -41,70 +41,70 @@
 ; (IY+d) - memory contents at address in register IY+d, d is in [-128..127]
 
 [None]
-void
+void                  void
 
 [ADC]
-A,r
-A,n
-A,(HL)
-A,(IX+d)
-A,(IY+d)
-HL,dd
+A,r                   %10001rrr
+A,n                   $CE,n
+A,(HL)                $8E
+A,(IX+d)              $DD,$8E,d
+A,(IY+d)              $FD,$8E,d
+HL,dd                 $ED,%01dd1010
 
 [ADD]
-A,r
-A,n
-A,(HL)
-A,(IX+d)
-A,(IY+d)
-HL,dd
-IX,pp
-IY,rr
+A,r                   %10000rrr
+A,n                   $C6,n
+A,(HL)                $86
+A,(IX+d)              $DD,$86,d
+A,(IY+d)              $FD,$86,d
+HL,dd                 %00dd1001
+IX,pp                 $DD,%00pp1001
+IY,rr                 $FD,%00rr1001
 
 [AND]
-A,r
-A,n
-A,(HL)
-A,(IX+d)
-A,(IY+d)
+A,r                   %10100rrr
+A,n                   $E6,n
+A,(HL)                $A6
+A,(IX+d)              $DD,$A6,d
+A,(IY+d)              $FD,$A6,d
 
 [BIT]
-b,r
-b,(HL)
-b,(IX+d)
-b,(IY+d)
+b,r                   $CB,%01bbbrrr
+b,(HL)                $CB,%01bbb110
+b,(IX+d)              $DD,$CB,d,%01bbb110
+b,(IY+d)              $FD,$CB,d,%01bbb110
 
 [CALL]
-nn
-cc,nn
+nn                    $CD,nn
+cc,nn                 %11ccc100,nn
 
 [CCF]
-void
+void                  $3F
 
 [CP]
-A,r
-A,n
-A,(HL)
-A,(IX+d)
-A,(IY+d)
+A,r                   %10111rrr
+A,n                   $FE,n
+A,(HL)                $BE
+A,(IX+d)              $DD,$BE,d
+A,(IY+d)              $FD,$BE,d
 
 [CPD]
-void
+void                  $ED,$A9
 
 [CPDR]
-void
+void                  $ED,$B9
 
 [CPI]
-void
+void                  $ED,$A1
 
 [CPIR]
-void
+void                  $ED,$B1
 
 [CPL]
-void
+void                  $2F
 
 [DAA]
-void
+void                  $27
 
 [DEC]
 r
