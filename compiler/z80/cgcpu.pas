@@ -621,12 +621,12 @@ unit cgcpu;
            OP_AND,OP_OR,OP_XOR:
              begin
                getcpuregister(list,NR_A);
-               for i:=tcgsize2size[size] downto 1 do
+               for i:=1 to tcgsize2size[size] do
                  begin
                    a_load_reg_reg(list,OS_8,OS_8,dst,NR_A);
                    list.concat(taicpu.op_reg_reg(topcg2asmop[op],NR_A,src));
                    a_load_reg_reg(list,OS_8,OS_8,NR_A,dst);
-                   if i<>1 then
+                   if i<>tcgsize2size[size] then
                      NextSrcDst;
                  end;
                ungetcpuregister(list,NR_A);
