@@ -203,12 +203,43 @@ interface
             if getresflags(unsigned)=F_NotPossible then
               swapleftright;
 
-            force_reg_left_right(true,true);
+            if left.location.loc<>LOC_REGISTER then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
-            cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
-            cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
-            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_CP,NR_A,right.location.register));
-            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+            if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+              begin
+                if (right.location.reference.base=NR_IX) and (right.location.reference.index=NR_NO) then
+                  begin
+                    cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_CP,NR_A,right.location.reference));
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  end
+                else
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+              end;
+            case right.location.loc of
+              LOC_CONSTANT:
+                begin
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_CP,NR_A,right.location.value));
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                end;
+              LOC_REGISTER,LOC_CREGISTER:
+                begin
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_CP,NR_A,right.location.register));
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                end;
+              LOC_REFERENCE,LOC_CREFERENCE:
+                begin
+                  { Already handled before the case statement. Nothing to do here. }
+                end;
+              else
+                internalerror(2020040402);
+            end;
 
             location_reset(location,LOC_FLAGS,OS_NO);
             location.resflags:=getresflags(unsigned);
