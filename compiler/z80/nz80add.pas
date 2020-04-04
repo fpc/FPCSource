@@ -243,7 +243,6 @@ interface
 
             location_reset(location,LOC_FLAGS,OS_NO);
             location.resflags:=getresflags(unsigned);
-            writeln(location.resflags);
           end
         else
           internalerror(2020040401);
