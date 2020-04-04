@@ -403,7 +403,7 @@ unit cgcpu;
      procedure tcgz80.a_op_reg_reg_internal(list : TAsmList; Op: TOpCG; size: TCGSize; src, srchi, dst, dsthi: TRegister);
        var
          countreg,
-         tmpreg: tregister;
+         tmpreg,tmpreg2: tregister;
          i : integer;
          instr : taicpu;
          paraloc1,paraloc2,paraloc3 : TCGPara;
@@ -475,33 +475,56 @@ unit cgcpu;
 
            OP_NEG:
              begin
-               if src<>dst then
+               getcpuregister(list,NR_A);
+               if tcgsize2size[size]>=2 then
                  begin
-                   if size in [OS_S64,OS_64] then
-                     begin
-                       a_load_reg_reg(list,OS_32,OS_32,src,dst);
-                       a_load_reg_reg(list,OS_32,OS_32,srchi,dsthi);
-                     end
-                   else
-                     a_load_reg_reg(list,size,size,src,dst);
-                 end;
-
-               if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
-                 begin
-                   tmpreg:=GetNextReg(dst);
+                   tmpreg:=GetNextReg(src);
+                   tmpreg2:=GetNextReg(dst);
                    for i:=2 to tcgsize2size[size] do
                      begin
-                       list.concat(taicpu.op_reg(A_CPL,tmpreg));
-                       NextTmp;
+                       a_load_reg_reg(list,OS_8,OS_8,tmpreg,NR_A);
+                       list.concat(taicpu.op_none(A_CPL));
+                       a_load_reg_reg(list,OS_8,OS_8,NR_A,tmpreg2);
+                       if i<>tcgsize2size[size] then
+                         begin
+                           if i=5 then
+                             begin
+                               tmpreg:=srchi;
+                               tmpreg2:=dsthi;
+                             end
+                           else
+                             begin
+                               tmpreg:=GetNextReg(tmpreg);
+                               tmpreg2:=GetNextReg(tmpreg2);
+                             end;
+                         end;
                      end;
-                   list.concat(taicpu.op_reg(A_NEG,dst));
-                   tmpreg:=GetNextReg(dst);
+                 end;
+               a_load_reg_reg(list,OS_8,OS_8,src,NR_A);
+               list.concat(taicpu.op_none(A_NEG));
+               a_load_reg_reg(list,OS_8,OS_8,NR_A,dst);
+               if tcgsize2size[size]>=2 then
+                 begin
+                   tmpreg2:=GetNextReg(dst);
                    for i:=2 to tcgsize2size[size] do
                      begin
-                       list.concat(taicpu.op_reg_const(A_SBC,tmpreg,-1));
-                       NextTmp;
-                   end;
+                       a_load_reg_reg(list,OS_8,OS_8,tmpreg2,NR_A);
+                       list.concat(taicpu.op_reg_const(A_SBC,NR_A,-1));
+                       a_load_reg_reg(list,OS_8,OS_8,NR_A,tmpreg2);
+                       if i<>tcgsize2size[size] then
+                         begin
+                           if i=5 then
+                             begin
+                               tmpreg2:=dsthi;
+                             end
+                           else
+                             begin
+                               tmpreg2:=GetNextReg(tmpreg2);
+                             end;
+                         end;
+                     end;
                  end;
+               ungetcpuregister(list,NR_A);
              end;
 
            OP_NOT:
