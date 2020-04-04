@@ -47,7 +47,7 @@ unit agsdasz80;
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;
           secflags:TSectionFlags=[];secprogbits:TSectionProgbits=SPB_None);
         procedure WriteInstruction(hp: taicpu);
-        procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
+        procedure WriteOper(const o:toper; opcode: tasmop;ops:longint;dest : boolean);
         procedure WriteOper_jmp(const o:toper; ai : taicpu);
       public
         procedure WriteTree(p : TAsmList); override;
@@ -308,14 +308,13 @@ unit agsdasz80;
                 if is_calljmp(hp.opcode) then
                   WriteOper_jmp(taicpu(hp).oper[i]^,hp)
                 else
-                  WriteOper(taicpu(hp).oper[i]^,S_B{taicpu(hp).opsize},hp.opcode,taicpu(hp).ops,(i=2));
+                  WriteOper(taicpu(hp).oper[i]^,hp.opcode,taicpu(hp).ops,(i=2));
               end;
           end;
         writer.AsmLn;
       end;
 
-    procedure TSdccSdasZ80Assembler.WriteOper(const o: toper; s: topsize;
-      opcode: tasmop; ops: longint; dest: boolean);
+    procedure TSdccSdasZ80Assembler.WriteOper(const o: toper; opcode: tasmop; ops: longint; dest: boolean);
       var
         need_plus: Boolean;
       begin
