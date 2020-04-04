@@ -200,6 +200,9 @@ interface
 
         if opsize=OS_8 then
           begin
+            if getresflags(unsigned)=F_NotPossible then
+              swapleftright;
+
             force_reg_left_right(true,true);
 
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
