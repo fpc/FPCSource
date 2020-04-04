@@ -74,9 +74,9 @@ interface
                     ltn:
                       GetResFlags:=F_NotPossible;
                     lten:
-                      GetResFlags:=F_NotPossible;
+                      GetResFlags:=F_P;
                     gtn:
-                      GetResFlags:=F_NotPossible;
+                      GetResFlags:=F_M;
                     gten:
                       GetResFlags:=F_NotPossible;
                     else
@@ -85,13 +85,13 @@ interface
                 else
                   case NodeType of
                     ltn:
-                      GetResFlags:=F_NotPossible;
+                      GetResFlags:=F_M;
                     lten:
                       GetResFlags:=F_NotPossible;
                     gtn:
                       GetResFlags:=F_NotPossible;
                     gten:
-                      GetResFlags:=F_NotPossible;
+                      GetResFlags:=F_P;
                     else
                       internalerror(2014082021);
                   end;
@@ -190,6 +190,8 @@ interface
         i : longint;
         opdef: tdef;
         opsize: TCgSize;
+        ai: taicpu;
+        l: TAsmLabel;
       begin
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
@@ -240,6 +242,56 @@ interface
               else
                 internalerror(2020040402);
             end;
+
+            location_reset(location,LOC_FLAGS,OS_NO);
+            location.resflags:=getresflags(unsigned);
+          end
+        else if opsize=OS_S8 then
+          begin
+            if getresflags(unsigned)=F_NotPossible then
+              swapleftright;
+
+            if left.location.loc<>LOC_REGISTER then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+
+            if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+              begin
+                if (right.location.reference.base=NR_IX) and (right.location.reference.index=NR_NO) then
+                  begin
+                    cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_SUB,NR_A,right.location.reference));
+                  end
+                else
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+              end;
+            case right.location.loc of
+              LOC_CONSTANT:
+                begin
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_SUB,NR_A,right.location.value));
+                end;
+              LOC_REGISTER,LOC_CREGISTER:
+                begin
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
+                  current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_SUB,NR_A,right.location.register));
+                end;
+              LOC_REFERENCE,LOC_CREFERENCE:
+                begin
+                  { Already handled before the case statement. Nothing to do here. }
+                end;
+              else
+                internalerror(2020040402);
+            end;
+            current_asmdata.getjumplabel(l);
+            ai:=taicpu.op_cond_sym(A_JP,C_PO,l);
+            ai.is_jmp:=true;
+            current_asmdata.CurrAsmList.concat(ai);
+            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
+            cg.a_label(current_asmdata.CurrAsmList,l);
+            cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
 
             location_reset(location,LOC_FLAGS,OS_NO);
             location.resflags:=getresflags(unsigned);
