@@ -305,7 +305,7 @@ unit agsdasz80;
                   end
                 else
                   writer.AsmWrite(',');
-                if hp.is_jmp then
+                if is_calljmp(hp.opcode) then
                   WriteOper_jmp(taicpu(hp).oper[i]^,hp)
                 else
                   WriteOper(taicpu(hp).oper[i]^,S_B{taicpu(hp).opsize},hp.opcode,taicpu(hp).ops,(i=2));
