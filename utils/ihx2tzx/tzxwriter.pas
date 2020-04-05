@@ -40,6 +40,7 @@ type
     constructor Create(OutStream : TStream);
     procedure AppendStandardSpeedDataBlock(const Buffer; Count: Word);
     procedure AppendHeader(FileType: Byte; const FileName: string; DataBlockLength, Parameter1, Parameter2: Word);
+    procedure AppendDataBlock(const Buffer; Count: Word);
     procedure AppendProgramFile(const FileName: string; AutostartLine, VarAreaOffset: Word; const Buffer; Count: Word);
     procedure AppendCodeFile(const FileName: string; StartAddress: Word; const Buffer; Count: Word);
   end;
@@ -97,14 +98,12 @@ begin
   AppendStandardSpeedDataBlock(HeaderBlock, SizeOf(HeaderBlock));
 end;
 
-procedure TTZXWriter.AppendProgramFile(const FileName: string; AutostartLine,
-  VarAreaOffset: Word; const Buffer; Count: Word);
+procedure TTZXWriter.AppendDataBlock(const Buffer; Count: Word);
 var
   I: Integer;
   Checksum: Byte;
   DataBlock: array of Byte;
 begin
-  AppendHeader(0, FileName, Count, AutostartLine, VarAreaOffset);
   SetLength(DataBlock, Count + 2);
   Move(Buffer, DataBlock[1], Count);
   DataBlock[0] := $FF;  { data }
@@ -115,22 +114,18 @@ begin
   AppendStandardSpeedDataBlock(DataBlock[0], Length(DataBlock));
 end;
 
+procedure TTZXWriter.AppendProgramFile(const FileName: string; AutostartLine,
+  VarAreaOffset: Word; const Buffer; Count: Word);
+begin
+  AppendHeader(0, FileName, Count, AutostartLine, VarAreaOffset);
+  AppendDataBlock(Buffer, Count);
+end;
+
 procedure TTZXWriter.AppendCodeFile(const FileName: string; StartAddress: Word;
   const Buffer; Count: Word);
-var
-  I: Integer;
-  Checksum: Byte;
-  DataBlock: array of Byte;
 begin
   AppendHeader(3, FileName, Count, StartAddress, 32768);
-  SetLength(DataBlock, Count + 2);
-  Move(Buffer, DataBlock[1], Count);
-  DataBlock[0] := $FF;  { data }
-  Checksum := 0;
-  for I := 0 to High(DataBlock) - 1 do
-    Checksum := Checksum xor DataBlock[I];
-  DataBlock[High(DataBlock)] := Checksum;
-  AppendStandardSpeedDataBlock(DataBlock[0], Length(DataBlock));
+  AppendDataBlock(Buffer, Count);
 end;
 
 end.
