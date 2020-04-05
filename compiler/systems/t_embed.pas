@@ -1996,7 +1996,7 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
     StripStr:='';
     mapstr:='';
     DynLinkStr:='';
-    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
+    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.ihx')));
 
 (*    GCSectionsStr:='--gc-sections';
     //if not(cs_link_extern in current_settings.globalswitches) then
