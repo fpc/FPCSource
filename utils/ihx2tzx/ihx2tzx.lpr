@@ -100,7 +100,7 @@ begin
   FTapeWriter := TTZXWriter.Create(FOutputFile);
 
   BasicLine1 := ' '+BC_LOAD+'"" '+BC_CODE+#13;
-  BasicLine2 := ' '+BC_PRINT+BC_USR+IntToStr(FInputImage.Origin)+#14#0#0+Chr(Byte(FInputImage.Origin))+Chr(Byte(FInputImage.Origin shr 8))+#0#13;
+  BasicLine2 := ' '+BC_PRINT+BC_USR+BAS_EncodeNumber(FInputImage.Origin)+#13;
   BasicProgram := #0#10+Chr(Byte(Length(BasicLine1)))+Chr(Byte(Length(BasicLine1) shr 8))+BasicLine1+
                   #0#20+Chr(Byte(Length(BasicLine2)))+Chr(Byte(Length(BasicLine2) shr 8))+BasicLine2;
 

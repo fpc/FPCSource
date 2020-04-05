@@ -124,7 +124,32 @@ const
   BC_RETURN    = #254;  { RETURN    }
   BC_COPY      = #255;  { COPY      }
 
+function BAS_EncodeNumber(N: Integer): ansistring;
+function BAS_EncodeNumber(N: Real): ansistring;
+
 implementation
+
+function BAS_EncodeNumber(N: Integer): ansistring;
+begin
+  if (N >= -65535) and (N <= 65535) then
+  begin
+    Str(N, Result);
+    if N >= 0 then
+      Result := Result + #14#0#0 + Chr(Byte(N)) + Chr(Byte(N shr 8)) + #0
+    else
+    begin
+      N := Word(N + 131072);
+      Result := Result + #14#0#255 + Chr(Byte(N)) + Chr(Byte(N shr 8)) + #0;
+    end;
+  end
+  else
+    Result := BAS_EncodeNumber(Real(N));
+end;
+
+function BAS_EncodeNumber(N: Real): ansistring;
+begin
+  raise ENotImplemented.Create('Real number support not yet implemented');
+end;
 
 end.
 
