@@ -1971,10 +1971,16 @@ function TlinkerEmbedded_SdccSdld.WriteResponseFile: Boolean;
   end;
 
 procedure TlinkerEmbedded_SdccSdld.SetDefaultInfo;
+  const
+{$if defined(Z80)}
+    ExeName='sdcc-sdldz80';
+{$else}
+    ExeName='sdcc-sdld';
+{$endif}
   begin
     with Info do
      begin
-       ExeCmd[1]:='sdcc-sdld -n $OPT -i $MAP $EXE -f $RES'
+       ExeCmd[1]:=ExeName+' -n $OPT -i $MAP $EXE -f $RES'
        //-g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE -T $RES';
      end;
   end;
