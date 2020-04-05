@@ -126,6 +126,7 @@ const
 
 function BAS_EncodeNumber(N: Integer): ansistring;
 function BAS_EncodeNumber(N: Real): ansistring;
+function BAS_EncodeLine(LineNr: Integer; const Line: string): ansistring;
 
 implementation
 
@@ -149,6 +150,13 @@ end;
 function BAS_EncodeNumber(N: Real): ansistring;
 begin
   raise ENotImplemented.Create('Real number support not yet implemented');
+end;
+
+function BAS_EncodeLine(LineNr: Integer; const Line: string): ansistring;
+begin
+  Result := Chr(Byte(LineNr shr 8)) + Chr(Byte(LineNr)) +
+            Chr(Byte((Length(Line) + 1))) + Chr(Byte((Length(Line) + 1) shr 8)) +
+            Line + #13;
 end;
 
 end.

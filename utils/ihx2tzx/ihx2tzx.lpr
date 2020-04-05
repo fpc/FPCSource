@@ -60,7 +60,6 @@ var
   ErrorMsg: String;
   NonOptions: TStringArray;
   BasicProgram: AnsiString;
-  BasicLine1, BasicLine2: AnsiString;
 begin
   // quick check parameters
   ErrorMsg:=CheckOptions(ShortOptions, LongOptions);
@@ -99,10 +98,8 @@ begin
   FOutputFile := TFileStream.Create(FOutputFileName, fmCreate);
   FTapeWriter := TTZXWriter.Create(FOutputFile);
 
-  BasicLine1 := ' '+BC_LOAD+'"" '+BC_CODE+#13;
-  BasicLine2 := ' '+BC_PRINT+BC_USR+BAS_EncodeNumber(FInputImage.Origin)+#13;
-  BasicProgram := #0#10+Chr(Byte(Length(BasicLine1)))+Chr(Byte(Length(BasicLine1) shr 8))+BasicLine1+
-                  #0#20+Chr(Byte(Length(BasicLine2)))+Chr(Byte(Length(BasicLine2) shr 8))+BasicLine2;
+  BasicProgram := BAS_EncodeLine(10, ' '+BC_LOAD+'"" '+BC_CODE) +
+                  BAS_EncodeLine(20, ' '+BC_PRINT+BC_USR+BAS_EncodeNumber(FInputImage.Origin));
 
   FTapeWriter.AppendProgramFile('basic', 10, Length(BasicProgram), BasicProgram[1], Length(BasicProgram));
   FTapeWriter.AppendCodeFile('test', FInputImage.Origin, FInputImage.Data[0], Length(FInputImage.Data));
