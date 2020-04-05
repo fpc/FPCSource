@@ -25,7 +25,7 @@ program ihx2tzx;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, SysUtils, CustApp, ihxreader, tzxwriter
+  Classes, SysUtils, CustApp, ihxreader, tzxwriter, zxbasic
   { you can add units after this };
 
 const
@@ -99,8 +99,8 @@ begin
   FOutputFile := TFileStream.Create(FOutputFileName, fmCreate);
   FTapeWriter := TTZXWriter.Create(FOutputFile);
 
-  BasicLine1 := ' '#$EF'"" '#$AF#13;
-  BasicLine2 := ' '#$F5#$C0+IntToStr(FInputImage.Origin)+#14#0#0+Chr(Byte(FInputImage.Origin))+Chr(Byte(FInputImage.Origin shr 8))+#0#13;
+  BasicLine1 := ' '+BC_LOAD+'"" '+BC_CODE+#13;
+  BasicLine2 := ' '+BC_PRINT+BC_USR+IntToStr(FInputImage.Origin)+#14#0#0+Chr(Byte(FInputImage.Origin))+Chr(Byte(FInputImage.Origin shr 8))+#0#13;
   BasicProgram := #0#10+Chr(Byte(Length(BasicLine1)))+Chr(Byte(Length(BasicLine1) shr 8))+BasicLine1+
                   #0#20+Chr(Byte(Length(BasicLine2)))+Chr(Byte(Length(BasicLine2) shr 8))+BasicLine2;
 
