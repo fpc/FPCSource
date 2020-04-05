@@ -90,7 +90,8 @@ begin
     Exit;
   end;
   FInputFileName := NonOptions[0];
-  FOutputFileName := 'out.tap';
+  if FOutputFileName = '' then
+    FOutputFileName := ChangeFileExt(FInputFileName, '.tzx');
 
   { add your program here }
   FInputImage.ReadIHXFile(FInputFileName);
