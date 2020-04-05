@@ -135,13 +135,8 @@ begin
   if (N >= -65535) and (N <= 65535) then
   begin
     Str(N, Result);
-    if N >= 0 then
-      Result := Result + #14#0#0 + Chr(Byte(N)) + Chr(Byte(N shr 8)) + #0
-    else
-    begin
-      N := Word(N + 131072);
-      Result := Result + #14#0#255 + Chr(Byte(N)) + Chr(Byte(N shr 8)) + #0;
-    end;
+    N := Abs(N);
+    Result := Result + #14#0#0 + Chr(Byte(N)) + Chr(Byte(N shr 8)) + #0;
   end
   else
     Result := BAS_EncodeNumber(Real(N));
