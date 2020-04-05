@@ -1,4 +1,6 @@
-{ <description>
+{ IHX (Intel Hex format) to TZX (ZX Spectrum tape file format) convertor tool
+
+  This is the main program of the tool.
 
   Copyright (C) 2020 Nikolay Nikolov <nickysn@users.sourceforg.net>
 
