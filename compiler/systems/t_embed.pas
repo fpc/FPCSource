@@ -2034,11 +2034,11 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
      end;
     success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
-(*  { Remove ReponseFile }
+  { Remove ReponseFile }
     if success and not(cs_link_nolink in current_settings.globalswitches) then
      DeleteFile(outputexedir+Info.ResName);
 
-  { Post process }
+(*  { Post process }
     if success and not(cs_link_nolink in current_settings.globalswitches) then
       success:=PostProcessExecutable(FixedExeFileName,false);
 
@@ -2051,9 +2051,9 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
           success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
             FixedExeFileName+' '+
             maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
-      end;
+      end;*)
 
-    MakeExecutable:=success;   { otherwise a recursive call to link method }*)
+    MakeExecutable:=success;   { otherwise a recursive call to link method }
   end;
 
 
