@@ -4176,6 +4176,8 @@ s*2Tlinux_Linux
 # not yet ready s*2Tsolaris_Solaris
 # avr targets
 V*2Tembedded_Embedded
+# z80 targets
+Z*2Tembedded_Embedded
 # end of targets section
 **1u<x>_Undefines the symbol <x>
 **1U_Unit options:
