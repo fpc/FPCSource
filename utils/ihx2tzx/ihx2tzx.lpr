@@ -83,14 +83,16 @@ begin
     Terminate;
     Exit;
   end;
-  if Length(NonOptions) > 1 then
+  if Length(NonOptions) > 2 then
   begin
     ShowException(Exception.Create('Too many files specified'));
     Terminate;
     Exit;
   end;
   FInputFileName := NonOptions[0];
-  if FOutputFileName = '' then
+  if Length(NonOptions) >= 2 then
+    FOutputFileName := NonOptions[1]
+  else
     FOutputFileName := ChangeFileExt(FInputFileName, '.tzx');
 
   { add your program here }
@@ -127,7 +129,7 @@ end;
 procedure TIHX2TZX.WriteHelp;
 begin
   { add your help code here }
-  writeln('Usage: ', ExeName, ' -h');
+  writeln('Usage: ', ExeName, ' [options] ihx_file [tzx_file]');
 end;
 
 var
