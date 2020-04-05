@@ -63,6 +63,13 @@ var
   NonOptions: TStringArray;
   BasicProgram: AnsiString;
 begin
+  if ParamCount = 0 then
+  begin
+    WriteHelp;
+    Terminate;
+    Exit;
+  end;
+
   // quick check parameters
   ErrorMsg:=CheckOptions(ShortOptions, LongOptions);
   if ErrorMsg<>'' then begin
