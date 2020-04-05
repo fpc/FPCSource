@@ -1974,7 +1974,7 @@ procedure TlinkerEmbedded_SdccSdld.SetDefaultInfo;
   begin
     with Info do
      begin
-       ExeCmd[1]:='sdcc-sdld -i $EXE -f $RES $MAP'
+       ExeCmd[1]:='sdcc-sdld $OPT -i $EXE -f $RES $MAP'
        //-g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE -T $RES';
      end;
   end;
