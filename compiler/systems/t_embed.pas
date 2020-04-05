@@ -1974,7 +1974,7 @@ procedure TlinkerEmbedded_SdccSdld.SetDefaultInfo;
   begin
     with Info do
      begin
-       ExeCmd[1]:='sdcc-sdld -i $EXE -f $RES'
+       ExeCmd[1]:='sdcc-sdld -i $EXE -f $RES $MAP'
        //-g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE -T $RES';
      end;
   end;
@@ -2001,10 +2001,10 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
 (*    GCSectionsStr:='--gc-sections';
     //if not(cs_link_extern in current_settings.globalswitches) then
     if not(cs_link_nolink in current_settings.globalswitches) then
-     Message1(exec_i_linking,current_module.exefilename);
+     Message1(exec_i_linking,current_module.exefilename);*)
 
     if (cs_link_map in current_settings.globalswitches) then
-     mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));*)
+     mapstr:='-mw';
 
   { Write used files and libraries }
     WriteResponseFile();
