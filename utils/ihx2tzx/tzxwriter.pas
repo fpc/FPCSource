@@ -39,6 +39,7 @@ type
   public
     constructor Create(OutStream : TStream);
     procedure AppendStandardSpeedDataBlock(const Buffer; Count: Word);
+    procedure AppendHeader(FileType: Byte; const FileName: string; DataBlockLength, Parameter1, Parameter2: Word);
     procedure AppendProgramFile(const FileName: string; AutostartLine, VarAreaOffset: Word; const Buffer; Count: Word);
     procedure AppendCodeFile(const FileName: string; StartAddress: Word; const Buffer; Count: Word);
   end;
@@ -68,33 +69,42 @@ begin
   FOutStream.Write(Buffer, Count);
 end;
 
-procedure TTZXWriter.AppendProgramFile(const FileName: string; AutostartLine,
-  VarAreaOffset: Word; const Buffer; Count: Word);
+procedure TTZXWriter.AppendHeader(FileType: Byte; const FileName: string;
+  DataBlockLength, Parameter1, Parameter2: Word);
 var
   HeaderBlock: array [0..18] of Byte;
   I: Integer;
   Checksum: Byte;
-  DataBlock: array of Byte;
 begin
   HeaderBlock[0] := 0;  { header }
-  HeaderBlock[1] := 0;  { Program file }
+  HeaderBlock[1] := FileType;
   { file name }
   for I := 1 to 10 do
     if I <= Length(FileName) then
       HeaderBlock[I + 1] := Ord(FileName[I])
     else
       HeaderBlock[I + 1] := Ord(' ');
-  HeaderBlock[12] := Byte(Count);
-  HeaderBlock[13] := Byte(Count shr 8);
-  HeaderBlock[14] := Byte(AutostartLine);
-  HeaderBlock[15] := Byte(AutostartLine shr 8);
-  HeaderBlock[16] := Byte(VarAreaOffset);
-  HeaderBlock[17] := Byte(VarAreaOffset shr 8);
+  HeaderBlock[12] := Byte(DataBlockLength);
+  HeaderBlock[13] := Byte(DataBlockLength shr 8);
+  HeaderBlock[14] := Byte(Parameter1);
+  HeaderBlock[15] := Byte(Parameter1 shr 8);
+  HeaderBlock[16] := Byte(Parameter2);
+  HeaderBlock[17] := Byte(Parameter2 shr 8);
   Checksum := 0;
   for I := 0 to 17 do
     Checksum := Checksum xor HeaderBlock[I];
   HeaderBlock[18] := Checksum;
   AppendStandardSpeedDataBlock(HeaderBlock, SizeOf(HeaderBlock));
+end;
+
+procedure TTZXWriter.AppendProgramFile(const FileName: string; AutostartLine,
+  VarAreaOffset: Word; const Buffer; Count: Word);
+var
+  I: Integer;
+  Checksum: Byte;
+  DataBlock: array of Byte;
+begin
+  AppendHeader(0, FileName, Count, AutostartLine, VarAreaOffset);
   SetLength(DataBlock, Count + 2);
   Move(Buffer, DataBlock[1], Count);
   DataBlock[0] := $FF;  { data }
@@ -108,30 +118,11 @@ end;
 procedure TTZXWriter.AppendCodeFile(const FileName: string; StartAddress: Word;
   const Buffer; Count: Word);
 var
-  HeaderBlock: array [0..18] of Byte;
   I: Integer;
   Checksum: Byte;
   DataBlock: array of Byte;
 begin
-  HeaderBlock[0] := 0;  { header }
-  HeaderBlock[1] := 3;  { Code file }
-  { file name }
-  for I := 1 to 10 do
-    if I <= Length(FileName) then
-      HeaderBlock[I + 1] := Ord(FileName[I])
-    else
-      HeaderBlock[I + 1] := Ord(' ');
-  HeaderBlock[12] := Byte(Count);
-  HeaderBlock[13] := Byte(Count shr 8);
-  HeaderBlock[14] := Byte(StartAddress);
-  HeaderBlock[15] := Byte(StartAddress shr 8);
-  HeaderBlock[16] := Byte(32768);
-  HeaderBlock[17] := Byte(32768 shr 8);
-  Checksum := 0;
-  for I := 0 to 17 do
-    Checksum := Checksum xor HeaderBlock[I];
-  HeaderBlock[18] := Checksum;
-  AppendStandardSpeedDataBlock(HeaderBlock, SizeOf(HeaderBlock));
+  AppendHeader(3, FileName, Count, StartAddress, 32768);
   SetLength(DataBlock, Count + 2);
   Move(Buffer, DataBlock[1], Count);
   DataBlock[0] := $FF;  { data }
