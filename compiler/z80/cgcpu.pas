@@ -133,6 +133,15 @@ unit cgcpu;
        paramgr;
 
 
+    function use_push(const cgpara:tcgpara):boolean;
+      begin
+        result:=(not paramanager.use_fixed_stack) and
+                assigned(cgpara.location) and
+                (cgpara.location^.loc=LOC_REFERENCE) and
+                (cgpara.location^.reference.index=NR_STACK_POINTER_REG);
+      end;
+
+
     procedure tcgz80.init_register_allocators;
       begin
         inherited init_register_allocators;
@@ -266,38 +275,72 @@ unit cgcpu;
         if not(tcgsize2size[paraloc.Size] in [1..4]) then
           internalerror(2014011101);
 
-        hp:=paraloc.location;
-
-        i:=1;
-        while i<=tcgsize2size[paraloc.Size] do
+        if use_push(paraloc) then
           begin
-            if not(assigned(hp)) then
-              internalerror(2014011105);
-             //paramanager.allocparaloc(list,hp);
-             case hp^.loc of
-               LOC_REGISTER,LOC_CREGISTER:
+            case tcgsize2size[paraloc.Size] of
+               1:
                  begin
-                   if (tcgsize2size[hp^.size]<>1) or
-                     (hp^.shiftval<>0) then
-                     internalerror(2015041101);
-                   a_load_const_reg(list,hp^.size,(a shr (8*(i-1))) and $ff,hp^.register);
-
-                   inc(i,tcgsize2size[hp^.size]);
-                   hp:=hp^.Next;
+                   getcpuregister(list,NR_A);
+                   a_load_const_reg(list,OS_8,a,NR_A);
+                   list.Concat(taicpu.op_reg(A_PUSH,NR_AF));
+                   list.Concat(taicpu.op_reg(A_INC,NR_SP));
+                   ungetcpuregister(list,NR_A);
                  end;
-               LOC_REFERENCE,LOC_CREFERENCE:
+               2:
                  begin
-                   reference_reset(ref,paraloc.alignment,[]);
-                   ref.base:=hp^.reference.index;
-                   ref.offset:=hp^.reference.offset;
-                   a_load_const_ref(list,hp^.size,a shr (8*(i-1)),ref);
-
-                   inc(i,tcgsize2size[hp^.size]);
-                   hp:=hp^.Next;
+                   getcpuregister(list,NR_IY);
+                   list.Concat(taicpu.op_reg_const(A_LD,NR_IY,a));
+                   list.Concat(taicpu.op_reg(A_PUSH,NR_IY));
+                   ungetcpuregister(list,NR_IY);
+                 end;
+               4:
+                 begin
+                   getcpuregister(list,NR_IY);
+                   list.Concat(taicpu.op_reg_const(A_LD,NR_IY,Word(a shr 16)));
+                   list.Concat(taicpu.op_reg(A_PUSH,NR_IY));
+                   list.Concat(taicpu.op_reg_const(A_LD,NR_IY,Word(a)));
+                   list.Concat(taicpu.op_reg(A_PUSH,NR_IY));
+                   ungetcpuregister(list,NR_IY);
                  end;
                else
-                 internalerror(2002071004);
+                 internalerror(2020040701);
             end;
+          end
+        else
+          begin
+            hp:=paraloc.location;
+
+            i:=1;
+            while i<=tcgsize2size[paraloc.Size] do
+              begin
+                if not(assigned(hp)) then
+                  internalerror(2014011105);
+                 //paramanager.allocparaloc(list,hp);
+                 case hp^.loc of
+                   LOC_REGISTER,LOC_CREGISTER:
+                     begin
+                       if (tcgsize2size[hp^.size]<>1) or
+                         (hp^.shiftval<>0) then
+                         internalerror(2015041101);
+                       a_load_const_reg(list,hp^.size,(a shr (8*(i-1))) and $ff,hp^.register);
+
+                       inc(i,tcgsize2size[hp^.size]);
+                       hp:=hp^.Next;
+                     end;
+                   LOC_REFERENCE,LOC_CREFERENCE:
+                     begin
+                       reference_reset(ref,paraloc.alignment,[]);
+                       ref.base:=hp^.reference.index;
+                       ref.offset:=hp^.reference.offset;
+                       a_load_const_ref(list,hp^.size,a shr (8*(i-1)),ref);
+
+                       inc(i,tcgsize2size[hp^.size]);
+                       hp:=hp^.Next;
+                     end;
+                   else
+                     internalerror(2002071004);
+                end;
+              end;
           end;
       end;
 
