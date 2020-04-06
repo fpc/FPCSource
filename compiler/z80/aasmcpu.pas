@@ -152,7 +152,7 @@ implementation
          inherited create(op);
          ops:=2;
          loadreg(0,_op1);
-         loadconst(1,aint(_op2));
+         loadconst(1,_op2);
       end;
 
      constructor taicpu.op_const_reg(op:tasmop; _op1: LongInt; _op2: tregister);
@@ -187,7 +187,7 @@ implementation
         inherited create(op);
         ops:=2;
         loadref(0,_op1);
-        loadconst(1,aint(_op2));
+        loadconst(1,_op2);
       end;
 
 
