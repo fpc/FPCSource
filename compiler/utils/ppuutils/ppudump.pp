@@ -225,7 +225,8 @@ const
   { 102 } 'Haiku-x86-64',
   { 103 } 'Embedded-Xtensa',
   { 104 } 'FreeRTos-Xtensa',
-  { 105 } 'Embedded-Z80'
+  { 105 } 'Linux-Xtensa',
+  { 106 } 'Embedded-Z80'
   );
 
 const

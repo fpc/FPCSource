@@ -1,3 +1,4 @@
+{ this test fails for x86_64-linux with r44578, reason not found yet }
 program Project1;
 
 {$mode objfpc}{$H+}

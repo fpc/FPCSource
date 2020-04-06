@@ -194,7 +194,8 @@
              system_x86_64_haiku,       { 102 }
              system_xtensa_embedded,    { 103 }
              system_xtensa_freertos,    { 104 }
-             system_z80_embedded        { 105 }
+             system_xtensa_linux,       { 105 }
+             system_z80_embedded        { 106 }
        );
 
      type
