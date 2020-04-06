@@ -106,7 +106,7 @@ unit cpubase;
         {$i rz80dwa.inc}
       );
       { registers which may be destroyed by calls }
-      VOLATILE_INTREGISTERS = [RS_A,RS_BC,RS_DE,RS_HL];
+      VOLATILE_INTREGISTERS = [RS_A,RS_B,RS_C,RS_D,RS_E,RS_H,RS_L];
       VOLATILE_FPUREGISTERS = [];
 
     type
