@@ -1067,6 +1067,7 @@ compiler/z80/cpupi.pas svneol=native#text/plain
 compiler/z80/cputarg.pas svneol=native#text/plain
 compiler/z80/hlcgcpu.pas svneol=native#text/plain
 compiler/z80/nz80add.pas svneol=native#text/plain
+compiler/z80/nz80cal.pas svneol=native#text/plain
 compiler/z80/raz80.pas svneol=native#text/plain
 compiler/z80/raz80asm.pas svneol=native#text/plain
 compiler/z80/rgcpu.pas svneol=native#text/plain

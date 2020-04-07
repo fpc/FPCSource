@@ -35,6 +35,7 @@ unit cpunode;
          after the generic one (FK)
        }
        ,nz80add
+       ,nz80cal
 //       ,nz80mat
 //       ,nz80cnv
 //       ,nz80mem
