@@ -742,10 +742,10 @@ unit cgcpu;
              end;
            OP_SUB:
              begin
-               list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_const_reg_internal, OP_SUB')));
-               //if ((a and mask)=1) and (tcgsize2size[size]=1) then
-               //  list.concat(taicpu.op_reg(A_DEC,reg))
-               //else
+               if ((a and mask)=1) and (tcgsize2size[size]=1) then
+                 list.concat(taicpu.op_reg(A_DEC,reg))
+               else
+                 list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_const_reg_internal, OP_SUB')));
                //  list.concat(taicpu.op_reg_const(A_SUBI,reg,a and mask));
                //if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
                //  begin
@@ -832,38 +832,39 @@ unit cgcpu;
              end;
            OP_ADD:
              begin
-               list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_const_reg_internal, OP_ADD')));
-               //curvalue:=a and mask;
-               //if curvalue=0 then
-               //  list.concat(taicpu.op_reg_reg(A_ADD,reg,NR_R1))
-               //else if (curvalue=1) and (tcgsize2size[size]=1) then
-               //  list.concat(taicpu.op_reg(A_INC,reg))
-               //else
-               //  begin
-               //    tmpreg:=getintregister(list,OS_8);
-               //    a_load_const_reg(list,OS_8,curvalue,tmpreg);
-               //    list.concat(taicpu.op_reg_reg(A_ADD,reg,tmpreg));
-               //  end;
-               //if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
-               //  begin
-               //    for i:=2 to tcgsize2size[size] do
-               //      begin
-               //        NextReg;
-               //        mask:=mask shl 8;
-               //        inc(shift,8);
-               //        curvalue:=(qword(a) and mask) shr shift;
-               //        { decrease pressure on upper half of registers by using ADC ...,R1 instead
-               //          of ADD ...,0 }
-               //        if curvalue=0 then
-               //          list.concat(taicpu.op_reg_reg(A_ADC,reg,NR_R1))
-               //        else
-               //          begin
-               //            tmpreg:=getintregister(list,OS_8);
-               //            a_load_const_reg(list,OS_8,curvalue,tmpreg);
-               //            list.concat(taicpu.op_reg_reg(A_ADC,reg,tmpreg));
-               //          end;
-               //      end;
-               //  end;
+               curvalue:=a and mask;
+               {if curvalue=0 then
+                 list.concat(taicpu.op_reg_reg(A_ADD,reg,NR_R1))
+               else}
+               if (curvalue=1) and (tcgsize2size[size]=1) then
+                 list.concat(taicpu.op_reg(A_INC,reg))
+               else
+                 list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_const_reg_internal, OP_ADD')));
+(*                 begin
+                   tmpreg:=getintregister(list,OS_8);
+                   a_load_const_reg(list,OS_8,curvalue,tmpreg);
+                   list.concat(taicpu.op_reg_reg(A_ADD,reg,tmpreg));
+                 end;
+               if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
+                 begin
+                   for i:=2 to tcgsize2size[size] do
+                     begin
+                       NextReg;
+                       mask:=mask shl 8;
+                       inc(shift,8);
+                       curvalue:=(qword(a) and mask) shr shift;
+                       { decrease pressure on upper half of registers by using ADC ...,R1 instead
+                         of ADD ...,0 }
+                       if curvalue=0 then
+                         list.concat(taicpu.op_reg_reg(A_ADC,reg,NR_R1))
+                       else
+                         begin
+                           tmpreg:=getintregister(list,OS_8);
+                           a_load_const_reg(list,OS_8,curvalue,tmpreg);
+                           list.concat(taicpu.op_reg_reg(A_ADC,reg,tmpreg));
+                         end;
+                     end;
+                 end;*)
              end;
          else
            begin
