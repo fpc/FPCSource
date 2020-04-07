@@ -103,6 +103,8 @@ unit cgcpu;
 
         procedure a_adjust_sp(list: TAsmList; value: longint);
 
+        procedure make_simple_ref(list:TAsmList;var ref: treference);
+
       protected
         procedure a_op_reg_reg_internal(list: TAsmList; Op: TOpCG; size: TCGSize; src, srchi, dst, dsthi: TRegister);
         procedure a_op_const_reg_internal(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg, reghi: TRegister);
@@ -1613,6 +1615,11 @@ unit cgcpu;
         //      list.concat(taicpu.op_const_reg(A_OUT,NIO_SP_LO,NR_R28));
         //    end;
         //end;
+      end;
+
+
+    procedure tcgz80.make_simple_ref(list: TAsmList; var ref: treference);
+      begin
       end;
 
 
