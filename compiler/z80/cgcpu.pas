@@ -47,7 +47,7 @@ unit cgcpu;
         function getaddressregister(list:TAsmList):TRegister;override;
 
         procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const paraloc : TCGPara);override;
-        procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
+        procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : TCGPara);override;
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
         procedure a_load_reg_cgpara(list : TAsmList; size : tcgsize;r : tregister; const cgpara : tcgpara);override;
 
@@ -358,44 +358,130 @@ unit cgcpu;
       end;
 
 
-    procedure tcgz80.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);
+    procedure tcgz80.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : TCGPara);
+
+        procedure pushdata(paraloc:pcgparalocation;ofs:tcgint);
+        var
+          pushsize : tcgsize;
+          opsize : topsize;
+          tmpreg   : tregister;
+          href,tmpref: treference;
+        begin
+          if not assigned(paraloc) then
+            exit;
+          if (paraloc^.loc<>LOC_REFERENCE) or
+             (paraloc^.reference.index<>NR_STACK_POINTER_REG) or
+             (tcgsize2size[paraloc^.size]>4) then
+            internalerror(200501162);
+          { Pushes are needed in reverse order, add the size of the
+            current location to the offset where to load from. This
+            prevents wrong calculations for the last location when
+            the size is not a power of 2 }
+          if assigned(paraloc^.next) then
+            pushdata(paraloc^.next,ofs+tcgsize2size[paraloc^.size]);
+          { Push the data starting at ofs }
+          href:=r;
+          inc(href.offset,ofs);
+          {if tcgsize2size[paraloc^.size]>cgpara.alignment then}
+            pushsize:=paraloc^.size
+          {else
+            pushsize:=int_cgsize(cgpara.alignment)};
+          {Writeln(pushsize);}
+          case tcgsize2size[pushsize] of
+            1:
+              begin
+                tmpreg:=getintregister(list,OS_8);
+                a_load_ref_reg(list,paraloc^.size,pushsize,href,tmpreg);
+                getcpuregister(list,NR_A);
+                a_load_reg_reg(list,OS_8,OS_8,tmpreg,NR_A);
+                list.concat(taicpu.op_reg(A_PUSH,NR_AF));
+                list.concat(taicpu.op_reg(A_INC,NR_SP));
+                ungetcpuregister(list,NR_A);
+              end;
+            else
+              internalerror(2020040803);
+          end;
+          //if tcgsize2size[paraloc^.size]<cgpara.alignment then
+          //  begin
+          //    tmpreg:=getintregister(list,pushsize);
+          //    a_load_ref_reg(list,paraloc^.size,pushsize,href,tmpreg);
+          //    list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
+          //  end
+          //else
+          //  begin
+          //    make_simple_ref(list,href);
+          //    if tcgsize2size[pushsize] > 2 then
+          //      begin
+          //        tmpref := href;
+          //        Inc(tmpref.offset, 2);
+          //        list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[int_cgsize(tcgsize2size[pushsize]-2)],tmpref));
+          //      end;
+          //    list.concat(taicpu.op_ref(A_PUSH,opsize,href));
+          //  end;
+        end;
+
       var
         tmpref, ref: treference;
         location: pcgparalocation;
         sizeleft: tcgint;
       begin
-        location := paraloc.location;
-        tmpref := r;
-        sizeleft := paraloc.intsize;
-        while assigned(location) do
+        { cgpara.size=OS_NO requires a copy on the stack }
+        if use_push(cgpara) then
           begin
-            paramanager.allocparaloc(list,location);
-            case location^.loc of
-              LOC_REGISTER,LOC_CREGISTER:
-                a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
-              LOC_REFERENCE:
-                begin
-                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,ctempposinvalid,paraloc.alignment,[]);
-                  { doubles in softemu mode have a strange order of registers and references }
-                  if location^.size=OS_32 then
-                    g_concatcopy(list,tmpref,ref,4)
-                  else
+            { Record copy? }
+            if (cgpara.size in [OS_NO,OS_F64]) or (size=OS_NO) then
+              begin
+                internalerror(2020040802);
+                //cgpara.check_simple_location;
+                //len:=align(cgpara.intsize,cgpara.alignment);
+                //g_stackpointer_alloc(list,len);
+                //reference_reset_base(href,NR_STACK_POINTER_REG,0,ctempposinvalid,4,[]);
+                //g_concatcopy(list,r,href,len);
+              end
+            else
+              begin
+                if tcgsize2size[cgpara.size]<>tcgsize2size[size] then
+                  internalerror(200501161);
+                { We need to push the data in reverse order,
+                  therefor we use a recursive algorithm }
+                pushdata(cgpara.location,0);
+              end
+          end
+        else
+          begin
+            location := cgpara.location;
+            tmpref := r;
+            sizeleft := cgpara.intsize;
+            while assigned(location) do
+              begin
+                paramanager.allocparaloc(list,location);
+                case location^.loc of
+                  LOC_REGISTER,LOC_CREGISTER:
+                    a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
+                  LOC_REFERENCE:
                     begin
-                      g_concatcopy(list,tmpref,ref,sizeleft);
-                      if assigned(location^.next) then
-                        internalerror(2005010710);
+                      reference_reset_base(ref,location^.reference.index,location^.reference.offset,ctempposinvalid,cgpara.alignment,[]);
+                      { doubles in softemu mode have a strange order of registers and references }
+                      if location^.size=OS_32 then
+                        g_concatcopy(list,tmpref,ref,4)
+                      else
+                        begin
+                          g_concatcopy(list,tmpref,ref,sizeleft);
+                          if assigned(location^.next) then
+                            internalerror(2005010710);
+                        end;
                     end;
+                  LOC_VOID:
+                    begin
+                      // nothing to do
+                    end;
+                  else
+                    internalerror(2002081103);
                 end;
-              LOC_VOID:
-                begin
-                  // nothing to do
-                end;
-              else
-                internalerror(2002081103);
-            end;
-            inc(tmpref.offset,tcgsize2size[location^.size]);
-            dec(sizeleft,tcgsize2size[location^.size]);
-            location := location^.next;
+                inc(tmpref.offset,tcgsize2size[location^.size]);
+                dec(sizeleft,tcgsize2size[location^.size]);
+                location := location^.next;
+              end;
           end;
       end;
 
