@@ -283,7 +283,7 @@ begin
 {$ENDIF}
 
   { Creating the memory pool for growing heap }
-  ASYS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
+  ASYS_heapPool:=CreatePool(MEMF_ANY,growheapsize2,growheapsize1);
   if ASYS_heapPool=nil then Halt(1);
   ASYS_heapSemaphore:=AllocPooled(ASYS_heapPool,sizeof(TSignalSemaphore));
   if ASYS_heapSemaphore = nil then Halt(1);
