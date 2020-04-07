@@ -1033,8 +1033,8 @@ begin
   Result:=Nil;
   if aStart>aEnd then exit;
   SetLength(Result,aEnd-aStart+1);
-  For I:=0 to Count-1 do
-    Result[i]:=Objects[i];
+  For I:=aStart to aEnd do
+    Result[i-aStart]:=Objects[i];
 end;
 
 function TStrings.ToStringArray: TStringDynArray;
@@ -1052,8 +1052,8 @@ begin
   Result:=Nil;
   if aStart>aEnd then exit;
   SetLength(Result,aEnd-aStart+1);
-  For I:=0 to Count-1 do
-    Result[i]:=Strings[i];
+  For I:=aStart to aEnd do
+    Result[i-aStart]:=Strings[i];
 end;
 
 
