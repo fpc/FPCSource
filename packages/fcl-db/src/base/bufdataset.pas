@@ -2013,7 +2013,8 @@ begin
     begin
     SetUniDirectional(AValue);
     ClearIndexes;
-    FPacketRecords := 1; // temporary
+    if IsUniDirectional then
+      FPacketRecords := 1; // UniDirectional dataset does not allow FPacketRecords<0
     end;
 end;
 
