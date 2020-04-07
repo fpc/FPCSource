@@ -716,6 +716,7 @@ unit cgcpu;
              end;
            OP_OR:
              begin
+               list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_const_reg_internal, OP_OR')));
                //for i:=1 to tcgsize2size[size] do
                //  begin
                //    if ((qword(a) and mask) shr shift)<>0 then
@@ -727,6 +728,7 @@ unit cgcpu;
              end;
            OP_AND:
              begin
+               list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_const_reg_internal, OP_AND')));
                //for i:=1 to tcgsize2size[size] do
                //  begin
                //    if ((qword(a) and mask) shr shift)=0 then
@@ -740,6 +742,7 @@ unit cgcpu;
              end;
            OP_SUB:
              begin
+               list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_const_reg_internal, OP_SUB')));
                //if ((a and mask)=1) and (tcgsize2size[size]=1) then
                //  list.concat(taicpu.op_reg(A_DEC,reg))
                //else
@@ -763,6 +766,7 @@ unit cgcpu;
              end;
            OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
              begin
+               list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_const_reg_internal, OP_shift/ror')));
                //if a*tcgsize2size[size]<=8 then
                //  begin
                //    for j:=1 to a do
@@ -828,6 +832,7 @@ unit cgcpu;
              end;
            OP_ADD:
              begin
+               list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_const_reg_internal, OP_ADD')));
                //curvalue:=a and mask;
                //if curvalue=0 then
                //  list.concat(taicpu.op_reg_reg(A_ADD,reg,NR_R1))
