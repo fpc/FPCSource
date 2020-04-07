@@ -189,9 +189,22 @@ unit cgcpu;
         hp : PCGParaLocation;
 
       begin
-{        if use_push(cgpara) then
+        if use_push(cgpara) then
           begin
-            if tcgsize2size[cgpara.Size] > 2 then
+            case tcgsize2size[cgpara.Size] of
+              1:
+                begin
+                  cgpara.check_simple_location;
+                  getcpuregister(list,NR_A);
+                  a_load_reg_reg(list,OS_8,OS_8,r,NR_A);
+                  list.concat(taicpu.op_reg(A_PUSH,NR_AF));
+                  list.concat(taicpu.op_reg(A_INC,NR_SP));
+                  ungetcpuregister(list,NR_A);
+                end;
+              else
+                internalerror(2020040801);
+            end;
+{            if tcgsize2size[cgpara.Size] > 2 then
               begin
                 if tcgsize2size[cgpara.Size] <> 4 then
                   internalerror(2013031101);
@@ -226,10 +239,10 @@ unit cgcpu;
                 else
                   pushsize:=int_cgsize(cgpara.alignment);
                 list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
-              end;
+              end;}
 
           end
-        else }
+        else
           begin
             if not(tcgsize2size[cgpara.Size] in [1..4]) then
               internalerror(2014011101);
