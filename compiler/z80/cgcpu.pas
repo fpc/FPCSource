@@ -1408,7 +1408,31 @@ unit cgcpu;
                end
            end
          else
-           list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_load_reg_reg')));
+           begin
+             if reg1<>reg2 then
+               for i:=1 to tcgsize2size[fromsize]-1 do
+                 begin
+                   emit_mov(list,reg2,reg1);
+                   reg1:=GetNextReg(reg1);
+                   reg2:=GetNextReg(reg2);
+                 end
+             else
+               for i:=1 to tcgsize2size[fromsize]-1 do
+                 reg2:=GetNextReg(reg2);
+             emit_mov(list,reg2,reg1);
+             getcpuregister(list,NR_A);
+             emit_mov(list,NR_A,reg2);
+             reg2:=GetNextReg(reg2);
+             list.concat(taicpu.op_none(A_RLA));
+             list.concat(taicpu.op_reg_reg(A_SBC,NR_A,NR_A));
+             for i:=tcgsize2size[fromsize]+1 to tcgsize2size[tosize] do
+               begin
+                 emit_mov(list,reg2,NR_A);
+                 if i<>tcgsize2size[tosize] then
+                   reg2:=GetNextReg(reg2);
+               end;
+             ungetcpuregister(list,NR_A);
+           end;
        end;
 
 
