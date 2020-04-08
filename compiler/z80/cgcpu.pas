@@ -1239,22 +1239,29 @@ unit cgcpu;
 
          if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
            internalerror(2011021307);
+         if tcgsize2size[fromsize]>tcgsize2size[tosize] then
+           internalerror(2020040804);
 
-         if tosize=fromsize then
+         if (tosize=fromsize) or (fromsize in [OS_8,OS_16,OS_32]) then
            begin
              getcpuregister(list,NR_A);
-             for i:=tcgsize2size[fromsize] downto 1 do
+             for i:=1 to tcgsize2size[fromsize] do
                begin
                  list.concat(taicpu.op_reg_ref(A_LD,NR_A,href));
                  a_load_reg_reg(list,OS_8,OS_8,NR_A,reg);
 
-                 if i<>1 then
-                   begin
-                     inc(href.offset);
-                     reg:=GetNextReg(reg);
-                   end;
+                 if i<>tcgsize2size[fromsize] then
+                   inc(href.offset);
+                 if i<>tcgsize2size[tosize] then
+                   reg:=GetNextReg(reg);
                end;
              ungetcpuregister(list,NR_A);
+             for i:=tcgsize2size[fromsize]+1 to tcgsize2size[tosize] do
+               begin
+                 list.concat(taicpu.op_reg_const(A_LD,reg,0));
+                 if i<>tcgsize2size[tosize] then
+                   reg:=GetNextReg(reg);
+               end;
            end
          else
            list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_load_ref_reg')));
