@@ -416,8 +416,7 @@ uses cutils, cclasses;
           R_FPUREGISTER:
             result:=
                (opcode=A_MOV_S) and
-               (oper[0]^.reg=oper[1]^.reg) and
-               (oper[0]^.reg=oper[2]^.reg);
+               (oper[0]^.reg=oper[1]^.reg);
          else
            result:=false;
         end;
