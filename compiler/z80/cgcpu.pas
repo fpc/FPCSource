@@ -1375,19 +1375,30 @@ unit cgcpu;
        begin
          if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
            internalerror(2011021310);
+         if tcgsize2size[fromsize]>tcgsize2size[tosize] then
+           internalerror(2020040803);
 
-         if tosize=fromsize then
+         if (tosize=fromsize) or (fromsize in [OS_8,OS_16,OS_32]) then
            begin
              if reg1<>reg2 then
-               for i:=tcgsize2size[fromsize] downto 1 do
+               for i:=1 to tcgsize2size[fromsize] do
                  begin
                    emit_mov(list,reg2,reg1);
-                   if i<>1 then
-                     begin
-                       reg1:=GetNextReg(reg1);
-                       reg2:=GetNextReg(reg2);
-                     end;
-                 end;
+                   if i<>tcgsize2size[fromsize] then
+                     reg1:=GetNextReg(reg1);
+                   if i<>tcgsize2size[tosize] then
+                     reg2:=GetNextReg(reg2);
+                 end
+             else
+               for i:=1 to tcgsize2size[fromsize] do
+                 if i<>tcgsize2size[tosize] then
+                   reg2:=GetNextReg(reg2);
+             for i:=tcgsize2size[fromsize]+1 to tcgsize2size[tosize] do
+               begin
+                 list.Concat(taicpu.op_reg_const(A_LD,reg2,0));
+                 if i<>tcgsize2size[tosize] then
+                   reg2:=GetNextReg(reg2);
+               end
            end
          else
            list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_load_reg_reg')));
