@@ -1219,7 +1219,30 @@ unit cgcpu;
              ungetcpuregister(list,NR_A);
            end
          else
-           list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_load_reg_ref')));
+           begin
+             getcpuregister(list,NR_A);
+             for i:=1 to tcgsize2size[fromsize] do
+               begin
+                 a_load_reg_reg(list,OS_8,OS_8,reg,NR_A);
+                 list.concat(taicpu.op_ref_reg(A_LD,href,NR_A));
+                 if i<>tcgsize2size[fromsize] then
+                   reg:=GetNextReg(reg);
+                 if i<>tcgsize2size[tosize] then
+                   inc(href.offset);
+               end;
+             list.concat(taicpu.op_none(A_RLA));
+             list.concat(taicpu.op_reg_reg(A_SBC,NR_A,NR_A));
+             for i:=tcgsize2size[fromsize]+1 to tcgsize2size[tosize] do
+               begin
+                 list.concat(taicpu.op_ref_reg(A_LD,href,NR_A));
+                 if i<>tcgsize2size[tosize] then
+                   begin
+                     inc(href.offset);
+                     reg:=GetNextReg(reg);
+                   end;
+               end;
+             ungetcpuregister(list,NR_A);
+           end;
        end;
 
 
