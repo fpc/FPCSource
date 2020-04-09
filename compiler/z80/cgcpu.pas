@@ -800,6 +800,7 @@ unit cgcpu;
 
       var
         curvalue : byte;
+        tmpop: TAsmOp;
 
        begin
          optimize_op_const(size,op,a);
@@ -934,38 +935,39 @@ unit cgcpu;
            OP_ADD:
              begin
                curvalue:=a and mask;
-               {if curvalue=0 then
-                 list.concat(taicpu.op_reg_reg(A_ADD,reg,NR_R1))
-               else}
-               if (curvalue=1) and (tcgsize2size[size]=1) then
-                 list.concat(taicpu.op_reg(A_INC,reg))
-               else
-                 list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_const_reg_internal, OP_ADD')));
-(*                 begin
-                   tmpreg:=getintregister(list,OS_8);
-                   a_load_const_reg(list,OS_8,curvalue,tmpreg);
-                   list.concat(taicpu.op_reg_reg(A_ADD,reg,tmpreg));
-                 end;
-               if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
+               tmpop:=A_NONE;
+               for i:=1 to tcgsize2size[size] do
                  begin
-                   for i:=2 to tcgsize2size[size] do
+                   if (tmpop=A_NONE) and (curvalue=1) and (i=tcgsize2size[size]) then
+                     tmpop:=A_INC
+                   else if (tmpop=A_NONE) and (curvalue<>0) then
+                     tmpop:=A_ADD
+                   else if tmpop=A_ADD then
+                     tmpop:=A_ADC;
+                   case tmpop of
+                     A_NONE:
+                       {nothing};
+                     A_INC:
+                       list.concat(taicpu.op_reg(A_INC,reg));
+                     A_ADD,A_ADC:
+                       begin
+                         getcpuregister(list,NR_A);
+                         emit_mov(list,NR_A,reg);
+                         list.concat(taicpu.op_reg_const(tmpop,NR_A,curvalue));
+                         emit_mov(list,reg,NR_A);
+                         ungetcpuregister(list,NR_A);
+                       end;
+                     else
+                       internalerror(2020040901);
+                   end;
+                   if i<>tcgsize2size[size] then
                      begin
                        NextReg;
                        mask:=mask shl 8;
                        inc(shift,8);
                        curvalue:=(qword(a) and mask) shr shift;
-                       { decrease pressure on upper half of registers by using ADC ...,R1 instead
-                         of ADD ...,0 }
-                       if curvalue=0 then
-                         list.concat(taicpu.op_reg_reg(A_ADC,reg,NR_R1))
-                       else
-                         begin
-                           tmpreg:=getintregister(list,OS_8);
-                           a_load_const_reg(list,OS_8,curvalue,tmpreg);
-                           list.concat(taicpu.op_reg_reg(A_ADC,reg,tmpreg));
-                         end;
                      end;
-                 end;*)
+                 end;
              end;
          else
            begin
