@@ -722,18 +722,19 @@ unit cgcpu;
                list.concat(taicpu.op_reg(A_INC,NR_B));
                list.concat(taicpu.op_reg(A_DEC,NR_B));
                a_jmp_flags(list,F_E,l2);
-               case op of
-                 OP_ROL:
-                   begin
-                     list.concat(taicpu.op_reg(A_RRC,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1)));
-                     list.concat(taicpu.op_reg(A_RLC,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1)));
-                   end;
-                 OP_ROR:
-                   begin
-                     list.concat(taicpu.op_reg(A_RLC,dst));
-                     list.concat(taicpu.op_reg(A_RRC,dst));
-                   end;
-               end;
+               if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
+                 case op of
+                   OP_ROL:
+                     begin
+                       list.concat(taicpu.op_reg(A_RRC,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1)));
+                       list.concat(taicpu.op_reg(A_RLC,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1)));
+                     end;
+                   OP_ROR:
+                     begin
+                       list.concat(taicpu.op_reg(A_RLC,dst));
+                       list.concat(taicpu.op_reg(A_RRC,dst));
+                     end;
+                 end;
                cg.a_label(list,l1);
                case op of
                  OP_SHL:
