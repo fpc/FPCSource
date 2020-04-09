@@ -36,6 +36,7 @@ type
   TIHXReader = class
   private
     FOrigin: Word;
+    FInternalData: array [0..$FFFF] of Byte;
   public
     Data: array of Byte;
 
@@ -55,12 +56,13 @@ var
   I: Integer;
   LineByteCount: Byte;
   LineAddress: Word;
-  PrevLineAddress: LongInt = -1;
+  MinAddress, MaxAddress: LongInt;
   RecordType: Byte;
   Checksum, ExpectedChecksum: Byte;
   B: Byte;
-  OriginSet: Boolean = False;
 begin
+  MinAddress := -1;
+  MaxAddress := -1;
   FOrigin := 0;
   SetLength(Data, 0);
   AssignFile(InF, FileName);
@@ -83,16 +85,9 @@ begin
       if (LineByteCount*2+11)<>Length(S) then
         raise Exception.Create('Invalid line length');
       LineAddress:=StrToInt('$'+Copy(S,4,4));
-      if (PrevLineAddress <> -1) and (PrevLineAddress < LineAddress) then
-        SetLength(Data, Length(Data) + (LineAddress - PrevLineAddress));
       RecordType:=StrToInt('$'+Copy(S,8,2));
       Checksum:=StrToInt('$'+Copy(S,Length(S)-1,2));
       ExpectedChecksum := Byte(LineByteCount + RecordType + Byte(LineAddress) + Byte(LineAddress shr 8));
-      if not OriginSet then
-      begin
-        OriginSet := True;
-        FOrigin := LineAddress;
-      end;
       for I:=0 to LineByteCount-1 do
       begin
         B := StrToInt('$' + Copy(S, 10 + 2*I, 2));
@@ -104,11 +99,16 @@ begin
       case RecordType of
         0:
           begin
-            SetLength(Data, Length(Data) + LineByteCount);
+            if (MinAddress = -1) or (LineAddress < MinAddress) then
+              MinAddress := LineAddress;
+            if (MaxAddress = -1) or (MaxAddress < (LineAddress + LineByteCount - 1)) then
+              MaxAddress := LineAddress + LineByteCount - 1;
+            if MaxAddress > High(FInternalData) then
+              raise Exception.CreateFmt('Data exceeds %d bytes', [High(FInternalData) + 1]);
             for I:=0 to LineByteCount-1 do
             begin
               B := StrToInt('$' + Copy(S, 10 + 2*I, 2));
-              Data[High(Data) - (LineByteCount-1) + I] := B;
+              FInternalData[LineAddress + I] := B;
             end;
           end;
         1:
@@ -117,8 +117,10 @@ begin
             break;
           end;
       end;
-      PrevLineAddress := LineAddress + LineByteCount;
     end;
+    FOrigin := MinAddress;
+    SetLength(Data, MaxAddress - MinAddress + 1);
+    Move(FInternalData[MinAddress], Data[0], MaxAddress - MinAddress + 1);
   finally
     CloseFile(InF);
   end;
