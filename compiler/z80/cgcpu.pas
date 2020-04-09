@@ -792,7 +792,7 @@ unit cgcpu;
 
       procedure NextReg;
         begin
-          if i=5 then
+          if i=4 then
             reg:=reghi
           else
             reg:=GetNextReg(reg);
