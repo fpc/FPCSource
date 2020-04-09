@@ -472,13 +472,13 @@ unit cpupara;
 
                   paraloc:=result.add_location;
                   paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.register:=NR_C;
+                  paraloc^.register:=NR_E;
                   paraloc^.size:=OS_8;
                   paraloc^.def:=u8inttype;
 
                   paraloc:=result.add_location;
                   paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.register:=NR_B;
+                  paraloc^.register:=NR_D;
                   paraloc^.size:=OS_8;
                   paraloc^.def:=u8inttype;
                 end;
@@ -498,7 +498,7 @@ unit cpupara;
               OS_8,OS_S8:
                 begin
                   paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.register:=NR_HL;
+                  paraloc^.register:=NR_L;
                   paraloc^.size:=OS_8;
                   paraloc^.def:=u8inttype;
                 end;
