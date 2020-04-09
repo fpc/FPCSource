@@ -846,15 +846,31 @@ unit cgcpu;
              end;
            OP_OR:
              begin
-               list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_const_reg_internal, OP_OR')));
-               //for i:=1 to tcgsize2size[size] do
-               //  begin
-               //    if ((qword(a) and mask) shr shift)<>0 then
-               //      list.concat(taicpu.op_reg_const(A_ORI,reg,(qword(a) and mask) shr shift));
-               //    NextReg;
-               //    mask:=mask shl 8;
-               //    inc(shift,8);
-               //  end;
+               curvalue:=a and mask;
+               for i:=1 to tcgsize2size[size] do
+                 begin
+                   case curvalue of
+                     0:
+                       {nothing};
+                     $ff:
+                       list.concat(taicpu.op_reg_const(A_LD,reg,$ff));
+                     else
+                       begin
+                         getcpuregister(list,NR_A);
+                         emit_mov(list,NR_A,reg);
+                         list.concat(taicpu.op_reg_const(A_OR,NR_A,curvalue));
+                         emit_mov(list,reg,NR_A);
+                         ungetcpuregister(list,NR_A);
+                       end;
+                   end;
+                   if i<>tcgsize2size[size] then
+                     begin
+                       NextReg;
+                       mask:=mask shl 8;
+                       inc(shift,8);
+                       curvalue:=(qword(a) and mask) shr shift;
+                     end;
+                 end;
              end;
            OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
              begin
