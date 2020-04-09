@@ -776,7 +776,7 @@ unit i_embed;
                 recordalignmax       : 1;
                 maxCrecordalign      : 1
               );
-            first_parm_offset : 0;
+            first_parm_offset : 4;
             stacksize    : 1024;
             stackalign   : 1;
             abi : abi_default;
