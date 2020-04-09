@@ -1914,7 +1914,19 @@ unit cgcpu;
         i : longint;
         SrcQuickRef, DestQuickRef : Boolean;
       begin
-        list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: g_concatcopy')));
+        if (len=1) and (not assigned(source.symbol) and
+            ((source.base=NR_IX) or (source.base=NR_IY) or
+             ((source.base=NR_HL) and (source.offset=0)))) and
+           (not assigned(dest.symbol) and
+            ((dest.base=NR_IX) or (dest.base=NR_IY) or
+             ((dest.base=NR_HL) and (dest.offset=0)))) then
+          begin
+            tmpreg:=getintregister(list,OS_8);
+            list.concat(taicpu.op_reg_ref(A_LD,tmpreg,source));
+            list.concat(taicpu.op_ref_reg(A_LD,dest,tmpreg));
+          end
+        else
+          list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: g_concatcopy')));
         //if len>16 then
         //  begin
         //    current_asmdata.getjumplabel(l);
