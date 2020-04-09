@@ -564,13 +564,7 @@ unit cgcpu;
 
      procedure tcgz80.a_op_reg_reg_internal(list : TAsmList; Op: TOpCG; size: TCGSize; src, srchi, dst, dsthi: TRegister);
        var
-         countreg,
-         tmpreg,tmpreg2: tregister;
          i : integer;
-         instr : taicpu;
-         paraloc1,paraloc2,paraloc3 : TCGPara;
-         l1,l2 : tasmlabel;
-         pd : tprocdef;
 
        procedure NextSrcDst;
          begin
@@ -586,14 +580,10 @@ unit cgcpu;
              end;
          end;
 
-       { iterates TmpReg through all registers of dst }
-       procedure NextTmp;
-         begin
-           if i=5 then
-             tmpreg:=dsthi
-           else
-             tmpreg:=GetNextReg(tmpreg);
-         end;
+       var
+         tmpreg,tmpreg2: tregister;
+         instr : taicpu;
+         l1,l2 : tasmlabel;
 
       begin
          case op of
@@ -802,11 +792,7 @@ unit cgcpu;
       size: TCGSize; a: tcgint; reg, reghi: TRegister);
 
        var
-         mask : qword;
-         shift : byte;
-         i,j : byte;
-         tmpreg : tregister;
-         tmpreg64 : tregister64;
+         i : byte;
 
       procedure NextReg;
         begin
@@ -817,10 +803,14 @@ unit cgcpu;
         end;
 
       var
+        mask : qword;
+        shift : byte;
         curvalue : byte;
         tmpop: TAsmOp;
         l1: TAsmLabel;
         instr: taicpu;
+        tmpreg : tregister;
+        tmpreg64 : tregister64;
 
        begin
          optimize_op_const(size,op,a);
