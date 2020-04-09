@@ -212,14 +212,14 @@ unit cpubase;
       }
       NR_PIC_OFFSET_REG = NR_INVALID;
       { Results are returned in this register (32-bit values) }
-      NR_FUNCTION_RETURN_REG = NR_HL;
-      RS_FUNCTION_RETURN_REG = RS_HL;
+      NR_FUNCTION_RETURN_REG = NR_L;
+      RS_FUNCTION_RETURN_REG = RS_L;
       { Low part of 64bit return value }
-      NR_FUNCTION_RETURN64_LOW_REG = NR_HL;
-      RS_FUNCTION_RETURN64_LOW_REG = RS_HL;
+      NR_FUNCTION_RETURN64_LOW_REG = NR_L;
+      RS_FUNCTION_RETURN64_LOW_REG = RS_L;
       { High part of 64bit return value }
-      NR_FUNCTION_RETURN64_HIGH_REG = NR_BC;
-      RS_FUNCTION_RETURN64_HIGH_REG = RS_BC;
+      NR_FUNCTION_RETURN64_HIGH_REG = NR_C;
+      RS_FUNCTION_RETURN64_HIGH_REG = RS_C;
       { The value returned from a function is available in this register }
       NR_FUNCTION_RESULT_REG = NR_FUNCTION_RETURN_REG;
       RS_FUNCTION_RESULT_REG = RS_FUNCTION_RETURN_REG;
