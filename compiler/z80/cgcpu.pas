@@ -842,30 +842,6 @@ unit cgcpu;
                //    inc(shift,8);
                //  end;
              end;
-           OP_SUB:
-             begin
-               if ((a and mask)=1) and (tcgsize2size[size]=1) then
-                 list.concat(taicpu.op_reg(A_DEC,reg))
-               else
-                 list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_const_reg_internal, OP_SUB')));
-               //  list.concat(taicpu.op_reg_const(A_SUBI,reg,a and mask));
-               //if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
-               //  begin
-               //    for i:=2 to tcgsize2size[size] do
-               //      begin
-               //        NextReg;
-               //        mask:=mask shl 8;
-               //        inc(shift,8);
-               //        curvalue:=(qword(a) and mask) shr shift;
-               //        { decrease pressure on upper half of registers by using SBC ...,R1 instead
-               //          of SBCI ...,0 }
-               //        if curvalue=0 then
-               //          list.concat(taicpu.op_reg_reg(A_SBC,reg,NR_R1))
-               //        else
-               //          list.concat(taicpu.op_reg_const(A_SBCI,reg,curvalue));
-               //      end;
-               //  end;
-             end;
            OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
              begin
                list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_const_reg_internal, OP_shift/ror')));
@@ -948,7 +924,7 @@ unit cgcpu;
                      A_NONE:
                        {nothing};
                      A_INC:
-                       list.concat(taicpu.op_reg(A_INC,reg));
+                       list.concat(taicpu.op_reg(tmpop,reg));
                      A_ADD,A_ADC:
                        begin
                          getcpuregister(list,NR_A);
@@ -959,6 +935,43 @@ unit cgcpu;
                        end;
                      else
                        internalerror(2020040901);
+                   end;
+                   if i<>tcgsize2size[size] then
+                     begin
+                       NextReg;
+                       mask:=mask shl 8;
+                       inc(shift,8);
+                       curvalue:=(qword(a) and mask) shr shift;
+                     end;
+                 end;
+             end;
+           OP_SUB:
+             begin
+               curvalue:=a and mask;
+               tmpop:=A_NONE;
+               for i:=1 to tcgsize2size[size] do
+                 begin
+                   if (tmpop=A_NONE) and (curvalue=1) and (i=tcgsize2size[size]) then
+                     tmpop:=A_DEC
+                   else if (tmpop=A_NONE) and (curvalue<>0) then
+                     tmpop:=A_SUB
+                   else if tmpop=A_ADD then
+                     tmpop:=A_SBC;
+                   case tmpop of
+                     A_NONE:
+                       {nothing};
+                     A_DEC:
+                       list.concat(taicpu.op_reg(tmpop,reg));
+                     A_SUB,A_SBC:
+                       begin
+                         getcpuregister(list,NR_A);
+                         emit_mov(list,NR_A,reg);
+                         list.concat(taicpu.op_reg_const(tmpop,NR_A,curvalue));
+                         emit_mov(list,reg,NR_A);
+                         ungetcpuregister(list,NR_A);
+                       end;
+                     else
+                       internalerror(2020040902);
                    end;
                    if i<>tcgsize2size[size] then
                      begin
