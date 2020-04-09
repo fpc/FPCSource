@@ -816,6 +816,34 @@ unit cgcpu;
                { Optimized, replaced with a simple load }
                a_load_const_reg(list,size,a,reg);
              end;
+           OP_AND:
+             begin
+               curvalue:=a and mask;
+               for i:=1 to tcgsize2size[size] do
+                 begin
+                   case curvalue of
+                     0:
+                       list.concat(taicpu.op_reg_const(A_LD,reg,0));
+                     $ff:
+                       {nothing};
+                     else
+                       begin
+                         getcpuregister(list,NR_A);
+                         emit_mov(list,NR_A,reg);
+                         list.concat(taicpu.op_reg_const(A_AND,NR_A,curvalue));
+                         emit_mov(list,reg,NR_A);
+                         ungetcpuregister(list,NR_A);
+                       end;
+                   end;
+                   if i<>tcgsize2size[size] then
+                     begin
+                       NextReg;
+                       mask:=mask shl 8;
+                       inc(shift,8);
+                       curvalue:=(qword(a) and mask) shr shift;
+                     end;
+                 end;
+             end;
            OP_OR:
              begin
                list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_const_reg_internal, OP_OR')));
@@ -823,20 +851,6 @@ unit cgcpu;
                //  begin
                //    if ((qword(a) and mask) shr shift)<>0 then
                //      list.concat(taicpu.op_reg_const(A_ORI,reg,(qword(a) and mask) shr shift));
-               //    NextReg;
-               //    mask:=mask shl 8;
-               //    inc(shift,8);
-               //  end;
-             end;
-           OP_AND:
-             begin
-               list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_const_reg_internal, OP_AND')));
-               //for i:=1 to tcgsize2size[size] do
-               //  begin
-               //    if ((qword(a) and mask) shr shift)=0 then
-               //      list.concat(taicpu.op_reg_reg(A_MOV,reg,NR_R1))
-               //    else
-               //      list.concat(taicpu.op_reg_const(A_ANDI,reg,(qword(a) and mask) shr shift));
                //    NextReg;
                //    mask:=mask shl 8;
                //    inc(shift,8);
