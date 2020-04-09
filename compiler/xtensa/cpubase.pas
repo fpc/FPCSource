@@ -314,21 +314,9 @@ unit cpubase;
           R_INTREGISTER :
             reg_cgsize:=OS_32;
           R_FPUREGISTER :
-            reg_cgsize:=OS_F80;
-          R_MMREGISTER :
-            begin
-              case getsubreg(reg) of
-                R_SUBFD,
-                R_SUBWHOLE:
-                  result:=OS_F64;
-                R_SUBFS:
-                  result:=OS_F32;
-                else
-                  internalerror(2009112903);
-              end;
-            end;
+            reg_cgsize:=OS_F32;
           else
-            internalerror(200303181);
+            internalerror(2020040501);
           end;
         end;
 
