@@ -610,6 +610,9 @@ endif
 ifeq ($(FULL_TARGET),xtensa-embedded)
 override TARGET_DIRS+=embedded
 endif
+ifeq ($(FULL_TARGET),xtensa-freertos)
+override TARGET_DIRS+=freertos
+endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_CREATEPACKAGEFPC=y
 ifdef REQUIRE_UNITSDIR
@@ -2077,6 +2080,9 @@ TARGET_DIRS_LINUX=1
 endif
 ifeq ($(FULL_TARGET),xtensa-embedded)
 TARGET_DIRS_EMBEDDED=1
+endif
+ifeq ($(FULL_TARGET),xtensa-freertos)
+TARGET_DIRS_FREERTOS=1
 endif
 ifdef TARGET_DIRS_LINUX
 linux_all:
@@ -3697,6 +3703,51 @@ win16_makefiles:
 win16:
 	$(MAKE) -C win16 all
 .PHONY: win16_all win16_debug win16_smart win16_release win16_units win16_examples win16_shared win16_install win16_sourceinstall win16_exampleinstall win16_distinstall win16_zipinstall win16_zipsourceinstall win16_zipexampleinstall win16_zipdistinstall win16_clean win16_distclean win16_cleanall win16_info win16_makefiles win16
+endif
+ifdef TARGET_DIRS_FREERTOS
+freertos_all:
+	$(MAKE) -C freertos all
+freertos_debug:
+	$(MAKE) -C freertos debug
+freertos_smart:
+	$(MAKE) -C freertos smart
+freertos_release:
+	$(MAKE) -C freertos release
+freertos_units:
+	$(MAKE) -C freertos units
+freertos_examples:
+	$(MAKE) -C freertos examples
+freertos_shared:
+	$(MAKE) -C freertos shared
+freertos_install:
+	$(MAKE) -C freertos install
+freertos_sourceinstall:
+	$(MAKE) -C freertos sourceinstall
+freertos_exampleinstall:
+	$(MAKE) -C freertos exampleinstall
+freertos_distinstall:
+	$(MAKE) -C freertos distinstall
+freertos_zipinstall:
+	$(MAKE) -C freertos zipinstall
+freertos_zipsourceinstall:
+	$(MAKE) -C freertos zipsourceinstall
+freertos_zipexampleinstall:
+	$(MAKE) -C freertos zipexampleinstall
+freertos_zipdistinstall:
+	$(MAKE) -C freertos zipdistinstall
+freertos_clean:
+	$(MAKE) -C freertos clean
+freertos_distclean:
+	$(MAKE) -C freertos distclean
+freertos_cleanall:
+	$(MAKE) -C freertos cleanall
+freertos_info:
+	$(MAKE) -C freertos info
+freertos_makefiles:
+	$(MAKE) -C freertos makefiles
+freertos:
+	$(MAKE) -C freertos all
+.PHONY: freertos_all freertos_debug freertos_smart freertos_release freertos_units freertos_examples freertos_shared freertos_install freertos_sourceinstall freertos_exampleinstall freertos_distinstall freertos_zipinstall freertos_zipsourceinstall freertos_zipexampleinstall freertos_zipdistinstall freertos_clean freertos_distclean freertos_cleanall freertos_info freertos_makefiles freertos
 endif
 all: $(addsuffix _all,$(TARGET_DIRS))
 debug: $(addsuffix _debug,$(TARGET_DIRS))
