@@ -1833,17 +1833,9 @@ unit cgcpu;
             list.concat(taicpu.op_reg_ref(A_LD,GetNextReg(r),tmpref));
 
             if (ref.base<>NR_NO) then
-              begin
-                list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_loadaddr_ref_reg with symbol and ref.base')));
-                //list.concat(taicpu.op_reg_reg(A_ADD,r,ref.base));
-                //list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(r),GetNextReg(ref.base)));
-              end;
+              a_op_reg_reg(list,OP_ADD,OS_16,ref.base,r);
             if (ref.index<>NR_NO) then
-              begin
-                list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_loadaddr_ref_reg with symbol and ref.index')));
-                //list.concat(taicpu.op_reg_reg(A_ADD,r,ref.index));
-                //list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(r),GetNextReg(ref.index)));
-              end;
+              a_op_reg_reg(list,OP_ADD,OS_16,ref.index,r);
           end
         else
           list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_loadaddr_ref_reg')));
