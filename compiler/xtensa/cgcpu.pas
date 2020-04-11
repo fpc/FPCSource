@@ -144,6 +144,9 @@ implementation
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,RS_F9,
              RS_F10,RS_F11,RS_F12,RS_F13,RS_F14,RS_F15],first_fpu_imreg,[]);
+        rg[R_SPECIALREGISTER]:=trgcpu.create(R_SPECIALREGISTER,R_SUBNONE,
+            [RS_B0,RS_B1,RS_B2,RS_B3,RS_B4,RS_B5,RS_B6,RS_B7,RS_B8,RS_B9,
+             RS_B10,RS_B11,RS_B12,RS_B13,RS_B14,RS_B15],first_flag_imreg,[]);
       end;
 
 
@@ -151,6 +154,7 @@ implementation
       begin
         rg[R_INTREGISTER].free;
         rg[R_FPUREGISTER].free;
+        rg[R_SPECIALREGISTER].free;
         inherited done_register_allocators;
       end;
 

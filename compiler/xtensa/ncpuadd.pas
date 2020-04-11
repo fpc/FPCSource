@@ -283,7 +283,8 @@ interface
         { emit the actual operation }
         if cmpop then
           begin
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,right.location.register));
+            cg.getcpuregister(current_asmdata.CurrAsmList,location.resflags.register);
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.resflags.register,left.location.register,right.location.register));
             cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
 
             if inv then
