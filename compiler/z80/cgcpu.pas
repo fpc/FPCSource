@@ -1870,12 +1870,8 @@ unit cgcpu;
 
     procedure tcgz80.g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);
       var
-        countreg,tmpreg,srcreg,dstreg: tregister;
+        tmpreg,srcreg,dstreg: tregister;
         srcref,dstref : treference;
-        copysize,countregsize : tcgsize;
-        l : TAsmLabel;
-        i : longint;
-        SrcQuickRef, DestQuickRef : Boolean;
       begin
         if (len=1) and (not assigned(source.symbol) and
             ((source.base=NR_IX) or (source.base=NR_IY) or
