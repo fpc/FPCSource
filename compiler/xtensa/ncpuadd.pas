@@ -152,6 +152,10 @@ interface
     function TCPUAddNode.pass_1 : tnode;
       begin
         result:=inherited pass_1;
+        if not(assigned(result)) and (nodetype in [equaln,unequaln,ltn,lten,gtn,gten]) and
+          not((FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype]) and
+            is_single(left.resultdef) and (nodetype<>slashn)) then
+          expectloc:=LOC_JUMP;
 {$ifdef dummy}
         if not(assigned(result)) then
           begin
