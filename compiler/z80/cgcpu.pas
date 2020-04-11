@@ -1820,7 +1820,7 @@ unit cgcpu;
       var
         tmpref : treference;
       begin
-        if assigned(ref.symbol) or (ref.offset<>0) then
+        if assigned(ref.symbol) then
           begin
             reference_reset(tmpref,0,[]);
             tmpref.symbol:=ref.symbol;
@@ -1837,23 +1837,29 @@ unit cgcpu;
             if (ref.index<>NR_NO) then
               a_op_reg_reg(list,OP_ADD,OS_16,ref.index,r);
           end
+        else if ref.base=NR_IX then
+          begin
+            list.concat(taicpu.op_reg(A_PUSH,NR_IX));
+            getcpuregister(list,NR_H);
+            getcpuregister(list,NR_L);
+            list.concat(taicpu.op_reg(A_POP,NR_HL));
+            emit_mov(list,r,NR_L);
+            ungetcpuregister(list,NR_L);
+            emit_mov(list,GetNextReg(r),NR_H);
+            ungetcpuregister(list,NR_H);
+            if (ref.index<>NR_NO) then
+              a_op_reg_reg(list,OP_ADD,OS_16,ref.index,r);
+            if ref.offset<>0 then
+              a_op_const_reg(list,OP_ADD,OS_16,ref.offset,r);
+          end
         else
-          list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_loadaddr_ref_reg')));
-        //else if (ref.base<>NR_NO)then
-        //  begin
-        //    emit_mov(list,r,ref.base);
-        //    emit_mov(list,GetNextReg(r),GetNextReg(ref.base));
-        //    if (ref.index<>NR_NO) then
-        //      begin
-        //        list.concat(taicpu.op_reg_reg(A_ADD,r,ref.index));
-        //        list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(r),GetNextReg(ref.index)));
-        //      end;
-        //  end
-        //else if (ref.index<>NR_NO) then
-        //  begin
-        //    emit_mov(list,r,ref.index);
-        //    emit_mov(list,GetNextReg(r),GetNextReg(ref.index));
-        //  end;
+          begin
+            a_load_const_reg(list,OS_16,ref.offset,r);
+            if (ref.base<>NR_NO) then
+              a_op_reg_reg(list,OP_ADD,OS_16,ref.base,r);
+            if (ref.index<>NR_NO) then
+              a_op_reg_reg(list,OP_ADD,OS_16,ref.index,r);
+          end;
       end;
 
 
