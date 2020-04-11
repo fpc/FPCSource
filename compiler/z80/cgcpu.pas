@@ -1899,7 +1899,7 @@ unit cgcpu;
 
     procedure tcgz80.g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);
       var
-        countreg,tmpreg : tregister;
+        countreg,tmpreg,srcreg,dstreg: tregister;
         srcref,dstref : treference;
         copysize,countregsize : tcgsize;
         l : TAsmLabel;
@@ -1918,151 +1918,30 @@ unit cgcpu;
             list.concat(taicpu.op_ref_reg(A_LD,dest,tmpreg));
           end
         else
-          list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: g_concatcopy')));
-        //if len>16 then
-        //  begin
-        //    current_asmdata.getjumplabel(l);
-        //
-        //    reference_reset(srcref,source.alignment,source.volatility);
-        //    reference_reset(dstref,dest.alignment,source.volatility);
-        //    srcref.base:=NR_R30;
-        //    srcref.addressmode:=AM_POSTINCREMENT;
-        //    dstref.base:=NR_R26;
-        //    dstref.addressmode:=AM_POSTINCREMENT;
-        //
-        //    copysize:=OS_8;
-        //    if len<256 then
-        //      countregsize:=OS_8
-        //    else if len<65536 then
-        //      countregsize:=OS_16
-        //    else
-        //      internalerror(2011022007);
-        //    countreg:=getintregister(list,countregsize);
-        //    a_load_const_reg(list,countregsize,len,countreg);
-        //    a_loadaddr_ref_reg(list,source,NR_R30);
-        //
-        //    { only base or index register in dest? }
-        //    if ((dest.addressmode=AM_UNCHANGED) and (dest.offset=0) and not(assigned(dest.symbol))) and
-        //      ((dest.base<>NR_NO) xor (dest.index<>NR_NO)) then
-        //      begin
-        //        if dest.base<>NR_NO then
-        //          tmpreg:=dest.base
-        //        else if dest.index<>NR_NO then
-        //          tmpreg:=dest.index
-        //        else
-        //          internalerror(2016112001);
-        //      end
-        //    else
-        //      begin
-        //        tmpreg:=getaddressregister(list);
-        //        a_loadaddr_ref_reg(list,dest,tmpreg);
-        //      end;
-        //
-        //    { X is used for spilling code so we can load it
-        //      only by a push/pop sequence, this can be
-        //      optimized later on by the peephole optimizer
-        //    }
-        //    list.concat(taicpu.op_reg(A_PUSH,tmpreg));
-        //    list.concat(taicpu.op_reg(A_PUSH,GetNextReg(tmpreg)));
-        //    list.concat(taicpu.op_reg(A_POP,NR_R27));
-        //    list.concat(taicpu.op_reg(A_POP,NR_R26));
-        //    cg.a_label(list,l);
-        //    list.concat(taicpu.op_reg_ref(GetLoad(srcref),NR_R0,srcref));
-        //    list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,NR_R0));
-        //    list.concat(taicpu.op_reg(A_DEC,countreg));
-        //    a_jmp_flags(list,F_NE,l);
-        //    // keep registers alive
-        //    list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
-        //  end
-        //else
-        //  begin
-        //    SrcQuickRef:=false;
-        //    DestQuickRef:=false;
-        //    if not((source.addressmode=AM_UNCHANGED) and
-        //           (source.symbol=nil) and
-        //           ((source.base=NR_R28) or
-        //            (source.base=NR_R30)) and
-        //            (source.Index=NR_NO) and
-        //            (source.Offset in [0..64-len])) and
-        //      not((source.Base=NR_NO) and (source.Index=NR_NO)) then
-        //      srcref:=normalize_ref(list,source,NR_R30)
-        //    else
-        //      begin
-        //        SrcQuickRef:=true;
-        //        srcref:=source;
-        //      end;
-        //
-        //    if not((dest.addressmode=AM_UNCHANGED) and
-        //           (dest.symbol=nil) and
-        //           ((dest.base=NR_R28) or
-        //            (dest.base=NR_R30)) and
-        //            (dest.Index=NR_No) and
-        //            (dest.Offset in [0..64-len])) and
-        //      not((dest.Base=NR_NO) and (dest.Index=NR_NO)) then
-        //      begin
-        //        if not(SrcQuickRef) then
-        //          begin
-        //            { only base or index register in dest? }
-        //            if ((dest.addressmode=AM_UNCHANGED) and (dest.offset=0) and not(assigned(dest.symbol))) and
-        //              ((dest.base<>NR_NO) xor (dest.index<>NR_NO)) then
-        //              begin
-        //                if dest.base<>NR_NO then
-        //                  tmpreg:=dest.base
-        //                else if dest.index<>NR_NO then
-        //                  tmpreg:=dest.index
-        //                else
-        //                  internalerror(2016112002);
-        //              end
-        //            else
-        //              tmpreg:=getaddressregister(list);
-        //
-        //            dstref:=normalize_ref(list,dest,tmpreg);
-        //
-        //            { X is used for spilling code so we can load it
-        //              only by a push/pop sequence, this can be
-        //              optimized later on by the peephole optimizer
-        //            }
-        //            list.concat(taicpu.op_reg(A_PUSH,tmpreg));
-        //            list.concat(taicpu.op_reg(A_PUSH,GetNextReg(tmpreg)));
-        //            list.concat(taicpu.op_reg(A_POP,NR_R27));
-        //            list.concat(taicpu.op_reg(A_POP,NR_R26));
-        //            dstref.base:=NR_R26;
-        //          end
-        //        else
-        //          dstref:=normalize_ref(list,dest,NR_R30);
-        //      end
-        //    else
-        //      begin
-        //        DestQuickRef:=true;
-        //        dstref:=dest;
-        //      end;
-        //
-        //    for i:=1 to len do
-        //      begin
-        //        if not(SrcQuickRef) and (i<len) then
-        //          srcref.addressmode:=AM_POSTINCREMENT
-        //        else
-        //          srcref.addressmode:=AM_UNCHANGED;
-        //
-        //        if not(DestQuickRef) and (i<len) then
-        //          dstref.addressmode:=AM_POSTINCREMENT
-        //        else
-        //          dstref.addressmode:=AM_UNCHANGED;
-        //
-        //        list.concat(taicpu.op_reg_ref(GetLoad(srcref),NR_R0,srcref));
-        //        list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,NR_R0));
-        //
-        //        if SrcQuickRef then
-        //          inc(srcref.offset);
-        //        if DestQuickRef then
-        //          inc(dstref.offset);
-        //      end;
-        //    if not(SrcQuickRef) then
-        //      begin
-        //        ungetcpuregister(list,srcref.base);
-        //        ungetcpuregister(list,GetNextReg(srcref.base));
-        //      end;
-        //  end;
+          begin
+            srcreg:=getintregister(list,OS_16);
+            a_loadaddr_ref_reg(list,source,srcreg);
+            dstreg:=getintregister(list,OS_16);
+            a_loadaddr_ref_reg(list,dest,dstreg);
+            getcpuregister(list,NR_L);
+            a_load_reg_reg(list,OS_8,OS_8,srcreg,NR_L);
+            getcpuregister(list,NR_H);
+            a_load_reg_reg(list,OS_8,OS_8,GetNextReg(srcreg),NR_H);
+            getcpuregister(list,NR_E);
+            a_load_reg_reg(list,OS_8,OS_8,dstreg,NR_E);
+            getcpuregister(list,NR_D);
+            a_load_reg_reg(list,OS_8,OS_8,GetNextReg(dstreg),NR_D);
+            getcpuregister(list,NR_B);
+            getcpuregister(list,NR_C);
+            list.concat(taicpu.op_reg_const(A_LD,NR_BC,len));
+            list.concat(taicpu.op_none(A_LDIR));
+            ungetcpuregister(list,NR_B);
+            ungetcpuregister(list,NR_C);
+            ungetcpuregister(list,NR_D);
+            ungetcpuregister(list,NR_E);
+            ungetcpuregister(list,NR_H);
+            ungetcpuregister(list,NR_L);
+          end;
       end;
 
 
