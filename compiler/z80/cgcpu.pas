@@ -1820,39 +1820,33 @@ unit cgcpu;
       var
         tmpref : treference;
       begin
-        list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_loadaddr_ref_reg')));
-        // if ref.addressmode<>AM_UNCHANGED then
-        //   internalerror(2011021701);
-        //
-        //if assigned(ref.symbol) or (ref.offset<>0) then
-        //  begin
-        //    reference_reset(tmpref,0,[]);
-        //    tmpref.symbol:=ref.symbol;
-        //    tmpref.offset:=ref.offset;
-        //
-        //    if assigned(ref.symbol) and (ref.symbol.typ in [AT_FUNCTION,AT_LABEL]) then
-        //      tmpref.refaddr:=addr_lo8_gs
-        //    else
-        //      tmpref.refaddr:=addr_lo8;
-        //    list.concat(taicpu.op_reg_ref(A_LDI,r,tmpref));
-        //
-        //    if assigned(ref.symbol) and (ref.symbol.typ in [AT_FUNCTION,AT_LABEL]) then
-        //      tmpref.refaddr:=addr_hi8_gs
-        //    else
-        //      tmpref.refaddr:=addr_hi8;
-        //    list.concat(taicpu.op_reg_ref(A_LDI,GetNextReg(r),tmpref));
-        //
-        //    if (ref.base<>NR_NO) then
-        //      begin
-        //        list.concat(taicpu.op_reg_reg(A_ADD,r,ref.base));
-        //        list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(r),GetNextReg(ref.base)));
-        //      end;
-        //    if (ref.index<>NR_NO) then
-        //      begin
-        //        list.concat(taicpu.op_reg_reg(A_ADD,r,ref.index));
-        //        list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(r),GetNextReg(ref.index)));
-        //      end;
-        //  end
+        if assigned(ref.symbol) or (ref.offset<>0) then
+          begin
+            reference_reset(tmpref,0,[]);
+            tmpref.symbol:=ref.symbol;
+            tmpref.offset:=ref.offset;
+
+            tmpref.refaddr:=addr_lo8;
+            list.concat(taicpu.op_reg_ref(A_LD,r,tmpref));
+
+            tmpref.refaddr:=addr_hi8;
+            list.concat(taicpu.op_reg_ref(A_LD,GetNextReg(r),tmpref));
+
+            if (ref.base<>NR_NO) then
+              begin
+                list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_loadaddr_ref_reg with symbol and ref.base')));
+                //list.concat(taicpu.op_reg_reg(A_ADD,r,ref.base));
+                //list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(r),GetNextReg(ref.base)));
+              end;
+            if (ref.index<>NR_NO) then
+              begin
+                list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_loadaddr_ref_reg with symbol and ref.index')));
+                //list.concat(taicpu.op_reg_reg(A_ADD,r,ref.index));
+                //list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(r),GetNextReg(ref.index)));
+              end;
+          end
+        else
+          list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_loadaddr_ref_reg')));
         //else if (ref.base<>NR_NO)then
         //  begin
         //    emit_mov(list,r,ref.base);

@@ -330,7 +330,25 @@ unit agsdasz80;
             end;
           top_ref:
             begin
-              if not assigned(o.ref^.symbol) and
+              if assigned(o.ref^.symbol) and (o.ref^.refaddr in [addr_lo8,addr_hi8]) then
+                begin
+                  {if SmartAsm then
+                    AddSymbol(o.ref^.symbol.name,false);}
+                  if (o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO) then
+                    internalerror(2020041101);
+                  writer.AsmWrite('#');
+                  case o.ref^.refaddr of
+                    addr_lo8:
+                      writer.AsmWrite('<');
+                    addr_hi8:
+                      writer.AsmWrite('>');
+                  end;
+                  if o.ref^.offset<>0 then
+                    writer.AsmWrite('('+o.ref^.symbol.name+'+'+tostr(o.ref^.offset)+')')
+                  else
+                    writer.AsmWrite(o.ref^.symbol.name);
+                end
+              else if not assigned(o.ref^.symbol) and
                  ((o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO)) and
                  (o.ref^.offset<>0) then
                 begin
