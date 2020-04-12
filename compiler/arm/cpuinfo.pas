@@ -1074,9 +1074,9 @@ Const
    tfpuflags =
       (
         FPUARM_HAS_FPA,                { fpu is an fpa based FPU                                                               }
-        FPUARM_HAS_VFP_EXTENSION,      { fpu is a vfp extension                                                                }
+        FPUARM_HAS_VFP_EXTENSION,      { fpu is a vfp extension, it means at least single operation support                    }
         FPUARM_HAS_VFP_DOUBLE,         { vfp has double support                                                                }
-        FPUARM_HAS_VFP_SINGLE_ONLY,    { vfp has only single support, disjunct to FPUARM_HAS_VFP_DOUBLE, for error checking    }
+        FPUARM_HAS_VFP_DOUBLE_MOVLDST, { vfp has only single support, but MOV, LD, ST can be done on pairs as double           }
         FPUARM_HAS_32REGS,             { vfp has 32 regs, without this flag, 16 are assumed                                    }
         FPUARM_HAS_VMOV_CONST,         { vmov supports (some) real constants                                                   }
         FPUARM_HAS_EXCEPTION_TRAPPING, { vfp does exceptions trapping                                                          }
@@ -1118,9 +1118,9 @@ Const
          { fpu_vfpv3        } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST],
          { fpu_neon_vfpv3   } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_NEON],
          { fpu_vfpv3_d16    } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_VMOV_CONST],
-         { fpu_fpv4_s16     } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_SINGLE_ONLY,FPUARM_HAS_VMOV_CONST],
+         { fpu_fpv4_s16     } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_32REGS,FPUARM_HAS_VFP_DOUBLE_MOVLDST,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_FMA],
          { fpu_vfpv4        } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_FMA],
-         { fpu_fpv4_sp_d16  } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_FMA],
+         { fpu_fpv4_sp_d16  } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_32REGS,FPUARM_HAS_VFP_DOUBLE_MOVLDST,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_FMA],
          { fpu_neon_vfpv4   } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_NEON,FPUARM_HAS_FMA]
        );
 

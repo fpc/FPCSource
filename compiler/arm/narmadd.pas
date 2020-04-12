@@ -240,7 +240,7 @@ interface
                  location.register,left.location.register,right.location.register),pf));
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end
-          else if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype] then
+          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
             begin
               { force mmreg as location, left right doesn't matter
                 as both will be in a fpureg }
@@ -326,7 +326,7 @@ interface
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VMRS,NR_APSR_nzcv,NR_FPSCR));
               location.resflags:=GetFpuResFlags;
             end
-          else if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype] then
+          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
             begin
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
@@ -586,7 +586,7 @@ interface
         result := nil;
         notnode := false;
 
-        if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype] then
+        if not(FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
           begin
             case tfloatdef(left.resultdef).floattype of
               s32real:
