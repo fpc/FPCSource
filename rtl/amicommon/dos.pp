@@ -1082,7 +1082,9 @@ Var
 begin
   SetLength(EnvList, 0);
   // pr_LocalVars are introduced with OS2.0
+  {$ifdef AMIGA68k}
   if PLibrary(AOS_ExecBase)^.lib_Version >= 36 then
+  {$endif}
   begin
     ThisProcess := PProcess(FindTask(nil));  //Get the pointer to our process
     LocalVars_List := @(ThisProcess^.pr_LocalVars);  //get the list of pr_LocalVars as pointer
