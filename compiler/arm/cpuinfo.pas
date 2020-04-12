@@ -73,8 +73,9 @@ Type
       fpu_vfpv3,
       fpu_neon_vfpv3,
       fpu_vfpv3_d16,
-      fpu_fpv4_s16,
+      fpu_fpv4_s16,     { same as fpu_fpv4_sp_d32, kept for backwards compatibility }
       fpu_vfpv4,
+      fpu_fpv4_sp_d16,  { 32 registers single precision, for load/store/move they can be accessed as 16 double registers }
       fpu_neon_vfpv4
       { when new elements added afterwards, update also fpu_vfp_last below and
         update class procedure tarmnodeutils.InsertObjectInfo; in narmutil.pas }
@@ -84,7 +85,7 @@ Const
    fpu_vfp_first = fpu_vfpv2;
    fpu_vfp_last  = fpu_neon_vfpv4;
 
-  fputypestrllvm : array[tfputype] of string[14] = ('',
+  fputypestrllvm : array[tfputype] of string[15] = ('',
     '',
     '',
     '',
@@ -96,6 +97,7 @@ Const
     'fpu=vfpv3-d16',
     'fpu=vfpv4-s16',
     'fpu=vfpv4',
+    'fpu=fpv4-sp-d16',
     'fpu=neon-vfpv4'
   );
 
@@ -570,7 +572,7 @@ Const
      'ARMV7EM'
    );
 
-   fputypestr : array[tfputype] of string[10] = (
+   fputypestr : array[tfputype] of string[11] = (
      'NONE',
      'SOFT',
      'LIBGCC',
@@ -583,6 +585,7 @@ Const
      'VFPV3_D16',
      'FPV4_S16',
      'VFPV4',
+     'FPV4_SP_D16',
      'NEON_VFPV4'
    );
 
@@ -1105,19 +1108,20 @@ Const
      );
 
      fpu_capabilities : array[tfputype] of set of tfpuflags =
-       ( { fpu_none       } [],
-         { fpu_soft       } [],
-         { fpu_libgcc     } [],
-         { fpu_fpa        } [FPUARM_HAS_FPA],
-         { fpu_fpa10      } [FPUARM_HAS_FPA],
-         { fpu_fpa11      } [FPUARM_HAS_FPA],
-         { fpu_vfpv2      } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE],
-         { fpu_vfpv3      } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST],
-         { fpu_neon_vfpv3 } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_NEON],
-         { fpu_vfpv3_d16  } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_VMOV_CONST],
-         { fpu_fpv4_s16   } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_SINGLE_ONLY,FPUARM_HAS_VMOV_CONST],
-         { fpu_vfpv4      } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_FMA],
-         { fpu_neon_vfpv4 } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_NEON,FPUARM_HAS_FMA]
+       ( { fpu_none         } [],
+         { fpu_soft         } [],
+         { fpu_libgcc       } [],
+         { fpu_fpa          } [FPUARM_HAS_FPA],
+         { fpu_fpa10        } [FPUARM_HAS_FPA],
+         { fpu_fpa11        } [FPUARM_HAS_FPA],
+         { fpu_vfpv2        } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE],
+         { fpu_vfpv3        } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST],
+         { fpu_neon_vfpv3   } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_NEON],
+         { fpu_vfpv3_d16    } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_VMOV_CONST],
+         { fpu_fpv4_s16     } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_SINGLE_ONLY,FPUARM_HAS_VMOV_CONST],
+         { fpu_vfpv4        } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_FMA],
+         { fpu_fpv4_sp_d16  } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_FMA],
+         { fpu_neon_vfpv4   } [FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE,FPUARM_HAS_32REGS,FPUARM_HAS_VMOV_CONST,FPUARM_HAS_NEON,FPUARM_HAS_FMA]
        );
 
    { contains all CPU supporting any kind of thumb instruction set }
