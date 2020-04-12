@@ -576,77 +576,19 @@ interface
           end;
       end;
 
+
     function tarmaddnode.first_addfloat: tnode;
-      var
-        procname: string[31];
-        { do we need to reverse the result ? }
-        notnode : boolean;
-        fdef : tdef;
       begin
         result := nil;
-        notnode := false;
 
-        if not(FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
+        if (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype]) and
+           not(FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
           begin
             case tfloatdef(left.resultdef).floattype of
               s32real:
-                begin
-                  result:=nil;
-                  notnode:=false;
-                end;
+                ;
               s64real:
-                begin
-                  fdef:=search_system_type('FLOAT64').typedef;
-                  procname:='float64';
-
-                  case nodetype of
-                    addn:
-                      procname:=procname+'_add';
-                    muln:
-                      procname:=procname+'_mul';
-                    subn:
-                      procname:=procname+'_sub';
-                    slashn:
-                      procname:=procname+'_div';
-                    ltn:
-                      procname:=procname+'_lt';
-                    lten:
-                      procname:=procname+'_le';
-                    gtn:
-                      begin
-                        procname:=procname+'_lt';
-                        swapleftright;
-                      end;
-                    gten:
-                      begin
-                        procname:=procname+'_le';
-                        swapleftright;
-                      end;
-                    equaln:
-                      procname:=procname+'_eq';
-                    unequaln:
-                      begin
-                        procname:=procname+'_eq';
-                        notnode:=true;
-                      end;
-                    else
-                      CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resultdef.typename,right.resultdef.typename);
-                  end;
-
-                  if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
-                    resultdef:=pasbool1type;
-                  result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
-                      ctypeconvnode.create_internal(right,fdef),
-                      ccallparanode.create(
-                        ctypeconvnode.create_internal(left,fdef),nil))),resultdef);
-
-                  left:=nil;
-                  right:=nil;
-
-                  { do we need to reverse the result }
-                  if notnode then
-                    result:=cnotnode.create(result);
-                end;
+                result:=first_addfloat_soft;
               else
                 internalerror(2019050933);
             end;
