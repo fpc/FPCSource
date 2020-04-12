@@ -258,11 +258,46 @@ begin
   end;
 end;
 
+procedure NextTag(var Tag: PTagItem); inline;
+begin
+  if Tag^.ti_Tag = TAG_END then
+    Exit;
+  Inc(Tag);
+  repeat
+    case Tag^.ti_Tag of
+      TAG_IGNORE: Inc(Tag);
+      TAG_SKIP: Inc(Tag, Tag^.ti_Data);
+      TAG_MORE: Tag := PTagItem(Tag^.ti_Data);
+      else
+        Break;
+    end;
+  until False;
+end;
+
+// we emulate that by the old execute command, should be enough for most cases
 function SystemTagList(command: PChar;
                        tags   : PTagItem): LongInt; public name '_fpc_amiga_systemtaglist';
+var
+  I,O: BPTR; // in / ouput handles
+  tag: PTagItem;
 begin
-{$warning SystemTagList unimplemented!}
-  SystemTagList:=-1;
+  i := 0;
+  O := 0;
+  tag := Tags;
+  if Assigned(tag) then
+  begin
+    repeat
+      case Tag^.ti_Tag of
+        SYS_Input: I := Tag^.ti_Data;
+        SYS_Output: O := Tag^.ti_Data;
+      end;
+      NextTag(Tag);
+    until tag^.ti_Tag = TAG_END;
+  end;
+  if Execute(command, I, O) then
+    SystemTagList := 0
+  else
+    SystemTagList := -1;
 end;
 
 function GetVar(name  : PChar;
