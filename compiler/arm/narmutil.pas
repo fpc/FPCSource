@@ -207,6 +207,7 @@ interface
                 current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_FP_Arch,3));
               fpu_vfpv3_d16:
                 current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_FP_Arch,4));
+              fpu_fpv4_sp_d16,
               fpu_fpv4_s16:
                 current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_FP_Arch,6));
               fpu_vfpv4,
