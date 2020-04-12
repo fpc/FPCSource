@@ -1644,25 +1644,23 @@ unit cgcpu;
         l : TAsmLabel;
         tmpflags : TResFlags;
       begin
-        list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: g_flags2reg')));
-        current_asmdata.getjumplabel(l);
-        {
-        if flags_to_cond(f) then
+        if f in [F_C,F_NC] then
           begin
-            tmpflags:=f;
-            inverse_flags(tmpflags);
-            emit_mov(reg,NR_R1);
-            a_jmp_flags(list,tmpflags,l);
-            list.concat(taicpu.op_reg_const(A_LDI,reg,1));
+            a_load_const_reg(list,size,0,reg);
+            if f=F_NC then
+              list.concat(taicpu.op_none(A_CCF));
+            list.concat(taicpu.op_reg(A_RL,reg));
           end
         else
-        }
           begin
-            //list.concat(taicpu.op_reg_const(A_LDI,reg,1));
-            //a_jmp_flags(list,f,l);
-            //emit_mov(list,reg,NR_R1);
+            current_asmdata.getjumplabel(l);
+            a_load_const_reg(list,size,0,reg);
+            tmpflags:=f;
+            inverse_flags(tmpflags);
+            a_jmp_flags(list,tmpflags,l);
+            list.concat(taicpu.op_reg(A_INC,reg));
+            cg.a_label(list,l);
           end;
-        cg.a_label(list,l);
       end;
 
 
