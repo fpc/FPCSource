@@ -77,14 +77,11 @@ Type
       fpu_vfpv4,
       fpu_fpv4_sp_d16,  { 32 registers single precision, for load/store/move they can be accessed as 16 double registers }
       fpu_neon_vfpv4
-      { when new elements added afterwards, update also fpu_vfp_last below and
-        update class procedure tarmnodeutils.InsertObjectInfo; in narmutil.pas }
+      { when new elements added afterwards, update
+        class procedure tarmnodeutils.InsertObjectInfo; in narmutil.pas }
      );
 
 Const
-   fpu_vfp_first = fpu_vfpv2;
-   fpu_vfp_last  = fpu_neon_vfpv4;
-
   fputypestrllvm : array[tfputype] of string[15] = ('',
     '',
     '',

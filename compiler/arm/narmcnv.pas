@@ -40,7 +40,9 @@ interface
 implementation
 
    uses
-      verbose,globtype,globals,symdef,aasmbase,aasmtai,aasmdata,symtable,
+      verbose,globtype,globals,
+      systems,
+      symdef,aasmbase,aasmtai,aasmdata,symtable,
       defutil,
       cgbase,cgutils,
       pass_1,pass_2,procinfo,ncal,
@@ -99,17 +101,19 @@ implementation
               fpu_fpa10,
               fpu_fpa11:
                 expectloc:=LOC_FPUREGISTER;
-              fpu_vfp_first..fpu_vfp_last:
-                expectloc:=LOC_MMREGISTER;
+              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+                expectloc:=LOC_MMREGISTER
               else
                 internalerror(2009112702);
             end;
           end;
       end;
 
+
     function tarmtypeconvnode.first_real_to_real: tnode;
       begin
-        if not(FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
+        if not(FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) and
+          not (target_info.system in systems_wince) then
           begin
             case tfloatdef(left.resultdef).floattype of
               s32real:
