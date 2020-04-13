@@ -924,13 +924,13 @@ implementation
           begin
             case tosize of
               OS_8:
-                list.concat(setoppostfix(taicpu.op_reg_reg(A_UXT,reg2,makeregsize(reg1,OS_32)),PF_B));
+                list.concat(taicpu.op_reg_reg(A_UXTB,reg2,makeregsize(reg1,OS_32)));
               OS_16:
-                list.concat(setoppostfix(taicpu.op_reg_reg(A_UXT,reg2,makeregsize(reg1,OS_32)),PF_H));
+                list.concat(taicpu.op_reg_reg(A_UXTH,reg2,makeregsize(reg1,OS_32)));
               OS_S8:
-                list.concat(setoppostfix(taicpu.op_reg_reg(A_SXT,reg2,makeregsize(reg1,OS_32)),PF_B));
+                list.concat(taicpu.op_reg_reg(A_SXTB,reg2,makeregsize(reg1,OS_32)));
               OS_S16:
-                list.concat(setoppostfix(taicpu.op_reg_reg(A_SXT,reg2,makeregsize(reg1,OS_32)),PF_H));
+                list.concat(taicpu.op_reg_reg(A_SXTH,reg2,makeregsize(reg1,OS_32)));
               { while "mov wN, wM" automatically inserts a zero-extension and
                 hence we could encode a 64->32 bit move like that, the problem
                 is that we then can't distinguish 64->32 from 32->32 moves, and
@@ -945,7 +945,7 @@ implementation
                 list.concat(taicpu.op_reg_reg_const_const(A_UBFIZ,makeregsize(reg2,OS_64),makeregsize(reg1,OS_64),0,32));
               OS_64,
               OS_S64:
-                list.concat(setoppostfix(taicpu.op_reg_reg(A_SXT,reg2,makeregsize(reg1,OS_32)),PF_W));
+                list.concat(taicpu.op_reg_reg(A_SXTW,reg2,makeregsize(reg1,OS_32)));
               else
                 internalerror(2002090901);
             end;
@@ -1174,7 +1174,7 @@ implementation
         list.Concat(taicpu.op_reg_reg_reg_cond(A_CSINV,dst,dst,makeregsize(NR_XZR,dstsize),C_NE));
         { mask the -1 to 255 if src was 0 (anyone find a two-instruction
           branch-free version? All of mine are 3...) }
-        list.Concat(setoppostfix(taicpu.op_reg_reg(A_UXT,makeregsize(dst,OS_32),makeregsize(dst,OS_32)),PF_B));
+        list.Concat(taicpu.op_reg_reg(A_UXTB,makeregsize(dst,OS_32),makeregsize(dst,OS_32)));
       end;
 
 
