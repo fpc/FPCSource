@@ -681,15 +681,32 @@ implementation
     procedure tcgaarch64.a_load_const_ref(list: TAsmList; size: tcgsize; a: tcgint; const ref: treference);
       var
         reg: tregister;
+        href: treference;
+        i: Integer;
       begin
         { use the zero register if possible }
         if a=0 then
           begin
-            if size in [OS_64,OS_S64] then
-              reg:=NR_XZR
+            href:=ref;
+            inc(href.offset,tcgsize2size[size]-1);
+            if (tcgsize2size[size]>1) and (ref.alignment=1) and (simple_ref_type(A_STP,OS_8,PF_None,ref)=sr_simple) and
+              (simple_ref_type(A_STP,OS_8,PF_None,href)=sr_simple) then
+              begin
+                href:=ref;
+                for i:=0 to tcgsize2size[size]-1 do
+                  begin
+                    a_load_const_ref(list,OS_8,0,href);
+                    inc(href.offset);
+                  end;
+              end
             else
-              reg:=NR_WZR;
-            a_load_reg_ref(list,size,size,reg,ref);
+              begin
+                if size in [OS_64,OS_S64] then
+                  reg:=NR_XZR
+                else
+                  reg:=NR_WZR;
+                a_load_reg_ref(list,size,size,reg,ref);
+              end;
           end
         else
           inherited;
