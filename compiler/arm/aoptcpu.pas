@@ -30,10 +30,13 @@ Unit aoptcpu;
 
 Interface
 
-uses cgbase, cgutils, cpubase, aasmtai, aasmcpu,aopt, aoptobj;
+uses
+  cgbase, cgutils, cpubase, aasmtai,
+  aasmcpu,
+  aopt, aoptobj, aoptarm;
 
 Type
-  TCpuAsmOptimizer = class(TAsmOptimizer)
+  TCpuAsmOptimizer = class(TARMAsmOptimizer)
     { Can't be done in some cases due to the limited range of jumps }
     function CanDoJumpOpts: Boolean; override;
 
