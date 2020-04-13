@@ -40,7 +40,9 @@ interface
 implementation
 
    uses
-      verbose,globtype,globals,symdef,aasmbase,aasmtai,aasmdata,symtable,
+      verbose,globtype,globals,
+      systems,
+      symdef,aasmbase,aasmtai,aasmdata,symtable,
       defutil,
       cgbase,cgutils,
       pass_1,pass_2,procinfo,ncal,
@@ -107,9 +109,11 @@ implementation
           end;
       end;
 
+
     function tarmtypeconvnode.first_real_to_real: tnode;
       begin
-        if not(FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
+        if not(FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) and
+          not (target_info.system in systems_wince) then
           begin
             case tfloatdef(left.resultdef).floattype of
               s32real:
