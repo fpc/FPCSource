@@ -689,8 +689,8 @@ implementation
           begin
             href:=ref;
             inc(href.offset,tcgsize2size[size]-1);
-            if (tcgsize2size[size]>1) and (ref.alignment=1) and (simple_ref_type(A_STP,OS_8,PF_None,ref)=sr_simple) and
-              (simple_ref_type(A_STP,OS_8,PF_None,href)=sr_simple) then
+            if (tcgsize2size[size]>1) and (ref.alignment=1) and (simple_ref_type(A_STUR,OS_8,PF_None,ref)=sr_simple) and
+              (simple_ref_type(A_STUR,OS_8,PF_None,href)=sr_simple) then
               begin
                 href:=ref;
                 for i:=0 to tcgsize2size[size]-1 do
