@@ -29,6 +29,9 @@ interface
        node,ncgadd, symtype,cpubase;
 
     type
+
+       { TZ80AddNode }
+
        TZ80AddNode = class(tcgaddnode)
        private
          function  GetResFlags(unsigned:Boolean):TResFlags;
@@ -37,6 +40,7 @@ interface
          procedure second_cmpordinal;override;
          procedure second_cmpsmallset;override;
          procedure second_cmp64bit;override;
+         procedure second_cmp16_32_64bit;
          procedure second_cmp;
        end;
 
@@ -303,7 +307,13 @@ interface
 
     procedure TZ80AddNode.second_cmp64bit;
       begin
-        second_cmp;
+        second_cmp16_32_64bit;
+      end;
+
+
+    procedure TZ80AddNode.second_cmp16_32_64bit;
+      begin
+        internalerror(2020041601);
       end;
 
 
@@ -336,7 +346,10 @@ interface
 
     procedure TZ80AddNode.second_cmpordinal;
       begin
-        second_cmp;
+        if is_32bit(left.resultdef) or is_16bit(left.resultdef) then
+          second_cmp16_32_64bit
+        else
+          second_cmp;
       end;
 
 begin
