@@ -312,7 +312,24 @@ interface
 
 
     procedure TZ80AddNode.second_cmp16_32_64bit;
+      var
+        truelabel,
+        falselabel: tasmlabel;
+        unsigned  : boolean;
       begin
+        truelabel:=nil;
+        falselabel:=nil;
+        pass_left_right;
+
+        unsigned:=not(is_signed(left.resultdef)) or
+                  not(is_signed(right.resultdef));
+
+        { we have LOC_JUMP as result }
+        current_asmdata.getjumplabel(truelabel);
+        current_asmdata.getjumplabel(falselabel);
+        location_reset_jump(location,truelabel,falselabel);
+
+        // todo: implement the rest
         internalerror(2020041601);
       end;
 
