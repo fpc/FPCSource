@@ -49,12 +49,20 @@ interface
 
 const
 {$if defined(AMIGA_V1_0_ONLY)}
-  OS_MINVERSION = 0;
+  AMIGA_OS_MINVERSION = 0;
 {$else}
 {$if defined(AMIGA_V1_2_ONLY)}
-  OS_MINVERSION = 33;
+  AMIGA_OS_MINVERSION = 33;
 {$else}
-  OS_MINVERSION = 37;
+{$if defined(AMIGA_V2_0_ONLY)}
+  AMIGA_OS_MINVERSION = 37;
+{$else}
+{$ifndef cpupowerpc}
+  AMIGA_OS_MINVERSION = 39;
+{$else}
+  AMIGA_OS_MINVERSION = 50;
+{$endif}
+{$endif}
 {$endif}
 {$endif}
 
@@ -267,13 +275,13 @@ begin
     AOS_wbMsg:=GetMsg(@self^.pr_MsgPort);
   end;
 
-  AOS_DOSBase:=OpenLibrary('dos.library',OS_MINVERSION);
+  AOS_DOSBase:=OpenLibrary('dos.library',AMIGA_OS_MINVERSION);
   if AOS_DOSBase=nil then Halt(1);
 {$ifndef AMIGA_LEGACY}
-  AOS_UtilityBase:=OpenLibrary('utility.library',OS_MINVERSION);
+  AOS_UtilityBase:=OpenLibrary('utility.library',AMIGA_OS_MINVERSION);
   if AOS_UtilityBase=nil then Halt(1);
 {$endif}
-  AOS_IntuitionBase:=OpenLibrary('intuition.library',OS_MINVERSION); { amunits support kludge }
+  AOS_IntuitionBase:=OpenLibrary('intuition.library',AMIGA_OS_MINVERSION); { amunits support kludge }
   if AOS_IntuitionBase=nil then Halt(1);
 
 {$IFDEF AMIGAOS4}

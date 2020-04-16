@@ -394,6 +394,13 @@ SysCall AOS_ExecBase 684;
 procedure FreeVec(memoryBlock: Pointer location 'a1');
 SysCall AOS_ExecBase 690;
 
+// these functions are only available v39+ (OS Release 3.0+)
+{$IFNDEF AMIGA_V2_0_ONLY}
+
+{ Pool functions seem to be there in OS2.0 SDK, but not
+  publicly available/documented? Later NDK 3.9 marks them as
+  v39+ (KB) }
+
 function CreatePool(requirements: Cardinal location 'd0';
                     puddleSize  : Cardinal location 'd1';
                     threshSize  : Cardinal location 'd2'): Pointer;
@@ -410,6 +417,8 @@ procedure FreePooled(poolHeader: Pointer  location 'a0';
                       memory    : Pointer  location 'a1';
                       memSize   : Cardinal location 'd0');
 SysCall AOS_ExecBase 714;
+
+{$ENDIF}
 
 function AttemptSemaphoreShared(sigSem: pSignalSemaphore location 'a0'): Cardinal;
 SysCall AOS_ExecBase 720;
@@ -430,6 +439,9 @@ procedure CachePostDMA(address   : Pointer  location 'a0';
                        flags     : Cardinal location 'd0');
 SysCall AOS_ExecBase 768;
 
+// these functions are only available v39+ (OS Release 3.0+)
+{$IFNDEF AMIGA_V2_0_ONLY}
+
 procedure AddMemHandler(memhand: PInterrupt location 'a1');
 SysCall AOS_ExecBase 774;
 
@@ -439,6 +451,7 @@ SysCall AOS_ExecBase 780;
 function ObtainQuickVector(interruptCode: Pointer location 'a0'): Cardinal;
 SysCall AOS_ExecBase 786;
 
+{$ENDIF AMIGA_V2_0_ONLY}
 {$ENDIF AMIGA_V1_2_ONLY}
 {$ENDIF AMIGA_V1_0_ONLY}
 

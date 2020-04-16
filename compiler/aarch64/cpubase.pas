@@ -49,6 +49,8 @@ unit cpubase;
       TAsmOp= {$i a64op.inc}
 
       TAsmOps = set of TAsmOp;
+      { AArch64 has less than 256 opcodes so far }
+      TCommonAsmOps = Set of TAsmOp;
 
       { This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];

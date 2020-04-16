@@ -666,6 +666,9 @@ function SameDevice(lock1: LongInt location 'd1';
                     lock2: LongInt location 'd2'): LongBool;
 SysCall AOS_DOSBase 984;
 
+// these functions are only available on v39+ (OS Release 3.0+)
+{$IFNDEF AMIGA_V2_0_ONLY}
+
 procedure ExAllEnd(lock   : LongInt       location 'd1';
                    buffer : PExAllData    location 'd2';
                    size   : LongInt       location 'd3';
@@ -677,12 +680,6 @@ function SetOwner(name      : PChar   location 'd1';
                   owner_info: LongInt location 'd2'): LongBool;
 SysCall AOS_DOSBase 996;
 
-function AddSegmentTagList(tags: PTagItem location 'a0'): LongInt;
-SysCall AOS_DOSBase 1002;
-
-function FindSegmentTagList(tags: PTagItem location 'a0'): PSegment;
-SysCall AOS_DOSBase 1008;
-
+{$ENDIF AMIGA_V2_0_ONLY}
 {$ENDIF AMIGA_V1_2_ONLY}
 {$ENDIF AMIGA_V1_0_ONLY}
-

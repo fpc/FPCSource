@@ -16,9 +16,11 @@
 
 {* exec.library *}
 
+{$IFNDEF AMIGA_V2_0_ONLY}
 function AllocVec(byteSize    : Cardinal;
                   requirements: Cardinal): Pointer; external name '_fpc_amiga_allocvec';
 procedure FreeVec(memoryBlock: Pointer); external name '_fpc_amiga_freevec';
+{$ENDIF}
 function CreatePool(requirements: Cardinal;
                     puddleSize  : Cardinal;
                     threshSize  : Cardinal): Pointer; external name '_fpc_amiga_createpool';
@@ -28,6 +30,7 @@ procedure FreePooled(poolHeader: Pointer;
                     memory    : Pointer;
                     memSize   : Cardinal); external name '_fpc_amiga_freepooled';
 procedure DeletePool(poolHeader: Pointer); external name '_fpc_amiga_deletepool';
-
+{$IFNDEF AMIGA_V2_0_ONLY}
 procedure StackSwap(newStack: PStackSwapStruct); external name '_fpc_amiga_stackswap';
 procedure ObtainSemaphoreShared(sigSem: PSignalSemaphore); external name '_fpc_amiga_obtainsemaphoreshared';
+{$ENDIF}

@@ -21,7 +21,7 @@
   Please note that this code doesn't aim to be API feature complete, just
   functional enough for the RTL code.
 }
-
+{$IFNDEF AMIGA_V2_0_ONLY}
 
 function AllocVec(byteSize    : Cardinal;
                   requirements: Cardinal): Pointer; public name '_fpc_amiga_allocvec';
@@ -45,6 +45,8 @@ begin
       execFreeMem(memoryBlock,PDWord(memoryBlock)^);
     end;
 end;
+
+{$ENDIF NOT AMIGA_V2_0_ONLY}
 
 type
   TAmigaLegacyPoolEntry = record
@@ -131,6 +133,8 @@ begin
     end;
 end;
 
+{$IFNDEF AMIGA_V2_0_ONLY}
+
 procedure StackSwap(newStack: PStackSwapStruct); assembler; nostackframe; public name '_fpc_amiga_stackswap';
 asm
     move.l   a6,-(sp)
@@ -180,3 +184,5 @@ begin
     at least in the way it's currently used in athreads. }
   ObtainSemaphore(sigSem);
 end;
+
+{$ENDIF NOT AMIGA_V2_0_ONLY}
