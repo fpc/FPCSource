@@ -586,28 +586,29 @@ begin
          HPath:=TCmdStrListItem(HPath.Next);
        end;
     end;
-      { force local symbol resolution (i.e., inside the shared }
-      { library itself) for all non-exorted symbols, otherwise }
-      { several RTL symbols of FPC-compiled shared libraries   }
-      { will be bound to those of a single shared library or   }
-      { to the main program                                    }
-      if (isdll) and (target_info.system in systems_bsd) then
+
+  { force local symbol resolution (i.e., inside the shared }
+  { library itself) for all non-exorted symbols, otherwise }
+  { several RTL symbols of FPC-compiled shared libraries   }
+  { will be bound to those of a single shared library or   }
+  { to the main program                                    }
+  if (isdll) and (target_info.system in systems_bsd) then
+    begin
+      LinkRes.add('VERSION');
+      LinkRes.add('{');
+      LinkRes.add('  {');
+      if not texportlibunix(exportlib).exportedsymnames.empty then
         begin
-          LinkRes.add('VERSION');
-          LinkRes.add('{');
-          LinkRes.add('  {');
-          if not texportlibunix(exportlib).exportedsymnames.empty then
-            begin
-              LinkRes.add('    global:');
-              repeat
-                LinkRes.add('      '+texportlibunix(exportlib).exportedsymnames.getfirst+';');
-              until texportlibunix(exportlib).exportedsymnames.empty;
-            end;
-          LinkRes.add('    local:');
-          LinkRes.add('      *;');
-          LinkRes.add('  };');
-          LinkRes.add('}');
+          LinkRes.add('    global:');
+          repeat
+            LinkRes.add('      '+texportlibunix(exportlib).exportedsymnames.getfirst+';');
+          until texportlibunix(exportlib).exportedsymnames.empty;
         end;
+      LinkRes.add('    local:');
+      LinkRes.add('      *;');
+      LinkRes.add('  };');
+      LinkRes.add('}');
+    end;
 
   if not LdSupportsNoResponseFile then
     LinkRes.Add('INPUT(');
@@ -638,10 +639,7 @@ begin
 
   { main objectfiles }
 
-  { Generate linkfiles.res file if needed }
-  { Only needed on Windows, due to the limitation of 8196 characters for command line }
-  if (LdSupportsNoResponseFile) and
-     (source_info.system in systems_all_windows) then
+  if (target_info.system in systems_darwin) then
    begin
      FilesList:=TLinkRes.Create(outputexedir+'linkfiles.res',false);
      while not ObjectFiles.Empty do
@@ -649,11 +647,7 @@ begin
         s:=ObjectFiles.GetFirst;
         if s<>'' then
          begin
-           repeat
-             i:=Pos(source_info.dirsep,s);
-             if i>0 then 
-               s[i]:=target_info.dirsep;
-           until i=0;
+           s:=TargetFixFileName(s);
            FilesList.Add(s);
          end;
       end;
@@ -874,7 +868,7 @@ begin
   Replace(cmdstr,'$MAP',mapstr);
   Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
-  if (LdSupportsNoResponseFile) and (source_info.system in systems_all_windows) then
+  if (target_info.system in systems_darwin) then
     Replace(cmdstr,'$FILELIST','-filelist '+maybequoted(outputexedir+'linkfiles.res'))
   else
     Replace(cmdstr,'$FILELIST','');
@@ -931,11 +925,9 @@ begin
          DeleteFile(linkscript.fn);
          linkscript.free
        end;
+     if target_info.system in systems_darwin then
+       DeleteFile(outputexedir+'linkfiles.res');
    end;
-
-  { Remove linkfiles.res }
-  if (success) and (LdSupportsNoResponseFile) and (source_info.system in systems_all_windows) then
-    DeleteFile(outputexedir+'linkfiles.res');
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
@@ -1008,7 +1000,7 @@ begin
   Replace(cmdstr,'$TARGET',targetstr);
   Replace(cmdstr,'$EMUL',EmulStr);
   Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
-  if (LdSupportsNoResponseFile) and (source_info.system in systems_all_windows) then
+  if (target_info.system in systems_darwin) then
     Replace(cmdstr,'$FILELIST','-filelist '+maybequoted(outputexedir+'linkfiles.res'))
   else
     Replace(cmdstr,'$FILELIST','');
@@ -1090,12 +1082,11 @@ begin
           linkscript.free
         end;
       if (target_info.system in systems_darwin) then
-        DeleteFile(outputexedir+'linksyms.fpc');
+        begin
+          DeleteFile(outputexedir+'linksyms.fpc');
+          DeleteFile(outputexedir+'linkfiles.res');
+        end;
     end;
-
-  { Remove linkfiles.res }
-  if (success) and (LdSupportsNoResponseFile) and (source_info.system in systems_all_windows) then
-    DeleteFile(outputexedir+'linkfiles.res');
 
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
 end;
