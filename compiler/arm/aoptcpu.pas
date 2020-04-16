@@ -26,7 +26,7 @@ Unit aoptcpu;
 {$i fpcdefs.inc}
 
 { $define DEBUG_PREREGSCHEDULER}
-{$define DEBUG_AOPTCPU}
+{ $define DEBUG_AOPTCPU}
 
 Interface
 
@@ -1892,95 +1892,7 @@ Implementation
                 A_UXTB:
                   Result:=OptPass1UXTB(p);
                 A_UXTH:
-                  begin
-                    {
-                      change
-                      uxth reg2,reg1
-                      strh reg2,[...]
-                      dealloc reg2
-                      to
-                      strh reg1,[...]
-                    }
-                    if MatchInstruction(p, taicpu(p).opcode, [C_None], [PF_None]) and
-                      (taicpu(p).ops=2) and
-                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
-                      MatchInstruction(hp1, A_STR, [C_None], [PF_H]) and
-                      RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-                      { the reference in strb might not use reg2 }
-                      not(RegInRef(taicpu(p).oper[0]^.reg,taicpu(hp1).oper[1]^.ref^)) and
-                      { reg1 might not be modified inbetween }
-                      not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
-                      begin
-                        DebugMsg('Peephole UXTHStrh2Strh done', p);
-                        taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
-                        GetNextInstruction(p, hp1);
-                        asml.remove(p);
-                        p.free;
-                        p:=hp1;
-                        result:=true;
-                      end
-                    {
-                      change
-                      uxth reg2,reg1
-                      uxth reg3,reg2
-                      dealloc reg2
-                      to
-                      uxth reg3,reg1
-                    }
-                    else if MatchInstruction(p, A_UXTH, [C_None], [PF_None]) and
-                      (taicpu(p).ops=2) and
-                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
-                      MatchInstruction(hp1, A_UXTH, [C_None], [PF_None]) and
-                      (taicpu(hp1).ops=2) and
-                      MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
-                      RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-                      { reg1 might not be modified inbetween }
-                      not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
-                      begin
-                        DebugMsg('Peephole UxthUxth2Uxth done', p);
-                        AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
-                        taicpu(hp1).opcode:=A_UXTH;
-                        taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
-                        GetNextInstruction(p, hp1);
-                        asml.remove(p);
-                        p.free;
-                        p:=hp1;
-                        result:=true;
-                      end
-                    {
-                      change
-                      uxth reg2,reg1
-                      and reg3,reg2,#65535
-                      dealloc reg2
-                      to
-                      uxth reg3,reg1
-                    }
-                    else if MatchInstruction(p, A_UXTH, [C_None], [PF_None]) and
-                      (taicpu(p).ops=2) and
-                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
-                      MatchInstruction(hp1, A_AND, [C_None], [PF_None]) and
-                      (taicpu(hp1).ops=3) and
-                      (taicpu(hp1).oper[2]^.typ=top_const) and
-                      ((taicpu(hp1).oper[2]^.val and $FFFF)=$FFFF) and
-                      MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
-                      RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-                      { reg1 might not be modified inbetween }
-                      not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
-                      begin
-                        DebugMsg('Peephole UxthAndImm2Uxth done', p);
-                        taicpu(hp1).opcode:=A_UXTH;
-                        taicpu(hp1).ops:=2;
-                        taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
-                        GetNextInstruction(p, hp1);
-                        asml.remove(p);
-                        p.free;
-                        p:=hp1;
-                        result:=true;
-                      end
-                    else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-                         RemoveSuperfluousMove(p, hp1, 'UxthMov2Data') then
-                      Result:=true;
-                  end;
+                  Result:=OptPass1UXTH(p);
                 A_SXTB:
                   begin
                     {
