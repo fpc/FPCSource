@@ -34,6 +34,7 @@ interface
 
        TZ80AddNode = class(tcgaddnode)
        private
+         function NoEqual(anodetype:tnodetype):tnodetype;
          function  GetResFlags(unsigned:Boolean;anodetype:tnodetype):TResFlags;
        protected
          function pass_1 : tnode;override;
@@ -61,6 +62,18 @@ interface
 {*****************************************************************************
                                TZ80AddNode
 *****************************************************************************}
+
+
+    function TZ80AddNode.NoEqual(anodetype: tnodetype): tnodetype;
+      begin
+        if anodetype=lten then
+          result:=ltn
+        else if anodetype=gten then
+          result:=gtn
+        else
+          result:=anodetype;
+      end;
+
 
     function TZ80AddNode.GetResFlags(unsigned: Boolean; anodetype: tnodetype): TResFlags;
       begin
