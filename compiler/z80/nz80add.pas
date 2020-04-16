@@ -34,7 +34,7 @@ interface
 
        TZ80AddNode = class(tcgaddnode)
        private
-         function  GetResFlags(unsigned:Boolean):TResFlags;
+         function  GetResFlags(unsigned:Boolean;anodetype:tnodetype):TResFlags;
        protected
          function pass_1 : tnode;override;
          procedure second_cmpordinal;override;
@@ -62,9 +62,9 @@ interface
                                TZ80AddNode
 *****************************************************************************}
 
-    function TZ80AddNode.GetResFlags(unsigned:Boolean):TResFlags;
+    function TZ80AddNode.GetResFlags(unsigned: Boolean; anodetype: tnodetype): TResFlags;
       begin
-        case NodeType of
+        case anodetype of
           equaln:
             GetResFlags:=F_E;
           unequaln:
@@ -74,7 +74,7 @@ interface
               begin
                 { signed }
                 if nf_swapped in flags then
-                  case NodeType of
+                  case anodetype of
                     ltn:
                       GetResFlags:=F_NotPossible;
                     lten:
@@ -87,7 +87,7 @@ interface
                       internalerror(2014082020);
                   end
                 else
-                  case NodeType of
+                  case anodetype of
                     ltn:
                       GetResFlags:=F_M;
                     lten:
@@ -104,7 +104,7 @@ interface
               begin
                 { unsigned }
                 if nf_swapped in Flags then
-                  case NodeType of
+                  case anodetype of
                     ltn:
                       GetResFlags:=F_NotPossible;
                     lten:
@@ -117,7 +117,7 @@ interface
                       internalerror(2014082022);
                   end
                 else
-                  case NodeType of
+                  case anodetype of
                     ltn:
                       GetResFlags:=F_C;
                     lten:
@@ -206,7 +206,7 @@ interface
 
         if (opsize=OS_8) or ((opsize=OS_S8) and (NodeType in [equaln,unequaln])) then
           begin
-            if getresflags(unsigned)=F_NotPossible then
+            if getresflags(unsigned,NodeType)=F_NotPossible then
               swapleftright;
 
             if left.location.loc<>LOC_REGISTER then
@@ -248,11 +248,11 @@ interface
             end;
 
             location_reset(location,LOC_FLAGS,OS_NO);
-            location.resflags:=getresflags(unsigned);
+            location.resflags:=getresflags(unsigned,NodeType);
           end
         else if opsize=OS_S8 then
           begin
-            if getresflags(unsigned)=F_NotPossible then
+            if getresflags(unsigned,NodeType)=F_NotPossible then
               swapleftright;
 
             if left.location.loc<>LOC_REGISTER then
@@ -298,7 +298,7 @@ interface
             cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
 
             location_reset(location,LOC_FLAGS,OS_NO);
-            location.resflags:=getresflags(unsigned);
+            location.resflags:=getresflags(unsigned,NodeType);
           end
         else
           internalerror(2020040401);
