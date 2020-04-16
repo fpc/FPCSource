@@ -376,8 +376,8 @@ Implementation
               Result:=OptPass1Data(p);
             A_UXTB:
               Result:=OptPass1UXTB(p);
-            A_UXTH:
-              Result:=OptPass1UXTH(p);
+            A_SXTB:
+              Result:=OptPass1SXTB(p);
             else
               ;
           end;
