@@ -23,6 +23,7 @@ uses
 const
   Version = '1.0.0';
   HeaderStr = '{ don''t edit, this file is generated from z80ins.dat; to regenerate, run ''make insdat'' in the compiler directory }';
+  max_operands = 2;
 
   ParamTypes: array [0..40,0..1] of string = (
     ('void',  'OT_NONE'),
@@ -201,7 +202,9 @@ begin
             Writeln(OutputFiles.InsTabFile,'    opcode  : A_',op,';');
             Writeln(OutputFiles.InsTabFile,'    ops     : ',Length(S_Params),';');
             Write(OutputFiles.InsTabFile,  '    optypes : (');
-            for ParamIdx:=0 to 3 do
+            if Length(S_Params)>max_operands then
+              raise Exception.Create('Too many operands');
+            for ParamIdx:=0 to max_operands-1 do
               begin
                 if ParamIdx<>0 then
                   Write(OutputFiles.InsTabFile,',');

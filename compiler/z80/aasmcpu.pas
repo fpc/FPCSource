@@ -88,7 +88,7 @@ uses
       tinsentry = record
         opcode  : tasmop;
         ops     : byte;
-        optypes : array[0..3] of toperandtype;
+        optypes : array[0..max_operands-1] of toperandtype;
         code    : array[0..maxinfolen] of char;
         flags   : longint;
       end;
