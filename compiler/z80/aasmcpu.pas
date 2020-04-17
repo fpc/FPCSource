@@ -38,6 +38,7 @@ uses
       { "mov reg,reg" source operand number }
       O_MOV_DEST = 0;
 
+      instabentries = {$i z80nop.inc}
       maxinfolen = 5;
 
     type
@@ -133,6 +134,13 @@ uses
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
 implementation
+
+{****************************************************************************
+                                Instruction table
+*****************************************************************************}
+
+    const
+      InsTab:array[0..instabentries-1] of TInsEntry={$i z80tab.inc}
 
 {*****************************************************************************
                                  taicpu Constructors

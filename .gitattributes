@@ -1087,6 +1087,7 @@ compiler/z80/z80nop.inc svneol=native#text/plain
 compiler/z80/z80op.inc svneol=native#text/plain
 compiler/z80/z80reg.dat svneol=native#text/plain
 compiler/z80/z80stdopnames.inc svneol=native#text/plain
+compiler/z80/z80tab.inc svneol=native#text/plain
 /fpmake.pp svneol=native#text/plain
 /fpmake_add1.inc svneol=native#text/plain
 /fpmake_proc1.inc svneol=native#text/plain
