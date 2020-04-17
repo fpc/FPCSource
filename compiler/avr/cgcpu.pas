@@ -730,7 +730,7 @@ unit cgcpu;
                      if not(size in [OS_8,OS_S8]) then
                        begin
                          list.concat(taicpu.op_none(A_CLC));
-                         list.concat(taicpu.op_reg_const(A_SBRC,src,0));
+                         list.concat(taicpu.op_reg_const(A_SBRC,dst,0));
                          list.concat(taicpu.op_none(A_SEC));
                        end;
                      list.concat(taicpu.op_reg(A_ROR,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1)));

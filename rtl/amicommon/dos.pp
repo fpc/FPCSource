@@ -1081,40 +1081,40 @@ Var
   Res: Integer;
 begin
   SetLength(EnvList, 0);
+
+{$if not defined(AMIGA_V1_0_ONLY) and not defined(AMIGA_V1_2_ONLY)}
   // pr_LocalVars are introduced with OS2.0
-  {$ifdef AMIGA68k}
-  if PLibrary(AOS_ExecBase)^.lib_Version >= 36 then
-  {$endif}
+
+  ThisProcess := PProcess(FindTask(nil));  //Get the pointer to our process
+  LocalVars_List := @(ThisProcess^.pr_LocalVars);  //get the list of pr_LocalVars as pointer
+  LocalVar_Node  := pLocalVar(LocalVars_List^.mlh_head); //get the headnode of the LocalVars list
+
+  // loop through the localvar list
+  while ( Pointer(LocalVar_Node^.lv_node.ln_Succ) <> Pointer(LocalVars_List^.mlh_Tail)) do
   begin
-    ThisProcess := PProcess(FindTask(nil));  //Get the pointer to our process
-    LocalVars_List := @(ThisProcess^.pr_LocalVars);  //get the list of pr_LocalVars as pointer
-    LocalVar_Node  := pLocalVar(LocalVars_List^.mlh_head); //get the headnode of the LocalVars list
+    // make sure the active node is valid instead of empty
+    If not(LocalVar_Node <> nil) then
+      break;
 
-    // loop through the localvar list
-    while ( Pointer(LocalVar_Node^.lv_node.ln_Succ) <> Pointer(LocalVars_List^.mlh_Tail)) do
+    { - process the current node - }
+    If (LocalVar_Node^.lv_node.ln_Type = LV_Var) then
     begin
-      // make sure the active node is valid instead of empty
-      If not(LocalVar_Node <> nil) then
-        break;
+      FillChar(Buffer[0], Length(Buffer), #0); // clear Buffer
 
-      { - process the current node - }
-      If (LocalVar_Node^.lv_node.ln_Type = LV_Var) then
+      // get active node's name environment variable value ino buffer and make sure it's local
+      TempLen := GetVar(LocalVar_Node^.lv_Node.ln_Name, @Buffer[0], BUFFER_SIZE, GVF_LOCAL_ONLY);
+      If TempLen <> -1 then
       begin
-        FillChar(Buffer[0], Length(Buffer), #0); // clear Buffer
-
-        // get active node's name environment variable value ino buffer and make sure it's local
-        TempLen := GetVar(LocalVar_Node^.lv_Node.ln_Name, @Buffer[0], BUFFER_SIZE, GVF_LOCAL_ONLY);
-        If TempLen <> -1 then
-        begin
-          SetLength(EnvList, Length(EnvList) + 1);
-          EnvList[High(EnvList)].Name := LocalVar_Node^.lv_Node.ln_Name;
-          EnvList[High(EnvList)].Value := string(PChar(@Buffer[0]));
-          EnvList[High(EnvList)].Local := True;
-        end;
+        SetLength(EnvList, Length(EnvList) + 1);
+        EnvList[High(EnvList)].Name := LocalVar_Node^.lv_Node.ln_Name;
+        EnvList[High(EnvList)].Value := string(PChar(@Buffer[0]));
+        EnvList[High(EnvList)].Local := True;
       end;
-      LocalVar_Node := pLocalVar(LocalVar_Node^.lv_node.ln_Succ); //we need to get the next node
     end;
+    LocalVar_Node := pLocalVar(LocalVar_Node^.lv_node.ln_Succ); //we need to get the next node
   end;
+{$endif not defined(AMIGA_V1_0_ONLY) and not defined(AMIGA_V1_2_ONLY)}
+
   // search in env for all Variables
   FillChar(Anchor,sizeof(TAnchorPath),#0);
   Res := MatchFirst('ENV:#?', @Anchor);
