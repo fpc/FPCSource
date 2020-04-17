@@ -39,7 +39,7 @@ uses
       O_MOV_DEST = 0;
 
       instabentries = {$i z80nop.inc}
-      maxinfolen = 5;
+      maxinfolen = 18;
 
     type
       { Operand types }

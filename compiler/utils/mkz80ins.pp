@@ -83,6 +83,41 @@ type
     destructor Destroy;override;
   end;
 
+function PasEncode(const S: string): string;
+  var
+    Ch: Char;
+    InQuotes: Boolean;
+  begin
+    Result:='';
+    InQuotes:=False;
+    for Ch in S do
+      if (Ch>=#32) and (Ch<=#126) then
+        begin
+          if not InQuotes then
+            begin
+              Result:=Result+'''';
+              InQuotes:=True;
+            end;
+          if Ch='''' then
+            Result:=Result+''''''
+          else
+            Result:=Result+Ch;
+        end
+      else
+        begin
+          if InQuotes then
+            begin
+              Result:=Result+'''';
+              InQuotes:=False;
+            end;
+          Result:=Result+'#'+IntToStr(Ord(Ch));
+        end;
+    if InQuotes then
+      Result:=Result+'''';
+    if Result='' then
+      Result:='''''';
+  end;
+
 constructor TZ80InsDatOutputFiles.Create;
   begin
     AssignFile(OpFile,'z80op.inc');
@@ -176,7 +211,7 @@ begin
                   Write(OutputFiles.InsTabFile,'OT_NONE');
               end;
             Writeln(OutputFiles.InsTabFile, ');');
-            Writeln(OutputFiles.InsTabFile,  '    code    : '''';');
+            Writeln(OutputFiles.InsTabFile,  '    code    : ',PasEncode(S_Split[1]),';');
             Writeln(OutputFiles.InsTabFile,  '    flags   : 0');
             Write(OutputFiles.InsTabFile,  '  )');
           end;
