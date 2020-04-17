@@ -1106,7 +1106,7 @@ type
 
   function texprvalue.evaluate(v:texprvalue;op:ttoken):texprvalue;
 
-    function check_compatbile: boolean;
+    function check_compatible: boolean;
       begin
         result:=(
                   (is_ordinal(v.def) or is_fpu(v.def)) and
@@ -1200,7 +1200,7 @@ type
             end;
         end;
         _EQ,_NE,_LT,_GT,_GTE,_LTE,_PLUS,_MINUS,_STAR,_SLASH,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR:
-        if check_compatbile then
+        if check_compatible then
           begin
             if (is_ordinal(def) and is_ordinal(v.def)) then
               begin
