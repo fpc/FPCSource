@@ -618,6 +618,7 @@ implementation
         i : longint;
         eq : tequaltype;
         conv : tconverttype;
+        cdo : tcompare_defs_options;
         pd : tprocdef;
         oldcount,
         count: longint;
@@ -663,7 +664,10 @@ implementation
                 { assignment is a special case }
                 if optoken in [_ASSIGNMENT,_OP_EXPLICIT] then
                   begin
-                    eq:=compare_defs_ext(ld,pf.returndef,nothingn,conv,pd,[cdo_explicit]);
+                    cdo:=[];
+                    if optoken=_OP_EXPLICIT then
+                      include(cdo,cdo_explicit);
+                    eq:=compare_defs_ext(ld,pf.returndef,nothingn,conv,pd,cdo);
                     result:=
                       (eq=te_exact) or
                       (
