@@ -137,11 +137,6 @@ unit cpubase;
     type
       TResFlags = (F_NotPossible,F_NE,F_E,F_NC,F_C,F_PO,F_PE,F_P,F_M);
 
-{*****************************************************************************
-                                Operands
-*****************************************************************************}
-
-      taddressmode = (AM_UNCHANGED,AM_POSTINCREMENT,AM_PREDRECEMENT);
 
 {*****************************************************************************
                                  Constants
