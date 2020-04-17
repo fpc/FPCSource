@@ -41,10 +41,53 @@ uses
       maxinfolen = 5;
 
     type
+      { Operand types }
+      toperandtype=(
+        OT_NONE,
+        OT_IMM3,               { 3-bit immediate value (bit number: [0..7])                       }
+        OT_IMM8,               { 8-bit immediate value                                            }
+        OT_IMM16,              { 16-bit immediate value                                           }
+        OT_IMM_VAL0,           { the immediate value 0                                            }
+        OT_IMM_VAL1,           { the immediate value 1                                            }
+        OT_IMM_VAL2,           { the immediate value 2                                            }
+        OT_IMM_RST,            { immediate value in [$00,$08,$10,$18,$20,$28,$30,$38]             }
+        OT_IMM_PORT,           { 8-bit immediate port number for the IN and OUT instructions      }
+        OT_REG8,               { 8-bit register: A/B/C/D/E/H/L                                    }
+        OT_REG8_A,             { register A                                                       }
+        OT_REG8_I,             { register I                                                       }
+        OT_REG8_R,             { register R                                                       }
+        OT_REG8_C_PORT,        { implied parameter of the IN and OUT instructions                 }
+        OT_REG16_IX,           { register IX                                                      }
+        OT_REG16_IY,           { register IY                                                      }
+        OT_REG16_SP,           { register SP                                                      }
+        OT_REG16_BC_DE_HL_SP,  { 16-bit register pair: BC/DE/HL/SP                                }
+        OT_REG16_BC_DE_HL_AF,  { 16-bit register pair: BC/DE/HL/AF                                }
+        OT_REG16_BC_DE_IX_SP,  { 16-bit register pair: BC/DE/IX/SP                                }
+        OT_REG16_BC_DE_IY_SP,  { 16-bit register pair: BC/DE/IY/SP                                }
+        OT_REG16_DE,           { 16-bit register pair DE                                          }
+        OT_REG16_HL,           { 16-bit register pair HL                                          }
+        OT_REG16_AF,           { 16-bit register pair AF                                          }
+        OT_REG16_AF_,          { alternate register set, 16-bit register pair AF'                 }
+        OT_RELJMP8,            { 8-bit relative jump offset                                       }
+        OT_COND,               { condition: NZ/Z/NC/C/PO/PE/P/M                                   }
+        OT_COND_C,             { condition C                                                      }
+        OT_COND_NC,            { condition NC                                                     }
+        OT_COND_Z,             { condition Z                                                      }
+        OT_COND_NZ,            { condition NZ                                                     }
+        OT_REF_ADDR16,         { memory contents at address (nn = 16-bit immediate address)       }
+        OT_REF_BC,             { memory contents at address in register BC                        }
+        OT_REF_DE,             { memory contents at address in register DE                        }
+        OT_REF_HL,             { memory contents at address in register HL                        }
+        OT_REF_SP,             { memory contents at address in register SP                        }
+        OT_REF_IX,             { memory contents at address in register IX                        }
+        OT_REF_IY,             { memory contents at address in register IY                        }
+        OT_REF_IX_d,           { memory contents at address in register IX+d, d is in [-128..127] }
+        OT_REF_IY_d);          { memory contents at address in register IY+d, d is in [-128..127] }
+
       tinsentry = record
         opcode  : tasmop;
         ops     : byte;
-        optypes : array[0..3] of longint;
+        optypes : array[0..3] of toperandtype;
         code    : array[0..maxinfolen] of char;
         flags   : longint;
       end;
