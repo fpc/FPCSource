@@ -23,10 +23,100 @@
 }
 
 
-function CreateNewProc(tags: PTagItem): PProcess; public name '_fpc_amiga_createproc';
+procedure NextTag(var Tag: PTagItem); inline;
 begin
-{$warning CreateNewProc unimplemented!}
+  if Tag^.ti_Tag = TAG_END then
+    Exit;
+  Inc(Tag);
+  repeat
+    case Tag^.ti_Tag of
+      TAG_IGNORE: Inc(Tag);
+      TAG_SKIP: Inc(Tag, Tag^.ti_Data);
+      TAG_MORE: Tag := PTagItem(Tag^.ti_Data);
+      else
+        Break;
+    end;
+  until False;
+end;
+
+{$PACKRECORDS 2}
+type
+  TAmigaLegacyFakeSegList = record
+    length: DWord;
+    next: DWord;
+    jump: Word;
+    entry: Pointer;
+    pad: Word;
+  end;
+{$PACKRECORDS DEFAULT}
+
+var
+  __amiga_fake_seglist: TAmigaLegacyFakeSegList;
+  __amiga_fake_seglist_lock: TSignalSemaphore;
+  __amiga_fake_seglist_lock_inited: boolean = false;
+
+function CreateNewProc(tags: PTagItem): PProcess; public name '_fpc_amiga_createproc';
+var
+  seglistbptr: dword;
+  name: pchar;
+  entryfunc: pointer;
+  stacksize: dword;
+  m: pmsgport;
+  tag: ptagitem;
+begin
   CreateNewProc:=nil;
+
+  entryfunc:=nil;
+  stacksize:=4000;
+  name:='New Process';
+
+  tag := Tags;
+  if Assigned(tag) then
+  begin
+    repeat
+      case Tag^.ti_Tag of
+        NP_Entry: entryfunc := Pointer(Tag^.ti_Data);
+        NP_StackSize: stacksize := Tag^.ti_Data;
+      end;
+      NextTag(Tag);
+    until tag^.ti_Tag = TAG_END;
+  end;
+
+  if entryfunc = nil then
+    exit;
+
+  { This is a gigantic hack, and probably only works, because AThreads will always
+    feed the same function pointer in here (i.e. starts the same function multiple
+    times, which is a wrapper for FPC threads), and also waits for the subprocess
+    to properly start before trying to start a new one, but just in case, lets
+    still have proper-ish locking here, in case one spawns a subthread from a
+    subthread... (KB) }
+
+  if not __amiga_fake_seglist_lock_inited then
+    begin
+      InitSemaphore(@__amiga_fake_seglist_lock);
+      __amiga_fake_seglist_lock_inited:=true;
+    end;
+
+  ObtainSemaphore(@__amiga_fake_seglist_lock);
+
+  with __amiga_fake_seglist do
+    begin
+      length:=16;
+      next:=0;
+      jump:=$4ef9; { JMP }
+      entry:=entryfunc;
+      pad:=$4e71; { NOP }
+    end;
+
+  seglistbptr:=ptruint(@__amiga_fake_seglist) shr 2;
+  m:=CreateProc(name, 0, seglistbptr, stacksize);
+  if m <> nil then
+    { CreateProc returns the MsgPort inside the process structure.
+      recalculate to the address of the process instead... *yuck* (KB) }
+    CreateNewProc:=PProcess(pointer(m)-ptruint(@PProcess(nil)^.pr_MsgPort));
+
+  ReleaseSemaphore(@__amiga_fake_seglist_lock);
 end;
 
 function NameFromLock(lock  : LongInt;
@@ -256,22 +346,6 @@ begin
     Anchor^.ap_First := nil;
     Anchor^.ap_Last := nil;
   end;
-end;
-
-procedure NextTag(var Tag: PTagItem); inline;
-begin
-  if Tag^.ti_Tag = TAG_END then
-    Exit;
-  Inc(Tag);
-  repeat
-    case Tag^.ti_Tag of
-      TAG_IGNORE: Inc(Tag);
-      TAG_SKIP: Inc(Tag, Tag^.ti_Data);
-      TAG_MORE: Tag := PTagItem(Tag^.ti_Data);
-      else
-        Break;
-    end;
-  until False;
 end;
 
 // we emulate that by the old execute command, should be enough for most cases
