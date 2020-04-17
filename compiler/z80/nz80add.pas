@@ -35,7 +35,7 @@ interface
        TZ80AddNode = class(tcgaddnode)
        private
          function NoEqual(anodetype:tnodetype):tnodetype;
-         function  GetResFlags(unsigned:Boolean;anodetype:tnodetype):TResFlags;
+         function GetResFlags(unsigned:Boolean;anodetype:tnodetype):TResFlags;
        protected
          function pass_1 : tnode;override;
          procedure second_cmpordinal;override;
