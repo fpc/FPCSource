@@ -26,6 +26,7 @@ Unit raz80asm;
   Interface
 
     uses
+      cclasses,
       rasm,
       raz80,
       cpubase;
@@ -62,7 +63,12 @@ Unit raz80asm;
       { tz80reader }
 
       tz80reader = class(tasmreader)
-        actasmtoken    : tasmtoken;
+        actasmtoken   : tasmtoken;
+        prevasmtoken  : tasmtoken;
+        procedure SetupTables;
+        procedure GetToken;
+        function consume(t : tasmtoken):boolean;
+        procedure RecoverConsume(allowcomma:boolean);
         function is_asmopcode(const s: string):boolean;
         function is_register(const s:string):boolean;
         //procedure handleopcode;override;
@@ -71,6 +77,7 @@ Unit raz80asm;
         //procedure BuildOpCode(instr : tz80instruction);
         //procedure ReadSym(oper : tz80operand);
         procedure ConvertCalljmp(instr : tz80instruction);
+        function Assemble: tlinkedlist;override;
       end;
 
 
@@ -87,7 +94,7 @@ Unit raz80asm;
       { symtable }
       symconst,symbase,symtype,symsym,symtable,
       { parser }
-      scanner,
+      scanner,pbase,
       procinfo,
       rabase,rautils,
       cgbase,cgutils,cgobj
@@ -97,6 +104,59 @@ Unit raz80asm;
 {*****************************************************************************
                                 tz80reader
 *****************************************************************************}
+
+
+    procedure tz80reader.SetupTables;
+      var
+        i: TAsmOp;
+      begin
+        iasmops:=TFPHashList.create;
+        for i:=firstop to lastop do
+          iasmops.Add(upper(std_op2str[i]),Pointer(PtrInt(i)));
+      end;
+
+
+    procedure tz80reader.GetToken;
+      begin
+        c:=scanner.c;
+        { save old token and reset new token }
+        prevasmtoken:=actasmtoken;
+        actasmtoken:=AS_NONE;
+        { reset }
+        actasmpattern:='';
+        { while space and tab , continue scan... }
+        while c in [' ',#9] do
+         c:=current_scanner.asmgetchar;
+        { get token pos }
+        if not (c in [#10,#13,'{',';','/','(']) then
+          current_scanner.gettokenpos;
+
+      end;
+
+
+    function tz80reader.consume(t: tasmtoken): boolean;
+      begin
+        Consume:=true;
+        if t<>actasmtoken then
+         begin
+           Message2(scan_f_syn_expected,token2str[t],token2str[actasmtoken]);
+           Consume:=false;
+         end;
+        repeat
+          gettoken;
+        until actasmtoken<>AS_NONE;
+      end;
+
+
+    procedure tz80reader.RecoverConsume(allowcomma: boolean);
+      begin
+        while not (actasmtoken in [AS_SEPARATOR,AS_END]) do
+          begin
+            if allowcomma and (actasmtoken=AS_COMMA) then
+             break;
+            Consume(actasmtoken);
+          end;
+      end;
 
 
     function tz80reader.is_asmopcode(const s: string):boolean;
@@ -624,6 +684,47 @@ Unit raz80asm;
               Message(asmr_e_syn_operand);
             instr.Operands[1].opr:=newopr;
           end;
+      end;
+
+
+    function tz80reader.Assemble: tlinkedlist;
+      begin
+        Message1(asmr_d_start_reading,'Z80');
+        firsttoken:=TRUE;
+        { sets up all opcode and register tables in uppercase }
+        if not _asmsorted then
+          begin
+            SetupTables;
+            _asmsorted:=TRUE;
+          end;
+        curlist:=TAsmList.Create;
+
+        { we might need to know which parameters are passed in registers }
+        if not parse_generic then
+          current_procinfo.generate_parameter_info;
+
+        { start tokenizer }
+        gettoken;
+        { main loop }
+        repeat
+          case actasmtoken of
+            AS_END:
+              begin
+                break; { end assembly block }
+              end;
+
+            else
+              begin
+                Message(asmr_e_syntax_error);
+                RecoverConsume(false);
+              end;
+          end;
+        until false;
+        { check that all referenced local labels are defined }
+        checklocallabels;
+        { Return the list in an asmnode }
+        assemble:=curlist;
+        Message1(asmr_d_finish_reading,'Z80');
       end;
 
 
