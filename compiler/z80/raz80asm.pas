@@ -39,7 +39,7 @@ Unit raz80asm;
         AS_HASH,AS_LSBRACKET,AS_RSBRACKET,AS_LBRACKET,AS_RBRACKET,
         AS_EQUAL,
         {------------------ Assembler directives --------------------}
-        AS_DEFB,AS_DEFW
+        AS_DEFB,AS_DEFW,AS_END
         );
       tasmkeyword = string[10];
 
@@ -47,7 +47,7 @@ Unit raz80asm;
       { These tokens should be modified accordingly to the modifications }
       { in the different enumerations.                                   }
       firstdirective = AS_DEFB;
-      lastdirective  = AS_DEFW;
+      lastdirective  = AS_END;
       token2str : array[tasmtoken] of tasmkeyword=(
         '','Label','LLabel','string','integer',
         ',','(',
@@ -55,7 +55,7 @@ Unit raz80asm;
         ';','identifier','register','opcode','/','$',
         '#','{','}','[',']',
         '=',
-        'defb','defw');
+        'defb','defw','END');
 
     type
 
