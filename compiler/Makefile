@@ -610,6 +610,9 @@ endif
 ifeq ($(OS_TARGET),macos)
 NoNativeBinaries=1
 endif
+ifeq ($(OS_TARGET),freertos)
+NoNativeBinaries=1
+endif
 ifeq ($(NoNativeBinaries),1)
 override EXEEXT=$(SRCEXEEXT)
 CROSSINSTALL=1
