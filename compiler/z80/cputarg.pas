@@ -54,9 +54,9 @@ implementation
         Assembler Readers
 **************************************}
 
-  {$ifndef NoRaarmgas}
-//       ,raz80asm
-  {$endif NoRaarmgas}
+  {$ifndef NoRaZ80asm}
+      ,raz80asm
+  {$endif NoRaZ80asm}
 
 {**************************************
              Debuginfo
