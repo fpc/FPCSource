@@ -1147,7 +1147,7 @@ unit cgcpu;
              href.base:=href.index;
              href.index:=NR_NO;
            end;
-         if is_ref_ix_d(href) or is_ref_iy_d(href) or
+         if is_ref_in_opertypes(href,[OT_REF_IX_d,OT_REF_IY_d]) or
             (is_ref_hl(href) and (size in [OS_8,OS_S8])) then
            begin
              for i:=tcgsize2size[size] downto 1 do
@@ -1883,8 +1883,8 @@ unit cgcpu;
         srcref,dstref : treference;
       begin
         if (len=1) and
-           (is_ref_ix_d(source) or is_ref_iy_d(source) or is_ref_hl(source)) and
-           (is_ref_ix_d(dest) or is_ref_iy_d(dest) or is_ref_hl(dest)) then
+           is_ref_in_opertypes(source,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) and
+           is_ref_in_opertypes(dest,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) then
           begin
             tmpreg:=getintregister(list,OS_8);
             list.concat(taicpu.op_reg_ref(A_LD,tmpreg,source));
