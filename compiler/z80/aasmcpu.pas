@@ -133,7 +133,10 @@ uses
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
+    function is_ref_bc(const ref:treference): Boolean;
+    function is_ref_de(const ref:treference): Boolean;
     function is_ref_hl(const ref:treference): Boolean;
+    function is_ref_sp(const ref:treference): Boolean;
     function is_ref_ix(const ref:treference): Boolean;
     function is_ref_iy(const ref:treference): Boolean;
     function is_ref_ix_d(const ref:treference): Boolean;
@@ -337,10 +340,37 @@ implementation
       end;
 
 
+    function is_ref_bc(const ref: treference): Boolean;
+      begin
+        result:=(((ref.base=NR_BC) and (ref.index=NR_NO)) or
+                 ((ref.base=NR_NO) and (ref.index=NR_BC))) and
+                (ref.offset=0) and (ref.scalefactor<=1) and
+                (ref.symbol=nil) and (ref.relsymbol=nil);
+      end;
+
+
+    function is_ref_de(const ref: treference): Boolean;
+      begin
+        result:=(((ref.base=NR_DE) and (ref.index=NR_NO)) or
+                 ((ref.base=NR_NO) and (ref.index=NR_DE))) and
+                (ref.offset=0) and (ref.scalefactor<=1) and
+                (ref.symbol=nil) and (ref.relsymbol=nil);
+      end;
+
+
     function is_ref_hl(const ref: treference): Boolean;
       begin
         result:=(((ref.base=NR_HL) and (ref.index=NR_NO)) or
                  ((ref.base=NR_NO) and (ref.index=NR_HL))) and
+                (ref.offset=0) and (ref.scalefactor<=1) and
+                (ref.symbol=nil) and (ref.relsymbol=nil);
+      end;
+
+
+    function is_ref_sp(const ref: treference): Boolean;
+      begin
+        result:=(((ref.base=NR_SP) and (ref.index=NR_NO)) or
+                 ((ref.base=NR_NO) and (ref.index=NR_SP))) and
                 (ref.offset=0) and (ref.scalefactor<=1) and
                 (ref.symbol=nil) and (ref.relsymbol=nil);
       end;
