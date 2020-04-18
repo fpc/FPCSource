@@ -347,10 +347,17 @@ unit cpubase;
     function reg_cgsize(const reg: tregister): tcgsize;
       begin
         case getregtype(reg) of
-          R_INTREGISTER :
-            reg_cgsize:=OS_8;
-          R_ADDRESSREGISTER :
-            reg_cgsize:=OS_16;
+          R_INTREGISTER,
+          R_SPECIALREGISTER:
+            case getsubreg(reg) of
+              R_SUBL,
+              R_SUBH:
+                reg_cgsize:=OS_8;
+              R_SUBW:
+                reg_cgsize:=OS_16;
+              else
+                internalerror(2020041901);
+            end;
           else
             internalerror(2011021905);
           end;
