@@ -2904,16 +2904,7 @@ override FPCOPT+=-gl
 override FPCOPTDEF+=DEBUG
 endif
 ifdef RELEASE
-ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
-ifeq ($(CPU_TARGET),i386)
-FPCCPUOPT:=-OG2p3
-endif
-ifeq ($(CPU_TARGET),powerpc)
-FPCCPUOPT:=-O1r
-endif
-else
 FPCCPUOPT:=-O2
-endif
 override FPCOPT+=-Ur -Xs $(FPCCPUOPT) -n
 override FPCOPTDEF+=RELEASE
 endif
@@ -2977,6 +2968,7 @@ ifdef LINKSHARED
 endif
 ifdef GCCLIBDIR
 override FPCOPT+=-Fl$(GCCLIBDIR)
+override FPCMAKEOPT+=-Fl$(GCCLIBDIR)
 endif
 ifdef OTHERLIBDIR
 override FPCOPT+=$(addprefix -Fl,$(OTHERLIBDIR))

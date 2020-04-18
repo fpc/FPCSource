@@ -656,7 +656,8 @@ procedure TFPCustomHTTPClient.SendRequest(const AMethod: String; URI: TURI);
 Var
   PH,UN,PW,S,L : String;
   I : Integer;
-
+  AddContentLength : Boolean;
+  
 begin
   S:=Uppercase(AMethod)+' '+GetServerURL(URI)+' '+'HTTP/'+FHTTPVersion+CRLF;
   UN:=URI.Username;
@@ -683,7 +684,8 @@ begin
   If (URI.Port<>0) then
     S:=S+':'+IntToStr(URI.Port);
   S:=S+CRLF;
-  If Assigned(RequestBody) and (IndexOfHeader('Content-Length')=-1) then
+  AddContentLength:=Assigned(RequestBody) and (IndexOfHeader('Content-Length')=-1);
+  If AddContentLength then
     AddHeader('Content-Length',IntToStr(RequestBody.Size));
   CheckConnectionCloseHeader;
   For I:=0 to FRequestHeaders.Count-1 do
@@ -692,6 +694,8 @@ begin
     If AllowHeader(L) then
       S:=S+L+CRLF;
     end;
+  If AddContentLength then
+    FRequestHeaders.Delete(FRequestHeaders.IndexOfName('Content-Length'));
   if Assigned(FCookies) then
     begin
     L:='Cookie: ';

@@ -3511,7 +3511,7 @@ var
   type
      interpreter_struct_p = pointer; { to opaque type }
   function interp_lookup ({$ifdef GDB_INTERP_LOOKUP_HAS_UI} ui :pui ;{$endif} name : pchar) : interpreter_struct_p;cdecl; external;
-  function interp_set (interp : interpreter_struct_p;top_level : cint) : longbool;cdecl; external;
+  function interp_set (interp : interpreter_struct_p;top_level : longint {cint}) : longbool;cdecl; external;
 {$endif GDB_NEEDS_INTERPRETER_SETUP}
 const
   DIRBUF_SIZE = 1024;

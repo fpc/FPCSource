@@ -492,6 +492,10 @@ implementation
                  writer.AsmWrite('.section ');
                  sectionflags:=true;
                  sectionprogbits:=true;
+                 { hack, to avoid linker warnings on Amiga/Atari, when vlink merges
+                   rodata sections into data sections, better solution welcomed... }
+                 if atype in [sec_rodata,sec_rodata_norel] then
+                   include(secflags,SF_W);
                end;
            end;
          system_i386_win32,

@@ -76,6 +76,7 @@ unit ag68kvasm;
             case target_info.system of
               { stop vlink from complaining when it merges ro sections into rw ones (KB) }
               system_m68k_atari: result:='adrw';
+              system_m68k_amiga: result:='adrw';
             else
               result:='adr';
             end;

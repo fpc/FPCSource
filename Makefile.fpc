@@ -201,7 +201,7 @@ ifneq ($(OPT),)
 OPTNEW+=$(OPT)
 endif
 
-# some targets do not generate PIC by default so we have select explicitly 
+# some targets do not generate PIC by default so we have select explicitly
 # the general threading model when compiling the final versions of rtl and packages
 ifneq ($(findstring $(OS_TARGET),linux),)
 ifneq ($(findstring $(CPU_TARGET),i386 arm),)
@@ -217,7 +217,7 @@ INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
 BuildOnlyBaseCPUs=jvm
 
 ifneq ($(wildcard utils),)
-NOUTILSTARGETS=embedded gba nds msdos win16 macos $(BuildOnlyBaseCPUs)
+NOUTILSTARGETS=embedded gba nds msdos win16 macos $(BuildOnlyBaseCPUs) freertos
 ifeq ($(findstring $(OS_TARGET),$(NOUTILSTARGETS)),)
 ifdef BUILDFULLNATIVE
 UTILS=1
