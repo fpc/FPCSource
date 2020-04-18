@@ -84,6 +84,8 @@ uses
         OT_REF_IY,             { memory contents at address in register IY                        }
         OT_REF_IX_d,           { memory contents at address in register IX+d, d is in [-128..127] }
         OT_REF_IY_d);          { memory contents at address in register IY+d, d is in [-128..127] }
+      trefoperandtype = OT_REF_ADDR16..OT_REF_IY_d;
+      trefoperandtypes = set of trefoperandtype;
 
       tinsentry = record
         opcode  : tasmop;
@@ -143,6 +145,7 @@ uses
     function is_ref_ix_d(const ref:treference): Boolean;
     function is_ref_iy_d(const ref:treference): Boolean;
     function is_ref_opertype(const ref:treference;opertype:toperandtype): Boolean;
+    function is_ref_in_opertypes(const ref:treference;const refopertypes:trefoperandtypes): Boolean;
 
 implementation
 
@@ -444,6 +447,18 @@ implementation
           else
             internalerror(2020041801);
         end;
+      end;
+
+
+    function is_ref_in_opertypes(const ref: treference; const refopertypes: trefoperandtypes): Boolean;
+      var
+        ot: trefoperandtype;
+      begin
+        result:=true;
+        for ot:=low(trefoperandtypes) to high(trefoperandtypes) do
+          if (ot in refopertypes) and is_ref_opertype(ref,ot) then
+            exit;
+        result:=false;
       end;
 
 
