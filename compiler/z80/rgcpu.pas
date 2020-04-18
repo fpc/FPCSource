@@ -226,8 +226,16 @@ unit rgcpu;
               and     'and orgreg' with 'and spilltemp'
               and     'or  orgreg' with 'or  spilltemp'
               and     'xor orgreg' with 'xor spilltemp'
-              and     'cp  orgreg' with 'cp  spilltemp' }
-            else if (opcode in [A_INC,A_DEC,A_ADD,A_ADC,A_SUB,A_SBC,A_AND,A_OR,A_XOR,A_CP]) and (ops=1) and (oper[0]^.typ=top_reg) then
+              and     'cp  orgreg' with 'cp  spilltemp'
+              and     'rlc orgreg' with 'rlc spilltemp'
+              and     'rl  orgreg' with 'rl  spilltemp'
+              and     'rrc orgreg' with 'rrc spilltemp'
+              and     'rr  orgreg' with 'rr  spilltemp'
+              and     'sla orgreg' with 'sla spilltemp'
+              and     'sra orgreg' with 'sra spilltemp'
+              and     'srl orgreg' with 'srl spilltemp' }
+            else if (opcode in [A_INC,A_DEC,A_ADD,A_ADC,A_SUB,A_SBC,A_AND,A_OR,A_XOR,A_CP,
+                     A_RLC,A_RL,A_RRC,A_RR,A_SLA,A_SRA,A_SRL]) and (ops=1) and (oper[0]^.typ=top_reg) then
               begin
                 if (getregtype(oper[0]^.reg)=regtype) and
                    (get_alias(getsupreg(oper[0]^.reg))=orgreg) then
