@@ -310,11 +310,19 @@ implementation
               result:=operand_write;
           A_PUSH,
           A_BIT,
+          A_CP,
           A_DJNZ,
           A_JR,
-          A_JP:
+          A_JP,
+          A_CALL,
+          A_RET,
+          A_RETI,
+          A_RETN,
+          A_RST,
+          A_IM:
             ;
-          A_SET:
+          A_SET,
+          A_RES:
             if opnr=1 then
               result:=operand_readwrite;
           A_EX:
