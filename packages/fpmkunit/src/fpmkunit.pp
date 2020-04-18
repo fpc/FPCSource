@@ -3181,8 +3181,8 @@ begin
     RTLeventWaitFor(FNotifyStartTask,500);
     if not FDone then
       begin
-      { synchronise with WriteBarrier in mainthread for same reason as above }
-      ReadBarrier;
+      { synchronise with ReadWriteBarrier in mainthread for same reason as above }
+      ReadWriteBarrier;
       FBuildEngine.log(vlInfo,'Compiling: '+APackage.Name);
       FCompilationOK:=false;
       try
@@ -8182,8 +8182,10 @@ Var
   begin
     if AThread.Done then
       begin
-        { synchronise with the WriteBarrier in the thread }
-        ReadBarrier;
+        { synchronise with the WriteBarrier in the thread (-> ReadBarrier), and prevent
+          any writes we do here afterwards to be reordered before that (so the compile
+          thread won't see these writes either -> also WriteBarrier) }
+        ReadWriteBarrier;
         if assigned(AThread.APackage) then
           begin
             // The thread has completed compiling the package
