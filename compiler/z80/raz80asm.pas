@@ -1312,6 +1312,11 @@ Unit raz80asm;
                 break; { end assembly block }
               end;
 
+            AS_SEPARATOR:
+              begin
+                Consume(AS_SEPARATOR);
+              end;
+
             else
               begin
                 Message(asmr_e_syntax_error);
