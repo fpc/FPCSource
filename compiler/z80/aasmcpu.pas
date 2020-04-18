@@ -1,7 +1,7 @@
 {
     Copyright (c) 1999-2008 by Mazen Neifer and Florian Klaempfl
 
-    Contains the assembler object for the AVR
+    Contains the assembler object for the Z80
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
