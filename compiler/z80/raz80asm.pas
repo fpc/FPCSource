@@ -58,6 +58,9 @@ Unit raz80asm;
         'defb','defw');
 
     type
+
+      { tz80reader }
+
       tz80reader = class(tasmreader)
         actasmtoken    : tasmtoken;
         //function is_asmopcode(const s: string):boolean;override;
