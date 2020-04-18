@@ -172,7 +172,6 @@ unit rgcpu;
                    (get_alias(getsupreg(oper[1]^.reg))<>orgreg) then
                   begin
                     instr.loadref(0,spilltemp);
-                    opcode:=A_LD;
                     result:=true;
                   end
                 else if (getregtype(oper[1]^.reg)=regtype) and
@@ -180,7 +179,6 @@ unit rgcpu;
                    (get_alias(getsupreg(oper[0]^.reg))<>orgreg) then
                   begin
                     instr.loadref(1,spilltemp);
-                    opcode:=A_LD;
                     result:=true;
                   end;
               end
@@ -191,7 +189,6 @@ unit rgcpu;
                    (get_alias(getsupreg(oper[0]^.reg))=orgreg) then
                   begin
                     instr.loadref(0,spilltemp);
-                    opcode:=A_LD;
                     result:=true;
                   end;
               end
