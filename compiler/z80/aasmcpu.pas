@@ -84,6 +84,11 @@ uses
         OT_REF_IY,             { memory contents at address in register IY                        }
         OT_REF_IX_d,           { memory contents at address in register IX+d, d is in [-128..127] }
         OT_REF_IY_d);          { memory contents at address in register IY+d, d is in [-128..127] }
+      timmoperandtype = OT_IMM3..OT_IMM_PORT;
+      tregoperandtype = OT_REG8..OT_REG16_AF_;
+      treg8operandtype = OT_REG8..OT_REG8_C_PORT;
+      treg16operandtype = OT_REG16_IX..OT_REG16_AF_;
+      tcondoperandtype = OT_COND..OT_COND_NZ;
       trefoperandtype = OT_REF_ADDR16..OT_REF_IY_d;
       trefoperandtypes = set of trefoperandtype;
 
