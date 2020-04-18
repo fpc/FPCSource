@@ -548,7 +548,7 @@ begin
   { Try to find TryEnterCriticalSection function }
   KernelHandle:=GetModuleHandle(KernelDLL);
   if KernelHandle<>0 then
-    WinTryEnterCriticalSection:=TTryEnterCriticalSection(GetProcAddress(KernelHandle,'TryEnterCriticalSection'));
+    WinTryEnterCriticalSection:=TTryEnterCriticalSection(WinGetProcAddress(KernelHandle,'TryEnterCriticalSection'));
   if not assigned(WinTryEnterCriticalSection) then
     WinTryEnterCriticalSection:=@Win95TryEnterCriticalSection;
 {$ENDIF SUPPORT_WIN95}
