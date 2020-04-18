@@ -202,8 +202,7 @@ unit rgcpu;
               and     'and A,orgreg' with 'and A,spilltemp'
               and     'or  A,orgreg' with 'or  A,spilltemp'
               and     'xor A,orgreg' with 'xor A,spilltemp'
-              and     'cp  A,orgreg' with 'cp  A,spilltemp'
-              }
+              and     'cp  A,orgreg' with 'cp  A,spilltemp' }
             else if (opcode in [A_ADD,A_ADC,A_SUB,A_SBC,A_AND,A_OR,A_XOR,A_CP]) and (ops=2) and (oper[1]^.typ=top_reg) and (oper[0]^.typ=top_reg) then
               begin
                 { we don't really need to check whether the first register is 'A',
@@ -212,6 +211,18 @@ unit rgcpu;
                 if (getregtype(oper[1]^.reg)=regtype) and
                    (get_alias(getsupreg(oper[1]^.reg))=orgreg) and
                    (get_alias(getsupreg(oper[0]^.reg))<>orgreg) then
+                  begin
+                    instr.loadref(1,spilltemp);
+                    result:=true;
+                  end;
+              end
+            { Replace 'bit const,orgreg' with 'bit const,spilltemp'
+              and     'set const,orgreg' with 'set const,spilltemp'
+              and     'res const,orgreg' with 'res const,spilltemp' }
+            else if (opcode in [A_BIT,A_SET,A_RES]) and (ops=2) and (oper[1]^.typ=top_reg) and (oper[0]^.typ=top_const) then
+              begin
+                if (getregtype(oper[1]^.reg)=regtype) and
+                   (get_alias(getsupreg(oper[1]^.reg))=orgreg) then
                   begin
                     instr.loadref(1,spilltemp);
                     result:=true;
