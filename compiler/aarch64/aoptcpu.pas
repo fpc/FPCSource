@@ -49,6 +49,7 @@ Interface
         function OptPass1Data(var p: tai): boolean;
         function RemoveSuperfluousFMov(const p: tai; movp: tai; const optimizer: string): boolean;
         function OptPass1STP(var p: tai): boolean;
+        function OptPass1Mov(var p: tai): boolean;
       End;
 
 Implementation
@@ -459,6 +460,25 @@ Implementation
     end;
 
 
+  function TCpuAsmOptimizer.OptPass1Mov(var p : tai): boolean;
+    var
+      hp1: tai;
+    begin
+     Result:=false;
+     if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) and
+       (taicpu(p).oppostfix=PF_None) then
+       begin
+         RemoveCurrentP(p);
+         DebugMsg('Peephole Mov2None done', p);
+         Result:=true;
+       end
+
+     else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+        RemoveSuperfluousMove(p, hp1, 'MovMov2Mov') then
+       Result:=true;
+    end;
+
+
   function TCpuAsmOptimizer.OptPostCMP(var p : tai): boolean;
     var
      hp1,hp2: tai;
@@ -508,6 +528,8 @@ Implementation
               begin
                 Result:=LookForPostindexedPattern(taicpu(p));
               end;
+            A_MOV:
+              Result:=OptPass1Mov(p);
             A_STP:
               Result:=OptPass1STP(p);
             A_LSR,
