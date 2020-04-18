@@ -133,6 +133,12 @@ uses
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
+    function is_ref_hl(const ref:treference): Boolean;
+    function is_ref_ix(const ref:treference): Boolean;
+    function is_ref_iy(const ref:treference): Boolean;
+    function is_ref_ix_d(const ref:treference): Boolean;
+    function is_ref_iy_d(const ref:treference): Boolean;
+
 implementation
 
 {****************************************************************************
@@ -328,6 +334,51 @@ implementation
           else
             internalerror(200401041);
         end;
+      end;
+
+
+    function is_ref_hl(const ref: treference): Boolean;
+      begin
+        result:=(((ref.base=NR_HL) and (ref.index=NR_NO)) or
+                 ((ref.base=NR_NO) and (ref.index=NR_HL))) and
+                (ref.offset=0) and (ref.scalefactor<=1) and
+                (ref.symbol=nil) and (ref.relsymbol=nil);
+      end;
+
+
+    function is_ref_ix(const ref: treference): Boolean;
+      begin
+        result:=(((ref.base=NR_IX) and (ref.index=NR_NO)) or
+                 ((ref.base=NR_NO) and (ref.index=NR_IX))) and
+                (ref.offset=0) and (ref.scalefactor<=1) and
+                (ref.symbol=nil) and (ref.relsymbol=nil);
+      end;
+
+
+    function is_ref_iy(const ref: treference): Boolean;
+      begin
+        result:=(((ref.base=NR_IY) and (ref.index=NR_NO)) or
+                 ((ref.base=NR_NO) and (ref.index=NR_IY))) and
+                (ref.offset=0) and (ref.scalefactor<=1) and
+                (ref.symbol=nil) and (ref.relsymbol=nil);
+      end;
+
+
+    function is_ref_ix_d(const ref: treference): Boolean;
+      begin
+        result:=(((ref.base=NR_IX) and (ref.index=NR_NO)) or
+                 ((ref.base=NR_NO) and (ref.index=NR_IX))) and
+                (ref.offset>=-128) and (ref.offset<=127) and (ref.scalefactor<=1) and
+                (ref.symbol=nil) and (ref.relsymbol=nil);
+      end;
+
+
+    function is_ref_iy_d(const ref: treference): Boolean;
+      begin
+        result:=(((ref.base=NR_IY) and (ref.index=NR_NO)) or
+                 ((ref.base=NR_NO) and (ref.index=NR_IY))) and
+                (ref.offset>=-128) and (ref.offset<=127) and (ref.scalefactor<=1) and
+                (ref.symbol=nil) and (ref.relsymbol=nil);
       end;
 
 
