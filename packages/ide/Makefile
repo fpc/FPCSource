@@ -545,6 +545,37 @@ endif
 else
 CROSSBINDIR=
 endif
+ifeq ($(OS_SOURCE),linux)
+ifndef GCCLIBDIR
+ifeq ($(CPU_TARGET),i386)
+ifneq ($(findstring x86_64,$(shell uname -a)),)
+ifeq ($(BINUTILSPREFIX),)
+GCCLIBDIR:=$(shell dirname `gcc -m32 -print-libgcc-file-name`)
+endif
+endif
+endif
+ifeq ($(CPU_TARGET),powerpc64)
+ifeq ($(BINUTILSPREFIX),)
+GCCLIBDIR:=$(shell dirname `gcc -m64 -print-libgcc-file-name`)
+endif
+endif
+endif
+ifndef GCCLIBDIR
+CROSSGCC=$(strip $(wildcard $(addsuffix /$(BINUTILSPREFIX)gcc$(SRCEXEEXT),$(SEARCHPATH))))
+ifneq ($(CROSSGCC),)
+GCCLIBDIR:=$(shell dirname `$(CROSSGCC) -print-libgcc-file-name`)
+endif
+endif
+ifndef OTHERLIBDIR
+OTHERLIBDIR:=$(shell grep -v "^\#" /etc/ld.so.conf | awk '{ ORS=" "; print $1 }')
+endif
+endif
+ifdef inUnix
+ifeq ($(OS_SOURCE),netbsd)
+OTHERLIBDIR+=/usr/pkg/lib
+endif
+export GCCLIBDIR OTHERLIB
+endif
 BATCHEXT=.bat
 LOADEREXT=.as
 EXEEXT=.exe
@@ -2626,16 +2657,7 @@ override FPCOPT+=-gl
 override FPCOPTDEF+=DEBUG
 endif
 ifdef RELEASE
-ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
-ifeq ($(CPU_TARGET),i386)
-FPCCPUOPT:=-OG2p3
-endif
-ifeq ($(CPU_TARGET),powerpc)
-FPCCPUOPT:=-O1r
-endif
-else
 FPCCPUOPT:=-O2
-endif
 override FPCOPT+=-Ur -Xs $(FPCCPUOPT) -n
 override FPCOPTDEF+=RELEASE
 endif
@@ -2696,6 +2718,13 @@ override FPCOPT+=-Cg
 endif
 endif
 ifdef LINKSHARED
+endif
+ifdef GCCLIBDIR
+override FPCOPT+=-Fl$(GCCLIBDIR)
+override FPCMAKEOPT+=-Fl$(GCCLIBDIR)
+endif
+ifdef OTHERLIBDIR
+override FPCOPT+=$(addprefix -Fl,$(OTHERLIBDIR))
 endif
 ifdef OPT
 override FPCOPT+=$(OPT)
@@ -3145,6 +3174,9 @@ endif
 endif # GDBMI_IS_STATIC
 ifdef PPC_TARGET
 FPMAKE_OPT+=--CompilerTarget=$(PPC_TARGET)
+endif
+ifdef LLVM
+FPMAKE_OPT+=--LLVM=1
 endif
 .NOTPARALLEL:
 PPC_TARGETS=i386 m68k powerpc sparc arm x86_64 powerpc64 mips mipsel avr jvm i8086 aarch64 sparc64
