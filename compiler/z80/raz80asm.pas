@@ -1487,9 +1487,9 @@ Unit raz80asm;
         cse_in_flags: tconstsymbolexpressioninputflags;
         cse_out_flags: tconstsymbolexpressionoutputflags;
       begin
-        if actasmtoken=AS_LBRACKET then
+        if actasmtoken=AS_LPAREN then
           begin
-            Consume(AS_LBRACKET);
+            Consume(AS_LPAREN);
             BracketlessReference:=false;
           end
         else
@@ -1893,28 +1893,28 @@ Unit raz80asm;
                 GotStar:=(prevasmtoken=AS_STAR);
               end;
 
-            AS_LBRACKET :
-              begin
-                if (GotPlus and Negative) or GotStar then
-                  Message(asmr_e_invalid_reference_syntax);
-                tmpoper:=Tz80Operand.create;
-                BuildReference(tmpoper);
-                AddReferences(oper,tmpoper);
-                tmpoper.Free;
-                GotPlus:=false;
-                GotStar:=false;
-              end;
+            //AS_LBRACKET :
+            //  begin
+            //    if (GotPlus and Negative) or GotStar then
+            //      Message(asmr_e_invalid_reference_syntax);
+            //    tmpoper:=Tz80Operand.create;
+            //    BuildReference(tmpoper);
+            //    AddReferences(oper,tmpoper);
+            //    tmpoper.Free;
+            //    GotPlus:=false;
+            //    GotStar:=false;
+            //  end;
 
-            AS_RBRACKET :
+            AS_RPAREN :
               begin
                 if GotPlus or GotStar or BracketlessReference then
                   Message(asmr_e_invalid_reference_syntax);
 
-                Consume(AS_RBRACKET);
+                Consume(AS_RPAREN);
 
 
 
-                if actasmtoken=AS_LBRACKET then
+                if actasmtoken=AS_LPAREN then
                   begin
                     tmpoper:=Tz80Operand.create;
                     BuildReference(tmpoper);
