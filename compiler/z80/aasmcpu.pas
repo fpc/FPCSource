@@ -133,6 +133,7 @@ uses
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
+    function is_ref_addr16(const ref:treference): Boolean;
     function is_ref_bc(const ref:treference): Boolean;
     function is_ref_de(const ref:treference): Boolean;
     function is_ref_hl(const ref:treference): Boolean;
@@ -337,6 +338,12 @@ implementation
           else
             internalerror(200401041);
         end;
+      end;
+
+
+    function is_ref_addr16(const ref: treference): Boolean;
+      begin
+        result:=(ref.base=NR_NO) and (ref.index=NR_NO);
       end;
 
 
