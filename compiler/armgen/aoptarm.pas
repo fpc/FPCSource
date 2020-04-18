@@ -40,6 +40,7 @@ Type
     procedure DebugMsg(const s : string; p : tai);
 
     function RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string): boolean;
+    function RedundantMovProcess(var p: tai; hp1: tai): boolean;
     function GetNextInstructionUsingReg(Current: tai; out Next: tai; reg: TRegister): Boolean;
 
     function OptPass1UXTB(var p: tai): Boolean;
@@ -268,6 +269,78 @@ Implementation
             end;
         end;
     end;
+
+
+  function TARMAsmOptimizer.RedundantMovProcess(var p: tai;hp1: tai):boolean;
+    var
+      I: Integer;
+    begin
+      Result:=false;
+      {
+        change
+        mov r1, r0
+        add r1, r1, #1
+        to
+        add r1, r0, #1
+
+        Todo: Make it work for mov+cmp too
+
+        CAUTION! If this one is successful p might not be a mov instruction anymore!
+      }
+      if (taicpu(p).ops = 2) and
+         (taicpu(p).oper[1]^.typ = top_reg) and
+         (taicpu(p).oppostfix = PF_NONE) and
+
+         MatchInstruction(hp1, [A_ADD, A_ADC,
+{$ifdef ARM}
+                                A_RSB, A_RSC,
+{$endif ARM}
+                                A_SUB, A_SBC,
+                                A_AND, A_BIC, A_EOR, A_ORR, A_MOV, A_MVN],
+                          [taicpu(p).condition], []) and
+         { MOV and MVN might only have 2 ops }
+         (taicpu(hp1).ops >= 2) and
+         MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^.reg) and
+         (taicpu(hp1).oper[1]^.typ = top_reg) and
+         (
+           (taicpu(hp1).ops = 2) or
+           (taicpu(hp1).oper[2]^.typ in [top_reg, top_const, top_shifterop])
+         ) and
+{$ifdef AARCH64}
+         (taicpu(p).oper[1]^.reg<>NR_SP) and
+{$endif AARCH64}
+         not(RegUsedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+        begin
+        { When we get here we still don't know if the registers match }
+          for I:=1 to 2 do
+            {
+              If the first loop was successful p will be replaced with hp1.
+              The checks will still be ok, because all required information
+              will also be in hp1 then.
+            }
+            if (taicpu(hp1).ops > I) and
+               MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[I]^.reg)
+{$ifdef ARM}
+               { prevent certain combinations on thumb(2), this is only a safe approximation }
+               and (not(GenerateThumbCode or GenerateThumb2Code) or
+                ((getsupreg(taicpu(p).oper[1]^.reg)<>RS_R13) and
+                 (getsupreg(taicpu(p).oper[1]^.reg)<>RS_R15)))
+{$endif ARM}
+
+               then
+              begin
+                DebugMsg('Peephole RedundantMovProcess done', hp1);
+                taicpu(hp1).oper[I]^.reg := taicpu(p).oper[1]^.reg;
+                if p<>hp1 then
+                begin
+                  asml.remove(p);
+                  p.free;
+                  p:=hp1;
+                  Result:=true;
+                end;
+              end;
+        end;
+      end;
 
 
   function TARMAsmOptimizer.OptPass1UXTB(var p : tai) : Boolean;

@@ -473,9 +473,20 @@ Implementation
          Result:=true;
        end
 
-     else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-        RemoveSuperfluousMove(p, hp1, 'MovMov2Mov') then
-       Result:=true;
+     {
+       optimize
+       mov rX, yyyy
+       ....
+     }
+     else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
+       begin
+         if RemoveSuperfluousMove(p, hp1, 'MovMov2Mov') then
+           Result:=true
+         else if (taicpu(p).ops = 2) and
+           (tai(hp1).typ = ait_instruction) and
+           RedundantMovProcess(p,hp1) then
+           Result:=true;
+       end;
     end;
 
 
