@@ -409,21 +409,19 @@ Implementation
         b         abc
       }
       if MatchInstruction(p, A_STP, [C_None], [PF_None]) and
+        MatchOpType(taicpu(p),top_reg,top_reg,top_ref) and
+        (taicpu(p).oper[0]^.reg = NR_X29) and
+        (taicpu(p).oper[1]^.reg = NR_X30) and
+        (taicpu(p).oper[2]^.ref^.base=NR_STACK_POINTER_REG) and
+        (taicpu(p).oper[2]^.ref^.index=NR_NO) and
+        (taicpu(p).oper[2]^.ref^.offset=-16) and
+        (taicpu(p).oper[2]^.ref^.addressmode=AM_PREINDEXED) and
         GetNextInstruction(p, hp1) and
         GetNextInstruction(hp1, hp2) and
         SkipEntryExitMarker(hp2, hp2) and
         GetNextInstruction(hp2, hp3) and
         SkipEntryExitMarker(hp3, hp3) and
         GetNextInstruction(hp3, hp4) and
-        (taicpu(p).oper[0]^.typ = top_reg) and
-        (taicpu(p).oper[0]^.reg = NR_X29) and
-        (taicpu(p).oper[1]^.typ = top_reg) and
-        (taicpu(p).oper[1]^.reg = NR_X30) and
-        (taicpu(p).oper[2]^.typ = top_ref) and
-        (taicpu(p).oper[2]^.ref^.base=NR_STACK_POINTER_REG) and
-        (taicpu(p).oper[2]^.ref^.index=NR_NO) and
-        (taicpu(p).oper[2]^.ref^.offset=-16) and
-        (taicpu(p).oper[2]^.ref^.addressmode=AM_PREINDEXED) and
 
         MatchInstruction(hp1, A_MOV, [C_None], [PF_NONE]) and
         MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[0]^) and
@@ -434,11 +432,9 @@ Implementation
         (taicpu(hp2).oper[0]^.typ = top_ref) and
 
         MatchInstruction(hp3, A_LDP, [C_None], [PF_NONE]) and
-        (taicpu(hp3).oper[0]^.typ = top_reg) and
+        MatchOpType(taicpu(hp3),top_reg,top_reg,top_ref) and
         (taicpu(hp3).oper[0]^.reg = NR_X29) and
-        (taicpu(hp3).oper[1]^.typ = top_reg) and
         (taicpu(hp3).oper[1]^.reg = NR_X30) and
-        (taicpu(hp3).oper[2]^.typ = top_ref) and
         (taicpu(hp3).oper[2]^.ref^.base=NR_STACK_POINTER_REG) and
         (taicpu(hp3).oper[2]^.ref^.index=NR_NO) and
         (taicpu(hp3).oper[2]^.ref^.offset=16) and
