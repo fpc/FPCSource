@@ -81,6 +81,7 @@ Unit raz80asm;
         Function is_asmdirective(const s: string):boolean;
         function is_register(const s:string):boolean;
         function is_targetdirective(const s: string):boolean;
+        procedure BuildOperand(oper: tz80operand;istypecast:boolean);
         procedure BuildOpCode(instr:TZ80Instruction);
         procedure handleopcode;
         //procedure BuildReference(oper : tz80operand);
@@ -785,13 +786,75 @@ Unit raz80asm;
       end;
 
 
+    procedure tz80reader.BuildOperand(oper: tz80operand; istypecast: boolean);
+      begin
+        repeat
+          case actasmtoken of
+            AS_REGISTER : { Register, a variable reference or a constant reference }
+              begin
+                Consume(AS_REGISTER);
+
+                { Simple register }
+                if (oper.opr.typ <> OPR_NONE) then
+                  Message(asmr_e_syn_operand);
+                oper.opr.typ:=OPR_REGISTER;
+                oper.opr.reg:=actasmregister;
+                oper.SetSize(tcgsize2size[reg_cgsize(oper.opr.reg)],true);
+              end;
+
+            AS_SEPARATOR,
+            AS_END,
+            AS_COMMA:
+              begin
+                break;
+              end;
+
+            else
+              begin
+                Message(asmr_e_syn_operand);
+                RecoverConsume(true);
+                break;
+              end;
+          end;
+        until false;
+      end;
+
+
     procedure tz80reader.BuildOpCode(instr: TZ80Instruction);
+      var
+        operandnum: Integer;
       begin
         instr.opcode:=actopcode;
+        operandnum:=1;
         Consume(AS_OPCODE);
         { Zero operand opcode ?  }
         if actasmtoken in [AS_SEPARATOR,AS_END] then
           exit;
+        { Read Operands }
+        repeat
+          case actasmtoken of
+            { End of asm operands for this opcode }
+            AS_END,
+            AS_SEPARATOR :
+              break;
+
+            { Operand delimiter }
+            AS_COMMA :
+              begin
+                { should have something before the comma }
+                if instr.operands[operandnum].opr.typ=OPR_NONE then
+                  Message(asmr_e_syntax_error);
+                if operandnum >= max_operands then
+                  Message(asmr_e_too_many_operands)
+                else
+                  Inc(operandnum);
+                Consume(AS_COMMA);
+              end;
+            else
+              BuildOperand(instr.Operands[operandnum] as tz80operand,false);
+          end;
+        until false;
+        instr.ops:=operandnum;
       end;
 
 
