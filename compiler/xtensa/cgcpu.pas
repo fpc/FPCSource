@@ -75,9 +75,11 @@ interface
 
         procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister);override;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister);override;
-        procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
+        procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference);override;
 
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
+
+        procedure g_overflowcheck(list: TAsmList; const Loc:tlocation; def:tdef);override;
       end;
 
       tcg64fxtensa = class(tcg64f32)
@@ -1023,6 +1025,12 @@ implementation
         if (op in overflowops) and
            (size in [OS_8,OS_S8,OS_16,OS_S16]) then
           a_load_reg_reg(list,OS_32,size,dst,dst);
+      end;
+
+
+    procedure tcgcpu.g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef);
+      begin
+        { no overflow checking yet }
       end;
 
 
