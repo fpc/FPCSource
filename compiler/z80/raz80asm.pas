@@ -61,7 +61,7 @@ Unit raz80asm;
       tz80reader = class(tasmreader)
         actasmtoken    : tasmtoken;
         //function is_asmopcode(const s: string):boolean;override;
-        //function is_register(const s:string):boolean;override;
+        function is_register(const s:string):boolean;
         //procedure handleopcode;override;
         //procedure BuildReference(oper : tz80operand);
         //procedure BuildOperand(oper : tz80operand);
@@ -91,48 +91,16 @@ Unit raz80asm;
       ;
 
 
-    //function tz80attreader.is_register(const s:string):boolean;
-    //  type
-    //    treg2str = record
-    //      name : string[2];
-    //      reg : tregister;
-    //    end;
-    //
-    //  const
-    //    extraregs : array[0..8] of treg2str = (
-    //      (name: 'X'; reg : NR_R26),
-    //      (name: 'XL'; reg : NR_R26),
-    //      (name: 'XH'; reg : NR_R27),
-    //      (name: 'Y'; reg : NR_R28),
-    //      (name: 'YL'; reg : NR_R28),
-    //      (name: 'YH'; reg : NR_R29),
-    //      (name: 'Z'; reg : NR_R30),
-    //      (name: 'ZL'; reg : NR_R30),
-    //      (name: 'ZH'; reg : NR_R31)
-    //    );
-    //
-    //  var
-    //    i : longint;
-    //
-    //  begin
-    //    result:=inherited is_register(s);
-    //    { reg found?
-    //      possible aliases are always 2 char
-    //    }
-    //    if result or (not (length(s) in [1,2])) then
-    //      exit;
-    //
-    //    for i:=low(extraregs) to high(extraregs) do
-    //      begin
-    //        if s=extraregs[i].name then
-    //          begin
-    //            actasmregister:=extraregs[i].reg;
-    //            result:=true;
-    //            actasmtoken:=AS_REGISTER;
-    //            exit;
-    //          end;
-    //      end;
-    //  end;
+    function tz80reader.is_register(const s:string):boolean;
+      begin
+        is_register:=false;
+        actasmregister:=std_regnum_search(lower(s));
+        if actasmregister<>NR_NO then
+          begin
+            is_register:=true;
+            actasmtoken:=AS_REGISTER;
+          end;
+      end;
 
 
     //procedure tz80reader.ReadSym(oper : tz80operand);
