@@ -142,6 +142,7 @@ uses
     function is_ref_iy(const ref:treference): Boolean;
     function is_ref_ix_d(const ref:treference): Boolean;
     function is_ref_iy_d(const ref:treference): Boolean;
+    function is_ref_opertype(const ref:treference;opertype:toperandtype): Boolean;
 
 implementation
 
@@ -416,6 +417,33 @@ implementation
                  ((ref.base=NR_NO) and (ref.index=NR_IY))) and
                 (ref.offset>=-128) and (ref.offset<=127) and (ref.scalefactor<=1) and
                 (ref.symbol=nil) and (ref.relsymbol=nil);
+      end;
+
+
+    function is_ref_opertype(const ref: treference; opertype: toperandtype): Boolean;
+      begin
+        case opertype of
+          OT_REF_ADDR16:
+            result:=is_ref_addr16(ref);
+          OT_REF_BC:
+            result:=is_ref_bc(ref);
+          OT_REF_DE:
+            result:=is_ref_de(ref);
+          OT_REF_HL:
+            result:=is_ref_hl(ref);
+          OT_REF_SP:
+            result:=is_ref_sp(ref);
+          OT_REF_IX:
+            result:=is_ref_ix(ref);
+          OT_REF_IY:
+            result:=is_ref_iy(ref);
+          OT_REF_IX_d:
+            result:=is_ref_ix_d(ref);
+          OT_REF_IY_d:
+            result:=is_ref_iy_d(ref);
+          else
+            internalerror(2020041801);
+        end;
       end;
 
 
