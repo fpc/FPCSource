@@ -54,6 +54,8 @@ Type
     function IsChildStored: boolean;
     function StreamChildren(AComp: TComponent): TJSONArray;
   protected
+    Function GetPropertyList(aObject : TObject) : TPropInfoList; virtual;
+    Procedure StreamProperties(aObject : TObject;aList : TPropInfoList; aParent : TJSONObject); virtual;
     function StreamClassProperty(Const AObject: TObject): TJSONData; virtual;
     Function StreamProperty(Const AObject : TObject; Const PropertyName : String) : TJSONData;
     Function StreamProperty(Const AObject : TObject; PropertyInfo : PPropInfo) : TJSONData;
@@ -755,12 +757,36 @@ begin
   Result:=(GetChildProperty<>'Children');
 end;
 
+Function TJSONStreamer.GetPropertyList(aObject : TObject) : TPropInfoList;
+
+begin
+  result:=TPropInfoList.Create(AObject,tkProperties);
+end;
+
+Procedure TJSONStreamer.StreamProperties(aObject : TObject;aList : TPropInfoList; aParent : TJSONObject);
+
+Var
+  I : Integer;
+  PD : TJSONData;
+
+begin
+  For I:=0 to aList.Count-1 do
+    begin
+    PD:=StreamProperty(AObject,aList.Items[i]);
+    If (PD<>Nil) then 
+      begin
+      if jsoLowerPropertyNames in Options then
+        aParent.Add(LowerCase(aList.Items[I]^.Name),PD)
+      else
+        aParent.Add(aList.Items[I]^.Name,PD);
+      end;
+    end;
+end;
+
 function TJSONStreamer.ObjectToJSON(Const AObject: TObject): TJSONObject;
 
 Var
   PIL : TPropInfoList;
-  PD : TJSONData;
-  I : Integer;
 
 begin
   Result:=Nil;
@@ -780,20 +806,12 @@ begin
       Result.Add('Objects', StreamTList(TList(AObject)))
     else
       begin
-      PIL:=TPropInfoList.Create(AObject,tkProperties);
+      PIL:=GetPropertyList(aObject);
+//      TPropInfoList.Create(AObject,tkProperties);
       try
-        For I:=0 to PIL.Count-1 do
-          begin
-          PD:=StreamProperty(AObject,PIL.Items[i]);
-            If (PD<>Nil) then begin
-              if jsoLowerPropertyNames in Options then
-                Result.Add(LowerCase(PIL.Items[I]^.Name),PD)
-              else
-            Result.Add(PIL.Items[I]^.Name,PD);
-          end;
-          end;
+        StreamProperties(aObject,PIL,Result);
       finally
-        FReeAndNil(Pil);
+        FreeAndNil(Pil);
       end;
       If (jsoStreamChildren in Options) and (AObject is TComponent) then
         Result.Add(ChildProperty,StreamChildren(TComponent(AObject)));
