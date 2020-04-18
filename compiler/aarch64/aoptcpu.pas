@@ -48,6 +48,7 @@ Interface
         function OptPostCMP(var p: tai): boolean;
         function OptPass1Data(var p: tai): boolean;
         function RemoveSuperfluousFMov(const p: tai; movp: tai; const optimizer: string): boolean;
+        function OptPass1STP(var p: tai): boolean;
       End;
 
 Implementation
@@ -389,6 +390,79 @@ Implementation
     end;
 
 
+  function TCpuAsmOptimizer.OptPass1STP(var p : tai): boolean;
+    var
+      hp1, hp2, hp3, hp4: tai;
+    begin
+      Result:=false;
+      {
+        change
+
+	stp	x29,x30,[sp, #-16]!
+	mov	x29,sp
+	bl	abc
+	ldp	x29,x30,[sp], #16
+	ret
+
+        into
+
+        b         abc
+      }
+      if MatchInstruction(p, A_STP, [C_None], [PF_None]) and
+        GetNextInstruction(p, hp1) and
+        GetNextInstruction(hp1, hp2) and
+        SkipEntryExitMarker(hp2, hp2) and
+        GetNextInstruction(hp2, hp3) and
+        SkipEntryExitMarker(hp3, hp3) and
+        GetNextInstruction(hp3, hp4) and
+        (taicpu(p).oper[0]^.typ = top_reg) and
+        (taicpu(p).oper[0]^.reg = NR_X29) and
+        (taicpu(p).oper[1]^.typ = top_reg) and
+        (taicpu(p).oper[1]^.reg = NR_X30) and
+        (taicpu(p).oper[2]^.typ = top_ref) and
+        (taicpu(p).oper[2]^.ref^.base=NR_STACK_POINTER_REG) and
+        (taicpu(p).oper[2]^.ref^.index=NR_NO) and
+        (taicpu(p).oper[2]^.ref^.offset=-16) and
+        (taicpu(p).oper[2]^.ref^.addressmode=AM_PREINDEXED) and
+
+        MatchInstruction(hp1, A_MOV, [C_None], [PF_NONE]) and
+        MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[0]^) and
+        (taicpu(hp1).oper[1]^.typ = top_reg) and
+        (taicpu(hp1).oper[1]^.reg = NR_STACK_POINTER_REG) and
+
+        MatchInstruction(hp2, A_BL, [C_None], [PF_NONE]) and
+        (taicpu(hp2).oper[0]^.typ = top_ref) and
+
+        MatchInstruction(hp3, A_LDP, [C_None], [PF_NONE]) and
+        (taicpu(hp3).oper[0]^.typ = top_reg) and
+        (taicpu(hp3).oper[0]^.reg = NR_X29) and
+        (taicpu(hp3).oper[1]^.typ = top_reg) and
+        (taicpu(hp3).oper[1]^.reg = NR_X30) and
+        (taicpu(hp3).oper[2]^.typ = top_ref) and
+        (taicpu(hp3).oper[2]^.ref^.base=NR_STACK_POINTER_REG) and
+        (taicpu(hp3).oper[2]^.ref^.index=NR_NO) and
+        (taicpu(hp3).oper[2]^.ref^.offset=16) and
+        (taicpu(hp3).oper[2]^.ref^.addressmode=AM_POSTINDEXED) and
+
+        MatchInstruction(hp4, A_RET, [C_None], [PF_None]) and
+        (taicpu(hp4).ops = 0) then
+        begin
+          asml.Remove(p);
+          asml.Remove(hp1);
+          asml.Remove(hp3);
+          asml.Remove(hp4);
+          taicpu(hp2).opcode:=A_B;
+          p.free;
+          hp1.free;
+          hp3.free;
+          hp4.free;
+          p:=hp2;
+          DebugMsg('Peephole Bl2B done', p);
+          Result:=true;
+        end;
+    end;
+
+
   function TCpuAsmOptimizer.OptPostCMP(var p : tai): boolean;
     var
      hp1,hp2: tai;
@@ -438,6 +512,8 @@ Implementation
               begin
                 Result:=LookForPostindexedPattern(taicpu(p));
               end;
+            A_STP:
+              Result:=OptPass1STP(p);
             A_LSR,
             A_ROR,
             A_ASR,
