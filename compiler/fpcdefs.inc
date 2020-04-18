@@ -336,6 +336,11 @@
 {$endif}
 {$endif}
 
+{ when compiling with an LLVM-based compiler, default to LLVM unless -dNOLLVM is specified }
+{$if defined(CPULLVM) and not defined(NOLLVM)}
+{$define LLVM}
+{$endif}
+
 { llvm backends partially use other backends for parameter info calculation,
   alignment info, data sizes etc. They always support 64 bit alu though.
 }

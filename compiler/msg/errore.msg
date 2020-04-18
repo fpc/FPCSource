@@ -3774,6 +3774,9 @@ Supported Whole Program Optimizations:
   All
   $WPOPTIMIZATIONS
 
+Code Generation Backend
+  $CODEGENERATIONBACKEND
+
 Supported Microcontroller types:$\n  $CONTROLLERTYPES$\n
 This program comes under the GNU General Public Licence
 For more information read COPYING.v2
@@ -3988,6 +3991,7 @@ A*2CV<x>_Set section threadvar model to <x>
 **2iV_Return short compiler version
 **2iW_Return full compiler version
 **2ia_Return list of supported ABI targets
+**2ib_Return the used code generation backend type
 **2ic_Return list of supported CPU instruction sets
 **2if_Return list of supported FPU instruction sets
 **2ii_Return list of supported inline assembler modes

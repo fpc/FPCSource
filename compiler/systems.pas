@@ -248,6 +248,8 @@ interface
       supported: boolean;
     end;
 
+{$push}
+{$j-}
     const
        { alias for supported_target field in tasminfo }
        system_any = system_none;
@@ -449,6 +451,11 @@ interface
          (name: 'CALL0'; supported:{$if defined(xtensa)}true{$else}false{$endif})
        );
 
+       cgbackend2str: array[tcgbackend] of ansistring = (
+         'FPC',
+         'LLVM'
+       );
+
        { x86 asm modes with an Intel-style syntax }
        asmmodes_x86_intel = [
 {$ifdef i8086}
@@ -469,6 +476,7 @@ interface
          asmmode_x86_64_att,
          asmmode_x86_64_gas
        ];
+{$pop}
 
     var
        targetinfos   : array[tsystem] of psysteminfo;

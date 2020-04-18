@@ -337,6 +337,13 @@
             ,abi_xtensa_call0
        );
 
+       tcgbackend = (
+           { default FPC code generator }
+             cg_fpc
+           { LLVM code generator }
+           , cg_llvm
+       );
+
      const
        abi_powerpc_elfv1 = abi_powerpc_sysv;
 
