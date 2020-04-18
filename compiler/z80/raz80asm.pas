@@ -31,7 +31,35 @@ Unit raz80asm;
       cpubase;
 
     type
+      tasmtoken = (
+        AS_NONE,AS_LABEL,AS_LLABEL,AS_STRING,AS_INTNUM,
+        AS_COMMA,AS_LPAREN,
+        AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,
+        AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,AS_DOLLAR,
+        AS_HASH,AS_LSBRACKET,AS_RSBRACKET,AS_LBRACKET,AS_RBRACKET,
+        AS_EQUAL,
+        {------------------ Assembler directives --------------------}
+        AS_DEFB,AS_DEFW
+        );
+      tasmkeyword = string[10];
+
+    const
+      { These tokens should be modified accordingly to the modifications }
+      { in the different enumerations.                                   }
+      firstdirective = AS_DEFB;
+      lastdirective  = AS_DEFW;
+      token2str : array[tasmtoken] of tasmkeyword=(
+        '','Label','LLabel','string','integer',
+        ',','(',
+        ')',':','.','+','-','*',
+        ';','identifier','register','opcode','/','$',
+        '#','{','}','[',']',
+        '=',
+        'defb','defw');
+
+    type
       tz80reader = class(tasmreader)
+        actasmtoken    : tasmtoken;
         //function is_asmopcode(const s: string):boolean;override;
         //function is_register(const s:string):boolean;override;
         //procedure handleopcode;override;
