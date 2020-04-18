@@ -81,7 +81,8 @@ Unit raz80asm;
         Function is_asmdirective(const s: string):boolean;
         function is_register(const s:string):boolean;
         function is_targetdirective(const s: string):boolean;
-        //procedure handleopcode;override;
+        procedure BuildOpCode(instr:TZ80Instruction);
+        procedure handleopcode;
         //procedure BuildReference(oper : tz80operand);
         //procedure BuildOperand(oper : tz80operand);
         //procedure BuildOpCode(instr : tz80instruction);
@@ -784,6 +785,34 @@ Unit raz80asm;
       end;
 
 
+    procedure tz80reader.BuildOpCode(instr: TZ80Instruction);
+      begin
+        instr.opcode:=actopcode;
+        Consume(AS_OPCODE);
+        { Zero operand opcode ?  }
+        if actasmtoken in [AS_SEPARATOR,AS_END] then
+          exit;
+      end;
+
+
+    procedure tz80reader.handleopcode;
+      var
+        instr: TZ80Instruction;
+      begin
+        instr:=TZ80Instruction.create(TZ80Operand);
+        BuildOpcode(instr);
+        with instr do
+          begin
+            //CheckNonCommutativeOpcodes;
+            //AddReferenceSizes;
+            //SetInstructionOpsize;
+            //CheckOperandSizes;
+            ConcatInstruction(curlist);
+          end;
+        instr.Free;
+      end;
+
+
     //procedure tz80reader.ReadSym(oper : tz80operand);
     //  var
     //    tempstr, mangledname : string;
@@ -1315,6 +1344,11 @@ Unit raz80asm;
             AS_SEPARATOR:
               begin
                 Consume(AS_SEPARATOR);
+              end;
+
+            AS_OPCODE:
+              begin
+                HandleOpCode;
               end;
 
             else
