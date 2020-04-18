@@ -1157,6 +1157,13 @@ implementation
            Result:=true;
            exit;
          end;
+        { for LLVM compiler support, and dwarf eh }
+        for c:=low(tcpu) to high(tcpu) do
+          if FIncludeTargets[c,o_linux] then
+            begin
+              Result:=true;
+              exit;
+            end;
         for c:=low(tcpu) to high(tcpu) do
           for t:=low(tos) to high(tos) do
             if FIncludeTargets[c,t] then

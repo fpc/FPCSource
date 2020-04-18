@@ -6781,8 +6781,10 @@ begin
     Args.Add('-Fi'+AddPathPrefix(APackage,L[i]));
   FreeAndNil(L);
 
-  // libc-linker path
-  if APackage.NeedLibC then
+  // libc-linker path (always for Linux, since required for LLVM and SEH; this does not
+  // force the linking of anything by itself, but just adds a search directory)
+  if APackage.NeedLibC or
+     (Defaults.OS=linux) then
     begin
     if FCachedlibcPath='' then
       begin
