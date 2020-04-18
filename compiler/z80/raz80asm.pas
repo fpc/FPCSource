@@ -27,9 +27,9 @@ Unit raz80asm;
 
     uses
       cclasses,
-      rasm,
-      raz80,
-      cpubase;
+      globtype,
+      rasm,raz80,
+      aasmbase,cpubase;
 
     type
       tasmtoken = (
@@ -66,21 +66,47 @@ Unit raz80asm;
         'directive');
 
     type
+      { input flags for BuildConstSymbolExpression }
+      tconstsymbolexpressioninputflag = (
+        cseif_needofs,
+        cseif_isref,
+        cseif_startingminus,
+        { allows using full reference-like syntax for constsymbol expressions,
+          for example:
+          Rec.Str[5]  ->  Rec.Str+5 }
+        cseif_referencelike
+      );
+      tconstsymbolexpressioninputflags = set of tconstsymbolexpressioninputflag;
+      { output flags for BuildConstSymbolExpression }
+      tconstsymbolexpressionoutputflag = (
+        cseof_isseg,
+        cseof_is_farproc_entry,
+        cseof_hasofs
+      );
+      tconstsymbolexpressionoutputflags = set of tconstsymbolexpressionoutputflag;
 
       { tz80reader }
 
       tz80reader = class(tasmreader)
         actasmtoken   : tasmtoken;
         prevasmtoken  : tasmtoken;
+        inexpression : boolean;
         procedure SetupTables;
         procedure GetToken;
         function consume(t : tasmtoken):boolean;
         procedure RecoverConsume(allowcomma:boolean);
+        procedure AddReferences(dest,src : tz80operand);
         function is_locallabel(const s:string):boolean;
         function is_asmopcode(const s: string):boolean;
         Function is_asmdirective(const s: string):boolean;
         function is_register(const s:string):boolean;
         function is_targetdirective(const s: string):boolean;
+        procedure BuildRecordOffsetSize(const expr: string;out offset:tcgint;out size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
+        procedure BuildConstSymbolExpression(in_flags: tconstsymbolexpressioninputflags;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out size:tcgint;out out_flags:tconstsymbolexpressionoutputflags);
+        function BuildConstExpression:longint;
+        function BuildRefConstExpression(out size:tcgint;startingminus:boolean=false):longint;
+        procedure BuildConstantOperand(oper: tz80operand);
+        procedure BuildReference(oper : tz80operand);
         procedure BuildOperand(oper: tz80operand;istypecast:boolean);
         procedure BuildOpCode(instr:TZ80Instruction);
         procedure handleopcode;
@@ -99,12 +125,12 @@ Unit raz80asm;
       { helpers }
       cutils,
       { global }
-      globtype,globals,verbose,
+      globals,verbose,
       systems,
       { aasm }
-      cpuinfo,aasmbase,aasmtai,aasmdata,aasmcpu,
+      cpuinfo,aasmtai,aasmdata,aasmcpu,
       { symtable }
-      symconst,symbase,symtype,symsym,symtable,
+      symconst,symbase,symtype,symsym,symtable,symdef,symutil,
       { parser }
       scanner,pbase,
       procinfo,
@@ -731,6 +757,142 @@ Unit raz80asm;
       end;
 
 
+    procedure tz80reader.AddReferences(dest, src: tz80operand);
+
+      procedure AddRegister(reg:tregister;scalefactor:byte);
+        begin
+          if reg=NR_NO then
+            exit;
+          if (dest.opr.ref.base=NR_NO) and (scalefactor=1) then
+            begin
+              dest.opr.ref.base:=reg;
+              exit;
+            end;
+          if dest.opr.ref.index=NR_NO then
+            begin
+              dest.opr.ref.index:=reg;
+              dest.opr.ref.scalefactor:=scalefactor;
+              exit;
+            end;
+          if dest.opr.ref.index=reg then
+            begin
+              Inc(dest.opr.ref.scalefactor,scalefactor);
+              exit;
+            end;
+          Message(asmr_e_multiple_index);
+        end;
+
+      var
+        tmplocal: TOprRec;
+        segreg: TRegister;
+      begin
+        case dest.opr.typ of
+          OPR_REFERENCE:
+            begin
+              case src.opr.typ of
+                OPR_REFERENCE:
+                  begin
+                    AddRegister(src.opr.ref.base,1);
+                    AddRegister(src.opr.ref.index,src.opr.ref.scalefactor);
+                    Inc(dest.opr.ref.offset,src.opr.ref.offset);
+                    Inc(dest.opr.constoffset,src.opr.constoffset);
+                    dest.haslabelref:=dest.haslabelref or src.haslabelref;
+                    dest.hasproc:=dest.hasproc or src.hasproc;
+                    dest.hasvar:=dest.hasvar or src.hasvar;
+                    if assigned(src.opr.ref.symbol) then
+                      begin
+                        if assigned(dest.opr.ref.symbol) then
+                          Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                        dest.opr.ref.symbol:=src.opr.ref.symbol;
+                      end;
+                    if assigned(src.opr.ref.relsymbol) then
+                      begin
+                        if assigned(dest.opr.ref.relsymbol) then
+                          Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                        dest.opr.ref.relsymbol:=src.opr.ref.relsymbol;
+                      end;
+                    if dest.opr.ref.refaddr=addr_no then
+                      dest.opr.ref.refaddr:=src.opr.ref.refaddr;
+                  end;
+                OPR_LOCAL:
+                  begin
+                    tmplocal:=src.opr;
+                    if dest.opr.ref.base<>NR_NO then
+                      begin
+                        if tmplocal.localindexreg=NR_NO then
+                          begin
+                            tmplocal.localindexreg:=dest.opr.ref.base;
+                            tmplocal.localscale:=0;
+                          end
+                        else if tmplocal.localindexreg=dest.opr.ref.base then
+                          tmplocal.localscale:=Min(tmplocal.localscale,1)+1
+                        else
+                          Message(asmr_e_multiple_index);
+                      end;
+                    if dest.opr.ref.index<>NR_NO then
+                      begin
+                        if tmplocal.localindexreg=NR_NO then
+                          begin
+                            tmplocal.localindexreg:=dest.opr.ref.index;
+                            tmplocal.localscale:=dest.opr.ref.scalefactor;
+                          end
+                        else if tmplocal.localindexreg=dest.opr.ref.index then
+                          tmplocal.localscale:=Min(tmplocal.localscale,1)+Min(dest.opr.ref.scalefactor,1)
+                        else
+                          Message(asmr_e_multiple_index);
+                      end;
+                    Inc(tmplocal.localconstoffset,dest.opr.constoffset);
+                    Inc(tmplocal.localsymofs,dest.opr.ref.offset);
+                    dest.opr:=tmplocal;
+                  end;
+                else
+                  internalerror(2018030701);
+              end;
+            end;
+          OPR_LOCAL:
+            begin
+              case src.opr.typ of
+                OPR_REFERENCE:
+                  begin
+                    if src.opr.ref.base<>NR_NO then
+                      begin
+                        if dest.opr.localindexreg=NR_NO then
+                          begin
+                            dest.opr.localindexreg:=src.opr.ref.base;
+                            dest.opr.localscale:=0;
+                          end
+                        else if dest.opr.localindexreg=src.opr.ref.base then
+                          dest.opr.localscale:=Min(dest.opr.localscale,1)+1
+                        else
+                          Message(asmr_e_multiple_index);
+                      end;
+                    if src.opr.ref.index<>NR_NO then
+                      begin
+                        if dest.opr.localindexreg=NR_NO then
+                          begin
+                            dest.opr.localindexreg:=src.opr.ref.index;
+                            dest.opr.localscale:=src.opr.ref.scalefactor;
+                          end
+                        else if dest.opr.localindexreg=src.opr.ref.index then
+                          dest.opr.localscale:=Min(dest.opr.localscale,1)+Min(src.opr.ref.scalefactor,1)
+                        else
+                          Message(asmr_e_multiple_index);
+                      end;
+                    Inc(dest.opr.localconstoffset,src.opr.constoffset);
+                    Inc(dest.opr.localsymofs,src.opr.ref.offset);
+                  end;
+                OPR_LOCAL:
+                  Message(asmr_e_no_local_or_para_allowed);
+                else
+                  internalerror(2018030703);
+              end;
+            end;
+          else
+            internalerror(2018030702);
+        end;
+      end;
+
+
     function tz80reader.is_locallabel(const s: string): boolean;
       begin
         is_locallabel:=(length(s)>1) and (s[1]='@');
@@ -785,11 +947,1053 @@ Unit raz80asm;
         result:=false;
       end;
 
+    procedure tz80reader.BuildRecordOffsetSize(const expr: string; out
+        offset: tcgint; out size: tcgint; out mangledname: string;
+        needvmtofs: boolean; out hastypecast: boolean);
+      var
+        s: string;
+      Begin
+        offset:=0;
+        size:=0;
+        mangledname:='';
+        hastypecast:=false;
+        s:=expr;
+        while (actasmtoken=AS_DOT) do
+         begin
+           Consume(AS_DOT);
+           if actasmtoken in [AS_ID,AS_REGISTER] then
+             begin
+               s:=s+'.'+actasmpattern;
+               consume(actasmtoken);
+             end
+           else
+            begin
+              Consume(AS_ID);
+              RecoverConsume(true);
+              break;
+            end;
+         end;
+        if not GetRecordOffsetSize(s,offset,size,mangledname,needvmtofs,hastypecast) then
+          Message(asmr_e_building_record_offset);
+      end;
+
+    procedure tz80reader.BuildConstSymbolExpression(
+        in_flags: tconstsymbolexpressioninputflags; out value: tcgint; out
+        asmsym: string; out asmsymtyp: TAsmsymtype; out size: tcgint; out
+        out_flags: tconstsymbolexpressionoutputflags);
+      var
+        tempstr,expr,hs,mangledname : string;
+        parenlevel : longint;
+        l,k : tcgint;
+        hasparen,
+        errorflag,
+        needvmtofs : boolean;
+        prevtok : tasmtoken;
+        hl : tasmlabel;
+        hssymtyp : Tasmsymtype;
+        def : tdef;
+        sym : tsym;
+        srsymtable : TSymtable;
+        hastypecast : boolean;
+      Begin
+        { reset }
+        value:=0;
+        asmsym:='';
+        asmsymtyp:=AT_DATA;
+        size:=0;
+        out_flags:=[];
+        errorflag:=FALSE;
+        tempstr:='';
+        expr:='';
+        if cseif_startingminus in in_flags then
+          expr:='-';
+        inexpression:=TRUE;
+        parenlevel:=0;
+        sym:=nil;
+        needvmtofs:=FALSE;
+        Repeat
+          { Support ugly delphi constructs like: [ECX].1+2[EDX] }
+          if (cseif_isref in in_flags) and (actasmtoken=AS_LBRACKET) then
+            break;
+          if (cseif_referencelike in in_flags) and
+             (actasmtoken in [AS_LBRACKET,AS_RBRACKET]) then
+            case actasmtoken of
+              AS_LBRACKET:
+                begin
+                  Consume(AS_LBRACKET);
+                  if (length(expr)>0) and
+                     not (expr[length(expr)] in ['+','-']) then
+                    expr:=expr+'+';
+                  expr:=expr+'[';
+                end;
+              AS_RBRACKET:
+                begin
+                  Consume(AS_RBRACKET);
+                  expr:=expr+']';
+                end;
+              else
+                ;
+            end;
+          Case actasmtoken of
+            AS_LPAREN:
+              Begin
+                Consume(AS_LPAREN);
+                expr:=expr + '(';
+                inc(parenlevel);
+              end;
+            AS_RPAREN:
+              Begin
+                { Keep the AS_PAREN in actasmtoken, it is maybe a typecast }
+                if parenlevel=0 then
+                  break;
+                Consume(AS_RPAREN);
+                expr:=expr + ')';
+                dec(parenlevel);
+              end;
+            AS_SHL:
+              Begin
+                Consume(AS_SHL);
+                expr:=expr + '<';
+              end;
+            AS_SHR:
+              Begin
+                Consume(AS_SHR);
+                expr:=expr + '>';
+              end;
+            AS_SLASH:
+              Begin
+                Consume(AS_SLASH);
+                expr:=expr + '/';
+              end;
+            AS_MOD:
+              Begin
+                Consume(AS_MOD);
+                expr:=expr + '%';
+              end;
+            AS_STAR:
+              Begin
+                Consume(AS_STAR);
+                if (cseif_isref in in_flags) and (actasmtoken=AS_REGISTER) then
+                 break;
+                expr:=expr + '*';
+              end;
+            AS_PLUS:
+              Begin
+                Consume(AS_PLUS);
+                if (cseif_isref in in_flags) and ((actasmtoken=AS_REGISTER) or (actasmtoken=AS_LBRACKET)) then
+                 break;
+                expr:=expr + '+';
+              end;
+            AS_MINUS:
+              Begin
+                Consume(AS_MINUS);
+                expr:=expr + '-';
+              end;
+            AS_AND:
+              Begin
+                Consume(AS_AND);
+                expr:=expr + '&';
+              end;
+            AS_NOT:
+              Begin
+                Consume(AS_NOT);
+                expr:=expr + '~';
+              end;
+            AS_XOR:
+              Begin
+                Consume(AS_XOR);
+                expr:=expr + '^';
+              end;
+            AS_OR:
+              Begin
+                Consume(AS_OR);
+                expr:=expr + '|';
+              end;
+            AS_INTNUM:
+              Begin
+                expr:=expr + actasmpattern;
+                Consume(AS_INTNUM);
+              end;
+{$ifdef i8086}
+            AS_SEG:
+              begin
+                include(out_flags,cseof_isseg);
+                Consume(actasmtoken);
+                if actasmtoken<>AS_ID then
+                 Message(asmr_e_seg_without_identifier);
+              end;
+{$endif i8086}
+            AS_VMTOFFSET{,
+            AS_OFFSET}:
+              begin
+                {if (actasmtoken = AS_OFFSET) then
+                  begin
+                    include(in_flags,cseif_needofs);
+                    include(out_flags,cseof_hasofs);
+                  end
+                else}
+                  needvmtofs:=true;
+                Consume(actasmtoken);
+                if actasmtoken<>AS_ID then
+                 Message(asmr_e_offset_without_identifier);
+              end;
+            AS_SIZEOF,
+            AS_TYPE:
+              begin
+                l:=0;
+                hasparen:=false;
+                Consume(actasmtoken);
+                if actasmtoken=AS_LPAREN then
+                  begin
+                    hasparen:=true;
+                    Consume(AS_LPAREN);
+                  end;
+                if actasmtoken<>AS_ID then
+                 Message(asmr_e_type_without_identifier)
+                else
+                 begin
+                   tempstr:=actasmpattern;
+                   Consume(AS_ID);
+                   if actasmtoken=AS_DOT then
+                     begin
+                       BuildRecordOffsetSize(tempstr,k,l,mangledname,false,hastypecast);
+                       if mangledname<>'' then
+                         { procsym }
+                         Message(asmr_e_wrong_sym_type);
+                       if hastypecast then
+
+                     end
+                   else
+                    begin
+                      asmsearchsym(tempstr,sym,srsymtable);
+                      if assigned(sym) then
+                       begin
+                         case sym.typ of
+                           staticvarsym,
+                           localvarsym,
+                           paravarsym :
+                             l:=tabstractvarsym(sym).getsize;
+                           typesym :
+                             l:=ttypesym(sym).typedef.size;
+                           else
+                             Message(asmr_e_wrong_sym_type);
+                         end;
+                       end
+                      else
+                       Message1(sym_e_unknown_id,tempstr);
+                    end;
+                 end;
+                str(l, tempstr);
+                expr:=expr + tempstr;
+                if hasparen then
+                  Consume(AS_RPAREN);
+              end;
+            //AS_PTR :
+            //  begin
+            //    { Support ugly delphi constructs like <constant> PTR [ref] }
+            //    break;
+            //  end;
+            AS_STRING:
+              begin
+                l:=0;
+                case Length(actasmpattern) of
+                 1 :
+                  l:=ord(actasmpattern[1]);
+                 2 :
+                  l:=ord(actasmpattern[2]) + ord(actasmpattern[1]) shl 8;
+                 3 :
+                  l:=ord(actasmpattern[3]) +
+                     Ord(actasmpattern[2]) shl 8 + ord(actasmpattern[1]) shl 16;
+                 4 :
+                  l:=ord(actasmpattern[4]) + ord(actasmpattern[3]) shl 8 +
+                     Ord(actasmpattern[2]) shl 16 + ord(actasmpattern[1]) shl 24;
+                else
+                  Message1(asmr_e_invalid_string_as_opcode_operand,actasmpattern);
+                end;
+                str(l, tempstr);
+                expr:=expr + tempstr;
+                Consume(AS_STRING);
+              end;
+            AS_ID:
+              begin
+                hs:='';
+                hssymtyp:=AT_DATA;
+                def:=nil;
+                tempstr:=actasmpattern;
+                prevtok:=prevasmtoken;
+                { stop parsing a constant expression if we find an opcode after a
+                  non-operator like "db $66 mov eax,ebx" }
+                if (prevtok in [AS_ID,AS_INTNUM,AS_RPAREN]) and
+                   is_asmopcode(actasmpattern) then
+                  break;
+                consume(AS_ID);
+                if (tempstr='@CODE') or (tempstr='@DATA') then
+                 begin
+                   if asmsym='' then
+                     begin
+                       asmsym:=tempstr;
+                       asmsymtyp:=AT_SECTION;
+                     end
+                   else
+                    Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                 end
+                else if SearchIConstant(tempstr,l) then
+                 begin
+                   str(l, tempstr);
+                   expr:=expr + tempstr;
+                 end
+                else
+                 begin
+                   if is_locallabel(tempstr) then
+                    begin
+                      CreateLocalLabel(tempstr,hl,false);
+                      hs:=hl.name;
+                      hssymtyp:=AT_FUNCTION;
+                    end
+                   else
+                    if SearchLabel(tempstr,hl,false) then
+                      begin
+                        hs:=hl.name;
+                        hssymtyp:=AT_FUNCTION;
+                      end
+                   else
+                    begin
+                      asmsearchsym(tempstr,sym,srsymtable);
+                      if assigned(sym) then
+                       begin
+                         case sym.typ of
+                           staticvarsym :
+                             begin
+                               hs:=tstaticvarsym(sym).mangledname;
+                               def:=tstaticvarsym(sym).vardef;
+                             end;
+                           localvarsym,
+                           paravarsym :
+                             begin
+                               Message(asmr_e_no_local_or_para_allowed);
+                             end;
+                           procsym :
+                             begin
+                               if Tprocsym(sym).ProcdefList.Count>1 then
+                                Message(asmr_w_calling_overload_func);
+                               hs:=tprocdef(tprocsym(sym).ProcdefList[0]).mangledname;
+{$ifdef i8086}
+                               if is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
+                                  and not (po_interrupt in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions) then
+                                 include(out_flags,cseof_is_farproc_entry)
+                               else
+                                 exclude(out_flags,cseof_is_farproc_entry);
+{$endif i8086}
+                               hssymtyp:=AT_FUNCTION;
+                             end;
+                           typesym :
+                             begin
+                               if not(ttypesym(sym).typedef.typ in [recorddef,objectdef]) then
+                                Message(asmr_e_wrong_sym_type);
+                               size:=ttypesym(sym).typedef.size;
+                             end;
+                           fieldvarsym :
+                             begin
+                               tempstr:=upper(tdef(sym.owner.defowner).GetTypeName)+'.'+tempstr;
+                             end;
+                           else
+                             Message(asmr_e_wrong_sym_type);
+                         end;
+                       end
+                      else
+                       Message1(sym_e_unknown_id,tempstr);
+                    end;
+                   { symbol found? }
+                   if hs<>'' then
+                    begin
+                      if asmsym='' then
+                        begin
+                          asmsym:=hs;
+                          asmsymtyp:=hssymtyp;
+                        end
+                      else
+                       Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                      if (expr='') or (expr[length(expr)]='+') then
+                       begin
+                         { don't remove the + if there could be a record field }
+                         if actasmtoken<>AS_DOT then
+                          delete(expr,length(expr),1);
+                       end
+                      else
+                       //if (cseif_needofs in in_flags) then
+                       //  begin
+                       //    if (prevtok<>AS_OFFSET) then
+                       //      Message(asmr_e_need_offset);
+                       //  end
+                       //else
+                         Message(asmr_e_only_add_relocatable_symbol);
+                    end;
+                   if (actasmtoken=AS_DOT) or
+                      (assigned(sym) and
+                       is_normal_fieldvarsym(sym)) then
+                     begin
+                      BuildRecordOffsetSize(tempstr,l,size,hs,needvmtofs,hastypecast);
+                      if hs <> '' then
+                        hssymtyp:=AT_FUNCTION
+                      else
+                        begin
+                          str(l, tempstr);
+                          expr:=expr + tempstr;
+                        end
+                    end
+                   else if (actasmtoken<>AS_DOT) and
+                           assigned(sym) and
+                           (sym.typ=typesym) and
+                           (ttypesym(sym).typedef.typ in [recorddef,objectdef]) then
+                     begin
+                       { just a record type (without being followed by dot)
+                         evaluates to 0. Ugly, but TP7 compatible. }
+                       expr:=expr+'0';
+                     end
+                   else
+                    begin
+                      if (expr='') or (expr[length(expr)] in ['+','-','/','*']) then
+                       delete(expr,length(expr),1);
+                    end;
+                   if (actasmtoken=AS_LBRACKET) and
+                      assigned(def) and
+                      (def.typ=arraydef) then
+                     begin
+                       consume(AS_LBRACKET);
+                       l:=BuildConstExpression;
+                       if l<tarraydef(def).lowrange then
+                         begin
+                           Message(asmr_e_constant_out_of_bounds);
+                           l:=0;
+                         end
+                       else
+                         l:=(l-tarraydef(def).lowrange)*tarraydef(def).elesize;
+                       str(l, tempstr);
+                       expr:=expr + '+' + tempstr;
+                       consume(AS_RBRACKET);
+                     end;
+                 end;
+                { check if there are wrong operator used like / or mod etc. }
+                if (hs<>'') and not(actasmtoken in [AS_MINUS,AS_PLUS,AS_COMMA,AS_SEPARATOR,AS_END,AS_RBRACKET]) then
+                 Message(asmr_e_only_add_relocatable_symbol);
+              end;
+            //AS_ALIGN,
+            //AS_DB,
+            //AS_DW,
+            //AS_DD,
+            //AS_DQ,
+            AS_END,
+            AS_RBRACKET,
+            AS_SEPARATOR,
+            AS_COMMA,
+            AS_COLON:
+              break;
+          else
+            begin
+              { write error only once. }
+              if not errorflag then
+                Message(asmr_e_invalid_constant_expression);
+              { consume tokens until we find COMMA or SEPARATOR }
+              Consume(actasmtoken);
+              errorflag:=TRUE;
+            end;
+          end;
+        Until false;
+        { calculate expression }
+        if not ErrorFlag then
+          value:=CalculateExpression(expr)
+        else
+          value:=0;
+        { no longer in an expression }
+        inexpression:=FALSE;
+      end;
+
+
+    function tz80reader.BuildConstExpression: longint;
+      var
+        l,size : tcgint;
+        hs : string;
+        hssymtyp : TAsmsymtype;
+        out_flags : tconstsymbolexpressionoutputflags;
+      begin
+        BuildConstSymbolExpression([],l,hs,hssymtyp,size,out_flags);
+        if hs<>'' then
+         Message(asmr_e_relocatable_symbol_not_allowed);
+        BuildConstExpression:=l;
+      end;
+
+
+    function tz80reader.BuildRefConstExpression(out size: tcgint;
+        startingminus: boolean): longint;
+      var
+        l : tcgint;
+        hs : string;
+        hssymtyp : TAsmsymtype;
+        in_flags : tconstsymbolexpressioninputflags;
+        out_flags : tconstsymbolexpressionoutputflags;
+      begin
+        in_flags:=[cseif_isref];
+        if startingminus then
+          include(in_flags,cseif_startingminus);
+        BuildConstSymbolExpression(in_flags,l,hs,hssymtyp,size,out_flags);
+        if hs<>'' then
+         Message(asmr_e_relocatable_symbol_not_allowed);
+        BuildRefConstExpression:=l;
+      end;
+
+
+    procedure tz80reader.BuildConstantOperand(oper: tz80operand);
+      var
+        l,size : tcgint;
+        tempstr : string;
+        tempsymtyp : tasmsymtype;
+        cse_out_flags : tconstsymbolexpressionoutputflags;
+      begin
+        if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
+          Message(asmr_e_invalid_operand_type);
+        BuildConstSymbolExpression([cseif_needofs],l,tempstr,tempsymtyp,size,cse_out_flags);
+        if tempstr<>'' then
+          begin
+            oper.opr.typ:=OPR_SYMBOL;
+            oper.opr.symofs:=l;
+            oper.opr.symbol:=current_asmdata.RefAsmSymbol(tempstr,tempsymtyp);
+            oper.opr.symseg:=cseof_isseg in cse_out_flags;
+            oper.opr.sym_farproc_entry:=cseof_is_farproc_entry in cse_out_flags;
+          end
+        else
+          if oper.opr.typ=OPR_NONE then
+            begin
+              oper.opr.typ:=OPR_CONSTANT;
+              oper.opr.val:=l;
+            end
+          else
+            inc(oper.opr.val,l);
+      end;
+
+
+    procedure tz80reader.BuildReference(oper: tz80operand);
+      var
+        scale : byte;
+        k,l,size : tcgint;
+        tempstr,hs : string;
+        tempsymtyp : tasmsymtype;
+        code : integer;
+        hreg : tregister;
+        GotStar,GotOffset,HadVar,
+        GotPlus,Negative,BracketlessReference : boolean;
+        hl : tasmlabel;
+        hastypecast: boolean;
+        tmpoper: tz80operand;
+        cse_in_flags: tconstsymbolexpressioninputflags;
+        cse_out_flags: tconstsymbolexpressionoutputflags;
+      begin
+        if actasmtoken=AS_LBRACKET then
+          begin
+            Consume(AS_LBRACKET);
+            BracketlessReference:=false;
+          end
+        else
+          BracketlessReference:=true;
+        if not(oper.opr.typ in [OPR_LOCAL,OPR_REFERENCE]) then
+          oper.InitRef;
+        GotStar:=false;
+        GotPlus:=true;
+        GotOffset:=false;
+        Negative:=false;
+        Scale:=0;
+        repeat
+          if GotOffset and (actasmtoken<>AS_ID) then
+            Message(asmr_e_invalid_reference_syntax);
+
+          Case actasmtoken of
+            AS_ID, { Constant reference expression OR variable reference expression }
+            AS_VMTOFFSET:
+              Begin
+                if not GotPlus then
+                  Message(asmr_e_invalid_reference_syntax);
+                GotStar:=false;
+                GotPlus:=false;
+                if (actasmtoken = AS_VMTOFFSET) or
+                   (SearchIConstant(actasmpattern,l) or
+                    SearchRecordType(actasmpattern)) then
+                 begin
+                   l:=BuildRefConstExpression(size,negative);
+                   if size<>0 then
+                     oper.SetSize(size,false);
+                   negative:=false;   { "l" was negated if necessary }
+                   GotPlus:=(prevasmtoken=AS_PLUS);
+                   GotStar:=(prevasmtoken=AS_STAR);
+                   case oper.opr.typ of
+                     OPR_LOCAL :
+                       begin
+                         if GotStar then
+                           Message(asmr_e_invalid_reference_syntax);
+                         Inc(oper.opr.localsymofs,l);
+                       end;
+                     OPR_REFERENCE :
+                       begin
+                         if GotStar then
+                          oper.opr.ref.scalefactor:=l
+                         else
+                           Inc(oper.opr.ref.offset,l);
+                       end;
+                     else
+                       internalerror(2019050715);
+                   end;
+                 end
+                else
+                 Begin
+                   if negative and not oper.hasvar then
+                     Message(asmr_e_only_add_relocatable_symbol)
+                   else if oper.hasvar and not GotOffset and
+                           (not negative or assigned(oper.opr.ref.relsymbol)) then
+                     Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                   HadVar:=oper.hasvar and GotOffset;
+                   tempstr:=actasmpattern;
+                   Consume(AS_ID);
+                   { typecasting? }
+                   if (actasmtoken=AS_LPAREN) and
+                      SearchType(tempstr,l) then
+                    begin
+                      oper.hastype:=true;
+                      oper.typesize:=l;
+                      Consume(AS_LPAREN);
+                      BuildOperand(oper,true);
+                      Consume(AS_RPAREN);
+                    end
+                   else
+                    if is_locallabel(tempstr) then
+                      begin
+                        CreateLocalLabel(tempstr,hl,false);
+                        oper.InitRef;
+                        oper.haslabelref:=true;
+                        if not negative then
+                          begin
+                            oper.opr.ref.symbol:=hl;
+                            oper.hasvar:=true;
+                          end
+                        else
+                          oper.opr.ref.relsymbol:=hl;
+{$ifdef i8086}
+                        if oper.opr.ref.segment=NR_NO then
+                          oper.opr.ref.segment:=NR_CS;
+{$endif i8086}
+                      end
+                   else
+                    if oper.SetupVar(tempstr,GotOffset) then
+                     begin
+                       { convert OPR_LOCAL register para into a reference base }
+                       if (oper.opr.typ=OPR_LOCAL) and
+                          AsmRegisterPara(oper.opr.localsym) then
+                         oper.InitRefConvertLocal
+                       else
+                         begin
+{$ifdef x86_64}
+                           if actasmtoken=AS_WRT then
+                             begin
+                               if (oper.opr.typ=OPR_REFERENCE) then
+                                 begin
+                                   Consume(AS_WRT);
+                                   Consume(AS___GOTPCREL);
+                                   if (oper.opr.ref.base<>NR_NO) or
+                                      (oper.opr.ref.index<>NR_NO) or
+                                      (oper.opr.ref.offset<>0) then
+                                     Message(asmr_e_wrong_gotpcrel_intel_syntax);
+                                   if tf_no_pic_supported in target_info.flags then
+                                     Message(asmr_e_no_gotpcrel_support);
+                                   oper.opr.ref.refaddr:=addr_pic;
+                                   oper.opr.ref.base:=NR_RIP;
+                                 end
+                               else
+                                 message(asmr_e_invalid_reference_syntax);
+                             end;
+{$endif x86_64}
+                         end;
+                     end
+                   else
+                     Message1(sym_e_unknown_id,tempstr);
+                   { record.field ? }
+                   if actasmtoken=AS_DOT then
+                    begin
+                      BuildRecordOffsetSize(tempstr,l,k,hs,false,hastypecast);
+                      if (hs<>'') then
+                        Message(asmr_e_invalid_symbol_ref);
+                      case oper.opr.typ of
+                        OPR_LOCAL :
+                          inc(oper.opr.localsymofs,l);
+                        OPR_REFERENCE :
+                          inc(oper.opr.ref.offset,l);
+                        else
+                          internalerror(2019050716);
+                      end;
+                      if hastypecast then
+                       oper.hastype:=true;
+                      oper.SetSize(k,false);
+                    end;
+                   if GotOffset then
+                    begin
+                      if oper.hasvar and (oper.opr.ref.base=current_procinfo.framepointer) then
+                       begin
+                         if (oper.opr.typ=OPR_REFERENCE) then
+                           oper.opr.ref.base:=NR_NO;
+                         oper.hasvar:=hadvar;
+                       end
+                      else
+                       begin
+                         if oper.hasvar and hadvar then
+                          Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                         { should we allow ?? }
+                       end;
+                    end;
+                 end;
+                GotOffset:=false;
+              end;
+
+            AS_PLUS :
+              Begin
+                Consume(AS_PLUS);
+                Negative:=false;
+                GotPlus:=true;
+                GotStar:=false;
+                Scale:=0;
+              end;
+
+            AS_DOT :
+              Begin
+                { Handle like a + }
+                Consume(AS_DOT);
+                Negative:=false;
+                GotPlus:=true;
+                GotStar:=false;
+                Scale:=0;
+              end;
+
+            AS_MINUS :
+              begin
+                Consume(AS_MINUS);
+                Negative:=true;
+                GotPlus:=true;
+                GotStar:=false;
+                Scale:=0;
+              end;
+
+            AS_STAR : { Scaling, with eax*4 order }
+              begin
+                Consume(AS_STAR);
+                hs:='';
+                l:=0;
+                case actasmtoken of
+                  AS_ID,
+                  AS_LPAREN :
+                    l:=BuildConstExpression;
+                  AS_INTNUM:
+                    Begin
+                      hs:=actasmpattern;
+                      Consume(AS_INTNUM);
+                    end;
+                  AS_REGISTER :
+                    begin
+                      case oper.opr.typ of
+                        OPR_REFERENCE :
+                          begin
+                            if oper.opr.ref.scalefactor=0 then
+                              begin
+                                if scale<>0 then
+                                  begin
+                                    oper.opr.ref.scalefactor:=scale;
+                                    scale:=0;
+                                  end
+                                else
+                                 Message(asmr_e_wrong_scale_factor);
+                              end
+                            else
+                              Message(asmr_e_invalid_reference_syntax);
+                          end;
+                        OPR_LOCAL :
+                          begin
+                            if oper.opr.localscale=0 then
+                              begin
+                                if scale<>0 then
+                                  begin
+                                    oper.opr.localscale:=scale;
+                                    scale:=0;
+                                  end
+                                else
+                                 Message(asmr_e_wrong_scale_factor);
+                              end
+                            else
+                              Message(asmr_e_invalid_reference_syntax);
+                          end;
+                        else
+                          internalerror(2019050719);
+                      end;
+                    end;
+                  else
+                    Message(asmr_e_invalid_reference_syntax);
+                end;
+                if actasmtoken<>AS_REGISTER then
+                  begin
+                    if hs<>'' then
+                      val(hs,l,code);
+                    case oper.opr.typ of
+                      OPR_REFERENCE :
+                        oper.opr.ref.scalefactor:=l;
+                      OPR_LOCAL :
+                        oper.opr.localscale:=l;
+                      else
+                        internalerror(2019050717);
+                    end;
+                    if l>9 then
+                      Message(asmr_e_wrong_scale_factor);
+                  end;
+                GotPlus:=false;
+                GotStar:=false;
+              end;
+
+            AS_REGISTER :
+              begin
+                hreg:=actasmregister;
+
+                Consume(AS_REGISTER);
+
+                if not((GotPlus and (not Negative)) or
+                       GotStar) then
+                  Message(asmr_e_invalid_reference_syntax);
+                { this register will be the index:
+                   1. just read a *
+                   2. next token is a *
+                   3. base register is already used }
+                case oper.opr.typ of
+                  OPR_LOCAL :
+                    begin
+                      if (oper.opr.localindexreg<>NR_NO) then
+                        Message(asmr_e_multiple_index);
+                      oper.opr.localindexreg:=hreg;
+                      if scale<>0 then
+                        begin
+                          oper.opr.localscale:=scale;
+                          scale:=0;
+                        end;
+                    end;
+                  OPR_REFERENCE :
+                    begin
+                      if (GotStar) or
+                         (actasmtoken=AS_STAR) or
+                         (oper.opr.ref.base<>NR_NO) then
+                       begin
+                         if (oper.opr.ref.index<>NR_NO) then
+                          Message(asmr_e_multiple_index);
+                         oper.opr.ref.index:=hreg;
+                         if scale<>0 then
+                           begin
+                             oper.opr.ref.scalefactor:=scale;
+                             scale:=0;
+                           end;
+                       end
+                      else
+                        begin
+                          oper.opr.ref.base:=hreg;
+{$ifdef x86_64}
+                          { non-GOT based RIP-relative accesses are also position-independent }
+                          if (oper.opr.ref.base=NR_RIP) and
+                             (oper.opr.ref.refaddr<>addr_pic) then
+                            oper.opr.ref.refaddr:=addr_pic_no_got;
+{$endif x86_64}
+                        end;
+                    end;
+                  else
+                    internalerror(2019050718);
+                end;
+                GotPlus:=false;
+                GotStar:=false;
+              end;
+
+            //AS_OFFSET :
+            //  begin
+            //    Consume(AS_OFFSET);
+            //    GotOffset:=true;
+            //  end;
+
+            AS_TYPE,
+            AS_NOT,
+            AS_STRING,
+            AS_INTNUM,
+            AS_LPAREN : { Constant reference expression }
+              begin
+                if not GotPlus and not GotStar then
+                  Message(asmr_e_invalid_reference_syntax);
+                cse_in_flags:=[cseif_needofs,cseif_isref];
+                if GotPlus and negative then
+                  include(cse_in_flags,cseif_startingminus);
+                BuildConstSymbolExpression(cse_in_flags,l,tempstr,tempsymtyp,size,cse_out_flags);
+                { already handled by BuildConstSymbolExpression(); must be
+                  handled there to avoid [reg-1+1] being interpreted as
+                  [reg-(1+1)] }
+                negative:=false;
+
+                if tempstr<>'' then
+                 begin
+                   if GotStar then
+                    Message(asmr_e_only_add_relocatable_symbol);
+                   if not assigned(oper.opr.ref.symbol) then
+                     begin
+                       oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr,tempsymtyp);
+{$ifdef i8086}
+                       if cseof_isseg in cse_out_flags then
+                         begin
+                           if not (oper.opr.ref.refaddr in [addr_fardataseg,addr_dgroup]) then
+                             oper.opr.ref.refaddr:=addr_seg;
+                         end
+                       else if (tempsymtyp=AT_FUNCTION) and (oper.opr.ref.segment=NR_NO) then
+                         oper.opr.ref.segment:=NR_CS;
+{$endif i8086}
+                     end
+                   else
+                    Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                 end;
+                case oper.opr.typ of
+                  OPR_REFERENCE :
+                    begin
+                      if GotStar then
+                       oper.opr.ref.scalefactor:=l
+                      else if (prevasmtoken = AS_STAR) then
+                       begin
+                         if scale<>0 then
+                           scale:=l*scale
+                         else
+                           scale:=l;
+                       end
+                      else
+                      begin
+                        Inc(oper.opr.ref.offset,l);
+                        Inc(oper.opr.constoffset,l);
+                      end;
+                    end;
+                  OPR_LOCAL :
+                    begin
+                      if GotStar then
+                       oper.opr.localscale:=l
+                      else if (prevasmtoken = AS_STAR) then
+                       begin
+                         if scale<>0 then
+                           scale:=l*scale
+                         else
+                           scale:=l;
+                       end
+                      else
+                        Inc(oper.opr.localsymofs,l);
+                    end;
+                  else
+                    internalerror(2019050714);
+                end;
+                GotPlus:=(prevasmtoken=AS_PLUS) or
+                         (prevasmtoken=AS_MINUS);
+                if GotPlus then
+                  negative := prevasmtoken = AS_MINUS;
+                GotStar:=(prevasmtoken=AS_STAR);
+              end;
+
+            AS_LBRACKET :
+              begin
+                if (GotPlus and Negative) or GotStar then
+                  Message(asmr_e_invalid_reference_syntax);
+                tmpoper:=Tz80Operand.create;
+                BuildReference(tmpoper);
+                AddReferences(oper,tmpoper);
+                tmpoper.Free;
+                GotPlus:=false;
+                GotStar:=false;
+              end;
+
+            AS_RBRACKET :
+              begin
+                if GotPlus or GotStar or BracketlessReference then
+                  Message(asmr_e_invalid_reference_syntax);
+
+                Consume(AS_RBRACKET);
+
+
+
+                if actasmtoken=AS_LBRACKET then
+                  begin
+                    tmpoper:=Tz80Operand.create;
+                    BuildReference(tmpoper);
+                    AddReferences(oper,tmpoper);
+                    tmpoper.Free;
+                  end;
+                break;
+              end;
+
+            AS_SEPARATOR,
+            AS_END,
+            AS_COMMA:
+              begin
+                if not BracketlessReference then
+                  begin
+                    Message(asmr_e_invalid_reference_syntax);
+                    RecoverConsume(true);
+                  end;
+                break;
+              end;
+
+            else
+              Begin
+                Message(asmr_e_invalid_reference_syntax);
+                RecoverConsume(true);
+                break;
+              end;
+          end;
+        until false;
+      end;
+
 
     procedure tz80reader.BuildOperand(oper: tz80operand; istypecast: boolean);
+      var
+        l: LongInt;
+        tsize: tcgint;
       begin
         repeat
           case actasmtoken of
+            //AS_OFFSET,
+            AS_SIZEOF,
+            AS_VMTOFFSET,
+            AS_TYPE,
+            AS_NOT,
+            AS_STRING,
+            AS_PLUS,
+            AS_MINUS,
+//            AS_LPAREN,
+            AS_INTNUM :
+              begin
+                case oper.opr.typ of
+                  OPR_REFERENCE :
+                    begin
+                      l := BuildRefConstExpression(tsize);
+                      if tsize<>0 then
+                        oper.SetSize(tsize,false);
+                      inc(oper.opr.ref.offset,l);
+                      inc(oper.opr.constoffset,l);
+                    end;
+                  OPR_LOCAL :
+                    begin
+                      l := BuildConstExpression;
+                      inc(oper.opr.localsymofs,l);
+                      inc(oper.opr.localconstoffset,l);
+                    end;
+
+                  OPR_NONE,
+                  OPR_CONSTANT :
+                    BuildConstantOperand(oper);
+                  else
+                    Message(asmr_e_invalid_operand_type);
+                end;
+              end;
+
+            AS_LPAREN:
+              begin
+                BuildReference(oper);
+              end;
+
             AS_REGISTER : { Register, a variable reference or a constant reference }
               begin
                 Consume(AS_REGISTER);
