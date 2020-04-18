@@ -230,6 +230,8 @@ interface
       supported: boolean;
     end;
 
+{$push}
+{$j-}
     const
        { alias for supported_target field in tasminfo }
        system_any = system_none;
@@ -427,6 +429,33 @@ interface
          (name: 'AARCH64IOS'; supported:{$ifdef aarch64}true{$else}false{$endif}),
          (name: 'LINUX386_SYSV'; supported:{$if defined(i386)}true{$else}false{$endif})
        );
+
+       cgbackend2str: array[tcgbackend] of ansistring = (
+         'FPC',
+         'LLVM'
+       );
+
+       { x86 asm modes with an Intel-style syntax }
+       asmmodes_x86_intel = [
+{$ifdef i8086}
+         asmmode_standard,
+{$endif i8086}
+         asmmode_i8086_intel,
+         asmmode_i386_intel,
+         asmmode_x86_64_intel
+       ];
+
+       { x86 asm modes with an AT&T-style syntax }
+       asmmodes_x86_att = [
+{$if defined(i386) or defined(x86_64)}
+         asmmode_standard,
+{$endif}
+         asmmode_i8086_att,
+         asmmode_i386_att,
+         asmmode_x86_64_att,
+         asmmode_x86_64_gas
+       ];
+{$pop}
 
     var
        targetinfos   : array[tsystem] of psysteminfo;

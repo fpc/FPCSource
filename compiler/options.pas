@@ -242,9 +242,10 @@ const
   ControllerListPlaceholder = '$CONTROLLERTYPES';
   FeatureListPlaceholder = '$FEATURELIST';
   ModeSwitchListPlaceholder = '$MODESWITCHES';
+  CodeGenerationBackendPlaceholder = '$CODEGENERATIONBACKEND';
 
   procedure SplitLine (var OrigString: TCmdStr; const Placeholder: TCmdStr;
-                                                 var RemainderString: TCmdStr);
+                                                 out RemainderString: TCmdStr);
   var
     I: longint;
     HS2: TCmdStr;
@@ -297,8 +298,6 @@ const
         Comment(V_Normal,hs);
        end;
      end;
-    OrigString := HS3;
-    SplitLine (OrigString, OSTargetsPlaceholder, HS3);
   end;
 
   procedure ListCPUInstructionSets (OrigString: TCmdStr);
@@ -337,8 +336,6 @@ const
       Comment(V_Normal,hs);
       hs1:=''
      end;
-    OrigString := HS3;
-    SplitLine (OrigString, CPUListPlaceholder, HS3);
   end;
 
   procedure ListFPUInstructionSets (OrigString: TCmdStr);
@@ -377,8 +374,6 @@ const
       Comment(V_Normal,hs);
       hs1:=''
      end;
-    OrigString := HS3;
-    SplitLine (OrigString, FPUListPlaceholder, HS3);
   end;
 
   procedure ListABITargets (OrigString: TCmdStr);
@@ -403,8 +398,6 @@ const
          end;
        end;
      end;
-    OrigString := HS3;
-    SplitLine (OrigString, ABIListPlaceholder, HS3);
   end;
 
   procedure ListOptimizations (OrigString: TCmdStr);
@@ -430,8 +423,6 @@ const
          end;
        end;
      end;
-    OrigString := HS3;
-    SplitLine (OrigString, OptListPlaceholder, HS3);
   end;
 
   procedure ListWPOptimizations (OrigString: TCmdStr);
@@ -459,8 +450,6 @@ const
          end;
        end;
      end;
-    OrigString := HS3;
-    SplitLine (OrigString, WPOListPlaceholder, HS3);
   end;
 
   procedure ListAsmModes (OrigString: TCmdStr);
@@ -484,8 +473,6 @@ const
          end;
        end;
      end;
-    OrigString := HS3;
-    SplitLine (OrigString, AsmModeListPlaceholder, HS3);
   end;
 
   procedure ListControllerTypes (OrigString: TCmdStr);
@@ -529,8 +516,6 @@ const
         Comment(V_Normal,hs);
         hs1:=''
        end;
-      OrigString := HS3;
-      SplitLine (OrigString, ControllerListPlaceholder, HS3);
      end;
 {$POP}
   end;
@@ -571,8 +556,6 @@ const
       Comment (V_Normal, HS);
       HS1 := ''
      end;
-    OrigString := HS3;
-    SplitLine (OrigString, FeatureListPlaceholder, HS3);
   end;
 
   procedure ListModeswitches (OrigString: TCmdStr);
@@ -611,9 +594,21 @@ const
       Comment (V_Normal, HS);
       HS1 := ''
      end;
-    OrigString := HS3;
-    SplitLine (OrigString, ModeswitchListPlaceholder, HS3);
   end;
+
+  procedure ListCodeGenerationBackend (OrigString: TCmdStr);
+    begin
+      SplitLine (OrigString, CodeGenerationBackendPlaceholder, HS3);
+      hs1:=cgbackend2str[cgbackend];
+      if OrigString = '' then
+        Comment (V_Normal, hs1)
+      else
+        begin
+          hs:=OrigString;
+          Replace(hs,CodeGenerationBackendPlaceholder,hs1);
+          Comment(V_Normal,hs);
+        end;
+    end;
 
 begin
   if More = '' then
@@ -644,6 +639,8 @@ begin
        ListControllerTypes (S)
       else if pos(FeatureListPlaceholder,s)>0 then
        ListFeatures (S)
+      else if pos(CodeGenerationBackendPlaceholder,s)>0 then
+       ListCodeGenerationBackend (S)
       else
        Comment(V_Normal,s);
      end;
@@ -657,6 +654,7 @@ begin
        Comment(V_Normal,'');  (* Put empty line between multiple sections *)
       case More [J] of
        'a': ListABITargets ('');
+       'b': Comment(V_Normal, cgbackend2str[cgbackend]);
        'c': ListCPUInstructionSets ('');
        'f': ListFPUInstructionSets ('');
        'i': ListAsmModes ('');
@@ -1876,7 +1874,7 @@ begin
            'i' :
              begin
                if (More='') or
-                    (More [1] in ['a', 'c', 'f', 'i', 'm', 'o', 'r', 't', 'u', 'w']) then
+                    (More [1] in ['a', 'b', 'c', 'f', 'i', 'm', 'o', 'r', 't', 'u', 'w']) then
                  WriteInfo (More)
                else
                  QuickInfo:=QuickInfo+More;

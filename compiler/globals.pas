@@ -381,6 +381,8 @@ interface
        prop_auto_getter_prefix,
        prop_auto_setter_prefix : string;
 
+       cgbackend: tcgbackend;
+
     const
        Inside_asm_statement : boolean = false;
 
@@ -1633,6 +1635,11 @@ implementation
 
 initialization
   allocinitdoneprocs;
+{$ifdef LLVM}
+  cgbackend:=cg_llvm;
+{$else}
+  cgbackend:=cg_fpc;
+{$endif}
 finalization
   freeinitdoneprocs;
 end.
