@@ -34,13 +34,18 @@ Unit raz80asm;
     type
       tasmtoken = (
         AS_NONE,AS_LABEL,AS_LLABEL,AS_STRING,AS_INTNUM,
-        AS_COMMA,AS_LPAREN,
+        AS_REALNUM,AS_COMMA,AS_LPAREN,
         AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,
         AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,AS_DOLLAR,
         AS_HASH,AS_LSBRACKET,AS_RSBRACKET,AS_LBRACKET,AS_RBRACKET,
         AS_EQUAL,
         {------------------ Assembler directives --------------------}
-        AS_DEFB,AS_DEFW,AS_END
+        AS_DEFB,AS_DEFW,AS_END,
+        {------------------ Assembler Operators  --------------------}
+        AS_TYPE,AS_SIZEOF,AS_VMTOFFSET,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
+        AS_RELTYPE, // common token for relocation types
+        {------------------ Target-specific directive ---------------}
+        AS_TARGET_DIRECTIVE
         );
       tasmkeyword = string[10];
 
@@ -51,12 +56,14 @@ Unit raz80asm;
       lastdirective  = AS_END;
       token2str : array[tasmtoken] of tasmkeyword=(
         '','Label','LLabel','string','integer',
-        ',','(',
+        'float',',','(',
         ')',':','.','+','-','*',
         ';','identifier','register','opcode','/','$',
         '#','{','}','[',']',
         '=',
-        'defb','defw','END');
+        'defb','defw','END',
+        'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','reltype',
+        'directive');
 
     type
 
@@ -69,8 +76,11 @@ Unit raz80asm;
         procedure GetToken;
         function consume(t : tasmtoken):boolean;
         procedure RecoverConsume(allowcomma:boolean);
+        function is_locallabel(const s:string):boolean;
         function is_asmopcode(const s: string):boolean;
+        Function is_asmdirective(const s: string):boolean;
         function is_register(const s:string):boolean;
+        function is_targetdirective(const s: string):boolean;
         //procedure handleopcode;override;
         //procedure BuildReference(oper : tz80operand);
         //procedure BuildOperand(oper : tz80operand);
@@ -117,6 +127,10 @@ Unit raz80asm;
 
 
     procedure tz80reader.GetToken;
+      var
+        len: Integer;
+        srsym : tsym;
+        srsymtable : TSymtable;
       begin
         c:=scanner.c;
         { save old token and reset new token }
@@ -126,11 +140,567 @@ Unit raz80asm;
         actasmpattern:='';
         { while space and tab , continue scan... }
         while c in [' ',#9] do
-         c:=current_scanner.asmgetchar;
+          c:=current_scanner.asmgetchar;
         { get token pos }
         if not (c in [#10,#13,'{',';','/','(']) then
           current_scanner.gettokenpos;
+        { Local Label, Label, Directive, Prefix or Opcode }
+        if firsttoken and not(c in [#10,#13,'{',';','/','(']) then
+          begin
+            firsttoken:=FALSE;
+            len:=0;
+            { directive or local label }
+            if c = '.' then
+              begin
+                inc(len);
+                actasmpattern[len]:=c;
+                { Let us point to the next character }
+                c:=current_scanner.asmgetchar;
+                while c in ['A'..'Z','a'..'z','0'..'9','_','$'] do
+                  begin
+                    inc(len);
+                    actasmpattern[len]:=c;
+                    c:=current_scanner.asmgetchar;
+                  end;
+                actasmpattern[0]:=chr(len);
+                { this is a local label... }
+                if (c=':') and is_locallabel(actasmpattern) then
+                  begin
+                    { local variables are case sensitive }
+                    actasmtoken:=AS_LLABEL;
+                    c:=current_scanner.asmgetchar;
+                    firsttoken:=true;
+                    exit;
+                  end
+                { must be a directive }
+                else
+                  begin
+                    if is_asmdirective(actasmpattern) then
+                     exit;
+                    if is_targetdirective(actasmpattern) then
+                      begin
+                        actasmtoken:=AS_TARGET_DIRECTIVE;
+                        exit;
+                      end;
+                    Message1(asmr_e_not_directive_or_local_symbol,actasmpattern);
+                  end;
+              end;
+            { only opcodes and global labels are allowed now. }
+            while c in ['A'..'Z','a'..'z','0'..'9','_'] do
+              begin
+                inc(len);
+                actasmpattern[len]:=c;
+                c:=current_scanner.asmgetchar;
+              end;
+            actasmpattern[0]:=chr(len);
+            { Label ? }
+            if c = ':' then
+              begin
+                actasmtoken:=AS_LABEL;
+                { let us point to the next character }
+                c:=current_scanner.asmgetchar;
+                firsttoken:=true;
+                exit;
+              end;
+            { Opcode ? }
+            if is_asmopcode(upper(actasmpattern)) then
+              begin
+                uppervar(actasmpattern);
+                exit;
+              end;
+            { End of assemblerblock ? }
+            if upper(actasmpattern) = 'END' then
+              begin
+                actasmtoken:=AS_END;
+                exit;
+              end;
+            message1(asmr_e_unknown_opcode,actasmpattern);
+            actasmtoken:=AS_NONE;
+          end
+        else { else firsttoken }
+          { Here we must handle all possible cases }
+          begin
+            case c of
+              '.' :  { possiblities : - local label reference , such as in jmp @local1 }
+                     {               - field of object/record                         }
+                     {               - directive.                                     }
+                begin
+                  if (prevasmtoken in [AS_ID,AS_RPAREN]) then
+                   begin
+                     c:=current_scanner.asmgetchar;
+                     actasmtoken:=AS_DOT;
+                     exit;
+                   end;
+                  actasmpattern:=c;
+                  c:=current_scanner.asmgetchar;
+                  while c in  ['A'..'Z','a'..'z','0'..'9','_','$'] do
+                   begin
+                     actasmpattern:=actasmpattern + c;
+                     c:=current_scanner.asmgetchar;
+                   end;
+                  if is_asmdirective(actasmpattern) then
+                   exit;
+                  if is_targetdirective(actasmpattern) then
+                    begin
+                      actasmtoken:=AS_TARGET_DIRECTIVE;
+                      exit;
+                    end;
+                  { local label references and directives }
+                  { are case sensitive                    }
+                  actasmtoken:=AS_ID;
+                  exit;
+                end;
 
+           { identifier, register, prefix or directive }
+              '_','A'..'Z','a'..'z':
+                begin
+                  len:=0;
+                  while c in ['A'..'Z','a'..'z','0'..'9','_','$'] do
+                   begin
+                     inc(len);
+                     actasmpattern[len]:=c;
+                     c:=current_scanner.asmgetchar;
+                   end;
+                  actasmpattern[0]:=chr(len);
+                  uppervar(actasmpattern);
+ {$ifdef x86}
+                  { only x86 architectures have instruction prefixes }
+
+                  { Opcode, can only be when the previous was a prefix }
+                  If is_prefix(actopcode) and is_asmopcode(actasmpattern) then
+                   Begin
+                     uppervar(actasmpattern);
+                     exit;
+                   end;
+ {$endif x86}
+                  { check for end which is a reserved word unlike the opcodes }
+                  if actasmpattern = 'END' then
+                    begin
+                      actasmtoken:=AS_END;
+                      exit;
+                    end;
+                  if actasmpattern = 'TYPE' then
+                    begin
+                      actasmtoken:=AS_TYPE;
+                      exit;
+                    end;
+                  if actasmpattern = 'SIZEOF' then
+                    begin
+                      actasmtoken:=AS_SIZEOF;
+                      exit;
+                    end;
+                  if actasmpattern = 'VMTOFFSET' then
+                    begin
+                      actasmtoken:=AS_VMTOFFSET;
+                      exit;
+                    end;
+                  if is_register(actasmpattern) then
+                    begin
+                      actasmtoken:=AS_REGISTER;
+                      exit;
+                    end;
+                  { if next is a '.' and this is a unitsym then we also need to
+                    parse the identifier }
+                  if (c='.') then
+                   begin
+                     searchsym(actasmpattern,srsym,srsymtable);
+                     if assigned(srsym) and
+                        (srsym.typ=unitsym) and
+                        (srsym.owner.symtabletype in [staticsymtable,globalsymtable]) and
+                        srsym.owner.iscurrentunit then
+                      begin
+                        actasmpattern:=actasmpattern+c;
+                        c:=current_scanner.asmgetchar;
+                        while c in  ['A'..'Z','a'..'z','0'..'9','_','$'] do
+                         begin
+                           actasmpattern:=actasmpattern + upcase(c);
+                           c:=current_scanner.asmgetchar;
+                         end;
+                      end;
+                   end;
+                  actasmtoken:=AS_ID;
+                  exit;
+                end;
+
+              //'%' : { register or modulo }
+              //  handlepercent;
+
+              '1'..'9': { integer number }
+                begin
+                  len:=0;
+                  while c in ['0'..'9'] do
+                   Begin
+                     inc(len);
+                     actasmpattern[len]:=c;
+                     c:=current_scanner.asmgetchar;
+                   end;
+                  actasmpattern[0]:=chr(len);
+                  actasmpattern:=tostr(ParseVal(actasmpattern,10));
+                  actasmtoken:=AS_INTNUM;
+                  exit;
+                end;
+              '0' : { octal,hexa,real or binary number. }
+                begin
+                  actasmpattern:=c;
+                  c:=current_scanner.asmgetchar;
+                  case upcase(c) of
+                    'B': { binary }
+                      Begin
+                        c:=current_scanner.asmgetchar;
+                        while c in ['0','1'] do
+                         Begin
+                           actasmpattern:=actasmpattern + c;
+                           c:=current_scanner.asmgetchar;
+                         end;
+                        actasmpattern:=tostr(ParseVal(actasmpattern,2));
+                        actasmtoken:=AS_INTNUM;
+                        exit;
+                      end;
+                    'D': { real }
+                      Begin
+                        c:=current_scanner.asmgetchar;
+                        { get ridd of the 0d }
+                        if (c in ['+','-']) then
+                         begin
+                           actasmpattern:=c;
+                           c:=current_scanner.asmgetchar;
+                         end
+                        else
+                         actasmpattern:='';
+                        while c in ['0'..'9'] do
+                         Begin
+                           actasmpattern:=actasmpattern + c;
+                           c:=current_scanner.asmgetchar;
+                         end;
+                        if c='.' then
+                         begin
+                           actasmpattern:=actasmpattern + c;
+                           c:=current_scanner.asmgetchar;
+                           while c in ['0'..'9'] do
+                            Begin
+                              actasmpattern:=actasmpattern + c;
+                              c:=current_scanner.asmgetchar;
+                            end;
+                           if upcase(c) = 'E' then
+                            begin
+                              actasmpattern:=actasmpattern + c;
+                              c:=current_scanner.asmgetchar;
+                              if (c in ['+','-']) then
+                               begin
+                                 actasmpattern:=actasmpattern + c;
+                                 c:=current_scanner.asmgetchar;
+                               end;
+                              while c in ['0'..'9'] do
+                               Begin
+                                 actasmpattern:=actasmpattern + c;
+                                 c:=current_scanner.asmgetchar;
+                               end;
+                            end;
+                           actasmtoken:=AS_REALNUM;
+                           exit;
+                         end
+                        else
+                         begin
+                           Message1(asmr_e_invalid_float_const,actasmpattern+c);
+                           actasmtoken:=AS_NONE;
+                         end;
+                      end;
+                    'X': { hexadecimal }
+                      Begin
+                        c:=current_scanner.asmgetchar;
+                        while c in ['0'..'9','a'..'f','A'..'F'] do
+                         Begin
+                           actasmpattern:=actasmpattern + c;
+                           c:=current_scanner.asmgetchar;
+                         end;
+                        actasmpattern:=tostr(ParseVal(actasmpattern,16));
+                        actasmtoken:=AS_INTNUM;
+                        exit;
+                      end;
+                    '1'..'7': { octal }
+                      begin
+                        actasmpattern:=actasmpattern + c;
+                        while c in ['0'..'7'] do
+                         Begin
+                           actasmpattern:=actasmpattern + c;
+                           c:=current_scanner.asmgetchar;
+                         end;
+                        actasmpattern:=tostr(ParseVal(actasmpattern,8));
+                        actasmtoken:=AS_INTNUM;
+                        exit;
+                      end;
+                    else { octal number zero value...}
+                      Begin
+                        actasmpattern:=tostr(ParseVal(actasmpattern,8));
+                        actasmtoken:=AS_INTNUM;
+                        exit;
+                      end;
+                  end; { end case }
+                end;
+
+              '&' :
+                begin
+                  c:=current_scanner.asmgetchar;
+                  actasmtoken:=AS_AND;
+                end;
+
+              '''' : { char }
+                begin
+                  actasmpattern:='';
+                  repeat
+                    c:=current_scanner.asmgetchar;
+                    case c of
+                      '\' :
+                        begin
+                          { copy also the next char so \" is parsed correctly }
+                          actasmpattern:=actasmpattern+c;
+                          c:=current_scanner.asmgetchar;
+                          actasmpattern:=actasmpattern+c;
+                        end;
+                      '''' :
+                        begin
+                          c:=current_scanner.asmgetchar;
+                          break;
+                        end;
+                      #10,#13:
+                        Message(scan_f_string_exceeds_line);
+                      else
+                        actasmpattern:=actasmpattern+c;
+                    end;
+                  until false;
+                  actasmpattern:=EscapeToPascal(actasmpattern);
+                  actasmtoken:=AS_STRING;
+                  exit;
+                end;
+
+              '"' : { string }
+                begin
+                  actasmpattern:='';
+                  repeat
+                    c:=current_scanner.asmgetchar;
+                    case c of
+                      '\' :
+                        begin
+                          { copy also the next char so \" is parsed correctly }
+                          actasmpattern:=actasmpattern+c;
+                          c:=current_scanner.asmgetchar;
+                          actasmpattern:=actasmpattern+c;
+                        end;
+                      '"' :
+                        begin
+                          c:=current_scanner.asmgetchar;
+                          break;
+                        end;
+                      #10,#13:
+                        Message(scan_f_string_exceeds_line);
+                      else
+                        actasmpattern:=actasmpattern+c;
+                    end;
+                  until false;
+                  actasmpattern:=EscapeToPascal(actasmpattern);
+                  actasmtoken:=AS_STRING;
+                  exit;
+                end;
+
+              //'$' :
+              //  begin
+              //    handledollar;
+              //    exit;
+              //  end;
+
+              '#' :
+                begin
+                  actasmtoken:=AS_HASH;
+                  c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+
+              '[' :
+                begin
+                  actasmtoken:=AS_LBRACKET;
+                  c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+
+              ']' :
+                begin
+                  actasmtoken:=AS_RBRACKET;
+                  c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+
+              '{' :
+                begin
+ {$ifdef arm}
+                  // the arm assembler uses { ... } for register sets
+                  // but compiler directives {$... } are still allowed
+                  c:=current_scanner.asmgetchar;
+                  if c<>'$' then
+                    actasmtoken:=AS_LSBRACKET
+                  else
+                    begin
+                      current_scanner.skipcomment(false);
+                      GetToken;
+                    end;
+ {$else arm}
+                  current_scanner.skipcomment(true);
+                  GetToken;
+ {$endif arm}
+                  exit;
+                end;
+
+ {$ifdef arm}
+              '}' :
+                begin
+                  actasmtoken:=AS_RSBRACKET;
+                  c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+
+              '=' :
+                begin
+                  actasmtoken:=AS_EQUAL;
+                  c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+ {$endif arm}
+
+              ',' :
+                begin
+                  actasmtoken:=AS_COMMA;
+                  c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+
+              '<' :
+                begin
+                  actasmtoken:=AS_SHL;
+                  c:=current_scanner.asmgetchar;
+                  if c = '<' then
+                   c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+
+              '>' :
+                begin
+                  actasmtoken:=AS_SHL;
+                  c:=current_scanner.asmgetchar;
+                  if c = '>' then
+                   c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+
+              '|' :
+                begin
+                  actasmtoken:=AS_OR;
+                  c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+
+              '^' :
+                begin
+                  actasmtoken:=AS_XOR;
+                  c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+
+
+              '(' :
+                begin
+                  c:=current_scanner.asmgetchar;
+                  if c='*' then
+                    begin
+                      current_scanner.skipoldtpcomment(true);
+                      GetToken;
+                    end
+                  else
+                    actasmtoken:=AS_LPAREN;
+                  exit;
+                end;
+
+              ')' :
+                begin
+                  actasmtoken:=AS_RPAREN;
+                  c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+
+              ':' :
+                begin
+                  actasmtoken:=AS_COLON;
+                  c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+
+              '+' :
+                begin
+                  actasmtoken:=AS_PLUS;
+                  c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+
+              '-' :
+                begin
+                  actasmtoken:=AS_MINUS;
+                  c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+
+              '*' :
+                begin
+                  actasmtoken:=AS_STAR;
+                  c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+
+              '/' :
+                begin
+                  c:=current_scanner.asmgetchar;
+                  if c='/' then
+                    begin
+                      current_scanner.skipdelphicomment;
+                      GetToken;
+                    end
+                  else
+                    actasmtoken:=AS_SLASH;
+                  exit;
+                end;
+
+              '!', '~' :
+                begin
+                  actasmtoken:=AS_NOT;
+                  c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+
+              '@' :
+                begin
+                  actasmtoken:=AS_AT;
+                  c:=current_scanner.asmgetchar;
+                  exit;
+                end;
+
+              #13,#10:
+                begin
+                  current_scanner.linebreak;
+                  c:=current_scanner.asmgetchar;
+                  firsttoken:=TRUE;
+                  actasmtoken:=AS_SEPARATOR;
+                  exit;
+                end;
+
+              ';' :
+                begin
+                  c:=current_scanner.asmgetchar;
+                  firsttoken:=TRUE;
+                  actasmtoken:=AS_SEPARATOR;
+                  exit;
+                end;
+
+              else
+                current_scanner.illegal_char(c);
+            end;
+          end;
       end;
 
 
@@ -159,6 +729,12 @@ Unit raz80asm;
       end;
 
 
+    function tz80reader.is_locallabel(const s: string): boolean;
+      begin
+        is_locallabel:=(length(s)>1) and (s[1]='@');
+      end;
+
+
     function tz80reader.is_asmopcode(const s: string):boolean;
       begin
         actcondition:=C_None;
@@ -173,6 +749,23 @@ Unit raz80asm;
       end;
 
 
+    function tz80reader.is_asmdirective(const s: string): boolean;
+      var
+        i : tasmtoken;
+        hs : string;
+      begin
+        hs:=lower(s);
+        for i:=firstdirective to lastdirective do
+         if hs=token2str[i] then
+          begin
+            actasmtoken:=i;
+            is_asmdirective:=true;
+            exit;
+          end;
+        is_asmdirective:=false;
+      end;
+
+
     function tz80reader.is_register(const s:string):boolean;
       begin
         is_register:=false;
@@ -182,6 +775,12 @@ Unit raz80asm;
             is_register:=true;
             actasmtoken:=AS_REGISTER;
           end;
+      end;
+
+
+    function tz80reader.is_targetdirective(const s: string): boolean;
+      begin
+        result:=false;
       end;
 
 
