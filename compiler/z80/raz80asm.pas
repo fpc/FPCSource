@@ -63,7 +63,7 @@ Unit raz80asm;
 
       tz80reader = class(tasmreader)
         actasmtoken    : tasmtoken;
-        //function is_asmopcode(const s: string):boolean;override;
+        function is_asmopcode(const s: string):boolean;
         function is_register(const s:string):boolean;
         //procedure handleopcode;override;
         //procedure BuildReference(oper : tz80operand);
@@ -97,6 +97,20 @@ Unit raz80asm;
 {*****************************************************************************
                                 tz80reader
 *****************************************************************************}
+
+
+    function tz80reader.is_asmopcode(const s: string):boolean;
+      begin
+        actcondition:=C_None;
+        actopcode:=tasmop(PtrUInt(iasmops.Find(s)));
+        if actopcode<>A_NONE then
+          begin
+            actasmtoken:=AS_OPCODE;
+            is_asmopcode:=true;
+          end
+        else
+          is_asmopcode:=false;
+      end;
 
 
     function tz80reader.is_register(const s:string):boolean;
@@ -593,81 +607,6 @@ Unit raz80asm;
     //      end; { end case }
     //    until false;
     //    instr.Ops:=operandnum;
-    //  end;
-
-
-    //function tz80reader.is_asmopcode(const s: string):boolean;
-    //
-    //  const
-    //    { sorted by length so longer postfixes will match first }
-    //    postfix2strsorted : array[1..19] of string[2] = (
-    //      'EP','SB','BT','SH',
-    //      'IA','IB','DA','DB','FD','FA','ED','EA',
-    //      'B','D','E','P','T','H','S');
-    //
-    //  var
-    //    len,
-    //    j,
-    //    sufidx : longint;
-    //    hs : string;
-    //    maxlen : longint;
-    //    icond : tasmcond;
-    //  Begin
-    //    { making s a value parameter would break other assembler readers }
-    //    hs:=s;
-    //    is_asmopcode:=false;
-    //
-    //    { clear op code }
-    //    actopcode:=A_None;
-    //
-    //    actcondition:=C_None;
-    //
-    //    { first, handle B else BLS is read wrong }
-    //    if ((copy(hs,1,2)='BR') and (length(hs)=4)) then
-    //      begin
-    //        for icond:=low(tasmcond) to high(tasmcond) do
-    //          begin
-    //            if copy(hs,2,3)=uppercond2str[icond] then
-    //              begin
-    //                actopcode:=A_BRxx;
-    //                actasmtoken:=AS_OPCODE;
-    //                actcondition:=icond;
-    //                is_asmopcode:=true;
-    //                exit;
-    //              end;
-    //          end;
-    //      end;
-    //    maxlen:=max(length(hs),5);
-    //    actopcode:=A_NONE;
-    //    for j:=maxlen downto 1 do
-    //      begin
-    //        actopcode:=tasmop(PtrUInt(iasmops.Find(copy(hs,1,j))));
-    //        if actopcode<>A_NONE then
-    //          begin
-    //            actasmtoken:=AS_OPCODE;
-    //            { strip op code }
-    //            delete(hs,1,j);
-    //            break;
-    //          end;
-    //      end;
-    //    if actopcode=A_NONE then
-    //      exit;
-    //    { search for condition, conditions are always 2 chars }
-    //    if length(hs)>1 then
-    //      begin
-    //        for icond:=low(tasmcond) to high(tasmcond) do
-    //          begin
-    //            if copy(hs,1,2)=uppercond2str[icond] then
-    //              begin
-    //                actcondition:=icond;
-    //                { strip condition }
-    //                delete(hs,1,2);
-    //                break;
-    //              end;
-    //          end;
-    //      end;
-    //    { if we stripped all postfixes, it's a valid opcode }
-    //    is_asmopcode:=length(hs)=0;
     //  end;
 
 
