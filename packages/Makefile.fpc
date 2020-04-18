@@ -69,6 +69,9 @@ FPMAKE_OPT+=-bu
 ifndef BUILDFULLNATIVE
 FPMAKE_OPT+=-scp
 endif
+ifdef LLVM
+FPMAKE_OPT+=--LLVM=1
+endif
 .NOTPARALLEL:
 
 fpmkunit_clean_bootstrap:

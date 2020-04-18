@@ -148,6 +148,7 @@ begin
   AddCustomFpmakeCommandlineOption('GDBMI','If value=1 or ''Y'', builds IDE with GDB/MI support (no need for LibGDB)');
   AddCustomFpmakeCommandlineOption('NoIDE','If value=1 or ''Y'', the IDE will be skipped');
   AddCustomFpmakeCommandlineOption('IDE','If value=1 or ''Y'', the IDE will be build for each target');
+  AddCustomFpmakeCommandlineOption('LLVM','If value=1 or ''Y'', the Compiler codegenerator will use LLVM');
 end;
 
 procedure add_ide(const ADirectory: string);
@@ -158,6 +159,7 @@ Var
   CompilerTarget : TCpu;
   CompilerDir,
   s: string;
+  llvm: boolean;
 
 begin
   With Installer do
@@ -185,6 +187,11 @@ begin
       CompilerTarget:=StringToCPU(s)
     else
       CompilerTarget:=Defaults.CPU;
+    s:=GetCustomFpmakeCommandlineOptionValue('LLVM');
+    if (s='1') or (s='Y') then
+      llvm:=true
+    else
+      llvm:=false;
     { Only try to build natively }
     { or for cross-compile if the resulting executable
       does not depend on C libs }
@@ -260,6 +267,12 @@ begin
         
         if CompilerTarget = mipsel then
           P.Options.Add('-Fu'+CompilerDir+'/mips');
+
+        if llvm then
+          begin
+            P.Options.Add('-Fu'+CompilerDir+'/llvm');
+            P.Options.Add('-Fi'+CompilerDir+'/llvm');
+          end;
 
         { powerpc64-aix compiled IDE needs -CTsmalltoc option }
         if (Defaults.OS=aix) and (Defaults.CPU=powerpc64) then
