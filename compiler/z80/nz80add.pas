@@ -227,7 +227,9 @@ interface
 
             if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
               begin
-                if (right.location.reference.base=NR_IX) and (right.location.reference.index=NR_NO) then
+                if is_ref_ix_d(right.location.reference) or
+                   is_ref_iy_d(right.location.reference) or
+                   is_ref_hl(right.location.reference) then
                   begin
                     cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
                     cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);
@@ -273,7 +275,9 @@ interface
 
             if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
               begin
-                if (right.location.reference.base=NR_IX) and (right.location.reference.index=NR_NO) then
+                if is_ref_ix_d(right.location.reference) or
+                   is_ref_iy_d(right.location.reference) or
+                   is_ref_hl(right.location.reference) then
                   begin
                     cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
                     cg.a_load_loc_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),left.location,NR_A);

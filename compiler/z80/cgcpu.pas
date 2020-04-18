@@ -1147,9 +1147,8 @@ unit cgcpu;
              href.base:=href.index;
              href.index:=NR_NO;
            end;
-         if not assigned(href.symbol) and
-           ((href.base=NR_IX) or (href.base=NR_IY) or
-            ((href.base=NR_HL) and (size in [OS_8,OS_S8]) and (href.offset=0))) then
+         if is_ref_ix_d(href) or is_ref_iy_d(href) or
+            (is_ref_hl(href) and (size in [OS_8,OS_S8])) then
            begin
              for i:=tcgsize2size[size] downto 1 do
                begin
@@ -1883,12 +1882,9 @@ unit cgcpu;
         tmpreg,srcreg,dstreg: tregister;
         srcref,dstref : treference;
       begin
-        if (len=1) and (not assigned(source.symbol) and
-            ((source.base=NR_IX) or (source.base=NR_IY) or
-             ((source.base=NR_HL) and (source.offset=0)))) and
-           (not assigned(dest.symbol) and
-            ((dest.base=NR_IX) or (dest.base=NR_IY) or
-             ((dest.base=NR_HL) and (dest.offset=0)))) then
+        if (len=1) and
+           (is_ref_ix_d(source) or is_ref_iy_d(source) or is_ref_hl(source)) and
+           (is_ref_ix_d(dest) or is_ref_iy_d(dest) or is_ref_hl(dest)) then
           begin
             tmpreg:=getintregister(list,OS_8);
             list.concat(taicpu.op_reg_ref(A_LD,tmpreg,source));
