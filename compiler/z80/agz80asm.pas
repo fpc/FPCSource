@@ -158,6 +158,7 @@ unit agz80asm;
           first : boolean;
           r : tsuperregister;
         begin
+          result:='';
           //case o.typ of
           //  top_reg:
           //    getopstr:=gas_regname(o.reg);
