@@ -398,6 +398,9 @@ endif
 ifeq ($(CPU_TARGET),xtensa)
 PPSUF=xtensa
 endif
+ifeq ($(CPU_TARGET),z80)
+PPSUF=z80
+endif
 ifdef CROSSCOMPILE
 ifneq ($(CPU_TARGET),jvm)
 PPPRE=ppcross
