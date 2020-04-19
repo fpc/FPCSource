@@ -332,7 +332,7 @@ endif
 override PACKAGE_NAME=compiler
 override PACKAGE_VERSION=3.3.1
 unexport FPC_VERSION FPC_COMPILERINFO
-CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa
+CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa z80
 ALLTARGETS=$(CYCLETARGETS)
 ifdef POWERPC
 PPC_TARGET=powerpc
