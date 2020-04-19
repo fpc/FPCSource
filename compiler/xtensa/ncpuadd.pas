@@ -87,7 +87,7 @@ interface
         end;
 
         cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,left.location.register,right.location.register,location.truelabel);
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(A_J,location.falselabel));
+        cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
       end;
 
 
@@ -139,7 +139,7 @@ interface
              else
                cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cond,right.location.register,left.location.register,location.truelabel);
           end;
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(A_J,location.falselabel));
+        cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
       end;
 
 
