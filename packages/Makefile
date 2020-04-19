@@ -196,6 +196,12 @@ $(error When compiling for mipsel-embedded, a sub-architecture (e.g. SUBARCH=pic
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
+ifeq ($(FULL_TARGET),xtensa-embedded)
+ifeq ($(SUBARCH),)
+$(error When compiling for xtensa-embedded, a sub-architecture (e.g. SUBARCH=lx106 or SUBARCH=lx6) must be defined)
+endif
+override FPCOPT+=-Cp$(SUBARCH)
+endif
 ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
 TARGETSUFFIX=$(OS_TARGET)
 SOURCESUFFIX=$(OS_SOURCE)
@@ -1775,7 +1781,6 @@ endif
 ifdef LLVM
 FPMAKE_OPT+=--LLVM=1
 endif
-.NOTPARALLEL:
 fpmkunit_clean_bootstrap:
 	$(MAKE) -C fpmkunit clean_bootstrap
 fpmake$(SRCEXEEXT): fpmake.pp $(SUB_FPMAKE_SRCS) fpmake_add.inc fpmake_proc.inc

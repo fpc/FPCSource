@@ -72,7 +72,6 @@ endif
 ifdef LLVM
 FPMAKE_OPT+=--LLVM=1
 endif
-.NOTPARALLEL:
 
 fpmkunit_clean_bootstrap:
 	$(MAKE) -C fpmkunit clean_bootstrap
