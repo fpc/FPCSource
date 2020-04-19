@@ -199,7 +199,7 @@ implementation
            (atype<>sec_toc) and
            (atype<>sec_user) and
            { on embedded systems every byte counts, so smartlink bss too }
-           ((atype<>sec_bss) or (target_info.system in systems_embedded));
+           ((atype<>sec_bss) or (target_info.system in (systems_embedded+systems_freertos)));
       end;
 
     function TGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;

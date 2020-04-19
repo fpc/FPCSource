@@ -305,7 +305,7 @@ interface
                            system_xtensa_embedded];
 
        { all FreeRTOS systems }
-       systems_freertos = [system_xtensa_freertos];
+       systems_freertos = [system_xtensa_freertos,system_arm_freertos];
 
        { all systems that allow section directive }
        systems_allow_section = systems_embedded;

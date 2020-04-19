@@ -68,6 +68,10 @@ implementation
     {$ifndef NOTARGETAROS}
       ,t_aros
     {$endif}
+    {$ifndef NOTARGETFREERTOS}
+      ,t_freertos
+    {$endif}
+
 
 {**************************************
              Assemblers

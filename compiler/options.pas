@@ -3940,7 +3940,7 @@ begin
     end;
 
   { Set up default value for the heap }
-  if target_info.system in systems_embedded then
+  if target_info.system in (systems_embedded+systems_freertos) then
     begin
       case target_info.system of
 {$ifdef AVR}
@@ -3950,6 +3950,11 @@ begin
           else
             heapsize:=128;
 {$endif AVR}
+        system_arm_freertos:
+          heapsize:=8192;
+        system_xtensa_freertos:
+          { keep default value }
+          ;
         system_arm_embedded:
           heapsize:=256;
         system_mipsel_embedded:

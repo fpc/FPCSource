@@ -155,7 +155,7 @@ interface
         {dragonfly} ( false, false, false, false, true,  false, false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,   false),
         { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, true , false, false, false, false,  false,   false),
         { wasm }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, true,  false, false,  false,   false),
-        { freertos }( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,   true )
+        { freertos }( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,   true )
       );
 
     type

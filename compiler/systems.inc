@@ -193,7 +193,8 @@
              system_x86_64_haiku,       { 102 }
              system_xtensa_embedded,    { 103 }
              system_xtensa_freertos,    { 104 }
-             system_xtensa_linux        { 105 }
+             system_xtensa_linux,       { 105 }
+             system_arm_freertos        { 106 }
        );
 
      type

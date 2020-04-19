@@ -222,479 +222,55 @@ begin
    end;
 
 {$ifdef ARM}
-  case current_settings.controllertype of
-      ct_none:
-           begin
-           end;
-      ct_lpc810m021fn8,
-      ct_lpc811m001fdh16,
-      ct_lpc812m101fdh16,
-      ct_lpc812m101fd20,
-      ct_lpc812m101fdh20,
-      ct_lpc1110fd20,
-      ct_lpc1111fdh20_002,
-      ct_lpc1111fhn33_101,
-      ct_lpc1111fhn33_102,
-      ct_lpc1111fhn33_103,
-      ct_lpc1111fhn33_201,
-      ct_lpc1111fhn33_202,
-      ct_lpc1111fhn33_203,
-      ct_lpc1112fd20_102,
-      ct_lpc1112fdh20_102,
-      ct_lpc1112fdh28_102,
-      ct_lpc1112fhn33_101,
-      ct_lpc1112fhn33_102,
-      ct_lpc1112fhn33_103,
-      ct_lpc1112fhn33_201,
-      ct_lpc1112fhn24_202,
-      ct_lpc1112fhn33_202,
-      ct_lpc1112fhn33_203,
-      ct_lpc1112fhi33_202,
-      ct_lpc1112fhi33_203,
-      ct_lpc1113fhn33_201,
-      ct_lpc1113fhn33_202,
-      ct_lpc1113fhn33_203,
-      ct_lpc1113fhn33_301,
-      ct_lpc1113fhn33_302,
-      ct_lpc1113fhn33_303,
-      ct_lpc1113bfd48_301,
-      ct_lpc1113bfd48_302,
-      ct_lpc1113bfd48_303,
-      ct_lpc1114fdh28_102,
-      ct_lpc1114fn28_102,
-      ct_lpc1114fhn33_201,
-      ct_lpc1114fhn33_202,
-      ct_lpc1114fhn33_203,
-      ct_lpc1114fhn33_301,
-      ct_lpc1114fhn33_302,
-      ct_lpc1114fhn33_303,
-      ct_lpc1114fhn33_333,
-      ct_lpc1114fhi33_302,
-      ct_lpc1114fhi33_303,
-      ct_lpc1114bfd48_301,
-      ct_lpc1114bfd48_302,
-      ct_lpc1114bfd48_303,
-      ct_lpc1114bfd48_323,
-      ct_lpc1114bfd48_333,
-      ct_lpc1115bfd48_303,
-      ct_lpc11c12fd48_301,
-      ct_lpc11c14fd48_301,
-      ct_lpc11c22fd48_301,
-      ct_lpc11c24fd48_301,
-      ct_lpc11d24fd48_301,
-      ct_lpc1224fbd48_101,
-      ct_lpc1224fbd48_121,
-      ct_lpc1224fbd64_101,
-      ct_lpc1224fbd64_121,
-      ct_lpc1225fbd48_301,
-      ct_lpc1225fbd48_321,
-      ct_lpc1225fbd64_301,
-      ct_lpc1225fbd64_321,
-      ct_lpc1226fbd48_301,
-      ct_lpc1226fbd64_301,
-      ct_lpc1227fbd48_301,
-      ct_lpc1227fbd64_301,
-      ct_lpc12d27fbd100_301,
-      ct_lpc1311fhn33,
-      ct_lpc1311fhn33_01,
-      ct_lpc1313fhn33,
-      ct_lpc1313fhn33_01,
-      ct_lpc1313fbd48,
-      ct_lpc1313fbd48_01,
-      ct_lpc1315fhn33,
-      ct_lpc1315fbd48,
-      ct_lpc1316fhn33,
-      ct_lpc1316fbd48,
-      ct_lpc1317fhn33,
-      ct_lpc1317fbd48,
-      ct_lpc1317fbd64,
-      ct_lpc1342fhn33,
-      ct_lpc1342fbd48,
-      ct_lpc1343fhn33,
-      ct_lpc1343fbd48,
-      ct_lpc1345fhn33,
-      ct_lpc1345fbd48,
-      ct_lpc1346fhn33,
-      ct_lpc1346fbd48,
-      ct_lpc1347fhn33,
-      ct_lpc1347fbd48,
-      ct_lpc1347fbd64,
-      ct_lpc2114,
-      ct_lpc2124,
-      ct_lpc2194,
-      ct_lpc1768,
-      ct_at91sam7s256,
-      ct_at91sam7se256,
-      ct_at91sam7x256,
-      ct_at91sam7xc256,
+  with embedded_controllers[current_settings.controllertype] do
+    with linkres do
+      begin
+        Add('ENTRY(_START)');
+        Add('MEMORY');
+        Add('{');
+        if flashsize<>0 then
+          begin
+            LinkStr := '    flash : ORIGIN = 0x' + IntToHex(flashbase,8)
+              + ', LENGTH = 0x' + IntToHex(flashsize,8);
+            Add(LinkStr);
+          end;
 
-      ct_stm32f030c6,
-      ct_stm32f030c8,
-      ct_stm32f030f4,
-      ct_stm32f030k6,
-      ct_stm32f030r8,
-      ct_stm32f050c4,
-      ct_stm32f050c6,
-      ct_stm32f050f4,
-      ct_stm32f050f6,
-      ct_stm32f050g4,
-      ct_stm32f050g6,
-      ct_stm32f050k4,
-      ct_stm32f050k6,
-      ct_stm32f051c4,
-      ct_stm32f051c6,
-      ct_stm32f051c8,
-      ct_stm32f051k4,
-      ct_stm32f051k6,
-      ct_stm32f051k8,
-      ct_stm32f051r4,
-      ct_stm32f051r6,
-      ct_stm32f051r8,
+        LinkStr := '    ram : ORIGIN = 0x' + IntToHex(srambase,8)
+          + ', LENGTH = 0x' + IntToHex(sramsize,8);
+        Add(LinkStr);
 
-      ct_stm32f091cc,
-      ct_stm32f091cb,
-      ct_stm32f091rc,
-      ct_stm32f091rb,
-      ct_stm32f091vc,
-      ct_stm32f091vb,
+        Add('}');
+        Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
+        Add('SECTIONS');
+        Add('{');
+        Add('    .text :');
+        Add('    {');
+        Add('    _text_start = .;');
+        Add('    KEEP(*(.init .init.*))');
+        Add('    *(.text .text.*)');
+        Add('    *(.strings)');
+        Add('    *(.rodata .rodata.*)');
+        Add('    *(.comment)');
+        Add('    . = ALIGN(4);');
+        Add('    _etext = .;');
+        if flashsize<>0 then
+          begin
+            Add('    } >flash');
+            Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >flash ');
+          end
+        else
+          begin
+            Add('    } >ram');
+            Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >ram ');
+          end;
 
-      ct_stm32f100x4,
-      ct_stm32f100x6,
-      ct_stm32f100x8,
-      ct_stm32f100xB,
-      ct_stm32f100xC,
-      ct_stm32f100xD,
-      ct_stm32f100xE,
-      ct_stm32f101x4,
-      ct_stm32f101x6,
-      ct_stm32f101x8,
-      ct_stm32f101xB,
-      ct_stm32f101xC,
-      ct_stm32f101xD,
-      ct_stm32f101xE,
-      ct_stm32f101xF,
-      ct_stm32f101xG,
-      ct_stm32f102x4,
-      ct_stm32f102x6,
-      ct_stm32f102x8,
-      ct_stm32f102xB,
-      ct_stm32f103x4,
-      ct_stm32f103x6,
-      ct_stm32f103x8,
-      ct_stm32f103xB,
-      ct_stm32f103xC,
-      ct_stm32f103xD,
-      ct_stm32f103xE,
-      ct_stm32f103xF,
-      ct_stm32f103xG,
-      ct_stm32f107x8,
-      ct_stm32f107xB,
-      ct_stm32f107xC,
-      ct_stm32f105r8,
-      ct_stm32f105rb,
-      ct_stm32f105rc,
-      ct_stm32f105v8,
-      ct_stm32f105vb,
-      ct_stm32f105vc,
-      ct_stm32f107rb,
-      ct_stm32f107rc,
-      ct_stm32f107vb,
-      ct_stm32f107vc,
-      
-      ct_stm32f401cb,
-      ct_stm32f401rb,
-      ct_stm32f401vb,
-      ct_stm32f401cc,
-      ct_stm32f401rc,
-      ct_stm32f401vc,
-      ct_discoveryf401vc,
-      ct_stm32f401cd,
-      ct_stm32f401rd,
-      ct_stm32f401vd,
-      ct_stm32f401ce,
-      ct_stm32f401re,
-      ct_nucleof401re,
-      ct_stm32f401ve,
-      ct_stm32f407vg,
-      ct_discoveryf407vg,
-      ct_stm32f407ig,
-      ct_stm32f407zg,
-      ct_stm32f407ve,
-      ct_stm32f407ze,
-      ct_stm32f407ie,
-      ct_stm32f411cc,
-      ct_stm32f411rc,
-      ct_stm32f411vc,
-      ct_stm32f411ce,
-      ct_stm32f411re,
-      ct_nucleof411re,
-      ct_stm32f411ve,
-      ct_discoveryf411ve,
-      ct_stm32f429vg,
-      ct_stm32f429zg,
-      ct_stm32f429ig,
-      ct_stm32f429vi,
-      ct_stm32f429zi,
-      ct_discoveryf429zi,
-      ct_stm32f429ii,
-      ct_stm32f429ve,
-      ct_stm32f429ze,
-      ct_stm32f429ie,
-      ct_stm32f429bg,
-      ct_stm32f429bi,
-      ct_stm32f429be,
-      ct_stm32f429ng,
-      ct_stm32f429ni,
-      ct_stm32f429ne,
-      ct_stm32f446mc,
-      ct_stm32f446rc,
-      ct_stm32f446vc,
-      ct_stm32f446zc,
-      ct_stm32f446me,
-      ct_stm32f446re,
-      ct_nucleof446re,
-      ct_stm32f446ve,
-      ct_stm32f446ze,
-
-      ct_stm32f745xe,
-      ct_stm32f745xg,
-      ct_stm32f746xe,
-      ct_stm32f746xg,
-      ct_stm32f756xe,
-      ct_stm32f756xg,
-
-      { TI - 64 K Flash, 16 K SRAM Devices }
-      ct_lm3s1110,
-      ct_lm3s1133,
-      ct_lm3s1138,
-      ct_lm3s1150,
-      ct_lm3s1162,
-      ct_lm3s1165,
-      ct_lm3s1166,
-      ct_lm3s2110,
-      ct_lm3s2139,
-      ct_lm3s6100,
-      ct_lm3s6110,
-
-      { TI 128 K Flash, 32 K SRAM devices - Fury Class }
-      ct_lm3s1601,
-      ct_lm3s1608,
-      ct_lm3s1620,
-      ct_lm3s1635,
-      ct_lm3s1636,
-      ct_lm3s1637,
-      ct_lm3s1651,
-      ct_lm3s2601,
-      ct_lm3s2608,
-      ct_lm3s2620,
-      ct_lm3s2637,
-      ct_lm3s2651,
-      ct_lm3s6610,
-      ct_lm3s6611,
-      ct_lm3s6618,
-      ct_lm3s6633,
-      ct_lm3s6637,
-      ct_lm3s8630,
-
-      { TI 256 K Flase, 32 K SRAM devices - Fury Class }
-      ct_lm3s1911,
-      ct_lm3s1918,
-      ct_lm3s1937,
-      ct_lm3s1958,
-      ct_lm3s1960,
-      ct_lm3s1968,
-      ct_lm3s1969,
-      ct_lm3s2911,
-      ct_lm3s2918,
-      ct_lm3s2919,
-      ct_lm3s2939,
-      ct_lm3s2948,
-      ct_lm3s2950,
-      ct_lm3s2965,
-      ct_lm3s6911,
-      ct_lm3s6918,
-      ct_lm3s6938,
-      ct_lm3s6950,
-      ct_lm3s6952,
-      ct_lm3s6965,
-      ct_lm3s8930,
-      ct_lm3s8933,
-      ct_lm3s8938,
-      ct_lm3s8962,
-      ct_lm3s8970,
-      ct_lm3s8971,
-
-      { TI - Tempest Tempest - 256 K Flash, 64 K SRAM }
-      ct_lm3s5951,
-      ct_lm3s5956,
-      ct_lm3s1b21,
-      ct_lm3s2b93,
-      ct_lm3s5b91,
-      ct_lm3s9b81,
-      ct_lm3s9b90,
-      ct_lm3s9b92,
-      ct_lm3s9b95,
-      ct_lm3s9b96,
-      
-      ct_lm3s5d51,
-      
-      { TI - Stellaris something }
-      ct_lm4f120h5,
-      
-      { Infineon }
-      ct_xmc4500x1024,
-      ct_xmc4500x768,
-      ct_xmc4502x768,
-      ct_xmc4504x512,
-
-      { Allwinner }
-      ct_allwinner_a20,
-
-      { Freescale }
-      ct_mk20dx128vfm5,
-      ct_mk20dx128vft5,
-      ct_mk20dx128vlf5,
-      ct_mk20dx128vlh5,
-      ct_teensy30,
-      ct_mk20dx128vmp5,
-
-      ct_mk20dx32vfm5,
-      ct_mk20dx32vft5,
-      ct_mk20dx32vlf5,
-      ct_mk20dx32vlh5,
-      ct_mk20dx32vmp5,
-
-      ct_mk20dx64vfm5,
-      ct_mk20dx64vft5,
-      ct_mk20dx64vlf5,
-      ct_mk20dx64vlh5,
-      ct_mk20dx64vmp5,
-
-      ct_mk20dx128vlh7,
-      ct_mk20dx128vlk7,
-      ct_mk20dx128vll7,
-      ct_mk20dx128vmc7,
-
-      ct_mk20dx256vlh7,
-      ct_mk20dx256vlk7,
-      ct_mk20dx256vll7,
-      ct_mk20dx256vmc7,
-      ct_teensy31,
-      ct_teensy32,
-
-      ct_mk20dx64vlh7,
-      ct_mk20dx64vlk7,
-      ct_mk20dx64vmc7,
-
-      ct_mk22fn512cap12,
-      ct_mk22fn512cbp12,
-      ct_mk22fn512vdc12,
-      ct_mk22fn512vlh12,
-      ct_mk22fn512vll12,
-      ct_mk22fn512vmp12,
-      ct_freedom_k22f,
- 
-      { Atmel }
-      ct_sam3x8e,
-      ct_arduino_due,
-      ct_flip_n_click,
-      
-      { Nordic Semiconductor }
-      ct_nrf51422_xxaa,
-      ct_nrf51422_xxab,
-      ct_nrf51422_xxac,
-      ct_nrf51822_xxaa,
-      ct_nrf51822_xxab,
-      ct_nrf51822_xxac,
-      ct_nrf52832_xxaa,
-      ct_nrf52840_xxaa,
-      
-      ct_sc32442b,
-
-      { Raspberry Pi 2 }
-      ct_raspi2,
-
-      ct_thumb2bare:
-        begin
-         with embedded_controllers[current_settings.controllertype] do
-          with linkres do
-            begin
-              if (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D5')
-              or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D7')
-              or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK22F51212')
-              or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK64F12') then
-                Add('ENTRY(_LOWLEVELSTART)')
-              else
-                Add('ENTRY(_START)');
-              Add('MEMORY');
-              Add('{');
-              if flashsize<>0 then
-                begin
-                  LinkStr := '    flash : ORIGIN = 0x' + IntToHex(flashbase,8)
-                    + ', LENGTH = 0x' + IntToHex(flashsize,8);
-                  Add(LinkStr);
-                end;
-
-              LinkStr := '    ram : ORIGIN = 0x' + IntToHex(srambase,8)
-              	+ ', LENGTH = 0x' + IntToHex(sramsize,8);
-              Add(LinkStr);
-
-              Add('}');
-              Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
-    
-              // Add Checksum Calculation for LPC Controllers so that the bootloader starts the uploaded binary 
-              writeln(controllerunitstr);
-              if (controllerunitstr = 'LPC8xx') or (controllerunitstr = 'LPC11XX') or (controllerunitstr = 'LPC122X') then
-                Add('Startup_Checksum = 0 - (_stack_top + _START + 1 + NonMaskableInt_interrupt + 1 + Hardfault_interrupt + 1);');
-              if (controllerunitstr = 'LPC13XX') then
-                Add('Startup_Checksum = 0 - (_stack_top + _START + 1 + NonMaskableInt_interrupt + 1 + MemoryManagement_interrupt + 1 + BusFault_interrupt + 1 + UsageFault_interrupt + 1);');
-            end;
-        end
-    else
-      if not (cs_link_nolink in current_settings.globalswitches) then
-      	 internalerror(200902011);
-  end;
-
-  with linkres do
-    begin
-      Add('SECTIONS');
-      Add('{');
-      Add('     .text :');
-      Add('    {');
-      Add('    _text_start = .;');
-      Add('    KEEP(*(.init .init.*))');
-      if (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D5')
-         or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D7')
-         or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK22F51212')
-         or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK64F12') then
-        begin
-          Add('    . = 0x400;');
-          Add('    KEEP(*(.flash_config *.flash_config.*))');
-        end;
-      Add('    *(.text .text.*)');
-      Add('    *(.strings)');
-      Add('    *(.rodata .rodata.*)');
-      Add('    *(.comment)');
-      Add('    . = ALIGN(4);');
-      Add('    _etext = .;');
-      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
-        begin
-          Add('    } >flash');
-          Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >flash ');
-        end
-      else
-        begin
-          Add('    } >ram');
-          Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >ram ');
-        end;
-
-      Add('    .data :');
-      Add('    {');
-      Add('    _data = .;');
-      Add('    *(.data .data.*)');
-      Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
-      Add('    _edata = .;');
-      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+        Add('    .data :');
+        Add('    {');
+        Add('    _data = .;');
+        Add('    *(.data .data.*)');
+        Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+        Add('    _edata = .;');
+      if flashsize<>0 then
         begin
           Add('    } >ram AT >flash');
         end
@@ -708,8 +284,8 @@ begin
       Add('    *(.bss .bss.*)');
       Add('    *(COMMON)');
       Add('    } >ram');
-      Add('. = ALIGN(4);');
-      Add('_bss_end = . ;');
+      Add('    . = ALIGN(4);');
+      Add('    _bss_end = . ;');
       Add('}');
       Add('_end = .;');
     end;
@@ -1804,8 +1380,8 @@ function TlinkerFreeRTOS.postprocessexecutable(const fn : string;isdll:boolean):
 
 initialization
 {$ifdef arm}
-  RegisterLinker(ld_freertos,TLinkerEmbedded);
-  RegisterTarget(system_arm_embedded_info);
+  RegisterLinker(ld_freertos,TlinkerFreeRTOS);
+  RegisterTarget(system_arm_freertos_info);
 {$endif arm}
 
 {$ifdef avr}
