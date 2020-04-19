@@ -28,7 +28,7 @@ begin
     P.Email := '';
     P.Description := 'BZip2 decompression unit.';
     P.NeedLibC:= true;
-    P.OSes := P.OSes - [embedded,nativent,msdos,win16,macos,palmos];
+    P.OSes := P.OSes - [embedded,nativent,msdos,win16,macos,palmos,zxspectrum];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

@@ -24,7 +24,7 @@ begin
     P.HomepageURL := 'http://www.destructor.de/';
     P.Description := 'Library for handling tar-files.';
 
-    P.OSes:=AllOSes-[embedded,win16,macos,palmos];
+    P.OSes:=AllOSes-[embedded,win16,macos,palmos,zxspectrum];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
