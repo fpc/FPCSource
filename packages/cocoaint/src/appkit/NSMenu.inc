@@ -16,9 +16,9 @@ type
     _title: NSString;
     _itemArray: id;
     _extra: id;
-    __mFlags: bitpacked record
+    _mFlags: bitpacked record
       case byte of
-        0: (_anonBitField___mFlags0: cuint);
+        0: (_anonBitField__mFlags0: cuint);
         1: (
           noAutoenable: 0..1;
           inMain: 0..1;

@@ -45,9 +45,9 @@ type
     _configPalette: id;
     _toolbarView: id;
     _syncPostEnabledCount: NSInteger;
-    __tbFlags: bitpacked record
+    _tbFlags: bitpacked record
       case byte of
-        0: (_anonBitField___tbFlags0: cuint);
+        0: (_anonBitField__tbFlags0: cuint);
         1: (
           allowsUserCustomization: 0..1;
           autosavesUsingIdentifier: 0..1;

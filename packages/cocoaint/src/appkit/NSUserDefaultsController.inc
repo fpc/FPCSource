@@ -18,9 +18,9 @@ type
     _defaults: NSUserDefaults;
     _valueBuffer: NSMutableDictionary;
     _initialValues: NSDictionary;
-    __userDefaultsControllerFlags: bitpacked record
+    _userDefaultsControllerFlags: bitpacked record
       case byte of
-        0: (_anonBitField___userDefaultsControllerFlags0: cuint);
+        0: (_anonBitField__userDefaultsControllerFlags0: cuint);
         1: (
           _sharedInstance: 0..1;
           _appliesImmediately: 0..1;

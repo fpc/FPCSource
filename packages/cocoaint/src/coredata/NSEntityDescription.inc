@@ -25,9 +25,9 @@ type
     _properties: NSMutableDictionary;
     _propertyMapping: id;
     _propertyRanges: NSRangePtr;
-    __entityDescriptionFlags: bitpacked record
+    _entityDescriptionFlags: bitpacked record
       case byte of
-        0: (_anonBitField___entityDescriptionFlags0: cuint);
+        0: (_anonBitField__entityDescriptionFlags0: cuint);
         1: (
           _isAbstract: 0..1;
           _shouldValidateOnSave: 0..1;

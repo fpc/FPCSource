@@ -25,9 +25,9 @@ type
     _keyEquivalentSize: NSSize;
     {$endif}
     _size: NSSize;
-    __micFlags: bitpacked record
+    _micFlags: bitpacked record
       case byte of
-        0: (_anonBitField___micFlags0: cuint);
+        0: (_anonBitField__micFlags0: cuint);
         1: (
           needsSizing: 0..1;
           reserved: 0..1;

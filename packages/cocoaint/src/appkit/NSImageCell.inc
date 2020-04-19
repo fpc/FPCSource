@@ -40,9 +40,9 @@ type
   NSImageCell = objcclass external (NSCell, NSCopyingProtocol, NSCodingProtocol)
   private
     _controlView: id;
-    __ICFlags: bitpacked record
+    _icFlags: bitpacked record
       case byte of
-        0: (_anonBitField___ICFlags0: cuint);
+        0: (_anonBitField__icFlags0: cuint);
         1: (
           _unused: 0..((1 shl 22)-1);
           _animates: 0..1;

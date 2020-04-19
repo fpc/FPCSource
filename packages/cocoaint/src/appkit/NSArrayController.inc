@@ -14,9 +14,9 @@ type
     _reserved4: pointer;
     _rearrangementExtensions: id;
     _temporaryWorkObjects: NSMutableArray;
-    __arrayControllerFlags: bitpacked record
+    _arrayControllerFlags: bitpacked record
       case byte of
-        0: (_anonBitField___arrayControllerFlags0: cuint);
+        0: (_anonBitField__arrayControllerFlags0: cuint);
         1: (
           _avoidsEmptySelection: 0..1;
           _preservesSelection: 0..1;

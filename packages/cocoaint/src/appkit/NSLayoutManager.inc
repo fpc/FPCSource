@@ -75,9 +75,9 @@ type
     _extraLineFragmentContainer: NSTextContainer;
     _glyphHoles: NSSortedArray;
     _layoutHoles: NSSortedArray;
-    __lmFlags: bitpacked record
+    _lmFlags: bitpacked record
       case byte of
-        0: (_anonBitField___lmFlags0: cuint);
+        0: (_anonBitField__lmFlags0: cuint);
         1: (
           containersAreFull: 0..1;
           glyphsMightDrawOutsideLines: 0..1;

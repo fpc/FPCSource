@@ -82,9 +82,9 @@ var
 type
   NSBitmapImageRep = objcclass external (NSImageRep, NSSecureCodingProtocol)
   private
-    __bitmapRepFlags: bitpacked record
+    _moreRepFlags: bitpacked record
       case byte of
-        0: (_anonBitField___bitmapRepFlags0: cuint);
+        0: (_anonBitField__moreRepFlags0: cuint);
         1: (
           bitsPerPixel: 0..((1 shl 8)-1);
           isPlanar: 0..1;

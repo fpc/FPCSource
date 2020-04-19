@@ -11,9 +11,9 @@ type
 type
   NSImageView = objcclass external (NSControl, NSAccessibilityImageProtocol)
   private
-    __IVFlags: bitpacked record
+    _ivFlags: bitpacked record
       case byte of
-        0: (_anonBitField___IVFlags0: cuint);
+        0: (_anonBitField__ivFlags0: cuint);
         1: (
           _hasImageView: 0..1;
           _unused: 0..((1 shl 25)-1);

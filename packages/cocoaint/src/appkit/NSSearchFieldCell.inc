@@ -19,9 +19,9 @@ const
 type
   NSSearchFieldCell = objcclass external (NSTextFieldCell)
   private
-    __sfFlags: bitpacked record
+    _sfFlags: bitpacked record
       case byte of
-        0: (_anonBitField___sfFlags0: cuint);
+        0: (_anonBitField__sfFlags0: cuint);
         1: (
           sendsWholeSearchString: 0..1;
           maximumRecents: 0..((1 shl 8)-1);

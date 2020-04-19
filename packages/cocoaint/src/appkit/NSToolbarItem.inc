@@ -31,9 +31,9 @@ type
     _toolTip: NSString;
     _menuItemRep: NSMenuItem;
     _tag: NSInteger;
-    __tbiFlags: bitpacked record
+    _tbiFlags: bitpacked record
       case byte of
-        0: (_anonBitField___tbiFlags0: cuint);
+        0: (_anonBitField__tbiFlags0: cuint);
         1: (
           viewRespondsToIsEnabled: 0..1;
           viewRespondsToSetEnabled: 0..1;

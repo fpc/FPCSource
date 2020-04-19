@@ -55,9 +55,9 @@ type
     _startAnimation: NSAnimation;
     _stopAnimation: NSAnimation;
     _nextProgressMark: cint;
-    __aFlags: bitpacked record
+    _aFlags: bitpacked record
       case byte of
-        0: (_anonBitField___aFlags0: cuint);
+        0: (_anonBitField__aFlags0: cuint);
         1: (
           delegateAnimationShouldStart: 0..1;
           delegateAnimationDidStop: 0..1;
@@ -69,9 +69,9 @@ type
           reserved: 0..((1 shl 25)-1);
         );
       end;
-    __aSettings: bitpacked record
+    _aSettings: bitpacked record
       case byte of
-        0: (_anonBitField___aSettings0: cuint);
+        0: (_anonBitField__aSettings0: cuint);
         1: (
           animationCurve: 0..((1 shl 8)-1);
           animationBlockingMode: 0..((1 shl 2)-1);
@@ -151,9 +151,9 @@ type
     _reserved4a: NSUInteger;
     _reserved4b: NSUInteger;
     _reserved4c: NSUInteger;
-    __vaFlags: bitpacked record
+    _vaFlags: bitpacked record
       case byte of
-        0: (_anonBitField___vaFlags0: cuint);
+        0: (_anonBitField__vaFlags0: cuint);
         1: (
           reserved: 0..((1 shl 32)-1);
         );

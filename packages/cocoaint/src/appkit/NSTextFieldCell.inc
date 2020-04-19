@@ -23,9 +23,9 @@ type
   private
     _backgroundColor: NSColor;
     _textColor: NSColor;
-    __tfFlags: bitpacked record
+    _tfFlags: bitpacked record
       case byte of
-        0: (_anonBitField___tfFlags0: cuint);
+        0: (_anonBitField__tfFlags0: cuint);
         1: (
           drawsBackground: 0..1;
           bezelStyle: 0..((1 shl 3)-1);

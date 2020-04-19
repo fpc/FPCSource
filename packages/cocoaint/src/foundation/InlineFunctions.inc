@@ -23,6 +23,9 @@ function NSPointFromCGPoint (aPoint: CGPoint): NSPoint;
 function NSPointToCGPoint (aPoint: NSPoint): CGPoint;
 function NSSizeFromCGSize(aSize: CGSize): NSSize;
 function NSSizeToCGSize(aSize: NSSize): CGSize;
+function NSLocalizedString(key : NSString): NSString;
+function NSLocalizedStringFromTable(key : NSString; table : NSString) : NSString;
+function NSLocalizedStringFromTableInBundle(key : NSString; table : NSString; bundle : NSBundle) : NSString;
 {$endif}
 
 {$ifdef IMPLEMENTATION}
@@ -165,4 +168,20 @@ begin
 	else
 		result := NSString(CFSTR(''));
 end;
+
+function NSLocalizedString(key : NSString): NSString;
+begin
+  Result := NSBundle.mainBundle.localizedStringForKey_value_table(key, NSSTR(''), nil);
+end;
+
+function NSLocalizedStringFromTable(key : NSString; table : NSString) : NSString;
+begin
+  Result := NSBundle.mainBundle.localizedStringForKey_value_table(key, NSSTR(''), table)
+end;
+
+function NSLocalizedStringFromTableInBundle(key : NSString; table : NSString; bundle : NSBundle) : NSString;
+begin
+  Result := bundle.localizedStringForKey_value_table(key, NSSTR(''), table)
+end;
+
 {$endif}

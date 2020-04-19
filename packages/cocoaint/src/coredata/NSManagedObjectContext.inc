@@ -40,9 +40,9 @@ type
     _reserved1: pointer;
     _spinLock: cint32;
     _parentObjectStore: id;
-    _managedObjectContextFlags: bitpacked record
+    _flags: bitpacked record
       case byte of
-        0: (_anonBitField__managedObjectContextFlags0: cuint);
+        0: (_anonBitField__flags0: cuint);
         1: (
           _registeredForCallback: 0..1;
           _propagatesDeletesAtEndOfEvent: 0..1;

@@ -2,6 +2,11 @@
 
 
 {$ifdef TYPES}
+
+const
+  NSVariableStatusItemLength = -1;
+  NSSquareStatusItemLength = -2;
+
 type
   NSStatusBarPtr = ^NSStatusBar;
 {$endif}

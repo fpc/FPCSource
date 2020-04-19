@@ -17,9 +17,9 @@ type
     _arrangedObjects: id;
     _rootNode: id;
     _selectionIndexPaths: id;
-    __treeControllerFlags: bitpacked record
+    _treeControllerFlags: bitpacked record
       case byte of
-        0: (_anonBitField___treeControllerFlags0: cuint);
+        0: (_anonBitField__treeControllerFlags0: cuint);
         1: (
           _avoidsEmptySelection: 0..1;
           _preservesSelection: 0..1;

@@ -17,9 +17,9 @@ type
     _options: NSDictionary;
     _oidFactories: idPtr;
     _defaultFaultHandler: id;
-    _objectStoreFlags: bitpacked record
+    _flags: bitpacked record
       case byte of
-        0: (_anonBitField__objectStoreFlags0: cuint);
+        0: (_anonBitField__flags0: cuint);
         1: (
           isReadOnly: 0..1;
           cleanOnRemove: 0..1;

@@ -25,8 +25,8 @@ type
           reserved: 0..((1 shl 32)-1);
         );
       end;
+    _reserved0: id;
     {$ifndef __OBJC2__}
-    _reserved0: NSInteger;
     _reserved1: NSInteger;
     {$endif}
   public

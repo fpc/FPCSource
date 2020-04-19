@@ -15,9 +15,9 @@ type
     _images: NSArray;
     _sounds: NSArray;
     _bundle: NSBundle;
-    _NSNibFlags: bitpacked record
+    _flags: bitpacked record
       case byte of
-        0: (_anonBitField__NSNibFlags0: cuint);
+        0: (_anonBitField__flags0: cuint);
         1: (
           _isKeyed: 0..1;
           _inheritsDecodeTimeBundle: 0..1;

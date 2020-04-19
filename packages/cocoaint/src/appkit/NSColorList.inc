@@ -17,9 +17,9 @@ type
     _name: NSString;
     _printerType: NSString;
     _fileName: NSString;
-    _colorListFlags: bitpacked record
+    _flags: bitpacked record
       case byte of
-        0: (_anonBitField__colorListFlags0: cuint);
+        0: (_anonBitField__flags0: cuint);
         1: (
           colorsLoaded: 0..1;
           editable: 0..1;

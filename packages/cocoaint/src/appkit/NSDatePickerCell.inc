@@ -46,9 +46,9 @@ type
     _timeInterval: NSTimeInterval;
     _minDate: NSDate;
     _maxDate: NSDate;
-    __dateCellFlags: bitpacked record
+    _dcFlags: bitpacked record
       case byte of
-        0: (_anonBitField___dateCellFlags0: cuint);
+        0: (_anonBitField__dcFlags0: cuint);
         1: (
           elements: 0..((1 shl 16)-1);
           controlStyle: 0..((1 shl 3)-1);

@@ -151,9 +151,9 @@ type
     _previousKeyWindow: id;
     _unusedApp: cshort;
     _running: cshort;
-    __appFlags: bitpacked record
+    _appFlags: bitpacked record
       case byte of
-        0: (_anonBitField___appFlags0: cuint);
+        0: (_anonBitField__appFlags0: cuint);
         1: (
           _hidden: 0..1;
           _appleEventActivationInProgress: 0..1;

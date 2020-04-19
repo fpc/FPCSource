@@ -73,9 +73,9 @@ type
     _curValue: CGFloat;
     _percent: CGFloat;
     _knobSize: CGFloat;
-    __sFlags2: bitpacked record
+    _sFlags2: bitpacked record
       case byte of
-        0: (_anonBitField___sFlags20: cuint);
+        0: (_anonBitField__sFlags20: cuint);
         1: (
           hitPart: 0..((1 shl 4)-1);
           controlSize: 0..((1 shl 2)-1);
@@ -94,9 +94,9 @@ type
       end;
     _reserved: id;
     _reserved2: SEL;
-    _sFlags: bitpacked record
+    sFlags: bitpacked record
       case byte of
-        0: (_anonBitField__sFlags0: cuint);
+        0: (_anonBitField_sFlags0: cuint);
         1: (
           isHoriz: 0..1;
           arrowsLoc: 0..((1 shl 2)-1);

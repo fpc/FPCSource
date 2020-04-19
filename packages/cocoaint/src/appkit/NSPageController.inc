@@ -31,9 +31,9 @@ type
     _selectedIndex: NSInteger;
     _arrangedObjects: NSMutableArray;
     _snapshots: NSMutableArray;
-    __pcDelegateFlags: bitpacked record
+    _pcDelegateFlags: bitpacked record
       case byte of
-        0: (_anonBitField___pcDelegateFlags0: cuint);
+        0: (_anonBitField__pcDelegateFlags0: cuint);
         1: (
           delegateRespondsToIdentifierForRepresentedObject: 0..1;
           delegateRespondsToViewControllerForIdentifier: 0..1;
@@ -46,9 +46,9 @@ type
           reserved: 0..((1 shl 24)-1);
         );
       end;
-    __pcFlags: bitpacked record
+    _pcFlags: bitpacked record
       case byte of
-        0: (_anonBitField___pcFlags0: cuint);
+        0: (_anonBitField__pcFlags0: cuint);
         1: (
           templateCacheIsInvalid: 0..1;
           private1: 0..1;

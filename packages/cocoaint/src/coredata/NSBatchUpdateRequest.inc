@@ -13,9 +13,9 @@ type
   private
     _entity: id;
     _predicate: NSPredicate;
-    _requestFlags: bitpacked record
+    _flags: bitpacked record
       case byte of
-        0: (_anonBitField__requestFlags0: cuint);
+        0: (_anonBitField__flags0: cuint);
         1: (
           includesSubentities: 0..1;
           resultType: 0..((1 shl 2)-1);
