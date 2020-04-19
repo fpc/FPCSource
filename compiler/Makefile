@@ -388,6 +388,9 @@ endif
 ifdef XTENSA
 PPC_TARGET=xtensa
 endif
+ifdef Z80
+PPC_TARGET=z80
+endif
 ifndef PPC_TARGET
 PPC_TARGET=$(CPU_TARGET)
 endif
@@ -497,6 +500,9 @@ CPUSUF=rv64
 endif
 ifeq ($(CPC_TARGET),xtensa)
 CPUSUF=xtensa
+endif
+ifeq ($(CPC_TARGET),z80)
+CPUSUF=z80
 endif
 NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg
@@ -611,6 +617,9 @@ ifeq ($(OS_TARGET),macos)
 NoNativeBinaries=1
 endif
 ifeq ($(OS_TARGET),freertos)
+NoNativeBinaries=1
+endif
+ifeq ($(OS_TARGET),zxspectrum)
 NoNativeBinaries=1
 endif
 ifeq ($(NoNativeBinaries),1)
