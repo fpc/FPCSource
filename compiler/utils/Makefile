@@ -202,12 +202,6 @@ $(error When compiling for xtensa-embedded, a sub-architecture (e.g. SUBARCH=lx1
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),xtensa-embedded)
-ifeq ($(SUBARCH),)
-$(error When compiling for xtensa-embedded, a sub-architecture (e.g. SUBARCH=lx106 or SUBARCH=lx6) must be defined)
-endif
-override FPCOPT+=-Cp$(SUBARCH)
-endif
 ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
 TARGETSUFFIX=$(OS_TARGET)
 SOURCESUFFIX=$(OS_SOURCE)
