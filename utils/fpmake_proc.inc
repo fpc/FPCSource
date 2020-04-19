@@ -38,3 +38,5 @@
 
 {$include pas2js/fpmake.pp}
 
+{$include ihx2tzx/fpmake.pp}
+

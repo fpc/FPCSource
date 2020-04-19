@@ -18,3 +18,4 @@
   add_tply(ADirectory+IncludeTrailingPathDelimiter('tply'));
   add_unicode(ADirectory+IncludeTrailingPathDelimiter('unicode'));
   add_pas2js(ADirectory+IncludeTrailingPathDelimiter('pas2js'));
+  add_ihx2tzx(ADirectory+IncludeTrailingPathDelimiter('ihx2tzx'));
