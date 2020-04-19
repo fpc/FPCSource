@@ -46,6 +46,7 @@ unit cgcpu;
 
         function getaddressregister(list:TAsmList):TRegister;override;
 
+        function GetOffsetReg(const r: TRegister;ofs : shortint): TRegister;override;
         function GetOffsetReg64(const r,rhi: TRegister;ofs : shortint): TRegister;override;
 
         procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const paraloc : TCGPara);override;
@@ -164,6 +165,16 @@ unit cgcpu;
     function tcgz80.getaddressregister(list: TAsmList): TRegister;
       begin
        Result:=getintregister(list,OS_ADDR);
+      end;
+
+
+    function tcgz80.GetOffsetReg(const r: TRegister; ofs: shortint): TRegister;
+      var
+        i: Integer;
+      begin
+        result:=r;
+        for i:=1 to ofs do
+          result:=GetNextReg(result);
       end;
 
 
@@ -735,6 +746,8 @@ unit cgcpu;
                        list.concat(taicpu.op_reg(A_RLC,dst));
                        list.concat(taicpu.op_reg(A_RRC,dst));
                      end;
+                   else
+                     ;
                  end;
                cg.a_label(list,l1);
                case op of
@@ -1918,7 +1931,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgz80.g_overflowCheck(list : TAsmList;const l : tlocation;def : tdef);
+    procedure tcgz80.g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef);
       var
         hl : tasmlabel;
         ai : taicpu;
