@@ -15315,6 +15315,7 @@ tests/test/units/math/tdivmod.pp svneol=native#text/plain
 tests/test/units/math/tmask.inc svneol=native#text/plain
 tests/test/units/math/tmask.pp svneol=native#text/plain
 tests/test/units/math/tmask2.pp svneol=native#text/plain
+tests/test/units/math/tminmaxconst.pp svneol=native#text/pascal
 tests/test/units/math/tnaninf.pp svneol=native#text/plain
 tests/test/units/math/tpower.pp svneol=native#text/pascal
 tests/test/units/math/troundm.pp svneol=native#text/plain

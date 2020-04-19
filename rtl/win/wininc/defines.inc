@@ -5911,7 +5911,7 @@ const
   COLOR_MENUHILIGHT             = 29;
   COLOR_MENUBAR                 = 30;
 
-  SYSRGN                  	= 4;
+  SYSRGN                   = 4;
 
   UIS_SET        = 1;
   UIS_CLEAR      = 2;
@@ -5948,17 +5948,23 @@ const
   IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER      = 12;
   IMAGE_SUBSYSTEM_EFI_ROM                 = 13;
   IMAGE_SUBSYSTEM_XBOX                    = 14;
-  IMAGE_SUBSYSTEM_RESERVED8		  =  IMAGE_SUBSYSTEM_NATIVE_WINDOWS; // older Delphi's? See JCLPEImage
+  IMAGE_SUBSYSTEM_RESERVED8               = IMAGE_SUBSYSTEM_NATIVE_WINDOWS; // older Delphi's? See JCLPEImage
 // DllCharacteristics Entries
 
 //      IMAGE_LIBRARY_PROCESS_INIT           0x0001     // Reserved.
 //      IMAGE_LIBRARY_PROCESS_TERM           0x0002     // Reserved.
 //      IMAGE_LIBRARY_THREAD_INIT            0x0004     // Reserved.
 //      IMAGE_LIBRARY_THREAD_TERM            0x0008     // Reserved.
-  IMAGE_DLLCHARACTERISTICS_NO_ISOLATION     = $0200;    // Image understands isolation and doesn't want it
-  IMAGE_DLLCHARACTERISTICS_NO_SEH  	    = $0400; // Image does not use SEH.  No SE handler may reside in this image
-  IMAGE_DLLCHARACTERISTICS_NO_BIND 	    = $0800; // Do not bind this image.
-  IMAGE_DLLCHARACTERISTICS_WDM_DRIVER	    = $2000; // Driver uses WDM model
+  IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA  = $0020; // Image can handle a high entropy 64-bit virtual address space.
+  IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE     = $0040; // DLL can move.
+  IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY  = $0080; // Code Integrity Image
+  IMAGE_DLLCHARACTERISTICS_NX_COMPAT        = $0100; // Image is NX compatible
+  IMAGE_DLLCHARACTERISTICS_NO_ISOLATION     = $0200; // Image understands isolation and doesn't want it
+  IMAGE_DLLCHARACTERISTICS_NO_SEH           = $0400; // Image does not use SEH.  No SE handler may reside in this image
+  IMAGE_DLLCHARACTERISTICS_NO_BIND          = $0800; // Do not bind this image.
+  IMAGE_DLLCHARACTERISTICS_APPCONTAINER     = $1000; // Image should execute in an AppContainer
+  IMAGE_DLLCHARACTERISTICS_WDM_DRIVER       = $2000; // Driver uses WDM model
+  IMAGE_DLLCHARACTERISTICS_GUARD_CF         = $4000; // Image supports Control Flow Guard.
   IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE  = $8000;
 
 
