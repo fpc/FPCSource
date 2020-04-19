@@ -47,7 +47,7 @@ implementation
 {          constructor Create; override;}
           procedure SetDefaultInfo; override;
           function  MakeExecutable:boolean; override;
-{          function postprocessexecutable(const fn : string;isdll:boolean):boolean;}
+          function postprocessexecutable(const fn : string;isdll:boolean):boolean;
        end;
 
 
@@ -284,11 +284,11 @@ function TLinkerZXSpectrum_SdccSdld.MakeExecutable: boolean;
     if success and not(cs_link_nolink in current_settings.globalswitches) then
      DeleteFile(outputexedir+Info.ResName);
 
-(*  { Post process }
+  { Post process }
     if success and not(cs_link_nolink in current_settings.globalswitches) then
       success:=PostProcessExecutable(FixedExeFileName,false);
 
-    if success and (target_info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded]) then
+  (*  if success and (target_info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded]) then
       begin
         success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
           FixedExeFileName+' '+
@@ -300,6 +300,11 @@ function TLinkerZXSpectrum_SdccSdld.MakeExecutable: boolean;
       end;*)
 
     MakeExecutable:=success;   { otherwise a recursive call to link method }
+  end;
+
+function TLinkerZXSpectrum_SdccSdld.postprocessexecutable(const fn: string; isdll: boolean): boolean;
+  begin
+    result:=DoExec(FindUtil(utilsprefix+'ihx2tzx'),' '+fn,true,false);
   end;
 
 
