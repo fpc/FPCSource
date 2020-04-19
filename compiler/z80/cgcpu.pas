@@ -966,6 +966,8 @@ unit cgcpu;
                            list.concat(taicpu.op_reg(A_RLC,reg));
                            list.concat(taicpu.op_reg(A_RRC,reg));
                          end;
+                       else
+                         ;
                      end;
                    if a>1 then
                      cg.a_label(list,l1);
