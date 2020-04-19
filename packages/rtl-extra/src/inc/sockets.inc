@@ -323,8 +323,13 @@ begin
        else
          Dummy:=IP;
       Val (Dummy,k,J);
-      array4int(temp.s_addr)[i]:=k;
-      If J<>0 then Exit;
+      If J<>0 then
+        exit;
+      array4int(temp.s_addr)[i]:=byte(k);
+      { check if after wrapping to a byte, our number is
+        still the same. if not, it can't be part of an IP. }
+      If array4int(temp.s_addr)[i]<>k then
+        exit;
    end;
    strtohostaddr.s_addr:=ntohl(Temp.s_addr);
 end;

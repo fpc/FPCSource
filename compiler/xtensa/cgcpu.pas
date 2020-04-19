@@ -494,8 +494,25 @@ implementation
           a_op_const_reg_reg(list,OP_SHL,size,l1,src,dst)
         else if (op=OP_ADD) and (a>=-128) and (a<=127) then
           list.concat(taicpu.op_reg_reg_const(A_ADDI,dst,src,a))
+        else if (op=OP_ADD) and (a>=-128-32768) and (a<=127+32512) then
+          begin
+{$ifdef EXTDEBUG}
+            list.concat(tai_comment.Create(strpnew('Value: '+tostr(a))));
+{$endif EXTDEBUG}
+            list.concat(taicpu.op_reg_reg_const(A_ADDMI,dst,src,Smallint(a and $ff00)));
+            list.concat(taicpu.op_reg_reg_const(A_ADDI,dst,dst,Shortint(a and $ff)));
+          end
         else if (op=OP_SUB) and (a>=-127) and (a<=128) then
           list.concat(taicpu.op_reg_reg_const(A_ADDI,dst,src,-a))
+        else if (op=OP_SUB) and (a>=-127-32512) and (a<=128+32768) then
+          begin
+{$ifdef EXTDEBUG}
+            list.concat(tai_comment.Create(strpnew('Value: '+tostr(a))));
+{$endif EXTDEBUG}
+            a:=-a;
+            list.concat(taicpu.op_reg_reg_const(A_ADDMI,dst,src,Smallint(a and $ff00)));
+            list.concat(taicpu.op_reg_reg_const(A_ADDI,dst,dst,Shortint(a and $ff)));
+          end
         else if (op=OP_SHL) and (a>=1) and (a<=31) then
           list.concat(taicpu.op_reg_reg_const(A_SLLI,dst,src,a))
         else if (op=OP_SHR) and (a>=0) and (a<=15) then
@@ -573,8 +590,10 @@ implementation
     procedure tcgcpu.a_jmp_name(list : TAsmList; const s : string);
       var
         ai : taicpu;
+        tmpreg: TRegister;
       begin
-        ai:=TAiCpu.op_sym(A_J,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
+        { for now, we use A15 here, however, this is not save as it might contain an argument }
+        ai:=TAiCpu.op_sym_reg(A_J_L,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),NR_A15);
         ai.is_jmp:=true;
         list.Concat(ai);
       end;
@@ -600,6 +619,7 @@ implementation
          regoffset : LongInt;
          stack_parameters : Boolean;
          registerarea : PtrInt;
+         l : TAsmLabel;
       begin
         LocalSize:=align(LocalSize,4);
         stack_parameters:=current_procinfo.procdef.stack_tainting_parameter(calleeside);
@@ -686,7 +706,22 @@ implementation
                       localsize:=align(localsize,current_settings.alignment.localalignmax);
                     end;
 
-                  list.concat(taicpu.op_reg_const(A_ENTRY,NR_STACK_POINTER_REG,localsize));
+                  if localsize>32760 then
+                    begin
+                      list.concat(taicpu.op_reg_const(A_ENTRY,NR_STACK_POINTER_REG,32));
+
+                      reference_reset(ref,4,[]);
+                      current_asmdata.getjumplabel(l);
+                      cg.a_label(current_procinfo.aktlocaldata,l);
+                      current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(localsize-32)));
+                      ref.symbol:=l;
+                      list.concat(taicpu.op_reg_ref(A_L32R,NR_A8,ref));
+
+                      list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_A8,NR_STACK_POINTER_REG,NR_A8));
+                      list.concat(taicpu.op_reg_reg(A_MOVSP,NR_STACK_POINTER_REG,NR_A8));
+                    end
+                  else
+                    list.concat(taicpu.op_reg_const(A_ENTRY,NR_STACK_POINTER_REG,localsize));
                 end;
               else
                 Internalerror(2020031401);
@@ -811,7 +846,12 @@ implementation
       var
         ai : taicpu;
       begin
-        ai:=taicpu.op_sym(A_J,l);
+        if l.bind in [AB_GLOBAL] then
+          { for now, we use A15 here, however, this is not save as it might contain an argument, I have not figured out a
+            solution yet }
+          ai:=taicpu.op_sym_reg(A_J_L,l,NR_A15)
+        else
+          ai:=taicpu.op_sym(A_J,l);
         ai.is_jmp:=true;
         list.concat(ai);
       end;

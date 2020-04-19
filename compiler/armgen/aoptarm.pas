@@ -200,10 +200,12 @@ Implementation
         { the destination register of the mov might not be used beween p and movp }
         not(RegUsedBetween(taicpu(movp).oper[0]^.reg,p,movp)) and
 {$ifdef ARM}
+        { PC should be changed only by moves }
+        (taicpu(movp).oper[0]^.reg<>NR_PC) and
         { cb[n]z are thumb instructions which require specific registers, with no wide forms }
         (taicpu(p).opcode<>A_CBZ) and
         (taicpu(p).opcode<>A_CBNZ) and
-        {There is a special requirement for MUL and MLA, oper[0] and oper[1] are not allowed to be the same}
+        { There is a special requirement for MUL and MLA, oper[0] and oper[1] are not allowed to be the same }
         not (
           (taicpu(p).opcode in [A_MLA, A_MUL]) and
           (taicpu(p).oper[1]^.reg = taicpu(movp).oper[0]^.reg) and
