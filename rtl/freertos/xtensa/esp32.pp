@@ -22,11 +22,11 @@ unit esp32;
 {$linklib spi_flash,static}
 {$linklib app_update,static}
 {$linklib xtensa,static}
-{$linklib esp_timer,static}
 {$linklib bootloader_support,static}
 {$linklib pthread,static}
-{$linklib soc_esp32,static}
 {$linklib hal,static}
+{$linklib libm,static}
+{$linklib libg,static}
 {$linklib c,static}
 {$linklib esp_event,static}
 
