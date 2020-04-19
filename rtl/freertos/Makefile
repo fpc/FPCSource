@@ -197,6 +197,12 @@ $(error When compiling for mipsel-embedded, a sub-architecture (e.g. SUBARCH=pic
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
+ifeq ($(FULL_TARGET),xtensa-embedded)
+ifeq ($(SUBARCH),)
+$(error When compiling for xtensa-embedded, a sub-architecture (e.g. SUBARCH=lx106 or SUBARCH=lx6) must be defined)
+endif
+override FPCOPT+=-Cp$(SUBARCH)
+endif
 ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
 TARGETSUFFIX=$(OS_TARGET)
 SOURCESUFFIX=$(OS_SOURCE)
@@ -792,10 +798,10 @@ ifeq ($(FULL_TARGET),xtensa-freertos)
 override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 extpas strings heapmgr consoleio sortbase $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst character
 endif
 ifeq ($(FULL_TARGET),z80-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 extpas strings heapmgr consoleio sortbase $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 extpas strings heapmgr consoleio sortbase $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst character
 endif
 ifeq ($(FULL_TARGET),z80-zxspectrum)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 extpas strings heapmgr consoleio sortbase $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 extpas strings heapmgr consoleio sortbase $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst character
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_IMPLICITUNITS+=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u unicodedata
@@ -1080,6 +1086,12 @@ ifeq ($(FULL_TARGET),xtensa-embedded)
 override TARGET_IMPLICITUNITS+=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u unicodedata
 endif
 ifeq ($(FULL_TARGET),xtensa-freertos)
+override TARGET_IMPLICITUNITS+=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u unicodedata
+endif
+ifeq ($(FULL_TARGET),z80-embedded)
+override TARGET_IMPLICITUNITS+=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u unicodedata
+endif
+ifeq ($(FULL_TARGET),z80-zxspectrum)
 override TARGET_IMPLICITUNITS+=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u unicodedata
 endif
 ifeq ($(FULL_TARGET),i386-linux)
