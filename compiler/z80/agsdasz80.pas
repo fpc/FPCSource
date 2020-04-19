@@ -828,6 +828,11 @@ unit agsdasz80;
               begin
                 WriteInstruction(taicpu(hp));
               end;
+            ait_marker :
+              if tai_marker(hp).kind=mark_NoLineInfoStart then
+                inc(InlineLevel)
+              else if tai_marker(hp).kind=mark_NoLineInfoEnd then
+                dec(InlineLevel);
             ait_stab,
             ait_force_line,
             ait_function_name : ;
