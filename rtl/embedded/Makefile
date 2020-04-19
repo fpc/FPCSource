@@ -1872,15 +1872,12 @@ ifneq ($(CROSSGCC),)
 GCCLIBDIR:=$(shell dirname `$(CROSSGCC) -print-libgcc-file-name`)
 endif
 endif
-ifndef OTHERLIBDIR
-OTHERLIBDIR:=$(shell grep -v "^\#" /etc/ld.so.conf | awk '{ ORS=" "; print $1 }')
-endif
 endif
 ifdef inUnix
 ifeq ($(OS_SOURCE),netbsd)
-OTHERLIBDIR+=/usr/pkg/lib
+OTHERLIBDIR:=/usr/pkg/lib
 endif
-export GCCLIBDIR OTHERLIB
+export GCCLIBDIR OTHERLIBDIR
 endif
 BATCHEXT=.bat
 LOADEREXT=.as
