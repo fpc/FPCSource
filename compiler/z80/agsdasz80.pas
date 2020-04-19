@@ -342,6 +342,8 @@ unit agsdasz80;
                       writer.AsmWrite('<');
                     addr_hi8:
                       writer.AsmWrite('>');
+                    else
+                      ;
                   end;
                   if o.ref^.offset<>0 then
                     writer.AsmWrite('('+o.ref^.symbol.name+'+'+tostr(o.ref^.offset)+')')
