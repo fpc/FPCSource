@@ -100,7 +100,7 @@ endif
 endif
 export ECHO
 endif
-override OS_TARGET_DEFAULT=embedded
+override OS_TARGET_DEFAULT=freertos
 override DEFAULT_FPCDIR=../..
 ifndef FPC
 ifdef PP
