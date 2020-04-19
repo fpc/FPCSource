@@ -4182,6 +4182,7 @@ s*2Tlinux_Linux
 V*2Tembedded_Embedded
 # z80 targets
 Z*2Tembedded_Embedded
+Z*2Tzxspectrum_ZX Spectrum
 # end of targets section
 **1u<x>_Undefines the symbol <x>
 **1U_Unit options:
