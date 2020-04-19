@@ -229,7 +229,7 @@ function TLinkerZXSpectrum_SdccSdld.MakeExecutable: boolean;
     mapstr: TCmdStr;
     success : boolean;
     StaticStr,
-    GCSectionsStr,
+    //GCSectionsStr,
     DynLinkStr,
     StripStr,
     FixedExeFileName: string;
@@ -262,7 +262,7 @@ function TLinkerZXSpectrum_SdccSdld.MakeExecutable: boolean;
       Replace(cmdstr,'$STATIC',StaticStr);
       Replace(cmdstr,'$STRIP',StripStr);
       Replace(cmdstr,'$MAP',mapstr);
-      Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
+      //Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
       Replace(cmdstr,'$DYNLINK',DynLinkStr);
      end
     else
@@ -272,7 +272,7 @@ function TLinkerZXSpectrum_SdccSdld.MakeExecutable: boolean;
       Replace(cmdstr,'$STATIC',StaticStr);
       Replace(cmdstr,'$STRIP',StripStr);
       Replace(cmdstr,'$MAP',mapstr);
-      Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
+      //Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
       Replace(cmdstr,'$DYNLINK',DynLinkStr);
      end;
     success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
