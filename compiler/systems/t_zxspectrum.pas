@@ -41,6 +41,7 @@ implementation
 
        TLinkerZXSpectrum_SdccSdld=class(texternallinker)
        private
+          FOrigin: Word;
           Function  WriteResponseFile: Boolean;
        public
 {          constructor Create; override;}
@@ -215,9 +216,10 @@ procedure TLinkerZXSpectrum_SdccSdld.SetDefaultInfo;
     ExeName='sdcc-sdld';
 {$endif}
   begin
+    FOrigin:=32768;
     with Info do
      begin
-       ExeCmd[1]:=ExeName+' -n $OPT -i $MAP $EXE -f $RES'
+       ExeCmd[1]:=ExeName+' -n -b _CODE=$ORIGIN $OPT -i $MAP $EXE -f $RES'
        //-g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE -T $RES';
      end;
   end;
@@ -255,6 +257,7 @@ function TLinkerZXSpectrum_SdccSdld.MakeExecutable: boolean;
   { Call linker }
     SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
     Replace(cmdstr,'$OPT',Info.ExtraOptions);
+    Replace(cmdstr,'$ORIGIN',tostr(FOrigin));
     if not(cs_link_on_target in current_settings.globalswitches) then
      begin
       Replace(cmdstr,'$EXE',FixedExeFileName);
