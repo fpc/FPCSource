@@ -79,6 +79,9 @@ function TLinkerZXSpectrum_SdccSdld.WriteResponseFile: Boolean;
     { Open link.res file }
     LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
 
+    { Write the origin (i.e. the program load address) }
+    LinkRes.Add('-b _CODE='+tostr(FOrigin));
+
     { Write path to search libraries }
 (*    HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
     while assigned(HPath) do
@@ -214,7 +217,7 @@ procedure TLinkerZXSpectrum_SdccSdld.SetDefaultInfo;
     FOrigin:=32768;
     with Info do
      begin
-       ExeCmd[1]:=ExeName+' -n -b _CODE=$ORIGIN $OPT -i $MAP $EXE -f $RES'
+       ExeCmd[1]:=ExeName+' -n $OPT -i $MAP $EXE -f $RES'
      end;
   end;
 
@@ -251,7 +254,6 @@ function TLinkerZXSpectrum_SdccSdld.MakeExecutable: boolean;
   { Call linker }
     SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
     Replace(cmdstr,'$OPT',Info.ExtraOptions);
-    Replace(cmdstr,'$ORIGIN',tostr(FOrigin));
     if not(cs_link_on_target in current_settings.globalswitches) then
      begin
       Replace(cmdstr,'$EXE',FixedExeFileName);
