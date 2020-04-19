@@ -494,8 +494,25 @@ implementation
           a_op_const_reg_reg(list,OP_SHL,size,l1,src,dst)
         else if (op=OP_ADD) and (a>=-128) and (a<=127) then
           list.concat(taicpu.op_reg_reg_const(A_ADDI,dst,src,a))
+        else if (op=OP_ADD) and (a>=-128-32768) and (a<=127+32512) then
+          begin
+{$ifdef EXTDEBUG}
+            list.concat(tai_comment.Create(strpnew('Value: '+tostr(a))));
+{$endif EXTDEBUG}
+            list.concat(taicpu.op_reg_reg_const(A_ADDMI,dst,src,Smallint(a and $ff00)));
+            list.concat(taicpu.op_reg_reg_const(A_ADDI,dst,dst,Shortint(a and $ff)));
+          end
         else if (op=OP_SUB) and (a>=-127) and (a<=128) then
           list.concat(taicpu.op_reg_reg_const(A_ADDI,dst,src,-a))
+        else if (op=OP_SUB) and (a>=-127-32512) and (a<=128+32768) then
+          begin
+{$ifdef EXTDEBUG}
+            list.concat(tai_comment.Create(strpnew('Value: '+tostr(a))));
+{$endif EXTDEBUG}
+            a:=-a;
+            list.concat(taicpu.op_reg_reg_const(A_ADDMI,dst,src,Smallint(a and $ff00)));
+            list.concat(taicpu.op_reg_reg_const(A_ADDI,dst,dst,Shortint(a and $ff)));
+          end
         else if (op=OP_SHL) and (a>=1) and (a<=31) then
           list.concat(taicpu.op_reg_reg_const(A_SLLI,dst,src,a))
         else if (op=OP_SHR) and (a>=0) and (a<=15) then
