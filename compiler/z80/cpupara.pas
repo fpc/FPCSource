@@ -204,19 +204,19 @@ unit cpupara;
         begin
           { In case of po_delphi_nested_cc, the parent frame pointer
             is always passed on the stack. }
-           if false and { no fastcall yet }
-              (nextintreg=RS_HL) and
-              (not(vo_is_parentfp in hp.varoptions) or
-               not(po_delphi_nested_cc in p.procoptions)) then
-             begin
-               paraloc^.loc:=LOC_REGISTER;
-               paraloc^.register:=newreg(R_INTREGISTER,nextintreg-1,R_SUBWHOLE);
-               paraloc:=hp.paraloc[side].add_location;
-               paraloc^.loc:=LOC_REGISTER;
-               paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
-               dec(nextintreg,2);
-             end
-           else
+           //if false and { no fastcall yet }
+           //   (nextintreg=RS_HL) and
+           //   (not(vo_is_parentfp in hp.varoptions) or
+           //    not(po_delphi_nested_cc in p.procoptions)) then
+           //  begin
+           //    paraloc^.loc:=LOC_REGISTER;
+           //    paraloc^.register:=newreg(R_INTREGISTER,nextintreg-1,R_SUBWHOLE);
+           //    paraloc:=hp.paraloc[side].add_location;
+           //    paraloc^.loc:=LOC_REGISTER;
+           //    paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
+           //    dec(nextintreg,2);
+           //  end
+           //else
              begin
                paraloc^.loc:=LOC_REFERENCE;
                paraloc^.reference.index:=NR_STACK_POINTER_REG;
