@@ -44,7 +44,6 @@ implementation
           FOrigin: Word;
           Function  WriteResponseFile: Boolean;
        public
-{          constructor Create; override;}
           procedure SetDefaultInfo; override;
           function  MakeExecutable:boolean; override;
           function postprocessexecutable(const fn : string;isdll:boolean):boolean;
@@ -210,17 +209,12 @@ function TLinkerZXSpectrum_SdccSdld.WriteResponseFile: Boolean;
 
 procedure TLinkerZXSpectrum_SdccSdld.SetDefaultInfo;
   const
-{$if defined(Z80)}
     ExeName='sdcc-sdldz80';
-{$else}
-    ExeName='sdcc-sdld';
-{$endif}
   begin
     FOrigin:=32768;
     with Info do
      begin
        ExeCmd[1]:=ExeName+' -n -b _CODE=$ORIGIN $OPT -i $MAP $EXE -f $RES'
-       //-g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE -T $RES';
      end;
   end;
 
@@ -287,17 +281,6 @@ function TLinkerZXSpectrum_SdccSdld.MakeExecutable: boolean;
   { Post process }
     if success and not(cs_link_nolink in current_settings.globalswitches) then
       success:=PostProcessExecutable(FixedExeFileName,false);
-
-  (*  if success and (target_info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded]) then
-      begin
-        success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
-          FixedExeFileName+' '+
-          maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.hex'))),true,false);
-        if success then
-          success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
-            FixedExeFileName+' '+
-            maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
-      end;*)
 
     MakeExecutable:=success;   { otherwise a recursive call to link method }
   end;
