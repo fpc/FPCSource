@@ -25,6 +25,11 @@ fpcdir=../..
 [shared]
 build=n
 
+[prerules]
+ifdef OPTNEW
+override FPCOPT+=$(OPTNEW)
+endif
+
 [rules]
 #
 # PPU Tools
