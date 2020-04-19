@@ -1732,7 +1732,7 @@ end;
 
 procedure TFPGMapObject.CopyData(Src, Dest: Pointer);
 begin
-  if Assigned(Pointer(Dest^)) then
+  if Assigned(Pointer(Dest^)) And FFreeObjects then
     TData(Dest^).Free;
   TData(Dest^) := TData(Src^);
 end;
