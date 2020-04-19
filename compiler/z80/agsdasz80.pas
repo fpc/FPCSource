@@ -828,6 +828,20 @@ unit agsdasz80;
               begin
                 WriteInstruction(taicpu(hp));
               end;
+            ait_directive :
+              begin
+                case tai_directive(hp).directive of
+                  asd_cpu :
+                    writer.AsmWriteLn('; CPU '+tai_directive(hp).name);
+                  else
+                    begin
+                      writer.AsmWrite(asminfo^.comment);
+                      writer.AsmWrite('WARNING: not yet implemented in assembler output: ait_directive.');
+                      Str(tai_directive(hp).directive,s);
+                      writer.AsmWriteLn(s);
+                    end;
+                end;
+              end;
             ait_marker :
               if tai_marker(hp).kind=mark_NoLineInfoStart then
                 inc(InlineLevel)
