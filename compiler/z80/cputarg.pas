@@ -38,6 +38,9 @@ implementation
     {$ifndef NOTARGETEMBEDDED}
       ,t_embed
     {$endif}
+    {$ifndef NOTARGETZXSPECTRUM}
+      ,t_zxspectrum
+    {$endif}
 
 {**************************************
              Assemblers

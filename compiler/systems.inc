@@ -195,7 +195,8 @@
              system_xtensa_embedded,    { 103 }
              system_xtensa_freertos,    { 104 }
              system_xtensa_linux,       { 105 }
-             system_z80_embedded        { 106 }
+             system_z80_embedded,       { 106 }
+             system_z80_zxspectrum      { 107 }
        );
 
      type
@@ -292,7 +293,8 @@
              ld_int_windows,
              ld_int_msdos,
              ld_int_win16,
-             ld_freertos
+             ld_freertos,
+             ld_zxspectrum
        );
 
        tar = (ar_none
