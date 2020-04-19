@@ -225,11 +225,11 @@ Implementation
       //TmpUsedRegs : TAllUsedRegs;
     begin
       result := false;
-      case p.typ of
-        ait_instruction:
-          begin
-          end;
-      end;
+      //case p.typ of
+      //  ait_instruction:
+      //    begin
+      //    end;
+      //end;
     end;
 
 
