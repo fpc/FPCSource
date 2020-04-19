@@ -530,36 +530,6 @@ unit agsdasz80;
         end;
 
 
-      function getopstr(const o:toper) : string;
-        var
-          hs : string;
-          first : boolean;
-          r : tsuperregister;
-        begin
-          //case o.typ of
-          //  top_reg:
-          //    getopstr:=gas_regname(o.reg);
-          //  top_const:
-          //    getopstr:=tostr(longint(o.val));
-          //  top_ref:
-          //    if o.ref^.refaddr=addr_full then
-          //      begin
-          //        hs:=ReplaceForbiddenAsmSymbolChars(o.ref^.symbol.name);
-          //        if o.ref^.offset>0 then
-          //         hs:=hs+'+'+tostr(o.ref^.offset)
-          //        else
-          //         if o.ref^.offset<0 then
-          //          hs:=hs+tostr(o.ref^.offset);
-          //        getopstr:=hs;
-          //      end
-          //    else
-          //      getopstr:=getreferencestring(o.ref^);
-          //  else
-          //    internalerror(2002070604);
-          //end;
-        end;
-
-
       procedure doalign(alignment: byte; use_op: boolean; fillop: byte; maxbytes: byte; out last_align: longint;lasthp:tai);
         var
           i: longint;
