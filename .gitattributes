@@ -12172,6 +12172,7 @@ rtl/z80/makefile.cpu svneol=native#text/plain
 rtl/z80/setjump.inc svneol=native#text/plain
 rtl/z80/setjumph.inc svneol=native#text/plain
 rtl/z80/z80.inc svneol=native#text/plain
+rtl/zxspectrum/Makefile.fpc svneol=native#text/plain
 rtl/zxspectrum/prt0.asm svneol=native#text/plain
 rtl/zxspectrum/system.pp svneol=native#text/plain
 tests/MPWMake -text
