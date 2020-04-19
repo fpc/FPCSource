@@ -71,6 +71,8 @@ end;
 
 Procedure fpc_do_exit;[Public,Alias:'FPC_DO_EXIT']; compilerproc;
 begin
+  repeat
+  until false;
 end;
 
 procedure PrintChar(Ch: Char);
