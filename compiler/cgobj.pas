@@ -2103,6 +2103,8 @@ implementation
                     a_load_const_reg(list,OS_8,0,dst);
                     exit;
                   end;
+                else
+                  ;
               end;
           end;
         OP_SHR:
@@ -2115,6 +2117,8 @@ implementation
                     a_load_const_reg(list,OS_8,0,GetNextReg(dst));
                     exit;
                   end;
+                else
+                  ;
               end;
           end;
 {$endif cpu8bitalu}
