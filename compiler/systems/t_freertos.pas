@@ -77,7 +77,7 @@ begin
      if target_info.system=system_xtensa_freertos then
        ExeCmd[1]:='ld -g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE -T $RES '+
          '-u call_user_start_cpu0 -u ld_include_panic_highint_hdl -u esp_app_desc -u vfs_include_syscalls_impl -u pthread_include_pthread_impl -u pthread_include_pthread_cond_impl -u pthread_include_pthread_local_storage_impl -u newlib_include_locks_impl -u newlib_include_heap_impl -u newlib_include_syscalls_impl -u newlib_include_pthread_impl -u app_main -u uxTopUsedPriority '+
-         '-L $IDF_PATH/components/esp_rom/esp32/ld -T esp32.rom.newlib-funcs-time.ld '+
+         '-L $IDF_PATH/components/esp_rom/esp32/ld '+
          '-T esp32.rom.ld -T esp32.rom.libgcc.ld -T esp32.rom.newlib-data.ld -T esp32.rom.syscalls.ld -T esp32.rom.newlib-funcs.ld '+
          '-L . -T esp32_out.ld -T esp32.project.ld '+
          '-L $IDF_PATH/components/esp32/ld -T esp32.peripherals.ld'
@@ -1430,6 +1430,42 @@ begin
           {$pop}
         end;
 
+      { generate an Kconfig if none is provided,
+        this is a dummy so far }
+      if not(Sysutils.FileExists('Kconfig')) then
+        begin
+          Assign(t,'Kconfig');
+          {$push}{$I-}
+          Rewrite(t);
+          if ioresult<>0 then
+            exit;
+
+          writeln(t);
+
+          Close(t);
+          if ioresult<>0 then
+            exit;
+          {$pop}
+        end;
+
+      { generate an Kconfig.projbuild if none is provided,
+        this is a dummy so far }
+      if not(Sysutils.FileExists('Kconfig.projbuild')) then
+        begin
+          Assign(t,'Kconfig.projbuild');
+          {$push}{$I-}
+          Rewrite(t);
+          if ioresult<>0 then
+            exit;
+
+          writeln(t);
+
+          Close(t);
+          if ioresult<>0 then
+            exit;
+          {$pop}
+        end;
+
       { generate an kconfigs.in if none is provided,
         this is a dummy so far }
       if not(Sysutils.FileExists('kconfigs.in')) then
@@ -1478,8 +1514,8 @@ begin
             exit;
 
           writeln(t,'{');
-          writeln(t,'    "COMPONENT_KCONFIGS": "",');
-          writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD": "",');
+          writeln(t,'    "COMPONENT_KCONFIGS": "Kconfig",');
+          writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD": "Kconfig.projbuild",');
           writeln(t,'    "IDF_CMAKE": "y",');
           writeln(t,'    "IDF_TARGET": "esp32",');
           writeln(t,'    "IDF_PATH": "'+GetEnvironmentVariable('IDF_PATH')+'",');
@@ -1523,10 +1559,10 @@ begin
       { generate linker maps for esp32 }
       binstr:='$IDF_PATH/tools/ldgen/ldgen.py';
       cmdstr:='--config sdkconfig --fragments $IDF_PATH/components/xtensa/linker.lf $IDF_PATH/components/soc/linker.lf $IDF_PATH/components/esp_event/linker.lf '+
-        '$IDF_PATH/components/spi_flash/linker.lf $IDF_PATH/components/esp_wifi/linker.lf $IDF_PATH/components/lwip/linker.lf $IDF_PATH/components/log/linker.lf '+
+        '$IDF_PATH/components/spi_flash/linker.lf $IDF_PATH/components/esp_wifi/linker.lf $IDF_PATH/components/lwip/linker.lf '+
         '$IDF_PATH/components/heap/linker.lf $IDF_PATH/components/esp_ringbuf/linker.lf $IDF_PATH/components/espcoredump/linker.lf $IDF_PATH/components/esp32/linker.lf '+
         '$IDF_PATH/components/esp32/ld/esp32_fragments.lf $IDF_PATH/components/freertos/linker.lf $IDF_PATH/components/newlib/newlib.lf '+
-        '$IDF_PATH/components/app_trace/linker.lf $IDF_PATH/components/esp_gdbstub/linker.lf '+
+        '$IDF_PATH/components/esp_gdbstub/linker.lf '+
         '--input $IDF_PATH/components/esp32/ld/esp32.project.ld.in --output ./esp32.project.ld --kconfig $IDF_PATH/Kconfig --env-file config.env '+
         '--libraries-file ldgen_libraries --objdump xtensa-esp32-elf-objdump';
       Replace(binstr,'$IDF_PATH',maybequoted(GetEnvironmentVariable('IDF_PATH')));

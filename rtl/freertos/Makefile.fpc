@@ -37,7 +37,7 @@ fpcpackage=y
 
 [default]
 fpcdir=../..
-target=embedded
+target=freertos
 
 [compiler]
 includedir=$(INC) $(PROCINC)

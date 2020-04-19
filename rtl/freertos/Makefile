@@ -100,7 +100,7 @@ endif
 endif
 export ECHO
 endif
-override OS_TARGET_DEFAULT=embedded
+override OS_TARGET_DEFAULT=freertos
 override DEFAULT_FPCDIR=../..
 ifndef FPC
 ifdef PP
@@ -2185,15 +2185,12 @@ ifneq ($(CROSSGCC),)
 GCCLIBDIR:=$(shell dirname `$(CROSSGCC) -print-libgcc-file-name`)
 endif
 endif
-ifndef OTHERLIBDIR
-OTHERLIBDIR:=$(shell grep -v "^\#" /etc/ld.so.conf | awk '{ ORS=" "; print $1 }')
-endif
 endif
 ifdef inUnix
 ifeq ($(OS_SOURCE),netbsd)
-OTHERLIBDIR+=/usr/pkg/lib
+OTHERLIBDIR:=/usr/pkg/lib
 endif
-export GCCLIBDIR OTHERLIB
+export GCCLIBDIR OTHERLIBDIR
 endif
 BATCHEXT=.bat
 LOADEREXT=.as
