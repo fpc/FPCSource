@@ -66,6 +66,8 @@ unit rgcpu;
               add_edge(supreg,RS_IY);
               add_edge(supreg,RS_SP);
             end;
+          else
+            ;
         end;
       end;
 
@@ -158,7 +160,7 @@ unit rgcpu;
         b : byte;
       begin
         result:=false;
-        if not(spilltemp.offset in [-128..127]) then
+        if (spilltemp.offset<-128) or (spilltemp.offset>127) then
           exit;
 
         { Replace 'ld  orgreg,src' with 'ld  spilltemp,src'
