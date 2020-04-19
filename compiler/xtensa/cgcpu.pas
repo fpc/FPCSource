@@ -619,6 +619,7 @@ implementation
          regoffset : LongInt;
          stack_parameters : Boolean;
          registerarea : PtrInt;
+         l : TAsmLabel;
       begin
         LocalSize:=align(LocalSize,4);
         stack_parameters:=current_procinfo.procdef.stack_tainting_parameter(calleeside);
@@ -705,7 +706,22 @@ implementation
                       localsize:=align(localsize,current_settings.alignment.localalignmax);
                     end;
 
-                  list.concat(taicpu.op_reg_const(A_ENTRY,NR_STACK_POINTER_REG,localsize));
+                  if localsize>32760 then
+                    begin
+                      list.concat(taicpu.op_reg_const(A_ENTRY,NR_STACK_POINTER_REG,32));
+
+                      reference_reset(ref,4,[]);
+                      current_asmdata.getjumplabel(l);
+                      cg.a_label(current_procinfo.aktlocaldata,l);
+                      current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(localsize-32)));
+                      ref.symbol:=l;
+                      list.concat(taicpu.op_reg_ref(A_L32R,NR_A8,ref));
+
+                      list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_A8,NR_STACK_POINTER_REG,NR_A8));
+                      list.concat(taicpu.op_reg_reg(A_MOVSP,NR_STACK_POINTER_REG,NR_A8));
+                    end
+                  else
+                    list.concat(taicpu.op_reg_const(A_ENTRY,NR_STACK_POINTER_REG,localsize));
                 end;
               else
                 Internalerror(2020031401);

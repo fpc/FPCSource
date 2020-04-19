@@ -28,6 +28,7 @@
 'j',
 'j.l',
 'mov',
+'movsp',
 'mov.s',
 'movnez',
 'movi',
