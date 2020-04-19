@@ -78,6 +78,7 @@ uses
         constructor op_sym(op : tasmop;_op1 : tasmsymbol);
         constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:aint);
         constructor op_reg_sym(op : tasmop;_op1 : tregister;_op2:tasmsymbol);
+        constructor op_sym_reg(op: tasmop; _op1: tasmsymbol; _op2: tregister);
         constructor op_reg_const_sym(op : tasmop;_op1 : tregister;_op2:aint;_op3:tasmsymbol);
         constructor op_reg_reg_sym(op : tasmop;_op1, _op2 : tregister;_op3:tasmsymbol);
         constructor op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:tasmsymbol;_op2ofs : aint);
@@ -367,6 +368,14 @@ uses cutils, cclasses;
          ops:=2;
          loadreg(0,_op1);
          loadsymbol(1,_op2,0);
+      end;
+
+    constructor taicpu.op_sym_reg(op: tasmop; _op1: tasmsymbol; _op2: tregister);
+      begin
+         inherited create(op);
+         ops:=2;
+         loadsymbol(0,_op1,0);
+         loadreg(1,_op2);
       end;
 
     constructor taicpu.op_reg_const_sym(op: tasmop; _op1: tregister; _op2: aint; _op3: tasmsymbol);

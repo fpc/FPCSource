@@ -573,8 +573,10 @@ implementation
     procedure tcgcpu.a_jmp_name(list : TAsmList; const s : string);
       var
         ai : taicpu;
+        tmpreg: TRegister;
       begin
-        ai:=TAiCpu.op_sym(A_J,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
+        { for now, we use A15 here, however, this is not save as it might contain an argument }
+        ai:=TAiCpu.op_sym_reg(A_J_L,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),NR_A15);
         ai.is_jmp:=true;
         list.Concat(ai);
       end;
@@ -811,7 +813,12 @@ implementation
       var
         ai : taicpu;
       begin
-        ai:=taicpu.op_sym(A_J,l);
+        if l.bind in [AB_GLOBAL] then
+          { for now, we use A15 here, however, this is not save as it might contain an argument, I have not figured out a
+            solution yet }
+          ai:=taicpu.op_sym_reg(A_J_L,l,NR_A15)
+        else
+          ai:=taicpu.op_sym(A_J,l);
         ai.is_jmp:=true;
         list.concat(ai);
       end;

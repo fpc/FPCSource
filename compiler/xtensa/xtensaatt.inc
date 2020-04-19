@@ -26,6 +26,7 @@
 'l32r',
 'lsi',
 'j',
+'j.l',
 'mov',
 'mov.s',
 'movnez',
