@@ -1395,20 +1395,14 @@ unit cgcpu;
        var
          href : treference;
          i : integer;
+         regsused: tregisterlist;
        begin
-         href:=Ref;
-         { ensure, href.base contains a valid register if there is any register used }
-         if href.base=NR_NO then
-           begin
-             href.base:=href.index;
-             href.index:=NR_NO;
-           end;
-
          if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
            internalerror(2011021307);
          if tcgsize2size[fromsize]>tcgsize2size[tosize] then
            internalerror(2020040804);
 
+         href:=normalize_ref(list,Ref,[OT_REF_ADDR16,OT_REF_HL,OT_REF_IX_d,OT_REF_IY_d],regsused);
          if (tosize=fromsize) or (fromsize in [OS_8,OS_16,OS_32]) then
            begin
              getcpuregister(list,NR_A);
@@ -1418,10 +1412,11 @@ unit cgcpu;
                  a_load_reg_reg(list,OS_8,OS_8,NR_A,reg);
 
                  if i<>tcgsize2size[fromsize] then
-                   inc(href.offset);
+                   adjust_normalized_ref(list,href,1);
                  if i<>tcgsize2size[tosize] then
                    reg:=GetNextReg(reg);
                end;
+             ungetcpuregisters(list,regsused);
              ungetcpuregister(list,NR_A);
              for i:=tcgsize2size[fromsize]+1 to tcgsize2size[tosize] do
                begin
@@ -1439,10 +1434,11 @@ unit cgcpu;
                  a_load_reg_reg(list,OS_8,OS_8,NR_A,reg);
 
                  if i<>tcgsize2size[fromsize] then
-                   inc(href.offset);
+                   adjust_normalized_ref(list,href,1);
                  if i<>tcgsize2size[tosize] then
                    reg:=GetNextReg(reg);
                end;
+             ungetcpuregisters(list,regsused);
              list.concat(taicpu.op_none(A_RLA));
              list.concat(taicpu.op_reg_reg(A_SBC,NR_A,NR_A));
              for i:=tcgsize2size[fromsize]+1 to tcgsize2size[tosize] do
