@@ -35,6 +35,7 @@ unit cgcpu;
        cpubase,cpuinfo,node,cg64f32,rgcpu;
 
     type
+      tregisterlist = array of tregister;
 
       { tcgz80 }
 
@@ -43,6 +44,9 @@ unit cgcpu;
         cgsetflags : boolean;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
+
+        procedure getcpuregisters(list:TAsmList;regs:tregisterlist);
+        procedure ungetcpuregisters(list:TAsmList;regs:tregisterlist);
 
         function getaddressregister(list:TAsmList):TRegister;override;
 
@@ -158,6 +162,23 @@ unit cgcpu;
         rg[R_INTREGISTER].free;
         // rg[R_ADDRESSREGISTER].free;
         inherited done_register_allocators;
+      end;
+
+
+    procedure tcgz80.getcpuregisters(list: TAsmList; regs: tregisterlist);
+      var
+        r: tregister;
+      begin
+        for r in regs do
+          getcpuregister(list,r);
+      end;
+
+    procedure tcgz80.ungetcpuregisters(list: TAsmList; regs: tregisterlist);
+      var
+        r: tregister;
+      begin
+        for r in regs do
+          ungetcpuregister(list,r);
       end;
 
 
