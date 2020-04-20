@@ -2574,6 +2574,9 @@ STATICLIBEXT=.a
 else
 EXEEXT=.bin
 endif
+ifeq ($(CPU_TARGET),z80)
+OEXT=.rel
+endif
 SHORTSUFFIX=emb
 endif
 ifeq ($(OS_TARGET),win16)
@@ -2581,6 +2584,9 @@ STATICLIBPREFIX=
 STATICLIBEXT=.a
 SHAREDLIBEXT=.dll
 SHORTSUFFIX=w16
+endif
+ifeq ($(OS_TARGET),zxspectrum)
+OEXT=.rel
 endif
 ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
 FPCMADE=fpcmade.$(SHORTSUFFIX)

@@ -45,7 +45,7 @@ unit i_zxspectrum;
             unitext      : '.ppu';
             unitlibext   : '.ppl';
             asmext       : '.s';
-            objext       : '.o';
+            objext       : '.rel';
             resext       : '.res';
             resobjext    : '.or';
             sharedlibext : '.so';
