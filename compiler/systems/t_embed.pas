@@ -1976,9 +1976,9 @@ function TlinkerEmbedded_SdccSdld.WriteResponseFile: Boolean;
 procedure TlinkerEmbedded_SdccSdld.SetDefaultInfo;
   const
 {$if defined(Z80)}
-    ExeName='sdcc-sdldz80';
+    ExeName='sdldz80';
 {$else}
-    ExeName='sdcc-sdld';
+    ExeName='sdld';
 {$endif}
   begin
     with Info do

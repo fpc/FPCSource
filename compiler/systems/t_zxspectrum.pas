@@ -212,7 +212,7 @@ function TLinkerZXSpectrum_SdccSdld.WriteResponseFile: Boolean;
 
 procedure TLinkerZXSpectrum_SdccSdld.SetDefaultInfo;
   const
-    ExeName='sdcc-sdldz80';
+    ExeName='sdldz80';
   begin
     FOrigin:=32768;
     with Info do
