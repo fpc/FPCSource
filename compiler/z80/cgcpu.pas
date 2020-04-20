@@ -101,7 +101,6 @@ unit cgcpu;
         procedure g_restore_registers(list : TAsmList);override;
 
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
-        procedure fixref(list : TAsmList;var ref : treference);
         function normalize_ref(list : TAsmList;ref : treference; const refopertypes:trefoperandtypes; out allocatedregs:tregisterlist) : treference;
         procedure adjust_normalized_ref(list: TAsmList;var ref: treference; value: longint);
 
@@ -1895,12 +1894,6 @@ unit cgcpu;
             if (ref.index<>NR_NO) then
               a_op_reg_reg(list,OP_ADD,OS_16,ref.index,r);
           end;
-      end;
-
-
-    procedure tcgz80.fixref(list : TAsmList;var ref : treference);
-      begin
-        internalerror(2011021320);
       end;
 
 

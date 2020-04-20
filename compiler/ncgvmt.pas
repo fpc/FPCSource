@@ -980,7 +980,7 @@ implementation
                procname:='FPC_ABSTRACTERROR';
                generate_abstract_stub(current_asmdata.AsmLists[al_procedures],vmtpd);
              end
-           else if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and RedirectToEmpty(vmtpd) then
+           else if (cs_opt_remove_empty_proc in current_settings.optimizerswitches) and RedirectToEmpty(vmtpd) then
              begin
                procname:='FPC_EMPTYMETHOD';
                if current_module.globalsymtable<>systemunit then

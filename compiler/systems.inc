@@ -195,8 +195,9 @@
              system_xtensa_embedded,    { 103 }
              system_xtensa_freertos,    { 104 }
              system_xtensa_linux,       { 105 }
-             system_z80_embedded,       { 106 }
-             system_z80_zxspectrum      { 107 }
+             system_arm_freertos,       { 106 }
+             system_z80_embedded,       { 107 }
+             system_z80_zxspectrum      { 108 }
        );
 
      type

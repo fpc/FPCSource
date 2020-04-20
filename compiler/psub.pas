@@ -1233,7 +1233,7 @@ implementation
        if (pi_dfaavailable in flags) and (cs_opt_dead_store_eliminate in current_settings.optimizerswitches) then
          do_optdeadstoreelim(code);
 
-       if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and
+       if (cs_opt_remove_empty_proc in current_settings.optimizerswitches) and
          (procdef.proctypeoption in [potype_operator,potype_procedure,potype_function]) and
          (code.nodetype=blockn) and (tblocknode(code).statements=nil) then
          procdef.isempty:=true;

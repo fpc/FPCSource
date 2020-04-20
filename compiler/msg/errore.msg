@@ -3813,6 +3813,7 @@ new features, etc.):
 #    S = Sparc targets
 #    s = Sparc64 targets
 #    V = AVR
+#    x = xtensa targets
 #    Z = Z80
 # The second character also indicates who will display this line,
 # (if the above character was TRUE) the current possibilities are :
@@ -4103,11 +4104,13 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 3*2Twin32_Windows 32 Bit
 3*2Twince_Windows CE
 # x86_64 targets
+4*2Tandroid_Android
 4*2Taros_AROS
 4*2Tdarwin_Darwin/Mac OS X
 4*2Tdragonfly_DragonFly BSD
 4*2Tembedded_Embedded
 4*2Tfreebsd_FreeBSD
+4*2Thaiku_Haiku
 4*2Tiphonesim_iPhoneSimulator
 4*2Tlinux_Linux
 4*2Tnetbsd_NetBSD
@@ -4131,6 +4134,7 @@ A*2Tandroid_Android
 A*2Taros_AROS
 A*2Tdarwin_Darwin/iPhoneOS/iOS
 A*2Tembedded_Embedded
+A*2Tfreertos_FreeRTOS
 A*2Tgba_Game Boy Advance
 A*2Tlinux_Linux
 A*2Tnds_Nintendo DS
@@ -4139,6 +4143,7 @@ A*2Tpalmos_PalmOS
 A*2Tsymbian_Symbian
 A*2Twince_Windows CE
 # aarch64 targets
+a*2Tandroid_Android
 a*2Tdarwin_Darwin/iOS
 a*2Tlinux_Linux
 # jvm targets
@@ -4180,6 +4185,10 @@ s*2Tlinux_Linux
 # not yet ready s*2Tsolaris_Solaris
 # avr targets
 V*2Tembedded_Embedded
+# xtensa targets
+x*2Tembedded_Embedded
+x*2Tfreertos_FreeRTOS
+x*2Tlinux_Linux
 # z80 targets
 Z*2Tembedded_Embedded
 Z*2Tzxspectrum_ZX Spectrum
