@@ -170,8 +170,8 @@ type
    FLock     = Record
                 l_type  : cshort;       { lock type: read/write, etc. }
                 l_whence: cshort;       { type of l_start }
-                l_start : kernel_off_t; { starting offset }
-                l_len   : kernel_off_t; { len = 0 means until end of file }
+                l_start : off_t;        { starting offset }
+                l_len   : off_t;        { len = 0 means until end of file }
                 l_pid   : pid_t;        { lock owner }
 {$if defined(cpusparc) or defined(cpusparc64)}
                 __pad   : cshort;
@@ -399,7 +399,11 @@ const
   RLIMIT_LOCKS = 10;    { maximum file locks held  }
 
 type
+{$ifdef fs32bit}
   rlim_t = cULong;
+{$else}
+  rlim_t = cULongLong;
+{$endif}
   PRLimit = ^TRLimit;
   TRLimit = record
     rlim_cur : rlim_t;
