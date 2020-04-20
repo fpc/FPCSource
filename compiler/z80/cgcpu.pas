@@ -98,8 +98,7 @@ unit cgcpu;
 
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
         procedure fixref(list : TAsmList;var ref : treference);
-        function normalize_ref(list : TAsmList;ref : treference;
-          tmpreg : tregister) : treference;
+        function normalize_ref(list : TAsmList;ref : treference; const refopertypes:trefoperandtypes) : treference;
 
         procedure emit_mov(list: TAsmList;reg2: tregister; reg1: tregister);
 
@@ -1189,112 +1188,66 @@ unit cgcpu;
       end;
 
 
-    function tcgz80.normalize_ref(list:TAsmList;ref: treference;tmpreg : tregister) : treference;
-
+    function tcgz80.normalize_ref(list: TAsmList; ref: treference; const refopertypes: trefoperandtypes): treference;
       var
         tmpref : treference;
         l : tasmlabel;
       begin
-        Result:=ref;
-//
-//         if ref.addressmode<>AM_UNCHANGED then
-//           internalerror(2011021701);
-//
-//        { Be sure to have a base register }
-//        if (ref.base=NR_NO) then
-//          begin
-//            { only symbol+offset? }
-//            if ref.index=NR_NO then
-//              exit;
-//            ref.base:=ref.index;
-//            ref.index:=NR_NO;
-//          end;
-//
-//        { can we take advantage of adiw/sbiw? }
-//        if (current_settings.cputype>=cpu_avr2) and not(assigned(ref.symbol)) and (ref.offset<>0) and (ref.offset>=-63) and (ref.offset<=63) and
-//          ((tmpreg=NR_R24) or (tmpreg=NR_R26) or (tmpreg=NR_R28) or (tmpreg=NR_R30)) and (ref.base<>NR_NO) then
-//          begin
-//            maybegetcpuregister(list,tmpreg);
-//            emit_mov(list,tmpreg,ref.base);
-//            maybegetcpuregister(list,GetNextReg(tmpreg));
-//            emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.base));
-//            if ref.index<>NR_NO then
-//              begin
-//                list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.index));
-//                list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.index)));
-//              end;
-//            if ref.offset>0 then
-//              list.concat(taicpu.op_reg_const(A_ADIW,tmpreg,ref.offset))
-//            else
-//              list.concat(taicpu.op_reg_const(A_SBIW,tmpreg,-ref.offset));
-//            ref.offset:=0;
-//            ref.base:=tmpreg;
-//            ref.index:=NR_NO;
-//          end
-//        else if assigned(ref.symbol) or (ref.offset<>0) then
-//          begin
-//            reference_reset(tmpref,0,[]);
-//            tmpref.symbol:=ref.symbol;
-//            tmpref.offset:=ref.offset;
-//            if assigned(ref.symbol) and (ref.symbol.typ in [AT_FUNCTION,AT_LABEL]) then
-//              tmpref.refaddr:=addr_lo8_gs
-//            else
-//              tmpref.refaddr:=addr_lo8;
-//            maybegetcpuregister(list,tmpreg);
-//            list.concat(taicpu.op_reg_ref(A_LDI,tmpreg,tmpref));
-//
-//            if assigned(ref.symbol) and (ref.symbol.typ in [AT_FUNCTION,AT_LABEL]) then
-//              tmpref.refaddr:=addr_hi8_gs
-//            else
-//              tmpref.refaddr:=addr_hi8;
-//            maybegetcpuregister(list,GetNextReg(tmpreg));
-//            list.concat(taicpu.op_reg_ref(A_LDI,GetNextReg(tmpreg),tmpref));
-//
-//            if (ref.base<>NR_NO) then
-//              begin
-//                list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.base));
-//                list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.base)));
-//              end;
-//            if (ref.index<>NR_NO) then
-//              begin
-//                list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.index));
-//                list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.index)));
-//              end;
-//            ref.symbol:=nil;
-//            ref.offset:=0;
-//            ref.base:=tmpreg;
-//            ref.index:=NR_NO;
-//          end
-//        else if (ref.base<>NR_NO) and (ref.index<>NR_NO) then
-//          begin
-//            maybegetcpuregister(list,tmpreg);
-//            emit_mov(list,tmpreg,ref.base);
-//            maybegetcpuregister(list,GetNextReg(tmpreg));
-//            emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.base));
-//            list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.index));
-//            list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.index)));
-//            ref.base:=tmpreg;
-//            ref.index:=NR_NO;
-//          end
-//        else if (ref.base<>NR_NO) then
-//          begin
-//            maybegetcpuregister(list,tmpreg);
-//            emit_mov(list,tmpreg,ref.base);
-//            maybegetcpuregister(list,GetNextReg(tmpreg));
-//            emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.base));
-//            ref.base:=tmpreg;
-//            ref.index:=NR_NO;
-//          end
-//        else if (ref.index<>NR_NO) then
-//          begin
-//            maybegetcpuregister(list,tmpreg);
-//            emit_mov(list,tmpreg,ref.index);
-//            maybegetcpuregister(list,GetNextReg(tmpreg));
-//            emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.index));
-//            ref.base:=tmpreg;
-//            ref.index:=NR_NO;
-//          end;
-        Result:=ref;
+        if (ref.base=NR_NO) and (ref.index<>NR_NO) and (ref.scalefactor<=1) then
+          begin
+            ref.base:=ref.index;
+            ref.index:=NR_NO;
+          end;
+
+        if is_ref_in_opertypes(ref,refopertypes) then
+          begin
+            Result:=ref;
+            exit;
+          end;
+
+        { can we use the HL register? }
+        if OT_REF_HL in refopertypes then
+          begin
+            getcpuregister(list,NR_H);
+            getcpuregister(list,NR_L);
+            if assigned(ref.symbol) then
+              begin
+                reference_reset(tmpref,0,[]);
+                tmpref.symbol:=ref.symbol;
+                tmpref.offset:=ref.offset;
+
+                tmpref.refaddr:=addr_full;
+                list.concat(taicpu.op_reg_ref(A_LD,NR_HL,tmpref));
+              end
+            else
+              list.concat(taicpu.op_reg_const(A_LD,NR_HL,ref.offset));
+            if ref.base<>NR_NO then
+              begin
+                getcpuregister(list,NR_A);
+                emit_mov(list,NR_A,NR_L);
+                list.concat(taicpu.op_reg_reg(A_ADD,NR_A,ref.base));
+                emit_mov(list,NR_L,NR_A);
+                emit_mov(list,NR_A,NR_H);
+                list.concat(taicpu.op_reg_reg(A_ADC,NR_A,GetNextReg(ref.base)));
+                emit_mov(list,NR_H,NR_A);
+                ungetcpuregister(list,NR_A);
+              end;
+            if ref.index<>NR_NO then
+              begin
+                if ref.scalefactor>1 then
+                  internalerror(2020042002);
+                getcpuregister(list,NR_A);
+                emit_mov(list,NR_A,NR_L);
+                list.concat(taicpu.op_reg_reg(A_ADD,NR_A,ref.index));
+                emit_mov(list,NR_L,NR_A);
+                emit_mov(list,NR_A,NR_H);
+                list.concat(taicpu.op_reg_reg(A_ADC,NR_A,GetNextReg(ref.index)));
+                emit_mov(list,NR_H,NR_A);
+                ungetcpuregister(list,NR_A);
+              end;
+          end
+        else
+          internalerror(2020042001);
       end;
 
 
