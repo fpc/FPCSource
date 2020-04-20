@@ -102,7 +102,7 @@ unit cgcpu;
 
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
         procedure fixref(list : TAsmList;var ref : treference);
-        function normalize_ref(list : TAsmList;ref : treference; const refopertypes:trefoperandtypes) : treference;
+        function normalize_ref(list : TAsmList;ref : treference; const refopertypes:trefoperandtypes; out allocatedregs:tregisterlist) : treference;
 
         procedure emit_mov(list: TAsmList;reg2: tregister; reg1: tregister);
 
@@ -1209,11 +1209,15 @@ unit cgcpu;
       end;
 
 
-    function tcgz80.normalize_ref(list: TAsmList; ref: treference; const refopertypes: trefoperandtypes): treference;
+        function tcgz80.normalize_ref(list: TAsmList; ref: treference;
+      const refopertypes: trefoperandtypes; out allocatedregs: tregisterlist
+      ): treference;
       var
         tmpref : treference;
         l : tasmlabel;
       begin
+        SetLength(allocatedregs,0);
+
         if (ref.base=NR_NO) and (ref.index<>NR_NO) and (ref.scalefactor<=1) then
           begin
             ref.base:=ref.index;
@@ -1229,8 +1233,10 @@ unit cgcpu;
         { can we use the HL register? }
         if OT_REF_HL in refopertypes then
           begin
-            getcpuregister(list,NR_H);
-            getcpuregister(list,NR_L);
+            SetLength(allocatedregs,2);
+            allocatedregs[0]:=NR_H;
+            allocatedregs[1]:=NR_L;
+            getcpuregisters(list,allocatedregs);
             if assigned(ref.symbol) then
               begin
                 reference_reset(tmpref,0,[]);
