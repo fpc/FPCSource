@@ -2219,6 +2219,16 @@ Unit raz80asm;
         { Zero operand opcode ?  }
         if actasmtoken in [AS_SEPARATOR,AS_END] then
           exit;
+        { Condition (e.g. 'NC' in 'JP NC, label') }
+        if actasmtoken=AS_CONDITION then
+          begin
+            instr.condition:=actasmcond;
+            Consume(AS_CONDITION);
+            if actasmtoken in [AS_SEPARATOR,AS_END] then
+              exit;
+            if actasmtoken=AS_COMMA then
+              Consume(AS_COMMA);
+          end;
         { Read Operands }
         repeat
           case actasmtoken of
@@ -2226,18 +2236,6 @@ Unit raz80asm;
             AS_END,
             AS_SEPARATOR :
               break;
-
-            { Condition (e.g. 'NC' in 'JP NC, label') }
-            AS_CONDITION:
-              begin
-                instr.condition:=actasmcond;
-                Consume(AS_CONDITION);
-                if actasmtoken=AS_COMMA then
-                  Consume(AS_COMMA);
-                { Zero operand opcode ?  }
-                if actasmtoken in [AS_SEPARATOR,AS_END] then
-                  exit;
-              end;
 
             { Operand delimiter }
             AS_COMMA :
