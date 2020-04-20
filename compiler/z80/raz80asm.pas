@@ -174,7 +174,7 @@ Unit raz80asm;
           begin
             firsttoken:=FALSE;
             len:=0;
-            { directive or local label }
+            { directive }
             if c = '.' then
               begin
                 inc(len);
@@ -188,30 +188,18 @@ Unit raz80asm;
                     c:=current_scanner.asmgetchar;
                   end;
                 actasmpattern[0]:=chr(len);
-                { this is a local label... }
-                if (c=':') and is_locallabel(actasmpattern) then
-                  begin
-                    { local variables are case sensitive }
-                    actasmtoken:=AS_LLABEL;
-                    c:=current_scanner.asmgetchar;
-                    firsttoken:=true;
-                    exit;
-                  end
                 { must be a directive }
-                else
+                if is_asmdirective(actasmpattern) then
+                 exit;
+                if is_targetdirective(actasmpattern) then
                   begin
-                    if is_asmdirective(actasmpattern) then
-                     exit;
-                    if is_targetdirective(actasmpattern) then
-                      begin
-                        actasmtoken:=AS_TARGET_DIRECTIVE;
-                        exit;
-                      end;
-                    Message1(asmr_e_not_directive_or_local_symbol,actasmpattern);
+                    actasmtoken:=AS_TARGET_DIRECTIVE;
+                    exit;
                   end;
+                Message1(asmr_e_not_directive_or_local_symbol,actasmpattern);
               end;
-            { only opcodes and global labels are allowed now. }
-            while c in ['A'..'Z','a'..'z','0'..'9','_'] do
+            { only opcodes, global and local labels are allowed now. }
+            while c in ['A'..'Z','a'..'z','0'..'9','_','@'] do
               begin
                 inc(len);
                 actasmpattern[len]:=c;
@@ -222,7 +210,11 @@ Unit raz80asm;
             { Label ? }
             if c = ':' then
               begin
-                actasmtoken:=AS_LABEL;
+                { Local label ? }
+                if is_locallabel(actasmpattern) then
+                  actasmtoken:=AS_LLABEL
+                else
+                  actasmtoken:=AS_LABEL;
                 { let us point to the next character }
                 c:=current_scanner.asmgetchar;
                 firsttoken:=true;
@@ -700,10 +692,19 @@ Unit raz80asm;
                   exit;
                 end;
 
-              '@' :
+              '@' : { possiblities : - local label reference , such as in jmp @local1 }
+                    {                - @Result, @Code or @Data special variables.     }
                 begin
-                  actasmtoken:=AS_AT;
+                  actasmpattern:=c;
                   c:=current_scanner.asmgetchar;
+                  while c in  ['A'..'Z','a'..'z','0'..'9','_','@','$','&','?'] do
+                   begin
+                     actasmpattern:=actasmpattern + c;
+                     c:=current_scanner.asmgetchar;
+                   end;
+                  actasmpattern_origcase:=actasmpattern;
+                  uppervar(actasmpattern);
+                  actasmtoken:=AS_ID;
                   exit;
                 end;
 
@@ -2274,6 +2275,13 @@ Unit raz80asm;
         { main loop }
         repeat
           case actasmtoken of
+            AS_LLABEL:
+              Begin
+                if CreateLocalLabel(actasmpattern,hl,true) then
+                  ConcatLabel(curlist,hl);
+                Consume(AS_LLABEL);
+              end;
+
             AS_LABEL:
               Begin
                 if SearchLabel(upper(actasmpattern),hl,true) then
