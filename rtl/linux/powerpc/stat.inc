@@ -35,18 +35,17 @@
         st_rdev   : culonglong;
         __pad2_    : cushort;
         st_size   : clonglong;
-        st_blksize: clong;
+        st_blksize: blksize_t;
 
-        st_blocks : clonglong;
+        st_blocks : culonglong;
         st_atime  : clong;
         st_atime_nsec : culong;
         st_mtime  : clong;
         st_mtime_nsec : culong;
         st_ctime  : clong;
         st_ctime_nsec : culong;
-        __unused3_ : culong;
-        __unused4_ : culong;
-        __unused5_ : culong;
+        __unused4 : culong;
+        __unused5 : culong;
   end;
 
 {$ELSE FPC_USE_LIBC}
