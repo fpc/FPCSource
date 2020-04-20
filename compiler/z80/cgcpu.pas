@@ -1209,9 +1209,8 @@ unit cgcpu;
       end;
 
 
-        function tcgz80.normalize_ref(list: TAsmList; ref: treference;
-      const refopertypes: trefoperandtypes; out allocatedregs: tregisterlist
-      ): treference;
+    function tcgz80.normalize_ref(list: TAsmList; ref: treference;
+        const refopertypes: trefoperandtypes; out allocatedregs: tregisterlist): treference;
       var
         tmpref : treference;
         l : tasmlabel;
@@ -1272,6 +1271,7 @@ unit cgcpu;
                 emit_mov(list,NR_H,NR_A);
                 ungetcpuregister(list,NR_A);
               end;
+            reference_reset_base(result,NR_HL,0,ctempposinvalid,0,[]);
           end
         else
           internalerror(2020042001);
