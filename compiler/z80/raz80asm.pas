@@ -36,7 +36,7 @@ Unit raz80asm;
         AS_NONE,AS_LABEL,AS_LLABEL,AS_STRING,AS_INTNUM,
         AS_REALNUM,AS_COMMA,AS_LPAREN,
         AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,
-        AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,AS_DOLLAR,
+        AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_CONDITION,AS_SLASH,AS_DOLLAR,
         AS_HASH,AS_LSBRACKET,AS_RSBRACKET,AS_LBRACKET,AS_RBRACKET,
         AS_EQUAL,
         {------------------ Assembler directives --------------------}
@@ -58,7 +58,7 @@ Unit raz80asm;
         '','Label','LLabel','string','integer',
         'float',',','(',
         ')',':','.','+','-','*',
-        ';','identifier','register','opcode','/','$',
+        ';','identifier','register','opcode','condition','/','$',
         '#','{','}','[',']',
         '=',
         'defb','defw','END',
@@ -88,6 +88,7 @@ Unit raz80asm;
       { tz80reader }
 
       tz80reader = class(tasmreader)
+        actasmcond : TAsmCond;
         actasmpattern_origcase : string;
         actasmtoken   : tasmtoken;
         prevasmtoken  : tasmtoken;
@@ -101,6 +102,7 @@ Unit raz80asm;
         function is_asmopcode(const s: string):boolean;
         Function is_asmdirective(const s: string):boolean;
         function is_register(const s:string):boolean;
+        function is_condition(const s:string):boolean;
         function is_targetdirective(const s: string):boolean;
         procedure BuildRecordOffsetSize(const expr: string;out offset:tcgint;out size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
         procedure BuildConstSymbolExpression(in_flags: tconstsymbolexpressioninputflags;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out size:tcgint;out out_flags:tconstsymbolexpressionoutputflags);
@@ -156,8 +158,12 @@ Unit raz80asm;
         len: Integer;
         srsym : tsym;
         srsymtable : TSymtable;
+        can_be_condition : Boolean;
       begin
         c:=scanner.c;
+        { certain instructions can have a condition, as an operand. We need to set this flag,
+          because 'C' can be either a register, or a condition, depending on the context }
+        can_be_condition:=(actasmtoken=AS_OPCODE) and (actopcode in [A_JP,A_JR,A_CALL,A_RET]);
         { save old token and reset new token }
         prevasmtoken:=actasmtoken;
         actasmtoken:=AS_NONE;
@@ -311,6 +317,11 @@ Unit raz80asm;
                   if actasmpattern = 'VMTOFFSET' then
                     begin
                       actasmtoken:=AS_VMTOFFSET;
+                      exit;
+                    end;
+                  if can_be_condition and is_condition(actasmpattern) then
+                    begin
+                      actasmtoken:=AS_CONDITION;
                       exit;
                     end;
                   if is_register(actasmpattern) then
@@ -939,6 +950,25 @@ Unit raz80asm;
             is_register:=true;
             actasmtoken:=AS_REGISTER;
           end;
+      end;
+
+
+    function tz80reader.is_condition(const s: string): boolean;
+      var
+        condstr: string;
+        cond: TAsmCond;
+      begin
+        is_condition:=false;
+        actasmcond:=C_None;
+        condstr:=lower(s);
+        for cond in TAsmCond do
+          if (cond<>C_None) and (cond2str[cond]=condstr) then
+            begin
+              is_condition:=true;
+              actasmtoken:=AS_CONDITION;
+              actasmcond:=cond;
+              exit;
+            end;
       end;
 
 
@@ -2196,6 +2226,18 @@ Unit raz80asm;
             AS_END,
             AS_SEPARATOR :
               break;
+
+            { Condition (e.g. 'NC' in 'JP NC, label') }
+            AS_CONDITION:
+              begin
+                instr.condition:=actasmcond;
+                Consume(AS_CONDITION);
+                if actasmtoken=AS_COMMA then
+                  Consume(AS_COMMA);
+                { Zero operand opcode ?  }
+                if actasmtoken in [AS_SEPARATOR,AS_END] then
+                  exit;
+              end;
 
             { Operand delimiter }
             AS_COMMA :

@@ -294,17 +294,18 @@ unit agsdasz80;
         i: Integer;
       begin
         writer.AsmWrite(#9#9+std_op2str[hp.opcode]);
-        if taicpu(hp).ops<>0 then
+        if (taicpu(hp).ops<>0) or (hp.condition<>C_None) then
           begin
+            writer.AsmWrite(#9);
+            if hp.condition<>C_None then
+              begin
+                writer.AsmWrite(uppercond2str[hp.condition]);
+                if taicpu(hp).ops<>0 then
+                  writer.AsmWrite(',');
+              end;
             for i:=0 to taicpu(hp).ops-1 do
               begin
-                if i=0 then
-                  begin
-                    writer.AsmWrite(#9);
-                    if hp.is_jmp and (hp.condition<>C_None) then
-                      writer.AsmWrite(uppercond2str[hp.condition]+',');
-                  end
-                else
+                if i<>0 then
                   writer.AsmWrite(',');
                 if is_calljmp(hp.opcode) then
                   WriteOper_jmp(taicpu(hp).oper[i]^,hp)
