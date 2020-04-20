@@ -331,7 +331,7 @@ unit agsdasz80;
             end;
           top_ref:
             begin
-              if assigned(o.ref^.symbol) and (o.ref^.refaddr in [addr_lo8,addr_hi8]) then
+              if assigned(o.ref^.symbol) and (o.ref^.refaddr in [addr_lo8,addr_hi8,addr_full]) then
                 begin
                   {if SmartAsm then
                     AddSymbol(o.ref^.symbol.name,false);}
@@ -343,6 +343,8 @@ unit agsdasz80;
                       writer.AsmWrite('<');
                     addr_hi8:
                       writer.AsmWrite('>');
+                    addr_full:
+                      {nothing};
                     else
                       ;
                   end;
