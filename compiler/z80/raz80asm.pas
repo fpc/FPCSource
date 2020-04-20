@@ -88,6 +88,7 @@ Unit raz80asm;
       { tz80reader }
 
       tz80reader = class(tasmreader)
+        actasmpattern_origcase : string;
         actasmtoken   : tasmtoken;
         prevasmtoken  : tasmtoken;
         inexpression : boolean;
@@ -217,6 +218,7 @@ Unit raz80asm;
                 c:=current_scanner.asmgetchar;
               end;
             actasmpattern[0]:=chr(len);
+            actasmpattern_origcase:=actasmpattern;
             { Label ? }
             if c = ':' then
               begin
@@ -286,6 +288,7 @@ Unit raz80asm;
                      c:=current_scanner.asmgetchar;
                    end;
                   actasmpattern[0]:=chr(len);
+                  actasmpattern_origcase:=actasmpattern;
                   uppervar(actasmpattern);
  {$ifdef x86}
                   { only x86 architectures have instruction prefixes }
@@ -1944,9 +1947,28 @@ Unit raz80asm;
 
 
     procedure tz80reader.BuildOperand(oper: tz80operand; istypecast: boolean);
+
+      procedure AddLabelOperand(hl:tasmlabel);
+      begin
+        if (oper.opr.typ=OPR_NONE) and
+           is_calljmp(actopcode) then
+         begin
+           oper.opr.typ:=OPR_SYMBOL;
+           oper.opr.symbol:=hl;
+         end
+        else
+         begin
+           oper.InitRef;
+           oper.opr.ref.symbol:=hl;
+           oper.haslabelref:=true;
+         end;
+      end;
+
       var
-        l: LongInt;
+        l: tcgint;
         tsize: tcgint;
+        expr: string;
+        hl: tasmlabel;
       begin
         repeat
           case actasmtoken of
@@ -1988,6 +2010,142 @@ Unit raz80asm;
             AS_LPAREN:
               begin
                 BuildReference(oper);
+              end;
+
+            AS_ID : { A constant expression, or a Variable ref. }
+              Begin
+                { Label or Special symbol reference? }
+                if actasmpattern[1] = '@' then
+                 Begin
+                   if actasmpattern = '@RESULT' then
+                    Begin
+                      oper.SetupResult;
+                      Consume(AS_ID);
+                      expr:='result';
+                    end
+                   else
+                    if (actasmpattern = '@CODE') or (actasmpattern = '@DATA') then
+                     begin
+                       Message(asmr_w_CODE_and_DATA_not_supported);
+                       Consume(AS_ID);
+                     end
+                   else
+                    { Local Label }
+                    begin
+                      CreateLocalLabel(actasmpattern,hl,false);
+                      Consume(AS_ID);
+                      AddLabelOperand(hl);
+                    end;
+                 end
+                else
+                { support result for delphi modes }
+                 if (m_objpas in current_settings.modeswitches) and (actasmpattern='RESULT') then
+                  begin
+                    oper.SetUpResult;
+                    Consume(AS_ID);
+                    expr:='result';
+                  end
+                { probably a variable or normal expression }
+                { or a procedure (such as in CALL ID)      }
+                else
+                 Begin
+                   { is it a constant ? }
+                   if SearchIConstant(actasmpattern,l) then
+                    Begin
+                      case oper.opr.typ of
+                        OPR_REFERENCE :
+                          begin
+                            l := BuildRefConstExpression(tsize);
+                            if tsize<>0 then
+                              oper.SetSize(tsize,false);
+                            inc(oper.opr.ref.offset,l);
+                            inc(oper.opr.constoffset,l);
+                          end;
+
+                        OPR_LOCAL :
+                          begin
+                            l := BuildRefConstExpression(tsize);
+                            if tsize<>0 then
+                              oper.SetSize(tsize,false);
+                            inc(oper.opr.localsymofs,l);
+                            inc(oper.opr.localconstoffset,l);
+                          end;
+                        OPR_NONE,
+                        OPR_CONSTANT :
+                          BuildConstantOperand(oper);
+                        else
+                          Message(asmr_e_invalid_operand_type);
+                      end;
+                    end
+                   else
+                    { Check for pascal label }
+                    if SearchLabel(actasmpattern,hl,false) then
+                     begin
+                       Consume(AS_ID);
+                       AddLabelOperand(hl);
+                     end
+                    else
+                    { is it a normal variable ? }
+                     Begin
+                       expr:=actasmpattern;
+                       Consume(AS_ID);
+
+
+                       { typecasting? }
+                       if SearchType(expr,l) then
+                        begin
+                          oper.hastype:=true;
+                          oper.typesize:=l;
+                          case actasmtoken of
+                            AS_LPAREN :
+                              begin
+                                { Support Type([Reference]) }
+                                Consume(AS_LPAREN);
+                                BuildOperand(oper,true);
+                                { Delphi also supports Type(Register) and
+                                  interprets it the same as Type([Register]).  }
+                                if (oper.opr.typ = OPR_REGISTER) then
+                                  { This also sets base to the register.  }
+                                  oper.InitRef;
+                                Consume(AS_RPAREN);
+                              end;
+                            //AS_LBRACKET :
+                            //  begin
+                            //    { Support Var.Type[Index] }
+                            //    { Convert @label.Byte[1] to reference }
+                            //    if oper.opr.typ=OPR_SYMBOL then
+                            //      oper.initref;
+                            //  end;
+                            else
+                              ;
+                          end;
+                        end
+                       else
+                        begin
+                          if not oper.SetupVar(expr,false) then
+                            Begin
+                              { not a variable, check special variables.. }
+                              if expr = 'SELF' then
+                                begin
+                                  oper.SetupSelf;
+                                  expr:='self';
+                                end
+                              else
+                                begin
+                                  Message1(sym_e_unknown_id,expr);
+                                  expr:='';
+                                end;
+                            end;
+                          { indexed access to variable? }
+                          //if actasmtoken=AS_LBRACKET then
+                          //  begin
+                          //    { ... then the operand size is not known anymore }
+                          //    oper.size:=OS_NO;
+                          //    BuildReference(oper);
+                          //  end;
+                        end;
+                     end;
+                 end;
               end;
 
             AS_REGISTER : { Register, a variable reference or a constant reference }
@@ -2094,6 +2252,8 @@ Unit raz80asm;
 
 
     function tz80reader.Assemble: tlinkedlist;
+      var
+        hl: tasmlabel;
       begin
         Message1(asmr_d_start_reading,'Z80');
         firsttoken:=TRUE;
@@ -2114,6 +2274,19 @@ Unit raz80asm;
         { main loop }
         repeat
           case actasmtoken of
+            AS_LABEL:
+              Begin
+                if SearchLabel(upper(actasmpattern),hl,true) then
+                  begin
+                    if hl.is_public then
+                      ConcatPublic(curlist,actasmpattern_origcase);
+                    ConcatLabel(curlist,hl);
+                  end
+                else
+                 Message1(asmr_e_unknown_label_identifier,actasmpattern);
+                Consume(AS_LABEL);
+              end;
+
             AS_END:
               begin
                 break; { end assembly block }
