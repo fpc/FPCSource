@@ -2419,7 +2419,7 @@ const
          }
          'cs_opt_dead_values',
          { compiler checks for empty procedures/methods and removes calls to them if possible }
-         'cs_opt_remove_emtpy_proc',
+         'cs_opt_remove_empty_proc',
          'cs_opt_constant_propagate',
          'cs_opt_dead_store_eliminate',
          'cs_opt_forcenostackframe',

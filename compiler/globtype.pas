@@ -338,7 +338,7 @@ interface
          }
          cs_opt_dead_values,
          { compiler checks for empty procedures/methods and removes calls to them if possible }
-         cs_opt_remove_emtpy_proc,
+         cs_opt_remove_empty_proc,
          cs_opt_constant_propagate,
          cs_opt_dead_store_eliminate,
          cs_opt_forcenostackframe,
@@ -425,7 +425,7 @@ interface
 
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1,cs_opt_peephole];
-       genericlevel2optimizerswitches = [cs_opt_level2,cs_opt_remove_emtpy_proc];
+       genericlevel2optimizerswitches = [cs_opt_level2,cs_opt_remove_empty_proc];
        genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate,cs_opt_nodedfa{$ifndef llvm},cs_opt_use_load_modify_store{$endif},cs_opt_loopunroll];
        genericlevel4optimizerswitches = [cs_opt_level4,cs_opt_reorder_fields,cs_opt_dead_values,cs_opt_fastmath];
 

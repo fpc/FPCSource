@@ -4353,7 +4353,7 @@ implementation
              end;
 
            { can we get rid of the call? }
-           if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and
+           if (cs_opt_remove_empty_proc in current_settings.optimizerswitches) and
               not(cnf_return_value_used in callnodeflags) and
              (procdefinition.typ=procdef) and
              tprocdef(procdefinition).isempty and
