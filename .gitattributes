@@ -1084,6 +1084,7 @@ compiler/z80/rz80sta.inc svneol=native#text/plain
 compiler/z80/rz80std.inc svneol=native#text/plain
 compiler/z80/rz80sup.inc svneol=native#text/plain
 compiler/z80/symcpu.pas svneol=native#text/plain
+compiler/z80/tgcpu.pas svneol=native#text/plain
 compiler/z80/z80ins.dat svneol=native#text/plain
 compiler/z80/z80nop.inc svneol=native#text/plain
 compiler/z80/z80op.inc svneol=native#text/plain

@@ -55,7 +55,7 @@ unit cpupi;
     procedure tcpuprocinfo.set_first_temp_offset;
       begin
         if tg.direction = -1 then
-          tg.setfirsttemp(-1)
+          tg.setfirsttemp(0)
         else if not (po_nostackframe in procdef.procoptions) then
           tg.setfirsttemp(maxpushedparasize+1)
         else

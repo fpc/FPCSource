@@ -1,7 +1,7 @@
 {
-    Copyright (c) 2000-2017 by Florian Klaempfl
+    Copyright (C) 1998-2000 by Florian Klaempfl
 
-    This unit includes the Z80 code generator into the compiler
+    This unit handles the temporary variables stuff for Z80
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,33 +19,49 @@
 
  ****************************************************************************
 }
-unit cpunode;
+{
+  This unit handles the temporary variables stuff for Z80.
+}
+unit tgcpu;
 
 {$i fpcdefs.inc}
 
   interface
 
-  implementation
-
     uses
-       { generic nodes }
-       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,ncgopt,ncgmat,ncgadd
-       { to be able to only parts of the generic code,
-         the processor specific nodes must be included
-         after the generic one (FK)
-       }
-       ,nz80add
-       ,nz80cal
-//       ,nz80mat
-//       ,nz80cnv
-//       ,nz80mem
-//       ,nz80util,
-       { these are not really nodes }
-       ,tgcpu
-       { symtable }
-       ,symcpu,
-       aasmdef
-       ;
+      tgobj,globtype,aasmdata,cgutils,symtype;
 
+    type
 
+      { ttgz80 }
+
+      ttgz80 = class(ttgobj)
+      public
+        procedure setfirsttemp(l: asizeint); override;
+      end;
+
+implementation
+
+uses
+  globals,
+  verbose,
+  cpubase,
+  cutils;
+
+{ ttgz80 }
+
+procedure ttgz80.setfirsttemp(l: asizeint);
+  begin
+    { this is a negative value normally }
+    if l*direction<0 then
+      internalerror(200204221);
+    firsttemp:=l;
+    lasttemp:=l;
+{$ifdef EXTDEBUG}
+    Comment(V_Note,'tgobj: (SetFirstTemp) set to '+tostr(l));
+{$endif}
+  end;
+
+begin
+  tgobjclass:=ttgz80;
 end.
