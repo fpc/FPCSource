@@ -195,6 +195,28 @@ procedure RtlUnwindEx(
 
 { FPC specific stuff }
 {$ifdef FPC_USE_WIN64_SEH}
+
+function ContextGetIP(const Context: TContext): PtrUInt; inline;
+begin
+{$if defined(CPUX86_64)}
+  Result := Context.Rip;
+{$endif}
+end;
+
+procedure ContextSetIP(var Context: TContext; IP: PtrUInt); inline;
+begin
+{$if defined(CPUX86_64)}
+  Context.Rip := IP;
+{$endif}
+end;
+
+function ContextGetFP(const Context: TContext): PtrUInt; inline;
+begin
+{$if defined(CPUX86_64)}
+  Result := Context.Rbp;
+{$endif}
+end;
+
 const
   SCOPE_FINALLY=0;
   SCOPE_CATCHALL=1;
@@ -236,18 +258,22 @@ begin
   FrameBufSize:=0;
   Frames:=nil;
   repeat
-    RuntimeFunction:=RtlLookupFunctionEntry(Context.Rip, ImageBase, @UnwindHistory);
+    RuntimeFunction:=RtlLookupFunctionEntry(ContextGetIP(Context), ImageBase, @UnwindHistory);
 
     if Assigned(RuntimeFunction) then
-      RtlVirtualUnwind(UNW_FLAG_NHANDLER, ImageBase, Context.Rip,
+      RtlVirtualUnwind(UNW_FLAG_NHANDLER, ImageBase, ContextGetIP(Context),
         RuntimeFunction, Context, @HandlerData, @EstablisherFrame, nil)
     else  { a leaf function }
     begin
+{$if defined(CPUX86_64)}
       Context.Rip:=PQWord(Context.Rsp)^;
       Inc(Context.Rsp, sizeof(Pointer));
+{$else}
+      ContextSetIP(Context,0);
+{$endif}
     end;
 
-    if (Context.Rip=0) or (FrameCount>=RaiseMaxFrameCount) then
+    if (ContextGetIP(Context)=0) or (FrameCount>=RaiseMaxFrameCount) then
       break;
 
     { The StartingFrame provides a way to skip several initial calls.
@@ -256,14 +282,14 @@ begin
       even in optimized code (i.e. without rbp-based frames). But that's
       limited by factors such as 'raise' syntax. }
 
-    if (Pointer(Context.Rbp)>StartingFrame) or (FrameCount>0) then
+    if (Pointer(ContextGetFP(Context))>StartingFrame) or (FrameCount>0) then
     begin
       if (FrameCount>=FrameBufSize) then
         begin
           Inc(FrameBufSize,16);
           ReallocMem(Frames,FrameBufSize*sizeof(Pointer));
         end;
-      Frames[FrameCount]:=Pointer(Context.Rip);
+      Frames[FrameCount]:=Pointer(ContextGetIP(Context));
       Inc(FrameCount);
     end;
   until False;
@@ -387,7 +413,7 @@ begin
   if (rec.ExceptionFlags and EXCEPTION_UNWIND)=0 then
   begin
     { Athlon prefetch bug? }
-    if (rec.ExceptionCode=STATUS_ACCESS_VIOLATION) and is_prefetch(pointer(Context.rip)) then
+    if (rec.ExceptionCode=STATUS_ACCESS_VIOLATION) and is_prefetch(pointer(ContextGetIP(Context))) then
     begin
       result:=ExceptionContinueExecution;
       exit;
@@ -477,7 +503,7 @@ begin
         (scope^.Typ<>SCOPE_FINALLY)then
       begin
         { Athlon prefetch bug? }
-        if (rec.ExceptionCode=STATUS_ACCESS_VIOLATION) and is_prefetch(pointer(Context.rip)) then
+        if (rec.ExceptionCode=STATUS_ACCESS_VIOLATION) and is_prefetch(pointer(ContextGetIP(Context))) then
         begin
           result:=ExceptionContinueExecution;
           exit;
@@ -535,7 +561,7 @@ begin
         if IsConsole then
           writeln(stderr,'calling handler @',hexstr(dispatch.imagebase+scope^.RvaHandler,16));
 {$endif DEBUG_SEH}
-        TUnwindProc(dispatch.ImageBase+scope^.RvaHandler)(context.rbp);
+        TUnwindProc(dispatch.ImageBase+scope^.RvaHandler)(ContextGetFP(context));
       end;
       Inc(ScopeIdx);
     end;
