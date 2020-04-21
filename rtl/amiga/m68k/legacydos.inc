@@ -186,21 +186,38 @@ begin
 end;
 
 function LockDosList(flags: Cardinal): PDosList; public name '_fpc_amiga_lockdoslist';
+var
+  dosInfo: PDosInfo;
 begin
-{$warning LockDosList unimplemented!}
-  LockDosList:=nil;
+  dosInfo:=PDosInfo(PRootNode(PDosLibrary(AOS_DOSBase)^.dl_Root)^.rn_Info shl 2);
+  { Actually, DOS v36+ also does Forbid(); in its LockDosList for
+    compatibility with old programs (KB) }
+  Forbid();
+  LockDosList:=PDosList(dosInfo^.di_DevInfo shl 2);
 end;
 
 procedure UnLockDosList(flags: Cardinal); public name '_fpc_amiga_unlockdoslist';
 begin
-{$warning UnlockDosList unimplemented!}
+  { To pair with the Forbid(); in LockDosList, see comment there (KB) }
+  Permit();
 end;
 
 function NextDosEntry(dlist: PDosList;
                       flags: Cardinal): PDosList; public name '_fpc_amiga_nextdosentry';
 begin
-{$warning NextDosEntry unimplemented!}
-  NextDosEntry:=nil;
+  while true do
+    begin
+      dlist:=PDosList(dlist^.dol_Next shl 2);
+      if dlist = nil then
+        break;
+      { Again, this only supports what's really needed for the RTL at the time of writing
+        this code, feel free to extend (KB) }
+      if (((flags and LDF_VOLUMES) = LDF_VOLUMES) and (dlist^.dol_Type = DLT_VOLUME)) or
+         (((flags and LDF_DEVICES) = LDF_DEVICES) and (dlist^.dol_Type = DLT_DEVICE)) then
+        break;
+    end;
+
+  NextDosEntry:=dlist;
 end;
 
 // Very first dirty version of MatchFirst/Next/End)
@@ -293,7 +310,7 @@ begin
       // copy the fileinfoblock into the chain
       Move(ib, NChain^.an_Info, SizeOf(TFileInfoBlock));
     end;
-  until Res = 0; // useless... we jump oput earlier
+  until Res = 0; // useless... we jump out earlier
   //
   // if we found something
   if Assigned(Anchor^.ap_Last) then
