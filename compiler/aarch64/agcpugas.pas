@@ -30,7 +30,7 @@ unit agcpugas;
 
     uses
        globtype,systems,
-       aasmtai,
+       aasmtai,aasmbase,
        assemble,aggas,
        cpubase,cpuinfo;
 
@@ -50,6 +50,8 @@ unit agcpugas;
       TAArch64ClangGASAssembler=class(TGNUassembler)
       private
         function TargetStr:String;
+      protected
+        function sectionflags(secflags:TSectionFlags):string;override;
       public
         function MakeCmdLine:TCmdStr; override;
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
@@ -116,6 +118,18 @@ unit agcpugas;
           else
             internalerror(2020032201);
         end;
+      end;
+
+
+    function TAArch64ClangGASAssembler.sectionflags(secflags:TSectionFlags):string;
+      begin
+        Result:=inherited sectionflags(secflags);
+        if (target_info.system=system_aarch64_win64) then
+          begin
+            { we require an explicit "r" if write is not allowed }
+            if not (SF_W in secflags) then
+              result:=result+'r';
+          end;
       end;
 
 
