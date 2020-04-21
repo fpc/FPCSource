@@ -49,6 +49,7 @@ interface
         function sectionattrs(atype:TAsmSectiontype):string;virtual;
         function sectionattrs_coff(atype:TAsmSectiontype):string;virtual;
         function sectionalignment_aix(atype:TAsmSectiontype;secalign: longint):string;
+        function sectionflags(secflags:TSectionFlags):string;virtual;
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;
           secflags:TSectionFlags=[];secprogbits:TSectionProgbits=SPB_None);virtual;
         procedure WriteExtraHeader;virtual;
@@ -454,6 +455,24 @@ implementation
       end;
 
 
+    function TGNUAssembler.sectionflags(secflags:TSectionFlags):string;
+      var
+        secflag : TSectionFlag;
+      begin
+        result:='';
+        for secflag in secflags do begin
+          case secflag of
+            SF_A:
+              result:=result+'a';
+            SF_W:
+              result:=result+'w';
+            SF_X:
+              result:=result+'x';
+          end;
+        end;
+      end;
+
+
     function TGNUAssembler.sectionalignment_aix(atype:TAsmSectiontype;secalign: longint): string;
       var
         l: longint;
@@ -544,16 +563,7 @@ implementation
           begin
             if usesectionflags then
               begin
-                s:=',"';
-                for secflag in secflags do
-                  case secflag of
-                    SF_A:
-                      s:=s+'a';
-                    SF_W:
-                      s:=s+'w';
-                    SF_X:
-                      s:=s+'x';
-                  end;
+                s:=',"'+sectionflags(secflags);
                 writer.AsmWrite(s+'"');
               end;
             if usesectionprogbits then
