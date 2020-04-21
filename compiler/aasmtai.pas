@@ -2072,7 +2072,7 @@ implementation
             result:=8;
           aitconst_secrel32_symbol,
           aitconst_rva_symbol :
-            if target_info.system=system_x86_64_win64 then
+            if target_info.system in systems_peoptplus then
               result:=sizeof(longint)
             else
               result:=sizeof(pint);

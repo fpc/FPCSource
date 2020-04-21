@@ -2884,11 +2884,11 @@ const pemagic : array[0..3] of byte = (
         begin
           { idata4 }
           idata4objsection.writezeros(sizeof(longint));
-          if target_info.system=system_x86_64_win64 then
+          if target_info.system in systems_peoptplus then
             idata4objsection.writezeros(sizeof(longint));
           { idata5 }
           idata5objsection.writezeros(sizeof(longint));
-          if target_info.system=system_x86_64_win64 then
+          if target_info.system in systems_peoptplus then
             idata5objsection.writezeros(sizeof(longint));
         end;
 
@@ -2915,14 +2915,14 @@ const pemagic : array[0..3] of byte = (
             if AOrdNr <= 0 then
               begin
                 objsec.writereloc_internal(idata6objsection,idata6objsection.size,sizeof(longint),RELOC_RVA);
-                if target_info.system=system_x86_64_win64 then
+                if target_info.system in systems_peoptplus then
                   objsec.writezeros(sizeof(longint));
               end
             else
               begin
                 { import by ordinal }
                 ordint:=AOrdNr;
-                if target_info.system=system_x86_64_win64 then
+                if target_info.system in systems_peoptplus then
                   begin
                     objsec.write(ordint,sizeof(ordint));
                     ordint:=$80000000;

@@ -376,6 +376,11 @@ interface
                                    system_riscv32_linux,system_riscv64_linux
                                   ]+systems_darwin+systems_amigalike;
 
+       { all systems that use the PE+ header in the PE/COFF file
+         Note: this is here and not in ogcoff, because it's required in other
+               units as well }
+       systems_peoptplus = [system_x86_64_win64];
+
        { all systems that use garbage collection for reference-counted types }
        systems_garbage_collected_managed_types = [
          system_jvm_java32,

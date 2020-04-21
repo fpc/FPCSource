@@ -251,12 +251,12 @@ implementation
           { idata4 }
           objdata.SetSection(idata4objsection);
           objdata.writebytes(emptyint,sizeof(emptyint));
-          if target_info.system=system_x86_64_win64 then
+          if target_info.system in systems_peoptplus then
             objdata.writebytes(emptyint,sizeof(emptyint));
           { idata5 }
           objdata.SetSection(idata5objsection);
           objdata.writebytes(emptyint,sizeof(emptyint));
-          if target_info.system=system_x86_64_win64 then
+          if target_info.system in systems_peoptplus then
             objdata.writebytes(emptyint,sizeof(emptyint));
           { idata7 }
           objdata.SetSection(idata7objsection);
@@ -311,14 +311,14 @@ implementation
               begin
                 { import by name }
                 objdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
-                if target_info.system=system_x86_64_win64 then
+                if target_info.system in systems_peoptplus then
                   objdata.writebytes(emptyint,sizeof(emptyint));
               end
             else
               begin
                 { import by ordinal }
                 ordint:=ordnr;
-                if target_info.system=system_x86_64_win64 then
+                if target_info.system in systems_peoptplus then
                   begin
                     objdata.writebytes(ordint,sizeof(ordint));
                     ordint:=$80000000;
@@ -487,12 +487,12 @@ implementation
                 if ImportSymbol.Name<>'' then
                   begin
                     current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(TAsmLabel(ImportLabels[j])));
-                    if target_info.system=system_x86_64_win64 then
+                    if target_info.system in systems_peoptplus then
                       current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
                   end
                 else
                   begin
-                    if target_info.system=system_x86_64_win64 then
+                    if target_info.system in systems_peoptplus then
                       current_asmdata.asmlists[al_imports].concat(Tai_const.Create_64bit(int64($8000000000000000) or ImportSymbol.ordnr))
                     else
                       current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(longint($80000000) or ImportSymbol.ordnr));
@@ -500,7 +500,7 @@ implementation
               end;
             { finalize the names ... }
             current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
-            if target_info.system=system_x86_64_win64 then
+            if target_info.system in systems_peoptplus then
               current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
 
             { then the addresses and create also the indirect jump }
@@ -573,12 +573,12 @@ implementation
                 else
                   current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ImportSymbol.MangledName,AT_DATA,0,voidpointertype));
                 current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(TAsmLabel(Importlabels[j])));
-                if target_info.system=system_x86_64_win64 then
+                if target_info.system in systems_peoptplus then
                   current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
               end;
             { finalize the addresses }
             current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
-            if target_info.system=system_x86_64_win64 then
+            if target_info.system in systems_peoptplus then
               current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
 
             { finally the import information }
