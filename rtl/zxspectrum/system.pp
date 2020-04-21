@@ -1,9 +1,16 @@
 unit system;
 
-{$mode objfpc}
-
 interface
 
+{$ifdef FULL_RTL}
+
+{$define FPC_IS_SYSTEM}
+
+{$I systemh.inc}
+
+{$else FULL_RTL}
+
+{$mode objfpc}
 Type
   dword = longword;
   integer = smallint;
@@ -53,6 +60,7 @@ Type
 
 procedure fpc_InitializeUnits;compilerproc;
 Procedure fpc_do_exit;compilerproc;
+{$endif FULL_RTL}
 
 { OpenChannel(2) opens the upper screen
   OpenChannel(1) opens the lower screen
@@ -70,6 +78,10 @@ function ReadKey: Char;
 function KeyPressed: Boolean;
 
 implementation
+
+{$ifdef FULL_RTL}
+{$I system.inc}
+{$endif FULL_RTL}
 
 var
   save_iy: Word; public name 'FPC_SAVE_IY';
