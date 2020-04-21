@@ -4144,6 +4144,7 @@ A*2Twince_Windows CE
 a*2Tandroid_Android
 a*2Tdarwin_Darwin/iOS
 a*2Tlinux_Linux
+a*2Twin64_Windows 64
 # jvm targets
 J*2Tandroid_Android
 J*2Tjava_Java
