@@ -42,7 +42,7 @@ implementation
 
     uses
       systems,
-      verbose,globals,constexp,
+      verbose,globals,constexp,cutils,
       symconst,symdef,defutil,
       paramgr,
       cpuinfo,
@@ -254,24 +254,37 @@ implementation
         { and finally jump }
         current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_BR,jumpreg));
         { generate jump table }
-        if not(target_info.system in systems_darwin) then
-          sectype:=sec_rodata
+        if target_info.system=system_aarch64_win64 then
+          begin
+            { for Windows we need to make sure that the jump table is located in the
+              same section as the corresponding code as for one clang generates a
+              ABSOLUTE32 relocation that can not be handled correctly and armasm64
+              rejects the difference entries due to the symbols being located in
+              different sections }
+            sectype:=sec_code;
+            new_section(current_procinfo.aktlocaldata,sectype,lower(current_procinfo.procdef.mangledname),getprocalign);
+          end
         else
           begin
-            { on Mac OS X, dead code stripping ("smart linking") happens based on
-              global symbols: every global/static symbol (symbols that do not
-              start with "L") marks the start of a new "subsection" that is
-              discarded by the linker if there are no references to this symbol.
-              This means that if you put the jump table in the rodata section, it
-              will become part of the block of data associated with the previous
-              non-L-label in the rodata section and stay or be thrown away
-              depending on whether that block of data is referenced. Therefore,
-              jump tables must be added in the code section and since aktlocaldata
-              is inserted right after the routine, it will become part of the
-              same subsection that contains the routine's code }
-            sectype:=sec_code;
+            if not(target_info.system in systems_darwin) then
+              sectype:=sec_rodata
+            else
+              begin
+                { on Mac OS X, dead code stripping ("smart linking") happens based on
+                  global symbols: every global/static symbol (symbols that do not
+                  start with "L") marks the start of a new "subsection" that is
+                  discarded by the linker if there are no references to this symbol.
+                  This means that if you put the jump table in the rodata section, it
+                  will become part of the block of data associated with the previous
+                  non-L-label in the rodata section and stay or be thrown away
+                  depending on whether that block of data is referenced. Therefore,
+                  jump tables must be added in the code section and since aktlocaldata
+                  is inserted right after the routine, it will become part of the
+                  same subsection that contains the routine's code }
+                sectype:=sec_code;
+              end;
+            new_section(current_procinfo.aktlocaldata,sectype,current_procinfo.procdef.mangledname,4);
           end;
-        new_section(current_procinfo.aktlocaldata,sectype,current_procinfo.procdef.mangledname,4);
         if target_info.system in systems_darwin then
           begin
             { additionally, these tables are now marked via ".data_region jt32"
