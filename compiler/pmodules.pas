@@ -1963,7 +1963,7 @@ type
          sc:=nil;
 
          { DLL defaults to create reloc info }
-         if islibrary then
+         if islibrary or (target_info.system in [system_aarch64_win64]) then
            begin
              if not RelocSectionSetExplicitly then
                RelocSection:=true;
