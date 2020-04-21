@@ -2343,9 +2343,7 @@ const pemagic : array[0..3] of byte = (
                  begin
                    if (Pos('.edata',secname)=1) or
                       (Pos('.rsrc',secname)=1) or
-{$ifndef x86_64}
-                      (Pos('.pdata',secname)=1) or
-{$endif}
+                      ((target_info.system=system_arm_wince) and (Pos('.pdata',secname)=1)) or
                       (Pos('.fpc',secname)=1) then
                      include(secoptions,oso_keep);
                    if (Pos('.idata',secname)=1) then
