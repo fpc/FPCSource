@@ -432,7 +432,10 @@ implementation
 
           { TODO: these need a fix to become read-only }
           sec_rodata, sec_rodata_norel:
-            result:='d';
+            if target_info.system=system_aarch64_win64 then
+              result:='r'
+            else
+              result:='d';
 
           sec_bss:
             result:='b';
