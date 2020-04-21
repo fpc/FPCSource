@@ -30,11 +30,15 @@ interface
 {$define FPC_SYSTEM_HAS_SYSDLH}
 {$define FPC_HAS_SETCTRLBREAKHANDLER}
 
-{$ifdef FPC_USE_WIN64_SEH}
+{$if defined(FPC_USE_WIN64_SEH)}
+{$define SYSTEM_USE_WIN_SEH}
+{$endif}
+
+{$ifdef SYSTEM_USE_WIN_SEH}
   {$define FPC_SYSTEM_HAS_RAISEEXCEPTION}
   {$define FPC_SYSTEM_HAS_RERAISE}
   {$define FPC_SYSTEM_HAS_CAPTUREBACKTRACE}
-{$endif FPC_USE_WIN64_SEH}
+{$endif SYSTEM_USE_WIN_SEH}
 
 { include system-independent routine headers }
 {$I systemh.inc}
@@ -148,9 +152,9 @@ end;
                          System Dependent Exit code
 *****************************************************************************}
 
-{$ifndef FPC_USE_WIN64_SEH}
+{$ifndef SYSTEM_USE_WIN_SEH}
 procedure install_exception_handlers;forward;
-{$endif FPC_USE_WIN64_SEH}
+{$endif SYSTEM_USE_WIN_SEH}
 {$ifdef VER3_0}
 procedure PascalMain;external name 'PASCALMAIN';
 {$endif VER3_0}
@@ -219,9 +223,9 @@ procedure Exe_entry(constref info: TEntryInformation);[public,alias:'_FPC_EXE_En
      IsLibrary:=false;
      { install the handlers for exe only ?
        or should we install them for DLL also ? (PM) }
-{$ifndef FPC_USE_WIN64_SEH}
+{$ifndef SYSTEM_USE_WIN_SEH}
      install_exception_handlers;
-{$endif FPC_USE_WIN64_SEH}
+{$endif SYSTEM_USE_WIN_SEH}
      ExitCode:=0;
 {$ifdef CPUX86_64}
      asm
@@ -333,7 +337,7 @@ type
 function AddVectoredExceptionHandler(FirstHandler : DWORD;VectoredHandler : TVectoredExceptionHandler) : longint;
         external 'kernel32' name 'AddVectoredExceptionHandler';
 
-{$ifndef FPC_USE_WIN64_SEH}
+{$ifndef SYSTEM_USE_WIN_SEH}
 const
   MaxExceptionLevel = 16;
   exceptLevel : Byte = 0;
@@ -509,7 +513,7 @@ procedure install_exception_handlers;
   begin
     AddVectoredExceptionHandler(1,@syswin64_x86_64_exception_handler);
   end;
-{$endif ndef FPC_USE_WIN64_SEH}
+{$endif ndef SYSTEM_USE_WIN_SEH}
 
 {$ifdef VER3_0}
 procedure LinkIn(p1,p2,p3: Pointer); inline;

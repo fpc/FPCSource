@@ -194,7 +194,7 @@ procedure RtlUnwindEx(
 
 
 { FPC specific stuff }
-{$ifdef FPC_USE_WIN64_SEH}
+{$ifdef SYSTEM_USE_WIN_SEH}
 
 function ContextGetIP(const Context: TContext): PtrUInt; inline;
 begin
@@ -571,5 +571,5 @@ begin
     end;
   end;
 end;
-{$endif FPC_USE_WIN64_SEH}
+{$endif SYSTEM_USE_WIN_SEH}
 
