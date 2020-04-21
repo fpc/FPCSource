@@ -138,7 +138,7 @@ interface
         { watcom }  ( true,  false, false, false ,false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,   false),
         { morphos } ( false, false, true,  false ,false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,   false),
         { netwlibc }( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,   false),
-        { win64   } ( false, false, false, false, true,  false, false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,   false),
+        { win64   } ( false, false, false, false, true,  false, false, false, false, false, false, false, false, false,   false, false, true,  false, false, false,  false,   false),
         { wince    }( true,  false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,   false),
         { gba    }  ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,   false),
         { nds    }  ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,   false),
