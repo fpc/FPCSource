@@ -280,6 +280,7 @@ begin
 end;
 {$endif VER3_0}
 
+{$ifdef CPUX86_64}
 function is_prefetch(p : pointer) : boolean;
   var
     a : array[0..15] of byte;
@@ -317,6 +318,7 @@ function is_prefetch(p : pointer) : boolean;
         inc(i);
       end;
   end;
+{$endif}
 
 
 //
