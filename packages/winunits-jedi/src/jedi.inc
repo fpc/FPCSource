@@ -401,7 +401,9 @@
 { Set FreePascal to Delphi mode }
 {$IFDEF FPC}
   {$MODE DELPHI}
-  {$ASMMODE Intel}  
+  {$IF DEFINED(CPUI386) OR DEFINED(CPUX86_64)}
+  {$ASMMODE Intel}
+  {$ENDIF CPUI386 OR CPUX86_64}
   {$UNDEF BORLAND}
    // FPC defines CPU* and Unix automatically
 {$ENDIF}
