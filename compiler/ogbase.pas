@@ -404,7 +404,7 @@ interface
        destructor  destroy;override;
        { Sections }
        function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;abstract;
-       class function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;virtual;
+       class function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;
        function  sectiontype2align(atype:TAsmSectiontype):longint;virtual;
        class procedure sectiontype2progbitsandflags(atype:TAsmSectiontype;out progbits:TSectionProgbits;out flags:TSectionFlags);virtual;
        function  createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;virtual;
@@ -743,7 +743,11 @@ implementation
 
     uses
       SysUtils,
-      globals,verbose,ogmap;
+      globals,verbose,
+{$ifdef OMFOBJSUPPORT}
+      omfbase,
+{$endif OMFOBJSUPPORT}
+      ogmap;
 
 {$ifdef MEMDEBUG}
     var
@@ -1290,7 +1294,20 @@ implementation
           {arm_attribute} [oso_data]
         );
       begin
+        if (aType in [sec_rodata,sec_rodata_norel]) then
+          begin
+            if (target_info.system in systems_all_windows) then
+              aType:=sec_rodata_norel
+            else
+              aType:=sec_data;
+          end;
         result:=secoptions[atype];
+{$ifdef OMFOBJSUPPORT}
+        { in the huge memory model, BSS data is actually written in the regular
+          FAR_DATA segment of the module }
+        if omf_segclass(atype)='FAR_DATA' then
+          Result:=Result+[oso_data,oso_sparse_data];
+{$endif OMFOBJSUPPORT}
       end;
 
 

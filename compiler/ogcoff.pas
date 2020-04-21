@@ -133,7 +133,6 @@ interface
          constructor createcoff(const n:string;awin32:boolean;acObjSection:TObjSectionClass);
          procedure CreateDebugSections;override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
-         class function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;override;
          procedure writereloc(data:aint;len:aword;p:TObjSymbol;reloctype:TObjRelocationType);override;
        end;
 
@@ -1211,19 +1210,6 @@ const pemagic : array[0..3] of byte = (
             else
               result:=secname;
           end;
-      end;
-
-
-    class function TCoffObjData.sectiontype2options(aType:TAsmSectionType): TObjSectionOptions;
-      begin
-        if (aType in [sec_rodata,sec_rodata_norel]) then
-          begin
-            if (target_info.system in systems_all_windows) then
-              aType:=sec_rodata_norel
-            else
-              aType:=sec_data;
-          end;
-        result:=inherited sectiontype2options(aType);
       end;
 
 
