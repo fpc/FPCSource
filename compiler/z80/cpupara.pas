@@ -42,9 +42,9 @@ unit cpupara;
           function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
          private
-          procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
+          procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: longint);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
-            var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
+            var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: longint):longint;
        end;
 
   implementation
@@ -175,7 +175,7 @@ unit cpupara;
       end;
 
 
-    procedure tcpuparamanager.init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
+    procedure tcpuparamanager.init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: longint);
       begin
         curintreg:=RS_HL;
         curfloatreg:=RS_INVALID;
@@ -186,7 +186,7 @@ unit cpupara;
 
     { TODO : fix tcpuparamanager.create_paraloc_info_intern }
     function tcpuparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
-        var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
+        var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: longint):longint;
 
       var
         nextintreg,nextfloatreg,nextmmreg : tsuperregister;
@@ -391,7 +391,7 @@ unit cpupara;
 
     function tcpuparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
-        cur_stack_offset: aword;
+        cur_stack_offset: longint;
         curintreg, curfloatreg, curmmreg: tsuperregister;
         retcgsize  : tcgsize;
       begin
@@ -531,7 +531,7 @@ unit cpupara;
 
     function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
       var
-        cur_stack_offset: aword;
+        cur_stack_offset: longint;
         curintreg, curfloatreg, curmmreg: tsuperregister;
       begin
         init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
