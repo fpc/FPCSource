@@ -105,7 +105,9 @@ Const
 
 implementation
 
+{$ifdef CPUX86_64}
 {$asmmode att}
+{$endif CPUX86_64}
 
 var
 {$ifdef VER3_0}
@@ -131,11 +133,13 @@ asm
 end;
 {$endif FPC_USE_WIN64_SEH}
 
+{$if defined(CPUX86_64)}
 {$define FPC_SYSTEM_HAS_STACKTOP}
 function StackTop: pointer; assembler;nostackframe;
 asm
    movq  %gs:(8),%rax
 end;
+{$endif}
 
 { include system independent routines }
 {$I system.inc}
@@ -219,6 +223,7 @@ procedure Exe_entry(constref info: TEntryInformation);[public,alias:'_FPC_EXE_En
      install_exception_handlers;
 {$endif FPC_USE_WIN64_SEH}
      ExitCode:=0;
+{$ifdef CPUX86_64}
      asm
         xorq %rax,%rax
         movw %ss,%ax
@@ -246,6 +251,9 @@ procedure Exe_entry(constref info: TEntryInformation);[public,alias:'_FPC_EXE_En
 {$endif VER3_0}
         movq %rsi,%rbp
      end ['RSI','RBP'];     { <-- specifying RSI allows compiler to save/restore it properly }
+{$else CPUX86_64}
+     info.PascalMain();
+{$endif CPUX86_64}
      { if we pass here there was no error ! }
      system_exit;
   end;
@@ -352,10 +360,12 @@ procedure JumpToHandleErrorFrame;
     error : longint;
   begin
     // save ebp
+    {$ifdef CPUX86_64}
     asm
       movq (%rbp),%rax
       movq %rax,rbp
     end;
+    {$endif}
     if exceptLevel>0 then
       dec(exceptLevel);
 
@@ -368,6 +378,7 @@ procedure JumpToHandleErrorFrame;
     if resetFPU[exceptLevel] then
       SysResetFPU;
     { build a fake stack }
+    {$ifdef CPUX86_64}
     asm
       movq   rbp,%r8
       movq   rip,%rdx
@@ -381,6 +392,7 @@ procedure JumpToHandleErrorFrame;
       jmpl   HandleErrorAddrFrame
 {$endif SYSTEMEXCEPTIONDEBUG}
     end;
+    {$endif}
   end;
 
 
