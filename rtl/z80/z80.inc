@@ -21,37 +21,44 @@ procedure fpc_cpuinit;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
-{var
-  pdest,psrc,pend : pbyte;}
-begin
-(*  if (@dest=@source) or (count<=0) then
-    exit;
-  if (@dest<@source) or (@source+count<@dest) then
-    begin
-      { Forward Move }
-      psrc:=@source;
-      pdest:=@dest;
-      pend:=psrc+count;
-      while psrc<pend do
-        begin
-          pdest^:=psrc^;
-          inc(pdest);
-          inc(psrc);
-        end;
-    end
-  else
-    begin
-      { Backward Move }
-      psrc:=@source+count;
-      pdest:=@dest+count;
-      while psrc>@source do
-        begin
-          dec(pdest);
-          dec(psrc);
-          pdest^:=psrc^;
-        end;
-    end;*)
+procedure Move(const source;var dest;count:SizeInt);assembler;[public, alias: 'FPC_MOVE'];
+label
+  skip, forward_move;
+asm
+  ld c, (count)
+  ld b, (count+1)
+  bit 7, b
+  jp NZ, skip
+  ld a, b
+  or a, c
+  jp Z, skip
+
+  ld l, (source)
+  ld h, (source+1)
+  ld e, (dest)
+  ld d, (dest+1)
+
+  ld a, d
+  cp a, h
+  jp C, forward_move
+  ld a, e
+  cp a, l
+  jp C, forward_move
+
+  { backward move }
+  add hl, bc
+  dec hl
+  ex de, hl
+  add hl, bc
+  dec hl
+  ex de, hl
+  lddr
+  jp skip
+
+forward_move:
+  ldir
+
+skip:
 end;
 
 

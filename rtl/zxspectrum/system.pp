@@ -64,6 +64,7 @@ Type
 
 procedure fpc_InitializeUnits;compilerproc;
 Procedure fpc_do_exit;compilerproc;
+procedure Move(const source;var dest;count:SizeInt);
 Procedure FillChar(var x;count:SizeInt;value:byte);
 function get_frame:pointer;
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
