@@ -66,11 +66,27 @@ procedure PrintHexWord(const w: word);
 procedure Ink(colour: Byte);
 procedure Paper(colour: Byte);
 procedure GotoXY(X, Y: Byte);
+function ReadKey: Char;
+function KeyPressed: Boolean;
 
 implementation
 
 var
   save_iy: Word; public name 'FPC_SAVE_IY';
+  LastKey: Char absolute 23560;
+
+function ReadKey: Char;
+begin
+  repeat
+    ReadKey:=LastKey;
+  until ReadKey<>#0;
+  LastKey:=#0;
+end;
+
+function KeyPressed: Boolean;
+begin
+  KeyPressed:=LastKey<>#0;
+end;
 
 procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 begin
