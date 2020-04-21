@@ -30,7 +30,7 @@ interface
 {$define FPC_SYSTEM_HAS_SYSDLH}
 {$define FPC_HAS_SETCTRLBREAKHANDLER}
 
-{$if defined(FPC_USE_WIN64_SEH)}
+{$if defined(FPC_USE_WIN64_SEH) or defined(CPUAARCH64)}
 {$define SYSTEM_USE_WIN_SEH}
 {$endif}
 

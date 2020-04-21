@@ -22,6 +22,11 @@ const
 
   UNW_FLAG_NHANDLER         = 0;
 
+{$ifdef CPUAARCH64}
+  ARM64_MAX_BREAKPOINTS     = 8;
+  ARM64_MAX_WATCHPOINTS     = 2;
+{$endif CPUAARCH64}
+
 type
   PM128A=^M128A;
   M128A = record
@@ -30,6 +35,8 @@ type
   end;
 
   PContext = ^TContext;
+
+{$if defined(CPUX86_64)}
   TContext = record
     P1Home : QWord;
     P2Home : QWord;
@@ -102,7 +109,59 @@ type
     FloatingContext: array[0..15] of PM128A;
     IntegerContext: array[0..15] of PQWord;
   end;
+{$elseif defined(CPUAARCH64)}
+  TContext = record
+    ContextFlags: DWord;
+    Cpsr: DWord;
+    X0: QWord;
+    X1: QWord;
+    X2: QWord;
+    X3: QWord;
+    X4: QWord;
+    X5: QWord;
+    X6: QWord;
+    X7: QWord;
+    X8: QWord;
+    X9: QWord;
+    X10: QWord;
+    X11: QWord;
+    X12: QWord;
+    X13: QWord;
+    X14: QWord;
+    X15: QWord;
+    X16: QWord;
+    X17: QWord;
+    X18: QWord;
+    X19: QWord;
+    X20: QWord;
+    X21: QWord;
+    X22: QWord;
+    X23: QWord;
+    X24: QWord;
+    X25: QWord;
+    X26: QWord;
+    X27: QWord;
+    X28: QWord;
+    Fp: QWord;
+    Lr: QWord;
+    Sp: QWord;
+    Pc: QWord;
+    V: array[0..31] of M128A;
+    Fpcr: DWord;
+    Fpsr: DWord;
+    Bcr: array[0..ARM64_MAX_BREAKPOINTS-1] of DWord;
+    Bvr: array[0..ARM64_MAX_BREAKPOINTS-1] of QWord;
+    Wcr: array[0..ARM64_MAX_WATCHPOINTS-1] of DWord;
+    Wvr: array[0..ARM64_MAX_WATCHPOINTS-1] of QWord;
+  end;
 
+  { This is a simplified definition, only array part of unions }
+  PKNONVOLATILE_CONTEXT_POINTERS=^KNONVOLATILE_CONTEXT_POINTERS;
+  KNONVOLATILE_CONTEXT_POINTERS=record
+    IntegerContext: array[0..12] of PQWord;
+    FloatingContext: array[0..7] of PM128A;
+  end;
+{$endif NOT (X86_64 or AARCH64)}
 
   PExceptionPointers = ^TExceptionPointers;
   TExceptionPointers = record
@@ -118,11 +177,18 @@ type
     DispatcherContext: Pointer ): EXCEPTION_DISPOSITION;
 
   PRUNTIME_FUNCTION=^RUNTIME_FUNCTION;
+{$if defined(CPUX86_64)}
   RUNTIME_FUNCTION=record
     BeginAddress: DWORD;
     EndAddress: DWORD;
     UnwindData: DWORD;
   end;
+{$elseif defined(CPUAARCH64)}
+  RUNTIME_FUNCTION=record
+    BeginAddress: DWORD;
+    UnwindData: DWORD;
+  end;
+{$endif}
 
   UNWIND_HISTORY_TABLE_ENTRY=record
     ImageBase: QWord;
@@ -153,7 +219,12 @@ type
     HandlerData: Pointer;
     HistoryTable: PUNWIND_HISTORY_TABLE;
     ScopeIndex: DWord;
+{$if defined(CPUX86_64)}
     Fill0: DWord;
+{$elseif defined(CPUAARCH64)}
+    ControlPCIsUnwound: Byte;
+    NonVolatileRegisters: PByte;
+{$endif}
   end;
 
 procedure RtlCaptureContext(var ctx: TContext); stdcall;
@@ -200,6 +271,8 @@ function ContextGetIP(const Context: TContext): PtrUInt; inline;
 begin
 {$if defined(CPUX86_64)}
   Result := Context.Rip;
+{$elseif defined(CPUAARCH64)}
+  Result := Context.Pc;
 {$endif}
 end;
 
@@ -207,6 +280,8 @@ procedure ContextSetIP(var Context: TContext; IP: PtrUInt); inline;
 begin
 {$if defined(CPUX86_64)}
   Context.Rip := IP;
+{$elseif defined(CPUAARCH64)}
+  Context.Pc := IP;
 {$endif}
 end;
 
@@ -214,6 +289,8 @@ function ContextGetFP(const Context: TContext): PtrUInt; inline;
 begin
 {$if defined(CPUX86_64)}
   Result := Context.Rbp;
+{$elseif defined(CPUAARCH64)}
+  Result := Context.Fp;
 {$endif}
 end;
 
@@ -268,6 +345,10 @@ begin
 {$if defined(CPUX86_64)}
       Context.Rip:=PQWord(Context.Rsp)^;
       Inc(Context.Rsp, sizeof(Pointer));
+{$elseif defined(CPUAARCH64)}
+      { ToDo }
+      //Context.Pc:=Context.Lr;
+      ContextSetIP(Context,0);
 {$else}
       ContextSetIP(Context,0);
 {$endif}
@@ -300,8 +381,10 @@ end;
 function RunErrorCodeSEH(const rec: TExceptionRecord; const context: TContext): Longint;
 begin
   result:=RunErrorCode(rec);
+{$if defined(CPUX86_64)}
   if (result=-255) then
     TranslateMxcsr(context.MxCsr,result);
+{$endif}
 end;
 
 
