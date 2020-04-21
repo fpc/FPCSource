@@ -2904,7 +2904,7 @@ asmr_e_mismatch_broadcasting_elements=07142_E_Mismatch broadcasting elements (ex
 #
 # Assembler/binary writers
 #
-# 08033 is the last used one
+# 08035 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 % With smartlinking enabled, there are too many assembler
@@ -2960,6 +2960,7 @@ asmw_f_data_segment_too_large=08031_F_Data segment too large
 asmw_e_instruction_not_supported_by_cpu=08032_E_Instruction not supported by the selected instruction set
 asmw_e_brxx_out_of_range=08033_E_Asm: conditional branch destination is out of range
 asmw_e_illegal_use_of_rip=08034_E_Asm: RIP cannot be used as index register or with another register in a reference
+asmw_e_seh_invalid_data_size=08035_F_Illegal function size for SEH function
 #
 # Executing linker/assembler
 #
