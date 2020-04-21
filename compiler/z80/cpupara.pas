@@ -221,7 +221,7 @@ unit cpupara;
                paraloc^.loc:=LOC_REFERENCE;
                paraloc^.reference.index:=NR_STACK_POINTER_REG;
                paraloc^.reference.offset:=stack_offset;
-               dec(stack_offset,2);
+               inc(stack_offset,2);
             end;
         end;
 
