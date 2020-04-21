@@ -47,6 +47,13 @@ unit agcpugas;
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
       end;
 
+      TAArch64ClangGASAssembler=class(TGNUassembler)
+      private
+        function TargetStr:String;
+      public
+        function MakeCmdLine:TCmdStr; override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      end;
 
     const
       gas_shiftmode2str : array[tshiftmode] of string[4] = (
@@ -87,6 +94,35 @@ unit agcpugas;
       begin
         inherited;
         InstrWriter := TAArch64InstrWriter.create(self);
+      end;
+
+
+{****************************************************************************}
+{                      CLang AArch64 Assembler writer                        }
+{****************************************************************************}
+
+    constructor TAArch64CLangGASAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+      begin
+        inherited;
+        InstrWriter := TAArch64InstrWriter.create(self);
+      end;
+
+
+    function TAArch64ClangGASAssembler.TargetStr:String;
+      begin
+        case target_info.system of
+          system_aarch64_win64:
+            result:='aarch64-windows';
+          else
+            internalerror(2020032201);
+        end;
+      end;
+
+
+    function TAArch64ClangGASAssembler.MakeCmdLine:TCmdStr;
+      begin
+        Result:=inherited MakeCmdLine;
+        Replace(Result,'$TARGET',TargetStr);
       end;
 
 
@@ -305,8 +341,22 @@ unit agcpugas;
             dollarsign: '$';
           );
 
+       as_aarch64_clang_gas_info : tasminfo =
+          (
+            id     : as_clang_gas;
+            idtxt  : 'CLANG';
+            asmbin : 'clang';
+            asmcmd : '-c -o $OBJ $EXTRAOPT -target $TARGET -x assembler $ASM';
+            supported_targets : [system_aarch64_win64];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            labelprefix : '.L';
+            comment : '// ';
+            dollarsign: '$';
+          );
+
 
 begin
   RegisterAssembler(as_aarch64_gas_info,TAArch64Assembler);
   RegisterAssembler(as_aarch64_clang_darwin_info,TAArch64AppleAssembler);
+  RegisterAssembler(as_aarch64_clang_gas_info,TAArch64ClangGASAssembler);
 end.
