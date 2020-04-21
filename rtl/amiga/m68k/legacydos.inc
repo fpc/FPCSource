@@ -175,6 +175,8 @@ function NameFromFH(fh    : BPTR;
                     len   : LongInt): LongBool; public name '_fpc_amiga_namefromfh';
 begin
 {$warning NameFromFH unimplemented!}
+  { note that this is only used in sysutils/FileSetDate, but because SetFileDate() (see below)
+    is not easily possible on KS1.x, so it might not be needed to implement this at all (KB) }
   NameFromFH:=false;
 end;
 
@@ -182,6 +184,12 @@ function ExamineFH(fh : BPTR;
                    fib: PFileInfoBlock): LongBool; public name '_fpc_amiga_examinefh';
 begin
 {$warning ExamineFH unimplemented!}
+  { ExamineFH is only used to determine file size, in sysfile.inc/do_filesize(),
+    but this code is already always falling back to double-seek method on KS1.x, and in
+    other location is sysutils/FileGetDate(), which deals with this function returning
+    false. Note that ExamineFH can fail on newer Amiga systems as well, because the
+    underlying FS needs to support ACTION_EXAMINE_FH which some FSes known not to do,
+    so the only difference is right now that it always fails on KS1.x... }
   ExamineFH:=false;
 end;
 
@@ -404,6 +412,8 @@ function SetFileDate(name: PChar;
                      date: PDateStamp): LongBool; public name '_fpc_amiga_setfiledate';
 begin
 {$warning SetFileDate unimplemented!}
+  { Might not be possible to implement, or implement with a reasonable effort on KS1.x (KS) }
+  { Used in: dos/SetFTime, sysutils/FileSetDate }
   SetFileDate:=false;
 end;
 
@@ -412,6 +422,8 @@ function SetFileSize(fh  : LongInt;
                      mode: LongInt): LongInt; public name '_fpc_amiga_setfilesize';
 begin
 {$warning SetFileSize unimplemented!}
+  { Might not be possible to implement, or implement with a reasonable effort on KS1.x (KS) }
+  { Used in: sysfile.inc/do_truncate, sysutils/FileCreate, sysutils/FileTruncate }
   SetFileSize:=-1;
 end;
 
