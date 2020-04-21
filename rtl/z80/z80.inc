@@ -56,34 +56,32 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-Procedure FillChar(var x;count:SizeInt;value:byte);
+Procedure FillChar(var x;count:SizeInt;value:byte);assembler;
 label
   skip, loop;
-begin
-  asm
-    ld c, (count)
-    ld b, (count+1)
-    bit 7, b
-    jp NZ, skip
+asm
+  ld c, (count)
+  ld b, (count+1)
+  bit 7, b
+  jp NZ, skip
 
-    ld a, b
-    or a, c
-    jp Z, skip
+  ld a, b
+  or a, c
+  jp Z, skip
 
-    ld e, (value)
-    ld a, 0
-    ld l, (x)
-    ld h, (x+1)
+  ld e, (value)
+  ld a, 0
+  ld l, (x)
+  ld h, (x+1)
 loop:
-    ld (hl), e
-    inc hl
-    dec bc
-    cp a, c
-    jp NZ, loop
-    cp a, b
-    jp NZ, loop
+  ld (hl), e
+  inc hl
+  dec bc
+  cp a, c
+  jp NZ, loop
+  cp a, b
+  jp NZ, loop
 skip:
-  end;
 end;
 
 
