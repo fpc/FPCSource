@@ -2959,7 +2959,7 @@ const pemagic : array[0..3] of byte = (
         objreloc:TObjRelocation;
         i,j:longint;
       begin
-        if target_info.system<>system_x86_64_win64 then
+        if not (target_info.system in [system_x86_64_win64,system_aarch64_win64]) then
           exit;
         exesec:=FindExeSection('.pdata');
         if exesec=nil then
@@ -2989,7 +2989,10 @@ const pemagic : array[0..3] of byte = (
                         .eh_frame sections. }
                     break;
                   end;
-                inc(j,3);
+                if target_info.system=system_aarch64_win64 then
+                  inc(j,2)
+                else
+                  inc(j,3);
               end;
           end;
       end;

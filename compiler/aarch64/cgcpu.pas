@@ -124,10 +124,11 @@ interface
 implementation
 
   uses
-    globals,verbose,systems,cutils,
+    globals,verbose,systems,cutils,cclasses,
     paramgr,fmodule,
     symtable,symsym,
     tgobj,
+    ncgutil,
     procinfo,cpupi;
 
 
@@ -1596,27 +1597,74 @@ implementation
         ref: treference;
         sr: tsuperregister;
         pairreg: tregister;
+        sehreg,sehregp : TAsmSehDirective;
       begin
         result:=0;
         reference_reset_base(ref,NR_SP,-16,ctempposinvalid,16,[]);
         ref.addressmode:=AM_PREINDEXED;
         pairreg:=NR_NO;
-        { store all used registers pairwise }
-        for sr:=lowsr to highsr do
-          if sr in rg[rt].used_in_proc then
-            if pairreg=NR_NO then
-              pairreg:=newreg(rt,sr,sub)
+        { for SEH on Win64 we can only store consecutive register pairs, others
+          need to be stored with STR }
+        if target_info.system=system_aarch64_win64 then
+          begin
+            if rt=R_INTREGISTER then
+              begin
+                sehreg:=ash_savereg_x;
+                sehregp:=ash_saveregp_x;
+              end
+            else if rt=R_MMREGISTER then
+              begin
+                sehreg:=ash_savefreg_x;
+                sehregp:=ash_savefregp_x;
+              end
             else
+              internalerror(2020041304);
+            for sr:=lowsr to highsr do
+              if sr in rg[rt].used_in_proc then
+                if pairreg=NR_NO then
+                  pairreg:=newreg(rt,sr,sub)
+                else
+                  begin
+                    inc(result,16);
+                    if getsupreg(pairreg)=sr-1 then
+                      begin
+                        list.concat(taicpu.op_reg_reg_ref(A_STP,pairreg,newreg(rt,sr,sub),ref));
+                        list.concat(cai_seh_directive.create_reg_offset(sehregp,pairreg,16));
+                        pairreg:=NR_NO;
+                      end
+                    else
+                      begin
+                        list.concat(taicpu.op_reg_ref(A_STR,pairreg,ref));
+                        list.concat(cai_seh_directive.create_reg_offset(sehreg,pairreg,16));
+                        pairreg:=newreg(rt,sr,sub);
+                      end;
+                  end;
+            if pairreg<>NR_NO then
               begin
                 inc(result,16);
-                list.concat(taicpu.op_reg_reg_ref(A_STP,pairreg,newreg(rt,sr,sub),ref));
-                pairreg:=NR_NO
+                list.concat(taicpu.op_reg_ref(A_STR,pairreg,ref));
+                list.concat(cai_seh_directive.create_reg_offset(sehreg,pairreg,16));
               end;
-        { one left -> store twice (stack must be 16 bytes aligned) }
-        if pairreg<>NR_NO then
+          end
+        else
           begin
-            list.concat(taicpu.op_reg_reg_ref(A_STP,pairreg,pairreg,ref));
-            inc(result,16);
+            { store all used registers pairwise }
+            for sr:=lowsr to highsr do
+              if sr in rg[rt].used_in_proc then
+                if pairreg=NR_NO then
+                  pairreg:=newreg(rt,sr,sub)
+                else
+                  begin
+                    inc(result,16);
+                    list.concat(taicpu.op_reg_reg_ref(A_STP,pairreg,newreg(rt,sr,sub),ref));
+                    pairreg:=NR_NO
+                  end;
+            { one left -> store twice (stack must be 16 bytes aligned) }
+            if pairreg<>NR_NO then
+              begin
+                list.concat(taicpu.op_reg_reg_ref(A_STP,pairreg,pairreg,ref));
+                inc(result,16);
+              end;
           end;
       end;
 
@@ -1637,69 +1685,124 @@ implementation
 
     procedure tcgaarch64.g_proc_entry(list: TAsmList; localsize: longint; nostackframe: boolean);
       var
+        hitem: tlinkedlistitem;
+        seh_proc: tai_seh_directive;
+        templist: TAsmList;
+        suppress_endprologue: boolean;
         ref: treference;
         totalstackframesize: longint;
       begin
-        if nostackframe then
-          exit;
-        { stack pointer has to be aligned to 16 bytes at all times }
-        localsize:=align(localsize,16);
+        hitem:=list.last;
+        { pi_has_unwind_info may already be set at this point if there are
+          SEH directives in assembler body. In this case, .seh_endprologue
+          is expected to be one of those directives, and not generated here. }
+        suppress_endprologue:=(pi_has_unwind_info in current_procinfo.flags);
 
-        { save stack pointer and return address }
-        reference_reset_base(ref,NR_SP,-16,ctempposinvalid,16,[]);
-        ref.addressmode:=AM_PREINDEXED;
-        list.concat(taicpu.op_reg_reg_ref(A_STP,NR_FP,NR_LR,ref));
-        { initialise frame pointer }
-        a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_SP,NR_FP);
-
-        totalstackframesize:=localsize;
-        { save modified integer registers }
-        inc(totalstackframesize,
-          save_regs(list,R_INTREGISTER,RS_X19,RS_X28,R_SUBWHOLE));
-        { only the lower 64 bits of the modified vector registers need to be
-          saved; if the caller needs the upper 64 bits, it has to save them
-          itself }
-        inc(totalstackframesize,
-          save_regs(list,R_MMREGISTER,RS_D8,RS_D15,R_SUBMMD));
-
-        { allocate stack space }
-        if localsize<>0 then
+        if not nostackframe then
           begin
+            { stack pointer has to be aligned to 16 bytes at all times }
             localsize:=align(localsize,16);
-            current_procinfo.final_localsize:=localsize;
-            handle_reg_imm12_reg(list,A_SUB,OS_ADDR,NR_SP,localsize,NR_SP,NR_IP0,false,true);
-          end;
-        { By default, we use the frame pointer to access parameters passed via
-          the stack and the stack pointer to address local variables and temps
-          because
-           a) we can use bigger positive than negative offsets (so accessing
-              locals via negative offsets from the frame pointer would be less
-              efficient)
-           b) we don't know the local size while generating the code, so
-              accessing the parameters via the stack pointer is not possible
-              without copying them
-          The problem with this is the get_frame() intrinsic:
-           a) it must return the same value as what we pass as parentfp
-              parameter, since that's how it's used in the TP-style objects unit
-           b) its return value must usable to access all local data from a
-              routine (locals and parameters), since it's all the nested
-              routines have access to
-           c) its return value must be usable to construct a backtrace, as it's
-              also used by the exception handling routines
 
-          The solution we use here, based on something similar that's done in
-          the MIPS port, is to generate all accesses to locals in the routine
-          itself SP-relative, and then after the code is generated and the local
-          size is known (namely, here), we change all SP-relative variables/
-          parameters into FP-relative ones. This means that they'll be accessed
-          less efficiently from nested routines, but those accesses are indirect
-          anyway and at least this way they can be accessed at all
-        }
-        if current_procinfo.has_nestedprocs then
-          begin
-            current_procinfo.procdef.localst.SymList.ForEachCall(@FixupOffsets,@totalstackframesize);
-            current_procinfo.procdef.parast.SymList.ForEachCall(@FixupOffsets,@totalstackframesize);
+            if target_info.system=system_aarch64_win64 then
+              include(current_procinfo.flags,pi_has_unwind_info);
+
+            { save stack pointer and return address }
+            reference_reset_base(ref,NR_SP,-16,ctempposinvalid,16,[]);
+            ref.addressmode:=AM_PREINDEXED;
+            list.concat(taicpu.op_reg_reg_ref(A_STP,NR_FP,NR_LR,ref));
+            if target_info.system=system_aarch64_win64 then
+              list.concat(cai_seh_directive.create_offset(ash_savefplr_x,16));
+            { initialise frame pointer }
+            if current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
+              begin
+                a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_SP,NR_FP);
+                if target_info.system=system_aarch64_win64 then
+                  list.concat(cai_seh_directive.create(ash_setfp));
+              end
+            else
+              begin
+                gen_load_frame_for_exceptfilter(list);
+                localsize:=current_procinfo.maxpushedparasize;
+              end;
+
+            totalstackframesize:=localsize;
+            { save modified integer registers }
+            inc(totalstackframesize,
+              save_regs(list,R_INTREGISTER,RS_X19,RS_X28,R_SUBWHOLE));
+            { only the lower 64 bits of the modified vector registers need to be
+              saved; if the caller needs the upper 64 bits, it has to save them
+              itself }
+            inc(totalstackframesize,
+              save_regs(list,R_MMREGISTER,RS_D8,RS_D15,R_SUBMMD));
+
+            { allocate stack space }
+            if localsize<>0 then
+              begin
+                localsize:=align(localsize,16);
+                current_procinfo.final_localsize:=localsize;
+                handle_reg_imm12_reg(list,A_SUB,OS_ADDR,NR_SP,localsize,NR_SP,NR_IP0,false,true);
+                if target_info.system=system_aarch64_win64 then
+                  list.concat(cai_seh_directive.create_offset(ash_stackalloc,localsize));
+              end;
+            { By default, we use the frame pointer to access parameters passed via
+              the stack and the stack pointer to address local variables and temps
+              because
+               a) we can use bigger positive than negative offsets (so accessing
+                  locals via negative offsets from the frame pointer would be less
+                  efficient)
+               b) we don't know the local size while generating the code, so
+                  accessing the parameters via the stack pointer is not possible
+                  without copying them
+              The problem with this is the get_frame() intrinsic:
+               a) it must return the same value as what we pass as parentfp
+                  parameter, since that's how it's used in the TP-style objects unit
+               b) its return value must usable to access all local data from a
+                  routine (locals and parameters), since it's all the nested
+                  routines have access to
+               c) its return value must be usable to construct a backtrace, as it's
+                  also used by the exception handling routines
+
+              The solution we use here, based on something similar that's done in
+              the MIPS port, is to generate all accesses to locals in the routine
+              itself SP-relative, and then after the code is generated and the local
+              size is known (namely, here), we change all SP-relative variables/
+              parameters into FP-relative ones. This means that they'll be accessed
+              less efficiently from nested routines, but those accesses are indirect
+              anyway and at least this way they can be accessed at all
+            }
+            if current_procinfo.has_nestedprocs or
+               (
+                 (target_info.system=system_aarch64_win64) and
+                 (current_procinfo.flags*[pi_has_implicit_finally,pi_needs_implicit_finally,pi_uses_exceptions]<>[])
+               ) then
+              begin
+                current_procinfo.procdef.localst.SymList.ForEachCall(@FixupOffsets,@totalstackframesize);
+                current_procinfo.procdef.parast.SymList.ForEachCall(@FixupOffsets,@totalstackframesize);
+              end;
           end;
+
+        if not (pi_has_unwind_info in current_procinfo.flags) then
+          exit;
+
+        { Generate unwind data for aarch64-win64 }
+        seh_proc:=cai_seh_directive.create_name(ash_proc,current_procinfo.procdef.mangledname);
+        if assigned(hitem) then
+          list.insertafter(seh_proc,hitem)
+        else
+          list.insert(seh_proc);
+        { the directive creates another section }
+        inc(list.section_count);
+        templist:=TAsmList.Create;
+
+        if not suppress_endprologue then
+          begin
+            templist.concat(cai_seh_directive.create(ash_endprologue));
+          end;
+        if assigned(current_procinfo.endprologue_ai) then
+          current_procinfo.aktproccode.insertlistafter(current_procinfo.endprologue_ai,templist)
+        else
+          list.concatlist(templist);
+        templist.free;
       end;
 
 
@@ -1720,35 +1823,76 @@ implementation
         ref: treference;
         sr, highestsetsr: tsuperregister;
         pairreg: tregister;
+        i,
         regcount: longint;
+        aiarr : array of tai;
       begin
         reference_reset_base(ref,NR_SP,16,ctempposinvalid,16,[]);
         ref.addressmode:=AM_POSTINDEXED;
-        { highest reg stored twice? }
         regcount:=0;
-        highestsetsr:=RS_NO;
-        for sr:=lowsr to highsr do
-          if sr in rg[rt].used_in_proc then
-            begin
-              inc(regcount);
-              highestsetsr:=sr;
-            end;
-        if odd(regcount) then
+        { due to SEH on Win64 we can only load consecutive registers and single
+          ones are done using LDR, so we need to handle this differently there }
+        if target_info.system=system_aarch64_win64 then
           begin
-            list.concat(taicpu.op_reg_ref(A_LDR,newreg(rt,highestsetsr,sub),ref));
-            highestsetsr:=pred(highestsetsr);
-          end;
-        { load all (other) used registers pairwise }
-        pairreg:=NR_NO;
-        for sr:=highestsetsr downto lowsr do
-          if sr in rg[rt].used_in_proc then
-            if pairreg=NR_NO then
-              pairreg:=newreg(rt,sr,sub)
-            else
+            setlength(aiarr,highsr-lowsr+1);
+            pairreg:=NR_NO;
+            for sr:=lowsr to highsr do
+              if sr in rg[rt].used_in_proc then
+                begin
+                  if pairreg=NR_NO then
+                    pairreg:=newreg(rt,sr,sub)
+                  else
+                    begin
+                      if getsupreg(pairreg)=sr-1 then
+                        begin
+                          aiarr[regcount]:=taicpu.op_reg_reg_ref(A_LDP,pairreg,newreg(rt,sr,sub),ref);
+                          inc(regcount);
+                          pairreg:=NR_NO;
+                        end
+                      else
+                        begin
+                          aiarr[regcount]:=taicpu.op_reg_ref(A_LDR,pairreg,ref);
+                          inc(regcount);
+                          pairreg:=newreg(rt,sr,sub);
+                        end;
+                    end;
+                end;
+            if pairreg<>NR_NO then
               begin
-                list.concat(taicpu.op_reg_reg_ref(A_LDP,newreg(rt,sr,sub),pairreg,ref));
-                pairreg:=NR_NO
+                aiarr[regcount]:=taicpu.op_reg_ref(A_LDR,pairreg,ref);
+                inc(regcount);
+                pairreg:=NR_NO;
               end;
+            for i:=regcount-1 downto 0 do
+              list.concat(aiarr[i]);
+          end
+        else
+          begin
+            { highest reg stored twice? }
+            highestsetsr:=RS_NO;
+            for sr:=lowsr to highsr do
+              if sr in rg[rt].used_in_proc then
+                begin
+                  inc(regcount);
+                  highestsetsr:=sr;
+                end;
+            if odd(regcount) then
+              begin
+                list.concat(taicpu.op_reg_ref(A_LDR,newreg(rt,highestsetsr,sub),ref));
+                highestsetsr:=pred(highestsetsr);
+              end;
+            { load all (other) used registers pairwise }
+            pairreg:=NR_NO;
+            for sr:=highestsetsr downto lowsr do
+              if sr in rg[rt].used_in_proc then
+                if pairreg=NR_NO then
+                  pairreg:=newreg(rt,sr,sub)
+                else
+                  begin
+                    list.concat(taicpu.op_reg_reg_ref(A_LDP,newreg(rt,sr,sub),pairreg,ref));
+                    pairreg:=NR_NO
+                  end;
+          end;
         { There can't be any register left }
         if pairreg<>NR_NO then
           internalerror(2014112602);
@@ -1807,6 +1951,11 @@ implementation
 
         { return }
         list.concat(taicpu.op_none(A_RET));
+        if (pi_has_unwind_info in current_procinfo.flags) then
+          begin
+            tcpuprocinfo(current_procinfo).dump_scopes(list);
+            list.concat(cai_seh_directive.create(ash_endproc));
+          end;
       end;
 
 

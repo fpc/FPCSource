@@ -1973,7 +1973,12 @@ implementation
             cg.set_regalloc_live_range_direction(rad_forward);
 
             if assigned(finalize_procinfo) then
-              generate_exceptfilter(tcgprocinfo(finalize_procinfo))
+              begin
+                if target_info.system in [system_aarch64_win64] then
+                  tcgprocinfo(finalize_procinfo).store_tempflags
+                else
+                  generate_exceptfilter(tcgprocinfo(finalize_procinfo));
+              end
             else if not temps_finalized then
               begin
                 hlcg.gen_finalize_code(templist);
