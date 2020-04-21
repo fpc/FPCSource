@@ -53,7 +53,7 @@ uses
 procedure ttgz80.setfirsttemp(l: asizeint);
   begin
     { this is a negative value normally }
-    if l*direction<0 then
+    if l>0 then
       internalerror(200204221);
     firsttemp:=l;
     lasttemp:=l;
