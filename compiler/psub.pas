@@ -28,13 +28,23 @@ unit psub;
 interface
 
     uses
-      globals,
-      node,nbas,
+      globals,cclasses,
+      node,nbas,nutils,
       symdef,procinfo,optdfa;
 
     type
       tcgprocinfo = class(tprocinfo)
+      private type
+        ttempinfo_flags_entry = record
+          tempinfo : ptempinfo;
+          flags : ttempinfoflags;
+        end;
+        ptempinfo_flags_entry = ^ttempinfo_flags_entry;
       private
+        tempinfo_flags_map : TFPList;
+        tempflags_swapped : boolean;
+        procedure swap_tempflags;
+        function store_node_tempflags(var n: tnode; arg: pointer): foreachnoderesult;
         procedure CreateInlineInfo;
         { returns the node which is the start of the user code, this is needed by the dfa }
         function GetUserCode: tnode;
@@ -66,6 +76,10 @@ interface
         procedure add_to_symtablestack;
         procedure remove_from_symtablestack;
         procedure parse_body;
+
+        procedure store_tempflags;
+        procedure apply_tempflags;
+        procedure reset_tempflags;
 
         function has_assembler_child : boolean;
         procedure set_eh_info; override;
@@ -103,7 +117,7 @@ implementation
     uses
        sysutils,
        { common }
-       cutils, cmsgs, cclasses,
+       cutils, cmsgs,
        { global }
        globtype,tokens,verbose,comphook,constexp,
        systems,cpubase,aasmbase,aasmtai,aasmdata,
@@ -112,7 +126,7 @@ implementation
        paramgr,
        fmodule,
        { pass 1 }
-       nutils,ngenutil,nld,ncal,ncon,nflw,nadd,ncnv,nmem,
+       ngenutil,nld,ncal,ncon,nflw,nadd,ncnv,nmem,
        pass_1,
     {$ifdef state_tracking}
        nstate,
@@ -706,7 +720,15 @@ implementation
 ****************************************************************************}
 
      destructor tcgprocinfo.destroy;
+       var
+         i : longint;
        begin
+         if assigned(tempinfo_flags_map) then
+           begin
+             for i:=0 to tempinfo_flags_map.count-1 do
+               dispose(ptempinfo_flags_entry(tempinfo_flags_map[i]));
+             tempinfo_flags_map.free;
+           end;
          code.free;
          inherited destroy;
        end;
@@ -1267,6 +1289,133 @@ implementation
               (pi_needs_implicit_finally in flags))) or
              (pi_has_except_table_data in flags) then
            procdef.personality:=search_system_proc('_FPC_PSABIEH_PERSONALITY_V0');
+      end;
+
+
+    function tcgprocinfo.store_node_tempflags(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        nodeset : THashSet absolute arg;
+        entry : ptempinfo_flags_entry;
+        i : longint;
+        hashsetitem: PHashSetItem;
+      begin
+        result:=fen_true;
+        case n.nodetype of
+          tempcreaten:
+            begin
+              {$ifdef EXTDEBUG}
+              comment(V_Debug,'keeping track of new temp node: '+hexstr(ttempbasenode(n).tempinfo));
+              {$endif EXTDEBUG}
+              nodeset.FindOrAdd(ttempbasenode(n).tempinfo,sizeof(pointer));
+            end;
+          tempdeleten:
+            begin
+              {$ifdef EXTDEBUG}
+              comment(V_Debug,'got temp delete node: '+hexstr(ttempbasenode(n).tempinfo));
+              {$endif EXTDEBUG}
+              { don't remove temp nodes so that outside code can know if some temp
+                was only created in here }
+              (*hashsetitem:=nodeset.find(ttempbasenode(n).tempinfo,sizeof(pointer));
+              if assigned(hashsetitem) then
+                begin
+                  {$ifdef EXTDEBUG}
+                  comment(V_Debug,'no longer keeping track of temp node');
+                  {$endif EXTDEBUG}
+                  writeln('no longer keeping track of temp node');
+                  nodeset.Remove(hashsetitem);
+                end;*)
+            end;
+          temprefn:
+            begin
+              {$ifdef EXTDEBUG}
+              comment(V_Debug,'found temp ref node: '+hexstr(ttempbasenode(n).tempinfo));
+              {$endif EXTDEBUG}
+              if not assigned(nodeset.find(ttempbasenode(n).tempinfo,sizeof(pointer))) then
+                begin
+                  for i:=0 to tempinfo_flags_map.count-1 do
+                    begin
+                      entry:=ptempinfo_flags_entry(tempinfo_flags_map[i]);
+                      {$ifdef EXTDEBUG}
+                      comment(V_Debug,'comparing with tempinfo: '+hexstr(entry^.tempinfo));
+                      {$endif EXTDEBUG}
+                      if entry^.tempinfo=ttempbasenode(n).tempinfo then
+                        begin
+                          {$ifdef EXTDEBUG}
+                          comment(V_Debug,'temp node exists');
+                          {$endif EXTDEBUG}
+                          exit;
+                        end;
+                    end;
+                  {$ifdef EXTDEBUG}
+                  comment(V_Debug,'storing node');
+                  {$endif EXTDEBUG}
+                  new(entry);
+                  entry^.tempinfo:=ttempbasenode(n).tempinfo;
+                  entry^.flags:=ttempinfoaccessor.gettempinfoflags(entry^.tempinfo);
+                  tempinfo_flags_map.add(entry);
+                end
+              else
+                begin
+                  {$ifdef EXTDEBUG}
+                  comment(V_Debug,'ignoring node');
+                  {$endif EXTDEBUG}
+                end;
+            end;
+          else
+            ;
+        end;
+      end;
+
+
+    procedure tcgprocinfo.store_tempflags;
+      var
+        nodeset : THashSet;
+      begin
+        if assigned(tempinfo_flags_map) then
+          internalerror(2020040601);
+        {$ifdef EXTDEBUG}
+        comment(V_Debug,'storing temp nodes of '+procdef.mangledname);
+        {$endif EXTDEBUG}
+        tempinfo_flags_map:=tfplist.create;
+        nodeset:=THashSet.Create(32,false,false);
+        foreachnode(code,@store_node_tempflags,nodeset);
+        nodeset.free;
+      end;
+
+
+    procedure tcgprocinfo.swap_tempflags;
+      var
+        entry : ptempinfo_flags_entry;
+        i : longint;
+        tempflags : ttempinfoflags;
+      begin
+        if not assigned(tempinfo_flags_map) then
+          exit;
+        for i:=0 to tempinfo_flags_map.count-1 do
+          begin
+            entry:=ptempinfo_flags_entry(tempinfo_flags_map[i]);
+            tempflags:=ttempinfoaccessor.gettempinfoflags(entry^.tempinfo);
+            ttempinfoaccessor.settempinfoflags(entry^.tempinfo,entry^.flags);
+            entry^.flags:=tempflags;
+          end;
+      end;
+
+
+    procedure tcgprocinfo.apply_tempflags;
+      begin
+        if tempflags_swapped then
+          internalerror(2020040602);
+        swap_tempflags;
+        tempflags_swapped:=true;
+      end;
+
+
+    procedure tcgprocinfo.reset_tempflags;
+      begin
+        if not tempflags_swapped then
+          internalerror(2020040603);
+        swap_tempflags;
+        tempflags_swapped:=false;
       end;
 
 
