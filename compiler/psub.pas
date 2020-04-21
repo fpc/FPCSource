@@ -52,6 +52,8 @@ interface
         procedure add_entry_exit_code;
         procedure setup_tempgen;
         procedure OptimizeNodeTree;
+      protected
+        procedure generate_code_exceptfilters;
       public
         { code for the subroutine as tree }
         code : tnode;
@@ -1573,6 +1575,24 @@ implementation
         resetprocdef;
       end;
 
+
+    procedure tcgprocinfo.generate_code_exceptfilters;
+      var
+        hpi : tcgprocinfo;
+      begin
+        hpi:=tcgprocinfo(get_first_nestedproc);
+        while assigned(hpi) do
+          begin
+            if hpi.procdef.proctypeoption=potype_exceptfilter then
+              begin
+                hpi.apply_tempflags;
+                generate_exceptfilter(hpi);
+                hpi.reset_tempflags;
+              end;
+            hpi:=tcgprocinfo(hpi.next);
+          end;
+      end;
+
     { For SEH, the code from 'finally' blocks must be put into a separate procedures,
       which can be called by OS during stack unwind. This resembles nested procedures,
       but finalizer procedures do not have their own local variables and work directly
@@ -2186,6 +2206,9 @@ implementation
             finish_eh;
 
             hlcg.record_generated_code_for_procdef(current_procinfo.procdef,aktproccode,aktlocaldata);
+
+            { now generate code for any exception filters (they need the tempgen) }
+            generate_code_exceptfilters;
 
             { only now we can remove the temps }
             if (procdef.proctypeoption<>potype_exceptfilter) then
