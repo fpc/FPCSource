@@ -136,6 +136,18 @@ asm
 .seh_handler __FPC_default_handler,@except,@unwind
 end;
 {$endif FPC_USE_WIN64_SEH}
+{$ifdef CPUAARCH64)}
+function main_wrapper(arg: Pointer; proc: Pointer): ptrint; assembler; nostackframe;
+asm
+    stp fp,lr,[sp, #-16]!
+.seh_savefplr_x -16
+.seh_endprologue
+    blr x1                  { "arg" is passed in x0 }
+    nop                     { this nop is critical for exception handling }
+    ldp	fp,lr,[sp], #16
+.seh_handler __FPC_default_handler,@except,@unwind
+end;
+{$endif}
 
 {$if defined(CPUX86_64)}
 {$define FPC_SYSTEM_HAS_STACKTOP}
@@ -227,7 +239,7 @@ procedure Exe_entry(constref info: TEntryInformation);[public,alias:'_FPC_EXE_En
      install_exception_handlers;
 {$endif SYSTEM_USE_WIN_SEH}
      ExitCode:=0;
-{$ifdef CPUX86_64}
+{$if defined(CPUX86_64)}
      asm
         xorq %rax,%rax
         movw %ss,%ax
@@ -255,9 +267,19 @@ procedure Exe_entry(constref info: TEntryInformation);[public,alias:'_FPC_EXE_En
 {$endif VER3_0}
         movq %rsi,%rbp
      end ['RSI','RBP'];     { <-- specifying RSI allows compiler to save/restore it properly }
-{$else CPUX86_64}
+{$elseif defined(CPUAARCH64)}
+     asm
+        mov x0,#0
+        adrp x1,EntryInformation@PAGE
+        add x1,x1,EntryInformation@PAGEOFF
+        ldr x1,[x1,TEntryInformation.PascalMain]
+        adrp x8,main_wrapper@PAGE
+        add x8,x8,main_wrapper@PAGEOFF
+        blr x8
+     end ['X8'];
+{$else}
      info.PascalMain();
-{$endif CPUX86_64}
+{$endif}
      { if we pass here there was no error ! }
      system_exit;
   end;
