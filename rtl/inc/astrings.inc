@@ -798,8 +798,12 @@ begin
           Temp:=NewAnsiString(L);
           PAnsiRec(Pointer(Temp)-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
           lens:=length(s);
-          if l<lens then
-            lens:=l;
+          if l<=lens then
+            lens:=l
+          else
+            { Also copy a trailing implicit #0 of the original string
+              to the new larger string }
+            Inc(lens);
           Move(Pointer(S)^,Temp^,lens);
           fpc_ansistr_decr_ref(Pointer(s));
           Pointer(S):=Temp;
