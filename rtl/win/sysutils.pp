@@ -1093,16 +1093,20 @@ end;
 
 Procedure InitInternational;
 var
+{$if defined(CPU386) or defined(CPUX86_64)}
   { A call to GetSystemMetrics changes the value of the 8087 Control Word on
     Pentium4 with WinXP SP2 }
   old8087CW: word;
+{$endif}
   DefaultCustomLocaleID : LCID;   // typedef DWORD LCID;
   DefaultCustomLanguageID : Word; // typedef WORD LANGID;
 begin
   /// workaround for Windows 7 bug, see bug report #18574
   SetThreadLocale(GetUserDefaultLCID);
   InitInternationalGeneric;
+{$if defined(CPU386) or defined(CPUX86_64)}
   old8087CW:=Get8087CW;
+{$endif}
   SysLocale.MBCS:=GetSystemMetrics(SM_DBCSENABLED)<>0;
   SysLocale.RightToLeft:=GetSystemMetrics(SM_MIDEASTENABLED)<>0;
   SysLocale.DefaultLCID := $0409;
@@ -1132,7 +1136,9 @@ begin
         end;
      end;
 
+{$if defined(CPU386) or defined(CPUX86_64)}
   Set8087CW(old8087CW);
+{$endif}
   GetFormatSettings;
   if SysLocale.FarEast then GetEraNamesAndYearOffsets;
 end;
