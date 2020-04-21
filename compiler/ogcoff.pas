@@ -364,6 +364,18 @@ implementation
        PE_FILE_UP_SYSTEM_ONLY          = $4000;
        PE_FILE_BYTES_REVERSED_HI       = $8000;
 
+       PE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA       = $0020;
+       PE_DLLCHARACTERISTICS_DYNAMIC_BASE          = $0040;
+       PE_DLLCHARACTERISTICS_FORCE_INTEGRITY       = $0080;
+       PE_DLLCHARACTERISTICS_NX_COMPAT             = $0100;
+       PE_DLLCHARACTERISTICS_NO_ISOLATION          = $0200;
+       PE_DLLCHARACTERISTICS_NO_SEH                = $0400;
+       PE_DLLCHARACTERISTICS_NO_BIND               = $0800;
+       PE_DLLCHARACTERISTICS_APPCONTAINER          = $1000;
+       PE_DLLCHARACTERISTICS_WDM_DRIVER            = $2000;
+       PE_DLLCHARACTERISTICS_GUARD_CF              = $4000;
+       PE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE = $8000;
+
        PE_SCN_CNT_CODE               = $00000020; { Section contains code. }
        PE_SCN_CNT_INITIALIZED_DATA   = $00000040; { Section contains initialized data. }
        PE_SCN_CNT_UNINITIALIZED_DATA = $00000080; { Section contains uninitialized data. }
@@ -2837,10 +2849,15 @@ const pemagic : array[0..3] of byte = (
                 else
                   peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CUI;
 
-            if SetPEOptFlagsSetExplicity then
-              peoptheader.DllCharacteristics:=peoptflags
+            if target_info.system in [system_aarch64_win64] then
+              peoptheader.DllCharacteristics:=PE_DLLCHARACTERISTICS_DYNAMIC_BASE or
+                                              PE_DLLCHARACTERISTICS_NX_COMPAT or
+                                              PE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA
             else
               peoptheader.DllCharacteristics:=0;
+
+            if SetPEOptFlagsSetExplicity then
+              peoptheader.DllCharacteristics:=peoptheader.DllCharacteristics or peoptflags;
 
             peoptheader.SizeOfStackReserve:=stacksize;
             peoptheader.SizeOfStackCommit:=$1000;
