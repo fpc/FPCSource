@@ -85,6 +85,9 @@ unit cgcpu;
         procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
         procedure a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel); override;
 
+        { Z80-specific unsigned comparison code generation jmp helper }
+        procedure a_jmp_unsigned_cmp_3way(list : TAsmList;onbelow,onequal,onabove: tasmlabel);
+
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
         procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
@@ -1677,6 +1680,76 @@ unit cgcpu;
         ai:=taicpu.op_cond_sym(A_JP,flags_to_cond(f),l);
         ai.is_jmp:=true;
         list.concat(ai);
+      end;
+
+
+    procedure tcgz80.a_jmp_unsigned_cmp_3way(list: TAsmList; onbelow, onequal, onabove: tasmlabel);
+      var
+        skiplabel: TAsmLabel;
+      begin
+        if      (onbelow= nil) and (onequal= nil) and (onabove= nil) then
+          {nothing}
+        else if (onbelow= nil) and (onequal= nil) and (onabove<>nil) then
+          begin
+            current_asmdata.getjumplabel(skiplabel);
+            a_jmp_flags(list,F_E,skiplabel);
+            a_jmp_flags(list,F_NC,onabove);
+            cg.a_label(list,skiplabel);
+          end
+        else if (onbelow= nil) and (onequal<>nil) and (onabove= nil) then
+          a_jmp_flags(list,F_E,onequal)
+        else if (onbelow= nil) and (onequal<>nil) and (onabove<>nil) then
+          begin
+            if onequal<>onabove then
+              a_jmp_flags(list,F_E,onequal);
+            a_jmp_flags(list,F_NC,onabove);
+          end
+        else if (onbelow<>nil) and (onequal= nil) and (onabove= nil) then
+          a_jmp_flags(list,F_C,onbelow)
+        else if (onbelow<>nil) and (onequal= nil) and (onabove<>nil) then
+          begin
+            if onbelow<>onabove then
+              a_jmp_flags(list,F_C,onbelow);
+            a_jmp_flags(list,F_NE,onabove);
+          end
+        else if (onbelow<>nil) and (onequal<>nil) and (onabove= nil) then
+          begin
+            a_jmp_flags(list,F_C,onbelow);
+            a_jmp_flags(list,F_E,onequal);
+          end
+        else if (onbelow<>nil) and (onequal<>nil) and (onabove<>nil) then
+          begin
+            if (onbelow=onequal) and (onequal=onabove) then
+              a_jmp_always(list,onbelow)
+            else if onequal=onabove then
+              begin
+                a_jmp_flags(list,F_C,onbelow);
+                a_jmp_always(list,onabove);
+              end
+            else if onbelow=onequal then
+              begin
+                a_jmp_flags(list,F_C,onbelow);
+                a_jmp_flags(list,F_E,onequal);
+                a_jmp_always(list,onabove);
+              end
+            else if onbelow=onabove then
+              begin
+                a_jmp_flags(list,F_E,onequal);
+                a_jmp_always(list,onabove);
+              end
+            else
+              begin
+                { the generic case - all 3 are different labels }
+                a_jmp_flags(list,F_C,onbelow);
+                a_jmp_flags(list,F_E,onequal);
+                a_jmp_always(list,onabove);
+              end;
+          end
+        else
+          begin
+            { Shouldn't happen! All possible combinations are handled by the above code. }
+            internalerror(2020042201);
+          end;
       end;
 
 
