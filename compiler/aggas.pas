@@ -474,12 +474,12 @@ implementation
       var
         s : string;
         secflag: TSectionFlag;
-        sectionprogbits,
-        sectionflags: boolean;
+        usesectionprogbits,
+        usesectionflags: boolean;
       begin
         writer.AsmLn;
-        sectionflags:=false;
-        sectionprogbits:=false;
+        usesectionflags:=false;
+        usesectionprogbits:=false;
         case target_info.system of
          system_i386_OS2,
          system_i386_EMX: ;
@@ -490,8 +490,8 @@ implementation
              if create_smartlink_sections then
                begin
                  writer.AsmWrite('.section ');
-                 sectionflags:=true;
-                 sectionprogbits:=true;
+                 usesectionflags:=true;
+                 usesectionprogbits:=true;
                  { hack, to avoid linker warnings on Amiga/Atari, when vlink merges
                    rodata sections into data sections, better solution welcomed... }
                  if atype in [sec_rodata,sec_rodata_norel] then
@@ -507,7 +507,7 @@ implementation
              { according to the GNU AS guide AS for COFF does not support the
                progbits }
              writer.AsmWrite('.section ');
-             sectionflags:=true;
+             usesectionflags:=true;
            end;
          system_powerpc_darwin,
          system_i386_darwin,
@@ -530,19 +530,19 @@ implementation
                the assembler will ignore them/spite out a warning anyways }
              if not(atype in [sec_data,sec_rodata,sec_rodata_norel]) then
                begin
-                 sectionflags:=true;
-                 sectionprogbits:=true;
+                 usesectionflags:=true;
+                 usesectionprogbits:=true;
                end;
            end
         end;
         s:=sectionname(atype,aname,aorder);
         writer.AsmWrite(s);
         { flags explicitly defined? }
-        if (sectionflags or sectionprogbits) and
+        if (usesectionflags or usesectionprogbits) and
            ((secflags<>[]) or
             (secprogbits<>SPB_None)) then
           begin
-            if sectionflags then
+            if usesectionflags then
               begin
                 s:=',"';
                 for secflag in secflags do
@@ -556,7 +556,7 @@ implementation
                   end;
                 writer.AsmWrite(s+'"');
               end;
-            if sectionprogbits then
+            if usesectionprogbits then
               begin
                 case secprogbits of
                   SPB_PROGBITS:
