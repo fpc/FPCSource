@@ -469,7 +469,6 @@ interface
                           tcgz80(cg).adjust_normalized_ref(current_asmdata.CurrAsmList,tmpref,-1);
                       end;
                     cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-                    cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
                   end
                 else
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
