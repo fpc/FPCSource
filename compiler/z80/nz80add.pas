@@ -426,7 +426,7 @@ interface
                 internalerror(2020042103);
             end;
           end
-        else {if unsigned then}
+        else
           begin
             if left.location.loc<>LOC_REGISTER then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
