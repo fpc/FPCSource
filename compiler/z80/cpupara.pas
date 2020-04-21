@@ -360,11 +360,11 @@ unit cpupara;
                           end
                         else
                           begin
-                             paraloc^.def:=hp.vardef;
+                             paraloc^.def:=paradef;
                              paraloc^.loc:=LOC_REFERENCE;
                              paraloc^.reference.index:=NR_STACK_POINTER_REG;
                              paraloc^.reference.offset:=stack_offset;
-                             inc(stack_offset,hp.vardef.size);
+                             inc(stack_offset,paradef.size);
                           end;
                         paralen:=0;
                       end;
