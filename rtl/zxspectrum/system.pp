@@ -54,11 +54,18 @@ Type
 procedure fpc_InitializeUnits;compilerproc;
 Procedure fpc_do_exit;compilerproc;
 
+{ OpenChannel(2) opens the upper screen
+  OpenChannel(1) opens the lower screen
+  OpenChannel(3) opens the ZX Printer }
+procedure OpenChannel(Chan: Byte);
 procedure PrintChar(Ch: Char);
 procedure PrintLn;
 procedure PrintHexDigit(const d: byte);
 procedure PrintHexByte(const b: byte);
 procedure PrintHexWord(const w: word);
+procedure Ink(colour: Byte);
+procedure Paper(colour: Byte);
+procedure GotoXY(X, Y: Byte);
 
 implementation
 
@@ -75,16 +82,22 @@ begin
   until false;
 end;
 
+procedure OpenChannel(Chan: Byte);
+begin
+  asm
+    ld iy,(save_iy)
+    ld a, (Chan)
+    push ix
+    call 5633
+    pop ix
+    ld (save_iy),iy
+  end;
+end;
+
 procedure PrintChar(Ch: Char);
 begin
   asm
     ld iy,(save_iy)
-
-    ld a, 2
-    push ix
-    call 5633
-    pop ix
-
     ld a, (Ch)
     push ix
     rst 16
@@ -151,6 +164,25 @@ procedure PrintHexWord(const w: word);
 begin
   PrintHexByte(Byte(w shr 8));
   PrintHexByte(Byte(w));
+end;
+
+procedure Ink(colour: Byte);
+begin
+  PrintChar(#16);
+  PrintChar(Char(colour));
+end;
+
+procedure Paper(colour: Byte);
+begin
+  PrintChar(#17);
+  PrintChar(Char(colour));
+end;
+
+procedure GotoXY(X, Y: Byte);
+begin
+  PrintChar(#22);
+  PrintChar(Char(X-1));
+  PrintChar(Char(Y-1));
 end;
 
 end.
