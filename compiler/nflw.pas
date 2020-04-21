@@ -244,6 +244,7 @@ interface
           function pass_1 : tnode;override;
           function simplify(forinline:boolean): tnode;override;
        protected
+          function dogetcopy: tnode;override;
           procedure adjust_estimated_stack_size; virtual;
        end;
        ttryfinallynodeclass = class of ttryfinallynode;
@@ -2597,6 +2598,13 @@ implementation
            right:=nil;
          end;
      end;
+
+
+    function ttryfinallynode.dogetcopy: tnode;
+       begin
+         result:=inherited dogetcopy;
+         ttryfinallynode(result).implicitframe:=implicitframe;
+       end;
 
 
     procedure ttryfinallynode.adjust_estimated_stack_size;
