@@ -1096,7 +1096,7 @@ unit cgcpu;
                      tmpop:=A_DEC
                    else if (tmpop=A_NONE) and (curvalue<>0) then
                      tmpop:=A_SUB
-                   else if tmpop=A_ADD then
+                   else if tmpop=A_SUB then
                      tmpop:=A_SBC;
                    case tmpop of
                      A_NONE:
