@@ -8350,10 +8350,12 @@ end;
 
 function RtlUshortByteSwap(Source: USHORT): USHORT;
 asm
+  {$if defined(cpux86_64) or defined(cpui386)}
   {$ifdef cpux86_64}
    mov   CX, AX
   {$endif cpux86_64}
   rol   AX, 08h
+  {$endif cpux86_64 or cpui386}
 end;
 
 (* Own function to swap bytes in 32bit values
@@ -8367,10 +8369,12 @@ asm
   // This is not written as mnemonics to be compatible with D4!
   db    0Fh, 0C8h       // "bswap EAX" can only be executed on 486+!!!
   {$else}
+    {$if defined(cpux86_64) or defined(cpui386)}
     {$ifdef cpux86_64}
        mov   ECX, EAX
     {$endif cpux86_64}
        bswap EAX	// .. but bswap EAX is also 64-bit!!! 0F C8 isn't.
+    {$endif cpux86_64 or cpui386}
   {$endif}
 
 (*
