@@ -181,7 +181,8 @@ implementation
             if ((ref.symbol.typ in [AT_FUNCTION,AT_LABEL]) and
                 (ref.symbol.bind in [AB_LOCAL,AB_GLOBAL])) or
                ((ref.symbol.typ=AT_DATA) and
-                (ref.symbol.bind=AB_LOCAL)) then
+                (ref.symbol.bind=AB_LOCAL)) or
+               (target_info.system=system_aarch64_win64) then
               href.refaddr:=addr_page
             else
               href.refaddr:=addr_gotpage;
@@ -194,7 +195,8 @@ implementation
             if ((ref.symbol.typ in [AT_FUNCTION,AT_LABEL]) and
                 (ref.symbol.bind in [AB_LOCAL,AB_GLOBAL])) or
                ((ref.symbol.typ=AT_DATA) and
-                (ref.symbol.bind=AB_LOCAL)) then
+                (ref.symbol.bind=AB_LOCAL)) or
+               (target_info.system=system_aarch64_win64) then
               begin
                 href.base:=NR_NO;
                 href.refaddr:=addr_pageoffset;
