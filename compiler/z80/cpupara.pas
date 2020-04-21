@@ -192,7 +192,7 @@ unit cpupara;
         nextintreg,nextfloatreg,nextmmreg : tsuperregister;
         paradef : tdef;
         paraloc : pcgparalocation;
-        stack_offset : aword;
+        stack_offset : longint;
         hp : tparavarsym;
         loc : tcgloc;
         paracgsize   : tcgsize;
