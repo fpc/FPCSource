@@ -196,8 +196,9 @@
              system_xtensa_freertos,    { 104 }
              system_xtensa_linux,       { 105 }
              system_arm_freertos,       { 106 }
-             system_z80_embedded,       { 107 }
-             system_z80_zxspectrum      { 108 }
+             system_aarch64_win64,      { 107 }
+             system_z80_embedded,       { 108 }
+             system_z80_zxspectrum      { 109 }
        );
 
      type
@@ -253,6 +254,7 @@
              ,as_wasm_binaryen
              ,as_powerpc_gas_legacy    { for systems with very old GAS versions only, which don't support eg. named sections }
              ,as_llvm_clang
+             ,as_clang_gas
              ,as_z80asm
              ,as_sdcc_sdasz80
        );

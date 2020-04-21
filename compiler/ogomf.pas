@@ -128,7 +128,6 @@ interface
       public
         constructor create(const n:string);override;
         destructor destroy;override;
-        class function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;override;
         function sectiontype2align(atype:TAsmSectiontype):longint;override;
         class function sectiontype2class(atype:TAsmSectiontype):string;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
@@ -1068,15 +1067,6 @@ implementation
         FExportedSymbolList.Free;
         FImportLibraryList.Free;
         inherited destroy;
-      end;
-
-    class function TOmfObjData.sectiontype2options(atype: TAsmSectiontype): TObjSectionOptions;
-      begin
-        Result:=inherited sectiontype2options(atype);
-        { in the huge memory model, BSS data is actually written in the regular
-          FAR_DATA segment of the module }
-        if sectiontype2class(atype)='FAR_DATA' then
-          Result:=Result+[oso_data,oso_sparse_data];
       end;
 
     function TOmfObjData.sectiontype2align(atype: TAsmSectiontype): longint;

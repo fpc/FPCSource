@@ -49,6 +49,7 @@ interface
         function sectionattrs(atype:TAsmSectiontype):string;virtual;
         function sectionattrs_coff(atype:TAsmSectiontype):string;virtual;
         function sectionalignment_aix(atype:TAsmSectiontype;secalign: longint):string;
+        function sectionflags(secflags:TSectionFlags):string;virtual;
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;
           secflags:TSectionFlags=[];secprogbits:TSectionProgbits=SPB_None);virtual;
         procedure WriteExtraHeader;virtual;
@@ -409,7 +410,7 @@ implementation
     function TGNUAssembler.sectionattrs(atype:TAsmSectiontype):string;
       begin
         result:='';
-        if (target_info.system in [system_i386_win32,system_x86_64_win64]) then
+        if (target_info.system in [system_i386_win32,system_x86_64_win64,system_aarch64_win64]) then
           begin
             result:=sectionattrs_coff(atype);
           end;
@@ -431,7 +432,10 @@ implementation
 
           { TODO: these need a fix to become read-only }
           sec_rodata, sec_rodata_norel:
-            result:='d';
+            if target_info.system=system_aarch64_win64 then
+              result:='r'
+            else
+              result:='d';
 
           sec_bss:
             result:='b';
@@ -450,6 +454,24 @@ implementation
             result:='n';
         else
           result:='';  { defaults to data+load }
+        end;
+      end;
+
+
+    function TGNUAssembler.sectionflags(secflags:TSectionFlags):string;
+      var
+        secflag : TSectionFlag;
+      begin
+        result:='';
+        for secflag in secflags do begin
+          case secflag of
+            SF_A:
+              result:=result+'a';
+            SF_W:
+              result:=result+'w';
+            SF_X:
+              result:=result+'x';
+          end;
         end;
       end;
 
@@ -474,12 +496,12 @@ implementation
       var
         s : string;
         secflag: TSectionFlag;
-        sectionprogbits,
-        sectionflags: boolean;
+        usesectionprogbits,
+        usesectionflags: boolean;
       begin
         writer.AsmLn;
-        sectionflags:=false;
-        sectionprogbits:=false;
+        usesectionflags:=false;
+        usesectionprogbits:=false;
         case target_info.system of
          system_i386_OS2,
          system_i386_EMX: ;
@@ -490,8 +512,8 @@ implementation
              if create_smartlink_sections then
                begin
                  writer.AsmWrite('.section ');
-                 sectionflags:=true;
-                 sectionprogbits:=true;
+                 usesectionflags:=true;
+                 usesectionprogbits:=true;
                  { hack, to avoid linker warnings on Amiga/Atari, when vlink merges
                    rodata sections into data sections, better solution welcomed... }
                  if atype in [sec_rodata,sec_rodata_norel] then
@@ -501,12 +523,13 @@ implementation
          system_i386_win32,
          system_x86_64_win64,
          system_i386_wince,
-         system_arm_wince:
+         system_arm_wince,
+         system_aarch64_win64:
            begin
              { according to the GNU AS guide AS for COFF does not support the
                progbits }
              writer.AsmWrite('.section ');
-             sectionflags:=true;
+             usesectionflags:=true;
            end;
          system_powerpc_darwin,
          system_i386_darwin,
@@ -529,33 +552,24 @@ implementation
                the assembler will ignore them/spite out a warning anyways }
              if not(atype in [sec_data,sec_rodata,sec_rodata_norel]) then
                begin
-                 sectionflags:=true;
-                 sectionprogbits:=true;
+                 usesectionflags:=true;
+                 usesectionprogbits:=true;
                end;
            end
         end;
         s:=sectionname(atype,aname,aorder);
         writer.AsmWrite(s);
         { flags explicitly defined? }
-        if (sectionflags or sectionprogbits) and
+        if (usesectionflags or usesectionprogbits) and
            ((secflags<>[]) or
             (secprogbits<>SPB_None)) then
           begin
-            if sectionflags then
+            if usesectionflags then
               begin
-                s:=',"';
-                for secflag in secflags do
-                  case secflag of
-                    SF_A:
-                      s:=s+'a';
-                    SF_W:
-                      s:=s+'w';
-                    SF_X:
-                      s:=s+'x';
-                  end;
+                s:=',"'+sectionflags(secflags);
                 writer.AsmWrite(s+'"');
               end;
-            if sectionprogbits then
+            if usesectionprogbits then
               begin
                 case secprogbits of
                   SPB_PROGBITS:

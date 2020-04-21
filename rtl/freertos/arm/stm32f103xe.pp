@@ -1,4 +1,30 @@
 unit stm32f103xe;
+(**
+  ******************************************************************************
+  * @file    stm32f103xe.h
+  * @author  MCD Application Team
+  * @brief   CMSIS Cortex-M3 Device Peripheral Access Layer Header File.
+  *          This file contains all the peripheral register's definitions, bits
+  *          definitions and memory mapping for STM32F1xx devices.
+  *
+  *          This file contains:
+  *           - Data structures and the address mapping for all peripherals
+  *           - Peripheral's registers declarations and bits definition
+  *           - Macros to access peripheral<92>s registers hardware
+  *
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (c) 2017 STMicroelectronics.
+  * All rights reserved.</center></h2>
+  *
+  * This software component is licensed by ST under BSD 3-Clause license,
+  * the "License"; You may not use this file except in compliance with the
+  * License. You may obtain a copy of the License at:
+  *                        opensource.org/licenses/BSD-3-Clause
+  *
+  ******************************************************************************
+  *)
 interface
 {$PACKRECORDS C}
 {$GOTO ON}
@@ -624,75 +650,75 @@ var
 
 implementation
 
-procedure NonMaskableInt_interrupt; external name 'NonMaskableInt_interrupt';
-procedure HardFault_interrupt; external name 'HardFault_interrupt';
-procedure MemoryManagement_interrupt; external name 'MemoryManagement_interrupt';
-procedure BusFault_interrupt; external name 'BusFault_interrupt';
-procedure UsageFault_interrupt; external name 'UsageFault_interrupt';
-procedure SVCall_interrupt; external name 'SVCall_interrupt';
-procedure DebugMonitor_interrupt; external name 'DebugMonitor_interrupt';
-procedure PendSV_interrupt; external name 'PendSV_interrupt';
-procedure SysTick_interrupt; external name 'SysTick_interrupt';
-procedure WWDG_interrupt; external name 'WWDG_interrupt';
-procedure PVD_interrupt; external name 'PVD_interrupt';
-procedure TAMPER_interrupt; external name 'TAMPER_interrupt';
-procedure RTC_interrupt; external name 'RTC_interrupt';
-procedure FLASH_interrupt; external name 'FLASH_interrupt';
-procedure RCC_interrupt; external name 'RCC_interrupt';
-procedure EXTI0_interrupt; external name 'EXTI0_interrupt';
-procedure EXTI1_interrupt; external name 'EXTI1_interrupt';
-procedure EXTI2_interrupt; external name 'EXTI2_interrupt';
-procedure EXTI3_interrupt; external name 'EXTI3_interrupt';
-procedure EXTI4_interrupt; external name 'EXTI4_interrupt';
-procedure DMA1_Channel1_interrupt; external name 'DMA1_Channel1_interrupt';
-procedure DMA1_Channel2_interrupt; external name 'DMA1_Channel2_interrupt';
-procedure DMA1_Channel3_interrupt; external name 'DMA1_Channel3_interrupt';
-procedure DMA1_Channel4_interrupt; external name 'DMA1_Channel4_interrupt';
-procedure DMA1_Channel5_interrupt; external name 'DMA1_Channel5_interrupt';
-procedure DMA1_Channel6_interrupt; external name 'DMA1_Channel6_interrupt';
-procedure DMA1_Channel7_interrupt; external name 'DMA1_Channel7_interrupt';
-procedure ADC1_2_interrupt; external name 'ADC1_2_interrupt';
-procedure USB_HP_CAN1_TX_interrupt; external name 'USB_HP_CAN1_TX_interrupt';
-procedure USB_LP_CAN1_RX0_interrupt; external name 'USB_LP_CAN1_RX0_interrupt';
-procedure CAN1_RX1_interrupt; external name 'CAN1_RX1_interrupt';
-procedure CAN1_SCE_interrupt; external name 'CAN1_SCE_interrupt';
-procedure EXTI9_5_interrupt; external name 'EXTI9_5_interrupt';
-procedure TIM1_BRK_interrupt; external name 'TIM1_BRK_interrupt';
-procedure TIM1_UP_interrupt; external name 'TIM1_UP_interrupt';
-procedure TIM1_TRG_COM_interrupt; external name 'TIM1_TRG_COM_interrupt';
-procedure TIM1_CC_interrupt; external name 'TIM1_CC_interrupt';
-procedure TIM2_interrupt; external name 'TIM2_interrupt';
-procedure TIM3_interrupt; external name 'TIM3_interrupt';
-procedure TIM4_interrupt; external name 'TIM4_interrupt';
-procedure I2C1_EV_interrupt; external name 'I2C1_EV_interrupt';
-procedure I2C1_ER_interrupt; external name 'I2C1_ER_interrupt';
-procedure I2C2_EV_interrupt; external name 'I2C2_EV_interrupt';
-procedure I2C2_ER_interrupt; external name 'I2C2_ER_interrupt';
-procedure SPI1_interrupt; external name 'SPI1_interrupt';
-procedure SPI2_interrupt; external name 'SPI2_interrupt';
-procedure USART1_interrupt; external name 'USART1_interrupt';
-procedure USART2_interrupt; external name 'USART2_interrupt';
-procedure USART3_interrupt; external name 'USART3_interrupt';
-procedure EXTI15_10_interrupt; external name 'EXTI15_10_interrupt';
-procedure RTC_Alarm_interrupt; external name 'RTC_Alarm_interrupt';
-procedure USBWakeUp_interrupt; external name 'USBWakeUp_interrupt';
-procedure TIM8_BRK_interrupt; external name 'TIM8_BRK_interrupt';
-procedure TIM8_UP_interrupt; external name 'TIM8_UP_interrupt';
-procedure TIM8_TRG_COM_interrupt; external name 'TIM8_TRG_COM_interrupt';
-procedure TIM8_CC_interrupt; external name 'TIM8_CC_interrupt';
-procedure ADC3_interrupt; external name 'ADC3_interrupt';
-procedure FSMC_interrupt; external name 'FSMC_interrupt';
-procedure SDIO_interrupt; external name 'SDIO_interrupt';
-procedure TIM5_interrupt; external name 'TIM5_interrupt';
-procedure SPI3_interrupt; external name 'SPI3_interrupt';
-procedure UART4_interrupt; external name 'UART4_interrupt';
-procedure UART5_interrupt; external name 'UART5_interrupt';
-procedure TIM6_interrupt; external name 'TIM6_interrupt';
-procedure TIM7_interrupt; external name 'TIM7_interrupt';
-procedure DMA2_Channel1_interrupt; external name 'DMA2_Channel1_interrupt';
-procedure DMA2_Channel2_interrupt; external name 'DMA2_Channel2_interrupt';
-procedure DMA2_Channel3_interrupt; external name 'DMA2_Channel3_interrupt';
-procedure DMA2_Channel4_5_interrupt; external name 'DMA2_Channel4_5_interrupt';
+procedure NonMaskableInt_Handler; external name 'NonMaskableInt_Handler';
+procedure HardFault_Handler; external name 'HardFault_Handler';
+procedure MemoryManagement_Handler; external name 'MemoryManagement_Handler';
+procedure BusFault_Handler; external name 'BusFault_Handler';
+procedure UsageFault_Handler; external name 'UsageFault_Handler';
+procedure SVCall_Handler; external name 'SVCall_Handler';
+procedure DebugMonitor_Handler; external name 'DebugMonitor_Handler';
+procedure PendSV_Handler; external name 'PendSV_Handler';
+procedure SysTick_Handler; external name 'SysTick_Handler';
+procedure WWDG_Handler; external name 'WWDG_Handler';
+procedure PVD_Handler; external name 'PVD_Handler';
+procedure TAMPER_Handler; external name 'TAMPER_Handler';
+procedure RTC_Handler; external name 'RTC_Handler';
+procedure FLASH_Handler; external name 'FLASH_Handler';
+procedure RCC_Handler; external name 'RCC_Handler';
+procedure EXTI0_Handler; external name 'EXTI0_Handler';
+procedure EXTI1_Handler; external name 'EXTI1_Handler';
+procedure EXTI2_Handler; external name 'EXTI2_Handler';
+procedure EXTI3_Handler; external name 'EXTI3_Handler';
+procedure EXTI4_Handler; external name 'EXTI4_Handler';
+procedure DMA1_Channel1_Handler; external name 'DMA1_Channel1_Handler';
+procedure DMA1_Channel2_Handler; external name 'DMA1_Channel2_Handler';
+procedure DMA1_Channel3_Handler; external name 'DMA1_Channel3_Handler';
+procedure DMA1_Channel4_Handler; external name 'DMA1_Channel4_Handler';
+procedure DMA1_Channel5_Handler; external name 'DMA1_Channel5_Handler';
+procedure DMA1_Channel6_Handler; external name 'DMA1_Channel6_Handler';
+procedure DMA1_Channel7_Handler; external name 'DMA1_Channel7_Handler';
+procedure ADC1_2_Handler; external name 'ADC1_2_Handler';
+procedure USB_HP_CAN1_TX_Handler; external name 'USB_HP_CAN1_TX_Handler';
+procedure USB_LP_CAN1_RX0_Handler; external name 'USB_LP_CAN1_RX0_Handler';
+procedure CAN1_RX1_Handler; external name 'CAN1_RX1_Handler';
+procedure CAN1_SCE_Handler; external name 'CAN1_SCE_Handler';
+procedure EXTI9_5_Handler; external name 'EXTI9_5_Handler';
+procedure TIM1_BRK_Handler; external name 'TIM1_BRK_Handler';
+procedure TIM1_UP_Handler; external name 'TIM1_UP_Handler';
+procedure TIM1_TRG_COM_Handler; external name 'TIM1_TRG_COM_Handler';
+procedure TIM1_CC_Handler; external name 'TIM1_CC_Handler';
+procedure TIM2_Handler; external name 'TIM2_Handler';
+procedure TIM3_Handler; external name 'TIM3_Handler';
+procedure TIM4_Handler; external name 'TIM4_Handler';
+procedure I2C1_EV_Handler; external name 'I2C1_EV_Handler';
+procedure I2C1_ER_Handler; external name 'I2C1_ER_Handler';
+procedure I2C2_EV_Handler; external name 'I2C2_EV_Handler';
+procedure I2C2_ER_Handler; external name 'I2C2_ER_Handler';
+procedure SPI1_Handler; external name 'SPI1_Handler';
+procedure SPI2_Handler; external name 'SPI2_Handler';
+procedure USART1_Handler; external name 'USART1_Handler';
+procedure USART2_Handler; external name 'USART2_Handler';
+procedure USART3_Handler; external name 'USART3_Handler';
+procedure EXTI15_10_Handler; external name 'EXTI15_10_Handler';
+procedure RTC_Alarm_Handler; external name 'RTC_Alarm_Handler';
+procedure USBWakeUp_Handler; external name 'USBWakeUp_Handler';
+procedure TIM8_BRK_Handler; external name 'TIM8_BRK_Handler';
+procedure TIM8_UP_Handler; external name 'TIM8_UP_Handler';
+procedure TIM8_TRG_COM_Handler; external name 'TIM8_TRG_COM_Handler';
+procedure TIM8_CC_Handler; external name 'TIM8_CC_Handler';
+procedure ADC3_Handler; external name 'ADC3_Handler';
+procedure FSMC_Handler; external name 'FSMC_Handler';
+procedure SDIO_Handler; external name 'SDIO_Handler';
+procedure TIM5_Handler; external name 'TIM5_Handler';
+procedure SPI3_Handler; external name 'SPI3_Handler';
+procedure UART4_Handler; external name 'UART4_Handler';
+procedure UART5_Handler; external name 'UART5_Handler';
+procedure TIM6_Handler; external name 'TIM6_Handler';
+procedure TIM7_Handler; external name 'TIM7_Handler';
+procedure DMA2_Channel1_Handler; external name 'DMA2_Channel1_Handler';
+procedure DMA2_Channel2_Handler; external name 'DMA2_Channel2_Handler';
+procedure DMA2_Channel3_Handler; external name 'DMA2_Channel3_Handler';
+procedure DMA2_Channel4_5_Handler; external name 'DMA2_Channel4_5_Handler';
 
 
 {$i cortexm3_start.inc}
@@ -704,220 +730,220 @@ asm
   interrupt_vectors:
   .long _stack_top
   .long Startup
-  .long NonMaskableInt_interrupt
-  .long HardFault_interrupt
-  .long MemoryManagement_interrupt
-  .long BusFault_interrupt
-  .long UsageFault_interrupt
+  .long NonMaskableInt_Handler
+  .long HardFault_Handler
+  .long MemoryManagement_Handler
+  .long BusFault_Handler
+  .long UsageFault_Handler
   .long 0
   .long 0
   .long 0
   .long 0
-  .long SVCall_interrupt
-  .long DebugMonitor_interrupt
+  .long SVCall_Handler
+  .long DebugMonitor_Handler
   .long 0
-  .long PendSV_interrupt
-  .long SysTick_interrupt
-  .long WWDG_interrupt
-  .long PVD_interrupt
-  .long TAMPER_interrupt
-  .long RTC_interrupt
-  .long FLASH_interrupt
-  .long RCC_interrupt
-  .long EXTI0_interrupt
-  .long EXTI1_interrupt
-  .long EXTI2_interrupt
-  .long EXTI3_interrupt
-  .long EXTI4_interrupt
-  .long DMA1_Channel1_interrupt
-  .long DMA1_Channel2_interrupt
-  .long DMA1_Channel3_interrupt
-  .long DMA1_Channel4_interrupt
-  .long DMA1_Channel5_interrupt
-  .long DMA1_Channel6_interrupt
-  .long DMA1_Channel7_interrupt
-  .long ADC1_2_interrupt
-  .long USB_HP_CAN1_TX_interrupt
-  .long USB_LP_CAN1_RX0_interrupt
-  .long CAN1_RX1_interrupt
-  .long CAN1_SCE_interrupt
-  .long EXTI9_5_interrupt
-  .long TIM1_BRK_interrupt
-  .long TIM1_UP_interrupt
-  .long TIM1_TRG_COM_interrupt
-  .long TIM1_CC_interrupt
-  .long TIM2_interrupt
-  .long TIM3_interrupt
-  .long TIM4_interrupt
-  .long I2C1_EV_interrupt
-  .long I2C1_ER_interrupt
-  .long I2C2_EV_interrupt
-  .long I2C2_ER_interrupt
-  .long SPI1_interrupt
-  .long SPI2_interrupt
-  .long USART1_interrupt
-  .long USART2_interrupt
-  .long USART3_interrupt
-  .long EXTI15_10_interrupt
-  .long RTC_Alarm_interrupt
-  .long USBWakeUp_interrupt
-  .long TIM8_BRK_interrupt
-  .long TIM8_UP_interrupt
-  .long TIM8_TRG_COM_interrupt
-  .long TIM8_CC_interrupt
-  .long ADC3_interrupt
-  .long FSMC_interrupt
-  .long SDIO_interrupt
-  .long TIM5_interrupt
-  .long SPI3_interrupt
-  .long UART4_interrupt
-  .long UART5_interrupt
-  .long TIM6_interrupt
-  .long TIM7_interrupt
-  .long DMA2_Channel1_interrupt
-  .long DMA2_Channel2_interrupt
-  .long DMA2_Channel3_interrupt
-  .long DMA2_Channel4_5_interrupt
+  .long PendSV_Handler
+  .long SysTick_Handler
+  .long WWDG_Handler
+  .long PVD_Handler
+  .long TAMPER_Handler
+  .long RTC_Handler
+  .long FLASH_Handler
+  .long RCC_Handler
+  .long EXTI0_Handler
+  .long EXTI1_Handler
+  .long EXTI2_Handler
+  .long EXTI3_Handler
+  .long EXTI4_Handler
+  .long DMA1_Channel1_Handler
+  .long DMA1_Channel2_Handler
+  .long DMA1_Channel3_Handler
+  .long DMA1_Channel4_Handler
+  .long DMA1_Channel5_Handler
+  .long DMA1_Channel6_Handler
+  .long DMA1_Channel7_Handler
+  .long ADC1_2_Handler
+  .long USB_HP_CAN1_TX_Handler
+  .long USB_LP_CAN1_RX0_Handler
+  .long CAN1_RX1_Handler
+  .long CAN1_SCE_Handler
+  .long EXTI9_5_Handler
+  .long TIM1_BRK_Handler
+  .long TIM1_UP_Handler
+  .long TIM1_TRG_COM_Handler
+  .long TIM1_CC_Handler
+  .long TIM2_Handler
+  .long TIM3_Handler
+  .long TIM4_Handler
+  .long I2C1_EV_Handler
+  .long I2C1_ER_Handler
+  .long I2C2_EV_Handler
+  .long I2C2_ER_Handler
+  .long SPI1_Handler
+  .long SPI2_Handler
+  .long USART1_Handler
+  .long USART2_Handler
+  .long USART3_Handler
+  .long EXTI15_10_Handler
+  .long RTC_Alarm_Handler
+  .long USBWakeUp_Handler
+  .long TIM8_BRK_Handler
+  .long TIM8_UP_Handler
+  .long TIM8_TRG_COM_Handler
+  .long TIM8_CC_Handler
+  .long ADC3_Handler
+  .long FSMC_Handler
+  .long SDIO_Handler
+  .long TIM5_Handler
+  .long SPI3_Handler
+  .long UART4_Handler
+  .long UART5_Handler
+  .long TIM6_Handler
+  .long TIM7_Handler
+  .long DMA2_Channel1_Handler
+  .long DMA2_Channel2_Handler
+  .long DMA2_Channel3_Handler
+  .long DMA2_Channel4_5_Handler
 
-  .weak NonMaskableInt_interrupt
-  .weak HardFault_interrupt
-  .weak MemoryManagement_interrupt
-  .weak BusFault_interrupt
-  .weak UsageFault_interrupt
-  .weak SVCall_interrupt
-  .weak DebugMonitor_interrupt
-  .weak PendSV_interrupt
-  .weak SysTick_interrupt
-  .weak WWDG_interrupt
-  .weak PVD_interrupt
-  .weak TAMPER_interrupt
-  .weak RTC_interrupt
-  .weak FLASH_interrupt
-  .weak RCC_interrupt
-  .weak EXTI0_interrupt
-  .weak EXTI1_interrupt
-  .weak EXTI2_interrupt
-  .weak EXTI3_interrupt
-  .weak EXTI4_interrupt
-  .weak DMA1_Channel1_interrupt
-  .weak DMA1_Channel2_interrupt
-  .weak DMA1_Channel3_interrupt
-  .weak DMA1_Channel4_interrupt
-  .weak DMA1_Channel5_interrupt
-  .weak DMA1_Channel6_interrupt
-  .weak DMA1_Channel7_interrupt
-  .weak ADC1_2_interrupt
-  .weak USB_HP_CAN1_TX_interrupt
-  .weak USB_LP_CAN1_RX0_interrupt
-  .weak CAN1_RX1_interrupt
-  .weak CAN1_SCE_interrupt
-  .weak EXTI9_5_interrupt
-  .weak TIM1_BRK_interrupt
-  .weak TIM1_UP_interrupt
-  .weak TIM1_TRG_COM_interrupt
-  .weak TIM1_CC_interrupt
-  .weak TIM2_interrupt
-  .weak TIM3_interrupt
-  .weak TIM4_interrupt
-  .weak I2C1_EV_interrupt
-  .weak I2C1_ER_interrupt
-  .weak I2C2_EV_interrupt
-  .weak I2C2_ER_interrupt
-  .weak SPI1_interrupt
-  .weak SPI2_interrupt
-  .weak USART1_interrupt
-  .weak USART2_interrupt
-  .weak USART3_interrupt
-  .weak EXTI15_10_interrupt
-  .weak RTC_Alarm_interrupt
-  .weak USBWakeUp_interrupt
-  .weak TIM8_BRK_interrupt
-  .weak TIM8_UP_interrupt
-  .weak TIM8_TRG_COM_interrupt
-  .weak TIM8_CC_interrupt
-  .weak ADC3_interrupt
-  .weak FSMC_interrupt
-  .weak SDIO_interrupt
-  .weak TIM5_interrupt
-  .weak SPI3_interrupt
-  .weak UART4_interrupt
-  .weak UART5_interrupt
-  .weak TIM6_interrupt
-  .weak TIM7_interrupt
-  .weak DMA2_Channel1_interrupt
-  .weak DMA2_Channel2_interrupt
-  .weak DMA2_Channel3_interrupt
-  .weak DMA2_Channel4_5_interrupt
+  .weak NonMaskableInt_Handler
+  .weak HardFault_Handler
+  .weak MemoryManagement_Handler
+  .weak BusFault_Handler
+  .weak UsageFault_Handler
+  .weak SVCall_Handler
+  .weak DebugMonitor_Handler
+  .weak PendSV_Handler
+  .weak SysTick_Handler
+  .weak WWDG_Handler
+  .weak PVD_Handler
+  .weak TAMPER_Handler
+  .weak RTC_Handler
+  .weak FLASH_Handler
+  .weak RCC_Handler
+  .weak EXTI0_Handler
+  .weak EXTI1_Handler
+  .weak EXTI2_Handler
+  .weak EXTI3_Handler
+  .weak EXTI4_Handler
+  .weak DMA1_Channel1_Handler
+  .weak DMA1_Channel2_Handler
+  .weak DMA1_Channel3_Handler
+  .weak DMA1_Channel4_Handler
+  .weak DMA1_Channel5_Handler
+  .weak DMA1_Channel6_Handler
+  .weak DMA1_Channel7_Handler
+  .weak ADC1_2_Handler
+  .weak USB_HP_CAN1_TX_Handler
+  .weak USB_LP_CAN1_RX0_Handler
+  .weak CAN1_RX1_Handler
+  .weak CAN1_SCE_Handler
+  .weak EXTI9_5_Handler
+  .weak TIM1_BRK_Handler
+  .weak TIM1_UP_Handler
+  .weak TIM1_TRG_COM_Handler
+  .weak TIM1_CC_Handler
+  .weak TIM2_Handler
+  .weak TIM3_Handler
+  .weak TIM4_Handler
+  .weak I2C1_EV_Handler
+  .weak I2C1_ER_Handler
+  .weak I2C2_EV_Handler
+  .weak I2C2_ER_Handler
+  .weak SPI1_Handler
+  .weak SPI2_Handler
+  .weak USART1_Handler
+  .weak USART2_Handler
+  .weak USART3_Handler
+  .weak EXTI15_10_Handler
+  .weak RTC_Alarm_Handler
+  .weak USBWakeUp_Handler
+  .weak TIM8_BRK_Handler
+  .weak TIM8_UP_Handler
+  .weak TIM8_TRG_COM_Handler
+  .weak TIM8_CC_Handler
+  .weak ADC3_Handler
+  .weak FSMC_Handler
+  .weak SDIO_Handler
+  .weak TIM5_Handler
+  .weak SPI3_Handler
+  .weak UART4_Handler
+  .weak UART5_Handler
+  .weak TIM6_Handler
+  .weak TIM7_Handler
+  .weak DMA2_Channel1_Handler
+  .weak DMA2_Channel2_Handler
+  .weak DMA2_Channel3_Handler
+  .weak DMA2_Channel4_5_Handler
 
-  .set NonMaskableInt_interrupt, Haltproc
-  .set HardFault_interrupt, Haltproc
-  .set MemoryManagement_interrupt, Haltproc
-  .set BusFault_interrupt, Haltproc
-  .set UsageFault_interrupt, Haltproc
-  .set SVCall_interrupt, Haltproc
-  .set DebugMonitor_interrupt, Haltproc
-  .set PendSV_interrupt, Haltproc
-  .set SysTick_interrupt, Haltproc
-  .set WWDG_interrupt, Haltproc
-  .set PVD_interrupt, Haltproc
-  .set TAMPER_interrupt, Haltproc
-  .set RTC_interrupt, Haltproc
-  .set FLASH_interrupt, Haltproc
-  .set RCC_interrupt, Haltproc
-  .set EXTI0_interrupt, Haltproc
-  .set EXTI1_interrupt, Haltproc
-  .set EXTI2_interrupt, Haltproc
-  .set EXTI3_interrupt, Haltproc
-  .set EXTI4_interrupt, Haltproc
-  .set DMA1_Channel1_interrupt, Haltproc
-  .set DMA1_Channel2_interrupt, Haltproc
-  .set DMA1_Channel3_interrupt, Haltproc
-  .set DMA1_Channel4_interrupt, Haltproc
-  .set DMA1_Channel5_interrupt, Haltproc
-  .set DMA1_Channel6_interrupt, Haltproc
-  .set DMA1_Channel7_interrupt, Haltproc
-  .set ADC1_2_interrupt, Haltproc
-  .set USB_HP_CAN1_TX_interrupt, Haltproc
-  .set USB_LP_CAN1_RX0_interrupt, Haltproc
-  .set CAN1_RX1_interrupt, Haltproc
-  .set CAN1_SCE_interrupt, Haltproc
-  .set EXTI9_5_interrupt, Haltproc
-  .set TIM1_BRK_interrupt, Haltproc
-  .set TIM1_UP_interrupt, Haltproc
-  .set TIM1_TRG_COM_interrupt, Haltproc
-  .set TIM1_CC_interrupt, Haltproc
-  .set TIM2_interrupt, Haltproc
-  .set TIM3_interrupt, Haltproc
-  .set TIM4_interrupt, Haltproc
-  .set I2C1_EV_interrupt, Haltproc
-  .set I2C1_ER_interrupt, Haltproc
-  .set I2C2_EV_interrupt, Haltproc
-  .set I2C2_ER_interrupt, Haltproc
-  .set SPI1_interrupt, Haltproc
-  .set SPI2_interrupt, Haltproc
-  .set USART1_interrupt, Haltproc
-  .set USART2_interrupt, Haltproc
-  .set USART3_interrupt, Haltproc
-  .set EXTI15_10_interrupt, Haltproc
-  .set RTC_Alarm_interrupt, Haltproc
-  .set USBWakeUp_interrupt, Haltproc
-  .set TIM8_BRK_interrupt, Haltproc
-  .set TIM8_UP_interrupt, Haltproc
-  .set TIM8_TRG_COM_interrupt, Haltproc
-  .set TIM8_CC_interrupt, Haltproc
-  .set ADC3_interrupt, Haltproc
-  .set FSMC_interrupt, Haltproc
-  .set SDIO_interrupt, Haltproc
-  .set TIM5_interrupt, Haltproc
-  .set SPI3_interrupt, Haltproc
-  .set UART4_interrupt, Haltproc
-  .set UART5_interrupt, Haltproc
-  .set TIM6_interrupt, Haltproc
-  .set TIM7_interrupt, Haltproc
-  .set DMA2_Channel1_interrupt, Haltproc
-  .set DMA2_Channel2_interrupt, Haltproc
-  .set DMA2_Channel3_interrupt, Haltproc
-  .set DMA2_Channel4_5_interrupt, Haltproc
+  .set NonMaskableInt_Handler, Haltproc
+  .set HardFault_Handler, Haltproc
+  .set MemoryManagement_Handler, Haltproc
+  .set BusFault_Handler, Haltproc
+  .set UsageFault_Handler, Haltproc
+  .set SVCall_Handler, Haltproc
+  .set DebugMonitor_Handler, Haltproc
+  .set PendSV_Handler, Haltproc
+  .set SysTick_Handler, Haltproc
+  .set WWDG_Handler, Haltproc
+  .set PVD_Handler, Haltproc
+  .set TAMPER_Handler, Haltproc
+  .set RTC_Handler, Haltproc
+  .set FLASH_Handler, Haltproc
+  .set RCC_Handler, Haltproc
+  .set EXTI0_Handler, Haltproc
+  .set EXTI1_Handler, Haltproc
+  .set EXTI2_Handler, Haltproc
+  .set EXTI3_Handler, Haltproc
+  .set EXTI4_Handler, Haltproc
+  .set DMA1_Channel1_Handler, Haltproc
+  .set DMA1_Channel2_Handler, Haltproc
+  .set DMA1_Channel3_Handler, Haltproc
+  .set DMA1_Channel4_Handler, Haltproc
+  .set DMA1_Channel5_Handler, Haltproc
+  .set DMA1_Channel6_Handler, Haltproc
+  .set DMA1_Channel7_Handler, Haltproc
+  .set ADC1_2_Handler, Haltproc
+  .set USB_HP_CAN1_TX_Handler, Haltproc
+  .set USB_LP_CAN1_RX0_Handler, Haltproc
+  .set CAN1_RX1_Handler, Haltproc
+  .set CAN1_SCE_Handler, Haltproc
+  .set EXTI9_5_Handler, Haltproc
+  .set TIM1_BRK_Handler, Haltproc
+  .set TIM1_UP_Handler, Haltproc
+  .set TIM1_TRG_COM_Handler, Haltproc
+  .set TIM1_CC_Handler, Haltproc
+  .set TIM2_Handler, Haltproc
+  .set TIM3_Handler, Haltproc
+  .set TIM4_Handler, Haltproc
+  .set I2C1_EV_Handler, Haltproc
+  .set I2C1_ER_Handler, Haltproc
+  .set I2C2_EV_Handler, Haltproc
+  .set I2C2_ER_Handler, Haltproc
+  .set SPI1_Handler, Haltproc
+  .set SPI2_Handler, Haltproc
+  .set USART1_Handler, Haltproc
+  .set USART2_Handler, Haltproc
+  .set USART3_Handler, Haltproc
+  .set EXTI15_10_Handler, Haltproc
+  .set RTC_Alarm_Handler, Haltproc
+  .set USBWakeUp_Handler, Haltproc
+  .set TIM8_BRK_Handler, Haltproc
+  .set TIM8_UP_Handler, Haltproc
+  .set TIM8_TRG_COM_Handler, Haltproc
+  .set TIM8_CC_Handler, Haltproc
+  .set ADC3_Handler, Haltproc
+  .set FSMC_Handler, Haltproc
+  .set SDIO_Handler, Haltproc
+  .set TIM5_Handler, Haltproc
+  .set SPI3_Handler, Haltproc
+  .set UART4_Handler, Haltproc
+  .set UART5_Handler, Haltproc
+  .set TIM6_Handler, Haltproc
+  .set TIM7_Handler, Haltproc
+  .set DMA2_Channel1_Handler, Haltproc
+  .set DMA2_Channel2_Handler, Haltproc
+  .set DMA2_Channel3_Handler, Haltproc
+  .set DMA2_Channel4_5_Handler, Haltproc
 
   .text
   end;

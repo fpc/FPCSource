@@ -30,11 +30,15 @@ interface
 {$define FPC_SYSTEM_HAS_SYSDLH}
 {$define FPC_HAS_SETCTRLBREAKHANDLER}
 
-{$ifdef FPC_USE_WIN64_SEH}
+{$if defined(FPC_USE_WIN64_SEH) or defined(CPUAARCH64)}
+{$define SYSTEM_USE_WIN_SEH}
+{$endif}
+
+{$ifdef SYSTEM_USE_WIN_SEH}
   {$define FPC_SYSTEM_HAS_RAISEEXCEPTION}
   {$define FPC_SYSTEM_HAS_RERAISE}
   {$define FPC_SYSTEM_HAS_CAPTUREBACKTRACE}
-{$endif FPC_USE_WIN64_SEH}
+{$endif SYSTEM_USE_WIN_SEH}
 
 { include system-independent routine headers }
 {$I systemh.inc}
@@ -105,7 +109,9 @@ Const
 
 implementation
 
+{$ifdef CPUX86_64}
 {$asmmode att}
+{$endif CPUX86_64}
 
 var
 {$ifdef VER3_0}
@@ -130,12 +136,26 @@ asm
 .seh_handler __FPC_default_handler,@except,@unwind
 end;
 {$endif FPC_USE_WIN64_SEH}
+{$ifdef CPUAARCH64)}
+function main_wrapper(arg: Pointer; proc: Pointer): ptrint; assembler; nostackframe;
+asm
+    stp fp,lr,[sp, #-16]!
+.seh_savefplr_x -16
+.seh_endprologue
+    blr x1                  { "arg" is passed in x0 }
+    nop                     { this nop is critical for exception handling }
+    ldp	fp,lr,[sp], #16
+.seh_handler __FPC_default_handler,@except,@unwind
+end;
+{$endif}
 
+{$if defined(CPUX86_64)}
 {$define FPC_SYSTEM_HAS_STACKTOP}
 function StackTop: pointer; assembler;nostackframe;
 asm
    movq  %gs:(8),%rax
 end;
+{$endif}
 
 { include system independent routines }
 {$I system.inc}
@@ -144,9 +164,9 @@ end;
                          System Dependent Exit code
 *****************************************************************************}
 
-{$ifndef FPC_USE_WIN64_SEH}
+{$ifndef SYSTEM_USE_WIN_SEH}
 procedure install_exception_handlers;forward;
-{$endif FPC_USE_WIN64_SEH}
+{$endif SYSTEM_USE_WIN_SEH}
 {$ifdef VER3_0}
 procedure PascalMain;external name 'PASCALMAIN';
 {$endif VER3_0}
@@ -215,10 +235,11 @@ procedure Exe_entry(constref info: TEntryInformation);[public,alias:'_FPC_EXE_En
      IsLibrary:=false;
      { install the handlers for exe only ?
        or should we install them for DLL also ? (PM) }
-{$ifndef FPC_USE_WIN64_SEH}
+{$ifndef SYSTEM_USE_WIN_SEH}
      install_exception_handlers;
-{$endif FPC_USE_WIN64_SEH}
+{$endif SYSTEM_USE_WIN_SEH}
      ExitCode:=0;
+{$if defined(CPUX86_64)}
      asm
         xorq %rax,%rax
         movw %ss,%ax
@@ -246,6 +267,19 @@ procedure Exe_entry(constref info: TEntryInformation);[public,alias:'_FPC_EXE_En
 {$endif VER3_0}
         movq %rsi,%rbp
      end ['RSI','RBP'];     { <-- specifying RSI allows compiler to save/restore it properly }
+{$elseif defined(CPUAARCH64)}
+     asm
+        mov x0,#0
+        adrp x1,EntryInformation@PAGE
+        add x1,x1,EntryInformation@PAGEOFF
+        ldr x1,[x1,TEntryInformation.PascalMain]
+        adrp x8,main_wrapper@PAGE
+        add x8,x8,main_wrapper@PAGEOFF
+        blr x8
+     end ['X8'];
+{$else}
+     info.PascalMain();
+{$endif}
      { if we pass here there was no error ! }
      system_exit;
   end;
@@ -272,6 +306,7 @@ begin
 end;
 {$endif VER3_0}
 
+{$ifdef CPUX86_64}
 function is_prefetch(p : pointer) : boolean;
   var
     a : array[0..15] of byte;
@@ -309,6 +344,7 @@ function is_prefetch(p : pointer) : boolean;
         inc(i);
       end;
   end;
+{$endif}
 
 
 //
@@ -323,7 +359,7 @@ type
 function AddVectoredExceptionHandler(FirstHandler : DWORD;VectoredHandler : TVectoredExceptionHandler) : longint;
         external 'kernel32' name 'AddVectoredExceptionHandler';
 
-{$ifndef FPC_USE_WIN64_SEH}
+{$ifndef SYSTEM_USE_WIN_SEH}
 const
   MaxExceptionLevel = 16;
   exceptLevel : Byte = 0;
@@ -352,10 +388,12 @@ procedure JumpToHandleErrorFrame;
     error : longint;
   begin
     // save ebp
+    {$ifdef CPUX86_64}
     asm
       movq (%rbp),%rax
       movq %rax,rbp
     end;
+    {$endif}
     if exceptLevel>0 then
       dec(exceptLevel);
 
@@ -368,6 +406,7 @@ procedure JumpToHandleErrorFrame;
     if resetFPU[exceptLevel] then
       SysResetFPU;
     { build a fake stack }
+    {$ifdef CPUX86_64}
     asm
       movq   rbp,%r8
       movq   rip,%rdx
@@ -381,6 +420,7 @@ procedure JumpToHandleErrorFrame;
       jmpl   HandleErrorAddrFrame
 {$endif SYSTEMEXCEPTIONDEBUG}
     end;
+    {$endif}
   end;
 
 
@@ -495,7 +535,7 @@ procedure install_exception_handlers;
   begin
     AddVectoredExceptionHandler(1,@syswin64_x86_64_exception_handler);
   end;
-{$endif ndef FPC_USE_WIN64_SEH}
+{$endif ndef SYSTEM_USE_WIN_SEH}
 
 {$ifdef VER3_0}
 procedure LinkIn(p1,p2,p3: Pointer); inline;

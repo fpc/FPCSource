@@ -227,8 +227,9 @@ const
   { 104 } 'FreeRTos-Xtensa',
   { 105 } 'Linux-Xtensa',
   { 106 } 'FreeRTos-arm',
-  { 107 } 'Embedded-Z80',
-  { 108 } 'ZXSpectrum-Z80'
+  { 107 } 'Win64-AArch64',
+  { 108 } 'Embedded-Z80',
+  { 109 } 'ZXSpectrum-Z80'
   );
 
 const

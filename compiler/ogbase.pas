@@ -97,6 +97,15 @@ interface
          RELOC_TLS_CALL,
          RELOC_ARM_CALL,
 {$endif arm}
+{$ifdef aarch64}
+         RELOC_ABSOLUTE32,
+         RELOC_RELATIVE_26,
+         RELOC_RELATIVE_19,
+         RELOC_ADR_PREL_LO21,
+         RELOC_ADR_PREL_PG_HI21,
+         RELOC_ADD_ABS_LO12,
+         RELOC_LDST8_ABS_LO12,
+{$endif aarch64}
          { Relative relocation }
          RELOC_RELATIVE,
          { PECoff (Windows) RVA relocation }
@@ -120,7 +129,7 @@ interface
          RELOC_DTPOFF
       );
 
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(aarch64)}
     { no special aliases for x86_64 }
 {$elseif defined(i8086)}
     const
@@ -395,7 +404,7 @@ interface
        destructor  destroy;override;
        { Sections }
        function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;abstract;
-       class function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;virtual;
+       class function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;
        function  sectiontype2align(atype:TAsmSectiontype):longint;virtual;
        class procedure sectiontype2progbitsandflags(atype:TAsmSectiontype;out progbits:TSectionProgbits;out flags:TSectionFlags);virtual;
        function  createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;virtual;
@@ -734,7 +743,11 @@ implementation
 
     uses
       SysUtils,
-      globals,verbose,ogmap;
+      globals,verbose,
+{$ifdef OMFOBJSUPPORT}
+      omfbase,
+{$endif OMFOBJSUPPORT}
+      ogmap;
 
 {$ifdef MEMDEBUG}
     var
@@ -1281,7 +1294,20 @@ implementation
           {arm_attribute} [oso_data]
         );
       begin
+        if (aType in [sec_rodata,sec_rodata_norel]) then
+          begin
+            if (target_info.system in systems_all_windows) then
+              aType:=sec_rodata_norel
+            else
+              aType:=sec_data;
+          end;
         result:=secoptions[atype];
+{$ifdef OMFOBJSUPPORT}
+        { in the huge memory model, BSS data is actually written in the regular
+          FAR_DATA segment of the module }
+        if omf_segclass(atype)='FAR_DATA' then
+          Result:=Result+[oso_data,oso_sparse_data];
+{$endif OMFOBJSUPPORT}
       end;
 
 

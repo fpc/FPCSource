@@ -175,6 +175,8 @@ function NameFromFH(fh    : BPTR;
                     len   : LongInt): LongBool; public name '_fpc_amiga_namefromfh';
 begin
 {$warning NameFromFH unimplemented!}
+  { note that this is only used in sysutils/FileSetDate, but because SetFileDate() (see below)
+    is not easily possible on KS1.x, so it might not be needed to implement this at all (KB) }
   NameFromFH:=false;
 end;
 
@@ -182,25 +184,48 @@ function ExamineFH(fh : BPTR;
                    fib: PFileInfoBlock): LongBool; public name '_fpc_amiga_examinefh';
 begin
 {$warning ExamineFH unimplemented!}
+  { ExamineFH is only used to determine file size, in sysfile.inc/do_filesize(),
+    but this code is already always falling back to double-seek method on KS1.x, and in
+    other location is sysutils/FileGetDate(), which deals with this function returning
+    false. Note that ExamineFH can fail on newer Amiga systems as well, because the
+    underlying FS needs to support ACTION_EXAMINE_FH which some FSes known not to do,
+    so the only difference is right now that it always fails on KS1.x... }
   ExamineFH:=false;
 end;
 
 function LockDosList(flags: Cardinal): PDosList; public name '_fpc_amiga_lockdoslist';
+var
+  dosInfo: PDosInfo;
 begin
-{$warning LockDosList unimplemented!}
-  LockDosList:=nil;
+  dosInfo:=PDosInfo(PRootNode(PDosLibrary(AOS_DOSBase)^.dl_Root)^.rn_Info shl 2);
+  { Actually, DOS v36+ also does Forbid(); in its LockDosList for
+    compatibility with old programs (KB) }
+  Forbid();
+  LockDosList:=PDosList(dosInfo^.di_DevInfo shl 2);
 end;
 
 procedure UnLockDosList(flags: Cardinal); public name '_fpc_amiga_unlockdoslist';
 begin
-{$warning UnlockDosList unimplemented!}
+  { To pair with the Forbid(); in LockDosList, see comment there (KB) }
+  Permit();
 end;
 
 function NextDosEntry(dlist: PDosList;
                       flags: Cardinal): PDosList; public name '_fpc_amiga_nextdosentry';
 begin
-{$warning NextDosEntry unimplemented!}
-  NextDosEntry:=nil;
+  while true do
+    begin
+      dlist:=PDosList(dlist^.dol_Next shl 2);
+      if dlist = nil then
+        break;
+      { Again, this only supports what's really needed for the RTL at the time of writing
+        this code, feel free to extend (KB) }
+      if (((flags and LDF_VOLUMES) = LDF_VOLUMES) and (dlist^.dol_Type = DLT_VOLUME)) or
+         (((flags and LDF_DEVICES) = LDF_DEVICES) and (dlist^.dol_Type = DLT_DEVICE)) then
+        break;
+    end;
+
+  NextDosEntry:=dlist;
 end;
 
 // Very first dirty version of MatchFirst/Next/End)
@@ -293,7 +318,7 @@ begin
       // copy the fileinfoblock into the chain
       Move(ib, NChain^.an_Info, SizeOf(TFileInfoBlock));
     end;
-  until Res = 0; // useless... we jump oput earlier
+  until Res = 0; // useless... we jump out earlier
   //
   // if we found something
   if Assigned(Anchor^.ap_Last) then
@@ -387,6 +412,8 @@ function SetFileDate(name: PChar;
                      date: PDateStamp): LongBool; public name '_fpc_amiga_setfiledate';
 begin
 {$warning SetFileDate unimplemented!}
+  { Might not be possible to implement, or implement with a reasonable effort on KS1.x (KS) }
+  { Used in: dos/SetFTime, sysutils/FileSetDate }
   SetFileDate:=false;
 end;
 
@@ -395,6 +422,8 @@ function SetFileSize(fh  : LongInt;
                      mode: LongInt): LongInt; public name '_fpc_amiga_setfilesize';
 begin
 {$warning SetFileSize unimplemented!}
+  { Might not be possible to implement, or implement with a reasonable effort on KS1.x (KS) }
+  { Used in: sysfile.inc/do_truncate, sysutils/FileCreate, sysutils/FileTruncate }
   SetFileSize:=-1;
 end;
 

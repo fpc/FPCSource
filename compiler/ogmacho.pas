@@ -75,7 +75,6 @@ type
         procedure CreateDebugSections; override;
         function sectionname(atype:TAsmSectiontype; const aname:string; aorder:TAsmSectionOrder):string;override;
         function sectiontype2align(atype:TAsmSectiontype):longint;override;
-        class function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;override;
         procedure writereloc(data:aint; len:aword; p:TObjSymbol; reltype:TObjRelocationType);override;
       public
       end;
@@ -341,17 +340,6 @@ uses
       else
         Result:=inherited sectiontype2align(atype);
       end;
-    end;
-
-
-  class function TmachoObjData.sectiontype2options(atype: TAsmSectiontype): TObjSectionOptions;
-    begin
-      case atype of
-        sec_objc_meth_var_names,
-        sec_objc_class_names: Result:=[oso_data, oso_load];
-      else
-        Result:=inherited sectiontype2options(atype);
-      end
     end;
 
 

@@ -591,10 +591,27 @@ implementation
              not assigned(ref.symboldata))) then
           exit;
         { if this is a (got) page offset load, we must have a base register and a
-          symbol }
+          symbol (except if we have an ADD with a non-got page offset load) }
         if (ref.refaddr in [addr_gotpageoffset,addr_pageoffset]) and
-           (not assigned(ref.symbol) or
-            (ref.base=NR_NO) or
+           (
+             (
+               (
+                 (op<>A_ADD) or
+                 (ref.refaddr=addr_gotpageoffset)
+               ) and
+               (
+                 not assigned(ref.symbol) or
+                 (ref.base=NR_NO)
+               )
+             ) or
+             (
+               (
+                 (op=A_ADD) and
+                 (ref.refaddr=addr_pageoffset)
+               ) and
+               not assigned(ref.symbol) and
+               (ref.base=NR_NO)
+             ) or
             (ref.index<>NR_NO) or
             (ref.offset<>0)) then
           begin

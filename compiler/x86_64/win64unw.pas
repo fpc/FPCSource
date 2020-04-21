@@ -397,6 +397,8 @@ begin
     ash_pushnv,
     ash_savenv:
       internalerror(2019050712);
+    else
+      internalerror(2020041901);
   end;
 end;
 

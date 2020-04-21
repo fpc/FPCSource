@@ -398,7 +398,10 @@ interface
           ash_endprologue,ash_handler,ash_handlerdata,
           ash_eh,ash_32,ash_no32,
           ash_setframe,ash_stackalloc,ash_pushreg,
-          ash_savereg,ash_savexmm,ash_pushframe,
+          ash_savereg,ash_savereg_x,ash_saveregp,ash_saveregp_x,
+          ash_savexmm,ash_savefreg,ash_savefreg_x,ash_savefregp,ash_savefregp_x,ash_pushframe,
+          ash_setfp,ash_addfp,ash_savefplr,ash_savefplr_x,
+          ash_nop,
           ash_pushnv,ash_savenv
         );
 
@@ -439,7 +442,10 @@ interface
         '.seh_endprologue','.seh_handler','.seh_handlerdata',
         '.seh_eh','.seh_32','seh_no32',
         '.seh_setframe','.seh_stackalloc','.seh_pushreg',
-        '.seh_savereg','.seh_savexmm','.seh_pushframe',
+        '.seh_savereg','.seh_savereg_x','.seh_saveregp','.seh_saveregp_x',
+        '.seh_savexmm','.seh_savefreg','.seh_savefreg_x','.seh_savefregp','.seh_savefregp_x','.seh_pushframe',
+        '.seh_setfp','.seh_addfp','.seh_savefplr','.seh_savefplr_x',
+        '.seh_nop',
         '.pushnv','.savenv'
       );
       symbolpairkindstr: array[TSymbolPairKind] of string[11]=(
@@ -2072,7 +2078,7 @@ implementation
             result:=8;
           aitconst_secrel32_symbol,
           aitconst_rva_symbol :
-            if target_info.system=system_x86_64_win64 then
+            if target_info.system in systems_peoptplus then
               result:=sizeof(longint)
             else
               result:=sizeof(pint);
@@ -3334,8 +3340,20 @@ implementation
         sd_offset,     { stackalloc }
         sd_reg,        { pushreg }
         sd_regoffset,  { savereg }
+        sd_regoffset,  { savereg_x }
+        sd_regoffset,  { saveregp }
+        sd_regoffset,  { saveregp_x }
         sd_regoffset,  { savexmm }
+        sd_regoffset,  { savefreg }
+        sd_regoffset,  { savefreg_x }
+        sd_regoffset,  { savefregp }
+        sd_regoffset,  { savefregp_x }
         sd_none,       { pushframe }
+        sd_none,       { setfp }
+        sd_none,       { addfp }
+        sd_offset,     { savefplr }
+        sd_offset,     { savefplr_x }
+        sd_none,       { nop }
         sd_reg,        { pushnv }
         sd_none        { savenv }
       );

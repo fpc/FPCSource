@@ -151,7 +151,7 @@ implementation
           else
             linker.sysinitunit:='sysinitpas';
         end
-      else if target_info.system=system_x86_64_win64 then
+      else if target_info.system in [system_x86_64_win64,system_aarch64_win64] then
         linker.sysinitunit:='sysinit';
     end;
 
@@ -251,12 +251,12 @@ implementation
           { idata4 }
           objdata.SetSection(idata4objsection);
           objdata.writebytes(emptyint,sizeof(emptyint));
-          if target_info.system=system_x86_64_win64 then
+          if target_info.system in systems_peoptplus then
             objdata.writebytes(emptyint,sizeof(emptyint));
           { idata5 }
           objdata.SetSection(idata5objsection);
           objdata.writebytes(emptyint,sizeof(emptyint));
-          if target_info.system=system_x86_64_win64 then
+          if target_info.system in systems_peoptplus then
             objdata.writebytes(emptyint,sizeof(emptyint));
           { idata7 }
           objdata.SetSection(idata7objsection);
@@ -270,22 +270,26 @@ implementation
 
         procedure AddImport(const afuncname,mangledname:string;ordnr:longint;isvar:boolean);
         const
-{$ifdef x86_64}
+{$if defined(x86_64)}
           jmpopcode : array[0..1] of byte = (
             $ff,$25             // jmp qword [rip + offset32]
           );
-{$else x86_64}
-  {$ifdef arm}
+{$elseif defined(arm)}
           jmpopcode : array[0..7] of byte = (
             $00,$c0,$9f,$e5,    // ldr ip, [pc, #0]
             $00,$f0,$9c,$e5     // ldr pc, [ip]
           );
-  {$else arm}
+{$elseif defined(aarch64)}
+          jmpopcode : array[0..11] of byte = (
+            $70,$00,$00,$58,    // ldr ip0, .+12
+            $10,$02,$40,$F9,    // ldr ip0, [ip0]
+            $00,$02,$1F,$D6     // br ip0
+          );
+{$elseif defined(i386)}
           jmpopcode : array[0..1] of byte = (
             $ff,$25
           );
-  {$endif arm}
-{$endif x86_64}
+{$endif}
           nopopcodes : array[0..1] of byte = (
             $90,$90
           );
@@ -311,14 +315,14 @@ implementation
               begin
                 { import by name }
                 objdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
-                if target_info.system=system_x86_64_win64 then
+                if target_info.system in systems_peoptplus then
                   objdata.writebytes(emptyint,sizeof(emptyint));
               end
             else
               begin
                 { import by ordinal }
                 ordint:=ordnr;
-                if target_info.system=system_x86_64_win64 then
+                if target_info.system in systems_peoptplus then
                   begin
                     objdata.writebytes(ordint,sizeof(ordint));
                     ordint:=$80000000;
@@ -378,11 +382,13 @@ implementation
               else
                 implabel:=objdata.SymbolDefine(basedllname+'_index_'+tostr(ordnr),AB_GLOBAL,AT_FUNCTION);
               objdata.writebytes(jmpopcode,sizeof(jmpopcode));
-{$ifdef x86_64}
+{$if defined(x86_64)}
               objdata.writereloc(0,sizeof(longint),idata5label,RELOC_RELATIVE);
+{$elseif defined(aarch64)}
+              objdata.writereloc(0,sizeof(aint),idata5label,RELOC_ABSOLUTE);
 {$else}
               objdata.writereloc(0,sizeof(longint),idata5label,RELOC_ABSOLUTE32);
-{$endif x86_64}
+{$endif x86_64 or aarch64}
               objdata.writebytes(nopopcodes,align(objdata.CurrObjSec.size,qword(sizeof(nopopcodes)))-objdata.CurrObjSec.size);
             end;
           ObjOutput.exportsymbol(implabel);
@@ -487,12 +493,12 @@ implementation
                 if ImportSymbol.Name<>'' then
                   begin
                     current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(TAsmLabel(ImportLabels[j])));
-                    if target_info.system=system_x86_64_win64 then
+                    if target_info.system in systems_peoptplus then
                       current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
                   end
                 else
                   begin
-                    if target_info.system=system_x86_64_win64 then
+                    if target_info.system in systems_peoptplus then
                       current_asmdata.asmlists[al_imports].concat(Tai_const.Create_64bit(int64($8000000000000000) or ImportSymbol.ordnr))
                     else
                       current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(longint($80000000) or ImportSymbol.ordnr));
@@ -500,7 +506,7 @@ implementation
               end;
             { finalize the names ... }
             current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
-            if target_info.system=system_x86_64_win64 then
+            if target_info.system in systems_peoptplus then
               current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
 
             { then the addresses and create also the indirect jump }
@@ -524,7 +530,7 @@ implementation
                     else
                       current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ExtractFileName(ImportLibrary.Name)+'_index_'+tostr(ImportSymbol.ordnr),AT_FUNCTION,0,voidcodepointertype));
                     current_asmdata.asmlists[al_imports].concat(tai_function_name.create(''));
-                  {$ifdef ARM}
+                  {$if defined(ARM)}
                     reference_reset_symbol(href,l5,0,sizeof(pint),[]);
                     current_asmdata.asmlists[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R12,href));
                     reference_reset_base(href,NR_R12,0,ctempposinvalid,sizeof(pint),[]);
@@ -532,7 +538,10 @@ implementation
                     current_asmdata.asmlists[al_imports].concat(Tai_label.Create(l5));
                     reference_reset_symbol(href,l4,0,sizeof(pint),[]);
                     current_asmdata.asmlists[al_imports].concat(tai_const.create_sym_offset(href.symbol,href.offset));
-                  {$else ARM}
+                  {$elseif defined(AARCH64)}
+                    { ToDo }
+                    internalerror(2020033001);
+                  {$else X86}
                     reference_reset_symbol(href,l4,0,sizeof(pint),[]);
 {$ifdef X86_64}
                     href.base:=NR_RIP;
@@ -540,7 +549,7 @@ implementation
 
                     current_asmdata.asmlists[al_imports].concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                     current_asmdata.asmlists[al_imports].concat(Tai_align.Create_op(4,$90));
-                  {$endif ARM}
+                  {$endif X86}
                     { add jump field to al_imports }
                     new_section(current_asmdata.asmlists[al_imports],sec_idata5,'',0);
                     if (cs_debuginfo in current_settings.moduleswitches) then
@@ -573,12 +582,12 @@ implementation
                 else
                   current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ImportSymbol.MangledName,AT_DATA,0,voidpointertype));
                 current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(TAsmLabel(Importlabels[j])));
-                if target_info.system=system_x86_64_win64 then
+                if target_info.system in systems_peoptplus then
                   current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
               end;
             { finalize the addresses }
             current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
-            if target_info.system=system_x86_64_win64 then
+            if target_info.system in systems_peoptplus then
               current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
 
             { finally the import information }
@@ -1859,4 +1868,12 @@ initialization
   RegisterRes(res_gnu_windres_info,TWinLikeResourceFile);
   RegisterTarget(system_arm_wince_info);
 {$endif arm}
+{$ifdef aarch64}
+  RegisterImport(system_aarch64_win64,TImportLibWin);
+  RegisterExport(system_aarch64_win64,TExportLibWin);
+  RegisterDLLScanner(system_aarch64_win64,TDLLScannerWin);
+  // ToDo?
+  RegisterRes(res_gnu_windres_info,TWinLikeResourceFile);
+  RegisterTarget(system_aarch64_win64_info);
+{$endif aarch64}
 end.

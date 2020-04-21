@@ -1713,6 +1713,7 @@ begin
 end;
 
 function Int64ShllMod32(Value: ULONGLONG; ShiftCount: DWORD): ULONGLONG;
+{$ifdef Win32}
 asm
         MOV     ECX, ShiftCount
         MOV     EAX, DWORD PTR [Value]
@@ -1720,8 +1721,14 @@ asm
         SHLD    EDX, EAX, CL
         SHL     EAX, CL
 end;
+{$else}
+begin
+  Result := Value shl ShiftCount;
+end;
+{$endif}
 
 function Int64ShraMod32(Value: LONGLONG; ShiftCount: DWORD): LONGLONG;
+{$ifdef Win32}
 asm
         MOV     ECX, ShiftCount
         MOV     EAX, DWORD PTR [Value]
@@ -1729,8 +1736,14 @@ asm
         SHRD    EAX, EDX, CL
         SAR     EDX, CL
 end;
+{$else}
+begin
+  Result := SarInt64(Value, ShiftCount);
+end;
+{$endif}
 
 function Int64ShrlMod32(Value: ULONGLONG; ShiftCount: DWORD): ULONGLONG;
+{$ifdef Win32}
 asm
         MOV     ECX, ShiftCount
         MOV     EAX, DWORD PTR [Value]
@@ -1738,6 +1751,11 @@ asm
         SHRD    EAX, EDX, CL
         SHR     EDX, CL
 end;
+{$else}
+begin
+  Result := Value shr ShiftCount;
+end;
+{$endif}
 
 procedure ListEntry32To64(l32: PLIST_ENTRY32; l64: PLIST_ENTRY64);
 begin

@@ -28,14 +28,21 @@ Unit racpugas;
 
     uses
       raatt,racpu,
+      aasmtai,
       cpubase;
 
     type
+
+      { taarch64attreader }
+
       taarch64attreader = class(tattreader)
         actoppostfix : TOpPostfix;
+        actsehdirective : TAsmSehDirective;
         function is_asmopcode(const s: string):boolean;override;
         function is_register(const s:string):boolean;override;
+        function is_targetdirective(const s: string): boolean;override;
         procedure handleopcode;override;
+        procedure handletargetdirective; override;
         procedure BuildReference(oper: taarch64operand; is64bit: boolean);
         procedure BuildOperand(oper: taarch64operand; is64bit: boolean);
         function TryBuildShifterOp(instr: taarch64instruction; opnr: longint) : boolean;
@@ -53,7 +60,7 @@ Unit racpugas;
       cutils,
       { global }
       globtype,verbose,
-      systems,aasmbase,aasmtai,aasmdata,aasmcpu,
+      systems,aasmbase,aasmdata,aasmcpu,
       { symtable }
       symconst,symsym,symdef,
       procinfo,
@@ -94,6 +101,46 @@ Unit racpugas;
                 actasmtoken:=AS_REGISTER;
                 exit;
               end;
+          end;
+      end;
+
+
+    const
+      { Aarch64 subset of SEH directives. .seh_proc, .seh_endproc and .seh_endepilogue
+        excluded because they are generated automatically when needed. }
+      recognized_directives: set of TAsmSehDirective=[
+        ash_endprologue,ash_handler,ash_handlerdata,
+        ash_stackalloc,ash_nop,ash_savefplr,ash_savefplr_x,
+        ash_savereg,ash_savereg_x,ash_saveregp,ash_saveregp_x,
+        ash_savefreg,ash_savefreg_x,ash_savefregp,ash_savefregp_x,
+        ash_setfp,ash_addfp
+      ];
+
+
+    function taarch64attreader.is_targetdirective(const s: string): boolean;
+      var
+        i: TAsmSehDirective;
+      begin
+        result:=false;
+        if target_info.system<>system_aarch64_win64 then
+          exit;
+
+        for i:=low(TAsmSehDirective) to high(TAsmSehDirective) do
+          begin
+            if not (i in recognized_directives) then
+              continue;
+            if s=sehdirectivestr[i] then
+              begin
+                actsehdirective:=i;
+                result:=true;
+                break;
+              end;
+          end;
+        { allow SEH directives only in pure assember routines }
+        if result and not (po_assembler in current_procinfo.procdef.procoptions) then
+          begin
+            Message(asmr_e_seh_in_pure_asm_only);
+            result:=false;
           end;
       end;
 
@@ -792,7 +839,10 @@ Unit racpugas;
                             Message1(sym_e_unknown_id,expr);
                         end
                        else
-                         MaybeAddGotAddrMode;
+                         begin
+                           oper.InitRef;
+                           MaybeAddGotAddrMode;
+                         end;
                      end;
                   end;
                   if actasmtoken=AS_DOT then
@@ -1029,6 +1079,184 @@ Unit racpugas;
         instr.ConcatInstruction(curlist);
         instr.Free;
         actoppostfix:=PF_None;
+      end;
+
+
+    procedure taarch64attreader.handletargetdirective;
+
+      function maxoffset(ash:TAsmSehDirective):aint;
+        begin
+          case ash of
+            ash_savefplr,
+            ash_saveregp,
+            ash_savereg,
+            ash_savefregp,
+            ash_savefreg:
+              result:=504;
+            ash_savefplr_x,
+            ash_saveregp_x,
+            ash_savefregp_x:
+              result:=-512;
+            ash_savereg_x,
+            ash_savefreg_x:
+              result:=-256;
+            ash_addfp:
+              result:=2040;
+            else
+              internalerror(2020041204);
+          end;
+        end;
+
+      procedure add_reg_with_offset(ash:TAsmSehDirective;hreg:tregister;hnum:aint;neg:boolean);
+        begin
+          if (neg and ((hnum>0) or (hnum<maxoffset(ash)) or (((-hnum) and $7)<>0))) or
+              (not neg and ((hnum<0) or (hnum>maxoffset(ash)) or ((hnum and $7)<>0))) then
+            Message1(asmr_e_bad_seh_directive_offset,sehdirectivestr[actsehdirective])
+          else
+            begin
+              if neg then
+                hnum:=-hnum;
+              if hreg=NR_NO then
+                curlist.concat(cai_seh_directive.create_offset(actsehdirective,hnum))
+              else
+                curlist.concat(cai_seh_directive.create_reg_offset(actsehdirective,hreg,hnum));
+            end;
+        end;
+
+      var
+        hreg,
+        hreg2 : TRegister;
+        hnum : aint;
+        flags : integer;
+        ai : tai_seh_directive;
+        hs : string;
+        err : boolean;
+      begin
+        if actasmtoken<>AS_TARGET_DIRECTIVE then
+          InternalError(2020033102);
+        Consume(AS_TARGET_DIRECTIVE);
+        Include(current_procinfo.flags,pi_has_unwind_info);
+
+        case actsehdirective of
+          ash_nop,
+          ash_setfp,
+          ash_endprologue,
+          ash_handlerdata:
+            curlist.concat(cai_seh_directive.create(actsehdirective));
+
+          ash_handler:
+            begin
+              hs:=actasmpattern;
+              Consume(AS_ID);
+              flags:=0;
+              err:=false;
+              while actasmtoken=AS_COMMA do
+                begin
+                  Consume(AS_COMMA);
+                  if actasmtoken=AS_AT then
+                    begin
+                      Consume(AS_AT);
+                      if actasmtoken=AS_ID then
+                        begin
+                          uppervar(actasmpattern);
+                          if actasmpattern='EXCEPT' then
+                            flags:=flags or 1
+                          else if actasmpattern='UNWIND' then
+                            flags:=flags or 2
+                          else
+                            err:=true;
+                          Consume(AS_ID);
+                        end
+                      else
+                        err:=true;
+                    end
+                  else
+                    err:=true;
+                  if err then
+                    begin
+                      Message(asmr_e_syntax_error);
+                      RecoverConsume(false);
+                      exit;
+                    end;
+                end;
+
+              ai:=cai_seh_directive.create_name(ash_handler,hs);
+              ai.data.flags:=flags;
+              curlist.concat(ai);
+            end;
+          ash_savefplr,
+          ash_savefplr_x:
+            begin
+              hnum:=BuildConstExpression(false,false);
+              add_reg_with_offset(actsehdirective,NR_NO,hnum,actsehdirective=ash_savefplr_x);
+            end;
+          ash_savereg,
+          ash_savereg_x:
+            begin
+              hreg:=actasmregister;
+              Consume(AS_REGISTER);
+              if (getregtype(hreg)<>R_INTREGISTER) or (getsubreg(hreg)<>R_SUBWHOLE) or (getsupreg(hreg)<19) then
+                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+              Consume(AS_COMMA);
+              hnum:=BuildConstExpression(false,false);
+              add_reg_with_offset(actsehdirective,hreg,hnum,actsehdirective=ash_savereg_x);
+            end;
+          ash_saveregp,
+          ash_saveregp_x:
+            begin
+              hreg:=actasmregister;
+              consume(AS_REGISTER);
+              if (getregtype(hreg)<>R_INTREGISTER) or (getsubreg(hreg)<>R_SUBWHOLE) or (getsupreg(hreg)<19) then
+                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+              consume(AS_COMMA);
+              hreg2:=actasmregister;
+              consume(AS_REGISTER);
+              if (getregtype(hreg2)<>R_INTREGISTER) or (getsubreg(hreg2)<>R_SUBWHOLE) or (getsupreg(hreg2)<>getsupreg(hreg)+1) then
+                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+              consume(AS_COMMA);
+              hnum:=BuildConstExpression(false,false);
+              add_reg_with_offset(actsehdirective,hreg,hnum,actsehdirective=ash_saveregp_x);
+            end;
+          ash_savefreg,
+          ash_savefreg_x:
+            begin
+              hreg:=actasmregister;
+              Consume(AS_REGISTER);
+              if (getregtype(hreg)<>R_MMREGISTER) or (getsubreg(hreg)<>R_SUBWHOLE) or (getsupreg(hreg)<8) then
+                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+              Consume(AS_COMMA);
+              hnum:=BuildConstExpression(false,false);
+              add_reg_with_offset(actsehdirective,hreg,hnum,actsehdirective=ash_savefreg_x);
+            end;
+          ash_savefregp,
+          ash_savefregp_x:
+            begin
+              hreg:=actasmregister;
+              consume(AS_REGISTER);
+              if (getregtype(hreg)<>R_MMREGISTER) or (getsubreg(hreg)<>R_SUBWHOLE) or (getsupreg(hreg)<8) then
+                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+              consume(AS_COMMA);
+              hreg2:=actasmregister;
+              consume(AS_REGISTER);
+              if (getregtype(hreg2)<>R_MMREGISTER) or (getsubreg(hreg2)<>R_SUBWHOLE) or (getsupreg(hreg2)<>getsupreg(hreg)+1) then
+                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+              consume(AS_COMMA);
+              hnum:=BuildConstExpression(false,false);
+              add_reg_with_offset(actsehdirective,hreg,hnum,actsehdirective=ash_savefregp_x);
+            end;
+          ash_stackalloc:
+            begin
+              hnum:=BuildConstExpression(false,false);
+              if (hnum<0) or (hnum>$FFFFFF) or ((hnum and 7)<>0) then
+                Message1(asmr_e_bad_seh_directive_offset,sehdirectivestr[ash_stackalloc])
+              else
+                curlist.concat(cai_seh_directive.create_offset(ash_stackalloc,hnum));
+            end;
+          else
+            InternalError(2020033103);
+        end;
+        if actasmtoken<>AS_SEPARATOR then
+          Consume(AS_SEPARATOR);
       end;
 
 
