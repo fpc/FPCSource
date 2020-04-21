@@ -1912,14 +1912,25 @@ unit cgcpu;
       var
         tmpreg,srcreg,dstreg: tregister;
         srcref,dstref : treference;
+        i: Integer;
       begin
-        if (len=1) and
+        if (len<=2) and
            is_ref_in_opertypes(source,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) and
            is_ref_in_opertypes(dest,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) then
           begin
+            srcref:=source;
+            dstref:=dest;
             tmpreg:=getintregister(list,OS_8);
-            list.concat(taicpu.op_reg_ref(A_LD,tmpreg,source));
-            list.concat(taicpu.op_ref_reg(A_LD,dest,tmpreg));
+            for i:=1 to len do
+              begin
+                list.concat(taicpu.op_reg_ref(A_LD,tmpreg,srcref));
+                list.concat(taicpu.op_ref_reg(A_LD,dstref,tmpreg));
+                if i<>len then
+                  begin
+                    adjust_normalized_ref(list,srcref,1);
+                    adjust_normalized_ref(list,dstref,1);
+                  end;
+              end;
           end
         else
           begin
