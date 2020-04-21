@@ -89,6 +89,8 @@ end;
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;nostackframe;
   asm
+    push ix
+    pop hl
   end;
 {$ENDIF not INTERNAL_BACKTRACE}
 
