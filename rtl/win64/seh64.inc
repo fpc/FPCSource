@@ -297,7 +297,7 @@ begin
 end;
 
 
-function RunErrorCodex64(const rec: TExceptionRecord; const context: TContext): Longint;
+function RunErrorCodeSEH(const rec: TExceptionRecord; const context: TContext): Longint;
 begin
   result:=RunErrorCode(rec);
   if (result=-255) then
@@ -373,7 +373,7 @@ begin
   begin
     Obj:=nil;
     Result:=False;
-    code:=RunErrorCodex64(rec,context);
+    code:=RunErrorCodeSEH(rec,context);
     if Assigned(ExceptObjProc) then
       Obj:=TObject(TExceptObjProc(ExceptObjProc)(abs(code),rec));
     if (Obj=nil) and (not AcceptNull) then
@@ -429,7 +429,7 @@ begin
     if Exc^.FObject=nil then
     begin
       hstdout:=@stdout;
-      code:=abs(RunErrorCodex64(rec,context));
+      code:=abs(RunErrorCodeSEH(rec,context));
       Writeln(hstdout^,'Runtime error ',code,' at $',hexstr(Exc^.addr));
       Writeln(hstdout^,BackTraceStrFunc(Exc^.Addr));
       if (Exc^.FrameCount>0) then
@@ -515,7 +515,7 @@ begin
 
         if scope^.Typ>SCOPE_IMPLICIT then  // filtering needed
         begin
-          TargetAddr:=FilterException(rec,dispatch.ImageBase,scope^.Typ,abs(RunErrorCodex64(rec,context)));
+          TargetAddr:=FilterException(rec,dispatch.ImageBase,scope^.Typ,abs(RunErrorCodeSEH(rec,context)));
           if TargetAddr=nil then
           begin
             Inc(ScopeIdx);
