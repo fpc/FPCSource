@@ -4608,7 +4608,7 @@ begin
 
   { Section smartlinking conflicts with import sections on Windows }
   if GenerateImportSection and
-     (target_info.system in [system_i386_win32,system_x86_64_win64]) then
+     (target_info.system in [system_i386_win32,system_x86_64_win64,system_aarch64_win64]) then
     exclude(target_info.flags,tf_smartlink_sections);
 
   if not option.LinkTypeSetExplicitly then

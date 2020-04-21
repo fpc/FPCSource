@@ -44,6 +44,9 @@ implementation
     {$ifndef NOTARGETANDROID}
       ,t_android
     {$endif}
+    {$ifndef NOTARGETWIN64}
+      ,t_win
+    {$endif}
 
 {**************************************
              Assemblers

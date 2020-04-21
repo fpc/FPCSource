@@ -224,7 +224,8 @@ const
   { 103 } 'Embedded-Xtensa',
   { 104 } 'FreeRTos-Xtensa',
   { 105 } 'Linux-Xtensa',
-  { 106 } 'FreeRTos-arm'
+  { 106 } 'FreeRTos-arm',
+  { 107 } 'Win64-AArch64'
   );
 
 const

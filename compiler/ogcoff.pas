@@ -287,6 +287,11 @@ interface
        COFF_OPT_MAGIC   = $20b;
        TLSDIR_SIZE      = $28;
 {$endif x86_64}
+{$ifdef aarch64}
+       COFF_MAGIC       = $AA64;
+       COFF_OPT_MAGIC   = $20b;
+       TLSDIR_SIZE      = $28;
+{$endif aarch64}
        COFF_BIG_OBJ_MAGIC: array[0..15] of byte = ($C7, $A1, $BA, $D1, $EE, $BA, $A9, $4B, $AF, $20, $FA, $F6, $6A, $A4, $DC, $B8);
        COFF_BIG_OBJ_VERSION = 2;
 
@@ -1739,12 +1744,12 @@ const pemagic : array[0..3] of byte = (
                header.syms:=symidx;
                if win32 then
                  begin
-{$ifndef x86_64}
+{$ifndef cpu64bitaddr}
                    header.flag:=PE_FILE_32BIT_MACHINE or
                                 PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
-{$else x86_64}
+{$else cpu64bitaddr}
                    header.flag:=PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
-{$endif x86_64}
+{$endif cpu64bitaddr}
                  end
                else
                  header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_NOLINES or COFF_FLAG_NOLSYMS;
@@ -2405,7 +2410,7 @@ const pemagic : array[0..3] of byte = (
       begin
         inherited create;
         win32:=awin32;
-        if target_info.system in [system_x86_64_win64] then
+        if target_info.system in [system_x86_64_win64,system_aarch64_win64] then
           MaxMemPos:=$FFFFFFFF
         else
           if target_info.system in systems_wince then
@@ -2743,7 +2748,7 @@ const pemagic : array[0..3] of byte = (
         if win32 then
           begin
             header.flag:=PE_FILE_EXECUTABLE_IMAGE or PE_FILE_LINE_NUMS_STRIPPED;
-            if target_info.system in [system_x86_64_win64] then
+            if target_info.system in [system_x86_64_win64,system_aarch64_win64] then
               header.flag:=header.flag or PE_FILE_LARGE_ADDRESS_AWARE
             else
               header.flag:=header.flag or PE_FILE_32BIT_MACHINE;
@@ -3022,16 +3027,22 @@ const pemagic : array[0..3] of byte = (
 
         function AddImport(const afuncname,amangledname:string; AOrdNr:longint;isvar:boolean):TObjSymbol;
         const
-  {$ifdef arm}
+  {$if defined(arm)}
           jmpopcode : array[0..7] of byte = (
             $00,$c0,$9f,$e5,    // ldr ip, [pc, #0]
             $00,$f0,$9c,$e5     // ldr pc, [ip]
           );
-  {$else arm}
+  {$elseif defined(aarch64)}
+          jmpopcode : array[0..11] of byte = (
+            $70,$00,$00,$58,    // ldr ip0, .+12
+            $10,$02,$40,$F9,    // ldr ip0, [ip0]
+            $00,$02,$1F,$D6     // br ip0
+          );
+  {$else}
           jmpopcode : array[0..1] of byte = (
             $ff,$25
           );
-  {$endif arm}
+  {$endif}
           nopopcodes : array[0..1] of byte = (
             $90,$90
           );
@@ -3086,11 +3097,13 @@ const pemagic : array[0..3] of byte = (
               textobjsection.writezeros(align_aword(textobjsection.size,16)-textobjsection.size);
               result:=internalobjdata.SymbolDefine('_'+amangledname,AB_GLOBAL,AT_FUNCTION);
               textobjsection.write(jmpopcode,sizeof(jmpopcode));
-{$ifdef x86_64}
+{$if defined(x86_64)}
               textobjsection.writereloc_internal(idata5objsection,idata5objsection.size,4,RELOC_RELATIVE);
+{$elseif defined(aarch64)}
+              textobjsection.writereloc_internal(idata5objsection,idata5objsection.size,8,RELOC_ABSOLUTE);
 {$else}
               textobjsection.writereloc_internal(idata5objsection,idata5objsection.size,4,RELOC_ABSOLUTE32);
-{$endif x86_64}
+{$endif x86_64 or aarch64}
 
               textobjsection.write(nopopcodes,align(textobjsection.size,qword(sizeof(nopopcodes)))-textobjsection.size);
             end;

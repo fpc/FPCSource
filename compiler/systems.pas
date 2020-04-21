@@ -276,11 +276,11 @@ interface
        systems_aix = [system_powerpc_aix,system_powerpc64_aix];
 
        { all real windows systems, no cripple ones like win16, wince, wdosx et. al. }
-       systems_windows = [system_i386_win32,system_x86_64_win64];
+       systems_windows = [system_i386_win32,system_x86_64_win64,system_aarch64_win64];
 
        { all windows systems }
-       systems_all_windows = [system_i386_win32,system_x86_64_win64,
-                             system_arm_wince,system_i386_wince,
+       systems_all_windows = systems_windows+
+                             [system_arm_wince,system_i386_wince,
                              system_i8086_win16];
 
        { all darwin systems }
@@ -356,13 +356,16 @@ interface
                                          system_i386_netwlibc,
                                          system_arm_wince,
                                          system_x86_64_win64,
-                                         system_i8086_win16]+systems_linux+systems_android;
+                                         system_i8086_win16,
+                                         system_aarch64_win64]+systems_linux+systems_android;
 
        { all systems that reference symbols in other binaries using indirect imports }
        systems_indirect_var_imports = systems_all_windows+[system_i386_nativent];
 
        { all systems that support indirect entry information }
-       systems_indirect_entry_information = systems_darwin+[system_i386_win32,system_x86_64_win64,system_x86_64_linux];
+       systems_indirect_entry_information = systems_darwin+
+                                            [system_i386_win32,system_x86_64_win64,system_x86_64_linux,
+                                            system_aarch64_win64];
 
        { all systems for which weak linking has been tested/is supported }
        systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android + systems_openbsd + systems_freebsd;
@@ -373,13 +376,14 @@ interface
                                    system_m68k_atari,system_m68k_palmos,
                                    system_i386_haiku,system_x86_64_haiku,
                                    system_i386_openbsd,system_x86_64_openbsd,
-                                   system_riscv32_linux,system_riscv64_linux
+                                   system_riscv32_linux,system_riscv64_linux,
+                                   system_aarch64_win64
                                   ]+systems_darwin+systems_amigalike;
 
        { all systems that use the PE+ header in the PE/COFF file
          Note: this is here and not in ogcoff, because it's required in other
                units as well }
-       systems_peoptplus = [system_x86_64_win64];
+       systems_peoptplus = [system_x86_64_win64,system_aarch64_win64];
 
        { all systems that use garbage collection for reference-counted types }
        systems_garbage_collected_managed_types = [
@@ -1113,6 +1117,10 @@ begin
       {$define default_target_set}
       default_target(system_aarch64_android);
     {$endif android}
+    {$ifdef windows}
+      {$define default_target_set}
+      default_target(system_aarch64_win64);
+    {$endif}
     {$ifndef default_target_set}
       default_target(system_aarch64_linux);
       {$define default_target_set}

@@ -194,7 +194,8 @@
              system_xtensa_embedded,    { 103 }
              system_xtensa_freertos,    { 104 }
              system_xtensa_linux,       { 105 }
-             system_arm_freertos        { 106 }
+             system_arm_freertos,       { 106 }
+             system_aarch64_win64       { 107 }
        );
 
      type

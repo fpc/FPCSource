@@ -126,6 +126,7 @@ begin
       end;
     system_i386_win32,
     system_x86_64_win64,
+    system_aarch64_win64,
     obsolete_system_ia64_win64,
     system_arm_wince,
     system_i386_wince,
