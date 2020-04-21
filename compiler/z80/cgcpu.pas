@@ -249,6 +249,17 @@ unit cgcpu;
                   list.concat(taicpu.op_reg(A_INC,NR_SP));
                   ungetcpuregister(list,NR_A);
                 end;
+              2:
+                begin
+                  cgpara.check_simple_location;
+                  getcpuregister(list,NR_L);
+                  a_load_reg_reg(list,OS_8,OS_8,r,NR_L);
+                  getcpuregister(list,NR_H);
+                  a_load_reg_reg(list,OS_8,OS_8,GetNextReg(r),NR_H);
+                  list.concat(taicpu.op_reg(A_PUSH,NR_HL));
+                  getcpuregister(list,NR_H);
+                  getcpuregister(list,NR_L);
+                end;
               else
                 internalerror(2020040801);
             end;
