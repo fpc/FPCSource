@@ -410,7 +410,7 @@ implementation
     function TGNUAssembler.sectionattrs(atype:TAsmSectiontype):string;
       begin
         result:='';
-        if (target_info.system in [system_i386_win32,system_x86_64_win64]) then
+        if (target_info.system in [system_i386_win32,system_x86_64_win64,system_aarch64_win64]) then
           begin
             result:=sectionattrs_coff(atype);
           end;
