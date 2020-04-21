@@ -97,6 +97,15 @@ interface
          RELOC_TLS_CALL,
          RELOC_ARM_CALL,
 {$endif arm}
+{$ifdef aarch64}
+         RELOC_ABSOLUTE32,
+         RELOC_RELATIVE_26,
+         RELOC_RELATIVE_19,
+         RELOC_ADR_PREL_LO21,
+         RELOC_ADR_PREL_PG_HI21,
+         RELOC_ADD_ABS_LO12,
+         RELOC_LDST8_ABS_LO12,
+{$endif aarch64}
          { Relative relocation }
          RELOC_RELATIVE,
          { PECoff (Windows) RVA relocation }
@@ -120,7 +129,7 @@ interface
          RELOC_DTPOFF
       );
 
-{$if defined(x86_64)}
+{$if defined(x86_64) or defined(aarch64)}
     { no special aliases for x86_64 }
 {$elseif defined(i8086)}
     const

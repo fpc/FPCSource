@@ -465,6 +465,25 @@ implementation
        IMAGE_REL_I386_PCRLONG = 20;
 {$endif i386}
 
+{$ifdef aarch64}
+       IMAGE_REL_ARM64_ABSOLUTE       = $0000;  // No relocation required
+       IMAGE_REL_ARM64_ADDR32         = $0001;  // 32 bit address. Review! do we need it?
+       IMAGE_REL_ARM64_ADDR32NB       = $0002;  // 32 bit address w/o image base (RVA: for Data/PData/XData)
+       IMAGE_REL_ARM64_BRANCH26       = $0003;  // 26 bit offset << 2 & sign ext. for B & BL
+       IMAGE_REL_ARM64_PAGEBASE_REL21 = $0004;  // ADRP
+       IMAGE_REL_ARM64_REL21          = $0005;  // ADR
+       IMAGE_REL_ARM64_PAGEOFFSET_12A = $0006;  // ADD/ADDS (immediate) with zero shift, for page offset
+       IMAGE_REL_ARM64_PAGEOFFSET_12L = $0007;  // LDR (indexed, unsigned immediate), for page offset
+       IMAGE_REL_ARM64_SECREL         = $0008;  // Offset within section
+       IMAGE_REL_ARM64_SECREL_LOW12A  = $0009;  // ADD/ADDS (immediate) with zero shift, for bit 0:11 of section offset
+       IMAGE_REL_ARM64_SECREL_HIGH12A = $000A;  // ADD/ADDS (immediate) with zero shift, for bit 12:23 of section offset
+       IMAGE_REL_ARM64_SECREL_LOW12L  = $000B;  // LDR (indexed, unsigned immediate), for bit 0:11 of section offset
+       IMAGE_REL_ARM64_TOKEN          = $000C;
+       IMAGE_REL_ARM64_SECTION        = $000D;  // Section table index
+       IMAGE_REL_ARM64_ADDR64         = $000E;  // 64 bit address
+       IMAGE_REL_ARM64_BRANCH19       = $000F;  // 19 bit offset << 2 & sign ext. for conditional B
+{$endif aarch64}
+
        { .reloc section fixup types }
        IMAGE_REL_BASED_HIGHLOW     = 3;  { Applies the delta to the 32-bit field at Offset. }
        IMAGE_REL_BASED_DIR64       = 10; { Applies the delta to the 64-bit field at Offset. }
@@ -906,9 +925,9 @@ const pemagic : array[0..3] of byte = (
         objreloc : TObjRelocation;
         address,
         relocval : aint;
-{$ifdef arm}
+{$if defined(arm) or defined(aarch64)}
         addend   : aint;
-{$endif arm}
+{$endif arm or aarch64}
         relocsec : TObjSection;
 {$ifdef cpu64bitaddr}
         s        : string;
@@ -1007,6 +1026,56 @@ const pemagic : array[0..3] of byte = (
                       internalerror(200606085);  { offset overflow }
                   end;
 {$endif arm}
+{$ifdef aarch64}
+                RELOC_RELATIVE_26:
+                  begin
+                    addend:=sarint64(((address and $3ffffff) shl 38),36); // Sign-extend while shifting left twice
+                    relocval:=int64(relocval - objsec.mempos - objreloc.dataoffset + addend) shr 2;
+                    address:=(address and $fc000000) or (relocval and $3ffffff);
+                    relocval:=relocval shr 58;
+                    if (relocval<>$f) and (relocval<>0) then
+                      internalerror(2020032202);  { offset overflow }
+                  end;
+                RELOC_RELATIVE_19:
+                  begin
+                    addend:=sarint64(((address and $7ffe0) shl 45),43); // Sign-extend while shifting left twice
+                    relocval:=int64(relocval - objsec.mempos - objreloc.dataoffset + addend) shr 2;
+                    address:=(address and $fff80000) or (relocval and $7ffff);
+                    relocval:=relocval shr 51;
+                    if (relocval<>$3f) and (relocval<>0) then
+                      internalerror(2020032203);  { offset overflow }
+                  end;
+                RELOC_ADR_PREL_LO21:
+                  begin
+                    addend:=((address shr 29) and $3) or (((address shr 5) and $7ffff) shl 2);
+                    { sign extend the value if necessary }
+                    if (addend and (1 shl 21)) <> 0 then
+                      addend:=addend or sarint64(1 shl 63,12);
+                    relocval:=relocval and $1fffff;
+                    relocval:=int64(relocval-objsec.mempos-objreloc.dataoffset+addend);
+                    address:=address and ($3 shl 29) and ($7ffff shl 5);
+                    address:=address or ((relocval and $3) shl 29) or (((relocval shr 2) and $7ffff) shl 5);
+                  end;
+                RELOC_ADR_PREL_PG_HI21:
+                  begin
+                    addend:=((address shr 29) and $3) or (((address shr 5) and $7ffff) shl 2);
+                    { sign extend the value if necessary }
+                    if (addend and (1 shl 21)) <> 0 then
+                      addend:=addend or sarint64(1 shl 63, 12);
+                    relocval:=relocval shr 12;
+                    relocval:=int64((relocval-(objsec.mempos+objreloc.dataoffset) shr 12)+addend);
+                    address:=address and not (($3 shl 29) or ($7ffff shl 5));
+                    address:=address or ((relocval and $3) shl 29) or (((relocval shr 2) and $7ffff) shl 5);
+                  end;
+                RELOC_LDST8_ABS_LO12,
+                RELOC_ADD_ABS_LO12:
+                  begin
+                    addend:=(address shr 10) and $fff;
+                    relocval:=(relocval + addend) and $fff;
+                    address:=address and not ($fff shl 10);
+                    address:=address or (relocval shl 10);
+                  end;
+{$endif aarch64}
 {$ifdef x86_64}
                 { 64 bit coff only }
                 RELOC_RELATIVE_1:
@@ -1034,8 +1103,10 @@ const pemagic : array[0..3] of byte = (
                     address:=address-objsec.mempos+relocval;
                     dec(address,objreloc.dataoffset+9);
                   end;
-                RELOC_ABSOLUTE32,
 {$endif x86_64}
+{$ifdef cpu64bitaddr}
+                RELOC_ABSOLUTE32,
+{$endif cpu64bitaddr}
                 RELOC_ABSOLUTE :
                   begin
                     if (not win32) and assigned(objreloc.symbol) and
@@ -1450,6 +1521,35 @@ const pemagic : array[0..3] of byte = (
               RELOC_SECREL32 :
                 rel.reloctype:=IMAGE_REL_AMD64_SECREL;
 {$endif x86_64}
+{$ifdef aarch64}
+              RELOC_NONE :
+                rel.reloctype:=IMAGE_REL_ARM64_ABSOLUTE;
+              RELOC_ABSOLUTE32 :
+                rel.reloctype:=IMAGE_REL_ARM64_ADDR32;
+              RELOC_RVA :
+                rel.reloctype:=IMAGE_REL_ARM64_ADDR32NB;
+              RELOC_RELATIVE_26 :
+                rel.reloctype:=IMAGE_REL_ARM64_BRANCH26;
+              RELOC_ADR_PREL_PG_HI21 :
+                rel.reloctype:=IMAGE_REL_ARM64_PAGEBASE_REL21;
+              RELOC_ADR_PREL_LO21 :
+                rel.reloctype:=IMAGE_REL_ARM64_REL21;
+              RELOC_ADD_ABS_LO12:
+                rel.reloctype:=IMAGE_REL_ARM64_PAGEOFFSET_12A;
+              RELOC_LDST8_ABS_LO12:
+                rel.reloctype:=IMAGE_REL_ARM64_PAGEOFFSET_12L;
+              RELOC_SECREL32:
+                rel.reloctype:=IMAGE_REL_ARM64_SECREL;
+              {IMAGE_REL_ARM64_SECREL_LOW12A
+              IMAGE_REL_ARM64_SECREL_HIGH12A
+              IMAGE_REL_ARM64_SECREL_LOW12L
+              IMAGE_REL_ARM64_TOKEN
+              IMAGE_REL_ARM64_SECTION}
+              RELOC_ABSOLUTE:
+                rel.reloctype:=IMAGE_REL_ARM64_ADDR64;
+              RELOC_RELATIVE_19:
+                rel.reloctype:=IMAGE_REL_ARM64_BRANCH19;
+{$endif aarch64}
               else
                 internalerror(200905071);
             end;
@@ -1803,6 +1903,34 @@ const pemagic : array[0..3] of byte = (
              IMAGE_REL_AMD64_SECREL:
                rel_type:=RELOC_SECREL32;
 {$endif x86_64}
+{$ifdef aarch64}
+             IMAGE_REL_ARM64_ABSOLUTE:
+               rel_type:=RELOC_NONE;
+             IMAGE_REL_ARM64_ADDR32:
+               rel_type:=RELOC_ABSOLUTE32;
+             IMAGE_REL_ARM64_ADDR32NB:
+               rel_type:=RELOC_RVA;
+             IMAGE_REL_ARM64_BRANCH26:
+               rel_type:=RELOC_RELATIVE_26;
+             IMAGE_REL_ARM64_PAGEBASE_REL21:
+               rel_type:=RELOC_ADR_PREL_PG_HI21;
+             IMAGE_REL_ARM64_REL21:
+               rel_type:=RELOC_ADR_PREL_LO21;
+             IMAGE_REL_ARM64_PAGEOFFSET_12A:
+               rel_type:=RELOC_ADD_ABS_LO12;
+             IMAGE_REL_ARM64_PAGEOFFSET_12L:
+               rel_type:=RELOC_LDST8_ABS_LO12;
+             IMAGE_REL_ARM64_SECREL:
+               rel_type:=RELOC_SECREL32;
+             //IMAGE_REL_ARM64_SECREL_LOW12A
+             //IMAGE_REL_ARM64_SECREL_HIGH12A
+             //IMAGE_REL_ARM64_SECREL_LOW12L
+             //IMAGE_REL_ARM64_TOKEN
+             //IMAGE_REL_ARM64_SECTION
+             IMAGE_REL_ARM64_ADDR64:
+               rel_type:=RELOC_ABSOLUTE;
+             //IMAGE_REL_ARM64_BRANCH19
+{$endif aarch64}
            else
              begin
                InputError('Failed reading coff file, illegal reloctype $'+system.hexstr(rel.reloctype,4));
