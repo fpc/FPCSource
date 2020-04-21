@@ -1871,6 +1871,7 @@ initialization
 {$ifdef aarch64}
   RegisterImport(system_aarch64_win64,TImportLibWin);
   RegisterExport(system_aarch64_win64,TExportLibWin);
+  RegisterDLLScanner(system_aarch64_win64,TDLLScannerWin);
   // ToDo?
   RegisterRes(res_gnu_windres_info,TWinLikeResourceFile);
   RegisterTarget(system_aarch64_win64_info);
