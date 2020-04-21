@@ -64,6 +64,12 @@ Type
 
 procedure fpc_InitializeUnits;compilerproc;
 Procedure fpc_do_exit;compilerproc;
+Procedure FillChar(var x;count:SizeInt;value:byte);
+function get_frame:pointer;
+function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
+function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;
+Function Sptr : pointer;
+
 {$endif FULL_RTL}
 
 { OpenChannel(2) opens the upper screen
