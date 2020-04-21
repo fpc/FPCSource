@@ -412,12 +412,14 @@ var
 begin
   if (rec.ExceptionFlags and EXCEPTION_UNWIND)=0 then
   begin
+{$ifdef CPUX86_64}
     { Athlon prefetch bug? }
     if (rec.ExceptionCode=STATUS_ACCESS_VIOLATION) and is_prefetch(pointer(ContextGetIP(Context))) then
     begin
       result:=ExceptionContinueExecution;
       exit;
     end;
+{$endif CPUX86_64}
     PushException(rec,context,obj,True);
     RtlUnwindEx(frame, @L1, @rec, nil, dispatch.ContextRecord, dispatch.HistoryTable);
   end
@@ -502,12 +504,14 @@ begin
       else if (ControlRva>=scope^.RvaStart) and (ControlRva<scope^.RvaEnd) and
         (scope^.Typ<>SCOPE_FINALLY)then
       begin
+{$ifdef CPUX86_64}
         { Athlon prefetch bug? }
         if (rec.ExceptionCode=STATUS_ACCESS_VIOLATION) and is_prefetch(pointer(ContextGetIP(Context))) then
         begin
           result:=ExceptionContinueExecution;
           exit;
         end;
+{$endif CPUX86_64}
 
         if scope^.Typ>SCOPE_IMPLICIT then  // filtering needed
         begin
