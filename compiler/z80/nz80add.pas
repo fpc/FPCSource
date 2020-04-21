@@ -425,6 +425,132 @@ interface
                 internalerror(2020042103);
             end;
           end
+        else if unsigned then
+          begin
+            if left.location.loc<>LOC_REGISTER then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+
+            if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+              begin
+                if is_ref_in_opertypes(right.location.reference,[OT_REF_IX_d,OT_REF_IY_d,OT_REF_HL]) then
+                  begin
+                    cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    tmpref:=right.location.reference;
+                    tcgz80(cg).adjust_normalized_ref(current_asmdata.CurrAsmList,tmpref,size-1);
+                    for i:=size-1 downto 0 do
+                      begin
+                        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
+                        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_CP,NR_A,tmpref));
+                        if i<>0 then
+                          case NodeType of
+                            ltn,
+                            lten:
+                              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
+                            gtn,
+                            gten:
+                              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
+                            else
+                              internalerror(2020042202);
+                          end
+                        else
+                          case NodeType of
+                            ltn:
+                              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
+                            lten:
+                              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,truelabel,falselabel);
+                            gtn:
+                              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,falselabel,truelabel);
+                            gten:
+                              tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
+                            else
+                              internalerror(2020042203);
+                          end;
+                        if i<>0 then
+                          tcgz80(cg).adjust_normalized_ref(current_asmdata.CurrAsmList,tmpref,-1);
+                      end;
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                    cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
+                  end
+                else
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+              end;
+            case right.location.loc of
+              LOC_CONSTANT:
+                begin
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  for i:=size-1 downto 0 do
+                    begin
+                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
+                      current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_CP,NR_A,byte(right.location.value shr (i*8))));
+                      if i<>0 then
+                        case NodeType of
+                          ltn,
+                          lten:
+                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
+                          gtn,
+                          gten:
+                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
+                          else
+                            internalerror(2020042202);
+                        end
+                      else
+                        case NodeType of
+                          ltn:
+                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
+                          lten:
+                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,truelabel,falselabel);
+                          gtn:
+                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,falselabel,truelabel);
+                          gten:
+                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
+                          else
+                            internalerror(2020042203);
+                        end;
+                    end;
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                end;
+              LOC_REGISTER,LOC_CREGISTER:
+                begin
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_A);
+                  for i:=size-1 downto 0 do
+                    begin
+                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,tcgz80(cg).GetOffsetReg64(left.location.register,left.location.registerhi,i),NR_A);
+                      current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_CP,NR_A,tcgz80(cg).GetOffsetReg64(right.location.register,right.location.registerhi,i)));
+                      if i<>0 then
+                        case NodeType of
+                          ltn,
+                          lten:
+                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
+                          gtn,
+                          gten:
+                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,nil,truelabel);
+                          else
+                            internalerror(2020042202);
+                        end
+                      else
+                        case NodeType of
+                          ltn:
+                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
+                          lten:
+                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,truelabel,falselabel);
+                          gtn:
+                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,falselabel,truelabel);
+                          gten:
+                            tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,falselabel,truelabel,truelabel);
+                          else
+                            internalerror(2020042203);
+                        end;
+                    end;
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
+                end;
+              LOC_REFERENCE,LOC_CREFERENCE:
+                begin
+                  { Already handled before the case statement. Nothing to do here. }
+                end;
+              else
+                internalerror(2020042103);
+            end;
+          end
         else
           // todo: implement the rest
           internalerror(2020042104);
