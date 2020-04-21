@@ -14,6 +14,10 @@ interface
 Type
   dword = longword;
   integer = smallint;
+  sizeint = smallint;
+  sizeuint = word;
+  ptrint = smallint;
+  ptruint = word;
 
    jmp_buf = packed record
      f,a,b,c,e,d,l,h,ixlo,ixhi,iylo,iyhi,splo,sphi,pclo,pchi : byte;
@@ -81,6 +85,8 @@ implementation
 
 {$ifdef FULL_RTL}
 {$I system.inc}
+{$else FULL_RTL}
+{$I z80.inc}
 {$endif FULL_RTL}
 
 var

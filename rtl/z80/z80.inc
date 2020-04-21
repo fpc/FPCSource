@@ -22,10 +22,10 @@ procedure fpc_cpuinit;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
-var
-  pdest,psrc,pend : pbyte;
+{var
+  pdest,psrc,pend : pbyte;}
 begin
-  if (@dest=@source) or (count<=0) then
+(*  if (@dest=@source) or (count<=0) then
     exit;
   if (@dest<@source) or (@source+count<@dest) then
     begin
@@ -51,7 +51,7 @@ begin
           dec(psrc);
           pdest^:=psrc^;
         end;
-    end;
+    end;*)
 end;
 
 
@@ -175,8 +175,8 @@ function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comp
     end;
 
     Result:=Target;
-    if Target=Comperand then
-      Target:=NewValue;
+//    if Target=Comperand then
+//      Target:=NewValue;
 
     { release interrupts }
     asm
@@ -261,8 +261,8 @@ function InterlockedCompareExchange(var Target: smallint; NewValue: smallint; Co
     end;
 
     Result:=Target;
-    if Target=Comperand then
-      Target:=NewValue;
+//    if Target=Comperand then
+//      Target:=NewValue;
 
     { release interrupts }
     asm
