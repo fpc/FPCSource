@@ -47,6 +47,7 @@ interface
       constructor create_implicit(l,r:TNode);override;
       function simplify(forinline: boolean): tnode;override;
       procedure pass_generate_code;override;
+      function dogetcopy:tnode;override;
     end;
 
 implementation
@@ -344,6 +345,26 @@ procedure taarch64tryfinallynode.pass_generate_code;
     if implicitframe then
       current_procinfo.CurrExitLabel:=oldexitlabel;
     flowcontrol:=oldflowcontrol;
+  end;
+
+function taarch64tryfinallynode.dogetcopy: tnode;
+  var
+    p : taarch64tryfinallynode absolute result;
+  begin
+    result:=inherited dogetcopy;
+    if (target_info.system=system_aarch64_win64) then
+      begin
+        if df_generic in current_procinfo.procdef.defoptions then
+          InternalError(2020033101);
+
+        p.finalizepi:=tcgprocinfo(current_procinfo.create_for_outlining('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype,p.right));
+        if pi_do_call in finalizepi.flags then
+          include(p.finalizepi.flags,pi_do_call);
+        { the init/final code is messing with asm nodes, so inform the compiler about this }
+        include(p.finalizepi.flags,pi_has_assembler_block);
+        if implicitframe then
+          p.finalizepi.allocate_push_parasize(32);
+      end;
   end;
 
 { taarch64tryexceptnode }
