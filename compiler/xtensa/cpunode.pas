@@ -35,7 +35,7 @@ implementation
     symcpu,
     aasmdef
 {$ifndef llvm}
-    ,ncpuadd,ncpumat,ncpucnv,ncpuutil,ncpuinl//,ncpumem,ncpuset,ncpucon
+    ,ncpuadd,ncpumat,ncpucnv,ncpuutil,ncpuinl,ncpumem//,ncpuset,ncpucon
 {$else llvm}
     llvmnode
 {$endif llvm}
