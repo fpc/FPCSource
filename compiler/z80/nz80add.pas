@@ -207,7 +207,6 @@ interface
         i : longint;
         opdef: tdef;
         opsize: TCgSize;
-        ai: taicpu;
         l: TAsmLabel;
       begin
         unsigned:=not(is_signed(left.resultdef)) or
@@ -303,9 +302,7 @@ interface
                 internalerror(2020040402);
             end;
             current_asmdata.getjumplabel(l);
-            ai:=taicpu.op_cond_sym(A_JP,C_PO,l);
-            ai.is_jmp:=true;
-            current_asmdata.CurrAsmList.concat(ai);
+            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_PO,l);
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
             cg.a_label(current_asmdata.CurrAsmList,l);
             cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
