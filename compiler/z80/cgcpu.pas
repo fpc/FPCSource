@@ -474,7 +474,29 @@ unit cgcpu;
                 list.concat(taicpu.op_reg(A_PUSH,NR_HL));
                 ungetcpuregister(list,NR_H);
                 ungetcpuregister(list,NR_L);
-              end
+              end;
+            4:
+              begin
+                tmpreg:=getintregister(list,OS_16);
+                inc(href.offset,2);
+                a_load_ref_reg(list,OS_16,OS_16,href,tmpreg);
+                getcpuregister(list,NR_L);
+                a_load_reg_reg(list,OS_8,OS_8,tmpreg,NR_L);
+                getcpuregister(list,NR_H);
+                a_load_reg_reg(list,OS_8,OS_8,GetNextReg(tmpreg),NR_H);
+                list.concat(taicpu.op_reg(A_PUSH,NR_HL));
+                ungetcpuregister(list,NR_H);
+                ungetcpuregister(list,NR_L);
+                dec(href.offset,2);
+                a_load_ref_reg(list,OS_16,OS_16,href,tmpreg);
+                getcpuregister(list,NR_L);
+                a_load_reg_reg(list,OS_8,OS_8,tmpreg,NR_L);
+                getcpuregister(list,NR_H);
+                a_load_reg_reg(list,OS_8,OS_8,GetNextReg(tmpreg),NR_H);
+                list.concat(taicpu.op_reg(A_PUSH,NR_HL));
+                ungetcpuregister(list,NR_H);
+                ungetcpuregister(list,NR_L);
+              end;
             else
               internalerror(2020040803);
           end;
