@@ -634,7 +634,7 @@ interface
 
     procedure TZ80AddNode.second_cmpordinal;
       begin
-        if is_32bit(left.resultdef) or is_16bit(left.resultdef) then
+        if left.resultdef.size>=2 then
           second_cmp16_32_64bit
         else
           second_cmp;
