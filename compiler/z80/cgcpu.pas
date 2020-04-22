@@ -1262,7 +1262,17 @@ unit cgcpu;
               end
             else
               list.concat(taicpu.op_reg_const(A_LD,NR_HL,ref.offset));
-            if ref.base<>NR_NO then
+            if (ref.base=NR_IX) or (ref.base=NR_IY) then
+              begin
+                getcpuregister(list,NR_D);
+                getcpuregister(list,NR_E);
+                list.concat(taicpu.op_reg(A_PUSH,ref.base));
+                list.concat(taicpu.op_reg(A_POP,NR_DE));
+                list.concat(taicpu.op_reg_reg(A_ADD,NR_HL,NR_DE));
+                ungetcpuregister(list,NR_E);
+                ungetcpuregister(list,NR_D);
+              end
+            else if ref.base<>NR_NO then
               begin
                 getcpuregister(list,NR_A);
                 emit_mov(list,NR_A,NR_L);
