@@ -79,9 +79,9 @@ unit rgcpu;
         helplist : TAsmList;
         hreg     : tregister;
       begin
-        if abs(spilltemp.offset)>127 then
-          begin
-            Internalerror(2017032701);
+  //      if abs(spilltemp.offset)>127 then
+  //        begin
+  //          Internalerror(2017032701);
 //
 //            helplist:=TAsmList.create;
 //
@@ -95,8 +95,8 @@ unit rgcpu;
 //            helplist.concat(helpins);
 //            list.insertlistafter(pos,helplist);
 //            helplist.free;
-          end
-        else
+  //        end
+  //      else
           inherited;
       end;
 
@@ -107,9 +107,9 @@ unit rgcpu;
         helplist : TAsmList;
         hreg     : tregister;
       begin
-        if abs(spilltemp.offset)>127 then
-          begin
-            Internalerror(2017032702);
+  //      if abs(spilltemp.offset)>127 then
+  //        begin
+  //          Internalerror(2017032702);
 //
 //            helplist:=TAsmList.create;
 //
@@ -122,8 +122,8 @@ unit rgcpu;
 //            helplist.concat(spilling_create_store(tempreg,tmpref));
 //            list.insertlistafter(pos,helplist);
 //            helplist.free;
-          end
-        else
+  //        end
+  //      else
           inherited;
       end;
 
