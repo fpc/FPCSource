@@ -36,7 +36,7 @@ unit cpunode;
        }
        ,nz80add
        ,nz80cal
-//       ,nz80mat
+       ,nz80mat
 //       ,nz80cnv
 //       ,nz80mem
 //       ,nz80util,
