@@ -585,7 +585,7 @@ implementation
           exit;
         { "ldr literal" must be a 32/64 bit LDR and have a symbol }
         if (ref.refaddr=addr_pic) and
-           ((op<>A_LDR) or
+           (not (op in [A_LDR,A_B,A_BL]) or
             not(oppostfix in [PF_NONE,PF_W,PF_SW]) or
             (not assigned(ref.symbol) and
              not assigned(ref.symboldata))) then
