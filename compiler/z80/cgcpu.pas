@@ -2195,6 +2195,19 @@ unit cgcpu;
             if ref.offset<>0 then
               a_op_const_reg(list,OP_ADD,OS_16,ref.offset,r);
           end
+        else if (ref.base=NR_SP) or (ref.base=NR_BC) or (ref.base=NR_DE) then
+          begin
+            getcpuregister(list,NR_H);
+            getcpuregister(list,NR_L);
+            list.Concat(taicpu.op_reg_const(A_LD,NR_HL,ref.offset));
+            list.Concat(taicpu.op_reg_reg(A_ADD,NR_HL,ref.base));
+            emit_mov(list,r,NR_L);
+            ungetcpuregister(list,NR_L);
+            emit_mov(list,GetNextReg(r),NR_H);
+            ungetcpuregister(list,NR_H);
+            if (ref.index<>NR_NO) then
+              a_op_reg_reg(list,OP_ADD,OS_16,ref.index,r);
+          end
         else
           begin
             a_load_const_reg(list,OS_16,ref.offset,r);
