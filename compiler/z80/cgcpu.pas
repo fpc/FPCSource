@@ -1384,7 +1384,7 @@ unit cgcpu;
            internalerror(2020040802);
 
          href:=normalize_ref(list,Ref,[OT_REF_ADDR16,OT_REF_HL,OT_REF_IX_d,OT_REF_IY_d],regsused);
-         if (fromsize=tosize) or (fromsize in [OS_8,OS_16,OS_32]) then
+         if (tcgsize2size[fromsize]=tcgsize2size[tosize]) or (fromsize in [OS_8,OS_16,OS_32]) then
            begin
              getcpuregister(list,NR_A);
              for i:=1 to tcgsize2size[fromsize] do
@@ -1451,7 +1451,7 @@ unit cgcpu;
            internalerror(2020040804);
 
          href:=normalize_ref(list,Ref,[OT_REF_ADDR16,OT_REF_HL,OT_REF_IX_d,OT_REF_IY_d],regsused);
-         if (tosize=fromsize) or (fromsize in [OS_8,OS_16,OS_32]) then
+         if (tcgsize2size[tosize]=tcgsize2size[fromsize]) or (fromsize in [OS_8,OS_16,OS_32]) then
            begin
              getcpuregister(list,NR_A);
              for i:=1 to tcgsize2size[fromsize] do
@@ -1511,7 +1511,7 @@ unit cgcpu;
          if tcgsize2size[fromsize]>tcgsize2size[tosize] then
            fromsize:=tosize;
 
-         if (tosize=fromsize) or (fromsize in [OS_8,OS_16,OS_32]) then
+         if (tcgsize2size[tosize]=tcgsize2size[fromsize]) or (fromsize in [OS_8,OS_16,OS_32]) then
            begin
              if reg1<>reg2 then
                for i:=1 to tcgsize2size[fromsize] do
