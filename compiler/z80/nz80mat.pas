@@ -57,7 +57,8 @@ implementation
 
     procedure tz80notnode.second_boolean;
       begin
-        internalerror(2020042208);
+        if not handle_locjump then
+          internalerror(2020042208);
       end;
 
 
