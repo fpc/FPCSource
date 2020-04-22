@@ -266,6 +266,26 @@ unit cgcpu;
                   getcpuregister(list,NR_H);
                   getcpuregister(list,NR_L);
                 end;
+              4:
+                begin
+                  cgpara.check_simple_location;
+
+                  getcpuregister(list,NR_L);
+                  a_load_reg_reg(list,OS_8,OS_8,GetNextReg(GetNextReg(r)),NR_L);
+                  getcpuregister(list,NR_H);
+                  a_load_reg_reg(list,OS_8,OS_8,GetNextReg(GetNextReg(GetNextReg(r))),NR_H);
+                  list.concat(taicpu.op_reg(A_PUSH,NR_HL));
+                  getcpuregister(list,NR_H);
+                  getcpuregister(list,NR_L);
+
+                  getcpuregister(list,NR_L);
+                  a_load_reg_reg(list,OS_8,OS_8,r,NR_L);
+                  getcpuregister(list,NR_H);
+                  a_load_reg_reg(list,OS_8,OS_8,GetNextReg(r),NR_H);
+                  list.concat(taicpu.op_reg(A_PUSH,NR_HL));
+                  getcpuregister(list,NR_H);
+                  getcpuregister(list,NR_L);
+                end;
               else
                 internalerror(2020040801);
             end;
