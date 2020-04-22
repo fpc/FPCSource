@@ -3572,7 +3572,14 @@ implementation
               in_sqr_real,
               in_sqrt_real :
                 begin
-                  set_varstate(left,vs_read,[vsf_must_be_valid]);
+                  { on the Z80, the double result is returned in a var param, because
+                    it's too big to fit in registers. In that case we have 2 parameters
+                    and left.nodetype is a callparan. }
+                  if left.nodetype = callparan then
+                    temp_pnode := @tcallparanode(left).left
+                  else
+                    temp_pnode := @left;
+                  set_varstate(temp_pnode^,vs_read,[vsf_must_be_valid]);
                   setfloatresultdef;
                 end;
 
