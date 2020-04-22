@@ -299,6 +299,7 @@
   {$define cpu8bit}
   {$define cpu16bitaddr}
   {$define cpu8bitalu}
+  {$define cpufpemu}
   {$define cpuflags}
   {$define cpunofpu}
   {$define cpunodefaultint}
