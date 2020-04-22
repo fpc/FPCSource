@@ -361,9 +361,12 @@ interface
                         current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(A_CP,NR_A,tmpref));
                         case NodeType of
                           equaln:
-                            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel);
+                            if i<>(size-1) then
+                              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel)
+                            else
+                              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,truelabel);
                           unequaln:
-                            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,falselabel);
+                            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
                           else
                             internalerror(2020042102);
                         end;
@@ -371,7 +374,7 @@ interface
                           tcgz80(cg).adjust_normalized_ref(current_asmdata.CurrAsmList,tmpref,1);
                       end;
                     cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-                    cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
+                    cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
                   end
                 else
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
@@ -386,15 +389,18 @@ interface
                       current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_CP,NR_A,byte(right.location.value shr (i*8))));
                       case NodeType of
                         equaln:
-                          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel);
+                          if i<>(size-1) then
+                            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel)
+                          else
+                            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,truelabel);
                         unequaln:
-                          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,falselabel);
+                          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
                         else
                           internalerror(2020042102);
                       end;
                     end;
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-                  cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
+                  cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
                 end;
               LOC_REGISTER,LOC_CREGISTER:
                 begin
@@ -405,15 +411,18 @@ interface
                       current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_CP,NR_A,tcgz80(cg).GetOffsetReg64(right.location.register,right.location.registerhi,i)));
                       case NodeType of
                         equaln:
-                          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel);
+                          if i<>(size-1) then
+                            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,falselabel)
+                          else
+                            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,truelabel);
                         unequaln:
-                          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,falselabel);
+                          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,truelabel);
                         else
                           internalerror(2020042102);
                       end;
                     end;
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_A);
-                  cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
+                  cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
                 end;
               LOC_REFERENCE,LOC_CREFERENCE:
                 begin
