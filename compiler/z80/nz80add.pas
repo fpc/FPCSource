@@ -37,6 +37,7 @@ interface
          function NoEqual(anodetype:tnodetype):tnodetype;
          function GetResFlags(unsigned:Boolean;anodetype:tnodetype):TResFlags;
        protected
+         function use_mul_helper: boolean;override;
          function pass_1 : tnode;override;
          procedure second_cmpordinal;override;
          procedure second_cmpsmallset;override;
@@ -144,6 +145,12 @@ interface
                   end;
               end;
         end;
+      end;
+
+
+    function TZ80AddNode.use_mul_helper: boolean;
+      begin
+        result:=(nodetype=muln);
       end;
 
 
