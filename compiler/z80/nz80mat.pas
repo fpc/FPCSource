@@ -58,7 +58,23 @@ implementation
     procedure tz80notnode.second_boolean;
       begin
         if not handle_locjump then
-          internalerror(2020042208);
+          begin
+            { the second pass could change the location of left }
+            { if it is a register variable, so we've to do      }
+            { this before the case statement                    }
+            secondpass(left);
+
+            case left.location.loc of
+              LOC_FLAGS :
+                begin
+                  location_reset(location,LOC_FLAGS,OS_NO);
+                  location.resflags:=left.location.resflags;
+                  inverse_flags(location.resflags);
+                end;
+              else
+                internalerror(2020042208);
+            end;
+          end;
       end;
 
 
