@@ -718,7 +718,7 @@ unit cgcpu;
                        a_load_reg_reg(list,OS_8,OS_8,NR_A,tmpreg2);
                        if i<>tcgsize2size[size] then
                          begin
-                           if i=5 then
+                           if i=4 then
                              begin
                                tmpreg:=srchi;
                                tmpreg2:=dsthi;
@@ -744,7 +744,7 @@ unit cgcpu;
                        a_load_reg_reg(list,OS_8,OS_8,NR_A,tmpreg2);
                        if i<>tcgsize2size[size] then
                          begin
-                           if i=5 then
+                           if i=4 then
                              begin
                                tmpreg2:=dsthi;
                              end
