@@ -2256,75 +2256,31 @@ unit cgcpu;
 
 
     procedure tcgz80.a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
-      var
-        ai1,ai2 : taicpu;
-        hl : TAsmLabel;
       begin
-        list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_jmp_cond')));
-        //ai1:=Taicpu.Op_sym(A_BRxx,l);
-        //ai1.is_jmp:=true;
-        //hl:=nil;
-        //case cond of
-        //  OC_EQ:
-        //    ai1.SetCondition(C_EQ);
-        //  OC_GT:
-        //    begin
-        //      { emulate GT }
-        //      current_asmdata.getjumplabel(hl);
-        //      ai2:=Taicpu.Op_Sym(A_BRxx,hl);
-        //      ai2.SetCondition(C_EQ);
-        //      ai2.is_jmp:=true;
-        //      list.concat(ai2);
-        //
-        //      ai1.SetCondition(C_GE);
-        //    end;
-        //  OC_LT:
-        //    ai1.SetCondition(C_LT);
-        //  OC_GTE:
-        //    ai1.SetCondition(C_GE);
-        //  OC_LTE:
-        //    begin
-        //      { emulate LTE }
-        //      ai2:=Taicpu.Op_Sym(A_BRxx,l);
-        //      ai2.SetCondition(C_EQ);
-        //      ai2.is_jmp:=true;
-        //      list.concat(ai2);
-        //
-        //      ai1.SetCondition(C_LT);
-        //    end;
-        //  OC_NE:
-        //    ai1.SetCondition(C_NE);
-        //  OC_BE:
-        //    begin
-        //      { emulate BE }
-        //      ai2:=Taicpu.Op_Sym(A_BRxx,l);
-        //      ai2.SetCondition(C_EQ);
-        //      ai2.is_jmp:=true;
-        //      list.concat(ai2);
-        //
-        //      ai1.SetCondition(C_LO);
-        //    end;
-        //  OC_B:
-        //    ai1.SetCondition(C_LO);
-        //  OC_AE:
-        //    ai1.SetCondition(C_SH);
-        //  OC_A:
-        //    begin
-        //      { emulate A (unsigned GT) }
-        //      current_asmdata.getjumplabel(hl);
-        //      ai2:=Taicpu.Op_Sym(A_BRxx,hl);
-        //      ai2.SetCondition(C_EQ);
-        //      ai2.is_jmp:=true;
-        //      list.concat(ai2);
-        //
-        //      ai1.SetCondition(C_SH);
-        //    end;
-        //  else
-        //    internalerror(2011082501);
-        //end;
-        //list.concat(ai1);
-        //if assigned(hl) then
-        //  a_label(list,hl);
+        case cond of
+          OC_EQ:
+            a_jmp_unsigned_cmp_3way(list,nil,l,nil);
+          OC_NE:
+            a_jmp_unsigned_cmp_3way(list,l,nil,l);
+          OC_A:
+            a_jmp_unsigned_cmp_3way(list,nil,nil,l);
+          OC_B:
+            a_jmp_unsigned_cmp_3way(list,l,nil,nil);
+          OC_AE:
+            a_jmp_unsigned_cmp_3way(list,nil,l,l);
+          OC_BE:
+            a_jmp_unsigned_cmp_3way(list,l,l,nil);
+          OC_GT:
+            a_jmp_signed_cmp_3way(list,nil,nil,l);
+          OC_LT:
+            a_jmp_signed_cmp_3way(list,l,nil,nil);
+          OC_GTE:
+            a_jmp_signed_cmp_3way(list,nil,l,l);
+          OC_LTE:
+            a_jmp_signed_cmp_3way(list,l,l,nil);
+          else
+            internalerror(2011082501);
+        end;
       end;
 
 
