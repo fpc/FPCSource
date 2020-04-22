@@ -1555,53 +1555,113 @@ unit cgcpu;
         swapped : boolean;
         tmpreg : tregister;
         i : byte;
+        tmpl: TAsmLabel;
       begin
-        list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_cmp_const_reg_label')));
-        //if a=0 then
-        //  begin
-        //    swapped:=false;
-        //    { swap parameters? }
-        //    case cmp_op of
-        //      OC_GT:
-        //        begin
-        //          swapped:=true;
-        //          cmp_op:=OC_LT;
-        //        end;
-        //      OC_LTE:
-        //        begin
-        //          swapped:=true;
-        //          cmp_op:=OC_GTE;
-        //        end;
-        //      OC_BE:
-        //        begin
-        //          swapped:=true;
-        //          cmp_op:=OC_AE;
-        //        end;
-        //      OC_A:
-        //        begin
-        //          swapped:=true;
-        //          cmp_op:=OC_B;
-        //        end;
-        //    end;
-        //
-        //    if swapped then
-        //      list.concat(taicpu.op_reg_reg(A_CP,NR_R1,reg))
-        //    else
-        //      list.concat(taicpu.op_reg_reg(A_CP,reg,NR_R1));
-        //
-        //    for i:=2 to tcgsize2size[size] do
-        //      begin
-        //        reg:=GetNextReg(reg);
-        //        if swapped then
-        //          list.concat(taicpu.op_reg_reg(A_CPC,NR_R1,reg))
-        //        else
-        //          list.concat(taicpu.op_reg_reg(A_CPC,reg,NR_R1));
-        //      end;
-        //
-        //    a_jmp_cond(list,cmp_op,l);
-        //  end
-        //else
-        //  inherited a_cmp_const_reg_label(list,size,cmp_op,a,reg,l);
+        if size in [OS_8,OS_S8]then
+          begin
+            if cmp_op in [OC_EQ,OC_NE,OC_B,OC_AE] then
+              begin
+                getcpuregister(list,NR_A);
+                a_load_reg_reg(list,OS_8,OS_8,reg,NR_A);
+                list.concat(taicpu.op_reg_const(A_CP,NR_A,a));
+                case cmp_op of
+                  OC_EQ:
+                    a_jmp_flags(list,F_E,l);
+                  OC_NE:
+                    a_jmp_flags(list,F_NE,l);
+                  OC_B:
+                    a_jmp_flags(list,F_C,l);
+                  OC_AE:
+                    a_jmp_flags(list,F_NC,l);
+                  else
+                    internalerror(2020042206);
+                end;
+                ungetcpuregister(list,NR_A);
+              end
+            else if cmp_op in [OC_A,OC_BE] then
+              begin
+                getcpuregister(list,NR_A);
+                a_load_const_reg(list,OS_8,a,NR_A);
+                list.concat(taicpu.op_reg_reg(A_CP,NR_A,reg));
+                case cmp_op of
+                  OC_A:
+                    a_jmp_flags(list,F_C,l);
+                  OC_BE:
+                    a_jmp_flags(list,F_NC,l);
+                  else
+                    internalerror(2020042206);
+                end;
+                ungetcpuregister(list,NR_A);
+              end
+            else if cmp_op in [OC_LT,OC_GTE] then
+              begin
+                getcpuregister(list,NR_A);
+                a_load_reg_reg(list,OS_8,OS_8,reg,NR_A);
+                list.concat(taicpu.op_reg_const(A_SUB,NR_A,a));
+                current_asmdata.getjumplabel(tmpl);
+                a_jmp_flags(list,F_PO,tmpl);
+                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
+                cg.a_label(current_asmdata.CurrAsmList,tmpl);
+                case cmp_op of
+                  OC_LT:
+                    a_jmp_flags(list,F_M,l);
+                  OC_GTE:
+                    a_jmp_flags(list,F_P,l);
+                  else
+                    internalerror(2020042206);
+                end;
+                ungetcpuregister(list,NR_A);
+              end
+            else if cmp_op in [OC_GT,OC_LTE] then
+              begin
+                getcpuregister(list,NR_A);
+                a_load_const_reg(list,OS_8,a,NR_A);
+                list.concat(taicpu.op_reg_reg(A_SUB,NR_A,reg));
+                current_asmdata.getjumplabel(tmpl);
+                a_jmp_flags(list,F_PO,tmpl);
+                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
+                cg.a_label(current_asmdata.CurrAsmList,tmpl);
+                case cmp_op of
+                  OC_GT:
+                    a_jmp_flags(list,F_M,l);
+                  OC_LTE:
+                    a_jmp_flags(list,F_P,l);
+                  else
+                    internalerror(2020042206);
+                end;
+                ungetcpuregister(list,NR_A);
+              end;
+          end
+        else if cmp_op in [OC_EQ,OC_NE] then
+          begin
+            if cmp_op=OC_EQ then
+              current_asmdata.getjumplabel(tmpl);
+            for i:=0 to tcgsize2size[size]-1 do
+              begin
+                a_load_reg_reg(list,OS_8,OS_8,GetOffsetReg(reg,i),NR_A);
+                list.concat(taicpu.op_reg_const(A_CP,NR_A,Byte(a shr (8*i))));
+                case cmp_op of
+                  OC_EQ:
+                    if i<>(tcgsize2size[size]-1) then
+                      a_jmp_flags(list,F_NE,tmpl)
+                    else
+                      a_jmp_flags(list,F_E,l);
+                  OC_NE:
+                    a_jmp_flags(list,F_NE,l);
+                  else
+                    internalerror(2020042206);
+                end;
+              end;
+            if cmp_op=OC_EQ then
+              cg.a_label(current_asmdata.CurrAsmList,tmpl);
+          end
+        else if cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE,OC_BE,OC_B,OC_AE,OC_A] then
+          begin
+            { todo: implement these }
+            internalerror(2020042207);
+          end
+        else
+          internalerror(2020042205);
       end;
 
 
