@@ -3364,7 +3364,7 @@ begin
     system_m68k_amiga:
       target_unsup_features:=[f_dynlibs];
     system_z80_zxspectrum:
-      target_unsup_features:=[f_threading,f_dynlibs,f_fileio,f_textio,f_commandargs,f_exitcode];
+      target_unsup_features:=[f_threading,f_dynlibs{,f_fileio,f_textio},f_commandargs,f_exitcode];
     else
       target_unsup_features:=[];
   end;
