@@ -821,11 +821,11 @@ unit cgcpu;
                getcpuregister(list,NR_A);
                for i:=1 to tcgsize2size[size] do
                  begin
+                   if i<>1 then
+                     NextSrcDst;
                    a_load_reg_reg(list,OS_8,OS_8,src,NR_A);
                    list.concat(taicpu.op_none(A_CPL));
                    a_load_reg_reg(list,OS_8,OS_8,NR_A,dst);
-                   if i<>tcgsize2size[size] then
-                     NextSrcDst;
                  end;
                ungetcpuregister(list,NR_A);
              end;
