@@ -1154,7 +1154,7 @@ Begin
   { Finalize units }
   FinalizeUnits;
 
-{$if (defined(MSWINDOWS) and not defined(win16)) or defined(OS2)}
+{$if defined(OS2)}
   { finally release the heap if possible, especially
     important for DLLs.
     Reset the array to nil, and finally also argv itself to

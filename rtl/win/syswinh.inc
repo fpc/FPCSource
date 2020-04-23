@@ -51,6 +51,7 @@ const
 
 var
 { C compatible arguments }
+{ CmdLine and argv are always in the current ANSI encoding set in Windows }
   argc : longint;
   argv : ppchar;
 { Win32 Info }

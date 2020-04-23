@@ -615,7 +615,7 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
     result:=tpeheader((pointer(getmodulehandle(nil))+(tdosheader(pointer(getmodulehandle(nil))^).e_lfanew))^).SizeOfStackReserve;
   end;
 
-begin
+initialization
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;
@@ -643,4 +643,8 @@ begin
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;
   DispCallByIDProc:=@DoDispCallByIDError;
+
+finalization
+  WinFinalizeSystem;
+
 end.
