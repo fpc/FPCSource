@@ -4215,14 +4215,19 @@ implementation
         fdef: tdef;
         procname: string[31];
         callnode: tcallnode;
+        temp_pnode: pnode;
       begin
+        if left.nodetype = callparan then
+          temp_pnode := @tcallparanode(left).left
+        else
+          temp_pnode := @left;
         if ((cs_fp_emulation in current_settings.moduleswitches)
 {$ifdef cpufpemu}
             or (current_settings.fputype=fpu_soft)
 {$endif cpufpemu}
             ) and not (target_info.system in systems_wince) then
           begin
-            case tfloatdef(left.resultdef).floattype of
+            case tfloatdef(temp_pnode^.resultdef).floattype of
               s32real:
                 begin
                   fdef:=search_system_type('FLOAT32REC').typedef;
@@ -4240,18 +4245,18 @@ implementation
               internalerror(2014052101);
             end;
             result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
-               ctypeconvnode.create_internal(left,fdef),nil)),resultdef);
+               ctypeconvnode.create_internal(temp_pnode^,fdef),nil)),resultdef);
           end
         else
           begin
             { create the call to the helper }
             { on entry left node contains the parameter }
             callnode := ccallnode.createintern('fpc_sqrt_real',
-                ccallparanode.create(left,nil));
+                ccallparanode.create(temp_pnode^,nil));
             result := ctypeconvnode.create(callnode,resultdef);
             include(callnode.callnodeflags,cnf_check_fpu_exceptions);
           end;
-        left := nil;
+        temp_pnode^ := nil;
       end;
 
      function tinlinenode.first_ln_real : tnode;
