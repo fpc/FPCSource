@@ -110,6 +110,20 @@ implementation
 
 {$ifdef FULL_RTL}
 
+const
+  LineEnding = #13#10;
+  { LFNSupport is a variable here, defined below!!! }
+  DirectorySeparator = '\';
+  DriveSeparator = ':';
+  ExtensionSeparator = '.';
+  PathSeparator = ';';
+  AllowDirectorySeparators : set of char = ['\','/'];
+  AllowDriveSeparators : set of char = [':'];
+  { FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
+  maxExitCode = 255;
+  MaxPathLen = 256;
+
+
 {$I system.inc}
 {$I tinyheap.inc}
 
