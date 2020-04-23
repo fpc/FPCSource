@@ -12186,6 +12186,7 @@ rtl/xtensa/strings.inc svneol=native#text/plain
 rtl/xtensa/stringss.inc svneol=native#text/plain
 rtl/xtensa/xtensa.inc svneol=native#text/plain
 rtl/z80/cpuh.inc svneol=native#text/plain
+rtl/z80/int64p.inc svneol=native#text/plain
 rtl/z80/makefile.cpu svneol=native#text/plain
 rtl/z80/math.inc svneol=native#text/plain
 rtl/z80/set.inc svneol=native#text/plain
