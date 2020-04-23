@@ -6,7 +6,14 @@ interface
 
 {$define FPC_IS_SYSTEM}
 
+{ The heap for ZX Spectrum is implemented
+  in tinyheap.inc include file,
+  but it uses default SysGetMem names }
+
+{$define HAS_MEMORYMANAGER}
+
 {$I systemh.inc}
+{$I tnyheaph.inc}
 
 {$ifndef FPUNONE}
 {$ifdef FPC_HAS_FEATURE_SOFTFPU}
@@ -104,6 +111,7 @@ implementation
 {$ifdef FULL_RTL}
 
 {$I system.inc}
+{$I tinyheap.inc}
 
 {$ifndef FPUNONE}
 {$ifdef FPC_HAS_FEATURE_SOFTFPU}
