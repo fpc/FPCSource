@@ -4162,7 +4162,10 @@ implementation
 
          else if is_implicit_pointer_object_type(ld) then
             begin
-              expectloc:=LOC_FLAGS;
+              if ld.size>sizeof(aint) then
+                expectloc:=LOC_JUMP
+              else
+                expectloc:=LOC_FLAGS;
             end
 
          else if (ld.typ=classrefdef) then
