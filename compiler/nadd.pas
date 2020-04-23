@@ -4201,7 +4201,10 @@ implementation
 
          else if (ld.typ=enumdef) then
            begin
-              expectloc:=LOC_FLAGS;
+              if tenumdef(ld).size>sizeof(aint) then
+                expectloc:=LOC_JUMP
+              else
+                expectloc:=LOC_FLAGS;
            end
 
 {$ifdef SUPPORT_MMX}
