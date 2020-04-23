@@ -4168,12 +4168,18 @@ implementation
 
 
      function tinlinenode.first_arctan_real : tnode;
+      var
+        temp_pnode: pnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
+        if left.nodetype = callparan then
+          temp_pnode := @tcallparanode(left).left
+        else
+          temp_pnode := @left;
         result := ccallnode.createintern('fpc_arctan_real',
-                ccallparanode.create(left,nil));
-        left := nil;
+                ccallparanode.create(temp_pnode^,nil));
+        temp_pnode^ := nil;
       end;
 
      function tinlinenode.first_abs_real : tnode;
@@ -4267,78 +4273,126 @@ implementation
       end;
 
      function tinlinenode.first_ln_real : tnode;
+      var
+        temp_pnode: pnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
+        if left.nodetype = callparan then
+          temp_pnode := @tcallparanode(left).left
+        else
+          temp_pnode := @left;
         result := ccallnode.createintern('fpc_ln_real',
-                ccallparanode.create(left,nil));
+                ccallparanode.create(temp_pnode^,nil));
         include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
-        left := nil;
+        temp_pnode^ := nil;
       end;
 
      function tinlinenode.first_cos_real : tnode;
+      var
+        temp_pnode: pnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
+        if left.nodetype = callparan then
+          temp_pnode := @tcallparanode(left).left
+        else
+          temp_pnode := @left;
         result := ccallnode.createintern('fpc_cos_real',
-                ccallparanode.create(left,nil));
+                ccallparanode.create(temp_pnode^,nil));
         include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
-        left := nil;
+        temp_pnode^ := nil;
       end;
 
      function tinlinenode.first_sin_real : tnode;
+      var
+        temp_pnode: pnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
+        if left.nodetype = callparan then
+          temp_pnode := @tcallparanode(left).left
+        else
+          temp_pnode := @left;
         result := ccallnode.createintern('fpc_sin_real',
-                ccallparanode.create(left,nil));
+                ccallparanode.create(temp_pnode^,nil));
         include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
-        left := nil;
+        temp_pnode^ := nil;
       end;
 
      function tinlinenode.first_exp_real : tnode;
+      var
+        temp_pnode: pnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
-        result := ccallnode.createintern('fpc_exp_real',ccallparanode.create(left,nil));
+        if left.nodetype = callparan then
+          temp_pnode := @tcallparanode(left).left
+        else
+          temp_pnode := @left;
+        result := ccallnode.createintern('fpc_exp_real',ccallparanode.create(temp_pnode^,nil));
         include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
-        left := nil;
+        temp_pnode^ := nil;
       end;
 
      function tinlinenode.first_int_real : tnode;
+      var
+        temp_pnode: pnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
-        result := ccallnode.createintern('fpc_int_real',ccallparanode.create(left,nil));
+        if left.nodetype = callparan then
+          temp_pnode := @tcallparanode(left).left
+        else
+          temp_pnode := @left;
+        result := ccallnode.createintern('fpc_int_real',ccallparanode.create(temp_pnode^,nil));
         include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
-        left := nil;
+        temp_pnode^ := nil;
       end;
 
      function tinlinenode.first_frac_real : tnode;
+      var
+        temp_pnode: pnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
-        result := ccallnode.createintern('fpc_frac_real',ccallparanode.create(left,nil));
+        if left.nodetype = callparan then
+          temp_pnode := @tcallparanode(left).left
+        else
+          temp_pnode := @left;
+        result := ccallnode.createintern('fpc_frac_real',ccallparanode.create(temp_pnode^,nil));
         include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
-        left := nil;
+        temp_pnode^ := nil;
       end;
 
      function tinlinenode.first_round_real : tnode;
+      var
+        temp_pnode: pnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
-        result := ccallnode.createintern('fpc_round_real',ccallparanode.create(left,nil));
+        if left.nodetype = callparan then
+          temp_pnode := @tcallparanode(left).left
+        else
+          temp_pnode := @left;
+        result := ccallnode.createintern('fpc_round_real',ccallparanode.create(temp_pnode^,nil));
         include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
-        left := nil;
+        temp_pnode^ := nil;
       end;
 
      function tinlinenode.first_trunc_real : tnode;
+      var
+        temp_pnode: pnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
-        result := ccallnode.createintern('fpc_trunc_real',ccallparanode.create(left,nil));
+        if left.nodetype = callparan then
+          temp_pnode := @tcallparanode(left).left
+        else
+          temp_pnode := @left;
+        result := ccallnode.createintern('fpc_trunc_real',ccallparanode.create(temp_pnode^,nil));
         include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
-        left := nil;
+        temp_pnode^ := nil;
       end;
 
      function tinlinenode.first_abs_long : tnode;
