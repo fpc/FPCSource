@@ -4172,14 +4172,19 @@ implementation
      function tinlinenode.first_abs_real : tnode;
       var
          callnode : tcallnode;
+         temp_pnode: pnode;
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
+        if left.nodetype = callparan then
+          temp_pnode := @tcallparanode(left).left
+        else
+          temp_pnode := @left;
         callnode:=ccallnode.createintern('fpc_abs_real',
-                    ccallparanode.create(left,nil));
+                    ccallparanode.create(temp_pnode^,nil));
         result := ctypeconvnode.create(callnode,resultdef);
         include(callnode.callnodeflags,cnf_check_fpu_exceptions);
-        left := nil;
+        temp_pnode^ := nil;
       end;
 
      function tinlinenode.first_sqr_real : tnode;
