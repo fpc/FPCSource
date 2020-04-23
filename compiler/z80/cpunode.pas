@@ -37,8 +37,8 @@ unit cpunode;
        ,nz80add
        ,nz80cal
        ,nz80mat
+       ,nz80mem
 //       ,nz80cnv
-//       ,nz80mem
 //       ,nz80util,
        { these are not really nodes }
        ,tgcpu
