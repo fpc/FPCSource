@@ -1467,8 +1467,8 @@ unit cgcpu;
        begin
          if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
            internalerror(2011021307);
-         if tcgsize2size[fromsize]>tcgsize2size[tosize] then
-           internalerror(2020040804);
+         if tcgsize2size[fromsize]>=tcgsize2size[tosize] then
+           fromsize:=tosize;
 
          href:=normalize_ref(list,Ref,[OT_REF_ADDR16,OT_REF_HL,OT_REF_IX_d,OT_REF_IY_d],regsused);
          if (tcgsize2size[tosize]=tcgsize2size[fromsize]) or (fromsize in [OS_8,OS_16,OS_32]) then
