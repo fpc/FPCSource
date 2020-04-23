@@ -162,6 +162,28 @@ const
 {$endif FPC_HAS_FEATURE_SOFTFPU}
 {$endif FPUNONE}
 
+procedure randomize;
+begin
+end;
+
+procedure SysInitStdIO;
+begin
+end;
+
+function GetProcessID: SizeUInt;
+begin
+  GetProcessID:=0;
+end;
+
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+begin
+  result := stklen;
+end;
+
+procedure system_exit;
+begin
+end;
+
 {$else FULL_RTL}
 {$I z80.inc}
 {$endif FULL_RTL}
