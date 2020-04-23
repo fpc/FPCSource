@@ -3528,11 +3528,18 @@ implementation
               in_arctan_real,
               in_ln_real :
                 begin
-                  set_varstate(left,vs_read,[vsf_must_be_valid]);
+                  { on the Z80, the double result is returned in a var param, because
+                    it's too big to fit in registers. In that case we have 2 parameters
+                    and left.nodetype is a callparan. }
+                  if left.nodetype = callparan then
+                    temp_pnode := @tcallparanode(left).left
+                  else
+                    temp_pnode := @left;
+                  set_varstate(temp_pnode^,vs_read,[vsf_must_be_valid]);
                   { converting an int64 to double on platforms without }
                   { extended can cause precision loss                  }
-                  if not(left.nodetype in [ordconstn,realconstn]) then
-                    inserttypeconv(left,pbestrealtype^);
+                  if not(temp_pnode^.nodetype in [ordconstn,realconstn]) then
+                    inserttypeconv(temp_pnode^,pbestrealtype^);
                   resultdef:=pbestrealtype^;
                 end;
 
