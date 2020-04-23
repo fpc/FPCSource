@@ -12197,6 +12197,7 @@ rtl/zxspectrum/Makefile svneol=native#text/plain
 rtl/zxspectrum/Makefile.fpc svneol=native#text/plain
 rtl/zxspectrum/prt0.asm svneol=native#text/plain
 rtl/zxspectrum/rtldefs.inc svneol=native#text/plain
+rtl/zxspectrum/sysdir.inc svneol=native#text/plain
 rtl/zxspectrum/sysfile.inc svneol=native#text/plain
 rtl/zxspectrum/sysheap.inc svneol=native#text/plain
 rtl/zxspectrum/sysos.inc svneol=native#text/plain
