@@ -36,6 +36,8 @@ Interface
 
     Type
       TCpuAsmOptimizer = class(TAsmOptimizer)
+        function CanDoJumpOpts: Boolean; override;
+
         { uses the same constructor as TAopObj }
         function RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;override;
         function InstructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean;override;
@@ -67,6 +69,12 @@ Implementation
   function CanBeCond(p : tai) : boolean;
     begin
       result:=(p.typ=ait_instruction) and (taicpu(p).condition=C_None);
+    end;
+
+
+  function TCpuAsmOptimizer.CanDoJumpOpts: Boolean;
+    begin
+      Result := true;
     end;
 
 
