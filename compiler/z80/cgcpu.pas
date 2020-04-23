@@ -58,6 +58,8 @@ unit cgcpu;
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
         procedure a_load_reg_cgpara(list : TAsmList; size : tcgsize;r : tregister; const cgpara : tcgpara);override;
 
+        procedure a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const cgpara : TCGPara);override;
+
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg: tregister);override;
 
@@ -361,6 +363,42 @@ unit cgcpu;
             if assigned(hp) then
               internalerror(2014011103);
           end;
+      end;
+
+
+    procedure tcgz80.a_loadfpu_ref_cgpara(list: TAsmList; size: tcgsize; const ref: treference; const cgpara: TCGPara);
+      var
+        href: treference;
+        curloc: PCGParaLocation;
+        i: Integer;
+      begin
+        case cgpara.location^.loc of
+          LOC_REGISTER,LOC_CREGISTER:
+            begin
+              case size of
+                OS_F32:
+                  begin
+                    curloc:=cgpara.location;
+                    href:=ref;
+                    for i:=1 to 4 do
+                      begin
+                        if not assigned(curloc) then
+                          internalerror(2020042303);
+                        if not (curloc^.Loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                          internalerror(2020042304);
+                        a_load_ref_reg(list,OS_8,OS_8,href,curloc^.register);
+                        curloc:=curloc^.Next;
+                      end;
+                    if assigned(curloc) then
+                      internalerror(2020042305);
+                  end;
+                else
+                  internalerror(2020042302);
+              end;
+            end;
+          else
+            inherited;
+        end;
       end;
 
 
