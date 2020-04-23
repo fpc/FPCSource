@@ -1724,7 +1724,7 @@ unit cgcpu;
         tmpreg : tregister;
         i : byte;
       begin
-        list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_cmp_reg_reg_label')));
+        internalerror(2020042301);
         //swapped:=false;
         //{ swap parameters? }
         //case cmp_op of
