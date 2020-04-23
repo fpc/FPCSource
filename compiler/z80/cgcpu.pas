@@ -1709,8 +1709,58 @@ unit cgcpu;
           end
         else if cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE,OC_BE,OC_B,OC_AE,OC_A] then
           begin
-            { todo: implement these }
-            internalerror(2020042207);
+            getcpuregister(list,NR_A);
+            current_asmdata.getjumplabel(tmpl);
+            for i:=tcgsize2size[size]-1 downto 0 do
+              begin
+                a_load_reg_reg(list,OS_8,OS_8,GetOffsetReg(reg,i),NR_A);
+                list.concat(taicpu.op_reg_const(A_CP,NR_A,Byte(a shr (8*i))));
+                if (i=(tcgsize2size[size]-1)) and (cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE]) then
+                  case cmp_op of
+                    OC_GTE,
+                    OC_GT:
+                      a_jmp_signed_cmp_3way(list,tmpl,nil,l);
+                    OC_LT,
+                    OC_LTE:
+                      a_jmp_signed_cmp_3way(list,l,nil,tmpl);
+                    else
+                      internalerror(2020042206);
+                  end
+                else if i<>0 then
+                  case cmp_op of
+                    OC_AE,
+                    OC_A,
+                    OC_GTE,
+                    OC_GT:
+                      a_jmp_unsigned_cmp_3way(list,tmpl,nil,l);
+                    OC_BE,
+                    OC_B,
+                    OC_LT,
+                    OC_LTE:
+                      a_jmp_unsigned_cmp_3way(list,l,nil,tmpl);
+                    else
+                      internalerror(2020042206);
+                  end
+                else
+                case cmp_op of
+                  OC_A,
+                  OC_GT:
+                    a_jmp_unsigned_cmp_3way(list,nil,nil,l);
+                  OC_B,
+                  OC_LT:
+                    a_jmp_unsigned_cmp_3way(list,l,nil,nil);
+                  OC_AE,
+                  OC_GTE:
+                    a_jmp_unsigned_cmp_3way(list,nil,l,l);
+                  OC_BE,
+                  OC_LTE:
+                    a_jmp_unsigned_cmp_3way(list,l,l,nil);
+                  else
+                    internalerror(2020042206);
+                end;
+                cg.a_label(current_asmdata.CurrAsmList,tmpl);
+              end;
+            ungetcpuregister(list,NR_A);
           end
         else
           internalerror(2020042205);
