@@ -123,6 +123,18 @@ const
   maxExitCode = 255;
   MaxPathLen = 256;
 
+{ Default filehandles }
+  UnusedHandle    = $ffff;{ instead of -1, as it is a word value}
+  StdInputHandle  = 0;
+  StdOutputHandle = 1;
+  StdErrorHandle  = 2;
+
+  FileNameCaseSensitive : boolean = false;
+  FileNameCasePreserving: boolean = false;
+  CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
+
+  sLineBreak = LineEnding;
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
 {$I system.inc}
 {$I tinyheap.inc}
