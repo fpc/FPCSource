@@ -578,9 +578,10 @@ unit cgcpu;
         end;
 
       var
-        tmpref, ref: treference;
+        tmpref, ref, href: treference;
         location: pcgparalocation;
         sizeleft: tcgint;
+        len: tcgint;
       begin
         { cgpara.size=OS_NO requires a copy on the stack }
         if use_push(cgpara) then
@@ -588,12 +589,11 @@ unit cgcpu;
             { Record copy? }
             if (cgpara.size in [OS_NO,OS_F64]) or (size=OS_NO) then
               begin
-                internalerror(2020040802);
-                //cgpara.check_simple_location;
-                //len:=align(cgpara.intsize,cgpara.alignment);
-                //g_stackpointer_alloc(list,len);
-                //reference_reset_base(href,NR_STACK_POINTER_REG,0,ctempposinvalid,4,[]);
-                //g_concatcopy(list,r,href,len);
+                cgpara.check_simple_location;
+                len:=align(cgpara.intsize,cgpara.alignment);
+                g_stackpointer_alloc(list,len);
+                reference_reset_base(href,NR_STACK_POINTER_REG,0,ctempposinvalid,4,[]);
+                g_concatcopy(list,r,href,len);
               end
             else
               begin
