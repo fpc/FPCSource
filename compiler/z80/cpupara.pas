@@ -403,7 +403,6 @@ unit cpupara;
      end;
 
 
-    { TODO : fix tavrparamanager.get_funcretloc }
     function  tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
         retcgsize : tcgsize;
@@ -510,26 +509,6 @@ unit cpupara;
               else
                 internalerror(2014030101);
             end;
-
-            {if retcgsize in [OS_64,OS_S64] then
-              begin
-                paraloc^.loc:=LOC_REGISTER;
-                paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
-                paraloc^.size:=OS_32;
-                paraloc^.def:=u32inttype;
-                paraloc:=result.add_location;
-                paraloc^.loc:=LOC_REGISTER;
-                paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
-                paraloc^.size:=OS_32;
-                paraloc^.def:=u32inttype;
-              end
-            else
-              begin
-                paraloc^.loc:=LOC_REGISTER;
-                paraloc^.register:=NR_FUNCTION_RETURN_REG;
-                paraloc^.size:=OS_INT;
-                paraloc^.def:=u16inttype;
-              end;}
           end;
       end;
 
