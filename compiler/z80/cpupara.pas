@@ -420,19 +420,6 @@ unit cpupara;
             if (p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches) then
               begin
                 case retcgsize of
-                  OS_64,
-                  OS_F64:
-                    begin
-                      paraloc^.loc:=LOC_REGISTER;
-                      paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
-                      paraloc^.size:=OS_32;
-                      paraloc^.def:=u32inttype;
-                      paraloc:=result.add_location;
-                      paraloc^.loc:=LOC_REGISTER;
-                      paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
-                      paraloc^.size:=OS_32;
-                      paraloc^.def:=u32inttype;
-                    end;
                   OS_32,
                   OS_F32:
                     begin
