@@ -793,9 +793,12 @@ unit cgcpu;
              end;
 
            OP_MUL,OP_IMUL:
-             { special stuff, needs separate handling inside code
-               generator                                          }
-             internalerror(2017032604);
+             begin
+               { special stuff, needs separate handling inside code
+                 generator                                          }
+               list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_reg_reg_internal OP_MUL/OP_IMUL')));
+               {internalerror(2017032604);}
+             end;
 
            OP_DIV,OP_IDIV:
              { special stuff, needs separate handling inside code
