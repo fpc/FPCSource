@@ -931,6 +931,7 @@ type
     function isBoolean: Boolean;
     function asBool: Boolean;
     function asInt: Integer;
+    function asInt64: Int64;
     function asStr: String;
     destructor destroy; override;
   end;
@@ -1145,6 +1146,12 @@ type
         begin
           if isBoolean then
             result:=texprvalue.create_bool(not asBool)
+          else if is_ordinal(def) then
+            begin
+              result:=texprvalue.create_ord(value.valueord);
+              result.def:=def;
+              calc_not_ordvalue(result.value.valueord,result.def);
+            end
           else
             begin
               error('Boolean', 'NOT');
@@ -1159,6 +1166,14 @@ type
             else
               begin
                 v.error('Boolean','OR');
+                result:=texprvalue.create_error;
+              end
+          else if is_ordinal(def) then
+            if is_ordinal(v.def) then
+              result:=texprvalue.create_ord(value.valueord or v.value.valueord)
+            else
+              begin
+                v.error('Ordinal','OR');
                 result:=texprvalue.create_error;
               end
           else
@@ -1177,6 +1192,14 @@ type
                 v.error('Boolean','XOR');
                 result:=texprvalue.create_error;
               end
+          else if is_ordinal(def) then
+            if is_ordinal(v.def) then
+              result:=texprvalue.create_ord(value.valueord xor v.value.valueord)
+            else
+              begin
+                v.error('Ordinal','XOR');
+                result:=texprvalue.create_error;
+              end
           else
             begin
               error('Boolean','XOR');
@@ -1191,6 +1214,14 @@ type
             else
               begin
                 v.error('Boolean','AND');
+                result:=texprvalue.create_error;
+              end
+          else if is_ordinal(def) then
+            if is_ordinal(v.def) then
+              result:=texprvalue.create_ord(value.valueord and v.value.valueord)
+            else
+              begin
+                v.error('Ordinal','AND');
                 result:=texprvalue.create_error;
               end
           else
@@ -1328,12 +1359,12 @@ type
 
   function texprvalue.isBoolean: Boolean;
     var
-      i: integer;
+      i: int64;
     begin
       result:=is_boolean(def);
       if not result and is_integer(def) then
         begin
-          i:=asInt;
+          i:=asInt64;
           result:=(i=0)or(i=1);
         end;
     end;
@@ -1344,6 +1375,11 @@ type
     end;
 
   function texprvalue.asInt: Integer;
+    begin
+      result:=value.valueord.svalue;
+    end;
+
+  function texprvalue.asInt64: Int64;
     begin
       result:=value.valueord.svalue;
     end;

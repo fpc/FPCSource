@@ -5155,6 +5155,7 @@ var
   Proc: TPasProcedure;
   Store, SameScope: Boolean;
   ProcScope: TPasProcedureScope;
+  CurResolver: TPasResolver;
 
   procedure CountProcInSameScope;
   begin
@@ -5188,7 +5189,7 @@ begin
     fpkProc:
       // proc hides a non proc
       if (Data^.Proc.GetModule=El.GetModule) then
-        // forbidden within same module
+        // forbidden within same CurModule
         RaiseMsg(20170216151649,nDuplicateIdentifier,sDuplicateIdentifier,
           [El.Name,GetElementSourcePosStr(El)],Data^.Proc.ProcType)
       else
@@ -5205,8 +5206,15 @@ begin
         end;
     fpkMethod:
       // method hides a non proc
-      RaiseMsg(20171118232543,nDuplicateIdentifier,sDuplicateIdentifier,
-        [El.Name,GetElementSourcePosStr(El)],Data^.Proc.ProcType);
+      begin
+      ProcScope:=TPasProcedureScope(Data^.Proc.CustomData);
+      CurResolver:=ProcScope.Owner as TPasResolver;
+      if msDelphi in CurResolver.CurrentParser.CurrentModeswitches then
+        // ok in delphi
+      else
+        RaiseMsg(20171118232543,nDuplicateIdentifier,sDuplicateIdentifier,
+          [El.Name,GetElementSourcePosStr(El)],Data^.Proc.ProcType);
+      end;
     end;
     exit;
     end;
@@ -5491,9 +5499,12 @@ var
   i, TypeParamCnt: Integer;
   OtherScope: TPasIdentifierScope;
   ParentScope: TPasScope;
-  IsGeneric: Boolean;
+  IsGeneric, IsDelphi: Boolean;
 begin
   if aName='' then exit(nil);
+
+  IsDelphi:=msDelphi in CurrentParser.CurrentModeswitches;
+
   if Scope is TPasGroupScope then
     begin
     Group:=TPasGroupScope(Scope);
@@ -5523,7 +5534,8 @@ begin
       RaiseMsg(20170403223024,nSymbolCannotBePublished,sSymbolCannotBePublished,[],El);
     end;
 
-  if (Kind=pikSimple) and (Group<>nil) and (El.ClassType<>TPasProperty) then
+  if (Kind=pikSimple) and (Group<>nil) and (El.ClassType<>TPasProperty)
+      and not IsDelphi then
     begin
     // check duplicate in ancestors and helpers
     for i:=1 to Group.Count-1 do
@@ -5554,7 +5566,7 @@ begin
 
   // check duplicate in current scope
   OlderIdentifier:=Identifier.NextSameIdentifier;
-  if IsGeneric and (msDelphi in CurrentParser.CurrentModeswitches) then
+  if IsGeneric and IsDelphi then
     OlderIdentifier:=SkipGenericTypes(OlderIdentifier,TypeParamCnt);
   if OlderIdentifier<>nil then
     begin
