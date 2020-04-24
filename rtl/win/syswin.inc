@@ -217,155 +217,87 @@ begin
   end;
 end;
 
-  {*****************************************************************************
-                                Parameter Handling
-  *****************************************************************************}
+{*****************************************************************************
+                              Parameter Handling
+*****************************************************************************}
 
-  procedure setup_arguments;
-  var
-    arglen,
-    count   : longint;
-    argstart,
-    pc,arg  : pchar;
-    quote   : Boolean;
-    argvlen : longint;
-    buf: array[0..259] of char;  // need MAX_PATH bytes, not 256!
+var
+  argvw: PPWideChar;
 
-    procedure allocarg(idx,len:longint);
-      var
-        oldargvlen : longint;
-      begin
-        if idx>=argvlen then
-         begin
-           oldargvlen:=argvlen;
-           argvlen:=(idx+8) and (not 7);
-           sysreallocmem(argv,argvlen*sizeof(pointer));
-           fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);
-         end;
-        { use realloc to reuse already existing memory }
-        { always allocate, even if length is zero, since }
-        { the arg. is still present!                     }
-        sysreallocmem(argv[idx],len+1);
-      end;
+procedure setup_arguments;
+var
+  buf: array[0..MaxPathLen] of WideChar;
+  i, len: longint;
+  s: ansistring;
+begin
+  // Get argvw
+  argvw:=CommandLineToArgvW(GetCommandLineW, argc);
+  // Get the full module name for argvw[0]
+  len:=(GetModuleFileNameW(0, @buf, Length(buf)) + 1)*SizeOf(WideChar);
+  argvw[0]:=SysGetMem(len);
+  Move(buf, argvw[0]^, len);
+  // Construct the ansi argv
+  argv:=SysGetMem((argc + 1)*SizeOf(pointer));
+  for i:=0 to argc - 1 do
+    begin
+      // Convert argvw[i] to argv[i]
+      s:=ansistring(argvw[i]);
+      len:=Length(s) + 1;
+      argv[i]:=SysGetMem(len);
+      Move(s[1], argv[i]^, len);
+    end;
+  // argv is terminated by nil
+  argv[argc]:=nil;
+  // Get the ansi CmdLine
+  CmdLine:=GetCommandLineA;
+end;
 
-  begin
-    { create commandline, it starts with the executed filename which is argv[0] }
-    { Win32 passes the command NOT via the args, but via getmodulefilename}
-    count:=0;
-    argv:=nil;
-    argvlen:=0;
-    ArgLen := GetModuleFileName(0, @buf[0], sizeof(buf));
-    buf[ArgLen] := #0; // be safe
-    allocarg(0,arglen);
-    move(buf,argv[0]^,arglen+1);
-    { Setup cmdline variable }
-    cmdline:=GetCommandLine;
-    { process arguments }
-    pc:=cmdline;
-  {$IfDef SYSTEM_DEBUG_STARTUP}
-    Writeln(stderr,'Win32 GetCommandLine is #',pc,'#');
-  {$EndIf }
-    while pc^<>#0 do
-     begin
-       { skip leading spaces }
-       while pc^ in [#1..#32] do
-        inc(pc);
-       if pc^=#0 then
-        break;
-       { calc argument length }
-       quote:=False;
-       argstart:=pc;
-       arglen:=0;
-       while (pc^<>#0) do
-        begin
-          case pc^ of
-            #1..#32 :
-              begin
-                if quote then
-                 inc(arglen)
-                else
-                 break;
-              end;
-            '"' :
-              if pc[1]<>'"' then
-                quote := not quote
-                else
-                inc(pc);
-            else
-              inc(arglen);
-          end;
-          inc(pc);
-        end;
-       { copy argument }
-       { Don't copy the first one, it is already there.}
-       If Count<>0 then
-        begin
-          allocarg(count,arglen);
-          quote:=False;
-          pc:=argstart;
-          arg:=argv[count];
-          while (pc^<>#0) do
-           begin
-             case pc^ of
-               #1..#32 :
-                 begin
-                   if quote then
-                    begin
-                      arg^:=pc^;
-                      inc(arg);
-                    end
-                   else
-                    break;
-                 end;
-               '"' :
-                 if pc[1]<>'"' then
-                   quote := not quote
-                    else
-                  inc(pc);
-               else
-                 begin
-                   arg^:=pc^;
-                   inc(arg);
-                 end;
-             end;
-             inc(pc);
-           end;
-          arg^:=#0;
-        end;
-   {$IfDef SYSTEM_DEBUG_STARTUP}
-       Writeln(stderr,'dos arg ',count,' #',arglen,'#',argv[count],'#');
-   {$EndIf SYSTEM_DEBUG_STARTUP}
-       inc(count);
-     end;
-    { get argc }
-    argc:=count;
-    { free unused memory, leaving a nil entry at the end }
-    sysreallocmem(argv,(count+1)*sizeof(pointer));
-    argv[count] := nil;
-  end;
+procedure finalize_arguments;
+var
+  i: longint;
+begin
+  // Free the module name
+  SysFreeMem(argvw[0]);
+  // Use GlobalFree to free the buffer returned by CommandLineToArgvW
+  GlobalFree(argvw);
+  // Free argv
+  for i:=0 to argc - 1 do
+    SysFreeMem(argv[i]);
+  SysFreeMem(argv);
+end;
 
+function paramcount : longint;
+begin
+  paramcount := argc - 1;
+end;
 
-  function paramcount : longint;
-  begin
-    paramcount := argc - 1;
-  end;
+Function ParamStrU(l:Longint): UnicodeString; [public,alias:'_FPC_ParamStrU'];
+begin
+  if (l >= 0) and (l < argc) then
+    Result:=argvw[l]
+  else
+    Result:='';
+end;
 
-  function paramstr(l : longint) : string;
-  begin
-    if (l>=0) and (l<argc) then
-      paramstr:=strpas(argv[l])
-    else
-      paramstr:='';
-  end;
+Function ParamStrA(l:Longint): AnsiString; [public,alias:'_FPC_ParamStrA'];
+begin
+  Result:=AnsiString(ParamStrU(l));
+end;
 
+Function ParamStr(l:Longint): string;
+begin
+  if (l >= 0) and (l < argc) then
+    Result:=argv[l]
+  else
+    Result:='';
+end;
 
-  procedure randomize;
-  begin
-    randseed:=GetTickCount;
-  end;
+{*****************************************************************************}
 
-
-
+procedure randomize;
+begin
+  randseed:=GetTickCount;
+end;
 
 Var
   DLLInitState : Longint = -1;
@@ -781,3 +713,9 @@ begin
   SysSetCtrlBreakHandler := CtrlBreakHandler;
   CtrlBreakHandler := Handler;
 end;
+
+procedure WinFinalizeSystem;
+begin
+  finalize_arguments;
+end;
+

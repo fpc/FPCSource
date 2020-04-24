@@ -601,7 +601,7 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
     result:=tpeheader((pointer(getmodulehandle(nil))+(tdosheader(pointer(getmodulehandle(nil))^).e_lfanew))^).SizeOfStackReserve;
   end;
 
-begin
+initialization
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
   { some misc Win32 stuff }
@@ -634,4 +634,8 @@ begin
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;
   DispCallByIDProc:=@DoDispCallByIDError;
+
+finalization
+  WinFinalizeSystem;
+
 end.

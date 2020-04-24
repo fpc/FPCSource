@@ -144,8 +144,13 @@ Var
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
+{$ifdef MSWINDOWS}
+  {$define HAS_PARAMSTRA}
+  {$undef FPC_HAS_FEATURE_COMMANDARGS} // Skip the implementation of ParamStr()
+{$endif MSWINDOWS}
      { ParamStr should return also an ansistring }
      Function ParamStr(Param : Integer) : Ansistring;
+       {$ifdef HAS_PARAMSTRA} external name '_FPC_ParamStrA'; {$endif}
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 {****************************************************************************
