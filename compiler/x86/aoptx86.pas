@@ -5203,6 +5203,40 @@ unit aoptx86;
             hp2.free;
             p:=hp1;
           end
+        else if reg_and_hp1_is_instr and
+          (taicpu(hp1).opcode = A_MOV) and
+          MatchOpType(taicpu(hp1),top_reg,top_reg) and
+          (MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^)
+{$ifdef x86_64}
+           { check for implicit extension to 64 bit }
+           or
+           ((taicpu(p).opsize in [S_BL,S_WL]) and
+            (taicpu(hp1).opsize=S_Q) and
+            SuperRegistersEqual(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[0]^.reg)
+           )
+{$endif x86_64}
+          )
+          then
+          begin
+            { change
+              movx   %reg1,%reg2
+              mov    %reg2,%reg3
+              dealloc %reg2
+
+              into
+
+              movx   %reg,%reg3
+            }
+            TransferUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+            if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
+              begin
+                DebugMsg(SPeepholeOptimization + 'MovxMov2Movx',p);
+                taicpu(p).loadreg(1,taicpu(hp1).oper[1]^.reg);
+                asml.remove(hp1);
+                hp1.Free;
+              end;
+          end
         else if taicpu(p).opcode=A_MOVZX then
           begin
             { removes superfluous And's after movzx's }
