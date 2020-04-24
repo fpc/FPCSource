@@ -145,7 +145,6 @@ interface
 
     function TZ80AddNode.first_cmppointer: tnode;
       begin
-        Writeln('TZ80AddNode.first_cmppointer');
         result:=nil;
         expectloc:=LOC_JUMP;
       end;
