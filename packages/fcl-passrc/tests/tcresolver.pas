@@ -614,7 +614,8 @@ type
     Procedure TestClass_SubObject;
     Procedure TestClass_WithDoClassInstance;
     Procedure TestClass_ProcedureExternal;
-    Procedure TestClass_ReintroducePublicVarFail;
+    Procedure TestClass_ReintroducePublicVarObjFPCFail;
+    Procedure TestClass_ReintroducePublicVarDelphi;
     Procedure TestClass_ReintroducePrivateVar;
     Procedure TestClass_ReintroduceProc;
     Procedure TestClass_UntypedParam_TypeCast;
@@ -11011,20 +11012,57 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestClass_ReintroducePublicVarFail;
+procedure TTestResolver.TestClass_ReintroducePublicVarObjFPCFail;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('  public');
-  Add('    Some: longint;');
-  Add('  end;');
-  Add('  TCar = class(tobject)');
-  Add('  public');
-  Add('    Some: longint;');
-  Add('  end;');
-  Add('begin');
+  Add([
+  'type',
+  '  TObject = class',
+  '  public',
+  '    Some: longint;',
+  '  end;',
+  '  TCar = class(tobject)',
+  '  public',
+  '    Some: longint;',
+  '  end;',
+  'begin']);
   CheckResolverException('Duplicate identifier "Some" at afile.pp(5,5)',nDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestClass_ReintroducePublicVarDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '  public',
+  '    {#Obj_Some}Some: longint;',
+  '    {#Obj_Foo}Foo: word;',
+  '    function {#Obj_Bar}Bar: string;',
+  '  end;',
+  '  TCar = class(tobject)',
+  '  public',
+  '    {#Car_Some}Some: double;',
+  '    function {#Car_Foo}Foo: boolean;',
+  '    {#Car_Bar}Bar: single;',
+  '  end;',
+  'function TObject.Bar: string;',
+  'begin',
+  'end;',
+  'function TCar.Foo: boolean;',
+  'begin',
+  '  {@Car_Some}Some:=3.3;',
+  '  {@Car_Bar}Bar:=4.3;',
+  '  inherited {@Obj_Bar}Bar;',
+  '  inherited {@Obj_Bar}Bar();',
+  '  inherited {@Obj_Foo}Foo := 4;',
+  '  if inherited {@Obj_Some}Some = 5 then ;',
+  'end;',
+  'var C: TCar;',
+  'begin',
+  '  C.Some:=1.3;']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestClass_ReintroducePrivateVar;

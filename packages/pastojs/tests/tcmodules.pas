@@ -522,6 +522,7 @@ type
     Procedure TestClass_OverloadsAncestor;
     Procedure TestClass_OverloadConstructor;
     Procedure TestClass_OverloadDelphiOverride;
+    Procedure TestClass_ReintroduceVarDelphi;
     Procedure TestClass_ReintroducedVar;
     Procedure TestClass_RaiseDescendant;
     Procedure TestClass_ExternalMethod;
@@ -13886,6 +13887,94 @@ begin
     LinesToStr([ // $mod.$main
     'if (23 === $mod.e.GetValue()) ;',
     'if (24 === $mod.e.GetValue$1(25)) ;',
+    '']));
+end;
+
+procedure TTestModule.TestClass_ReintroduceVarDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TAnimal = class',
+  '  public',
+  '    {#animal_a}A: longint;',
+  '    function {#animal_b}B: longint;',
+  '  end;',
+  '  TBird = class(TAnimal)',
+  '  public',
+  '    {#bird_a}A: double;',
+  '    {#bird_b}B: boolean;',
+  '  end;',
+  '  TEagle = class(TBird)',
+  '  public',
+  '    function {#eagle_a}A: boolean;',
+  '    {#eagle_b}B: double;',
+  '  end;',
+  'function TAnimal.B: longint;',
+  'begin',
+  'end;',
+  'function TEagle.A: boolean;',
+  'begin',
+  '  {@eagle_b}B:=3.3;',
+  '  {@eagle_a}A();',
+  '  TBird(Self).{@bird_b}B:=true;',
+  '  TAnimal(Self).{@animal_a}A:=17;',
+  '  inherited {@bird_b}B:=inherited {bird_a}A>1;', // Delphi allows only inherited <functionname>
+  'end;',
+  'var',
+  '  e: TEagle;',
+  'begin',
+  '  e.{@eagle_b}B:=5.3;',
+  '  if e.{@eagle_a}A then ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_ReintroduceVarDelphi',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TAnimal", $mod.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
+    '    this.A = 0;',
+    '  };',
+    '  this.B = function () {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TAnimal, function () {',
+    '  this.$init = function () {',
+    '    $mod.TAnimal.$init.call(this);',
+    '    this.A$1 = 0.0;',
+    '    this.B$1 = false;',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TEagle", $mod.TBird, function () {',
+    '  this.$init = function () {',
+    '    $mod.TBird.$init.call(this);',
+    '    this.B$2 = 0.0;',
+    '  };',
+    '  this.A$2 = function () {',
+    '    var Result = false;',
+    '    this.B$2 = 3.3;',
+    '    this.A$2();',
+    '    this.B$1 = true;',
+    '    this.A = 17;',
+    '    this.B$1 = this.A$1 > 1;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.e = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.e.B$2 = 5.3;',
+    'if ($mod.e.A$2()) ;',
     '']));
 end;
 
