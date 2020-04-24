@@ -931,6 +931,7 @@ type
     function isBoolean: Boolean;
     function asBool: Boolean;
     function asInt: Integer;
+    function asInt64: Int64;
     function asStr: String;
     destructor destroy; override;
   end;
@@ -1344,6 +1345,11 @@ type
     end;
 
   function texprvalue.asInt: Integer;
+    begin
+      result:=value.valueord.svalue;
+    end;
+
+  function texprvalue.asInt64: Int64;
     begin
       result:=value.valueord.svalue;
     end;
