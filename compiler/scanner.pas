@@ -1329,12 +1329,12 @@ type
 
   function texprvalue.isBoolean: Boolean;
     var
-      i: integer;
+      i: int64;
     begin
       result:=is_boolean(def);
       if not result and is_integer(def) then
         begin
-          i:=asInt;
+          i:=asInt64;
           result:=(i=0)or(i=1);
         end;
     end;
