@@ -1707,6 +1707,10 @@ implementation
                    hdef:=generrordef;
                end;
 
+             { field type is a generic param so set a flag in the struct }
+             if assigned(hdef.typesym) and (sp_generic_para in hdef.typesym.symoptions) then
+               include(current_structdef.defoptions,df_has_generic_fields);
+
              { Process procvar directives }
              if maybe_parse_proc_directives(hdef) then
                semicoloneaten:=true;

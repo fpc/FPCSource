@@ -424,8 +424,9 @@ implementation
          { both types must be compatible }
          if compare_defs(left.resultdef,right.resultdef,left.nodetype)=te_incompatible then
            IncompatibleTypes(left.resultdef,right.resultdef);
-         { Check if only when its a constant set }
-         if (left.nodetype=ordconstn) and (right.nodetype=ordconstn) then
+         { check if only when its a constant set and
+           ignore range nodes which are generic parameter derived }
+         if not (nf_generic_para in flags) and (left.nodetype=ordconstn) and (right.nodetype=ordconstn) then
           begin
             { upper limit must be greater or equal than lower limit }
             if (tordconstnode(left).value>tordconstnode(right).value) and

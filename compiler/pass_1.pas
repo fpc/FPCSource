@@ -62,6 +62,7 @@ implementation
     procedure typecheckpass_internal_loop(var p : tnode; out node_changed: boolean);
       var
          hp        : tnode;
+         oldflags  : tnodeflags;
       begin
         codegenerror:=false;
         repeat
@@ -73,9 +74,13 @@ implementation
           if assigned(hp) then
             begin
               node_changed:=true;
+              oldflags:=p.flags;
               p.free;
               { switch to new node }
               p:=hp;
+              { transfer generic paramter flag }
+              if nf_generic_para in oldflags then
+                include(p.flags,nf_generic_para);
             end;
         until not assigned(hp) or
               assigned(hp.resultdef);

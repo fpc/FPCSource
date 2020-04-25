@@ -131,7 +131,10 @@ implementation
               end;
             if rv = 0 then
               begin
-                Message(parser_e_division_by_zero);
+                { if the node is derived from a generic const parameter
+                  then don't issue an error }
+                if not (nf_generic_para in flags) then
+                  Message(parser_e_division_by_zero);
                 { recover }
                 tordconstnode(right).value := 1;
               end;

@@ -1683,7 +1683,8 @@ const
      (mask:sp_generic_para;       str:'Generic Parameter'),
      (mask:sp_has_deprecated_msg; str:'Has Deprecated Message'),
      (mask:sp_generic_dummy;      str:'Generic Dummy'),
-     (mask:sp_explicitrename;     str:'Explicit Rename')
+     (mask:sp_explicitrename;     str:'Explicit Rename'),
+     (mask:sp_generic_const;      str:'Generic Constant Parameter')
   );
 var
   symoptions : tsymoptions;
@@ -2739,7 +2740,8 @@ const
      (mask:df_not_registered_no_free;  str:'Unregistered/No free (invalid)'),
      (mask:df_llvm_no_struct_packing;  str:'LLVM unpacked struct'),
      (mask:df_internal;       str:'Internal'),
-     (mask:df_has_global_ref; str:'Has Global Ref')
+     (mask:df_has_global_ref; str:'Has Global Ref'),
+     (mask:df_has_generic_fields; str:'Has generic fields')
   );
   defstate : array[1..ord(high(tdefstate))] of tdefstateinfo=(
      (mask:ds_vmt_written;           str:'VMT Written'),
@@ -3263,14 +3265,15 @@ const
    { ado_IsArrayOfConst     } 'ArrayOfConst',
    { ado_IsConstString      } 'ConstString',
    { ado_IsBitPacked        } 'BitPacked',
-   { ado_IsVector           } 'Vector'
+   { ado_IsVector           } 'Vector',
+   { ado_IsGeneric          } 'Generic'
   );
 var
   symoptions: tarraydefoptions;
   i: tarraydefoption;
   first: boolean;
 begin
-  ppufile.getset(tppuset1(symoptions));
+  ppufile.getset(tppuset2(symoptions));
   if symoptions<>[] then
    begin
      if ado_IsDynamicArray in symoptions then Include(ArrayDef.Options, aoDynamic);

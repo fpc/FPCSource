@@ -2779,7 +2779,7 @@ implementation
               internalerror(2015060301);
             { check whether the given parameters are compatible
               to the def's constraints }
-            if not check_generic_constraints(pd,spezcontext.genericdeflist,spezcontext.poslist) then
+            if not check_generic_constraints(pd,spezcontext.paramlist,spezcontext.poslist) then
               exit;
             def:=generate_specialization_phase2(spezcontext,pd,false,'');
             case def.typ of

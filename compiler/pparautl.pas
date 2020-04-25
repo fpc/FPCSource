@@ -631,26 +631,47 @@ implementation
       function check_generic_parameters(fwpd,currpd:tprocdef):boolean;
         var
           i : longint;
-          fwtype,
-          currtype : ttypesym;
+          fwsym,
+          currsym : tsym;
+          currtype : ttypesym absolute currsym;
+          fileinfo : tfileposinfo;
         begin
           result:=true;
           if fwpd.genericparas.count<>currpd.genericparas.count then
             internalerror(2018090101);
           for i:=0 to fwpd.genericparas.count-1 do
             begin
-              fwtype:=ttypesym(fwpd.genericparas[i]);
-              currtype:=ttypesym(currpd.genericparas[i]);
-              if fwtype.name<>currtype.name then
+              fwsym:=tsym(fwpd.genericparas[i]);
+              currsym:=tsym(currpd.genericparas[i]);
+              if fwsym.name<>currsym.name then
                 begin
-                  messagepos1(currtype.fileinfo,sym_e_generic_type_param_mismatch,currtype.realname);
-                  messagepos1(fwtype.fileinfo,sym_e_generic_type_param_decl,fwtype.realname);
+                  messagepos1(currsym.fileinfo,sym_e_generic_type_param_mismatch,currsym.realname);
+                  messagepos1(fwsym.fileinfo,sym_e_generic_type_param_decl,fwsym.realname);
                   result:=false;
                 end;
-              if (fwpd.interfacedef or assigned(fwpd.struct)) and (df_genconstraint in currtype.typedef.defoptions) then
+              if (fwpd.interfacedef or assigned(fwpd.struct)) and
+                 (
+                   ((currsym.typ=typesym) and (df_genconstraint in currtype.typedef.defoptions)) or
+                   (currsym.typ=constsym)
+                 ) then
                 begin
-                  messagepos(tstoreddef(currtype.typedef).genconstraintdata.fileinfo,parser_e_generic_constraints_not_allowed_here);
+                  if currsym.typ=constsym then
+                    fileinfo:=currsym.fileinfo
+                  else
+                    fileinfo:=tstoreddef(currtype.typedef).genconstraintdata.fileinfo;
+                  messagepos(fileinfo,parser_e_generic_constraints_not_allowed_here);
                   result:=false;
+                end;
+              if not fwpd.interfacedef and not assigned(fwpd.struct) and
+                 (fwsym.typ=constsym) then
+                begin
+                  { without modeswitch RepeatForward we need to check here
+                    if the type of the constants match }
+                  if (currsym.typ<>constsym) or not equal_defs(tconstsym(fwsym).constdef,tconstsym(currsym).constdef) then
+                    begin
+                      messagepos1(currpd.fileinfo,parser_e_header_dont_match_forward,currpd.fullprocname(false));
+                      result:=false;
+                    end;
                 end;
             end;
         end;
@@ -659,8 +680,10 @@ implementation
       function equal_generic_procdefs(fwpd,currpd:tprocdef):boolean;
         var
           i : longint;
-          fwtype,
-          currtype : ttypesym;
+          fwsym,
+          currsym : tsym;
+          fwtype : ttypesym absolute fwsym;
+          currtype : ttypesym absolute currsym;
           foundretdef : boolean;
         begin
           result:=false;
@@ -677,14 +700,36 @@ implementation
           foundretdef:=false;
           for i:=0 to fwpd.genericparas.count-1 do
             begin
-              fwtype:=ttypesym(fwpd.genericparas[i]);
-              currtype:=ttypesym(currpd.genericparas[i]);
+              fwsym:=tsym(fwpd.genericparas[i]);
+              currsym:=tsym(currpd.genericparas[i]);
               { if the type in the currpd isn't a pure undefineddef (thus there
                 are constraints and the fwpd was declared in the interface, then
                 we can stop right there }
-              if fwpd.interfacedef and ((currtype.typedef.typ<>undefineddef) or (df_genconstraint in currtype.typedef.defoptions)) then
+              if fwpd.interfacedef and
+                 (
+                   (currsym.typ=constsym) or
+                   ((currsym.typ=typesym) and
+                     (
+                       (currtype.typedef.typ<>undefineddef) or
+                       (df_genconstraint in currtype.typedef.defoptions)
+                     )
+                   )
+                 )then
                 exit;
-              if not foundretdef then
+              if not fwpd.interfacedef then
+                begin
+                  if (fwsym.typ=constsym) and (currsym.typ=constsym) then
+                    begin
+                      { check whether the constant type for forward functions match }
+                      if not equal_defs(tconstsym(fwsym).constdef,tconstsym(currsym).constdef) then
+                        exit;
+                    end
+                  else if (fwsym.typ=constsym) then
+                    { if the forward sym is a constant, the implementation needs to be one
+                      as well }
+                    exit;
+                end;
+              if not foundretdef and (fwsym.typ=typesym) then
                 begin
                   { if the returndef is the same as this parameter's def then this
                     needs to be the case for both procdefs }
