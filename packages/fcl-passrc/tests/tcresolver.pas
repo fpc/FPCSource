@@ -601,6 +601,7 @@ type
     Procedure TestClass_StaticWithoutClassFail;
     Procedure TestClass_SelfInStaticFail;
     Procedure TestClass_SelfDotInStaticFail;
+    Procedure TestClass_ProcStaticMismatchFail;
     Procedure TestClass_PrivateProtectedInSameUnit;
     Procedure TestClass_PrivateInMainBeginFail;
     Procedure TestClass_PrivateInDescendantFail;
@@ -8596,7 +8597,7 @@ begin
   'begin',
   '  w:=w+1;',
   'end;',
-  'class procedure TRec.Create;',
+  'class procedure TRec.Create; static;',
   'begin',
   '  w:=w+1;',
   'end;',
@@ -10511,6 +10512,21 @@ begin
   Add('end;');
   Add('begin');
   CheckResolverException('identifier not found "Self"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestClass_ProcStaticMismatchFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure Run;',
+  '  end;',
+  'procedure TObject.Run; static;',
+  'begin',
+  'end;',
+  'begin']);
+  CheckResolverException('Directive "static" not allowed here',nDirectiveXNotAllowedHere);
 end;
 
 procedure TTestResolver.TestClass_PrivateProtectedInSameUnit;
