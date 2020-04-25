@@ -186,6 +186,16 @@ end;
 
 {$else FULL_RTL}
 {$I z80.inc}
+
+procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
+begin
+end;
+
+Procedure fpc_do_exit;[Public,Alias:'FPC_DO_EXIT']; compilerproc;
+begin
+  repeat
+  until false;
+end;
 {$endif FULL_RTL}
 
 var
@@ -203,16 +213,6 @@ end;
 function KeyPressed: Boolean;
 begin
   KeyPressed:=LastKey<>#0;
-end;
-
-procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
-begin
-end;
-
-Procedure fpc_do_exit;[Public,Alias:'FPC_DO_EXIT']; compilerproc;
-begin
-  repeat
-  until false;
 end;
 
 procedure OpenChannel(Chan: Byte);
