@@ -1055,7 +1055,7 @@ unit agsdasz80;
 
             idtxt  : 'SDCC-SDASZ80';
             asmbin : 'sdasz80';
-            asmcmd : '-g -o $OBJ $EXTRAOPT $ASM';
+            asmcmd : '-g -o $EXTRAOPT $OBJ $ASM';
             supported_targets : [system_Z80_embedded];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
