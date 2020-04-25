@@ -436,6 +436,7 @@ unit agz80asm;
             supported_targets : [system_Z80_embedded];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: 's';
           );

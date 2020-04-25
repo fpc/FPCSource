@@ -1497,6 +1497,7 @@ const
             supported_targets : [system_i386_Netware,system_i386_netwlibc];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '';
             dollarsign: '$';
           );

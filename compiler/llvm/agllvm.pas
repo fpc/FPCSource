@@ -1737,6 +1737,7 @@ implementation
           supported_targets : [system_x86_64_linux,system_x86_64_darwin,system_aarch64_linux,system_arm_linux];
           flags : [af_smartlink_sections,af_llvm];
           labelprefix : 'L';
+          labelmaxlen : -1;
           comment : '; ';
           dollarsign: '$';
         );
@@ -1751,6 +1752,7 @@ implementation
           supported_targets : [system_x86_64_linux,system_x86_64_darwin,system_aarch64_linux,system_arm_linux];
           flags : [af_smartlink_sections,af_llvm];
           labelprefix : 'L';
+          labelmaxlen : -1;
           comment : '; ';
           dollarsign: '$';
         );

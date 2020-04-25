@@ -88,6 +88,7 @@ interface
           supported_targets : set of tsystem;
           flags        : set of tasmflags;
           labelprefix : string[3];
+          labelmaxlen : integer;
           comment     : string[3];
           { set to '$' if that character is allowed in symbol names, otherwise
             to alternate character by which '$' should be replaced }

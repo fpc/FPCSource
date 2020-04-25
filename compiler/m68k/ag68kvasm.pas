@@ -136,6 +136,7 @@ unit ag68kvasm;
          supported_targets : [system_m68k_amiga,system_m68k_atari];
          flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign: '$';
        );

@@ -883,6 +883,7 @@ unit agsdasz80;
             supported_targets : [system_Z80_embedded];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : 79;
             comment : '; ';
             dollarsign: '$';
           );

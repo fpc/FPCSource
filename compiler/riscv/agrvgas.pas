@@ -263,6 +263,7 @@ unit agrvgas;
          supported_targets : [system_riscv32_linux,system_riscv64_linux];
          flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign: '$';
        );

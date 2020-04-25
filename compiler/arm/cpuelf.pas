@@ -977,6 +977,7 @@ implementation
                               system_arm_aros,system_arm_freertos];
          flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
          labelprefix : '.L';
+         labelmaxlen : -1;
          comment : '';
          dollarsign: '$';
        );

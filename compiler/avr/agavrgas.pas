@@ -216,6 +216,7 @@ unit agavrgas;
             supported_targets : [system_avr_embedded];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: 's';
           );

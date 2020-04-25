@@ -355,6 +355,7 @@ interface
             supported_targets : [system_m68k_macos,system_m68k_linux,system_m68k_PalmOS,system_m68k_netbsd,system_m68k_embedded];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );
@@ -368,6 +369,7 @@ interface
             supported_targets : [system_m68k_Amiga,system_m68k_Atari];
             flags : [af_needar];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );

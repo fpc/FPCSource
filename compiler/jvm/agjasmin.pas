@@ -1237,6 +1237,7 @@ implementation
          supported_targets : [system_jvm_java32,system_jvm_android32];
          flags : [];
          labelprefix : 'L';
+         labelmaxlen : -1;
          comment : ' ; ';
          dollarsign : '$';
        );

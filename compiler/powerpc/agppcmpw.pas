@@ -1243,6 +1243,7 @@ interface
             supported_targets : [system_powerpc_macos];
             flags : [af_needar,af_smartlink_sections,af_labelprefix_only_inside_procedure];
             labelprefix : '@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: 's';
           );

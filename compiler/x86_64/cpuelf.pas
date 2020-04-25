@@ -699,6 +699,7 @@ implementation
                              system_x86_64_haiku];
         flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
         labelprefix : '.L';
+        labelmaxlen : -1;
         comment : '';
         dollarsign: '$';
       );
