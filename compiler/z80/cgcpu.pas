@@ -1799,8 +1799,8 @@ unit cgcpu;
                   else
                     internalerror(2020042206);
                 end;
-                cg.a_label(current_asmdata.CurrAsmList,tmpl);
               end;
+            cg.a_label(current_asmdata.CurrAsmList,tmpl);
             ungetcpuregister(list,NR_A);
           end
         else
