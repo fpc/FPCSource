@@ -182,6 +182,8 @@ end;
 
 procedure system_exit;
 begin
+  repeat
+  until false;
 end;
 
 {$else FULL_RTL}
