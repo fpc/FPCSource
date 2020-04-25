@@ -2348,7 +2348,7 @@ end;
 
 procedure pd_winapi(pd:tabstractprocdef);
 begin
-  if not(target_info.system in systems_wince) then
+  if not(target_info.system in systems_all_windows+[system_i386_nativent]) then
     pd.proccalloption:=pocall_cdecl
   else
     pd.proccalloption:=pocall_stdcall;
