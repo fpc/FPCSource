@@ -884,7 +884,7 @@ unit agsdasz80;
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
             comment : '; ';
-            dollarsign: 's';
+            dollarsign: '$';
           );
 
 
