@@ -308,6 +308,7 @@
             ,ar_watcom_wlib_omf
             ,ar_watcom_wlib_omf_scripted
             ,ar_sdcc_sdar
+            ,ar_sdcc_sdar_scripted
        );
 
        tres = (res_none
