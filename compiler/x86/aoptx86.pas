@@ -5232,7 +5232,13 @@ unit aoptx86;
             if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
               begin
                 DebugMsg(SPeepholeOptimization + 'MovxMov2Movx',p);
-                taicpu(p).loadreg(1,taicpu(hp1).oper[1]^.reg);
+{$ifdef x86_64}
+                if (taicpu(p).opsize in [S_BL,S_WL]) and
+                  (taicpu(hp1).opsize=S_Q) then
+                  taicpu(p).loadreg(1,newreg(R_INTREGISTER,getsupreg(taicpu(hp1).oper[1]^.reg),R_SUBD))
+                else
+{$endif x86_64}
+                  taicpu(p).loadreg(1,taicpu(hp1).oper[1]^.reg);
                 asml.remove(hp1);
                 hp1.Free;
               end;
