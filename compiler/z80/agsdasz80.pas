@@ -954,6 +954,45 @@ unit agsdasz80;
                     end;
                 end;
               end;
+            ait_cutobject :
+              begin
+                if SmartAsm then
+                 begin
+                  { only reset buffer if nothing has changed }
+                  if not writer.ClearIfEmpty then
+                   begin
+                     {if SmartAsm then
+                       begin
+                         WriteSmartExternals;
+                         FreeExternChainList;
+                       end;
+                     WriteGroups;}
+                     writer.AsmClose;
+                     DoAssemble;
+                     writer.AsmCreate(tai_cutobject(hp).place);
+                     {ResetSectionsList;
+                     WriteHeader;}
+                   end;
+                { avoid empty files }
+                  LastSecType:=sec_none;
+                  //LastSecName:='';
+                  //LastAlign:=4;
+                  while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
+                   begin
+                     if tai(hp.next).typ=ait_section then
+                       begin
+                         LastSecType:=tai_section(hp.next).sectype;
+                         {LastSecName:=tai_section(hp.next).name^;
+                         LastAlign:=tai_section(hp.next).secalign;}
+                       end;
+                     hp:=tai(hp.next);
+                   end;
+                  {if LastSecType<>sec_none then
+                    WriteSection(LastSecType,LastSecName,LastAlign);}
+                  writer.MarkEmpty;
+                  //NewObject:=true;
+                end;
+              end;
             ait_marker :
               if tai_marker(hp).kind=mark_NoLineInfoStart then
                 inc(InlineLevel)
@@ -1016,7 +1055,7 @@ unit agsdasz80;
 
             idtxt  : 'SDCC-SDASZ80';
             asmbin : 'sdasz80';
-            asmcmd : '-o $OBJ $EXTRAOPT $ASM';
+            asmcmd : '-g -o $OBJ $EXTRAOPT $ASM';
             supported_targets : [system_Z80_embedded];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
