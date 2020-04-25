@@ -1742,6 +1742,14 @@ Implementation
             arfinishcmd : ''
           );
 
+      ar_sdcc_sdar_info : tarinfo =
+          ( id          : ar_sdcc_sdar;
+          addfilecmd  : '';
+          arfirstcmd  : '';
+          arcmd       : 'sdar qS $LIB $FILES';
+          arfinishcmd : 'sdar s $LIB'
+          );
+
 
 initialization
   RegisterAr(ar_gnu_ar_info);
@@ -1749,4 +1757,5 @@ initialization
   RegisterAr(ar_gnu_gar_info);
   RegisterAr(ar_watcom_wlib_omf_info);
   RegisterAr(ar_watcom_wlib_omf_scripted_info);
+  RegisterAr(ar_sdcc_sdar_info);
 end.

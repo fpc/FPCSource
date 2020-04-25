@@ -65,7 +65,7 @@ unit i_zxspectrum;
             assemextern  : as_sdcc_sdasz80;
             link         : ld_none;
             linkextern   : ld_zxspectrum;
-            ar           : ar_gnu_ar;
+            ar           : ar_sdcc_sdar;
             res          : res_none;
             dbg          : dbg_dwarf2;
             script       : script_unix;
