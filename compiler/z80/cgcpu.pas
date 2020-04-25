@@ -673,12 +673,28 @@ unit cgcpu;
         l : TAsmLabel;
         ref : treference;
       begin
+        { HACK: at this point all registers are allocated, due to the way the
+          calling convention works, but we need to free some registers, in order
+          for the following code to work, so we do it here }
+        dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+
+        getcpuregister(list,NR_L);
+        a_load_reg_reg(list,OS_8,OS_8,reg,NR_L);
+        getcpuregister(list,NR_H);
+        a_load_reg_reg(list,OS_8,OS_8,GetNextReg(reg),NR_H);
         current_asmdata.getjumplabel(l);
         reference_reset(ref,0,[]);
         ref.symbol:=l;
-        list.concat(taicpu.op_ref_reg(A_LD,ref,reg));
-        list.concat(tai_const.Create_8bit($CD));
+        list.concat(taicpu.op_ref_reg(A_LD,ref,NR_HL));
+        ungetcpuregister(list,NR_H);
+        ungetcpuregister(list,NR_L);
+
+        { allocate them again, right before the actual call instruction }
+        alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+
+        list.concat(tai_const.Create_8bit($CD));  { $CD is the opcode of the call instruction }
         list.concat(tai_label.Create(l));
+        list.concat(tai_const.Create_16bit(0));
         include(current_procinfo.flags,pi_do_call);
       end;
 
