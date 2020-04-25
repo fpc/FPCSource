@@ -5189,7 +5189,7 @@ begin
     fpkProc:
       // proc hides a non proc
       if (Data^.Proc.GetModule=El.GetModule) then
-        // forbidden within same CurModule
+        // forbidden within same module
         RaiseMsg(20170216151649,nDuplicateIdentifier,sDuplicateIdentifier,
           [El.Name,GetElementSourcePosStr(El)],Data^.Proc.ProcType)
       else
@@ -6930,7 +6930,7 @@ begin
         RaiseInvalidProcModifier(20170216151637,Proc,pmOverride,Proc);
       if Proc.IsMessage then
         RaiseInvalidProcModifier(20170216151638,Proc,pmMessage,Proc);
-      if Proc.IsStatic then
+      if Proc.IsStatic and not HasDots then
         RaiseInvalidProcTypeModifier(20170216151640,El,ptmStatic,El);
       if (not HasDots)
           and (Proc.GetProcTypeEnum in [
@@ -9205,11 +9205,11 @@ var
   DeclName, ImplName: String;
   ImplResult, DeclResult: TPasType;
   ImplTemplType, DeclTemplType: TPasGenericTemplateType;
+  NewImplPTMods: TProcTypeModifiers;
+  ptm: TProcTypeModifier;
 begin
   if ImplProc.ClassType<>DeclProc.ClassType then
     RaiseXExpectedButYFound(20170216151729,DeclProc.TypeName,ImplProc.TypeName,ImplProc);
-  if ImplProc.CallingConvention<>DeclProc.CallingConvention then
-    RaiseMsg(20170216151731,nCallingConventionMismatch,sCallingConventionMismatch,[],ImplProc);
 
   DeclArgs:=DeclProc.ProcType.Args;
   ImplArgs:=ImplProc.ProcType.Args;
@@ -9273,6 +9273,15 @@ begin
       RaiseIncompatibleType(20170216151734,nResultTypeMismatchExpectedButFound,
         [],DeclResult,ImplResult,ImplProc);
     end;
+
+  // modifiers
+  if ImplProc.CallingConvention<>DeclProc.CallingConvention then
+    RaiseMsg(20170216151731,nCallingConventionMismatch,sCallingConventionMismatch,[],ImplProc);
+  NewImplPTMods:=ImplProc.ProcType.Modifiers-DeclProc.ProcType.Modifiers;
+  if NewImplPTMods<>[] then
+    for ptm in NewImplPTMods do
+      RaiseMsg(20200425154821,nDirectiveXNotAllowedHere,sDirectiveXNotAllowedHere,
+        [ProcTypeModifiers[ptm]],ImplProc.ProcType);
 end;
 
 procedure TPasResolver.ResolveImplBlock(Block: TPasImplBlock);
