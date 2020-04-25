@@ -44,11 +44,36 @@ implementation
 
   uses
     hlcgobj,
-    cgcpu;
+    aasmbase,aasmtai,
+    cgcpu,
+    symconst,
+    verbose,fmodule,cutils;
 
   procedure thlcgcpu.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
+    var
+      make_global: Boolean;
     begin
-      //internalerror(2011021324);
+      if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
+        Internalerror(200006137);
+      if not assigned(procdef.struct) or
+         (procdef.procoptions*[po_classmethod, po_staticmethod,
+           po_methodpointer, po_interrupt, po_iocheck]<>[]) then
+        Internalerror(200006138);
+      if procdef.owner.symtabletype<>ObjectSymtable then
+        Internalerror(200109191);
+
+      make_global:=false;
+      if (not current_module.is_unit) or
+         create_smartlink or
+         (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
+        make_global:=true;
+
+      if make_global then
+        List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0,procdef))
+      else
+        List.concat(Tai_symbol.Createname_hidden(labelname,AT_FUNCTION,0,procdef));
+
+      list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: g_intf_wrapper')));
     end;
 
 
