@@ -43,6 +43,7 @@ unit agsdasz80;
       private
         procedure WriteDecodedSleb128(a: int64);
         procedure WriteDecodedUleb128(a: qword);
+        procedure WriteRealConstAsBytes(hp: tai_realconst; const dbdir: string; do_line: boolean);
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;
           secflags:TSectionFlags=[];secprogbits:TSectionProgbits=SPB_None);
@@ -105,6 +106,140 @@ unit agsdasz80;
             writer.AsmWrite(tostr(buf[i]));
           end;
         writer.AsmWriteLn(#9'; uleb '+tostr(a));
+      end;
+
+    procedure TSdccSdasZ80Assembler.WriteRealConstAsBytes(hp: tai_realconst; const dbdir: string; do_line: boolean);
+      var
+        pdata: pbyte;
+        index, step, swapmask, count: longint;
+        ssingle: single;
+        ddouble: double;
+        ccomp: comp;
+{$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
+        eextended: extended;
+{$else}
+{$ifdef FPC_SOFT_FPUX80}
+	eextended: floatx80;
+{$endif}
+{$endif cpuextended}
+      begin
+        if do_line then
+          begin
+            case tai_realconst(hp).realtyp of
+              aitrealconst_s32bit:
+                writer.AsmWriteLn(asminfo^.comment+'value: '+single2str(tai_realconst(hp).value.s32val));
+              aitrealconst_s64bit:
+                writer.AsmWriteLn(asminfo^.comment+'value: '+double2str(tai_realconst(hp).value.s64val));
+{$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
+              { can't write full 80 bit floating point constants yet on non-x86 }
+              aitrealconst_s80bit:
+                writer.AsmWriteLn(asminfo^.comment+'value: '+extended2str(tai_realconst(hp).value.s80val));
+{$else}
+{$ifdef FPC_SOFT_FPUX80}
+{$push}{$warn 6018 off} { Unreachable code due to compile time evaluation }
+             aitrealconst_s80bit:
+               begin
+     	         if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
+                   writer.AsmWriteLn(asminfo^.comment+'value: '+double2str(tai_realconst(hp).value.s80val))
+     	         else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
+                   writer.AsmWriteLn(asminfo^.comment+'value: '+single2str(tai_realconst(hp).value.s80val))
+                else
+     	         internalerror(2017091901);
+       	      end;
+{$pop}
+{$endif}
+{$endif cpuextended}
+              aitrealconst_s64comp:
+                writer.AsmWriteLn(asminfo^.comment+'value: '+extended2str(tai_realconst(hp).value.s64compval));
+              else
+                internalerror(2014050604);
+            end;
+          end;
+        writer.AsmWrite(dbdir);
+        { generic float writing code: get start address of value, then write
+          byte by byte. Can't use fields directly, because e.g ts64comp is
+          defined as extended on x86 }
+        case tai_realconst(hp).realtyp of
+          aitrealconst_s32bit:
+            begin
+              ssingle:=single(tai_realconst(hp).value.s32val);
+              pdata:=@ssingle;
+            end;
+          aitrealconst_s64bit:
+            begin
+              ddouble:=double(tai_realconst(hp).value.s64val);
+              pdata:=@ddouble;
+            end;
+{$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
+          { can't write full 80 bit floating point constants yet on non-x86 }
+          aitrealconst_s80bit:
+            begin
+              eextended:=extended(tai_realconst(hp).value.s80val);
+              pdata:=@eextended;
+            end;
+{$else}
+{$ifdef FPC_SOFT_FPUX80}
+{$push}{$warn 6018 off} { Unreachable code due to compile time evaluation }
+          aitrealconst_s80bit:
+            begin
+	      if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
+                eextended:=float64_to_floatx80(float64(double(tai_realconst(hp).value.s80val)))
+	      else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
+	        eextended:=float32_to_floatx80(float32(single(tai_realconst(hp).value.s80val)))
+	      else
+	        internalerror(2017091901);
+              pdata:=@eextended;
+            end;
+{$pop}
+{$endif}
+{$endif cpuextended}
+          aitrealconst_s64comp:
+            begin
+              ccomp:=comp(tai_realconst(hp).value.s64compval);
+              pdata:=@ccomp;
+            end;
+          else
+            internalerror(2014051001);
+        end;
+        count:=tai_realconst(hp).datasize;
+        { write bytes in inverse order if source and target endianess don't
+          match }
+        if source_info.endian<>target_info.endian then
+          begin
+            { go from back to front }
+            index:=count-1;
+            step:=-1;
+          end
+        else
+          begin
+            index:=0;
+            step:=1;
+          end;
+{$ifdef ARM}
+        { ARM-specific: low and high dwords of a double may be swapped }
+        if tai_realconst(hp).formatoptions=fo_hiloswapped then
+          begin
+            { only supported for double }
+            if tai_realconst(hp).datasize<>8 then
+              internalerror(2014050605);
+            { switch bit of the index so that the words are written in
+              the opposite order }
+            swapmask:=4;
+          end
+        else
+{$endif ARM}
+          swapmask:=0;
+        repeat
+          writer.AsmWrite(tostr(pdata[index xor swapmask]));
+          inc(index,step);
+          dec(count);
+          if count<>0 then
+            writer.AsmWrite(',');
+        until count=0;
+        { padding }
+        for count:=tai_realconst(hp).datasize+1 to tai_realconst(hp).savesize do
+          writer.AsmWrite(',0');
+        writer.AsmLn;
       end;
 
     function TSdccSdasZ80Assembler.sectionname(atype: TAsmSectiontype;
@@ -669,6 +804,8 @@ unit agsdasz80;
                   AddSymbol(tai_datablock(hp).sym.name,true);}
                 writer.AsmWriteLn(#9'.rs'#9+tostr(tai_datablock(hp).size));
               end;
+            ait_realconst:
+              WriteRealConstAsBytes(tai_realconst(hp),#9'.db'#9,do_line);
             ait_const:
               begin
                 consttype:=tai_const(hp).consttype;
