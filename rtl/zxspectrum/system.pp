@@ -10,6 +10,10 @@ interface
 
 {$define HAS_MEMORYMANAGER}
 
+{ Use Ansi Char for files }
+{$define FPC_ANSI_TEXTFILEREC}
+{$define FPC_STDOUT_TRUE_ALIAS}
+
 {$I systemh.inc}
 {$I tnyheaph.inc}
 
@@ -94,10 +98,6 @@ const
 {$endif FPUNONE}
 
 procedure randomize;
-begin
-end;
-
-procedure SysInitStdIO;
 begin
 end;
 
@@ -237,4 +237,53 @@ begin
   PrintChar(Char(Y-1));
 end;
 
+{*****************************************************************************
+                         SystemUnit Initialization
+*****************************************************************************}
+
+var
+  ZXHeap: array [0..{1023}255] of Byte;
+
+procedure InitZXHeap;
+begin
+  RegisterTinyHeapBlock_Simple_Prealigned(@ZXHeap[0],SizeOf(ZXHeap));
+end;
+
+procedure SysInitStdIO;
+begin
+(* TODO: doesn't work yet...
+  OpenStdIO(Input,fmInput,StdInputHandle);
+  OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+{$ifndef FPC_STDOUT_TRUE_ALIAS}
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+{$endif FPC_STDOUT_TRUE_ALIAS}
+*)
+end;
+
+begin
+{  StackBottom := __stkbottom;
+  StackLength := __stktop - __stkbottom;}
+  { To be set if this is a GUI or console application }
+  IsConsole := TRUE;
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
+  { If dynlibs feature is disabled,
+    IsLibrary is a constant, which can thus not be set to a value }
+  { To be set if this is a library and not a program  }
+  IsLibrary := FALSE;
+{$endif def FPC_HAS_FEATURE_DYNLIBS}
+{ Setup heap }
+  InitZXHeap;
+  SysInitExceptions;
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+  initunicodestringmanager;
+{$endif def FPC_HAS_FEATURE_UNICODESTRINGS}
+{ Setup stdin, stdout and stderr }
+  SysInitStdIO;
+{ Reset IO Error }
+  InOutRes:=0;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  InitSystemThreads;
+{$endif}
 end.
