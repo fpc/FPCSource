@@ -722,7 +722,7 @@ unit i_embed;
             name         : 'Embedded';
             shortname    : 'embedded';
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
-                            tf_smartlink_sections];
+                            tf_smartlink_library];
             cpu          : cpu_sys_z80;
             unit_env     : '';
             extradefines : '';
@@ -753,7 +753,7 @@ unit i_embed;
             assemextern  : as_sdcc_sdasz80;
             link         : ld_none;
             linkextern   : ld_embedded;
-            ar           : ar_gnu_ar;
+            ar           : ar_sdcc_sdar;
             res          : res_none;
             dbg          : dbg_dwarf2;
             script       : script_unix;

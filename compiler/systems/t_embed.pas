@@ -1906,7 +1906,7 @@ function TlinkerEmbedded_SdccSdld.WriteResponseFile: Boolean;
       while not StaticLibFiles.Empty do
        begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName((maybequoted(s)));
+        LinkRes.Add('-l'+maybequoted(s));
        end;
      end;
 
