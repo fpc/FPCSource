@@ -1141,7 +1141,14 @@ begin
 {$endif riscv64}
 
 {$ifdef xtensa}
+  {$ifdef linux}
+    {$define default_target_set}
+    default_target(system_xtensa_linux);
+  {$endif}
+
+  {$ifndef default_target_set}
   default_target(system_xtensa_embedded);
+  {$endif ndef default_target_set}
 {$endif xtensa}
 
 end;
