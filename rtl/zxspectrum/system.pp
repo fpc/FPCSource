@@ -40,6 +40,7 @@ var
 procedure OpenChannel(Chan: Byte);
 procedure PrintChar(Ch: Char);
 procedure PrintLn;
+procedure PrintShortString(const s: ShortString);
 procedure PrintHexDigit(const d: byte);
 procedure PrintHexByte(const b: byte);
 procedure PrintHexWord(const w: word);
@@ -241,6 +242,14 @@ begin
   PrintChar(#22);
   PrintChar(Char(X-1));
   PrintChar(Char(Y-1));
+end;
+
+procedure PrintShortString(const s: ShortString);
+var
+  i: byte;
+begin
+  for i:=1 to length(s) do
+    PrintChar(s[i]);
 end;
 
 {*****************************************************************************
