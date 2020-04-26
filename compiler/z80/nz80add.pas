@@ -332,6 +332,7 @@ interface
         i, size: Integer;
         tmpref: treference;
         op: TAsmOp;
+        actualnodetype: tnodetype;
       begin
         truelabel:=nil;
         falselabel:=nil;
@@ -437,6 +438,24 @@ interface
           end
         else
           begin
+            if nf_swapped in Flags then
+              begin
+                case NodeType of
+                  ltn:
+                    actualnodetype:=gtn;
+                  lten:
+                    actualnodetype:=gten;
+                  gtn:
+                    actualnodetype:=ltn;
+                  gten:
+                    actualnodetype:=lten;
+                  else
+                    internalerror(2020042701);
+                end;
+              end
+            else
+              actualnodetype:=NodeType;
+
             if left.location.loc<>LOC_REGISTER then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
@@ -456,7 +475,7 @@ interface
                           op:=A_CP;
                         current_asmdata.CurrAsmList.Concat(taicpu.op_reg_ref(op,NR_A,tmpref));
                         if (i=(size-1)) and (not unsigned) then
-                          case NodeType of
+                          case actualnodetype of
                             ltn,
                             lten:
                               tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
@@ -467,7 +486,7 @@ interface
                               internalerror(2020042202);
                           end
                         else if i<>0 then
-                          case NodeType of
+                          case actualnodetype of
                             ltn,
                             lten:
                               tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
@@ -478,7 +497,7 @@ interface
                               internalerror(2020042202);
                           end
                         else
-                          case NodeType of
+                          case actualnodetype of
                             ltn:
                               tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
                             lten:
@@ -511,7 +530,7 @@ interface
                         op:=A_CP;
                       current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(op,NR_A,byte(right.location.value shr (i*8))));
                       if (i=(size-1)) and (not unsigned) then
-                        case NodeType of
+                        case actualnodetype of
                           ltn,
                           lten:
                             tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
@@ -522,7 +541,7 @@ interface
                             internalerror(2020042202);
                         end
                       else if i<>0 then
-                        case NodeType of
+                        case actualnodetype of
                           ltn,
                           lten:
                             tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
@@ -533,7 +552,7 @@ interface
                             internalerror(2020042202);
                         end
                       else
-                        case NodeType of
+                        case actualnodetype of
                           ltn:
                             tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
                           lten:
@@ -560,7 +579,7 @@ interface
                         op:=A_CP;
                       current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(op,NR_A,tcgz80(cg).GetOffsetReg64(right.location.register,right.location.registerhi,i)));
                       if (i=(size-1)) and (not unsigned) then
-                        case NodeType of
+                        case actualnodetype of
                           ltn,
                           lten:
                             tcgz80(cg).a_jmp_signed_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
@@ -571,7 +590,7 @@ interface
                             internalerror(2020042202);
                         end
                       else if i<>0 then
-                        case NodeType of
+                        case actualnodetype of
                           ltn,
                           lten:
                             tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,nil,falselabel);
@@ -582,7 +601,7 @@ interface
                             internalerror(2020042202);
                         end
                       else
-                        case NodeType of
+                        case actualnodetype of
                           ltn:
                             tcgz80(cg).a_jmp_unsigned_cmp_3way(current_asmdata.CurrAsmList,truelabel,falselabel,falselabel);
                           lten:
