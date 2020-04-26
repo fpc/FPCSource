@@ -1837,10 +1837,6 @@ unit cgcpu;
 
 
     procedure tcgz80.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
-      var
-        swapped : boolean;
-        tmpreg : tregister;
-        i : byte;
       begin
         internalerror(2020042301);
       end;
