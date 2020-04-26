@@ -132,6 +132,7 @@ function InterLockedDecrement (var Target: longint) : longint;
   begin
     { block interrupts }
     asm
+      di
     end;
 
     dec(Target);
@@ -139,6 +140,7 @@ function InterLockedDecrement (var Target: longint) : longint;
 
     { release interrupts }
     asm
+      ei
     end;
   end;
 
@@ -149,6 +151,7 @@ function InterLockedIncrement (var Target: longint) : longint;
   begin
     { block interrupts }
     asm
+      di
     end;
 
     inc(Target);
@@ -156,6 +159,7 @@ function InterLockedIncrement (var Target: longint) : longint;
 
     { release interrupts }
     asm
+      ei
     end;
   end;
 
@@ -166,6 +170,7 @@ function InterLockedExchange (var Target: longint;Source : longint) : longint;
   begin
     { block interrupts }
     asm
+      di
     end;
 
     Result:=Target;
@@ -173,6 +178,7 @@ function InterLockedExchange (var Target: longint;Source : longint) : longint;
 
     { release interrupts }
     asm
+      ei
     end;
   end;
 
@@ -183,14 +189,16 @@ function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comp
   begin
     { block interrupts }
     asm
+      di
     end;
 
     Result:=Target;
-//    if Target=Comperand then
-//      Target:=NewValue;
+    if Target=Comperand then
+      Target:=NewValue;
 
     { release interrupts }
     asm
+      ei
     end;
   end;
 
@@ -201,6 +209,7 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
   begin
     { block interrupts }
     asm
+      di
     end;
 
     Result:=Target;
@@ -208,6 +217,7 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
 
     { release interrupts }
     asm
+      ei
     end;
   end;
 
@@ -218,6 +228,7 @@ function InterLockedDecrement (var Target: smallint) : smallint;
   begin
     { block interrupts }
     asm
+      di
     end;
 
     dec(Target);
@@ -225,6 +236,7 @@ function InterLockedDecrement (var Target: smallint) : smallint;
 
     { release interrupts }
     asm
+      ei
     end;
   end;
 
@@ -235,6 +247,7 @@ function InterLockedIncrement (var Target: smallint) : smallint;
   begin
     { block interrupts }
     asm
+      di
     end;
 
     inc(Target);
@@ -242,6 +255,7 @@ function InterLockedIncrement (var Target: smallint) : smallint;
 
     { release interrupts }
     asm
+      ei
     end;
   end;
 
@@ -252,6 +266,7 @@ function InterLockedExchange (var Target: smallint;Source : smallint) : smallint
   begin
     { block interrupts }
     asm
+      di
     end;
 
     Result:=Target;
@@ -259,6 +274,7 @@ function InterLockedExchange (var Target: smallint;Source : smallint) : smallint
 
     { release interrupts }
     asm
+      ei
     end;
   end;
 
@@ -269,14 +285,16 @@ function InterlockedCompareExchange(var Target: smallint; NewValue: smallint; Co
   begin
     { block interrupts }
     asm
+      di
     end;
 
     Result:=Target;
-//    if Target=Comperand then
-//      Target:=NewValue;
+    if Target=Comperand then
+      Target:=NewValue;
 
     { release interrupts }
     asm
+      ei
     end;
   end;
 
@@ -287,6 +305,7 @@ function InterLockedExchangeAdd (var Target: smallint;Source : smallint) : small
   begin
     { block interrupts }
     asm
+      di
     end;
 
     Result:=Target;
@@ -294,5 +313,6 @@ function InterLockedExchangeAdd (var Target: smallint;Source : smallint) : small
 
     { release interrupts }
     asm
+      ei
     end;
   end;
