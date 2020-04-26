@@ -394,7 +394,8 @@ unit cgcpu;
                    getcpuregister(list,NR_IY);
                    list.Concat(taicpu.op_reg_const(A_LD,NR_IY,Word(a shr 16)));
                    list.Concat(taicpu.op_reg(A_PUSH,NR_IY));
-                   list.Concat(taicpu.op_reg_const(A_LD,NR_IY,Word(a)));
+                   if Word(a)<>Word(a shr 16) then
+                     list.Concat(taicpu.op_reg_const(A_LD,NR_IY,Word(a)));
                    list.Concat(taicpu.op_reg(A_PUSH,NR_IY));
                    ungetcpuregister(list,NR_IY);
                  end;
