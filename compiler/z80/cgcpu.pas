@@ -127,8 +127,6 @@ unit cgcpu;
         procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
       end;
 
-    function GetByteLoc(const loc : tlocation;nr :  byte) : tlocation;
-
     procedure create_codegen;
 
     const
@@ -2436,34 +2434,6 @@ unit cgcpu;
     procedure tcg64fz80.a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
       begin
         tcgz80(cg).a_op_const_reg_internal(list,Op,size,value,reg.reglo,reg.reghi);
-      end;
-
-
-    function GetByteLoc(const loc : tlocation; nr : byte) : tlocation;
-      var
-        i : Integer;
-      begin
-        Result:=loc;
-        Result.size:=OS_8;
-        case loc.loc of
-          LOC_REFERENCE,LOC_CREFERENCE:
-            inc(Result.reference.offset,nr);
-          LOC_REGISTER,LOC_CREGISTER:
-            begin
-              if nr>=4 then
-                Result.register:=Result.register64.reghi;
-              nr:=nr mod 4;
-              for i:=1 to nr do
-                Result.register:=GetNextReg(Result.register);
-            end;
-          LOC_CONSTANT:
-            if loc.size in [OS_64,OS_S64] then
-              Result.value:=(Result.value64 shr (nr*8)) and $ff
-            else
-              Result.value:=(Result.value shr (nr*8)) and $ff;
-          else
-            Internalerror(2019020902);
-        end;
       end;
 
 
