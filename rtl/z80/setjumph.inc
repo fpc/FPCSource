@@ -16,7 +16,7 @@
 
 type
    jmp_buf = packed record
-     sp: word;
+     ix,sp,pc: word;
 {     f,a,b,c,e,d,l,h,ixlo,ixhi,iylo,iyhi,splo,sphi,pclo,pchi : byte;}
    end;
    pjmp_buf = ^jmp_buf;

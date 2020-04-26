@@ -23,10 +23,27 @@ function fpc_setjmp(var S : jmp_buf) : shortint;assembler;[Public, alias : 'FPC_
     ld l, (ix+4)  { (S)   }
     ld h, (ix+5)  { (S+1) }
 
-    ld iy, 0
+    { save caller ix }
+    ld c, (ix)
+    ld b, (ix+1)
+    ld (hl), c
+    inc hl
+    ld (hl), b
+    inc hl
+
+    { save caller sp (i.e. what its value was, right before the call instrunction) }
+    ld iy, 4
     add iy, sp
     push iy
     pop bc
+    ld (hl), c
+    inc hl
+    ld (hl), b
+    inc hl
+
+    { save ret address }
+    ld c, (ix+2)
+    ld b, (ix+3)
     ld (hl), c
     inc hl
     ld (hl), b
@@ -48,6 +65,16 @@ procedure fpc_longjmp(var S : jmp_buf;value : shortint);assembler;[Public, alias
 
     ld l, (ix+4)  { (S)   }
     ld h, (ix+5)  { (S+1) }
+
+    { restore ix }
+    ld c, (hl)
+    inc hl
+    ld b, (hl)
+    inc hl
+    push bc
+    pop ix
+
+    { restore sp }
     ld c, (hl)
     inc hl
     ld b, (hl)
@@ -56,9 +83,16 @@ procedure fpc_longjmp(var S : jmp_buf;value : shortint);assembler;[Public, alias
     pop iy
     ld sp, iy
 
-    ld l, d
+    { restore pc }
+    ld c, (hl)
+    inc hl
+    ld b, (hl)
+    inc hl
+    { prepare the new return address, will be popped by the ret instruction }
+    push bc
 
-    pop ix
+    { return result }
+    ld l, d
   end;
 
 
