@@ -361,7 +361,9 @@ implementation
         procedure check_range(hp:tnode; fordef: tdef);
           begin
             if (hp.nodetype=ordconstn) and
-               (fordef.typ<>errordef) then
+               (fordef.typ<>errordef) and
+               { the node was derived from a generic parameter so ignore range check }
+               not(nf_generic_para in hp.flags) then
               adaptrange(fordef,tordconstnode(hp).value,false,false,true);
           end;
 

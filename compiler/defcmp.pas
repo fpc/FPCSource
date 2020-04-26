@@ -345,9 +345,13 @@ implementation
                        internalerror(2012091302);
                      symfrom:=ttypesym(tstoreddef(def_from).genericparas[i]);
                      symto:=ttypesym(tstoreddef(def_to).genericparas[i]);
-                     if not (symfrom.typ=typesym) or not (symto.typ=typesym) then
+                     if not (symfrom.typ in [typesym,constsym]) or not (symto.typ in [typesym,constsym]) then
                        internalerror(2012121401);
-                     if not equal_defs(ttypesym(symfrom).typedef,ttypesym(symto).typedef) then
+                     if symto.typ<>symfrom.typ then
+                       diff:=true
+                     else if (symfrom.typ=constsym) and (symto.typ=constsym) and not equal_constsym(tconstsym(symfrom),tconstsym(symto),true) then
+                       diff:=true
+                     else if not equal_defs(ttypesym(symfrom).typedef,ttypesym(symto).typedef) then
                        diff:=true;
                      if diff then
                        break;

@@ -212,8 +212,9 @@ type
                               generic is encountered to ease inline
                               specializations, etc; those symbols can be
                               "overridden" with a completely different symbol }
-    sp_explicitrename       { this is used to keep track of type renames created
+    sp_explicitrename,      { this is used to keep track of type renames created
                               by the user }
+    sp_generic_const
   );
   tsymoptions=set of tsymoption;
 
@@ -241,7 +242,10 @@ type
     { internal def that's not for any export }
     df_internal,
     { the local def is referenced from a public function }
-    df_has_global_ref
+    df_has_global_ref,
+    { the def was derived with generic type or const fields so the size
+      of the def can not be determined }
+    df_has_generic_fields
   );
   tdefoptions=set of tdefoption;
 
@@ -567,7 +571,8 @@ type
     ado_IsArrayOfConst,     // array of const
     ado_IsConstString,      // string constant
     ado_IsBitPacked,        // bitpacked array
-    ado_IsVector            // Vector
+    ado_IsVector,           // Vector
+    ado_IsGeneric           // the index of the array is generic (meaning that the size is not yet known)
   );
   tarraydefoptions=set of tarraydefoption;
 

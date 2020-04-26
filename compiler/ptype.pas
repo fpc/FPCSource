@@ -1316,6 +1316,7 @@ implementation
 
       procedure array_dec(is_packed:boolean;genericdef:tstoreddef;genericlist:tfphashobjectlist);
         var
+          isgeneric : boolean;
           lowval,
           highval   : TConstExprInt;
           indexdef  : tdef;
@@ -1362,6 +1363,7 @@ implementation
                   lowval:=0;
                   highval:=1;
                   indexdef:=def;
+                  isgeneric:=true;
                 end;
               else
                 Message(sym_e_error_in_type_def);
@@ -1409,6 +1411,7 @@ implementation
              begin
                 { defaults }
                 indexdef:=generrordef;
+                isgeneric:=false;
                 { use defaults which don't overflow the compiler }
                 lowval:=0;
                 highval:=0;
@@ -1424,12 +1427,15 @@ implementation
                   else
                    begin
                      pt:=expr(true);
+                     isgeneric:=false;
                      if pt.nodetype=typen then
                        setdefdecl(pt.resultdef)
                      else
                        begin
                          if pt.nodetype=rangen then
                            begin
+                             if nf_generic_para in pt.flags then
+                               isgeneric:=true;
                              { pure ordconstn expressions can be checked for
                                generics as well, but don't give an error in case
                                of parsing a generic if that isn't yet the case }
@@ -1446,7 +1452,9 @@ implementation
                                  highval:=tordconstnode(trangenode(pt).right).value;
                                  if highval<lowval then
                                   begin
-                                    Message(parser_e_array_lower_less_than_upper_bound);
+                                    { ignore error if node is generic param }
+                                    if not (nf_generic_para in pt.flags) then
+                                      Message(parser_e_array_lower_less_than_upper_bound);
                                     highval:=lowval;
                                   end
                                  else if (lowval<int64(low(asizeint))) or
@@ -1494,6 +1502,8 @@ implementation
                     end;
                   if is_packed then
                     include(arrdef.arrayoptions,ado_IsBitPacked);
+                  if isgeneric then
+                    include(arrdef.arrayoptions,ado_IsGeneric);
 
                   if token=_COMMA then
                     consume(_COMMA)

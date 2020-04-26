@@ -15106,42 +15106,39 @@ begin
             ClassPath:=CreateReferencePath(ProcScope.ClassRecScope.Element,AContext,rpkPathAndName);
             Call.AddArg(CreatePrimitiveDotExpr(ClassPath,PosEl));
             end;
-          if (ImplProc.Body.Functions.Count>0)
-              or aResolver.HasAnonymousFunctions(ImplProc.Body.Body) then
-            begin
-            // has nested procs -> add "var self = this;"
-            FuncContext.AddLocalVar(GetBIName(pbivnSelf),ThisPas);
-            SelfSt:=CreateVarStatement(GetBIName(pbivnSelf),
-                              CreatePrimitiveDotExpr('this',ImplProc),ImplProc);
-            AddBodyStatement(SelfSt,PosEl);
-            if ImplProcScope.SelfArg<>nil then
-              begin
-              // redirect Pascal-Self to JS-Self
-              FuncContext.AddLocalVar(GetBIName(pbivnSelf),ImplProcScope.SelfArg);
-              end;
-            end
-          else if ImplProcScope.SelfArg<>nil then
-            begin
-            // no nested procs ->  redirect Pascal-Self to JS-this
-            FuncContext.AddLocalVar('this',ImplProcScope.SelfArg);
-            end;
           end
         else
           begin
-          // no "this"
+          // "this" has no direct Pascal element
           if ProcScope.ClassRecScope<>nil then
             begin
-            // static method -> hide local
+            // static method
             ClassOrRec:=ProcScope.ClassRecScope.Element;
             LocalVar:=FuncContext.FindLocalIdentifier(ClassOrRec);
             if (LocalVar<>nil) and (LocalVar.Name='this') then
+              // "this" is not the class -> hide it (absolute path will be used)
               FuncContext.AddLocalVar(LocalVarHide,ClassOrRec);
             end;
+          end;
+        if (ImplProc.Body.Functions.Count>0)
+            or aResolver.HasAnonymousFunctions(ImplProc.Body.Body) then
+          begin
+          // has nested procs -> add "var $Self = this;"
+          if ThisPas<>nil then
+            FuncContext.AddLocalVar(GetBIName(pbivnSelf),ThisPas);
+          SelfSt:=CreateVarStatement(GetBIName(pbivnSelf),
+                            CreatePrimitiveDotExpr('this',ImplProc),ImplProc);
+          AddBodyStatement(SelfSt,PosEl);
           if ImplProcScope.SelfArg<>nil then
             begin
-            // no nested procs ->  redirect Pascal-Self to JS-this
-            FuncContext.AddLocalVar('this',ImplProcScope.SelfArg);
+            // redirect Pascal-Self to JS-Self
+            FuncContext.AddLocalVar(GetBIName(pbivnSelf),ImplProcScope.SelfArg);
             end;
+          end
+        else if ImplProcScope.SelfArg<>nil then
+          begin
+          // no nested procs ->  redirect Pascal-Self to JS-this
+          FuncContext.AddLocalVar('this',ImplProcScope.SelfArg);
           end;
         end;
       {$IFDEF VerbosePas2JS}

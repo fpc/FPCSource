@@ -42,7 +42,7 @@ type
 
   tspecializationcontext=class
   public
-    genericdeflist : tfpobjectlist;
+    paramlist : tfpobjectlist;
     poslist : tfplist;
     prettyname : ansistring;
     specializename : ansistring;
@@ -58,7 +58,7 @@ implementation
 
 constructor tspecializationcontext.create;
 begin
-  genericdeflist:=tfpobjectlist.create(false);
+  paramlist:=tfpobjectlist.create(false);
   poslist:=tfplist.create;
 end;
 
@@ -66,7 +66,7 @@ destructor tspecializationcontext.destroy;
 var
   i : longint;
 begin
-  genericdeflist.free;
+  paramlist.free;
   for i:=0 to poslist.count-1 do
     dispose(pfileposinfo(poslist[i]));
   poslist.free;

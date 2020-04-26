@@ -135,7 +135,10 @@ implementation
            setconstn :
              begin
                new(ps);
-               ps^:=tsetconstnode(p).value_set^;
+               if assigned(tsetconstnode(p).value_set) then
+                 ps^:=tsetconstnode(p).value_set^
+               else
+                 ps^:=[];
                hp:=cconstsym.create_ptr(orgname,constset,ps,p.resultdef);
              end;
            pointerconstn :
@@ -185,8 +188,22 @@ implementation
                end;
              end;
            else
-             Message(parser_e_illegal_expression);
+             begin
+               { the node is from a generic parameter constant and is
+                 untyped so we need to pass a placeholder constant
+                 instead of givng an error }
+               if nf_generic_para in p.flags then
+                 hp:=cconstsym.create_ord(orgname,constnil,0,p.resultdef)
+               else
+                 Message(parser_e_illegal_expression);
+             end;
         end;
+        { transfer generic param flag from node to symbol }
+        if nf_generic_para in p.flags then
+          begin
+            include(hp.symoptions,sp_generic_const);
+            include(hp.symoptions,sp_generic_para);
+          end;
         current_tokenpos:=storetokenpos;
         p.free;
         readconstant:=hp;
@@ -716,8 +733,9 @@ implementation
                { we are not freeing the type parameters, so register them }
                for i:=0 to generictypelist.count-1 do
                  begin
-                    ttypesym(generictypelist[i]).register_sym;
-                    tstoreddef(ttypesym(generictypelist[i]).typedef).register_def;
+                    tstoredsym(generictypelist[i]).register_sym;
+                    if tstoredsym(generictypelist[i]).typ=typesym then
+                      tstoreddef(ttypesym(generictypelist[i]).typedef).register_def;
                  end;
 
                str(generictypelist.Count,s);

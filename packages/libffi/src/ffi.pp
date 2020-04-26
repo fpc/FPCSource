@@ -272,8 +272,8 @@ const
   FFI_TRAMPOLINE_SIZE = 20;
 {$elseif defined(CPUMIPS64)}
   FFI_TRAMPOLINE_SIZE = 56;
-#endif
-
+{$elseif defined(CPUXTENSA)}
+  FFI_TRAMPOLINE_SIZE = 24;
 {$endif}
 
 {

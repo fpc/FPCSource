@@ -1617,7 +1617,7 @@ parser_e_generic_constraints_not_allowed_here=03355_E_Generic constraint not all
 %
 # Type Checking
 #
-# 04127 is the last used one
+# 04128 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -2061,6 +2061,9 @@ type_e_forward_interface_type_does_not_match=04127_E_The interface type of the f
 % When declaring an interface forward, the interface type must be the same as at the actual declaration of the interface.
 % This is in particular important with regard to the parent interface which implicitly sets the interface type for the
 % child interface.
+type_e_generic_const_type_not_allowed=04128_E_Type not allowed for generic constant parameter: $1
+% Only types that can also be used (indirectly) for untyped constants can be used as a
+% type for a generic constant parameter.
 % \end{description}
 #
 # Symtable

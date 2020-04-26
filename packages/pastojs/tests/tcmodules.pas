@@ -702,12 +702,14 @@ type
     Procedure TestTypeHelper_Constructor;
     Procedure TestTypeHelper_Word;
     Procedure TestTypeHelper_Double;
+    Procedure TestTypeHelper_NativeInt;
     Procedure TestTypeHelper_StringChar;
     Procedure TestTypeHelper_JSValue;
     Procedure TestTypeHelper_Array;
     Procedure TestTypeHelper_EnumType;
     Procedure TestTypeHelper_SetType;
     Procedure TestTypeHelper_InterfaceType;
+    Procedure TestTypeHelper_NestedSelf;
 
     // proc types
     Procedure TestProcType;
@@ -24090,6 +24092,99 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestTypeHelper_NativeInt;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  MaxInt = type nativeint;',
+  '  THelperI = type helper for MaxInt',
+  '    function ToStr: String;',
+  '  end;',
+  '  MaxUInt = type nativeuint;',
+  '  THelperU = type helper for MaxUInt',
+  '    function ToStr: String;',
+  '  end;',
+  'function THelperI.ToStr: String;',
+  'begin',
+  '  Result:=str(Self);',
+  'end;',
+  'function THelperU.ToStr: String;',
+  'begin',
+  '  Result:=str(Self);',
+  'end;',
+  'procedure DoIt(s: string);',
+  'begin',
+  'end;',
+  'var i: MaxInt;',
+  'begin',
+  '  DoIt(i.toStr);',
+  '  DoIt(i.toStr());',
+  '  (i*i).toStr;',
+  '  DoIt((i*i).toStr);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_NativeInt',
+    LinesToStr([ // statements
+    'rtl.createHelper($mod, "THelperI", null, function () {',
+    '  this.ToStr = function () {',
+    '    var Result = "";',
+    '    Result = "" + this.get();',
+    '    return Result;',
+    '  };',
+    '});',
+    'rtl.createHelper($mod, "THelperU", null, function () {',
+    '  this.ToStr = function () {',
+    '    var Result = "";',
+    '    Result = "" + this.get();',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.DoIt = function (s) {',
+    '};',
+    'this.i = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.THelperI.ToStr.call({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '}));',
+    '$mod.DoIt($mod.THelperI.ToStr.call({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '}));',
+    '$mod.THelperI.ToStr.call({',
+    '  a: $mod.i * $mod.i,',
+    '  get: function () {',
+    '      return this.a;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.raiseE("EPropReadOnly");',
+    '    }',
+    '});',
+    '$mod.DoIt($mod.THelperI.ToStr.call({',
+    '  a: $mod.i * $mod.i,',
+    '  get: function () {',
+    '      return this.a;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.raiseE("EPropReadOnly");',
+    '    }',
+    '}));',
+    '']));
+end;
+
 procedure TTestModule.TestTypeHelper_StringChar;
 begin
   StartProgram(false);
@@ -24594,6 +24689,44 @@ begin
     '$mod.THelper.Run();',
     '$mod.THelper.Run();',
     '$mod.THelper.Run();',
+    '']));
+end;
+
+procedure TTestModule.TestTypeHelper_NestedSelf;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  THelper = type helper for string',
+  '    procedure Run(Value: string);',
+  '  end;',
+  'procedure THelper.Run(Value: string);',
+  '  function Sub(i: nativeint): boolean;',
+  '  begin',
+  '    Result:=Self[i+1]=Value[i];',
+  '  end;',
+  'begin',
+  '  if Self[3]=Value[4] then ;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_NestedSelf',
+    LinesToStr([ // statements
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.Run = function (Value) {',
+    '    var $Self = this;',
+    '    function Sub(i) {',
+    '      var Result = false;',
+    '      Result = $Self.get().charAt((i + 1) - 1) === Value.charAt(i - 1);',
+    '      return Result;',
+    '    };',
+    '    if ($Self.get().charAt(2) === Value.charAt(3)) ;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 

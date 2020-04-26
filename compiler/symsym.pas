@@ -401,6 +401,7 @@ interface
           constructor create_ptr(const n : string;t : tconsttyp;v : pointer;def:tdef);virtual;
           constructor create_string(const n : string;t : tconsttyp;str:pchar;l:longint;def:tdef);virtual;
           constructor create_wstring(const n : string;t : tconsttyp;pw:pcompilerwidestring);virtual;
+          constructor create_undefined(const n : string;def:tdef);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           procedure buildderef;override;
@@ -491,6 +492,8 @@ interface
     procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);inline;
     procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring;filepos:tfileposinfo);
 
+    function same_constvalue(consttyp:tconsttyp;const value1,value2:tconstvalue):boolean;
+
 implementation
 
     uses
@@ -525,6 +528,30 @@ implementation
     function get_high_value_sym(vs: tparavarsym):tsym;
       begin
         result := tsym(vs.owner.Find('high'+vs.name));
+      end;
+
+
+    function same_constvalue(consttyp:tconsttyp;const value1,value2:tconstvalue):boolean;
+      begin
+        case consttyp of
+          constnone,
+          constnil:
+            result:=true;
+          constord:
+            result:=value1.valueord=value2.valueord;
+          constpointer:
+            result:=value1.valueordptr=value2.valueordptr;
+          conststring,
+          constreal,
+          constset,
+          constresourcestring,
+          constwstring,
+          constguid: begin
+            if value1.len<>value2.len then
+              exit(false);
+            result:=CompareByte(value1.valueptr^,value2.valueptr^,value1.len)=0;
+          end;
+        end;
       end;
 
 
@@ -1618,7 +1645,6 @@ implementation
           tparasymtable(parast).ppuwrite(ppufile);
       end;
 
-
 {****************************************************************************
                             TABSTRACTVARSYM
 ****************************************************************************}
@@ -2426,6 +2452,15 @@ implementation
       end;
 
 
+    constructor tconstsym.create_undefined(const n : string;def: tdef);
+      begin
+        inherited create(constsym,n);
+        fillchar(value,sizeof(value),#0);
+        consttyp:=constnone;
+        constdef:=def;
+      end;
+
+
     constructor tconstsym.ppuload(ppufile:tcompilerppufile);
       var
          pd : pbestreal;
@@ -2509,8 +2544,7 @@ implementation
     destructor tconstsym.destroy;
       begin
         case consttyp of
-          constnone:
-            internalerror(2019050703);
+          constnone,
           constord,
           constpointer,
           constnil:
