@@ -2287,14 +2287,16 @@ unit cgcpu;
             if (ref.index<>NR_NO) then
               a_op_reg_reg(list,OP_ADD,OS_16,ref.index,r);
           end
-        else
+        else if ref.base<>NR_NO then
           begin
-            a_load_const_reg(list,OS_16,ref.offset,r);
-            if (ref.base<>NR_NO) then
-              a_op_reg_reg(list,OP_ADD,OS_16,ref.base,r);
+            a_op_const_reg_reg(list,OP_ADD,OS_16,ref.offset,ref.base,r);
             if (ref.index<>NR_NO) then
               a_op_reg_reg(list,OP_ADD,OS_16,ref.index,r);
-          end;
+          end
+        else if ref.index<>NR_NO then
+          a_op_const_reg_reg(list,OP_ADD,OS_16,ref.offset,ref.index,r)
+        else
+          a_load_const_reg(list,OS_16,ref.offset,r);
       end;
 
 
