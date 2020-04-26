@@ -166,7 +166,6 @@ unit cgcpu;
     procedure tcgz80.done_register_allocators;
       begin
         rg[R_INTREGISTER].free;
-        // rg[R_ADDRESSREGISTER].free;
         inherited done_register_allocators;
       end;
 
