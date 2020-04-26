@@ -13,6 +13,7 @@ interface
 { Use Ansi Char for files }
 {$define FPC_ANSI_TEXTFILEREC}
 {$define FPC_STDOUT_TRUE_ALIAS}
+{$define FPC_STDERR_IS_ALIAS_FOR_STDOUT}
 
 {$I systemh.inc}
 {$I tnyheaph.inc}
@@ -269,7 +270,9 @@ procedure SysInitStdIO;
 begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
+{$ifndef FPC_STDERR_IS_ALIAS_FOR_STDOUT}
   OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+{$endif FPC_STDERR_IS_ALIAS_FOR_STDOUT}
 {$ifndef FPC_STDOUT_TRUE_ALIAS}
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);

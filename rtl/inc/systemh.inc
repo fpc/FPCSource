@@ -808,9 +808,14 @@ Var
 {$endif FPC_HAS_FEATURE_THREADING}
   ThreadID    : TThreadID;
   { Standard In- and Output }
+{$ifndef FPC_STDERR_IS_ALIAS_FOR_STDOUT}
   ErrOutput,
+{$endif FPC_STDERR_IS_ALIAS_FOR_STDOUT}
   Output,
   Input       : Text;
+{$ifdef FPC_STDERR_IS_ALIAS_FOR_STDOUT}
+  ErrOutput   : Text Absolute Output;
+{$endif FPC_STDERR_IS_ALIAS_FOR_STDOUT}
 {$ifndef FPC_STDOUT_TRUE_ALIAS}
   StdOut,
   StdErr      : Text;
