@@ -3220,6 +3220,7 @@ implementation
                     end;
                   if (convtype=tc_int_2_int) and (left.nodetype=typeconvn) and (ttypeconvnode(left).convtype=tc_bool_2_int) then
                     begin
+                      ttypeconvnode(left).totypedef:=resultdef;
                       ttypeconvnode(left).resultdef:=resultdef;
                       result:=left;
                       left:=nil;
