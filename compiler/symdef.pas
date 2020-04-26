@@ -5990,7 +5990,7 @@ implementation
         if AValue then
           include(implprocoptions,pio_empty)
         else
-          include(implprocoptions,pio_empty);
+          exclude(implprocoptions,pio_empty);
       end;
 
 
