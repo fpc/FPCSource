@@ -46,7 +46,21 @@ end;
 
 
 function do_read(h:thandle;addr:pointer;len : longint) : longint;
+var
+  ch: Char;
 begin
+  do_read:=0;
+  while len>0 do
+  begin
+    ch:=ReadKey;
+    PrintChar(ch);
+    PChar(addr)^:=ch;
+    Inc(addr);
+    Inc(do_read);
+    Dec(len);
+    if ch=#13 then
+      break;
+  end;
 end;
 
 
