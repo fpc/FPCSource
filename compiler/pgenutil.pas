@@ -1435,7 +1435,7 @@ uses
                       tconstsym(result[i]).constdef:=def;
                     end
                   else
-                    Message(type_e_mismatch);
+                    Message1(type_e_generic_const_type_not_allowed,def.fulltypename);
                 end;
               { after type restriction const list terminates }
               is_const:=false;
