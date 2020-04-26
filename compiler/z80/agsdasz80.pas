@@ -332,94 +332,6 @@ unit agsdasz80;
           end;
         s:=sectionname(atype,aname,aorder);
         writer.AsmWrite(s);
-        { flags explicitly defined? }
-        (*if (sectionflags or sectionprogbits) and
-           ((secflags<>[]) or
-            (secprogbits<>SPB_None)) then
-          begin
-            if sectionflags then
-              begin
-                s:=',"';
-                for secflag in secflags do
-                  case secflag of
-                    SF_A:
-                      s:=s+'a';
-                    SF_W:
-                      s:=s+'w';
-                    SF_X:
-                      s:=s+'x';
-                  end;
-                writer.AsmWrite(s+'"');
-              end;
-            if sectionprogbits then
-              begin
-                case secprogbits of
-                  SPB_PROGBITS:
-                    writer.AsmWrite(',%progbits');
-                  SPB_NOBITS:
-                    writer.AsmWrite(',%nobits');
-                  SPB_NOTE:
-                    writer.AsmWrite(',%note');
-                  SPB_None:
-                    ;
-                  else
-                    InternalError(2019100801);
-                end;
-              end;
-          end
-        else
-          case atype of
-            sec_fpc :
-              if aname = 'resptrs' then
-                writer.AsmWrite(', "a", @progbits');
-            sec_stub :
-              begin
-                case target_info.system of
-                  { there are processor-independent shortcuts available    }
-                  { for this, namely .symbol_stub and .picsymbol_stub, but }
-                  { they don't work and gcc doesn't use them either...     }
-                  system_powerpc_darwin,
-                  system_powerpc64_darwin:
-                    if (cs_create_pic in current_settings.moduleswitches) then
-                      writer.AsmWriteln('__TEXT,__picsymbolstub1,symbol_stubs,pure_instructions,32')
-                    else
-                      writer.AsmWriteln('__TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16');
-                  system_i386_darwin,
-                  system_i386_iphonesim:
-                    writer.AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
-                  system_arm_darwin:
-                    if (cs_create_pic in current_settings.moduleswitches) then
-                      writer.AsmWriteln('__TEXT,__picsymbolstub4,symbol_stubs,none,16')
-                    else
-                      writer.AsmWriteln('__TEXT,__symbol_stub4,symbol_stubs,none,12')
-                  { darwin/(x86-64/AArch64) uses PC-based GOT addressing, no
-                    explicit symbol stubs }
-                  else
-                    internalerror(2006031101);
-                end;
-              end;
-          else
-            { GNU AS won't recognize '.text.n_something' section name as belonging
-              to '.text' and assigns default attributes to it, which is not
-              always correct. We have to fix it.
-
-              TODO: This likely applies to all systems which smartlink without
-              creating libraries }
-            begin
-              if is_smart_section(atype) and (aname<>'') then
-                begin
-                  s:=sectionattrs(atype);
-                  if (s<>'') then
-                    writer.AsmWrite(',"'+s+'"');
-                end;
-              if target_info.system in systems_aix then
-                begin
-                  s:=sectionalignment_aix(atype,secalign);
-                  if s<>'' then
-                    writer.AsmWrite(','+s);
-                end;
-            end;
-          end;*)
         writer.AsmLn;
         LastSecType:=atype;
       end;
@@ -460,8 +372,6 @@ unit agsdasz80;
             writer.AsmWrite(std_regname(o.reg));
           top_const :
             begin
-{              if (ops=1) and (opcode<>A_RET) then
-                writer.AsmWrite(sizestr(s,dest));}
               writer.AsmWrite('#'+tostr(longint(o.val)));
             end;
           top_ref:
@@ -602,72 +512,6 @@ unit agsdasz80;
 
     procedure TSdccSdasZ80Assembler.WriteTree(p: TAsmList);
 
-      function getreferencestring(var ref : treference) : string;
-        var
-          s : string;
-        begin
-           s:='';
-           with ref do
-            begin
-  {$ifdef extdebug}
-              // if base=NR_NO then
-              //   internalerror(200308292);
-
-              // if ((index<>NR_NO) or (shiftmode<>SM_None)) and ((offset<>0) or (symbol<>nil)) then
-              //   internalerror(200308293);
-  {$endif extdebug}
-              if index<>NR_NO then
-                internalerror(2011021701)
-              else if base<>NR_NO then
-                begin
-//                  if addressmode=AM_PREDRECEMENT then
-//                    s:='-';
-
-                  //case base of
-                  //  NR_R26:
-                  //    s:=s+'X';
-                  //  NR_R28:
-                  //    s:=s+'Y';
-                  //  NR_R30:
-                  //    s:=s+'Z';
-                  //  else
-                  //    s:=gas_regname(base);
-                  //end;
-                  //if addressmode=AM_POSTINCREMENT then
-                  //  s:=s+'+';
-                  //
-                  //if offset>0 then
-                  //  s:=s+'+'+tostr(offset)
-                  //else if offset<0 then
-                  //  s:=s+tostr(offset)
-                end
-              else if assigned(symbol) or (offset<>0) then
-                begin
-                  //if assigned(symbol) then
-                  //  s:=ReplaceForbiddenAsmSymbolChars(symbol.name);
-                  //
-                  //if offset<0 then
-                  //  s:=s+tostr(offset)
-                  //else if offset>0 then
-                  //  s:=s+'+'+tostr(offset);
-                  //case refaddr of
-                  //  addr_hi8:
-                  //    s:='hi8('+s+')';
-                  //  addr_hi8_gs:
-                  //    s:='hi8(gs('+s+'))';
-                  //  addr_lo8:
-                  //    s:='lo8('+s+')';
-                  //  addr_lo8_gs:
-                  //    s:='lo8(gs('+s+'))';
-                  //  else
-                  //    s:='('+s+')';
-                  //end;
-                end;
-            end;
-          getreferencestring:=s;
-        end;
-
-
       procedure doalign(alignment: byte; use_op: boolean; fillop: byte; maxbytes: byte; out last_align: longint;lasthp:tai);
         var
           i: longint;
@@ -678,10 +522,6 @@ unit agsdasz80;
             writer.AsmWriteLn(#9'.bndry '+tostr(alignment));
         end;
 
-    //var op: TAsmOp;
-    //    s: string;
-    //    i: byte;
-    //    sep: string[3];
     var
       lasthp,
       hp: tai;
@@ -1012,18 +852,6 @@ unit agsdasz80;
           lasthp:=hp;
           hp:=tai(hp.next);
         end;
-      //op:=taicpu(hp).opcode;
-      //s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition];
-      //if taicpu(hp).ops<>0 then
-      //  begin
-      //    sep:=#9;
-      //    for i:=0 to taicpu(hp).ops-1 do
-      //      begin
-      //        s:=s+sep+getopstr(taicpu(hp).oper[i]^);
-      //        sep:=',';
-      //      end;
-      //  end;
-      //owner.writer.AsmWriteLn(s);
     end;
 
 
