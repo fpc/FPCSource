@@ -584,11 +584,11 @@ begin
      SmallForce or ForceCursorUpdate then
   begin
     {$ifdef WITHBUFFERING}
-    DrawChar(BufRp, OldCursorY, OldCursorX, crHidden);
-    if CursorState then DrawChar(BufRp, CursorY, CursorX, CursorType);
+    DrawChar(BufRp, OldCursorX, OldCursorY, crHidden);
+    if CursorState then DrawChar(BufRp, CursorX, CursorY, CursorType);
     {$else}
-    DrawChar(VideoWindow^.RPort, OldCursorY, OldCursorX, crHidden);
-    if CursorState then DrawChar(VideoWindow^.RPort, CursorY, CursorX, CursorType);
+    DrawChar(VideoWindow^.RPort, OldCursorX, OldCursorY, crHidden);
+    if CursorState then DrawChar(VideoWindow^.RPort, CursorX, CursorY, CursorType);
     {$endif}
     OldCursorX := CursorX;
     OldCursorY := CursorY;
@@ -602,8 +602,8 @@ end;
 
 procedure SysSetCursorPos(NewCursorX, NewCursorY: Word);
 begin
-  CursorX := NewCursorY;
-  CursorY := NewCursorX;
+  CursorX := NewCursorX;
+  CursorY := NewCursorY;
   SysUpdateScreen(False);
 end;
 
