@@ -119,6 +119,7 @@ unit cgcpu;
       protected
         procedure a_op_reg_reg_internal(list: TAsmList; Op: TOpCG; size: TCGSize; src, srchi, dst, dsthi: TRegister);
         procedure a_op_const_reg_internal(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg, reghi: TRegister);
+        procedure gen_multiply(list: TAsmList; op: topcg; size: TCgSize; src2, src1, dst: tregister; check_overflow: boolean);
         procedure maybegetcpuregister(list : tasmlist; reg : tregister);
       end;
 
@@ -848,10 +849,13 @@ unit cgcpu;
 
            OP_MUL,OP_IMUL:
              begin
-               { special stuff, needs separate handling inside code
-                 generator                                          }
-               list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: a_op_reg_reg_internal OP_MUL/OP_IMUL')));
-               {internalerror(2017032604);}
+               tmpreg:=dst;
+               if size in [OS_16,OS_S16] then
+                 begin
+                   tmpreg:=getintregister(list,size);
+                   a_load_reg_reg(list,size,size,dst,tmpreg);
+                 end;
+               gen_multiply(list,op,size,src,tmpreg,dst,false);
              end;
 
            OP_DIV,OP_IDIV:
@@ -1258,6 +1262,78 @@ unit cgcpu;
            end;
        end;
      end;
+
+
+     procedure tcgz80.gen_multiply(list: TAsmList; op: topcg; size: TCgSize; src2, src1, dst: tregister; check_overflow: boolean);
+       var
+         pd: tprocdef;
+         paraloc1, paraloc2: tcgpara;
+         ai: taicpu;
+         hl, no_overflow: TAsmLabel;
+         name: String;
+       begin
+         if size in [OS_8,OS_S8] then
+           begin
+             if size=OS_8 then
+               name:='fpc_mul_byte'
+             else
+               name:='fpc_mul_shortint';
+
+             if check_overflow then
+               name:=name+'_checkoverflow';
+
+             pd:=search_system_proc(name);
+             paraloc1.init;
+             paraloc2.init;
+             paramanager.getcgtempparaloc(list,pd,1,paraloc1);
+             paramanager.getcgtempparaloc(list,pd,2,paraloc2);
+             a_load_reg_cgpara(list,OS_8,src1,paraloc2);
+             a_load_reg_cgpara(list,OS_8,src2,paraloc1);
+             paramanager.freecgpara(list,paraloc2);
+             paramanager.freecgpara(list,paraloc1);
+             alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+             a_call_name(list,upper(name),false);
+             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+             cg.a_reg_alloc(list,NR_L);
+             cg.a_load_reg_reg(list,OS_8,OS_8,NR_L,dst);
+             cg.a_reg_dealloc(list,NR_L);
+             paraloc2.done;
+             paraloc1.done;
+           end
+         else if size in [OS_16,OS_S16] then
+           begin
+             if size=OS_16 then
+               name:='fpc_mul_word'
+             else
+               name:='fpc_mul_integer';
+
+             if check_overflow then
+               name:=name+'_checkoverflow';
+
+             pd:=search_system_proc(name);
+             paraloc1.init;
+             paraloc2.init;
+             paramanager.getcgtempparaloc(list,pd,1,paraloc1);
+             paramanager.getcgtempparaloc(list,pd,2,paraloc2);
+             a_load_reg_cgpara(list,OS_16,src1,paraloc2);
+             a_load_reg_cgpara(list,OS_16,src2,paraloc1);
+             paramanager.freecgpara(list,paraloc2);
+             paramanager.freecgpara(list,paraloc1);
+             alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+             a_call_name(list,upper(name),false);
+             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+             cg.a_reg_alloc(list,NR_L);
+             cg.a_reg_alloc(list,NR_H);
+             cg.a_load_reg_reg(list,OS_8,OS_8,NR_L,dst);
+             cg.a_reg_dealloc(list,NR_L);
+             cg.a_load_reg_reg(list,OS_8,OS_8,NR_H,GetNextReg(dst));
+             cg.a_reg_dealloc(list,NR_H);
+             paraloc2.done;
+             paraloc1.done;
+           end
+         else
+           internalerror(2011022002);
+       end;
 
 
      procedure tcgz80.a_load_const_reg(list : TAsmList; size: tcgsize; a : tcgint;reg : tregister);
