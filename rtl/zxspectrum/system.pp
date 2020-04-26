@@ -28,6 +28,12 @@ interface
 
 {$endif FPUNONE}
 
+var
+{ Mem[] support }
+  mem  : array[0..$7fff-1] of byte absolute $0;
+{  memw : array[0..($7fff div sizeof(word))-1] of word absolute $0:$0;
+  meml : array[0..($7fff div sizeof(longint))-1] of longint absolute $0:$0;}
+
 { OpenChannel(2) opens the upper screen
   OpenChannel(1) opens the lower screen
   OpenChannel(3) opens the ZX Printer }
