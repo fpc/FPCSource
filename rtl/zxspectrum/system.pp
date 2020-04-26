@@ -146,28 +146,24 @@ begin
   KeyPressed:=LastKey<>#0;
 end;
 
-procedure OpenChannel(Chan: Byte);
-begin
-  asm
-    ld iy,(save_iy)
-    ld a, (Chan)
-    push ix
-    call 5633
-    pop ix
-    ld (save_iy),iy
-  end;
+procedure OpenChannel(Chan: Byte);assembler;
+asm
+  ld iy,(save_iy)
+  ld a, (Chan)
+  push ix
+  call 5633
+  pop ix
+  ld (save_iy),iy
 end;
 
-procedure PrintChar(Ch: Char);
-begin
-  asm
-    ld iy,(save_iy)
-    ld a, (Ch)
-    push ix
-    rst 16
-    pop ix
-    ld (save_iy),iy
-  end;
+procedure PrintChar(Ch: Char);assembler;
+asm
+  ld iy,(save_iy)
+  ld a, (Ch)
+  push ix
+  rst 16
+  pop ix
+  ld (save_iy),iy
 end;
 
 procedure PrintLn;
