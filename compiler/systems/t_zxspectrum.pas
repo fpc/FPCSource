@@ -214,7 +214,7 @@ procedure TLinkerZXSpectrum_SdccSdld.SetDefaultInfo;
   const
     ExeName='sdldz80';
   begin
-    FOrigin:=32768;
+    FOrigin:={32768}23800;
     with Info do
      begin
        ExeCmd[1]:=ExeName+' -n $OPT -i $MAP $EXE -f $RES'
