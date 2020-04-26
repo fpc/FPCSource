@@ -1105,6 +1105,8 @@ unit cgcpu;
                  begin
                    if (tmpop=A_NONE) and (curvalue=1) and (i=tcgsize2size[size]) then
                      tmpop:=A_INC
+                   else if (tmpop=A_NONE) and (curvalue=255) and (i=tcgsize2size[size]) then
+                     tmpop:=A_DEC
                    else if (tmpop=A_NONE) and (curvalue<>0) then
                      tmpop:=A_ADD
                    else if tmpop=A_ADD then
@@ -1112,7 +1114,7 @@ unit cgcpu;
                    case tmpop of
                      A_NONE:
                        {nothing};
-                     A_INC:
+                     A_INC,A_DEC:
                        list.concat(taicpu.op_reg(tmpop,reg));
                      A_ADD,A_ADC:
                        begin
@@ -1142,6 +1144,8 @@ unit cgcpu;
                  begin
                    if (tmpop=A_NONE) and (curvalue=1) and (i=tcgsize2size[size]) then
                      tmpop:=A_DEC
+                   else if (tmpop=A_NONE) and (curvalue=255) and (i=tcgsize2size[size]) then
+                     tmpop:=A_INC
                    else if (tmpop=A_NONE) and (curvalue<>0) then
                      tmpop:=A_SUB
                    else if tmpop=A_SUB then
@@ -1149,7 +1153,7 @@ unit cgcpu;
                    case tmpop of
                      A_NONE:
                        {nothing};
-                     A_DEC:
+                     A_DEC,A_INC:
                        list.concat(taicpu.op_reg(tmpop,reg));
                      A_SUB,A_SBC:
                        begin
