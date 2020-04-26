@@ -525,7 +525,7 @@ unit agsdasz80;
     var
       lasthp,
       hp: tai;
-      s: string;
+      s, LastSecName: string;
       counter,lines,i,j,l,tokens,pos,last_align: longint;
       quoted, do_line: Boolean;
       consttype: taiconst_type;
@@ -533,6 +533,8 @@ unit agsdasz80;
       InlineLevel : longint;
       prevfileinfo : tfileposinfo;
       previnfile : tinputfile;
+      LastAlign: Integer;
+      LastSecOrder: TAsmSectionOrder;
     begin
       if not assigned(p) then
        exit;
@@ -815,20 +817,22 @@ unit agsdasz80;
                    end;
                 { avoid empty files }
                   LastSecType:=sec_none;
-                  //LastSecName:='';
-                  //LastAlign:=4;
+                  LastSecName:='';
+                  LastSecOrder:=secorder_default;
+                  LastAlign:=1;
                   while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
                    begin
                      if tai(hp.next).typ=ait_section then
                        begin
                          LastSecType:=tai_section(hp.next).sectype;
-                         {LastSecName:=tai_section(hp.next).name^;
-                         LastAlign:=tai_section(hp.next).secalign;}
+                         LastSecName:=tai_section(hp.next).name^;
+                         LastSecOrder:=tai_section(hp.next).secorder;
+                         LastAlign:=tai_section(hp.next).secalign;
                        end;
                      hp:=tai(hp.next);
                    end;
-                  {if LastSecType<>sec_none then
-                    WriteSection(LastSecType,LastSecName,LastAlign);}
+                  if LastSecType<>sec_none then
+                    WriteSection(LastSecType,LastSecName,LastSecOrder,LastAlign);
                   writer.MarkEmpty;
                   //NewObject:=true;
                 end;
