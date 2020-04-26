@@ -558,23 +558,6 @@ unit cgcpu;
             else
               internalerror(2020040803);
           end;
-          //if tcgsize2size[paraloc^.size]<cgpara.alignment then
-          //  begin
-          //    tmpreg:=getintregister(list,pushsize);
-          //    a_load_ref_reg(list,paraloc^.size,pushsize,href,tmpreg);
-          //    list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
-          //  end
-          //else
-          //  begin
-          //    make_simple_ref(list,href);
-          //    if tcgsize2size[pushsize] > 2 then
-          //      begin
-          //        tmpref := href;
-          //        Inc(tmpref.offset, 2);
-          //        list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[int_cgsize(tcgsize2size[pushsize]-2)],tmpref));
-          //      end;
-          //    list.concat(taicpu.op_ref(A_PUSH,opsize,href));
-          //  end;
         end;
 
       var
