@@ -2544,8 +2544,7 @@ implementation
     destructor tconstsym.destroy;
       begin
         case consttyp of
-          constnone:
-            internalerror(2019050703);
+          constnone,
           constord,
           constpointer,
           constnil:
