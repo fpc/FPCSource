@@ -53,7 +53,7 @@ function KeyPressed: Boolean;
 implementation
 
 const
-  LineEnding = #13#10;
+  LineEnding = #13;
   { LFNSupport is a variable here, defined below!!! }
   DirectorySeparator = '\';
   DriveSeparator = ':';
@@ -76,7 +76,7 @@ const
   CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
 
   sLineBreak = LineEnding;
-  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCR;
 
 var
   __heapsize: Word;external name '__heapsize';
@@ -267,7 +267,6 @@ end;
 
 procedure SysInitStdIO;
 begin
-(* TODO: doesn't work yet...
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
@@ -275,7 +274,6 @@ begin
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 {$endif FPC_STDOUT_TRUE_ALIAS}
-*)
 end;
 
 begin

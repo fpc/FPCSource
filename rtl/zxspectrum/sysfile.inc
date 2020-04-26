@@ -35,6 +35,13 @@ end;
 
 function do_write(h:thandle;addr:pointer;len : longint) : longint;
 begin
+  do_write:=len;
+  while len>0 do
+  begin
+    PrintChar(PChar(addr)^);
+    Inc(addr);
+    Dec(len);
+  end;
 end;
 
 
@@ -83,4 +90,5 @@ end;
 
 function do_isdevice(handle:THandle):boolean;
 begin
+  do_isdevice:=true;
 end;
