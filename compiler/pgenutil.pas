@@ -78,7 +78,7 @@ uses
   type
     tdeftypeset = set of tdeftyp;
   const
-    tgeneric_param_const_types : tdeftypeset = [orddef,stringdef,arraydef,floatdef,setdef,pointerdef,enumdef];
+    tgeneric_param_const_types : tdeftypeset = [orddef,stringdef,floatdef,setdef,pointerdef,enumdef];
     tgeneric_param_nodes : tnodetypeset = [typen,ordconstn,stringconstn,realconstn,setconstn,niln];
 
     function get_generic_param_def(sym:tsym):tdef;
