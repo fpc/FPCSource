@@ -873,7 +873,7 @@ implementation
              begin
                if tai_section(hp).sectype<>sec_none then
                  if replaceforbidden then
-                   WriteSection(tai_section(hp).sectype,ReplaceForbiddenAsmSymbolChars(tai_section(hp).name^),tai_section(hp).secorder,
+                   WriteSection(tai_section(hp).sectype,ApplyAsmSymbolRestrictions(tai_section(hp).name^),tai_section(hp).secorder,
                      tai_section(hp).secalign,tai_section(hp).secflags,tai_section(hp).secprogbits)
                  else
                    WriteSection(tai_section(hp).sectype,tai_section(hp).name^,tai_section(hp).secorder,
@@ -925,8 +925,8 @@ implementation
                    if tai_datablock(hp).is_global then
                      begin
                        writer.AsmWrite(#9'.globl ');
-                       writer.AsmWriteln(ReplaceForbiddenAsmSymbolChars(tai_datablock(hp).sym.name));
-                       writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_datablock(hp).sym.name));
+                       writer.AsmWriteln(ApplyAsmSymbolRestrictions(tai_datablock(hp).sym.name));
+                       writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_datablock(hp).sym.name));
                        writer.AsmWriteln(':');
                        writer.AsmWrite(#9'.space ');
                        writer.AsmWriteln(tostr(tai_datablock(hp).size));
@@ -936,7 +936,7 @@ implementation
                    else
                      begin
                        writer.AsmWrite(#9'.lcomm ');
-                       writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_datablock(hp).sym.name));
+                       writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_datablock(hp).sym.name));
                        writer.AsmWrite(',');
                        writer.AsmWrite(tostr(tai_datablock(hp).size)+',');
                        writer.AsmWrite('_data.bss_,');
@@ -956,7 +956,7 @@ implementation
                          begin
                            writer.AsmWrite(#9'.comm'#9);
                            if replaceforbidden then
-                             writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_datablock(hp).sym.name))
+                             writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_datablock(hp).sym.name))
                            else
                              writer.AsmWrite(tai_datablock(hp).sym.name);
                            writer.AsmWrite(','+tostr(tai_datablock(hp).size));
@@ -967,7 +967,7 @@ implementation
                          begin
                            writer.AsmWrite(#9'.lcomm'#9);
                            if replaceforbidden then
-                             writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_datablock(hp).sym.name));
+                             writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_datablock(hp).sym.name));
                            else
                              writer.AsmWrite(tai_datablock(hp).sym.name);
                            writer.AsmWrite(','+tostr(tai_datablock(hp).size));
@@ -984,7 +984,7 @@ implementation
                              WriteHiddenSymbol(tai_datablock(hp).sym);
                            writer.AsmWrite(#9'.globl ');
                            if replaceforbidden then
-                             writer.AsmWriteln(ReplaceForbiddenAsmSymbolChars(Tai_datablock(hp).sym.name))
+                             writer.AsmWriteln(ApplyAsmSymbolRestrictions(Tai_datablock(hp).sym.name))
                            else
                              writer.AsmWriteln(Tai_datablock(hp).sym.name);
                          end;
@@ -995,10 +995,10 @@ implementation
                        if replaceforbidden then
                          begin
                            if (tf_needs_symbol_type in target_info.flags) then
-                             writer.AsmWriteln(#9'.type '+ReplaceForbiddenAsmSymbolChars(Tai_datablock(hp).sym.name)+','+sepChar+'object');
+                             writer.AsmWriteln(#9'.type '+ApplyAsmSymbolRestrictions(Tai_datablock(hp).sym.name)+','+sepChar+'object');
                            if (tf_needs_symbol_size in target_info.flags) and (tai_datablock(hp).size > 0) then
-                              writer.AsmWriteln(#9'.size '+ReplaceForbiddenAsmSymbolChars(Tai_datablock(hp).sym.name)+','+tostr(Tai_datablock(hp).size));
-                           writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(Tai_datablock(hp).sym.name))
+                              writer.AsmWriteln(#9'.size '+ApplyAsmSymbolRestrictions(Tai_datablock(hp).sym.name)+','+tostr(Tai_datablock(hp).size));
+                           writer.AsmWrite(ApplyAsmSymbolRestrictions(Tai_datablock(hp).sym.name))
                          end
                        else
                          begin
@@ -1198,7 +1198,7 @@ implementation
                                else
                                  s:=tai_const(hp).sym.name;
                                if replaceforbidden then
-                                 s:=ReplaceForbiddenAsmSymbolChars(s);
+                                 s:=ApplyAsmSymbolRestrictions(s);
                                if tai_const(hp).value<>0 then
                                  s:=s+tostr_with_plus(tai_const(hp).value);
                              end
@@ -1300,12 +1300,12 @@ implementation
 {$endif arm}
                      writer.AsmWrite('.globl'#9);
                      if replaceforbidden then
-                       writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_label(hp).labsym.name))
+                       writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_label(hp).labsym.name))
                      else
                        writer.AsmWriteLn(tai_label(hp).labsym.name);
                    end;
                   if replaceforbidden then
-                    writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_label(hp).labsym.name))
+                    writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_label(hp).labsym.name))
                   else
                     writer.AsmWrite(tai_label(hp).labsym.name);
                   writer.AsmWriteLn(':');
@@ -1323,7 +1323,7 @@ implementation
                 begin
                   writer.AsmWrite('.globl'#9);
                   if replaceforbidden then
-                    writer.AsmWriteln(ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name))
+                    writer.AsmWriteln(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name))
                   else
                     writer.AsmWriteln(tai_symbol(hp).sym.name);
                   if (tai_symbol(hp).sym.bind=AB_PRIVATE_EXTERN) then
@@ -1358,14 +1358,14 @@ implementation
                        s:=#9'.llong .';
                        ch:='3';
                      end;
-                   writer.AsmWriteLn(#9'.csect '+ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name)+'[DS],'+ch);
-                   writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name)+':');
-                   writer.AsmWriteln(s+ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name)+', TOC[tc0], 0');
+                   writer.AsmWriteLn(#9'.csect '+ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name)+'[DS],'+ch);
+                   writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name)+':');
+                   writer.AsmWriteln(s+ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name)+', TOC[tc0], 0');
                    writer.AsmWriteln(#9'.csect .text[PR]');
                    if (tai_symbol(hp).is_global) then
-                     writer.AsmWriteLn('.globl .'+ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name))
+                     writer.AsmWriteLn('.globl .'+ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name))
                    else
-                     writer.AsmWriteLn('.lglobl .'+ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name));
+                     writer.AsmWriteLn('.lglobl .'+ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
                    { the dotted name is the name of the actual function entry }
                    writer.AsmWrite('.');
                  end
@@ -1386,9 +1386,9 @@ implementation
                  end;
                if replaceforbidden then
                  if not(tai_symbol(hp).has_value) then
-                   writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name + ':'))
+                   writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name + ':'))
                  else
-                   writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name + '=' + tostr(tai_symbol(hp).value)))
+                   writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name + '=' + tostr(tai_symbol(hp).value)))
                else if not(tai_symbol(hp).has_value) then
                  writer.AsmWriteLn(tai_symbol(hp).sym.name + ':')
                else
@@ -1408,13 +1408,13 @@ implementation
                if replaceforbidden then
                  begin
                    { avoid string truncation }
-                   writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^));
+                   writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_symbolpair(hp).sym^));
                    writer.AsmWrite(s);
-                   writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).value^));
+                   writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbolpair(hp).value^));
                    if tai_symbolpair(hp).kind=spk_set_global then
                      begin
                        writer.AsmWrite(#9'.globl ');
-                       writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^));
+                       writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbolpair(hp).sym^));
                      end;
                  end
                else
@@ -1443,7 +1443,7 @@ implementation
                      (tai_symbol_end(hp).sym.typ=AT_FUNCTION) then
                     writer.AsmWrite('.');
                   if replaceforbidden then
-                    writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_symbol_end(hp).sym.name))
+                    writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_symbol_end(hp).sym.name))
                   else
                     writer.AsmWrite(tai_symbol_end(hp).sym.name);
                   writer.AsmWrite(', '+s+' - ');
@@ -1452,7 +1452,7 @@ implementation
                      (tai_symbol_end(hp).sym.typ=AT_FUNCTION) then
                     writer.AsmWrite('.');
                   if replaceforbidden then
-                    writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbol_end(hp).sym.name))
+                    writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol_end(hp).sym.name))
                   else
                     writer.AsmWriteLn(tai_symbol_end(hp).sym.name);
                 end;
@@ -1527,7 +1527,7 @@ implementation
                if tai_directive(hp).name <>'' then
                  begin
                    if replaceforbidden then
-                     writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_directive(hp).name))
+                     writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_directive(hp).name))
                    else
                      writer.AsmWrite(tai_directive(hp).name);
                  end;
@@ -1617,7 +1617,7 @@ implementation
         if asminfo^.dollarsign='$' then
           writer.AsmWriteLn(s.name)
         else
-          writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(s.name))
+          writer.AsmWriteLn(ApplyAsmSymbolRestrictions(s.name))
       end;
 
 
@@ -1635,7 +1635,7 @@ implementation
         if asminfo^.dollarsign='$' then
           writer.AsmWriteLn(sym.name)
         else
-          writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(sym.name))
+          writer.AsmWriteLn(ApplyAsmSymbolRestrictions(sym.name))
       end;
 
 

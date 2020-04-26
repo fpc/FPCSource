@@ -394,9 +394,9 @@ unit agsdasz80;
                       ;
                   end;
                   if o.ref^.offset<>0 then
-                    writer.AsmWrite('('+ReplaceForbiddenAsmSymbolChars(o.ref^.symbol.name)+'+'+tostr(o.ref^.offset)+')')
+                    writer.AsmWrite('('+ApplyAsmSymbolRestrictions(o.ref^.symbol.name)+'+'+tostr(o.ref^.offset)+')')
                   else
-                    writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(o.ref^.symbol.name));
+                    writer.AsmWrite(ApplyAsmSymbolRestrictions(o.ref^.symbol.name));
                 end
               else if not assigned(o.ref^.symbol) and
                  ((o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO)) and
@@ -442,7 +442,7 @@ unit agsdasz80;
                         AddSymbol(o.ref^.symbol.name,false);}
                       if need_plus then
                         writer.AsmWrite('+');
-                      writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(o.ref^.symbol.name));
+                      writer.AsmWrite(ApplyAsmSymbolRestrictions(o.ref^.symbol.name));
                       need_plus:=true;
                     end;
                   if o.ref^.offset<>0 then
@@ -480,7 +480,7 @@ unit agsdasz80;
                 end
               else
                 begin
-                  writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(o.ref^.symbol.name));
+                  writer.AsmWrite(ApplyAsmSymbolRestrictions(o.ref^.symbol.name));
                   //if SmartAsm then
                   //  AddSymbol(o.ref^.symbol.name,false);
                   if o.ref^.offset>0 then
@@ -505,7 +505,7 @@ unit agsdasz80;
           begin
             sym:=TAsmSymbol(current_asmdata.AsmSymbolDict[i]);
             if sym.bind in [AB_EXTERNAL,AB_EXTERNAL_INDIRECT] then
-              writer.AsmWriteln(#9'.globl'#9+ReplaceForbiddenAsmSymbolChars(sym.name));
+              writer.AsmWriteln(#9'.globl'#9+ApplyAsmSymbolRestrictions(sym.name));
           end;
         writer.AsmWriteln('; End externals');
       end;
@@ -607,7 +607,7 @@ unit agsdasz80;
               begin
                 if tai_label(hp).labsym.is_used then
                   begin
-                    writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_label(hp).labsym.name));
+                    writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_label(hp).labsym.name));
                     if tai_label(hp).labsym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN] then
                       writer.AsmWriteLn('::')
                     else
@@ -619,16 +619,16 @@ unit agsdasz80;
                 if not(tai_symbol(hp).has_value) then
                   begin
                     if tai_symbol(hp).is_global then
-                      writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name) + '::')
+                      writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + '::')
                     else
-                      writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name) + ':');
+                      writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + ':');
                   end
                 else
                   begin
                     if tai_symbol(hp).is_global then
-                      writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name) + '==' + tostr(tai_symbol(hp).value))
+                      writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + '==' + tostr(tai_symbol(hp).value))
                     else
-                      writer.AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbol(hp).sym.name) + '=' + tostr(tai_symbol(hp).value));
+                      writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + '=' + tostr(tai_symbol(hp).value));
                   end;
               end;
             ait_symbol_end :
@@ -637,9 +637,9 @@ unit agsdasz80;
             ait_datablock :
               begin
                 if tai_datablock(hp).is_global or SmartAsm then
-                  writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_datablock(hp).sym.name) + '::')
+                  writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_datablock(hp).sym.name) + '::')
                 else
-                  writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_datablock(hp).sym.name) + ':');
+                  writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_datablock(hp).sym.name) + ':');
                 {if SmartAsm then
                   AddSymbol(tai_datablock(hp).sym.name,true);}
                 writer.AsmWriteLn(#9'.rs'#9+tostr(tai_datablock(hp).size));
@@ -666,9 +666,9 @@ unit agsdasz80;
                         if assigned(tai_const(hp).sym) then
                           begin
                             if assigned(tai_const(hp).endsym) then
-                              s:=ReplaceForbiddenAsmSymbolChars(tai_const(hp).endsym.name)+'-'+ReplaceForbiddenAsmSymbolChars(tai_const(hp).sym.name)
+                              s:=ApplyAsmSymbolRestrictions(tai_const(hp).endsym.name)+'-'+ApplyAsmSymbolRestrictions(tai_const(hp).sym.name)
                             else
-                              s:=ReplaceForbiddenAsmSymbolChars(tai_const(hp).sym.name);
+                              s:=ApplyAsmSymbolRestrictions(tai_const(hp).sym.name);
                             if tai_const(hp).value<>0 then
                               s:=s+tostr_with_plus(tai_const(hp).value);
                             if consttype in [aitconst_64bit,aitconst_64bit_unaligned] then
@@ -713,9 +713,9 @@ unit agsdasz80;
                         if assigned(tai_const(hp).sym) then
                           begin
                             if assigned(tai_const(hp).endsym) then
-                              s:=ReplaceForbiddenAsmSymbolChars(tai_const(hp).endsym.name)+'-'+ReplaceForbiddenAsmSymbolChars(tai_const(hp).sym.name)
+                              s:=ApplyAsmSymbolRestrictions(tai_const(hp).endsym.name)+'-'+ApplyAsmSymbolRestrictions(tai_const(hp).sym.name)
                             else
-                              s:=ReplaceForbiddenAsmSymbolChars(tai_const(hp).sym.name);
+                              s:=ApplyAsmSymbolRestrictions(tai_const(hp).sym.name);
                             if tai_const(hp).value<>0 then
                               s:=s+tostr_with_plus(tai_const(hp).value);
                           end

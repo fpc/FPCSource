@@ -1271,7 +1271,7 @@ implementation
                      writer.AsmWriteln(asminfo^.comment+'global/privateextern label: '+tai_label(hp).labsym.name);
                    end;
                  if replaceforbidden then
-                   writer.AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_label(hp).labsym.name))
+                   writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_label(hp).labsym.name))
                  else
                    writer.AsmWrite(tai_label(hp).labsym.name);
                  writer.AsmWriteLn(':');

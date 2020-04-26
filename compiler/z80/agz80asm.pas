@@ -128,7 +128,7 @@ unit agz80asm;
               else if assigned(symbol) or (offset<>0) then
                 begin
                   //if assigned(symbol) then
-                  //  s:=ReplaceForbiddenAsmSymbolChars(symbol.name);
+                  //  s:=ApplyAsmSymbolRestrictions(symbol.name);
                   //
                   //if offset<0 then
                   //  s:=s+tostr(offset)
@@ -167,7 +167,7 @@ unit agz80asm;
           //  top_ref:
           //    if o.ref^.refaddr=addr_full then
           //      begin
-          //        hs:=ReplaceForbiddenAsmSymbolChars(o.ref^.symbol.name);
+          //        hs:=ApplyAsmSymbolRestrictions(o.ref^.symbol.name);
           //        if o.ref^.offset>0 then
           //         hs:=hs+'+'+tostr(o.ref^.offset)
           //        else

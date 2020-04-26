@@ -95,7 +95,7 @@ implementation
     begin
       { create reference to the local symbol at the same address as the global
         symbol (with same name as unmangled symbol, so GDB can find it) }
-      Result:=ReplaceForbiddenAsmSymbolChars(sym.name);
+      Result:=ApplyAsmSymbolRestrictions(sym.name);
     end;
 
 
@@ -109,7 +109,7 @@ implementation
              assigned(def.owner.name) then
             list.concat(Tai_stab.create_ansistr(stabsdir,ansistring('"vmt_')+GetSymTableName(def.owner)+tobjectdef(def).objname^+':S'+
                    def_stab_number(vmttype)+'",'+
-                   base_stabs_str(globalvarsym_inited_stab,'0','0',ReplaceForbiddenAsmSymbolChars(tobjectdef(def).vmt_mangledname)+'.')));
+                   base_stabs_str(globalvarsym_inited_stab,'0','0',ApplyAsmSymbolRestrictions(tobjectdef(def).vmt_mangledname)+'.')));
         end;
 *)
       { do nothing, because creating debug information for a global symbol
@@ -193,7 +193,7 @@ implementation
         the place where it is defined }
       if not assigned(def.procstarttai) then
         exit;
-      mangledname:=ReplaceForbiddenAsmSymbolChars(def.mangledname);
+      mangledname:=ApplyAsmSymbolRestrictions(def.mangledname);
       if target_info.system in systems_dotted_function_names then
         mangledname:='.'+mangledname;
       result.concat(tai_stab.create(stabx_function,
@@ -254,7 +254,7 @@ implementation
       result:=inherited gen_procdef_endsym_stabs(def);
       if not assigned(def.procstarttai) then
         exit;
-      procendsymbol:=current_asmdata.DefineAsmSymbol('LT..'+ReplaceForbiddenAsmSymbolChars(def.mangledname),AB_LOCAL,AT_ADDR,voidpointertype);
+      procendsymbol:=current_asmdata.DefineAsmSymbol('LT..'+ApplyAsmSymbolRestrictions(def.mangledname),AB_LOCAL,AT_ADDR,voidpointertype);
       current_asmdata.asmlists[al_procedures].insertbefore(tai_symbol.create(procendsymbol,0),def.procendtai);
     end;
 

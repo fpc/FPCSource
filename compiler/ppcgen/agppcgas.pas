@@ -112,7 +112,7 @@ unit agppcgas;
                    not assigned(symbol) then
                   internalerror(2011122701);
                 if asminfo^.dollarsign<>'$' then
-                  getreferencestring:=ReplaceForbiddenAsmSymbolChars(symbol.name)+'('+gas_regname(NR_RTOC)+')'
+                  getreferencestring:=ApplyAsmSymbolRestrictions(symbol.name)+'('+gas_regname(NR_RTOC)+')'
                 else
                   getreferencestring:=symbol.name+'('+gas_regname(NR_RTOC)+')';
                 exit;
@@ -128,9 +128,9 @@ unit agppcgas;
                   begin
                     if asminfo^.dollarsign<>'$' then
                       begin
-                        s:=s+ReplaceForbiddenAsmSymbolChars(symbol.name);
+                        s:=s+ApplyAsmSymbolRestrictions(symbol.name);
                         if assigned(relsymbol) then
-                          s:=s+'-'+ReplaceForbiddenAsmSymbolChars(relsymbol.name)
+                          s:=s+'-'+ApplyAsmSymbolRestrictions(relsymbol.name)
                       end
                     else
                       begin
@@ -206,7 +206,7 @@ unit agppcgas;
               internalerror(200402267);
             hs:=o.ref^.symbol.name;
             if asminfo^.dollarsign<>'$' then
-              hs:=ReplaceForbiddenAsmSymbolChars(hs);
+              hs:=ApplyAsmSymbolRestrictions(hs);
             if o.ref^.offset>0 then
               hs:=hs+'+'+tostr(o.ref^.offset)
             else
@@ -236,7 +236,7 @@ unit agppcgas;
             begin
               hs:=o.ref^.symbol.name;
               if asminfo^.dollarsign<>'$' then
-                hs:=ReplaceForbiddenAsmSymbolChars(hs);
+                hs:=ApplyAsmSymbolRestrictions(hs);
               if o.ref^.offset>0 then
                hs:=hs+'+'+tostr(o.ref^.offset)
               else

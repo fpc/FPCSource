@@ -240,7 +240,7 @@ interface
     function create_smartlink_library:boolean;inline;
     function create_smartlink:boolean;inline;
 
-    function ReplaceForbiddenAsmSymbolChars(const s: ansistring): ansistring;
+    function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
 
     { dummy default noop callback }
     procedure default_global_used;
@@ -288,7 +288,7 @@ implementation
       end;
 
 
-    function ReplaceForbiddenAsmSymbolChars(const s: ansistring): ansistring;
+    function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
       var
         i : longint;
         rchar: char;

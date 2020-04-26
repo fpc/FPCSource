@@ -197,7 +197,7 @@ implementation
       if (Sym.typ=typesym) and (ttypesym(Sym).Fprettyname<>'') then
         result:=ttypesym(Sym).FPrettyName;
       if target_asm.dollarsign<>'$' then
-        result:=ReplaceForbiddenAsmSymbolChars(result);
+        result:=ApplyAsmSymbolRestrictions(result);
     end;
 
     function GetSymTableName(SymTable : TSymTable) : string;
@@ -207,7 +207,7 @@ implementation
       else
         result := SymTable.RealName^;
       if target_asm.dollarsign<>'$' then
-        result:=ReplaceForbiddenAsmSymbolChars(result);
+        result:=ApplyAsmSymbolRestrictions(result);
     end;
 
     const
@@ -1190,7 +1190,7 @@ implementation
         if s='name' then
           result:=GetSymName(sym)
         else if s='mangledname' then
-          result:=ReplaceForbiddenAsmSymbolChars(sym.mangledname)
+          result:=ApplyAsmSymbolRestrictions(sym.mangledname)
         else if s='ownername' then
           result:=GetSymTableName(sym.owner)
         else if s='line' then
@@ -1217,7 +1217,7 @@ implementation
 
     function TDebugInfoStabs.staticvarsym_mangled_name(sym: tstaticvarsym): string;
       begin
-        result:=ReplaceForbiddenAsmSymbolChars(sym.mangledname);
+        result:=ApplyAsmSymbolRestrictions(sym.mangledname);
       end;
 
 
@@ -1228,7 +1228,7 @@ implementation
            assigned(def.owner.name) then
           list.concat(Tai_stab.create_ansistr(stabsdir,ansistring('"vmt_')+GetSymTableName(def.owner)+tobjectdef(def).objname^+':S'+
                  def_stab_number(vmttype)+'",'+
-                 base_stabs_str(globalvarsym_inited_stab,'0','0',ReplaceForbiddenAsmSymbolChars(tobjectdef(def).vmt_mangledname))));
+                 base_stabs_str(globalvarsym_inited_stab,'0','0',ApplyAsmSymbolRestrictions(tobjectdef(def).vmt_mangledname))));
       end;
 
 
@@ -1401,7 +1401,7 @@ implementation
                assigned(tprocdef(def.owner.defowner).procsym) then
               info := ','+GetSymName(def.procsym)+','+GetSymName(tprocdef(def.owner.defowner).procsym);
           end;
-        mangledname:=ReplaceForbiddenAsmSymbolChars(def.mangledname);
+        mangledname:=ApplyAsmSymbolRestrictions(def.mangledname);
         if target_info.system in systems_dotted_function_names then
           mangledname:='.'+mangledname;
         result.concat(Tai_stab.Create_ansistr(stabsdir,'"'+obj+':'+RType+def_stab_number(def.returndef)+info+'",'+
