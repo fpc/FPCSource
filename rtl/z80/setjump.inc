@@ -16,11 +16,49 @@
 
 function fpc_setjmp(var S : jmp_buf) : shortint;assembler;[Public, alias : 'FPC_SETJMP'];nostackframe;compilerproc;
   asm
+    push ix
+    ld ix, 0
+    add ix,sp
+
+    ld l, (ix+4)  { (S)   }
+    ld h, (ix+5)  { (S+1) }
+
+    ld iy, 0
+    add iy, sp
+    push iy
+    pop bc
+    ld (hl), c
+    inc hl
+    ld (hl), b
+    inc hl
+
+    ld l, 0
+
+    pop ix
   end;
 
 
-procedure fpc_longjmp(var S : jmp_buf;value : shortint);assembler;[Public, alias : 'FPC_LONGJMP'];compilerproc;
+procedure fpc_longjmp(var S : jmp_buf;value : shortint);assembler;[Public, alias : 'FPC_LONGJMP'];nostackframe;compilerproc;
   asm
+    push ix
+    ld ix, 0
+    add ix, sp
+
+    ld d, (ix+6)  { (value) }
+
+    ld l, (ix+4)  { (S)   }
+    ld h, (ix+5)  { (S+1) }
+    ld c, (hl)
+    inc hl
+    ld b, (hl)
+    inc hl
+    push bc
+    pop iy
+    ld sp, iy
+
+    ld l, d
+
+    pop ix
   end;
 
 
