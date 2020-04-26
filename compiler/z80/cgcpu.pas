@@ -2089,42 +2089,45 @@ unit cgcpu;
     procedure tcgz80.a_adjust_sp(list : TAsmList; value : longint);
       var
         i : integer;
+        sym: TAsmSymbol;
+        ref: treference;
       begin
-        //case value of
-        //  0:
-        //    ;
-        //  {-14..-1:
-        //    begin
-        //      if ((-value) mod 2)<>0 then
-        //        list.concat(taicpu.op_reg(A_PUSH,NR_R0));
-        //      for i:=1 to (-value) div 2 do
-        //        list.concat(taicpu.op_const(A_RCALL,0));
-        //    end;
-        //  1..7:
-        //    begin
-        //      for i:=1 to value do
-        //        list.concat(taicpu.op_reg(A_POP,NR_R0));
-        //    end;}
-        //  else
-        //    begin
-        //      list.concat(taicpu.op_reg_const(A_SUBI,NR_R28,lo(word(-value))));
-        //      list.concat(taicpu.op_reg_const(A_SBCI,NR_R29,hi(word(-value))));
-        //      // get SREG
-        //      list.concat(taicpu.op_reg_const(A_IN,NR_R0,NIO_SREG));
-        //
-        //      // block interrupts
-        //      list.concat(taicpu.op_none(A_CLI));
-        //
-        //      // write high SP
-        //      list.concat(taicpu.op_const_reg(A_OUT,NIO_SP_HI,NR_R29));
-        //
-        //      // release interrupts
-        //      list.concat(taicpu.op_const_reg(A_OUT,NIO_SREG,NR_R0));
-        //
-        //      // write low SP
-        //      list.concat(taicpu.op_const_reg(A_OUT,NIO_SP_LO,NR_R28));
-        //    end;
-        //end;
+        case value of
+          0:
+            ;
+          -7..-1:
+            begin
+              for i:=value to -1 do
+                list.concat(taicpu.op_reg(A_DEC,NR_SP));
+            end;
+          1..7:
+            begin
+              for i:=1 to value do
+                list.concat(taicpu.op_reg(A_INC,NR_SP));
+            end;
+          else
+            begin
+              sym:=current_asmdata.RefAsmSymbol('FPC_Z80_SAVE_HL',AT_DATA);
+              reference_reset_symbol(ref,sym,0,1,[]);
+
+              // block interrupts
+              list.concat(taicpu.op_none(A_DI));
+
+              // save HL
+              list.concat(taicpu.op_ref_reg(A_LD,ref,NR_HL));
+
+              // adjust SP
+              list.concat(taicpu.op_reg_const(A_LD,NR_HL,value));
+              list.concat(taicpu.op_reg_reg(A_ADD,NR_HL,NR_SP));
+              list.concat(taicpu.op_reg_reg(A_LD,NR_SP,NR_HL));
+
+              // restore HL
+              list.concat(taicpu.op_reg_ref(A_LD,NR_HL,ref));
+
+              // release interrupts
+              list.concat(taicpu.op_none(A_EI));
+            end;
+        end;
       end;
 
 
