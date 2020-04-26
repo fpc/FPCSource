@@ -7,5 +7,6 @@ start::
                         jp PASCALMAIN
 
                         .area _DATA
-stack_area_start:       .rs 1022
+stack_area_start:       ;.rs 1022
+                        .rs 254
 stack_area_end:         .rs 2
