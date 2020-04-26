@@ -18,18 +18,18 @@
                            Directory Handling
 *****************************************************************************}
 
-Procedure do_MkDir(const s: rawbytestring);
+Procedure do_MkDir(const s: rawbytestring);inline;
 begin
 end;
 
-Procedure do_RmDir(const s: rawbytestring);
+Procedure do_RmDir(const s: rawbytestring);inline;
 begin
 end;
 
-Procedure do_ChDir(const s: rawbytestring);
+Procedure do_ChDir(const s: rawbytestring);inline;
 begin
 end;
 
-procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);
+procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);inline;
 begin
 end;

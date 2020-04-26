@@ -18,17 +18,17 @@
                         Low level File Routines
  ****************************************************************************}
 
-procedure do_close(handle : thandle);
+procedure do_close(handle : thandle);inline;
 begin
 end;
 
 
-procedure do_erase(p : pchar; pchangeable: boolean);
+procedure do_erase(p : pchar; pchangeable: boolean);inline;
 begin
 end;
 
 
-procedure do_rename(p1,p2 : pchar; p1changeable, p2changeable: boolean);
+procedure do_rename(p1,p2 : pchar; p1changeable, p2changeable: boolean);inline;
 begin
 end;
 
@@ -64,33 +64,33 @@ begin
 end;
 
 
-function do_filepos(handle : thandle) : longint;
+function do_filepos(handle : thandle) : longint;inline;
 begin
 end;
 
 
-procedure do_seek(handle:thandle;pos : longint);
+procedure do_seek(handle:thandle;pos : longint);inline;
 begin
 end;
 
 
 
-function do_seekend(handle:thandle):longint;
+function do_seekend(handle:thandle):longint;inline;
 begin
 end;
 
 
-function do_filesize(handle : thandle) : longint;
+function do_filesize(handle : thandle) : longint;inline;
 begin
 end;
 
 
 { truncate at a given position }
-procedure do_truncate (handle:thandle;pos:longint);
+procedure do_truncate (handle:thandle;pos:longint);inline;
 begin
 end;
 
-procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
+procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);inline;
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -102,7 +102,7 @@ begin
 end;
 
 
-function do_isdevice(handle:THandle):boolean;
+function do_isdevice(handle:THandle):boolean;inline;
 begin
   do_isdevice:=true;
 end;

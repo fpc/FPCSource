@@ -17,10 +17,11 @@
                               Heap Management
 *****************************************************************************}
 
-function SysOSAlloc (size: ptruint): pointer;
+function SysOSAlloc (size: ptruint): pointer;inline;
 begin
+  SysOSAlloc:=nil;
 end;
 
-procedure SysOSFree(p: pointer; size: ptruint);
+procedure SysOSFree(p: pointer; size: ptruint);inline;
 begin
 end;
