@@ -120,7 +120,6 @@ unit cgcpu;
         procedure a_op_reg_reg_internal(list: TAsmList; Op: TOpCG; size: TCGSize; src, srchi, dst, dsthi: TRegister);
         procedure a_op_const_reg_internal(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg, reghi: TRegister);
         procedure gen_multiply(list: TAsmList; op: topcg; size: TCgSize; src2, src1, dst: tregister; check_overflow: boolean);
-        procedure maybegetcpuregister(list : tasmlist; reg : tregister);
       end;
 
       tcg64fz80 = class(tcg64f32)
@@ -1389,14 +1388,6 @@ unit cgcpu;
          else
            inherited;
        end;
-
-
-    procedure tcgz80.maybegetcpuregister(list:tasmlist;reg : tregister);
-      begin
-        { allocate the register only, if a cpu register is passed }
-        if getsupreg(reg)<first_int_imreg then
-          getcpuregister(list,reg);
-      end;
 
 
     function tcgz80.normalize_ref(list: TAsmList; ref: treference;
