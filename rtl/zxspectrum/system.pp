@@ -78,6 +78,10 @@ const
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
+var
+  __heapsize: Word;external name '__heapsize';
+  __fpc_initialheap: array[0..0] of byte;external name '__fpc_initialheap';
+
 {$I system.inc}
 {$I tinyheap.inc}
 
@@ -256,12 +260,9 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
-var
-  ZXHeap: array [0..{1023}255] of Byte;
-
 procedure InitZXHeap;
 begin
-  RegisterTinyHeapBlock_Simple_Prealigned(@ZXHeap[0],SizeOf(ZXHeap));
+  RegisterTinyHeapBlock_Simple_Prealigned(@__fpc_initialheap,__heapsize);
 end;
 
 procedure SysInitStdIO;

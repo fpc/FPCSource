@@ -3952,7 +3952,7 @@ begin
     end;
 
   { Set up default value for the heap }
-  if target_info.system in (systems_embedded+systems_freertos) then
+  if target_info.system in (systems_embedded+systems_freertos+[system_z80_zxspectrum]) then
     begin
       case target_info.system of
 {$ifdef AVR}
