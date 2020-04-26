@@ -1836,8 +1836,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgz80.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;
-      cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
+    procedure tcgz80.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
       var
         swapped : boolean;
         tmpreg : tregister;
