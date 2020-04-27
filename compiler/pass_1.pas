@@ -194,18 +194,18 @@ implementation
                        p:=hp;
                      end;
                    if codegenerror then
-                     include(p.flags,nf_error)
-                   else
-                     begin
-{$ifdef EXTDEBUG}
-                       if (p.expectloc=LOC_INVALID) then
-                         Comment(V_Warning,'Expectloc is not set in firstpass: '+nodetype2str[p.nodetype]);
-{$endif EXTDEBUG}
-                     end;
+                     include(p.flags,nf_error);
                  end;
              until not assigned(hp) or
                    (nf_pass1_done in hp.flags);
              include(p.flags,nf_pass1_done);
+{$ifdef EXTDEBUG}
+             if not(nf_error in p.flags) then
+               begin
+                 if (p.expectloc=LOC_INVALID) then
+                   Comment(V_Warning,'Expectloc is not set in firstpass: '+nodetype2str[p.nodetype]);
+               end;
+{$endif EXTDEBUG}
              codegenerror:=codegenerror or oldcodegenerror;
              current_settings.localswitches:=oldlocalswitches;
              current_filepos:=oldpos;

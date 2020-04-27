@@ -23,7 +23,7 @@ begin
     P.Email := '';
     P.Description := 'Expression parser with support for fast evaluation';
     P.NeedLibC:= false;
-    P.OSes:=P.OSes-[embedded,msdos,win16,macos,palmos];
+    P.OSes:=P.OSes-[embedded,msdos,win16,macos,palmos,zxspectrum];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

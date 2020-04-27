@@ -51,6 +51,7 @@ dirs_atari=atari
 dirs_win16=win16
 dirs_watcom=watcom
 dirs_freertos=freertos
+dirs_zxspectrum=zxspectrum
 
 [install]
 fpcpackage=y

@@ -37,6 +37,7 @@ program pp;
   MIPSEL              generate a compiler for the MIPSEL (Littel Endian)
   POWERPC             generate a compiler for the PowerPC
   POWERPC64           generate a compiler for the PowerPC64 architecture
+  Z80                 generate a compiler for Z80
   RISCV64             generate a compiler for the RiscV64 architecture
   SPARC               generate a compiler for SPARC
   SPARC64             generate a compiler for SPARC64
@@ -46,6 +47,7 @@ program pp;
   Other compiler switches
   -----------------------------------------------------------------
   CMEM                use cmem unit for better memory debugging
+=======
   DEBUG               version with debug code is generated
   EXTDEBUG            some extra debug code is executed
   EXTERN_MSG          Don't compile the msgfiles in the compiler, always
@@ -184,7 +186,12 @@ program pp;
   {$endif CPUDEFINED}
   {$define CPUDEFINED}
 {$endif XTENSA}
-
+{$ifdef Z80}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif Z80}
 {$ifndef CPUDEFINED}
   {$fatal A CPU type switch must be defined}
 {$endif CPUDEFINED}

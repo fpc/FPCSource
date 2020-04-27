@@ -1229,6 +1229,7 @@ uses
         supported_targets : [system_i386_darwin,system_i386_iphonesim];
         flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf{, af_stabs_use_function_absolute_addresses}];
         labelprefix : '.L';
+        labelmaxlen : -1;
         comment : '#';
         dollarsign: '$';
       );

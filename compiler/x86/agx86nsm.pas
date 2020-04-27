@@ -1483,6 +1483,7 @@ interface
             supported_targets : [system_i8086_msdos,system_i8086_win16,system_i8086_embedded];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1495,6 +1496,7 @@ interface
             supported_targets : [system_i8086_msdos,system_i8086_win16,system_i8086_embedded];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1510,6 +1512,7 @@ interface
             supported_targets : [system_i386_go32v2];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1523,6 +1526,7 @@ interface
             supported_targets : [system_i386_win32];
             flags : [af_needar,af_no_debug,af_smartlink_sections];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1536,6 +1540,7 @@ interface
             supported_targets : [system_i386_embedded, system_i8086_msdos];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1549,6 +1554,7 @@ interface
             supported_targets : [system_i386_wdosx];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1563,6 +1569,7 @@ interface
             supported_targets : [system_i386_linux];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1576,6 +1583,7 @@ interface
             supported_targets : [system_i386_darwin];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1589,6 +1597,7 @@ interface
             supported_targets : [system_i386_beos];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1602,6 +1611,7 @@ interface
             supported_targets : [system_i386_haiku];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1614,6 +1624,7 @@ interface
             supported_targets : [system_any];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1630,6 +1641,7 @@ interface
             supported_targets : [system_any];
             flags : [af_needar{,af_no_debug}];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1643,6 +1655,7 @@ interface
             supported_targets : [system_x86_64_win64];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1656,6 +1669,7 @@ interface
             supported_targets : [system_x86_64_linux];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1670,6 +1684,7 @@ interface
             supported_targets : [system_x86_64_darwin];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );

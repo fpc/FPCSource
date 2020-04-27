@@ -240,7 +240,7 @@ interface
     function create_smartlink_library:boolean;inline;
     function create_smartlink:boolean;inline;
 
-    function ReplaceForbiddenAsmSymbolChars(const s: ansistring): ansistring;
+    function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
 
     { dummy default noop callback }
     procedure default_global_used;
@@ -257,7 +257,7 @@ interface
 implementation
 
     uses
-      verbose;
+      verbose,fpccrc;
 
 
     function create_smartlink_sections:boolean;inline;
@@ -288,16 +288,28 @@ implementation
       end;
 
 
-    function ReplaceForbiddenAsmSymbolChars(const s: ansistring): ansistring;
+    function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
       var
         i : longint;
         rchar: char;
+        crc: Cardinal;
+        charstoremove: integer;
       begin
         Result:=s;
         rchar:=target_asm.dollarsign;
         for i:=1 to Length(Result) do
           if Result[i]='$' then
             Result[i]:=rchar;
+        if (target_asm.labelmaxlen<>-1) and (Length(Result)>target_asm.labelmaxlen) then
+          begin
+            crc:=0;
+            crc:=UpdateCrc32(crc,Result[1],Length(Result));
+            charstoremove:=Length(Result)-target_asm.labelmaxlen+13;
+            Delete(Result,(Length(Result)-charstoremove) div 2,charstoremove);
+            Result:='_'+target_asm.dollarsign+'CRC'+hexstr(crc,8)+Result;
+            if Length(Result)>target_asm.labelmaxlen then
+              Internalerror(2020042501);
+          end;
       end;
 
 

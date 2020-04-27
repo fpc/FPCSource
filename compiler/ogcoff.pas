@@ -3472,6 +3472,7 @@ const pemagic : array[0..3] of byte = (
             supported_targets : [system_i386_go32v2];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '';
             dollarsign: '$';
           );
@@ -3485,6 +3486,7 @@ const pemagic : array[0..3] of byte = (
             supported_targets : [system_i386_win32,system_i386_nativent];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '';
             dollarsign: '$';
           );
@@ -3498,6 +3500,7 @@ const pemagic : array[0..3] of byte = (
             supported_targets : [system_i386_wdosx];
             flags : [af_outputbinary];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '';
             dollarsign: '$';
           );
@@ -3511,6 +3514,7 @@ const pemagic : array[0..3] of byte = (
             supported_targets : [system_i386_wince];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '';
             dollarsign: '$';
           );
@@ -3526,6 +3530,7 @@ const pemagic : array[0..3] of byte = (
             supported_targets : [system_x86_64_win64];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '';
             dollarsign: '$';
           );
@@ -3541,6 +3546,7 @@ const pemagic : array[0..3] of byte = (
             supported_targets : [system_arm_wince];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '';
             dollarsign: '$';
           );

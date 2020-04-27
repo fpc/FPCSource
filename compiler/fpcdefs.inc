@@ -295,6 +295,23 @@
   {$define cpurequiresproperalignment}
 {$endif riscv32}
 
+{$ifdef z80}
+  {$define cpu8bit}
+  {$define cpu16bitaddr}
+  {$define cpu8bitalu}
+  {$define cpufpemu}
+  {$define cpuflags}
+  {$define cpunofpu}
+  {$define cpunodefaultint}
+  {$define cpuneedsdivhelper}
+  {$define cpuneedsmulhelper}
+  {$define cpucapabilities}
+{$endif z80}
+
+{$IFDEF MACOS}
+{$DEFINE USE_FAKE_SYSUTILS}
+{$ENDIF MACOS}
+
 {$ifdef riscv64}
   {$define riscv}
   {$define cpu64bit}

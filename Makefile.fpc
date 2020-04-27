@@ -94,6 +94,9 @@ endif
 ifeq ($(CPU_TARGET),xtensa)
 PPSUF=xtensa
 endif
+ifeq ($(CPU_TARGET),z80)
+PPSUF=z80
+endif
 
 # cross compilers uses full cpu_target, not just ppc-suffix
 # (except if the target cannot run a native compiler)

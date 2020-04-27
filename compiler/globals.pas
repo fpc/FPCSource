@@ -561,6 +561,16 @@ interface
         asmcputype : cpu_none;
         fputype : fpu_none;
   {$endif xtensa}
+  {$ifdef z80}
+        cputype : cpu_zilog_z80;
+        optimizecputype : cpu_zilog_z80;
+        { Use cpu_none by default,
+        because using cpu_8086 by default means
+        that we reject any instruction above bare 8086 instruction set
+        for all assembler code PM }
+        asmcputype : cpu_none;
+        fputype : fpu_soft;
+  {$endif z80}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
 {$ifndef jvm}

@@ -524,6 +524,7 @@ implementation
                               system_i386_android,system_i386_aros];
          flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
          labelprefix : '.L';
+         labelmaxlen : -1;
          comment : '';
          dollarsign: '$';
        );

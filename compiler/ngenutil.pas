@@ -1516,6 +1516,18 @@ implementation
           );
           tcb.free;
         end;
+
+      { allocate the stack on the ZX Spectrum system }
+      if target_info.system in [system_z80_zxspectrum] then
+        begin
+          { tai_datablock cannot yet be handled via the high level typed const
+            builder, because it implies the generation of a symbol, while this
+            is separate in the builder }
+          maybe_new_object_file(current_asmdata.asmlists[al_globals]);
+          new_section(current_asmdata.asmlists[al_globals],sec_stack,'__fpc_stackarea_start',current_settings.alignment.varalignmax);
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_start',stacksize-1,carraydef.getreusable(u8inttype,stacksize-1),AT_DATA));
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_end',1,carraydef.getreusable(u8inttype,1),AT_DATA));
+        end;
 {$IFDEF POWERPC}
       { AmigaOS4 "stack cookie" support }
       if ( target_info.system = system_powerpc_amiga ) then
@@ -1547,7 +1559,7 @@ implementation
       tcb.free;
 
       { allocate an initial heap on embedded systems }
-      if target_info.system in (systems_embedded+systems_freertos) then
+      if target_info.system in (systems_embedded+systems_freertos+[system_z80_zxspectrum]) then
         begin
           { tai_datablock cannot yet be handled via the high level typed const
             builder, because it implies the generation of a symbol, while this

@@ -867,7 +867,8 @@ Implementation
 
 
         scripted_ar:=(target_ar.id=ar_gnu_ar_scripted) or
-                     (target_ar.id=ar_watcom_wlib_omf_scripted);
+                     (target_ar.id=ar_watcom_wlib_omf_scripted) or
+                     (target_ar.id=ar_sdcc_sdar_scripted);
 
         if scripted_ar then
           begin
@@ -876,7 +877,7 @@ Implementation
             Assign(script, scriptfile);
             Rewrite(script);
             try
-              if (target_ar.id=ar_gnu_ar_scripted) then
+              if (target_ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
                 writeln(script, 'CREATE ' + current_module.staticlibfilename)
               else { wlib case }
                 writeln(script,'-q -fo -c -b '+
@@ -884,13 +885,13 @@ Implementation
               current := TCmdStrListItem(SmartLinkOFiles.First);
               while current <> nil do
                 begin
-                  if (target_ar.id=ar_gnu_ar_scripted) then
+                  if (target_ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
                   writeln(script, 'ADDMOD ' + current.str)
                   else
                     writeln(script,'+' + current.str);
                   current := TCmdStrListItem(current.next);
                 end;
-              if (target_ar.id=ar_gnu_ar_scripted) then
+              if (target_ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
                 begin
                   writeln(script, 'SAVE');
                   writeln(script, 'END');
@@ -1742,6 +1743,23 @@ Implementation
             arfinishcmd : ''
           );
 
+      ar_sdcc_sdar_info : tarinfo =
+          ( id          : ar_sdcc_sdar;
+          addfilecmd  : '';
+          arfirstcmd  : '';
+          arcmd       : 'sdar qS $LIB $FILES';
+          arfinishcmd : 'sdar s $LIB'
+          );
+
+      ar_sdcc_sdar_scripted_info : tarinfo =
+          (
+            id    : ar_sdcc_sdar_scripted;
+            addfilecmd  : '';
+            arfirstcmd  : '';
+            arcmd : 'sdar -M < $SCRIPT';
+            arfinishcmd : ''
+          );
+
 
 initialization
   RegisterAr(ar_gnu_ar_info);
@@ -1749,4 +1767,6 @@ initialization
   RegisterAr(ar_gnu_gar_info);
   RegisterAr(ar_watcom_wlib_omf_info);
   RegisterAr(ar_watcom_wlib_omf_scripted_info);
+  RegisterAr(ar_sdcc_sdar_info);
+  RegisterAr(ar_sdcc_sdar_scripted_info);
 end.

@@ -86,7 +86,8 @@ const
     { 18 } 'sparc64',
     { 19 } 'riscv32',
     { 20 } 'riscv64',
-    { 21 } 'xtensa'
+    { 21 } 'xtensa',
+    { 22 } 'z80'
     );
 
   CpuHasController : array[tsystemcpu] of boolean =
@@ -112,7 +113,8 @@ const
     { 18 } false {'sparc64'},
     { 19 } false {'riscv32'},
     { 20 } false {'riscv64'},
-    { 21 } true  {'xtensa'}
+    { 21 } true  {'xtensa'},
+    { 22 } true  {'z80'}
     );
 
 { List of all supported system-cpu couples }
@@ -225,7 +227,9 @@ const
   { 104 } 'FreeRTos-Xtensa',
   { 105 } 'Linux-Xtensa',
   { 106 } 'FreeRTos-arm',
-  { 107 } 'Win64-AArch64'
+  { 107 } 'Win64-AArch64',
+  { 108 } 'Embedded-Z80',
+  { 109 } 'ZXSpectrum-Z80'
   );
 
 const

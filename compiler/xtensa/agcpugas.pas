@@ -176,6 +176,7 @@ unit agcpugas;
             supported_targets : [system_xtensa_embedded,system_xtensa_linux,system_xtensa_freertos];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: '$';
           );

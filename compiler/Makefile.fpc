@@ -32,7 +32,7 @@ fpcdir=..
 unexport FPC_VERSION FPC_COMPILERINFO
 
 # Which platforms are ready for inclusion in the cycle
-CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa
+CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa z80
 
 # All supported targets used for clean
 ALLTARGETS=$(CYCLETARGETS)
@@ -91,6 +91,9 @@ PPC_TARGET=riscv64
 endif
 ifdef XTENSA
 PPC_TARGET=xtensa
+endif
+ifdef Z80
+PPC_TARGET=z80
 endif
 
 # Default is to generate a compiler for the same
@@ -229,6 +232,9 @@ CPUSUF=rv64
 endif
 ifeq ($(CPC_TARGET),xtensa)
 CPUSUF=xtensa
+endif
+ifeq ($(CPC_TARGET),z80)
+CPUSUF=z80
 endif
 
 # Do not define the default -d$(CPU_TARGET) because that
@@ -398,6 +404,9 @@ ifeq ($(OS_TARGET),macos)
 NoNativeBinaries=1
 endif
 ifeq ($(OS_TARGET),freertos)
+NoNativeBinaries=1
+endif
+ifeq ($(OS_TARGET),zxspectrum)
 NoNativeBinaries=1
 endif
 
@@ -702,7 +711,11 @@ insdataarch64 : aarch64/a64ins.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mka64ins.pp
         cd aarch64 && ..$(PATHSEP)utils$(PATHSEP)mka64ins$(SRCEXEEXT)
 
-insdat: insdatx86 insdatarm insdataarch64
+insdatz80 : z80/z80ins.dat
+	$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkz80ins.pp
+        cd z80 && ..$(PATHSEP)utils$(PATHSEP)mkz80ins$(SRCEXEEXT)
+
+insdat: insdatx86 insdatarm insdataarch64 insdatz80
 
 regdatx86 : x86/x86reg.dat
 	$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkx86reg.pp
@@ -739,7 +752,11 @@ regdatmips : mips/mipsreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkmpsreg.pp
         cd mips && ..$(PATHSEP)utils$(PATHSEP)mkmpsreg$(SRCEXEEXT)
 
-regdat : regdatx86 regdatarm regdatsp regdatavr regdataarch64 regdatmips regdatsp64
+regdatz80 : z80/z80reg.dat
+            $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkz80reg.pp
+        cd z80 && ..$(PATHSEP)utils$(PATHSEP)mkz80reg$(SRCEXEEXT)
+
+regdat : regdatx86 regdatarm regdatsp regdatavr regdataarch64 regdatmips regdatsp64 regdatz80
 
 # revision.inc rule
 revision.inc :

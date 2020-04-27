@@ -758,6 +758,9 @@ begin
 {$ifdef llvm}
       'L',
 {$endif}
+{$ifdef z80}
+      'Z',
+{$endif}
       '*' : show:=true;
      end;
      if show then
@@ -3360,6 +3363,8 @@ begin
       lets disable the feature. }
     system_m68k_amiga:
       target_unsup_features:=[f_dynlibs];
+    system_z80_zxspectrum:
+      target_unsup_features:=[f_threading,f_dynlibs{,f_fileio,f_textio},f_commandargs,f_exitcode];
     else
       target_unsup_features:=[];
   end;
@@ -3783,6 +3788,13 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
       {$endif xtensa}
 
+      {$ifdef z80}
+        def_system_macro('CPUZ80');
+        def_system_macro('CPU16');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+      {$endif z80}
+
       {$if defined(cpu8bitalu)}
         def_system_macro('CPUINT8');
       {$elseif defined(cpu16bitalu)}
@@ -3940,7 +3952,7 @@ begin
     end;
 
   { Set up default value for the heap }
-  if target_info.system in (systems_embedded+systems_freertos) then
+  if target_info.system in (systems_embedded+systems_freertos+[system_z80_zxspectrum]) then
     begin
       case target_info.system of
 {$ifdef AVR}
@@ -4241,7 +4253,8 @@ begin
      ((target_info.system in [system_arm_wince,system_arm_gba,
          system_m68k_amiga,system_m68k_atari,
          system_arm_nds,system_arm_embedded,
-         system_riscv32_embedded,system_riscv64_embedded,system_xtensa_embedded])
+         system_riscv32_embedded,system_riscv64_embedded,system_xtensa_embedded,
+         system_z80_embedded,system_z80_zxspectrum])
 {$ifdef arm}
       or (target_info.abi=abi_eabi)
 {$endif arm}
@@ -4680,7 +4693,7 @@ begin
   option.free;
   Option:=nil;
 
-  clearstack_pocalls := [pocall_cdecl,pocall_cppdecl,pocall_syscall,pocall_mwpascal,pocall_sysv_abi_cdecl,pocall_ms_abi_cdecl];
+  clearstack_pocalls := [pocall_cdecl,pocall_cppdecl,pocall_syscall,pocall_mwpascal,pocall_sysv_abi_cdecl,pocall_ms_abi_cdecl{$ifdef z80},pocall_stdcall{$endif}];
   cdecl_pocalls := [pocall_cdecl, pocall_cppdecl, pocall_mwpascal, pocall_sysv_abi_cdecl, pocall_ms_abi_cdecl];
   if (tf_safecall_clearstack in target_info.flags) then
     begin

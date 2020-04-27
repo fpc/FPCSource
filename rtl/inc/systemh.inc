@@ -363,6 +363,26 @@ Type
   {$endif}
 {$endif CPUXTENSA}
 
+{$ifdef CPUZ80}
+  {$define DEFAULT_SINGLE}
+
+  {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
+  {$define FPC_INCLUDE_SOFTWARE_MUL}
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+
+  {$ifndef FPUNONE}
+    {$define SUPPORT_SINGLE}
+    {$define SUPPORT_DOUBLE}
+
+    {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
+    ValReal = Real;
+  {$endif}
+
+  FarPointer = Pointer;
+{$endif CPUZ80}
+
+
 {$if not declared(FarPointer)}
   FarPointer = Pointer;
 {$endif}
@@ -788,9 +808,14 @@ Var
 {$endif FPC_HAS_FEATURE_THREADING}
   ThreadID    : TThreadID;
   { Standard In- and Output }
+{$ifndef FPC_STDERR_IS_ALIAS_FOR_STDOUT}
   ErrOutput,
+{$endif FPC_STDERR_IS_ALIAS_FOR_STDOUT}
   Output,
   Input       : Text;
+{$ifdef FPC_STDERR_IS_ALIAS_FOR_STDOUT}
+  ErrOutput   : Text Absolute Output;
+{$endif FPC_STDERR_IS_ALIAS_FOR_STDOUT}
 {$ifndef FPC_STDOUT_TRUE_ALIAS}
   StdOut,
   StdErr      : Text;

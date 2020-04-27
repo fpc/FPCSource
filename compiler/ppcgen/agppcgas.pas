@@ -112,7 +112,7 @@ unit agppcgas;
                    not assigned(symbol) then
                   internalerror(2011122701);
                 if asminfo^.dollarsign<>'$' then
-                  getreferencestring:=ReplaceForbiddenAsmSymbolChars(symbol.name)+'('+gas_regname(NR_RTOC)+')'
+                  getreferencestring:=ApplyAsmSymbolRestrictions(symbol.name)+'('+gas_regname(NR_RTOC)+')'
                 else
                   getreferencestring:=symbol.name+'('+gas_regname(NR_RTOC)+')';
                 exit;
@@ -128,9 +128,9 @@ unit agppcgas;
                   begin
                     if asminfo^.dollarsign<>'$' then
                       begin
-                        s:=s+ReplaceForbiddenAsmSymbolChars(symbol.name);
+                        s:=s+ApplyAsmSymbolRestrictions(symbol.name);
                         if assigned(relsymbol) then
-                          s:=s+'-'+ReplaceForbiddenAsmSymbolChars(relsymbol.name)
+                          s:=s+'-'+ApplyAsmSymbolRestrictions(relsymbol.name)
                       end
                     else
                       begin
@@ -206,7 +206,7 @@ unit agppcgas;
               internalerror(200402267);
             hs:=o.ref^.symbol.name;
             if asminfo^.dollarsign<>'$' then
-              hs:=ReplaceForbiddenAsmSymbolChars(hs);
+              hs:=ApplyAsmSymbolRestrictions(hs);
             if o.ref^.offset>0 then
               hs:=hs+'+'+tostr(o.ref^.offset)
             else
@@ -236,7 +236,7 @@ unit agppcgas;
             begin
               hs:=o.ref^.symbol.name;
               if asminfo^.dollarsign<>'$' then
-                hs:=ReplaceForbiddenAsmSymbolChars(hs);
+                hs:=ApplyAsmSymbolRestrictions(hs);
               if o.ref^.offset>0 then
                hs:=hs+'+'+tostr(o.ref^.offset)
               else
@@ -646,6 +646,7 @@ unit agppcgas;
          supported_targets : [system_powerpc_linux,system_powerpc_netbsd,system_powerpc_openbsd,system_powerpc_MorphOS,system_powerpc_Amiga,system_powerpc64_linux,system_powerpc_embedded,system_powerpc64_embedded];
          flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign: '$';
        );
@@ -664,6 +665,7 @@ unit agppcgas;
          supported_targets : [system_powerpc_morphos];
          flags : [af_needar];
          labelprefix : '.L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign: '$';
        );
@@ -678,6 +680,7 @@ unit agppcgas;
          supported_targets : [system_powerpc_darwin,system_powerpc64_darwin];
          flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
          labelprefix : 'L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign : '$';
        );
@@ -701,6 +704,7 @@ unit agppcgas;
          supported_targets : [system_powerpc_aix,system_powerpc64_aix];
          flags : [af_needar,af_smartlink_sections,af_stabs_use_function_absolute_addresses];
          labelprefix : 'L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign : '.'
        );
@@ -723,6 +727,7 @@ unit agppcgas;
          supported_targets : [system_powerpc_aix,system_powerpc64_aix];
          flags : [af_needar,af_smartlink_sections,af_stabs_use_function_absolute_addresses];
          labelprefix : 'L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign : '.'
        );
@@ -736,6 +741,7 @@ unit agppcgas;
          supported_targets : [system_powerpc_macos, system_powerpc_darwin, system_powerpc64_darwin];
          flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
          labelprefix : 'L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign: '$';
        );

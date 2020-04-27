@@ -3818,6 +3818,7 @@ new features, etc.):
 #    s = Sparc64 targets
 #    V = AVR
 #    x = xtensa targets
+#    Z = Z80
 # The second character also indicates who will display this line,
 # (if the above character was TRUE) the current possibilities are :
 #    * = everyone
@@ -3880,6 +3881,8 @@ F*0*_Only options valid for the default or selected platform are listed.
 A*2Aas_Assemble using GNU AS
 P*2Aas_Assemble using GNU AS
 S*2Aas_Assemble using GNU AS
+Z*2Asdcc-sdasz80_Assemble using SDCC-SDASZ80
+Z*2Az80asm_Assemble using z80asm
 # Used only internally by IDE
 **1b_Generate browser info
 **2bl_Generate local symbol info
@@ -4191,6 +4194,9 @@ V*2Tembedded_Embedded
 x*2Tembedded_Embedded
 x*2Tfreertos_FreeRTOS
 x*2Tlinux_Linux
+# z80 targets
+Z*2Tembedded_Embedded
+Z*2Tzxspectrum_ZX Spectrum
 # end of targets section
 **1u<x>_Undefines the symbol <x>
 **1U_Unit options:

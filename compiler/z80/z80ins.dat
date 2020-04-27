@@ -1,0 +1,381 @@
+; legend:
+; r      - 8-bit register: A/B/C/D/E/H/L
+; r'     - 8-bit register: A/B/C/D/E/H/L
+; b      - 3-bit immediate value (bit number: [0..7])
+; n      - 8-bit immediate value
+; p      - immediate value in [$00,$08,$10,$18,$20,$28,$30,$38]
+; e      - 8-bit relative jump offset
+; nn     - 16-bit immediate value
+; 0      - the immediate value 0
+; 1      - the immediate value 1
+; 2      - the immediate value 2
+; cc     - condition: NZ/Z/NC/C/PO/PE/P/M
+; C      - condition C
+; NC     - condition NC
+; Z      - condition Z
+; NZ     - condition NZ
+; dd     - 16-bit register pair: BC/DE/HL/SP
+; qq     - 16-bit register pair: BC/DE/HL/AF
+; pp     - 16-bit register pair: BC/DE/IX/SP
+; rr     - 16-bit register pair: BC/DE/IY/SP
+; A      - register A
+; I      - register I
+; R      - register R
+; IX     - register IX
+; IY     - register IY
+; SP     - register SP
+; DE     - 16-bit register pair DE
+; HL     - 16-bit register pair HL
+; AF     - 16-bit register pair AF
+; AF'    - alternate register set, 16-bit register pair AF'
+; (C)    - implied parameter of the IN and OUT instructions
+; (n)    - 8-bit immediate port number for the IN and OUT instructions
+; (nn)   - memory contents at address (nn = 16-bit immediate address)
+; (BC)   - memory contents at address in register BC
+; (DE)   - memory contents at address in register DE
+; (HL)   - memory contents at address in register HL
+; (SP)   - memory contents at address in register SP
+; (IX)   - memory contents at address in register IX
+; (IY)   - memory contents at address in register IY
+; (IX+d) - memory contents at address in register IX+d, d is in [-128..127]
+; (IY+d) - memory contents at address in register IY+d, d is in [-128..127]
+
+[None]
+void                  void
+
+[ADC]
+A,r                   %10001rrr
+A,n                   $CE,n
+A,(HL)                $8E
+A,(IX+d)              $DD,$8E,d
+A,(IY+d)              $FD,$8E,d
+HL,dd                 $ED,%01dd1010
+
+[ADD]
+A,r                   %10000rrr
+A,n                   $C6,n
+A,(HL)                $86
+A,(IX+d)              $DD,$86,d
+A,(IY+d)              $FD,$86,d
+HL,dd                 %00dd1001
+IX,pp                 $DD,%00pp1001
+IY,rr                 $FD,%00rr1001
+
+[AND]
+A,r                   %10100rrr
+A,n                   $E6,n
+A,(HL)                $A6
+A,(IX+d)              $DD,$A6,d
+A,(IY+d)              $FD,$A6,d
+
+[BIT]
+b,r                   $CB,%01bbbrrr
+b,(HL)                $CB,%01bbb110
+b,(IX+d)              $DD,$CB,d,%01bbb110
+b,(IY+d)              $FD,$CB,d,%01bbb110
+
+[CALL]
+nn                    $CD,nn
+cc,nn                 %11ccc100,nn
+
+[CCF]
+void                  $3F
+
+[CP]
+A,r                   %10111rrr
+A,n                   $FE,n
+A,(HL)                $BE
+A,(IX+d)              $DD,$BE,d
+A,(IY+d)              $FD,$BE,d
+
+[CPD]
+void                  $ED,$A9
+
+[CPDR]
+void                  $ED,$B9
+
+[CPI]
+void                  $ED,$A1
+
+[CPIR]
+void                  $ED,$B1
+
+[CPL]
+void                  $2F
+
+[DAA]
+void                  $27
+
+[DEC]
+r                     %00rrr101
+(HL)                  $35
+(IX+d)                $DD,$35,d
+(IY+d)                $FD,$35,d
+dd                    %00dd1011
+IX                    $DD,$2B
+IY                    $FD,$2B
+
+[DI]
+void                  $F3
+
+[DJNZ]
+e                     $10,e
+
+[EI]
+void                  $FB
+
+[EX]
+DE,HL                 $EB
+AF,AF'                $08
+(SP),HL               $E3
+(SP),IX               $DD,$E3
+(SP),IY               $FD,$E3
+
+[EXX]
+void                  $D9
+
+[HALT]
+void                  $76
+
+[IM]
+0                     $ED,$46
+1                     $ED,$56
+2                     $ED,$5E
+
+[IN]
+A,(n)                 $DB,n
+r,(C)                 $ED,%01rrr000
+
+[INC]
+r                     %00rrr100
+(HL)                  $34
+(IX+d)                $DD,$34,d
+(IY+d)                $FD,$34,d
+dd                    %00dd0011
+IX                    $DD,$23
+IY                    $FD,$23
+
+[IND]
+void                  $ED,$AA
+
+[INDR]
+void                  $ED,$BA
+
+[INI]
+void                  $ED,$A2
+
+[INIR]
+void                  $ED,$B2
+
+[JP]
+nn                    $C3,nn
+cc,nn                 %11ccc010,nn
+(HL)                  $E9
+(IX)                  $DD,$E9
+(IY)                  $FD,$E9
+
+[JR]
+e                     $18,e
+C,e                   $38,e
+NC,e                  $30,e
+Z,e                   $28,e
+NZ,e                  $20,e
+
+[LD]
+r,r'                  %01rrrr'r'r'
+r,n                   %00rrr110,n
+r,(HL)                %01rrr110
+r,(IX+d)              $DD,%01rrr110,d
+r,(IY+d)              $FD,%01rrr110,d
+(HL),r                %01110rrr
+(IX+d),r              $DD,%01110rrr,d
+(IY+d),r              $FD,%01110rrr,d
+(HL),n                $36,n
+(IX+d),n              $DD,$36,d,n
+(IY+d),n              $FD,$36,d,n
+A,(BC)                $0A
+A,(DE)                $1A
+A,(nn)                $3A,nn
+(BC),A                $02
+(DE),A                $12
+(nn),A                $32,nn
+A,I                   $ED,$57
+A,R                   $ED,$5F
+I,A                   $ED,$47
+R,A                   $ED,$4F
+dd,nn                 %00dd0001,nn
+IX,nn                 $DD,$21,nn
+IY,nn                 $FD,$21,nn
+HL,(nn)               $2A,nn
+dd,(nn)               $ED,%01dd1011,nn
+IX,(nn)               $DD,$2A,nn
+IY,(nn)               $FD,$2A,nn
+(nn),HL               $22,nn
+(nn),dd               $ED,%01dd0011,nn
+(nn),IX               $DD,$22,nn
+(nn),IY               $FD,$22,nn
+SP,HL                 $F9
+SP,IX                 $DD,$F9
+SP,IY                 $FD,$F9
+
+[LDD]
+void                  $ED,$A8
+
+[LDDR]
+void                  $ED,$B8
+
+[LDI]
+void                  $ED,$A0
+
+[LDIR]
+void                  $ED,$B0
+
+[NEG]
+void                  $ED,$44
+
+[NOP]
+void                  $00
+
+[OR]
+A,r                   %10110rrr
+A,n                   $F6,n
+A,(HL)                $B6
+A,(IX+d)              $DD,$B6,d
+A,(IY+d)              $FD,$B6,d
+
+[OTDR]
+void                  $ED,$BB
+
+[OTIR]
+void                  $ED,$B3
+
+[OUT]
+(n),A                 $D3,n
+(C),r                 $ED,%01rrr001
+
+[OUTD]
+void                  $ED,$AB
+
+[OUTI]
+void                  $ED,$A3
+
+[POP]
+qq                    %11qq0001
+IX                    $DD,$E1
+IY                    $FD,$E1
+
+[PUSH]
+qq                    %11qq0101
+IX                    $DD,$E5
+IY                    $FD,$E5
+
+[RES]
+b,r                   $CB,%10bbbrrr
+b,(HL)                $CB,%10bbb110
+b,(IX+d)              $DD,$CB,d,%10bbb110
+b,(IY+d)              $FD,$CB,d,%10bbb110
+
+[RET]
+void                  $C9
+cc                    %11ccc000
+
+[RETI]
+void                  $ED,$4D
+
+[RETN]
+void                  $ED,$45
+
+[RL]
+r                     $CB,%00010rrr
+(HL)                  $CB,$16
+(IX+d)                $DD,$CB,d,$16
+(IY+d)                $FD,$CB,d,$16
+
+[RLA]
+void                  $17
+
+[RLC]
+r                     $CB,%00000rrr
+(HL)                  $CB,$06
+(IX+d)                $DD,$CB,d,$06
+(IY+d)                $FD,$CB,d,$06
+
+[RLCA]
+void                  $07
+
+[RLD]
+void                  $ED,$6F
+
+[RR]
+r                     $CB,%00001rrr
+(HL)                  $CB,$1E
+(IX+d)                $DD,$CB,d,$1E
+(IY+d)                $FD,$CB,d,$1E
+
+[RRA]
+void                  $1F
+
+[RRC]
+r                     $CB,%00001rrr
+(HL)                  $CB,$0E
+(IX+d)                $DD,$CB,d,$0E
+(IY+d)                $FD,$CB,d,$0E
+
+[RRCA]
+void                  $0F
+
+[RRD]
+void                  $ED,$67
+
+[RST]
+p                     %11ppp111
+
+[SBC]
+A,r                   %10011rrr
+A,n                   $DE,n
+A,(HL)                $9E
+A,(IX+d)              $DD,$9E,d
+A,(IY+d)              $FD,$9E,d
+HL,dd                 $ED,%01dd0010
+
+[SCF]
+void                  $37
+
+[SET]
+b,r                   $CB,%11bbbrrr
+b,(HL)                $CB,%11bbb110
+b,(IX+d)              $DD,$CB,d,%11bbb110
+b,(IY+d)              $FD,$CB,d,%11bbb110
+
+[SLA]
+r                     $CB,%00100rrr
+(HL)                  $CB,$26
+(IX+d)                $DD,$CB,d,$26
+(IY+d)                $FD,$CB,d,$26
+
+[SRA]
+r                     $CB,%00101rrr
+(HL)                  $CB,$2E
+(IX+d)                $DD,$CB,d,$2E
+(IY+d)                $FD,$CB,d,$2E
+
+[SRL]
+r                     $CB,%00111rrr
+(HL)                  $CB,$3E
+(IX+d)                $DD,$CB,d,$3E
+(IY+d)                $FD,$CB,d,$3E
+
+[SUB]
+A,r                   %10010rrr
+A,n                   $D6,n
+A,(HL)                $96
+A,(IX+d)              $DD,$96,d
+A,(IY+d)              $FD,$96,d
+
+[XOR]
+A,r                   %10101rrr
+A,n                   $EE,n
+A,(HL)                $AE
+A,(IX+d)              $DD,$AE,d
+A,(IY+d)              $FD,$AE,d
+
