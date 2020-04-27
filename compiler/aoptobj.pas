@@ -341,6 +341,9 @@ Unit AoptObj;
         { removes p from asml, updates registers and replaces it by a valid value, if this is the case true is returned }
         function RemoveCurrentP(var p : tai): boolean;
 
+        { removes p from asml, updates registers and replaces p with hp1 (if the next instruction was known beforehand) }
+        procedure RemoveCurrentP(var p: tai; const hp1: tai); inline;
+
        { traces sucessive jumps to their final destination and sets it, e.g.
          je l1                je l3
          <code>               <code>
@@ -1495,6 +1498,15 @@ Unit AoptObj;
         AsmL.Remove(p);
         p.Free;
         p:=hp1;
+      end;
+
+
+    procedure TAOptObj.RemoveCurrentP(var p: tai; const hp1: tai); inline;
+      begin
+        UpdateUsedRegs(tai(p.Next));
+        AsmL.Remove(p);
+        p.Free;
+        p := hp1;
       end;
 
 

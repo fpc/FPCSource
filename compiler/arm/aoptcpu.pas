@@ -1518,9 +1518,7 @@ Implementation
                             DebugMsg('Peephole AndStrb2Strb done', p);
                             taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
                             AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
-                            GetNextInstruction(p, hp1);
                             RemoveCurrentP(p);
-                            p:=hp1;
                             result:=true;
                           end
                         {
@@ -1792,8 +1790,7 @@ Implementation
                             AllocRegBetween(taicpu(hp1).oper[3]^.reg,p,hp1,UsedRegs);
 
                             taicpu(hp1).ops:=4;
-                            RemoveCurrentP(p);
-                            p:=hp1;
+                            RemoveCurrentP(p, hp1); // <-- Is this actually safe? hp1 is not necessarily the next instruction. [Kit]
                           end;
 
                         result:=true;

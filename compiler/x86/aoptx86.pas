@@ -1085,10 +1085,8 @@ unit aoptx86;
             if (taicpu(p).ops = 2) then
              { remove "imul $1, reg" }
               begin
-                hp1 := tai(p.Next);
                 DebugMsg(SPeepholeOptimization + 'Imul2Nop done',p);
-                RemoveCurrentP(p);
-                result:=true;
+                Result := RemoveCurrentP(p);
               end
             else
              { change "imul $1, reg1, reg2" to "mov reg1, reg2" }
@@ -1138,7 +1136,7 @@ unit aoptx86;
                   AsmL.InsertAfter(hp1,p);
                   DebugMsg(SPeepholeOptimization + 'Imul2LeaShl done',p);
                   taicpu(hp1).fileinfo:=taicpu(p).fileinfo;
-                  RemoveCurrentP(p);
+                  RemoveCurrentP(p, hp1);
                   if ShiftValue>0 then
                     AsmL.InsertAfter(taicpu.op_const_reg(A_SHL, opsize, ShiftValue, taicpu(hp1).oper[1]^.reg),hp1);
               end;
@@ -1395,9 +1393,7 @@ unit aoptx86;
               <nop> }
             if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
               begin
-                GetNextInstruction(p,hp1);
                 RemoveCurrentP(p);
-                p:=hp1;
                 result:=true;
                 exit;
               end
@@ -1539,10 +1535,9 @@ unit aoptx86;
                     if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2,TmpUsedRegs)) then
                       begin
                         taicpu(hp1).loadoper(2,taicpu(p).oper[0]^);
-                        RemoveCurrentP(p);
+                        RemoveCurrentP(p, hp1); // <-- Is this actually safe? hp1 is not necessarily the next instruction. [Kit]
                         asml.Remove(hp2);
                         hp2.Free;
-                        p:=hp1;
                       end;
                   end
                 else if (hp1.typ = ait_instruction) and
@@ -1578,11 +1573,11 @@ unit aoptx86;
                         { we cannot eliminate the first move if
                           the operations uses the same register for source and dest }
                         if not(OpsEqual(taicpu(hp1).oper[1]^,taicpu(hp1).oper[0]^)) then
-                          RemoveCurrentP(p);
+                          RemoveCurrentP(p, nil);
+                        p:=hp1;
                         taicpu(hp1).loadoper(1, taicpu(hp2).oper[1]^);
                         asml.remove(hp2);
                         hp2.Free;
-                        p:=hp1;
                         result:=true;
                       end;
                   end;
@@ -1843,8 +1838,7 @@ unit aoptx86;
           begin
             DebugMsg(SPeepholeOptimization + 'Mov2Nop 1 done',p);
             { take care of the register (de)allocs following p }
-            RemoveCurrentP(p);
-            p:=hp1;
+            RemoveCurrentP(p, hp1);
             Result:=true;
             exit;
           end;
@@ -2072,7 +2066,7 @@ unit aoptx86;
                           begin
                             DebugMsg(SPeepholeOptimization + 'MovMovXX2MovXX 1 done',p);
                             taicpu(hp1).loadref(0,taicpu(p).oper[0]^.ref^);
-                            RemoveCurrentP(p);
+                            RemoveCurrentP(p, hp1);
                             Result:=True;
                             Exit;
                           end;
@@ -2088,8 +2082,7 @@ unit aoptx86;
               else
                 begin
                   DebugMsg(SPeepholeOptimization + 'Mov2Nop 5 done',p);
-                  RemoveCurrentP(p);
-                  p:=hp1;
+                  RemoveCurrentP(p, hp1);
                   Result := True;
                   Exit;
                 end;
@@ -2567,8 +2560,7 @@ unit aoptx86;
 
                           { We can remove the original MOV too }
                           DebugMsg(SPeepholeOptimization + 'MovMov2NopNop 6b done',p);
-                          RemoveCurrentP(p);
-                          p:=hp1;
+                          RemoveCurrentP(p, hp1);
                           Result:=true;
                           Exit;
                         end;
@@ -2589,8 +2581,7 @@ unit aoptx86;
                       else
                         begin
                           DebugMsg(SPeepholeOptimization + 'MovMov2Mov 6 done',p);
-                          RemoveCurrentP(p);
-                          p:=hp1;
+                          RemoveCurrentP(p, hp1);
                           Result:=true;
                           Exit;
                         end;
@@ -2625,8 +2616,7 @@ unit aoptx86;
                         else
                           begin
                             DebugMsg(SPeepholeOptimization + 'MovMov2Mov 7 done',p);
-                            RemoveCurrentP(p);
-                            p:=hp1;
+                            RemoveCurrentP(p, hp1);
                             Result:=true;
                             Exit;
                           end;
@@ -2786,7 +2776,7 @@ unit aoptx86;
                     }
                     asml.remove(hp2);
                     hp2.Free;
-                    RemoveCurrentP(p);
+                    RemoveCurrentP(p, hp1);
                     Result:=True;
                     Exit;
                   end;
@@ -3222,7 +3212,7 @@ unit aoptx86;
                             if not(taicpu(p).oper[0]^.ref^.scalefactor in [0,1]) then
                               taicpu(hp1).oper[ref]^.ref^.scalefactor:=taicpu(p).oper[0]^.ref^.scalefactor;
                             inc(taicpu(hp1).oper[ref]^.ref^.offset,taicpu(p).oper[0]^.ref^.offset);
-                            RemoveCurrentP(p);
+                            RemoveCurrentP(p, hp1);
                             result:=true;
                             exit;
                           end
@@ -4808,8 +4798,7 @@ unit aoptx86;
                           Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[0]^);
                         Taicpu(hp1).loadconst(0,0);
                         Taicpu(hp1).opcode:=carryadd_opcode;
-                        RemoveCurrentP(p);
-                        p:=hp1;
+                        RemoveCurrentP(p, hp1);
                         result:=true;
                         exit;
                       end;
@@ -5530,8 +5519,7 @@ unit aoptx86;
                   ((MaskLength+taicpu(hp1).oper[0]^.val)>=topsize2memsize[taicpu(hp1).opsize]) then
                   begin
                     DebugMsg(SPeepholeOptimization + 'AndShlToShl done',p);
-                    RemoveCurrentP(p);
-                    p:=hp1;
+                    RemoveCurrentP(p, hp1);
                     Result:=true;
                     exit;
                   end;
@@ -5704,7 +5692,7 @@ unit aoptx86;
         end;
 
       var
-        hp1, hp2, hp3: tai;
+        hp1, hp2, hp3, hp4: tai;
       begin
         Result:=false;
         { replace
@@ -5730,6 +5718,8 @@ unit aoptx86;
           (taicpu(p).oper[0]^.ref^.segment=NR_NO) and
           (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG) and
           GetNextInstruction(p, hp1) and
+          { Take a copy of hp1 }
+          SetAndTest(hp1, hp4) and
           { trick to skip label }
           ((hp1.typ=ait_instruction) or GetNextInstruction(hp1, hp1)) and
           SkipSimpleInstructions(hp1) and
@@ -5753,7 +5743,7 @@ unit aoptx86;
             taicpu(hp1).opcode := A_JMP;
             taicpu(hp1).is_jmp := true;
             DebugMsg(SPeepholeOptimization + 'LeaCallLeaRet2Jmp done',p);
-            RemoveCurrentP(p);
+            RemoveCurrentP(p, hp4);
             AsmL.Remove(hp2);
             hp2.free;
             AsmL.Remove(hp3);
