@@ -36,7 +36,7 @@ Type
    tcputype =
       (cpu_none,
        cpu_zilog_z80,
-       cpu_ez80
+       cpu_zilog_ez80
       );
 
    tfputype =
@@ -122,7 +122,7 @@ Const
    cpu_capabilities : array[tcputype] of set of tcpuflags =
      ( { cpu_none  } [],
        { cpu_zilog_z80  } [],
-       { cpu_ez80 } [CPUZ80_HAS_CALLCC]
+       { cpu_zilog_ez80 } [CPUZ80_HAS_CALLCC]
      );
 
 Implementation
