@@ -724,7 +724,7 @@ unit i_embed;
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
                             tf_smartlink_library,
                             tf_no_objectfiles_when_smartlinking];
-            cpu          : cpu_sys_z80;
+            cpu          : cpu_z80;
             unit_env     : '';
             extradefines : '';
             exeext       : '';
