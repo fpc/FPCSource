@@ -108,13 +108,44 @@ function get_frame:pointer;assembler;nostackframe;
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;
+  label
+    framebp_null;
   asm
+    ld l, (framebp)
+    ld h, (framebp+1)
+
+    ld a, l
+    or a, h
+    jp Z, framebp_null
+
+    inc hl
+    inc hl
+
+    ld e, (hl)
+    inc hl
+    ld d, (hl)
+    ex de, hl
+framebp_null:
   end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;
+  label
+    framebp_null;
   asm
+    ld l, (framebp)
+    ld h, (framebp+1)
+
+    ld a, l
+    or a, h
+    jp Z, framebp_null
+
+    ld e, (hl)
+    inc hl
+    ld d, (hl)
+    ex de, hl
+framebp_null:
   end;
 
 
