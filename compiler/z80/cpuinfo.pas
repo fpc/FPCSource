@@ -35,7 +35,7 @@ Type
    { possible supported processors for this target }
    tcputype =
       (cpu_none,
-       cpu_z80,
+       cpu_zilog_z80,
        cpu_ez80
       );
 
@@ -121,7 +121,7 @@ Const
  const
    cpu_capabilities : array[tcputype] of set of tcpuflags =
      ( { cpu_none  } [],
-       { cpu_z80  } [],
+       { cpu_zilog_z80  } [],
        { cpu_ez80 } [CPUZ80_HAS_CALLCC]
      );
 
