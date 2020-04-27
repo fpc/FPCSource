@@ -474,6 +474,8 @@ uses
         validparam : boolean;
       begin
         result:=true;
+        prettyname:='';
+        prettynamepart:='';
         if paramlist=nil then
           internalerror(2012061401);
         { set the block type to type, so that the parsed type are returned as
@@ -501,10 +503,7 @@ uses
               end;
           end
         else
-          begin
-            specializename:='$';
-            prettyname:='';
-          end;
+          specializename:='$';
         while not (token in [_GT,_RSHARPBRACKET]) do
           begin
             { "first" is set to false at the end of the loop! }
