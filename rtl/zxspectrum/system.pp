@@ -241,8 +241,8 @@ end;
 procedure GotoXY(X, Y: Byte);
 begin
   PrintChar(#22);
-  PrintChar(Char(X-1));
   PrintChar(Char(Y-1));
+  PrintChar(Char(X-1));
 end;
 
 procedure PrintShortString(const s: ShortString);
