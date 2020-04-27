@@ -60,7 +60,7 @@ implementation
               location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
               cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,NR_L,location.register);
               cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_L);
-              cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,NR_H,GetNextReg(location.register));
+              cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_8,OS_8,NR_H,cg.GetNextReg(location.register));
               cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_H);
             end;
         end;

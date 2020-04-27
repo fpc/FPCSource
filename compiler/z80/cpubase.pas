@@ -288,19 +288,6 @@ unit cpubase;
     function dwarf_reg_no_error(r:tregister):shortint;
     function eh_return_data_regno(nr: longint): longint;
 
-    function GetHigh(const r : TRegister) : TRegister;
-
-    { returns the next virtual register }
-    function GetNextReg(const r : TRegister) : TRegister;
-
-    { returns the last virtual register }
-    function GetLastReg(const r : TRegister) : TRegister;
-
-    { returns the register with the offset of ofs of a continuous set of register starting with r }
-    function GetOffsetReg(const r : TRegister;ofs : shortint) : TRegister;
-    { returns the register with the offset of ofs of a continuous set of register starting with r and being continued with rhi }
-    function GetOffsetReg64(const r,rhi: TRegister;ofs : shortint): TRegister;
-
     function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
 
   implementation
@@ -461,39 +448,6 @@ unit cpubase;
     function eh_return_data_regno(nr: longint): longint;
       begin
         result:=-1;
-      end;
-
-
-    function GetHigh(const r : TRegister) : TRegister;
-      begin
-        result:=TRegister(longint(r)+1)
-      end;
-
-
-    function GetNextReg(const r: TRegister): TRegister;
-      begin
-        result:=TRegister(longint(r)+1);
-      end;
-
-
-    function GetLastReg(const r: TRegister): TRegister;
-      begin
-        result:=TRegister(longint(r)-1);
-      end;
-
-
-    function GetOffsetReg(const r: TRegister;ofs : shortint): TRegister;
-      begin
-        result:=TRegister(longint(r)+ofs);
-      end;
-
-
-    function GetOffsetReg64(const r,rhi: TRegister;ofs : shortint): TRegister;
-      begin
-        if ofs>3 then
-          result:=TRegister(longint(rhi)+ofs-4)
-        else
-          result:=TRegister(longint(r)+ofs);
       end;
 
 
