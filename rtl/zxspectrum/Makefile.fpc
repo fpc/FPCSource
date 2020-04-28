@@ -5,7 +5,7 @@
 main=rtl
 [target]
 loaders=prt0
-units=system
+units=system si_prc
 
 [require]
 nortl=y
@@ -54,11 +54,14 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 
 prt0$(OEXT) : prt0.asm
-	$(MAKE) $(COMPILER_UNITTARGETDIR)
+        $(MAKE) $(COMPILER_UNITTARGETDIR)
         sdcc-sdasz80 -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) prt0.asm
 #
 # System Units (System, Objpas, Strings)
 #
 system$(PPUEXT) : system.pp $(SYSDEPS)
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-	$(EXECPPAS)
+        $(EXECPPAS)
+
+si_prc$(PPUEXT) : system$(PPUEXT)
+        $(COMPILER) si_prc.pp
