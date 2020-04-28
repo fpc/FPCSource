@@ -1947,13 +1947,7 @@ type
     destructor Destroy; override;
     { Note: Once closures are supported aProc will be changed to TProc }
     class function CreateAnonymousThread(aProc: TProcedure): TThread; static;
-    { Use HAS_TTHREAD_NAMETHREADFORDEBUGGING to implement a platform specific
-      variant of the UnicodeString method. The AnsiString method calls the
-      UnicodeString method. If your platform's API only supports AnsiString you
-      can additionally define THREADNAME_IS_ANSISTRING to swap the logic. Then
-      the UnicodeString variant will call the AnsiString variant which can be
-      implemented for a specific platform }
-    class procedure NameThreadForDebugging(aThreadName: UnicodeString; aThreadID: TThreadID = TThreadID(-1)); static;
+    class procedure NameThreadForDebugging(aThreadName: UnicodeString; aThreadID: TThreadID = TThreadID(-1)); static; inline;
     class procedure NameThreadForDebugging(aThreadName: AnsiString; aThreadID: TThreadID = TThreadID(-1)); static; inline;
     class procedure SetReturnValue(aValue: Integer); static;
     class function CheckTerminated: Boolean; static;

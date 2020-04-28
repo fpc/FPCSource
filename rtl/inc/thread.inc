@@ -212,6 +212,18 @@ begin
   Result:=CurrentTM.GetCurrentThreadID();
 end;
 
+procedure SetThreadDebugName(threadHandle: TThreadID; const ThreadName: AnsiString);
+begin
+  CurrentTM.SetThreadDebugNameA(threadHandle, ThreadName);
+end;
+
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+procedure SetThreadDebugName(threadHandle: TThreadID; const ThreadName: UnicodeString);
+begin
+  CurrentTM.SetThreadDebugNameU(threadHandle, ThreadName);
+end;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
+
 procedure InitCriticalSection(var cs : TRTLCriticalSection);
 
 begin
@@ -410,6 +422,18 @@ begin
   result:=TThreadID(1);
 end;
 
+procedure NoSetThreadDebugNameA(threadHandle: TThreadID; const ThreadName: AnsiString);
+begin
+  NoThreadError;
+end;
+
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+procedure NoSetThreadDebugNameU(threadHandle: TThreadID; const ThreadName: UnicodeString);
+begin
+  NoThreadError;
+end;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
+
 procedure NoCriticalSection(var CS);
 
 begin
@@ -518,6 +542,10 @@ const
          ThreadSetPriority      : TThreadSetPriorityHandler(@NoThreadError);
          ThreadGetPriority      : TThreadGetPriorityHandler(@NoThreadError);
          GetCurrentThreadId     : @NoGetCurrentThreadId;
+         SetThreadDebugNameA    : TThreadSetThreadDebugNameHandlerA(@NoThreadError);
+         {$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+         SetThreadDebugNameU    : TThreadSetThreadDebugNameHandlerU(@NoThreadError);
+         {$endif FPC_HAS_FEATURE_UNICODESTRINGS}
          InitCriticalSection    : TCriticalSectionHandler(@NoThreadError);
          DoneCriticalSection    : TCriticalSectionHandler(@NoThreadError);
          EnterCriticalSection   : TCriticalSectionHandler(@NoThreadError);
@@ -550,6 +578,10 @@ const
          ThreadSetPriority      : @NoThreadSetPriority;
          ThreadGetPriority      : @NoThreadGetPriority;
          GetCurrentThreadId     : @NoGetCurrentThreadId;
+         SetThreadDebugNameA    : @NoSetThreadDebugNameA;
+         {$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+         SetThreadDebugNameU    : @NoSetThreadDebugNameU;
+         {$endif FPC_HAS_FEATURE_UNICODESTRINGS}
          InitCriticalSection    : @NoCriticalSection;
          DoneCriticalSection    : @NoCriticalSection;
          EnterCriticalSection   : @NoCriticalSection;

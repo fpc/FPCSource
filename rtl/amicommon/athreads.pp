@@ -748,6 +748,18 @@ begin
 end;
 
 
+procedure ASetThreadDebugNameA(threadHandle: TThreadID; const ThreadName: AnsiString);
+begin
+  {$Warning SetThreadDebugName needs to be implemented}
+end;
+
+
+procedure ASetThreadDebugNameU(threadHandle: TThreadID; const ThreadName: UnicodeString);
+begin
+  ASetThreadDebugNameA(threadHandle, AnsiString(ThreadName));
+end;
+
+
 Type  PINTRTLEvent = ^TINTRTLEvent;
       TINTRTLEvent = record
         isset: boolean;
@@ -1230,6 +1242,8 @@ begin
     ThreadSetPriority      :=@AThreadSetPriority;
     ThreadGetPriority      :=@AThreadGetPriority;
     GetCurrentThreadId     :=@AGetCurrentThreadId;
+    SetThreadDebugNameA    :=@ASetThreadDebugNameA;
+    SetThreadDebugNameU    :=@ASetThreadDebugNameU;
     InitCriticalSection    :=@AInitCriticalSection;
     DoneCriticalSection    :=@ADoneCriticalSection;
     EnterCriticalSection   :=@AEnterCriticalSection;

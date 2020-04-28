@@ -670,36 +670,20 @@ begin
 end;
 
 
-{$ifdef THREADNAME_IS_ANSISTRING}
-{ the platform implements the AnsiString variant and the UnicodeString variant
-  simply calls the AnsiString variant }
 class procedure TThread.NameThreadForDebugging(aThreadName: UnicodeString; aThreadID: TThreadID);
 begin
-  NameThreadForDebugging(AnsiString(aThreadName), aThreadID);
-end;
-
-  {$ifndef HAS_TTHREAD_NAMETHREADFORDEBUGGING}
-class procedure TThread.NameThreadForDebugging(aThreadName: AnsiString; aThreadID: TThreadID);
-begin
-  { empty }
-end;
-  {$endif}
-{$else}
-  {$ifndef HAS_TTHREAD_NAMETHREADFORDEBUGGING}
-{ the platform implements the UnicodeString variant and the AnsiString variant
-  simply calls the UnicodeString variant }
-class procedure TThread.NameThreadForDebugging(aThreadName: UnicodeString; aThreadID: TThreadID);
-begin
-  { empty }
-end;
-  {$endif}
-
-
-class procedure TThread.NameThreadForDebugging(aThreadName: AnsiString; aThreadID: TThreadID);
-begin
-  NameThreadForDebugging(UnicodeString(aThreadName), aThreadID);
-end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  SetThreadDebugName(aThreadID, aThreadName);
 {$endif}
+end;
+
+
+class procedure TThread.NameThreadForDebugging(aThreadName: AnsiString; aThreadID: TThreadID);
+begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  SetThreadDebugName(aThreadID, aThreadName);
+{$endif}
+end;
 
 
 class procedure TThread.Yield;

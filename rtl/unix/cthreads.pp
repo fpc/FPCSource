@@ -487,6 +487,18 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
     end;
 
 
+  procedure CSetThreadDebugNameA(threadHandle: TThreadID; const ThreadName: AnsiString);
+    begin
+      {$Warning SetThreadDebugName needs to be implemented}
+    end;
+
+
+  procedure CSetThreadDebugNameU(threadHandle: TThreadID; const ThreadName: UnicodeString);
+    begin
+      {$Warning SetThreadDebugName needs to be implemented}
+    end;
+
+
 {*****************************************************************************
                           Delphi/Win32 compatibility
 *****************************************************************************}
@@ -944,6 +956,8 @@ begin
     ThreadSetPriority      :=@CThreadSetPriority;
     ThreadGetPriority      :=@CThreadGetPriority;
     GetCurrentThreadId     :=@CGetCurrentThreadId;
+    SetThreadDebugNameA    :=@CSetThreadDebugNameA;
+    SetThreadDebugNameU    :=@CSetThreadDebugNameU;
     InitCriticalSection    :=@CInitCriticalSection;
     DoneCriticalSection    :=@CDoneCriticalSection;
     EnterCriticalSection   :=@CEnterCriticalSection;

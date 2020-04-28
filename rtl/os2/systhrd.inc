@@ -659,6 +659,17 @@ begin
 end;
 
 
+procedure SysSetThreadDebugNameA(threadHandle: TThreadID; const ThreadName: AnsiString);
+begin
+  {$Warning SetThreadDebugName needs to be implemented}
+end;
+
+
+procedure SysSetThreadDebugNameU(threadHandle: TThreadID; const ThreadName: UnicodeString);
+begin
+  {$Warning SetThreadDebugName needs to be implemented}
+end;
+
 
 {*****************************************************************************
                           Delphi/Win32 compatibility
@@ -942,6 +953,8 @@ begin
     ThreadSetPriority      :=@SysThreadSetPriority;
     ThreadGetPriority      :=@SysThreadGetPriority;
     GetCurrentThreadId     :=@SysGetCurrentThreadId;
+    SetThreadDebugNameA    :=@SysSetThreadDebugNameA;
+    SetThreadDebugNameU    :=@SysSetThreadDebugNameU;
     InitCriticalSection    :=@SysInitCriticalSection;
     DoneCriticalSection    :=@SysDoneCriticalSection;
     EnterCriticalSection   :=@SysEnterCriticalSection;
