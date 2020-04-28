@@ -279,6 +279,8 @@ unit cpubase;
     function std_regname(r:Tregister):string;
     function is_regpair(r:Tregister):boolean;
     procedure split_regpair(regpair:Tregister;out reglo,reghi:Tregister);
+    { Checks if sreg is a subset of reg (e.g. NR_H is a subset of NR_HL }
+    function register_in(sreg,reg:Tregister):boolean;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
@@ -431,6 +433,22 @@ unit cpubase;
           else
             internalerror(2020042801);
         end;
+      end;
+
+
+    function register_in(sreg,reg: Tregister):boolean;
+      var
+        tmpreg1, tmpreg2: Tregister;
+      begin
+        if sreg=reg then
+          result:=true
+        else if is_regpair(reg) then
+          begin
+            split_regpair(reg,tmpreg1,tmpreg2);
+            result:=(sreg=tmpreg1) or (sreg=tmpreg2);
+          end
+        else
+          result:=false;
       end;
 
 
