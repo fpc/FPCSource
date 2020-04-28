@@ -277,6 +277,8 @@ unit cpubase;
     function findreg_by_number(r:Tregister):tregisterindex;
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
+    function is_regpair(r:Tregister):boolean;
+    procedure split_regpair(regpair:Tregister;out reglo,reghi:Tregister);
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
@@ -394,6 +396,41 @@ unit cpubase;
           result:=std_regname_table[p]
         else
           result:=generic_regname(r);
+      end;
+
+
+    function is_regpair(r: Tregister): boolean;
+      begin
+        result:=(r=NR_AF) or (r=NR_BC) or (r=NR_DE) or (r=NR_HL);
+      end;
+
+
+    procedure split_regpair(regpair: Tregister; out reglo, reghi: Tregister);
+      begin
+        case regpair of
+          NR_AF:
+            begin
+              reglo:=NR_F;
+              reghi:=NR_A;
+            end;
+          NR_BC:
+            begin
+              reglo:=NR_C;
+              reghi:=NR_B;
+            end;
+          NR_DE:
+            begin
+              reglo:=NR_E;
+              reghi:=NR_D;
+            end;
+          NR_HL:
+            begin
+              reglo:=NR_L;
+              reghi:=NR_H;
+            end;
+          else
+            internalerror(2020042801);
+        end;
       end;
 
 
