@@ -671,7 +671,7 @@ unit agz80vasm;
                 else
                   begin
                     if tai_symbol(hp).is_global then
-                      writer.AsmWriteLn(#9'.globl '+ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name))
+                      writer.AsmWriteLn(#9'.globl '+ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
                     writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + '=' + tostr(tai_symbol(hp).value));
                   end;
               end;
