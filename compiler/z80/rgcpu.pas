@@ -74,29 +74,26 @@ unit rgcpu;
 
     procedure trgcpu.do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
-        helpins  : tai;
         tmpref   : treference;
         helplist : TAsmList;
-        hreg     : tregister;
       begin
-  //      if abs(spilltemp.offset)>127 then
-  //        begin
-  //          Internalerror(2017032701);
-//
-//            helplist:=TAsmList.create;
-//
-//            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R26,lo(word(spilltemp.offset))));
-//            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R27,hi(word(spilltemp.offset))));
-//            helplist.concat(taicpu.op_reg_reg(A_ADD,NR_R26,spilltemp.base));
-//            helplist.concat(taicpu.op_reg_reg(A_ADC,NR_R27,GetNextReg(spilltemp.base)));
-//
-//            reference_reset_base(tmpref,NR_R26,0,1,[]);
-//            helpins:=spilling_create_load(tmpref,tempreg);
-//            helplist.concat(helpins);
-//            list.insertlistafter(pos,helplist);
-//            helplist.free;
-  //        end
-  //      else
+        if (spilltemp.base=NR_IX) and ((spilltemp.offset<-128) or (spilltemp.offset>127)) then
+          begin
+            helplist:=TAsmList.create;
+
+            helplist.concat(taicpu.op_reg(A_PUSH,NR_BC));
+            helplist.concat(taicpu.op_reg(A_PUSH,NR_IX));
+            helplist.concat(taicpu.op_reg(A_POP,NR_BC));
+            helplist.concat(taicpu.op_reg_const(A_LD,NR_IY,spilltemp.offset));
+            helplist.concat(taicpu.op_reg_reg(A_ADD,NR_IY,NR_BC));
+            helplist.concat(taicpu.op_reg(A_POP,NR_BC));
+            reference_reset_base(tmpref,NR_IY,0,ctempposinvalid,1,[]);
+            helplist.concat(spilling_create_load(tmpref,tempreg));
+
+            list.insertlistafter(pos,helplist);
+            helplist.free;
+          end
+        else
           inherited;
       end;
 
@@ -105,25 +102,24 @@ unit rgcpu;
       var
         tmpref   : treference;
         helplist : TAsmList;
-        hreg     : tregister;
       begin
-  //      if abs(spilltemp.offset)>127 then
-  //        begin
-  //          Internalerror(2017032702);
-//
-//            helplist:=TAsmList.create;
-//
-//            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R26,lo(word(spilltemp.offset))));
-//            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R27,hi(word(spilltemp.offset))));
-//            helplist.concat(taicpu.op_reg_reg(A_ADD,NR_R26,spilltemp.base));
-//            helplist.concat(taicpu.op_reg_reg(A_ADC,NR_R27,GetNextReg(spilltemp.base)));
-//
-//            reference_reset_base(tmpref,NR_R26,0,1,[]);
-//            helplist.concat(spilling_create_store(tempreg,tmpref));
-//            list.insertlistafter(pos,helplist);
-//            helplist.free;
-  //        end
-  //      else
+        if (spilltemp.base=NR_IX) and ((spilltemp.offset<-128) or (spilltemp.offset>127)) then
+          begin
+            helplist:=TAsmList.create;
+
+            helplist.concat(taicpu.op_reg(A_PUSH,NR_BC));
+            helplist.concat(taicpu.op_reg(A_PUSH,NR_IX));
+            helplist.concat(taicpu.op_reg(A_POP,NR_BC));
+            helplist.concat(taicpu.op_reg_const(A_LD,NR_IY,spilltemp.offset));
+            helplist.concat(taicpu.op_reg_reg(A_ADD,NR_IY,NR_BC));
+            helplist.concat(taicpu.op_reg(A_POP,NR_BC));
+            reference_reset_base(tmpref,NR_IY,0,ctempposinvalid,1,[]);
+            helplist.concat(spilling_create_store(tempreg,tmpref));
+
+            list.insertlistafter(pos,helplist);
+            helplist.free;
+          end
+        else
           inherited;
       end;
 
