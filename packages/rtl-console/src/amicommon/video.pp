@@ -255,7 +255,7 @@ begin
   {$endif}
 
   { FIXME/TODO: next to the hardwired selection, there could be some heuristics,
-    which sets the font size correctly on screens according to the aspect 
+    which sets the font size correctly on screens according to the aspect
     ratio. (KB) }
   VideoFont:=@vgafont;
   VideoFontHeight:=16;
@@ -584,11 +584,11 @@ begin
      SmallForce or ForceCursorUpdate then
   begin
     {$ifdef WITHBUFFERING}
-    DrawChar(BufRp, OldCursorX, OldCursorY, crHidden);
-    if CursorState then DrawChar(BufRp, CursorX, CursorY, CursorType);
+    if (OldCursorX >= 0) and (OldCursorX < ScreenWidth) and (OldCursorY >= 0) and (OldCursorY < ScreenHeight) then DrawChar(BufRp, OldCursorX, OldCursorY, crHidden);
+    if CursorState and (CursorX >= 0) and (CursorX < ScreenWidth) and (CursorY >= 0) and (CursorY < ScreenHeight) then DrawChar(BufRp, CursorX, CursorY, CursorType);
     {$else}
-    DrawChar(VideoWindow^.RPort, OldCursorX, OldCursorY, crHidden);
-    if CursorState then DrawChar(VideoWindow^.RPort, CursorX, CursorY, CursorType);
+    if (OldCursorX >= 0) and (OldCursorX < ScreenWidth) and (OldCursorY >= 0) and (OldCursorY < ScreenHeight) then DrawChar(VideoWindow^.RPort, OldCursorX, OldCursorY, crHidden);
+    if CursorState and (CursorX >= 0) and (CursorX < ScreenWidth) and (CursorY >= 0) and (CursorY < ScreenHeight) then DrawChar(VideoWindow^.RPort, CursorX, CursorY, CursorType);
     {$endif}
     OldCursorX := CursorX;
     OldCursorY := CursorY;
