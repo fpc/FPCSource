@@ -137,7 +137,8 @@ implementation
        'sparc64',
        'riscv32',
        'riscv64',
-       'xtensa'
+       'xtensa',
+       'z80'
       );
 {$endif}
 
