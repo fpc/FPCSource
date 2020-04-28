@@ -34,7 +34,7 @@ unit i_zxspectrum;
             name         : 'ZX Spectrum';
             shortname    : 'zxspectrum';
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
-                            tf_smartlink_library,
+                            tf_smartlink_library,tf_smartlink_sections,
                             tf_no_objectfiles_when_smartlinking];
             cpu          : cpu_z80;
             unit_env     : '';

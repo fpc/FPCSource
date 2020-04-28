@@ -257,6 +257,7 @@
              ,as_clang_gas
              ,as_z80asm
              ,as_sdcc_sdasz80
+             ,as_z80_vasm
        );
 
        tlink = (ld_none,
