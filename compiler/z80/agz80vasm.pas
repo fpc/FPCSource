@@ -44,6 +44,7 @@ unit agz80vasm;
         procedure WriteDecodedSleb128(a: int64);
         procedure WriteDecodedUleb128(a: qword);
         procedure WriteRealConstAsBytes(hp: tai_realconst; const dbdir: string; do_line: boolean);
+        function sectionattrs(atype:TAsmSectiontype):string;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;
           secflags:TSectionFlags=[];secprogbits:TSectionProgbits=SPB_None);
@@ -245,6 +246,21 @@ unit agz80vasm;
         writer.AsmLn;
       end;
 
+    function TZ80vasm.sectionattrs(atype:TAsmSectiontype):string;
+      begin
+        case atype of
+          sec_code, sec_fpc, sec_init, sec_fini:
+            result:='acrx';
+          sec_data, sec_rodata, sec_rodata_norel, sec_bss, sec_threadvar:
+            result:='adrw';
+          sec_stab, sec_stabstr:
+            result:='dr';
+          else
+            result:='';
+        end;
+      end;
+
+
     function TZ80vasm.sectionname(atype: TAsmSectiontype;
         const aname: string; aorder: TAsmSectionOrder): string;
       const
@@ -352,6 +368,9 @@ unit agz80vasm;
           end;
         s:=sectionname(atype,aname,aorder);
         writer.AsmWrite(s);
+        s:=sectionattrs(atype);
+        if (s<>'') then
+          writer.AsmWrite(',"'+s+'"');
         writer.AsmLn;
         LastSecType:=atype;
       end;
@@ -646,16 +665,14 @@ unit agz80vasm;
                 if not(tai_symbol(hp).has_value) then
                   begin
                     if tai_symbol(hp).is_global then
-                      writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + ':')
-                    else
-                      writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + ':');
+                      writer.AsmWriteLn(#9'.globl '+ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
+                    writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + ':');
                   end
                 else
                   begin
                     if tai_symbol(hp).is_global then
-                      writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + '=' + tostr(tai_symbol(hp).value))
-                    else
-                      writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + '=' + tostr(tai_symbol(hp).value));
+                      writer.AsmWriteLn(#9'.globl '+ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name))
+                    writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name) + '=' + tostr(tai_symbol(hp).value));
                   end;
               end;
             ait_symbol_end :
@@ -664,9 +681,8 @@ unit agz80vasm;
             ait_datablock :
               begin
                 if tai_datablock(hp).is_global or SmartAsm then
-                  writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_datablock(hp).sym.name) + ':')
-                else
-                  writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_datablock(hp).sym.name) + ':');
+                  writer.AsmWriteLn(#9'.globl '+ApplyAsmSymbolRestrictions(tai_datablock(hp).sym.name));
+                writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_datablock(hp).sym.name) + ':');
                 {if SmartAsm then
                   AddSymbol(tai_datablock(hp).sym.name,true);}
                 writer.AsmWriteLn(#9'.zero'#9+tostr(tai_datablock(hp).size));
