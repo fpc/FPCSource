@@ -405,7 +405,6 @@ unit agsdasz80;
                  ((o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO)) and
                  (o.ref^.offset<>0) then
                 begin
-{$ifdef Z80_SDASZ80_LAMENESS_WORKAROUND}
                   { sdasz80 doesn't range check the offset d in the (IX+d) and
                     (IY+d) addressing modes, but instead truncates it to
                     shortint, introducing silent bugs, and prevents us from
@@ -413,7 +412,6 @@ unit agsdasz80;
                   if ((o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO)) and
                      ((o.ref^.offset<-128) or (o.ref^.offset>127)) then
                     internalerror(2020042802);
-{$endif Z80_SDASZ80_LAMENESS_WORKAROUND}
                   writer.AsmWrite(tostr(o.ref^.offset));
                   writer.AsmWrite(' (');
                   if o.ref^.base<>NR_NO then
