@@ -936,7 +936,7 @@ begin
     SuspendThread          :=@SysSuspendThread;
     ResumeThread           :=@SysResumeThread;
     KillThread             :=@SysKillThread;
-    CloseThread		   :=@SysCloseThread;
+    CloseThread            :=@SysCloseThread;
     ThreadSwitch           :=@SysThreadSwitch;
     WaitForThreadTerminate :=@SysWaitForThreadTerminate;
     ThreadSetPriority      :=@SysThreadSetPriority;
