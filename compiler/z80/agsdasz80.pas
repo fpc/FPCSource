@@ -63,6 +63,9 @@ unit agsdasz80;
        cutils,globals,verbose,
        cpuinfo,
        cgbase,cgutils,
+{$ifdef FPC_SOFT_FPUX80}
+       sfpux80,
+{$endif FPC_SOFT_FPUX80}
        finput;
 
     const
