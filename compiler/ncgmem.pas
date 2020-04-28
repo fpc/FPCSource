@@ -167,29 +167,34 @@ implementation
           end
         else
           begin
-            currpi:=current_procinfo;
             location_reset(location,LOC_REGISTER,def_cgsize(parentfpvoidpointertype));
-            location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,parentfpvoidpointertype);
+            currpi:=current_procinfo;
             { load framepointer of current proc }
             hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
             if not assigned(hsym) then
               internalerror(200309281);
-            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,parentfpvoidpointertype,parentfpvoidpointertype,hsym.localloc,location.register);
-            { walk parents }
-            while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
+            if (currpi.procdef.owner.symtablelevel=parentpd.parast.symtablelevel) and (hsym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+              location.register:=hsym.localloc.register
+            else
               begin
-                currpi:=currpi.parent;
-                if not assigned(currpi) then
-                  internalerror(200311201);
-                hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
-                if not assigned(hsym) then
-                  internalerror(200309282);
+                location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,parentfpvoidpointertype);
+                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,parentfpvoidpointertype,parentfpvoidpointertype,hsym.localloc,location.register);
+                { walk parents }
+                while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
+                  begin
+                    currpi:=currpi.parent;
+                    if not assigned(currpi) then
+                      internalerror(200311201);
+                    hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
+                    if not assigned(hsym) then
+                      internalerror(200309282);
 
-                if hsym.localloc.loc<>LOC_REFERENCE then
-                  internalerror(200309283);
+                    if hsym.localloc.loc<>LOC_REFERENCE then
+                      internalerror(200309283);
 
-                hlcg.reference_reset_base(href,parentfpvoidpointertype,location.register,hsym.localloc.reference.offset,ctempposinvalid,parentfpvoidpointertype.alignment,[]);
-                hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,parentfpvoidpointertype,parentfpvoidpointertype,href,location.register);
+                    hlcg.reference_reset_base(href,parentfpvoidpointertype,location.register,hsym.localloc.reference.offset,ctempposinvalid,parentfpvoidpointertype.alignment,[]);
+                    hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,parentfpvoidpointertype,parentfpvoidpointertype,href,location.register);
+                  end;
               end;
           end;
       end;
