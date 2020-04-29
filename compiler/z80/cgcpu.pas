@@ -2254,9 +2254,8 @@ unit cgcpu;
               stacksize := align(stacksize+sizeof(aint),target_info.stackalign) - sizeof(aint);
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
-                internalerror(2020040302);
-                {if (stacksize<>0) then
-                  cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);}
+                if stacksize<>0 then
+                  a_adjust_sp(list,stacksize);
               end
             else
               begin
