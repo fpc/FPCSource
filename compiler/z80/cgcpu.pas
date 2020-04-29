@@ -2233,6 +2233,7 @@ unit cgcpu;
         regs : tcpuregisterset;
         reg : TSuperRegister;
         LocalSize : longint;
+        stacksize : longint;
       begin
         { every byte counts for Z80, so if a subroutine is marked as non-returning, we do
           not generate any exit code, so we really trust the noreturn directive
