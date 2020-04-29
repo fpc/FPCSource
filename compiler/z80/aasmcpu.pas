@@ -269,6 +269,67 @@ implementation
       begin
         result:=false;
 
+        { Check the opcode }
+        if p^.opcode<>opcode then
+          exit;
+
+        { The opcode doesn't support conditions, but we have a condition?
+          That's an invalid instruction, don't match it against anything. }
+        if (condition<>C_NONE) and not (opcode in cond_instructions) then
+          exit;
+
+        { if our opcode supports a condition, but our operation doesn't have
+          one, and we're matching it with an instruction entry 'p' that has a
+          condition, then it doesn't match }
+        if (opcode in cond_instructions) and (condition=C_None) and
+           (p^.ops>0) and (p^.optypes[0] in [OT_COND..OT_COND_NZ]) then
+          exit;
+
+        { instruction has a condition? }
+        if (opcode in cond_instructions) and (condition<>C_None) then
+          begin
+            { Check the operand count }
+            if p^.ops<>(ops+1) then
+              exit;
+
+            { Check the condition }
+            case p^.optypes[0] of
+              OT_COND:
+                { any condition accepted };
+              OT_COND_C:
+                if condition<>C_C then
+                  exit;
+              OT_COND_NC:
+                if condition<>C_NC then
+                  exit;
+              OT_COND_Z:
+                if condition<>C_Z then
+                  exit;
+              OT_COND_NZ:
+                if condition<>C_NZ then
+                  exit;
+              else
+                { no condition in 'p'? Then it's not a match! }
+                exit;
+            end;
+            { Check the operands }
+            for i:=1 to p^.ops-1 do
+              if not OperandsMatch(oper[i-1]^,p^.optypes[i]) then
+                exit;
+          end
+        else
+          { no condition }
+          begin
+            { Check the operand count }
+            if p^.ops<>ops then
+              exit;
+
+            { Check the operands }
+            for i:=0 to p^.ops-1 do
+              if not OperandsMatch(oper[i]^,p^.optypes[i]) then
+                exit;
+          end;
+
         { Check the opcode and operands }
         if (p^.opcode<>opcode) or (p^.ops<>ops) then
           exit;

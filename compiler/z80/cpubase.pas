@@ -62,6 +62,9 @@ unit cpubase;
       jmp_instructions = [A_JP,A_JR,A_DJNZ];
       call_jmp_instructions = [A_CALL]+jmp_instructions;
 
+      { instructions that can have a condition }
+      cond_instructions = [A_CALL,A_JP,A_RET];
+
 {*****************************************************************************
                                   Registers
 *****************************************************************************}
