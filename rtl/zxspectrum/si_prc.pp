@@ -27,7 +27,7 @@ var
 procedure PascalMain; external name 'PASCALMAIN';
 
 { this *must* always remain the first procedure with code in this unit }
-procedure _start; assembler; nostackframe; public name '_start';
+procedure _start; assembler; nostackframe; public name 'start';
 asm
     ld sp, fpc_stackarea_end
     ld (FPC_SAVE_IY), iy
