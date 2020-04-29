@@ -265,7 +265,10 @@ implementation
               result:=(oper.typ=top_reg) and (oper.reg=NR_AF);
             OT_REG16_AF_:
               result:=(oper.typ=top_reg) and (oper.reg=NR_AF_);
-            {todo: OT_RELJMP8}
+            OT_RELJMP8:
+              result:=(oper.typ=top_ref) and
+                      (oper.ref^.refaddr=addr_full) and assigned(oper.ref^.symbol) and
+                      (oper.ref^.base=NR_NO) and (oper.ref^.index=NR_NO);
             OT_REF_ADDR16,
             OT_REF_BC,
             OT_REF_DE,
