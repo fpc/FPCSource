@@ -137,6 +137,7 @@ uses
          { register spilling code }
          function spilling_get_operation_type(opnr: longint): topertype;override;
 
+         function CheckIfValid:boolean;
          function GetString:string;
       end;
 
@@ -538,6 +539,12 @@ implementation
                 result:=operand_readwrite;
             end;
         end;
+      end;
+
+
+    function taicpu.CheckIfValid: boolean;
+      begin
+        result:=FindInsEntry(nil);
       end;
 
 
