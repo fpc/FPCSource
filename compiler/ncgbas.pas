@@ -350,11 +350,11 @@ interface
                              end;
                            end;
                         end;
-{$ifdef x86}
+{$if defined(x86) or defined(z80)}
                         { can only be checked now that all local operands }
                         { have been resolved                              }
                         taicpu(hp2).CheckIfValid;
-{$endif x86}
+{$endif x86 or z80}
                      end;
                   else
                     ;
@@ -397,11 +397,11 @@ interface
                              end;
 {$endif x86}
                          end;
-{$ifdef x86}
+{$if defined(x86) or defined(z80)}
                       { can only be checked now that all local operands }
                       { have been resolved                              }
                       taicpu(hp).CheckIfValid;
-{$endif x86}
+{$endif x86 or z80}
                      end;
                   else
                     ;
