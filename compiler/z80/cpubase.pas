@@ -470,10 +470,8 @@ unit cpubase;
     { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
     function condition_in(const Subset, c: TAsmCond): Boolean;
       begin
+        { Z80 has no condition subsets }
         Result := {(c.cond = C_None) or} conditions_equal(Subset, c);
-
-        { TODO: Can a PowerPC programmer please update this procedure to
-          actually detect subsets? Thanks. [Kit] }
       end;
 
 
