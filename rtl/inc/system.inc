@@ -44,7 +44,9 @@ type
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 const
-{$ifdef CPUAVR}
+{$if defined(CPUAVR)}
+  STACK_MARGIN = 64;    { Stack size margin for stack checking }
+{$elseif defined(CPUZ80)}
   STACK_MARGIN = 64;    { Stack size margin for stack checking }
 {$else}
   STACK_MARGIN = 16384;    { Stack size margin for stack checking }
