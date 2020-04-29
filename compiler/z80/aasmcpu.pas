@@ -106,7 +106,12 @@ uses
 
       taicpu = class(tai_cpu_abstract_sym)
       private
+         { next fields are filled in pass1, so pass2 is faster }
+         insentry  : PInsEntry;
+         inssize   : shortint;
+
          function Matches(p:PInsEntry):boolean;
+         function FindInsentry(objdata:TObjData):boolean;
       public
          constructor op_none(op : tasmop);
 
@@ -131,6 +136,8 @@ uses
 
          { register spilling code }
          function spilling_get_operation_type(opnr: longint): topertype;override;
+
+         function GetString:string;
       end;
 
       tai_align = class(tai_align_abstract)
@@ -333,6 +340,50 @@ implementation
       end;
 
 
+    function taicpu.FindInsentry(objdata: TObjData): boolean;
+      var
+        i : longint;
+      begin
+        result:=false;
+        { Things which may only be done once, not when a second pass is done to
+          optimize }
+
+        if (Insentry=nil) {or (IF_PASS2 in InsEntry^.flags)} then
+         begin
+           { set the file postion }
+           current_filepos:=fileinfo;
+         end
+        else
+         begin
+           { we've already an insentry so it's valid }
+           result:=true;
+           exit;
+         end;
+        { Lookup opcode in the table }
+        InsSize:=-1;
+        i:=instabcache^[opcode];
+        if i=-1 then
+         begin
+           Message1(asmw_e_opcode_not_in_table,std_op2str[opcode]);
+           exit;
+         end;
+        insentry:=@instab[i];
+        while (insentry^.opcode=opcode) do
+         begin
+           if matches(insentry) then
+             begin
+               result:=true;
+               exit;
+             end;
+           inc(insentry);
+         end;
+        Message1(asmw_e_invalid_opcode_and_operands,GetString);
+        { No instruction found, set insentry to nil and inssize to -1 }
+        insentry:=nil;
+        inssize:=-1;
+      end;
+
+
     constructor taicpu.op_none(op : tasmop);
       begin
          inherited create(op);
@@ -487,6 +538,130 @@ implementation
                 result:=operand_readwrite;
             end;
         end;
+      end;
+
+
+    function taicpu.GetString: string;
+      var
+        //i : longint;
+        s : string;
+        //regnr: string;
+        //addsize : boolean;
+      begin
+        s:='['+std_op2str[opcode];
+        //for i:=0 to ops-1 do
+        // begin
+        //   with oper[i]^ do
+        //     begin
+        //       if i=0 then
+        //        s:=s+' '
+        //       else
+        //        s:=s+',';
+        //       { type }
+        //       addsize:=false;
+        //
+        //       regnr := '';
+        //       if getregtype(reg) = R_MMREGISTER then
+        //        str(getsupreg(reg),regnr);
+        //
+        //       if (ot and OT_XMMREG)=OT_XMMREG then
+        //        s:=s+'xmmreg' + regnr
+        //       else
+        //         if (ot and OT_YMMREG)=OT_YMMREG then
+        //          s:=s+'ymmreg' + regnr
+        //       else
+        //         if (ot and OT_ZMMREG)=OT_ZMMREG then
+        //          s:=s+'zmmreg' + regnr
+        //
+        //       else
+        //         if (ot and OT_REG_EXTRA_MASK)=OT_MMXREG then
+        //          s:=s+'mmxreg'
+        //       else
+        //         if (ot and OT_REG_EXTRA_MASK)=OT_FPUREG then
+        //          s:=s+'fpureg'
+        //       else
+        //        if (ot and OT_REGISTER)=OT_REGISTER then
+        //         begin
+        //           s:=s+'reg';
+        //           addsize:=true;
+        //         end
+        //       else
+        //        if (ot and OT_IMMEDIATE)=OT_IMMEDIATE then
+        //         begin
+        //           s:=s+'imm';
+        //           addsize:=true;
+        //         end
+        //       else
+        //        if (ot and OT_MEMORY)=OT_MEMORY then
+        //         begin
+        //           s:=s+'mem';
+        //           addsize:=true;
+        //         end
+        //       else
+        //         s:=s+'???';
+        //       { size }
+        //       if addsize then
+        //        begin
+        //          if (ot and OT_BITS8)<>0 then
+        //            s:=s+'8'
+        //          else
+        //           if (ot and OT_BITS16)<>0 then
+        //            s:=s+'16'
+        //          else
+        //           if (ot and OT_BITS32)<>0 then
+        //            s:=s+'32'
+        //          else
+        //           if (ot and OT_BITS64)<>0 then
+        //            s:=s+'64'
+        //          else
+        //           if (ot and OT_BITS128)<>0 then
+        //            s:=s+'128'
+        //          else
+        //           if (ot and OT_BITS256)<>0 then
+        //            s:=s+'256'
+        //           else
+        //            if (ot and OT_BITS512)<>0 then
+        //             s:=s+'512'
+        //          else
+        //            s:=s+'??';
+        //          { signed }
+        //          if (ot and OT_SIGNED)<>0 then
+        //           s:=s+'s';
+        //        end;
+        //
+        //       if vopext <> 0 then
+        //        begin
+        //          str(vopext and $07, regnr);
+        //          if vopext and OTVE_VECTOR_WRITEMASK = OTVE_VECTOR_WRITEMASK then
+        //            s := s + ' {k' + regnr + '}';
+        //
+        //          if vopext and OTVE_VECTOR_ZERO = OTVE_VECTOR_ZERO then
+        //            s := s + ' {z}';
+        //
+        //          if vopext and OTVE_VECTOR_SAE = OTVE_VECTOR_SAE then
+        //            s := s + ' {sae}';
+        //
+        //
+        //          if vopext and OTVE_VECTOR_BCST = OTVE_VECTOR_BCST then
+        //           case vopext and OTVE_VECTOR_BCST_MASK of
+        //              OTVE_VECTOR_BCST2: s := s + ' {1to2}';
+        //              OTVE_VECTOR_BCST4: s := s + ' {1to4}';
+        //              OTVE_VECTOR_BCST8: s := s + ' {1to8}';
+        //             OTVE_VECTOR_BCST16: s := s + ' {1to16}';
+        //           end;
+        //
+        //          if vopext and OTVE_VECTOR_ER = OTVE_VECTOR_ER then
+        //           case vopext and OTVE_VECTOR_ER_MASK of
+        //              OTVE_VECTOR_RNSAE: s := s + ' {rn-sae}';
+        //              OTVE_VECTOR_RDSAE: s := s + ' {rd-sae}';
+        //              OTVE_VECTOR_RUSAE: s := s + ' {ru-sae}';
+        //              OTVE_VECTOR_RZSAE: s := s + ' {rz-sae}';
+        //           end;
+        //
+        //        end;
+        //     end;
+        // end;
+        GetString:=s+']';
       end;
 
 
