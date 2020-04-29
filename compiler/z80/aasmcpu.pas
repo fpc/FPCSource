@@ -329,17 +329,6 @@ implementation
               if not OperandsMatch(oper[i]^,p^.optypes[i]) then
                 exit;
           end;
-
-        { Check the opcode and operands }
-        if (p^.opcode<>opcode) or (p^.ops<>ops) then
-          exit;
-
-        for i:=0 to p^.ops-1 do
-          begin
-            if not OperandsMatch(oper[i]^,p^.optypes[i]) then
-              exit;
-          end;
-
         result:=true;
       end;
 
