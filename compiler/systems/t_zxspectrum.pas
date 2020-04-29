@@ -37,44 +37,40 @@ implementation
 
     type
 
-       { TLinkerZXSpectrum_SdccSdld - the sdld linker from the SDCC project ( http://sdcc.sourceforge.net/ ) }
+       { sdld - the sdld linker from the SDCC project ( http://sdcc.sourceforge.net/ ) }
+       { vlink - the vlink linker by Frank Wille (http://sun.hasenbraten.de/vlink/ ) }
 
-       TLinkerZXSpectrum_SdccSdld=class(texternallinker)
+       TLinkerZXSpectrum=class(texternallinker)
        private
           FOrigin: Word;
-          Function  WriteResponseFile: Boolean;
+          Function  WriteResponseFile_Sdld: Boolean;
+          Function  WriteResponseFile_Vlink: Boolean;
+
+          procedure SetDefaultInfo_Sdld;
+          procedure SetDefaultInfo_Vlink;
+          function  MakeExecutable_Sdld: boolean;
+          function  MakeExecutable_Vlink: boolean;
        public
           procedure SetDefaultInfo; override;
-          function  MakeExecutable:boolean; override;
-          function postprocessexecutable(const fn : string;isdll:boolean):boolean;
+          function  MakeExecutable: boolean; override;
+          procedure InitSysInitUnitName; override;
+
+          function postprocessexecutable(const fn : string;isdll:boolean): boolean;
        end;
 
 
 {*****************************************************************************
-                          TLinkerZXSpectrum_SdccSdld
+                          TLinkerZXSpectrum
 *****************************************************************************}
 
-function TLinkerZXSpectrum_SdccSdld.WriteResponseFile: Boolean;
+function TLinkerZXSpectrum.WriteResponseFile_Sdld: Boolean;
   Var
     linkres  : TLinkRes;
-    i        : longint;
-    HPath    : TCmdStrListItem;
-    s,s1,s2  : TCmdStr;
-    prtobj,
-    cprtobj  : string[80];
-    linklibc : boolean;
-    found1,
-    found2   : boolean;
-  {$if defined(ARM)}
-    LinkStr  : string;
-  {$endif}
+    s        : TCmdStr;
+    prtobj: string[80];
   begin
-    WriteResponseFile:=False;
-    linklibc:=(SharedLibFiles.Find('c')<>nil);
+    result:=False;
     prtobj:='prt0';
-    cprtobj:='cprt0';
-    if linklibc then
-      prtobj:=cprtobj;
 
     { Open link.res file }
     LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
@@ -82,49 +78,17 @@ function TLinkerZXSpectrum_SdccSdld.WriteResponseFile: Boolean;
     { Write the origin (i.e. the program load address) }
     LinkRes.Add('-b _CODE='+tostr(FOrigin));
 
-    { Write path to search libraries }
-(*    HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
-    while assigned(HPath) do
-     begin
-      s:=HPath.Str;
-      if (cs_link_on_target in current_settings.globalswitches) then
-       s:=ScriptFixFileName(s);
-      LinkRes.Add('-L'+s);
-      HPath:=TCmdStrListItem(HPath.Next);
-     end;
-    HPath:=TCmdStrListItem(LibrarySearchPath.First);
-    while assigned(HPath) do
-     begin
-      s:=HPath.Str;
-      if s<>'' then
-       LinkRes.Add('SEARCH_DIR("'+s+'")');
-      HPath:=TCmdStrListItem(HPath.Next);
-     end;
-
-    LinkRes.Add('INPUT (');
-    { add objectfiles, start with prt0 always }*)
-    //s:=FindObjectFile('prt0','',false);
-    if prtobj<>'' then
+    if not (target_info.system in systems_internal_sysinit) and (prtobj <> '') then
       begin
         s:=FindObjectFile(prtobj,'',false);
         LinkRes.AddFileName(s);
       end;
-
-    { try to add crti and crtbegin if linking to C }
-    if linklibc then
-     begin
-       if librarysearchpath.FindFile('crtbegin.o',false,s) then
-        LinkRes.AddFileName(s);
-       if librarysearchpath.FindFile('crti.o',false,s) then
-        LinkRes.AddFileName(s);
-     end;
 
     while not ObjectFiles.Empty do
      begin
       s:=ObjectFiles.GetFirst;
       if s<>'' then
        begin
-        { vlink doesn't use SEARCH_DIR for object files }
         if not(cs_link_on_target in current_settings.globalswitches) then
          s:=FindObjectFile(s,'',false);
         LinkRes.AddFileName((maybequoted(s)));
@@ -134,12 +98,6 @@ function TLinkerZXSpectrum_SdccSdld.WriteResponseFile: Boolean;
     { Write staticlibraries }
     if not StaticLibFiles.Empty then
      begin
-      { vlink doesn't need, and doesn't support GROUP }
-{      if (cs_link_on_target in current_settings.globalswitches) then
-       begin
-        LinkRes.Add(')');
-        LinkRes.Add('GROUP(');
-       end;}
       while not StaticLibFiles.Empty do
        begin
         S:=StaticLibFiles.GetFirst;
@@ -147,70 +105,70 @@ function TLinkerZXSpectrum_SdccSdld.WriteResponseFile: Boolean;
        end;
      end;
 
-(*    if (cs_link_on_target in current_settings.globalswitches) then
-     begin
-      LinkRes.Add(')');
+    { Write and Close response }
+    linkres.writetodisk;
+    linkres.free;
 
-      { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
-        here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
-      linklibc:=false;
-      while not SharedLibFiles.Empty do
-       begin
-        S:=SharedLibFiles.GetFirst;
-        if s<>'c' then
-         begin
-          i:=Pos(target_info.sharedlibext,S);
-          if i>0 then
-           Delete(S,i,255);
-          LinkRes.Add('-l'+s);
-         end
-        else
-         begin
-          LinkRes.Add('-l'+s);
-          linklibc:=true;
-         end;
-       end;
-      { be sure that libc&libgcc is the last lib }
-      if linklibc then
-       begin
-        LinkRes.Add('-lc');
-        LinkRes.Add('-lgcc');
-       end;
-     end
-    else
-     begin
-      while not SharedLibFiles.Empty do
-       begin
-        S:=SharedLibFiles.GetFirst;
-        LinkRes.Add('lib'+s+target_info.staticlibext);
-       end;
-      LinkRes.Add(')');
-     end;*)
+    result:=True;
+  end;
 
-    { objects which must be at the end }
-    (*if linklibc then
-     begin
-       found1:=librarysearchpath.FindFile('crtend.o',false,s1);
-       found2:=librarysearchpath.FindFile('crtn.o',false,s2);
-       if found1 or found2 then
-        begin
-          LinkRes.Add('INPUT(');
-          if found1 then
-           LinkRes.AddFileName(s1);
-          if found2 then
-           LinkRes.AddFileName(s2);
-          LinkRes.Add(')');
-        end;
-     end;*)
+function TLinkerZXSpectrum.WriteResponseFile_Vlink: Boolean;
+  Var
+    linkres  : TLinkRes;
+    s        : TCmdStr;
+    prtobj: string[80];
+  begin
+    result:=false;
+    prtobj:='prt0';
+
+    { Open link.res file }
+    LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+
+    LinkRes.Add('INPUT (');
+
+    if not (target_info.system in systems_internal_sysinit) and (prtobj <> '') then
+      begin
+        s:=FindObjectFile(prtobj,'',false);
+        LinkRes.AddFileName(maybequoted(s));
+      end;
+
+    while not ObjectFiles.Empty do
+      begin
+        s:=ObjectFiles.GetFirst;
+        if s<>'' then
+          begin
+            s:=FindObjectFile(s,'',false);
+            LinkRes.AddFileName(maybequoted(s));
+          end;
+      end;
+
+    while not StaticLibFiles.Empty do
+      begin
+        S:=StaticLibFiles.GetFirst;
+        LinkRes.AddFileName(maybequoted(s));
+      end;
+
+    LinkRes.Add(')');
+
+    with LinkRes do
+      begin
+        Add('');
+        Add('SECTIONS');
+        Add('{');
+        Add('  . = 0x'+hexstr(FOrigin,4)+';');
+        Add('  .text : { *(.text .text.* ) }');
+        Add('  .data : { *(.data .data.* .rodata .rodata.* .bss .bss.* .fpc.* .stack .stack.* ) }');
+        Add('}');
+      end;
 
     { Write and Close response }
     linkres.writetodisk;
     linkres.free;
 
-    WriteResponseFile:=True;
+    result:=true;
   end;
 
-procedure TLinkerZXSpectrum_SdccSdld.SetDefaultInfo;
+procedure TLinkerZXSpectrum.SetDefaultInfo_Sdld;
   const
     ExeName='sdldz80';
   begin
@@ -221,7 +179,26 @@ procedure TLinkerZXSpectrum_SdccSdld.SetDefaultInfo;
      end;
   end;
 
-function TLinkerZXSpectrum_SdccSdld.MakeExecutable: boolean;
+procedure TLinkerZXSpectrum.SetDefaultInfo_Vlink;
+  const
+    ExeName='vlink';
+  begin
+    FOrigin:={32768}23800;
+    with Info do
+     begin
+       ExeCmd[1]:=ExeName+' -bihex $GCSECTIONS -e $STARTSYMBOL $STRIP $OPT -o $EXE -T $RES'
+     end;
+  end;
+
+procedure TLinkerZXSpectrum.SetDefaultInfo;
+  begin
+    if not (cs_link_vlink in current_settings.globalswitches) then
+      SetDefaultInfo_Sdld
+    else
+      SetDefaultInfo_Vlink;
+  end;
+
+function TLinkerZXSpectrum.MakeExecutable_Sdld: boolean;
   var
     binstr,
     cmdstr,
@@ -240,40 +217,24 @@ function TLinkerZXSpectrum_SdccSdld.MakeExecutable: boolean;
     DynLinkStr:='';
     FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.ihx')));
 
-(*    GCSectionsStr:='--gc-sections';
-    //if not(cs_link_extern in current_settings.globalswitches) then
-    if not(cs_link_nolink in current_settings.globalswitches) then
-     Message1(exec_i_linking,current_module.exefilename);*)
-
     if (cs_link_map in current_settings.globalswitches) then
      mapstr:='-mw';
 
   { Write used files and libraries }
-    WriteResponseFile();
+    WriteResponseFile_Sdld();
 
   { Call linker }
     SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
     Replace(cmdstr,'$OPT',Info.ExtraOptions);
-    if not(cs_link_on_target in current_settings.globalswitches) then
-     begin
-      Replace(cmdstr,'$EXE',FixedExeFileName);
-      Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
-      Replace(cmdstr,'$STATIC',StaticStr);
-      Replace(cmdstr,'$STRIP',StripStr);
-      Replace(cmdstr,'$MAP',mapstr);
-      //Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
-      Replace(cmdstr,'$DYNLINK',DynLinkStr);
-     end
-    else
-     begin
-      Replace(cmdstr,'$EXE',FixedExeFileName);
-      Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
-      Replace(cmdstr,'$STATIC',StaticStr);
-      Replace(cmdstr,'$STRIP',StripStr);
-      Replace(cmdstr,'$MAP',mapstr);
-      //Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
-      Replace(cmdstr,'$DYNLINK',DynLinkStr);
-     end;
+
+    Replace(cmdstr,'$EXE',FixedExeFileName);
+    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+    Replace(cmdstr,'$STATIC',StaticStr);
+    Replace(cmdstr,'$STRIP',StripStr);
+    Replace(cmdstr,'$MAP',mapstr);
+    //Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
+    Replace(cmdstr,'$DYNLINK',DynLinkStr);
+
     success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ReponseFile }
@@ -284,10 +245,65 @@ function TLinkerZXSpectrum_SdccSdld.MakeExecutable: boolean;
     if success and not(cs_link_nolink in current_settings.globalswitches) then
       success:=PostProcessExecutable(FixedExeFileName,false);
 
-    MakeExecutable:=success;   { otherwise a recursive call to link method }
+    result:=success;   { otherwise a recursive call to link method }
   end;
 
-function TLinkerZXSpectrum_SdccSdld.postprocessexecutable(const fn: string; isdll: boolean): boolean;
+function TLinkerZXSpectrum.MakeExecutable_Vlink: boolean;
+  var
+    binstr,
+    cmdstr: TCmdStr;
+    success: boolean;
+    GCSectionsStr,
+    StripStr,
+    StartSymbolStr,
+    FixedExeFilename: string;
+  begin
+    GCSectionsStr:='-gc-all -mtype';
+    StripStr:='';
+    StartSymbolStr:='start';
+    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.ihx')));
+
+  { Write used files and libraries }
+    WriteResponseFile_Vlink();
+
+  { Call linker }
+    SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+    Replace(cmdstr,'$OPT',Info.ExtraOptions);
+
+    Replace(cmdstr,'$EXE',FixedExeFileName);
+    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+    Replace(cmdstr,'$STRIP',StripStr);
+    Replace(cmdstr,'$STARTSYMBOL',StartSymbolStr);
+    Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
+
+    success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
+
+  { Remove ReponseFile }
+    if success and not(cs_link_nolink in current_settings.globalswitches) then
+     DeleteFile(outputexedir+Info.ResName);
+
+  { Post process }
+    if success and not(cs_link_nolink in current_settings.globalswitches) then
+      success:=PostProcessExecutable(FixedExeFileName,false);
+
+    result:=success;
+  end;
+
+function TLinkerZXSpectrum.MakeExecutable: boolean;
+  begin
+    if not (cs_link_vlink in current_settings.globalswitches) then
+      result:=MakeExecutable_Sdld
+    else
+      result:=MakeExecutable_Vlink;
+  end;
+
+
+procedure TLinkerZXSpectrum.InitSysInitUnitName;
+begin
+  sysinitunit:='si_prc';
+end;
+
+function TLinkerZXSpectrum.postprocessexecutable(const fn: string; isdll: boolean): boolean;
   begin
     result:=DoExec(FindUtil(utilsprefix+'ihx2tzx'),' '+fn,true,false);
   end;
@@ -299,7 +315,7 @@ function TLinkerZXSpectrum_SdccSdld.postprocessexecutable(const fn: string; isdl
 
 initialization
 {$ifdef z80}
-  RegisterLinker(ld_zxspectrum,TLinkerZXSpectrum_SdccSdld);
+  RegisterLinker(ld_zxspectrum,TLinkerZXSpectrum);
   RegisterTarget(system_z80_zxspectrum_info);
 {$endif z80}
 end.
