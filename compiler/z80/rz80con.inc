@@ -20,6 +20,7 @@ NR_E_ = tregister($05010003);
 NR_H_ = tregister($05010004);
 NR_L_ = tregister($05010005);
 NR_A_ = tregister($05010007);
+NR_AF_ = tregister($05030007);
 NR_SP = tregister($05030008);
 NR_F = tregister($05010009);
 NR_F_ = tregister($0501000a);

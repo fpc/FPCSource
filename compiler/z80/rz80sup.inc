@@ -20,6 +20,7 @@ RS_E_ = 3;
 RS_H_ = 4;
 RS_L_ = 5;
 RS_A_ = 7;
+RS_AF_ = 7;
 RS_SP = 8;
 RS_F = 9;
 RS_F_ = 10;
