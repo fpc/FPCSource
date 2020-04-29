@@ -80,6 +80,8 @@ const
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCR;
 
 var
+  fpc_stackarea_start: word; external name '__fpc_stackarea_start';
+  fpc_stackarea_end: word; external name '__fpc_stackarea_end';
   __heapsize: Word;external name '__heapsize';
   __fpc_initialheap: array[0..0] of byte;external name '__fpc_initialheap';
 
@@ -276,8 +278,8 @@ begin
 end;
 
 begin
-{  StackBottom := __stkbottom;
-  StackLength := __stktop - __stkbottom;}
+  StackBottom:=@fpc_stackarea_start;
+  StackLength:=(@fpc_stackarea_end-@fpc_stackarea_start)+1;
   { To be set if this is a GUI or console application }
   IsConsole := TRUE;
 {$ifdef FPC_HAS_FEATURE_DYNLIBS}
