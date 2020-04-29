@@ -105,6 +105,9 @@ uses
       { taicpu }
 
       taicpu = class(tai_cpu_abstract_sym)
+      private
+         function Matches(p:PInsEntry):boolean;
+      public
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -183,6 +186,100 @@ implementation
            b:=_b;
            typ:=top_bool;
          end;
+      end;
+
+
+    function taicpu.Matches(p: PInsEntry): boolean;
+
+      function OperandsMatch(const oper: toper; const ot: toperandtype): boolean;
+        begin
+          case ot of
+            OT_IMM3:
+              result:=(oper.typ=top_const) and (oper.val>=0) and (oper.val<=7);
+            OT_IMM8:
+              { todo: lo8, hi8 addresses }
+              result:=(oper.typ=top_const) and (oper.val>=0) and (oper.val<=255);
+            OT_IMM16:
+              { todo: addresses }
+              result:=(oper.typ=top_const) and (oper.val>=0) and (oper.val<=65535);
+            OT_IMM_VAL0:
+              result:=(oper.typ=top_const) and (oper.val=0);
+            OT_IMM_VAL1:
+              result:=(oper.typ=top_const) and (oper.val=1);
+            OT_IMM_VAL2:
+              result:=(oper.typ=top_const) and (oper.val=2);
+            OT_IMM_RST:
+              result:=(oper.typ=top_const) and ((oper.val=$00) or (oper.val=$08) or
+                                                (oper.val=$10) or (oper.val=$18) or
+                                                (oper.val=$20) or (oper.val=$28) or
+                                                (oper.val=$30) or (oper.val=$38));
+            {todo: OT_IMM_PORT}
+            OT_REG8:
+              result:=(oper.typ=top_reg) and ((oper.reg=NR_A) or (oper.reg=NR_B) or
+                                              (oper.reg=NR_C) or (oper.reg=NR_D) or
+                                              (oper.reg=NR_E) or (oper.reg=NR_H) or
+                                              (oper.reg=NR_L));
+            OT_REG8_A:
+              result:=(oper.typ=top_reg) and (oper.reg=NR_A);
+            OT_REG8_I:
+              result:=(oper.typ=top_reg) and (oper.reg=NR_I);
+            OT_REG8_R:
+              result:=(oper.typ=top_reg) and (oper.reg=NR_R);
+            {todo: OT_REG8_C_PORT}
+            OT_REG16_IX:
+              result:=(oper.typ=top_reg) and (oper.reg=NR_IX);
+            OT_REG16_IY:
+              result:=(oper.typ=top_reg) and (oper.reg=NR_IY);
+            OT_REG16_SP:
+              result:=(oper.typ=top_reg) and (oper.reg=NR_SP);
+            OT_REG16_BC_DE_HL_SP:
+              result:=(oper.typ=top_reg) and ((oper.reg=NR_BC) or (oper.reg=NR_DE) or (oper.reg=NR_HL) or (oper.reg=NR_SP));
+            OT_REG16_BC_DE_HL_AF:
+              result:=(oper.typ=top_reg) and ((oper.reg=NR_BC) or (oper.reg=NR_DE) or (oper.reg=NR_HL) or (oper.reg=NR_AF));
+            OT_REG16_BC_DE_IX_SP:
+              result:=(oper.typ=top_reg) and ((oper.reg=NR_BC) or (oper.reg=NR_DE) or (oper.reg=NR_IX) or (oper.reg=NR_SP));
+            OT_REG16_BC_DE_IY_SP:
+              result:=(oper.typ=top_reg) and ((oper.reg=NR_BC) or (oper.reg=NR_DE) or (oper.reg=NR_IY) or (oper.reg=NR_SP));
+            OT_REG16_DE:
+              result:=(oper.typ=top_reg) and (oper.reg=NR_DE);
+            OT_REG16_HL:
+              result:=(oper.typ=top_reg) and (oper.reg=NR_HL);
+            OT_REG16_AF:
+              result:=(oper.typ=top_reg) and (oper.reg=NR_AF);
+            OT_REG16_AF_:
+              result:=(oper.typ=top_reg) and (oper.reg=NR_AF_);
+            {todo: OT_RELJMP8}
+            OT_REF_ADDR16,
+            OT_REF_BC,
+            OT_REF_DE,
+            OT_REF_HL,
+            OT_REF_SP,
+            OT_REF_IX,
+            OT_REF_IY,
+            OT_REF_IX_d,
+            OT_REF_IY_d:
+              result:=(oper.typ=top_ref) and is_ref_opertype(oper.ref^,ot);
+            else
+              internalerror(2020042901);
+          end;
+        end;
+
+      var
+        i: Integer;
+      begin
+        result:=false;
+
+        { Check the opcode and operands }
+        if (p^.opcode<>opcode) or (p^.ops<>ops) then
+          exit;
+
+        for i:=0 to p^.ops-1 do
+          begin
+            if not OperandsMatch(oper[i]^,p^.optypes[i]) then
+              exit;
+          end;
+
+        result:=true;
       end;
 
 
