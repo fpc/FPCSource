@@ -237,7 +237,12 @@ implementation
               result:=(oper.typ=top_reg) and (oper.reg=NR_I);
             OT_REG8_R:
               result:=(oper.typ=top_reg) and (oper.reg=NR_R);
-            {todo: OT_REG8_C_PORT}
+            OT_REG8_C_PORT:
+              result:=(oper.typ=top_ref) and
+                     (((oper.ref^.base=NR_C) and (oper.ref^.index=NR_NO)) or
+                      ((oper.ref^.base=NR_NO) and (oper.ref^.index=NR_C))) and
+                      (oper.ref^.symbol=nil) and (oper.ref^.relsymbol=nil) and
+                      (oper.ref^.offset=0);
             OT_REG16_IX:
               result:=(oper.typ=top_reg) and (oper.reg=NR_IX);
             OT_REG16_IY:
