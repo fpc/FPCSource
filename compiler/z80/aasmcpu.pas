@@ -158,8 +158,15 @@ implementation
                                 Instruction table
 *****************************************************************************}
 
+    type
+      TInsTabCache=array[TasmOp] of longint;
+      PInsTabCache=^TInsTabCache;
+
     const
       InsTab:array[0..instabentries-1] of TInsEntry={$i z80tab.inc}
+
+    var
+      InsTabCache : PInsTabCache;
 
 {*****************************************************************************
                                  taicpu Constructors
@@ -475,13 +482,40 @@ implementation
       end;
 
 
+{****************************************************************************
+                                Instruction table
+*****************************************************************************}
+
+    procedure BuildInsTabCache;
+      var
+        i : longint;
+      begin
+        new(instabcache);
+        FillChar(instabcache^,sizeof(tinstabcache),$ff);
+        i:=0;
+        while (i<InsTabEntries) do
+         begin
+           if InsTabCache^[InsTab[i].OPcode]=-1 then
+            InsTabCache^[InsTab[i].OPcode]:=i;
+           inc(i);
+         end;
+      end;
+
+
     procedure InitAsm;
       begin
+        if not assigned(instabcache) then
+          BuildInsTabCache;
       end;
 
 
     procedure DoneAsm;
       begin
+        if assigned(instabcache) then
+          begin
+            dispose(instabcache);
+            instabcache:=nil;
+          end;
       end;
 
 begin
