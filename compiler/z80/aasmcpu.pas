@@ -221,7 +221,11 @@ implementation
                                                 (oper.val=$10) or (oper.val=$18) or
                                                 (oper.val=$20) or (oper.val=$28) or
                                                 (oper.val=$30) or (oper.val=$38));
-            {todo: OT_IMM_PORT}
+            OT_IMM_PORT:
+              result:=(oper.typ=top_ref) and
+                      (oper.ref^.symbol=nil) and (oper.ref^.relsymbol=nil) and
+                      (oper.ref^.base=NR_NO) and (oper.ref^.index=NR_NO) and
+                      (oper.ref^.offset>=0) and (oper.ref^.offset<=255);
             OT_REG8:
               result:=(oper.typ=top_reg) and ((oper.reg=NR_A) or (oper.reg=NR_B) or
                                               (oper.reg=NR_C) or (oper.reg=NR_D) or
