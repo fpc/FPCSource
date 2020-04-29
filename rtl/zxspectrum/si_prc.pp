@@ -15,6 +15,8 @@
 
 unit si_prc;
 
+{$SMARTLINK OFF}
+
 interface
 
 implementation
