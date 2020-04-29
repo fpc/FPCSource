@@ -205,11 +205,15 @@ implementation
             OT_IMM3:
               result:=(oper.typ=top_const) and (oper.val>=0) and (oper.val<=7);
             OT_IMM8:
-              { todo: lo8, hi8 addresses }
-              result:=(oper.typ=top_const) and (oper.val>=0) and (oper.val<=255);
+              result:=((oper.typ=top_const) and (oper.val>=0) and (oper.val<=255)) or
+                      ((oper.typ=top_ref) and
+                       (oper.ref^.refaddr in [addr_hi8,addr_lo8]) and assigned(oper.ref^.symbol) and
+                       (oper.ref^.base=NR_NO) and (oper.ref^.index=NR_NO));
             OT_IMM16:
-              { todo: addresses }
-              result:=(oper.typ=top_const) and (oper.val>=0) and (oper.val<=65535);
+              result:=((oper.typ=top_const) and (oper.val>=0) and (oper.val<=65535)) or
+                      ((oper.typ=top_ref) and
+                       (oper.ref^.refaddr=addr_full) and assigned(oper.ref^.symbol) and
+                       (oper.ref^.base=NR_NO) and (oper.ref^.index=NR_NO));
             OT_IMM_VAL0:
               result:=(oper.typ=top_const) and (oper.val=0);
             OT_IMM_VAL1:
