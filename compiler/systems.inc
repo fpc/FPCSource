@@ -258,6 +258,7 @@
              ,as_z80asm
              ,as_sdcc_sdasz80
              ,as_z80_vasm
+             ,as_z80_rel
        );
 
        tlink = (ld_none,

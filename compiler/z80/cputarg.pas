@@ -56,6 +56,8 @@ implementation
       ,agz80vasm
     {$endif}
 
+      ,ogrel
+
 {**************************************
         Assembler Readers
 **************************************}
