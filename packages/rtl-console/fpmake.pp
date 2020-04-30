@@ -110,6 +110,16 @@ begin
        AddUnit   ('keyboard',[win16]);
      end;
 
+    T:=P.Targets.AddUnit('vidcrt.pp', AllAmigaLikeOSes);
+    with T.Dependencies do
+     begin
+       AddInclude('crth.inc');
+       AddInclude('crt.inc');
+       AddUnit   ('video', AllAmigaLikeOSes);
+       AddUnit   ('keyboard', AllAmigaLikeOSes);
+       AddUnit   ('mouse', AllAmigaLikeOSes);
+     end;
+
     T:=P.Targets.AddUnit('vesamode.pp',[go32v2,msdos]);
     with T.Dependencies do
      begin

@@ -8681,6 +8681,7 @@ packages/rtl-console/fpmake.pp svneol=native#text/plain
 packages/rtl-console/src/amicommon/crt.pp svneol=native#text/plain
 packages/rtl-console/src/amicommon/keyboard.pp svneol=native#text/plain
 packages/rtl-console/src/amicommon/mouse.pp svneol=native#text/plain
+packages/rtl-console/src/amicommon/vidcrt.pp svneol=native#text/pascal
 packages/rtl-console/src/amicommon/video.pp svneol=native#text/plain
 packages/rtl-console/src/amicommon/videodata.inc svneol=native#text/plain
 packages/rtl-console/src/emx/crt.pp svneol=native#text/plain
