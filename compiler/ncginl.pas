@@ -82,7 +82,8 @@ implementation
       cpubase,procinfo,
       ncon,ncal,
       tgobj,ncgutil,
-      cgutils,cgobj,hlcgobj
+      cgutils,cgobj,hlcgobj,
+      defcmp
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
       ,cg64f32
 {$endif not cpu64bitalu and not cpuhighleveltarget}
@@ -437,7 +438,7 @@ implementation
               else
                 begin
                   if not(tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) or (addvalue>1) or
-                    (def_cgsize(left.resultdef)<>tcallparanode(tcallparanode(left).right).left.location.size) then
+                    not(equal_defs(left.resultdef,tcallparanode(tcallparanode(left).right).left.resultdef)) then
                     begin
                       hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,tcallparanode(tcallparanode(left).right).left.resultdef,second_incdec_tempregdef,addvalue<=1);
                       hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
