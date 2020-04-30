@@ -83,6 +83,7 @@ Type
     FPropertyMap: TPropertyMap;
     FPropertyTypeSuffix: String;
     FinType : Boolean; //  State
+    FToplevelObjectClassName: String;
     procedure GenerateSaveFunctionForm(M: TPropertyMapItem);
     function GetObjectConstructorArguments: String;
     function JSONDataName: String;
@@ -114,6 +115,7 @@ Type
     function  GenerateAssignDelphi(IM: TPropertyMapItem; AVarName, AJSONName: String; AddSemiColon : Boolean ): String;
     procedure GenerateCreateArray(M: TPropertyMapItem);
     procedure GenerateSaveArray(M: TPropertyMapItem);
+    procedure GenerateClearArray(M, IM: TPropertyMapItem);
     procedure GenerateCreateObjectfpJSON(M: TPropertyMapItem);
     procedure GenerateLoadJSONDelphi(M: TPropertyMapItem; J: TJSONObject);
     procedure GenerateLoadJSONfpJSON(M: TPropertyMapItem; J: TJSONObject);
@@ -164,6 +166,8 @@ Type
     Property FieldPrefix : String Read FFieldPrefix Write FFieldPrefix;
     // What are the arguments to a constructor ? This property is inserted literally in the code between ().
     Property ObjectConstructorArguments : String Read FObjectConstructorArguments Write FObjectConstructorArguments;
+    // Toplevel object class name 'TMyObject'
+    Property ToplevelObjectClassName : String Read FToplevelObjectClassName Write FToplevelObjectClassName;
   end;
 
 
@@ -324,6 +328,7 @@ begin
   FPropertyMap:=CreatePropertyMap;
   FIndentSize:=2;
   FFieldPrefix:='F';
+  FToplevelObjectClassName:='TMyObject';
 end;
 
 destructor TJSONToPascal.Destroy;
@@ -408,7 +413,7 @@ begin
   Result:=StringReplace(Result,'[0]','Item',[rfReplaceAll]);
   Result:=StringReplace(Result,'[]','Item',[rfReplaceAll]);
   if Result='' then
-    Result:='TMyObject'
+    Result:=TopLevelObjectclassName
   else
     Result:='T'+Result+PropertyTypeSuffix;
 end;
@@ -518,6 +523,8 @@ begin
     Undent;
     AddLn('');
     end;
+  if IM.JSONType in StructuredJSONTypes then
+    AddLn('Procedure ClearArray(var anArray : %s); overload;',[M.TypeName]);
   if jpoGenerateLoad in options then
     AddLn('Function Create%s(AJSON : %s) : %s;',[M.TypeName,JSONDataName,M.TypeName]);
   if jpoGenerateSave in options then
@@ -540,7 +547,7 @@ Var
   E : TJSONEnum;
   IM :  TPropertyMapItem;
   IP, FRN,FWN : String;
-  HaveObj : Boolean;
+  HaveComplexArr,HaveObj : Boolean;
 
 begin
   HaveObj:=False;
@@ -568,6 +575,10 @@ begin
     IM.JSONType:=E.Value.JSONtype;
     AddLn('F%s : %s;',[IM.PropertyName,IM.TypeName]);
     HaveObj:=HaveObj or (IM.JSONType=jtObject);
+    if (IM.JSONType=jtArray)
+       and (TJSONArray(E.Value).Count>0)
+       and (TJSONArray(E.Value)[0].JSONType in StructuredJSONTypes) then
+      HaveComplexArr:=True;
     end;
   Undent;
   if jpoUseSetter in Options then
@@ -586,7 +597,7 @@ begin
     end;
   Addln('Public');
   Indent;
-  if HaveObj then
+  if HaveObj or HaveComplexArr then
     AddLn('Destructor Destroy; override;');
   if jpoGenerateLoad in options then
     begin
@@ -598,7 +609,6 @@ begin
     AddLn('Function SaveToJSON : TJSONObject; overload;');
     AddLn('Procedure SaveToJSON(AJSON : TJSONObject); overload; virtual;');
     end;
-
   For E in J do
     begin
     IP:=AddToPath(M.Path,E.Key);
@@ -703,16 +713,48 @@ Var
 begin
   P:=AddToPath(M.Path,'[0]');
   IM:=FPropertyMap.FindPath(P);
-  if J.Items[0] is TJSONObject then
+  if (J.Items[0].JSONType in StructuredJSONTypes) then
+    GenerateImplementation(P,J.Items[0]);
+{  if J.Items[0] is TJSONObject then
     GenerateObjectImplementation(IM,J.Items[0] as TJSONObject)
   else if J.Items[0] is TJSONArray then
-    GenerateArrayImplementation(IM,J.Items[0] as TJSONArray);
+    GenerateArrayImplementation(IM,J.Items[0] as TJSONArray);}
+  if IM.JSONType in StructuredJSONTypes then
+     GenerateClearArray(M,IM);
   if jpoGenerateLoad in Options then
     GenerateCreateArray(M);
   if jpoGenerateSave in Options then
     GenerateSaveArray(M)
   // Do nothing yet
 end;
+
+procedure TJSONToPascal.GenerateClearArray(M,IM : TPropertyMapItem);
+
+Var
+  IP : String;
+
+begin
+  AddLn('');
+  AddLn('Procedure ClearArray(Var anArray : %s);',[M.TypeName]);
+  AddLn('');
+  AddLn('var');
+  AddIndented('I : integer;');
+  AddLn('');
+  AddLn('begin');
+  Indent;
+  AddLn('For I:=0 to Length(anArray) do');
+  Indent;
+  if IM.JSONType=jtObject then
+    AddLn('FreeAndNil(anArray[I]);')
+  else if IM.JSONType=jtArray then
+    AddLn('ClearArray(anArray[I]);');
+  undent;
+  AddLn('SetLength(anArray,0);');
+  Undent;
+  Addln('End;');
+  AddLn('');
+end;
+
 
 procedure TJSONToPascal.GenerateCreateArray(M : TPropertyMapItem);
 
@@ -949,6 +991,7 @@ Var
   IM :  TPropertyMapItem;
   E : TJSONEnum;
   P : String;
+  aCount : integer;
 
 begin
   AddLn('Procedure %s.LoadFromJSON(AJSON : TJSONData);',[M.TypeName]);
@@ -965,6 +1008,7 @@ begin
     Addln('case lowercase(E.Key) of')
   else
     Addln('case E.Key of');
+  aCount:=0;
   For E in J do
     begin
     P:=AddToPath(M.Path,E.Key);
@@ -977,6 +1021,13 @@ begin
       Addln('''%s'':',[E.Key]);
     IM.JSONType:=E.Value.JSONType;
     AddIndented(GenerateAssign(IM,IM.PropertyName,'E.Value'));
+    inc(aCount);
+    end;
+  // Empty statement
+  if aCount=0 then
+    begin
+    AddLn('// Intentionally empty case, so compiler will not complain');
+    Addln(''''': ;',[]);
     end;
   if (jpoUnknownLoadPropsError in options) then
     begin
@@ -1118,23 +1169,30 @@ Var
   IM :  TPropertyMapItem;
   E : TJSONEnum;
   P,FRN : String;
-  HaveObj : Boolean;
+  HaveObj,HaveComplexArr : Boolean;
 
 begin
   HaveObj:=False;
+  HaveComplexArr:=False;
   For E in J do
     begin
     P:=AddToPath(M.Path,E.Key);
     IM:=FPropertyMap.FindPath(P);
     If IM<>Nil then
-      HaveObj:=HaveObj or (IM.JSONType=jtObject);
+      begin
+      HaveObj:=HaveObj or (IM.JSONType in [jtObject]);
+      if (IM.JSONType=jtArray)
+         and (TJSONArray(E.Value).Count>0)
+         and (TJSONArray(E.Value)[0].JSONType in StructuredJSONTypes) then
+        HaveComplexArr:=True;
+      end;
     end;
   Addln('');
   AddLn('{ -----------------------------------------------------------------------');
   Addln('  '+M.TypeName);
   AddLn('  -----------------------------------------------------------------------}');
   Addln('');
-  if HaveObj then
+  if HaveObj or HaveComplexArr then
     begin
     AddLn('Destructor %s.Destroy;',[M.TypeName]);
     Addln('');
@@ -1144,8 +1202,11 @@ begin
       begin
       P:=AddToPath(M.Path,E.Key);
       IM:=FPropertyMap.FindPath(P);
-      If (IM<>Nil) and (IM.JSONType=jtObject) then
-        AddLn('FreeAndNil('+FieldPrefix+IM.PropertyName+');');
+      If (IM<>Nil) then
+        if (IM.JSONType=jtObject) then
+          AddLn('FreeAndNil('+FieldPrefix+IM.PropertyName+');')
+        else if (IM.JSONType=jtArray) then
+          AddLn('ClearArray('+FieldPrefix+IM.PropertyName+');');
       end;
     Addln('inherited;');
     Undent;

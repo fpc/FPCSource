@@ -1843,7 +1843,8 @@ begin
      if (sql_where<>'') then
        sql_where:=sql_where + ' and ';
      sql_where:= sql_where + '(' + FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1];
-     if F.OldValue = NULL then
+     // primary key normally cannot be null
+     if Assigned(F.Dataset) and F.Dataset.Active and (F.OldValue = NULL) then
         sql_where :=  sql_where + ' is null '
      else
         sql_where :=  sql_where +'= :"' + 'OLD_' + F.FieldName + '"';
