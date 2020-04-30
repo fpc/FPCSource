@@ -485,6 +485,9 @@ begin
     repeat
       WaitPort(VideoWindow^.UserPort);
       Res := SysPollKeyEvent;
+      // remove event from KeyQueue, because we return it here,
+      // else we get double keys if GetKeyevent is called without a PollKeyEvent called first
+      KeyQueue := 0; 
     until Res <> 0;
   end else
   begin
