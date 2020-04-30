@@ -566,124 +566,78 @@ implementation
 
     function taicpu.GetString: string;
       var
-        //i : longint;
+        i : longint;
         s : string;
-        //regnr: string;
-        //addsize : boolean;
+        first: Boolean;
       begin
         s:='['+std_op2str[opcode];
-        //for i:=0 to ops-1 do
-        // begin
-        //   with oper[i]^ do
-        //     begin
-        //       if i=0 then
-        //        s:=s+' '
-        //       else
-        //        s:=s+',';
-        //       { type }
-        //       addsize:=false;
-        //
-        //       regnr := '';
-        //       if getregtype(reg) = R_MMREGISTER then
-        //        str(getsupreg(reg),regnr);
-        //
-        //       if (ot and OT_XMMREG)=OT_XMMREG then
-        //        s:=s+'xmmreg' + regnr
-        //       else
-        //         if (ot and OT_YMMREG)=OT_YMMREG then
-        //          s:=s+'ymmreg' + regnr
-        //       else
-        //         if (ot and OT_ZMMREG)=OT_ZMMREG then
-        //          s:=s+'zmmreg' + regnr
-        //
-        //       else
-        //         if (ot and OT_REG_EXTRA_MASK)=OT_MMXREG then
-        //          s:=s+'mmxreg'
-        //       else
-        //         if (ot and OT_REG_EXTRA_MASK)=OT_FPUREG then
-        //          s:=s+'fpureg'
-        //       else
-        //        if (ot and OT_REGISTER)=OT_REGISTER then
-        //         begin
-        //           s:=s+'reg';
-        //           addsize:=true;
-        //         end
-        //       else
-        //        if (ot and OT_IMMEDIATE)=OT_IMMEDIATE then
-        //         begin
-        //           s:=s+'imm';
-        //           addsize:=true;
-        //         end
-        //       else
-        //        if (ot and OT_MEMORY)=OT_MEMORY then
-        //         begin
-        //           s:=s+'mem';
-        //           addsize:=true;
-        //         end
-        //       else
-        //         s:=s+'???';
-        //       { size }
-        //       if addsize then
-        //        begin
-        //          if (ot and OT_BITS8)<>0 then
-        //            s:=s+'8'
-        //          else
-        //           if (ot and OT_BITS16)<>0 then
-        //            s:=s+'16'
-        //          else
-        //           if (ot and OT_BITS32)<>0 then
-        //            s:=s+'32'
-        //          else
-        //           if (ot and OT_BITS64)<>0 then
-        //            s:=s+'64'
-        //          else
-        //           if (ot and OT_BITS128)<>0 then
-        //            s:=s+'128'
-        //          else
-        //           if (ot and OT_BITS256)<>0 then
-        //            s:=s+'256'
-        //           else
-        //            if (ot and OT_BITS512)<>0 then
-        //             s:=s+'512'
-        //          else
-        //            s:=s+'??';
-        //          { signed }
-        //          if (ot and OT_SIGNED)<>0 then
-        //           s:=s+'s';
-        //        end;
-        //
-        //       if vopext <> 0 then
-        //        begin
-        //          str(vopext and $07, regnr);
-        //          if vopext and OTVE_VECTOR_WRITEMASK = OTVE_VECTOR_WRITEMASK then
-        //            s := s + ' {k' + regnr + '}';
-        //
-        //          if vopext and OTVE_VECTOR_ZERO = OTVE_VECTOR_ZERO then
-        //            s := s + ' {z}';
-        //
-        //          if vopext and OTVE_VECTOR_SAE = OTVE_VECTOR_SAE then
-        //            s := s + ' {sae}';
-        //
-        //
-        //          if vopext and OTVE_VECTOR_BCST = OTVE_VECTOR_BCST then
-        //           case vopext and OTVE_VECTOR_BCST_MASK of
-        //              OTVE_VECTOR_BCST2: s := s + ' {1to2}';
-        //              OTVE_VECTOR_BCST4: s := s + ' {1to4}';
-        //              OTVE_VECTOR_BCST8: s := s + ' {1to8}';
-        //             OTVE_VECTOR_BCST16: s := s + ' {1to16}';
-        //           end;
-        //
-        //          if vopext and OTVE_VECTOR_ER = OTVE_VECTOR_ER then
-        //           case vopext and OTVE_VECTOR_ER_MASK of
-        //              OTVE_VECTOR_RNSAE: s := s + ' {rn-sae}';
-        //              OTVE_VECTOR_RDSAE: s := s + ' {rd-sae}';
-        //              OTVE_VECTOR_RUSAE: s := s + ' {ru-sae}';
-        //              OTVE_VECTOR_RZSAE: s := s + ' {rz-sae}';
-        //           end;
-        //
-        //        end;
-        //     end;
-        // end;
+        for i:=0 to ops-1 do
+          begin
+            with oper[i]^ do
+              begin
+                if i=0 then
+                  begin
+                    s:=s+' ';
+                    if condition<>C_None then
+                      s:=s+cond2str[condition]+',';
+                  end
+                else
+                  s:=s+',';
+                case typ of
+                  top_reg:
+                    s:=s+std_regname(reg);
+                  top_const:
+                    s:=s+'const';
+                  top_ref:
+                    case ref^.refaddr of
+                      addr_full:
+                        s:=s+'addr16';
+                      addr_lo8:
+                        s:=s+'addr_lo8';
+                      addr_hi8:
+                        s:=s+'addr_hi8';
+                      addr_no:
+                        begin
+                          s:=s+'(';
+                          first:=true;
+                          if ref^.base<>NR_NO then
+                            begin
+                              first:=false;
+                              s:=s+std_regname(ref^.base);
+                            end;
+                          if ref^.index<>NR_NO then
+                            begin
+                              if not first then
+                                s:=s+'+';
+                              first:=false;
+                              s:=s+std_regname(ref^.index);
+                            end;
+                          if assigned(ref^.symbol) then
+                            begin
+                              if not first then
+                                s:=s+'+';
+                              first:=false;
+                              s:=s+'addr16';
+                            end;
+                          if ref^.offset<>0 then
+                            begin
+                              if not first then
+                                s:=s+'+';
+                              if (ref^.offset>=-128) and (ref^.offset<=127) then
+                                s:=s+'const8'
+                              else
+                                s:=s+'const16';
+                            end;
+                          s:=s+')';
+                        end;
+                      else
+                        ;
+                    end;
+                  else
+                    ;
+                end;
+              end;
+          end;
         GetString:=s+']';
       end;
 
