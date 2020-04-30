@@ -39,9 +39,15 @@ interface
 
     type
 
+      { TRelObjOutput }
+
+      TRelObjOutput = class(tObjOutput)
+      end;
+
       { TRelAssembler }
 
       TRelAssembler = class(tinternalassembler)
+        constructor create(info: pasminfo; smart:boolean);override;
       end;
 
 implementation
@@ -54,6 +60,16 @@ implementation
        version
        ;
 
+
+{*****************************************************************************
+                                TRelAssembler
+*****************************************************************************}
+
+    constructor TRelAssembler.create(info: pasminfo; smart: boolean);
+      begin
+        inherited;
+        CObjOutput:=TRelObjOutput;
+      end;
 
 {*****************************************************************************
                                   Initialize
