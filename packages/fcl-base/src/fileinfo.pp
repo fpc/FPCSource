@@ -101,17 +101,17 @@ type
                      );
 
 // Extract program version information in 1 call.
-Function GetProgramVersion (Var Version : TVersionQuad) : Boolean;
-Function GetProgramVersion (Var Version : TProgramVersion) : Boolean;
+Function GetProgramVersion (Out Version : TVersionQuad) : Boolean;
+Function GetProgramVersion (Out Version : TProgramVersion) : Boolean;
 // Compare 2 versions
 Function CompareVersionQuads(Quad1,Quad2 : TVersionQuad) : TVersionCompare;
 Function CompareProgramVersion(Version1,Version2 : TProgramVersion) : TVersionCompare;
 // Convert version quad to string
 Function VersionQuadToStr(Const Quad : TVersionQuad) : String;
-Function ProgramversionToStr(Const Version : TProgramVersion) : String;
+Function ProgramVersionToStr(Const Version : TProgramVersion) : String;
 // Try to convert string to version quad.
-Function TryStrToVersionQuad(S : String; Var Quad : TVersionQuad) : Boolean;
-Function TryStrToProgramVersion(S : String; Var Version : TProgramVersion) : Boolean;
+Function TryStrToVersionQuad(S : String; Out Quad : TVersionQuad) : Boolean;
+Function TryStrToProgramVersion(S : String; Out Version : TProgramVersion) : Boolean;
 // Convert string to version quad, raise exception if invalid string.
 Function StrToVersionQuad(Const S : String) : TVersionQuad;
 Function StrToProgramVersion(Const S : String ): TProgramVersion;
@@ -183,7 +183,7 @@ end;
 procedure TVersionInfo.Load(Const AFileName : String);
 
 Var
-  I : Integer;
+  I : LongWord;
 
 begin
   FreeResources;
@@ -265,8 +265,7 @@ procedure TFileVersionInfo.ReadFileInfo;
 Var
   VI : TVersionInfo;
   ST : TVersionStringTable;
-  TI,I,J : Integer;
-  S: String;
+  TI,I : Integer;
 
 begin
   FEnabled:=True;
@@ -304,9 +303,9 @@ begin
         end;
       end;
     ST:=VI.StringFileInfo.Items[Ti];
-    for J:=0 to ST.Count-1 do
-      if (FFilter.Count=0) or (FFilter.IndexOf(ST.Keys[j])<>-1) then
-        FVersionStrings.Add(ST.Keys[j]+'='+ST.Values[j]);
+    for i:=0 to ST.Count-1 do
+      if (FFilter.Count=0) or (FFilter.IndexOf(ST.Keys[i])<>-1) then
+        FVersionStrings.Add(ST.Keys[i]+'='+ST.Values[i]);
   finally
     FreeAndNil(VI);
   end;
@@ -347,7 +346,7 @@ end;
 
 { Convenience function }
 
-Function GetProgramVersion (Var Version : TVersionQuad) : Boolean;
+Function GetProgramVersion (Out Version : TVersionQuad) : Boolean;
 
 Var
   VI : TVersionInfo;
@@ -370,7 +369,7 @@ begin
   end;
 end;
 
-Function GetProgramVersion (Var Version : TProgramVersion) : Boolean;
+Function GetProgramVersion (Out Version : TProgramVersion) : Boolean;
 Var
   VQ : TVersionQuad;
 begin
@@ -435,7 +434,7 @@ begin
   Result:=Format('%d.%d.%d.%d',[Version.Major,Version.Minor,Version.Revision,Version.Build]);
 end;
 
-Function TryStrToProgramVersion(S : String; Var Version : TProgramVersion) : Boolean;
+Function TryStrToProgramVersion(S : String; Out Version : TProgramVersion) : Boolean;
 
 Var
   Q : TVersionQuad;
@@ -445,7 +444,7 @@ begin
     Version:=Q;
 end;
 
-Function TryStrToVersionQuad(S : String; Var Quad : TVersionQuad) : Boolean;
+Function TryStrToVersionQuad(S : String; Out Quad : TVersionQuad) : Boolean;
 
 Var
   I,P,Dots,Q : Integer;
@@ -488,12 +487,12 @@ end;
 Function NewerVersion(V1,V2 : TProgramVersion) : Boolean;
 
 Var
-  Q1,Q2 : TversionQuad;
+  Q1,Q2 : TVersionQuad;
 
 begin
   Q1:=V1;
   Q2:=V2;
-  Result:=Newerversion(Q1,Q2);
+  Result:=NewerVersion(Q1,Q2);
 end;
 
 Function NewerVersion(Q1,Q2 : TVersionQuad) : Boolean;
