@@ -231,6 +231,9 @@ type
    procedure SetLastError(dwErrCode : DWORD);
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SetLastError';
 
+   procedure RaiseException(dwExceptionCode: DWORD; dwExceptionFlags: DWORD; dwArgCount: DWORD; lpArguments: Pointer);
+     {$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'RaiseException';
+
    { time and date functions }
    function GetTickCount : DWORD;
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetTickCount';
