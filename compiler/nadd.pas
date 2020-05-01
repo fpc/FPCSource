@@ -484,6 +484,7 @@ implementation
         begin
           result:=getcopy;
           result.resultdef:=nil;
+          result:=ctypeconvnode.create_internal(result,resultdef);
           do_typecheckpass(result);
         end;
 
@@ -783,7 +784,7 @@ implementation
                           { keep the order of val+const else pointer operations might cause an error }
                           hp:=taddnode(left).left;
                           taddnode(left).left:=right;
-                          left:=left.simplify(false);
+                          left:=left.simplify(forinline);
                           right:=left;
                           left:=hp;
                           result:=GetCopyAndTypeCheck;
