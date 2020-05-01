@@ -27,6 +27,8 @@ Type
 { ---------------------------------------------------------------------
   JSON-RPC Handler support
   ---------------------------------------------------------------------}
+  TJSONRPCHandlerDef = Class;
+  TCustomJSONRPCDispatcher = Class;
 
   { TJSONParamDef }
 
@@ -90,6 +92,7 @@ Type
     FOptions: TJSONRPCOptions;
     FParamDefs: TJSONParamDefs;
     FExecParams : TJSONData;
+    FResultType: TJSONtype;
     procedure SetParamDefs(const AValue: TJSONParamDefs);
   Protected
     function CreateParamDefs: TJSONParamDefs; virtual;
@@ -107,7 +110,10 @@ Type
     Procedure CheckParams(Const Params : TJSONData);
     Function ParamByName(Const AName : String) : TJSONData;
     Function Execute(Const Params : TJSONData; AContext : TJSONRPCCallContext = Nil) : TJSONData;
+    // Checked on incoming request
     Property ParamDefs : TJSONParamDefs Read FParamDefs Write SetParamDefs;
+    // Used in parameter descriptions
+    Property ResultType : TJSONtype Read FResultType Write FResultType;
   end;
   TCustomJSONRPCHandlerClass = Class of TCustomJSONRPCHandler;
 
@@ -140,18 +146,60 @@ Type
   JSON-RPC dispatcher support
   ---------------------------------------------------------------------}
 
+  TCreateAPIOption = (caoFormatted,caoFullParams);
+  TCreateAPIOptions = set of TCreateAPIOption;
+
+  { TAPIDescriptionCreator }
+
+  TAPIDescriptionCreator = Class(TPersistent)
+  private
+    FDefaultOptions: TCreateAPIOptions;
+    FDispatcher: TCustomJSONRPCDispatcher;
+    FNameSpace : String;
+    FURL : String;
+    FAPIType : String;
+    function GetNameSpace: String;
+    function isNameSpaceStored: Boolean;
+  Protected
+    Function GetOwner: TPersistent; override;
+    procedure AddParamDefs(O: TJSONObject; Defs: TJSONParamDefs); virtual;
+    function CreateParamDef(aDef: TJSONParamDef): TJSONObject; virtual;
+    function HandlerToAPIMethod(H: TCustomJSONRPCHandler; aOptions: TCreateAPIOptions): TJSONObject; virtual;
+    function HandlerDefToAPIMethod(H: TJSONRPCHandlerDef; aOptions: TCreateAPIOptions): TJSONObject; virtual;
+    function DefaultNameSpace: String; virtual;
+    Function PublishHandler(H: TCustomJSONRPCHandler): Boolean; virtual;
+    function PublishHandlerDef(HD: TJSONRPCHandlerDef): Boolean; virtual;
+  Public
+    Constructor Create(aDispatcher : TCustomJSONRPCDispatcher); virtual;
+    Procedure Assign(Source : TPersistent); override;
+    function CreateAPI(aOptions: TCreateAPIOptions): TJSONObject; overload;
+    function CreateAPI : TJSONObject; overload;
+    Property Dispatcher : TCustomJSONRPCDispatcher Read FDispatcher;
+  Published
+    // Namespace for API description. Must be set. Default 'FPWeb'
+    Property NameSpace : String Read GetNameSpace Write FNameSpace Stored isNameSpaceStored;
+    // URL property for API router. Must be set.
+    Property URL : String Read FURL Write FURL;
+    // "type". By default: 'remoting'
+    Property APIType : String Read FAPIType Write FAPIType;
+    // Default options for creating an API
+    Property DefaultOptions : TCreateAPIOptions Read FDefaultOptions Write FDefaultOptions;
+  end;
+
   TJSONRPCDispatchOption = (jdoSearchRegistry, // Check JSON Handler registry
                             jdoSearchOwner, // Check owner (usually webmodule) for request handler
                             jdoJSONRPC1, // Allow JSON RPC-1
                             jdoJSONRPC2, // Allow JSON RPC-2
                             jdoRequireClass, // Require class name (as in Ext.Direct)
                             jdoNotifications, // Allow JSON Notifications
-                            jdoStrictNotifications // Error if notification returned result. Default is to discard result.
+                            jdoStrictNotifications, // Error if notification returned result. Default is to discard result.
+                            jdoAllowAPI, // Allow client to get API description
+                            jdoCacheAPI // Cache the API description
                             );
   TJSONRPCDispatchOptions = set of TJSONRPCDispatchOption;
 
 Const
-  DefaultDispatchOptions =  [jdoSearchOwner,jdoJSONRPC1,jdoJSONRPC2,jdoNotifications];
+  DefaultDispatchOptions =  [jdoSearchOwner,jdoJSONRPC1,jdoJSONRPC2,jdoNotifications,jdoAllowAPI,jdoCacheAPI];
 
 Type
   TDispatchRequestEvent = Procedure(Sender : TObject; Const AClassName,AMethod : TJSONStringType; Const Params : TJSONData) of object;
@@ -159,14 +207,21 @@ Type
 
   { TCustomJSONRPCDispatcher }
 
+
   TCustomJSONRPCDispatcher = Class(TComponent)
   private
+    FAPICreator: TAPIDescriptionCreator;
     FFindHandler: TFindRPCHandlerEvent;
     FOnDispatchRequest: TDispatchRequestEvent;
     FOnEndBatch: TNotifyEvent;
     FOnStartBatch: TNotifyEvent;
     FOptions: TJSONRPCDispatchOptions;
+    FCachedAPI : TJSONObject;
+    FCachedAPIOptions : TCreateAPIOptions;
+    procedure SetAPICreator(AValue: TAPIDescriptionCreator);
   Protected
+    // Create TAPIDescriptionCreator instance. Must have self as owner
+    Function CreateAPICreator : TAPIDescriptionCreator; virtual;
     // Find handler. If none found, nil is returned. Executes OnFindHandler if needed.
     // On return 'DoFree' must be set to indicate that the hand
     Function FindHandler(Const AClassName,AMethodName : TJSONStringType;AContext : TJSONRPCCallContext; Out FreeObject : TComponent) : TCustomJSONRPCHandler; virtual;
@@ -201,8 +256,17 @@ Type
     Class Function ParamsProperty : String; virtual;
   Public
     Constructor Create(AOwner : TComponent); override;
+    Destructor Destroy; override;
     Class Function TransactionProperty : String; virtual;
+    // execute request(s) using context
     Function Execute(Requests : TJSONData;AContext : TJSONRPCCallContext = Nil) : TJSONData;
+    // Create an API description. If options are not specified, APICreator.DefaultOptions is used.
+    Function CreateAPI(aOptions : TCreateAPIOptions): TJSONObject; overload;
+    Function CreateAPI : TJSONObject; overload;
+    // Return API Description including namespace, as a string. If options are not specified, APICreator.DefaultOptions is used.
+    Function APIAsString(aOptions : TCreateAPIOptions) : TJSONStringType; virtual;
+    Function APIAsString : TJSONStringType; virtual;
+    Property APICreator : TAPIDescriptionCreator Read FAPICreator Write  SetAPICreator;
   end;
 
   TJSONRPCDispatcher = Class(TCustomJSONRPCDispatcher)
@@ -212,6 +276,7 @@ Type
     Property OnFindHandler;
     Property OnEndBatch;
     Property Options;
+    Property APICreator;
   end;
 
 
@@ -237,6 +302,7 @@ Type
     FDataModuleClass : TDataModuleClass;
     FHandlerMethodName: TJSONStringType;
     FHandlerClassName: TJSONStringType;
+    FResultType: TJSONType;
     procedure CheckNames(const AClassName, AMethodName: TJSONStringType);
     function GetParamDefs: TJSONParamDefs;
     procedure SetFPClass(const AValue: TCustomJSONRPCHandlerClass);
@@ -256,6 +322,7 @@ Type
     Property AfterCreate : TJSONRPCHandlerEvent Read FAfterCreate Write FAfterCreate;
     Property ArgumentCount : Integer Read FArgumentCount Write FArgumentCount;
     Property ParamDefs : TJSONParamDefs Read GetParamDefs Write SetParamDefs;
+    Property ResultType : TJSONType Read FResultType Write FResultType;
   end;
   TJSONRPCHandlerDefClass = Class of TJSONRPCHandlerDef;
 
@@ -487,6 +554,36 @@ end;
 procedure JSONRPCParamError(const Fmt: String; const Args: array of const);
 begin
   raise EJSONRPC.CreateFmt(SErrParams, [Format(Fmt, Args)]);
+end;
+
+{ TAPIDescriptionCreator }
+
+function TAPIDescriptionCreator.GetOwner: TPersistent;
+begin
+  Result:=FDispatcher;
+end;
+
+constructor TAPIDescriptionCreator.Create(aDispatcher: TCustomJSONRPCDispatcher);
+begin
+  FDispatcher:=aDispatcher;
+  DefaultOptions:=[caoFullParams];
+end;
+
+procedure TAPIDescriptionCreator.Assign(Source: TPersistent);
+
+Var
+  C : TAPIDescriptionCreator absolute Source;
+
+begin
+  if Source is TAPIDescriptionCreator then
+    begin
+    URL:=C.URL;
+    NameSpace:=C.FNameSpace;
+    FAPIType:=C.APIType;
+    DefaultOptions:=C.DefaultOptions;
+    end
+  else
+    inherited Assign(Source);
 end;
 
 
@@ -799,6 +896,167 @@ end;
 
 { TCustomJSONRPCDispatcher }
 
+// Create API method description
+
+Function TAPIDescriptionCreator.CreateParamDef(aDef: TJSONParamDef) : TJSONObject;
+
+begin
+  With aDef do
+    Result:=TJSONObject.Create(['name',Name,'type',JSONTypeName(DataType),'required',Required]);
+end;
+
+procedure TAPIDescriptionCreator.AddParamDefs(O: TJSONObject; Defs: TJSONParamDefs);
+
+Var
+  A : TJSONArray;
+  I : Integer;
+
+begin
+  A:=TJSONArray.Create;
+  O.Add('paramdefs',A);
+  For I:=0 to Defs.Count-1 do
+    A.Add(CreateParamDef(Defs[i]));
+end;
+
+Function TAPIDescriptionCreator.HandlerToAPIMethod (H: TCustomJSONRPCHandler; aOptions : TCreateAPIOptions): TJSONObject;
+
+begin
+  Result:=TJSONObject.Create(['name',H.Name,'len',H.ParamDefs.Count]);
+  if Not (caoFullParams in aOptions) then exit;
+  Result.Add('resulttype',JSONTypeName(H.ResultType));
+  if (H.ParamDefs.Count>0) then
+    AddParamDefs(Result,H.ParamDefs);
+end;
+
+Function TAPIDescriptionCreator.HandlerDefToAPIMethod (H: TJSONRPCHandlerDef; aOptions: TCreateAPIOptions): TJSONObject;
+
+begin
+  Result:=TJSONObject.Create(['name',H.HandlerMethodName,'len',H.ArgumentCount]);
+  if Not (caoFullParams in aOptions) then exit;
+  Result.Add('resulttype',JSONTypeName(H.ResultType));
+  if (H.ParamDefs.Count>0) then
+    AddParamDefs(Result,H.ParamDefs);
+end;
+
+function TAPIDescriptionCreator.GetNameSpace: String;
+begin
+  Result:=FNameSpace;
+  If (Result='') then
+    Result:=DefaultNameSpace
+end;
+
+function TAPIDescriptionCreator.isNameSpaceStored: Boolean;
+begin
+  Result:=NameSpace<>DefaultNameSpace;
+end;
+
+function TAPIDescriptionCreator.DefaultNameSpace: String;
+begin
+  Result:='';
+end;
+
+function TAPIDescriptionCreator.PublishHandler(H: TCustomJSONRPCHandler): Boolean;
+begin
+  Result:=(H<>Nil)
+end;
+
+Function TAPIDescriptionCreator.PublishHandlerDef(HD: TJSONRPCHandlerDef): Boolean;
+
+begin
+  Result:=(HD<>Nil)
+end;
+
+function TAPIDescriptionCreator.CreateAPI(aOptions: TCreateAPIOptions): TJSONObject;
+
+Var
+  A,D : TJSONObject;
+  R : TJSONArray;
+  N : TJSONStringType;
+  H : TCustomJSONRPCHandler;
+  I,J : Integer;
+  M : TCustomJSONRPCHandlerManager;
+  HD : TJSONRPCHandlerDef;
+  search : Boolean;
+  C : TComponent;
+
+begin
+  D:=TJSONObject.Create;
+  try
+    D.Add('url',URL);
+    D.Add('type',APIType);
+    A:=TJSONObject.Create;
+    D.Add('actions',A);
+    R:=Nil;
+    N:='';
+    Search:=assigned(Dispatcher) and (jdoSearchOwner in Dispatcher.Options);
+    C:=Dispatcher.Owner;
+    If Search and Assigned(C) then
+      begin
+      for I:=C.ComponentCount-1 downto 0 do
+        If C.Components[i] is TCustomJSONRPCHandler then
+          begin
+          H:=C.Components[i] as TCustomJSONRPCHandler;
+          if PublishHandler(H) then
+            begin
+            If (R=Nil) then
+              begin
+              N:=C.Name;
+              R:=TJSONArray.Create;
+              A.Add(N,R);
+              end;
+            R.Add(HandlerToAPIMethod(H,aOptions));
+            end;
+          end;
+      end;
+    Search:=assigned(Dispatcher) and (jdoSearchRegistry in Dispatcher.Options);
+    If Search then
+      begin
+      M:=JSONRPCHandlerManager;
+      For I:=M.HandlerCount-1 downto 0 do
+        begin
+        HD:=M.HandlerDefs[i];
+        if PublishHandlerDef(HD) then
+          begin
+          If (R=Nil) or (CompareText(N,HD.HandlerClassName)<>0) then
+            begin
+            N:=HD.HandlerClassName;
+            J:=A.IndexOfName(N);
+            If (J=-1) then
+              begin
+              R:=TJSONArray.Create;
+              A.Add(N,R);
+              end
+            else
+              R:=A.Items[J] as TJSONArray;
+            end;
+          R.Add(HandlerDefToAPIMethod(HD,aOptions));
+          end;
+        end;
+      end;
+      Result:=D;
+  except
+    FreeAndNil(D);
+    Raise;
+  end;
+end;
+
+function TAPIDescriptionCreator.CreateAPI: TJSONObject;
+begin
+  Result:=CreateAPI(DefaultOptions);
+end;
+
+procedure TCustomJSONRPCDispatcher.SetAPICreator(AValue: TAPIDescriptionCreator);
+begin
+  if FAPICreator=AValue then Exit;
+  FAPICreator.Assign(AValue);
+end;
+
+function TCustomJSONRPCDispatcher.CreateAPICreator: TAPIDescriptionCreator;
+begin
+  Result:=TAPIDescriptionCreator.Create(Self);
+end;
+
+
 function TCustomJSONRPCDispatcher.FindHandler(const AClassName, AMethodName: TJSONStringType;AContext : TJSONRPCCallContext;Out FreeObject : TComponent): TCustomJSONRPCHandler;
 
 Var
@@ -861,9 +1119,11 @@ function TCustomJSONRPCDispatcher.FormatResult(Const AClassName, AMethodName: TJ
 Const Params,ID, Return : TJSONData) : TJSONData;
 
 begin
-  Result:=TJSONObject.Create(['result',Return,'error',TJSonNull.Create,transactionproperty,ID.Clone]);
+  Result:=TJSONObject.Create(['result',Return,transactionproperty,ID.Clone]);
   if jdoJSONRPC2 in options then
-    TJSONObject(Result).Add('jsonrpc','2.0');
+    TJSONObject(Result).Add('jsonrpc','2.0')
+  else
+    TJSONObject(Result).Add('error',TJSonNull.Create);
 end;
 
 function TCustomJSONRPCDispatcher.CreateJSON2Error(const AMessage: String;
@@ -1100,7 +1360,15 @@ end;
 constructor TCustomJSONRPCDispatcher.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FAPICreator:=CreateAPICreator;
   FOptions:=DefaultDispatchOptions;
+end;
+
+destructor TCustomJSONRPCDispatcher.Destroy;
+begin
+  FreeAndNil(FAPICreator);
+  FreeAndNil(FCachedAPI);
+  inherited Destroy;
 end;
 
 function TCustomJSONRPCDispatcher.Execute(Requests: TJSONData;AContext : TJSONRPCCallContext = Nil): TJSONData;
@@ -1112,6 +1380,58 @@ begin
     Result:=DoExecute(Requests,AContext);
   If Assigned(FOnEndBatch) then
     FOnEndBatch(Self);
+end;
+
+function TCustomJSONRPCDispatcher.CreateAPI(aOptions: TCreateAPIOptions): TJSONObject;
+
+Var
+  CAO : TCreateAPIOptions;
+
+begin
+  CAO:=aOptions-[caoFormatted];
+  Result:=Nil;
+  if (jdoCacheAPI in Options)
+     and (FCachedAPI<>Nil)
+     and (CAO=FCachedAPIOptions) then
+    Result:=TJSONObject(FCachedAPI.Clone)
+  else
+    begin
+    Result:=APICreator.CreateAPI(aOptions);
+    if (jdoCacheAPI in Options) then
+      begin
+      FCachedAPI:=TJSONObject(Result.Clone);
+      FCachedAPIOptions:=CAO;
+      end;
+    end;
+end;
+
+function TCustomJSONRPCDispatcher.CreateAPI: TJSONObject;
+begin
+  Result:=CreateAPI(APICreator.DefaultOptions);
+end;
+
+function TCustomJSONRPCDispatcher.APIAsString(aOptions: TCreateAPIOptions): TJSONStringType;
+
+Var
+  S : TJSONObject;
+
+begin
+  S:=CreateAPI(aOptions);
+  try
+    if caoFormatted in aOptions then
+      Result:=S.FormatJSON()
+    else
+      Result:=S.AsJSON;
+    if APICreator.NameSpace<>'' then
+      Result:=APICreator.NameSpace+' = '+Result;
+  finally
+    S.Free;
+  end;
+end;
+
+function TCustomJSONRPCDispatcher.APIAsString: TJSONStringType;
+begin
+  Result:=APIAsString(APICreator.DefaultOptions);
 end;
 
 { TJSONRPCHandlerDef }
@@ -1350,6 +1670,7 @@ begin
           D:=AddHandlerDef(CN,C.Name);
           D.ArgumentCount:=TCustomJSONRPCHandler(C).ParamDefs.Count;
           D.ParamDefs:=TCustomJSONRPCHandler(C).ParamDefs;
+          D.ResultType:=TCustomJSONRPCHandler(C).ResultType;
           {$ifdef wmdebug}SendDebug('Registering provider '+C.Name);{$endif}
           D.FDataModuleClass:=TDataModuleClass(DM.ClassType);
           end;
@@ -1377,6 +1698,7 @@ Function TCustomJSONRPCHandlerManager.RegisterHandler(Const AClassName,
 Var
   I : Integer;
   B : Boolean;
+  H : TCustomJSONRPCHandler;
 
 begin
   B:=FRegistering;
@@ -1391,6 +1713,13 @@ begin
     Result:=AddHandlerDef(AClassName,AMEthodName);
     Result.HandlerClass:=AClass;
     Result.ArgumentCount:=AArgumentCount;
+    H:=Aclass.Create(Nil);
+    try
+      Result.ParamDefs:=H.ParamDefs;
+      Result.ResultType:=H.ResultType;
+    finally
+      H.Free;
+    end;
   finally
     FRegistering:=B;
   end;
