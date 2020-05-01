@@ -47,7 +47,7 @@ const
      * the unit flags listed below
      * the format of the header itslf
     This number cannot become bigger than 255 (it's stored in a byte) }
-  CurrentPPUVersion = 207;
+  CurrentPPUVersion = 208;
   { for any other changes to the ppu format, increase this version number
     (it's a cardinal) }
   CurrentPPULongVersion = 9;
