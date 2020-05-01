@@ -5143,13 +5143,10 @@ implementation
               end;
           end;
 
-        { consider it must not be inlined if called
-          again inside the args or itself }
-        exclude(procdefinition.procoptions,po_inline);
         typecheckpass(tnode(inlineblock));
         doinlinesimplify(tnode(inlineblock));
+        node_reset_flags(tnode(inlineblock),[nf_pass1_done]);
         firstpass(tnode(inlineblock));
-        include(procdefinition.procoptions,po_inline);
         result:=inlineblock;
 
         { if the function result is used then verify that the blocknode
