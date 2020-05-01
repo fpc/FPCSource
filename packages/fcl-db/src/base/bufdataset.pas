@@ -3542,8 +3542,9 @@ begin
       end
     else
       raise Exception.Create(SErrNoFieldsDefined);
-    FAutoIncValue:=1;
     end;
+  if FAutoIncValue<0 then  
+    FAutoIncValue:=1;
   // When a FileName is set, do not read from this file; we want empty dataset
   AStoreFileName:=FFileName;
   FFileName := '';
