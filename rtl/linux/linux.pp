@@ -642,7 +642,7 @@ end;
 function epoll_pwait(epfd: cint; events: pepoll_event; maxevents, timeout: cint; sigmask: PSigSet): cint;
 begin
   epoll_pwait := do_syscall(syscall_nr_epoll_pwait, tsysparam(epfd),
-    tsysparam(events), tsysparam(maxevents), tsysparam(timeout), tsysparam(sigmask));
+    tsysparam(events), tsysparam(maxevents), tsysparam(timeout), tsysparam(sigmask), sizeof(TSigSet));
 end;
 
 function capget(header:Puser_cap_header;data:Puser_cap_data):cint;
