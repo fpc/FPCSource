@@ -636,10 +636,11 @@ implemented
       if possible (only possible in case of single precision floats, because
       there are more fprs than gprs for parameter passing) }
     if assigned(alllocdef) and
-       (tcgsize2size[paracgsize]=4) and
        (loc=LOC_FPUREGISTER) and
-       (nextfloatreg=RS_F13) and
-       (paralen>4) then
+       (((nextfloatreg=RS_F13) and
+         (tcgsize2size[paracgsize]=4) and
+         (paralen>4)) or
+        (nextfloatreg>RS_F13)) then
       begin
         loc:=LOC_REGISTER;
         paracgsize:=OS_64;
