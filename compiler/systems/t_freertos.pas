@@ -963,6 +963,7 @@ begin
   mapstr:='';
   DynLinkStr:='';
 
+  success:=true;
   Result:=false;
 
   if target_info.system=system_xtensa_freertos then
