@@ -42,6 +42,8 @@ interface
       { TRelObjOutput }
 
       TRelObjOutput = class(tObjOutput)
+      protected
+        function writeData(Data:TObjData):boolean;override;
       end;
 
       { TRelAssembler }
@@ -60,6 +62,15 @@ implementation
        version
        ;
 
+{*****************************************************************************
+                                TRelObjOutput
+*****************************************************************************}
+
+    function TRelObjOutput.writeData(Data: TObjData): boolean;
+      begin
+        { todo: implement }
+        result:=true;
+      end;
 
 {*****************************************************************************
                                 TRelAssembler
