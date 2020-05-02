@@ -218,16 +218,91 @@ var
 
 procedure setup_arguments;
 var
+  CmdLineW, pw: PWideChar;
+  c: WideChar;
   buf: array[0..MaxPathLen] of WideChar;
-  i, len: longint;
-  s: ansistring;
+  i, len, argvw_size: longint;
+  s: RawByteString;
+  quote: boolean;
 begin
-  // Get argvw
-  argvw:=CommandLineToArgvW(GetCommandLineW, argc);
-  // Get the full module name for argvw[0]
-  len:=(GetModuleFileNameW(0, @buf, Length(buf)) + 1)*SizeOf(WideChar);
-  argvw[0]:=SysGetMem(len);
-  Move(buf, argvw[0]^, len);
+  // Get the unicode command line
+  CmdLineW:=GetCommandLineW;
+  // Create the ansi command line
+  s:=ansistring(CmdLineW);
+  len:=Length(s) + 1;
+  CmdLine:=SysGetMem(len);
+  Move(PAnsiChar(s)^, CmdLine^, len);
+  // Alloc initial space for argvw
+  if CmdLineW^ = #0 then
+    argvw_size:=2
+  else
+    argvw_size:=10;
+  argvw:=SysGetMem(argvw_size*SizeOf(pointer));
+  // Get the full module name to be used as the first argument
+  len:=GetModuleFileNameW(0, @buf, Length(buf));
+  // Alloc maximum possible space for all arguments
+  pw:=SysGetMem((len + IndexWord(CmdLineW^, High(longint), 0) + 2)*SizeOf(WideChar));
+  // Copy the module name as the first argument. It will be nil terminated later
+  Move(buf, pw^, len*SizeOf(WideChar));
+  argvw[0]:=pw;
+  Inc(pw, len);
+  // Parse the command line
+  argc:=0;
+  quote:=False;
+  while True do
+    begin
+      c:=CmdLineW^;
+      Inc(CmdLineW);
+      case c of
+        #0..#32:
+          if not quote or (c = #0) then
+            begin
+              // Are there any chars of an argument?
+              if argvw[argc] <> pw then
+                begin
+                  // End of an argument found
+                  pw^:=#0;
+                  Inc(pw);
+                  Inc(argc);
+                  if argc = argvw_size then
+                    begin
+                      // Increase the argvw space
+                      Inc(argvw_size, argvw_size shr 1);
+                      SysReAllocMem(argvw, argvw_size*SizeOf(pointer));
+                    end;
+                  if c = #0 then
+                    break;
+                  argvw[argc]:=pw;
+                  continue;
+                end
+              else
+                if c = #0 then
+                  break
+                else
+                  continue; // Skip whitespace
+            end;
+        '"':
+          begin
+            quote:=not quote;
+            continue;
+          end;
+      end;
+      // Ignore the first argument, it is already copied
+      if argc <> 0 then
+        begin
+          // Copy the argument's char
+          pw^:=c;
+          Inc(pw);
+        end;
+    end;
+
+  // Finalization
+  // argvw is terminated by nil
+  argvw[argc]:=nil;
+  // Trim the memory
+  SysReAllocMem(argvw, (argc + 1)*SizeOf(pointer));
+  SysReAllocMem(argvw[0], ptruint(pw) - ptruint(argvw[0]));
+
   // Construct the ansi argv
   argv:=SysGetMem((argc + 1)*SizeOf(pointer));
   for i:=0 to argc - 1 do
@@ -240,19 +315,17 @@ begin
     end;
   // argv is terminated by nil
   argv[argc]:=nil;
-  // Get the ansi CmdLine
-  CmdLine:=GetCommandLineA;
 end;
 
 procedure finalize_arguments;
 var
   i: longint;
 begin
-  // Free the module name
+  SysFreeMem(CmdLine);
+  // Free unicode arguments
   SysFreeMem(argvw[0]);
-  // Use GlobalFree to free the buffer returned by CommandLineToArgvW
-  GlobalFree(argvw);
-  // Free argv
+  SysFreeMem(argvw);
+  // Free ansi arguments
   for i:=0 to argc - 1 do
     SysFreeMem(argv[i]);
   SysFreeMem(argv);
