@@ -433,10 +433,12 @@ interface
       the source }
     procedure removeshuffles(var shuffle : tmmshuffle);
 
+    function is_float_cgsize(size: tcgsize): boolean;{$ifdef USEINLINE}inline;{$endif}
+
 implementation
 
     uses
-      verbose;
+      cutils,verbose;
 
 {******************************************************************************
                              tsuperregisterworklist
@@ -814,6 +816,25 @@ implementation
           shuffle.shuffles[i]:=(shuffle.shuffles[i] and $f) or ((shuffle.shuffles[i] and $f0) shr 4);
       end;
 
+
+    function is_float_cgsize(size: tcgsize): boolean;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        result:=size in [OS_F32..OS_F128];
+      end;
+
+
+   procedure Initmms(var p : pmmshuffle;len : ShortInt);
+     var
+       i : Integer;
+     begin
+       Getmem(p,sizeof(tmmshuffle)+(max(len,0)-1)*2);
+       p^.len:=len;
+       for i:=1 to len do
+{$push}
+{$R-}
+         p^.shuffles[i]:=i;
+{$pop}
+     end;
 
 initialization
   new(mms_movescalar);
