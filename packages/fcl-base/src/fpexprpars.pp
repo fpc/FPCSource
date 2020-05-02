@@ -896,6 +896,7 @@ Resourcestring
   SErrCaseLabelNotAConst = 'Case label %d "%s" is not a constant expression';
   SErrCaseLabelType = 'Case label %d "%s" needs type %s, but has type %s';
   SErrCaseValueType = 'Case value %d "%s" needs type %s, but has type %s';
+  SErrDivisionByZero = '%d division by zero';
 
 { ---------------------------------------------------------------------
   Auxiliary functions
@@ -3564,13 +3565,27 @@ begin
   Left.GetNodeValue(Result);
   Right.GetNodeValue(RRes);
   case Result.ResultType of
-    rtInteger  : Result.ResFloat:=Result.ResInteger/RRes.ResInteger;
-    rtFloat    : Result.ResFloat:=Result.ResFloat/RRes.ResFloat;
+    rtInteger  :
+      if RRes.ResInteger<>0 then
+        Result.ResFloat:=Result.ResInteger/RRes.ResInteger
+      else
+        RaiseParserError(SErrDivisionByZero, [ResultTypeName(rtInteger)]);
+    rtFloat    :
+      if RRes.ResFloat<>0 then
+        Result.ResFloat:=Result.ResFloat/RRes.ResFloat
+      else
+        RaiseParserError(SErrDivisionByZero, [ResultTypeName(rtInteger)]);
     rtCurrency :
         if NodeType=rtCurrency then
-          Result.ResCurrency:=Result.ResCurrency/RRes.ResCurrency
+           if RRes.ResCurrency <> 0 then
+             Result.ResCurrency:=Result.ResCurrency/RRes.ResCurrency
+           else
+             RaiseParserError(SErrDivisionByZero, [ResultTypeName(rtCurrency)])
         else
-          Result.ResFloat:=Result.ResFloat/RRes.ResFloat;
+          if RRes.ResFloat<> 0 then
+            Result.ResFloat:=Result.ResFloat/RRes.ResFloat
+          else
+            RaiseParserError(SErrDivisionByZero, [ResultTypeName(rtFloat)]);
   end;
   Result.ResultType:=NodeType;
 end;
