@@ -28,12 +28,24 @@ interface
 
 uses FPImage, classes, sysutils;
 
+Const
+  BufSize = 1024;
+
 type
+
+  { TFPReaderPNM }
+
   TFPReaderPNM=class (TFPCustomImageReader)
     private
       FBitMapType : Integer;
       FWidth      : Integer;
       FHeight     : Integer;
+      FBufPos : Integer;
+      FBufLen : Integer;
+      FBuffer : Array of char;
+      function DropWhiteSpaces(Stream: TStream): Char;
+      function ReadChar(Stream: TStream): Char;
+      function ReadInteger(Stream: TStream): Integer;
     protected
       FMaxVal     : Cardinal;
       FBitPP        : Byte;
@@ -54,11 +66,12 @@ const
 
 { The magic number at the beginning of a pnm file is 'P1', 'P2', ..., 'P7'
   followed by a WhiteSpace character }
+
 function TFPReaderPNM.InternalCheck(Stream:TStream):boolean;
 var
   hdr: array[0..2] of char;
   oldPos: Int64;
-  n: Integer;
+  i,n: Integer;
 begin
   Result:=False;
   if Stream = nil then
@@ -66,32 +79,36 @@ begin
   oldPos := Stream.Position;
   try
     n := SizeOf(hdr);
-    Result:=(Stream.Read(hdr[0], n) = n)
-            and (hdr[0] = 'P') 
+    Result:=(Stream.Size-OldPos>=N);
+    if not Result then exit;
+    For I:=0 to N-1 do
+      hdr[i]:=ReadChar(Stream);
+    Result:=(hdr[0] = 'P')
             and (hdr[1] in ['1'..'7']) 
             and (hdr[2] in WhiteSpaces);
   finally
     Stream.Position := oldPos;
+    FBufLen:=0;
   end;
 end;
 
-function DropWhiteSpaces(Stream : TStream) :Char;
+function TFPReaderPNM.DropWhiteSpaces(Stream : TStream) :Char;
 
 begin
   with Stream do
     begin
     repeat
-      ReadBuffer(DropWhiteSpaces,1);
+      Result:=ReadChar(Stream);
 {If we encounter comment then eate line}
       if DropWhiteSpaces='#' then
       repeat
-        ReadBuffer(DropWhiteSpaces,1);
-      until DropWhiteSpaces=#10;
-    until not(DropWhiteSpaces in WhiteSpaces);
+        Result:=ReadChar(Stream);
+      until Result=#10;
+    until not (Result in WhiteSpaces);
     end;
 end;
 
-function ReadInteger(Stream : TStream) :Integer;
+function TFPReaderPNM.ReadInteger(Stream : TStream) :Integer;
 
 var
   s:String[7];
@@ -99,12 +116,27 @@ var
 begin
   s:='';
   s[1]:=DropWhiteSpaces(Stream);
-  with Stream do
-    repeat
-      Inc(s[0]);
-      ReadBuffer(s[Length(s)+1],1)
-    until (s[0]=#7) or (s[Length(s)+1] in WhiteSpaces);
+  repeat
+    Inc(s[0]);
+    s[Length(s)+1]:=ReadChar(Stream);
+  until (s[0]=#7) or (s[Length(s)+1] in WhiteSpaces);
   Result:=StrToInt(s);
+end;
+
+Function TFPReaderPNM.ReadChar(Stream : TStream) : Char;
+
+begin
+  If (FBufPos>=FBufLen) then
+    begin
+    if Length(FBuffer)=0 then
+      SetLength(FBuffer,BufSize);
+    FBufLen:=Stream.Read(FBuffer[0],Length(FBuffer));
+    if FBuflen=0 then
+      Raise EReadError.Create('Failed to read from stream');
+    FBufPos:=0;
+    end;
+  Result:=FBuffer[FBufPos];
+  Inc(FBufPos);
 end;
 
 procedure TFPReaderPNM.ReadHeader(Stream : TStream);
@@ -113,11 +145,10 @@ Var
   C : Char;
 
 begin
-  C:=#0;
-  Stream.ReadBuffer(C,1);
+  C:=ReadChar(Stream);
   If (C<>'P') then
     Raise Exception.Create('Not a valid PNM image.');
-  Stream.ReadBuffer(C,1);
+  C:=ReadChar(Stream);
   FBitmapType:=Ord(C)-Ord('0');
   If Not (FBitmapType in [1..6]) then
     Raise Exception.CreateFmt('Unknown PNM subtype : %s',[C]);
