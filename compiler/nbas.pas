@@ -757,6 +757,9 @@ implementation
           begin
             result:=tassignmentnode(a[1].left).right;
             tassignmentnode(a[1].left).right:=nil;
+            { ensure the node is first passed, so the resultdef does not get changed if the
+              the type conv. below is merged }
+            firstpass(result);
             result:=ctypeconvnode.create_internal(result,ttemprefnode(a[3].left).resultdef);
             firstpass(result);
             exit;
