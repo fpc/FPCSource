@@ -4762,9 +4762,12 @@ begin
                    with TPpuSrcFile.Create(CurUnit.SourceFiles) do begin
                      Name:=getstring;
                      i:=getlongint;
-                     if i >= 0 then
-                       FileTime:=FileDateToDateTime(i);
-                     Writeln(['Source file ',sourcenumber,' : ',Name,' ',filetimestring(i)]);
+                     try
+                       if i >= 0 then
+                         FileTime:=FileDateToDateTime(i);
+                       Writeln(['Source file ',sourcenumber,' : ',Name,' ',filetimestring(i)]);
+                     except
+                     end;
                    end;
 
                    inc(sourcenumber);
