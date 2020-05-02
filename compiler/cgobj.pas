@@ -1023,144 +1023,151 @@ implementation
         location: pcgparalocation;
         orgsizeleft,
         sizeleft: tcgint;
+        usesize: tcgsize;
         reghasvalue: boolean;
       begin
         location:=cgpara.location;
         tmpref:=r;
         sizeleft:=cgpara.intsize;
-        while assigned(location) do
-          begin
-            paramanager.allocparaloc(list,location);
-            case location^.loc of
-              LOC_REGISTER,LOC_CREGISTER:
-                begin
-                   { Parameter locations are often allocated in multiples of
-                     entire registers. If a parameter only occupies a part of
-                     such a register (e.g. a 16 bit int on a 32 bit
-                     architecture), the size of this parameter can only be
-                     determined by looking at the "size" parameter of this
-                     method -> if the size parameter is <= sizeof(aint), then
-                     we check that there is only one parameter location and
-                     then use this "size" to load the value into the parameter
-                     location }
-                   if (size<>OS_NO) and
-                      (tcgsize2size[size]<=sizeof(aint)) then
-                     begin
-                       cgpara.check_simple_location;
-                       a_load_ref_reg(list,size,location^.size,tmpref,location^.register);
-                       if location^.shiftval<0 then
-                         a_op_const_reg(list,OP_SHL,location^.size,-location^.shiftval,location^.register);
-                     end
-                   { there's a lot more data left, and the current paraloc's
-                     register is entirely filled with part of that data }
-                   else if (sizeleft>sizeof(aint)) then
-                     begin
-                       a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
-                     end
-                   { we're at the end of the data, and it can be loaded into
-                     the current location's register with a single regular
-                     load }
-                   else if sizeleft in [1,2,4,8] then
-                     begin
-                       a_load_ref_reg(list,int_cgsize(sizeleft),location^.size,tmpref,location^.register);
-                       if location^.shiftval<0 then
-                         a_op_const_reg(list,OP_SHL,location^.size,-location^.shiftval,location^.register);
-                     end
-                   { we're at the end of the data, and we need multiple loads
-                     to get it in the register because it's an irregular size }
-                   else
-                     begin
-                       { should be the last part }
-                       if assigned(location^.next) then
-                         internalerror(2010052907);
-                       { load the value piecewise to get it into the register }
-                       orgsizeleft:=sizeleft;
-                       reghasvalue:=false;
+        repeat
+          paramanager.allocparaloc(list,location);
+          case location^.loc of
+            LOC_REGISTER,LOC_CREGISTER:
+              begin
+                 { Parameter locations are often allocated in multiples of
+                   entire registers. If a parameter only occupies a part of
+                   such a register (e.g. a 16 bit int on a 32 bit
+                   architecture), the size of this parameter can only be
+                   determined by looking at the "size" parameter of this
+                   method -> if the size parameter is <= sizeof(aint), then
+                   we check that there is only one parameter location and
+                   then use this "size" to load the value into the parameter
+                   location }
+                 if (size<>OS_NO) and
+                    (tcgsize2size[size]<=sizeof(aint)) then
+                   begin
+                     cgpara.check_simple_location;
+                     a_load_ref_reg(list,size,location^.size,tmpref,location^.register);
+                     if location^.shiftval<0 then
+                       a_op_const_reg(list,OP_SHL,location^.size,-location^.shiftval,location^.register);
+                   end
+                 { there's a lot more data left, and the current paraloc's
+                   register is entirely filled with part of that data }
+                 else if (sizeleft>sizeof(aint)) then
+                   begin
+                     a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
+                   end
+                 { we're at the end of the data, and it can be loaded into
+                   the current location's register with a single regular
+                   load }
+                 else if sizeleft in [1,2,4,8] then
+                   begin
+                     a_load_ref_reg(list,int_cgsize(sizeleft),location^.size,tmpref,location^.register);
+                     if location^.shiftval<0 then
+                       a_op_const_reg(list,OP_SHL,location^.size,-location^.shiftval,location^.register);
+                   end
+                 { we're at the end of the data, and we need multiple loads
+                   to get it in the register because it's an irregular size }
+                 else
+                   begin
+                     { should be the last part }
+                     if assigned(location^.next) then
+                       internalerror(2010052907);
+                     { load the value piecewise to get it into the register }
+                     orgsizeleft:=sizeleft;
+                     reghasvalue:=false;
 {$ifdef cpu64bitalu}
-                       if sizeleft>=4 then
-                         begin
-                           a_load_ref_reg(list,OS_32,location^.size,tmpref,location^.register);
-                           dec(sizeleft,4);
-                           if target_info.endian=endian_big then
-                             a_op_const_reg(list,OP_SHL,location^.size,sizeleft*8,location^.register);
-                           inc(tmpref.offset,4);
-                           reghasvalue:=true;
-                         end;
+                     if sizeleft>=4 then
+                       begin
+                         a_load_ref_reg(list,OS_32,location^.size,tmpref,location^.register);
+                         dec(sizeleft,4);
+                         if target_info.endian=endian_big then
+                           a_op_const_reg(list,OP_SHL,location^.size,sizeleft*8,location^.register);
+                         inc(tmpref.offset,4);
+                         reghasvalue:=true;
+                       end;
 {$endif cpu64bitalu}
-                       if sizeleft>=2 then
-                         begin
-                           tmpreg:=getintregister(list,location^.size);
-                           a_load_ref_reg(list,OS_16,location^.size,tmpref,tmpreg);
-                           dec(sizeleft,2);
-                           if reghasvalue then
-                             begin
-                               if target_info.endian=endian_big then
-                                 a_op_const_reg(list,OP_SHL,location^.size,sizeleft*8,tmpreg)
-                               else
-                                 a_op_const_reg(list,OP_SHL,location^.size,(orgsizeleft-(sizeleft+2))*8,tmpreg);
-                               a_op_reg_reg(list,OP_OR,location^.size,tmpreg,location^.register);
-                             end
-                           else
-                             begin
-                               if target_info.endian=endian_big then
-                                 a_op_const_reg_reg(list,OP_SHL,location^.size,sizeleft*8,tmpreg,location^.register)
-                               else
-                                 a_load_reg_reg(list,location^.size,location^.size,tmpreg,location^.register);
-                             end;
-                           inc(tmpref.offset,2);
-                           reghasvalue:=true;
-                         end;
-                       if sizeleft=1 then
-                         begin
-                           tmpreg:=getintregister(list,location^.size);
-                           a_load_ref_reg(list,OS_8,location^.size,tmpref,tmpreg);
-                           dec(sizeleft,1);
-                           if reghasvalue then
-                             begin
-                               if target_info.endian=endian_little then
-                                 a_op_const_reg(list,OP_SHL,location^.size,(orgsizeleft-(sizeleft+1))*8,tmpreg);
-                               a_op_reg_reg(list,OP_OR,location^.size,tmpreg,location^.register)
-                             end
-                           else
-                             a_load_reg_reg(list,location^.size,location^.size,tmpreg,location^.register);
-                           inc(tmpref.offset);
-                         end;
-                       if location^.shiftval<0 then
-                         a_op_const_reg(list,OP_SHL,location^.size,-location^.shiftval,location^.register);
-                       { the loop will already adjust the offset and sizeleft }
-                       dec(tmpref.offset,orgsizeleft);
-                       sizeleft:=orgsizeleft;
-                     end;
-                end;
-              LOC_REFERENCE,LOC_CREFERENCE:
-                begin
-                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,ctempposinvalid,newalignment(cgpara.alignment,cgpara.intsize-sizeleft),[]);
-                  a_load_ref_cgparalocref(list,size,sizeleft,tmpref,ref,cgpara,location);
-                end;
-              LOC_MMREGISTER,LOC_CMMREGISTER:
-                begin
-                   case location^.size of
-                     OS_F32,
-                     OS_F64,
-                     OS_F128:
-                       a_loadmm_ref_reg(list,location^.size,location^.size,tmpref,location^.register,mms_movescalar);
-                     OS_M8..OS_M512:
-                       a_loadmm_ref_reg(list,location^.size,location^.size,tmpref,location^.register,nil);
-                     else
-                       internalerror(2010053101);
+                     if sizeleft>=2 then
+                       begin
+                         tmpreg:=getintregister(list,location^.size);
+                         a_load_ref_reg(list,OS_16,location^.size,tmpref,tmpreg);
+                         dec(sizeleft,2);
+                         if reghasvalue then
+                           begin
+                             if target_info.endian=endian_big then
+                               a_op_const_reg(list,OP_SHL,location^.size,sizeleft*8,tmpreg)
+                             else
+                               a_op_const_reg(list,OP_SHL,location^.size,(orgsizeleft-(sizeleft+2))*8,tmpreg);
+                             a_op_reg_reg(list,OP_OR,location^.size,tmpreg,location^.register);
+                           end
+                         else
+                           begin
+                             if target_info.endian=endian_big then
+                               a_op_const_reg_reg(list,OP_SHL,location^.size,sizeleft*8,tmpreg,location^.register)
+                             else
+                               a_load_reg_reg(list,location^.size,location^.size,tmpreg,location^.register);
+                           end;
+                         inc(tmpref.offset,2);
+                         reghasvalue:=true;
+                       end;
+                     if sizeleft=1 then
+                       begin
+                         tmpreg:=getintregister(list,location^.size);
+                         a_load_ref_reg(list,OS_8,location^.size,tmpref,tmpreg);
+                         dec(sizeleft,1);
+                         if reghasvalue then
+                           begin
+                             if target_info.endian=endian_little then
+                               a_op_const_reg(list,OP_SHL,location^.size,(orgsizeleft-(sizeleft+1))*8,tmpreg);
+                             a_op_reg_reg(list,OP_OR,location^.size,tmpreg,location^.register)
+                           end
+                         else
+                           a_load_reg_reg(list,location^.size,location^.size,tmpreg,location^.register);
+                         inc(tmpref.offset);
+                       end;
+                     if location^.shiftval<0 then
+                       a_op_const_reg(list,OP_SHL,location^.size,-location^.shiftval,location^.register);
+                     { the loop will already adjust the offset and sizeleft }
+                     dec(tmpref.offset,orgsizeleft);
+                     sizeleft:=orgsizeleft;
                    end;
-                end;
-              LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                begin
-                  a_loadfpu_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
-                end
-              else
-                internalerror(2010053111);
-            end;
-            inc(tmpref.offset,tcgsize2size[location^.size]);
-            dec(sizeleft,tcgsize2size[location^.size]);
-            location:=location^.next;
+              end;
+            LOC_REFERENCE,LOC_CREFERENCE:
+              begin
+                reference_reset_base(ref,location^.reference.index,location^.reference.offset,ctempposinvalid,newalignment(cgpara.alignment,cgpara.intsize-sizeleft),[]);
+                a_load_ref_cgparalocref(list,size,sizeleft,tmpref,ref,cgpara,location);
+              end;
+            LOC_MMREGISTER,LOC_CMMREGISTER:
+              begin
+                 case location^.size of
+                   OS_F32,
+                   OS_F64,
+                   OS_F128:
+                     a_loadmm_ref_reg(list,location^.size,location^.size,tmpref,location^.register,mms_movescalar);
+                   OS_M8..OS_M512:
+                     a_loadmm_ref_reg(list,location^.size,location^.size,tmpref,location^.register,nil);
+                   else
+                     internalerror(2010053101);
+                 end;
+              end;
+            LOC_FPUREGISTER,LOC_CFPUREGISTER:
+              begin
+                { can be not a float size in case of a record passed in fpu registers }
+                { the size comparison is to catch F128 passed in two 64 bit floating point registers }
+                if is_float_cgsize(size) and
+                   (tcgsize2size[location^.size]>=tcgsize2size[size]) then
+                  usesize:=size
+                else
+                  usesize:=location^.size;
+                a_loadfpu_ref_reg(list,usesize,location^.size,tmpref,location^.register);
+              end
+            else
+              internalerror(2010053111);
           end;
+          inc(tmpref.offset,tcgsize2size[location^.size]);
+          dec(sizeleft,tcgsize2size[location^.size]);
+          location:=location^.next;
+        until not assigned(location);
       end;
 
     procedure tcg.a_load_ref_cgparalocref(list: TAsmList; sourcesize: tcgsize; sizeleft: tcgint; const ref, paralocref: treference; const cgpara: tcgpara; const location: PCGParaLocation);
@@ -1884,6 +1891,7 @@ implementation
       var
         srcref,
         href : treference;
+        srcsize,
         hsize: tcgsize;
         paraloc: PCGParaLocation;
         sizeleft: tcgint;
@@ -1896,9 +1904,18 @@ implementation
           case paraloc^.loc of
             LOC_FPUREGISTER,LOC_CFPUREGISTER:
               begin
-                { force fpu size }
-                hsize:=int_float_cgsize(tcgsize2size[paraloc^.size]);
-                a_loadfpu_ref_reg(list,hsize,hsize,srcref,paraloc^.register);
+                { destination: can be something different in case of a record passed in fpu registers }
+                if is_float_cgsize(paraloc^.size) then
+                  hsize:=paraloc^.size
+                else
+                  hsize:=int_float_cgsize(tcgsize2size[paraloc^.size]);
+                { source: the size comparison is to catch F128 passed in two 64 bit floating point registers }
+                if is_float_cgsize(size) and
+                   (tcgsize2size[size]<=tcgsize2size[paraloc^.size]) then
+                  srcsize:=size
+                else
+                  srcsize:=hsize;
+                a_loadfpu_ref_reg(list,srcsize,hsize,srcref,paraloc^.register);
               end;
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
