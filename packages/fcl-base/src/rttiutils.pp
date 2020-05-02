@@ -47,7 +47,7 @@ type
     FSize: Integer;
     function Get(Index: Integer): PPropInfo;
   public
-    constructor Create(AObject: TObject; Filter: TTypeKinds);
+    constructor Create(AObject: TObject; Filter: TTypeKinds; Sorted: Boolean = True);
     destructor Destroy; override;
     function Contains(P: PPropInfo): Boolean;
     function Find(const AName: string): PPropInfo;
@@ -157,14 +157,14 @@ end;
 
 { TPropInfoList }
 
-constructor TPropInfoList.Create(AObject: TObject; Filter: TTypeKinds);
+constructor TPropInfoList.Create(AObject: TObject; Filter: TTypeKinds; Sorted: Boolean);
 begin
   if AObject <> nil then
     begin
-    FCount := GetPropList(AObject.ClassInfo, Filter, nil);
+    FCount := GetPropList(AObject.ClassInfo, Filter, nil, Sorted);
     FSize := FCount * SizeOf(Pointer);
     GetMem(FList, FSize);
-    GetPropList(AObject.ClassInfo, Filter, FList);
+    GetPropList(AObject.ClassInfo, Filter, FList, Sorted);
     end
   else
     begin
