@@ -174,8 +174,9 @@ implementation
     function TRelObjOutput.writeData(Data: TObjData): boolean;
       var
         global_symbols_count: Integer = 0;
-        idx, i: Integer;
+        secidx, idx, i: Integer;
         objsym: TObjSymbol;
+        objsec: TObjSection;
       begin
         global_symbols_count:=0;
         for i:=0 to Data.ObjSymbolList.Count-1 do
@@ -198,6 +199,14 @@ implementation
                 objsym.symidx:=idx;
                 Inc(idx);
               end;
+          end;
+        secidx:=0;
+        for i:=0 to Data.ObjSectionList.Count-1 do
+          begin
+            objsec:=TObjSection(Data.ObjSectionList[i]);
+            writeLine('A '+objsec.Name+' size '+tohex(objsec.Size)+' flags 0 addr 0');
+            objsec.SecSymIdx:=secidx;
+            Inc(secidx);
           end;
         result:=true;
       end;
