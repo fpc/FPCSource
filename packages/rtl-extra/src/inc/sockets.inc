@@ -452,6 +452,7 @@ Var Part   : String;
     ZeroAt : Integer;
 Begin
   FillChar(IPv6,SizeOf(IPv6),0);
+  FillChar(StrToHostAddr6,SizeOf(TIn6_addr),0);
   { Every 16-bit block is converted at its own and stored into Result. When }
   { the '::' zero-spacer is found, its location is stored. Afterwards the   }
   { address is shifted and zero-filled.                                     }
@@ -469,7 +470,7 @@ Begin
       if J <> 0 then
         Begin
           FillChar(IPv6,SizeOf(IPv6),0);
-          Exit;
+          Exit(IPV6);
         End;
       if IP[1] = ':' then
         Begin
