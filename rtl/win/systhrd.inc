@@ -400,6 +400,9 @@ var
     procedure SysSetThreadDebugNameA(threadHandle: TThreadID; const ThreadName: AnsiString);
     begin
 {$ifndef WINCE}
+      if ThreadName = '' then
+        Exit;
+
       if WinIsDebuggerPresent then
       begin
         RaiseMSVCExceptionMethod(threadHandle, ThreadName);
@@ -417,6 +420,9 @@ var
     procedure SysSetThreadDebugNameU(threadHandle: TThreadID; const ThreadName: UnicodeString);
     begin
 {$ifndef WINCE}
+      if ThreadName = '' then
+        Exit;
+
       if WinIsDebuggerPresent then
       begin
         RaiseMSVCExceptionMethod(threadHandle, AnsiString(ThreadName));

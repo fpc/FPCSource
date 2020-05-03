@@ -494,6 +494,8 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {$endif}
     begin
 {$if defined(Linux) or defined(Android)}
+      if ThreadName = '' then
+        Exit;
   {$ifdef dynpthreads}
       if Assigned(pthread_setname_np) then
   {$endif dynpthreads}
