@@ -42,6 +42,9 @@ interface
       { TRelObjData }
 
       TRelObjData = class(TObjData)
+      public
+        function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
+        procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
       end;
 
       { TRelObjOutput }
@@ -68,6 +71,81 @@ implementation
        ogmap,
        version
        ;
+
+{*****************************************************************************
+                                TRelObjData
+*****************************************************************************}
+
+    function TRelObjData.sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string;
+      const
+        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
+          '_CODE',
+          '_DATA',
+          '_DATA',
+          '.rodata',
+          '.bss',
+          '.threadvar',
+          '.pdata',
+          '', { stubs }
+          '__DATA,__nl_symbol_ptr',
+          '__DATA,__la_symbol_ptr',
+          '__DATA,__mod_init_func',
+          '__DATA,__mod_term_func',
+          '.stab',
+          '.stabstr',
+          '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+          '.eh_frame',
+          '.debug_frame','.debug_info','.debug_line','.debug_abbrev','.debug_aranges','.debug_ranges',
+          '.fpc',
+          '.toc',
+          '.init',
+          '.fini',
+          '.objc_class',
+          '.objc_meta_class',
+          '.objc_cat_cls_meth',
+          '.objc_cat_inst_meth',
+          '.objc_protocol',
+          '.objc_string_object',
+          '.objc_cls_meth',
+          '.objc_inst_meth',
+          '.objc_cls_refs',
+          '.objc_message_refs',
+          '.objc_symbols',
+          '.objc_category',
+          '.objc_class_vars',
+          '.objc_instance_vars',
+          '.objc_module_info',
+          '.objc_class_names',
+          '.objc_meth_var_types',
+          '.objc_meth_var_names',
+          '.objc_selector_strs',
+          '.objc_protocol_ext',
+          '.objc_class_ext',
+          '.objc_property',
+          '.objc_image_info',
+          '.objc_cstring_object',
+          '.objc_sel_fixup',
+          '__DATA,__objc_data',
+          '__DATA,__objc_const',
+          '.objc_superrefs',
+          '__DATA, __datacoal_nt,coalesced',
+          '.objc_classlist',
+          '.objc_nlclasslist',
+          '.objc_catlist',
+          '.obcj_nlcatlist',
+          '.objc_protolist',
+          '.stack',
+          '.heap',
+          '.gcc_except_table',
+          '.ARM.attributes'
+        );
+      begin
+        result:=secnames[atype];
+      end;
+
+    procedure TRelObjData.writeReloc(Data: TRelocDataInt; len: aword; p: TObjSymbol; Reloctype: TObjRelocationType);
+      begin
+      end;
 
 {*****************************************************************************
                                 TRelObjOutput
