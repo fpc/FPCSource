@@ -39,11 +39,18 @@ interface
 
     type
 
+      { TRelObjData }
+
+      TRelObjData = class(TObjData)
+      end;
+
       { TRelObjOutput }
 
       TRelObjOutput = class(tObjOutput)
       protected
         function writeData(Data:TObjData):boolean;override;
+      public
+        constructor create(AWriter:TObjectWriter);override;
       end;
 
       { TRelAssembler }
@@ -70,6 +77,12 @@ implementation
       begin
         { todo: implement }
         result:=true;
+      end;
+
+    constructor TRelObjOutput.create(AWriter: TObjectWriter);
+      begin
+        inherited;
+        cobjdata:=TRelObjData;
       end;
 
 {*****************************************************************************
