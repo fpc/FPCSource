@@ -191,6 +191,7 @@ Type
     function sem_getvalue (__sem:Psem_t; __sval:Plongint):longint;cdecl;external;
 
     function pthread_mutexattr_settype (__attr: Ppthread_mutexattr_t; Kind:Integer): Integer; cdecl;external;
+    function pthread_setname_np(thread: pthread_t; name: PAnsiChar):cint;cdecl;external;
 
 {$else}
 Var
@@ -272,6 +273,7 @@ Var
     sem_getvalue :   function (__sem:Psem_t; __sval:Plongint):longint;cdecl;
 
     pthread_mutexattr_settype : function(__attr: Ppthread_mutexattr_t; Kind:Integer): Integer; cdecl;
+    pthread_setname_np : function(thread: pthread_t; name: PAnsiChar):cint;cdecl;
 
 
 Var
@@ -363,6 +365,7 @@ begin
   Pointer(sem_post     ) := dlsym(PthreadDLL,'sem_post');
   Pointer(sem_getvalue ) := dlsym(PthreadDLL,'sem_getvalue');
   Pointer(pthread_mutexattr_settype) := dlsym(PthreadDLL,'pthread_mutexattr_settype');
+  Pointer(pthread_setname_np) := dlsym(PthreadDLL,'pthread_setname_np');
 end;
 
 Function UnLoadPthreads : Boolean;
