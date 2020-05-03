@@ -632,6 +632,19 @@ implemented
   { can become < 0 for e.g. 3-byte records }
   while (paralen > 0) do begin
     paraloc := para.add_location;
+    { ELF64v2 a: overflow homogeneous float storage into integer registers
+      if possible (only possible in case of single precision floats, because
+      there are more fprs than gprs for parameter passing) }
+    if assigned(alllocdef) and
+       (tcgsize2size[paracgsize]=4) and
+       (loc=LOC_FPUREGISTER) and
+       (nextfloatreg=RS_F13) and
+       (paralen>4) then
+      begin
+        loc:=LOC_REGISTER;
+        paracgsize:=OS_64;
+        locdef:=u64inttype;
+      end;
     { In case of po_delphi_nested_cc, the parent frame pointer
       is always passed on the stack. }
     if (loc = LOC_REGISTER) and
@@ -691,12 +704,24 @@ implemented
       paraloc^.def := locdef;
       paraloc^.register := newreg(R_FPUREGISTER, nextfloatreg, R_SUBWHOLE);
       { the PPC64 ABI says that the GPR index is increased for every parameter, no matter
-      which type it is stored in }
-      inc(nextintreg);
+        which type it is stored in
+        -- exception: ELFv2 abi when passing aggregate parts in FPRs, because those are
+           a direct mirror of the memory layout of the aggregate }
+      if not assigned(alllocdef) then
+        begin
+          inc(nextintreg);
+          inc(stack_offset, tcgsize2size[OS_FLOAT]);
+        end
+      else
+        begin
+          if (tcgsize2size[paracgsize]=8) or
+             odd(ord(nextfloatreg)-ord(RS_F1)) then
+            inc(nextintreg);
+          inc(stack_offset, tcgsize2size[paracgsize]);
+        end;
       inc(nextfloatreg);
       dec(paralen, tcgsize2size[paraloc^.size]);
 
-      inc(stack_offset, tcgsize2size[OS_FLOAT]);
     end else if (loc = LOC_MMREGISTER) then begin
       { Altivec not supported }
       internalerror(200510192);
@@ -707,7 +732,10 @@ implemented
       case loc of
         LOC_FPUREGISTER:
           begin
-            paraloc^.size:=int_float_cgsize(paralen);
+            if assigned(alllocdef) then
+              paraloc^.size:=def_cgsize(alllocdef)
+            else
+              paraloc^.size:=int_float_cgsize(paralen);
             case paraloc^.size of
               OS_F32: paraloc^.def:=s32floattype;
               OS_F64: paraloc^.def:=s64floattype;
