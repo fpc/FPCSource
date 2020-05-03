@@ -2431,6 +2431,14 @@ implementation
                         result:=ctypeconvnode.create_internal(left,s32inttype);
                         left:=nil;
                       end;
+                    undefineddef :
+                      begin
+                        { we just create a constant 0 here, that's marked as a
+                          parameter }
+                        result:=cordconstnode.create(0,s32inttype,false);
+                        include(result.flags,nf_generic_para);
+                        left:=nil;
+                      end;
                     pointerdef :
                       begin
                         if m_mac in current_settings.modeswitches then
@@ -3017,7 +3025,8 @@ implementation
                    set_varstate(left,vs_read,[vsf_must_be_valid]);
                    case left.resultdef.typ of
                      orddef,
-                     enumdef :
+                     enumdef,
+                     undefineddef :
                        ;
                      pointerdef :
                        begin
