@@ -2972,12 +2972,14 @@ implementation
                ) then
               begin
                 { output string consts in local ansistring encoding }
-                if is_ansistring(resultdef) and ((tstringdef(resultdef).encoding=0)or(tstringdef(resultdef).encoding=globals.CP_NONE)) then
+                if is_ansistring(resultdef) and
+                  { do not mess with the result type for internally created nodes }
+                  not(nf_internal in flags) and
+                  ((tstringdef(resultdef).encoding=0) or (tstringdef(resultdef).encoding=globals.CP_NONE)) then
                   tstringconstnode(left).changestringtype(getansistringdef)
                 else
                   tstringconstnode(left).changestringtype(resultdef);
                 result:=left;
-                resultdef:=left.resultdef;
                 left:=nil;
                 exit;
               end
