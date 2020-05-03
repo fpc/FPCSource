@@ -219,6 +219,11 @@ implementation
               result := foreachnode(procmethod,tcallnode(n).funcretnode,f,arg) or result;
               result := foreachnode(procmethod,tnode(tcallnode(n).callcleanupblock),f,arg) or result;
             end;
+          callparan:
+            begin
+              result := foreachnode(procmethod,tnode(tcallparanode(n).fparainit),f,arg) or result;
+              result := foreachnode(procmethod,tcallparanode(n).fparacopyback,f,arg) or result;
+            end;
           ifn, whilerepeatn, forn, tryexceptn:
             begin
               { not in one statement, won't work because of b- }
@@ -321,6 +326,11 @@ implementation
               result := foreachnodestatic(procmethod,tcallnode(n).methodpointer,f,arg) or result;
               result := foreachnodestatic(procmethod,tcallnode(n).funcretnode,f,arg) or result;
               result := foreachnodestatic(procmethod,tnode(tcallnode(n).callcleanupblock),f,arg) or result;
+            end;
+          callparan:
+            begin
+              result := foreachnodestatic(procmethod,tnode(tcallparanode(n).fparainit),f,arg) or result;
+              result := foreachnodestatic(procmethod,tcallparanode(n).fparacopyback,f,arg) or result;
             end;
           ifn, whilerepeatn, forn, tryexceptn:
             begin
