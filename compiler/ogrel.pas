@@ -75,6 +75,13 @@ implementation
        version
        ;
 
+    function tohex(q: qword): string;
+      begin
+        result:=HexStr(q,16);
+        while (Length(result)>1) and (result[1]='0') do
+          delete(result,1,1);
+      end;
+
 {*****************************************************************************
                                 TRelObjData
 *****************************************************************************}
@@ -179,7 +186,7 @@ implementation
           end;
 
         writeLine('XL2');
-        writeLine('H '+tostr(data.ObjSectionList.Count)+' areas '+tostr(global_symbols_count)+' global symbols');
+        writeLine('H '+tohex(data.ObjSectionList.Count)+' areas '+tohex(global_symbols_count)+' global symbols');
 
         idx:=0;
         for i:=0 to Data.ObjSymbolList.Count-1 do
