@@ -50,6 +50,9 @@ interface
       { TRelObjOutput }
 
       TRelObjOutput = class(tObjOutput)
+      private
+        procedure writeString(const S: ansistring);
+        procedure writeLine(const S: ansistring);
       protected
         function writeData(Data:TObjData):boolean;override;
       public
@@ -151,9 +154,44 @@ implementation
                                 TRelObjOutput
 *****************************************************************************}
 
-    function TRelObjOutput.writeData(Data: TObjData): boolean;
+    procedure TRelObjOutput.writeString(const S: ansistring);
       begin
-        { todo: implement }
+        FWriter.write(S[1],Length(S));
+      end;
+
+    procedure TRelObjOutput.writeLine(const S: ansistring);
+      begin
+        writeString(S+#10)
+      end;
+
+    function TRelObjOutput.writeData(Data: TObjData): boolean;
+      var
+        global_symbols_count: Integer = 0;
+        idx, i: Integer;
+        objsym: TObjSymbol;
+      begin
+        global_symbols_count:=0;
+        for i:=0 to Data.ObjSymbolList.Count-1 do
+          begin
+            objsym:=TObjSymbol(Data.ObjSymbolList[i]);
+            if objsym.bind=AB_EXTERNAL then
+              Inc(global_symbols_count);
+          end;
+
+        writeLine('XL2');
+        writeLine('H '+tostr(data.ObjSectionList.Count)+' areas '+tostr(global_symbols_count)+' global symbols');
+
+        idx:=0;
+        for i:=0 to Data.ObjSymbolList.Count-1 do
+          begin
+            objsym:=TObjSymbol(Data.ObjSymbolList[i]);
+            if objsym.bind=AB_EXTERNAL then
+              begin
+                writeLine('S '+ApplyAsmSymbolRestrictions(objsym.Name)+' Ref0000');
+                objsym.symidx:=idx;
+                Inc(idx);
+              end;
+          end;
         result:=true;
       end;
 
@@ -186,7 +224,7 @@ implementation
             supported_targets : [system_z80_embedded,system_z80_zxspectrum];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '..@';
-            labelmaxlen : -1;
+            labelmaxlen : 79;
             comment : '; ';
             dollarsign: '$';
           );
