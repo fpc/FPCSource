@@ -65,7 +65,7 @@ unit agcpugas;
         'uxtb','uxth','uxtw','uxtx',
         'sxtb','sxth','sxtw','sxtx');
 
-    const 
+    const
       cputype_to_gas_march : array[tcputype] of string = (
         '', // cpu_none
         'armv8'
@@ -292,6 +292,7 @@ unit agcpugas;
         if not assigned(list) then
           exit;
 
+        lastsym:=nil;
         tmplist:=nil;
         sehlist:=nil;
         lastsec:=nil;
@@ -303,6 +304,8 @@ unit agcpugas;
         handlerdata:=nil;
         handlerdataidx:=0;
         handlerdatacount:=nil;
+        handlerflags:=0;
+        handlername:='';
 
         hp:=tai(list.first);
         while assigned(hp) do
