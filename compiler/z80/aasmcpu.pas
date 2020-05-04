@@ -109,9 +109,12 @@ uses
          { next fields are filled in pass1, so pass2 is faster }
          insentry  : PInsEntry;
          inssize   : shortint;
+         insoffset : longint;
+         LastInsOffset : longint;
 
          function Matches(p:PInsEntry):boolean;
          function FindInsentry(objdata:TObjData):boolean;
+         function calcsize(p:PInsEntry):shortint;
       public
          constructor op_none(op : tasmop);
 
@@ -137,6 +140,10 @@ uses
          { register spilling code }
          function spilling_get_operation_type(opnr: longint): topertype;override;
 
+         procedure ResetPass1;override;
+         procedure ResetPass2;override;
+         function  Pass1(objdata:TObjData):longint;override;
+         procedure Pass2(objdata:TObjData);override;
          function CheckIfValid:boolean;
          function GetString:string;
       end;
@@ -401,6 +408,17 @@ implementation
       end;
 
 
+    function taicpu.calcsize(p: PInsEntry): shortint;
+      var
+        c: Char;
+      begin
+        result:=1;
+        for c in p^.code do
+          if c=',' then
+            inc(result);
+      end;
+
+
     constructor taicpu.op_none(op : tasmop);
       begin
          inherited create(op);
@@ -555,6 +573,59 @@ implementation
                 result:=operand_readwrite;
             end;
         end;
+      end;
+
+
+    procedure taicpu.ResetPass1;
+      begin
+        { we need to reset everything here, because the choosen insentry
+          can be invalid for a new situation where the previously optimized
+          insentry is not correct }
+        InsEntry:=nil;
+        InsSize:=0;
+        LastInsOffset:=-1;
+      end;
+
+
+    procedure taicpu.ResetPass2;
+      begin
+        { we are here in a second pass, check if the instruction can be optimized }
+        {if assigned(InsEntry) and
+           (IF_PASS2 in InsEntry^.flags) then
+         begin
+           InsEntry:=nil;
+           InsSize:=0;
+         end;}
+        LastInsOffset:=-1;
+      end;
+
+
+    function taicpu.Pass1(objdata: TObjData): longint;
+      begin
+        Pass1:=0;
+        { Save the old offset and set the new offset }
+        InsOffset:=ObjData.CurrObjSec.Size;
+        { Error? }
+        if (Insentry=nil) and (InsSize=-1) then
+          exit;
+        { set the file postion }
+        current_filepos:=fileinfo;
+        { Get InsEntry }
+        if FindInsEntry(ObjData) then
+          begin
+            { Calculate instruction size }
+            InsSize:=calcsize(insentry);
+            LastInsOffset:=InsOffset;
+            Pass1:=InsSize;
+            exit;
+          end;
+        LastInsOffset:=-1;
+      end;
+
+
+    procedure taicpu.Pass2(objdata: TObjData);
+      begin
+        inherited Pass2(objdata);
       end;
 
 
