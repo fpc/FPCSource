@@ -36,7 +36,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.2.0-beta';
+    P.Version:='3.2.0';
 
     P.Options.Add('-Sg');
 

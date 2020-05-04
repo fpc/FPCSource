@@ -12,7 +12,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('brokenpackage');
-    P.Version:='3.2.0-beta';
+    P.Version:='3.2.0';
 
     P.Author := 'Joost van der Sluis';
     P.License := 'GPL';
