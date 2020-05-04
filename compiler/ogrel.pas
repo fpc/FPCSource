@@ -154,7 +154,20 @@ implementation
       end;
 
     procedure TRelObjData.writeReloc(Data: TRelocDataInt; len: aword; p: TObjSymbol; Reloctype: TObjRelocationType);
+      var
+        bytes: array [0..1] of Byte;
       begin
+        if len=2 then
+          begin
+            bytes[0]:=Byte(Data);
+            bytes[1]:=Byte(Data shr 8);
+            writebytes(bytes,2);
+          end
+        else if len=1 then
+          begin
+            bytes[0]:=Byte(Data);
+            writebytes(bytes,1);
+          end;
       end;
 
 {*****************************************************************************

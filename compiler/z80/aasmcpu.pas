@@ -115,6 +115,7 @@ uses
          function Matches(p:PInsEntry):boolean;
          function FindInsentry(objdata:TObjData):boolean;
          function calcsize(p:PInsEntry):shortint;
+         procedure gencode(objdata:TObjData);
       public
          constructor op_none(op : tasmop);
 
@@ -410,12 +411,162 @@ implementation
 
     function taicpu.calcsize(p: PInsEntry): shortint;
       var
-        c: Char;
+        code, token: string;
+        i: Integer;
+        ch: Char;
       begin
-        result:=1;
-        for c in p^.code do
-          if c=',' then
-            inc(result);
+        result:=0;
+        code:=insentry^.code;
+        i:=1;
+        token:='';
+        while i<=length(code) do
+          begin
+            ch:=code[i];
+            Inc(i);
+            if ch<>',' then
+              token:=token+ch;
+            if (ch=',') or (i>length(code)) then
+              begin
+                if token='' then
+                  internalerror(2020050402);
+                if (token[1]='$') or (token[1]='%') then
+                  Inc(result)
+                else if token='nn' then
+                  Inc(result,2);
+                token:='';
+              end;
+          end;
+      end;
+
+
+    procedure taicpu.gencode(objdata: TObjData);
+
+      procedure WriteByte(b: byte);
+        begin
+          objdata.writebytes(b,1);
+        end;
+
+      procedure WriteWord(w: byte);
+        var
+          bytes: array [0..1] of Byte;
+        begin
+          bytes[0]:=Byte(w);
+          bytes[1]:=Byte(w shr 8);
+          objdata.writebytes(bytes,2);
+        end;
+
+      procedure WriteNN;
+        var
+          i: Integer;
+        begin
+          for i:=0 to insentry^.ops-1 do
+            begin
+              //Writeln(insentry^.optypes[i]);
+              if insentry^.optypes[i]=OT_IMM16 then
+                begin
+                  //Writeln(oper[i]^.typ);
+                  case oper[i]^.typ of
+                    top_const:
+                      begin
+                        WriteWord(Word(oper[i]^.val));
+                        exit;
+                      end;
+                    top_ref:
+                      begin
+                        if (oper[i]^.ref^.base<>NR_NO) or (oper[i]^.ref^.index<>NR_NO) then
+                          internalerror(2020050406);
+                        if Assigned(oper[i]^.ref^.symbol) then
+                          begin
+                            if oper[i]^.ref^.refaddr<>addr_full then
+                              internalerror(2020050407);
+                            objdata.writeReloc(oper[i]^.ref^.offset,2,ObjData.symbolref(oper[i]^.ref^.symbol),RELOC_ABSOLUTE);
+                            exit;
+                          end
+                        else
+                          begin
+                            WriteWord(oper[i]^.ref^.offset);
+                            exit;
+                          end;
+                      end;
+                    else
+                      InternalError(2020050404);
+                  end;
+                end;
+            end;
+          InternalError(2020050403);
+        end;
+
+      procedure HandlePercent(token: string);
+        var
+          bincodestr: string;
+          i, valcode: integer;
+          b: Byte;
+        begin
+          bincodestr:='';
+          for i:=1 to length(token) do
+            case token[i] of
+              '%':
+                begin
+                  bincodestr:=bincodestr+'%';
+                end;
+              '0','1':
+                begin
+                  bincodestr:=bincodestr+token[i];
+                end;
+              'p','d','r','q':
+                begin
+                  bincodestr:=bincodestr+'0';
+                end;
+              '''':
+                begin
+                end;
+              else
+                internalerror(2020050405);
+            end;
+          Val(bincodestr,b,valcode);
+          objdata.writebytes(b,1);
+        end;
+
+      var
+        i: Integer;
+        ch: Char;
+        b: Byte;
+        valcode: integer;
+        code: string;
+        token: string;
+      begin
+        { safety check }
+        if objdata.currobjsec.size<>longword(insoffset) then
+          internalerror(2020050401);
+
+        code:=insentry^.code;
+        //Writeln('>',code,'<');
+        i:=1;
+        token:='';
+        while i<=length(code) do
+          begin
+            ch:=code[i];
+            Inc(i);
+            if ch<>',' then
+              token:=token+ch;
+            if (ch=',') or (i>length(code)) then
+              begin
+                if token='' then
+                  internalerror(2020050402);
+                if token[1]='$' then
+                  begin
+                    Val(token,b,valcode);
+                    WriteByte(b);
+                  end
+                else if token[1]='%' then
+                  begin
+                    HandlePercent(token);
+                  end
+                else if token='nn' then
+                  WriteNN;
+                token:='';
+              end;
+          end;
       end;
 
 
@@ -625,7 +776,12 @@ implementation
 
     procedure taicpu.Pass2(objdata: TObjData);
       begin
-        inherited Pass2(objdata);
+        { error in pass1 ? }
+        if insentry=nil then
+         exit;
+        current_filepos:=fileinfo;
+        { Generate the instruction }
+        GenCode(objdata);
       end;
 
 
