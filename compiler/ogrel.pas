@@ -156,18 +156,51 @@ implementation
     procedure TRelObjData.writeReloc(Data: TRelocDataInt; len: aword; p: TObjSymbol; Reloctype: TObjRelocationType);
       var
         bytes: array [0..1] of Byte;
+        symaddr: QWord;
+        objreloc: TObjRelocation;
       begin
-        if len=2 then
+        if CurrObjSec=nil then
+          internalerror(200403072);
+        objreloc:=nil;
+        if assigned(p) then
           begin
-            bytes[0]:=Byte(Data);
-            bytes[1]:=Byte(Data shr 8);
-            writebytes(bytes,2);
-          end
-        else if len=1 then
-          begin
-            bytes[0]:=Byte(Data);
-            writebytes(bytes,1);
+            { real address of the symbol }
+            symaddr:=p.address;
+
+            if p.bind=AB_EXTERNAL then
+              begin
+                objreloc:=TObjRelocation.CreateSymbol(CurrObjSec.Size,p,Reloctype);
+                CurrObjSec.ObjRelocations.Add(objreloc);
+              end
+            { relative relocations within the same section can be calculated directly,
+              without the need to emit a relocation entry }
+            else if (p.objsection=CurrObjSec) and
+                    (p.bind<>AB_COMMON) and
+                    (Reloctype=RELOC_RELATIVE) then
+              begin
+                data:=data+symaddr-len-CurrObjSec.Size;
+              end
+            else
+              begin
+                objreloc:=TObjRelocation.CreateSection(CurrObjSec.Size,p.objsection,Reloctype);
+                CurrObjSec.ObjRelocations.Add(objreloc);
+              end;
           end;
+        case len of
+          2:
+            begin
+              bytes[0]:=Byte(Data);
+              bytes[1]:=Byte(Data shr 8);
+              writebytes(bytes,2);
+            end;
+          1:
+            begin
+              bytes[0]:=Byte(Data);
+              writebytes(bytes,1);
+            end;
+          else
+            internalerror(2020050423);
+        end;
       end;
 
 {*****************************************************************************
