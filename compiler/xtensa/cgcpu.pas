@@ -499,7 +499,7 @@ implementation
 {$ifdef EXTDEBUG}
             list.concat(tai_comment.Create(strpnew('Value: '+tostr(a))));
 {$endif EXTDEBUG}
-            list.concat(taicpu.op_reg_reg_const(A_ADDMI,dst,src,Smallint(a and $ff00)));
+            list.concat(taicpu.op_reg_reg_const(A_ADDMI,dst,src,Smallint((a+128) and $ff00)));
             list.concat(taicpu.op_reg_reg_const(A_ADDI,dst,dst,Shortint(a and $ff)));
           end
         else if (op=OP_SUB) and (a>=-127) and (a<=128) then
@@ -510,7 +510,7 @@ implementation
             list.concat(tai_comment.Create(strpnew('Value: '+tostr(a))));
 {$endif EXTDEBUG}
             a:=-a;
-            list.concat(taicpu.op_reg_reg_const(A_ADDMI,dst,src,Smallint(a and $ff00)));
+            list.concat(taicpu.op_reg_reg_const(A_ADDMI,dst,src,Smallint((a+128) and $ff00)));
             list.concat(taicpu.op_reg_reg_const(A_ADDI,dst,dst,Shortint(a and $ff)));
           end
         else if (op=OP_SHL) and (a>=1) and (a<=31) then
