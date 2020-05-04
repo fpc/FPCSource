@@ -217,7 +217,7 @@ implementation
                        (oper.ref^.refaddr in [addr_hi8,addr_lo8]) and assigned(oper.ref^.symbol) and
                        (oper.ref^.base=NR_NO) and (oper.ref^.index=NR_NO));
             OT_IMM16:
-              result:=((oper.typ=top_const) and (oper.val>=0) and (oper.val<=65535)) or
+              result:=((oper.typ=top_const) and (oper.val>=-32768) and (oper.val<=65535)) or
                       ((oper.typ=top_ref) and
                        (oper.ref^.refaddr=addr_full) and assigned(oper.ref^.symbol) and
                        (oper.ref^.base=NR_NO) and (oper.ref^.index=NR_NO));
