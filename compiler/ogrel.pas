@@ -38,10 +38,26 @@ interface
        owbase;
 
     type
+      TRelRelocationFlag=(
+        rrfByte,                              { bit  0 }
+        rrfSymbol,                            { bit  1 }
+        rrfPcRelative,                        { bit  2 }
+        rrfTwoByteObjectFormatForByteData,    { bit  3 }
+        rrfUnsignedByteData,                  { bit  4 }
+        rrfPage0Reference,                    { bit  5 }
+        rrfPageNNNReference,                  { bit  6 }
+        rrfMSBWith2ByteMode,                  { bit  7 }
+        rrfThreeByteObjectFormatForByteData,  { bit  8 }
+        rrfRealMSBForThreeByteMode,           { bit  9 }
+        rrfReserved10,                        { bit 10 }
+        rrfReserved11);                       { bit 11 }
+      TRelRelocationFlags=set of TRelRelocationFlag;
 
       { TRelRelocation }
 
       TRelRelocation = class(TObjRelocation)
+      public
+        RelFlags: TRelRelocationFlags;
       end;
 
       { TRelObjData }
