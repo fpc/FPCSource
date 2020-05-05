@@ -101,7 +101,7 @@ implementation
        SysUtils,
        cutils,verbose,globals,
        fmodule,aasmtai,aasmdata,
-       ogmap,
+       ogmap,owar,
        version
        ;
 
@@ -502,6 +502,7 @@ implementation
       begin
         inherited;
         CObjOutput:=TRelObjOutput;
+        CInternalAr:=tarobjectwriter;
       end;
 
 {*****************************************************************************
