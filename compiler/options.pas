@@ -4610,6 +4610,17 @@ begin
     end;
 {$endif}
 
+{$ifdef xtensa}
+  if (target_info.system=system_xtensa_embedded) and not(option.ABISetExplicitly) then
+    begin
+      if CPUXTENSA_REGWINDOW in cpu_capabilities[init_settings.cputype] then
+        target_info.abi:=abi_xtensa_windowed
+      else
+        target_info.abi:=abi_xtensa_call0;
+    end;
+{$endif xtensa}
+
+
 {$if defined(powerpc) or defined(powerpc64)}
   { define _CALL_ELF symbol like gcc }
   case target_info.abi of
