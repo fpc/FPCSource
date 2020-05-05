@@ -763,6 +763,16 @@ implementation
                     internalerror(2020050605);
                 end;
               end;
+            'ppp':
+              begin
+                for i:=0 to insentry^.ops-1 do
+                  if insentry^.optypes[i]=OT_IMM_RST then
+                    begin
+                      if oper[i]^.typ<>top_const then
+                        internalerror(2020050606);
+                      result:=Byte(oper[i]^.val shr 3) and $07;
+                    end;
+              end;
             else
               internalerror(2020050409);
           end;
