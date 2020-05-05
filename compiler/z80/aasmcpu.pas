@@ -446,7 +446,7 @@ implementation
           objdata.writebytes(b,1);
         end;
 
-      procedure WriteWord(w: byte);
+      procedure WriteWord(w: word);
         var
           bytes: array [0..1] of Byte;
         begin
