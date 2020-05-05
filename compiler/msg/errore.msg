@@ -3798,7 +3798,7 @@ new features, etc.):
 # Help pages (option -? and -h)
 #
 # The first character on the line indicates who will display this
-# line, the current possibilities are :
+# line, the current possibilities are:
 #    * = every target
 #    3 = 80x86 targets
 #    4 = x86_64
@@ -3810,10 +3810,13 @@ new features, etc.):
 #    F = help for the 'fpc' binary (independent of the target compiler)
 #    I = VIS
 #    J = JVM
+#    L = LLVM variant
 #    M = MIPS (MIPSEB) targets
 #    m = MIPSEL targets
 #    P = PowerPC targets
 #    p = PowerPC64 targets
+#    R = RiscV32 targets
+#    r = RiscV64 targets
 #    S = Sparc targets
 #    s = Sparc64 targets
 #    V = AVR
@@ -4277,7 +4280,9 @@ P*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 A*2WN_Do not generate relocation code, needed for debugging (Windows)
 A*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
 m*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
+R*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
 V*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
+x*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
 3*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (iphonesim)
 4*2WP<x>_Minimum iOS deployment version: 8.0, 8.0.2, ... (iphonesim)
 a*2WP<x>_Minimum iOS deployment version: 7.0, 7.1.2, ... (Darwin)
