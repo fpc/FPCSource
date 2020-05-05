@@ -53,6 +53,7 @@ interface
       private
         procedure writeString(const S: ansistring);
         procedure writeLine(const S: ansistring);
+        procedure WriteAreaContentAndRelocations(sec: TObjSection);
       protected
         function writeData(Data:TObjData):boolean;override;
       public
@@ -217,6 +218,54 @@ implementation
         writeString(S+#10)
       end;
 
+    procedure TRelObjOutput.WriteAreaContentAndRelocations(sec: TObjSection);
+      const
+        MaxChunkSize=14;
+      var
+        ChunkStart,ChunkLen, i: LongWord;
+        ChunkFixupStart,ChunkFixupEnd: Integer;
+        s: ansistring;
+        buf: array [0..MaxChunkSize-1] of Byte;
+      begin
+        if oso_data in sec.SecOptions then
+          begin
+            if sec.Data=nil then
+              internalerror(200403073);
+            sec.data.seek(0);
+            ChunkFixupStart:=0;
+            ChunkFixupEnd:=-1;
+            ChunkStart:=0;
+            ChunkLen:=Min(MaxChunkSize, sec.Data.size-ChunkStart);
+            while ChunkLen>0 do
+            begin
+              { find last fixup in the chunk }
+              while (ChunkFixupEnd<(sec.ObjRelocations.Count-1)) and
+                    (TObjRelocation(sec.ObjRelocations[ChunkFixupEnd+1]).DataOffset<(ChunkStart+ChunkLen)) do
+                inc(ChunkFixupEnd);
+              { check if last chunk is crossing the chunk boundary, and trim ChunkLen if necessary }
+              if (ChunkFixupEnd>=ChunkFixupStart) and
+                ((TObjRelocation(sec.ObjRelocations[ChunkFixupEnd]).DataOffset+
+                  TObjRelocation(sec.ObjRelocations[ChunkFixupEnd]).size)>(ChunkStart+ChunkLen)) then
+                begin
+                  ChunkLen:=TObjRelocation(sec.ObjRelocations[ChunkFixupEnd]).DataOffset-ChunkStart;
+                  Dec(ChunkFixupEnd);
+                end;
+              s:='T '+HexStr(Byte(ChunkStart),2)+' '+HexStr(Byte(ChunkStart shr 8),2);
+              if ChunkLen>SizeOf(buf) then
+                internalerror(2020050501);
+              sec.Data.read(buf,ChunkLen);
+              for i:=0 to ChunkLen-1 do
+                s:=s+' '+HexStr(buf[i],2);
+              writeLine(s);
+              writeLine('R 00 00 '+HexStr(Byte(sec.SecSymIdx),2)+' '+HexStr(Byte(sec.SecSymIdx shr 8),2));
+              { prepare next chunk }
+              Inc(ChunkStart, ChunkLen);
+              ChunkLen:=Min(MaxChunkSize, sec.Data.size-ChunkStart);
+              ChunkFixupStart:=ChunkFixupEnd+1;
+            end;
+          end;
+      end;
+
     function TRelObjOutput.writeData(Data: TObjData): boolean;
       var
         global_symbols_count: Integer = 0;
@@ -263,6 +312,11 @@ implementation
                     Inc(idx);
                   end;
               end;
+          end;
+        for i:=0 to Data.ObjSectionList.Count-1 do
+          begin
+            objsec:=TObjSection(Data.ObjSectionList[i]);
+            WriteAreaContentAndRelocations(objsec);
           end;
         result:=true;
       end;
