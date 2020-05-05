@@ -56,12 +56,15 @@ interface
       { TRelRelocation }
 
       TRelRelocation = class(TObjRelocation)
+      private
+        function GetSecOrSymIdx: longint;
       public
         RelFlags: TRelRelocationFlags;
 
         constructor CreateSymbol(ADataOffset:TObjSectionOfs;s:TObjSymbol;Atyp:TObjRelocationType);
         constructor CreateSection(ADataOffset:TObjSectionOfs;aobjsec:TObjSection;Atyp:TObjRelocationType);
         function EncodeFlags: string;
+        property SecOrSymIdx: longint read GetSecOrSymIdx;
       end;
 
       { TRelObjData }
@@ -111,6 +114,16 @@ implementation
 {*****************************************************************************
                               TRelRelocation
 *****************************************************************************}
+
+    function TRelRelocation.GetSecOrSymIdx: longint;
+      begin
+        if assigned(symbol) then
+          result:=symbol.symidx
+        else if assigned(objsection) then
+          result:=objsection.SecSymIdx
+        else
+          internalerror(2020050502);
+      end;
 
     constructor TRelRelocation.CreateSymbol(ADataOffset: TObjSectionOfs; s: TObjSymbol; Atyp: TObjRelocationType);
       begin
@@ -305,6 +318,7 @@ implementation
         ChunkFixupStart,ChunkFixupEnd: Integer;
         s: ansistring;
         buf: array [0..MaxChunkSize-1] of Byte;
+        reloc: TRelRelocation;
       begin
         if oso_data in sec.SecOptions then
           begin
@@ -336,7 +350,16 @@ implementation
               for i:=0 to ChunkLen-1 do
                 s:=s+' '+HexStr(buf[i],2);
               writeLine(s);
-              writeLine('R 00 00 '+HexStr(Byte(sec.SecSymIdx),2)+' '+HexStr(Byte(sec.SecSymIdx shr 8),2));
+              s:='R 00 00 '+HexStr(Byte(sec.SecSymIdx),2)+' '+HexStr(Byte(sec.SecSymIdx shr 8),2);
+              if ChunkFixupEnd>=ChunkFixupStart then
+                begin
+                  for i:=ChunkFixupStart to ChunkFixupEnd do
+                    begin
+                      reloc:=TRelRelocation(sec.ObjRelocations[i]);
+                      s:=s+' '+reloc.EncodeFlags+' '+HexStr(reloc.DataOffset-ChunkStart+2,2)+' '+HexStr(Byte(reloc.SecOrSymIdx),2)+' '+HexStr(Byte(reloc.SecOrSymIdx shr 8),2);
+                    end;
+                end;
+              writeLine(s);
               { prepare next chunk }
               Inc(ChunkStart, ChunkLen);
               ChunkLen:=Min(MaxChunkSize, sec.Data.size-ChunkStart);
