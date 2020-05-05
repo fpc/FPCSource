@@ -493,6 +493,30 @@ implementation
                     else
                       InternalError(2020050404);
                   end;
+                end
+              else if insentry^.optypes[i]=OT_REF_ADDR16 then
+                begin
+                  case oper[i]^.typ of
+                    top_ref:
+                      begin
+                        if (oper[i]^.ref^.base<>NR_NO) or (oper[i]^.ref^.index<>NR_NO) then
+                          internalerror(2020050603);
+                        if Assigned(oper[i]^.ref^.symbol) then
+                          begin
+                            if oper[i]^.ref^.refaddr<>addr_no then
+                              internalerror(2020050604);
+                            objdata.writeReloc(oper[i]^.ref^.offset,2,ObjData.symbolref(oper[i]^.ref^.symbol),RELOC_ABSOLUTE);
+                            exit;
+                          end
+                        else
+                          begin
+                            WriteWord(oper[i]^.ref^.offset);
+                            exit;
+                          end;
+                      end;
+                    else
+                      InternalError(2020050602);
+                  end;
                 end;
             end;
           InternalError(2020050403);
