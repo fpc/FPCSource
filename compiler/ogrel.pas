@@ -60,6 +60,7 @@ interface
         function GetSecOrSymIdx: longint;
       public
         RelFlags: TRelRelocationFlags;
+        HiByte: Byte;
 
         constructor CreateSymbol(ADataOffset:TObjSectionOfs;s:TObjSymbol;Atyp:TObjRelocationType);
         constructor CreateSection(ADataOffset:TObjSectionOfs;aobjsec:TObjSection;Atyp:TObjRelocationType);
@@ -128,15 +129,49 @@ implementation
     constructor TRelRelocation.CreateSymbol(ADataOffset: TObjSectionOfs; s: TObjSymbol; Atyp: TObjRelocationType);
       begin
         inherited;
-        size:=2;
-        RelFlags:=[rrfSymbol];
+        case Atyp of
+          RELOC_ABSOLUTE_HI8:
+            begin
+              size:=1;
+              RelFlags:=[rrfSymbol,rrfByte,rrfTwoByteObjectFormatForByteData,rrfMSBWith2ByteMode];
+            end;
+          RELOC_ABSOLUTE_LO8:
+            begin
+              size:=1;
+              RelFlags:=[rrfSymbol,rrfByte,rrfTwoByteObjectFormatForByteData];
+            end;
+          RELOC_ABSOLUTE:
+            begin
+              size:=2;
+              RelFlags:=[rrfSymbol];
+            end;
+          else
+            internalerror(2020050601);
+        end;
       end;
 
     constructor TRelRelocation.CreateSection(ADataOffset: TObjSectionOfs; aobjsec: TObjSection; Atyp: TObjRelocationType);
       begin
         inherited;
-        size:=2;
-        RelFlags:=[];
+        case Atyp of
+          RELOC_ABSOLUTE_HI8:
+            begin
+              size:=1;
+              RelFlags:=[rrfByte,rrfTwoByteObjectFormatForByteData,rrfMSBWith2ByteMode];
+            end;
+          RELOC_ABSOLUTE_LO8:
+            begin
+              size:=1;
+              RelFlags:=[rrfByte,rrfTwoByteObjectFormatForByteData];
+            end;
+          RELOC_ABSOLUTE:
+            begin
+              size:=2;
+              RelFlags:=[];
+            end;
+          else
+            internalerror(2020050601);
+        end;
       end;
 
     function TRelRelocation.EncodeFlags: string;
@@ -263,6 +298,8 @@ implementation
             if p.bind=AB_EXTERNAL then
               begin
                 objreloc:=TRelRelocation.CreateSymbol(CurrObjSec.Size,p,Reloctype);
+                if Reloctype in [RELOC_ABSOLUTE_HI8,RELOC_ABSOLUTE_LO8] then
+                  objreloc.HiByte:=Byte(Data shr 8);
                 CurrObjSec.ObjRelocations.Add(objreloc);
               end
             { relative relocations within the same section can be calculated directly,
@@ -276,6 +313,8 @@ implementation
             else
               begin
                 objreloc:=TRelRelocation.CreateSection(CurrObjSec.Size,p.objsection,Reloctype);
+                if Reloctype in [RELOC_ABSOLUTE_HI8,RELOC_ABSOLUTE_LO8] then
+                  objreloc.HiByte:=Byte(Data shr 8);
                 CurrObjSec.ObjRelocations.Add(objreloc);
               end;
           end;
@@ -312,11 +351,11 @@ implementation
 
     procedure TRelObjOutput.WriteAreaContentAndRelocations(sec: TObjSection);
       const
-        MaxChunkSize=14;
+        MaxChunkSize={14}7;
       var
         ChunkStart,ChunkLen, i: LongWord;
-        ChunkFixupStart,ChunkFixupEnd: Integer;
-        s: ansistring;
+        ChunkFixupStart,ChunkFixupEnd, j, st_ofs: Integer;
+        st,sr: ansistring;
         buf: array [0..MaxChunkSize-1] of Byte;
         reloc: TRelRelocation;
       begin
@@ -343,23 +382,49 @@ implementation
                   ChunkLen:=TRelRelocation(sec.ObjRelocations[ChunkFixupEnd]).DataOffset-ChunkStart;
                   Dec(ChunkFixupEnd);
                 end;
-              s:='T '+HexStr(Byte(ChunkStart),2)+' '+HexStr(Byte(ChunkStart shr 8),2);
               if ChunkLen>SizeOf(buf) then
                 internalerror(2020050501);
+              st:='T '+HexStr(Byte(ChunkStart),2)+' '+HexStr(Byte(ChunkStart shr 8),2);
+              sr:='R 00 00 '+HexStr(Byte(sec.SecSymIdx),2)+' '+HexStr(Byte(sec.SecSymIdx shr 8),2);
               sec.Data.read(buf,ChunkLen);
-              for i:=0 to ChunkLen-1 do
-                s:=s+' '+HexStr(buf[i],2);
-              writeLine(s);
-              s:='R 00 00 '+HexStr(Byte(sec.SecSymIdx),2)+' '+HexStr(Byte(sec.SecSymIdx shr 8),2);
+              st_ofs:=1;
+              { relocations present in the current chunk? }
               if ChunkFixupEnd>=ChunkFixupStart then
                 begin
-                  for i:=ChunkFixupStart to ChunkFixupEnd do
+                  j:=ChunkFixupStart;
+                  reloc:=TRelRelocation(sec.ObjRelocations[j]);
+                end
+              else
+                begin
+                  j:=-1;
+                  reloc:=nil;
+                end;
+              for i:=0 to ChunkLen-1 do
+                begin
+                  st:=st+' '+HexStr(buf[i],2);
+                  Inc(st_ofs);
+                  if assigned(reloc) then
                     begin
-                      reloc:=TRelRelocation(sec.ObjRelocations[i]);
-                      s:=s+' '+reloc.EncodeFlags+' '+HexStr(reloc.DataOffset-ChunkStart+2,2)+' '+HexStr(Byte(reloc.SecOrSymIdx),2)+' '+HexStr(Byte(reloc.SecOrSymIdx shr 8),2);
+                      { advance to the current relocation }
+                      while (reloc.DataOffset<(ChunkStart+i)) and (j<ChunkFixupEnd) do
+                        begin
+                          Inc(j);
+                          reloc:=TRelRelocation(sec.ObjRelocations[j]);
+                        end;
+                      { is there a relocation at the current position? }
+                      if reloc.DataOffset=(ChunkStart+i) then
+                        begin
+                          sr:=sr+' '+reloc.EncodeFlags+' '+HexStr(st_ofs,2)+' '+HexStr(Byte(reloc.SecOrSymIdx),2)+' '+HexStr(Byte(reloc.SecOrSymIdx shr 8),2);
+                          if reloc.typ in [RELOC_ABSOLUTE_HI8,RELOC_ABSOLUTE_LO8] then
+                            begin
+                              st:=st+' '+HexStr(reloc.HiByte,2);
+                              Inc(st_ofs);
+                            end;
+                        end;
                     end;
                 end;
-              writeLine(s);
+              writeLine(st);
+              writeLine(sr);
               { prepare next chunk }
               Inc(ChunkStart, ChunkLen);
               ChunkLen:=Min(MaxChunkSize, sec.Data.size-ChunkStart);

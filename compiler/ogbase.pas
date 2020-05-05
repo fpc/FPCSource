@@ -106,6 +106,10 @@ interface
          RELOC_ADD_ABS_LO12,
          RELOC_LDST8_ABS_LO12,
 {$endif aarch64}
+{$ifdef z80}
+         RELOC_ABSOLUTE_HI8,
+         RELOC_ABSOLUTE_LO8,
+{$endif z80}
          { Relative relocation }
          RELOC_RELATIVE,
          { PECoff (Windows) RVA relocation }

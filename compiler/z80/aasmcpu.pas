@@ -429,10 +429,12 @@ implementation
               begin
                 if token='' then
                   internalerror(2020050402);
-                if (token[1]='$') or (token[1]='%') then
+                if (token[1]='$') or (token[1]='%') or (token='n') or (token='d') then
                   Inc(result)
                 else if token='nn' then
-                  Inc(result,2);
+                  Inc(result,2)
+                else
+                  internalerror(2020050504);
                 token:='';
               end;
           end;
@@ -494,6 +496,71 @@ implementation
                 end;
             end;
           InternalError(2020050403);
+        end;
+
+      procedure WriteN;
+        var
+          i: Integer;
+        begin
+          for i:=0 to insentry^.ops-1 do
+            begin
+              if insentry^.optypes[i]=OT_IMM8 then
+                begin
+                  case oper[i]^.typ of
+                    top_const:
+                      begin
+                        WriteByte(Byte(oper[i]^.val));
+                        exit;
+                      end;
+                    top_ref:
+                      begin
+                        if (oper[i]^.ref^.base<>NR_NO) or (oper[i]^.ref^.index<>NR_NO) then
+                          internalerror(2020050507);
+                        if Assigned(oper[i]^.ref^.symbol) then
+                          begin
+                            case oper[i]^.ref^.refaddr of
+                              addr_hi8:
+                                objdata.writeReloc(oper[i]^.ref^.offset,1,ObjData.symbolref(oper[i]^.ref^.symbol),RELOC_ABSOLUTE_HI8);
+                              addr_lo8:
+                                objdata.writeReloc(oper[i]^.ref^.offset,1,ObjData.symbolref(oper[i]^.ref^.symbol),RELOC_ABSOLUTE_LO8);
+                              else
+                                internalerror(2020050408);
+                            end;
+                            exit;
+                          end
+                        else
+                          internalerror(2020050409);
+                      end;
+                    else
+                      InternalError(2020050506);
+                  end;
+                end;
+            end;
+          InternalError(2020050505);
+        end;
+
+      procedure WriteD;
+        var
+          i: Integer;
+        begin
+          for i:=0 to insentry^.ops-1 do
+            begin
+              if insentry^.optypes[i] in [OT_REF_IX_d,OT_REF_IY_d] then
+                begin
+                  case oper[i]^.typ of
+                    top_ref:
+                      begin
+                        if not is_ref_opertype(oper[i]^.ref^,insentry^.optypes[i]) then
+                          internalerror(2020050510);
+                        WriteByte(Byte(oper[i]^.ref^.offset));
+                        exit;
+                      end;
+                    else
+                      InternalError(2020050511);
+                  end;
+                end;
+            end;
+          InternalError(2020050512);
         end;
 
       function EvalMaskCode(const maskcode: string): byte;
@@ -738,7 +805,13 @@ implementation
                     HandlePercent(token);
                   end
                 else if token='nn' then
-                  WriteNN;
+                  WriteNN
+                else if token='n' then
+                  WriteN
+                else if token='d' then
+                  WriteD
+                else
+                  internalerror(2020050503);
                 token:='';
               end;
           end;
