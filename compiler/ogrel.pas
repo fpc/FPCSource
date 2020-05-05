@@ -61,6 +61,7 @@ interface
 
         constructor CreateSymbol(ADataOffset:TObjSectionOfs;s:TObjSymbol;Atyp:TObjRelocationType);
         constructor CreateSection(ADataOffset:TObjSectionOfs;aobjsec:TObjSection;Atyp:TObjRelocationType);
+        function EncodeFlags: string;
       end;
 
       { TRelObjData }
@@ -123,6 +124,42 @@ implementation
         inherited;
         size:=2;
         RelFlags:=[];
+      end;
+
+    function TRelRelocation.EncodeFlags: string;
+      var
+        FlagsWord: Word;
+      begin
+        FlagsWord:=0;
+        if rrfByte in RelFlags then
+          Inc(FlagsWord,1);
+        if rrfSymbol in RelFlags then
+          Inc(FlagsWord,2);
+        if rrfPcRelative in RelFlags then
+          Inc(FlagsWord,4);
+        if rrfTwoByteObjectFormatForByteData in RelFlags then
+          Inc(FlagsWord,8);
+        if rrfUnsignedByteData in RelFlags then
+          Inc(FlagsWord,16);
+        if rrfPage0Reference in RelFlags then
+          Inc(FlagsWord,32);
+        if rrfPageNNNReference in RelFlags then
+          Inc(FlagsWord,64);
+        if rrfMSBWith2ByteMode in RelFlags then
+          Inc(FlagsWord,128);
+        if rrfThreeByteObjectFormatForByteData in RelFlags then
+          Inc(FlagsWord,256);
+        if rrfRealMSBForThreeByteMode in RelFlags then
+          Inc(FlagsWord,512);
+        if rrfReserved10 in RelFlags then
+          Inc(FlagsWord,1024);
+        if rrfReserved11 in RelFlags then
+          Inc(FlagsWord,2048);
+
+        if (FlagsWord<=255) and ((FlagsWord and $F0)<>$F0) then
+          Result:=HexStr(FlagsWord,2)
+        else
+          Result:=HexStr($F0 or Byte(FlagsWord shr 8),2)+' '+HexStr(Byte(FlagsWord),2);
       end;
 
 {*****************************************************************************
