@@ -4247,29 +4247,27 @@ begin
   { set Mac OS X version default macros if not specified explicitly }
   option.MaybeSetDefaultMacVersionMacro;
 
+{$ifdef cpufpemu}
   { force fpu emulation on arm/wince, arm/gba, arm/embedded and arm/nds
     if fpu type not explicitly set }
   if not(option.FPUSetExplicitly) and
      ((target_info.system in [system_arm_wince,system_arm_gba,
          system_m68k_amiga,system_m68k_atari,
-         system_arm_nds,system_arm_embedded,
-         system_riscv32_embedded,system_riscv64_embedded,system_xtensa_embedded,
+         system_arm_nds,system_arm_embedded,system_arm_freertos,
+         system_riscv32_embedded,system_riscv64_embedded,system_xtensa_linux,
          system_z80_embedded,system_z80_zxspectrum])
 {$ifdef arm}
       or (target_info.abi=abi_eabi)
 {$endif arm}
      )
-{$if defined(arm) or defined(riscv32) or defined(riscv64) or defined (m68k)}
      or (init_settings.fputype=fpu_soft)
-{$endif arm or m68k}
   then
     begin
-{$ifdef cpufpemu}
       include(init_settings.moduleswitches,cs_fp_emulation);
       { cs_fp_emulation and fpu_soft are equal on arm and m68k }
       init_settings.fputype:=fpu_soft;
-{$endif cpufpemu}
     end;
+{$endif cpufpemu}
 
 {$ifdef i386}
   case target_info.system of
@@ -4290,8 +4288,13 @@ begin
 {$endif i386}
 
 {$ifdef xtensa}
-  if not(option.FPUSetExplicitly) then
-    init_settings.fputype:=embedded_controllers[init_settings.controllertype].fputype;
+  { xtensa-linux target does not support controller setting option -Wp }
+  if not(option.FPUSetExplicitly) and not(target_info.system = system_xtensa_linux) then
+    begin
+      init_settings.fputype:=embedded_controllers[init_settings.controllertype].fputype;
+      if (init_settings.fputype=fpu_soft) then
+        include(init_settings.moduleswitches,cs_fp_emulation);
+    end;
 {$endif xtensa}
 
 {$ifdef arm}
