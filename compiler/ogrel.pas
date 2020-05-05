@@ -58,6 +58,9 @@ interface
       TRelRelocation = class(TObjRelocation)
       public
         RelFlags: TRelRelocationFlags;
+
+        constructor CreateSymbol(ADataOffset:TObjSectionOfs;s:TObjSymbol;Atyp:TObjRelocationType);
+        constructor CreateSection(ADataOffset:TObjSectionOfs;aobjsec:TObjSection;Atyp:TObjRelocationType);
       end;
 
       { TRelObjData }
@@ -102,6 +105,24 @@ implementation
         result:=HexStr(q,16);
         while (Length(result)>1) and (result[1]='0') do
           delete(result,1,1);
+      end;
+
+{*****************************************************************************
+                              TRelRelocation
+*****************************************************************************}
+
+    constructor TRelRelocation.CreateSymbol(ADataOffset: TObjSectionOfs; s: TObjSymbol; Atyp: TObjRelocationType);
+      begin
+        inherited;
+        size:=2;
+        RelFlags:=[rrfSymbol];
+      end;
+
+    constructor TRelRelocation.CreateSection(ADataOffset: TObjSectionOfs; aobjsec: TObjSection; Atyp: TObjRelocationType);
+      begin
+        inherited;
+        size:=2;
+        RelFlags:=[];
       end;
 
 {*****************************************************************************
