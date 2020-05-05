@@ -233,8 +233,12 @@ implementation
 
 
     procedure tarobjectwriter.closefile;
+      const
+        LF:char=#10;
       begin
-        ardata.align(2);
+        { align on an even boundary, by inserting an LF if necessary }
+        if odd(ardata.size) then
+          write(LF,1);
         { fix the size in the header }
         createarhdr(objfn,ardata.size-objpos-sizeof(tarhdr),'42','42','644');
         { write the header }
