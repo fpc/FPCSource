@@ -1183,44 +1183,6 @@ implementation
          if assigned(left) then
            freeparas;
 
-         { Need to remove the parameters from the stack? }
-         if procdefinition.proccalloption in clearstack_pocalls then
-           begin
-             pop_size:=pushedparasize;
-             { for Cdecl functions we don't need to pop the funcret when it
-               was pushed by para. Except for safecall functions with
-               safecall-exceptions enabled. In that case the funcret is always
-               returned as a para which is considered a normal para on the
-               c-side, so the funcret has to be pop'ed normally. }
-             if not ((procdefinition.proccalloption=pocall_safecall) and
-                     (tf_safecall_exceptions in target_info.flags)) and
-                paramanager.ret_in_param(procdefinition.returndef,procdefinition) then
-               dec(pop_size,sizeof(pint));
-             { Remove parameters/alignment from the stack }
-             pop_parasize(pop_size);
-           end
-         { in case we use a fixed stack, we did not push anything, if the stack is
-           really adjusted because a ret xxx was done, depends on
-           pop_parasize which uses pushedparasize to determine this
-
-           This does not apply to interrupt procedures, their ret statment never clears any stack parameters }
-         else if paramanager.use_fixed_stack and
-                 not(po_interrupt in procdefinition.procoptions) and
-                 (target_info.abi=abi_i386_dynalignedstack) then
-           begin
-             { however, a delphi style frame pointer for a nested subroutine
-               is not cleared by the callee, so we have to compensate for this
-               by passing 4 as pushedparasize does include it }
-             if po_delphi_nested_cc in procdefinition.procoptions then
-               pop_parasize(sizeof(pint))
-             else
-               pop_parasize(0);
-           end
-         { frame pointer parameter is popped by the caller when it's passed the
-           Delphi way }
-         else if (po_delphi_nested_cc in procdefinition.procoptions) and
-           not paramanager.use_fixed_stack then
-           pop_parasize(sizeof(pint));
          { Release registers, but not the registers that contain the
            function result }
          if (not is_void(resultdef)) then
@@ -1261,6 +1223,45 @@ implementation
          if cg.uses_registers(R_ADDRESSREGISTER) then
            cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,regs_to_save_address);
          cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
+
+         { Need to remove the parameters from the stack? }
+         if procdefinition.proccalloption in clearstack_pocalls then
+           begin
+             pop_size:=pushedparasize;
+             { for Cdecl functions we don't need to pop the funcret when it
+               was pushed by para. Except for safecall functions with
+               safecall-exceptions enabled. In that case the funcret is always
+               returned as a para which is considered a normal para on the
+               c-side, so the funcret has to be pop'ed normally. }
+             if not ((procdefinition.proccalloption=pocall_safecall) and
+                     (tf_safecall_exceptions in target_info.flags)) and
+                paramanager.ret_in_param(procdefinition.returndef,procdefinition) then
+               dec(pop_size,sizeof(pint));
+             { Remove parameters/alignment from the stack }
+             pop_parasize(pop_size);
+           end
+         { in case we use a fixed stack, we did not push anything, if the stack is
+           really adjusted because a ret xxx was done, depends on
+           pop_parasize which uses pushedparasize to determine this
+
+           This does not apply to interrupt procedures, their ret statment never clears any stack parameters }
+         else if paramanager.use_fixed_stack and
+                 not(po_interrupt in procdefinition.procoptions) and
+                 (target_info.abi=abi_i386_dynalignedstack) then
+           begin
+             { however, a delphi style frame pointer for a nested subroutine
+               is not cleared by the callee, so we have to compensate for this
+               by passing 4 as pushedparasize does include it }
+             if po_delphi_nested_cc in procdefinition.procoptions then
+               pop_parasize(sizeof(pint))
+             else
+               pop_parasize(0);
+           end
+         { frame pointer parameter is popped by the caller when it's passed the
+           Delphi way }
+         else if (po_delphi_nested_cc in procdefinition.procoptions) and
+           not paramanager.use_fixed_stack then
+           pop_parasize(sizeof(pint));
 
          if procdefinition.generate_safecall_wrapper then
            begin
