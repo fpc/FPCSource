@@ -62,7 +62,8 @@ implementation
 {$ifdef cpufpemu}
           (current_settings.fputype=fpu_soft) or
 {$endif cpufpemu}
-          not(FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
+          (not(FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) and
+           not(FPUARM_HAS_FPA in fpu_capabilities[current_settings.fputype])) then
           result:=inherited first_int_to_real
         else
           begin
