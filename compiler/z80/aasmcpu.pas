@@ -459,14 +459,16 @@ implementation
 
       procedure WriteNN;
         var
-          i: Integer;
+          i, j: Integer;
         begin
-          for i:=0 to insentry^.ops-1 do
+          for j:=0 to insentry^.ops-1 do
             begin
-              //Writeln(insentry^.optypes[i]);
-              if insentry^.optypes[i]=OT_IMM16 then
+              if condition=C_NONE then
+                i:=j
+              else
+                i:=j-1;
+              if insentry^.optypes[j]=OT_IMM16 then
                 begin
-                  //Writeln(oper[i]^.typ);
                   case oper[i]^.typ of
                     top_const:
                       begin
@@ -494,7 +496,7 @@ implementation
                       InternalError(2020050404);
                   end;
                 end
-              else if insentry^.optypes[i]=OT_REF_ADDR16 then
+              else if insentry^.optypes[j]=OT_REF_ADDR16 then
                 begin
                   case oper[i]^.typ of
                     top_ref:
