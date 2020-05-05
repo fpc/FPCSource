@@ -235,12 +235,16 @@ implementation
     procedure tarobjectwriter.closefile;
       const
         LF:char=#10;
+      var
+        filesize:longint;
       begin
+        { preserve file size, before aligning on an even boundary }
+        filesize:=ardata.size-objpos-sizeof(tarhdr);
         { align on an even boundary, by inserting an LF if necessary }
         if odd(ardata.size) then
           write(LF,1);
         { fix the size in the header }
-        createarhdr(objfn,ardata.size-objpos-sizeof(tarhdr),'42','42','644');
+        createarhdr(objfn,filesize,'42','42','644');
         { write the header }
         ardata.seek(objpos);
         ardata.write(arhdr,sizeof(tarhdr));
