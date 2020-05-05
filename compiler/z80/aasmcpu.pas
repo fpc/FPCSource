@@ -738,6 +738,29 @@ implementation
                     internalerror(2020050419);
                 end;
               end;
+            'ccc':
+              begin
+                case condition of
+                  C_NZ:
+                    result:=0;
+                  C_Z:
+                    result:=1;
+                  C_NC:
+                    result:=2;
+                  C_C:
+                    result:=3;
+                  C_PO:
+                    result:=4;
+                  C_PE:
+                    result:=5;
+                  C_P:
+                    result:=6;
+                  C_M:
+                    result:=7;
+                  else
+                    internalerror(2020050605);
+                end;
+              end;
             else
               internalerror(2020050409);
           end;
@@ -766,7 +789,7 @@ implementation
                   bincode:=bincode+'1';
                   maskcode:=maskcode+'0';
                 end;
-              'p','d','r','q':
+              'p','d','r','q','c':
                 begin
                   bincode:=bincode+'0';
                   maskcode:=maskcode+token[i];
