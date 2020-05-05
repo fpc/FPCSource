@@ -560,6 +560,20 @@ implementation
                     else
                       InternalError(2020050506);
                   end;
+                end
+              else if insentry^.optypes[i]=OT_IMM_PORT then
+                begin
+                  case oper[i]^.typ of
+                    top_ref:
+                      begin
+                        if (oper[i]^.ref^.base<>NR_NO) or (oper[i]^.ref^.index<>NR_NO) or Assigned(oper[i]^.ref^.symbol) then
+                          internalerror(2020050612);
+                        WriteByte(Byte(oper[i]^.ref^.offset));
+                        exit;
+                      end;
+                    else
+                      InternalError(2020050611);
+                  end;
                 end;
             end;
           InternalError(2020050505);
