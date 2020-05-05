@@ -429,7 +429,7 @@ implementation
               begin
                 if token='' then
                   internalerror(2020050402);
-                if (token[1]='$') or (token[1]='%') or (token='n') or (token='d') then
+                if (token[1]='$') or (token[1]='%') or (token='n') or (token='d') or (token='e') then
                   Inc(result)
                 else if token='nn' then
                   Inc(result,2)
@@ -587,6 +587,41 @@ implementation
                 end;
             end;
           InternalError(2020050512);
+        end;
+
+      procedure WriteE;
+        var
+          i, j: Integer;
+        begin
+          for j:=0 to insentry^.ops-1 do
+            begin
+              if condition=C_NONE then
+                i:=j
+              else
+                i:=j-1;
+              if insentry^.optypes[j]=OT_RELJMP8 then
+                begin
+                  case oper[i]^.typ of
+                    top_ref:
+                      begin
+                        if (oper[i]^.ref^.base<>NR_NO) or (oper[i]^.ref^.index<>NR_NO) then
+                          internalerror(2020050608);
+                        if Assigned(oper[i]^.ref^.symbol) then
+                          begin
+                            if oper[i]^.ref^.refaddr<>addr_full then
+                              internalerror(2020050609);
+                            objdata.writeReloc(oper[i]^.ref^.offset,1,ObjData.symbolref(oper[i]^.ref^.symbol),RELOC_RELATIVE);
+                            exit;
+                          end
+                        else
+                          internalerror(2020050610);
+                        exit;
+                      end;
+                    else
+                      InternalError(2020050607);
+                  end;
+                end;
+            end;
         end;
 
       function EvalMaskCode(const maskcode: string): byte;
@@ -869,6 +904,8 @@ implementation
                   WriteN
                 else if token='d' then
                   WriteD
+                else if token='e' then
+                  WriteE
                 else
                   internalerror(2020050503);
                 token:='';
