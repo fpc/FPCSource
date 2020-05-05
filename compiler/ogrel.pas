@@ -39,6 +39,11 @@ interface
 
     type
 
+      { TRelRelocation }
+
+      TRelRelocation = class(TObjRelocation)
+      end;
+
       { TRelObjData }
 
       TRelObjData = class(TObjData)
@@ -158,7 +163,7 @@ implementation
       var
         bytes: array [0..1] of Byte;
         symaddr: QWord;
-        objreloc: TObjRelocation;
+        objreloc: TRelRelocation;
       begin
         if CurrObjSec=nil then
           internalerror(200403072);
@@ -170,7 +175,7 @@ implementation
 
             if p.bind=AB_EXTERNAL then
               begin
-                objreloc:=TObjRelocation.CreateSymbol(CurrObjSec.Size,p,Reloctype);
+                objreloc:=TRelRelocation.CreateSymbol(CurrObjSec.Size,p,Reloctype);
                 CurrObjSec.ObjRelocations.Add(objreloc);
               end
             { relative relocations within the same section can be calculated directly,
@@ -183,7 +188,7 @@ implementation
               end
             else
               begin
-                objreloc:=TObjRelocation.CreateSection(CurrObjSec.Size,p.objsection,Reloctype);
+                objreloc:=TRelRelocation.CreateSection(CurrObjSec.Size,p.objsection,Reloctype);
                 CurrObjSec.ObjRelocations.Add(objreloc);
               end;
           end;
@@ -240,14 +245,14 @@ implementation
             begin
               { find last fixup in the chunk }
               while (ChunkFixupEnd<(sec.ObjRelocations.Count-1)) and
-                    (TObjRelocation(sec.ObjRelocations[ChunkFixupEnd+1]).DataOffset<(ChunkStart+ChunkLen)) do
+                    (TRelRelocation(sec.ObjRelocations[ChunkFixupEnd+1]).DataOffset<(ChunkStart+ChunkLen)) do
                 inc(ChunkFixupEnd);
               { check if last chunk is crossing the chunk boundary, and trim ChunkLen if necessary }
               if (ChunkFixupEnd>=ChunkFixupStart) and
-                ((TObjRelocation(sec.ObjRelocations[ChunkFixupEnd]).DataOffset+
-                  TObjRelocation(sec.ObjRelocations[ChunkFixupEnd]).size)>(ChunkStart+ChunkLen)) then
+                ((TRelRelocation(sec.ObjRelocations[ChunkFixupEnd]).DataOffset+
+                  TRelRelocation(sec.ObjRelocations[ChunkFixupEnd]).size)>(ChunkStart+ChunkLen)) then
                 begin
-                  ChunkLen:=TObjRelocation(sec.ObjRelocations[ChunkFixupEnd]).DataOffset-ChunkStart;
+                  ChunkLen:=TRelRelocation(sec.ObjRelocations[ChunkFixupEnd]).DataOffset-ChunkStart;
                   Dec(ChunkFixupEnd);
                 end;
               s:='T '+HexStr(Byte(ChunkStart),2)+' '+HexStr(Byte(ChunkStart shr 8),2);
