@@ -822,6 +822,18 @@ implementation
                       result:=Byte(oper[i]^.val shr 3) and $07;
                     end;
               end;
+            'bbb':
+              begin
+                for i:=0 to insentry^.ops-1 do
+                  if insentry^.optypes[i]=OT_IMM3 then
+                    begin
+                      if oper[i]^.typ<>top_const then
+                        internalerror(2020050606);
+                      result:=Byte(oper[i]^.val) and $07;
+                    end;
+              end;
+            'bbbrrr':
+              result:=(EvalMaskCode('bbb') shl 3) or EvalMaskCode('rrr');
             else
               internalerror(2020050409);
           end;
@@ -850,7 +862,7 @@ implementation
                   bincode:=bincode+'1';
                   maskcode:=maskcode+'0';
                 end;
-              'p','d','r','q','c':
+              'p','d','r','q','c','b':
                 begin
                   bincode:=bincode+'0';
                   maskcode:=maskcode+token[i];
