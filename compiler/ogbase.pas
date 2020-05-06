@@ -1710,7 +1710,7 @@ implementation
         { export globals and common symbols, this is needed
           for .a files }
         if p.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN,AB_COMMON] then
-         FWriter.writesym(p.name);
+         FWriter.writesym(ApplyAsmSymbolRestrictions(p.name));
       end;
 
     procedure TObjOutput.WriteSectionContent(Data:TObjData);
