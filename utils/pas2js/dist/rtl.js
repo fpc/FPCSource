@@ -388,6 +388,15 @@ var rtl = {
     return null;
   },
 
+  hideProp: function(o,p,v){
+    Object.defineProperty(o,p, {
+      enumerable: false,
+      configurable: true,
+      writable: true
+    });
+    if(arguments.length>2){ o[p]=v; }
+  },
+
   recNewT: function(parent,name,initfn,full){
     // create new record type
     var t = {};
@@ -811,6 +820,13 @@ var rtl = {
     return (arr == null) ? 0 : arr.length;
   },
 
+  arrayRef: function(a){
+    if (a!=null){
+      rtl.hideProp(a,$pas2jsrefcnt,1);
+    }
+    return a;
+  },
+
   arraySetLength: function(arr,defaultvalue,newlength){
     var stack = [];
     for (var i=2; i<arguments.length; i++){
@@ -822,13 +838,22 @@ var rtl = {
     var item = null;
     var a = null;
     var src = arr;
-    var oldlen = 0
+    var oldlen = 0;
     do{
-      a = [];
       if (depth>0){
         item=stack[depth-1];
-        item.a[item.i]=a;
         src = (item.src && item.src.length>item.i)?item.src[item.i]:null;
+      }
+      if (!src || src.$pas2jsrefcnt>0){
+        a = [];
+        oldlen = src?src.length:0;
+      } else {
+        a = src;
+        oldlen = a.length;
+      }
+      a.length = stack[depth].dim;
+      if (depth>0){
+        item.a[item.i]=a;
         item.i++;
       }
       if (depth<dimmax){
@@ -838,7 +863,6 @@ var rtl = {
         item.src = src;
         depth++;
       } else {
-        oldlen = src?src.length:0;
         if (rtl.isArray(defaultvalue)){
           for (var i=0; i<lastlen; i++) a[i]=(i<oldlen)?src[i]:[]; // array of dyn array
         } else if (rtl.isObject(defaultvalue)) {
@@ -864,46 +888,17 @@ var rtl = {
     }while (true);
   },
 
-  /*arrayChgLength: function(arr,defaultvalue,newlength){
-    // multi dim: (arr,defaultvalue,dim1,dim2,...)
-    if (arr == null) arr = [];
-    var p = arguments;
-    function setLength(a,argNo){
-      var oldlen = a.length;
-      var newlen = p[argNo];
-      if (oldlen!==newlength){
-        a.length = newlength;
-        if (argNo === p.length-1){
-          if (rtl.isArray(defaultvalue)){
-            for (var i=oldlen; i<newlen; i++) a[i]=[]; // nested array
-          } else if (rtl.isObject(defaultvalue)) {
-            if (rtl.isTRecord(defaultvalue)){
-              for (var i=oldlen; i<newlen; i++) a[i]=defaultvalue.$new(); // e.g. record
-            } else {
-              for (var i=oldlen; i<newlen; i++) a[i]={}; // e.g. set
-            }
-          } else {
-            for (var i=oldlen; i<newlen; i++) a[i]=defaultvalue;
-          }
-        } else {
-          for (var i=oldlen; i<newlen; i++) a[i]=[]; // nested array
-        }
-      }
-      if (argNo < p.length-1){
-        // multi argNo
-        for (var i=0; i<newlen; i++) a[i]=setLength(a[i],argNo+1);
-      }
-      return a;
-    }
-    return setLength(arr,2);
-  },*/
-
   arrayEq: function(a,b){
     if (a===null) return b===null;
     if (b===null) return false;
     if (a.length!==b.length) return false;
     for (var i=0; i<a.length; i++) if (a[i]!==b[i]) return false;
     return true;
+  },
+
+  arrayRef: function(a){
+    if (a!==null) rtl.hideProp(a,'$pas2jsrefcnt',1);
+    return a;
   },
 
   arrayClone: function(type,src,srcpos,endpos,dst,dstpos){
@@ -1001,12 +996,7 @@ var rtl = {
   },
 
   refSet: function(s){
-    Object.defineProperty(s, '$shared', {
-      enumerable: false,
-      configurable: true,
-      writable: true,
-      value: true
-    });
+    rtl.hideProp(s,'$shared',true);
     return s;
   },
 
