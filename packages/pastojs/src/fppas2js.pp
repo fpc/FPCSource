@@ -1265,7 +1265,7 @@ const
   btAllJSChars = [btChar,btWideChar];
   btAllJSStringAndChars = btAllJSStrings+btAllJSChars;
   btAllJSFloats = [btDouble];
-  btAllJSBooleans = [btBoolean];
+  btAllJSBooleans = [btBoolean,btByteBool,btWordBool,btLongBool];
   btAllJSInteger = [btByte,btShortInt,btWord,btSmallInt,btLongWord,btLongint,
     btIntDouble,btUIntDouble,
     btCurrency  // in pas2js currency is more like an integer, instead of float

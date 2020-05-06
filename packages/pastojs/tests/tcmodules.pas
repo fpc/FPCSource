@@ -703,6 +703,8 @@ type
     Procedure TestTypeHelper_ExtClassMethodFail;
     Procedure TestTypeHelper_Constructor;
     Procedure TestTypeHelper_Word;
+    Procedure TestTypeHelper_Boolean;
+    Procedure TestTypeHelper_WordBool;
     Procedure TestTypeHelper_Double;
     Procedure TestTypeHelper_NativeInt;
     Procedure TestTypeHelper_StringChar;
@@ -24124,6 +24126,105 @@ begin
     '      rtl.raiseE("EPropReadOnly");',
     '    }',
     '}, 123);',
+    '']));
+end;
+
+procedure TTestModule.TestTypeHelper_Boolean;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  Integer = longint;',
+  '  THelper = type helper for boolean',
+  '    procedure Run(e: wordbool = true);',
+  '  end;',
+  'procedure THelper.Run(e: wordbool);',
+  'begin',
+  '  Self:=e;',
+  '  Self:=not Self;',
+  '  with Self do Run;',
+  '  if Integer(Self)=0 then ;',
+  'end;',
+  'begin',
+  '  boolean(3).Run;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_Boolean',
+    LinesToStr([ // statements
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.Run = function (e) {',
+    '    this.set(e);',
+    '    this.set(!this.get());',
+    '    var $with1 = this.get();',
+    '    $mod.THelper.Run.call(this, true);',
+    '    if ((this.get() ? 1 : 0) === 0) ;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.THelper.Run.call({',
+    '  a: 3 != 0,',
+    '  get: function () {',
+    '      return this.a;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.raiseE("EPropReadOnly");',
+    '    }',
+    '}, true);',
+    '']));
+end;
+
+procedure TTestModule.TestTypeHelper_WordBool;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch typehelpers}',
+  'type',
+  '  Integer = longint;',
+  '  THelper = type helper for WordBool',
+  '    procedure Run(e: wordbool = true);',
+  '  end;',
+  'procedure THelper.Run(e: wordbool);',
+  'var i: integer;',
+  'begin',
+  '  i:=Integer(Self);',
+  'end;',
+  'var w: wordbool;',
+  'begin',
+  '  w.Run;',
+  '  wordbool(3).Run;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTypeHelper_WordBool',
+    LinesToStr([ // statements
+    'rtl.createHelper($mod, "THelper", null, function () {',
+    '  this.Run = function (e) {',
+    '    var i = 0;',
+    '    i = (this.get() ? 1 : 0);',
+    '  };',
+    '});',
+    'this.w = false;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.THelper.Run.call({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.w;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.w = v;',
+    '    }',
+    '}, true);',
+    '$mod.THelper.Run.call({',
+    '  a: 3 != 0,',
+    '  get: function () {',
+    '      return this.a;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.raiseE("EPropReadOnly");',
+    '    }',
+    '}, true);',
     '']));
 end;
 
