@@ -38,7 +38,7 @@ interface
 
 uses
   {$ifdef NODEJS}
-  NodeJSFS,
+  Node.FS,
   {$endif}
   SysUtils, Classes, Types, PasTree, PScanner;
 

@@ -4889,13 +4889,13 @@ var
   begin
     if s='' then exit;
     if Flags='' then
-      Flags:=Space(Log.Indent)
+      Flags:=StringOfChar(' ',Log.Indent)
     else
       Flags:=Flags+',';
     if length(Flags)+length(s)>Log.LineLen then
     begin
       Log.LogPlain(Flags);
-      Flags:=Space(Log.Indent);
+      Flags:=StringOfChar(' ',Log.Indent);
     end;
     Flags:=Flags+s;
   end;

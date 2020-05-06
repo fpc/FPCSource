@@ -324,7 +324,7 @@ uses
   {$ifdef pas2js}
   js,
   {$IFDEF NODEJS}
-  NodeJSFS,
+  Node.FS,
   {$ENDIF}
   {$endif}
   Classes, SysUtils, Math, Types, contnrs,

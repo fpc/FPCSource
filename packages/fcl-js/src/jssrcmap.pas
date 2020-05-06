@@ -38,7 +38,7 @@ uses
   {$ifdef pas2js}
   JS,
     {$ifdef nodejs}
-    NodeJSFS,
+    Node.FS,
     {$endif}
   {$else}
   contnrs,
