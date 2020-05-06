@@ -2,7 +2,7 @@
     This file is part of the Free Component Library
 
     Pascal resolver
-    Copyright (c) 2019  Mattias Gaertner  mattias@freepascal.org
+    Copyright (c) 2020  Mattias Gaertner  mattias@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -25647,8 +25647,18 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
   procedure CheckRange(ArrType: TPasArrayType; RangeIndex: integer;
     Values: TPasResolverResult; ErrorEl: TPasElement);
   var
+    ElTypeResolved: TPasResolverResult;
+
+    procedure CheckArrOfCharAssignString;
+    begin
+      ComputeElement(ArrType.ElType,ElTypeResolved,[rcType]);
+      if ElTypeResolved.BaseType in btAllChars then
+        Result:=cTypeConversion; // ArrOfChar:=aString
+    end;
+
+  var
     Range, Value, Expr: TPasExpr;
-    RangeResolved, ValueResolved, ElTypeResolved: TPasResolverResult;
+    RangeResolved, ValueResolved: TPasResolverResult;
     i, ExpectedCount, ValCnt: Integer;
     IsLastRange, IsConstExpr: Boolean;
     ArrayValues: TPasExprArray;
@@ -25752,19 +25762,18 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
     ExpectedCount:=-1;
     if length(ArrType.Ranges)=0 then
       begin
-      // dynamic array
+      // dynamic or open array
       if (Expr<>nil) then
         begin
         if Expr.ClassType=TArrayValues then
           ExpectedCount:=length(TArrayValues(Expr).Values)
         else if (Expr.ClassType=TParamsExpr) and (TParamsExpr(Expr).Kind=pekSet) then
           ExpectedCount:=length(TParamsExpr(Expr).Params)
-        else if (Values.BaseType in btAllStringAndChars) and IsVarInit(Expr) then
+        else if (Values.BaseType in btAllStringAndChars) then
           begin
-          // const a: dynarray = string
-          ComputeElement(ArrType.ElType,ElTypeResolved,[rcType]);
-          if ElTypeResolved.BaseType in btAllChars then
-            Result:=cExact;
+          // e.g. const a: dynarray = string
+          // or e.g. pass a string literal to an open array
+          CheckArrOfCharAssignString;
           exit;
           end
         else
@@ -25777,7 +25786,15 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
         begin
         // type check
         if (Values.BaseType<>btContext) or (Values.LoTypeEl.ClassType<>TPasArrayType) then
+          begin
+          // RHS is not an array
+          if (Values.BaseType in btAllStringAndChars) then
+            begin
+            // e.g. pass a string literal to an open array
+            CheckArrOfCharAssignString;
+            end;
           exit;
+          end;
         RArrayType:=TPasArrayType(Values.LoTypeEl);
         if length(RArrayType.Ranges)>0 then
           begin

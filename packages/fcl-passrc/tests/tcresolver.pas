@@ -780,6 +780,7 @@ type
     Procedure TestStaticArrayOfChar;
     Procedure TestStaticArrayOfCharDelphi;
     Procedure TestStaticArrayOfRangeElCheckFail;
+    Procedure TestArrayOfChar_String;
     Procedure TestArrayOfArray;
     Procedure TestArrayOfArray_NameAnonymous;
     Procedure TestFunctionReturningArray;
@@ -814,6 +815,7 @@ type
     Procedure TestArray_OpenArrayAsDynArray;
     Procedure TestArray_OpenArrayDelphi;
     Procedure TestArray_OpenArrayChar;
+    Procedure TestArray_DynArrayChar;
     Procedure TestArray_CopyConcat;
     Procedure TestStaticArray_CopyConcat;// ToDo
     Procedure TestArray_CopyMismatchFail;
@@ -14193,6 +14195,25 @@ begin
     'range check error while evaluating constants (300 is not between -128 and 127)');
 end;
 
+procedure TTestResolver.TestArrayOfChar_String;
+begin
+  StartProgram(false);
+  Add([
+  'procedure {#a}Run(const s: string); overload;',
+  'begin end;',
+  'procedure {#b}Run(const a: array of char); overload;',
+  'begin end;',
+  'var',
+  '  s: string;',
+  '  c: char;',
+  'begin',
+  '  {@a}Run(''foo'');',
+  '  {@a}Run(s);',
+  '  {@a}Run(c);',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestArrayOfArray;
 begin
   StartProgram(false);
@@ -14858,6 +14879,26 @@ begin
   'var Key: Char;',
   'begin',
   '  if CharInSet(Key, [^V, ^X, ^C]) then ;',
+  '  CharInSet(Key,''abc'');',
+  '  CharInSet(Key,Key);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_DynArrayChar;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type TArrChr = array of char;',
+  'var',
+  '  Key: Char;',
+  '  s: string;',
+  '  a: TArrChr;',
+  'begin',
+  '  a:=''Foo'';',
+  '  a:=Key;',
+  '  a:=s;',
   '']);
   ParseProgram;
 end;
