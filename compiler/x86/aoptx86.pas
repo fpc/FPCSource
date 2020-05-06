@@ -1821,8 +1821,21 @@ unit aoptx86;
 
 
     function TX86AsmOptimizer.OptPass1MOV(var p : tai) : boolean;
+    var
+      hp1, hp2: tai;
+
+      procedure convert_mov_value(signed_movop: tasmop; max_value: tcgint); inline;
+        begin
+          if taicpu(hp1).opcode = signed_movop then
+            begin
+              if taicpu(p).oper[0]^.val > max_value shr 1 then
+                taicpu(p).oper[0]^.val:=taicpu(p).oper[0]^.val - max_value - 1 { Convert to signed }
+            end
+          else
+            taicpu(p).oper[0]^.val:=taicpu(p).oper[0]^.val and max_value; { Trim to unsigned }
+        end;
+
       var
-        hp1, hp2, hp4: tai;
         GetNextInstruction_p, TempRegUsed: Boolean;
         PreMessage, RegName1, RegName2, InputVal, MaskNum: string;
         NewSize: topsize;
@@ -1987,56 +2000,38 @@ unit aoptx86;
                           case taicpu(hp1).opsize of
                             S_BW:
                               begin
-                                if (taicpu(hp1).opcode = A_MOVSX) and
-                                  (taicpu(p).oper[0]^.val > $7F) then
-                                  taicpu(p).oper[0]^.val := taicpu(p).oper[0]^.val - $100; { Convert to signed }
-
+                                convert_mov_value(A_MOVSX, $FF);
                                 setsubreg(taicpu(p).oper[1]^.reg, R_SUBW);
                                 taicpu(p).opsize := S_W;
                               end;
                             S_BL:
                               begin
-                                if (taicpu(hp1).opcode = A_MOVSX) and
-                                  (taicpu(p).oper[0]^.val > $7F) then
-                                  taicpu(p).oper[0]^.val := taicpu(p).oper[0]^.val - $100; { Convert to signed }
-
+                                convert_mov_value(A_MOVSX, $FF);
                                 setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
                                 taicpu(p).opsize := S_L;
                               end;
                             S_WL:
                               begin
-                                if (taicpu(hp1).opcode = A_MOVSX) and
-                                  (taicpu(p).oper[0]^.val > $7FFF) then
-                                  taicpu(p).oper[0]^.val := taicpu(p).oper[0]^.val - $10000; { Convert to signed }
-
+                                convert_mov_value(A_MOVSX, $FFFF);
                                 setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
                                 taicpu(p).opsize := S_L;
                               end;
 {$ifdef x86_64}
                             S_BQ:
                               begin
-                                if (taicpu(hp1).opcode = A_MOVSX) and
-                                  (taicpu(p).oper[0]^.val > $7F) then
-                                  taicpu(p).oper[0]^.val := taicpu(p).oper[0]^.val - $100; { Convert to signed }
-
+                                convert_mov_value(A_MOVSX, $FF);
                                 setsubreg(taicpu(p).oper[1]^.reg, R_SUBQ);
                                 taicpu(p).opsize := S_Q;
                               end;
                             S_WQ:
                               begin
-                                if (taicpu(hp1).opcode = A_MOVSX) and
-                                  (taicpu(p).oper[0]^.val > $7FFF) then
-                                  taicpu(p).oper[0]^.val := taicpu(p).oper[0]^.val - $10000; { Convert to signed }
-
+                                convert_mov_value(A_MOVSX, $FFFF);
                                 setsubreg(taicpu(p).oper[1]^.reg, R_SUBQ);
                                 taicpu(p).opsize := S_Q;
                               end;
                             S_LQ:
                               begin
-                                if (taicpu(hp1).opcode = A_MOVSXD) and { Note it's MOVSXD, not MOVSX }
-                                  (taicpu(p).oper[0]^.val > $7FFFFFFF) then
-                                  taicpu(p).oper[0]^.val := taicpu(p).oper[0]^.val - $100000000; { Convert to signed }
-
+                                convert_mov_value(A_MOVSXD, $FFFFFFFF);  { Note it's MOVSXD, not MOVSX }
                                 setsubreg(taicpu(p).oper[1]^.reg, R_SUBQ);
                                 taicpu(p).opsize := S_Q;
                               end;
