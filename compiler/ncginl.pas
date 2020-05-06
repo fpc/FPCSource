@@ -579,7 +579,8 @@ implementation
                 else
                   maskvalue:=maskvalue and 31;
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
-              if def_cgsize(tcallparanode(left).right.resultdef) in [OS_64,OS_S64] then
+              if (def_cgsize(tcallparanode(left).right.resultdef) in [OS_64,OS_S64]) and
+                 (tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_REGISTER,LOC_CREGISTER]) then
                 cg64.a_op64_const_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],def_cgsize(tcallparanode(left).right.resultdef),maskvalue.svalue,tcallparanode(tcallparanode(left).right).left.location)
               else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
@@ -594,7 +595,8 @@ implementation
            else
              begin
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
-               if def_cgsize(tcallparanode(left).right.resultdef) in [OS_64,OS_S64] then
+               if (def_cgsize(tcallparanode(left).right.resultdef) in [OS_64,OS_S64]) and
+                  (tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_REGISTER,LOC_CREGISTER]) then
                  cg64.a_op64_reg_loc(current_asmdata.CurrAsmList,andorxorop[inlinenumber],def_cgsize(tcallparanode(left).right.resultdef),
                    joinreg64(hregister,hregisterhi),tcallparanode(tcallparanode(left).right).left.location)
                else
