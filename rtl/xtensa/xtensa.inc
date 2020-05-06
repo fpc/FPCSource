@@ -53,8 +53,9 @@ function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;no
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : pointer;assembler;nostackframe;
+Function Sptr : pointer;assembler;
   asm
+    mov a2,a1
   end;
 
 
