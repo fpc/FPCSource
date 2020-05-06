@@ -313,6 +313,7 @@ implementation
             else
               begin
                 objreloc:=TRelRelocation.CreateSection(CurrObjSec.Size,p.objsection,Reloctype);
+                inc(data,symaddr);
                 if Reloctype in [RELOC_ABSOLUTE_HI8,RELOC_ABSOLUTE_LO8] then
                   objreloc.HiByte:=Byte(Data shr 8);
                 CurrObjSec.ObjRelocations.Add(objreloc);
