@@ -2089,6 +2089,7 @@ endif
 endif
 endif
 endif
+FPCMAKEGCCLIBDIR:=$(shell dirname `gcc -print-libgcc-file-name`)
 ifndef GCCLIBDIR
 CROSSGCC=$(strip $(wildcard $(addsuffix /$(BINUTILSPREFIX)gcc$(SRCEXEEXT),$(SEARCHPATH))))
 ifneq ($(CROSSGCC),)
@@ -2100,7 +2101,7 @@ ifdef inUnix
 ifeq ($(OS_SOURCE),netbsd)
 OTHERLIBDIR:=/usr/pkg/lib
 endif
-export GCCLIBDIR OTHERLIBDIR
+export GCCLIBDIR FPCMAKEGCCLIBDIR OTHERLIBDIR
 endif
 BATCHEXT=.bat
 LOADEREXT=.as
@@ -2693,7 +2694,11 @@ ifdef LINKSHARED
 endif
 ifdef GCCLIBDIR
 override FPCOPT+=-Fl$(GCCLIBDIR)
+ifdef FPCMAKEGCCLIBDIR
+override FPCMAKEOPT+=-Fl$(FPCMAKEGCCLIBDIR)
+else
 override FPCMAKEOPT+=-Fl$(GCCLIBDIR)
+endif
 endif
 ifdef OTHERLIBDIR
 override FPCOPT+=$(addprefix -Fl,$(OTHERLIBDIR))
