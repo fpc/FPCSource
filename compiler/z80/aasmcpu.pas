@@ -902,7 +902,6 @@ implementation
           internalerror(2020050401);
 
         code:=insentry^.code;
-        //Writeln('>',code,'<');
         i:=1;
         token:='';
         while i<=length(code) do
