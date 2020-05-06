@@ -838,17 +838,23 @@ var rtl = {
     var item = null;
     var a = null;
     var src = arr;
-    var oldlen = 0;
+    var srclen = 0, oldlen = 0;
     do{
       if (depth>0){
         item=stack[depth-1];
         src = (item.src && item.src.length>item.i)?item.src[item.i]:null;
       }
-      if (!src || src.$pas2jsrefcnt>0){
+      if (!src){
         a = [];
-        oldlen = src?src.length:0;
+        srclen = 0;
+        oldlen = 0;
+      } else if (src.$pas2jsrefcnt>0){
+        a = [];
+        srclen = src.length;
+        oldlen = srclen;
       } else {
         a = src;
+        srclen = 0;
         oldlen = a.length;
       }
       a.length = stack[depth].dim;
@@ -864,18 +870,22 @@ var rtl = {
         depth++;
       } else {
         if (rtl.isArray(defaultvalue)){
-          for (var i=0; i<lastlen; i++) a[i]=(i<oldlen)?src[i]:[]; // array of dyn array
+          // array of dyn array
+          for (var i=0; i<srclen; i++) a[i]=src[i];
+          for (var i=oldlen; i<lastlen; i++) a[i]=[];
         } else if (rtl.isObject(defaultvalue)) {
           if (rtl.isTRecord(defaultvalue)){
-            for (var i=0; i<lastlen; i++){
-              a[i]=(i<oldlen)?defaultvalue.$clone(src[i]):defaultvalue.$new(); // e.g. record
-            }
+            // array of record
+            for (var i=0; i<srclen; i++) a[i]=defaultvalue.$clone(src[i]);
+            for (var i=oldlen; i<lastlen; i++) a[i]=defaultvalue.$new();
           } else {
-            for (var i=0; i<lastlen; i++) a[i]=(i<oldlen)?rtl.refSet(src[i]):{}; // e.g. set
+            // set
+            for (var i=0; i<srclen; i++) a[i]=rtl.refSet(src[i]);
+            for (var i=oldlen; i<lastlen; i++) a[i]={};
           }
         } else {
-          for (var i=0; i<lastlen; i++)
-            a[i]=(i<oldlen)?src[i]:defaultvalue;
+          for (var i=0; i<srclen; i++) a[i]=src[i];
+          for (var i=oldlen; i<lastlen; i++) a[i]=defaultvalue;
         }
         while ((depth>0) && (stack[depth-1].i>=stack[depth-1].dim)){
           depth--;
