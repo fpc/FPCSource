@@ -213,7 +213,7 @@ implementation
             OT_IMM3:
               result:=(oper.typ=top_const) and (oper.val>=0) and (oper.val<=7);
             OT_IMM8:
-              result:=((oper.typ=top_const) and (oper.val>=0) and (oper.val<=255)) or
+              result:=((oper.typ=top_const) and (oper.val>=-128) and (oper.val<=255)) or
                       ((oper.typ=top_ref) and
                        (oper.ref^.refaddr in [addr_hi8,addr_lo8]) and assigned(oper.ref^.symbol) and
                        (oper.ref^.base=NR_NO) and (oper.ref^.index=NR_NO));
