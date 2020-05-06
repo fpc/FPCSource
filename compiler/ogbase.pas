@@ -368,13 +368,15 @@ interface
        Owner: TObjData;
      end;
 
-{$ifdef i8086}
+{$if defined(i8086)}
      { on i8086 we use a longint, to support 32-bit relocations as well (e.g.
        for allowing 386+ instructions with 32-bit addresses in inline asm code) }
      TRelocDataInt = longint;
-{$else i8086}
+{$elseif defined(cpu16bitaddr)}
+     TRelocDataInt = asizeint;
+{$else}
      TRelocDataInt = aint;
-{$endif i8086}
+{$endif}
 
      TObjData = class(TLinkedListItem)
      private
