@@ -519,9 +519,7 @@ implementation
                     else
                       InternalError(2020050602);
                   end;
-                end
-              else
-                InternalError(2020050613);
+                end;
             end;
           InternalError(2020050403);
         end;
