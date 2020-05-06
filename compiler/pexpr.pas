@@ -337,6 +337,8 @@ implementation
                                 begin
                                   include(current_procinfo.flags,pi_has_nested_exit);
                                   exclude(current_procinfo.procdef.procoptions,po_inline);
+                                  if is_nested_pd(current_procinfo.procdef) then
+                                    current_procinfo.set_needs_parentfp(exit_procinfo.procdef.parast.symtablelevel);
 
                                   exit_procinfo.nestedexitlabel:=clabelsym.create('$nestedexit');
 

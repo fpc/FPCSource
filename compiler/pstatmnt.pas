@@ -1187,6 +1187,8 @@ implementation
                              if not(m_non_local_goto in current_settings.modeswitches) then
                                Message(parser_e_goto_outside_proc);
                              include(current_procinfo.flags,pi_has_global_goto);
+                             if is_nested_pd(current_procinfo.procdef) then
+                               current_procinfo.set_needs_parentfp(srsym.owner.symtablelevel);
                            end;
                          code:=cgotonode.create(tlabelsym(srsym));
                          tgotonode(code).labelsym:=tlabelsym(srsym);

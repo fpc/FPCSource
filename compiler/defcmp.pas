@@ -2347,6 +2347,7 @@ implementation
                 (global procedures can be converted into nested procvars)
              d) if def1 is a nested procedure, then def2 has to be a nested
                 procvar and def1 has to have the po_delphi_nested_cc option
+                or does not use parentfp
              e) if def1 is a procvar, def1 and def2 both have to be nested or
                 non-nested (we don't allow assignments from non-nested to
                 nested procvars to make sure that we can still implement
@@ -2365,7 +2366,8 @@ implementation
               not is_nested_pd(def2))) or
             ((def1.typ=procdef) and                                 { d) }
              is_nested_pd(def1) and
-             (not(po_delphi_nested_cc in def1.procoptions) or
+             ((not(po_delphi_nested_cc in def1.procoptions) and
+              (pio_needs_parentfp in tprocdef(def1).implprocoptions)) or
               not is_nested_pd(def2))) or
             ((def1.typ=procvardef) and                              { e) }
              (is_nested_pd(def1)<>is_nested_pd(def2))) then
