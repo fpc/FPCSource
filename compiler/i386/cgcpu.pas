@@ -56,6 +56,7 @@ unit cgcpu;
         procedure a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
         procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
         procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
+        procedure a_op64_ref(list : TAsmList;op:TOpCG;size : tcgsize;const ref: treference);override;
       private
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
@@ -671,27 +672,8 @@ unit cgcpu;
         l1, l2: TAsmLabel;
       begin
         case op of
-          OP_NOT:
-            begin
-              tempref:=ref;
-              tcgx86(cg).make_simple_ref(list,tempref);
-              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
-              inc(tempref.offset,4);
-              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
-            end;
-          OP_NEG:
-            begin
-              tempref:=ref;
-              tcgx86(cg).make_simple_ref(list,tempref);
-              inc(tempref.offset,4);
-              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
-              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
-              dec(tempref.offset,4);
-              list.concat(taicpu.op_ref(A_NEG,S_L,tempref));
-              inc(tempref.offset,4);
-              list.concat(taicpu.op_const_ref(A_SBB,S_L,-1,tempref));
-              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
-            end;
+          OP_NOT,OP_NEG:
+            inherited;
           OP_SHR,OP_SHL,OP_SAR:
             begin
               { load right operators in a register }
@@ -1153,6 +1135,39 @@ unit cgcpu;
             internalerror(200204022);
         end;
       end;
+
+
+    procedure tcg64f386.a_op64_ref(list: TAsmList; op: TOpCG; size: tcgsize; const ref: treference);
+      var
+        tempref : treference;
+      begin
+        case op of
+          OP_NOT:
+            begin
+              tempref:=ref;
+              tcgx86(cg).make_simple_ref(list,tempref);
+              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
+              inc(tempref.offset,4);
+              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
+            end;
+          OP_NEG:
+            begin
+              tempref:=ref;
+              tcgx86(cg).make_simple_ref(list,tempref);
+              inc(tempref.offset,4);
+              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+              dec(tempref.offset,4);
+              list.concat(taicpu.op_ref(A_NEG,S_L,tempref));
+              inc(tempref.offset,4);
+              list.concat(taicpu.op_const_ref(A_SBB,S_L,-1,tempref));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            end;
+          else
+            internalerror(2020050708);
+        end;
+      end;
+
 
     procedure create_codegen;
       begin

@@ -304,10 +304,6 @@ unit cgobj;
           procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize; mmreg, intreg: tregister; shuffle : pmmshuffle); virtual;
 
           { basic arithmetic operations }
-          { note: for operators which require only one argument (not, neg), use }
-          { the op_reg_reg, op_reg_ref or op_reg_loc methods and keep in mind   }
-          { that in this case the *second* operand is used as both source and   }
-          { destination (JM)                                                    }
           procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); virtual; abstract;
           procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); virtual;
           procedure a_op_const_loc(list : TAsmList; Op: TOpCG; a: tcgint; const loc: tlocation);
@@ -325,6 +321,11 @@ unit cgobj;
           procedure a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister); virtual;
           procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation); virtual;
           procedure a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation); virtual;
+
+          { unary operations (not, neg) }
+          procedure a_op_reg(list : TAsmList; Op: TOpCG; size: TCGSize; reg: TRegister); virtual;
+          procedure a_op_ref(list : TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference); virtual;
+          procedure a_op_loc(list : TAsmList; Op: TOpCG; const loc: tlocation);
 
           {  comparison operations }
           procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
@@ -525,6 +526,9 @@ unit cgobj;
         procedure a_op64_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);virtual;
         procedure a_op64_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);virtual;
         procedure a_op64_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);virtual;
+        procedure a_op64_reg(list : TAsmList;op:TOpCG;size : tcgsize;regdst : tregister64);virtual;
+        procedure a_op64_ref(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference);virtual;
+        procedure a_op64_loc(list : TAsmList;op:TOpCG;size : tcgsize;const l : tlocation);virtual;
 
         procedure a_op64_const_subsetref(list : TAsmList; Op : TOpCG; size : TCGSize; a : int64; const sref: tsubsetreference);
         procedure a_op64_reg_subsetref(list : TAsmList; Op : TOpCG; size : TCGSize; reg: tregister64; const sref: tsubsetreference);
@@ -2013,17 +2017,19 @@ implementation
           end
         else
           tmpref:=ref;
-        tmpreg:=getintregister(list,size);
-        a_load_ref_reg(list,size,size,tmpref,tmpreg);
         if op in [OP_NEG,OP_NOT] then
           begin
-            if reg<>NR_NO then
-              internalerror(2017040901);
-            a_op_reg_reg(list,op,size,tmpreg,tmpreg);
+            tmpreg:=getintregister(list,size);
+            a_op_reg_reg(list,op,size,reg,tmpreg);
+            a_load_reg_ref(list,size,size,tmpreg,tmpref);
           end
         else
-          a_op_reg_reg(list,op,size,reg,tmpreg);
-        a_load_reg_ref(list,size,size,tmpreg,tmpref);
+          begin
+            tmpreg:=getintregister(list,size);
+            a_load_ref_reg(list,size,size,tmpref,tmpreg);
+            a_op_reg_reg(list,op,size,reg,tmpreg);
+            a_load_reg_ref(list,size,size,tmpreg,tmpref);
+          end;
       end;
 
 
@@ -2221,6 +2227,49 @@ implementation
       begin
         a_op_reg_reg_reg(list,op,size,src1,src2,dst);
         ovloc.loc:=LOC_VOID;
+      end;
+
+
+    procedure tcg.a_op_reg(list: TAsmList; Op: TOpCG; size: TCGSize; reg: TRegister);
+      begin
+        if not (Op in [OP_NOT,OP_NEG]) then
+          internalerror(2020050701);
+        a_op_reg_reg(list,op,size,reg,reg);
+      end;
+
+
+    procedure tcg.a_op_ref(list: TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference);
+      var
+        tmpreg: TRegister;
+        tmpref: treference;
+      begin
+        if not (Op in [OP_NOT,OP_NEG]) then
+          internalerror(2020050701);
+        if assigned(ref.symbol) then
+          begin
+            tmpreg:=getaddressregister(list);
+            a_loadaddr_ref_reg(list,ref,tmpreg);
+            reference_reset_base(tmpref,tmpreg,0,ref.temppos,ref.alignment,[]);
+          end
+        else
+          tmpref:=ref;
+        tmpreg:=getintregister(list,size);
+        a_load_ref_reg(list,size,size,tmpref,tmpreg);
+        a_op_reg_reg(list,op,size,tmpreg,tmpreg);
+        a_load_reg_ref(list,size,size,tmpreg,tmpref);
+      end;
+
+
+    procedure tcg.a_op_loc(list: TAsmList; Op: TOpCG; const loc: tlocation);
+      begin
+        case loc.loc of
+          LOC_REGISTER, LOC_CREGISTER:
+            a_op_reg(list,op,loc.size,loc.register);
+          LOC_REFERENCE, LOC_CREFERENCE:
+            a_op_ref(list,op,loc.size,loc.reference);
+          else
+            internalerror(2020050702);
+        end;
       end;
 
 
@@ -3077,6 +3126,41 @@ implementation
       begin
         a_op64_reg_reg_reg(list,op,size,regsrc1,regsrc2,regdst);
         ovloc.loc:=LOC_VOID;
+      end;
+
+
+    procedure tcg64.a_op64_reg(list: TAsmList; op: TOpCG; size: tcgsize; regdst: tregister64);
+      begin
+        if not (op in [OP_NOT,OP_NEG]) then
+          internalerror(2020050706);
+        a_op64_reg_reg(list,op,size,regdst,regdst);
+      end;
+
+
+    procedure tcg64.a_op64_ref(list: TAsmList; op: TOpCG; size: tcgsize; const ref: treference);
+      var
+        tempreg: tregister64;
+      begin
+        if not (op in [OP_NOT,OP_NEG]) then
+          internalerror(2020050706);
+        tempreg.reghi:=cg.getintregister(list,OS_32);
+        tempreg.reglo:=cg.getintregister(list,OS_32);
+        a_load64_ref_reg(list,ref,tempreg);
+        a_op64_reg_reg(list,op,size,tempreg,tempreg);
+        a_load64_reg_ref(list,tempreg,ref);
+      end;
+
+
+    procedure tcg64.a_op64_loc(list: TAsmList; op: TOpCG; size: tcgsize; const l: tlocation);
+      begin
+        case l.loc of
+          LOC_REFERENCE, LOC_CREFERENCE:
+            a_op64_ref(list,op,size,l.reference);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_op64_reg(list,op,size,l.register64);
+          else
+            internalerror(2020050707);
+        end;
       end;
 
 

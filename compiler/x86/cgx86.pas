@@ -68,6 +68,7 @@ unit cgx86;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
         procedure a_op_ref_reg(list : TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); override;
         procedure a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize;reg: TRegister; const ref: TReference); override;
+        procedure a_op_ref(list : TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference); override;
 
 {$ifndef i8086}
         procedure a_op_const_reg_reg(list : TAsmList; op : Topcg; size : Tcgsize; a : tcgint; src,dst : Tregister); override;
@@ -2340,8 +2341,6 @@ unit cgx86;
         tmpref:=ref;
         make_simple_ref(list,tmpref);
         { we don't check the register size for some operations, for the following reasons:
-          NEG,NOT:
-            reg isn't used in these operations (they are unary and use only ref)
           SHR,SHL,SAR,ROL,ROR:
             We allow the register size to differ from the destination size.
             This allows generating better code when performing, for example, a
@@ -2352,17 +2351,13 @@ unit cgx86;
                 EDX have 8-bit subregisters)
               - avoids partial register writes, which can cause various
                 performance issues on modern out-of-order execution x86 CPUs }
-        if not (op in [OP_NEG,OP_NOT,OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR]) then
+        if not (op in [OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR]) then
           check_register_size(size,reg);
         if (op=OP_MUL) and not (cs_check_overflow in current_settings.localswitches) then
           op:=OP_IMUL;
         case op of
           OP_NEG,OP_NOT:
-            begin
-              if reg<>NR_NO then
-                internalerror(200109237);
-              list.concat(taicpu.op_ref(TOpCG2AsmOp[op],tcgsize2opsize[size],tmpref));
-            end;
+            inherited;
           OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
             begin
               { Use ecx to load the value, that allows better coalescing }
@@ -2385,6 +2380,17 @@ unit cgx86;
               list.concat(taicpu.op_reg_ref(TOpCG2AsmOp[op],tcgsize2opsize[size],reg,tmpref));
             end;
         end;
+      end;
+
+    procedure tcgx86.a_op_ref(list: TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference);
+      var
+        tmpref: treference;
+      begin
+        if not (Op in [OP_NOT,OP_NEG]) then
+          internalerror(2020050705);
+        tmpref:=ref;
+        make_simple_ref(list,tmpref);
+        list.concat(taicpu.op_ref(TOpCG2AsmOp[op],tcgsize2opsize[size],tmpref));
       end;
 
      procedure tcgx86.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: TCGSize; src, dst: TRegister);
