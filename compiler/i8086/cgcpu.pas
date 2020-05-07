@@ -106,6 +106,7 @@ unit cgcpu;
         procedure a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
         procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
         procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
+        procedure a_op64_ref(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference);override;
       private
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
@@ -3328,6 +3329,45 @@ unit cgcpu;
             internalerror(200204022);
         end;
       end;
+
+
+    procedure tcg64f8086.a_op64_ref(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference);
+      var
+        tempref: treference;
+      begin
+        tempref:=ref;
+        tcgx86(cg).make_simple_ref(list,tempref);
+        case op of
+          OP_NOT:
+            begin
+              cg.a_op_ref(list,op,OS_32,tempref);
+              inc(tempref.offset,4);
+              cg.a_op_ref(list,op,OS_32,tempref);
+            end;
+          OP_NEG :
+            begin
+              inc(tempref.offset,6);
+              cg.a_op_ref(list,OP_NOT,OS_16,tempref);
+              dec(tempref.offset,2);
+              cg.a_op_ref(list,OP_NOT,OS_16,tempref);
+              dec(tempref.offset,2);
+              cg.a_op_ref(list,OP_NOT,OS_16,tempref);
+              dec(tempref.offset,2);
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+              list.concat(taicpu.op_ref(A_NEG,S_W,tempref));
+              inc(tempref.offset,2);
+              list.concat(taicpu.op_const_ref(A_SBB,S_W,-1,tempref));
+              inc(tempref.offset,2);
+              list.concat(taicpu.op_const_ref(A_SBB,S_W,-1,tempref));
+              inc(tempref.offset,2);
+              list.concat(taicpu.op_const_ref(A_SBB,S_W,-1,tempref));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            end;
+          else
+            inherited;
+        end;
+      end;
+
 
     procedure create_codegen;
       begin
