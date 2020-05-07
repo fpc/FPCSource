@@ -329,7 +329,8 @@ interface
                         sep:=#9
                       else
                       if (i=2) and
-                         (op in [A_DIVSL,A_DIVUL,A_MULS,A_MULU,A_DIVS,A_DIVU,A_REMS,A_REMU]) then
+                         ((op=A_DIVSL) or (op=A_DIVUL) or (op=A_MULS) or (op=A_MULU) or
+                          (op=A_DIVS) or (op=A_DIVU) or (op=A_REMS) or (op=A_REMU)) then
                         sep:=':'
                       else
                         sep:=',';

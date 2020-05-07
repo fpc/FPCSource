@@ -1843,10 +1843,12 @@ unit cgcpu;
             { MUL/DIV always sets the overflow flag, and never the carry flag }
             { Note/Fixme: This still doesn't cover the ColdFire, where none of these opcodes
               set either the overflow or the carry flag. So CF must be handled in other ways. }
-            if taicpu(list.last).opcode in [A_MULU,A_MULS,A_DIVS,A_DIVU,A_DIVUL,A_DIVSL] then
-              cond:=C_VC
-            else
-              cond:=C_CC;
+            case taicpu(list.last).opcode of
+              A_MULU,A_MULS,A_DIVS,A_DIVU,A_DIVUL,A_DIVSL:
+                cond:=C_VC;
+              else
+                cond:=C_CC;
+            end;
           end;
         ai:=Taicpu.Op_Sym(A_Bxx,S_NO,hl);
         ai.SetCondition(cond);

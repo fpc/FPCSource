@@ -150,7 +150,8 @@ unit aoptcpu;
          end;
         p := taicpu(hp);
         Result :=
-          ((p.opcode in [A_MOVE,A_MOVEA,A_MVS,A_MVZ,A_MOVEQ,A_LEA]) and
+          (((p.opcode=A_MOVE) or (p.opcode=A_MOVEA) or (p.opcode=A_MVS) or
+            (p.opcode=A_MVZ) or (p.opcode=A_MOVEQ) or (p.opcode=A_LEA)) and
            (p.oper[1]^.typ = top_reg) and
            (SuperRegistersEqual(p.oper[1]^.reg,reg)) and
            ((p.oper[0]^.typ = top_const) or
@@ -351,7 +352,7 @@ unit aoptcpu;
                       if isvalue16bit(abs(taicpu(p).oper[0]^.val)) then
                         begin
                           DebugMsg('Optimizer: SUB/ADD #val,Ax to LEA val(Ax),Ax',p);
-                          if taicpu(p).opcode in [A_SUB,A_SUBA] then
+                          if (taicpu(p).opcode=A_SUB) or (taicpu(p).opcode=A_SUBA) then
                             reference_reset_base(tmpref,taicpu(p).oper[1]^.reg,-taicpu(p).oper[0]^.val,ctempposinvalid,0,[])
                           else
                             reference_reset_base(tmpref,taicpu(p).oper[1]^.reg,taicpu(p).oper[0]^.val,ctempposinvalid,0,[]);

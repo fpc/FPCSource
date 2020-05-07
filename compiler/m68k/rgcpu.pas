@@ -145,7 +145,9 @@ unit rgcpu;
                 (get_alias(getsupreg(instr.oper[0]^.reg))=orgreg) then
                 begin
                   { source can be replaced if dest is register... }
-                  if ((instr.oper[1]^.typ=top_reg) and (instr.opcode in [A_MOVE,A_ADD,A_SUB,A_AND,A_OR,A_CMP])) or
+                  if ((instr.oper[1]^.typ=top_reg) and 
+                     ((instr.opcode=A_MOVE) or (instr.opcode=A_ADD) or (instr.opcode=A_SUB) or
+                      (instr.opcode=A_AND) or (instr.opcode=A_OR) or (instr.opcode=A_CMP))) or
                     {... or a "simple" reference in case of MOVE }
                     ((instr.opcode=A_MOVE) and (instr.oper[1]^.typ=top_ref) and isvalidmovedest(instr.oper[1]^.ref)) then
                     opidx:=0;
@@ -153,11 +155,12 @@ unit rgcpu;
               else if (instr.oper[1]^.typ=top_reg) and (getregtype(instr.oper[1]^.reg)=regtype) and
                 (get_alias(getsupreg(instr.oper[1]^.reg))=orgreg) and
                 ((
-                  (instr.opcode in [A_MOVE,A_ADD,A_SUB,A_AND,A_OR]) and
+                  ((instr.opcode=A_MOVE) or (instr.opcode=A_ADD) or (instr.opcode=A_SUB) or
+                   (instr.opcode=A_AND) or (instr.opcode=A_OR)) and
                   (instr.oper[0]^.typ=top_reg) and not
                   (isaddressregister(instr.oper[0]^.reg))
                 ) or
-                (instr.opcode in [A_ADDQ,A_SUBQ,A_MOV3Q])) then
+                ((instr.opcode=A_ADDQ) or (instr.opcode=A_SUBQ) or (instr.opcode=A_MOV3Q))) then
                 opidx:=1;
             end;
           else

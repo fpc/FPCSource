@@ -179,7 +179,7 @@ const
         { Also filter the helper opcodes, they can't be valid
           while reading an assembly source }
         case actopcode of
-          A_NONE, A_LABEL, A_DBXX, A_SXX, A_BXX, A_FBXX:
+          A_NONE, A_DBXX, A_SXX, A_BXX, A_FBXX:
             begin
             end;
           else
