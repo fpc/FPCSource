@@ -221,6 +221,11 @@ unit hlcg2ll;
           procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation); override;
           procedure a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation); override;
 
+          { unary operations (not, neg) }
+          procedure a_op_reg(list : TAsmList; Op: TOpCG; size: tdef; reg: TRegister); override;
+          procedure a_op_ref(list : TAsmList; Op: TOpCG; size: tdef; const ref: TReference); override;
+          procedure a_op_loc(list : TAsmList; Op: TOpCG; size: tdef;  const loc: tlocation); override;
+
           {  comparison operations }
           procedure a_cmp_const_reg_label(list : TAsmList;size : tdef;cmp_op : topcmp;a : tcgint;reg : tregister;
             l : tasmlabel);override;
@@ -860,6 +865,31 @@ implementation
   procedure thlcg2ll.a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister; setflags: boolean; var ovloc: tlocation);
     begin
       cg.a_op_reg_reg_reg_checkoverflow(list,op,def_cgsize(size),src1,src2,dst,setflags,ovloc);
+    end;
+
+  procedure thlcg2ll.a_op_reg(list: TAsmList; Op: TOpCG; size: tdef; reg: TRegister);
+    begin
+      cg.a_op_reg(list,op,def_cgsize(size),reg);
+    end;
+
+  procedure thlcg2ll.a_op_ref(list: TAsmList; Op: TOpCG; size: tdef; const ref: TReference);
+    begin
+      cg.a_op_ref(list,op,def_cgsize(size),ref);
+    end;
+
+  procedure thlcg2ll.a_op_loc(list: TAsmList; Op: TOpCG; size: tdef; const loc: tlocation);
+    begin
+{$ifdef extdebug}
+      if def_cgsize(size)<>loc.size then
+        internalerror(2020050704);
+{$endif}
+      case loc.loc of
+        LOC_SUBSETREG,LOC_CSUBSETREG,
+        LOC_SUBSETREF,LOC_CSUBSETREF:
+          inherited
+        else
+          cg.a_op_loc(list,op,loc);
+      end;
     end;
 
   procedure thlcg2ll.a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);

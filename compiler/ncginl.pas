@@ -527,36 +527,18 @@ implementation
       procedure tcginlinenode.second_NegNot_assign;
         const
           negnotop:array[in_neg_assign_x..in_not_assign_x] of TOpCG=(OP_NEG,OP_NOT);
-{$ifndef cpu64bitalu}
-        var
-          NR_NO64: tregister64=(reglo:NR_NO;reghi:NR_NO);
-{$endif not cpu64bitalu}
         begin
           { load parameter, must be a reference }
           secondpass(left);
 
           location_reset(location,LOC_VOID,OS_NO);
 
-          if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-            begin
 {$ifndef cpu64bitalu}
-              if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
-                cg64.a_op64_reg_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],def_cgsize(left.resultdef),left.location.register64,left.location)
-              else
-{$endif not cpu64bitalu}
-                hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],left.resultdef,left.location.register,left.location);
-            end
-          else if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-            begin
-{$ifndef cpu64bitalu}
-              if def_cgsize(left.resultdef) in [OS_64,OS_S64] then
-                cg64.a_op64_reg_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],def_cgsize(left.resultdef),NR_NO64,left.location)
-              else
-{$endif not cpu64bitalu}
-                hlcg.a_op_reg_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],left.resultdef,NR_NO,left.location);
-            end
+          if (def_cgsize(left.resultdef) in [OS_64,OS_S64]) and (left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
+            cg64.a_op64_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],def_cgsize(left.resultdef),left.location)
           else
-            internalerror(2017040701);
+{$endif not cpu64bitalu}
+            hlcg.a_op_loc(current_asmdata.CurrAsmList,negnotop[inlinenumber],left.resultdef,left.location);
         end;
 
 
