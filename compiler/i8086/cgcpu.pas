@@ -2846,39 +2846,8 @@ unit cgcpu;
         tempref : treference;
       begin
         case op of
-          OP_NOT:
-            begin
-              tempref:=ref;
-              tcgx86(cg).make_simple_ref(list,tempref);
-              list.concat(taicpu.op_ref(A_NOT,S_W,tempref));
-              inc(tempref.offset,2);
-              list.concat(taicpu.op_ref(A_NOT,S_W,tempref));
-              inc(tempref.offset,2);
-              list.concat(taicpu.op_ref(A_NOT,S_W,tempref));
-              inc(tempref.offset,2);
-              list.concat(taicpu.op_ref(A_NOT,S_W,tempref));
-            end;
-          OP_NEG:
-            begin
-              tempref:=ref;
-              tcgx86(cg).make_simple_ref(list,tempref);
-              inc(tempref.offset,6);
-              list.concat(taicpu.op_ref(A_NOT,S_W,tempref));
-              dec(tempref.offset,2);
-              list.concat(taicpu.op_ref(A_NOT,S_W,tempref));
-              dec(tempref.offset,2);
-              list.concat(taicpu.op_ref(A_NOT,S_W,tempref));
-              dec(tempref.offset,2);
-              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
-              list.concat(taicpu.op_ref(A_NEG,S_W,tempref));
-              inc(tempref.offset,2);
-              list.concat(taicpu.op_const_ref(A_SBB,S_W,-1,tempref));
-              inc(tempref.offset,2);
-              list.concat(taicpu.op_const_ref(A_SBB,S_W,-1,tempref));
-              inc(tempref.offset,2);
-              list.concat(taicpu.op_const_ref(A_SBB,S_W,-1,tempref));
-              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
-            end;
+          OP_NOT,OP_NEG:
+            inherited;
           else
             begin
               get_64bit_ops(op,op1,op2);
