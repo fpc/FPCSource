@@ -278,8 +278,11 @@ interface
             { old versions of GAS don't like PEA.L and LEA.L }
             result:=gas_op2str[op];
           A_SXX, A_FSXX, A_DBXX, A_DBRA:
-            { Scc/FScc is always BYTE, DBRA/DBcc is always WORD, doesn't need opsize (KB) }
-            result:=gas_op2str[op]+cond2str[taicpu(hp).condition];
+            begin
+              { Scc/FScc is always BYTE, DBRA/DBcc is always WORD, doesn't need opsize (KB) }
+              result:=gas_op2str[op];
+              replace(result,'xx',cond2str[taicpu(hp).condition]);
+            end;
           { fix me: a fugly hack to utilize GNU AS pseudo instructions for more optimal branching }
           A_JSR:
             result:='jbsr';

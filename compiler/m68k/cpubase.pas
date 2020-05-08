@@ -36,63 +36,7 @@ unit cpubase;
 *****************************************************************************}
 
     type
-    {  warning: CPU32 opcodes are not fully compatible with the MC68020. }
-       { 68000 only opcodes }
-       tasmop = (a_none,
-         a_abcd,a_add,a_adda,a_addi,a_addq,a_addx,a_and,a_andi,
-         a_asl,a_asr,a_bcc,a_bcs,a_beq,a_bge,a_bgt,a_bhi,
-         a_ble,a_bls,a_blt,a_bmi,a_bne,a_bpl,a_bvc,a_bvs,
-         a_bchg,a_bclr,a_bra,a_bset,a_bsr,a_btst,a_chk,
-         a_clr,a_cmp,a_cmpa,a_cmpi,a_cmpm,a_dbcc,a_dbcs,a_dbeq,a_dbge,
-         a_dbgt,a_dbhi,a_dble,a_dbls,a_dblt,a_dbmi,a_dbne,a_dbra,
-         a_dbpl,a_dbt,a_dbvc,a_dbvs,a_dbf,a_divs,a_divu,
-         a_eor,a_eori,a_exg,a_illegal,a_ext,a_jmp,a_jsr,
-         a_lea,a_link,a_lsl,a_lsr,a_move,a_movea,a_movei,a_moveq,
-         a_movem,a_movep,a_muls,a_mulu,a_nbcd,a_neg,a_negx,
-         a_nop,a_not,a_or,a_ori,a_pea,a_rol,a_ror,a_roxl,
-         a_roxr,a_rtr,a_rts,a_sbcd,a_scc,a_scs,a_seq,a_sge,
-         a_sgt,a_shi,a_sle,a_sls,a_slt,a_smi,a_sne,
-         a_spl,a_st,a_svc,a_svs,a_sf,a_sub,a_suba,a_subi,a_subq,
-         a_subx,a_swap,a_tas,a_trap,a_trapv,a_tst,a_unlk,
-         a_rte,a_reset,a_stop,
-         { mc68010 instructions }
-         a_bkpt,a_movec,a_moves,a_rtd,
-         { mc68020 instructions }
-         a_bfchg,a_bfclr,a_bfexts,a_bfextu,a_bfffo,
-         a_bfins,a_bfset,a_bftst,a_callm,a_cas,a_cas2,
-         a_chk2,a_cmp2,a_divsl,a_divul,a_extb,a_pack,a_rtm,
-         a_trapcc,a_tracs,a_trapeq,a_trapf,a_trapge,a_trapgt,
-         a_traphi,a_traple,a_trapls,a_traplt,a_trapmi,a_trapne,
-         a_trappl,a_trapt,a_trapvc,a_trapvs,a_unpk,
-         { mc64040 instructions }
-         a_move16,
-         { coldfire v4 instructions }
-         a_mov3q,a_mvz,a_mvs,a_sats,a_byterev,a_ff1,a_remu,a_rems,
-         { fpu processor instructions - directly supported }
-         { ieee aware and misc. condition codes not supported   }
-         a_fabs,a_fsabs,a_fdabs,a_fadd,a_fsadd,a_fdadd,
-         a_fbeq,a_fbne,a_fbngt,a_fbgt,a_fbge,a_fbnge,
-         a_fblt,a_fbnlt,a_fble,a_fbgl,a_fbngl,a_fbgle,a_fbngle,
-         a_fdbeq,a_fdbne,a_fdbgt,a_fdbngt,a_fdbge,a_fdbnge,
-         a_fdblt,a_fdbnlt,a_fdble,a_fdbgl,a_fdbngl,a_fdbgle,a_fdbngle,
-         a_fseq,a_fsne,a_fsgt,a_fsngt,a_fsge,a_fsnge,
-         a_fslt,a_fsnlt,a_fsle,a_fsgl,a_fsngl,a_fsgle,a_fsngle,
-         a_fcmp,a_fdiv,a_fsdiv,a_fddiv,a_fmove,a_fsmove,a_fdmove,a_fmovem,
-         a_fmul,a_fsmul,a_fdmul,a_fneg,a_fsneg,a_fdneg,a_fnop,a_fsqrt,a_fssqrt,a_fdsqrt,
-         a_fsub,a_fssub,a_fdsub,a_fsgldiv,a_fsglmul,a_ftst,
-         a_ftrapeq,a_ftrapne,a_ftrapgt,a_ftrapngt,a_ftrapge,a_ftrapnge,
-         a_ftraplt,a_ftrapnlt,a_ftraple,a_ftrapgl,a_ftrapngl,a_ftrapgle,a_ftrapngle,
-         a_fint,a_fintrz,
-         { fpu instructions - indirectly supported }
-         a_fsin,a_fcos,
-         { protected instructions }
-         a_cprestore,a_cpsave,
-         { fpu unit protected instructions                    }
-         { and 68030/68851 common mmu instructions            }
-         { (this may include 68040 mmu instructions)          }
-         a_frestore,a_fsave,a_pflush,a_pflusha,a_pload,a_pmove,a_ptest,
-         { useful for assembly language output }
-         a_label,a_dbxx,a_sxx,a_bxx,a_fsxx,a_fbxx);
+      tasmop = {$i m68kop.inc}
 
       {# This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];
@@ -402,9 +346,24 @@ implementation
       begin
         case o of
           A_BXX,A_FBXX,A_DBXX,
-          A_BCC..A_BVS,
-          A_DBCC..A_DBVS,
-          A_FBEQ..A_FSNGLE,
+
+          A_BHS,A_BLO,A_BHI,A_BLS,A_BCC,A_BCS,A_BNE,A_BEQ,A_BVC,A_BVS,
+          A_BPL,A_BMI,A_BGE,A_BLT,A_BGT,A_BLE,A_BRA,
+          A_DBT,A_DBF,A_DBHI,A_DBLS,A_DBCC,A_DBHS,A_DBCS,A_DBLO,A_DBNE,
+          A_DBEQ,A_DBVC,A_DBVS,A_DBPL,A_DBMI,A_DBGE,A_DBLT,A_DBGT,A_DBLE,
+          A_DBRA,
+
+          A_FBF,A_FBEQ,A_FBOGT,A_FBOGE,A_FBOLT,A_FBOLE,A_FBOGL,A_FBOR,A_FBUN,
+          A_FBUEQ,A_FBUGT,A_FBUGE,A_FBULT,A_FBULE,A_FBNE,A_FBT,A_FBSF,A_FBSEQ,
+          A_FBGT,A_FBGE,A_FBLT,A_FBLE,A_FBGL,A_FBGLE,A_FBNGLE,A_FBNGL,A_FBNLE,
+          A_FBNLT,A_FBNGE,A_FBNGT,A_FBSNE,A_FBST,
+
+          A_FDBF,A_FDBEQ,A_FDBOGT,A_FDBOGE,A_FDBOLT,A_FDBOLE,A_FDBOGL,A_FDBOR,
+          A_FDBUN,A_FDBUEQ,A_FDBUGT,A_FDBUGE,A_FDBULT,A_FDBULE,A_FDBNE,A_FDBT,
+          A_FDBSF,A_FDBSEQ,A_FDBGT,A_FDBGE,A_FDBLT,A_FDBLE,A_FDBGL,A_FDBGLE,
+          A_FDBNGLE,A_FDBNGL,A_FDBNLE,A_FDBNLT,A_FDBNGE,A_FDBNGT,A_FDBSNE,
+          A_FDBST,
+
           A_JSR,A_BSR,A_JMP:
             is_calljmp:=true;
           else

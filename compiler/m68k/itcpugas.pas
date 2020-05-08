@@ -29,64 +29,7 @@ interface
       cpubase,cgbase;
 
     const
-      gas_op2str : op2strtable=
-       {  warning: CPU32 opcodes are not fully compatible with the MC68020. }
-       { 68000 only opcodes }
-       ( '',
-         'abcd','add','adda','addi','addq','addx','and','andi',
-         'asl','asr','bcc','bcs','beq','bge','bgt','bhi',
-         'ble','bls','blt','bmi','bne','bpl','bvc','bvs',
-         'bchg','bclr','bra','bset','bsr','btst','chk',
-         'clr','cmp','cmpa','cmpi','cmpm','dbcc','dbcs','dbeq','dbge',
-         'dbgt','dbhi','dble','dbls','dblt','dbmi','dbne','dbra',
-         'dbpl','dbt','dbvc','dbvs','dbf','divs','divu',
-         'eor','eori','exg','illegal','ext','jmp','jsr',
-         'lea','link','lsl','lsr','move','movea','movei','moveq',
-         'movem','movep','muls','mulu','nbcd','neg','negx',
-         'nop','not','or','ori','pea','rol','ror','roxl',
-         'roxr','rtr','rts','sbcd','scc','scs','seq','sge',
-         'sgt','shi','sle','sls','slt','smi','sne',
-         'spl','st','svc','svs','sf','sub','suba','subi','subq',
-         'subx','swap','tas','trap','trapv','tst','unlk',
-         'rte','reset','stop',
-         { mc68010 instructions }
-         'bkpt','movec','moves','rtd',
-         { mc68020 instructions }
-         'bfchg','bfclr','bfexts','bfextu','bfffo',
-         'bfins','bfset','bftst','callm','cas','cas2',
-         'chk2','cmp2','divsl','divul','extb','pack','rtm',
-         'trapcc','tracs','trapeq','trapf','trapge','trapgt',
-         'traphi','traple','trapls','traplt','trapmi','trapne',
-         'trappl','trapt','trapvc','trapvs','unpk',
-         { mc64040 instructions }
-         'move16',
-         { coldfire v4 instructions }
-         'mov3q','mvz','mvs','sats','byterev','ff1','remu','rems',
-         { fpu processor instructions - directly supported }
-         { ieee aware and misc. condition codes not supported   }
-         'fabs','fsabs','fdabs','fadd','fsadd','fdadd',
-         'fbeq','fbne','fbngt','fbgt','fbge','fbnge',
-         'fblt','fbnlt','fble','fbgl','fbngl','fbgle','fbngle',
-         'fdbeq','fdbne','fdbgt','fdbngt','fdbge','fdbnge',
-         'fdblt','fdbnlt','fdble','fdbgl','fdbngl','fdbgle','fdbngle',
-         'fseq','fsne','fsgt','fsngt','fsge','fsnge',
-         'fslt','fsnlt','fsle','fsgl','fsngl','fsgle','fsngle',
-         'fcmp','fdiv','fsdiv','fddiv','fmove','fsmove','fdmove','fmovem',
-         'fmul','fsmul','fdmul','fneg','fsneg','fdneg','fnop','fsqrt','fssqrt','fdsqrt',
-         'fsub','fssub','fdsub','fsgldiv','fsglmul','ftst',
-         'ftrapeq','ftrapne','ftrapgt','ftrapngt','ftrapge','ftrapnge',
-         'ftraplt','ftrapnlt','ftraple','ftrapgl','ftrapngl','ftrapgle','ftrapngle',
-         'fint','fintrz',
-         { fpu instructions - indirectly supported }
-         'fsin','fcos',
-         { protected instructions }
-         'cprestore','cpsave',
-         { fpu unit protected instructions                    }
-         { and 68030/68851 common mmu instructions            }
-         { (this may include 68040 mmu instructions)          }
-         'frestore','fsave','pflush','pflusha','pload','pmove','ptest',
-         { useful for assembly language output }
-         'label','db','s','b','fs','fb');
+      gas_op2str : op2strtable = {$i m68kstd.inc}
 
     function gas_regnum_search(const s:string):Tregister;
     function gas_regname(r:Tregister):string;
