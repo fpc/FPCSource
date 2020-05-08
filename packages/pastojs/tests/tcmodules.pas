@@ -424,6 +424,7 @@ type
     Procedure TestArray_StaticChar;
     Procedure TestArray_StaticMultiDim;
     Procedure TestArray_StaticInFunction;
+    Procedure TestArray_StaticMultiDimEqualNotImplemented;
     Procedure TestArrayOfRecord;
     Procedure TestArray_StaticRecord;
     Procedure TestArrayOfSet;
@@ -8882,6 +8883,22 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '']));
+end;
+
+procedure TTestModule.TestArray_StaticMultiDimEqualNotImplemented;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TArrayInt = array[1..3,1..2] of longint;',
+  'var',
+  '  a,b: TArrayInt;',
+  'begin',
+  '  if a=b then ;',
+  '']);
+  SetExpectedPasResolverError('compare static array is not supported',
+    nXIsNotSupported);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestArrayOfRecord;

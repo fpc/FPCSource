@@ -1449,6 +1449,10 @@ type
     procedure AddElementData(Data: TPas2JsElementData); virtual;
     function CreateElementData(DataClass: TPas2JsElementDataClass;
       El: TPasElement): TPas2JsElementData; virtual;
+    // checking compatibilility
+    function CheckEqualCompatibilityUserType(const LHS,
+      RHS: TPasResolverResult; ErrorEl: TPasElement;
+      RaiseOnIncompatible: boolean): integer; override;
     // utility
     procedure RaiseMsg(const Id: TMaxPrecInt; MsgNumber: integer; const Fmt: String;
       Args: array of {$IFDEF pas2js}jsvalue{$ELSE}const{$ENDIF}; ErrorPosEl: TPasElement); override;
@@ -5979,6 +5983,20 @@ begin
   AddElementData(Result);
 end;
 
+function TPas2JSResolver.CheckEqualCompatibilityUserType(const LHS,
+  RHS: TPasResolverResult; ErrorEl: TPasElement; RaiseOnIncompatible: boolean
+  ): integer;
+begin
+  Result:=inherited CheckEqualCompatibilityUserType(LHS,RHS,ErrorEl,RaiseOnIncompatible);
+  if Result=cIncompatible then exit;
+  if (LHS.LoTypeEl is TPasArrayType)
+      and (length(TPasArrayType(LHS.LoTypeEl).Ranges)>0) then
+    RaiseMsg(20200508103543,nXIsNotSupported,sXIsNotSupported,['compare static array'],ErrorEl);
+  if (RHS.LoTypeEl is TPasArrayType)
+      and (length(TPasArrayType(RHS.LoTypeEl).Ranges)>0) then
+    RaiseMsg(20200508103544,nXIsNotSupported,sXIsNotSupported,['compare static array'],ErrorEl);
+end;
+
 procedure TPas2JSResolver.RaiseMsg(const Id: TMaxPrecInt; MsgNumber: integer;
   const Fmt: String; Args: array of {$IFDEF pas2js}jsvalue{$ELSE}const{$ENDIF};
   ErrorPosEl: TPasElement);
@@ -7728,6 +7746,7 @@ var
   JSBinClass: TJSBinaryClass;
   ResolvedEl: TPasResolverResult;
   AInt, BInt: TMaxPrecInt;
+  LArrType: TPasArrayType;
 begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertBinaryExpressionRes OpCode="',OpcodeStrings[El.OpCode],'" Left=',GetResolverResultDbg(LeftResolved),' Right=',GetResolverResultDbg(RightResolved));
@@ -8254,6 +8273,7 @@ begin
         end
       else if LeftTypeEl.ClassType=TPasArrayType then
         begin
+        LArrType:=TPasArrayType(LeftTypeEl);
         if RightResolved.BaseType=btNil then
           begin
           // convert "array = nil" to "rtl.length(array) === 0"
@@ -8261,6 +8281,11 @@ begin
           Result:=CreateCmpArrayWithNil(El,A,El.OpCode);
           A:=nil;
           exit;
+          end
+        else if length(LArrType.Ranges)>0 then
+          begin
+          // LHS is static array
+          aResolver.RaiseMsg(20200508102656,nXIsNotSupported,sXIsNotSupported,['compare static array'],TPasElement(El));
           end;
         end;
       end;

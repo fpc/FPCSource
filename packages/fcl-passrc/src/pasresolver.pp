@@ -2216,7 +2216,7 @@ type
       ErrorEl: TPasElement; RaiseOnIncompatible: boolean): integer;
     function CheckEqualCompatibilityUserType(
       const LHS, RHS: TPasResolverResult; ErrorEl: TPasElement;
-      RaiseOnIncompatible: boolean): integer; // LHS.BaseType=btContext=RHS.BaseType and both rrfReadable
+      RaiseOnIncompatible: boolean): integer; virtual; // LHS.BaseType=btContext=RHS.BaseType and both rrfReadable
     function CheckTypeCast(El: TPasType; Params: TParamsExpr; RaiseOnError: boolean): integer;
     function CheckTypeCastRes(const FromResolved, ToResolved: TPasResolverResult;
       ErrorEl: TPasElement; RaiseOnError: boolean): integer; virtual;
