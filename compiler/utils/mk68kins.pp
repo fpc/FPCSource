@@ -509,7 +509,7 @@ begin
               end;
             Writeln(OutputFiles.InsTabFile, ');');
             Writeln(OutputFiles.InsTabFile,  '    codelen : ',S_Split[2],';');
-            Writeln(OutputFiles.InsTabFile,  '    code    : [',S_Split[1],'];');
+            Writeln(OutputFiles.InsTabFile,  '    code    : (',S_Split[1],');');
             Writeln(OutputFiles.InsTabFile,  '    support : [',OpSupportStr(S_Support),'];');
             Writeln(OutputFiles.InsTabFile,  '    sizes   : [',OpsizeStr(FindOpsize(S_Split[3])),'];');
             Write(OutputFiles.InsTabFile,  '  )');
