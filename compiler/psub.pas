@@ -2383,11 +2383,17 @@ implementation
          { parse the code ... }
          code:=block(current_module.islibrary);
 
-         if is_nested_pd(procdef) and not (pio_needs_parentfp in procdef.implprocoptions) then
+         { If this is a nested procedure which does not access its parent's frame
+           pointer, we can optimize it by removing the hidden $parentfp parameter.
+           Do not perform this for:
+             - targets which use a special struct to access parent's variables;
+             - pure assembler procedures (for compatibility with old code).
+         }
+         if not (target_info.system in systems_fpnestedstruct) and
+            is_nested_pd(procdef) and
+            not (pio_needs_parentfp in procdef.implprocoptions) and
+            not (po_assembler in procdef.procoptions) then
            begin
-             { If this nested procedure does not access its parent's frame pointer,
-               we can optimize it by removing the hidden $parentfp parameter.
-             }
              exclude(procdef.procoptions, po_delphi_nested_cc);
              parentfp_sym:=procdef.parast.Find('parentfp');
              if parentfp_sym = nil then
