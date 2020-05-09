@@ -1515,12 +1515,12 @@ const msgtxt : array[0..000356,1..240] of char=(
   'ptionally [m] max heap size'#010+
   '**2Ci_IO-checking'#010+
   'A*2CI<x>_Select instruction set on ARM: ARM or THUMB'#010+
-  'l*2CL<x>_LLVM code g','eneration options'#010+
-  'l*3CLflto_Enable Link-time optimisation (needed both when compiling un'+
+  'L*2Cl<x>_LLVM code g','eneration options'#010+
+  'L*3Clflto_Enable Link-time optimisation (needed both when compiling un'+
   'its and programs/libraries)'#010+
-  'l*3CLfltonosystem_Disable LTO for the system unit (needed with at leas'+
+  'L*3Clfltonosystem_Disable LTO for the system unit (needed with at leas'+
   't Xcode 10.2 and earlier due to linker bugs)'#010+
-  'l*3CLv<x>','_LLVM target version: Xcode-10.1, 7.0, 8.0, .., 10.0'#010+
+  'L*3Clv<x>','_LLVM target version: Xcode-10.1, 7.0, 8.0, .., 10.0'#010+
   '**2Cn_Omit linking stage'#010+
   'P*2CN_Generate nil-pointer checks (AIX-only)'#010+
   '**2Co_Check overflow of integer operations'#010+
