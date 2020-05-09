@@ -9510,8 +9510,6 @@ end;
 
 procedure TTestModule.TestArray_ArrayOfCharAssignString;
 begin
-  exit; // todo
-
   StartProgram(false);
   Add([
   'type TArr = array of char;',
@@ -9522,21 +9520,34 @@ begin
   'procedure Run(const a: array of char);',
   'begin',
   '  Run(c);',
-  //'  Run(s);',
+  '  Run(s);',
   'end;',
   'begin',
-  //'  a:=c;',
-  //'  a:=s;',
-  //'  a:=#13;',
-  //'  a:=''Foo'';',
-  //'  Run(c);',
-  //'  Run(s);',
+  '  a:=c;',
+  '  a:=s;',
+  '  a:=#13;',
+  '  a:=''Foo'';',
+  '  Run(c);',
+  '  Run(s);',
   '']);
   ConvertProgram;
   CheckSource('TestArray_ArrayOfCharAssignString',
     LinesToStr([ // statements
+    'this.c = "";',
+    'this.s = "";',
+    'this.a = [];',
+    'this.Run = function (a) {',
+    '  $mod.Run($mod.c.split(""));',
+    '  $mod.Run($mod.s.split(""));',
+    '};',
     '']),
     LinesToStr([
+    '$mod.a = $mod.c.split("");',
+    '$mod.a = $mod.s.split("");',
+    '$mod.a = "\r".split("");',
+    '$mod.a = "Foo".split("");',
+    '$mod.Run($mod.c.split(""));',
+    '$mod.Run($mod.s.split(""));',
     '']));
 end;
 

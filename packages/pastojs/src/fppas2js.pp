@@ -1890,6 +1890,7 @@ type
       AssignContext: TAssignContext; PosEl: TPasElement): TJSCallExpression; virtual;
     Function AppendPropertyReadArgs(Call: TJSCallExpression; Prop: TPasProperty;
       aContext: TConvertContext; PosEl: TPasElement): TJSCallExpression; virtual;
+    Function CreateDotSplit(El: TPasElement; Expr: TJSElement): TJSElement; virtual;
     Function CreatePrecompiledJS(El: TJSElement): string; virtual;
     Function CreateRaisePropReadOnly(PosEl: TPasElement): TJSElement; virtual;
     Procedure AddRTLVersionCheck(FuncContext: TFunctionContext; PosEl: TPasElement);
@@ -17427,6 +17428,21 @@ begin
   Result:=Call;
 end;
 
+function TPasToJSConverter.CreateDotSplit(El: TPasElement; Expr: TJSElement
+  ): TJSElement;
+var
+  DotExpr: TJSDotMemberExpression;
+  Call: TJSCallExpression;
+begin
+  Call:=CreateCallExpression(El);
+  DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
+  Call.Expr:=DotExpr;
+  DotExpr.MExpr:=Expr;
+  DotExpr.Name:='split';
+  Call.AddArg(CreateLiteralJSString(El,''));
+  Result:=Call;
+end;
+
 function TPasToJSConverter.CreatePrecompiledJS(El: TJSElement): string;
 var
   aWriter: TBufferWriter;
@@ -19811,6 +19827,17 @@ begin
       // noncurrency := currency
       // e.g. double := currency  ->  double := currency/10000
       AssignContext.RightSide:=CreateDivideNumber(El,AssignContext.RightSide,10000);
+      end
+    else if AssignContext.RightResolved.BaseType in btAllStringAndChars then
+      begin
+      if AssignContext.LeftResolved.BaseType=btContext then
+        begin
+        if AssignContext.LeftResolved.LoTypeEl is TPasArrayType then
+          begin
+          // AnArray:=aString  -> AnArray:=aString.split("")
+          AssignContext.RightSide:=CreateDotSplit(El.right,AssignContext.RightSide);
+          end;
+        end;
       end
     else if AssignContext.RightResolved.BaseType=btContext then
       begin
@@ -22689,14 +22716,21 @@ begin
 
     if ArgTypeIsArray then
       begin
+      // array as argument
       if ExprResolved.BaseType=btNil then
         begin
         // nil to array ->  pass []
         Result:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
         exit;
-        end;
-      // array as argument
-      Result:=CreateArrayInit(TPasArrayType(ArgTypeEl),El,El,AContext);
+        end
+      else if ExprResolved.BaseType in btAllStringAndChars then
+        begin
+        // pass string to an array
+        Result:=ConvertExpression(El,AContext);
+        Result:=CreateDotSplit(El,Result);
+        end
+      else
+        Result:=CreateArrayInit(TPasArrayType(ArgTypeEl),El,El,AContext);
       end;
 
     if Result=nil then
