@@ -895,6 +895,8 @@ interface
           { returns whether the mangled name or any of its aliases is equal to
             s }
           function  has_alias_name(const s: TSymStr):boolean;
+          { Returns true if the implementation part for this procdef has been handled }
+          function is_implemented: boolean;
 
           { aliases to fields only required when a function is implemented in
             the current unit }
@@ -6551,6 +6553,12 @@ implementation
           end;
         result:=false;
       end;
+
+
+    function tprocdef.is_implemented: boolean;
+    begin
+      result:=not assigned(implprocdefinfo) or not implprocdefinfo^.forwarddef;
+    end;
 
 
     function tprocdef.GetSymtable(t:tGetSymtable):TSymtable;
