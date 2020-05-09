@@ -765,7 +765,7 @@ implementation
                           hp:=right;
                           right:=taddnode(left).right;
                           taddnode(left).right:=hp;
-                          left:=left.simplify(false);
+                          left:=left.simplify(forinline);
                           result:=GetCopyAndTypeCheck;
                         end;
                       else
