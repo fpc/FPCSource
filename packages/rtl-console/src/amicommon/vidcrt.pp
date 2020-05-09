@@ -59,21 +59,8 @@ begin
 end;
 
 function KeyPressed: Boolean;
-var
-  NKey: TKeyEvent;
 begin
-  KeyPressed := False;
-  // Try to get a key if not already pressed one
-  if LastKeysIdx < 0 then
-  begin
-    NKey := PollKeyEvent;
-    if NKey <> 0 then
-    begin
-      ProcessKeyEvent(NKey);
-    end;
-  end;
-  // if last key is set, return that we have something
-  KeyPressed := LastKeysIdx <> 0;
+  KeyPressed := (LastKeysIdx >= 0) or (PollKeyEvent <> 0);
 end;
 
 function ReadKey: Char;
