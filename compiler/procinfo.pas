@@ -434,19 +434,19 @@ implementation
 
 
     procedure tprocinfo.set_needs_parentfp(parent_level: byte);
-    var
-      pi : tprocinfo;
-    begin
-      if (procdef.parast.symtablelevel<=normal_function_level)
-        or (procdef.parast.symtablelevel<=parent_level) then
-        Internalerror(2020050302);
-      if parent_level<normal_function_level then
-        parent_level:=normal_function_level;
-      pi:=Self;
-      repeat
-        include(pi.procdef.implprocoptions, pio_needs_parentfp);
-        pi:=pi.parent;
-      until pi.procdef.parast.symtablelevel<=parent_level;
-    end;
+      var
+        pi : tprocinfo;
+      begin
+        if (procdef.parast.symtablelevel<=normal_function_level)
+          or (procdef.parast.symtablelevel<=parent_level) then
+          Internalerror(2020050302);
+        if parent_level<normal_function_level then
+          parent_level:=normal_function_level;
+        pi:=Self;
+        repeat
+          include(pi.procdef.implprocoptions, pio_needs_parentfp);
+          pi:=pi.parent;
+        until pi.procdef.parast.symtablelevel<=parent_level;
+      end;
 
 end.

@@ -6556,9 +6556,9 @@ implementation
 
 
     function tprocdef.is_implemented: boolean;
-    begin
-      result:=not assigned(implprocdefinfo) or not implprocdefinfo^.forwarddef;
-    end;
+      begin
+        result:=not assigned(implprocdefinfo) or not implprocdefinfo^.forwarddef;
+      end;
 
 
     function tprocdef.GetSymtable(t:tGetSymtable):TSymtable;
