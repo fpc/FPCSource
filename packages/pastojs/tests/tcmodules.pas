@@ -436,6 +436,7 @@ type
     Procedure TestArray_SetLengthOutArg;
     Procedure TestArray_SetLengthProperty;
     Procedure TestArray_SetLengthMultiDim;
+    Procedure TestArray_SetLengthDynOfStatic;
     Procedure TestArray_OpenArrayOfString;
     Procedure TestArray_ArrayOfCharAssignString; // ToDo
     Procedure TestArray_ConstRef;
@@ -9423,7 +9424,54 @@ begin
     LinesToStr([
     '$mod.a = rtl.arraySetLength($mod.a, [], 2);',
     '$mod.a = rtl.arraySetLength($mod.a, 0, 3, 4);',
-    '$mod.b = rtl.arraySetLength($mod.b, 0, 5, 2);',
+    '$mod.b = rtl.arraySetLength($mod.b, 0, 5, "s", 2);',
+    '']));
+end;
+
+procedure TTestModule.TestArray_SetLengthDynOfStatic;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TStaArr1 = array[1..3] of boolean;',
+  //'  TStaArr2 = array[5..6] of TStaArr1;',
+  '  TDynArr1StaArr1 = array of TStaArr1;',
+  //'  TDynArr1StaArr2 = array of TStaArr2;',
+  '  TDynArr2StaArr1 = array of TDynArr1StaArr1;',
+  //'  TDynArr2StaArr2 = array of TDynArr1StaArr2;',
+  'var',
+  '  DynArr1StaArr1: TDynArr1StaArr1;',
+  //'  DynArr1StaArr2: TDynArr1StaArr1;',
+  '  DynArr2StaArr1: TDynArr2StaArr1;',
+  //'  DynArr2StaArr2: TDynArr2StaArr2;',
+  'begin',
+  '  SetLength(DynArr1StaArr1,11);',
+  '  SetLength(DynArr2StaArr1,12);',
+  '  SetLength(DynArr2StaArr1[13],14);',
+  '  SetLength(DynArr2StaArr1,15,16);',
+  //'  SetLength(DynArr1StaArr2,21);',
+  //'  SetLength(DynArr2StaArr2,22);',
+  //'  SetLength(DynArr2StaArr2[23],24);',
+  //'  SetLength(DynArr2StaArr2,25,26);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestArray_DynOfStatic',
+    LinesToStr([ // statements
+    'this.DynArr1StaArr1 = [];',
+    'this.DynArr2StaArr1 = [];',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DynArr1StaArr1 = rtl.arraySetLength($mod.DynArr1StaArr1, false, 11, "s", 3);',
+    '$mod.DynArr2StaArr1 = rtl.arraySetLength($mod.DynArr2StaArr1, [], 12);',
+    '$mod.DynArr2StaArr1[13] = rtl.arraySetLength($mod.DynArr2StaArr1[13], false, 14, "s", 3);',
+    '$mod.DynArr2StaArr1 = rtl.arraySetLength(',
+    '  $mod.DynArr2StaArr1,',
+    '  false,',
+    '  15,',
+    '  16,',
+    '  "s",',
+    '  3',
+    ');',
     '']));
 end;
 

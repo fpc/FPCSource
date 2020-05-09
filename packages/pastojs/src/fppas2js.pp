@@ -11346,6 +11346,7 @@ begin
         Call.AddArg(ConvertExpression(El.Params[i],AContext));
       if StaticDims<>nil then
         begin
+        Call.AddArg(CreateLiteralJSString(El,'s'));
         for i:=0 to StaticDims.Count-1 do
           Call.AddArg(TJSElement(StaticDims[i]));
         StaticDims.OwnsObjects:=false;

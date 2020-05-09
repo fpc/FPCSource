@@ -829,8 +829,13 @@ var rtl = {
 
   arraySetLength: function(arr,defaultvalue,newlength){
     var stack = [];
+    var s = 9999;
     for (var i=2; i<arguments.length; i++){
-      stack.push({ dim:arguments[i]+0, a:null, i:0, src:null });
+      var j = arguments[i];
+      if (j==='s'){ s = i-2; }
+      else {
+        stack.push({ dim:j+0, a:null, i:0, src:null });
+      }
     }
     var dimmax = stack.length-1;
     var depth = 0;
@@ -848,7 +853,7 @@ var rtl = {
         a = [];
         srclen = 0;
         oldlen = 0;
-      } else if (src.$pas2jsrefcnt>0){
+      } else if (src.$pas2jsrefcnt>0 || depth>=s){
         a = [];
         srclen = src.length;
         oldlen = srclen;
@@ -879,7 +884,7 @@ var rtl = {
             for (var i=0; i<srclen; i++) a[i]=defaultvalue.$clone(src[i]);
             for (var i=oldlen; i<lastlen; i++) a[i]=defaultvalue.$new();
           } else {
-            // set
+            // array of set
             for (var i=0; i<srclen; i++) a[i]=rtl.refSet(src[i]);
             for (var i=oldlen; i<lastlen; i++) a[i]={};
           }
