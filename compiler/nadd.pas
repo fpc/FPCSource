@@ -765,7 +765,13 @@ implementation
                           hp:=right;
                           right:=taddnode(left).right;
                           taddnode(left).right:=hp;
-                          left:=left.simplify(forinline);
+                          if resultdef.typ<>pointerdef then
+                            begin
+                              { ensure that the constant is not expanded to a larger type due to overflow,
+                                but this is only useful if no pointer operation is done }
+                              left:=ctypeconvnode.create_internal(left,resultdef);
+                              do_typecheckpass(left);
+                            end;
                           result:=GetCopyAndTypeCheck;
                         end;
                       else
@@ -785,6 +791,13 @@ implementation
                           hp:=taddnode(left).left;
                           taddnode(left).left:=right;
                           left:=left.simplify(forinline);
+                          if resultdef.typ<>pointerdef then
+                            begin
+                              { ensure that the constant is not expanded to a larger type due to overflow,
+                                but this is only useful if no pointer operation is done }
+                              left:=ctypeconvnode.create_internal(left,resultdef);
+                              do_typecheckpass(left);
+                            end;
                           right:=left;
                           left:=hp;
                           result:=GetCopyAndTypeCheck;
