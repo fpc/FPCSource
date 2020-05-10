@@ -1378,8 +1378,7 @@ implementation
                    not(might_have_sideeffects(tshlshrnode(left).left)) then
                    begin
                      if (tordconstnode(tshlshrnode(left).right).value=
-                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(right).right).value)
-                        then
+                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(right).right).value) then
                        begin
                          result:=cinlinenode.create(in_ror_x_y,false,
                            ccallparanode.create(tshlshrnode(left).right,
@@ -1389,8 +1388,7 @@ implementation
                          exit;
                        end
                      else if (tordconstnode(tshlshrnode(right).right).value=
-                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(left).right).value)
-                        then
+                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(left).right).value) then
                        begin
                          result:=cinlinenode.create(in_rol_x_y,false,
                            ccallparanode.create(tshlshrnode(right).right,
