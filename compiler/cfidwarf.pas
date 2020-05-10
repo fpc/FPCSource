@@ -63,7 +63,14 @@ interface
       end;
 
       TDwarfAsmCFI=class(TAsmCFI)
-        use_eh_frame : boolean;
+      public type
+        TDataType = (
+          dt_none,
+          dt_debug,
+          dt_eh_frame
+        );
+      public
+        datatype : TDataType;
         constructor create;override;
       end;
 
@@ -115,7 +122,7 @@ interface
 implementation
 
     uses
-      systems,
+      systems,globals,
       cutils,
       verbose,
       dwarfbase;
@@ -230,7 +237,11 @@ implementation
       begin
         inherited;
         if tf_use_psabieh in target_info.flags then
-          use_eh_frame:=true;
+          datatype:=dt_eh_frame
+        else if cs_debuginfo in current_settings.moduleswitches then
+          datatype:=dt_debug
+        else
+          datatype:=dt_none;
       end;
 
 
@@ -304,10 +315,14 @@ implementation
         tc             : tai_const;
       begin
         CurrentLSDALabel:=nil;
-        if use_eh_frame then
-          new_section(list,sec_eh_frame,'',0)
-        else
-          new_section(list,sec_debug_frame,'',0);
+        case datatype of
+          dt_none:
+            exit;
+          dt_debug:
+            new_section(list,sec_debug_frame,'',0);
+          dt_eh_frame:
+            new_section(list,sec_eh_frame,'',0);
+        end;
         { debug_frame:
             CIE
              DWORD   length
@@ -338,7 +353,7 @@ implementation
         current_asmdata.getlabel(lenendlabel,alt_dbgframe);
         list.concat(tai_const.create_rel_sym(aitconst_32bit,lenstartlabel,lenendlabel));
         list.concat(tai_label.create(lenstartlabel));
-        if use_eh_frame then
+        if datatype=dt_eh_frame then
           begin
             list.concat(tai_const.create_32bit(0));
             list.concat(tai_const.create_8bit(1));
@@ -358,7 +373,7 @@ implementation
         list.concat(tai_const.create_sleb128bit(data_alignment_factor));
         list.concat(tai_const.create_8bit(dwarf_reg(NR_RETURN_ADDRESS_REG)));
         { augmentation data }
-        if use_eh_frame then
+        if datatype=dt_eh_frame then
           begin
             current_asmdata.getlabel(augstartlabel,alt_dbgframe);
             current_asmdata.getlabel(augendlabel,alt_dbgframe);
@@ -411,7 +426,7 @@ implementation
                   }
                   list.concat(tai_const.create_rel_sym(aitconst_32bit,lenstartlabel,lenendlabel));
                   list.concat(tai_label.create(lenstartlabel));
-                  if use_eh_frame then
+                  if datatype=dt_eh_frame then
                     begin
                       { relative offset to the CIE }
                       current_asmdata.getlabel(fdeofslabel,alt_dbgframe);
@@ -433,7 +448,7 @@ implementation
                   list.concat(tai_const.create_rel_sym(aitconst_ptr,hp.oper[0].beginsym,hp.oper[0].endsym));
 
                   { we wrote a 'z' into the CIE augmentation data }
-                  if use_eh_frame then
+                  if datatype=dt_eh_frame then
                     begin
                       { size of augmentation }
                       list.concat(tai_const.create_8bit(sizeof(pint)));
@@ -470,6 +485,8 @@ implementation
 
     procedure TDwarfAsmCFILowLevel.start_frame(list:TAsmList);
       begin
+        if datatype=dt_none then
+          exit;
         current_asmdata.getlabel(FFrameEndLabel,alt_dbgframe);
         FLastloclabel:=get_frame_start;
         list.concat(tai_label.create(get_frame_start));
@@ -493,6 +510,8 @@ implementation
 
     procedure TDwarfAsmCFILowLevel.outmost_frame(list: TAsmList);
       begin
+        if datatype=dt_none then
+          exit;
         cfa_advance_loc(list);
         DwarfList.concat(tdwarfitem.create_reg(DW_CFA_undefined,doe_uleb,NR_RETURN_ADDRESS_REG));
       end;
@@ -500,6 +519,8 @@ implementation
 
     procedure TDwarfAsmCFILowLevel.end_frame(list:TAsmList);
       begin
+        if datatype=dt_none then
+          exit;
         if not assigned(FFrameStartLabel) then
           internalerror(2004041213);
         DwarfList.concat(tdwarfitem.create(DW_CFA_end_frame));
@@ -525,6 +546,8 @@ implementation
 
     procedure TDwarfAsmCFILowLevel.cfa_offset(list:TAsmList;reg:tregister;ofs:longint);
       begin
+        if datatype=dt_none then
+          exit;
         cfa_advance_loc(list);
 { TODO: check if ref is a temp}
         { offset must be positive }
@@ -534,6 +557,8 @@ implementation
 
     procedure TDwarfAsmCFILowLevel.cfa_restore(list:TAsmList;reg:tregister);
       begin
+        if datatype=dt_none then
+          exit;
         cfa_advance_loc(list);
         DwarfList.concat(tdwarfitem.create_reg(DW_CFA_restore_extended,doe_uleb,reg));
       end;
@@ -541,6 +566,8 @@ implementation
 
     procedure TDwarfAsmCFILowLevel.cfa_def_cfa_register(list:TAsmList;reg:tregister);
       begin
+        if datatype=dt_none then
+          exit;
         cfa_advance_loc(list);
         DwarfList.concat(tdwarfitem.create_reg(DW_CFA_def_cfa_register,doe_uleb,reg));
       end;
@@ -548,6 +575,8 @@ implementation
 
     procedure TDwarfAsmCFILowLevel.cfa_def_cfa_offset(list:TAsmList;ofs:longint);
       begin
+        if datatype=dt_none then
+          exit;
         cfa_advance_loc(list);
         DwarfList.concat(tdwarfitem.create_const(DW_CFA_def_cfa_offset,doe_uleb,ofs));
       end;
