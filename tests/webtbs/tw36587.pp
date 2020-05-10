@@ -27,7 +27,11 @@ begin
   i64 := 0;
   i64 := i64 + P * C1 * A1;
   writeln(i64);
+{$ifdef CPUINT64}
   if i64 <> P*T2 then
+{$else CPUINT64}
+  if i64 <> Longint(P*T2) then
+{$endif CPUINT64}
     Halt(3);
 end;
 
