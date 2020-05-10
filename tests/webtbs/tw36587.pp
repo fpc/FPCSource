@@ -30,7 +30,7 @@ begin
 {$ifdef CPUINT64}
   if i64 <> P*T2 then
 {$else CPUINT64}
-  if i64 <> Longint(P*T2) then
+  if i64 <> P*Longint(T2) then
 {$endif CPUINT64}
     Halt(3);
 end;
