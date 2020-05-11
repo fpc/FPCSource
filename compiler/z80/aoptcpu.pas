@@ -37,6 +37,14 @@ Type
     { outputs a debug message into the assembler file }
     procedure DebugMsg(const s: string; p: tai);
 
+    { checks whether loading a new value in reg1 overwrites the entirety of reg2 }
+    function Reg1WriteOverwritesReg2Entirely(reg1, reg2: tregister): boolean;
+    { checks whether reading the value in reg1 depends on the value of reg2. This
+      is very similar to SuperRegisterEquals, except it takes into account that
+      R_SUBH and R_SUBL are independendent (e.g. reading from AL does not
+      depend on the value in AH). }
+    function Reg1ReadDependsOnReg2(reg1, reg2: tregister): boolean;
+
     Function GetNextInstructionUsingReg(Current: tai; Var Next: tai;reg : TRegister): Boolean;
     function RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean; override;
     function InstructionLoadsFromReg(const reg : TRegister; const hp : tai) : boolean; override;
@@ -143,6 +151,92 @@ Implementation
 {$endif DEBUG_AOPTCPU}
 
 
+  function TCpuAsmOptimizer.Reg1WriteOverwritesReg2Entirely(reg1, reg2: tregister): boolean;
+    begin
+      case reg1 of
+        NR_F:
+          result:=SuperRegistersEqual(reg2,NR_DEFAULTFLAGS);
+        NR_AF:
+          result:=(reg2=NR_A) or (reg2=NR_AF) or SuperRegistersEqual(reg2,NR_DEFAULTFLAGS);
+        NR_BC:
+          result:=(reg2=NR_B) or (reg2=NR_C) or (reg2=NR_BC);
+        NR_DE:
+          result:=(reg2=NR_D) or (reg2=NR_E) or (reg2=NR_DE);
+        NR_HL:
+          result:=(reg2=NR_H) or (reg2=NR_L) or (reg2=NR_HL);
+        NR_F_:
+          result:=SuperRegistersEqual(reg2,NR_F_);
+        NR_AF_:
+          result:=(reg2=NR_A_) or (reg2=NR_AF_) or SuperRegistersEqual(reg2,NR_F_);
+        NR_BC_:
+          result:=(reg2=NR_B_) or (reg2=NR_C_) or (reg2=NR_BC_);
+        NR_DE_:
+          result:=(reg2=NR_D_) or (reg2=NR_E_) or (reg2=NR_DE_);
+        NR_HL_:
+          result:=(reg2=NR_H_) or (reg2=NR_L_) or (reg2=NR_HL_);
+        else
+          result:=reg1=reg2;
+      end;
+    end;
+
+
+  function TCpuAsmOptimizer.Reg1ReadDependsOnReg2(reg1, reg2: tregister): boolean;
+    begin
+      case reg1 of
+        NR_AF:
+          result:=(reg2=NR_A) or (reg2=NR_AF) or SuperRegistersEqual(reg2,NR_DEFAULTFLAGS);
+        NR_A:
+          result:=(reg2=NR_A) or (reg2=NR_AF);
+        NR_F:
+          result:=SuperRegistersEqual(reg2,NR_DEFAULTFLAGS);
+        NR_BC:
+          result:=(reg2=NR_B) or (reg2=NR_C) or (reg2=NR_BC);
+        NR_B:
+          result:=(reg2=NR_B) or (reg2=NR_BC);
+        NR_C:
+          result:=(reg2=NR_C) or (reg2=NR_BC);
+        NR_DE:
+          result:=(reg2=NR_D) or (reg2=NR_E) or (reg2=NR_DE);
+        NR_D:
+          result:=(reg2=NR_D) or (reg2=NR_DE);
+        NR_E:
+          result:=(reg2=NR_E) or (reg2=NR_DE);
+        NR_HL:
+          result:=(reg2=NR_H) or (reg2=NR_L) or (reg2=NR_HL);
+        NR_H:
+          result:=(reg2=NR_H) or (reg2=NR_HL);
+        NR_L:
+          result:=(reg2=NR_L) or (reg2=NR_HL);
+        NR_AF_:
+          result:=(reg2=NR_A_) or (reg2=NR_AF_) or SuperRegistersEqual(reg2,NR_F_);
+        NR_A_:
+          result:=(reg2=NR_A_) or (reg2=NR_AF_);
+        NR_F_:
+          result:=SuperRegistersEqual(reg2,NR_F_);
+        NR_BC_:
+          result:=(reg2=NR_B_) or (reg2=NR_C_) or (reg2=NR_BC_);
+        NR_B_:
+          result:=(reg2=NR_B_) or (reg2=NR_BC_);
+        NR_C_:
+          result:=(reg2=NR_C_) or (reg2=NR_BC_);
+        NR_DE_:
+          result:=(reg2=NR_D_) or (reg2=NR_E_) or (reg2=NR_DE_);
+        NR_D_:
+          result:=(reg2=NR_D_) or (reg2=NR_DE_);
+        NR_E_:
+          result:=(reg2=NR_E_) or (reg2=NR_DE_);
+        NR_HL_:
+          result:=(reg2=NR_H_) or (reg2=NR_L_) or (reg2=NR_HL_);
+        NR_H_:
+          result:=(reg2=NR_H_) or (reg2=NR_HL_);
+        NR_L_:
+          result:=(reg2=NR_L_) or (reg2=NR_HL_);
+        else
+          result:=reg1=reg2;
+      end;
+    end;
+
+
   function TCpuAsmOptimizer.GetNextInstructionUsingReg(Current: tai;
     var Next: tai; reg: TRegister): Boolean;
     begin
@@ -164,12 +258,28 @@ Implementation
          Result := false;
          exit;
        end;
-      internalerror(2017032606);
-      //p := taicpu(hp);
-      //Result := ((p.opcode in [A_LDI,A_MOV,A_LDS]) and (reg=p.oper[0]^.reg) and ((p.oper[1]^.typ<>top_reg) or (reg<>p.oper[0]^.reg))) or
-      //  ((p.opcode in [A_LD,A_LDD,A_LPM]) and (reg=p.oper[0]^.reg) and not(RegInRef(reg,p.oper[1]^.ref^))) or
-      //  ((p.opcode in [A_MOVW]) and ((reg=p.oper[0]^.reg) or (TRegister(ord(reg)+1)=p.oper[0]^.reg)) and not(reg=p.oper[1]^.reg) and not(TRegister(ord(reg)+1)=p.oper[1]^.reg)) or
-      //  ((p.opcode in [A_POP]) and (reg=p.oper[0]^.reg));
+      p := taicpu(hp);
+      if SuperRegistersEqual(reg,NR_DEFAULTFLAGS) then
+        begin
+          { todo: flags }
+          internalerror(2020051111);
+        end
+      else
+        case p.opcode of
+          A_LD:
+            begin
+              if p.ops<>2 then
+                internalerror(2020051112);
+              result:=(p.oper[0]^.typ = top_reg) and
+                      (Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg,reg)) and
+                      ((p.oper[1]^.typ = top_const) or
+                       ((p.oper[1]^.typ = top_reg) and not(Reg1ReadDependsOnReg2(p.oper[1]^.reg,reg))) or
+                       ((p.oper[1]^.typ = top_ref) and not RegInRef(reg,p.oper[1]^.ref^)));
+            end;
+          { todo: all the remaining instructions }
+          else
+            internalerror(2020051111);
+        end;
     end;
 
 
