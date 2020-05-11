@@ -979,6 +979,16 @@ begin
   TryStrToDWord:=Error=0
 end;
 
+function StrToUInt(const s: string): Cardinal;
+begin
+  StrToUInt:=StrToDWord(s);
+end;
+
+function TryStrToUInt(const s: string; out C: Cardinal): Boolean;
+begin
+  TryStrToUInt:=TryStrToDWord(s, C);
+end;
+
 function TryStrToQWord(const s: string; Out Q: QWord): boolean;
 var Error : word;
 begin
@@ -1009,6 +1019,11 @@ var Error: word;
 begin
   Val(S, result, Error);
   if Error <> 0 then result := Default;
+end;
+
+function StrToUIntDef(const S: string; Default: Cardinal): Cardinal;
+begin
+  Result:=StrToDWordDef(S, Default);
 end;
 
 {   StrToInt64Def converts the string S to an int64 value,
