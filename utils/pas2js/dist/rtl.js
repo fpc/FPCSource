@@ -821,9 +821,7 @@ var rtl = {
   },
 
   arrayRef: function(a){
-    if (a!=null){
-      rtl.hideProp(a,$pas2jsrefcnt,1);
-    }
+    if (a!=null) rtl.hideProp(a,'$pas2jsrefcnt',1);
     return a;
   },
 
@@ -909,11 +907,6 @@ var rtl = {
     if (a.length!==b.length) return false;
     for (var i=0; i<a.length; i++) if (a[i]!==b[i]) return false;
     return true;
-  },
-
-  arrayRef: function(a){
-    if (a!==null) rtl.hideProp(a,'$pas2jsrefcnt',1);
-    return a;
   },
 
   arrayClone: function(type,src,srcpos,endpos,dst,dstpos){
