@@ -146,7 +146,7 @@ unit aoptbase;
   class function TAOptBase.RegInOp(Reg: TRegister; const op: toper): Boolean;
     Begin
       Case op.typ Of
-        Top_Reg: RegInOp := SuperRegistersEqual(Reg,op.reg);
+        Top_Reg: RegInOp := RegistersInterfere(Reg,op.reg);
         Top_Ref: RegInOp := RegInRef(Reg, op.ref^);
         {$ifdef arm}
         Top_Shifterop: RegInOp := op.shifterop^.rs = Reg;
@@ -159,16 +159,16 @@ unit aoptbase;
 
   class function TAOptBase.RegInRef(Reg: TRegister; Const Ref: TReference): Boolean;
   Begin
-    RegInRef := SuperRegistersEqual(Ref.Base,Reg)
+    RegInRef := RegistersInterfere(Ref.Base,Reg)
 {$ifdef cpurefshaveindexreg}
-    Or SuperRegistersEqual(Ref.Index,Reg)
+    Or RegistersInterfere(Ref.Index,Reg)
 {$endif cpurefshaveindexreg}
 {$ifdef x86}
     or (Reg=Ref.segment)
     { if Ref.segment isn't set, the cpu uses implicitly ss or ds, depending on the base register }
     or ((Ref.segment=NR_NO) and (
-      ((Reg=NR_SS) and (SuperRegistersEqual(Ref.base,NR_EBP) or SuperRegistersEqual(Ref.base,NR_ESP))) or
-      ((Reg=NR_DS) and not(SuperRegistersEqual(Ref.base,NR_EBP) or SuperRegistersEqual(Ref.base,NR_ESP)))
+      ((Reg=NR_SS) and (RegistersInterfere(Ref.base,NR_EBP) or RegistersInterfere(Ref.base,NR_ESP))) or
+      ((Reg=NR_DS) and not(RegistersInterfere(Ref.base,NR_EBP) or RegistersInterfere(Ref.base,NR_ESP)))
     ))
 {$endif x86}
   End;
