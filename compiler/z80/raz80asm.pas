@@ -317,6 +317,12 @@ Unit raz80asm;
                   if is_register(actasmpattern) then
                     begin
                       actasmtoken:=AS_REGISTER;
+                      { is it an alternate register? }
+                      if (c='''') and is_register(actasmpattern+'''') then
+                        begin
+                          actasmpattern:=actasmpattern+c;
+                          c:=current_scanner.asmgetchar;
+                        end;
                       exit;
                     end;
                   { if next is a '.' and this is a unitsym then we also need to
