@@ -44,6 +44,18 @@ SP,$05030008,sp,20,20
 ; Flags
 F,$05010009,f,23,23
 F_,$0501000a,f'',24,24
+CARRYFLAG,$050f0006,carryflag,-1,-1
+ADDSUBTRACTFLAG,$05100006,addsubtractflag,-1,-1
+PARITYOVERFLOWFLAG,$05110006,parityoverflowflag,-1,-1
+HALFCARRYFLAG,$05130006,halfcarryflag,-1,-1
+ZEROFLAG,$05150006,zeroflag,-1,-1
+SIGNFLAG,$05160006,signflag,-1,-1
+CARRYFLAG_,$050f000a,carryflag'',-1,-1
+ADDSUBTRACTFLAG_,$0510000a,addsubtractflag'',-1,-1
+PARITYOVERFLOWFLAG_,$0511000a,parityoverflowflag'',-1,-1
+HALFCARRYFLAG_,$0513000a,halfcarryflag'',-1,-1
+ZEROFLAG_,$0515000a,zeroflag'',-1,-1
+SIGNFLAG_,$0516000a,signflag'',-1,-1
 
 ; Program counter
 PC,$0503000b,pc,21,21
