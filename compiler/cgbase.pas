@@ -234,6 +234,17 @@ interface
         R_SUBMMX,     { = 12; 128 BITS }
         R_SUBMMY,     { = 13; 256 BITS }
         R_SUBMMZ,     { = 14; 512 BITS }
+{$ifdef Z80}
+        { Subregisters for the flags register (Z80) }
+        R_SUBFLAGCARRY,          { = 15; Carry flag }
+        R_SUBFLAGADDSUBTRACT,    { = 16; Add/Subtract flag }
+        R_SUBFLAGPARITYOVERFLOW, { = 17; Parity/Overflow flag }
+        R_SUBFLAGUNUSEDBIT3,     { = 18; Unused flag (bit 3) }
+        R_SUBFLAGHALFCARRY,      { = 19; Half Carry flag }
+        R_SUBFLAGUNUSEDBIT5,     { = 20; Unused flag (bit 5) }
+        R_SUBFLAGZERO,           { = 21; Zero flag }
+        R_SUBFLAGSIGN,           { = 22; Sign flag }
+{$else Z80}
         { Subregisters for the flags register (x86) }
         R_SUBFLAGCARRY,     { = 15; Carry flag }
         R_SUBFLAGPARITY,    { = 16; Parity flag }
@@ -243,6 +254,7 @@ interface
         R_SUBFLAGOVERFLOW,  { = 20; Overflow flag }
         R_SUBFLAGINTERRUPT, { = 21; Interrupt enable flag }
         R_SUBFLAGDIRECTION, { = 22; Direction flag }
+{$endif Z80}
         R_SUBMM8B,          { = 23; for part of v regs on aarch64 }
         R_SUBMM16B,         { = 24; for part of v regs on aarch64 }
         { subregisters for the metadata register (llvm) }
