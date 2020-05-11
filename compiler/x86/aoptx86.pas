@@ -1822,7 +1822,7 @@ unit aoptx86;
 
     function TX86AsmOptimizer.OptPass1MOV(var p : tai) : boolean;
     var
-      hp1, hp2: tai;
+      hp1, hp2, hp3: tai;
 
       procedure convert_mov_value(signed_movop: tasmop; max_value: tcgint); inline;
         begin
@@ -2119,6 +2119,31 @@ unit aoptx86;
                   else
                     ;
                 end;
+                if ((taicpu(p).oper[0]^.typ=top_reg) or
+                  ((taicpu(p).oper[0]^.typ=top_ref) and (taicpu(p).oper[0]^.ref^.refaddr<>addr_full))) and
+                  GetNextInstruction(hp1,hp2) and
+                  MatchInstruction(hp2,A_TEST,[taicpu(p).opsize]) and
+                  MatchOperand(taicpu(hp1).oper[1]^,taicpu(hp2).oper[1]^) and
+                  MatchOperand(taicpu(hp2).oper[0]^,taicpu(hp2).oper[1]^) and
+                  GetNextInstruction(hp2,hp3) and
+                  MatchInstruction(hp3,A_Jcc,A_Setcc,[S_NO]) and
+                  (taicpu(hp3).condition in [C_E,C_NE]) then
+                  begin
+                    TransferUsedRegs(TmpUsedRegs);
+                    UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                    UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
+                    if not(RegUsedAfterInstruction(taicpu(hp2).oper[1]^.reg, hp2, TmpUsedRegs)) then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'MovAndTest2Test done',p);
+                        taicpu(hp1).loadoper(1,taicpu(p).oper[0]^);
+                        taicpu(hp1).opcode:=A_TEST;
+                        asml.Remove(hp2);
+                        hp2.free;
+                        RemoveCurrentP(p, hp1);
+                        Result:=true;
+                        exit;
+                      end;
+                  end;
               end
             else if IsMOVZXAcceptable and
               (taicpu(p).oper[1]^.typ = top_reg) and (taicpu(hp1).oper[1]^.typ = top_reg) and
