@@ -105,6 +105,9 @@ unit aoptbase;
         { compares reg1 and reg2 having the same type and being the same super registers
           so the register size is neglected }
         class function SuperRegistersEqual(reg1,reg2 : TRegister) : Boolean; static; {$ifdef USEINLINE}inline;{$endif}
+
+        { returns true if changing reg1 changes reg2 or vice versa }
+        class function RegistersInterfere(reg1,reg2 : TRegister) : Boolean; static; {$ifdef USEINLINE}inline;{$endif}
     end;
 
     function labelCanBeSkipped(p: tai_label): boolean; {$ifdef USEINLINE}inline;{$endif}
@@ -343,6 +346,16 @@ unit aoptbase;
     Result:=(DWord(reg1) and $ff00ffff)=(DWord(reg2) and $ff00ffff);
 {$endif Z80}
   end;
+
+
+  class function TAOptBase.RegistersInterfere(reg1,reg2 : TRegister) : Boolean; static; {$ifdef USEINLINE}inline;{$endif}
+    begin
+{$ifdef Z80}
+      result:=registers_interfere(reg1,reg2);
+{$else Z80}
+      result:=SuperRegistersEqual(reg1,reg2);
+{$endif Z80}
+    end;
 
   { ******************* Processor dependent stuff *************************** }
 
