@@ -335,7 +335,13 @@ unit aoptbase;
 
       as SuperRegistersEqual is used a lot
     }
+{$ifdef Z80}
+    { Z80 registers are indexed in an incompatible way (without R_SUBH), so it
+      needs a special check. }
+    Result:=super_registers_equal(reg1,reg2);
+{$else Z80}
     Result:=(DWord(reg1) and $ff00ffff)=(DWord(reg2) and $ff00ffff);
+{$endif Z80}
   end;
 
   { ******************* Processor dependent stuff *************************** }

@@ -284,6 +284,7 @@ unit cpubase;
     procedure split_regpair(regpair:Tregister;out reglo,reghi:Tregister);
     { Checks if sreg is a subset of reg (e.g. NR_H is a subset of NR_HL }
     function register_in(sreg,reg:Tregister):boolean;
+    function super_registers_equal(reg1,reg2 : TRegister) : Boolean;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
@@ -452,6 +453,31 @@ unit cpubase;
           end
         else
           result:=false;
+      end;
+
+
+    function super_registers_equal(reg1, reg2: TRegister): Boolean;
+      begin
+        case reg1 of
+          NR_A,NR_F,NR_AF:
+            result:=(reg2=NR_A) or (reg2=NR_F) or (reg2=NR_AF);
+          NR_B,NR_C,NR_BC:
+            result:=(reg2=NR_B) or (reg2=NR_C) or (reg2=NR_BC);
+          NR_D,NR_E,NR_DE:
+            result:=(reg2=NR_D) or (reg2=NR_E) or (reg2=NR_DE);
+          NR_H,NR_L,NR_HL:
+            result:=(reg2=NR_H) or (reg2=NR_L) or (reg2=NR_HL);
+          NR_A_,NR_F_,NR_AF_:
+            result:=(reg2=NR_A_) or (reg2=NR_F_) or (reg2=NR_AF_);
+          NR_B_,NR_C_,NR_BC_:
+            result:=(reg2=NR_B_) or (reg2=NR_C_) or (reg2=NR_BC_);
+          NR_D_,NR_E_,NR_DE_:
+            result:=(reg2=NR_D_) or (reg2=NR_E_) or (reg2=NR_DE_);
+          NR_H_,NR_L_,NR_HL_:
+            result:=(reg2=NR_H_) or (reg2=NR_L_) or (reg2=NR_HL_);
+          else
+            result:=reg1=reg2;
+        end;
       end;
 
 
