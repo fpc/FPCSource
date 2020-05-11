@@ -285,6 +285,7 @@ unit cpubase;
     { Checks if sreg is a subset of reg (e.g. NR_H is a subset of NR_HL }
     function register_in(sreg,reg:Tregister):boolean;
     function super_registers_equal(reg1,reg2 : TRegister) : Boolean;
+    function registers_interfere(reg1,reg2: TRegister) : Boolean;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
@@ -474,6 +475,63 @@ unit cpubase;
           NR_D_,NR_E_,NR_DE_:
             result:=(reg2=NR_D_) or (reg2=NR_E_) or (reg2=NR_DE_);
           NR_H_,NR_L_,NR_HL_:
+            result:=(reg2=NR_H_) or (reg2=NR_L_) or (reg2=NR_HL_);
+          else
+            result:=reg1=reg2;
+        end;
+      end;
+
+
+    function registers_interfere(reg1, reg2: TRegister): Boolean;
+      begin
+        case reg1 of
+          NR_A:
+            result:=(reg2=NR_A) or (reg2=NR_AF);
+          NR_F:
+            result:=(reg2=NR_F) or (reg2=NR_AF);
+          NR_AF:
+            result:=(reg2=NR_A) or (reg2=NR_F) or (reg2=NR_AF);
+          NR_B:
+            result:=(reg2=NR_B) or (reg2=NR_BC);
+          NR_C:
+            result:=(reg2=NR_C) or (reg2=NR_BC);
+          NR_BC:
+            result:=(reg2=NR_B) or (reg2=NR_C) or (reg2=NR_BC);
+          NR_D:
+            result:=(reg2=NR_D) or (reg2=NR_DE);
+          NR_E:
+            result:=(reg2=NR_E) or (reg2=NR_DE);
+          NR_DE:
+            result:=(reg2=NR_D) or (reg2=NR_E) or (reg2=NR_DE);
+          NR_H:
+            result:=(reg2=NR_H) or (reg2=NR_HL);
+          NR_L:
+            result:=(reg2=NR_L) or (reg2=NR_HL);
+          NR_HL:
+            result:=(reg2=NR_H) or (reg2=NR_L) or (reg2=NR_HL);
+          NR_A_:
+            result:=(reg2=NR_A_) or (reg2=NR_AF_);
+          NR_F_:
+            result:=(reg2=NR_F_) or (reg2=NR_AF_);
+          NR_AF_:
+            result:=(reg2=NR_A_) or (reg2=NR_F_) or (reg2=NR_AF_);
+          NR_B_:
+            result:=(reg2=NR_B_) or (reg2=NR_BC_);
+          NR_C_:
+            result:=(reg2=NR_C_) or (reg2=NR_BC_);
+          NR_BC_:
+            result:=(reg2=NR_B_) or (reg2=NR_C_) or (reg2=NR_BC_);
+          NR_D_:
+            result:=(reg2=NR_D_) or (reg2=NR_DE_);
+          NR_E_:
+            result:=(reg2=NR_E_) or (reg2=NR_DE_);
+          NR_DE_:
+            result:=(reg2=NR_D_) or (reg2=NR_E_) or (reg2=NR_DE_);
+          NR_H_:
+            result:=(reg2=NR_H_) or (reg2=NR_HL_);
+          NR_L_:
+            result:=(reg2=NR_L_) or (reg2=NR_HL_);
+          NR_HL_:
             result:=(reg2=NR_H_) or (reg2=NR_L_) or (reg2=NR_HL_);
           else
             result:=reg1=reg2;
