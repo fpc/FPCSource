@@ -176,44 +176,108 @@ Implementation
   function TCpuAsmOptimizer.InstructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean;
     var
       p: taicpu;
-      i: longint;
     begin
       Result := false;
+      if not (assigned(hp) and (hp.typ = ait_instruction)) then
+        exit;
+      p:=taicpu(hp);
 
-      internalerror(2017032607);
-
-      //if not (assigned(hp) and (hp.typ = ait_instruction)) then
-      //  exit;
-      //p:=taicpu(hp);
-      //
-      //i:=0;
-      //
-      //{ we do not care about the stack pointer }
-      //if p.opcode in [A_POP] then
-      //  exit;
-      //
-      //{ first operand only written?
-      //  then skip it }
-      //if p.opcode in [A_MOV,A_LD,A_LDD,A_LDS,A_LPM,A_LDI,A_MOVW] then
-      //  i:=1;
-      //
-      //while(i<p.ops) do
-      //  begin
-      //    case p.oper[I]^.typ of
-      //      top_reg:
-      //        Result := (p.oper[I]^.reg = reg) or
-      //          { MOVW }
-      //          ((i=1) and (p.opcode=A_MOVW) and (getsupreg(p.oper[0]^.reg)+1=getsupreg(reg)));
-      //      top_ref:
-      //        Result :=
-      //          (p.oper[I]^.ref^.base = reg) or
-      //          (p.oper[I]^.ref^.index = reg);
-      //    end;
-      //    { Bailout if we found something }
-      //    if Result then
-      //      exit;
-      //    Inc(I);
-      //  end;
+      case p.opcode of
+        A_LD,A_BIT,A_SET,A_RES:
+          begin
+            if p.ops<>2 then
+              internalerror(2020051102);
+            result:=((p.oper[0]^.typ=top_ref) and RegInRef(reg,p.oper[0]^.ref^)) or
+                    RegInOp(reg,p.oper[1]^);
+          end;
+        A_PUSH,A_INC,A_DEC,A_RLC,A_RRC,A_SLA,A_SRA,A_SRL:
+          begin
+            if p.ops<>1 then
+              internalerror(2020051103);
+            result:=RegInOp(reg,p.oper[0]^);
+          end;
+        A_POP:
+          result:=(reg=NR_SP);
+        A_EX,A_ADD,A_SUB,A_AND,A_OR,A_XOR,A_CP:
+          begin
+            if p.ops<>2 then
+              internalerror(2020051104);
+            result:=RegInOp(reg,p.oper[0]^) or
+                    RegInOp(reg,p.oper[1]^);
+          end;
+        A_EXX:
+          result:=SuperRegistersEqual(reg,NR_BC)  or SuperRegistersEqual(reg,NR_DE)  or SuperRegistersEqual(reg,NR_HL) or
+                  SuperRegistersEqual(reg,NR_BC_) or SuperRegistersEqual(reg,NR_DE_) or SuperRegistersEqual(reg,NR_HL_);
+        A_LDI,A_LDIR,A_LDD,A_LDDR:
+          result:=SuperRegistersEqual(reg,NR_BC) or SuperRegistersEqual(reg,NR_DE) or SuperRegistersEqual(reg,NR_HL);
+        A_CPI,A_CPIR,A_CPD,A_CPDR:
+          result:=SuperRegistersEqual(reg,NR_BC) or SuperRegistersEqual(reg,NR_HL) or RegistersInterfere(reg,NR_A);
+        A_ADC,A_SBC:
+          begin
+            if p.ops<>2 then
+              internalerror(2020051105);
+            result:=RegInOp(reg,p.oper[0]^) or
+                    RegInOp(reg,p.oper[1]^) or (reg=NR_CARRYFLAG) or (reg=NR_DEFAULTFLAGS);
+          end;
+        A_DAA:
+          result:=RegistersInterfere(reg,NR_A) or (reg=NR_CARRYFLAG) or (reg=NR_HALFCARRYFLAG) or (reg=NR_ADDSUBTRACTFLAG) or (reg=NR_DEFAULTFLAGS);
+        A_CPL,A_NEG,A_RLCA,A_RRCA:
+          result:=RegistersInterfere(reg,NR_A);
+        A_CCF:
+          result:=(reg=NR_CARRYFLAG) or (reg=NR_DEFAULTFLAGS);
+        A_SCF,A_NOP,A_HALT,A_DI,A_EI,A_IM:
+          result:=false;
+        A_RLA,A_RRA:
+          result:=RegistersInterfere(reg,NR_A) or (reg=NR_CARRYFLAG) or (reg=NR_DEFAULTFLAGS);
+        A_RL,A_RR:
+          begin
+            if p.ops<>1 then
+              internalerror(2020051106);
+            result:=RegInOp(reg,p.oper[0]^) or (reg=NR_CARRYFLAG) or (reg=NR_DEFAULTFLAGS);
+          end;
+        A_RLD,A_RRD:
+          result:=RegistersInterfere(reg,NR_A) or RegistersInterfere(reg,NR_HL);
+        A_JP,A_JR:
+          begin
+            if p.ops<>1 then
+              internalerror(2020051107);
+            if RegInOp(reg,p.oper[0]^) then
+              result:=true
+            else
+              case p.condition of
+                C_None:
+                  result:=false;
+                C_NZ,C_Z:
+                  result:=(reg=NR_ZEROFLAG) or (reg=NR_DEFAULTFLAGS);
+                C_NC,C_C:
+                  result:=(reg=NR_CARRYFLAG) or (reg=NR_DEFAULTFLAGS);
+                C_PO,C_PE:
+                  result:=(reg=NR_PARITYOVERFLOWFLAG) or (reg=NR_DEFAULTFLAGS);
+                C_P,C_M:
+                  result:=(reg=NR_SIGNFLAG) or (reg=NR_DEFAULTFLAGS);
+              end;
+          end;
+        A_DJNZ:
+          result:=RegistersInterfere(reg,NR_B);
+        A_CALL,A_RET,A_RETI,A_RETN,A_RST:
+          result:=true;
+        A_IN:
+          begin
+            if p.ops<>2 then
+              internalerror(2020051109);
+            result:=(p.oper[1]^.typ=top_ref) and (p.oper[1]^.ref^.base=NR_C) and RegistersInterfere(reg,NR_BC);
+          end;
+        A_OUT:
+          begin
+            if p.ops<>2 then
+              internalerror(2020051110);
+            result:=RegInOp(reg,p.oper[1]^) or (p.oper[0]^.typ=top_ref) and (p.oper[0]^.ref^.base=NR_C) and RegistersInterfere(reg,NR_BC);
+          end;
+        A_INI,A_INIR,A_IND,A_INDR,A_OUTI,A_OTIR,A_OUTD,A_OTDR:
+          result:=SuperRegistersEqual(reg,NR_BC) or SuperRegistersEqual(reg,NR_HL);
+        else
+          internalerror(2020051101);
+      end;
     end;
 
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
