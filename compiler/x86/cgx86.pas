@@ -1849,6 +1849,9 @@ unit cgx86;
             )
           )
         );
+        opmm2asmop_full : array[topcg] of tasmop = (
+          A_NOP,A_NOP,A_NOP,A_PAND,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_POR,A_NOP,A_NOP,A_NOP,A_NOP,A_PXOR,A_NOP,A_NOP
+        );
       var
         resultreg : tregister;
         asmop : tasmop;
@@ -1865,8 +1868,8 @@ unit cgx86;
           begin
             internalerror(2010060101);
           end
-        else if (shuffle=nil) then
-          asmop:=opmm2asmop[1,size,op]
+        else if shuffle=nil then
+          asmop:=opmm2asmop_full[op]
         else if shufflescalar(shuffle) then
           begin
             asmop:=opmm2asmop[0,size,op];
