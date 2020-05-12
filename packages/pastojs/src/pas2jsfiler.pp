@@ -45,13 +45,33 @@ Works:
 - WPO uses Proc.References
 - gzipped json
 - write final switches
+- srcmaps for precompiled js
 
 ToDo:
+- generics:
+  - specializations are stored like external elements
+  - references of specialized types and their elements:
+    same as external references
+- specialize:
+  - WriteSpecializeType: write aliastype+Params+SpecName(Name)
+  - WriteInlineSpecializeExpr: Name(=NameExpr)+Params
+  - TPCUWriter.IsExternalEl: true for specialized elements
+  - TPCUWriter.WriteExtRefSignature.WriteMemberIndex
+    - for specialized elements: writes 'Spec' array with Params
+  - TPCUWriter.WriteExternalReference
+    - add specializations to 'Specs' array of generic type,
+      Note that the generic type can be internal or external
+
+  - TPCUReader.AddPendingSpecialize
+  - TPCUReader.Set_SpecializeParam
+    - called when a Param of a spezialization was resolved,
+    - can trigger Resolver.GetSpecializedEl and ReadExternalReferences
+  - TPCUReader.ReadExternalSpecialized
+    -
 - store used GUIDs
 - distinguish reader errors in fatal and error
 - when pcu is bad, unload and use src
 - replace GUID with crc
-- srcmaps for precompiled js
 }
 unit Pas2JsFiler;
 
@@ -463,7 +483,7 @@ const
 
   PCUProcedureScopeFlagNames: array[TPasProcedureScopeFlag] of string = (
     'GrpOverload',
-    'ppsfIsSpecialized'
+    'Specialized'
     );
 
   PCUForLoopType: array[TLoopType] of string = (
@@ -596,6 +616,7 @@ type
     Pending: TPCUFilerPendingElRef;
     Obj: TJSONObject;
     Elements: TJSONArray; // for external references
+    Specs: TJSONArray; // for specializations
     NextNewExt: TPCUFilerElementRef; // next new external reference
     procedure AddPending(Item: TPCUFilerPendingElRef);
     procedure Clear;
@@ -3289,27 +3310,28 @@ begin
   //writeln('TPCUWriter.WriteExternalReference ',GetObjName(El));
   // write Parent first
   Parent:=El.Parent;
-  if IsExternalEl(Parent) then
-    begin
-    ParentRef:=WriteExternalReference(Parent,aContext);
-    if ParentRef=nil then
-      if not (El is TPasModule) then
-        RaiseMsg(20180308174440,El,GetObjName(El));
-    end
+  if (El.CustomData is TPasGenericScope) then
+    SpecItem:=TPasGenericScope(El.CustomData).SpecializedFromItem
+  else
+    SpecItem:=nil;
+
+  if SpecItem<>nil then
+    ParentRef:=WriteExternalReference(SpecItem.GenericEl,aContext)
+  else if IsExternalEl(Parent) then
+    ParentRef:=WriteExternalReference(Parent,aContext)
   else
     begin
-    // El is external, Parent is not -> e.g. El is a specialization
-    RaiseMsg(20200328173009,El,GetObjName(El)); // ToDo
+    // El is external, Parent is not
+    RaiseMsg(20200328173009,El,GetObjName(El));
     end;
+  if ParentRef=nil then
+    if not (El is TPasModule) then
+      RaiseMsg(20180308174440,El,GetObjName(El));
 
   // check name
   NameEl:=El;
-  if (El.CustomData is TPasGenericScope) then
-    begin
-    SpecItem:=TPasGenericScope(El.CustomData).SpecializedFromItem;
-    if SpecItem<>nil then
-      NameEl:=SpecItem.GenericEl; // specialized -> use generic name
-    end;
+  if SpecItem<>nil then
+    NameEl:=SpecItem.GenericEl; // specialized -> use generic name
   Name:=Resolver.GetOverloadName(NameEl);
   if Name='' then
     begin
@@ -3324,12 +3346,24 @@ begin
     begin
     Ref.ParentRef:=ParentRef;
     // add to parent
-    if ParentRef.Elements=nil then
+    if SpecItem<>nil then
       begin
-      ParentRef.Elements:=TJSONArray.Create;
-      ParentRef.Obj.Add('El',ParentRef.Elements);
+      if ParentRef.Specs=nil then
+        begin
+        ParentRef.Specs:=TJSONArray.Create;
+        ParentRef.Obj.Add('Specs',ParentRef.Elements);
+        end;
+      ParentRef.Specs.Add(Ref.Obj);
+      end
+    else
+      begin
+      if ParentRef.Elements=nil then
+        begin
+        ParentRef.Elements:=TJSONArray.Create;
+        ParentRef.Obj.Add('El',ParentRef.Elements);
+        end;
+      ParentRef.Elements.Add(Ref.Obj);
       end;
-    ParentRef.Elements.Add(Ref.Obj);
     //writeln('TPCUWriter.WriteExternalReference ',GetObjName(El),' WriteExtRefSignature...');
     WriteExtRefSignature(Ref,aContext);
     end
@@ -4445,7 +4479,7 @@ begin
 
   if Scope.SpecializedFromItem<>nil then
     begin
-    // spezialiations are generated on the fly -> do not store
+    // spezialiations are generated on the fly -> cannot be stored
     RaiseMsg(20191120180305,El,GetObjPath(Scope.SpecializedFromItem.FirstSpecialize));
     end;
 
