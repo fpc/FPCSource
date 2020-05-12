@@ -494,9 +494,17 @@ unit cpubase;
           NR_A:
             result:=(reg2=NR_A) or (reg2=NR_AF);
           NR_F:
-            result:=(reg2=NR_F) or (reg2=NR_AF);
+            result:=(reg2=NR_F) or (reg2=NR_AF) or
+                    (reg2=NR_CARRYFLAG) or (reg2=NR_ADDSUBTRACTFLAG) or
+                    (reg2=NR_PARITYOVERFLOWFLAG) or (reg2=NR_HALFCARRYFLAG) or
+                    (reg2=NR_ZEROFLAG) or (reg2=NR_SIGNFLAG);
           NR_AF:
-            result:=(reg2=NR_A) or (reg2=NR_F) or (reg2=NR_AF);
+            result:=(reg2=NR_A) or (reg2=NR_F) or (reg2=NR_AF) or
+                    (reg2=NR_CARRYFLAG) or (reg2=NR_ADDSUBTRACTFLAG) or
+                    (reg2=NR_PARITYOVERFLOWFLAG) or (reg2=NR_HALFCARRYFLAG) or
+                    (reg2=NR_ZEROFLAG) or (reg2=NR_SIGNFLAG);
+          NR_CARRYFLAG,NR_ADDSUBTRACTFLAG,NR_PARITYOVERFLOWFLAG,NR_HALFCARRYFLAG,NR_ZEROFLAG,NR_SIGNFLAG:
+            result:=(reg2=NR_F) or (reg2=NR_AF) or (reg2=reg1);
           NR_B:
             result:=(reg2=NR_B) or (reg2=NR_BC);
           NR_C:
@@ -518,9 +526,17 @@ unit cpubase;
           NR_A_:
             result:=(reg2=NR_A_) or (reg2=NR_AF_);
           NR_F_:
-            result:=(reg2=NR_F_) or (reg2=NR_AF_);
+            result:=(reg2=NR_F_) or (reg2=NR_AF_) or
+                    (reg2=NR_CARRYFLAG_) or (reg2=NR_ADDSUBTRACTFLAG_) or
+                    (reg2=NR_PARITYOVERFLOWFLAG_) or (reg2=NR_HALFCARRYFLAG_) or
+                    (reg2=NR_ZEROFLAG_) or (reg2=NR_SIGNFLAG_);
           NR_AF_:
-            result:=(reg2=NR_A_) or (reg2=NR_F_) or (reg2=NR_AF_);
+            result:=(reg2=NR_A_) or (reg2=NR_F_) or (reg2=NR_AF_) or
+                    (reg2=NR_CARRYFLAG_) or (reg2=NR_ADDSUBTRACTFLAG_) or
+                    (reg2=NR_PARITYOVERFLOWFLAG_) or (reg2=NR_HALFCARRYFLAG_) or
+                    (reg2=NR_ZEROFLAG_) or (reg2=NR_SIGNFLAG_);
+          NR_CARRYFLAG_,NR_ADDSUBTRACTFLAG_,NR_PARITYOVERFLOWFLAG_,NR_HALFCARRYFLAG_,NR_ZEROFLAG_,NR_SIGNFLAG_:
+            result:=(reg2=NR_F_) or (reg2=NR_AF_) or (reg2=reg1);
           NR_B_:
             result:=(reg2=NR_B_) or (reg2=NR_BC_);
           NR_C_:
