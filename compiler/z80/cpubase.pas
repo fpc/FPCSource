@@ -460,16 +460,22 @@ unit cpubase;
     function super_registers_equal(reg1, reg2: TRegister): Boolean;
       begin
         case reg1 of
-          NR_A,NR_F,NR_AF:
-            result:=(reg2=NR_A) or (reg2=NR_F) or (reg2=NR_AF);
+          NR_A,NR_F,NR_AF,NR_CARRYFLAG,NR_ADDSUBTRACTFLAG,NR_PARITYOVERFLOWFLAG,NR_HALFCARRYFLAG,NR_ZEROFLAG,NR_SIGNFLAG:
+            result:=(reg2=NR_A) or (reg2=NR_F) or (reg2=NR_AF) or
+                    (reg2=NR_CARRYFLAG) or (reg2=NR_ADDSUBTRACTFLAG) or
+                    (reg2=NR_PARITYOVERFLOWFLAG) or (reg2=NR_HALFCARRYFLAG) or
+                    (reg2=NR_ZEROFLAG) or (reg2=NR_SIGNFLAG);
           NR_B,NR_C,NR_BC:
             result:=(reg2=NR_B) or (reg2=NR_C) or (reg2=NR_BC);
           NR_D,NR_E,NR_DE:
             result:=(reg2=NR_D) or (reg2=NR_E) or (reg2=NR_DE);
           NR_H,NR_L,NR_HL:
             result:=(reg2=NR_H) or (reg2=NR_L) or (reg2=NR_HL);
-          NR_A_,NR_F_,NR_AF_:
-            result:=(reg2=NR_A_) or (reg2=NR_F_) or (reg2=NR_AF_);
+          NR_A_,NR_F_,NR_AF_,NR_CARRYFLAG_,NR_ADDSUBTRACTFLAG_,NR_PARITYOVERFLOWFLAG_,NR_HALFCARRYFLAG_,NR_ZEROFLAG_,NR_SIGNFLAG_:
+            result:=(reg2=NR_A_) or (reg2=NR_F_) or (reg2=NR_AF_) or
+                    (reg2=NR_CARRYFLAG_) or (reg2=NR_ADDSUBTRACTFLAG_) or
+                    (reg2=NR_PARITYOVERFLOWFLAG_) or (reg2=NR_HALFCARRYFLAG_) or
+                    (reg2=NR_ZEROFLAG_) or (reg2=NR_SIGNFLAG_);
           NR_B_,NR_C_,NR_BC_:
             result:=(reg2=NR_B_) or (reg2=NR_C_) or (reg2=NR_BC_);
           NR_D_,NR_E_,NR_DE_:
