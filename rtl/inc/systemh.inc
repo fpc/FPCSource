@@ -1672,9 +1672,7 @@ const
                            RTTI support
 *****************************************************************************}
 
-{$ifdef FPC_HAS_FEATURE_RTTI}
 {$i rttih.inc}
-{$endif FPC_HAS_FEATURE_RTTI}
 
 {*****************************************************************************
                        Object Pascal support

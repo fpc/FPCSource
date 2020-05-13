@@ -383,7 +383,9 @@
         var
            vmt  : PVmt;
            inittable : pointer;
+{$ifdef FPC_HAS_FEATURE_RTTI}
            mopinittable : PRTTIRecordOpOffsetTable;
+{$endif def FPC_HAS_FEATURE_RTTI}
            i : longint;
 {$endif VER3_0}
         begin
@@ -396,6 +398,7 @@
              InitInterfacePointers(self,instance);
 
 {$ifndef VER3_0}
+{$ifdef FPC_HAS_FEATURE_RTTI}
            { for management operators like initialize call int_initialize }
            vmt := PVmt(self);
            if assigned(vmt) then
@@ -415,6 +418,7 @@
                      end;
                  end;
              end;
+{$endif def FPC_HAS_FEATURE_RTTI}
 {$endif VER3_0}
 
            InitInstance:=TObject(Instance);
@@ -749,10 +753,12 @@
            while vmt<>nil do
              begin
                Temp:= vmt^.vInitTable;
+{$ifdef FPC_HAS_FEATURE_RTTI}
                { The RTTI format matches one for records, except the type is tkClass.
                  Since RecordRTTI does not check the type, calling it yields the desired result. }
                if Assigned(Temp) then
                  RecordRTTI(Self,Temp,@int_finalize);
+{$endif def FPC_HAS_FEATURE_RTTI}
                vmt:= vmt^.vParent;
              end;
         end;
@@ -977,6 +983,7 @@
         end;
 
       class function TObject.UnitName : {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
+{$ifdef FPC_HAS_FEATURE_RTTI}
         type
           TClassTypeInfo = {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
             Attributes: Pointer;
@@ -1009,6 +1016,11 @@
           else
             result:='';
         end;
+{$else not FPC_HAS_FEATURE_RTTI}
+        begin
+          result:='';
+        end;
+{$endif ndef FPC_HAS_FEATURE_RTTI}
 
       class function TObject.QualifiedClassName: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
         var

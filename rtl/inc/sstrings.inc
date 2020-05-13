@@ -506,7 +506,13 @@ end;
 
 {$ifndef FPC_STR_ENUM_INTERN}
 function fpc_shortstr_enum_intern(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring): longint;
-
+{$ifndef FPC_HAS_FEATURE_RTTI}
+begin
+  int_str(ordinal,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
+{$else with RTTI feature}
 { The following contains the TTypeInfo/TTypeData records from typinfo.pp
   specialized for the tkEnumeration case (and stripped of unused things). }
 type
@@ -654,7 +660,7 @@ begin
     end;
   fpc_shortstr_enum_intern:=0;
 end;
-
+{$endif with RTTI feature}
 
 procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);[public,alias:'FPC_SHORTSTR_ENUM'];compilerproc;
 var
