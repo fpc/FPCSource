@@ -2984,10 +2984,9 @@ begin
   gdb__init;
   command_level:=0;
 { set output mode for GDB }
-{ only these values disable filtering
-  DONT CHANGE THEM !!! PM }
-  gdb_command('set width 0xffffffff');
-  gdb_command('set height 0xffffffff');
+{ set height and width to zero to disable paging }
+  gdb_command('set width 0');
+  gdb_command('set height 0');
 { other standard commands used for fpc debugging }
   gdb_command('set print demangle off');
   gdb_command('set gnutarget auto');
