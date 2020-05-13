@@ -69,10 +69,6 @@ ifneq ($(findstring $(CPU_SOURCE),x86_64 mips mipsel),)
 override FPCMAKEOPT+=-Cg
 endif
 endif
-# also add GCCLIBDIR if specified
-ifneq ($(GCCLIBDIR),)
-override FPCMAKEOPT+=-Fl$(GCCLIBDIR)
-endif
 
 [rules]
 .NOTPARALLEL:
