@@ -397,9 +397,6 @@ ifneq ($(findstring $(CPU_SOURCE),x86_64 mips mipsel),)
 override FPCMAKEOPT+=-Cg
 endif
 endif
-ifneq ($(GCCLIBDIR),)
-override FPCMAKEOPT+=-Fl$(GCCLIBDIR)
-endif
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
@@ -625,7 +622,15 @@ endif
 endif
 endif
 endif
+ifdef FPCFPMAKE
+FPCFPMAKE_CPU_TARGET=$(shell $(FPCFPMAKE) -iTP)
+ifeq ($(CPU_TARGET),$(FPCFPMAKE_CPU_TARGET))
+FPCMAKEGCCLIBDIR:=$(GCCLIBDIR)
+endif
+endif
+ifndef FPCMAKEGCCLIBDIR
 FPCMAKEGCCLIBDIR:=$(shell dirname `gcc -print-libgcc-file-name`)
+endif
 ifndef GCCLIBDIR
 CROSSGCC=$(strip $(wildcard $(addsuffix /$(BINUTILSPREFIX)gcc$(SRCEXEEXT),$(SEARCHPATH))))
 ifneq ($(CROSSGCC),)
