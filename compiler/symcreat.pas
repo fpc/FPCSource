@@ -1397,7 +1397,7 @@ implementation
       if df_generic in tdef(recst.defowner).defoptions then
         tabstractrecordsymtable(recst).insert(hstaticvs)
       else
-        tabstractrecordsymtable(recst).get_unit_symtable.insert(hstaticvs);
+        tdef(tabstractrecordsymtable(recst).defowner).get_top_level_symtable(false).insert(hstaticvs);
 {$endif jvm}
       { generate the symbol for the access }
       sl:=tpropaccesslist.create;

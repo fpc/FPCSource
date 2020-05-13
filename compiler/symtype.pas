@@ -97,7 +97,7 @@ interface
          procedure ChangeOwner(st:TSymtable);
          function getreusablesymtab: tsymtable;
          procedure register_created_object_type;virtual;
-         function  get_top_level_symtable: tsymtable;
+         function  get_top_level_symtable(skipprocdefs: boolean): tsymtable;
          { only valid for registered defs and defs for which a unique id string
            has been requested; otherwise, first call register_def }
          function  deflist_index: longint;
@@ -442,11 +442,12 @@ implementation
       end;
 
 
-    function tdef.get_top_level_symtable: tsymtable;
+    function tdef.get_top_level_symtable(skipprocdefs: boolean): tsymtable;
       begin
         result:=owner;
         while assigned(result) and
-              assigned(result.defowner) do
+              assigned(result.defowner) and
+              (skipprocdefs or (result.symtabletype in [ObjectSymtable,recordsymtable])) do
           result:=tdef(result.defowner).owner;
       end;
 

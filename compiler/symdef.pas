@@ -7855,14 +7855,11 @@ implementation
 
     function tobjectdef.vmt_def: trecorddef;
       var
+        where: tsymtable;
         vmttypesym: tsymentry;
       begin
-        if not(typesym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-          vmttypesym:=typesym.owner.Find('vmtdef$'+mangledparaname)
-        else
-          { Use common parent of trecordsymtable and tobjectsymtable
-            to avoid invalid typecast error when compiled with -CR option }
-          vmttypesym:=tabstractrecordsymtable(typesym.owner).get_unit_symtable.Find('vmtdef$'+mangledparaname);
+        where:=get_top_level_symtable(true);
+        vmttypesym:=where.Find('vmtdef$'+mangledparaname);
         if not assigned(vmttypesym) or
            (vmttypesym.typ<>symconst.typesym) or
            (ttypesym(vmttypesym).typedef.typ<>recorddef) then
