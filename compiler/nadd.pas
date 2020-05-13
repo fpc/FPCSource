@@ -765,6 +765,7 @@ implementation
                           hp:=right;
                           right:=taddnode(left).right;
                           taddnode(left).right:=hp;
+                          left:=left.simplify(forinline);
                           if resultdef.typ<>pointerdef then
                             begin
                               { ensure that the constant is not expanded to a larger type due to overflow,
@@ -3237,6 +3238,7 @@ implementation
             internalerror(200609241);
         end;
       end;
+
 
     function taddnode.first_adddynarray : tnode;
       var
