@@ -2533,8 +2533,8 @@ TYPE
      Function Next(Celt:Ulong; out rgelt;pCeltFetched:pulong):HRESULT;StdCall;
 //    HRESULT RemoteNext(        [in] ULONG celt,        [out, size_is(celt), length_is( *pceltFetched)]        IUnknown **rgelt,        [out] ULONG *pceltFetched);
      Function Skip(Celt:Ulong):HResult;StdCall;
-     Function Reset():HResult;
-     Function Close(Out ppenum: IEnumUnknown):HResult;
+     Function Reset():HResult; stdcall;
+     Function Close(Out ppenum: IEnumUnknown):HResult; stdcall;
      END;
 
 
@@ -2548,7 +2548,7 @@ TYPE
        Function GetBindOptions(var BindOpts:TBind_Opts):HResult;  stdCall;
 //       Function RemoteGetBindOptions(Var bind_opts: TBind_Opts2):HResult;StdCall;
        Function GetRunningObjectTable(Out rot : IRunningObjectTable):Hresult; StdCall;
-       Function RegisterObjectParam(Const pszkey:LPOleStr;const punk:IUnknown):HResult;
+       Function RegisterObjectParam(Const pszkey:LPOleStr;const punk:IUnknown):HResult; stdcall;
        Function GetObjectParam(Const pszkey:LPOleStr; out punk: IUnknown):HResult; StdCall;
        Function EnumObjectParam (out enum:IEnumString):Hresult;StdCall;
        Function RevokeObjectParam(pszKey:LPOleStr):HResult;StdCall;
@@ -3197,7 +3197,7 @@ TYPE
    IThumbnailExtractor = Interface (IUnknown)
       ['{969dc708-5c76-11d1-8d86-0000f804b057}']
        Function ExtractThumbnail (pStg : IStorage; uLength,UHeight : ULong; Out uloutputlength,Height :ULong; Out OutputBitmap : HBITMAP): HResult; StdCall;
-       Function OnFileUpdated (pStg : IStorage):HResult;
+       Function OnFileUpdated (pStg : IStorage):HResult;stdcall;
        End;
 
 //****************************************************************************
@@ -3206,12 +3206,12 @@ TYPE
 
     IDummyHICONIncluder = Interface (IUnknown)
        ['{947990de-cc28-11d2-a0f7-00805f858fb1}']
-       Function Dummy (h1 : HICON; H2 :HDC):HResult;
+       Function Dummy (h1 : HICON; H2 :HDC):HResult;stdcall;
        End;
 
     IComThreadingInfo = Interface (IUnknown)
        ['{000001ce-0000-0000-C000-000000000046}']
-       Function GetCurrentApartmentType(out pAptType : DWord {APTTTYPE}):HResult;
+       Function GetCurrentApartmentType(out pAptType : DWord {APTTTYPE}):HResult;stdcall;
        Function GetCurrentThreadType(Out ThreadType : Dword {THDTTYPE}):HResult;StdCall;
        Function GetCurrentLogicalThreadID(Out guidlogicalThreadId : TGUID):HResult;StdCall;
        Function SetCurrentLogicalThreadID(Const guidlogicalThreadId : TGUID):HResult;StdCall;
