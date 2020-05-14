@@ -384,7 +384,7 @@ type
         b) the def of the record should be automatically constructed based on
            the types of the emitted fields
 
-        packrecords: same as "pacrecords x"
+        packrecords: same as "packrecords x"
         recordalign: specify the (minimum) alignment of the start of the record
           (no equivalent in source code), used as an alternative for explicit
           align statements. Use "1" if it should be calculated based on the
