@@ -23,8 +23,8 @@ uses
   Classes, SysUtils, db, fpddcodegen;
   
 Type
-  TListMode = (lmNone,lmList,lmObjectList,lmCollection,lmDBCollection);
-  TClassOption = (coCreateLoader,coUseFieldMap,coCreateArrayProperty,coCreateAssign);
+  TListMode = (lmNone,lmList,lmObjectList,lmCollection,lmDBCollection,lmGenericList);
+  TClassOption = (coCreateLoader,coUseFieldMap,coCreateArrayProperty,coCreateAssign, coRecord);
   TClassOptions = Set of TClassOption;
   
   { TDBCollOptions }
@@ -42,6 +42,7 @@ Type
     function GetListClassName: String;
     function GetMapName: String;
     procedure SetArrayPropName(const AValue: String);
+    procedure SetClassOptions(AValue: TClassOptions);
     procedure SetListAncestorName(const AValue: String);
     procedure SetListClassName(const AValue: String);
     procedure SetListMode(const AValue: TListMode);
@@ -55,7 +56,7 @@ Type
     Function CreateArrayProperty : Boolean;
     Function CreateAssign : Boolean;
   Published
-    Property ClassOptions : TClassOptions Read FClassOptions Write FClassOptions;
+    Property ClassOptions : TClassOptions Read FClassOptions Write SetClassOptions;
     Property ListMode : TListMode Read FListMode Write SetListMode;
     Property ListAncestorName : String Read FListAncestorName Write SetListAncestorName;
     Property ListClassName : String Read GetListClassName Write SetListClassName;
@@ -69,8 +70,10 @@ Type
 
   TDDDBCollCodeGenerator = Class(TDDClassCodeGenerator)
   private
-    function GetOpt: TDBColLOptions;
+    function GetOpt: TDBCollOptions;
   Protected
+    function IsRecord: Boolean;
+    procedure CreateClassHead(Strings: TStrings); override;
     procedure CreateObjectAssign(Strings: TStrings; const ObjectClassName: String); virtual;
     // Not to be overridden.
     procedure CreateFieldMapImplementation(Strings: TStrings; const ObjectClassName, MapClassName: String);
@@ -109,7 +112,7 @@ Type
     // Create assign statement for a property from a dataset field, in object itself (not in map).
     procedure WriteFieldDatasetAssign(Strings: TStrings; F: TFieldPropDef); virtual;
     // Copy a property from one instance to another in Assign()
-    procedure WriteFieldAssign(Strings: TStrings; F: TFieldPropDef); virtual;
+    procedure WriteFieldAssign(Strings: TStrings; F: TFieldPropDef; SrcName: String); virtual;
     // Code to Load object from fataset (should check usefieldmap)
     procedure CreateObjectLoadFromDataset(Strings: TStrings; const ObjectClassName: String); virtual;
   Public
@@ -119,7 +122,10 @@ Type
       const ObjectClassName, ListClassName, ListAncestorName: String);
     Property DBCollOptions : TDBColLOptions Read GetOpt;
   end;
-  
+
+Const
+  NonDBCollList = [lmList,lmObjectList,lmCollection,lmGenericList];
+
 implementation
 
 { TDBCollOptions }
@@ -142,6 +148,21 @@ begin
       begin
       AncestorClass:='TPersistent';
       ListAncestorName:='TObjectList';
+      end;
+    lmGenericList :
+      begin
+      if coRecord in ClassOptions then
+        begin
+        AncestorClass:='TObject';
+        ListAncestorName:='TList';
+        end
+      else
+        begin
+        AncestorClass:='TObject';
+        ListAncestorName:='TObjectList';
+        end;
+      // Avoic recursion, bypass setter
+      Exclude(FClassOptions,coCreateArrayProperty);
       end;
     lmCollection :
       begin
@@ -199,6 +220,14 @@ procedure TDBCollOptions.SetArrayPropName(const AValue: String);
 begin
   CheckIdentifier(AValue,True);
   FArrayPropName:=AValue;
+end;
+
+procedure TDBCollOptions.SetClassOptions(AValue: TClassOptions);
+begin
+  if FClassOptions=AValue then Exit;
+  FClassOptions:=AValue;
+  if (coRecord in FCLassOptions) and (not (ListMode in [lmNone,lmGenericList])) then
+    ListMode:=lmGenericList;
 end;
 
 procedure TDBCollOptions.SetListAncestorName(const AValue: String);
@@ -265,9 +294,21 @@ end;
 
 { TDDDBCollCodeGenerator }
 
-function TDDDBCollCodeGenerator.GetOpt: TDBColLOptions;
+function TDDDBCollCodeGenerator.GetOpt: TDBCollOptions;
 begin
   Result:=CodeOptions as TDBColLOptions
+end;
+
+procedure TDDDBCollCodeGenerator.CreateClassHead(Strings: TStrings);
+begin
+  if Not IsRecord then
+    inherited CreateClassHead(Strings)
+  else
+    begin
+    Addln(Strings,'{ %s }',[ClassOptions.ObjectClassName]);
+    AddLn(Strings);
+    AddLn(Strings,'%s = Record',[ClassOptions.ObjectClassName])
+    end;
 end;
 
 procedure TDDDBCollCodeGenerator.DoGenerateInterface(Strings: TStrings);
@@ -290,8 +331,7 @@ begin
   inherited DoGenerateImplementation(Strings);
   With DBCollOptions do
     begin
-    If CreateLoader then
-    If UseFieldMap then
+    If CreateLoader and UseFieldMap then
       CreateFieldMapImplementation(Strings,ObjectClassName,MapClassName);
     if ListMode<>lmNone then
       CreateListImplementation(Strings,ListMode,ObjectClassName,ListClassName);
@@ -306,13 +346,16 @@ begin
   If (V=vPublic) then
     With DBCollOptions do
       begin
-      If CreateLoader and (ListMode in [lmList,lmObjectList,lmCollection]) then
+      If CreateLoader and (ListMode in NonDBCollList) then
         begin
         If UseFieldMap Then
           AddLn(Strings,'Procedure LoadFromMap(Map : TFieldMap);');
         AddLn(Strings,'Procedure LoadFromDataset(ADataset : TDataset);');
         end;
       If CreateAssign then
+        if IsRecord then
+          AddLn(Strings,'Procedure Assign(ASource : %s); ',[ObjectClassName])
+        else
           AddLn(Strings,'Procedure Assign(ASource : TPersistent); override;');
       end;
 end;
@@ -326,7 +369,7 @@ begin
   inherited CreateImplementation(Strings);
   With DBCOlloptions do
     begin
-    If CreateLoader and (ListMode in [lmList,lmObjectList,lmCollection]) then
+    If CreateLoader and (ListMode in NonDBCollList) then
       begin
       if UseFieldMap then
         begin
@@ -342,7 +385,10 @@ begin
       end;
     If CreateAssign then
       begin
-      S:=Format('Procedure %s.Assign(ASource : TPersistent);',[ObjectClassName]);
+      if IsRecord then
+          S:=Format('Procedure %s.Assign(ASource : %s);',[ObjectClassName,ObjectClassName])
+       else
+          S:=Format('Procedure %s.Assign(ASource : TPersistent);',[ObjectClassName]);
       BeginMethod(Strings,S);
       CreateObjectAssign(Strings,ObjectClassName);
       EndMethod(Strings,S);
@@ -350,79 +396,98 @@ begin
     end;
 end;
 
-procedure TDDDBCollCodeGenerator.CreateObjectAssign(Strings : TStrings; Const ObjectClassName : String);
+procedure TDDDBCollCodeGenerator.CreateObjectAssign(Strings: TStrings; const ObjectClassName: String);
 
 Var
   I : Integer;
   F : TFieldPropDef;
 
 begin
-  AddLn(Strings,'var');
-  IncIndent;
-  Try
-    AddLn(Strings,'O : %s ;',[ObjectClassName]);
-  Finally
-    DecIndent;
-  end;
-  Addln(Strings,'begin');
-  IncIndent;
-  Try
-    AddLn(Strings,'If (ASource is %s) then',[ObjectClassName]);
+  if IsRecord then
+    begin
+    Addln(Strings,'begin');
+    IncIndent;
+    For I:=0 to Fields.Count-1 do
+      begin
+      F:=Fields[i];
+      If F.Enabled Then
+        WriteFieldAssign(Strings,F,'ASource');
+      end;
+    decIndent;
+    end
+  else
+    begin
+    AddLn(Strings,'var');
     IncIndent;
     Try
-      Addln(Strings,'begin');
-      Addln(Strings,'O:=(ASource as %s);',[ObjectClassName]);
-      For I:=0 to Fields.Count-1 do
-        begin
-        F:=Fields[i];
-        If F.Enabled Then
-          WriteFieldAssign(Strings,F);
-        end;
-      Addln(Strings,'end');
+      AddLn(Strings,'O : %s ;',[ObjectClassName]);
+      Addln(Strings,'');
     Finally
       DecIndent;
     end;
-    AddLn(Strings,'else');
+    Addln(Strings,'begin');
     IncIndent;
     Try
-      AddLn(Strings,'Inherited;');
+      AddLn(Strings,'If (ASource is %s) then',[ObjectClassName]);
+      IncIndent;
+      Try
+        Addln(Strings,'begin');
+        Addln(Strings,'O:=(ASource as %s);',[ObjectClassName]);
+        For I:=0 to Fields.Count-1 do
+          begin
+          F:=Fields[i];
+          If F.Enabled Then
+            WriteFieldAssign(Strings,F,'O');
+          end;
+        Addln(Strings,'end');
+      Finally
+        DecIndent;
+      end;
+      AddLn(Strings,'else');
+      IncIndent;
+      Try
+        AddLn(Strings,'Inherited;');
+      Finally
+        DecIndent;
+      end;
     Finally
       DecIndent;
     end;
-  Finally
-    DecIndent;
-  end;
+    end;
 end;
 
-procedure TDDDBCollCodeGenerator.WriteFieldAssign(Strings : TStrings; F : TFieldPropDef);
+procedure TDDDBCollCodeGenerator.WriteFieldAssign(Strings : TStrings; F : TFieldPropDef; SrcName : String);
 
 Var
   S : String;
 
 begin
   Case F.PropertyType of
-    ptStream: S:=Format('%s.CopyFrom(O.%s,0);',[F.ObjPasReadDef,F.ObjPasReadDef]);
-    ptTStrings: S:=Format('%s.Assign(O.%s,0);',[F.ObjPasReadDef,F.ObjPasReadDef]);
-    ptCustom: S:=Format('// Custom code to assign %s from O.%s',[F.ObjPasReadDef,F.ObjPasReadDef]);
+    ptStream: S:=Format('%s.CopyFrom(%s.%s,0);',[F.ObjPasReadDef,SrcName,F.ObjPasReadDef]);
+    ptTStrings: S:=Format('%s.Assign(%s.%s,0);',[F.ObjPasReadDef,SrcName,F.ObjPasReadDef]);
+    ptCustom: S:=Format('// Custom code to assign %s from %s.%s',[F.ObjPasReadDef,SrcName,F.ObjPasReadDef]);
   else
-    S:=Format('%s:=O.%s;',[F.ObjPasReadDef,F.ObjPasReadDef]);
+    S:=Format('%s:=%s.%s;',[F.ObjPasReadDef,SrcName,F.ObjPasReadDef]);
   end;
   AddLn(Strings,S);
 end;
 
-procedure TDDDBCollCodeGenerator.CreateObjectLoadFromMap(Strings : TStrings; Const ObjectClassName : String);
+procedure TDDDBCollCodeGenerator.CreateObjectLoadFromMap(Strings: TStrings; const ObjectClassName: String);
 
 begin
   Addln(Strings,'begin');
   IncIndent;
   Try
-    AddLn(Strings,'Map.LoadObject(Self);');
+    if IsRecord then
+      AddLn(Strings,'(Map as %s).DoLoad(Self);',[DBCollOptions.MapClassName])
+    else
+      AddLn(Strings,'Map.LoadObject(Self);');
   Finally
     DecIndent;
   end;
 end;
 
-procedure TDDDBCollCodeGenerator.CreateObjectLoadFromDataset(Strings : TStrings; Const ObjectClassName : String);
+procedure TDDDBCollCodeGenerator.CreateObjectLoadFromDataset(Strings: TStrings; const ObjectClassName: String);
 
 Var
   I : Integer;
@@ -439,7 +504,10 @@ begin
         Addln(Strings,'try');
         IncIndent;
         Try
-          Addln(Strings,'LoadObject(Self);');
+          if IsRecord then
+            Addln(Strings,'DoLoad(Self);')
+          else
+            Addln(Strings,'LoadObject(Self);');
         Finally
           DecIndent;
         end;
@@ -521,8 +589,8 @@ end;
 
 { FieldMap interface generation routines}
 
-procedure TDDDBCollCodeGenerator.CreateFieldMapDeclaration(Strings : TStrings;
-  Const ObjectClassName,MapClassName,MapAncestorName : String);
+procedure TDDDBCollCodeGenerator.CreateFieldMapDeclaration(Strings: TStrings; const ObjectClassName, MapClassName,
+  MapAncestorName: String);
 
 
 begin
@@ -539,8 +607,8 @@ begin
   end;
 end;
 
-procedure TDDDBCollCodeGenerator.DoCreateFieldMapDeclaration(Strings : TStrings;
-  Const ObjectClassName,MapClassName,MapAncestorName : String);
+procedure TDDDBCollCodeGenerator.DoCreateFieldMapDeclaration(Strings: TStrings; const ObjectClassName, MapClassName,
+  MapAncestorName: String);
 
 Var
   I : Integer;
@@ -556,7 +624,10 @@ begin
       If F.Enabled then
         AddLn(Strings,'F%s : TField;',[F.FieldName]);
       end;
-    AddLn(Strings,'Procedure DoLoad(AObject : %s);',[ObjectClassName]);
+    if IsRecord then
+      AddLn(Strings,'Procedure DoLoad(var AObject : %s);',[ObjectClassName])
+    else
+      AddLn(Strings,'Procedure DoLoad(AObject : %s);',[ObjectClassName]);
   Finally
     DecIndent;
   end;
@@ -564,37 +635,48 @@ begin
   IncIndent;
   Try
     AddLn(Strings,'Procedure InitFields; Override;');
-    AddLn(Strings,'Procedure LoadObject(AObject : TObject); Override;');
+    if not IsRecord then
+      AddLn(Strings,'Procedure LoadObject(AObject : TObject); Override;');
   Finally
     DecIndent;
   end;
 end;
 
 { FieldMap implementation generation routines}
+Function TDDDBCollCodeGenerator.IsRecord : Boolean;
 
-procedure TDDDBCollCodeGenerator.CreateFieldMapImplementation(Strings : TStrings;
-  Const ObjectClassName,MapClassName : String);
+begin
+  Result:=CoRecord in DBCollOptions.ClassOptions;
+end;
+
+procedure TDDDBCollCodeGenerator.CreateFieldMapImplementation(Strings: TStrings; const ObjectClassName, MapClassName: String);
 
 Var
   S : String;
-  
+
 begin
   AddLn(Strings,' { %s }',[MapClassName]);
   AddLn(Strings);
-  S:=Format('Procedure %s.DoLoad(AObject : %s);',[MapClassName,ObjectClassName]);
+  if IsRecord then
+    S:=Format('Procedure %s.DoLoad(Var AObject : %s);',[MapClassName,ObjectClassName])
+  else
+    S:=Format('Procedure %s.DoLoad(AObject : %s);',[MapClassName,ObjectClassName]);
   BeginMethod(Strings,S);
   Try
     DoWriteMapLoad(Strings,ObjectClassName,MapClassName);
   Finally
     EndMethod(Strings,S);
   end;
-  S:=Format('Procedure %s.LoadObject(AObject : TObject);',[MapClassName]);
-  BeginMethod(Strings,S);
-  Try
-    DoWriteMapLoadObject(Strings,ObjectClassName,MapClassName);
-  Finally
-    EndMethod(Strings,S);
-  end;
+  if not IsRecord then
+    begin
+    S:=Format('Procedure %s.LoadObject(AObject : TObject);',[MapClassName]);
+    BeginMethod(Strings,S);
+    Try
+      DoWriteMapLoadObject(Strings,ObjectClassName,MapClassName);
+    Finally
+      EndMethod(Strings,S);
+    end;
+    end;
   S:=Format('Procedure %s.InitFields;',[MapClassName]);
   BeginMethod(Strings,S);
   Try
@@ -604,7 +686,7 @@ begin
   end;
 end;
 
-procedure TDDDBCollCodeGenerator.DoWriteMapLoad(Strings : TStrings; COnst ObjectClassName,MapClassName  : String);
+procedure TDDDBCollCodeGenerator.DoWriteMapLoad(Strings: TStrings; const ObjectClassName, MapClassName: String);
 
 Var
   I : Integer;
@@ -629,7 +711,7 @@ begin
   end;
 end;
 
-procedure TDDDBCollCodeGenerator.DoWriteMapLoadObject(Strings : TStrings; Const ObjectClassName,MapClassName : String);
+procedure TDDDBCollCodeGenerator.DoWriteMapLoadObject(Strings: TStrings; const ObjectClassName, MapClassName: String);
 
 begin
   Addln(Strings,'begin');
@@ -678,7 +760,7 @@ begin
   AddLn(Strings,S);
 end;
 
-procedure TDDDBCollCodeGenerator.WriteMapInitFields(Strings : TStrings; COnst ObjectClassName,MapClassName  : String);
+procedure TDDDBCollCodeGenerator.WriteMapInitFields(Strings: TStrings; const ObjectClassName, MapClassName: String);
 
 Var
   I: Integer;
@@ -708,29 +790,39 @@ begin
       If (Result<>'') then
         Result:=Result+', ';
       Result:=Result+'db';
-      If  (ListMode=lmObjectList) then
-        Result:=Result+', contnrs';
-      If UseFieldMap or (ListMode=lmDBCollection) then
+      If (ListMode=lmObjectList) then
+        Result:=Result+', contnrs'
+      else if (ListMode=lmGenericList) then
+        Result:=Result+', Generics.Collections';
+      if UseFieldMap then
+        Result:=Result+', FieldMap';
+      If (ListMode=lmDBCollection) then
         Result:=Result+', dbcoll';
       end;
-
 end;
 
 
 
 { List class generation routines }
 
-procedure TDDDBCollCodeGenerator.CreateListDeclaration(Strings : TStrings;
-  ListMode : TListMode; Const ObjectClassName,ListClassName,ListAncestorName : String);
-  
+procedure TDDDBCollCodeGenerator.CreateListDeclaration(Strings: TStrings; ListMode: TListMode; const ObjectClassName,
+  ListClassName, ListAncestorName: String);
+
+Var
+  LAN : String;
+
 begin
   IncIndent;
   try
     Addln(Strings);
     Addln(Strings,'{ %s }',[ListClassName]);
     Addln(Strings);
-    Addln(Strings,'%s = Class(%s)',[ListClassName,ListAncestorName]);
-    DoCreateListDeclaration(Strings,ListMode,ObjectClassName,ListClassName,ListAncestorName);
+    if ListMode<>lmGenericList then
+      LAN:=ListAncestorName
+    else
+      LAN:=Format('%s<%s>',[ListAncestorName,ObjectClassName]);
+    Addln(Strings,'%s = Class(%s)',[ListClassName,LAN]);
+    DoCreateListDeclaration(Strings,ListMode,ObjectClassName,ListClassName,LAN);
     AddLn(Strings,'end;');
   Finally
     DecIndent;
@@ -738,14 +830,16 @@ begin
 end;
 
 
-procedure TDDDBCollCodeGenerator.DoCreateListDeclaration(Strings : TStrings;
-  ListMode : TListMode; Const ObjectClassName,ListClassName,ListAncestorName : String);
+procedure TDDDBCollCodeGenerator.DoCreateListDeclaration(Strings: TStrings; ListMode: TListMode; const ObjectClassName,
+  ListClassName, ListAncestorName: String);
 
 Var
   S : String;
+  DoArray : Boolean;
 
 begin
-  If DBCollOptions.CreateArrayProperty then
+  DoArray:=DBCollOptions.CreateArrayProperty and (ListMode<>lmGenericList);
+  if DoArray then
     begin
     AddLn(Strings,'Private');
     IncIndent;
@@ -759,7 +853,7 @@ begin
   AddLn(Strings,'Public');
   IncIndent;
   Try
-    If (ListMode in [lmList,lmObjectList,lmCollection]) and DBCollOptions.CreateLoader then
+    If (ListMode in NonDBCollList) and DBCollOptions.CreateLoader then
       begin
       If DBColloptions.UseFieldMap then
         AddLn(Strings,'Procedure LoadFromMap(Map : TFieldMap);');
@@ -768,7 +862,7 @@ begin
   Finally
     DecIndent;
   end;
-  If DBCollOptions.CreateArrayProperty then
+  if DoArray then
     begin
     IncIndent;
     Try
@@ -780,40 +874,42 @@ begin
     end;
 end;
 
-procedure TDDDBCollCodeGenerator.CreateListImplementation(Strings : TStrings;
-  ListMode : TListMode; Const ObjectClassName,ListClassName : String);
+procedure TDDDBCollCodeGenerator.CreateListImplementation(Strings: TStrings; ListMode: TListMode; const ObjectClassName,
+  ListClassName: String);
 
 Var
   S : String;
+  DoArray : Boolean;
 
 begin
-  If (ListMode in [lmList,lmObjectList,lmCollection]) and DBCollOptions.CreateLoader then
+  DoArray:=DBCollOptions.CreateArrayProperty and (ListMode<>lmGenericList);
+  AddLn(Strings,'{ %s }',[ListClassName]);
+  if DoArray then
     begin
-    AddLn(Strings,'{ %s }',[ListClassName]);
-    If DBCollOptions.CreateArrayProperty then
-      begin
-      S:=Format('Function %s.GetObj(Index : Integer) : %s;',[ListClassName,ObjectClassname]);
-      BeginMethod(Strings,S);
-      AddLn(Strings,'begin');
-      IncIndent;
-      try
-        AddLn(Strings,'Result:=%s(Items[Index]);',[ObjectClassname]);
-      finally
-        DecIndent;
-      end;
-      EndMethod(Strings,S);
-      S:=Format('Procedure %s.SetObj(Index : Integer; AValue : %s);',[ListClassName,ObjectClassname]);
-      BeginMethod(Strings,S);
-      AddLn(Strings,'begin');
-      IncIndent;
-      try
-        AddLn(Strings,'Items[Index]:=AValue;');
-      finally
-        DecIndent;
-      end;
-      EndMethod(Strings,S);
-      end;
-    If DBColloptions.UseFieldMap then
+    S:=Format('Function %s.GetObj(Index : Integer) : %s;',[ListClassName,ObjectClassname]);
+    BeginMethod(Strings,S);
+    AddLn(Strings,'begin');
+    IncIndent;
+    try
+      AddLn(Strings,'Result:=%s(Items[Index]);',[ObjectClassname]);
+    finally
+      DecIndent;
+    end;
+    EndMethod(Strings,S);
+    S:=Format('Procedure %s.SetObj(Index : Integer; AValue : %s);',[ListClassName,ObjectClassname]);
+    BeginMethod(Strings,S);
+    AddLn(Strings,'begin');
+    IncIndent;
+    try
+      AddLn(Strings,'Items[Index]:=AValue;');
+    finally
+      DecIndent;
+    end;
+    EndMethod(Strings,S);
+    end;
+  if DBCollOptions.CreateLoader then
+    begin
+    If DBCollOptions.UseFieldMap then
       begin
       AddLn(Strings);
       S:=Format('Procedure %s.LoadFromMap(Map : TFieldMap);',[ListClassName]);
@@ -829,13 +925,15 @@ begin
     end;
 end;
 
-procedure TDDDBCollCodeGenerator.WriteListLoadFromMap(Strings : TStrings; ListMode : TListMode; Const ObjectClassName,ListClassName : String);
+procedure TDDDBCollCodeGenerator.WriteListLoadFromMap(Strings: TStrings; ListMode: TListMode; const ObjectClassName,
+  ListClassName: String);
 
 begin
   WriteListLoad(Strings,ListMode,ObjectClassName,ListClassName,True);
 end;
 
-procedure TDDDBCollCodeGenerator.WriteListLoadFromDataset(Strings : TStrings; ListMode : TListMode; Const ObjectClassName,ListClassName : String);
+procedure TDDDBCollCodeGenerator.WriteListLoadFromDataset(Strings: TStrings; ListMode: TListMode; const ObjectClassName,
+  ListClassName: String);
 
 
 Var
@@ -881,7 +979,8 @@ begin
     end;
 end;
 
-procedure TDDDBCollCodeGenerator.WriteListLoad(Strings : TStrings; ListMode : TListMode; Const ObjectClassName,ListClassName : String; FromMap : Boolean);
+procedure TDDDBCollCodeGenerator.WriteListLoad(Strings: TStrings; ListMode: TListMode; const ObjectClassName,
+  ListClassName: String; FromMap: Boolean);
 
 begin
   AddLn(Strings);
@@ -898,7 +997,10 @@ begin
   try
     If FromMap then
       begin
-      AddLn(Strings,'With Map do');
+      if IsRecord then
+        AddLn(Strings,'With Map as %s do',[DBCollOptions.MapClassName])
+      else
+        AddLn(Strings,'With Map do');
       IncIndent;
       end;
     Try
@@ -911,7 +1013,12 @@ begin
         IncIndent;
         Try
           If FromMap then
-            AddLn(Strings,'LoadObject(Obj);')
+            begin
+            if IsRecord then
+              AddLn(Strings,'DoLoad(Obj);')
+            else
+              AddLn(Strings,'LoadObject(Obj);')
+            end
           else
             AddLn(Strings,'Obj.LoadFromDataset(Dataset);');
           WriteListAddObject(Strings,ListMode,'Obj',ObjectClassName);
@@ -921,7 +1028,10 @@ begin
         AddLn(Strings,'Except');
         IncIndent;
         Try
-          AddLn(Strings,'FreeAndNil(Obj);');
+          if  IsRecord then
+            AddLn(Strings,'Obj:=Default(%s);',[ObjectClassName])
+          else
+            AddLn(Strings,'FreeAndNil(Obj);');
           AddLn(Strings,'Raise;');
         Finally
           DecIndent;
@@ -941,33 +1051,35 @@ begin
   end;
 end;
 
-procedure TDDDBCollCodeGenerator.WriteListCreateObject(Strings : TStrings; ListMode : TListMode; Const InstanceName,ObjectClassName : String);
+procedure TDDDBCollCodeGenerator.WriteListCreateObject(Strings: TStrings; ListMode: TListMode; const InstanceName,
+  ObjectClassName: String);
 
 Var
   S : String;
 
 begin
-  If ListMode in [lmList,lmObjectList] then
+  if IsRecord then
+    S:=Format('%s:=Default(%s);',[InstanceName,ObjectClassName])
+  else If (ListMode in [lmList,lmObjectList,lmGenericList]) then
     S:=Format('%s:=%s.Create;',[InstanceName,ObjectClassName])
   else
     S:=Format('%s:=Self.Add as %s;',[InstanceName,ObjectClassName]);
   AddLn(Strings,S);
 end;
 
-procedure TDDDBCollCodeGenerator.WriteListAddObject(Strings : TStrings; ListMode : TListMode; Const InstanceName,ObjectClassName : String);
+procedure TDDDBCollCodeGenerator.WriteListAddObject(Strings: TStrings; ListMode: TListMode; const InstanceName,
+  ObjectClassName: String);
 
 Var
   S : String;
 
 begin
-  If ListMode in [lmList,lmObjectList] then
+  If ListMode in [lmList,lmObjectList,lmGenericList] then
     begin
     S:=Format('Add(%s);',[InstanceName]);
     AddLn(Strings,S);
     end;
 end;
-
-
 
 
 class function TDDDBCollCodeGenerator.NeedsFieldDefs: Boolean;
@@ -982,7 +1094,7 @@ end;
 
 
 Initialization
-  RegisterCodeGenerator('DBColl','Simple object/collection for the data',TDDDBCollCodeGenerator);
+  RegisterCodeGenerator('DBColl','Simple object/record collection/list for the data',TDDDBCollCodeGenerator);
   
 Finalization
   UnRegisterCodeGenerator(TDDDBCollCodeGenerator);
