@@ -259,10 +259,56 @@ Implementation
          exit;
        end;
       p := taicpu(hp);
-      if SuperRegistersEqual(reg,NR_DEFAULTFLAGS) then
+      if SuperRegistersEqual(reg,NR_DEFAULTFLAGS) and (reg<>NR_AF) then
         begin
-          { todo: flags }
-          internalerror(2020051111);
+          case p.opcode of
+            { todo: 16-bit ADD,ADC,SBC,INC,DEC }
+            { todo: IN,INI,INIR,IND,INDR,OUT,OUTI,OTIR,OUTD,OTDR}
+            A_PUSH,A_POP,A_EX,A_EXX,A_NOP,A_HALT,A_DI,A_EI,A_IM,A_SET,A_RES,A_JP,A_JR,A_DJNZ,A_CALL,A_RET,A_RETI,A_RETN,A_RST:
+              result:=false;
+            A_LD:
+              begin
+                if p.ops<>2 then
+                  internalerror(2020051112);
+                { LD A,I or LD A,R ? }
+                if (p.oper[0]^.typ=top_reg) and (p.oper[0]^.reg=NR_A) and
+                   (p.oper[1]^.typ=top_reg) and ((p.oper[1]^.reg=NR_I) or (p.oper[1]^.reg=NR_R)) then
+                  result:=(reg=NR_ADDSUBTRACTFLAG) or
+                          (reg=NR_PARITYOVERFLOWFLAG) or
+                          (reg=NR_HALFCARRYFLAG) or
+                          (reg=NR_ZEROFLAG) or
+                          (reg=NR_SIGNFLAG)
+                else
+                  result:=false;
+              end;
+            A_LDI,A_LDIR,A_LDD,A_LDDR:
+              result:=(reg=NR_ADDSUBTRACTFLAG) or
+                      (reg=NR_PARITYOVERFLOWFLAG) or
+                      (reg=NR_HALFCARRYFLAG);
+            A_CPI,A_CPIR,A_CPD,A_CPDR,A_INC,A_DEC,A_RLD,A_RRD,A_BIT:
+              result:=(reg=NR_ADDSUBTRACTFLAG) or
+                      (reg=NR_PARITYOVERFLOWFLAG) or
+                      (reg=NR_HALFCARRYFLAG) or
+                      (reg=NR_ZEROFLAG) or
+                      (reg=NR_SIGNFLAG);
+            A_ADD,A_ADC,A_SUB,A_SBC,A_AND,A_OR,A_XOR,A_CP,A_NEG,A_RLC,A_RL,A_RRC,A_RR,A_SLA,A_SRA,A_SRL:
+              result:=true;
+            A_DAA:
+              result:=(reg=NR_PARITYOVERFLOWFLAG) or
+                      (reg=NR_HALFCARRYFLAG) or
+                      (reg=NR_ZEROFLAG) or
+                      (reg=NR_SIGNFLAG) or
+                      (reg=NR_CARRYFLAG);
+            A_CPL:
+              result:=(reg=NR_HALFCARRYFLAG) or
+                      (reg=NR_ADDSUBTRACTFLAG);
+            A_CCF,A_SCF,A_RLCA,A_RLA,A_RRCA,A_RRA:
+              result:=(reg=NR_HALFCARRYFLAG) or
+                      (reg=NR_ADDSUBTRACTFLAG) or
+                      (reg=NR_CARRYFLAG);
+            else
+              internalerror(2020051111);
+          end;
         end
       else
         case p.opcode of
