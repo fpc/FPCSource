@@ -88,7 +88,6 @@ Type
     Procedure DoGenerateImplementation(Strings: TStrings); override;
     procedure WriteVisibilityStart(V: TVisibility; Strings: TStrings); override;
     procedure CreateImplementation(Strings: TStrings); override;
-    Class Function NeedsFieldDefs : Boolean; override;
     Function CreateOptions : TCodeGeneratorOptions; override;
     //
     //  New methods
@@ -116,6 +115,7 @@ Type
     // Code to Load object from fataset (should check usefieldmap)
     procedure CreateObjectLoadFromDataset(Strings: TStrings; const ObjectClassName: String); virtual;
   Public
+    Class Function NeedsFieldDefs : Boolean; override;
     procedure CreateFieldMapDeclaration(Strings: TStrings; const ObjectClassName,MapClassName,
       MapAncestorName: String);
     procedure CreateListDeclaration(Strings: TStrings; ListMode: TListMode;
