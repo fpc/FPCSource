@@ -3135,16 +3135,20 @@ unit aoptx86;
           GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[1]^.reg) and
           MatchInstruction(hp1,A_LEA,[taicpu(p).opsize]) and
           MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and
-          (taicpu(hp1).oper[0]^.ref^.base=taicpu(p).oper[1]^.reg) and
           (taicpu(p).oper[0]^.ref^.relsymbol=nil) and
           (taicpu(p).oper[0]^.ref^.segment=NR_NO) and
           (taicpu(p).oper[0]^.ref^.symbol=nil) and
-          (((taicpu(p).oper[0]^.ref^.scalefactor in [0,1]) and
+          (((taicpu(hp1).oper[0]^.ref^.base=taicpu(p).oper[1]^.reg) and
+            (taicpu(p).oper[0]^.ref^.scalefactor in [0,1]) and
             (taicpu(p).oper[0]^.ref^.index=NR_NO) and
             (taicpu(p).oper[0]^.ref^.index=taicpu(hp1).oper[0]^.ref^.index) and
             (taicpu(p).oper[0]^.ref^.scalefactor=taicpu(hp1).oper[0]^.ref^.scalefactor)
            ) or
-           ((taicpu(hp1).oper[0]^.ref^.scalefactor in [0,1]) and
+           ((taicpu(hp1).oper[0]^.ref^.index=taicpu(p).oper[1]^.reg) and
+            (taicpu(p).oper[0]^.ref^.index=NR_NO)
+           ) or
+           ((taicpu(hp1).oper[0]^.ref^.base=taicpu(p).oper[1]^.reg) and
+            (taicpu(hp1).oper[0]^.ref^.scalefactor in [0,1]) and
             (taicpu(p).oper[0]^.ref^.base=NR_NO) and
             not(RegUsedBetween(taicpu(p).oper[0]^.ref^.index,p,hp1)))
           ) and
@@ -3154,8 +3158,23 @@ unit aoptx86;
           (taicpu(p).oper[0]^.ref^.symbol=taicpu(hp1).oper[0]^.ref^.symbol) then
           begin
             DebugMsg(SPeepholeOptimization + 'LeaLea2Lea done',p);
-            inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.ref^.offset);
-            taicpu(hp1).oper[0]^.ref^.base:=taicpu(p).oper[0]^.ref^.base;
+            if taicpu(hp1).oper[0]^.ref^.index=taicpu(p).oper[1]^.reg then
+              begin
+                taicpu(hp1).oper[0]^.ref^.index:=taicpu(p).oper[0]^.ref^.base;
+                inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.ref^.offset*max(taicpu(hp1).oper[0]^.ref^.scalefactor,1));
+                { if the register is used as index and base, we have to increase for base as well
+                  and adapt base }
+                if taicpu(hp1).oper[0]^.ref^.base=taicpu(p).oper[1]^.reg then
+                  begin
+                    taicpu(hp1).oper[0]^.ref^.base:=taicpu(p).oper[0]^.ref^.base;
+                    inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.ref^.offset);
+                  end;
+              end
+            else
+              begin
+                inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.ref^.offset);
+                taicpu(hp1).oper[0]^.ref^.base:=taicpu(p).oper[0]^.ref^.base;
+              end;
             if taicpu(p).oper[0]^.ref^.index<>NR_NO then
               begin
                 taicpu(hp1).oper[0]^.ref^.base:=taicpu(hp1).oper[0]^.ref^.index;
