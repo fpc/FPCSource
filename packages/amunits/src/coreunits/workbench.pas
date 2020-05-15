@@ -852,7 +852,7 @@ VAR
 
 FUNCTION AddAppIconA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; text_ : pCHAR location 'a0'; msgport : pMsgPort location 'a1'; lock : BPTR location 'a2'; diskobj : pDiskObject location 'a3'; const taglist : pTagItem location 'a4') : pAppIcon; syscall WorkbenchBase 060;
 FUNCTION AddAppMenuItemA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; text_ : pCHAR location 'a0'; msgport : pMsgPort location 'a1'; const taglist : pTagItem location 'a2') : pAppMenuItem; syscall WorkbenchBase 072;
-FUNCTION AddAppWindowA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; window : pWindow location 'a0'; msgport : pMsgPort location 'a1'; const taglist : pTagItem location 'a2') : pAppWindow; syscall WorkbenchBase 042;
+FUNCTION AddAppWindowA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; window : pWindow location 'a0'; msgport : pMsgPort location 'a1'; const taglist : pTagItem location 'a2') : pAppWindow; syscall WorkbenchBase 048;
 FUNCTION RemoveAppIcon(appIcon : pAppIcon location 'a0') : longbool; syscall WorkbenchBase 066;
 FUNCTION RemoveAppMenuItem(appMenuItem : pAppMenuItem location 'a0') : longbool; syscall WorkbenchBase 078;
 FUNCTION RemoveAppWindow(appWindow : pAppWindow location 'a0') : longbool; syscall WorkbenchBase 054;
