@@ -328,6 +328,8 @@ begin
         end
        else
          Dummy:=IP;
+      if Length(Dummy)>3 then 
+        exit;   
       Val (Dummy,k,J);
       If J<>0 then
         exit;
