@@ -1138,7 +1138,7 @@ type
     // Dispatch and message modifiers:
     DispatchField: String;
     DispatchStrField: String;
-    MsgIntToProc, MsgStrToProc: TMessageIdToProc_List; // // not stored by filer
+    MsgIntToProc, MsgStrToProc: TMessageIdToProc_List; // not stored by filer
     ElevatedLocals: TPas2jsElevatedLocals;
   public
     constructor Create; override;

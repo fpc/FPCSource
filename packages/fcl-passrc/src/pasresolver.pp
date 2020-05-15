@@ -14988,7 +14988,7 @@ var
 begin
   Result:=nil;
   if not (Expr.CustomData is TResolvedReference) then
-    RaiseNotYetImplemented(20170518203134,Expr);
+    RaiseNotYetImplemented(20170518203134,Expr,GetObjName(Expr.CustomData));
   Ref:=TResolvedReference(Expr.CustomData);
   Decl:=Ref.Declaration;
   {$IFDEF VerbosePasResEval}
@@ -28087,7 +28087,7 @@ begin
     Data:=TPasSpecializeTypeData.Create;
     // add to free list
     AddResolveData(El,Data,lkModule);
-    Data.SpecializedType:=Result as TPasGenericType;
+    Data.SpecializedType:=Result as TPasGenericType; // no AddRef
     end;
 end;
 
