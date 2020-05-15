@@ -303,6 +303,9 @@ end;
 
 function StrToHostAddr(IP : AnsiString) : in_addr ;
 
+Const
+  AllowedChars = ['.','0'..'9'];
+
 Var
     Dummy : AnsiString;
     I,j,k     : Longint;
@@ -310,6 +313,9 @@ Var
 
 begin
   strtohostaddr.s_addr:=0;              //:=NoAddress;
+  for I:=1 to Length(IP) do
+    if Not (IP[I] in AllowedChars) then 
+      exit;
   For I:=1 to 4 do
     begin
       If I<4 Then
