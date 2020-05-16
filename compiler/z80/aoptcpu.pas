@@ -362,7 +362,57 @@ Implementation
                        ((p.oper[1]^.typ = top_reg) and not(Reg1ReadDependsOnReg2(p.oper[1]^.reg,reg))) or
                        ((p.oper[1]^.typ = top_ref) and not RegInRef(reg,p.oper[1]^.ref^)));
             end;
-          { todo: all the remaining instructions }
+          A_PUSH,A_EX,A_EXX,A_LDI,A_LDIR,A_LDD,A_LDDR,A_CPI,A_CPIR,A_CPD,A_CPDR,
+          A_ADD,A_ADC,A_SBC,A_CP,A_INC,A_DEC,A_DAA,A_CPL,A_NEG,A_CCF,A_SCF,
+          A_NOP,A_HALT,A_DI,A_EI,A_IM,A_RLCA,A_RLA,A_RRCA,A_RRA,A_RLC,A_RL,
+          A_RRC,A_RR,A_SLA,A_SRA,A_SRL,A_RLD,A_RRD,A_BIT,A_SET,A_RES,A_JP,A_JR,
+          A_DJNZ,A_CALL,A_RET,A_RETI,A_RETN,A_RST,A_INI,A_INIR,A_IND,A_INDR,
+          A_OUT,A_OUTI,A_OTIR,A_OUTD,A_OTDR:
+            result:=false;
+          A_POP:
+            begin
+              if p.ops<>1 then
+                internalerror(2020051603);
+              if p.oper[0]^.typ<>top_reg then
+                internalerror(2020051604);
+              result:=Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg,reg);
+            end;
+          A_SUB,A_XOR:
+            begin
+              if p.ops<>2 then
+                internalerror(2020051605);
+              result:=(p.oper[0]^.typ=top_reg) and (p.oper[0]^.reg=NR_A) and
+                      (p.oper[1]^.typ=top_reg) and (p.oper[1]^.reg=NR_A) and
+                      Reg1WriteOverwritesReg2Entirely(NR_A,reg);
+            end;
+          A_AND:
+            begin
+              if p.ops<>2 then
+                internalerror(2020051606);
+              result:=(p.oper[0]^.typ=top_reg) and (p.oper[0]^.reg=NR_A) and
+                      (p.oper[1]^.typ=top_const) and (p.oper[1]^.val=0) and
+                      Reg1WriteOverwritesReg2Entirely(NR_A,reg);
+            end;
+          A_OR:
+            begin
+              if p.ops<>2 then
+                internalerror(2020051607);
+              result:=(p.oper[0]^.typ=top_reg) and (p.oper[0]^.reg=NR_A) and
+                      (p.oper[1]^.typ=top_const) and (byte(p.oper[1]^.val)=255) and
+                      Reg1WriteOverwritesReg2Entirely(NR_A,reg);
+            end;
+          A_IN:
+            begin
+              if p.ops<>2 then
+                internalerror(2020051608);
+              if p.oper[0]^.typ<>top_reg then
+                internalerror(2020051609);
+              if p.oper[1]^.typ<>top_ref then
+                internalerror(2020051610);
+              result:=Reg1WriteOverwritesReg2Entirely(p.oper[0]^.reg,reg) and
+                      (((p.oper[1]^.ref^.base<>NR_C) and (p.oper[1]^.ref^.index<>NR_C)) or
+                       not(Reg1ReadDependsOnReg2(NR_BC,reg)));
+            end;
           else
             internalerror(2020051111);
         end;
