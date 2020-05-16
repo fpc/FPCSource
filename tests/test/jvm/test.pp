@@ -229,6 +229,7 @@ begin
   j:=0;
   for i:=1 to 10 do
     j:=j+i;
+  i:=10;
   if (j<(i*(i+1) div 2)) or
     (j>(i*(i+1) div 2)) then
    exit(3);
@@ -1166,7 +1167,7 @@ begin
   i:=jint(f);
   f:=1.0;
   f:=jfloat(i);
-  if f<>123.125 then
+  if f<>1123434496.0 then
     exit;
 
   result:=-2;
@@ -1174,7 +1175,7 @@ begin
   l:=jlong(d);
   d:=1.0;
   d:=jdouble(l);
-  if d<>9876.0625 then
+  if d<>4666655037106159616 then
     exit;
   result:=0;
 end;
