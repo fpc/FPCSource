@@ -600,6 +600,7 @@ type
     pbifnFreeVar,
     pbifnOverflowCheckInt,
     pbifnProcType_Create,
+    pbifnProcType_CreateSafe,
     pbifnProcType_Equal,
     pbifnProgramMain,
     pbifnRaiseException, // rtl.raiseE
@@ -776,6 +777,7 @@ const
     'free', // rtl.free
     'oc', //  rtl.oc  pbifnOverflowCheckInt
     'createCallback', // rtl.createCallback  pbifnProcType_Create
+    'createSafeCallback', // rtl.createSafeCallback  pbifnProcType_CreateSafe
     'eqCallback', // rtl.eqCallback
     '$main',
     'raiseE', // rtl.raiseE
@@ -1286,7 +1288,8 @@ const
     proExtClassInstanceNoTypeMembers,
     proOpenAsDynArrays,
     proProcTypeWithoutIsNested,
-    proMethodAddrAsPointer
+    proMethodAddrAsPointer,
+    proSafecallAllowsDefault
     ];
 type
   TPas2JSResolver = class;
@@ -1878,7 +1881,8 @@ type
       FuncContext: TFunctionContext; pbivn: TPas2JSBuiltInName);
     // misc
     Function CreateCallback(Expr: TPasExpr; ResolvedEl: TPasResolverResult;
-      AContext: TConvertContext): TJSElement; virtual;
+      aSafeCall: boolean; AContext: TConvertContext): TJSElement; virtual;
+    Function CreateSafeCallback(Expr: TPasExpr; JS: TJSElement; AContext: TConvertContext): TJSElement; virtual;
     Function CreateExternalBracketAccessorCall(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function CreateAssignStatement(LeftEl: TPasExpr; AssignContext: TAssignContext): TJSElement; virtual;
     Function CreateGetEnumeratorLoop(El: TPasImplForLoop;
@@ -2057,6 +2061,7 @@ type
       pfStatic = 1;
       pfVarargs = 2;
       pfExternal = 4;
+      pfSafeCall = 8;
       // PropertyFlag
       pfGetFunction = 1; // getter is a function
       pfSetProcedure = 2; // setter is a function
@@ -4074,9 +4079,9 @@ begin
     Proc:=TPasProcedure(El.Parent);
 
     // calling convention
-    if Proc.CallingConvention<>ccDefault then
-      RaiseMsg(20170211214731,nPasElementNotSupported,sPasElementNotSupported,
-        [cCallingConventions[Proc.CallingConvention]],Proc);
+    if El.CallingConvention<>ccDefault then
+      RaiseMsg(20170211214731,nNotSupportedX,sNotSupportedX,
+        [cCallingConventions[El.CallingConvention]],Proc);
 
     for pm in Proc.Modifiers do
       if (not (pm in [pmVirtual, pmAbstract, pmOverride,
@@ -4257,6 +4262,13 @@ begin
         AddExternalPath(ExtName,Proc.LibrarySymbolName);
 
       end;
+    end
+  else
+    begin
+    // proc type, not proc
+    if not (El.CallingConvention in [ccDefault,ccSafeCall]) then
+      RaiseMsg(20200516134717,nNotSupportedX,sNotSupportedX,
+        [cCallingConventions[El.CallingConvention]],El);
     end;
 end;
 
@@ -7143,7 +7155,7 @@ begin
         begin
         if ResolvedEl.IdentEl is TPasProcedure then
           begin
-          Result:=CreateCallback(El.Operand,ResolvedEl,AContext);
+          Result:=CreateCallback(El.Operand,ResolvedEl,false,AContext);
           exit;
           end;
         end
@@ -11573,6 +11585,7 @@ begin
       RaiseNotSupported(Expr,AContext,20170501151316);
       end;
 
+    // inc(a,b)  ->  a = a+b  or setter(getter()+b)
     AssignContext:=TAssignContext.Create(Expr,nil,AContext);
     AContext.Resolver.ComputeElement(Expr,AssignContext.LeftResolved,[rcNoImplicitProc]);
     SetResolverValueExpr(AssignContext.RightResolved,
@@ -14527,7 +14540,7 @@ begin
   if El.IsNested then
     DoError(20170222231636,nPasElementNotSupported,sPasElementNotSupported,
       ['is nested'],El);
-  if El.CallingConvention<>ccDefault then
+  if not (El.CallingConvention in [ccDefault,ccSafeCall]) then
     DoError(20170222231532,nPasElementNotSupported,sPasElementNotSupported,
         ['calling convention '+cCallingConventions[El.CallingConvention]],El);
   if not HasTypeInfo(El,AContext) then exit;
@@ -14564,6 +14577,8 @@ begin
     Flags:=0;
     if ptmVarargs in El.Modifiers then
       inc(Flags,pfVarargs);
+    if El.CallingConvention=ccSafeCall then
+      inc(Flags,pfSafeCall);
     if Flags>0 then
       InnerCall.AddArg(CreateLiteralNumber(El,Flags));
 
@@ -16894,8 +16909,10 @@ begin
 end;
 
 function TPasToJSConverter.CreateCallback(Expr: TPasExpr;
-  ResolvedEl: TPasResolverResult; AContext: TConvertContext): TJSElement;
+  ResolvedEl: TPasResolverResult; aSafeCall: boolean; AContext: TConvertContext
+  ): TJSElement;
 // El is a reference to a proc
+// if aSafeCall then create  "rtl.createSafeCallback(Target,func)"
 // for a proc or nested proc simply use the function
 // for a method create  "rtl.createCallback(Target,func)"
 
@@ -16932,17 +16949,19 @@ begin
   aResolver:=AContext.Resolver;
 
   Proc:=TPasProcedure(ResolvedEl.IdentEl);
-  if (not (Proc.Parent is TPasMembersType))
+  if not (Proc.Parent is TPasMembersType)
       or (ptmStatic in Proc.ProcType.Modifiers) then
     begin
     // not an "of object" method -> simply use the function
     Result:=CreateReferencePathExpr(Proc,AContext);
+    if aSafeCall then
+      RaiseNotSupported(Expr,AContext,20200516144151,'safecall without object');
     exit;
     end;
   IsHelper:=aResolver.IsHelperMethod(Proc);
   NeedClass:=aResolver.IsClassMethod(Proc) and not aResolver.MethodIsStatic(Proc);
 
-  // an of-object method -> create "rtl.createCallback(Target,func)"
+  // a safcall or of-object method -> create "rtl.createCallback(Target,func)"
   TargetJS:=nil;
   Call:=nil;
   try
@@ -16988,7 +17007,7 @@ begin
         else if SelfScope.ClassRecScope<>nil then
           begin
           TargetName:=CreateReferencePath(SelfScope.ClassRecScope.Element,
-                                                        AContext,rpkPathAndName);
+                                                       AContext,rpkPathAndName);
           NeedClass:=false;
           end
         else
@@ -17006,11 +17025,15 @@ begin
     if NeedClass then
       // append '.$class'
       TargetJS:=CreateDotExpression(Expr,TargetJS,
-                             CreatePrimitiveDotExpr(GetBIName(pbivnPtrClass),PosEl));
+                        CreatePrimitiveDotExpr(GetBIName(pbivnPtrClass),PosEl));
 
     Call:=CreateCallExpression(Expr);
     // "rtl.createCallback"
-    Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnProcType_Create)]);
+    if aSafeCall then
+      TargetName:=GetBIName(pbifnProcType_CreateSafe)
+    else
+      TargetName:=GetBIName(pbifnProcType_Create);
+    Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),TargetName]);
     // add target
     Call.AddArg(TargetJS);
     TargetJS:=nil;
@@ -17034,6 +17057,59 @@ begin
       Call.Free;
       end;
   end;
+end;
+
+function TPasToJSConverter.CreateSafeCallback(Expr: TPasExpr; JS: TJSElement;
+  AContext: TConvertContext): TJSElement;
+var
+  Call: TJSCallExpression;
+  DotExpr: TJSDotMemberExpression;
+  Prim: TJSPrimaryExpressionIdent;
+begin
+  Result:=JS;
+  if AContext=nil then ;
+  if JS is TJSCallExpression then
+    begin
+    Call:=TJSCallExpression(JS);
+    if Call.Expr is TJSDotMemberExpression then
+      begin
+      DotExpr:=TJSDotMemberExpression(Call.Expr);
+      if DotExpr.MExpr is TJSPrimaryExpressionIdent then
+        begin
+        Prim:=TJSPrimaryExpressionIdent(DotExpr.MExpr);
+        if Prim.Name=TJSString(GetBIName(pbivnRTL)) then
+          begin
+          if DotExpr.Name=TJSString(GetBIName(pbifnProcType_Create)) then
+            // rtl.createCallback - > rtl.createSafeCallback
+            DotExpr.Name:=TJSString(GetBIName(pbifnProcType_CreateSafe));
+          end;
+        end;
+      end;
+    // Note: if the call is not a rtl.createCallback then there is no SafeCall
+    // e.g.  aSafeCall:=Btn1.GetOnClick();
+    end
+  else
+    begin
+    // enclose JS in rtl.createSafeCallback()
+    Call:=CreateCallExpression(Expr);
+    Result:=Call;
+    Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnProcType_CreateSafe)]);
+    if JS is TJSDotMemberExpression then
+      begin
+      // convert "a.fn"  to "rtl.createSafeCallback(a,fn)"
+      DotExpr:=TJSDotMemberExpression(JS);
+      Call.AddArg(DotExpr.MExpr);
+      DotExpr.MExpr:=nil;
+      Call.AddArg(CreateLiteralJSString(Expr,DotExpr.Name));
+      JS.Free;
+      end
+    else
+      begin
+      // convert "JS"  to  "rtl.createSafeCallback(null,JS)"
+      Call.AddArg(CreateLiteralNull(Expr));
+      Call.AddArg(JS);
+      end;
+    end;
 end;
 
 function TPasToJSConverter.CreateExternalBracketAccessorCall(El: TParamsExpr;
@@ -19731,7 +19807,7 @@ Var
   LeftIsProcType: Boolean;
   Call: TJSCallExpression;
   MinVal, MaxVal: TMaxPrecInt;
-  RightTypeEl, LeftTypeEl: TPasType;
+  LeftTypeEl, RightTypeEl: TPasType;
   aResolver: TPas2JSResolver;
   ObjLit: TJSObjectLiteral;
   GUID: TGUID;
@@ -19747,7 +19823,7 @@ begin
       begin
       aResolver.ComputeElement(El.left,AssignContext.LeftResolved,[rcNoImplicitProc]);
       Flags:=[];
-      LeftIsProcType:=aResolver.IsProcedureType(AssignContext.LeftResolved,true);
+      LeftIsProcType:=aResolver.IsProcedureType(AssignContext.LeftResolved,false);
       if LeftIsProcType then
         begin
         if msDelphi in AContext.CurrentModeSwitches then
@@ -19764,7 +19840,11 @@ begin
           and (AssignContext.RightResolved.IdentEl is TPasProcedure) then
         begin
         // Delphi allows assigning a proc without @: proctype:=proc
-        AssignContext.RightSide:=CreateCallback(El.right,AssignContext.RightResolved,AContext);
+        LeftTypeEl:=AssignContext.LeftResolved.LoTypeEl;
+        AssignContext.RightSide:=CreateCallback(El.right,
+             AssignContext.RightResolved,
+             TPasProcedureType(LeftTypeEl).CallingConvention=ccSafeCall,
+             AContext);
         end
       else if AssignContext.RightResolved.BaseType=btNil then
         begin
@@ -19965,6 +20045,18 @@ begin
             Call.AddArg(AssignContext.RightSide);
             AssignContext.RightSide:=Call;
             end;
+          end;
+        end
+      else if RightTypeEl is TPasProcedureType then
+        begin
+        LeftTypeEl:=AssignContext.LeftResolved.LoTypeEl;
+        if (LeftTypeEl is TPasProcedureType)
+            and (TPasProcedureType(AssignContext.LeftResolved.LoTypeEl).CallingConvention=ccSafeCall)
+            and (El.right is TUnaryExpr)
+            and (TUnaryExpr(El.right).OpCode=eopAddress) then
+          begin
+          // aSafeCall:=@Proc
+          AssignContext.RightSide:=CreateSafeCallback(El.right,AssignContext.RightSide,AContext);
           end;
         end;
       end;
@@ -22702,6 +22794,9 @@ begin
 
   aResolver.ComputeElement(El,ExprResolved,ExprFlags);
   ExprIsTempValid:=false;
+  {$IFDEF VerbosePas2JS}
+  writeln('TPasToJSConverter.CreateProcCallArg Arg=',GetResolverResultDbg(ArgResolved),' Expr=',GetResolverResultDbg(ExprResolved));
+  {$ENDIF}
 
   if (TargetArg.ArgType=nil) and (ExprResolved.LoTypeEl is TPasRecordType) then
     NeedVar:=false; // pass aRecord to UntypedArg -> no reference needed
@@ -22731,6 +22826,18 @@ begin
         end
       else
         Result:=CreateArrayInit(TPasArrayType(ArgTypeEl),El,El,AContext);
+      end
+    else if ExprResolved.BaseType=btProc then
+      begin
+      if (ArgTypeEl is TPasProcedureType)
+          and (msDelphi in AContext.CurrentModeSwitches)
+          and (ExprResolved.IdentEl is TPasProcedure) then
+        begin
+        // Delphi allows passing a proc address without @
+        Result:=CreateCallback(El,ExprResolved,
+             TPasProcedureType(ArgTypeEl).CallingConvention=ccSafeCall,
+             AContext);
+        end;
       end;
 
     if Result=nil then
@@ -22910,6 +23017,13 @@ begin
           {$ENDIF}
           Result:=CreateRecordCallClone(El,TPasRecordType(ExprTypeEl),Result,AContext);
           end;
+        end
+      else if (ExprResolved.LoTypeEl is TPasProcedureType)
+          and (ArgResolved.LoTypeEl is TPasProcedureType)
+          and (TPasProcedureType(ArgResolved.LoTypeEl).CallingConvention=ccSafeCall) then
+        begin
+        // pass proc to SafeCall proc type
+        Result:=CreateSafeCallback(El,Result,AContext);
         end;
       end;
     end;

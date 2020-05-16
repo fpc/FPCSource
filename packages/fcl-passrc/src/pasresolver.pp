@@ -1426,7 +1426,8 @@ type
     //ToDo: proStaticArrayCopy, // copy works with static arrays, returning a dynamic array
     //ToDo: proStaticArrayConcat, // concat works with static arrays, returning a dynamic array
     proProcTypeWithoutIsNested, // proc types can use nested procs without 'is nested'
-    proMethodAddrAsPointer   // can assign @method to a pointer
+    proMethodAddrAsPointer,  // can assign @method to a pointer
+    proSafecallAllowsDefault // allow assigning a default calling convetnion to a SafeCall proc
     );
   TPasResolverOptions = set of TPasResolverOption;
 
@@ -23178,10 +23179,17 @@ begin
     end;
   if Proc1.CallingConvention<>Proc2.CallingConvention then
     begin
-    if RaiseOnIncompatible then
-      RaiseMsg(20170402112253,nCallingConventionMismatch,sCallingConventionMismatch,
-        [],ErrorEl);
-    exit;
+    if (proSafecallAllowsDefault in Options)
+        and (Proc1.CallingConvention=ccSafeCall)
+        and (Proc2.CallingConvention=ccDefault) then
+      // ok
+    else
+      begin
+      if RaiseOnIncompatible then
+        RaiseMsg(20170402112253,nCallingConventionMismatch,sCallingConventionMismatch,
+          [],ErrorEl);
+      exit;
+      end;
     end;
   ProcArgs1:=Proc1.Args;
   ProcArgs2:=Proc2.Args;

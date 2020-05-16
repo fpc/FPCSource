@@ -129,8 +129,7 @@ var rtl = {
   exitcode: 0,
 
   run: function(module_name){
-  
-    function doRun(){
+    try {
       if (!rtl.hasString(module_name)) module_name='program';
       if (rtl.debug_load_units) rtl.debug('rtl.run module="'+module_name+'"');
       rtl.initRTTI();
@@ -143,17 +142,13 @@ var rtl = {
         var r = pas.program.$main();
         if (rtl.isNumber(r)) rtl.exitcode = r;
       }
-    }
-    
-    try {
-      doRun();
     } catch(re) {
       if (!rtl.showUncaughtExceptions) {
         throw re
       } else {  
         if (rtl.handleUncaughtException(re)) {
           rtl.showException(re);
-          rtl.exitCode = 216;
+          rtl.exitcode = 216;
         }  
       }
     } 
@@ -164,7 +159,8 @@ var rtl = {
     var errMsg = rtl.hasString(re.$classname) ? re.$classname : '';
     errMsg +=  ((errMsg) ? ': ' : '') + (re.hasOwnProperty('fMessage') ? re.fMessage : re);
     alert('Uncaught Exception : '+errMsg);
-  },        
+  },
+
   handleUncaughtException: function (e) {
     if (rtl.onUncaughtException) {
       try {
@@ -241,6 +237,23 @@ var rtl = {
       cb = function(){
         return fn.apply(scope,arguments);
       };
+    };
+    cb.scope = scope;
+    cb.fn = fn;
+    return cb;
+  },
+
+  createSafeCallback: function(scope, fn){
+    var cb = function(){
+      try{
+        if (typeof(fn)==='string'){
+          return scope[fn].apply(scope,arguments);
+        } else {
+          return fn.apply(scope,arguments);
+        };
+      } catch (err) {
+        if (!rtl.handleUncaughtException(err)) throw err;
+      }
     };
     cb.scope = scope;
     cb.fn = fn;

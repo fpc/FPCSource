@@ -736,6 +736,8 @@ type
     Procedure TestProcType_Typecast;
     Procedure TestProcType_PassProcToUntyped;
     Procedure TestProcType_PassProcToArray;
+    Procedure TestProcType_SafeCallObjFPC;
+    Procedure TestProcType_SafeCallDelphi;
 
     // pointer
     Procedure TestPointer;
@@ -16238,22 +16240,22 @@ end;
 procedure TTestModule.TestExternalClass_Method;
 begin
   StartProgram(false);
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  TExtA = class external name ''ExtObj''');
-  Add('    procedure DoIt(Id: longint = 1); external name ''$Execute'';');
-  Add('    procedure DoSome(Id: longint = 1);');
-  Add('  end;');
-  Add('var Obj: texta;');
-  Add('begin');
-  Add('  obj.doit;');
-  Add('  obj.doit();');
-  Add('  obj.doit(2);');
-  Add('  with obj do begin');
-  Add('    doit;');
-  Add('    doit();');
-  Add('    doit(3);');
-  Add('  end;');
+  Add(['{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''ExtObj''',
+  '    procedure DoIt(Id: longint = 1); external name ''$Execute'';',
+  '    procedure DoSome(Id: longint = 1);',
+  '  end;',
+  'var Obj: texta;',
+  'begin',
+  '  obj.doit;',
+  '  obj.doit();',
+  '  obj.doit(2);',
+  '  with obj do begin',
+  '    doit;',
+  '    doit();',
+  '    doit(3);',
+  '  end;']);
   ConvertProgram;
   CheckSource('TestExternalClass_Method',
     LinesToStr([ // statements
@@ -25489,29 +25491,31 @@ end;
 procedure TTestModule.TestProcType_MethodDelphi;
 begin
   StartProgram(false);
-  Add('{$mode delphi}');
-  Add('type');
-  Add('  TFuncInt = function(vA: longint = 1): longint of object;');
-  Add('  TObject = class');
-  Add('    function DoIt(vA: longint = 1): longint;');
-  Add('  end;');
-  Add('function TObject.DoIt(vA: longint = 1): longint;');
-  Add('begin');
-  Add('end;');
-  Add('var');
-  Add('  Obj: TObject;');
-  Add('  vP: tfuncint;');
-  Add('  b: boolean;');
-  Add('begin');
-  Add('  vp:=@obj.doit;'); // ok in fpc and delphi
-  Add('  vp:=obj.doit;'); // illegal in fpc, ok in delphi
-  Add('  vp;'); // ok in fpc and delphi
-  Add('  vp();');
-  Add('  vp(2);');
-  //Add('  b:=vp=@obj.doit;'); // ok in fpc, illegal in delphi
-  //Add('  b:=@obj.doit=vp;'); // ok in fpc, illegal in delphi
-  //Add('  b:=vp<>@obj.doit;'); // ok in fpc, illegal in delphi
-  //Add('  b:=@obj.doit<>vp;'); // ok in fpc, illegal in delphi
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TFuncInt = function(vA: longint = 1): longint of object;',
+  '  TObject = class',
+  '    function DoIt(vA: longint = 1): longint;',
+  '  end;',
+  'function TObject.DoIt(vA: longint = 1): longint;',
+  'begin',
+  'end;',
+  'var',
+  '  Obj: TObject;',
+  '  vP: tfuncint;',
+  '  b: boolean;',
+  'begin',
+  '  vp:=@obj.doit;', // ok in fpc and delphi
+  '  vp:=obj.doit;', // illegal in fpc, ok in delphi
+  '  vp;', // ok in fpc and delphi
+  '  vp();',
+  '  vp(2);',
+  //'  b:=vp=@obj.doit;', // ok in fpc, illegal in delphi
+  //'  b:=@obj.doit=vp;', // ok in fpc, illegal in delphi
+  //'  b:=vp<>@obj.doit;', // ok in fpc, illegal in delphi
+  //'  b:=@obj.doit<>vp;'); // ok in fpc, illegal in delphi
+  '']);
   ConvertProgram;
   CheckSource('TestProcType_MethodDelphi',
     LinesToStr([ // statements
@@ -26341,6 +26345,123 @@ begin
     '$mod.DoIt([]);',
     '$mod.DoIt([$mod.GetIt]);',
     '$mod.DoIt([$mod.Func]);',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_SafeCallObjFPC;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TEvent = procedure(i: longint) of object; safecall;',
+  '  TExtA = class external name ''ExtObj''',
+  '    procedure DoIt(Id: longint = 1); external name ''$Execute'';',
+  '    procedure DoSome(Id: longint = 1);',
+  '    procedure SetOnClick(const e: TEvent);',
+  '    property OnClick: TEvent write SetOnClick;',
+  '  end;',
+  'var',
+  '  Obj: texta;',
+  '  p: TEvent;',
+  'begin',
+  '  p:=p;',
+  '  p:=@obj.doit;',
+  '  p:=@obj.dosome;',
+  '  p:=TEvent(@obj.dosome);', // no safecall
+  '  obj.OnClick:=@obj.doit;',
+  '  obj.OnClick:=@obj.dosome;',
+  '  obj.setonclick(@obj.doit);',
+  '  obj.setonclick(@obj.dosome);',
+  '  with obj do begin',
+  '    p:=@doit;',
+  '    p:=@dosome;',
+  '    OnClick:=@doit;',
+  '    OnClick:=@dosome;',
+  '    setonclick(@doit);',
+  '    setonclick(@dosome);',
+  '  end;']);
+  ConvertProgram;
+  CheckSource('TestProcType_SafeCallObjFPC',
+    LinesToStr([ // statements
+    'this.Obj = null;',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.p;',
+    '$mod.p = rtl.createSafeCallback($mod.Obj, "$Execute");',
+    '$mod.p = rtl.createSafeCallback($mod.Obj, "DoSome");',
+    '$mod.p = rtl.createCallback($mod.Obj, "DoSome");',
+    '$mod.Obj.SetOnClick(rtl.createSafeCallback($mod.Obj, "$Execute"));',
+    '$mod.Obj.SetOnClick(rtl.createSafeCallback($mod.Obj, "DoSome"));',
+    '$mod.Obj.SetOnClick(rtl.createSafeCallback($mod.Obj, "$Execute"));',
+    '$mod.Obj.SetOnClick(rtl.createSafeCallback($mod.Obj, "DoSome"));',
+    'var $with1 = $mod.Obj;',
+    '$mod.p = rtl.createSafeCallback($with1, "$Execute");',
+    '$mod.p = rtl.createSafeCallback($with1, "DoSome");',
+    '$with1.SetOnClick(rtl.createSafeCallback($with1, "$Execute"));',
+    '$with1.SetOnClick(rtl.createSafeCallback($with1, "DoSome"));',
+    '$with1.SetOnClick(rtl.createSafeCallback($with1, "$Execute"));',
+    '$with1.SetOnClick(rtl.createSafeCallback($with1, "DoSome"));',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_SafeCallDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TEvent = procedure(i: longint) of object; safecall;',
+  '  TExtA = class external name ''ExtObj''',
+  '    procedure DoIt(Id: longint = 1); external name ''$Execute'';',
+  '    procedure DoSome(Id: longint = 1);',
+  '    procedure SetOnClick(const e: TEvent);',
+  '    property OnClick: TEvent write SetOnClick;',
+  '  end;',
+  'var',
+  '  Obj: texta;',
+  '  p: TEvent;',
+  'begin',
+  '  p:=p;',
+  '  p:=obj.doit;',
+  '  p:=obj.dosome;',
+  '  p:=TEvent(@obj.dosome);', // no safecall
+  '  obj.OnClick:=obj.doit;',
+  '  obj.OnClick:=obj.dosome;',
+  '  obj.setonclick(obj.doit);',
+  '  obj.setonclick(obj.dosome);',
+  '  with obj do begin',
+  '    p:=doit;',
+  '    p:=dosome;',
+  '    OnClick:=doit;',
+  '    OnClick:=dosome;',
+  '    setonclick(doit);',
+  '    setonclick(dosome);',
+  '  end;']);
+  ConvertProgram;
+  CheckSource('TestProcType_SafeCallDelphi',
+    LinesToStr([ // statements
+    'this.Obj = null;',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.p;',
+    '$mod.p = rtl.createSafeCallback($mod.Obj, "$Execute");',
+    '$mod.p = rtl.createSafeCallback($mod.Obj, "DoSome");',
+    '$mod.p = rtl.createCallback($mod.Obj, "DoSome");',
+    '$mod.Obj.SetOnClick(rtl.createSafeCallback($mod.Obj, "$Execute"));',
+    '$mod.Obj.SetOnClick(rtl.createSafeCallback($mod.Obj, "DoSome"));',
+    '$mod.Obj.SetOnClick(rtl.createSafeCallback($mod.Obj, "$Execute"));',
+    '$mod.Obj.SetOnClick(rtl.createSafeCallback($mod.Obj, "DoSome"));',
+    'var $with1 = $mod.Obj;',
+    '$mod.p = rtl.createSafeCallback($with1, "$Execute");',
+    '$mod.p = rtl.createSafeCallback($with1, "DoSome");',
+    '$with1.SetOnClick(rtl.createSafeCallback($with1, "$Execute"));',
+    '$with1.SetOnClick(rtl.createSafeCallback($with1, "DoSome"));',
+    '$with1.SetOnClick(rtl.createSafeCallback($with1, "$Execute"));',
+    '$with1.SetOnClick(rtl.createSafeCallback($with1, "DoSome"));',
     '']));
 end;
 
