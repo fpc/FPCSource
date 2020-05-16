@@ -1160,8 +1160,8 @@ unit cgcpu;
         else if (a>=low(longint)) then
           a:=longint(a)
         else
-	  internalerror(201810201);
-          
+          internalerror(201810201);
+
         case op of
           OP_NONE :
             begin
