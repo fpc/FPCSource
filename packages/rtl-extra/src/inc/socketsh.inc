@@ -193,6 +193,8 @@ function HostAddrToStr(Entry : in_addr) : AnsiString;
 function StrToHostAddr(IP : AnsiString) : in_addr ;
 function StrToNetAddr (IP : AnsiString) : in_addr;
 
+function TryStrToHostAddr(IP : AnsiString; out ip4: in_addr) : Boolean ;
+
 { these for are for netdb legacy compat}
 Function HostToNet     (Host : in_addr) : in_addr; deprecated;
 Function NetToHost     (Net  : in_addr) : in_addr; deprecated;
@@ -203,9 +205,10 @@ Function ShortNetToHost(Net  : Word) : Word; deprecated;
 
 // ipv6
 function HostAddrToStr6(Entry : Tin6_addr) : AnsiString;
-function StrToHostAddr6(IP   : String) : Tin6_addr;     // not implemented?!?
+function StrToHostAddr6(IP   : AnsiString) : Tin6_addr;     // not implemented?!?
 function NetAddrToStr6 (Entry: Tin6_addr) : AnsiString;
 function StrToNetAddr6 (IP   : AnsiString) : TIn6_Addr;
+function TryStrToHostAddr6(IP: AnsiString; out ip6: in6_addr): Boolean;
 
 CONST
 	NoAddress : in_addr  = (s_addr:0);

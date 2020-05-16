@@ -12,7 +12,10 @@
  **********************************************************************}
 {$PACKRECORDS 2}
 {.$DEFINE SOCKETS_DEBUG}
+{$ModeSwitch out}
+
 unit Sockets;
+
 Interface
 
 uses

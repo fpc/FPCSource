@@ -302,6 +302,16 @@ begin
 end;
 
 function StrToHostAddr(IP : AnsiString) : in_addr ;
+var
+  ip4: in_addr;
+begin
+  ip4.s_addr := 0;
+  StrToHostAddr.s_addr:=0;              //:=NoAddress;
+  if TryStrToHostAddr(IP, ip4) then
+    StrToHostAddr := ip4;
+end;
+
+function TryStrToHostAddr(IP: AnsiString; out ip4: in_addr): Boolean;
 
 Const
   AllowedChars = ['.','0'..'9'];
@@ -312,9 +322,10 @@ Var
     Temp : in_addr;
 
 begin
-  strtohostaddr.s_addr:=0;              //:=NoAddress;
+  TryStrToHostAddr := False;
+  ip4.s_addr:=0;              //:=NoAddress;
   for I:=1 to Length(IP) do
-    if Not (IP[I] in AllowedChars) then 
+    if Not (IP[I] in AllowedChars) then
       exit;
   For I:=1 to 4 do
     begin
@@ -328,8 +339,8 @@ begin
         end
        else
          Dummy:=IP;
-      if Length(Dummy)>3 then 
-        exit;   
+      if Length(Dummy)>3 then
+        exit;
       Val (Dummy,k,J);
       If J<>0 then
         exit;
@@ -339,7 +350,8 @@ begin
       If array4int(temp.s_addr)[i]<>k then
         exit;
    end;
-   strtohostaddr.s_addr:=ntohl(Temp.s_addr);
+   ip4.s_addr:=ntohl(Temp.s_addr);
+   TryStrToHostAddr := True;
 end;
 
 function StrToNetAddr(IP : AnsiString) : in_addr;
@@ -450,7 +462,24 @@ begin
     SetLength(HostAddrToStr6, Length(HostAddrToStr6)-1);
 end;
 
-function StrToHostAddr6(IP: String): in6_addr;
+function StrToHostAddr6(IP: AnsiString): in6_addr;
+var
+  i6: in6_addr;
+begin
+  i6.u6_addr32[0] := 0;
+  i6.u6_addr32[1] := 0;
+  i6.u6_addr32[2] := 0;
+  i6.u6_addr32[3] := 0;
+  StrToHostAddr6.u6_addr32[0] := 0;
+  StrToHostAddr6.u6_addr32[1] := 0;
+  StrToHostAddr6.u6_addr32[2] := 0;
+  StrToHostAddr6.u6_addr32[3] := 0;
+
+  if TryStrToHostAddr6(IP, i6) then
+    StrToHostAddr6 := i6;
+end;
+
+function TryStrToHostAddr6(IP: AnsiString; out ip6: in6_addr): Boolean;
 type
   TCharClass = (cHexDigit, cColon, cDot, cUnknown, cEndStr);
   TParserMode = (pmIPv6, pmIPv4);
@@ -553,10 +582,11 @@ var
   tmpByte: Byte = 0;
 
 begin
-  StrToHostAddr6.s6_addr32[0] := 0;
-  StrToHostAddr6.s6_addr32[1] := 0;
-  StrToHostAddr6.s6_addr32[2] := 0;
-  StrToHostAddr6.s6_addr32[3] := 0;
+  TryStrToHostAddr6 := False;
+  ip6.s6_addr32[0] := 0;
+  ip6.s6_addr32[1] := 0;
+  ip6.s6_addr32[2] := 0;
+  ip6.s6_addr32[3] := 0;
 
   if (Length(IP) > 45) or (Length(IP) < 2) then exit;
 
@@ -681,7 +711,7 @@ begin
   if coll_zero_seen then
   begin
     for tmpByte := 0 to coll_start_idx do
-      StrToHostAddr6.s6_addr16[tmpByte] := hextet_arr[tmpByte];
+      ip6.s6_addr16[tmpByte] := hextet_arr[tmpByte];
 
     // hextet_idx-1 points to the final byte we processed, in the hextet_arr
     // array. starting there, reading back to coll_start_idx, we copy these
@@ -693,7 +723,7 @@ begin
     idx := 7;
     while tmpByte > coll_start_idx do
     begin
-      StrToHostAddr6.s6_addr16[idx] := hextet_arr[tmpByte];
+      ip6.s6_addr16[idx] := hextet_arr[tmpByte];
       Dec(tmpByte);
       Dec(idx);
     end;
@@ -704,8 +734,9 @@ begin
     // NOTE: optimization note: memmove/memcpy equivalent could help here.
     if hextet_idx < 8 then exit;
     for tmpByte := 0 to 7 do
-      StrToHostAddr6.s6_addr16[tmpByte] := hextet_arr[tmpByte];
+      ip6.s6_addr16[tmpByte] := hextet_arr[tmpByte];
   end;
+  TryStrToHostAddr6 := True;
 end;
 
 function NetAddrToStr6 (Entry : TIn6_Addr) : ansiString;
