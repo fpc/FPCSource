@@ -262,8 +262,7 @@ Implementation
       if SuperRegistersEqual(reg,NR_DEFAULTFLAGS) and (reg<>NR_AF) then
         begin
           case p.opcode of
-            { todo: IN,INI,INIR,IND,INDR,OUT,OUTI,OTIR,OUTD,OTDR}
-            A_PUSH,A_POP,A_EX,A_EXX,A_NOP,A_HALT,A_DI,A_EI,A_IM,A_SET,A_RES,A_JP,A_JR,A_DJNZ,A_CALL,A_RET,A_RETI,A_RETN,A_RST:
+            A_PUSH,A_POP,A_EX,A_EXX,A_NOP,A_HALT,A_DI,A_EI,A_IM,A_SET,A_RES,A_JP,A_JR,A_DJNZ,A_CALL,A_RET,A_RETI,A_RETN,A_RST,A_OUT:
               result:=false;
             A_LD:
               begin
@@ -302,7 +301,7 @@ Implementation
                           (reg=NR_ZEROFLAG) or
                           (reg=NR_SIGNFLAG);
               end;
-            A_CPI,A_CPIR,A_CPD,A_CPDR,A_RLD,A_RRD,A_BIT:
+            A_CPI,A_CPIR,A_CPD,A_CPDR,A_RLD,A_RRD,A_BIT,A_INI,A_INIR,A_IND,A_INDR,A_OUTI,A_OTIR,A_OUTD,A_OTDR:
               result:=(reg=NR_ADDSUBTRACTFLAG) or
                       (reg=NR_PARITYOVERFLOWFLAG) or
                       (reg=NR_HALFCARRYFLAG) or
@@ -334,6 +333,19 @@ Implementation
               result:=(reg=NR_HALFCARRYFLAG) or
                       (reg=NR_ADDSUBTRACTFLAG) or
                       (reg=NR_CARRYFLAG);
+            A_IN:
+              begin
+                if p.ops<>2 then
+                  internalerror(2020051602);
+                if (p.oper[1]^.typ=top_ref) and ((p.oper[1]^.ref^.base=NR_C) or (p.oper[1]^.ref^.index=NR_C)) then
+                  result:=(reg=NR_ADDSUBTRACTFLAG) or
+                          (reg=NR_PARITYOVERFLOWFLAG) or
+                          (reg=NR_HALFCARRYFLAG) or
+                          (reg=NR_ZEROFLAG) or
+                          (reg=NR_SIGNFLAG)
+                else
+                  result:=false;
+              end;
             else
               internalerror(2020051111);
           end;
