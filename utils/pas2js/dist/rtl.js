@@ -145,19 +145,37 @@ var rtl = {
       }
     }
     
-    if (rtl.showUncaughtExceptions) {
-      try{
-        doRun();
-      } catch(re) {
-        var errMsg = rtl.hasString(re.$classname) ? re.$classname : '';
-	    errMsg +=  ((errMsg) ? ': ' : '') + (re.hasOwnProperty('fMessage') ? re.fMessage : re);
-        alert('Uncaught Exception : '+errMsg);
-        rtl.exitCode = 216;
+    try {
+      doRun();
+    } catch(re) {
+      if (!rtl.showUncaughtExceptions) {
+        throw re
+      } else {  
+        if (rtl.handleUncaughtException(re)) {
+          rtl.showException(re);
+          rtl.exitCode = 216;
+        }  
+      }
+    } 
+    return rtl.exitcode;
+  },
+  
+  showException : function (re) {
+    var errMsg = rtl.hasString(re.$classname) ? re.$classname : '';
+    errMsg +=  ((errMsg) ? ': ' : '') + (re.hasOwnProperty('fMessage') ? re.fMessage : re);
+    alert('Uncaught Exception : '+errMsg);
+  },        
+  handleUncaughtException: function (e) {
+    if (rtl.onUncaughtException) {
+      try {
+        rtl.onUncaughtException(e);
+        return false;
+      } catch (ee) {
+        return true; 
       }
     } else {
-      doRun();
+      return true;
     }
-    return rtl.exitcode;
   },
 
   loadintf: function(module){
