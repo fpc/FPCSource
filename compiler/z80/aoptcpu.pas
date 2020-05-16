@@ -262,7 +262,6 @@ Implementation
       if SuperRegistersEqual(reg,NR_DEFAULTFLAGS) and (reg<>NR_AF) then
         begin
           case p.opcode of
-            { todo: 16-bit ADD,ADC,SBC,INC,DEC }
             { todo: IN,INI,INIR,IND,INDR,OUT,OUTI,OTIR,OUTD,OTDR}
             A_PUSH,A_POP,A_EX,A_EXX,A_NOP,A_HALT,A_DI,A_EI,A_IM,A_SET,A_RES,A_JP,A_JR,A_DJNZ,A_CALL,A_RET,A_RETI,A_RETN,A_RST:
               result:=false;
@@ -285,13 +284,42 @@ Implementation
               result:=(reg=NR_ADDSUBTRACTFLAG) or
                       (reg=NR_PARITYOVERFLOWFLAG) or
                       (reg=NR_HALFCARRYFLAG);
-            A_CPI,A_CPIR,A_CPD,A_CPDR,A_INC,A_DEC,A_RLD,A_RRD,A_BIT:
+            A_INC,A_DEC:
+              begin
+                if p.ops<>1 then
+                  internalerror(2020051602);
+                if (p.oper[0]^.typ=top_reg) and ((p.oper[0]^.reg=NR_BC) or
+                                                 (p.oper[0]^.reg=NR_DE) or
+                                                 (p.oper[0]^.reg=NR_HL) or
+                                                 (p.oper[0]^.reg=NR_SP) or
+                                                 (p.oper[0]^.reg=NR_IX) or
+                                                 (p.oper[0]^.reg=NR_IY)) then
+                  result:=false
+                else
+                  result:=(reg=NR_ADDSUBTRACTFLAG) or
+                          (reg=NR_PARITYOVERFLOWFLAG) or
+                          (reg=NR_HALFCARRYFLAG) or
+                          (reg=NR_ZEROFLAG) or
+                          (reg=NR_SIGNFLAG);
+              end;
+            A_CPI,A_CPIR,A_CPD,A_CPDR,A_RLD,A_RRD,A_BIT:
               result:=(reg=NR_ADDSUBTRACTFLAG) or
                       (reg=NR_PARITYOVERFLOWFLAG) or
                       (reg=NR_HALFCARRYFLAG) or
                       (reg=NR_ZEROFLAG) or
                       (reg=NR_SIGNFLAG);
-            A_ADD,A_ADC,A_SUB,A_SBC,A_AND,A_OR,A_XOR,A_CP,A_NEG,A_RLC,A_RL,A_RRC,A_RR,A_SLA,A_SRA,A_SRL:
+            A_ADD:
+              begin
+                if p.ops<>2 then
+                  internalerror(2020051601);
+                if (p.oper[0]^.typ=top_reg) and ((p.oper[0]^.reg=NR_HL) or (p.oper[0]^.reg=NR_IX) or (p.oper[0]^.reg=NR_IY)) then
+                  result:=(reg=NR_HALFCARRYFLAG) or
+                          (reg=NR_ADDSUBTRACTFLAG) or
+                          (reg=NR_CARRYFLAG)
+                else
+                  result:=true;
+              end;
+            A_ADC,A_SUB,A_SBC,A_AND,A_OR,A_XOR,A_CP,A_NEG,A_RLC,A_RL,A_RRC,A_RR,A_SLA,A_SRA,A_SRL:
               result:=true;
             A_DAA:
               result:=(reg=NR_PARITYOVERFLOWFLAG) or
