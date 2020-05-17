@@ -4,7 +4,7 @@
 # System unit include files. These are composed from header and
 # implementation files.
 
-SYSNAMES=systemh heaph mathh filerec textrec system real2str sstrings innr \
+SYSNAMES=systemh heaph mathh filerec textrec system flt_conv flt_core flt_pack sstrings innr \
          file typefile text rtti heap astrings objpas objpash except int64 \
          generic dynarr varianth variant wstrings compproc
 
