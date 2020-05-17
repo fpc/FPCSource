@@ -191,7 +191,8 @@ implementation
       begin
          { always calculate boolean AND and OR from left to right }
          if (p.nodetype in [orn,andn]) and
-            is_boolean(p.left.resultdef) then
+            is_boolean(p.left.resultdef) and
+            (might_have_sideeffects(p.left) or might_have_sideeffects(p.right)) then
            begin
              if nf_swapped in p.flags then
                internalerror(200709253);
