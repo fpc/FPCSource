@@ -1562,9 +1562,9 @@ Unit AoptObj;
 {$else avr}
         result:=(hp.opcode=aopt_uncondjmp) and
 {$endif avr}
-{$if defined(arm) or defined(aarch64)}
+{$if defined(arm) or defined(aarch64) or defined(z80)}
           (hp.condition=c_None) and
-{$endif arm or aarch64}
+{$endif arm or aarch64 or z80}
           (hp.ops>0) and
 {$if defined(riscv32) or defined(riscv64)}
           (hp.oper[0]^.reg=NR_X0) and
