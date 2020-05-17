@@ -1503,15 +1503,19 @@ unit scandir;
       end;
 
     procedure dir_unitpath;
+      var
+        unitpath: TPathStr;
       begin
         if not current_module.in_global then
          Message(scan_w_switch_is_global)
         else
-          with current_scanner,current_module,localunitsearchpath do
-            begin
-              skipspace;
-              AddPath(path+source_info.DirSep+readcomment,false);
-            end;
+          begin
+            current_scanner.skipspace;
+            unitpath:=current_scanner.readcomment;
+            if current_module.path<>'' then
+             unitpath:=current_module.path+source_info.DirSep+unitpath;
+            current_module.localunitsearchpath.AddPath(unitpath,false);
+          end;
       end;
 
     procedure dir_varparacopyoutcheck;
