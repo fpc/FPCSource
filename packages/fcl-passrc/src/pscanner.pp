@@ -665,7 +665,8 @@ type
     po_CheckCondFunction,    // error on unknown function in conditional expression, default: return '0'
     po_StopOnErrorDirective, // error on user $Error, $message error|fatal
     po_ExtConstWithoutExpr,  // allow typed const without expression in external class and with external modifier
-    po_StopOnUnitInterface   // parse only a unit name and stop at interface keyword
+    po_StopOnUnitInterface,  // parse only a unit name and stop at interface keyword
+    po_IgnoreUnknownResource // Ignore resources for which no handler is registered.
     );
   TPOptions = set of TPOption;
 
@@ -3372,7 +3373,11 @@ begin
   if (H=Nil) then
     H:=FindResourceHandler('*');
   if (H=Nil) then
-    Error(nNoResourceSupport,SNoResourceSupport,[Ext]);
+    begin
+    if not (po_IgnoreUnknownResource in Options) then
+      Error(nNoResourceSupport,SNoResourceSupport,[Ext]);
+    exit;
+    end;
   // Let the handler take care of the rest.
   OptList:=TStringList.Create;
   try

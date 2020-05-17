@@ -131,7 +131,8 @@ const
     'CheckCondFunction',
     'StopOnErrorDirective',
     'ExtClassConstWithoutExpr',
-    'StopOnUnitInterface');
+    'StopOnUnitInterface',
+    'IgnoreUnknownResource');
 
   PCUDefaultModeSwitches: TModeSwitches = [
     msObjfpc,
