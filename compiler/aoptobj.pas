@@ -1557,11 +1557,11 @@ Unit AoptObj;
     { Returns True if hp is an unconditional jump to a label }
     function IsJumpToLabelUncond(hp: taicpu): boolean;
       begin
-{$if defined(avr)}
+{$if defined(avr) or defined(z80)}
         result:=(hp.opcode in aopt_uncondjmp) and
-{$else avr}
+{$else}
         result:=(hp.opcode=aopt_uncondjmp) and
-{$endif avr}
+{$endif}
 {$if defined(arm) or defined(aarch64) or defined(z80)}
           (hp.condition=c_None) and
 {$endif arm or aarch64 or z80}
@@ -1626,7 +1626,9 @@ Unit AoptObj;
 {$else powerpc}
         p.condition := C_None;
 {$endif powerpc}
+{$ifndef z80}
         p.opcode := aopt_uncondjmp;
+{$endif not z80}
 {$ifdef RISCV}
         p.loadoper(1, p.oper[p.ops-1]^);
         p.loadreg(0, NR_X0);
@@ -2231,7 +2233,7 @@ Unit AoptObj;
                         stoploop := False;
                     end
 {$ifndef JVM}
-                  else if (taicpu(p).opcode = aopt_condjmp) then
+                  else if (taicpu(p).opcode {$ifdef z80}in{$else}={$endif} aopt_condjmp) then
                     ThisPassResult := OptimizeConditionalJump(ThisLabel, p, hp1, stoploop)
 {$endif JVM}
                     ;
