@@ -1812,8 +1812,6 @@ implementation
 
         { automatic inlining? }
         if (cs_opt_autoinline in current_settings.optimizerswitches) and
-           { inlining not turned off? }
-           (cs_do_inline in current_settings.localswitches) and
            not(po_noinline in procdef.procoptions) and
            { no inlining yet? }
            not(procdef.has_inlininginfo) and not(has_nestedprocs) and
