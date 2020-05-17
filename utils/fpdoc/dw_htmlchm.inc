@@ -598,6 +598,11 @@ begin
     begin  //split into filename and prefix
     ALinkPrefix := Copy(AFilename,i+1,Length(AFilename));
     SetLength(AFilename, i-1);
+    if copy(ALinkPrefix,1,2)='..' then // workaround for project files.
+      begin
+        ALinkPrefix := 'ms-its:' + ChangeFileExt(ExtractFileName(AFilename), '.chm') + '::/';
+        AFilename := ChangeFileExt(AFilename, '.xct');
+      end;
     end
   else if ALinkPrefix = '' then
     begin  //synthesize outdir\pgk.xct, ms-its:pkg.chm::/
