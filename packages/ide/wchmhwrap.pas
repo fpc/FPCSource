@@ -116,12 +116,25 @@ begin
   FormatAlias:=Alias;
 end;
 
+function searchlocal(item:TChmSiteMapItem):string;
+var i:integer;
+    sitem : TChmSiteMapSubItem;
+begin
+  result:='';
+  for i:=0 to item.SubItemcount-1 do
+     begin
+       sitem:=item.subitem[i];
+       if sitem.local<>'' then
+          exit(sitem.local);
+     end;
+end;
+
 var
     m : Classes.TMemoryStream;
     i,j : integer;
     item : TChmSiteMapItem;
     tli: integer;
-    s  : String;
+    s,s2 : String;
 begin
  result:=false;
  if floaded then exit;
@@ -130,22 +143,10 @@ begin
      debugmessageS({$i %file%},'TCHMWrapper: indexfilename:'+fchmr.indexfile,{$i %line%},'1',0,0);
  {$endif}
 
-
+  if assigned(findex) then
+    freeandnil(findex);
   findex:=fchmr.GetIndexSitemap(false);
-(*  m:=fchmr.getobject(fchmr.indexfile);
-  try
-   if assigned(m) then
-     begin
-      {$ifdef wdebug}
-       debugmessageS({$i %file%},'TCHMWrapper: stream size loaded :'+inttostr(m.size),{$i %line%},'1',0,0);
-      {$endif}
-      findex.loadfromStream(m);
-    end;
-  finally
-    freeandnil(m);
-    end;
-    *)
-   {$ifdef wdebug}
+  {$ifdef wdebug}
      debugmessageS({$i %file%},'TCHMWrapper: loadindex after final ',{$i %line%},'1',0,0);
   {$endif}
 
@@ -164,10 +165,15 @@ begin
       s:=formatalias(item.text);
       if s<>'' then
         begin
-          if (length(item.local)>0) and (item.local[1]<>'/') then
-            tli:=TopicLinks^.AddItem('/'+item.local)
+          s2:='';
+          if item.SubItemcount>1 then
+           s2:=item.SubItem[1].local;
+          if s2='' then
+            s2:=searchlocal(item);
+          if (length(s2)>0) and (s2[1]<>'/') then
+            tli:=TopicLinks^.AddItem('/'+s2)
           else
-            tli:=TopicLinks^.AddItem(item.local);
+            tli:=TopicLinks^.AddItem(s2);
           TLI:=EncodeHTMLCtx(ID,TLI+1);
           IndexEntries^.Insert(NewIndexEntry(  FormatAlias(item.text),ID,TLI));
         end;
