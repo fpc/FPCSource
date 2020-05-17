@@ -583,10 +583,10 @@ var
 
 begin
   TryStrToHostAddr6 := False;
-  ip6.s6_addr32[0] := 0;
-  ip6.s6_addr32[1] := 0;
-  ip6.s6_addr32[2] := 0;
-  ip6.s6_addr32[3] := 0;
+  ip6.u6_addr32[0] := 0;
+  ip6.u6_addr32[1] := 0;
+  ip6.u6_addr32[2] := 0;
+  ip6.u6_addr32[3] := 0;
 
   if (Length(IP) > 45) or (Length(IP) < 2) then exit;
 
@@ -711,7 +711,7 @@ begin
   if coll_zero_seen then
   begin
     for tmpByte := 0 to coll_start_idx do
-      ip6.s6_addr16[tmpByte] := hextet_arr[tmpByte];
+      ip6.u6_addr16[tmpByte] := hextet_arr[tmpByte];
 
     // hextet_idx-1 points to the final byte we processed, in the hextet_arr
     // array. starting there, reading back to coll_start_idx, we copy these
@@ -723,7 +723,7 @@ begin
     idx := 7;
     while tmpByte > coll_start_idx do
     begin
-      ip6.s6_addr16[idx] := hextet_arr[tmpByte];
+      ip6.u6_addr16[idx] := hextet_arr[tmpByte];
       Dec(tmpByte);
       Dec(idx);
     end;
