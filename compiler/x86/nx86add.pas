@@ -60,6 +60,7 @@ unit nx86add;
 
         procedure second_cmpordinal;override;
         procedure second_addordinal;override;
+        procedure second_addboolean;override;
 {$ifdef SUPPORT_MMX}
         procedure second_opmmx;override;
 {$endif SUPPORT_MMX}
@@ -1507,9 +1508,11 @@ unit nx86add;
 
        pass_left_right;
 
-       { do have to allocate a register? If yes, then three opcode instructions are better, however for sub three op code instructions
+       { do we have to allocate a register? If yes, then three opcode instructions are better, however for sub three op code instructions
          make no sense if right is a reference }
-       if ((left.location.loc<>LOC_REGISTER) and (right.location.loc<>LOC_REGISTER) and ((nodetype<>subn) or not(right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]))) or
+       if ((left.location.loc<>LOC_REGISTER) and (right.location.loc<>LOC_REGISTER) and
+           ((nodetype<>subn) or not(right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE])) and
+           (not(nodetype in [orn,andn,xorn]))) or
          ((nodetype=addn) and (left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT]) and (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT])) then
          begin
            { allocate registers }
@@ -1604,6 +1607,17 @@ unit nx86add;
        if checkoverflow then
          cg.g_overflowcheck_loc(current_asmdata.CurrAsmList,Location,resultdef,ovloc);
      end;
+
+
+    procedure tx86addnode.second_addboolean;
+      begin
+        if (nodetype in [orn,andn]) and
+           (not(cs_full_boolean_eval in current_settings.localswitches) or
+          (nf_short_bool in flags)) then
+          inherited second_addboolean
+        else
+          second_addordinal;
+      end;
 
 
     procedure tx86addnode.second_cmpordinal;
