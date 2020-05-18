@@ -167,6 +167,7 @@ type
     Procedure TestFunctionDefBody1Compact;
     Procedure TestFunctionDefBody2;
     Procedure TestFunctionDefBody2Compact;
+    Procedure TestFunctionDefAsync;
     Procedure TestTryCatch;
     Procedure TestTryCatchCompact;
     Procedure TestTryFinally;
@@ -193,6 +194,7 @@ type
     Procedure TestUnaryDelete;
     Procedure TestUnaryVoid;
     Procedure TestUnaryTypeOf;
+    Procedure TestUnaryAwait;
     Procedure TestPrefixPlusPLus;
     Procedure TestPrefixMinusMinus;
     Procedure TestUnaryMinus;
@@ -345,6 +347,11 @@ end;
 procedure TTestExpressionWriter.TestUnaryTypeOf;
 begin
   TestUnary('typeof expresssion',TJSUnaryTypeOfExpression,'typeof a');
+end;
+
+procedure TTestExpressionWriter.TestUnaryAwait;
+begin
+  TestUnary('await expresssion',TJSAwaitExpression,'await a');
 end;
 
 procedure TTestExpressionWriter.TestPrefixPlusPLus;
@@ -1900,6 +1907,21 @@ begin
   L.B:=R;
   FD.AFunction.Body.A:=L;
   AssertWrite('Function, 2 statements, compact','function a(b) {b=b*10; return b}',FD);
+end;
+
+procedure TTestStatementWriter.TestFunctionDefAsync;
+
+Var
+  FD : TJSFunctionDeclarationStatement;
+
+begin
+  FD:=TJSFunctionDeclarationStatement.Create(0,0);
+  FD.AFunction:=TJSFuncDef.Create;
+  FD.AFunction.IsAsync:=true;
+  FD.AFunction.Name:='a';
+  AssertWrite('Async function',
+     'async function a() {'+sLineBreak
+    +'}',FD);
 end;
 
 procedure TTestStatementWriter.TestTryCatch;

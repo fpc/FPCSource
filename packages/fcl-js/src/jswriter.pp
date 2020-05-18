@@ -927,6 +927,8 @@ Var
 begin
   LastEl:=Writer.CurElement;
   C:=(woCompact in Options);
+  if fd.IsAsync then
+    Write('async ');
   Write('function ');
   If (FD.Name<>'') then
     Write(FD.Name);
