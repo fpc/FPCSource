@@ -1512,7 +1512,8 @@ unit scandir;
           begin
             current_scanner.skipspace;
             unitpath:=current_scanner.readcomment;
-            if current_module.path<>'' then
+            if (current_module.path<>'') and
+               not path_absolute(unitpath) then
              unitpath:=current_module.path+source_info.DirSep+unitpath;
             current_module.localunitsearchpath.AddPath(unitpath,false);
           end;
