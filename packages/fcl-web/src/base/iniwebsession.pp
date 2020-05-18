@@ -46,6 +46,7 @@ Type
   Public
     Destructor Destroy; override;
     Procedure Terminate; override;
+    function SessionVariableExists(VarName: String): Boolean; override;
     Procedure UpdateResponse(AResponse : TResponse); override;
     Procedure InitSession(ARequest : TRequest; OnNewSession, OnExpired: TNotifyEvent); override;
     Procedure InitResponse(AResponse : TResponse); override;
@@ -357,6 +358,12 @@ begin
   RemoveFromSessionState(ssActive);
   RemoveFromSessionState(ssNew);
   RemoveFromSessionState(ssExpired);
+end;
+
+function TIniWebSession.SessionVariableExists(VarName: String): Boolean;
+begin
+  CheckSession;
+  Result:=FIniFile.ValueExists(SData,VarName);
 end;
 
 procedure TIniWebSession.UpdateResponse(AResponse: TResponse);
