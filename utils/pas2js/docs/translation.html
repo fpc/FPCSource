@@ -2178,8 +2178,15 @@ function(){
 rtl = {
   ...
   createCallback: function(scope, fn){
-    var cb = function(){
-      return scope[fn].apply(scope,arguments);
+    var cb;
+    if (typeof(fn)==='string'){
+      cb = function(){
+        return scope[fn].apply(scope,arguments);
+      };
+    } else {
+      cb = function(){
+        return fn.apply(scope,arguments);
+      };
     };
     cb.scope = scope;
     cb.fn = fn;
@@ -2195,9 +2202,18 @@ rtl = {
     <ul>
     <li>You can assign a nested procedure to procedure variable.
     You don't need and you must not add the FPC "<i>is nested</i>" modifier.</li>
-    <li>A procedural typed declared as 'reference to' accepts in pas2js procedures,
+    <li>In pas2js a procedural typed declared as <i>'reference to'</i> accepts procedures,
     local procedures and methods. Delphi only supports capturing procedures and methods.
     FPC 3.0.4 does not support reference-to.</li>
+    <li>In pas2js the calling convention <i>safecall</i> has a special meaning:<br>
+    Assigning a procedure/method, uses <i>rtl.createSafeCallback</i> instead of
+    <i>createCallback</i>, enclosing a call in a <i>try..catch</i> block. When
+    an exception is thrown by JS, it is caught and delegated to
+    <i>rtl.handleUncaughtException(err)</i>.<br>
+    For example:<br>
+    <i>aButtonElement.OnClick:=@DoClick;</i> uses <i>rtl.createSafeCallback</i><br>
+    <i>aButtonElement.OnClick:=SomeElement.OnClick;</i> does not.<br>
+    </li>
     </ul>
     </div>
 
