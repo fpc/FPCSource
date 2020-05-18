@@ -445,7 +445,7 @@ begin
       '$'                   : HandleHexNumber;
       '-'                   : HandleMinus;
       '0'..'9'              : HandleNumber;
-      '''','#'              : HandleString
+      '''','#'              : HandleString;
       else
         HandleUnknown;
     end;
@@ -494,7 +494,7 @@ begin
     toWString : Result:=string(fLastTokenWStr);
     toFloat : if fFloatType<>#0 then
                 Result:=fLastTokenStr+fFloatType
-              else Result:=fLastTokenStr
+              else Result:=fLastTokenStr;
     else
       Result:=fLastTokenStr;
   end;
