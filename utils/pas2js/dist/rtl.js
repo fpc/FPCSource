@@ -146,7 +146,7 @@ var rtl = {
       if (!rtl.showUncaughtExceptions) {
         throw re
       } else {  
-        if (rtl.handleUncaughtException(re)) {
+        if (!rtl.handleUncaughtException(re)) {
           rtl.showException(re);
           rtl.exitcode = 216;
         }  
@@ -165,12 +165,12 @@ var rtl = {
     if (rtl.onUncaughtException) {
       try {
         rtl.onUncaughtException(e);
-        return false;
+        return true;
       } catch (ee) {
-        return true; 
+        return false; 
       }
     } else {
-      return true;
+      return false;
     }
   },
 
