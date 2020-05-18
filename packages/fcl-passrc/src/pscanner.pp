@@ -3321,6 +3321,7 @@ procedure TPascalScanner.HandleIncludeFile(Param: String);
 var
   NewSourceFile: TLineReader;
 begin
+  Param:=Trim(Param);
   if Length(Param)>1 then
     begin
     if (Param[1]='''') then
