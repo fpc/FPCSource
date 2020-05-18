@@ -101,6 +101,7 @@ type
     Procedure TestMethodSimple;
     Procedure TestMethodSimpleComment;
     Procedure TestMethodWithDotFails;
+    Procedure TestMethodWithDotOK;
     Procedure TestClassMethodSimple;
     Procedure TestClassMethodSimpleComment;
     Procedure TestConstructor;
@@ -910,7 +911,19 @@ begin
   ParseClassFail('Expected ";"',nParserExpectTokenError);
 end;
 
+procedure TTestClassType.TestMethodWithDotOK;
+
+begin
+  AddMember('Procedure DoSomething.Stupid=me');
+  ParseClass;
+  AssertEquals('1 members',1,TheClass.members.Count);
+  AssertEquals('1 method resolution procedure',TPasMethodResolution,members[0].ClassType);
+  AssertEquals('Default visibility',visDefault,Members[0].Visibility);
+  AssertNotNull('1 method resolution procedure',TPasMethodResolution(members[0]).ImplementationProc);
+end;
+
 procedure TTestClassType.TestClassMethodSimple;
+
 begin
   AddMember('Class Procedure DoSomething');
   ParseClass;
@@ -925,6 +938,7 @@ begin
 end;
 
 procedure TTestClassType.TestClassMethodSimpleComment;
+
 begin
   AddComment:=True;
   AddMember('{c} Class Procedure DoSomething');
