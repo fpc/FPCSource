@@ -16955,13 +16955,13 @@ begin
     // not an "of object" method -> simply use the function
     Result:=CreateReferencePathExpr(Proc,AContext);
     if aSafeCall then
-      RaiseNotSupported(Expr,AContext,20200516144151,'safecall without object');
+      Result:=CreateSafeCallback(Expr,Result,AContext);
     exit;
     end;
   IsHelper:=aResolver.IsHelperMethod(Proc);
   NeedClass:=aResolver.IsClassMethod(Proc) and not aResolver.MethodIsStatic(Proc);
 
-  // a safcall or of-object method -> create "rtl.createCallback(Target,func)"
+  // an of-object method -> create "rtl.createCallback(Target,func)"
   TargetJS:=nil;
   Call:=nil;
   try
