@@ -130,6 +130,7 @@ unit aoptx86;
         function OptPass1FSTP(var p : tai) : boolean;
         function OptPass1FLD(var p : tai) : boolean;
         function OptPass1Cmp(var p : tai) : boolean;
+        function OptPass1PXor(var p : tai) : boolean;
 
         function OptPass2MOV(var p : tai) : boolean;
         function OptPass2Imul(var p : tai) : boolean;
@@ -3946,6 +3947,34 @@ unit aoptx86;
                    end;
                end;
            end;
+     end;
+
+
+   function TX86AsmOptimizer.OptPass1PXor(var p: tai): boolean;
+     var
+       hp1: tai;
+     begin
+       {
+         remove the second (v)pxor from
+
+           (v)pxor reg,reg
+           ...
+           (v)pxor reg,reg
+       }
+       Result:=false;
+       if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) and
+         MatchOpType(taicpu(p),top_reg,top_reg) and
+         GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+         MatchInstruction(taicpu(hp1),taicpu(p).opcode,[taicpu(p).opsize]) and
+         MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[0]^) and
+         MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^) then
+         begin
+           DebugMsg(SPeepholeOptimization + 'PXorPXor2PXor done',hp1);
+           asml.Remove(hp1);
+           hp1.Free;
+           Result:=true;
+           Exit;
+         end;
      end;
 
 

@@ -127,6 +127,9 @@ uses
                   result:=OptPass1FLD(p);
                 A_CMP:
                   result:=OptPass1Cmp(p);
+                A_VPXOR,
+                A_PXOR:
+                  Result:=OptPass1PXor(p);
                 else
                   ;
               end;
