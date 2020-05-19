@@ -202,8 +202,9 @@ unit procinfo;
           procedure start_eh(list : TAsmList); virtual;
           { called to insert needed eh info into the exit code }
           procedure end_eh(list : TAsmList); virtual;
-          { Sets the pio_needs_parentfp flag for the current nested procedure and
-            all its parent procedures until parent_level }
+          { Sets the pio_needs_parentfp flag for the current nested procedure.
+            Sets both pio_needs_parentfp and pio_nested_access for all parent
+            procedures until parent_level }
           procedure set_needs_parentfp(parent_level: byte);
        end;
        tcprocinfo = class of tprocinfo;
@@ -442,11 +443,15 @@ implementation
           Internalerror(2020050302);
         if parent_level<normal_function_level then
           parent_level:=normal_function_level;
+        { Set pio_needs_parentfp for the current proc }
         pi:=Self;
-        repeat
-          include(pi.procdef.implprocoptions, pio_needs_parentfp);
-          pi:=pi.parent;
-        until pi.procdef.parast.symtablelevel<=parent_level;
+        include(pi.procdef.implprocoptions, pio_needs_parentfp);
+        { Set both pio_needs_parentfp and pio_nested_access for all parent procs until parent_level }
+        while pi.procdef.parast.symtablelevel>parent_level do
+          begin
+            pi:=pi.parent;
+            pi.procdef.implprocoptions:=pi.procdef.implprocoptions+[pio_needs_parentfp,pio_nested_access];
+          end;
       end;
 
 end.

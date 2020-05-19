@@ -2309,8 +2309,6 @@ implementation
          parentfpinitblock: tnode;
          old_parse_generic: boolean;
          recordtokens : boolean;
-         parentfp_sym: TSymEntry;
-
       begin
          old_current_procinfo:=current_procinfo;
          old_block_type:=block_type;
@@ -2385,25 +2383,6 @@ implementation
 
          { parse the code ... }
          code:=block(current_module.islibrary);
-
-         { If this is a nested procedure which does not access its parent's frame
-           pointer, we can optimize it by removing the hidden $parentfp parameter.
-           Do not perform this for:
-             - targets which use a special struct to access parent's variables;
-             - pure assembler procedures (for compatibility with old code).
-         }
-         if not (target_info.system in systems_fpnestedstruct) and
-            is_nested_pd(procdef) and
-            not (pio_needs_parentfp in procdef.implprocoptions) and
-            not (po_assembler in procdef.procoptions) then
-           begin
-             exclude(procdef.procoptions, po_delphi_nested_cc);
-             parentfp_sym:=procdef.parast.Find('parentfp');
-             if parentfp_sym = nil then
-               Internalerror(2020050301);
-             procdef.parast.Delete(parentfp_sym);
-             procdef.calcparas;
-           end;
 
          if recordtokens then
            begin

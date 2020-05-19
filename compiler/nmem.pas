@@ -53,6 +53,10 @@ interface
          lpf_forload
        );
        tloadparentfpnode = class(tunarynode)
+       private
+          _parentfpsym: tparavarsym;
+          function getparentfpsym: tparavarsym;
+       public
           parentpd : tprocdef;
           parentpdderef : tderef;
           kind: tloadparentfpkind;
@@ -65,6 +69,7 @@ interface
           function pass_typecheck:tnode;override;
           function docompare(p: tnode): boolean; override;
           function dogetcopy : tnode;override;
+          property parentfpsym: tparavarsym read getparentfpsym;
        end;
        tloadparentfpnodeclass = class of tloadparentfpnode;
 
@@ -372,32 +377,9 @@ implementation
 
 
     function tloadparentfpnode.pass_typecheck:tnode;
-{$ifdef dummy}
-      var
-        currpi : tprocinfo;
-        hsym   : tparavarsym;
-{$endif dummy}
       begin
         result:=nil;
         resultdef:=parentfpvoidpointertype;
-{$ifdef dummy}
-        { currently parentfps are never loaded in registers (FK) }
-        if (current_procinfo.procdef.parast.symtablelevel<>parentpd.parast.symtablelevel) then
-          begin
-            currpi:=current_procinfo;
-            { walk parents }
-            while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
-              begin
-                currpi:=currpi.parent;
-                if not assigned(currpi) then
-                  internalerror(2005040602);
-                hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
-                if not assigned(hsym) then
-                  internalerror(2005040601);
-                hsym.varregable:=vr_none;
-              end;
-          end;
-{$endif dummy}
       end;
 
 
@@ -407,6 +389,17 @@ implementation
         expectloc:=LOC_REGISTER;
       end;
 
+
+    function tloadparentfpnode.getparentfpsym: tparavarsym;
+      begin
+        if not assigned(_parentfpsym) then
+          begin
+            _parentfpsym:=tparavarsym(current_procinfo.procdef.parast.Find('parentfp'));
+            if not assigned(_parentfpsym) then
+              internalerror(200309281);
+          end;
+        result:=_parentfpsym;
+      end;
 
 {*****************************************************************************
                              TADDRNODE

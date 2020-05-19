@@ -2366,8 +2366,7 @@ implementation
               not is_nested_pd(def2))) or
             ((def1.typ=procdef) and                                 { d) }
              is_nested_pd(def1) and
-             ((not(po_delphi_nested_cc in def1.procoptions) and
-              (pio_needs_parentfp in tprocdef(def1).implprocoptions)) or
+             (not(po_delphi_nested_cc in def1.procoptions) or
               not is_nested_pd(def2))) or
             ((def1.typ=procvardef) and                              { e) }
              (is_nested_pd(def1)<>is_nested_pd(def2))) then

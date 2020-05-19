@@ -357,8 +357,6 @@ implementation
                    if assigned(left) then
                      internalerror(200309289);
                    left:=cloadparentfpnode.create(tprocdef(symtable.defowner),lpf_forload);
-                   { we can't inline the referenced parent procedure }
-                   include(tprocdef(symtable.defowner).implprocoptions,pio_nested_access);
                    { reference in nested procedures, variable needs to be in memory }
                    { and behaves as if its address escapes its parent block         }
                    make_not_regable(self,[ra_different_scope]);

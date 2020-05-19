@@ -865,6 +865,13 @@ implementation
                       location_reset(vs.initialloc,LOC_REGISTER,OS_ADDR);
                       vs.initialloc.register:=NR_FRAME_POINTER_REG;
                     end
+                  { Unused parameters ($parentfp for now) need to be kept in the original location
+                    to prevent allocation of registers/resources for them. }
+                  else if (vs.varstate <= vs_initialised) and
+                    (vo_is_parentfp in vs.varoptions) then
+                    begin
+                      tparavarsym(vs).paraloc[calleeside].get_location(vs.initialloc);
+                    end
                   else
                     begin
                       { if an open array is used, also its high parameter is used,
@@ -1055,6 +1062,9 @@ implementation
           loadn:
             if (tloadnode(n).symtableentry.typ in [staticvarsym,localvarsym,paravarsym]) then
               add_regvars(rv^,tabstractnormalvarsym(tloadnode(n).symtableentry).localloc);
+          loadparentfpn:
+            if current_procinfo.procdef.parast.symtablelevel>tloadparentfpnode(n).parentpd.parast.symtablelevel then
+              add_regvars(rv^,tloadparentfpnode(n).parentfpsym.localloc);
           vecn:
             begin
               { range checks sometimes need the high parameter }

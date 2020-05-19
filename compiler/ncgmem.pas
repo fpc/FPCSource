@@ -170,9 +170,7 @@ implementation
             location_reset(location,LOC_REGISTER,def_cgsize(parentfpvoidpointertype));
             currpi:=current_procinfo;
             { load framepointer of current proc }
-            hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
-            if not assigned(hsym) then
-              internalerror(200309281);
+            hsym:=parentfpsym;
             if (currpi.procdef.owner.symtablelevel=parentpd.parast.symtablelevel) and (hsym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
               location.register:=hsym.localloc.register
             else

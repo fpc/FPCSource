@@ -41,6 +41,7 @@ interface
           procedure push_value_para;virtual;
           procedure push_formal_para;virtual;
           procedure push_copyout_para;virtual;abstract;
+          function maybe_push_unused_para:boolean;virtual;
        public
           tempcgpara : tcgpara;
 
@@ -60,6 +61,7 @@ interface
           procedure release_para_temps;
           procedure reorder_parameters;
           procedure freeparas;
+          function is_parentfp_pushed:boolean;
        protected
           retloc: tcgpara;
           paralocs: array of pcgpara;
@@ -169,6 +171,8 @@ implementation
       begin
         if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
           internalerror(200304235);
+        if maybe_push_unused_para then
+          exit;
         { see the call to keep_para_array_range in ncal: if that call returned
           true, we overwrite the resultdef of left with its original resultdef
           (to keep track of the range of the original array); we inserted a type
@@ -262,6 +266,9 @@ implementation
            not push_zero_sized_value_para then
           exit;
 
+        if maybe_push_unused_para then
+          exit;
+
         { Move flags and jump in register to make it less complex }
         if left.location.loc in [LOC_FLAGS,LOC_JUMP,LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF] then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
@@ -273,11 +280,42 @@ implementation
 
     procedure tcgcallparanode.push_formal_para;
       begin
+        if maybe_push_unused_para then
+          exit;
         { allow passing of a constant to a const formaldef }
         if (parasym.varspez=vs_const) and
            not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
           hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
         push_addr_para;
+      end;
+
+
+    function tcgcallparanode.maybe_push_unused_para: boolean;
+      begin
+        { Check if the parameter is unused.
+          Only the $parentfp parameter is supported for now. }
+        result:=(vo_is_parentfp in parasym.varoptions) and (parasym.varstate<=vs_initialised);
+        if not result then
+          exit;
+        { The parameter is unused.
+          We can skip loading of the parameter when:
+            - the target does not strictly require all parameters (push_zero_sized_value_para = false)
+            and
+            - fixed stack is used
+              or the parameter is in a register
+              or the parameter is $parentfp. }
+        if not push_zero_sized_value_para and
+          (paramanager.use_fixed_stack or
+           (vo_is_parentfp in parasym.varoptions) or
+           (parasym.paraloc[callerside].Location^.Loc in [LOC_REGISTER,LOC_CREGISTER])) then
+          begin
+            { Skip loading }
+            parasym.paraloc[callerside].Location^.Loc:=LOC_VOID;
+            tempcgpara.Location^.Loc:=LOC_VOID;
+          end
+        else
+          { Load the dummy nil/0 value }
+          hlcg.a_load_const_cgpara(current_asmdata.CurrAsmList,left.resultdef,0,tempcgpara);
       end;
 
 
@@ -909,6 +947,20 @@ implementation
        end;
 
 
+    function tcgcallnode.is_parentfp_pushed: boolean;
+      var
+        i : longint;
+      begin
+        for i:=0 to procdefinition.paras.Count-1 do
+          with tparavarsym(procdefinition.paras[i]) do
+            if vo_is_parentfp in varoptions then
+              begin
+                result:=paraloc[callerside].Location^.Loc in [LOC_REFERENCE,LOC_CREFERENCE];
+                exit;
+              end;
+        result:=false;
+      end;
+
 
     procedure tcgcallnode.pass_generate_code;
       var
@@ -1258,9 +1310,10 @@ implementation
                pop_parasize(0);
            end
          { frame pointer parameter is popped by the caller when it's passed the
-           Delphi way }
+           Delphi way and $parentfp is used }
          else if (po_delphi_nested_cc in procdefinition.procoptions) and
-           not paramanager.use_fixed_stack then
+            not paramanager.use_fixed_stack and
+            is_parentfp_pushed() then
            pop_parasize(sizeof(pint));
 
          if procdefinition.generate_safecall_wrapper then

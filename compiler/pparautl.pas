@@ -156,7 +156,8 @@ implementation
               begin
                 vs:=cparavarsym.create('$parentfp',paranr,vs_value
                       ,parentfpvoidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
-                vs.varregable:=vr_none;
+                { Mark $parentfp as used by default }
+                vs.varstate:=vs_read;
               end
             else
               begin
