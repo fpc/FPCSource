@@ -197,6 +197,11 @@ unit hlcgobj;
              @param(r reference to get address from)
           }
           procedure a_loadaddr_ref_cgpara(list : TAsmList;fromsize : tdef;const r : treference;const cgpara : TCGPara);virtual;
+          {# Pass an undefined value as a parameter to a routine.
+             A generic version is provided and passes the 0/nil value
+             if the parameter's location is not a register.
+          }
+          procedure a_load_undefined_cgpara(list : TAsmList;size : tdef;const cgpara : TCGPara);virtual;
 
           { Remarks:
             * If a method specifies a size you have only to take care
@@ -1123,6 +1128,12 @@ implementation
            a_loadaddr_ref_reg(list,fromsize,cgpara.location^.def,r,hr);
            a_load_reg_cgpara(list,cgpara.def,hr,cgpara);
          end;
+    end;
+
+  procedure thlcgobj.a_load_undefined_cgpara(list: TAsmList; size: tdef; const cgpara: TCGPara);
+    begin
+      if not (cgpara.Location^.Loc in [LOC_REGISTER,LOC_CREGISTER]) then
+        a_load_const_cgpara(list,size,0,cgpara);
     end;
 
   function thlcgobj.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef): tcgpara;

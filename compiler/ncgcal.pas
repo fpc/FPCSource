@@ -314,8 +314,8 @@ implementation
             tempcgpara.Location^.Loc:=LOC_VOID;
           end
         else
-          { Load the dummy nil/0 value }
-          hlcg.a_load_const_cgpara(current_asmdata.CurrAsmList,left.resultdef,0,tempcgpara);
+          { Load an undefined dummy value }
+          hlcg.a_load_undefined_cgpara(current_asmdata.CurrAsmList,left.resultdef,tempcgpara);
       end;
 
 
