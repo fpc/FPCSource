@@ -105,7 +105,7 @@ implementation
           of the current routine (and hence it has not been moved into the
           nestedfp struct), get the original nestedfp parameter }
         useparentfppara:=not assigned(current_procinfo.procdef.parentfpstruct);
-        hsym:=parentfpsym;
+        hsym:=tparavarsym(current_procinfo.procdef.parast.Find('parentfp'));
         if current_procinfo.procdef.parast.symtablelevel>parentpd.parast.symtablelevel then
           useparentfppara:=
             useparentfppara or
