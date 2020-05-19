@@ -341,6 +341,8 @@ type
     Procedure TestProc_ReservedWords;
     Procedure TestProc_ConstRefWord;
     Procedure TestProc_Async;
+    Procedure TestProc_AWaitOutsideAsyncFail;
+    Procedure TestProc_AWait;
 
     // anonymous functions
     Procedure TestAnonymousProc_Assign_ObjFPC;
@@ -4632,6 +4634,58 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestProc_AWaitOutsideAsyncFail;
+begin
+  StartProgram(false);
+  Add([
+  'function Crawl(w: double): word; ',
+  'begin',
+  'end;',
+  'function Run(w: double): word;',
+  'begin',
+  '  Result:=await(Crawl(w));',
+  'end;',
+  'begin',
+  '  Run(1);']);
+  SetExpectedPasResolverError(sAWaitOnlyInAsyncProcedure,nAWaitOnlyInAsyncProcedure);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestProc_AWait;
+begin
+  StartProgram(false);
+  Add([
+  'function Crawl(d: double = 1.3): word; ',
+  'begin',
+  'end;',
+  'function Run(d: double): word; async;',
+  'begin',
+  '  Result:=await(1);',
+  '  Result:=await(Crawl);',
+  '  Result:=await(Crawl(4.5));',
+  'end;',
+  'begin',
+  '  Run(1);']);
+  ConvertProgram;
+  CheckSource('TestProc_AWait',
+    LinesToStr([ // statements
+    'this.Crawl = function (d) {',
+    '  var Result = 0;',
+    '  return Result;',
+    '};',
+    'this.Run = async function (d) {',
+    '  var Result = 0;',
+    '  Result = await 1;',
+    '  Result = await $mod.Crawl(1.3);',
+    '  Result = await $mod.Crawl(4.5);',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.Run(1);'
+    ]));
+end;
+
 procedure TTestModule.TestAnonymousProc_Assign_ObjFPC;
 begin
   StartProgram(false);
@@ -5117,22 +5171,31 @@ begin
   Add([
   '{$mode objfpc}',
   'type',
-  '  TFunc = reference to function(x: word): word;',
+  '  TFunc = reference to function(x: double): word;',
+  'function Crawl(d: double = 1.3): word; ',
+  'begin',
+  'end;',
   'var Func: TFunc;',
   'begin',
-  '  Func:=function(c:word):word async begin',
+  '  Func:=function(c:double):word async begin',
+  '    Result:=await(Crawl(c));',
   '  end;',
-  '  Func:=function(c:word):word async assembler asm',
+  '  Func:=function(c:double):word async assembler asm',
   '  end;',
   '  ']);
   ConvertProgram;
   CheckSource('TestAnonymousProc_Async',
     LinesToStr([ // statements
+    'this.Crawl = function (d) {',
+    '  var Result = 0;',
+    '  return Result;',
+    '};',
     'this.Func = null;',
     '']),
     LinesToStr([
     '$mod.Func = async function (c) {',
     '  var Result = 0;',
+    '  Result = await $mod.Crawl(c);',
     '  return Result;',
     '};',
     '$mod.Func = async function (c) {',

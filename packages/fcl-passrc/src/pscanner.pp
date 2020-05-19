@@ -666,8 +666,8 @@ type
     po_StopOnErrorDirective, // error on user $Error, $message error|fatal
     po_ExtConstWithoutExpr,  // allow typed const without expression in external class and with external modifier
     po_StopOnUnitInterface,  // parse only a unit name and stop at interface keyword
-    po_IgnoreUnknownResource, // Ignore resources for which no handler is registered.
-    po_AsyncProcs             // allow async procedure modifier
+    po_IgnoreUnknownResource,// Ignore resources for which no handler is registered.
+    po_AsyncProcs            // allow async procedure modifier
     );
   TPOptions = set of TPOption;
 

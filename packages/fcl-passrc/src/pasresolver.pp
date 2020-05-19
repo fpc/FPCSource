@@ -2341,6 +2341,7 @@ type
     function ProcNeedsParams(El: TPasProcedureType): boolean;
     function IsProcOverride(AncestorProc, DescendantProc: TPasProcedure): boolean;
     function GetTopLvlProc(El: TPasElement): TPasProcedure;
+    function GetParentProc(El: TPasElement): TPasProcedure;
     function GetRangeLength(RangeExpr: TPasExpr): TMaxPrecInt;
     function EvalRangeLimit(RangeExpr: TPasExpr; Flags: TResEvalFlags;
       EvalLow: boolean; ErrorEl: TPasElement): TResEvalValue; virtual; // compute low() or high()
@@ -28436,6 +28437,17 @@ begin
     begin
     if El is TPasProcedure then
       Result:=TPasProcedure(El);
+    El:=El.Parent;
+    end;
+end;
+
+function TPasResolver.GetParentProc(El: TPasElement): TPasProcedure;
+begin
+  Result:=nil;
+  while El<>nil do
+    begin
+    if El is TPasProcedure then
+      exit(TPasProcedure(El));
     El:=El.Parent;
     end;
 end;

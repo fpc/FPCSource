@@ -404,6 +404,8 @@ Works:
 - overflow check:
   -Co   : Overflow checking of integer operations
 - generics
+- async procedure modifier
+- function await(const expr: T): T
 
 ToDos:
 - range check:
@@ -500,6 +502,7 @@ const
   nDuplicateMessageIdXAtY = 4029;
   nDispatchRequiresX = 4030;
   nConstRefNotForXAsConst = 4031;
+  nAWaitOnlyInAsyncProcedure = 3144;
 // resourcestring patterns of messages
 resourcestring
   sPasElementNotSupported = 'Pascal element not supported: %s';
@@ -533,6 +536,7 @@ resourcestring
   sDuplicateMessageIdXAtY = 'Duplicate message id "%s" at %s';
   sDispatchRequiresX = 'Dispatch requires %s';
   sConstRefNotForXAsConst = 'ConstRef not yet implemented for %s. Treating as Const';
+  sAWaitOnlyInAsyncProcedure = 'await only available in async procedure';
 
 const
   ExtClassBracketAccessor = '[]'; // external name '[]' marks the array param getter/setter
@@ -1416,6 +1420,12 @@ type
       Params: TParamsExpr; out ResolvedEl: TPasResolverResult); override;
     function BI_Debugger_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    function BI_AWait_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    procedure BI_AWait_OnGetCallResult(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_AWait_OnEval(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
   public
     constructor Create; reintroduce;
     destructor Destroy; override;
@@ -2009,6 +2019,7 @@ type
     Function ConvertBuiltIn_Dispose(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Default(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Debugger(El: TPasExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltIn_AWait(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertRecordValues(El: TRecordValues; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertSelfExpression(El: TSelfExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBinaryExpression(El: TBinaryExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -5199,6 +5210,66 @@ begin
     Result:=cExact;
 end;
 
+function TPas2JSResolver.BI_AWait_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+// function await(const Expr: T): T
+var
+  Params: TParamsExpr;
+  Param: TPasExpr;
+  ParamResolved: TPasResolverResult;
+  ParentProc: TPasProcedure;
+begin
+  Result:=cIncompatible;
+
+  // check if inside async proc
+  ParentProc:=GetParentProc(Expr);
+  if (ParentProc=nil) or not ParentProc.IsAsync then
+    begin
+    if RaiseOnError then
+      RaiseMsg(20200519153349,nAWaitOnlyInAsyncProcedure,sAWaitOnlyInAsyncProcedure,[],Expr);
+    exit;
+    end;
+
+  if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
+    exit;
+  Params:=TParamsExpr(Expr);
+  Param:=Params.Params[0];
+  ComputeElement(Param,ParamResolved,[]);
+  if not (rrfReadable in ParamResolved.Flags) then
+    exit(CheckRaiseTypeArgNo(20200519151816,1,Param,ParamResolved,'jsvalue',RaiseOnError));
+
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
+  if Proc=nil then ;
+end;
+
+procedure TPas2JSResolver.BI_AWait_OnGetCallResult(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; out ResolvedEl: TPasResolverResult);
+// function await(const Expr: T): T
+var
+  Param: TPasExpr;
+begin
+  if length(Params.Params)<>1 then
+    RaiseMsg(20200519233144,nWrongNumberOfParametersForCallTo,
+      sWrongNumberOfParametersForCallTo,[Proc.Signature],Params);
+  Param:=Params.Params[0];
+  ComputeElement(Param,ResolvedEl,[]);
+end;
+
+procedure TPas2JSResolver.BI_AWait_OnEval(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue);
+var
+  Param: TPasExpr;
+  ParamResolved: TPasResolverResult;
+begin
+  Evaluated:=nil;
+  if length(Params.Params)<>1 then
+    RaiseMsg(20200519233220,nWrongNumberOfParametersForCallTo,
+      sWrongNumberOfParametersForCallTo,[Proc.Signature],Params);
+  Param:=Params.Params[0];
+  ComputeElement(Param,ParamResolved,[]);
+  Evaluated:=Eval(Param,Flags);
+end;
+
 constructor TPas2JSResolver.Create;
 var
   bt: TPas2jsBaseType;
@@ -5292,6 +5363,12 @@ begin
   AddBuiltInProc('Debugger','procedure Debugger',
       @BI_Debugger_OnGetCallCompatibility,nil,
       nil,nil,bfCustom,[bipfCanBeStatement]);
+  // ToDo: AddBuiltInProc('Await','function await(T; const Expr: TJSPromise): T',
+  //    @BI_Await_OnGetCallCompatibility,@BI_Await_OnGetCallResult,
+  //    nil,nil,bfCustom,[bipfCanBeStatement]);
+  AddBuiltInProc('AWait','function await(const Expr: T): T',
+      @BI_AWait_OnGetCallCompatibility,@BI_AWait_OnGetCallResult,
+      @BI_AWait_OnEval,nil,bfCustom,[bipfCanBeStatement]);
 end;
 
 function TPas2JSResolver.CheckTypeCastRes(const FromResolved,
@@ -10288,6 +10365,7 @@ begin
           bfCustom:
             case BuiltInProc.Element.Name of
             'Debugger': Result:=ConvertBuiltIn_Debugger(El,AContext);
+            'AWait': Result:=ConvertBuiltIn_AWait(El,AContext);
             else
               RaiseNotSupported(El,AContext,20181126101801,'built in custom proc '+BuiltInProc.Element.Name);
             end;
@@ -13130,6 +13208,22 @@ function TPasToJSConverter.ConvertBuiltIn_Debugger(El: TPasExpr;
 begin
   Result:=CreateLiteralCustomValue(El,'debugger');
   if AContext=nil then ;
+end;
+
+function TPasToJSConverter.ConvertBuiltIn_AWait(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+var
+  Param: TPasExpr;
+  JS: TJSElement;
+  AWaitJS: TJSAwaitExpression;
+begin
+  if length(El.Params)<>1 then
+    RaiseNotSupported(El,AContext,20200519233919);
+  Param:=El.Params[0];
+  JS:=ConvertExpression(Param,AContext);
+  AWaitJS:=TJSAwaitExpression(CreateElement(TJSAwaitExpression,El));
+  AWaitJS.A:=JS;
+  Result:=AWaitJS;
 end;
 
 function TPasToJSConverter.ConvertRecordValues(El: TRecordValues;
