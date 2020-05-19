@@ -432,6 +432,7 @@ type
     Procedure TestNestedForwardProcUnresolved;
     Procedure TestForwardProcFuncMismatch;
     Procedure TestForwardFuncResultMismatch;
+    Procedure TestForwardProcAssemblerMismatch;
     Procedure TestUnitIntfProc;
     Procedure TestUnitIntfProcUnresolved;
     Procedure TestUnitIntfMismatchArgName;
@@ -7109,6 +7110,17 @@ begin
   Add('begin');
   CheckResolverException('Result type mismatch, expected Longint, but found String',
     nResultTypeMismatchExpectedButFound);
+end;
+
+procedure TTestResolver.TestForwardProcAssemblerMismatch;
+begin
+  StartProgram(false);
+  Add('procedure Run; assembler; forward;');
+  Add('procedure Run;');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  CheckParserException('Expected "asm"',nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestUnitIntfProc;

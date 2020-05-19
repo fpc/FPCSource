@@ -7026,6 +7026,8 @@ begin
             {$ENDIF}
             CheckProcSignatureMatch(DeclProc,Proc,false);
             DeclProcScope.ImplProc:=Proc;
+            if DeclProc.IsAssembler then
+              Proc.Modifiers:=Proc.Modifiers+[pmAssembler];
             ProcScope.DeclarationProc:=DeclProc;
             // remove ImplProc from scope
             ParentScope.RemoveLocalIdentifier(Proc);
@@ -7272,6 +7274,8 @@ begin
     if DeclProc.IsExternal then
       RaiseXExpectedButYFound(20170216151725,'method','external method',ImplProc);
     CheckProcSignatureMatch(DeclProc,ImplProc,false);
+    if DeclProc.IsAssembler then
+      ImplProc.Modifiers:=ImplProc.Modifiers+[pmAssembler];
     ImplProcScope.DeclarationProc:=DeclProc;
     DeclProcScope.ImplProc:=ImplProc;
 
@@ -9209,6 +9213,8 @@ var
   ImplTemplType, DeclTemplType: TPasGenericTemplateType;
   NewImplPTMods: TProcTypeModifiers;
   ptm: TProcTypeModifier;
+  NewImplProcMods: TProcedureModifiers;
+  pm: TProcedureModifier;
 begin
   if ImplProc.ClassType<>DeclProc.ClassType then
     RaiseXExpectedButYFound(20170216151729,DeclProc.TypeName,ImplProc.TypeName,ImplProc);
@@ -9276,10 +9282,24 @@ begin
         [],DeclResult,ImplResult,ImplProc);
     end;
 
-  // modifiers
+  // calling convention
   if ImplProc.CallingConvention<>DeclProc.CallingConvention then
     RaiseMsg(20170216151731,nCallingConventionMismatch,sCallingConventionMismatch,[],ImplProc);
+
+  // proc modifiers
+  NewImplProcMods:=ImplProc.Modifiers-DeclProc.Modifiers-[pmAssembler];
+  if not IsOverride then
+    begin
+    // implementation proc must not add modifiers, except "assembler"
+    if NewImplProcMods<>[] then
+      for pm in NewImplProcMods do
+        RaiseMsg(20200518182445,nDirectiveXNotAllowedHere,sDirectiveXNotAllowedHere,
+          [ModifierNames[pm]],ImplProc.ProcType);
+    end;
+
+  // proc type modifiers
   NewImplPTMods:=ImplProc.ProcType.Modifiers-DeclProc.ProcType.Modifiers;
+  // implementation proc must not add modifiers
   if NewImplPTMods<>[] then
     for ptm in NewImplPTMods do
       RaiseMsg(20200425154821,nDirectiveXNotAllowedHere,sDirectiveXNotAllowedHere,

@@ -22,6 +22,7 @@ unit PasTree;
 {$if defined(debugrefcount) or defined(VerbosePasTreeMem) or defined(VerbosePasResolver)}
   {$define EnablePasTreeGlobalRefCount}
 {$endif}
+{$inline on}
 
 interface
 
@@ -646,8 +647,8 @@ type
     Ranges: TPasExprArray; // only valid if Parser po_arrayrangeexpr enabled
     PackMode : TPackMode;
     ElType: TPasType; // nil means array-of-const
-    function IsGenericArray : Boolean;
-    function IsPacked : Boolean;
+    function IsGenericArray : Boolean; inline;
+    function IsPacked : Boolean; inline;
     procedure AddRange(Range: TPasExpr);
   end;
 
@@ -730,8 +731,8 @@ type
     Members: TFPList;
     Constructor Create(const AName: string; AParent: TPasElement); override;
     Destructor Destroy; override;
-    Function IsPacked: Boolean;
-    Function IsBitPacked : Boolean;
+    Function IsPacked: Boolean; inline;
+    Function IsBitPacked : Boolean; inline;
     Procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   end;
@@ -828,9 +829,9 @@ type
 
   TPasProcedureType = class(TPasGenericType)
   private
-    function GetIsNested: Boolean;
-    function GetIsOfObject: Boolean;
-    function GetIsReference: Boolean;
+    function GetIsNested: Boolean; inline;
+    function GetIsOfObject: Boolean; inline;
+    function GetIsReference: Boolean; inline;
     procedure SetIsNested(const AValue: Boolean);
     procedure SetIsOfObject(const AValue: Boolean);
     procedure SetIsReference(AValue: Boolean);
@@ -969,7 +970,7 @@ type
   private
     FArgs: TFPList;
     FResolvedType : TPasType;
-    function GetIsClass: boolean;
+    function GetIsClass: boolean; inline;
     procedure SetIsClass(AValue: boolean);
   public
     constructor Create(const AName: string; AParent: TPasElement); override;
@@ -1043,9 +1044,9 @@ type
 
   TProcedureModifier = (pmVirtual, pmDynamic, pmAbstract, pmOverride,
                         pmExport, pmOverload, pmMessage, pmReintroduce,
-                        pmInline,pmAssembler, pmPublic,
-                        pmCompilerProc,pmExternal,pmForward, pmDispId, 
-                        pmNoReturn, pmFar, pmFinal);
+                        pmInline, pmAssembler, pmPublic,
+                        pmCompilerProc, pmExternal, pmForward, pmDispId,
+                        pmNoReturn, pmFar, pmFinal, pmAsync);
   TProcedureModifiers = Set of TProcedureModifier;
   TProcedureMessageType = (pmtNone,pmtInteger,pmtString);
 
@@ -1087,17 +1088,19 @@ type
     Body : TProcedureBody;
     NameParts: TProcedureNameParts; // only used for generic aka parametrized functions
     Procedure AddModifier(AModifier : TProcedureModifier);
-    Function IsVirtual : Boolean;
-    Function IsDynamic : Boolean;
-    Function IsAbstract : Boolean;
-    Function IsOverride : Boolean;
-    Function IsExported : Boolean;
-    Function IsExternal : Boolean;
-    Function IsOverload : Boolean;
-    Function IsMessage: Boolean;
-    Function IsReintroduced : Boolean;
-    Function IsStatic : Boolean;
-    Function IsForward: Boolean;
+    Function IsVirtual : Boolean; inline;
+    Function IsDynamic : Boolean; inline;
+    Function IsAbstract : Boolean; inline;
+    Function IsOverride : Boolean; inline;
+    Function IsExported : Boolean; inline;
+    Function IsExternal : Boolean; inline;
+    Function IsOverload : Boolean; inline;
+    Function IsMessage: Boolean; inline;
+    Function IsReintroduced : Boolean; inline;
+    Function IsStatic : Boolean; inline;
+    Function IsForward: Boolean; inline;
+    Function IsAssembler: Boolean; inline;
+    Function IsAsync: Boolean; inline;
     Function GetProcTypeEnum: TProcType; virtual;
     procedure SetNameParts(Parts: TProcedureNameParts);
     Property Modifiers : TProcedureModifiers Read FModifiers Write FModifiers;
@@ -1551,7 +1554,7 @@ type
     EndExpr : TPasExpr; // if LoopType=ltIn this is nil
     Body: TPasImplElement;
     Variable: TPasVariable; // not used by TPasParser
-    Function Down: boolean; // downto, backward compatibility
+    Function Down: boolean; inline;// downto, backward compatibility
     Function StartValue : String;
     Function EndValue: string;
   end;
@@ -1739,7 +1742,7 @@ const
                    'export', 'overload', 'message', 'reintroduce',
                    'inline','assembler','public',
                    'compilerproc','external','forward','dispid',
-                   'noreturn','far','final');
+                   'noreturn','far','final','async');
 
   VariableModifierNames : Array[TVariableModifier] of string
      = ('cvar', 'external', 'public', 'export', 'class', 'static');
@@ -4782,6 +4785,16 @@ end;
 function TPasProcedure.IsForward: Boolean;
 begin
   Result:=pmForward in FModifiers;
+end;
+
+function TPasProcedure.IsAssembler: Boolean;
+begin
+  Result:=pmAssembler in FModifiers;
+end;
+
+function TPasProcedure.IsAsync: Boolean;
+begin
+  Result:=pmAsync in FModifiers;
 end;
 
 function TPasProcedure.GetProcTypeEnum: TProcType;

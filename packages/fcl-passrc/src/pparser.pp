@@ -1357,13 +1357,15 @@ begin
       case TPasClassType(Parent).ObjKind of
       okInterface,okDispInterface:
         if not (PM in [pmOverload, pmMessage,
-                        pmDispId,pmNoReturn,pmFar,pmFinal]) then exit(false);
+                       pmDispId,pmNoReturn,pmFar,pmFinal]) then exit(false);
       end;
       exit;
       end
     else if Parent is TPasRecordType then
       begin
-      if not (PM in [pmOverload,
+      if PM=pmAsync then
+        exit(po_AsyncProcs in Options)
+      else if not (PM in [pmOverload,
                      pmInline, pmAssembler,
                      pmExternal,
                      pmNoReturn, pmFar, pmFinal]) then exit(false);
@@ -1378,7 +1380,12 @@ function TPasParser.TokenIsAnonymousProcedureModifier(Parent: TPasElement;
 begin
   Result:=IsProcModifier(S,PM);
   if not Result then exit;
-  Result:=PM in [pmAssembler];
+  case PM of
+  pmAssembler: Result:=true;
+  pmAsync: Result:=po_AsyncProcs in Options;
+  else
+    Result:=false;
+  end;
   if Parent=nil then ;
 end;
 
