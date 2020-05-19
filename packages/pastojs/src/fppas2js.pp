@@ -1238,7 +1238,8 @@ const
     po_AsmWhole,
     po_ResolveStandardTypes,
     po_ExtConstWithoutExpr,
-    po_StopOnUnitInterface];
+    po_StopOnUnitInterface,
+    po_AsyncProcs];
 
   btAllJSBaseTypes = [
     btChar,
@@ -4087,7 +4088,8 @@ begin
       if (not (pm in [pmVirtual, pmAbstract, pmOverride,
                       pmOverload, pmMessage, pmReintroduce,
                       pmInline, pmAssembler, pmPublic,
-                      pmExternal, pmForward])) then
+                      pmExternal, pmForward,
+                      pmAsync])) then
         RaiseNotYetImplemented(20170208142159,El,'modifier '+ModifierNames[pm]);
     for ptm in Proc.ProcType.Modifiers do
       if (not (ptm in [ptmOfObject,ptmVarargs,ptmStatic])) then
@@ -4234,7 +4236,7 @@ begin
         RaiseMsg(20170227095454,nMissingExternalName,sMissingExternalName,
           ['missing external name'],Proc);
 
-      for pm in [pmAssembler,pmForward,pmNoReturn,pmInline] do
+      for pm in [pmAssembler,pmForward,pmNoReturn,pmInline,pmAsync] do
         if pm in Proc.Modifiers then
           RaiseMsg(20170323100842,nInvalidXModifierY,sInvalidXModifierY,
             [Proc.ElementTypeName,ModifierNames[pm]],Proc);
@@ -15052,6 +15054,7 @@ begin
 
   FS:=CreateFunctionSt(ImplProc,ImplProc.Body<>nil);
   FD:=FS.AFunction;
+  FD.IsAsync:=El.IsAsync or ImplProc.IsAsync;
   if AssignSt<>nil then
     AssignSt.Expr:=FS
   else
