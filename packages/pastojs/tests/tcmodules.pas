@@ -340,7 +340,6 @@ type
     Procedure TestProc_LocalVarInit;
     Procedure TestProc_ReservedWords;
     Procedure TestProc_ConstRefWord;
-    Procedure TestProc_Async;
 
     // anonymous functions
     Procedure TestAnonymousProc_Assign_ObjFPC;
@@ -353,7 +352,6 @@ type
     Procedure TestAnonymousProc_NestedAssignResult;
     Procedure TestAnonymousProc_Class;
     Procedure TestAnonymousProc_ForLoop;
-    Procedure TestAnonymousProc_Async;
 
     // enums, sets
     Procedure TestEnum_Name;
@@ -4606,32 +4604,6 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestProc_Async;
-begin
-  StartProgram(false);
-  Add([
-  'procedure Fly(w: word); async; forward;',
-  'procedure Run(w: word); async;',
-  'begin',
-  'end;',
-  'procedure Fly(w: word); ',
-  'begin',
-  'end;',
-  'begin',
-  '  Run(1);']);
-  ConvertProgram;
-  CheckSource('TestProc_Async',
-    LinesToStr([ // statements
-    'this.Run = async function (w) {',
-    '};',
-    'this.Fly = async function (w) {',
-    '};',
-    '']),
-    LinesToStr([
-    '$mod.Run(1);'
-    ]));
-end;
-
 procedure TTestModule.TestAnonymousProc_Assign_ObjFPC;
 begin
   StartProgram(false);
@@ -5109,35 +5081,6 @@ begin
     LinesToStr([
     '$mod.DoIt();'
     ]));
-end;
-
-procedure TTestModule.TestAnonymousProc_Async;
-begin
-  StartProgram(false);
-  Add([
-  '{$mode objfpc}',
-  'type',
-  '  TFunc = reference to function(x: word): word;',
-  'var Func: TFunc;',
-  'begin',
-  '  Func:=function(c:word):word async begin',
-  '  end;',
-  '  Func:=function(c:word):word async assembler asm',
-  '  end;',
-  '  ']);
-  ConvertProgram;
-  CheckSource('TestAnonymousProc_Async',
-    LinesToStr([ // statements
-    'this.Func = null;',
-    '']),
-    LinesToStr([
-    '$mod.Func = async function (c) {',
-    '  var Result = 0;',
-    '  return Result;',
-    '};',
-    '$mod.Func = async function (c) {',
-    '};',
-    '']));
 end;
 
 procedure TTestModule.TestEnum_Name;

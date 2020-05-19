@@ -132,8 +132,7 @@ const
     'StopOnErrorDirective',
     'ExtClassConstWithoutExpr',
     'StopOnUnitInterface',
-    'IgnoreUnknownResource',
-    'AsyncProcs');
+    'IgnoreUnknownResource');
 
   PCUDefaultModeSwitches: TModeSwitches = [
     msObjfpc,
@@ -487,8 +486,7 @@ const
     'DispId',
     'NoReturn',
     'Far',
-    'Final',
-    'Async'
+    'Final'
     );
   PCUProcedureModifiersImplProc = [pmInline,pmAssembler,pmCompilerProc,pmNoReturn];
 
