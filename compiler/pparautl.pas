@@ -156,8 +156,6 @@ implementation
               begin
                 vs:=cparavarsym.create('$parentfp',paranr,vs_value
                       ,parentfpvoidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
-                { Mark $parentfp as used by default }
-                vs.varstate:=vs_read;
               end
             else
               begin
@@ -166,6 +164,8 @@ implementation
                 vs:=cparavarsym.create('$parentfp',paranr,vs_value,
                       tprocdef(pd.owner.defowner).parentfpstructptrtype,[vo_is_parentfp,vo_is_hidden_para]);
               end;
+            { Mark $parentfp as used by default }
+            vs.varstate:=vs_read;
             pd.parast.insert(vs);
 
             current_tokenpos:=storepos;
