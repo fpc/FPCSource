@@ -107,7 +107,7 @@ implementation
     defutil,
     procinfo,paramgr,
     dbgbase,
-    nbas,ncon,nld,nmem,nutils,
+    nadd,nbas,ncon,nld,nmem,nutils,
     tgobj,cgobj,hlcgobj,hlcgcpu
 {$ifdef powerpc}
     , cpupi
@@ -192,7 +192,8 @@ implementation
          { always calculate boolean AND and OR from left to right }
          if (p.nodetype in [orn,andn]) and
             is_boolean(p.left.resultdef) and
-            (might_have_sideeffects(p.left) or might_have_sideeffects(p.right)) then
+            (might_have_sideeffects(p.left,[mhs_exceptions]) or might_have_sideeffects(p.right,[mhs_exceptions]) or
+            (nf_short_bool in taddnode(p).flags)) then
            begin
              if nf_swapped in p.flags then
                internalerror(200709253);
