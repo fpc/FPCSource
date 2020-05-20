@@ -184,15 +184,17 @@ Uses
   function TAoptBaseCpu.RegModifiedByInstruction(Reg: TRegister; p1: tai): boolean;
     var
       i : Longint;
+      p: taicpu;
     begin
+      p:=taicpu(p1);
       result:=false;
-      for i:=0 to taicpu(p1).ops-1 do
-        if (taicpu(p1).oper[i]^.typ=top_reg) and Reg1ReadDependsOnReg2(Reg,taicpu(p1).oper[i]^.reg) and (taicpu(p1).spilling_get_operation_type(i) in [operand_write,operand_readwrite]) then
+      for i:=0 to p.ops-1 do
+        if (p.oper[i]^.typ=top_reg) and Reg1ReadDependsOnReg2(Reg,p.oper[i]^.reg) and (p.spilling_get_operation_type(i) in [operand_write,operand_readwrite]) then
           begin
             result:=true;
             exit;
           end;
-      case taicpu(p1).opcode of
+      case p.opcode of
         A_LD,A_EX,A_ADD,A_ADC,A_SUB,A_SBC,A_AND,A_OR,A_XOR,A_CP,A_INC,A_DEC,
         A_CCF,A_SCF,A_NOP,A_HALT,A_DI,A_EI,A_IM,A_RLC,A_RL,A_RRC,A_RR,A_SLA,
         A_SRA,A_SRL,A_BIT,A_SET,A_RES,A_JP,A_JR,A_CALL,A_RET,A_RETI,A_RETN,
@@ -221,6 +223,97 @@ Uses
         else
           internalerror(2020052001);
       end;
+      if not result and SuperRegistersEqual(reg,NR_DEFAULTFLAGS) then
+        begin
+          case p.opcode of
+            A_PUSH,A_POP,A_EX,A_EXX,A_NOP,A_HALT,A_DI,A_EI,A_IM,A_SET,A_RES,A_JP,A_JR,A_DJNZ,A_CALL,A_RET,A_RETI,A_RETN,A_RST,A_OUT:
+              result:=false;
+            A_LD:
+              begin
+                if p.ops<>2 then
+                  internalerror(2020051112);
+                { LD A,I or LD A,R ? }
+                if (p.oper[0]^.typ=top_reg) and (p.oper[0]^.reg=NR_A) and
+                   (p.oper[1]^.typ=top_reg) and ((p.oper[1]^.reg=NR_I) or (p.oper[1]^.reg=NR_R)) then
+                  result:=Reg1ReadDependsOnReg2(Reg,NR_ADDSUBTRACTFLAG) or
+                          Reg1ReadDependsOnReg2(Reg,NR_PARITYOVERFLOWFLAG) or
+                          Reg1ReadDependsOnReg2(Reg,NR_HALFCARRYFLAG) or
+                          Reg1ReadDependsOnReg2(Reg,NR_ZEROFLAG) or
+                          Reg1ReadDependsOnReg2(Reg,NR_SIGNFLAG)
+                else
+                  result:=false;
+              end;
+            A_LDI,A_LDIR,A_LDD,A_LDDR:
+              result:=Reg1ReadDependsOnReg2(Reg,NR_ADDSUBTRACTFLAG) or
+                      Reg1ReadDependsOnReg2(Reg,NR_PARITYOVERFLOWFLAG) or
+                      Reg1ReadDependsOnReg2(Reg,NR_HALFCARRYFLAG);
+            A_INC,A_DEC:
+              begin
+                if p.ops<>1 then
+                  internalerror(2020051602);
+                if (p.oper[0]^.typ=top_reg) and ((p.oper[0]^.reg=NR_BC) or
+                                                 (p.oper[0]^.reg=NR_DE) or
+                                                 (p.oper[0]^.reg=NR_HL) or
+                                                 (p.oper[0]^.reg=NR_SP) or
+                                                 (p.oper[0]^.reg=NR_IX) or
+                                                 (p.oper[0]^.reg=NR_IY)) then
+                  result:=false
+                else
+                  result:=Reg1ReadDependsOnReg2(Reg,NR_ADDSUBTRACTFLAG) or
+                          Reg1ReadDependsOnReg2(Reg,NR_PARITYOVERFLOWFLAG) or
+                          Reg1ReadDependsOnReg2(Reg,NR_HALFCARRYFLAG) or
+                          Reg1ReadDependsOnReg2(Reg,NR_ZEROFLAG) or
+                          Reg1ReadDependsOnReg2(Reg,NR_SIGNFLAG);
+              end;
+            A_CPI,A_CPIR,A_CPD,A_CPDR,A_RLD,A_RRD,A_BIT,A_INI,A_INIR,A_IND,A_INDR,A_OUTI,A_OTIR,A_OUTD,A_OTDR:
+              result:=Reg1ReadDependsOnReg2(Reg,NR_ADDSUBTRACTFLAG) or
+                      Reg1ReadDependsOnReg2(Reg,NR_PARITYOVERFLOWFLAG) or
+                      Reg1ReadDependsOnReg2(Reg,NR_HALFCARRYFLAG) or
+                      Reg1ReadDependsOnReg2(Reg,NR_ZEROFLAG) or
+                      Reg1ReadDependsOnReg2(Reg,NR_SIGNFLAG);
+            A_ADD:
+              begin
+                if p.ops<>2 then
+                  internalerror(2020051601);
+                if (p.oper[0]^.typ=top_reg) and ((p.oper[0]^.reg=NR_HL) or (p.oper[0]^.reg=NR_IX) or (p.oper[0]^.reg=NR_IY)) then
+                  result:=Reg1ReadDependsOnReg2(Reg,NR_HALFCARRYFLAG) or
+                          Reg1ReadDependsOnReg2(Reg,NR_ADDSUBTRACTFLAG) or
+                          Reg1ReadDependsOnReg2(Reg,NR_CARRYFLAG)
+                else
+                  result:=true;
+              end;
+            A_ADC,A_SUB,A_SBC,A_AND,A_OR,A_XOR,A_CP,A_NEG,A_RLC,A_RL,A_RRC,A_RR,A_SLA,A_SRA,A_SRL:
+              result:=true;
+            A_DAA:
+              result:=Reg1ReadDependsOnReg2(Reg,NR_PARITYOVERFLOWFLAG) or
+                      Reg1ReadDependsOnReg2(Reg,NR_HALFCARRYFLAG) or
+                      Reg1ReadDependsOnReg2(Reg,NR_ZEROFLAG) or
+                      Reg1ReadDependsOnReg2(Reg,NR_SIGNFLAG) or
+                      Reg1ReadDependsOnReg2(Reg,NR_CARRYFLAG);
+            A_CPL:
+              result:=Reg1ReadDependsOnReg2(Reg,NR_HALFCARRYFLAG) or
+                      Reg1ReadDependsOnReg2(Reg,NR_ADDSUBTRACTFLAG);
+            A_CCF,A_SCF,A_RLCA,A_RLA,A_RRCA,A_RRA:
+              result:=Reg1ReadDependsOnReg2(Reg,NR_HALFCARRYFLAG) or
+                      Reg1ReadDependsOnReg2(Reg,NR_ADDSUBTRACTFLAG) or
+                      Reg1ReadDependsOnReg2(Reg,NR_CARRYFLAG);
+            A_IN:
+              begin
+                if p.ops<>2 then
+                  internalerror(2020051602);
+                if (p.oper[1]^.typ=top_ref) and ((p.oper[1]^.ref^.base=NR_C) or (p.oper[1]^.ref^.index=NR_C)) then
+                  result:=Reg1ReadDependsOnReg2(Reg,NR_ADDSUBTRACTFLAG) or
+                          Reg1ReadDependsOnReg2(Reg,NR_PARITYOVERFLOWFLAG) or
+                          Reg1ReadDependsOnReg2(Reg,NR_HALFCARRYFLAG) or
+                          Reg1ReadDependsOnReg2(Reg,NR_ZEROFLAG) or
+                          Reg1ReadDependsOnReg2(Reg,NR_SIGNFLAG)
+                else
+                  result:=false;
+              end;
+            else
+              internalerror(2020051111);
+          end;
+        end;
     end;
 
 End.
