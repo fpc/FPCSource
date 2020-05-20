@@ -189,6 +189,35 @@ Implementation
             result:=true;
             exit;
           end;
+      case taicpu(p1).opcode of
+        A_LD,A_EX,A_ADD,A_ADC,A_SUB,A_SBC,A_AND,A_OR,A_XOR,A_CP,A_INC,A_DEC,
+        A_CCF,A_SCF,A_NOP,A_HALT,A_DI,A_EI,A_IM,A_RLC,A_RL,A_RRC,A_RR,A_SLA,
+        A_SRA,A_SRL,A_BIT,A_SET,A_RES,A_JP,A_JR,A_CALL,A_RET,A_RETI,A_RETN,
+        A_RST,A_IN,A_OUT:
+          ;
+        A_PUSH,A_POP:
+          result:=Reg1ReadDependsOnReg2(Reg,NR_SP);
+        A_EXX:
+          result:=Reg1ReadDependsOnReg2(Reg,NR_BC) or Reg1ReadDependsOnReg2(Reg,NR_BC_) or
+                  Reg1ReadDependsOnReg2(Reg,NR_DE) or Reg1ReadDependsOnReg2(Reg,NR_DE_) or
+                  Reg1ReadDependsOnReg2(Reg,NR_HL) or Reg1ReadDependsOnReg2(Reg,NR_HL_);
+        A_LDI,A_LDIR,A_LDD,A_LDDR:
+          result:=Reg1ReadDependsOnReg2(Reg,NR_BC) or
+                  Reg1ReadDependsOnReg2(Reg,NR_DE) or
+                  Reg1ReadDependsOnReg2(Reg,NR_HL);
+        A_CPI,A_CPIR,A_CPD,A_CPDR:
+          result:=Reg1ReadDependsOnReg2(Reg,NR_BC) or
+                  Reg1ReadDependsOnReg2(Reg,NR_HL);
+        A_DAA,A_CPL,A_NEG,A_RLCA,A_RLA,A_RRCA,A_RRA,A_RLD,A_RRD:
+          result:=Reg1ReadDependsOnReg2(Reg,NR_A);
+        A_DJNZ:
+          result:=Reg1ReadDependsOnReg2(Reg,NR_B);
+        A_INI,A_INIR,A_IND,A_INDR,A_OUTI,A_OTIR,A_OUTD,A_OTDR:
+          result:=Reg1ReadDependsOnReg2(Reg,NR_B) or
+                  Reg1ReadDependsOnReg2(Reg,NR_HL);
+        else
+          internalerror(2020052001);
+      end;
     end;
 
 End.
