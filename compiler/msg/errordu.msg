@@ -3,10 +3,10 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 42047
+#   Based on errore.msg of SVN revision 45316
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2019 by the Free Pascal Development team
+#   Copyright (c) 1998-2020 by the Free Pascal Development team
 #
 #   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
@@ -154,7 +154,7 @@ general_t_unitscope=01027_T_Benutzter Unit-Bereich: $1
 #
 # Scanner
 #
-# 02105 is the last used one
+# 02106 is the last used one
 #
 # BeginOfTeX
 %
@@ -361,7 +361,7 @@ scan_e_compile_time_typeerror=02072_E_Compile time Ausdruck: Erwartete $1 aber e
 % The type-check of a compile time expression failed.
 scan_n_app_type_not_support=02073_N_APPTYPE wird vom Zielbetriebssystem nicht unterstützt
 % The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
-scan_e_illegal_optimization_specifier=02074_E_"$1" ist eine ungültige Optimierung 
+scan_e_illegal_optimization_specifier=02074_E_"$1" ist eine ungültige Optimierung
 % You specified an optimization with the \var{\{\$OPTIMIZATION xxx\}} directive,
 % and the compiler didn't recognize the optimization you specified.
 scan_w_setpeflags_not_support=02075_W_SETPEFLAGS wird vom Zielbetriebssystem nicht unterstützt
@@ -381,9 +381,9 @@ scan_w_pic_ignored=02081_W_PIC Direktive oder Schalter wird ignoriert
 % so the PIC directive and switch are ignored.
 scan_w_unsupported_switch_by_target=02082_W_Der Schalter "$1" wird vom derzeit ausgewählten Zielbetriebssystem nicht unterstützt
 % Some compiler switches like \$E are not supported by all targets.
-scan_w_frameworks_darwin_only=02084_W_Framework-bezogene Optionen werden nur für Darwin/Mac OS X unterstützt
+scan_w_frameworks_darwin_only=02084_W_Framework-bezogene Optionen werden nur für Darwin/macOS unterstützt
 % Frameworks are not a known concept, or at least not supported by FPC,
-% on operating systems other than Darwin/Mac OS X.
+% on operating systems other than Darwin/macOS.
 scan_e_illegal_minfpconstprec=02085_E_"$1" ist eine ungültige minimale Präzision von Fliesskommakonstanten
 % Valid minimal precisions for floating point constants are default, 32 and 64,
 % which mean respectively minimal (usually 32 bit), 32 bit and 64 bit precision.
@@ -441,7 +441,7 @@ scan_w_setpeosversion_not_support=02103_W_SETPEOSVERSION wird vom Zielbetriebssy
 % The \var{\{\$SETPEOSVERSION\}} directive is not supported by the target OS.
 scan_w_setpesubsysversion_not_support=02104_W_SETPESUBSYSVERSION wird vom Zielbetriebssystem nicht unterstützt
 % The \var{\{\$SETPESUBSYSVERSION\}} directive is not supported by the target OS.
-scan_n_changecputype=02105_N_Geänderter CPU-Typ muss zum angegebenen Controller passen
+scan_n_changecputype=02105_N_Geänderter Prozessortyp muss zum angegebenen Controller passen
 %
 % \end{description}
 # EndOfTeX
@@ -449,7 +449,7 @@ scan_n_changecputype=02105_N_Geänderter CPU-Typ muss zum angegebenen Controller
 #
 # Parser
 #
-# 03350 is the last used one
+# 03355 is the last used one
 #
 # BeginOfTeX
 %
@@ -527,7 +527,7 @@ parser_e_overloaded_have_same_parameters=03028_E_Overload-Funktion darf keine id
 parser_e_header_dont_match_forward=03029_E_Funktionskopf unterscheidet sich von voriger Deklaration "$1"
 % You declared a function with the same parameters but
 % different result type or function specifiers.
-parser_e_header_different_var_names=03030_E_Funktionskopf von "$1" passt nicht zur Forward-Deklaration, Variablename ändert sich: $2 => $3
+parser_e_header_different_var_names=03030_E_Funktionskopf von "$1" passt nicht zur Vorwärtsdeklaration, Variablename ändert sich: $2 => $3
 % You declared the function in the \var{interface} part, or with the
 % \var{forward} directive, but defined it with a different parameter list.
 parser_n_duplicate_enum=03031_N_Werte in Aufzählungen müssen aufsteigend sein
@@ -817,7 +817,7 @@ parser_e_cant_have_published=03114_E_Die Klasse kann keinen PUBLISHED Bereich ha
 % If you want a \var{published} section in a class definition, you must
 % use the \var{\{\$M+\}} switch, which turns on generation of type
 % information.
-parser_e_forward_declaration_must_be_resolved=03115_E_Forward-Deklaration der Klasse $1 muss hier aufgelöst werden, wenn sie als Elternklasse benutzt werden soll
+parser_e_forward_declaration_must_be_resolved=03115_E_Vorwärtsdeklaration der Klasse $1 muss hier aufgelöst werden, wenn sie als Elternklasse benutzt werden soll
 % To be able to use an object as an ancestor object, it must be defined
 % first. This error occurs in the following situation:
 % \begin{verbatim}
@@ -861,7 +861,7 @@ parser_f_assembler_reader_not_supported=03127_F_Gewählter Assembler-Leser nicht
 parser_e_proc_dir_conflict=03128_E_Prozedur-Direktive "$1" kann nicht mit $2 benutzt werden
 % You specified a procedure directive that conflicts with other directives.
 % For instance \var{cdecl} and \var{pascal} are mutually exclusive.
-parser_e_call_convention_dont_match_forward=03129_E_Aufrufkonvention passt nicht zur Forward-Deklaration
+parser_e_call_convention_dont_match_forward=03129_E_Aufrufkonvention passt nicht zur Vorwärtsdeklaration
 % This error happens when you declare a function or procedure with
 % e.g. \var{cdecl;} but omit this directive in the implementation, or vice
 % versa. The calling convention is part of the function declaration, and
@@ -1031,7 +1031,7 @@ parser_e_interface_has_no_guid=03180_E_Interface "$1" hat keine Interface-Identi
 % must have a GUID value set.
 parser_e_illegal_field_or_method=03181_E_Klassenfeld oder Methoden-Bezeichner "$1" unbekannt
 % Properties must refer to a field or method in the same class.
-parser_w_proc_overriding_calling=03182_W_Überschreibe die Calling Convention "$1" mit "$2"
+parser_w_proc_overriding_calling=03182_W_Überschreibe die Aufrufkonvention "$1" mit "$2"
 % There are two directives in the procedure declaration that specify a calling
 % convention. Only the last directive will be used.
 parser_e_no_procvarobj_const=03183_E_Die Konstante des Typs "procedure of object" kann nur mit NIL initialisiert werden
@@ -1071,11 +1071,11 @@ parser_w_cdecl_no_openstring=03191_W_cdecl'ared Functionen unterstützen keine o
 parser_e_initialized_not_for_threadvar=03192_E_Als threadvar deklarierte Variable kann nicht initialisiert werden
 % Variables declared as threadvar cannot be initialized with a default value.
 % The variables will always be filled with zero at the start of a new thread.
-parser_e_msg_only_for_classes=03193_E_Message directive ist nur in Klassen erlaubt
+parser_e_msg_only_for_classes=03193_E_Message Direktive ist nur in Klassen erlaubt
 % The message directive is only supported for Class types.
 parser_e_procedure_or_function_expected=03194_E_Procedure oder Function erwartet
 % A class method can only be specified for procedures and functions.
-parser_e_illegal_calling_convention=03195_W_Calling convention directive ignoriert: "$1"
+parser_e_illegal_calling_convention=03195_W_Aufrufkonventionsdirektive ignoriert: "$1"
 % Some calling conventions are supported only by certain CPUs. I.e. most non-i386 ports support
 % only the standard ABI calling convention of the CPU.
 parser_e_no_object_reintroduce=03196_E_REINTRODUCE kann in Objekten nicht benutzt werden
@@ -1215,7 +1215,7 @@ parser_e_type_object_constants=03230_E_Konstanten eines Objekts, das ein VMT ent
 parser_e_label_outside_proc=03231_E_Die Address von Labels, die außerhalb des aktuellen Scopes definiert wurden, können nicht verwendet werden
 % It isn't allowed to take the address of labels outside the
 % current procedure.
-parser_e_initialized_not_for_external=03233_E_Extern deklarierte Variablen können nicht intialisiert werden 
+parser_e_initialized_not_for_external=03233_E_Extern deklarierte Variablen können nicht intialisiert werden
 % Variables declared as external cannot be initialized with a default value.
 parser_e_illegal_function_result=03234_E_Ungültiger Funktionsergebnistyp
 % Some types like file types cannot be used as function result.
@@ -1276,7 +1276,7 @@ parser_e_no_local_para_def=03252_E_Parameter oder Ergebnistypen können keine lo
 % refer to the same type definition in the procedure headers of the interface and implementation of a unit
 % (both procedure headers would define a separate type). Keep in mind that expressions such as
 % ``file of byte'' or ``string[50]'' also define a new type.
-parser_e_abstract_and_sealed_conflict=03253_E_Konflikt zwischen ABSTRACT und SEALED 
+parser_e_abstract_and_sealed_conflict=03253_E_Konflikt zwischen ABSTRACT und SEALED
 % ABSTRACT and SEALED cannot be used together in one declaration
 parser_e_sealed_descendant=03254_E_Kann keinen Nachfahren der SEALED Klasse "$1" erzeugen
 % Sealed means that class cannot be derived by another class.
@@ -1367,7 +1367,7 @@ parser_h_should_use_reintroduce_objc=03280_H_Ersetzte Methoden können in Object
 % in Object Pascal, hidden methods are still reachable via inherited).
 % The type in which the inherited method is defined is explicitly mentioned, because this may either
 % be an objcclass or an objccategory.
-parser_e_implements_getter_not_default_cc=03281_E_Getter für das Interface implements müssen die voreingestellte calling convention des Ziels benutzen
+parser_e_implements_getter_not_default_cc=03281_E_Getter für das Interface implements müssen die voreingestellte Aufrufkonvention des Ziels benutzen
 % Interface getters are called via a helper in the run time library, and hence
 % have to use the default calling convention for the target (\var{register} on
 % i386 and x86\_64, \var{stdcall} on other architectures).
@@ -1380,7 +1380,7 @@ parser_e_operator_not_overloaded_2=03283_E_Überladenener Operator nicht vorhand
 parser_e_operator_not_overloaded_3=03284_E_Überladenener Operator nicht vorhanden: "$1" $2 "$3"
 % You are trying to use an overloaded operator when it is not overloaded for
 % this type.
-parser_e_more_array_elements_expected=03285_E_Erwarte ein weiteres Element für Array $1 
+parser_e_more_array_elements_expected=03285_E_Erwarte ein weiteres Element für Array $1
 % When declaring a typed constant array, you provided to few elements to initialize the array
 parser_e_string_const_too_long=03286_E_Stringkonstante zu lang, so lange ansistrings ausgeschaltet sind
 % Only when a piece of code is compiled with ansistrings enabled (\var{\{\$H+\}}), string constants
@@ -1409,7 +1409,7 @@ parser_e_widestring_to_ansi_compile_time=03293_E_Eine Unicodechar/string Konstan
 parser_e_objc_enumerator_2_0=03294_E_Objective-Pascal For-in Schleifen erfordern, dass der Modenschalter \{\$modeswitch ObjectiveC2\} aktiv ist
 % Objective-C ``fast enumeration'' support was added in Objective-C 2.0, and
 % hence the appropriate modeswitch has to be activated to expose this feature.
-% Note that Objective-C 2.0 programs require Mac OS X 10.5 or later.
+% Note that Objective-C 2.0 programs require macOS 10.5 or later.
 parser_e_objc_missing_enumeration_defs=03295_E_Der Kompiler findet die Typen NSFastEnumerationProtocol oder NSFastEnumerationState nicht in der Unit CocoaAll
 % Objective-C for-in loops (fast enumeration) require that the compiler can
 % find a unit called CocoaAll that contains definitions for the
@@ -1423,12 +1423,12 @@ parser_e_no_procvarnested_const=03296_E_Typisierte Konstanten des Typs 'procedur
 % procedural variable contains a reference to a nested procedure/function.
 % Therefore such typed constants can only be initialized with global
 % functions/procedures since these do not require a parent frame pointer.
-parser_f_no_generic_inside_generic=03297_F_Die Deklaration von etwas generischem  innerhalb etwas anderem generischen ist nicht erlaubt
+parser_f_no_generic_inside_generic=03297_F_Die Deklaration von etwas generischem innerhalb etwas anderem generischen ist nicht erlaubt
 % At the moment, scanner supports recording of only one token buffer at the time
 % (guarded by internal error 200511173 in tscannerfile.startrecordtokens).
 % Since generics are implemented by recording tokens, it is not possible to
 % have declaration of a generic (type or method) inside another generic.
-parser_e_forward_intf_declaration_must_be_resolved=03298_E_Die Vorwärts-Deklaration "$1" muss aufgelöst sein, bevor eine Klasse ihr folgen oder sie implementieren kann
+parser_e_forward_intf_declaration_must_be_resolved=03298_E_Die Vorwärtsdeklaration "$1" muss aufgelöst sein, bevor eine Klasse ihr folgen oder sie implementieren kann
 % An Objective-C protocol or Java Interface must be fully defined before classes can conform to it.
 % This error occurs in the following situation (example for Objective-C, but the same goes for Java interfaces):
 % \begin{verbatim}
@@ -1452,7 +1452,7 @@ parser_e_at_least_one_argument_must_be_of_type=03303_E_Entweder das Ergebnis ode
 % For example class operators either take an instance of the structured type in which they are defined, or they return one.
 parser_e_cant_use_type_parameters_here=03304_E_Typ-Parameter können initialization/finalization erfordern - Sie können deshalb nicht in varianten Records verwendet werden
 % Type parameters may be specialized with types which (e.g. \var{ansistring}) need initialization/finalization
-% code which is implicitly generated by the compiler. 
+% code which is implicitly generated by the compiler.
 parser_e_externals_no_section=03305_E_"external" deklarierte Variablen dürfen nicht in einer "custom section" sein
 % A section directive is not valid for variables being declared as external.
 parser_e_section_no_locals=03306_E_Nicht-statische und nicht-globale Variablen dürfen keine Direktive "section" haben
@@ -1508,7 +1508,7 @@ parser_e_jvm_invalid_virtual_constructor_call=03321_E_Einen virtuellen Konstrukt
 % for the current instance inside another constructor.
 parser_e_method_lower_visibility=03322_E_Die überschreibende Method "$1" kann keine niedrigere Sichtbarkeit ($2) haben als in der Elternklasse $3 ($4)
 % The JVM does not allow lowering the visibility of an overriding method.
-parser_e_nostackframe_without_assembler=03323_E_Prozedur/Funktion  mit der Aufrufoption NOSTACKFRAME aber ohne ASSEMBLER deklariert 
+parser_e_nostackframe_without_assembler=03323_E_Prozedur/Funktion  mit der Aufrufoption NOSTACKFRAME aber ohne ASSEMBLER deklariert
 % nostackframe call modifier is supposed to be used in conjunction with assembler.
 parser_e_nostackframe_with_locals=03324_E_Prozedur/Funktion  mit der Aufrufoption NOSTACKFRAME deklariert, aber die Größe des lokalen Stack ist $1
 % nostackframe call modifier used without assembler modifier
@@ -1610,10 +1610,24 @@ parser_e_only_static_members_via_object_type=03349_E_Nur statische Methoden und 
 %   TObj.test;
 % \end{verbatim}
 % \var{test} is not a static method and hence cannot be called through a type, but only using an instance.
-parse_e_callthrough_varargs=03350_E_Kann die variadische Funktion "$1" im C-Stil auf dieser Platform nicht als external redeklarieren; schon die erste Deklaration muss external sein
+parser_e_callthrough_varargs=03350_E_Kann die variadische Funktion "$1" im C-Stil auf dieser Platform nicht als external redeklarieren; schon die erste Deklaration muss external sein
 % If a function is declared normally in the interface or as a forward declaration, and then later as external, the compiler
 % must generate a stub that calls the external function. Due to code generation limitations, this cannot be done on some
 % platforms. Even on platforms where it is supported, this is quite inefficient.
+parser_e_unbound_attribute=03351_E_Nicht verknüpftes Kundenattribut: "$1".
+% A custom attribute is defined, but there is no identifier to bind it to.
+parser_e_enumeration_out_of_range=03352_E_Aufzählungssymbole können nur Werte im Bereich von -2^31 bis 2^31-1 annehmen
+% The size of enumeration values is limited to 4 bytes. As the value can be signed, the range
+% of valid values is limited to a signed 32 Bit value (i.e. \var{longint}).
+parser_w_enumeration_out_of_range=03353_W_Aufzählungssymbole können nur Werte im Bereich von -2^31 bis 2^31-1 annehmen
+% The size of enumeration values is limited to 4 bytes. As the value can be signed, the range
+% of valid values is limited to a signed 32 Bit value (i.e. \var{longint}).
+parser_e_method_for_type_in_other_unit=03354_E_Implementierung einer Methods für den Typ "$1", der in einer anderen Unit deklariert ist
+% This error occurs if one tries to define a method for a type that is originally declared
+% in a different unit.
+parser_e_generic_constraints_not_allowed_here=03355_E_Eine generische Einschränkung ist hier nicht erlaubt
+% At the current location specifying a constraint is not allowed. For example
+% in delphi mode, a constraint might not be specified in the header of the implementation.
 %
 % \end{description}
 # EndOfTeX
@@ -1621,7 +1635,7 @@ parse_e_callthrough_varargs=03350_E_Kann die variadische Funktion "$1" im C-Stil
 #
 # Type Checking
 #
-# 04125 is the last used one
+# 04128 is the last used one
 #
 # BeginOfTeX
 %
@@ -1928,7 +1942,7 @@ type_e_ordinal_or_string_expr_expected=04088_E_Ausdruck mit ordinalem Typ oder Z
 type_e_string_expr_expected=04089_E_Ausdruck mit Zeichenkette erwartet
 % The expression must be a string type.
 type_w_zero_to_nil=04090_W_Konvertiere 0 zu NIL
-% Use NIL rather than 0 when initialising a pointer. 
+% Use NIL rather than 0 when initialising a pointer.
 type_e_protocol_type_expected=04091_E_Objective-C Protokolltyp erwartet, erhielt aber "$1"
 % The compiler expected a protocol type name, but found something else.
 type_e_objc_type_unsupported=04092_E_Der Typ "$1" wird für die Verwendung mit den Laufzeitumgebungen Objective-C- oder Blocks nicht unterstützt.
@@ -1971,7 +1985,7 @@ type_e_generics_cannot_reference_itself=04096_E_Typ-Parameter bei der Spezialisa
 % Recursive specializations of generics like \var{Type MyType = specialize MyGeneric<MyType>;} are not possible.
 type_e_type_parameters_are_not_allowed_here=04097_E_Typ-Parameter sind für nicht-generische Klassen/Record/Objekte Prozeduren und Funktionen nicht erlaubt
 % Type parameters are only allowed for methods of generic classes, records or objects
-type_e_generic_declaration_does_not_match=04098_E_Die generische Deklaration von "$1" unterscheidet sich vom der vorherigen Deklaration
+type_e_generic_declaration_does_not_match=04098_E_Die generische Deklaration von "$1" unterscheidet sich von der vorherigen Deklaration
 % Generic declaration does not match the previous declaration
 type_e_helper_type_expected=04099_E_Helfertyp erwartet
 % The compiler expected a \var{class helper} type.
@@ -2059,6 +2073,17 @@ type_e_function_reference_kind=04123_E_Unterprogrammreferenzen können nicht als
 type_e_seg_procvardef_wrong_memory_model=04124_E_Prozedurvariablen speichern in diesem Memory-Modell keine Segment-Informationen
 type_w_empty_constant_range_set=04125_W_Der erste Wert des Bereichs für den Mengen-Konstruktor is größer als der zweite. Der Bereich beschreibt deshalb eine leere Menge.
 % If a set is constructed like this: \var{s:=[9..7];]}, then an empty set is generated. As this is something normally not desired, the compiler warns about it.
+type_e_cblock_callconv=04126_E_Eine C-Blockreferenz muss die Aufrufkonvention CDECL oder MWPASCAL verwenden
+% When declaring a C block reference ensure that it uses either the \var{cdecl} or \var{mwpascal}
+% calling convention either by adding the corresponding function directive or by using the
+% \var{\{\$Calling\}} compiler directive.
+type_e_forward_interface_type_does_not_match=04127_E_Der Interfacetyp der Vorwärtsdeklaration und der für das Interface $1 stimmen nicht überein
+% When declaring an interface forward, the interface type must be the same as at the actual declaration of the interface.
+% This is in particular important with regard to the parent interface which implicitly sets the interface type for the
+% child interface.
+type_e_generic_const_type_not_allowed=04128_E_Typ ist für generische, konstante Parameter nicht erlaubt: $1
+% Only types that can also be used (indirectly) for untyped constants can be used as a
+% type for a generic constant parameter.
 %
 % \end{description}
 # EndOfTeX
@@ -2089,7 +2114,7 @@ sym_h_duplicate_id_where=05003_H_Bezeichner ist bereits definiert in $1 in Zeile
 sym_e_unknown_id=05004_E_Unbekannter Bezeichner "$1"
 % The identifier encountered hasn't been declared, or is used outside the
 % scope where it's defined.
-sym_e_forward_not_resolved=05005_E_Forward-Deklaration "$1" nicht gefunden
+sym_e_forward_not_resolved=05005_E_Vorwärtsdeklaration "$1" nicht gefunden
 % This can happen in two cases:
 % \begin{itemize}
 % \item You declare a function in the \var{interface} part, or
@@ -2228,7 +2253,7 @@ sym_h_function_result_uninitialized=05060_H_Die Ergebnisvariable der Funktion sc
 sym_w_identifier_only_read=05061_W_Die Variable "$1" wird gelesen, obwohl ihr aber noch kein Wert zugewiesen wurde
 % You have read the value of a variable, but nowhere assigned a value to
 % it.
-sym_h_abstract_method_list=05062_H_Abstrakte Method "$1" gefunden 
+sym_h_abstract_method_list=05062_H_Abstrakte Method "$1" gefunden
 % When getting a warning about constructing a class/object with abstract methods
 % you get this hint to assist you in finding the affected method.
 sym_w_experimental_symbol=05063_W_Symbol "$1" ist experimentell
@@ -2236,7 +2261,7 @@ sym_w_experimental_symbol=05063_W_Symbol "$1" ist experimentell
 % declared as \var{experimental} is used. Experimental symbols
 % might disappear or change semantics in future versions. Usage of this symbol
 % should be avoided as much as possible.
-sym_w_forward_not_resolved=05064_W_Forward Deklaration "$1" wird nicht aufgelöst und deshalb als extern angenommen
+sym_w_forward_not_resolved=05064_W_Vorwärtsdeklaration "$1" wird nicht aufgelöst und deshalb als extern angenommen
 % This happens if you declare a function in the \var{interface} of a unit in macpas mode,
 % but do not implement it.
 sym_w_library_symbol=05065_W_Symbol "$1" gehört zu einer Bibliothek
@@ -2393,7 +2418,7 @@ sym_e_type_must_be_rec_or_object=05098_E_Record- oder Objecttyp erwartet
 #
 # Codegenerator
 #
-# 06060 is the last used one
+# 06062 is the last used one
 #
 # BeginOfTeX
 %
@@ -2550,9 +2575,19 @@ cg_n_no_inline=06058_N_Der Aufruf der Routine "$1" ist als "inline" markiert, wi
 % The directive inline is only a hint to the compiler. Sometimes the compiler ignores this hint, a subroutine
 % marked as inline is not inlined. In this case, this hint is given. Compiling with \var{-vd} might result in more information why
 % the directive inline is ignored.
-cg_e_case_incomplete=06059_E_Case-Anweisung deckt nicht alle möglichen Fälle ab
-cg_w_case_incomplete=06060_W_Case-Anweisung deckt nicht alle möglichen Fälle ab
+cg_e_case_missing_value=06059_E_Case-Anweisung behandelt den ordinalen Wert "$1" nicht und hat auch keine else/otherwise-Anweisung
+# The case statement does not handle the specified value and does not have an else/otherwise statement, and the compiler determined
+# that this value can be passed to the case statement. This is a compile-time error in ISO and Extended Pascal.
+cg_w_case_incomplete=06060_W_Case-Anweisung deckt nicht alle möglichen Fälle ab und es gibt keine else-Anweisung
 % The case statement does not contain labels for all possible values of the operand, and no else statement is present.
+cg_w_cannot_compile_subroutine=06061_W_Die laufende Subroutine "$1" kann für den Zielprozessor nicht übersetzt werden, erzeuge statt dessen ein Dummy
+% Some processors have a very limited instruction set so some routines cannot be compiled for them. As it is not always
+% clear from the beginning if a subroutine can be compiled for a certain CPU or not, the compiler checks afterwards
+% and creates a dummy if it cannot compile the subroutine.
+cg_w_interrupt_does_not_save_registers=06062_W_Der Zielprozessor unterstützt es nicht, Register in der Subroutine "$1" zu erhalten
+% Certain processors have no memory (e.~g. avr1 family), so they do not support storing/restoring the used registers
+% in an interrupt routine. The programmer has to ensure that while there is a chance for the interrupt routine being
+% called that no other code depending on registers being preserved is executed.
 %
 % \end{description}
 # EndOfTeX
@@ -2789,15 +2824,15 @@ asmr_w_unable_to_determine_reference_size_using_byte=07101_W_Größe nicht angeg
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
 % it falls back to use BYTE as default.
-asmr_w_no_direct_ebp_for_parameter=07102_W_Die Verwendung von +offset(%ebp) für Parameter ist hier ungültig
+asmr_w_no_direct_ebp_for_parameter=07102_W_Die Verwendung von $1 für Parameter ist hier ungültig
 % Using direct 8(%ebp) reference for function/procedure parameters is invalid
 % if parameters are in registers.
-asmr_w_direct_ebp_for_parameter_regcall=07103_W_Die Verwendung von +offset(%ebp) ist nicht mit der regcall Konvention kompatibel
+asmr_w_direct_ebp_for_parameter_regcall=07103_W_Die Verwendung von $1 ist nicht mit der regcall Konvention kompatibel
 % Using direct 8(%ebp) reference for function/procedure parameters is invalid
 % if parameters are in registers.
-asmr_w_direct_ebp_neg_offset=07104_W_Die Verwendung von -offset(%ebp) wird für den Zugriff auf lokale Variablen nicht empfohlen
+asmr_w_direct_ebp_neg_offset=07104_W_Die Verwendung von $1 wird für den Zugriff auf lokale Variablen nicht empfohlen
 % Using -8(%ebp) to access a local variable is not recommended
-asmr_w_direct_esp_neg_offset=07105_W_Verwendung von -offset(%esp); Zugriff kann einen Crash oder Datenverlust auslösen
+asmr_w_direct_esp_neg_offset=07105_W_Verwendung von $1; der Zugriff kann einen Crash oder Datenverlust auslösen
 % Using -8(%esp) to access a local stack is not recommended, as
 % this stack portion can be overwritten by any function calls or interrupts.
 asmr_e_no_vmtoffset_possible=07106_E_VMTOffset muss in Kombination mit einer virtuellen Methode verwendet werden; "$1" ist aber nicht virtuell
@@ -2852,7 +2887,7 @@ asmr_w_check_mem_operand_size3=07121_W_Überprüfe die Größe des Speicheropera
 asmr_w_check_mem_operand_size_offset=07122_W_Überprüfe die Größe des Speicheroperanden "$1: Sie ist $2 bits, aber[$3 bits + $4 byte offset] werden erwartet"
 % The size of memory operand is possible invalid. This is
 % probably an error in the assembler statement
-asmr_w_check_mem_operand_negative_offset=07123_W_Überprüfe "$1: Der Offset des Speicheroperanden ist negativ "$2 byte"
+asmr_w_check_mem_operand_negative_offset=07123_W_Überprüfe "$1: Der Offset des Speicheroperanden ist negativ "$2 byte
 % The offset of memory operand is possible invalid. This is
 % probably an error in the assembler statement
 asmr_w_check_mem_operand_automap_multiple_size=07124_W_Überprüfe "$1: Die Größe des Speicheroperanden ist leer, aber es existieren andere Definitionen der Speichergröße =>> abbilden auf $2 (kleinste Option)"
@@ -2899,6 +2934,7 @@ asmr_e_local_label_cannot_be_declared_public=07138_E_Das lokale Label $1 kann ni
 asmr_e_multiple_segment_overrides=07139_E_Kann "multiple segment overrides" nicht benutzen
 asmr_w_multiple_segment_overrides=07140_W_"Multiple segment overrides" (nur das letzte wird beachtet)
 asmr_w_segment_override_ignored_in_64bit_mode=07141_W_Segment-Basis $1 wird erzeugt, aber von der CPU im 64-Bit-Modus ignoriert
+asmr_e_mismatch_broadcasting_elements=07142_E_Broadcasting-Elemente passen nicht (erwartet: {$1} gefunden: {$2})
 %
 % \end{description}
 # EndOfTeX
@@ -2906,7 +2942,7 @@ asmr_w_segment_override_ignored_in_64bit_mode=07141_W_Segment-Basis $1 wird erze
 #
 # Assembler/binary writers
 #
-# 08033 is the last used one
+# 08035 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Zu viele Assembler-Dateien
 % With smartlinking enabled, there are too many assembler
@@ -2961,6 +2997,8 @@ asmw_f_code_segment_too_large=08030_F_Code-Segment zu groß
 asmw_f_data_segment_too_large=08031_F_Data-Segment zu groß
 asmw_e_instruction_not_supported_by_cpu=08032_E_Befehl wird vom ausgewählten Befehlssatz nicht unterstützt
 asmw_e_brxx_out_of_range=08033_E_Asm: Das Ziel des bedingten Zweigs ist außerhalb des Bereichs
+asmw_e_illegal_use_of_rip=08034_E_Asm: RIP kann nicht als Indexregister oder mit einem anderen Register in einer Referenz verwendet werden
+asmw_e_seh_invalid_data_size=08035_F_Ungültige Funktionsgröße einer SEH-Funktion
 %
 % \end{description}
 # EndOfTeX
@@ -3105,7 +3143,7 @@ execinfo_x_stackcommit=09134_X_Stack Bereich "committed": $1 Byte
 #
 # Internal linker messages
 #
-# 09220 is the last used one
+# 09222 is the last used one
 #
 # BeginOfTeX
 %
@@ -3165,7 +3203,12 @@ link_e_comdat_size_differs=09218_E_Größe des doppelten COMDAT-Symbols "$1" unt
 link_e_comdat_content_differs=09219_E_Inhalt des doppelten COMDAT-Symbols "$1" unterscheidet sich
 % The COMDAT section specifies that all sections with the same name need to have the same content,
 % but this section had a different size.
-link_e_comdat_selection_differs=09220_E_COMDAT-Auswahlmodus für das Symbol "$1" unterscheidet sich%
+link_e_comdat_selection_differs=09220_E_COMDAT-Auswahlmodus für das Symbol "$1" unterscheidet sich
+% Two COMDAT sections with the same name have different COMDAT selection modes.
+link_e_undefined_symbol_in_obj=09221_E_Nicht definiertes Symbol: $1 (Zuerst gesehen in $2)
+% The specified symbol is used, but not defined and was first seen in the specified object file.
+link_e_undefined_symbol=09222_E_Nicht definiertes Symbol: $1
+% The specified symbol is used, but not defined.
 %
 % \end{description}
 # EndOfTeX
@@ -3173,7 +3216,7 @@ link_e_comdat_selection_differs=09220_E_COMDAT-Auswahlmodus für das Symbol "$1"
 #
 # Unit loading
 #
-# 10066 is the last used one
+# 10067 is the last used one
 #
 # BeginOfTeX
 %
@@ -3369,8 +3412,8 @@ unit_u_skipping_reresolving_unit=10059_U_Erneutes Resolving der Unit $1 wird üb
 % When you use the \var{-vu} flag, the compiler warns that it is
 % skipping the recalculation of the internal data of the unit
 % because there is no data to recalculate.
-unit_u_unload_resunit=10060_U_Entlade die Resource-Unit $1 (wird nicht benötigt) 
-% When you use the \var{-vu} flag, the compiler warns that it is unloading the 
+unit_u_unload_resunit=10060_U_Entlade die Resource-Unit $1 (wird nicht benötigt)
+% When you use the \var{-vu} flag, the compiler warns that it is unloading the
 % resource handling unit, since no resources are used.
 unit_e_different_wpo_file=10061_E_Unit $1 wurde mit einer anderen Feedback-Eingabe ($2, $3) für die Gesamtprogramm-Optimierung (wpo) übersetzt. Bitte erneut ohne wpo oder mit der gleichen wpo-Feedback-Eingabe-Datei übersetzen
 % When a unit has been compiled using a particular whole program optimization (wpo) feedback file (\var{-FW<x>} \var{-OW<x>}),
@@ -3396,6 +3439,9 @@ cg_f_internal_type_does_not_match=10066_F_Interner Typ "$1" ist unerwartet. Übe
 % and you didn't change the runtime library code, it's very likely that the runtime library
 % you're using doesn't match the compiler in use. If you changed the runtime library this error means
 % that you changed a type which the compiler needs for internal use and which needs to have a certain structure.
+unit_u_ppu_llvm_mismatch=10067_U_Überspringe die Unit, PPU und Compiler müssen beide entweder mit oder ohne LLVM-Unterstützung übersetzt sein
+% Units compiled by a compiler built with the LLVM code generator cannot be used with a regular compiler,
+% and vice versa.
 %
 % \end{description}
 # EndOfTeX
@@ -3528,14 +3574,14 @@ option_ignored_target=11047_W_Option "$1" wird für die ausgewählte Zielplattfo
 % option is ignored for the currently selected target platform.
 option_debug_external_unsupported=11048_W_Schalte externe Debuginformation aus, weil es für die gewählte Kombination Ziel/Debugformat nicht unterstützt wird
 % Not all debug formats can be stored in an external file on all platforms. In particular, on
-% Mac OS X only DWARF debug information can be stored externally.
+% macOS only DWARF debug information can be stored externally.
 option_dwarf_smartlink_creation=11049_N_DWARF Debug-Information kann nicht benutzt werden, wenn das Smartlinken mit dem externen Assembler erfolgt. Das Erstellen einer statischen Bibliothek wird ausgeschaltet.
 % Smart linking is currently incompatble with DWARF debug information on most
 % platforms, so smart linking is disabled in such cases.
 option_invalid_macosx_deployment_target=11050_E_Ungültiger Wert für die Umgebungsvariable MACOSX_DEPLOYMENT_TARGET: $1
 option_invalid_iphoneos_deployment_target=11051_E_Ungültiger Wert für die Umgebungsvariable IPHONEOS_DEPLOYMENT_TARGET: $1
-% On Mac OS X, the MACOSX\_DEPLOYMENT\_TARGET/IPHONEOS\_DEPLOYMENT\_TARGET environment variable can be
-% used to set the default target OS version. In case of Mac OS X, it has to be of the format
+% On macOS, the MACOSX\_DEPLOYMENT\_TARGET/IPHONEOS\_DEPLOYMENT\_TARGET environment variable can be
+% used to set the default target OS version. In case of macOS, it has to be of the format
 % XY.Z or XY.Z.AB with X, Y,Z , A and B all digits from 0-9.
 % In case of iOS, it has to be X.Z.A, where X, Z and A can all be either 1 or 2
 % digits from 0-9.
@@ -3765,6 +3811,9 @@ Unterstützte Inline-Assembler Modi:
 Bekannte Compiler und RTL Feature:
   $FEATURELIST
 
+Bekannte Modeswitches:
+  $MODESWITCHES
+
 Unterstützte ABI Ziele:
   $ABITARGETS
 
@@ -3774,6 +3823,9 @@ Unterstützte Optimierungen:
 Unterstützte Gesamtprogramm-Optimierungen:
   All
   $WPOPTIMIZATIONS
+
+Backend der Codeerzeugung
+  $CODEGENERATIONBACKEND
 
 Unterstützte Mikro-Kontroller:
   $CONTROLLERTYPES
@@ -3785,7 +3837,7 @@ Fehlerberichte bitte senden an:
              http://bugs.freepascal.org
 
 Weitere Informationen stehen auf unseren WWW Seiten (einschließlich Links zu
-Mailing-Listen, auf denen Fragen gestellt und potentielle neue Features 
+Mailing-Listen, auf denen Fragen gestellt und potentielle neue Features
 diskutiert werden können, usw.):
                  http://www.freepascal.org
 ]
@@ -3806,13 +3858,18 @@ diskutiert werden können, usw.):
 #    F = help for the 'fpc' binary (independent of the target compiler)
 #    I = VIS
 #    J = JVM
+#    L = LLVM variant
 #    M = MIPS (MIPSEB) targets
 #    m = MIPSEL targets
 #    P = PowerPC targets
 #    p = PowerPC64 targets
+#    R = RiscV32 targets
+#    r = RiscV64 targets
 #    S = Sparc targets
 #    s = Sparc64 targets
 #    V = AVR
+#    x = xtensa targets
+#    Z = Z80
 # The second character also indicates who will display this line,
 # (if the above character was TRUE) the current possibilities are :
 #    * = everyone
@@ -3871,9 +3928,12 @@ F*0*_Es werden nur Optionen aufgelistet, die für die voreingestellte oder ausge
 6*2Agas_GNU Motorola Assembler
 6*2Amit_MIT Syntax (old GAS)
 6*2Amot_Standard Motorola Assembler
+6*2Avasm_Assembliere mit Hilfe von vasm
 A*2Aas_Assembliere mit Hilfe von GNU AS
 P*2Aas_Assembliere mit Hilfe von GNU AS
 S*2Aas_Assembliere mit Hilfe von GNU AS
+Z*2Asdcc-sdasz80_Assembliere mit Hilfe von SDCC-SDASZ80
+Z*2Az80asm_Assembliere mit Hilfe von z80asm
 # Used only internally by IDE
 **1b_Erzeuge Browser-Info
 **2bl_Erzeuge Info zu lokalen Symbolen
@@ -3892,6 +3952,10 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2Ch<n>[,m]_<n> Minimale Größe des Heap in Byte (zwischen 1023 und 67107840) und optional [m] maximale Größe des Heap
 **2Ci_I/O-Prüfung
 A*2CI<x>_Wähle den Befehlssatz für ARM aus: ARM oder THUMB
+L*2Cl<x>_LLVM Codeerzeugungsoptionen
+L*3Clflto_Schalte Link-time-Optimierungen ein (benötigt, wenn Units oder Programme/Bibliotheken übersetzt werden)
+L*3Clfltonosystem_Schalte LTO für die Systemunit aus (benötigt für Xcode 10.2 und früher wegen Bugs im Linker)
+L*3Clv<x>_LLVM Zielversion: Xcode-10.1, 7.0, 8.0, .., 10.0
 **2Cn_Lasse die Linkstufe aus
 P*2CN_Erzeuge Überprüfungen auf Nil-Zeiger (nur AIX)
 **2Co_Prüfe auf Überlauf von Integer-Operationen
@@ -3926,6 +3990,7 @@ J*3CTinitlocals_          Initialisiere lokale Variablen, die einen JVM bytecode
 J*3CTlowercaseprocstart_  Kleinschreibung des ersten Buchstabens bei Prozedur/Funktions/Methoden-Namen.
 A*3CTthumbinterworking_ Erzeuge "Thumb interworking-safe code", wenn möglich
 J*2Cv_Var/out Parameter copy-out Überprüfung
+A*2CV<x>_Setze das Section-Threadvar-Modell auf <x>
 **2CX_Benutze Smartlinking
 **1d<x>_Definiere das Symbol <x>
 **1D_Erzeuge eine DEF-Datei
@@ -3985,9 +4050,11 @@ J*2Cv_Var/out Parameter copy-out Überprüfung
 **2iV_Zeige kurze Compilerversion
 **2iW_Zeige vollständige Compilerversion
 **2ia_Zeige Liste der unterstützten ABI-Ziele
-**2ic_Zeige Liste der unterstützten CPU-Befehlssatz
-**2if_Zeige Liste der unterstützten Fliesskomma-Befehlssatz
+**2ib_Zeige den Typ des verwendeten Backend der Codeerzeugung
+**2ic_Zeige Liste der unterstützten CPU-Befehle
+**2if_Zeige Liste der unterstützten Fliesskomma-Befehle
 **2ii_Zeige Liste der unterstützten Inline-Assembler-Modi
+**2im_Zeige Liste der unterstützten Modeswitches
 **2io_Zeige Liste der unterstützten Optimierungen
 **2ir_Zeige Liste der erkannten Compiler- und RTL-Feature
 **2it_Zeige Liste der unterstützten Ziele
@@ -3996,7 +4063,7 @@ J*2Cv_Var/out Parameter copy-out Überprüfung
 **1I<x>_Ergänze <x> zum Include-Pfad
 **1k<x>_Übergebe <x> an den Linker
 **1l_Zeige Logo
-**1M<x>_Setze Sprachmodus zu <x>
+**1M<x>_Setze Sprachmodus zu <x> / Schalte Modeswitch <x> an (siehe Option -im)
 **2Mfpc_Free Pascal Dialekt (Voreinstellung)
 **2Mobjfpc_FPC Modus mit Unterstützung von Object-Pascal
 **2Mdelphi_Kompatibilitäts-Modus für Delphi
@@ -4005,6 +4072,9 @@ J*2Cv_Var/out Parameter copy-out Überprüfung
 **2Miso_ISO 7185 Modus
 **2Mextendedpascal_ISO 10206 Modus
 **2Mdelphiunicode_Kompatibilitäts-Modus für Delphi 2009 und später
+**2*_Jeder Modus (wie oben aufgelistet) schaltet seinen voreingestellten Satz an Modeswitches an.
+**2*_Andere Modeswitches sind ausgeschaltet und müssen nacheinander eingeschaltet werden.
+**1M<x>-_Schalte den Modeswitch <x> aus (siehe Option -im)
 **1n_Standard-Konfigurationsdatei ignorieren
 **1o<x>_Die erzeugte, ausführbare Datei bekommt den Namen <x>
 **1O<x>_Optimierungen:
@@ -4020,10 +4090,10 @@ J*2Cv_Var/out Parameter copy-out Überprüfung
 **2Ow<x>_Führe die Gesamtprogramm-Optimierung durch <x>; fpc -i oder fpc -iw  geben die möglichen Werte aus
 **2Os_Erzeuge kürzeren Code
 **1pg_Erzeuge Profiler-Code für gprof
-F*1P<x>_Ziel CPU / Compiler bezogene Optionen:
+F*1P<x>_Zielprozessor / Compiler bezogene Optionen:
 F*2PB_Zeige die voreingestellte Compilerbinärdatei
-F*2PP_Zeige die voreingestellte Ziel-CPU
-F*2P<x>_Setze die Ziel-CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64)
+F*2PP_Zeige den voreingestellte Zielprozessor
+F*2P<x>_Setze den Zielprozessor (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64)
 **1R<x>_Assembler Code-Format:
 **2Rdefault_Benutze den voreingestellten Assembler
 3*2Ratt_Lese Assembler Code im AT&T-Format
@@ -4068,7 +4138,7 @@ F*2P<x>_Setze die Ziel-CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powe
 3*2Tandroid_Android
 3*2Taros_AROS
 3*2Tbeos_BeOS
-3*2Tdarwin_Darwin/Mac OS X
+3*2Tdarwin_Darwin/macOS
 3*2Tembedded_Embedded
 3*2Temx_OS/2 via EMX (einschließlich EMX/RSX extender)
 3*2Tfreebsd_FreeBSD
@@ -4088,11 +4158,13 @@ F*2P<x>_Setze die Ziel-CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powe
 3*2Twin32_Windows 32 Bit
 3*2Twince_Windows CE
 # x86_64 targets
+4*2Tandroid_Android
 4*2Taros_AROS
-4*2Tdarwin_Darwin/Mac OS X
+4*2Tdarwin_Darwin/macOS
 4*2Tdragonfly_DragonFly BSD
 4*2Tembedded_Embedded
 4*2Tfreebsd_FreeBSD
+4*2Thaiku_Haiku
 4*2Tiphonesim_iPhoneSimulator
 4*2Tlinux_Linux
 4*2Tnetbsd_NetBSD
@@ -4116,6 +4188,7 @@ A*2Tandroid_Android
 A*2Taros_AROS
 A*2Tdarwin_Darwin/iPhoneOS/iOS
 A*2Tembedded_Embedded
+A*2Tfreertos_FreeRTOS
 A*2Tgba_Game Boy Advance
 A*2Tlinux_Linux
 A*2Tnds_Nintendo DS
@@ -4124,8 +4197,10 @@ A*2Tpalmos_PalmOS
 A*2Tsymbian_Symbian
 A*2Twince_Windows CE
 # aarch64 targets
+a*2Tandroid_Android
 a*2Tdarwin_Darwin/iOS
 a*2Tlinux_Linux
+a*2Twin64_Windows 64
 # jvm targets
 J*2Tandroid_Android
 J*2Tjava_Java
@@ -4139,7 +4214,7 @@ M*2Tlinux_Linux
 # powerpc targets
 P*2Taix_AIX
 P*2Tamiga_AmigaOS
-P*2Tdarwin_Darwin und Mac OS X
+P*2Tdarwin_Darwin und macOS
 P*2Tembedded_Embedded
 P*2Tlinux_Linux
 P*2Tmacos_Mac OS (classic)
@@ -4148,7 +4223,7 @@ P*2Tnetbsd_NetBSD
 P*2Twii_Wii
 # powerpc64 targets
 p*2Taix_AIX
-p*2Tdarwin_Darwin/Mac OS X
+p*2Tdarwin_Darwin/macOS
 p*2Tembedded_Embedded
 p*2Tlinux_Linux
 # riscv32 targets
@@ -4165,6 +4240,13 @@ s*2Tlinux_Linux
 # not yet ready s*2Tsolaris_Solaris
 # avr targets
 V*2Tembedded_Embedded
+# xtensa targets
+x*2Tembedded_Embedded
+x*2Tfreertos_FreeRTOS
+x*2Tlinux_Linux
+# z80 targets
+Z*2Tembedded_Embedded
+Z*2Tzxspectrum_ZX Spectrum
 # end of targets section
 **1u<x>_Entferne die Definition für das Symbol <x>
 **1U<x>_Unit-Optionen:
@@ -4181,7 +4263,7 @@ V*2Tembedded_Embedded
 **2*_s : Zeitstempel                   q : Nummer der Meldung
 **2*_a : Alles                         x : Zeige Infos über aufgerufene Tools
 **2*_b : Schreibe bei Meldungen mit    p : Schreibe tree.log mit Analysenbaum (parse tree)
-**2*_    Dateinamen den vollständigen  v : Schreibe fpcdebug.txt mit 
+**2*_    Dateinamen den vollständigen  v : Schreibe fpcdebug.txt mit
 **2*_    Pfad                              ganz viel Information
 **2*_z : Schreibe output nach stderr
 **2*_m<x>,<y> : Zeige die Meldungen mit den Nummern <x> und <y> nicht
@@ -4237,16 +4319,18 @@ A*2WI_Die Verwendung der "import"-Abschnitte ein/ausschalten (Windows)
 8*3WmCompact_Kompaktes (compact) Speichermodell
 8*3WmLarge_Großes (large) Speichermodell
 8*3WmHuge_Riesiges (huge) Speichermodell
-3*2WM<x>_Minimale Mac OS X Deployment Version: 10.4, 10.5.1, ... (Darwin)
-4*2WM<x>_Minimale Mac OS X Deployment Version: 10.4, 10.5.1, ... (Darwin)
-p*2WM<x>_Minimale Mac OS X Deployment Version: 10.4, 10.5.1, ... (Darwin)
-P*2WM<x>_Minimale Mac OS X Deployment Version: 10.4, 10.5.1, ... (Darwin)
+3*2WM<x>_Minimale macOS Deployment Version: 10.4, 10.5.1, ... (Darwin)
+4*2WM<x>_Minimale macOS Deployment Version: 10.4, 10.5.1, ... (Darwin)
+p*2WM<x>_Minimale macOS Deployment Version: 10.4, 10.5.1, ... (Darwin)
+P*2WM<x>_Minimale macOS Deployment Version: 10.4, 10.5.1, ... (Darwin)
 3*2WN_Erzeuge keinen "relocation code" (notwendig für debugging) (Windows)
 4*2WN_Erzeuge keinen "relocation code" (notwendig für debugging) (Windows)
 A*2WN_Erzeuge keinen "relocation code" (notwendig für debugging) (Windows)
 A*2Wp<x>_Spezifiziere den Kontrollertyp; fpc -i oder fpc -iu geben mögliche Werte aus
 m*2Wp<x>_Spezifiziere den Kontrollertyp; fpc -i oder fpc -iu geben mögliche Werte aus
+R*2Wp<x>_Spezifiziere den Kontrollertyp; fpc -i oder fpc -iu geben mögliche Werte aus
 V*2Wp<x>_Spezifiziere den Kontrollertyp; fpc -i oder fpc -iu geben mögliche Werte aus
+x*2Wp<x>_Spezifiziere den Kontrollertyp; fpc -i oder fpc -iu geben mögliche Werte aus
 3*2WP<x>_Minimale iOS Deployment Version: 3.0, 5.0.1, ... (iphonesim)
 4*2WP<x>_Minimale iOS Deployment Version: 8.0, 8.0.2, ... (iphonesim)
 a*2WP<x>_Minimale iOS Deployment Version: 7.0, 7.1.2, ... (Darwin)
@@ -4268,6 +4352,7 @@ P*2WF_Spezifiziere "MPW tool type application" (Classic Mac OS)
 **2Xg_Erstelle die Debug-Informationen in einer separaten Datei und einen "Debug-Link"-Abschnitt im ausführbaren Programm
 **2XD_Versuche Units dynamisch zu linken             (definiert FPC_LINK_DYNAMIC)
 **2Xi_Verwende den internen Linker
+L*2XlS<x>_Suffix der LLVM-Programme (z. B. -7, wenn clang clang-7 heißt)
 **2XLA_Definiere Bibliotheksersetzungen für das Linken
 **2XLO_Definiere die Reihenfolge der Bibliotheken für das Linken
 **2XLD_Schließe die voreingestellte Reihenfolge der Standard-Bibliotheken aus
