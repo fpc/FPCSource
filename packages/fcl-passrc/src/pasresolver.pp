@@ -1753,7 +1753,7 @@ type
     function CheckBuiltInMinParamCount(Proc: TResElDataBuiltInProc; Expr: TPasExpr;
       MinCount: integer; RaiseOnError: boolean): boolean;
     function CheckBuiltInMaxParamCount(Proc: TResElDataBuiltInProc; Params: TParamsExpr;
-      MaxCount: integer; RaiseOnError: boolean): integer;
+      MaxCount: integer; RaiseOnError: boolean; Signature: string = ''): integer;
     function CheckRaiseTypeArgNo(id: TMaxPrecInt; ArgNo: integer; Param: TPasExpr;
       const ParamResolved: TPasResolverResult; Expected: string; RaiseOnError: boolean): integer;
     function FindUsedUnitInSection(const aName: string; Section: TPasSection): TPasModule;
@@ -14705,13 +14705,17 @@ begin
 end;
 
 function TPasResolver.CheckBuiltInMaxParamCount(Proc: TResElDataBuiltInProc;
-  Params: TParamsExpr; MaxCount: integer; RaiseOnError: boolean): integer;
+  Params: TParamsExpr; MaxCount: integer; RaiseOnError: boolean;
+  Signature: string): integer;
 begin
   if length(Params.Params)>MaxCount then
     begin
     if RaiseOnError then
+      begin
+      if Signature='' then Signature:=Proc.Signature;
       RaiseMsg(20170329154348,nWrongNumberOfParametersForCallTo,
-        sWrongNumberOfParametersForCallTo,[Proc.Signature],Params.Params[MaxCount]);
+        sWrongNumberOfParametersForCallTo,[Signature],Params.Params[MaxCount]);
+      end;
     exit(cIncompatible);
     end;
 

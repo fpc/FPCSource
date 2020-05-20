@@ -343,6 +343,7 @@ type
     Procedure TestProc_Async;
     Procedure TestProc_AWaitOutsideAsyncFail;
     Procedure TestProc_AWait;
+    Procedure TestProc_AWaitExternalClassPromise;
 
     // anonymous functions
     Procedure TestAnonymousProc_Assign_ObjFPC;
@@ -4678,6 +4679,37 @@ begin
     '  Result = await 1;',
     '  Result = await $mod.Crawl(1.3);',
     '  Result = await $mod.Crawl(4.5);',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.Run(1);'
+    ]));
+end;
+
+procedure TTestModule.TestProc_AWaitExternalClassPromise;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
+  'function Run(d: double): word; async;',
+  'var',
+  '  p: TJSPromise;',
+  'begin',
+  '  Result:=await(word,p);',
+  'end;',
+  'begin',
+  '  Run(1);']);
+  ConvertProgram;
+  CheckSource('TestProc_AWaitExternalClassPromise',
+    LinesToStr([ // statements
+    'this.Run = async function (d) {',
+    '  var Result = 0;',
+    '  var p = null;',
+    '  Result = await p;',
     '  return Result;',
     '};',
     '']),

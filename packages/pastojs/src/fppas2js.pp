@@ -406,6 +406,7 @@ Works:
 - generics
 - async procedure modifier
 - function await(const expr: T): T
+- function await(T; p: TJSPromise): T
 
 ToDos:
 - range check:
@@ -486,7 +487,7 @@ const
   nVirtualMethodNameMustMatchExternal = 4013;
   nPublishedNameMustMatchExternal = 4014;
   nInvalidVariableModifier = 4015;
-  // was nExternalObjectConstructorMustBeNamedNew = 4016;
+  nAWaitOnlyInAsyncProcedure = 4016;
   nNewInstanceFunctionMustBeVirtual = 4017;
   nNewInstanceFunctionMustHaveTwoParameters = 4018;
   nNewInstanceFunctionMustNotHaveOverloadAtX = 4019;
@@ -502,7 +503,6 @@ const
   nDuplicateMessageIdXAtY = 4029;
   nDispatchRequiresX = 4030;
   nConstRefNotForXAsConst = 4031;
-  nAWaitOnlyInAsyncProcedure = 3144;
 // resourcestring patterns of messages
 resourcestring
   sPasElementNotSupported = 'Pascal element not supported: %s';
@@ -520,7 +520,7 @@ resourcestring
   sVirtualMethodNameMustMatchExternal = 'Virtual method name must match external';
   sInvalidVariableModifier = 'Invalid variable modifier "%s"';
   sPublishedNameMustMatchExternal = 'Published name must match external';
-  // was sExternalObjectConstructorMustBeNamedNew = 'external object constructor must be named "new"';
+  sAWaitOnlyInAsyncProcedure = 'await only available in async procedure';
   sNewInstanceFunctionMustBeVirtual = 'NewInstance function must be virtual';
   sNewInstanceFunctionMustHaveTwoParameters = 'NewInstance function must have two parameters';
   sNewInstanceFunctionMustNotHaveOverloadAtX = 'NewInstance function must not have overload at %s';
@@ -536,7 +536,6 @@ resourcestring
   sDuplicateMessageIdXAtY = 'Duplicate message id "%s" at %s';
   sDispatchRequiresX = 'Dispatch requires %s';
   sConstRefNotForXAsConst = 'ConstRef not yet implemented for %s. Treating as Const';
-  sAWaitOnlyInAsyncProcedure = 'await only available in async procedure';
 
 const
   ExtClassBracketAccessor = '[]'; // external name '[]' marks the array param getter/setter
@@ -5213,11 +5212,14 @@ end;
 function TPas2JSResolver.BI_AWait_OnGetCallCompatibility(
   Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
 // function await(const Expr: T): T
+const
+  Signature2 = 'function await(aType,TJSPromise):aType';
 var
   Params: TParamsExpr;
   Param: TPasExpr;
   ParamResolved: TPasResolverResult;
   ParentProc: TPasProcedure;
+  TypeEl: TPasType;
 begin
   Result:=cIncompatible;
 
@@ -5235,24 +5237,60 @@ begin
   Params:=TParamsExpr(Expr);
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[]);
-  if not (rrfReadable in ParamResolved.Flags) then
-    exit(CheckRaiseTypeArgNo(20200519151816,1,Param,ParamResolved,'jsvalue',RaiseOnError));
+  if (rrfReadable in ParamResolved.Flags) then
+    begin
+    // function await(value)
+    // must be the only parameter
+    Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
+    end
+  else
+    begin
+    TypeEl:=ParamResolved.LoTypeEl;
+    if (TypeEl is TPasUnresolvedSymbolRef)
+        and (TypeEl.CustomData is TResElDataBaseType) then
+      // base type
+    else if (TypeEl<>nil) and (ParamResolved.IdentEl is TPasType) then
+      // custom type
+    else
+      exit(CheckRaiseTypeArgNo(20200519151816,1,Param,ParamResolved,'jsvalue',RaiseOnError));
 
-  Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
-  if Proc=nil then ;
+    // function await(type,...)
+    if length(Params.Params)<2 then
+      begin
+      if RaiseOnError then
+        RaiseMsg(20200520090749,nWrongNumberOfParametersForCallTo,
+          sWrongNumberOfParametersForCallTo,[Signature2],Params);
+      exit(cIncompatible);
+      end;
+
+    // check second param TJSPromise
+    Param:=Params.Params[1];
+    ComputeElement(Param,ParamResolved,[]);
+    if not (rrfReadable in ParamResolved.Flags) then
+      exit(CheckRaiseTypeArgNo(20200520091707,2,Param,ParamResolved,
+         'instance of TJSPromise',RaiseOnError));
+
+    if (ParamResolved.BaseType<>btContext)
+        or not (ParamResolved.LoTypeEl is TPasClassType)
+        or not IsExternalClass_Name(TPasClassType(ParamResolved.LoTypeEl),'Promise') then
+      exit(CheckRaiseTypeArgNo(20200520091707,2,Param,ParamResolved,
+         'TJSPromise',RaiseOnError));
+
+    Result:=CheckBuiltInMaxParamCount(Proc,Params,2,RaiseOnError,Signature2);
+    end;
 end;
 
 procedure TPas2JSResolver.BI_AWait_OnGetCallResult(Proc: TResElDataBuiltInProc;
   Params: TParamsExpr; out ResolvedEl: TPasResolverResult);
 // function await(const Expr: T): T
+// function await(T; p: TJSPromise): T
 var
   Param: TPasExpr;
 begin
-  if length(Params.Params)<>1 then
-    RaiseMsg(20200519233144,nWrongNumberOfParametersForCallTo,
-      sWrongNumberOfParametersForCallTo,[Proc.Signature],Params);
   Param:=Params.Params[0];
   ComputeElement(Param,ResolvedEl,[]);
+  Include(ResolvedEl.Flags,rrfReadable);
+  if Proc=nil then ;
 end;
 
 procedure TPas2JSResolver.BI_AWait_OnEval(Proc: TResElDataBuiltInProc;
@@ -5263,11 +5301,12 @@ var
 begin
   Evaluated:=nil;
   if length(Params.Params)<>1 then
-    RaiseMsg(20200519233220,nWrongNumberOfParametersForCallTo,
-      sWrongNumberOfParametersForCallTo,[Proc.Signature],Params);
+    exit;
+
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[]);
   Evaluated:=Eval(Param,Flags);
+  if Proc=nil then ;
 end;
 
 constructor TPas2JSResolver.Create;
@@ -13217,9 +13256,12 @@ var
   JS: TJSElement;
   AWaitJS: TJSAwaitExpression;
 begin
-  if length(El.Params)<>1 then
+  if length(El.Params)=1 then
+    Param:=El.Params[0]
+  else if length(El.Params)=2 then
+    Param:=El.Params[1]
+  else
     RaiseNotSupported(El,AContext,20200519233919);
-  Param:=El.Params[0];
   JS:=ConvertExpression(Param,AContext);
   AWaitJS:=TJSAwaitExpression(CreateElement(TJSAwaitExpression,El));
   AWaitJS.A:=JS;
