@@ -87,6 +87,7 @@ Const
   SCookiePath     = ' Path=%s';
   SCookieSecure   = ' Secure';
   SCookieHttpOnly = ' HttpOnly';
+  SCookieSameSite = ' SameSite';
 
   HTTPMonths: array[1..12] of string[3] = (
     'Jan', 'Feb', 'Mar', 'Apr',
