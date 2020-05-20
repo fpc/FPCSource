@@ -77,6 +77,7 @@
     <a href="#externalclassancestor">External class as ancestor</a><br>
     <a href="#jsvalue">The JSValue type</a><br>
     <a href="#bracketaccessor">Accessing JS object properties with the bracket accessor</a><br>
+    <a href="#async">Async/AWait</a><br>
     <a href="#rtti">RTTI - Run Time Type Information</a><br>
     <a href="#compilerdirectives">Compiler directives</a><br>
     <a href="#othersupportedelements">Other supported Pascal elements</a><br>
@@ -2721,7 +2722,7 @@ function(){
     <ul>
       <li><i>constructor New</i> is translated to <i>new ExtClass(params)</i>.</li>
       <li><i>constructor New; external name ''GlobalFunc''</i> is translated to <i>new GlobalFunc(params)</i>.</li>
-      <li><i>constructor SomeName; external name <i>'{}'</i> is translated to <i>{}</i>.</li>
+      <li><i>constructor SomeName; external name </i>'{}'</i> is translated to <i>{}</i>.</li>
       <li>Otherwise it is translated to <i>new ExtClass.FuncName(params)</i>.</li>
     </ul>
 
@@ -2988,7 +2989,84 @@ End.
     If <i>o</i> is <i>nil</i> it will give a JS error.<br>
     Local types (i.e. inside a procedure) do not have typeinfo.<br>
     Open array parameters are not yet supported.<br>
-    Note that FPC <i>typeinfo(aClassVar)<i> returns the compiletime type, so it works on <i>nil</i>.<br>
+    Note that FPC <i>typeinfo(aClassVar)</i> returns the compiletime type, so it works on <i>nil</i>.<br>
+    </div>
+
+    <div class="section">
+    <h2 id="async">Async/AWait</h2>
+    Pas2js supports the JS operators async/await to simplify the use of Promise.
+    The await operator corresponds to two intrinsic Pas2js functions:
+    <ul>
+    <li><i>function await(const Expr: T): T;</i>  // implicit promise</li>
+    <li><i>function await(aType; p: TJSPromise): aType;</i>  // explicit promise requires the resolved type</li>
+    </ul>
+    The await function can only be used inside a procedure with the async modifier.<br>
+    For example:
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Program MyModule;
+
+uses JS, Web;
+
+function ResolveAfter2Seconds: TJSPromise;
+begin
+  Result:=TJSPromise.new(procedure(resolve, reject : TJSPromiseResolver)
+    begin
+    window.setTimeout(procedure
+      begin
+      resolve('resolved');
+      end,
+      2000); // wait 2 seconds
+    end);
+end;
+
+procedure AsyncCall; async;
+var s: string;
+begin
+  writeln('calling');
+  s := await(string,resolveAfter2Seconds());
+  writeln(s); // expected output: 'resolved'
+end;
+
+begin
+  AsyncCall;
+end.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",["System","JS","Web"],function () {
+  "use strict";
+  var $mod = this;
+  this.ResolveAfter2Seconds = function () {
+    var Result = null;
+    Result = new Promise(function (resolve, reject) {
+      window.setTimeout(function () {
+        resolve("resolved");
+      },2000);
+    });
+    return Result;
+  };
+  this.AsyncCall = async function () {
+    var s = "";
+    pas.System.Writeln("calling");
+    s = await $mod.ResolveAfter2Seconds();
+    pas.System.Writeln(s);
+  };
+  $mod.$main = function () {
+    $mod.AsyncCall();
+  };
+});
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
     </div>
 
 
