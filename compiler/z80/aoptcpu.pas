@@ -39,11 +39,6 @@ Type
 
     { checks whether loading a new value in reg1 overwrites the entirety of reg2 }
     function Reg1WriteOverwritesReg2Entirely(reg1, reg2: tregister): boolean;
-    { checks whether reading the value in reg1 depends on the value of reg2. This
-      is very similar to SuperRegisterEquals, except it takes into account that
-      R_SUBH and R_SUBL are independendent (e.g. reading from AL does not
-      depend on the value in AH). }
-    function Reg1ReadDependsOnReg2(reg1, reg2: tregister): boolean;
 
     Function GetNextInstructionUsingReg(Current: tai; Var Next: tai;reg : TRegister): Boolean;
     function RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean; override;
@@ -174,63 +169,6 @@ Implementation
           result:=(reg2=NR_D_) or (reg2=NR_E_) or (reg2=NR_DE_);
         NR_HL_:
           result:=(reg2=NR_H_) or (reg2=NR_L_) or (reg2=NR_HL_);
-        else
-          result:=reg1=reg2;
-      end;
-    end;
-
-
-  function TCpuAsmOptimizer.Reg1ReadDependsOnReg2(reg1, reg2: tregister): boolean;
-    begin
-      case reg1 of
-        NR_AF:
-          result:=(reg2=NR_A) or (reg2=NR_AF) or SuperRegistersEqual(reg2,NR_DEFAULTFLAGS);
-        NR_A:
-          result:=(reg2=NR_A) or (reg2=NR_AF);
-        NR_F:
-          result:=SuperRegistersEqual(reg2,NR_DEFAULTFLAGS);
-        NR_BC:
-          result:=(reg2=NR_B) or (reg2=NR_C) or (reg2=NR_BC);
-        NR_B:
-          result:=(reg2=NR_B) or (reg2=NR_BC);
-        NR_C:
-          result:=(reg2=NR_C) or (reg2=NR_BC);
-        NR_DE:
-          result:=(reg2=NR_D) or (reg2=NR_E) or (reg2=NR_DE);
-        NR_D:
-          result:=(reg2=NR_D) or (reg2=NR_DE);
-        NR_E:
-          result:=(reg2=NR_E) or (reg2=NR_DE);
-        NR_HL:
-          result:=(reg2=NR_H) or (reg2=NR_L) or (reg2=NR_HL);
-        NR_H:
-          result:=(reg2=NR_H) or (reg2=NR_HL);
-        NR_L:
-          result:=(reg2=NR_L) or (reg2=NR_HL);
-        NR_AF_:
-          result:=(reg2=NR_A_) or (reg2=NR_AF_) or SuperRegistersEqual(reg2,NR_F_);
-        NR_A_:
-          result:=(reg2=NR_A_) or (reg2=NR_AF_);
-        NR_F_:
-          result:=SuperRegistersEqual(reg2,NR_F_);
-        NR_BC_:
-          result:=(reg2=NR_B_) or (reg2=NR_C_) or (reg2=NR_BC_);
-        NR_B_:
-          result:=(reg2=NR_B_) or (reg2=NR_BC_);
-        NR_C_:
-          result:=(reg2=NR_C_) or (reg2=NR_BC_);
-        NR_DE_:
-          result:=(reg2=NR_D_) or (reg2=NR_E_) or (reg2=NR_DE_);
-        NR_D_:
-          result:=(reg2=NR_D_) or (reg2=NR_DE_);
-        NR_E_:
-          result:=(reg2=NR_E_) or (reg2=NR_DE_);
-        NR_HL_:
-          result:=(reg2=NR_H_) or (reg2=NR_L_) or (reg2=NR_HL_);
-        NR_H_:
-          result:=(reg2=NR_H_) or (reg2=NR_HL_);
-        NR_L_:
-          result:=(reg2=NR_L_) or (reg2=NR_HL_);
         else
           result:=reg1=reg2;
       end;
