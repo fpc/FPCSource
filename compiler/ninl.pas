@@ -732,7 +732,7 @@ implementation
           readfunctype:=nil;
 
           { can't read/write types }
-          if (para.left.nodetype=typen) and not(ttypenode(para.left).typedef.typ=undefineddef) then
+          if (para.left.nodetype=typen) and not(is_typeparam(ttypenode(para.left).typedef)) then
             begin
               CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
               error_para := true;
@@ -749,126 +749,124 @@ implementation
           if inlinenumber in [in_write_x,in_writeln_x] then
             { prefer strings to chararrays }
             maybe_convert_to_string(para.left);
-
-          case para.left.resultdef.typ of
-            stringdef :
-              name:=procprefixes[do_read]+tstringdef(para.left.resultdef).stringtypname;
-            pointerdef :
-              begin
-                if (not is_pchar(para.left.resultdef)) or do_read then
-                  begin
-                    CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
-                    error_para := true;
-                  end
-                else
-                  name:=procprefixes[do_read]+'pchar_as_pointer';
-              end;
-            floatdef :
-              begin
-                is_real:=true;
-                if Tfloatdef(para.left.resultdef).floattype=s64currency then
-                  name := procprefixes[do_read]+'currency'
-                else
-                  begin
-                    name := procprefixes[do_read]+'float';
-                    readfunctype:=pbestrealtype^;
-                  end;
-                { iso pascal needs a different handler }
-                if (m_isolike_io in current_settings.modeswitches) and do_read then
-                  name:=name+'_iso';
-              end;
-            enumdef:
-              begin
-                name:=procprefixes[do_read]+'enum';
-                readfunctype:=s32inttype;
-              end;
-            orddef :
-              begin
-                case Torddef(para.left.resultdef).ordtype of
-                  s8bit,
-                  s16bit,
-                  s32bit,
-                  s64bit,
-                  u8bit,
-                  u16bit,
-                  u32bit,
-                  u64bit:
+          if is_typeparam(para.left.resultdef) then
+            error_para:=true
+          else
+            case para.left.resultdef.typ of
+              stringdef :
+                name:=procprefixes[do_read]+tstringdef(para.left.resultdef).stringtypname;
+              pointerdef :
+                begin
+                  if (not is_pchar(para.left.resultdef)) or do_read then
                     begin
-                      get_read_write_int_func(para.left.resultdef,func_suffix,readfunctype);
-                      name := procprefixes[do_read]+func_suffix;
-                      if (m_isolike_io in current_settings.modeswitches) and do_read then
-                        name:=name+'_iso';
-                    end;
-                  uchar :
+                      CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                      error_para := true;
+                    end
+                  else
+                    name:=procprefixes[do_read]+'pchar_as_pointer';
+                end;
+              floatdef :
+                begin
+                  is_real:=true;
+                  if Tfloatdef(para.left.resultdef).floattype=s64currency then
+                    name := procprefixes[do_read]+'currency'
+                  else
                     begin
-                      name := procprefixes[do_read]+'char';
-                      { iso pascal needs a different handler }
-                      if (m_isolike_io in current_settings.modeswitches) and do_read then
-                        name:=name+'_iso';
-                      readfunctype:=cansichartype;
+                      name := procprefixes[do_read]+'float';
+                      readfunctype:=pbestrealtype^;
                     end;
-                  uwidechar :
-                    begin
-                      name := procprefixes[do_read]+'widechar';
-                      readfunctype:=cwidechartype;
-                    end;
-                  scurrency:
-                    begin
-                      name := procprefixes[do_read]+'currency';
-                      { iso pascal needs a different handler }
-                      if (m_isolike_io in current_settings.modeswitches) and do_read then
-                        name:=name+'_iso';
-                      readfunctype:=s64currencytype;
-                      is_real:=true;
-                    end;
-                  pasbool1,
-                  pasbool8,
-                  pasbool16,
-                  pasbool32,
-                  pasbool64,
-                  bool8bit,
-                  bool16bit,
-                  bool32bit,
-                  bool64bit:
-                    if do_read then
+                  { iso pascal needs a different handler }
+                  if (m_isolike_io in current_settings.modeswitches) and do_read then
+                    name:=name+'_iso';
+                end;
+              enumdef:
+                begin
+                  name:=procprefixes[do_read]+'enum';
+                  readfunctype:=s32inttype;
+                end;
+              orddef :
+                begin
+                  case Torddef(para.left.resultdef).ordtype of
+                    s8bit,
+                    s16bit,
+                    s32bit,
+                    s64bit,
+                    u8bit,
+                    u16bit,
+                    u32bit,
+                    u64bit:
+                      begin
+                        get_read_write_int_func(para.left.resultdef,func_suffix,readfunctype);
+                        name := procprefixes[do_read]+func_suffix;
+                        if (m_isolike_io in current_settings.modeswitches) and do_read then
+                          name:=name+'_iso';
+                      end;
+                    uchar :
+                      begin
+                        name := procprefixes[do_read]+'char';
+                        { iso pascal needs a different handler }
+                        if (m_isolike_io in current_settings.modeswitches) and do_read then
+                          name:=name+'_iso';
+                        readfunctype:=cansichartype;
+                      end;
+                    uwidechar :
+                      begin
+                        name := procprefixes[do_read]+'widechar';
+                        readfunctype:=cwidechartype;
+                      end;
+                    scurrency:
+                      begin
+                        name := procprefixes[do_read]+'currency';
+                        { iso pascal needs a different handler }
+                        if (m_isolike_io in current_settings.modeswitches) and do_read then
+                          name:=name+'_iso';
+                        readfunctype:=s64currencytype;
+                        is_real:=true;
+                      end;
+                    pasbool1,
+                    pasbool8,
+                    pasbool16,
+                    pasbool32,
+                    pasbool64,
+                    bool8bit,
+                    bool16bit,
+                    bool32bit,
+                    bool64bit:
+                      if do_read then
+                        begin
+                          CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                          error_para := true;
+                        end
+                      else
+                        begin
+                          name := procprefixes[do_read]+'boolean';
+                          readfunctype:=pasbool1type;
+                        end
+                    else
                       begin
                         CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
                         error_para := true;
-                      end
-                    else
-                      begin
-                        name := procprefixes[do_read]+'boolean';
-                        readfunctype:=pasbool1type;
-                      end
+                      end;
+                  end;
+                end;
+              variantdef :
+                name:=procprefixes[do_read]+'variant';
+              arraydef :
+                begin
+                  if is_chararray(para.left.resultdef) then
+                    name := procprefixes[do_read]+'pchar_as_array'
                   else
                     begin
                       CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
                       error_para := true;
-                    end;
+                    end
                 end;
-              end;
-            variantdef :
-              name:=procprefixes[do_read]+'variant';
-            arraydef :
-              begin
-                if is_chararray(para.left.resultdef) then
-                  name := procprefixes[do_read]+'pchar_as_array'
-                else
-                  begin
-                    CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
-                    error_para := true;
-                  end
-              end;
-            { generic parameter }
-            undefineddef:
-              { don't try to generate any code for a writeln on a generic parameter }
-              error_para:=true;
-            else
-              begin
-                CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
-                error_para := true;
-              end;
-          end;
+              else
+                begin
+                  CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                  error_para := true;
+                end;
+            end;
 
           { iso pascal needs a different handler }
           if (m_isolike_io in current_settings.modeswitches) and not(do_read) then
