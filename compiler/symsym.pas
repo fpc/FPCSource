@@ -283,6 +283,7 @@ interface
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function needs_finalization: boolean;
+          function is_used: boolean;
       end;
       tparavarsymclass = class of tparavarsym;
 
@@ -2296,6 +2297,13 @@ implementation
               (is_open_array(vardef) or is_array_of_const(vardef))
             )
           );
+      end;
+
+
+    function tparavarsym.is_used: boolean;
+      begin
+        { Only the $parentfp parameter is supported for now }
+        result:=not (vo_is_parentfp in varoptions) or (varstate>vs_initialised);
       end;
 
 {****************************************************************************

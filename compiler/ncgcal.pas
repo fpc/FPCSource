@@ -35,8 +35,6 @@ interface
     type
        tcgcallparanode = class(tcallparanode)
        protected
-          function push_zero_sized_value_para: boolean; virtual;
-
           procedure push_addr_para;
           procedure push_value_para;virtual;
           procedure push_formal_para;virtual;
@@ -140,6 +138,42 @@ implementation
       wpobase;
 
 
+    function can_opt_unused_para(parasym: tparavarsym): boolean;
+      var
+        pd: tprocdef;
+      begin
+        { The parameter can be optimized as unused when:
+            this is a direct call to a routine, not a procvar
+            and the routine is not an exception filter
+            and the parameter is not used by the routine
+            and implementation of the routine is already processed.
+        }
+        result:=assigned(parasym.Owner) and
+          (parasym.Owner.defowner.typ=procdef);
+        if not result then
+          exit;
+        pd:=tprocdef(parasym.Owner.defowner);
+        result:=(pd.proctypeoption<>potype_exceptfilter) and
+          not parasym.is_used and
+          pd.is_implemented;
+      end;
+
+
+    function can_skip_para_push(parasym: tparavarsym): boolean;
+      begin
+        { We can skip passing the parameter when:
+            the parameter can be optimized as unused
+            and the target does not strictly require all parameters (has_strict_proc_signature = false)
+            and fixed stack is used
+              or the parameter is in a register
+              or the parameter is $parentfp. }
+        result:=can_opt_unused_para(parasym) and
+          not paramanager.has_strict_proc_signature and
+          (paramanager.use_fixed_stack or
+           (vo_is_parentfp in parasym.varoptions) or
+           (parasym.paraloc[callerside].Location^.Loc in [LOC_REGISTER,LOC_CREGISTER]));
+      end;
+
 {*****************************************************************************
                              TCGCALLPARANODE
 *****************************************************************************}
@@ -155,13 +189,6 @@ implementation
       begin
         tempcgpara.done;
         inherited destroy;
-      end;
-
-
-    function tcgcallparanode.push_zero_sized_value_para: boolean;
-      begin
-        { nothing to push by default }
-        result:=false;
       end;
 
 
@@ -263,7 +290,7 @@ implementation
           -- except on platforms where the parameters are part of the signature
              and checked by the runtime/backend compiler (e.g. JVM, LLVM) }
         if (left.resultdef.size=0) and
-           not push_zero_sized_value_para then
+           not paramanager.has_strict_proc_signature then
           exit;
 
         if maybe_push_unused_para then
@@ -292,29 +319,12 @@ implementation
 
     function tcgcallparanode.maybe_push_unused_para: boolean;
       begin
-        { Check if the parameter is unused.
-          Only the $parentfp parameter is supported for now. }
-        result:=(vo_is_parentfp in parasym.varoptions) and (parasym.varstate<=vs_initialised);
+        { Check if the parameter is unused and can be optimized }
+        result:=can_opt_unused_para(parasym);
         if not result then
           exit;
-        { The parameter is unused.
-          We can skip loading of the parameter when:
-            - the target does not strictly require all parameters (push_zero_sized_value_para = false)
-            and
-            - fixed stack is used
-              or the parameter is in a register
-              or the parameter is $parentfp. }
-        if not push_zero_sized_value_para and
-          (paramanager.use_fixed_stack or
-           (vo_is_parentfp in parasym.varoptions) or
-           (parasym.paraloc[callerside].Location^.Loc in [LOC_REGISTER,LOC_CREGISTER])) then
-          begin
-            { Skip loading }
-            parasym.paraloc[callerside].Location^.Loc:=LOC_VOID;
-            tempcgpara.Location^.Loc:=LOC_VOID;
-          end
-        else
-          { Load an undefined dummy value }
+        { If we can't skip loading of the parameter, load an undefined dummy value. }
+        if not can_skip_para_push(parasym) then
           hlcg.a_load_undefined_cgpara(current_asmdata.CurrAsmList,left.resultdef,tempcgpara);
       end;
 
@@ -775,7 +785,8 @@ implementation
          ppn:=tcgcallparanode(left);
          while assigned(ppn) do
            begin
-             if (ppn.left.nodetype<>nothingn) then
+             if (ppn.left.nodetype<>nothingn) and
+               not can_skip_para_push(ppn.parasym) then
                begin
                  { better check for the real location of the parameter here, when stack passed parameters
                    are saved temporary in registers, checking for the tmpparaloc.loc is wrong
@@ -948,17 +959,9 @@ implementation
 
 
     function tcgcallnode.is_parentfp_pushed: boolean;
-      var
-        i : longint;
       begin
-        for i:=0 to procdefinition.paras.Count-1 do
-          with tparavarsym(procdefinition.paras[i]) do
-            if vo_is_parentfp in varoptions then
-              begin
-                result:=paraloc[callerside].Location^.Loc in [LOC_REFERENCE,LOC_CREFERENCE];
-                exit;
-              end;
-        result:=false;
+        result:=(procdefinition.typ<>procdef) or
+          not can_skip_para_push(tparavarsym(tprocdef(procdefinition).parentfpsym));
       end;
 
 

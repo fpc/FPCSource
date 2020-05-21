@@ -32,8 +32,6 @@ interface
 
     type
       tllvmcallparanode = class(tcgcallparanode)
-       protected
-        function push_zero_sized_value_para: boolean; override;
       end;
 
       tllvmcallnode = class(tcgcallnode)
@@ -49,17 +47,6 @@ implementation
      uses
        verbose,
        symconst,symdef;
-
-{*****************************************************************************
-                          TLLVMCALLPARANODE
- *****************************************************************************}
-
-    function tllvmcallparanode.push_zero_sized_value_para: boolean;
-      begin
-        { part of the signature -> need to be pushed }
-        result:=true;
-      end;
-
 
 {*****************************************************************************
                            TLLVMCALLNODE

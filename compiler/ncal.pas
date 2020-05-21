@@ -3522,9 +3522,6 @@ implementation
                         hiddentree:=cloadparentfpnode.create(current_procinfo.procdef,lpf_forpara)
                       else
                         internalerror(200309287);
-                      { Always use parentfp for forward-declared nested procedures }
-                      if (procdefinition.typ=procdef) and not tprocdef(procdefinition).is_implemented then
-                        include(tprocdef(procdefinition).implprocoptions,pio_needs_parentfp);
                     end
                   else if not(po_is_block in procdefinition.procoptions) then
                     hiddentree:=gen_procvar_context_tree_parentfp

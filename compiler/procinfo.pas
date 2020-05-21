@@ -202,8 +202,8 @@ unit procinfo;
           procedure start_eh(list : TAsmList); virtual;
           { called to insert needed eh info into the exit code }
           procedure end_eh(list : TAsmList); virtual;
-          { Sets the pio_needs_parentfp flag for the current nested procedure.
-            Sets both pio_needs_parentfp and pio_nested_access for all parent
+          { Mark the parentfp as used for the current nested procedure.
+            Mark the parentfp as used and set pio_nested_access for all parent
             procedures until parent_level }
           procedure set_needs_parentfp(parent_level: byte);
        end;
@@ -437,20 +437,29 @@ implementation
     procedure tprocinfo.set_needs_parentfp(parent_level: byte);
       var
         pi : tprocinfo;
+        p : tparavarsym;
       begin
         if (procdef.parast.symtablelevel<=normal_function_level)
           or (procdef.parast.symtablelevel<=parent_level) then
           Internalerror(2020050302);
         if parent_level<normal_function_level then
           parent_level:=normal_function_level;
-        { Set pio_needs_parentfp for the current proc }
+        { Mark parentfp as used for the current proc }
         pi:=Self;
-        include(pi.procdef.implprocoptions, pio_needs_parentfp);
-        { Set both pio_needs_parentfp and pio_nested_access for all parent procs until parent_level }
+        tparavarsym(pi.procdef.parentfpsym).varstate:=vs_read;
+        { Set both parentfp is used and pio_nested_access for all parent procs until parent_level }
         while pi.procdef.parast.symtablelevel>parent_level do
           begin
             pi:=pi.parent;
-            pi.procdef.implprocoptions:=pi.procdef.implprocoptions+[pio_needs_parentfp,pio_nested_access];
+            if pi.procdef.parast.symtablelevel>normal_function_level then
+              begin
+                p:=tparavarsym(pi.procdef.parentfpsym);
+                p.varstate:=vs_read;
+                { parentfp is accessed from a nested routine.
+                  Must be in the memory. }
+                p.varregable:=vr_none;
+              end;
+            include(pi.procdef.implprocoptions,pio_nested_access);
           end;
       end;
 

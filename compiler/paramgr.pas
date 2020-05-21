@@ -161,6 +161,10 @@ unit paramgr;
           function use_fixed_stack: boolean;
           { whether stack pointer can be changed in the middle of procedure }
           function use_stackalloc: boolean;
+          { Returns true for platforms where the parameters are part of the signature
+            and checked by the runtime/backend compiler (e.g. JVM, LLVM).
+            The default implementation returns false. }
+          function has_strict_proc_signature: boolean; virtual;
          strict protected
           { common part of get_funcretloc; returns true if retloc is completely
             initialized afterwards }
@@ -648,6 +652,12 @@ implementation
     function tparamanager.use_stackalloc: boolean;
       begin
         result:=not use_fixed_stack;
+      end;
+
+
+    function tparamanager.has_strict_proc_signature: boolean;
+      begin
+        result:=false;
       end;
 
 

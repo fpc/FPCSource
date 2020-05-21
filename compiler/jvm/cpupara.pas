@@ -51,6 +51,7 @@ interface
         function param_use_paraloc(const cgpara: tcgpara): boolean; override;
         function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
         function is_stack_paraloc(paraloc: pcgparalocation): boolean;override;
+        function has_strict_proc_signature: boolean;override;
       private
         procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
                                              var parasize:longint);
@@ -205,6 +206,12 @@ implementation
     function tcpuparamanager.is_stack_paraloc(paraloc: pcgparalocation): boolean;
       begin
         { all parameters are passed on the evaluation stack }
+        result:=true;
+      end;
+
+
+    function tcpuparamanager.has_strict_proc_signature: boolean;
+      begin
         result:=true;
       end;
 

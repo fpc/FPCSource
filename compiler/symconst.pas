@@ -455,9 +455,7 @@ type
     { compiled with fastmath enabled }
     pio_fastmath,
     { inline is forbidden (calls get_frame) }
-    pio_inline_forbidden,
-    { a nested routine uses the frame pointer of the parent routine }
-    pio_needs_parentfp
+    pio_inline_forbidden
   );
   timplprocoptions = set of timplprocoption;
 

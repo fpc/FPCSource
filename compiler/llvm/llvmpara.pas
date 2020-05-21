@@ -51,6 +51,7 @@ unit llvmpara;
         function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
         function create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee; varargspara: tvarargsparalist): longint; override;
         function get_funcretloc(p: tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara; override;
+        function has_strict_proc_signature: boolean; override;
        private
         procedure create_paraloc_info_internllvm(p: tabstractprocdef; side: tcallercallee);
         procedure set_llvm_paraloc_name(p: tabstractprocdef; hp: tparavarsym; var para: tcgpara);
@@ -258,6 +259,12 @@ unit llvmpara;
             internalerror(2019011902);
           reducetosingleregparaloc(paraloc,result.def,paraloc^.register);
         end;
+    end;
+
+
+  function tllvmparamanager.has_strict_proc_signature: boolean;
+    begin
+      result:=true;
     end;
 
 

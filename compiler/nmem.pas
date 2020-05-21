@@ -53,10 +53,6 @@ interface
          lpf_forload
        );
        tloadparentfpnode = class(tunarynode)
-       private
-          _parentfpsym: tparavarsym;
-          function getparentfpsym: tparavarsym;
-       public
           parentpd : tprocdef;
           parentpdderef : tderef;
           kind: tloadparentfpkind;
@@ -69,7 +65,6 @@ interface
           function pass_typecheck:tnode;override;
           function docompare(p: tnode): boolean; override;
           function dogetcopy : tnode;override;
-          property parentfpsym: tparavarsym read getparentfpsym;
        end;
        tloadparentfpnodeclass = class of tloadparentfpnode;
 
@@ -387,18 +382,6 @@ implementation
       begin
         result:=nil;
         expectloc:=LOC_REGISTER;
-      end;
-
-
-    function tloadparentfpnode.getparentfpsym: tparavarsym;
-      begin
-        if not assigned(_parentfpsym) then
-          begin
-            _parentfpsym:=tparavarsym(current_procinfo.procdef.parast.Find('parentfp'));
-            if not assigned(_parentfpsym) then
-              internalerror(200309281);
-          end;
-        result:=_parentfpsym;
       end;
 
 {*****************************************************************************

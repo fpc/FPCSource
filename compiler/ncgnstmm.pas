@@ -83,7 +83,7 @@ implementation
             while assigned(currpi) and
                   (currpi.procdef.parast.symtablelevel>parentpd.parast.symtablelevel) do
               begin
-                hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
+                hsym:=tparavarsym(currpi.procdef.parentfpsym);
                 maybe_add_sym_to_parentfpstruct(currpi.procdef,hsym,nextpi.procdef.parentfpstructptrtype,false);
                 currpi:=nextpi;
                 nextpi:=nextpi.parent;
@@ -125,7 +125,7 @@ implementation
           need }
         while (currpi.procdef.parast.symtablelevel>parentpd.parast.symtablelevel) do
           begin
-            hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
+            hsym:=tparavarsym(currpi.procdef.parentfpsym);
             fsym:=tfieldvarsym(find_sym_in_parentfpstruct(currpi.procdef,hsym));
             if not assigned(fsym) then
               internalerror(2011060405);

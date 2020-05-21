@@ -702,8 +702,6 @@ interface
        private
           procedure count_para(p:TObject;arg:pointer);
           procedure insert_para(p:TObject;arg:pointer);
-       protected
-          procedure handle_unused_paras(side: tcallercallee); virtual;
        end;
 
        tprocvardef = class(tabstractprocdef)
@@ -782,6 +780,7 @@ interface
 {$else symansistr}
          _mangledname : pshortstring;
 {$endif}
+         _parentfpsym : tsym;
          { information that is only required until the implementation of the
            procdef has been handled }
          implprocdefinfo : pimplprocdefinfo;
@@ -814,7 +813,7 @@ interface
          procedure SetIsEmpty(AValue: boolean);
          function GetHasInliningInfo: boolean;
          procedure SetHasInliningInfo(AValue: boolean);
-         procedure handle_unused_paras(side: tcallercallee); override;
+         function getparentfpsym: tsym;
        public
           messageinf : tmessageinf;
           dispid : longint;
@@ -937,6 +936,8 @@ interface
           property isempty: boolean read GetIsEmpty write SetIsEmpty;
           { true if all information required to inline this routine is available }
           property has_inlininginfo: boolean read GetHasInliningInfo write SetHasInliningInfo;
+          { returns the $parentfp parameter for nested routines }
+          property parentfpsym: tsym read getparentfpsym;
        end;
        tprocdefclass = class of tprocdef;
 
@@ -5276,11 +5277,6 @@ implementation
       end;
 
 
-    procedure tabstractprocdef.handle_unused_paras(side: tcallercallee);
-    begin
-    end;
-
-
     procedure tabstractprocdef.calcparas;
       var
         paracount : longint;
@@ -5714,7 +5710,6 @@ implementation
               has_paraloc_info:=callbothsides
             else
               has_paraloc_info:=callerside;
-            handle_unused_paras(callerside);
           end;
         if (side in [calleeside,callbothsides]) and
            not(has_paraloc_info in [calleeside,callbothsides]) then
@@ -5727,7 +5722,6 @@ implementation
               has_paraloc_info:=callbothsides
             else
               has_paraloc_info:=calleeside;
-            handle_unused_paras(calleeside);
           end;
       end;
 
@@ -5774,6 +5768,8 @@ implementation
           if tsym(parast.SymList[i]).typ=paravarsym then
             begin
               p:=tparavarsym(parast.SymList[i]);
+              if not p.is_used then
+                continue;
               { check if no parameter is located on the stack }
               if (is_open_array(p.vardef) or
                  is_array_of_const(p.vardef)) and (p.varspez=vs_value) then
@@ -5839,6 +5835,17 @@ implementation
 {***************************************************************************
                                   TPROCDEF
 ***************************************************************************}
+
+    function tprocdef.getparentfpsym: tsym;
+      begin
+        if not assigned(_parentfpsym) then
+          begin
+            _parentfpsym:=tsym(parast.Find('parentfp'));
+            if not assigned(_parentfpsym) then
+              internalerror(200309281);
+          end;
+        result:=_parentfpsym;
+      end;
 
 
     function tprocdef.store_localst: boolean;
@@ -6018,45 +6025,6 @@ implementation
           include(implprocoptions,pio_has_inlininginfo)
         else
           exclude(implprocoptions,pio_has_inlininginfo);
-      end;
-
-
-    procedure tprocdef.handle_unused_paras(side: tcallercallee);
-      var
-        i : longint;
-      begin
-        { Optimize unused parameters by preventing loading them on the callee side
-          and, if possible, preventing passing them on the caller side.
-          The caller side optimization is handled by tcgcallparanode.maybe_push_unused_para().
-        }
-        if (proctypeoption = potype_exceptfilter) or
-          (po_assembler in procoptions) then
-          exit;
-        { Only $parentfp is optmized for now. }
-        if not is_nested_pd(self) then
-          exit;
-        { Handle unused parameters }
-        for i:=0 to paras.Count-1 do
-          with tparavarsym(paras[i]) do
-            if vo_is_parentfp in varoptions then
-              begin
-                if pio_needs_parentfp in implprocoptions then
-                  begin
-                    { If this routine is accessed from other nested routine,
-                      $parentfp must be in a memory location. }
-                    if pio_nested_access in implprocoptions then
-                      varregable:=vr_none;
-                  end
-                else
-                  begin
-                    { Mark $parentfp as unused, since it has vs_read by default }
-                    varstate:=vs_initialised;
-                    if side=calleeside then
-                      { Set LOC_VOID as the parameter's location on the callee side }
-                      paraloc[side].location^.Loc:=LOC_VOID;
-                    break;
-                  end;
-              end;
       end;
 
 
