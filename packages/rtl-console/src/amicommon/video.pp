@@ -57,6 +57,8 @@ implementation
 uses
    exec, agraphics;
 
+procedure SysUpdateScreen(Force: Boolean); forward;
+
 {$i video.inc}
 
 {$i videodata.inc}
@@ -100,6 +102,9 @@ var
   Process: PProcess;
 
   FontBitmap: PBitmap;
+  CharPointers: array[0..255] of Pointer;
+  SrcMod: Integer = 1;
+
 (*
   GetScreen: pScreen;
 
@@ -199,6 +204,8 @@ begin
     GetWindow:=_OpenWindowTags(nil, [
       WA_Left       , LastL,
       WA_Top        , LastT,
+      WA_MinWidth   , 70*8,
+      WA_MinHeight  , 16*VideoFontHeight-10,
       WA_InnerWidth , LastW*8,
       WA_InnerHeight, LastH*VideoFontHeight,
       WA_MaxWidth   , 32768,
@@ -239,6 +246,7 @@ var
   Counter2: LongInt;
   P: PWord;
   flags: DWord;
+  i: LongInt;
   envBuf: array[0..15] of char;
 begin
 {$IFDEF MORPHOS}
@@ -301,81 +309,100 @@ begin
     {$ifdef VIDEODEBUG}
     Writeln('DEBUG: Fullscreen - windowed - Width * Heigth = ',ScreenWidth,' * ',ScreenHeight);
     {$endif}
-   end else
-   begin
-     ScreenWidth := LastW;
-     ScreenHeight := LastH;
-     ScreenColor := True;
-   end;
-   {$ifdef WITHBUFFERING}
-   BufRp^.Bitmap := AllocBitmap(VideoWindow^.InnerWidth, VideoWindow^.InnerHeight, VideoWindow^.RPort^.Bitmap^.Depth, BMF_CLEAR, VideoWindow^.RPort^.Bitmap);
-   BitmapWidth := VideoWindow^.InnerWidth;
-   BitmapHeight := VideoWindow^.InnerHeight;
-   {$endif}
-   { viewpostcolormap info }
-   videoColorMap := pScreen(videoWindow^.WScreen)^.ViewPort.ColorMap;
+  end else
+  begin
+    ScreenWidth := LastW;
+    ScreenHeight := LastH;
+    ScreenColor := True;
+  end;
+  {$ifdef WITHBUFFERING}
+  BufRp^.Bitmap := AllocBitmap(VideoWindow^.Width, VideoWindow^.Height, VideoWindow^.RPort^.Bitmap^.Depth, BMF_CLEAR, VideoWindow^.RPort^.Bitmap);
+  BitmapWidth := VideoWindow^.Width;
+  BitmapHeight := VideoWindow^.Height;
+  {$endif}
+  { viewpostcolormap info }
+  videoColorMap := pScreen(videoWindow^.WScreen)^.ViewPort.ColorMap;
 
-   for Counter := 0 to 15 do
-   begin
-     VideoPens[Counter] := ObtainBestPenA(VideoColorMap,
-         vgacolors[counter, 0] shl 24, vgacolors[counter, 1] shl 24, vgacolors[counter, 2] shl 24, nil);
-     {$ifdef VIDEODEBUG}
-     If VideoPens[Counter] = -1 then
-       WriteLn('errr color[',Counter,'] = ', VideoPens[Counter])
-     else
-       WriteLn('good color[',Counter,'] = ', VideoPens[Counter]);
-     {$endif}
-   end;
+  for Counter := 0 to 15 do
+  begin
+    VideoPens[Counter] := ObtainBestPenA(VideoColorMap,
+        vgacolors[counter, 0] shl 24, vgacolors[counter, 1] shl 24, vgacolors[counter, 2] shl 24, nil);
+    {$ifdef VIDEODEBUG}
+    If VideoPens[Counter] = -1 then
+      WriteLn('errr color[',Counter,'] = ', VideoPens[Counter])
+    else
+      WriteLn('good color[',Counter,'] = ', VideoPens[Counter]);
+    {$endif}
+  end;
 
-   { Obtain Friend bitmap for font blitting }
-   FontBitmap:=AllocBitMap(16,VideoFontHeight*256,1,0,VideoWindow^.RPort^.Bitmap);
+  { Obtain Friend bitmap for font blitting }
+  FontBitmap:=AllocBitMap(16,VideoFontHeight*256,1,0, VideoWindow^.RPort^.Bitmap);
 
-   if (FontBitmap <> nil) then
-   begin
-     flags:=GetBitmapAttr(FontBitmap,BMA_FLAGS);
-     if (Flags and BMF_STANDARD) > 0 then
-     begin
-       {$ifdef VIDEODEBUG}
-       writeln('Using fontbitmap mode.');
-       {$endif}
-       { Locking the bitmap would be better, but that requires CGFX/P96/etc specific calls }
-       Forbid();
-       { We need to make the data word wide, otherwise the blit will fail
-         miserably on classics (tested on 3.1 + AGA) }
-       p:=PWord(FontBitmap^.Planes[0]);
-       for counter:=0 to 255 do
-         for counter2:=0 to VideoFontHeight-1 do
-         begin
-           p^:=VideoFont[counter * VideoFontHeight + counter2] shl 8;
-           inc(p);
-         end;
-       Permit();
-     end
-     else
-     begin
-       {$ifdef VIDEODEBUG}
-       writeln('Using direct-from-fontdata mode.');
-       {$endif}
-       FreeBitmap(FontBitmap);
-       FontBitmap:=nil;
-     end;
-   end;
+  if (FontBitmap <> nil) then
+  begin
+    flags:=GetBitmapAttr(FontBitmap,BMA_FLAGS);
+    if (Flags and BMF_STANDARD) > 0 then
+    begin
+      {$ifdef VIDEODEBUG}
+      writeln('Using fontbitmap mode.');
+      {$endif}
+      { Locking the bitmap would be better, but that requires CGFX/P96/etc specific calls }
+      Forbid();
+      { We need to make the data word wide, otherwise the blit will fail
+        miserably on classics (tested on 3.1 + AGA) }
+      p:=PWord(FontBitmap^.Planes[0]);
+      for counter:=0 to 255 do
+        for counter2:=0 to VideoFontHeight-1 do
+        begin
+          p^:=VideoFont[counter * VideoFontHeight + counter2] shl 8;
+          inc(p);
+        end;
+      Permit();
+    end
+    else
+    begin
+      {$ifdef VIDEODEBUG}
+      writeln('Using direct-from-fontdata mode.');
+      {$endif}
+      FreeBitmap(FontBitmap);
+      FontBitmap:=nil;
+    end;
+  end;
 
-   CursorX := 0;
-   CursorY := 0;
-   OldCursorX := 0;
-   OldCursorY := 0;
-   CursorType := crHidden;
-   OldCursorType := crHidden;
-   CursorState := true;
-   ForceCursorUpdate:=false;
-   CursorUpdateSpeed:=2; // this could come from an env-var or something
-   CursorUpdateCnt:=0;
+  if FontBitmap <> nil then
+  begin
+    SrcMod := 2;
+    for i := 0 to 255 do
+    begin
+      CharPointers[i] := @(PWord(FontBitmap^.Planes[0])[i * VideoFontHeight]);
+    end;
+  end
+  else
+  begin
+    SrcMod := 1;
+    for i := 0 to 255 do
+    begin
+      CharPointers[i] := @VideoFont[i * VideoFontHeight];
+    end;
+  end;
 
-   GotCloseWindowMsg := false;
-   GotResizeWindowMsg := false;
-   GotActiveWindowMsg := false;
-   GotInactiveWindowMsg := false;
+  CursorX := 0;
+  CursorY := 0;
+  OldCursorX := 0;
+  OldCursorY := 0;
+  CursorType := crHidden;
+  OldCursorType := crHidden;
+  CursorState := true;
+  ForceCursorUpdate:=false;
+  CursorUpdateSpeed:=2; // this could come from an env-var or something
+  CursorUpdateCnt:=0;
+
+  GotCloseWindowMsg := false;
+  GotResizeWindowMsg := false;
+  GotActiveWindowMsg := false;
+  GotInactiveWindowMsg := false;
+
+  //
 end;
 
 procedure SysDoneVideo;
@@ -452,10 +479,22 @@ end;
 
 
 procedure SysClearScreen;
+var
+  Value: Word;
 begin
-  oldSH := -1;
-  oldSW := -1;
-  UpdateScreen(True);
+  //oldSH := -1;
+  //oldSW := -1;
+  //UpdateScreen(True);
+  OldSH := ScreenHeight;
+  OldSW := ScreenWidth;
+  Value := (LightGray shl 8) or Ord(' '); // fill with light gray space
+  FillWord(VideoBuf^, ScreenWidth * ScreenHeight, Value);
+  FillWord(OldVideoBuf^, ScreenWidth * ScreenHeight, Value);
+  SetAPen(VideoWindow^.RPort, VideoPens[Black]);
+  RectFill(VideoWindow^.RPort, videoWindow^.borderLeft, videoWindow^.borderTop, videoWindow^.width - videoWindow^.borderRight - 1, videoWindow^.Height - videoWindow^.borderBottom - 1);
+  ForceCursorUpdate := True;
+  SysUpdateScreen(False);
+  ForceCursorUpdate := False;
 end;
 
 procedure DrawChar(rp: PRastPort; x, y: LongInt; crType: Word);
@@ -484,10 +523,7 @@ begin
     SetABPenDrMd(rp, VideoPens[tmpBGColor], VideoPens[tmpFGColor], JAM2);
   end;
 
-  if FontBitmap <> nil then
-    BltTemplate(@(PWord(FontBitmap^.Planes[0])[tmpChar * VideoFontHeight]), 0, 2, rp, sX, sY, 8, VideoFontHeight)
-  else
-    BltTemplate(@VideoFont[tmpChar * VideoFontHeight], 0, 1, rp, sX, sY, 8, VideoFontHeight);
+  BltTemplate(CharPointers[tmpChar], 0, SrcMod, rp, sX, sY, 8, VideoFontHeight);
 
   if crType = crUnderLine then
   begin
@@ -509,10 +545,17 @@ var
   BufCounter: Longint;
   SmallForce: Boolean;
   Counter, CounterX, CounterY: LongInt;
-  //BufRp: PRastPort;
-  t: Double;
   NumChanged: Integer;
+  LocalRP: PRastPort;
+  sY, sX: LongInt;
+  TmpCharData: Word;
+  {$ifdef VideoSpeedTest}
+  t,ta: Double;
+  {$endif}
 begin
+  {$ifdef VideoSpeedTest}
+  ta := now();
+  {$endif}
   SmallForce := False;
 
   // override forced update when screen dimensions haven't changed
@@ -541,61 +584,71 @@ begin
       end;
   end;
 
+  LocalRP := VideoWindow^.RPort;
+
   {$ifdef WITHBUFFERING}
-  if (VideoWindow^.InnerWidth > BitmapWidth) or (VideoWindow^.InnerHeight > BitmapHeight) then
+  if (VideoWindow^.Width > BitmapWidth) or (VideoWindow^.Height > BitmapHeight) then
   begin
     FreeBitmap(BufRp^.Bitmap);
-    BufRp^.Bitmap := AllocBitmap(VideoWindow^.InnerWidth, VideoWindow^.InnerHeight, VideoWindow^.RPort^.Bitmap^.Depth, BMF_CLEAR, VideoWindow^.RPort^.Bitmap);
-    BitmapWidth := VideoWindow^.InnerWidth;
-    BitmapHeight := VideoWindow^.InnerHeight;
+    BufRp^.Bitmap := AllocBitmap(VideoWindow^.Width, VideoWindow^.Height, VideoWindow^.RPort^.Bitmap^.Depth, BMF_CLEAR, VideoWindow^.RPort^.Bitmap);
+    BitmapWidth := VideoWindow^.Width;
+    BitmapHeight := VideoWindow^.Height;
     Force := True;
     Smallforce := True;
   end;
+  LocalRP := BufRp;
   {$endif}
 
   BufCounter:=0;
   NumChanged:=0;
+
+
   if Smallforce then
   begin
-    //t := now();
+    {$ifdef VideoSpeedTest}
+    t := now();
+    {$endif}
+    sY := videoWindow^.borderTop;
     for CounterY := 0 to ScreenHeight - 1 do
     begin
+      sX := videoWindow^.borderLeft;
       for CounterX := 0 to ScreenWidth - 1 do
       begin
         if (VideoBuf^[BufCounter] <> OldVideoBuf^[BufCounter]) or Force then
         begin
-          {$ifdef WITHBUFFERING}
-          DrawChar(BufRp, CounterX, CounterY, crHidden);
-          {$else}
-          DrawChar(VideoWindow^.RPort, CounterX, CounterY, crHidden);
-          {$endif}
+          TmpCharData := VideoBuf^[BufCounter];
+          SetABPenDrMd(LocalRP, VideoPens[(TmpCharData shr 8) and %00001111], VideoPens[(TmpCharData shr 12) and %00000111], JAM2);
+          BltTemplate(CharPointers[TmpCharData and $FF], 0, SrcMod, LocalRP, sX, sY, 8, VideoFontHeight);
           OldVideoBuf^[BufCounter] := VideoBuf^[BufCounter];
           Inc(NumChanged);
         end;
         Inc(BufCounter);
+        sX := sX + 8;
       end;
+      sY := sY + VideoFontHeight;
     end;
-    //if NumChanged > 100 then
-    //  writeln('redraw time: ', floattoStrF((Now-t)* 24 * 60 * 60 * 1000000 / NumChanged, fffixed, 8,3), ' us/char' ); // ms
+    {$ifdef VideoSpeedTest}
+    if NumChanged > 100 then
+      writeln('redraw time: ', floattoStrF((Now-t)* 24 * 60 * 60 * 1000000 / NumChanged, fffixed, 8,3), ' us/char' ); // ms
+    {$endif}
   end;
 
   if (CursorType <> OldCursorType) or
      (CursorX <> OldCursorX) or (CursorY <> OldCursorY) or
      SmallForce or ForceCursorUpdate then
   begin
-    {$ifdef WITHBUFFERING}
-    if (OldCursorX >= 0) and (OldCursorX < ScreenWidth) and (OldCursorY >= 0) and (OldCursorY < ScreenHeight) then DrawChar(BufRp, OldCursorX, OldCursorY, crHidden);
-    if CursorState and (CursorX >= 0) and (CursorX < ScreenWidth) and (CursorY >= 0) and (CursorY < ScreenHeight) then DrawChar(BufRp, CursorX, CursorY, CursorType);
-    {$else}
-    if (OldCursorX >= 0) and (OldCursorX < ScreenWidth) and (OldCursorY >= 0) and (OldCursorY < ScreenHeight) then DrawChar(VideoWindow^.RPort, OldCursorX, OldCursorY, crHidden);
-    if CursorState and (CursorX >= 0) and (CursorX < ScreenWidth) and (CursorY >= 0) and (CursorY < ScreenHeight) then DrawChar(VideoWindow^.RPort, CursorX, CursorY, CursorType);
-    {$endif}
+    if (OldCursorX >= 0) and (OldCursorX < ScreenWidth) and (OldCursorY >= 0) and (OldCursorY < ScreenHeight) then DrawChar(LocalRP, OldCursorX, OldCursorY, crHidden);
+    if CursorState and (CursorX >= 0) and (CursorX < ScreenWidth) and (CursorY >= 0) and (CursorY < ScreenHeight) then DrawChar(LocalRP, CursorX, CursorY, CursorType);
     OldCursorX := CursorX;
     OldCursorY := CursorY;
     OldcursorType := CursorType;
   end;
   {$ifdef WITHBUFFERING}
-  BltBitMapRastPort(BufRp^.Bitmap, 0, 0, VideoWindow^.RPort, 0, 0, ScreenWidth * 8, ScreenHeight * 16, $00C0);
+  BltBitMapRastPort(BufRp^.Bitmap, VideoWindow^.borderLeft, VideoWindow^.borderTop, VideoWindow^.RPort, VideoWindow^.borderLeft, VideoWindow^.borderTop, ScreenWidth * 8, ScreenHeight * 16, $00C0);
+  {$endif}
+  {$ifdef VideoSpeedTest}
+  if NumChanged > 100 then
+    writeln('overall redraw time: ', floattoStrF((Now-ta)* 24 * 60 * 60 * 1000, fffixed, 8,3), ' ms' ); // ms
   {$endif}
 end;
 
@@ -806,6 +859,18 @@ const
     SetCursorType : @SysSetCursorType;
     GetCapabilities : @SysGetCapabilities
   );
+{$ifdef Amiga68k}
+function CreateRastport: PRastPort;
+begin
+  CreateRastport := AllocMem(SizeOf(TRastPort));
+  InitRastPort(CreateRastport);
+end;
+
+procedure FreeRastPort(RP: PRastPort);
+begin
+  FreeMem(RP);
+end;
+{$endif}
 
 
 initialization
