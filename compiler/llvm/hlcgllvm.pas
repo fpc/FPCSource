@@ -41,6 +41,7 @@ uses
 
       procedure a_load_reg_cgpara(list: TAsmList; size: tdef; r: tregister; const cgpara: TCGPara); override;
       procedure a_load_ref_cgpara(list: TAsmList; size: tdef; const r: treference; const cgpara: TCGPara); override;
+      procedure a_load_undefined_cgpara(list: TAsmList; size: tdef; const cgpara: TCGPara); override;
       procedure a_load_const_cgpara(list: TAsmList; tosize: tdef; a: tcgint; const cgpara: TCGPara); override;
      protected
        procedure a_load_ref_cgpara_init_src(list: TAsmList; const para: tcgpara; const initialref: treference; var refsize: tdef; out newref: treference);
@@ -305,6 +306,16 @@ implementation
           location:=location^.next;
           inc(paralocidx);
         end;
+    end;
+
+
+  procedure thlcgllvm.a_load_undefined_cgpara(list: TAsmList; size: tdef; const cgpara: TCGPara);
+    var
+      hreg: tregister;
+    begin
+      hreg:=getregisterfordef(list,size);
+      list.concat(taillvm.op_reg_size_undef(la_bitcast,hreg,size));
+      a_load_reg_cgpara(list,size,hreg,cgpara);
     end;
 
 
