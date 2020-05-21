@@ -229,6 +229,7 @@ begin
     Finally
       Free;
     end;
+  Writeln('Content file : ',APackage.ContentFile);
   if Length(APackage.ContentFile) > 0 then
     Engine.WriteContentFile(APackage.ContentFile);
 end;
@@ -274,7 +275,7 @@ begin
         if FProcessedUnits.IndexOf(Cmd)=-1 then
           begin
           FProcessedUnits.Add(Cmd);
-          ParseSource(Engine,Cmd+' '+Arg, Options.OSTarget, Options.CPUTarget,[poUseStreams,poSkipDefaultDefs]);
+          ParseSource(Engine,Cmd+' '+Arg, Options.OSTarget, Options.CPUTarget,[poUseStreams]);
           end;
       except
         on E: EParserError do
