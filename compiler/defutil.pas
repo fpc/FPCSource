@@ -1821,7 +1821,7 @@ implementation
 
     function is_typeparam(def : tdef) : boolean;{$ifdef USEINLINE}inline;{$endif}
       begin
-        result:=(def.typ=undefineddef);
+        result:=(def.typ=undefineddef) or (df_genconstraint in def.defoptions);
       end;
 
 

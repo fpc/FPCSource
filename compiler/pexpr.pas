@@ -443,7 +443,7 @@ implementation
                   is_open_string(p1.resultdef)
                  )) or
                  { keep the function call if it is a type parameter to avoid arithmetic errors due to constant folding }
-                 (p1.resultdef.typ=undefineddef) then
+                 is_typeparam(p1.resultdef) then
                 begin
                   statement_syssym:=geninlinenode(in_sizeof_x,false,p1);
                   { no packed bit support for these things }
