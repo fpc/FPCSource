@@ -54,28 +54,9 @@ implementation
         {$i rxtensasri.inc}
       );
 
-    function findreg_by_gasname(const s:string):tregisterindex;
-      var
-        i,p : tregisterindex;
-      begin
-        {Binary search.}
-        p:=0;
-        i:=regnumber_count_bsstart;
-        repeat
-          if (p+i<=high(tregisterindex)) and (gas_regname_table[gas_regname_index[p+i]]<=s) then
-            p:=p+i;
-          i:=i shr 1;
-        until i=0;
-        if gas_regname_table[gas_regname_index[p]]=s then
-          findreg_by_gasname:=gas_regname_index[p]
-        else
-          findreg_by_gasname:=0;
-      end;
-
-
     function gas_regnum_search(const s:string):Tregister;
       begin
-        result:=regnumber_table[findreg_by_gasname(s)];
+        result:=regnumber_table[findreg_by_name_table(s, gas_regname_table, gas_regname_index)];
       end;
 
 

@@ -87,9 +87,6 @@ unit cpubase;
       { firs flag imaginary register }
       first_flag_imreg     = $10;
 
-      { TODO: Calculate bsstart}
-      regnumber_count_bsstart = 16;
-
       regnumber_table : array[tregisterindex] of tregister = (
         {$i rxtensanum.inc}
       );
