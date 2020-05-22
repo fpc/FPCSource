@@ -630,7 +630,9 @@ Function IsCallingConvention(S : String; out CC : TCallingConvention) : Boolean;
 
 Var
   CCNames : Array[TCallingConvention] of String
-         = ('','register','pascal','cdecl','stdcall','oldfpccall','safecall','syscall');
+         = ('','register','pascal','cdecl','stdcall','oldfpccall','safecall','syscall',
+           'mwpascal', 'hardfloat','sysv_abi_default','sysv_abi_cdecl',
+           'ms_abi_default','ms_abi_cdecl','vectorcall');
 Var
   C : TCallingConvention;
 

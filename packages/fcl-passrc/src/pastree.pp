@@ -115,7 +115,10 @@ type
     visStrictPrivate, visStrictProtected);
 
   TCallingConvention = (ccDefault,ccRegister,ccPascal,ccCDecl,ccStdCall,
-                        ccOldFPCCall,ccSafeCall,ccSysCall);
+                        ccOldFPCCall,ccSafeCall,ccSysCall,ccMWPascal,
+                        ccHardFloat,ccSysV_ABI_Default,ccSysV_ABI_CDecl,
+                        ccMS_ABI_Default,ccMS_ABI_CDecl,
+                        ccVectorCall);
   TProcTypeModifier = (ptmOfObject,ptmIsNested,ptmStatic,ptmVarargs,ptmReferenceTo);
   TProcTypeModifiers = set of TProcTypeModifier;
   TPackMode = (pmNone,pmPacked,pmBitPacked);
@@ -1733,7 +1736,10 @@ const
   cPasMemberHint : Array[TPasMemberHint] of string =
       ( 'deprecated', 'library', 'platform', 'experimental', 'unimplemented' );
   cCallingConventions : Array[TCallingConvention] of string =
-      ( '', 'Register','Pascal','CDecl','StdCall','OldFPCCall','SafeCall','SysCall');
+      ( '', 'Register','Pascal','CDecl','StdCall','OldFPCCall','SafeCall','SysCall','MWPascal',
+                        'HardFloat','SysV_ABI_Default','SysV_ABI_CDecl',
+                        'MS_ABI_Default','MS_ABI_CDecl',
+                        'VectorCall');
   ProcTypeModifiers : Array[TProcTypeModifier] of string =
       ('of Object', 'is nested','static','varargs','reference to');
 
