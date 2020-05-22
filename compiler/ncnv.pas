@@ -2393,17 +2393,14 @@ implementation
       type
          tprocedureofobject = function : tnode of object;
       var
-         r : packed record
-                proc : pointer;
-                obj : pointer;
-             end;
+         r : TMethod;
       begin
          result:=nil;
          { this is a little bit dirty but it works }
          { and should be quite portable too        }
-         r.proc:=resultdefconvert[c];
-         r.obj:=self;
-         if assigned(r.proc) then
+         r.Code:=resultdefconvert[c];
+         r.Data:=self;
+         if assigned(r.Code) then
           result:=tprocedureofobject(r)();
       end;
 
@@ -3981,16 +3978,13 @@ implementation
       type
          tprocedureofobject = function : tnode of object;
       var
-         r : packed record
-                proc : pointer;
-                obj : pointer;
-             end;
+         r : TMethod;
       begin
          { this is a little bit dirty but it works }
          { and should be quite portable too        }
-         r.proc:=firstconvert[c];
-         r.obj:=self;
-         if not assigned(r.proc) then
+         r.Code:=firstconvert[c];
+         r.Data:=self;
+         if not assigned(r.Code) then
            internalerror(200312081);
          first_call_helper:=tprocedureofobject(r)()
       end;
@@ -4262,16 +4256,13 @@ implementation
          tprocedureofobject = procedure of object;
 
       var
-         r : packed record
-                proc : pointer;
-                obj : pointer;
-             end;
+         r : TMethod;
 
       begin
          { this is a little bit dirty but it works }
          { and should be quite portable too        }
-         r.proc:=secondconvert[c];
-         r.obj:=self;
+         r.Code:=secondconvert[c];
+         r.Data:=self;
          tprocedureofobject(r)();
       end;
 
