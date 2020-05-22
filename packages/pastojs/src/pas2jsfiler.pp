@@ -416,7 +416,14 @@ const
     'StdCall',
     'OldFPCCall',
     'SafeCall',
-    'SysCall'
+    'SysCall',
+    'MWPascal',
+    'HardFloat',
+    'SysV_ABI_Default',
+    'SysV_ABI_CDecl',
+    'MS_ABI_Default',
+    'ccMS_ABI_CDecl',
+    'VectorCall'
     );
 
   PCUProcTypeModifierNames: array[TProcTypeModifier] of string = (
