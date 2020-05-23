@@ -5831,6 +5831,7 @@ unit aoptx86;
         hp1, hp2, hp3, hp4: tai;
       begin
         Result:=false;
+{$ifdef x86_64}
         { replace
             push %rax
             call   procname
@@ -5874,6 +5875,7 @@ unit aoptx86;
             hp3.free;
             Result:=true;
           end;
+{$endif x86_64}
       end;
 
 
