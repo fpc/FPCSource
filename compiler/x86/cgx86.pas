@@ -3146,9 +3146,16 @@ unit cgx86;
         var
           href : treference;
         begin
-          reference_reset_base(href,NR_STACK_POINTER_REG,-a,ctempposinvalid,0,[]);
-          { normally, lea is a better choice than a sub to adjust the stack pointer }
-          list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
+{$ifdef x86_64}
+          if localsize=8 then
+            list.concat(Taicpu.op_reg(A_PUSH,TCGSize2OpSize[OS_ADDR],NR_RAX))
+          else
+{$endif x86_64}
+            begin
+              reference_reset_base(href,NR_STACK_POINTER_REG,-a,ctempposinvalid,0,[]);
+              { normally, lea is a better choice than a sub to adjust the stack pointer }
+              list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
+            end;
         end;
 
 {$ifdef x86}

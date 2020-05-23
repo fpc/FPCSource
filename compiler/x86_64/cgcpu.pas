@@ -353,9 +353,14 @@ unit cgcpu;
         var
           href : treference;
         begin
-          reference_reset_base(href,NR_STACK_POINTER_REG,a,ctempposinvalid,0,[]);
-          { normally, lea is a better choice than an add }
-          list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
+          if a=8 then
+            list.concat(Taicpu.op_reg(A_POP,TCGSize2OpSize[OS_ADDR],NR_RCX))
+          else
+            begin
+              reference_reset_base(href,NR_STACK_POINTER_REG,a,ctempposinvalid,0,[]);
+              { normally, lea is a better choice than an add }
+              list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
+            end;
         end;
 
       var
