@@ -115,6 +115,7 @@ Type
     Procedure TestTryExceptOn2;
     Procedure TestTryExceptOnElse;
     Procedure TestTryExceptOnIfElse;
+    Procedure TestTryExceptOnElseNoSemicolo;
     procedure TestTryExceptRaise;
     Procedure TestAsm;
     Procedure TestAsmBlock;
@@ -1676,6 +1677,44 @@ Var
 
 begin
   TestStatement(['Try','  DoSomething;','except','On E : Exception do','DoSomethingElse;','else','DoSomethingMore;','end']);
+  T:=AssertStatement('Try statement',TPasImplTry) as TPasImplTry;
+  AssertEquals(1,T.Elements.Count);
+  AssertNotNull(T.FinallyExcept);
+  AssertNotNull(T.ElseBranch);
+  AssertNotNull(T.Elements[0]);
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(T.Elements[0]).ClassType);
+  S:=TPasImplSimple(T.Elements[0]);
+  AssertExpression('DoSomething call',S.Expr,pekIdent,'DoSomething');
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(T.Elements[0]).ClassType);
+  AssertEquals('Except statement',TPasImplTryExcept,T.FinallyExcept.ClassType);
+  E:=TPasImplTryExcept(T.FinallyExcept);
+  AssertEquals(1,E.Elements.Count);
+  AssertEquals('Except on handler',TPasImplExceptOn,TPasElement(E.Elements[0]).ClassType);
+  O:=TPasImplExceptOn(E.Elements[0]);
+  AssertEquals('Exception Variable name','E',O.VariableName);
+  AssertEquals('Exception Type name','Exception',O.TypeName);
+  AssertEquals(1,O.Elements.Count);
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(O.Elements[0]).ClassType);
+  S:=TPasImplSimple(O.Elements[0]);
+  AssertExpression('DoSomethingElse call',S.Expr,pekIdent,'DoSomethingElse');
+  AssertEquals('Except Else statement',TPasImplTryExceptElse,T.ElseBranch.ClassType);
+  EE:=TPasImplTryExceptElse(T.ElseBranch);
+  AssertEquals(1,EE.Elements.Count);
+  AssertNotNull(EE.Elements[0]);
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(EE.Elements[0]).ClassType);
+  S:=TPasImplSimple(EE.Elements[0]);
+  AssertExpression('DoSomething call',S.Expr,pekIdent,'DoSomethingMore');
+end;
+
+procedure TTestStatementParser.TestTryExceptOnElseNoSemicolo;
+Var
+  T : TPasImplTry;
+  S : TPasImplSimple;
+  E : TPasImplTryExcept;
+  O : TPasImplExceptOn;
+  EE : TPasImplTryExceptElse;
+begin
+  TestStatement(['Try','  DoSomething;','except','On E : Exception do','DoSomethingElse','else','DoSomethingMore','end']);
   T:=AssertStatement('Try statement',TPasImplTry) as TPasImplTry;
   AssertEquals(1,T.Elements.Count);
   AssertNotNull(T.FinallyExcept);

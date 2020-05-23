@@ -5955,7 +5955,8 @@ begin
           else if (CurBlock is TPasImplWhileDo)
               or (CurBlock is TPasImplForLoop)
               or (CurBlock is TPasImplWithDo)
-              or (CurBlock is TPasImplRaise) then
+              or (CurBlock is TPasImplRaise)
+              or (CurBlock is TPasImplExceptOn) then
             // simply close block
           else
             ParseExcSyntaxError;
