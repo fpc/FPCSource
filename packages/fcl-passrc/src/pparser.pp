@@ -2075,12 +2075,14 @@ function TPasParser.isEndOfExp(AllowEqual : Boolean = False; CheckHints : Boolea
 const
   EndExprToken = [
     tkEOF, tkBraceClose, tkSquaredBraceClose, tkSemicolon, tkComma, tkColon,
-    tkdo, tkdownto, tkelse, tkend, tkof, tkthen, tkto
+    tkdo, tkdownto, tkelse, tkend, tkof, tkthen, tkto, tkotherwise
   ];
 begin
-  Result:=(CurToken in EndExprToken) or (CheckHints and IsCurTokenHint);
-  if Not (Result or AllowEqual) then
-    Result:=(Curtoken=tkEqual);
+  if (CurToken in EndExprToken) or (CheckHints and IsCurTokenHint) then
+    exit(true);
+  if AllowEqual and (CurToken=tkEqual) then
+    exit(true);
+  Result:=false;
 end;
 
 function TPasParser.ExprToText(Expr: TPasExpr): String;
@@ -5831,7 +5833,7 @@ var
       exit; // at start of block
     t:=GetPrevToken;
     case t of
-    tkSemicolon,tkColon,tkElse: exit;
+    tkSemicolon,tkColon,tkElse,tkotherwise: exit;
     end;
     {$IFDEF VerbosePasParser}
     writeln('TPasParser.ParseStatement.CheckSemicolon Prev=',GetPrevToken,' Cur=',CurToken,' ',CurBlock.ClassName,' ',CurBlock.Elements.Count,' ',TObject(CurBlock.Elements[0]).ClassName);
@@ -5913,11 +5915,11 @@ begin
         El:=nil;
         ExpectToken(tkthen);
         end;
-      tkelse:
+      tkelse,tkotherwise:
         // ELSE can close multiple blocks, similar to semicolon
         repeat
           {$IFDEF VerbosePasParser}
-          writeln('TPasParser.ParseStatement CurBlock=',CurBlock.ClassName);
+          writeln('TPasParser.ParseStatement ELSE CurBlock=',CurBlock.ClassName);
           {$ENDIF}
           if CurBlock is TPasImplIfElse then
             begin
@@ -5928,10 +5930,10 @@ begin
               CurBlock.AddElement(El); // this sets TPasImplIfElse(CurBlock).IfBranch:=El
               El:=nil;
             end;
-            if TPasImplIfElse(CurBlock).ElseBranch=nil then
+            if (CurToken=tkelse) and (TPasImplIfElse(CurBlock).ElseBranch=nil) then
               break; // add next statement as ElseBranch
             end
-          else if CurBlock is TPasImplTryExcept then
+          else if (CurBlock is TPasImplTryExcept) and (CurToken=tkelse) then
             begin
             // close TryExcept handler and open an TryExceptElse handler
             CloseBlock;
@@ -6087,7 +6089,7 @@ begin
                 ParseExc(nParserExpectCase,SParserExpectCase);
               break; // end without else
               end;
-            tkelse:
+            tkelse,tkotherwise:
               begin
                 // create case-else block
                 El:=TPasImplCaseElse(CreateElement(TPasImplCaseElse,'',CurBlock,CurTokenPos));
@@ -6098,46 +6100,38 @@ begin
               end
             else
               // read case values
-              if (curToken=tkIdentifier) and (LowerCase(CurtokenString)='otherwise') then
-                begin
-                // create case-else block
-                El:=TPasImplCaseElse(CreateElement(TPasImplCaseElse,'',CurBlock,CurTokenPos));
-                TPasImplCaseOf(CurBlock).ElseBranch:=TPasImplCaseElse(El);
-                CreateBlock(TPasImplCaseElse(El));
-                El:=nil;
-                break;
-                end
-              else
-                repeat
-                  SrcPos:=CurTokenPos;
-                  Left:=DoParseExpression(CurBlock);
-                  //writeln(i,'CASE value="',Expr,'" Token=',CurTokenText);
-                  if CurBlock is TPasImplCaseStatement then
-                    begin
-                    TPasImplCaseStatement(CurBlock).AddExpression(Left);
-                    Left:=nil;
-                    end
-                  else
-                    begin
-                    El:=TPasImplCaseStatement(CreateElement(TPasImplCaseStatement,'',CurBlock,SrcPos));
-                    TPasImplCaseStatement(El).AddExpression(Left);
-                    Left:=nil;
-                    CreateBlock(TPasImplCaseStatement(El));
-                    El:=nil;
-                    end;
-                  //writeln(i,'CASE after value Token=',CurTokenText);
-                  if (CurToken=tkComma) then
-                    NextToken
-                  else if (CurToken<>tkColon) then
-                    ParseExcTokenError(TokenInfos[tkComma]);
-                until Curtoken=tkColon;
+              repeat
+                SrcPos:=CurTokenPos;
+                Left:=DoParseExpression(CurBlock);
+                //writeln(i,'CASE value="',Expr,'" Token=',CurTokenText);
+                if CurBlock is TPasImplCaseStatement then
+                  begin
+                  TPasImplCaseStatement(CurBlock).AddExpression(Left);
+                  Left:=nil;
+                  end
+                else
+                  begin
+                  El:=TPasImplCaseStatement(CreateElement(TPasImplCaseStatement,'',CurBlock,SrcPos));
+                  TPasImplCaseStatement(El).AddExpression(Left);
+                  Left:=nil;
+                  CreateBlock(TPasImplCaseStatement(El));
+                  El:=nil;
+                  end;
+                //writeln(i,'CASE after value Token=',CurTokenText);
+                if (CurToken=tkComma) then
+                  NextToken
+                else if (CurToken<>tkColon) then
+                  ParseExcTokenError(TokenInfos[tkComma]);
+              until Curtoken=tkColon;
               // read statement
               ParseStatement(CurBlock,SubBlock);
               // CurToken is now at last token of case-statement
               CloseBlock;
               if CurToken<>tkSemicolon then
                 NextToken;
-              if not (CurToken in [tkSemicolon,tkelse,tkend]) then
+              if (CurToken in [tkSemicolon,tkelse,tkend,tkotherwise]) then
+                // ok
+              else
                 ParseExcTokenError(TokenInfos[tkSemicolon]);
               if CurToken<>tkSemicolon then
                 UngetToken;
@@ -6195,7 +6189,7 @@ begin
         ImplRaise:=TPasImplRaise(CreateElement(TPasImplRaise,'',CurBlock,CurTokenPos));
         CreateBlock(ImplRaise);
         NextToken;
-        If Curtoken in [tkElse,tkEnd,tkSemicolon] then
+        If Curtoken in [tkElse,tkEnd,tkSemicolon,tkotherwise] then
           UnGetToken
         else
           begin
@@ -6205,7 +6199,7 @@ begin
             NextToken;
             ImplRaise.ExceptAddr:=DoParseExpression(ImplRaise);
             end;
-          if Curtoken in [tkElse,tkEnd,tkSemicolon] then
+          If Curtoken in [tkElse,tkEnd,tkSemicolon,tkotherwise] then
             UngetToken
           end;
         end;

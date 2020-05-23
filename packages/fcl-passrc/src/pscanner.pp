@@ -224,6 +224,7 @@ type
     tkof,
     tkoperator,
     tkor,
+    tkotherwise,
     tkpacked,
     tkprocedure,
     tkprogram,
@@ -1007,6 +1008,7 @@ const
     'of',
     'operator',
     'or',
+    'otherwise',
     'packed',
     'procedure',
     'program',
@@ -3608,7 +3610,8 @@ procedure TPascalScanner.HandleMode(const Param: String);
   procedure SetMode(const LangMode: TModeSwitch;
     const NewModeSwitches: TModeSwitches; IsDelphi: boolean;
     const AddBoolSwitches: TBoolSwitches = [];
-    const RemoveBoolSwitches: TBoolSwitches = []
+    const RemoveBoolSwitches: TBoolSwitches = [];
+    UseOtherwise: boolean = true
     );
   var
     Handled: Boolean;
@@ -3627,6 +3630,10 @@ procedure TPascalScanner.HandleMode(const Param: String);
         FOptions:=FOptions+[po_delphi]
       else
         FOptions:=FOptions-[po_delphi];
+      if UseOtherwise then
+        UnsetNonToken(tkotherwise)
+      else
+        SetNonToken(tkotherwise);
       end;
     Handled:=false;
     if Assigned(OnModeChanged) then
@@ -3668,9 +3675,9 @@ begin
   'MACPAS':
     SetMode(msMac,MacModeSwitches,false,bsMacPasMode);
   'ISO':
-    SetMode(msIso,ISOModeSwitches,false);
+    SetMode(msIso,ISOModeSwitches,false,[],[],false);
   'EXTENDED':
-    SetMode(msExtpas,ExtPasModeSwitches,false);
+    SetMode(msExtpas,ExtPasModeSwitches,false,[],[],false);
   'GPC':
     SetMode(msGPC,GPCModeSwitches,false);
   else
