@@ -5101,6 +5101,8 @@ implementation
       for i:=0 to current_procinfo.procdef.paras.count-1 do
         begin
           currpara:=tparavarsym(current_procinfo.procdef.paras[i]);
+          if not currpara.is_used then
+            continue;
           { don't use currpara.vardef, as this will be wrong in case of
             call-by-reference parameters (it won't contain the pointer) }
           gen_load_cgpara_loc(list,currpara.paraloc[calleeside].def,currpara.paraloc[calleeside],currpara.initialloc,paramanager.param_use_paraloc(currpara.paraloc[calleeside]));
