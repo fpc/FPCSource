@@ -515,8 +515,10 @@ implementation
                  usesectionflags:=true;
                  usesectionprogbits:=true;
                  { hack, to avoid linker warnings on Amiga/Atari, when vlink merges
-                   rodata sections into data sections, better solution welcomed... }
-                 if atype in [sec_rodata,sec_rodata_norel] then
+                   rodata sections into data sections. Also avoid the warning when
+                   the linker realizes the code section cannot be write protected and
+                   adds the writable bit. }
+                 if atype in [sec_code,sec_rodata,sec_rodata_norel] then
                    include(secflags,SF_W);
                end;
            end;
