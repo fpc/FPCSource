@@ -83,7 +83,8 @@ unit cpupara;
       begin
         { d0 and d1 are considered volatile }
         Result:=VOLATILE_INTREGISTERS;
-        if target_info.system in [system_m68k_palmos] then
+        if (target_info.system in [system_m68k_palmos]) or
+           ((target_info.system in [system_m68k_atari]) and (calloption in [pocall_syscall])) then
           include(result,RS_D2);
       end;
 
@@ -92,7 +93,8 @@ unit cpupara;
       begin
         { a0 and a1 are considered volatile }
         Result:=VOLATILE_ADDRESSREGISTERS;
-        if target_info.system in [system_m68k_palmos] then
+        if (target_info.system in [system_m68k_palmos]) or
+           ((target_info.system in [system_m68k_atari]) and (calloption in [pocall_syscall])) then
           include(result,RS_A2);
       end;
 
