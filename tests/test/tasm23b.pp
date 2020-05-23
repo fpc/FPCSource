@@ -6,7 +6,7 @@ program tasm23b;
 {$S-}
 
 const
-  t_size = 33;
+  t_size = 25;
 procedure t; assembler;
 asm
   mov eax, [rbx[5]][rdi][54][-17][45][4]      { mov eax, [rbx+rdi+5Bh] }

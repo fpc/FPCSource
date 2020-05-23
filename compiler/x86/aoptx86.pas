@@ -73,6 +73,8 @@ unit aoptx86;
         }
         function GetNextInstructionUsingRegTrackingUse(Current: tai; out Next: tai; reg: TRegister): Boolean;
         function RegModifiedByInstruction(Reg: TRegister; p1: tai): boolean; override;
+      private
+        function SkipSimpleInstructions(var hp1: tai): Boolean;
       protected
         class function IsMOVZXAcceptable: Boolean; static; inline;
 
@@ -149,6 +151,7 @@ unit aoptx86;
         function PostPeepholeOptTestOr(var p : tai) : Boolean;
         function PostPeepholeOptCall(var p : tai) : Boolean;
         function PostPeepholeOptLea(var p : tai) : Boolean;
+        function PostPeepholeOptPush(var p: tai): Boolean;
 
         procedure ConvertJumpToRET(const p: tai; const ret_p: tai);
 
@@ -5739,25 +5742,26 @@ unit aoptx86;
       end;
 
 
-    function TX86AsmOptimizer.PostPeepholeOptLea(var p : tai) : Boolean;
+    function TX86AsmOptimizer.SkipSimpleInstructions(var hp1 : tai) : Boolean;
+      begin
+        { we can skip all instructions not messing with the stack pointer }
+        while assigned(hp1) and {MatchInstruction(taicpu(hp1),[A_LEA,A_MOV,A_MOVQ,A_MOVSQ,A_MOVSX,A_MOVSXD,A_MOVZX,
+          A_AND,A_OR,A_XOR,A_ADD,A_SHR,A_SHL,A_IMUL,A_SETcc,A_SAR,A_SUB,A_TEST,A_CMOVcc,
+          A_MOVSS,A_MOVSD,A_MOVAPS,A_MOVUPD,A_MOVAPD,A_MOVUPS,
+          A_VMOVSS,A_VMOVSD,A_VMOVAPS,A_VMOVUPD,A_VMOVAPD,A_VMOVUPS],[]) and}
+          ({(taicpu(hp1).ops=0) or }
+           ({(MatchOpType(taicpu(hp1),top_reg,top_reg) or MatchOpType(taicpu(hp1),top_const,top_reg) or
+             (MatchOpType(taicpu(hp1),top_ref,top_reg))
+            ) and }
+            not(RegInInstruction(NR_STACK_POINTER_REG,hp1)) { and not(RegInInstruction(NR_FRAME_POINTER_REG,hp1))}
+           )
+          ) do
+          GetNextInstruction(hp1,hp1);
+        Result:=assigned(hp1);
+      end;
 
-      function SkipSimpleInstructions(var hp1 : tai) : Boolean;
-        begin
-          { we can skip all instructions not messing with the stack pointer }
-          while assigned(hp1) and {MatchInstruction(taicpu(hp1),[A_LEA,A_MOV,A_MOVQ,A_MOVSQ,A_MOVSX,A_MOVSXD,A_MOVZX,
-            A_AND,A_OR,A_XOR,A_ADD,A_SHR,A_SHL,A_IMUL,A_SETcc,A_SAR,A_SUB,A_TEST,A_CMOVcc,
-            A_MOVSS,A_MOVSD,A_MOVAPS,A_MOVUPD,A_MOVAPD,A_MOVUPS,
-            A_VMOVSS,A_VMOVSD,A_VMOVAPS,A_VMOVUPD,A_VMOVAPD,A_VMOVUPS],[]) and}
-            ({(taicpu(hp1).ops=0) or }
-             ({(MatchOpType(taicpu(hp1),top_reg,top_reg) or MatchOpType(taicpu(hp1),top_const,top_reg) or
-               (MatchOpType(taicpu(hp1),top_ref,top_reg))
-              ) and }
-              not(RegInInstruction(NR_STACK_POINTER_REG,hp1)) { and not(RegInInstruction(NR_FRAME_POINTER_REG,hp1))}
-             )
-            ) do
-            GetNextInstruction(hp1,hp1);
-          Result:=assigned(hp1);
-        end;
+
+    function TX86AsmOptimizer.PostPeepholeOptLea(var p : tai) : Boolean;
 
       var
         hp1, hp2, hp3, hp4: tai;
@@ -5811,6 +5815,58 @@ unit aoptx86;
             taicpu(hp1).opcode := A_JMP;
             taicpu(hp1).is_jmp := true;
             DebugMsg(SPeepholeOptimization + 'LeaCallLeaRet2Jmp done',p);
+            RemoveCurrentP(p, hp4);
+            AsmL.Remove(hp2);
+            hp2.free;
+            AsmL.Remove(hp3);
+            hp3.free;
+            Result:=true;
+          end;
+      end;
+
+
+    function TX86AsmOptimizer.PostPeepholeOptPush(var p : tai) : Boolean;
+
+      var
+        hp1, hp2, hp3, hp4: tai;
+      begin
+        Result:=false;
+        { replace
+            push %rax
+            call   procname
+            pop %rcx
+            ret
+          by
+            jmp    procname
+
+          but do it only on level 4 because it destroys stack back traces
+
+          It depends on the fact, that the sequence push rax/pop rcx is used for stack alignment as rcx is volatile
+          for all supported calling conventions
+        }
+        if (cs_opt_level4 in current_settings.optimizerswitches) and
+          MatchOpType(taicpu(p),top_reg) and
+          (taicpu(p).oper[0]^.reg=NR_RAX) and
+          GetNextInstruction(p, hp1) and
+          { Take a copy of hp1 }
+          SetAndTest(hp1, hp4) and
+          { trick to skip label }
+          ((hp1.typ=ait_instruction) or GetNextInstruction(hp1, hp1)) and
+          SkipSimpleInstructions(hp1) and
+          MatchInstruction(hp1,A_CALL,[S_NO]) and
+          GetNextInstruction(hp1, hp2) and
+          MatchInstruction(hp2,A_POP,[taicpu(p).opsize]) and
+          MatchOpType(taicpu(hp2),top_reg) and
+          (taicpu(hp2).oper[0]^.reg=NR_RCX) and
+          GetNextInstruction(hp2, hp3) and
+          { trick to skip label }
+          ((hp3.typ=ait_instruction) or GetNextInstruction(hp3, hp3)) and
+          MatchInstruction(hp3,A_RET,[S_NO]) and
+          (taicpu(hp3).ops=0) then
+          begin
+            taicpu(hp1).opcode := A_JMP;
+            taicpu(hp1).is_jmp := true;
+            DebugMsg(SPeepholeOptimization + 'PushCallPushRet2Jmp done',p);
             RemoveCurrentP(p, hp4);
             AsmL.Remove(hp2);
             hp2.free;

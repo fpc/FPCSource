@@ -194,6 +194,8 @@ uses
                   Result:=PostPeepholeOptCall(p);
                 A_LEA:
                   Result:=PostPeepholeOptLea(p);
+                A_PUSH:
+                  Result:=PostPeepholeOptPush(p);
                 else
                   ;
               end;
