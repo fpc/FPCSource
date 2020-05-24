@@ -146,6 +146,8 @@ package=utils-dxegendos.zip[dxegdos.zip],Generation of D~X~E modules loadable at
 package=ufcl-pdfdos.zip[ufcpddos.zip],PDF generating and TTF file info library
 # Dos-2 25
 package=urtl-genericsdos.zip[urtlgdos.zip],RTL-generic collection library
+# Dos-2 26
+package=units-webidldos.zip[uwidldos.zip],Web IDL parser and converter to Object Pascal classes
 
 #
 # Win32 packages
@@ -369,8 +371,6 @@ package=utils-pas2fpmos2.zip[p2fmos2.zip],Generate fpmake.pp for Pascal source
 package=utils-pas2jnios2.zip[p2jnos2.zip],Generate JNI bridge for Pascal code
 # OS/2 31
 package=utils-pas2utos2.zip[p2utos2.zip],Pascal source to FPC Unit test generator
-# OS/2 32
-package=ufcl-pdfos2.zip[ufcpdos2.zip],PDF generating and TTF file info library
 
 #
 # OS/2 packages 2nd part
@@ -449,10 +449,6 @@ package=utils-rmwaitos2.zip[rmwos2.zip],Remove (delete) file(s) with optional re
 package=utils-lexyaccos2.zip[tplyos2.zip],Compiler generator for TP and compatibles
 # OS/2-2 31
 package=utils-fpcmos2.zip[fpcmos2.zip],Generate Makefiles out of Makefile.fpc files
-# OS/2-2 32
-package=utils-unicodeos2.zip[ucodeos2.zip],Transformation of Unicode consortium data for FPC
-
-
 
 
 #
@@ -462,6 +458,15 @@ pack=OS/2-3
 filecheck=*os2.zip
 # OS/2-3 1
 package=urtl-genericsos2.zip[urtlgos2.zip],RTL-generic collection library
+# OS/2-3 3
+package=units-webidlos2.zip[uwidlos2.zip],Web IDL parser and converter to Object Pascal classes
+# OS/2-3 4
+package=utils-json2pasos2.zip[jsnpos2.zip],Create Object Pascal classes from JSON files
+# OS/2-3 5
+package=ufcl-pdfos2.zip[ufcpdos2.zip],PDF generating and TTF file info library
+# OS/2-3 6
+package=utils-unicodeos2.zip[ucodeos2.zip],Transformation of Unicode consortium data for FPC
+
 
 #
 # EMX packages
@@ -541,8 +546,6 @@ package=utils-pas2fpmemx.zip[p2fmemx.zip],Generate fpmake.pp for Pascal source
 package=utils-pas2jniemx.zip[p2jnemx.zip],Generate JNI bridge for Pascal code
 # EMX 31
 package=utils-pas2utemx.zip[p2utemx.zip],Pascal source to FPC Unit test generator
-# EMX 32
-package=ufcl-pdfemx.zip[ufcpdemx.zip],PDF generating and TTF file info library
 
 #
 # EMX packages 2nd part
@@ -621,8 +624,6 @@ package=utils-rmwaitemx.zip[rmwemx.zip],Remove (delete) file(s) with optional re
 package=utils-lexyaccemx.zip[tplyemx.zip],Compiler generator for TP and compatibles
 # EMX-2 31
 package=utils-fpcmemx.zip[fpcmemx.zip],Generate Makefiles out of Makefile.fpc files
-# EMX-3 32
-package=utils-unicodeemx.zip[ucodeemx.zip],Transformation of Unicode consortium data for FPC
 
 
 #
@@ -632,6 +633,14 @@ pack=EMX-3
 filecheck=*emx.zip
 # EMX-3 1
 package=urtl-genericsemx.zip[urtlgemx.zip],RTL-generic collection library
+# EMX-3 3
+package=units-webidlemx.zip[uwidlemx.zip],Web IDL parser and converter to Object Pascal classes
+# EMX-3 4
+package=utils-json2pasemx.zip[jsnemx2.zip],Create Object Pascal classes from JSON files
+# EMX-3 5
+package=ufcl-pdfemx.zip[ufcpdemx.zip],PDF generating and TTF file info library
+# EMX-3 6
+package=utils-unicodeemx.zip[ucodeemx.zip],Transformation of Unicode consortium data for FPC
 
 
 #
@@ -764,11 +773,11 @@ package=units-sqlite.source.zip[usqltsrc.zip],SQLite interface units sources
 # Source-2 16
 package=units-fpmkunit.source.zip[ufpmksrc.zip],Units required for building fpmake.exe
 # Source-2 17
-package=fcl-json.source.zip[ufcljsrc.zip],Free Component Library (FCL)-JSON interface
+package=units-fcl-json.source.zip[ufcljsrc.zip],Free Component Library (FCL)-JSON interface
 # Source-2 18
-package=fcl-async.source.zip[ufclasrc.zip],Free Component Library (FCL)-asynchronous events
+package=units-fcl-async.source.zip[ufclasrc.zip],Free Component Library (FCL)-asynchronous events
 # Source-2 19
-package=fcl-process.source.zip[ufclpsrc.zip],Free Component Library (FCL)-process management
+package=units-fcl-process.source.zip[ufclpsrc.zip],Free Component Library (FCL)-process management
 # Source-2 20
 package=units-chm.source.zip[uchmsrc.zip],Support for .chm files handling
 # Source-2 21
@@ -780,7 +789,7 @@ package=units-fcl-res.source.zip[ufclesrc.zip],Free Component Library (FCL)-reso
 # Source-2 24
 package=units-bzip2.source.zip[ubz2src.zip],Units for bzip2 decompression
 # Source-2 25
-package=fcl-js.source.zip[ufcjssrc.zip],Free Component Library (FCL)-Javascript support
+package=units-fcl-js.source.zip[ufcjssrc.zip],Free Component Library (FCL)-Javascript support
 # Source-2 26
 package=units-ptc.source.zip[uptcsrc.zip],Free portable framebuffer library
 # Source-2 27
@@ -857,6 +866,8 @@ package=units-rtl-objpas.source.zip[urtlosrc.zip],RTL-Object Pascal units (e.g. 
 package=units-rtl-unicode.source.zip[urtlusrc.zip],RTL-miscellaneous Unicode support units
 # Source-3 30
 package=units-rtl-generics.source.zip[urtlgsrc.zip],RTL-generic collection library
+# Source-3 31
+package=utils-json2pas.source.zip[jsnpsrc.zip],Create Object Pascal classes from JSON files
 
 
 defaultcfg=
