@@ -1554,7 +1554,7 @@ unit cgx86;
                      if GetRefAlignment(tmpref) = 16 then
                        op := A_VMOVDQA
                      else
-                       op := A_VMOVDQU
+                       op := A_VMOVDQU;
                    end
                  else
                    begin
@@ -1570,7 +1570,7 @@ unit cgx86;
                      if GetRefAlignment(tmpref) = 32 then
                        op := A_VMOVDQA
                      else
-                       op := A_VMOVDQU
+                       op := A_VMOVDQU;
                    end
                  else
                    { SSE doesn't support 256-bit vectors }
@@ -1582,7 +1582,7 @@ unit cgx86;
                      if GetRefAlignment(tmpref) = 64 then
                        op := A_VMOVDQA
                      else
-                       op := A_VMOVDQU
+                       op := A_VMOVDQU;
                    end
                  else
                    { SSE doesn't support 512-bit vectors }
@@ -1648,13 +1648,13 @@ unit cgx86;
                    if GetRefAlignment(tmpref) = 16 then
                      op := A_VMOVDQA
                    else
-                     op := A_VMOVDQU
+                     op := A_VMOVDQU;
                  end else
                  begin
                    if GetRefAlignment(tmpref) = 16 then
                      op := A_MOVDQA
                    else
-                     op := A_MOVDQU
+                     op := A_MOVDQU;
                  end;
                OS_M256:
                  { Use XMM integer transfer }
@@ -1663,7 +1663,7 @@ unit cgx86;
                    if GetRefAlignment(tmpref) = 32 then
                      op := A_VMOVDQA
                    else
-                     op := A_VMOVDQU
+                     op := A_VMOVDQU;
                  end else
                    { SSE doesn't support 256-bit vectors }
                    InternalError(2018012942);
@@ -1674,7 +1674,7 @@ unit cgx86;
                    if GetRefAlignment(tmpref) = 64 then
                      op := A_VMOVDQA
                    else
-                     op := A_VMOVDQU
+                     op := A_VMOVDQU;
                  end else
                    { SSE doesn't support 512-bit vectors }
                    InternalError(2018012945);
@@ -2703,6 +2703,7 @@ unit cgx86;
         cgsize:Tcgsize;
         cm:copymode;
         saved_ds,saved_es: Boolean;
+        hlist: TAsmList;
 
     begin
       srcref:=source;
@@ -2926,54 +2927,37 @@ unit cgx86;
 
         copy_avx:
           begin
-            r0:=NR_NO;
-            r1:=NR_NO;
-            r2:=NR_NO;
-            r3:=NR_NO;
-            if len>=16 then
+            hlist:=TAsmList.create;
+            while (len>=32) and (srcref.alignment>=32) and (dstref.alignment>=32) do
+              begin
+                r0:=getmmregister(list,OS_M256);
+                a_loadmm_ref_reg(list,OS_M256,OS_M256,srcref,r0,nil);
+                a_loadmm_reg_ref(hlist,OS_M256,OS_M256,r0,dstref,nil);
+                inc(srcref.offset,32);
+                inc(dstref.offset,32);
+                dec(len,32);
+                Include(current_procinfo.flags,pi_uses_ymm);
+              end;
+            while len>=16 do
               begin
                 r0:=getmmregister(list,OS_M128);
-                { we want to force the use of vmovups, so do not use a_loadmm_ref_reg }
-                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,srcref,r0));
+                a_loadmm_ref_reg(list,OS_M128,OS_M128,srcref,r0,nil);
+                a_loadmm_reg_ref(hlist,OS_M128,OS_M128,r0,dstref,nil);
                 inc(srcref.offset,16);
-              end;
-            if len>=32 then
-              begin
-                r1:=getmmregister(list,OS_M128);
-                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,srcref,r1));
-                inc(srcref.offset,16);
-              end;
-            if len>=48 then
-              begin
-                r2:=getmmregister(list,OS_M128);
-                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,srcref,r2));
-                inc(srcref.offset,16);
-              end;
-            if (len=8) or (len=24) or (len=40) then
-              begin
-                r3:=getmmregister(list,OS_M64);
-                list.concat(taicpu.op_ref_reg(A_VMOVSD,S_NO,srcref,r3));
-              end;
-
-            if len>=16 then
-              begin
-                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r0,dstref));
                 inc(dstref.offset,16);
+                dec(len,16);
               end;
-            if len>=32 then
+            if len>=8 then
               begin
-                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r1,dstref));
-                inc(dstref.offset,16);
+                r0:=getmmregister(list,OS_M64);
+                a_loadmm_ref_reg(list,OS_M64,OS_M64,srcref,r0,nil);
+                a_loadmm_reg_ref(hlist,OS_M64,OS_M64,r0,dstref,nil);
+                inc(srcref.offset,8);
+                inc(dstref.offset,8);
+                dec(len,8);
               end;
-            if len>=48 then
-              begin
-                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r2,dstref));
-                inc(dstref.offset,16);
-              end;
-            if (len=8) or (len=24) or (len=40) then
-              begin
-                list.concat(taicpu.op_reg_ref(A_VMOVSD,S_NO,r3,dstref));
-              end;
+            list.concatList(hlist);
+            hlist.free;
           end
         else {copy_string, should be a good fallback in case of unhandled}
           begin
