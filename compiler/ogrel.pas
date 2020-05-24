@@ -73,6 +73,7 @@ interface
       TRelObjData = class(TObjData)
       public
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
+        function sectiontype2align(atype:TAsmSectiontype):longint;override;
         procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
       end;
 
@@ -279,6 +280,11 @@ implementation
         );
       begin
         result:=secnames[atype];
+      end;
+
+    function TRelObjData.sectiontype2align(atype:TAsmSectiontype):longint;
+      begin
+        result:=1;
       end;
 
     procedure TRelObjData.writeReloc(Data: TRelocDataInt; len: aword; p: TObjSymbol; Reloctype: TObjRelocationType);
