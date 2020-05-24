@@ -44,6 +44,7 @@ begin
   Result:=FindResourceEx(ModuleHandle,PChar(ResourceType),PChar(ResourceName),Language);
 end;
 
+{$ifndef Win16}
 Function FindResource(ModuleHandle: TFPResourceHMODULE; const ResourceName: AnsiString; ResourceType: PChar): TFPResourceHandle;
 
 begin
@@ -67,6 +68,7 @@ Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; const ResourceType: An
 begin
   Result:=FindResourceEx(ModuleHandle,PChar(ResourceType),ResourceName,Language);
 end;
+{$endif Win16}
 {$endif}
 
 (*****************************************************************************
