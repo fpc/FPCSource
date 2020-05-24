@@ -748,7 +748,9 @@ interface
          { subroutine needs to load and maintain a tls register }
          pi_needs_tls,
          { subroutine uses get_frame }
-         pi_uses_get_frame
+         pi_uses_get_frame,
+         { x86 only: subroutine uses ymm registers, requires vzeroupper call }
+         pi_uses_ymm
        );
        tprocinfoflags=set of tprocinfoflag;
 

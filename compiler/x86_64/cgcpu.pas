@@ -423,7 +423,11 @@ unit cgcpu;
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
 
+        if pi_uses_ymm in current_procinfo.flags then
+          list.Concat(taicpu.op_none(A_VZEROUPPER));
+
         list.concat(Taicpu.Op_none(A_RET,S_NO));
+
         if (pi_has_unwind_info in current_procinfo.flags) then
           begin
             tcpuprocinfo(current_procinfo).dump_scopes(list);

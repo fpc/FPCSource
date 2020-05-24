@@ -338,6 +338,9 @@ unit cgcpu;
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
 
+        if pi_uses_ymm in current_procinfo.flags then
+          list.Concat(taicpu.op_none(A_VZEROUPPER));
+
         { return from proc }
         if po_interrupt in current_procinfo.procdef.procoptions then
           begin

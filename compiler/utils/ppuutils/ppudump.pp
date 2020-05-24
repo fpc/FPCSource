@@ -1641,7 +1641,9 @@ const
          (mask:pi_needs_tls;
          str:' uses TLS data pointer '),
          (mask:pi_uses_get_frame;
-         str:' uses get_frame')
+         str:' uses get_frame'),
+         (mask:pi_uses_ymm;
+         str:' uses ymm register (x86 only)')
   );
 var
   procinfooptions : tprocinfoflags;
