@@ -369,7 +369,7 @@ implementation
                   outppu.putstring(s);
                   outppu.putlongint(m);
                 end;
-               current_module.linkotherofiles.add(s,link_always);;
+               current_module.linkotherofiles.add(s,link_always);
              end;
             if not MakeStatic then
              outppu.writeentry(b);

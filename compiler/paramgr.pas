@@ -465,7 +465,7 @@ implementation
           paraloc^.register:=NR_FUNCTION_RESULT_REG
         else
           paraloc^.register:=NR_FUNCTION_RETURN_REG;
-        result.Temporary:=true;;
+        result.Temporary:=true;
       end;
 
 

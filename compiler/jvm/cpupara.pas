@@ -280,7 +280,7 @@ implementation
               left to right (including self, if applicable). At the callee side,
               they're available as local variables 0..n-1 (with 64 bit values
               taking up two slots) }
-            paraloc^.loc:=LOC_REFERENCE;;
+            paraloc^.loc:=LOC_REFERENCE;
             paraloc^.reference.offset:=paraofs;
             paraloc^.size:=paracgsize;
             paraloc^.def:=paradef;

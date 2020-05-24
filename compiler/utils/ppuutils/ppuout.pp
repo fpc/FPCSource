@@ -764,7 +764,7 @@ begin
     Output.WriteArrayEnd('Options');
   end;
   ElType.Write(Output, 'ElType');
-  RangeType.Write(Output, 'RangeType');;
+  RangeType.Write(Output, 'RangeType');
   Output.WriteInt('Low', RangeLow);
   Output.WriteInt('High', RangeHigh);
 end;

@@ -867,14 +867,14 @@ implementation
         resourcefiles.Free;
         resourcefiles:=TCmdStrList.Create;
         linkorderedsymbols.Free;
-        linkorderedsymbols:=TCmdStrList.Create;;
+        linkorderedsymbols:=TCmdStrList.Create;
         pendingspecializations.free;
         pendingspecializations:=tfphashobjectlist.create(false);
         if assigned(waitingforunit) and
           (waitingforunit.count<>0) then
           internalerror(2016070501);
         waitingforunit.free;
-        waitingforunit:=tfpobjectlist.create(false);;
+        waitingforunit:=tfpobjectlist.create(false);
         linkunitofiles.Free;
         linkunitofiles:=TLinkContainer.Create;
         linkunitstaticlibs.Free;

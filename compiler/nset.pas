@@ -1081,7 +1081,7 @@ implementation
           end;
         if assigned(elseblock) then
           begin
-            WriteLn(T, PrintNodeIndention, '<block id="else">');;
+            WriteLn(T, PrintNodeIndention, '<block id="else">');
             PrintNodeIndent;
             XMLPrintNode(T, ElseBlock);
             PrintNodeUnindent;

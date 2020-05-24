@@ -1114,7 +1114,7 @@ implementation
     constructor tai_symbolpair.ppuload(t: taitype; ppufile: tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        kind:=TSymbolPairKind(ppufile.getbyte);;
+        kind:=TSymbolPairKind(ppufile.getbyte);
         sym:=ppufile.getpshortstring;
         value:=ppufile.getpshortstring;
       end;

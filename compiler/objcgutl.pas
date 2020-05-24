@@ -1791,7 +1791,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_classes_sections(list:TAsmList; ob
     isatcb.free;
 
     classlabel:=clssym;
-    classlabeldef:=classdef;;
+    classlabeldef:=classdef;
   end;
 
 

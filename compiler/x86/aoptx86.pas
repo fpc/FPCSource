@@ -1720,7 +1720,7 @@ unit aoptx86;
                 )
               ) then
               begin
-                ThisOper^.reg := newreg(getregtype(ANewReg), NewSupReg, getsubreg(p.oper[OperIdx]^.reg));;
+                ThisOper^.reg := newreg(getregtype(ANewReg), NewSupReg, getsubreg(p.oper[OperIdx]^.reg));
                 Result := True;
               end;
           top_ref:

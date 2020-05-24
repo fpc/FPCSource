@@ -573,7 +573,7 @@ Unit racpugas;
           else
             ;
         end;
-        result:=C_None;;
+        result:=C_None;
       end;
 
 

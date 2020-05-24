@@ -2176,7 +2176,7 @@ implementation
               if aIsVector256 then tuplesize := 32
                else if aIsVector512 then tuplesize := 64;
             end;
-          end;;
+          end;
 
           if tuplesize > 0 then
           begin
@@ -5341,7 +5341,7 @@ implementation
                           end;
                     else begin
                            InsTabMemRefSizeInfoCache^[AsmOp].MemRefSizeBCST := msbMultiple;
-                         end;;
+                         end;
             end;
           end;
 

@@ -1184,7 +1184,7 @@ begin
           localsegment:=opr.localsegment;
 {$endif x86}
           localindexreg:=opr.localindexreg;
-          localscale:=opr.localscale;;
+          localscale:=opr.localscale;
           opr.typ:=OPR_REFERENCE;
           hasvar:=false;
           Fillchar(opr.ref,sizeof(treference),0);

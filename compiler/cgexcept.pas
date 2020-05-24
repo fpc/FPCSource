@@ -154,7 +154,7 @@ unit cgexcept;
       begin
         current_asmdata.getjumplabel(exceptstate.exceptionlabel);
         exceptstate.oldflowcontrol:=flowcontrol;
-        exceptstate.finallycodelabel:=nil;;
+        exceptstate.finallycodelabel:=nil;
 
         paraloc1.init;
         paraloc2.init;

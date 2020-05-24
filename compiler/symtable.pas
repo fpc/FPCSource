@@ -2628,7 +2628,7 @@ implementation
           begin
             { first check the class... }
             if ([oo_has_class_constructor,oo_has_class_destructor] * tabstractrecorddef(p).objectoptions <> []) then
-              result^:=true;;
+              result^:=true;
             { ... and then also check all subclasses }
             if not result^ then
               tabstractrecorddef(p).symtable.deflist.foreachcall(@CheckForClassConDestructors,arg);

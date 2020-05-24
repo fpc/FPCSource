@@ -196,7 +196,7 @@ begin
         exit;
       end;
     else
-      ;;
+      ;
   end;
 
   { defaults }

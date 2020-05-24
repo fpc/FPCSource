@@ -1378,7 +1378,7 @@ implementation
           firstpass(tempinfo^.withnode);
         if assigned(tempinfo^.tempinitcode) then
           firstpass(tempinfo^.tempinitcode);
-        inc(current_procinfo.estimatedtempsize,size);;
+        inc(current_procinfo.estimatedtempsize,size);
       end;
 
 
