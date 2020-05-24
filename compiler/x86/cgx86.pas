@@ -1852,6 +1852,9 @@ unit cgx86;
         opmm2asmop_full : array[topcg] of tasmop = (
           A_NOP,A_NOP,A_NOP,A_PAND,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_POR,A_NOP,A_NOP,A_NOP,A_NOP,A_PXOR,A_NOP,A_NOP
         );
+        opmm2asmop_full_avx : array[topcg] of tasmop = (
+          A_NOP,A_NOP,A_NOP,A_VPAND,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_VPOR,A_NOP,A_NOP,A_NOP,A_NOP,A_VPXOR,A_NOP,A_NOP
+        );
       var
         resultreg : tregister;
         asmop : tasmop;
@@ -1869,7 +1872,16 @@ unit cgx86;
             internalerror(2010060101);
           end
         else if shuffle=nil then
-          asmop:=opmm2asmop_full[op]
+          begin
+            if UseAVX then
+              begin
+                asmop:=opmm2asmop_full_avx[op];
+                if size in [OS_M256,OS_M512] then
+                  Include(current_procinfo.flags,pi_uses_ymm);
+              end
+            else
+              asmop:=opmm2asmop_full[op];
+          end
         else if shufflescalar(shuffle) then
           begin
             asmop:=opmm2asmop[0,size,op];
@@ -1888,10 +1900,16 @@ unit cgx86;
           LOC_CREFERENCE,LOC_REFERENCE:
             begin
               make_simple_ref(current_asmdata.CurrAsmList,loc.reference);
-              list.concat(taicpu.op_ref_reg(asmop,S_NO,loc.reference,resultreg));
+              if UseAVX then
+                list.concat(taicpu.op_ref_reg_reg(asmop,S_NO,loc.reference,resultreg,resultreg))
+              else
+                list.concat(taicpu.op_ref_reg(asmop,S_NO,loc.reference,resultreg));
             end;
           LOC_CMMREGISTER,LOC_MMREGISTER:
-            list.concat(taicpu.op_reg_reg(asmop,S_NO,loc.register,resultreg));
+            if UseAVX then
+              list.concat(taicpu.op_reg_reg_reg(asmop,S_NO,loc.register,resultreg,resultreg))
+            else
+              list.concat(taicpu.op_reg_reg(asmop,S_NO,loc.register,resultreg));
           else
             internalerror(200312214);
         end;
