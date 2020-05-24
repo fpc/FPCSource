@@ -2735,14 +2735,14 @@ unit cgx86;
         helpsize:=2*sizeof(aword);
 {$ifndef i8086}
       { avx helps only to reduce size, using it in general does at least not help on
-        an i7-4770 (FK) }
+        an i7-4770
+        but using the xmm registers reduces register pressure(FK) }
       if (FPUX86_HAS_AVXUNIT in fpu_capabilities[current_settings.fputype]) and
-        // (cs_opt_size in current_settings.optimizerswitches) and
-         ({$ifdef i386}(len=8) or{$endif i386}(len=16) or (len=24) or (len=32) { or (len=40) or (len=48)}) then
+         ({$ifdef i386}(len=8) or{$endif i386}(len=16) or (len=24) or (len=32) or (len=40) or (len=48)) then
          cm:=copy_avx
       else
-{$ifdef dummy}
-      { I'am not sure what CPUs would benefit from using sse instructions for moves (FK) }
+      { I'am not sure what CPUs would benefit from using sse instructions for moves
+        but using the xmm registers reduces register pressure (FK) }
       if
 {$ifdef x86_64}
         ((current_settings.fputype>=fpu_sse64)
@@ -2750,17 +2750,17 @@ unit cgx86;
         ((current_settings.fputype>=fpu_sse)
 {$endif x86_64}
           or (CPUX86_HAS_SSE2 in cpu_capabilities[current_settings.cputype])) and
-         ((len=8) or (len=16) or (len=24) or (len=32) or (len=40) or (len=48)) then
+         ({$ifdef i386}(len=8) or {$endif i386}(len=16) or (len=24) or (len=32) or (len=40) or (len=48)) then
          cm:=copy_mm
       else
-{$endif dummy}
 {$endif i8086}
       if (cs_mmx in current_settings.localswitches) and
          not(pi_uses_fpu in current_procinfo.flags) and
          ((len=8) or (len=16) or (len=24) or (len=32)) then
-        cm:=copy_mmx;
-      if (len>helpsize) then
-        cm:=copy_string;
+        cm:=copy_mmx
+      else
+        if len>helpsize then
+          cm:=copy_string;
       if (cs_opt_size in current_settings.optimizerswitches) and
          not((len<=16) and (cm in [copy_mmx,copy_mm,copy_avx])) and
          not(len in copy_len_sizes) then
