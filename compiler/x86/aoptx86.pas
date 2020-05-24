@@ -133,6 +133,7 @@ unit aoptx86;
         function OptPass1FLD(var p : tai) : boolean;
         function OptPass1Cmp(var p : tai) : boolean;
         function OptPass1PXor(var p : tai) : boolean;
+        function OptPass1VPXor(var p: tai): boolean;
 
         function OptPass2MOV(var p : tai) : boolean;
         function OptPass2Imul(var p : tai) : boolean;
@@ -167,6 +168,9 @@ unit aoptx86;
     function MatchOperand(const oper: TOper; const reg: TRegister): boolean; inline;
     function MatchOperand(const oper: TOper; const a: tcgint): boolean; inline;
     function MatchOperand(const oper1: TOper; const oper2: TOper): boolean;
+{$if max_operands>2}
+    function MatchOperand(const oper1: TOper; const oper2: TOper; const oper3: TOper): boolean;
+{$endif max_operands>2}
 
     function RefsEqual(const r1, r2: treference): boolean;
 
@@ -278,6 +282,24 @@ unit aoptx86;
               Result:=RefsEqual(oper1.ref^, oper2.ref^);
             else
               internalerror(2013102801);
+          end
+      end;
+
+
+    function MatchOperand(const oper1: TOper; const oper2: TOper; const oper3: TOper): boolean;
+      begin
+        result := (oper1.typ = oper2.typ) and (oper1.typ = oper3.typ);
+
+        if result then
+          case oper1.typ of
+            top_const:
+              Result:=(oper1.val = oper2.val) and (oper1.val = oper3.val);
+            top_reg:
+              Result:=(oper1.reg = oper2.reg) and (oper1.reg = oper3.reg);
+            top_ref:
+              Result:=RefsEqual(oper1.ref^, oper2.ref^) and RefsEqual(oper1.ref^, oper3.ref^);
+            else
+              internalerror(2020052401);
           end
       end;
 
@@ -3960,9 +3982,9 @@ unit aoptx86;
        {
          remove the second (v)pxor from
 
-           (v)pxor reg,reg
+           pxor reg,reg
            ...
-           (v)pxor reg,reg
+           pxor reg,reg
        }
        Result:=false;
        if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) and
@@ -3973,6 +3995,34 @@ unit aoptx86;
          MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^) then
          begin
            DebugMsg(SPeepholeOptimization + 'PXorPXor2PXor done',hp1);
+           asml.Remove(hp1);
+           hp1.Free;
+           Result:=true;
+           Exit;
+         end;
+     end;
+
+
+   function TX86AsmOptimizer.OptPass1VPXor(var p: tai): boolean;
+     var
+       hp1: tai;
+     begin
+       {
+         remove the second (v)pxor from
+
+           (v)pxor reg,reg
+           ...
+           (v)pxor reg,reg
+       }
+       Result:=false;
+       if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^,taicpu(p).oper[2]^) and
+         MatchOpType(taicpu(p),top_reg,top_reg,top_reg) and
+         GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+         MatchInstruction(taicpu(hp1),taicpu(p).opcode,[taicpu(p).opsize]) and
+         MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[0]^) and
+         MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^,taicpu(hp1).oper[2]^) then
+         begin
+           DebugMsg(SPeepholeOptimization + 'VPXorVPXor2PXor done',hp1);
            asml.Remove(hp1);
            hp1.Free;
            Result:=true;

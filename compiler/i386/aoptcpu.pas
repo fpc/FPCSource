@@ -141,7 +141,8 @@ unit aoptcpu;
                   Result:=OptPass1And(p);
                 A_CMP:
                   Result:=OptPass1Cmp(p);
-                A_VPXOR,
+                A_VPXOR:
+                  Result:=OptPass1VPXor(p);
                 A_PXOR:
                   Result:=OptPass1PXor(p);
                 A_FLD:
