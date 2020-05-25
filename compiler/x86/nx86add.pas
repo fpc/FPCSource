@@ -1401,6 +1401,8 @@ unit nx86add;
                 emit_none(A_SAHF,S_NO);
                 cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
               end;
+            if cs_fpu_fwait in current_settings.localswitches then
+              current_asmdata.CurrAsmList.concat(Taicpu.Op_none(A_FWAIT,S_NO));
           end
         else
 {$endif x86_64}
