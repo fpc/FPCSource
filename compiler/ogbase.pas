@@ -428,7 +428,7 @@ interface
        function  symbolref(const aname:string):TObjSymbol;
        procedure ResetCachedAsmSymbols;
        { Allocation }
-       procedure alloc(len:aword);
+       procedure alloc(len:TObjSectionOfs);
        procedure allocalign(len:longint);
        procedure writebytes(const Data;len:aword);
        procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);virtual;abstract;
@@ -1539,7 +1539,7 @@ implementation
       end;
 
 
-    procedure TObjData.alloc(len:aword);
+    procedure TObjData.alloc(len:TObjSectionOfs);
       begin
         if not assigned(CurrObjSec) then
           internalerror(200402252);
