@@ -366,78 +366,79 @@ implementation
         buf: array [0..MaxChunkSize-1] of Byte;
         reloc: TRelRelocation;
       begin
-        if oso_data in sec.SecOptions then
-          begin
-            if sec.Data=nil then
-              internalerror(200403073);
-            sec.data.seek(0);
-            ChunkFixupStart:=0;
-            ChunkFixupEnd:=-1;
-            ChunkStart:=0;
-            ChunkLen:=Min(MaxChunkSize, sec.Data.size-ChunkStart);
-            while ChunkLen>0 do
+        if (oso_data in sec.SecOptions) and (sec.Data=nil) then
+          internalerror(200403073);
+        if assigned(sec.data) then
+          sec.data.seek(0);
+        ChunkFixupStart:=0;
+        ChunkFixupEnd:=-1;
+        ChunkStart:=0;
+        ChunkLen:=Min(MaxChunkSize, sec.size-ChunkStart);
+        while ChunkLen>0 do
+        begin
+          { find last fixup in the chunk }
+          while (ChunkFixupEnd<(sec.ObjRelocations.Count-1)) and
+                (TRelRelocation(sec.ObjRelocations[ChunkFixupEnd+1]).DataOffset<(ChunkStart+ChunkLen)) do
+            inc(ChunkFixupEnd);
+          { check if last chunk is crossing the chunk boundary, and trim ChunkLen if necessary }
+          if (ChunkFixupEnd>=ChunkFixupStart) and
+            ((TRelRelocation(sec.ObjRelocations[ChunkFixupEnd]).DataOffset+
+              TRelRelocation(sec.ObjRelocations[ChunkFixupEnd]).size)>(ChunkStart+ChunkLen)) then
             begin
-              { find last fixup in the chunk }
-              while (ChunkFixupEnd<(sec.ObjRelocations.Count-1)) and
-                    (TRelRelocation(sec.ObjRelocations[ChunkFixupEnd+1]).DataOffset<(ChunkStart+ChunkLen)) do
-                inc(ChunkFixupEnd);
-              { check if last chunk is crossing the chunk boundary, and trim ChunkLen if necessary }
-              if (ChunkFixupEnd>=ChunkFixupStart) and
-                ((TRelRelocation(sec.ObjRelocations[ChunkFixupEnd]).DataOffset+
-                  TRelRelocation(sec.ObjRelocations[ChunkFixupEnd]).size)>(ChunkStart+ChunkLen)) then
+              ChunkLen:=TRelRelocation(sec.ObjRelocations[ChunkFixupEnd]).DataOffset-ChunkStart;
+              Dec(ChunkFixupEnd);
+            end;
+          if ChunkLen>SizeOf(buf) then
+            internalerror(2020050501);
+          st:='T '+HexStr(Byte(ChunkStart),2)+' '+HexStr(Byte(ChunkStart shr 8),2);
+          sr:='R 00 00 '+HexStr(Byte(sec.SecSymIdx),2)+' '+HexStr(Byte(sec.SecSymIdx shr 8),2);
+          if assigned(sec.Data) then
+            sec.Data.read(buf,ChunkLen)
+          else
+            FillChar(buf,ChunkLen,0);
+          st_ofs:=1;
+          { relocations present in the current chunk? }
+          if ChunkFixupEnd>=ChunkFixupStart then
+            begin
+              j:=ChunkFixupStart;
+              reloc:=TRelRelocation(sec.ObjRelocations[j]);
+            end
+          else
+            begin
+              j:=-1;
+              reloc:=nil;
+            end;
+          for i:=0 to ChunkLen-1 do
+            begin
+              st:=st+' '+HexStr(buf[i],2);
+              Inc(st_ofs);
+              if assigned(reloc) then
                 begin
-                  ChunkLen:=TRelRelocation(sec.ObjRelocations[ChunkFixupEnd]).DataOffset-ChunkStart;
-                  Dec(ChunkFixupEnd);
-                end;
-              if ChunkLen>SizeOf(buf) then
-                internalerror(2020050501);
-              st:='T '+HexStr(Byte(ChunkStart),2)+' '+HexStr(Byte(ChunkStart shr 8),2);
-              sr:='R 00 00 '+HexStr(Byte(sec.SecSymIdx),2)+' '+HexStr(Byte(sec.SecSymIdx shr 8),2);
-              sec.Data.read(buf,ChunkLen);
-              st_ofs:=1;
-              { relocations present in the current chunk? }
-              if ChunkFixupEnd>=ChunkFixupStart then
-                begin
-                  j:=ChunkFixupStart;
-                  reloc:=TRelRelocation(sec.ObjRelocations[j]);
-                end
-              else
-                begin
-                  j:=-1;
-                  reloc:=nil;
-                end;
-              for i:=0 to ChunkLen-1 do
-                begin
-                  st:=st+' '+HexStr(buf[i],2);
-                  Inc(st_ofs);
-                  if assigned(reloc) then
+                  { advance to the current relocation }
+                  while (reloc.DataOffset<(ChunkStart+i)) and (j<ChunkFixupEnd) do
                     begin
-                      { advance to the current relocation }
-                      while (reloc.DataOffset<(ChunkStart+i)) and (j<ChunkFixupEnd) do
+                      Inc(j);
+                      reloc:=TRelRelocation(sec.ObjRelocations[j]);
+                    end;
+                  { is there a relocation at the current position? }
+                  if reloc.DataOffset=(ChunkStart+i) then
+                    begin
+                      sr:=sr+' '+reloc.EncodeFlags+' '+HexStr(st_ofs,2)+' '+HexStr(Byte(reloc.SecOrSymIdx),2)+' '+HexStr(Byte(reloc.SecOrSymIdx shr 8),2);
+                      if reloc.typ in [RELOC_ABSOLUTE_HI8,RELOC_ABSOLUTE_LO8] then
                         begin
-                          Inc(j);
-                          reloc:=TRelRelocation(sec.ObjRelocations[j]);
-                        end;
-                      { is there a relocation at the current position? }
-                      if reloc.DataOffset=(ChunkStart+i) then
-                        begin
-                          sr:=sr+' '+reloc.EncodeFlags+' '+HexStr(st_ofs,2)+' '+HexStr(Byte(reloc.SecOrSymIdx),2)+' '+HexStr(Byte(reloc.SecOrSymIdx shr 8),2);
-                          if reloc.typ in [RELOC_ABSOLUTE_HI8,RELOC_ABSOLUTE_LO8] then
-                            begin
-                              st:=st+' '+HexStr(reloc.HiByte,2);
-                              Inc(st_ofs);
-                            end;
+                          st:=st+' '+HexStr(reloc.HiByte,2);
+                          Inc(st_ofs);
                         end;
                     end;
                 end;
-              writeLine(st);
-              writeLine(sr);
-              { prepare next chunk }
-              Inc(ChunkStart, ChunkLen);
-              ChunkLen:=Min(MaxChunkSize, sec.Data.size-ChunkStart);
-              ChunkFixupStart:=ChunkFixupEnd+1;
             end;
-          end;
+          writeLine(st);
+          writeLine(sr);
+          { prepare next chunk }
+          Inc(ChunkStart, ChunkLen);
+          ChunkLen:=Min(MaxChunkSize, sec.size-ChunkStart);
+          ChunkFixupStart:=ChunkFixupEnd+1;
+        end;
       end;
 
     function TRelObjOutput.writeData(Data: TObjData): boolean;
