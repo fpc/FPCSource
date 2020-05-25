@@ -59,11 +59,11 @@ unit cpubase;
 
       { call/reg instructions are not considered as jmp instructions for the usage cases of
         this set }
-      jmp_instructions = [A_JP,A_JR,A_DJNZ];
+      jmp_instructions = [A_JP,A_JR,A_JRJP,A_DJNZ];
       call_jmp_instructions = [A_CALL]+jmp_instructions;
 
       { instructions that can have a condition }
-      cond_instructions = [A_CALL,A_JP,A_JR,A_RET];
+      cond_instructions = [A_CALL,A_JP,A_JR,A_JRJP,A_RET];
 
 {*****************************************************************************
                                   Registers

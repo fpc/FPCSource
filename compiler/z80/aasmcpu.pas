@@ -1074,6 +1074,7 @@ implementation
           A_DJNZ,
           A_JR,
           A_JP,
+          A_JRJP,
           A_CALL,
           A_RET,
           A_RETI,

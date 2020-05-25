@@ -200,7 +200,7 @@ Implementation
       if SuperRegistersEqual(reg,NR_DEFAULTFLAGS) and (reg<>NR_AF) then
         begin
           case p.opcode of
-            A_PUSH,A_POP,A_EX,A_EXX,A_NOP,A_HALT,A_DI,A_EI,A_IM,A_SET,A_RES,A_JP,A_JR,A_DJNZ,A_CALL,A_RET,A_RETI,A_RETN,A_RST,A_OUT:
+            A_PUSH,A_POP,A_EX,A_EXX,A_NOP,A_HALT,A_DI,A_EI,A_IM,A_SET,A_RES,A_JP,A_JR,A_JRJP,A_DJNZ,A_CALL,A_RET,A_RETI,A_RETN,A_RST,A_OUT:
               result:=false;
             A_LD:
               begin
@@ -303,7 +303,7 @@ Implementation
           A_PUSH,A_EX,A_EXX,A_LDI,A_LDIR,A_LDD,A_LDDR,A_CPI,A_CPIR,A_CPD,A_CPDR,
           A_ADD,A_ADC,A_SBC,A_CP,A_INC,A_DEC,A_DAA,A_CPL,A_NEG,A_CCF,A_SCF,
           A_NOP,A_HALT,A_DI,A_EI,A_IM,A_RLCA,A_RLA,A_RRCA,A_RRA,A_RLC,A_RL,
-          A_RRC,A_RR,A_SLA,A_SRA,A_SRL,A_RLD,A_RRD,A_BIT,A_SET,A_RES,A_JP,A_JR,
+          A_RRC,A_RR,A_SLA,A_SRA,A_SRL,A_RLD,A_RRD,A_BIT,A_SET,A_RES,A_JP,A_JR,A_JRJP,
           A_DJNZ,A_CALL,A_RET,A_RETI,A_RETN,A_RST,A_INI,A_INIR,A_IND,A_INDR,
           A_OUT,A_OUTI,A_OTIR,A_OUTD,A_OTDR:
             result:=false;
@@ -421,7 +421,7 @@ Implementation
           end;
         A_RLD,A_RRD:
           result:=RegistersInterfere(reg,NR_A) or RegistersInterfere(reg,NR_HL);
-        A_JP,A_JR:
+        A_JP,A_JR,A_JRJP:
           begin
             if p.ops<>1 then
               internalerror(2020051107);

@@ -104,8 +104,8 @@ Const
 
   StoreDst = 0;
 
-  aopt_uncondjmp = [A_JP,A_JR];
-  aopt_condjmp = [A_JP,A_JR];
+  aopt_uncondjmp = [A_JP,A_JR,A_JRJP];
+  aopt_condjmp = [A_JP,A_JR,A_JRJP];
 
 Implementation
 
@@ -197,7 +197,7 @@ Uses
       case p.opcode of
         A_LD,A_EX,A_ADD,A_ADC,A_SUB,A_SBC,A_AND,A_OR,A_XOR,A_CP,A_INC,A_DEC,
         A_CCF,A_SCF,A_NOP,A_HALT,A_DI,A_EI,A_IM,A_RLC,A_RL,A_RRC,A_RR,A_SLA,
-        A_SRA,A_SRL,A_BIT,A_SET,A_RES,A_JP,A_JR,A_CALL,A_RET,A_RETI,A_RETN,
+        A_SRA,A_SRL,A_BIT,A_SET,A_RES,A_JP,A_JR,A_JRJP,A_CALL,A_RET,A_RETI,A_RETN,
         A_RST,A_IN,A_OUT:
           ;
         A_PUSH,A_POP:
@@ -226,7 +226,7 @@ Uses
       if not result and SuperRegistersEqual(reg,NR_DEFAULTFLAGS) then
         begin
           case p.opcode of
-            A_PUSH,A_POP,A_EX,A_EXX,A_NOP,A_HALT,A_DI,A_EI,A_IM,A_SET,A_RES,A_JP,A_JR,A_DJNZ,A_CALL,A_RET,A_RETI,A_RETN,A_RST,A_OUT:
+            A_PUSH,A_POP,A_EX,A_EXX,A_NOP,A_HALT,A_DI,A_EI,A_IM,A_SET,A_RES,A_JP,A_JR,A_JRJP,A_DJNZ,A_CALL,A_RET,A_RETI,A_RETN,A_RST,A_OUT:
               result:=false;
             A_LD:
               begin
