@@ -30,6 +30,7 @@
 'inir',
 'jp',
 'jr',
+'jrjp',
 'ld',
 'ldd',
 'lddr',

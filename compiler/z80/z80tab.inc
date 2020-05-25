@@ -568,6 +568,76 @@
     flags   : 0
   ),
   (
+    opcode  : A_JRJP;
+    ops     : 1;
+    optypes : (OT_RELJMP8,OT_NONE);
+    code    : '$18,e';
+    flags   : 0
+  ),
+  (
+    opcode  : A_JRJP;
+    ops     : 2;
+    optypes : (OT_COND_C,OT_RELJMP8);
+    code    : '$38,e';
+    flags   : 0
+  ),
+  (
+    opcode  : A_JRJP;
+    ops     : 2;
+    optypes : (OT_COND_NC,OT_RELJMP8);
+    code    : '$30,e';
+    flags   : 0
+  ),
+  (
+    opcode  : A_JRJP;
+    ops     : 2;
+    optypes : (OT_COND_Z,OT_RELJMP8);
+    code    : '$28,e';
+    flags   : 0
+  ),
+  (
+    opcode  : A_JRJP;
+    ops     : 2;
+    optypes : (OT_COND_NZ,OT_RELJMP8);
+    code    : '$20,e';
+    flags   : 0
+  ),
+  (
+    opcode  : A_JRJP;
+    ops     : 1;
+    optypes : (OT_IMM16,OT_NONE);
+    code    : '$C3,nn';
+    flags   : 0
+  ),
+  (
+    opcode  : A_JRJP;
+    ops     : 2;
+    optypes : (OT_COND,OT_IMM16);
+    code    : '%11ccc010,nn';
+    flags   : 0
+  ),
+  (
+    opcode  : A_JRJP;
+    ops     : 1;
+    optypes : (OT_REF_HL,OT_NONE);
+    code    : '$E9';
+    flags   : 0
+  ),
+  (
+    opcode  : A_JRJP;
+    ops     : 1;
+    optypes : (OT_REF_IX,OT_NONE);
+    code    : '$DD,$E9';
+    flags   : 0
+  ),
+  (
+    opcode  : A_JRJP;
+    ops     : 1;
+    optypes : (OT_REF_IY,OT_NONE);
+    code    : '$FD,$E9';
+    flags   : 0
+  ),
+  (
     opcode  : A_LD;
     ops     : 2;
     optypes : (OT_REG8,OT_REG8);

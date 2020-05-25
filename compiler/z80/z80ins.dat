@@ -181,6 +181,23 @@ NC,e                  $30,e
 Z,e                   $28,e
 NZ,e                  $20,e
 
+; pseudo instruction - translated to JR if possible (i.e. the target is within
+; -126..+129 bytes range and an appropriate form of the JR instruction exists),
+; otherwise to JP
+[JRJP]
+; JR
+e                     $18,e
+C,e                   $38,e
+NC,e                  $30,e
+Z,e                   $28,e
+NZ,e                  $20,e
+; JP
+nn                    $C3,nn
+cc,nn                 %11ccc010,nn
+(HL)                  $E9
+(IX)                  $DD,$E9
+(IY)                  $FD,$E9
+
 [LD]
 r,r'                  %01rrrr'r'r'
 r,n                   %00rrr110,n
