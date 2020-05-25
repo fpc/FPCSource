@@ -29,19 +29,21 @@ program pp;
   AARCH64             generate a compiler for the AARCH64 (64bit ARM)
   ARM                 generate a compiler for the ARM
   AVR                 generate a compiler for the AVR
-  I8086               generate a compiler for the Intel 8086+
   I386                generate a compiler for the Intel i386+
+  I8086               generate a compiler for the Intel 8086+
   JVM                 generate a compiler for the JVM (Java Virtual Machine)
   M68K                generate a compiler for the M68000
   MIPS                generate a compiler for the MIPS (Big Endian)
   MIPSEL              generate a compiler for the MIPSEL (Littel Endian)
   POWERPC             generate a compiler for the PowerPC
   POWERPC64           generate a compiler for the PowerPC64 architecture
-  Z80                 generate a compiler for Z80
+  RISCV32             generate a compiler for the RiscV32 architecture
   RISCV64             generate a compiler for the RiscV64 architecture
   SPARC               generate a compiler for SPARC
   SPARC64             generate a compiler for SPARC64
   X86_64              generate a compiler for the AMD x86-64 architecture
+  XTENSA              generate a compiler for XTENSA
+  Z80                 generate a compiler for Z80
 
   -----------------------------------------------------------------
   Other compiler switches
