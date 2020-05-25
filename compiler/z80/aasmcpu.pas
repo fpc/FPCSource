@@ -112,10 +112,11 @@ uses
          insoffset : longint;
          LastInsOffset : longint;
 
-         function Matches(p:PInsEntry):boolean;
+         function Matches(p:PInsEntry;objdata:TObjData):boolean;
          function FindInsentry(objdata:TObjData):boolean;
          function calcsize(p:PInsEntry):shortint;
          procedure gencode(objdata:TObjData);
+         procedure init; { this need to be called by all constructors }
       public
          constructor op_none(op : tasmop);
 
@@ -205,9 +206,13 @@ implementation
       end;
 
 
-    function taicpu.Matches(p: PInsEntry): boolean;
+    function taicpu.Matches(p: PInsEntry; objdata:TObjData): boolean;
 
       function OperandsMatch(const oper: toper; const ot: toperandtype): boolean;
+        var
+          currsym: TObjSymbol;
+          l: ASizeInt;
+          relsize: LongInt;
         begin
           case ot of
             OT_IMM3:
@@ -278,9 +283,37 @@ implementation
             OT_REG16_AF_:
               result:=(oper.typ=top_reg) and (oper.reg=NR_AF_);
             OT_RELJMP8:
-              result:=(oper.typ=top_ref) and
-                      (oper.ref^.refaddr=addr_full) and assigned(oper.ref^.symbol) and
-                      (oper.ref^.base=NR_NO) and (oper.ref^.index=NR_NO);
+              begin
+                result:=(oper.typ=top_ref) and
+                        (oper.ref^.refaddr=addr_full) and assigned(oper.ref^.symbol) and
+                        (oper.ref^.base=NR_NO) and (oper.ref^.index=NR_NO);
+                if result and assigned(objdata) then
+                  begin
+                    currsym:=objdata.symbolref(oper.ref^.symbol);
+                    l:=oper.ref^.offset;
+{$push}
+{$r-,q-} { disable also overflow as address returns a qword for x86_64 }
+                    if assigned(currsym) then
+                      inc(l,currsym.address);
+{$pop}
+                    { when it is a forward jump we need to compensate the
+                      offset of the instruction since the previous time,
+                      because the symbol address is then still using the
+                      'old-style' addressing.
+                      For backwards jumps this is not required because the
+                      address of the symbol is already adjusted to the
+                      new offset }
+                    if (l>InsOffset) and (LastInsOffset<>-1) then
+                      inc(l,InsOffset-LastInsOffset-1);
+                    { instruction size will then always become 2 (PFV) }
+                    relsize:=l-(InsOffset+2);
+                    result:=(relsize>=-128) and (relsize<=127) and
+                            (
+                             not assigned(currsym) or
+                             (currsym.objsection=objdata.currobjsec)
+                            );
+                  end;
+              end;
             OT_REF_ADDR16,
             OT_REF_BC,
             OT_REF_DE,
@@ -373,7 +406,7 @@ implementation
         { Things which may only be done once, not when a second pass is done to
           optimize }
 
-        if (Insentry=nil) {or (IF_PASS2 in InsEntry^.flags)} then
+        if (Insentry=nil) or (opcode=A_JRJP) then
          begin
            { set the file postion }
            current_filepos:=fileinfo;
@@ -395,7 +428,7 @@ implementation
         insentry:=@instab[i];
         while (insentry^.opcode=opcode) do
          begin
-           if matches(insentry) then
+           if matches(insentry,objdata) then
              begin
                result:=true;
                exit;
@@ -939,15 +972,26 @@ implementation
       end;
 
 
+    procedure taicpu.init;
+      begin
+        insentry:=nil;
+        LastInsOffset:=-1;
+        InsOffset:=0;
+        InsSize:=0;
+      end;
+
+
     constructor taicpu.op_none(op : tasmop);
       begin
          inherited create(op);
+         init;
       end;
 
 
     constructor taicpu.op_reg(op : tasmop;_op1 : tregister);
       begin
          inherited create(op);
+         init;
          ops:=1;
          loadreg(0,_op1);
       end;
@@ -956,6 +1000,7 @@ implementation
     constructor taicpu.op_ref(op : tasmop;const _op1 : treference);
       begin
          inherited create(op);
+         init;
          ops:=1;
          loadref(0,_op1);
       end;
@@ -964,6 +1009,7 @@ implementation
     constructor taicpu.op_const(op : tasmop;_op1 : LongInt);
       begin
          inherited create(op);
+         init;
          ops:=1;
          loadconst(0,_op1);
       end;
@@ -972,6 +1018,7 @@ implementation
     constructor taicpu.op_reg_reg(op : tasmop;_op1,_op2 : tregister);
       begin
          inherited create(op);
+         init;
          ops:=2;
          loadreg(0,_op1);
          loadreg(1,_op2);
@@ -980,6 +1027,7 @@ implementation
     constructor taicpu.op_reg_const(op:tasmop; _op1: tregister; _op2: LongInt);
       begin
          inherited create(op);
+         init;
          ops:=2;
          loadreg(0,_op1);
          loadconst(1,_op2);
@@ -988,6 +1036,7 @@ implementation
      constructor taicpu.op_const_reg(op:tasmop; _op1: LongInt; _op2: tregister);
       begin
          inherited create(op);
+         init;
          ops:=2;
          loadconst(0,_op1);
          loadreg(1,_op2);
@@ -997,6 +1046,7 @@ implementation
     constructor taicpu.op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
       begin
          inherited create(op);
+         init;
          ops:=2;
          loadreg(0,_op1);
          loadref(1,_op2);
@@ -1006,6 +1056,7 @@ implementation
     constructor taicpu.op_ref_reg(op : tasmop;const _op1 : treference;_op2 : tregister);
       begin
          inherited create(op);
+         init;
          ops:=2;
          loadref(0,_op1);
          loadreg(1,_op2);
@@ -1015,6 +1066,7 @@ implementation
     constructor taicpu.op_ref_const(op: tasmop; _op1: treference; _op2: LongInt);
       begin
         inherited create(op);
+        init;
         ops:=2;
         loadref(0,_op1);
         loadconst(1,_op2);
@@ -1024,6 +1076,7 @@ implementation
     constructor taicpu.op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
       begin
          inherited create(op);
+         init;
          is_jmp:=op in jmp_instructions;
          condition:=cond;
          ops:=1;
@@ -1034,6 +1087,7 @@ implementation
     constructor taicpu.op_sym(op : tasmop;_op1 : tasmsymbol);
       begin
          inherited create(op);
+         init;
          is_jmp:=op in jmp_instructions;
          ops:=1;
          loadsymbol(0,_op1,0);
@@ -1043,6 +1097,7 @@ implementation
     constructor taicpu.op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint);
       begin
          inherited create(op);
+         init;
          ops:=1;
          loadsymbol(0,_op1,_op1ofs);
       end;
@@ -1111,12 +1166,11 @@ implementation
     procedure taicpu.ResetPass2;
       begin
         { we are here in a second pass, check if the instruction can be optimized }
-        {if assigned(InsEntry) and
-           (IF_PASS2 in InsEntry^.flags) then
-         begin
-           InsEntry:=nil;
-           InsSize:=0;
-         end;}
+        if assigned(InsEntry) and (opcode=A_JRJP) then
+          begin
+            InsEntry:=nil;
+            InsSize:=0;
+          end;
         LastInsOffset:=-1;
       end;
 
