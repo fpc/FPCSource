@@ -750,11 +750,7 @@ unit i_embed;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-{$ifdef Z80_INTERNAL_ASM}
             assem        : as_z80_rel;
-{$else Z80_INTERNAL_ASM}
-            assem        : as_sdcc_sdasz80;
-{$endif Z80_INTERNAL_ASM}
             assemextern  : as_sdcc_sdasz80;
             link         : ld_none;
             linkextern   : ld_embedded;
