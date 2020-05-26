@@ -1879,7 +1879,7 @@ unit cgcpu;
       var
         ai : taicpu;
       begin
-        ai:=taicpu.op_sym(A_JP,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
+        ai:=taicpu.op_sym(A_JRJP,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
         ai.is_jmp:=true;
         list.concat(ai);
       end;
@@ -1889,7 +1889,7 @@ unit cgcpu;
       var
         ai : taicpu;
       begin
-        ai:=taicpu.op_sym(A_JP,l);
+        ai:=taicpu.op_sym(A_JRJP,l);
         ai.is_jmp:=true;
         list.concat(ai);
       end;
@@ -1899,7 +1899,7 @@ unit cgcpu;
       var
         ai : taicpu;
       begin
-        ai:=taicpu.op_cond_sym(A_JP,flags_to_cond(f),l);
+        ai:=taicpu.op_cond_sym(A_JRJP,flags_to_cond(f),l);
         ai.is_jmp:=true;
         list.concat(ai);
       end;
