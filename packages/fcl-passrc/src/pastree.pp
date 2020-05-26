@@ -26,7 +26,7 @@ unit PasTree;
 
 interface
 
-uses Classes;
+uses SysUtils, Classes;
 
 resourcestring
   // Parse tree node type names
@@ -91,6 +91,7 @@ resourcestring
   SPasTreeDestructorImpl = 'destructor implementation';
 
 type
+  EPasTree = Class(Exception);
 
   // Visitor pattern.
   TPassTreeVisitor = class;
@@ -1775,7 +1776,6 @@ function GetPTDumpStack: string;
 
 implementation
 
-uses SysUtils;
 
 procedure ReleaseAndNil(var El: TPasElement {$IFDEF CheckPasTreeRefCount}; const Id: string{$ENDIF});
 begin
@@ -2793,7 +2793,7 @@ begin
     writeln('ERROR: TPasElement.ChangeRefId ',Name,':',ClassName,' Old="'+OldId+'" New="'+NewId+'" Old not found');
     writeln(RefIds.Text);
     {AllowWriteln-}
-    raise Exception.Create('');
+    raise EPasTree.Create('');
     end;
   RefIds.Delete(i);
   RefIds.Add(NewId);
@@ -2839,7 +2839,7 @@ begin
       end;
     FreeAndNil(RefIds);
     {$ENDIF}
-    raise Exception.Create('');
+    raise EPasTree.Create(ClassName+'Destroy called wrong');
     end;
   {$IFDEF CheckPasTreeRefCount}
   FreeAndNil(RefIds);
@@ -2923,7 +2923,7 @@ begin
     {$if defined(VerbosePasResolver) or defined(VerbosePCUFiler)}
     Writeln('TPasElement.Released : ',ClassName,' ',Name);
     {$endif}
-    raise Exception.Create('');
+    raise EPasTree.Create(ClassName+': Destroy called wrong');
     end
   else
     begin
@@ -3799,7 +3799,7 @@ begin
     Element.AddRef{$IFDEF CheckPasTreeRefCount}('TPasImplIfElse.ElseBranch'){$ENDIF};
     end
   else
-    raise Exception.Create('TPasImplIfElse.AddElement if and else already set - please report this bug');
+    raise EPasTree.Create('TPasImplIfElse.AddElement if and else already set - please report this bug');
 end;
 
 function TPasImplIfElse.CloseOnSemicolon: boolean;
@@ -3843,7 +3843,7 @@ begin
     Body.AddRef{$IFDEF CheckPasTreeRefCount}('TPasImplForLoop.Body'){$ENDIF};
     end
   else
-    raise Exception.Create('TPasImplForLoop.AddElement body already set - please report this bug');
+    raise EPasTree.Create('TPasImplForLoop.AddElement body already set - please report this bug');
 end;
 
 procedure TPasImplForLoop.ForEachCall(const aMethodCall: TOnForEachPasElement;
@@ -5095,7 +5095,7 @@ var
   l: Integer;
 begin
   if (InFilename<>nil) and (InFilename.Kind<>pekString) then
-    raise Exception.Create('');
+    raise EPasTree.Create('Wrong In expression for '+aUnitName);
   if aModule=nil then
     aModule:=TPasUnresolvedUnitRef.Create(AUnitName, Self);
   l:=length(UsesClause);
@@ -5188,7 +5188,7 @@ begin
     Body.AddRef{$IFDEF CheckPasTreeRefCount}('TPasImplWhileDo.Body'){$ENDIF};
     end
   else
-    raise Exception.Create('TPasImplWhileDo.AddElement body already set');
+    raise EPasTree.Create('TPasImplWhileDo.AddElement body already set');
 end;
 
 procedure TPasImplWhileDo.ForEachCall(const aMethodCall: TOnForEachPasElement;
@@ -5285,7 +5285,7 @@ begin
     Body.AddRef{$IFDEF CheckPasTreeRefCount}('TPasImplCaseStatement.Body'){$ENDIF};
     end
   else
-    raise Exception.Create('TPasImplCaseStatement.AddElement body already set');
+    raise EPasTree.Create('TPasImplCaseStatement.AddElement body already set');
 end;
 
 procedure TPasImplCaseStatement.AddExpression(const Expr: TPasExpr);
@@ -5334,7 +5334,7 @@ begin
     Body.AddRef{$IFDEF CheckPasTreeRefCount}('TPasImplWithDo.Body'){$ENDIF};
     end
   else
-    raise Exception.Create('TPasImplWithDo.AddElement body already set');
+    raise EPasTree.Create('TPasImplWithDo.AddElement body already set');
 end;
 
 procedure TPasImplWithDo.AddExpression(const Expression: TPasExpr);
