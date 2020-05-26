@@ -111,8 +111,6 @@ unit cpubase;
       first_mm_supreg    = RS_INVALID;
       first_mm_imreg     = 0;
 
-      regnumber_count_bsstart = 32;
-
       regnumber_table : array[tregisterindex] of tregister = (
         {$i ravrnum.inc}
       );
