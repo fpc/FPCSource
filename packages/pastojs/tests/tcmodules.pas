@@ -340,10 +340,6 @@ type
     Procedure TestProc_LocalVarInit;
     Procedure TestProc_ReservedWords;
     Procedure TestProc_ConstRefWord;
-    Procedure TestProc_Async;
-    Procedure TestProc_AWaitOutsideAsyncFail;
-    Procedure TestProc_AWait;
-    Procedure TestProc_AWaitExternalClassPromise;
 
     // anonymous functions
     Procedure TestAnonymousProc_Assign_ObjFPC;
@@ -356,7 +352,6 @@ type
     Procedure TestAnonymousProc_NestedAssignResult;
     Procedure TestAnonymousProc_Class;
     Procedure TestAnonymousProc_ForLoop;
-    Procedure TestAnonymousProc_Async;
 
     // enums, sets
     Procedure TestEnum_Name;
@@ -865,6 +860,23 @@ type
     procedure TestRangeChecks_StringIndex;
     procedure TestRangeChecks_TypecastInt;
     procedure TestRangeChecks_TypeHelperInt;
+
+    // Async/AWait
+    Procedure TestAsync_Proc;
+    Procedure TestAsync_CallResultIsPromise;
+    Procedure TestAsync_ConstructorFail;
+    Procedure TestAsync_PropertyGetterFail;
+    Procedure TestAwait_NonPromiseWithTypeFail;
+    Procedure TestAWait_OutsideAsyncFail;
+    Procedure TestAWait_Result;
+    Procedure TestAWait_ExternalClassPromise;
+    Procedure TestAsync_AnonymousProc;
+    // ToDo: proc type, implict call, explicit call, await()
+    // ToDo: proc type assign async mismatch fail
+    // ToDo: inherited;
+    // ToDo: inherited asyncproc;
+    // ToDo: await(inherited asyncproc);
+    // ToDo: i:=await(inherited asyncfunc)
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -4609,115 +4621,6 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestProc_Async;
-begin
-  StartProgram(false);
-  Add([
-  'procedure Fly(w: word); async; forward;',
-  'procedure Run(w: word); async;',
-  'begin',
-  'end;',
-  'procedure Fly(w: word); ',
-  'begin',
-  'end;',
-  'begin',
-  '  Run(1);']);
-  ConvertProgram;
-  CheckSource('TestProc_Async',
-    LinesToStr([ // statements
-    'this.Run = async function (w) {',
-    '};',
-    'this.Fly = async function (w) {',
-    '};',
-    '']),
-    LinesToStr([
-    '$mod.Run(1);'
-    ]));
-end;
-
-procedure TTestModule.TestProc_AWaitOutsideAsyncFail;
-begin
-  StartProgram(false);
-  Add([
-  'function Crawl(w: double): word; ',
-  'begin',
-  'end;',
-  'function Run(w: double): word;',
-  'begin',
-  '  Result:=await(Crawl(w));',
-  'end;',
-  'begin',
-  '  Run(1);']);
-  SetExpectedPasResolverError(sAWaitOnlyInAsyncProcedure,nAWaitOnlyInAsyncProcedure);
-  ConvertProgram;
-end;
-
-procedure TTestModule.TestProc_AWait;
-begin
-  StartProgram(false);
-  Add([
-  'function Crawl(d: double = 1.3): word; ',
-  'begin',
-  'end;',
-  'function Run(d: double): word; async;',
-  'begin',
-  '  Result:=await(1);',
-  '  Result:=await(Crawl);',
-  '  Result:=await(Crawl(4.5));',
-  'end;',
-  'begin',
-  '  Run(1);']);
-  ConvertProgram;
-  CheckSource('TestProc_AWait',
-    LinesToStr([ // statements
-    'this.Crawl = function (d) {',
-    '  var Result = 0;',
-    '  return Result;',
-    '};',
-    'this.Run = async function (d) {',
-    '  var Result = 0;',
-    '  Result = await 1;',
-    '  Result = await $mod.Crawl(1.3);',
-    '  Result = await $mod.Crawl(4.5);',
-    '  return Result;',
-    '};',
-    '']),
-    LinesToStr([
-    '$mod.Run(1);'
-    ]));
-end;
-
-procedure TTestModule.TestProc_AWaitExternalClassPromise;
-begin
-  StartProgram(false);
-  Add([
-  '{$modeswitch externalclass}',
-  'type',
-  '  TJSPromise = class external name ''Promise''',
-  '  end;',
-  'function Run(d: double): word; async;',
-  'var',
-  '  p: TJSPromise;',
-  'begin',
-  '  Result:=await(word,p);',
-  'end;',
-  'begin',
-  '  Run(1);']);
-  ConvertProgram;
-  CheckSource('TestProc_AWaitExternalClassPromise',
-    LinesToStr([ // statements
-    'this.Run = async function (d) {',
-    '  var Result = 0;',
-    '  var p = null;',
-    '  Result = await p;',
-    '  return Result;',
-    '};',
-    '']),
-    LinesToStr([
-    '$mod.Run(1);'
-    ]));
-end;
-
 procedure TTestModule.TestAnonymousProc_Assign_ObjFPC;
 begin
   StartProgram(false);
@@ -5195,44 +5098,6 @@ begin
     LinesToStr([
     '$mod.DoIt();'
     ]));
-end;
-
-procedure TTestModule.TestAnonymousProc_Async;
-begin
-  StartProgram(false);
-  Add([
-  '{$mode objfpc}',
-  'type',
-  '  TFunc = reference to function(x: double): word;',
-  'function Crawl(d: double = 1.3): word; ',
-  'begin',
-  'end;',
-  'var Func: TFunc;',
-  'begin',
-  '  Func:=function(c:double):word async begin',
-  '    Result:=await(Crawl(c));',
-  '  end;',
-  '  Func:=function(c:double):word async assembler asm',
-  '  end;',
-  '  ']);
-  ConvertProgram;
-  CheckSource('TestAnonymousProc_Async',
-    LinesToStr([ // statements
-    'this.Crawl = function (d) {',
-    '  var Result = 0;',
-    '  return Result;',
-    '};',
-    'this.Func = null;',
-    '']),
-    LinesToStr([
-    '$mod.Func = async function (c) {',
-    '  var Result = 0;',
-    '  Result = await $mod.Crawl(c);',
-    '  return Result;',
-    '};',
-    '$mod.Func = async function (c) {',
-    '};',
-    '']));
 end;
 
 procedure TTestModule.TestEnum_Name;
@@ -31747,6 +31612,336 @@ begin
     '}, 16);',
     '']));
 end;
+
+procedure TTestModule.TestAsync_Proc;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Fly(w: word = 1); async; forward;',
+  'procedure Run(w: word = 2); async;',
+  'begin',
+  '  Fly(w);',
+  '  Fly;',
+  '  await(Fly(w));',
+  '  await(Fly);',
+  'end;',
+  'procedure Fly(w: word); ',
+  'begin',
+  'end;',
+  'begin',
+  '  Run;',
+  '  Run(3);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAsync_Proc',
+    LinesToStr([ // statements
+    'this.Run = async function (w) {',
+    '  $mod.Fly(w);',
+    '  $mod.Fly(1);',
+    '  await $mod.Fly(w);',
+    '  await $mod.Fly(1);',
+    '};',
+    'this.Fly = async function (w) {',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.Run(2);',
+    '$mod.Run(3);',
+    '']));
+end;
+
+procedure TTestModule.TestAsync_CallResultIsPromise;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
+  '  TBird = class',
+  '    function Fly: word; async; ',
+  '  end;',
+  'function TBird.Fly: word; async; ',
+  'begin',
+  '  Result:=3;',
+  '  Fly:=4+Result;',
+  '  if Result=5 then ;',
+  '  exit(6);',
+  'end;',
+  'function Run: word; async;',
+  'begin',
+  '  Result:=11+Result;',
+  '  inc(Result);',
+  'end;',
+  'var',
+  '  p: TJSPromise;',
+  '  o: TBird;',
+  'begin',
+  '  p:=Run;',
+  '  p:=Run();',
+  '  if Run=p then ;',
+  '  if p=Run then ;',
+  '  if Run()=p then ;',
+  '  if p=Run() then ;',
+  '  p:=o.Fly;',
+  '  p:=o.Fly();',
+  '  if o.Fly=p then ;',
+  '  if o.Fly()=p then ;',
+  '  with o do begin',
+  '    p:=Fly;',
+  '    p:=Fly();',
+  '    if Fly=p then ;',
+  '    if Fly()=p then ;',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAsync_CallResultIsPromise',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.Fly = async function () {',
+    '    var Result = 0;',
+    '    Result = 3;',
+    '    Result = 4 + Result;',
+    '    if (Result === 5) ;',
+    '    return 6;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.Run = async function () {',
+    '  var Result = 0;',
+    '  Result = 11 + Result;',
+    '  Result += 1;',
+    '  return Result;',
+    '};',
+    'this.p = null;',
+    'this.o = null;',
+    '']),
+    LinesToStr([
+    '$mod.p = $mod.Run();',
+    '$mod.p = $mod.Run();',
+    'if ($mod.Run() === $mod.p) ;',
+    'if ($mod.p === $mod.Run()) ;',
+    'if ($mod.Run() === $mod.p) ;',
+    'if ($mod.p === $mod.Run()) ;',
+    '$mod.p = $mod.o.Fly();',
+    '$mod.p = $mod.o.Fly();',
+    'if ($mod.o.Fly() === $mod.p) ;',
+    'if ($mod.o.Fly() === $mod.p) ;',
+    'var $with1 = $mod.o;',
+    '$mod.p = $with1.Fly();',
+    '$mod.p = $with1.Fly();',
+    'if ($with1.Fly() === $mod.p) ;',
+    'if ($with1.Fly() === $mod.p) ;',
+    '']));
+end;
+
+procedure TTestModule.TestAsync_ConstructorFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class',
+  '    constructor Create; async;',
+  '  end;',
+  'constructor TBird.Create; async;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('Invalid constructor modifier async',nInvalidXModifierY);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestAsync_PropertyGetterFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class',
+  '    function GetSize: word; async;',
+  '    property Size: word read GetSize;',
+  '  end;',
+  'function TBird.GetSize: word; async;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('Invalid property getter modifier async',nInvalidXModifierY);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestAwait_NonPromiseWithTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Run; async;',
+  'begin',
+  '  await(word,1);',
+  'end;',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('Incompatible type arg no. 2: Got "Longint", expected "TJSPromise"',nIncompatibleTypeArgNo);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestAWait_OutsideAsyncFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Crawl(w: double); ',
+  'begin',
+  'end;',
+  'procedure Run(w: double);',
+  'begin',
+  '  await(Crawl(w));',
+  'end;',
+  'begin',
+  '  Run(1);']);
+  SetExpectedPasResolverError(sAWaitOnlyInAsyncProcedure,nAWaitOnlyInAsyncProcedure);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestAWait_Result;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
+  'function Crawl(d: double = 1.3): word; ',
+  'begin',
+  'end;',
+  'function Run(d: double = 1.6): word; async;',
+  'begin',
+  '  Result:=await(1);',
+  '  Result:=await(Crawl);',
+  '  Result:=await(Crawl(4.5));',
+  '  Result:=await(Run);',
+  '  Result:=await(Run(6.7));',
+  'end;',
+  'begin',
+  '  Run(1);']);
+  ConvertProgram;
+  CheckSource('TestAWait_Result',
+    LinesToStr([ // statements
+    'this.Crawl = function (d) {',
+    '  var Result = 0;',
+    '  return Result;',
+    '};',
+    'this.Run = async function (d) {',
+    '  var Result = 0;',
+    '  Result = await 1;',
+    '  Result = await $mod.Crawl(1.3);',
+    '  Result = await $mod.Crawl(4.5);',
+    '  Result = await $mod.Run(1.6);',
+    '  Result = await $mod.Run(6.7);',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.Run(1);'
+    ]));
+end;
+
+procedure TTestModule.TestAWait_ExternalClassPromise;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
+  'function Fly(w: word): TJSPromise; async;',
+  'begin',
+  'end;',
+  'function Jump(w: word): word; async;',
+  'begin',
+  'end;',
+  'function Run(d: double): word; async;',
+  'var',
+  '  p: TJSPromise;',
+  'begin',
+  '  Result:=await(word,p);', // promise needs type
+  '  Result:=await(word,Fly(3));', // promise needs type
+  '  Result:=await(Jump(4));', // async non promise must omit the type
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAWait_ExternalClassPromise',
+    LinesToStr([ // statements
+    'this.Fly = async function (w) {',
+    '  var Result = null;',
+    '  return Result;',
+    '};',
+    'this.Jump = async function (w) {',
+    '  var Result = 0;',
+    '  return Result;',
+    '};',
+    'this.Run = async function (d) {',
+    '  var Result = 0;',
+    '  var p = null;',
+    '  Result = await p;',
+    '  Result = await $mod.Fly(3);',
+    '  Result = await $mod.Jump(4);',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([
+    ]));
+end;
+
+procedure TTestModule.TestAsync_AnonymousProc;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TFunc = reference to function(x: double): word; async;',
+  'function Crawl(d: double = 1.3): word; ',
+  'begin',
+  'end;',
+  'var Func: TFunc;',
+  'begin',
+  '  Func:=function(c:double):word async begin',
+  '    Result:=await(Crawl(c));',
+  '  end;',
+  '  Func:=function(c:double):word async assembler asm',
+  '  end;',
+  '  ']);
+  ConvertProgram;
+  CheckSource('TestAsync_AnonymousProc',
+    LinesToStr([ // statements
+    'this.Crawl = function (d) {',
+    '  var Result = 0;',
+    '  return Result;',
+    '};',
+    'this.Func = null;',
+    '']),
+    LinesToStr([
+    '$mod.Func = async function (c) {',
+    '  var Result = 0;',
+    '  Result = await $mod.Crawl(c);',
+    '  return Result;',
+    '};',
+    '$mod.Func = async function (c) {',
+    '};',
+    '']));
+end;
+
 
 Initialization
   RegisterTests([TTestModule]);

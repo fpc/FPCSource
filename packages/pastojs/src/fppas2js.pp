@@ -1094,11 +1094,22 @@ type
   end;
   TPas2JsElementDataClass = class of TPas2JsElementData;
 
+  TPas2JSModuleScopeFlag = (
+    p2msfPromiseSearched // TJSPromise searched
+    );
+  TPas2JSModuleScopeFlags = set of TPas2JSModuleScopeFlag;
+
   { TPas2JSModuleScope }
 
   TPas2JSModuleScope = class(TPasModuleScope)
+  private
+    FJSPromiseClass: TPasClassType;
+    procedure SetJSPromiseClass(const AValue: TPasClassType);
   public
+    FlagsJS: TPas2JSModuleScopeFlags;
     SystemVarRecs: TPasFunction;
+    destructor Destroy; override;
+    property JSPromiseClass: TPasClassType read FJSPromiseClass write SetJSPromiseClass;
   end;
 
   { TPas2jsElevatedLocals }
@@ -1335,6 +1346,18 @@ type
       PHasAnoFuncData = ^THasAnoFuncData;
     procedure OnHasAnonymousEl(El: TPasElement; arg: pointer);
   protected
+    type
+      TPRFindExtSystemClass = record
+        JSName: string;
+        ErrorPosEl: TPasElement;
+        Found: TPasClassType;
+        ElScope: TPasScope; // Where Found was found
+        StartScope: TPasScope; // where the search started
+      end;
+      PPRFindExtSystemClass = ^TPRFindExtSystemClass;
+    procedure OnFindExtSystemClass(El: TPasElement; ElScope, StartScope: TPasScope;
+      FindExtSystemClassData: Pointer; var Abort: boolean); virtual;
+  protected
     // overloads: fix name clashes in JS
     FOverloadScopes: TFPList; // list of TPasIdentifierScope
     function HasOverloadIndex(El: TPasElement; WithElevatedLocal: boolean = false): boolean; virtual;
@@ -1381,6 +1404,9 @@ type
       ); override;
     procedure FindCreatorArrayOfConst(Args: TFPList; ErrorEl: TPasElement);
     function FindProc_ArrLitToArrayOfConst(ErrorEl: TPasElement): TPasFunction; virtual;
+    function FindSystemExternalClassType(const aClassName, JSName: string;
+      ErrorEl: TPasElement): TPasClassType; virtual;
+    function FindTJSPromise(ErrorEl: TPasElement): TPasClassType; virtual;
     procedure CheckExternalClassConstructor(Ref: TResolvedReference); virtual;
     procedure CheckConditionExpr(El: TPasExpr;
       const ResolvedEl: TPasResolverResult); override;
@@ -1425,6 +1451,8 @@ type
       Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
     procedure BI_AWait_OnEval(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
+    procedure BI_AWait_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr); virtual;
   public
     constructor Create; reintroduce;
     destructor Destroy; override;
@@ -1456,6 +1484,9 @@ type
     procedure CheckDispatchField(Proc: TPasProcedure; Switch: TValueSwitch);
     procedure AddMessageStr(var MsgToProc: TMessageIdToProc_List; const S: string; Proc: TPasProcedure);
     procedure AddMessageIdToClassScope(Proc: TPasProcedure; EmitHints: boolean); virtual;
+    procedure ComputeResultElement(El: TPasResultElement; out
+      ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
+      StartEl: TPasElement = nil); override;
     // CustomData
     function GetElementData(El: TPasElementBase;
       DataClass: TPas2JsElementDataClass): TPas2JsElementData; virtual;
@@ -2223,6 +2254,24 @@ begin
   Result:='['+Result+']';
 end;
 
+{ TPas2JSModuleScope }
+
+procedure TPas2JSModuleScope.SetJSPromiseClass(const AValue: TPasClassType);
+begin
+  if FJSPromiseClass=AValue then Exit;
+  if FJSPromiseClass<>nil then
+    FJSPromiseClass.Release{$IFDEF CheckPasTreeRefCount}('TPas2JSModuleScope.SetJSPromiseClass'){$ENDIF};
+  FJSPromiseClass:=AValue;
+  if FJSPromiseClass<>nil then
+    FJSPromiseClass.AddRef{$IFDEF CheckPasTreeRefCount}('TPas2JSModuleScope.SetJSPromiseClass'){$ENDIF};
+end;
+
+destructor TPas2JSModuleScope.Destroy;
+begin
+  JSPromiseClass:=nil;
+  inherited Destroy;
+end;
+
 { TPas2JSClassScope }
 
 constructor TPas2JSClassScope.Create;
@@ -2844,6 +2893,25 @@ var
 begin
   if (El=nil) or (Data^.Expr<>nil) or (El.ClassType<>TProcedureExpr) then exit;
   Data^.Expr:=TProcedureExpr(El);
+end;
+
+procedure TPas2JSResolver.OnFindExtSystemClass(El: TPasElement; ElScope,
+  StartScope: TPasScope; FindExtSystemClassData: Pointer; var Abort: boolean);
+var
+  Data: PPRFindExtSystemClass absolute FindExtSystemClassData;
+  aClass: TPasClassType;
+begin
+  if Data^.Found<>nil then exit;
+  if not (El is TPasClassType) then exit;
+  aClass:=TPasClassType(El);
+  if not aClass.IsExternal then exit;
+  if aClass.Parent is TPasMembersType then
+    exit; // nested class
+  if not IsExternalClass_Name(aClass,Data^.JSName) then exit;
+  Data^.Found:=aClass;
+  Data^.ElScope:=ElScope;
+  Data^.StartScope:=StartScope;
+  Abort:=true;
 end;
 
 function TPas2JSResolver.HasOverloadIndex(El: TPasElement;
@@ -4098,11 +4166,10 @@ begin
       if (not (pm in [pmVirtual, pmAbstract, pmOverride,
                       pmOverload, pmMessage, pmReintroduce,
                       pmInline, pmAssembler, pmPublic,
-                      pmExternal, pmForward,
-                      pmAsync])) then
+                      pmExternal, pmForward])) then
         RaiseNotYetImplemented(20170208142159,El,'modifier '+ModifierNames[pm]);
     for ptm in Proc.ProcType.Modifiers do
-      if (not (ptm in [ptmOfObject,ptmVarargs,ptmStatic])) then
+      if (not (ptm in [ptmOfObject,ptmVarargs,ptmStatic,ptmAsync])) then
         RaiseNotYetImplemented(20170411171454,El,'modifier '+ProcTypeModifiers[ptm]);
 
     // check pmPublic
@@ -4184,7 +4251,8 @@ begin
                 and (Proc.ClassType=TPasClassFunction)
                 and (Proc.Visibility in [visProtected,visPublic,visPublished])
                 and (TPasClassFunction(Proc).FuncType.ResultEl.ResultType=AClassOrRec)
-                and ([pmOverride,pmExternal]*Proc.Modifiers=[]) then
+                and (Proc.Modifiers*[pmOverride,pmExternal]=[])
+                and (Proc.ProcType.Modifiers*[ptmOfObject]=[ptmOfObject]) then
               begin
               // The first non private class function in a Pascal class descending
               // from an external class
@@ -4246,7 +4314,7 @@ begin
         RaiseMsg(20170227095454,nMissingExternalName,sMissingExternalName,
           ['missing external name'],Proc);
 
-      for pm in [pmAssembler,pmForward,pmNoReturn,pmInline,pmAsync] do
+      for pm in [pmAssembler,pmForward,pmNoReturn,pmInline] do
         if pm in Proc.Modifiers then
           RaiseMsg(20170323100842,nInvalidXModifierY,sInvalidXModifierY,
             [Proc.ElementTypeName,ModifierNames[pm]],Proc);
@@ -4427,6 +4495,37 @@ begin
   if FuncType.CallingConvention<>ccDefault then
     RaiseXExpectedButYFound(20190215211824,'function System.VarRecs with default calling convention',
       cCallingConventions[FuncType.CallingConvention],ErrorEl);
+end;
+
+function TPas2JSResolver.FindSystemExternalClassType(const aClassName,
+  JSName: string; ErrorEl: TPasElement): TPasClassType;
+var
+  Data: TPRFindExtSystemClass;
+  Abort: boolean;
+begin
+  Data:=Default(TPRFindExtSystemClass);
+  Data.ErrorPosEl:=ErrorEl;
+  Data.JSName:=JSName;
+  Abort:=false;
+  IterateElements(aClassName,@OnFindExtSystemClass,@Data,Abort);
+  Result:=Data.Found;
+  if (ErrorEl<>nil) and (Result=nil) then
+    RaiseIdentifierNotFound(20200526095647,aClassName+' = class external name '''+JSName+'''',ErrorEl);
+end;
+
+function TPas2JSResolver.FindTJSPromise(ErrorEl: TPasElement): TPasClassType;
+var
+  aMod: TPasModule;
+  ModScope: TPas2JSModuleScope;
+begin
+  aMod:=RootElement;
+  ModScope:=aMod.CustomData as TPas2JSModuleScope;
+  Result:=ModScope.JSPromiseClass;
+  if p2msfPromiseSearched in ModScope.FlagsJS then
+    exit; // use cache
+  Result:=FindSystemExternalClassType('TJSPromise','Promise',ErrorEl);
+  ModScope.JSPromiseClass:=Result;
+  Include(ModScope.FlagsJS,p2msfPromiseSearched);
 end;
 
 procedure TPas2JSResolver.CheckExternalClassConstructor(Ref: TResolvedReference
@@ -5013,6 +5112,7 @@ var
   TemplType: TPasGenericTemplateType;
   ConEl: TPasElement;
   ConToken: TToken;
+  ResultEl: TPasResultElement;
 begin
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
@@ -5021,8 +5121,8 @@ begin
   if (ParamResolved.BaseType=btProc) and (ParamResolved.IdentEl is TPasFunction) then
     begin
     // typeinfo of function result -> resolve once
-    TypeEl:=TPasFunction(ParamResolved.IdentEl).FuncType.ResultEl.ResultType;
-    ComputeElement(TypeEl,ParamResolved,[rcNoImplicitProc]);
+    ResultEl:=TPasFunction(ParamResolved.IdentEl).FuncType.ResultEl;
+    ComputeResultElement(ResultEl,ParamResolved,[]);
     Include(ParamResolved.Flags,rrfReadable);
     if ParamResolved.LoTypeEl=nil then
       RaiseInternalError(20170421124923);
@@ -5211,7 +5311,9 @@ end;
 
 function TPas2JSResolver.BI_AWait_OnGetCallCompatibility(
   Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
-// function await(const Expr: T): T
+// await(const Expr: T): T
+// await(T; p: TJSPromise): T;
+// await(AsyncProc);
 const
   Signature2 = 'function await(aType,TJSPromise):aType';
 var
@@ -5241,6 +5343,18 @@ begin
     begin
     // function await(value)
     // must be the only parameter
+    Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
+    if Result=cIncompatible then exit;
+    end
+  else if ParamResolved.BaseType=btProc then
+    begin
+    // e.g.  await(Proc)
+    if Expr.Parent is TPasExpr then
+      begin
+      if RaiseOnError then
+        RaiseMsg(20200523232827,nXExpectedButYFound,sXExpectedButYFound,['async function',GetResolverResultDescription(ParamResolved)],Expr);
+      exit;
+      end;
     Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
     end
   else
@@ -5284,10 +5398,40 @@ procedure TPas2JSResolver.BI_AWait_OnGetCallResult(Proc: TResElDataBuiltInProc;
   Params: TParamsExpr; out ResolvedEl: TPasResolverResult);
 // function await(const Expr: T): T
 // function await(T; p: TJSPromise): T
+// await(Proc());
 var
-  Param: TPasExpr;
+  Param, PathEnd: TPasExpr;
+  Ref: TResolvedReference;
+  Decl: TPasElement;
+  DeclFunc: TPasFunction;
 begin
   Param:=Params.Params[0];
+  if length(Params.Params)=1 then
+    begin
+    // await(expr)
+    PathEnd:=GetPathEndIdent(Param,true);
+    if (PathEnd<>nil) and (PathEnd.CustomData is TResolvedReference) then
+      begin
+      Ref:=TResolvedReference(PathEnd.CustomData);
+      Decl:=Ref.Declaration;
+      if Decl is TPasFunction then
+        begin
+        DeclFunc:=TPasFunction(Decl);
+        if DeclFunc.IsAsync then
+          begin
+          // await(CallAsyncFunction)  ->  use Pascal result type (not TJSPromise)
+          // Note the missing rcCall flag
+          ComputeResultElement(DeclFunc.FuncType.ResultEl,ResolvedEl,[],PathEnd);
+          exit;
+          end;
+        end;
+      end;
+    // await(expr:T):T
+    end
+  else
+    begin
+    // await(T;promise):T
+    end;
   ComputeElement(Param,ResolvedEl,[]);
   Include(ResolvedEl.Flags,rrfReadable);
   if Proc=nil then ;
@@ -5307,6 +5451,42 @@ begin
   ComputeElement(Param,ParamResolved,[]);
   Evaluated:=Eval(Param,Flags);
   if Proc=nil then ;
+end;
+
+procedure TPas2JSResolver.BI_AWait_OnFinishParamsExpr(
+  Proc: TResElDataBuiltInProc; Params: TParamsExpr);
+var
+  P: TPasExprArray;
+  Param, PathEnd: TPasExpr;
+  Ref: TResolvedReference;
+  Decl: TPasElement;
+begin
+  if Proc=nil then ;
+  P:=Params.Params;
+  if P=nil then ;
+  Param:=P[0];
+  FinishCallArgAccess(Param,rraRead);
+  if length(P)=1 then
+    begin
+    // await(expr)
+    PathEnd:=GetPathEndIdent(Param,false);
+    if (PathEnd<>nil) and (PathEnd.CustomData is TResolvedReference) then
+      begin
+      Ref:=TResolvedReference(PathEnd.CustomData);
+      Decl:=Ref.Declaration;
+      if Decl is TPasProcedure then
+        begin
+        // implicit call
+        Exclude(Ref.Flags,rrfNoImplicitCallWithoutParams);
+        Include(Ref.Flags,rrfImplicitCallWithoutParams);
+        end;
+      end;
+    end;
+
+  if length(P)>1 then
+    FinishCallArgAccess(P[1],rraRead);
+  if length(P)>2 then
+    RaiseNotYetImplemented(20200525142451,Params);
 end;
 
 constructor TPas2JSResolver.Create;
@@ -5407,7 +5587,7 @@ begin
   //    nil,nil,bfCustom,[bipfCanBeStatement]);
   AddBuiltInProc('AWait','function await(const Expr: T): T',
       @BI_AWait_OnGetCallCompatibility,@BI_AWait_OnGetCallResult,
-      @BI_AWait_OnEval,nil,bfCustom,[bipfCanBeStatement]);
+      @BI_AWait_OnEval,@BI_AWait_OnFinishParamsExpr,bfCustom,[bipfCanBeStatement]);
 end;
 
 function TPas2JSResolver.CheckTypeCastRes(const FromResolved,
@@ -6077,6 +6257,33 @@ begin
   finally
     ReleaseEvalValue(Value);
   end;
+end;
+
+procedure TPas2JSResolver.ComputeResultElement(El: TPasResultElement; out
+  ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
+  StartEl: TPasElement);
+var
+  FuncType: TPasFunctionType;
+  Proc: TPasProcedure;
+  JSPromiseClass: TPasClassType;
+begin
+  if (rcCall in Flags) and (El.Parent is TPasFunctionType) then
+    begin
+    FuncType:=TPasFunctionType(El.Parent);
+    if FuncType.Parent is TPasProcedure then
+      begin
+      Proc:=TPasProcedure(FuncType.Parent);
+      if Proc.IsAsync then
+        begin
+        // an async function call returns a TJSPromise
+        JSPromiseClass:=FindTJSPromise(StartEl);
+        SetResolverIdentifier(ResolvedEl,btContext,El,
+                       JSPromiseClass,JSPromiseClass,[rrfReadable,rrfWritable]);
+        exit;
+        end;
+      end;
+    end;
+  inherited ComputeResultElement(El, ResolvedEl, Flags, StartEl);
 end;
 
 function TPas2JSResolver.GetElementData(El: TPasElementBase;
@@ -12875,10 +13082,12 @@ var
   Param: TPasExpr;
   ResultEl: TPasResultElement;
   TypeEl: TPasType;
+  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
   Param:=El.Params[0];
-  AContext.Resolver.ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
+  aResolver:=AContext.Resolver;
+  aResolver.ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertBuiltIn_TypeInfo ',GetResolverResultDbg(ParamResolved));
   {$ENDIF}
@@ -12886,7 +13095,7 @@ begin
     begin
     // typeinfo(function) -> typeinfo(resulttype)
     ResultEl:=TPasFunction(ParamResolved.IdentEl).FuncType.ResultEl;
-    AContext.Resolver.ComputeElement(ResultEl.ResultType,ParamResolved,[rcNoImplicitProc]);
+    aResolver.ComputeResultElement(ResultEl,ParamResolved,[]);
     {$IFDEF VerbosePas2JS}
     writeln('TPasToJSConverter.ConvertBuiltIn_TypeInfo FuncResult=',GetResolverResultDbg(ParamResolved));
     {$ENDIF}
@@ -17393,7 +17602,7 @@ begin
     RaiseNotSupported(El,AContext,20171225104212);
   if GetEnumeratorFunc.ClassType<>TPasFunction then
     RaiseNotSupported(El,AContext,20171225104237);
-  aResolver.ComputeElement(GetEnumeratorFunc.FuncType.ResultEl,ResolvedEl,[rcType]);
+  aResolver.ComputeResultElement(GetEnumeratorFunc.FuncType.ResultEl,ResolvedEl,[rcCall]);
   EnumeratorTypeEl:=ResolvedEl.LoTypeEl;
 
   if EnumeratorTypeEl is TPasClassType then

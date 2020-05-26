@@ -431,7 +431,8 @@ const
     'IsNested',
     'Static',
     'Varargs',
-    'ReferenceTo'
+    'ReferenceTo',
+    'Async'
     );
 
   PCUProcedureMessageTypeNames: array[TProcedureMessageType] of string = (
@@ -494,8 +495,7 @@ const
     'DispId',
     'NoReturn',
     'Far',
-    'Final',
-    'Async'
+    'Final'
     );
   PCUProcedureModifiersImplProc = [pmInline,pmAssembler,pmCompilerProc,pmNoReturn];
 
