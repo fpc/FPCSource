@@ -1365,9 +1365,7 @@ begin
       end
     else if Parent is TPasRecordType then
       begin
-      if PM=pmAsync then
-        exit(po_AsyncProcs in Options)
-      else if not (PM in [pmOverload,
+      if not (PM in [pmOverload,
                      pmInline, pmAssembler,
                      pmExternal,
                      pmNoReturn, pmFar, pmFinal]) then exit(false);
@@ -1384,7 +1382,6 @@ begin
   if not Result then exit;
   case PM of
   pmAssembler: Result:=true;
-  pmAsync: Result:=po_AsyncProcs in Options;
   else
     Result:=false;
   end;
@@ -1403,6 +1400,11 @@ begin
     begin
     Result:=true;
     PTM:=ptmStatic;
+    end
+  else if (CompareText(S,ProcTypeModifiers[ptmAsync])=0) and (po_AsyncProcs in Options) then
+    begin
+    Result:=true;
+    PTM:=ptmAsync;
     end
   else
    Result:=false;
