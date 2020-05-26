@@ -220,6 +220,8 @@ type
     tkmod,
     tknil,
     tknot,
+    tkobjcclass,
+    tkobjcprotocol,
     tkobject,
     tkof,
     tkoperator,
@@ -1004,6 +1006,8 @@ const
     'mod',
     'nil',
     'not',
+    'objcclass',
+    'objcprotocol',
     'object',
     'of',
     'operator',
@@ -3651,24 +3655,34 @@ begin
   P:=Trim(UpperCase(Param));
   Case P of
   'FPC','DEFAULT':
+    begin
     SetMode(msFpc,FPCModeSwitches,false,bsFPCMode);
+    SetNonToken(tkobjcclass);
+    SetNonToken(tkobjcprotocol);
+    end;
   'OBJFPC':
     begin
     SetMode(msObjfpc,OBJFPCModeSwitches,true,bsObjFPCMode);
     UnsetNonToken(tkgeneric);
     UnsetNonToken(tkspecialize);
+    SetNonToken(tkobjcclass);
+    SetNonToken(tkobjcprotocol);
     end;
   'DELPHI':
     begin
     SetMode(msDelphi,DelphiModeSwitches,true,bsDelphiMode,[bsPointerMath]);
     SetNonToken(tkgeneric);
     SetNonToken(tkspecialize);
+    SetNonToken(tkobjcclass);
+    SetNonToken(tkobjcprotocol);
     end;
   'DELPHIUNICODE':
     begin
     SetMode(msDelphiUnicode,DelphiUnicodeModeSwitches,true,bsDelphiUnicodeMode,[bsPointerMath]);
     SetNonToken(tkgeneric);
     SetNonToken(tkspecialize);
+    SetNonToken(tkobjcclass);
+    SetNonToken(tkobjcprotocol);
     end;
   'TP':
     SetMode(msTP7,TPModeSwitches,false);
@@ -4893,6 +4907,16 @@ begin
     UnDefine(LetterSwitchNames['H'],true);
     Exclude(FCurrentBoolSwitches,bsLongStrings);
     end;
+  if ([msObjectiveC1,msObjectiveC2] * FCurrentModeSwitches) = [] then
+    begin
+    SetNonToken(tkobjcclass);
+    SetNonToken(tkobjcprotocol);
+    end
+  else
+    begin
+    UnSetNonToken(tkobjcclass);
+    UnSetNonToken(tkobjcprotocol);
+    end
 end;
 
 procedure TPascalScanner.SetCurrentValueSwitch(V: TValueSwitch;

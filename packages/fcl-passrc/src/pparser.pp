@@ -1463,7 +1463,7 @@ begin
   if (Result<>pmNone) then
      begin
      NextToken;
-     if Not (CurToken in [tkArray, tkRecord, tkObject, tkClass, tkSet]) then
+     if Not (CurToken in [tkArray, tkRecord, tkObject, tkClass, tkObjCClass, tkSet]) then
        ParseExcTokenError('SET, ARRAY, RECORD, OBJECT or CLASS');
      end;
 end;
@@ -1873,12 +1873,12 @@ function TPasParser.ParseType(Parent: TPasElement;
 
 Const
   // These types are allowed only when full type declarations
-  FullTypeTokens = [tkGeneric,{tkSpecialize,}tkClass,tkInterface,tkDispInterface,tkType];
+  FullTypeTokens = [tkGeneric,{tkSpecialize,}tkClass,tkObjCClass,tkInterface,tkObjcProtocol,tkDispInterface,tkType];
   // Parsing of these types already takes care of hints
   NoHintTokens = [tkProcedure,tkFunction];
 var
   PM: TPackMode;
-  CH, isHelper, ok: Boolean;
+  CH, isHelper, isObjCClass, ok: Boolean;
 begin
   Result := nil;
   // NextToken and check pack mode
@@ -1898,13 +1898,20 @@ begin
       tkObject: Result := ParseClassDecl(Parent, NamePos, TypeName, okObject,PM);
       tkDispInterface:
         Result := ParseClassDecl(Parent, NamePos, TypeName, okDispInterface,PM);
+      tkObjcProtocol,
       tkInterface:
+        begin
+        isObjCClass:=(CurToken=tkObjcProtocol);
         Result := ParseClassDecl(Parent, NamePos, TypeName, okInterface,PM);
+        TPasClassType(Result).IsObjCClass:=isObjCClass;
+        end;
       tkSpecialize:
         Result:=ParseSimpleType(Parent,CurSourcePos,TypeName);
+      tkObjCClass,
       tkClass:
         begin
         isHelper:=false;
+        isObjCClass:=(CurToken=tkObjCClass);
         NextToken;
         if CurTokenIsIdentifier('Helper') then
           begin
@@ -1918,7 +1925,10 @@ begin
         if isHelper then
           Result:=ParseClassDecl(Parent,NamePos,TypeName,okClassHelper, PM)
         else
+          begin
           Result:=ParseClassDecl(Parent, NamePos, TypeName, okClass, PM);
+          TPasClassType(Result).isObjCClass:=isObjCClass;
+          end;
         end;
       tkType:
         begin
@@ -6815,7 +6825,7 @@ begin
         end;
       tkDestructor:
         ParseExc(nParserNoConstructorAllowed,SParserNoConstructorAllowed);
-      tkGeneric,tkSelf, // Counts as field name
+      tkabsolute,tkGeneric,tkSelf, // Counts as field name
       tkIdentifier :
         begin
         If AllowVisibility and CheckVisibility(CurTokenString,v) then

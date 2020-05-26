@@ -796,6 +796,7 @@ type
     IsForward: Boolean;
     IsExternal : Boolean;
     IsShortDefinition: Boolean;//class(anchestor); without end
+    IsObjCClass : Boolean;
     GUIDExpr : TPasExpr;
     Modifiers: TStringList;
     Interfaces : TFPList; // list of TPasType
