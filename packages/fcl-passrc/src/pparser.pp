@@ -101,6 +101,7 @@ const
   nParserOnlyOneVariableCanBeAbsolute = 2055;
   nParserXNotAllowedInY = 2056;
   nFileSystemsNotSupported = 2057;
+  nInvalidMessageType = 2058;
 
 // resourcestring patterns of messages
 resourcestring
@@ -161,6 +162,7 @@ resourcestring
   SParserOnlyOneVariableCanBeAbsolute = 'Only one variable can be absolute';
   SParserXNotAllowedInY = '%s is not allowed in %s';
   SErrFileSystemNotSupported = 'No support for filesystems enabled';
+  SErrInvalidMessageType = 'Invalid message type: string or integer expression expected';
 
 type
   TPasScopeType = (
@@ -1356,11 +1358,9 @@ begin
     if Parent is TPasClassType then
       begin
       if PM in [pmPublic,pmForward] then exit(false);
-      case TPasClassType(Parent).ObjKind of
-      okInterface,okDispInterface:
-        if not (PM in [pmOverload, pmMessage,
-                       pmDispId,pmNoReturn,pmFar,pmFinal]) then exit(false);
-      end;
+      if TPasClassType(Parent).ObjKind in [okInterface,okDispInterface] then
+        if not (PM in [pmOverload, pmMessage, pmDispId,pmNoReturn,pmFar,pmFinal]) then
+          exit(false);
       exit;
       end
     else if Parent is TPasRecordType then
@@ -2018,6 +2018,7 @@ begin
    tkprocedure : Result:=ParseProcedureType(Parent,NamePos,TypeName,ptProcedure);
    tkfunction : Result:=ParseProcedureType(Parent,NamePos,TypeName,ptFunction);
   else
+    result:=Nil; // Fool compiler
     ParseExcTokenError('procedure or function');
   end;
   Result.IsReferenceTo:=True;
@@ -2101,6 +2102,7 @@ function TPasParser.ExprToText(Expr: TPasExpr): String;
 var
   C: TClass;
 begin
+  Result:='';
   C:=Expr.ClassType;
   if C=TPrimitiveExpr then
     Result:=TPrimitiveExpr(Expr).Value
@@ -2286,6 +2288,7 @@ begin
     tkDot                   : Result:=eopSubIdent;
     tkCaret                 : Result:=eopDeref;
   else
+    result:=eopAdd; // Fool compiler
     ParseExc(nParserNotAnOperand,SParserNotAnOperand,[AToken,TokenInfos[AToken]]);
   end;
 end;
@@ -2961,6 +2964,7 @@ var
   OldMember: TPasElement;
   OverloadedProc: TPasOverloadedProc;
 begin
+  OldMember:=nil;
   With Decs do
     begin
     if not (po_nooverloadedprocs in Options) then
@@ -3417,6 +3421,7 @@ end;
 function TPasParser.GetProcTypeFromToken(tk: TToken; IsClass: Boolean
   ): TProcType;
 begin
+  Result:=ptProcedure;
   Case tk of
     tkProcedure :
       if IsClass then
@@ -4380,6 +4385,8 @@ function TPasParser.ParseGenericTypeDecl(Parent: TPasElement;
     ProcTypeEl: TPasProcedureType;
     ProcType: TProcType;
   begin
+    ProcTypeEl:=Nil;
+    ProcType:=ptProcedure;
     case CurToken of
     tkFunction:
       begin
@@ -5103,8 +5110,12 @@ begin
       begin
       TPasProcedure(Parent).MessageName:=TPrimitiveExpr(E).Value;
       case E.Kind of
-      pekNumber, pekUnary: TPasProcedure(Parent).Messagetype:=pmtInteger;
-      pekString: TPasProcedure(Parent).Messagetype:=pmtString;
+        pekNumber, pekUnary:
+          TPasProcedure(Parent).Messagetype:=pmtInteger;
+        pekString:
+          TPasProcedure(Parent).Messagetype:=pmtString;
+      else
+        ParseExc(nInvalidMessageType,SErrInvalidMessageType);
       end;
       end;
     if CurToken<>tkSemicolon then
@@ -5117,6 +5128,8 @@ begin
     if CurToken<>tkSemicolon then
       UngetToken;
     end;
+  else
+    // Do nothing, satisfy compiler
   end; // Case
 end;
 
@@ -5245,6 +5258,7 @@ begin
             or (CurModule is TPasProgram))
           then
         begin
+        OK:=False;
         if Assigned(CurModule.InterfaceSection) then
           OK:=FindInSection(Parent.Name,CurModule.InterfaceSection)
         else if (CurModule is TPasProgram) and Assigned(TPasProgram(CurModule).ProgramSection) then
@@ -5279,6 +5293,8 @@ begin
           ParseExc(nParserExpectedColonID,SParserExpectedColonID);
         ResultEl.ResultType := ParseType(ResultEl,CurSourcePos);
       end;
+  else
+    resultEl:=Nil;
   end;
   if OfObjectPossible then
     begin
@@ -5502,6 +5518,7 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
     else
       begin
       Result := Result + '[';
+      Param:=Nil;
       Params:=TParamsExpr(CreateElement(TParamsExpr,'',aParent));
       Params.Kind:=pekArrayParams;
       Params.Value:=Expr;
@@ -5844,9 +5861,8 @@ var
     if (CurBlock.Elements.Count=0) then
       exit; // at start of block
     t:=GetPrevToken;
-    case t of
-    tkSemicolon,tkColon,tkElse,tkotherwise: exit;
-    end;
+    if t in [tkSemicolon,tkColon,tkElse,tkotherwise] then
+      exit;
     {$IFDEF VerbosePasParser}
     writeln('TPasParser.ParseStatement.CheckSemicolon Prev=',GetPrevToken,' Cur=',CurToken,' ',CurBlock.ClassName,' ',CurBlock.Elements.Count,' ',TObject(CurBlock.Elements[0]).ClassName);
     {$ENDIF}
@@ -6393,7 +6409,8 @@ var
 begin
   Labels:=TPasLabels(CreateElement(TPasLabels, '', AParent));
   repeat
-    Labels.Labels.Add(ExpectIdentifier);
+    expectTokens([tkIdentifier,tkNumber]);
+    Labels.Labels.Add(CurTokenString);
     NextToken;
     if not (CurToken in [tkSemicolon, tkComma]) then
       ParseExcTokenError(TokenInfos[tkSemicolon]);
@@ -6404,6 +6421,7 @@ end;
 function TPasParser.GetProcedureClass(ProcType: TProcType): TPTreeElement;
 
 begin
+  Result:=Nil;
   Case ProcType of
     ptFunction       : Result:=TPasFunction;
     ptClassFunction  : Result:=TPasClassFunction;
@@ -6621,6 +6639,7 @@ begin
             Case OperatorType of
               otPositive : OperatorType:=otPlus;
               otNegative : OperatorType:=otMinus;
+            else
             end;
             Name:=OperatorNames[OperatorType];
             TPasOperator(Result).CorrectName;
@@ -7033,6 +7052,7 @@ Var
   T : TPasType;
   Done : Boolean;
 begin
+  Done:=False;
   //Writeln('Parsing local types');
   while (CurToken=tkSquaredBraceOpen)
       and (msPrefixedAttributes in CurrentModeswitches) do

@@ -3821,7 +3821,9 @@ end;
 function TPasImplIfElse.Condition: string;
 begin
   If Assigned(ConditionExpr) then
-    Result:=ConditionExpr.GetDeclaration(True);
+    Result:=ConditionExpr.GetDeclaration(True)
+  else
+    Result:='';
 end;
 
 destructor TPasImplForLoop.Destroy;
@@ -4618,6 +4620,8 @@ function TPasVariable.Value: String;
 begin
   If Assigned(Expr) then
     Result:=Expr.GetDeclaration(True)
+  else
+    Result:='';
 end;
 
 function TPasProperty.GetDeclaration (full : boolean) : string;
@@ -4627,6 +4631,7 @@ Var
   I : Integer;
 
 begin
+  Result:='';
   If Assigned(VarType) then
     begin
     If VarType.Name='' then
@@ -5105,8 +5110,8 @@ begin
     UsesUnit:=TPasUsesUnit.Create(AUnitName,Self);
     if aName<>nil then
       begin
-      Result.SourceFilename:=aName.SourceFilename;
-      Result.SourceLinenumber:=aName.SourceLinenumber;
+      UsesUnit.SourceFilename:=aName.SourceFilename;
+      UsesUnit.SourceLinenumber:=aName.SourceLinenumber;
       end;
     end;
   UsesClause[l]:=UsesUnit;
@@ -5203,7 +5208,9 @@ end;
 function TPasImplWhileDo.Condition: string;
 begin
   If Assigned(ConditionExpr) then
-    Result:=ConditionExpr.GetDeclaration(True);
+    Result:=ConditionExpr.GetDeclaration(True)
+  else
+    Result:='';
 end;
 
 { TPasImplCaseOf }
