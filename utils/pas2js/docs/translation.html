@@ -2994,14 +2994,15 @@ End.
 
     <div class="section">
     <h2 id="async">Async/AWait</h2>
-    Pas2js supports the JS operators async/await to simplify the use of Promise.
-    The await operator corresponds to two intrinsic Pas2js functions:
+    Pas2js supports the JS operators async and await to simplify the use of Promise.
+    The await operator corresponds to three intrinsic Pas2js functions:
     <ul>
-    <li><i>function await(const Expr: T): T;</i>  // implicit promise</li>
+    <li><i>function await(AsyncFunctionWithResultT): T;</i>  // implicit promise</li>
     <li><i>function await(aType; p: TJSPromise): aType;</i>  // explicit promise requires the resolved type</li>
+    <li><i>function await(const Expr: T): T;</i>  // implicit promise</li>
     </ul>
     The await function can only be used inside a procedure with the async modifier.<br>
-    For example:
+    Example for the explicit promise:
     <table class="sample">
       <tbody>
         <tr>
@@ -3030,7 +3031,7 @@ procedure AsyncCall; async;
 var s: string;
 begin
   writeln('calling');
-  s := await(string,resolveAfter2Seconds());
+  s := await(string,resolveAfter2Seconds()); // does not check if result is really a string
   writeln(s); // expected output: 'resolved'
 end;
 
@@ -3067,6 +3068,11 @@ end.
         </tr>
       </tbody>
     </table>
+    Notes:
+    <ul>
+      <li>The await function does only compile time checks, no runtime checks.</li>
+      <li></li>
+    </ul>
     </div>
 
 
