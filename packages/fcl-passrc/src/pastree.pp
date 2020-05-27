@@ -764,12 +764,14 @@ type
     okObject, okClass, okInterface,
     // okGeneric  removed in FPC 3.3.1  check instead GenericTemplateTypes<>nil
     // okSpecialize removed in FPC 3.1.1
-    okClassHelper,okRecordHelper,okTypeHelper,
-    okDispInterface);
+    okClassHelper, okRecordHelper, okTypeHelper,
+    okDispInterface, okObjcClass, okObjcCategory,
+    okObjcProtocol);
 const
   okWithFields = [okObject, okClass];
   okAllHelpers = [okClassHelper,okRecordHelper,okTypeHelper];
   okWithClassFields = okWithFields+okAllHelpers;
+  okObjCClasses = [okObjcClass, okObjcCategory, okObjcProtocol];
 
 type
 
@@ -797,13 +799,13 @@ type
     IsForward: Boolean;
     IsExternal : Boolean;
     IsShortDefinition: Boolean;//class(anchestor); without end
-    IsObjCClass : Boolean;
     GUIDExpr : TPasExpr;
     Modifiers: TStringList;
     Interfaces : TFPList; // list of TPasType
     ExternalNameSpace : String;
     ExternalName : String;
     InterfaceType: TPasClassInterfaceType;
+    Function IsObjCClass : Boolean;
     Function FindMember(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function FindMemberInAncestors(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function InterfaceGUID : string;
@@ -1688,7 +1690,8 @@ const
   ObjKindNames: array[TPasObjKind] of string = (
     'object', 'class', 'interface',
     'class helper','record helper','type helper',
-    'dispinterface');
+    'dispinterface', 'ObjcClass', 'ObjcCategory',
+    'ObjcProtocol');
 
   InterfaceTypeNames: array[TPasClassInterfaceType] of string = (
     'COM',
@@ -3398,6 +3401,12 @@ begin
     ForEachChildCall(aMethodCall,Arg,TPasElement(Interfaces[i]),true);
   ForEachChildCall(aMethodCall,Arg,HelperForType,true);
   ForEachChildCall(aMethodCall,Arg,GUIDExpr,false);
+end;
+
+function TPasClassType.IsObjCClass: Boolean;
+
+begin
+  Result:=ObjKind in okObjCClasses;
 end;
 
 function TPasClassType.FindMember(MemberClass: TPTreeElement; const MemberName: String): TPasElement;

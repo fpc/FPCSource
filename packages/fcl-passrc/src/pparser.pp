@@ -1871,14 +1871,23 @@ function TPasParser.ParseType(Parent: TPasElement;
   const NamePos: TPasSourcePos; const TypeName: String; Full: Boolean
   ): TPasType;
 
+Type
+  TLocalClassType = (lctClass,lctObjcClass,lctObjcCategory,lctHelper);
+
 Const
   // These types are allowed only when full type declarations
   FullTypeTokens = [tkGeneric,{tkSpecialize,}tkClass,tkObjCClass,tkInterface,tkObjcProtocol,tkDispInterface,tkType];
   // Parsing of these types already takes care of hints
   NoHintTokens = [tkProcedure,tkFunction];
+  InterfaceKindTypes : Array[Boolean] of TPasObjKind = (okInterface,okObjcProtocol);
+  ClassKindTypes : Array[TLocalClassType] of TPasObjKind = (okClass,okObjCClass,okObjcCategory,okClassHelper);
+
+
 var
   PM: TPackMode;
-  CH, isHelper, isObjCClass, ok: Boolean;
+  CH, ok, isHelper : Boolean;
+  lClassType : TLocalClassType;
+
 begin
   Result := nil;
   // NextToken and check pack mode
@@ -1901,34 +1910,34 @@ begin
       tkObjcProtocol,
       tkInterface:
         begin
-        isObjCClass:=(CurToken=tkObjcProtocol);
-        Result := ParseClassDecl(Parent, NamePos, TypeName, okInterface,PM);
-        TPasClassType(Result).IsObjCClass:=isObjCClass;
+        Result := ParseClassDecl(Parent, NamePos, TypeName, InterfaceKindTypes[(CurToken=tkObjcProtocol)],PM);
         end;
       tkSpecialize:
         Result:=ParseSimpleType(Parent,CurSourcePos,TypeName);
       tkObjCClass,
+      tkobjccategory,
       tkClass:
         begin
-        isHelper:=false;
-        isObjCClass:=(CurToken=tkObjCClass);
-        NextToken;
-        if CurTokenIsIdentifier('Helper') then
-          begin
-          // class helper: atype end;
-          // class helper for atype end;
-          NextToken;
-          isHelper:=CurToken in [tkfor,tkBraceOpen];
-          UnGetToken;
-          end;
-        UngetToken;
-        if isHelper then
-          Result:=ParseClassDecl(Parent,NamePos,TypeName,okClassHelper, PM)
+        If (CurToken=tkObjCClass) then
+          lClassType:=lctObjcClass
+        else if (CurToken=tkobjccategory) then
+          lClassType:=lctObjcCategory
         else
           begin
-          Result:=ParseClassDecl(Parent, NamePos, TypeName, okClass, PM);
-          TPasClassType(Result).isObjCClass:=isObjCClass;
+          lClassType:=lctClass;
+          NextToken;
+          if CurTokenIsIdentifier('Helper') then
+            begin
+            // class helper: atype end;
+            // class helper for atype end;
+            NextToken;
+            if CurToken in [tkfor,tkBraceOpen] then
+              lClassType:=lctHelper;
+            UnGetToken;
+            end;
+          UngetToken;
           end;
+        Result:=ParseClassDecl(Parent,NamePos,TypeName,ClassKindTypes[lClasstype], PM);
         end;
       tkType:
         begin

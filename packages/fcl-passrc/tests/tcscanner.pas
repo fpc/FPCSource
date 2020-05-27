@@ -201,6 +201,8 @@ type
     procedure TestObjCClass2;
     procedure TestObjCProtocol;
     procedure TestObjCProtocol2;
+    procedure TestObjCCategory;
+    procedure TestObjCCategory2;
     procedure TestTab;
     Procedure TestEscapedKeyWord;
     Procedure TestTokenSeries;
@@ -1380,6 +1382,17 @@ end;
 procedure TTestScanner.TestObjCProtocol2;
 begin
   TestTokens([tkComment,tkWhitespace,tkidentifier],'{$mode fpc} objcprotocol');
+end;
+
+procedure TTestScanner.TestObjCCategory;
+
+begin
+  TestToken(tkObjCCategory,'objccategory');
+end;
+
+procedure TTestScanner.TestObjCCategory2;
+begin
+  TestTokens([tkComment,tkWhitespace,tkidentifier],'{$mode fpc} objccategory');
 end;
 
 

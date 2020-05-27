@@ -24,13 +24,13 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="--suite=TTestStatementParser.TestCaseIfElseNoSemicolon"/>
+        <CommandLineParams Value="--suite=TTestScanner.TestObjCClass2"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="--suite=TTestStatementParser.TestCaseIfElseNoSemicolon"/>
+            <CommandLineParams Value="--suite=TTestScanner.TestObjCClass2"/>
           </local>
         </Mode0>
       </Modes>
