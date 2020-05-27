@@ -74,8 +74,60 @@ implementation
         storepos : tfileposinfo;
         variantdesc : pvariantrecdesc;
         found : boolean;
-        j,i : longint;
         variantselectsymbol : tfieldvarsym;
+
+      procedure ReadVariantRecordConstants;
+        var
+          i,j : longint;
+        begin
+          if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) and (is_record(tpointerdef(p.resultdef).pointeddef)) then
+            begin
+              variantdesc:=trecorddef(tpointerdef(p.resultdef).pointeddef).variantrecdesc;
+              while (token=_COMMA) and assigned(variantdesc) do
+                begin
+                  consume(_COMMA);
+                  p2:=factor(false,[]);
+                  do_typecheckpass(p2);
+                  if p2.nodetype=ordconstn then
+                    begin
+                      found:=false;
+                      { we do not have dynamic dfa, so avoid warning on variantselectsymbol below }
+                      variantselectsymbol:=nil;
+                      for i:=0 to high(variantdesc^.branches) do
+                        begin
+                          for j:=0 to high(variantdesc^.branches[i].values) do
+                            if variantdesc^.branches[i].values[j]=tordconstnode(p2).value then
+                              begin
+                                found:=true;
+                                variantselectsymbol:=tfieldvarsym(variantdesc^.variantselector);
+                                variantdesc:=variantdesc^.branches[i].nestedvariant;
+                                break;
+                              end;
+                          if found then
+                            break;
+                        end;
+                      if found then
+                        begin
+                          if is_new then
+                            begin
+                              { if no tag-field is given, do not create an assignment statement for it }
+                              if assigned(variantselectsymbol) then
+                                { setup variant selector }
+                                addstatement(newstatement,cassignmentnode.create(
+                                    csubscriptnode.create(variantselectsymbol,
+                                      cderefnode.create(ctemprefnode.create(temp))),
+                                    p2));
+                            end;
+                        end
+                      else
+                        Message(parser_e_illegal_expression);
+                    end
+                  else
+                    Message(parser_e_illegal_expression);
+                end;
+              end;
+        end;
+
       begin
         if target_info.system in systems_managed_vm then
           message(parser_e_feature_unsupported_for_vm);
@@ -345,49 +397,8 @@ implementation
                          p,
                          ctemprefnode.create(temp)));
 
-                     if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) and (is_record(tpointerdef(p.resultdef).pointeddef)) then
-                       begin
-                         variantdesc:=trecorddef(tpointerdef(p.resultdef).pointeddef).variantrecdesc;
-                         while (token=_COMMA) and assigned(variantdesc) do
-                           begin
-                             consume(_COMMA);
-                             p2:=factor(false,[]);
-                             do_typecheckpass(p2);
-                             if p2.nodetype=ordconstn then
-                               begin
-                                 found:=false;
-                                 { we do not have dynamic dfa, so avoid warning on variantselectsymbol below }
-                                 variantselectsymbol:=nil;
-                                 for i:=0 to high(variantdesc^.branches) do
-                                   begin
-                                     for j:=0 to high(variantdesc^.branches[i].values) do
-                                       if variantdesc^.branches[i].values[j]=tordconstnode(p2).value then
-                                         begin
-                                           found:=true;
-                                           variantselectsymbol:=tfieldvarsym(variantdesc^.variantselector);
-                                           variantdesc:=variantdesc^.branches[i].nestedvariant;
-                                           break;
-                                         end;
-                                     if found then
-                                       break;
-                                   end;
-                                 if found then
-                                   begin
-                                     { if no tag-field is given, do not create an assignment statement for it }
-                                     if assigned(variantselectsymbol) then
-                                       { setup variant selector }
-                                       addstatement(newstatement,cassignmentnode.create(
-                                           csubscriptnode.create(variantselectsymbol,
-                                             cderefnode.create(ctemprefnode.create(temp))),
-                                           p2));
-                                   end
-                                 else
-                                   Message(parser_e_illegal_expression);
-                               end
-                             else
-                               Message(parser_e_illegal_expression);
-                           end;
-                       end;
+                     ReadVariantRecordConstants;
+
                      { release temp }
                      addstatement(newstatement,ctempdeletenode.create(temp));
                    end
@@ -396,6 +407,8 @@ implementation
                      { create call to fpc_finalize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) then
                        addstatement(newstatement,cnodeutils.finalize_data_node(cderefnode.create(p.getcopy)));
+
+                     ReadVariantRecordConstants;
 
                      { create call to fpc_freemem }
                      para := ccallparanode.create(p,nil);
