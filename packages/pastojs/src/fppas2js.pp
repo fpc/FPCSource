@@ -5460,6 +5460,8 @@ var
   Param, PathEnd: TPasExpr;
   Ref: TResolvedReference;
   Decl: TPasElement;
+  ResolvedEl: TPasResolverResult;
+  Implicit: Boolean;
 begin
   if Proc=nil then ;
   P:=Params.Params;
@@ -5472,10 +5474,19 @@ begin
     PathEnd:=GetPathEndIdent(Param,false);
     if (PathEnd<>nil) and (PathEnd.CustomData is TResolvedReference) then
       begin
+      // await(a.b)
       Ref:=TResolvedReference(PathEnd.CustomData);
       Decl:=Ref.Declaration;
-      if Decl is TPasProcedure then
+      Implicit:=false;
+      if Decl is TPasVariable then
         begin
+        ComputeElement(Decl,ResolvedEl,[rcNoImplicitProcType]);
+        if IsProcedureType(ResolvedEl,true) then
+          Implicit:=true;
+        end
+      else if (Decl is TPasProcedure) then
+        Implicit:=true;
+      if Implicit then begin
         // implicit call
         Exclude(Ref.Flags,rrfNoImplicitCallWithoutParams);
         Include(Ref.Flags,rrfImplicitCallWithoutParams);

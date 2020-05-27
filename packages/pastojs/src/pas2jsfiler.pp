@@ -383,7 +383,10 @@ const
     'ClassHelper',
     'RecordHelper',
     'TypeHelper',
-    'DispInterface'
+    'DispInterface',
+    'ObjcClass',
+    'ObjcCategory',
+    'ObjcProtocol'
     );
 
   PCUClassInterfaceTypeNames: array[TPasClassInterfaceType] of string = (

@@ -871,6 +871,7 @@ type
     Procedure TestAWait_Result;
     Procedure TestAWait_ExternalClassPromise;
     Procedure TestAsync_AnonymousProc;
+    Procedure TestAsync_ProcType;
     // ToDo: proc type, implict call, explicit call, await()
     // ToDo: proc type assign async mismatch fail
     // ToDo: inherited;
@@ -31908,10 +31909,14 @@ procedure TTestModule.TestAsync_AnonymousProc;
 begin
   StartProgram(false);
   Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
   '{$mode objfpc}',
   'type',
   '  TFunc = reference to function(x: double): word; async;',
-  'function Crawl(d: double = 1.3): word; ',
+  'function Crawl(d: double = 1.3): word; async;',
   'begin',
   'end;',
   'var Func: TFunc;',
@@ -31925,7 +31930,7 @@ begin
   ConvertProgram;
   CheckSource('TestAsync_AnonymousProc',
     LinesToStr([ // statements
-    'this.Crawl = function (d) {',
+    'this.Crawl = async function (d) {',
     '  var Result = 0;',
     '  return Result;',
     '};',
@@ -31939,6 +31944,73 @@ begin
     '};',
     '$mod.Func = async function (c) {',
     '};',
+    '']));
+end;
+
+procedure TTestModule.TestAsync_ProcType;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TRefFunc = reference to function(x: double = 1.3): word; async;',
+  '  TFunc = function(x: double = 1.1): word; async;',
+  '  TProc = procedure(x: longint = 7); async;',
+  'function Crawl(d: double): word; async;',
+  'begin',
+  'end;',
+  'procedure Run(e:longint); async;',
+  'begin',
+  'end;',
+  'var',
+  '  RefFunc: TRefFunc;',
+  '  Func: TFunc;',
+  '  Proc, ProcB: TProc;',
+  'begin',
+  '  Func:=@Crawl;',
+  '  RefFunc:=@Crawl;',
+  '  RefFunc:=function(c:double):word async begin',
+  '    Result:=await(RefFunc);',
+  '    Result:=await(RefFunc());',
+  '    Result:=await(Func);',
+  '    Result:=await(Func());',
+  '    await(Proc);',
+  '    await(Proc());',
+  '    await(Proc(13));',
+  '  end;',
+  '  Proc:=@Run;',
+  '  if Proc=ProcB then ;',
+  '  ']);
+  ConvertProgram;
+  CheckSource('TestAsync_ProcType',
+    LinesToStr([ // statements
+    'this.Crawl = async function (d) {',
+    '  var Result = 0;',
+    '  return Result;',
+    '};',
+    'this.Run = async function (e) {',
+    '};',
+    'this.RefFunc = null;',
+    'this.Func = null;',
+    'this.Proc = null;',
+    'this.ProcB = null;',
+    '']),
+    LinesToStr([
+    '$mod.Func = $mod.Crawl;',
+    '$mod.RefFunc = $mod.Crawl;',
+    '$mod.RefFunc = async function (c) {',
+    '  var Result = 0;',
+    '  Result = await $mod.RefFunc(1.3);',
+    '  Result = await $mod.RefFunc(1.3);',
+    '  Result = await $mod.Func(1.1);',
+    '  Result = await $mod.Func(1.1);',
+    '  await $mod.Proc(7);',
+    '  await $mod.Proc(7);',
+    '  await $mod.Proc(13);',
+    '  return Result;',
+    '};',
+    '$mod.Proc = $mod.Run;',
+    'if (rtl.eqCallback($mod.Proc, $mod.ProcB)) ;',
     '']));
 end;
 
