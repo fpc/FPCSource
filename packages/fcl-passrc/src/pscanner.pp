@@ -3672,6 +3672,7 @@ begin
     SetMode(msFpc,FPCModeSwitches,false,bsFPCMode);
     SetNonToken(tkobjcclass);
     SetNonToken(tkobjcprotocol);
+    SetNonToken(tkobjcCategory);
     end;
   'OBJFPC':
     begin
@@ -3680,6 +3681,7 @@ begin
     UnsetNonToken(tkspecialize);
     SetNonToken(tkobjcclass);
     SetNonToken(tkobjcprotocol);
+    SetNonToken(tkobjcCategory);
     end;
   'DELPHI':
     begin
@@ -3688,6 +3690,7 @@ begin
     SetNonToken(tkspecialize);
     SetNonToken(tkobjcclass);
     SetNonToken(tkobjcprotocol);
+    SetNonToken(tkobjcCategory);
     end;
   'DELPHIUNICODE':
     begin
@@ -3696,6 +3699,7 @@ begin
     SetNonToken(tkspecialize);
     SetNonToken(tkobjcclass);
     SetNonToken(tkobjcprotocol);
+    SetNonToken(tkobjcCategory);
     end;
   'TP':
     SetMode(msTP7,TPModeSwitches,false);
@@ -4929,11 +4933,13 @@ begin
     begin
     SetNonToken(tkobjcclass);
     SetNonToken(tkobjcprotocol);
+    SetNonToken(tkobjccategory);
     end
   else
     begin
     UnSetNonToken(tkobjcclass);
     UnSetNonToken(tkobjcprotocol);
+    UnSetNonToken(tkobjccategory);
     end
 end;
 

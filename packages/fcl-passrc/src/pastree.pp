@@ -768,7 +768,7 @@ type
     okDispInterface, okObjcClass, okObjcCategory,
     okObjcProtocol);
 const
-  okWithFields = [okObject, okClass];
+  okWithFields = [okObject, okClass, okObjcClass, okObjcCategory];
   okAllHelpers = [okClassHelper,okRecordHelper,okTypeHelper];
   okWithClassFields = okWithFields+okAllHelpers;
   okObjCClasses = [okObjcClass, okObjcCategory, okObjcProtocol];
