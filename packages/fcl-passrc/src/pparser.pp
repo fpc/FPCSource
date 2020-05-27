@@ -3507,7 +3507,7 @@ begin
   HadTypeSection:=false;
   while True do
   begin
-    if CurBlock in [DeclNone,declConst,declType] then
+    if CurBlock in [DeclNone,declConst,declType,declVar] then
       Scanner.SetTokenOption(toOperatorToken)
     else
       Scanner.UnSetTokenOption(toOperatorToken);
@@ -4652,7 +4652,8 @@ begin
       case CurToken of
       tkColon: break;
       tkComma: ExpectIdentifier;
-      else     ParseExc(nParserExpectedCommaColon,SParserExpectedCommaColon);
+      else
+        ParseExc(nParserExpectedCommaColon,SParserExpectedCommaColon);
       end;
     Until (CurToken=tkColon);
     OldForceCaret:=Scanner.SetForceCaret(True);
