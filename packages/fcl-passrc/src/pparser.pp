@@ -5114,6 +5114,7 @@ begin
           TPasProcedure(Parent).Messagetype:=pmtInteger;
         pekString:
           TPasProcedure(Parent).Messagetype:=pmtString;
+        pekIdent : ; // unknown at this time
       else
         ParseExc(nInvalidMessageType,SErrInvalidMessageType);
       end;
