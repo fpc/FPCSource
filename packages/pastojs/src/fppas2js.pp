@@ -1439,6 +1439,8 @@ type
       ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       var LeftResolved, RightResolved: TPasResolverResult); override;
     // built-in functions
+    function BI_Exit_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; override;
     function BI_Val_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; override;
     procedure BI_TypeInfo_OnGetCallResult(Proc: TResElDataBuiltInProc;
@@ -5070,6 +5072,39 @@ begin
     RightResolved);
 end;
 
+function TPas2JSResolver.BI_Exit_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+var
+  Params: TParamsExpr;
+  CtxProc: TPasProcedure;
+  ParamResolved: TPasResolverResult;
+  Param: TPasExpr;
+begin
+  if (Expr is TParamsExpr) and (length(TParamsExpr(Expr).Params)=1) then
+    begin
+    Params:=TParamsExpr(Expr);
+
+    CtxProc:=GetParentProc(Expr,true);
+    if (CtxProc<>nil) and CtxProc.IsAsync then
+      begin
+      // inside async proc
+      Param:=Params.Params[0];
+      ComputeElement(Param,ParamResolved,[]);
+
+      if (rrfReadable in ParamResolved.Flags)
+          and (ParamResolved.BaseType=btContext)
+          and (ParamResolved.LoTypeEl is TPasClassType)
+          and IsExternalClass_Name(TPasClassType(ParamResolved.LoTypeEl),'Promise') then
+        begin
+        // "exit(aPromise)"  inside async proc
+        exit(cCompatible);
+        end;
+      end;
+    end;
+
+  Result:=inherited BI_Exit_OnGetCallCompatibility(Proc, Expr, RaiseOnError);
+end;
+
 function TPas2JSResolver.BI_Val_OnGetCallCompatibility(
   Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
 var
@@ -5326,7 +5361,7 @@ begin
   Result:=cIncompatible;
 
   // check if inside async proc
-  ParentProc:=GetParentProc(Expr);
+  ParentProc:=GetParentProc(Expr,true);
   if (ParentProc=nil) or not ParentProc.IsAsync then
     begin
     if RaiseOnError then

@@ -2346,7 +2346,7 @@ type
     function ProcNeedsParams(El: TPasProcedureType): boolean;
     function IsProcOverride(AncestorProc, DescendantProc: TPasProcedure): boolean;
     function GetTopLvlProc(El: TPasElement): TPasProcedure;
-    function GetParentProc(El: TPasElement): TPasProcedure;
+    function GetParentProc(El: TPasElement; GetDeclProc: boolean): TPasProcedure;
     function GetRangeLength(RangeExpr: TPasExpr): TMaxPrecInt;
     function EvalRangeLimit(RangeExpr: TPasExpr; Flags: TResEvalFlags;
       EvalLow: boolean; ErrorEl: TPasElement): TResEvalValue; virtual; // compute low() or high()
@@ -11542,6 +11542,7 @@ begin
       and ((C=TPrimitiveExpr)
         or (C=TNilExpr)
         or (C=TBoolConstExpr)
+        or (C=TInheritedExpr)
         or (C=TProcedureExpr))
         or (C=TInlineSpecializeExpr) then
     // ok
@@ -18522,7 +18523,7 @@ begin
   while (i>0) and (not (Scopes[i] is TPasProcedureScope)) do dec(i);
   if i>0 then
     begin
-    // first param is function result
+    // inside procedure: first param is function result
     ProcScope:=TPasProcedureScope(Scopes[i]);
     CtxProc:=TPasProcedure(ProcScope.Element);
     if not (CtxProc.ProcType is TPasFunctionType) then
@@ -28563,13 +28564,25 @@ begin
     end;
 end;
 
-function TPasResolver.GetParentProc(El: TPasElement): TPasProcedure;
+function TPasResolver.GetParentProc(El: TPasElement; GetDeclProc: boolean
+  ): TPasProcedure;
+var
+  ProcScope: TPasProcedureScope;
 begin
   Result:=nil;
   while El<>nil do
     begin
     if El is TPasProcedure then
-      exit(TPasProcedure(El));
+      begin
+      Result:=TPasProcedure(El);
+      if GetDeclProc and (El.CustomData is TPasProcedureScope) then
+        begin
+        ProcScope:=TPasProcedureScope(El.CustomData);
+        if ProcScope.DeclarationProc<>nil then
+          Result:=ProcScope.DeclarationProc;
+        end;
+      exit;
+      end;
     El:=El.Parent;
     end;
 end;

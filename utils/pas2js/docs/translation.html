@@ -3071,7 +3071,9 @@ end.
     Notes:
     <ul>
       <li>The await function does only compile time checks, no runtime checks.</li>
-      <li></li>
+      <li>Inside an async function/procedure you can pass a <i>TJSPromise</i> to the <i>exit()</i> function. For example:<br>
+        <i>exit(aPromise);</i><br>
+        <i>exit(inherited);</i></li>
     </ul>
     </div>
 

@@ -872,8 +872,8 @@ type
     Procedure TestAWait_ExternalClassPromise;
     Procedure TestAsync_AnonymousProc;
     Procedure TestAsync_ProcType;
-    // ToDo: proc type, implict call, explicit call, await()
-    // ToDo: proc type assign async mismatch fail
+    Procedure TestAsync_ProcTypeAsyncModMismatchFail;
+    Procedure TestAsync_Inherited;
     // ToDo: inherited;
     // ToDo: inherited asyncproc;
     // ToDo: await(inherited asyncproc);
@@ -32011,6 +32011,92 @@ begin
     '};',
     '$mod.Proc = $mod.Run;',
     'if (rtl.eqCallback($mod.Proc, $mod.ProcB)) ;',
+    '']));
+end;
+
+procedure TTestModule.TestAsync_ProcTypeAsyncModMismatchFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TRefFunc = reference to function(x: double = 1.3): word;',
+  'function Crawl(d: double): word; async;',
+  'begin',
+  'end;',
+  'var',
+  '  RefFunc: TRefFunc;',
+  'begin',
+  '  RefFunc:=@Crawl;',
+  '  ']);
+  SetExpectedPasResolverError('procedure type modifier "async" mismatch',nXModifierMismatchY);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestAsync_Inherited;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
+  '  TObject = class',
+  '    function Run(w: word = 3): word; async; virtual;',
+  '  end;',
+  '  TBird = class',
+  '    function Run(w: word = 3): word; async; override;',
+  '  end;',
+  'function TObject.Run(w: word = 3): word; async;',
+  'begin',
+  'end;',
+  'function TBird.Run(w: word = 3): word; async;',
+  'var p: TJSPromise;',
+  'begin',
+  '  p:=inherited;',
+  '  p:=inherited Run;',
+  '  p:=inherited Run();',
+  '  p:=inherited Run(4);',
+  '  exit(p);',
+  '  exit(inherited);',
+  '  exit(inherited Run);',
+  '  exit(inherited Run(5));',
+  '  exit(6);',
+  'end;',
+  'begin',
+  '  ']);
+  ConvertProgram;
+  CheckSource('TestAsync_Inherited',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Run = async function (w) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.Run = async function (w) {',
+    '    var Result = 0;',
+    '    var p = null;',
+    '    p = $mod.TObject.Run.apply(this, arguments);',
+    '    p = $mod.TObject.Run.call(this, 3);',
+    '    p = $mod.TObject.Run.call(this, 3);',
+    '    p = $mod.TObject.Run.call(this, 4);',
+    '    return p;',
+    '    return $mod.TObject.Run.apply(this, arguments);',
+    '    return $mod.TObject.Run.call(this, 3);',
+    '    return $mod.TObject.Run.call(this, 5);',
+    '    return 6;',
+    '    return Result;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
     '']));
 end;
 
