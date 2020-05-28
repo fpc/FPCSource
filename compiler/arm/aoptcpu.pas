@@ -191,7 +191,11 @@ Implementation
             else
               ;
           end;
-          if instructionLoadsFromReg then exit; {Bailout if we found something}
+          if (i=0) and (p.opcode in [A_LDM,A_VLDM]) then
+            exit;
+
+          if instructionLoadsFromReg then
+            exit; {Bailout if we found something}
           Inc(I);
         end;
     end;
