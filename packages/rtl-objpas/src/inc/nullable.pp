@@ -47,7 +47,7 @@ Type
 
 implementation
 
-uses typinfo;
+uses rtlconsts,typinfo;
 
 { TNullable }
 
@@ -59,7 +59,7 @@ end;
 function TNullable.GetValue: T;
 begin
   if not FHasValue then
-    raise EConvertError.CreateFmt('Cannot convert Null to type %s',[PtypeInfo(TypeInfo(T))^.Name]);
+    raise EConvertError.CreateFmt(SErrCannotConvertNullToType,[PtypeInfo(TypeInfo(T))^.Name]);
   Result:=FValue;
 end;
 
