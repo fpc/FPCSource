@@ -1533,7 +1533,7 @@ Implementation
                           to
                           and reg3,reg1,x
                         }
-                        else if (taicpu(p).oper[2]^.val = $FF) and
+                        else if ((taicpu(p).oper[2]^.val and $ffffff00)=0) and
                           MatchInstruction(p, A_AND, [C_None], [PF_None]) and
                           GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                           MatchInstruction(hp1, [A_UXTB,A_UXTH], [C_None], [PF_None]) and
@@ -1547,7 +1547,28 @@ Implementation
                             taicpu(hp1).opcode:=A_AND;
                             taicpu(hp1).ops:=3;
                             taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
-                            taicpu(hp1).loadconst(2,255);
+                            taicpu(hp1).loadconst(2,taicpu(p).oper[2]^.val);
+                            GetNextInstruction(p,hp1);
+                            asml.remove(p);
+                            p.Free;
+                            p:=hp1;
+                            result:=true;
+                          end
+                        else if ((taicpu(p).oper[2]^.val and $ffffff80)=0) and
+                          MatchInstruction(p, A_AND, [C_None], [PF_None]) and
+                          GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+                          MatchInstruction(hp1, [A_SXTB,A_SXTH], [C_None], [PF_None]) and
+                          (taicpu(hp1).ops = 2) and
+                          RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
+                          MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+                          { reg1 might not be modified inbetween }
+                          not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+                          begin
+                            DebugMsg('Peephole AndSxt2And done', p);
+                            taicpu(hp1).opcode:=A_AND;
+                            taicpu(hp1).ops:=3;
+                            taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                            taicpu(hp1).loadconst(2,taicpu(p).oper[2]^.val);
                             GetNextInstruction(p,hp1);
                             asml.remove(p);
                             p.Free;
