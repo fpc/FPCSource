@@ -17524,9 +17524,6 @@ var
   i: Integer;
   GenScope: TPasGenericScope;
 begin
-  if GenEl.VarArgsType<>nil then
-    RaiseNotYetImplemented(20200524214316,GenEl,'specialize varargs of type');
-
   if GenEl.GenericTemplateTypes<>nil then
     begin
     GenScope:=TPasGenericScope(PushScope(SpecEl,TPasProcTypeScope));
@@ -17548,6 +17545,8 @@ begin
     {$IFDEF CheckPasTreeRefCount},'TPasProcedureType.Args'{$ENDIF});
   for i:=0 to SpecEl.Args.Count-1 do
     FinishArgument(TPasArgument(SpecEl.Args[i]));
+  // varargs
+  SpecializeElType(GenEl,SpecEl,GenEl.VarArgsType,SpecEl.VarArgsType);
 
   // calling convention and proc type modifiers
   SpecEl.CallingConvention:=GenEl.CallingConvention;

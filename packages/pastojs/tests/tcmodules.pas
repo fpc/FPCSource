@@ -874,10 +874,6 @@ type
     Procedure TestAsync_ProcType;
     Procedure TestAsync_ProcTypeAsyncModMismatchFail;
     Procedure TestAsync_Inherited;
-    // ToDo: inherited;
-    // ToDo: inherited asyncproc;
-    // ToDo: await(inherited asyncproc);
-    // ToDo: i:=await(inherited asyncfunc)
   end;
 
 function LinesToStr(Args: array of const): string;

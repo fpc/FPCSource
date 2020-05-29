@@ -36,6 +36,7 @@ type
     // ToDo: rename local const T
     Procedure TestGen_Class_TypeCastSpecializesWarn;
     Procedure TestGen_Class_TypeCastSpecializesJSValueNoWarn;
+    procedure TestGen_Class_VarArgsOfType;
 
     // generic external class
     procedure TestGen_ExtClass_Array;
@@ -726,6 +727,45 @@ begin
     '$mod.a = $mod.w;',
     '']));
   CheckResolverUnexpectedHints();
+end;
+
+procedure TTestGenerics.TestGen_Class_VarArgsOfType;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSObject = class external name ''Object''',
+  '  end;',
+  '  generic TGJSSet<T> = class external name ''Set''',
+  '    constructor new(aElement1: T); varargs of T; overload;',
+  '    function bind(thisArg: TJSObject): T; varargs of T;',
+  '  end;',
+  '  TJSWordSet = specialize TGJSSet<word>;',
+  'var',
+  '  s: TJSWordSet;',
+  '  w: word;',
+  'begin',
+  '  s:=TJSWordSet.new(3);',
+  '  s:=TJSWordSet.new(3,5);',
+  '  w:=s.bind(nil);',
+  '  w:=s.bind(nil,6);',
+  '  w:=s.bind(nil,7,8);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_Class_VarArgsOfType',
+    LinesToStr([ // statements
+    'this.s = null;',
+    'this.w = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.s = new Set(3);',
+    '$mod.s = new Set(3, 5);',
+    '$mod.w = $mod.s.bind(null);',
+    '$mod.w = $mod.s.bind(null, 6);',
+    '$mod.w = $mod.s.bind(null, 7, 8);',
+    '']));
 end;
 
 procedure TTestGenerics.TestGen_ExtClass_Array;
