@@ -96,6 +96,22 @@ interface
         constructor create(info: pasminfo; smart:boolean);override;
       end;
 
+      { TRelObjInput }
+
+      TRelObjInput = class(TObjInput)
+      public
+        function ReadObjData(AReader:TObjectreader;out Data:TObjData):boolean;override;
+        class function CanReadObjData(AReader:TObjectreader):boolean;override;
+      end;
+
+      { TIntelHexExeOutput }
+
+      TIntelHexExeOutput = class(TExeOutput)
+      protected
+        function writeData:boolean;override;
+        procedure DoRelocationFixup(objsec:TObjSection);override;
+      end;
+
 implementation
 
     uses
@@ -511,6 +527,35 @@ implementation
         inherited;
         CObjOutput:=TRelObjOutput;
         CInternalAr:=tarobjectwriter;
+      end;
+
+
+{*****************************************************************************
+                                TRelObjInput
+*****************************************************************************}
+
+    function TRelObjInput.ReadObjData(AReader: TObjectreader; out Data: TObjData): boolean;
+      begin
+        result:=false;
+      end;
+
+    class function TRelObjInput.CanReadObjData(AReader: TObjectreader): boolean;
+      begin
+        result:=false;
+      end;
+
+
+{*****************************************************************************
+                             TIntelHexExeOutput
+*****************************************************************************}
+
+    function TIntelHexExeOutput.writeData: boolean;
+      begin
+        result:=false;
+      end;
+
+    procedure TIntelHexExeOutput.DoRelocationFixup(objsec: TObjSection);
+      begin
       end;
 
 {*****************************************************************************

@@ -298,6 +298,7 @@
              ld_int_windows,
              ld_int_msdos,
              ld_int_win16,
+             ld_int_zxspectrum,
              ld_freertos,
              ld_zxspectrum
        );

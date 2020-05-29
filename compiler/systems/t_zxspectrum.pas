@@ -33,7 +33,7 @@ implementation
        SysUtils,
        cutils,cfileutl,cclasses,
        globtype,globals,systems,verbose,comphook,cscript,fmodule,i_zxspectrum,link,
-       cpuinfo;
+       cpuinfo,ogrel,owar;
 
     type
 
@@ -56,6 +56,15 @@ implementation
           procedure InitSysInitUnitName; override;
 
           function postprocessexecutable(const fn : string;isdll:boolean): boolean;
+       end;
+
+       { TInternalLinkerZXSpectrum }
+
+       TInternalLinkerZXSpectrum=class(tinternallinker)
+       protected
+         procedure DefaultLinkScript;override;
+       public
+         constructor create;override;
        end;
 
 
@@ -310,11 +319,28 @@ function TLinkerZXSpectrum.postprocessexecutable(const fn: string; isdll: boolea
 
 
 {*****************************************************************************
+                          TInternalLinkerZXSpectrum
+*****************************************************************************}
+
+procedure TInternalLinkerZXSpectrum.DefaultLinkScript;
+  begin
+  end;
+
+constructor TInternalLinkerZXSpectrum.create;
+  begin
+    inherited create;
+    CArObjectReader:=TArObjectReader;
+    CExeOutput:=TIntelHexExeOutput;
+    CObjInput:=TRelObjInput;
+  end;
+
+{*****************************************************************************
                                      Initialize
 *****************************************************************************}
 
 initialization
 {$ifdef z80}
+  RegisterLinker(ld_int_zxspectrum,TInternalLinkerZXSpectrum);
   RegisterLinker(ld_zxspectrum,TLinkerZXSpectrum);
   RegisterTarget(system_z80_zxspectrum_info);
 {$endif z80}
