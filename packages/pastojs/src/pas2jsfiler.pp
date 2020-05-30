@@ -954,6 +954,7 @@ type
   public
     Spec: TPCUReaderPendingSpecialized;
     Index: integer; // index in Spec.Params
+    Id: integer;
     Element: TPasElement;
   end;
 
@@ -1035,6 +1036,7 @@ type
       AddRef: TPCUAddRef; ErrorEl: TPasElement); virtual;
     procedure PromiseSetElArrReference(Id: integer; Arr: TPasElementArray; Index: integer;
       AddRef: TPCUAddRef; ErrorEl: TPasElement); virtual;
+    procedure PromiseSpecialize(SpecId: integer; El: TPasElement; const SpecName: string); virtual;
     procedure ResolvePending; virtual;
     procedure ReadBuiltInSymbols(Obj: TJSONObject; ErrorEl: TPasElement); virtual;
     // module
@@ -5793,6 +5795,13 @@ begin
     end;
 end;
 
+procedure TPCUReader.PromiseSpecialize(SpecId: integer; El: TPasElement;
+  const SpecName: string);
+begin
+  // ToDo: add to list, specialize when unit interface/impl has finished, resolve nested references
+  RaiseMsg(20200530134408,El,IntToStr(SpecId)+'='+SpecName);
+end;
+
 procedure TPCUReader.ResolvePending;
 var
   i: Integer;
@@ -6410,7 +6419,8 @@ begin
     if Id<=0 then
       RaiseMsg(20200222191724,ErrorEl,IntToStr(i));
     PendParam:=TPCUReaderPendingSpecializedParam(PendSpec.Params[i]);
-    PromiseSetElReference(Id,@Set_SpecializeParam,PendParam,ErrorEl);
+    PendParam.Id:=Id;
+    //PromiseSetElReference(Id,@Set_SpecializeParam,PendParam,ErrorEl);
     end;
 end;
 
@@ -7931,7 +7941,6 @@ procedure TPCUReader.ReadSpecializeType(Obj: TJSONObject;
 var
   GenType: TPasGenericType;
   GenericTemplateTypes: TFPList;
-  SpecType: TPasElement;
   ExpName: string;
   i, SpecId: Integer;
   Data: TPasSpecializeTypeData;
@@ -7963,14 +7972,13 @@ begin
     RaiseMsg(20200514130230,El,'SpecType');
   PromiseSetElReference(SpecId,@Set_SpecializeTypeData,Data,El);
 
-  // check old specialized name is the same
+  // check old specialized name
   if not ReadString(Obj,'SpecName',ExpName,El) then
     RaiseMsg(20200219122919,El);
-  SpecType:=Data.SpecializedType;
-  if SpecType=nil then
-    RaiseMsg(20200514131226,El);
-  if ExpName<>SpecType.Name then
-    RaiseMsg(20200219123003,El,'Expected="'+ExpName+'", but found "'+SpecType.Name+'"');
+  if ExpName='' then
+    RaiseMsg(20200530134152,El);
+
+  PromiseSpecialize(SpecId,El,ExpName);
 end;
 
 procedure TPCUReader.ReadInlineSpecializeExpr(Obj: TJSONObject;
