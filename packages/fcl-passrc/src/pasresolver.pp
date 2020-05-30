@@ -17746,6 +17746,10 @@ var
   GenExpr, SpecExpr: TPasExpr;
   NewClass: TPTreeElement;
 begin
+  if SpecEl.CustomData<>nil then
+    RaiseNotYetImplemented(20200530201007,GenEl,GetObjName(SpecEl.CustomData));
+  PushScope(SpecEl,TPasWithScope);
+
   for i:=0 to GenEl.Expressions.Count-1 do
     begin
     GenExpr:=TPasExpr(GenEl.Expressions[i]);
@@ -17754,8 +17758,8 @@ begin
     NewClass:=TPTreeElement(GenExpr.ClassType);
     SpecExpr:=TPasExpr(NewClass.Create(GenExpr.Name,SpecEl));
     SpecEl.Expressions.Add(SpecExpr);
-    BeginScope(stWithExpr,SpecExpr);
     SpecializeElement(GenExpr,SpecExpr);
+    BeginScope(stWithExpr,SpecExpr);
     end;
   SpecializeElImplEl(GenEl,SpecEl,GenEl.Body,SpecEl.Body);
 

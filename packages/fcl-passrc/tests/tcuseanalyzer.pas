@@ -135,6 +135,7 @@ type
     procedure TestM_Hint_FunctionResultExit;
     procedure TestM_Hint_AbsoluteVar;
     procedure TestM_Hint_GenFunctionResultArgNotUsed;
+    procedure TestM_Hint_GenFunc_LocalInsideImplUsed;
 
     // whole program optimization
     procedure TestWP_LocalVar;
@@ -2303,6 +2304,49 @@ begin
   '']);
   AnalyzeProgram;
   CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "Y" not used');
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_GenFunc_LocalInsideImplUsed;
+begin
+  StartProgram(true,[supTObject]);
+  Add([
+  '{$mode delphi}',
+  'procedure Run<T>;',
+  'var',
+  '  WhileV: T;',
+  '  RepeatV: T;',
+  '  ForR, ForV: T;',
+  '  IfCond: boolean;',
+  '  IfThenV,IfElseV: T;',
+  '  CaseV, CaseSt, CaseElse: T;',
+  '  TryFinallyV, TryFinallyX: T;',
+  '  TryExceptV, TryExceptOn, TryExceptElse: T;',
+  '  WithExpr: TObject;',
+  '  WithV: T;',
+  'begin',
+  '  while true do WhileV:=WhileV+1;',
+  '  repeat RepeatV:=RepeatV+1; until false;',
+  '  for ForR:=1 to 3 do ForV:=ForV+1;',
+  '  if IfCond then IfThenV:=IfThenV+1 else IfElseV:=IfElseV+1;',
+  '  case CaseV of',
+  '  1: CaseSt:=CaseSt+1;',
+  '  else',
+  '    CaseElse:=CaseElse+1;',
+  '  end;',
+  '  try TryFinallyV:=TryFinallyV+1; finally TryFinallyX:=TryFinallyX+1; end;',
+  '  try',
+  '    TryExceptV:=TryExceptV+1;',
+  '  except',
+  '  on TryExceptE: TObject do TryExceptOn:=TryExceptOn+1;',
+  '  else',
+  '    TryExceptElse:=TryExceptElse+1;',
+  '  end;',
+  '  with WithExpr do WithV:=WithV+1',
+  'end;',
+  'begin',
+  '  Run<word>();']);
+  AnalyzeProgram;
   CheckUseAnalyzerUnexpectedHints;
 end;
 

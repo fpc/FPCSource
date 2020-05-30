@@ -1558,7 +1558,7 @@ begin
     begin
     // while-do
     UseExpr(TPasImplWhileDo(El).ConditionExpr);
-    UseImplBlock(TPasImplWhileDo(El),false);
+    UseImplElement(TPasImplWhileDo(El).Body);
     end
   else if C=TPasImplWithDo then
     begin
@@ -1566,7 +1566,7 @@ begin
     WithDo:=TPasImplWithDo(El);
     for i:=0 to WithDo.Expressions.Count-1 do
       UseExpr(TObject(WithDo.Expressions[i]) as TPasExpr);
-    UseImplBlock(WithDo,false);
+    UseImplElement(WithDo.Body);
     end
   else if C=TPasImplExceptOn then
     begin
