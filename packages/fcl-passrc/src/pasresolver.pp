@@ -22748,11 +22748,14 @@ end;
 
 procedure TPasResolver.GetIncompatibleTypeDesc(const GotType,
   ExpType: TPasResolverResult; out GotDesc, ExpDesc: String);
+var
+  NeedProcSignature: Boolean;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.GetIncompatibleTypeDesc Got={',GetResolverResultDbg(GotType),'} Expected={',GetResolverResultDbg(ExpType),'}');
   {$ENDIF}
-  if GotType.BaseType<>ExpType.BaseType then
+  if (GotType.BaseType<>ExpType.BaseType)
+      and (GotType.BaseType<>btContext) and (ExpType.BaseType<>btContext) then
     begin
     GotDesc:=GetBaseDescription(GotType);
     if ExpType.BaseType=btNil then
@@ -22766,8 +22769,9 @@ begin
     end
   else if (GotType.LoTypeEl<>nil) and (ExpType.LoTypeEl<>nil) then
     begin
-    if (GotType.LoTypeEl.ClassType=ExpType.LoTypeEl.ClassType)
-        and (GotType.LoTypeEl is TPasProcedureType) then
+    NeedProcSignature:=(GotType.LoTypeEl is TPasProcedureType)
+                   and (ExpType.LoTypeEl is TPasProcedureType);
+    if NeedProcSignature then
       begin
       // procedural types
       GetIncompatibleProcParamsDesc(TPasProcedureType(GotType.LoTypeEl),
@@ -22908,6 +22912,12 @@ begin
   GotDesc:=GotDesc+')';
   ExpDesc:=ExpDesc+')';
 
+  // function result
+  if GotType is TPasFunctionType then
+    GotDesc:=GotDesc+': '+GetTypeDescription(ResolveAliasType(TPasFunctionType(GotType).ResultEl.ResultType));
+  if ExpType is TPasFunctionType then
+    ExpDesc:=ExpDesc+': '+GetTypeDescription(ResolveAliasType(TPasFunctionType(ExpType).ResultEl.ResultType));
+
   // modifiers
   if (ptmOfObject in GotType.Modifiers) and not (ptmOfObject in ExpType.Modifiers) then
     GotDesc:=GotDesc+' of Object'
@@ -22921,16 +22931,35 @@ begin
     GotDesc:=GotDesc+'; static'
   else if not (ptmStatic in GotType.Modifiers) and (ptmStatic in ExpType.Modifiers) then
     ExpDesc:=ExpDesc+'; static';
+  if (ptmAsync in GotType.Modifiers) and not (ptmAsync in ExpType.Modifiers) then
+    GotDesc:=GotDesc+'; async'
+  else if not (ptmAsync in GotType.Modifiers) and (ptmAsync in ExpType.Modifiers) then
+    ExpDesc:=ExpDesc+'; async';
   if (ptmVarargs in GotType.Modifiers) and not (ptmVarargs in ExpType.Modifiers) then
     GotDesc:=GotDesc+'; varargs'
   else if not (ptmVarargs in GotType.Modifiers) and (ptmVarargs in ExpType.Modifiers) then
-    ExpDesc:=ExpDesc+'; varargs';
+    ExpDesc:=ExpDesc+'; varargs'
+  else
+    begin
+    if GotType.VarArgsType<>nil then
+      GotDesc:=GotDesc+'; varargs of '+GetTypeDescription(ResolveAliasType(GotType.VarArgsType));
+    if ExpType.VarArgsType<>nil then
+      ExpDesc:=ExpDesc+'; varargs of '+GetTypeDescription(ResolveAliasType(ExpType.VarArgsType));
+    end;
 
   // calling convention
   if GotType.CallingConvention<>ExpType.CallingConvention then
     begin
     GotDesc:=GotDesc+';'+cCallingConventions[GotType.CallingConvention];
     ExpDesc:=ExpDesc+';'+cCallingConventions[ExpType.CallingConvention];
+    end;
+
+  if GotDesc=ExpDesc then
+    begin
+    if GotType.Parent is TPasAnonymousProcedure then
+      GotDesc:='anonymous '+GotDesc;
+    if ExpType.Parent is TPasAnonymousProcedure then
+      ExpDesc:='anonymous '+ExpDesc;
     end;
 end;
 
@@ -24588,7 +24617,7 @@ begin
         end;
       if RaiseOnIncompatible then
         RaiseIncompatibleTypeRes(20170216152444,nIncompatibleTypesGotExpected,
-          [],LHS,RHS,LErrorEl)
+          [],RHS,LHS,LErrorEl)
       else
         exit(cIncompatible);
     end

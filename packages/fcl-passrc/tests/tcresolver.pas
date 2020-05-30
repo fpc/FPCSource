@@ -4010,7 +4010,7 @@ begin
   Add('  f: TFlag;');
   Add('begin');
   Add('  if f=nil then ;');
-  CheckResolverException('Incompatible types: got "TFlag" expected "Pointer"',
+  CheckResolverException('Incompatible types: got "nil" expected "TFlag"',
     nIncompatibleTypesGotExpected);
 end;
 
@@ -14707,7 +14707,7 @@ begin
   Add('  a: array[TEnum] of longint;');
   Add('begin');
   Add('  a:=nil;');
-  CheckResolverException('Incompatible types: got "Nil" expected "static array"',
+  CheckResolverException('Incompatible types: got "nil" expected "static array[] of Longint"',
     nIncompatibleTypesGotExpected);
 end;
 
@@ -15247,7 +15247,7 @@ begin
   '  args:=nil;',
   'end;',
   'begin']);
-  CheckResolverException('Incompatible types: got "Nil" expected "array of const"',nIncompatibleTypesGotExpected);
+  CheckResolverException('Incompatible types: got "nil" expected "array of const"',nIncompatibleTypesGotExpected);
 end;
 
 procedure TTestResolver.TestArrayOfConst_SetLengthFail;

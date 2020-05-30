@@ -108,6 +108,7 @@ type
 
     // generic procedure type
     procedure TestGen_ProcType;
+    procedure TestGen_ProcType_AnonymousFunc_Delphi;
 
     // pointer of generic
     procedure TestGen_PointerDirectSpecializeFail;
@@ -1728,6 +1729,51 @@ begin
   '  b:=@GetIt;',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ProcType_AnonymousFunc_Delphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  IInterface = interface',
+  '  end;',
+  '  Integer = longint;',
+  '  IComparer<T> = interface',
+  '    function Compare(const Left, Right: T): Integer; overload;',
+  '  end;',
+  '  TOnComparison<T> = function(const Left, Right: T): Integer of object;',
+  '  TComparisonFunc<T> = reference to function(const Left, Right: T): Integer;',
+  '  TComparer<T> = class(TObject, IComparer<T>)',
+  '  public',
+  '    function Compare(const Left, Right: T): Integer; overload;',
+  '    class function Construct(const AComparison: TOnComparison<T>): IComparer<T>; overload;',
+  '    class function Construct(const AComparison: TComparisonFunc<T>): IComparer<T>; overload;',
+  '  end;',
+  'function TComparer<T>.Compare(const Left, Right: T): Integer; overload;',
+  'begin',
+  'end;',
+  'class function TComparer<T>.Construct(const AComparison: TOnComparison<T>): IComparer<T>;',
+  'begin',
+  'end;',
+  'class function TComparer<T>.Construct(const AComparison: TComparisonFunc<T>): IComparer<T>;',
+  'begin',
+  'end;',
+  'procedure Test;',
+  'var',
+  '  aComparer : IComparer<Integer>;',
+  'begin',
+  '  aComparer:=TComparer<Integer>.Construct(function (Const a,b : integer) : integer',
+  '    begin',
+  '      Result:=a-b;',
+  '    end);',
+  'end;',
+  'begin',
+  '  Test;']);
+  ParseModule;
 end;
 
 procedure TTestResolveGenerics.TestGen_PointerDirectSpecializeFail;
