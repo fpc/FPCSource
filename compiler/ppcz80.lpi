@@ -14,49 +14,8 @@
       <MainUnit Value="0"/>
       <Title Value="ppcz80"/>
     </General>
-    <BuildModes Count="2">
+    <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
-      <Item2 Name="z80 internal asm">
-        <CompilerOptions>
-          <Version Value="11"/>
-          <PathDelim Value="\"/>
-          <Target>
-            <Filename Value="z80\pp"/>
-          </Target>
-          <SearchPaths>
-            <IncludeFiles Value="z80"/>
-            <OtherUnitFiles Value="z80;systems"/>
-            <UnitOutputDirectory Value="z80\lazbuild"/>
-          </SearchPaths>
-          <Parsing>
-            <SyntaxOptions>
-              <CStyleOperator Value="False"/>
-              <AllowLabel Value="False"/>
-              <CPPInline Value="False"/>
-              <UseAnsiStrings Value="False"/>
-            </SyntaxOptions>
-          </Parsing>
-          <Other>
-            <Verbosity>
-              <ShowWarn Value="False"/>
-              <ShowNotes Value="False"/>
-              <ShowHints Value="False"/>
-            </Verbosity>
-            <ConfigFile>
-              <StopAfterErrCount Value="50"/>
-            </ConfigFile>
-            <CustomOptions Value="-dz80
--dEXTDEBUG
--dZ80_INTERNAL_ASM"/>
-            <OtherDefines Count="4">
-              <Define0 Value="z80"/>
-              <Define1 Value="DEBUG_REGALLOC"/>
-              <Define2 Value="EXTDEBUG"/>
-              <Define3 Value="Z80_INTERNAL_ASM"/>
-            </OtherDefines>
-          </Other>
-        </CompilerOptions>
-      </Item2>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
