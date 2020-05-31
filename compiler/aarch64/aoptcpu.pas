@@ -548,11 +548,12 @@ Implementation
             A_ASR,
             A_LSL:
               Result:=OptPass1Shift(p);
+            A_AND:
+              Result:=OptPass1And(p);
             A_ADD,
             A_ADC,
             A_SUB,
             A_SBC,
-            A_AND,
             A_BIC,
             A_EOR,
             A_ORR,
