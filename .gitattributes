@@ -8861,6 +8861,7 @@ packages/rtl-generics/tests/testrunner.rtlgenerics.lpi svneol=native#text/plain
 packages/rtl-generics/tests/testrunner.rtlgenerics.pp svneol=native#text/pascal
 packages/rtl-generics/tests/tests.generics.arrayhelper.pas svneol=native#text/pascal
 packages/rtl-generics/tests/tests.generics.bugs.pas svneol=native#text/pascal
+packages/rtl-generics/tests/tests.generics.dictionary.pas svneol=native#text/plain
 packages/rtl-generics/tests/tests.generics.hashmaps.pas svneol=native#text/pascal
 packages/rtl-generics/tests/tests.generics.sets.pas svneol=native#text/pascal
 packages/rtl-generics/tests/tests.generics.stdcollections.pas svneol=native#text/pascal
