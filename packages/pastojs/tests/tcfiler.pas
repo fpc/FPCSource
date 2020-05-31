@@ -1187,7 +1187,17 @@ begin
 
   AModule:=Orig.GetModule;
   if AModule<>Module then
+    begin
+    if (Orig is TPasUnresolvedSymbolRef) then
+      begin
+      // built-in identifier
+      if not SameText(Orig.Name,Rest.Name) then
+        AssertEquals(Path+'.Name',Orig.Name,Rest.Name);
+      if not CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData) then exit;
+      exit;
+      end;
     Fail(Path+' wrong module: Orig='+GetObjName(AModule)+' '+GetObjName(Module));
+    end;
 
   AssertEquals(Path+'.Name',Orig.Name,Rest.Name);
   AssertEquals(Path+'.SourceFilename',Orig.SourceFilename,Rest.SourceFilename);
@@ -3067,8 +3077,6 @@ end;
 
 procedure TTestPrecompile.TestPC_SpecializeClassSameUnit;
 begin
-  exit;
-
   StartUnit(false);
   Add([
   '{$mode delphi}',
