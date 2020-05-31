@@ -69,7 +69,11 @@ unit i_zxspectrum;
             dirsep       : '/';
             assem        : as_z80_rel;
             assemextern  : as_sdcc_sdasz80;
+{$ifdef Z80_INTERNAL_LINKER}
+            link         : ld_int_zxspectrum;
+{$else Z80_INTERNAL_LINKER}
             link         : ld_none;
+{$endif Z80_INTERNAL_LINKER}
             linkextern   : ld_zxspectrum;
             ar           : ar_sdcc_sdar;
             res          : res_none;
