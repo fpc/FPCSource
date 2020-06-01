@@ -657,8 +657,79 @@ implementation
       end;
 
     function TRelObjInput.ReadObjData(AReader: TObjectreader; out Data: TObjData): boolean;
+      const
+        GenericRelErrMsg='Error reading REL file';
+      var
+        s: string;
+        RecType: Char;
       begin
+        FReader:=AReader;
+        InputFileName:=AReader.FileName;
+        Data:=CObjData.Create(InputFileName);
         result:=false;
+        s:='';
+        repeat
+          if AtEoF or not ReadLine(s) then
+            begin
+              InputError(GenericRelErrMsg);
+              exit;
+            end;
+          s:=Trim(s);
+        until s<>'';
+        if s<>'XL2' then
+          begin
+            InputError('Invalid or unsupported REL format identifier');
+            exit;
+          end;
+        while not AtEoF do
+          begin
+            if not ReadLine(s) then
+              begin
+                InputError(GenericRelErrMsg);
+                exit;
+              end;
+            s:=Trim(s);
+            if s<>'' then
+              begin
+                RecType:=s[1];
+                case RecType of
+                  'H': { header }
+                    begin
+                      { todo: implement }
+                    end;
+                  'M': { module }
+                    begin
+                      { we ignore this for now }
+                    end;
+                  'S': { symbol }
+                    begin
+                      { todo: implement }
+                    end;
+                  'A': { area }
+                    begin
+                      { todo: implement }
+                    end;
+                  'T': { T line () }
+                    begin
+                      { todo: implement }
+                    end;
+                  'R': { R line (relocation information) }
+                    begin
+                      { todo: implement }
+                    end;
+                  'P': { P line (paging information) }
+                    begin
+                      InputError('P line records are not supported');
+                      exit;
+                    end;
+                  else
+                    begin
+                      InputError('Unsupported REL record type: #'+tostr(Ord(RecType)));
+                      exit;
+                    end;
+                end;
+              end;
+          end;
       end;
 
     class function TRelObjInput.CanReadObjData(AReader: TObjectreader): boolean;
