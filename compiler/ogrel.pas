@@ -660,11 +660,12 @@ implementation
       const
         GenericRelErrMsg='Error reading REL file';
       var
-        s: string;
+        s, AreaName: string;
         RecType: Char;
         HeaderFound: Boolean=false;
-        ExpectedAreas,ExpectedSymbols: LongInt;
+        ExpectedAreas,ExpectedSymbols,AreaSize,AreaFlags,AreaAddr: LongInt;
         tmpint: SizeInt;
+        CurrSec: TObjSection=nil;
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
@@ -746,7 +747,73 @@ implementation
                     end;
                   'A': { area }
                     begin
-                      { todo: implement }
+                      if not HeaderFound then
+                        begin
+                          InputError('Area record encountered before header');
+                          exit;
+                        end;
+                      tmpint:=Pos(' ',s);
+                      if tmpint<=1 then
+                        begin
+                          InputError('Invalid area record');
+                          exit;
+                        end;
+                      AreaName:=copy(s,1,tmpint-1);
+                      delete(s,1,tmpint);
+                      if copy(s,1,5)<>'size ' then
+                        begin
+                          InputError('Invalid area record');
+                          exit;
+                        end;
+                      delete(s,1,5);
+                      tmpint:=Pos(' ',s);
+                      if not TryStrToInt('$'+Copy(s,1,tmpint-1),AreaSize) then
+                        begin
+                          InputError('Invalid area size');
+                          exit;
+                        end;
+                      delete(s,1,tmpint);
+                      if copy(s,1,6)<>'flags ' then
+                        begin
+                          InputError('Invalid area record');
+                          exit;
+                        end;
+                      delete(s,1,6);
+                      tmpint:=Pos(' ',s);
+                      if not TryStrToInt('$'+Copy(s,1,tmpint-1),AreaFlags) then
+                        begin
+                          InputError('Invalid area flags');
+                          exit;
+                        end;
+                      delete(s,1,tmpint);
+                      if copy(s,1,5)<>'addr ' then
+                        begin
+                          InputError('Invalid area record');
+                          exit;
+                        end;
+                      delete(s,1,5);
+                      if not TryStrToInt('$'+Copy(s,1,tmpint-1),AreaAddr) then
+                        begin
+                          InputError('Invalid area address');
+                          exit;
+                        end;
+                      if AreaFlags<>0 then
+                        begin
+                          InputError('Unsupported area flags ('+tostr(AreaFlags)+')');
+                          exit;
+                        end;
+                      if AreaAddr<>0 then
+                        begin
+                          InputError('Area address<>0 not supported');
+                          exit;
+                        end;
+                      CurrSec:=Data.createsection(AreaName,1,[],false);
+                      CurrSec.alloc(AreaSize);
+                      if Data.ObjSectionList.Count>ExpectedAreas then
+                        begin
+                          InputError('Number of areas exceeds the number, declared in header');
+                          exit;
+                        end;
                     end;
                   'T': { T line () }
                     begin
