@@ -75,6 +75,7 @@ type
     procedure ReadArchive;
   protected
     function getfilename:string;override;
+    function GetSize: longint;override;
     function GetPos: longint;override;
     function GetIsArchive: boolean; override;
   public
@@ -363,6 +364,12 @@ implementation
         result:=inherited getfilename;
         if CurrMemberName<>'' then
           result:=result+'('+CurrMemberName+')';
+      end;
+
+
+    function tarobjectreader.GetSize: longint;
+      begin
+        result:=CurrMemberSize;
       end;
 
 
