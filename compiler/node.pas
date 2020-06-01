@@ -741,7 +741,7 @@ implementation
 
     function is_constpointernode(p : tnode) : boolean;
       begin
-         is_constpointernode:=(p.nodetype=pointerconstn);
+         is_constpointernode:=(p.nodetype in [pointerconstn,niln]);
       end;
 
     function is_conststringnode(p : tnode) : boolean;
