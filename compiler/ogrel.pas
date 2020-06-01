@@ -660,12 +660,14 @@ implementation
       const
         GenericRelErrMsg='Error reading REL file';
       var
-        s, AreaName: string;
+        s, AreaName, SymbolName: string;
         RecType: Char;
         HeaderFound: Boolean=false;
-        ExpectedAreas,ExpectedSymbols,AreaSize,AreaFlags,AreaAddr: LongInt;
+        ExpectedAreas,ExpectedSymbols,AreaSize,AreaFlags,AreaAddr,
+          SymbolOfs: LongInt;
         tmpint: SizeInt;
         CurrSec: TObjSection=nil;
+        objsym: TObjSymbol;
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
@@ -743,7 +745,79 @@ implementation
                     end;
                   'S': { symbol }
                     begin
-                      { todo: implement }
+                      if not HeaderFound then
+                        begin
+                          InputError('Symbol record encountered before header');
+                          exit;
+                        end;
+                      tmpint:=Pos(' ',s);
+                      if tmpint<=1 then
+                        begin
+                          InputError('Invalid symbol record');
+                          exit;
+                        end;
+                      SymbolName:=copy(s,1,tmpint-1);
+                      delete(s,1,tmpint);
+                      if Length(s)<4 then
+                        begin
+                          InputError('Invalid symbol record');
+                          exit;
+                        end;
+                      if not TryStrToInt('$'+Copy(s,4,Length(s)-4),SymbolOfs) then
+                        begin
+                          InputError('Invalid symbol offset');
+                          exit;
+                        end;
+                      case Copy(s,1,3) of
+                        'Def':
+                          begin
+                            if CurrSec=nil then
+                              begin
+                                InputError('Public symbol defined outside any area');
+                                exit;
+                              end;
+                            if (SymbolOfs<0) or (SymbolOfs>=CurrSec.Size) then
+                              begin
+                                InputError('Public symbol offset outside the range of the current area');
+                                exit;
+                              end;
+                            objsym:=Data.CreateSymbol(SymbolName);
+                            objsym.bind:=AB_GLOBAL;
+                            objsym.typ:=AT_FUNCTION;
+                            objsym.objsection:=CurrSec;
+                            objsym.offset:=SymbolOfs;
+                            objsym.size:=0;
+                          end;
+                        'Ref':
+                          begin
+                            if CurrSec<>nil then
+                              begin
+                                InputError('External symbols must be defined before the first area');
+                                exit;
+                              end;
+                            if SymbolOfs<>0 then
+                              begin
+                                InputError('External symbols must be declared with an offset of 0');
+                                exit;
+                              end;
+                            objsym:=Data.CreateSymbol(SymbolName);
+                            objsym.bind:=AB_EXTERNAL;
+                            objsym.typ:=AT_FUNCTION;
+                            objsym.objsection:=nil;
+                            objsym.offset:=0;
+                            objsym.size:=0;
+                          end;
+                        else
+                          begin
+                            InputError('Invalid or unsupported symbol record');
+                            exit;
+                          end;
+                      end;
+                      if Data.ObjSymbolList.Count>ExpectedSymbols then
+                        begin
+                          InputError('Number of symbols exceeds the number, declared in header');
+                          exit;
+                        end;
                     end;
                   'A': { area }
                     begin
