@@ -99,6 +99,19 @@ interface
       { TRelObjInput }
 
       TRelObjInput = class(TObjInput)
+      private const
+        MaxBufSize=512;
+      private
+        FBuf: array [0..MaxBufSize-1] of Char;
+        FBufSize: Integer;
+        FBufPos: Integer;
+
+        function FillBuf: boolean;
+        function AtEndOfBuf: boolean;
+        function AtEoF: boolean;
+        function ReadChar(out c: char): boolean;
+        function PeekChar(out c: char): boolean;
+        function ReadLine(out s: string): boolean;
       public
         constructor create;override;
         function ReadObjData(AReader:TObjectreader;out Data:TObjData):boolean;override;
@@ -537,10 +550,110 @@ implementation
                                 TRelObjInput
 *****************************************************************************}
 
+    function TRelObjInput.FillBuf: boolean;
+      begin
+        FBufPos:=0;
+        FBufSize:=min(FReader.size-FReader.Pos,MaxBufSize);
+        if FBufSize>0 then
+          result:=FReader.read(FBuf,FBufSize)
+        else
+          result:=true;
+      end;
+
+    function TRelObjInput.AtEndOfBuf: boolean;
+      begin
+        result:=FBufPos=FBufSize;
+      end;
+
+    function TRelObjInput.AtEoF: boolean;
+      begin
+        result:=AtEndOfBuf and (FReader.Pos=FReader.size);
+      end;
+
+    function TRelObjInput.ReadChar(out c: char): boolean;
+      begin
+        c:=#0;
+        if AtEndOfBuf then
+          begin
+            result:=FillBuf;
+            if not result then
+              exit;
+          end;
+        if not AtEndOfBuf then
+          begin
+            c:=FBuf[FBufPos];
+            Inc(FBufPos);
+            result:=true;
+          end
+        else
+          result:=false;
+      end;
+
+    function TRelObjInput.PeekChar(out c: char): boolean;
+      begin
+        c:=#0;
+        if AtEndOfBuf then
+          begin
+            result:=FillBuf;
+            if not result then
+              exit;
+          end;
+        if not AtEndOfBuf then
+          begin
+            c:=FBuf[FBufPos];
+            result:=true;
+          end
+        else
+          result:=false;
+      end;
+
+    function TRelObjInput.ReadLine(out s: string): boolean;
+      var
+        c: Char;
+      begin
+        s:='';
+        if AtEoF then
+          begin
+            result:=false;
+            exit;
+          end;
+        repeat
+          if not AtEoF then
+            begin
+              if not ReadChar(c) then
+                begin
+                  result:=false;
+                  exit;
+                end;
+              if not (c in [#13,#10]) then
+                s:=s+c;
+            end;
+        until (c in [#13,#10]) or AtEoF;
+        if (c=#13) and not AtEoF then
+          begin
+            if not PeekChar(c) then
+              begin
+                result:=false;
+                exit;
+              end;
+            if c=#10 then
+              begin
+                if not ReadChar(c) then
+                  begin
+                    result:=false;
+                    exit;
+                  end;
+              end;
+          end;
+        result:=true;
+      end;
+
     constructor TRelObjInput.create;
       begin
         inherited create;
         cobjdata:=TRelObjData;
+        FBufSize:=0;
+        FBufPos:=0;
       end;
 
     function TRelObjInput.ReadObjData(AReader: TObjectreader; out Data: TObjData): boolean;
@@ -549,126 +662,26 @@ implementation
       end;
 
     class function TRelObjInput.CanReadObjData(AReader: TObjectreader): boolean;
-      const
-        MaxBufSize=512;
-      var
-        Buf: array [0..MaxBufSize-1] of Char;
-        BufSize: Integer = 0;
-        BufPos: Integer = 0;
-
-        function FillBuf: boolean;
-          begin
-            BufPos:=0;
-            BufSize:=min(AReader.size-AReader.Pos,MaxBufSize);
-            if BufSize>0 then
-              result:=AReader.read(Buf,BufSize)
-            else
-              result:=true;
-          end;
-
-        function AtEndOfBuf: boolean;
-          begin
-            result:=BufPos=BufSize;
-          end;
-
-        function AtEoF: boolean;
-          begin
-            result:=AtEndOfBuf and (AReader.Pos=AReader.size);
-          end;
-
-        function ReadChar(out c: char): boolean;
-          begin
-            c:=#0;
-            if AtEndOfBuf then
-              begin
-                result:=FillBuf;
-                if not result then
-                  exit;
-              end;
-            if not AtEndOfBuf then
-              begin
-                c:=Buf[BufPos];
-                Inc(BufPos);
-                result:=true;
-              end
-            else
-              result:=false;
-          end;
-
-        function PeekChar(out c: char): boolean;
-          begin
-            c:=#0;
-            if AtEndOfBuf then
-              begin
-                result:=FillBuf;
-                if not result then
-                  exit;
-              end;
-            if not AtEndOfBuf then
-              begin
-                c:=Buf[BufPos];
-                result:=true;
-              end
-            else
-              result:=false;
-          end;
-
-        function ReadLine(out s: string): boolean;
-          var
-            c: Char;
-          begin
-            s:='';
-            if AtEoF then
-              begin
-                result:=false;
-                exit;
-              end;
-            repeat
-              if not AtEoF then
-                begin
-                  if not ReadChar(c) then
-                    begin
-                      result:=false;
-                      exit;
-                    end;
-                  if not (c in [#13,#10]) then
-                    s:=s+c;
-                end;
-            until (c in [#13,#10]) or AtEoF;
-            if (c=#13) and not AtEoF then
-              begin
-                if not PeekChar(c) then
-                  begin
-                    result:=false;
-                    exit;
-                  end;
-                if c=#10 then
-                  begin
-                    if not ReadChar(c) then
-                      begin
-                        result:=false;
-                        exit;
-                      end;
-                  end;
-              end;
-            result:=true;
-          end;
-
       var
         s: string;
+        instance: TRelObjInput;
       begin
         result:=false;
-        while not AtEoF do
-          begin
-            if not ReadLine(s) then
-              exit;
-            s:=Trim(s);
-            if s<>'' then
-              begin
-                result:=s='XL2';
+        instance:=TRelObjInput.Create;
+        instance.FReader:=AReader;
+        with instance do
+          while not AtEoF do
+            begin
+              if not ReadLine(s) then
                 exit;
-              end;
-          end;
+              s:=Trim(s);
+              if s<>'' then
+                begin
+                  result:=s='XL2';
+                  break;
+                end;
+            end;
+        instance.Free;
       end;
 
 
