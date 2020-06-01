@@ -100,6 +100,7 @@ interface
 
       TRelObjInput = class(TObjInput)
       public
+        constructor create;override;
         function ReadObjData(AReader:TObjectreader;out Data:TObjData):boolean;override;
         class function CanReadObjData(AReader:TObjectreader):boolean;override;
       end;
@@ -533,6 +534,12 @@ implementation
 {*****************************************************************************
                                 TRelObjInput
 *****************************************************************************}
+
+    constructor TRelObjInput.create;
+      begin
+        inherited create;
+        cobjdata:=TRelObjData;
+      end;
 
     function TRelObjInput.ReadObjData(AReader: TObjectreader; out Data: TObjData): boolean;
       begin
