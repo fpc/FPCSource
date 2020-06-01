@@ -324,7 +324,38 @@ function TLinkerZXSpectrum.postprocessexecutable(const fn: string; isdll: boolea
 *****************************************************************************}
 
 procedure TInternalLinkerZXSpectrum.DefaultLinkScript;
+  var
+    s        : TCmdStr;
+    prtobj: string[80];
   begin
+    prtobj:='prt0';
+
+    if not (target_info.system in systems_internal_sysinit) and (prtobj <> '') then
+      LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile(prtobj,'',false)));
+
+    while not ObjectFiles.Empty do
+      begin
+        s:=ObjectFiles.GetFirst;
+        if s<>'' then
+          begin
+            if not(cs_link_on_target in current_settings.globalswitches) then
+              s:=FindObjectFile(s,'',false);
+            LinkScript.Concat('READOBJECT ' + maybequoted(s));
+          end;
+      end;
+
+    LinkScript.Concat('GROUP');
+    { Write staticlibraries }
+    if not StaticLibFiles.Empty then
+      begin
+        while not StaticLibFiles.Empty do
+          begin
+            S:=StaticLibFiles.GetFirst;
+            if s<>'' then
+              LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s));
+          end;
+      end;
+    LinkScript.Concat('ENDGROUP');
   end;
 
 constructor TInternalLinkerZXSpectrum.create;
