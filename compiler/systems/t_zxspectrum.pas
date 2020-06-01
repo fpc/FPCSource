@@ -65,6 +65,7 @@ implementation
          procedure DefaultLinkScript;override;
        public
          constructor create;override;
+         procedure InitSysInitUnitName;override;
        end;
 
 
@@ -332,6 +333,11 @@ constructor TInternalLinkerZXSpectrum.create;
     CArObjectReader:=TArObjectReader;
     CExeOutput:=TIntelHexExeOutput;
     CObjInput:=TRelObjInput;
+  end;
+
+procedure TInternalLinkerZXSpectrum.InitSysInitUnitName;
+  begin
+    sysinitunit:='si_prc';
   end;
 
 {*****************************************************************************
