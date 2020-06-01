@@ -954,6 +954,7 @@ implementation
       begin
         inherited create;
         CObjData:=TRelObjData;
+        MaxMemPos:=$FFFF;
       end;
 
 {*****************************************************************************
