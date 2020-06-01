@@ -52,7 +52,8 @@ type
   TSystemUnitPart = (
     supTObject,
     supTVarRec,
-    supTypeInfo
+    supTypeInfo,
+    supTInterfacedObject
     );
   TSystemUnitParts = set of TSystemUnitPart;
 
@@ -1587,7 +1588,9 @@ var
   Intf, Impl: TStringList;
 begin
   Intf:=TStringList.Create;
-  // interface
+  if supTInterfacedObject in Parts then Include(Parts,supTObject);
+
+  // unit interface
   if [supTVarRec,supTypeInfo]*Parts<>[] then
     Intf.Add('{$modeswitch externalclass}');
   Intf.Add('type');
@@ -1617,6 +1620,27 @@ begin
     '    function Equals(Obj: TObject): boolean; virtual;',
     '    function ToString: String; virtual;',
     '  end;']);
+  if supTInterfacedObject in Parts then
+    Intf.AddStrings([
+    '  {$Interfaces COM}',
+    '  IUnknown = interface',
+    '    [''{00000000-0000-0000-C000-000000000046}'']',
+    //'    function QueryInterface(const iid: TGuid; out obj): Integer;',
+    '    function _AddRef: Integer;',
+    '    function _Release: Integer;',
+    '  end;',
+    '  IInterface = IUnknown;',
+    '  TInterfacedObject = class(TObject,IUnknown)',
+    '  protected',
+    '    fRefCount: Integer;',
+    '    { implement methods of IUnknown }',
+    //'    function QueryInterface(const iid: TGuid; out obj): Integer; virtual;',
+    '    function _AddRef: Integer; virtual;',
+    '    function _Release: Integer; virtual;',
+    '  end;',
+    '  TInterfacedClass = class of TInterfacedObject;',
+    '',
+    '']);
   if supTVarRec in Parts then
     Intf.AddStrings([
     'const',
@@ -1659,7 +1683,7 @@ begin
   Intf.Add('var');
   Intf.Add('  ExitCode: Longint = 0;');
 
-  // implementation
+  // unit implementation
   Impl:=TStringList.Create;
   if supTObject in Parts then
     Impl.AddStrings([
@@ -1699,6 +1723,18 @@ begin
       '  Result:=ClassName;',
       'end;'
       ]);
+  if supTInterfacedObject in Parts then
+    Impl.AddStrings([
+    //'function TInterfacedObject.QueryInterface(const iid: TGuid; out obj): Integer;',
+    //'begin',
+    //'end;',
+    'function TInterfacedObject._AddRef: Integer;',
+    'begin',
+    'end;',
+    'function TInterfacedObject._Release: Integer;',
+    'begin',
+    'end;',
+    '']);
   if supTVarRec in Parts then
     Impl.AddStrings([
     'function VarRecs: TVarRecArray; varargs;',

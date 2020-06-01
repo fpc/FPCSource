@@ -44,6 +44,10 @@ type
     procedure TestGen_ExtClass_AliasMemberType;
     Procedure TestGen_ExtClass_RTTI;
 
+    // class interfaces
+    procedure TestGen_ClassInterface_Corba;
+    procedure TestGen_ClassInterface_InterfacedObject;
+
     // statements
     Procedure TestGen_InlineSpec_Constructor;
     Procedure TestGen_CallUnitImplProc;
@@ -915,6 +919,95 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '$mod.p = $mod.$rtti["TJSSetEventProc"];',
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_ClassInterface_Corba;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface;',
+  '  IUnknown = interface',
+  '    [''{00000000-0000-0000-C000-000000000046}'']',
+  '  end;',
+  '  IInterface = IUnknown;',
+  '  generic IBird<T> = interface(IInterface)',
+  '    function GetSize: T;',
+  '    procedure SetSize(i: T);',
+  '    property Size: T read GetSize write SetSize;',
+  '    procedure DoIt(i: T);',
+  '  end;',
+  '  TObject = class',
+  '  end;',
+  '  generic TBird<T> = class(TObject,specialize IBird<T>)',
+  '    function GetSize: T; virtual; abstract;',
+  '    procedure SetSize(i: T); virtual; abstract;',
+  '    procedure DoIt(i: T); virtual; abstract;',
+  '  end;',
+  '  IWordBird = specialize IBird<Word>;',
+  '  TWordBird = specialize TBird<Word>;',
+  'var',
+  '  BirdIntf: IWordBird;',
+  'begin',
+  '  BirdIntf.Size:=BirdIntf.Size;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_ClassInterface_Corba',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{00000000-0000-0000-C000-000000000046}", [], null);',
+    'rtl.createInterface($mod, "IBird$G2", "{7D9907A1-5178-37B5-9D32-7BC020005905}", ["GetSize", "SetSize", "DoIt"], $mod.IUnknown);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird$G1", $mod.TObject, function () {',
+    '  rtl.addIntf(this, $mod.IBird$G2);',
+    '});',
+    'this.BirdIntf = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.BirdIntf.SetSize($mod.BirdIntf.GetSize());',
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_ClassInterface_InterfacedObject;
+begin
+  StartProgram(true,[supTInterfacedObject]);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  IComparer<T> = interface [''{505778ED-F783-4456-9691-32F419CC5E18}'']',
+  '    function Compare(const Left, Right: T): Integer; overload;',
+  '  end;',
+  '  TComparer<T> = class(TInterfacedObject, IComparer<T>)',
+  '    function Compare(const Left, Right: T): Integer;',
+  '  end;',
+  'function TComparer<T>.Compare(const Left, Right: T): Integer; begin end;',
+  'var',
+  '  aComparer : IComparer<Integer>;',
+  'begin',
+  '  aComparer:=TComparer<Integer>.Create;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_ClassInterface_InterfacedObject',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IComparer$G2", "{505778ED-F783-4456-9691-32F419CC5E18}", ["Compare"], pas.system.IUnknown);',
+    'rtl.createClass($mod, "TComparer$G1", pas.system.TInterfacedObject, function () {',
+    '  this.Compare = function (Left, Right) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '  rtl.addIntf(this, $mod.IComparer$G2);',
+    '  rtl.addIntf(this, pas.system.IUnknown);',
+    '});',
+    'this.aComparer = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'rtl.setIntfP($mod, "aComparer", rtl.queryIntfT($mod.TComparer$G1.$create("Create"), $mod.IComparer$G2), true);',
     '']));
 end;
 

@@ -18122,6 +18122,10 @@ begin
     end;
 
   FinishAncestors(SpecEl);
+
+  if GenEl.Interfaces.Count<>SpecEl.Interfaces.Count then
+    RaiseNotYetImplemented(20200601125556,GenEl,IntToStr(GenEl.Interfaces.Count)+'<>'+IntToStr(SpecEl.Interfaces.Count));
+
   // Note: class scope was created by FinishAncestors
   SpecClassScope:=NoNil(SpecEl.CustomData) as TPasClassScope;
 

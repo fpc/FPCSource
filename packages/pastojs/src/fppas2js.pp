@@ -753,7 +753,7 @@ const
     '$new', // helpertype.$new
     '_AddRef', // rtl._AddRef
     '_Release', // rtl._Release
-    'addIntf', // rtl.addIntf
+    'addIntf', // rtl.addIntf  pbifnIntfAddMap
     'intfAsClass', // rtl.intfAsClass
     'intfAsIntfT', // rtl.intfAsIntfT
     'createInterface', // rtl.createInterface
@@ -19139,8 +19139,15 @@ end;
 procedure TPasToJSConverter.AddClassSupportedInterfaces(El: TPasClassType;
   Src: TJSSourceElements; FuncContext: TFunctionContext);
 
-  function IsMemberNeeded(aMember: TPasElement): boolean;
+  function IsClassInterfaceNeeded(aMember: TPasElement): boolean;
+  var
+    SpecData: TPasSpecializeTypeData;
   begin
+    if aMember is TPasSpecializeType then
+      begin
+      SpecData:=aMember.CustomData as TPasSpecializeTypeData;
+      aMember:=SpecData.SpecializedType;
+      end;
     if IsElementUsed(aMember) then exit(true);
     Result:=false;
   end;
@@ -19202,7 +19209,7 @@ begin
       for i:=0 to Scope.Interfaces.Count-1 do
         begin
         CurEl:=TPasClassType(Scope.Element);
-        if not IsMemberNeeded(TPasElement(CurEl.Interfaces[i])) then continue;
+        if not IsClassInterfaceNeeded(TPasElement(CurEl.Interfaces[i])) then continue;
         HasInterfaces:=true;
         o:=TObject(Scope.Interfaces[i]);
         if o is TPasProperty then
@@ -19225,7 +19232,7 @@ begin
         for i:=0 to Scope.Interfaces.Count-1 do
           begin
           CurEl:=TPasClassType(Scope.Element);
-          if not IsMemberNeeded(TPasElement(CurEl.Interfaces[i])) then continue;
+          if not IsClassInterfaceNeeded(TPasElement(CurEl.Interfaces[i])) then continue;
           if NeedIntfMap then
             begin
             // add "this.$intfmaps = {};"
