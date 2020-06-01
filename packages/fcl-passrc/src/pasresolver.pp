@@ -1010,6 +1010,7 @@ type
 
   TPasRecordScope = Class(TPasClassOrRecordScope)
   end;
+  TPasRecordScopeClass = class of TPasRecordScope;
 
   TPasClassScopeFlag = (
     pcsfAncestorResolved,
@@ -1501,6 +1502,7 @@ type
     FScopeClass_InitialFinalization: TPasInitialFinalizationScopeClass;
     FScopeClass_Module: TPasModuleScopeClass;
     FScopeClass_Proc: TPasProcedureScopeClass;
+    FScopeClass_Record: TPasRecordScopeClass;
     FScopeClass_Section: TPasSectionScopeClass;
     FScopeClass_WithExpr: TPasWithExprScopeClass;
     FScopeCount: integer;
@@ -2399,6 +2401,7 @@ type
     property ScopeClass_InitialFinalization: TPasInitialFinalizationScopeClass read FScopeClass_InitialFinalization write FScopeClass_InitialFinalization;
     property ScopeClass_Module: TPasModuleScopeClass read FScopeClass_Module write FScopeClass_Module;
     property ScopeClass_Procedure: TPasProcedureScopeClass read FScopeClass_Proc write FScopeClass_Proc;
+    property ScopeClass_Record: TPasRecordScopeClass read FScopeClass_Record write FScopeClass_Record;
     property ScopeClass_Section: TPasSectionScopeClass read FScopeClass_Section write FScopeClass_Section;
     property ScopeClass_WithExpr: TPasWithExprScopeClass read FScopeClass_WithExpr write FScopeClass_WithExpr;
     // last element
@@ -11887,7 +11890,7 @@ begin
 
   if El.Parent.ClassType<>TPasVariant then
     begin
-    Scope:=TPasRecordScope(PushScope(El,TPasRecordScope));
+    Scope:=TPasRecordScope(PushScope(El,ScopeClass_Record));
     Scope.VisibilityContext:=El;
     if TypeParams<>nil then
       begin
@@ -18042,7 +18045,7 @@ begin
     // specialized generic record
     if SpecEl.CustomData<>nil then
       RaiseNotYetImplemented(20190921204740,SpecEl);
-    SpecScope:=TPasGenericScope(PushScope(SpecEl,TPasRecordScope));
+    SpecScope:=TPasGenericScope(PushScope(SpecEl,ScopeClass_Record));
     SpecScope.VisibilityContext:=SpecEl;
     SpecScope.SpecializedFromItem:=SpecializedItem;
     AddSpecializedTemplateIdentifiers(GenEl.GenericTemplateTypes,
@@ -20288,6 +20291,7 @@ begin
   FScopeClass_InitialFinalization:=TPasInitialFinalizationScope;
   FScopeClass_Module:=TPasModuleScope;
   FScopeClass_Proc:=TPasProcedureScope;
+  FScopeClass_Record:=TPasRecordScope;
   FScopeClass_Section:=TPasSectionScope;
   FScopeClass_WithExpr:=TPasWithExprScope;
   fExprEvaluator:=TResExprEvaluator.Create;
