@@ -359,6 +359,20 @@ procedure TInternalLinkerZXSpectrum.DefaultLinkScript;
           end;
       end;
     LinkScript.Concat('ENDGROUP');
+
+    LinkScript.Concat('EXESECTION .text');
+    LinkScript.Concat('  OBJSECTION _CODE');
+    LinkScript.Concat('ENDEXESECTION');
+    LinkScript.Concat('EXESECTION .data');
+    LinkScript.Concat('  OBJSECTION _DATA');
+    LinkScript.Concat('ENDEXESECTION');
+    LinkScript.Concat('EXESECTION .bss');
+    LinkScript.Concat('  OBJSECTION .bss');
+    LinkScript.Concat('  OBJSECTION .heap');
+    LinkScript.Concat('  OBJSECTION .stack');
+    LinkScript.Concat('ENDEXESECTION');
+
+    LinkScript.Concat('ENTRYNAME start');
   end;
 
 function TInternalLinkerZXSpectrum.GetCodeSize(aExeOutput: TExeOutput): QWord;
