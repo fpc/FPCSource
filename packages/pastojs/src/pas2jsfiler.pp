@@ -844,7 +844,7 @@ type
     procedure WriteEnumType(Obj: TJSONObject; El: TPasEnumType; aContext: TPCUWriterContext); virtual;
     procedure WriteSetType(Obj: TJSONObject; El: TPasSetType; aContext: TPCUWriterContext); virtual;
     procedure WriteRecordVariant(Obj: TJSONObject; El: TPasVariant; aContext: TPCUWriterContext); virtual;
-    procedure WriteRecordTypeScope(Obj: TJSONObject; Scope: TPasRecordScope; aContext: TPCUWriterContext); virtual;
+    procedure WriteRecordTypeScope(Obj: TJSONObject; Scope: TPas2jsRecordScope; aContext: TPCUWriterContext); virtual;
     procedure WriteRecordType(Obj: TJSONObject; El: TPasRecordType; aContext: TPCUWriterContext); virtual;
     procedure WriteClassScopeFlags(Obj: TJSONObject; const PropName: string; const Value, DefaultValue: TPasClassScopeFlags); virtual;
     procedure WriteClassIntfMapProcs(Obj: TJSONObject; Map: TPasClassIntfMap); virtual;
@@ -1137,7 +1137,7 @@ type
     procedure ReadSetType(Obj: TJSONObject; El: TPasSetType; aContext: TPCUReaderContext); virtual;
     function ReadPackedMode(Obj: TJSONObject; const PropName: string; ErrorEl: TPasElement): TPackMode; virtual;
     procedure ReadRecordVariant(Obj: TJSONObject; El: TPasVariant; aContext: TPCUReaderContext); virtual;
-    procedure ReadRecordScope(Obj: TJSONObject; Scope: TPasRecordScope; aContext: TPCUReaderContext); virtual;
+    procedure ReadRecordScope(Obj: TJSONObject; Scope: TPas2jsRecordScope; aContext: TPCUReaderContext); virtual;
     procedure ReadRecordType(Obj: TJSONObject; El: TPasRecordType; aContext: TPCUReaderContext); virtual;
     function ReadClassInterfaceType(Obj: TJSONObject; const PropName: string; ErrorEl: TPasElement; DefaultValue: TPasClassInterfaceType): TPasClassInterfaceType;
     function ReadClassScopeFlags(Obj: TJSONObject; El: TPasElement;
@@ -4038,7 +4038,7 @@ begin
 end;
 
 procedure TPCUWriter.WriteRecordTypeScope(Obj: TJSONObject;
-  Scope: TPasRecordScope; aContext: TPCUWriterContext);
+  Scope: TPas2jsRecordScope; aContext: TPCUWriterContext);
 begin
   AddReferenceToObj(Obj,'DefaultProperty',Scope.DefaultProperty);
   WriteIdentifierScope(Obj,Scope,aContext);
@@ -4059,7 +4059,7 @@ begin
     WriteElementProperty(Obj,El,'VariantEl',El.VariantEl,aContext);
   WriteElementList(Obj,El,'Variants',El.Variants,aContext);
 
-  WriteRecordTypeScope(Obj,El.CustomData as TPasRecordScope,aContext);
+  WriteRecordTypeScope(Obj,El.CustomData as TPas2jsRecordScope,aContext);
 end;
 
 procedure TPCUWriter.WriteClassScopeFlags(Obj: TJSONObject;
@@ -5076,7 +5076,7 @@ end;
 procedure TPCUReader.Set_RecordScope_DefaultProperty(RefEl: TPasElement;
   Data: TObject);
 var
-  Scope: TPasRecordScope absolute Data;
+  Scope: TPas2jsRecordScope absolute Data;
 begin
   if RefEl is TPasProperty then
     Scope.DefaultProperty:=TPasProperty(RefEl) // no AddRef
@@ -8168,7 +8168,7 @@ begin
   ReadElType(Obj,'Members',El,@Set_Variant_Members,aContext);
 end;
 
-procedure TPCUReader.ReadRecordScope(Obj: TJSONObject; Scope: TPasRecordScope;
+procedure TPCUReader.ReadRecordScope(Obj: TJSONObject; Scope: TPas2jsRecordScope;
   aContext: TPCUReaderContext);
 begin
   ReadElementReference(Obj,Scope,'DefaultProperty',@Set_RecordScope_DefaultProperty);
@@ -8180,13 +8180,13 @@ procedure TPCUReader.ReadRecordType(Obj: TJSONObject; El: TPasRecordType;
 var
   Data: TJSONData;
   Id: Integer;
-  Scope: TPasRecordScope;
+  Scope: TPas2jsRecordScope;
   SubObj: TJSONObject;
 begin
   if FileVersion<3 then
     RaiseMsg(20190109214718,El,'record format changed');
 
-  Scope:=TPasRecordScope(Resolver.CreateScope(El,TPasRecordScope));
+  Scope:=TPas2jsRecordScope(Resolver.CreateScope(El,TPas2jsRecordScope));
   El.CustomData:=Scope;
 
   ReadPasElement(Obj,El,aContext);

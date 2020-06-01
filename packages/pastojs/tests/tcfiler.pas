@@ -75,7 +75,7 @@ type
     procedure CheckRestoredSectionScope(const Path: string; Orig, Rest: TPas2JSSectionScope; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredInitialFinalizationScope(const Path: string; Orig, Rest: TPas2JSInitialFinalizationScope; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredEnumTypeScope(const Path: string; Orig, Rest: TPasEnumTypeScope; Flags: TPCCheckFlags); virtual;
-    procedure CheckRestoredRecordScope(const Path: string; Orig, Rest: TPasRecordScope; Flags: TPCCheckFlags); virtual;
+    procedure CheckRestoredRecordScope(const Path: string; Orig, Rest: TPas2jsRecordScope; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredClassScope(const Path: string; Orig, Rest: TPas2JSClassScope; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredProcScope(const Path: string; Orig, Rest: TPas2JSProcedureScope; Flags: TPCCheckFlags); virtual;
     procedure CheckRestoredScopeRefs(const Path: string; Orig, Rest: TPasScopeReferences; Flags: TPCCheckFlags); virtual;
@@ -805,7 +805,7 @@ begin
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredRecordScope(const Path: string;
-  Orig, Rest: TPasRecordScope; Flags: TPCCheckFlags);
+  Orig, Rest: TPas2jsRecordScope; Flags: TPCCheckFlags);
 begin
   CheckRestoredReference(Path+'.DefaultProperty',Orig.DefaultProperty,Rest.DefaultProperty);
   CheckRestoredIdentifierScope(Path,Orig,Rest,Flags);
@@ -1107,8 +1107,8 @@ begin
     CheckRestoredInitialFinalizationScope(Path+'[TPas2JSInitialFinalizationScope]',TPas2JSInitialFinalizationScope(Orig),TPas2JSInitialFinalizationScope(Rest),Flags)
   else if C=TPasEnumTypeScope then
     CheckRestoredEnumTypeScope(Path+'[TPasEnumTypeScope]',TPasEnumTypeScope(Orig),TPasEnumTypeScope(Rest),Flags)
-  else if C=TPasRecordScope then
-    CheckRestoredRecordScope(Path+'[TPasRecordScope]',TPasRecordScope(Orig),TPasRecordScope(Rest),Flags)
+  else if C=TPas2jsRecordScope then
+    CheckRestoredRecordScope(Path+'[TPas2jsRecordScope]',TPas2jsRecordScope(Orig),TPas2jsRecordScope(Rest),Flags)
   else if C=TPas2JSClassScope then
     CheckRestoredClassScope(Path+'[TPas2JSClassScope]',TPas2JSClassScope(Orig),TPas2JSClassScope(Rest),Flags)
   else if C=TPas2JSProcedureScope then

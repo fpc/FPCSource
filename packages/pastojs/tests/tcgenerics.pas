@@ -33,10 +33,10 @@ type
     //Procedure TestGen_Class_ClassProc_Delphi;
     //Procedure TestGen_Class_ReferGenClass_DelphiFail;
     Procedure TestGen_Class_ClassConstructor;
-    // ToDo: rename local const T
     Procedure TestGen_Class_TypeCastSpecializesWarn;
     Procedure TestGen_Class_TypeCastSpecializesJSValueNoWarn;
     procedure TestGen_Class_VarArgsOfType;
+    procedure TestGen_Class_OverloadsInUnit;
 
     // generic external class
     procedure TestGen_ExtClass_Array;
@@ -769,6 +769,84 @@ begin
     '$mod.w = $mod.s.bind(null);',
     '$mod.w = $mod.s.bind(null, 6);',
     '$mod.w = $mod.s.bind(null, 7, 8);',
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_Class_OverloadsInUnit;
+begin
+  StartProgram(true,[supTObject]);
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'type',
+    '  generic TBird<T> = class',
+    '  const c = 13;',
+    '    constructor Create(w: T);',
+    '    constructor Create(b: boolean);',
+    '  end;',
+    '']),
+  LinesToStr([
+    'constructor TBird.Create(w: T);',
+    'const c = 14;',
+    'begin',
+    'end;',
+    'constructor TBird.Create(b: boolean);',
+    'const c = 15;',
+    'begin',
+    'end;',
+    '']));
+  Add([
+  'uses UnitA;',
+  'type',
+  '  TWordBird = specialize TBird<word>;',
+  '  TDoubleBird = specialize TBird<double>;',
+  'var',
+  '  wb: TWordBird;',
+  '  db: TDoubleBird;',
+  'begin',
+  '  wb:=TWordBird.Create(3);',
+  '  wb:=TWordBird.Create(true);',
+  '  db:=TDoubleBird.Create(1.3);',
+  '  db:=TDoubleBird.Create(true);',
+  '']);
+  ConvertProgram;
+  CheckUnit('UnitA.pas',
+    LinesToStr([ // statements
+    'rtl.module("UnitA", ["system"], function () {',
+    '  var $mod = this;',
+    '  rtl.createClass($mod, "TBird$G1", pas.system.TObject, function () {',
+    '    this.c = 13;',
+    '    var c$1 = 14;',
+    '    this.Create$1 = function (w) {',
+    '      return this;',
+    '    };',
+    '    var c$2 = 15;',
+    '    this.Create$2 = function (b) {',
+    '      return this;',
+    '    };',
+    '  });',
+    '  rtl.createClass($mod, "TBird$G2", pas.system.TObject, function () {',
+    '    this.c = 13;',
+    '    var c$1 = 14;',
+    '    this.Create$1 = function (w) {',
+    '      return this;',
+    '    };',
+    '    var c$2 = 15;',
+    '    this.Create$2 = function (b) {',
+    '      return this;',
+    '    };',
+    '  });',
+    '});',
+    '']));
+  CheckSource('TestGen_Class_OverloadsInUnit',
+    LinesToStr([ // statements
+    'this.wb = null;',
+    'this.db = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.wb = pas.UnitA.TBird$G1.$create("Create$1", [3]);',
+    '$mod.wb = pas.UnitA.TBird$G1.$create("Create$2", [true]);',
+    '$mod.db = pas.UnitA.TBird$G2.$create("Create$1", [1.3]);',
+    '$mod.db = pas.UnitA.TBird$G2.$create("Create$2", [true]);',
     '']));
 end;
 
