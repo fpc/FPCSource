@@ -33,7 +33,7 @@ implementation
        SysUtils,
        cutils,cfileutl,cclasses,
        globtype,globals,systems,verbose,comphook,cscript,fmodule,i_zxspectrum,link,
-       cpuinfo,ogrel,owar;
+       cpuinfo,ogbase,ogrel,owar;
 
     type
 
@@ -63,6 +63,9 @@ implementation
        TInternalLinkerZXSpectrum=class(tinternallinker)
        protected
          procedure DefaultLinkScript;override;
+         function GetCodeSize(aExeOutput: TExeOutput): QWord;override;
+         function GetDataSize(aExeOutput: TExeOutput): QWord;override;
+         function GetBssSize(aExeOutput: TExeOutput): QWord;override;
        public
          constructor create;override;
          procedure InitSysInitUnitName;override;
@@ -356,6 +359,21 @@ procedure TInternalLinkerZXSpectrum.DefaultLinkScript;
           end;
       end;
     LinkScript.Concat('ENDGROUP');
+  end;
+
+function TInternalLinkerZXSpectrum.GetCodeSize(aExeOutput: TExeOutput): QWord;
+  begin
+    Result:=0;
+  end;
+
+function TInternalLinkerZXSpectrum.GetDataSize(aExeOutput: TExeOutput): QWord;
+  begin
+    Result:=0;
+  end;
+
+function TInternalLinkerZXSpectrum.GetBssSize(aExeOutput: TExeOutput): QWord;
+  begin
+    Result:=0;
   end;
 
 constructor TInternalLinkerZXSpectrum.create;
