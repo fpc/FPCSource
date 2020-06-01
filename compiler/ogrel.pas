@@ -910,6 +910,7 @@ implementation
                 end;
               end;
           end;
+        result:=true;
       end;
 
     class function TRelObjInput.CanReadObjData(AReader: TObjectreader): boolean;
