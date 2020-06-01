@@ -111,6 +111,8 @@ interface
       protected
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
+      public
+        constructor create;override;
       end;
 
 implementation
@@ -681,6 +683,12 @@ implementation
 
     procedure TIntelHexExeOutput.DoRelocationFixup(objsec: TObjSection);
       begin
+      end;
+
+    constructor TIntelHexExeOutput.create;
+      begin
+        inherited create;
+        CObjData:=TRelObjData;
       end;
 
 {*****************************************************************************
