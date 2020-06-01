@@ -657,6 +657,13 @@ implementation
       end;
 
     function TRelObjInput.ReadObjData(AReader: TObjectreader; out Data: TObjData): boolean;
+
+      function HandleTR(const T,R: string): boolean;
+        begin
+          { todo: implement }
+          result:=true;
+        end;
+
       const
         GenericRelErrMsg='Error reading REL file';
       var
@@ -668,6 +675,7 @@ implementation
         tmpint: SizeInt;
         CurrSec: TObjSection=nil;
         objsym: TObjSymbol;
+        LastT: string='';
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
@@ -891,11 +899,23 @@ implementation
                     end;
                   'T': { T line () }
                     begin
-                      { todo: implement }
+                      if LastT<>'' then
+                        begin
+                          InputError('T record not followed by R record');
+                          exit;
+                        end;
+                      LastT:=s;
                     end;
                   'R': { R line (relocation information) }
                     begin
-                      { todo: implement }
+                      if LastT='' then
+                        begin
+                          InputError('R record without T record');
+                          exit;
+                        end;
+                      if not HandleTR(LastT,s) then
+                        exit;
+                      LastT:='';
                     end;
                   'P': { P line (paging information) }
                     begin
