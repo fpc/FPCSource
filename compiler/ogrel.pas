@@ -662,6 +662,9 @@ implementation
       var
         s: string;
         RecType: Char;
+        HeaderFound: Boolean=false;
+        ExpectedAreas,ExpectedSymbols: LongInt;
+        tmpint: SizeInt;
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
@@ -692,10 +695,46 @@ implementation
             if s<>'' then
               begin
                 RecType:=s[1];
+                if (length(s)<3) or (s[2]<>' ') then
+                  begin
+                    InputError('Invalid or unsupported REL record');
+                    exit;
+                  end;
+                delete(s,1,2);
                 case RecType of
                   'H': { header }
                     begin
-                      { todo: implement }
+                      if HeaderFound then
+                        begin
+                          InputError('Duplicated header');
+                          exit;
+                        end;
+                      HeaderFound:=true;
+                      tmpint:=Pos(' ',s);
+                      if not TryStrToInt('$'+Copy(s,1,tmpint-1),ExpectedAreas) then
+                        begin
+                          InputError('Invalid area count in header');
+                          exit;
+                        end;
+                      delete(s,1,tmpint);
+                      if copy(s,1,6)<>'areas ' then
+                        begin
+                          InputError('Invalid header');
+                          exit;
+                        end;
+                      delete(s,1,6);
+                      tmpint:=Pos(' ',s);
+                      if not TryStrToInt('$'+Copy(s,1,tmpint-1),ExpectedSymbols) then
+                        begin
+                          InputError('Invalid symbol count in header');
+                          exit;
+                        end;
+                      delete(s,1,tmpint);
+                      if s<>'global symbols' then
+                        begin
+                          InputError('Invalid header');
+                          exit;
+                        end;
                     end;
                   'M': { module }
                     begin
