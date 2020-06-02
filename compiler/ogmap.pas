@@ -36,7 +36,7 @@ interface
        texemap = class
        private
          t : text;
-         FImageBase : aword;
+         FImageBase : qword;
        public
          constructor Create(const s:string);
          destructor Destroy;override;
@@ -45,7 +45,7 @@ interface
          procedure AddHeader(const s:string);
          procedure AddCommonSymbolsHeader;
          procedure AddCommonSymbol(p:TObjSymbol);
-         procedure AddMemoryMapHeader(abase:aint);
+         procedure AddMemoryMapHeader(abase:qword);
          procedure AddMemoryMapExeSection(p:texesection);
          procedure AddMemoryMapObjectSection(p:TObjSection);
          procedure AddMemoryMapSymbol(p:TObjSymbol);
@@ -154,7 +154,7 @@ implementation
        end;
 
 
-     procedure TExeMap.AddMemoryMapHeader(abase:aint);
+     procedure TExeMap.AddMemoryMapHeader(abase:qword);
        var
          imagebasestr : string;
        begin
