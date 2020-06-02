@@ -367,9 +367,9 @@ procedure TInternalLinkerZXSpectrum.DefaultLinkScript;
     LinkScript.Concat('  OBJSECTION _DATA');
     LinkScript.Concat('ENDEXESECTION');
     LinkScript.Concat('EXESECTION .bss');
-    LinkScript.Concat('  OBJSECTION .bss');
-    LinkScript.Concat('  OBJSECTION .heap');
-    LinkScript.Concat('  OBJSECTION .stack');
+    LinkScript.Concat('  OBJSECTION _BSS');
+    LinkScript.Concat('  OBJSECTION _HEAP');
+    LinkScript.Concat('  OBJSECTION _STACK');
     LinkScript.Concat('ENDEXESECTION');
 
     LinkScript.Concat('ENTRYNAME start');

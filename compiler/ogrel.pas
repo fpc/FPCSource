@@ -253,8 +253,8 @@ implementation
           '_CODE',
           '_DATA',
           '_DATA',
-          '.rodata',
-          '.bss',
+          '_DATA',
+          '_BSS',
           '.threadvar',
           '.pdata',
           '', { stubs }
@@ -305,8 +305,8 @@ implementation
           '.objc_catlist',
           '.obcj_nlcatlist',
           '.objc_protolist',
-          '.stack',
-          '.heap',
+          '_STACK',
+          '_HEAP',
           '.gcc_except_table',
           '.ARM.attributes'
         );
