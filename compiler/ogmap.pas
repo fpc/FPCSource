@@ -63,7 +63,7 @@ implementation
     const
       HexTbl : array[0..15] of char='0123456789abcdef';
 
-    function sizestr(v:aword):string;
+    function sizestr(v:qword):string;
       var
         tmp:array [0..19] of char;
         i:longint;
