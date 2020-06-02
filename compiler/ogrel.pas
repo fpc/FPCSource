@@ -709,6 +709,7 @@ implementation
           reloc:TRelRelocation;
           RelocDataOffset: TObjSectionOfs;
           RelocTyp: TObjRelocationType;
+          zeros_only: Boolean;
         begin
           result:=false;
           if (length(T)<5) or (((length(T)-2) mod 3)<>0) then
@@ -780,6 +781,21 @@ implementation
             begin
               InputError('Area offset in T exceeds area size');
               exit;
+            end;
+          { section name is '_BSS'/'_STACK'/'_HEAP' and there are no relocations }
+          if ((ObjSec.Name='_BSS') or (ObjSec.Name='_STACK') or (ObjSec.Name='_HEAP')) and
+             (length(ArrR)=4) then
+            begin
+              zeros_only:=true;
+              for i:=2 to length(ArrT)-1 do
+                if ArrT[i]<>0 then
+                  begin
+                    zeros_only:=false;
+                    break;
+                  end;
+              { avoid setting the oso_Data flag on .bss sections, if there are no relocations and all data is zero }
+              if zeros_only then
+                exit;
             end;
           { parse relocations }
           SetLength(ArrTIsRelocHiByte,Length(ArrT));
