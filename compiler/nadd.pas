@@ -1267,9 +1267,11 @@ implementation
                    (not might_have_sideeffects(left)) and
                    (not might_have_sideeffects(right)) and
                    (is_constintnode(taddnode(left).left) or is_constintnode(taddnode(left).right) or
-                    is_constpointernode(taddnode(left).left) or is_constpointernode(taddnode(left).right)) and
+                    is_constpointernode(taddnode(left).left) or is_constpointernode(taddnode(left).right) or
+                    is_constcharnode(taddnode(left).left) or is_constcharnode(taddnode(left).right)) and
                    (is_constintnode(taddnode(right).left) or is_constintnode(taddnode(right).right) or
-                    is_constpointernode(taddnode(right).left) or is_constpointernode(taddnode(right).right)) then
+                    is_constpointernode(taddnode(right).left) or is_constpointernode(taddnode(right).right) or
+                    is_constcharnode(taddnode(right).left) or is_constcharnode(taddnode(right).right)) then
                    begin
                      if is_constnode(taddnode(left).left) then
                        begin
@@ -1296,6 +1298,8 @@ implementation
                          if not(is_integer(v1p^.resultdef)) or not(is_integer(v2p^.resultdef)) then
                            begin
                              case v1p^.resultdef.size of
+                               1:
+                                 inttype:=u8inttype;
                                2:
                                  inttype:=u16inttype;
                                4:
