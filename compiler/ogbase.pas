@@ -638,7 +638,7 @@ interface
         { Objects }
         FObjDataList  : TFPObjectList;
         { Position calculation }
-        FImageBase    : aword;
+        FImageBase    : qword;
         FCurrMemPos       : qword;
         procedure SetCurrMemPos(const AValue: qword);
       protected
@@ -728,7 +728,7 @@ interface
         property IndirectObjSymbols:TFPObjectList read FIndirectObjSymbols;
         property ExeVTableList:TFPObjectList read FExeVTableList;
         property EntryName:string read FEntryName write FEntryName;
-        property ImageBase:aword read FImageBase write FImageBase;
+        property ImageBase:qword read FImageBase write FImageBase;
         property CurrExeSec:TExeSection read FCurrExeSec;
         property ExeWriteMode:TExeWriteMode read FExeWriteMode write FExeWriteMode;
         property CurrMemPos:qword read FCurrMemPos write SetCurrMemPos;
