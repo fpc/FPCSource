@@ -61,6 +61,8 @@ implementation
        { TInternalLinkerZXSpectrum }
 
        TInternalLinkerZXSpectrum=class(tinternallinker)
+       private
+         FOrigin: Word;
        protected
          procedure DefaultLinkScript;override;
          function GetCodeSize(aExeOutput: TExeOutput): QWord;override;
@@ -360,6 +362,8 @@ procedure TInternalLinkerZXSpectrum.DefaultLinkScript;
       end;
     LinkScript.Concat('ENDGROUP');
 
+    LinkScript.Concat('IMAGEBASE '+tostr(FOrigin));
+
     LinkScript.Concat('EXESECTION .text');
     LinkScript.Concat('  OBJSECTION _CODE');
     LinkScript.Concat('ENDEXESECTION');
@@ -396,6 +400,7 @@ constructor TInternalLinkerZXSpectrum.create;
     CArObjectReader:=TArObjectReader;
     CExeOutput:=TIntelHexExeOutput;
     CObjInput:=TRelObjInput;
+    FOrigin:={32768}23800;
   end;
 
 procedure TInternalLinkerZXSpectrum.InitSysInitUnitName;
