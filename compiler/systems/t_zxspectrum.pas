@@ -35,6 +35,9 @@ implementation
        globtype,globals,systems,verbose,comphook,cscript,fmodule,i_zxspectrum,link,
        cpuinfo,ogbase,ogrel,owar;
 
+    const
+       DefaultOrigin=23800;
+
     type
 
        { sdld - the sdld linker from the SDCC project ( http://sdcc.sourceforge.net/ ) }
@@ -186,7 +189,10 @@ procedure TLinkerZXSpectrum.SetDefaultInfo_Sdld;
   const
     ExeName='sdldz80';
   begin
-    FOrigin:={32768}23800;
+    if ImageBaseSetExplicity then
+      FOrigin:=ImageBase
+    else
+      FOrigin:=DefaultOrigin;
     with Info do
      begin
        ExeCmd[1]:=ExeName+' -n $OPT -i $MAP $EXE -f $RES'
@@ -197,7 +203,10 @@ procedure TLinkerZXSpectrum.SetDefaultInfo_Vlink;
   const
     ExeName='vlink';
   begin
-    FOrigin:={32768}23800;
+    if ImageBaseSetExplicity then
+      FOrigin:=ImageBase
+    else
+      FOrigin:=DefaultOrigin;
     with Info do
      begin
        ExeCmd[1]:=ExeName+' -bihex $GCSECTIONS -e $STARTSYMBOL $STRIP $OPT -o $EXE -T $RES'
@@ -384,7 +393,10 @@ constructor TInternalLinkerZXSpectrum.create;
     CArObjectReader:=TArObjectReader;
     CExeOutput:=TIntelHexExeOutput;
     CObjInput:=TRelObjInput;
-    FOrigin:={32768}23800;
+    if ImageBaseSetExplicity then
+      FOrigin:=ImageBase
+    else
+      FOrigin:=DefaultOrigin;
   end;
 
 procedure TInternalLinkerZXSpectrum.InitSysInitUnitName;
