@@ -121,6 +121,9 @@ interface
       { TIntelHexExeOutput }
 
       TIntelHexExeOutput = class(TExeOutput)
+      private
+        procedure writeString(const S: ansistring);
+        procedure writeLine(const S: ansistring);
       protected
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
@@ -1198,9 +1201,61 @@ implementation
                              TIntelHexExeOutput
 *****************************************************************************}
 
+    procedure TIntelHexExeOutput.writeString(const S: ansistring);
+      begin
+        FWriter.write(S[1],Length(S));
+      end;
+
+    procedure TIntelHexExeOutput.writeLine(const S: ansistring);
+      begin
+        writeString(S+#10)
+      end;
+
     function TIntelHexExeOutput.writeData: boolean;
+      const
+        MaxRecLen=16;
+      var
+        exesec: TExeSection;
+        objsec: TObjSection;
+        exesec_i, objsec_i: Integer;
+        s: string;
+        blocklen, i: integer;
+        buf: array [0..MaxRecLen-1] of Byte;
+        blockaddr: Word;
+        checksum: Byte;
       begin
         result:=false;
+        for exesec_i:=0 to ExeSectionList.Count-1 do
+          begin
+            exesec:=TExeSection(ExeSectionList[exesec_i]);
+            for objsec_i:=0 to exesec.ObjSectionList.Count-1 do
+              begin
+                objsec:=TObjSection(exesec.ObjSectionList[objsec_i]);
+                if oso_Data in objsec.SecOptions then
+                  begin
+                    objsec.Data.seek(0);
+                    while objsec.Data.Pos<objsec.Data.size do
+                      begin
+                        blocklen:=Min(objsec.Data.size-objsec.Data.Pos,MaxRecLen);
+                        blockaddr:=objsec.Data.Pos+objsec.MemPos+ImageBase;
+                        s:=':'+HexStr(blocklen,2)+HexStr(blockaddr,4)+'00';
+                        checksum:=Byte(blocklen)+Byte(blockaddr shr 8)+Byte(blockaddr)+0;
+                        if objsec.Data.read(buf,blocklen)<>blocklen then
+                          internalerror(2020060301);
+                        for i:=0 to blocklen-1 do
+                          begin
+                            s:=s+HexStr(buf[i],2);
+                            checksum:=Byte(checksum+buf[i]);
+                          end;
+                        checksum:=$100-checksum;
+                        s:=s+HexStr(checksum,2);
+                        writeLine(s);
+                      end;
+                  end;
+              end;
+          end;
+        writeLine(':00000001FF');
+        result:=true;
       end;
 
     procedure TIntelHexExeOutput.DoRelocationFixup(objsec: TObjSection);
