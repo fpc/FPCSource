@@ -1259,7 +1259,56 @@ implementation
       end;
 
     procedure TIntelHexExeOutput.DoRelocationFixup(objsec: TObjSection);
+      var
+        i: Integer;
+        objreloc: TRelRelocation;
+        target,w: Word;
+        b: Byte;
       begin
+        for i:=0 to objsec.ObjRelocations.Count-1 do
+          begin
+            objreloc:=TRelRelocation(objsec.ObjRelocations[i]);
+            if assigned(objreloc.symbol) then
+              target:=objreloc.symbol.address+ImageBase
+            else if assigned(objreloc.objsection) then
+              target:=objreloc.objsection.MemPos+ImageBase
+            else
+              internalerror(2020060302);
+            case objreloc.typ of
+              RELOC_ABSOLUTE:
+                begin
+                  objsec.Data.seek(objreloc.DataOffset);
+                  objsec.Data.read(w,2);
+                  w:=LEtoN(w);
+                  Inc(w,target);
+                  w:=LEtoN(w);
+                  objsec.Data.seek(objreloc.DataOffset);
+                  objsec.Data.write(w,2);
+                end;
+              RELOC_ABSOLUTE_HI8:
+                begin
+                  objsec.Data.seek(objreloc.DataOffset);
+                  objsec.Data.read(b,1);
+                  w:=b or (objreloc.HiByte shl 8);
+                  Inc(w,target);
+                  b:=Byte(w shr 8);
+                  objsec.Data.seek(objreloc.DataOffset);
+                  objsec.Data.write(b,1);
+                end;
+              RELOC_ABSOLUTE_LO8:
+                begin
+                  objsec.Data.seek(objreloc.DataOffset);
+                  objsec.Data.read(b,1);
+                  w:=b or (objreloc.HiByte shl 8);
+                  Inc(w,target);
+                  b:=Byte(w);
+                  objsec.Data.seek(objreloc.DataOffset);
+                  objsec.Data.write(b,1);
+                end;
+              else
+                internalerror(2020060303);
+            end;
+          end;
       end;
 
     constructor TIntelHexExeOutput.create;
