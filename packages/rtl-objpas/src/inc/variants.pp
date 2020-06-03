@@ -54,12 +54,12 @@ type
 
 Const
   OrdinalVarTypes = [varSmallInt, varInteger, varBoolean, varShortInt,
-                     varByte, varWord,varLongWord,varInt64];
+                     varByte, varWord,varLongWord,varInt64,varQWord];
   FloatVarTypes = [
 {$ifndef FPUNONE}
     varSingle, varDouble,
 {$endif}
-    varCurrency];
+    varCurrency, varDecimal];
 
 { Variant support procedures and functions }
 
