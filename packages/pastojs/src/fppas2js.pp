@@ -18287,19 +18287,41 @@ var
     ObjLit.Expr:=JS;
   end;
 
+  function VarTypeInfoAlreadyCreated(VarType: TPasType): boolean;
+  var
+    i: Integer;
+    PrevMember: TPasElement;
+  begin
+    i:=Index-1;
+    while (i>=0) do
+      begin
+      PrevMember:=TPasElement(Members[i]);
+      if (PrevMember is TPasVariable) and (TPasVariable(PrevMember).VarType=VarType)
+          and IsElementUsed(PrevMember) then
+        exit(true);
+      dec(i);
+      end;
+    Result:=false;
+  end;
+
 var
   JSTypeInfo: TJSElement;
   aName: String;
   aResolver: TPas2JSResolver;
   Attr: TPasExprArray;
+  VarType: TPasType;
 begin
   Result:=nil;
   aResolver:=AContext.Resolver;
   V:=TPasVariable(Members[Index]);
-  if (V.VarType<>nil) and (V.VarType.Name='') then
-    CreateRTTIAnonymous(V.VarType,AContext);
+  VarType:=V.VarType;
+  if (VarType<>nil) and (VarType.Name='') then
+    begin
+    if not VarTypeInfoAlreadyCreated(VarType) then
+      CreateRTTIAnonymous(VarType,AContext);
+    end;
 
-  JSTypeInfo:=CreateTypeInfoRef(V.VarType,AContext,V);
+  JSTypeInfo:=CreateTypeInfoRef(VarType,AContext,V);
   OptionsEl:=nil;
   // Note: create JSTypeInfo first, it may raise an exception
   Call:=CreateCallExpression(V);
