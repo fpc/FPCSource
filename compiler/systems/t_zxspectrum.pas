@@ -68,6 +68,8 @@ implementation
        public
          constructor create;override;
          procedure InitSysInitUnitName;override;
+         function MakeExecutable: boolean; override;
+         function postprocessexecutable(const fn : string): boolean;
        end;
 
 
@@ -388,6 +390,38 @@ constructor TInternalLinkerZXSpectrum.create;
 procedure TInternalLinkerZXSpectrum.InitSysInitUnitName;
   begin
     sysinitunit:='si_prc';
+  end;
+
+function TInternalLinkerZXSpectrum.MakeExecutable: boolean;
+  begin
+    result:=inherited;
+    { Post process }
+    if result and not(cs_link_nolink in current_settings.globalswitches) then
+      result:=PostProcessExecutable(current_module.exefilename);
+  end;
+
+function TInternalLinkerZXSpectrum.postprocessexecutable(const fn: string): boolean;
+  var
+    exitcode: longint;
+    FoundBin: ansistring;
+    Found: Boolean;
+    utilexe: TCmdStr;
+  begin
+    result:=false;
+
+    utilexe:=utilsprefix+'ihx2tzx';
+    FoundBin:='';
+    Found:=false;
+    if utilsdirectory<>'' then
+      Found:=FindFile(utilexe,utilsdirectory,false,Foundbin);
+    if (not Found) then
+      Found:=FindExe(utilexe,false,Foundbin);
+
+    if Found then
+      begin
+        exitcode:=RequotedExecuteProcess(foundbin,' '+fn);
+        result:=exitcode<>0;
+      end;
   end;
 
 {*****************************************************************************

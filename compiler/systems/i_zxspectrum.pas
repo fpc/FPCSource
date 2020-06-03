@@ -44,7 +44,7 @@ unit i_zxspectrum;
             cpu          : cpu_z80;
             unit_env     : '';
             extradefines : '';
-            exeext       : '';
+            exeext       : '.tzx';
             defext       : '.def';
             scriptext    : '.sh';
             smartext     : '.sl';
