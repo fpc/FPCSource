@@ -65,9 +65,6 @@ implementation
          FOrigin: Word;
        protected
          procedure DefaultLinkScript;override;
-         function GetCodeSize(aExeOutput: TExeOutput): QWord;override;
-         function GetDataSize(aExeOutput: TExeOutput): QWord;override;
-         function GetBssSize(aExeOutput: TExeOutput): QWord;override;
        public
          constructor create;override;
          procedure InitSysInitUnitName;override;
@@ -377,21 +374,6 @@ procedure TInternalLinkerZXSpectrum.DefaultLinkScript;
     LinkScript.Concat('ENDEXESECTION');
 
     LinkScript.Concat('ENTRYNAME start');
-  end;
-
-function TInternalLinkerZXSpectrum.GetCodeSize(aExeOutput: TExeOutput): QWord;
-  begin
-    Result:=0;
-  end;
-
-function TInternalLinkerZXSpectrum.GetDataSize(aExeOutput: TExeOutput): QWord;
-  begin
-    Result:=0;
-  end;
-
-function TInternalLinkerZXSpectrum.GetBssSize(aExeOutput: TExeOutput): QWord;
-  begin
-    Result:=0;
   end;
 
 constructor TInternalLinkerZXSpectrum.create;
