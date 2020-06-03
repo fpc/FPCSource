@@ -2492,8 +2492,8 @@ unit aoptx86;
 {$endif i386}
                         ;
                   end;
-              end;
-(*          { movl [mem1],reg1
+              end
+            { movl [mem1],reg1
               movl [mem1],reg2
 
               to
@@ -2501,16 +2501,18 @@ unit aoptx86;
               movl [mem1],reg1
               movl reg1,reg2
              }
-             else if (taicpu(p).oper[0]^.typ = top_ref) and
-                (taicpu(p).oper[1]^.typ = top_reg) and
-                (taicpu(hp1).oper[0]^.typ = top_ref) and
-                (taicpu(hp1).oper[1]^.typ = top_reg) and
-                (taicpu(p).opsize = taicpu(hp1).opsize) and
-                RefsEqual(TReference(taicpu(p).oper[0]^^),taicpu(hp1).oper[0]^^.ref^) and
-                (taicpu(p).oper[1]^.reg<>taicpu(hp1).oper[0]^^.ref^.base) and
-                (taicpu(p).oper[1]^.reg<>taicpu(hp1).oper[0]^^.ref^.index) then
-                taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg)
-              else*)
+             else if MatchOpType(taicpu(p),top_ref,top_reg) and
+               MatchOpType(taicpu(hp1),top_ref,top_reg) and
+               (taicpu(p).opsize = taicpu(hp1).opsize) and
+               RefsEqual(taicpu(p).oper[0]^.ref^,taicpu(hp1).oper[0]^.ref^) and
+               (taicpu(p).oper[0]^.ref^.volatility=[]) and
+               (taicpu(hp1).oper[0]^.ref^.volatility=[]) and
+               not(SuperRegistersEqual(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[0]^.ref^.base)) and
+               not(SuperRegistersEqual(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[0]^.ref^.index)) then
+               begin
+                 DebugMsg(SPeepholeOptimization + 'MovMov2MovMov 2',p);
+                 taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
+               end;
 
             {   movl const1,[mem1]
                 movl [mem1],reg1
