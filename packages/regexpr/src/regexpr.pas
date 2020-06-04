@@ -2951,6 +2951,7 @@ var
   Len: integer;
   SavedPtr: PRegExprChar;
   EnderChar, TempChar: REChar;
+  DashForRange: Boolean;
 begin
   Result := nil;
   flags := 0;
@@ -3008,8 +3009,18 @@ begin
 
         while (regparse < fRegexEnd) and (regparse^ <> ']') do
         begin
-          if (regparse^ = '-') and ((regparse + 1) < fRegexEnd) and
-            ((regparse + 1)^ <> ']') and CanBeRange then
+          // last '-' inside [] treated as simple dash
+          if (regparse^ = '-') and
+            ((regparse + 1) < fRegexEnd) and
+            ((regparse + 1)^ = ']') then
+          begin
+            EmitRangeChar('-', False);
+            Inc(regparse);
+            Break;
+          end;
+
+          // char '-' which (maybe) makes a range
+          if (regparse^ = '-') and ((regparse + 1) < fRegexEnd) and CanBeRange then
           begin
             Inc(regparse);
             RangeEnd := regparse^;
@@ -3085,12 +3096,22 @@ begin
               else
               begin
                 TempChar := UnQuoteChar(regparse);
-                EmitRangeChar(TempChar, (regparse + 1)^ = '-');
+                // False if '-' is last char in []
+                DashForRange :=
+                  (regparse + 2 < fRegexEnd) and
+                  ((regparse + 1)^ = '-') and
+                  ((regparse + 2)^ <> ']');
+                EmitRangeChar(TempChar, DashForRange);
               end;
             end
             else
             begin
-              EmitRangeChar(regparse^, (regparse + 1)^ = '-');
+              // False if '-' is last char in []
+              DashForRange :=
+                (regparse + 2 < fRegexEnd) and
+                ((regparse + 1)^ = '-') and
+                ((regparse + 2)^ <> ']');
+              EmitRangeChar(regparse^, DashForRange);
             end;
             Inc(regparse);
           end;
@@ -4468,7 +4489,7 @@ begin
   end;
   SetLength(Result, ResultLen);
   // Fill Result
-  ResultPtr := Pointer(Result);
+  ResultPtr := PRegExprChar(Result);
   p := TemplateBeg;
   Mode := smodeNormal;
   while p < TemplateEnd do
