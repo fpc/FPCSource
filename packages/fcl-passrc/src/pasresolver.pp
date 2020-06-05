@@ -2366,6 +2366,7 @@ type
     function GetCombinedBaseType(const A, B: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function IsElementSkipped(El: TPasElement): boolean; virtual;
     function FindLocalBuiltInSymbol(El: TPasElement): TPasElement; virtual;
+    function GetFirstSection: TPasSection;
     function GetLastSection: TPasSection;
     function GetShiftAndMaskForLoHiFunc(BaseType: TResolverBaseType;
       isLoFunc: Boolean; out Mask: LongWord): Integer;
@@ -29154,6 +29155,23 @@ begin
     Result:=BuiltInProcs[TResElDataBuiltInProc(Data).BuiltIn].Element
   else
     Result:=nil;
+end;
+
+function TPasResolver.GetFirstSection: TPasSection;
+var
+  Module: TPasModule;
+begin
+  Result:=nil;
+  Module:=RootElement;
+  if Module=nil then exit;
+  if Module is TPasProgram then
+    Result:=TPasProgram(Module).ProgramSection
+  else if Module is TPasLibrary then
+    Result:=TPasLibrary(Module).LibrarySection
+  else if Module.InterfaceSection<>nil then
+    Result:=Module.InterfaceSection
+  else
+    Result:=Module.ImplementationSection;
 end;
 
 function TPasResolver.GetLastSection: TPasSection;
