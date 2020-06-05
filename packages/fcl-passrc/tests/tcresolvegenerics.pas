@@ -51,6 +51,7 @@ type
     procedure TestGen_RecordDelphi;
     procedure TestGen_RecordNestedSpecialized;
     procedure TestGen_Record_SpecializeSelfInsideFail;
+    procedure TestGen_Record_ReferGenericSelfFail;
     procedure TestGen_RecordAnoArray;
     // ToDo: unitname.specialize TBird<word>.specialize
     procedure TestGen_RecordNestedSpecialize;
@@ -690,6 +691,21 @@ begin
   'type',
   '  generic TBird<T> = record',
   '    v: specialize TBird<word>;',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('type "TBird<>" is not yet completely defined',
+    nTypeXIsNotYetCompletelyDefined);
+end;
+
+procedure TTestResolveGenerics.TestGen_Record_ReferGenericSelfFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'Type',
+  '  TBird<T> = record',
+  '    b: TBird<T>;',
   '  end;',
   'begin',
   '']);

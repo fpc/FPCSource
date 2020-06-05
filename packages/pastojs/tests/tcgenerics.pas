@@ -16,8 +16,7 @@ type
   Published
     // generic record
     Procedure TestGen_RecordEmpty;
-    Procedure TestGen_Record_ClassProc_ObjFPC;
-    //Procedure TestGen_Record_ClassProc_Delphi;
+    Procedure TestGen_Record_ClassProc;
     //Procedure TestGen_Record_ReferGenClass_DelphiFail;
 
     // generic class
@@ -29,8 +28,7 @@ type
     Procedure TestGen_Class_TypeInfo;
     Procedure TestGen_Class_TypeOverload; // ToDo TBird, TBird<T>, TBird<S,T>
     Procedure TestGen_Class_ClassProperty;
-    Procedure TestGen_Class_ClassProc_ObjFPC;
-    //Procedure TestGen_Class_ClassProc_Delphi;
+    Procedure TestGen_Class_ClassProc;
     //Procedure TestGen_Class_ReferGenClass_DelphiFail;
     Procedure TestGen_Class_ClassConstructor;
     Procedure TestGen_Class_TypeCastSpecializesWarn;
@@ -105,7 +103,7 @@ begin
     ]));
 end;
 
-procedure TTestGenerics.TestGen_Record_ClassProc_ObjFPC;
+procedure TTestGenerics.TestGen_Record_ClassProc;
 begin
   StartProgram(false);
   Add([
@@ -501,7 +499,7 @@ begin
     '']));
 end;
 
-procedure TTestGenerics.TestGen_Class_ClassProc_ObjFPC;
+procedure TTestGenerics.TestGen_Class_ClassProc;
 begin
   StartProgram(false);
   Add([

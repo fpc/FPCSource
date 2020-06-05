@@ -16412,10 +16412,7 @@ var
       writeln('InsertBehind Generic=',GetObjName(GenericEl),' Last=',GetObjName(Last));
       //for i:=0 to List.Count-1 do writeln('  ',GetObjName(TObject(List[i])));
       {$ENDIF}
-      if GenericEl is TPasProcedure then
-        i:=List.Count-1
-      else
-        RaiseNotYetImplemented(20190826150507,El);
+      i:=List.Count-1;
       end;
     List.Insert(i+1,NewEl);
   end;
