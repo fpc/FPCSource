@@ -407,6 +407,8 @@ Works:
 - async procedure modifier
 - function await(const expr: T): T
 - function await(T; p: TJSPromise): T
+- constref
+- generics
 
 ToDos:
 - range check:
@@ -420,7 +422,6 @@ ToDos:
 - $OPTIMIZATION ON|OFF
 - $optimization REMOVEEMPTYPROCS
 - $optimization REMOVEEMPTYPROCS,RemoveNotUsedDeclarations-
-- setlength(dynarray)  modeswitch to not create a copy
 - static arrays
   - clone multi dim static array
 - RTTI
@@ -436,7 +437,6 @@ ToDos:
 - call array of proc element without ()
 - enums with custom values
 - library
-- constref
 - option overflow checking -Co
   +, -, *, Succ, Pred, Inc, Dec
   -CO   : Check for possible overflow of integer operations
@@ -444,7 +444,6 @@ ToDos:
 - optimizations:
   see https://wiki.lazarus.freepascal.org/Pas2js_optimizations
 - objects
-- generics
 - operator overloading
   - operator enumerator
 - inline
@@ -1316,6 +1315,25 @@ const
     proMethodAddrAsPointer,
     proSafecallAllowsDefault
     ];
+
+type
+  TPasToJsConverterOption = (
+    coLowerCase, // lowercase all identifiers, except conflicts with JS reserved words
+    coSwitchStatement, // convert case-of into switch instead of if-then-else
+    coEnumNumbers, // use enum numbers instead of names
+    coUseStrict,   // insert 'use strict'
+    coNoTypeInfo,  // do not generate RTTI
+    coEliminateDeadCode,  // skip code that is never executed
+    coStoreImplJS,  // store references to JS code in procscopes
+    coRTLVersionCheckMain, // insert rtl version check into main
+    coRTLVersionCheckSystem, // insert rtl version check into system unit init
+    coRTLVersionCheckUnit, // insert rtl version check into every unit init
+    coAliaslobals // use short alias variables for global identifiers
+    );
+  TPasToJsConverterOptions = set of TPasToJsConverterOption;
+const
+  DefaultPasToJSOptions = [coLowerCase];
+
 type
   TPas2JSResolver = class;
 
@@ -1329,7 +1347,10 @@ type
     FTargetProcessor: TPasToJsProcessor;
   protected
     function HandleInclude(const Param: String): TToken; override;
+    procedure DoHandleOptimization(OptName, OptValue: string); override;
   public
+    GlobalConvOptsEnabled: TPasToJsConverterOptions;
+    GlobalConvOptsDisabled: TPasToJsConverterOptions;
     function ReadNonPascalTillEndToken(StopAtLineEnd: boolean): TToken;
       override;
     property CompilerVersion: string read FCompilerVersion write FCompilerVersion;
@@ -1680,22 +1701,7 @@ type
 
 //------------------------------------------------------------------------------
 // TPasToJSConverter
-type
-  TPasToJsConverterOption = (
-    coLowerCase, // lowercase all identifiers, except conflicts with JS reserved words
-    coSwitchStatement, // convert case-of into switch instead of if-then-else
-    coEnumNumbers, // use enum numbers instead of names
-    coUseStrict,   // insert 'use strict'
-    coNoTypeInfo,  // do not generate RTTI
-    coEliminateDeadCode,  // skip code that is never executed
-    coStoreImplJS,  // store references to JS code in procscopes
-    coRTLVersionCheckMain, // insert rtl version check into main
-    coRTLVersionCheckSystem, // insert rtl version check into system unit init
-    coRTLVersionCheckUnit // insert rtl version check into every unit init
-    );
-  TPasToJsConverterOptions = set of TPasToJsConverterOption;
 const
-  DefaultPasToJSOptions = [coLowerCase];
   DefaultJSWriterOptions = [
     {$IFDEF FPC_HAS_CPSTRING}
     woUseUTF8,
@@ -2628,6 +2634,45 @@ begin
     end;
   end;
   Result:=inherited HandleInclude(Param);
+end;
+
+procedure TPas2jsPasScanner.DoHandleOptimization(OptName, OptValue: string);
+
+  procedure HandleBoolean(o: TPasToJsConverterOption; IsGlobalSwitch: boolean);
+  var
+    Enable: Boolean;
+  begin
+    Enable:=false;
+    case lowercase(OptValue) of
+    '','on','+': Enable:=true;
+    'off','-': Enable:=false;
+    else
+      Error(nErrWrongSwitchToggle,SErrWrongSwitchToggle,[]);
+    end;
+    if IsGlobalSwitch and SkipGlobalSwitches then
+      begin
+      DoLog(mtWarning,nMisplacedGlobalCompilerSwitch,SMisplacedGlobalCompilerSwitch,[]);
+      exit;
+      end;
+    if Enable then
+      begin
+      Include(GlobalConvOptsEnabled,o);
+      Exclude(GlobalConvOptsDisabled,o);
+      end
+    else
+      begin
+      Include(GlobalConvOptsDisabled,o);
+      Exclude(GlobalConvOptsEnabled,o);
+      end;
+  end;
+
+begin
+  case lowercase(OptName) of
+  'aliasglobals':
+    HandleBoolean(coAliaslobals,true);
+  else
+    DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,['optimization '+OptName]);
+  end;
 end;
 
 function TPas2jsPasScanner.ReadNonPascalTillEndToken(StopAtLineEnd: boolean
@@ -24838,9 +24883,17 @@ function TPasToJSConverter.ConvertPasElement(El: TPasElement;
   Resolver: TPas2JSResolver): TJSElement;
 var
   aContext: TRootContext;
+  Scanner: TPas2jsPasScanner;
 begin
   if FGlobals=nil then
     FGlobals:=TPasToJSConverterGlobals.Create(Self);
+  if (Resolver<>nil)
+      and (Resolver.CurrentParser<>nil)
+      and (Resolver.CurrentParser.Scanner is TPas2jsPasScanner) then
+    begin
+    Scanner:=TPas2jsPasScanner(Resolver.CurrentParser.Scanner);
+    Options:=Options+Scanner.GlobalConvOptsEnabled-Scanner.GlobalConvOptsDisabled;
+    end;
   aContext:=TRootContext.Create(El,nil,nil);
   try
     aContext.Resolver:=Resolver;

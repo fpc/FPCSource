@@ -56,6 +56,10 @@ type
 
   TTestOptimizations = class(TCustomTestOptimizations)
   published
+    // unit optimization: aliasglobals
+    procedure TestOptAliasGlobals_Program; // ToDo
+    // ToDo: procedure TestOptAliasGlobals_Unit;
+
     // Whole Program Optimization
     procedure TestWPO_OmitLocalVar;
     procedure TestWPO_OmitLocalProc;
@@ -186,6 +190,60 @@ begin
 end;
 
 { TTestOptimizations }
+
+procedure TTestOptimizations.TestOptAliasGlobals_Program;
+begin
+  exit;
+
+  StartProgram(true,[supTObject]);
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'const',
+    '  cWidth = 17;',
+    'type',
+    '  TBird = class',
+    '  public',
+    '    const c = 3;',
+    '    class function Run(w: word): word; virtual; abstract;',
+    '  end;',
+    '  TRec = record',
+    '    x: word;',
+    '  end;',
+    'var b: TBird;',
+    '']),
+  LinesToStr([
+    '']));
+  Add([
+  '{$optimization AliasGlobals}',
+  'uses unita;',
+  'type',
+  '  TEagle = class(TBird)',
+  '    class function Run(w: word = 5): word; override;',
+  '  end;',
+  'class function TEagle.Run(w: word): word;',
+  'begin',
+  'end;',
+  'var',
+  '  e: TEagle;',
+  '  r: TRec;',
+  'begin',
+  '  b:=TBird.Create;',
+  '  r.x:=TBird.c;',
+  '  r.x:=b.c;',
+  '  r.x:=e.Run;',
+  '  r.x:=e.Run();',
+  '  r.x:=e.Run(4);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestOptAliasGlobals_Program',
+    LinesToStr([
+    'this.DoIt = function () {',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.DoIt();',
+    '']));
+end;
 
 procedure TTestOptimizations.TestWPO_OmitLocalVar;
 begin

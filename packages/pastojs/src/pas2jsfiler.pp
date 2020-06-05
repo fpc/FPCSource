@@ -252,7 +252,8 @@ const
     'StoreImplJS',
     'RTLVersionCheckMain',
     'RTLVersionCheckSystem',
-    'RTLVersionCheckUnit'
+    'RTLVersionCheckUnit',
+    'AliasGlobals'
     );
 
   PCUDefaultTargetPlatform = PlatformBrowser;
