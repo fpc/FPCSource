@@ -78,7 +78,7 @@ interface
         o_palmos,o_macos,o_darwin,o_emx,o_watcom,o_morphos,o_netwlibc,
         o_win64,o_wince,o_gba,o_nds,o_embedded,o_symbian,o_nativent,o_iphonesim,
         o_wii,o_aix,o_java,o_android,o_msdos,o_aros,o_dragonfly,o_win16,o_wasm,o_freertos,
-        o_zxspectrum
+        o_zxspectrum,o_msxdos
       );
 
       TTargetSet=array[tcpu,tos] of boolean;
@@ -102,7 +102,7 @@ interface
         'palmos','macos','darwin','emx','watcom','morphos','netwlibc',
         'win64','wince','gba','nds','embedded','symbian','nativent',
         'iphonesim', 'wii', 'aix', 'java', 'android', 'msdos', 'aros',
-        'dragonfly', 'win16', 'wasm', 'freertos', 'zxspectrum'
+        'dragonfly', 'win16', 'wasm', 'freertos', 'zxspectrum', 'msxdos'
       );
 
       OSSuffix : array[TOS] of string=(
@@ -111,7 +111,7 @@ interface
         '_palmos','_macos','_darwin','_emx','_watcom','_morphos','_netwlibc',
         '_win64','_wince','_gba','_nds','_embedded','_symbian','_nativent',
         '_iphonesim','_wii','_aix','_java','_android','_msdos','_aros',
-        '_dragonfly','_win16','_wasm','_freertos','_zxspectrum'
+        '_dragonfly','_win16','_wasm','_freertos','_zxspectrum','_msxdos'
       );
 
       { This table is kept OS,Cpu because it is easier to maintain (PFV) }
@@ -157,7 +157,8 @@ interface
         { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, true , false, false, false, false,  false,  false, false),
         { wasm }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, true,  false, false,  false,  false, false),
         { freertos }( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,   true, false),
-        {zxspectrum}( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,  false, true)
+        {zxspectrum}( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,  false, true),
+        { msxdos}   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false, false,  false,  false, true)
       );
 
     type
