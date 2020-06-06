@@ -112,6 +112,7 @@ Unit raz80asm;
         procedure BuildReference(oper : tz80operand);
         procedure BuildOperand(oper: tz80operand;istypecast:boolean);
         procedure BuildOpCode(instr:TZ80Instruction);
+        procedure BuildConstant(constsize: byte);
         procedure handleopcode;
         procedure ConvertCalljmp(instr : tz80instruction);
         function Assemble: tlinkedlist;override;
@@ -226,6 +227,9 @@ Unit raz80asm;
                 firsttoken:=true;
                 exit;
               end;
+            { Directive ? }
+            if is_asmdirective(actasmpattern) then
+              exit;
             { Opcode ? }
             if is_asmopcode(upper(actasmpattern)) then
               begin
@@ -1404,10 +1408,8 @@ Unit raz80asm;
                  Message(asmr_e_only_add_relocatable_symbol);
               end;
             //AS_ALIGN,
-            //AS_DB,
-            //AS_DW,
-            //AS_DD,
-            //AS_DQ,
+            AS_DEFB,
+            AS_DEFW,
             AS_END,
             AS_RBRACKET,
             AS_SEPARATOR,
@@ -2253,6 +2255,67 @@ Unit raz80asm;
       end;
 
 
+    procedure tz80reader.BuildConstant(constsize: byte);
+      var
+       asmsymtyp : TAsmSymType;
+       asmsym,
+       expr : string;
+       value, sz : tcgint;
+       inflags : tconstsymbolexpressioninputflags;
+       outflags : tconstsymbolexpressionoutputflags;
+      begin
+        repeat
+          case actasmtoken of
+            AS_STRING:
+              Begin
+                expr:=actasmpattern;
+                if length(expr) > 1 then
+                 Message(asmr_e_string_not_allowed_as_const);
+                Consume(AS_STRING);
+                case actasmtoken of
+                  AS_COMMA: Consume(AS_COMMA);
+                  AS_END,
+                  AS_SEPARATOR: ;
+                else
+                  Message(asmr_e_invalid_string_expression);
+                end; { end case }
+                ConcatString(curlist,expr);
+              end;
+            AS_INTNUM,
+            AS_PLUS,
+            AS_MINUS,
+            AS_LPAREN,
+            AS_TYPE,
+            AS_SIZEOF,
+            AS_NOT,
+            AS_VMTOFFSET,
+            AS_ID :
+              begin
+                inflags:=[];
+                BuildConstSymbolExpression(inflags,value,asmsym,asmsymtyp,sz,outflags);
+                if asmsym<>'' then
+                  begin
+                    if constsize<>sizeof(pint) then
+                      Message(asmr_w_32bit_const_for_address);
+                     ConcatConstSymbol(curlist,asmsym,asmsymtyp,value,constsize,true)
+                  end
+                else
+                  ConcatConstant(curlist,value,constsize);
+              end;
+            AS_COMMA:
+              Consume(AS_COMMA);
+            AS_END,
+            AS_SEPARATOR:
+              break;
+            else
+              begin
+                Message(asmr_e_syn_constant);
+                RecoverConsume(false);
+              end
+          end; { end case }
+        until false;
+      end;
+
     procedure tz80reader.handleopcode;
       var
         instr: TZ80Instruction;
@@ -2339,6 +2402,22 @@ Unit raz80asm;
             AS_SEPARATOR:
               begin
                 Consume(AS_SEPARATOR);
+              end;
+
+            AS_DEFB :
+              Begin
+                inexpression:=true;
+                Consume(AS_DEFB);
+                BuildConstant(1);
+                inexpression:=false;
+              end;
+
+            AS_DEFW :
+              Begin
+                inexpression:=true;
+                Consume(AS_DEFW);
+                BuildConstant(2);
+                inexpression:=false;
               end;
 
             AS_OPCODE:
