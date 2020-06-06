@@ -52,7 +52,7 @@ unit i_msxdos;
             cpu          : cpu_z80;
             unit_env     : 'MSXDOSUNITS';
             extradefines : '';
-            exeext       : '.exe';
+            exeext       : '.com';
             defext       : '.def';
             scriptext    : '.bat';
             smartext     : '.sl';
