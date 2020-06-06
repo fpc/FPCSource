@@ -134,6 +134,8 @@ interface
          function GetCodeSize(aExeOutput: TExeOutput): QWord;virtual;
          function GetDataSize(aExeOutput: TExeOutput): QWord;virtual;
          function GetBssSize(aExeOutput: TExeOutput): QWord;virtual;
+         function ExecutableFilename:String;virtual;
+         function SharedLibFilename:String;virtual;
       public
          IsSharedLibrary : boolean;
          UseStabs : boolean;
@@ -1630,10 +1632,22 @@ Implementation
       end;
 
 
+    function TInternalLinker.ExecutableFilename:String;
+      begin
+        result:=current_module.exefilename;
+      end;
+
+
+    function TInternalLinker.SharedLibFilename:String;
+      begin
+        result:=current_module.sharedlibfilename;
+      end;
+
+
     function TInternalLinker.MakeExecutable:boolean;
       begin
         IsSharedLibrary:=false;
-        result:=RunLinkScript(current_module.exefilename);
+        result:=RunLinkScript(ExecutableFilename);
 {$ifdef hasUnix}
         fpchmod(current_module.exefilename,493);
 {$endif hasUnix}
@@ -1643,7 +1657,7 @@ Implementation
     function TInternalLinker.MakeSharedLibrary:boolean;
       begin
         IsSharedLibrary:=true;
-        result:=RunLinkScript(current_module.sharedlibfilename);
+        result:=RunLinkScript(SharedLibFilename);
       end;
 
 
