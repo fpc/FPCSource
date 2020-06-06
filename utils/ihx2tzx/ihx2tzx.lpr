@@ -29,12 +29,17 @@ uses
   { you can add units after this };
 
 const
-  ShortOptions = 'hb:c:';
+  ShortOptions = 'hb:c:t:';
   LongOptions: array [0..0] of string = (
     'help'
   );
 
 type
+
+  TOutputType = (
+    otTZX,
+    otBin
+  );
 
   { TIHX2TZX }
 
@@ -46,6 +51,7 @@ type
     FBinaryProgramName: string;
     FInputImage: TIHXReader;
     FOutputFile: TStream;
+    FOutputType: TOutputType;
     FTapeWriter: TTZXWriter;
   protected
     procedure DoRun; override;
@@ -59,7 +65,7 @@ type
 
 procedure TIHX2TZX.DoRun;
 var
-  ErrorMsg: String;
+  ErrorMsg, t: String;
   NonOptions: TStringArray;
   BasicProgram: AnsiString;
 begin
@@ -90,6 +96,17 @@ begin
   if HasOption('c', '') then
     FBinaryProgramName := GetOptionValue('c', '');
 
+  if HasOption('t', '') then begin
+    t := GetOptionValue('t', '');
+    case t of
+      'tzx': FOutputType := otTZX;
+      'bin': FOutputType := otBin;
+      else
+        raise Exception.CreateFmt('Invalid option for output type parameter: %s', [t]);
+    end;
+  end else
+    FOutputType := otTZX;
+
   NonOptions := GetNonOptions(ShortOptions, LongOptions);
   if Length(NonOptions) = 0 then
   begin
@@ -113,13 +130,21 @@ begin
   FInputImage.ReadIHXFile(FInputFileName);
 
   FOutputFile := TFileStream.Create(FOutputFileName, fmCreate);
-  FTapeWriter := TTZXWriter.Create(FOutputFile);
 
-  BasicProgram := BAS_EncodeLine(10, ' '+BC_LOAD+'"" '+BC_CODE) +
-                  BAS_EncodeLine(20, ' '+BC_PRINT+BC_USR+BAS_EncodeNumber(FInputImage.Origin));
+  case FOutputType of
+    otTZX: begin
+      FTapeWriter := TTZXWriter.Create(FOutputFile);
 
-  FTapeWriter.AppendProgramFile(FBasicProgramName, 10, Length(BasicProgram), BasicProgram[1], Length(BasicProgram));
-  FTapeWriter.AppendCodeFile(FBinaryProgramName, FInputImage.Origin, FInputImage.Data[0], Length(FInputImage.Data));
+      BasicProgram := BAS_EncodeLine(10, ' '+BC_LOAD+'"" '+BC_CODE) +
+                      BAS_EncodeLine(20, ' '+BC_PRINT+BC_USR+BAS_EncodeNumber(FInputImage.Origin));
+
+      FTapeWriter.AppendProgramFile(FBasicProgramName, 10, Length(BasicProgram), BasicProgram[1], Length(BasicProgram));
+      FTapeWriter.AppendCodeFile(FBinaryProgramName, FInputImage.Origin, FInputImage.Data[0], Length(FInputImage.Data));
+    end;
+    otBin: begin
+      FOutputFile.Write(FInputImage.Data[0], Length(FInputImage.Data));
+    end;
+  end;
 
   // stop program loop
   Terminate;
@@ -145,9 +170,12 @@ end;
 procedure TIHX2TZX.WriteHelp;
 begin
   { add your help code here }
-  writeln('Usage: ', ExeName, ' [options] ihx_file [tzx_file]');
+  writeln('Usage: ', ExeName, ' [options] ihx_file [out_file]');
   Writeln('Options: -b <name>   specify the name of the BASIC loader program on the tape');
   Writeln('         -c <name>   specify the name of the machine code program on the tape');
+  Writeln('         -t <type>   specify the output type; valid types are:');
+  Writeln('                        tzx ZX Spectrum Tape file (default)');
+  Writeln('                        bin Flat binary file (e.g. MSX-DOS COM)');
   Writeln('         -h          display this help');
   Writeln('         --help      display this help');
 end;
