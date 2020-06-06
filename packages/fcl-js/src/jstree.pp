@@ -975,6 +975,7 @@ Type
     function GetN(AIndex : Integer): TJSElementNode;
   Public
     Function AddNode : TJSElementNode;
+    Function InsertNode(Index: integer) : TJSElementNode;
     Property Nodes[AIndex : Integer] : TJSElementNode Read GetN ; default;
   end;
 
@@ -1935,6 +1936,11 @@ end;
 function TJSElementNodes.AddNode: TJSElementNode;
 begin
   Result:=TJSElementNode(Add);
+end;
+
+function TJSElementNodes.InsertNode(Index: integer): TJSElementNode;
+begin
+  Result:=TJSElementNode(Insert(Index));
 end;
 
 { TJSFunction }

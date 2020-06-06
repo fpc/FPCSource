@@ -475,8 +475,6 @@ type
     Procedure TestRecord_TypecastFail;
     Procedure TestRecord_InFunction;
     Procedure TestRecord_AnonymousFail;
-    // ToDo: RTTI of local record
-    // ToDo: pcu local record, name clash and rtti
 
     // advanced record
     Procedure TestAdvRecord_Function;

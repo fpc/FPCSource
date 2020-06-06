@@ -1125,7 +1125,8 @@ type
     function Add(const Identifier: String; El: TPasElement): TPasIdentifier; virtual;
   end;
 
-  { TPas2JSSectionScope }
+  { TPas2JSSectionScope
+    JSElement is TJSSourceElements }
 
   TPas2JSSectionScope = class(TPasSectionScope)
   public
@@ -1659,6 +1660,7 @@ type
 
   TSectionContext = Class(TFunctionContext)
   public
+    HeaderIndex: integer; // index in TJSSourceElements(JSElement).Statements
     constructor Create(PasEl: TPasElement; JSEl: TJSElement; aParent: TConvertContext); override;
   end;
 
@@ -1905,8 +1907,9 @@ type
     Function CreateReferencePathExpr(El: TPasElement; AContext : TConvertContext;
       Full: boolean = false; Ref: TResolvedReference = nil): TJSElement; virtual;
     // section
-    Function CreateImplementationSection(El: TPasModule; AContext: TConvertContext): TJSFunctionDeclarationStatement;
-    Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext);
+    Function CreateImplementationSection(El: TPasModule; AContext: TConvertContext): TJSFunctionDeclarationStatement; virtual;
+    Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
+    Procedure AddHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
     // set
     Function CreateReferencedSet(El: TPasElement; SetExpr: TJSElement): TJSElement; virtual;
     // record
@@ -1971,7 +1974,7 @@ type
       AContext: TConvertContext): TJSElement; virtual;
     Procedure AddRTTIArgument(Arg: TPasArgument; TargetParams: TJSArrayLiteral;
       AContext: TConvertContext); virtual;
-    Function GetClassBIName(El: TPasClassType): string; virtual;
+    Function GetClassBIName(El: TPasClassType; AContext: TConvertContext): string; virtual;
     Function CreateRTTINewType(El: TPasType; const CallFuncName: string;
       IsForward: boolean; AContext: TConvertContext; out ObjLit: TJSObjectLiteral): TJSCallExpression; virtual;
     Function CreateRTTIAttributes(const Attr: TPasExprArray; PosEl: TPasElement; aContext: TConvertContext): TJSElement; virtual;
@@ -14057,7 +14060,7 @@ Var
     // create table
     if (ResStrVarEl=nil) and (El.ClassType=TImplementationSection) then
       begin
-      RootContext:=TRootContext(AContext.GetContextOfType(TRootContext));
+      RootContext:=AContext.GetRootContext as TRootContext;
       ResStrVarEl:=RootContext.ResourceStrings;
       end;
     if ResStrVarEl=nil then
@@ -14114,12 +14117,28 @@ Var
       end;
   end;
 
+  procedure InitSection(Section: TPasSection);
+  var
+    SectionScope: TPas2JSSectionScope;
+    SectionCtx: TSectionContext;
+    Src: TJSSourceElements;
+  begin
+    SectionScope:=Section.CustomData as TPas2JSSectionScope;
+    AContext.ScannerBoolSwitches:=SectionScope.BoolSwitches;
+    AContext.ScannerModeSwitches:=SectionScope.ModeSwitches;
+
+    if not (AContext is TSectionContext) then
+      RaiseNotSupported(Section,AContext,20200606142828,GetObjName(AContext));
+    SectionCtx:=TSectionContext(AContext);
+    Src:=SectionCtx.JSElement as TJSSourceElements;
+    SectionCtx.HeaderIndex:=Src.Statements.Count;
+  end;
+
 var
   E, BodySt: TJSElement;
   I : Integer;
   P: TPasElement;
   C: TClass;
-  SectionScope: TPas2JSSectionScope;
 begin
   Result:=nil;
   {
@@ -14139,11 +14158,7 @@ begin
   HasResult:=IsFunction and not IsAssembler;
 
   if (AContext.Resolver<>nil) and (El is TPasSection) then
-    begin
-    SectionScope:=El.CustomData as TPas2JSSectionScope;
-    AContext.ScannerBoolSwitches:=SectionScope.BoolSwitches;
-    AContext.ScannerModeSwitches:=SectionScope.ModeSwitches;
-    end;
+    InitSection(TPasSection(El));
 
   SLFirst:=nil;
   SLLast:=nil;
@@ -14242,9 +14257,9 @@ function TPasToJSConverter.ConvertClassType(El: TPasClassType;
       i: longint;
     end;
 
-    rtl.createClass(this,"TMyClass",Ancestor,function(){
-      this.i = 0;
-    });
+  rtl.createClass(this,"TMyClass",Ancestor,function(){
+    this.i = 0;
+  });
 *)
 var
   IsTObject, AncestorIsExternal: boolean;
@@ -14304,7 +14319,6 @@ var
 begin
   Result:=nil;
   aResolver:=AContext.Resolver;
-  if not aResolver.IsFullySpecialized(El) then exit;
 
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertClassType START ',GetObjName(El));
@@ -14317,6 +14331,7 @@ begin
     exit(ConvertClassForwardType(El,AContext))
   else if El.IsExternal then
     exit(ConvertExtClassType(El,AContext));
+  if not aResolver.IsFullySpecialized(El) then exit;
 
   if El.CustomData is TPas2JSClassScope then
     begin
@@ -14551,24 +14566,25 @@ function TPasToJSConverter.ConvertClassForwardType(El: TPasClassType;
 var
   Ref: TResolvedReference;
   aClass: TPasClassType;
-  ObjLit: TJSObjectLiteral;
   Creator: String;
+  ObjLit: TJSObjectLiteral;
 begin
   Result:=nil;
   if El.Parent is TProcedureBody then
     RaiseNotSupported(El,AContext,20181231004420);
-  if (AContext.Resolver=nil) or not (El.CustomData is TResolvedReference) then exit;
+  if (El.GenericTemplateTypes<>nil) and (El.GenericTemplateTypes.Count>0) then
+    exit;
+  if (AContext.Resolver=nil) or not (El.CustomData is TResolvedReference) then
+    exit;
   Ref:=TResolvedReference(El.CustomData);
   aClass:=Ref.Declaration as TPasClassType;
+  if IsClassRTTICreatedBefore(aClass,El,AContext) then
+    exit; // there is a class-of in front, which already created the class RTTI
+
   if not HasTypeInfo(aClass,AContext) then exit;
-  if IsClassRTTICreatedBefore(aClass,El,AContext) then exit;
+
   // module.$rtti.$Class("classname");
-  case aClass.ObjKind of
-  okClass: Creator:=GetClassBIName(aClass);
-  okInterface: Creator:=GetBIName(pbifnRTTINewInterface);
-  else
-    RaiseNotSupported(El,AContext,20190128102749);
-  end;
+  Creator:=GetClassBIName(aClass,AContext);
   Result:=CreateRTTINewType(aClass,Creator,true,AContext,ObjLit);
   if ObjLit<>nil then
     RaiseInconsistency(20170412093427,El);
@@ -14603,13 +14619,16 @@ begin
     DestType:=AContext.Resolver.ResolveAliasType(El.DestType) as TPasClassType;
     Prop.Expr:=CreateTypeInfoRef(DestType,AContext,El);
 
-    if not IsClassRTTICreatedBefore(DestType,El,AContext) then
+    if IsClassRTTICreatedBefore(DestType,El,AContext) then
+      // there is a forward class in front, which already created the class RTTI
+    else
       begin
       // class rtti must be forward registered
       if not (AContext is TFunctionContext) then
         RaiseNotSupported(El,AContext,20170412102916);
       // prepend   module.$rtti.$Class("classname");
-      Call:=CreateRTTINewType(DestType,GetClassBIName(DestType),true,AContext,ObjLit);
+      Call:=CreateRTTINewType(DestType,GetClassBIName(DestType,AContext),true,
+                              AContext,ObjLit);
       if ObjLit<>nil then
         RaiseInconsistency(20170412102654,El);
       List:=TJSStatementList(CreateElement(TJSStatementList,El));
@@ -14636,10 +14655,15 @@ var
   TIProp: TJSObjectLiteralElement;
   ClassScope: TPas2JSClassScope;
   AncestorType: TPasClassType;
+  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
   if not El.IsExternal then
     RaiseNotSupported(El,AContext,20191027183236);
+
+  aResolver:=AContext.Resolver;
+  if not aResolver.IsFullySpecialized(El) then
+    exit;
 
   if not HasTypeInfo(El,AContext) then
     exit;
@@ -16271,6 +16295,20 @@ begin
     raise Exception.Create('TPasToJSConverter.ConvertInitializationSection: finalization section is not supported');
 end;
 
+procedure TPasToJSConverter.AddHeaderStatement(JS: TJSElement;
+  PosEl: TPasElement; aContext: TConvertContext);
+var
+  SectionCtx: TSectionContext;
+  Src: TJSSourceElements;
+begin
+  SectionCtx:=TSectionContext(aContext.GetContextOfType(TSectionContext));
+  if SectionCtx=nil then
+    RaiseNotSupported(PosEl,aContext,20200606142555);
+  Src:=SectionCtx.JSElement as TJSSourceElements;
+  Src.Statements.InsertNode(SectionCtx.HeaderIndex).Node:=JS;
+  inc(SectionCtx.HeaderIndex);
+end;
+
 function TPasToJSConverter.CreateReferencedSet(El: TPasElement; SetExpr: TJSElement
   ): TJSElement;
 var
@@ -17288,7 +17326,25 @@ var
   RTTIExpr, AttrJS: TJSElement;
   Attr: TPasExprArray;
   AssignSt: TJSAssignStatement;
+  ClassScope: TPas2JSClassScope;
+  Creator: String;
+  ObjLit: TJSObjectLiteral;
+  Call: TJSCallExpression;
 begin
+  ClassScope:=El.CustomData as TPas2JSClassScope;
+  if (ClassScope.SpecializedFromItem<>nil)
+      and not (coNoTypeInfo in Options)
+      and FuncContext.Resolver.HasTypeInfo(El) then
+    begin
+    // specialized class -> init RTTI
+    // module.$rtti.$Class("classname");
+    Creator:=GetClassBIName(El,FuncContext);
+    Call:=CreateRTTINewType(El,Creator,true,FuncContext,ObjLit);
+    if ObjLit<>nil then
+      RaiseInconsistency(20200606134834,El);
+    AddHeaderStatement(Call,El,FuncContext);
+    end;
+
   AttrJS:=nil;
   // this.$rtti
   RTTIExpr:=CreateMemberExpression(['this',GetBIName(pbivnRTTI)]);
@@ -18149,12 +18205,20 @@ begin
     Param.Elements.AddElement.Expr:=CreateLiteralNumber(Arg,Flags);
 end;
 
-function TPasToJSConverter.GetClassBIName(El: TPasClassType): string;
+function TPasToJSConverter.GetClassBIName(El: TPasClassType;
+  AContext: TConvertContext): string;
 begin
-  if El.IsExternal then
-    Result:=GetBIName(pbifnRTTINewExtClass)
+  case El.ObjKind of
+  okClass:
+    if El.IsExternal then
+      Result:=GetBIName(pbifnRTTINewExtClass)
+    else
+      Result:=GetBIName(pbifnRTTINewClass);
+  okInterface:
+    Result:=GetBIName(pbifnRTTINewInterface);
   else
-    Result:=GetBIName(pbifnRTTINewClass);
+    RaiseNotSupported(El,AContext,20190128102749);
+  end;
 end;
 
 function TPasToJSConverter.CreateRTTINewType(El: TPasType;

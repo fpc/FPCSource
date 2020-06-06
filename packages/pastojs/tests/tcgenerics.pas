@@ -35,6 +35,7 @@ type
     Procedure TestGen_Class_TypeCastSpecializesJSValueNoWarn;
     procedure TestGen_Class_VarArgsOfType;
     procedure TestGen_Class_OverloadsInUnit;
+    procedure TestGen_ClassForward_CircleRTTI;
 
     // generic external class
     procedure TestGen_ExtClass_Array;
@@ -406,8 +407,9 @@ begin
   '  p:=typeinfo(b);',
   '']);
   ConvertProgram;
-  CheckSource('TestGen_TypeInfo',
+  CheckSource('TestGen_Class_TypeInfo',
     LinesToStr([ // statements
+    '$mod.$rtti.$Class("TBird$G1");',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -845,6 +847,81 @@ begin
     '$mod.wb = pas.UnitA.TBird$G1.$create("Create$2", [true]);',
     '$mod.db = pas.UnitA.TBird$G2.$create("Create$1", [1.3]);',
     '$mod.db = pas.UnitA.TBird$G2.$create("Create$2", [true]);',
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_ClassForward_CircleRTTI;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  TObject = class end;',
+  '  {$M+}',
+  '  TPersistent = class end;',
+  '  {$M-}',
+  '  generic TAnt<T> = class;',
+  '  generic TFish<U> = class(TPersistent)',
+  '    private type AliasU = U;',
+  '  published',
+  '    a: specialize TAnt<AliasU>;',
+  '  end;',
+  '  generic TAnt<T> = class(TPersistent)',
+  '    private type AliasT = T;',
+  '  published',
+  '    f: specialize TFish<AliasT>;',
+  '  end;',
+  'var',
+  '  WordFish: specialize TFish<word>;',
+  '  p: pointer;',
+  'begin',
+  '  p:=typeinfo(specialize TAnt<word>);',
+  '  p:=typeinfo(specialize TFish<word>);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_ClassForward_CircleRTTI',
+    LinesToStr([ // statements
+    '$mod.$rtti.$Class("TAnt$G2");',
+    '$mod.$rtti.$Class("TFish$G2");',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TPersistent", $mod.TObject, function () {',
+    '});',
+    'rtl.createClass($mod, "TAnt$G2", $mod.TPersistent, function () {',
+    '  this.$init = function () {',
+    '    $mod.TPersistent.$init.call(this);',
+    '    this.f = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.f = undefined;',
+    '    $mod.TPersistent.$final.call(this);',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addField("f", $mod.$rtti["TFish$G2"]);',
+    '});',
+    'rtl.createClass($mod, "TFish$G2", $mod.TPersistent, function () {',
+    '  this.$init = function () {',
+    '    $mod.TPersistent.$init.call(this);',
+    '    this.a = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.a = undefined;',
+    '    $mod.TPersistent.$final.call(this);',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addField("a", $mod.$rtti["TAnt$G2"]);',
+    '});',
+    'this.WordFish = null;',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.$rtti["TAnt$G2"];',
+    '$mod.p = $mod.$rtti["TFish$G2"];',
     '']));
 end;
 
