@@ -20,7 +20,7 @@ interface
 {
   Amiga specific function, waits for a system event to occur on the
   message port of the window. This is mainly used in Free Vision to
-  give up the Task's timeslice instead of dos.library/Delay() which
+  give up the Task''s timeslice instead of dos.library/Delay() which
   blocks the event handling and ruins proper window refreshing among
   others 
   input: specify a timeout to wait for an event to arrive. this is the
@@ -75,7 +75,7 @@ type
   end;
 
 const
-  RCTABLE_MAXIDX = 24;
+  RCTABLE_MAXIDX = 25;
   RawCodeTable : array[0..RCTABLE_MAXIDX] of RawCodeEntry =
     (
      (rc: 66; n: $0F09; s: $0F00; c: $9400; a: $A500; ), // TAB
@@ -104,8 +104,9 @@ const
      (rc: 75; n: $8500; s: $8700; c: $8900; a: $8B00; ), // F11
      (rc: 76; n: $8600; s: $8800; c: $8A00; a: $8C00; ), // F12
 
-     (rc: 112; n: $4700; s: $4700; c: $7700; a: $9700; ),// Home    // shift?
-     (rc: 113; n: $4F00; s: $4F00; c: $7500; a: $9F00; ) // End     // shift?
+     (rc: 95;  n: $FF14; s: $FF14; c: $FF14; a: $FF14; ), // Help -> F20
+     (rc: 112; n: $4700; s: $4700; c: $7700; a: $9700; ), // Home    // shift?
+     (rc: 113; n: $4F00; s: $4F00; c: $7500; a: $9F00; )  // End     // shift?
     );
 
 function rcTableIdx(rc: LongInt): LongInt;

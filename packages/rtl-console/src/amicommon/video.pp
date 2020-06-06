@@ -126,6 +126,7 @@ begin
     SA_ShowTitle      , 0,    // Do not show the screen's TitleBar
     SA_Type           , PUBLICSCREEN_F, // pubscreen
     SA_PubName        , PtrUInt(PChar(VIDEOSCREENNAME)),
+    SA_Draggable      , 1,
     SA_Quiet          , 1,
     SA_LikeWorkbench  , 1,     // Let OS
     TAG_END, TAG_END
