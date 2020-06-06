@@ -52,6 +52,7 @@ dirs_win16=win16
 dirs_watcom=watcom
 dirs_freertos=freertos
 dirs_zxspectrum=zxspectrum
+dirs_msxdos=msxdos
 
 [install]
 fpcpackage=y
