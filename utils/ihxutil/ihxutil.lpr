@@ -78,11 +78,8 @@ begin
 
   // quick check parameters
   ErrorMsg:=CheckOptions(ShortOptions, LongOptions);
-  if ErrorMsg<>'' then begin
-    ShowException(Exception.Create(ErrorMsg));
-    Terminate;
-    Exit;
-  end;
+  if ErrorMsg<>'' then
+    raise Exception.Create(ErrorMsg);
 
   // parse parameters
   if HasOption('h', 'help') then begin
@@ -109,17 +106,9 @@ begin
 
   NonOptions := GetNonOptions(ShortOptions, LongOptions);
   if Length(NonOptions) = 0 then
-  begin
-    ShowException(Exception.Create('Missing input file'));
-    Terminate;
-    Exit;
-  end;
+    raise Exception.Create('Missing input file');
   if Length(NonOptions) > 2 then
-  begin
-    ShowException(Exception.Create('Too many files specified'));
-    Terminate;
-    Exit;
-  end;
+    raise Exception.Create('Too many files specified');
   FInputFileName := NonOptions[0];
   if Length(NonOptions) >= 2 then
     FOutputFileName := NonOptions[1]
