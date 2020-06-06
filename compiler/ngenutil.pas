@@ -1559,7 +1559,7 @@ implementation
       tcb.free;
 
       { allocate an initial heap on embedded systems }
-      if target_info.system in (systems_embedded+systems_freertos+[system_z80_zxspectrum]) then
+      if target_info.system in (systems_embedded+systems_freertos+[system_z80_zxspectrum,system_z80_msxdos]) then
         begin
           { tai_datablock cannot yet be handled via the high level typed const
             builder, because it implies the generation of a symbol, while this

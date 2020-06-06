@@ -929,7 +929,7 @@ unit agz80vasm;
             idtxt  : 'VASM';
             asmbin : 'vasmz80_std';
             asmcmd : '-quiet -Fvobj -o $OBJ $EXTRAOPT $ASM';
-            supported_targets : [system_z80_embedded, system_z80_zxspectrum];
+            supported_targets : [system_z80_embedded, system_z80_zxspectrum, system_z80_msxdos];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
             labelmaxlen : -1;

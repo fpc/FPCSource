@@ -198,7 +198,8 @@
              system_arm_freertos,       { 106 }
              system_aarch64_win64,      { 107 }
              system_z80_embedded,       { 108 }
-             system_z80_zxspectrum      { 109 }
+             system_z80_zxspectrum,     { 109 }
+             system_z80_msxdos          { 110 }
        );
 
      type
@@ -299,8 +300,10 @@
              ld_int_msdos,
              ld_int_win16,
              ld_int_zxspectrum,
+             ld_int_msxdos,
              ld_freertos,
-             ld_zxspectrum
+             ld_zxspectrum,
+             ld_msxdos
        );
 
        tar = (ar_none

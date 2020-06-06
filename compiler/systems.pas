@@ -379,7 +379,7 @@ interface
                                    system_i386_openbsd,system_x86_64_openbsd,
                                    system_riscv32_linux,system_riscv64_linux,
                                    system_aarch64_win64,
-                                   system_z80_zxspectrum
+                                   system_z80_zxspectrum,system_z80_msxdos
                                   ]+systems_darwin+systems_amigalike;
 
        { all systems that use the PE+ header in the PE/COFF file

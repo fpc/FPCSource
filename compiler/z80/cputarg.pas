@@ -41,6 +41,9 @@ implementation
     {$ifndef NOTARGETZXSPECTRUM}
       ,t_zxspectrum
     {$endif}
+    {$ifndef NOTARGETMSXDOS}
+      ,t_msxdos
+    {$endif}
 
 {**************************************
              Assemblers

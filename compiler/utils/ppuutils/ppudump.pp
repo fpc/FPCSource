@@ -229,7 +229,8 @@ const
   { 106 } 'FreeRTos-arm',
   { 107 } 'Win64-AArch64',
   { 108 } 'Embedded-Z80',
-  { 109 } 'ZXSpectrum-Z80'
+  { 109 } 'ZXSpectrum-Z80',
+  { 110 } 'MSX-DOS-Z80'
   );
 
 const

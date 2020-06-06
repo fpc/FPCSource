@@ -1328,7 +1328,7 @@ implementation
             idtxt  : 'REL';
             asmbin : '';
             asmcmd : '';
-            supported_targets : [system_z80_embedded,system_z80_zxspectrum];
+            supported_targets : [system_z80_embedded,system_z80_zxspectrum,system_z80_msxdos];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '..@';
             labelmaxlen : 79;

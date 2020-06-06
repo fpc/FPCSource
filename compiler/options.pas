@@ -3365,6 +3365,8 @@ begin
       target_unsup_features:=[f_dynlibs];
     system_z80_zxspectrum:
       target_unsup_features:=[f_threading,f_dynlibs{,f_fileio,f_textio},f_commandargs,f_exitcode];
+    system_z80_msxdos:
+      target_unsup_features:=[f_threading,f_dynlibs];
     else
       target_unsup_features:=[];
   end;
@@ -3952,7 +3954,7 @@ begin
     end;
 
   { Set up default value for the heap }
-  if target_info.system in (systems_embedded+systems_freertos+[system_z80_zxspectrum]) then
+  if target_info.system in (systems_embedded+systems_freertos+[system_z80_zxspectrum,system_z80_msxdos]) then
     begin
       case target_info.system of
 {$ifdef AVR}
