@@ -4200,6 +4200,7 @@ x*2Tlinux_Linux
 # z80 targets
 Z*2Tembedded_Embedded
 Z*2Tzxspectrum_ZX Spectrum
+Z*2Tmsxdos_MSX-DOS
 # end of targets section
 **1u<x>_Undefines the symbol <x>
 **1U_Unit options:
