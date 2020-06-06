@@ -1514,6 +1514,13 @@ unit nx86add;
          make no sense if right is a reference }
        if ((left.location.loc<>LOC_REGISTER) and (right.location.loc<>LOC_REGISTER) and
            ((nodetype<>subn) or not(right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE])) and
+           { 3 op mul makes only sense if a constant is involed }
+           ((nodetype<>muln) or (left.location.loc=LOC_CONSTANT) or (right.location.loc=LOC_CONSTANT)
+{$ifndef i8086}
+            or ((CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) and (not(needoverflowcheck))
+               )
+{$endif i8086}
+           ) and
            (not(nodetype in [orn,andn,xorn]))) or
          ((nodetype=addn) and (left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT]) and (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT])) then
          begin

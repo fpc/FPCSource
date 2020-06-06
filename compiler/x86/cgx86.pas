@@ -2327,7 +2327,7 @@ unit cgx86;
         if (op=OP_MUL) and not (cs_check_overflow in current_settings.localswitches) then
           op:=OP_IMUL;
         case op of
-          OP_NEG,OP_NOT,OP_IMUL:
+          OP_NEG,OP_NOT:
             begin
               inherited a_op_ref_reg(list,op,size,tmpref,reg);
             end;
