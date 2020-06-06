@@ -328,7 +328,7 @@ end;
 
 function TLinkerZXSpectrum.postprocessexecutable(const fn: string; isdll: boolean): boolean;
   begin
-    result:=DoExec(FindUtil(utilsprefix+'ihx2tzx'),' '+fn,true,false);
+    result:=DoExec(FindUtil(utilsprefix+'ihxutil'),' '+fn,true,false);
   end;
 
 
@@ -421,7 +421,7 @@ function TInternalLinkerZXSpectrum.postprocessexecutable(const fn: string): bool
   begin
     result:=false;
 
-    utilexe:=utilsprefix+'ihx2tzx';
+    utilexe:=utilsprefix+'ihxutil';
     FoundBin:='';
     Found:=false;
     if utilsdirectory<>'' then

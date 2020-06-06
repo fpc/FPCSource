@@ -1,4 +1,4 @@
-{ IHX (Intel Hex format) to TZX (ZX Spectrum tape file format) convertor tool
+{ IHX (Intel Hex format) utility program
 
   This is the main program of the tool.
 
@@ -20,7 +20,7 @@
   Boston, MA 02110-1335, USA.
 }
 
-program ihx2tzx;
+program ihxutil;
 
 {$mode objfpc}{$H+}
 
@@ -41,9 +41,9 @@ type
     otBin
   );
 
-  { TIHX2TZX }
+  { TIHXUtil }
 
-  TIHX2TZX = class(TCustomApplication)
+  TIHXUtil = class(TCustomApplication)
   private
     FInputFileName: string;
     FOutputFileName: string;
@@ -63,7 +63,7 @@ type
 
 { TIHX2TZX }
 
-procedure TIHX2TZX.DoRun;
+procedure TIHXUtil.DoRun;
 var
   ErrorMsg, t: String;
   NonOptions: TStringArray;
@@ -150,7 +150,7 @@ begin
   Terminate;
 end;
 
-constructor TIHX2TZX.Create(TheOwner: TComponent);
+constructor TIHXUtil.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
   StopOnException:=True;
@@ -159,7 +159,7 @@ begin
   FBinaryProgramName := 'test';
 end;
 
-destructor TIHX2TZX.Destroy;
+destructor TIHXUtil.Destroy;
 begin
   FreeAndNil(FInputImage);
   FreeAndNil(FTapeWriter);
@@ -167,7 +167,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TIHX2TZX.WriteHelp;
+procedure TIHXUtil.WriteHelp;
 begin
   { add your help code here }
   writeln('Usage: ', ExeName, ' [options] ihx_file [out_file]');
@@ -181,10 +181,10 @@ begin
 end;
 
 var
-  Application: TIHX2TZX;
+  Application: TIHXUtil;
 begin
-  Application:=TIHX2TZX.Create(nil);
-  Application.Title:='ihx2tzx';
+  Application:=TIHXUtil.Create(nil);
+  Application.Title:='ihxutil';
   Application.Run;
   Application.Free;
 end.
