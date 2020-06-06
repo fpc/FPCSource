@@ -1101,7 +1101,12 @@ implementation
                   Message(parser_w_register_list_ignored);
                 repeat
                   { it's possible to specify the modified registers }
-                  reg:=std_regnum_search(lower(cstringpattern));
+                  if token=_CSTRING then
+                    reg:=std_regnum_search(lower(cstringpattern))
+                  else if token=_CCHAR then
+                    reg:=std_regnum_search(lower(pattern))
+                  else
+                    reg:=NR_NO;
                   if reg<>NR_NO then
                     begin
                       if not(po_assembler in current_procinfo.procdef.procoptions) and assigned(hl) then
@@ -1113,7 +1118,10 @@ implementation
                     end
                   else
                     Message(asmr_e_invalid_register);
-                  consume(_CSTRING);
+                  if token=_CCHAR then
+                    consume(_CCHAR)
+                  else
+                    consume(_CSTRING);
                   if not try_to_consume(_COMMA) then
                     break;
                 until false;
