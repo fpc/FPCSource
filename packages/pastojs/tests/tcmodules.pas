@@ -30571,8 +30571,14 @@ end;
 
 procedure TTestModule.TestResourcestringProgram;
 begin
-  StartProgram(false);
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'resourcestring Title = ''Nice'';',
+    '']),
+    '');
+  StartProgram(true);
   Add([
+  'uses unit2;',
   'const Bar = ''bar'';',
   'resourcestring',
   '  Red = ''red'';',
@@ -30582,6 +30588,7 @@ begin
   'begin',
   '  s:=red;',
   '  s:=test1.red;',
+  '  s:=Title;',
   '  c:=red[1];',
   '  c:=test1.red[2];',
   '  if red=foobar then ;',
@@ -30602,20 +30609,27 @@ begin
     '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.s = rtl.getResStr(pas.program, "Red");',
-    '$mod.s = rtl.getResStr(pas.program, "Red");',
-    '$mod.c = rtl.getResStr(pas.program, "Red").charAt(0);',
-    '$mod.c = rtl.getResStr(pas.program, "Red").charAt(1);',
-    'if (rtl.getResStr(pas.program, "Red") === rtl.getResStr(pas.program, "Foobar")) ;',
-    'if (rtl.getResStr(pas.program, "Red").charAt(2) === rtl.getResStr(pas.program, "Red").charAt(3)) ;',
+    '$mod.s = rtl.getResStr($mod, "Red");',
+    '$mod.s = rtl.getResStr($mod, "Red");',
+    '$mod.s = rtl.getResStr(pas.unit2, "Title");',
+    '$mod.c = rtl.getResStr($mod, "Red").charAt(0);',
+    '$mod.c = rtl.getResStr($mod, "Red").charAt(1);',
+    'if (rtl.getResStr($mod, "Red") === rtl.getResStr($mod, "Foobar")) ;',
+    'if (rtl.getResStr($mod, "Red").charAt(2) === rtl.getResStr($mod, "Red").charAt(3)) ;',
     '']));
 end;
 
 procedure TTestModule.TestResourcestringUnit;
 begin
-  StartUnit(false);
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'resourcestring Title = ''Nice'';',
+    '']),
+    '');
+  StartUnit(true);
   Add([
   'interface',
+  'uses unit2;',
   'const Red = ''rEd'';',
   'resourcestring',
   '  Blue = ''blue'';',
@@ -30627,7 +30641,9 @@ begin
   'initialization',
   '  s:=blue+ImplGreen;',
   '  s:=test1.blue+test1.implgreen;',
-  '  s:=blue[1]+implgreen[2];']);
+  '  s:=blue[1]+implgreen[2];',
+  '  s:=Title;',
+  '']);
   ConvertUnit;
   CheckSource('TestResourcestringUnit',
     LinesToStr([ // statements
@@ -30646,9 +30662,10 @@ begin
     '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.s = rtl.getResStr(pas.Test1, "Blue") + rtl.getResStr(pas.Test1, "ImplGreen");',
-    '$mod.s = rtl.getResStr(pas.Test1, "Blue") + rtl.getResStr(pas.Test1, "ImplGreen");',
-    '$mod.s = rtl.getResStr(pas.Test1, "Blue").charAt(0) + rtl.getResStr(pas.Test1, "ImplGreen").charAt(1);',
+    '$mod.s = rtl.getResStr($mod, "Blue") + rtl.getResStr($mod, "ImplGreen");',
+    '$mod.s = rtl.getResStr($mod, "Blue") + rtl.getResStr($mod, "ImplGreen");',
+    '$mod.s = rtl.getResStr($mod, "Blue").charAt(0) + rtl.getResStr($mod, "ImplGreen").charAt(1);',
+    '$mod.s = rtl.getResStr(pas.unit2, "Title");',
     '']));
 end;
 

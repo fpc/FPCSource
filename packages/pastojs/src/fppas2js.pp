@@ -9368,7 +9368,7 @@ begin
     end
   else if Decl.ClassType=TPasResString then
     begin
-    // read resourcestring -> rtl.getResStr($mod,"name")
+    // read resourcestring -> rtl.getResStr(pas.modulename,"name")
     Call:=CreateCallExpression(El);
     Result:=Call;
     Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnGetResourcestring)]);
@@ -18136,9 +18136,7 @@ begin
       if CurEl is TPasSection then
         begin
         aModule:=CurEl.Parent as TPasModule;
-        aModName:=AContext.GetLocalName(aModule);
-        if aModName='' then
-          aModName:=TransformModuleName(aModule,true,AContext);
+        aModName:=TransformModuleName(aModule,true,AContext);
         Bracket:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
         Bracket.MExpr:=CreateMemberExpression([aModName,GetBIName(pbivnRTTI)]);
         Bracket.Name:=CreateLiteralString(El,aName);
@@ -18259,9 +18257,7 @@ begin
   aModule:=El.GetModule;
   if aModule=nil then
     RaiseInconsistency(20170418115552,El);
-  RttiPath:=AContext.GetLocalName(aModule);
-  if RttiPath='' then
-    RttiPath:=TransformModuleName(aContext.GetRootModule,true,AContext);
+  RttiPath:=TransformModuleName(aModule,true,AContext);
 
   Call:=CreateCallExpression(El);
   try
@@ -23130,10 +23126,10 @@ begin
         // parent is a class or record declaration
         if (ParentEl.ClassType=TPasClassType)
             and (TPasClassType(ParentEl).HelperForType<>nil)
-            and (El.Parent=ParentEl)
+            and (El=CurEl)
             and aResolver.IsHelperForMember(CurEl) then
           begin
-          // redirect to helper-for-type
+          // external helper proc/var -> redirect to helper-for-type
           ParentEl:=aResolver.ResolveAliasType(TPasClassType(ParentEl).HelperForType);
           IsClassRec:=(ParentEl.ClassType=TPasClassType)
                    or (ParentEl.ClassType=TPasRecordType);
@@ -23149,7 +23145,7 @@ begin
         else
           begin
           // Not in a Pascal dotscope and accessing a class member.
-          // Possible results: this.v, module.path.path.v, this.path.v
+          // Possible results: this.v, module.path.path.v, this.$class.v, $Self.v
           //    In nested proc 'this' can have another name, e.g. '$Self'
           SelfContext:=AContext.GetSelfContext;
           if ShortName<>'' then
@@ -24705,6 +24701,11 @@ var
   p, StartP: Integer;
   aName, Part: String;
 begin
+  if AddModulesPrefix then
+    begin
+    Result:=AContext.GetLocalName(El);
+    if Result<>'' then exit;
+    end;
   if El is TPasProgram then
     Result:='program'
   else
