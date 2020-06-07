@@ -660,6 +660,7 @@ compiler/ppcgen/ngppcset.pas svneol=native#text/plain
 compiler/ppcgen/rgcpu.pas svneol=native#text/plain
 compiler/ppcjvm.lpi svneol=native#text/plain
 compiler/ppcmips.lpi svneol=native#text/plain
+compiler/ppcmips64el.lpi svneol=native#text/plain
 compiler/ppcmipsel.lpi svneol=native#text/plain
 compiler/ppcppc.lpi svneol=native#text/plain
 compiler/ppcppc64.lpi svneol=native#text/plain

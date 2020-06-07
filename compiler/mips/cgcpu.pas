@@ -27,7 +27,11 @@ interface
 
 uses
   globtype, parabase,
-  cgbase, cgutils, cgobj, cg64f32, cpupara,
+  cgbase, cgutils, cgobj,
+{$ifndef mips64}
+  cg64f32,
+{$endif mips64}
+  cpupara,
   aasmbase, aasmtai, aasmcpu, aasmdata,
   cpubase, cpuinfo,
   node, symconst, SymType, symdef,
@@ -88,6 +92,7 @@ type
     procedure g_profilecode(list: TAsmList);override;
   end;
 
+{$ifndef mips64}
   TCg64MPSel = class(tcg64f32)
   public
     procedure a_load64_reg_ref(list: tasmlist; reg: tregister64; const ref: treference); override;
@@ -100,6 +105,7 @@ type
     procedure a_op64_const_reg_reg_checkoverflow(list: tasmlist; op: TOpCG; size: tcgsize; Value: int64; regsrc, regdst: tregister64; setflags: boolean; var ovloc: tlocation); override;
     procedure a_op64_reg_reg_reg_checkoverflow(list: tasmlist; op: TOpCG; size: tcgsize; regsrc1, regsrc2, regdst: tregister64; setflags: boolean; var ovloc: tlocation); override;
   end;
+{$endif mips64}
 
   procedure create_codegen;
 
@@ -1691,6 +1697,7 @@ procedure TCGMIPS.g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: t
   end;
 
 
+{$ifndef mips64}
 {****************************************************************************
                                TCG64_MIPSel
 ****************************************************************************}
@@ -1928,12 +1935,15 @@ begin
     internalerror(200306017);
   end;
 end;
+{$endif mips64}
 
 
     procedure create_codegen;
       begin
         cg:=TCGMIPS.Create;
+{$ifndef mips64}
         cg64:=TCg64MPSel.Create;
+{$endif mips64}
       end;
 
 end.

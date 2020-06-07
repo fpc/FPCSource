@@ -242,6 +242,10 @@
   {$endif mips}
 {$endif mipsel}
 
+{$ifdef mips64el}
+  {$define mips}
+  {$define mips64}
+{$endif mipsel}
 
 {$ifdef mips}
   {$ifndef mips64}
@@ -249,7 +253,9 @@
     {$define cpu32bitalu}
     {$define cpu32bitaddr}
   {$else}
-    {$error mips64 not yet supported}
+    {$define cpu64bit}
+    {$define cpu64bitalu}
+    {$define cpu64bitaddr}
   {$endif}
   {$define cpuflags} { Flags are emulated }
   {$define cputargethasfixedstack}
