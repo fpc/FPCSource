@@ -445,9 +445,9 @@ var rtl = {
     }
     initfn.call(t);
     if (!t.$new){
-      t.$new = function(){ return Object.create(this); };
+      t.$new = function(){ return Object.create(t); };
     }
-    t.$clone = function(r){ return this.$new().$assign(r); };
+    t.$clone = function(r){ return t.$new().$assign(r); };
     hide('$new');
     hide('$clone');
     hide('$eq');

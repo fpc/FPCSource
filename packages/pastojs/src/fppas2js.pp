@@ -844,8 +844,8 @@ const
     '$in',
     '$mod',
     'pas',
-    '$class', // ClassType
-    '$record',
+    '$class', // pbivnPtrClass, ClassType
+    '$record', // pbivnPtrRecord, hidden recordtype
     '$ok',
     '$resourcestrings',
     'org',
@@ -1623,6 +1623,14 @@ type
   end;
   TFCLocalVars = array of TFCLocalIdentifier;
 
+  TConvCtxThisKind = (
+    cctkNone,
+    cctkGlobal, // e.g. $mod, $impl, class type
+    cctkCurType, // e.g. class-of
+    cctkInstance,
+    cctkHelperTemp // e.g. helper-for getter/setter
+    );
+
   { TFunctionContext
     Module Function: PasElement is TPasProcedure (ImplProc), ThisPas=nil
     Method: PasElement is TPasProcedure (ImplProc), ThisPas is TPasMembersType }
@@ -1631,6 +1639,7 @@ type
   public
     LocalVars: TFCLocalVars;
     ThisPas: TPasElement;
+    ThisKind: TConvCtxThisKind;
     IntfElReleases: TFPList; // list of TPasElement, that needs rtl._Release(<El>)
     ResultNeedsIntfRelease: boolean;
     IntfExprReleaseCount: integer; // >0 means needs $ir
@@ -6754,9 +6763,14 @@ begin
 end;
 
 function TPas2JSResolver.IsHelperForMember(El: TPasElement): boolean;
+var
+  Parent: TPasElement;
 begin
-  if (El=nil) or (El.Parent=nil) or (El.Parent.ClassType<>TPasClassType)
-      or (TPasClassType(El.Parent).HelperForType=nil) then
+  if El=nil then
+    exit(false);
+  Parent:=El.Parent;
+  if (Parent=nil) or (Parent.ClassType<>TPasClassType)
+      or (TPasClassType(Parent).HelperForType=nil) then
     exit(false);
   if El is TPasProcedure then
     Result:=TPasProcedure(El).IsExternal
@@ -7353,6 +7367,7 @@ begin
     try
       // add "var $mod = this;"
       IntfContext.ThisPas:=El;
+      IntfContext.ThisKind:=cctkGlobal;
       if El.CustomData is TPasModuleScope then
         IntfContext.ScannerBoolSwitches:=TPasModuleScope(El.CustomData).BoolSwitches;
       ModVarName:=GetBIName(pbivnModule);
@@ -14437,6 +14452,7 @@ begin
       FuncContext:=TFunctionContext.Create(El,Src,AContext);
       FuncContext.IsGlobal:=true;
       FuncContext.ThisPas:=El;
+      FuncContext.ThisKind:=cctkGlobal;
 
       if IntfKind<>'' then
         begin
@@ -15481,7 +15497,7 @@ Var
   SelfSt: TJSVariableStatement;
   ImplProc: TPasProcedure;
   BodyPas: TProcedureBody;
-  PosEl, ThisPas, ClassOrRec: TPasElement;
+  PosEl, ThisPas: TPasElement;
   Call: TJSCallExpression;
   ClassPath: String;
   ArgResolved: TPasResolverResult;
@@ -15490,7 +15506,6 @@ Var
   ArgTypeEl, HelperForType: TPasType;
   aResolver: TPas2JSResolver;
   IsClassConDestructor: Boolean;
-  LocalVar: TFCLocalIdentifier;
 begin
   Result:=nil;
 
@@ -15584,6 +15599,84 @@ begin
       FirstSt:=nil;
       LastSt:=nil;
 
+      if ProcScope.ClassRecScope<>nil then
+        begin
+        // method or class method
+        if not AContext.IsGlobal then
+          begin
+          // nested sub procedure  ->  no 'this'
+          ThisPas:=nil;
+          end
+        else if El.IsStatic or IsClassConDestructor then
+          ThisPas:=nil
+        else
+          begin
+          ThisPas:=ProcScope.ClassRecScope.Element;
+          if aResolver.IsHelper(ThisPas) then
+            begin
+            // helper method
+            HelperForType:=aResolver.ResolveAliasType(TPasClassType(ThisPas).HelperForType);
+            if HelperForType is TPasMembersType then
+              begin
+              // 'this' in a class/record helper method is the class (instance)
+              ThisPas:=HelperForType;
+              FuncContext.ThisKind:=cctkInstance;
+              end
+            else
+              begin
+              // 'this' in a type helper is a temporary getter/setter JS object
+              ThisPas:=nil;
+              FuncContext.ThisKind:=cctkHelperTemp;
+              end;
+            end
+          else if aResolver.IsClassMethod(El) then
+            FuncContext.ThisKind:=cctkCurType
+          else
+            FuncContext.ThisKind:=cctkInstance;
+          end;
+        FuncContext.ThisPas:=ThisPas;
+
+        if ThisPas<>nil then
+          begin
+          if (bsObjectChecks in FuncContext.ScannerBoolSwitches)
+              and (ThisPas is TPasMembersType) then
+            begin
+            // rtl.checkMethodCall(this,<class>)
+            Call:=CreateCallExpression(PosEl);
+            AddBodyStatement(Call,PosEl);
+            Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),
+                                            GetBIName(pbifnCheckMethodCall)]);
+            Call.AddArg(CreatePrimitiveDotExpr('this',PosEl));
+            ClassPath:=CreateReferencePath(ProcScope.ClassRecScope.Element,AContext,rpkPathAndName);
+            Call.AddArg(CreatePrimitiveDotExpr(ClassPath,PosEl));
+            end;
+          end;
+        if (ImplProc.Body.Functions.Count>0)
+            or aResolver.HasAnonymousFunctions(ImplProc.Body.Body) then
+          begin
+          // has nested procs -> add "var $Self = this;"
+          if ThisPas<>nil then
+            FuncContext.AddLocalVar(GetBIName(pbivnSelf),ThisPas)
+          else
+            begin
+            // e.g. in a type helper, where 'this' is a not a Pascal element, but a temp JS getter/setter object
+            end;
+          SelfSt:=CreateVarStatement(GetBIName(pbivnSelf),
+                            CreatePrimitiveDotExpr('this',ImplProc),ImplProc);
+          AddBodyStatement(SelfSt,PosEl);
+          if ImplProcScope.SelfArg<>nil then
+            begin
+            // redirect Pascal-Self to JS-Self
+            FuncContext.AddLocalVar(GetBIName(pbivnSelf),ImplProcScope.SelfArg);
+            end;
+          end
+        else if ImplProcScope.SelfArg<>nil then
+          begin
+          // no nested procs ->  redirect Pascal-Self to JS-this
+          FuncContext.AddLocalVar('this',ImplProcScope.SelfArg);
+          end;
+        end;
+
       if (bsRangeChecks in ImplProcScope.BoolSwitches) and (aResolver<>nil) then
         for i:=0 to El.ProcType.Args.Count-1 do
           begin
@@ -15614,83 +15707,6 @@ begin
               end;
             end;
           end;
-
-      if ProcScope.ClassRecScope<>nil then
-        begin
-        // method or class method
-        if not AContext.IsGlobal then
-          begin
-          // nested sub procedure  ->  no 'this'
-          ThisPas:=nil;
-          end
-        else if El.IsStatic then
-          ThisPas:=nil
-        else
-          begin
-          ThisPas:=ProcScope.ClassRecScope.Element;
-          if aResolver.IsHelper(ThisPas) then
-            begin
-            // helper method
-            HelperForType:=aResolver.ResolveAliasType(TPasClassType(ThisPas).HelperForType);
-            if HelperForType is TPasMembersType then
-              // 'this' in a class/record helper method is the class (instance)
-              ThisPas:=HelperForType
-            else
-              // 'this' in a type helper is a temporary getter/setter JS object
-              ThisPas:=nil;
-            end;
-          end;
-        FuncContext.ThisPas:=ThisPas;
-
-        if ThisPas<>nil then
-          begin
-          if (bsObjectChecks in FuncContext.ScannerBoolSwitches)
-              and (ThisPas is TPasMembersType) then
-            begin
-            // rtl.checkMethodCall(this,<class>)
-            Call:=CreateCallExpression(PosEl);
-            AddBodyStatement(Call,PosEl);
-            Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),
-                                            GetBIName(pbifnCheckMethodCall)]);
-            Call.AddArg(CreatePrimitiveDotExpr('this',PosEl));
-            ClassPath:=CreateReferencePath(ProcScope.ClassRecScope.Element,AContext,rpkPathAndName);
-            Call.AddArg(CreatePrimitiveDotExpr(ClassPath,PosEl));
-            end;
-          end
-        else
-          begin
-          // "this" has no direct Pascal element
-          if ProcScope.ClassRecScope<>nil then
-            begin
-            // static method
-            ClassOrRec:=ProcScope.ClassRecScope.Element;
-            LocalVar:=FuncContext.FindLocalIdentifier(ClassOrRec);
-            if (LocalVar<>nil) and (LocalVar.Name='this') then
-              // "this" is not the class -> hide it (absolute path will be used)
-              FuncContext.AddLocalVar(LocalVarHide,ClassOrRec);
-            end;
-          end;
-        if (ImplProc.Body.Functions.Count>0)
-            or aResolver.HasAnonymousFunctions(ImplProc.Body.Body) then
-          begin
-          // has nested procs -> add "var $Self = this;"
-          if ThisPas<>nil then
-            FuncContext.AddLocalVar(GetBIName(pbivnSelf),ThisPas);
-          SelfSt:=CreateVarStatement(GetBIName(pbivnSelf),
-                            CreatePrimitiveDotExpr('this',ImplProc),ImplProc);
-          AddBodyStatement(SelfSt,PosEl);
-          if ImplProcScope.SelfArg<>nil then
-            begin
-            // redirect Pascal-Self to JS-Self
-            FuncContext.AddLocalVar(GetBIName(pbivnSelf),ImplProcScope.SelfArg);
-            end;
-          end
-        else if ImplProcScope.SelfArg<>nil then
-          begin
-          // no nested procs ->  redirect Pascal-Self to JS-this
-          FuncContext.AddLocalVar('this',ImplProcScope.SelfArg);
-          end;
-        end;
       {$IFDEF VerbosePas2JS}
       //FuncContext.WriteStack;
       {$ENDIF}
@@ -16447,6 +16463,7 @@ begin
     Call:=CreateCallExpression(El);
     Call.Expr:=CreateMemberExpression(['Object','create']);
     Call.AddArg(CreatePrimitiveDotExpr('this',El));
+    //Call.AddArg(CreatePrimitiveDotExpr('this.'+GetBIName(pbivnPtrRecord),El));
     VarSt:=CreateVarStatement(LocalVarName,Call,El);
     AddToSourceElements(Src,VarSt);
 
@@ -22857,7 +22874,7 @@ var
     aPath:=Prefix+aPath;
   end;
 
-  function PrependClassName(var Path: string; ClassOrRec: TPasMembersType): boolean;
+  function PrependClassOrRecName(var Path: string; ClassOrRec: TPasMembersType): boolean;
   begin
     if (ClassOrRec.ClassType=TPasClassType) and TPasClassType(ClassOrRec).IsExternal then
       begin
@@ -22988,7 +23005,7 @@ var
 
 var
   FoundModule: TPasModule;
-  ParentEl: TPasElement;
+  ParentEl, CurEl: TPasElement;
   Dot: TDotContext;
   WithData: TPas2JSWithExprScope;
   ShortName: String;
@@ -23079,12 +23096,24 @@ begin
     end
   else
     begin
-    // need full path
+    // neither Dot nor With context, nor local, nor external,
+    // -> translate a Pascal identifier to the JS path
     if El.Parent=nil then
       RaiseNotSupported(El,AContext,20170201172141,GetObjName(El));
     El:=ImplToDecl(El);
 
-    ParentEl:=El.Parent;
+    {if Kind=rpkPathAndName then
+      begin
+      ShortName:=AContext.GetLocalName(El);
+      if ShortName<>'' then
+        begin
+        Result:=ShortName;
+        exit;
+        end;
+      end;}
+
+    CurEl:=El;
+    ParentEl:=CurEl.Parent;
     while ParentEl<>nil do
       begin
       ParentEl:=ImplToDecl(ParentEl);
@@ -23101,7 +23130,8 @@ begin
         // parent is a class or record declaration
         if (ParentEl.ClassType=TPasClassType)
             and (TPasClassType(ParentEl).HelperForType<>nil)
-            and aResolver.IsHelperForMember(El) then
+            and (El.Parent=ParentEl)
+            and aResolver.IsHelperForMember(CurEl) then
           begin
           // redirect to helper-for-type
           ParentEl:=aResolver.ResolveAliasType(TPasClassType(ParentEl).HelperForType);
@@ -23114,7 +23144,7 @@ begin
 
         if Full then
           begin
-          if PrependClassName(Result,TPasMembersType(ParentEl)) then break;
+          if PrependClassOrRecName(Result,TPasMembersType(ParentEl)) then break;
           end
         else
           begin
@@ -23124,19 +23154,19 @@ begin
           SelfContext:=AContext.GetSelfContext;
           if ShortName<>'' then
             Prepend(Result,ShortName)
-          else if El is TPasType then
+          else if CurEl is TPasType then
             begin
-            if PrependClassName(Result,TPasMembersType(ParentEl)) then break;
+            if PrependClassOrRecName(Result,TPasMembersType(ParentEl)) then break;
             end
-          else if El.Parent<>ParentEl then
+          else if El<>CurEl then
             begin
-            if PrependClassName(Result,TPasMembersType(ParentEl)) then break;
+            if PrependClassOrRecName(Result,TPasMembersType(ParentEl)) then break;
             end
           else if (ParentEl.ClassType=TPasClassType)
               and (TPasClassType(ParentEl).HelperForType<>nil) then
             begin
             // helpers have no self
-            if PrependClassName(Result,TPasMembersType(ParentEl)) then break;
+            if PrependClassOrRecName(Result,TPasMembersType(ParentEl)) then break;
             end
           else if (SelfContext<>nil)
               and IsA(TPasType(SelfContext.ThisPas),TPasMembersType(ParentEl)) then
@@ -23144,14 +23174,14 @@ begin
             ShortName:=AContext.GetLocalName(SelfContext.ThisPas);
             if ShortName='' then
               begin
-              if PrependClassName(Result,TPasMembersType(ParentEl)) then break;
+              if PrependClassOrRecName(Result,TPasMembersType(ParentEl)) then break;
               end
             else
               Prepend(Result,ShortName);
             end
           else
             begin
-            if PrependClassName(Result,TPasMembersType(ParentEl)) then break;
+            if PrependClassOrRecName(Result,TPasMembersType(ParentEl)) then break;
             // missing JS var for Self
             //{$IFDEF VerbosePas2JS}
             //{AllowWriteln}
@@ -23163,7 +23193,7 @@ begin
             //{$ENDIF}
             //RaiseNotSupported(El,AContext,20180125004049);
             end;
-          if (El.Parent=ParentEl) and (SelfContext<>nil)
+          if (El=CurEl) and (SelfContext<>nil)
               and (SelfContext.PasElement is TPasProcedure)
               and not IsClassProc(SelfContext.PasElement) then
             begin
@@ -23185,7 +23215,7 @@ begin
         begin
         // element is in an implementation section (not program/library section)
         // in other unit -> use pas.unitname.$impl
-        FoundModule:=El.GetModule;
+        FoundModule:=ParentEl.GetModule;
         if FoundModule=nil then
           RaiseInconsistency(20161024192755,El);
         Prepend(Result,TransformModuleName(FoundModule,true,AContext)
@@ -23208,7 +23238,8 @@ begin
         else
           Prepend(Result,ParentEl.Name);
         end;
-      ParentEl:=ParentEl.Parent;
+      CurEl:=ParentEl;
+      ParentEl:=CurEl.Parent;
       if ParentEl is TProcedureBody then break;
       end;
     end;
