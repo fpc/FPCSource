@@ -33,7 +33,7 @@ interface
 
 {$I systemh.inc}
 {$I tnyheaph.inc}
-{.$I portsh.inc}
+{$I portsh.inc}
 
 {$ifndef FPUNONE}
 {$ifdef FPC_HAS_FEATURE_SOFTFPU}
@@ -233,7 +233,7 @@ function CheckNullArea: Boolean; external name 'FPC_CHECK_NULLAREA';
 
 {$I tinyheap.inc}
 
-{.$I ports.inc}
+{$I ports.inc}
 
 {$ifndef FPUNONE}
 {$ifdef FPC_HAS_FEATURE_SOFTFPU}
