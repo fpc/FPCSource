@@ -430,7 +430,7 @@ interface
        { Allocation }
        procedure alloc(len:TObjSectionOfs);
        procedure allocalign(len:longint);
-       procedure writebytes(const Data;len:aword);
+       procedure writebytes(const Data;len:TObjSectionOfs);
        procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);virtual;abstract;
        procedure beforealloc;virtual;
        procedure beforewrite;virtual;
@@ -1531,7 +1531,7 @@ implementation
       end;
 
 
-    procedure TObjData.writebytes(const Data;len:aword);
+    procedure TObjData.writebytes(const Data;len:TObjSectionOfs);
       begin
         if not assigned(CurrObjSec) then
           internalerror(200402251);
