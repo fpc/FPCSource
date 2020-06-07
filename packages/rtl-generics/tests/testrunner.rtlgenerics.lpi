@@ -27,7 +27,7 @@
         <CommandLineParams Value="-a --format=plain"/>
       </local>
     </RunParams>
-    <Units Count="8">
+    <Units Count="10">
       <Unit0>
         <Filename Value="testrunner.rtlgenerics.pp"/>
         <IsPartOfProject Value="True"/>
@@ -60,6 +60,14 @@
         <Filename Value="tests.generics.dictionary.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit7>
+      <Unit8>
+        <Filename Value="tests.generics.stack.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit9>
+      <Unit9>
+        <Filename Value="tests.generics.queue.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit9>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

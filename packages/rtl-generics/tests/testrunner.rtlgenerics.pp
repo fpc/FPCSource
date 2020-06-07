@@ -13,6 +13,8 @@ uses
   tests.generics.trees,
   tests.generics.stdcollections,
   tests.generics.sets,
+  tests.generics.queue,
+  tests.generics.stack,
   tests.generics.dictionary
   ;
 
