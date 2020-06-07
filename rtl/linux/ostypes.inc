@@ -306,7 +306,7 @@ CONST
     { SIGCHLD or CLONE_CHILD_CLEARTID or CLONE_CHILD_SETTID }
     clone_flags_fork = $01200011;
 
-{$if defined(cpuarm) or defined(cpualpha) or defined(cpublackfin) or defined(cpum68k) or defined(aarch64) or defined(riscv32) or defined(riscv64)}
+{$if defined(cpuarm) or defined(cpualpha) or defined(cpublackfin) or defined(cpum68k) or defined(cpuaarch64)}
     O_LARGEFILE =   $20000;
 {$endif}
 {$if defined(cpusparc) or defined(cpusparc64)}
@@ -315,11 +315,14 @@ CONST
 {$if defined(cpupowerpc)}
     O_LARGEFILE =   $10000;
 {$endif}
-{$if defined(cpui386) or defined(cpux86_64) or defined(cpuia64) or defined(cpuxtensa)}
+{$if defined(cpui386) or defined(cpux86_64) or defined(cpuia64) or defined(cpuxtensa) or defined(cpuriscv32)}
     O_LARGEFILE =    $8000;
 {$endif}
 {$if defined(cpumips) or defined(cpumipsel)}
     O_LARGEFILE =    $2000;
+{$endif}
+{$if defined(cpuriscv64)}
+    O_LARGEFILE =    $0;
 {$endif}
     { mode_t possible values                                 }
     S_IRUSR =  %0100000000;     { Read permission for owner   }
