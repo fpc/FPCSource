@@ -177,6 +177,10 @@ type
      ,
      {$i ccpuinnr.inc}
 {$endif }
+{$if defined(Z80)}
+     ,
+     {$i ccpuinnr.inc}
+{$endif}
    );
 
 implementation
