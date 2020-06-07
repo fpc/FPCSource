@@ -1014,7 +1014,7 @@ implementation
                           InputError('Invalid symbol record');
                           exit;
                         end;
-                      if not TryStrToInt('$'+Copy(s,4,Length(s)-4),SymbolOfs) then
+                      if not TryStrToInt('$'+Copy(s,4,Length(s)-3),SymbolOfs) then
                         begin
                           InputError('Invalid symbol offset');
                           exit;
@@ -1027,7 +1027,7 @@ implementation
                                 InputError('Public symbol defined outside any area');
                                 exit;
                               end;
-                            if (SymbolOfs<0) or (SymbolOfs>=CurrSec.Size) then
+                            if (SymbolOfs<0) or (SymbolOfs>CurrSec.Size) then
                               begin
                                 InputError('Public symbol offset outside the range of the current area');
                                 exit;
