@@ -40,7 +40,7 @@ Unit raz80asm;
         AS_HASH,AS_LSBRACKET,AS_RSBRACKET,AS_LBRACKET,AS_RBRACKET,
         AS_EQUAL,
         {------------------ Assembler directives --------------------}
-        AS_DEFB,AS_DEFW,AS_END,
+        AS_DEFB,AS_DEFW,AS_AREA,AS_END,
         {------------------ Assembler Operators  --------------------}
         AS_TYPE,AS_SIZEOF,AS_VMTOFFSET,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
         AS_RELTYPE, // common token for relocation types
@@ -61,7 +61,7 @@ Unit raz80asm;
         ';','identifier','register','opcode','condition','/','$',
         '#','{','}','[',']',
         '=',
-        'defb','defw','END',
+        'defb','defw','area','END',
         'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','reltype',
         'directive');
 
@@ -2354,6 +2354,8 @@ Unit raz80asm;
     function tz80reader.Assemble: tlinkedlist;
       var
         hl: tasmlabel;
+        sectionname: String;
+        section: tai_section;
       begin
         Message1(asmr_d_start_reading,'Z80');
         firsttoken:=TRUE;
@@ -2418,6 +2420,68 @@ Unit raz80asm;
                 Consume(AS_DEFW);
                 BuildConstant(2);
                 inexpression:=false;
+              end;
+
+            AS_AREA :
+              begin
+                Consume(AS_AREA);
+                sectionname:=actasmpattern;
+                {secflags:=[];
+                secprogbits:=SPB_None;}
+                Consume(AS_STRING);
+                {if actasmtoken=AS_COMMA then
+                  begin
+                    Consume(AS_COMMA);
+                    if actasmtoken=AS_STRING then
+                      begin
+                        case actasmpattern of
+                          'a':
+                            Include(secflags,SF_A);
+                          'w':
+                            Include(secflags,SF_W);
+                          'x':
+                            Include(secflags,SF_X);
+                          '':
+                            ;
+                          else
+                            Message(asmr_e_syntax_error);
+                        end;
+                        Consume(AS_STRING);
+                        if actasmtoken=AS_COMMA then
+                          begin
+                            Consume(AS_COMMA);
+                            if (actasmtoken=AS_MOD) or (actasmtoken=AS_AT) then
+                              begin
+                                Consume(actasmtoken);
+                                if actasmtoken=AS_ID then
+                                  begin
+                                    case actasmpattern of
+                                      'PROGBITS':
+                                        secprogbits:=SPB_PROGBITS;
+                                      'NOBITS':
+                                        secprogbits:=SPB_NOBITS;
+                                      'NOTE':
+                                        secprogbits:=SPB_NOTE;
+                                      else
+                                        Message(asmr_e_syntax_error);
+                                    end;
+                                    Consume(AS_ID);
+                                  end
+                                else
+                                  Message(asmr_e_syntax_error);
+                              end
+                            else
+                              Message(asmr_e_syntax_error);
+                          end;
+                      end
+                    else
+                      Message(asmr_e_syntax_error);
+                  end;}
+
+                //curList.concat(tai_section.create(sec_user, actasmpattern, 0));
+                section:=new_section(curlist, sec_user, sectionname, 0);
+                //section.secflags:=secflags;
+                //section.secprogbits:=secprogbits;
               end;
 
             AS_OPCODE:

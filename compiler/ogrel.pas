@@ -314,7 +314,10 @@ implementation
           '.ARM.attributes'
         );
       begin
-        result:=secnames[atype];
+        if atype=sec_user then
+          result:=aname
+        else
+          result:=secnames[atype];
       end;
 
     function TRelObjData.sectiontype2align(atype:TAsmSectiontype):longint;

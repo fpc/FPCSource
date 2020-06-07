@@ -328,7 +328,10 @@ unit agz80vasm;
       var
         sep: string[3];
       begin
-        result:=secnames[atype];
+        if atype=sec_user then
+          result:=aname
+        else
+          result:=secnames[atype];
 
         if (aname<>'') then
           begin

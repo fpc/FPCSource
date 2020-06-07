@@ -310,7 +310,10 @@ unit agsdasz80;
           '.ARM.attributes'
         );
       begin
-        result:=secnames[atype];
+        if atype=sec_user then
+          result:=aname
+        else
+          result:=secnames[atype];
       end;
 
     procedure TSdccSdasZ80Assembler.WriteSection(atype: TAsmSectiontype;
