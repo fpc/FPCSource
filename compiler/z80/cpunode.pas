@@ -38,6 +38,7 @@ unit cpunode;
        ,nz80cal
        ,nz80mat
        ,nz80mem
+       ,nz80inl
 //       ,nz80cnv
 //       ,nz80util,
        { these are not really nodes }

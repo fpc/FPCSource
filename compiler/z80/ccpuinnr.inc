@@ -1,9 +1,7 @@
 {
 
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2016 by the Free Pascal development team.
-
-    CPU specific system unit header file
+    Copyright (c) 2020 by the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,9 +12,6 @@
 
  **********************************************************************}
 
-const
-  {$I cpuinnr.inc}
-
-function fpc_z80_inport(port : byte) : byte;[internproc:fpc_in_z80_inport];
-procedure fpc_z80_outport(port : byte;data : byte);[internproc:fpc_in_z80_outport];
+  in_z80_inport  = in_cpu_first,
+  in_z80_outport = in_cpu_first+1
 
