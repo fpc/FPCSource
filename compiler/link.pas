@@ -1526,7 +1526,7 @@ Implementation
       label
         myexit;
       var
-        bsssize : aword;
+        bsssize : qword;
         dbgname : TCmdStr;
       begin
         result:=false;
