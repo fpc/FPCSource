@@ -42,7 +42,7 @@ Unit raz80asm;
         {------------------ Assembler directives --------------------}
         AS_DEFB,AS_DEFW,AS_AREA,AS_END,
         {------------------ Assembler Operators  --------------------}
-        AS_TYPE,AS_SIZEOF,AS_VMTOFFSET,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
+        AS_TYPE,AS_OFFSET,AS_SIZEOF,AS_VMTOFFSET,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
         AS_RELTYPE, // common token for relocation types
         {------------------ Target-specific directive ---------------}
         AS_TARGET_DIRECTIVE
@@ -62,7 +62,7 @@ Unit raz80asm;
         '#','{','}','[',']',
         '=',
         'defb','defw','area','END',
-        'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','reltype',
+        'TYPE','OFFSET','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','reltype',
         'directive');
 
     type
@@ -301,6 +301,11 @@ Unit raz80asm;
                   if actasmpattern = 'TYPE' then
                     begin
                       actasmtoken:=AS_TYPE;
+                      exit;
+                    end;
+                  if actasmpattern = 'OFFSET' then
+                    begin
+                      actasmtoken:=AS_OFFSET;
                       exit;
                     end;
                   if actasmpattern = 'SIZEOF' then
@@ -1153,15 +1158,15 @@ Unit raz80asm;
                  Message(asmr_e_seg_without_identifier);
               end;
 {$endif i8086}
-            AS_VMTOFFSET{,
-            AS_OFFSET}:
+            AS_VMTOFFSET,
+            AS_OFFSET:
               begin
-                {if (actasmtoken = AS_OFFSET) then
+                if (actasmtoken = AS_OFFSET) then
                   begin
                     include(in_flags,cseif_needofs);
                     include(out_flags,cseof_hasofs);
                   end
-                else}
+                else
                   needvmtofs:=true;
                 Consume(actasmtoken);
                 if actasmtoken<>AS_ID then
@@ -1349,14 +1354,13 @@ Unit raz80asm;
                          if actasmtoken<>AS_DOT then
                           delete(expr,length(expr),1);
                        end
+                      else if (cseif_needofs in in_flags) then
+                        begin
+                          if (prevtok<>AS_OFFSET) then
+                            Message(asmr_e_need_offset);
+                        end
                       else
-                       //if (cseif_needofs in in_flags) then
-                       //  begin
-                       //    if (prevtok<>AS_OFFSET) then
-                       //      Message(asmr_e_need_offset);
-                       //  end
-                       //else
-                         Message(asmr_e_only_add_relocatable_symbol);
+                        Message(asmr_e_only_add_relocatable_symbol);
                     end;
                    if (actasmtoken=AS_DOT) or
                       (assigned(sym) and
@@ -1836,11 +1840,11 @@ Unit raz80asm;
                 GotStar:=false;
               end;
 
-            //AS_OFFSET :
-            //  begin
-            //    Consume(AS_OFFSET);
-            //    GotOffset:=true;
-            //  end;
+            AS_OFFSET :
+              begin
+                Consume(AS_OFFSET);
+                GotOffset:=true;
+              end;
 
             AS_TYPE,
             AS_NOT,
@@ -2001,7 +2005,7 @@ Unit raz80asm;
       begin
         repeat
           case actasmtoken of
-            //AS_OFFSET,
+            AS_OFFSET,
             AS_SIZEOF,
             AS_VMTOFFSET,
             AS_TYPE,
