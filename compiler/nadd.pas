@@ -950,6 +950,73 @@ implementation
                include(result.flags,nf_is_currency);
              exit;
           end;
+
+        { optimize operations with real constants, but only if fast math is switched on as
+          the operations could change the sign of 0
+        }
+        if cs_opt_fastmath in current_settings.optimizerswitches then
+          begin
+            if lt=realconstn then
+              begin
+                if (trealconstnode(left).value_real=0) and (nodetype in [addn,muln,subn,slashn]) then
+                  begin
+                    case nodetype of
+                      addn:
+                        begin
+                          result:=right.getcopy;
+                          exit;
+                        end;
+                      slashn,
+                      muln:
+                        if not(might_have_sideeffects(right,[mhs_exceptions])) then
+                          begin
+                            result:=left.getcopy;
+                            exit;
+                          end;
+                      subn:
+                        begin
+                          result:=cunaryminusnode.create(right.getcopy);
+                          exit;
+                        end;
+                      else
+                        Internalerror(2020060801);
+                    end;
+                  end
+                else if (trealconstnode(left).value_real=1) and (nodetype=muln) then
+                  begin
+                    result:=right.getcopy;
+                    exit;
+                  end;
+              end
+            else if rt=realconstn then
+              begin
+                if (trealconstnode(right).value_real=0) and (nodetype in [addn,muln,subn]) then
+                  begin
+                    case nodetype of
+                      subn,
+                      addn:
+                        begin
+                          result:=left.getcopy;
+                          exit;
+                        end;
+                      muln:
+                        if not(might_have_sideeffects(left,[mhs_exceptions])) then
+                          begin
+                            result:=right.getcopy;
+                            exit;
+                          end;
+                      else
+                        Internalerror(2020060802);
+                    end;
+                  end
+                else if (trealconstnode(right).value_real=1) and (nodetype in [muln,slashn]) then
+                  begin
+                    result:=left.getcopy;
+                    exit;
+                  end;
+              end;
+          end;
+
 {$if (FPC_FULLVERSION>20700) and not defined(FPC_SOFT_FPUX80)}
         { bestrealrec is 2.7.1+ only }
 
