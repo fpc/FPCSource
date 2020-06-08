@@ -4442,10 +4442,13 @@ begin
   begin
     Ch := p^;
     Inc(p);
+    n := -1;
     if Ch = '$' then
-      n := GrpIndexes[ParseVarName(p)]
-    else
-      n := -1;
+    begin
+      n := ParseVarName(p);
+      if (n >= 0) and (n <= High(GrpIndexes)) then
+        n := GrpIndexes[n];
+    end;
     if n >= 0 then
     begin
       Inc(ResultLen, endp[n] - startp[n]);
@@ -4498,10 +4501,13 @@ begin
     p0 := p;
     Inc(p);
     p1 := p;
+    n := -1;
     if Ch = '$' then
-      n := GrpIndexes[ParseVarName(p)]
-    else
-      n := -1;
+    begin
+      n := ParseVarName(p);
+      if (n >= 0) and (n <= High(GrpIndexes)) then
+        n := GrpIndexes[n];
+    end;
     if (n >= 0) then
     begin
       p0 := startp[n];
