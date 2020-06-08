@@ -59,6 +59,11 @@ type
     // unit optimization: aliasglobals
     procedure TestOptAliasGlobals_Program; // ToDo
     // ToDo: procedure TestOptAliasGlobals_Unit;
+    // ToDo: RTTI
+    // ToDo: resourcestring
+    // ToDo: Global EnumType, EnumValue, EnumType.Value, unit.EnumType.Value
+    // ToDo: Nested EnumType: EnumValue, EnumType.Value, unit.aType.EnumType.Value, aType.EnumType.Value, Instance.EnumType.Value
+    // ToDo: Instance.RecordType, Instance.RecordType.ClassVar
 
     // Whole Program Optimization
     procedure TestWPO_OmitLocalVar;

@@ -1329,7 +1329,7 @@ type
     coRTLVersionCheckMain, // insert rtl version check into main
     coRTLVersionCheckSystem, // insert rtl version check into system unit init
     coRTLVersionCheckUnit, // insert rtl version check into every unit init
-    coAliaslobals // use short alias variables for global identifiers
+    coAliasGlobals // use short alias variables for global identifiers
     );
   TPasToJsConverterOptions = set of TPasToJsConverterOption;
 const
@@ -1595,7 +1595,6 @@ type
     function GetContextOfPasElement(El: TPasElement): TConvertContext;
     function GetFuncContextOfPasElement(El: TPasElement): TFunctionContext;
     function GetContextOfType(aType: TConvertContextClass): TConvertContext;
-    function CreateLocalIdentifier(const Prefix: string): string;
     function CurrentModeSwitches: TModeSwitches;
     function GetGlobalFunc: TFunctionContext;
     procedure WriteStack;
@@ -1647,14 +1646,15 @@ type
     TrySt: TJSTryFinallyStatement;
     FinallyFirst, FinallyLast: TJSStatementList;
     destructor Destroy; override;
-    procedure AddLocalVar(const aName: string; El: TPasElement);
+    function AddLocalVar(aName: string; El: TPasElement; AutoUnique: boolean): TFCLocalIdentifier;
     procedure Add_InterfaceRelease(El: TPasElement);
+    //function CreateLocalIdentifier(const Prefix: string): TFCLocalIdentifier;
     function ToString: string; override;
     function GetLocalName(El: TPasElement): string; override;
     function IndexOfLocalVar(const aName: string): integer;
     function IndexOfLocalVar(El: TPasElement): integer;
-    function FindLocalVar(const aName: string): TFCLocalIdentifier;
-    function FindLocalIdentifier(El: TPasElement): TFCLocalIdentifier;
+    function FindLocalVar(const aName: string; WithParents: boolean): TFCLocalIdentifier;
+    function FindLocalIdentifier(El: TPasElement; WithParents: boolean): TFCLocalIdentifier;
     procedure DoWriteStack(Index: integer); override;
   end;
 
@@ -2681,7 +2681,7 @@ procedure TPas2jsPasScanner.DoHandleOptimization(OptName, OptValue: string);
 begin
   case lowercase(OptName) of
   'aliasglobals':
-    HandleBoolean(coAliaslobals,true);
+    HandleBoolean(coAliasGlobals,true);
   else
     DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,['optimization '+OptName]);
   end;
@@ -6877,13 +6877,36 @@ begin
   inherited Destroy;
 end;
 
-procedure TFunctionContext.AddLocalVar(const aName: string; El: TPasElement);
+function TFunctionContext.AddLocalVar(aName: string; El: TPasElement;
+  AutoUnique: boolean): TFCLocalIdentifier;
 var
   l: Integer;
+  Ident: TFCLocalIdentifier;
 begin
+  Ident:=FindLocalVar(aName,true);
+  if Ident<>nil then
+    begin
+    if AutoUnique then
+      begin
+      l:=1;
+      while FindLocalVar(aName+IntToStr(l),true)<>nil do
+        inc(l);
+      aName:=aName+IntToStr(l);
+      end
+    else if (El=nil) or (Ident.Element<>El) then
+      // add alias, same name for two different TPasElements
+    else
+      begin
+      {$IFDEF VerbosePas2JS}
+      writeln('TFunctionContext.AddLocalVar [20200608131330] "'+aName+'" El='+GetObjPath(El));
+      {$ENDIF}
+      raise EPas2JS.Create('[20200608131330] "'+aName+'" El='+GetObjPath(El));
+      end;
+    end;
   l:=length(LocalVars);
   SetLength(LocalVars,l+1);
-  LocalVars[l]:=TFCLocalIdentifier.Create(aName,El);
+  Result:=TFCLocalIdentifier.Create(aName,El);
+  LocalVars[l]:=Result;
 end;
 
 procedure TFunctionContext.Add_InterfaceRelease(El: TPasElement);
@@ -6902,7 +6925,7 @@ begin
   if ThisPas<>nil then
     begin
     Result:=Result+' this';
-    V:=FindLocalIdentifier(ThisPas);
+    V:=FindLocalIdentifier(ThisPas,false);
     if V<>nil then
       Result:=Result+'="'+V.Name+'"';
     Result:=Result+'='+GetObjName(ThisPas);
@@ -6914,7 +6937,7 @@ var
   V: TFCLocalIdentifier;
 begin
   if El=nil then exit('');
-  V:=FindLocalIdentifier(El);
+  V:=FindLocalIdentifier(El,false);
   if V<>nil then
     begin
     Result:=V.Name;
@@ -6950,26 +6973,38 @@ begin
   Result:=-1;
 end;
 
-function TFunctionContext.FindLocalVar(const aName: string): TFCLocalIdentifier;
+function TFunctionContext.FindLocalVar(const aName: string; WithParents: boolean
+  ): TFCLocalIdentifier;
 var
   i: Integer;
+  ParentFC: TFunctionContext;
 begin
   i:=IndexOfLocalVar(aName);
   if i>=0 then
-    Result:=LocalVars[i]
-  else
-    Result:=nil;
+    exit(LocalVars[i]);
+  if (not WithParents) or (Parent=nil) then
+    exit(nil);
+  ParentFC:=Parent.GetFunctionContext;
+  if ParentFC=nil then
+    exit(nil);
+  Result:=ParentFC.FindLocalVar(aName,true);
 end;
 
-function TFunctionContext.FindLocalIdentifier(El: TPasElement): TFCLocalIdentifier;
+function TFunctionContext.FindLocalIdentifier(El: TPasElement;
+  WithParents: boolean): TFCLocalIdentifier;
 var
   i: Integer;
+  ParentFC: TFunctionContext;
 begin
   i:=IndexOfLocalVar(El);
   if i>=0 then
-    Result:=LocalVars[i]
-  else
-    Result:=nil;
+    exit(LocalVars[i]);
+  if (not WithParents) or (Parent=nil) then
+    exit(nil);
+  ParentFC:=Parent.GetFunctionContext;
+  if ParentFC=nil then
+    exit(nil);
+  Result:=ParentFC.FindLocalIdentifier(El,true);
 end;
 
 procedure TFunctionContext.DoWriteStack(Index: integer);
@@ -7107,12 +7142,6 @@ begin
       exit(ctx);
     ctx:=ctx.Parent;
   until ctx=nil;
-end;
-
-function TConvertContext.CreateLocalIdentifier(const Prefix: string): string;
-begin
-  inc(TmpVarCount);
-  Result:=Prefix+IntToStr(TmpVarCount);
 end;
 
 function TConvertContext.CurrentModeSwitches: TModeSwitches;
@@ -7371,7 +7400,7 @@ begin
       if El.CustomData is TPasModuleScope then
         IntfContext.ScannerBoolSwitches:=TPasModuleScope(El.CustomData).BoolSwitches;
       ModVarName:=GetBIName(pbivnModule);
-      IntfContext.AddLocalVar(ModVarName,El);
+      IntfContext.AddLocalVar(ModVarName,El,false);
       AddToSourceElements(Src,CreateVarStatement(ModVarName,
         CreatePrimitiveDotExpr('this',El),El));
 
@@ -7396,7 +7425,7 @@ begin
             CreateMemberExpression([ModVarName,GetBIName(pbivnImplementation)]),El);
           AddToSourceElements(Src,ImplVarSt);
           // register local var $impl
-          IntfContext.AddLocalVar(GetBIName(pbivnImplementation),El.ImplementationSection);
+          IntfContext.AddLocalVar(GetBIName(pbivnImplementation),El.ImplementationSection,false);
           end;
         if Assigned(El.InterfaceSection) then
           AddToSourceElements(Src,ConvertDeclarations(El.InterfaceSection,IntfContext));
@@ -15656,7 +15685,7 @@ begin
           begin
           // has nested procs -> add "var $Self = this;"
           if ThisPas<>nil then
-            FuncContext.AddLocalVar(GetBIName(pbivnSelf),ThisPas)
+            FuncContext.AddLocalVar(GetBIName(pbivnSelf),ThisPas,false)
           else
             begin
             // e.g. in a type helper, where 'this' is a not a Pascal element, but a temp JS getter/setter object
@@ -15664,16 +15693,16 @@ begin
           SelfSt:=CreateVarStatement(GetBIName(pbivnSelf),
                             CreatePrimitiveDotExpr('this',ImplProc),ImplProc);
           AddBodyStatement(SelfSt,PosEl);
-          if ImplProcScope.SelfArg<>nil then
+          if (ImplProcScope.SelfArg<>nil) and (ImplProcScope.SelfArg<>ThisPas) then
             begin
             // redirect Pascal-Self to JS-Self
-            FuncContext.AddLocalVar(GetBIName(pbivnSelf),ImplProcScope.SelfArg);
+            FuncContext.AddLocalVar(GetBIName(pbivnSelf),ImplProcScope.SelfArg,false);
             end;
           end
         else if ImplProcScope.SelfArg<>nil then
           begin
           // no nested procs ->  redirect Pascal-Self to JS-this
-          FuncContext.AddLocalVar('this',ImplProcScope.SelfArg);
+          FuncContext.AddLocalVar('this',ImplProcScope.SelfArg,false);
           end;
         end;
 
@@ -15983,7 +16012,7 @@ var
   StList: TJSStatementList;
   Expr: TPasExpr;
   IfSt, LastIfSt: TJSIfStatement;
-  TmpVarName: String;
+  TmpVar: TFCLocalIdentifier;
   VarDecl: TJSVarDeclaration;
   VarSt: TJSVariableStatement;
   JSOrExpr: TJSLogicalOrExpression;
@@ -15993,6 +16022,7 @@ var
   JSEQExpr: TJSEqualityExpressionSEQ;
   aResolver: TPas2JSResolver;
   CaseResolved: TPasResolverResult;
+  FuncCtx: TFunctionContext;
 begin
   Result:=nil;
   aResolver:=AContext.Resolver;
@@ -16038,13 +16068,16 @@ begin
   StList:=TJSStatementList(CreateElement(TJSStatementList,El));
   ok:=false;
   try
-    // create var $tmp=CaseExpr;
-    TmpVarName:=AContext.CreateLocalIdentifier('$tmp');
+    // create var $tmp1=CaseExpr;
+    FuncCtx:=AContext.GetFunctionContext;
+    if FuncCtx=nil then
+      RaiseNotSupported(El,AContext,20200608132048);
+    TmpVar:=FuncCtx.AddLocalVar('$tmp',El.CaseExpr,true);
     VarSt:=TJSVariableStatement(CreateElement(TJSVariableStatement,El.CaseExpr));
     StList.A:=VarSt;
     VarDecl:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El.CaseExpr));
     VarSt.A:=VarDecl;
-    VarDecl.Name:=TmpVarName;
+    VarDecl.Name:=TmpVar.Name;
     VarDecl.Init:=ConvertExpression(El.CaseExpr,AContext);
 
     LastIfSt:=nil;
@@ -16074,19 +16107,19 @@ begin
             // create "tmp>=left"
             JSGEExpr:=TJSRelationalExpressionGE(CreateElement(TJSRelationalExpressionGE,Expr));
             JSAndExpr.A:=JSGEExpr;
-            JSGEExpr.A:=CreatePrimitiveDotExpr(TmpVarName,El.CaseExpr);
+            JSGEExpr.A:=CreatePrimitiveDotExpr(TmpVar.Name,El.CaseExpr);
             JSGEExpr.B:=ConvertExpression(TBinaryExpr(Expr).left,AContext);
             // create "tmp<=right"
             JSLEExpr:=TJSRelationalExpressionLE(CreateElement(TJSRelationalExpressionLE,Expr));
             JSAndExpr.B:=JSLEExpr;
-            JSLEExpr.A:=CreatePrimitiveDotExpr(TmpVarName,El.CaseExpr);
+            JSLEExpr.A:=CreatePrimitiveDotExpr(TmpVar.Name,El.CaseExpr);
             JSLEExpr.B:=ConvertExpression(TBinaryExpr(Expr).right,AContext);
             if IsCaseOfString then
               begin
               // case of string, range  ->  "(tmp.length===1) &&"
               JSEQExpr:=TJSEqualityExpressionSEQ(CreateElement(TJSEqualityExpressionSEQ,Expr));
               JSEQExpr.A:=CreateDotNameExpr(Expr,
-                            CreatePrimitiveDotExpr(TmpVarName,El.CaseExpr),
+                            CreatePrimitiveDotExpr(TmpVar.Name,El.CaseExpr),
                             'length');
               JSEQExpr.B:=CreateLiteralNumber(Expr,1);
               JSAndExpr:=TJSLogicalAndExpression(CreateElement(TJSLogicalAndExpression,Expr));
@@ -16100,7 +16133,7 @@ begin
             // value -> create (tmp===Expr)
             JSEQExpr:=TJSEqualityExpressionSEQ(CreateElement(TJSEqualityExpressionSEQ,Expr));
             JSExpr:=JSEQExpr;
-            JSEQExpr.A:=CreatePrimitiveDotExpr(TmpVarName,El.CaseExpr);
+            JSEQExpr.A:=CreatePrimitiveDotExpr(TmpVar.Name,El.CaseExpr);
             JSEQExpr.B:=ConvertExpression(Expr,AContext);
             end;
           if IfSt.Cond=nil then
@@ -16271,14 +16304,14 @@ begin
     ModVarName:=GetBIName(pbivnModule);
     AddToSourceElements(Src,CreateVarStatement(ModVarName,
       CreatePrimitiveDotExpr('this',El),El));
-    ImplContext.AddLocalVar(ModVarName,El);
+    ImplContext.AddLocalVar(ModVarName,El,false);
 
     // add var $impl = $mod.$impl
     ImplVarName:=GetBIName(pbivnImplementation);
     ImplVarSt:=CreateVarStatement(ImplVarName,
       CreateMemberExpression([ModVarName,ImplVarName]),El.ImplementationSection);
     AddToSourceElements(Src,ImplVarSt);
-    ImplContext.AddLocalVar(ImplVarName,El.ImplementationSection);
+    ImplContext.AddLocalVar(ImplVarName,El.ImplementationSection,false);
 
     // create implementation declarations
     ImplDecl:=ConvertDeclarations(El.ImplementationSection,ImplContext);
@@ -17766,14 +17799,14 @@ function TPasToJSConverter.CreateGetEnumeratorLoop(El: TPasImplForLoop;
 //  };
 var
   PosEl: TPasElement;
-  CurInVarName: String;
+  CurInVar: TFCLocalIdentifier;
 
   function CreateInName: TJSElement;
   var
     Ident: TJSPrimaryExpressionIdent;
   begin
     Ident:=TJSPrimaryExpressionIdent(CreateElement(TJSPrimaryExpressionIdent,PosEl));
-    Ident.Name:=TJSString(CurInVarName); // do not lowercase
+    Ident.Name:=TJSString(CurInVar.Name); // do not lowercase
     Result:=Ident;
   end;
 
@@ -17782,7 +17815,7 @@ var
   ForScope: TPasForLoopScope;
   Statements: TJSStatementList;
   VarSt: TJSVariableStatement;
-  FuncContext: TConvertContext;
+  FuncContext: TFunctionContext;
   List, GetCurrent, J: TJSElement;
   Call: TJSCallExpression;
   TrySt: TJSTryFinallyStatement;
@@ -17845,9 +17878,7 @@ begin
     RaiseNotSupported(El,AContext,20190208154003);
 
   // get function context
-  FuncContext:=AContext;
-  while (FuncContext.Parent<>nil) and (not (FuncContext is TFunctionContext)) do
-    FuncContext:=FuncContext.Parent;
+  FuncContext:=AContext.GetFunctionContext;
 
   PosEl:=El;
   Statements:=TJSStatementList(CreateElement(TJSStatementList,PosEl));
@@ -17869,8 +17900,8 @@ begin
                          CreateIdentifierExpr(GetEnumeratorFunc,AContext),true);
       end;
     // var $in=
-    CurInVarName:=FuncContext.CreateLocalIdentifier(GetBIName(pbivnLoopIn));
-    VarSt.A:=CreateVarDecl(CurInVarName,Call,PosEl);
+    CurInVar:=FuncContext.AddLocalVar(GetBIName(pbivnLoopIn),El.VariableName,true);
+    VarSt.A:=CreateVarDecl(CurInVar.Name,Call,PosEl);
 
     PosEl:=El.VariableName;
     TrySt:=nil;
@@ -18118,7 +18149,6 @@ function TPasToJSConverter.CreateTypeInfoRef(El: TPasType;
   AContext: TConvertContext; ErrorEl: TPasElement): TJSElement;
 var
   aName, aModName: String;
-  CurEl: TPasElement;
   aModule: TPasModule;
   Bracket: TJSBracketMemberExpression;
 begin
@@ -18130,26 +18160,12 @@ begin
     Result:=CreatePrimitiveDotExpr(aName,El)
   else
     begin
-    CurEl:=El;
-    while CurEl<>nil do
-      begin
-      if CurEl is TPasSection then
-        begin
-        aModule:=CurEl.Parent as TPasModule;
-        aModName:=TransformModuleName(aModule,true,AContext);
-        Bracket:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
-        Bracket.MExpr:=CreateMemberExpression([aModName,GetBIName(pbivnRTTI)]);
-        Bracket.Name:=CreateLiteralString(El,aName);
-        Result:=Bracket;
-        exit;
-        end;
-      CurEl:=CurEl.Parent;
-      end;
-    // not supported
-    aName:=El.Name;
-    if aName='' then aName:=El.ClassName;
-    DoError(20170905152041,nTypeXCannotBePublished,sTypeXCannotBePublished,
-      [aName],ErrorEl);
+    aModule:=El.GetModule;
+    aModName:=TransformModuleName(aModule,true,AContext);
+    Bracket:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+    Bracket.MExpr:=CreateMemberExpression([aModName,GetBIName(pbivnRTTI)]);
+    Bracket.Name:=CreateLiteralString(El,aName);
+    Result:=Bracket;
     end;
 end;
 
@@ -18831,7 +18847,7 @@ begin
     RaiseNotSupported(El,FuncContext,20190223211808,GetObjName(El));
 
   // add $r to local vars, to avoid name clashes and for nicer debugging
-  FuncContext.AddLocalVar(GetBIName(pbivnRTTILocal),nil);
+  FuncContext.AddLocalVar(GetBIName(pbivnRTTILocal),nil,false);
 
   if NeedLocalVar then
     CreateLocalvar;
@@ -20934,7 +20950,7 @@ var
   end;
 
 var
-  FuncContext: TConvertContext;
+  FuncContext: TFunctionContext;
   VarResolved, InResolved: TPasResolverResult;
   StartValue, EndValue, InValue: TResEvalValue;
   StartInt, EndInt: TMaxPrecInt;
@@ -21222,9 +21238,7 @@ begin
   end;
 
   // get function context
-  FuncContext:=AContext;
-  while (FuncContext.Parent<>nil) and (not (FuncContext is TFunctionContext)) do
-    FuncContext:=FuncContext.Parent;
+  FuncContext:=AContext.GetFunctionContext;
 
   StartValue:=nil;
   StartInt:=0;
@@ -21241,18 +21255,27 @@ begin
       exit;
 
     // create unique var names $l, $end, $in
-    if HasInVar then
-      CurInVarName:=FuncContext.CreateLocalIdentifier(GetBIName(pbivnLoopIn))
+    if FuncContext=nil then
+      begin
+      CurInVarName:='$in';
+      CurLoopVarName:='$l';
+      CurEndVarName:='$end';
+      end
     else
-      CurInVarName:='';
-    if HasLoopVar then
-      CurLoopVarName:=FuncContext.CreateLocalIdentifier(GetBIName(pbivnLoop))
-    else
-      CurLoopVarName:='';
-    if HasEndVar then
-      CurEndVarName:=FuncContext.CreateLocalIdentifier(GetBIName(pbivnLoopEnd))
-    else
-      CurEndVarName:='';
+      begin
+      if HasInVar then
+        CurInVarName:=FuncContext.AddLocalVar(GetBIName(pbivnLoopIn),nil,true).Name
+      else
+        CurInVarName:='';
+      if HasLoopVar then
+        CurLoopVarName:=FuncContext.AddLocalVar(GetBIName(pbivnLoop),nil,true).Name
+      else
+        CurLoopVarName:='';
+      if HasEndVar then
+        CurEndVarName:=FuncContext.AddLocalVar(GetBIName(pbivnLoopEnd),nil,true).Name
+      else
+        CurEndVarName:='';
+      end;
 
     // add "for()"
     if InKind in [ikSetInt,ikSetBool,ikSetChar,ikSetString] then
@@ -21588,7 +21611,7 @@ begin
         else
           begin
           // create unique local var name
-          WithExprScope.WithVarName:=FuncContext.CreateLocalIdentifier(GetBIName(pbivnWith));
+          WithExprScope.WithVarName:=FuncContext.AddLocalVar(GetBIName(pbivnWith),nil,true).Name;
           // create local "var $with1 = expr;"
           V:=CreateVarStatement(WithExprScope.WithVarName,Expr,PasExpr);
           AddToStatementList(FirstSt,LastSt,V,PasExpr);
@@ -24730,6 +24753,11 @@ begin
       Result:=GetBIName(pbivnModules)+'["'+Result+'"]'
     else
       Result:=GetBIName(pbivnModules)+'.'+Result;
+
+    if coAliasGlobals in Options then
+      begin
+
+      end;
     end;
 end;
 
