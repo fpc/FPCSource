@@ -663,6 +663,8 @@ type
     pbivnImplementation,
     pbivnMessageInt,
     pbivnMessageStr,
+    pbivnLocalModuleRef,
+    pbivnLocalTypeRef,
     pbivnLoop,
     pbivnLoopEnd,
     pbivnLoopIn,
@@ -672,7 +674,7 @@ type
     pbivnPtrRecord,
     pbivnProcOk,
     pbivnResourceStrings,
-    pbivnResourceStringOrg,
+    pbivnResourceStringOrig,
     pbivnRTL,
     pbivnRTTI, // $rtti
     pbivnRTTIArray_Dims,
@@ -726,25 +728,25 @@ const
     'arrayConcatN', // rtl.arrayConcatN   pbifnArray_ConcatN
     'arrayCopy', // rtl.arrayCopy      pbifnArray_Copy
     'arrayEq', // rtl.arrayEq          pbifnArray_Equal
-    'length', // rtl.length
+    'length', // rtl.length    pbifnArray_Length
     'arrayRef', // rtl.arrayRef  pbifnArray_Reference
-    'arraySetLength', // rtl.arraySetLength
-    '$clone',
-    'as', // rtl.as
-    'asExt', // rtl.asExt
+    'arraySetLength', // rtl.arraySetLength  pbifnArray_SetLength
+    '$clone', // pbifnArray_Static_Clone
+    'as', // rtl.as  pbifnAs
+    'asExt', // rtl.asExt  pbifnAsExt
     'lw', // pbifnBitwiseLongwordFix
     'and', // pbifnBitwiseNativeIntAnd,
     'or', // pbifnBitwiseNativeIntOr,
     'shl', // pbifnBitwiseNativeIntShl,
     'shr', // pbifnBitwiseNativeIntShr,
     'xor', // pbifnBitwiseNativeIntXor,
-    'checkMethodCall',
-    'checkVersion',
-    '$destroy',
-    '$create',
-    'createClass', // rtl.createClass
-    'createClassExt', // rtl.createClassExt
-    'createHelper', // rtl.createHelper
+    'checkMethodCall', // pbifnCheckMethodCall
+    'checkVersion', // pbifnCheckVersion
+    '$destroy', // pbifnClassInstanceFree
+    '$create', // pbifnClassInstanceNew
+    'createClass', // pbifnCreateClass   rtl.createClass
+    'createClassExt', // pbifnCreateClassExt  rtl.createClassExt
+    'createHelper', // pbifnCreateHelper  rtl.createHelper
     'getChar', // rtl.getChar
     'getNumber', // rtl.getNumber
     'getObject', // rtl.getObject
@@ -771,92 +773,94 @@ const
     'strToGUIDR', // rtl.strToGUIDR
     'queryIntfIsT', // rtl.queryIntfIsT
     'queryIntfT', // rtl.queryIntfT
-    'is', // rtl.is
-    'isExt', // rtl.isExt
-    'floatToStr', // rtl.floatToStr
-    'valEnum', // rtl.valEnum
-    'freeLoc', // rtl.freeLoc
-    'free', // rtl.free
-    'oc', //  rtl.oc  pbifnOverflowCheckInt
-    'createCallback', // rtl.createCallback  pbifnProcType_Create
-    'createSafeCallback', // rtl.createSafeCallback  pbifnProcType_CreateSafe
-    'eqCallback', // rtl.eqCallback
-    '$main',
-    'raiseE', // rtl.raiseE
-    'rcArrR',  // rtl.rcArrR
-    'rcArrW',  // rtl.rcArrW
-    'rcc', // rtl.rcc
-    'rc',  // rtl.rc
-    'rcCharAt',  // rtl.rcCharAt
-    'rcSetCharAt',  // rtl.rcSetCharAt
+    'is', // pbifnIs  rtl.is
+    'isExt', // pbifnIsExt  rtl.isExt
+    'floatToStr', // pbifnFloatToStr  rtl.floatToStr
+    'valEnum', // pbifnValEnum  rtl.valEnum
+    'freeLoc', // pbifnFreeLocalVar  rtl.freeLoc
+    'free', // pbifnFreeVar  rtl.free
+    'oc', //  pbifnOverflowCheckInt rtl.oc
+    'createCallback', // pbifnProcType_Create  rtl.createCallback
+    'createSafeCallback', // pbifnProcType_CreateSafe  rtl.createSafeCallback
+    'eqCallback', // pbifnProcType_Equal  rtl.eqCallback
+    '$main', // pbifnProgramMain
+    'raiseE', // pbifnRaiseException  rtl.raiseE
+    'rcArrR',  // pbifnRangeCheckArrayRead  rtl.rcArrR
+    'rcArrW',  // pbifnRangeCheckArrayWrite  rtl.rcArrW
+    'rcc', // pbifnRangeCheckChar  rtl.rcc
+    'rc',  // pbifnRangeCheckInt  rtl.rc
+    'rcCharAt',  // pbifnRangeCheckGetCharAt  rtl.rcCharAt
+    'rcSetCharAt',  // pbifnRangeCheckSetCharAt  rtl.rcSetCharAt
     '$assign', // pbifnRecordAssign
     '$clone', // pbifnRecordClone
     'recNewT', // pbifnRecordNew
     '$eq', // pbifnRecordEqual
     '$new', // pbifnRecordNew
-    'addField',
-    'addFields',
-    'addMethod',
-    'addProperty',
-    '$inherited',
-    '$Class', // tkClass
-    '$ClassRef',
-    '$DynArray',
-    '$Enum',
-    '$ExtClass',
-    '$Int',
-    '$Interface',
-    '$MethodVar',
-    '$Pointer',
-    'newTIProcSig',
-    '$ProcVar',
-    '$Record',
-    '$RefToProcVar',
-    '$Set',
-    '$StaticArray',
-    'setCharAt', // rtl.setCharAt
-    'cloneSet', // rtl.cloneSet
-    'createSet', // rtl.createSet [...]
-    'diffSet', // rtl.diffSet -
-    'eqSet', // rtl.eqSet =
-    'excludeSet', // rtl.excludeSet
-    'geSet', // rtl.geSet superset >=
-    'includeSet', // rtl.includeSet
-    'intersectSet', // rtl.intersectSet *
-    'leSet', // rtl.leSet subset <=
-    'neSet', // rtl.neSet <>
-    'refSet', // rtl.refSet
-    'symDiffSet', // rtl.symDiffSet >< (symmetrical difference)
-    'unionSet', // rtl.unionSet +
-    'spaceLeft', // rtl.spaceLeft
-    'strSetLength', // rtl.strSetLength
-    '$init',
-    '$e',
-    '$ir',
-    '$guid',
-    '$kind',
-    '$intfmaps',
-    '$impl',
+    'addField', // pbifnRTTIAddField
+    'addFields', // pbifnRTTIAddFields
+    'addMethod', // pbifnRTTIAddMethod
+    'addProperty', // pbifnRTTIAddProperty
+    '$inherited', // pbifnRTTIInherited
+    '$Class', // pbifnRTTINewClass  tkClass
+    '$ClassRef', // pbifnRTTINewClassRef
+    '$DynArray', // pbifnRTTINewDynArray
+    '$Enum', // pbifnRTTINewEnum
+    '$ExtClass', // pbifnRTTINewExtClass
+    '$Int', // pbifnRTTINewInt
+    '$Interface', // pbifnRTTINewInterface
+    '$MethodVar', // pbifnRTTINewMethodVar
+    '$Pointer', // pbifnRTTINewPointer
+    'newTIProcSig', // pbifnRTTINewProcSig
+    '$ProcVar', // pbifnRTTINewProcVar
+    '$Record', // pbifnRTTINewRecord
+    '$RefToProcVar', // pbifnRTTINewRefToProcVar
+    '$Set', // pbifnRTTINewSet
+    '$StaticArray', // pbifnRTTINewStaticArray
+    'setCharAt', // pbifnSetCharAt  rtl.setCharAt
+    'cloneSet', // pbifnSet_Clone  rtl.cloneSet
+    'createSet', // pbifnSet_Create  rtl.createSet [...]
+    'diffSet', // pbifnSet_Difference  rtl.diffSet -
+    'eqSet', // pbifnSet_Equal  rtl.eqSet =
+    'excludeSet', // pbifnSet_Exclude  rtl.excludeSet
+    'geSet', // pbifnSet_GreaterEqual  rtl.geSet superset >=
+    'includeSet', // pbifnSet_Include  rtl.includeSet
+    'intersectSet', // pbifnSet_Intersect  rtl.intersectSet *
+    'leSet', // pbifnSet_LowerEqual  rtl.leSet subset <=
+    'neSet', // pbifnSet_NotEqual  rtl.neSet <>
+    'refSet', // pbifnSet_Reference  rtl.refSet
+    'symDiffSet', // pbifnSet_SymDiffSet  rtl.symDiffSet >< (symmetrical difference)
+    'unionSet', // pbifnSet_Union  rtl.unionSet +
+    'spaceLeft', // pbifnSpaceLeft  rtl.spaceLeft
+    'strSetLength', // pbifnStringSetLength  rtl.strSetLength
+    '$init', // pbifnUnitInit
+    '$e', // pbivnExceptObject
+    '$ir',  // pbivnIntfExprRefs
+    '$guid',// pbivnIntfGUID
+    '$kind', // pbivnIntfKind
+    '$intfmaps', // pbivnIntfMaps
+    '$impl', // pbivnImplementation
     '$msgint', // pbivnMessageInt
     '$msgstr', // pbivnMessageStr
-    '$l',
-    '$end',
-    '$in',
-    '$mod',
-    'pas',
+    '$lmr', // pbivnLocalModuleRef
+    '$ltr', // pbivnLocalTypeRef
+    '$l', // pbivnLoop
+    '$end', // pbivnLoopEnd
+    '$in', // pbivnLoopIn
+    '$mod', // pbivnModule
+    'pas', // pbivnModules
     '$class', // pbivnPtrClass, ClassType
     '$record', // pbivnPtrRecord, hidden recordtype
-    '$ok',
-    '$resourcestrings',
-    'org',
-    'rtl',
-    '$rtti',
-    'dims',
-    'eltype',
-    'instancetype',
-    'enumtype',
-    'maxvalue',
-    'minvalue',
+    '$ok', // pbivnProcOk
+    '$resourcestrings', // pbivnResourceStrings
+    'org', // pbivnResourceStringOrig
+    'rtl', // pbivnRTL
+    '$rtti', // pbivnRTTI
+    'dims', // pbivnRTTIArray_Dims
+    'eltype', // pbivnRTTIArray_ElType
+    'instancetype', // pbivnRTTIClassRef_InstanceType
+    'enumtype', // pbivnRTTIEnum_EnumType
+    'maxvalue', // pbivnRTTIInt_MaxValue
+    'minvalue', // pbivnRTTIInt_MinValue
     'ordtype', // pbivnRTTIInt_OrdType
     '$r', // pbivnRTTILocal
     'attr', // pbivnRTTIMemberAttributes
@@ -872,7 +876,7 @@ const
     'ancestor', // pbivnRTTIExtClass_Ancestor
     'jsclass', // pbivnRTTIExtClass_JSClass
     '$Self', // pbivnSelf
-    'tObjectDestroy', // rtl.tObjectDestroy  pbivnTObjectDestroy
+    'tObjectDestroy', // pbivnTObjectDestroy rtl.tObjectDestroy
     '$with', // pbivnWith
     '$a', // pbitnAnonymousPostfix
     'NativeInt', // pbitnIntDouble
@@ -896,6 +900,7 @@ const
     );
 
   // reserved words, not usable as identifiers, not even as sub identifiers
+  // pas2js will avoid name clashes, by changing the casing
   JSReservedWords: array[0..59] of string = (
      // keep sorted, first uppercase, then lowercase !
      '__extends',
@@ -1648,7 +1653,7 @@ type
     destructor Destroy; override;
     function AddLocalVar(aName: string; El: TPasElement; AutoUnique: boolean): TFCLocalIdentifier;
     procedure Add_InterfaceRelease(El: TPasElement);
-    //function CreateLocalIdentifier(const Prefix: string): TFCLocalIdentifier;
+    function CreateLocalIdentifier(const Prefix: string): string;
     function ToString: string; override;
     function GetLocalName(El: TPasElement): string; override;
     function IndexOfLocalVar(const aName: string): integer;
@@ -1835,6 +1840,7 @@ type
     Function GetTypeInfoName(El: TPasType; AContext: TConvertContext;
       ErrorEl: TPasElement; Full: boolean = false): String; virtual;
     Function TransformArgName(Arg: TPasArgument; AContext: TConvertContext): string; virtual;
+    Function CreateGlobalAlias(El: TPasElement; RefPath: string; AContext: TConvertContext): string; virtual;
     // utility functions for creating stuff
     Function IsElementUsed(El: TPasElement): boolean; virtual;
     Function IsSystemUnit(aModule: TPasModule): boolean; virtual;
@@ -6917,6 +6923,20 @@ begin
   IntfElReleases.Add(El);
 end;
 
+function TFunctionContext.CreateLocalIdentifier(const Prefix: string): string;
+var
+  Ident: TFCLocalIdentifier;
+  l: Integer;
+begin
+  Result:=Prefix;
+  Ident:=FindLocalVar(Result,true);
+  if Ident=nil then exit;
+  l:=1;
+  repeat
+    Result:=Prefix+IntToStr(l);
+  until FindLocalVar(Result,true)=nil;
+end;
+
 function TFunctionContext.ToString: string;
 var
   V: TFCLocalIdentifier;
@@ -7522,9 +7542,7 @@ begin
       SubCall:=CreateCallExpression(Ref.Element);
       SubCall.Expr:=CreatePrimitiveDotExpr(FunName,Ref.Element);
       // append ".ProcName"
-      DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,Ref.Element));
-      DotExpr.MExpr:=SubCall;
-      DotExpr.Name:=TJSString(ProcName);
+      DotExpr:=CreateDotNameExpr(Ref.Element,SubCall,TJSString(ProcName));
       // as call: "path.$new().ProcName()"
       C.Expr:=DotExpr;
       end
@@ -8255,7 +8273,6 @@ var
   aResolver: TPas2JSResolver;
   FunName: String;
   Call: TJSCallExpression;
-  DotExpr: TJSDotMemberExpression;
   InOp: TJSRelationalExpressionIn;
   TypeEl, LeftTypeEl, RightTypeEl: TPasType;
   SNE: TJSEqualityExpressionSNE;
@@ -8610,10 +8627,8 @@ begin
         end;
 
       // use directly "B.isPrototypeOf(A)"
-      DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
-      DotExpr.MExpr:=B; B:=nil;
-      DotExpr.Name:='isPrototypeOf';
-      Call.Expr:=DotExpr;
+      Call.Expr:=CreateDotNameExpr(El,B,'isPrototypeOf');
+      B:=nil;
       end;
     exit;
     end
@@ -8918,9 +8933,7 @@ begin
     begin
     // e.g. "Something.aClassVar:=" -> "aClass.aClassVar:="
     LeftJS:=CreateReferencePathExpr(RightRefDecl.Parent,AContext);
-    Result:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
-    TJSDotMemberExpression(Result).MExpr:=LeftJS;
-    TJSDotMemberExpression(Result).Name:=TJSString(TransformVariableName(RightRefDecl,AContext));
+    Result:=CreateDotNameExpr(El,LeftJS,TJSString(TransformVariableName(RightRefDecl,AContext)));
     exit;
     end;
 
@@ -9364,9 +9377,7 @@ begin
     begin
     // writing a class var  -> aClass.VarName
     PathExpr:=CreateReferencePathExpr(Decl.Parent,AContext);
-    Result:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
-    TJSDotMemberExpression(Result).MExpr:=PathExpr;
-    TJSDotMemberExpression(Result).Name:=TJSString(TransformVariableName(Decl,AContext));
+    Result:=CreateDotNameExpr(El,PathExpr,TJSString(TransformVariableName(Decl,AContext)));
     CallTypeSetter;
     exit;
     end
@@ -13111,7 +13122,6 @@ var
   A: TJSElement;
   Call: TJSCallExpression;
   i: Integer;
-  DotEx: TJSDotMemberExpression;
 begin
   Params:=El.Params;
   if Length(Params)=1 then
@@ -13124,10 +13134,7 @@ begin
     A:=ConvertExpression(Params[0],AContext); // beware: might fail
     Call:=CreateCallExpression(El);
     try
-      DotEx:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,Params[0]));
-      DotEx.MExpr:=A;
-      DotEx.Name:='concat';
-      Call.Expr:=DotEx;
+      Call.Expr:=CreateDotNameExpr(Params[0],A,'concat');
       for i:=1 to length(Params)-1 do
         Call.AddArg(ConvertExpression(Params[i],AContext));
       Result:=Call;
@@ -14124,7 +14131,7 @@ Var
     Lit.Expr:=ObjLit;
     // add sub element: org: value
     Lit:=ObjLit.Elements.AddElement;
-    Lit.Name:=TJSString(GetBIName(pbivnResourceStringOrg));
+    Lit.Name:=TJSString(GetBIName(pbivnResourceStringOrig));
     Lit.Expr:=ConvertConstValue(Value,AContext,ResStr);
     ReleaseEvalValue(Value);
   end;
@@ -24755,9 +24762,7 @@ begin
       Result:=GetBIName(pbivnModules)+'.'+Result;
 
     if coAliasGlobals in Options then
-      begin
-
-      end;
+      Result:=CreateGlobalAlias(El,Result,AContext);
     end;
 end;
 
@@ -25001,6 +25006,46 @@ begin
     end
   else
     Result:=TransformVariableName(Arg,Result,true,AContext);
+end;
+
+function TPasToJSConverter.CreateGlobalAlias(El: TPasElement; RefPath: string;
+  AContext: TConvertContext): string;
+var
+  ElModule, MyModule: TPasModule;
+  aResolver: TPas2JSResolver;
+  SectionContext: TSectionContext;
+  FuncContext: TFunctionContext;
+  Expr: TJSElement;
+  V: TJSVariableStatement;
+begin
+  Result:=RefPath;
+  if El is TPasUnresolvedSymbolRef then
+    exit; // built-in element
+
+  ElModule:=El.GetModule;
+  aResolver:=AContext.Resolver;
+  MyModule:=aResolver.RootElement;
+  if ElModule=MyModule then
+    begin
+    // El is in this module
+    exit;
+    end
+  else
+    begin
+    // El is from another unit
+    SectionContext:=TSectionContext(AContext.GetContextOfType(TSectionContext));
+    FuncContext:=AContext.GetFunctionContext;
+    if El is TPasModule then
+      Result:=GetBIName(pbivnLocalModuleRef)
+    else
+      RaiseNotSupported(El,AContext,20200608160225);
+    Result:=FuncContext.CreateLocalIdentifier(Result);
+    SectionContext.AddLocalVar(Result,El,false);
+    // insert var $lmr = pas.modulename;
+    Expr:=CreatePrimitiveDotExpr(RefPath,El);
+    V:=CreateVarStatement(Result,Expr,El);
+    AddHeaderStatement(V,El,AContext);
+    end;
 end;
 
 function TPasToJSConverter.ConvertPasElement(El: TPasElement;

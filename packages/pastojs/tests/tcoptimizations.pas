@@ -60,6 +60,7 @@ type
     procedure TestOptAliasGlobals_Program; // ToDo
     // ToDo: procedure TestOptAliasGlobals_Unit;
     // ToDo: RTTI
+    // ToDo: typeinfo(var), typeinfo(type)
     // ToDo: resourcestring
     // ToDo: Global EnumType, EnumValue, EnumType.Value, unit.EnumType.Value
     // ToDo: Nested EnumType: EnumValue, EnumType.Value, unit.aType.EnumType.Value, aType.EnumType.Value, Instance.EnumType.Value
@@ -198,8 +199,6 @@ end;
 
 procedure TTestOptimizations.TestOptAliasGlobals_Program;
 begin
-  exit;
-
   StartProgram(true,[supTObject]);
   AddModuleWithIntfImplSrc('UnitA.pas',
   LinesToStr([
@@ -208,7 +207,7 @@ begin
     'type',
     '  TBird = class',
     '  public',
-    '    const c = 3;',
+    '    class var c: word;',
     '    class function Run(w: word): word; virtual; abstract;',
     '  end;',
     '  TRec = record',
@@ -230,23 +229,37 @@ begin
   'end;',
   'var',
   '  e: TEagle;',
-  //'  r: TRec;',
+  '  r: TRec;',
   'begin',
-  //'  b:=TBird.Create;',
-  //'  r.x:=TBird.c;',
-  //'  r.x:=b.c;',
-  //'  r.x:=e.Run;',
-  //'  r.x:=e.Run();',
-  //'  r.x:=e.Run(4);',
+  '  e:=TEagle.Create;',
+  '  b:=TBird.Create;',
+  '  r.x:=TBird.c;',
+  '  r.x:=b.c;',
+  '  r.x:=e.Run;',
+  '  r.x:=e.Run();',
+  '  r.x:=e.Run(4);',
   '']);
   ConvertProgram;
   CheckSource('TestOptAliasGlobals_Program',
     LinesToStr([
-    'this.DoIt = function () {',
-    '};',
+    'var $lmr = pas.UnitA;',
+    'rtl.createClass($mod, "TEagle", $lmr.TBird, function () {',
+    '  this.Run = function (w) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.e = null;',
+    'this.r = $lmr.TRec.$new();',
     '']),
     LinesToStr([
-    '$mod.DoIt();',
+    '$mod.e = $mod.TEagle.$create("Create");',
+    '$lmr.b = $lmr.TBird.$create("Create");',
+    '$mod.r.x = $lmr.TBird.c;',
+    '$mod.r.x = $lmr.b.c;',
+    '$mod.r.x = $mod.e.$class.Run(5);',
+    '$mod.r.x = $mod.e.$class.Run(5);',
+    '$mod.r.x = $mod.e.$class.Run(4);',
     '']));
 end;
 
