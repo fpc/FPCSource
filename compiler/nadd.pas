@@ -952,9 +952,10 @@ implementation
           end;
 
         { optimize operations with real constants, but only if fast math is switched on as
-          the operations could change the sign of 0
+          the operations could change e.g. the sign of 0 so they cannot be optimized always
         }
-        if cs_opt_fastmath in current_settings.optimizerswitches then
+        if (cs_opt_fastmath in current_settings.optimizerswitches) and
+          is_real(resultdef) then
           begin
             if lt=realconstn then
               begin
@@ -1014,6 +1015,19 @@ implementation
                     result:=left.getcopy;
                     exit;
                   end;
+              end
+            { optimize a/a and a-a }
+            else if (cs_opt_level2 in current_settings.optimizerswitches) and  (nodetype in [slashn,subn]) and
+              left.isequal(right) and not(might_have_sideeffects(left,[mhs_exceptions])) then
+              begin
+                case nodetype of
+                  subn:
+                    result:=crealconstnode.create(0,left.resultdef);
+                  slashn:
+                    result:=crealconstnode.create(1,left.resultdef);
+                  else
+                    Internalerror(2020060901);
+                end;
               end;
           end;
 
