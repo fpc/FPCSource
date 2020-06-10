@@ -1595,7 +1595,7 @@ type
     function GetRootContext: TConvertContext;
     function GetNonDotContext: TConvertContext;
     function GetFunctionContext: TFunctionContext;
-    function GetLocalName(El: TPasElement): string; virtual;
+    function GetLocalName(El: TPasElement; SkipSelf: boolean): string; virtual;
     function GetSelfContext: TFunctionContext;
     function GetContextOfPasElement(El: TPasElement): TConvertContext;
     function GetFuncContextOfPasElement(El: TPasElement): TFunctionContext;
@@ -1655,7 +1655,7 @@ type
     procedure Add_InterfaceRelease(El: TPasElement);
     function CreateLocalIdentifier(const Prefix: string): string;
     function ToString: string; override;
-    function GetLocalName(El: TPasElement): string; override;
+    function GetLocalName(El: TPasElement; SkipSelf: boolean): string; override;
     function IndexOfLocalVar(const aName: string): integer;
     function IndexOfLocalVar(El: TPasElement): integer;
     function FindLocalVar(const aName: string; WithParents: boolean): TFCLocalIdentifier;
@@ -1840,7 +1840,7 @@ type
     Function GetTypeInfoName(El: TPasType; AContext: TConvertContext;
       ErrorEl: TPasElement; Full: boolean = false): String; virtual;
     Function TransformArgName(Arg: TPasArgument; AContext: TConvertContext): string; virtual;
-    Function CreateGlobalAlias(El: TPasElement; RefPath: string; AContext: TConvertContext): string; virtual;
+    Function CreateGlobalAlias(El: TPasElement; JSPath: string; AContext: TConvertContext): string; virtual;
     // utility functions for creating stuff
     Function IsElementUsed(El: TPasElement): boolean; virtual;
     Function IsSystemUnit(aModule: TPasModule): boolean; virtual;
@@ -1921,6 +1921,7 @@ type
       Kind: TRefPathKind; Full: boolean = false; Ref: TResolvedReference = nil): string; virtual;
     Function CreateReferencePathExpr(El: TPasElement; AContext : TConvertContext;
       Full: boolean = false; Ref: TResolvedReference = nil): TJSElement; virtual;
+    Function CreateGlobalTypePath(El: TPasType; AContext : TConvertContext): string; virtual;
     // section
     Function CreateImplementationSection(El: TPasModule; AContext: TConvertContext): TJSFunctionDeclarationStatement; virtual;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
@@ -4551,7 +4552,7 @@ begin
   if Result<>nil then exit;
 
   // find unit in uses clauses
-  UtilsMod:=FindUsedUnit('system',aMod);
+  UtilsMod:=FindUsedUnitname('system',aMod);
   if UtilsMod=nil then
     RaiseIdentifierNotFound(20190215211531,'System.VarRecs',ErrorEl);
 
@@ -6931,8 +6932,9 @@ begin
   Result:=Prefix;
   Ident:=FindLocalVar(Result,true);
   if Ident=nil then exit;
-  l:=1;
+  l:=0;
   repeat
+    inc(l);
     Result:=Prefix+IntToStr(l);
   until FindLocalVar(Result,true)=nil;
 end;
@@ -6952,7 +6954,8 @@ begin
     end;
 end;
 
-function TFunctionContext.GetLocalName(El: TPasElement): string;
+function TFunctionContext.GetLocalName(El: TPasElement; SkipSelf: boolean
+  ): string;
 var
   V: TFCLocalIdentifier;
 begin
@@ -6962,16 +6965,17 @@ begin
     begin
     Result:=V.Name;
     if Result=LocalVarHide then
-      Result:='';
+      exit('');
+    if SkipSelf and ((Result='this') or (Result='$Self')) then
+      // search further
+    else
+      exit;
     end
-  else if ThisPas=El then
-    Result:='this'
-  else
-    begin
-    Result:=inherited GetLocalName(El);
-    if Result='this' then
-      Result:='';
-    end;
+  else if (ThisPas=El) and not SkipSelf then
+    exit('this');
+  Result:=inherited GetLocalName(El,SkipSelf);
+  if Result='this' then
+    Result:='';
 end;
 
 function TFunctionContext.IndexOfLocalVar(const aName: string): integer;
@@ -7088,10 +7092,11 @@ begin
   Result:=TFunctionContext(GetContextOfType(TFunctionContext));
 end;
 
-function TConvertContext.GetLocalName(El: TPasElement): string;
+function TConvertContext.GetLocalName(El: TPasElement; SkipSelf: boolean
+  ): string;
 begin
   if Parent<>nil then
-    Result:=Parent.GetLocalName(El)
+    Result:=Parent.GetLocalName(El,SkipSelf)
   else
     Result:='';
 end;
@@ -9050,7 +9055,7 @@ var
 begin
   if AContext.IsGlobal then
     begin
-    ParentName:=AContext.GetLocalName(El.Parent);
+    ParentName:=AContext.GetLocalName(El.Parent,false);
     if ParentName='' then
       ParentName:='this';
     if JSName[1]='[' then
@@ -9680,7 +9685,7 @@ function TPasToJSConverter.ConvertInheritedExpr(El: TInheritedExpr;
     SelfContext:=AContext.GetSelfContext;
     if SelfContext=nil then
       RaiseInconsistency(20170418114702,El);
-    SelfName:=SelfContext.GetLocalName(SelfContext.ThisPas);
+    SelfName:=SelfContext.GetLocalName(SelfContext.ThisPas,false);
 
     if Apply and (SelfContext<>AContext) then
       DoError(20170418204325,nNestedInheritedNeedsParameters,sNestedInheritedNeedsParameters,
@@ -14423,9 +14428,9 @@ begin
     if (El.Parent=nil)
         or ((El.Parent is TPasSection)
           and (El.Parent.ClassType<>TImplementationSection)) then
-      OwnerName:=AContext.GetLocalName(El.GetModule)
+      OwnerName:=AContext.GetLocalName(El.GetModule,false)
     else
-      OwnerName:=AContext.GetLocalName(El.Parent);
+      OwnerName:=AContext.GetLocalName(El.Parent,false);
     if OwnerName='' then
       OwnerName:='this';
     Call.AddArg(CreatePrimitiveDotExpr(OwnerName,El));
@@ -15598,6 +15603,7 @@ begin
   AssignSt:=nil;
   if AContext.IsGlobal then
     begin
+    // add 'this.FuncName = ...'
     AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,ImplProc));
     Result:=AssignSt;
     AssignSt.LHS:=CreateSubDeclNameExpr(El,AContext,ImplProc);
@@ -17343,6 +17349,7 @@ begin
               or (VarType.ClassType=TPasFunctionType)
               or (VarType.ClassType=TPasArrayType) then
             begin
+            // add 'this.FieldName = undefined;'
             AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
             NewEl:=AssignSt;
             AssignSt.LHS:=CreateSubDeclNameExpr(P,New_FuncContext);
@@ -17595,7 +17602,7 @@ begin
         if SelfScope=nil then
           RaiseNotSupported(PosEl,AContext,20190205230919);
         if SelfScope.SelfArg<>nil then
-          TargetName:=AContext.GetLocalName(SelfScope.SelfArg)
+          TargetName:=AContext.GetLocalName(SelfScope.SelfArg,false)
         else if SelfScope.ClassRecScope<>nil then
           begin
           TargetName:=CreateReferencePath(SelfScope.ClassRecScope.Element,
@@ -19497,7 +19504,7 @@ var
       Result:=CreatePrimitiveDotExpr(WithExprScope.WithVarName,Expr)
     else if SelfScope<>nil then
       begin
-      Path:=AContext.GetLocalName(SelfScope.SelfArg);
+      Path:=AContext.GetLocalName(SelfScope.SelfArg,false);
       Result:=CreatePrimitiveDotExpr(Path,Expr);
       end
     else if Left=nil then
@@ -22901,17 +22908,16 @@ var
   end;
 
   function PrependClassOrRecName(var Path: string; ClassOrRec: TPasMembersType): boolean;
+  // returns true if no parent path needed
   begin
     if (ClassOrRec.ClassType=TPasClassType) and TPasClassType(ClassOrRec).IsExternal then
       begin
       Prepend(Path,TPasClassType(ClassOrRec).ExternalName);
-      Result:=true;
-      end
-    else
-      begin
-      Prepend(Path,ClassOrRec.Name);
-      Result:=false;
+      exit(true);
       end;
+    Prepend(Path,CreateGlobalTypePath(ClassOrRec,AContext));
+    //Prepend(Path,ClassOrRec.Name);
+    Result:=true;
   end;
 
   function NeedsWithExpr: boolean;
@@ -23128,15 +23134,14 @@ begin
       RaiseNotSupported(El,AContext,20170201172141,GetObjName(El));
     El:=ImplToDecl(El);
 
-    {if Kind=rpkPathAndName then
+    if Kind=rpkPathAndName then
       begin
-      ShortName:=AContext.GetLocalName(El);
-      if ShortName<>'' then
+      if El is TPasType then
         begin
-        Result:=ShortName;
+        Result:=CreateGlobalTypePath(TPasType(El),AContext);
         exit;
         end;
-      end;}
+      end;
 
     CurEl:=El;
     ParentEl:=CurEl.Parent;
@@ -23148,7 +23153,7 @@ begin
                or (ParentEl.ClassType=TPasRecordType);
 
       // check if ParentEl has a JS var
-      ShortName:=AContext.GetLocalName(ParentEl);
+      ShortName:=AContext.GetLocalName(ParentEl,false);
       //writeln('TPasToJSConverter.CreateReferencePath El=',GetObjName(El),' ParentEl=',GetObjName(ParentEl),' ShortName=',ShortName);
 
       if IsClassRec then
@@ -23165,7 +23170,7 @@ begin
                    or (ParentEl.ClassType=TPasRecordType);
           if not IsClassRec then
             RaiseNotSupported(El,AContext,20190926091356);
-          ShortName:=AContext.GetLocalName(ParentEl);
+          ShortName:=AContext.GetLocalName(ParentEl,false);
           end;
 
         if Full then
@@ -23197,7 +23202,7 @@ begin
           else if (SelfContext<>nil)
               and IsA(TPasType(SelfContext.ThisPas),TPasMembersType(ParentEl)) then
             begin
-            ShortName:=AContext.GetLocalName(SelfContext.ThisPas);
+            ShortName:=AContext.GetLocalName(SelfContext.ThisPas,false);
             if ShortName='' then
               begin
               if PrependClassOrRecName(Result,TPasMembersType(ParentEl)) then break;
@@ -23302,6 +23307,47 @@ begin
   else
     Src:=nil;
   Result:=CreatePrimitiveDotExpr(Name,Src);
+end;
+
+function TPasToJSConverter.CreateGlobalTypePath(El: TPasType;
+  AContext: TConvertContext): string;
+var
+  aType: TPasType;
+  Parent: TPasElement;
+  CurModule: TPasModule;
+  AliasGlobals: Boolean;
+begin
+  aType:=AContext.Resolver.ResolveAliasType(El);
+  Result:=AContext.GetLocalName(aType,true);
+  AliasGlobals:=coAliasGlobals in Options;
+  if Result<>'' then
+    exit; // already exists
+
+  Parent:=El.Parent;
+  Result:=AContext.GetLocalName(Parent,AliasGlobals);
+  if Result<>'' then
+  else if Parent is TPasType then
+    Result:=CreateGlobalTypePath(TPasType(Parent),AContext)
+  else if Parent is TPasSection then
+    begin
+    // element is in foreign unit -> use pas.unitname
+    CurModule:=Parent.GetModule;
+    Result:=TransformModuleName(CurModule,true,AContext);
+    if (CurModule<>AContext.GetRootContext.PasElement.GetModule)
+        and (Parent is TImplementationSection) then
+      begin
+      // element is in foreign implementation section (not program/library section)
+      // -> use pas.unitname.$impl
+      Result:=Result+'.'+GetBIName(pbivnImplementation);
+      end;
+    end
+  else if Parent is TPasModule then
+    Result:=TransformModuleName(TPasModule(Parent),true,AContext)
+  else
+    RaiseNotSupported(El,AContext,20200609230526,GetObjName(aType));
+  Result:=Result+'.'+TransformVariableName(aType,AContext);
+  if AliasGlobals then
+    Result:=CreateGlobalAlias(El,Result,AContext);
 end;
 
 procedure TPasToJSConverter.CreateProcedureCall(var Call: TJSCallExpression;
@@ -24446,9 +24492,9 @@ begin
       if (El.Parent=nil)
           or ((El.Parent is TPasSection)
             and (El.Parent.ClassType<>TImplementationSection)) then
-        JSParentName:=AContext.GetLocalName(El.GetModule)
+        JSParentName:=AContext.GetLocalName(El.GetModule,false)
       else
-        JSParentName:=AContext.GetLocalName(El.Parent);
+        JSParentName:=AContext.GetLocalName(El.Parent,false);
       if JSParentName='' then
         JSParentName:='this';
       Call.AddArg(CreatePrimitiveDotExpr(JSParentName,El));
@@ -24733,7 +24779,7 @@ var
 begin
   if AddModulesPrefix then
     begin
-    Result:=AContext.GetLocalName(El);
+    Result:=AContext.GetLocalName(El,false);
     if Result<>'' then exit;
     end;
   if El is TPasProgram then
@@ -24761,7 +24807,7 @@ begin
     else
       Result:=GetBIName(pbivnModules)+'.'+Result;
 
-    if coAliasGlobals in Options then
+    if (coAliasGlobals in Options) and (Result<>'this') then
       Result:=CreateGlobalAlias(El,Result,AContext);
     end;
 end;
@@ -25000,7 +25046,7 @@ begin
   if (CompareText(Result,'Self')=0) and (Arg.Parent is TPasProcedure) then
     begin
     // hidden self argument
-    Result:=AContext.GetLocalName(Arg);
+    Result:=AContext.GetLocalName(Arg,false);
     if Result='' then
       RaiseNotSupported(Arg,AContext,20190205190114,GetObjName(Arg.Parent));
     end
@@ -25008,7 +25054,7 @@ begin
     Result:=TransformVariableName(Arg,Result,true,AContext);
 end;
 
-function TPasToJSConverter.CreateGlobalAlias(El: TPasElement; RefPath: string;
+function TPasToJSConverter.CreateGlobalAlias(El: TPasElement; JSPath: string;
   AContext: TConvertContext): string;
 var
   ElModule, MyModule: TPasModule;
@@ -25018,7 +25064,7 @@ var
   Expr: TJSElement;
   V: TJSVariableStatement;
 begin
-  Result:=RefPath;
+  Result:=JSPath;
   if El is TPasUnresolvedSymbolRef then
     exit; // built-in element
 
@@ -25034,17 +25080,26 @@ begin
     begin
     // El is from another unit
     SectionContext:=TSectionContext(AContext.GetContextOfType(TSectionContext));
+    if SectionContext.PasElement is TInterfaceSection then
+      begin
+      // check if from impl uses clause
+
+      end;
+
     FuncContext:=AContext.GetFunctionContext;
     if El is TPasModule then
       Result:=GetBIName(pbivnLocalModuleRef)
+    else if El is TPasType then
+      Result:=GetBIName(pbivnLocalTypeRef)
     else
       RaiseNotSupported(El,AContext,20200608160225);
     Result:=FuncContext.CreateLocalIdentifier(Result);
     SectionContext.AddLocalVar(Result,El,false);
-    // insert var $lmr = pas.modulename;
-    Expr:=CreatePrimitiveDotExpr(RefPath,El);
+    // insert var $lmr = JSPath;
+    Expr:=CreatePrimitiveDotExpr(JSPath,El);
     V:=CreateVarStatement(Result,Expr,El);
     AddHeaderStatement(V,El,AContext);
+    // ToDo: check if from impl uses section and separate "var $lmr = null;" and "$lmr = JSPath";
     end;
 end;
 
