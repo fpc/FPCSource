@@ -875,14 +875,14 @@ unit nx86add;
 
         pass_left_right;
         { fpu operands are always in reversed order on the stack }
-        if (left.location.loc=LOC_FPUREGISTER) and (right.location.loc=LOC_FPUREGISTER) then
+        if (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
           toggleflag(nf_swapped);
 
         if (nf_swapped in flags) then
           { can't use swapleftright if both are on the fpu stack, since then }
           { both are "R_ST" -> nothing would change -> manually switch       }
-          if (left.location.loc = LOC_FPUREGISTER) and
-             (right.location.loc = LOC_FPUREGISTER) then
+          if (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and
+             (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
             emit_none(A_FXCH,S_NO)
           else
             swapleftright;
@@ -1018,14 +1018,14 @@ unit nx86add;
 
         pass_left_right;
         { fpu operands are always in reversed order on the stack }
-        if (left.location.loc=LOC_FPUREGISTER) and (right.location.loc=LOC_FPUREGISTER) then
+        if (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
           toggleflag(nf_swapped);
 
         if (nf_swapped in flags) then
           { can't use swapleftright if both are on the fpu stack, since then }
           { both are "R_ST" -> nothing would change -> manually switch       }
-          if (left.location.loc = LOC_FPUREGISTER) and
-             (right.location.loc = LOC_FPUREGISTER) then
+          if (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and
+             (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
             emit_none(A_FXCH,S_NO)
           else
             swapleftright;
@@ -1190,6 +1190,10 @@ unit nx86add;
         else
           internalerror(200402222);
         pass_left_right;
+
+        { fpu operands are always in reversed order on the stack }
+        if (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
+          toggleflag(nf_swapped);
 
         location_reset(location,LOC_FLAGS,OS_NO);
 
