@@ -2139,7 +2139,7 @@ var
   hs : string;
   code : ValSInt;
 begin
-  v:=0.0;
+  v:=0;
   if not CheckRead(f) then
     Exit;
 
