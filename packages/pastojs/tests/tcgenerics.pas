@@ -17,7 +17,7 @@ type
     // generic record
     Procedure TestGen_RecordEmpty;
     Procedure TestGen_Record_ClassProc;
-    //Procedure TestGen_Record_ReferGenClass_DelphiFail;
+    Procedure TestGen_Record_DelayProgram; // ToDo
 
     // generic class
     Procedure TestGen_ClassEmpty;
@@ -29,7 +29,7 @@ type
     Procedure TestGen_Class_TypeOverload; // ToDo TBird, TBird<T>, TBird<S,T>
     Procedure TestGen_Class_ClassProperty;
     Procedure TestGen_Class_ClassProc;
-    //Procedure TestGen_Class_ReferGenClass_DelphiFail;
+    //Procedure TestGen_Record_ReferGenClass_DelphiFail; TBird<T> = class x:TBird; end;
     Procedure TestGen_Class_ClassConstructor;
     Procedure TestGen_Class_TypeCastSpecializesWarn;
     Procedure TestGen_Class_TypeCastSpecializesJSValueNoWarn;
@@ -41,7 +41,7 @@ type
     procedure TestGen_ExtClass_Array;
     procedure TestGen_ExtClass_GenJSValueAssign;
     procedure TestGen_ExtClass_AliasMemberType;
-    Procedure TestGen_ExtClass_RTTI;
+    Procedure TestGen_ExtClass_RTTI; // ToDo: use "TGJSSET<JSValue>"
 
     // class interfaces
     procedure TestGen_ClassInterface_Corba;
@@ -151,6 +151,54 @@ begin
     '$mod.TPoint$G1.x = $mod.p.x + 10;',
     '$mod.p.Fly();',
     '$mod.p.Fly();',
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_Record_DelayProgram;
+begin
+  exit;
+
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'type',
+  '  generic TAnt<T> = record',
+  '    class var x: T;',
+  '  end;',
+  '  TBird = record',
+  '    b: word;',
+  '  end;',
+  'var f: specialize TAnt<TBird>;',
+  'begin',
+  '  f.x.b:=f.x.b+10;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGen_Record_DelayProgram',
+    LinesToStr([ // statements
+    'rtl.recNewS($mod, "TAnt$G1", function () {',
+    '  this.x = $mod.TBird.$new();',
+    '  this.$eq = function (b) {',
+    '    return true;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    return this;',
+    '  };',
+    '}, true);',
+    'rtl.recNewT($mod, "TBird", function () {',
+    '  this.b = 0;',
+    '  this.$eq = function (b) {',
+    '    return this.b === b.b;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.b = s.b;',
+    '    return this;',
+    '  };',
+    '});',
+    '$mod.TAnt$G1();',
+    'this.f = $mod.TAnt$G1.$new();',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.f.x.b = $mod.f.x.b + 10;',
     '']));
 end;
 

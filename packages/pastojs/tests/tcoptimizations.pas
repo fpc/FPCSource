@@ -59,6 +59,7 @@ type
     // unit optimization: aliasglobals
     procedure TestOptAliasGlobals_Program;
     procedure TestOptAliasGlobals_Unit; // ToDo
+    // ToDo: external var, const, class
     // ToDo: RTTI
     // ToDo: typeinfo(var), typeinfo(type)
     // ToDo: resourcestring

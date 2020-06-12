@@ -432,27 +432,32 @@ var rtl = {
     // create new record type
     var t = {};
     if (parent) parent[name] = t;
-    function hide(prop){
-      Object.defineProperty(t,prop,{enumerable:false});
-    }
+    var h = rtl.hideProp;
     if (full){
       rtl.initStruct(t,parent,name);
       t.$record = t;
-      hide('$record');
-      hide('$name');
-      hide('$parent');
-      hide('$module');
+      h(t,'$record');
+      h(t,'$name');
+      h(t,'$parent');
+      h(t,'$module');
     }
     initfn.call(t);
     if (!t.$new){
       t.$new = function(){ return Object.create(t); };
     }
     t.$clone = function(r){ return t.$new().$assign(r); };
-    hide('$new');
-    hide('$clone');
-    hide('$eq');
-    hide('$assign');
+    h(t,'$new');
+    h(t,'$clone');
+    h(t,'$eq');
+    h(t,'$assign');
     return t;
+  },
+
+  recNewS: function(parent,name,initfn,full){
+    // register specialized record type
+    parent[name] = function(){
+      rtl.recNewT(parent,name,initfn,full);
+    }
   },
 
   is: function(instance,type){
