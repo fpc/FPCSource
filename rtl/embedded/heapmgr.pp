@@ -195,6 +195,8 @@ Unit heapmgr;
             exit;
           end;
         sz := Align(FindSize(addr)+SizeOf(pointer), sizeof(pointer));
+        if sz < MinBlock then
+          sz := MinBlock;
 
         InternalFreeMem(@pptruint(addr)[-1], sz);
 
