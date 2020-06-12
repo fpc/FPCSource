@@ -25129,7 +25129,7 @@ function TPasResolver.GetTypeDescription(aType: TPasType; AddPath: boolean): str
           Result:=Result+'<';
           for i:=0 to length(Params)-1 do
             begin
-            Result:=Result+GetTypeDescription(Params[i]);
+            Result:=Result+GetTypeDescription(Params[i],AddPath);
             if i>0 then
               Result:=Result+',';
             end;
