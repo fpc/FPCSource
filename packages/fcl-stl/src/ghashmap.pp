@@ -195,7 +195,7 @@ begin
 {$endif}
     inc(i);
   end;
-  // Result:=Default(TValue);
+  Result:=Default(TValue);
   // exception?
 end;
 
