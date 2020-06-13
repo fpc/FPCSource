@@ -375,6 +375,7 @@ procedure TInternalLinkerMSXDOS.DefaultLinkScript;
     LinkScript.Concat('ENDEXESECTION');
     LinkScript.Concat('EXESECTION .bss');
     LinkScript.Concat('  OBJSECTION _BSS');
+    LinkScript.Concat('  OBJSECTION _BSSEND');
     LinkScript.Concat('  OBJSECTION _HEAP');
     LinkScript.Concat('  OBJSECTION _STACK');
     LinkScript.Concat('ENDEXESECTION');
