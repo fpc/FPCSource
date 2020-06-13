@@ -14,7 +14,7 @@ type TGPQueueTest = class(TTestCase)
     procedure QueueTest;
   public
     procedure Setup;override;
-  private 
+  private
     data:queuelli;
   end;
 
@@ -30,7 +30,7 @@ begin
   data.pop;
   for i:=0 to 9 do begin
     AssertEquals('Wrong order', true, data.top<last);
-    AssertEquals('Wrong size', 10-i, data.size);
+    AssertEquals('Wrong size', 10-i, SizeInt(data.size));
     last:=data.top;
     data.pop;
   end;
