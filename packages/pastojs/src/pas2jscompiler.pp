@@ -5185,10 +5185,11 @@ var
   FoundPasIsForeign: Boolean;
   FoundPCUFilename, FoundPCUUnitName: string;
 
-  procedure TryUnitName(const TestUnitName: string);
+  function TryUnitName(const TestUnitName: string): boolean;
   var
     aFile: TPas2jsCompilerFile;
   begin
+    writeln('AAA1 TryUnitName ',TestUnitName);
     if FoundPasFilename='' then
     begin
       // search loaded units
@@ -5220,6 +5221,9 @@ var
       if FoundPCUFilename<>'' then
         FoundPCUUnitName:=TestUnitName;
     end;
+
+    Result:=(FoundPasFilename<>'')
+        and (not Assigned(PCUSupport) or (FoundPCUFilename<>''));
   end;
 
 var
@@ -5227,7 +5231,7 @@ var
   i: Integer;
 
 begin
-  //writeln('TPas2jsCompiler.GetUnitInfo ',UseUnitName,' in=',InFileName,' ',GetObjName(PCUSupport));
+  writeln('TPas2jsCompiler.GetUnitInfo ',UseUnitName,' in=',InFileName,' ',GetObjName(PCUSupport));
   Result:=Default(TFindUnitInfo);
   FoundPasFilename:='';
   FoundPasIsForeign:=false;
@@ -5239,32 +5243,34 @@ begin
   begin
     CheckUnitAlias(UseUnitName);
 
-    if Pos('.',UseUnitname)<1 then
+    // first search with name as written in module
+    if not TryUnitName(UseUnitname) then
     begin
-      // generic unit name -> search with namespaces
-      // first the default program namespace
-      DefNameSpace:=GetDefaultNamespace;
-      if DefNameSpace<>'' then
-        TryUnitName(DefNameSpace+'.'+UseUnitname);
-
-      if (FoundPasFilename='') or (FoundPCUFilename='') then
+      if Pos('.',UseUnitname)<1 then
       begin
-        // then the cmdline namespaces
+        // generic unit name -> search with namespaces
+        // first the cmdline namespaces
         for i:=0 to Namespaces.Count-1 do
         begin
           aNameSpace:=Namespaces[i];
           if aNameSpace='' then continue;
-          if SameText(aNameSpace,DefNameSpace) then continue;
-          TryUnitName(aNameSpace+'.'+UseUnitname);
+          if TryUnitName(aNameSpace+'.'+UseUnitname) then break;
+        end;
+
+        if (FoundPasFilename='') or (FoundPCUFilename='') then
+        begin
+          // then the default program namespace
+          DefNameSpace:=GetDefaultNamespace;
+          if DefNameSpace<>'' then
+          begin
+            i:=Namespaces.Count-1;
+            while (i>=0) and not SameText(Namespaces[i],DefNameSpace) do dec(i);
+            if i<0 then
+              TryUnitName(DefNameSpace+'.'+UseUnitname);
+          end;
         end;
       end;
-    end;
-
-    if (FoundPasFilename='') or (FoundPCUFilename='') then
-    begin
-      // search unitname
-      TryUnitName(UseUnitname);
-    end;
+    end
   end else begin
     // search Pascal file with InFilename
     FoundPasFilename:=FS.FindUnitFileName(UseUnitname,InFilename,ModuleDir,FoundPasIsForeign);
