@@ -775,7 +775,7 @@ implementation
 
         if assigned(currpd.struct) and
            (currpd.struct.symtable.moduleid<>current_module.moduleid) and
-           not currpd.is_specialization then
+           not (df_specialization in currpd.defoptions) then
           begin
             result:=false;
             exit;
