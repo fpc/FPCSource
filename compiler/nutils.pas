@@ -1425,9 +1425,9 @@ implementation
             tinlinenode(n).may_have_sideeffect_norecurse
            ) or
            ((mhs_exceptions in pmhs_flags(arg)^) and
-            ((n.nodetype in [derefn,vecn]) or
+            ((n.nodetype in [derefn,vecn,divn,slashn]) or
              ((n.nodetype=subscriptn) and is_implicit_pointer_object_type(tsubscriptnode(n).left.resultdef)) or
-             ((n.nodetype in [addn,subn,muln,divn,slashn,unaryminusn]) and (n.localswitches*[cs_check_overflow,cs_check_range]<>[]))
+             ((n.nodetype in [addn,subn,muln,unaryminusn]) and (n.localswitches*[cs_check_overflow,cs_check_range]<>[]))
             )
            ) or
            ((n.nodetype=loadn) and
