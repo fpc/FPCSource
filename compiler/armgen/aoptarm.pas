@@ -797,15 +797,34 @@ Implementation
           MatchInstruction(hp1, A_AND, [taicpu(p).condition], [PF_None]) and
           RegEndOfLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
           MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
-          (taicpu(hp1).oper[2]^.typ = top_const) then
+          (taicpu(hp1).oper[2]^.typ = top_const)
+{$ifdef AARCH64}
+          and ((((getsubreg(taicpu(p).oper[0]^.reg)=R_SUBQ) and is_shifter_const(taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val,OS_64)) or
+               ((getsubreg(taicpu(p).oper[0]^.reg)=R_SUBL) and is_shifter_const(taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val,OS_32))
+          ) or
+          ((taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val)=0))
+{$endif AARCH64}
+          then
             begin
               if not(RegUsedBetween(taicpu(hp1).oper[0]^.reg,p,hp1)) then
                 begin
                   DebugMsg('Peephole AndAnd2And done', p);
                   AllocRegBetween(taicpu(hp1).oper[0]^.reg,p,hp1,UsedRegs);
-                  taicpu(p).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
-                  taicpu(p).oppostfix:=taicpu(hp1).oppostfix;
-                  taicpu(p).loadReg(0,taicpu(hp1).oper[0]^.reg);
+                  if (taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val)=0 then
+                    begin
+                      DebugMsg('Peephole AndAnd2Mov0 1 done', p);
+                      taicpu(p).opcode:=A_MOV;
+                      taicpu(p).ops:=2;
+                      taicpu(p).loadConst(1,0);
+                      taicpu(p).oppostfix:=taicpu(hp1).oppostfix;
+                    end
+                  else
+                    begin
+                      DebugMsg('Peephole AndAnd2And 1 done', p);
+                      taicpu(p).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
+                      taicpu(p).oppostfix:=taicpu(hp1).oppostfix;
+                      taicpu(p).loadReg(0,taicpu(hp1).oper[0]^.reg);
+                    end;
                   asml.remove(hp1);
                   hp1.free;
                   Result:=true;
@@ -813,11 +832,22 @@ Implementation
                 end
               else if not(RegUsedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
                 begin
-                  DebugMsg('Peephole AndAnd2And done', hp1);
-                  AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
-                  taicpu(hp1).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
-                  taicpu(hp1).oppostfix:=taicpu(p).oppostfix;
-                  taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                  if (taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val)=0 then
+                    begin
+                      DebugMsg('Peephole AndAnd2Mov0 2 done', hp1);
+                      taicpu(hp1).opcode:=A_MOV;
+                      taicpu(hp1).loadConst(1,0);
+                      taicpu(hp1).ops:=2;
+                      taicpu(hp1).oppostfix:=taicpu(p).oppostfix;
+                    end
+                  else
+                    begin
+                      DebugMsg('Peephole AndAnd2And 2 done', hp1);
+                      AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
+                      taicpu(hp1).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
+                      taicpu(hp1).oppostfix:=taicpu(p).oppostfix;
+                      taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+                    end;
                   GetNextInstruction(p, hp1);
                   RemoveCurrentP(p);
                   p:=hp1;
