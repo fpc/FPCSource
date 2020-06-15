@@ -2688,6 +2688,14 @@ implementation
            'ShortString','LongString','AnsiString','WideString','UnicodeString');
       begin
          GetTypeName:=names[stringtype];
+         case stringtype of
+           st_ansistring,st_unicodestring:
+             GetTypeName:=GetTypeName+'('+tostr(encoding)+')';
+           st_shortstring:
+             GetTypeName:=GetTypeName+'['+tostr(len)+']';
+           else
+             ;
+         end;
       end;
 
 
