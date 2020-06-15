@@ -742,6 +742,7 @@ implementation
                 ;
             end;
           end;
+{$ifdef break_inlining}
         { simple sequence of tempcreate, assign and return temp.? }
         if GetStatements(left,a) and
           (a[0].left.nodetype=tempcreaten) and
@@ -764,6 +765,7 @@ implementation
             firstpass(result);
             exit;
           end;
+{$endif break_inlining}
       end;
 
 
