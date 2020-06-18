@@ -189,11 +189,8 @@ implementation
         fcl, fcr: longint;
         ncl, ncr: longint;
       begin
-         { always calculate boolean AND and OR from left to right }
-         if (p.nodetype in [orn,andn]) and
-            is_boolean(p.left.resultdef) and
-            (might_have_sideeffects(p.left,[mhs_exceptions]) or might_have_sideeffects(p.right,[mhs_exceptions]) or
-            (nf_short_bool in taddnode(p).flags)) then
+         { calculate boolean AND and OR from left to right if it's short boolean evaluted }
+         if (p.nodetype in [orn,andn]) and is_boolean(p.left.resultdef) and is_boolean(p.left.resultdef) and doshortbooleval(p) then
            begin
              if nf_swapped in p.flags then
                internalerror(200709253);
