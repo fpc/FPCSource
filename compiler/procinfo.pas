@@ -439,9 +439,10 @@ implementation
         pi : tprocinfo;
         p : tparavarsym;
       begin
-        if (procdef.parast.symtablelevel<=normal_function_level)
-          or (procdef.parast.symtablelevel<=parent_level) then
+        if procdef.parast.symtablelevel<=normal_function_level then
           Internalerror(2020050302);
+        if procdef.parast.symtablelevel<=parent_level then
+          exit;
         if parent_level<normal_function_level then
           parent_level:=normal_function_level;
         { Mark parentfp as used for the current proc }

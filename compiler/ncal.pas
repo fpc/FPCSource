@@ -3516,7 +3516,19 @@ implementation
                   if not assigned(right) then
                     begin
                       if assigned(procdefinition.owner.defowner) then
-                        hiddentree:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner),lpf_forpara)
+                        begin
+                          if paramanager.can_opt_unused_para(currpara) and
+                            (procdefinition<>current_procinfo.procdef) then
+                            { If parentfp is unused by the target proc, create loadparentfpnode which loads 
+                              the current frame pointer to prevent generation of unneeded code. }
+                            hiddentree:=cloadparentfpnode.create(current_procinfo.procdef,lpf_forpara)
+                          else
+                            begin
+                              hiddentree:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner),lpf_forpara);
+                              if is_nested_pd(current_procinfo.procdef) then
+                                current_procinfo.set_needs_parentfp(tprocdef(procdefinition.owner.defowner).parast.symtablelevel);
+                           end;
+                        end
                       { exceptfilters called from main level are not owned }
                       else if procdefinition.proctypeoption=potype_exceptfilter then
                         hiddentree:=cloadparentfpnode.create(current_procinfo.procdef,lpf_forpara)

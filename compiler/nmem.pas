@@ -316,8 +316,6 @@ implementation
           internalerror(200309284);
         parentpd:=pd;
         kind:=fpkind;
-        if current_procinfo.procdef.parast.symtablelevel>pd.parast.symtablelevel then
-          current_procinfo.set_needs_parentfp(pd.parast.symtablelevel);
       end;
 
 

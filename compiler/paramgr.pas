@@ -165,6 +165,8 @@ unit paramgr;
             and checked by the runtime/backend compiler (e.g. JVM, LLVM).
             The default implementation returns false. }
           function has_strict_proc_signature: boolean; virtual;
+          { Returns true if parasym is unused and can be optimized. }
+          function can_opt_unused_para(parasym: tparavarsym): boolean;
          strict protected
           { common part of get_funcretloc; returns true if retloc is completely
             initialized afterwards }
@@ -195,6 +197,7 @@ implementation
 
     uses
        systems,
+       globals,
        cgobj,tgobj,
        defutil,verbose,
        hlcgobj;
@@ -832,6 +835,28 @@ implementation
         end;
       end;
 
+
+    function tparamanager.can_opt_unused_para(parasym: tparavarsym): boolean;
+      var
+        pd: tprocdef;
+      begin
+        { The parameter can be optimized as unused when:
+            optimization level 1 and higher
+            this is a direct call to a routine, not a procvar
+            and the routine is not an exception filter
+            and the parameter is not used by the routine
+            and implementation of the routine is already processed.
+        }
+        result:=(cs_opt_level1 in current_settings.optimizerswitches) and
+          assigned(parasym.Owner) and
+          (parasym.Owner.defowner.typ=procdef);
+        if not result then
+          exit;
+        pd:=tprocdef(parasym.Owner.defowner);
+        result:=(pd.proctypeoption<>potype_exceptfilter) and
+          not parasym.is_used and
+          pd.is_implemented;
+      end;
 
 initialization
   ;

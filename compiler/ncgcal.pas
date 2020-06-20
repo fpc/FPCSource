@@ -138,29 +138,6 @@ implementation
       wpobase;
 
 
-    function can_opt_unused_para(parasym: tparavarsym): boolean;
-      var
-        pd: tprocdef;
-      begin
-        { The parameter can be optimized as unused when:
-            optimization level 1 and higher
-            this is a direct call to a routine, not a procvar
-            and the routine is not an exception filter
-            and the parameter is not used by the routine
-            and implementation of the routine is already processed.
-        }
-        result:=(cs_opt_level1 in current_settings.optimizerswitches) and
-          assigned(parasym.Owner) and
-          (parasym.Owner.defowner.typ=procdef);
-        if not result then
-          exit;
-        pd:=tprocdef(parasym.Owner.defowner);
-        result:=(pd.proctypeoption<>potype_exceptfilter) and
-          not parasym.is_used and
-          pd.is_implemented;
-      end;
-
-
     function can_skip_para_push(parasym: tparavarsym): boolean;
       begin
         { We can skip passing the parameter when:
@@ -169,7 +146,7 @@ implementation
             and fixed stack is used
               or the parameter is in a register
               or the parameter is $parentfp. }
-        result:=can_opt_unused_para(parasym) and
+        result:=paramanager.can_opt_unused_para(parasym) and
           not paramanager.has_strict_proc_signature and
           (paramanager.use_fixed_stack or
            (vo_is_parentfp in parasym.varoptions) or
@@ -322,7 +299,7 @@ implementation
     function tcgcallparanode.maybe_push_unused_para: boolean;
       begin
         { Check if the parameter is unused and can be optimized }
-        result:=can_opt_unused_para(parasym);
+        result:=paramanager.can_opt_unused_para(parasym);
         if not result then
           exit;
         { If we can't skip loading of the parameter, load an undefined dummy value. }
