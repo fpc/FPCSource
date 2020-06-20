@@ -143,12 +143,14 @@ implementation
         pd: tprocdef;
       begin
         { The parameter can be optimized as unused when:
+            optimization level 1 and higher
             this is a direct call to a routine, not a procvar
             and the routine is not an exception filter
             and the parameter is not used by the routine
             and implementation of the routine is already processed.
         }
-        result:=assigned(parasym.Owner) and
+        result:=(cs_opt_level1 in current_settings.optimizerswitches) and
+          assigned(parasym.Owner) and
           (parasym.Owner.defowner.typ=procdef);
         if not result then
           exit;
