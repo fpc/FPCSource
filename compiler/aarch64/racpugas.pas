@@ -838,7 +838,7 @@ Unit racpugas;
                           else
                             Message1(sym_e_unknown_id,expr);
                         end
-                       else
+                       else if oper.opr.typ<>OPR_LOCAL then
                          begin
                            oper.InitRef;
                            MaybeAddGotAddrMode;
