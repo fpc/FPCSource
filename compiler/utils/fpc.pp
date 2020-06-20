@@ -269,6 +269,8 @@ program fpc;
                              cpusuffix:='x64'
                            else if processorstr='xtensa' then
                              cpusuffix:='xtensa'
+                           else if processorstr='z80' then
+                             cpusuffix:='z80'
                            else
                              error('Illegal processor type "'+processorstr+'"');
 
