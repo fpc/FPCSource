@@ -382,7 +382,10 @@ unit agz80vasm;
       var
         i: Integer;
       begin
-        writer.AsmWrite(#9#9+std_op2str[hp.opcode]);
+        if hp.opcode=A_JRJP then
+          writer.AsmWrite(#9#9'jp')
+        else
+          writer.AsmWrite(#9#9+std_op2str[hp.opcode]);
         if (taicpu(hp).ops<>0) or (hp.condition<>C_None) then
           begin
             writer.AsmWrite(#9);
