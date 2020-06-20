@@ -12050,11 +12050,16 @@ var
   IsInc: Boolean;
   AddJS: TJSAdditiveExpression;
   AssignContext: TAssignContext;
+  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
-  IsInc:=CompareText((El.Value as TPrimitiveExpr).Value,'inc')=0;
+  aResolver:=AContext.Resolver;
+  Expr:=aResolver.GetRightMostExpr(El.Value);
+  if not (Expr is TPrimitiveExpr) then
+    RaiseNotSupported(Expr,AContext,20200620113218);
+  IsInc:=CompareText(TPrimitiveExpr(Expr).Value,'inc')=0;
   Expr:=El.Params[0];
-  AContext.Resolver.ComputeElement(Expr,ExprResolved,[]);
+  aResolver.ComputeElement(Expr,ExprResolved,[]);
 
   // convert value
   if length(El.Params)=1 then
@@ -12107,7 +12112,7 @@ begin
 
     // inc(a,b)  ->  a = a+b  or setter(getter()+b)
     AssignContext:=TAssignContext.Create(Expr,nil,AContext);
-    AContext.Resolver.ComputeElement(Expr,AssignContext.LeftResolved,[rcNoImplicitProc]);
+    aResolver.ComputeElement(Expr,AssignContext.LeftResolved,[rcNoImplicitProc]);
     SetResolverValueExpr(AssignContext.RightResolved,
       AssignContext.LeftResolved.BaseType,AssignContext.LeftResolved.LoTypeEl,
       AssignContext.LeftResolved.HiTypeEl,Expr,[rrfReadable]);

@@ -267,6 +267,7 @@ type
     Procedure TestIntegerTypecasts;
     Procedure TestInteger_BitwiseShrNativeInt;
     Procedure TestInteger_BitwiseShlNativeInt;
+    Procedure TestInteger_SystemFunc;
     Procedure TestCurrency;
     Procedure TestForBoolDo;
     Procedure TestForIntDo;
@@ -6888,6 +6889,40 @@ begin
     '$mod.i = 0;',
     '$mod.i = 246913578024;',
     '$mod.i = rtl.shl($mod.i, 1);',
+    '']));
+end;
+
+procedure TTestModule.TestInteger_SystemFunc;
+begin
+  StartProgram(true);
+  Add([
+  'var',
+  '  i: byte;',
+  '  s: string;',
+  'begin',
+  '  system.inc(i);',
+  '  system.str(i,s);',
+  '  s:=system.str(i);',
+  '  i:=system.low(i);',
+  '  i:=system.high(i);',
+  '  i:=system.pred(i);',
+  '  i:=system.succ(i);',
+  '']);
+  ConvertProgram;
+  CheckResolverUnexpectedHints;
+  CheckSource('TestInteger_SystemFunc',
+    LinesToStr([
+    'this.i = 0;',
+    'this.s = "";',
+    '']),
+    LinesToStr([
+    '$mod.i += 1;',
+    '$mod.s = "" + $mod.i;',
+    '$mod.s = "" + $mod.i;',
+    '$mod.i = 0;',
+    '$mod.i = 255;',
+    '$mod.i = $mod.i - 1;',
+    '$mod.i = $mod.i + 1;',
     '']));
 end;
 
