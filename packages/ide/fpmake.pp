@@ -199,7 +199,7 @@ begin
        ) then
       begin
         P:=AddPackage('ide');
-        P.Version:='3.2.0-beta';
+        P.Version:='3.2.1';
 {$ifdef ALLPACKAGES}
         P.Directory:=ADirectory;
 {$endif ALLPACKAGES}

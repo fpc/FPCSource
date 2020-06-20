@@ -19,7 +19,7 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-db');
-    P.Version:='3.2.0-beta';
+    P.Version:='3.2.1';
     P.Author := 'Inoussa Ouedraogo';
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';

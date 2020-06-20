@@ -29,7 +29,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.2.0-beta';
+    P.Version:='3.2.1';
 
     P.OSes:=AllOSes-[embedded,msdos,win16,go32v2,nativent,macos,palmos,atari];
     if Defaults.CPU=jvm then

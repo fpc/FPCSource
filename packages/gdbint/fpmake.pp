@@ -161,7 +161,7 @@ begin
     P:=AddPackage('gdbint');
     P.ShortName:='gdb';
     P.Directory:=ADirectory;
-    P.Version:='3.2.0-beta';
+    P.Version:='3.2.1';
     P.Author := 'Library : Cygnus, header: Peter Vreman';
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

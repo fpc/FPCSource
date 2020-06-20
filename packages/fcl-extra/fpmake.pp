@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.0-beta';
+    P.Version:='3.2.1';
     P.Dependencies.Add('fcl-base');
     P.OSes:=[Win32,Win64]+AllUnixOSes;
     if Defaults.CPU=jvm then

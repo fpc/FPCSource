@@ -25,7 +25,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.0-beta';
+    P.Version:='3.2.1';
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('a52.pas');

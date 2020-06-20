@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.0-beta';
+    P.Version:='3.2.1';
 
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';

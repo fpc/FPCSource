@@ -41,7 +41,7 @@ begin
     P.Dependencies.Add('univint',[darwin,iphonesim]);
 
     P.Directory:=ADirectory;
-    P.Version:='3.2.0-beta';
+    P.Version:='3.2.1';
 
     P.Options.Add('-S2h');
 

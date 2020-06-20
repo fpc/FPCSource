@@ -4,7 +4,7 @@
 
 [package]
 name=fcl-res
-version=3.2.0-beta
+version=3.2.1
 
 [target]
 units=acceleratorsresource bitmapresource coffconsts coffreader cofftypes \

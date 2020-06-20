@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.0-beta';
+    P.Version:='3.2.1';
     P.Author := 'Library: libmagic';
     P.License := 'Library: GPL, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

@@ -28,7 +28,7 @@ begin
     P.OSes:=[go32v2];
 
     P.Directory:=ADirectory;
-    P.Version:='3.2.0-beta';
+    P.Version:='3.2.1';
 
     T:=P.Targets.AddProgram('dxegen.pp');
     T.Dependencies.AddUnit('coff');

@@ -18,7 +18,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.2.0-beta';
+    P.Version:='3.2.1';
     P.SourcePath.Add('src');
     P.OSes := P.OSes - [embedded,nativent,msdos,win16,macos,palmos];
     if Defaults.CPU=jvm then

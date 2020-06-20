@@ -4,7 +4,7 @@
 
 [package]
 name=gnutls
-version=3.3.1
+version=3.2.1
 
 [require]
 packages=rtl fpmkunit fcl-net

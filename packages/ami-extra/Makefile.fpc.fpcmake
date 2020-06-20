@@ -4,7 +4,7 @@
 
 [package]
 name=ami-extra
-version=3.2.0-beta
+version=3.2.1
 
 [target]
 units=amsgbox cliputils pcq

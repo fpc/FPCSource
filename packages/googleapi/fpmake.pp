@@ -32,7 +32,7 @@ begin
     P.NeedLibC:= false;
     P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly];
     P.Directory:=ADirectory;
-    P.Version:='3.2.0-beta';
+    P.Version:='3.2.1';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('rtl-extra');
     P.Dependencies.Add('rtl-objpas');

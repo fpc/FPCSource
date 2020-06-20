@@ -34,7 +34,7 @@ begin
     P:=AddPackage('rtl-unicode');
     P.ShortName:='rtlu';
     P.Directory:=ADirectory;
-    P.Version:='3.2.0-beta';
+    P.Version:='3.2.1';
     P.Author := 'FPC core team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

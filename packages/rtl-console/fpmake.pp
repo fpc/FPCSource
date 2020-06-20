@@ -34,7 +34,7 @@ begin
     P:=AddPackage('rtl-console');
     P.ShortName:='rtlc';
     P.Directory:=ADirectory;
-    P.Version:='3.2.0-beta';
+    P.Version:='3.2.1';
     P.Author := 'FPC core team, Pierre Mueller, Peter Vreman';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

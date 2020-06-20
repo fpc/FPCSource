@@ -4,7 +4,7 @@
 
 [package]
 name=vcl-compat
-version=3.3.1
+version=3.2.1
 
 [require]
 packages=rtl fcl-base fcl-web fcl-xml fpmkunit

@@ -26,7 +26,7 @@ begin
     P.ShortName:='fppk';
     P.Directory:=ADirectory;
 
-    P.Version:='3.2.0-beta';
+    P.Version:='3.2.1';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-process',AllOSes-[go32v2,os2]);

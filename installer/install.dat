@@ -6,8 +6,8 @@
 # Warning: no package should contain more than 31 files (32-bit version
 # of TV/FV cannot hold more than 31 members of a checkbox group)
 
-title=Free Pascal Compiler 3.2.0-beta
-version=3.2.0-beta
+title=Free Pascal Compiler 3.2.1
+version=3.2.1
 
 #
 # Gener~a~l
