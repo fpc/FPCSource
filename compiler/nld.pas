@@ -389,6 +389,9 @@ implementation
                  that the address needs to be returned }
                resultdef:=fprocdef;
 
+               if is_nested_pd(fprocdef) and is_nested_pd(current_procinfo.procdef) then
+                 current_procinfo.set_needs_parentfp(tprocdef(fprocdef.owner.defowner).parast.symtablelevel);
+
                { process methodpointer/framepointer }
                if assigned(left) then
                  begin
