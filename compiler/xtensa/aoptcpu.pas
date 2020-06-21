@@ -91,11 +91,12 @@ Implementation
     end;
 
 
-  function MatchInstruction(const instr: tai; const op: TAsmOp): boolean;
+  function MatchInstruction(const instr: tai; const op: TAsmOp; const postfix: TOpPostfixes): boolean;
     begin
       result :=
         (instr.typ = ait_instruction) and
-        (taicpu(instr).opcode = op);
+        (taicpu(instr).opcode = op) and
+        ((postfix = []) or (taicpu(instr).oppostfix in postfix));
     end;
 
 
@@ -190,7 +191,7 @@ Implementation
       hp1 : tai;
     begin
       Result:=false;
-      if MatchInstruction(movp, A_MOV) and
+      if MatchInstruction(movp, A_MOV, [PF_None,PF_N]) and
         (taicpu(p).ops>=3) and
         { We can't optimize if there is a shiftop }
         (taicpu(movp).ops=2) and
