@@ -346,6 +346,23 @@ unit raatt;
                end;
            end;
 {$endif riscv}
+{$ifdef xtensa}
+           {
+             Xtensa can have multiple postfixes
+             MULA.DD.LL.LDDEC
+             or postfixes with numbers
+             RSR.CCOMPARE2
+           }
+           case c of
+             '.':
+               begin
+                 repeat
+                   actasmpattern:=actasmpattern+c;
+                   c:=current_scanner.asmgetchar;
+                 until not(c in ['a'..'z','A'..'Z', '0'..'9', '.']);
+               end;
+           end;
+{$endif xtensa}
            { Opcode ? }
            If is_asmopcode(upper(actasmpattern)) then
             Begin

@@ -32,6 +32,9 @@ Unit racpugas;
     type
 
       txtensaattreader = class(tattreader)
+        actoppostfix : TOpPostfix;
+        actIsPrefixed: boolean;
+
        function is_asmopcode(const s: string):boolean;override;
         function is_register(const s:string):boolean;override;
 //        function is_targetdirective(const s: string): boolean; override;
@@ -763,6 +766,8 @@ Unit racpugas;
           begin
             Opcode:=ActOpcode;
             condition:=ActCondition;
+            oppostfix:=actoppostfix;
+            opIsPrefixed:=actIsPrefixed;
           end;
 
         { We are reading operands, so opcode will be an AS_ID }
@@ -800,32 +805,57 @@ Unit racpugas;
 
     function txtensaattreader.is_asmopcode(const s: string):boolean;
 
-      //const
-      //  { sorted by length so longer postfixes will match first }
-      //  postfix2strsorted : array[1..70] of string[9] = (
-      //    '.F32.S32','.F32.U32','.S32.F32','.U32.F32','.F64.S32','.F64.U32','.S32.F64','.U32.F64',
-      //    '.F32.S16','.F32.U16','.S16.F32','.U16.F32','.F64.S16','.F64.U16','.S16.F64','.U16.F64',
-      //    '.F32.F64','.F64.F32',
-      //    '.I16','.I32','.I64','.S16','.S32','.S64','.U16','.U32','.U64','.F32','.F64',
-      //    'IAD','DBD','FDD','EAD','IAS','DBS','FDS','EAS','IAX','DBX','FDX','EAX',
-      //    '.16','.32','.64','.I8','.S8','.U8','.P8',
-      //    'EP','SB','BT','SH','IA','IB','DA','DB','FD','FA','ED','EA',
-      //    '.8','S','D','E','P','X','R','B','H','T');
-      //
-      //  postfixsorted : array[1..70] of TOpPostfix = (
-      //    PF_F32S32,PF_F32U32,PF_S32F32,PF_U32F32,PF_F64S32,PF_F64U32,PF_S32F64,PF_U32F64,
-      //    PF_F32S16,PF_F32U16,PF_S16F32,PF_U16F32,PF_F64S16,PF_F64U16,PF_S16F64,PF_U16F64,
-      //    PF_F32F64,PF_F64F32,
-      //    PF_I16,PF_I32,
-      //    PF_I64,PF_S16,PF_S32,PF_S64,PF_U16,PF_U32,PF_U64,PF_F32,
-      //    PF_F64,PF_IAD,PF_DBD,PF_FDD,PF_EAD,
-      //    PF_IAS,PF_DBS,PF_FDS,PF_EAS,PF_IAX,
-      //    PF_DBX,PF_FDX,PF_EAX,PF_16,PF_32,
-      //    PF_64,PF_I8,PF_S8,PF_U8,PF_P8,
-      //    PF_EP,PF_SB,PF_BT,PF_SH,PF_IA,
-      //    PF_IB,PF_DA,PF_DB,PF_FD,PF_FA,
-      //    PF_ED,PF_EA,PF_8,PF_S,PF_D,PF_E,
-      //    PF_P,PF_X,PF_R,PF_B,PF_H,PF_T);
+      const
+        { sorted by length so longer postfixes will match first }
+        postfix2strsorted : array[1..112] of string[13] = (
+          'IBREAKENABLE', 'DA.HH.LDDEC', 'DA.HH.LDINC', 'DA.HL.LDDEC', 'DA.HL.LDINC',
+          'DA.LH.LDDEC', 'DA.LH.LDINC', 'DA.LL.LDDEC', 'DA.LL.LDINC', 'DD.HH.LDDEC',
+          'DD.HH.LDINC', 'DD.HL.LDDEC', 'DD.HL.LDINC', 'DD.LH.LDDEC', 'DD.LH.LDINC',
+          'DD.LL.LDDEC', 'DD.LL.LDINC', 'ICOUNTLEVEL', 'WINDOWSTART', 'DEBUGCAUSE',
+          'WINDOWBASE', 'CCOMPARE0', 'CCOMPARE1', 'CCOMPARE2', 'INTENABLE',
+          'INTERRUPT', 'SCOMPARE1', 'CPENABLE', 'DBREAKA0', 'DBREAKA1',
+          'DBREAKC0', 'DBREAKC1', 'EXCCAUSE', 'EXCSAVE1', 'EXCSAVE2',
+          'EXCSAVE3', 'EXCSAVE4', 'EXCSAVE5', 'EXCSAVE6', 'EXCSAVE7',
+          'EXCVADDR', 'IBREAKA0', 'IBREAKA1', 'INTCLEAR', 'PTEVADDR',
+          'ATOMCTL', 'DTLBCFG', 'ITLBCFG', 'LITBASE', 'MEVADDR',
+          'VECBASE', 'CCOUNT', 'ICOUNT', 'INTSET', 'LCOUNT',
+          'MESAVE', 'AA.HH', 'AA.HL', 'AA.LH', 'AA.LL',
+          'ACCHI', 'ACCLO', 'AD.HH', 'AD.HL', 'AD.LH',
+          'AD.LL', 'DA.HH', 'DA.HL', 'DA.LH', 'DA.LL',
+          'DD.HH', 'DD.HL', 'DD.LH', 'DD.LL', 'MISC0',
+          'MISC1', 'MISC2', 'MISC3', 'RASID', 'DEPC',
+          'EPC1', 'EPC2', 'EPC3', 'EPC4', 'EPC5',
+          'EPC6', 'EPC7', 'EPS2', 'EPS3', 'EPS4',
+          'EPS5', 'EPS6', 'EPS7', 'LBEG', 'LEND',
+          'MECR', 'MEPC', 'MEPS', 'MESR', 'MMID',
+          'PRID', 'DDR', 'SAR', 'BR', 'M0',
+          'M1', 'M2', 'M3', 'PS', 'L',
+          'N', 'S');
+
+        postfixsorted : array[1..112] of TOpPostfix = (
+          PF_IBREAKENABLE, PF_DA_HH_LDDEC, PF_DA_HH_LDINC, PF_DA_HL_LDDEC, PF_DA_HL_LDINC,
+          PF_DA_LH_LDDEC, PF_DA_LH_LDINC, PF_DA_LL_LDDEC, PF_DA_LL_LDINC, PF_DD_HH_LDDEC,
+          PF_DD_HH_LDINC, PF_DD_HL_LDDEC, PF_DD_HL_LDINC, PF_DD_LH_LDDEC, PF_DD_LH_LDINC,
+          PF_DD_LL_LDDEC, PF_DD_LL_LDINC, PF_ICOUNTLEVEL, PF_WINDOWSTART, PF_DEBUGCAUSE,
+          PF_WINDOWBASE, PF_CCOMPARE0, PF_CCOMPARE1, PF_CCOMPARE2, PF_INTENABLE,
+          PF_INTERRUPT, PF_SCOMPARE1, PF_CPENABLE, PF_DBREAKA0, PF_DBREAKA1,
+          PF_DBREAKC0, PF_DBREAKC1, PF_EXCCAUSE, PF_EXCSAVE1, PF_EXCSAVE2,
+          PF_EXCSAVE3, PF_EXCSAVE4, PF_EXCSAVE5, PF_EXCSAVE6, PF_EXCSAVE7,
+          PF_EXCVADDR, PF_IBREAKA0, PF_IBREAKA1, PF_INTCLEAR, PF_PTEVADDR,
+          PF_ATOMCTL, PF_DTLBCFG, PF_ITLBCFG, PF_LITBASE, PF_MEVADDR,
+          PF_VECBASE, PF_CCOUNT, PF_ICOUNT, PF_INTSET, PF_LCOUNT,
+          PF_MESAVE, PF_AA_HH, PF_AA_HL, PF_AA_LH, PF_AA_LL,
+          PF_ACCHI, PF_ACCLO, PF_AD_HH, PF_AD_HL, PF_AD_LH,
+          PF_AD_LL, PF_DA_HH, PF_DA_HL, PF_DA_LH, PF_DA_LL,
+          PF_DD_HH, PF_DD_HL, PF_DD_LH, PF_DD_LL, PF_MISC0,
+          PF_MISC1, PF_MISC2, PF_MISC3, PF_RASID, PF_DEPC,
+          PF_EPC1, PF_EPC2, PF_EPC3, PF_EPC4, PF_EPC5,
+          PF_EPC6, PF_EPC7, PF_EPS2, PF_EPS3, PF_EPS4,
+          PF_EPS5, PF_EPS6, PF_EPS7, PF_LBEG, PF_LEND,
+          PF_MECR, PF_MEPC, PF_MEPS, PF_MESR, PF_MMID,
+          PF_PRID, PF_DDR, PF_SAR, PF_BR, PF_M0,
+          PF_M1, PF_M2, PF_M3, PF_PS, PF_L,
+          PF_N, PF_S);
 
       var
         j, j2 : longint;
@@ -836,94 +866,81 @@ Unit racpugas;
         { making s a value parameter would break other assembler readers }
         hs:=s;
         is_asmopcode:=false;
-
         { clear op code }
-        actopcode:=A_None;
-
+        actopcode:=A_NONE;
         actcondition:=C_None;
-
-        if hs[1]='B' then
+        actoppostfix := PF_None;
+        actIsPrefixed := false;
+        if hs[1]='_' then
           begin
+            actIsPrefixed := true;
+            delete(hs, 1, 1);
+          end;
+        if (hs[1]='B') and not(hs='BREAK') then
+          begin
+            { Branch condition can be followed by a postfix, e.g. BEQZ.N or BBSI.L }
+            j:=pos('.', hs);
+            if j < 2 then
+              j:=length(hs)
+            else
+              dec(j);
+            hs2:=copy(hs, 2, j-1);
             for icond:=low(tasmcond) to high(tasmcond) do
               begin
-                if copy(hs,2,length(hs)-1)=uppercond2str[icond] then
+                if hs2=uppercond2str[icond] then
                   begin
-                    actopcode:=A_Bcc;
+                    actopcode:=A_B;
                     actasmtoken:=AS_OPCODE;
                     actcondition:=icond;
                     is_asmopcode:=true;
-                    exit;
-                  end;
-              end;
-          end;
-        maxlen:=min(length(hs),7);
-        actopcode:=A_NONE;
-        j2:=maxlen;
-        hs2:=hs;
-        while j2>=1 do
-          begin
-            hs:=hs2;
-            while j2>=1 do
-              begin
-                actopcode:=tasmop(PtrUInt(iasmops.Find(copy(hs,1,j2))));
-                if actopcode<>A_NONE then
-                  begin
-                    actasmtoken:=AS_OPCODE;
-                    { strip op code }
-                    delete(hs,1,j2);
-                    dec(j2);
+                    delete(hs, 1, j);
                     break;
                   end;
-                dec(j2);
               end;
-
-            if actopcode=A_NONE then
-              exit;
-
+          end
+        else
+          begin
+            j2:=min(length(hs),7);
+            hs2:=hs;
+            while (j2>=1) and (actopcode=A_NONE) do
               begin
-                { search for condition, conditions are always 2 chars }
-                if length(hs)>1 then
+                hs:=hs2;
+                while j2>=1 do
                   begin
-                    for icond:=low(tasmcond) to high(tasmcond) do
+                    actopcode:=tasmop(PtrUInt(iasmops.Find(copy(hs,1,j2))));
+                    if actopcode<>A_NONE then
                       begin
-                        if copy(hs,1,2)=uppercond2str[icond] then
-                          begin
-                            actcondition:=icond;
-                            { strip condition }
-                            delete(hs,1,2);
-                            break;
-                          end;
+                        actasmtoken:=AS_OPCODE;
+                        { strip op code }
+                        delete(hs,1,j2);
+                        dec(j2);
+                        break;
                       end;
+                    dec(j2);
                   end;
-                { check for postfix }
-                //if (length(hs)>0) and (actoppostfix=PF_None) then
-                //  begin
-                //    for j:=low(postfixsorted) to high(postfixsorted) do
-                //      begin
-                //        if copy(hs,1,length(postfix2strsorted[j]))=postfix2strsorted[j] then
-                //          begin
-                //            actoppostfix:=postfixsorted[j];
-                //            { strip postfix }
-                //            delete(hs,1,length(postfix2strsorted[j]));
-                //            break;
-                //          end;
-                //      end;
-                //  end;
               end;
-            { check for format postfix }
-            //if length(hs)>0 then
-            //  begin
-            //    if copy(hs,1,2) = '.W' then
-            //      begin
-            //        actwideformat:=true;
-            //        delete(hs,1,2);
-            //      end;
-            //  end;
-            { if we stripped all postfixes, it's a valid opcode }
-            is_asmopcode:=length(hs)=0;
-            if is_asmopcode = true then
-              break;
+            end;
+
+        if actopcode=A_NONE then
+          exit;
+
+        { check for postfix }
+        if (length(hs)>0) then
+          begin
+            for j:=low(postfixsorted) to high(postfixsorted) do
+              begin
+                if copy(hs,2,length(postfix2strsorted[j]))=postfix2strsorted[j] then
+                  begin
+                    actoppostfix:=postfixsorted[j];
+                    { strip postfix }
+                    delete(hs,1,length(postfix2strsorted[j])+1);
+                    break;
+                  end;
+              end;
           end;
+
+        { if we stripped all postfixes, it's a valid opcode }
+        is_asmopcode:=length(hs)=0;
       end;
 
 

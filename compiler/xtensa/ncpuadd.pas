@@ -222,6 +222,7 @@ interface
         op    : TAsmOp;
         cmpop,
         singleprec , inv: boolean;
+        ai : taicpu;
       begin
         pass_left_and_right;
         if (nf_swapped in flags) then
@@ -234,36 +235,36 @@ interface
         inv:=false;
         case nodetype of
           addn :
-            op:=A_ADD_S;
+            op:=A_ADD;
           muln :
-            op:=A_MUL_S;
+            op:=A_MUL;
           subn :
-            op:=A_SUB_S;
+            op:=A_SUB;
           unequaln,
           equaln:
             begin
-              op:=A_OEQ_S;
+              op:=A_OEQ;
               cmpop:=true;
             end;
           ltn:
             begin
-              op:=A_OLT_S;
+              op:=A_OLT;
               cmpop:=true;
             end;
           lten:
             begin
-              op:=A_OLE_S;
+              op:=A_OLE;
               cmpop:=true;
             end;
           gtn:
             begin
-              op:=A_OLT_S;
+              op:=A_OLT;
               swapleftright;
               cmpop:=true;
             end;
           gten:
             begin
-              op:=A_OLE_S;
+              op:=A_OLE;
               swapleftright;
               cmpop:=true;
             end;
@@ -288,7 +289,9 @@ interface
         if cmpop then
           begin
             cg.getcpuregister(current_asmdata.CurrAsmList,location.resflags.register);
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.resflags.register,left.location.register,right.location.register));
+            ai:=taicpu.op_reg_reg_reg(op,location.resflags.register,left.location.register,right.location.register);
+            ai.oppostfix:=PF_S;
+            current_asmdata.CurrAsmList.concat(ai);
             cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
 
             if inv then
@@ -296,7 +299,9 @@ interface
           end
         else
           begin
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,right.location.register));
+            ai:=taicpu.op_reg_reg_reg(op,location.register,left.location.register,right.location.register);
+            ai.oppostfix := PF_S;
+            current_asmdata.CurrAsmList.concat(ai);
             cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
           end;
       end;

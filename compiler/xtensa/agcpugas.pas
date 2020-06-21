@@ -140,15 +140,19 @@ unit agcpugas;
 
     Procedure TXtensaInstrWriter.WriteInstruction(hp : tai);
     var op: TAsmOp;
-        postfix,s: string;
+        s: string;
         i: byte;
         sep: string[3];
     begin
       op:=taicpu(hp).opcode;
-      postfix:='';
-      s:=#9+gas_op2str[op];
+      if taicpu(hp).opIsPrefixed then
+        s:=#9'_'+gas_op2str[op]
+      else
+        s:=#9+gas_op2str[op];
       if taicpu(hp).condition<>C_None then
         s:=s+cond2str[taicpu(hp).condition];
+      if taicpu(hp).oppostfix <> PF_None then
+        s:=s+'.'+oppostfix2str[taicpu(hp).oppostfix];
       if taicpu(hp).ops<>0 then
         begin
           if length(s)<5 then

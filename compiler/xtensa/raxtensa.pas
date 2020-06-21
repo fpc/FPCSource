@@ -34,12 +34,26 @@ unit raxtensa;
       TXtensaOperand=class(TOperand)
       end;
 
+      { TXtensaInstruction }
+
       TXtensaInstruction=class(TInstruction)
+        oppostfix : toppostfix;
+        opIsPrefixed : boolean;
+        function ConcatInstruction(p:TAsmList) : tai;override;
       end;
 
   implementation
 
     uses
       aasmcpu;
+
+    { TXtensaInstruction }
+
+    function TXtensaInstruction.ConcatInstruction(p:TAsmList) : tai;
+      begin
+        result:=inherited ConcatInstruction(p);
+        (result as taicpu).oppostfix:=oppostfix;
+        (result as taicpu).opIsPrefixed:=opIsPrefixed;
+      end;
 
 end.

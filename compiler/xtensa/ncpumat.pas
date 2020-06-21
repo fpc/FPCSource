@@ -119,6 +119,8 @@ implementation
       end;
 
     procedure tcpuunaryminusnode.second_float;
+      var
+        ai : taicpu;
       begin
         secondpass(left);
         if (current_settings.fputype=fpu_soft) or (tfloatdef(left.resultdef).floattype<>s32real) or
@@ -150,7 +152,9 @@ implementation
               hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
             location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
             location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_NEG_S,location.register,left.location.register));
+            ai:=taicpu.op_reg_reg(A_NEG,location.register,left.location.register);
+            ai.oppostfix := PF_S;
+            current_asmdata.CurrAsmList.Concat(ai);
           end;
       end;
 

@@ -597,7 +597,8 @@ implementation
         tmpreg: TRegister;
       begin
         { for now, we use A15 here, however, this is not save as it might contain an argument }
-        ai:=TAiCpu.op_sym_reg(A_J_L,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),NR_A15);
+        ai:=TAiCpu.op_sym_reg(A_J,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),NR_A15);
+        ai.oppostfix := PF_L; // if destination is too far for J then assembler can convert to JX
         ai.is_jmp:=true;
         list.Concat(ai);
       end;
@@ -607,7 +608,7 @@ implementation
       var
         instr: taicpu;
       begin
-        instr:=taicpu.op_reg_sym(A_Bcc,f.register,l);
+        instr:=taicpu.op_reg_sym(A_B,f.register,l);
         instr.condition:=flags_to_cond(f.flag);
         list.concat(instr);
       end;
@@ -787,7 +788,7 @@ implementation
             else
               Internalerror(2020030801);
             end;     
-            instr:=taicpu.op_reg_sym(A_Bcc,reg,l);
+            instr:=taicpu.op_reg_sym(A_B,reg,l);
             instr.condition:=op;
             list.concat(instr);
           end
@@ -803,7 +804,7 @@ implementation
               Internalerror(2020030801);
             end;
 
-            instr:=taicpu.op_reg_const_sym(A_Bcc,reg,a,l);
+            instr:=taicpu.op_reg_const_sym(A_B,reg,a,l);
             instr.condition:=op;
             list.concat(instr);
           end
@@ -817,7 +818,7 @@ implementation
               Internalerror(2020030801);
             end;
 
-            instr:=taicpu.op_reg_const_sym(A_Bcc,reg,a,l);
+            instr:=taicpu.op_reg_const_sym(A_B,reg,a,l);
             instr.condition:=op;
             list.concat(instr);
           end
@@ -840,7 +841,7 @@ implementation
             reg2:=tmpreg;
           end;
 
-        instr:=taicpu.op_reg_reg_sym(A_Bcc,reg2,reg1,l);
+        instr:=taicpu.op_reg_reg_sym(A_B,reg2,reg1,l);
         instr.condition:=TOpCmp2AsmCond[cmp_op];
         list.concat(instr);
       end;
@@ -851,9 +852,12 @@ implementation
         ai : taicpu;
       begin
         if l.bind in [AB_GLOBAL] then
+          begin
           { for now, we use A15 here, however, this is not save as it might contain an argument, I have not figured out a
             solution yet }
-          ai:=taicpu.op_sym_reg(A_J_L,l,NR_A15)
+            ai:=taicpu.op_sym_reg(A_J,l,NR_A15);
+            ai.oppostfix := PF_L;
+          end
         else
           ai:=taicpu.op_sym(A_J,l);
         ai.is_jmp:=true;
@@ -1020,10 +1024,15 @@ implementation
 
 
      procedure tcgcpu.a_loadfpu_reg_reg(list: TAsmList; fromsize,tosize: tcgsize; reg1, reg2: tregister);
+       var
+         ai: taicpu;
        begin
          if not(fromsize in [OS_32,OS_F32]) then
            InternalError(2020032603);
-         list.concat(taicpu.op_reg_reg(A_MOV_S,reg2,reg1));
+
+         ai := taicpu.op_reg_reg(A_MOV,reg2,reg1);
+         ai.oppostfix := PF_S;
+         list.concat(ai);
        end;
 
 
@@ -1111,7 +1120,7 @@ implementation
                   list.concat(taicpu.op_reg_reg_reg(A_ADD, regdst.reghi, regsrc2.reghi, regsrc1.reghi));
 
                   current_asmdata.getjumplabel(no_carry);
-                  instr:=taicpu.op_reg_reg_sym(A_Bcc,tmplo, regsrc2.reglo, no_carry);
+                  instr:=taicpu.op_reg_reg_sym(A_B,tmplo, regsrc2.reglo, no_carry);
                   instr.condition:=C_GEU;
                   list.concat(instr);
                   list.concat(taicpu.op_reg_reg_const(A_ADDI, regdst.reghi, regdst.reghi, 1));
@@ -1157,7 +1166,7 @@ implementation
                   list.concat(taicpu.op_reg_reg_reg(A_SUB, regdst.reghi, regsrc2.reghi, regsrc1.reghi));
 
                   current_asmdata.getjumplabel(no_carry);
-                  instr:=taicpu.op_reg_reg_sym(A_Bcc, regsrc2.reglo, tmplo, no_carry);
+                  instr:=taicpu.op_reg_reg_sym(A_B, regsrc2.reglo, tmplo, no_carry);
                   instr.condition:=C_GEU;
                   list.concat(instr);
                   list.concat(taicpu.op_reg_reg_const(A_ADDI, regdst.reghi, regdst.reghi, -1));
@@ -1261,7 +1270,7 @@ implementation
                       list.concat(taicpu.op_reg_reg_const(A_ADDI, regdst.reghi, regsrc.reghi, 0));
 
                       current_asmdata.getjumplabel(no_carry);
-                      instr:=taicpu.op_reg_reg_sym(A_Bcc,tmplo, regsrc.reglo, no_carry);
+                      instr:=taicpu.op_reg_reg_sym(A_B,tmplo, regsrc.reglo, no_carry);
                       instr.condition:=C_GEU;
                       list.concat(instr);
                       list.concat(taicpu.op_reg_reg_const(A_ADDI, regdst.reghi, regdst.reghi, 1));

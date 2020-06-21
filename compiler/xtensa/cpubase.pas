@@ -46,7 +46,7 @@ unit cpubase;
       TAsmOp= {$i xtensaop.inc}
 
       { This should define the array of instructions as string }
-      op2strtable=array[tasmop] of string[11];
+      op2strtable=array[tasmop] of string[7];
 
     const
       { First value of opcode enumeration }
@@ -99,6 +99,70 @@ unit cpubase;
         {$i rxtensadwa.inc}
       );
 
+      {*****************************************************************************
+                                Instruction post fixes
+      *****************************************************************************}
+          type
+            { Xtensa instructions can have several instruction post fixes }
+            TOpPostfix = (PF_None,
+              { On big-endian processors, convert encoded immediate value to little-endian.
+                For J.L, assembler tries to convert into J if target is within reach, else convert to JX }
+              PF_L,
+              { Assembler to generate narrow version of instruction if possible }
+              PF_N,
+              { Opcode operates on single precision floating point register(s)}
+              PF_S,
+              { Indicate MUL operations involving MAC16 accumulator option }
+              PF_AA_LL, PF_AA_HL, PF_AA_LH, PF_AA_HH, PF_AD_LL, PF_AD_HL,
+              PF_AD_LH, PF_AD_HH, PF_DA_LL, PF_DA_HL, PF_DA_LH, PF_DA_HH,
+              PF_DD_LL, PF_DD_HL, PF_DD_LH, PF_DD_HH,
+              PF_DA_LL_LDDEC, PF_DA_HL_LDDEC, PF_DA_LH_LDDEC, PF_DA_HH_LDDEC,
+              PF_DA_LL_LDINC, PF_DA_HL_LDINC, PF_DA_LH_LDINC, PF_DA_HH_LDINC,
+              PF_DD_LL_LDDEC, PF_DD_HL_LDDEC, PF_DD_LH_LDDEC, PF_DD_HH_LDDEC,
+              PF_DD_LL_LDINC, PF_DD_HL_LDINC, PF_DD_LH_LDINC, PF_DD_HH_LDINC,
+              { Special registers accessible via RSR, WSR & XSR instructions }
+              PF_ACCHI, PF_ACCLO, PF_ATOMCTL, PF_BR, PF_CCOMPARE0, PF_CCOMPARE1,
+              PF_CCOMPARE2, PF_CCOUNT, PF_CPENABLE, PF_DBREAKA0, PF_DBREAKA1,
+              PF_DBREAKC0, PF_DBREAKC1, PF_DDR, PF_DEBUGCAUSE, PF_DEPC,
+              PF_DTLBCFG, PF_EPC1, PF_EPC2, PF_EPC3, PF_EPC4, PF_EPC5, PF_EPC6,
+              PF_EPC7, PF_EPS2, PF_EPS3, PF_EPS4, PF_EPS5, PF_EPS6, PF_EPS7,
+              PF_EXCCAUSE, PF_EXCSAVE1, PF_EXCSAVE2, PF_EXCSAVE3, PF_EXCSAVE4,
+              PF_EXCSAVE5, PF_EXCSAVE6, PF_EXCSAVE7, PF_EXCVADDR, PF_IBREAKA0,
+              PF_IBREAKA1, PF_IBREAKENABLE, PF_ICOUNT, PF_ICOUNTLEVEL,
+              PF_INTCLEAR, PF_INTENABLE, PF_INTERRUPT, PF_INTSET, PF_ITLBCFG,
+              PF_LBEG, PF_LCOUNT, PF_LEND, PF_LITBASE, PF_M0, PF_M1, PF_M2,
+              PF_M3, PF_MECR, PF_MEPC, PF_MEPS, PF_MESAVE, PF_MESR, PF_MEVADDR,
+              PF_MISC0, PF_MISC1, PF_MISC2, PF_MISC3, PF_MMID, PF_PRID, PF_PS,
+              PF_PTEVADDR, PF_RASID, PF_SAR, PF_SCOMPARE1, PF_VECBASE,
+              PF_WINDOWBASE, PF_WINDOWSTART);
+
+            TOpPostfixes = set of TOpPostfix;
+
+          const
+            oppostfix2str : array[TOpPostfix] of string[12] = ('',
+              'l', 'n', 's',
+              'aa.ll', 'aa.hl', 'aa.lh', 'aa.hh', 'ad.ll', 'ad.hl',
+              'ad.lh', 'ad.hh', 'da.ll', 'da.hl', 'da.lh', 'da.hh',
+              'dd.ll', 'dd.hl', 'dd.lh', 'dd.hh', 'da.ll.lddec',
+              'da.hl.lddec', 'da.lh.lddec', 'da.hh.lddec', 'da.ll.ldinc',
+              'da.hl.ldinc', 'da.lh.ldinc', 'da.hh.ldinc', 'dd.ll.lddec',
+              'dd.hl.lddec', 'dd.lh.lddec', 'dd.hh.lddec', 'dd.ll.ldinc',
+              'dd.hl.ldinc', 'dd.lh.ldinc', 'dd.hh.ldinc',
+              'acchi', 'acclo', 'atomctl', 'br', 'ccompare0', 'ccompare1',
+              'ccompare2', 'ccount', 'cpenable', 'dbreaka0', 'dbreaka1',
+              'dbreakc0', 'dbreakc1', 'ddr', 'debugcause', 'depc',
+              'dtlbcfg', 'epc1', 'epc2', 'epc3', 'epc4', 'epc5', 'epc6',
+              'epc7', 'eps2', 'eps3', 'eps4', 'eps5', 'eps6', 'eps7',
+              'exccause', 'excsave1', 'excsave2', 'excsave3', 'excsave4',
+              'excsave5', 'excsave6', 'excsave7', 'excvaddr', 'ibreaka0',
+              'ibreaka1', 'ibreakenable', 'icount', 'icountlevel',
+              'intclear', 'intenable', 'interrupt', 'intset', 'itlbcfg',
+              'lbeg', 'lcount', 'lend', 'litbase', 'm0', 'm1', 'm2',
+              'm3', 'mecr', 'mepc', 'meps', 'mesave', 'mesr', 'mevaddr',
+              'misc0', 'misc1', 'misc2', 'misc3', 'mmid', 'prid', 'ps',
+              'ptevaddr', 'rasid', 'sar', 'scompare1', 'vecbase',
+              'windowbase', 'windowstart');
+
 {*****************************************************************************
                                 Conditions
 *****************************************************************************}
@@ -107,7 +171,7 @@ unit cpubase;
       TAsmCond=(C_None,
         C_EQ,C_NE,
         C_GE,C_LT,C_GEU,C_LTU,
-        C_ANY,C_BNONE,C_ALL,C_NALL,C_BC,C_BS,
+        C_ANY,C_BNONE,C_ALL,C_NALL,C_BC,C_BS,C_BCI,C_BSI,
         C_EQZ,C_NEZ,C_LTZ,C_GEZ,
         C_EQI,C_NEI,C_LTI,C_GEI,C_LTUI,C_GEUI,
         C_F,C_T
@@ -126,7 +190,7 @@ unit cpubase;
       cond2str : array[TAsmCond] of string[4]=('',
         'eq','ne',                         
         'ge','lt','geu','ltu',
-        'any','none','all','nall','bc','bs',
+        'any','none','all','nall','bc','bs','bci','bsi',
         'eqz','nez','ltz','gez',
         'eqi','nei','lti','gei','ltui','geui',
         'f','t'
@@ -135,7 +199,7 @@ unit cpubase;
       uppercond2str : array[TAsmCond] of string[4]=('',
         'EQ','NE',
         'GE','LT','GEU','LTU',
-        'ANY','NONE','ALL','NALL','BC','BS',
+        'ANY','NONE','ALL','NALL','BC','BS', 'BCI','BSI',
         'EQZ','NEZ','LTZ','GEZ',
         'EQI','NEI','LTI','GEI','LTUI','GEUI',
         'F','T'
@@ -326,7 +390,7 @@ unit cpubase;
       begin
         { This isn't 100% perfect because the arm allows jumps also by writing to PC=R15.
           To overcome this problem we simply forbid that FPC generates jumps by loading R15 }
-        is_calljmp:= o in [A_Bcc,A_BT,A_CALL0,A_CALL4,A_CALL8,A_CALL12,A_CALLX0,A_CALLX4,A_CALLX8,A_CALLX12];
+        is_calljmp:= o in [A_B,A_CALL0,A_CALL4,A_CALL8,A_CALL12,A_CALLX0,A_CALLX4,A_CALLX8,A_CALLX12];
       end;
 
 
@@ -359,7 +423,7 @@ unit cpubase;
         inverse: array[TAsmCond] of TAsmCond=(C_None,
           C_NE,C_EQ,
           C_LT,C_GE,C_LTU,C_GEU,
-          C_BNONE,C_ANY,C_NALL,C_BNONE,C_BS,C_BC,
+          C_BNONE,C_ANY,C_NALL,C_BNONE,C_BS,C_BC,C_BSI,C_BCI,
 
           C_NEZ,C_EQZ,C_GEZ,C_LTZ,
           C_NEI,C_EQI,C_GEI,C_LTI,C_GEUI,C_LTUI,

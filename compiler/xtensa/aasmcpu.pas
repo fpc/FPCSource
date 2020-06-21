@@ -39,6 +39,8 @@ uses
 
     type
       taicpu = class(tai_cpu_abstract_sym)
+        oppostfix : TOpPostfix;
+        opIsPrefixed : boolean;
         constructor op_none(op : tasmop);
 
         constructor op_reg(op : tasmop;_op1 : tregister);
@@ -420,11 +422,11 @@ uses cutils, cclasses;
         case regtype of
           R_INTREGISTER:
             result:=
-               (opcode=A_MOV) and
+               (opcode=A_MOV) and (oppostfix in [PF_None, PF_N]) and
                (oper[0]^.reg=oper[1]^.reg);
           R_FPUREGISTER:
             result:=
-               (opcode=A_MOV_S) and
+               (opcode=A_MOV) and (oppostfix=PF_S) and
                (oper[0]^.reg=oper[1]^.reg);
          else
            result:=false;
@@ -443,7 +445,7 @@ uses cutils, cclasses;
           A_S16I,
           A_S32I,
           A_SSI,
-          A_Bcc:
+          A_B:
             result := operand_read;
           else
             ;
