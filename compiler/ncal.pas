@@ -3517,11 +3517,10 @@ implementation
                     begin
                       if assigned(procdefinition.owner.defowner) then
                         begin
-                          if paramanager.can_opt_unused_para(currpara) and
-                            (procdefinition<>current_procinfo.procdef) then
-                            { If parentfp is unused by the target proc, create loadparentfpnode which loads 
-                              the current frame pointer to prevent generation of unneeded code. }
-                            hiddentree:=cloadparentfpnode.create(current_procinfo.procdef,lpf_forpara)
+                          if paramanager.can_opt_unused_para(currpara) then
+                            { If parentfp is unused by the target proc, create a dummy
+                              pointerconstnode which will be discarded later. }
+                            hiddentree:=cpointerconstnode.create(0,currpara.vardef)
                           else
                             begin
                               hiddentree:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner),lpf_forpara);

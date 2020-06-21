@@ -768,6 +768,7 @@ interface
           forwarddef,
           interfacedef : boolean;
           hasforward  : boolean;
+          is_implemented : boolean;
        end;
        pimplprocdefinfo = ^timplprocdefinfo;
 
@@ -813,6 +814,8 @@ interface
          procedure SetIsEmpty(AValue: boolean);
          function GetHasInliningInfo: boolean;
          procedure SetHasInliningInfo(AValue: boolean);
+         function Getis_implemented: boolean;
+         procedure Setis_implemented(AValue: boolean);
          function getparentfpsym: tsym;
        public
           messageinf : tmessageinf;
@@ -897,8 +900,6 @@ interface
           { returns whether the mangled name or any of its aliases is equal to
             s }
           function  has_alias_name(const s: TSymStr):boolean;
-          { Returns true if the implementation part for this procdef has been handled }
-          function is_implemented: boolean;
 
           { aliases to fields only required when a function is implemented in
             the current unit }
@@ -938,6 +939,8 @@ interface
           property has_inlininginfo: boolean read GetHasInliningInfo write SetHasInliningInfo;
           { returns the $parentfp parameter for nested routines }
           property parentfpsym: tsym read getparentfpsym;
+          { true if the implementation part for this procdef has been handled }
+          property is_implemented: boolean read Getis_implemented write Setis_implemented;
        end;
        tprocdefclass = class of tprocdef;
 
@@ -5856,6 +5859,20 @@ implementation
       end;
 
 
+    function tprocdef.Getis_implemented: boolean;
+      begin
+        result:=not assigned(implprocdefinfo) or implprocdefinfo^.is_implemented;
+      end;
+
+
+    procedure tprocdef.Setis_implemented(AValue: boolean);
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2020062101);
+        implprocdefinfo^.is_implemented:=AValue;
+      end;
+
+
     function tprocdef.store_localst: boolean;
       begin
         result:=has_inlininginfo or (df_generic in defoptions);
@@ -6577,12 +6594,6 @@ implementation
             item:=TCmdStrListItem(item.next);
           end;
         result:=false;
-      end;
-
-
-    function tprocdef.is_implemented: boolean;
-      begin
-        result:=not assigned(implprocdefinfo) or not implprocdefinfo^.forwarddef;
       end;
 
 

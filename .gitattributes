@@ -15229,6 +15229,7 @@ tests/test/tmul1.pp svneol=native#text/pascal
 tests/test/tnest1.pp svneol=native#text/plain
 tests/test/tnest2.pp svneol=native#text/plain
 tests/test/tnest3.pp svneol=native#text/plain
+tests/test/tnest4.pp svneol=native#text/plain
 tests/test/tnoext1.pp svneol=native#text/plain
 tests/test/tnoext2.pp svneol=native#text/plain
 tests/test/tnoext3.pp svneol=native#text/plain
