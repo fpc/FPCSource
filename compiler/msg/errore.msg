@@ -3848,6 +3848,7 @@ F*0*_Only options valid for the default or selected platform are listed.
 **1A<x>_Output format:
 **2Adefault_Use default assembler
 3*2Aas_Assemble using GNU AS
+3*2Aas-darwin_Assemble Darwin Mach-O using GNU GAS
 3*2Amacho_Mach-O (Darwin, Intel 32 bit) using internal writer
 8*2Anasm_Assemble using Nasm
 8*2Anasmobj_Assemble using Nasm
@@ -3867,7 +3868,7 @@ F*0*_Only options valid for the default or selected platform are listed.
 3*2Ayasm_Assemble using Yasm (experimental)
 4*2Aas_Assemble using GNU AS
 4*2Agas_Assemble using GNU GAS
-4*2Agas-darwin_Assemble darwin Mach-O64 using GNU GAS
+4*2Aas-darwin_Assemble Darwin Mach-O using GNU GAS
 4*2Amasm_Win64 object file using ml64 (Microsoft)
 4*2Apecoff_PE-COFF (Win64) using internal writer
 4*2Aelf_ELF (Linux-64bit) using internal writer
