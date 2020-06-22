@@ -3763,7 +3763,7 @@ implementation
         has_pointer_math:=cs_pointermath in current_settings.localswitches;
         if (df_specialization in tstoreddef(def).defoptions)
 {$ifndef genericdef_for_nested}
-           { currently, nested procdefs of generic routines get df_specialisation,
+           { currently, nested procdefs of generic routines get df_specialization,
              but no genericdef }
            and assigned(tstoreddef(def).genericdef)
 {$endif}
