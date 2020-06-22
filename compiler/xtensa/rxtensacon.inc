@@ -48,3 +48,7 @@ NR_B12 = tregister($0500000c);
 NR_B13 = tregister($0500000d);
 NR_B14 = tregister($0500000e);
 NR_B15 = tregister($0500000f);
+NR_M0 = tregister($09000000);
+NR_M1 = tregister($09000001);
+NR_M2 = tregister($09000002);
+NR_M3 = tregister($09000003);

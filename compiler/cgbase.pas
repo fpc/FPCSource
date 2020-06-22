@@ -212,7 +212,13 @@ interface
         { used on llvm, every temp gets its own "base register" }
         R_TEMPREGISTER,    { = 7 }
         { used on llvm for tracking metadata (every unique metadata has its own base register) }
-        R_METADATAREGISTER { = 8 }
+        R_METADATAREGISTER,{ = 8 }
+        { optional MAC16 (16 bit multiply-accumulate) registers on Xtensa }
+        R_MAC16REGISTER    { = 9 }
+
+        { do not add more than 16 elements (ifdef by cpu type if needed)
+          so we can store this in one nibble and pack TRegister
+          if the supreg width should be extended }
       );
 
       { Sub registers }
