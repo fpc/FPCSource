@@ -392,7 +392,7 @@ constructor TInternalLinkerZXSpectrum.create;
   begin
     inherited create;
     CArObjectReader:=TArObjectReader;
-    CExeOutput:=TIntelHexExeOutput;
+    CExeOutput:=TZXSpectrumIntelHexExeOutput;
     CObjInput:=TRelObjInput;
     if ImageBaseSetExplicity then
       FOrigin:=ImageBase
