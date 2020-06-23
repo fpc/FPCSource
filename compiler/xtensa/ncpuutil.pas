@@ -66,13 +66,16 @@ implementation
       finalList.Concat(tai_align.Create(target_info.alignment.procalign));
 
       case target_info.abi of
-//        abi_xtensa_call0:
-//          begin
-//            initList.Concat(taicpu.op_none(A_RET));
-//            finalList.Concat(taicpu.op_none(A_RET));
-//            callop:=A_CALL0;
-//            retop:=A_RET;
-//          end;
+        abi_xtensa_call0:
+          begin
+            // Store return address on stack
+            initlist.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-16));
+            initlist.concat(taicpu.op_reg_reg_const(A_S32I, NR_A0, NR_A1, 12));
+            finalList.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-16));
+            finalList.concat(taicpu.op_reg_reg_const(A_S32I, NR_A0, NR_A1, 12));
+            callop:=A_CALL0;
+            retop:=A_RET;
+          end;
         abi_xtensa_windowed:
           begin
             initList.Concat(taicpu.op_reg_const(A_ENTRY,NR_A1,16));
@@ -91,6 +94,15 @@ implementation
             finalList.Concat(taicpu.op_sym(callop,current_asmdata.RefAsmSymbol(entry^.finifunc,AT_FUNCTION)));
           if entry^.initfunc<>'' then
             initList.Concat(taicpu.op_sym(callop,current_asmdata.RefAsmSymbol(entry^.initfunc,AT_FUNCTION)));
+        end;
+
+      // Restore return address for call0 ABI
+      if target_info.abi = abi_xtensa_call0 then
+        begin
+          initlist.concat(taicpu.op_reg_reg_const(A_L32I, NR_A0, NR_A1, 12));
+          initlist.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,16));
+          finalList.concat(taicpu.op_reg_reg_const(A_L32I, NR_A0, NR_A1, 12));
+          finalList.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,16));
         end;
 
       initList.Concat(taicpu.op_none(retop));
