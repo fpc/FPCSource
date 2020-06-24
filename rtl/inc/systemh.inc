@@ -1491,7 +1491,7 @@ function InterlockedIncrement64 (var Target: qword) : qword; external name 'FPC_
 function InterlockedDecrement64 (var Target: qword) : qword; external name 'FPC_INTERLOCKEDDECREMENT64';
 function InterlockedExchange64 (var Target: qword;Source : qword) : qword; external name 'FPC_INTERLOCKEDEXCHANGE64';
 function InterlockedExchangeAdd64 (var Target: qword;Source : qword) : qword; external name 'FPC_INTERLOCKEDEXCHANGEADD64';
-function InterlockedCompareExchange64(var Target: qword; NewValue: qword; Comperand: qword): int64; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE64';
+function InterlockedCompareExchange64(var Target: qword; NewValue: qword; Comperand: qword): qword; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE64';
 {$endif cpu64}
 
 

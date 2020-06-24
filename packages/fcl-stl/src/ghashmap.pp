@@ -73,15 +73,15 @@
           Key:TKey;
         end;
       var
-      private 
+      private
       type
         TContainer = specialize TVector<TPair>;
         TTable = specialize TVector<TContainer>;
-      var 
+      var
         FData:TTable;
-        FDataSize:SizeUInt; 
+        FDataSize:SizeUInt;
         procedure EnlargeTable;
-      public 
+      public
       type
         TIterator = specialize THashmapIterator<TKey, TValue, TPair, TTable>;
         constructor Create;
@@ -124,7 +124,7 @@ begin
 end;
 
 procedure THashmap.EnlargeTable;
-var i,j,h,oldDataSize:SizeUInt; 
+var i,j,h,oldDataSize:SizeUInt;
     curbucket:TContainer;
     value:TPair;
 begin
@@ -195,6 +195,7 @@ begin
 {$endif}
     inc(i);
   end;
+  Result:=Default(TValue);
   // exception?
 end;
 
