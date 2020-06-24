@@ -61,7 +61,7 @@ end;
 Function TORDINALHELPER.ToHexString: string; overload; inline;
 
 begin
-  Result:=IntToHex(Self,SizeOf(TORDINALTYPE)*2);
+  Result:=IntToHex(Self);
 end;
 
 Function TORDINALHELPER.ToSingle: Single; inline;

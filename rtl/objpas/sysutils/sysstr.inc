@@ -919,6 +919,46 @@ begin
   result:=IntToHex(Int64(Value),Digits);
 end;
 
+function IntToHex(Value: Int8): string;
+begin
+  Result:=IntToHex(Value, 2*SizeOf(Int8));
+end;
+
+function IntToHex(Value: UInt8): string;
+begin
+  Result:=IntToHex(Value, 2*SizeOf(UInt8));
+end;
+
+function IntToHex(Value: Int16): string;
+begin
+  Result:=IntToHex(Value, 2*SizeOf(Int16));
+end;
+
+function IntToHex(Value: UInt16): string;
+begin
+  Result:=IntToHex(Value, 2*SizeOf(UInt16));
+end;
+
+function IntToHex(Value: Int32): string;
+begin
+  Result:=IntToHex(Value, 2*SizeOf(Int32));
+end;
+
+function IntToHex(Value: UInt32): string;
+begin
+  Result:=IntToHex(Value, 2*SizeOf(UInt32));
+end;
+
+function IntToHex(Value: Int64): string;
+begin
+  Result:=IntToHex(Value, 2*SizeOf(Int64));
+end;
+
+function IntToHex(Value: UInt64): string;
+begin
+  Result:=IntToHex(Value, 2*SizeOf(UInt64));
+end;
+
 function TryStrToInt(const s: string; out i : Longint) : boolean;
 var Error : word;
 begin
