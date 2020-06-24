@@ -1174,7 +1174,7 @@ const idxhdrmagic ='T#SM';
 procedure TChmWriter.CreateIDXHDRStream;
 var i : Integer;
 begin
-   if fmergefiles.count=0 then  // I assume text/site properties could also trigger idxhdr
+   if (fmergefiles.count=0) and not HasBinaryIndex then  // I assume text/site properties could also trigger idxhdr
      exit;
 
    FIDXHdrStream.setsize(4096);
@@ -2295,7 +2295,7 @@ begin
   mapstream.size:=2;
   mapstream.position:=2;
   propertystream :=TMemoryStream.Create;
-  propertystream.write(NToLE(0),sizeof(4));
+  propertystream.write(NToLE(0),sizeof(longint));
   // we iterate over all entries and write listingblocks directly to the stream.
   // and the first (and maybe last) level is written to blockn.
   // we can't do higher levels yet because we don't know how many listblocks we get
@@ -2441,6 +2441,19 @@ begin
   hdr.unknown3       :=NToLE(0);            // unknown 0
   hdr.unknown4       :=NToLE(0);            // unknown 0
   hdr.unknown5       :=NToLE(0);            // unknown 0
+
+  if totalentries<>0 then
+     begin
+       // If there are no links of this type in the CHM then this will be a zero DWORD. Othewise it contains the following DWORDs: 0, 0, 0, 0xC, 1, 1, 0, 0. AFAICS this file is pretty much useless.
+       // we already have written the first 0 dword
+       propertystream.write(NToLE(0),sizeof(longint));
+       propertystream.write(NToLE(0),sizeof(longint));
+       propertystream.write(NToLE($C),sizeof(longint));
+       propertystream.write(NToLE(1),sizeof(longint));
+       propertystream.write(NToLE(1),sizeof(longint));
+       propertystream.write(NToLE(0),sizeof(longint));
+       propertystream.write(NToLE(0),sizeof(longint));
+     end;
 
   IndexStream.Position:=0;
   IndexStream.write(hdr,sizeof(hdr));

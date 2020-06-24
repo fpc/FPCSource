@@ -3653,6 +3653,7 @@ packages/fcl-passrc/tests/testpassrc.lpr svneol=native#text/plain
 packages/fcl-pdf/Makefile svneol=native#text/plain
 packages/fcl-pdf/Makefile.fpc svneol=native#text/plain
 packages/fcl-pdf/examples/diamond.png -text svneol=unset#image/png
+packages/fcl-pdf/examples/metautf16.pp svneol=native#text/plain
 packages/fcl-pdf/examples/poppy.jpg -text
 packages/fcl-pdf/examples/testfppdf.lpi svneol=native#text/plain
 packages/fcl-pdf/examples/testfppdf.lpr svneol=native#text/plain
@@ -4529,6 +4530,7 @@ packages/fcl-xml/Makefile.fpc svneol=native#text/plain
 packages/fcl-xml/Makefile.fpc.fpcmake svneol=native#text/plain
 packages/fcl-xml/buildfclxml.lpi svneol=native#text/plain
 packages/fcl-xml/buildfclxml.pp svneol=native#text/plain
+packages/fcl-xml/examples/htmlwithsax.lpr svneol=native#text/plain
 packages/fcl-xml/examples/reducexml.lpi svneol=native#text/plain
 packages/fcl-xml/examples/reducexml.pp svneol=native#text/plain
 packages/fcl-xml/examples/test.html svneol=native#text/html
