@@ -223,10 +223,17 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 
+
 ifeq ($(ARCH),xtensa)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
+ifeq ($(SUBARCH),lx6)
 CPU_UNITS=esp32
 CPU_UNITS_DEFINED=1
+endif
+ifeq ($(SUBARCH),lx106)
+CPU_UNITS=esp8266
+CPU_UNITS_DEFINED=1
+endif
 ifeq ($(CPU_UNITS_DEFINED),)
 $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)
 endif
