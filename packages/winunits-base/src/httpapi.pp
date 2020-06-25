@@ -64,15 +64,6 @@ interface
 {$PACKRECORDS C}
 {$ENDIF}
 
-{$IFDEF VER3_0}
-  type
-    PWSTR = PWideChar;
-
-{$MACRO ON}
-{$DEFINE winapi:=stdcall}
-
-{$ENDIF}
-
   const
     HTTP_INITIALIZE_SERVER = $00000001;    
     HTTP_INITIALIZE_CONFIG = $00000002;    
