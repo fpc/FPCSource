@@ -163,11 +163,14 @@ type
      in_mmx_pcmpeqd      = 202,
      in_mmx_pcmpgtb      = 203,
      in_mmx_pcmpgtw      = 204,
-     in_mmx_pcmpgtd      = 205
+     in_mmx_pcmpgtd      = 205,
 
      { 3DNow }
 
      { SSE }
+
+{ More internal functions }
+     in_isconstvalue_x    = 1000
 
 {$if defined(X86)}
      ,

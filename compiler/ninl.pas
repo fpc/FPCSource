@@ -3169,6 +3169,12 @@ implementation
                   resultdef:=pasbool1type;
                 end;
 
+              in_isconstvalue_x:
+                begin
+                  set_varstate(left,vs_read,[vsf_must_be_valid]);
+                  resultdef:=pasbool1type;
+                end;
+
               in_assigned_x:
                 begin
                   { the parser has already made sure the expression is valid }
@@ -3858,6 +3864,14 @@ implementation
           in_ismanagedtype_x:
             begin
               if left.resultdef.needs_inittable then
+                result:=cordconstnode.create(1,resultdef,false)
+              else
+                result:=cordconstnode.create(0,resultdef,false);
+            end;
+
+          in_isconstvalue_x:
+            begin
+              if is_constnode(left) then
                 result:=cordconstnode.create(1,resultdef,false)
               else
                 result:=cordconstnode.create(0,resultdef,false);

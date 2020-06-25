@@ -524,6 +524,16 @@ implementation
                 end;
             end;
 
+          in_isconstvalue_x:
+            begin
+              consume(_LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr([ef_accept_equal]);
+              consume(_RKLAMMER);
+              p2:=geninlinenode(l,false,p1);
+              statement_syssym:=p2;
+            end;
+
           in_aligned_x,
           in_unaligned_x,
           in_volatile_x:
