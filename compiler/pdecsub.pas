@@ -2374,6 +2374,7 @@ begin
     pd.proccalloption:=pocall_cdecl
   else
     pd.proccalloption:=pocall_stdcall;
+  include(pd.procoptions,po_hascallingconvention);
 end;
 
 
