@@ -353,21 +353,28 @@ var rtl = {
       var o = null;
       if (newinstancefnname.length>0){
         o = this[newinstancefnname](fn,args);
+        if (!o.$class){
+          o.$class = this;
+          o.$classname = this.$classname;
+          o.$name = this.$name;
+          o.$fullname = this.$fullname;
+          o.$ancestor = this.$ancestor;
+        }
       } else {
         o = Object.create(this);
       }
-      if (o.$init) o.$init();
+      if (this.$init) this.$init.call(o);
       try{
         if (typeof(fn)==="string"){
-          o[fn].apply(o,args);
+          this[fn].apply(o,args);
         } else {
           fn.apply(o,args);
         };
-        if (o.AfterConstruction) o.AfterConstruction();
+        if (this.AfterConstruction) this.call.AfterConstruction(o);
       } catch($e){
         // do not call BeforeDestruction
-        if (o.Destroy) o.Destroy();
-        if (o.$final) this.$final();
+        if (this.Destroy) this.Destroy.call(o);
+        if (this.$final) this.$final.call(o);
         throw $e;
       }
       return o;
