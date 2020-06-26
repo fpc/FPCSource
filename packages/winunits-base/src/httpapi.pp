@@ -64,23 +64,6 @@ interface
 {$PACKRECORDS C}
 {$ENDIF}
 
-{$IFDEF VER3_0}
-  type
-    PWSTR = PWideChar;
-
-{$MACRO ON}
-{$DEFINE winapi:=stdcall}
-
-{$ENDIF}
-
-  type
-    SOCKADDR_STORAGE = record
-      ss_family: Int16;
-      __ss_pad1: array[0..47] of Byte;
-      __ss_align: Int64;
-      __ss_pad2: array[0..64] of Byte;
-    end;
-
   const
     HTTP_INITIALIZE_SERVER = $00000001;    
     HTTP_INITIALIZE_CONFIG = $00000002;    
