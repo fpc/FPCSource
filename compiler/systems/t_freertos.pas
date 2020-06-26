@@ -46,7 +46,8 @@ implementation
           function postprocessexecutable(const fn : string;isdll:boolean):boolean;
        end;
 
-
+       var
+         IDF_PATH: string;
 
 {*****************************************************************************
                                   TlinkerEmbedded
@@ -957,6 +958,12 @@ var
   hp: TCmdStrListItem;
   filepath: TCmdStr;
 begin
+  if (target_info.system=system_xtensa_freertos) then
+    if (current_settings.controllertype = ct_esp32) then
+      IDF_PATH := 'IDF_PATH'
+    else
+      IDF_PATH := 'IDF_PATH8266';
+
   { for future use }
   StaticStr:='';
   StripStr:='';
@@ -1148,6 +1155,7 @@ begin
         success:=DoExec(binstr,cmdstr,true,false);
     end;
 
+  Replace(Info.ExeCmd[1],'$'+IDF_PATH,maybequoted(GetEnvironmentVariable(IDF_PATH)));
   FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
 
   GCSectionsStr:='--gc-sections';
@@ -1165,7 +1173,7 @@ begin
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if target_info.system=system_xtensa_freertos then
-    Replace(cmdstr,'$IDF_PATH',maybequoted(GetEnvironmentVariable('IDF_PATH')));
+    Replace(cmdstr,'$'+IDF_PATH,maybequoted(GetEnvironmentVariable(IDF_PATH)));
   if not(cs_link_on_target in current_settings.globalswitches) then
    begin
     Replace(cmdstr,'$EXE',FixedExeFileName);
@@ -1198,16 +1206,28 @@ begin
     success:=PostProcessExecutable(FixedExeFileName,false);
 
   if success and (target_info.system=system_xtensa_freertos) then
-    begin
-      binstr:='$IDF_PATH/components/esptool_py/esptool/esptool.py';
-      Replace(binstr,'$IDF_PATH',maybequoted(GetEnvironmentVariable('IDF_PATH')));
-      success:=DoExec(binstr,'--chip esp32 elf2image --flash_mode dio --flash_freq 40m '+
-        '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
-        '--elf-sha256-offset 0xb0 '+
-        '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
-        FixedExeFileName,
-        true,false);
-    end
+    if (current_settings.controllertype = ct_esp32) then
+      begin
+        binstr:='$'+IDF_PATH+'/components/esptool_py/esptool/esptool.py';
+        Replace(binstr,'$'+IDF_PATH,maybequoted(GetEnvironmentVariable(IDF_PATH)));
+        success:=DoExec(binstr,'--chip esp32 elf2image --flash_mode dio --flash_freq 40m '+
+          '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
+          '--elf-sha256-offset 0xb0 '+
+          '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
+          FixedExeFileName,
+          true,false);
+      end
+    else if (current_settings.controllertype = ct_esp8266) then
+      begin
+        binstr:='$'+IDF_PATH+'/components/esptool_py/esptool/esptool.py';
+        Replace(binstr,'$'+IDF_PATH,maybequoted(GetEnvironmentVariable(IDF_PATH)));
+        success:=DoExec(binstr,'--chip esp8266 elf2image --flash_mode dout --flash_freq 40m '+
+          '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
+          '--version=3 '+
+          '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
+          FixedExeFileName,
+          true,false);
+      end
   else
     if success then
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
