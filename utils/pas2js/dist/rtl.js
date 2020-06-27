@@ -347,34 +347,41 @@ var rtl = {
     // Create a class using an external ancestor.
     // If newinstancefnname is given, use that function to create the new object.
     // If exist call BeforeDestruction and AfterConstruction.
-    var c = Object.create(ancestor);
+    var isFunc = rtl.isFunction(ancestor);
+    var c = null;
+    if (isFunc){
+      // create pascal class descendent from JS function
+      c = Object.create(ancestor.prototype);
+    } else if (ancestor.$func){
+      // create pascal class descendent from a pascal class descendent of a JS function
+      isFunc = true;
+      c = Object.create(ancestor);
+      c.$ancestor = ancestor;
+    } else {
+      c = Object.create(ancestor);
+    }
     c.$create = function(fn,args){
       if (args == undefined) args = [];
       var o = null;
       if (newinstancefnname.length>0){
         o = this[newinstancefnname](fn,args);
-        if (!o.$class){
-          o.$class = this;
-          o.$classname = this.$classname;
-          o.$name = this.$name;
-          o.$fullname = this.$fullname;
-          o.$ancestor = this.$ancestor;
-        }
+      } else if(isFunc) {
+        o = new c.$func(args);
       } else {
-        o = Object.create(this);
+        o = Object.create(c);
       }
-      if (this.$init) this.$init.call(o);
+      if (o.$init) o.$init();
       try{
         if (typeof(fn)==="string"){
           this[fn].apply(o,args);
         } else {
           fn.apply(o,args);
         };
-        if (this.AfterConstruction) this.call.AfterConstruction(o);
+        if (o.AfterConstruction) o.AfterConstruction();
       } catch($e){
         // do not call BeforeDestruction
-        if (this.Destroy) this.Destroy.call(o);
-        if (this.$final) this.$final.call(o);
+        if (o.Destroy) o.Destroy();
+        if (o.$final) o.$final();
         throw $e;
       }
       return o;
@@ -385,6 +392,11 @@ var rtl = {
       if (this.$final) this.$final();
     };
     rtl.initClass(c,parent,name,initfn);
+    if (isFunc){
+      function f(){}
+      f.prototype = c;
+      c.$func = f;
+    }
   },
 
   createHelper: function(parent,name,ancestor,initfn){

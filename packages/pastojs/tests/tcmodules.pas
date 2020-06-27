@@ -609,6 +609,7 @@ type
     Procedure TestExternalClass_NewInstance_NonVirtualFail;
     Procedure TestExternalClass_NewInstance_FirstParamNotString_Fail;
     Procedure TestExternalClass_NewInstance_SecondParamTyped_Fail;
+    Procedure TestExternalClass_JSFunctionPasDescendant;
     Procedure TestExternalClass_PascalProperty;
     Procedure TestExternalClass_TypeCastToRootClass;
     Procedure TestExternalClass_TypeCastToJSObject;
@@ -17479,6 +17480,77 @@ begin
   SetExpectedPasResolverError('Incompatible type arg no. 2: Got "type", expected "untyped"',
     nIncompatibleTypeArgNo);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_JSFunctionPasDescendant;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSFunction = class external name ''Function''',
+  '  end;',
+  '  TExtA = class external name ''ExtA''(TJSFunction)',
+  '  end;',
+  '  TBird = class (TExtA)',
+  '  public',
+  '    Size: word;',
+  '    class var Legs: word;',
+  '    constructor Create(a: word);',
+  '  end;',
+  '  TEagle = class (TBird)',
+  '  public',
+  '    constructor Create(b: word); reintroduce;',
+  '  end;',
+  'constructor TBird.Create(a: word);',
+  'begin',
+  'end;',
+  'constructor TEagle.Create(b: word);',
+  'begin',
+  '  inherited Create(b);',
+  'end;',
+  'var',
+  '  Bird: TBird;',
+  '  Eagle: TEagle;',
+  'begin',
+  '  Bird:=TBird.Create(3);',
+  '  Eagle:=TEagle.Create(4);',
+  '  Bird.Size:=Bird.Size+5;',
+  '  Bird.Legs:=Bird.Legs+6;',
+  '  Eagle.Size:=Eagle.Size+5;',
+  '  Eagle.Legs:=Eagle.Legs+6;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_JSFunctionPasDescendant',
+    LinesToStr([ // statements
+    'rtl.createClassExt($mod, "TBird", ExtA, "", function () {',
+    '  this.Legs = 0;',
+    '  this.$init = function () {',
+    '    this.Size = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function (a) {',
+    '    return this;',
+    '  };',
+    '});',
+    'rtl.createClassExt($mod, "TEagle", $mod.TBird, "", function () {',
+    '  this.Create$1 = function (b) {',
+    '    $mod.TBird.Create.call(this, b);',
+    '    return this;',
+    '  };',
+    '});',
+    'this.Bird = null;',
+    'this.Eagle = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.Bird = $mod.TBird.$create("Create", [3]);',
+    '$mod.Eagle = $mod.TEagle.$create("Create$1", [4]);',
+    '$mod.Bird.Size = $mod.Bird.Size + 5;',
+    '$mod.TBird.Legs = $mod.Bird.Legs + 6;',
+    '$mod.Eagle.Size = $mod.Eagle.Size + 5;',
+    '$mod.TBird.Legs = $mod.Eagle.Legs + 6;',
+    '']));
 end;
 
 procedure TTestModule.TestExternalClass_PascalProperty;

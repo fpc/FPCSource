@@ -2990,7 +2990,7 @@ begin
   if not aClass.IsExternal then exit;
   if aClass.Parent is TPasMembersType then
     exit; // nested class
-  if not IsExternalClass_Name(aClass,Data^.JSName) then exit;
+  if aClass.ExternalName<>Data^.JSName then exit;
   Data^.Found:=aClass;
   Data^.ElScope:=ElScope;
   Data^.StartScope:=StartScope;
@@ -4333,12 +4333,12 @@ begin
           okClass:
             begin
             if (ClassScope.NewInstanceFunction=nil)
+                and (Proc.ClassType=TPasClassFunction)
                 and (ClassScope.AncestorScope<>nil)
                 and (TPasClassType(ClassScope.AncestorScope.Element).IsExternal)
-                and (Proc.ClassType=TPasClassFunction)
                 and (Proc.Visibility in [visProtected,visPublic,visPublished])
                 and (TPasClassFunction(Proc).FuncType.ResultEl.ResultType=AClassOrRec)
-                and (Proc.Modifiers*[pmOverride,pmExternal]=[])
+                and (Proc.Modifiers-[pmVirtual,pmAssembler]=[])
                 and (Proc.ProcType.Modifiers*[ptmOfObject]=[ptmOfObject]) then
               begin
               // The first non private class function in a Pascal class descending
@@ -14374,7 +14374,7 @@ var
   AncestorPath, OwnerName, DestructorName, FnName, IntfKind: String;
   C: TClass;
   AssignSt: TJSSimpleAssignStatement;
-  NeedInitFunction, HasConstructor: Boolean;
+  NeedInitFunction, HasConstructor, IsJSFunction, NeedClassExt: Boolean;
   Proc: TPasProcedure;
   aResolver: TPas2JSResolver;
 begin
@@ -14419,11 +14419,17 @@ begin
   Call:=CreateCallExpression(El);
   try
     AncestorIsExternal:=(Ancestor is TPasClassType) and TPasClassType(Ancestor).IsExternal;
+    IsJSFunction:=aResolver.IsExternalClass_Name(El,'Function');
+
+    NeedClassExt:=AncestorIsExternal or IsJSFunction;
+    if NeedClassExt and (El.ObjKind<>okClass) then
+      RaiseNotSupported(El,AContext,20200627083750);
+
     if El.ObjKind=okInterface then
       FnName:=GetBIName(pbifnIntfCreate)
     else if El.ObjKind in okAllHelpers then
       FnName:=GetBIName(pbifnCreateHelper)
-    else if AncestorIsExternal then
+    else if NeedClassExt then
       FnName:=GetBIName(pbifnCreateClassExt)
     else
       FnName:=GetBIName(pbifnCreateClass);
@@ -14462,7 +14468,7 @@ begin
       AncestorPath:=CreateReferencePath(Ancestor,AContext,rpkPathAndName);
     Call.AddArg(CreatePrimitiveDotExpr(AncestorPath,El));
 
-    if AncestorIsExternal and (El.ObjKind=okClass) then
+    if NeedClassExt then
       begin
       // add the name of the NewInstance function
       if Scope.NewInstanceFunction<>nil then

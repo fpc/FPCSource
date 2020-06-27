@@ -28034,7 +28034,7 @@ var
 begin
   Result:=false;
   if aClass=nil then exit;
-  while (aClass<>nil) and aClass.IsExternal do
+  while aClass<>nil do
     begin
     if aClass.ExternalName=ExtName then exit(true);
     AncestorScope:=(aClass.CustomData as TPasClassScope).AncestorScope;
