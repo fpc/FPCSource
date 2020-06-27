@@ -1233,6 +1233,17 @@ implementation
                               eq:=te_convert_l1;
                            end;
                       end;
+                    setdef :
+                      begin
+                        { special case: an empty set constant is compatible as
+                          well }
+                        if not assigned(tsetdef(def_from).elementdef)
+                            and (fromtreetype=setconstn) then
+                          begin
+                            doconv:=tc_arrayconstructor_2_dynarray;
+                            eq:=te_convert_l1;
+                          end;
+                      end;
                     else
                       ;
                   end;
