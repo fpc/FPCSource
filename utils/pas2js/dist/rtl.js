@@ -366,7 +366,7 @@ var rtl = {
       if (newinstancefnname.length>0){
         o = this[newinstancefnname](fn,args);
       } else if(isFunc) {
-        o = new c.$func(args);
+        o = new this.$func(args);
       } else {
         o = Object.create(c);
       }
