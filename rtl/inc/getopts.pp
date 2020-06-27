@@ -220,7 +220,9 @@ begin
   Last_nonopt:=1;
   OptOpt:='?';
   Nextchar:=0;
-  case opts[1] of
+  ordering:=permute;
+  if length(opts)>0 then
+   case opts[1] of
    '-' : begin
            ordering:=return_in_order;
            delete(opts,1,1);
@@ -230,7 +232,7 @@ begin
            delete(opts,1,1);
          end;
   else
-   ordering:=permute;
+    ordering:=permute; 
   end;
 end;
 
