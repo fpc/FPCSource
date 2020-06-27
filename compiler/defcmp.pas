@@ -835,7 +835,14 @@ implementation
                          { the orddef < currency (then it will get convert l3, }
                          { and conversion to float is favoured)                }
                          doconv:=tc_int_2_real;
-                         eq:=te_convert_l2;
+                         if is_extended(def_to) then
+                           eq:=te_convert_l2
+                         else if is_double(def_to) then
+                           eq:=te_convert_l3
+                         else if is_single(def_to) then
+                           eq:=te_convert_l4
+                         else
+                           eq:=te_convert_l2;
                        end;
                    end;
                  floatdef :
@@ -856,7 +863,12 @@ implementation
                              { do we lose precision? }
                              if (def_to.size<def_from.size) or
                                (is_currency(def_from) and (tfloatdef(def_to).floattype in [s32real,s64real])) then
-                               eq:=te_convert_l2
+                               begin
+                                 if is_currency(def_from) and (tfloatdef(def_to).floattype=s32real) then
+                                   eq:=te_convert_l3
+                                 else
+                                   eq:=te_convert_l2
+                               end
                              else
                                eq:=te_convert_l1;
                            end;
