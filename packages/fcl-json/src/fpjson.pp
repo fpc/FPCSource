@@ -1048,7 +1048,7 @@ begin
     TJSONData.DoError(SErrNoParserHandler)
   else
     begin
-    Setlength(S,JSON.Size);
+    Setlength(S{%H-},JSON.Size);
     if Length(S)>0 then
       JSON.ReadBuffer(S[1],Length(S));
     end;

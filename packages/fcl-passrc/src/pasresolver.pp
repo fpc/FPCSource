@@ -15919,7 +15919,7 @@ begin
 
   IsDelphi:=msDelphi in CurrentParser.CurrentModeswitches;
   try
-    SetLength(InferenceTypes,TemplTypes.Count);
+    SetLength(InferenceTypes{%H-},TemplTypes.Count);
     for i:=0 to TemplTypes.Count-1 do
       InferenceTypes[i]:=Default(TInferredType);
 
@@ -28223,7 +28223,7 @@ begin
       ['type with '+IntToStr(Params.Count)+' generic template(s)',
        GenericEl.Name+GetGenericParamCommas(GenericTemplateList.Count)],El);
 
-  SetLength(ParamsResolved,Params.Count);
+  SetLength(ParamsResolved{%H-},Params.Count);
   IsSelf:=true;
   for i:=0 to Params.Count-1 do
     begin
