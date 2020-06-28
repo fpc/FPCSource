@@ -17534,7 +17534,7 @@ begin
     '  this.$final = function () {',
     '  };',
     '  this.Create = function (a) {',
-    '    this.$func(a);',
+    '    this.$ancestorfunc(a);',
     '    return this;',
     '  };',
     '});',

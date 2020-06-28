@@ -743,7 +743,7 @@ const
     'xor', // pbifnBitwiseNativeIntXor,
     'checkMethodCall', // pbifnCheckMethodCall
     'checkVersion', // pbifnCheckVersion
-    '$func', // pbifnClassAncestorFunc
+    '$ancestorfunc', // pbifnClassAncestorFunc
     '$destroy', // pbifnClassInstanceFree
     '$create', // pbifnClassInstanceNew
     'createClass', // pbifnCreateClass   rtl.createClass

@@ -396,6 +396,7 @@ var rtl = {
       function f(){}
       f.prototype = c;
       c.$func = f;
+      c.$ancestorfunc = ancestor;
     }
   },
 
