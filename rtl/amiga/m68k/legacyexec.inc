@@ -48,6 +48,91 @@ end;
 
 {$ENDIF NOT AMIGA_V2_0_ONLY}
 
+procedure NewList(list: PList);
+begin
+  with list^ do
+    begin
+      lh_Head     := pNode(@lh_Tail);
+      lh_Tail     := nil;
+      lh_TailPred := pNode(@lh_Head);
+    end;
+end;
+
+function CreateMsgPort: PMsgPort; public name '_fpc_amiga_createmsgport';
+var
+  sigbit : ShortInt;
+  msgPort : PMsgPort;
+begin
+  CreateMsgPort:=nil;
+  sigbit := AllocSignal(-1);
+  if sigbit = -1 then 
+    exit;
+
+  msgPort := execAllocMem(sizeof(TMsgPort),MEMF_CLEAR);
+  if not assigned(msgPort) then 
+    begin
+      FreeSignal(sigbit);
+      exit;
+    end;
+
+  with msgPort^ do 
+    begin
+      mp_Node.ln_Name := nil;
+      mp_Node.ln_Pri := 0;
+      mp_Node.ln_Type := 4;
+      mp_Flags := 0;
+      mp_SigBit := sigbit;
+      mp_SigTask := FindTask(nil);
+   end;
+  NewList(addr(msgPort^.mp_MsgList));
+
+  CreateMsgPort := msgPort;
+end;
+
+procedure DeleteMsgPort(const msgPort: PMsgPort); public name '_fpc_amiga_deletemsgport';
+begin
+  if assigned(msgPort) then
+    with msgPort^ do
+      begin
+        mp_Node.ln_Type := $FF;
+        mp_MsgList.lh_Head := PNode(PtrUInt(-1));
+        FreeSignal(mp_SigBit);
+        execFreeMem(msgPort, sizeof(TMsgPort));
+      end;
+end;
+
+function CreateIORequest(const msgPort: PMsgPort; size: Longint): PIORequest; public name '_fpc_amiga_createiorequest';
+var
+  IOReq: PIORequest;
+begin
+  IOReq:=nil;
+  if assigned(msgPort) then
+    begin
+      IOReq := execAllocMem(size, MEMF_CLEAR);
+      if assigned(IOReq) then
+        with IOReq^ do
+          begin
+            io_Message.mn_Node.ln_Type := 7;
+            io_Message.mn_Length := size;
+            io_Message.mn_ReplyPort := msgPort;
+          end;
+    end;
+  CreateIORequest := IOReq;
+end;
+
+procedure DeleteIORequest(IOReq: PIORequest); public name '_fpc_amiga_deleteiorequest';
+begin
+  if assigned(IOReq) then
+    with IOReq^ do 
+      begin
+        io_Message.mn_Node.ln_Type := $FF;
+        io_Message.mn_ReplyPort := PMsgPort(PtrUInt(-1));
+        io_Device := PDevice(PtrUInt(-1));
+        execFreeMem(ioReq, io_Message.mn_Length);
+      end;
+end;
+
+
 type
   TAmigaLegacyPoolEntry = record
     pe_node: TMinNode;

@@ -21,6 +21,10 @@ function AllocVec(byteSize    : Cardinal;
                   requirements: Cardinal): Pointer; external name '_fpc_amiga_allocvec';
 procedure FreeVec(memoryBlock: Pointer); external name '_fpc_amiga_freevec';
 {$ENDIF}
+function CreateMsgPort: PMsgPort; external name '_fpc_amiga_createmsgport';
+procedure DeleteMsgPort(const msgPort: PMsgPort); external name '_fpc_amiga_deletemsgport';
+function CreateIORequest(const msgPort: PMsgPort; size: Longint): PIORequest; external  name '_fpc_amiga_createiorequest';
+procedure DeleteIORequest(IOReq: PIORequest); external  name '_fpc_amiga_deleteiorequest';
 function CreatePool(requirements: Cardinal;
                     puddleSize  : Cardinal;
                     threshSize  : Cardinal): Pointer; external name '_fpc_amiga_createpool';
