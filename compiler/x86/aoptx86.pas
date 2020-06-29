@@ -5261,6 +5261,8 @@ unit aoptx86;
           MatchInstruction(hp2,A_MOV,[]) and
           (taicpu(hp2).oper[0]^.typ = top_reg) and
           OpsEqual(taicpu(hp2).oper[1]^,taicpu(p).oper[0]^) and
+          ((taicpu(p).opsize in [S_BW,S_BL]) and (taicpu(hp2).opsize=S_B) or
+           (taicpu(p).opsize in [S_WL]) and (taicpu(hp2).opsize=S_W)) and
 {$ifdef i386}
            { not all registers have byte size sub registers on i386 }
            ((taicpu(hp2).opsize<>S_B) or (getsupreg(taicpu(hp1).oper[0]^.reg) in [RS_EAX, RS_EBX, RS_ECX, RS_EDX])) and
