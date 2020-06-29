@@ -2799,10 +2799,11 @@ End.
 
     <div class="section">
     <h2 id="externalclassancestor">External class as ancestor</h2>
-    A Pascal class can descend from an external class.<br>
+    A Pascal class can descend from an external class - a JS object or function.<br>
     The methods <i>AfterConstruction</i> and <i>BeforeDestruction</i>
     are called if they exist.<br>
-    New instances are created by default with <i>Object.create(ancestorclass)</i>.<br>
+    New instances of a JS Object descendant are created by default with <i>Object.create(ancestorclass)</i>.<br>
+    New instances of a JS Function descendant are created by default with <i>new DescendantFunc()</i>.<br>
     You can override this, by providing a<br>
     <b>class function NewInstance(fnname: string; const paramsarray): TPasClass; virtual;</b>.
     This method is called to create a new instance and before calling the constructor.
@@ -2817,19 +2818,22 @@ End.
         </tr>
         <tr>
           <td>
-<pre>Program MyModule;
+<pre>
+// Example for descending a Pascal class from a JS Object
+Program MyModule;
 {$modeswitch externalclass}
 type
   TExtA = class external name 'ExtA'
   end;
   TMyB = class(TExtA)
   protected
+    // optional: override default allocation
     class function NewInstance(fnname: string; const paramarray): TMyB; virtual;
   end;
 class function TMyB.NewInstance(fnname: string; const paramarray): TMyB;
 Begin
   asm
-  Result = Object.create(ExtA);
+  Result = Object.create(ExtA); // that is what the rtl does
   end;
 End;
 
@@ -2849,6 +2853,55 @@ End.
       var Result = null;
       Result = Object.create(ExtA);
       return Result;
+    };
+  });
+  $mod.$main = function () {
+  };
+});
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>
+// Example for descending a Pascal class from a JS Function
+Program MyModule;
+{$modeswitch externalclass}
+uses JS;
+type
+  TExternalFunc = class external name 'ExternalFunc'(TJSFunction)
+    constructor New(a: word);
+  end;
+  TMyFunc = class(TExternalFunc)
+    constructor Create(b: word);
+  end;
+constructor TMyFunc.Create(b: word);
+Begin
+  inherited New(b+1); // optional: call inherited constructor function
+End;
+
+Begin
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",["System","js"],function () {
+  var $mod = this;
+  rtl.createClassExt($mod, "TMyFunc", ExternalFunc, "", function () {
+    this.$init = function () {
+    };
+    this.$final = function () {
+    };
+    this.Create$2 = function (b) {
+      this.$ancestorfunc(b+1);
     };
   });
   $mod.$main = function () {
