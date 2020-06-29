@@ -319,6 +319,7 @@ type
     Procedure TestFunctionResultInForLoop;
     Procedure TestFunctionResultInTypeCast;
     Procedure TestExit;
+    Procedure TestExit_ResultInFinally;
     Procedure TestBreak;
     Procedure TestBreakAsVar;
     Procedure TestContinue;
@@ -3728,6 +3729,77 @@ begin
     LinesToStr([
     'return;',
     'return 1;',
+    '']));
+end;
+
+procedure TTestModule.TestExit_ResultInFinally;
+begin
+  StartProgram(false);
+  Add([
+  'function Run: word;',
+  'begin',
+  '  try',
+  '    exit(3);', // no Result in finally -> use return 3
+  '  finally',
+  '  end;',
+  'end;',
+  'function Fly: word;',
+  'begin',
+  '  try',
+  '    exit(3);',
+  '  finally',
+  '    if Result>0 then ;',
+  '  end;',
+  'end;',
+  'function Jump: word;',
+  'begin',
+  '  try',
+  '    try',
+  '      exit(4);',
+  '    finally',
+  '    end;',
+  '  finally',
+  '    if Result>0 then ;',
+  '  end;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestExit_ResultInFinally',
+    LinesToStr([ // statements
+    'this.Run = function () {',
+    '  var Result = 0;',
+    '  try {',
+    '    return 3;',
+    '  } finally {',
+    '  };',
+    '  return Result;',
+    '};',
+    'this.Fly = function () {',
+    '  var Result = 0;',
+    '  try {',
+    '    Result = 3;',
+    '    return Result;',
+    '  } finally {',
+    '    if (Result > 0) ;',
+    '  };',
+    '  return Result;',
+    '};',
+    'this.Jump = function () {',
+    '  var Result = 0;',
+    '  try {',
+    '    try {',
+    '      Result = 4;',
+    '      return Result;',
+    '    } finally {',
+    '    };',
+    '  } finally {',
+    '    if (Result > 0) ;',
+    '  };',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([
     '']));
 end;
 
