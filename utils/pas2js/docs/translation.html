@@ -2888,7 +2888,11 @@ Begin
   inherited New(b+1); // optional: call inherited constructor function
 End;
 
+var
+  f: TMyFunc;
 Begin
+  f:=TMyFunc.Create(3);
+  writeln(jsInstanceOf(f,TExternalFunc)); // writes true, instanceof operator works as expected
 End.
 </pre>
           </td>
@@ -2904,7 +2908,10 @@ End.
       this.$ancestorfunc(b+1);
     };
   });
+  this.f = null;
   $mod.$main = function () {
+    f = $mod.TMyFunc.$create("Create$2",[3]);
+    pas.System.Writeln(pas.JS.jsInstanceOf(f,ExternalFunc));
   };
 });
 </pre>
