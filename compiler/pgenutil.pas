@@ -1247,7 +1247,7 @@ uses
                     end;
                   procdef:
                     begin
-                      pdflags:=[pd_body,pd_implemen];
+                      pdflags:=[];
                       if genericdef.owner.symtabletype=objectsymtable then
                         include(pdflags,pd_object)
                       else if genericdef.owner.symtabletype=recordsymtable then
@@ -1259,6 +1259,7 @@ uses
                         handle_calling_convention(tprocdef(result),hcc_default_actions_intf)
                       else
                         handle_calling_convention(tprocdef(result),hcc_default_actions_impl);
+                      pdflags:=pdflags+[pd_body,pd_implemen];
                       proc_add_definition(tprocdef(result));
                       { for partial specializations we implicitely declare the routine as
                         having its implementation although we'll not specialize it in reality }
