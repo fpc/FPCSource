@@ -75,6 +75,7 @@ implementation
       aasmbase,
       cgbase,pass_2,
       procinfo,
+      cpuinfo,
       cpubase,parabase,
       tgobj,
       cgobj,hlcgobj,
@@ -878,7 +879,12 @@ implementation
                       begin
                         if (left.resultdef.typ=floatdef) and
                            (right.resultdef.typ=floatdef) and
-                           (left.location.size<>right.location.size) then
+                           ((left.location.size<>right.location.size)
+                           { on newer (1993+ :)) x86 cpus, use the fpu to copy extended values }
+{$ifdef x86}
+                            or ({$ifndef x86_64}(current_settings.cputype>=cpu_Pentium) and{$endif x86_64} (is_extended(right.resultdef)))
+{$endif x86}
+                           )then
                           begin
                             { assume that all float types can be handed by the
                               fpu if one can be handled by the fpu }
