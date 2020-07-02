@@ -145,7 +145,7 @@
              obsolete_system_vm_embedded,{ 53 }
              obsolete_system_ia64_embedded,{ 54 }
              system_x86_64_embedded,    { 55 }
-             system_mips_embedded,      { 56 }
+             obsolete_system_mips_embedded, { 56 } { duplicate of system_mipseb_embedded, 81 }
              system_arm_embedded,       { 57 }
              system_powerpc64_embedded, { 58 }
              system_i386_symbian,       { 59 }
