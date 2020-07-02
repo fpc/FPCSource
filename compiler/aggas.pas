@@ -156,10 +156,12 @@ implementation
 
       { Generic unaligned pseudo-instructions, seems ELF specific }
       use_ua_elf_systems = [system_mipsel_linux,system_mipseb_linux,system_mipsel_android,system_mipsel_embedded,system_mipseb_embedded];
-      ait_ua_elf_const2str : array[aitconst_16bit_unaligned..aitconst_64bit_unaligned]
-        of string[20]=(
-          #9'.2byte'#9,#9'.4byte'#9,#9'.8byte'#9
-        );
+      ait_ua_elf_const2str : array[aitconst_128bit..aitconst_64bit_unaligned] of string[20]=(
+        #9'.fixme128'#9,#9'.8byte'#9,#9'.4byte'#9,#9'.2byte'#9,#9'.byte'#9,
+        #9'.sleb128'#9,#9'.uleb128'#9,
+        #9'.rva'#9,#9'.secrel32'#9,#9'.8byte'#9,#9'.4byte'#9,#9'.2byte'#9,#9'.2byte'#9,
+        #9'.2byte'#9,#9'.4byte'#9,#9'.8byte'#9
+      );
 
 
 
@@ -1170,8 +1172,7 @@ implementation
                          if (constdef in ait_unaligned_consts) and
                             (target_info.system in use_ua_sparc_systems) then
                            writer.AsmWrite(ait_ua_sparc_const2str[constdef])
-                         else if (constdef in ait_unaligned_consts) and
-                                 (target_info.system in use_ua_elf_systems) then
+                         else if (target_info.system in use_ua_elf_systems) then
                            writer.AsmWrite(ait_ua_elf_const2str[constdef])
                          { we can also have unaligned pointers in packed record
                            constants, which don't get translated into
