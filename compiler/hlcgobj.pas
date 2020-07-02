@@ -4924,8 +4924,9 @@ implementation
            LOC_CMMREGISTER :
              { clear the whole register }
              a_opmm_reg_reg(TAsmList(arg),OP_XOR,tstaticvarsym(p).vardef,
-               tstaticvarsym(p).initialloc.register,
-               tstaticvarsym(p).initialloc.register,
+               { as we pass shuffle=nil, we have to pass a full register }
+               newreg(R_MMREGISTER,getsupreg(tstaticvarsym(p).initialloc.register),R_SUBMMWHOLE),
+               newreg(R_MMREGISTER,getsupreg(tstaticvarsym(p).initialloc.register),R_SUBMMWHOLE),
                nil);
            LOC_CFPUREGISTER :
              begin
