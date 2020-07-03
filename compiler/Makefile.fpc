@@ -758,6 +758,16 @@ regdatz80 : z80/z80reg.dat
 
 regdat : regdatx86 regdatarm regdatsp regdatavr regdataarch64 regdatmips regdatsp64 regdatz80
 
+intrdatx86 : x86/x86intr.dat
+		$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkx86inl.pp
+        cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86inl$(SRCEXEEXT)
+        cp -f x86/cpummprocs.inc ../rtl/x86_64
+		cp -f x86/cpumminnr.inc ../rtl/x86_64
+        cp -f x86/cpummprocs.inc ../rtl/i386
+		cp -f x86/cpumminnr.inc ../rtl/i386
+        
+intrdat : intrdatx86
+
 # revision.inc rule
 revision.inc :
 ifneq ($(REVSTR),)
