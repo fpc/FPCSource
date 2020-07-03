@@ -31,6 +31,8 @@ type
     scUnknown,
     scWhitespace,       // within whitespace
     scText,             // within text
+    scCData,            // within cdata section
+    scComment,          // within comment
     scEntityReference,  // within entity reference ("&...;")
     scTag);             // within a start tag or end tag
 
@@ -59,7 +61,7 @@ type
 
 { TXMLToDOMConverter }
 
-  TXMLNodeType = (ntWhitespace, ntText, ntEntityReference, ntTag);
+  TXMLNodeType = (ntWhitespace, ntText, ntEntityReference, ntTag, ntComment);
 
   TXMLNodeInfo = class
     NodeType: TXMLNodeType;
@@ -76,6 +78,8 @@ type
     FragmentRoot: TDOMNode;
 
     procedure ReaderCharacters(Sender: TObject; const ch: PSAXChar;
+      Start, Count: Integer);
+    procedure ReaderComment(Sender: TObject; const ch: PSAXChar;
       Start, Count: Integer);
     procedure ReaderIgnorableWhitespace(Sender: TObject; const ch: PSAXChar;
       Start, Count: Integer);
@@ -171,6 +175,17 @@ begin
             '<':
               begin
                 Inc(BufferPos);
+                if (Buffer[BufferPos]='!') and (Buffer[BufferPos + 1]='[') then 
+                begin
+                  Inc(BufferPos, 8);
+                  EnterNewScannerContext(scCData);
+                end
+                else if (Buffer[BufferPos]='!') and (Buffer[BufferPos + 1]='-') then 
+                begin
+                  Inc(BufferPos, 3);
+                  EnterNewScannerContext(scComment);
+                end
+                else
                 EnterNewScannerContext(scTag);
               end;
             else
@@ -191,6 +206,17 @@ begin
             '<':
               begin
                 Inc(BufferPos);
+                if (Buffer[BufferPos]='!') and (Buffer[BufferPos + 1]='[') then 
+                begin
+                  Inc(BufferPos, 8);
+                  EnterNewScannerContext(scCData);
+                end
+                else if (Buffer[BufferPos]='!') and (Buffer[BufferPos + 1]='-') then 
+                begin
+                  Inc(BufferPos, 3);
+                  EnterNewScannerContext(scComment);
+                end
+                else
                 EnterNewScannerContext(scTag);
               end;
             else
@@ -206,6 +232,17 @@ begin
             '<':
               begin
                 Inc(BufferPos);
+                if (Buffer[BufferPos]='!') and (Buffer[BufferPos + 1]='[') then 
+                begin
+                  Inc(BufferPos, 8);
+                  EnterNewScannerContext(scCData);
+                end
+                else if (Buffer[BufferPos]='!') and (Buffer[BufferPos + 1]='-') then 
+                begin
+                  Inc(BufferPos, 3);
+                  EnterNewScannerContext(scComment);
+                end
+                else
                 EnterNewScannerContext(scTag);
               end;
             else
@@ -213,6 +250,28 @@ begin
               FRawTokenText := FRawTokenText + Buffer[BufferPos];
               Inc(BufferPos);
             end;
+          end;
+        scCData:
+          if (Buffer[BufferPos] = ']') and (Buffer[BufferPos + 1]=']') and (Buffer[BufferPos + 2]='>') then 
+          begin
+            Inc(BufferPos, 3);
+            EnterNewScannerContext(scUnknown);
+          end
+          else
+          begin
+            FRawTokenText := FRawTokenText + Buffer[BufferPos];
+            Inc(BufferPos);
+          end;
+        scComment:
+          if (Buffer[BufferPos] = '-') and (Buffer[BufferPos + 1]='-') and (Buffer[BufferPos + 2]='>') then  
+          begin
+            Inc(BufferPos, 3);
+            EnterNewScannerContext(scUnknown);
+          end
+          else
+          begin
+            FRawTokenText := FRawTokenText + Buffer[BufferPos];
+            Inc(BufferPos);
           end;
         scEntityReference:
           if Buffer[BufferPos] = ';' then
@@ -353,8 +412,11 @@ begin
   case ScannerContext of
     scWhitespace:
       DoIgnorableWhitespace(PSAXChar(TokenText), 0, Length(TokenText));
-    scText:
+    scText,
+    scCData:
       DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
+    scComment:
+      DoComment(PSAXChar(TokenText), 0, Length(TokenText));
     scEntityReference:
       begin
         if (Length(TokenText) >= 2) and (TokenText[1] = '#') and
@@ -456,6 +518,17 @@ begin
   NodeInfo := TXMLNodeInfo.Create;
   NodeInfo.NodeType := ntText;
   NodeInfo.DOMNode := FDocument.CreateTextNodeBuf(ch, Count, False);
+  FNodeBuffer.Add(NodeInfo);
+end;
+
+procedure TXMLToDOMConverter.ReaderComment(Sender: TObject;
+  const ch: PSAXChar; Start, Count: Integer);
+var
+  NodeInfo: TXMLNodeInfo;
+begin
+  NodeInfo := TXMLNodeInfo.Create;
+  NodeInfo.NodeType := ntComment;
+  NodeInfo.DOMNode := FDocument.CreateCommentBuf(ch, Count);
   FNodeBuffer.Add(NodeInfo);
 end;
 
