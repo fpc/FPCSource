@@ -287,6 +287,7 @@ unit cgx86;
             result:=rg[R_MMREGISTER].getregister(list,R_SUBMMS);
           OS_M64:
             result:=rg[R_MMREGISTER].getregister(list,R_SUBQ);
+          OS_128,
           OS_M128,
           OS_F128:
             result:=rg[R_MMREGISTER].getregister(list,R_SUBMMX); { R_SUBMMWHOLE seems a bit dangerous and ambiguous, so changed to R_SUBMMX. [Kit] }
@@ -1547,6 +1548,7 @@ unit cgx86;
                    op := A_VMOVQ
                  else
                    op := A_MOVQ;
+               OS_128,
                OS_M128:
                  { Use XMM integer transfer }
                  if UseAVX then
