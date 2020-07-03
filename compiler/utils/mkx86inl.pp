@@ -590,6 +590,8 @@ procedure ParseList(const APrefix, AFilename: string);
                         fsecond.add('    '+tmp);
                       inc(cnt);
                     end;
+                  else
+                    ;
                 end;
               end;
 
