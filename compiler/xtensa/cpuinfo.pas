@@ -136,7 +136,8 @@ Const
    tcpuflags =
       (
         CPUXTENSA_REGWINDOW,
-        CPUXTENSA_HAS_SEXT
+        CPUXTENSA_HAS_SEXT,
+        CPUXTENSA_HAS_BOOLEAN_OPTION
       );
 
    tfpuflags =
@@ -150,7 +151,7 @@ Const
      (
        { cpu_none     } [],
        { cpu_lx106    } [],
-       { cpu_lx6      } [CPUXTENSA_REGWINDOW, CPUXTENSA_HAS_SEXT]
+       { cpu_lx6      } [CPUXTENSA_REGWINDOW, CPUXTENSA_HAS_SEXT, CPUXTENSA_HAS_BOOLEAN_OPTION]
      );
 
    fpu_capabilities : array[tfputype] of set of tfpuflags =

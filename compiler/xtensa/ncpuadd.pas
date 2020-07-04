@@ -275,9 +275,14 @@ interface
         { initialize de result }
         if cmpop then
           begin
-           location_reset(location,LOC_FLAGS,OS_NO);
-           location.resflags.register:=NR_B0;
-           location.resflags.flag:=F_NZ;
+            if CPUXTENSA_HAS_BOOLEAN_OPTION in cpu_capabilities[current_settings.cputype] then
+              begin
+                location_reset(location,LOC_FLAGS,OS_NO);
+                location.resflags.register:=NR_B0;
+                location.resflags.flag:=F_NZ;
+              end
+            else
+              Internalerror(2020070402);
           end
         else
          begin

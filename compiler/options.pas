@@ -4297,6 +4297,8 @@ begin
       if (init_settings.fputype=fpu_soft) then
         include(init_settings.moduleswitches,cs_fp_emulation);
     end;
+  if not(option.CPUSetExplicitly) and (target_info.system=system_xtensa_linux) then
+    init_settings.cputype:=cpu_lx6;
 {$endif xtensa}
 
 {$ifdef arm}
