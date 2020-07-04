@@ -84,6 +84,7 @@ begin
          '-L . -T esp32_out.ld -T esp32.project.ld '+
          '-L $IDF_PATH/components/esp32/ld -T esp32.peripherals.ld'
      else
+{$else}
        ExeCmd[1]:='ld -g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE -T $RES';
 {$endif xtensa}
    end;
@@ -1160,7 +1161,8 @@ begin
         success:=DoExec(binstr,cmdstr,true,false);
     end;
 
-  Replace(Info.ExeCmd[1],'$'+IDF_PATH,maybequoted(GetEnvironmentVariable(IDF_PATH)));
+  if IDF_PATH <> '' then
+    Replace(Info.ExeCmd[1],'$'+IDF_PATH,maybequoted(GetEnvironmentVariable(IDF_PATH)));
   FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
 
   GCSectionsStr:='--gc-sections';
