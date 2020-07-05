@@ -4322,14 +4322,14 @@ unit aoptx86;
                               with taicpu(hp4).oper[OperIdx]^ do
                                 case typ of
                                   top_reg:
-                                    if reg = NR_EDX then
-                                      reg := NR_EAX;
+                                    if getsupreg(reg) = RS_EDX then
+                                      reg := newreg(R_INTREGISTER,RS_EAX,getsubreg(reg));
                                   top_ref:
                                     begin
-                                      if ref^.base = NR_EDX then
-                                        ref^.base := NR_EAX;
-                                      if ref^.index = NR_EDX then
-                                        ref^.index := NR_EAX;
+                                      if getsupreg(reg) = RS_EDX then
+                                        ref^.base := newreg(R_INTREGISTER,RS_EAX,getsubreg(reg));
+                                      if getsupreg(reg) = RS_EDX then
+                                        ref^.index := newreg(R_INTREGISTER,RS_EAX,getsubreg(reg));
                                     end;
                                   else
                                     ;
