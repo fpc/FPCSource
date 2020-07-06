@@ -940,7 +940,8 @@ Implementation
             remove either the and or the lsl/xsr sequence if possible
           }
 
-          else if cutils.ispowerof2(taicpu(p).oper[2]^.val+1,i) and
+          else if (taicpu(p).oper[2]^.val < high(int64)) and 
+	    cutils.ispowerof2(taicpu(p).oper[2]^.val+1,i) and
             GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
             MatchInstruction(hp1, A_MOV, [taicpu(p).condition], [PF_None]) and
             (taicpu(hp1).ops=3) and
