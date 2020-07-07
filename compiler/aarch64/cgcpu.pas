@@ -1129,17 +1129,24 @@ implementation
           { "xor Vx,Vx" is used to initialize global regvars to 0 }
           OP_XOR:
             begin
-              if (src<>dst) or
+              if shuffle=nil then
+                begin
+                  dst:=newreg(R_MMREGISTER,getsupreg(dst),R_SUBMM16B);
+                  src:=newreg(R_MMREGISTER,getsupreg(dst),R_SUBMM16B);
+                  list.concat(taicpu.op_reg_reg_reg(A_EOR,dst,dst,src))
+                end
+              else if (src<>dst) or
                  (reg_cgsize(src)<>size) or
                  assigned(shuffle) then
-                internalerror(2015011401);
-              case size of
-                OS_F32,
-                OS_F64:
-                  list.concat(taicpu.op_reg_const(A_MOVI,makeregsize(dst,OS_F64),0));
-                else
-                  internalerror(2015011402);
-              end;
+                internalerror(2015011401)
+              else
+                case size of
+                  OS_F32,
+                  OS_F64:
+                    list.concat(taicpu.op_reg_const(A_MOVI,makeregsize(dst,OS_F64),0));
+                  else
+                    internalerror(2015011402);
+                end;
             end
           else
             internalerror(2015011403);
