@@ -10,4 +10,7 @@ begin
   b := 0;
   w := abs(i-b);
   WriteLn(w);
+  if w<>53 then
+    halt(1);
+  Writeln('ok');
 end.
