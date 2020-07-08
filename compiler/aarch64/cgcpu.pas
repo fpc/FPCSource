@@ -1132,7 +1132,7 @@ implementation
               if shuffle=nil then
                 begin
                   dst:=newreg(R_MMREGISTER,getsupreg(dst),R_SUBMM16B);
-                  src:=newreg(R_MMREGISTER,getsupreg(dst),R_SUBMM16B);
+                  src:=newreg(R_MMREGISTER,getsupreg(src),R_SUBMM16B);
                   list.concat(taicpu.op_reg_reg_reg(A_EOR,dst,dst,src))
                 end
               else if (src<>dst) or
