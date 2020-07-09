@@ -65,7 +65,7 @@ unit cpupara;
         if target_info.abi=abi_xtensa_windowed then
           result:=[RS_A8..RS_A15]
         else
-          result:=[RS_A0..RS_A7];
+          result:=[RS_A0..RS_A11];
       end;
 
 
