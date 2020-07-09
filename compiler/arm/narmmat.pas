@@ -358,15 +358,6 @@ implementation
         procname: string[31];
         fdef : tdef;
       begin
-        if (current_settings.fputype=fpu_soft) and
-           (left.resultdef.typ=floatdef) then
-          begin
-            result:=nil;
-            firstpass(left);
-            expectloc:=LOC_REGISTER;
-            exit;
-          end;
-
         if (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) or
           is_single(resultdef) then
           exit(inherited pass_1);
@@ -376,7 +367,7 @@ implementation
         if codegenerror then
           exit;
 
-        if (left.resultdef.typ=floatdef) then
+        if (left.resultdef.typ=floatdef) and (current_settings.fputype=fpu_soft) then
           begin
             case tfloatdef(resultdef).floattype of
               s64real:
