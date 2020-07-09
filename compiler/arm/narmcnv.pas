@@ -113,8 +113,8 @@ implementation
 
     function tarmtypeconvnode.first_real_to_real: tnode;
       begin
-        if not(FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) and
-          not (target_info.system in systems_wince) then
+        if (current_settings.fputype=fpu_soft) and
+           not (target_info.system in systems_wince) then
           begin
             case tfloatdef(left.resultdef).floattype of
               s32real:
