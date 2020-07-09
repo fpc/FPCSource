@@ -2482,10 +2482,10 @@ else
 MAKEINC=$(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc
 $(GPARMAKE): utils/gparmake.pp $(CREATELST)
 	$(Q)$(MAKE)  $(COMPILER_UNITTARGETDIR)
-	$(FPC) -FE. utils/gparmake.pp $(OPT)
+	$(FPC) -FE. utils/gparmake.pp $(FPCOPT)
 $(CREATELST): utils/createlst.pp
 	$(Q)$(MAKE)  $(COMPILER_UNITTARGETDIR)
-	$(FPC) -FE. utils/createlst.pp $(OPT)
+	$(FPC) -FE. utils/createlst.pp $(FPCOPT)
 $(MAKEINC): $(GPARMAKE) $(CREATELST)
 	$(Q)$(MAKE) $(TEST_OUTPUTDIR)
 	$(Q)$(CREATELST) filelisttest.lst $(TESTDIRS)
