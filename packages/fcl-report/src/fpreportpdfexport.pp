@@ -124,14 +124,11 @@ begin
     else
     begin
       fnt := gTTFontCache.Find(AFontName); // we are doing a PostScript Name lookup (it contains Bold, Italic info)
-      if Assigned(fnt) then
-        Result := Document.AddFont(fnt.FileName, AFontName)
-      else 
-        begin
+      if not Assigned(fnt) then
         fnt:=gTTFontCache.FindFont(AFontName);
-        if fnt=Nil then
-          raise Exception.CreateFmt('fpreport: Could not find the font <%s> in the font cache.', [AFontName]);
-        end;
+      if fnt=Nil then
+        raise Exception.CreateFmt('fpreport: Could not find the font <%s> in the font cache.', [AFontName]);
+      Result := Document.AddFont(fnt.FileName, AFontName)
     end;
   end;
 end;
