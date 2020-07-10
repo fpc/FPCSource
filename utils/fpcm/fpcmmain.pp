@@ -113,7 +113,7 @@ interface
         '_win64','_wince','_gba','_nds','_embedded','_symbian','_nativent',
         '_iphonesim','_wii','_aix','_java','_android','_msdos','_aros',
         '_dragonfly','_win16','_wasm','_freertos','_zxspectrum','_msxdos',
-        '_ios"
+        '_ios'
       );
 
       { This table is kept OS,Cpu because it is easier to maintain (PFV) }
