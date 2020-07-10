@@ -25,7 +25,7 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.Email := 'inoussa12@gmail.com';
     P.Description := 'Free Pascal implementation of Service Data Objects';
-    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos,zxspectrum];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

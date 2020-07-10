@@ -3245,7 +3245,7 @@ implementation
 
     function torddef.alignment:shortint;
       begin
-        if (target_info.system in [system_i386_darwin,system_i386_iphonesim,system_arm_darwin]) and
+        if (target_info.system in [system_i386_darwin,system_i386_iphonesim,system_arm_ios]) and
            (ordtype in [s64bit,u64bit]) then
           result := 4
         else
@@ -3387,7 +3387,7 @@ implementation
 
     function tfloatdef.alignment:shortint;
       begin
-        if (target_info.system in [system_i386_darwin,system_i386_iphonesim,system_arm_darwin]) then
+        if (target_info.system in [system_i386_darwin,system_i386_iphonesim,system_arm_ios]) then
           case floattype of
             sc80real,
             s80real: result:=16;
@@ -8827,7 +8827,7 @@ implementation
       begin
         if assigned(objc_fastenumeration) then
           exit;
-        if not(target_info.system in [system_arm_darwin,system_i386_iphonesim,system_aarch64_darwin,system_x86_64_iphonesim]) then
+        if not(target_info.system in [system_arm_ios,system_i386_iphonesim,system_aarch64_ios,system_x86_64_iphonesim]) then
           cocoaunit:='COCOAALL'
         else
           cocoaunit:='IPHONEALL';

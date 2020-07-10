@@ -28,7 +28,7 @@ begin
     P.Email := '';
     P.Description := 'Image loading and conversion parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes := P.OSes - [embedded,nativent,msdos,win16,macos,palmos,zxspectrum];
+    P.OSes := P.OSes - [embedded,nativent,msdos,win16,macosclassic,palmos,zxspectrum];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -224,18 +224,18 @@ begin
         begin
           AddUnit('fpimage');
         end;
-    T:=P.Targets.AddUnit('freetypeh.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
+    T:=P.Targets.AddUnit('freetypeh.pp',[solaris,iphonesim,ios,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
     T.Dependencies.AddInclude('libfreetype.inc');
-    T:=P.Targets.AddUnit('freetypehdyn.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
+    T:=P.Targets.AddUnit('freetypehdyn.pp',[solaris,iphonesim,ios,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
       T.ResourceStrings:=true;
     T.Dependencies.AddInclude('libfreetype.inc');
-    T:=P.Targets.AddUnit('freetype.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
+    T:=P.Targets.AddUnit('freetype.pp',[solaris,iphonesim,ios,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
       with T.Dependencies do
         begin
           AddUnit('freetypeh');
           AddUnit('fpimgcmn');
         end;
-    T:=P.Targets.AddUnit('ftfont.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
+    T:=P.Targets.AddUnit('ftfont.pp',[solaris,iphonesim,ios,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
       with T.Dependencies do
         begin
           AddUnit('fpcanvas');

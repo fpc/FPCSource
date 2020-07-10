@@ -462,16 +462,16 @@ const
       );
 
 
-   system_arm_darwin_info : tsysteminfo =
+   system_arm_ios_info : tsysteminfo =
       (
-        system       : system_arm_darwin;
-        name         : 'Darwin for ARM';
-        shortname    : 'Darwin';
+        system       : system_arm_ios;
+        name         : 'iOS for ARM';
+        shortname    : 'iOS';
         flags        : [tf_p_ext_support,tf_requires_proper_alignment,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,
                         tf_dwarf_only_local_labels,tf_has_winlike_resources,tf_pic_default,tf_supports_symbolorderfile,tf_supports_hidden_symbols];
         cpu          : cpu_arm;
         unit_env     : 'BSDUNITS';
-        extradefines : 'UNIX;BSD;HASUNIX;CPUARMEL';
+        extradefines : 'UNIX;BSD;HASUNIX;CPUARMEL;DARWIN';
         exeext       : '';
         defext       : '.def';
         scriptext    : '.sh';
@@ -530,6 +530,73 @@ const
         llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
       );
 
+
+   system_aarch64_ios_info  : tsysteminfo =
+      (
+        system       : system_aarch64_ios;
+        name         : 'iOS for AArch64';
+        shortname    : 'iOS';
+        flags        : [tf_p_ext_support,tf_requires_proper_alignment,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,
+                        tf_dwarf_only_local_labels,tf_pic_default,tf_has_winlike_resources,tf_supports_symbolorderfile,tf_supports_hidden_symbols];
+        cpu          : cpu_aarch64;
+        unit_env     : 'BSDUNITS';
+        extradefines : 'UNIX;BSD;HASUNIX;DARWIN';
+        exeext       : '';
+        defext       : '.def';
+        scriptext    : '.sh';
+        smartext     : '.sl';
+        unitext      : '.ppu';
+        unitlibext   : '.ppl';
+        asmext       : '.s';
+        objext       : '.o';
+        resext       : '.res';
+        resobjext    : '.or';
+        sharedlibext : '.dylib';
+        staticlibext : '.a';
+        staticlibprefix : 'libp';
+        sharedlibprefix : 'lib';
+        sharedClibext : '.dylib';
+        staticClibext : '.a';
+        staticClibprefix : 'lib';
+        sharedClibprefix : 'lib';
+        importlibprefix : 'libimp';
+        importlibext : '.a';
+        Cprefix      : '_';
+        newline      : #10;
+        dirsep       : '/';
+        assem        : as_clang;
+        assemextern  : as_clang;
+        link         : ld_none;
+        linkextern   : ld_darwin;
+        ar           : ar_gnu_ar;
+        res          : res_macho;
+        dbg          : dbg_dwarf2;
+        script       : script_unix;
+        endian       : endian_little;
+        alignment    :
+          (
+            procalign       : 16;
+            loopalign       : 4;
+            jumpalign       : 0;
+            jumpalignskipmax    : 0;
+            coalescealign   : 0;
+            coalescealignskipmax: 0;
+            constalignmin   : 0;
+            constalignmax   : 16;
+            varalignmin     : 0;
+            varalignmax     : 16;
+            localalignmin   : 4;
+            localalignmax   : 16;
+            recordalignmin  : 0;
+            recordalignmax  : 16;
+            maxCrecordalign : 16
+          );
+        first_parm_offset : 16;
+        stacksize   : 8*1024*1024;
+        stackalign   : 16;
+        abi : abi_aarch64_darwin;
+        llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-n32:64-S128'
+      );
 
    system_aarch64_darwin_info  : tsysteminfo =
       (
@@ -623,12 +690,16 @@ initialization
   {$endif powerpc64}
   {$ifdef cpuarm}
     {$ifdef Darwin}
-      set_source_info(system_arm_darwin_info);
+      set_source_info(system_arm_ios_info);
     {$endif Darwin}
   {$endif cpuarm}
   {$ifdef cpuaarch64}
     {$ifdef Darwin}
-      set_source_info(system_aarch64_darwin_info);
+      {$ifdef ios}
+        set_source_info(system_aarch64_ios_info);
+      {$else}
+        set_source_info(system_aarch64_darwin_info);
+      {$endif}
     {$endif Darwin}
   {$endif cpuaarch64}
 

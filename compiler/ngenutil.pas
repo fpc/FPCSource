@@ -1632,7 +1632,7 @@ implementation
      begin
        { stub for calling FPC_SYSTEMMAIN from the C main -> add argc/argv/argp }
        if (tprocdef(pd).proctypeoption=potype_mainstub) and
-          (target_info.system in (systems_darwin+[system_powerpc_macos]+systems_aix)) then
+          (target_info.system in (systems_darwin+[system_powerpc_macosclassic]+systems_aix)) then
          begin
            pvs:=cparavarsym.create('ARGC',1,vs_const,s32inttype,[]);
            tprocdef(pd).parast.insert(pvs);

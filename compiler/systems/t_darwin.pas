@@ -177,7 +177,7 @@ implementation
                       if CompareVersionStrings(MacOSXVersionMin,'10.5')>=0 then
                         exit('crt1.10.5.o');
                     end;
-                  system_arm_darwin:
+                  system_arm_ios:
                     begin
                       { iOS:
                           iOS 6 and later: nothing
@@ -199,6 +199,7 @@ implementation
                       if (CompareVersionStrings(iPhoneOSVersionMin,'8.1')>0) then
                         exit('');
                     end;
+                  system_aarch64_ios,
                   system_aarch64_darwin:
                     { never anything }
                     exit('');
@@ -232,8 +233,8 @@ implementation
                       if CompareVersionStrings(MacOSXVersionMin,'10.6')>=0 then
                         exit('');
                     end;
-                  system_arm_darwin,
-                  system_aarch64_darwin:
+                  system_arm_ios,
+                  system_aarch64_ios:
                     begin
                       { iOS: < 3.1: bundle1.o
                              >= 3.1: nothing }
@@ -247,6 +248,8 @@ implementation
                       if (CompareVersionStrings(iPhoneOSVersionMin,'8.1')>0) then
                         exit('');
                     end;
+                  system_aarch64_darwin:
+                    exit('');
                   else
                     Internalerror(2019050710);
                 end;
@@ -269,8 +272,8 @@ implementation
                       if CompareVersionStrings(MacOSXVersionMin,'10.5')>=0 then
                         exit('dylib1.10.5.o');
                     end;
-                  system_arm_darwin,
-                  system_aarch64_darwin:
+                  system_arm_ios,
+                  system_aarch64_ios:
                     begin
                       { iOS: < 3.1: dylib1.o
                              >= 3.1: nothing }
@@ -284,6 +287,8 @@ implementation
                       if (CompareVersionStrings(iPhoneOSVersionMin,'8.1')>0) then
                         exit('');
                     end;
+                  system_aarch64_darwin:
+                    exit('');
                   else
                     Internalerror(2019050711);
                 end;
@@ -343,10 +348,11 @@ implementation
         system_x86_64_darwin,
         system_x86_64_iphonesim:
           LinkRes.Add('x86_64');
-        system_arm_darwin:
+        system_arm_ios:
           { current versions of the linker require the sub-architecture type
             to be specified }
           LinkRes.Add(lower(cputypestr[current_settings.cputype]));
+        system_aarch64_ios,
         system_aarch64_darwin:
           LinkRes.Add('arm64');
         else
@@ -758,11 +764,14 @@ initialization
   RegisterTarget(system_powerpc64_darwin_info);
 {$endif powerpc64}
 {$ifdef arm}
-  RegisterImport(system_arm_darwin,timportlibdarwin);
-  RegisterExport(system_arm_darwin,texportlibdarwin);
-  RegisterTarget(system_arm_darwin_info);
+  RegisterImport(system_arm_ios,timportlibdarwin);
+  RegisterExport(system_arm_ios,texportlibdarwin);
+  RegisterTarget(system_arm_ios_info);
 {$endif arm}
 {$ifdef aarch64}
+  RegisterImport(system_aarch64_ios,timportlibdarwin);
+  RegisterExport(system_aarch64_ios,texportlibdarwin);
+  RegisterTarget(system_aarch64_ios_info);
   RegisterImport(system_aarch64_darwin,timportlibdarwin);
   RegisterExport(system_aarch64_darwin,texportlibdarwin);
   RegisterTarget(system_aarch64_darwin_info);

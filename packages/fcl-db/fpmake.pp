@@ -10,9 +10,9 @@ procedure add_fcl_db(const ADirectory: string);
 const
   ParadoxOSes         = [beos,haiku,linux,freebsd,netbsd,openbsd,win32,dragonfly];
   DatadictOSes        = [aix,beos,darwin,haiku,linux,freebsd,win32,win64,wince,android,dragonfly];
-  SqldbConnectionOSes = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
-  SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
-  DBaseOSes           = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince,android,os2,dragonfly];
+  SqldbConnectionOSes = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
+  SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
+  DBaseOSes           = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,os2,dragonfly];
   MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,solaris,win32,win64,android,dragonfly];
 
 
@@ -32,7 +32,7 @@ begin
     P.Email := '';
     P.Description := 'Database library of Free Component Libraries(FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos,zxspectrum];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

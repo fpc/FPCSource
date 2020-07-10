@@ -526,7 +526,7 @@ end;
    function CurDirRelPath(systeminfo: tsysteminfo): TCmdStr;
 
    begin
-     if systeminfo.system <> system_powerpc_macos then
+     if systeminfo.system <> system_powerpc_macosclassic then
        CurDirRelPath:= '.'+systeminfo.DirSep
      else
        CurDirRelPath:= ':'
@@ -877,7 +877,7 @@ end;
      var
        i      : longint;
      begin
-       if source_info.system = system_powerpc_MACOS then
+       if source_info.system = system_powerpc_macosclassic then
          FixFileName:= TranslatePathToMac(s, true)
        else
         if (tf_files_case_aware in source_info.flags) or
@@ -940,7 +940,7 @@ end;
      var
        i : longint;
      begin
-       if target_info.system = system_powerpc_MACOS then
+       if target_info.system = system_powerpc_macosclassic then
          TargetFixFileName:= TranslatePathToMac(s, true)
        else
         if (tf_files_case_aware in target_info.flags) or

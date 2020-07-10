@@ -21,7 +21,7 @@ begin
     P.Version:='3.3.1';
     P.Options.Add('-S2h');
     D:=P.Dependencies.Add('fcl-base');
-    D:=P.Dependencies.Add('iconvenc',[linux,darwin,iphonesim,freebsd,haiku,beos,aix]);
+    D:=P.Dependencies.Add('iconvenc',[linux,darwin,iphonesim,ios,freebsd,haiku,beos,aix]);
 
     P.Author := 'Sebastian Guenther, Sergei Gorelkin and FPC development team';
     P.License := 'LGPL with modification, ';
@@ -29,7 +29,7 @@ begin
     P.Email := '';
     P.Description := 'XML and DOM parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos,zxspectrum];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -152,7 +152,7 @@ begin
           AddUnit('dom');
           AddUnit('htmldefs');
         end;
-    T:=P.Targets.AddUnit('xmliconv.pas',[linux,freebsd,darwin,iphonesim,haiku,beos,aix]);
+    T:=P.Targets.AddUnit('xmliconv.pas',[linux,freebsd,darwin,iphonesim,ios,haiku,beos,aix]);
       with T.Dependencies do
         begin
           AddUnit('xmlread');

@@ -12,7 +12,7 @@ Const
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX]; // qnx never was active in 2.x afaik
 
-//  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix,Android];
+//  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,ios,aix,Android];
 //    unixlikes-[beos];
 //
   StrUtilsOSes  = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,symbian,watcom,wii,win32,win64,freertos]+UnixLikes+AllAmigaLikeOSes;

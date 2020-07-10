@@ -22,7 +22,7 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('libtar');
-    P.Dependencies.Add('univint',[Darwin,iPhoneSim]);
+    P.Dependencies.Add('univint',[Darwin,iPhoneSim,ios]);
 
     P.Author := ' Dean Zobec, Michael van Canneyt';
     P.License := 'LGPL with modification, ';
@@ -30,7 +30,7 @@ begin
     P.Email := '';
     P.Description := 'Unit testing system inspired by JUnit of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes := P.OSes - [embedded,nativent,msdos,win16,macos,palmos,symbian,zxspectrum];
+    P.OSes := P.OSes - [embedded,nativent,msdos,win16,macosclassic,palmos,symbian,zxspectrum];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

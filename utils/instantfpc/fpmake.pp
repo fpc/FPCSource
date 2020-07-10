@@ -16,7 +16,7 @@ begin
     begin
     P:=AddPackage('utils-instantfpc');
     P.ShortName:='ifpc';
-    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -33,7 +33,7 @@ begin
     P.Dependencies.Add('fcl-process');
     P.Options.Add('-S2h');
 
-    P.OSes := [win32,win64,wince,haiku,linux,freebsd,openbsd,netbsd,darwin,iphonesim,solaris,aix];
+    P.OSes := [win32,win64,wince,haiku,linux,freebsd,openbsd,netbsd,darwin,iphonesim,ios,solaris,aix];
 
     T:=P.Targets.AddProgram('instantfpc.pas');
     T.Dependencies.AddUnit('instantfptools');

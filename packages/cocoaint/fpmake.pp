@@ -18,7 +18,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.3.1';
-    P.CPUs:=[i386,x86_64,powerpc,powerpc64];
+    P.CPUs:=[i386,x86_64,powerpc,powerpc64,aarch64];
     P.OSes:=[darwin];
     P.Dependencies.Add('univint');
     P.SourcePath.Add('src');

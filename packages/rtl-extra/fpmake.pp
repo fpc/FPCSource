@@ -13,17 +13,17 @@ Const
   UnixLikes = AllUnixOSes -[QNX]; // qnx never was active in 2.x afaik
 
   ClocaleOSes   = UnixLikes -[android];
-  CLocaleIncOSes= [Aix,freebsd,netbsd,openbsd,solaris,darwin,iphonesim,dragonfly];
+  CLocaleIncOSes= [Aix,freebsd,netbsd,openbsd,solaris,darwin,iphonesim,ios,dragonfly];
 
   IPCOSes       = UnixLikes-[aix,android,beos,haiku];
   IPCBSDs       = [FreeBSD,NetBSD,OpenBSD,DragonFly];
-//  IPCcdeclOSes  = [Darwin,iphonesim];
+//  IPCcdeclOSes  = [Darwin,iphonesim,ios];
 
   PrinterOSes   = [go32v2,msdos,os2,win32,win64]+unixlikes-[beos,haiku,morphos];
   SerialOSes    = [android,linux,netbsd,openbsd,win32,win64];
   UComplexOSes  = [atari,embedded,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,symbian,watcom,wii,wince,win32,win64,freertos]+UnixLikes+AllAmigaLikeOSes;
   MatrixOSes    = [atari,embedded,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,symbian,watcom,wii,win32,win64,wince,freertos]+UnixLikes+AllAmigaLikeOSes;
-  ObjectsOSes   = [atari,embedded,emx,gba,go32v2,macos,msdos,nds,netware,netwlibc,os2,symbian,watcom,wii,win16,win32,win64,wince,freertos]+UnixLikes+AllAmigaLikeOSes;
+  ObjectsOSes   = [atari,embedded,emx,gba,go32v2,macosclassic,msdos,nds,netware,netwlibc,os2,symbian,watcom,wii,win16,win32,win64,wince,freertos]+UnixLikes+AllAmigaLikeOSes;
   WinsockOSes   = [win32,win64,wince,os2,emx,netware,netwlibc];
   WinSock2OSes  = [win32,win64,wince];
   SocketsOSes   = UnixLikes+AllAmigaLikeOSes+[netware,netwlibc,os2,emx,wince,win32,win64];
@@ -63,7 +63,7 @@ begin
 
     P.SourcePath.Add('src/inc');
     P.SourcePath.Add('src/$(OS)');
-    P.SourcePath.Add('src/darwin',[iphonesim]);
+    P.SourcePath.Add('src/darwin',[iphonesim,ios]);
     P.SourcePath.Add('src/unix',AllUnixOSes);
     P.SourcePath.Add('src/bsd',AllBSDOSes);
     P.SourcePath.Add('src/os2commn',[os2,emx]);
@@ -81,7 +81,7 @@ begin
     P.IncludePath.Add('src/netwcomn',[netware,netwlibc]);
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/$(OS)');
-    P.IncludePath.Add('src/darwin',[iphonesim]);
+    P.IncludePath.Add('src/darwin',[iphonesim,ios]);
     P.IncludePath.Add('src/win',AllWindowsOSes);
 
     // Add clocale for Android first in order to compile the source file

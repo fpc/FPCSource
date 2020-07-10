@@ -296,7 +296,7 @@ begin
             arch:=arch+'le';
         end;
       Replace(s,'$ARCH',arch);
-      if target_info.system=system_arm_darwin then
+      if target_info.system=system_arm_ios then
         subarch:=lower(cputypestr[current_settings.cputype]);
       Replace(s,'$SUBARCH',subarch);
       case target_info.endian of

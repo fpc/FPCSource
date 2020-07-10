@@ -21,7 +21,7 @@ begin
     P.ShortName:='fclw';
     P.Directory:=ADirectory;
     P.Version:='3.3.1';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android];
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,ios,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -39,7 +39,7 @@ begin
     P.Dependencies.Add('httpd24', AllOses - [amiga,aros,morphos]);
     P.Dependencies.Add('winunits-base', [Win32,Win64]);
     // (Temporary) indirect dependencies, not detected by fpcmake:
-    P.Dependencies.Add('univint',[MacOSX,iphonesim]);
+    P.Dependencies.Add('univint',[MacOSX,iphonesim,ios]);
     P.Dependencies.Add('libmicrohttpd',LibMicroHttpdOSes);
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';
@@ -142,12 +142,12 @@ begin
       end;
     with P.Targets.AddUnit('fpfcgi.pp') do
       begin
-        OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros,morphos];
+        OSes:=AllOses-[wince,darwin,iphonesim,ios,aix,amiga,aros,morphos];
         Dependencies.AddUnit('custfcgi');
       end;
     with P.Targets.AddUnit('custfcgi.pp') do
       begin
-        OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros,morphos];
+        OSes:=AllOses-[wince,darwin,iphonesim,ios,aix,amiga,aros,morphos];
         Dependencies.AddUnit('httpprotocol');
         Dependencies.AddUnit('cgiprotocol');
         Dependencies.AddUnit('custcgi');

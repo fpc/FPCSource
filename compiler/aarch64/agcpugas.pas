@@ -803,7 +803,7 @@ unit agcpugas;
             idtxt  : 'CLANG';
             asmbin : 'clang';
             asmcmd : '-c -o $OBJ $EXTRAOPT -arch arm64 $DARWINVERSION -x assembler $ASM';
-            supported_targets : [system_aarch64_darwin];
+            supported_targets : [system_aarch64_ios,system_aarch64_darwin];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';
             labelmaxlen : -1;

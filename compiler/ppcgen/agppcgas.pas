@@ -738,7 +738,7 @@ unit agppcgas;
          idtxt  : 'CLANG';
          asmbin : 'clang';
          asmcmd : '-c -o $OBJ $EXTRAOPT -arch $ARCH $DARWINVERSION -x assembler $ASM';
-         supported_targets : [system_powerpc_macos, system_powerpc_darwin, system_powerpc64_darwin];
+         supported_targets : [system_powerpc_macosclassic, system_powerpc_darwin, system_powerpc64_darwin];
          flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
          labelprefix : 'L';
          labelmaxlen : -1;

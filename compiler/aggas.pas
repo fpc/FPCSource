@@ -540,7 +540,8 @@ implementation
          system_i386_iphonesim,
          system_powerpc64_darwin,
          system_x86_64_darwin,
-         system_arm_darwin,
+         system_arm_ios,
+         system_aarch64_ios,
          system_aarch64_darwin,
          system_x86_64_iphonesim,
          system_powerpc_aix,
@@ -609,7 +610,7 @@ implementation
                   system_i386_darwin,
                   system_i386_iphonesim:
                     writer.AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
-                  system_arm_darwin:
+                  system_arm_ios:
                     if (cs_create_pic in current_settings.moduleswitches) then
                       writer.AsmWriteln('__TEXT,__picsymbolstub4,symbol_stubs,none,16')
                     else

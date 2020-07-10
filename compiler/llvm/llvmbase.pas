@@ -154,7 +154,7 @@ implementation
       if target_info.system in systems_darwin then
         begin
           llvm_target_name:=llvm_target_name+'-apple';
-          if not(target_info.system in [system_arm_darwin,system_i386_iphonesim]) then
+          if not(target_info.system in [system_arm_ios,system_i386_iphonesim]) then
             llvm_target_name:=llvm_target_name+'-macosx'+MacOSXVersionMin
           else
             llvm_target_name:=llvm_target_name+'-ios'+iPhoneOSVersionMin;

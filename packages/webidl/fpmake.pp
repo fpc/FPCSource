@@ -25,7 +25,7 @@ begin
     P.Email := '';
     P.Description := 'WEB IDL parser and converter to Object Pascal classes';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos,zxspectrum];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

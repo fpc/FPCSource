@@ -937,7 +937,7 @@ Implementation
         else
           Replace(result,'$DARWINVERSION','');
 {$ifdef arm}
-        if (target_info.system=system_arm_darwin) then
+        if (target_info.system=system_arm_ios) then
           Replace(result,'$ARCH',lower(cputypestr[current_settings.cputype]));
 {$endif arm}
         if (cs_link_on_target in current_settings.globalswitches) then
