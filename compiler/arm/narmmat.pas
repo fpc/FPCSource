@@ -54,7 +54,7 @@ implementation
       globtype,compinnr,
       cutils,verbose,globals,constexp,
       aasmbase,aasmcpu,aasmtai,aasmdata,
-      defutil,
+      defutil,systems,
       symtype,symconst,symtable,
       cgbase,cgobj,hlcgobj,cgutils,
       pass_2,procinfo,
@@ -359,7 +359,8 @@ implementation
         fdef : tdef;
       begin
         if (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) or
-          is_single(resultdef) then
+           (target_info.system = system_arm_wince) or
+           is_single(resultdef) then
           exit(inherited pass_1);
 
         result:=nil;
