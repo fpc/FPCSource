@@ -202,7 +202,9 @@ interface
 
 {$linkframework Cocoa}
 {$linkframework Foundation}
-{$linkframework CoreImage}
+// The functionality of CoreImage is in the QuartzCore framework on older (Mac) OS X versions,
+// and it doesn't exist there, so don't link by default.
+{linkframework CoreImage}
 {$linkframework QuartzCore}
 {$linkframework CoreData}
 {$linkframework AppKit}
