@@ -53,7 +53,7 @@ implementation
        symbase,symconst,symdef,symsym,symtable,defutil,
        { pass 1 }
        pass_1,htypechk,
-       ncal,nmem,ncnv,ninl,ncon,nld,nbas,ngenutil,
+       ncal,nmem,ncnv,ninl,ncon,nld,nbas,ngenutil,nutils,
        { parser }
        scanner,
        pbase,pexpr;
@@ -393,13 +393,27 @@ implementation
                    end
                   else
                    begin
+                     temp:=nil;
                      { create call to fpc_finalize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) then
-                       addstatement(newstatement,cnodeutils.finalize_data_node(cderefnode.create(p.getcopy)));
+                       if might_have_sideeffects(p) then
+                         begin
+                           { ensure that p gets evaluated only once, in case it is e.g. a call }
+                           temp:=ctempcreatenode.create_value(p.resultdef,p.resultdef.size,tt_persistent,true,p);
+                           addstatement(newstatement,temp);
+                           addstatement(newstatement,cnodeutils.finalize_data_node(cderefnode.create(ctemprefnode.create(temp))));
+                         end
+                       else
+                         addstatement(newstatement,cnodeutils.finalize_data_node(cderefnode.create(p.getcopy)));
 
                      { create call to fpc_freemem }
-                     para := ccallparanode.create(p,nil);
+                     if not assigned(temp) then
+                       para := ccallparanode.create(p,nil)
+                     else
+                       para := ccallparanode.create(ctemprefnode.create(temp),nil);
                      addstatement(newstatement,ccallnode.createintern('fpc_freemem',para));
+                     if assigned(temp) then
+                       addstatement(newstatement,ctempdeletenode.create(temp));
                    end;
                end;
           end;

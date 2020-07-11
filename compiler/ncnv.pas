@@ -840,10 +840,12 @@ implementation
               if iscvarargs then
                 p:=ctypeconvnode.create(p,voidpointertype);
             objectdef :
-              if (iscvarargs and
-                  not is_objc_class_or_protocol(p.resultdef)) or
+              if is_objc_class_or_protocol(p.resultdef) then
+                p:=ctypeconvnode.create(p,voidpointertype)
+              else if iscvarargs or
                  is_object(p.resultdef) then
-                CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
+                CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
+              else
             else
               CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
           end;

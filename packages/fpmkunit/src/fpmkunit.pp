@@ -3174,8 +3174,8 @@ begin
     RTLeventWaitFor(FNotifyStartTask,500);
     if not FDone then
       begin
-      { synchronise with WriteBarrier in mainthread for same reason as above }
-      ReadBarrier;
+      { synchronise with ReadWriteBarrier in mainthread for same reason as above }
+      ReadWriteBarrier;
       FBuildEngine.log(vlInfo,'Compiling: '+APackage.Name);
       FCompilationOK:=false;
       try
@@ -6777,27 +6777,37 @@ begin
   // libc-linker path
   if APackage.NeedLibC then
     begin
-    if FCachedlibcPath='' then
-      begin
-      s:=GetDefaultLibGCCDir(Defaults.CPU, Defaults.OS,ErrS);
-      if s='' then
-        Log(vlWarning, SWarngcclibpath +' '+ErrS)
-      else
+      if FCachedlibcPath='' then
         begin
+          s:=GetDefaultLibGCCDir(Defaults.CPU, Defaults.OS,ErrS);
+          if s='' then
+            Log(vlWarning, SWarngcclibpath +' '+ErrS)
+          else
+            begin
 {$ifndef NO_THREADING}
-        EnterCriticalsection(FGeneralCriticalSection);
-        try
+              EnterCriticalsection(FGeneralCriticalSection);
+              { prevent FCachedlibcPath getting freed by thread 2 while thread 1 is
+                concatenating it to -Fl below }
+              try
+                if FCachedlibcPath='' then
+                  begin
 {$endif NO_THREADING}
-          FCachedlibcPath:=s;
+                    FCachedlibcPath:=s;
 {$ifndef NO_THREADING}
-        finally
-          LeaveCriticalsection(FGeneralCriticalSection);
-        end;
+                  end;
+              finally
+                LeaveCriticalsection(FGeneralCriticalSection);
+              end;
 {$endif NO_THREADING}
-        end;
-      end;
+            end;
+        end
+      else
+        { make sure we don't access the contents of the string before they've been
+          synchronised from the thread that wrote them; the critical section there
+          acts as a read/write barrier }
+        ReadBarrier;
 
-    Args.Add('-Fl'+FCachedlibcPath);
+      Args.Add('-Fl'+FCachedlibcPath);
     end;
 
   // Custom options which are added by dependencies
@@ -7075,7 +7085,7 @@ begin
         end
       else
         begin
-          S:=GetCompilerCommand(APackage,ATarget,Env);
+          S:=GetCompilerCommand(APackage,ATarget,nil);
           ExecuteCommand(GetCompiler,S,nil);
         end;
       If Assigned(ATarget.AfterCompile) then
@@ -8175,8 +8185,10 @@ Var
   begin
     if AThread.Done then
       begin
-        { synchronise with the WriteBarrier in the thread }
-        ReadBarrier;
+        { synchronise with the WriteBarrier in the thread (-> ReadBarrier), and prevent
+          any writes we do here afterwards to be reordered before that (so the compile
+          thread won't see these writes either -> also WriteBarrier) }
+        ReadWriteBarrier;
         if assigned(AThread.APackage) then
           begin
             // The thread has completed compiling the package
