@@ -69,14 +69,7 @@ in_x86_movss_from_val
 in_x86_movlps
 ,in_x86_movhps
 ,in_x86_cvtpi2ps_from_mem
-,in_x86_addsd_from_mem
-,in_x86_divsd_from_mem
 ,in_x86_maxsd_from_mem
-,in_x86_minsd_from_mem
-,in_x86_mulsd_from_mem
-,in_x86_subsd_from_mem
-,in_x86_comisd_from_mem
-,in_x86_ucomisd_from_mem
 ,in_x86_cvtdq2pd_from_mem
 ,in_x86_cvtpi2pd_from_mem
 ,in_x86_cvtps2pd_from_mem
@@ -96,15 +89,6 @@ in_x86_movlps_to_mem
   end;
 in_x86_movlhps
 ,in_x86_movhlps
-,in_x86_addss
-,in_x86_subss
-,in_x86_mulss
-,in_x86_divss
-,in_x86_rcpss
-,in_x86_sqrtss
-,in_x86_maxss
-,in_x86_minss
-,in_x86_rsqrtss
 ,in_x86_addps
 ,in_x86_subps
 ,in_x86_mulps
@@ -121,23 +105,15 @@ in_x86_movlhps
 ,in_x86_unpckhps
 ,in_x86_unpcklps
 ,in_x86_addpd
-,in_x86_addsd
 ,in_x86_divpd
-,in_x86_divsd
 ,in_x86_maxpd
-,in_x86_maxsd
 ,in_x86_minpd
-,in_x86_minsd
 ,in_x86_mulpd
-,in_x86_mulsd
 ,in_x86_subpd
-,in_x86_subsd
 ,in_x86_andpd
 ,in_x86_andnpd
 ,in_x86_orpd
 ,in_x86_xorpd
-,in_x86_comisd
-,in_x86_ucomisd
 ,in_x86_unpckhpd
 ,in_x86_unpcklpd
 ,in_x86_cvtdq2pd
@@ -147,7 +123,6 @@ in_x86_movlhps
 ,in_x86_cvtps2dq
 ,in_x86_cvtps2pd
 ,in_x86_cvtsd2ss
-,in_x86_cvtss2sd
 ,in_x86_cvttpd2dq
 ,in_x86_cvttps2dq
 ,in_x86_packssdw
@@ -245,6 +220,20 @@ in_x86_movlhps
     expectloc:=LOC_MMREGISTER;
     result:=nil;
   end;
+in_x86_addss
+,in_x86_subss
+,in_x86_mulss
+,in_x86_divss
+,in_x86_rcpss
+,in_x86_sqrtss
+,in_x86_maxss
+,in_x86_minss
+,in_x86_rsqrtss
+: //var r0:f32;r1:f32;
+  begin
+    expectloc:=LOC_MMREGISTER;
+    result:=nil;
+  end;
 in_x86_addss_from_mem
 ,in_x86_subss_from_mem
 ,in_x86_mulss_from_mem
@@ -255,9 +244,7 @@ in_x86_addss_from_mem
 ,in_x86_minss_from_mem
 ,in_x86_rsqrtss_from_mem
 ,in_x86_cvtsi2ss_from_mem
-,in_x86_cvtsi2sd_from_mem
-,in_x86_cvtss2sd_from_mem
-: //var r0:xmm;r1:ptr32;
+: //var r0:f32;r1:ptr32;
   begin
     expectloc:=LOC_MMREGISTER;
     result:=nil;
@@ -391,10 +378,20 @@ in_x86_addps_from_mem
     result:=nil;
   end;
 in_x86_cmpss
-,in_x86_cmpps
+: //var r0:f32;r1:f32;imm:i32;
+  begin
+    expectloc:=LOC_MMREGISTER;
+    result:=nil;
+  end;
+in_x86_cmpss_from_mem
+: //var r0:f32;r1:ptr32;imm:i32;
+  begin
+    expectloc:=LOC_MMREGISTER;
+    result:=nil;
+  end;
+in_x86_cmpps
 ,in_x86_shufps
 ,in_x86_cmppd
-,in_x86_cmpsd
 ,in_x86_shufpd
 ,in_x86_palignr
 ,in_x86_dpps
@@ -409,14 +406,6 @@ in_x86_cmpss
 ,in_x86_pcmpistri
 ,in_x86_pcmpistrm
 : //var r0:xmm;r1:xmm;imm:i32;
-  begin
-    expectloc:=LOC_MMREGISTER;
-    result:=nil;
-  end;
-in_x86_cmpss_from_mem
-,in_x86_insertps_from_mem
-,in_x86_pinsrd_from_mem
-: //var r0:xmm;r1:ptr32;imm:i32;
   begin
     expectloc:=LOC_MMREGISTER;
     result:=nil;
@@ -442,14 +431,14 @@ in_x86_cmpps_from_mem
     result:=nil;
   end;
 in_x86_cvtsi2ss
-: //var r0:xmm;r1:reg;
+: //var r0:f32;r1:reg;
   begin
     expectloc:=LOC_MMREGISTER;
     result:=nil;
   end;
 in_x86_cvtss2si
 ,in_x86_cvttss2si
-: //out r0:reg;r1:xmm;
+: //out r0:reg;r1:f32;
   begin
     expectloc:=LOC_REGISTER;
     result:=nil;
@@ -558,8 +547,38 @@ in_x86_movsd_from_val
     expectloc:=LOC_MMREGISTER;
     result:=nil;
   end;
+in_x86_addsd
+,in_x86_divsd
+,in_x86_minsd
+,in_x86_subsd
+,in_x86_comisd
+,in_x86_ucomisd
+,in_x86_cvtss2sd
+: //var r0:f64;r1:f64;
+  begin
+    expectloc:=LOC_MMREGISTER;
+    result:=nil;
+  end;
+in_x86_addsd_from_mem
+,in_x86_divsd_from_mem
+,in_x86_minsd_from_mem
+,in_x86_mulsd_from_mem
+,in_x86_subsd_from_mem
+,in_x86_comisd_from_mem
+,in_x86_ucomisd_from_mem
+: //var r0:f64;r1:ptr64;
+  begin
+    expectloc:=LOC_MMREGISTER;
+    result:=nil;
+  end;
+in_x86_maxsd
+,in_x86_mulsd
+: //var r0:f64;r1:xmm;
+  begin
+    expectloc:=LOC_MMREGISTER;
+    result:=nil;
+  end;
 in_x86_sqrtpd
-,in_x86_sqrtsd
 ,in_x86_movddup
 ,in_x86_movsldup
 ,in_x86_movshdup
@@ -583,22 +602,26 @@ in_x86_sqrtpd
     expectloc:=LOC_MMREGISTER;
     result:=nil;
   end;
+in_x86_sqrtsd
+: //out r0:f64;r1:f64;
+  begin
+    expectloc:=LOC_MMREGISTER;
+    result:=nil;
+  end;
 in_x86_sqrtsd_from_mem
-,in_x86_movq_from_mem
-,in_x86_movddup_from_mem
-,in_x86_pmovsxbw_from_mem
-,in_x86_pmovzxbw_from_mem
-,in_x86_pmovsxwd_from_mem
-,in_x86_pmovzxwd_from_mem
-,in_x86_pmovsxdq_from_mem
-,in_x86_pmovzxdq_from_mem
-: //out r0:xmm;r1:ptr64;
+: //out r0:f64;r1:ptr64;
+  begin
+    expectloc:=LOC_MMREGISTER;
+    result:=nil;
+  end;
+in_x86_cmpsd
+: //var r0:f64;r1:f64;imm:i32;
   begin
     expectloc:=LOC_MMREGISTER;
     result:=nil;
   end;
 in_x86_cmpsd_from_mem
-: //var r0:xmm;r1:ptr64;imm:i32;
+: //var r0:f64;r1:ptr64;imm:i32;
   begin
     expectloc:=LOC_MMREGISTER;
     result:=nil;
@@ -632,13 +655,33 @@ in_x86_cvtsd2si_from_mem
     result:=nil;
   end;
 in_x86_cvtsi2sd
-: //var r0:xmm;r1:r32;
+: //var r0:f64;r1:r32;
+  begin
+    expectloc:=LOC_MMREGISTER;
+    result:=nil;
+  end;
+in_x86_cvtsi2sd_from_mem
+,in_x86_cvtss2sd_from_mem
+: //var r0:f64;r1:ptr32;
   begin
     expectloc:=LOC_MMREGISTER;
     result:=nil;
   end;
 in_x86_movd_from_reg
 : //out r0:xmm;r1:r32;
+  begin
+    expectloc:=LOC_MMREGISTER;
+    result:=nil;
+  end;
+in_x86_movq_from_mem
+,in_x86_movddup_from_mem
+,in_x86_pmovsxbw_from_mem
+,in_x86_pmovzxbw_from_mem
+,in_x86_pmovsxwd_from_mem
+,in_x86_pmovzxwd_from_mem
+,in_x86_pmovsxdq_from_mem
+,in_x86_pmovzxdq_from_mem
+: //out r0:xmm;r1:ptr64;
   begin
     expectloc:=LOC_MMREGISTER;
     result:=nil;
@@ -702,7 +745,6 @@ in_x86_pshufhw
 ,in_x86_roundps
 ,in_x86_roundss
 ,in_x86_roundpd
-,in_x86_roundsd
 : //out r0:xmm;r1:xmm;imm:i32;
   begin
     expectloc:=LOC_MMREGISTER;
@@ -740,8 +782,21 @@ in_x86_roundss_from_mem
     expectloc:=LOC_MMREGISTER;
     result:=nil;
   end;
+in_x86_roundsd
+: //out r0:f64;r1:f64;imm:i32;
+  begin
+    expectloc:=LOC_MMREGISTER;
+    result:=nil;
+  end;
 in_x86_roundsd_from_mem
-: //out r0:xmm;r1:ptr64;imm:i32;
+: //out r0:f64;r1:ptr64;imm:i32;
+  begin
+    expectloc:=LOC_MMREGISTER;
+    result:=nil;
+  end;
+in_x86_insertps_from_mem
+,in_x86_pinsrd_from_mem
+: //var r0:xmm;r1:ptr32;imm:i32;
   begin
     expectloc:=LOC_MMREGISTER;
     result:=nil;
