@@ -4131,7 +4131,7 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 6*2Tembedded_Embedded
 6*2Tlinux_Linux
 6*2Tnetbsd_NetBSD
-6*2Tmacos_Mac OS
+6*2Tmacosclassic_Classic Mac OS
 6*2Tpalmos_PalmOS
 # i8086 targets
 8*2Tembedded_Embedded
@@ -4171,7 +4171,7 @@ P*2Tamiga_AmigaOS
 P*2Tdarwin_Darwin/Mac OS X
 P*2Tembedded_Embedded
 P*2Tlinux_Linux
-P*2Tmacos_Mac OS (classic)
+P*2Tmacosclassic_Classic Mac OS
 P*2Tmorphos_MorphOS
 P*2Tnetbsd_NetBSD
 P*2Twii_Wii
