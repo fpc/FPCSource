@@ -17,17 +17,22 @@ function get_fsr : dword;external name 'FPC_GETFSR';
 procedure set_fsr(fsr : dword);external name 'FPC_SETFSR';
 
 function GetRoundMode: TFPURoundingMode;
+  const
+    bits2rm: array[0..3] of TFPURoundingMode = (rmNearest,rmTruncate,rmUp,rmDown);
   begin
-    result:=TFPURoundingMode(get_fsr shr 30);
+    result:=TFPURoundingMode(bits2rm[(get_fsr shr 30) and 3])
   end;
 
+
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
+  const
+    rm2bits: array[TFPURoundingMode] of byte = (0,3,2,1);
   var
     cw: dword;
   begin
     cw:=get_fsr;
     result:=TFPURoundingMode(cw shr 30);
-    set_fsr((cw and $3fffffff) or (dword(RoundMode) shl 30));
+    set_fsr((cw and $3fffffff) or (rm2bits[RoundMode] shl 30));
   end;
 
 
