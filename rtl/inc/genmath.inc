@@ -62,21 +62,26 @@
 type
   PReal = ^Real;
 { also necessary for Int() on systems with 64bit floats (JM) }
+{ union required to get correct alignement for floating point type }
 {$ifndef FPC_SYSTEM_HAS_float64}
 {$ifdef ENDIAN_LITTLE}
   float64 = record
-{$ifndef FPC_DOUBLE_HILO_SWAPPED}
-    low,high: longint;
+    case byte of
+      1: (dummy : double);
+ {$ifndef FPC_DOUBLE_HILO_SWAPPED}
+      2: (low,high: longint);
 {$else}
-    high,low: longint;
+      2: (high,low: longint);
 {$endif FPC_DOUBLE_HILO_SWAPPED}
   end;
 {$else}
   float64 = record
+    case byte of
+      1: (dummy : double);
 {$ifndef FPC_DOUBLE_HILO_SWAPPED}
-    high,low: longint;
+      2: (high,low: longint);
 {$else}
-    low,high: longint;
+      2: (low,high: longint);
 {$endif FPC_DOUBLE_HILO_SWAPPED}
   end;
 {$endif}
