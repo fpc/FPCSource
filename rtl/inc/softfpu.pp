@@ -125,55 +125,55 @@ TYPE
 {$ifdef ENDIAN_LITTLE}
   float64 = record
     case byte of
-      1: (low,high : bits32);
       // force the record to be aligned like a double
       // else *_to_double will fail for cpus like sparc
       // and avoid expensive unpacking/packing operations
-      2: (dummy : double);
+      1: (dummy : double);
+      2: (low,high : bits32);
   end;
 
   floatx80 = record
     case byte of
-      1: (low : qword;high : word);
       // force the record to be aligned like a double
       // else *_to_double will fail for cpus like sparc
       // and avoid expensive unpacking/packing operations
-      2: (dummy : extended);
+      1: (dummy : extended);
+      2: (low : qword;high : word);
   end;
 
   float128 = record
     case byte of
-      1: (low,high : qword);
       // force the record to be aligned like a double
       // else *_to_double will fail for cpus like sparc
       // and avoid expensive unpacking/packing operations
-      2: (dummy : qword);
+      1: (dummy : qword);
+      2: (low,high : qword);
   end;
 {$else}
   float64 = record
       case byte of
-        1: (high,low : bits32);
         // force the record to be aligned like a double
         // else *_to_double will fail for cpus like sparc
-        2: (dummy : double);
+        1: (dummy : double);
+        2: (high,low : bits32);
   end;
 
   floatx80 = record
     case byte of
-      1: (high : word;low : qword);
       // force the record to be aligned like a double
       // else *_to_double will fail for cpus like sparc
       // and avoid expensive unpacking/packing operations
-      2: (dummy : qword);
+      1: (dummy : qword);
+      2: (high : word;low : qword);
   end;
 
   float128 = record
     case byte of
-      1: (high : qword;low : qword);
       // force the record to be aligned like a double
       // else *_to_double will fail for cpus like sparc
       // and avoid expensive unpacking/packing operations
-      2: (dummy : qword);
+      1: (dummy : qword);
+      2: (high : qword;low : qword);
   end;
 {$endif}
 
