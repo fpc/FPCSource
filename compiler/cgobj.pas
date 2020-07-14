@@ -1242,11 +1242,14 @@ implementation
                 caller side and needs to be stored with those bytes at the
                 start of the reference -> don't shift right }
               else if (paraloc.shiftval<0)
+{$ifndef MIPS}
 {$ifdef CPU64BITALU}
                       and ((-paraloc.shiftval) in [56{for byte},48{for two bytes},32{for four bytes}])
 {$else}
                       and ((-paraloc.shiftval) in [24{for byte},16{for two bytes}])
-{$endif} then
+{$endif}
+{$endif}
+                  then
                 begin
                   a_op_const_reg_reg(list,OP_SHR,OS_INT,-paraloc.shiftval,paraloc.register,paraloc.register);
                   { convert to a register of 1/2/4 bytes in size, since the
