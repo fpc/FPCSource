@@ -10788,6 +10788,7 @@ rtl/freertos/systhrd.inc svneol=native#text/plain
 rtl/freertos/sysutils.pp svneol=native#text/pascal
 rtl/freertos/tthread.inc svneol=native#text/plain
 rtl/freertos/xtensa/esp32.pp svneol=native#text/pascal
+rtl/freertos/xtensa/esp8266.pp svneol=native#text/pascal
 rtl/gba/Makefile svneol=native#text/plain
 rtl/gba/Makefile.fpc svneol=native#text/plain
 rtl/gba/classes.pp svneol=native#text/plain
