@@ -1947,7 +1947,7 @@ Unit AoptObj;
         { Do not try to optimize if the test generating the condition
           is the same instruction, like 'bne	$v0,$zero,.Lj3' for MIPS }
         if (taicpu(p).ops>1) or ((hp1.typ=ait_instruction) and
-            (taicpu(hp1).ops>1)) then
+            IsJumpToLabel(taicpu(hp1)) and (taicpu(hp1).ops>1)) then
            exit;
         while (hp1 <> BlockEnd) do
           begin
