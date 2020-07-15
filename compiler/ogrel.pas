@@ -625,6 +625,7 @@ implementation
         c: Char;
       begin
         s:='';
+        c:=#0;
         if AtEoF then
           begin
             result:=false;
@@ -930,6 +931,8 @@ implementation
         FReader:=AReader;
         InputFileName:=AReader.FileName;
         Data:=CObjData.Create(InputFileName);
+        ExpectedAreas:=-1;
+        ExpectedSymbols:=-1;
         result:=false;
         s:='';
         repeat

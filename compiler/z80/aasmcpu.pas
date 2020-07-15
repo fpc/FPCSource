@@ -675,6 +675,7 @@ implementation
         var
           i: Integer;
         begin
+          result:=0;
           case maskcode of
             'dd':
               for i:=0 to insentry^.ops-1 do

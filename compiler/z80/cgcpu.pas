@@ -921,6 +921,7 @@ unit cgcpu;
          optimize_op_const(size,op,a);
          mask:=$ff;
          shift:=0;
+         l1:=nil;
          case op of
            OP_NONE:
              begin
@@ -1711,6 +1712,7 @@ unit cgcpu;
         i : byte;
         tmpl: TAsmLabel;
       begin
+        tmpl:=nil;
         if size in [OS_8,OS_S8]then
           begin
             if cmp_op in [OC_EQ,OC_NE,OC_B,OC_AE] then
