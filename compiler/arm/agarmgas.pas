@@ -108,6 +108,12 @@ unit agarmgas;
         case current_settings.fputype of
           fpu_soft:
             result:='-mfpu=softvfp '+result;
+          fpu_fpa:
+            result:='-mfpu=fpa '+result;
+          fpu_fpa10:
+            result:='-mfpu=fpa10 '+result;
+          fpu_fpa11:
+            result:='-mfpu=fpa11 '+result;
           fpu_vfpv2:
             result:='-mfpu=vfpv2 '+result;
           fpu_vfpv3:
