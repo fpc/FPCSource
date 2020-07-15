@@ -1948,10 +1948,7 @@ Unit AoptObj;
           is the same instruction, like 'bne	$v0,$zero,.Lj3' for MIPS }
         if (taicpu(p).ops>1) or ((hp1.typ=ait_instruction) and
             (taicpu(hp1).ops>1)) then
-           begin
-             stoploop:=false;
-             exit;
-           end;
+           exit;
         while (hp1 <> BlockEnd) do
           begin
             StripDeadLabels(hp1, hp1);
