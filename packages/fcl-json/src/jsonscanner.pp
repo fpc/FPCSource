@@ -190,7 +190,16 @@ end;
 
 function TJSONScanner.FetchToken: TJSONToken;
 
+(*
+  procedure dumpcurrent;
 
+  begin
+  Writeln('Start of line : ',FCurLine);
+  Writeln('Cur pos : ',FCurPos);
+  Writeln('Start of token : ',FTokenstr);
+  Writeln('End of line : ',FTokenstr);
+  end;
+*)
   function FetchLine: Boolean;
 
 
@@ -203,7 +212,7 @@ function TJSONScanner.FetchToken: TJSONToken;
       While Not (FCurPos^ in [#0,#10,#13]) do
         Inc(FCurPos);
       FEOL:=FCurPos;
-      if (FCurPos^<>#0) then
+      While (FCurPos^<>#0) and (FCurPos^ in [#10,#13]) do
         begin
         if (FCurPos^=#13) and (FCurPos[1]=#10) then
           Inc(FCurPos); // Skip CR-LF
@@ -211,7 +220,7 @@ function TJSONScanner.FetchToken: TJSONToken;
         Inc(FCurRow); // Increase line index
         end;
 //      Len:=FEOL-FTokenStr;
-//      FTokenStr:=PAnsiChar(FCurLine);
+//      FTokenStr:=FCurPos;
       end
     else             
       begin
@@ -251,13 +260,14 @@ var
 
 begin
   if (FTokenStr = nil) or (FTokenStr=FEOL) then
+    begin
     if not FetchLine then
       begin
       Result := tkEOF;
       FCurToken := Result;
       exit;
       end;
-
+    end;
   FCurTokenString := '';
   case FTokenStr^ of
     #0:         // Empty line
@@ -269,13 +279,16 @@ begin
       begin
       Result := tkWhitespace;
       repeat
-        Inc(FTokenStr);
-        if FTokenStr[0] = #0 then
-          if not FetchLine then
+        if FTokenStr = FEOL then
           begin
+          if not FetchLine then
+            begin
             FCurToken := Result;
             exit;
-          end;
+            end
+          end
+        else
+          Inc(FTokenStr);
       until not (FTokenStr[0] in [#9, ' ']);
       end;
     '"','''':
@@ -453,11 +466,12 @@ begin
       Inc(FTokenStr);
       Case FTokenStr^ of
         '/' : begin
-              SectionLength := Length(FCurLine)- (FTokenStr - PChar(FCurLine));
-              Inc(FTokenStr);
               FCurTokenString:='';
-              SetString(FCurTokenString, FTokenStr, SectionLength);
-              Fetchline;
+              Inc(FTokenStr);
+              TokenStart:=FTokenStr;
+              SectionLength := PChar(FEOL)-TokenStart;
+              SetString(FCurTokenString, TokenStart, SectionLength);
+              FTokenStr:=FCurPos;
               end;
         '*' :
           begin

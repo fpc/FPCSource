@@ -70,6 +70,9 @@ type
     Procedure TestHandlerResult;
     Procedure TestHandlerResultStream;
     Procedure TestEmptyLine;
+    Procedure TestStartEmptyLine;
+    Procedure TestObjectEmptyLine;
+    Procedure TestCommentLine;
   end;
 
 implementation
@@ -562,6 +565,90 @@ begin
   Finally
     Free;
   end;
+end;
+
+procedure TTestParser.TestStartEmptyLine;
+
+// Bug ID 37352: case 1
+
+const
+  ENDLINE = #$0d#$0a;
+
+Const
+  MyJSON = ENDLINE+
+    '{'+ENDLINE+
+      '"version":100,'+ENDLINE+
+//      '//comment'+ENDLINE+
+      '"value":200'+ENDLINE+
+    '}'+ENDLINE;
+
+var
+  J : TJSONData;
+
+begin
+  With TJSONParser.Create(MyJSON,[joComments]) do
+    Try
+      J:=Parse;
+      J.Free;
+    Finally
+      Free;
+    end;
+end;
+
+procedure TTestParser.TestObjectEmptyLine;
+
+// Bug ID 37352: case 2
+
+const
+  ENDLINE = #$0d#$0a;
+
+
+Const
+  MyJSON = '{'+ENDLINE+
+        ''+ENDLINE+
+        '"version":100, //comment'+ENDLINE+
+        '"value":200'+ENDLINE+
+      '}'+ENDLINE;
+var
+  J : TJSONData;
+
+begin
+  With TJSONParser.Create(MyJSON,[joComments]) do
+    Try
+      J:=Parse;
+      J.Free;
+    Finally
+      Free;
+    end;
+end;
+
+procedure TTestParser.TestCommentLine;
+
+// Bug ID 37352: case 3
+
+const
+  ENDLINE = #$0d#$0a;
+
+
+Const
+  MyJSON =
+        ENDLINE+
+            '{'+ENDLINE+
+              '"version":100, //comment'+ENDLINE+
+              '"value":200'+ENDLINE+
+            '}'+ENDLINE;
+
+var
+  J : TJSONData;
+
+begin
+  With TJSONParser.Create(MyJSON,[joComments]) do
+    Try
+      J:=Parse;
+      J.Free;
+    Finally
+      Free;
+    end;
 end;
 
 procedure TTestParser.DoTestError(S : String; Options : TJSONOptions = DefaultOpts);

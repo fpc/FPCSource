@@ -331,6 +331,7 @@ Procedure TBaseJSONReader.ParseObject;
 Var
   T : TJSONtoken;
   LastComma : Boolean;
+  S : TJSONStringType;
 
 begin
   LastComma:=False;
@@ -340,7 +341,9 @@ begin
     begin
     If (T<>tkString) and (T<>tkIdentifier) then
       DoError(SErrExpectedElementName);
-    KeyValue(CurrentTokenString);
+    S:=CurrentTokenString;
+    KeyValue(S);
+    // Writeln(S);
     T:=GetNextToken;
     If (T<>tkColon) then
       DoError(SErrExpectedColon);
