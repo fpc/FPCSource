@@ -73,6 +73,7 @@ type
     Procedure TestStartEmptyLine;
     Procedure TestObjectEmptyLine;
     Procedure TestCommentLine;
+    Procedure TestFirstLineComment;
   end;
 
 implementation
@@ -649,6 +650,35 @@ begin
     Finally
       Free;
     end;
+end;
+
+procedure TTestParser.TestFirstLineComment;
+
+// New case
+const
+  ENDLINE = #$0d#$0a;
+
+
+Const
+  MyJSON =
+        '//comment1'+ENDLINE+
+              '{'+ENDLINE+
+              '"version":100, //comment2'+ENDLINE+
+              '"value":200'+ENDLINE+
+            '}'+ENDLINE;
+
+var
+  J : TJSONData;
+
+begin
+  With TJSONParser.Create(MyJSON,[joComments]) do
+    Try
+      J:=Parse;
+      J.Free;
+    Finally
+      Free;
+    end;
+
 end;
 
 procedure TTestParser.DoTestError(S : String; Options : TJSONOptions = DefaultOpts);

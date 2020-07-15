@@ -212,7 +212,8 @@ function TJSONScanner.FetchToken: TJSONToken;
       While Not (FCurPos^ in [#0,#10,#13]) do
         Inc(FCurPos);
       FEOL:=FCurPos;
-      While (FCurPos^<>#0) and (FCurPos^ in [#10,#13]) do
+      If (FCurPos^<>#0) then
+//      While (FCurPos^<>#0) and (FCurPos^ in [#10,#13]) do
         begin
         if (FCurPos^=#13) and (FCurPos[1]=#10) then
           Inc(FCurPos); // Skip CR-LF
@@ -471,7 +472,7 @@ begin
               TokenStart:=FTokenStr;
               SectionLength := PChar(FEOL)-TokenStart;
               SetString(FCurTokenString, TokenStart, SectionLength);
-              FTokenStr:=FCurPos;
+              FetchLine;
               end;
         '*' :
           begin
@@ -479,7 +480,7 @@ begin
           Inc(FTokenStr);
           TokenStart:=FTokenStr;
           Repeat
-            if (FTokenStr^=#0) then
+            if (FTokenStr=FEOL) then
               begin
               SectionLength := (FTokenStr - TokenStart);
               S:='';
