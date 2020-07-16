@@ -5393,6 +5393,7 @@ begin
   if not Assigned(glCompressedTexSubImage1D) then allOK := false;
   glGetCompressedTexImage := wglGetProcAddress('glGetCompressedTexImage');
   if not Assigned(glGetCompressedTexImage) then allOK := false;
+  Load_GL_version_1_2x(allOK);
 end;
 
 function Load_GL_version_1_3: boolean;
