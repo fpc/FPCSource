@@ -237,6 +237,7 @@ var
   OldLength, SectionLength,  tstart,tcol, u1,u2: Integer;
   C , c2: char;
   S : String[4];
+  Line : String;
   IsStar,EOC: Boolean;
 
   Procedure MaybeAppendUnicode;
@@ -480,12 +481,12 @@ begin
           Inc(FTokenStr);
           TokenStart:=FTokenStr;
           Repeat
-            if (FTokenStr=FEOL) then
+            While (FTokenStr=FEOL) do
               begin
               SectionLength := (FTokenStr - TokenStart);
-              S:='';
-              SetString(S, TokenStart, SectionLength);
-              FCurtokenString:=FCurtokenString+S;
+              Line:='';
+              SetString(Line, TokenStart, SectionLength);
+              FCurtokenString:=FCurtokenString+Line+sLineBreak;
               if not fetchLine then
                 Error(SUnterminatedComment, [CurRow,CurCOlumn,FTokenStr[0]]);
               TokenStart:=FTokenStr;
@@ -497,9 +498,9 @@ begin
           if EOC then
             begin
             SectionLength := (FTokenStr - TokenStart-1);
-            S:='';
-            SetString(S, TokenStart, SectionLength);
-            FCurtokenString:=FCurtokenString+S;
+            Line:='';
+            SetString(Line, TokenStart, SectionLength);
+            FCurtokenString:=FCurtokenString+Line;
             Inc(FTokenStr);
             end;
           end;

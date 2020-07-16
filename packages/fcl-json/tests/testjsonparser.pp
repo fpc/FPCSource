@@ -74,6 +74,7 @@ type
     Procedure TestObjectEmptyLine;
     Procedure TestCommentLine;
     Procedure TestFirstLineComment;
+    Procedure TestMultiLineComment;
   end;
 
 implementation
@@ -679,6 +680,40 @@ begin
       Free;
     end;
 
+end;
+
+procedure TTestParser.TestMultiLineComment;
+
+// Issue  37367
+
+const
+  ENDLINE = #$0d#$0a;
+
+
+Const
+  MyJSON =
+        '/* long comment'+ENDLINE+
+        ''+ENDLINE+
+        '  error'+ENDLINE+
+        '*/'+ENDLINE+
+        '{'+ENDLINE+
+        '  "version":100, //coment2 without comment2 works well '+ENDLINE+
+        '  "valor":200   /*comment 3'+ENDLINE+
+        '    line 2'+ENDLINE+
+        '   */'+ENDLINE+
+        '}'+ENDLINE;
+
+var
+  J : TJSONData;
+
+begin
+  With TJSONParser.Create(MyJSON,[joComments]) do
+    Try
+      J:=Parse;
+      J.Free;
+    Finally
+      Free;
+    end;
 end;
 
 procedure TTestParser.DoTestError(S : String; Options : TJSONOptions = DefaultOpts);
