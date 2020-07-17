@@ -368,7 +368,10 @@ implementation
         if codegenerror then
           exit;
 
-        if (left.resultdef.typ=floatdef) and (current_settings.fputype=fpu_soft) then
+        { if we get here and VFP support is on, there is no 64 bit VFP operation support available,
+          so in this case the software version needs to be called }
+        if (left.resultdef.typ=floatdef) and ((current_settings.fputype=fpu_soft) or
+          (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype])) then
           begin
             case tfloatdef(resultdef).floattype of
               s64real:
