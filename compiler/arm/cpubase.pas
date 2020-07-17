@@ -446,7 +446,7 @@ unit cpubase;
             begin
               case getsubreg(reg) of
                 R_SUBFD,
-                R_SUBWHOLE:
+                R_SUBMMWHOLE:
                   result:=OS_F64;
                 R_SUBFS:
                   result:=OS_F32;
@@ -635,6 +635,9 @@ unit cpubase;
           end;
       end;
     
+{$push}
+{ Disable range and overflow checking here }
+{$R-}{$Q-}        
     function is_continuous_mask(d : aword;var lsb, width: byte) : boolean;
       var
         msb : byte;
@@ -643,9 +646,9 @@ unit cpubase;
         msb:=BsrDword(d);
         
         width:=msb-lsb+1;
-        
         result:=(lsb<>255) and (msb<>255) and (aword(((1 shl (msb-lsb+1))-1) shl lsb) = d);
       end;
+{$pop}
 
 
     function split_into_shifter_const(value : aint;var imm1: dword; var imm2: dword) : boolean;
