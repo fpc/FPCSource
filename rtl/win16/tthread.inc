@@ -74,6 +74,7 @@ end;
 procedure TThread.Terminate;
 
 begin
+TerminatedSet;
 end;
 
 

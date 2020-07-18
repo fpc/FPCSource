@@ -274,6 +274,13 @@ begin
   GetSuspended:=FSuspended;
 end;
 
+Procedure TThread.TerminatedSet;
+
+begin
+  // Empty, must be overridden.
+end;
+
+
 
 procedure TThread.AfterConstruction;
 begin

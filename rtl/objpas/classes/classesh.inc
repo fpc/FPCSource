@@ -1907,6 +1907,7 @@ type
   protected
     FThreadID: TThreadID; // someone might need it for pthread_* calls
     procedure DoTerminate; virtual;
+    procedure TerminatedSet; virtual;
     procedure Execute; virtual; abstract;
     procedure Synchronize(AMethod: TThreadMethod);
     procedure Queue(aMethod: TThreadMethod);
@@ -1989,7 +1990,7 @@ type
     property ThreadID: TThreadID read FThreadID;
     property OnTerminate: TNotifyEvent read FOnTerminate write FOnTerminate;
     property FatalException: TObject read FFatalException;
-  end;
+  end; 
 
 
 { TComponent class }

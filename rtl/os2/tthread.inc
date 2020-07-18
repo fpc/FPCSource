@@ -212,7 +212,8 @@ end;
 
 procedure TThread.Terminate;
 begin
- FTerminated := true;
+  FTerminated := true;
+  TerminatedSet;
 end;
 
 
