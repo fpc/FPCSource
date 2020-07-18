@@ -1628,6 +1628,8 @@ unit nx86add;
            (not(cs_full_boolean_eval in current_settings.localswitches) or
           (nf_short_bool in flags)) then
           inherited second_addboolean
+        else if is_64bit(left.resultdef) then
+          inherited
         else
           second_addordinal;
       end;
