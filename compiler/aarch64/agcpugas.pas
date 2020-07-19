@@ -47,16 +47,13 @@ unit agcpugas;
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
       end;
 
-      TAArch64ClangGASAssembler=class(TGNUassembler)
+      TAArch64ClangGASAssembler=class(TAArch64Assembler)
       private
-        function TargetStr:String;
         procedure TransformSEHDirectives(list:TAsmList);
       protected
         function sectionflags(secflags:TSectionFlags):string;override;
       public
-        function MakeCmdLine:TCmdStr; override;
         procedure WriteAsmList; override;
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
       end;
 
     const
@@ -104,24 +101,6 @@ unit agcpugas;
 {****************************************************************************}
 {                      CLang AArch64 Assembler writer                        }
 {****************************************************************************}
-
-    constructor TAArch64CLangGASAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
-      begin
-        inherited;
-        InstrWriter := TAArch64InstrWriter.create(self);
-      end;
-
-
-    function TAArch64ClangGASAssembler.TargetStr:String;
-      begin
-        case target_info.system of
-          system_aarch64_win64:
-            result:='aarch64-windows';
-          else
-            internalerror(2020032201);
-        end;
-      end;
-
 
     procedure TAArch64ClangGASAssembler.TransformSEHDirectives(list:TAsmList);
 
@@ -571,13 +550,6 @@ unit agcpugas;
             if not (SF_W in secflags) then
               result:=result+'r';
           end;
-      end;
-
-
-    function TAArch64ClangGASAssembler.MakeCmdLine:TCmdStr;
-      begin
-        Result:=inherited MakeCmdLine;
-        Replace(Result,'$TARGET',TargetStr);
       end;
 
 
