@@ -4179,7 +4179,10 @@ begin
     begin
       if not set_target_asm(option.paratargetasm) then
         begin
-          Message2(option_incompatible_asm,asminfos[option.paratargetasm]^.idtxt,target_info.name);
+          if assigned(asminfos[option.paratargetasm]) then
+            Message2(option_incompatible_asm,asminfos[option.paratargetasm]^.idtxt,target_info.name)
+          else
+            Message2(option_incompatible_asm,'<invalid assembler>',target_info.name);
           set_target_asm(target_info.assemextern);
           Message1(option_asm_forced,target_asm.idtxt);
         end;
