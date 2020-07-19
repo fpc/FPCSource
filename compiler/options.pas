@@ -1025,35 +1025,35 @@ begin
     system_powerpc_darwin:
       begin
         set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1030');
-        MacOSXVersionMin:='10.3';
+        MacOSXVersionMin:='10.3.0';
       end;
     system_powerpc64_darwin:
       begin
         set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1040');
-        MacOSXVersionMin:='10.4';
+        MacOSXVersionMin:='10.4.0';
       end;
     system_i386_darwin,
     system_x86_64_darwin:
       begin
         set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1080');
-        MacOSXVersionMin:='10.8';
+        MacOSXVersionMin:='10.8.0';
       end;
     system_arm_ios,
     system_i386_iphonesim:
       begin
         set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','90000');
-        iPhoneOSVersionMin:='9.0';
+        iPhoneOSVersionMin:='9.0.0';
       end;
     system_aarch64_ios,
     system_x86_64_iphonesim:
       begin
         set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','90000');
-        iPhoneOSVersionMin:='9.0';
+        iPhoneOSVersionMin:='9.0.0';
       end;
     system_aarch64_darwin:
       begin
-        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1100');
-        MacOSXVersionMin:='11.0';
+        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','110000');
+        MacOSXVersionMin:='11.0.0';
       end
     else
       internalerror(2012031001);
