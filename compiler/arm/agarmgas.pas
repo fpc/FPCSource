@@ -171,7 +171,7 @@ unit agarmgas;
     function TArmAppleGNUAssembler.MakeCmdLine: TCmdStr;
       begin
         result:=inherited MakeCmdLine;
-	if (asminfo^.id = as_clang) then
+	if (asminfo^.id in [as_clang_gas,as_clang_asdarwin]) then
           begin
             if fputypestrllvm[current_settings.fputype] <> '' then
               result:='-m'+fputypestrllvm[current_settings.fputype]+' '+result;
@@ -473,12 +473,12 @@ unit agarmgas;
 
        as_arm_clang_darwin_info : tasminfo =
           (
-            id     : as_clang;
+            id     : as_clang_asdarwin;
             idtxt  : 'CLANG';
             asmbin : 'clang';
-            asmcmd : '-c -o $OBJ $EXTRAOPT -arch $ARCH $DARWINVERSION -x assembler $ASM';
+            asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
             supported_targets : [system_arm_ios];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm];
             labelprefix : 'L';
             labelmaxlen : -1;
             comment : '# ';

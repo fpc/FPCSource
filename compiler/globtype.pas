@@ -354,6 +354,12 @@ interface
        );
        twpoptimizerswitches = set of twpoptimizerswitch;
 
+       { platform triplet style }
+       ttripletstyle = (
+         triplet_llvm
+         { , triple_gnu }
+       );
+
        { module flags (extra unit flags not in ppu header) }
        tmoduleflag = (
          mf_init,                     { unit has initialization section }

@@ -799,12 +799,12 @@ unit agcpugas;
 
        as_aarch64_clang_darwin_info : tasminfo =
           (
-            id     : as_clang;
+            id     : as_clang_asdarwin;
             idtxt  : 'CLANG';
             asmbin : 'clang';
-            asmcmd : '-c -o $OBJ $EXTRAOPT -arch arm64 $DARWINVERSION -x assembler $ASM';
+            asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
             supported_targets : [system_aarch64_ios,system_aarch64_darwin];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm];
             labelprefix : 'L';
             labelmaxlen : -1;
             comment : '# ';
@@ -816,9 +816,9 @@ unit agcpugas;
             id     : as_clang_gas;
             idtxt  : 'CLANG';
             asmbin : 'clang';
-            asmcmd : '-c -o $OBJ $EXTRAOPT -target $TARGET -x assembler $ASM';
+            asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
             supported_targets : [system_aarch64_win64];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm];
             labelprefix : '.L';
             labelmaxlen : -1;
             comment : '// ';

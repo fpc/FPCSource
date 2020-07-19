@@ -152,8 +152,8 @@ const
         Cprefix      : '_';
         newline      : #10;
         dirsep       : '/';
-        assem        : as_clang;
-        assemextern  : as_clang;
+        assem        : as_clang_asdarwin;
+        assemextern  : as_clang_asdarwin;
         link         : ld_none;
         linkextern   : ld_darwin;
         ar           : ar_gnu_ar;
@@ -221,8 +221,8 @@ const
         Cprefix      : '_';
         newline      : #10;
         dirsep       : '/';
-        assem        : as_clang;
-        assemextern  : as_clang;
+        assem        : as_clang_asdarwin;
+        assemextern  : as_clang_asdarwin;
         link         : ld_none;
         linkextern   : ld_darwin;
         ar           : ar_gnu_ar;
@@ -359,8 +359,8 @@ const
         Cprefix      : '_';
         newline      : #10;
         dirsep       : '/';
-        assem        : as_clang;
-        assemextern  : as_clang;
+        assem        : as_clang_asdarwin;
+        assemextern  : as_clang_asdarwin;
         link         : ld_none;
         linkextern   : ld_darwin;
         ar           : ar_gnu_ar;
@@ -427,8 +427,8 @@ const
         Cprefix      : '_';
         newline      : #10;
         dirsep       : '/';
-        assem        : as_clang;
-        assemextern  : as_clang;
+        assem        : as_clang_asdarwin;
+        assemextern  : as_clang_asdarwin;
         link         : ld_none;
         linkextern   : ld_darwin;
         ar           : ar_gnu_ar;
@@ -495,8 +495,8 @@ const
         Cprefix      : '_';
         newline      : #10;
         dirsep       : '/';
-        assem        : as_clang;
-        assemextern  : as_clang;
+        assem        : as_clang_asdarwin;
+        assemextern  : as_clang_asdarwin;
         link         : ld_none;
         linkextern   : ld_darwin;
         ar           : ar_gnu_ar;
@@ -564,8 +564,8 @@ const
         Cprefix      : '_';
         newline      : #10;
         dirsep       : '/';
-        assem        : as_clang;
-        assemextern  : as_clang;
+        assem        : as_clang_asdarwin;
+        assemextern  : as_clang_asdarwin;
         link         : ld_none;
         linkextern   : ld_darwin;
         ar           : ar_gnu_ar;
@@ -604,7 +604,8 @@ const
         name         : 'Darwin for AArch64';
         shortname    : 'Darwin';
         flags        : [tf_p_ext_support,tf_requires_proper_alignment,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,
-                        tf_dwarf_only_local_labels,tf_pic_default,tf_has_winlike_resources,tf_supports_symbolorderfile,tf_supports_hidden_symbols];
+                        tf_dwarf_only_local_labels,tf_pic_default,tf_has_winlike_resources,tf_supports_symbolorderfile,tf_supports_hidden_symbols
+                        {$ifdef llvm},tf_use_psabieh{$endif}];
         cpu          : cpu_aarch64;
         unit_env     : 'BSDUNITS';
         extradefines : 'UNIX;BSD;HASUNIX';
@@ -631,8 +632,8 @@ const
         Cprefix      : '_';
         newline      : #10;
         dirsep       : '/';
-        assem        : as_clang;
-        assemextern  : as_clang;
+        assem        : as_clang_asdarwin;
+        assemextern  : as_clang_asdarwin;
         link         : ld_none;
         linkextern   : ld_darwin;
         ar           : ar_gnu_ar;

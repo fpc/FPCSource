@@ -76,6 +76,7 @@ interface
          ,af_no_debug
          ,af_stabs_use_function_absolute_addresses
          ,af_no_stabs
+         { assembler is part of the LLVM toolchain }
          ,af_llvm
        );
 
@@ -285,11 +286,12 @@ interface
                              system_i8086_win16];
 
        { all darwin systems }
-       systems_darwin = [system_powerpc_darwin,system_i386_darwin,
+       systems_ios = [system_arm_ios,system_aarch64_ios];
+       systems_iphonesym = [system_i386_iphonesim,system_x86_64_iphonesim];
+       systems_macosx = [system_powerpc_darwin,system_i386_darwin,
                          system_powerpc64_darwin,system_x86_64_darwin,
-                         system_arm_ios,system_i386_iphonesim,
-                         system_aarch64_ios,system_x86_64_iphonesim,
                          system_aarch64_darwin];
+       systems_darwin = systems_ios + systems_iphonesym + systems_macosx;
 
        {all solaris systems }
        systems_solaris = [system_sparc_solaris, system_i386_solaris,

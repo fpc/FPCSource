@@ -102,8 +102,6 @@ interface
     { = max(cpubase.max_operands,8) }
     max_operands = ((-ord(cpubase.max_operands<=8)) and 15) or ((-ord(cpubase.max_operands>8)) and cpubase.max_operands);
 
-  function llvm_target_name: ansistring;
-
   function llvm_callingconvention_name(c: tproccalloption): ansistring;
 
 implementation
@@ -111,98 +109,6 @@ implementation
   uses
     globals,
     systems;
-
-{$j-}
-{$ifndef arm}
-  const
-    llvmsystemcpu: array[tsystemcpu] of ansistring =
-      ('unknown',
-       'i386',
-       'm68k',
-       'alpha',
-       'powerpc',
-       'sparc',
-       'unknown',
-       'ia64',
-       'x86_64',
-       'mips',
-       'arm',
-       'powerpc64',
-       'avr',
-       'mipsel',
-       'unknown',
-       'unknown',
-       'aarch64',
-       'wasm32',
-       'sparc64',
-       'riscv32',
-       'riscv64',
-       'xtensa',
-       'z80'
-      );
-{$endif}
-
-  function llvm_target_name: ansistring;
-    begin
-      { architecture }
-{$ifdef arm}
-      llvm_target_name:=lower(cputypestr[current_settings.cputype]);
-{$else arm}
-      llvm_target_name:=llvmsystemcpu[target_info.cpu];
-{$endif}
-      { vendor and/or OS }
-      if target_info.system in systems_darwin then
-        begin
-          llvm_target_name:=llvm_target_name+'-apple';
-          if not(target_info.system in [system_arm_ios,system_i386_iphonesim]) then
-            llvm_target_name:=llvm_target_name+'-macosx'+MacOSXVersionMin
-          else
-            llvm_target_name:=llvm_target_name+'-ios'+iPhoneOSVersionMin;
-        end
-      else if target_info.system in (systems_linux+systems_android) then
-        llvm_target_name:=llvm_target_name+'-unknown-linux'
-      else if target_info.system in systems_all_windows then
-        begin
-          { WinCE isn't supported (yet) by llvm, but if/when added this is
-            presumably how they will differentiate it }
-          if target_info.system in systems_windows then
-            llvm_target_name:=llvm_target_name+'-pc';
-          llvm_target_name:=llvm_target_name+'-windows-msvc19'
-        end
-      else if target_info.system in systems_freebsd then
-        llvm_target_name:=llvm_target_name+'-freebsd'
-      else if target_info.system in systems_openbsd then
-        llvm_target_name:=llvm_target_name+'-openbsd'
-      else if target_info.system in systems_netbsd then
-        llvm_target_name:=llvm_target_name+'-netbsd'
-      else if target_info.system in systems_aix then
-        llvm_target_name:=llvm_target_name+'-ibm-aix'
-      else if target_info.system in [system_i386_haiku] then
-        llvm_target_name:=llvm_target_name+'-haiku'
-      else if target_info.system in systems_embedded then
-        llvm_target_name:=llvm_target_name+'-none'
-      else
-        llvm_target_name:=llvm_target_name+'-unknown';
-
-      { environment/ABI }
-      if target_info.system in systems_android then
-        llvm_target_name:=llvm_target_name+'-android';
-{$if defined(FPC_ARMHF)}
-      llvm_target_name:=llvm_target_name+'-gnueabihf';
-{$elseif defined(FPC_ARMEL)}
-      if target_info.system in systems_embedded then
-        llvm_target_name:=llvm_target_name+'-eabi'
-      else if target_info.system=system_arm_android then
-        { handled above already
-        llvm_target_name:=llvm_target_name+'-android' }
-      else
-        llvm_target_name:=llvm_target_name+'-gnueabi';
-{$else}
-      if target_info.system in systems_linux then
-        llvm_target_name:=llvm_target_name+'-gnu';
-{$endif}
-    end;
-
 
   function llvm_callingconvention_name(c: tproccalloption): ansistring;
     begin

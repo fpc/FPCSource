@@ -4171,7 +4171,7 @@ begin
   { default to clang }
   if (option.paratargetasm=as_none) then
     begin
-      option.paratargetasm:=as_llvm_clang;
+      option.paratargetasm:=as_clang_llvm;
     end;
 {$endif llvm}
   { maybe override assembler }
@@ -4219,7 +4219,7 @@ begin
    begin
      Message(option_switch_bin_to_src_assembler);
 {$ifdef llvm}
-     set_target_asm(as_llvm_clang);
+     set_target_asm(as_clang_llvm);
 {$else}
      set_target_asm(target_info.assemextern);
 {$endif}
