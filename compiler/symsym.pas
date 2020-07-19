@@ -1728,8 +1728,6 @@ implementation
 
 
     function tabstractvarsym.is_regvar(refpara: boolean):boolean;
-      var
-        tempdef : tdef;
       begin
         { Register variables are not allowed in the following cases:
            - regvars are disabled
@@ -1748,7 +1746,6 @@ implementation
 {$if not defined(powerpc) and not defined(powerpc64)}
                 and ((vardef.typ <> recorddef) or
                      (varregable = vr_addr) or
-                     tabstractrecordsymtable(tabstractrecorddef(vardef).symtable).has_single_field(tempdef) or
                      not(varstate in [vs_written,vs_readwritten]));
 {$endif}
       end;

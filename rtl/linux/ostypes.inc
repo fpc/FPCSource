@@ -170,8 +170,9 @@ type
    FLock     = Record
                 l_type  : cshort;       { lock type: read/write, etc. }
                 l_whence: cshort;       { type of l_start }
-                l_start : off_t;        { starting offset }
-                l_len   : off_t;        { len = 0 means until end of file }
+                { this must be really kernel_off_t: it must be 32 bit on i386 }
+                l_start : kernel_off_t; { starting offset }
+                l_len   : kernel_off_t; { len = 0 means until end of file }
                 l_pid   : pid_t;        { lock owner }
 {$if defined(cpusparc) or defined(cpusparc64)}
                 __pad   : cshort;
