@@ -3396,10 +3396,15 @@ unit aoptx86;
         TmpBool1,TmpBool2 : Boolean;
         tmpref : treference;
         hp1,hp2: tai;
+        mask:    tcgint;
       begin
         Result:=false;
-        if MatchOpType(taicpu(p),top_const,top_reg) and
-           (taicpu(p).opsize in [S_L{$ifdef x86_64},S_Q{$endif x86_64}]) and
+
+        { All these optimisations work on "shl/sal const,%reg" }
+        if not MatchOpType(taicpu(p),top_const,top_reg) then
+          Exit;
+
+        if (taicpu(p).opsize in [S_L{$ifdef x86_64},S_Q{$endif x86_64}]) and
            (taicpu(p).oper[0]^.val <= 3) then
           { Changes "shl const, %reg32; add const/reg, %reg32" to one lea statement }
           begin
@@ -3511,8 +3516,7 @@ unit aoptx86;
               end;
           end
 {$ifndef x86_64}
-        else if (current_settings.optimizecputype < cpu_Pentium2) and
-          MatchOpType(taicpu(p),top_const,top_reg) then
+        else if (current_settings.optimizecputype < cpu_Pentium2) then
           begin
             { changes "shl $1, %reg" to "add %reg, %reg", which is the same on a 386,
               but faster on a 486, and Tairable in both U and V pipes on the Pentium
@@ -3540,7 +3544,130 @@ unit aoptx86;
              end;
           end
 {$endif x86_64}
-          ;
+        else if
+          GetNextInstruction(p, hp1) and (hp1.typ = ait_instruction) and MatchOpType(taicpu(hp1), top_const, top_reg) and
+          (
+            (
+              MatchInstruction(hp1, A_AND, [taicpu(p).opsize]) and
+              SetAndTest(hp1, hp2)
+{$ifdef x86_64}
+            ) or
+            (
+              MatchInstruction(hp1, A_MOV, [taicpu(p).opsize]) and
+              GetNextInstruction(hp1, hp2) and
+              MatchInstruction(hp2, A_AND, [taicpu(p).opsize]) and
+              MatchOpType(taicpu(hp2), top_reg, top_reg) and
+              (taicpu(hp1).oper[1]^.reg = taicpu(hp2).oper[0]^.reg)
+{$endif x86_64}
+            )
+          ) and
+          (taicpu(p).oper[1]^.reg = taicpu(hp2).oper[1]^.reg) then
+          begin
+            { Change:
+                shl x, %reg1
+                mov -(1<<x), %reg2
+                and %reg2, %reg1
+
+              Or:
+                shl x, %reg1
+                and -(1<<x), %reg1
+
+              To just:
+                shl x, %reg1
+
+              Since the and operation only zeroes bits that are already zero from the shl operation
+            }
+            case taicpu(p).oper[0]^.val of
+               8:
+                 mask:=$FFFFFFFFFFFFFF00;
+               16:
+                 mask:=$FFFFFFFFFFFF0000;
+               32:
+                 mask:=$FFFFFFFF00000000;
+               63:
+                 { Constant pre-calculated to prevent overflow errors with Int64 }
+                 mask:=$8000000000000000;
+               else
+                 begin
+                   if taicpu(p).oper[0]^.val >= 64 then
+                     { Shouldn't happen realistically, since the register
+                       is guaranteed to be set to zero at this point }
+                     mask := 0
+                   else
+                     mask := -(Int64(1 shl taicpu(p).oper[0]^.val));
+                 end;
+            end;
+
+            if taicpu(hp1).oper[0]^.val = mask then
+              begin
+                { Everything checks out, perform the optimisation, as long as
+                  the FLAGS register isn't being used}
+                TransferUsedRegs(TmpUsedRegs);
+                UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+
+{$ifdef x86_64}
+                if (hp1 <> hp2) then
+                  begin
+                    { "shl/mov/and" version }
+                    UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
+
+                    { Don't do the optimisation if the FLAGS register is in use }
+                    if not(RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp2, TmpUsedRegs)) then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'ShlMovAnd2Shl', p);
+                        { Don't remove the 'mov' instruction if its register is used elsewhere }
+                        if not(RegUsedAfterInstruction(taicpu(hp1).oper[1]^.reg, hp2, TmpUsedRegs)) then
+                          begin
+                            asml.Remove(hp1);
+                            hp1.Free;
+                            Result := True;
+                          end;
+
+                        { Only set Result to True if the 'mov' instruction was removed }
+                        asml.Remove(hp2);
+                        hp2.Free;
+                      end;
+                  end
+                else
+{$endif x86_64}
+                  begin
+                    { "shl/and" version }
+
+                    { Don't do the optimisation if the FLAGS register is in use }
+                    if not(RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1, TmpUsedRegs)) then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'ShlAnd2Shl', p);
+                        asml.Remove(hp1);
+                        hp1.Free;
+                        Result := True;
+                      end;
+                  end;
+
+                Exit;
+              end
+            else {$ifdef x86_64}if (hp1 = hp2) then{$endif x86_64}
+              begin
+                { Even if the mask doesn't allow for its removal, we might be
+                  able to optimise the mask for the "shl/and" version, which
+                  may permit other peephole optimisations }
+{$ifdef DEBUG_AOPTCPU}
+                mask := taicpu(hp1).oper[0]^.val and mask;
+                if taicpu(hp1).oper[0]^.val <> mask then
+                  begin
+                    DebugMsg(
+                      SPeepholeOptimization +
+                      'Changed mask from $' + debug_tostr(taicpu(hp1).oper[0]^.val) +
+                      ' to $' + debug_tostr(mask) +
+                      'based on previous instruction (ShlAnd2ShlAnd)', hp1);
+                    taicpu(hp1).oper[0]^.val := mask;
+                  end;
+{$else DEBUG_AOPTCPU}
+                { If debugging is off, just set the operand even if it's the same }
+                taicpu(hp1).oper[0]^.val := taicpu(hp1).oper[0]^.val and mask;
+{$endif DEBUG_AOPTCPU}
+              end;
+
+          end;
       end;
 
 
@@ -5356,6 +5483,35 @@ unit aoptx86;
                 asml.remove(hp1);
                 hp1.Free;
               end;
+          end
+        else if reg_and_hp1_is_instr and
+          (taicpu(p).oper[0]^.typ = top_reg) and
+          (
+            (taicpu(hp1).opcode = A_SHL) or (taicpu(hp1).opcode = A_SAL)
+          ) and
+          (taicpu(hp1).oper[0]^.typ = top_const) and
+          SuperRegistersEqual(taicpu(p).oper[0]^.reg, taicpu(p).oper[1]^.reg) and
+          MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[1]^.reg) and
+          { Minimum shift value allowed is the bit difference between the sizes }
+          (taicpu(hp1).oper[0]^.val >=
+            { Multiply by 8 because tcgsize2size returns bytes, not bits }
+            8 * (
+              tcgsize2size[reg_cgsize(taicpu(p).oper[1]^.reg)] -
+              tcgsize2size[reg_cgsize(taicpu(p).oper[0]^.reg)]
+            )
+          ) then
+          begin
+            { For:
+                movsx/movzx %reg1,%reg1 (same register, just different sizes)
+                shl/sal     ##,   %reg1
+
+              Remove the movsx/movzx instruction if the shift overwrites the
+              extended bits of the register (e.g. movslq %eax,%rax; shlq $32,%rax
+            }
+            DebugMsg(SPeepholeOptimization + 'MovxShl2Shl',p);
+            RemoveCurrentP(p, hp1);
+            Result := True;
+            Exit;
           end
         else if taicpu(p).opcode=A_MOVZX then
           begin
