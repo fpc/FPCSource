@@ -876,7 +876,7 @@ unit aoptcpu;
                                             end;
                                           { hp2 is still at b yyy }
                                           GetNextInstruction(hp2,hp1);
-                                          { hp2 is now at xxx: }
+                                          { hp1 is now at xxx: }
                                           condition:=inverse_cond(condition);
                                           GetNextInstruction(hp1,hp1);
                                           { hp1 is now at <several movs 2> }
@@ -891,6 +891,8 @@ unit aoptcpu;
                                           asml.remove(hp3);
                                           hp3.free;
                                           { remove jmp }
+                                          if (p=hp2) then
+                                            GetNextInstruction(hp2,p);
                                           tasmlabel(taicpu(hp2).oper[taicpu(hp2).ops-1]^.ref^.symbol).decrefs;
                                           RemoveDelaySlot(hp2);
                                           asml.remove(hp2);
