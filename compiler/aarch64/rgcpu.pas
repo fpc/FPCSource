@@ -36,6 +36,7 @@ unit rgcpu;
       trgcpu=class(trgobj)
         procedure do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
         procedure do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
+        function get_spill_subreg(r: tregister): tsubregister; override;
        protected
         procedure do_spill_op(list: tasmlist; op: tasmop; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       end;
@@ -50,6 +51,15 @@ implementation
     uses
       verbose,cutils,
       cgobj;
+
+    function  trgcpu.get_spill_subreg(r:tregister) : tsubregister;
+      begin
+        if (getregtype(r)<>R_MMREGISTER) then
+          result:=defaultsub
+        else
+          result:=getsubreg(r);
+      end;
+
 
     procedure trgcpu.do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       begin
