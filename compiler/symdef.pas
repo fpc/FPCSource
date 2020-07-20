@@ -2352,10 +2352,9 @@ implementation
                  not trecorddef(self).contains_cross_aword_field and
                  { records cannot go into registers on 16 bit targets for now }
                  (sizeof(aint)>2) and
-                 (not trecorddef(self).contains_float_field) or
-                  (recsize <= sizeof(aint))
-                 ) and
-                 not needs_inittable;
+                 not trecorddef(self).contains_float_field
+                ) and
+                not needs_inittable;
 {$endif cpuhighleveltarget}
             end;
           else
