@@ -2814,9 +2814,16 @@ begin
       x86_64:   result := GetGccDirArch('cpux86_64','-m64');
       powerpc:  result := GetGccDirArch('cpupowerpc','-m32');
       powerpc64:result := GetGccDirArch('cpupowerpc64','-m64');
+      arm:      result := GetGccDirArch('cpuarm','');
       aarch64:  result := GetGccDirArch('cpuaarch64','');
+      m68k:     result := GetGccDirArch('cpum68k','');
+      mips:     result := GetGccDirArch('cpumips','');
+      mipsel:   result := GetGccDirArch('cpumipsel','');
       riscv32:  result := GetGccDirArch('cpuriscv32','-march=rv32imafdc');
       riscv64:  result := GetGccDirArch('cpuriscv64','-march=rv64imafdc');
+      sparc:    result := GetGccDirArch('cpusparc','-m32');
+      sparc64:  result := GetGccDirArch('cpusparc64','-m64');
+      xtensa:   result := GetGccDirArch('cpuxtensa','');
     end {case}
   else if OS = darwin then
     case CPU of
