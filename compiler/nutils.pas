@@ -1427,7 +1427,9 @@ implementation
            ((mhs_exceptions in pmhs_flags(arg)^) and
             ((n.nodetype in [derefn,vecn,divn,slashn]) or
              ((n.nodetype=subscriptn) and is_implicit_pointer_object_type(tsubscriptnode(n).left.resultdef)) or
-             ((n.nodetype in [addn,subn,muln,unaryminusn]) and (n.localswitches*[cs_check_overflow,cs_check_range]<>[]))
+             ((n.nodetype in [addn,subn,muln,unaryminusn]) and (n.localswitches*[cs_check_overflow,cs_check_range]<>[])) or
+             { float operations could throw an exception }
+             ((n.nodetype in [addn,subn,muln,slashn,unaryminusn,equaln,unequaln,gten,gtn,lten,ltn]) and is_real_or_cextended(tunarynode(n).left.resultdef))
             )
            ) or
            ((n.nodetype=loadn) and
