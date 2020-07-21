@@ -555,6 +555,7 @@ packages/chm/*.o
 packages/chm/*.ppu
 packages/chm/*.s
 packages/chm/Package.fpc
+packages/chm/bin
 packages/chm/build-stamp.*
 packages/chm/examples/*.bak
 packages/chm/examples/*.exe
@@ -1778,6 +1779,7 @@ packages/gdbint/*.o
 packages/gdbint/*.ppu
 packages/gdbint/*.s
 packages/gdbint/Package.fpc
+packages/gdbint/bin
 packages/gdbint/build-stamp.*
 packages/gdbint/examples/*.bak
 packages/gdbint/examples/*.exe
@@ -2673,6 +2675,7 @@ packages/ide/*.exe
 packages/ide/*.o
 packages/ide/*.ppu
 packages/ide/*.s
+packages/ide/bin
 packages/ide/compiler/*.bak
 packages/ide/compiler/*.exe
 packages/ide/compiler/*.o
@@ -6154,6 +6157,7 @@ packages/xforms/*.o
 packages/xforms/*.ppu
 packages/xforms/*.s
 packages/xforms/Package.fpc
+packages/xforms/bin
 packages/xforms/build-stamp.*
 packages/xforms/examples/*.bak
 packages/xforms/examples/*.exe
