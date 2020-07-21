@@ -731,7 +731,6 @@ implementation
     procedure tcallparanode.copy_value_by_ref_para;
       var
         initstat,
-        copybackstat,
         finistat: tstatementnode;
         finiblock: tblocknode;
         paratemp: ttempcreatenode;
@@ -754,7 +753,6 @@ implementation
         if not is_array_constructor(left.resultdef) then
           begin
             fparainit:=internalstatements(initstat);
-            fparacopyback:=internalstatements(copybackstat);
             finiblock:=internalstatements(finistat);
             paratemp:=nil;
 
@@ -931,10 +929,8 @@ implementation
                 left:=ctemprefnode.create(paratemp);
               end;
             addstatement(finistat,ctempdeletenode.create(paratemp));
-            addstatement(copybackstat,finiblock);
             firstpass(fparainit);
             firstpass(left);
-            firstpass(fparacopyback);
           end;
       end;
 
