@@ -10960,6 +10960,7 @@ rtl/inc/fpintres.pp svneol=native#text/plain
 rtl/inc/gencurr.inc svneol=native#text/plain
 rtl/inc/generic.inc svneol=native#text/plain
 rtl/inc/genmath.inc svneol=native#text/plain
+rtl/inc/genmathh.inc svneol=native#text/plain
 rtl/inc/genset.inc svneol=native#text/plain
 rtl/inc/genstr.inc svneol=native#text/plain
 rtl/inc/genstrs.inc svneol=native#text/plain

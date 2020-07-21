@@ -84,6 +84,7 @@ Type
     on Real <-> Double, so use type here, see also tw7425.pp (FK) }
 {$ifndef FPUNONE}
   Real = type Double;
+{$i genmathh.inc}
 {$endif}
 
 {$ifdef CPUI386}

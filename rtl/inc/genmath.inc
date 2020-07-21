@@ -61,32 +61,9 @@
 
 type
   PReal = ^Real;
-{ also necessary for Int() on systems with 64bit floats (JM) }
-{ union required to get correct alignement for floating point type }
-{$ifndef FPC_SYSTEM_HAS_float64}
-{$ifdef ENDIAN_LITTLE}
-  float64 = record
-    case byte of
-      1: (dummy : double);
- {$ifndef FPC_DOUBLE_HILO_SWAPPED}
-      2: (low,high: longint);
-{$else}
-      2: (high,low: longint);
-{$endif FPC_DOUBLE_HILO_SWAPPED}
-  end;
-{$else}
-  float64 = record
-    case byte of
-      1: (dummy : double);
-{$ifndef FPC_DOUBLE_HILO_SWAPPED}
-      2: (high,low: longint);
-{$else}
-      2: (low,high: longint);
-{$endif FPC_DOUBLE_HILO_SWAPPED}
-  end;
-{$endif}
-{$endif FPC_SYSTEM_HAS_float64}
-
+{ float64 definition is now in genmathh.inc,
+  to ensure that float64 will always be in
+  the system interface symbol table. }
 
 const
       PIO4   =  7.85398163397448309616E-1;    {  pi/4        }
@@ -202,10 +179,6 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_TRUNC}
-{$ifndef FPC_SYSTEM_HAS_float32}
-type
-  float32 = longint;
-{$endif FPC_SYSTEM_HAS_float32}
 
 {$ifdef SUPPORT_DOUBLE}
    { based on softfloat float64_to_int64_round_to_zero }

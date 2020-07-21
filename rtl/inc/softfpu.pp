@@ -97,8 +97,10 @@ Software IEC/IEEE floating-point types.
 -------------------------------------------------------------------------------
 }
 TYPE
+{$ifndef FPC_SYSTEM_HAS_float32}
   float32 = longword;
 {$define FPC_SYSTEM_HAS_float32}
+{$endif ndef FPC_SYSTEM_HAS_float32}
   { we use here a record in the function header because
     the record allows bitwise conversion to single }
   float32rec = record
@@ -123,6 +125,7 @@ TYPE
   sbits64 = int64;
 
 {$ifdef ENDIAN_LITTLE}
+{$ifndef FPC_SYSTEM_HAS_float64}
   float64 = record
     case byte of
       // force the record to be aligned like a double
@@ -131,6 +134,7 @@ TYPE
       1: (dummy : double);
       2: (low,high : bits32);
   end;
+{$endif ndef FPC_SYSTEM_HAS_float64}
 
   floatx80 = record
     case byte of
@@ -150,6 +154,7 @@ TYPE
       2: (low,high : qword);
   end;
 {$else}
+{$ifndef FPC_SYSTEM_HAS_float64}
   float64 = record
       case byte of
         // force the record to be aligned like a double
@@ -157,6 +162,7 @@ TYPE
         1: (dummy : double);
         2: (high,low : bits32);
   end;
+{$endif ndef FPC_SYSTEM_HAS_float64}
 
   floatx80 = record
     case byte of
