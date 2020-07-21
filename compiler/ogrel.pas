@@ -358,9 +358,11 @@ implementation
             else if (p.objsection=CurrObjSec) and
                     (p.bind<>AB_COMMON) and
                     (Reloctype=RELOC_RELATIVE) then
+{$push} {$R-}{$Q-}
               begin
                 data:=data+symaddr-len-CurrObjSec.Size;
               end
+{$pop}
             else
               begin
                 objreloc:=TRelRelocation.CreateSection(CurrObjSec.Size,p.objsection,Reloctype);
