@@ -692,7 +692,7 @@ implementation
          href : treference;
          releaseright : boolean;
          alignmentrequirement,
-         len : aint;
+         len : tcgint;
          r : tregister;
          {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
          r64 : tregister64;

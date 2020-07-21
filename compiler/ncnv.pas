@@ -1175,7 +1175,7 @@ implementation
         newstat  : tstatementnode;
         restemp  : ttempcreatenode;
         pchtemp  : pchar;
-        arrsize  : aint;
+        arrsize  : tcgint;
         chartype : string[8];
       begin
         result := nil;
