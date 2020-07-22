@@ -1111,6 +1111,12 @@ implementation
           emit_reg_reg(A_POPCNT,TCGSize2OpSize[opsize],left.location.register,location.register)
         else
           emit_ref_reg(A_POPCNT,TCGSize2OpSize[opsize],left.location.reference,location.register);
+
+        if resultdef.size=1 then
+          begin
+            location.size:=OS_8;
+            location.register:=cg.makeregsize(current_asmdata.CurrAsmList,location.register,location.size);
+          end;
       end;
 
 
