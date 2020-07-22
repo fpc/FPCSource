@@ -10,9 +10,15 @@ Uses    cthreads, Classes, SysUtils, BaseUnix;
   support locking
 }
 Const   Fn      = '/tmp/fpctest.lock';
+{$if defined(cpusparc) or defined(cpusparc64)}
+     F_RDLCK = 1;
+     F_WRLCK = 2;
+     F_UNLCK = 3;
+{$else}
      F_RDLCK = 0;
      F_WRLCK = 1;
      F_UNLCK = 2;
+{$endif}
 
 Var     F, I    : Integer;
      Region  : FLock;

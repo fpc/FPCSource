@@ -382,11 +382,20 @@ CONST
   F_SetFd  = 2;
   F_GetFl  = 3;
   F_SetFl  = 4;
+
+{$if defined(cpusparc) or defined(cpusparc64)}
+  F_GetLk  = 7;
+  F_SetLk  = 8;
+  F_SetLkW = 9;
+  F_SetOwn = 5;
+  F_GetOwn = 6;
+{$else}
   F_GetLk  = 5;
   F_SetLk  = 6;
   F_SetLkW = 7;
   F_SetOwn = 8;
   F_GetOwn = 9;
+{$endif}
 
 { getrlimit/ugetrlimit resource parameter constants }
 const
