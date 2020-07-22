@@ -761,7 +761,7 @@ unit aoptcpu;
     var
       p: tai;
       l: longint;
-      hp1,hp2,hp3: tai;
+      hp1,hp2,hp3,hp4: tai;
       condition: tasmcond;
       condreg: tregister;
     begin
@@ -839,7 +839,7 @@ unit aoptcpu;
                                         <several movs 2>
                                     yyy:
                                   }
-                                  { hp2 points to jmp yyy }
+                                  { hp2 points to b yyy }
                                   hp2:=hp1;
                                   { skip hp1 to xxx }
                                   GetNextInstruction(hp1, hp1);
@@ -854,15 +854,20 @@ unit aoptcpu;
                                     FindLabel(tasmlabel(taicpu(p).oper[taicpu(p).ops-1]^.ref^.symbol),hp1) then
                                     begin
                                       l:=0;
-                                      { skip hp1 to <several moves 2> }
-                                      GetNextInstruction(hp1, hp1);
+                                      hp4:=hp1;
+                                      { hp4 points to label xxx }
+                                      GetNextInstruction(hp4, hp1);
+                                      { hp1 points to <several moves 2> }
                                       while CanBeCMOV(hp1,condreg) do
                                         begin
                                           inc(l);
                                           GetNextInstruction(hp1, hp1);
                                         end;
+                                      if l=0 then
+                                        hp1:=hp4;
                                       { hp1 points to yyy: }
-                                      if assigned(hp1) and (l<=3) and
+                                      if assigned(hp1) and
+                                        (l<=3) and
                                         FindLabel(tasmlabel(taicpu(hp2).oper[taicpu(hp2).ops-1]^.ref^.symbol),hp1) then
                                         begin
                                           condition:=inverse_cond(taicpu(p).condition);
@@ -874,12 +879,9 @@ unit aoptcpu;
                                               ChangeToCMOV(taicpu(hp1),condition,condreg);
                                               GetNextInstruction(hp1,hp1);
                                             end;
-                                          { hp2 is still at b yyy }
-                                          GetNextInstruction(hp2,hp1);
-                                          { hp1 is now at xxx: }
                                           condition:=inverse_cond(condition);
-                                          GetNextInstruction(hp1,hp1);
-                                          { hp1 is now at <several movs 2> }
+                                          GetNextInstruction(hp4, hp1);
+                                          { hp1 points to <several moves 2> }
                                           while CanBeCMOV(hp1,condreg) do
                                             begin
                                               ChangeToCMOV(taicpu(hp1),condition,condreg);
