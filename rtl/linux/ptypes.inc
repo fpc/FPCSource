@@ -29,6 +29,9 @@ and all three 32-bit systems returned completely identical types too
 (everything 32-bit except dev_t, which is assumed to be a result of devfs
 introduction)
 }
+{$ifdef CPUSPARC}
+  {$define __USE_LARGEFILE64}
+{$endif}
 
 {$if defined(CPUMIPS) or defined(cpuaarch64) or defined(cpusparc64)}
 {$define USE_PTHREAD_SIZEOF}
@@ -202,7 +205,12 @@ Type
     bfree,             { free blocks in system }
     bavail,            { Available free blocks to non-root users }
     files,             { File nodes in system }
-    ffree   : culong;  { Free file nodes in system }
+    ffree   : 
+{$ifdef __USE_LARGEFILE64}
+    culonglong;  { Free file nodes in system }
+{$else}
+    culong;  { Free file nodes in system }
+{$endif}
     fsid    : array[0..1] of cint;          { File system ID }
     namelen,           { Maximum name length in system }
     frsize  : cint;
