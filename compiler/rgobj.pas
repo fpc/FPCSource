@@ -710,25 +710,33 @@ unit rgobj;
 
     var f:text;
         i,j:cardinal;
-
+        sr:TSubRegister;
     begin
       assign(f,current_procinfo.procdef.mangledname+'_igraph'+tostr(loopidx));
       rewrite(f);
       writeln(f,'Interference graph of ',current_procinfo.procdef.fullprocname(true));
-      writeln(f,'First imaginary register is ',first_imaginary,' ($',hexstr(first_imaginary,2),')');
+      writeln(f,'Register type: ',regtype,', First imaginary register is ',first_imaginary,' ($',hexstr(first_imaginary,2),')');
       writeln(f);
-      write(f,'                  ');
+      write(f,'                                   ');
       for i:=0 to maxreg div 16 do
         for j:=0 to 15 do
           write(f,hexstr(i,1));
       writeln(f);
-      write(f,'Weight Degree     ');
+      write(f,'Weight Degree Uses   IntfCnt       ');
       for i:=0 to maxreg div 16 do
         write(f,'0123456789ABCDEF');
       writeln(f);
+      if regtype=R_INTREGISTER then
+        sr:=R_SUBWHOLE
+      else
+        sr:=R_SUBNONE;
       for i:=0 to maxreg-1 do
         begin
-          write(f,reginfo[i].weight:5,'  ',reginfo[i].degree:5,'  ',reginfo[i].count_uses:5,'  ',reginfo[i].total_interferences:5,'  ',hexstr(i,2):4);
+          write(f,reginfo[i].weight:5,'  ',reginfo[i].degree:5,'  ',reginfo[i].count_uses:5,'  ',reginfo[i].total_interferences:5,'  ');
+          if findreg_by_number(newreg(regtype,TSuperRegister(i),sr))<>0 then
+            write(f,std_regname(newreg(regtype,TSuperRegister(i),sr))+':'+hexstr(i,2):7)
+          else
+            write(f,'   ',hexstr(i,2):4);
           for j:=0 to maxreg-1 do
             if ibitmap[i,j] then
               write(f,'*')
