@@ -3274,6 +3274,7 @@ begin
     exit(false); // there is no overload
 
   if (El.ClassType=TPasClassFunction)
+      and (El.Parent.ClassType=TPasClassType)
       and (TPas2JSClassScope(TPasClassType(El.Parent).CustomData).NewInstanceFunction=El) then
     begin
     Duplicate:=GetDuplicate;
@@ -3542,6 +3543,8 @@ var
   Scope: TPasIdentifierScope;
 begin
   i:=FOverloadScopes.Count-1;
+  if i<0 then
+    RaiseInternalError(20200723125456);
   Scope:=TPasIdentifierScope(FOverloadScopes[i]);
   if Scope.ClassType=TPas2JSOverloadChgThisScope then
     Scope.Free;
