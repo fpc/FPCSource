@@ -200,7 +200,8 @@
              system_z80_embedded,       { 108 }
              system_z80_zxspectrum,     { 109 }
              system_z80_msxdos,         { 110 }
-             system_aarch64_darwin      { 111 }
+             system_aarch64_darwin,     { 111 }
+             system_z80_amstradcpc      { 112 }
        );
 
      type
@@ -303,7 +304,8 @@
              ld_int_msxdos,
              ld_freertos,
              ld_zxspectrum,
-             ld_msxdos
+             ld_msxdos,
+             ld_amstradcpc
        );
 
        tar = (ar_none
