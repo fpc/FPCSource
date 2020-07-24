@@ -92,7 +92,11 @@ unit rgobj;
         x,y:Tsuperregister;
       end;
 
-      Treginfoflag=(ri_coalesced,ri_selected);
+      Treginfoflag=(
+        ri_coalesced,   { the register is coalesced with other register }
+        ri_selected,    { the register is put to selectstack }
+        ri_spill_read   { the register contains a value loaded from a spilled register }
+      );
       Treginfoflagset=set of Treginfoflag;
 
       Treginfo=record
@@ -1476,7 +1480,7 @@ unit rgobj;
     var
       n : tsuperregister;
       adj : psuperregisterworklist;
-      maxlength,p,i :word;
+      maxlength,minlength,p,i :word;
       minweight: longint;
       {$ifdef SPILLING_NEW}
       dist: Double;
@@ -1535,25 +1539,61 @@ unit rgobj;
         the most conflicts and keeping them in a register will not reduce the
         complexity and even can cause the help registers for the spilling code
         to get too much conflicts with the result that the spilling code
-        will never converge (PFV) }
+        will never converge (PFV)
+
+        We need a special processing for nodes with the ri_spill_read flag set. 
+        These nodes contain a value loaded from a previously spilled node. 
+        We need to avoid another spilling of ri_spill_read nodes, since it will 
+        likely lead to an endless loop and the register allocation will fail.
+      }
       maxlength:=0;
       minweight:=high(longint);
-      p:=0;
+      p:=high(p);
       with spillworklist do
         begin
           {Safe: This procedure is only called if length<>0}
+          { Search for a candidate to be spilled, ignoring nodes with the ri_spill_read flag set. }
           for i:=0 to length-1 do
+            if not(ri_spill_read in reginfo[buf^[i]].flags) then
+              begin
+                adj:=reginfo[buf^[i]].adjlist;
+                if assigned(adj) and
+                   (
+                    (adj^.length>maxlength) or
+                    ((adj^.length=maxlength) and (reginfo[buf^[i]].weight<minweight))
+                   ) then
+                  begin
+                    p:=i;
+                    maxlength:=adj^.length;
+                    minweight:=reginfo[buf^[i]].weight;
+                  end;
+              end;
+
+          if p=high(p) then
             begin
-              adj:=reginfo[buf^[i]].adjlist;
-              if assigned(adj) and
-                 (
-                  (adj^.length>maxlength) or
-                  ((adj^.length=maxlength) and (reginfo[buf^[i]].weight<minweight))
-                 ) then
+              { If no normal nodes found, then only ri_spill_read nodes are present
+                in the list. Finding the node with the least interferences and
+                the least weight.
+                This allows us to put the most restricted ri_spill_read nodes
+                to the top of selectstack so they will be the first to get
+                a color assigned.
+              }
+              minlength:=high(maxlength);
+              minweight:=high(minweight);
+              p:=0;
+              for i:=0 to length-1 do
                 begin
-                  p:=i;
-                  maxlength:=adj^.length;
-                  minweight:=reginfo[buf^[i]].weight;
+                  adj:=reginfo[buf^[i]].adjlist;
+                  if assigned(adj) and
+                     (
+                      (adj^.length<minlength) or
+                      ((adj^.length=minlength) and (reginfo[buf^[i]].weight<minweight))
+                     ) then
+                    begin
+                      p:=i;
+                      minlength:=adj^.length;
+                      minweight:=reginfo[buf^[i]].weight;
+                    end;
                 end;
             end;
           n:=buf^[p];
@@ -2647,6 +2687,7 @@ unit rgobj;
                 begin
                   loadreg:=getregisterinline(list,regs.reginfo[counter].spillregconstraints);
                   do_spill_read(list,tai(loadpos.previous),spilltemplist[orgreg],loadreg,orgreg);
+                  include(reginfo[getsupreg(loadreg)].flags,ri_spill_read);
                 end;
             end;
 
