@@ -124,7 +124,6 @@ Type
     FOnGetObject: TJSONGetObjectEvent;
     FOnPropError: TJSONpropertyErrorEvent;
     FOnRestoreProp: TJSONRestorePropertyEvent;
-    FCaseInsensitive : Boolean;
     FOptions: TJSONDestreamOptions;
     procedure DeStreamClassProperty(AObject: TObject; PropInfo: PPropInfo; PropData: TJSONData);
     function GetCaseInsensitive: Boolean;
@@ -217,7 +216,7 @@ Type
 function TJSONDeStreamer.ObjectFromString(const JSON: TJSONStringType): TJSONData;
 
 begin
-  With TJSONParser.Create(JSON) do
+  With TJSONParser.Create(JSON,[]) do
     try
       Result:=Parse;
     finally
@@ -418,7 +417,6 @@ Var
   PI : PPropInfo;
   TI : PTypeInfo;
   I,J,S : Integer;
-  D : Double;
   A : TJSONArray;
   JS : TJSONStringType;
 begin
@@ -586,7 +584,6 @@ procedure TJSONDeStreamer.JSONToCollection(const JSON: TJSONData;
 Var
   I : integer;
   A : TJSONArray;
-  O : TJSONObject;
 
 begin
   If (JSON.JSONType=jtArray) then
@@ -1039,9 +1036,6 @@ end;
 
 function TJSONStreamer.StreamClassProperty(const AObject: TObject): TJSONData;
 
-Var
-  C : TCollection;
-  I : integer;
 
 begin
   Result:=Nil;
