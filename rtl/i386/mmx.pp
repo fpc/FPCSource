@@ -61,6 +61,7 @@ unit mmx;
 
     { return base type of processor: 0 - is Unknown, 10 - is AMD (AuthenticAMD), }
     {                                20 - is Intel (GenuineIntel) }
+    {                                30 - is Hygon (HygonGenuine) }
     function getdevel:byte;
 
       var
@@ -80,6 +81,7 @@ unit mmx;
             end;
             if ((_ebx=$68747541) and (_ecx=$444D4163) and (_edx=$69746E65)) then getdevel:=10;
             if ((_ebx=$756E6547) and (_ecx=$6C65746E) and (_edx=$49656E69)) then getdevel:=20;
+            if ((_ebx=$6f677948) and (_ecx=$656e6975) and (_edx=$6e65476e)) then getdevel:=30;	
         end
     end;
 
@@ -114,7 +116,7 @@ unit mmx;
 
       begin
          { are there third party cpus supporting amd 3d instructions? }
-         if cpuid_support and (getdevel=10) then
+         if cpuid_support and ((getdevel=10) or (getdevel=30)) then
            begin
               asm
                  pushl %ebx
@@ -137,7 +139,7 @@ unit mmx;
 
       begin
          { are there third party cpus supporting amd dsp instructions? }
-         if cpuid_support and (getdevel=10) then
+         if cpuid_support and ((getdevel=10) or (getdevel=30)) then
            begin
               asm
                  pushl %ebx
@@ -160,7 +162,7 @@ unit mmx;
 
       begin
          { are there third party cpus supporting amd mmx instructions? }
-         if cpuid_support and (getdevel=10) then
+         if cpuid_support and ((getdevel=10) or (getdevel=30)) then
            begin
               asm
                  pushl %ebx
