@@ -292,8 +292,14 @@ implementation
             ref.segment:=NR_GS;
           x86pt_far,
           x86pt_huge:
-            if reg<>NR_NO then
-              ref.segment:=cg.GetNextReg(reg);
+            if getsupreg(reg)>=first_int_imreg then
+              ref.segment:=cg.GetNextReg(reg)
+            else
+              if reg<>NR_NO then
+                if (reg=current_procinfo.framepointer) or (reg=NR_SP) then
+                  ref.segment:=NR_SS
+                else
+                  internalerror(2020072401);
         end;
     end;
 
