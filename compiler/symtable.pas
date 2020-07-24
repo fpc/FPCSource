@@ -2553,6 +2553,8 @@ implementation
                 HideSym(hsym);
                 tstaticvarsym(sym).isoindex:=tprogramparasym(hsym).isoindex;
               end
+            else if (m_iso in current_settings.modeswitches) and (hsym.typ=unitsym) then
+              HideSym(hsym)
             else
               DuplicateSym(hashedid,sym,hsym,false);
             result:=true;

@@ -360,7 +360,14 @@ implementation
                 if token=_ID then
                   labelsym:=clabelsym.create(orgpattern)
                 else
-                  labelsym:=clabelsym.create(pattern);
+                  begin
+                    { strip leading 0's in iso mode }
+                    if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) then
+                      while pattern[1]='0' do
+                        delete(pattern,1,1);
+                    labelsym:=clabelsym.create(pattern);
+                  end;
+
                 symtablestack.top.insert(labelsym);
                 if m_non_local_goto in current_settings.modeswitches then
                   begin
