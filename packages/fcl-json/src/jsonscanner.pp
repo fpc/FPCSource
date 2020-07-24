@@ -51,7 +51,7 @@ type
 
   EScannerError = class(EParserError);
 
-  TJSONOption = (joUTF8,joStrict,joComments,joIgnoreTrailingComma);
+  TJSONOption = (joUTF8,joStrict,joComments,joIgnoreTrailingComma,joIgnoreDuplicates);
   TJSONOptions = set of TJSONOption;
 
 Const
