@@ -343,6 +343,7 @@ interface
         procedure clear;
         procedure add(s:tsuperregister);
         function addnodup(s:tsuperregister): boolean;
+        { returns the last element and removes it from the list }
         function get:tsuperregister;
         function readidx(i:word):tsuperregister;
         procedure deleteidx(i:word);
@@ -590,9 +591,8 @@ implementation
     begin
       if length=0 then
         internalerror(200310142);
-      get:=buf^[0];
-      buf^[0]:=buf^[length-1];
       dec(length);
+      get:=buf^[length];
     end;
 
 

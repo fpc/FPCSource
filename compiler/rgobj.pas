@@ -929,7 +929,17 @@ unit rgobj;
 
     {Sorts the simplifyworklist by the number of interferences the
      registers in it cause. This allows simplify to execute in
-     constant time.}
+     constant time.
+
+     Sort the list in the descending order, since items of simplifyworklist
+     are retrieved from end to start and then items are added to selectstack.
+     The selectstack list is also processed from end to start.
+
+     Such way nodes with most interferences will get their colors first.
+     Since degree of nodes in simplifyworklist before sorting is always
+     less than the number of usable registers this should not trigger spilling
+     and should lead to a better register allocation in some cases.
+    }
 
     var p,h,i,leni,lent:longword;
         t:Tsuperregister;
@@ -958,7 +968,7 @@ unit rgobj;
                     leni:=0;
                     if adji<>nil then
                       leni:=adji^.length;
-                    if leni<=lent then
+                    if leni>=lent then
                       break;
                     buf^[i]:=buf^[i-p];
                     dec(i,p)
@@ -1018,7 +1028,7 @@ unit rgobj;
     var n:cardinal;
 
     begin
-      {If we have 7 cpu registers, and the degree of a node is 7, we cannot
+      {If we have 7 cpu registers, and the degree of a node >= 7, we cannot
        assign it to any of the registers, thus it is significant.}
       for n:=first_imaginary to maxreg-1 do
         with reginfo[n] do
