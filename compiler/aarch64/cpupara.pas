@@ -280,6 +280,7 @@ unit cpupara;
     function  tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
         retcgsize: tcgsize;
+        otherside: tcallercallee;
       begin
          if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
            exit;
@@ -287,7 +288,13 @@ unit cpupara;
          { in this case, it must be returned in registers as if it were passed
            as the first parameter }
          init_para_alloc_values;
-         alloc_para(result,p,vs_value,side,result.def,false,false);
+         { if we're on the callee side, filling the result location is actually the "callerside"
+          as far passing it as a parameter value is concerned }
+         if side=callerside then
+           otherside:=calleeside
+         else
+           otherside:=callerside;
+         alloc_para(result,p,vs_value,otherside,result.def,false,false);
          { sanity check (LOC_VOID for empty records) }
          if not assigned(result.location) or
             not(result.location^.loc in [LOC_REGISTER,LOC_MMREGISTER,LOC_VOID]) then
