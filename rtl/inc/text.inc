@@ -2216,7 +2216,7 @@ var
   hs   : String;
   code : Longint;
 Begin
-  l:=0;
+  i:=0;
   if not CheckRead(f) then
     Exit;
 
