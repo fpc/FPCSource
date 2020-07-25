@@ -1683,7 +1683,8 @@ implementation
                       { to procedure variables                                  }
                       if (m_pointer_2_procedure in current_settings.modeswitches) and
                          is_void(tpointerdef(def_from).pointeddef) and
-                         tprocvardef(def_to).is_addressonly then
+                         tprocvardef(def_to).is_addressonly and
+                         tprocvardef(def_to).compatible_with_pointerdef_size(tpointerdef(def_from)) then
                        begin
                          doconv:=tc_equal;
                          eq:=te_convert_l1;
