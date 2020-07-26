@@ -3738,6 +3738,7 @@ packages/fcl-js/examples/fpjsmin.pp svneol=native#text/plain
 packages/fcl-js/examples/srcmapdump.lpi svneol=native#text/plain
 packages/fcl-js/examples/srcmapdump.lpr svneol=native#text/plain
 packages/fcl-js/fpmake.pp svneol=native#text/plain
+packages/fcl-js/src/fcl-js.inc svneol=native#text/plain
 packages/fcl-js/src/jsbase.pp svneol=native#text/plain
 packages/fcl-js/src/jsminifier.pp svneol=native#text/plain
 packages/fcl-js/src/jsparser.pp svneol=native#text/plain

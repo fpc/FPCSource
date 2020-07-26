@@ -14,13 +14,9 @@
   **********************************************************************}
 unit jswriter;
 
-{$mode objfpc}{$H+}
-{ $DEFINE DEBUGJSWRITER}
-{AllowWriteln}
+{$i fcl-js.inc}
 
-{$if defined(fpc) or defined(NodeJS)}
-  {$define HasFileWriter}
-{$endif}
+{ $DEFINE DEBUGJSWRITER}
 
 interface
 
