@@ -616,6 +616,7 @@ type
     pbifnRecordAssign,
     pbifnRecordClone,
     pbifnRecordCreateType,
+    pbifnRecordCreateSpecializeType,
     pbifnRecordEqual,
     pbifnRecordNew,
     pbifnRTTIAddField, // typeinfos of tkclass and tkrecord have addField
@@ -795,7 +796,8 @@ const
     'rcSetCharAt',  // pbifnRangeCheckSetCharAt  rtl.rcSetCharAt
     '$assign', // pbifnRecordAssign
     '$clone', // pbifnRecordClone
-    'recNewT', // pbifnRecordNew
+    'recNewT', // pbifnRecordCreateType
+    'recNewS', // pbifnRecordCreateSpecializeType
     '$eq', // pbifnRecordEqual
     '$new', // pbifnRecordNew
     'addField', // pbifnRTTIAddField
@@ -24569,6 +24571,7 @@ var
   NewFields, Vars, Methods: TFPList;
   ok, IsFull: Boolean;
   VarSt: TJSVariableStatement;
+  bifn: TPas2JSBuiltInName;
 begin
   Result:=nil;
   if El.Name='' then
@@ -24586,7 +24589,17 @@ begin
   try
     // rtl.recNewT()
     Call:=CreateCallExpression(El);
-    Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnRecordCreateType)]);
+    bifn:=pbifnRecordCreateType;
+    {$IFDEF EnableDelaySpecialize}
+    RecScope:=TPas2JSRecordScope(El.CustomData);
+    if RecScope.SpecializedFromItem<>nil then
+      begin
+      if RecScope.SpecializedFromItem.FirstSpecialize.GetModule<>EL.GetModule then
+        bifn:=pbifnRecordCreateSpecializeType;
+      end;
+    {$ENDIF}
+
+    Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(bifn)]);
 
     // types are stored in interface/implementation
     if El.Parent is TProcedureBody then

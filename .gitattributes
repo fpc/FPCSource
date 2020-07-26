@@ -8339,6 +8339,7 @@ packages/pastojs/src/pas2jsresources.pp svneol=native#text/plain
 packages/pastojs/src/pas2jsresstrfile.pp svneol=native#text/plain
 packages/pastojs/src/pas2jsuseanalyzer.pp svneol=native#text/plain
 packages/pastojs/src/pas2jsutils.pp svneol=native#text/plain
+packages/pastojs/src/pastojs.inc svneol=native#text/plain
 packages/pastojs/tests/tcconverter.pp svneol=native#text/plain
 packages/pastojs/tests/tcfiler.pas svneol=native#text/plain
 packages/pastojs/tests/tcgenerics.pas svneol=native#text/plain

@@ -18,7 +18,7 @@
 }
 unit TCFiler;
 
-{$mode objfpc}{$H+}
+{$i ../src/pastojs.inc}
 
 interface
 
@@ -3077,6 +3077,8 @@ end;
 
 procedure TTestPrecompile.TestPC_SpecializeClassSameUnit;
 begin
+  exit;
+
   StartUnit(false);
   Add([
   '{$mode delphi}',
