@@ -306,13 +306,7 @@ Notes:
 }
 unit PasResolver;
 
-{$mode objfpc}{$H+}
-{$inline on}
-
-{$ifdef fpc}
-  {$define UsePChar}
-  {$define HasInt64}
-{$endif}
+{$i fcl-passrc.inc}
 
 {$IFOPT Q+}{$DEFINE OverflowCheckOn}{$ENDIF}
 {$IFOPT R+}{$DEFINE RangeCheckOn}{$ENDIF}
@@ -16398,8 +16392,18 @@ var
   procedure InsertBehind(List: TFPList);
   var
     Last: TPasElement;
-    i: Integer;
+    i, LastIndex: Integer;
+    LastScope: TPasGenericScope;
   begin
+    // insert in front of currently parsed elements
+    // beware: specializing an element can create other specialized elements
+    // add behind last specialized element of this GenericEl
+    // for example: A = class(B<C<D>>)
+    // =>
+    //  D
+    //  C<D>
+    //  B<C<D>>
+    //  A
     Last:=GenericEl;
     if SpecializedItems<>nil then
       begin
@@ -16407,15 +16411,32 @@ var
       if i>=0 then
         Last:=TPRSpecializedItem(SpecializedItems[i]).SpecializedEl;
       end;
-    i:=List.IndexOf(Last);
-    if i<0 then
+    LastIndex:=List.IndexOf(Last);
+    if LastIndex<0 then
+      RaiseNotYetImplemented(20200725093218,El);
+    i:=List.Count-1;
+    while i>LastIndex do
       begin
-      {$IF defined(VerbosePasResolver) or defined(VerbosePas2JS)}
-      writeln('InsertBehind Generic=',GetObjName(GenericEl),' Last=',GetObjName(Last));
-      //for i:=0 to List.Count-1 do writeln('  ',GetObjName(TObject(List[i])));
-      {$ENDIF}
-      i:=List.Count-1;
+      Last:=TPasElement(List[i]);
+      if not (Last is TPasGenericType) then break;
+      if (Last.CustomData<>nil) then
+        begin
+        LastScope:=Last.CustomData as TPasGenericScope;
+        if LastScope.GenericStep>=psgsInterfaceParsed then
+          break;
+        end;
+      // type is still parsed => insert in front
+      dec(i);
       end;
+
+    //if i<0 then
+    //  begin
+    //  {$IF defined(VerbosePasResolver) or defined(VerbosePas2JS)}
+    //  writeln('InsertBehind Generic=',GetObjName(GenericEl),' Last=',GetObjName(Last));
+    //  //for i:=0 to List.Count-1 do writeln('  ',GetObjName(TObject(List[i])));
+    //  {$ENDIF}
+    //  i:=List.Count-1;
+    //  end;
     List.Insert(i+1,NewEl);
   end;
 

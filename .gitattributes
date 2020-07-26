@@ -3842,6 +3842,7 @@ packages/fcl-passrc/examples/pasrewrite.pp svneol=native#text/plain
 packages/fcl-passrc/examples/test_parser.pp svneol=native#text/plain
 packages/fcl-passrc/examples/testunit1.pp svneol=native#text/plain
 packages/fcl-passrc/fpmake.pp svneol=native#text/plain
+packages/fcl-passrc/src/fcl-passrc.inc svneol=native#text/plain
 packages/fcl-passrc/src/pasresolveeval.pas svneol=native#text/plain
 packages/fcl-passrc/src/pasresolver.pp svneol=native#text/plain
 packages/fcl-passrc/src/passrcutil.pp svneol=native#text/plain
