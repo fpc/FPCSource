@@ -1690,12 +1690,16 @@ Unit AoptObj;
                   if (hp1.typ=ait_instruction) and (taicpu(hp1).is_jmp) then
                     RemoveDelaySlot(hp1);
 {$endif cpudelayslot}
-                  if (hp1.typ = ait_align) then
+                  hp2 := hp1;
+                  while (hp2.typ = ait_align) do
                     begin
                       { Only remove the align if a label doesn't immediately follow }
-                      if GetNextInstruction(hp1, hp2) and (hp2.typ = ait_label) then
+                      if GetNextInstruction(hp2, hp2) and (hp2.typ = ait_label) then
                         { The label is unskippable }
                         Exit;
+
+                      { Check again in case there's more than one adjacent alignment entry
+                        (a frequent construct under x86, for example). [Kit] }
                     end;
                   asml.remove(hp1);
                   hp1.free;
