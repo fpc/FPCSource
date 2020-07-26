@@ -3770,6 +3770,7 @@ packages/fcl-json/examples/simpledemo.lpi svneol=native#text/plain
 packages/fcl-json/examples/simpledemo.pp svneol=native#text/plain
 packages/fcl-json/fpmake.pp svneol=native#text/plain
 packages/fcl-json/src/README.txt svneol=native#text/plain
+packages/fcl-json/src/fcl-json.inc svneol=native#text/plain
 packages/fcl-json/src/fpjson.pp svneol=native#text/plain
 packages/fcl-json/src/fpjsonrtti.pp svneol=native#text/plain
 packages/fcl-json/src/fpjsontopas.pp svneol=native#text/plain
