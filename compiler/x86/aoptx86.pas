@@ -105,6 +105,10 @@ unit aoptx86;
         class function CanBeCMOV(p : tai) : boolean; static;
 
 
+        { Converts the LEA instruction to ADD/INC/SUB/DEC. Returns True if the
+          conversion was successful }
+        function ConvertLEA(const p : taicpu): Boolean;
+
         function DeepMOVOpt(const p_mov: taicpu; const hp: taicpu): Boolean;
 
         procedure DebugMsg(const s : string; p : tai);inline;
@@ -1773,6 +1777,62 @@ unit aoptx86;
       end;
 
 
+    function TX86AsmOptimizer.ConvertLEA(const p: taicpu): Boolean;
+      var
+        l: asizeint;
+      begin
+        Result := False;
+
+        { Should have been checked previously }
+        if p.opcode <> A_LEA then
+          InternalError(2020072501);
+
+        { do not mess with the stack point as adjusting it by lea is recommend, except if we optimize for size }
+         if (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG) and
+           not(cs_opt_size in current_settings.optimizerswitches) then
+           exit;
+
+         with p.oper[0]^.ref^ do
+          begin
+            if (base <> p.oper[1]^.reg) or (index <> NR_NO) then
+              Exit(False);
+
+            l:=offset;
+            if (l=1) and UseIncDec then
+              begin
+                p.opcode:=A_INC;
+                p.loadreg(0,p.oper[1]^.reg);
+                p.ops:=1;
+                DebugMsg(SPeepholeOptimization + 'Lea2Inc done',p);
+              end
+            else if (l=-1) and UseIncDec then
+              begin
+                p.opcode:=A_DEC;
+                p.loadreg(0,p.oper[1]^.reg);
+                p.ops:=1;
+                DebugMsg(SPeepholeOptimization + 'Lea2Dec done',p);
+              end
+            else
+              begin
+                if (l<0) and (l<>-2147483648) then
+                  begin
+                    p.opcode:=A_SUB;
+                    p.loadConst(0,-l);
+                    DebugMsg(SPeepholeOptimization + 'Lea2Sub done',p);
+                  end
+                else
+                  begin
+                    p.opcode:=A_ADD;
+                    p.loadConst(0,l);
+                    DebugMsg(SPeepholeOptimization + 'Lea2Add done',p);
+                  end;
+              end;
+          end;
+
+        Result := True;
+      end;
+
+
     function TX86AsmOptimizer.DeepMOVOpt(const p_mov: taicpu; const hp: taicpu): Boolean;
       var
         CurrentReg, ReplaceReg: TRegister;
@@ -2755,14 +2815,59 @@ unit aoptx86;
             AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,usedregs);
             exit;
           end;
+
+        if MatchInstruction(hp1,A_LEA,[S_L{$ifdef x86_64},S_Q{$endif x86_64}]) then
+          begin
+            if MatchOpType(Taicpu(p),top_ref,top_reg) and
+               ((MatchReference(Taicpu(hp1).oper[0]^.ref^,Taicpu(hp1).oper[1]^.reg,Taicpu(p).oper[1]^.reg) and
+                 (Taicpu(hp1).oper[0]^.ref^.base<>Taicpu(p).oper[1]^.reg)
+                ) or
+                (MatchReference(Taicpu(hp1).oper[0]^.ref^,Taicpu(p).oper[1]^.reg,Taicpu(hp1).oper[1]^.reg) and
+                 (Taicpu(hp1).oper[0]^.ref^.index<>Taicpu(p).oper[1]^.reg)
+                )
+               ) then
+               { mov reg1,ref
+                 lea reg2,[reg1,reg2]
+
+                 to
+
+                 add reg2,ref}
+              begin
+                TransferUsedRegs(TmpUsedRegs);
+                { reg1 may not be used afterwards }
+                if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs)) then
+                  begin
+                    Taicpu(hp1).opcode:=A_ADD;
+                    Taicpu(hp1).oper[0]^.ref^:=Taicpu(p).oper[0]^.ref^;
+                    DebugMsg(SPeepholeOptimization + 'MovLea2Add done',hp1);
+                    RemoveCurrentp(p, hp1);
+                    result:=true;
+                    exit;
+                  end;
+              end;
+
+            { If the LEA instruction can be converted into an arithmetic instruction,
+              it may be possible to then fold it in the next optimisation, otherwise
+              there's nothing more that can be optimised here. }
+            if not ConvertLEA(taicpu(hp1)) then
+              Exit;
+
+          end;
+
         if (taicpu(p).oper[1]^.typ = top_reg) and
           (hp1.typ = ait_instruction) and
           GetNextInstruction(hp1, hp2) and
           MatchInstruction(hp2,A_MOV,[]) and
           (SuperRegistersEqual(taicpu(hp2).oper[0]^.reg,taicpu(p).oper[1]^.reg)) and
-          (IsFoldableArithOp(taicpu(hp1), taicpu(p).oper[1]^.reg) or
-           ((taicpu(p).opsize=S_L) and (taicpu(hp1).opsize=S_Q) and (taicpu(hp2).opsize=S_L) and
-            IsFoldableArithOp(taicpu(hp1), newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[1]^.reg),R_SUBQ)))
+          (
+            IsFoldableArithOp(taicpu(hp1), taicpu(p).oper[1]^.reg)
+{$ifdef x86_64}
+            or
+            (
+              (taicpu(p).opsize=S_L) and (taicpu(hp1).opsize=S_Q) and (taicpu(hp2).opsize=S_L) and
+              IsFoldableArithOp(taicpu(hp1), newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[1]^.reg),R_SUBQ))
+            )
+{$endif x86_64}
           ) then
           begin
             if OpsEqual(taicpu(hp2).oper[1]^, taicpu(p).oper[0]^) and
@@ -2911,6 +3016,7 @@ unit aoptx86;
                     hp2.Free;
                   end;
               end;
+
           end;
         if MatchInstruction(hp1,A_BTS,A_BTR,[Taicpu(p).opsize]) and
           GetNextInstruction(hp1, hp2) and
@@ -2931,37 +3037,6 @@ unit aoptx86;
             p:=hp1;
             Result:=true;
             exit;
-          end;
-
-        if MatchInstruction(hp1,A_LEA,[S_L]) and
-           MatchOpType(Taicpu(p),top_ref,top_reg) and
-           ((MatchReference(Taicpu(hp1).oper[0]^.ref^,Taicpu(hp1).oper[1]^.reg,Taicpu(p).oper[1]^.reg) and
-             (Taicpu(hp1).oper[0]^.ref^.base<>Taicpu(p).oper[1]^.reg)
-            ) or
-            (MatchReference(Taicpu(hp1).oper[0]^.ref^,Taicpu(p).oper[1]^.reg,Taicpu(hp1).oper[1]^.reg) and
-             (Taicpu(hp1).oper[0]^.ref^.index<>Taicpu(p).oper[1]^.reg)
-            )
-           ) then
-           { mov reg1,ref
-             lea reg2,[reg1,reg2]
-
-             to
-
-             add reg2,ref}
-          begin
-            TransferUsedRegs(TmpUsedRegs);
-            { reg1 may not be used afterwards }
-            if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs)) then
-              begin
-                Taicpu(hp1).opcode:=A_ADD;
-                Taicpu(hp1).oper[0]^.ref^:=Taicpu(p).oper[0]^.ref^;
-                DebugMsg(SPeepholeOptimization + 'MovLea2Add done',hp1);
-                asml.remove(p);
-                p.free;
-                p:=hp1;
-                result:=true;
-                exit;
-              end;
           end;
       end;
 
@@ -3074,65 +3149,36 @@ unit aoptx86;
            (taicpu(p).oper[1]^.reg <> NR_STACK_POINTER_REG) and
            (not(Assigned(taicpu(p).oper[0]^.ref^.Symbol))) then
           begin
-            if (taicpu(p).oper[0]^.ref^.base <> taicpu(p).oper[1]^.reg) and
-               (taicpu(p).oper[0]^.ref^.offset = 0) then
+            if (taicpu(p).oper[0]^.ref^.offset = 0) then
               begin
-                hp1:=taicpu.op_reg_reg(A_MOV,taicpu(p).opsize,taicpu(p).oper[0]^.ref^.base,
-                  taicpu(p).oper[1]^.reg);
-                InsertLLItem(p.previous,p.next, hp1);
-                DebugMsg(SPeepholeOptimization + 'Lea2Mov done',hp1);
-                p.free;
-                p:=hp1;
-                Result:=true;
-                exit;
-              end
-            else if (taicpu(p).oper[0]^.ref^.offset = 0) then
-              begin
-                DebugMsg(SPeepholeOptimization + 'Lea2Nop done',p);
-                RemoveCurrentP(p);
-                Result:=true;
-                exit;
-              end
-            { continue to use lea to adjust the stack pointer,
-              it is the recommended way, but only if not optimizing for size }
-            else if (taicpu(p).oper[1]^.reg<>NR_STACK_POINTER_REG) or
-              (cs_opt_size in current_settings.optimizerswitches) then
-              with taicpu(p).oper[0]^.ref^ do
-                if (base = taicpu(p).oper[1]^.reg) then
+                if (taicpu(p).oper[0]^.ref^.base <> taicpu(p).oper[1]^.reg) then
                   begin
-                    l:=offset;
-                    if (l=1) and UseIncDec then
-                      begin
-                        taicpu(p).opcode:=A_INC;
-                        taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
-                        taicpu(p).ops:=1;
-                        DebugMsg(SPeepholeOptimization + 'Lea2Inc done',p);
-                      end
-                    else if (l=-1) and UseIncDec then
-                      begin
-                        taicpu(p).opcode:=A_DEC;
-                        taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
-                        taicpu(p).ops:=1;
-                        DebugMsg(SPeepholeOptimization + 'Lea2Dec done',p);
-                      end
-                    else
-                      begin
-                        if (l<0) and (l<>-2147483648) then
-                          begin
-                            taicpu(p).opcode:=A_SUB;
-                            taicpu(p).loadConst(0,-l);
-                            DebugMsg(SPeepholeOptimization + 'Lea2Sub done',p);
-                          end
-                        else
-                          begin
-                            taicpu(p).opcode:=A_ADD;
-                            taicpu(p).loadConst(0,l);
-                            DebugMsg(SPeepholeOptimization + 'Lea2Add done',p);
-                          end;
-                      end;
-                    Result:=true;
-                    exit;
+                    hp1:=taicpu.op_reg_reg(A_MOV,taicpu(p).opsize,taicpu(p).oper[0]^.ref^.base,
+                      taicpu(p).oper[1]^.reg);
+                    InsertLLItem(p.previous,p.next, hp1);
+                    DebugMsg(SPeepholeOptimization + 'Lea2Mov done',hp1);
+                    p.free;
+                    p:=hp1;
+                  end
+                else
+                  begin
+                    DebugMsg(SPeepholeOptimization + 'Lea2Nop done',p);
+                    RemoveCurrentP(p);
                   end;
+                Result:=true;
+                exit;
+              end
+            else if (
+              { continue to use lea to adjust the stack pointer,
+                it is the recommended way, but only if not optimizing for size }
+                (taicpu(p).oper[1]^.reg<>NR_STACK_POINTER_REG) or
+                (cs_opt_size in current_settings.optimizerswitches)
+              ) and
+              ConvertLEA(taicpu(p)) then
+              begin
+                Result:=true;
+                exit;
+              end;
           end;
         if GetNextInstruction(p,hp1) and
           MatchInstruction(hp1,A_MOV,[taicpu(p).opsize]) and
@@ -4617,70 +4663,6 @@ unit aoptx86;
 *)
                   end;
               end;
-          end
-        else if (taicpu(p).oper[0]^.typ = top_ref) and
-          (hp1.typ = ait_instruction) and
-          { while the GetNextInstruction(hp1,hp2) call could be factored out,
-            doing it separately in both branches allows to do the cheap checks
-            with low probability earlier }
-          ((IsFoldableArithOp(taicpu(hp1),taicpu(p).oper[1]^.reg) and
-            GetNextInstruction(hp1,hp2) and
-            MatchInstruction(hp2,A_MOV,[])
-           ) or
-           ((taicpu(hp1).opcode=A_LEA) and
-             GetNextInstruction(hp1,hp2) and
-             MatchInstruction(hp2,A_MOV,[]) and
-            ((MatchReference(taicpu(hp1).oper[0]^.ref^,taicpu(p).oper[1]^.reg,NR_INVALID) and
-             (taicpu(hp1).oper[0]^.ref^.index<>taicpu(p).oper[1]^.reg)
-              ) or
-             (MatchReference(taicpu(hp1).oper[0]^.ref^,NR_INVALID,
-              taicpu(p).oper[1]^.reg) and
-             (taicpu(hp1).oper[0]^.ref^.base<>taicpu(p).oper[1]^.reg)) or
-             (MatchReferenceWithOffset(taicpu(hp1).oper[0]^.ref^,taicpu(p).oper[1]^.reg,NR_NO)) or
-             (MatchReferenceWithOffset(taicpu(hp1).oper[0]^.ref^,NR_NO,taicpu(p).oper[1]^.reg))
-            ) and
-            ((MatchOperand(taicpu(p).oper[1]^,taicpu(hp2).oper[0]^)) or not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,UsedRegs)))
-           )
-          ) and
-          MatchOperand(taicpu(hp1).oper[taicpu(hp1).ops-1]^,taicpu(hp2).oper[0]^) and
-          (taicpu(hp2).oper[1]^.typ = top_ref) then
-          begin
-            TransferUsedRegs(TmpUsedRegs);
-            UpdateUsedRegs(TmpUsedRegs,tai(p.next));
-            UpdateUsedRegs(TmpUsedRegs,tai(hp1.next));
-            if (RefsEqual(taicpu(hp2).oper[1]^.ref^,taicpu(p).oper[0]^.ref^) and
-              not(RegUsedAfterInstruction(taicpu(hp2).oper[0]^.reg,hp2,TmpUsedRegs))) then
-              { change   mov            (ref), reg
-                         add/sub/or/... reg2/$const, reg
-                         mov            reg, (ref)
-                         # release reg
-                to       add/sub/or/... reg2/$const, (ref)    }
-              begin
-                case taicpu(hp1).opcode of
-                  A_INC,A_DEC,A_NOT,A_NEG :
-                    taicpu(hp1).loadRef(0,taicpu(p).oper[0]^.ref^);
-                  A_LEA :
-                    begin
-                      taicpu(hp1).opcode:=A_ADD;
-                      if (taicpu(hp1).oper[0]^.ref^.index<>taicpu(p).oper[1]^.reg) and (taicpu(hp1).oper[0]^.ref^.index<>NR_NO) then
-                        taicpu(hp1).loadreg(0,taicpu(hp1).oper[0]^.ref^.index)
-                      else if (taicpu(hp1).oper[0]^.ref^.base<>taicpu(p).oper[1]^.reg) and (taicpu(hp1).oper[0]^.ref^.base<>NR_NO) then
-                        taicpu(hp1).loadreg(0,taicpu(hp1).oper[0]^.ref^.base)
-                      else
-                        taicpu(hp1).loadconst(0,taicpu(hp1).oper[0]^.ref^.offset);
-                      taicpu(hp1).loadRef(1,taicpu(p).oper[0]^.ref^);
-                      DebugMsg(SPeepholeOptimization + 'FoldLea done',hp1);
-                    end
-                  else
-                    taicpu(hp1).loadRef(1,taicpu(p).oper[0]^.ref^);
-                end;
-                asml.remove(p);
-                asml.remove(hp2);
-                p.free;
-                hp2.free;
-                p := hp1
-              end;
-            Exit;
 {$ifdef x86_64}
           end
         else if (taicpu(p).opsize = S_L) and
@@ -5382,7 +5364,14 @@ unit aoptx86;
         reg_and_hp1_is_instr:=(taicpu(p).oper[1]^.typ = top_reg) and
           GetNextInstruction(p,hp1) and
           (hp1.typ = ait_instruction);
+
         if reg_and_hp1_is_instr and
+          (
+            (taicpu(hp1).opcode <> A_LEA) or
+            { If the LEA instruction can be converted into an arithmetic instruction,
+              it may be possible to then fold it. }
+            ConvertLEA(taicpu(hp1))
+          ) and
           IsFoldableArithOp(taicpu(hp1),taicpu(p).oper[1]^.reg) and
           GetNextInstruction(hp1,hp2) and
           MatchInstruction(hp2,A_MOV,[]) and
