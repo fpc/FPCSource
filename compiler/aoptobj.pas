@@ -2163,8 +2163,8 @@ Unit AoptObj;
         tmp, hp1: tai;
       begin
         Result := False;
-        hp1 := tai(p.Next);
-        tmp := hp1; { Might be an align before the label, so keep a note of it }
+        if not GetNextInstruction(p,hp1) then
+          exit;
         if (hp1 = BlockEnd) then
           Exit;
 
@@ -2178,6 +2178,7 @@ Unit AoptObj;
 {$ifdef cpudelayslot}
             RemoveDelaySlot(p);
 {$endif cpudelayslot}
+            tmp := tai(p.Next); { Might be an align before the label, so keep a note of it }
             asml.remove(p);
             p.free;
 
