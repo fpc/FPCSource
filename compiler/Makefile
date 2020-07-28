@@ -4193,7 +4193,7 @@ ifdef CMP
 override DIFF:=$(CMP) -i218
 endif
 endif
-ifeq ($(findstring 2.4.,$(FPC_VERSION)),)
+ifneq ($(CYCLELEVEL),1)
 ifndef ALLOW_WARNINGS
 override LOCALOPT+=-Sew
 endif
