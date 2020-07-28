@@ -465,6 +465,12 @@ var
 begin
   if (TCGSize2Size[fromsize] < TCGSize2Size[tosize]) then
     a_load_reg_reg(list,fromsize,tosize,reg,reg);
+  if (ref.alignment<>0) and
+     (ref.alignment<tcgsize2size[tosize]) then
+    begin
+      a_load_reg_ref_unaligned(list,FromSize,ToSize,reg,ref);
+      exit;
+    end;
   case tosize of
     OS_8,
     OS_S8:
@@ -491,6 +497,12 @@ var
 begin
   if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
     fromsize := tosize;
+  if (ref.alignment<>0) and
+     (ref.alignment<tcgsize2size[fromsize]) then
+     begin
+       a_load_ref_reg_unaligned(list,FromSize,ToSize,ref,reg);
+       exit;
+     end;
   case fromsize of
     OS_S8:
       Op := A_LB;{Load Signed Byte}
