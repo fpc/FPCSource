@@ -874,7 +874,11 @@ Implementation
             not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
             begin
               DebugMsg('Peephole AndStrb2Strb done', p);
+{$ifdef AARCH64}
+              taicpu(hp1).loadReg(0,newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[1]^.reg),R_SUBD));
+{$else AARCH64}
               taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
+{$endif AARCH64}
               AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
               RemoveCurrentP(p);
               result:=true;
