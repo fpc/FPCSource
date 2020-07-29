@@ -37,7 +37,8 @@ interface
     ,cutils
     ,cpubase
     ,fmodule
-    ,verbose, itcpuwasm;
+    ,verbose, itcpuwasm
+    ,cfileutl;
 
   type
      TWatInstrWriter = class;
@@ -74,6 +75,7 @@ interface
        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
        procedure WriteTree(p:TAsmList);override;
        procedure WriteAsmList;override;
+       Function  DoAssemble:boolean;override;
      end;
 
 
@@ -611,6 +613,15 @@ implementation
         writer.AsmWriteLn(')');
 
         writer.AsmLn;
+      end;
+
+    function TWabtTextAssembler.DoAssemble: boolean;
+      begin
+        Result:=inherited DoAssemble;
+        // the tool updates the symbol flags, so the linker
+        // is capable of producing an executable
+        if Result then 
+          RequotedExecuteProcess('wasmtool',' --symbolauto '+ObjFileName);
       end;
 
     constructor TWabtTextAssembler.CreateWithWriter(info: pasminfo;
