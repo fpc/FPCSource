@@ -16394,7 +16394,8 @@ var
   var
     Last: TPasElement;
     i, LastIndex: Integer;
-    LastScope: TPasGenericScope;
+    GenScope: TPasGenericScope;
+    ProcScope: TPasProcedureScope;
   begin
     // insert in front of currently parsed elements
     // beware: specializing an element can create other specialized elements
@@ -16413,21 +16414,35 @@ var
         Last:=TPRSpecializedItem(SpecializedItems[i]).SpecializedEl;
       end;
     LastIndex:=List.IndexOf(Last);
-    if LastIndex<0 then
-      RaiseNotYetImplemented(20200725093218,El);
+    if (LastIndex<0) then
+      if GenericEl is TPasProcedure then
+      else
+        RaiseNotYetImplemented(20200725093218,El);
     i:=List.Count-1;
     while i>LastIndex do
       begin
       Last:=TPasElement(List[i]);
-      if not (Last is TPasGenericType) then break;
-      if (Last.CustomData<>nil) then
+      if Last is TPasGenericType then
         begin
-        LastScope:=Last.CustomData as TPasGenericScope;
-        if LastScope.GenericStep>=psgsInterfaceParsed then
-          break;
-        end;
-      // type is still parsed => insert in front
-      dec(i);
+        if (Last.CustomData<>nil) then
+          begin
+          GenScope:=Last.CustomData as TPasGenericScope;
+          if GenScope.GenericStep>=psgsInterfaceParsed then
+            break; // finished generic type
+          end;
+        // type is still parsed => insert in front
+        dec(i);
+        end
+      else if Last is TPasProcedure then
+        begin
+        ProcScope:=Last.CustomData as TPasProcedureScope;
+        if ProcScope.GenericStep>=psgsInterfaceParsed then
+          break; // finished generic proc
+        // proc is still parsed => insert in front
+        dec(i);
+        end
+      else
+        break;
       end;
 
     //if i<0 then
