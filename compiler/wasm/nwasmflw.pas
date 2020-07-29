@@ -81,6 +81,7 @@ var
    oldclabel,oldblabel : tasmlabel;
    truelabel,falselabel : tasmlabel;
    oldflowcontrol : tflowcontrol;
+   oldloopbroffset: Integer;
 begin
   location_reset(location,LOC_VOID,OS_NO);
 
@@ -89,6 +90,8 @@ begin
   current_asmdata.getjumplabel(lbreak);
 
   oldflowcontrol:=flowcontrol;
+
+  oldloopbroffset:=thlcgwasm(hlcg).loopContBr;
   oldclabel:=current_procinfo.CurrContinueLabel;
   oldblabel:=current_procinfo.CurrBreakLabel;
 
@@ -99,7 +102,11 @@ begin
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_loop));
 
   if lnf_testatbegin in loopflags then
+  begin
     pass_generate_code_condition;
+    thlcgwasm(hlcg).loopContBr:=1;
+  end else
+    thlcgwasm(hlcg).loopContBr:=0;
 
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
 
@@ -122,6 +129,8 @@ begin
 
   current_procinfo.CurrContinueLabel:=oldclabel;
   current_procinfo.CurrBreakLabel:=oldblabel;
+  thlcgwasm(hlcg).loopContBr:=oldloopbroffset;
+
   { a break/continue in a while/repeat block can't be seen outside }
   flowcontrol:=oldflowcontrol+(flowcontrol-[fc_break,fc_continue,fc_inflowcontrol]);
 
