@@ -837,7 +837,7 @@ implementation
       if not Assigned(hp) then Exit;
 
       // writting out table, so wat2wasm can create reallocation symbols
-      writer.AsmWrite(#9'(table 0 funcref)');
+      writer.AsmWrite(#9'(table 0 anyfunc)');
       writer.AsmWriteLn(#9'(elem 0 (i32.const 0) ');
       while Assigned(hp) do begin
         case hp.typ of
