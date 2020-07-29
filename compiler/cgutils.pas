@@ -107,11 +107,7 @@ unit cgutils;
          checkcast: boolean;
 {$endif jvm}
 {$ifdef wasm}
-        //arrayreftype: tarrayreftype;
-        //indexbase: tregister;
-        //indexsymbol: tasmsymbol;
-        //indexoffset: aint;
-        //checkcast: boolean;
+        islocal: boolean;  // true (local variable), false (memory offset)
 {$endif wasm}
          volatility: tvolatilityset;
          alignment : byte;

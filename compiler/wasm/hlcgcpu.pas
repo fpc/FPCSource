@@ -1003,12 +1003,17 @@ implementation
       // setting up memory offset
       if assigned(ref.symbol) then
         list.Concat(taicpu.op_sym(a_get_global, ref.symbol))
+      else if ref.index <> NR_NO then // array access
+      begin
+        // it's just faster to sum two of those together
+        list.Concat(taicpu.op_reg(a_get_local, ref.base));
+        list.Concat(taicpu.op_reg(a_get_local, ref.index));
+        list.Concat(taicpu.op_none(a_i32_add));
+        exit;
+      end
       else
         list.Concat(taicpu.op_const(a_i32_const, 0)); //todo: this should not be 0, this should be reference to a global "memory"
 
-        { non-array accesses cannot have an index reg }
-        if ref.index<>NR_NO then
-          internalerror(2010120509);
         if (ref.base<>NR_NO) then
           begin
             if (ref.base<>NR_STACK_POINTER_REG) then
@@ -1023,9 +1028,6 @@ implementation
                     incstack(list,1);
                   end;
                 { field name/type encoded in symbol, no index/offset }
-                if not assigned(ref.symbol) or
-                   (ref.offset<>0) then
-                  internalerror(2010120524);
                 result:=1;
               end
             else
@@ -1042,7 +1044,6 @@ implementation
             {if not assigned(ref.symbol) or
                (ref.offset<>0) then
             begin
-              Dump_Stack(output, 0); //ncgld
               internalerror(2010120525);
             end;}
           end;
@@ -1920,8 +1921,8 @@ implementation
       list.concat(taicpu.op_reg(opc,reg));
       { avoid problems with getting the size of an open array etc }
       if wasmimplicitpointertype(size) then
-        size:=java_jlobject;
-      decstack(list,1+ord(size.size>4));
+        size:=ptruinttype;
+      decstack(list,1);
     end;
 
   procedure thlcgwasm.a_load_stack_ref(list: TAsmList; size: tdef; const ref: treference; extra_slots: longint);
@@ -1937,8 +1938,8 @@ implementation
       list.concat(taicpu.op_ref(opc,ref));
       { avoid problems with getting the size of an open array etc }
       if wasmimplicitpointertype(size) then
-        size:=java_jlobject;
-      decstack(list,1+ord(size.size>4)+extra_slots);
+        size:=ptruinttype;
+      decstack(list,1+extra_slots);
     end;
 
   procedure thlcgwasm.a_load_reg_stack(list: TAsmList; size: tdef; reg: tregister);
@@ -1950,8 +1951,8 @@ implementation
       list.concat(taicpu.op_reg(opc,reg));
       { avoid problems with getting the size of an open array etc }
       if wasmimplicitpointertype(size) then
-        size:=java_jlobject;
-      incstack(list,1+ord(size.size>4));
+        size:=ptruinttype;
+      incstack(list,1);
       if finishandval<>-1 then
         a_op_const_stack(list,OP_AND,size,finishandval);
     end;
@@ -1970,8 +1971,8 @@ implementation
 
       { avoid problems with getting the size of an open array etc }
       if wasmimplicitpointertype(size) then
-        size:=java_jlobject;
-      incstack(list,1+ord(size.size>4)-extra_slots);
+        size:=ptruinttype;
+      incstack(list,1-extra_slots);
       if finishandval<>-1 then
         a_op_const_stack(list,OP_AND,size,finishandval);
 
@@ -1990,32 +1991,27 @@ implementation
       getputmemf32 : array [boolean] of TAsmOp = (a_f32_store, a_f32_load);
       getputmemf64 : array [boolean] of TAsmOp = (a_f64_store, a_f64_load);
     begin
-      if assigned(ref.symbol) then
+      if (not ref.islocal) or assigned(ref.symbol) then
         begin
           { -> either a global (static) field, or a regular field. If a regular
             field, then ref.base contains the self pointer, otherwise
             ref.base=NR_NO. In both cases, the symbol contains all other
             information (combined field name and type descriptor) }
-          if ref.base = NR_NO then begin
-            case def.size of
-              1: result := getputmem8[isload, is_signed(def)];
-              2: result := getputmem16[isload, is_signed(def)];
-              4:
-                if is_single(def) then
-                  result := getputmemf32[isload]
-                else
-                  result := getputmem32[isload, is_signed(def)];
-              8: if is_double(def) then
-                   result := getputmemf64[isload]
-                 else
-                  result := getputmem64[isload, is_signed(def)];
-            else
-              Internalerror(201909150001);
-            end;
-          end else if isload then
-            result := a_set_local
+          case def.size of
+            1: result := getputmem8[isload, is_signed(def)];
+            2: result := getputmem16[isload, is_signed(def)];
+            4:
+              if is_single(def) then
+                result := getputmemf32[isload]
+              else
+                result := getputmem32[isload, is_signed(def)];
+            8: if is_double(def) then
+                 result := getputmemf64[isload]
+               else
+                result := getputmem64[isload, is_signed(def)];
           else
-            result := a_get_local;
+            Internalerror(201909150001);
+          end;
 
           //result:=getputopc[isload,ref.base=NR_NO];
           finishandval:=-1;
@@ -2226,7 +2222,7 @@ implementation
       ref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
       tg.gethltemp(list,vs.vardef,vs.vardef.size,tt_persistent,tmpref);
       { only copy the reference, not the actual data }
-      a_load_ref_ref(list,java_jlobject,java_jlobject,tmpref,ref);
+      a_load_ref_ref(list,ptruinttype,java_jlobject,tmpref,ref);
       { remains live since there's still a reference to the created
         entity }
       tg.ungettemp(list,tmpref);
@@ -2237,7 +2233,7 @@ implementation
     begin
       destbaseref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
       { only copy the reference, not the actual data }
-      a_load_ref_ref(list,java_jlobject,java_jlobject,initref,destbaseref);
+      a_load_ref_ref(list,ptruinttype,java_jlobject,initref,destbaseref);
     end;
 
 

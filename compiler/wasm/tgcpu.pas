@@ -395,6 +395,7 @@ unit tgcpu;
       begin
         t.val:=idx;
         reference_reset_base(ref, current_procinfo.framepointer,idx,t,size,[]);
+        ref.islocal := true;
         updateFirstTemp;
       end;
 
