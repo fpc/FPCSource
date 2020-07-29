@@ -554,7 +554,7 @@ implementation
         end;
         writer.MarkEmpty;
         writer.AsmWriteLn('(module ');
-        writer.AsmWriteLn('(memory 32768) ;; todo: this should be imported or based on the directives ');
+        writer.AsmWriteLn('(import "env" "memory" (memory 0)) ;;');
 
         { print all global variables }
         //current_asmdata.AsmSymbolDict
@@ -636,7 +636,7 @@ implementation
                  writer.AsmWrite(#9);
                  writer.AsmWrite('(global $');
                  writer.AsmWrite(tcpustaticvarsym(sym).mangledname);
-                 writer.AsmWrite(' i32 (i32.const ');
+                 writer.AsmWrite(' (mut i32) (i32.const ');
                  writer.AsmWrite( tostr(sz));
                  writer.AsmWrite(')');
                  writer.AsmWrite(') ');
