@@ -46,7 +46,6 @@ end;
 
 function tlinkerwasm.MakeSharedLibrary: boolean;
 begin
-  writeln('tlinkerwasm.MakeSharedLibrary');
   Result := true;
   //Result:=inherited MakeSharedLibrary;
 end;
