@@ -49,6 +49,10 @@ interface
 
      TWabtTextAssembler=class(texternalassembler)
      protected
+       dataofs  : integer;
+
+       procedure WriteOutGlobalInt32(const aname: string; val: integer; isconst: boolean = true);
+
        procedure WriteInstruction(hp: tai);
        procedure WriteProcDef(pd: tprocdef);
        procedure WriteProcParams(pd: tprocdef);
@@ -58,6 +62,10 @@ interface
        procedure WriteTempAlloc(p:TAsmList);
        procedure WriteExports(p: TAsmList);
        procedure WriteImports;
+
+       procedure WriteOutPChar(p: pchar; ofs, len: integer);
+       procedure WriteConstString(lbl: tai_label; str: tai_string);
+       procedure WriteConstants(p: TAsmList);
      public
        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
        procedure WriteTree(p:TAsmList);override;
@@ -200,6 +208,22 @@ implementation
       end;
 
   { TWabtTextAssembler }
+
+                procedure TWabtTextAssembler.WriteOutGlobalInt32(const aname: string;
+          val: integer; isconst: boolean);
+          begin
+             writer.AsmWrite(#9);
+             writer.AsmWrite('(global $');
+             writer.AsmWrite(aname);
+             if not isconst then
+               writer.AsmWrite(' (mut i32)')
+             else
+               writer.AsmWrite(' i32');
+             writer.AsmWrite(' (i32.const ');
+             writer.AsmWrite( tostr(val));
+             writer.AsmWrite(')');
+             writer.AsmWriteLn(')');
+          end;
 
     procedure TWabtTextAssembler.WriteInstruction(hp: tai);
     var
@@ -556,6 +580,10 @@ implementation
         writer.AsmWriteLn('(module ');
         writer.AsmWriteLn('(import "env" "memory" (memory 0)) ;;');
         WriteImports;
+        WriteConstants(current_asmdata.asmlists[al_const]);
+        WriteConstants(current_asmdata.asmlists[al_typedconsts]);
+
+        //current_asmdata.CurrAsmList.labe
 
         { print all global variables }
         //current_asmdata.AsmSymbolDict
@@ -620,12 +648,10 @@ implementation
       var
         i : integer;
         sym : tsym;
-        sz  : integer;
       begin
         if not assigned(st) then
           exit;
 
-        sz := 0;
         for i:=0 to st.SymList.Count-1 do
          begin
            sym:=tsym(st.SymList[i]);
@@ -636,15 +662,8 @@ implementation
                  //if (sym.typ=staticvarsym) and
                  //   assigned(tstaticvarsym(sym).defaultconstsym) then
                  //  WriteFieldSym(tabstractvarsym(tstaticvarsym(sym).defaultconstsym));
-                 writer.AsmWrite(#9);
-                 writer.AsmWrite('(global $');
-                 writer.AsmWrite(tcpustaticvarsym(sym).mangledname);
-                 writer.AsmWrite(' (mut i32) (i32.const ');
-                 writer.AsmWrite( tostr(sz));
-                 writer.AsmWrite(')');
-                 writer.AsmWrite(') ');
-                 writer.AsmWriteLn(';; static or field');
-                 inc(sz, tcpustaticvarsym(sym).getsize);
+                 WriteOutGlobalInt32(tcpustaticvarsym(sym).mangledname, dataofs);
+                 inc(dataofs, tcpustaticvarsym(sym).getsize);
                end;
              fieldvarsym:
                begin
@@ -779,6 +798,72 @@ implementation
               writer.AsmWriteLn(')');
             end;
           end;
+        end;
+      end;
+
+    procedure TWabtTextAssembler.WriteOutPChar(p: pchar; ofs, len: integer);
+        var
+          i : integer;
+          s : string;
+          ch : char;
+        begin
+          for i:=ofs to ofs+len-1 do begin
+               ch:=p[i];
+               case ch of
+                #0, {This can't be done by range, because a bug in FPC}
+                #1..#31,
+                #128..#255 : s:='\'+tostr(ord(ch) shr 6)+tostr((ord(ch) and 63) shr 3)+tostr(ord(ch) and 7);
+                '"' : s:='\"';
+                '\' : s:='\\';
+                else
+                  s:=ch;
+                end;
+                writer.AsmWrite(s);
+            end;
+        end;
+
+        procedure TWabtTextAssembler.WriteConstString(lbl: tai_label;
+            str: tai_string);
+          var
+            i : integer;
+            ch : char;
+            s : string;
+          begin
+            WriteOutGlobalInt32(lbl.labsym.Name, dataofs);
+            // (data (get_global $test) "00")
+            writer.AsmWrite(#9);
+            writer.AsmWrite('(data (i32.const ');
+            writer.AsmWrite(tostr(dataOfs));
+            writer.AsmWrite(') "');
+            // can be broken apart in multiple data() if needs to be
+            WriteOutPChar(str.str, 0, str.len);
+            writer.AsmWrite('"');
+            writer.AsmWriteLn(') ;; value of '+ lbl.labsym.Name);
+            inc(dataofs, str.len);
+          end;
+
+    procedure TWabtTextAssembler.WriteConstants(p: TAsmList);
+      var
+        i : integer;
+        hp : tai;
+        dt : tai;
+      begin
+        //WriteTree(p);
+        hp:=tai(p.First);
+        while Assigned(hp) do begin
+          if (hp.typ = ait_label) then begin
+            dt:=tai(hp.Next);
+            if Assigned(dt) then begin
+              case dt.typ of
+                ait_string:
+                begin
+                  WriteConstString(tai_label(hp), tai_string(dt));
+                  hp:=dt;
+                end;
+              end;
+            end;
+          end;
+          hp:=tai(hp.Next);
         end;
       end;
 
