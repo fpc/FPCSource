@@ -675,12 +675,17 @@ implementation
       end;
 
     function TWabtTextAssembler.DoAssemble: boolean;
+    var
+      t : tcmdstr;
       begin
         Result:=inherited DoAssemble;
         // the tool updates the symbol flags, so the linker
         // is capable of producing an executable
-        if Result then 
-          RequotedExecuteProcess('wasmtool',' --symbolauto '+ObjFileName);
+        if Result then
+          if FindExe('wasmtool',true,t) then 
+            RequotedExecuteProcess(t,' --symbolauto '+ObjFileName)
+          else
+            Message1(exec_e_util_not_found,'wasmtool');
       end;
 
     constructor TWabtTextAssembler.CreateWithWriter(info: pasminfo;
