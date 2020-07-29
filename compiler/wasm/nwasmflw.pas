@@ -111,7 +111,6 @@ begin
   if (lnf_testatbegin in loopflags) then
     current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1) ); // jump back to the external loop
 
-  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('end of internal loop block')));
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end));
   if not (lnf_testatbegin in loopflags) then begin
     pass_generate_code_condition;
