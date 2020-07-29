@@ -75,6 +75,24 @@ uses
         { nothing to add }
       end;
 
+      TImpExpType= (
+        ie_Func,   // functions
+        ie_Table,  // tables (arrays of methods)
+        ie_Memory, // memory reference
+        ie_Global  // global variables
+      );
+
+      // the actual use is defined by the assembly section used
+
+      { timpexp_ai }
+
+      tai_impexp = class(tai)
+        extname : ansistring; // external name
+        intname : ansistring; // internal name
+        symstype: TImpExpType;
+        constructor create(const aextname, aintname: ansistring; asymtype: timpexptype);
+      end;
+
     procedure InitAsm;
     procedure DoneAsm;
 
@@ -82,6 +100,17 @@ uses
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
 implementation
+
+    { timpexp_ai }
+
+        constructor tai_impexp.create(const aextname, aintname: ansistring;
+      asymtype: timpexptype);
+    begin
+      inherited create;
+      typ := ait_importexport;
+      extname := aextname;
+      intname := aintname;
+    end;
 
 {*****************************************************************************
                                  taicpu Constructors

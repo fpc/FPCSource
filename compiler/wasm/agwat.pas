@@ -55,6 +55,7 @@ interface
        procedure WriteProcResult(pd: tprocdef);
        procedure WriteSymtableProcdefs(st: TSymtable);
        procedure WriteTempAlloc(p:TAsmList);
+       procedure WriteExports(p: TAsmList);
      public
        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
        procedure WriteTree(p:TAsmList);override;
@@ -562,6 +563,8 @@ implementation
         WriteSymtableProcdefs(current_module.globalsymtable);
         WriteSymtableProcdefs(current_module.localsymtable);
 
+        WriteExports(current_asmdata.asmlists[al_exports]);
+
         //WriteSymtableStructDefs(current_module.globalsymtable);
         //WriteSymtableStructDefs(current_module.localsymtable);
         //writer.decorator.LinePrefix := '';
@@ -665,6 +668,34 @@ implementation
           end;
 
       end;
+
+    procedure TWabtTextAssembler.WriteExports(p: TAsmList);
+    var
+      hp: tai;
+      x: tai_impexp;
+    begin
+      if not Assigned(p) then Exit;
+      hp:=tai(p.First);
+      while Assigned(hp) do begin
+        case hp.typ of
+          ait_importexport:
+          begin
+            x:=tai_impexp(hp);
+            writer.AsmWrite('(export "');
+            writer.AsmWrite(x.extname);
+            writer.AsmWrite('" (');
+            case x.symstype of
+              ie_Func: writer.AsmWrite('func');
+            end;
+            writer.AsmWrite(' ');
+            writer.AsmWrite(GetWasmName(x.intname));
+            writer.AsmWrite('))');
+            writer.AsmLn;
+          end;
+        end;
+        hp := tai_impexp(hp.Next);
+      end;
+    end;
 
 
 { TWatInstrWriter }
