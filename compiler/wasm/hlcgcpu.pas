@@ -1021,20 +1021,15 @@ implementation
         exit;
 
       // setting up memory offset
-      if assigned(ref.symbol) then
-        list.Concat(taicpu.op_sym(a_get_global, ref.symbol))
-      else if ref.index <> NR_NO then // array access
+      if assigned(ref.symbol) then begin
+        list.Concat(taicpu.op_sym(a_get_global, ref.symbol));
+      end else if ref.index <> NR_NO then // array access
       begin
         // it's just faster to sum two of those together
         list.Concat(taicpu.op_reg(a_get_local, ref.base));
         list.Concat(taicpu.op_reg(a_get_local, ref.index));
         list.Concat(taicpu.op_none(a_i32_add));
-        exit;
-      end
-      else
-        list.Concat(taicpu.op_const(a_i32_const, 0)); //todo: this should not be 0, this should be reference to a global "memory"
-
-        if (ref.base<>NR_NO) then
+      end else if (ref.base<>NR_NO) then
           begin
             if (ref.base<>NR_STACK_POINTER_REG) then
               begin
@@ -1050,12 +1045,9 @@ implementation
                 { field name/type encoded in symbol, no index/offset }
                 result:=1;
               end
-            else
+            else // if (ref.base = NR_FRAME_POINTER_REG) then
               begin
-                { local variable -> offset encoded in opcode and nothing to
-                  do here, except for checking that it's a valid reference }
-                if assigned(ref.symbol) then
-                  internalerror(2010120523);
+                list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol('fp',AT_ADDR) ));
               end;
           end
         else
@@ -1618,16 +1610,34 @@ implementation
     begin
       { the localsize is based on tg.lasttemp -> already in terms of stack
         slots rather than bytes }
-      list.concat(tai_directive.Create(asd_jlimit,'locals '+tostr(localsize)));
+      //list.concat(tai_directive.Create(asd_jlimit,'locals '+tostr(localsize)));
       { we insert the unit initialisation code afterwards in the proginit code,
         and it uses one stack slot }
-      if (current_procinfo.procdef.proctypeoption=potype_proginit) then
-        fmaxevalstackheight:=max(1,fmaxevalstackheight);
-      list.concat(tai_directive.Create(asd_jlimit,'stack '+tostr(fmaxevalstackheight)));
+      //if (current_procinfo.procdef.proctypeoption=potype_proginit) then
+        //fmaxevalstackheight:=max(1,fmaxevalstackheight);
+      list.Concat(tai_local.create(wbt_i32, '$fp')); //TWasmBasicType
+      list.Concat(tai_local.create(wbt_i32, '$bp')); //TWasmBasicType
+
+      list.Concat(taicpu.op_sym(a_get_global , current_asmdata.RefAsmSymbol('__stack_top',AT_LABEL)));
+      list.Concat(taicpu.op_sym(a_set_local, current_asmdata.RefAsmSymbol('bp',AT_LABEL)));
+
+      if (localsize>0) then begin
+        list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol('bp',AT_LABEL)));
+        list.concat(taicpu.op_const(a_i32_const, localsize ));
+        list.concat(taicpu.op_none(a_i32_sub));
+        list.Concat(taicpu.op_sym(a_set_local, current_asmdata.RefAsmSymbol('fp',AT_LABEL)));
+        list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol('fp',AT_LABEL)));
+        list.Concat(taicpu.op_sym(a_set_global, current_asmdata.RefAsmSymbol('__stack_top',AT_LABEL)));
+      end;
+
+      //list.concat(tai_directive.Create(asd_jlimit,'stack '+tostr(fmaxevalstackheight)));
     end;
 
   procedure thlcgwasm.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
     begin
+      list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol('bp',AT_LABEL)));
+      list.Concat(taicpu.op_sym(a_set_global , current_asmdata.RefAsmSymbol('__stack_top',AT_LABEL)));
+
       list.concat(taicpu.op_none(a_return));
     end;
 

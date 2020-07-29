@@ -576,6 +576,12 @@ implementation
              ait_local :
                begin
                  writer.AsmWrite(#9'(local ');
+                 if tai_local(hp).name <> '' then
+                   begin
+                     writer.AsmWrite(' ');
+                     writer.AsmWrite(tai_local(hp).name);
+                     writer.AsmWrite(' ');
+                   end;
                  writer.AsmWrite( WasmBasicTypeStr[ tai_local(hp).bastyp ] );
                  writer.AsmWrite(')');
                  writer.AsmLn;
@@ -603,6 +609,13 @@ implementation
 
         { print all global variables }
         //current_asmdata.AsmSymbolDict
+        if current_module.islibrary then
+          begin
+            writer.AsmWrite(#9'(global $__stack_top (mut i32) (i32.const ');
+            writer.AsmWrite(tostr(globals.stacksize));
+            writer.AsmWriteLn('))');
+          end;
+
         WriteSymtableVarSyms(current_module.globalsymtable);
         WriteSymtableVarSyms(current_module.localsymtable);
 

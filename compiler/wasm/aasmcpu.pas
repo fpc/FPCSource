@@ -101,7 +101,8 @@ uses
 
       tai_local = class(tai)
         bastyp: TWasmBasicType;
-        constructor create(abasictype: TWasmBasicType);
+        name : string;
+        constructor create(abasictype: TWasmBasicType; const aname: string = '');
       end;
 
     procedure InitAsm;
@@ -114,11 +115,12 @@ implementation
 
     { tai_local }
 
-    constructor tai_local.create(abasictype: TWasmBasicType);
+    constructor tai_local.create(abasictype: TWasmBasicType; const aname: string);
       begin
+        inherited Create;
         bastyp := abasictype;
         typ := ait_local;
-        inherited Create;
+        name := aname;
       end;
 
     { timpexp_ai }

@@ -313,7 +313,8 @@ unit tgcpu;
 
     procedure ttgwasm.alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
       begin
-        Internalerror(2019091802);
+        inherited;
+        //Internalerror(2019091802);
         { the WebAssembly only supports 1 slot (= 4 bytes in FPC) and 2 slot (= 8 bytes in
           FPC) temps on the stack. double and int64 are 2 slots, the rest is one slot.
           There are no problems with reusing the same slot for a value of a different
@@ -360,7 +361,7 @@ unit tgcpu;
         if defToWasmBasic(def, wbt) then
           alloclocalVarToRef(wbt, ref)
         else begin
-          Internalerror(2019091801); // no support of structural type
+          //Internalerror(2019091801); // no support of structural type
           inherited;
         end;
       end;
