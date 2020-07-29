@@ -113,6 +113,13 @@ implementation
          fixline:=Copy(s,j,i-j+1);
        end;
 
+     function GetWasmName(const st: TSymStr): ansistring;
+     begin
+       Result := '$'+st;
+       Replace(Result, '(','');
+       Replace(Result, ')','');
+     end;
+
      function getreferencestring(var ref : treference) : ansistring;
        begin
          if (ref.arrayreftype<>art_none) or
@@ -126,7 +133,7 @@ implementation
              // been placed on the stack by the previous one.
              if (ref.offset<>0) then
                internalerror(2010122811);
-             result:=ref.symbol.name;
+             result:=GetWasmName(ref.symbol.name);
            end
          else
            begin
@@ -241,8 +248,7 @@ implementation
       end;
       writer.AsmWrite('(func ');
 
-      writer.AsmWrite('$');
-      writer.AsmWrite(pd.procsym.RealName);
+      writer.AsmWrite( GetWasmName( pd.procsym.RealName ));
       //writer.AsmWriteln(MethodDefinition(pd));
       {if jvmtypeneedssignature(pd) then
         begin
