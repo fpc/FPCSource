@@ -131,11 +131,7 @@ implementation
              // ref.base can be <> NR_NO in case an instance field is loaded.
              // This register is not part of this instruction, it will have
              // been placed on the stack by the previous one.
-
-             if ref.symbol.typ in [AT_DATA] then begin
-               result := 'offset='+tostr(ref.offset)
-             end else
-               result:=GetWasmName(ref.symbol.name);
+             result:=GetWasmName(ref.symbol.name);
            end
          else
            begin
@@ -223,7 +219,12 @@ implementation
           for i:=0 to cpu.ops-1 do
             begin
               writer.AsmWrite(#9);
-              writer.AsmWrite(getopstr(cpu.oper[i]^));
+
+              if (cpu.opcode in AsmOp_LoadStore) and (cpu.oper[i]^.typ = top_ref) then
+                writer.AsmWrite('offset='+tostr( cpu.oper[i]^.ref^.offset))
+              else
+                writer.AsmWrite(getopstr(cpu.oper[i]^));
+
             end;
         end;
 
