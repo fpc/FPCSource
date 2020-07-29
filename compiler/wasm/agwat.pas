@@ -682,8 +682,13 @@ implementation
         // the tool updates the symbol flags, so the linker
         // is capable of producing an executable
         if Result then
-          if FindExe('wasmtool',true,t) then 
-            RequotedExecuteProcess(t,' --symbolauto '+ObjFileName)
+          if FindExe('wasmtool',true,t) then begin
+            if current_module.is_unit then
+              // making "common" global variables a week reference
+              RequotedExecuteProcess(t,' --weak "$__stack_top" --symbolauto '+ObjFileName)
+            else
+              RequotedExecuteProcess(t,' --symbolauto '+ObjFileName)
+          end
           else
             Message1(exec_e_util_not_found,'wasmtool');
       end;
