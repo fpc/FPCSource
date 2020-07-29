@@ -44,6 +44,7 @@ uses
       { taicpu }
 
       taicpu = class(tai_cpu_abstract_sym)
+         typecode : string; // used for call_indirect
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -55,6 +56,8 @@ uses
 
          constructor op_single(op : tasmop;_op1 : single);
          constructor op_double(op : tasmop;_op1 : double);
+
+         constructor op_callindirect(const atypecode: string);
          //constructor op_string(op : tasmop;_op1len : aint;_op1 : pchar);
          //constructor op_wstring(op : tasmop;_op1 : pcompilerwidestring);
 
@@ -208,6 +211,12 @@ implementation
         inherited create(op);
         ops:=1;
         loaddouble(0,_op1);
+      end;
+
+    constructor taicpu.op_callindirect(const atypecode: string);
+      begin
+        typecode := atypecode;
+        op_none(a_call_indirect);
       end;
 
     {constructor taicpu.op_string(op: tasmop; _op1len: aint; _op1: pchar);

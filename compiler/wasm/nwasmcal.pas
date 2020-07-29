@@ -28,7 +28,7 @@ interface
     uses
       cgbase,
       symtype,symdef,cgutils,parabase,
-      node,ncal,ncgcal,hlcgobj,aasmcpu,cpubase;
+      node,ncal,ncgcal,hlcgobj,aasmcpu,cpubase, wasmdef;
 
     type
        { twasmcallparanode }
@@ -39,11 +39,6 @@ interface
        { twasmcallnode }
 
        twasmcallnode = class(tcgcallnode)
-       protected
-         function can_call_ref(var ref: treference):boolean;override;
-         //procedure extra_call_ref_code(var ref: treference);virtual;
-         function do_call_ref(ref: treference): tcgpara; override;
-
          procedure set_result_location(realresdef: tstoreddef); override;
        end;
 
@@ -54,19 +49,6 @@ implementation
       globtype, aasmdata, defutil, tgobj, hlcgcpu;
 
       { twasmcallnode }
-
-    function twasmcallnode.can_call_ref(var ref: treference): boolean;
-      begin
-        result:=true;
-      end;
-
-    function twasmcallnode.do_call_ref(ref: treference): tcgpara;
-      begin
-        thlcgwasm(hlcg).a_load_ref_stack(current_asmdata.CurrAsmList, s32inttype, ref, 0);
-        // todo: determine the proper function type
-        current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_call_indirect, 0));
-        result:=hlcg.get_call_result_cgpara(procdefinition,typedef)
-      end;
 
     procedure twasmcallnode.set_result_location(realresdef: tstoreddef);
       begin

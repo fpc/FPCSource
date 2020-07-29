@@ -89,25 +89,18 @@ type
   end;
   tcpufloatdefclass = class of tcpufloatdef;
 
+  { tcpuprocvardef }
+
   tcpuprocvardef = class(tprocvardef)
-   protected
-    procedure ppuwrite_platform(ppufile: tcompilerppufile); override;
-    procedure ppuload_platform(ppufile: tcompilerppufile); override;
-   public
-    { class representing this procvar on the Java side }
-    classdef  : tobjectdef;
-    classdefderef : tderef;
-    procedure buildderef;override;
-    procedure deref;override;
-    function getcopy: tstoreddef; override;
   end;
   tcpuprocvardefclass = class of tcpuprocvardef;
+
+  { tcpuprocdef }
 
   tcpuprocdef = class(tprocdef)
     { generated assembler code; used by WebAssembly backend so it can afterwards
       easily write out all methods grouped per class }
-    exprasmlist      : TAsmList;
-    function getfuncretsyminfo(out ressym: tsym; out resdef: tdef): boolean; override;
+    exprasmlist  : TAsmList;
     destructor destroy; override;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
@@ -151,8 +144,9 @@ type
   end;
   tcpunamespacesymclass = class of tcpunamespacesym;
 
+  { tcpuprocsym }
+
   tcpuprocsym = class(tprocsym)
-    procedure check_forward; override;
   end;
   tcpuprocsymclass = class of tcpuprocsym;
 
@@ -216,8 +210,10 @@ implementation
   uses
     verbose,cutils,cclasses,globals,
     symconst,symbase,symtable,symcreat,wasmdef,
-    pdecsub,pparautl,{pjvm,}
-    paramgr;
+    pdecsub,pparautl,paramgr,
+    // high-level code generator is needed to get access to type index for ncall
+    hlcgobj,hlcgcpu
+    ;
 
 
   {****************************************************************************
@@ -629,15 +625,6 @@ implementation
                              tcpuprocdef
 ****************************************************************************}
 
-  function tcpuprocdef.getfuncretsyminfo(out ressym: tsym; out resdef: tdef): boolean;
-    begin
-      { constructors don't have a result on the JVM platform }
-      if proctypeoption<>potype_constructor then
-        result:=inherited
-      else
-        result:=false;
-    end;
-
 
   destructor tcpuprocdef.destroy;
     begin
@@ -649,74 +636,11 @@ implementation
                              tcpuprocvardef
 ****************************************************************************}
 
-  procedure tcpuprocvardef.ppuwrite_platform(ppufile: tcompilerppufile);
-    begin
-      inherited;
-      ppufile.putderef(classdefderef);
-    end;
-
-
-  procedure tcpuprocvardef.ppuload_platform(ppufile: tcompilerppufile);
-    begin
-      inherited;
-      ppufile.getderef(classdefderef);
-    end;
-
-
-  procedure tcpuprocvardef.buildderef;
-    begin
-      inherited buildderef;
-      classdefderef.build(classdef);
-    end;
-
-
-  procedure tcpuprocvardef.deref;
-    begin
-      inherited deref;
-      classdef:=tobjectdef(classdefderef.resolve);
-    end;
-
-  function tcpuprocvardef.getcopy: tstoreddef;
-    begin
-      result:=inherited;
-      tcpuprocvardef(result).classdef:=classdef;
-    end;
 
 
 {****************************************************************************
                              tcpuprocsym
 ****************************************************************************}
-
-  procedure tcpuprocsym.check_forward;
-    var
-      curri, checki: longint;
-      currpd, checkpd: tprocdef;
-    begin
-      inherited;
-      { check for conflicts based on mangled name, because several FPC
-        types/constructs map to the same JVM mangled name }
-      for curri:=0 to FProcdefList.Count-2 do
-        begin
-          currpd:=tprocdef(FProcdefList[curri]);
-          if (po_external in currpd.procoptions) or
-             (currpd.proccalloption=pocall_internproc) then
-            continue;
-          for checki:=curri+1 to FProcdefList.Count-1 do
-            begin
-              checkpd:=tprocdef(FProcdefList[checki]);
-              if po_external in checkpd.procoptions then
-                continue;
-              if currpd.mangledname=checkpd.mangledname then
-                begin
-                  MessagePos(checkpd.fileinfo,parser_e_overloaded_have_same_mangled_name);
-                  MessagePos1(currpd.fileinfo,sym_e_param_list,currpd.customprocname([pno_mangledname]));
-                  MessagePos1(checkpd.fileinfo,sym_e_param_list,checkpd.customprocname([pno_mangledname]));
-                end;
-            end;
-        end;
-      inherited;
-    end;
-
 
 {****************************************************************************
                              tcpustaticvarsym

@@ -387,8 +387,9 @@ implementation
 
   function thlcgwasm.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara;
     begin
-      internalerror(2012042824);
-      result.init;
+      a_load_reg_stack(list, ptrsinttype, reg);
+      current_asmdata.CurrAsmList.Concat(taicpu.op_callindirect( WasmGetTypeCode(pd)) );
+      result:=hlcg.get_call_result_cgpara(pd, nil);
     end;
 
 
@@ -1576,14 +1577,6 @@ implementation
                 handled:=true;
               end;
           end;
-        procvardef:
-          begin
-            if not tprocvardef(size).is_addressonly then
-              begin
-                concatcopy_record(list,tcpuprocvardef(size).classdef,source,dest);
-                handled:=true;
-              end;
-          end;
         else
           ;
       end;
@@ -2448,8 +2441,6 @@ implementation
           else
             checkdef:=java_jubitset;
         end
-      else if checkdef.typ=procvardef then
-        checkdef:=tcpuprocvardef(checkdef).classdef
       else if is_wide_or_unicode_string(checkdef) then
         checkdef:=java_jlstring
       else if is_ansistring(checkdef) then

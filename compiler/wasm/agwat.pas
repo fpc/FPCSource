@@ -235,17 +235,39 @@ implementation
     var
       cpu : taicpu;
       i   : integer;
+      isprm : boolean;
     begin
       //writer.AsmWriteLn('instr');
       cpu := taicpu(hp);
       writer.AsmWrite(#9);
       writer.AsmWrite(wasm_op2str[cpu.opcode] );
 
+      if (cpu.opcode = a_call_indirect) then begin
+        // special wat2wasm syntax "call_indirect (type x)"
+        writer.AsmWrite(#9);
+        isprm := true;
+        for i:=1 to length(cpu.typecode) do
+          if cpu.typecode[i]=':' then
+             isprm:=false
+          else begin
+            if isprm then writer.AsmWrite('(param ')
+            else writer.AsmWrite('(result ');
+            case cpu.typecode[i] of
+              'i': writer.AsmWrite('i32');
+              'I': writer.AsmWrite('i64');
+              'f': writer.AsmWrite('f32');
+              'F': writer.AsmWrite('f64');
+            end;
+            writer.AsmWrite(')');
+          end;
+        writer.AsmLn;
+        exit;
+      end;
+
+
       if (cpu.opcode = a_if)  then
         writer.AsmWrite(' (result i32)') //todo: this is a hardcode, but shouldn't
-      else if (cpu.opcode = a_call_indirect) then
-        // special wat2wasm syntax "call_indirect (type x)"
-        writer.AsmWrite(' (type ');
+      else
 
       cpu := taicpu(hp);
       if cpu.ops<>0 then
