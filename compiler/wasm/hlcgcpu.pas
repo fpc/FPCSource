@@ -1143,8 +1143,10 @@ implementation
         list.Concat(taicpu.op_none(a_i32_add));
         incstack(list, 1);
         a_load_stack_reg(list, tosize, r);
-      end else
-        a_load_ref_reg(list,ptruinttype,ptruinttype,ref,r);
+      end else begin
+        //todo:
+        //a_load_ref_reg(list,ptruinttype,ptruinttype,ref,r);
+      end;
     end;
 
   procedure thlcgwasm.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister);
