@@ -107,8 +107,6 @@ type
     { generated assembler code; used by WebAssembly backend so it can afterwards
       easily write out all methods grouped per class }
     exprasmlist      : TAsmList;
-    function  jvmmangledbasename(signature: boolean): TSymStr;
-    function mangledname: TSymStr; override;
     function getfuncretsyminfo(out ressym: tsym; out resdef: tdef): boolean; override;
     destructor destroy; override;
   end;
@@ -163,8 +161,6 @@ type
   tcpuypesymclass = class of tcputypesym;
 
   tcpufieldvarsym = class(tfieldvarsym)
-    procedure set_externalname(const s: string); override;
-    function mangledname: TSymStr; override;
   end;
   tcpufieldvarsymclass = class of tcpufieldvarsym;
 
@@ -177,8 +173,6 @@ type
   tcpuparavarsymclass = class of tcpuparavarsym;
 
   tcpustaticvarsym = class(tstaticvarsym)
-    procedure set_mangledname(const s: TSymStr); override;
-    function mangledname: TSymStr; override;
   end;
   tcpustaticvarsymclass = class of tcpustaticvarsym;
 
@@ -635,126 +629,6 @@ implementation
                              tcpuprocdef
 ****************************************************************************}
 
-  function tcpuprocdef.jvmmangledbasename(signature: boolean): TSymStr;
-  var
-    vs: tparavarsym;
-    i: longint;
-    founderror: tdef;
-    tmpresult: TSymStr;
-    container: tsymtable;
-  begin
-    { format:
-        * method definition (in Jasmin):
-            (private|protected|public) [static] method(parametertypes)returntype
-        * method invocation
-            package/class/method(parametertypes)returntype
-      -> store common part: method(parametertypes)returntype and
-         adorn as required when using it.
-    }
-    if not signature then
-      begin
-        { method name }
-        { special names for constructors and class constructors }
-        if proctypeoption=potype_constructor then
-          tmpresult:='<init>'
-        else if proctypeoption in [potype_class_constructor,potype_unitinit] then
-          tmpresult:='<clinit>'
-        else if po_has_importname in procoptions then
-          begin
-            if assigned(import_name) then
-              tmpresult:=import_name^
-            else
-              internalerror(2010122608);
-          end
-        else
-          begin
-            tmpresult:=procsym.realname;
-            if tmpresult[1]='$' then
-              tmpresult:=copy(tmpresult,2,length(tmpresult)-1);
-            { nested functions }
-            container:=owner;
-            while container.symtabletype=localsymtable do
-              begin
-                tmpresult:='$'+tprocdef(owner.defowner).procsym.realname+'$$'+tprocdef(owner.defowner).unique_id_str+'$'+tmpresult;
-                container:=container.defowner.owner;
-              end;
-          end;
-      end
-    else
-      tmpresult:='';
-    { parameter types }
-    tmpresult:=tmpresult+'(';
-    { not the case for the main program (not required for defaultmangledname
-      because setmangledname() is called for the main program; in case of
-      the JVM, this only sets the importname, however) }
-    if assigned(paras) then
-      begin
-        for i:=0 to paras.count-1 do
-          begin
-            vs:=tparavarsym(paras[i]);
-            { function result is not part of the mangled name }
-            if vo_is_funcret in vs.varoptions then
-              continue;
-            { self pointer neither, except for class methods (the JVM only
-              supports static class methods natively, so the self pointer
-              here is a regular parameter as far as the JVM is concerned }
-            if not(po_classmethod in procoptions) and
-               (vo_is_self in vs.varoptions) then
-              continue;
-            { passing by reference is emulated by passing an array of one
-              element containing the value; for types that aren't pointers
-              in regular Pascal, simply passing the underlying pointer type
-              does achieve regular call-by-reference semantics though;
-              formaldefs always have to be passed like that because their
-              contents can be replaced }
-            if paramanager.push_copyout_param(vs.varspez,vs.vardef,proccalloption) then
-              tmpresult:=tmpresult+'[';
-            { Add the parameter type.  }
-            { todo: WASM
-            if not jvmaddencodedtype(vs.vardef,false,tmpresult,signature,founderror) then
-              { an internalerror here is also triggered in case of errors in the source code }
-              tmpresult:='<error>';
-              }
-          end;
-      end;
-    tmpresult:=tmpresult+')';
-    { And the type of the function result (void in case of a procedure and
-      constructor). }
-      (* todo: WASM
-    if (proctypeoption in [potype_constructor,potype_class_constructor]) then
-      jvmaddencodedtype(voidtype,false,tmpresult,signature,founderror)
-    else if not jvmaddencodedtype(returndef,false,tmpresult,signature,founderror) then
-      { an internalerror here is also triggered in case of errors in the source code }
-      tmpresult:='<error>';
-      *)
-    result:=tmpresult;
-  end;
-
-
-  function tcpuprocdef.mangledname: TSymStr;
-    begin
-      if _mangledname='' then
-        begin
-          result:=jvmmangledbasename(false);
-          if (po_has_importdll in procoptions) then
-            begin
-              { import_dll comes from "external 'import_dll_name' name 'external_name'" }
-              if assigned(import_dll) then
-                result:=import_dll^+'/'+result
-              else
-                internalerror(2010122607);
-            end
-          else
-            { todo: WASM
-            jvmaddtypeownerprefix(owner,mangledname)
-            }
-            ;
-          _mangledname:=result;
-        end
-      else
-        result:=_mangledname;
-    end;
-
   function tcpuprocdef.getfuncretsyminfo(out ressym: tsym; out resdef: tdef): boolean;
     begin
       { constructors don't have a result on the JVM platform }
@@ -848,69 +722,11 @@ implementation
                              tcpustaticvarsym
 ****************************************************************************}
 
-  procedure tcpustaticvarsym.set_mangledname(const s: TSymStr);
-    begin
-      inherited;
-      { todo: WASM
-      _mangledname:=jvmmangledbasename(self,s,false);
-      jvmaddtypeownerprefix(owner,_mangledname);
-      }
-    end;
-
-
-  function tcpustaticvarsym.mangledname: TSymStr;
-    begin
-      if _mangledname='' then
-        begin
-          { todo: WASM
-          if _mangledbasename='' then
-            _mangledname:=jvmmangledbasename(self,false)
-          else
-            _mangledname:=jvmmangledbasename(self,_mangledbasename,false);
-          jvmaddtypeownerprefix(owner,_mangledname);
-          }
-        end;
-      result:=_mangledname;
-    end;
-
 
 {****************************************************************************
                              tcpufieldvarsym
 ****************************************************************************}
 
-  procedure tcpufieldvarsym.set_externalname(const s: string);
-    begin
-      { make sure it is recalculated }
-      cachedmangledname:='';
-      if is_java_class_or_interface(tdef(owner.defowner)) then
-        begin
-          externalname:=stringdup(s);
-          include(varoptions,vo_has_mangledname);
-        end
-      else
-        internalerror(2011031201);
-    end;
-
-
-  function tcpufieldvarsym.mangledname: TSymStr;
-    begin
-      if is_java_class_or_interface(tdef(owner.defowner)) or
-         (tdef(owner.defowner).typ=recorddef) then
-        begin
-          if cachedmangledname<>'' then
-            result:=cachedmangledname
-          else
-            begin
-              { todo: WASM
-              result:=jvmmangledbasename(self,false);
-              jvmaddtypeownerprefix(owner,result);
-              }
-              cachedmangledname:=result;
-            end;
-        end
-      else
-        result:=inherited;
-    end;
 
 initialization
   { used tdef classes }
