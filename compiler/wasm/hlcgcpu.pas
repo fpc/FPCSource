@@ -1136,6 +1136,12 @@ implementation
         incstack(list, 1);
         // reading back to the register
         a_load_stack_reg(list, tosize, r);
+      end else if (ref.base = NR_FRAME_POINTER_REG) then begin
+        list.Concat(taicpu.op_sym(a_get_local, current_asmdata.RefAsmSymbol('fp',AT_ADDR) ));
+        list.Concat(taicpu.op_const(a_i32_const, ref.offset));
+        // todo: index?
+        list.Concat(taicpu.op_none(a_i32_add));
+        incstack(list, 1);
       end else
         a_load_ref_reg(list,ptruinttype,ptruinttype,ref,r);
     end;
