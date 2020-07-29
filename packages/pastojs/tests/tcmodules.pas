@@ -513,7 +513,8 @@ type
     Procedure TestClass_Property_IndexSpec;
     Procedure TestClass_PropertyOfTypeArray;
     Procedure TestClass_PropertyDefault;
-    Procedure TestClass_PropertyDefault2;
+    Procedure TestClass_PropertyDefault_TypecastToOtherDefault;
+    //Procedure TestClass_PropertyDefault;
     Procedure TestClass_PropertyOverride;
     Procedure TestClass_PropertyIncVisibility;
     Procedure TestClass_Assigned;
@@ -13158,32 +13159,34 @@ end;
 procedure TTestModule.TestClass_Property_Indexed;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('    FItems: array of longint;');
-  Add('    function GetItems(Index: longint): longint;');
-  Add('    procedure SetItems(Index: longint; Value: longint);');
-  Add('    procedure DoIt;');
-  Add('    property Items[Index: longint]: longint read getitems write setitems;');
-  Add('  end;');
-  Add('function tobject.getitems(index: longint): longint;');
-  Add('begin');
-  Add('  Result:=fitems[index];');
-  Add('end;');
-  Add('procedure tobject.setitems(index: longint; value: longint);');
-  Add('begin');
-  Add('  fitems[index]:=value;');
-  Add('end;');
-  Add('procedure tobject.doit;');
-  Add('begin');
-  Add('  items[1]:=2;');
-  Add('  items[3]:=items[4];');
-  Add('  self.items[5]:=self.items[6];');
-  Add('  items[items[7]]:=items[items[8]];');
-  Add('end;');
-  Add('var Obj: tobject;');
-  Add('begin');
-  Add('  obj.Items[11]:=obj.Items[12];');
+  Add([
+  'type',
+  '  TObject = class',
+  '    FItems: array of longint;',
+  '    function GetItems(Index: longint): longint;',
+  '    procedure SetItems(Index: longint; Value: longint);',
+  '    procedure DoIt;',
+  '    property Items[Index: longint]: longint read getitems write setitems;',
+  '  end;',
+  'function tobject.getitems(index: longint): longint;',
+  'begin',
+  '  Result:=fitems[index];',
+  'end;',
+  'procedure tobject.setitems(index: longint; value: longint);',
+  'begin',
+  '  fitems[index]:=value;',
+  'end;',
+  'procedure tobject.doit;',
+  'begin',
+  '  items[1]:=2;',
+  '  items[3]:=items[4];',
+  '  self.items[5]:=self.items[6];',
+  '  items[items[7]]:=items[items[8]];',
+  'end;',
+  'var Obj: tobject;',
+  'begin',
+  '  obj.Items[11]:=obj.Items[12];',
+  '']);
   ConvertProgram;
   CheckSource('TestClass_Property_Indexed',
     LinesToStr([ // statements
@@ -13366,36 +13369,50 @@ begin
   'type',
   '  TArray = array of longint;',
   '  TObject = class',
+  '  end;',
+  '  TBird = class',
   '    FItems: TArray;',
   '    function GetItems(Index: longint): longint;',
   '    procedure SetItems(Index, Value: longint);',
   '    property Items[Index: longint]: longint read getitems write setitems; default;',
   '  end;',
-  'function tobject.getitems(index: longint): longint;',
+  'function TBird.getitems(index: longint): longint;',
   'begin',
   'end;',
-  'procedure tobject.setitems(index, value: longint);',
+  'procedure TBird.setitems(index, value: longint);',
   'begin',
   '  Self[1]:=2;',
   '  Self[3]:=Self[index];',
   '  Self[index]:=Self[Self[value]];',
   '  Self[Self[4]]:=value;',
   'end;',
-  'var Obj: tobject;',
+  'var',
+  '  Bird: TBird;',
+  '  Obj: TObject;',
   'begin',
-  '  obj[11]:=12;',
-  '  obj[13]:=obj[14];',
-  '  obj[obj[15]]:=obj[obj[15]];',
-  '  TObject(obj)[16]:=TObject(obj)[17];']);
+  '  bird[11]:=12;',
+  '  bird[13]:=bird[14];',
+  '  bird[Bird[15]]:=bird[Bird[15]];',
+  '  TBird(obj)[16]:=TBird(obj)[17];',
+  '  (obj as tbird)[18]:=19;',
+  '']);
   ConvertProgram;
   CheckSource('TestClass_PropertyDefault',
     LinesToStr([ // statements
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
     '    this.FItems = [];',
     '  };',
     '  this.$final = function () {',
     '    this.FItems = undefined;',
+    '    $mod.TObject.$final.call(this);',
     '  };',
     '  this.GetItems = function (Index) {',
     '    var Result = 0;',
@@ -13408,17 +13425,19 @@ begin
     '    this.SetItems(this.GetItems(4), Value);',
     '  };',
     '});',
-    'this.Obj = null;'
-    ]),
+    'this.Bird = null;',
+    'this.Obj = null;',
+    '']),
     LinesToStr([ // $mod.$main
-    '$mod.Obj.SetItems(11, 12);',
-    '$mod.Obj.SetItems(13, $mod.Obj.GetItems(14));',
-    '$mod.Obj.SetItems($mod.Obj.GetItems(15), $mod.Obj.GetItems($mod.Obj.GetItems(15)));',
+    '$mod.Bird.SetItems(11, 12);',
+    '$mod.Bird.SetItems(13, $mod.Bird.GetItems(14));',
+    '$mod.Bird.SetItems($mod.Bird.GetItems(15), $mod.Bird.GetItems($mod.Bird.GetItems(15)));',
     '$mod.Obj.SetItems(16, $mod.Obj.GetItems(17));',
+    'rtl.as($mod.Obj, $mod.TBird).SetItems(18, 19);',
     '']));
 end;
 
-procedure TTestModule.TestClass_PropertyDefault2;
+procedure TTestModule.TestClass_PropertyDefault_TypecastToOtherDefault;
 begin
   StartProgram(false);
   Add([
@@ -13451,7 +13470,7 @@ begin
   '  TBetaList(List[false])[5]:=nil;',
   '']);
   ConvertProgram;
-  CheckSource('TestClass_PropertyDefault2',
+  CheckSource('TestClass_PropertyDefault_TypecastToOtherDefault',
     LinesToStr([ // statements
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
