@@ -94,6 +94,11 @@ uses
       {# Last value of opcode enumeration  }
       lastop  = high(tasmop);
 
+      AsmOp_Store = [
+         a_i32_store, a_i32_store16, a_i32_store8
+        ,a_i64_store, a_i64_store16, a_i64_store8, a_i64_store32
+        ,a_f32_store, a_f64_store
+      ];
 
 {*****************************************************************************
                                   Registers
@@ -156,7 +161,7 @@ uses
 *****************************************************************************}
 
    type
-     // not used by jvm target
+     // not used by wasm target
      TAsmCond=(C_None);
 
 {*****************************************************************************
@@ -182,7 +187,7 @@ uses
       OS_SINT = OS_S64;
 {$else}
       {# Defines the default address size for a processor,
-        -- fake for JVM, only influences default width of
+        -- fake for wasm, only influences default width of
            arithmetic calculations }
       OS_ADDR = OS_32;
       {# the natural int size for a processor,
@@ -199,7 +204,7 @@ uses
                           Generic Register names
 *****************************************************************************}
 
-      { dummies, not used for JVM }
+      { dummies, not used for Wasm }
 
       {# Stack pointer register }
       { used as base register in references to indicate that it's a local }
@@ -238,7 +243,7 @@ uses
                        GCC /ABI linking information
 *****************************************************************************}
 
-      { dummies, not used for JVM }
+      { dummies, not used for Wasm }
 
       {# Required parameter alignment when calling a routine
       }

@@ -228,47 +228,10 @@ implementation
 
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
-        {case opcode of
-          a_iinc:
-            result:=operand_readwrite;
-          a_aastore,
-          a_astore,
-          a_astore_0,
-          a_astore_1,
-          a_astore_2,
-          a_astore_3,
-          a_bastore,
-          a_castore,
-          a_dastore,
-          a_dstore,
-          a_dstore_0,
-          a_dstore_1,
-          a_dstore_2,
-          a_dstore_3,
-          a_fastore,
-          a_fstore,
-          a_fstore_0,
-          a_fstore_1,
-          a_fstore_2,
-          a_fstore_3,
-          a_iastore,
-          a_istore,
-          a_istore_0,
-          a_istore_1,
-          a_istore_2,
-          a_istore_3,
-          a_lastore,
-          a_lstore,
-          a_lstore_0,
-          a_lstore_1,
-          a_lstore_2,
-          a_lstore_3,
-          a_sastore:
-            result:=operand_write;
-          else
-            result:=operand_read;
-        end;}
-        result:=operand_read;
+        if opcode in AsmOp_Store then
+          result:=operand_write
+        else
+          result:=operand_read;
       end;
 
 
