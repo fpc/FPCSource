@@ -933,6 +933,7 @@ compiler/wasm/hlcgcpu.pas svneol=native#text/plain
 compiler/wasm/itcpuwasm.pas svneol=native#text/plain
 compiler/wasm/nwasmadd.pas svneol=native#text/plain
 compiler/wasm/nwasmcal.pas svneol=native#text/plain
+compiler/wasm/nwasmcon.pas svneol=native#text/plain
 compiler/wasm/nwasmflw.pas svneol=native#text/plain
 compiler/wasm/nwasmmat.pas svneol=native#text/plain
 compiler/wasm/rgcpu.pas svneol=native#text/plain
