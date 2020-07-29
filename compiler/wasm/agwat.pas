@@ -57,7 +57,7 @@ interface
        procedure WriteOutGlobalInt32(const aname: string; val: integer; isconst: boolean = true);
 
        procedure WriteInstruction(hp: tai);
-       procedure WriteProcDef(pd: tprocdef; stub: Boolean = false);
+       procedure WriteProcDef(pd: tprocdef; stub: Boolean = false; stubUnreachable: Boolean = true);
        procedure WriteProcParams(pd: tprocdef);
        procedure WriteProcResult(pd: tprocdef);
        procedure WriteSymtableProcdefs(st: TSymtable);
@@ -260,7 +260,7 @@ implementation
       writer.AsmLn;
     end;
 
-    procedure TWabtTextAssembler.WriteProcDef(pd: tprocdef; stub: Boolean );
+    procedure TWabtTextAssembler.WriteProcDef(pd: tprocdef; stub: Boolean; stubUnreachable: Boolean);
     var
       i : integer;
     begin
@@ -288,6 +288,9 @@ implementation
       if not stub then begin
         WriteTempAlloc(tcpuprocdef(pd).exprasmlist);
         WriteTree(tcpuprocdef(pd).exprasmlist);
+      end else begin
+        if stubUnreachable then
+          writer.AsmWriteLn(#9#9'unreachable');
       end;
       writer.AsmWriteln(#9')');
       writer.AsmLn;
@@ -597,9 +600,9 @@ implementation
         WriteSymtableProcdefs(current_module.globalsymtable);
         WriteSymtableProcdefs(current_module.localsymtable);
 
-        if current_module.islibrary then
-          WriteExports(current_asmdata.asmlists[al_exports])
-        else
+        if current_module.islibrary then begin
+          WriteExports(current_asmdata.asmlists[al_exports]);
+        end else
           WriteUnitExports(current_module.globalsymtable);
 
         //WriteSymtableStructDefs(current_module.globalsymtable);
@@ -763,12 +766,32 @@ implementation
     begin
       if not Assigned(p) then Exit;
       hp:=tai(p.First);
+      if not Assigned(hp) then Exit;
+
+      // writting out table, so wat2wasm can create reallocation symbols
+      writer.AsmWrite(#9'(table 0 funcref)');
+      writer.AsmWriteLn(#9'(elem 0 (i32.const 0) ');
       while Assigned(hp) do begin
         case hp.typ of
           ait_importexport:
           begin
             x:=tai_impexp(hp);
-            writer.AsmWrite('(export "');
+            writer.AsmWrite(#9#9);
+            writer.AsmWriteLn(GetWasmName(x.intname));
+          end;
+        end;
+        hp := tai_impexp(hp.Next);
+      end;
+      writer.AsmWriteLn(#9') ');
+
+      // writing export sections
+      hp:=tai(p.First);
+      while Assigned(hp) do begin
+        case hp.typ of
+          ait_importexport:
+          begin
+            x:=tai_impexp(hp);
+            writer.AsmWrite(#9#9'(export "');
             writer.AsmWrite(x.extname);
             writer.AsmWrite('" (');
             case x.symstype of
@@ -856,11 +879,11 @@ implementation
             else
               proc := nil;
             if proc<>nil then begin
-              writer.AsmWrite(#9'(import "_fpc_use" "');
+              {writer.AsmWrite(#9'(import "_fpc_use" "');
               writer.AsmWrite(proc.mangledname);
-              writer.AsmWrite('" ');
+              writer.AsmWrite('" ');}
               WriteProcDef(proc, true);
-              writer.AsmWrite(')');
+              //writer.AsmWrite(')');
             end;
           end;
         end;
@@ -954,7 +977,7 @@ implementation
          id     : as_wasm_wabt;
          idtxt  : 'Wabt';
          asmbin : 'wat2wasm';
-         asmcmd : '$EXTRAOPT $ASM';
+         asmcmd : '-r --no-canonicalize-leb128s -o $OBJ $EXTRAOPT $ASM';
          supported_targets : [system_wasm_wasm32];
          flags : [];
          labelprefix : 'L';

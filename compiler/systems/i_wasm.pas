@@ -58,12 +58,12 @@ unit i_wasm;
             unitext      : '.ppu';
             unitlibext   : '.ppl';
             asmext       : '.wat';
-            objext       : '.wasm';
+            objext       : '.o';
             resext       : '';
-            resobjext    : '.wasm';
+            resobjext    : '.o';
             sharedlibext : ''; // keep it empty! The sharedlibext drives the export module name
                                // if this is populated, then the name should be cleared when generating import
-            staticlibext : '.wasm';
+            staticlibext : '.a';
             staticlibprefix : '';
             sharedlibprefix : '';
             sharedClibext : '.wasm';
