@@ -108,22 +108,49 @@ implementation
     { true if a parameter is too large to copy and only the address is pushed }
     function tcpuparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
-        {result:=
-          jvmimplicitpointertype(def) or
-          ((def.typ=formaldef) and
-           not(varspez in [vs_var,vs_out]));}
-        //todo:
-        result := false;
+        result:=false;
+        { var,out,constref always require address }
+        if varspez in [vs_var,vs_out,vs_constref] then
+          begin
+            result:=true;
+            exit;
+          end;
+        { Only vs_const, vs_value here }
+        case def.typ of
+          variantdef,
+          formaldef :
+            result:=true;
+          recorddef :
+            begin
+              { Delphi stdcall passes records on the stack for call by value }
+              result:=(varspez=vs_const) or (def.size=0);
+            end;
+          arraydef :
+            begin
+              result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
+                 is_open_array(def) or
+                 is_array_of_const(def) or
+                 is_array_constructor(def);
+            end;
+          objectdef :
+            result:=is_object(def);
+          stringdef :
+            result:= (tstringdef(def).stringtype in [st_shortstring,st_longstring]);
+          procvardef :
+            result:=not(calloption in cdecl_pocalls) and not tprocvardef(def).is_addressonly;
+          setdef :
+            result:=not is_smallset(def);
+          else
+            ;
+        end;
+
       end;
 
 
     function tcpuparamanager.push_size(varspez: tvarspez; def: tdef; calloption: tproccalloption): longint;
       begin
         { all aggregate types are emulated using indirect pointer types }
-        if def.typ in [arraydef,recorddef,setdef,stringdef] then
-          result:=4
-        else
-          result:=inherited;
+        result:=inherited;
       end;
 
 
@@ -244,7 +271,7 @@ implementation
                 paracgsize:=OS_ADDR;
                 paradef:=ptruinttype;
               end
-            else if wasmAlwayInMem(hp.vardef) then
+            else if push_addr_param(hp.varspez, hp.vardef,p.proccalloption) then
               begin
                 paracgsize:=OS_ADDR;
                 paradef:=cpointerdef.getreusable_no_free(hp.vardef);
