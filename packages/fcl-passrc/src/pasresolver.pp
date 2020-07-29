@@ -11025,14 +11025,15 @@ begin
       ResolveBinaryExpr(TBinaryExpr(Params.Value),Access);
       if not (Value.CustomData is TResolvedReference) then
         RaiseNotYetImplemented(20190115144534,Params);
-      // already resolved
+      // already resolved via ResolveNameExpr, which calls ResolveArrayParamsExprName
       exit;
       end
     else
       begin
-      // ToDo: (a+b)[]
-      //ResolveBinaryExpr(TBinaryExpr(Params.Value),rraRead);
-      RaiseNotYetImplemented(20190115144539,Params);
+      // For example (a+b)[]  or (a as b)[]
+      Value:=Params.Value;
+      ResolveBinaryExpr(TBinaryExpr(Value),rraRead);
+      ComputeElement(Value,ResolvedEl,[rcSetReferenceFlags]);
       end;
     end
   else

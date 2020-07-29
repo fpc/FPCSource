@@ -13146,23 +13146,29 @@ begin
   Add([
   'type',
   '  TObject = class',
+  '  end;',
+  '  TBird = class',
   '    function GetB(Index: longint): longint;',
   '    procedure SetB(Index: longint; Value: longint);',
   '    property B[Index: longint]: longint read GetB write SetB; default;',
   '  end;',
-  'function TObject.GetB(Index: longint): longint;',
+  'function TBird.GetB(Index: longint): longint;',
   'begin',
   'end;',
-  'procedure TObject.SetB(Index: longint; Value: longint);',
+  'procedure TBird.SetB(Index: longint; Value: longint);',
   'begin',
   '  if Value=Self[Index] then ;',
   '  Self[Index]:=Value;',
   'end;',
-  'var o: TObject;',
+  'var',
+  '  b: TBird;',
+  '  o: TObject;',
   'begin',
-  '  o[3]:=4;',
-  '  if o[5]=6 then;',
-  '  if 7=o[8] then;']);
+  '  b[3]:=4;',
+  '  if b[5]=6 then;',
+  '  if 7=b[8] then;',
+  '  (o as TBird)[9]:=10;',
+  '']);
   ParseProgram;
 end;
 
