@@ -475,11 +475,8 @@ implementation
 
              ait_label :
                begin
-                 if (tai_label(hp).labsym.is_used) then
-                  begin
-                    writer.AsmWrite(tai_label(hp).labsym.name);
-                    writer.AsmWriteLn(':');
-                  end;
+                 // don't write any labels. Wasm don't support it
+                 // labels are only allowed with the respective block structures
                end;
 
              ait_symbol :

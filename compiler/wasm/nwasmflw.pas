@@ -76,12 +76,33 @@ begin
 end;
 
 procedure twasmwhilerepeatnode.pass_generate_code;
+var
+   lcont,lbreak,lloop,
+   oldclabel,oldblabel : tasmlabel;
+   truelabel,falselabel : tasmlabel;
+   oldflowcontrol : tflowcontrol;
 begin
+  location_reset(location,LOC_VOID,OS_NO);
+
+  current_asmdata.getjumplabel(lloop);
+  current_asmdata.getjumplabel(lcont);
+  current_asmdata.getjumplabel(lbreak);
+
+  oldflowcontrol:=flowcontrol;
+  oldclabel:=current_procinfo.CurrContinueLabel;
+  oldblabel:=current_procinfo.CurrBreakLabel;
+
+  include(flowcontrol,fc_inflowcontrol);
+  exclude(flowcontrol,fc_unwind_loop);
+
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_loop));
 
   if lnf_testatbegin in loopflags then
     pass_generate_code_condition;
+
+  current_procinfo.CurrContinueLabel:=lcont;
+  current_procinfo.CurrBreakLabel:=lbreak;
 
   secondpass(right);
 
@@ -92,6 +113,12 @@ begin
 
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end));
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end));
+
+  current_procinfo.CurrContinueLabel:=oldclabel;
+  current_procinfo.CurrBreakLabel:=oldblabel;
+  { a break/continue in a while/repeat block can't be seen outside }
+  flowcontrol:=oldflowcontrol+(flowcontrol-[fc_break,fc_continue,fc_inflowcontrol]);
+
 end;
 
 { twasmifnode }

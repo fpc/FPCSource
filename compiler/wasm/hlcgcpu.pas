@@ -853,10 +853,10 @@ implementation
               case cmp_op of
                 OC_EQ:
                   //list.concat(taicpu.op_sym(a_i64_eq,lab));
-                  list.concat(taicpu.op_none(a_i64_eq));
+                  list.concat(taicpu.op_none(a_i32_eq));
                 OC_NE:
                   //list.concat(taicpu.op_sym(a_i64_ne,lab));
-                  list.concat(taicpu.op_none(a_i64_ne));
+                  list.concat(taicpu.op_none(a_i32_ne));
                 else
                   internalerror(2010120537);
               end;
@@ -997,7 +997,7 @@ implementation
     begin
       result:=0;
       { fake location that indicates the value is already on the stack? }
-      if (ref.base=NR_EVAL_STACK_BASE) then
+      if (ref.base=NR_EVAL_STACK_BASE) or (ref.islocal) then
         exit;
 
       // setting up memory offset
@@ -1321,7 +1321,19 @@ implementation
 
   procedure thlcgwasm.a_jmp_always(list: TAsmList; l: tasmlabel);
     begin
-      list.concat(taicpu.op_sym(a_br,current_asmdata.RefAsmSymbol(l.name,AT_METADATA)));
+      //todo: for proper jumping it's necessary to check
+      //      all active blocks (if, block, loops)
+      //      and jump to the proper one.
+      //list.concat(taicpu.op_const(a_i32_const, 0));
+      if l = current_procinfo.CurrBreakLabel then begin
+        // todo: this should be moved to node generator pass2
+        list.concat(taicpu.op_const(a_i32_const, 0));
+        list.concat(taicpu.op_const(a_br,1))
+      end else if l = current_procinfo.CurrContinueLabel then begin
+        list.concat(taicpu.op_const(a_i32_const, 0));
+        list.concat(taicpu.op_const(a_br,0))
+      end else
+        //Internalerror(2019091806); // unexpected jump
     end;
 
   procedure thlcgwasm.concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);

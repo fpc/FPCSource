@@ -367,8 +367,13 @@ unit tgcpu;
 
 
     procedure ttgwasm.gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference);
+      var
+        wbt: TWasmBasicType;
       begin
-        inherited;
+        if Assigned(def) and defToWasmBasic(def, wbt) then begin
+          allocLocalVarToRef(wbt, ref);
+        end else
+          inherited;
       end;
 
     procedure ttgwasm.gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
@@ -390,11 +395,8 @@ unit tgcpu;
       end;
 
     procedure ttgwasm.localVarToRef(idx: integer; size: integer; out ref: treference);
-      var
-        t: treftemppos;
       begin
-        t.val:=idx;
-        reference_reset_base(ref, current_procinfo.framepointer,idx,t,size,[]);
+        reference_reset_base(ref, current_procinfo.framepointer,idx,ctempposinvalid,size,[]);
         ref.islocal := true;
         updateFirstTemp;
       end;
