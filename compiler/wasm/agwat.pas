@@ -252,6 +252,7 @@ implementation
         end;}
       writer.AsmLn;
       WriteProcParams(tcpuprocdef(pd));
+      WriteProcResult(tcpuprocdef(pd));
       WriteTempAlloc(tcpuprocdef(pd).exprasmlist);
 
       WriteTree(tcpuprocdef(pd).exprasmlist);
