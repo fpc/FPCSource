@@ -89,8 +89,10 @@ uses
       tai_impexp = class(tai)
         extname : ansistring; // external name
         intname : ansistring; // internal name
+        extmodule : ansistring; // external unit name
         symstype: TImpExpType;
-        constructor create(const aextname, aintname: ansistring; asymtype: timpexptype);
+        constructor create(const aextname, aintname: ansistring; asymtype: timpexptype); overload;
+        constructor create(const aextmodule, aextname, aintname: ansistring; asymtype: timpexptype); overload;
       end;
 
       // local variable declaration
@@ -121,14 +123,21 @@ implementation
 
     { timpexp_ai }
 
-        constructor tai_impexp.create(const aextname, aintname: ansistring;
-      asymtype: timpexptype);
-    begin
-      inherited create;
-      typ := ait_importexport;
-      extname := aextname;
-      intname := aintname;
-    end;
+      constructor tai_impexp.create(const aextname, aintname: ansistring;
+          asymtype: timpexptype);
+        begin
+          create('', aextname, aintname, asymtype);;
+        end;
+
+      constructor tai_impexp.create(const aextmodule, aextname, aintname: ansistring; asymtype: timpexptype);
+        begin
+          inherited create;
+          typ := ait_importexport;
+          extmodule := aextmodule;
+          extname := aextname;
+          intname := aintname;
+          symstype:= asymtype;
+        end;
 
 {*****************************************************************************
                                  taicpu Constructors

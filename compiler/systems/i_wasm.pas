@@ -61,7 +61,8 @@ unit i_wasm;
             objext       : '.wasm';
             resext       : '';
             resobjext    : '.wasm';
-            sharedlibext : '.wasm';
+            sharedlibext : ''; // keep it empty! The sharedlibext drives the export module name
+                               // if this is populated, then the name should be cleared when generating import
             staticlibext : '.wasm';
             staticlibprefix : '';
             sharedlibprefix : '';
