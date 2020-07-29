@@ -810,7 +810,7 @@ implementation
          id     : as_wasm_wabt;
          idtxt  : 'Wabt';
          asmbin : 'wat2wasm';
-         asmcmd : '$ASM $EXTRAOPT';
+         asmcmd : '$EXTRAOPT $ASM';
          supported_targets : [system_wasm_wasm32];
          flags : [];
          labelprefix : 'L';
