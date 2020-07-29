@@ -100,6 +100,20 @@ uses
         ,a_f32_store, a_f64_store
       ];
 
+      AsmOp_Load = [
+         a_i32_load,
+         a_i32_load8_s,  a_i32_load8_u,
+         a_i32_load16_s, a_i32_load16_u,
+         a_i64_load,
+         a_i64_load8_s,  a_i64_load8_u,
+         a_i64_load16_s, a_i64_load16_u,
+         a_i64_load32_s, a_i64_load32_u,
+         a_f32_load, a_f64_load
+      ];
+
+      AsmOp_LoadStore = AsmOp_Load + AsmOp_Store;
+
+
 {*****************************************************************************
                                   Registers
 *****************************************************************************}

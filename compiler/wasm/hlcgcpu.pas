@@ -623,22 +623,6 @@ implementation
                (fromloc.reference.base<>current_procinfo.framepointer) and
                (fromloc.reference.base<>NR_STACK_POINTER_REG) then
               g_allocload_reg_reg(list,voidpointertype,fromloc.reference.base,toloc.reference.base,R_ADDRESSREGISTER);
-            case fromloc.reference.arrayreftype of
-              art_indexreg:
-                begin
-                  { all array indices in Java are 32 bit ints }
-                  g_allocload_reg_reg(list,s32inttype,fromloc.reference.index,toloc.reference.index,R_INTREGISTER);
-                end;
-              art_indexref:
-                begin
-                  { base register of the address of the index -> pointer }
-                  if (fromloc.reference.indexbase<>NR_NO) and
-                     (fromloc.reference.indexbase<>NR_STACK_POINTER_REG) then
-                    g_allocload_reg_reg(list,voidpointertype,fromloc.reference.indexbase,toloc.reference.indexbase,R_ADDRESSREGISTER);
-                end;
-              else
-                ;
-            end;
           end;
         else
           inherited;
@@ -1015,93 +999,46 @@ implementation
       { fake location that indicates the value is already on the stack? }
       if (ref.base=NR_EVAL_STACK_BASE) then
         exit;
-      if ref.arrayreftype=art_none then
-        begin
-          { non-array accesses cannot have an index reg }
-          if ref.index<>NR_NO then
-            internalerror(2010120509);
-          if (ref.base<>NR_NO) then
-            begin
-              if (ref.base<>NR_STACK_POINTER_REG) then
-                begin
-                  { regular field -> load self on the stack }
-                  a_load_reg_stack(list,voidpointertype,ref.base);
-                  if dup then
-                    begin
-                      internalerror(2019083002);
-                      //todo: add duplicate
-                      //list.concat(taicpu.op_none(a_dup));
-                      incstack(list,1);
-                    end;
-                  { field name/type encoded in symbol, no index/offset }
-                  if not assigned(ref.symbol) or
-                     (ref.offset<>0) then
-                    internalerror(2010120524);
-                  result:=1;
-                end
-              else
-                begin
-                  { local variable -> offset encoded in opcode and nothing to
-                    do here, except for checking that it's a valid reference }
-                  if assigned(ref.symbol) then
-                    internalerror(2010120523);
-                end;
-            end
-          else
-            begin
-              { static field -> nothing to do here, except for validity check }
-              if not assigned(ref.symbol) or
-                 (ref.offset<>0) then
-                internalerror(2010120525);
-            end;
-        end
-      else
-        begin
-          { arrays have implicit dereference -> pointer to array must have been
-            loaded into base reg }
-          if (ref.base=NR_NO) or
-             (ref.base=NR_STACK_POINTER_REG) then
-            internalerror(2010120511);
-          if assigned(ref.symbol) then
-            internalerror(2010120512);
-
-          { stack: ... -> ..., arrayref, index }
-          { load array base address }
-          a_load_reg_stack(list,voidpointertype,ref.base);
-          { index can either be in a register, or located in a simple memory
-            location (since we have to load it anyway) }
-          case ref.arrayreftype of
-            art_indexreg:
+        { non-array accesses cannot have an index reg }
+        if ref.index<>NR_NO then
+          internalerror(2010120509);
+        if (ref.base<>NR_NO) then
+          begin
+            if (ref.base<>NR_STACK_POINTER_REG) then
               begin
-                if ref.index=NR_NO then
-                  internalerror(2010120513);
-                { all array indices in Java are 32 bit ints }
-                a_load_reg_stack(list,s32inttype,ref.index);
-              end;
-            art_indexref:
-              begin
-                cgutils.reference_reset_base(href,ref.indexbase,ref.indexoffset,ref.temppos,4,ref.volatility);
-                href.symbol:=ref.indexsymbol;
-                a_load_ref_stack(list,s32inttype,href,prepare_stack_for_ref(list,href,false));
-              end;
-            art_indexconst:
-              begin
-                a_load_const_stack(list,s32inttype,ref.indexoffset,R_INTREGISTER);
-              end;
+                { regular field -> load self on the stack }
+                a_load_reg_stack(list,voidpointertype,ref.base);
+                if dup then
+                  begin
+                    internalerror(2019083002);
+                    //todo: add duplicate
+                    //list.concat(taicpu.op_none(a_dup));
+                    incstack(list,1);
+                  end;
+                { field name/type encoded in symbol, no index/offset }
+                if not assigned(ref.symbol) or
+                   (ref.offset<>0) then
+                  internalerror(2010120524);
+                result:=1;
+              end
             else
-              internalerror(2011012001);
-          end;
-          { adjustment of the index }
-          if ref.offset<>0 then
-            a_op_const_stack(list,OP_ADD,s32inttype,ref.offset);
-          if dup then
+              begin
+                { local variable -> offset encoded in opcode and nothing to
+                  do here, except for checking that it's a valid reference }
+                if assigned(ref.symbol) then
+                  internalerror(2010120523);
+              end;
+          end
+        else
+          begin
+            { static field -> nothing to do here, except for validity check }
+            {if not assigned(ref.symbol) or
+               (ref.offset<>0) then
             begin
-              internalerror(2019083002); // todo: missing dups
-              //list.concat(taicpu.op_none(a_dup2));
-              incstack(list,2);
-            end;
-          result:=2;
-        end;
+              Dump_Stack(output, 0); //ncgld
+              internalerror(2010120525);
+            end;}
+          end;
     end;
 
   procedure thlcgwasm.a_load_const_reg(list: TAsmList; tosize: tdef; a: tcgint; register: tregister);
@@ -1115,7 +1052,7 @@ implementation
       extra_slots: longint;
     begin
       extra_slots:=prepare_stack_for_ref(list,ref,false);
-      a_load_const_stack_intern(list,tosize,a,def2regtyp(tosize),(ref.arrayreftype<>art_none) or assigned(ref.symbol));
+      a_load_const_stack_intern(list,tosize,a,def2regtyp(tosize),assigned(ref.symbol));
       a_load_stack_ref(list,tosize,ref,extra_slots);
     end;
 
@@ -1126,7 +1063,7 @@ implementation
       extra_slots:=prepare_stack_for_ref(list,ref,false);
       a_load_reg_stack(list,fromsize,register);
       if def2regtyp(fromsize)=R_INTREGISTER then
-        resize_stack_int_val(list,fromsize,tosize,(ref.arrayreftype<>art_none) or assigned(ref.symbol));
+        resize_stack_int_val(list,fromsize,tosize,assigned(ref.symbol));
       a_load_stack_ref(list,tosize,ref,extra_slots);
     end;
 
@@ -1161,7 +1098,7 @@ implementation
       extra_sslots:=prepare_stack_for_ref(list,sref,false);
       a_load_ref_stack(list,fromsize,sref,extra_sslots);
       if def2regtyp(fromsize)=R_INTREGISTER then
-        resize_stack_int_val(list,fromsize,tosize,(dref.arrayreftype<>art_none) or assigned(dref.symbol));
+        resize_stack_int_val(list,fromsize,tosize,assigned(dref.symbol));
       a_load_stack_ref(list,tosize,dref,extra_dslots);
     end;
 
@@ -1197,8 +1134,7 @@ implementation
       a_op_const_stack(list,op,size,a);
       { for android verifier }
       if (def2regtyp(size)=R_INTREGISTER) and
-         ((ref.arrayreftype<>art_none) or
-          assigned(ref.symbol)) then
+         (assigned(ref.symbol)) then
         resize_stack_int_val(list,size,size,true);
       a_load_stack_ref(list,size,ref,extra_slots);
     end;
@@ -1816,8 +1752,6 @@ implementation
                 base address of the array }
               location_reset_ref(tmploc,LOC_REFERENCE,OS_ADDR,4,ref.volatility);
               cgutils.reference_reset_base(tmploc.reference,getaddressregister(list,java_jlobject),0,tmploc.reference.temppos,4,ref.volatility);
-              tmploc.reference.arrayreftype:=art_indexconst;
-              tmploc.reference.indexoffset:=0;
               a_load_loc_reg(list,java_jlobject,java_jlobject,l,tmploc.reference.base);
             end
           else
@@ -1992,10 +1926,10 @@ implementation
       if ref.base=NR_EVAL_STACK_BASE then
         exit;
       opc:=loadstoreopcref(size,false,ref,finishandval);
-      if ref.arrayreftype=art_none then
-        list.concat(taicpu.op_ref(opc,ref))
-      else
-        list.concat(taicpu.op_none(opc));
+      if opc in AsmOp_LoadStore then
+        list.Concat(taicpu.op_const(a_i32_const, 0)); //todo: this should not be 0, this should be reference to a global "memory"
+
+      list.concat(taicpu.op_ref(opc,ref));
       { avoid problems with getting the size of an open array etc }
       if wasmimplicitpointertype(size) then
         size:=java_jlobject;
@@ -2026,10 +1960,12 @@ implementation
       if (ref.base=NR_EVAL_STACK_BASE) then
         exit;
       opc:=loadstoreopcref(size,true,ref,finishandval);
-      if ref.arrayreftype=art_none then
-        list.concat(taicpu.op_ref(opc,ref))
-      else
-        list.concat(taicpu.op_none(opc));
+
+      if opc in AsmOp_LoadStore then
+        list.Concat(taicpu.op_const(a_i32_const, 0)); //todo: this should not be 0, this should be reference to a global "memory"
+
+      list.concat(taicpu.op_ref(opc,ref));
+
       { avoid problems with getting the size of an open array etc }
       if wasmimplicitpointertype(size) then
         size:=java_jlobject;
@@ -2044,10 +1980,11 @@ implementation
 
   function thlcgwasm.loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: tcgint): tasmop;
     const
-                     { isload  static }
-      getputopc: array[boolean,boolean] of tasmop =
-        ((a_set_local,a_set_global),
-         (a_get_local,a_get_global));
+                          {iisload}
+      getputmem8  : array [boolean] of TAsmOp = (a_i32_store8,  a_i32_load8_u  );
+      getputmem16 : array [boolean] of TAsmOp = (a_i32_store16, a_i32_load16_u );
+      getputmem32 : array [boolean] of TAsmOp = (a_i32_store,   a_i32_load     );
+      getputmem64 : array [boolean] of TAsmOp = (a_i64_store,   a_i64_load     );
     begin
       if assigned(ref.symbol) then
         begin
@@ -2055,7 +1992,22 @@ implementation
             field, then ref.base contains the self pointer, otherwise
             ref.base=NR_NO. In both cases, the symbol contains all other
             information (combined field name and type descriptor) }
-          result:=getputopc[isload,ref.base=NR_NO];
+          if ref.base = NR_NO then begin
+            case def.size of
+              1: result := getputmem8[isload];
+              2: result := getputmem16[isload];
+              4: result := getputmem32[isload];
+              8: result := getputmem64[isload];
+              //todo: floats?
+            else
+              Internalerror(201909150001);
+            end;
+          end else if isload then
+            result := a_set_local
+          else
+            result := a_get_local;
+
+          //result:=getputopc[isload,ref.base=NR_NO];
           finishandval:=-1;
           { erase sign extension for byte/smallint loads }
           if (def2regtyp(def)=R_INTREGISTER) and
@@ -2070,7 +2022,7 @@ implementation
             end;
         end
       else
-        result:=loadstoreopc(def,isload,ref.arrayreftype<>art_none,finishandval);
+        result:=loadstoreopc(def,isload,false,finishandval);
     end;
 
   function thlcgwasm.loadstoreopc(def: tdef; isload, isarray: boolean; out finishandval: tcgint): tasmop;

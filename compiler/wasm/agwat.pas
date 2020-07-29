@@ -123,8 +123,7 @@ implementation
 
      function getreferencestring(var ref : treference) : ansistring;
        begin
-         if (ref.arrayreftype<>art_none) or
-            (ref.index<>NR_NO) then
+         if (ref.index<>NR_NO) then
            internalerror(2010122809);
          if assigned(ref.symbol) then
            begin
@@ -132,9 +131,11 @@ implementation
              // ref.base can be <> NR_NO in case an instance field is loaded.
              // This register is not part of this instruction, it will have
              // been placed on the stack by the previous one.
-             if (ref.offset<>0) then
-               internalerror(2010122811);
-             result:=GetWasmName(ref.symbol.name);
+
+             if ref.symbol.typ in [AT_DATA] then begin
+               result := 'offset='+tostr(ref.offset)
+             end else
+               result:=GetWasmName(ref.symbol.name);
            end
          else
            begin
@@ -206,8 +207,6 @@ implementation
     var
       cpu : taicpu;
       i   : integer;
-    const
-      ExplicitOffset = [a_i32_load, a_i32_store];
     begin
       //writer.AsmWriteLn('instr');
       //writeln('>',taicpu(hp).opcode);
@@ -224,15 +223,7 @@ implementation
           for i:=0 to cpu.ops-1 do
             begin
               writer.AsmWrite(#9);
-              if (cpu.oper[i]^.typ = top_ref) and
-                (cpu.opcode in ExplicitOffset) then begin
-                writer.AsmWrite('offset=');
-                writer.AsmWrite(tostr(cpu.oper[i]^.ref^.offset));
-                writer.AsmWrite(' ;;');
-                writer.AsmWrite('alignment=');
-                writer.AsmWrite(tostr(cpu.oper[i]^.ref^.alignment));
-              end else
-                writer.AsmWrite(getopstr(cpu.oper[i]^));
+              writer.AsmWrite(getopstr(cpu.oper[i]^));
             end;
         end;
 
@@ -554,6 +545,7 @@ implementation
         end;
         writer.MarkEmpty;
         writer.AsmWriteLn('(module ');
+        writer.AsmWriteLn('(memory 32768) ;; todo: this should be imported or based on the directives ');
 
         { print all global variables }
         //WriteSymtableVarSyms(current_module.globalsymtable);

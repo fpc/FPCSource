@@ -159,10 +159,6 @@ implementation
                     exit(true);
                   if (getsupreg(taicpu(p).oper[0]^.ref^.index)=sr) then
                     exit(true);
-                  if (getsupreg(taicpu(p).oper[0]^.ref^.indexbase)=sr) then
-                    exit(true);
-                  if (getsupreg(taicpu(p).oper[0]^.ref^.indexbase)=sr) then
-                    exit(true);
                 end;
               else
                 ;
