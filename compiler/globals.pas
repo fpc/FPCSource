@@ -549,6 +549,12 @@ interface
         asmcputype : cpu_none;
         fputype : fpu_fd;
   {$endif riscv64}
+  {$ifdef wasm}
+        cputype : cpu_none;
+        optimizecputype : cpu_none;
+        asmcputype : cpu_none;
+        fputype : fpu_standard;
+  {$endif wasm}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
 {$ifndef jvm}

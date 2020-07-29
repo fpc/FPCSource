@@ -335,3 +335,13 @@
   {$define cpucg64shiftsupport}
   {$define symansistr}
 {$endif}
+
+{$ifdef wasm}
+  {$define cpu32bit}
+  {$define cpu64bitalu}
+  {$define cpu32bitaddr}
+  {$define cpuhighleveltarget}
+  {$define symansistr}
+  {$define SUPPORT_GET_FRAME}
+{$endif}
+

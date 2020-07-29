@@ -280,6 +280,10 @@ interface
        ,top_fenceflags
        ,top_roundingmode
 {$endif defined(riscv32) or defined(riscv64)}
+{$ifdef wasm}
+       ,top_single
+       ,top_double
+{$endif wasm}
        );
 
       { kinds of operations that an instruction can perform on an operand }
@@ -497,6 +501,10 @@ interface
             top_fenceflags : (fenceflags : TFenceFlags);
             top_roundingmode : (roundingmode : TRoundingMode);
         {$endif defined(riscv32) or defined(riscv64)}
+        {$ifdef wasm}
+            top_single : (sval:single);
+            top_double : (dval:double);
+        {$endif wasm}
         end;
         poper=^toper;
 

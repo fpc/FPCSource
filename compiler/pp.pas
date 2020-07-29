@@ -176,6 +176,12 @@ program pp;
   {$endif CPUDEFINED}
   {$define CPUDEFINED}
 {$endif RISCV64}
+{$ifdef WASM}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif WASM}
 
 {$ifndef CPUDEFINED}
   {$fatal A CPU type switch must be defined}
