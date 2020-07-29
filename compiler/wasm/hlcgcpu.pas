@@ -2043,11 +2043,11 @@ implementation
     end;
 
   function thlcgwasm.loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: tcgint): tasmop;
-   (* const
+    const
                      { isload  static }
       getputopc: array[boolean,boolean] of tasmop =
-        ((a_putfield,a_putstatic),
-         (a_getfield,a_getstatic));
+        ((a_set_local,a_set_global),
+         (a_get_local,a_get_global));
     begin
       if assigned(ref.symbol) then
         begin
@@ -2069,8 +2069,7 @@ implementation
                    finishandval:=65535;
             end;
         end
-      else *)
-      begin //todo:
+      else
         result:=loadstoreopc(def,isload,ref.arrayreftype<>art_none,finishandval);
     end;
 
