@@ -607,6 +607,6 @@ implementation
        );
 
 
-begin
+initialization
   RegisterAssembler(as_wasm_binaryen_info,TBinaryenAssembler);
 end.

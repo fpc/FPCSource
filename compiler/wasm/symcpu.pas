@@ -912,7 +912,7 @@ implementation
         result:=inherited;
     end;
 
-begin
+initialization
   { used tdef classes }
   cfiledef:=tcpufiledef;
   cvariantdef:=tcpuvariantdef;

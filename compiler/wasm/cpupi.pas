@@ -60,6 +60,6 @@ implementation
       end;
 
 
-begin
+initialization
   cprocinfo:=tcpuprocinfo;
 end.

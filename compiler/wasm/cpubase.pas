@@ -214,7 +214,7 @@ uses
       NR_FRAME_POINTER_REG = NR_STACK_POINTER_REG;
       RS_FRAME_POINTER_REG = RS_STACK_POINTER_REG;
 
-      { Java results are returned on the evaluation stack, not via a register }
+      { WebAssembly results are returned on the evaluation stack, not via a register }
 
       { Results are returned in this register (32-bit values) }
       NR_FUNCTION_RETURN_REG = NR_NO;

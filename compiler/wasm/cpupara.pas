@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2010 by Florian Klaempfl, Jonas Maebe
+    Copyright (c) 2019 by Dmtiry Boyarintsev
 
     Calling conventions for the WebAssembly
 
@@ -324,6 +324,6 @@ implementation
       end;
 
 
-begin
-   ParaManager:=tcpuparamanager.create;
+initialization
+  ParaManager:=tcpuparamanager.create;
 end.
