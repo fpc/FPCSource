@@ -1135,7 +1135,7 @@ implementation
       { only allowed for types that are not implicit pointers in Pascal (in
         that case, ref contains a pointer to the actual data and we simply
         return that pointer) }
-      if not wasmimplicitpointertype(fromsize) then
+      if not wasmAlwayInMem(fromsize) then
         internalerror(2010120534);
 
       if assigned(ref.symbol) then begin
@@ -1803,7 +1803,7 @@ implementation
         end
       else
         begin
-          if not wasmimplicitpointertype(def) then
+          if not wasmAlwayInMem(def) then
             begin
               { passed by reference in array of single element; l contains the
                 base address of the array }
@@ -1969,7 +1969,7 @@ implementation
       opc:=loadstoreopc(size,false,false,finishandval);
       list.concat(taicpu.op_reg(opc,reg));
       { avoid problems with getting the size of an open array etc }
-      if wasmimplicitpointertype(size) then
+      if wasmAlwayInMem(size) then
         size:=ptruinttype;
       decstack(list,1);
     end;
@@ -1986,7 +1986,7 @@ implementation
 
       list.concat(taicpu.op_ref(opc,ref));
       { avoid problems with getting the size of an open array etc }
-      if wasmimplicitpointertype(size) then
+      if wasmAlwayInMem(size) then
         size:=ptruinttype;
       decstack(list,1+extra_slots);
     end;
@@ -1999,7 +1999,7 @@ implementation
       opc:=loadstoreopc(size,true,false,finishandval);
       list.concat(taicpu.op_reg(opc,reg));
       { avoid problems with getting the size of an open array etc }
-      if wasmimplicitpointertype(size) then
+      if wasmAlwayInMem(size) then
         size:=ptruinttype;
       incstack(list,1);
       if finishandval<>-1 then
@@ -2019,7 +2019,7 @@ implementation
       list.concat(taicpu.op_ref(opc,ref));
 
       { avoid problems with getting the size of an open array etc }
-      if wasmimplicitpointertype(size) then
+      if wasmAlwayInMem(size) then
         size:=ptruinttype;
       incstack(list,1-extra_slots);
       if finishandval<>-1 then
@@ -2324,7 +2324,7 @@ implementation
             begin
               { nothing }
             end
-          else if wasmimplicitpointertype(vs.vardef) then
+          else if wasmAlwayInMem(vs.vardef) then
             allocate_implicit_struct_with_base_ref(list,vs,ref)
           { enums are class instances in Java, while they are ordinals in
             Pascal. When they are initialized with enum(0), such as in
@@ -2377,7 +2377,7 @@ implementation
           sym:=tsym(obj.symtable.symlist[i]);
           if (sym.typ=fieldvarsym) and
              not(sp_static in sym.symoptions) and
-             (wasmimplicitpointertype(tfieldvarsym(sym).vardef) or
+             (wasmAlwayInMem(tfieldvarsym(sym).vardef) or
               ((tfieldvarsym(sym).vardef.typ=enumdef) and
                get_enum_init_val_ref(tfieldvarsym(sym).vardef,ref))) then
             begin
@@ -2400,7 +2400,7 @@ implementation
     begin
       { replace special types with their equivalent class type }
       if (checkdef.typ=pointerdef) and
-         wasmimplicitpointertype(tpointerdef(checkdef).pointeddef) then
+         wasmAlwayInMem(tpointerdef(checkdef).pointeddef) then
         checkdef:=tpointerdef(checkdef).pointeddef;
       if (checkdef=voidpointertype) or
          (checkdef.typ=formaldef) then

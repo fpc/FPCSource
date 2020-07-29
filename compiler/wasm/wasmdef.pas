@@ -8,9 +8,9 @@ uses
   symtype, symdef, symconst, constexp
   ,defutil;
 
-    { returns whether a def is emulated using an implicit pointer type on the
-      WebAssembly target (e.g., records, regular arrays, ...) }
-    function wasmimplicitpointertype(def: tdef): boolean;
+    { returns whether a def always resides in memory,
+      rather than in wasm local variables...) }
+    function wasmAlwayInMem(def: tdef): boolean;
 
     function get_para_push_size(def: tdef): tdef;
 
@@ -34,24 +34,15 @@ implementation
         end;
     end;
 
-  function wasmimplicitpointertype(def: tdef): boolean;
+  function wasmAlwayInMem(def: tdef): boolean;
     begin
       case def.typ of
-        arraydef:
-          result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
-              is_open_array(def) or
-              is_array_of_const(def) or
-              is_array_constructor(def);
+        arraydef,
         filedef,
         recorddef,
-        setdef:
+        objectdef,
+        stringdef:
           result:=true;
-        objectdef:
-          result:=is_object(def);
-        stringdef :
-          result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
-        procvardef:
-          result:=not tprocvardef(def).is_addressonly;
         else
           result:=false;
       end;

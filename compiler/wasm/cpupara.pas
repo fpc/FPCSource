@@ -39,7 +39,6 @@ interface
         function  push_high_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
         function  keep_para_array_range(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
         function  push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
-        function  push_copyout_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
         function  push_size(varspez: tvarspez; def: tdef; calloption: tproccalloption): longint;override;
         {Returns a structure giving the information on the storage of the parameter
         (which must be an integer parameter)
@@ -115,17 +114,6 @@ implementation
            not(varspez in [vs_var,vs_out]));}
         //todo:
         result := false;
-      end;
-
-
-    function tcpuparamanager.push_copyout_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
-      begin
-        { in principle also for vs_constref, but since we can't have real
-          references, that won't make a difference }
-        {result:=
-          (varspez in [vs_var,vs_out,vs_constref]) and
-          not jvmimplicitpointertype(def);}
-        Result := false;
       end;
 
 
@@ -256,12 +244,11 @@ implementation
                 paracgsize:=OS_ADDR;
                 paradef:=ptruinttype;
               end
-            //todo: wasm should have the similar
-            {else if jvmimplicitpointertype(hp.vardef) then
+            else if wasmAlwayInMem(hp.vardef) then
               begin
                 paracgsize:=OS_ADDR;
                 paradef:=cpointerdef.getreusable_no_free(hp.vardef);
-              end}
+              end
             else
               begin
                 paracgsize:=def_cgsize(hp.vardef);
@@ -278,9 +265,8 @@ implementation
             paraloc:=hp.paraloc[side].add_location;
             { All parameters are passed on the evaluation stack, pushed from
               left to right (including self, if applicable). At the callee side,
-              they're available as local variables 0..n-1 (with 64 bit values
-              taking up two slots) }
-            paraloc^.loc:=LOC_REFERENCE;;
+              they're available as local variables 0..n-1  }
+            paraloc^.loc:=LOC_REFERENCE;
             paraloc^.reference.offset:=paraofs;
             paraloc^.size:=paracgsize;
             paraloc^.def:=paradef;

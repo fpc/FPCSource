@@ -35,7 +35,7 @@ interface
     aasmbase,aasmtai,aasmdata,aasmcpu,
     assemble
     ,cutils
-    ,cpubase
+    ,cpubase, cgbase
     ,fmodule
     ,verbose, itcpuwasm
     ,cfileutl;
@@ -288,7 +288,7 @@ implementation
       WriteProcResult(pd);
 
       if not stub then begin
-        WriteTempAlloc(tcpuprocdef(pd).exprasmlist);
+        //WriteTempAlloc(tcpuprocdef(pd).exprasmlist);
         WriteTree(tcpuprocdef(pd).exprasmlist);
       end else begin
         if stubUnreachable then
@@ -312,9 +312,18 @@ implementation
           begin
             prm := tcpuparavarsym(pd.paras[i]);
             writer.AsmWrite(#9'(param'#9);
-            case prm.getsize of
-              1..4: writer.AsmWrite('i32');
-              8: writer.AsmWrite('i64');
+            case prm.paraloc[calleeside].Size of
+              OS_8..OS_32, OS_S8..OS_S32:
+                writer.AsmWrite('i32');
+              OS_64, OS_S64:
+                writer.AsmWrite('i64');
+              OS_F32:
+                writer.AsmWrite('f32');
+              OS_F64:
+                writer.AsmWrite('f64');
+            else
+              // unsupported calleeside parameter type
+              Internalerror(2019093001);
             end;
             writer.AsmWrite(')');
             writer.AsmLn;
