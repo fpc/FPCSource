@@ -107,7 +107,7 @@ begin
 
   cmdstr := cmdstr + ' --no-entry --allow-undefined';
 
-  if success and (cs_link_strip in current_settings.globalswitches) then
+  if (cs_link_strip in current_settings.globalswitches) then
    begin
      { only remove non global symbols and debugging info for a library }
      cmdstr := cmdstr + ' --strip-all';
@@ -126,7 +126,7 @@ begin
 
   SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
   Replace(cmdstr,'$INPUT',current_module.objfilename );
-  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
+  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
   DoExec(FindUtil(utilsprefix+binstr),cmdstr,false,false);
 
   MakeSharedLibrary:=success;
