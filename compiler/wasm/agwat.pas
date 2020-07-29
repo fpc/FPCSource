@@ -647,7 +647,7 @@ implementation
             else if tmp[i].tempsize = 8 then writer.AsmWrite('i64');
             writer.AsmWrite(')');
 
-            writer.AsmWriteLn(#9+asminfo^.comment+'Temp '+tostr(tmp[i].temppos)+','+
+            writer.AsmWrite(#9+asminfo^.comment+'Temp '+tostr(tmp[i].temppos)+','+
               tostr(tmp[i].tempsize)+' '+tempallocstr[tmp[i].allocation]);
 
             writer.AsmLn;
