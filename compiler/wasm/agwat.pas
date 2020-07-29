@@ -241,7 +241,7 @@ implementation
     begin
       //writer.AsmWriteLn('instr');
       cpu := taicpu(hp);
-      writer.AsmWrite(#9);
+      writer.AsmWrite(#9#9);
       writer.AsmWrite(wasm_op2str[cpu.opcode] );
 
       if (cpu.opcode = a_call_indirect) then begin
@@ -303,7 +303,13 @@ implementation
       begin
         exit;
       end;
-      writer.AsmWrite('(func ');
+
+      writer.AsmWriteLn('');
+      if stub and stubUnreachable then begin
+        writer.AsmWriteLn(#9';;.weak');
+      end;
+
+      writer.AsmWrite(#9'(func ');
 
       writer.AsmWrite( GetWasmName( pd.mangledname ));
       //procsym.RealName ));
@@ -342,7 +348,7 @@ implementation
         for i:=0 to pd.paras.Count-1 do
           begin
             prm := tcpuparavarsym(pd.paras[i]);
-            writer.AsmWrite(#9'(param'#9);
+            writer.AsmWrite(#9#9'(param'#9);
             case prm.paraloc[callerside].Size of
               OS_8..OS_32, OS_S8..OS_S32:
                 writer.AsmWrite('i32');
@@ -373,7 +379,7 @@ implementation
         if not defToWasmBasic(pd.returndef, bt) then
           bt := wbt_i32;
 
-        writer.AsmWrite(#9'(result'#9);
+        writer.AsmWrite(#9#9'(result'#9);
         case bt of
           wbt_i64: writer.AsmWrite('i64');
           wbt_f32: writer.AsmWrite('f32');
@@ -614,7 +620,7 @@ implementation
 
              ait_local :
                begin
-                 writer.AsmWrite(#9'(local ');
+                 writer.AsmWrite(#9#9'(local ');
                  if tai_local(hp).name <> '' then
                    begin
                      writer.AsmWrite(' ');
@@ -649,6 +655,10 @@ implementation
         { print all global variables }
         //current_asmdata.AsmSymbolDict
 
+        // for every unit __stack_top is a weak symbol
+        // __stack_top is strong only for libraries or programs.
+        if current_module.is_unit then
+          writer.AsmWriteLn(#9';;.weak');
         writer.AsmWrite(#9'(global $__stack_top (mut i32) (i32.const ');
         writer.AsmWrite(tostr(globals.stacksize));
         writer.AsmWriteLn('))');
@@ -1070,7 +1080,7 @@ implementation
        (
          id     : as_wasm_wabt;
          idtxt  : 'Wabt';
-         asmbin : 'wat2wasm';
+         asmbin : 'wasa';
          asmcmd : '-r --no-canonicalize-leb128s -o $OBJ $EXTRAOPT $ASM';
          supported_targets : [system_wasm_wasm32];
          flags : [];

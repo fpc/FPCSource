@@ -68,7 +68,7 @@ end;
 procedure tlinkerwasm.SetDefaultInfo;
 begin
   Info.DllCmd[1] := 'wasm-ld $SONAME $GCSECTIONS -o $EXE';
-  Info.DllCmd[2] := 'wasmtool --exportrename $INPUT $EXE';
+  //Info.DllCmd[2] := 'wasmtool --exportrename $INPUT $EXE';
 end;
 
 function tlinkerwasm.MakeSharedLibrary: boolean;
@@ -124,10 +124,10 @@ begin
   writeln(utilsprefix+binstr,' ',cmdstr);
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
 
-  SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-  Replace(cmdstr,'$INPUT',current_module.objfilename );
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
-  DoExec(FindUtil(utilsprefix+binstr),cmdstr,false,false);
+  //SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
+  //Replace(cmdstr,'$INPUT',current_module.objfilename );
+  //Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+  //DoExec(FindUtil(utilsprefix+binstr),cmdstr,false,false);
 
   MakeSharedLibrary:=success;
 end;
