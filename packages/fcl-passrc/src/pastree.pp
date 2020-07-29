@@ -14,15 +14,13 @@
 
  **********************************************************************}
 
-{$mode objfpc}
-{$h+}
-
 unit PasTree;
+
+{$i fcl-passrc.inc}
 
 {$if defined(debugrefcount) or defined(VerbosePasTreeMem) or defined(VerbosePasResolver)}
   {$define EnablePasTreeGlobalRefCount}
 {$endif}
-{$inline on}
 
 interface
 
