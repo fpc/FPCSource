@@ -19,7 +19,13 @@ type
    public
      procedure pass_generate_code;override;
    end;
-   tifnodeclass = class of tifnode;
+
+   { twasmwhilerepeatnode }
+
+   twasmwhilerepeatnode = class(tcgwhilerepeatnode)
+   public
+     procedure pass_generate_code;override;
+   end;
 
 implementation
 
@@ -31,6 +37,30 @@ uses
   nbas,nld,ncon,ncnv,
   tgobj,paramgr,
   cgutils,hlcgobj,hlcgcpu;
+
+{ twasmwhilerepeatnode }
+
+procedure twasmwhilerepeatnode.pass_generate_code;
+begin
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_loop));
+
+  secondpass(left);
+
+  // reversing the condition
+  // todo: there should be a better approach
+  current_asmdata.CurrAsmList.concat(taicpu.op_const(a_i32_const,1) );
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_i32_xor) );
+
+  current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,1) );
+
+  secondpass(right);
+
+  current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,0) );
+
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end));
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end));
+end;
 
 { twasmifnode }
 
@@ -80,6 +110,7 @@ initialization
    //ctryexceptnode:=tjvmtryexceptnode;
    //ctryfinallynode:=tjvmtryfinallynode;
    //connode:=tjvmonnode;
-  cifnode:=twasmifnode;
+   cifnode:=twasmifnode;
+   cwhilerepeatnode:=twasmwhilerepeatnode;
 
 end.
