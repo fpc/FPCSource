@@ -62,7 +62,7 @@ interface
       cpupara,
       nbas,ncon,nset,nadd,ncal,ncnv,ninl,nld,nmat,nmem,
       //njvmcon,
-      cgobj;
+      cgobj, symtype, tgobj;
 
 {*****************************************************************************
                                tjvmaddnode
@@ -136,7 +136,7 @@ interface
         thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(op));
-        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1+ord(location.size=OS_F64));
+        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
         { could be optimized in the future by keeping the results on the stack,
           if we add code to swap the operands when necessary (a_swap for
           singles, store/load/load for doubles since there is no swap for
@@ -145,49 +145,89 @@ interface
       end;
 
     procedure twasmaddnode.second_cmpfloat;
-      //var
-      //  truelabel,
-      //  falselabel: tasmlabel;
-      //  op: tasmop;
-      //  cmpop: TOpCmp;
+      var
+        op : TAsmOp;
+        commutative : boolean;
+        cmpResultType : tdef;
       begin
-        //truelabel:=nil;
-        //falselabel:=nil;
-        //pass_left_right;
-        //{ swap the operands to make it easier for the optimizer to optimize
-        //  the operand stack slot reloading in case both are in a register }
-        //if (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and
-        //   (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
-        //  swapleftright;
-        //cmpop:=cmpnode2topcmp(false);
-        //if (nf_swapped in flags) then
-        //  cmpop:=swap_opcmp(cmpop);
-        //
-        //current_asmdata.getjumplabel(truelabel);
-        //current_asmdata.getjumplabel(falselabel);
-        //location_reset_jump(location,truelabel,falselabel);
-        //
-        //thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-        //thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
-        //
-        //{ compares two floating point values and puts 1/0/-1 on stack depending
-        //  on whether value1 >/=/< value2 }
-        //if left.location.size=OS_F64 then
-        //  { make sure that comparisons with NaNs always return false for </> }
-        //  if nodetype in [ltn,lten] then
-        //    op:=a_dcmpg
-        //  else
-        //    op:=a_dcmpl
-        //else if nodetype in [ltn,lten] then
-        //  op:=a_fcmpg
-        //else
-        //  op:=a_fcmpl;
-        //current_asmdata.CurrAsmList.concat(taicpu.op_none(op));
-        //thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,(1+ord(left.location.size=OS_F64))*2-1);
-        //
-        //current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcmp2if[cmpop],location.truelabel));
-        //thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1);
-        //hlcg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
+        cmpResultType := s32inttype;
+        pass_left_right;
+
+        // allocating temporary variable (via reference) to hold the result
+        location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);
+        tg.gethltemp(current_asmdata.CurrAsmList,resultdef,0,tt_normal,location.reference);
+
+        commutative:=false;
+        case nodetype of
+          ltn :
+            begin
+              if location.size=OS_F64 then
+                op:=a_f64_lt
+              else
+                op:=a_f32_lt;
+            end;
+          lten :
+            begin
+              if location.size=OS_F64 then
+                op:=a_f64_le
+              else
+                op:=a_f32_le;
+            end;
+          gtn :
+            begin
+              if location.size=OS_F64 then
+                op:=a_f64_gt
+              else
+                op:=a_f32_gt;
+            end;
+          gten :
+            begin
+              if location.size=OS_F64 then
+                op:=a_f64_ge
+              else
+                op:=a_f32_ge;
+            end;
+          equaln :
+            begin
+              if location.size=OS_F64 then
+                op:=a_f64_eq
+              else
+                op:=a_f32_eq;
+              commutative:=true;
+            end;
+          unequaln :
+            begin
+              if location.size=OS_F64 then
+                op:=a_f64_ne
+              else
+                op:=a_f32_ne;
+              commutative:=true;
+            end;
+
+          else
+            internalerror(2011010402);
+        end;
+
+        { swap the operands to make it easier for the optimizer to optimize
+          the operand stack slot reloading (non-commutative operations must
+          always be in the correct order though) }
+        if (commutative and
+            (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and
+            (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER])) or
+           (not commutative and
+            (nf_swapped in flags)) then
+          swapleftright;
+
+        thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
+
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(op));
+        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+        { could be optimized in the future by keeping the results on the stack,
+          if we add code to swap the operands when necessary (a_swap for
+          singles, store/load/load for doubles since there is no swap for
+          2-slot elements -- also adjust expectloc in that case! }
+        thlcgwasm(hlcg).a_load_stack_ref(current_asmdata.CurrAsmList,resultdef,location.reference,0);
       end;
 
 
