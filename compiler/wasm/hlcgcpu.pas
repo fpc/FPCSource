@@ -2007,7 +2007,6 @@ implementation
                    result := getputmemf64[isload]
                  else
                   result := getputmem64[isload, is_signed(def)];
-              //todo: floats?
             else
               Internalerror(201909150001);
             end;
