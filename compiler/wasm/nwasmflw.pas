@@ -24,7 +24,7 @@ unit nwasmflw;
 interface
 
 uses
-  aasmbase,node,nflw,ncgflw;
+  aasmbase,node,nflw,ncgflw, cutils;
 
 type
 
@@ -101,15 +101,22 @@ begin
   if lnf_testatbegin in loopflags then
     pass_generate_code_condition;
 
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+
   current_procinfo.CurrContinueLabel:=lcont;
   current_procinfo.CurrBreakLabel:=lbreak;
 
   secondpass(right);
 
-  if not (lnf_testatbegin in loopflags) then
-    pass_generate_code_condition;
+  if (lnf_testatbegin in loopflags) then
+    current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1) ); // jump back to the external loop
 
-  current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,0) );
+  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('end of internal loop block')));
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end));
+  if not (lnf_testatbegin in loopflags) then begin
+    pass_generate_code_condition;
+  end;
+  current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,0) ); // jump back to loop
 
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end));
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end));
@@ -136,13 +143,14 @@ begin
   secondpass(left); // condition exprssions
 
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if)); // IF
+  thlcgwasm(hlcg).incblock;
 
   secondpass(right); // then branchs
 
   if Assigned(t1) then // else branch
     begin
       // 0 const on stack if used to return IF value
-      current_asmdata.CurrAsmList.concat(taicpu.op_const(a_i32_const, 0));
+      current_asmdata.CurrAsmList.concat(taicpu.op_const(a_i32_const, 1));
       current_asmdata.CurrAsmList.concat(taicpu.op_none(a_else));
       secondpass(t1);
     end
@@ -158,6 +166,7 @@ begin
   // 0 const on stack if used to return IF value
   current_asmdata.CurrAsmList.concat(taicpu.op_const(a_i32_const, 0));
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end));
+  thlcgwasm(hlcg).decblock;
 
   // clearing IF return value
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_drop));

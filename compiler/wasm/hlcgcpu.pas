@@ -1345,12 +1345,14 @@ implementation
       if l = current_procinfo.CurrBreakLabel then begin
         // todo: this should be moved to node generator pass2
         list.concat(taicpu.op_const(a_i32_const, 0));
-        list.concat(taicpu.op_const(a_br,1))
+        list.concat(taicpu.op_const(a_br,2+blocks))
       end else if l = current_procinfo.CurrContinueLabel then begin
         list.concat(taicpu.op_const(a_i32_const, 0));
-        list.concat(taicpu.op_const(a_br,0))
-      end else
+        list.concat(taicpu.op_const(a_br,1+blocks))
+      end else begin
         //Internalerror(2019091806); // unexpected jump
+        Internalerror(2019091806); // unexpected jump
+      end;
     end;
 
   procedure thlcgwasm.concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);

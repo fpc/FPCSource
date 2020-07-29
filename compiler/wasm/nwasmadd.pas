@@ -27,7 +27,7 @@ interface
 
     uses
        cgbase,
-       node,ncgadd,cpubase;
+       node,ncgadd,cpubase, globals, pass_2;
 
     type
 
@@ -38,12 +38,16 @@ interface
           procedure second_generic_compare(unsigned: boolean);
 
           procedure pass_left_right;override;
-          procedure second_addfloat;override;
+          //procedure second_addfloat;override;
           procedure second_cmpfloat;override;
           procedure second_cmpboolean;override;
           procedure second_cmp64bit;override;
           procedure second_add64bit; override;
           procedure second_cmpordinal;override;
+
+          // special treatement for short-boolean expressions
+          // using IF block, instead of direct labels
+          procedure second_addboolean; override;
        end;
 
   implementation
@@ -70,75 +74,6 @@ interface
         //       is_boolean(left.resultdef)) then
         //  swapleftright;
         inherited pass_left_right;
-      end;
-
-
-    procedure twasmaddnode.second_addfloat;
-      //var
-      //  op : TAsmOp;
-      //  commutative : boolean;
-      begin
-        //pass_left_right;
-        //
-        //location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        //location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
-        //
-        //commutative:=false;
-        //case nodetype of
-        //  addn :
-        //    begin
-        //      if location.size=OS_F64 then
-        //        op:=a_dadd
-        //      else
-        //        op:=a_fadd;
-        //      commutative:=true;
-        //    end;
-        //  muln :
-        //    begin
-        //      if location.size=OS_F64 then
-        //        op:=a_dmul
-        //      else
-        //        op:=a_fmul;
-        //      commutative:=true;
-        //    end;
-        //  subn :
-        //    begin
-        //      if location.size=OS_F64 then
-        //        op:=a_dsub
-        //      else
-        //        op:=a_fsub;
-        //    end;
-        //  slashn :
-        //    begin
-        //      if location.size=OS_F64 then
-        //        op:=a_ddiv
-        //      else
-        //        op:=a_fdiv;
-        //    end;
-        //  else
-        //    internalerror(2011010402);
-        //end;
-        //
-        //{ swap the operands to make it easier for the optimizer to optimize
-        //  the operand stack slot reloading (non-commutative operations must
-        //  always be in the correct order though) }
-        //if (commutative and
-        //    (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and
-        //    (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER])) or
-        //   (not commutative and
-        //    (nf_swapped in flags)) then
-        //  swapleftright;
-        //
-        //thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-        //thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
-        //
-        //current_asmdata.CurrAsmList.concat(taicpu.op_none(op));
-        //thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1+ord(location.size=OS_F64));
-        //{ could be optimized in the future by keeping the results on the stack,
-        //  if we add code to swap the operands when necessary (a_swap for
-        //  singles, store/load/load for doubles since there is no swap for
-        //  2-slot elements -- also adjust expectloc in that case! }
-        //thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
       end;
 
 
@@ -210,6 +145,53 @@ interface
     procedure twasmaddnode.second_cmpordinal;
       begin
         second_generic_compare(not is_signed(left.resultdef));
+      end;
+
+    procedure twasmaddnode.second_addboolean;
+      begin
+        if (nodetype in [orn,andn]) and
+           (not(cs_full_boolean_eval in current_settings.localswitches) or
+            (nf_short_bool in flags)) then
+        begin
+          secondpass(left);
+          current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_if) );
+
+          case nodetype of
+              andn :
+                begin
+                   // inside of IF (the condition evaluated as true)
+                   // for "and" must evaluate the right section
+                   secondpass(right);
+
+                   current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
+
+                   // inside of ELSE (the condition evaluated as false)
+                   // for "and" must end evaluation immediately
+                   current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 0) );
+                   current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end) );
+                end;
+              orn :
+                begin
+                   // inside of IF (the condition evaluated as true)
+                   // for "or" must end evalaution immediately - satified!
+                   current_asmdata.CurrAsmList.Concat( taicpu.op_const(a_i32_const, 1) );
+
+                   current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_else) );
+                   // inside of ELSE (the condition evaluated as false)
+                   // for "or" must evaluate the right part
+                   secondpass(right);
+                   // inside of ELSE (the condition evaluated as false)
+                   // for "and" must end evaluation immediately
+                   current_asmdata.CurrAsmList.Concat( taicpu.op_none(a_end) );
+                end;
+              else
+                Internalerror(2019091902);
+              end;
+          // todo: need to reset location to the stack?
+
+          //Internalerror(2019091901);
+        end else
+          inherited;
       end;
 
     procedure twasmaddnode.second_generic_compare(unsigned: boolean);
