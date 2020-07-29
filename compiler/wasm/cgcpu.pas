@@ -34,7 +34,7 @@ interface
        rgcpu;
 
     type
-      TCgJvm=class(thlbasecgcpu)
+      TCgWasm=class(thlbasecgcpu)
      public
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
@@ -59,7 +59,7 @@ implementation
                               Assembler code
 ****************************************************************************}
 
-    procedure tcgjvm.init_register_allocators;
+    procedure TCgWasm.init_register_allocators;
       begin
         inherited init_register_allocators;
 {$ifndef cpu64bitaddr}
@@ -76,7 +76,7 @@ implementation
       end;
 
 
-    procedure tcgjvm.done_register_allocators;
+    procedure TCgWasm.done_register_allocators;
       begin
         rg[R_INTREGISTER].free;
         rg[R_FPUREGISTER].free;
@@ -85,7 +85,7 @@ implementation
       end;
 
 
-    function tcgjvm.getintregister(list:TAsmList;size:Tcgsize):Tregister;
+    function TCgWasm.getintregister(list:TAsmList;size:Tcgsize):Tregister;
       begin
         if not(size in [OS_64,OS_S64]) then
           result:=rg[R_INTREGISTER].getregister(list,R_SUBD)
@@ -94,7 +94,7 @@ implementation
       end;
 
 
-    function tcgjvm.getfpuregister(list:TAsmList;size:Tcgsize):Tregister;
+    function TCgWasm.getfpuregister(list:TAsmList;size:Tcgsize):Tregister;
       begin
         if size=OS_F64 then
           result:=rg[R_FPUREGISTER].getregister(list,R_SUBFD)
@@ -103,7 +103,7 @@ implementation
       end;
 
 
-    function tcgjvm.getaddressregister(list:TAsmList):Tregister;
+    function tcgwasm.getaddressregister(list:TAsmList):Tregister;
       begin
         { avoid problems in the compiler where int and addr registers are
           mixed for now; we currently don't have to differentiate between the
@@ -112,7 +112,7 @@ implementation
       end;
 
 
-    procedure tcgjvm.do_register_allocation(list:TAsmList;headertai:tai);
+    procedure tcgwasm.do_register_allocation(list:TAsmList;headertai:tai);
       begin
         { We only run the "register allocation" once for an arbitrary allocator,
           which will perform the register->temp mapping for all register types.
@@ -123,7 +123,7 @@ implementation
 
     procedure create_codegen;
       begin
-        cg:=tcgjvm.Create;
+        cg:=tcgwasm.Create;
       end;
       
 end.
