@@ -1,5 +1,7 @@
 unit wasmdef;
 
+{$i fpcdefs.inc}
+
 interface
 
 uses

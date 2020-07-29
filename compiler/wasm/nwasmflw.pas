@@ -21,6 +21,8 @@
 }
 unit nwasmflw;
 
+{$i fpcdefs.inc}
+
 interface
 
 uses

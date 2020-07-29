@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-program mkspreg;
+program mkwasmreg;
 
 const Version = '1.00';
       max_regcount = 200;

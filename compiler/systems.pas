@@ -198,14 +198,14 @@ interface
           resobjext    : string[7];
           sharedlibext : string[10];
           staticlibext,
-          staticlibprefix : string[4];
+          staticlibprefix : string[6];
           sharedlibprefix : string[4];
           sharedClibext : string[10];
           staticClibext,
-          staticClibprefix : string[4];
+          staticClibprefix : string[6];
           sharedClibprefix : string[4];
           importlibprefix : string[10];
-          importlibext : string[4];
+          importlibext : string[6];
           Cprefix      : string[2];
           newline      : string[2];
           dirsep       : char;

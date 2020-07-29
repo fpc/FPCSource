@@ -23,6 +23,9 @@
 }
 unit agwat;
 
+
+{$i fpcdefs.inc}
+
 interface
 
   uses

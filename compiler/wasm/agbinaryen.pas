@@ -55,7 +55,6 @@ interface
         function CreateNewAsmWriter: TExternalAssemblerOutputFile; override;
        public
         constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
-        function MakeCmdLine: TCmdStr;override;
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
         destructor destroy; override;
@@ -469,14 +468,6 @@ implementation
       begin
         InstrWriter.WriteInstruction(hp);
       end;
-
-
-   function TBinaryenAssembler.MakeCmdLine: TCmdStr;
-     begin
-       Replace(result,'$EXTRAOPT',asmextraopt);
-     end;
-
-
 
 
     function TBinaryenAssembler.CreateNewAsmWriter: TExternalAssemblerOutputFile;

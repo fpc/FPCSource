@@ -1,5 +1,7 @@
 unit t_wasm;
 
+{$i fpcdefs.inc}
+
 interface
 
 uses
