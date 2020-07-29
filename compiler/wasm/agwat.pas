@@ -54,6 +54,7 @@ interface
        procedure WriteProcParams(pd: tprocdef);
        procedure WriteProcResult(pd: tprocdef);
        procedure WriteSymtableProcdefs(st: TSymtable);
+       procedure WriteSymtableVarSyms(st: TSymtable);
        procedure WriteTempAlloc(p:TAsmList);
        procedure WriteExports(p: TAsmList);
      public
@@ -144,7 +145,7 @@ implementation
 
      function constsingle(s: single): ansistring;
        begin
-         result:='0fx'+hexstr(longint(t32bitarray(s)),8);
+         result:='0x'+hexstr(longint(t32bitarray(s)),8);
        end;
 
      function constdouble(d: double): ansistring;
@@ -205,7 +206,6 @@ implementation
       i   : integer;
     begin
       //writer.AsmWriteLn('instr');
-      //writeln('>',taicpu(hp).opcode);
       cpu := taicpu(hp);
       writer.AsmWrite(#9);
       writer.AsmWrite(wasm_op2str[cpu.opcode] );
@@ -240,12 +240,12 @@ implementation
          (not is_javainterface(pd.struct) or
           (pd.proctypeoption in [potype_unitinit,potype_unitfinalize])) then
       begin
-        //writeln('mordoy ne vyshel! ',pd.procsym.RealName );
         exit;
       end;
       writer.AsmWrite('(func ');
 
-      writer.AsmWrite( GetWasmName( pd.procsym.RealName ));
+      writer.AsmWrite( GetWasmName( pd.mangledname ));
+      //procsym.RealName ));
       //writer.AsmWriteln(MethodDefinition(pd));
       {if jvmtypeneedssignature(pd) then
         begin
@@ -549,8 +549,10 @@ implementation
         writer.AsmWriteLn('(memory 32768) ;; todo: this should be imported or based on the directives ');
 
         { print all global variables }
-        //WriteSymtableVarSyms(current_module.globalsymtable);
-        //WriteSymtableVarSyms(current_module.localsymtable);
+        //current_asmdata.AsmSymbolDict
+        WriteSymtableVarSyms(current_module.globalsymtable);
+        WriteSymtableVarSyms(current_module.localsymtable);
+
         //writer.AsmLn;
         { print all global procedures/functions }
         WriteSymtableProcdefs(current_module.globalsymtable);
@@ -601,6 +603,63 @@ implementation
                 ;
             end;
           end;
+      end;
+
+    procedure TWabtTextAssembler.WriteSymtableVarSyms(st: TSymtable);
+      var
+        i : integer;
+        sym : tsym;
+        sz  : integer;
+      begin
+        if not assigned(st) then
+          exit;
+
+        sz := 0;
+        for i:=0 to st.SymList.Count-1 do
+         begin
+           sym:=tsym(st.SymList[i]);
+           case sym.typ of
+             staticvarsym:
+               begin
+                 //WriteFieldSym(tabstractvarsym(sym));
+                 //if (sym.typ=staticvarsym) and
+                 //   assigned(tstaticvarsym(sym).defaultconstsym) then
+                 //  WriteFieldSym(tabstractvarsym(tstaticvarsym(sym).defaultconstsym));
+                 writer.AsmWrite(#9);
+                 writer.AsmWrite('(global $');
+                 writer.AsmWrite(tcpustaticvarsym(sym).mangledname);
+                 writer.AsmWrite(' i32 (i32.const ');
+                 writer.AsmWrite( tostr(sz));
+                 writer.AsmWrite(')');
+                 writer.AsmWrite(') ');
+                 writer.AsmWriteLn(';; static or field');
+                 inc(sz, tcpustaticvarsym(sym).getsize);
+               end;
+             fieldvarsym:
+               begin
+                 writer.AsmWriteLn(';; field');
+               end;
+             constsym:
+               begin
+                 //if (sym.typ=staticvarsym) and
+                 //   assigned(tstaticvarsym(sym).defaultconstsym) then
+                 //  WriteFieldSym(tabstractvarsym(tstaticvarsym(sym).defaultconstsym));
+                 //{ multiple procedures can have constants with the same name }
+                 //if not assigned(sym.owner.defowner) or
+                 //   (tdef(sym.owner.defowner).typ<>procdef) then
+                 //  WriteConstSym(tconstsym(sym));
+                 writer.AsmWriteLn(';; constant');
+               end;
+             {procsym:
+               begin
+                 for j:=0 to tprocsym(sym).procdeflist.count-1 do
+                   if not(df_generic in tprocdef(tprocsym(sym).procdeflist[j]).defoptions) then
+                     WriteSymtableVarSyms(tprocdef(tprocsym(sym).procdeflist[j]).localst);
+               end;}
+             else
+               ;
+           end;
+         end;
       end;
 
     procedure TWabtTextAssembler.WriteTempAlloc(p: TAsmList);

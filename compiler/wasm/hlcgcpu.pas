@@ -1001,7 +1001,10 @@ implementation
         exit;
 
       // setting up memory offset
-      list.Concat(taicpu.op_const(a_i32_const, 0)); //todo: this should not be 0, this should be reference to a global "memory"
+      if assigned(ref.symbol) then
+        list.Concat(taicpu.op_sym(a_get_global, ref.symbol))
+      else
+        list.Concat(taicpu.op_const(a_i32_const, 0)); //todo: this should not be 0, this should be reference to a global "memory"
 
         { non-array accesses cannot have an index reg }
         if ref.index<>NR_NO then

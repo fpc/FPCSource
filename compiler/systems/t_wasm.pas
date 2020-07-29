@@ -5,7 +5,11 @@ interface
 uses
   systems,
 
+  globtype,
+
   export, aasmdata, aasmcpu,
+
+  symsym, symdef,
 
   link,
 
@@ -51,25 +55,24 @@ end;
 
 procedure texportlibwasm.preparelib(const s: string);
 begin
-  writeln('preparelib: ', s);
   //nothing to happen. wasm files are modules
-  //inherited preparelib(s);
 end;
 
 procedure texportlibwasm.exportprocedure(hp: texported_item);
+var
+  nm : TSymStr;
 begin
-  current_asmdata.asmlists[al_exports].Concat( tai_impexp.create(hp.name^, hp.sym.RealName, ie_Func));
+  nm := tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname;
+  current_asmdata.asmlists[al_exports].Concat(tai_impexp.create(hp.name^, nm, ie_Func));
 end;
 
 procedure texportlibwasm.exportvar(hp: texported_item);
 begin
-  writeln('exportvar: ', PtrUInt(hp));
   //inherited exportvar(hp);
 end;
 
 procedure texportlibwasm.generatelib;
 begin
-  writeln('gen lib');
   //inherited generatelib;
 end;
 
