@@ -242,7 +242,10 @@ implementation
       writer.AsmWrite(wasm_op2str[cpu.opcode] );
 
       if (cpu.opcode = a_if)  then
-        writer.AsmWrite(' (result i32)'); //todo: this is a hardcode, but shouldn't
+        writer.AsmWrite(' (result i32)') //todo: this is a hardcode, but shouldn't
+      else if (cpu.opcode = a_call_indirect) then
+        // special wat2wasm syntax "call_indirect (type x)"
+        writer.AsmWrite(' (type ');
 
       cpu := taicpu(hp);
       if cpu.ops<>0 then
@@ -258,6 +261,10 @@ implementation
 
             end;
         end;
+
+      if (cpu.opcode = a_call_indirect) then
+        // special wat2wasm syntax "call_indirect (type x)"
+        writer.AsmWrite(')');
 
       writer.AsmLn;
     end;

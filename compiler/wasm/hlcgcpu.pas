@@ -31,7 +31,7 @@ uses
   aasmbase,aasmdata,
   symbase,symconst,symtype,symdef,symsym,
   node,
-  cpubase, hlcgobj, cgbase, cgutils, parabase;
+  cpubase, hlcgobj, cgbase, cgutils, parabase, wasmdef;
 
   type
 
@@ -46,8 +46,10 @@ uses
       loopContBr: integer; // the value is different depending of the condition test
                            // if it's in the beggning the jump should be done to the loop (1)
                            // if the condition at the end, the jump should done to the end of block (0)
+      fntypelookup : TWasmProcTypeLookup;
 
       constructor create;
+      destructor Destroy; override;
 
       procedure incblock;
       procedure decblock;
@@ -251,7 +253,7 @@ implementation
     verbose,cutils,globals,fmodule,constexp,
     defutil,
     aasmtai,aasmcpu,
-    symtable,symcpu, wasmdef,
+    symtable,symcpu,
     procinfo,cpuinfo,cgcpu,tgobj;
 
   const
@@ -300,6 +302,13 @@ implementation
     begin
       fevalstackheight:=0;
       fmaxevalstackheight:=0;
+      fntypelookup:=TWasmProcTypeLookup.Create;
+    end;
+
+  destructor thlcgwasm.Destroy;
+    begin
+      fntypelookup.Free;
+      inherited Destroy;
     end;
 
   procedure thlcgwasm.incblock;
