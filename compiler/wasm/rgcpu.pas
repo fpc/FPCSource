@@ -89,16 +89,16 @@ implementation
         end;
 
       function issimpleregstore(p: tai; var reg: tregister; doubleprecisionok: boolean): boolean;
-        //const
-        //  simplestoressp = [a_astore,a_fstore,a_istore];
-        //  simplestoresdp = [a_dstore,a_lstore];
+        const
+          simplestoressp = [a_f32_store];
+          simplestoresdp = [a_f64_store];
         begin
           result:=
             assigned(p) and
             (p.typ=ait_instruction) and
-            //((taicpu(p).opcode in simplestoressp) or
-            // (doubleprecisionok and
-            //  (taicpu(p).opcode in simplestoresdp))) and
+            ((taicpu(p).opcode in simplestoressp) or
+             (doubleprecisionok and
+              (taicpu(p).opcode in simplestoresdp))) and
             ((reg=NR_NO) or
              (taicpu(p).oper[0]^.typ=top_reg) and
              (taicpu(p).oper[0]^.reg=reg));
@@ -108,16 +108,16 @@ implementation
         end;
 
       function issimpleregload(p: tai; var reg: tregister; doubleprecisionok: boolean): boolean;
-        //const
-        //  simpleloadssp = [a_aload,a_fload,a_iload];
-        //  simpleloadsdp = [a_dload,a_lload];
+        const
+          simpleloadssp = [a_f32_load];
+          simpleloadsdp = [a_f64_load];
         begin
           result:=
             assigned(p) and
             (p.typ=ait_instruction) and
-            //((taicpu(p).opcode in simpleloadssp) or
-            // (doubleprecisionok and
-            //  (taicpu(p).opcode in simpleloadsdp))) and
+            ((taicpu(p).opcode in simpleloadssp) or
+             (doubleprecisionok and
+              (taicpu(p).opcode in simpleloadsdp))) and
             ((reg=NR_NO) or
              (taicpu(p).oper[0]^.typ=top_reg) and
              (taicpu(p).oper[0]^.reg=reg));

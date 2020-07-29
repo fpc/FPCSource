@@ -75,9 +75,6 @@ interface
         'i32.store8', 'i32.store16', 'i64.store8', 'i64.store16', 'i64.store32',
         // additional memory
         'grow_memory', 'current_memory'
-        ,'<none>','<none>','<none>','<none>','<none>','<none>','<none>','<none>','<none>','<none>'
-        ,'<none>','<none>','<none>','<none>','<none>','<none>','<none>','<none>','<none>','<none>'
-        ,'<none>','<none>','<none>','<none>','<none>','<none>','<none>','<none>','<none>','<none>'
       );
 
 implementation

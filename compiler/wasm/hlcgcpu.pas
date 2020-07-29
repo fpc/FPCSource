@@ -234,17 +234,6 @@ uses
 
     end;
 
-
-  const
-    opcmp2if: array[TOpCmp] of TAsmOp = (A_None,
-       a_i64_eq,               // OC_EQ
-       a_i64_gt_s, a_i64_lt_s, // OC_GT, OC_LT
-       a_i64_ge_s, a_i64_le_s, // OC_GTE, OC_LTE
-       a_i64_ne,               // OC_NE
-       a_i64_le_u, a_i64_lt_u, // OC_BE, OC_B
-       a_i64_ge_u, a_i64_gt_u  // OC_AE, OC_A
-    );
-
 implementation
 
   uses
@@ -255,11 +244,45 @@ implementation
     procinfo,cpuinfo,cgcpu,tgobj;
 
   const
-    TOpCG2IAsmOp : array[topcg] of TAsmOp=(                       { not = xor -1 }
-      A_None,A_None,a_iadd,a_iand,A_none,a_idiv,a_imul,a_imul,a_ineg,A_None,a_ior,a_ishr,a_ishl,a_iushr,a_isub,a_ixor,A_None,A_None
+    TOpCG2IAsmOp : array[topcg] of TAsmOp=(
+      A_None,      {OP_NONE}
+      a_i32_load,  {OP_MOVE, replaced operation with direct load }
+      a_i32_add,   {OP_ADD,  simple addition          }
+      a_i32_and,   {OP_AND,  simple logical and       }
+      a_i32_div_u, {OP_DIV,  simple unsigned division }
+      a_i32_div_s, {OP_IDIV, simple signed division   }
+      a_i32_mul,   {OP_IMUL, simple signed multiply   }
+      a_i32_mul,   {OP_MUL,  simple unsigned multiply }
+      A_None,      {OP_NEG,  simple negate            } // neg = xor + 1
+      A_None,      {OP_NOT,  simple logical not       } // not = xor - 1
+      a_i32_or,    {OP_OR,   simple logical or        }
+      a_i32_shr_s, {OP_SAR,  arithmetic shift-right   }
+      a_i32_shr_s, {OP_SHL,  logical shift left       }
+      a_i32_shr_u, {OP_SHR,  logical shift right      }
+      a_i32_sub,   {OP_SUB,  simple subtraction       }
+      a_i32_xor,   {OP_XOR,  simple exclusive or      }
+      a_i32_rotl,  {OP_ROL,  rotate left              }
+      a_i32_rotr   {OP_ROR   rotate right             }
     );
-    TOpCG2LAsmOp : array[topcg] of TAsmOp=(                       { not = xor -1 }
-      A_None,A_None,a_ladd,a_land,A_none,a_ldiv,a_lmul,a_lmul,a_lneg,A_None,a_lor,a_lshr,a_lshl,a_lushr,a_lsub,a_lxor,A_None,A_None
+    TOpCG2LAsmOp : array[topcg] of TAsmOp=(
+      A_None,      {OP_NONE}
+      a_i64_load,  {OP_MOVE, replaced operation with direct load }
+      a_i64_add,   {OP_ADD,  simple addition          }
+      a_i64_and,   {OP_AND,  simple logical and       }
+      a_i64_div_u, {OP_DIV,  simple unsigned division }
+      a_i64_div_s, {OP_IDIV, simple signed division   }
+      a_i64_mul,   {OP_IMUL, simple signed multiply   }
+      a_i64_mul,   {OP_MUL,  simple unsigned multiply }
+      A_None,      {OP_NEG,  simple negate            } // neg = xor + 1
+      A_None,      {OP_NOT,  simple logical not       } // not = xor - 1
+      a_i64_or,    {OP_OR,   simple logical or        }
+      a_i64_shr_s, {OP_SAR,  arithmetic shift-right   }
+      a_i64_shr_s, {OP_SHL,  logical shift left       }
+      a_i64_shr_u, {OP_SHR,  logical shift right      }
+      a_i64_sub,   {OP_SUB,  simple subtraction       }
+      a_i64_xor,   {OP_XOR,  simple exclusive or      }
+      a_i64_rotl,  {OP_ROL,  rotate left              }
+      a_i64_rotr   {OP_ROR   rotate right             }
     );
 
   constructor thlcgwasm.create;
@@ -360,9 +383,6 @@ implementation
 
 
   procedure thlcgwasm.a_load_const_stack(list : TAsmList;size : tdef;a : tcgint; typ: TRegisterType);
-    const
-      int2opc: array[-1..5] of tasmop = (a_iconst_m1,a_iconst_0,a_iconst_1,
-        a_iconst_2,a_iconst_3,a_iconst_4,a_iconst_5);
     begin
       case typ of
         R_INTREGISTER:
@@ -372,34 +392,12 @@ implementation
               OS_S8,OS_S16,OS_S32:
                 begin
                   { convert cardinals to longints }
-                  a:=longint(a);
-                  if (a>=-1) and
-                     (a<=5) then
-                    list.concat(taicpu.op_none(int2opc[a]))
-                  else if (a>=low(shortint)) and
-                          (a<=high(shortint)) then
-                    list.concat(taicpu.op_const(a_bipush,a))
-                  else if (a>=low(smallint)) and
-                          (a<=high(smallint)) then
-                    list.concat(taicpu.op_const(a_sipush,a))
-                  else
-                    list.concat(taicpu.op_const(a_ldc,a));
-                  { for android verifier }
-                  if (size.typ=orddef) and
-                     (torddef(size).ordtype=uwidechar) then
-                    list.concat(taicpu.op_none(a_i2c));
+                  list.concat(taicpu.op_const(a_i32_const, a));
                 end;
               OS_64,OS_S64:
                 begin
-                  case a of
-                    0:
-                      list.concat(taicpu.op_none(a_lconst_0));
-                    1:
-                      list.concat(taicpu.op_none(a_lconst_1));
-                    else
-                      list.concat(taicpu.op_const(a_ldc2_w,a));
-                  end;
-                  incstack(list,1);
+                  list.concat(taicpu.op_const(a_i64_const, a));
+                  incstack(list,1); // why?
                 end;
               else
                 internalerror(2010110702);
@@ -409,7 +407,7 @@ implementation
           begin
             if a<>0 then
               internalerror(2010110701);
-            list.concat(taicpu.op_none(a_aconst_null));
+            list.concat(taicpu.op_none(a_none));
           end;
         else
           internalerror(2010110703);
@@ -450,24 +448,12 @@ implementation
       case tfloatdef(size).floattype of
         s32real:
           begin
-            if a=0.0 then
-              list.concat(taicpu.op_none(a_fconst_0))
-            else if a=1.0 then
-              list.concat(taicpu.op_none(a_fconst_1))
-            else if a=2.0 then
-              list.concat(taicpu.op_none(a_fconst_2))
-            else
-              list.concat(taicpu.op_single(a_ldc,a));
+            list.concat(taicpu.op_single(a_f32_const, a));
             incstack(list,1);
           end;
         s64real:
           begin
-            if a=0.0 then
-              list.concat(taicpu.op_none(a_dconst_0))
-            else if a=1.0 then
-              list.concat(taicpu.op_none(a_dconst_1))
-            else
-              list.concat(taicpu.op_double(a_ldc2_w,a));
+            list.concat(taicpu.op_double(a_f64_const,a));
             incstack(list,2);
           end
         else
@@ -540,7 +526,7 @@ implementation
       end;
       if trunc32 then
         begin
-          list.concat(taicpu.op_none(a_l2i));
+          list.concat(taicpu.op_none(a_i32_trunc_s_f32)); // todo: there are several truncs
           decstack(list,1);
         end;
     end;
@@ -667,6 +653,9 @@ implementation
       opc: tasmop;
       primitivetype: boolean;
     begin
+      internalerror(2019083001); // arrays are note yet supported
+
+      (*
       elemdef:=arrdef;
       if initdim>1 then
         begin
@@ -688,14 +677,15 @@ implementation
           }
           { get the type of the elements of the array we are creating }
           elemdef:=tarraydef(arrdef).elementdef;
-          { todo: WASM
+
+          { todo: WASM. Todo: array data structures needs to be stored in Memory
           mangledname:=jvmarrtype(elemdef,primitivetype);
-          }
           if primitivetype then
             opc:=a_newarray
           else
             opc:=a_anewarray;
           list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname,AT_METADATA)));
+          }
         end;
       { all dimensions are removed from the stack, an array reference is
         added }
@@ -768,12 +758,15 @@ implementation
               internalerror(2011081801);
           end;
         end;
+        *)
     end;
 
   procedure thlcgwasm.g_getarraylen(list: TAsmList; const arrloc: tlocation);
     var
       nillab,endlab: tasmlabel;
     begin
+      internalerror(2019083001); // arrays are note yet supported
+      (*
       { inline because we have to use the arraylength opcode, which
         cannot be represented directly in Pascal. Even though the JVM
         supports allocated arrays with length=0, we still also have to
@@ -806,13 +799,34 @@ implementation
       incstack(list,1);
 
       a_label(list,endlab);
+      *)
     end;
 
     procedure thlcgwasm.a_cmp_stack_label(list: TAsmlist; size: tdef; cmp_op: topcmp; lab: tasmlabel);
       const
-        opcmp2icmp: array[topcmp] of tasmop = (A_None,
-          a_if_icmpeq,a_if_icmpgt,a_if_icmplt,a_if_icmpge,a_if_icmple,
-          a_if_icmpne,a_if_icmple,a_if_icmplt,a_if_icmpge,a_if_icmpgt);
+        opcmp32: array[topcmp] of tasmop = (
+          A_None,     { OC_NONE, }
+          a_i32_eq,   { OC_EQ,   equality comparison              }
+          a_i32_gt_s, { OC_GT,   greater than (signed)            }
+          a_i32_lt_s, { OC_LT,   less than (signed)               }
+          a_i32_ge_s, { OC_GTE,  greater or equal than (signed)   }
+          a_i32_le_s, { OC_LTE,  less or equal than (signed)      }
+          a_i32_ne,   { OC_NE,   not equal                        }
+          a_i32_le_u, { OC_BE,   less or equal than (unsigned)    }
+          a_i32_lt_u, { OC_B,    less than (unsigned)             }
+          a_i32_ge_u, { OC_AE,   greater or equal than (unsigned) }
+          a_i32_gt_u  { OC_A     greater than (unsigned)          }
+        );
+      const
+        opcmp64: array[TOpCmp] of TAsmOp = (A_None,
+           a_i64_eq,               // OC_EQ
+           a_i64_gt_s, a_i64_lt_s, // OC_GT, OC_LT
+           a_i64_ge_s, a_i64_le_s, // OC_GTE, OC_LTE
+           a_i64_ne,               // OC_NE
+           a_i64_le_u, a_i64_lt_u, // OC_BE, OC_B
+           a_i64_ge_u, a_i64_gt_u  // OC_AE, OC_A
+        );
+
       var
         cgsize: tcgsize;
       begin
@@ -825,15 +839,15 @@ implementation
                 OS_16,OS_S16,
                 OS_S32,OS_32:
                   begin
-                    list.concat(taicpu.op_sym(opcmp2icmp[cmp_op],lab));
+                    list.concat(taicpu.op_sym(opcmp32[cmp_op],lab));
                     decstack(list,2);
                   end;
                 OS_64,OS_S64:
                   begin
-                    list.concat(taicpu.op_none(a_lcmp));
-                    decstack(list,3);
-                    list.concat(taicpu.op_sym(opcmp2if[cmp_op],lab));
-                    decstack(list,1);
+                    //list.concat(taicpu.op_none(a_lcmp));
+                    //decstack(list,3);
+                    list.concat(taicpu.op_sym(opcmp64[cmp_op],lab));
+                    decstack(list,2);
                   end;
                 else
                   internalerror(2010120538);
@@ -843,9 +857,9 @@ implementation
             begin
               case cmp_op of
                 OC_EQ:
-                  list.concat(taicpu.op_sym(a_if_acmpeq,lab));
+                  list.concat(taicpu.op_sym(a_i64_eq,lab));
                 OC_NE:
-                  list.concat(taicpu.op_sym(a_if_acmpne,lab));
+                  list.concat(taicpu.op_sym(a_i64_ne,lab));
                 else
                   internalerror(2010120537);
               end;
@@ -918,12 +932,12 @@ implementation
           case tfloatdef(resdef).floattype of
             s32real:
               begin
-                list.concat(taicpu.op_none(a_fconst_0));
+                list.concat(taicpu.op_single(a_f32_const, 0));
                 incstack(list,1);
               end;
             s64real:
               begin
-                list.concat(taicpu.op_none(a_dconst_0));
+                list.concat(taicpu.op_double(a_f64_const, 0));
                 incstack(list,2);
               end;
             else
@@ -1002,7 +1016,9 @@ implementation
                   a_load_reg_stack(list,voidpointertype,ref.base);
                   if dup then
                     begin
-                      list.concat(taicpu.op_none(a_dup));
+                      internalerror(2019083002);
+                      //todo: add duplicate
+                      //list.concat(taicpu.op_none(a_dup));
                       incstack(list,1);
                     end;
                   { field name/type encoded in symbol, no index/offset }
@@ -1068,7 +1084,8 @@ implementation
             a_op_const_stack(list,OP_ADD,s32inttype,ref.offset);
           if dup then
             begin
-              list.concat(taicpu.op_none(a_dup2));
+              internalerror(2019083002); // todo: missing dups
+              //list.concat(taicpu.op_none(a_dup2));
               incstack(list,2);
             end;
           result:=2;
@@ -1273,7 +1290,8 @@ implementation
               a_op_const_stack(list,OP_SHR,size,(size.size*8)-1);
               if size.size=8 then
                 begin
-                  list.concat(taicpu.op_none(a_l2i));
+                  //todo: any operands needed?
+                  list.concat(taicpu.op_none(a_i32_wrap_i64));
                   decstack(list,1);
                 end;
             end
@@ -1317,8 +1335,11 @@ implementation
       maybe_adjust_cmp_stackval(list,size,cmp_op);
       if ref.base<>NR_EVAL_STACK_BASE then
         a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false))
-      else
-        list.concat(taicpu.op_none(a_swap));
+      else begin
+        // todo: need a swap operation?
+        //list.concat(taicpu.op_none(a_swap));
+        Internalerror(2019083003);
+      end;
       maybe_adjust_cmp_stackval(list,size,cmp_op);
       a_cmp_stack_label(list,size,cmp_op,l);
     end;
@@ -1344,7 +1365,7 @@ implementation
 
   procedure thlcgwasm.a_jmp_always(list: TAsmList; l: tasmlabel);
     begin
-      list.concat(taicpu.op_sym(a_goto,current_asmdata.RefAsmSymbol(l.name,AT_METADATA)));
+      list.concat(taicpu.op_sym(a_br,current_asmdata.RefAsmSymbol(l.name,AT_METADATA)));
     end;
 
   procedure thlcgwasm.concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);
@@ -1442,7 +1463,8 @@ implementation
      if ndim<>1 then
        begin
          { pop return value, must be the same as dest }
-         list.concat(taicpu.op_none(a_pop));
+         //list.concat(taicpu.op_none(a_pop));
+         Internalerror(2019083001); // no support for arrays
          decstack(list,1);
        end;
     end;
@@ -1600,41 +1622,8 @@ implementation
     end;
 
   procedure thlcgwasm.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
-    var
-      retdef: tdef;
-      opc: tasmop;
     begin
-      if current_procinfo.procdef.proctypeoption in [potype_constructor,potype_class_constructor] then
-        retdef:=voidtype
-      else
-        retdef:=current_procinfo.procdef.returndef;
-      case retdef.typ of
-        orddef:
-          case torddef(retdef).ordtype of
-            uvoid:
-              opc:=a_return;
-            s64bit,
-            u64bit,
-            scurrency:
-              opc:=a_lreturn;
-            else
-              opc:=a_ireturn;
-          end;
-        setdef:
-          opc:=a_areturn;
-        floatdef:
-          case tfloatdef(retdef).floattype of
-            s32real:
-              opc:=a_freturn;
-            s64real:
-              opc:=a_dreturn;
-            else
-              internalerror(2011010213);
-          end;
-        else
-          opc:=a_areturn;
-      end;
-      list.concat(taicpu.op_none(opc));
+      list.concat(taicpu.op_none(a_return));
     end;
 
   procedure thlcgwasm.gen_load_return_value(list: TAsmList);
@@ -2035,12 +2024,14 @@ implementation
       incstack(list,1+ord(size.size>4)-extra_slots);
       if finishandval<>-1 then
         a_op_const_stack(list,OP_AND,size,finishandval);
-      if ref.checkcast then
-        gen_typecheck(list,a_checkcast,size);
+
+      // there's no cast check in Wasm
+      //if ref.checkcast then
+      //  gen_typecheck(list,a_checkcast,size);
     end;
 
   function thlcgwasm.loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: tcgint): tasmop;
-    const
+   (* const
                      { isload  static }
       getputopc: array[boolean,boolean] of tasmop =
         ((a_putfield,a_putstatic),
@@ -2066,7 +2057,8 @@ implementation
                    finishandval:=65535;
             end;
         end
-      else
+      else *)
+      begin //todo:
         result:=loadstoreopc(def,isload,ref.arrayreftype<>art_none,finishandval);
     end;
 
@@ -2079,105 +2071,39 @@ implementation
         R_INTREGISTER:
           begin
             size:=def.size;
-            if not isarray then
-              begin
-                case size of
-                  1,2,3,4:
-                    if isload then
-                      result:=a_iload
-                    else
-                      result:=a_istore;
-                  8:
-                    if isload then
-                      result:=a_lload
-                    else
-                      result:=a_lstore;
-                  else
-                    internalerror(2011032814);
-                end;
-              end
-            { array }
-            else if isload then
-              begin
-                case size of
-                  1:
-                    begin
-                      result:=a_baload;
-                      if not is_signed(def) and
-                         (def.typ=orddef) and
-                         (torddef(def).high>127) then
-                        finishandval:=255;
-                    end;
-                  2:
-                    begin
-                      if is_widechar(def) then
-                        result:=a_caload
-                      else
-                        begin
-                          result:=a_saload;
-                          { if we'd treat arrays of word as "array of widechar" we
-                            could use a_caload, but that would make for even more
-                            awkward interfacing with external Java code }
-                          if not is_signed(def) and
-                         (def.typ=orddef) and
-                         (torddef(def).high>32767) then
-                            finishandval:=65535;
-                        end;
-                    end;
-                  4: result:=a_iaload;
-                  8: result:=a_laload;
-                  else
-                    internalerror(2010120503);
-                end
-              end
-            else
-              begin
-                case size of
-                  1: result:=a_bastore;
-                  2: if not is_widechar(def) then
-                       result:=a_sastore
-                     else
-                       result:=a_castore;
-                  4: result:=a_iastore;
-                  8: result:=a_lastore;
-                  else
-                    internalerror(2010120508);
-                end
-              end
+            case size of
+              1,2,3,4:
+                if isload then
+                  result:=a_i32_load
+                else
+                  result:=a_i32_store;
+              8:
+                if isload then
+                  result:=a_i64_load
+                else
+                  result:=a_i64_store;
+              else
+                internalerror(2011032814);
+            end;
           end;
         R_ADDRESSREGISTER:
-          if not isarray then
-            if isload then
-              result:=a_aload
-            else
-              result:=a_astore
-          else if isload then
-            result:=a_aaload
+          if isload then
+            result:=a_i32_load
           else
-            result:=a_aastore;
+            result:=a_i32_store;
         R_FPUREGISTER:
           begin
             case tfloatdef(def).floattype of
               s32real:
-                if not isarray then
-                  if isload then
-                    result:=a_fload
-                  else
-                    result:=a_fstore
-                else if isload then
-                  result:=a_faload
+                if isload then
+                  result:=a_f32_load
                 else
-                  result:=a_fastore;
+                  result:=a_f32_store;
               s64real:
-                if not isarray then
-                  if isload then
-                    result:=a_dload
-                  else
-                    result:=a_dstore
-                else if isload then
-                  result:=a_daload
+                if isload then
+                  result:=a_f32_load
                 else
-                  result:=a_dastore;
+                  result:=a_f32_store
               else
                 internalerror(2010120504);
             end
@@ -2210,14 +2136,17 @@ implementation
           if not(tocgsize in [OS_S64,OS_64]) then
             begin
               { truncate }
-              list.concat(taicpu.op_none(a_l2i));
+              list.concat(taicpu.op_none(a_i32_wrap_i64));
               decstack(list,1);
             end;
         end
       else if tocgsize in [OS_S64,OS_64] then
         begin
           { extend }
-          list.concat(taicpu.op_none(a_i2l));
+          if tocgsize = OS_S64 then
+            list.concat(taicpu.op_none(a_i64_extend_s_i32))
+          else
+            list.concat(taicpu.op_none(a_i64_extend_u_i32));
           incstack(list,1);
           { if it was an unsigned 32 bit value, remove sign extension }
           if fromcgsize=OS_32 then
@@ -2249,17 +2178,25 @@ implementation
            (fromsize<>cwidechartype))) then
         case tocgsize of
           OS_8:
-            a_op_const_stack(list,OP_AND,s32inttype,255);
+            //todo: conversion
+            //a_op_const_stack(list,OP_AND,s32inttype,255);
+            ;
           OS_S8:
-            list.concat(taicpu.op_none(a_i2b));
+            //todo: conversion
+            //list.concat(taicpu.op_none(a_i2b));
+            ;
           OS_16:
-            if (tosize.typ=orddef) and
-               (torddef(tosize).ordtype=uwidechar) then
-              list.concat(taicpu.op_none(a_i2c))
-            else
-              a_op_const_stack(list,OP_AND,s32inttype,65535);
+            //todo: conversion
+            //if (tosize.typ=orddef) and
+            //   (torddef(tosize).ordtype=uwidechar) then
+            //  list.concat(taicpu.op_none(a_i2c))
+            //else
+            //  a_op_const_stack(list,OP_AND,s32inttype,65535);
+            ;
           OS_S16:
-            list.concat(taicpu.op_none(a_i2s));
+            //todo: conversion
+            //list.concat(taicpu.op_none(a_i2s));
+            ;
           else
             ;
         end;
@@ -2488,13 +2425,13 @@ implementation
       if (fromsize=OS_F32) and
          (tosize=OS_F64) then
         begin
-          list.concat(taicpu.op_none(a_f2d));
+          list.concat(taicpu.op_none(a_f64_promote_f32));
           incstack(list,1);
         end
       else if (fromsize=OS_F64) and
               (tosize=OS_F32) then
         begin
-          list.concat(taicpu.op_none(a_d2f));
+          list.concat(taicpu.op_none(a_f32_demote_f64));
           decstack(list,1);
         end;
     end;
@@ -2532,10 +2469,14 @@ implementation
         staticsymtable,
         localsymtable:
           { regular and nested procedures are turned into static methods }
-          opc:=a_invokestatic;
+          opc:=a_call;
         objectsymtable:
           begin
-            case tobjectdef(pd.owner.defowner).objecttype of
+            Internalerror(2019083004); // no support for symbol table calls
+            opc:=a_call_indirect; // todo: need a reference to a (funccall) table
+
+            {case tobjectdef(pd.owner.defowner).objecttype of
+
               odt_javaclass:
                 begin
                   if (po_classmethod in pd.procoptions) or
@@ -2554,23 +2495,24 @@ implementation
               else
                 internalerror(2010122601);
             end;
+            }
           end;
         recordsymtable:
           begin
             if (po_staticmethod in pd.procoptions) or
                (pd.proctypeoption=potype_operator) then
-              opc:=a_invokestatic
+              opc:=a_call
             else if (pd.visibility=vis_strictprivate) or
                (pd.proctypeoption=potype_constructor) or
                inheritedcall then
-              opc:=a_invokespecial
+              opc:=a_call
             else
-              opc:=a_invokevirtual;
+              opc:=a_call_indirect;
           end
         else
           internalerror(2010122602);
       end;
-      if (opc<>a_invokeinterface) then
+      if (opc<>a_call_indirect) then
         list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
       else
         begin
