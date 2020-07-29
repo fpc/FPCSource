@@ -65,10 +65,6 @@ interface
        procedure WriteTempAlloc(p:TAsmList);
        procedure WriteExports(p: TAsmList);
        procedure WriteImports;
-       procedure WriteFakeExports; // these exports are only needed for Linkin stage
-                                   // the idea, is that Wabt would maker those functions
-                                   // as undefined, so the linker can use the proper
-                                   // functions and throw those out
 
        procedure WriteOutPChar(p: pchar; ofs, len: integer);
        procedure WriteConstString(lbl: tai_label; str: tai_string);
@@ -605,7 +601,6 @@ implementation
 
         //writer.AsmLn;
         { print all global procedures/functions }
-        WriteFakeExports;
         WriteSymtableProcdefs(current_module.globalsymtable);
         WriteSymtableProcdefs(current_module.localsymtable);
 
@@ -795,11 +790,13 @@ implementation
 
     procedure TWabtTextAssembler.WriteImports;
       var
-        i : integer;
+        i    : integer;
         proc : tprocdef;
+        sym  : tsym;
+        j    : integer;
+        psym : tprocsym;
       begin
         for i:=0 to current_module.deflist.Count-1 do begin
-          //writeln('>def: ', tdef(current_module.deflist[i]).typ);
           if tdef(current_module.deflist[i]).typ = procdef then begin
             proc := tprocdef(current_module.deflist[i]);
             if (po_external in proc.procoptions) and assigned(proc.import_dll) then begin
@@ -813,30 +810,32 @@ implementation
             end;
           end;
         end;
-      end;
 
-    procedure TWabtTextAssembler.WriteFakeExports;
-      var
-        i : integer;
-        proc : tprocdef;
-      begin
-        for i:=0 to current_module.deflist.Count-1 do begin
-          //writeln('>def: ', tdef(current_module.deflist[i]).typ);
-          if tdef(current_module.deflist[i]).typ = procdef then begin
-            proc := tprocdef(current_module.deflist[i]);
-            if (po_external in proc.procoptions) and not assigned(proc.import_dll) then begin
-              WriteProcDef(proc, true);
-
-              writer.AsmWrite('(export "');
+        // any symbol used from another unit must be fully declared in .wat
+        // (reference by symbol name only doesn't work in Wasm)
+        // the entire entry should declared (as imported) symbol.
+        // The wasm-import name (name of exernal module and name)
+        // is not important, as the linker would be using the symbol name
+        // while linking.
+        for i:=0 to current_module.unitimportsyms.Count-1 do begin
+          sym := tsym(current_module.unitimportsyms[i]);
+          if sym.typ = procsym then begin
+            psym := tprocsym(sym);
+            if psym.ProcdefList.Count>0 then
+              proc := tprocdef(psym.ProcdefList[0])
+            else
+              proc := nil;
+            if proc<>nil then begin
+              writer.AsmWrite(#9'(import "_fpc_use" "');
               writer.AsmWrite(proc.mangledname);
-              writer.AsmWrite('" (func ');
-              writer.AsmWrite(GetWasmName(proc.mangledname));
-              writer.AsmWriteLn('))');
+              writer.AsmWrite('" ');
+              WriteProcDef(proc);
+              writer.AsmWrite(')');
             end;
           end;
         end;
+      end;
 
-    end;
 
     procedure TWabtTextAssembler.WriteOutPChar(p: pchar; ofs, len: integer);
         var
