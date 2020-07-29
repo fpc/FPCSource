@@ -160,7 +160,8 @@ implementation
 
      function constsingle(s: single): ansistring;
        begin
-         result:='0x'+hexstr(longint(t32bitarray(s)),8);
+         // wat2wasm is using strtof() internally
+         str(s, result); //'0x'+hexstr(longint(t32bitarray(s)),8);
        end;
 
      function constdouble(d: double): ansistring;
@@ -169,10 +170,11 @@ implementation
           // integer, we never have to swap the endianess). We have to
           // include the sign separately because of the way Java parses
           // hex numbers (0x8000000000000000 is not a valid long)
-         result:=hexstr(abs(int64(t64bitarray(d))),16);
-         if int64(t64bitarray(d))<0 then
-           result:='-'+result;
-         result:='0dx'+result;
+          //result:=hexstr(abs(int64(t64bitarray(d))),16);
+          //if int64(t64bitarray(d))<0 then
+          //  result:='-'+result;
+          //result:='0dx'+result;
+          str(d, result);
         end;
 
     function getopstr(const o:toper) : ansistring;
