@@ -51,7 +51,10 @@ interface
      protected
        procedure WriteInstruction(hp: tai);
        procedure WriteProcDef(pd: tprocdef);
+       procedure WriteProcParams(pd: tprocdef);
+       procedure WriteProcResult(pd: tprocdef);
        procedure WriteSymtableProcdefs(st: TSymtable);
+       procedure WriteTempAlloc(p:TAsmList);
      public
        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
        procedure WriteTree(p:TAsmList);override;
@@ -195,18 +198,29 @@ implementation
     var
       cpu : taicpu;
       i   : integer;
+    const
+      ExplicitOffset = [a_i32_load, a_i32_store];
     begin
       //writer.AsmWriteLn('instr');
       //writeln('>',taicpu(hp).opcode);
+      cpu := taicpu(hp);
       writer.AsmWrite(#9);
-      writer.AsmWrite(wasm_op2str[taicpu(hp).opcode] );
+      writer.AsmWrite(wasm_op2str[cpu.opcode] );
       cpu := taicpu(hp);
       if cpu.ops<>0 then
         begin
-          for i:=0 to taicpu(hp).ops-1 do
+          for i:=0 to cpu.ops-1 do
             begin
               writer.AsmWrite(#9);
-              writer.AsmWrite(getopstr(taicpu(hp).oper[i]^));
+              if (cpu.oper[i]^.typ = top_ref) and
+                (cpu.opcode in ExplicitOffset) then begin
+                writer.AsmWrite('offset=');
+                writer.AsmWrite(tostr(cpu.oper[i]^.ref^.offset));
+                writer.AsmWrite(' ;;');
+                writer.AsmWrite('alignment=');
+                writer.AsmWrite(tostr(cpu.oper[i]^.ref^.alignment));
+              end else
+                writer.AsmWrite(getopstr(cpu.oper[i]^));
             end;
         end;
 
@@ -214,6 +228,8 @@ implementation
     end;
 
     procedure TWabtTextAssembler.WriteProcDef(pd: tprocdef);
+    var
+      i : integer;
     begin
       if not assigned(tcpuprocdef(pd).exprasmlist) and
          not(po_abstractmethod in pd.procoptions) and
@@ -234,8 +250,50 @@ implementation
           writer.AsmWrite(tcpuprocdef(pd).jvmmangledbasename(true));
           writer.AsmWriteln('"');
         end;}
+      writer.AsmLn;
+      WriteProcParams(tcpuprocdef(pd));
+      WriteTempAlloc(tcpuprocdef(pd).exprasmlist);
+
       WriteTree(tcpuprocdef(pd).exprasmlist);
       writer.AsmWriteln(')');
+      writer.AsmLn;
+    end;
+
+    procedure TWabtTextAssembler.WriteProcParams(pd: tprocdef);
+      var
+        i : integer;
+        prm : tcpuparavarsym;
+      begin
+        if not Assigned(pd) or
+           not Assigned(pd.paras) or
+           (pd.paras.Count=0) then
+          exit;
+
+        for i:=0 to pd.paras.Count-1 do
+          begin
+            prm := tcpuparavarsym(pd.paras[i]);
+            writer.AsmWrite(#9'(param'#9);
+            case prm.getsize of
+              1..4: writer.AsmWrite('i32');
+              8: writer.AsmWrite('i64');
+            end;
+            writer.AsmWrite(')');
+            writer.AsmLn;
+          end;
+      end;
+
+    procedure TWabtTextAssembler.WriteProcResult(pd: tprocdef);
+    begin
+      if not assigned(pd) or
+        not Assigned(pd.returndef)
+        then exit;
+
+      writer.AsmWrite(#9'(result'#9);
+      case pd.returndef.size of
+        1..4: writer.AsmWrite('i32');
+        8: writer.AsmWrite('i64');
+      end;
+      writer.AsmWrite(')');
       writer.AsmLn;
     end;
 
@@ -348,8 +406,6 @@ implementation
                          tostr(tai_tempalloc(hp).tempsize)+' '+tai_tempalloc(hp).problem^)
                      else
   {$endif EXTDEBUG}
-                       writer.AsmWriteLn(asminfo^.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
-                         tostr(tai_tempalloc(hp).tempsize)+' '+tempallocstr[tai_tempalloc(hp).allocation]);
                    end;
                end;
 
@@ -456,12 +512,16 @@ implementation
                begin
                  { the CPU directive is probably not supported by the JVM assembler,
                    so it's commented out }
-                 //if tai_directive(hp).directive=asd_cpu then
-                 //  writer.AsmWrite(asminfo^.comment);
-                 //writer.AsmWrite('.'+directivestr[tai_directive(hp).directive]+' ');
-                 //if tai_directive(hp).name<>'' then
-                 //  writer.AsmWrite(tai_directive(hp).name);
-                 //writer.AsmLn;
+
+                 //todo:
+                 writer.AsmWrite(asminfo^.comment);
+
+                 if tai_directive(hp).directive=asd_cpu then
+                   writer.AsmWrite(asminfo^.comment);
+                 writer.AsmWrite('.'+directivestr[tai_directive(hp).directive]+' ');
+                 if tai_directive(hp).name<>'' then
+                   writer.AsmWrite(tai_directive(hp).name);
+                 writer.AsmLn;
                end;
 
              else
@@ -533,6 +593,65 @@ implementation
                 ;
             end;
           end;
+      end;
+
+    procedure TWabtTextAssembler.WriteTempAlloc(p: TAsmList);
+      var
+        hp: tai;
+        tmp: array of tai_tempalloc;
+        mx : integer;
+        i  : integer;
+      begin
+        if not assigned(p) then
+         exit;
+
+        mx := -1;
+        hp:=tai(p.first);
+        while assigned(hp) do
+         begin
+           //prefetch(pointer(hp.next)^);
+           if (hp.typ = ait_tempalloc) and
+             tai_tempalloc(hp).allocation and
+             (tai_tempalloc(hp).temppos >= mx) then
+               mx := tai_tempalloc(hp).temppos+1;
+
+           hp:=tai(hp.next);
+         end;
+
+        if (mx <= 0) then exit; // no temp allocations used
+
+        SetLength(tmp, mx);
+
+        hp:=tai(p.first);
+        while assigned(hp) do
+          begin
+            //prefetch(pointer(hp.next)^);
+
+            if (hp.typ = ait_tempalloc) and
+              (tai_tempalloc(hp).allocation) and
+              (tmp[ tai_tempalloc(hp).temppos ] = nil) then
+              begin
+                tmp[ tai_tempalloc(hp).temppos ] := tai_tempalloc(hp);
+                dec(mx);
+                if mx = 0 then break;
+              end;
+            hp:=tai(hp.next);
+          end;
+
+        for i:=0 to length(tmp)-1 do
+          begin
+            if tmp[i] = nil then continue;
+            writer.AsmWrite(#9'(local'#9);
+            if tmp[i].tempsize<=4 then writer.AsmWrite('i32')
+            else if tmp[i].tempsize = 8 then writer.AsmWrite('i64');
+            writer.AsmWrite(')');
+
+            writer.AsmWriteLn(#9+asminfo^.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
+              tostr(tai_tempalloc(hp).tempsize)+' '+tempallocstr[tai_tempalloc(hp).allocation]);
+
+            writer.AsmLn;
+          end;
+
       end;
 
 
