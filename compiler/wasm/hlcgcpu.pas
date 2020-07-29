@@ -999,6 +999,10 @@ implementation
       { fake location that indicates the value is already on the stack? }
       if (ref.base=NR_EVAL_STACK_BASE) then
         exit;
+
+      // setting up memory offset
+      list.Concat(taicpu.op_const(a_i32_const, 0)); //todo: this should not be 0, this should be reference to a global "memory"
+
         { non-array accesses cannot have an index reg }
         if ref.index<>NR_NO then
           internalerror(2010120509);
@@ -1926,8 +1930,6 @@ implementation
       if ref.base=NR_EVAL_STACK_BASE then
         exit;
       opc:=loadstoreopcref(size,false,ref,finishandval);
-      if opc in AsmOp_LoadStore then
-        list.Concat(taicpu.op_const(a_i32_const, 0)); //todo: this should not be 0, this should be reference to a global "memory"
 
       list.concat(taicpu.op_ref(opc,ref));
       { avoid problems with getting the size of an open array etc }
@@ -1960,9 +1962,6 @@ implementation
       if (ref.base=NR_EVAL_STACK_BASE) then
         exit;
       opc:=loadstoreopcref(size,true,ref,finishandval);
-
-      if opc in AsmOp_LoadStore then
-        list.Concat(taicpu.op_const(a_i32_const, 0)); //todo: this should not be 0, this should be reference to a global "memory"
 
       list.concat(taicpu.op_ref(opc,ref));
 
