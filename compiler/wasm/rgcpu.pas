@@ -1,5 +1,5 @@
 {
-    Copyright (c) 2010 by Jonas Maebe
+    Copyright (c) 2019 by Dmitry Boyarintsev
 
     This unit implements the WebAssembly specific class for the register
     allocator
@@ -61,7 +61,7 @@ implementation
         l: longint;
         reg: tregister;
       begin
-        { jvm instructions never have more than one memory (virtual register)
+        { WebAssebly instructions never have more than one memory (virtual register)
           operand, so there is no danger of superregister conflicts }
         for l:=0 to instr.ops-1 do
           if instr.oper[l]^.typ=top_reg then
@@ -89,16 +89,16 @@ implementation
         end;
 
       function issimpleregstore(p: tai; var reg: tregister; doubleprecisionok: boolean): boolean;
-        const
-          simplestoressp = [a_astore,a_fstore,a_istore];
-          simplestoresdp = [a_dstore,a_lstore];
+        //const
+        //  simplestoressp = [a_astore,a_fstore,a_istore];
+        //  simplestoresdp = [a_dstore,a_lstore];
         begin
           result:=
             assigned(p) and
             (p.typ=ait_instruction) and
-            ((taicpu(p).opcode in simplestoressp) or
-             (doubleprecisionok and
-              (taicpu(p).opcode in simplestoresdp))) and
+            //((taicpu(p).opcode in simplestoressp) or
+            // (doubleprecisionok and
+            //  (taicpu(p).opcode in simplestoresdp))) and
             ((reg=NR_NO) or
              (taicpu(p).oper[0]^.typ=top_reg) and
              (taicpu(p).oper[0]^.reg=reg));
@@ -108,16 +108,16 @@ implementation
         end;
 
       function issimpleregload(p: tai; var reg: tregister; doubleprecisionok: boolean): boolean;
-        const
-          simpleloadssp = [a_aload,a_fload,a_iload];
-          simpleloadsdp = [a_dload,a_lload];
+        //const
+        //  simpleloadssp = [a_aload,a_fload,a_iload];
+        //  simpleloadsdp = [a_dload,a_lload];
         begin
           result:=
             assigned(p) and
             (p.typ=ait_instruction) and
-            ((taicpu(p).opcode in simpleloadssp) or
-             (doubleprecisionok and
-              (taicpu(p).opcode in simpleloadsdp))) and
+            //((taicpu(p).opcode in simpleloadssp) or
+            // (doubleprecisionok and
+            //  (taicpu(p).opcode in simpleloadsdp))) and
             ((reg=NR_NO) or
              (taicpu(p).oper[0]^.typ=top_reg) and
              (taicpu(p).oper[0]^.reg=reg));
@@ -182,7 +182,7 @@ implementation
               load regx
             and remove. We don't have to check that the load/store
             types match, because they have to for this to be
-            valid JVM code }
+            valid WebAssembly code }
           dealloc:=nextskipping(p,[ait_comment,ait_tempalloc]);
           load:=nextskipping(dealloc,[ait_comment,ait_tempalloc]);
           reg:=NR_NO;
@@ -234,37 +234,37 @@ implementation
            This will create opportunities to remove the store/load regx
            (and possibly also for regy)
          }
-         regx:=NR_NO;
-         regy:=NR_NO;
-         if not issimpleregstore(p,regx,false) then
-           exit;
-         storex:=p;
-         deallocy:=nextskipping(storex,[ait_comment,ait_tempalloc]);
-         loady:=nextskipping(deallocy,[ait_comment,ait_tempalloc]);
-         deallocx:=nextskipping(loady,[ait_comment,ait_tempalloc]);
-         loadx:=nextskipping(deallocx,[ait_comment,ait_tempalloc]);
-         if not assigned(loadx) then
-           exit;
-         if not issimpleregload(loady,regy,false) then
-           exit;
-         if not issimpleregload(loadx,regx,false) then
-           exit;
-         if not isregallocoftyp(deallocy,ra_dealloc,regy) then
-           exit;
-         if not isregallocoftyp(deallocx,ra_dealloc,regx) then
-           exit;
-         insertpos:=tai(p.previous);
-         if not assigned(insertpos) or
-            not isregallocoftyp(insertpos,ra_alloc,regx) then
-           insertpos:=storex;
-         list.remove(deallocy);
-         list.insertbefore(deallocy,insertpos);
-         list.remove(loady);
-         list.insertbefore(loady,insertpos);
-         swapxy:=taicpu.op_none(a_swap);
-         swapxy.fileinfo:=taicpu(loady).fileinfo;
-         list.insertbefore(swapxy,insertpos);
-         result:=true;
+         //regx:=NR_NO;
+         //regy:=NR_NO;
+         //if not issimpleregstore(p,regx,false) then
+         //  exit;
+         //storex:=p;
+         //deallocy:=nextskipping(storex,[ait_comment,ait_tempalloc]);
+         //loady:=nextskipping(deallocy,[ait_comment,ait_tempalloc]);
+         //deallocx:=nextskipping(loady,[ait_comment,ait_tempalloc]);
+         //loadx:=nextskipping(deallocx,[ait_comment,ait_tempalloc]);
+         //if not assigned(loadx) then
+         //  exit;
+         //if not issimpleregload(loady,regy,false) then
+         //  exit;
+         //if not issimpleregload(loadx,regx,false) then
+         //  exit;
+         //if not isregallocoftyp(deallocy,ra_dealloc,regy) then
+         //  exit;
+         //if not isregallocoftyp(deallocx,ra_dealloc,regx) then
+         //  exit;
+         //insertpos:=tai(p.previous);
+         //if not assigned(insertpos) or
+         //   not isregallocoftyp(insertpos,ra_alloc,regx) then
+         //  insertpos:=storex;
+         //list.remove(deallocy);
+         //list.insertbefore(deallocy,insertpos);
+         //list.remove(loady);
+         //list.insertbefore(loady,insertpos);
+         //swapxy:=taicpu.op_none(a_swap);
+         //swapxy.fileinfo:=taicpu(loady).fileinfo;
+         //list.insertbefore(swapxy,insertpos);
+         //result:=true;
        end;
 
 

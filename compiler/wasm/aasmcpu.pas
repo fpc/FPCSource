@@ -121,9 +121,9 @@ implementation
       begin
         inherited create(op);
         ops:=1;
-        is_jmp:=op in [a_if_acmpeq, a_if_acmpne, a_if_icmpeq, a_if_icmpge, a_if_icmpgt,
-          a_if_icmple, a_if_icmplt, a_if_icmpne,
-          a_ifeq, a_ifge, a_ifgt, a_ifle, a_iflt, a_ifne, a_ifnonnull, a_ifnull, a_goto];
+        //is_jmp:=op in [a_if_acmpeq, a_if_acmpne, a_if_icmpeq, a_if_icmpge, a_if_icmpgt,
+        //  a_if_icmple, a_if_icmplt, a_if_icmpne,
+        //  a_ifeq, a_ifge, a_ifgt, a_ifle, a_iflt, a_ifne, a_ifnonnull, a_ifnull, a_goto];
         loadsymbol(0,_op1,0);
       end;
 
@@ -228,7 +228,7 @@ implementation
 
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
-        case opcode of
+        {case opcode of
           a_iinc:
             result:=operand_readwrite;
           a_aastore,
@@ -267,7 +267,8 @@ implementation
             result:=operand_write;
           else
             result:=operand_read;
-        end;
+        end;}
+        result:=operand_read;
       end;
 
 

@@ -244,6 +244,7 @@
              ,as_wasm_binaryen
              ,as_powerpc_gas_legacy    { for systems with very old GAS versions only, which don't support eg. named sections }
              ,as_llvm_clang
+             ,as_wasm_wabt
        );
 
        tlink = (ld_none,

@@ -35,9 +35,9 @@ uses
 
   type
 
-    { thlcgjvm }
+    { thlcgwasm }
 
-    thlcgjvm = class(thlcgobj)
+    thlcgwasm = class(thlcgobj)
      private
       fevalstackheight,
       fmaxevalstackheight: longint;
@@ -236,9 +236,14 @@ uses
 
 
   const
-    opcmp2if: array[topcmp] of tasmop = (A_None,
-      a_ifeq,a_ifgt,a_iflt,a_ifge,a_ifle,
-      a_ifne,a_ifle,a_iflt,a_ifge,a_ifgt);
+    opcmp2if: array[TOpCmp] of TAsmOp = (A_None,
+       a_i64_eq,               // OC_EQ
+       a_i64_gt_s, a_i64_lt_s, // OC_GT, OC_LT
+       a_i64_ge_s, a_i64_le_s, // OC_GTE, OC_LTE
+       a_i64_ne,               // OC_NE
+       a_i64_le_u, a_i64_lt_u, // OC_BE, OC_B
+       a_i64_ge_u, a_i64_gt_u  // OC_AE, OC_A
+    );
 
 implementation
 
@@ -257,13 +262,13 @@ implementation
       A_None,A_None,a_ladd,a_land,A_none,a_ldiv,a_lmul,a_lmul,a_lneg,A_None,a_lor,a_lshr,a_lshl,a_lushr,a_lsub,a_lxor,A_None,A_None
     );
 
-  constructor thlcgjvm.create;
+  constructor thlcgwasm.create;
     begin
       fevalstackheight:=0;
       fmaxevalstackheight:=0;
     end;
 
-  procedure thlcgjvm.incstack(list: TasmList;slots: longint);
+  procedure thlcgwasm.incstack(list: TasmList;slots: longint);
     begin
       if slots=0 then
         exit;
@@ -274,7 +279,7 @@ implementation
         list.concat(tai_comment.Create(strpnew('    allocated '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
     end;
 
-  procedure thlcgjvm.decstack(list: TAsmList;slots: longint);
+  procedure thlcgwasm.decstack(list: TAsmList;slots: longint);
     begin
       if slots=0 then
         exit;
@@ -286,7 +291,7 @@ implementation
         list.concat(tai_comment.Create(strpnew('    freed '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
     end;
 
-  class function thlcgjvm.def2regtyp(def: tdef): tregistertype;
+  class function thlcgwasm.def2regtyp(def: tdef): tregistertype;
     begin
       case def.typ of
         { records (including files) and enums are implemented via classes }
@@ -305,7 +310,7 @@ implementation
       end;
     end;
 
-  procedure thlcgjvm.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: tcgint; const cgpara: TCGPara);
+  procedure thlcgwasm.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: tcgint; const cgpara: TCGPara);
     begin
       tosize:=get_para_push_size(tosize);
       if tosize=s8inttype then
@@ -315,25 +320,25 @@ implementation
       inherited a_load_const_cgpara(list, tosize, a, cgpara);
     end;
 
-  function thlcgjvm.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
+  function thlcgwasm.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
     begin
       result:=a_call_name_intern(list,pd,s,forceresdef,false);
     end;
 
-  function thlcgjvm.a_call_name_inherited(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara): tcgpara;
+  function thlcgwasm.a_call_name_inherited(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara): tcgpara;
     begin
       result:=a_call_name_intern(list,pd,s,nil,true);
     end;
 
 
-  function thlcgjvm.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara;
+  function thlcgwasm.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara;
     begin
       internalerror(2012042824);
       result.init;
     end;
 
 
-  procedure thlcgjvm.a_load_const_stack_intern(list : TAsmList;size : tdef;a : tcgint; typ: TRegisterType; legalize_const: boolean);
+  procedure thlcgwasm.a_load_const_stack_intern(list : TAsmList;size : tdef;a : tcgint; typ: TRegisterType; legalize_const: boolean);
     begin
       if legalize_const and
          (typ=R_INTREGISTER) and
@@ -354,7 +359,7 @@ implementation
     end;
 
 
-  procedure thlcgjvm.a_load_const_stack(list : TAsmList;size : tdef;a : tcgint; typ: TRegisterType);
+  procedure thlcgwasm.a_load_const_stack(list : TAsmList;size : tdef;a : tcgint; typ: TRegisterType);
     const
       int2opc: array[-1..5] of tasmop = (a_iconst_m1,a_iconst_0,a_iconst_1,
         a_iconst_2,a_iconst_3,a_iconst_4,a_iconst_5);
@@ -412,7 +417,7 @@ implementation
       incstack(list,1);
     end;
 
-  procedure thlcgjvm.a_load_stack_loc(list: TAsmList; size: tdef; const loc: tlocation);
+  procedure thlcgwasm.a_load_stack_loc(list: TAsmList; size: tdef; const loc: tlocation);
     begin
       case loc.loc of
         LOC_REGISTER,LOC_CREGISTER,
@@ -425,7 +430,7 @@ implementation
       end;
     end;
 
-  procedure thlcgjvm.a_load_loc_stack(list: TAsmList;size: tdef;const loc: tlocation);
+  procedure thlcgwasm.a_load_loc_stack(list: TAsmList;size: tdef;const loc: tlocation);
     begin
       case loc.loc of
         LOC_REGISTER,LOC_CREGISTER,
@@ -440,7 +445,7 @@ implementation
       end;
     end;
 
-  procedure thlcgjvm.a_loadfpu_const_stack(list: TAsmList; size: tdef; a: double);
+  procedure thlcgwasm.a_loadfpu_const_stack(list: TAsmList; size: tdef; a: double);
     begin
       case tfloatdef(size).floattype of
         s32real:
@@ -470,7 +475,7 @@ implementation
       end;
     end;
 
-  procedure thlcgjvm.a_op_stack(list: TAsmList; op: topcg; size: tdef; trunc32: boolean);
+  procedure thlcgwasm.a_op_stack(list: TAsmList; op: topcg; size: tdef; trunc32: boolean);
     var
       cgsize: tcgsize;
     begin
@@ -540,7 +545,7 @@ implementation
         end;
     end;
 
-  procedure thlcgjvm.a_op_const_stack(list: TAsmList;op: topcg;size: tdef;a: tcgint);
+  procedure thlcgwasm.a_op_const_stack(list: TAsmList;op: topcg;size: tdef;a: tcgint);
     var
       trunc32: boolean;
     begin
@@ -557,7 +562,7 @@ implementation
       a_op_stack(list,op,size,trunc32);
     end;
 
-  procedure thlcgjvm.a_op_reg_stack(list: TAsmList; op: topcg; size: tdef; reg: tregister);
+  procedure thlcgwasm.a_op_reg_stack(list: TAsmList; op: topcg; size: tdef; reg: tregister);
     var
       trunc32: boolean;
     begin
@@ -579,7 +584,7 @@ implementation
       a_op_stack(list,op,size,trunc32);
     end;
 
-  procedure thlcgjvm.a_op_ref_stack(list: TAsmList; op: topcg; size: tdef; const ref: treference);
+  procedure thlcgwasm.a_op_ref_stack(list: TAsmList; op: topcg; size: tdef; const ref: treference);
     var
       trunc32: boolean;
     begin
@@ -605,7 +610,7 @@ implementation
       a_op_stack(list,op,size,trunc32);
     end;
 
-  procedure thlcgjvm.a_op_loc_stack(list: TAsmList; op: topcg; size: tdef; const loc: tlocation);
+  procedure thlcgwasm.a_op_loc_stack(list: TAsmList; op: topcg; size: tdef; const loc: tlocation);
     begin
       case loc.loc of
         LOC_REGISTER,LOC_CREGISTER:
@@ -619,7 +624,7 @@ implementation
       end;
     end;
 
-  procedure thlcgjvm.g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation);
+  procedure thlcgwasm.g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation);
     begin
       case fromloc.loc of
         LOC_CREFERENCE,
@@ -652,7 +657,7 @@ implementation
       end;
     end;
 
-  procedure thlcgjvm.g_newarray(list: TAsmList; arrdef: tdef; initdim: longint);
+  procedure thlcgwasm.g_newarray(list: TAsmList; arrdef: tdef; initdim: longint);
     var
       recref,
       enuminitref: treference;
@@ -765,7 +770,7 @@ implementation
         end;
     end;
 
-  procedure thlcgjvm.g_getarraylen(list: TAsmList; const arrloc: tlocation);
+  procedure thlcgwasm.g_getarraylen(list: TAsmList; const arrloc: tlocation);
     var
       nillab,endlab: tasmlabel;
     begin
@@ -803,7 +808,7 @@ implementation
       a_label(list,endlab);
     end;
 
-    procedure thlcgjvm.a_cmp_stack_label(list: TAsmlist; size: tdef; cmp_op: topcmp; lab: tasmlabel);
+    procedure thlcgwasm.a_cmp_stack_label(list: TAsmlist; size: tdef; cmp_op: topcmp; lab: tasmlabel);
       const
         opcmp2icmp: array[topcmp] of tasmop = (A_None,
           a_if_icmpeq,a_if_icmpgt,a_if_icmplt,a_if_icmpge,a_if_icmple,
@@ -851,7 +856,7 @@ implementation
         end;
       end;
 
-    procedure thlcgjvm.maybe_adjust_cmp_stackval(list: TAsmlist; size: tdef; cmp_op: topcmp);
+    procedure thlcgwasm.maybe_adjust_cmp_stackval(list: TAsmlist; size: tdef; cmp_op: topcmp);
       begin
         { use cmp_op because eventually that's what indicates the
           signed/unsigned character of the operation, not the size... }
@@ -869,7 +874,7 @@ implementation
         end;
       end;
 
-    function thlcgjvm.maybe_adjust_cmp_constval(size: tdef; cmp_op: topcmp; a: tcgint): tcgint;
+    function thlcgwasm.maybe_adjust_cmp_constval(size: tdef; cmp_op: topcmp; a: tcgint): tcgint;
       begin
         result:=a;
         { use cmp_op because eventually that's what indicates the
@@ -889,7 +894,7 @@ implementation
         end;
       end;
 
-    procedure thlcgjvm.maybe_adjust_op_result(list: TAsmList; op: TOpCg; size: tdef);
+    procedure thlcgwasm.maybe_adjust_op_result(list: TAsmList; op: TOpCg; size: tdef);
       const
         overflowops = [OP_MUL,OP_SHL,OP_ADD,OP_SUB,OP_NOT,OP_NEG];
       begin
@@ -899,7 +904,7 @@ implementation
           resize_stack_int_val(list,s32inttype,size,false);
       end;
 
-  procedure thlcgjvm.gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara);
+  procedure thlcgwasm.gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara);
     begin
       { constructors don't return anything in Java }
       if pd.proctypeoption=potype_constructor then
@@ -930,7 +935,7 @@ implementation
     end;
 
 
-  procedure thlcgjvm.g_copyvalueparas(p: TObject; arg: pointer);
+  procedure thlcgwasm.g_copyvalueparas(p: TObject; arg: pointer);
     var
       list: tasmlist;
       tmpref: treference;
@@ -962,13 +967,13 @@ implementation
     end;
 
 
-  procedure thlcgjvm.inittempvariables(list: TAsmList);
+  procedure thlcgwasm.inittempvariables(list: TAsmList);
     begin
       { these are automatically initialised when allocated if necessary }
     end;
 
 
-  function thlcgjvm.g_call_system_proc_intern(list: TAsmList; pd: tprocdef; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
+  function thlcgwasm.g_call_system_proc_intern(list: TAsmList; pd: tprocdef; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
     begin
       result:=inherited;
       pd.init_paraloc_info(callerside);
@@ -976,7 +981,7 @@ implementation
     end;
 
 
-  function thlcgjvm.prepare_stack_for_ref(list: TAsmList; const ref: treference; dup: boolean): longint;
+  function thlcgwasm.prepare_stack_for_ref(list: TAsmList; const ref: treference; dup: boolean): longint;
     var
       href: treference;
     begin
@@ -1070,13 +1075,13 @@ implementation
         end;
     end;
 
-  procedure thlcgjvm.a_load_const_reg(list: TAsmList; tosize: tdef; a: tcgint; register: tregister);
+  procedure thlcgwasm.a_load_const_reg(list: TAsmList; tosize: tdef; a: tcgint; register: tregister);
     begin
       a_load_const_stack(list,tosize,a,def2regtyp(tosize));
       a_load_stack_reg(list,tosize,register);
     end;
 
-  procedure thlcgjvm.a_load_const_ref(list: TAsmList; tosize: tdef; a: tcgint; const ref: treference);
+  procedure thlcgwasm.a_load_const_ref(list: TAsmList; tosize: tdef; a: tcgint; const ref: treference);
     var
       extra_slots: longint;
     begin
@@ -1085,7 +1090,7 @@ implementation
       a_load_stack_ref(list,tosize,ref,extra_slots);
     end;
 
-  procedure thlcgjvm.a_load_reg_ref(list: TAsmList; fromsize, tosize: tdef; register: tregister; const ref: treference);
+  procedure thlcgwasm.a_load_reg_ref(list: TAsmList; fromsize, tosize: tdef; register: tregister; const ref: treference);
     var
       extra_slots: longint;
     begin
@@ -1096,7 +1101,7 @@ implementation
       a_load_stack_ref(list,tosize,ref,extra_slots);
     end;
 
-  procedure thlcgjvm.a_load_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister);
+  procedure thlcgwasm.a_load_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister);
     begin
       a_load_reg_stack(list,fromsize,reg1);
       if def2regtyp(fromsize)=R_INTREGISTER then
@@ -1104,7 +1109,7 @@ implementation
       a_load_stack_reg(list,tosize,reg2);
     end;
 
-  procedure thlcgjvm.a_load_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; register: tregister);
+  procedure thlcgwasm.a_load_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; register: tregister);
     var
       extra_slots: longint;
     begin
@@ -1116,7 +1121,7 @@ implementation
       a_load_stack_reg(list,tosize,register);
     end;
 
-  procedure thlcgjvm.a_load_ref_ref(list: TAsmList; fromsize, tosize: tdef; const sref: treference; const dref: treference);
+  procedure thlcgwasm.a_load_ref_ref(list: TAsmList; fromsize, tosize: tdef; const sref: treference; const dref: treference);
     var
       extra_sslots,
       extra_dslots: longint;
@@ -1131,7 +1136,7 @@ implementation
       a_load_stack_ref(list,tosize,dref,extra_dslots);
     end;
 
-  procedure thlcgjvm.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
+  procedure thlcgwasm.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
     begin
       { only allowed for types that are not implicit pointers in Pascal (in
         that case, ref contains a pointer to the actual data and we simply
@@ -1141,19 +1146,19 @@ implementation
       a_load_ref_reg(list,java_jlobject,java_jlobject,ref,r);
     end;
 
-  procedure thlcgjvm.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister);
+  procedure thlcgwasm.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister);
     begin
       a_op_const_reg_reg(list,op,size,a,reg,reg);
     end;
 
-  procedure thlcgjvm.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister);
+  procedure thlcgwasm.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister);
     begin
       a_load_reg_stack(list,size,src);
       a_op_const_stack(list,op,size,a);
       a_load_stack_reg(list,size,dst);
     end;
 
-  procedure thlcgjvm.a_op_const_ref(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; const ref: TReference);
+  procedure thlcgwasm.a_op_const_ref(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; const ref: TReference);
     var
       extra_slots: longint;
     begin
@@ -1169,7 +1174,7 @@ implementation
       a_load_stack_ref(list,size,ref,extra_slots);
     end;
 
-  procedure thlcgjvm.a_op_ref_reg(list: TAsmList; Op: TOpCG; size: tdef; const ref: TReference; reg: TRegister);
+  procedure thlcgwasm.a_op_ref_reg(list: TAsmList; Op: TOpCG; size: tdef; const ref: TReference; reg: TRegister);
     begin
       if not(op in [OP_NOT,OP_NEG]) then
         a_load_reg_stack(list,size,reg);
@@ -1177,7 +1182,7 @@ implementation
       a_load_stack_reg(list,size,reg);
     end;
 
-  procedure thlcgjvm.a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister);
+  procedure thlcgwasm.a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister);
     begin
       if not(op in [OP_NOT,OP_NEG]) then
         a_load_reg_stack(list,size,src2);
@@ -1185,12 +1190,12 @@ implementation
       a_load_stack_reg(list,size,dst);
     end;
 
-  procedure thlcgjvm.a_op_reg_reg(list: TAsmList; Op: TOpCG; size: tdef; reg1, reg2: TRegister);
+  procedure thlcgwasm.a_op_reg_reg(list: TAsmList; Op: TOpCG; size: tdef; reg1, reg2: TRegister);
     begin
       a_op_reg_reg_reg(list,op,size,reg1,reg2,reg2);
     end;
 
-  procedure thlcgjvm.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
+  procedure thlcgwasm.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
     var
       tmpreg: tregister;
     begin
@@ -1204,7 +1209,7 @@ implementation
       a_op_reg_reg_reg_checkoverflow(list,op,size,tmpreg,src,dst,true,ovloc);
     end;
 
-  procedure thlcgjvm.a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister; setflags: boolean; var ovloc: tlocation);
+  procedure thlcgwasm.a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister; setflags: boolean; var ovloc: tlocation);
     var
       orgsrc1, orgsrc2: tregister;
       docheck: boolean;
@@ -1289,7 +1294,7 @@ implementation
         ovloc.loc:=LOC_VOID;
     end;
 
-  procedure thlcgjvm.a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference; l: tasmlabel);
+  procedure thlcgwasm.a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference; l: tasmlabel);
     begin
       if ref.base<>NR_EVAL_STACK_BASE then
         a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false));
@@ -1298,7 +1303,7 @@ implementation
       a_cmp_stack_label(list,size,cmp_op,l);
     end;
 
-  procedure thlcgjvm.a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
+  procedure thlcgwasm.a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
     begin
       a_load_reg_stack(list,size,reg);
       maybe_adjust_cmp_stackval(list,size,cmp_op);
@@ -1306,7 +1311,7 @@ implementation
       a_cmp_stack_label(list,size,cmp_op,l);
     end;
 
-  procedure thlcgjvm.a_cmp_ref_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister; l: tasmlabel);
+  procedure thlcgwasm.a_cmp_ref_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister; l: tasmlabel);
     begin
       a_load_reg_stack(list,size,reg);
       maybe_adjust_cmp_stackval(list,size,cmp_op);
@@ -1318,7 +1323,7 @@ implementation
       a_cmp_stack_label(list,size,cmp_op,l);
     end;
 
-  procedure thlcgjvm.a_cmp_reg_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg: tregister; const ref: treference; l: tasmlabel);
+  procedure thlcgwasm.a_cmp_reg_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg: tregister; const ref: treference; l: tasmlabel);
     begin
       if ref.base<>NR_EVAL_STACK_BASE then
         a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false));
@@ -1328,7 +1333,7 @@ implementation
       a_cmp_stack_label(list,size,cmp_op,l);
     end;
 
-  procedure thlcgjvm.a_cmp_reg_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);
+  procedure thlcgwasm.a_cmp_reg_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);
     begin
       a_load_reg_stack(list,size,reg2);
       maybe_adjust_cmp_stackval(list,size,cmp_op);
@@ -1337,12 +1342,12 @@ implementation
       a_cmp_stack_label(list,size,cmp_op,l);
     end;
 
-  procedure thlcgjvm.a_jmp_always(list: TAsmList; l: tasmlabel);
+  procedure thlcgwasm.a_jmp_always(list: TAsmList; l: tasmlabel);
     begin
       list.concat(taicpu.op_sym(a_goto,current_asmdata.RefAsmSymbol(l.name,AT_METADATA)));
     end;
 
-  procedure thlcgjvm.concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);
+  procedure thlcgwasm.concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);
     var
       procname: string;
       eledef: tdef;
@@ -1442,7 +1447,7 @@ implementation
        end;
     end;
 
-    procedure thlcgjvm.concatcopy_record(list: TAsmList; size: tdef; const source, dest: treference);
+    procedure thlcgwasm.concatcopy_record(list: TAsmList; size: tdef; const source, dest: treference);
       var
         srsym: tsym;
         pd: tprocdef;
@@ -1463,7 +1468,7 @@ implementation
       end;
 
 
-    procedure thlcgjvm.concatcopy_set(list: TAsmList; size: tdef; const source, dest: treference);
+    procedure thlcgwasm.concatcopy_set(list: TAsmList; size: tdef; const source, dest: treference);
       begin
         a_load_ref_stack(list,size,source,prepare_stack_for_ref(list,source,false));
         a_load_ref_stack(list,size,dest,prepare_stack_for_ref(list,dest,false));
@@ -1475,7 +1480,7 @@ implementation
       end;
 
 
-    procedure thlcgjvm.concatcopy_shortstring(list: TAsmList; size: tdef; const source, dest: treference);
+    procedure thlcgwasm.concatcopy_shortstring(list: TAsmList; size: tdef; const source, dest: treference);
       var
         srsym: tsym;
         pd: tprocdef;
@@ -1496,7 +1501,7 @@ implementation
       end;
 
 
-  procedure thlcgjvm.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);
+  procedure thlcgwasm.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);
     var
       handled: boolean;
     begin
@@ -1543,12 +1548,12 @@ implementation
         inherited;
     end;
 
-  procedure thlcgjvm.g_copyshortstring(list: TAsmList; const source, dest: treference; strdef: tstringdef);
+  procedure thlcgwasm.g_copyshortstring(list: TAsmList; const source, dest: treference; strdef: tstringdef);
     begin
       concatcopy_shortstring(list,strdef,source,dest);
     end;
 
-  procedure thlcgjvm.a_loadfpu_ref_ref(list: TAsmList; fromsize, tosize: tdef; const ref1, ref2: treference);
+  procedure thlcgwasm.a_loadfpu_ref_ref(list: TAsmList; fromsize, tosize: tdef; const ref1, ref2: treference);
     var
       dstack_slots: longint;
     begin
@@ -1558,14 +1563,14 @@ implementation
       a_load_stack_ref(list,tosize,ref2,dstack_slots);
     end;
 
-  procedure thlcgjvm.a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister);
+  procedure thlcgwasm.a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister);
     begin
       a_load_ref_stack(list,fromsize,ref,prepare_stack_for_ref(list,ref,false));
       resizestackfpuval(list,def_cgsize(fromsize),def_cgsize(tosize));
       a_load_stack_reg(list,tosize,reg);
     end;
 
-  procedure thlcgjvm.a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference);
+  procedure thlcgwasm.a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference);
     var
       dstack_slots: longint;
     begin
@@ -1575,14 +1580,14 @@ implementation
       a_load_stack_ref(list,tosize,ref,dstack_slots);
     end;
 
-  procedure thlcgjvm.a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister);
+  procedure thlcgwasm.a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister);
     begin
       a_load_reg_stack(list,fromsize,reg1);
       resizestackfpuval(list,def_cgsize(fromsize),def_cgsize(tosize));
       a_load_stack_reg(list,tosize,reg2);
     end;
 
-  procedure thlcgjvm.g_proc_entry(list: TAsmList; localsize: longint; nostackframe: boolean);
+  procedure thlcgwasm.g_proc_entry(list: TAsmList; localsize: longint; nostackframe: boolean);
     begin
       { the localsize is based on tg.lasttemp -> already in terms of stack
         slots rather than bytes }
@@ -1594,7 +1599,7 @@ implementation
       list.concat(tai_directive.Create(asd_jlimit,'stack '+tostr(fmaxevalstackheight)));
     end;
 
-  procedure thlcgjvm.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
+  procedure thlcgwasm.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
     var
       retdef: tdef;
       opc: tasmop;
@@ -1632,7 +1637,7 @@ implementation
       list.concat(taicpu.op_none(opc));
     end;
 
-  procedure thlcgjvm.gen_load_return_value(list: TAsmList);
+  procedure thlcgwasm.gen_load_return_value(list: TAsmList);
     begin
       { constructors don't return anything in the jvm }
       if current_procinfo.procdef.proctypeoption in [potype_constructor,potype_class_constructor] then
@@ -1640,7 +1645,7 @@ implementation
       inherited gen_load_return_value(list);
     end;
 
-  procedure thlcgjvm.record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);
+  procedure thlcgwasm.record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);
     begin
       { add something to the al_procedures list as well, because if all al_*
         lists are empty, the assembler writer isn't called }
@@ -1654,12 +1659,12 @@ implementation
         internalerror(2010122801);
     end;
 
-  procedure thlcgjvm.g_incrrefcount(list: TAsmList; t: tdef; const ref: treference);
+  procedure thlcgwasm.g_incrrefcount(list: TAsmList; t: tdef; const ref: treference);
     begin
       // do nothing
     end;
 
-  procedure thlcgjvm.g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation; const name: string);
+  procedure thlcgwasm.g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation; const name: string);
     var
       normaldim: longint;
       eleref: treference;
@@ -1711,7 +1716,7 @@ implementation
         internalerror(2011031901);
     end;
 
-  procedure thlcgjvm.g_initialize(list: TAsmList; t: tdef; const ref: treference);
+  procedure thlcgwasm.g_initialize(list: TAsmList; t: tdef; const ref: treference);
     var
       dummyloc: tlocation;
       sym: tsym;
@@ -1745,18 +1750,18 @@ implementation
         a_load_const_ref(list,t,0,ref);
     end;
 
-  procedure thlcgjvm.g_finalize(list: TAsmList; t: tdef; const ref: treference);
+  procedure thlcgwasm.g_finalize(list: TAsmList; t: tdef; const ref: treference);
     begin
       // do nothing
     end;
 
-  procedure thlcgjvm.g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef);
+  procedure thlcgwasm.g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef);
     begin
       { not possible, need the original operands }
       internalerror(2012102101);
     end;
 
-  procedure thlcgjvm.g_overflowCheck_loc(List: TAsmList; const Loc: TLocation; def: TDef; var ovloc: tlocation);
+  procedure thlcgwasm.g_overflowCheck_loc(List: TAsmList; const Loc: TLocation; def: TDef; var ovloc: tlocation);
     var
       hl : tasmlabel;
     begin
@@ -1768,7 +1773,7 @@ implementation
       a_label(list,hl);
     end;
 
-  procedure thlcgjvm.location_get_data_ref(list: TAsmList; def: tdef; const l: tlocation; var ref: treference; loadref: boolean; alignment: longint);
+  procedure thlcgwasm.location_get_data_ref(list: TAsmList; def: tdef; const l: tlocation; var ref: treference; loadref: boolean; alignment: longint);
     var
       tmploc: tlocation;
     begin
@@ -1836,12 +1841,12 @@ implementation
       end;
     end;
 
-  procedure thlcgjvm.maybe_change_load_node_reg(list: TAsmList; var n: tnode; reload: boolean);
+  procedure thlcgwasm.maybe_change_load_node_reg(list: TAsmList; var n: tnode; reload: boolean);
     begin
       { don't do anything, all registers become stack locations anyway }
     end;
 
-  procedure thlcgjvm.g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister);
+  procedure thlcgwasm.g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister);
     var
       localref: treference;
       arrloc: tlocation;
@@ -1863,12 +1868,12 @@ implementation
       a_load_ref_reg(list,java_jlobject,java_jlobject,localref,destreg);
     end;
 
-  procedure thlcgjvm.g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation);
+  procedure thlcgwasm.g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation);
     begin
       // do nothing, long live garbage collection!
     end;
 
-  procedure thlcgjvm.gen_initialize_code(list: TAsmList);
+  procedure thlcgwasm.gen_initialize_code(list: TAsmList);
     var
       ref: treference;
     begin
@@ -1894,77 +1899,77 @@ implementation
       end;
     end;
 
-  procedure thlcgjvm.gen_entry_code(list: TAsmList);
+  procedure thlcgwasm.gen_entry_code(list: TAsmList);
     begin
       list.concat(Tai_force_line.Create);
     end;
 
-  procedure thlcgjvm.gen_exit_code(list: TAsmList);
+  procedure thlcgwasm.gen_exit_code(list: TAsmList);
     begin
       { nothing }
     end;
 
-  procedure thlcgjvm.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tdef; src, dst: tregister);
+  procedure thlcgwasm.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tdef; src, dst: tregister);
     begin
       internalerror(2012090201);
     end;
 
-  procedure thlcgjvm.a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const reg: tregister; shuffle: pmmshuffle);
+  procedure thlcgwasm.a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const reg: tregister; shuffle: pmmshuffle);
     begin
       internalerror(2012090202);
     end;
 
-  procedure thlcgjvm.a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister; shuffle: pmmshuffle);
+  procedure thlcgwasm.a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister; shuffle: pmmshuffle);
     begin
       internalerror(2012060130);
     end;
 
-  procedure thlcgjvm.a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister; shuffle: pmmshuffle);
+  procedure thlcgwasm.a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister; shuffle: pmmshuffle);
     begin
       internalerror(2012060131);
     end;
 
-  procedure thlcgjvm.a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference; shuffle: pmmshuffle);
+  procedure thlcgwasm.a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference; shuffle: pmmshuffle);
     begin
       internalerror(2012060132);
     end;
 
-  procedure thlcgjvm.a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size: tdef; src, dst: tregister; shuffle: pmmshuffle);
+  procedure thlcgwasm.a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size: tdef; src, dst: tregister; shuffle: pmmshuffle);
     begin
       internalerror(2012060133);
     end;
 
-  procedure thlcgjvm.a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize: tdef; intreg, mmreg: tregister; shuffle: pmmshuffle);
+  procedure thlcgwasm.a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize: tdef; intreg, mmreg: tregister; shuffle: pmmshuffle);
     begin
       internalerror(2012060134);
     end;
 
-  procedure thlcgjvm.a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize: tdef; mmreg, intreg: tregister; shuffle: pmmshuffle);
+  procedure thlcgwasm.a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize: tdef; mmreg, intreg: tregister; shuffle: pmmshuffle);
     begin
       internalerror(2012060135);
     end;
 
-  procedure thlcgjvm.g_stackpointer_alloc(list: TAsmList; size: longint);
+  procedure thlcgwasm.g_stackpointer_alloc(list: TAsmList; size: longint);
     begin
       internalerror(2012090203);
     end;
 
-  procedure thlcgjvm.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
+  procedure thlcgwasm.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
     begin
       internalerror(2012090204);
     end;
 
-  procedure thlcgjvm.g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: aint);
+  procedure thlcgwasm.g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: aint);
     begin
       internalerror(2012090205);
     end;
 
-  procedure thlcgjvm.g_local_unwind(list: TAsmList; l: TAsmLabel);
+  procedure thlcgwasm.g_local_unwind(list: TAsmList; l: TAsmLabel);
     begin
       internalerror(2012090206);
     end;
 
-  procedure thlcgjvm.a_load_stack_reg(list: TAsmList; size: tdef; reg: tregister);
+  procedure thlcgwasm.a_load_stack_reg(list: TAsmList; size: tdef; reg: tregister);
     var
       opc: tasmop;
       finishandval: tcgint;
@@ -1977,7 +1982,7 @@ implementation
       decstack(list,1+ord(size.size>4));
     end;
 
-  procedure thlcgjvm.a_load_stack_ref(list: TAsmList; size: tdef; const ref: treference; extra_slots: longint);
+  procedure thlcgwasm.a_load_stack_ref(list: TAsmList; size: tdef; const ref: treference; extra_slots: longint);
     var
       opc: tasmop;
       finishandval: tcgint;
@@ -1996,7 +2001,7 @@ implementation
       decstack(list,1+ord(size.size>4)+extra_slots);
     end;
 
-  procedure thlcgjvm.a_load_reg_stack(list: TAsmList; size: tdef; reg: tregister);
+  procedure thlcgwasm.a_load_reg_stack(list: TAsmList; size: tdef; reg: tregister);
     var
       opc: tasmop;
       finishandval: tcgint;
@@ -2011,7 +2016,7 @@ implementation
         a_op_const_stack(list,OP_AND,size,finishandval);
     end;
 
-  procedure thlcgjvm.a_load_ref_stack(list: TAsmList; size: tdef; const ref: treference; extra_slots: longint);
+  procedure thlcgwasm.a_load_ref_stack(list: TAsmList; size: tdef; const ref: treference; extra_slots: longint);
     var
       opc: tasmop;
       finishandval: tcgint;
@@ -2034,7 +2039,7 @@ implementation
         gen_typecheck(list,a_checkcast,size);
     end;
 
-  function thlcgjvm.loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: tcgint): tasmop;
+  function thlcgwasm.loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: tcgint): tasmop;
     const
                      { isload  static }
       getputopc: array[boolean,boolean] of tasmop =
@@ -2065,7 +2070,7 @@ implementation
         result:=loadstoreopc(def,isload,ref.arrayreftype<>art_none,finishandval);
     end;
 
-  function thlcgjvm.loadstoreopc(def: tdef; isload, isarray: boolean; out finishandval: tcgint): tasmop;
+  function thlcgwasm.loadstoreopc(def: tdef; isload, isarray: boolean; out finishandval: tcgint): tasmop;
     var
       size: longint;
     begin
@@ -2182,7 +2187,7 @@ implementation
       end;
     end;
 
-  procedure thlcgjvm.resize_stack_int_val(list: TAsmList; fromsize, tosize: tdef; formemstore: boolean);
+  procedure thlcgwasm.resize_stack_int_val(list: TAsmList; fromsize, tosize: tdef; formemstore: boolean);
     var
       fromcgsize, tocgsize: tcgsize;
     begin
@@ -2260,7 +2265,7 @@ implementation
         end;
     end;
 
-    procedure thlcgjvm.maybe_resize_stack_para_val(list: TAsmList; retdef: tdef; callside: boolean);
+    procedure thlcgwasm.maybe_resize_stack_para_val(list: TAsmList; retdef: tdef; callside: boolean);
       var
         convsize: tdef;
       begin
@@ -2286,7 +2291,7 @@ implementation
       end;
 
 
-  procedure thlcgjvm.g_adjust_stack_after_call(list: TAsmList; pd: tabstractprocdef; paraheight: longint; forceresdef: tdef);
+  procedure thlcgwasm.g_adjust_stack_after_call(list: TAsmList; pd: tabstractprocdef; paraheight: longint; forceresdef: tdef);
     var
       totalremovesize: longint;
       realresdef: tdef;
@@ -2310,7 +2315,7 @@ implementation
     end;
 
 
-  procedure thlcgjvm.allocate_implicit_struct_with_base_ref(list: TAsmList; vs: tabstractvarsym; ref: treference);
+  procedure thlcgwasm.allocate_implicit_struct_with_base_ref(list: TAsmList; vs: tabstractvarsym; ref: treference);
     var
       tmpref: treference;
     begin
@@ -2324,7 +2329,7 @@ implementation
     end;
 
 
-  procedure thlcgjvm.allocate_enum_with_base_ref(list: TAsmList; vs: tabstractvarsym; const initref: treference; destbaseref: treference);
+  procedure thlcgwasm.allocate_enum_with_base_ref(list: TAsmList; vs: tabstractvarsym; const initref: treference; destbaseref: treference);
     begin
       destbaseref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
       { only copy the reference, not the actual data }
@@ -2332,7 +2337,7 @@ implementation
     end;
 
 
-  function thlcgjvm.get_enum_init_val_ref(def: tdef; out ref: treference): boolean;
+  function thlcgwasm.get_enum_init_val_ref(def: tdef; out ref: treference): boolean;
     var
       sym: tstaticvarsym;
     begin
@@ -2346,7 +2351,7 @@ implementation
     end;
 
 
-  procedure thlcgjvm.allocate_implicit_structs_for_st_with_base_ref(list: TAsmList; st: tsymtable; const ref: treference; allocvartyp: tsymtyp);
+  procedure thlcgwasm.allocate_implicit_structs_for_st_with_base_ref(list: TAsmList; st: tsymtable; const ref: treference; allocvartyp: tsymtyp);
     var
       vs: tabstractvarsym;
       def: tdef;
@@ -2405,7 +2410,7 @@ implementation
         end;
     end;
 
-  procedure thlcgjvm.gen_initialize_fields_code(list: TAsmList);
+  procedure thlcgwasm.gen_initialize_fields_code(list: TAsmList);
     var
       sym: tsym;
       selfpara: tparavarsym;
@@ -2442,7 +2447,7 @@ implementation
       allocate_implicit_structs_for_st_with_base_ref(list,obj.symtable,ref,fieldvarsym);
     end;
 
-  procedure thlcgjvm.gen_typecheck(list: TAsmList; checkop: tasmop; checkdef: tdef);
+  procedure thlcgwasm.gen_typecheck(list: TAsmList; checkop: tasmop; checkdef: tdef);
     begin
       { replace special types with their equivalent class type }
       if (checkdef.typ=pointerdef) and
@@ -2478,7 +2483,7 @@ implementation
         }
     end;
 
-  procedure thlcgjvm.resizestackfpuval(list: TAsmList; fromsize, tosize: tcgsize);
+  procedure thlcgwasm.resizestackfpuval(list: TAsmList; fromsize, tosize: tcgsize);
     begin
       if (fromsize=OS_F32) and
          (tosize=OS_F64) then
@@ -2494,7 +2499,7 @@ implementation
         end;
     end;
 
-  procedure thlcgjvm.maybepreparedivu32(list: TAsmList; var op: topcg; size: tdef; out isdivu32: boolean);
+  procedure thlcgwasm.maybepreparedivu32(list: TAsmList; var op: topcg; size: tdef; out isdivu32: boolean);
     begin
       if (op=OP_DIV) and
          (def_cgsize(size)=OS_32) then
@@ -2509,7 +2514,7 @@ implementation
         isdivu32:=false;
     end;
 
-  function thlcgjvm.a_call_name_intern(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; inheritedcall: boolean): tcgpara;
+  function thlcgwasm.a_call_name_intern(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; inheritedcall: boolean): tcgpara;
     var
       opc: tasmop;
     begin
@@ -2577,11 +2582,11 @@ implementation
 
   procedure create_hlcodegen_cpu;
     begin
-      hlcg:=thlcgjvm.create;
+      hlcg:=thlcgwasm.create;
       create_codegen;
     end;
 
 begin
-  chlcgobj:=thlcgjvm;
+  chlcgobj:=thlcgwasm;
   create_hlcodegen:=@create_hlcodegen_cpu;
 end.

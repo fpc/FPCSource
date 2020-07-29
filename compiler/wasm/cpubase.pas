@@ -1,5 +1,5 @@
 {
-    Copyright (c) 2019 by Free Pascal and Lazarus foundation
+    Copyright (c) 2016-2017 by Karoly Balogh
 
     Contains the base types for the WebAssembly
 
@@ -38,68 +38,51 @@ uses
 
     type
       TAsmOp=(A_None,
-        a_aaload, a_aastore, a_aconst_null,
-        a_aload, a_aload_0, a_aload_1, a_aload_2, a_aload_3,
-        a_anewarray, a_areturn, a_arraylength,
-        a_astore, a_astore_0, a_astore_1, a_astore_2, a_astore_3,
-        a_athrow, a_baload, a_bastore, a_bipush, a_breakpoint,
-        a_caload, a_castore, a_checkcast,
-        a_d2f, a_d2i, a_d2l, a_dadd, a_daload, a_dastore, a_dcmpg, a_dcmpl,
-        a_dconst_0, a_dconst_1, a_ddiv,
-        a_dload, a_dload_0, a_dload_1, a_dload_2, a_dload_3,
-        a_dmul, a_dneg, a_drem, a_dreturn,
-        a_dstore, a_dstore_0, a_dstore_1, a_dstore_2, a_dstore_3,
-        a_dsub,
-        a_dup, a_dup2, a_dup2_x1, a_dup2_x2, a_dup_x1, a_dup_x2,
-        a_f2d, a_f2i, a_f2l, a_fadd, a_faload, a_fastore, a_fcmpg, a_fcmpl,
-        a_fconst_0, a_fconst_1, a_fconst_2, a_fdiv,
-        a_fload, a_fload_0, a_fload_1, a_fload_2, a_fload_3,
-        a_fmul, a_fneg, a_frem, a_freturn,
-        a_fstore, a_fstore_0, a_fstore_1, a_fstore_2, a_fstore_3,
-        a_fsub,
-        a_getfield, a_getstatic,
-        a_goto, a_goto_w,
-        a_i2b, a_i2c, a_i2d, a_i2f, a_i2l, a_i2s,
-        a_iadd, a_iaload, a_iand, a_iastore,
-        a_iconst_m1, a_iconst_0, a_iconst_1, a_iconst_2, a_iconst_3,
-        a_iconst_4, a_iconst_5,
-        a_idiv,
-        a_if_acmpeq, a_if_acmpne, a_if_icmpeq, a_if_icmpge, a_if_icmpgt,
-        a_if_icmple, a_if_icmplt, a_if_icmpne,
-        a_ifeq, a_ifge, a_ifgt, a_ifle, a_iflt, a_ifne, a_ifnonnull, a_ifnull,
-        a_iinc,
-        a_iload, a_iload_0, a_iload_1, a_iload_2, a_iload_3,
-        a_imul, a_ineg,
-        a_instanceof,
-        a_invokeinterface, a_invokespecial, a_invokestatic, a_invokevirtual,
-        a_ior, a_irem, a_ireturn, a_ishl, a_ishr,
-        a_istore, a_istore_0, a_istore_1, a_istore_2, a_istore_3,
-        a_isub, a_iushr, a_ixor,
-        a_jsr, a_jsr_w,
-        a_l2d, a_l2f, a_l2i, a_ladd, a_laload, a_land, a_lastore, a_lcmp,
-        a_lconst_0, a_lconst_1,
-        a_ldc, a_ldc2_w, a_ldc_w, a_ldiv,
-        a_lload, a_lload_0, a_lload_1, a_lload_2, a_lload_3,
-        a_lmul, a_lneg,
-        a_lookupswitch,
-        a_lor, a_lrem,
-        a_lreturn,
-        a_lshl, a_lshr,
-        a_lstore, a_lstore_0, a_lstore_1, a_lstore_2, a_lstore_3,
-        a_lsub, a_lushr, a_lxor,
-        a_monitorenter,
-        a_monitorexit,
-        a_multianewarray,
-        a_new,
-        a_newarray,
-        a_nop,
-        a_pop, a_pop2,
-        a_putfield, a_putstatic,
-        a_ret, a_return,
-        a_saload, a_sastore, a_sipush,
-        a_swap,
-        a_tableswitch,
-        a_wide
+      // control flow
+      a_block, a_loop, a_br, a_br_if, a_br_table, a_if, a_else, a_end,
+      a_return, a_unreachable,
+      // basic
+      a_nop, a_drop, a_i32_const, a_i64_const, a_f32_const, a_f64_const,
+      a_get_local, a_set_local, a_tee_local, a_get_global, a_set_global,
+      a_select, a_call, a_call_indirect,
+      // integer
+      a_i32_add, a_i64_add, a_i32_sub, a_i64_sub, a_i32_mul, a_i64_mul,
+      a_i32_div_s, a_i64_div_s, a_i32_div_u, a_i64_div_u, a_i32_rem_s, a_i64_rem_s,
+      a_i32_rem_u, a_i64_rem_u, a_i32_and, a_i64_and, a_i32_or, a_i64_or,
+      a_i32_xor, a_i64_xor, a_i32_shl, a_i64_shl, a_i32_shr_s, a_i64_shr_s,
+      a_i32_shr_u, a_i64_shr_u, a_i32_rotl, a_i64_rotl, a_i32_rotr, a_i64_rotr,
+      a_i32_clz, a_i64_clz, a_i32_ctz, a_i64_ctz, a_i32_popcnt, a_i64_popcnt,
+      a_i32_eqz, a_i64_eqz,
+      // floating point
+      a_f32_add, a_f64_add, a_f32_sub, a_f64_sub, a_f32_mul, a_f64_mul,
+      a_f32_div, a_f64_div, a_f32_sqrt, a_f64_sqrt, a_f32_min, a_f64_min,
+      a_f32_max, a_f64_max, a_f32_ceil, a_f64_ceil, a_f32_floor, a_f64_floor,
+      a_f32_trunc, a_f64_trunc, a_f32_nearest, a_f64_nearest, a_f32_abs, a_f64_abs,
+      a_f32_neg, a_f64_neg, a_f32_copysign, a_f64_copysign,
+      // integer compare
+      a_i32_eq, a_i64_eq, a_i32_ne, a_i64_ne, a_i32_lt_s, a_i64_lt_s,
+      a_i32_lt_u, a_i64_lt_u, a_i32_le_s, a_i64_le_s, a_i32_le_u, a_i64_le_u,
+      a_i32_gt_s, a_i64_gt_s, a_i32_gt_u, a_i64_gt_u, a_i32_ge_s, a_i64_ge_s,
+      a_i32_ge_u, a_i64_ge_u,
+      // floating point compare
+      a_f32_eq, a_f64_eq, a_f32_ne, a_f64_ne, a_f32_lt, a_f64_lt,
+      a_f32_le, a_f64_le, a_f32_gt, a_f64_gt, a_f32_ge, a_f64_ge,
+      // conversion
+      a_i32_wrap_i64, a_i64_extend_s_i32, a_i64_extend_u_i32,
+      a_i32_trunc_s_f32, a_i32_trunc_s_f64, a_i64_trunc_s_f32, a_i64_trunc_s_f64,
+      a_i32_trunc_u_f32, a_i32_trunc_u_f64, a_i64_trunc_u_f32, a_i64_trunc_u_f64,
+      a_f32_demote_f64, a_f64_promote_f32,
+      a_f32_convert_s_i32, a_f32_convert_s_i64,a_f64_convert_s_i32,a_f64_convert_s_i64,
+      a_f32_convert_u_i32, a_f32_convert_u_i64,a_f64_convert_u_i32,a_f64_convert_u_i64,
+      a_i32_reinterpret_f32, a_i64_reinterpret_f64, a_f32_reinterpret_i32, a_f64_reinterpret_f64,
+      // load/store
+      a_i32_load, a_i64_load, a_f32_load, a_f64_load,
+      a_i32_store, a_i64_store, a_f32_store, a_f64_store,
+      a_i32_load8_s, a_i32_load16_s, a_i64_load8_s, a_i64_load16_s, a_i64_load32_s,
+      a_i32_load8_u, a_i32_load16_u, a_i64_load8_u, a_i64_load16_u, a_i64_load32_u,
+      a_i32_store8, a_i32_store16, a_i64_store8, a_i64_store16, a_i64_store32,
+      // additional memory
+      a_grow_memory, a_current_memory
       );
 
       {# This should define the array of instructions as string }

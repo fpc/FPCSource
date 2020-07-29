@@ -369,6 +369,10 @@ implementation
         create_fpu_types;
         s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif jvm}
+{$ifdef wasm}
+        create_fpu_types;
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
+{$endif wasm}
         set_default_int_types;
         { some other definitions }
         charpointertype:=cpointerdef.create(cansichartype);

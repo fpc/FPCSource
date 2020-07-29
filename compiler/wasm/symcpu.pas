@@ -104,7 +104,7 @@ type
   tcpuprocvardefclass = class of tcpuprocvardef;
 
   tcpuprocdef = class(tprocdef)
-    { generated assembler code; used by JVM backend so it can afterwards
+    { generated assembler code; used by WebAssembly backend so it can afterwards
       easily write out all methods grouped per class }
     exprasmlist      : TAsmList;
     function  jvmmangledbasename(signature: boolean): TSymStr;
