@@ -57,7 +57,7 @@ interface
        procedure WriteOutGlobalInt32(const aname: string; val: integer; isconst: boolean = true);
 
        procedure WriteInstruction(hp: tai);
-       procedure WriteProcDef(pd: tprocdef);
+       procedure WriteProcDef(pd: tprocdef; stub: Boolean = false);
        procedure WriteProcParams(pd: tprocdef);
        procedure WriteProcResult(pd: tprocdef);
        procedure WriteSymtableProcdefs(st: TSymtable);
@@ -65,6 +65,10 @@ interface
        procedure WriteTempAlloc(p:TAsmList);
        procedure WriteExports(p: TAsmList);
        procedure WriteImports;
+       procedure WriteFakeExports; // these exports are only needed for Linkin stage
+                                   // the idea, is that Wabt would maker those functions
+                                   // as undefined, so the linker can use the proper
+                                   // functions and throw those out
 
        procedure WriteOutPChar(p: pchar; ofs, len: integer);
        procedure WriteConstString(lbl: tai_label; str: tai_string);
@@ -259,7 +263,7 @@ implementation
       writer.AsmLn;
     end;
 
-    procedure TWabtTextAssembler.WriteProcDef(pd: tprocdef);
+    procedure TWabtTextAssembler.WriteProcDef(pd: tprocdef; stub: Boolean );
     var
       i : integer;
     begin
@@ -283,10 +287,16 @@ implementation
       writer.AsmLn;
       WriteProcParams(tcpuprocdef(pd));
       WriteProcResult(tcpuprocdef(pd));
-      WriteTempAlloc(tcpuprocdef(pd).exprasmlist);
 
-      WriteTree(tcpuprocdef(pd).exprasmlist);
-      writer.AsmWriteln(')');
+      if not stub then begin
+        WriteTempAlloc(tcpuprocdef(pd).exprasmlist);
+        WriteTree(tcpuprocdef(pd).exprasmlist);
+      end else begin
+        // stub function
+        writer.AsmWrite(#9);
+        writer.AsmWriteLn('unreachable');
+      end;
+      writer.AsmWriteln(#9')');
       writer.AsmLn;
     end;
 
@@ -595,6 +605,7 @@ implementation
 
         //writer.AsmLn;
         { print all global procedures/functions }
+        WriteFakeExports;
         WriteSymtableProcdefs(current_module.globalsymtable);
         WriteSymtableProcdefs(current_module.localsymtable);
 
@@ -792,7 +803,7 @@ implementation
           if tdef(current_module.deflist[i]).typ = procdef then begin
             proc := tprocdef(current_module.deflist[i]);
             if (po_external in proc.procoptions) and assigned(proc.import_dll) then begin
-              writer.AsmWrite('(import "');
+              writer.AsmWrite(#9'(import "');
               writer.AsmWrite(proc.import_dll^);
               writer.AsmWrite('" "');
               writer.AsmWrite(proc.import_name^);
@@ -803,6 +814,29 @@ implementation
           end;
         end;
       end;
+
+    procedure TWabtTextAssembler.WriteFakeExports;
+      var
+        i : integer;
+        proc : tprocdef;
+      begin
+        for i:=0 to current_module.deflist.Count-1 do begin
+          //writeln('>def: ', tdef(current_module.deflist[i]).typ);
+          if tdef(current_module.deflist[i]).typ = procdef then begin
+            proc := tprocdef(current_module.deflist[i]);
+            if (po_external in proc.procoptions) and not assigned(proc.import_dll) then begin
+              WriteProcDef(proc, true);
+
+              writer.AsmWrite('(export "');
+              writer.AsmWrite(proc.mangledname);
+              writer.AsmWrite('" (func ');
+              writer.AsmWrite(GetWasmName(proc.mangledname));
+              writer.AsmWriteLn('))');
+            end;
+          end;
+        end;
+
+    end;
 
     procedure TWabtTextAssembler.WriteOutPChar(p: pchar; ofs, len: integer);
         var
