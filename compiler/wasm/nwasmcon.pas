@@ -150,7 +150,7 @@ implementation
    *)
 
 {*****************************************************************************
-                           TJVMREALCONSTNODE
+                           TWASMREALCONSTNODE
 *****************************************************************************}
 
     procedure twasmrealconstnode.pass_generate_code;
@@ -158,7 +158,7 @@ implementation
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
         thlcgwasm(hlcg).a_loadfpu_const_stack(current_asmdata.CurrAsmList,resultdef,value_real);
-        //thlwasm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+        thlcgwasm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
       end;
 
 
