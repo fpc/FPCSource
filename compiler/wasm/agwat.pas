@@ -38,7 +38,7 @@ interface
     ,cpubase, cgbase
     ,fmodule
     ,verbose, itcpuwasm
-    ,cfileutl;
+    ,cfileutl, tgcpu;
 
   type
      TWatInstrWriter = class;
@@ -360,20 +360,28 @@ implementation
       end;
 
     procedure TWabtTextAssembler.WriteProcResult(pd: tprocdef);
-    begin
-      if not assigned(pd) or
-        not Assigned(pd.returndef) or
-        (pd.returndef.size = 0)
-        then exit;
+      var
+        bt : TWasmBasicType;
+      begin
+        if not assigned(pd) or
+          not Assigned(pd.returndef) or
+          (pd.returndef.size = 0)
+          then exit;
 
-      writer.AsmWrite(#9'(result'#9);
-      case pd.returndef.size of
-        1..4: writer.AsmWrite('i32');
-        8: writer.AsmWrite('i64');
+        if not defToWasmBasic(pd.returndef, bt) then
+          bt := wbt_i32;
+
+        writer.AsmWrite(#9'(result'#9);
+        case bt of
+          wbt_i64: writer.AsmWrite('i64');
+          wbt_f32: writer.AsmWrite('f32');
+          wbt_f64: writer.AsmWrite('f64');
+        else
+          writer.AsmWrite('i32');
+        end;
+        writer.AsmWrite(')');
+        writer.AsmLn;
       end;
-      writer.AsmWrite(')');
-      writer.AsmLn;
-    end;
 
     procedure TWabtTextAssembler.WriteTree(p: TAsmList);
       var
