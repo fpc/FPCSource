@@ -64,6 +64,7 @@ interface
        procedure WriteSymtableVarSyms(st: TSymtable);
        procedure WriteTempAlloc(p:TAsmList);
        procedure WriteExports(p: TAsmList);
+       procedure WriteUnitExports(st: TSymtable);
        procedure WriteImports;
 
        procedure WriteOutPChar(p: pchar; ofs, len: integer);
@@ -281,16 +282,12 @@ implementation
           writer.AsmWriteln('"');
         end;}
       writer.AsmLn;
-      WriteProcParams(tcpuprocdef(pd));
-      WriteProcResult(tcpuprocdef(pd));
+      WriteProcParams(pd);
+      WriteProcResult(pd);
 
       if not stub then begin
         WriteTempAlloc(tcpuprocdef(pd).exprasmlist);
         WriteTree(tcpuprocdef(pd).exprasmlist);
-      end else begin
-        // stub function
-        writer.AsmWrite(#9);
-        writer.AsmWriteLn('unreachable');
       end;
       writer.AsmWriteln(#9')');
       writer.AsmLn;
@@ -581,10 +578,6 @@ implementation
       var
         hal : tasmlisttype;
       begin
-        if current_module.is_unit then begin
-          writer.AsmWriteLn('(module)');
-          exit;
-        end;
         writer.MarkEmpty;
         writer.AsmWriteLn('(module ');
         writer.AsmWriteLn('(import "env" "memory" (memory 0)) ;;');
@@ -604,7 +597,10 @@ implementation
         WriteSymtableProcdefs(current_module.globalsymtable);
         WriteSymtableProcdefs(current_module.localsymtable);
 
-        WriteExports(current_asmdata.asmlists[al_exports]);
+        if current_module.islibrary then
+          WriteExports(current_asmdata.asmlists[al_exports])
+        else
+          WriteUnitExports(current_module.globalsymtable);
 
         //WriteSymtableStructDefs(current_module.globalsymtable);
         //WriteSymtableStructDefs(current_module.localsymtable);
@@ -788,6 +784,40 @@ implementation
       end;
     end;
 
+    procedure TWabtTextAssembler.WriteUnitExports(st: TSymtable);
+    var
+      i   : longint;
+      def : tdef;
+    begin
+      if not assigned(st) then
+        exit;
+
+      writer.AsmWrite(#9'(table 0 funcref)');
+      writer.AsmWriteLn(#9'(elem 0 (i32.const 0) ');
+      for i:=0 to st.DefList.Count-1 do
+        begin
+          def:=tdef(st.DefList[i]);
+          case def.typ of
+            procdef :
+              begin
+                { methods are also in the static/globalsymtable of the unit
+                  -> make sure they are only written for the objectdefs that
+                  own them }
+                  if
+                   not (po_external in tprocdef(def).procoptions)
+                   then
+                  begin
+                    writer.AsmWrite(#9#9'$');
+                    writer.AsmWriteLn(tprocdef(def).mangledname);
+                  end;
+              end;
+            else
+              ;
+          end;
+        end;
+      writer.AsmWriteLn(#9') ');
+    end;
+
     procedure TWabtTextAssembler.WriteImports;
       var
         i    : integer;
@@ -829,7 +859,7 @@ implementation
               writer.AsmWrite(#9'(import "_fpc_use" "');
               writer.AsmWrite(proc.mangledname);
               writer.AsmWrite('" ');
-              WriteProcDef(proc);
+              WriteProcDef(proc, true);
               writer.AsmWrite(')');
             end;
           end;
