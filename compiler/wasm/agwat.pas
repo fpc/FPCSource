@@ -831,14 +831,28 @@ implementation
     var
       hp: tai;
       x: tai_impexp;
+      cnt: integer;
     begin
       if not Assigned(p) then Exit;
       hp:=tai(p.First);
       if not Assigned(hp) then Exit;
 
+      cnt := 0;
+      while Assigned(hp) do begin
+        case hp.typ of
+          ait_importexport:
+            inc(cnt);
+        end;
+        hp := tai_impexp(hp.Next);
+      end;
+
       // writting out table, so wat2wasm can create reallocation symbols
-      writer.AsmWrite(#9'(table 0 anyfunc)');
+
+      writer.AsmWrite(#9'(table ');
+      writer.AsmWrite(tostr(cnt));
+      writer.AsmWrite(' anyfunc)');
       writer.AsmWriteLn(#9'(elem 0 (i32.const 0) ');
+      hp:=tai(p.First);
       while Assigned(hp) do begin
         case hp.typ of
           ait_importexport:
