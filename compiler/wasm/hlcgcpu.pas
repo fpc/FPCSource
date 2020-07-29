@@ -1980,11 +1980,13 @@ implementation
 
   function thlcgwasm.loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: tcgint): tasmop;
     const
-                          {iisload}
-      getputmem8  : array [boolean] of TAsmOp = (a_i32_store8,  a_i32_load8_u  );
-      getputmem16 : array [boolean] of TAsmOp = (a_i32_store16, a_i32_load16_u );
-      getputmem32 : array [boolean] of TAsmOp = (a_i32_store,   a_i32_load     );
-      getputmem64 : array [boolean] of TAsmOp = (a_i64_store,   a_i64_load     );
+                          {iisload} {issigned}
+      getputmem8   : array [boolean, boolean] of TAsmOp = ((a_i32_store8, a_i32_store8),   (a_i32_load8_u, a_i32_load8_s));
+      getputmem16  : array [boolean, boolean] of TAsmOp = ((a_i32_store16, a_i32_store16), (a_i32_load16_u ,a_i32_load16_s));
+      getputmem32  : array [boolean, boolean] of TAsmOp = ((a_i32_store, a_i32_store),     (a_i32_load, a_i32_load));
+      getputmem64  : array [boolean, boolean] of TAsmOp = ((a_i64_store,  a_i64_store),    (a_i64_load, a_i64_load));
+      getputmemf32 : array [boolean] of TAsmOp = (a_f32_store, a_f32_load);
+      getputmemf64 : array [boolean] of TAsmOp = (a_f64_store, a_f64_load);
     begin
       if assigned(ref.symbol) then
         begin
@@ -1994,10 +1996,17 @@ implementation
             information (combined field name and type descriptor) }
           if ref.base = NR_NO then begin
             case def.size of
-              1: result := getputmem8[isload];
-              2: result := getputmem16[isload];
-              4: result := getputmem32[isload];
-              8: result := getputmem64[isload];
+              1: result := getputmem8[isload, is_signed(def)];
+              2: result := getputmem16[isload, is_signed(def)];
+              4:
+                if is_single(def) then
+                  result := getputmemf32[isload]
+                else
+                  result := getputmem32[isload, is_signed(def)];
+              8: if is_double(def) then
+                   result := getputmemf64[isload]
+                 else
+                  result := getputmem64[isload, is_signed(def)];
               //todo: floats?
             else
               Internalerror(201909150001);
