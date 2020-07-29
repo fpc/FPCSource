@@ -1,5 +1,5 @@
 {
-    Copyright (c) 2011 by Dmitry Boyarintsev
+    Copyright (c) 2019 by Dmitry Boyarintsev based on JVM by Jonas Maebe
 
     WebAssembly-specific code for call nodes
 
