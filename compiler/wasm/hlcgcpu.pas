@@ -1134,7 +1134,15 @@ implementation
         return that pointer) }
       if not wasmimplicitpointertype(fromsize) then
         internalerror(2010120534);
-      a_load_ref_reg(list,ptruinttype,ptruinttype,ref,r);
+
+      if assigned(ref.symbol) then begin
+        // pushing address on stack
+        list.Concat(taicpu.op_ref(a_get_global, ref));
+        incstack(list, 1);
+        // reading back to the register
+        a_load_stack_reg(list, tosize, r);
+      end else
+        a_load_ref_reg(list,ptruinttype,ptruinttype,ref,r);
     end;
 
   procedure thlcgwasm.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister);
