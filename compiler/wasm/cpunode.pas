@@ -33,9 +33,9 @@ implementation
     ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,
     ncgadd, ncgcal,ncgmat,ncginl,
     
-    nwasmadd, nwasmcal, nwasmflw,
+    nwasmadd, nwasmcal, nwasmmat, nwasmflw,
     (* todo: WASM
-    njvmadd,njvmcal,njvmmat,njvmcnv,njvmcon,njvminl,njvmmem,njvmflw,njvmld,
+    njvmcnv,njvmcon,njvminl,njvmmem,njvmld,
     njvmset,njvmvmt
     { these are not really nodes }
     ,rgcpu,tgcpu,njvmutil,njvmtcon,
