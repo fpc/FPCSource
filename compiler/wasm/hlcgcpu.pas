@@ -55,6 +55,7 @@ uses
       function a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara): tcgpara;override;
       function a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara; override;
 
+      { move instructions - a_load_FROM_TO }
       procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : tcgint;register : tregister);override;
       procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : tcgint;const ref : treference);override;
       procedure a_load_reg_ref(list : TAsmList;fromsize, tosize : tdef;register : tregister;const ref : treference);override;
@@ -63,6 +64,7 @@ uses
       procedure a_load_ref_ref(list : TAsmList;fromsize, tosize : tdef;const sref : treference;const dref : treference);override;
       procedure a_loadaddr_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;r : tregister);override;
 
+      { basic arithmetic operations }
       procedure a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister); override;
       procedure a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister); override;
       procedure a_op_const_ref(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; const ref: TReference); override;
@@ -127,7 +129,7 @@ uses
       procedure g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: aint); override;
       procedure g_local_unwind(list: TAsmList; l: TAsmLabel); override;
 
-      { JVM-specific routines }
+      { Wasm-specific routines }
 
       procedure a_load_stack_reg(list : TAsmList;size: tdef;reg: tregister);
       { extra_slots are the slots that are used by the reference, and that
@@ -246,7 +248,7 @@ implementation
   const
     TOpCG2IAsmOp : array[topcg] of TAsmOp=(
       A_None,      {OP_NONE}
-      a_i32_load,  {OP_MOVE, replaced operation with direct load }
+      A_None,      {OP_MOVE, replaced operation with direct load }
       a_i32_add,   {OP_ADD,  simple addition          }
       a_i32_and,   {OP_AND,  simple logical and       }
       a_i32_div_u, {OP_DIV,  simple unsigned division }
@@ -2066,7 +2068,9 @@ implementation
       size: longint;
     begin
       finishandval:=-1;
-      case def2regtyp(def) of
+      if isload then result := a_get_local
+      else result := a_set_local;
+      {case def2regtyp(def) of
         R_INTREGISTER:
           begin
             size:=def.size;
@@ -2109,7 +2113,7 @@ implementation
           end
         else
           internalerror(2010120502);
-      end;
+      end;}
     end;
 
   procedure thlcgwasm.resize_stack_int_val(list: TAsmList; fromsize, tosize: tdef; formemstore: boolean);
@@ -2519,7 +2523,7 @@ implementation
       create_codegen;
     end;
 
-begin
+initialization
   chlcgobj:=thlcgwasm;
   create_hlcodegen:=@create_hlcodegen_cpu;
 end.
