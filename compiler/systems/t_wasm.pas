@@ -94,7 +94,7 @@ begin
 
   SoNameStr:='';
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
+  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
 
   tmp := TCmdStrListItem(ObjectFiles.First);
   while Assigned(tmp) do begin
