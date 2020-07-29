@@ -341,7 +341,7 @@ implementation
           begin
             prm := tcpuparavarsym(pd.paras[i]);
             writer.AsmWrite(#9'(param'#9);
-            case prm.paraloc[calleeside].Size of
+            case prm.paraloc[callerside].Size of
               OS_8..OS_32, OS_S8..OS_S32:
                 writer.AsmWrite('i32');
               OS_64, OS_S64:
@@ -638,12 +638,10 @@ implementation
 
         { print all global variables }
         //current_asmdata.AsmSymbolDict
-        if current_module.islibrary then
-          begin
-            writer.AsmWrite(#9'(global $__stack_top (mut i32) (i32.const ');
-            writer.AsmWrite(tostr(globals.stacksize));
-            writer.AsmWriteLn('))');
-          end;
+
+        writer.AsmWrite(#9'(global $__stack_top (mut i32) (i32.const ');
+        writer.AsmWrite(tostr(globals.stacksize));
+        writer.AsmWriteLn('))');
 
         WriteSymtableVarSyms(current_module.globalsymtable);
         WriteSymtableVarSyms(current_module.localsymtable);
