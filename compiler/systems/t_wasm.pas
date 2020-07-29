@@ -46,21 +46,7 @@ implementation
 { timportlibwasm }
 
   procedure timportlibwasm.generatelib;
-    var
-      i,j  : longint;
-      SmartFilesCount: Integer;
-      ImportLibrary : TImportLibrary;
-      ImportSymbol  : TImportSymbol;
     begin
-      for i:=0 to current_module.ImportLibraryList.Count-1 do
-        begin
-          ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
-          for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
-            begin
-              ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
-              current_asmdata.asmlists[al_imports].Concat(tai_impexp.create(ImportLibrary.Name, ImportSymbol.MangledName, ImportSymbol.Name, ie_Func));
-            end;
-        end;
     end;
 
 { tlinkerwasm }

@@ -57,7 +57,7 @@ interface
        procedure WriteSymtableVarSyms(st: TSymtable);
        procedure WriteTempAlloc(p:TAsmList);
        procedure WriteExports(p: TAsmList);
-       procedure WriteImports(p: TAsmList);
+       procedure WriteImports;
      public
        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
        procedure WriteTree(p:TAsmList);override;
@@ -238,8 +238,7 @@ implementation
     begin
       if not assigned(tcpuprocdef(pd).exprasmlist) and
          not(po_abstractmethod in pd.procoptions) and
-         (not is_javainterface(pd.struct) or
-          (pd.proctypeoption in [potype_unitinit,potype_unitfinalize])) then
+         ((pd.proctypeoption in [potype_unitinit,potype_unitfinalize])) then
       begin
         exit;
       end;
@@ -556,7 +555,7 @@ implementation
         writer.MarkEmpty;
         writer.AsmWriteLn('(module ');
         writer.AsmWriteLn('(import "env" "memory" (memory 0)) ;;');
-        WriteImports(current_asmdata.asmlists[al_imports]);
+        WriteImports;
 
         { print all global variables }
         //current_asmdata.AsmSymbolDict
@@ -602,7 +601,9 @@ implementation
                     own them }
                   if (not(st.symtabletype in [staticsymtable,globalsymtable]) or
                       (def.owner=st)) and
-                     not(df_generic in def.defoptions) then
+                     not(df_generic in def.defoptions) and
+                     not (po_external in tprocdef(def).procoptions)
+                     then
                     begin
                       WriteProcDef(tprocdef(def));
                       if assigned(tprocdef(def).localst) then
@@ -759,35 +760,27 @@ implementation
       end;
     end;
 
-    procedure TWabtTextAssembler.WriteImports(p: TAsmList);
-    var
-      hp: tai;
-      x: tai_impexp;
-    begin
-      if not Assigned(p) then Exit;
-      hp:=tai(p.First);
-      while Assigned(hp) do begin
-        case hp.typ of
-          ait_importexport:
-          begin
-            x:=tai_impexp(hp);
-            writer.AsmWrite('(import "');
-            writer.AsmWrite(x.extmodule);
-            writer.AsmWrite('" "');
-            writer.AsmWrite(x.extname);
-            writer.AsmWrite('" (');
-            case x.symstype of
-              ie_Func: writer.AsmWrite('func');
+    procedure TWabtTextAssembler.WriteImports;
+      var
+        i : integer;
+        proc : tprocdef;
+      begin
+        for i:=0 to current_module.deflist.Count-1 do begin
+          //writeln('>def: ', tdef(current_module.deflist[i]).typ);
+          if tdef(current_module.deflist[i]).typ = procdef then begin
+            proc := tprocdef(current_module.deflist[i]);
+            if (po_external in proc.procoptions) and assigned(proc.import_dll) then begin
+              writer.AsmWrite('(import "');
+              writer.AsmWrite(proc.import_dll^);
+              writer.AsmWrite('" "');
+              writer.AsmWrite(proc.import_name^);
+              writer.AsmWrite('" ');
+              WriteProcDef(proc);
+              writer.AsmWriteLn(')');
             end;
-            writer.AsmWrite(' ');
-            writer.AsmWrite(GetWasmName(x.intname));
-            writer.AsmWrite('))');
-            writer.AsmLn;
           end;
         end;
-        hp := tai_impexp(hp.Next);
       end;
-    end;
 
 
 { TWatInstrWriter }
