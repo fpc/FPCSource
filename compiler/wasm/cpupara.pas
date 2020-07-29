@@ -302,12 +302,7 @@ implementation
                 ;
             end;
             { 2 slots for 64 bit integers and floats, 1 slot for the rest }
-            if not(is_64bit(paradef) or
-                   ((paradef.typ=floatdef) and
-                    (tfloatdef(paradef).floattype=s64real))) then
-              inc(paraofs)
-            else
-              inc(paraofs,2);
+            inc(paraofs);
           end;
         parasize:=paraofs;
       end;

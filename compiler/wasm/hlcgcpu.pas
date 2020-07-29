@@ -42,7 +42,12 @@ uses
       fevalstackheight,
       fmaxevalstackheight: longint;
      public
+      blocks: integer;
+
       constructor create;
+
+      procedure incblock;
+      procedure decblock;
 
       procedure incstack(list : TAsmList;slots: longint);
       procedure decstack(list : TAsmList;slots: longint);
@@ -234,6 +239,7 @@ uses
       procedure concatcopy_set(list: TAsmList; size: tdef; const source, dest: treference);
       procedure concatcopy_shortstring(list: TAsmList; size: tdef; const source, dest: treference);
 
+      procedure paravarsym_set_initialloc_to_paraloc(vs: tparavarsym); override;
     end;
 
 implementation
@@ -259,7 +265,7 @@ implementation
       A_None,      {OP_NOT,  simple logical not       } // not = xor - 1
       a_i32_or,    {OP_OR,   simple logical or        }
       a_i32_shr_s, {OP_SAR,  arithmetic shift-right   }
-      a_i32_shr_s, {OP_SHL,  logical shift left       }
+      a_i32_shl,   {OP_SHL,  logical shift left       }
       a_i32_shr_u, {OP_SHR,  logical shift right      }
       a_i32_sub,   {OP_SUB,  simple subtraction       }
       a_i32_xor,   {OP_XOR,  simple exclusive or      }
@@ -279,7 +285,7 @@ implementation
       A_None,      {OP_NOT,  simple logical not       } // not = xor - 1
       a_i64_or,    {OP_OR,   simple logical or        }
       a_i64_shr_s, {OP_SAR,  arithmetic shift-right   }
-      a_i64_shr_s, {OP_SHL,  logical shift left       }
+      a_i64_shl,   {OP_SHL,  logical shift left       }
       a_i64_shr_u, {OP_SHR,  logical shift right      }
       a_i64_sub,   {OP_SUB,  simple subtraction       }
       a_i64_xor,   {OP_XOR,  simple exclusive or      }
@@ -293,7 +299,18 @@ implementation
       fmaxevalstackheight:=0;
     end;
 
-  procedure thlcgwasm.incstack(list: TasmList;slots: longint);
+  procedure thlcgwasm.incblock;
+  begin
+    inc(blocks);
+  end;
+
+  procedure thlcgwasm.decblock;
+  begin
+    dec(blocks);
+    if blocks<0 then Internalerror(2019091807); // out of block
+  end;
+
+    procedure thlcgwasm.incstack(list: TAsmList; slots: longint);
     begin
       if slots=0 then
         exit;
@@ -1490,6 +1507,13 @@ implementation
         decstack(list,2);
       end;
 
+    procedure thlcgwasm.paravarsym_set_initialloc_to_paraloc(vs: tparavarsym);
+      begin
+        // mark all callee side parameters AS local!
+        inherited paravarsym_set_initialloc_to_paraloc(vs);
+        if (vs.initialloc.loc = LOC_REFERENCE) then
+          vs.initialloc.reference.islocal := true;
+      end;
 
   procedure thlcgwasm.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);
     var
