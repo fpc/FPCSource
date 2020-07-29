@@ -33,14 +33,15 @@ unit tgcpu;
 
     type
 
-       { ttgjvm }
+       { ttgwasm }
 
        ttgwasm = class(ttgobj)
         //protected
         // procedure getimplicitobjtemp(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
         // function getifspecialtemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference): boolean;
-        // procedure alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); override;
+         procedure alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); override;
         public
+         constructor create; override;
          procedure setfirsttemp(l : asizeint); override;
          //procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference); override;
          //procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); override;
@@ -224,20 +225,26 @@ unit tgcpu;
     //  end;
 
 
-    //procedure ttgjvm.alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
-    //  begin
-    //    { the JVM only supports 1 slot (= 4 bytes in FPC) and 2 slot (= 8 bytes in
-    //      FPC) temps on the stack. double and int64 are 2 slots, the rest is one slot.
-    //      There are no problems with reusing the same slot for a value of a different
-    //      type. There are no alignment requirements either. }
-    //    if size<4 then
-    //      size:=4;
-    //    if not(size in [4,8]) then
-    //      internalerror(2010121401);
-    //    { don't pass on "def", since we don't care if a slot is used again for a
-    //      different type }
-    //    inherited alloctemp(list, size shr 2, 1, temptype, nil, false, ref);
-    //  end;
+    procedure ttgwasm.alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
+      begin
+        { the WebAssembly only supports 1 slot (= 4 bytes in FPC) and 2 slot (= 8 bytes in
+          FPC) temps on the stack. double and int64 are 2 slots, the rest is one slot.
+          There are no problems with reusing the same slot for a value of a different
+          type. There are no alignment requirements either. }
+        if size<4 then
+          size:=4;
+        if not(size in [4,8]) then
+          internalerror(2010121401);
+        { don't pass on "def", since we don't care if a slot is used again for a
+          different type }
+        inherited alloctemp(list, size shr 2, 1, temptype, nil, false, ref);
+      end;
+
+    constructor ttgwasm.create;
+      begin
+        inherited create;
+        direction := 1; // temp variables are allocated as "locals", and it starts with 0 and goes beyond!
+      end;
 
 
     procedure ttgwasm.setfirsttemp(l: asizeint);
@@ -266,6 +273,6 @@ unit tgcpu;
     //  end;
 
 
-begin
+initialization
   tgobjclass:=ttgwasm;
 end.
