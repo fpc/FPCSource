@@ -48,7 +48,9 @@ interface
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
         function  create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
         function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
+        { true if the location in paraloc can be reused as localloc }
         function param_use_paraloc(const cgpara: tcgpara): boolean; override;
+        { Returns true if the return value is actually a parameter pointer }
         function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
         function is_stack_paraloc(paraloc: pcgparalocation): boolean;override;
       private
@@ -73,7 +75,7 @@ implementation
 
     function tcpuparamanager.get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray;
       const
-        { dummy, not used for JVM }
+        { dummy, not used for WebAssembly }
         saved_regs: {$ifndef VER3_0}tcpuregisterarray{$else}array [0..0] of tsuperregister{$endif} = (RS_NO);
       begin
         result:=saved_regs;

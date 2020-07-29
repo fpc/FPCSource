@@ -1,7 +1,7 @@
 {******************************************************************************
-    Copyright (c) 2000-2010 by Florian Klaempfl and Jonas Maebe
+    Copyright (c) 2019 by Dmitry Boyarintsev
 
-    Includes the JVM code generator
+    Includes the WebAssembly code generator
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,8 @@ implementation
   uses
     ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,
     ncgadd, ncgcal,ncgmat,ncginl,
+    
+    nwasmadd, nwasmflw,
     (* todo: WASM
     njvmadd,njvmcal,njvmmat,njvmcnv,njvmcon,njvminl,njvmmem,njvmflw,njvmld,
     njvmset,njvmvmt

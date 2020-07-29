@@ -213,6 +213,10 @@ implementation
       cpu := taicpu(hp);
       writer.AsmWrite(#9);
       writer.AsmWrite(wasm_op2str[cpu.opcode] );
+
+      if (cpu.opcode = a_if)  then
+        writer.AsmWrite(' (result i32)'); //todo: this is a hardcode, but shouldn't
+
       cpu := taicpu(hp);
       if cpu.ops<>0 then
         begin

@@ -832,6 +832,13 @@ implementation
       var
         cgsize: tcgsize;
       begin
+        // WASM doesn't have compare+jump (to label) operation
+        // thus even though this is a_cmp_stack_label()
+        // label operrand is ommited
+        //
+        // todo: it should NOT be ommitted when we're leaving a block
+        // (i.e. Exit or break or continue operators)
+
         case def2regtyp(size) of
           R_INTREGISTER:
             begin
@@ -841,14 +848,16 @@ implementation
                 OS_16,OS_S16,
                 OS_S32,OS_32:
                   begin
-                    list.concat(taicpu.op_sym(opcmp32[cmp_op],lab));
+                    //list.concat(taicpu.op_sym(opcmp32[cmp_op],lab));
+                    list.concat(taicpu.op_none(opcmp32[cmp_op]));
                     decstack(list,2);
                   end;
                 OS_64,OS_S64:
                   begin
                     //list.concat(taicpu.op_none(a_lcmp));
                     //decstack(list,3);
-                    list.concat(taicpu.op_sym(opcmp64[cmp_op],lab));
+                    //list.concat(taicpu.op_sym(opcmp64[cmp_op],lab));
+                    list.concat(taicpu.op_none(opcmp64[cmp_op]));
                     decstack(list,2);
                   end;
                 else
@@ -859,9 +868,11 @@ implementation
             begin
               case cmp_op of
                 OC_EQ:
-                  list.concat(taicpu.op_sym(a_i64_eq,lab));
+                  //list.concat(taicpu.op_sym(a_i64_eq,lab));
+                  list.concat(taicpu.op_none(a_i64_eq));
                 OC_NE:
-                  list.concat(taicpu.op_sym(a_i64_ne,lab));
+                  //list.concat(taicpu.op_sym(a_i64_ne,lab));
+                  list.concat(taicpu.op_none(a_i64_ne));
                 else
                   internalerror(2010120537);
               end;
