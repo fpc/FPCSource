@@ -238,7 +238,7 @@ implementation
 
         { create the array temp that that will serve as the paramter }
         if parasym.vardef.typ=formaldef then
-          arreledef:=java_jlobject
+          arreledef:=ptruinttype
         else if implicitptrpara then
           arreledef:=cpointerdef.getreusable(orgparadef)
         else
@@ -282,7 +282,7 @@ implementation
                     left:=cinlinenode.create(in_box_x,false,ccallparanode.create(left,nil));
                     typecheckpass(left);
                   end;
-                left:=ctypeconvnode.create_explicit(left,java_jlobject);
+                left:=ctypeconvnode.create_explicit(left,ptruinttype);
               end;
             { put the parameter value in the array }
             addstatement(initstat,cassignmentnode.create(
