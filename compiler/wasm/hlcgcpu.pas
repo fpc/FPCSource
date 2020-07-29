@@ -1144,6 +1144,12 @@ implementation
         incstack(list, 1);
         a_load_stack_reg(list, tosize, r);
       end else begin
+        list.Concat(taicpu.op_reg(a_get_local, ref.base));
+        list.Concat(taicpu.op_const(a_i32_const, ref.offset));
+        list.Concat(taicpu.op_none(a_i32_add));
+        incstack(list, 1);
+        a_load_stack_reg(list, tosize, r);
+
         //todo:
         //a_load_ref_reg(list,ptruinttype,ptruinttype,ref,r);
       end;
