@@ -286,7 +286,8 @@ implementation
     procedure TWabtTextAssembler.WriteProcResult(pd: tprocdef);
     begin
       if not assigned(pd) or
-        not Assigned(pd.returndef)
+        not Assigned(pd.returndef) or
+        (pd.returndef.size = 0)
         then exit;
 
       writer.AsmWrite(#9'(result'#9);
