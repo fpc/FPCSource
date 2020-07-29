@@ -93,6 +93,15 @@ uses
         constructor create(const aextname, aintname: ansistring; asymtype: timpexptype);
       end;
 
+      // local variable declaration
+
+      { tai_local }
+
+      tai_local = class(tai)
+        bastyp: TWasmBasicType;
+        constructor create(abasictype: TWasmBasicType);
+      end;
+
     procedure InitAsm;
     procedure DoneAsm;
 
@@ -100,6 +109,15 @@ uses
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
 implementation
+
+    { tai_local }
+
+    constructor tai_local.create(abasictype: TWasmBasicType);
+      begin
+        bastyp := abasictype;
+        typ := ait_local;
+        inherited Create;
+      end;
 
     { timpexp_ai }
 

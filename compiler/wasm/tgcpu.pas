@@ -28,10 +28,37 @@ unit tgcpu;
     uses
        globtype,
        aasmdata,
-       cgutils,
+       cgutils, cpubase,
        symtype,tgobj;
 
     type
+
+      { TWasmLocal }
+
+      TWasmLocal = class
+        inuse    : Boolean;
+        index    : integer;
+        typ      : TWasmBasicType;
+        next     : TWasmLocal; // next in the same basic type
+        nextseq  : TWasmLocal; // from 0 to max
+        constructor create(atype: TWasmBasicType; aindex: integer);
+      end;
+
+      { TWasmLocalVars }
+
+      TWasmLocalVars = class
+      private
+        last: TWasmLocal; // need public?
+      public
+        locv: array[TWasmBasicType] of TWasmLocal;
+        ordered: array of integer;
+        first: TWasmLocal; // first in sequence
+        varindex: integer;
+        constructor Create(astartindex: Integer = 0);
+        destructor Destroy; override;
+        function alloc(bt: TWasmBasicType): integer;
+        procedure dealloc(bt: TWasmBasicType; index: integer);
+      end;
 
        { ttgwasm }
 
@@ -40,13 +67,23 @@ unit tgcpu;
         // procedure getimplicitobjtemp(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
         // function getifspecialtemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference): boolean;
          procedure alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); override;
+
+         procedure updateFirstTemp;
         public
+         localvars: TWasmLocalVars;
          constructor create; override;
+         destructor destroy; override;
          procedure setfirsttemp(l : asizeint); override;
-         //procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference); override;
-         //procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); override;
-         //procedure gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); override;
+         procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference); override;
+         procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); override;
+         procedure gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); override;
+
+         procedure allocLocalVarToRef(wbt: TWasmBasicType; out ref: treference);
+         procedure deallocLocalVar(wbt: TWasmBasicType; idx: integer);
+         procedure LocalVarToRef(idx: integer; size: Integer; out ref: treference);
        end;
+
+    function defToWasmBasic(def: tdef; var wbt: TWasmBasicType): Boolean;
 
   implementation
 
@@ -54,8 +91,57 @@ unit tgcpu;
        verbose,
        cgbase,
        symconst,symtable,symdef,symsym,symcpu,defutil,
-       cpubase,aasmbase,aasmcpu,
-       hlcgobj,hlcgcpu;
+       aasmbase,aasmcpu,
+       hlcgobj,hlcgcpu, procinfo;
+
+    function defToWasmBasic(def: tdef; var wbt: TWasmBasicType): Boolean;
+    begin
+      Result := assigned(def);
+      if not Result then Exit;
+
+      if is_pointer(def) then
+        wbt := wbt_i32 // wasm32
+      else if is_ordinal(def) then begin
+        if is_64bit(def) then wbt := wbt_i64
+        else wbt := wbt_i32;
+      end else if is_real(def) then begin
+        if is_single(def) then wbt := wbt_f32
+        else wbt := wbt_f64; // real/double/extended
+      end else
+        Result := false;
+    end;
+
+        { TWasmLocal }
+
+                constructor TWasmLocal.create(atype: TWasmBasicType;
+                  aindex: integer);
+        begin
+          typ:=atype;
+          index:=aindex;
+        end;
+
+    { TWasmLocalVars }
+
+        constructor TWasmLocalVars.Create(astartindex: Integer = 0);
+          begin
+            inherited Create;
+            varindex := astartindex;
+          end;
+
+        destructor TWasmLocalVars.Destroy;
+          var
+            t : TWasmLocal;
+            n : TWasmLocal;
+          begin
+            t := first;
+            while Assigned(t) do
+              begin
+                n:=t;
+                t:=t.nextseq;
+                n.Free;
+              end;
+            inherited Destroy;
+          end;
 
 
     { ttgwasm }
@@ -227,50 +313,131 @@ unit tgcpu;
 
     procedure ttgwasm.alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
       begin
+        Internalerror(2019091802);
         { the WebAssembly only supports 1 slot (= 4 bytes in FPC) and 2 slot (= 8 bytes in
           FPC) temps on the stack. double and int64 are 2 slots, the rest is one slot.
           There are no problems with reusing the same slot for a value of a different
           type. There are no alignment requirements either. }
-        if size<4 then
+        {if size<4 then
           size:=4;
         if not(size in [4,8]) then
           internalerror(2010121401);
-        { don't pass on "def", since we don't care if a slot is used again for a
-          different type }
-        inherited alloctemp(list, size shr 2, 1, temptype, nil, false, ref);
+        inherited alloctemp(list, size shr 2, 1, temptype, def, false, ref);}
       end;
+
+    procedure ttgwasm.updateFirstTemp;
+    begin
+      firsttemp := localvars.varindex;
+      if lasttemp<firsttemp then lasttemp := firsttemp;
+    end;
 
     constructor ttgwasm.create;
       begin
         inherited create;
         direction := 1; // temp variables are allocated as "locals", and it starts with 0 and goes beyond!
+        localvars:=TWasmLocalVars.Create;
       end;
 
+    destructor ttgwasm.destroy;
+      begin
+        localvars.Free;
+        inherited destroy;
+      end;
 
     procedure ttgwasm.setfirsttemp(l: asizeint);
       begin
         firsttemp:=l;
         lasttemp:=l;
+        localvars.varindex := l; //?
       end;
 
 
-    //procedure ttgwasm.getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference);
-    //  begin
-    //    if not getifspecialtemp(list,def,size,tt_persistent,ref) then
-    //      inherited;
-    //  end;
+    procedure ttgwasm.getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference);
+      var
+        wbt : TWasmBasicType;
+        idx : integer;
+      begin
+        if defToWasmBasic(def, wbt) then
+          alloclocalVarToRef(wbt, ref)
+        else begin
+          Internalerror(2019091801); // no support of structural type
+          inherited;
+        end;
+      end;
 
 
-    //procedure ttgjvm.gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference);
-    //  begin
-    //    if not getifspecialtemp(list,def,forcesize,temptype,ref) then
-    //      inherited;
-    //  end;
-    //
-    //procedure ttgjvm.gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
-    //  begin
-    //    gethltemp(list,def,def.size,temptype,ref);
-    //  end;
+    procedure ttgwasm.gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference);
+      begin
+        inherited;
+      end;
+
+    procedure ttgwasm.gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
+      begin
+        inherited;
+      end;
+
+    procedure ttgwasm.allocLocalVarToRef(wbt: TWasmBasicType; out ref: treference);
+      var
+        idx : integer;
+      begin
+        idx := localvars.alloc(wbt);
+        localVarToRef(idx, 1, ref);
+      end;
+
+    procedure ttgwasm.deallocLocalVar(wbt: TWasmBasicType; idx: integer);
+      begin
+        localvars.dealloc(wbt, idx);
+      end;
+
+    procedure ttgwasm.localVarToRef(idx: integer; size: integer; out ref: treference);
+      var
+        t: treftemppos;
+      begin
+        t.val:=idx;
+        reference_reset_base(ref, current_procinfo.framepointer,idx,t,size,[]);
+        updateFirstTemp;
+      end;
+
+    function TWasmLocalVars.alloc(bt: TWasmBasicType): integer;
+      var
+        i : integer;
+        lc : TWasmLocal;
+        t  : TWasmLocal;
+      begin
+        lc := locv[bt];
+        t := nil;
+        while Assigned(lc) and (lc.inuse) do begin
+          t := lc;
+          lc := lc.next;
+        end;
+        if Assigned(lc) then begin
+          lc.inuse := true;
+        end else begin
+          lc := TWasmLocal.Create(bt, varindex);
+          if Assigned(t)
+            then t.next := lc
+            else locv[bt]:=lc;
+          lc.inuse:=true;
+          inc(varindex);
+
+          if Assigned(last) then last.nextseq := lc;
+          if not Assigned(first) then first := lc;
+          last := lc;
+        end;
+        alloc := lc.index;
+
+      end;
+
+    procedure TWasmLocalVars.dealloc(bt: TWasmBasicType; index: integer);
+      var
+        lc : TWasmLocal;
+      begin
+        lc := locv[bt];
+        while Assigned(lc) and (lc.index <> index) do
+          lc := lc.next;
+        if Assigned(lc) then lc.inuse := false;
+      end;
+
 
 
 initialization

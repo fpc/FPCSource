@@ -85,6 +85,8 @@ uses
       a_grow_memory, a_current_memory
       );
 
+      TWasmBasicType = (wbt_i32, wbt_i64, wbt_f32, wbt_f64);
+
       {# This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[8];
 

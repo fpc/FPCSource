@@ -311,6 +311,9 @@ implementation
         i,pos    : longint;
         InlineLevel : longint;
         do_line  : boolean;
+      const
+        WasmBasicTypeStr : array [TWasmBasicType] of string = ('i32','i64','f32','f64');
+
       begin
         if not assigned(p) then
          exit;
@@ -526,6 +529,14 @@ implementation
                  writer.AsmWrite('.'+directivestr[tai_directive(hp).directive]+' ');
                  if tai_directive(hp).name<>'' then
                    writer.AsmWrite(tai_directive(hp).name);
+                 writer.AsmLn;
+               end;
+
+             ait_local :
+               begin
+                 writer.AsmWrite(#9'(local ');
+                 writer.AsmWrite( WasmBasicTypeStr[ tai_local(hp).bastyp ] );
+                 writer.AsmWrite(')');
                  writer.AsmLn;
                end;
 

@@ -27,7 +27,7 @@ interface
 
   uses
     cutils,
-    procinfo,cpuinfo,
+    procinfo,cpuinfo, symtype,
     psub;
 
   type
@@ -36,27 +36,51 @@ interface
 
     tcpuprocinfo=class(tcgprocinfo)
     public
+      procedure postprocess_code; override;
+
       procedure set_first_temp_offset;override;
     end;
 
 implementation
 
     uses
-      systems,globals,
+      systems,globals, tgcpu, aasmdata, aasmcpu,
       tgobj,paramgr,symconst;
 
+    procedure tcpuprocinfo.postprocess_code;
+      var
+       templist : TAsmList;
+       l : TWasmLocal;
+      begin
+        templist := TAsmList.create;
+        l := ttgwasm(tg).localvars.first;
+        while Assigned(l) do begin
+          templist.Concat( tai_local.create(l.typ));
+          l := l.nextseq;
+        end;
+        aktproccode.insertListBefore(nil, templist);
+        templist.Free;
+
+        inherited postprocess_code;
+      end;
+
     procedure tcpuprocinfo.set_first_temp_offset;
+      var
+        sz : integer;
+        i  : integer;
+        sym: tsym;
       begin
         {
           Stackframe layout:
           sp:
             <incoming parameters>
-          sp+first_temp_offset:
+            sp+first_temp_offset:
             <locals>
             <temp>
         }
         procdef.init_paraloc_info(calleeside);
-        tg.setfirsttemp(procdef.calleeargareasize);
+        sz := procdef.calleeargareasize;
+        tg.setfirsttemp(sz);
       end;
 
 
