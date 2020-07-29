@@ -2059,7 +2059,7 @@ implementation
                else
                 result := getputmem64[isload, is_signed(def)];
           else
-            Internalerror(201909150001);
+            Internalerror(2019091501);
           end;
 
           //result:=getputopc[isload,ref.base=NR_NO];
