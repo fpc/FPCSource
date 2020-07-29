@@ -24,6 +24,7 @@ type
 
    twasmwhilerepeatnode = class(tcgwhilerepeatnode)
    public
+     procedure pass_generate_code_condition;
      procedure pass_generate_code;override;
    end;
 
@@ -40,21 +41,31 @@ uses
 
 { twasmwhilerepeatnode }
 
+procedure twasmwhilerepeatnode.pass_generate_code_condition;
+begin
+  secondpass(left);
+
+  // reversing the condition
+  // todo: there should be a better approach
+  if not (lnf_checknegate in loopflags) then begin
+    current_asmdata.CurrAsmList.concat(taicpu.op_const(a_i32_const,1) );
+    current_asmdata.CurrAsmList.concat(taicpu.op_none(a_i32_xor) );
+  end;
+  current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,1) );
+end;
+
 procedure twasmwhilerepeatnode.pass_generate_code;
 begin
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
   current_asmdata.CurrAsmList.concat(taicpu.op_none(a_loop));
 
-  secondpass(left);
-
-  // reversing the condition
-  // todo: there should be a better approach
-  current_asmdata.CurrAsmList.concat(taicpu.op_const(a_i32_const,1) );
-  current_asmdata.CurrAsmList.concat(taicpu.op_none(a_i32_xor) );
-
-  current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,1) );
+  if lnf_testatbegin in loopflags then
+    pass_generate_code_condition;
 
   secondpass(right);
+
+  if not (lnf_testatbegin in loopflags) then
+    pass_generate_code_condition;
 
   current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,0) );
 
