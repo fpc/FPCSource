@@ -1142,6 +1142,7 @@ implementation
         // todo: index?
         list.Concat(taicpu.op_none(a_i32_add));
         incstack(list, 1);
+        a_load_stack_reg(list, tosize, r);
       end else
         a_load_ref_reg(list,ptruinttype,ptruinttype,ref,r);
     end;
