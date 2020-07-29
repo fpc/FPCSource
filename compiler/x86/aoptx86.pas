@@ -5863,7 +5863,10 @@ unit aoptx86;
               begin
                 taicpu(p).loadreg(0, taicpu(p).oper[1]^.reg);
                 if taicpu(p).opsize = S_L then
-                  Include(OptsToCheck,aoc_MovAnd2Mov_3);
+                  begin
+                    Include(OptsToCheck,aoc_MovAnd2Mov_3);
+                    Result := True;
+                  end;
               end;
           end;
 
