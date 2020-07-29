@@ -91,6 +91,9 @@ interface
           ait_llvmmetadatareftypedconst, { reference to metadata inside a metadata constant }
           ait_llvmmetadatarefoperand, { llvm metadata referece: !metadataname !id }
 {$endif}
+{$ifdef wasm}
+          ait_importexport,
+{$endif}
           { SEH directives used in ARM,MIPS and x86_64 COFF targets }
           ait_seh_directive,
           { Dwarf CFI directive }
@@ -228,6 +231,9 @@ interface
           'llvmmetadata',
           'llvmmetadatareftc',
           'llvmmetadatarefop',
+{$endif}
+{$ifdef wasm}
+          'importexport',
 {$endif}
           'cfi',
           'seh_directive'
