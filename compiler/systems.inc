@@ -271,6 +271,7 @@
              ld_os2,
              ld_palmos,
              ld_solaris,
+             ld_wasm,
              ld_watcom,
              ld_wdosx,
              ld_wii,
