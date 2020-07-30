@@ -154,7 +154,14 @@ implementation
                  Message(cg_e_mod_only_defined_for_pos_quotient);
                  { recover }
                  tordconstnode(right).value := 1;
-               end;
+               end
+            else if (rv=-1) and
+              (nodetype=modn) then
+              begin
+                result:=cordconstnode.create(0,left.resultdef,true);
+                left:=nil;
+                exit;
+              end;
           end;
 
         if is_constintnode(right) and is_constintnode(left) then
