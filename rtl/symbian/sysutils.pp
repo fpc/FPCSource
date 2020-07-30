@@ -59,7 +59,7 @@ begin
 end;
 
 
-function FileSetDate(Handle, Age: Int64) : LongInt;
+function FileSetDate(Handle : THandle; Age: Int64) : LongInt;
 begin
   result := -1;
 end;
