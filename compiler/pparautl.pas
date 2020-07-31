@@ -676,16 +676,18 @@ implementation
         end;
 
 
-      function equal_generic_procdefs(fwpd,currpd:tprocdef):boolean;
+      function equal_generic_procdefs(fwpd,currpd:tprocdef;out sameparas,sameret:boolean):boolean;
         var
           i : longint;
           fwsym,
           currsym : tsym;
-          fwtype : ttypesym absolute fwsym;
           currtype : ttypesym absolute currsym;
-          foundretdef : boolean;
+          convdummy: tconverttype;
+          pddummy: tprocdef;
         begin
           result:=false;
+          sameparas:=false;
+          sameret:=false;
           if fwpd.genericparas.count<>currpd.genericparas.count then
             exit;
           { comparing generic declarations is a bit more cumbersome as the
@@ -696,7 +698,6 @@ implementation
               constraints while currpd must only contain undefineddefs
             - forward declaration in implementation: here constraints must be
               repeated }
-          foundretdef:=false;
           for i:=0 to fwpd.genericparas.count-1 do
             begin
               fwsym:=tsym(fwpd.genericparas[i]);
@@ -728,28 +729,32 @@ implementation
                       as well }
                     exit;
                 end;
-              if not foundretdef and (fwsym.typ=typesym) then
-                begin
-                  { if the returndef is the same as this parameter's def then this
-                    needs to be the case for both procdefs }
-                  foundretdef:=fwpd.returndef=fwtype.typedef;
-                  if foundretdef xor (currpd.returndef=currtype.typedef) then
-                    exit;
-                end;
             end;
           if compare_paras(fwpd.paras,currpd.paras,cp_none,[cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv,cpo_generic])<>te_exact then
             exit;
-          if not foundretdef then
-            begin
-              if (df_specialization in tstoreddef(fwpd.returndef).defoptions) and (df_specialization in tstoreddef(currpd.returndef).defoptions) then
-                { for specializations we're happy with equal defs instead of exactly the same defs }
-                result:=equal_defs(fwpd.returndef,currpd.returndef)
-              else
-                { the returndef isn't a type parameter, so compare as usual }
-                result:=compare_defs(fwpd.returndef,currpd.returndef,nothingn)=te_exact;
-            end
+          sameparas:=true;
+          if (df_specialization in tstoreddef(fwpd.returndef).defoptions) and (df_specialization in tstoreddef(currpd.returndef).defoptions) then
+            { for specializations we're happy with equal defs instead of exactly the same defs }
+            result:=equal_defs(fwpd.returndef,currpd.returndef)
           else
-            result:=true;
+            begin
+              { strictly compare defs using compare_defs_ext, but allow
+                non exactly equal undefineddefs }
+              convdummy:=tc_none;
+              pddummy:=nil;
+              result:=(compare_defs_ext(fwpd.returndef,currpd.returndef,nothingn,convdummy,pddummy,[cdo_allow_variant,cdo_strict_undefined_check])=te_exact) or
+                        equal_genfunc_paradefs(fwpd.returndef,currpd.returndef,fwpd.parast,currpd.parast);
+            end;
+          { the result variable is only set depending on the return type, so we
+            can simply use "result" }
+          sameret:=result;
+        end;
+
+      function equal_signature(fwpd,currpd:tprocdef;out sameparas,sameret:boolean):boolean;
+        begin
+          sameparas:=compare_paras(fwpd.paras,currpd.paras,cp_none,[cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv])=te_exact;
+          sameret:=compare_defs(fwpd.returndef,currpd.returndef,nothingn)=te_exact;
+          result:=sameparas and sameret;
         end;
 
       {
@@ -767,6 +772,11 @@ implementation
         i       : longint;
         po_comp : tprocoptions;
         paracompopt: tcompare_paras_options;
+        sameparasfound,
+        gensameparas,
+        gensameret,
+        sameparas,
+        sameret,
         forwardfound : boolean;
         symentry: TSymEntry;
         item : tlinkedlistitem;
@@ -780,6 +790,9 @@ implementation
             result:=false;
             exit;
           end;
+
+        sameparasfound:=false;
+        fwpd:=nil;
 
         { check overloaded functions if the same function already exists }
         for i:=0 to tprocsym(currpd.procsym).ProcdefList.Count-1 do
@@ -797,6 +810,11 @@ implementation
            if fwpd.procsym<>currpd.procsym then
              continue;
 
+           gensameparas:=false;
+           gensameret:=false;
+           sameparas:=false;
+           sameret:=false;
+
            { check the parameters, for delphi/tp it is possible to
              leave the parameters away in the implementation (forwarddef=false).
              But for an overload declared function this is not allowed }
@@ -810,7 +828,7 @@ implementation
               (
                 fwpd.is_generic and
                 currpd.is_generic and
-                equal_generic_procdefs(fwpd,currpd)
+                equal_generic_procdefs(fwpd,currpd,gensameparas,gensameret)
               ) or
               { check arguments, we need to check only the user visible parameters. The hidden parameters
                 can be in a different location because of the calling convention, eg. L-R vs. R-L order (PFV)
@@ -819,8 +837,9 @@ implementation
                 values should be reported as mismatches (since you can't overload based on different default
                 parameter values) }
               (
-               (compare_paras(fwpd.paras,currpd.paras,cp_none,[cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv])=te_exact) and
-               (compare_defs(fwpd.returndef,currpd.returndef,nothingn)=te_exact)
+                not fwpd.is_generic and
+                not currpd.is_generic and
+                equal_signature(fwpd,currpd,sameparas,sameret)
               ) then
              begin
                { Check if we've found the forwarddef, if found then
@@ -897,7 +916,7 @@ implementation
                          (
                            fwpd.is_generic and
                            currpd.is_generic and
-                           not equal_generic_procdefs(fwpd,currpd)
+                           not equal_generic_procdefs(fwpd,currpd,sameparas,sameret)
                          ) or
                          (
                            (
@@ -1124,7 +1143,23 @@ implementation
                   end;
                end;
             end; { equal arguments }
+
+           { we found a match with the same parameter signature, but mismatching
+             return types; complain about that, but only once we've checked for
+             a forward to improve error recovery }
+           if (sameparas and not sameret and
+               { ensure that specifiers are the same as well }
+               (compare_paras(fwpd.paras,currpd.paras,cp_all,[cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv])=te_exact)
+               ) or (gensameparas and not gensameret) then
+             sameparasfound:=true;
          end;
+
+        if sameparasfound and
+            not (currpd.proctypeoption=potype_operator) then
+          begin
+            MessagePos(currpd.fileinfo,parser_e_overloaded_have_same_parameters);
+            tprocsym(currpd.procsym).write_parameter_lists(currpd);
+          end;
 
         { if we didn't reuse a forwarddef then we add the procdef to the overloaded
           list }
