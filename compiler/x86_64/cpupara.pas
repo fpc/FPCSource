@@ -1454,7 +1454,12 @@ unit cpupara;
             numclasses:=classify_argument(p.proccalloption,result.def,nil,vs_value,result.def.size,classes,0,False);
             { this would mean a memory return }
             if (numclasses=0) then
-              internalerror(2010021502);
+              begin
+                { we got an error before, so we just skip all the return type generation }
+                if result.def.typ=errordef then
+                  exit;
+                internalerror(2010021502);
+              end;
 
             if (numclasses > MAX_PARA_CLASSES) then
               internalerror(2010021503);
