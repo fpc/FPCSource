@@ -273,8 +273,12 @@ implementation
           end;
 
         { in case we are in a generic definition, we cannot
-          do all checks, the parameters might be type parameters }
-        if df_generic in current_procinfo.procdef.defoptions then
+          do all checks, the parameters might be type parameters,
+
+          bailout as well in case of an error before }
+        if (df_generic in current_procinfo.procdef.defoptions) or
+         (dest.resultdef.typ=errordef) or
+         (source.resultdef.typ=errordef) then
           begin
             result.Free;
             result:=nil;
@@ -1477,7 +1481,7 @@ implementation
     begin
       ordtype := torddef(def).ordtype;
       if not (ordtype in [s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit]) then
-        internalerror(2013032603);
+        internalerror(2020080101);
 
       if is_oversizedint(def) then
         begin
