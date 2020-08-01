@@ -2830,7 +2830,7 @@ begin
       x86_64:   result := GetGccDirArch('cpux86_64','-m64');
       powerpc:  result := GetGccDirArch('cpupowerpc','-m32');
       powerpc64:result := GetGccDirArch('cpupowerpc64','-m64');
-      arm:      result := GetGccDirArch('cpuarm','-march=armv2');
+      arm:      result := GetGccDirArch('cpuarm','-marm -march=armv2');
       aarch64:  result := GetGccDirArch('cpuaarch64','-march=aarch64 -mcmodel=large');
       m68k:     result := GetGccDirArch('cpum68k','');
       mips:     result := GetGccDirArch('cpumips','-mips32 -EB -mabi=32');
