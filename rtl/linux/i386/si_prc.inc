@@ -42,7 +42,7 @@ var
   dlexitproc : pointer;
 
 {$ifdef FPC_PIC}
-function fpc_geteipasebxlocal : pointer; [external name 'fpc_geteipasebx'];
+procedure fpc_geteipasebxlocal; [external name 'fpc_geteipasebx'];
 {$endif}
 
 procedure InitTLS; [external name 'FPC_INITTLS'];

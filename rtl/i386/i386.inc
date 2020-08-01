@@ -67,13 +67,13 @@ procedure fpc_cpuinit;
   end;
 
 {$ifndef darwin}
-function fpc_geteipasebx : pointer; [public, alias: 'fpc_geteipasebx'];assembler; nostackframe;
+procedure fpc_geteipasebx; [public, alias: 'fpc_geteipasebx'];assembler; nostackframe;
 asm
   movl    (%esp),%ebx
 end;
 
 
-function fpc_geteipasecx : pointer; [public, alias: 'fpc_geteipasecx'];assembler; nostackframe;
+procedure fpc_geteipasecx; [public, alias: 'fpc_geteipasecx'];assembler; nostackframe;
 asm
   movl    (%esp),%ecx
 end;
