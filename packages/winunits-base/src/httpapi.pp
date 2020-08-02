@@ -1259,8 +1259,14 @@ function HttpReadFragmentFromCache(RequestQueueHandle: HANDLE; UrlPrefix: PCWSTR
 function HttpSetServiceConfiguration(ServiceHandle: HANDLE; ConfigId: HTTP_SERVICE_CONFIG_ID; pConfigInformation: PVOID; ConfigInformationLength: ULONG; pOverlapped: LPOVERLAPPED): ULONG; WinApi; external External_library name 'HttpSetServiceConfiguration';
 function HttpDeleteServiceConfiguration(ServiceHandle: HANDLE; ConfigId: HTTP_SERVICE_CONFIG_ID; pConfigInformation: PVOID; ConfigInformationLength: ULONG; pOverlapped: LPOVERLAPPED): ULONG; WinApi; external External_library name 'HttpDeleteServiceConfiguration';
 function HttpQueryServiceConfiguration(ServiceHandle: HANDLE; ConfigId: HTTP_SERVICE_CONFIG_ID; pInput: PVOID; InputLength: ULONG; pOutput: PVOID; OutputLength: ULONg; pReturnLength: PULONG; pOverlapped: LPOVERLAPPED): ULONG; WinApi; external External_library name 'HttpQueryServiceConfiguration';
+{ this is only available from Windows 10 version 1703 on, so handle that in the
+  implementation; ideally this would be marked with "delayed" }
+function HttpUpdateServiceConfiguration(ServiceHandle: HANDLE; ConfigId: HTTP_SERVICE_CONFIG_ID; ConfigInfo: PVOID; ConfigInfoLength: ULONG; Overlapped: LPOVERLAPPED): ULONG; WinApi;
 
 implementation
+
+  uses
+    SysUtils;
 
   function Present(var a : _HTTP_PROPERTY_FLAGS) : ULONG;
     begin
@@ -1338,5 +1344,43 @@ implementation
       HTTPAPI_VERSION_GREATER_OR_EQUAL := not (HTTPAPI_LESS_VERSION(version,major,minor));
     end;
 
+  type
+    TUpdateServiceConfigurationFunc = function(ServiceHandle: HANDLE; ConfigId: HTTP_SERVICE_CONFIG_ID; ConfigInfo: PVOID; ConfigInfoLength: ULONG; Overlapped: LPOVERLAPPED): ULONG; WinApi;
 
+  var
+    gLibCS: CRITICAL_SECTION;
+    gLibHandle: THandle = NilHandle;
+    gUpdateServiceConfigurationChecked: Boolean = False;
+    gUpdateServiceConfigurationFunc: TUpdateServiceConfigurationFunc = Nil;
+
+  function HttpUpdateServiceConfiguration(ServiceHandle: HANDLE; ConfigId: HTTP_SERVICE_CONFIG_ID; ConfigInfo: PVOID; ConfigInfoLength: ULONG; Overlapped: LPOVERLAPPED): ULONG; WinApi;
+    begin
+      if not gUpdateServiceConfigurationChecked then begin
+        EnterCriticalSection(gLibCS);
+        try
+          if not gUpdateServiceConfigurationChecked then begin
+            gLibHandle := LoadLibrary(External_library);
+            if gLibHandle <> NilHandle then
+              gUpdateServiceConfigurationFunc := TUpdateServiceConfigurationFunc(GetProcAddress(gLibHandle, 'HttpUpdateServiceConfiguration'))
+            else begin
+              FreeLibrary(gLibHandle);
+              gLibHandle := NilHandle;
+            end;
+            gUpdateServiceConfigurationChecked := True;
+          end;
+        finally
+          LeaveCriticalSection(gLibCS);
+        end;
+      end;
+      if not Assigned(gUpdateServiceConfigurationFunc) then
+        raise EOSError.Create(SysErrorMessage(ERROR_PROC_NOT_FOUND));
+      Result := gUpdateServiceConfigurationFunc(ServiceHandle, ConfigId, ConfigInfo, ConfigInfoLength, Overlapped);
+    end;
+
+initialization
+  InitializeCriticalSection(gLibCS);
+finalization
+  DoneCriticalSection(gLibCS);
+  if gLibHandle <> NilHandle then
+    FreeLibrary(gLibHandle);
 end.
