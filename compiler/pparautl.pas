@@ -1155,7 +1155,15 @@ implementation
          end;
 
         if sameparasfound and
-            not (currpd.proctypeoption=potype_operator) then
+            not (currpd.proctypeoption=potype_operator) and
+            (
+              { allow overloads with different result types for external java
+                classes as Java supports covariant return types when implementing
+                interfaces and e.g. AbstractStringBuilder uses that }
+              not assigned(currpd.struct) or
+              not is_java_class_or_interface(currpd.struct) or
+              not (oo_is_external in tobjectdef(currpd.struct).objectoptions)
+            ) then
           begin
             MessagePos(currpd.fileinfo,parser_e_overloaded_have_same_parameters);
             tprocsym(currpd.procsym).write_parameter_lists(currpd);
