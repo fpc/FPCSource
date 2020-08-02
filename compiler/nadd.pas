@@ -1435,7 +1435,7 @@ implementation
                     end;
                   end
                 { short to full boolean evalution possible and useful? }
-                else if not(might_have_sideeffects(right,[mhs_exceptions])) and not(cs_full_boolean_eval in localswitches) then
+                else if not(might_have_sideeffects(right,[mhs_exceptions])) and doshortbooleval(self) then
                   begin
                     case nodetype of
                       andn,orn:
@@ -1447,6 +1447,7 @@ implementation
                             begin
                               { we need to copy the whole tree to force another pass_1 }
                               include(localswitches,cs_full_boolean_eval);
+                              exclude(flags,nf_short_bool);
                               result:=getcopy;
                               exit;
                             end;
@@ -1975,41 +1976,27 @@ implementation
                   andn,
                   orn:
                     begin
-                      { in case of xor, or 'and' with full  and cbool: convert both to Pascal bool and then
+                      { in case of xor or 'and' with cbool: convert both to Pascal bool and then
                         perform the xor/and to prevent issues with "longbool(1) and/xor
                         longbool(2)" }
                       if (is_cbool(ld) or is_cbool(rd)) and
-                         ((nodetype=xorn) or
-                          ((nodetype=andn) and
-                           ((cs_full_boolean_eval in current_settings.localswitches) or
-                            not(nf_short_bool in flags)
-                           )
-                          )
-                         ) then
+                         (nodetype in [xorn,andn]) then
                         begin
                           resultdef:=nil;
                           if is_cbool(ld) then
                             begin
-                              inserttypeconv(left,pasbool8type);
-                              { inserttypeconv might already simplify
-                                the typeconvnode after insertion,
-                                thus we need to check if it still
-                                really is a typeconv node }
-                              if left is ttypeconvnode then
-                                ttypeconvnode(left).convtype:=tc_bool_2_bool;
+                              left:=ctypeconvnode.create(left,pasbool8type);
+                              ttypeconvnode(left).convtype:=tc_bool_2_bool;
+                              firstpass(left);
                               if not is_cbool(rd) or
                                  (ld.size>=rd.size) then
                                 resultdef:=ld;
                             end;
                           if is_cbool(rd) then
                             begin
-                              inserttypeconv(right,pasbool8type);
-                              { inserttypeconv might already simplify
-                                the typeconvnode after insertion,
-                                thus we need to check if it still
-                                really is a typeconv node }
-                              if right is ttypeconvnode then
-                                ttypeconvnode(right).convtype:=tc_bool_2_bool;
+                              right:=ctypeconvnode.Create(right,pasbool8type);
+                              ttypeconvnode(right).convtype:=tc_bool_2_bool;
+                              firstpass(right);
                               if not assigned(resultdef) then
                                 resultdef:=rd;
                             end;
@@ -2049,43 +2036,35 @@ implementation
                   unequaln,
                   equaln:
                     begin
-                      if not(cs_full_boolean_eval in current_settings.localswitches) or
-                         (nf_short_bool in flags) then
-                       begin
-                         { Remove any compares with constants }
-                         if (left.nodetype=ordconstn) then
-                          begin
-                            hp:=right;
-                            b:=(tordconstnode(left).value<>0);
-                            ot:=nodetype;
-                            left.free;
-                            left:=nil;
-                            right:=nil;
-                            if (not(b) and (ot=equaln)) or
-                               (b and (ot=unequaln)) then
-                             begin
-                               hp:=cnotnode.create(hp);
-                             end;
-                            result:=hp;
-                            exit;
-                          end;
-                         if (right.nodetype=ordconstn) then
-                          begin
-                            hp:=left;
-                            b:=(tordconstnode(right).value<>0);
-                            ot:=nodetype;
-                            right.free;
-                            right:=nil;
-                            left:=nil;
-                            if (not(b) and (ot=equaln)) or
-                               (b and (ot=unequaln)) then
-                             begin
-                               hp:=cnotnode.create(hp);
-                             end;
-                            result:=hp;
-                            exit;
-                          end;
-                       end;
+                      { Remove any compares with constants }
+                      if (left.nodetype=ordconstn) then
+                        begin
+                          hp:=right;
+                          b:=(tordconstnode(left).value<>0);
+                          ot:=nodetype;
+                          right:=nil;
+                          if (not(b) and (ot=equaln)) or
+                             (b and (ot=unequaln)) then
+                           begin
+                             hp:=cnotnode.create(hp);
+                           end;
+                          result:=hp;
+                          exit;
+                        end;
+                      if (right.nodetype=ordconstn) then
+                        begin
+                          hp:=left;
+                          b:=(tordconstnode(right).value<>0);
+                          ot:=nodetype;
+                          left:=nil;
+                          if (not(b) and (ot=equaln)) or
+                             (b and (ot=unequaln)) then
+                           begin
+                             hp:=cnotnode.create(hp);
+                           end;
+                          result:=hp;
+                          exit;
+                        end;
                       { Delphi-compatibility: convert both to pasbool to
                         perform the equality comparison }
                       inserttypeconv(left,pasbool1type);
@@ -4105,9 +4084,7 @@ implementation
            { 2 booleans ? }
              if is_boolean(ld) and is_boolean(rd) then
               begin
-                if (not(cs_full_boolean_eval in current_settings.localswitches) or
-                    (nf_short_bool in flags)) and
-                   (nodetype in [andn,orn]) then
+                if doshortbooleval(self) then
                   expectloc:=LOC_JUMP
                 else
                  begin
