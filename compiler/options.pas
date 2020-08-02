@@ -1191,6 +1191,11 @@ begin
                            include(init_settings.moduleswitches,cs_fp_emulation);
                        end;
 {$endif cpufpemu}
+                    'E' :
+                      If UnsetBool(More, j, opt, false) then
+                        exclude(init_settings.localswitches,cs_check_fpu_exceptions)
+                      Else
+                        include(init_settings.localswitches,cs_check_fpu_exceptions);
                     'f' :
                       begin
                         s:=upper(copy(more,j+1,length(more)-j));

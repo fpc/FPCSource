@@ -436,6 +436,12 @@ unit scandir;
       end;
 
 
+    procedure dir_checkfpuexceptions;
+      begin
+        do_localswitch(cs_check_fpu_exceptions);
+      end;
+
+
     procedure dir_objectchecks;
       begin
         do_localswitch(cs_check_object);
@@ -1907,6 +1913,7 @@ unit scandir;
         AddDirective('BOOLEVAL',directive_all, @dir_booleval);
         AddDirective('BITPACKING',directive_all, @dir_bitpacking);
         AddDirective('CALLING',directive_all, @dir_calling);
+        AddDirective('CHECKFPUEXCEPTIONS',directive_all, @dir_checkfpuexceptions);
         AddDirective('CHECKLOWADDRLOADS',directive_all, @dir_checklowaddrloads);
         AddDirective('CHECKPOINTER',directive_all, @dir_checkpointer);
         AddDirective('CODEALIGN',directive_all, @dir_codealign);

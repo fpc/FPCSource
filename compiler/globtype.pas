@@ -156,7 +156,7 @@ interface
          cs_full_boolean_eval,cs_typed_const_writable,cs_allow_enum_calc,
          cs_do_inline,cs_fpu_fwait,cs_ieee_errors,
          cs_check_low_addr_load,cs_imported_data,
-         cs_excessprecision,
+         cs_excessprecision,cs_check_fpu_exceptions,
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }

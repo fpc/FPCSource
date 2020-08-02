@@ -2211,7 +2211,7 @@ const
         'Check low address loading', {cs_check_low_addr_load}
         'Imported data', {cs_imported_data}
         'Excess precision', {cs_excessprecision}
-        // 'Check fpu exceptions', {cs_check_fpu_exceptions} {not yet merged}
+        'Check fpu exceptions', {cs_check_fpu_exceptions}
         // 'Check all case coverage', {cs_check_all_case_coverage} {not yet merged}
          { mmx }
         'Allow MMX instructions', {cs_mmx}
