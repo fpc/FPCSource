@@ -116,6 +116,7 @@ unit rgobj;
 {$endif llvm}
         count_uses : longint;
         total_interferences : longint;
+        real_reg_interferences: word;
       end;
       Preginfo=^TReginfo;
 
@@ -605,7 +606,7 @@ unit rgobj;
       rtindex : longint = 0;
     procedure trgobj.do_register_allocation(list:TAsmList;headertai:tai);
       var
-        spillingcounter:byte;
+        spillingcounter:longint;
         endspill:boolean;
         i : Longint;
       begin
@@ -645,6 +646,15 @@ unit rgobj;
 
         translate_registers(list);
 
+{$ifdef DEBUG_SPILLCOALESCE}
+        spillingcounter:=0;
+        for i:=0 to High(spillinfo) do
+          if spillinfo[i].spilled then
+            inc(spillingcounter);
+        if spillingcounter>0 then
+          writeln(current_procinfo.procdef.mangledname, ': spilled regs: ',spillingcounter);
+{$endif DEBUG_SPILLCOALESCE}
+
         { we need the translation table for debugging info and verbose assembler output,
           so not dispose them yet (FK)
         }
@@ -677,6 +687,8 @@ unit rgobj;
             if adjlist=nil then
               new(adjlist,init);
             adjlist^.add(v);
+            if v<first_imaginary then
+              inc(real_reg_interferences);
           end;
       end;
 
@@ -1233,6 +1245,16 @@ unit rgobj;
         for i:=1 to adj^.length do
           begin
             n:=adj^.buf^[i-1];
+            if (u<first_imaginary) and
+               (n>=first_imaginary) and
+               not ibitmap[u,n] and
+               (usable_registers_cnt-reginfo[n].real_reg_interferences<=1) then
+              begin
+                { Do not coalesce if 'u' is the last usable real register available
+                  for imaginary register 'n'. }
+                conservative:=false;
+                exit;
+              end;
             if not supregset_in(done,n) and
                (reginfo[n].degree>=usable_registers_cnt) and
                (reginfo[n].flags*[ri_coalesced,ri_selected]=[]) then
