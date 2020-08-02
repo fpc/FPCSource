@@ -115,6 +115,11 @@ begin
   RandSeed := 63458;
 end;
 
+procedure randomize(value: integer);
+begin
+  RandSeed := value;
+end;
+
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 { number of args }
 function paramcount : longint;
