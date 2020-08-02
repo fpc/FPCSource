@@ -3180,10 +3180,11 @@ end;
 
 constructor TCompileWorkerThread.Create(ABuildEngine: TBuildEngine; NotifyMainThreadEvent: PRTLEvent);
 begin
-  inherited Create(false);
+  inherited Create(true);
   FNotifyStartTask := RTLEventCreate;
   FBuildEngine := ABuildEngine;
   FNotifyMainThreadEvent:=NotifyMainThreadEvent;
+  Start;
 end;
 
 destructor TCompileWorkerThread.Destroy;
