@@ -41,9 +41,11 @@ var
 begin
   for i:=0 to acts.Count-1 do begin
     ta := TToolActions(acts[i]);
+    writeln('i=',i);
     if ta.action = ACT_EXPORTRENAME then begin
       ExportRename(inputFn, ta.paramsFn);
     end else if ta.action = ACT_SYMBOLFLAG then begin
+      ChangeSymbolFlag(inputFn, ta.paramsFn);
     end;
   end;
 end;
@@ -96,7 +98,6 @@ begin
   end;
 
   try
-    ParseParams;
     acts := TList.Create;
     try
       ParseParams;

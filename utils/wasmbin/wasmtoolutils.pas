@@ -11,7 +11,7 @@ function ChangeSymbolFlagStream(st: TStream; syms: TStrings): Boolean;
 procedure ChangeSymbolFlag(const fn, symfn: string);
 
 procedure ExportRenameSym(var x: TExportSection; syms: TStrings);
-function ExportRenameProcesss(st, dst: TStream; syms: TStrings): Boolean;
+function ExportRenameProcess(st, dst: TStream; syms: TStrings): Boolean;
 procedure ExportRename(const fn, symfn: string);
 
 implementation
@@ -82,7 +82,7 @@ begin
   end;
 end;
 
-function ExportRenameProcesss(st, dst: TStream; syms: TStrings): Boolean;
+function ExportRenameProcess(st, dst: TStream; syms: TStrings): Boolean;
 var
   dw  : LongWord;
   ofs : int64;
@@ -142,7 +142,8 @@ begin
     if (symfn <> '') and fileExists(symfn) then
       syms.LoadFromFile(symfn);
 
-    ExportRenameProcesss(fs, dst, syms);
+    writeln('ExportRenameProcess');
+    ExportRenameProcess(fs, dst, syms);
 
     fs.Position:=0;
     dst.Position:=0;

@@ -51,6 +51,14 @@
       <IncludeFiles Value="$(ProjOutDir)"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf2"/>
+      </Debugging>
+    </Linking>
+    <Other>
+      <CustomOptions Value="-Oodfa"/>
+    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">
