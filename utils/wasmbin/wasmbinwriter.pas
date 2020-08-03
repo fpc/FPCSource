@@ -5,7 +5,8 @@ unit wasmbinwriter;
 interface
 
 uses
-  Classes, SysUtils, wasmmodule, wasmbin, lebutils, wasmbincode;
+  Classes, SysUtils, wasmmodule, wasmbin, lebutils, wasmbincode
+  ,wasmlink;
 
 type
   TSectionRec = record
@@ -22,6 +23,14 @@ type
     dst  : TStream;
     org  : TStream;
     strm : TList;
+
+    // the list of relocations per module
+    reloc      : array of TRelocationEntry;
+    relocCount : integer;
+    recOfs     : int64;
+
+    procedure AddReloc(relocType: byte; ofs: int64; index: UInt32);
+
     procedure WriteRelocU32(u: longword);
     procedure SectionBegin(secId: byte; out secRec: TSectionRec; secsize: longWord=0);
     function SectionEnd(var secRec: TSectionRec): Boolean;
@@ -36,7 +45,8 @@ type
     procedure pushStream(st: TStream);
     function popStream: TStream;
   public
-    isWriteReloc: boolean;
+    keepLeb128 : Boolean; // keep leb128 at 4 offset relocatable
+    writeReloc : Boolean; // writting relocation (linking) information
     constructor Create;
     destructor Destroy; override;
     function Write(m: TWasmModule; adst: TStream): Boolean;
@@ -100,6 +110,7 @@ var
 begin
   bw := TBinWriter.Create;
   try
+    bw.keepLeb128:=true;
     Normalize(m);
     Result := bw.Write(m, dst);
   finally
@@ -109,9 +120,21 @@ end;
 
 { TBinWriter }
 
+procedure TBinWriter.AddReloc(relocType: byte; ofs: int64; index: UInt32);
+begin
+  if relocCount=length(reloc) then begin
+    if relocCount=0 then SetLength(reloc, 16)
+    else SetLength(reloc, relocCount*2);
+  end;
+  reloc[relocCount].reltype:=relocType;
+  reloc[relocCount].offset:=ofs+recOfs;
+  reloc[relocCount].index:=index;
+  inc(relocType);
+end;
+
 procedure TBinWriter.WriteRelocU32(u: longword);
 begin
-  WriteU(dst, u, sizeof(u), isWriteReloc);
+  WriteU(dst, u, sizeof(u)*8, keepLeb128);
 end;
 
 function TBinWriter.Write(m: TWasmModule; adst: TStream): Boolean;

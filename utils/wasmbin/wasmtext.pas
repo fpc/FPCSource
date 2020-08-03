@@ -2,6 +2,8 @@ unit wasmtext;
 
 interface
 
+// WebAssembly Wabt text utilities
+
 uses
  wasmbincode;
 

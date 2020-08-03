@@ -1,4 +1,6 @@
 unit wasmbincode;
+// WebAssembly instructions information
+// http://webassembly.github.io/spec/core/binary/instructions.html
 
 interface
 
@@ -222,9 +224,9 @@ const
   INST_FLAGS : array [MIN_INST..MAX_INST] of TInstFlag = (
     (valid: true;  Param: ipNone)     // 00 trap (unreachable)
    ,(valid: true;  Param: ipNone)     // 01 nop
-   ,(valid: true;  Param: ipResType)  // 02
-   ,(valid: true;  Param: ipResType)  // 03
-   ,(valid: true;  Param: ipResType)  // 04
+   ,(valid: true;  Param: ipResType)  // 02 block
+   ,(valid: true;  Param: ipResType)  // 03 lock
+   ,(valid: true;  Param: ipResType)  // 04 if
    ,(valid: true;  Param: ipResType)  // 05
    ,(valid: false; Param: ipNone)     // 06
    ,(valid: false; Param: ipNone)     // 07
@@ -235,7 +237,7 @@ const
    ,(valid: true;  Param: ipLeb)      // 0C  br
    ,(valid: true;  Param: ipLeb)      // 0D  br_if
    ,(valid: true;  Param: ipTable)    // 0E  br_table
-   ,(valid: true;  Param: ipNone)     // 0F
+   ,(valid: true;  Param: ipNone)     // 0F  return
    ,(valid: true;  Param: ipLeb)      // 10  call
    ,(valid: true;  Param: ipLeb)      // 11  call_indirect
    ,(valid: false; Param: ipNone)     // 12
@@ -246,8 +248,8 @@ const
    ,(valid: false; Param: ipNone)     // 17
    ,(valid: false; Param: ipNone)     // 18
    ,(valid: false; Param: ipNone)     // 19
-   ,(valid: true;  Param: ipNone)     // 1A
-   ,(valid: true;  Param: ipNone)     // 1B
+   ,(valid: true;  Param: ipNone)     // 1A drop
+   ,(valid: true;  Param: ipNone)     // 1B select
    ,(valid: false; Param: ipNone)     // 1C
    ,(valid: false; Param: ipNone)     // 1D
    ,(valid: false; Param: ipNone)     // 1E

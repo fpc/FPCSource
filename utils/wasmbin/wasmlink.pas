@@ -5,7 +5,7 @@ unit wasmlink;
 interface
 
 uses
-  Classes, SysUtils, lebutils, wasmbin;
+  Classes, SysUtils, lebutils, wasmbin, wasmbincode;
 
 const
   SectionName_Linking = 'linking';
@@ -153,6 +153,211 @@ type
 // after name and size values
 procedure ReadLinkingSection(st: TStream; size: integer; var sc: TLinkingSection);
 procedure WriteLinkingSection(st: TStream; const sc: TLinkingSection);
+
+type
+  TInstRelocFlag = record
+    doReloc: Boolean;
+    relocType: byte;
+  end;
+
+const
+  INST_RELOC_FLAGS : array [MIN_INST..MAX_INST] of TInstRelocFlag = (
+    (doReloc: false; relocType: $FF)  // 00 trap (unreachable)
+   ,(doReloc: false; relocType: $FF)  // 01 nop
+   ,(doReloc: false; relocType: $FF)  // 02 block
+   ,(doReloc: false; relocType: $FF)  // 03 lock
+   ,(doReloc: false; relocType: $FF)  // 04 if
+   ,(doReloc: false; relocType: $FF)  // 05
+   ,(doReloc: false; relocType: $FF)  // 06
+   ,(doReloc: false; relocType: $FF)  // 07
+   ,(doReloc: false; relocType: $FF)  // 08
+   ,(doReloc: false; relocType: $FF)  // 09
+   ,(doReloc: false; relocType: $FF)  // 0A
+   ,(doReloc: false; relocType: $FF)  // 0B  end
+   ,(doReloc: false; relocType: $FF)  // 0C  br
+   ,(doReloc: false; relocType: $FF)  // 0D  br_if
+   ,(doReloc: false; relocType: $FF)  // 0E  br_table
+   ,(doReloc: false; relocType: $FF)  // 0F  return
+   ,(doReloc: true;  relocType: R_WASM_FUNCTION_INDEX_LEB) // 10  call
+   ,(doReloc: true;  relocType: R_WASM_TYPE_INDEX_LEB)     // 11  call_indirect
+   ,(doReloc: false; relocType: $FF)  // 12
+   ,(doReloc: false; relocType: $FF)  // 13
+   ,(doReloc: false; relocType: $FF)  // 14
+   ,(doReloc: false; relocType: $FF)  // 15
+   ,(doReloc: false; relocType: $FF)  // 16
+   ,(doReloc: false; relocType: $FF)  // 17
+   ,(doReloc: false; relocType: $FF)  // 18
+   ,(doReloc: false; relocType: $FF)  // 19
+   ,(doReloc: false; relocType: $FF)  // 1A  drop
+   ,(doReloc: false; relocType: $FF)  // 1B  select
+   ,(doReloc: false; relocType: $FF)  // 1C
+   ,(doReloc: false; relocType: $FF)  // 1D
+   ,(doReloc: false; relocType: $FF)  // 1E
+   ,(doReloc: false; relocType: $FF)  // 1F
+   ,(doReloc: false; relocType: $FF)  // 20  local.get
+   ,(doReloc: false; relocType: $FF)  // 21  local.set
+   ,(doReloc: false; relocType: $FF)  // 22  local.tee
+   ,(doReloc: true;  relocType: R_WASM_GLOBAL_INDEX_LEB)  // 23  global.get
+   ,(doReloc: true;  relocType: R_WASM_GLOBAL_INDEX_LEB)  // 24  global.set
+   ,(doReloc: false; relocType: $FF)  // 25
+   ,(doReloc: false; relocType: $FF)  // 26
+   ,(doReloc: false; relocType: $FF)  // 27
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 28  i32.load
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 29  i64_load
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 2A  f32_load
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 2B  f64_load
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 2C  i32_load8_s
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 2D  i32_load8_u
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 2E  i32_load16_s
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 2F  i32_load16_u
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 30  i64_load8_s
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 31  i64_load8_u
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 32  i64_load16_s
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 33  i64_load16_u
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 34  i64.load32_s
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 35  i64.load32_u
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 36  i32_store
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 37  i64_store
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 38  f32_store
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 39  f64_store
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 3A  i32_store8
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 3B  i32_store16
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 3C  i64_store8
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 3D  i64_store16
+   ,(doReloc: true;  relocType: R_WASM_MEMORY_ADDR_LEB)  // 3E  i64_store32
+   ,(doReloc: false; relocType: $FF)  // 3F  memory_size
+   ,(doReloc: false; relocType: $FF)  // 40  memory_grow
+
+   ,(doReloc: true;  relocType: $FF)  // 41  i32_const // TODO: special case for function address
+
+   ,(doReloc: false; relocType: $FF)  // 42  i64_const
+   ,(doReloc: false; relocType: $FF)  // 43  f32_const
+   ,(doReloc: false; relocType: $FF)  // 44  f64_const
+   ,(doReloc: false; relocType: $FF)  // 45  i32_eqz
+   ,(doReloc: false; relocType: $FF)  // 46  i32_eq
+   ,(doReloc: false; relocType: $FF)  // 47  i32_ne
+   ,(doReloc: false; relocType: $FF)  // 48  i32_lt_s
+   ,(doReloc: false; relocType: $FF)  // 49  i32_lt_u
+   ,(doReloc: false; relocType: $FF)  // 4A  i32_gt_s
+   ,(doReloc: false; relocType: $FF)  // 4B  i32_gt_u
+   ,(doReloc: false; relocType: $FF)  // 4C  i32_le_s
+   ,(doReloc: false; relocType: $FF)  // 4D  i32_le_u
+   ,(doReloc: false; relocType: $FF)  // 4E  i32_ge_s
+   ,(doReloc: false; relocType: $FF)  // 4F  i32_ge_u
+   ,(doReloc: false; relocType: $FF)  // 50  i64_eqz
+   ,(doReloc: false; relocType: $FF)  // 51  i64_eq
+   ,(doReloc: false; relocType: $FF)  // 52  i64_ne
+   ,(doReloc: false; relocType: $FF)  // 53  i64_lt_s
+   ,(doReloc: false; relocType: $FF)  // 54  i64_lt_u
+   ,(doReloc: false; relocType: $FF)  // 55  i64_gt_s
+   ,(doReloc: false; relocType: $FF)  // 56  i64_gt_u
+   ,(doReloc: false; relocType: $FF)  // 57  i64_le_s
+   ,(doReloc: false; relocType: $FF)  // 58  i64_le_u
+   ,(doReloc: false; relocType: $FF)  // 59  i64_ge_s
+   ,(doReloc: false; relocType: $FF)  // 5A  i64_ge_u
+   ,(doReloc: false; relocType: $FF)  // 5B  f32_eq
+   ,(doReloc: false; relocType: $FF)  // 5C  f32_ne
+   ,(doReloc: false; relocType: $FF)  // 5D  f32_lt
+   ,(doReloc: false; relocType: $FF)  // 5E  f32_gt
+   ,(doReloc: false; relocType: $FF)  // 5F  f32_le
+   ,(doReloc: false; relocType: $FF)  // 60  f32_ge
+   ,(doReloc: false; relocType: $FF)  // 61  f64_eq
+   ,(doReloc: false; relocType: $FF)  // 62  f64_ne
+   ,(doReloc: false; relocType: $FF)  // 63  f64_lt
+   ,(doReloc: false; relocType: $FF)  // 64  f64_gt
+   ,(doReloc: false; relocType: $FF)  // 65  f64_le
+   ,(doReloc: false; relocType: $FF)  // 66  f64_ge
+   ,(doReloc: false; relocType: $FF)  // 67  i32_clz
+   ,(doReloc: false; relocType: $FF)  // 68  i32_ctz
+   ,(doReloc: false; relocType: $FF)  // 69  i32_popcnt
+   ,(doReloc: false; relocType: $FF)  // 6A  i32_add
+   ,(doReloc: false; relocType: $FF)  // 6B  i32_sub
+   ,(doReloc: false; relocType: $FF)  // 6C  i32_mul
+   ,(doReloc: false; relocType: $FF)  // 6D  i32_div_s
+   ,(doReloc: false; relocType: $FF)  // 6E  i32_div_u
+   ,(doReloc: false; relocType: $FF)  // 6F  i32_rem_s
+   ,(doReloc: false; relocType: $FF)  // 70  i32_rem_u
+   ,(doReloc: false; relocType: $FF)  // 71  i32_and
+   ,(doReloc: false; relocType: $FF)  // 72  i32_or
+   ,(doReloc: false; relocType: $FF)  // 73  i32_xor
+   ,(doReloc: false; relocType: $FF)  // 74  i32_shl
+   ,(doReloc: false; relocType: $FF)  // 75  i32_shr_s
+   ,(doReloc: false; relocType: $FF)  // 76  i32_shr_u
+   ,(doReloc: false; relocType: $FF)  // 77  i32_rotl
+   ,(doReloc: false; relocType: $FF)  // 78  i32_rotr
+   ,(doReloc: false; relocType: $FF)  // 79  i64_clz
+   ,(doReloc: false; relocType: $FF)  // 7A  i64_ctz
+   ,(doReloc: false; relocType: $FF)  // 7B  i64_popcnt
+   ,(doReloc: false; relocType: $FF)  // 7C  i64_add
+   ,(doReloc: false; relocType: $FF)  // 7D  i64_sub
+   ,(doReloc: false; relocType: $FF)  // 7E  i64_mul
+   ,(doReloc: false; relocType: $FF)  // 7F  i64_div_s
+   ,(doReloc: false; relocType: $FF)  // 80  i64_div_u
+   ,(doReloc: false; relocType: $FF)  // 81  i64_rem_s
+   ,(doReloc: false; relocType: $FF)  // 82  i64_rem_u
+   ,(doReloc: false; relocType: $FF)  // 83  i64_and
+   ,(doReloc: false; relocType: $FF)  // 84  i64_or
+   ,(doReloc: false; relocType: $FF)  // 85  i64_xor
+   ,(doReloc: false; relocType: $FF)  // 86  i64_shl
+   ,(doReloc: false; relocType: $FF)  // 87  i64_shr_s
+   ,(doReloc: false; relocType: $FF)  // 88  i64_shr_u
+   ,(doReloc: false; relocType: $FF)  // 89  i64_rotl
+   ,(doReloc: false; relocType: $FF)  // 8A  i64_rotr
+   ,(doReloc: false; relocType: $FF)  // 8B  f32_abs
+   ,(doReloc: false; relocType: $FF)  // 8C  f32_neg
+   ,(doReloc: false; relocType: $FF)  // 8D  f32_ceil
+   ,(doReloc: false; relocType: $FF)  // 8E  f32_floor
+   ,(doReloc: false; relocType: $FF)  // 8F  f32_trunc
+   ,(doReloc: false; relocType: $FF)  // 90  f32_nearest
+   ,(doReloc: false; relocType: $FF)  // 91  f32_sqrt
+   ,(doReloc: false; relocType: $FF)  // 92  f32_add
+   ,(doReloc: false; relocType: $FF)  // 93  f32_sub
+   ,(doReloc: false; relocType: $FF)  // 94  f32_mul
+   ,(doReloc: false; relocType: $FF)  // 95  f32_div
+   ,(doReloc: false; relocType: $FF)  // 96  f32_min
+   ,(doReloc: false; relocType: $FF)  // 97  f32_max
+   ,(doReloc: false; relocType: $FF)  // 98  f32_copysign
+   ,(doReloc: false; relocType: $FF)  // 99  f64_abs
+   ,(doReloc: false; relocType: $FF)  // 9A  f64_neg
+   ,(doReloc: false; relocType: $FF)  // 9B  f64_ceil
+   ,(doReloc: false; relocType: $FF)  // 9C  f64_floor
+   ,(doReloc: false; relocType: $FF)  // 9D  f64_trunc
+   ,(doReloc: false; relocType: $FF)  // 9E  f64_nearest
+   ,(doReloc: false; relocType: $FF)  // 9F  f64_sqrt
+   ,(doReloc: false; relocType: $FF)  // A0  f64_add
+   ,(doReloc: false; relocType: $FF)  // A1  f64_sub
+   ,(doReloc: false; relocType: $FF)  // A2  f64_mul
+   ,(doReloc: false; relocType: $FF)  // A3  f64_div
+   ,(doReloc: false; relocType: $FF)  // A4  f64_min
+   ,(doReloc: false; relocType: $FF)  // A5  f64_max
+   ,(doReloc: false; relocType: $FF)  // A6  f64_copysign
+   ,(doReloc: false; relocType: $FF)  // A7  i32_wrap_i64
+   ,(doReloc: false; relocType: $FF)  // A8  i32_trunc_f32_s
+   ,(doReloc: false; relocType: $FF)  // A9  i32_trunc_f32_u
+   ,(doReloc: false; relocType: $FF)  // AA  i32_trunc_f64_s
+   ,(doReloc: false; relocType: $FF)  // AB  i32_trunc_f64_u
+   ,(doReloc: false; relocType: $FF)  // AC  i64_extend_i32_s
+   ,(doReloc: false; relocType: $FF)  // AD  i64_extend_i32_u
+   ,(doReloc: false; relocType: $FF)  // AE  i64_trunc_f32_s
+   ,(doReloc: false; relocType: $FF)  // AF  i64_trunc_f32_u
+   ,(doReloc: false; relocType: $FF)  // B0  i64_trunc_f64_s
+   ,(doReloc: false; relocType: $FF)  // B1  i64_trunc_f64_u
+   ,(doReloc: false; relocType: $FF)  // B2  f32_convert_i32_s
+   ,(doReloc: false; relocType: $FF)  // B3  f32_convert_i32_u
+   ,(doReloc: false; relocType: $FF)  // B4  f32_convert_i64_s
+   ,(doReloc: false; relocType: $FF)  // B5  f32_convert_i64_u
+   ,(doReloc: false; relocType: $FF)  // B6  f32_demote_f64
+   ,(doReloc: false; relocType: $FF)  // B7  f64_convert_i32_s
+   ,(doReloc: false; relocType: $FF)  // B8  f64_convert_i32_u
+   ,(doReloc: false; relocType: $FF)  // B9  f64_convert_i64_s
+   ,(doReloc: false; relocType: $FF)  // BA  f64_convert_i64_u
+   ,(doReloc: false; relocType: $FF)  // BB  f64_promote_f32
+   ,(doReloc: false; relocType: $FF)  // BC  i32_reinterpret_f32
+   ,(doReloc: false; relocType: $FF)  // BD  i64_reinterpret_f64
+   ,(doReloc: false; relocType: $FF)  // BE  f32_reinterpret_i32
+   ,(doReloc: false; relocType: $FF)  // BF  f64_reinterpret_i64
+  );
+
 
 implementation
 
