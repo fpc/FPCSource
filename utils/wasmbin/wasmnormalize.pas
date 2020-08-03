@@ -104,8 +104,12 @@ begin
 
         INST_call_indirect:
         begin
-          if Assigned(ci.insttype) and (ci.insttype.typeNum<0) then
-            ci.insttype.typeNum:=RegisterFuncType(m, ci.insttype);
+          if Assigned(ci.insttype) and (ci.insttype.typeNum<0) then begin
+            if ci.insttype.typeIdx <> '' then
+              ci.insttype.typeNum:=FindFuncType(m, ci.insttype.typeIdx)
+            else
+              ci.insttype.typeNum:=RegisterFuncType(m, ci.insttype);
+          end;
         end;
 
         INST_br, INST_br_if, INST_br_table: begin
