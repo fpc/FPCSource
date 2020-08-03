@@ -433,6 +433,7 @@ begin
   'c':
     if t = 'call'          then inst := inst_call
     else if t = 'call_indirect' then inst := inst_call_indirect
+    else if t = 'current_memory' then inst := INST_memory_size
     else Result := false;
   'd':
     if t = 'drop' then inst := inst_drop
