@@ -424,6 +424,7 @@ begin
     // wabt
     else if t = 'get_local' then inst := INST_local_get
     else if t = 'get_global' then inst := INST_global_get
+    else if t = 'grow_memory' then inst := inst_memory_grow
     else Result := false;
   'i':
     if t = 'if' then inst := inst_if
