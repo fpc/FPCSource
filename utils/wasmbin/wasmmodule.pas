@@ -85,6 +85,10 @@ type
     hasRelocIdx : Boolean;
     relocIdx    : integer;
     relocType   : Byte;
+
+    vecTableCount : Integer;
+    vecTable      : array of TWasmId;
+
     function addInstType: TWasmFuncType;
     constructor Create;
     destructor Destroy; override;

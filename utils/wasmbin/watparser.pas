@@ -144,6 +144,11 @@ begin
   if Result then sc.Next;
 end;
 
+function ParseId(sc: TWatScanner; var id: TWasmId): boolean;
+begin
+  Result := ParseNumOfId(sc, id.idNum, id.id);
+end;
+
 function TokenTypeToValType(t: TWatToken; out tp: byte): Boolean;
 begin
   Result:=true;
@@ -260,7 +265,27 @@ begin
       end;
 
       //ip2Leb,  // memory arguments, ask for offset + align
-      //ipTable,   // a complex structure... used for br_table only
+      ipJumpVec: 
+      begin
+        while (sc.token in [weNumber, weIdent]) do begin
+          if (ci.vecTableCount = length(ci.vecTable)) then begin
+            if (ci.vecTableCount = 0) then SetLength(ci.vecTable, 2)
+            else SetLength(ci.vecTable, ci.vecTableCount * 2);
+          end;
+          ParseId(sc, ci.vecTable[ci.vecTableCount]);
+          inc(ci.vecTableCount);
+        end;
+
+        if (ci.vecTableCount<2) then begin
+          ErrorExpectButFound(sc, 'label');
+          Exit;
+        end;
+
+        dec(ci.vecTableCount);
+        ci.operandIdx := ci.vecTable[ci.vecTableCount].id;
+        ci.operandNum := ci.vecTable[ci.vecTableCount].idNum;
+      end;
+
       ipResType:  // result type used for blocks, such as If, block or loop
       begin
         if sc.token = weIdent then begin
@@ -391,11 +416,6 @@ procedure ConsumeAsmSym(sc: TWatScanner; dst: TAsmSymList);
 begin
   dst.Push(sc.asmCmd, sc.resText);
   sc.Next;
-end;
-
-function ParseId(sc: TWatScanner; var id: TWasmId): boolean;
-begin
-  Result := ParseNumOfId(sc, id.idNum, id.id);
 end;
 
 procedure ParseTable(sc: TWatScanner; dst: TWasmTable);
