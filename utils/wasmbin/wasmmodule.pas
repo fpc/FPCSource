@@ -3,7 +3,7 @@ unit wasmmodule;
 interface
 
 uses
-  Classes, SysUtils, wasmbin;
+  Classes, SysUtils, wasmbin, wasmbincode;
 
 type
 
@@ -52,6 +52,7 @@ type
     operandText : string;
     insttype : TWasmFuncType; // used by call_indirect only
     function addInstType: TWasmFuncType;
+    constructor Create;
     destructor Destroy; override;
   end;
 
@@ -81,6 +82,7 @@ type
     constructor Create;
     destructor Destroy; override;
     function AddLocal: TWasmParam;
+    function GetLocal(i: integer): TWasmParam;
     function LocalsCount: integer;
   end;
 
@@ -121,12 +123,16 @@ type
 // making binary friendly. finding proper "nums" for each symbol "index"
 // used or implicit type declartions
 procedure Normalize(m: TWasmModule);
-//function RegisterFuncType(m: TWasmModule; funcType: TFuncType): integer;
 function WasmBasTypeToChar(b: byte): Char;
 function WasmFuncTypeDescr(t: TWasmFuncType): string;
 
 implementation
 
+// returing a basic wasm basic type to a character
+// i32 = i
+// i64 = I
+// f32 = f
+// f64 = F
 function WasmBasTypeToChar(b: byte): Char;
 begin
   case b of
@@ -139,6 +145,11 @@ begin
   end;
 end;
 
+// converting function type to the type string
+// result and params are separated by ":"
+// iI:i  (param i32)(param i32) (result i32)
+// :f    (result f32)
+// FF    (param f64)(param(64)
 function WasmFuncTypeDescr(t: TWasmFuncType): string;
 var
   cnt   : integer;
@@ -166,7 +177,7 @@ begin
   end;
 end;
 
-
+// deleting objects from the list and clearing the list
 procedure ClearList(l: TList);
 var
   i : integer;
@@ -197,6 +208,11 @@ function TWasmInstr.addInstType: TWasmFuncType;
 begin
   if insttype=nil then insttype := TWasmFuncType.Create;
   result:=insttype;
+end;
+
+constructor TWasmInstr.Create;
+begin
+  operandNum:=-1;
 end;
 
 destructor TWasmInstr.Destroy;
@@ -432,12 +448,21 @@ begin
   locals.AdD(Result);
 end;
 
+function TWasmFunc.GetLocal(i: integer): TWasmParam;
+begin
+  if (i>=0) and (i<locals.Count) then
+    Result:=TWasmParam(locals[i])
+  else
+    Result:=nil;
+end;
+
 function TWasmFunc.LocalsCount: integer;
 begin
   result:=locals.Count;
 end;
 
-
+// registering new or finding the existing type for a function type
+// it's assumed the function type is explicitly types
 function RegisterFuncType(m: TWasmModule; funcType: TWasmFuncType): integer;
 var
   i   : integer;
@@ -456,6 +481,24 @@ begin
   funcType.CopyTo(m.AddType);
 end;
 
+// searching through TWasmParam list for the specified index-by-name
+function FindParam(l: TList; const idx: string): Integer;
+var
+  i : integer;
+begin
+  if not Assigned(l) then begin
+    Result:=-1;
+    Exit;
+  end;
+  for i:=0 to l.Count-1 do
+    if TWasmParam(l[i]).id=idx then begin
+      Result:=i;
+      Exit;
+    end;
+  Result:=i;
+end;
+
+// finding functions by funcIdx
 function FindFunc(m: TWasmModule; const funcIdx: string): integer;
 var
   i : integer;
@@ -468,6 +511,7 @@ begin
     end;
 end;
 
+// only looking up for the by the type index name
 function FindFuncType(m: TWasmModule; const typeIdx: string): integer;
 var
   i : integer;
@@ -480,6 +524,38 @@ begin
     end;
 end;
 
+// Normalizing instruction list, popuplating index reference ($index)
+// with the actual numbers. (params, locals, globals, memory, functions index)
+procedure NormalizeInst(m: TWasmModule; f: TWasmFunc; l: TWasmInstrList; checkEnd: boolean = true);
+var
+  i   : integer;
+  j   : integer;
+  ci  : TWasmInstr;
+begin
+  for i:=0 to l.Count-1 do begin
+    ci:=l[i];
+    if ci.operandNum>=0 then Continue;
+    case ci.code of
+      INST_local_get, INST_local_set, INST_local_tee:
+      begin
+        if ci.operandIdx<>'' then begin
+          j:=FindParam(f.functype.params, ci.operandIdx);
+          if j<0 then begin
+            j:=FindParam(f.locals, ci.operandIdx);
+            if j>=0 then inc(j, f.functype.ParamCount);
+          end;
+          ci.operandNum:=j;
+        end;
+      end;
+    end;
+  end;
+
+  // adding end instruction
+  if checkEnd and (l.Count>0) and (l[l.Count-1].code<>INST_END) then
+    l.AddInstr(INST_END);
+end;
+
+// normalizing reference
 procedure Normalize(m: TWasmModule);
 var
   i : integer;
@@ -492,7 +568,11 @@ begin
       if f.functype.typeIdx<>'' then
         f.functype.typeNum:=FindFuncType(m, f.functype.typeIdx);
     end else
-      f.functype.typeNum:=RegisterFuncType(m, f.functype)
+      f.functype.typeNum:=RegisterFuncType(m, f.functype);
+
+    // finding the reference in functions
+    // populating "nums" where string "index" is used
+    NormalizeInst(m, f, f.instr);
   end;
 
   // normalizing exports

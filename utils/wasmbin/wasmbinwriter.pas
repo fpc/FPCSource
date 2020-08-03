@@ -5,7 +5,7 @@ unit wasmbinwriter;
 interface
 
 uses
-  Classes, SysUtils, wasmmodule, wasmbin, lebutils;
+  Classes, SysUtils, wasmmodule, wasmbin, lebutils, wasmbincode;
 
 type
   TSectionRec = record
@@ -26,6 +26,8 @@ type
     procedure SectionBegin(secId: byte; out secRec: TSectionRec; secsize: longWord=0);
     function SectionEnd(var secRec: TSectionRec): Boolean;
 
+    procedure WriteInstList(list: TWasmInstrList);
+
     procedure WriteFuncTypeSect(m: TWasmModule);
     procedure WriteFuncSect(m: TWasmModule);
     procedure WriteExportSect(m: TWasmModule);
@@ -42,7 +44,55 @@ type
 
 function WriteModule(m: TWasmModule; dst: TStream): Boolean;
 
+type
+  TLocalsInfo = record
+    count : Integer;
+    tp    : byte;
+  end;
+  TLocalInfoArray = array of TLocalsInfo;
+
+// returns the list of local arrays
+procedure GetLocalInfo(func: TWasmFunc; out loc: TLocalInfoArray);
+
 implementation
+
+procedure GetLocalInfo(func: TWasmFunc; out loc: TLocalInfoArray);
+var
+  i   : integer;
+  cnt : integer;
+  tp  : byte;
+  nt  : byte;
+  j   : integer;
+
+  procedure Push;
+  begin
+    if j=length(loc) then begin
+      if j=0 then SetLength(loc, 1)
+      else SetLength(loc, j*2);
+    end;
+    loc[j].tp:=tp;
+    loc[j].count:=cnt;
+    inc(j);
+  end;
+
+begin
+  SetLength(Loc, 0);
+  if func.LocalsCount = 0 then Exit;
+  cnt:=1;
+  tp:=func.GetLocal(0).tp;
+  j:=0;
+  for i:=1 to func.LocalsCount-1 do begin
+    nt := func.GetLocal(i).tp;
+    if nt<>tp then begin
+      Push;
+      tp:=nt;
+      cnt:=1;
+    end else
+      inc(cnt);
+  end;
+  Push;
+  SetLength(loc, j);
+end;
 
 function WriteModule(m: TWasmModule; dst: TStream): Boolean;
 var
@@ -145,8 +195,6 @@ procedure TBinWriter.WriteFuncSect(m: TWasmModule);
 var
   sc : TSectionRec;
   i  : integer;
-  //j  : integer;
-  //tp : TWasmFuncType;
 begin
   SectionBegin(SECT_FUNCTION, sc);
 
@@ -182,18 +230,31 @@ end;
 procedure TBinWriter.WriteCodeSect(m: TWasmModule);
 var
   sc    : TSectionRec;
-  i     : integer;
+  i, j  : integer;
   sz    : int64;
   mem   : TMemoryStream;
+  la    : TLocalInfoArray;
+  f     : TWasmFunc;
 begin
   SectionBegin(SECT_CODE, sc);
 
   mem:=TMemoryStream.Create;
   try
+    WriteU32(dst, m.FuncCount);
     for i :=0 to m.FuncCount-1 do begin
+      f:=m.GetFunc(i);
+
+      GetLocalInfo(f, la);
+
+      mem.Position:=0;
       pushStream(mem);
-      // todo: locals
-      // todo: instructions
+
+      WriteU32(dst, length(la));
+      for j:=0 to length(la)-1 do begin
+        WriteU32(dst, la[i].count);
+        dst.WriteByte(la[i].tp);
+      end;
+      WriteInstList(f.instr);
       popStream;
 
       sz:=mem.Position;
@@ -206,6 +267,21 @@ begin
     mem.Free;
   end;
   SectionEnd(sc);
+end;
+
+procedure TBinWriter.WriteInstList(list: TWasmInstrList);
+var
+  i  : integer;
+  ci : TWasmInstr;
+begin
+  for i:=0 to list.Count-1 do begin
+    ci :=list[i];
+    dst.WriteByte(ci.code);
+    case INST_FLAGS[ci.code].Param of
+      ipLeb:
+        WriteRelocU32(ci.operandNum);
+    end;
+  end;
 end;
 
 procedure TBinWriter.pushStream(st: TStream);
