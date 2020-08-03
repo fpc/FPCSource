@@ -198,10 +198,8 @@ end;
 
 function TWatScanner.Next: Boolean;
 var
-  has2chars: Boolean;
   cmt : string;
   done: boolean;
-  ch  : char;
 begin
   Result := idx<=length(buf);
   if not Result then Exit;
@@ -242,19 +240,11 @@ begin
         token:=weIdent;
         resText:=ScanWhile(buf, idx, IdBody);
       end else if buf[idx] in SignNumericChars then begin
-        token:=weNumber;
-        if buf[idx] in SignChars then begin
-          ch:=buf[idx];
-          inc(idx);
-          resText:=ScanWhile(buf, idx, NumericChars);
-          if resText = '' then begin
-            token:=weError;
-            Exit;
-          end;
-          if (ch='-') then
-            resText:=ch+resText;
+        if not ScanNumberC(buf, idx, resText) then begin
+          token := weError;
+          Exit;
         end else
-          resText:=ScanWhile(buf, idx, Numericchars);
+          token:=weNumber;
       end else if buf[idx] in AlphaNumChars then begin
         resText:=ScanWhile(buf, idx, GrammarChars);
         GetGrammar(resText, token, instrCode);
