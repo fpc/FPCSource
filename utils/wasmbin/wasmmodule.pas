@@ -25,6 +25,13 @@ type
     name     : string;
   end;
 
+  { TWasmId }
+
+  TWasmId = record
+    idNum : integer;
+    id    : string;
+  end;
+
   { TWasmParam }
 
   TWasmParam = class(TObject)
@@ -121,7 +128,7 @@ type
     tableIdx  : Integer;
     offset    : Integer;
     funcCount : Integer;
-    funcs     : array of LongWord;
+    funcs     : array of TWasmId;
     function AddFunc(idx: integer): integer;
     constructor Create;
   end;
@@ -144,13 +151,6 @@ type
     name     : string;
     fn       : TWasmFunc;
     function AddFunc: TWasmFunc;
-  end;
-
-  { TWasmId }
-
-  TWasmId = record
-    idNum : integer;
-    id    : string;
   end;
 
   { TWasmTable }
@@ -284,7 +284,7 @@ begin
     else SetLength(funcs, funcCount*2);
   end;
   Result:=funcCount;
-  funcs[funcCount]:=idx;
+  funcs[funcCount].idNum :=idx;
   inc(funcCount);
 end;
 
@@ -870,7 +870,7 @@ begin
     el := m.GetElement(0);
   Result:=-1;
   for i:=0 to el.funcCount-1 do begin
-    if el.funcs[i] = func then
+    if el.funcs[i].idNum = func then
       Result:=i;
   end;
   if Result<0 then

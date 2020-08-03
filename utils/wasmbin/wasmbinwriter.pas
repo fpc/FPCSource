@@ -452,12 +452,12 @@ begin
 
     if writeReloc then begin
       for j:=0 to el.funcCount-1 do begin
-        AddReloc(R_WASM_FUNCTION_INDEX_LEB, dst.Position - sc.datapos, el.funcs[j]);
-        WriteRelocU32(el.funcs[j]);
+        AddReloc(R_WASM_FUNCTION_INDEX_LEB, dst.Position - sc.datapos, el.funcs[j].idNum);
+        WriteRelocU32(el.funcs[j].idNum);
       end;
     end else
       for j:=0 to el.funcCount-1 do
-        WriteU32(dst, el.funcs[j]);
+        WriteU32(dst, el.funcs[j].idNum);
   end;
 
   SectionEnd(sc);
