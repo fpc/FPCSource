@@ -574,7 +574,7 @@ begin
     if isFuncLinkSym(f.LinkInfo) or (f.codeRefCount>0) then begin
       if f.LinkInfo.Name ='' then f.LinkInfo.Name := f.id;
       so:=AddSymbolObject;
-      LinkInfoToBin(f.linkInfo, so.syminfo, SYMTAB_FUNCTION, i);
+      LinkInfoToBin(f.linkInfo, so.syminfo, SYMTAB_FUNCTION, f.idNum);
     end;
   end;
 end;
