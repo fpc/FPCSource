@@ -154,7 +154,6 @@ var
   t: string;
   v: string;
 begin
-  writeln('comment: "',cmt,'"');
   Result := false;
   if (Pos(';;',cmt)<>1) then Exit;
   i:=3;
