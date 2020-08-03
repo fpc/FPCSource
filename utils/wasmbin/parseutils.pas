@@ -339,7 +339,6 @@ begin
     numberText:='nan';
     inc(idx, 3);
     if (idx < length(buf)) and (buf[idx]=':') then begin
-      writelN('att');
       inc(idx);
       sub := '';
       if (ScanNumberC(buf, idx, sub) in [nfHex, nfInteger]) then
