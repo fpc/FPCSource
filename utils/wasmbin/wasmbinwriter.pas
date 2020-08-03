@@ -51,6 +51,7 @@ type
 
     procedure WriteImportSect;
     procedure WriteFuncTypeSect;
+    procedure WriteTableSect;
     procedure WriteFuncSect;
     procedure WriteExportSect;
     procedure WriteCodeSect;
@@ -84,7 +85,22 @@ type
 // returns the list of local arrays
 procedure GetLocalInfo(func: TWasmFunc; out loc: TLocalInfoArray);
 
+procedure WriteLimit(dst: TStream; amin, amax: LongWord);
+
 implementation
+
+procedure WriteLimit(dst: TStream; amin, amax: LongWord);
+begin
+  if not Assigned(dst) then Exit;
+  if amax>0 then begin
+    dst.WriteByte(1);
+    WriteU32(dst, amin);
+    WriteU32(dst, amax);
+  end else begin
+    dst.WriteByte(0);
+    WriteU32(dst, amin);
+  end;
+end;
 
 procedure GetLocalInfo(func: TWasmFunc; out loc: TLocalInfoArray);
 var
@@ -231,6 +247,12 @@ begin
     inc(writeSec);
   end;
 
+  // 04 tables section
+  if m.TableCount>0 then begin
+    WriteTableSect;
+    inc(writeSec);
+  end;
+
   // 07 export section
   if m.ExportCount>0 then begin
     WriteExportSect;
@@ -295,6 +317,22 @@ begin
     WriteU32(dst, tp.ResultCount);
     for j:=0 to tp.ResultCount-1 do
       dst.WriteByte(tp.GetResult(j).tp);
+  end;
+  SectionEnd(sc);
+end;
+
+procedure TBinWriter.WriteTableSect;
+var
+  sc  : TSectionRec;
+  i   : integer;
+  t   : TWasmTable;
+begin
+  SectionBegin(SECT_TABLE, sc);
+  WriteU32(dst, module.TableCount);
+  for i:=0 to module.TableCount-1 do begin
+    t:=module.GetTable(i);
+    dst.WriteByte(t.elemsType);
+    WriteLimit(dst, t.min, t.max);
   end;
   SectionEnd(sc);
 end;

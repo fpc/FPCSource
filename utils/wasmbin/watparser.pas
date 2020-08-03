@@ -381,6 +381,7 @@ begin
   sc.Next;
   ParseId(sc, dst.id);
   ConsumeToken(sc, weFuncRef);
+  dst.elemsType := elem_type;
   ConsumeToken(sc, weCloseBrace);
 end;
 

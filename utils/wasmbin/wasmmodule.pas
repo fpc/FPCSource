@@ -140,7 +140,10 @@ type
   { TWasmTable }
 
   TWasmTable = class(TObject)
-    id    : TWasmId;
+    id        : TWasmId;
+    elemsType : Byte; // type of elements
+    min       : LongWord;
+    max       : LongWord;
   end;
 
   { TWasmModule }
