@@ -98,6 +98,7 @@ type
   public
     LinkInfo : TLinkInfo;
     id       : string;
+    idInt    : Integer;     // reference number (after Normalization)
     instr    : TWasmInstrList;
     functype : TWasmFuncType;
 
@@ -142,6 +143,7 @@ type
     destructor Destroy; override;
 
     function AddImport: TWasmImport;
+    function GetImport(i: integer): TWasmImport;
     function ImportCount: Integer;
 
     function AddFunc: TWasmFunc;
@@ -420,6 +422,14 @@ begin
   imports.Add(Result);
 end;
 
+function TWasmModule.GetImport(i: integer): TWasmImport;
+begin
+  if (i>=0) and (i<imports.Count) then
+    Result:=TWasmImport(imports[i])
+  else
+    Result:=nil;
+end;
+
 function TWasmModule.ImportCount: Integer;
 begin
   Result:=imports.Count;
@@ -490,6 +500,7 @@ begin
   locals:=TList.Create;
   instr:=TWasmInstrList.Create;
   functype:=TWasmFuncType.Create;
+  idInt:=-1;
 end;
 
 destructor TWasmFunc.Destroy;
@@ -560,12 +571,21 @@ end;
 // finding functions by funcIdx
 function FindFunc(m: TWasmModule; const funcIdx: string): integer;
 var
-  i : integer;
+  i  : integer;
+  im : TWasmImport;
 begin
   Result:=-1;
+  for i:=0 to m.ImportCount-1 do begin
+    im:=m.GetImport(i);
+    if Assigned(im.fn) and (im.fn.id = funcIdx) then begin
+      Result:=im.fn.idInt;
+      Exit;
+    end;
+  end;
+
   for i:=0 to m.FuncCount-1 do
     if m.GetFunc(i).id = funcIdx then begin
-      Result:=i;
+      Result:=m.GetFunc(i).idInt;
       Exit;
     end;
 end;
@@ -609,7 +629,7 @@ begin
 
       INST_CALL:
       begin
-        if (ci.operandIdx<>'') and (ci.operandNum<0) then
+        if (ci.operandIdx<>'') and (     ci.operandNum<0) then
           ci.operandNum:=FindFunc(m,ci.operandIdx);
       end;
     end;
@@ -620,24 +640,53 @@ begin
     l.AddInstr(INST_END);
 end;
 
+
+procedure NormalizeFuncType(m: TWasmModule; fn : TWasmFuncType);
+begin
+  if fn.isNumOrIdx then begin
+    if fn.typeIdx<>'' then
+      fn.typeNum:=FindFuncType(m, fn.typeIdx);
+  end else
+    fn.typeNum:=RegisterFuncType(m, fn);
+end;
+
+procedure NormalizeImport(m: TWasmModule; var fnIdx: Integer);
+var
+  i  : integer;
+  im : TWasmImport;
+begin
+  fnIdx := 0;
+  for i:=0 to m.ImportCount-1 do begin
+    im := m.GetImport(i);
+    if Assigned(im.fn) then begin
+      im.fn.idInt:=fnIdx;
+      NormalizeFuncType(m, im.fn.functype);
+      inc(fnIdx);
+    end;
+  end;
+end;
+
 // normalizing reference
 procedure Normalize(m: TWasmModule);
 var
-  i : integer;
-  f : TWasmFunc;
-  x : TWasmExport;
+  i     : integer;
+  f     : TWasmFunc;
+  x     : TWasmExport;
+  fnIdx : Integer;
 begin
+  fnIdx := 0;
+  NormalizeImport(m, fnIdx);
+
   for i:=0 to m.FuncCount-1 do begin
     f:=m.GetFunc(i);
-    if f.functype.isNumOrIdx then begin
-      if f.functype.typeIdx<>'' then
-        f.functype.typeNum:=FindFuncType(m, f.functype.typeIdx);
-    end else
-      f.functype.typeNum:=RegisterFuncType(m, f.functype);
+    f.idInt := fnIdx;
 
+    NormalizeFuncType(m, f.functype);
     // finding the reference in functions
     // populating "nums" where string "index" is used
     NormalizeInst(m, f, f.instr);
+
+    inc(fnIdx);
   end;
 
   // normalizing exports
