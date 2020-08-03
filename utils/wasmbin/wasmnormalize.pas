@@ -29,6 +29,9 @@ begin
     ipLeb:
        if (INST_RELOC_FLAGS[ci.code].doReloc) then begin
          case INST_RELOC_FLAGS[ci.code].relocType of
+           R_WASM_FUNCTION_INDEX_LEB:
+             ci.SetReloc(INST_RELOC_FLAGS[ci.code].relocType, GetFuncByNum(module, ci.operandNum));
+
            R_WASM_GLOBAL_INDEX_LEB:
              ci.SetReloc(INST_RELOC_FLAGS[ci.code].relocType, GetGlobalByNum(module, ci.operandNum));
 

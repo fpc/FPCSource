@@ -245,17 +245,6 @@ begin
   reloc[i].offset:=secOfs;
   reloc[i].index:=index;
   inc(relocCount);
-
-  case relocType of
-    R_WASM_FUNCTION_INDEX_LEB:
-    begin
-      // ok, so this is function.
-      // the function MUST HAVE a symbol information available
-      // if it doesn't have a symbol then "wasm-objdump" would fail to read it
-      f:=module.GetFunc(index);
-      inc(f.codeRefCount);
-    end;
-  end;
 end;
 
 procedure TBinWriter.AddRelocToObj(relocType: byte; secOfs: int64; wasmObj: TObject);
@@ -512,6 +501,7 @@ var
   la    : TLocalInfoArray;
   f     : TWasmFunc;
   dofs  : Int64;
+  fnofs : Int64; // function offset in the data of "code section"
   main  : TMemoryStream;
 begin
   //  for the use of leb128, the header can be written ahead of the body
@@ -535,7 +525,7 @@ begin
       GetLocalInfo(f, la);
 
       mem.Position:=0;
-      dofs := dofs + main.Position + 5; // "la" will be written after, 5 is for the writeSize. +5 is for WriteRelocU32(sz)
+      fnofs := dofs + main.Position + 5; // "la" will be written after, 5 is for the writeSize. +5 is for WriteRelocU32(sz)
       pushStream(mem);
 
       WriteU32(dst, length(la));
@@ -543,7 +533,7 @@ begin
         WriteU32(dst, la[j].count);
         dst.WriteByte(la[j].tp);
       end;
-      WriteInstList(f.instr, LongWord(dofs-sc.datapos));
+      WriteInstList(f.instr, LongWord(fnofs-sc.datapos));
       popStream;
 
       sz:=mem.Position;
@@ -679,7 +669,6 @@ var
   i   : integer;
   j   : integer;
   ci  : TWasmInstr;
-  idx : integer;
   rt  : Byte;
 begin
   for i:=0 to list.Count-1 do begin
@@ -858,7 +847,7 @@ var
 begin
   for i:=0 to m.FuncCount-1 do begin
     f := m.GetFunc(i);
-    if isFuncLinkSym(f.LinkInfo) or (f.codeRefCount>0) then begin
+    if isFuncLinkSym(f.LinkInfo) then begin
       if f.LinkInfo.Name ='' then f.LinkInfo.Name := f.id;
       so:=AddSymbolObject(f);
       LinkInfoToBin(f.linkInfo, so.syminfo, SYMTAB_FUNCTION, f.idNum);
