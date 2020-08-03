@@ -198,16 +198,16 @@ var
 begin
   SectionBegin(SECT_TYPE, sc);
 
-  WriteRelocU32(m.TypesCount);
+  WriteU32(dst, m.TypesCount);
   for i:=0 to m.TypesCount-1 do begin
     tp:=m.GetType(i);
     dst.WriteByte(func_type);
 
-    WriteRelocU32(tp.ParamCount);
+    WriteU32(dst, tp.ParamCount);
     for j:=0 to tp.ParamCount-1 do
       dst.WriteByte(tp.GetParam(i).tp);
 
-    WriteRelocU32(tp.ResultCount);
+    WriteU32(dst, tp.ResultCount);
     for j:=0 to tp.ResultCount-1 do
       dst.WriteByte(tp.GetResult(i).tp);
   end;
@@ -221,7 +221,7 @@ var
 begin
   SectionBegin(SECT_FUNCTION, sc);
 
-  WriteRelocU32(m.FuncCount);
+  WriteU32(dst, m.FuncCount);
   for i:=0 to m.FuncCount-1 do
     WriteRelocU32(m.GetFunc(i).functype.typeNum);
 
@@ -235,11 +235,11 @@ var
   x  : TWasmExport;
 begin
   SectionBegin(SECT_EXPORT, sc);
-  WriteRelocU32(m.ExportCount);
 
+  WriteU32(dst, m.ExportCount);
   for i:=0 to m.ExportCount-1 do begin
     x:=m.GetExport(i);
-    WriteRelocU32(length(x.name));
+    WriteU32(dst, length(x.name));
     if length(x.name)>0 then
       dst.Write(x.name[1], length(x.name));
     dst.WriteByte(x.exportType);
@@ -302,7 +302,10 @@ begin
     dst.WriteByte(ci.code);
     case INST_FLAGS[ci.code].Param of
       ipLeb:
-        WriteRelocU32(ci.operandNum);
+        if INST_RELOC_FLAGS[ci.code].doReloc then
+          WriteRelocU32(ci.operandNum)
+        else
+          WriteU32(dst, ci.operandNum);
     end;
   end;
 end;
