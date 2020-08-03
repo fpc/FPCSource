@@ -34,6 +34,15 @@ begin
         { this is not allways necessary but I don't know yet
           how to tell if it is or not PM }
         res:=200;
+  {$ifdef SYSTEM_DEBUG}
+        if assigned(ucontext^.uc_mcontext.fpstate) then
+          begin
+            writeln('magic: $',hexstr(ucontext^.uc_mcontext.fpstate^.magic,4));
+            writeln('magic1: $',hexstr(ucontext^.uc_mcontext.fpstate^.sw_reserved.magic1,8));
+          end
+        else
+          writeln('fpstate=nil');
+  {$endif SYSTEM_DEBUG}
         if SigInfo^.si_code<>FPE_INTDIV then
           begin
             if assigned(ucontext^.uc_mcontext.fpstate) then
@@ -56,7 +65,7 @@ begin
                       res:=207;  {'Coprocessor Error'}
                   end;
                 { SSE data? }
-                if ucontext^.uc_mcontext.fpstate^.magic<>$ffff then
+                if ucontext^.uc_mcontext.fpstate^.magic=0 then
                   begin
                     MMState:=ucontext^.uc_mcontext.fpstate^.mxcsr;
                     if (MMState and MM_ExceptionMask)<>0 then
@@ -83,8 +92,11 @@ begin
             begin
               { Reset Status word }
               sw:=sw and not(FPU_ExceptionMask);
-              mxcsr:=mxcsr and not(MM_ExceptionMask);
-              SysResetFPU;
+              if magic=0 then
+                mxcsr:=mxcsr and not(MM_ExceptionMask);
+              cw:=Default8087CW;
+              { Reset Tag word to $ffff for all empty }
+              tag:=$ffff;
             end;
       end;
     SIGBUS:
@@ -106,13 +118,14 @@ begin
         res:=233;
   end;
   reenable_signal(sig);
-{ give runtime error at the position where the signal was raised }
+
+  { give runtime error at the position where the signal was raised }
   if res<>0 then
-  begin
-    ucontext^.uc_mcontext.eax := res;
-    ucontext^.uc_mcontext.edx := ucontext^.uc_mcontext.eip;
-    ucontext^.uc_mcontext.ecx := ucontext^.uc_mcontext.ebp;
-    ucontext^.uc_mcontext.eip := ptruint(@SignalToHandleErrorAddrFrame);
-  end;
+    begin
+      ucontext^.uc_mcontext.eax := res;
+      ucontext^.uc_mcontext.edx := ucontext^.uc_mcontext.eip;
+      ucontext^.uc_mcontext.ecx := ucontext^.uc_mcontext.ebp;
+      ucontext^.uc_mcontext.eip := ptruint(@SignalToHandleErrorAddrFrame);
+    end;
 end;
 
