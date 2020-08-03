@@ -25,7 +25,8 @@ var
 begin
   f := TFileStream.Create(fndst, fmCreate);
   try
-    WriteModule(m, f);
+    Normalize(m);
+    WriteModule(m, f, true, true);
   finally
     f.Free;
   end;
