@@ -16,7 +16,7 @@ type
 procedure DefaultParams(out p: TAsmParams);
 begin
   p.SrcFile := '';
-  p.Reloc := true;
+  p.Reloc := false;
   p.DstObjFile := '';
 end;
 
@@ -77,7 +77,8 @@ begin
         inc(i);
         if (i<=ParamCount) then
           p.DstObjFile:=ParamStr(i);
-      end;
+      end else if ls = '-r' then
+        p.Reloc := true;
     end else
       p.SrcFile := s;
     inc(i);
