@@ -387,7 +387,7 @@ function syswin64_x86_64_exception_handler(excep : PExceptionPointers) : Longint
         case cardinal(excep^.ExceptionRecord^.ExceptionCode) of
           STATUS_INTEGER_DIVIDE_BY_ZERO,
           STATUS_FLOAT_DIVIDE_BY_ZERO :
-            err := 200;
+            err := 208;
           STATUS_ARRAY_BOUNDS_EXCEEDED :
             begin
               err := 201;

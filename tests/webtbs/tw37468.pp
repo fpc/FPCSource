@@ -13,7 +13,7 @@ begin
     try
       writeln(power(a,b));
     except
-      on e: EDivByZero do begin
+      on e: EZeroDivide do begin
         writeln(Infinity);
       end;
     end;

@@ -376,9 +376,10 @@ function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;s
               hexstr(excep^.ExceptionRecord^.ExceptionCode, 8));
 {$endif SYSTEMEXCEPTIONDEBUG}
       case excep^.ExceptionRecord^.ExceptionCode of
-        STATUS_INTEGER_DIVIDE_BY_ZERO,
-        STATUS_FLOAT_DIVIDE_BY_ZERO :
+        STATUS_INTEGER_DIVIDE_BY_ZERO :
           err := 200;
+        STATUS_FLOAT_DIVIDE_BY_ZERO :
+          err := 208;
         STATUS_ARRAY_BOUNDS_EXCEEDED :
           begin
             err := 201;
