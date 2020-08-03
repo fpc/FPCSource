@@ -49,6 +49,7 @@ type
 
     procedure WriteInstList(list: TWasmInstrList; ofsAddition: LongWord);
 
+    procedure WriteImportSect;
     procedure WriteFuncTypeSect;
     procedure WriteFuncSect;
     procedure WriteExportSect;
@@ -215,6 +216,12 @@ begin
   // 01 function type section
   if m.TypesCount>0 then begin
     WriteFuncTypeSect;
+    inc(writeSec);
+  end;
+
+  // 02 import section
+  if m.ImportCount>0 then begin
+    WriteImportSect;
     inc(writeSec);
   end;
 
@@ -472,6 +479,28 @@ begin
           WriteU32(dst, ci.operandNum);
     end;
   end;
+end;
+
+procedure TBinWriter.WriteImportSect;
+var
+  sc : TSectionRec;
+  i  : integer;
+  im : TWasmImport;
+begin
+  SectionBegin(SECT_IMPORT, sc);
+
+  WriteU32(dst, module.ImportCount);
+  for i:=0 to module.ImportCount-1 do begin
+    im:=module.GetImport(i);
+
+    WriteString(im.module);
+    WriteString(im.name);
+    if Assigned(im.fn) then begin
+      dst.WriteByte(IMPDESC_FUNC);
+      WriteU32(dst, im.fn.functype.typeNum);
+    end;
+  end;
+  SectionEnd(sc);
 end;
 
 procedure TBinWriter.pushStream(st: TStream);

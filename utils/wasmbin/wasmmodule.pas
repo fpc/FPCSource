@@ -98,7 +98,7 @@ type
   public
     LinkInfo : TLinkInfo;
     id       : string;
-    idInt    : Integer;     // reference number (after Normalization)
+    idNum    : Integer;     // reference number (after Normalization)
     instr    : TWasmInstrList;
     functype : TWasmFuncType;
 
@@ -500,7 +500,7 @@ begin
   locals:=TList.Create;
   instr:=TWasmInstrList.Create;
   functype:=TWasmFuncType.Create;
-  idInt:=-1;
+  idNum:=-1;
 end;
 
 destructor TWasmFunc.Destroy;
@@ -578,14 +578,14 @@ begin
   for i:=0 to m.ImportCount-1 do begin
     im:=m.GetImport(i);
     if Assigned(im.fn) and (im.fn.id = funcIdx) then begin
-      Result:=im.fn.idInt;
+      Result:=im.fn.idNum;
       Exit;
     end;
   end;
 
   for i:=0 to m.FuncCount-1 do
     if m.GetFunc(i).id = funcIdx then begin
-      Result:=m.GetFunc(i).idInt;
+      Result:=m.GetFunc(i).idNum;
       Exit;
     end;
 end;
@@ -659,7 +659,7 @@ begin
   for i:=0 to m.ImportCount-1 do begin
     im := m.GetImport(i);
     if Assigned(im.fn) then begin
-      im.fn.idInt:=fnIdx;
+      im.fn.idNum:=fnIdx;
       NormalizeFuncType(m, im.fn.functype);
       inc(fnIdx);
     end;
@@ -679,7 +679,7 @@ begin
 
   for i:=0 to m.FuncCount-1 do begin
     f:=m.GetFunc(i);
-    f.idInt := fnIdx;
+    f.idNum := fnIdx;
 
     NormalizeFuncType(m, f.functype);
     // finding the reference in functions
