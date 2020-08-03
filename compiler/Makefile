@@ -4449,7 +4449,10 @@ regdataarch64 : aarch64/a64reg.dat
 regdatmips : mips/mipsreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkmpsreg.pp
 	cd mips && ..$(PATHSEP)utils$(PATHSEP)mkmpsreg$(SRCEXEEXT)
-regdat : regdatx86 regdatarm regdatsp regdatavr regdataarch64 regdatmips regdatsp64
+regdatwasm : wasm/wasmreg.dat
+	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkwasmreg.pp
+	cd wasm && ..$(PATHSEP)utils$(PATHSEP)mkwasmreg$(SRCEXEEXT)
+regdat : regdatx86 regdatarm regdatsp regdatavr regdataarch64 regdatmips regdatsp64 regdatwasm
 revision.inc :
 ifneq ($(REVSTR),)
 ifdef USEZIPWRAPPER
