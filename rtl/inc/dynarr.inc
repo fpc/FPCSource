@@ -19,7 +19,14 @@ type
    { don't add new fields, the size is used }
    { to calculate memory requirements       }
    pdynarray = ^tdynarray;
-   tdynarray = packed record
+   { removed packed here as
+     1) both fields have typically the same size (2, 4 or 8 bytes), if this is not the case, packed
+        should be used only for this architecture
+     2) the memory blocks are sufficiently well aligned
+     3) in particular 64 bit CPUs which require natural alignment suffer from
+        the packed as it causes each field access being split in 8 single loads and appropriate shift operations
+   }
+   tdynarray = { packed } record
       refcount : ptrint;
       high : tdynarrayindex;
    end;

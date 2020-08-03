@@ -643,6 +643,21 @@ interface
                   end;
               end;
           end
+        else if (nodetype=modn) and (right.nodetype=ordconstn) and (is_signed(left.resultdef)) and isabspowerof2(tordconstnode(right).value,power) then
+          begin
+            hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+            if power=1 then
+              cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,resultdef.size*8-power,hreg1,hreg2)
+            else
+              begin
+                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,cgsize,resultdef.size*8-1,hreg1,hreg2);
+                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,resultdef.size*8-power,hreg2,hreg2);
+              end;
+            emit_reg_reg(A_ADD,opsize,hreg1,hreg2);
+            emit_const_reg(A_AND,opsize,not((aint(1) shl power)-1),hreg2);
+            emit_reg_reg(A_SUB,opsize,hreg2,hreg1);
+            location.register:=hreg1;
+          end
         else
           begin
 DefaultDiv:

@@ -4,7 +4,6 @@
     member of the Free Pascal development team.
 
     The syscalls for the new RTL, moved to platform dependant dir.
-    Old linux calling convention is still kept.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -76,7 +75,7 @@ end;
 
 {***********************SYSENTER CODE END******************************}
 
-Procedure fpc_geteipasebx;[external name 'fpc_geteipasebx'];
+Procedure fpc_geteipasebxlocal;[external name 'fpc_geteipasebx'];
 
 {$ifdef FPC_PROFILE}
 procedure mcount; external name 'mcount';
@@ -93,7 +92,7 @@ asm
         push  %ebx
         push  %ecx
   {$ifdef FPC_PIC}
-        call  fpc_geteipasebx
+        call  fpc_geteipasebxlocal
         addl  $_GLOBAL_OFFSET_TABLE_,%ebx
         movl  sysenter_supported@GOT(%ebx),%ecx
         movl  (%ecx),%ecx
@@ -138,7 +137,7 @@ asm
         push  %ebx
         push  %ecx
   {$ifdef FPC_PIC}
-        call  fpc_geteipasebx
+        call  fpc_geteipasebxlocal
         addl  $_GLOBAL_OFFSET_TABLE_,%ebx
         movl  sysenter_supported@GOT(%ebx),%ecx
         movl  (%ecx),%ecx
@@ -190,7 +189,7 @@ asm
         push  %edx
         push  %ecx
   {$ifdef FPC_PIC}
-        call  fpc_geteipasebx
+        call  fpc_geteipasebxlocal
         addl  $_GLOBAL_OFFSET_TABLE_,%ebx
         movl  sysenter_supported@GOT(%ebx),%ecx
         movl  (%ecx),%ecx
@@ -247,7 +246,7 @@ asm
         push  %edx
         push  %ecx
   {$ifdef FPC_PIC}
-        call  fpc_geteipasebx
+        call  fpc_geteipasebxlocal
         addl  $_GLOBAL_OFFSET_TABLE_,%ebx
         movl  sysenter_supported@GOT(%ebx),%ecx
         movl  (%ecx),%ecx
@@ -309,7 +308,7 @@ asm
         push  %esi
         push  %ecx
   {$ifdef FPC_PIC}
-        call  fpc_geteipasebx
+        call  fpc_geteipasebxlocal
         addl  $_GLOBAL_OFFSET_TABLE_,%ebx
         movl  sysenter_supported@GOT(%ebx),%ecx
         movl  (%ecx),%ecx
@@ -377,7 +376,7 @@ asm
         push  %edi
         push  %ecx
   {$ifdef FPC_PIC}
-        call  fpc_geteipasebx
+        call  fpc_geteipasebxlocal
         addl  $_GLOBAL_OFFSET_TABLE_,%ebx
         movl  sysenter_supported@GOT(%ebx),%ecx
         movl  (%ecx),%ecx
@@ -452,7 +451,7 @@ asm
 	push  %ebp
         push  %ecx
   {$ifdef FPC_PIC}
-        call  fpc_geteipasebx
+        call  fpc_geteipasebxlocal
         addl  $_GLOBAL_OFFSET_TABLE_,%ebx
         movl  sysenter_supported@GOT(%ebx),%ecx
         movl  (%ecx),%ecx

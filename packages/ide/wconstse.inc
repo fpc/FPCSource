@@ -82,7 +82,7 @@
     msg_reloaddiskandidemodifiedfile = #3'File %s '#13+
                           #3'was modified by another program,'#13+
                           #3'but the IDE version wasn''t saved before.'#13+
-                          #3'Reload new on disk version and loose IDE modifications?';
+                          #3'Reload new on disk version and lose IDE modifications?';
     dialog_savefileas = 'Save File As';
     dialog_writeblocktofile = 'Write Block to File';
     dialog_readblockfromfile = 'Read Block from File';

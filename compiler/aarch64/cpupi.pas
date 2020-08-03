@@ -27,19 +27,38 @@ interface
 
   uses
     procinfo,
-    psub;
+    psub,
+    aasmdata,aasmbase;
 
   type
     tcpuprocinfo=class(tcgprocinfo)
+    private
+      scopes: TAsmList;
+      scopecount: longint;
+      unwindflags: byte;
+    public
       constructor create(aparent: tprocinfo); override;
+      destructor destroy; override;
       procedure set_first_temp_offset; override;
+      procedure add_finally_scope(startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
+      procedure add_except_scope(trylabel,exceptlabel,endlabel,filter:TAsmSymbol);
+      procedure dump_scopes(list:tasmlist);
     end;
 
 implementation
 
   uses
+    cutils,
+    fmodule,
+    symtable,
     tgobj,
-    cpubase;
+    cpubase,
+    aasmtai;
+
+  const
+    SCOPE_FINALLY=0;
+    SCOPE_CATCHALL=1;
+    SCOPE_IMPLICIT=2;
 
   constructor tcpuprocinfo.create(aparent: tprocinfo);
     begin
@@ -56,10 +75,70 @@ implementation
       framepointer:=NR_STACK_POINTER_REG;
     end;
 
+  destructor tcpuprocinfo.destroy;
+    begin
+      scopes.free;
+      inherited destroy;
+    end;
+
   procedure tcpuprocinfo.set_first_temp_offset;
     begin
      { leave room for allocated parameters }
      tg.setfirsttemp(align(maxpushedparasize,16));
+    end;
+
+  procedure tcpuprocinfo.add_finally_scope(startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
+    begin
+      unwindflags:=unwindflags or 2;
+      if implicit then  { also needs catch functionality }
+        unwindflags:=unwindflags or 1;
+      inc(scopecount);
+      if scopes=nil then
+        scopes:=TAsmList.Create;
+
+      if implicit then
+        scopes.concat(tai_const.create_32bit(SCOPE_IMPLICIT))
+      else
+        scopes.concat(tai_const.create_32bit(SCOPE_FINALLY));
+      scopes.concat(tai_const.create_rva_sym(startlabel));
+      scopes.concat(tai_const.create_rva_sym(endlabel));
+      scopes.concat(tai_const.create_rva_sym(handler));
+    end;
+
+  procedure tcpuprocinfo.add_except_scope(trylabel,exceptlabel,endlabel,filter:TAsmSymbol);
+    begin
+      unwindflags:=unwindflags or 3;
+      inc(scopecount);
+      if scopes=nil then
+        scopes:=TAsmList.Create;
+
+      if Assigned(filter) then
+        scopes.concat(tai_const.create_rva_sym(filter))
+      else
+        scopes.concat(tai_const.create_32bit(SCOPE_CATCHALL));
+      scopes.concat(tai_const.create_rva_sym(trylabel));
+      scopes.concat(tai_const.create_rva_sym(exceptlabel));
+      scopes.concat(tai_const.create_rva_sym(endlabel));
+    end;
+
+  procedure tcpuprocinfo.dump_scopes(list: tasmlist);
+    var
+      hdir: tai_seh_directive;
+    begin
+      if (scopecount=0) then
+        exit;
+      hdir:=cai_seh_directive.create_name(ash_handler,'__FPC_specific_handler');
+      if not systemunit.iscurrentunit then
+        current_module.add_extern_asmsym('__FPC_specific_handler',AB_EXTERNAL,AT_FUNCTION);
+      hdir.data.flags:=unwindflags;
+      list.concat(hdir);
+      list.concat(cai_seh_directive.create(ash_handlerdata));
+      inc(list.section_count);
+      list.concat(tai_const.create_32bit(scopecount));
+      list.concatlist(scopes);
+      { return to text, required for GAS compatibility }
+      { This creates a tai_align which is redundant here (although harmless) }
+      new_section(list,sec_code,lower(procdef.mangledname),0);
     end;
 
 

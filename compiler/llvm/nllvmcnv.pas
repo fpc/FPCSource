@@ -64,11 +64,11 @@ interface
 implementation
 
 uses
-  globtype,globals,verbose,
+  globtype,globals,cutils,verbose,
   aasmbase,aasmdata,
-  llvmbase,aasmllvm,
+  llvmbase,llvminfo,llvmfeatures,aasmllvm,aasmllvmmetadata,llvmdef,
   procinfo,
-  ncal,
+  ncal,ncon,
   symconst,symdef,defutil,
   cgbase,cgutils,tgobj,hlcgobj,pass_2;
 
@@ -87,6 +87,9 @@ class function tllvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, to
        { same for two different specialisations }
        ((df_specialization in fromdef.defoptions) and
         (df_specialization in todef.defoptions)) or
+       { external objc classes referring to the same type }
+       (is_objc_class_or_protocol(fromdef) and
+        is_objc_class_or_protocol(todef)) or
        { typed from/to untyped filedef in ISO mode: have to keep because of
          the get/put buffer }
        ((fromdef.typ=filedef) and
@@ -101,9 +104,42 @@ class function tllvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, to
 
 
 function tllvmtypeconvnode.first_int_to_real: tnode;
+{$push}{$j+}
+  const
+    intrinfix: array[boolean] of string[7] =
+      ('uitofp','sitofp');
+{$pop}
+  var
+    exceptmode: ansistring;
   begin
-    expectloc:=LOC_FPUREGISTER;
-    result:=nil;
+    if (llvmflag_constrained_fptoi_itofp in llvmversion_properties[current_settings.llvmversion]) and
+       { these are converted to 80 bits first in any case }
+       not(tfloatdef(resultdef).floattype in [s64currency,s64comp]) and
+       { no actuual int -> floating point conversion }
+       (torddef(left.resultdef).ordtype<>scurrency) and
+       ((left.resultdef.size>=resultdef.size) or
+        ((torddef(left.resultdef).ordtype=u64bit) and
+         (tfloatdef(resultdef).floattype=s80real))) and
+       (llvm_constrained_si64tofp_support or
+        (torddef(left.resultdef).ordtype<>s64bit) or
+        (tfloatdef(resultdef).floattype<>s64real)) then
+      begin
+        { in case rounding may have to be applied, use the intrinsic }
+        exceptmode:=llvm_constrainedexceptmodestring;
+        result:=ccallnode.createintern('llvm_experimental_constrained_'+intrinfix[is_signed(left.resultdef)]+llvmfloatintrinsicsuffix(tfloatdef(resultdef))+'_i'+tostr(left.resultdef.size*8),
+          ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar(exceptmode),length(exceptmode),llvm_metadatatype),
+            ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar('round.dynamic'),length('round.dynamic'),llvm_metadatatype),
+              ccallparanode.create(left,nil)
+            )
+          )
+        );
+        left:=nil;
+      end
+    else
+      begin
+        expectloc:=LOC_FPUREGISTER;
+        result:=nil;
+      end;
   end;
 
 
@@ -138,7 +174,8 @@ function tllvmtypeconvnode.first_real_to_real: tnode;
       currency/comp to be compatible with the regular code generators ->
       call round() instead }
     if (tfloatdef(resultdef).floattype in [s64currency,s64comp]) and
-       not(tfloatdef(left.resultdef).floattype in [s64currency,s64comp]) then
+       not(tfloatdef(left.resultdef).floattype in [s64currency,s64comp]) and
+       not(nf_internal in flags) then
       begin
         result:=ccallnode.createinternfromunit('SYSTEM','ROUND',
           ccallparanode.create(left,nil));
@@ -192,7 +229,7 @@ procedure tllvmtypeconvnode.second_proc_to_procvar;
         if location.loc<>LOC_REFERENCE then
           internalerror(2015111902);
         hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
-          cpointerdef.getreusable(tprocdef(left.resultdef).getcopyas(procvardef,pc_normal,'')),
+          cpointerdef.getreusable(cprocvardef.getreusableprocaddr(tprocdef(left.resultdef),pc_normal)),
           cpointerdef.getreusable(resultdef),
           location.reference);
       end;

@@ -70,7 +70,7 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
                 begin
                   { first check the more precise options }
                   if (FpuState and FPU_DivisionByZero)<>0 then
-                    res:=200
+                    res:=208
                   else if (FpuState and FPU_Overflow)<>0 then
                     res:=205
                   else if (FpuState and FPU_Underflow)<>0 then
@@ -81,6 +81,11 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
                     res:=207
                   else
                     res:=207;  {'Coprocessor Error'}
+
+                  { exceptions are handled, clear all flags
+                    as we return from SignalToRunerrer, we have to clear the exception flags in the context }
+                  if assigned(SigContext^.fpstate) then
+                    SigContext^.fpstate^.swd:=SigContext^.fpstate^.swd and not(FPU_All);
                 end;
                 MMState:=getMMState(SigContext^);
                 if (MMState and MM_ExceptionMask)<>0 then
@@ -98,6 +103,11 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
                       res:=216
                     else
                       res:=207;  {'Coprocessor Error'}
+
+                    { exceptions are handled, clear all flags
+                      as we return from SignalToRunerrer, we have to clear the exception flags in the context }
+                    if assigned(SigContext^.fpstate) then
+                      SigContext^.fpstate^.mxcsr:=SigContext^.fpstate^.mxcsr and not(MM_ExceptionMask);
                   end;
             end;
           SysResetFPU;

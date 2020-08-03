@@ -27,7 +27,7 @@ unit MaskUtils;
 interface
 
 uses
-  Classes, SysUtils;
+  SysUtils;
 
 
 function FormatMaskText(const EditMask: string; const AValue: string): string;
@@ -107,7 +107,6 @@ type
 implementation
 
 resourcestring
-  exInvalidMaskValue = 'FormatMaskText function failed!';
   exValidationFailed = 'TMaskUtils.ValidateInput failed.';
 
 const
@@ -308,7 +307,6 @@ end;
 // Clear (virtually) a single char in position Position
 function TMaskUtils.ClearChar(Position: Integer): Char;
 begin
-  Result := FMask[Position];
   //For Delphi compatibilty, only literals remain, all others will be blanked
   case CharToMask(FMask[Position]) Of
     Char_Number,
@@ -334,6 +332,8 @@ begin
     Char_AllFixedDownCase: Result := FSpaceChar;
     Char_HourSeparator: Result := DefaultFormatSettings.TimeSeparator;
     Char_DateSeparator: Result := DefaultFormatSettings.DateSeparator;
+  else
+    Result := FMask[Position];
   end;
 end;
 

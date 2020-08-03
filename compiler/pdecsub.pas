@@ -350,7 +350,7 @@ implementation
              { possible proc directives }
              if check_proc_directive(true) then
                begin
-                  dummytype:=ctypesym.create('unnamed',hdef,true);
+                  dummytype:=ctypesym.create('unnamed',hdef);
                   parse_var_proc_directives(tsym(dummytype));
                   dummytype.typedef:=nil;
                   hdef.typesym:=nil;
@@ -628,7 +628,7 @@ implementation
               for i:=0 to genericparams.count-1 do
                 begin
                   sym:=ttypesym(genericparams[i]);
-                  if tstoreddef(sym.typedef).is_registered then
+                  if (sym.typ<>constsym) and tstoreddef(sym.typedef).is_registered then
                     begin
                       sym.typedef.free;
                       sym.typedef:=nil;
@@ -813,9 +813,11 @@ implementation
         function check_generic_parameters(def:tstoreddef):boolean;
           var
             i : longint;
-            decltype,
-            impltype : ttypesym;
+            declsym,
+            implsym : tsym;
+            impltype : ttypesym absolute implsym;
             implname : tsymstr;
+            fileinfo : tfileposinfo;
           begin
             result:=true;
             if not assigned(def.genericparas) then
@@ -826,13 +828,23 @@ implementation
               internalerror(2018090104);
             for i:=0 to def.genericparas.count-1 do
               begin
-                decltype:=ttypesym(def.genericparas[i]);
-                impltype:=ttypesym(genericparams[i]);
+                declsym:=tsym(def.genericparas[i]);
+                implsym:=tsym(genericparams[i]);
                 implname:=upper(genericparams.nameofindex(i));
-                if decltype.name<>implname then
+                if declsym.name<>implname then
                   begin
-                    messagepos1(impltype.fileinfo,sym_e_generic_type_param_mismatch,impltype.realname);
-                    messagepos1(decltype.fileinfo,sym_e_generic_type_param_decl,decltype.realname);
+                    messagepos1(implsym.fileinfo,sym_e_generic_type_param_mismatch,implsym.realname);
+                    messagepos1(declsym.fileinfo,sym_e_generic_type_param_decl,declsym.realname);
+                    result:=false;
+                  end;
+                if ((implsym.typ=typesym) and (df_genconstraint in impltype.typedef.defoptions)) or
+                    (implsym.typ=constsym) then
+                  begin
+                    if implsym.typ=constsym then
+                      fileinfo:=impltype.fileinfo
+                    else
+                      fileinfo:=tstoreddef(impltype.typedef).genconstraintdata.fileinfo;
+                    messagepos(fileinfo,parser_e_generic_constraints_not_allowed_here);
                     result:=false;
                   end;
               end;
@@ -1122,8 +1134,9 @@ implementation
             { register the parameters }
             for i:=0 to genericparams.count-1 do
               begin
-                 ttypesym(genericparams[i]).register_sym;
-                 tstoreddef(ttypesym(genericparams[i]).typedef).register_def;
+                 tsym(genericparams[i]).register_sym;
+                 if tsym(genericparams[i]).typ=typesym then
+                   tstoreddef(ttypesym(genericparams[i]).typedef).register_def;
               end;
             insert_generic_parameter_types(pd,nil,genericparams);
             { the list is no longer required }
@@ -1144,7 +1157,7 @@ implementation
               end;
             if not assigned(dummysym) then
               begin
-                dummysym:=ctypesym.create(orgspnongen,cundefineddef.create(true),true);
+                dummysym:=ctypesym.create(orgspnongen,cundefineddef.create(true));
                 if assigned(astruct) then
                   astruct.symtable.insert(dummysym)
                 else
@@ -2357,10 +2370,11 @@ end;
 
 procedure pd_winapi(pd:tabstractprocdef);
 begin
-  if not(target_info.system in systems_wince) then
+  if not(target_info.system in systems_all_windows+[system_i386_nativent]) then
     pd.proccalloption:=pocall_cdecl
   else
     pd.proccalloption:=pocall_stdcall;
+  include(pd.procoptions,po_hascallingconvention);
 end;
 
 
@@ -2388,7 +2402,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=52;
+  num_proc_directives=53;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -2433,6 +2447,15 @@ const
       handler  : nil;
       pocall   : pocall_cdecl;
       pooption : [];
+      mutexclpocall : [];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
+      mutexclpo     : [po_assembler,po_external]
+    ),(
+      idtok:_CBLOCK;
+      pd_flags : [pd_procvar];
+      handler  : nil;
+      pocall   : pocall_none;
+      pooption : [po_is_block];
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_assembler,po_external]

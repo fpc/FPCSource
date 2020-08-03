@@ -238,6 +238,13 @@ begin
          AddConditionalLinkerPath('cpupowerpc', powerpc, result);
          AddConditionalLinkerPath('cpupowerpc64', powerpc64, result);
          end
+       else if CPU in [arm, aarch64] then
+         begin
+         AddConditionalLinkerPath('cpuarm', arm, result);
+         AddConditionalLinkerPath('cpuaarch64', aarch64, result);
+         end
+       else
+         result := '-Fl'+GetDefaultLibGCCDir(CPU, OS, S);
        end;
     darwin :
        begin
@@ -245,6 +252,7 @@ begin
        AddConditionalLinkerPath('cpux86_64', x86_64, result);
        AddConditionalLinkerPath('cpupowerpc', powerpc, result);
        AddConditionalLinkerPath('cpupowerpc64', powerpc64, result);
+       AddConditionalLinkerPath('cpuaarch64', aarch64, result);
        { macOS 10.14 or later:
           1) command line tools are installed under /Library/Developer/CommandLineTools
           2) the system libraries still contain i386 code, but the 10.14 sdk doesn't

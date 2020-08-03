@@ -112,6 +112,15 @@ implementation
           result:=R_386_PLT32;
         RELOC_GOTOFF:
           result:=R_386_GOTOFF;
+        RELOC_NTPOFF:
+          if objrel.size=4 then
+            result:=R_386_TLS_LE
+          else
+            InternalError(2019092101);
+        RELOC_TLSGD:
+          result:=R_386_TLS_GD;
+        RELOC_DTPOFF:
+          result:=R_386_TLS_DTPOFF32;
       else
         result:=0;
         InternalError(2012082301);
@@ -515,6 +524,7 @@ implementation
                               system_i386_android,system_i386_aros];
          flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
          labelprefix : '.L';
+         labelmaxlen : -1;
          comment : '';
          dollarsign: '$';
        );

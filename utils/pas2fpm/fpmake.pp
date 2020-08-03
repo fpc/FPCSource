@@ -16,7 +16,7 @@ begin
     begin
     P:=AddPackage('utils-pas2fpm');
     p.ShortName:='p2fm';
-    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

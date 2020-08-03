@@ -47,6 +47,7 @@ unit nx86add;
         procedure second_addfloatsse;
         procedure second_addfloatavx;
       public
+        function pass_1 : tnode;override;
         function use_fma : boolean;override;
         procedure second_addfloat;override;
 {$ifndef i8086}
@@ -59,6 +60,7 @@ unit nx86add;
 
         procedure second_cmpordinal;override;
         procedure second_addordinal;override;
+        procedure second_addboolean;override;
 {$ifdef SUPPORT_MMX}
         procedure second_opmmx;override;
 {$endif SUPPORT_MMX}
@@ -76,8 +78,9 @@ unit nx86add;
       symconst,symdef,
       cgobj,hlcgobj,cgx86,cga,cgutils,
       tgobj,ncgutil,
-      ncon,nset,ninl,
-      defutil;
+      ncon,nset,ninl,ncnv,
+      defutil,
+      htypechk;
 
 { Range check must be disabled explicitly as the code serves
   on three different architecture sizes }
@@ -245,8 +248,8 @@ unit nx86add;
               { maybe we can reuse a constant register when the
                 operation is a comparison that doesn't change the
                 value of the register }
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,(nodetype in [ltn,lten,gtn,gten,equaln,unequaln]));
-                location:=left.location;
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,(nodetype in [ltn,lten,gtn,gten,equaln,unequaln]));
+              location:=left.location;
             end
            else
             begin
@@ -872,14 +875,14 @@ unit nx86add;
 
         pass_left_right;
         { fpu operands are always in reversed order on the stack }
-        if (left.location.loc=LOC_FPUREGISTER) and (right.location.loc=LOC_FPUREGISTER) then
+        if (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
           toggleflag(nf_swapped);
 
         if (nf_swapped in flags) then
           { can't use swapleftright if both are on the fpu stack, since then }
           { both are "R_ST" -> nothing would change -> manually switch       }
-          if (left.location.loc = LOC_FPUREGISTER) and
-             (right.location.loc = LOC_FPUREGISTER) then
+          if (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and
+             (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
             emit_none(A_FXCH,S_NO)
           else
             swapleftright;
@@ -1015,14 +1018,14 @@ unit nx86add;
 
         pass_left_right;
         { fpu operands are always in reversed order on the stack }
-        if (left.location.loc=LOC_FPUREGISTER) and (right.location.loc=LOC_FPUREGISTER) then
+        if (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
           toggleflag(nf_swapped);
 
         if (nf_swapped in flags) then
           { can't use swapleftright if both are on the fpu stack, since then }
           { both are "R_ST" -> nothing would change -> manually switch       }
-          if (left.location.loc = LOC_FPUREGISTER) and
-             (right.location.loc = LOC_FPUREGISTER) then
+          if (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and
+             (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
             emit_none(A_FXCH,S_NO)
           else
             swapleftright;
@@ -1107,7 +1110,7 @@ unit nx86add;
               mms_movescalar);
           end
         { we can use only right as left operand if the operation is commutative }
-        else if (right.location.loc=LOC_MMREGISTER) and (op in [OP_ADD,OP_MUL]) then
+        else if (right.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) and (op in [OP_ADD,OP_MUL]) then
           begin
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
             { force floating point reg. location to be written to memory,
@@ -1146,6 +1149,21 @@ unit nx86add;
       end;
 
 
+    function tx86addnode.pass_1: tnode;
+      begin
+        { on x86, we do not support fpu registers, so in case of operations using the x87, it
+          is normally useful, not to put the operands into registers which would be mm register }
+        if ((left.resultdef.typ=floatdef) or (right.resultdef.typ=floatdef)) and
+          (not(use_vectorfpu(left.resultdef)) and not(use_vectorfpu(right.resultdef)) and
+           not(use_vectorfpu(resultdef))) then
+          begin
+            make_not_regable(left,[ra_addr_regable]);
+            make_not_regable(right,[ra_addr_regable]);
+          end;
+        Result:=inherited pass_1;
+      end;
+
+
     function tx86addnode.use_fma : boolean;
       begin
 {$ifndef i8086}
@@ -1172,6 +1190,10 @@ unit nx86add;
         else
           internalerror(200402222);
         pass_left_right;
+
+        { fpu operands are always in reversed order on the stack }
+        if (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
+          toggleflag(nf_swapped);
 
         location_reset(location,LOC_FLAGS,OS_NO);
 
@@ -1275,7 +1297,7 @@ unit nx86add;
         ops_rdiv: array[boolean] of TAsmOp = (A_FDIVRP,A_FDIVR);
       var
         op : TAsmOp;
-        refnode : tnode;
+        refnode, hp: tnode;
         hasref : boolean;
       begin
         if use_vectorfpu(resultdef) then
@@ -1285,6 +1307,22 @@ unit nx86add;
             else
               second_addfloatsse;
             exit;
+          end;
+
+        { can the operation do the conversion? }
+        if (left.nodetype=typeconvn) and (is_double(ttypeconvnode(left).left.resultdef) or is_single(ttypeconvnode(left).left.resultdef)) then
+          begin
+            hp:=left;
+            left:=ttypeconvnode(left).left;
+            ttypeconvnode(hp).left:=nil;
+            hp.Free;
+          end;
+        if (right.nodetype=typeconvn) and (is_double(ttypeconvnode(right).left.resultdef) or is_single(ttypeconvnode(right).left.resultdef)) then
+          begin
+            hp:=right;
+            right:=ttypeconvnode(right).left;
+            ttypeconvnode(hp).left:=nil;
+            hp.Free;
           end;
 
         pass_left_right;
@@ -1367,6 +1405,8 @@ unit nx86add;
                 emit_none(A_SAHF,S_NO);
                 cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
               end;
+            if cs_fpu_fwait in current_settings.localswitches then
+              current_asmdata.CurrAsmList.concat(Taicpu.Op_none(A_FWAIT,S_NO));
           end
         else
 {$endif x86_64}
@@ -1474,8 +1514,18 @@ unit nx86add;
 
        pass_left_right;
 
-       { do have to allocate a register? If yes, then three opcode instructions are better }
-       if ((left.location.loc<>LOC_REGISTER) and (right.location.loc<>LOC_REGISTER)) or
+       { do we have to allocate a register? If yes, then three opcode instructions are better, however for sub three op code instructions
+         make no sense if right is a reference }
+       if ((left.location.loc<>LOC_REGISTER) and (right.location.loc<>LOC_REGISTER) and
+           ((nodetype<>subn) or not(right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE])) and
+           { 3 op mul makes only sense if a constant is involed }
+           ((nodetype<>muln) or (left.location.loc=LOC_CONSTANT) or (right.location.loc=LOC_CONSTANT)
+{$ifndef i8086}
+            or ((CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) and (not(needoverflowcheck))
+               )
+{$endif i8086}
+           ) and
+           (not(nodetype in [orn,andn,xorn]))) or
          ((nodetype=addn) and (left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT]) and (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT])) then
          begin
            { allocate registers }
@@ -1519,18 +1569,11 @@ unit nx86add;
          end
        else
          begin
-           { at least one location is a register, re-use it, so we can try two operand opcodes }
+           { at least one location should be a register, if yes, try to re-use it, so we can try two operand opcodes }
            if left.location.loc<>LOC_REGISTER then
               begin
                 if right.location.loc<>LOC_REGISTER then
-                  begin
-    {                tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                    cg.a_load_loc_reg(current_asmdata.CurrAsmList,opsize,left.location,tmpreg);
-                    location_reset(left.location,LOC_REGISTER,opsize);
-                    left.location.register:=tmpreg;
-    }
-                    Internalerror(2018031102);
-                  end
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false)
                 else
                   begin
                     location_swap(left.location,right.location);
@@ -1577,6 +1620,19 @@ unit nx86add;
        if checkoverflow then
          cg.g_overflowcheck_loc(current_asmdata.CurrAsmList,Location,resultdef,ovloc);
      end;
+
+
+    procedure tx86addnode.second_addboolean;
+      begin
+        if (nodetype in [orn,andn]) and
+           (not(cs_full_boolean_eval in current_settings.localswitches) or
+          (nf_short_bool in flags)) then
+          inherited second_addboolean
+        else if is_64bit(left.resultdef) then
+          inherited
+        else
+          second_addordinal;
+      end;
 
 
     procedure tx86addnode.second_cmpordinal;

@@ -44,7 +44,9 @@ type
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 const
-{$ifdef CPUAVR}
+{$if defined(CPUAVR)}
+  STACK_MARGIN = 64;    { Stack size margin for stack checking }
+{$elseif defined(CPUZ80)}
   STACK_MARGIN = 64;    { Stack size margin for stack checking }
 {$else}
   STACK_MARGIN = 16384;    { Stack size margin for stack checking }
@@ -296,6 +298,22 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$i riscv64.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
 {$endif cpuriscv64}
+
+{$ifdef cpuxtensa}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i xtensa.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpuxtensa}
+
+{$ifdef cpuz80}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i z80.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpuz80}
 
 {$ifndef SYSPROCDEFINED}
   {$Error Can't determine processor type !}
@@ -706,23 +724,23 @@ begin
     q:=qword(l);
 
   a:=mtwist_u32rand;
- b:=mtwist_u32rand;
+  b:=mtwist_u32rand;
 
- c:=q shr 32;
- d:=cardinal(q);
+  c:=q shr 32;
+  d:=cardinal(q);
 
- bd:=b*d;
- ad:=a*d;
- bc:=b*c;
- ac:=a*c;
+  bd:=qword(b)*d;
+  ad:=qword(a)*d;
+  bc:=qword(b)*c;
+  ac:=qword(a)*c;
 
- // We only need the carry bit
- carry:=((bd shr 32)+cardinal(ad)+cardinal(bc)) shr 32;
+  // We only need the carry bit
+  carry:=((bd shr 32)+cardinal(ad)+cardinal(bc)) shr 32;
 
- // Calculate the final result
- result:=int64(carry+(ad shr 32)+(bc shr 32)+ac);
- if l<0 then
-   result:=-result;
+  // Calculate the final result
+  result:=int64(carry+(ad shr 32)+(bc shr 32)+ac);
+  if l<0 then
+    result:=-result;
 end;
 
 {$ifndef FPUNONE}
@@ -951,15 +969,27 @@ begin
   { Avoid recursive calls when called from the exit routines }
   if StackError then
    exit;
-  { don't use sack_size, since the stack pointer has already been
+  { check stack alignment }
+{$ifdef CPUI386}
+{$ifdef FPC_STACKALIGNMENT}
+{$if FPC_STACKALIGNMENT=16}
+  if ((PtrUInt(Sptr)+4) mod 16)<>0 then
+    begin
+      StackError:=true;
+      HandleError(202);
+    end;
+{$endif FPC_STACKALIGNMENT=16}
+{$endif FPC_STACKALIGNMENT}
+{$endif CPUI386}
+  { don't use stack_size, since the stack pointer has already been
     decreased when this routine is called
   }
   c := Sptr - STACK_MARGIN;
   if (c <= StackBottom) then
-   begin
-     StackError:=true;
-     HandleError(202);
-   end;
+    begin
+      StackError:=true;
+      HandleError(202);
+    end;
 end;
 {$POP}
 
@@ -1032,10 +1062,10 @@ begin
 end;
 
 
-{$ifdef CPUAVR}
+{$ifdef FPC_INIT_FINAL_UNITS_BY_CALLS}
 procedure FinalizeUnits; external name 'FPC_FINALIZE_FUNC_TABLE';
 
-{$else CPUAVR}
+{$else FPC_INIT_FINAL_UNITS_BY_CALLS}
 procedure FinalizeUnits;[public,alias:'FPC_FINALIZEUNITS'];
 begin
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
@@ -1054,7 +1084,7 @@ begin
       end;
    end;
 end;
-{$endif CPUAVR}
+{$endif FPC_INIT_FINAL_UNITS_BY_CALLS}
 
 {*****************************************************************************
                           Error / Exit / ExitProc
@@ -1134,7 +1164,7 @@ Begin
   { Finalize units }
   FinalizeUnits;
 
-{$if (defined(MSWINDOWS) and not defined(win16)) or defined(OS2)}
+{$if defined(OS2)}
   { finally release the heap if possible, especially
     important for DLLs.
     Reset the array to nil, and finally also argv itself to

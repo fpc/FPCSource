@@ -276,7 +276,7 @@ unit cgcpu;
       begin
         inherited init_register_allocators;
         { currently, we always save R14, so we can use it }
-        if (target_info.system<>system_arm_darwin) then
+        if (target_info.system<>system_arm_ios) then
             begin
               if assigned(current_procinfo) and (current_procinfo.framepointer<>NR_R11) then
                 rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
@@ -2084,7 +2084,7 @@ unit cgcpu;
              begin
                reference_reset(ref,4,[]);
                if (tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023) or
-                 (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
+                 (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype]) then
                  begin
                    if not is_shifter_const(tcpuprocinfo(current_procinfo).floatregstart,shift) then
                      begin
@@ -2115,13 +2115,15 @@ unit cgcpu;
                    begin
                      ref.index:=ref.base;
                      ref.base:=NR_NO;
-                     { FSTMX is deprecated on ARMv6 and later }
-                     {if (current_settings.cputype<cpu_armv6) then
-                       postfix:=PF_IAX
-                     else
-                       postfix:=PF_IAD;}
                      if mmregs<>[] then
                        list.concat(taicpu.op_ref_regset(A_VSTM,ref,R_MMREGISTER,R_SUBFD,mmregs));
+                   end
+                 else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+                   begin
+                     ref.index:=ref.base;
+                     ref.base:=NR_NO;
+                     if mmregs<>[] then
+                       list.concat(taicpu.op_ref_regset(A_VSTM,ref,R_MMREGISTER,R_SUBFS,mmregs));
                    end
                  else
                    internalerror(2019050923);
@@ -2176,7 +2178,7 @@ unit cgcpu;
                         }
                       end;
                 end;
-              else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
                 begin
                   { restore vfp registers? }
                   { the *[0..31] is a hack to prevent that the compiler tries to save odd single-type registers,
@@ -2193,7 +2195,7 @@ unit cgcpu;
               begin
                 reference_reset(ref,4,[]);
                 if (tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023) or
-                   (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
+                   (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype]) then
                   begin
                     if not is_shifter_const(tcpuprocinfo(current_procinfo).floatregstart,shift) then
                       begin
@@ -2223,13 +2225,15 @@ unit cgcpu;
                     begin
                       ref.index:=ref.base;
                       ref.base:=NR_NO;
-                      { FLDMX is deprecated on ARMv6 and later }
-                      {if (current_settings.cputype<cpu_armv6) then
-                        mmpostfix:=PF_IAX
-                      else
-                        mmpostfix:=PF_IAD;}
-                     if mmregs<>[] then
-                       list.concat(taicpu.op_ref_regset(A_VLDM,ref,R_MMREGISTER,R_SUBFD,mmregs));
+                      if mmregs<>[] then
+                        list.concat(taicpu.op_ref_regset(A_VLDM,ref,R_MMREGISTER,R_SUBFD,mmregs));
+                    end
+                  else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+                    begin
+                      ref.index:=ref.base;
+                      ref.base:=NR_NO;
+                      if mmregs<>[] then
+                        list.concat(taicpu.op_ref_regset(A_VLDM,ref,R_MMREGISTER,R_SUBFS,mmregs));
                     end
                   else
                     internalerror(2019050921);
@@ -2483,7 +2487,7 @@ unit cgcpu;
         indirection_done:=false;
         if assigned(ref.symbol) then
           begin
-            if (target_info.system=system_arm_darwin) and
+            if (target_info.system=system_arm_ios) and
                (ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL,AB_PRIVATE_EXTERN,AB_COMMON]) then
               begin
                 tmpreg:=g_indirect_sym_load(list,ref.symbol.name,asmsym2indsymflags(ref.symbol));
@@ -2493,6 +2497,17 @@ unit cgcpu;
               end
             else if ref.refaddr=addr_gottpoff then
               current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_gottpoff,ref.symbol,ref.relsymbol,ref.offset))
+            else if ref.refaddr=addr_tlsgd then
+              current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsgd,ref.symbol,ref.relsymbol,ref.offset))
+            else if ref.refaddr=addr_tlsdesc then
+              current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsdesc,ref.symbol,ref.relsymbol,ref.offset))
+            else if ref.refaddr=addr_tpoff then
+              begin
+                if assigned(ref.relsymbol) or (ref.offset<>0) then
+                  Internalerror(2019092804);
+
+                current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_tpoff,ref.symbol));
+              end
             else if (cs_create_pic in current_settings.moduleswitches) then
               if (tf_pic_uses_got in target_info.flags) then
                 current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_got,ref.symbol))
@@ -2600,9 +2615,9 @@ unit cgcpu;
         paraloc1.init;
         paraloc2.init;
         paraloc3.init;
-        paramanager.getintparaloc(list,pd,1,paraloc1);
-        paramanager.getintparaloc(list,pd,2,paraloc2);
-        paramanager.getintparaloc(list,pd,3,paraloc3);
+        paramanager.getcgtempparaloc(list,pd,1,paraloc1);
+        paramanager.getcgtempparaloc(list,pd,2,paraloc2);
+        paramanager.getcgtempparaloc(list,pd,3,paraloc3);
         a_load_const_cgpara(list,OS_SINT,len,paraloc3);
         a_loadaddr_ref_cgpara(list,dest,paraloc2);
         a_loadaddr_ref_cgpara(list,source,paraloc1);
@@ -3090,11 +3105,12 @@ unit cgcpu;
         list.concat(instr);
         case instr.opcode of
           A_VMOV:
+            { VMOV cannot generate an FPU exception, so we do not need a check here }
             add_move_instruction(instr);
           else
-            ;
+            { VCVT can generate an exception }
+            maybe_check_for_fpu_exception(list);
         end;
-        maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -3154,13 +3170,10 @@ unit cgcpu;
             end;
           end
         else
-          begin
-             handle_load_store(list,A_VLDR,PF_None,tmpmmreg,ref);
-          end;
+          handle_load_store(list,A_VLDR,PF_None,tmpmmreg,ref);
 
         if (tmpmmreg<>reg) then
           a_loadmm_reg_reg(list,fromsize,tosize,tmpmmreg,reg,shuffle);
-        maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -3223,10 +3236,8 @@ unit cgcpu;
             end;
           end
         else
-          begin
-             handle_load_store(list,A_VSTR,PF_None,tmpmmreg,ref);
-          end;
-        maybe_check_for_fpu_exception(list);
+          handle_load_store(list,A_VSTR,PF_None,tmpmmreg,ref);
+        { VSTR cannot generate an FPU exception, VCVT is handled seperately, so we do not need a check here }
       end;
 
 
@@ -3242,7 +3253,7 @@ unit cgcpu;
            not shufflescalar(shuffle) then
           internalerror(2009112516);
         list.concat(taicpu.op_reg_reg(A_VMOV,mmreg,intreg));
-        maybe_check_for_fpu_exception(list);
+        { VMOV cannot generate an FPU exception, so we do not need a check here }
       end;
 
 
@@ -3258,7 +3269,7 @@ unit cgcpu;
            not shufflescalar(shuffle) then
           internalerror(2009112514);
         list.concat(taicpu.op_reg_reg(A_VMOV,intreg,mmreg));
-        maybe_check_for_fpu_exception(list);
+        { VMOV cannot generate an FPU exception, so we do not need a check here }
       end;
 
 
@@ -3339,10 +3350,13 @@ unit cgcpu;
 
     procedure tbasecgarm.g_maybe_tls_init(list : TAsmList);
       begin
-        list.concat(tai_regalloc.alloc(NR_R0,nil));
-        a_call_name(list,'fpc_read_tp',false);
-        a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_R0,current_procinfo.tlsoffset);
-        list.concat(tai_regalloc.dealloc(NR_R0,nil));
+        if pi_needs_tls in current_procinfo.flags then
+          begin
+            list.concat(tai_regalloc.alloc(NR_R0,nil));
+            a_call_name(list,'fpc_read_tp',false);
+            a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_R0,current_procinfo.tlsoffset);
+            list.concat(tai_regalloc.dealloc(NR_R0,nil));
+          end;
       end;
 
 
@@ -3396,7 +3410,7 @@ unit cgcpu;
         if (mmsize<>OS_F64) then
           internalerror(2009112405);
         list.concat(taicpu.op_reg_reg_reg(A_VMOV,mmreg,intreg.reglo,intreg.reghi));
-        cg.maybe_check_for_fpu_exception(list);
+        { VMOV cannot generate an FPU exception, so we do not need a check here }
       end;
 
 
@@ -3407,7 +3421,7 @@ unit cgcpu;
         if (mmsize<>OS_F64) then
           internalerror(2009112406);
         list.concat(taicpu.op_reg_reg_reg(A_VMOV,intreg.reglo,intreg.reghi,mmreg));
-        cg.maybe_check_for_fpu_exception(list);
+        { VMOV cannot generate an FPU exception, so we do not need a check here }
       end;
 
 
@@ -4306,7 +4320,7 @@ unit cgcpu;
       begin
         inherited init_register_allocators;
         { currently, we save R14 always, so we can use it }
-        if (target_info.system<>system_arm_darwin) then
+        if (target_info.system<>system_arm_ios) then
           rg[R_INTREGISTER]:=trgintcputhumb2.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
                RS_R9,RS_R10,RS_R12,RS_R14],first_int_imreg,[])
@@ -4318,11 +4332,18 @@ unit cgcpu;
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
 
-        if FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype] then
+        if (FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype]) and
+          (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
           rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
               [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
                RS_D16,RS_D17,RS_D18,RS_D19,RS_D20,RS_D21,RS_D22,RS_D23,RS_D24,RS_D25,RS_D26,RS_D27,RS_D28,RS_D29,RS_D30,RS_D31,
                RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
+              ],first_mm_imreg,[])
+        else if (FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype]) then
+          rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFS,
+              [RS_S0,RS_S1,RS_S2,RS_S3,RS_S4,RS_S5,RS_S6,RS_S7,
+               RS_S16,RS_S17,RS_S18,RS_S19,RS_S20,RS_S21,RS_S22,RS_S23,RS_S24,RS_S25,RS_S26,RS_S27,RS_S28,RS_S29,RS_S30,RS_S31,
+               RS_S8,RS_S9,RS_S10,RS_S11,RS_S12,RS_S13,RS_S14,RS_S15
               ],first_mm_imreg,[])
         else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
           rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
@@ -5126,6 +5147,17 @@ unit cgcpu;
 
                 if ref.refaddr=addr_gottpoff then
                   current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_gottpoff,ref.symbol,ref.relsymbol,ref.offset))
+                else if ref.refaddr=addr_tlsgd then
+                  current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsgd,ref.symbol,ref.relsymbol,ref.offset))
+                else if ref.refaddr=addr_tlsdesc then
+                  current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_tlsdesc,ref.symbol,ref.relsymbol,ref.offset))
+                else if ref.refaddr=addr_tpoff then
+                  begin
+                    if assigned(ref.relsymbol) or (ref.offset<>0) then
+                      Internalerror(2019092805);
+
+                    current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_tpoff,ref.symbol));
+                  end
                 else
                   current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset));
 
@@ -5238,7 +5270,7 @@ unit cgcpu;
             instr:=setoppostfix(taicpu.op_reg_reg(A_VMOV,reg2,reg1), PF_F32);
             list.Concat(instr);
             add_move_instruction(instr);
-            maybe_check_for_fpu_exception(list);
+            { VMOV cannot generate an FPU exception, so we do not need a check here }
           end
         else if (fromsize=OS_F64) and
           (tosize=OS_F64) then
@@ -5264,7 +5296,7 @@ unit cgcpu;
     procedure tthumb2cgarm.a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference; shuffle: pmmshuffle);
       begin
         handle_load_store(list,A_VSTR,PF_None,reg,ref);
-        maybe_check_for_fpu_exception(list);
+        { VSTR cannot generate an FPU exception, so we do not need a check here }
       end;
 
 
@@ -5284,7 +5316,7 @@ unit cgcpu;
           (fromsize=OS_F32) then
           begin
             list.Concat(taicpu.op_reg_reg(A_VMOV,intreg,mmreg));
-            maybe_check_for_fpu_exception(list);
+            { VMOV cannot generate an FPU exception, so we do not need a check here }
           end
         else
           internalerror(2012100814);

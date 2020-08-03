@@ -18,7 +18,7 @@
 
 {$macro on}
 {$define PathStr:=UnicodeString}
-{$define PathPChar:=PWideChar}
+{$define PathPChar:=PUnicodeChar}
 {$define SYSUTILSUNICODE}
   { Read filename handling functions implementation }
   {$i fina.inc}
@@ -58,7 +58,7 @@
 
 
   {$ifndef OS_FILESETDATEBYNAME}
-  Function FileSetDate (Const FileName : RawByteString;Age : Longint) : Longint;
+  Function FileSetDate (Const FileName : RawByteString;Age : Int64) : Longint;
   Var
     fd : THandle;
   begin
@@ -79,7 +79,7 @@
   end;
 
 
-  Function FileSetDate (Const FileName : UnicodeString;Age : Longint) : Longint;
+  Function FileSetDate (Const FileName : UnicodeString;Age : Int64) : Longint;
   Var
     fd : THandle;
   begin

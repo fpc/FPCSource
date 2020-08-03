@@ -151,6 +151,7 @@ implementation
         '',
         '',
         '',
+        '',
         ''
       );
 
@@ -164,6 +165,7 @@ implementation
         '',
         '',
         '','','','','','',
+        '',
         '',
         '',
         '',
@@ -1157,6 +1159,7 @@ implementation
             supported_targets : [system_i386_GO32V2,system_i386_Win32,system_i386_wdosx,system_i386_watcom,system_i386_wince];
             flags : [af_needar,af_labelprefix_only_inside_procedure];
             labelprefix : '@@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1170,6 +1173,7 @@ implementation
             supported_targets : [system_i386_GO32V2,system_i386_Win32,system_i386_wdosx,system_i386_watcom,system_i386_wince];
             flags : [af_needar];
             labelprefix : '@@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1183,6 +1187,7 @@ implementation
             supported_targets : [system_i386_watcom];
             flags : [af_needar];
             labelprefix : '@@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1197,6 +1202,7 @@ implementation
             supported_targets : [system_x86_64_win64];
             flags : [af_needar];
             labelprefix : '@@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );

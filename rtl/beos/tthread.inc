@@ -274,6 +274,7 @@ end;
 procedure TThread.Terminate;
 begin
   FTerminated := True;
+  TerminatedSet;
 end;
 
 function TThread.WaitFor: Integer;
@@ -560,6 +561,7 @@ end;
 procedure TThread.Terminate;
 begin
   FTerminated := True;
+  TerminatedSet;
 end;
 
 function TThread.WaitFor: Integer;

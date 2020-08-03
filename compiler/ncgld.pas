@@ -75,6 +75,7 @@ implementation
       aasmbase,
       cgbase,pass_2,
       procinfo,
+      cpuinfo,
       cpubase,parabase,
       tgobj,
       cgobj,hlcgobj,
@@ -282,9 +283,9 @@ implementation
            begin
              if gvs.localloc.loc=LOC_INVALID then
                if not(vo_is_weak_external in gvs.varoptions) then
-                 reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,location.reference.alignment,[])
+                 reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_TLS,use_indirect_symbol(gvs)),0,location.reference.alignment,[])
                else
-                 reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,location.reference.alignment,[])
+                 reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_TLS),0,location.reference.alignment,[])
              else
                location:=gvs.localloc;
            end
@@ -307,18 +308,17 @@ implementation
                internalerror(2012120901);
 
              { FPC_THREADVAR_RELOCATE is nil? }
-             issystemunit:=not current_module.is_unit or
-                             (
-                               assigned(current_module.globalsymtable) and
-                               (current_module.globalsymtable=systemunit)
-                             ) or
-                             (
-                               not assigned(current_module.globalsymtable) and
-                               (current_module.localsymtable=systemunit)
-                             );
+             issystemunit:=(
+                             assigned(current_module.globalsymtable) and
+                             (current_module.globalsymtable=systemunit)
+                           ) or
+                           (
+                             not assigned(current_module.globalsymtable) and
+                             (current_module.localsymtable=systemunit)
+                           );
              indirect:=(tf_supports_packages in target_info.flags) and
                          (target_info.system in systems_indirect_var_imports) and
-                         (cs_imported_data in current_settings.localswitches) and
+                         (cs_imported_data in localswitches) and
                          not issystemunit;
              if not(vo_is_weak_external in gvs.varoptions) then
                reference_reset_symbol(tvref,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,sizeof(pint),[])
@@ -337,7 +337,7 @@ implementation
                  reference_reset_base(tvref,hreg_tv_rec,0,ctempposinvalid,tvref.alignment,tvref.volatility)
                end;
              paraloc1.init;
-             paramanager.getintparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
+             paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
              reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA,indirect),0,pvd.alignment,[]);
              if not issystemunit then
@@ -398,7 +398,7 @@ implementation
                 (target_info.system in systems_indirect_var_imports) and
                 (gvs.varoptions*[vo_is_external,vo_is_weak_external]=[]) and
                 (gvs.owner.symtabletype in [globalsymtable,staticsymtable]) and
-                (cs_imported_data in current_settings.localswitches) and
+                (cs_imported_data in localswitches) and
                 not sym_is_owned_by(gvs,current_module.globalsymtable) and
                 (
                   (current_module.globalsymtable=current_module.localsymtable) or
@@ -445,7 +445,7 @@ implementation
                      location_reset_ref(location,LOC_CREFERENCE,def_cgsize(cansistringtype),cansistringtype.size,[]);
                      indirect:=(tf_supports_packages in target_info.flags) and
                                  (target_info.system in systems_indirect_var_imports) and
-                                 (cs_imported_data in current_settings.localswitches) and
+                                 (cs_imported_data in localswitches) and
                                  (symtableentry.owner.moduleid<>current_module.moduleid);
                      name:=make_mangledname('RESSTR',symtableentry.owner,symtableentry.name);
                      location.reference.symbol:=current_asmdata.RefAsmSymbol(name,AT_DATA,indirect);
@@ -647,8 +647,8 @@ implementation
                        begin
                          { load address of the function }
                          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,procdef.address_type.alignment,[]);
-                         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef));
-                         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,procdef,cprocvardef.getreusableprocaddr(procdef),href,location.register);
+                         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef,pc_address_only));
+                         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,procdef,cprocvardef.getreusableprocaddr(procdef,pc_address_only),href,location.register);
                        end;
 
                      { to get methodpointers stored correctly, code and self register must be swapped on
@@ -692,7 +692,7 @@ implementation
          href : treference;
          releaseright : boolean;
          alignmentrequirement,
-         len : aint;
+         len : tcgint;
          r : tregister;
          {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
          r64 : tregister64;
@@ -879,7 +879,12 @@ implementation
                       begin
                         if (left.resultdef.typ=floatdef) and
                            (right.resultdef.typ=floatdef) and
-                           (left.location.size<>right.location.size) then
+                           ((left.location.size<>right.location.size)
+                           { on newer (1993+ :)) x86 cpus, use the fpu to copy extended values }
+{$ifdef x86}
+                            or ({$ifndef x86_64}(current_settings.cputype>=cpu_Pentium) and{$endif x86_64} (is_extended(right.resultdef)))
+{$endif x86}
+                           )then
                           begin
                             { assume that all float types can be handed by the
                               fpu if one can be handled by the fpu }
@@ -1522,7 +1527,7 @@ implementation
       begin
         indirect := (tf_supports_packages in target_info.flags) and
                       (target_info.system in systems_indirect_var_imports) and
-                      (cs_imported_data in current_settings.localswitches) and
+                      (cs_imported_data in localswitches) and
                       (rttidef.owner.moduleid<>current_module.moduleid);
 
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,sizeof(pint),[]);

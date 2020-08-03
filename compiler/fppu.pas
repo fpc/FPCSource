@@ -359,6 +359,7 @@ var
         crc:=ppufile.header.checksum;
         interface_crc:=ppufile.header.interface_checksum;
         indirect_crc:=ppufile.header.indirect_checksum;
+        change_endian:=ppufile.change_endian;
       { Show Debug info }
         if ppufiletime<>-1 then
           Message1(unit_u_ppu_time,filetimestring(ppufiletime))
@@ -1028,7 +1029,7 @@ var
         old_docrc:=ppufile.do_crc;
         ppufile.do_crc:=false;
         ppufile.putlongint(longint(CurrentPPULongVersion));
-        ppufile.putsmallset(moduleflags);
+        ppufile.putset(tppuset4(moduleflags));
         ppufile.writeentry(ibextraheader);
         ppufile.do_crc:=old_docrc;
       end;
@@ -1380,7 +1381,7 @@ var
     procedure tppumodule.readextraheader;
       begin
         longversion:=cardinal(ppufile.getlongint);
-        ppufile.getsmallset(moduleflags);
+        ppufile.getset(tppuset4(moduleflags));
       end;
 
 
@@ -1414,11 +1415,11 @@ var
                end;
              ibfeatures :
                begin
-                 ppufile.getsmallset(features);
+                 ppufile.getset(tppuset4(features));
                end;
              ibmoduleoptions:
                begin
-                 ppufile.getsmallset(moduleoptions);
+                 ppufile.getset(tppuset1(moduleoptions));
                  if mo_has_deprecated_msg in moduleoptions then
                    begin
                      stringdispose(deprecatedmsg);
@@ -1533,7 +1534,7 @@ var
          ppufile.putstring(realmodulename^);
          ppufile.writeentry(ibmodulename);
 
-         ppufile.putsmallset(moduleoptions);
+         ppufile.putset(tppuset1(moduleoptions));
          if mo_has_deprecated_msg in moduleoptions then
            ppufile.putstring(deprecatedmsg^);
          ppufile.writeentry(ibmoduleoptions);
@@ -1547,7 +1548,7 @@ var
 
          if cs_compilesystem in current_settings.moduleswitches then
            begin
-             ppufile.putsmallset(features);
+             ppufile.putset(tppuset4(features));
              ppufile.writeentry(ibfeatures);
            end;
 
@@ -1715,7 +1716,7 @@ var
          { extra header (sub version, module flags) }
          writeextraheader;
 
-         ppufile.putsmallset(moduleoptions);
+         ppufile.putset(tppuset1(moduleoptions));
          if mo_has_deprecated_msg in moduleoptions then
            ppufile.putstring(deprecatedmsg^);
          ppufile.writeentry(ibmoduleoptions);
@@ -2046,7 +2047,9 @@ var
              begin
                { When we don't have any data stored yet there
                  is nothing to resolve }
-               if interface_compiled then
+               if interface_compiled and
+                 { it makes no sense to re-resolve the unit if it is already finally compiled }
+                 not(state=ms_compiled) then
                  begin
                    Message1(unit_u_reresolving_unit,modulename^);
                    tstoredsymtable(globalsymtable).deref(false);

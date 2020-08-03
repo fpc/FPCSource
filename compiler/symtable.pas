@@ -125,7 +125,6 @@ interface
           procedure insertdef(def:TDefEntry);override;
           function is_packed: boolean;
           function has_single_field(out def:tdef): boolean;
-          function get_unit_symtable: tsymtable;
           { collects all management operators of the specified type in list (which
             is not cleared); the entries are copies and thus must be freed by the
             caller }
@@ -334,7 +333,8 @@ interface
     procedure write_system_parameter_lists(const name:string);
 
 {*** Search ***}
-    procedure addsymref(sym:tsym);
+    procedure addsymref(sym:tsym);inline;
+    procedure addsymref(sym:tsym;def:tdef);
     function  is_owned_by(nesteddef,ownerdef:tdef):boolean;
     function  sym_is_owned_by(childsym:tsym;symtable:tsymtable):boolean;
     function  defs_belong_to_same_generic(def1,def2:tdef):boolean;
@@ -474,7 +474,7 @@ implementation
 
     uses
       { global }
-      verbose,globals,
+      verbose,globals,systems,
       { symtable }
       symutil,defutil,defcmp,objcdef,
       { module }
@@ -482,7 +482,7 @@ implementation
       { codegen }
       procinfo,
       { ppu }
-      entfile,
+      entfile,ppu,
       { parser }
       scanner
       ;
@@ -525,7 +525,7 @@ implementation
         { load the table's flags }
         if ppufile.readentry<>ibsymtableoptions then
           Message(unit_f_ppu_read_error);
-        ppufile.getsmallset(tableoptions);
+        ppufile.getset(tppuset1(tableoptions));
 
         { load definitions }
         loaddefs(ppufile);
@@ -544,7 +544,7 @@ implementation
            needs_init_final;
 
          { write the table's flags }
-         ppufile.putsmallset(tableoptions);
+         ppufile.putset(tppuset1(tableoptions));
          ppufile.writeentry(ibsymtableoptions);
 
          { write definitions }
@@ -1246,7 +1246,7 @@ implementation
         recordalignmin:=shortint(ppufile.getbyte);
         if (usefieldalignment=C_alignment) then
           fieldalignment:=shortint(ppufile.getbyte);
-        ppufile.getsmallset(has_fields_with_mop);
+        ppufile.getset(tppuset1(has_fields_with_mop));
         inherited ppuload(ppufile);
       end;
 
@@ -1267,7 +1267,7 @@ implementation
          { it's not really a "symtableoption", but loading this from the record
            def requires storing the set in the recorddef at least between
            ppuload and deref/derefimpl }
-         ppufile.putsmallset(has_fields_with_mop);
+         ppufile.putset(tppuset1(has_fields_with_mop));
          ppufile.writeentry(ibrecsymtableoptions);
 
          inherited ppuwrite(ppufile);
@@ -1555,8 +1555,7 @@ implementation
         for i:=0 to SymList.count-1 do
           begin
             sym:=tsym(symlist[i]);
-            if (sym.typ=fieldvarsym) and
-               not(sp_static in sym.symoptions) and
+            if is_normal_fieldvarsym(sym) and
                (tfieldvarsym(sym).fieldoffset>=offset) then
               begin
                 result:=tfieldvarsym(sym);
@@ -1637,8 +1636,7 @@ implementation
           { record has one field? }
           for i:=0 to currentsymlist.Count-1 do
             begin
-              if (tsym(currentsymlist[i]).typ=fieldvarsym) and
-                 not(sp_static in tsym(currentsymlist[i]).symoptions) then
+              if is_normal_fieldvarsym(tsym(currentsymlist[i])) then
                 begin
                   if result then
                     begin
@@ -1678,14 +1676,6 @@ implementation
         until false;
       end;
 
-    function tabstractrecordsymtable.get_unit_symtable: tsymtable;
-      begin
-        result:=defowner.owner;
-        while assigned(result) and (result.symtabletype in [ObjectSymtable,recordsymtable]) do
-          result:=result.defowner.owner;
-      end;
-
-
     procedure tabstractrecordsymtable.do_get_managementoperator_offset_list(data:tobject;arg:pointer);
       var
         sym : tsym absolute data;
@@ -1695,7 +1685,7 @@ implementation
         sublist : tfplist;
         i : longint;
       begin
-        if sym.typ<>fieldvarsym then
+        if not is_normal_fieldvarsym(sym) then
           exit;
         if not is_record(fsym.vardef) and not is_object(fsym.vardef) and not is_cppclass(fsym.vardef) then
           exit;
@@ -1871,7 +1861,7 @@ implementation
         for i:=0 to unionst.SymList.Count-1 do
           begin
             sym:=TSym(unionst.SymList[i]);
-            if sym.typ<>fieldvarsym then
+            if not is_normal_fieldvarsym(sym) then
               internalerror(200601272);
             if tfieldvarsym(sym).fieldoffset=0 then
               include(tfieldvarsym(sym).varoptions,vo_is_first_field);
@@ -2003,7 +1993,7 @@ implementation
                   )
                  ) then
                 begin
-                  { only watn when a parameter/local variable in a method
+                  { only warn when a parameter/local variable in a method
                     conflicts with a category method, because this can easily
                     happen due to all possible categories being imported via
                     CocoaAll }
@@ -2155,8 +2145,7 @@ implementation
         i:=0;
         while (i<equivst.symlist.count) do
           begin
-            if (tsym(equivst.symlist[i]).typ<>fieldvarsym) or
-               (sp_static in tsym(equivst.symlist[i]).symoptions) then
+            if not is_normal_fieldvarsym(tsym(equivst.symlist[i])) then
               begin
                 inc(i);
                 continue;
@@ -2214,8 +2203,7 @@ implementation
                       begin
                         inc(i);
                         while (i<equivst.symlist.count) and
-                              ((tsym(equivst.symlist[i]).typ<>fieldvarsym) or
-                               (sp_static in tsym(equivst.symlist[i]).symoptions) or
+                              (not is_normal_fieldvarsym(tsym(equivst.symlist[i])) or
                                (tfieldvarsym(equivst.symlist[i]).fieldoffset>sym.fieldoffset)) do
                           inc(i);
                         continue;
@@ -2242,8 +2230,7 @@ implementation
         lastvaroffsetprocessed:=-1;
         while (i<equivcount) do
           begin
-            if (tsym(equivst.symlist[i]).typ<>fieldvarsym) or
-               (sp_static in tsym(equivst.symlist[i]).symoptions) then
+            if not is_normal_fieldvarsym(tsym(equivst.symlist[i])) then
               begin
                 inc(i);
                 continue;
@@ -2284,8 +2271,7 @@ implementation
         i:=0;
         while (i < equivcount) do
           begin
-            if (tsym(equivst.symlist[i]).typ<>fieldvarsym) or
-               (sp_static in tsym(equivst.symlist[i]).symoptions) then
+            if not is_normal_fieldvarsym(tsym(equivst.symlist[i])) then
               begin
                 inc(i);
                 continue;
@@ -2465,7 +2451,7 @@ implementation
            assigned(tprocdef(defowner).struct) and
            (tprocdef(defowner).owner.defowner=tprocdef(defowner).struct) and
            (
-            not(m_delphi in current_settings.modeswitches) or
+            not(m_duplicate_names in current_settings.modeswitches) or
             is_object(tprocdef(defowner).struct)
            ) then
           result:=tprocdef(defowner).struct.symtable.checkduplicate(hashedid,sym);
@@ -2566,6 +2552,8 @@ implementation
                 HideSym(hsym);
                 tstaticvarsym(sym).isoindex:=tprogramparasym(hsym).isoindex;
               end
+            else if (m_iso in current_settings.modeswitches) and (hsym.typ=unitsym) then
+              HideSym(hsym)
             else
               DuplicateSym(hashedid,sym,hsym,false);
             result:=true;
@@ -2642,7 +2630,7 @@ implementation
           begin
             { first check the class... }
             if ([oo_has_class_constructor,oo_has_class_destructor] * tabstractrecorddef(p).objectoptions <> []) then
-              result^:=true;;
+              result^:=true;
             { ... and then also check all subclasses }
             if not result^ then
               tabstractrecorddef(p).symtable.deflist.foreachcall(@CheckForClassConDestructors,arg);
@@ -3029,9 +3017,9 @@ implementation
                                   Search
 *****************************************************************************}
 
-     procedure addsymref(sym:tsym);
+     procedure addsymref(sym:tsym;def:tdef);
        var
-         owner: tsymtable;
+         owner,procowner : tsymtable;
        begin
          { for symbols used in preprocessor expressions, we don't want to
            increase references count (for smaller final binaries) }
@@ -3063,8 +3051,47 @@ implementation
                  { symbol is imported from another unit }
                  current_module.addimportedsym(sym);
              end;
+         { static symbols that are used in public functions must be exported
+           for packages as well }
+         if ([tf_supports_packages,tf_supports_hidden_symbols]<=target_info.flags) and
+             (owner.symtabletype=staticsymtable) and
+             assigned(current_procinfo) and
+             (
+               (
+                 (sym.typ=staticvarsym) and
+                 ([vo_is_public,vo_has_global_ref]*tstaticvarsym(sym).varoptions=[])
+               ) or (
+                 (sym.typ=localvarsym) and
+                 assigned(tlocalvarsym(sym).defaultconstsym) and
+                 ([vo_is_public,vo_has_global_ref]*tstaticvarsym(tlocalvarsym(sym).defaultconstsym).varoptions=[])
+               ) or (
+                 (sym.typ=procsym) and
+                 assigned(def) and
+                 (def.typ=procdef) and
+                 not (df_has_global_ref in def.defoptions) and
+                 not (po_public in tprocdef(def).procoptions)
+               )
+             ) then
+           begin
+             procowner:=current_procinfo.procdef.owner;
+             while procowner.symtabletype in [objectsymtable,recordsymtable] do
+               procowner:=tdef(procowner.defowner).owner;
+             if procowner.symtabletype=globalsymtable then
+               begin
+                 if sym.typ=procsym then
+                   current_procinfo.add_local_ref_def(def)
+                 else if sym.typ=staticvarsym then
+                   current_procinfo.add_local_ref_sym(sym)
+                 else
+                   current_procinfo.add_local_ref_sym(tlocalvarsym(sym).defaultconstsym);
+               end;
+           end;
        end;
 
+     procedure addsymref(sym:tsym);
+       begin
+         addsymref(sym,nil);
+       end;
 
     function is_owned_by(nesteddef,ownerdef:tdef):boolean;
       begin
@@ -3916,8 +3943,17 @@ implementation
               exit;
           end;
         { now search all helpers using the extendeddef as the starting point }
-        if m_multi_helpers in current_settings.modeswitches then
-          result:=search_best_objectpascal_helper(s,classh.extendeddef,contextclassh,srsym,srsymtable);
+        if (m_multi_helpers in current_settings.modeswitches) and
+            (
+              (current_structdef<>classh) or
+              assigned(classh.extendeddef)
+            ) then
+          begin
+            { this is only allowed if classh is currently parsed }
+            if not assigned(classh.extendeddef) then
+              internalerror(2019110101);
+            result:=search_best_objectpascal_helper(s,classh.extendeddef,contextclassh,srsym,srsymtable);
+          end;
       end;
 
     function search_specific_assignment_operator(assignment_type:ttoken;from_def,to_def:Tdef):Tprocdef;
@@ -4187,6 +4223,16 @@ implementation
           anything }
         if current_module.extendeddefs.count=0 then
           exit;
+        if (df_genconstraint in pd.defoptions) then
+          begin
+            { if we have a constraint for a class type or a single interface we
+              use that to resolve helpers at declaration time of the generic,
+              otherwise there can't be any helpers as the type isn't known yet }
+            if pd.typ=objectdef then
+              pd:=tobjectdef(pd).getparentdef
+            else
+              exit;
+          end;
         { no helpers for anonymous types }
         if ((pd.typ in [recorddef,objectdef]) and
             (
@@ -4210,10 +4256,8 @@ implementation
 
     function search_best_objectpascal_helper(const name: string;pd : tdef;contextclassh : tabstractrecorddef;out srsym: tsym;out srsymtable: tsymtable):boolean;
       var
-        s : string;
         list : TFPObjectList;
         i : integer;
-        st : tsymtable;
         odef : tobjectdef;
       begin
         result:=false;
@@ -4234,7 +4278,6 @@ implementation
 
     function search_last_objectpascal_helper(pd : tdef;contextclassh : tabstractrecorddef;out odef : tobjectdef):boolean;
       var
-        s : string;
         list : TFPObjectList;
         i : integer;
       begin

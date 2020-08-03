@@ -1,0 +1,67 @@
+#
+#   Makefile.fpc for ZX Spectrum RTL
+#
+[package]
+main=rtl
+[target]
+loaders=prt0
+units=system si_prc
+
+[require]
+nortl=y
+[install]
+fpcpackage=y
+[default]
+fpcdir=../..
+target=zxspectrum
+cpu=z80
+[compiler]
+includedir=$(INC) $(PROCINC)
+sourcedir=$(INC) $(PROCINC) $(COMMON)
+[prerules]
+RTL=..
+INC=../inc
+COMMON=$(RTL)/common
+PROCINC=../$(CPU_TARGET)
+UNITPREFIX=rtl
+SYSTEMUNIT=system
+
+# Paths
+OBJPASDIR=$(RTL)/objpas
+# Insert exception handler in system unit
+ifdef EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dEXCEPTIONS_IN_SYSTEM
+endif
+# Insert exception handler in system unit
+ifdef NO_EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
+endif
+[rules]
+# Get the system independent include file names.
+# This will set the following variables :
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+# Get the processor dependent include file names.
+# This will set the following variables :
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+#
+# Loaders
+#
+
+prt0$(OEXT) : prt0.asm
+        $(MAKE) $(COMPILER_UNITTARGETDIR)
+        sdcc-sdasz80 -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) prt0.asm
+#
+# System Units (System, Objpas, Strings)
+#
+system$(PPUEXT) : system.pp $(SYSDEPS)
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
+        $(EXECPPAS)
+
+si_prc$(PPUEXT) : system$(PPUEXT)
+        $(COMPILER) si_prc.pp

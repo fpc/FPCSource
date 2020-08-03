@@ -87,6 +87,8 @@ Type
     procedure DescrEndItalic; override;
     procedure DescrBeginEmph; override;
     procedure DescrEndEmph; override;
+    procedure DescrBeginUnderline; override;
+    procedure DescrEndUnderline; override;
     procedure DescrWriteImageEl(const AFileName, ACaption, ALinkName : DOMString); override;
     procedure DescrWriteFileEl(const AText: DOMString); override;
     procedure DescrWriteKeywordEl(const AText: DOMString); override;
@@ -283,6 +285,16 @@ begin
 end;
 
 procedure TLaTeXWriter.DescrEndEmph;
+begin
+  Write('}');
+end;
+
+procedure TLaTeXWriter.DescrBeginUnderline;
+begin
+  Write('\underline{');
+end;
+
+procedure TLaTeXWriter.DescrEndUnderline;
 begin
   Write('}');
 end;

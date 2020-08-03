@@ -23,7 +23,12 @@ interface
 
 
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
+{$ifdef MSWINDOWS}
+  {$define HAS_PARAMSTRU}
+  {$undef FPC_HAS_FEATURE_COMMANDARGS} // Skip the implementation of ParamStr()
+{$endif MSWINDOWS}
 Function ParamStr(Param: Longint): UnicodeString;
+  {$ifdef HAS_PARAMSTRU} external name '_FPC_ParamStrU'; {$endif}
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 implementation

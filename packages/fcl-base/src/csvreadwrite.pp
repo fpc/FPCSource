@@ -124,7 +124,7 @@ Type
     // simple parsing
     procedure ParseValue;
   public
-    constructor Create;
+    constructor Create; override;
     destructor Destroy; override;
     // Source data stream
     procedure SetSource(AStream: TStream); overload;
@@ -161,7 +161,7 @@ Type
     procedure AppendStringToStream(const AString: String; AStream: TStream);
     function  QuoteCSVString(const AValue: String): String;
   public
-    constructor Create;
+    constructor Create; override;
     destructor Destroy; override;
     // Set output/destination stream.
     // If not called, output is sent to DefaultOutput
@@ -455,6 +455,7 @@ var
   b: packed array[0..2] of byte;
   n: Integer;
 begin
+  B[0]:=0; B[1]:=0; B[2]:=0;
   ClearOutput;
   FSourceStream.Seek(0, soFromBeginning);
   if FDetectBOM then
@@ -533,6 +534,7 @@ begin
   if StreamSize > 0 then
   begin
     SetLength(Result, StreamSize);
+    FDefaultOutput.Position:=0;
     FDefaultOutput.ReadBuffer(Result[1], StreamSize);
   end;
 end;

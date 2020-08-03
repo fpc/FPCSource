@@ -73,7 +73,7 @@ begin
             begin
               { first check the more precise options }
               if (FpuState and FPU_DivisionByZero)<>0 then
-                res:=200
+                res:=208
               else if (FpuState and FPU_Overflow)<>0 then
                 res:=205
               else if (FpuState and FPU_Underflow)<>0 then

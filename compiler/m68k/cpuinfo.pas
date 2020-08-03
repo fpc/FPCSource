@@ -137,38 +137,41 @@ Const
                                  genericlevel3optimizerswitches-
                                  { no need to write info about those }
                                  [cs_opt_level1,cs_opt_level2,cs_opt_level3]+
-                                 [cs_opt_regvar,cs_opt_stackframe,cs_opt_loopunroll,
+                                 [{$ifndef llvm}cs_opt_regvar,{$endif}cs_opt_stackframe,cs_opt_loopunroll,
                                   cs_opt_tailrecursion,cs_opt_nodecse,
                                   cs_opt_reorder_fields,cs_opt_fastmath];
 
    level1optimizerswitches = genericlevel1optimizerswitches;
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
-     [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
+     [{$ifndef llvm}cs_opt_regvar,{$endif}cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
 
 type
   tcpuflags =
-     (CPUM68K_HAS_DBRA,        { CPU supports the DBRA instruction                         }
-      CPUM68K_HAS_RTD,         { CPU supports the RTD instruction                          }
-      CPUM68K_HAS_CAS,         { CPU supports the CAS instruction                          }
-      CPUM68K_HAS_TAS,         { CPU supports the TAS instruction                          }
-      CPUM68K_HAS_BRAL,        { CPU supports the BRA.L/Bcc.L instructions                 }
-      CPUM68K_HAS_ROLROR,      { CPU supports the ROL/ROR and ROXL/ROXR instructions       }
-      CPUM68K_HAS_BYTEREV,     { CPU supports the BYTEREV instruction                      }
-      CPUM68K_HAS_MVSMVZ,      { CPU supports the MVZ and MVS instructions                 }
-      CPUM68K_HAS_MOVE16,      { CPU supports the MOVE16 instruction                       }
-      CPUM68K_HAS_MULIMM,      { CPU supports MULS/MULU with immediate value               }
-      CPUM68K_HAS_32BITMUL,    { CPU supports MULS/MULU 32x32 -> 32bit                     }
-      CPUM68K_HAS_64BITMUL,    { CPU supports MULS/MULU 32x32 -> 64bit                     }
-      CPUM68K_HAS_16BITDIV,    { CPU supports DIVS/DIVU 32/16 -> 16bit                     }
-      CPUM68K_HAS_32BITDIV,    { CPU supports DIVS/DIVU 32/32 -> 32bit                     }
-      CPUM68K_HAS_64BITDIV,    { CPU supports DIVS/DIVU 64/32 -> 32bit                     }
-      CPUM68K_HAS_REMSREMU,    { CPU supports the REMS/REMU instructions                   }
-      CPUM68K_HAS_UNALIGNED,   { CPU supports unaligned access                             }
-      CPUM68K_HAS_BASEDISP,    { CPU supports addressing with 32bit base displacements     }
-      CPUM68K_HAS_INDEXSCALE,  { CPU supports scaling the index register with 2 or 4       }
-      CPUM68K_HAS_INDEXSCALE8  { CPU supports scaling the index register with 2, 4 or 8    }
+     (CPUM68K_HAS_DBRA,         { CPU supports the DBRA instruction                         }
+      CPUM68K_HAS_RTD,          { CPU supports the RTD instruction                          }
+      CPUM68K_HAS_CAS,          { CPU supports the CAS instruction                          }
+      CPUM68K_HAS_TAS,          { CPU supports the TAS instruction                          }
+      CPUM68K_HAS_BRAL,         { CPU supports the BRA.L/Bcc.L instructions                 }
+      CPUM68K_HAS_ROLROR,       { CPU supports the ROL/ROR and ROXL/ROXR instructions       }
+      CPUM68K_HAS_BYTEREV,      { CPU supports the BYTEREV instruction                      }
+      CPUM68K_HAS_MVSMVZ,       { CPU supports the MVZ and MVS instructions                 }
+      CPUM68K_HAS_MOVE16,       { CPU supports the MOVE16 instruction                       }
+      CPUM68K_HAS_MULIMM,       { CPU supports MULS/MULU with immediate value               }
+      CPUM68K_HAS_32BITMUL,     { CPU supports MULS/MULU 32x32 -> 32bit                     }
+      CPUM68K_HAS_64BITMUL,     { CPU supports MULS/MULU 32x32 -> 64bit                     }
+      CPUM68K_HAS_16BITDIV,     { CPU supports DIVS/DIVU 32/16 -> 16bit                     }
+      CPUM68K_HAS_32BITDIV,     { CPU supports DIVS/DIVU 32/32 -> 32bit                     }
+      CPUM68K_HAS_64BITDIV,     { CPU supports DIVS/DIVU 64/32 -> 32bit                     }
+      CPUM68K_HAS_REMSREMU,     { CPU supports the REMS/REMU instructions                   }
+      CPUM68K_HAS_UNALIGNED,    { CPU supports unaligned access                             }
+      CPUM68K_HAS_BASEDISP,     { CPU supports addressing with 32bit base displacements     }
+      CPUM68K_HAS_INDEXSCALE,   { CPU supports scaling the index register with 2 or 4       }
+      CPUM68K_HAS_INDEXSCALE8,  { CPU supports scaling the index register with 2, 4 or 8    }
+      CPUM68K_HAS_INDEXWORD,    { CPU supports indexing with 16bit index                    }
+      CPUM68K_HAS_BYTEWORDMATH, { CPU supports supports 8 and 16bit aritmetic operations    }
+      CPUM68K_HAS_BITFIELD      { CPU supports bitfield instructions                        }
      );
 
   tfpuflags =
@@ -183,10 +186,10 @@ type
 const
   cpu_capabilities : array[tcputype] of set of tcpuflags =
     ( { cpu_none     } [],
-      { cpu_68000    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_TAS,CPUM68K_HAS_ROLROR,CPUM68K_HAS_MULIMM,CPUM68K_HAS_16BITDIV],
-      { cpu_68020    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_RTD,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_ROLROR,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_BASEDISP,CPUM68K_HAS_MULIMM,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_64BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_64BITDIV,CPUM68K_HAS_INDEXSCALE,CPUM68K_HAS_INDEXSCALE8],
-      { cpu_68040    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_RTD,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_ROLROR,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_BASEDISP,CPUM68K_HAS_MULIMM,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_64BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_64BITDIV,CPUM68K_HAS_MOVE16,CPUM68K_HAS_INDEXSCALE,CPUM68K_HAS_INDEXSCALE8],
-      { cpu_68060    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_RTD,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_ROLROR,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_BASEDISP,CPUM68K_HAS_MULIMM,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_MOVE16,CPUM68K_HAS_INDEXSCALE,CPUM68K_HAS_INDEXSCALE8],
+      { cpu_68000    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_TAS,CPUM68K_HAS_ROLROR,CPUM68K_HAS_MULIMM,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_BYTEWORDMATH],
+      { cpu_68020    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_RTD,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_ROLROR,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_BASEDISP,CPUM68K_HAS_MULIMM,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_64BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_64BITDIV,CPUM68K_HAS_INDEXSCALE,CPUM68K_HAS_INDEXSCALE8,CPUM68K_HAS_INDEXWORD,CPUM68K_HAS_BYTEWORDMATH,CPUM68K_HAS_BITFIELD],
+      { cpu_68040    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_RTD,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_ROLROR,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_BASEDISP,CPUM68K_HAS_MULIMM,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_64BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_64BITDIV,CPUM68K_HAS_MOVE16,CPUM68K_HAS_INDEXSCALE,CPUM68K_HAS_INDEXSCALE8,CPUM68K_HAS_INDEXWORD,CPUM68K_HAS_BYTEWORDMATH,CPUM68K_HAS_BITFIELD],
+      { cpu_68060    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_RTD,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_ROLROR,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_BASEDISP,CPUM68K_HAS_MULIMM,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_MOVE16,CPUM68K_HAS_INDEXSCALE,CPUM68K_HAS_INDEXSCALE8,CPUM68K_HAS_INDEXWORD,CPUM68K_HAS_BYTEWORDMATH,CPUM68K_HAS_BITFIELD],
       { cpu_isaa     } [CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_REMSREMU,CPUM68K_HAS_INDEXSCALE],
       { cpu_isaap    } [CPUM68K_HAS_BRAL,CPUM68K_HAS_BYTEREV,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_REMSREMU,CPUM68K_HAS_INDEXSCALE],
       { cpu_isab     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_MVSMVZ,CPUM68K_HAS_UNALIGNED,CPUM68K_HAS_32BITMUL,CPUM68K_HAS_16BITDIV,CPUM68K_HAS_32BITDIV,CPUM68K_HAS_REMSREMU,CPUM68K_HAS_INDEXSCALE],

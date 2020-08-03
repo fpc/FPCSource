@@ -53,7 +53,8 @@ libunits=$(SYSTEMUNIT) objpas strings dos \
       sysutils typinfo math \
       $(CPU_UNITS) getopts \
       errors  \
-      classes fgl sysconst rtlconsts types
+      classes fgl sysconst syscall rtlconsts types \
+      linux sortbase
 
 [prerules]
 RTL=..
@@ -90,6 +91,11 @@ override LOADERS=
 SYSINIT_UNITS=si_prc si_c si_g si_dll
 endif
 
+ifeq ($(ARCH),riscv32)
+override LOADERS=
+SYSINIT_UNITS=si_prc si_dll si_c
+endif
+
 ifeq ($(ARCH),riscv64)
 override LOADERS=
 SYSINIT_UNITS=si_prc si_dll si_c
@@ -102,7 +108,6 @@ endif
 ifeq ($(ARCH),mipsel)
 override FPCOPT+=-Ur
 endif
-
 
 ifeq ($(ARCH),arm)
 override LOADERS+=ucprt0
@@ -117,6 +122,10 @@ ifeq ($(ARCH),sparc64)
   override FPCOPT+=-Fisparcgen
 endif
 
+ifeq ($(ARCH),xtensa)
+override LOADERS=
+SYSINIT_UNITS=si_prc si_dll si_c
+endif
 
 SYSTEMUNIT=system
 
@@ -173,12 +182,18 @@ ifeq ($(ARCH),mips)
   ifeq ($(PIC_OPT),1)
     ASTARGET+= -KPIC
   endif
+  ifneq (,$(findstring -ao-xgot, $(FPC_OPT)))
+    ASTARGET+= -xgot
+  endif
   ASSHAREDOPT=-KPIC
 endif
 ifeq ($(ARCH),mipsel)
   ASTARGET=-32 -mabi=32 -mips2 -EL
   ifeq ($(PIC_OPT),1)
     ASTARGET+= -KPIC
+  endif
+  ifneq (,$(findstring -ao-xgot, $(FPC_OPT)))
+    ASTARGET+= -xgot
   endif
   ASSHAREDOPT=-KPIC
 endif
@@ -352,13 +367,13 @@ initc$(PPUEXT) : $(UNIXINC)/initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) baseunix$(PPUEXT)
         $(COMPILER) $(UNIXINC)/unixcp.pp
-		
+
 linux$(PPUEXT) :  linux.pp baseunix$(PPUEXT) unixtype$(PPUEXT) syscall$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) linux.pp
-		
+
 linuxvcs$(PPUEXT) :  linuxvcs.pp baseunix$(PPUEXT) strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) linuxvcs.pp
-		
+
 termio$(PPUEXT) : termio.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) termio.pp
 
@@ -375,8 +390,8 @@ dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(
 #
 
 sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT) \
-                    linux$(PPUEXT)
+                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT) unixtype$(PPUEXT) \
+                    linux$(PPUEXT) syscall$(PPUEXT) baseunix$(PPUEXT) unixutil$(PPUEXT) initc$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \

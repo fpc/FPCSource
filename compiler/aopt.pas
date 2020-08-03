@@ -79,6 +79,7 @@ Unit aopt;
 
     uses
       cutils,
+      cprofile,
       globtype, globals,
       verbose,
       cpubase,
@@ -147,6 +148,7 @@ Unit aopt;
           p := BlockStart;
           While (P <> BlockEnd) Do
             Begin
+              prefetch(pointer(p.Next)^);
               Case p.typ Of
                 ait_Label:
                   begin
@@ -190,7 +192,6 @@ Unit aopt;
                       End
                     else if tai_regalloc(p).ratype=ra_dealloc then
                       Begin
-                        ExcludeRegFromUsedRegs(tai_regalloc(p).Reg,Regs);
                         hp1 := p;
                         hp2 := nil;
                         While Not(assigned(FindRegAlloc(tai_regalloc(p).Reg, tai(hp1.Next)))) And
@@ -231,7 +232,9 @@ Unit aopt;
                             AsmL.remove(p);
                             p.free;
                             p := hp1;
-                          end;
+                          end
+                        else
+                          ExcludeRegFromUsedRegs(tai_regalloc(p).Reg,Regs);
                       End
                   End
                 else
@@ -345,6 +348,7 @@ Unit aopt;
         p:=BlockStart;
         while p<>BlockEnd Do
           begin
+            prefetch(pointer(p.Next)^);
             if SchedulerPass1Cpu(p) then
               continue;
             p:=tai(p.next);
@@ -387,12 +391,14 @@ Unit aopt;
       var
         p : TAsmOptimizer;
       begin
+        ResumeTimer(ct_aopt);
         p:=casmoptimizer.Create(AsmL);
         p.Optimize;
 {$ifdef DEBUG_INSTRUCTIONREGISTERDEPENDENCIES}
         p.Debug_InsertInstrRegisterDependencyInfo;
 {$endif DEBUG_INSTRUCTIONREGISTERDEPENDENCIES}
-        p.free
+        p.free;
+        StopTimer;
       end;
 
 

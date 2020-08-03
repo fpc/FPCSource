@@ -216,7 +216,7 @@ implementation
     uses
        systems,constexp,globals,
        cutils,verbose,
-       symtable,
+       symtable,symutil,
        defutil,defcmp,
        nbas,ncnv,nld,nmem,ncal,nmat,ninl,nutils,procinfo,
        pgenutil
@@ -333,6 +333,7 @@ implementation
                              (treetyp in order_theoretic_operators)
                            ) or
                            (
+                             (m_mac in current_settings.modeswitches) and
                              is_stringlike(rd) and
                              (ld.typ=orddef) and
                              (treetyp in string_comparison_operators)) or
@@ -617,6 +618,7 @@ implementation
         i : longint;
         eq : tequaltype;
         conv : tconverttype;
+        cdo : tcompare_defs_options;
         pd : tprocdef;
         oldcount,
         count: longint;
@@ -662,7 +664,10 @@ implementation
                 { assignment is a special case }
                 if optoken in [_ASSIGNMENT,_OP_EXPLICIT] then
                   begin
-                    eq:=compare_defs_ext(ld,pf.returndef,nothingn,conv,pd,[cdo_explicit]);
+                    cdo:=[];
+                    if optoken=_OP_EXPLICIT then
+                      include(cdo,cdo_explicit);
+                    eq:=compare_defs_ext(ld,pf.returndef,nothingn,conv,pd,cdo);
                     result:=
                       (eq=te_exact) or
                       (
@@ -857,7 +862,7 @@ implementation
             exit;
           end;
 
-        addsymref(operpd.procsym);
+        addsymref(operpd.procsym,operpd);
 
         { the nil as symtable signs firstcalln that this is
           an overloaded operator }
@@ -1052,7 +1057,7 @@ implementation
             exit;
           end;
 
-        addsymref(operpd.procsym);
+        addsymref(operpd.procsym,operpd);
 
         { the nil as symtable signs firstcalln that this is
           an overloaded operator }
@@ -1296,6 +1301,9 @@ implementation
                break;
              loadn :
                begin
+                 { the methodpointer/framepointer is read }
+                 if assigned(tunarynode(p).left) then
+                   set_varstate(tunarynode(p).left,vs_read,[vsf_must_be_valid]);
                  if (tloadnode(p).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) then
                    begin
                      hsym:=tabstractvarsym(tloadnode(p).symtableentry);
@@ -1376,6 +1384,8 @@ implementation
                  end;
                  break;
                end;
+             addrn:
+               break;
              callparan :
                internalerror(200310081);
              else
@@ -2769,7 +2779,7 @@ implementation
               internalerror(2015060301);
             { check whether the given parameters are compatible
               to the def's constraints }
-            if not check_generic_constraints(pd,spezcontext.genericdeflist,spezcontext.poslist) then
+            if not check_generic_constraints(pd,spezcontext.paramlist,spezcontext.poslist) then
               exit;
             def:=generate_specialization_phase2(spezcontext,pd,false,'');
             case def.typ of
@@ -3651,7 +3661,7 @@ implementation
           for i:=0 to def.symtable.symlist.count-1 do
             begin
               sym:=tsym(def.symtable.symlist[i]);
-              if (sym.typ<>fieldvarsym) or (sp_static in sym.symoptions) then
+              if not is_normal_fieldvarsym(sym) then
                 continue;
               if not is_valid_for_default(tfieldvarsym(sym).vardef) then
                 begin

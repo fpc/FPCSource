@@ -120,6 +120,7 @@ interface
         '',
         '',
         '',
+        '',
         ''
       );
 
@@ -726,8 +727,6 @@ interface
       consttype : taiconst_type;
       do_line,DoNotSplitLine,
       quoted   : boolean;
-      sin      : single;
-      d        : double;
 
     begin
       if not assigned(p) then
@@ -1241,9 +1240,10 @@ interface
             idtxt  : 'MPW';
             asmbin : 'PPCAsm';
             asmcmd : '-case on $ASM $EXTRAOPT -o $OBJ';
-            supported_targets : [system_powerpc_macos];
+            supported_targets : [system_powerpc_macosclassic];
             flags : [af_needar,af_smartlink_sections,af_labelprefix_only_inside_procedure];
             labelprefix : '@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: 's';
           );

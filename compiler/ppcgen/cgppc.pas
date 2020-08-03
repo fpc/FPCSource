@@ -417,7 +417,7 @@ unit cgppc;
          fixref(list,ref2);
          if assigned(ref2.symbol) then
            begin
-             if target_info.system = system_powerpc_macos then
+             if target_info.system = system_powerpc_macosclassic then
                begin
                  if macos_direct_globals then
                    begin
@@ -563,7 +563,6 @@ unit cgppc;
         );
     var
       ref2: TReference;
-      tmpreg: tregister;
       op: TAsmOp;
     begin
       if not (fromsize in [OS_8..OS_INT,OS_S8..OS_SINT]) then
@@ -712,7 +711,7 @@ unit cgppc;
         begin
           pd:=search_system_proc('mcount');
           paraloc1.init;
-          paramanager.getintparaloc(list,pd,1,paraloc1);
+          paramanager.getcgtempparaloc(list,pd,1,paraloc1);
           a_load_reg_cgpara(list,OS_ADDR,NR_R0,paraloc1);
           paramanager.freecgpara(list,paraloc1);
           paraloc1.done;
@@ -812,9 +811,6 @@ unit cgppc;
       AutoDirectTOCLimit = (high(smallint) div sizeof(pint)) - 500;
     var
       tmpref: treference;
-      { can have more than 16384 (32 bit) or 8192 (64 bit) toc entries and, as
-        as consequence, toc subsections -> 5 extra characters for the number}
-      tocsecname: string[length('tocsubtable')+5];
       nlsymname: string;
       newsymname: ansistring;
       sym: TAsmSymbol;
@@ -850,7 +846,7 @@ unit cgppc;
                 current_asmdata.WeakRefAsmSymbol(symname,AT_DATA)
               else
                 current_asmdata.WeakRefAsmSymbol('.'+symname,AT_DATA);
-              newsymname:=ReplaceForbiddenAsmSymbolChars(symname);
+              newsymname:=ApplyAsmSymbolRestrictions(symname);
               current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_toc_entry,newsymname+'[TC],'+newsymname));
             end;
         end
@@ -883,7 +879,7 @@ unit cgppc;
               ref.symbol:=tocsym;
               tocsym.ftocsecnr:=tocnr;
               current_asmdata.asmlists[al_indirectpicdata].concat(tai_symbol.create(tocsym,0));
-              newsymname:=ReplaceForbiddenAsmSymbolChars(symname);
+              newsymname:=ApplyAsmSymbolRestrictions(symname);
               sym:=current_asmdata.RefAsmSymbol(newsymname,AT_DATA);
               current_asmdata.asmlists[al_indirectpicdata].concat(tai_const.Create_sym(sym));
             end;
@@ -1117,7 +1113,7 @@ unit cgppc;
         tmpreg := NR_NO;
         largeOffset:= hasLargeOffset(ref);
 
-        if target_info.system in ([system_powerpc_macos]+systems_aix) then
+        if target_info.system in ([system_powerpc_macosclassic]+systems_aix) then
           begin
 
             if assigned(ref.symbol) and
@@ -1190,7 +1186,7 @@ unit cgppc;
             else
               list.concat(taicpu.op_reg_ref(op,reg,ref));
           end
-        else {if target_info.system <> system_powerpc_macos}
+        else {if target_info.system <> system_powerpc_macosclassic}
           begin
             if assigned(ref.symbol) or
                largeOffset then

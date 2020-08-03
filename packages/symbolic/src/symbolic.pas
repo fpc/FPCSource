@@ -504,7 +504,7 @@ begin
        try
          Eval:=TEvaluator.Create(Varname,Expr);
          try 
-           if high(variablenames)>0 then
+           if high(variablenames)>=0 then
              begin
                for i:=low(variablenames) to high(variablenames) do
                  begin

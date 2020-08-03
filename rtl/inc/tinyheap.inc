@@ -57,6 +57,7 @@
 
     const
       TinyHeapMinBlock = sizeof(TTinyHeapBlock);
+      TinyHeapMaxBlock = High(ptruint) - sizeof(TTinyHeapBlock) - sizeof(TTinyHeapMemBlockSize);
 
       TinyHeapAllocGranularity = sizeof(TTinyHeapBlock);
 
@@ -96,6 +97,8 @@
 {$ifdef DEBUG_TINY_HEAP}
         Write('SysGetMem(', Size, ')=');
 {$endif DEBUG_TINY_HEAP}
+        if size>TinyHeapMaxBlock then
+          HandleError(203);
         AllocSize := align(size+sizeof(TTinyHeapMemBlockSize), TinyHeapAllocGranularity);
 
         p := FreeList;
@@ -320,6 +323,8 @@
             if (TTinyHeapPointerArithmeticType(p) < TTinyHeapPointerArithmeticType(HeapOrg)) or
                (TTinyHeapPointerArithmeticType(p) >= TTinyHeapPointerArithmeticType(HeapPtr)) then
               HandleError(204);
+            if size>TinyHeapMaxBlock then
+              HandleError(203);
             oldsize := FindSize(p);
             OldAllocSize := align(oldsize+sizeof(TTinyHeapMemBlockSize), TinyHeapAllocGranularity);
             NewAllocSize := align(size+sizeof(TTinyHeapMemBlockSize), TinyHeapAllocGranularity);

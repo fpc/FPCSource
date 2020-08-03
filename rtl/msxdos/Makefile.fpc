@@ -1,0 +1,226 @@
+#
+#   Makefile.fpc for MSDOS RTL
+#
+[package]
+main=rtl
+[target]
+#loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
+units=system si_prc uuchar objpas iso7185
+#uuchar objpas strings dos heaptrc lnfodwrf sysconst sysutils \
+#      math macpas iso7185 extpas rtlconsts typinfo cpu types \
+#      getopts sortbase fgl classes \
+#      msmouse ports  \
+#      charset cpall ctypes \
+#      fpwidestring character unicodedata unicodenumtable
+#      cmem
+#      initc profile dxetype dxeload emu387 \
+#      cpu mmx \
+#      vesamode \
+# rsts=math typinfo classes dateutil sysconst
+implicitunits=exeinfo \
+      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
+      cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 \
+      cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 \
+      cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 \
+      cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
+
+[require]
+nortl=y
+[install]
+fpcpackage=y
+[default]
+fpcdir=../..
+target=msxdos
+cpu=z80
+[compiler]
+includedir=$(INC) $(PROCINC)
+sourcedir=$(INC) $(PROCINC) $(COMMON)
+[prerules]
+RTL=..
+INC=../inc
+COMMON=$(RTL)/common
+PROCINC=../$(CPU_TARGET)
+UNITPREFIX=rtl
+SYSTEMUNIT=system
+
+# Paths
+OBJPASDIR=$(RTL)/objpas
+# Insert exception handler in system unit
+ifdef EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dEXCEPTIONS_IN_SYSTEM
+endif
+# Insert exception handler in system unit
+ifdef NO_EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
+endif
+[rules]
+# Get the system independent include file names.
+# This will set the following variables :
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+# Get the processor dependent include file names.
+# This will set the following variables :
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+#
+# Loaders
+#
+ifneq ($(findstring -dTEST_I8086_SMARTLINK_SECTIONS,$(FPCOPT)),)
+override NASM_OPT+=-D__I8086_SMARTLINK_SECTIONS__
+endif
+
+#
+# System Units (System, Objpas, Strings)
+#
+system$(PPUEXT) : system.pp $(SYSDEPS) $(INC)/tnyheaph.inc $(INC)/tinyheap.inc registers.inc
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
+	$(EXECPPAS)
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+	$(COMPILER) $(INC)/uuchar.pp
+	$(EXECPPAS)
+
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+	$(EXECPPAS)
+
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
+                   $(INC)/genstr.inc $(INC)/genstrs.inc \
+                   system$(PPUEXT)
+	$(COMPILER) $(INC)/strings.pp
+	$(EXECPPAS)
+
+iso7185$(PPUEXT) : $(INC)/iso7185.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/iso7185.pp
+	$(EXECPPAS)
+
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/extpas.pp
+        $(EXECPPAS)
+
+#
+# System Dependent Units
+#
+
+ports$(PPUEXT) : ports.pp system$(PPUEXT)
+	$(COMPILER) ports.pp
+	$(EXECPPAS)
+#
+# TP7 Compatible RTL Units
+#
+dos$(PPUEXT) : dos.pp registers.inc \
+               $(INC)/dosh.inc $(INC)/dos.inc $(INC)/fexpand.inc \
+               strings$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) dos.pp
+	$(EXECPPAS)
+
+#
+# Delphi Compatible Units
+#
+sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
+                    objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+	$(EXECPPAS)
+
+classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
+                   types$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT) \
+                   objpas$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+	$(EXECPPAS)
+
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT) sortbase$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fgl.pp
+	$(EXECPPAS)
+
+math$(PPUEXT): $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc objpas$(PPUEXT) sysutils$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/math.pp
+	$(EXECPPAS)
+
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) objpas$(PPUEXT) rtlconsts$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
+	$(EXECPPAS)
+
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/types.pp
+	$(EXECPPAS)
+
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(OBJPASDIR)/rtlconst.inc objpas$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconsts.pp
+	$(EXECPPAS)
+
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/sysconst.pp
+	$(EXECPPAS)
+
+#
+# Mac Pascal Model
+#
+macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(INC)/macpas.pp $(REDIR)
+	$(EXECPPAS)
+
+#
+# Other system-independent RTL Units
+#
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) $(PROCINC)/cpu.pp
+	$(EXECPPAS)
+
+getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/getopts.pp $(REDIR)
+	$(EXECPPAS)
+
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
+        $(COMPILER) -Sg $(INC)/heaptrc.pp
+	$(EXECPPAS)
+
+lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp exeinfo$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(INC)/lnfodwrf.pp
+	$(EXECPPAS)
+
+exeinfo$(PPUEXT) : $(INC)/exeinfo.pp strings$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(INC)/exeinfo.pp
+	$(EXECPPAS)
+
+charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) $(INC)/charset.pp
+	$(EXECPPAS)
+
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
+	$(EXECPPAS)
+
+fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp unicodedata$(PPUEXT) charset$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
+
+character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconsts$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/character.pas
+
+unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas objpas$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodenumtable.pas
+
+unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
+
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+
+#
+# Other system-dependent RTL Units
+#
+msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
+        $(COMPILER) msmouse.pp $(REDIR)
+	$(EXECPPAS)
+
+ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/ctypes.pp $(REDIR)
+	$(EXECPPAS)
+
+si_prc$(PPUEXT) : system$(PPUEXT)
+        $(COMPILER) si_prc.pp

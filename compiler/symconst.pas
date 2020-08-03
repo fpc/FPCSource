@@ -124,10 +124,10 @@ const
   paranr_blockselfpara = 1;
   paranr_parentfp_delphi_cc_leftright = 2;
 {$if defined(aarch64) and defined(llvm)}
-  { for AArch64 on LLVM, the "sret" parameter
-    must always be the first -> give it a higher number; can't do it for other
-    platforms, because that would change the register assignment/parameter order
-    and the current one is presumably Delphi-compatible }
+  { for AArch64 on LLVM, the "sret" parameter must always be the first
+    (it gets passed in a dedicated register, so it won't shift the register
+     assignments) -> give it a lower number; can't do it for other platforms,
+     because that would change the register assignment/parameter order }
   paranr_result = 2;
   paranr_parentfp = 3;
   paranr_self = 4;
@@ -136,12 +136,19 @@ const
   paranr_self = 3;
   paranr_result = 4;
 {$endif}
-  paranr_vmt = 5;
+  { pointers to managed result parameters must always be passed in the same way as the first regular
+    parameter, regardless of ABI conventions, because the RTL expects the two following declarations
+    to be handled in the same way:
+      function f: com_interface;
+      procedure p(out o: obj);
+  }
+  paranr_result_managed = 5;
+  paranr_vmt = 6;
 
   { the implicit parameters for Objective-C methods need to come
     after the hidden result parameter }
-  paranr_objc_self = 5;
-  paranr_objc_cmd = 6;
+  paranr_objc_self = 7;
+  paranr_objc_cmd = 8;
 
   { Required to support variations of syscalls on Amiga-likes }
   paranr_syscall_lib_first   = 9;             { for basefirst on MorphOS/ppc and AmigaOS4/ppc }
@@ -205,8 +212,9 @@ type
                               generic is encountered to ease inline
                               specializations, etc; those symbols can be
                               "overridden" with a completely different symbol }
-    sp_explicitrename       { this is used to keep track of type renames created
+    sp_explicitrename,      { this is used to keep track of type renames created
                               by the user }
+    sp_generic_const
   );
   tsymoptions=set of tsymoption;
 
@@ -232,7 +240,12 @@ type
       because we have to access this information in the symtable unit }
     df_llvm_no_struct_packing,
     { internal def that's not for any export }
-    df_internal
+    df_internal,
+    { the local def is referenced from a public function }
+    df_has_global_ref,
+    { the def was derived with generic type or const fields so the size
+      of the def can not be determined }
+    df_has_generic_fields
   );
   tdefoptions=set of tdefoption;
 
@@ -436,7 +449,13 @@ type
     { inline is not possible (has assembler block, etc) }
     pio_inline_not_possible,
     { a nested routine accesses a local variable from this routine }
-    pio_nested_access
+    pio_nested_access,
+    { a stub/thunk }
+    pio_thunk,
+    { compiled with fastmath enabled }
+    pio_fastmath,
+    { inline is forbidden (calls get_frame) }
+    pio_inline_forbidden
   );
   timplprocoptions = set of timplprocoption;
 
@@ -551,7 +570,9 @@ type
     ado_IsConstructor,      // array constructor (e.g. something = [1,2,3])
     ado_IsArrayOfConst,     // array of const
     ado_IsConstString,      // string constant
-    ado_IsBitPacked         // bitpacked array
+    ado_IsBitPacked,        // bitpacked array
+    ado_IsVector,           // Vector
+    ado_IsGeneric           // the index of the array is generic (meaning that the size is not yet known)
   );
   tarraydefoptions=set of tarraydefoption;
 
@@ -605,9 +626,20 @@ type
       sections }
     vo_is_default_var,
     { i8086 'external far' (can only be used in combination with vo_is_external) }
-    vo_is_far
+    vo_is_far,
+    { a static symbol that is referenced from a global function }
+    vo_has_global_ref
   );
   tvaroptions=set of tvaroption;
+
+  { variable symbol access flags }
+  tvarsymaccessflag = (
+    { this symbol's address has been taken }
+    vsa_addr_taken,
+    { this symbol is accessed from a different scope }
+    vsa_different_scope
+  );
+  tvarsymaccessflags = set of tvarsymaccessflag;
 
   tmanagementoperator=(mop_none,
     mop_initialize,

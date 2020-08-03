@@ -37,6 +37,7 @@ begin
     T:=P.Targets.AddExampleProgram('higem.pas');
     T:=P.Targets.AddExampleProgram('gemwin.pas');
     T:=P.Targets.AddExampleProgram('gemcube.pas');
+    T:=P.Targets.AddExampleProgram('showpic.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

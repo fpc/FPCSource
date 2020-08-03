@@ -213,7 +213,7 @@ Var
   P : TFPPackage;
   DepPackage: TFPPackage;
   DepDirList: TStringList;
-  Reason: string;
+  S,Reason: string;
 begin
   Result := True;
   P:=DeterminePackage;
@@ -309,6 +309,10 @@ begin
           AddOption('-vi');
         AddOption('-O2');
         AddOption('-XXs');
+        if PackageManager.FPMakeCompilerOptions.HasOptions then
+          for S in PackageManager.FPMakeCompilerOptions.Options do
+            AddOption(S);
+         // AddOption(PackageManager.FPMakeCompilerOptions.Options.DelimitedText) ;
         // Create fpmkunit.pp if needed
         if NeedFPMKUnitSource then
           begin

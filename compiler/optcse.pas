@@ -51,7 +51,7 @@ unit optcse;
       nutils,compinnr,
       nbas,nld,ninl,ncal,nadd,nmem,
       pass_1,
-      symconst,symdef,symsym,
+      symconst,symdef,symsym,symtable,symtype,
       defutil,
       optbase;
 
@@ -138,6 +138,7 @@ unit optcse;
 
       var
         i : longint;
+        tempdef : tdef;
       begin
         result:=fen_false;
         { don't add the tree below an untyped const parameter: there is
@@ -160,14 +161,29 @@ unit optcse;
         if
           { node possible to add? }
           assigned(n.resultdef) and
-          (
+          ((
             { regable expressions }
             (actualtargetnode(@n)^.flags*[nf_write,nf_modify,nf_address_taken]=[]) and
-            ((((tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable or tstoreddef(n.resultdef).is_const_intregable) and
+            (
+              tstoreddef(n.resultdef).is_intregable or
+              tstoreddef(n.resultdef).is_fpuregable or
+              tstoreddef(n.resultdef).is_const_intregable
+            ) and
             { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
-            (not(n.resultdef.typ in [arraydef,recorddef]))) or
-             is_dynamic_array(n.resultdef) or
-             ((n.resultdef.typ in [arraydef,recorddef]) and not(is_special_array(tstoreddef(n.resultdef))) and not(tstoreddef(n.resultdef).is_intregable) and not(tstoreddef(n.resultdef).is_fpuregable))
+            (
+              not(n.resultdef.typ in [arraydef,recorddef]) or
+              (
+                (
+                  (n.resultdef.typ = recorddef) and
+                  tabstractrecordsymtable(tabstractrecorddef(n.resultdef).symtable).has_single_field(tempdef)
+                ) or
+                is_dynamic_array(n.resultdef) or
+                (
+                  not(is_special_array(tstoreddef(n.resultdef))) and
+                  not(tstoreddef(n.resultdef).is_intregable) and
+                  not(tstoreddef(n.resultdef).is_fpuregable)
+                )
+              )
             ) and
             { same for voiddef }
             not(is_void(n.resultdef)) and
@@ -196,7 +212,7 @@ unit optcse;
              not(tloadnode(actualtargetnode(@n)^).symtableentry.typ in [paravarsym,localvarsym,staticvarsym]) or
              { apply cse on non-regable variables }
              ((tloadnode(actualtargetnode(@n)^).symtableentry.typ in [paravarsym,localvarsym,staticvarsym]) and
-               not(tabstractvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).is_regvar(false)) and
+               not(tabstractvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).is_regvar(true)) and
                not(vo_volatile in tabstractvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).varoptions)) or
              (node_complexity(n)>1)
             ) and

@@ -111,7 +111,7 @@ Type
   // Please keep this order, see OSCPUSupported below
   TCpu=(cpuNone,
     i386,m68k,powerpc,sparc,x86_64,arm,powerpc64,avr,armeb,
-    mips,mipsel,jvm,i8086,aarch64,sparc64,riscv32,riscv64
+    mips,mipsel,mips64,mips64el,jvm,i8086,aarch64,cpuwasm,sparc64,riscv32,riscv64,xtensa,z80
   );
   TCPUS = Set of TCPU;
 
@@ -119,10 +119,10 @@ Type
   TOS=(osNone,
     linux,go32v2,win32,os2,freebsd,beos,netbsd,
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
-    palmos,macos,darwin,emx,watcom,morphos,netwlibc,
+    palmos,macosclassic,darwin,emx,watcom,morphos,netwlibc,
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
     aix,java,android,nativent,msdos,wii,aros,dragonfly,
-    win16
+    win16,wasm,freertos,zxspectrum,msxdos,ios
   );
   TOSes = Set of TOS;
 
@@ -175,57 +175,62 @@ Const
 
   AllOSes = [Low(TOS)..High(TOS)];
   AllCPUs = [Low(TCPU)..High(TCPU)];
-  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix,Android,dragonfly];
-  AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim,dragonfly];
+  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,ios,aix,Android,dragonfly];
+  AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim,ios,dragonfly];
   AllWindowsOSes  = [Win32,Win64,WinCE];
   AllAmigaLikeOSes = [Amiga,MorphOS,AROS];
   AllLimit83fsOses = [go32v2,os2,emx,watcom,msdos,win16,atari];
 
   AllSmartLinkLibraryOSes = [Linux,msdos,win16,palmos]; // OSes that use .a library files for smart-linking
-  AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent,msdos,win16];
+  AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macosclassic,nativent,msdos,win16];
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
   OSCPUSupported : array[TOS,TCpu] of boolean = (
-    { os          none   i386    m68k  ppc    sparc  x86_64 arm    ppc64  avr    armeb  mips   mipsel jvm    i8086 aarch64 sparc64 riscv32 riscv64}
-    { none }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { linux }   ( false, true,  true,  true,  true,  true,  true,  true,  false, true , true , true , false, false, true , true ,  true ,  true ),
-    { go32v2 }  ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { win32 }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { os2 }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { freebsd } ( false, true,  true,  false, false, true,  false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { beos }    ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { netbsd }  ( false, true,  true,  true,  true,  true,  true,  false, false, false, false, false, false, false, false, false,  false,  false),
-    { amiga }   ( false, false, true,  true,  false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { atari }   ( false, false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { solaris } ( false, true,  false, false, true,  true,  false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { qnx }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { netware } ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { openbsd } ( false, true,  true,  false, false, true,  false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { wdosx }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { palmos }  ( false, false, true,  false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
-    { macos }   ( false, false, true,  true,  false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { darwin }  ( false, true,  false, true,  false, true,  true,  true,  false, false, false, false, false, false, true , false,  false,  false),
-    { emx }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { watcom }  ( false, true,  false, false, false ,false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { morphos } ( false, false, false, true,  false ,false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { netwlibc }( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { win64   } ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { wince    }( false, true,  false, false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
-    { gba    }  ( false, false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
-    { nds    }  ( false, false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
-    { embedded }( false, true,  true,  true,  true,  true,  true,  true,  true,  true , false, true,  false, true , false, false,  true ,  true ),
-    { symbian } ( false, true,  false, false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
-    { haiku }   ( false, true,  false, false, false, true,  false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { iphonesim}( false, true,  false, false, false, true,  false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { aix    }  ( false, false, false, true,  false, false, false, true,  false, false, false, false, false, false, false, false,  false,  false),
-    { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, true , false, false, false,  false,  false),
-    { android } ( false, true,  false, false, false, true,  true,  false, false, false, false, true,  true , false, true,  false,  false,  false),
-    { nativent }( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true , false, false,  false,  false),
-    { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { aros }    ( false, true,  false, false, false, true,  true,  false, false, false, false, false, false, false, false, false,  false,  false),
-    { dragonfly}( false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true , false, false,  false,  false)
+    { os          none   i386    m68k  ppc    sparc  x86_64 arm    ppc64  avr    armeb  mips   mipsel mips64 mips64el jvm    i8086 aarch64 wasm   sparc64 riscv32 riscv64  xtensa z80}
+    { none }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { linux }   ( false, true,  true,  true,  true,  true,  true,  true,  false, true , true , true , true , true ,   false, false, true , false, true ,  true ,  true,    true , false),
+    { go32v2 }  ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { win32 }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { os2 }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { freebsd } ( false, true,  true,  false, false, true,  false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { beos }    ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { netbsd }  ( false, true,  true,  true,  true,  true,  true,  false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { amiga }   ( false, false, true,  true,  false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { atari }   ( false, false, true,  false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { solaris } ( false, true,  false, false, true,  true,  false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { qnx }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { netware } ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { openbsd } ( false, true,  true,  false, false, true,  false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { wdosx }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { palmos }  ( false, false, true,  false, false, false, true,  false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+{ macosclassic }( false, false, true,  true,  false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { darwin }  ( false, true,  false, true,  false, true,  false,  true, false, false, false, false, false, false,   false, false, true , false, false,  false,  false,   false, false),
+    { emx }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { watcom }  ( false, true,  false, false, false ,false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { morphos } ( false, false, false, true,  false ,false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { netwlibc }( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { win64   } ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, true,  false, false,  false,  false,   false, false),
+    { wince    }( false, true,  false, false, false, false, true,  false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { gba    }  ( false, false, false, false, false, false, true,  false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { nds    }  ( false, false, false, false, false, false, true,  false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { embedded }( false, true,  true,  true,  true,  true,  true,  true,  true,  true , false, true,  false, true,    false, true , false, false, false,  true,   true,    true , false),
+    { symbian } ( false, true,  false, false, false, false, true,  false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { haiku }   ( false, true,  false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { iphonesim}( false, true,  false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { aix    }  ( false, false, false, true,  false, false, false, true,  false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   true , false, false, false, false,  false,  false,   false, false),
+    { android } ( false, true,  false, false, false, true,  true,  false, false, false, false, true,  false, true,    true , false, true,  false, false,  false,  false,   false, false),
+    { nativent }( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, true , false, false, false,  false,  false,   false, false),
+    { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { aros }    ( false, true,  false, false, false, true,  true,  false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { dragonfly}( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false),
+    { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, true , false, false, false,  false,  false,   false, false),
+    { wasm }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, true,  false,  false,  false,   false, false),
+    { freertos }( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   true , false),
+    {zxspectrum}( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, true ),
+    { msxdos }  ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, true ),
+    { ios }     ( false, false, false, false, false, false,  true, false, false, false, false, false, false, false,   false, false, true , false, false,  false,  false,   false, false)
   );
 
   // Useful
@@ -2648,7 +2653,7 @@ function AddLibraryExtension(const LibraryName: string; AOS : TOS): string;
 begin
   if AOS in [Go32v2,Win32,Win64,Wince,OS2,EMX,Watcom] then
     Result:=LibraryName+DLLExt
-  else if aOS in [darwin,macos,iphonesim] then
+  else if aOS in [darwin,macosclassic,iphonesim,ios] then
     Result:=LibraryName+DyLibExt
   else if aOS = Aix then
     Result:=LibraryName+AIXSharedLibExt
@@ -2662,7 +2667,7 @@ begin
     Result := 'libimp'+UnitName
   else if AOS in [os2,emx] then
     Result := UnitName
-  else if AOS in [netware,netwlibc,macos] then
+  else if AOS in [netware,netwlibc,macosclassic] then
     Result := 'lib'+UnitName
   else
     Result := 'libimp'+UnitName;
@@ -2713,13 +2718,19 @@ end;
 
 
 {$ifdef HAS_UNIT_PROCESS}
-function GetCompilerInfo(const ACompiler,AOptions:string; ReadStdErr: boolean):string;
+{ function GetCompilerInfo
+  used both for gcc and Free Pascal compiler
+  returns stdout output of Acompiler with AOptions parameters
+  If ReadStdErr is True, return stderr output if stdout is empty
+  If EmptyIfStdErr, return empty string if stderr output is not empty }
+function GetCompilerInfo(const ACompiler,AOptions:string; ReadStdErr: boolean;EmptyIfStdErr : boolean):string;
 const
   BufSize = 1024;
 var
   S: TProcess;
   Buf: array [0..BufSize - 1] of char;
-  Count: longint;
+  ErrorBuf: array [0..BufSize - 1] of char;
+  Count, ErrorCount: longint;
 begin
   S:=TProcess.Create(Nil);
   S.Commandline:=ACompiler+' '+AOptions;
@@ -2727,7 +2738,17 @@ begin
   S.execute;
   Count:=s.output.read(buf,BufSize);
   if (count=0) and ReadStdErr then
-    Count:=s.Stderr.read(buf,BufSize);
+    Count:=s.Stderr.read(buf,BufSize)
+  else if EmptyIfStdErr then
+    begin
+      ErrorCount:=s.StdErr.read(ErrorBuf,BufSize);
+      if (ErrorCount>0) then
+        begin
+          Result:='';
+          S.Free;
+          exit;
+        end;
+    end;
   S.Free;
   SetLength(Result,Count);
   Move(Buf,Result[1],Count);
@@ -2776,7 +2797,7 @@ function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): stri
     if FileExists(GccExecutable) then
       begin
 {$ifdef HAS_UNIT_PROCESS}
-      ExecResult:=GetCompilerInfo(GccExecutable,'-v '+GCCParams, True);
+      ExecResult:=GetCompilerInfo(GccExecutable,'-v '+GCCParams, True, True);
       libgccFilename:=Get4thWord(ExecResult);
       // Use IsRelativePath to check if the 4th word is an (absolute) path.
       // This depends on the language settings. In English the 4th word is
@@ -2786,7 +2807,7 @@ function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): stri
       if IsRelativePath(libgccFilename) then
         libgccFilename:='';
       if libgccFilename='' then
-        libgccFilename:=GetCompilerInfo(GccExecutable,'--print-libgcc-file-name '+GCCParams, False);
+        libgccFilename:=GetCompilerInfo(GccExecutable,'--print-libgcc-file-name '+GCCParams, False, True);
       result := ExtractFileDir(libgccFilename);
 {$else HAS_UNIT_PROCESS}
       ErrorMessage := SWarnNoFCLProcessSupport;
@@ -2809,9 +2830,16 @@ begin
       x86_64:   result := GetGccDirArch('cpux86_64','-m64');
       powerpc:  result := GetGccDirArch('cpupowerpc','-m32');
       powerpc64:result := GetGccDirArch('cpupowerpc64','-m64');
-      aarch64:  result := GetGccDirArch('cpuaarch64','');
+      arm:      result := GetGccDirArch('cpuarm','-marm -march=armv2');
+      aarch64:  result := GetGccDirArch('cpuaarch64','-march=aarch64 -mcmodel=large');
+      m68k:     result := GetGccDirArch('cpum68k','');
+      mips:     result := GetGccDirArch('cpumips','-mips32 -EB -mabi=32');
+      mipsel:   result := GetGccDirArch('cpumipsel','-mips32 -EL -mabi=32');
       riscv32:  result := GetGccDirArch('cpuriscv32','-march=rv32imafdc');
       riscv64:  result := GetGccDirArch('cpuriscv64','-march=rv64imafdc');
+      sparc:    result := GetGccDirArch('cpusparc','-m32');
+      sparc64:  result := GetGccDirArch('cpusparc64','-m64');
+      xtensa:   result := GetGccDirArch('cpuxtensa','');
     end {case}
   else if OS = darwin then
     case CPU of
@@ -3152,10 +3180,11 @@ end;
 
 constructor TCompileWorkerThread.Create(ABuildEngine: TBuildEngine; NotifyMainThreadEvent: PRTLEvent);
 begin
-  inherited Create(false);
+  inherited Create(true);
   FNotifyStartTask := RTLEventCreate;
   FBuildEngine := ABuildEngine;
   FNotifyMainThreadEvent:=NotifyMainThreadEvent;
+  Start;
 end;
 
 destructor TCompileWorkerThread.Destroy;
@@ -3179,8 +3208,8 @@ begin
     RTLeventWaitFor(FNotifyStartTask,500);
     if not FDone then
       begin
-      { synchronise with WriteBarrier in mainthread for same reason as above }
-      ReadBarrier;
+      { synchronise with ReadWriteBarrier in mainthread for same reason as above }
+      ReadWriteBarrier;
       FBuildEngine.log(vlInfo,'Compiling: '+APackage.Name);
       FCompilationOK:=false;
       try
@@ -4723,7 +4752,7 @@ begin
       // Detect compiler version/target from -i option
       infosl:=TStringList.Create;
       infosl.Delimiter:=' ';
-      infosl.DelimitedText:=GetCompilerInfo(GetCompiler,'-iVTPTO', False);
+      infosl.DelimitedText:=GetCompilerInfo(GetCompiler,'-iVTPTO', False, True);
       if infosl.Count<>3 then
         Raise EInstallerError.Create(SErrInvalidFPCInfo);
       if FCompilerVersion='' then
@@ -4847,7 +4876,7 @@ begin
       FRemove:=Values[KeyRemove];
       FRemoveDir:=Values[KeyRemoveDir];
       FRemoveTree:=Values[KeyRemoveTree];
-      Options:=OptionsToStringList(Values[KeyOptions]);
+      Self.Options:=OptionsToStringList(Values[KeyOptions]);
       Line:=Values[KeyCPU];
       If (Line<>'') then
         FCPU:=StringToCPU(Line);
@@ -6779,30 +6808,42 @@ begin
     Args.Add('-Fi'+AddPathPrefix(APackage,L[i]));
   FreeAndNil(L);
 
-  // libc-linker path
-  if APackage.NeedLibC then
+  // libc-linker path (always for Linux, since required for LLVM and SEH; this does not
+  // force the linking of anything by itself, but just adds a search directory)
+  if APackage.NeedLibC or
+     (Defaults.OS=linux) then
     begin
-    if FCachedlibcPath='' then
-      begin
-      s:=GetDefaultLibGCCDir(Defaults.CPU, Defaults.OS,ErrS);
-      if s='' then
-        Log(vlWarning, SWarngcclibpath +' '+ErrS)
-      else
+      if FCachedlibcPath='' then
         begin
+          s:=GetDefaultLibGCCDir(Defaults.CPU, Defaults.OS,ErrS);
+          if s='' then
+            Log(vlWarning, SWarngcclibpath +' '+ErrS)
+          else
+            begin
 {$ifndef NO_THREADING}
-        EnterCriticalsection(FGeneralCriticalSection);
-        try
+              EnterCriticalsection(FGeneralCriticalSection);
+              { prevent FCachedlibcPath getting freed by thread 2 while thread 1 is
+                concatenating it to -Fl below }
+              try
+                if volatile(FCachedlibcPath)='' then
+                  begin
 {$endif NO_THREADING}
-          FCachedlibcPath:=s;
+                    FCachedlibcPath:=s;
 {$ifndef NO_THREADING}
-        finally
-          LeaveCriticalsection(FGeneralCriticalSection);
-        end;
+                  end;
+              finally
+                LeaveCriticalsection(FGeneralCriticalSection);
+              end;
 {$endif NO_THREADING}
-        end;
-      end;
+            end;
+        end
+      else
+        { make sure we don't access the contents of the string before they've been
+          synchronised from the thread that wrote them; the critical section there
+          acts as a read/write barrier }
+        ReadBarrier;
 
-    Args.Add('-Fl'+FCachedlibcPath);
+      Args.Add('-Fl'+volatile(FCachedlibcPath));
     end;
 
   // Custom options which are added by dependencies
@@ -7080,7 +7121,7 @@ begin
         end
       else
         begin
-          S:=GetCompilerCommand(APackage,ATarget,Env);
+          S:=GetCompilerCommand(APackage,ATarget,nil);
           ExecuteCommand(GetCompiler,S,nil);
         end;
       If Assigned(ATarget.AfterCompile) then
@@ -8180,8 +8221,10 @@ Var
   begin
     if AThread.Done then
       begin
-        { synchronise with the WriteBarrier in the thread }
-        ReadBarrier;
+        { synchronise with the WriteBarrier in the thread (-> ReadBarrier), and prevent
+          any writes we do here afterwards to be reordered before that (so the compile
+          thread won't see these writes either -> also WriteBarrier) }
+        ReadWriteBarrier;
         if assigned(AThread.APackage) then
           begin
             // The thread has completed compiling the package
@@ -8659,7 +8702,7 @@ begin
     Result := Name+LibExt
   else if AOS in [java] then
     Result:=Name+'.jar'
-  else if AOS in [macos] then
+  else if AOS in [macosclassic] then
     Result:=Name+'Lib'
   else
     Result:='libp'+Name+LibExt;

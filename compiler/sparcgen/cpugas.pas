@@ -236,6 +236,7 @@ implementation
            supported_targets : [system_sparc_solaris,system_sparc_linux,system_sparc_embedded];
            flags : [af_needar,af_smartlink_sections];
            labelprefix : '.L';
+           labelmaxlen : -1;
            comment : '# ';
            dollarsign: '$';
          );
@@ -249,6 +250,7 @@ implementation
            supported_targets : [system_sparc_solaris,system_sparc_linux,system_sparc_embedded];
            flags : [af_needar,af_smartlink_sections];
            labelprefix : '.L';
+           labelmaxlen : -1;
            comment : '# ';
            dollarsign: '$';
          );
@@ -266,6 +268,7 @@ implementation
            supported_targets : [system_sparc64_linux];
            flags : [af_needar,af_smartlink_sections];
            labelprefix : '.L';
+           labelmaxlen : -1;
            comment : '# ';
            dollarsign: '$';
          );
@@ -279,6 +282,7 @@ implementation
            supported_targets : [system_sparc64_linux];
            flags : [af_needar,af_smartlink_sections];
            labelprefix : '.L';
+           labelmaxlen : -1;
            comment : '# ';
            dollarsign: '$';
          );

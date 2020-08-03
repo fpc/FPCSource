@@ -257,9 +257,15 @@
 
 [ROR]
 
-[SXT]
+[SXTB]
 
-[UXT]
+[SXTH]
+
+[SXTW]
+
+[UXTB]
+
+[UXTH]
 
 [NEG]
 
@@ -376,3 +382,5 @@
 [INS]
 
 [MOVI]
+
+[VEOR]

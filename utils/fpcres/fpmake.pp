@@ -16,8 +16,8 @@ begin
     begin
     P:=AddPackage('utils-fpcres');
     P.ShortName:='fprs';
-    P.OSes:=AllOSes-[atari,embedded,msdos,win16,macos,palmos];
-    //P.OSes:=[win32,win64,wince,haiku,linux,freebsd,openbsd,netbsd,darwin,iphonesim,solaris,os2,emx,aix,aros,amiga,morphos];
+    P.OSes:=AllOSes-[atari,embedded,msdos,win16,macosclassic,palmos];
+    //P.OSes:=[win32,win64,wince,haiku,linux,freebsd,openbsd,netbsd,darwin,iphonesim,ios,solaris,os2,emx,aix,aros,amiga,morphos];
 
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];

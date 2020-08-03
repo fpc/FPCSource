@@ -159,7 +159,7 @@ implementation
 
     uses
       globtype,systems,constexp,
-      cutils,verbose,globals,
+      cutils,verbose,globals,ppu,
       symconst,defutil,defcmp,
       nadd,nbas,nflw,nutils,objcutil,
       wpobase,
@@ -370,32 +370,9 @@ implementation
 
 
     function tloadparentfpnode.pass_typecheck:tnode;
-{$ifdef dummy}
-      var
-        currpi : tprocinfo;
-        hsym   : tparavarsym;
-{$endif dummy}
       begin
         result:=nil;
         resultdef:=parentfpvoidpointertype;
-{$ifdef dummy}
-        { currently parentfps are never loaded in registers (FK) }
-        if (current_procinfo.procdef.parast.symtablelevel<>parentpd.parast.symtablelevel) then
-          begin
-            currpi:=current_procinfo;
-            { walk parents }
-            while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
-              begin
-                currpi:=currpi.parent;
-                if not assigned(currpi) then
-                  internalerror(2005040602);
-                hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
-                if not assigned(hsym) then
-                  internalerror(2005040601);
-                hsym.varregable:=vr_none;
-              end;
-          end;
-{$endif dummy}
       end;
 
 
@@ -404,7 +381,6 @@ implementation
         result:=nil;
         expectloc:=LOC_REGISTER;
       end;
-
 
 {*****************************************************************************
                              TADDRNODE
@@ -438,7 +414,7 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         ppufile.getderef(getprocvardefderef);
-        ppufile.getsmallset(addrnodeflags);
+        ppufile.getset(tppuset1(addrnodeflags));
       end;
 
 
@@ -446,7 +422,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putderef(getprocvardefderef);
-        ppufile.putsmallset(addrnodeflags);
+        ppufile.putset(tppuset1(addrnodeflags));
       end;
 
     procedure Taddrnode.mark_write;
@@ -535,6 +511,22 @@ implementation
 
 
     function taddrnode.pass_typecheck:tnode;
+
+      procedure check_mark_read_written;
+        begin
+          if mark_read_written then
+            begin
+              { This is actually only "read", but treat it nevertheless as
+                modified due to the possible use of pointers
+                To avoid false positives regarding "uninitialised"
+                warnings when using arrays, perform it in two steps         }
+              set_varstate(left,vs_written,[]);
+              { vsf_must_be_valid so it doesn't get changed into
+                vsf_referred_not_inited                          }
+              set_varstate(left,vs_read,[vsf_must_be_valid]);
+            end;
+        end;
+
       var
          hp : tnode;
          hsym : tfieldvarsym;
@@ -629,9 +621,11 @@ implementation
               end
             else
               begin
+                check_mark_read_written;
                 { Return the typeconvn only }
                 result:=left;
                 left:=nil;
+                exit;
               end;
           end
         else
@@ -650,17 +644,8 @@ implementation
               CGMessage(type_e_variable_id_expected);
           end;
 
-        if mark_read_written then
-          begin
-            { This is actually only "read", but treat it nevertheless as  }
-            { modified due to the possible use of pointers                }
-            { To avoid false positives regarding "uninitialised"          }
-            { warnings when using arrays, perform it in two steps         }
-            set_varstate(left,vs_written,[]);
-            { vsf_must_be_valid so it doesn't get changed into }
-            { vsf_referred_not_inited                          }
-            set_varstate(left,vs_read,[vsf_must_be_valid]);
-          end;
+        check_mark_read_written;
+
         if not(assigned(result)) then
           result:=simplify(false);
       end;

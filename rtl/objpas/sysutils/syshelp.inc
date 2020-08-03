@@ -1225,9 +1225,12 @@ begin
     begin
     T:=SubString(LastSep);
 //    Writeln('Examining >',T,'< at pos,',LastSep,' till pos ',Sep);
-    MaybeGrow(Len);
-    Result[Len]:=T;
-    Inc(Len);
+    If (T<>'') or (not (TStringSplitOptions.ExcludeEmpty=Options)) then
+      begin
+      MaybeGrow(Len);
+      Result[Len]:=T;
+      Inc(Len);
+      end;
     end;
   SetLength(Result,Len);
 end;
@@ -1308,9 +1311,12 @@ begin
     begin
     T:=SubString(LastSep);
 //    Writeln('Examining >',T,'< at pos,',LastSep,' till pos ',Sep);
-    MaybeGrow(Len);
-    Result[Len]:=T;
-    Inc(Len);
+    If (T<>'') or (not (TStringSplitOptions.ExcludeEmpty=Options)) then
+      begin
+      MaybeGrow(Len);
+      Result[Len]:=T;
+      Inc(Len);
+      end;
     end;
   SetLength(Result,Len);
 end;
@@ -1550,6 +1556,7 @@ end;
 
 {$define TORDINALHELPER:=TByteHelper}
 {$define TORDINALTYPE:=Byte}
+{$define TORDINALBITINDEX:=TByteBitIndex}
 {$i syshelpo.inc}
 
 { ---------------------------------------------------------------------
@@ -1558,6 +1565,7 @@ end;
 
 {$define TORDINALHELPER:=TShortIntHelper}
 {$define TORDINALTYPE:=ShortInt}
+{$define TORDINALBITINDEX:=TShortIntBitIndex}
 {$i syshelpo.inc}
 
 { ---------------------------------------------------------------------
@@ -1566,6 +1574,7 @@ end;
 
 {$define TORDINALHELPER:=TSmallIntHelper}
 {$define TORDINALTYPE:=SmallInt}
+{$define TORDINALBITINDEX:=TSmallIntBitIndex}
 {$i syshelpo.inc}
 
 { ---------------------------------------------------------------------
@@ -1574,6 +1583,7 @@ end;
 
 {$define TORDINALHELPER:=TWordHelper}
 {$define TORDINALTYPE:=Word}
+{$define TORDINALBITINDEX:=TWordBitIndex}
 {$i syshelpo.inc}
 
 { ---------------------------------------------------------------------
@@ -1582,6 +1592,7 @@ end;
 
 {$define TORDINALHELPER:=TCardinalHelper}
 {$define TORDINALTYPE:=Cardinal}
+{$define TORDINALBITINDEX:=TCardinalBitIndex}
 {$i syshelpo.inc}
 
 { ---------------------------------------------------------------------
@@ -1590,6 +1601,7 @@ end;
 
 {$define TORDINALHELPER:=TIntegerHelper}
 {$define TORDINALTYPE:=Integer}
+{$define TORDINALBITINDEX:=TIntegerBitIndex}
 {$i syshelpo.inc}
 
 { ---------------------------------------------------------------------
@@ -1598,6 +1610,7 @@ end;
 
 {$define TORDINALHELPER:=TInt64Helper}
 {$define TORDINALTYPE:=Int64}
+{$define TORDINALBITINDEX:=TInt64BitIndex}
 {$i syshelpo.inc}
 
 { ---------------------------------------------------------------------
@@ -1606,6 +1619,7 @@ end;
 
 {$define TORDINALHELPER:=TQWordHelper}
 {$define TORDINALTYPE:=QWord}
+{$define TORDINALBITINDEX:=TQwordBitIndex}
 {$i syshelpo.inc}
 
 { ---------------------------------------------------------------------
@@ -1614,6 +1628,7 @@ end;
 
 {$define TORDINALHELPER:=TNativeIntHelper}
 {$define TORDINALTYPE:=NativeInt}
+{$define TORDINALBITINDEX:=TNativeIntBitIndex}
 {$i syshelpo.inc}
 
 { ---------------------------------------------------------------------
@@ -1622,6 +1637,7 @@ end;
 
 {$define TORDINALHELPER:=TNativeUIntHelper}
 {$define TORDINALTYPE:=NativeUInt}
+{$define TORDINALBITINDEX:=TNativeUIntBitIndex}
 {$i syshelpo.inc}
 
 { ---------------------------------------------------------------------

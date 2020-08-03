@@ -28,6 +28,9 @@ Unit System;
 {$define FPC_IS_SYSTEM}
 {$define HAS_CMDLINE}
 {$define USE_NOTHREADMANAGER}
+{$ifdef CPUM68K}
+{$define FPC_68K_SYSTEM_HAS_FPU_EXCEPTIONS}
+{$endif}
 
 {$i osdefs.inc}
 
@@ -45,9 +48,9 @@ const
 function get_cmdline:Pchar; deprecated 'use paramstr' ;
 property cmdline:Pchar read get_cmdline;
 
-{$if defined(CPURISCV32) or defined(CPURISCV64) or defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$if defined(CPURISCV32) or defined(CPURISCV64) or defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6)) or defined(CPUXTENSA)}
 {$define FPC_LOAD_SOFTFPU}
-{$endif defined(CPURISCV32) or defined(CPURISCV64) or defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$endif defined(CPURISCV32) or defined(CPURISCV64) or defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6)) or defined(CPUXTENSA)}
 
 {$ifdef FPC_SOFT_FPUX80}
 {$define FPC_SOFTFLOAT_FLOATX80}
@@ -422,12 +425,26 @@ end;}
 var
  execpathstr : shortstring;
 
+procedure SysInitExecPath;
+var
+  i    : longint;
+begin
+  execpathstr[0]:=#0;
+  i:=Fpreadlink('/proc/self/exe',@execpathstr[1],high(execpathstr));
+  { it must also be an absolute filename, linux 2.0 points to a memory
+    location so this will skip that }
+  if (i>0) and (execpathstr[1]='/') then
+     execpathstr[0]:=char(i);
+end;
+
 function paramstr(l: longint) : string;
  begin
    { stricly conforming POSIX applications  }
    { have the executing filename as argv[0] }
    if l=0 then
      begin
+       if execpathstr='' then
+         SysInitExecPath;
        paramstr := execpathstr;
      end
    else if (l < argc) then
@@ -597,19 +614,6 @@ begin
   FpSigAction(SIGILL,@oldsigill,nil);
 end;
 
-
-procedure SysInitExecPath;
-var
-  i    : longint;
-begin
-  execpathstr[0]:=#0;
-  i:=Fpreadlink('/proc/self/exe',@execpathstr[1],high(execpathstr));
-  { it must also be an absolute filename, linux 2.0 points to a memory
-    location so this will skip that }
-  if (i>0) and (execpathstr[1]='/') then
-     execpathstr[0]:=char(i);
-end;
-
 function GetProcessID: SizeUInt;
 begin
  GetProcessID := SizeUInt (fpGetPID);
@@ -687,8 +691,6 @@ begin
   initunicodestringmanager;
   { Setup stdin, stdout and stderr }
   SysInitStdIO;
-  { Arguments }
-  SysInitExecPath;
   { Reset IO Error }
   InOutRes:=0;
   { threading }

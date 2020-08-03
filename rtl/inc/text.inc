@@ -1457,7 +1457,7 @@ begin
     end;
   if TextRec(f).BufPos>=TextRec(f).BufEnd Then
     FileFunc(TextRec(f).InOutFunc)(TextRec(f));
-  CheckRead:=True;
+  CheckRead:=InOutRes=0;
 end;
 
 
@@ -1991,11 +1991,15 @@ var
   hs   : String;
   code : ValSInt;
 Begin
-    ReadInteger(f,hs);
+  l:=0;
+  if not CheckRead(f) then
+    Exit;
 
-    Val(hs,l,code);
-    if Code <> 0 then
-        InOutRes:=106;
+  ReadInteger(f,hs);
+
+  Val(hs,l,code);
+  if Code <> 0 then
+    InOutRes:=106;
 End;
 
 
@@ -2031,10 +2035,14 @@ var
   hs   : String;
   code : ValSInt;
 Begin
-   ReadInteger(f,hs);
-   Val(hs,u,code);
-   If code<>0 Then
-       InOutRes:=106;
+  u:=0;
+  if not CheckRead(f) then
+    Exit;
+
+  ReadInteger(f,hs);
+  Val(hs,u,code);
+  If code<>0 Then
+     InOutRes:=106;
 End;
 
 
@@ -2067,6 +2075,10 @@ var
   hs : string;
   code : Word;
 begin
+  v:=0.0;
+  if not CheckRead(f) then
+    Exit;
+
   ReadReal(f,hs);
   Val(hs,v,code);
   If code<>0 Then
@@ -2127,6 +2139,10 @@ var
   hs : string;
   code : ValSInt;
 begin
+  v:=0;
+  if not CheckRead(f) then
+    Exit;
+
   ReadReal(f,hs);
   Val(hs,v,code);
   If code<>0 Then
@@ -2163,10 +2179,14 @@ var
   hs   : String;
   code : longint;
 Begin
-   ReadInteger(f,hs);
-   Val(hs,q,code);
-   If code<>0 Then
-       InOutRes:=106;
+  q:=0;
+  if not CheckRead(f) then
+    Exit;
+
+  ReadInteger(f,hs);
+  Val(hs,q,code);
+  If code<>0 Then
+    InOutRes:=106;
 End;
 
 procedure fpc_Read_Text_Int64(var f : text; out i : int64); iocheck; compilerproc;
@@ -2196,10 +2216,14 @@ var
   hs   : String;
   code : Longint;
 Begin
-    ReadInteger(f,hs);
-    Val(hs,i,code);
-    If code<>0 Then
-       InOutRes:=106;
+  i:=0;
+  if not CheckRead(f) then
+    Exit;
+
+  ReadInteger(f,hs);
+  Val(hs,i,code);
+  If code<>0 Then
+    InOutRes:=106;
 End;
 
 

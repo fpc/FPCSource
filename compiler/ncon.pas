@@ -218,7 +218,7 @@ implementation
 
     uses
       cutils,
-      verbose,systems,sysutils,
+      verbose,systems,sysutils,ppu,
       defcmp,defutil,procinfo,
       aasmdata,aasmtai,
       cgbase,
@@ -306,6 +306,7 @@ implementation
         p1  : tnode;
         len : longint;
         pc  : pchar;
+        value_set : pconstset;
       begin
         p1:=nil;
         case p.consttyp of
@@ -331,18 +332,50 @@ implementation
           constwstring :
             p1:=cstringconstnode.createunistr(pcompilerwidestring(p.value.valueptr));
           constreal :
-            p1:=crealconstnode.create(pbestreal(p.value.valueptr)^,p.constdef);
+            begin
+              if (sp_generic_para in p.symoptions) and not (sp_generic_const in p.symoptions) then
+                p1:=crealconstnode.create(default(bestreal),p.constdef)
+              else
+                p1:=crealconstnode.create(pbestreal(p.value.valueptr)^,p.constdef);
+            end;
           constset :
-            p1:=csetconstnode.create(pconstset(p.value.valueptr),p.constdef);
+            begin
+              if sp_generic_const in p.symoptions then
+                begin
+                  new(value_set);
+                  value_set^:=pconstset(p.value.valueptr)^;
+                  p1:=csetconstnode.create(value_set,p.constdef);
+                end
+              else if sp_generic_para in p.symoptions then
+                begin
+                  new(value_set);
+                  p1:=csetconstnode.create(value_set,p.constdef);
+                end
+              else
+                p1:=csetconstnode.create(pconstset(p.value.valueptr),p.constdef);
+            end;
           constpointer :
-            p1:=cpointerconstnode.create(p.value.valueordptr,p.constdef);
+            begin
+              if sp_generic_para in p.symoptions then
+                p1:=cpointerconstnode.create(default(tconstptruint),p.constdef)
+              else
+                p1:=cpointerconstnode.create(p.value.valueordptr,p.constdef);
+            end;
           constnil :
             p1:=cnilnode.create;
           constguid :
-            p1:=cguidconstnode.create(pguid(p.value.valueptr)^);
+            begin
+              if sp_generic_para in p.symoptions then
+                p1:=cguidconstnode.create(default(tguid))
+              else
+                p1:=cguidconstnode.create(pguid(p.value.valueptr)^);
+            end;
           else
             internalerror(200205103);
         end;
+        { transfer generic param flag from symbol to node }
+        if sp_generic_para in p.symoptions then
+          include(p1.flags,nf_generic_para);
         genconstsymtree:=p1;
       end;
 
@@ -518,7 +551,11 @@ implementation
     procedure trealconstnode.printnodedata(var t: text);
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'value = ',value_real);
+        write(t,printnodeindention,'value = ',value_real);
+        if is_currency(resultdef) then
+          writeln(', value_currency = ',value_currency)
+        else
+          writeln;
       end;
 
     function trealconstnode.emit_data(tcb:ttai_typedconstbuilder):sizeint;
@@ -619,7 +656,7 @@ implementation
         { only do range checking when explicitly asked for it
           and if the type can be range checked, see tests/tbs/tb0539.pp }
         if (resultdef.typ in [orddef,enumdef]) then
-          adaptrange(resultdef,value,nf_internal in flags, not rangecheck)
+          adaptrange(resultdef,value,nf_internal in flags,not rangecheck,rangecheck)
       end;
 
     function tordconstnode.pass_1 : tnode;
@@ -1063,7 +1100,10 @@ implementation
                       if (cp2=CP_UTF8) then
                         begin
                           if not cpavailable(cp1) then
-                            Message1(option_code_page_not_available,IntToStr(cp1));
+                            begin
+                              Message1(option_code_page_not_available,IntToStr(cp1));
+                              exit;
+                            end;
                           initwidestring(pw);
                           setlengthwidestring(pw,len);
                           { returns room for terminating 0 }
@@ -1082,7 +1122,10 @@ implementation
                       if (cp1=CP_UTF8) then
                         begin
                           if not cpavailable(cp2) then
-                            Message1(option_code_page_not_available,IntToStr(cp2));
+                            begin
+                              Message1(option_code_page_not_available,IntToStr(cp2));
+                              exit;
+                            end;
                           initwidestring(pw);
                           setlengthwidestring(pw,len);
                           ascii2unicode(value_str,len,cp2,pw);
@@ -1235,7 +1278,7 @@ implementation
         inherited ppuload(t,ppufile);
         ppufile.getderef(typedefderef);
         new(value_set);
-        ppufile.getnormalset(value_set^);
+        ppufile.getset(tppuset32(value_set^));
       end;
 
 
@@ -1243,7 +1286,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putderef(typedefderef);
-        ppufile.putnormalset(value_set^);
+        ppufile.putset(tppuset32(value_set^));
       end;
 
 

@@ -1,0 +1,66 @@
+;
+; Z80 registers
+;
+; layout
+; <name>,<value>,<stdname>,<stabidx>,<dwarfidx>
+;
+NO,$00000000,INVALID,0,0
+
+; Main registers
+B,$01010000,b,1,1
+C,$01010001,c,2,2
+D,$01010002,d,3,3
+E,$01010003,e,4,4
+H,$01010004,h,5,5
+L,$01010005,l,6,6
+A,$01010007,a,7,7
+
+; Register pairs
+BC,$01030001,bc,8,8
+DE,$01030003,de,9,9
+HL,$01030005,hl,10,10
+AF,$01030007,af,11,11
+
+; Index registers
+IX,$01030008,ix,11,11
+IY,$01030009,iy,12,12
+
+; Alternate registers
+B_,$05010000,b'',13,13
+C_,$05010001,c'',14,14
+D_,$05010002,d'',15,15
+E_,$05010003,e'',16,16
+H_,$05010004,h'',17,17
+L_,$05010005,l'',18,18
+A_,$05010007,a'',19,19
+AF_,$05030007,af'',26,26
+BC_,$05030001,bc'',27,27
+DE_,$05030003,de'',28,28
+HL_,$05030005,hl'',29,29
+
+; Stack pointer
+SP,$05030008,sp,20,20
+
+; Flags
+F,$05010009,f,23,23
+F_,$0501000a,f'',24,24
+CARRYFLAG,$050f0006,carryflag,-1,-1
+ADDSUBTRACTFLAG,$05100006,addsubtractflag,-1,-1
+PARITYOVERFLOWFLAG,$05110006,parityoverflowflag,-1,-1
+HALFCARRYFLAG,$05130006,halfcarryflag,-1,-1
+ZEROFLAG,$05150006,zeroflag,-1,-1
+SIGNFLAG,$05160006,signflag,-1,-1
+CARRYFLAG_,$050f000a,carryflag'',-1,-1
+ADDSUBTRACTFLAG_,$0510000a,addsubtractflag'',-1,-1
+PARITYOVERFLOWFLAG_,$0511000a,parityoverflowflag'',-1,-1
+HALFCARRYFLAG_,$0513000a,halfcarryflag'',-1,-1
+ZEROFLAG_,$0515000a,zeroflag'',-1,-1
+SIGNFLAG_,$0516000a,signflag'',-1,-1
+
+; Program counter
+PC,$0503000b,pc,21,21
+
+; Other registers
+I,$0501000c,i,25,25
+R,$0501000d,r,22,22
+

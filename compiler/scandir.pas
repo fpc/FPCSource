@@ -356,7 +356,7 @@ unit scandir;
          hs : string;
       begin
         if not (target_info.system in systems_all_windows + [system_i386_os2,
-                                       system_i386_emx, system_powerpc_macos,
+                                       system_i386_emx, system_powerpc_macosclassic,
                                        system_arm_nds, system_i8086_msdos,
                                        system_i8086_embedded, system_m68k_atari] +
                                        systems_nativent) then
@@ -383,7 +383,7 @@ unit scandir;
                  else if (hs='FS') and (target_info.system in [system_i386_os2,
                                                              system_i386_emx]) then
                    SetApptype(app_fs)
-                 else if (hs='TOOL') and (target_info.system in [system_powerpc_macos]) then
+                 else if (hs='TOOL') and (target_info.system in [system_powerpc_macosclassic]) then
                    SetApptype(app_tool)
                  else if (hs='ARM9') and (target_info.system in [system_arm_nds]) then
                    SetApptype(app_arm9)
@@ -1503,15 +1503,20 @@ unit scandir;
       end;
 
     procedure dir_unitpath;
+      var
+        unitpath: TPathStr;
       begin
         if not current_module.in_global then
          Message(scan_w_switch_is_global)
         else
-          with current_scanner,current_module,localunitsearchpath do
-            begin
-              skipspace;
-              AddPath(path,readcomment,false);
-            end;
+          begin
+            current_scanner.skipspace;
+            unitpath:=current_scanner.readcomment;
+            if (current_module.path<>'') and
+               not path_absolute(unitpath) then
+             unitpath:=current_module.path+source_info.DirSep+unitpath;
+            current_module.localunitsearchpath.AddPath(unitpath,false);
+          end;
       end;
 
     procedure dir_varparacopyoutcheck;

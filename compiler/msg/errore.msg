@@ -436,7 +436,7 @@ scan_n_changecputype=02105_N_Changed CPU type to be consistent with specified co
 #
 # Parser
 #
-# 03351 is the last used one
+# 03355 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1600,12 +1600,24 @@ parser_e_callthrough_varargs=03350_E_Cannot redeclare C-style variadic function 
 % platforms. Even on platforms where it is supported, this is quite inefficient.
 parser_e_unbound_attribute=03351_E_Unbound custom attribute: "$1".
 % A custom attribute is defined, but there is no identifier to bind it to.
+parser_e_enumeration_out_of_range=03352_E_Enumeration symbols can only have values in the range of -2^31 to 2^31-1
+% The size of enumeration values is limited to 4 bytes. As the value can be signed, the range
+% of valid values is limited to a signed 32 Bit value (i.e. \var{longint}).
+parser_w_enumeration_out_of_range=03353_W_Enumeration symbols can only have values in the range of -2^31 to 2^31-1
+% The size of enumeration values is limited to 4 bytes. As the value can be signed, the range
+% of valid values is limited to a signed 32 Bit value (i.e. \var{longint}).
+parser_e_method_for_type_in_other_unit=03354_E_Implementing a method for type "$1" declared in another unit
+% This error occurs if one tries to define a method for a type that is originally declared
+% in a different unit.
+parser_e_generic_constraints_not_allowed_here=03355_E_Generic constraint not allowed here
+% At the current location specifying a constraint is not allowed. For example
+% in delphi mode, a constraint might not be specified in the header of the implementation.
 %
 % \end{description}
 %
 # Type Checking
 #
-# 04124 is the last used one
+# 04128 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -2041,6 +2053,17 @@ type_e_function_reference_kind=04123_E_Subroutine references cannot be declared 
 type_e_seg_procvardef_wrong_memory_model=04124_E_Procedure variables in that memory model do not store segment information
 type_w_empty_constant_range_set=04125_W_The first value of a set constructur range is greater then the second value, so the range describes an empty set.
 % If a set is constructed like this: \var{s:=[9..7];]}, then an empty set is generated. As this is something normally not desired, the compiler warns about it.
+type_e_cblock_callconv=04126_E_C block reference must use CDECL or MWPASCAL calling convention.
+% When declaring a C block reference ensure that it uses either the \var{cdecl} or \var{mwpascal}
+% calling convention either by adding the corresponding function directive or by using the
+% \var{\{\$Calling\}} compiler directive.
+type_e_forward_interface_type_does_not_match=04127_E_The interface type of the forward declaration and the declared interface type do not match for interface $1
+% When declaring an interface forward, the interface type must be the same as at the actual declaration of the interface.
+% This is in particular important with regard to the parent interface which implicitly sets the interface type for the
+% child interface.
+type_e_generic_const_type_not_allowed=04128_E_Type not allowed for generic constant parameter: $1
+% Only types that can also be used (indirectly) for untyped constants can be used as a
+% type for a generic constant parameter.
 % \end{description}
 #
 # Symtable
@@ -2367,7 +2390,7 @@ sym_e_type_must_be_rec_or_object=05098_E_Record or object type expected
 #
 # Codegenerator
 #
-# 06060 is the last used one
+# 06062 is the last used one
 #
 % \section{Code generator messages}
 % This section lists all messages that can be displayed if the code
@@ -2527,6 +2550,14 @@ cg_e_case_missing_value=06059_E_Case statement does not handle ordinal value "$1
 # that this value can be passed to the case statement. This is a compile-time error in ISO and Extended Pascal.
 cg_w_case_incomplete=06060_W_Case statement does not handle all possible cases
 % The case statement does not contain labels for all possible values of the operand, and no else statement is present.
+cg_w_cannot_compile_subroutine=06061_W_The current subroutine "$1" cannot be compiled for the target CPU, creating dummy
+% Some processors have a very limited instruction set so some routines cannot be compiled for them. As it is not always
+% clear from the beginning if a subroutine can be compiled for a certain CPU or not, the compiler checks afterwards
+% and creates a dummy if it cannot compile the subroutine.
+cg_w_interrupt_does_not_save_registers=06062_W_The target CPU does not support preserving the registers in subroutine "$1"
+% Certain processors have no memory (e.~g. avr1 family), so they do not support storing/restoring the used registers
+% in an interrupt routine. The programmer has to ensure that while there is a chance for the interrupt routine being
+% called that no other code depending on registers being preserved is executed.
 %
 % \end{description}
 # EndOfTeX
@@ -2876,7 +2907,7 @@ asmr_e_mismatch_broadcasting_elements=07142_E_Mismatch broadcasting elements (ex
 #
 # Assembler/binary writers
 #
-# 08033 is the last used one
+# 08035 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 % With smartlinking enabled, there are too many assembler
@@ -2931,6 +2962,8 @@ asmw_f_code_segment_too_large=08030_F_Code segment too large
 asmw_f_data_segment_too_large=08031_F_Data segment too large
 asmw_e_instruction_not_supported_by_cpu=08032_E_Instruction not supported by the selected instruction set
 asmw_e_brxx_out_of_range=08033_E_Asm: conditional branch destination is out of range
+asmw_e_illegal_use_of_rip=08034_E_Asm: RIP cannot be used as index register or with another register in a reference
+asmw_e_seh_invalid_data_size=08035_F_Illegal function size for SEH function
 #
 # Executing linker/assembler
 #
@@ -3069,7 +3102,7 @@ execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 #
 # Internal linker messages
 #
-# 09220 is the last used one
+# 09222 is the last used one
 #
 # BeginOfTeX
 % \section{Linker messages}
@@ -3129,6 +3162,11 @@ link_e_comdat_content_differs=09219_E_Content of duplicate COMDAT symbol "$1" di
 % The COMDAT section specifies that all sections with the same name need to have the same content,
 % but this section had a different size.
 link_e_comdat_selection_differs=09220_E_COMDAT selection mode for symbol "$1" differs
+% Two COMDAT sections with the same name have different COMDAT selection modes.
+link_e_undefined_symbol_in_obj=09221_E_Undefined symbol: $1 (first seen in $2)
+% The specified symbol is used, but not defined and was first seen in the specified object file.
+link_e_undefined_symbol=09222_E_Undefined symbol: $1
+% The specified symbol is used, but not defined.
 %\end{description}
 # EndOfTeX
 
@@ -3700,7 +3738,7 @@ package_u_ppl_filename=13029_U_PPL filename $1
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2019 by Florian Klaempfl and others
+Copyright (c) 1993-2020 by Florian Klaempfl and others
 ]
 
 #
@@ -3727,6 +3765,9 @@ Supported inline assembler modes:
 Recognized compiler and RTL features:
   $FEATURELIST
 
+Recognized modeswitches:
+  $MODESWITCHES
+
 Supported ABI targets:
   $ABITARGETS
 
@@ -3736,6 +3777,9 @@ Supported Optimizations:
 Supported Whole Program Optimizations:
   All
   $WPOPTIMIZATIONS
+
+Code Generation Backend
+  $CODEGENERATIONBACKEND
 
 Supported Microcontroller types:$\n  $CONTROLLERTYPES$\n
 This program comes under the GNU General Public Licence
@@ -3754,7 +3798,7 @@ new features, etc.):
 # Help pages (option -? and -h)
 #
 # The first character on the line indicates who will display this
-# line, the current possibilities are :
+# line, the current possibilities are:
 #    * = every target
 #    3 = 80x86 targets
 #    4 = x86_64
@@ -3766,13 +3810,18 @@ new features, etc.):
 #    F = help for the 'fpc' binary (independent of the target compiler)
 #    I = VIS
 #    J = JVM
+#    L = LLVM variant
 #    M = MIPS (MIPSEB) targets
 #    m = MIPSEL targets
 #    P = PowerPC targets
 #    p = PowerPC64 targets
+#    R = RiscV32 targets
+#    r = RiscV64 targets
 #    S = Sparc targets
 #    s = Sparc64 targets
 #    V = AVR
+#    x = xtensa targets
+#    Z = Z80
 # The second character also indicates who will display this line,
 # (if the above character was TRUE) the current possibilities are :
 #    * = everyone
@@ -3799,6 +3848,7 @@ F*0*_Only options valid for the default or selected platform are listed.
 **1A<x>_Output format:
 **2Adefault_Use default assembler
 3*2Aas_Assemble using GNU AS
+3*2Aas-darwin_Assemble Darwin Mach-O using GNU GAS
 3*2Amacho_Mach-O (Darwin, Intel 32 bit) using internal writer
 8*2Anasm_Assemble using Nasm
 8*2Anasmobj_Assemble using Nasm
@@ -3818,7 +3868,7 @@ F*0*_Only options valid for the default or selected platform are listed.
 3*2Ayasm_Assemble using Yasm (experimental)
 4*2Aas_Assemble using GNU AS
 4*2Agas_Assemble using GNU GAS
-4*2Agas-darwin_Assemble darwin Mach-O64 using GNU GAS
+4*2Aas-darwin_Assemble Darwin Mach-O using GNU GAS
 4*2Amasm_Win64 object file using ml64 (Microsoft)
 4*2Apecoff_PE-COFF (Win64) using internal writer
 4*2Aelf_ELF (Linux-64bit) using internal writer
@@ -3831,9 +3881,12 @@ F*0*_Only options valid for the default or selected platform are listed.
 6*2Agas_GNU Motorola assembler
 6*2Amit_MIT Syntax (old GAS)
 6*2Amot_Standard Motorola assembler
+6*2Avasm_Use vasm to assemble
 A*2Aas_Assemble using GNU AS
 P*2Aas_Assemble using GNU AS
 S*2Aas_Assemble using GNU AS
+Z*2Asdcc-sdasz80_Assemble using SDCC-SDASZ80
+Z*2Az80asm_Assemble using z80asm
 # Used only internally by IDE
 **1b_Generate browser info
 **2bl_Generate local symbol info
@@ -3852,10 +3905,10 @@ S*2Aas_Assemble using GNU AS
 **2Ch<n>[,m]_<n> bytes min heap size (between 1023 and 67107840) and optionally [m] max heap size
 **2Ci_IO-checking
 A*2CI<x>_Select instruction set on ARM: ARM or THUMB
-L*2CL<x>_LLVM code generation options
-L*3CLflto_Enable Link-time optimisation (needed both when compiling units and programs/libraries)
-L*3CLfltonosystem_Disable LTO for the system unit (needed with at least Xcode 10.2 and earlier due to linker bugs)
-L*3CLv<x>_LLVM target version: 3.3, 3.4, .., Xcode-6.4, .., Xcode-10.1, 7.0, 8.0
+L*2Cl<x>_LLVM code generation options
+L*3Clflto_Enable Link-time optimisation (needed both when compiling units and programs/libraries)
+L*3Clfltonosystem_Disable LTO for the system unit (needed with at least Xcode 10.2 and earlier due to linker bugs)
+L*3Clv<x>_LLVM target version: Xcode-10.1, 7.0, 8.0, .., 10.0
 **2Cn_Omit linking stage
 P*2CN_Generate nil-pointer checks (AIX-only)
 **2Co_Check overflow of integer operations
@@ -3890,6 +3943,7 @@ J*3CTinitlocals_          Initialize local variables that trigger a JVM bytecode
 J*3CTlowercaseprocstart_  Lowercase the first character of procedure/function/method names
 A*3CTthumbinterworking_ Generate Thumb interworking-safe code if possible
 J*2Cv_Var/out parameter copy-out checking
+A*2CV<x>_Set section threadvar model to <x>
 **2CX_Create also smartlinked library
 **1d<x>_Defines the symbol <x>
 **1D_Generate a DEF file
@@ -3949,9 +4003,11 @@ J*2Cv_Var/out parameter copy-out checking
 **2iV_Return short compiler version
 **2iW_Return full compiler version
 **2ia_Return list of supported ABI targets
+**2ib_Return the used code generation backend type
 **2ic_Return list of supported CPU instruction sets
 **2if_Return list of supported FPU instruction sets
 **2ii_Return list of supported inline assembler modes
+**2im_Return list of supported modeswitches
 **2io_Return list of supported optimizations
 **2ir_Return list of recognized compiler and RTL features
 **2it_Return list of supported targets
@@ -3960,7 +4016,7 @@ J*2Cv_Var/out parameter copy-out checking
 **1I<x>_Add <x> to include path
 **1k<x>_Pass <x> to the linker
 **1l_Write logo
-**1M<x>_Set language mode to <x>
+**1M<x>_Set language mode to <x> / enable modeswitch <x> (see option -im)
 **2Mfpc_Free Pascal dialect (default)
 **2Mobjfpc_FPC mode with Object Pascal support
 **2Mdelphi_Delphi 7 compatibility mode
@@ -3969,6 +4025,9 @@ J*2Cv_Var/out parameter copy-out checking
 **2Miso_ISO 7185 mode
 **2Mextendedpascal_ISO 10206 mode
 **2Mdelphiunicode_Delphi 2009 and later compatibility mode
+**2*_Each mode (as listed above) enables its default set of modeswitches.
+**2*_Other modeswitches are disabled and need to be enabled one by another.
+**1M<x>-_Disable modeswitch <x> (see option -im)
 **1n_Do not read the default config files
 **1o<x>_Change the name of the executable produced to <x>
 **1O<x>_Optimizations:
@@ -4053,11 +4112,13 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 3*2Twin32_Windows 32 Bit
 3*2Twince_Windows CE
 # x86_64 targets
+4*2Tandroid_Android
 4*2Taros_AROS
 4*2Tdarwin_Darwin/Mac OS X
 4*2Tdragonfly_DragonFly BSD
 4*2Tembedded_Embedded
 4*2Tfreebsd_FreeBSD
+4*2Thaiku_Haiku
 4*2Tiphonesim_iPhoneSimulator
 4*2Tlinux_Linux
 4*2Tnetbsd_NetBSD
@@ -4070,7 +4131,7 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 6*2Tembedded_Embedded
 6*2Tlinux_Linux
 6*2Tnetbsd_NetBSD
-6*2Tmacos_Mac OS
+6*2Tmacosclassic_Classic Mac OS
 6*2Tpalmos_PalmOS
 # i8086 targets
 8*2Tembedded_Embedded
@@ -4081,6 +4142,7 @@ A*2Tandroid_Android
 A*2Taros_AROS
 A*2Tdarwin_Darwin/iPhoneOS/iOS
 A*2Tembedded_Embedded
+A*2Tfreertos_FreeRTOS
 A*2Tgba_Game Boy Advance
 A*2Tlinux_Linux
 A*2Tnds_Nintendo DS
@@ -4089,8 +4151,10 @@ A*2Tpalmos_PalmOS
 A*2Tsymbian_Symbian
 A*2Twince_Windows CE
 # aarch64 targets
+a*2Tandroid_Android
 a*2Tdarwin_Darwin/iOS
 a*2Tlinux_Linux
+a*2Twin64_Windows 64
 # jvm targets
 J*2Tandroid_Android
 J*2Tjava_Java
@@ -4107,7 +4171,7 @@ P*2Tamiga_AmigaOS
 P*2Tdarwin_Darwin/Mac OS X
 P*2Tembedded_Embedded
 P*2Tlinux_Linux
-P*2Tmacos_Mac OS (classic)
+P*2Tmacosclassic_Classic Mac OS
 P*2Tmorphos_MorphOS
 P*2Tnetbsd_NetBSD
 P*2Twii_Wii
@@ -4130,6 +4194,14 @@ s*2Tlinux_Linux
 # not yet ready s*2Tsolaris_Solaris
 # avr targets
 V*2Tembedded_Embedded
+# xtensa targets
+x*2Tembedded_Embedded
+x*2Tfreertos_FreeRTOS
+x*2Tlinux_Linux
+# z80 targets
+Z*2Tembedded_Embedded
+Z*2Tzxspectrum_ZX Spectrum
+Z*2Tmsxdos_MSX-DOS
 # end of targets section
 **1u<x>_Undefines the symbol <x>
 **1U_Unit options:
@@ -4166,6 +4238,7 @@ A*2Wb_Create a bundle instead of a library (Darwin)
 4*2WB<x>_Set image base to <x> (Windows)
 A*2WB_Create a relocatable image (Windows, Symbian)
 A*2WB<x>_Set image base to <x> (Windows, Symbian)
+Z*2WB<x>_Set image base to <x> (ZX Spectrum)
 3*2WC_Specify console type application (EMX, OS/2, Windows)
 4*2WC_Specify console type application (Windows)
 A*2WC_Specify console type application (Windows)
@@ -4210,7 +4283,9 @@ P*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 A*2WN_Do not generate relocation code, needed for debugging (Windows)
 A*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
 m*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
+R*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
 V*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
+x*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
 3*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (iphonesim)
 4*2WP<x>_Minimum iOS deployment version: 8.0, 8.0.2, ... (iphonesim)
 a*2WP<x>_Minimum iOS deployment version: 7.0, 7.1.2, ... (Darwin)
@@ -4232,6 +4307,7 @@ P*2WT_Specify MPW tool type application (Classic Mac OS)
 **2Xg_Create debuginfo in a separate file and add a debuglink section to executable
 **2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)
 **2Xi_Use internal linker
+L*2XlS<x>_LLVM utilties suffix (e.g. -7 in case clang is called clang-7)
 **2XLA_Define library substitutions for linking
 **2XLO_Define order of library linking
 **2XLD_Exclude default order of standard libraries

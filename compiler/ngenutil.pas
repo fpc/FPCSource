@@ -102,7 +102,7 @@ interface
       class procedure trash_large(var stat: tstatementnode; trashn, sizen: tnode; trashintval: int64); virtual;
       { insert a single bss sym, called by insert bssdata (factored out
         non-common part for llvm) }
-      class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint); virtual;
+      class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ: Tasmsymtype); virtual;
 
       { initialization of iso styled program parameters }
       class procedure initialize_textrec(p : TObject; statn : pointer);
@@ -618,6 +618,21 @@ implementation
     begin
       result:=maybe_insert_trashing(pd,n);
 
+      { initialise safecall result variable }
+      if pd.generate_safecall_wrapper then
+        begin
+          ressym:=tsym(pd.localst.Find('safecallresult'));
+          block:=internalstatements(stat);
+          addstatement(stat,
+            cassignmentnode.create(
+              cloadnode.create(ressym,ressym.owner),
+              genintconstnode(0)
+            )
+          );
+          addstatement(stat,result);
+          result:=block;
+        end;
+
       if (m_isolike_program_para in current_settings.modeswitches) and
         (pd.proctypeoption=potype_proginit) then
         begin
@@ -687,7 +702,7 @@ implementation
           end;
         end;
       if (target_info.system in systems_fpnestedstruct) and
-         pd.getfuncretsyminfo(ressym,resdef) and
+         pd.get_funcretsym_info(ressym,resdef) and
          (tabstractnormalvarsym(ressym).inparentfpstruct) then
         begin
           block:=internalstatements(stat);
@@ -854,7 +869,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
+  class procedure tnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype);
     begin
       if sym.globalasmsym then
         begin
@@ -870,10 +885,10 @@ implementation
               list.concat(tai_symbol.Create(current_asmdata.DefineAsmSymbol(sym.name,AB_LOCAL,AT_DATA,sym.vardef),0));
               list.concat(tai_directive.Create(asd_reference,sym.name));
             end;
-          list.concat(Tai_datablock.create_global(sym.mangledname,size,sym.vardef));
+          list.concat(Tai_datablock.create_global(sym.mangledname,size,sym.vardef,_typ));
         end
       else
-        list.concat(Tai_datablock.create_hidden(sym.mangledname,size,sym.vardef));
+        list.concat(Tai_datablock.create_hidden(sym.mangledname,size,sym.vardef,_typ));
     end;
 
 
@@ -884,6 +899,7 @@ implementation
       storefilepos : tfileposinfo;
       list : TAsmList;
       sectype : TAsmSectiontype;
+      asmtype: TAsmsymtype;
     begin
       storefilepos:=current_filepos;
       current_filepos:=sym.fileinfo;
@@ -893,12 +909,14 @@ implementation
         varalign:=var_align_size(l)
       else
         varalign:=var_align(varalign);
+      asmtype:=AT_DATA;
       if tf_section_threadvars in target_info.flags then
         begin
           if (vo_is_thread_var in sym.varoptions) then
             begin
               list:=current_asmdata.asmlists[al_threadvars];
               sectype:=sec_threadvar;
+              asmtype:=AT_TLS;
             end
           else
             begin
@@ -924,7 +942,7 @@ implementation
         new_section(list,sec_user,sym.section,varalign)
       else
         new_section(list,sectype,lower(sym.mangledname),varalign);
-      insertbsssym(list,sym,l,varalign);
+      insertbsssym(list,sym,l,varalign,asmtype);
       current_filepos:=storefilepos;
     end;
 
@@ -1144,7 +1162,7 @@ implementation
         unitinits.get_final_asmlist(
           current_asmdata.DefineAsmSymbol('INITFINAL',AB_GLOBAL,AT_DATA,tabledef),
           tabledef,
-          sec_data,'INITFINAL',sizeof(pint)
+          sec_data,'INITFINAL',const_align(sizeof(pint))
         )
       );
 
@@ -1201,7 +1219,7 @@ implementation
       sym:=current_asmdata.DefineAsmSymbol('FPC_THREADVARTABLES',AB_GLOBAL,AT_DATA,tabledef);
       current_asmdata.asmlists[al_globals].concatlist(
         tcb.get_final_asmlist(
-          sym,tabledef,sec_data,'FPC_THREADVARTABLES',sizeof(pint)
+          sym,tabledef,sec_data,'FPC_THREADVARTABLES',const_align(sizeof(pint))
         )
       );
       tcb.free;
@@ -1256,7 +1274,7 @@ implementation
            s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
            sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_FORCEINDIRECT,tabledef);
            current_asmdata.asmlists[al_globals].concatlist(
-             tcb.get_final_asmlist(sym,tabledef,sec_data,s,sizeof(pint)));
+             tcb.get_final_asmlist(sym,tabledef,sec_data,s,const_align(sizeof(pint))));
            include(current_module.moduleflags,mf_threadvars);
            current_module.add_public_asmsym(sym);
          end
@@ -1310,7 +1328,7 @@ implementation
         tcb.get_final_asmlist(
           current_asmdata.DefineAsmSymbol(tablename,AB_GLOBAL,AT_DATA,tabledef),
           tabledef,
-          sec_data,tablename,sizeof(pint)
+          sec_data,tablename,const_align(sizeof(pint))
         )
       );
       tcb.free;
@@ -1352,7 +1370,7 @@ implementation
       current_asmdata.asmlists[al_globals].concatList(
         tcb.get_final_asmlist(
           current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,rawdatadef),
-          rawdatadef,sec_data,s,sizeof(pint)));
+          rawdatadef,sec_data,s,const_align(sizeof(pint))));
       tcb.free;
       include(current_module.moduleflags,unitflag);
     end;
@@ -1420,7 +1438,7 @@ implementation
       current_asmdata.AsmLists[al_globals].concatList(
         tcb.get_final_asmlist(
           current_asmdata.DefineAsmSymbol('FPC_RESOURCESTRINGTABLES',AB_GLOBAL,AT_DATA,tabledef),
-          tabledef,sec_rodata,'FPC_RESOURCESTRINGTABLES',sizeof(pint)
+          tabledef,sec_rodata,'FPC_RESOURCESTRINGTABLES',const_align(sizeof(pint))
         )
       );
       tcb.free;
@@ -1449,7 +1467,7 @@ implementation
               voidpointertype,
               sec_rodata,
               'FPC_RESLOCATION',
-              sizeof(puint)
+              const_align(sizeof(puint))
             )
           );
 
@@ -1494,9 +1512,21 @@ implementation
           tcb.emit_tai(Tai_const.Create_int_dataptr(stacksize),ptruinttype);
           sym:=current_asmdata.DefineAsmSymbol('__stklen',AB_GLOBAL,AT_DATA,ptruinttype);
           current_asmdata.asmlists[al_globals].concatlist(
-            tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__stklen',sizeof(pint))
+            tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__stklen',const_align(sizeof(pint)))
           );
           tcb.free;
+        end;
+
+      { allocate the stack on the ZX Spectrum system }
+      if target_info.system in [system_z80_zxspectrum] then
+        begin
+          { tai_datablock cannot yet be handled via the high level typed const
+            builder, because it implies the generation of a symbol, while this
+            is separate in the builder }
+          maybe_new_object_file(current_asmdata.asmlists[al_globals]);
+          new_section(current_asmdata.asmlists[al_globals],sec_stack,'__fpc_stackarea_start',current_settings.alignment.varalignmax);
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_start',stacksize-1,carraydef.getreusable(u8inttype,stacksize-1),AT_DATA));
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_end',1,carraydef.getreusable(u8inttype,1),AT_DATA));
         end;
 {$IFDEF POWERPC}
       { AmigaOS4 "stack cookie" support }
@@ -1524,19 +1554,19 @@ implementation
       tcb.emit_tai(Tai_const.Create_int_dataptr(heapsize),ptruinttype);
       sym:=current_asmdata.DefineAsmSymbol('__heapsize',AB_GLOBAL,AT_DATA,ptruinttype);
       current_asmdata.asmlists[al_globals].concatlist(
-        tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__heapsize',sizeof(pint))
+        tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__heapsize',const_align(sizeof(pint)))
       );
       tcb.free;
 
       { allocate an initial heap on embedded systems }
-      if target_info.system in systems_embedded then
+      if target_info.system in (systems_embedded+systems_freertos+[system_z80_zxspectrum,system_z80_msxdos]) then
         begin
           { tai_datablock cannot yet be handled via the high level typed const
             builder, because it implies the generation of a symbol, while this
             is separate in the builder }
           maybe_new_object_file(current_asmdata.asmlists[al_globals]);
           new_section(current_asmdata.asmlists[al_globals],sec_bss,'__fpc_initialheap',current_settings.alignment.varalignmax);
-          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',heapsize,carraydef.getreusable(u8inttype,heapsize)));
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',heapsize,carraydef.getreusable(u8inttype,heapsize),AT_DATA));
         end;
 
       { Valgrind usage }
@@ -1544,7 +1574,7 @@ implementation
       tcb.emit_ord_const(byte(cs_gdb_valgrind in current_settings.globalswitches),u8inttype);
       sym:=current_asmdata.DefineAsmSymbol('__fpc_valgrind',AB_GLOBAL,AT_DATA,u8inttype);
       current_asmdata.asmlists[al_globals].concatlist(
-        tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__fpc_valgrind',sizeof(pint))
+        tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__fpc_valgrind',const_align(sizeof(pint)))
       );
       tcb.free;
     end;
@@ -1589,7 +1619,7 @@ implementation
       current_asmdata.asmlists[al_objc_data].concatList(
         tcb.get_final_asmlist(
           current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'_OBJC_IMAGE_INFO',AB_LOCAL,AT_DATA,u64inttype),
-          u64inttype,sec_objc_image_info,'_OBJC_IMAGE_INFO',sizeof(pint)
+          u64inttype,sec_objc_image_info,'_OBJC_IMAGE_INFO',const_align(sizeof(pint))
         )
       );
       tcb.free;
@@ -1602,7 +1632,7 @@ implementation
      begin
        { stub for calling FPC_SYSTEMMAIN from the C main -> add argc/argv/argp }
        if (tprocdef(pd).proctypeoption=potype_mainstub) and
-          (target_info.system in (systems_darwin+[system_powerpc_macos]+systems_aix)) then
+          (target_info.system in (systems_darwin+[system_powerpc_macosclassic]+systems_aix)) then
          begin
            pvs:=cparavarsym.create('ARGC',1,vs_const,s32inttype,[]);
            tprocdef(pd).parast.insert(pvs);

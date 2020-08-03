@@ -54,6 +54,8 @@ type
       OPR_CONSTANT  : (val:longint);
 {$elseif defined(i8086)}
       OPR_CONSTANT  : (val:longint);
+{$elseif defined(Z80)}
+      OPR_CONSTANT  : (val:longint);
 {$else}
       OPR_CONSTANT  : (val:aint);
 {$endif}
@@ -1096,7 +1098,7 @@ end;
 
 procedure TOperand.InitRef;
 {*********************************************************************}
-{  Description: This routine first check if the opcode is of     }
+{  Description: This routine first check if the opcode is of          }
 {  type OPR_NONE, or OPR_REFERENCE , if not it gives out an error.    }
 {  If the operandtype = OPR_NONE or <> OPR_REFERENCE then it sets up  }
 {  the operand type to OPR_REFERENCE, as well as setting up the ref   }
@@ -1182,7 +1184,7 @@ begin
           localsegment:=opr.localsegment;
 {$endif x86}
           localindexreg:=opr.localindexreg;
-          localscale:=opr.localscale;;
+          localscale:=opr.localscale;
           opr.typ:=OPR_REFERENCE;
           hasvar:=false;
           Fillchar(opr.ref,sizeof(treference),0);
@@ -1754,7 +1756,8 @@ Begin
           begin
             if tlabelsym(sym).defined then
               Message(sym_e_label_already_defined);
-            tlabelsym(sym).defined:=true
+            tlabelsym(sym).defined:=true;
+            hl.defined_in_asmstatement:=true
           end
         else
           tlabelsym(sym).used:=true;

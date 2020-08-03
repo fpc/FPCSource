@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2013 by the FPC Development Team
+    Copyright (c) 1998-2020 by the FPC Development Team
 
     Dumps the contents of a FPC unit file (PPU File)
 
@@ -47,7 +47,7 @@ uses
 
 const
   Title     = 'PPU-Analyser';
-  Copyright = 'Copyright (c) 1998-2013 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2020 by the Free Pascal Development Team';
 
 { verbosity }
   v_none           = $0;
@@ -85,7 +85,9 @@ const
     { 17 } 'wasm',
     { 18 } 'sparc64',
     { 19 } 'riscv32',
-    { 20 } 'riscv64'
+    { 20 } 'riscv64',
+    { 21 } 'xtensa',
+    { 22 } 'z80'
     );
 
   CpuHasController : array[tsystemcpu] of boolean =
@@ -110,7 +112,9 @@ const
     { 17 } false {'wasm'},
     { 18 } false {'sparc64'},
     { 19 } false {'riscv32'},
-    { 20 } false {'riscv64'}
+    { 20 } false {'riscv64'},
+    { 21 } true  {'xtensa'},
+    { 22 } true  {'z80'}
     );
 
 { List of all supported system-cpu couples }
@@ -125,12 +129,12 @@ const
   { 6 }   'FreeBSD-i386',
   { 7 }   'Amiga',
   { 8 }   'Atari',
-  { 9 }   'MacOS-m68k',
+  { 9 }   'MacOSClassic-m68k',
   { 10 }  'Linux-m68k',
   { 11 }  'PalmOS-m68k',
   { 12 }  'Linux-alpha (obsolete)',
   { 13 }  'Linux-ppc',
-  { 14 }  'MacOS-ppc',
+  { 14 }  'MacOSClassic-ppc',
   { 15 }  'Solaris-i386',
   { 16 }  'BeOS-i386',
   { 17 }  'NetBSD-i386',
@@ -180,7 +184,7 @@ const
   { 61 }  'Darwin-x64',
   { 62 }  'Embedded-avr',
   { 63 }  'Haiku-i386',
-  { 64 }  'Darwin-ARM',
+  { 64 }  'iOS-ARM',
   { 65 }  'Solaris-x86-64',
   { 66 }  'Linux-MIPS',
   { 67 }  'Linux-MIPSel',
@@ -202,7 +206,7 @@ const
   { 83 }  'AROS-i386',
   { 84 }  'AROS-x86-64',
   { 85 }  'DragonFly-x86-64',
-  { 86 }  'Darwin-AArch64',
+  { 86 }  'iOS-AArch64',
   { 87 }  'iPhoneSim-x86-64',
   { 88 }  'Linux-AArch64',
   { 89 }  'Win16',
@@ -218,7 +222,17 @@ const
   { 99 }  'Embedded-RiscV64',
   { 100 } 'Android-AArch64',
   { 101 } 'Android-x86-64',
-  { 102 } 'Haiku-x86-64'
+  { 102 } 'Haiku-x86-64',
+  { 103 } 'Embedded-Xtensa',
+  { 104 } 'FreeRTos-Xtensa',
+  { 105 } 'Linux-Xtensa',
+  { 106 } 'FreeRTos-arm',
+  { 107 } 'Win64-AArch64',
+  { 108 } 'Embedded-Z80',
+  { 109 } 'ZXSpectrum-Z80',
+  { 110 } 'MSX-DOS-Z80',
+  { 111 } 'Darwin-AArch64',
+  { 112 } 'AmstradCPC-Z80'
   );
 
 const
@@ -396,7 +410,7 @@ type
     cpu_variant_rv64im,
     cpu_variant_rv64i
   );
- 
+
   tcpu_type = record
      case tsystemcpu of
        cpu_no:                      { 0 }
@@ -443,7 +457,7 @@ type
           (cpu_riscv64 : tcpu_riscv64;);
      end;
 
-  
+
   TPpuModuleDef = class(TPpuUnitDef)
     ModuleFlags: tmoduleflags;
   end;
@@ -491,17 +505,20 @@ type
     case byte of
       0: (bytes: Array[0..9] of byte);
       1: (words: Array[0..4] of word);
+{$ifdef FPC_LITTLE_ENDIAN}
       2: (cards: Array[0..1] of cardinal; w: word);
+{$else not FPC_LITTLE_ENDIAN}
+      2: (w:word; cards: Array[0..1] of cardinal);
+{$endif not FPC_LITTLE_ENDIAN}
   end;
 const
   maxDigits = 17;
-  function Real80bitToStr(var e : TSplit80bitReal) : string;
+  function Real80bitToStr(var e : TSplit80bitReal;var ext : extended) : string;
   var
     Temp : string;
     new : TSplit80bitReal;
     fraczero, expmaximal, sign, outside_double : boolean;
     exp : smallint;
-    ext : extended;
     d : double;
     i : longint;
     mantval : qword;
@@ -524,7 +541,11 @@ const
     exp:=(e.w and $7fff) - 16383 - 63;
     fraczero := (e.cards[0] = 0) and
                     ((e.cards[1] and $7fffffff) = 0);
+{$ifdef FPC_LITTLE_ENDIAN}
     mantval := qword(e.cards[0]) or (qword(e.cards[1]) shl 32);
+{$else not FPC_LITTLE_ENDIAN}
+    mantval := (qword(e.cards[0]) shl 32) or qword(e.cards[1]);
+{$endif not FPC_LITTLE_ENDIAN}
     if expMaximal then
       if fraczero then
         if sign then
@@ -554,10 +575,15 @@ const
       if (mantval<>0) and (d=0.0) then
         outside_double:=true;
       if outside_double then
-        Temp:='Extended value outside double bound'
+        begin
+          Temp:='Extended value outside double bound';
+          ext:=0.0;
+        end
       else
-        system.str(d,temp);
-
+        begin
+          ext:=d;
+          system.str(d,temp);
+        end;
       end;
 
     result:=temp;
@@ -952,7 +978,7 @@ begin
       SetHasErrors;
       exit;
     end;
-  ppufile.getsmallset(options);
+  ppufile.getset(tppuset1(options));
   if space<>'' then
    writeln([space,'------ ',s,' ------']);
   write([space,'Symtable options: ']);
@@ -1614,14 +1640,20 @@ const
          (mask:pi_uses_threadvar;
          str:' uses threadvars '),
          (mask:pi_has_except_table_data;
-         str:' has except table data ')
+         str:' has except table data '),
+         (mask:pi_needs_tls;
+         str:' uses TLS data pointer '),
+         (mask:pi_uses_get_frame;
+         str:' uses get_frame'),
+         (mask:pi_uses_ymm;
+         str:' uses ymm register (x86 only)')
   );
 var
   procinfooptions : tprocinfoflags;
   i      : longint;
   first  : boolean;
 begin
-  ppufile.getsmallset(procinfooptions);
+  ppufile.getset(tppuset4(procinfooptions));
   if procinfooptions<>[] then
    begin
      first:=true;
@@ -1660,14 +1692,15 @@ const
      (mask:sp_generic_para;       str:'Generic Parameter'),
      (mask:sp_has_deprecated_msg; str:'Has Deprecated Message'),
      (mask:sp_generic_dummy;      str:'Generic Dummy'),
-     (mask:sp_explicitrename;     str:'Explicit Rename')
+     (mask:sp_explicitrename;     str:'Explicit Rename'),
+     (mask:sp_generic_const;      str:'Generic Constant Parameter')
   );
 var
   symoptions : tsymoptions;
   i      : longint;
   first  : boolean;
 begin
-  ppufile.getsmallset(symoptions);
+  ppufile.getset(tppuset2(symoptions));
   if symoptions<>[] then
    begin
      if Def <> nil then
@@ -2397,11 +2430,12 @@ const
          }
          'cs_opt_dead_values',
          { compiler checks for empty procedures/methods and removes calls to them if possible }
-         'cs_opt_remove_emtpy_proc',
+         'cs_opt_remove_empty_proc',
          'cs_opt_constant_propagate',
          'cs_opt_dead_store_eliminate',
          'cs_opt_forcenostackframe',
-         'cs_opt_use_load_modify_store'
+         'cs_opt_use_load_modify_store',
+         'cs_opt_unused_para'
        );
     var
          globalswitch  : tglobalswitch;
@@ -2715,7 +2749,9 @@ const
      { this should never happen for defs stored to a ppu file }
      (mask:df_not_registered_no_free;  str:'Unregistered/No free (invalid)'),
      (mask:df_llvm_no_struct_packing;  str:'LLVM unpacked struct'),
-     (mask:df_internal;       str:'Internal')
+     (mask:df_internal;       str:'Internal'),
+     (mask:df_has_global_ref; str:'Has Global Ref'),
+     (mask:df_has_generic_fields; str:'Has generic fields')
   );
   defstate : array[1..ord(high(tdefstate))] of tdefstateinfo=(
      (mask:ds_vmt_written;           str:'VMT Written'),
@@ -2731,7 +2767,7 @@ const
      (mask:gcf_class;       str:'Class'),
      (mask:gcf_record;      str:'Record')
   );
-  
+
 var
   defstates  : tdefstates;
   i, nb, len : longint;
@@ -2751,7 +2787,7 @@ begin
   else
     readderef('');
   write  ([space,'       DefOptions : ']);
-  ppufile.getsmallset(defoptions);
+  ppufile.getset(tppuset2(defoptions));
   if defoptions<>[] then
     begin
       first:=true;
@@ -2768,7 +2804,7 @@ begin
   writeln;
 
   write  ([space,'        DefStates : ']);
-  ppufile.getsmallset(defstates);
+  ppufile.getset(tppuset1(defstates));
   if defstates<>[] then
     begin
       first:=true;
@@ -2786,7 +2822,7 @@ begin
 
   if df_genconstraint in defoptions then
     begin
-      ppufile.getsmallset(genconstr);
+      ppufile.getset(tppuset1(genconstr));
       write  ([space,'   GenConstraints : ']);
       if genconstr<>[] then
         begin
@@ -2983,7 +3019,7 @@ begin
   writeln;
   proccalloption:=tproccalloption(ppufile.getbyte);
   writeln([space,'       CallOption : ',proccalloptionStr[proccalloption]]);
-  ppufile.getnormalset(procoptions);
+  ppufile.getset(tppuset8(procoptions));
   if procoptions<>[] then
    begin
      if po_classmethod in procoptions then Include(ProcDef.Options, poClassMethod);
@@ -3054,10 +3090,23 @@ const
      (mask:vo_has_section;     str:'HasSection'),
      (mask:vo_force_finalize;  str:'ForceFinalize'),
      (mask:vo_is_default_var;  str:'DefaultIntrinsicVar'),
-     (mask:vo_is_far;          str:'IsFar')
+     (mask:vo_is_far;          str:'IsFar'),
+     (mask:vo_has_global_ref;  str:'HasGlobalRef')
+  );
+type
+  tvaraccessdesc=record
+    mask: tvarsymaccessflag;
+    str: string[30];
+  end;
+const
+  varaccessstr : array[ord(low(tvarsymaccessflag))..ord(high(tvarsymaccessflag))] of tvaraccessdesc=(
+    (mask: vsa_addr_taken;         str:'Address taken'),
+    (mask: vsa_different_scope;    str:'Accessed from different scope')
   );
 var
   i : longint;
+  accessflag: tvarsymaccessflag;
+  varsymaccessflags: tvarsymaccessflags;
   first : boolean;
 begin
   readcommonsym(s, VarDef);
@@ -3073,14 +3122,27 @@ begin
       end;
   writeln([space,'         Spez : ',Varspez2Str(i)]);
   writeln([space,'      Regable : ',Varregable2Str(ppufile.getbyte)]);
-  writeln([space,'   Addr Taken : ',(ppufile.getbyte<>0)]);
-  writeln([space,'Escaped Scope : ',(ppufile.getbyte<>0)]);
+  ppufile.getset(tppuset1(varsymaccessflags));
+  write([space, ' Access Flags : ']);
+  first:=true;
+  for i:=low(varaccessstr) to high(varaccessstr) do
+    begin
+      if varaccessstr[i].mask in varsymaccessflags then
+        begin
+          if first then
+            first:=false
+          else
+            write([', ']);
+          write([varaccessstr[i].str]);
+        end
+    end;
+  writeln;
   write  ([space,'     Var Type : ']);
   if VarDef <> nil then
     readderef('',VarDef.VarType)
   else
     readderef('');
-  ppufile.getsmallset(varoptions);
+  ppufile.getset(tppuset4(varoptions));
   if varoptions<>[] then
    begin
      if (VarDef <> nil) and (VarDef.DefType = dtParam) and (vo_is_hidden_para in varoptions) then
@@ -3139,7 +3201,7 @@ var
   i      : longint;
   first  : boolean;
 begin
-  ppufile.getsmallset(current_objectoptions);
+  ppufile.getset(tppuset4(current_objectoptions));
   if current_objectoptions<>[] then
    begin
      if ObjDef <> nil then
@@ -3173,13 +3235,16 @@ const
     (mask:pio_empty; str:'IsEmpty'),
     (mask:pio_has_inlininginfo; str:'HasInliningInfo'),
     (mask:pio_inline_not_possible; str:'InlineNotPossible'),
-    (mask:pio_nested_access; str:'NestedAccess')
+    (mask:pio_nested_access; str:'NestedAccess'),
+    (mask:pio_thunk; str:'Thunk'),
+    (mask:pio_fastmath; str:'FastMath'),
+    (mask:pio_inline_forbidden; str:'InlineForbidden')
   );
 var
   i: timplprocoption;
   first: boolean;
 begin
-  ppufile.getsmallset(implprocoptions);
+  ppufile.getset(tppuset1(implprocoptions));
   if implprocoptions<>[] then
     begin
       first:=true;
@@ -3209,14 +3274,16 @@ const
    { ado_IsConstructor      } 'IsConstructor',
    { ado_IsArrayOfConst     } 'ArrayOfConst',
    { ado_IsConstString      } 'ConstString',
-   { ado_IsBitPacked        } 'BitPacked'
+   { ado_IsBitPacked        } 'BitPacked',
+   { ado_IsVector           } 'Vector',
+   { ado_IsGeneric          } 'Generic'
   );
 var
   symoptions: tarraydefoptions;
   i: tarraydefoption;
   first: boolean;
 begin
-  ppufile.getsmallset(symoptions);
+  ppufile.getset(tppuset2(symoptions));
   if symoptions<>[] then
    begin
      if ado_IsDynamicArray in symoptions then Include(ArrayDef.Options, aoDynamic);
@@ -3269,7 +3336,7 @@ var
   i      : longint;
   first  : boolean;
 begin
-  ppufile.getsmallset(result);
+  ppufile.getset(tppuset2(result));
   if result<>[] then
    begin
      first:=true;
@@ -3314,7 +3381,7 @@ var
   i      : longint;
   first  : boolean;
 begin
-  ppufile.getsmallset(result);
+  ppufile.getset(tppuset1(result));
   if result<>[] then
    begin
      first:=true;
@@ -3600,8 +3667,7 @@ begin
                    else if entryleft=10 then
                      begin
                        getdata(extended,entryleft);
-                       ss:=Real80bitToStr(extended);
-                       constdef.VFloat:=StrToFloat(ss);
+                       ss:=Real80bitToStr(extended,constdef.VFloat);
                        writeln(ss);
                      end
                    else
@@ -4631,7 +4697,7 @@ var
   i      : longint;
   first  : boolean;
 begin
-  ppufile.getsmallset(moduleoptions);
+  ppufile.getset(tppuset1(moduleoptions));
   if moduleoptions<>[] then
    begin
      first:=true;
@@ -4668,15 +4734,6 @@ begin
        b:=readentry;
        case b of
 
-         ibextraheader:
-           begin
-             CurUnit.LongVersion:=cardinal(getlongint);
-             Writeln(['LongVersion: ',CurUnit.LongVersion]);
-             getsmallset(CurUnit.ModuleFlags);
-             if mf_symansistr in CurUnit.ModuleFlags then
-               SymAnsiStr:=true;
-           end;
-
          ibmodulename :
            begin
              CurUnit.Name:=getstring;
@@ -4686,7 +4743,7 @@ begin
 
          ibfeatures :
            begin
-             getsmallset(features);
+             getset(tppuset4(features));
              Writeln('Features: ');
              for feature:=low(tfeatures) to high(tfeature) do
                if feature in features then
@@ -4711,9 +4768,12 @@ begin
                    with TPpuSrcFile.Create(CurUnit.SourceFiles) do begin
                      Name:=getstring;
                      i:=getlongint;
-                     if i >= 0 then
-                       FileTime:=FileDateToDateTime(i);
-                     Writeln(['Source file ',sourcenumber,' : ',Name,' ',filetimestring(i)]);
+                     try
+                       if i >= 0 then
+                         FileTime:=FileDateToDateTime(i);
+                       Writeln(['Source file ',sourcenumber,' : ',Name,' ',filetimestring(i)]);
+                     except
+                     end;
                    end;
 
                    inc(sourcenumber);
@@ -4866,8 +4926,10 @@ begin
     exit;
   CurUnit.LongVersion:=cardinal(ppufile.getlongint);
   Writeln(['LongVersion: ',CurUnit.LongVersion]);
-  ppufile.getsmallset(CurUnit.ModuleFlags);
-  result:=ppufile.EndOfEntry;
+  ppufile.getset(tppuset4(CurUnit.ModuleFlags));
+  result:=ppufile.EndOfEntry and (CurUnit.LongVersion=CurrentPPULongVersion);
+  if mf_symansistr in CurUnit.ModuleFlags then
+    SymAnsiStr:=true;
 end;
 
 procedure dofile (filename : string);

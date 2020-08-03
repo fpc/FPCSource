@@ -128,8 +128,11 @@
 'lsl',
 'lsr',
 'ror',
-'sxt',
-'uxt',
+'sxtb',
+'sxth',
+'sxtw',
+'uxtb',
+'uxth',
 'neg',
 'ngc',
 'mvn',
@@ -187,5 +190,6 @@
 'fcsel',
 'umov',
 'ins',
-'movi'
+'movi',
+'veor'
 );

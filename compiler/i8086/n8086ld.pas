@@ -136,7 +136,7 @@ implementation
             if pvd.typ<>procvardef then
               internalerror(2012120901);
             paraloc1.init;
-            paramanager.getintparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
+            paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
             hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
             segreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
             reference_reset_symbol(segref,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE',AT_DATA),0,pvd.alignment,[]);
@@ -211,9 +211,8 @@ implementation
                      (not (vo_is_external in gvs.varoptions) and gvs.Owner.iscurrentunit) then
                     begin
                       inherited pass_generate_code;
-                      if (location.loc<>LOC_REFERENCE) and (location.loc<>LOC_CREFERENCE) then
-                        internalerror(2017121101);
-                      location.reference.segment:=NR_DS;
+                      if location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+                        location.reference.segment:=NR_DS;
                       exit;
                     end;
 

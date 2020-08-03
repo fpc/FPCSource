@@ -61,8 +61,8 @@ procedure SwitchStackTo(StackSegment, StackPointer, StackTop: UINT); external 'K
 function LoadModule(ModuleName: LPCSTR; ParameterName: LPVOID): HINST; external 'KERNEL';
 function FreeModule(Module: HINST): BOOL; external 'KERNEL';
 
-function LoadLibrary(LibFileName: LPCSTR): HINST; external 'KERNEL';
-procedure FreeLibrary(LibModule: HINST); external 'KERNEL';
+function WinLoadLibrary(LibFileName: LPCSTR): HINST; external 'KERNEL' name 'LoadLibrary';
+procedure WinFreeLibrary(LibModule: HINST); external 'KERNEL' name 'FreeLibrary';
 
 function WinExec(CmdLine: LPCSTR; CmdShow: UINT): UINT; external 'KERNEL';
 
@@ -71,7 +71,7 @@ function GetModuleHandle(ModuleName: LPCSTR): HMODULE; external 'KERNEL';
 function GetModuleUsage(Module: HINST): SmallInt; external 'KERNEL';
 function GetModuleFileName(Module: HINST; FileName: LPSTR; Size: SmallInt): SmallInt; external 'KERNEL';
 
-function GetProcAddress(Module: HINST; ProcName: LPCSTR): FARPROC; external 'KERNEL';
+function WinGetProcAddress(Module: HINST; ProcName: LPCSTR): FARPROC; external 'KERNEL' name 'GetProcAddress';
 
 function GetInstanceData(Instance: HINST; Data: PBYTE; Count: SmallInt): SmallInt; external 'KERNEL';
 

@@ -177,6 +177,7 @@ end;
 function TFieldDef.GetCharSize: Word;
 begin
   case FDataType of
+   ftGUID: Result:=1;
    ftString, ftFixedChar:
      case FCodePage of
        CP_UTF8: Result := 4;
@@ -496,6 +497,8 @@ end;
 
 function TField.GetAsBytes: TBytes;
 begin
+  Result:=Default(TBytes);
+//  Writeln('Allocating ',Datasize,' bytes');
   SetLength(Result, DataSize);
   if assigned(result) and not GetData(@Result[0], False) then
     Result := nil;
@@ -2387,7 +2390,7 @@ class procedure TBinaryField.CheckTypeSize(AValue: Longint);
 begin
   // Just check for really invalid stuff; actual size is
   // dependent on the record...
-  If AValue<1 then
+  If AValue<0 then // MSSQL can have a null/0 field length in a view
     DatabaseErrorFmt(SInvalidFieldSize,[AValue]);
 end;
 

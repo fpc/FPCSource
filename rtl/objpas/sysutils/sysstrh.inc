@@ -120,18 +120,29 @@ function UIntToStr(Value: Cardinal): string; {$ifdef SYSUTILSINLINE}inline;{$END
 function IntToHex(Value: Longint; Digits: integer): string;
 function IntToHex(Value: Int64; Digits: integer): string;
 function IntToHex(Value: QWord; Digits: integer): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToHex(Value: Int8): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToHex(Value: UInt8): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToHex(Value: Int16): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToHex(Value: UInt16): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToHex(Value: Int32): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToHex(Value: UInt32): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToHex(Value: Int64): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToHex(Value: UInt64): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
 function StrToInt(const s: string): Longint;
 function StrToDWord(const s: string): DWord;
+function StrToUInt(const s: string): Cardinal;
 function StrToInt64(const s: string): int64;
 function StrToQWord(const s: string): QWord; 
 function StrToUInt64(const s: string): UInt64; inline;
 function TryStrToInt(const s: string; Out i : Longint) : boolean;
 function TryStrToDWord(const s: string; Out D : DWord) : boolean;
+function TryStrToUInt(const s: string; out C: Cardinal): Boolean;
 function TryStrToInt64(const s: string; Out i : int64) : boolean;
 function TryStrToQWord(const s: string; Out Q : QWord) : boolean;
 function TryStrToUInt64(const s: string; Out u : UInt64) : boolean; inline;
 function StrToIntDef(const S: string; Default: Longint): Longint;
 function StrToDWordDef(const S: string; Default: DWord): DWord;
+function StrToUIntDef(const S: string; Default: Cardinal): Cardinal;
 function StrToInt64Def(const S: string; Default: int64): int64;
 function StrToQWordDef(const S: string; Default: QWord): QWord;
 function StrToUInt64Def(const S: string; Default: UInt64): UInt64; inline;

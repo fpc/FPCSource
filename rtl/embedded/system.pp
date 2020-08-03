@@ -26,9 +26,11 @@ Unit System;
 {$define HAS_CMDLINE}
 
 { currently, the avr compiler cannot compile complex procedures especially dealing with int64
-  which are probaly anyways rarely used on avr }
+  which are probably anyways rarely used on avr
+
+  meanwhile, the avr compiler can deal with them (FK) }
 {$ifdef CPUAVR}
-{$define EXCLUDE_COMPLEX_PROCS}
+{ $define EXCLUDE_COMPLEX_PROCS}
 {$endif CPUAVR}
 
 { $define USE_NOTHREADMANAGER}
@@ -140,6 +142,7 @@ var
 {$undef fpc_softfpu_interface}
 
 {$endif FPC_HAS_FEATURE_SOFTFPU}
+
 {$endif FPUNONE}
 
 {$ifdef CPUI8086}
@@ -240,40 +243,12 @@ function paramstr(l: longint) : string;
  end;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
-const
-  QRAN_SHIFT  = 15;
-  QRAN_MASK   = ((1 shl QRAN_SHIFT) - 1);
-  QRAN_MAX    = QRAN_MASK;
-  QRAN_A      = 1664525;
-  QRAN_C      = 1013904223;
-
 {$ifdef FPC_HAS_FEATURE_RANDOM}
 procedure randomize();
 begin
   RandSeed := 63458;
 end;
-
-procedure randomize(value: integer);
-begin
-  RandSeed := value;
-end;
-
-function random(): integer;
-begin
-  RandSeed := QRAN_A * RandSeed + QRAN_C;
-  random := (RandSeed shr 16) and QRAN_MAX;
-end;
-
-function random(value: integer): integer;
-var
-  a: integer;
-begin
-  RandSeed := QRAN_A * RandSeed + QRAN_C;
-  a := (RandSeed shr 16) and QRAN_MAX;
-  random := (a * value) shr 15;
-end;
 {$endif FPC_HAS_FEATURE_RANDOM}
-
 
 {*****************************************************************************
                          SystemUnit Initialization

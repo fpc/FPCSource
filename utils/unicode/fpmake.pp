@@ -16,7 +16,7 @@ begin
     begin
     P:=AddPackage('utils-unicode');
     P.ShortName:='ucd';
-    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

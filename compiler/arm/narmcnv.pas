@@ -32,33 +32,17 @@ interface
        tarmtypeconvnode = class(tcgtypeconvnode)
          protected
            function first_int_to_real: tnode;override;
-           function first_real_to_real: tnode; override;
-         { procedure second_int_to_int;override; }
-         { procedure second_string_to_string;override; }
-         { procedure second_cstring_to_pchar;override; }
-         { procedure second_string_to_chararray;override; }
-         { procedure second_array_to_pointer;override; }
-         // function first_int_to_real: tnode; override;
-         { procedure second_pointer_to_array;override; }
-         { procedure second_chararray_to_string;override; }
-         { procedure second_char_to_string;override; }
+           function first_real_to_real: tnode;override;
            procedure second_int_to_real;override;
-         // procedure second_real_to_real;override;
-         { procedure second_cord_to_pointer;override; }
-         { procedure second_proc_to_procvar;override; }
-         { procedure second_bool_to_int;override; }
            procedure second_int_to_bool;override;
-         { procedure second_load_smallset;override;  }
-         { procedure second_ansistring_to_pchar;override; }
-         { procedure second_pchar_to_string;override; }
-         { procedure second_class_to_intf;override; }
-         { procedure second_char_to_char;override; }
        end;
 
 implementation
 
    uses
-      verbose,globtype,globals,symdef,aasmbase,aasmtai,aasmdata,symtable,
+      verbose,globtype,globals,
+      systems,
+      symdef,aasmbase,aasmtai,aasmdata,symtable,
       defutil,
       cgbase,cgutils,
       pass_1,pass_2,procinfo,ncal,
@@ -78,7 +62,8 @@ implementation
 {$ifdef cpufpemu}
           (current_settings.fputype=fpu_soft) or
 {$endif cpufpemu}
-          (FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype]) then
+          (not(FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) and
+           not(FPUARM_HAS_FPA in fpu_capabilities[current_settings.fputype])) then
           result:=inherited first_int_to_real
         else
           begin
@@ -117,17 +102,19 @@ implementation
               fpu_fpa10,
               fpu_fpa11:
                 expectloc:=LOC_FPUREGISTER;
-              fpu_vfp_first..fpu_vfp_last:
-                expectloc:=LOC_MMREGISTER;
+              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+                expectloc:=LOC_MMREGISTER
               else
                 internalerror(2009112702);
             end;
           end;
       end;
 
+
     function tarmtypeconvnode.first_real_to_real: tnode;
       begin
-        if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype] then
+        if (current_settings.fputype=fpu_soft) and
+           not (target_info.system in systems_wince) then
           begin
             case tfloatdef(left.resultdef).floattype of
               s32real:
@@ -255,7 +242,7 @@ implementation
                 location.register,left.location.register),
                 signedprec2vfppf[signed,location.size]));
             end
-          else if FPUARM_HAS_VFP_SINGLE_ONLY in fpu_capabilities[current_settings.fputype] then
+          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
             begin
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
               signed:=left.location.size=OS_S32;

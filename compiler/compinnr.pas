@@ -21,7 +21,9 @@ unit compinnr;
 interface
 
 const
-  fpc_in_cpu_first   = 10000;
+  { this file needs to be kept in sync with rtl/inc/innr.in }
+  in_cpu_first   = 10000;
+  in_x86_mm_first    = 11000;
 
 type
    tinlinenumber=(
@@ -118,6 +120,7 @@ type
      in_gettypekind_x     = 96,
      in_faraddr_x         = 97,
      in_volatile_x        = 98,
+     in_ismanagedtype_x   = 99,
 
 { Internal constant functions }
      in_const_sqr        = 100,
@@ -160,11 +163,14 @@ type
      in_mmx_pcmpeqd      = 202,
      in_mmx_pcmpgtb      = 203,
      in_mmx_pcmpgtw      = 204,
-     in_mmx_pcmpgtd      = 205
+     in_mmx_pcmpgtd      = 205,
 
      { 3DNow }
 
      { SSE }
+
+{ More internal functions }
+     in_isconstvalue_x    = 1000
 
 {$if defined(X86)}
      ,
@@ -174,6 +180,10 @@ type
      ,
      {$i ccpuinnr.inc}
 {$endif }
+{$if defined(Z80)}
+     ,
+     {$i ccpuinnr.inc}
+{$endif}
    );
 
 implementation

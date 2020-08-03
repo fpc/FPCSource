@@ -23,14 +23,22 @@ const baseFDataSize = 8;
 value in range <0,n-1> base only on arguments, n will be always power of 2}
 
 type
+
+    { THashSetIterator }
+
     generic THashSetIterator<T, TTable>=class
     public
+    Type
+      TLHashSetIterator = specialize THashSetIterator<T, TTable>;
     var
       Fh,Fp:SizeUInt;
       FData:TTable;
       function Next:boolean;
+      function MoveNext:boolean; inline;
       function GetData:T;
+      function GetEnumerator: TLHashSetIterator; inline;
       property Data:T read GetData;
+      property Current:T read GetData;
  end;
 
   generic THashSet<T, Thash>=class
@@ -52,18 +60,18 @@ type
       function size:SizeUInt;inline;
       procedure delete(value:T);inline;
       function IsEmpty:boolean;inline;
-
+      function GetEnumerator: TIterator; inline;
       function Iterator:TIterator;
   end;
 
 implementation
 
-function THashSet.Size:SizeUInt;inline;
+function THashSet.size: SizeUInt;
 begin
   Size:=FDataSize;
 end;
 
-destructor THashSet.Destroy;
+destructor THashSet.destroy;
 var i:SizeUInt;
 begin
   for i:=0 to FData.size-1 do
@@ -71,12 +79,28 @@ begin
   FData.Destroy;
 end;
 
-function THashSet.IsEmpty():boolean;inline;
+function THashSet.IsEmpty: boolean;
 begin
   if Size()=0 then 
     IsEmpty:=true
   else 
     IsEmpty:=false;
+end;
+
+function THashSet.GetEnumerator: TIterator;
+  var h,p:SizeUInt;
+begin
+  h:=0;
+  p:=0;
+  while h < FData.size do begin
+    if ((FData[h]).size > 0) then break;
+    inc(h);
+  end;
+  if (h = FData.size) then exit(nil);
+  result := TIterator.create;
+  result.Fh := h;
+  result.Fp := p;
+  result.FData := FData;
 end;
 
 procedure THashSet.EnlargeTable;
@@ -163,9 +187,28 @@ begin
   Next := true;
 end;
 
+function THashSetIterator.MoveNext: boolean;
+begin
+  inc(Fp);
+  if (Fp = (FData[Fh]).size) then begin
+    Fp:=0; inc(Fh);
+    while Fh < FData.size do begin
+      if ((FData[Fh]).size > 0) then break;
+      inc(Fh);
+    end;
+    if (Fh = FData.size) then exit(false);
+  end;
+  MoveNext := true;
+end;
+
 function THashSetIterator.GetData:T;
 begin
   GetData:=(FData[Fh])[Fp];
+end;
+
+function THashSetIterator.GetEnumerator: TLHashSetIterator;
+begin
+  result:=self;
 end;
 
 function THashSet.Iterator:TIterator;

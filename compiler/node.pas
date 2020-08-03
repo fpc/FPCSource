@@ -243,8 +243,10 @@ interface
          nf_absolute,
 
          { taddnode }
+         { if the result type of a node is currency, then this flag denotes, that the value is already mulitplied by 10000 }
          nf_is_currency,
          nf_has_pointerdiv,
+         { the node shall be short boolean evaluated, this flag has priority over localswitches }
          nf_short_bool,
 
          { tmoddivnode }
@@ -274,10 +276,13 @@ interface
          nf_block_with_exit,
 
          { tloadvmtaddrnode }
-         nf_ignore_for_wpo  { we know that this loadvmtaddrnode cannot be used to construct a class instance }
+         nf_ignore_for_wpo, { we know that this loadvmtaddrnode cannot be used to construct a class instance }
 
-         { WARNING: there are now 31 elements in this type, and a set of this
-             type is written to the PPU. So before adding more than 32 elements,
+         { node is derived from generic parameter }
+         nf_generic_para
+
+         { WARNING: there are now 32 elements in this type, and a set of this
+             type is written to the PPU. So before adding more elements,
              either move some flags to specific nodes, or stream a normalset
              to the ppu
          }
@@ -521,6 +526,7 @@ implementation
 {$ifdef DEBUG_NODE_XML}
        cutils,
 {$endif DEBUG_NODE_XML}
+       ppu,
        symconst,
        nutils,nflw,
        defutil;
@@ -735,7 +741,7 @@ implementation
 
     function is_constpointernode(p : tnode) : boolean;
       begin
-         is_constpointernode:=(p.nodetype=pointerconstn);
+         is_constpointernode:=(p.nodetype in [pointerconstn,niln]);
       end;
 
     function is_conststringnode(p : tnode) : boolean;
@@ -797,10 +803,10 @@ implementation
         { tnode fields }
         blocktype:=tblock_type(ppufile.getbyte);
         ppufile.getposinfo(fileinfo);
-        ppufile.getsmallset(localswitches);
+        ppufile.getset(tppuset5(localswitches));
         verbosity:=ppufile.getlongint;
         ppufile.getderef(resultdefderef);
-        ppufile.getsmallset(flags);
+        ppufile.getset(tppuset4(flags));
         { updated by firstpass }
         expectloc:=LOC_INVALID;
         { updated by secondpass }
@@ -812,10 +818,10 @@ implementation
       begin
         ppufile.putbyte(byte(block_type));
         ppufile.putposinfo(fileinfo);
-        ppufile.putsmallset(localswitches);
+        ppufile.putset(tppuset5(localswitches));
         ppufile.putlongint(verbosity);
         ppufile.putderef(resultdefderef);
-        ppufile.putsmallset(flags);
+        ppufile.putset(tppuset4(flags));
       end;
 
 
@@ -1316,9 +1322,19 @@ implementation
       end;
 
 
+    function setuplabelnode(var n : tnode;arg : pointer) : foreachnoderesult;
+      begin
+        result:=fen_true;
+        if (n.nodetype=goton) and assigned(tgotonode(n).labelnode) and
+          assigned(tgotonode(n).labelnode.copiedto) then
+          tgotonode(n).labelnode:=tgotonode(n).labelnode.copiedto;
+      end;
+
+
     function tnode.getcopy : tnode;
       begin
         result:=dogetcopy;
+        foreachnodestatic(pm_postprocess,result,@setuplabelnode,nil);
         foreachnodestatic(pm_postprocess,self,@cleanupcopiedto,nil);
       end;
 
@@ -1367,6 +1383,9 @@ implementation
     constructor tunarynode.create(t:tnodetype;l : tnode);
       begin
          inherited create(t);
+         { transfer generic paramater flag }
+         if assigned(l) and (nf_generic_para in l.flags) then
+           include(flags,nf_generic_para);
          left:=l;
       end;
 
@@ -1469,7 +1488,10 @@ implementation
     constructor tbinarynode.create(t:tnodetype;l,r : tnode);
       begin
          inherited create(t,l);
-         right:=r
+         { transfer generic paramater flag }
+         if assigned(r) and (nf_generic_para in r.flags) then
+           include(flags,nf_generic_para);
+         right:=r;
       end;
 
 
@@ -1622,6 +1644,9 @@ implementation
     constructor ttertiarynode.create(_t:tnodetype;l,r,t : tnode);
       begin
          inherited create(_t,l,r);
+         { transfer generic parameter flag }
+         if assigned(t) and (nf_generic_para in t.flags) then
+           include(flags,nf_generic_para);
          third:=t;
       end;
 

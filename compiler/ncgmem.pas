@@ -167,29 +167,29 @@ implementation
           end
         else
           begin
-            currpi:=current_procinfo;
             location_reset(location,LOC_REGISTER,def_cgsize(parentfpvoidpointertype));
-            location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,parentfpvoidpointertype);
+            currpi:=current_procinfo;
             { load framepointer of current proc }
-            hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
-            if not assigned(hsym) then
-              internalerror(200309281);
-            hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,parentfpvoidpointertype,parentfpvoidpointertype,hsym.localloc,location.register);
-            { walk parents }
-            while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
+            hsym:=tparavarsym(currpi.procdef.parentfpsym);
+            if (currpi.procdef.owner.symtablelevel=parentpd.parast.symtablelevel) and (hsym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+              location.register:=hsym.localloc.register
+            else
               begin
-                currpi:=currpi.parent;
-                if not assigned(currpi) then
-                  internalerror(200311201);
-                hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
-                if not assigned(hsym) then
-                  internalerror(200309282);
+                location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,parentfpvoidpointertype);
+                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,parentfpvoidpointertype,parentfpvoidpointertype,hsym.localloc,location.register);
+                { walk parents }
+                while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
+                  begin
+                    currpi:=currpi.parent;
+                    if not assigned(currpi) then
+                      internalerror(200311201);
+                    hsym:=tparavarsym(currpi.procdef.parentfpsym);
+                    if hsym.localloc.loc<>LOC_REFERENCE then
+                      internalerror(200309283);
 
-                if hsym.localloc.loc<>LOC_REFERENCE then
-                  internalerror(200309283);
-
-                hlcg.reference_reset_base(href,parentfpvoidpointertype,location.register,hsym.localloc.reference.offset,ctempposinvalid,parentfpvoidpointertype.alignment,[]);
-                hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,parentfpvoidpointertype,parentfpvoidpointertype,href,location.register);
+                    hlcg.reference_reset_base(href,parentfpvoidpointertype,location.register,hsym.localloc.reference.offset,ctempposinvalid,parentfpvoidpointertype.alignment,[]);
+                    hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,parentfpvoidpointertype,parentfpvoidpointertype,href,location.register);
+                  end;
               end;
           end;
       end;
@@ -306,7 +306,7 @@ implementation
               internalerror(2012010601);
             pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
             paraloc1.init;
-            paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
+            paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
             hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,left.resultdef,location.reference,paraloc1);
             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
@@ -399,7 +399,7 @@ implementation
                        (sym.typ<>procsym) then
                       internalerror(2012010602);
                     pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
-                    paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
+                    paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
                     hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,left.resultdef,location.reference,paraloc1);
                     paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                     hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
@@ -768,8 +768,8 @@ implementation
          if is_dynamic_array(left.resultdef) then
             begin
                pd:=search_system_proc('fpc_dynarray_rangecheck');
-               paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
-               paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,2,paraloc2);
+               paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
+               paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,2,paraloc2);
                if pd.is_pushleftright then
                  begin
                    hlcg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.resultdef,left.location,paraloc1);
@@ -808,8 +808,8 @@ implementation
             begin
               helpername:='fpc_'+tstringdef(left.resultdef).stringtypname+'_rangecheck';
               pd:=search_system_proc(helpername);
-              paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
-              paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,2,paraloc2);
+              paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
+              paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,2,paraloc2);
               if pd.is_pushleftright then
                 begin
                   hlcg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.resultdef,left.location,paraloc1);
@@ -857,7 +857,9 @@ implementation
          temp : longint;
          hreg : tregister;
          indexdef : tdef;
+         {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
          i : Integer;
+         {$endif}
       begin
          paraloc1.init;
          paraloc2.init;
@@ -944,9 +946,13 @@ implementation
                LOC_REGISTER:
                  begin
                    if not(is_constnode(right)) or (tarraydef(left.resultdef).elementdef.size<>alusinttype.size) then
-                     hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
-                   { we use location here only to get the right offset }
-                   location_reset_ref(location,LOC_REFERENCE,OS_NO,1,[]);
+                     begin
+                       hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+                       location_copy(location,left.location);
+                     end
+                   else
+                     { we use location here only to get the right offset }
+                     location_reset_ref(location,LOC_REFERENCE,OS_NO,1,[]);
                  end;
                LOC_CSUBSETREG,
                LOC_CMMREGISTER,

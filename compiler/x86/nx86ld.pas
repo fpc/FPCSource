@@ -65,7 +65,7 @@ implementation
               begin
                 paraloc1.init;
                 pd:=search_system_proc('fpc_tls_add');
-                paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
+                paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
                 if not(vo_is_weak_external in gvs.varoptions) then
                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,sizeof(pint),[])
                 else
@@ -93,15 +93,13 @@ implementation
               system_i386_linux,system_i386_android:
                 begin
                   case current_settings.tlsmodel of
-                    tlsm_local:
+                    tlsm_local_exec:
                       begin
                         location.reference.segment:=NR_GS;
                         location.reference.refaddr:=addr_ntpoff;
                       end;
-                    tlsm_general:
+                    tlsm_global_dynamic:
                       begin
-                        if not(cs_create_pic in current_settings.moduleswitches) then
-                          Internalerror(2018110701);
                         include(current_procinfo.flags,pi_needs_got);
                         reference_reset(href,0,[]);
                         location.reference.index:=current_procinfo.got;
@@ -129,16 +127,13 @@ implementation
               system_x86_64_linux:
                 begin
                   case current_settings.tlsmodel of
-                    tlsm_local:
+                    tlsm_local_exec:
                       begin
                         location.reference.segment:=NR_FS;
                         location.reference.refaddr:=addr_tpoff;
                       end;
-                    tlsm_general:
+                    tlsm_global_dynamic:
                       begin
-                        if not(cs_create_pic in current_settings.moduleswitches) then
-                          Internalerror(2019012001);
-
                         current_asmdata.CurrAsmList.concat(tai_const.Create_8bit($66));
                         reference_reset(href,0,[]);
                         location.reference.base:=NR_RIP;

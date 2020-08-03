@@ -384,7 +384,7 @@ type
         b) the def of the record should be automatically constructed based on
            the types of the emitted fields
 
-        packrecords: same as "pacrecords x"
+        packrecords: same as "packrecords x"
         recordalign: specify the (minimum) alignment of the start of the record
           (no equivalent in source code), used as an alternative for explicit
           align statements. Use "1" if it should be calculated based on the
@@ -512,7 +512,7 @@ implementation
      cutils,
      verbose,globals,systems,widestr,
      fmodule,
-     symtable,defutil;
+     symtable,symutil,defutil;
 
 {****************************************************************************
                        taggregateinformation
@@ -589,8 +589,7 @@ implementation
             repeat
               inc(i);
               sym:=tsym(tabstractrecorddef(def).symtable.symlist[i]);
-            until (sym.typ=fieldvarsym) and
-              not(sp_static in sym.symoptions);
+            until is_normal_fieldvarsym(sym);
             curfield:=tfieldvarsym(sym);
             nextoffset:=curfield.fieldoffset;
             curindex:=i;
@@ -828,8 +827,6 @@ implementation
 
 
    destructor tai_aggregatetypedconst.destroy;
-     var
-       ai: tai_abstracttypedconst;
      begin
        fvalues.free;
        inherited destroy;
@@ -1151,7 +1148,9 @@ implementation
    class function ttai_typedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint;
      begin
        { darwin's linker does not support negative offsets }
-       if not(target_info.system in systems_darwin) then
+       if not(target_info.system in systems_darwin) and
+          { it seems that clang's assembler has a bug with the ADRP instruction... }
+          (target_info.system<>system_aarch64_win64) then
          result:=0
        else
          result:=get_string_header_size(typ,winlikewidestring);
@@ -1161,7 +1160,9 @@ implementation
    class function ttai_typedconstbuilder.get_dynarray_symofs:pint;
      begin
        { darwin's linker does not support negative offsets }
-       if not (target_info.system in systems_darwin) then
+       if not (target_info.system in systems_darwin) and
+          { it seems that clang's assembler has a bug with the ADRP instruction... }
+          (target_info.system<>system_aarch64_win64) then
          result:=0
        else
          result:=get_dynarray_header_size;
@@ -1843,7 +1844,7 @@ implementation
 
    procedure ttai_typedconstbuilder.emit_procdef_const(pd: tprocdef);
      begin
-       emit_tai(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(pd));
+       emit_tai(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(pd,pc_address_only));
      end;
 
 
@@ -2086,7 +2087,7 @@ implementation
          begin
            sym:=search_struct_member_no_helper(tabstractrecorddef(curdef),fields[i]);
            if not assigned(sym) or
-              (sym.typ<>fieldvarsym) or
+              not is_normal_fieldvarsym(sym) or
               ((i<>high(fields)) and
                not(tfieldvarsym(sym).vardef.typ in [objectdef,recorddef])) then
              internalerror(2015071505);

@@ -341,7 +341,7 @@ interface
 {$endif x86_64}
            if assigned(symbol) then
             begin
-              writer.AsmWrite(symbol.name);
+              writer.AsmWrite(ApplyAsmSymbolRestrictions(symbol.name));
               if SmartAsm then
                 AddSymbol(symbol.name,false);
               first:=false;
@@ -440,7 +440,7 @@ interface
                    begin
                     if SmartAsm then
                       AddSymbol(o.ref^.symbol.name,false);
-                    writer.AsmWrite(o.ref^.symbol.name);
+                    writer.AsmWrite(ApplyAsmSymbolRestrictions(o.ref^.symbol.name));
                     if o.ref^.offset=0 then
                       exit;
                    end;
@@ -475,7 +475,7 @@ interface
                    writer.AsmWrite('near ') just disables short branches, increasing code size.
                    Omitting it does not cause any bad effects, tested with nasm 2.11. }
 
-                writer.AsmWrite(o.ref^.symbol.name);
+                writer.AsmWrite(ApplyAsmSymbolRestrictions(o.ref^.symbol.name));
                 if SmartAsm then
                   AddSymbol(o.ref^.symbol.name,false);
                 if o.ref^.offset>0 then
@@ -558,7 +558,8 @@ interface
           '.objc_protolist',
           '.stack',
           '.heap',
-          ',gcc_except_table'
+          ',gcc_except_table',
+          ',ARM_attributes'
         );
       var
         secname,secgroup: string;
@@ -802,7 +803,7 @@ interface
                   if tai_datablock(hp).sym.bind=AB_PRIVATE_EXTERN then
                     WriteHiddenSymbolAttribute(tai_datablock(hp).sym);
                 end;
-               writer.AsmWrite(PadTabs(tai_datablock(hp).sym.name,':'));
+               writer.AsmWrite(PadTabs(ApplyAsmSymbolRestrictions(tai_datablock(hp).sym.name),':'));
                if SmartAsm then
                  AddSymbol(tai_datablock(hp).sym.name,true);
                writer.AsmWriteLn('RESB'#9+tostr(tai_datablock(hp).size));
@@ -827,13 +828,13 @@ interface
                        begin
                          if SmartAsm then
                            AddSymbol(tai_const(hp).sym.name,false);
-                         writer.AsmWrite(tai_const(hp).sym.name);
+                         writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_const(hp).sym.name));
                          if tai_const(hp).value<>0 then
                            writer.AsmWrite(tostr_with_plus(tai_const(hp).value));
                          writer.AsmLn;
                          writer.AsmWrite(ait_const2str[aitconst_16bit]);
                          writer.AsmWrite('SEG ');
-                         writer.AsmWrite(tai_const(hp).sym.name);
+                         writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_const(hp).sym.name));
                        end
                      else
                        writer.AsmWrite(tostr(lo(longint(tai_const(hp).value)))+','+
@@ -848,7 +849,7 @@ interface
                          if SmartAsm then
                            AddSymbol(tai_const(hp).sym.name,false);
                          writer.AsmWrite('SEG ');
-                         writer.AsmWrite(tai_const(hp).sym.name);
+                         writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_const(hp).sym.name));
                        end
                      else
                        internalerror(2015110501);
@@ -887,9 +888,9 @@ interface
                                  AddSymbol(tai_const(hp).endsym.name,false);
                              end;
                            if assigned(tai_const(hp).endsym) then
-                             s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
+                             s:=ApplyAsmSymbolRestrictions(tai_const(hp).endsym.name)+'-'+ApplyAsmSymbolRestrictions(tai_const(hp).sym.name)
                            else
-                             s:=tai_const(hp).sym.name;
+                             s:=ApplyAsmSymbolRestrictions(tai_const(hp).sym.name);
                            if tai_const(hp).value<>0 then
                              s:=s+tostr_with_plus(tai_const(hp).value);
                          end
@@ -1001,9 +1002,9 @@ interface
                    if SmartAsm and (tai_label(hp).labsym.bind=AB_GLOBAL) then
                      begin
                        writer.AsmWrite(#9'GLOBAL ');
-                       writer.AsmWriteLn(tai_label(hp).labsym.name);
+                       writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_label(hp).labsym.name));
                      end;
-                   writer.AsmWriteLn(tai_label(hp).labsym.name+':');
+                   writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_label(hp).labsym.name)+':');
                  end;
                if SmartAsm then
                  AddSymbol(tai_label(hp).labsym.name,true);
@@ -1016,11 +1017,11 @@ interface
                if tai_symbol(hp).is_global or SmartAsm then
                 begin
                   writer.AsmWrite(#9'GLOBAL ');
-                  writer.AsmWriteLn(tai_symbol(hp).sym.name);
+                  writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
                   if tai_symbol(hp).sym.bind=AB_PRIVATE_EXTERN then
                     WriteHiddenSymbolAttribute(tai_symbol(hp).sym);
                 end;
-               writer.AsmWrite(tai_symbol(hp).sym.name);
+               writer.AsmWrite(ApplyAsmSymbolRestrictions(tai_symbol(hp).sym.name));
                if SmartAsm then
                  AddSymbol(tai_symbol(hp).sym.name,true);
                if (not assigned(hp.next)) or (assigned(hp.next) and not(tai(hp.next).typ in
@@ -1340,7 +1341,7 @@ interface
           begin
             sym:=TAsmSymbol(current_asmdata.AsmSymbolDict[i]);
             if sym.bind in [AB_EXTERNAL,AB_EXTERNAL_INDIRECT] then
-              writer.AsmWriteln('EXTERN'#9+sym.name);
+              writer.AsmWriteln('EXTERN'#9+ApplyAsmSymbolRestrictions(sym.name));
           end;
       end;
 
@@ -1352,7 +1353,7 @@ interface
         while assigned(EC) do
           begin
             if not EC^.is_defined then
-              writer.AsmWriteln('EXTERN'#9+EC^.psym^);
+              writer.AsmWriteln('EXTERN'#9+ApplyAsmSymbolRestrictions(EC^.psym^));
             EC:=EC^.next;
           end;
       end;
@@ -1482,6 +1483,7 @@ interface
             supported_targets : [system_i8086_msdos,system_i8086_win16,system_i8086_embedded];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1494,6 +1496,7 @@ interface
             supported_targets : [system_i8086_msdos,system_i8086_win16,system_i8086_embedded];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1509,6 +1512,7 @@ interface
             supported_targets : [system_i386_go32v2];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1522,6 +1526,7 @@ interface
             supported_targets : [system_i386_win32];
             flags : [af_needar,af_no_debug,af_smartlink_sections];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1535,6 +1540,7 @@ interface
             supported_targets : [system_i386_embedded, system_i8086_msdos];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1548,6 +1554,7 @@ interface
             supported_targets : [system_i386_wdosx];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1562,6 +1569,7 @@ interface
             supported_targets : [system_i386_linux];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1575,6 +1583,7 @@ interface
             supported_targets : [system_i386_darwin];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1588,6 +1597,7 @@ interface
             supported_targets : [system_i386_beos];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1601,6 +1611,7 @@ interface
             supported_targets : [system_i386_haiku];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1613,6 +1624,7 @@ interface
             supported_targets : [system_any];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1629,6 +1641,7 @@ interface
             supported_targets : [system_any];
             flags : [af_needar{,af_no_debug}];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1642,6 +1655,7 @@ interface
             supported_targets : [system_x86_64_win64];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1655,6 +1669,7 @@ interface
             supported_targets : [system_x86_64_linux];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );
@@ -1669,6 +1684,7 @@ interface
             supported_targets : [system_x86_64_darwin];
             flags : [af_needar,af_no_debug];
             labelprefix : '..@';
+            labelmaxlen : -1;
             comment : '; ';
             dollarsign: '$';
           );

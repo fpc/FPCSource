@@ -402,7 +402,7 @@ implementation
             landingpadstack:=TFPList.Create;
             typefilterlist:=TFPList.Create;
             gcc_except_table:=new_section(gcc_except_table_data,sec_gcc_except_table,'',0);
-            gcc_except_table.secflags:=SF_A;
+            gcc_except_table.secflags:=[SF_A];
             gcc_except_table.secprogbits:=SPB_PROGBITS;
 {$ifdef debug_eh}
             gcc_except_table_data.concat(tai_comment.Create(strpnew('gcc_except_table for '+procdef.fullprocname(true))));
@@ -622,7 +622,7 @@ implementation
       var
         cgpara1: tcgpara;
         pd: tprocdef;
-        action, ReRaiseLandingPad: TPSABIEHAction;
+        ReRaiseLandingPad: TPSABIEHAction;
         psabiehprocinfo: tpsabiehprocinfo;
       begin
         if not(fc_catching_exceptions in flowcontrol) and
@@ -642,7 +642,7 @@ implementation
 
             pd:=search_system_proc('_unwind_resume');
             cgpara1.init;
-            paramanager.getintparaloc(list,pd,1,cgpara1);
+            paramanager.getcgtempparaloc(list,pd,1,cgpara1);
             hlcg.a_load_reg_cgpara(list,voidpointertype,t.unwind_info,cgpara1);
             paramanager.freecgpara(list,cgpara1);
             hlcg.g_call_system_proc(list,'_unwind_resume',[@cgpara1],nil).resetiftemp;
@@ -686,17 +686,11 @@ implementation
       var
         catchstartlab : tasmlabel;
         begincatchres,
-        typeidres,
         paraloc1: tcgpara;
         pd: tprocdef;
-        landingpadstructdef,
-        landingpadtypeiddef: tdef;
         rttisym: TAsmSymbol;
         rttidef: tdef;
-        rttiref: treference;
-        wrappedexception,
-        exceptiontypeidreg,
-        landingpadres: tregister;
+        wrappedexception: tregister;
         exceptloc: tlocation;
         indirect: boolean;
         otherunit: boolean;
@@ -741,7 +735,7 @@ implementation
           (current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(tobjectdef(-1));
 
         pd:=search_system_proc('fpc_psabi_begin_catch');
-        paramanager.getintparaloc(list, pd, 1, paraloc1);
+        paramanager.getcgtempparaloc(list, pd, 1, paraloc1);
         hlcg.a_load_reg_cgpara(list,voidpointertype,wrappedexception,paraloc1);
         begincatchres:=hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
         location_reset(exceptloc, LOC_REGISTER, def_cgsize(begincatchres.def));

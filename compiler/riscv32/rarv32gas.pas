@@ -26,10 +26,10 @@ Unit rarv32gas;
   Interface
 
     uses
-      raatt,rarv32;
+      raatt,rarv32,rarvgas;
 
     type
-      trv32attreader = class(tattreader)                             
+      trv32attreader = class(trvattreader)                             
         function is_register(const s: string): boolean; override;
         function is_asmopcode(const s: string):boolean;override;
         procedure handleopcode;override;
@@ -380,8 +380,10 @@ Unit rarv32gas;
         hl : tasmlabel;
         ofs : aint;          
         refaddr: trefaddr;
+        entered_paren: Boolean;
       Begin
         expr:='';             
+        entered_paren:=false;
 
         refaddr:=addr_full;
         if actasmtoken=AS_MOD then
@@ -411,6 +413,7 @@ Unit rarv32gas;
 
                 consume(AS_ID);
                 consume(AS_LPAREN);
+                entered_paren:=true;
               end;
           end;
 
@@ -515,7 +518,7 @@ Unit rarv32gas;
                   { add a constant expression? }
                   if (actasmtoken=AS_PLUS) then
                    begin
-                     l:=BuildConstExpression(true,false);
+                     l:=BuildConstExpression(true,entered_paren);
                      case oper.opr.typ of
                        OPR_CONSTANT :
                          inc(oper.opr.val,l);
@@ -565,7 +568,11 @@ Unit rarv32gas;
 
             oper.opr.ref.refaddr:=refaddr;
             Consume(AS_RPAREN);
-          end;
+          end
+        else if (oper.opr.typ=OPR_REFERENCE) and
+           (oper.opr.ref.refaddr=addr_no) and
+           assigned(oper.opr.ref.symbol) then
+          oper.opr.ref.refaddr:=addr_full;
       end;
 
 
@@ -645,10 +652,10 @@ Unit rarv32gas;
           (name: 'A1'; reg : NR_X11),
           (name: 'A2'; reg : NR_X12),
           (name: 'A3'; reg : NR_X13),
-          (name: 'A5'; reg : NR_X14),
-          (name: 'A6'; reg : NR_X15),
-          (name: 'A7'; reg : NR_X16),
-          (name: 'A8'; reg : NR_X17),
+          (name: 'A4'; reg : NR_X14),
+          (name: 'A5'; reg : NR_X15),
+          (name: 'A6'; reg : NR_X16),
+          (name: 'A7'; reg : NR_X17),
           (name: 'RA'; reg : NR_X1),
           (name: 'SP'; reg : NR_X2),
           (name: 'GP'; reg : NR_X3),

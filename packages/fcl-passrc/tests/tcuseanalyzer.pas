@@ -134,6 +134,8 @@ type
     procedure TestM_Hint_FunctionResultAssembler;
     procedure TestM_Hint_FunctionResultExit;
     procedure TestM_Hint_AbsoluteVar;
+    procedure TestM_Hint_GenFunctionResultArgNotUsed;
+    procedure TestM_Hint_GenFunc_LocalInsideImplUsed;
 
     // whole program optimization
     procedure TestWP_LocalVar;
@@ -158,6 +160,7 @@ type
     procedure TestWP_TypeInfo;
     procedure TestWP_TypeInfo_PropertyEnumType;
     procedure TestWP_TypeInfo_Alias;
+    procedure TestWP_TypeInfo_Specialize;
     procedure TestWP_ForInClass;
     procedure TestWP_AssertSysUtils;
     procedure TestWP_RangeErrorSysUtils;
@@ -841,9 +844,9 @@ begin
   StartProgram(false);
   Add([
   'resourcestring',
-  'resourcestring',
   '  {#a_used}a = ''txt'';',
   '  {#b_used}b = ''foo'';',
+  '  {#c_notused}c = ''bar'';',
   'procedure {#DoIt_used}DoIt(s: string);',
   'var',
   '  {#d_used}d: string;',
@@ -2282,6 +2285,71 @@ begin
   CheckUseAnalyzerUnexpectedHints;
 end;
 
+procedure TTestUseAnalyzer.TestM_Hint_GenFunctionResultArgNotUsed;
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  generic TPoint<U> = record X,Y: U; end;',
+  'generic procedure Three<S>(out x: S);',
+  'begin',
+  '  x:=3;',
+  'end;',
+  'generic function Point<T>(): specialize TPoint<T>;',
+  'begin',
+  '  specialize Three<T>(Result.X)',
+  'end;',
+  'begin',
+  '  specialize Point<word>();',
+  '']);
+  AnalyzeProgram;
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "Y" not used');
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_GenFunc_LocalInsideImplUsed;
+begin
+  StartProgram(true,[supTObject]);
+  Add([
+  '{$mode delphi}',
+  'procedure Run<T>;',
+  'var',
+  '  WhileV: T;',
+  '  RepeatV: T;',
+  '  ForR, ForV: T;',
+  '  IfCond: boolean;',
+  '  IfThenV,IfElseV: T;',
+  '  CaseV, CaseSt, CaseElse: T;',
+  '  TryFinallyV, TryFinallyX: T;',
+  '  TryExceptV, TryExceptOn, TryExceptElse: T;',
+  '  WithExpr: TObject;',
+  '  WithV: T;',
+  'begin',
+  '  while true do WhileV:=WhileV+1;',
+  '  repeat RepeatV:=RepeatV+1; until false;',
+  '  for ForR:=1 to 3 do ForV:=ForV+1;',
+  '  if IfCond then IfThenV:=IfThenV+1 else IfElseV:=IfElseV+1;',
+  '  case CaseV of',
+  '  1: CaseSt:=CaseSt+1;',
+  '  else',
+  '    CaseElse:=CaseElse+1;',
+  '  end;',
+  '  try TryFinallyV:=TryFinallyV+1; finally TryFinallyX:=TryFinallyX+1; end;',
+  '  try',
+  '    TryExceptV:=TryExceptV+1;',
+  '  except',
+  '  on TryExceptE: TObject do TryExceptOn:=TryExceptOn+1;',
+  '  else',
+  '    TryExceptElse:=TryExceptElse+1;',
+  '  end;',
+  '  with WithExpr do WithV:=WithV+1',
+  'end;',
+  'begin',
+  '  Run<word>();']);
+  AnalyzeProgram;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
 procedure TTestUseAnalyzer.TestWP_LocalVar;
 begin
   StartProgram(false);
@@ -2799,6 +2867,30 @@ begin
     'begin',
     '  PInfo:=typeinfo(TDateTime);',
     'end.']);
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_TypeInfo_Specialize;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  generic TProc<T> = procedure(a: T) of object;',
+  '  TWordProc = specialize TProc<word>;',
+  '  {$M+}',
+  '  TPersistent = class',
+  '  private',
+  '    FWordProc: TWordProc;',
+  '  published',
+  '    property Proc: TWordProc read FWordProc write FWordProc;',
+  '  end;',
+  '  {$M-}',
+  'var',
+  '  {#p_notypeinfo}p: pointer;',
+  'begin',
+  '  p:=typeinfo(TPersistent);',
+  '']);
   AnalyzeWholeProgram;
 end;
 

@@ -417,6 +417,8 @@ implementation
            hlcg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrExitLabel)
          else
            hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrExitLabel);
+         if not(cs_opt_size in current_settings.optimizerswitches) then
+           current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignskipmax));
        end;
 
 
@@ -437,7 +439,9 @@ implementation
              if (fc_unwind_loop in flowcontrol) then
                hlcg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel)
              else
-               hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel)
+               hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel);
+             if not(cs_opt_size in current_settings.optimizerswitches) then
+               current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignskipmax));
            end
          else
            CGMessage(cg_e_break_not_allowed);
@@ -461,7 +465,9 @@ implementation
              if (fc_unwind_loop in flowcontrol) then
                hlcg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel)
              else
-               hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel)
+               hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel);
+             if not(cs_opt_size in current_settings.optimizerswitches) then
+               current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignskipmax));
            end
          else
            CGMessage(cg_e_continue_not_allowed);
@@ -481,7 +487,9 @@ implementation
 {$ifdef OLDREGVARS}
          load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
-         hlcg.a_jmp_always(current_asmdata.CurrAsmList,tcglabelnode(labelnode).getasmlabel)
+         hlcg.a_jmp_always(current_asmdata.CurrAsmList,tcglabelnode(labelnode).getasmlabel);
+         if not(cs_opt_size in current_settings.optimizerswitches) then
+           current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignskipmax));
        end;
 
 
@@ -884,28 +892,31 @@ implementation
 
     procedure tcgtryfinallynode.handle_safecall_exception;
       var
-        cgpara: tcgpara;
+        cgpara, resultpara: tcgpara;
         selfsym: tparavarsym;
         pd: tprocdef;
+        safecallresult: tlocalvarsym;
       begin
         { call fpc_safecallhandler, passing self for methods of classes,
           nil otherwise. }
         pd:=search_system_proc('fpc_safecallhandler');
         cgpara.init;
-        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,cgpara);
+        paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,cgpara);
         if is_class(current_procinfo.procdef.struct) then
           begin
             selfsym:=tparavarsym(current_procinfo.procdef.parast.Find('self'));
             if (selfsym=nil) or (selfsym.typ<>paravarsym) then
               InternalError(2011123101);
-            cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,selfsym.localloc,cgpara);
+            hlcg.a_load_loc_cgpara(current_asmdata.CurrAsmList,selfsym.vardef,selfsym.localloc,cgpara);
           end
         else
-          cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,0,cgpara);
+          hlcg.a_load_const_cgpara(current_asmdata.CurrAsmList,voidpointertype,0,cgpara);
         paramanager.freecgpara(current_asmdata.CurrAsmList,cgpara);
+        resultpara:=hlcg.g_call_system_proc(current_asmdata.CurrAsmList,pd,[@cgpara],nil);
         cgpara.done;
-        cg.g_call(current_asmdata.CurrAsmList,'FPC_SAFECALLHANDLER');
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_FUNCTION_RESULT_REG, NR_FUNCTION_RETURN_REG);
+        safecallresult:=tlocalvarsym(current_procinfo.procdef.localst.Find('safecallresult'));
+        hlcg.gen_load_cgpara_loc(current_asmdata.CurrAsmList,resultpara.def,resultpara,safecallresult.localloc,false);
+        resultpara.resetiftemp;
       end;
 
 
@@ -1057,8 +1068,7 @@ implementation
                  hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,osuinttype,OC_EQ,0,reasonreg,endfinallylabel);
                  { finally code only needed to be executed on exception (-> in
                    if-branch -> fc_inflowcontrol) }
-                 if (tf_safecall_exceptions in target_info.flags) and
-                    (current_procinfo.procdef.proccalloption=pocall_safecall) then
+                 if current_procinfo.procdef.generate_safecall_wrapper then
                    begin
                      handle_safecall_exception;
                      { we have to jump immediatly as we have to return the value of FPC_SAFECALL }
@@ -1078,8 +1088,7 @@ implementation
            begin
              if implicitframe then
                begin
-                 if (tf_safecall_exceptions in target_info.flags) and
-                    (current_procinfo.procdef.proccalloption=pocall_safecall) then
+                 if current_procinfo.procdef.generate_safecall_wrapper then
                    handle_safecall_exception
                  else
                    cexceptionstatehandler.handle_reraise(current_asmdata.CurrAsmList,excepttemps,finallyexceptionstate,exceptframekind);

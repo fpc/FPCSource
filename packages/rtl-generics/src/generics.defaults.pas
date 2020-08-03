@@ -2167,9 +2167,10 @@ begin
   else
   begin
     LInstance := @ComparerInstances[ATypeInfo.Kind];
-    Result := LInstance.Instance;
     if LInstance.Selector then
-      Result := TSelectFunc(Result)(GetTypeData(ATypeInfo), ASize);
+      Result := TSelectFunc(LInstance.SelectorInstance)(GetTypeData(ATypeInfo), ASize)
+    else
+      Result := LInstance.Instance;
   end;
 end;
 

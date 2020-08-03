@@ -576,8 +576,8 @@ unit cgcpu;
         pd:=search_system_proc(name);
         paraloc1.init;
         paraloc2.init;
-        paramanager.getintparaloc(list,pd,1,paraloc1);
-        paramanager.getintparaloc(list,pd,2,paraloc2);
+        paramanager.getcgtempparaloc(list,pd,1,paraloc1);
+        paramanager.getcgtempparaloc(list,pd,2,paraloc2);
         a_load_const_cgpara(list,size,a,paraloc2);
         a_load_reg_cgpara(list,OS_32,reg,paraloc1);
         paramanager.freecgpara(list,paraloc2);
@@ -600,8 +600,8 @@ unit cgcpu;
         pd:=search_system_proc(name);
         paraloc1.init;
         paraloc2.init;
-        paramanager.getintparaloc(list,pd,1,paraloc1);
-        paramanager.getintparaloc(list,pd,2,paraloc2);
+        paramanager.getcgtempparaloc(list,pd,1,paraloc1);
+        paramanager.getcgtempparaloc(list,pd,2,paraloc2);
         a_load_reg_cgpara(list,OS_32,reg1,paraloc2);
         a_load_reg_cgpara(list,OS_32,reg2,paraloc1);
         paramanager.freecgpara(list,paraloc2);
@@ -1084,7 +1084,7 @@ unit cgcpu;
       var
         ref : treference;
       begin
-        if use_push(cgpara) and (current_settings.fputype in [fpu_68881,fpu_coldfire]) then
+        if use_push(cgpara) and (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]) then
           begin
             cgpara.check_simple_location;
             reference_reset_base(ref, NR_STACK_POINTER_REG, 0, ctempposinvalid, cgpara.alignment, []);
@@ -1117,7 +1117,7 @@ unit cgcpu;
               inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
           end
         else
-          if use_push(cgpara) and (current_settings.fputype in [fpu_68881,fpu_coldfire]) then
+          if use_push(cgpara) and (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]) then
             begin
               //list.concat(tai_comment.create(strpnew('a_loadfpu_ref_cgpara copy')));
               cgpara.check_simple_location;
@@ -1155,6 +1155,13 @@ unit cgcpu;
       begin
         optimize_op_const(size, op, a);
         opcode := topcg2tasmop[op];
+        if (a >0) and (a<=high(dword)) then
+          a:=longint(dword(a))
+        else if (a>=low(longint)) then
+          a:=longint(a)
+        else
+          internalerror(201810201);
+
         case op of
           OP_NONE :
             begin
@@ -1836,10 +1843,12 @@ unit cgcpu;
             { MUL/DIV always sets the overflow flag, and never the carry flag }
             { Note/Fixme: This still doesn't cover the ColdFire, where none of these opcodes
               set either the overflow or the carry flag. So CF must be handled in other ways. }
-            if taicpu(list.last).opcode in [A_MULU,A_MULS,A_DIVS,A_DIVU,A_DIVUL,A_DIVSL] then
-              cond:=C_VC
-            else
-              cond:=C_CC;
+            case taicpu(list.last).opcode of
+              A_MULU,A_MULS,A_DIVS,A_DIVU,A_DIVUL,A_DIVSL:
+                cond:=C_VC;
+              else
+                cond:=C_CC;
+            end;
           end;
         ai:=Taicpu.Op_Sym(A_Bxx,S_NO,hl);
         ai.SetCondition(cond);
@@ -2163,6 +2172,8 @@ unit cgcpu;
                   else
                     list.concat(taicpu.op_const_reg(A_AND,S_W,$FF,reg));
                 end;
+              else
+                ;
             end;
           OS_S32, OS_32:
             case _oldsize of
@@ -2205,7 +2216,11 @@ unit cgcpu;
                   //list.concat(tai_comment.create(strpnew('zero extend word')));
                   list.concat(taicpu.op_const_reg(A_AND,S_L,$FFFF,reg));
                 end;
+              else
+                ;
             end;
+          else
+            ;
         end; { otherwise the size is already correct }
       end; 
 
@@ -2448,6 +2463,8 @@ unit cgcpu;
               list.concat(taicpu.op_reg(opcode,S_L,regdst.reglo));
               list.concat(taicpu.op_reg(xopcode,S_L,regdst.reghi));
             end;
+          else
+            ;
         end; { end case }
       end;
 
@@ -2549,16 +2566,16 @@ unit cgcpu;
             begin
               hreg:=cg.getintregister(list,OS_INT);
               { cg.a_load_const_reg provides optimized loading to register for special cases }
-              cg.a_load_const_reg(list,OS_S32,longint(highvalue),hreg);
+              cg.a_load_const_reg(list,OS_S32,tcgint(highvalue),hreg);
               { don't use cg.a_op_const_reg() here, because a possible optimized
                 ADDQ/SUBQ wouldn't set the eXtend bit }
-              list.concat(taicpu.op_const_reg(opcode,S_L,longint(lowvalue),regdst.reglo));
+              list.concat(taicpu.op_const_reg(opcode,S_L,tcgint(lowvalue),regdst.reglo));
               list.concat(taicpu.op_reg_reg(xopcode,S_L,hreg,regdst.reghi));
             end;
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_const_reg(list,op,OS_S32,longint(lowvalue),regdst.reglo);
-              cg.a_op_const_reg(list,op,OS_S32,longint(highvalue),regdst.reghi);
+              cg.a_op_const_reg(list,op,OS_S32,tcgint(lowvalue),regdst.reglo);
+              cg.a_op_const_reg(list,op,OS_S32,tcgint(highvalue),regdst.reghi);
             end;
           { this is handled in 1st pass for 32-bit cpus (helper call) }
           OP_IDIV,OP_DIV,
@@ -2570,6 +2587,8 @@ unit cgcpu;
           { these should have been handled already by earlier passes }
           OP_NOT,OP_NEG:
             internalerror(2012110403);
+          else
+            ;
         end; { end case }
       end;
 

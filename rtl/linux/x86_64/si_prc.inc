@@ -37,11 +37,6 @@
 
 procedure InitTLS; [external name 'FPC_INITTLS'];
 
-{ so far, I found no case where this is actually called, so it is a dummy so far (FK) }
-function __tls_get_addr(p : pointer) : pointer; public name '__tls_get_addr';
-  begin
-  end;
-
 {******************************************************************************
                           Process start/halt
  ******************************************************************************}

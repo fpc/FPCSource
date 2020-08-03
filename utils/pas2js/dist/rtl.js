@@ -8,6 +8,8 @@ var rtl = {
   debug_load_units: false,
   debug_rtti: false,
 
+  $res : {},
+
   debug: function(){
     if (rtl.quiet || !console || !console.log) return;
     console.log(arguments);
@@ -127,8 +129,7 @@ var rtl = {
   exitcode: 0,
 
   run: function(module_name){
-  
-    function doRun(){
+    try {
       if (!rtl.hasString(module_name)) module_name='program';
       if (rtl.debug_load_units) rtl.debug('rtl.run module="'+module_name+'"');
       rtl.initRTTI();
@@ -141,21 +142,36 @@ var rtl = {
         var r = pas.program.$main();
         if (rtl.isNumber(r)) rtl.exitcode = r;
       }
-    }
-    
-    if (rtl.showUncaughtExceptions) {
-      try{
-        doRun();
-      } catch(re) {
-        var errMsg = rtl.hasString(re.$classname) ? re.$classname : '';
-	    errMsg +=  ((errMsg) ? ': ' : '') + (re.hasOwnProperty('fMessage') ? re.fMessage : re);
-        alert('Uncaught Exception : '+errMsg);
-        rtl.exitCode = 216;
+    } catch(re) {
+      if (!rtl.showUncaughtExceptions) {
+        throw re
+      } else {  
+        if (!rtl.handleUncaughtException(re)) {
+          rtl.showException(re);
+          rtl.exitcode = 216;
+        }  
+      }
+    } 
+    return rtl.exitcode;
+  },
+  
+  showException : function (re) {
+    var errMsg = rtl.hasString(re.$classname) ? re.$classname : '';
+    errMsg +=  ((errMsg) ? ': ' : '') + (re.hasOwnProperty('fMessage') ? re.fMessage : re);
+    alert('Uncaught Exception : '+errMsg);
+  },
+
+  handleUncaughtException: function (e) {
+    if (rtl.onUncaughtException) {
+      try {
+        rtl.onUncaughtException(e);
+        return true;
+      } catch (ee) {
+        return false; 
       }
     } else {
-      doRun();
+      return false;
     }
-    return rtl.exitcode;
   },
 
   loadintf: function(module){
@@ -176,7 +192,8 @@ var rtl = {
 
   loaduseslist: function(module,useslist,f){
     if (useslist==undefined) return;
-    for (var i in useslist){
+    var len = useslist.length;
+    for (var i = 0; i<len; i++) {
       var unitname=useslist[i];
       if (rtl.debug_load_units) rtl.debug('loaduseslist of "'+module.$name+'" uses="'+unitname+'"');
       if (pas[unitname]==undefined)
@@ -220,6 +237,23 @@ var rtl = {
       cb = function(){
         return fn.apply(scope,arguments);
       };
+    };
+    cb.scope = scope;
+    cb.fn = fn;
+    return cb;
+  },
+
+  createSafeCallback: function(scope, fn){
+    var cb = function(){
+      try{
+        if (typeof(fn)==='string'){
+          return scope[fn].apply(scope,arguments);
+        } else {
+          return fn.apply(scope,arguments);
+        };
+      } catch (err) {
+        if (!rtl.handleUncaughtException(err)) throw err;
+      }
     };
     cb.scope = scope;
     cb.fn = fn;
@@ -313,19 +347,33 @@ var rtl = {
     // Create a class using an external ancestor.
     // If newinstancefnname is given, use that function to create the new object.
     // If exist call BeforeDestruction and AfterConstruction.
-    var c = Object.create(ancestor);
+    var isFunc = rtl.isFunction(ancestor);
+    var c = null;
+    if (isFunc){
+      // create pascal class descendent from JS function
+      c = Object.create(ancestor.prototype);
+    } else if (ancestor.$func){
+      // create pascal class descendent from a pascal class descendent of a JS function
+      isFunc = true;
+      c = Object.create(ancestor);
+      c.$ancestor = ancestor;
+    } else {
+      c = Object.create(ancestor);
+    }
     c.$create = function(fn,args){
       if (args == undefined) args = [];
       var o = null;
       if (newinstancefnname.length>0){
         o = this[newinstancefnname](fn,args);
+      } else if(isFunc) {
+        o = new this.$func(args);
       } else {
-        o = Object.create(this);
+        o = Object.create(c);
       }
       if (o.$init) o.$init();
       try{
         if (typeof(fn)==="string"){
-          o[fn].apply(o,args);
+          this[fn].apply(o,args);
         } else {
           fn.apply(o,args);
         };
@@ -333,7 +381,7 @@ var rtl = {
       } catch($e){
         // do not call BeforeDestruction
         if (o.Destroy) o.Destroy();
-        if (o.$final) this.$final();
+        if (o.$final) o.$final();
         throw $e;
       }
       return o;
@@ -344,6 +392,12 @@ var rtl = {
       if (this.$final) this.$final();
     };
     rtl.initClass(c,parent,name,initfn);
+    if (isFunc){
+      function f(){}
+      f.prototype = c;
+      c.$func = f;
+      c.$ancestorfunc = ancestor;
+    }
   },
 
   createHelper: function(parent,name,ancestor,initfn){
@@ -385,31 +439,45 @@ var rtl = {
     return null;
   },
 
+  hideProp: function(o,p,v){
+    Object.defineProperty(o,p, {
+      enumerable: false,
+      configurable: true,
+      writable: true
+    });
+    if(arguments.length>2){ o[p]=v; }
+  },
+
   recNewT: function(parent,name,initfn,full){
     // create new record type
     var t = {};
     if (parent) parent[name] = t;
-    function hide(prop){
-      Object.defineProperty(t,prop,{enumerable:false});
-    }
+    var h = rtl.hideProp;
     if (full){
       rtl.initStruct(t,parent,name);
       t.$record = t;
-      hide('$record');
-      hide('$name');
-      hide('$parent');
-      hide('$module');
+      h(t,'$record');
+      h(t,'$name');
+      h(t,'$parent');
+      h(t,'$module');
     }
     initfn.call(t);
     if (!t.$new){
-      t.$new = function(){ return Object.create(this); };
+      t.$new = function(){ return Object.create(t); };
     }
-    t.$clone = function(r){ return this.$new().$assign(r); };
-    hide('$new');
-    hide('$clone');
-    hide('$eq');
-    hide('$assign');
+    t.$clone = function(r){ return t.$new().$assign(r); };
+    h(t,'$new');
+    h(t,'$clone');
+    h(t,'$eq');
+    h(t,'$assign');
     return t;
+  },
+
+  recNewS: function(parent,name,initfn,full){
+    // register specialized record type
+    parent[name] = function(){
+      rtl.recNewT(parent,name,initfn,full);
+    }
   },
 
   is: function(instance,type){
@@ -808,70 +876,86 @@ var rtl = {
     return (arr == null) ? 0 : arr.length;
   },
 
-  arraySetLength: function(arr,defaultvalue,newlength){
-    // multi dim: (arr,defaultvalue,dim1,dim2,...)
-    var p = arguments;
-    function setLength(src,argNo){
-      var newlen = p[argNo];
-      var a = [];
-      a.length = newlength;
-      if (argNo === p.length-1){
-        var oldlen = src?src.length:0;
-        if (rtl.isArray(defaultvalue)){
-          for (var i=0; i<newlen; i++) a[i]=(i<oldlen)?src[i]:[]; // array of dyn array
-        } else if (rtl.isObject(defaultvalue)) {
-          if (rtl.isTRecord(defaultvalue)){
-            for (var i=0; i<newlen; i++)
-              a[i]=(i<oldlen)?defaultvalue.$clone(src[i]):defaultvalue.$new(); // e.g. record
-          } else {
-            for (var i=0; i<newlen; i++) a[i]=(i<oldlen)?rtl.refSet(src[i]):{}; // e.g. set
-          }
-        } else {
-          for (var i=0; i<newlen; i++)
-            a[i]=(i<oldlen)?src[i]:defaultvalue;
-        }
-      } else {
-        // multi dim array
-        for (var i=0; i<newlen; i++) a[i]=setLength(src?src[i]:null,argNo+1);
-      }
-      return a;
-    }
-    return setLength(arr,2);
+  arrayRef: function(a){
+    if (a!=null) rtl.hideProp(a,'$pas2jsrefcnt',1);
+    return a;
   },
 
-  /*arrayChgLength: function(arr,defaultvalue,newlength){
-    // multi dim: (arr,defaultvalue,dim1,dim2,...)
-    if (arr == null) arr = [];
-    var p = arguments;
-    function setLength(a,argNo){
-      var oldlen = a.length;
-      var newlen = p[argNo];
-      if (oldlen!==newlength){
-        a.length = newlength;
-        if (argNo === p.length-1){
-          if (rtl.isArray(defaultvalue)){
-            for (var i=oldlen; i<newlen; i++) a[i]=[]; // nested array
-          } else if (rtl.isObject(defaultvalue)) {
-            if (rtl.isTRecord(defaultvalue)){
-              for (var i=oldlen; i<newlen; i++) a[i]=defaultvalue.$new(); // e.g. record
-            } else {
-              for (var i=oldlen; i<newlen; i++) a[i]={}; // e.g. set
-            }
+  arraySetLength: function(arr,defaultvalue,newlength){
+    var stack = [];
+    var s = 9999;
+    for (var i=2; i<arguments.length; i++){
+      var j = arguments[i];
+      if (j==='s'){ s = i-2; }
+      else {
+        stack.push({ dim:j+0, a:null, i:0, src:null });
+      }
+    }
+    var dimmax = stack.length-1;
+    var depth = 0;
+    var lastlen = stack[dimmax].dim;
+    var item = null;
+    var a = null;
+    var src = arr;
+    var srclen = 0, oldlen = 0;
+    do{
+      if (depth>0){
+        item=stack[depth-1];
+        src = (item.src && item.src.length>item.i)?item.src[item.i]:null;
+      }
+      if (!src){
+        a = [];
+        srclen = 0;
+        oldlen = 0;
+      } else if (src.$pas2jsrefcnt>0 || depth>=s){
+        a = [];
+        srclen = src.length;
+        oldlen = srclen;
+      } else {
+        a = src;
+        srclen = 0;
+        oldlen = a.length;
+      }
+      a.length = stack[depth].dim;
+      if (depth>0){
+        item.a[item.i]=a;
+        item.i++;
+      }
+      if (depth<dimmax){
+        item = stack[depth];
+        item.a = a;
+        item.i = 0;
+        item.src = src;
+        depth++;
+      } else {
+        if (rtl.isArray(defaultvalue)){
+          // array of dyn array
+          for (var i=0; i<srclen; i++) a[i]=src[i];
+          for (var i=oldlen; i<lastlen; i++) a[i]=[];
+        } else if (rtl.isObject(defaultvalue)) {
+          if (rtl.isTRecord(defaultvalue)){
+            // array of record
+            for (var i=0; i<srclen; i++) a[i]=defaultvalue.$clone(src[i]);
+            for (var i=oldlen; i<lastlen; i++) a[i]=defaultvalue.$new();
           } else {
-            for (var i=oldlen; i<newlen; i++) a[i]=defaultvalue;
+            // array of set
+            for (var i=0; i<srclen; i++) a[i]=rtl.refSet(src[i]);
+            for (var i=oldlen; i<lastlen; i++) a[i]={};
           }
         } else {
-          for (var i=oldlen; i<newlen; i++) a[i]=[]; // nested array
+          for (var i=0; i<srclen; i++) a[i]=src[i];
+          for (var i=oldlen; i<lastlen; i++) a[i]=defaultvalue;
+        }
+        while ((depth>0) && (stack[depth-1].i>=stack[depth-1].dim)){
+          depth--;
+        };
+        if (depth===0){
+          if (dimmax===0) return a;
+          return stack[0].a;
         }
       }
-      if (argNo < p.length-1){
-        // multi argNo
-        for (var i=0; i<newlen; i++) a[i]=setLength(a[i],argNo+1);
-      }
-      return a;
-    }
-    return setLength(arr,2);
-  },*/
+    }while (true);
+  },
 
   arrayEq: function(a,b){
     if (a===null) return b===null;
@@ -976,12 +1060,7 @@ var rtl = {
   },
 
   refSet: function(s){
-    Object.defineProperty(s, '$shared', {
-      enumerable: false,
-      configurable: true,
-      writable: true,
-      value: true
-    });
+    rtl.hideProp(s,'$shared',true);
     return s;
   },
 
@@ -1109,6 +1188,11 @@ var rtl = {
     }
     setCodeFn(1);
     return 0;
+  },
+
+  lw: function(l){
+    // fix longword bitwise operation
+    return l<0?l+0x100000000:l;
   },
 
   and: function(a,b){
@@ -1286,6 +1370,7 @@ var rtl = {
     newBaseTI("tTypeInfoClassRef",14 /* tkClassRef */);
     newBaseTI("tTypeInfoInterface",18 /* tkInterface */,rtl.tTypeInfoStruct);
     newBaseTI("tTypeInfoHelper",19 /* tkHelper */,rtl.tTypeInfoStruct);
+    newBaseTI("tTypeInfoExtClass",20 /* tkExtClass */,rtl.tTypeInfoClass);
   },
 
   tSectionRTTI: {
@@ -1336,7 +1421,8 @@ var rtl = {
     $ClassRef: function(name,o){ return this.$inherited(name,rtl.tTypeInfoClassRef,o); },
     $Pointer: function(name,o){ return this.$inherited(name,rtl.tTypeInfoPointer,o); },
     $Interface: function(name,o){ return this.$Scope(name,rtl.tTypeInfoInterface,o); },
-    $Helper: function(name,o){ return this.$Scope(name,rtl.tTypeInfoHelper,o); }
+    $Helper: function(name,o){ return this.$Scope(name,rtl.tTypeInfoHelper,o); },
+    $ExtClass: function(name,o){ return this.$Scope(name,rtl.tTypeInfoExtClass,o); }
   },
 
   newTIParam: function(param){
@@ -1365,5 +1451,23 @@ var rtl = {
       flags: flags
     };
     return s;
+  },
+
+  addResource: function(aRes){
+    rtl.$res[aRes.name]=aRes;
+  },
+
+  getResource: function(aName){
+    var res = rtl.$res[aName];
+    if (res !== undefined) {
+      return res;
+    } else {
+      return null;
+    }
+  },
+
+  getResourceList: function(){
+    return Object.keys(rtl.$res);
   }
 }
+

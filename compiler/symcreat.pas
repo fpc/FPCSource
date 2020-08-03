@@ -1272,7 +1272,7 @@ implementation
             fieldvardef:=cpointerdef.getreusable(vardef)
           else
             fieldvardef:=vardef;
-          result:=cfieldvarsym.create(symrealname,vs_value,fieldvardef,[],true);
+          result:=cfieldvarsym.create(symrealname,vs_value,fieldvardef,[]);
           if nestedvarsst.symlist.count=0 then
             include(tfieldvarsym(result).varoptions,vo_is_first_field);
           nestedvarsst.insert(result);
@@ -1394,7 +1394,10 @@ implementation
       hstaticvs.visibility:=fieldvs.visibility;
 {$else jvm}
       include(hstaticvs.symoptions,sp_internal);
-      tabstractrecordsymtable(recst).get_unit_symtable.insert(hstaticvs);
+      if df_generic in tdef(recst.defowner).defoptions then
+        tabstractrecordsymtable(recst).insert(hstaticvs)
+      else
+        tdef(tabstractrecordsymtable(recst).defowner).get_top_level_symtable(false).insert(hstaticvs);
 {$endif jvm}
       { generate the symbol for the access }
       sl:=tpropaccesslist.create;

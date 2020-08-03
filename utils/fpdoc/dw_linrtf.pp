@@ -121,6 +121,8 @@ type
     procedure DescrEndItalic; override;
     procedure DescrBeginEmph; override;
     procedure DescrEndEmph; override;
+    procedure DescrBeginUnderline; override;
+    procedure DescrEndUnderline; override;
     procedure DescrWriteFileEl(const AText: DOMString); override;
     procedure DescrWriteKeywordEl(const AText: DOMString); override;
     procedure DescrWriteVarEl(const AText: DOMString); override;
@@ -342,6 +344,16 @@ procedure TRTFWriter.DescrEndEmph;
 begin
   dec (FEmphLevel);
   Write('}')
+end;
+
+procedure TRTFWriter.DescrBeginUnderline;
+begin
+  Write('{\ul ');
+end;
+
+procedure TRTFWriter.DescrEndUnderline;
+begin
+  Write('}');
 end;
 
 procedure TRTFWriter.DescrWriteFileEl(const AText: DOMString);

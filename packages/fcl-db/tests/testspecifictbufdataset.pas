@@ -33,6 +33,10 @@ type
 
   TTestSpecificTBufDataset = class(TDBBasicsTestCase)
   private
+    FAfterScrollCount:integer;
+    FBeforeScrollCount:integer;
+    procedure DoAfterScrollCount(DataSet: TDataSet);
+    procedure DoBeforeScrollCount(DataSet: TDataSet);
     procedure TestDataset(ABufDataset: TBufDataset; AutoInc: boolean = false);
     function GetAutoIncDataset: TBufDataset;
     procedure IntTestAutoIncFieldStreaming(XML: boolean);
@@ -47,6 +51,9 @@ type
     procedure TestAutoIncField;
     procedure TestAutoIncFieldStreaming;
     procedure TestAutoIncFieldStreamingXML;
+    Procedure TestLocateScrollEventCount;
+    Procedure TestLookupScrollEventCount;
+    procedure TestLookupEmpty;
     Procedure TestRecordCount;
     Procedure TestClear;
     procedure TestCopyFromDataset; //is copied dataset identical to original?
@@ -92,6 +99,16 @@ begin
     ABufDataset.next;
     end;
   CheckTrue(ABufDataset.EOF);
+end;
+
+procedure TTestSpecificTBufDataset.DoAfterScrollCount(DataSet: TDataSet);
+begin
+  Inc(FAfterScrollCount);
+end;
+
+procedure TTestSpecificTBufDataset.DoBeforeScrollCount(DataSet: TDataSet);
+begin
+  Inc(FBeforeScrollCount);
 end;
 
 function TTestSpecificTBufDataset.GetAutoIncDataset: TBufDataset;
@@ -142,6 +159,8 @@ end;
 
 procedure TTestSpecificTBufDataset.SetUp;
 begin
+  FAfterScrollCount:=0;
+  FBeforeScrollCount:=0;
   DBConnector.StartTest(TestName);
 end;
 
@@ -268,6 +287,62 @@ end;
 procedure TTestSpecificTBufDataset.TestAutoIncFieldStreamingXML;
 begin
   IntTestAutoIncFieldStreaming(true);
+end;
+
+procedure TTestSpecificTBufDataset.TestLocateScrollEventCount;
+
+begin
+  with DBConnector.GetNDataset(10) as TBufDataset do
+    begin
+    Open;
+    AfterScroll:=DoAfterScrollCount;
+    BeforeScroll:=DoBeforeScrollCount;
+    Locate('ID',5,[]);
+    AssertEquals('Current record OK',5,FieldByName('ID').AsInteger);
+    AssertEquals('After scroll count',1,FAfterScrollCount);
+    AssertEquals('After scroll count',1,FBeforeScrollCount);
+    end;
+end;
+
+
+procedure TTestSpecificTBufDataset.TestLookupEmpty;
+
+// Test for issue 36086
+
+Var
+  V : Variant;
+
+begin
+  with DBConnector.GetNDataset(0) as TBufDataset do
+    begin
+    Open;
+    V:=Lookup('ID',5,'NAME');
+    AssertTrue('Null',Null=V);
+    end;
+end;
+
+procedure TTestSpecificTBufDataset.TestLookupScrollEventCount;
+
+Var
+  V : Variant;
+  S : String;
+  ID : Integer;
+
+begin
+  with DBConnector.GetNDataset(10) as TBufDataset do
+    begin
+    Open;
+    ID:=FieldByName('ID').AsInteger;
+    AfterScroll:=DoAfterScrollCount;
+    BeforeScroll:=DoBeforeScrollCount;
+    V:=Lookup('ID',5,'NAME');
+    AssertTrue('Not null',Null<>V);
+    S:=V;
+    AssertEquals('Result','TestName5',S);
+    AssertEquals('After scroll count',0,FAfterScrollCount);
+    AssertEquals('After scroll count',0,FBeforeScrollCount);
+    AssertEquals('Current record unchanged',ID,FieldByName('ID').AsInteger);
+    end;
 end;
 
 procedure TTestSpecificTBufDataset.TestRecordCount;

@@ -213,7 +213,7 @@ implementation
         begin
           vs:=cstaticvarsym.create(sym.realname+'$threadvar',sym.varspez,
             jvmgetthreadvardef(sym.vardef),
-            sym.varoptions - [vo_is_thread_var],true);
+            sym.varoptions - [vo_is_thread_var]);
           sym.owner.insert(vs);
           { make sure that the new sym does not get allocated (we will allocate
             it when encountering the original sym, because only then we know

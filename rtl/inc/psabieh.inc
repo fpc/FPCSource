@@ -135,6 +135,8 @@ function _Unwind_GetIP(context:PFPC_Unwind_Context):PtrUInt;cdecl;external;
 procedure _Unwind_SetIP(context:PFPC_Unwind_Context; new_value:PtrUInt);cdecl;external;
 {$endif}
 
+procedure DoUnHandledException; forward;
+
 { _Unwind_Backtrace() is a gcc extension that walks the stack and calls the  }
 { _Unwind_Trace_Fn once per frame until it reaches the bottom of the stack }
 { or the _Unwind_Trace_Fn function returns something other than _URC_NO_REASON. }
@@ -788,7 +790,7 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
     WrappedException:=FPC_psabieh_GetExceptionWrapper(libunwind_exception);
 
 {$ifdef excdebug}
-    writeln('Personality (version = ',version,', actions = $',hexstr(actions,4),') started for wrapper ',hexstr(WrappedException),' = fpc exc ',hexstr(WrappedException^.FObject),
+    writeln('Personality (version = ',{$ifndef __ARM_EABI_UNWINDER__}version{$else}0{$endif},', actions = $',hexstr(actions,4),') started for wrapper ',hexstr(WrappedException),' = fpc exc ',hexstr(WrappedException^.FObject),
       ', refcount is now ',WrappedException^.refcount);
     writeln('  ip=$',hexstr(_Unwind_GetIP(context),sizeof(pointer)*2));
 {$endif}
@@ -898,7 +900,7 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
 {$ifdef excdebug}
             writeln('foreign exception or force unwind, and found type = found terminate; actions = $',hexstr(actions,sizeof(actions)*2),'; foreign exception ', foreign_exception);
 {$endif}
-            RunError(217);
+            DoUnHandledException;
           end
         { can only perform cleanups when force-unwinding }
         else if handler_switch_value<0 then
@@ -906,7 +908,7 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
 {$ifdef excdebug}
             writeln('foreign exception or force unwind, handler_switch_value < 0: ', handler_switch_value);
 {$endif}
-            RunError(217)
+            DoUnHandledException;
           end
       end
     else
@@ -916,7 +918,7 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
 {$ifdef excdebug}
             writeln('native exception and no force unwind, and force_terminate');
 {$endif}
-            RunError(217);
+            DoUnHandledException;
           end
         else if handler_switch_value<0 then
           begin
@@ -924,7 +926,7 @@ function _FPC_psabieh_personality_v0(version: longint; actions: FPC_Unwind_Actio
 {$ifdef excdebug}
             writeln('native exception and no force unwind, and handler_switch_value<0: ', handler_switch_value);
 {$endif}
-            RunError(217);
+            DoUnHandledException;
           end;
       end;
     { For targets with pointers smaller than the word size, we must extend the
@@ -1006,11 +1008,11 @@ begin
     with _ExceptObjectStack^ do
       RaiseProc(FObject,Addr,FrameCount,Frames);
   RaiseResult:=_Unwind_RaiseException(@ExceptWrapper^.unwind_exception);
-  // should never return
+  // Only returns if there is no exception catching block anymore
 {$ifdef excdebug}
   writeln('_Unwind_RaiseException returned: ',RaiseResult);
 {$endif}
-  Halt(217);
+  DoUnHandledException;
 end;
 
 {$ifdef FPC_PSABIEH_CPLUSPLUSSUPPORT}
@@ -1036,7 +1038,7 @@ function FPC_psabi_begin_catch(exc:PFPC_Unwind_Exception): pointer; compilerproc
 {$ifdef excdebug}
             writeln('begin catch for nested foreign exception');
 {$endif}
-            halt(217);
+            DoUnHandledException;
           end;
         // This is a wrong conversion, but as long as afterwards we only access
         // fields of PFPC_Unwind_Exception, it's fine
@@ -1173,7 +1175,7 @@ procedure fpc_ReRaise; [public,alias:'FPC_RERAISE']; compilerproc;
             ExceptObjectStack:=nil;
             __cxa_rethrow;
             { should never be reached }
-            RunError(217);
+            DoUnHandledException;
           end
 {$endif FPC_PSABIEH_CPLUSPLUSSUPPORT}
         else
@@ -1199,9 +1201,9 @@ procedure fpc_ReRaise; [public,alias:'FPC_RERAISE']; compilerproc;
 //  #endif
 //  #endif
         // Some sort of unwinding error.
-        RunError(217);
+        DoUnHandledException;
       end;
-    RunError(217);
+    DoUnHandledException;
   end;
 
 {$define FPC_SYSTEM_HAS_RAISENESTED}
@@ -1240,7 +1242,7 @@ procedure fpc_raise_nested;compilerproc;
     else
       dec(hp^.refcount);
     _Unwind_RaiseException(@_ExceptObjectStack^.unwind_exception);
-    RunError(217);
+    DoUnHandledException;
   end;
 
 procedure FPC_DummyPotentialRaise; nostackframe; assembler;

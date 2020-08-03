@@ -337,6 +337,8 @@ implementation
                                 begin
                                   include(current_procinfo.flags,pi_has_nested_exit);
                                   exclude(current_procinfo.procdef.procoptions,po_inline);
+                                  if is_nested_pd(current_procinfo.procdef) then
+                                    current_procinfo.set_needs_parentfp(exit_procinfo.procdef.parast.symtablelevel);
 
                                   exit_procinfo.nestedexitlabel:=clabelsym.create('$nestedexit');
 
@@ -344,7 +346,7 @@ implementation
                                   exit_procinfo.nestedexitlabel.defined:=true;
                                   exit_procinfo.nestedexitlabel.used:=true;
 
-                                  exit_procinfo.nestedexitlabel.jumpbuf:=clocalvarsym.create('LABEL$_'+exit_procinfo.nestedexitlabel.name,vs_value,rec_jmp_buf,[],true);
+                                  exit_procinfo.nestedexitlabel.jumpbuf:=clocalvarsym.create('LABEL$_'+exit_procinfo.nestedexitlabel.name,vs_value,rec_jmp_buf,[]);
                                   exit_procinfo.procdef.localst.insert(exit_procinfo.nestedexitlabel);
                                   exit_procinfo.procdef.localst.insert(exit_procinfo.nestedexitlabel.jumpbuf);
                                 end;
@@ -441,12 +443,15 @@ implementation
                   is_open_string(p1.resultdef)
                  )) or
                  { keep the function call if it is a type parameter to avoid arithmetic errors due to constant folding }
-                 (p1.resultdef.typ=undefineddef) then
+                 is_typeparam(p1.resultdef) then
                 begin
                   statement_syssym:=geninlinenode(in_sizeof_x,false,p1);
                   { no packed bit support for these things }
                   if l=in_bitsizeof_x then
                     statement_syssym:=caddnode.create(muln,statement_syssym,cordconstnode.create(8,sizesinttype,true));
+                  { type sym is a generic parameter }
+                  if assigned(p1.resultdef.typesym) and (sp_generic_para in p1.resultdef.typesym.symoptions) then
+                    include(statement_syssym.flags,nf_generic_para);
                 end
               else
                begin
@@ -467,6 +472,9 @@ implementation
                    end
                  else
                    statement_syssym:=cordconstnode.create(p1.resultdef.packedbitsize,sizesinttype,true);
+                 { type def is a struct with generic fields }
+                 if df_has_generic_fields in p1.resultdef.defoptions then
+                    include(statement_syssym.flags,nf_generic_para);
                  { p1 not needed !}
                  p1.destroy;
                end;
@@ -474,9 +482,10 @@ implementation
 
           in_typeinfo_x,
           in_objc_encode_x,
-          in_gettypekind_x:
+          in_gettypekind_x,
+          in_ismanagedtype_x:
             begin
-              if (l in [in_typeinfo_x,in_gettypekind_x]) or
+              if (l in [in_typeinfo_x,in_gettypekind_x,in_ismanagedtype_x]) or
                  (m_objectivec1 in current_settings.modeswitches) then
                 begin
                   consume(_LKLAMMER);
@@ -495,7 +504,7 @@ implementation
                   begin
                     ttypenode(p1).allowed:=true;
                     { allow helpers for TypeInfo }
-                    if l in [in_typeinfo_x,in_gettypekind_x] then
+                    if l in [in_typeinfo_x,in_gettypekind_x,in_ismanagedtype_x] then
                       ttypenode(p1).helperallowed:=true;
                   end;
     {              else
@@ -513,6 +522,16 @@ implementation
                   Message1(sym_e_id_not_found, orgpattern);
                   statement_syssym:=cerrornode.create;
                 end;
+            end;
+
+          in_isconstvalue_x:
+            begin
+              consume(_LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr([ef_accept_equal]);
+              consume(_RKLAMMER);
+              p2:=geninlinenode(l,false,p1);
+              statement_syssym:=p2;
             end;
 
           in_aligned_x,
@@ -1379,7 +1398,12 @@ implementation
                                  not(po_staticmethod in tcallnode(p1).procdefinition.procoptions) and
                                  (not assigned(current_structdef) or
                                   not def_is_related(current_structdef,structh)) then
-                                Message(parser_e_only_static_members_via_object_type);
+                                begin
+                                  p1.free;
+                                  p1:=cerrornode.create;
+                                  Message(parser_e_only_static_members_via_object_type);
+                                  exit;
+                                end;
                             end;
                           { in Java, constructors are not automatically inherited
                             -> calling a constructor from a parent type will create
@@ -2457,22 +2481,32 @@ implementation
                    begin
                      if is_dynamic_array(p1.resultdef) then
                        begin
-                         if (token=_ID) and not try_type_helper(p1,nil) then
+                         if token=_ID then
                            begin
-                             if pattern='CREATE' then
+                             if not try_type_helper(p1,nil) then
                                begin
-                                 consume(_ID);
-                                 p2:=parse_array_constructor(tarraydef(p1.resultdef));
-                                 p1.destroy;
-                                 p1:=p2;
-                               end
-                             else
-                               begin
-                                 Message2(scan_f_syn_expected,'CREATE',pattern);
-                                 p1.destroy;
-                                 p1:=cerrornode.create;
-                                 consume(_ID);
+                                 if pattern='CREATE' then
+                                   begin
+                                     consume(_ID);
+                                     p2:=parse_array_constructor(tarraydef(p1.resultdef));
+                                     p1.destroy;
+                                     p1:=p2;
+                                   end
+                                 else
+                                   begin
+                                     Message2(scan_f_syn_expected,'CREATE',pattern);
+                                     p1.destroy;
+                                     p1:=cerrornode.create;
+                                     consume(_ID);
+                                   end;
                                end;
+                           end
+                         else
+                           begin
+                             Message(parser_e_invalid_qualifier);
+                             p1.destroy;
+                             p1:=cerrornode.create;
+                             consume(_ID);
                            end;
                        end
                      else
@@ -2995,11 +3029,11 @@ implementation
                wasgenericdummy:=false;
                if assigned(srsym) and
                    (sp_generic_dummy in srsym.symoptions) and
+                   (srsym.typ=typesym) and
                    (
                      (
                        (m_delphi in current_settings.modeswitches) and
                        not (token in [_LT, _LSHARPBRACKET]) and
-                       (srsym.typ=typesym) and
                        (ttypesym(srsym).typedef.typ=undefineddef)
                      )
                      or
@@ -3073,7 +3107,7 @@ implementation
                       findwithsymtable then
                      begin
                        { create dummy symbol, it will be freed later on }
-                       srsym:=tstoredsym.create(undefinedsym,'$undefinedsym',false);
+                       srsym:=tstoredsym.create(undefinedsym,'$undefinedsym');
                        srsymtable:=nil;
                      end
                    else
@@ -4231,7 +4265,10 @@ implementation
                 gendef:=generate_specialization_phase2(spezcontext,tstoreddef(gendef),false,'');
                 spezcontext.free;
                 spezcontext:=nil;
-                gensym:=gendef.typesym;
+                if gendef.typ=errordef then
+                  gensym:=generrorsym
+                else
+                  gensym:=gendef.typesym;
               end;
             procdef:
               begin
@@ -4585,7 +4622,7 @@ implementation
          filepos : tfileposinfo;
          oldafterassignment,
          updatefpos          : boolean;
-
+         oldflags : tnodeflags;
       begin
          oldafterassignment:=afterassignment;
          p1:=sub_expr(opcompare,[ef_accept_equal],nil);
@@ -4642,10 +4679,14 @@ implementation
           else
             updatefpos:=false;
          end;
+         oldflags:=p1.flags;
          { get the resultdef for this expression }
          if not assigned(p1.resultdef) and
             dotypecheck then
           do_typecheckpass(p1);
+         { transfer generic paramter flag }
+         if nf_generic_para in oldflags then
+           include(p1.flags,nf_generic_para);
          afterassignment:=oldafterassignment;
          if updatefpos then
            p1.fileinfo:=filepos;

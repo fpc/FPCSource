@@ -2373,7 +2373,7 @@ begin
           if OldCode <> NoCode then
             AddStringToTable(OldCode,Code);
           OldCode:=Code;
-        end else if (Code=TableCount+258) and (OldCode <> NoCode) then begin
+        end else if {(Code=TableCount+258) and} (OldCode <> NoCode) then begin
           WriteStringFromCode(OldCode,true);
           AddStringToTable(OldCode,OldCode);
           OldCode:=Code;

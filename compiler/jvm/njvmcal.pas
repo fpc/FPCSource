@@ -33,8 +33,6 @@ interface
     type
        tjvmcallparanode = class(tcgcallparanode)
         protected
-         function push_zero_sized_value_para: boolean; override;
-
          procedure push_formal_para; override;
          procedure push_copyout_para; override;
 
@@ -73,13 +71,6 @@ implementation
 {*****************************************************************************
                            TJVMCALLPARANODE
 *****************************************************************************}
-
-    function tjvmcallparanode.push_zero_sized_value_para: boolean;
-      begin
-        { part of the signature -> need to be pushed }
-        result:=true;
-      end;
-
 
     procedure tjvmcallparanode.push_formal_para;
       begin

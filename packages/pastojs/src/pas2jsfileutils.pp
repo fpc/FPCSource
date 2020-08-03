@@ -29,7 +29,7 @@ uses
   BaseUnix,
   {$ENDIF}
   {$IFDEF Pas2JS}
-  JS, NodeJS, NodeJSFS,
+  JS, NodeJS, Node.FS,
   {$ENDIF}
   SysUtils, Classes;
 

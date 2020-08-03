@@ -20,7 +20,7 @@ unit webjsonrpc;
 interface
 
 uses
-  Classes, SysUtils, fpjson, fpjsonrpc, httpdefs, fphttp, jsonparser;
+  Classes, SysUtils, fpjson, fpjsonrpc, httpdefs, fphttp, jsonscanner, jsonparser;
 
 Type
 { ---------------------------------------------------------------------
@@ -82,9 +82,20 @@ Type
   end;
 
   { TCustomJSONRPCModule }
+  TAPIRequestSource = (asURL,  // Next part of URL: RPC/API
+                       asQuery // Next part of URL: RPC?API=1
+                      );
+Const
+  DefaultAPIRequestSources = [asURL, asQuery];
+
+type
+  TAPIRequestSources = Set of TAPIRequestSource;
 
   TCustomJSONRPCModule = Class(TJSONRPCDispatchModule)
   private
+    FAPICreateOptions: TCreateAPIOptions;
+    FAPIRequestName: String;
+    FAPIRequestSources: TAPIRequestSources;
     FDispatcher: TCustomJSONRPCDispatcher;
     FOptions: TJSONRPCDispatchOptions;
     FRequest: TRequest;
@@ -92,11 +103,20 @@ Type
     FResponseContentType: String;
     procedure SetDispatcher(const AValue: TCustomJSONRPCDispatcher);
   Protected
+    function GetAPI(aDisp: TCustomJSONRPCDispatcher; ARequest: TRequest): TJSONStringType; virtual;
     Function GetResponseContentType : String;
     Function CreateDispatcher : TCustomJSONRPCDispatcher; virtual;
-    procedure Notification(AComponent: TComponent; Operation: TOperation);override;
+    Function IsAPIRequest(ARequest : TRequest) : Boolean; virtual;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     Property Dispatcher :  TCustomJSONRPCDispatcher Read FDispatcher Write SetDispatcher;
+    // Options to use when creating a custom dispatcher
     Property DispatchOptions : TJSONRPCDispatchOptions Read FOptions Write FOptions default DefaultDispatchOptions;
+    // Where to look for API request
+    property APIRequestSources : TAPIRequestSources Read FAPIRequestSources Write FAPIRequestSources default DefaultAPIRequestSources;
+    // URL part or variable name to check for API request
+    property APIRequestName : String Read FAPIRequestName Write FAPIRequestName;
+    // API create options when creating a custom dispatcher
+    Property APICreateOptions : TCreateAPIOptions Read FAPICreateOptions Write FAPICreateOptions;
   Public
     Constructor CreateNew(AOwner : TComponent; CreateMode : Integer); override;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
@@ -106,6 +126,8 @@ Type
     Property Response: TResponse Read FResponse;
     // Response Content-Type. If left empty, application/json is used.
     Property ResponseContentType : String Read FResponseContentType Write FResponseContentType;
+    // Must we handle CORS ?
+    Property CORS;
   end;
 
   { TJSONRPCDataModule }
@@ -115,8 +137,12 @@ Type
   TJSONRPCModule = Class(TCustomJSONRPCModule)
   Published
     Property Dispatcher;
+    // Only if Dispatcher is not set
     Property DispatchOptions;
     Property ResponseContentType;
+    Property CORS;
+    Property APIRequestSources;
+    Property APIRequestName;
   end;
 
 implementation
@@ -147,7 +173,7 @@ Var
 
 begin
   Disp:=Self.GetDispatcher;
-  P:= TJSONParser.Create(ARequest.Content);
+  P:= TJSONParser.Create(ARequest.Content,[joUTF8]);
   try
     Res:=Nil;
     Req:=Nil;
@@ -236,8 +262,20 @@ Var
 begin
   S:=TSessionJSONRPCDispatcher.Create(Self);
   S.Options:=DispatchOptions;
+  S.APICreator.DefaultOptions:=APICreateOptions;
+  S.APICreator.URL:=Self.BaseURL;
   Result:=S;
 end;
+
+function TCustomJSONRPCModule.IsAPIRequest(ARequest: TRequest): Boolean;
+begin
+  Result:=False;
+  if (asURL in APIRequestSources) then
+    Result:=SameText(aRequest.GetNextPathInfo,APIRequestName);
+  if (asQuery in APIRequestSources) then
+    Result:=Result or (aRequest.QueryFields.Values[APIRequestName]<>'');
+end;
+
 
 procedure TCustomJSONRPCModule.Notification(AComponent: TComponent;
   Operation: TOperation);
@@ -251,13 +289,36 @@ constructor TCustomJSONRPCModule.CreateNew(AOwner: TComponent;
   CreateMode: Integer);
 begin
   inherited CreateNew(AOwner, CreateMode);
-  FOptions:=DefaultDispatchOptions+[jdoSearchRegistry];
+  FOptions := DefaultDispatchOptions+[jdoSearchRegistry];
+  APIRequestSources := DefaultAPIRequestSources;
+  APICreateOptions:=[caoFullParams];
 end;
 
+Function TCustomJSONRPCModule.GetAPI(aDisp : TCustomJSONRPCDispatcher; ARequest: TRequest) : TJSONStringType;
 
+var
+  B : Boolean;
+  APIOptions : TCreateAPIOptions;
 
-procedure TCustomJSONRPCModule.HandleRequest(ARequest: TRequest;
-  AResponse: TResponse);
+begin
+  B:=False;
+  APIOptions:=[];
+  if (aRequest.QueryFields.Values['extended']<>'') or (aRequest.QueryFields.Values['full']<>'') then
+    begin
+    Include(APIOptions,caoFullParams);
+    B:=true;
+    end;
+  if (aRequest.QueryFields.Values['formatted']<>'') or (aRequest.QueryFields.Values['humanreadable']<>'') then
+    begin
+    Include(APIOptions,caoFormatted);
+    B:=true;
+    end;
+  if Not B then
+    APIOptions:=aDisp.APICreator.DefaultOptions;
+  Result:=aDisp.APIAsString(APIOptions);
+end;
+
+procedure TCustomJSONRPCModule.HandleRequest(ARequest: TRequest; AResponse: TResponse);
 
 Var
   Disp : TCustomJSONRPCDispatcher;
@@ -265,26 +326,42 @@ Var
   R : TJSONStringType;
 
 begin
+  if CORS.HandleRequest(aRequest,aResponse,[hcDetect,hcSend]) then
+    exit;
   If (Dispatcher=Nil) then
     Dispatcher:=CreateDispatcher;
   Disp:=Dispatcher;
-  Res:=DispatchRequest(ARequest,Disp);
-  try
-    If Assigned(Res) then
+  R:='';
+  if IsAPIRequest(aRequest) then
+    begin
+    if (jdoAllowAPI in TJSONRPCDispatcher(Disp).Options) then
+      R:=GetAPI(Disp,aRequest)
+    else
       begin
-      AResponse.FreeContentStream:=True;
-      AResponse.ContentStream:=TMemoryStream.Create;
-      R:=Res.AsJSON;
-      if Length(R)>0 then
-        AResponse.ContentStream.WriteBuffer(R[1],Length(R));
-      AResponse.ContentLength:=AResponse.ContentStream.Size;
-      R:=''; // Free up mem
-      AResponse.ContentType:=GetResponseContentType;
+      Response.Code:=403;
+      Response.CodeText:='FORBIDDEN';
       end;
-    AResponse.SendResponse;
-  finally
-    Res.Free;
-  end;
+    end
+  else
+    begin
+    Res:=DispatchRequest(ARequest,Disp);
+    try
+      if Assigned(Res) then
+        R:=Res.AsJSON;
+    finally
+      Res.Free;
+    end;
+    end;
+  AResponse.ContentType:=GetResponseContentType;
+  if (R<>'') then
+    begin
+    AResponse.FreeContentStream:=True;
+    AResponse.ContentStream:=TMemoryStream.Create;
+    AResponse.ContentStream.WriteBuffer(R[1],Length(R));
+    AResponse.ContentLength:=AResponse.ContentStream.Size;
+    R:=''; // Free up mem
+    end;
+  AResponse.SendResponse;
 end;
 
 { TJSONRPCSessionContext }
@@ -313,7 +390,7 @@ var
 
 
 begin
-  P:= TJSONParser.Create(ARequest.Content);
+  P:= TJSONParser.Create(ARequest.Content,[joUTF8]);
   try
     Result:=Nil;
     Req:=Nil;

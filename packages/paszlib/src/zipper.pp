@@ -34,6 +34,7 @@ Const
   ZIP64_HEADER_ID                            = $0001;
   // infozip unicode path
   INFOZIP_UNICODE_PATH_ID                    = $7075;
+  EFS_LANGUAGE_ENCODING_FLAG                 = $800;
 
 const
   OS_FAT  = 0; //MS-DOS and OS/2 (FAT/VFAT/FAT32)
@@ -71,7 +72,6 @@ Type
    Local_File_Header_Type = Packed Record //1 per zipped file
      Signature              :  LongInt; //4 bytes
      Extract_Version_Reqd   :  Word; //if zip64: >= 45
-     {$warning TODO implement EFS/language enooding using UTF-8}
      Bit_Flag               :  Word; //"General purpose bit flag in PKZip appnote
      Compress_Method        :  Word;
      Last_Mod_Time          :  Word;
@@ -433,6 +433,7 @@ Type
     FOnEndOfFile    : TOnEndOfFileEvent;
     FOnStartFile    : TOnStartFileEvent;
     FCurrentCompressor : TCompressor;
+    FUseLanguageEncoding: Boolean;
     function CheckEntries: Integer;
     procedure SetEntries(const AValue: TZipFileEntries);
   Protected
@@ -453,15 +454,25 @@ Type
     Destructor Destroy;override;
     Procedure ZipAllFiles; virtual;
     // Saves zip to file and changes FileName
-    Procedure SaveToFile(AFileName: RawByteString);
+    Procedure SaveToFile(const AFileName: RawByteString);
     // Saves zip to stream
     Procedure SaveToStream(AStream: TStream);
     // Zips specified files into a zip with name AFileName
-    Procedure ZipFiles(AFileName : RawByteString; FileList : TStrings);
+    Procedure ZipFile(const aFileToBeZipped : RawByteString);
+    Procedure ZipFile(const AZipFileName,aFileToBeZipped : RawByteString);
+    Procedure ZipFiles(const AZipFileName : RawByteString; FileList : TStrings);
+    Procedure ZipFiles(const AZipFileName : RawByteString; const FileList : Array of RawbyteString);
+    Procedure ZipFiles(const aFileList : Array of RawbyteString);
     Procedure ZipFiles(FileList : TStrings);
     // Zips specified entries into a zip with name AFileName
-    Procedure ZipFiles(AFileName : RawByteString; Entries : TZipFileEntries);
+    Procedure ZipFiles(const AZipFileName : RawByteString; Entries : TZipFileEntries);
     Procedure ZipFiles(Entries : TZipFileEntries);
+    // Easy access method
+    // Zip single file
+    Class Procedure Zip(const AZipFileName : RawByteString; const aFileToBeZipped: RawByteString);
+    // Zip multiple file
+    Class Procedure Zip(const AZipFileName : RawByteString; aFileList : Array of RawByteString);
+    Class Procedure Zip(const AZipFileName : RawByteString; aFileList : TStrings);
     Procedure Clear;
     Procedure Terminate;
   Public
@@ -477,6 +488,8 @@ Type
     Property InMemSize : Int64 Read FInMemSize Write FInMemSize;
     Property Entries : TZipFileEntries Read FEntries Write SetEntries;
     Property Terminated : Boolean Read FTerminated;
+    // EFS/language encoding using UTF-8
+    Property UseLanguageEncoding : Boolean Read FUseLanguageEncoding Write FUseLanguageEncoding;
   end;
 
   { TFullZipFileEntry }
@@ -561,9 +574,20 @@ Type
     Constructor Create;
     Destructor Destroy;override;
     Procedure UnZipAllFiles; virtual;
-    Procedure UnZipFiles(AFileName : RawByteString; FileList : TStrings);
-    Procedure UnZipFiles(FileList : TStrings);
-    Procedure UnZipAllFiles(AFileName : RawByteString);
+    Procedure UnZipFile(const aExtractFileName: RawByteString);
+    Procedure UnZipFile(const AZipFileName, aExtractFileName: RawByteString);
+    Procedure UnZipFiles(const AZipFileName : RawByteString; FileList : TStrings);
+    Procedure UnZipFiles(const AZipFileName : RawByteString; aFileList : Array of RawBytestring);
+    Procedure UnZipFiles(aFileList : TStrings);
+    Procedure UnZipAllFiles(const AZipFileName : RawByteString);
+    // Easy access methods. No instance needed, uses default options.
+    // Unzip all files
+    Class Procedure Unzip(const AZipFileName : RawByteString);
+    // Unzip a single file.
+    Class Procedure Unzip(const AZipFileName : RawByteString;aExtractFileName : RawByteString);
+    // Unzip several files
+    Class Procedure Unzip(const AZipFileName : RawByteString; aFileList : Array of RawByteString);
+    Class Procedure Unzip(const AZipFileName : RawByteString; aFileList : TStrings);
     Procedure Clear;
     Procedure Examine;
     Procedure Terminate;
@@ -1046,7 +1070,7 @@ begin
         Count:=C.Read(Buf^,FBufferSize);
         For I:=0 to Count-1 do
           UpdC32(Buf[i]);
-        FOutFile.Write(Buf^,Count);
+        FOutFile.WriteBuffer(Buf^,Count);
         inc(BytesNow,Count);
         if BytesNow>NextMark Then
            begin
@@ -1474,7 +1498,10 @@ Begin
         Raise EZipError.CreateFmt(SErrMissingFileName,[I]);
       If FindFirst(F.DiskFileName, STDATTR, Info)=0 then
         try
-          F.Size:=Info.Size;
+          if Info.Attr and faDirectory <> 0 then //in Linux directory Size <> 0
+            F.Size := 0
+          else
+            F.Size:=Info.Size;
           F.DateTime:=FileDateToDateTime(Info.Time);
         {$IFDEF UNIX}
           if fplstat(F.DiskFileName, @UnixInfo) = 0 then
@@ -1583,12 +1610,16 @@ function TZipper.UpdateZipHeader(Item: TZipFileEntry; FZip: TStream;
 var
   IsZip64           : boolean; //Must the local header be in zip64 format?
   // Separate from zip64 status of entire zip file.
-  ZFileName         : String;
+  ZFileName         : RawByteString;
 Begin
   ZFileName := Item.ArchiveFileName;
   IsZip64 := false;
   With LocalHdr do
     begin
+    if FUseLanguageEncoding then begin
+      SetCodePage(ZFileName, CP_UTF8, True);
+      Bit_Flag := Bit_Flag or EFS_LANGUAGE_ENCODING_FLAG;
+    end;
     FileName_Length := Length(ZFileName);
     Crc32 := ACRC;
     if LocalZip64Fld.Original_Size > 0 then
@@ -1933,7 +1964,7 @@ begin
   SaveToFile(FileName);
 end;
 
-procedure TZipper.SaveToFile(AFileName: RawByteString);
+procedure TZipper.SaveToFile(const AFileName: RawByteString);
 var
   lStream: TFileStream;
 begin
@@ -1973,6 +2004,17 @@ begin
   end;
 end;
 
+procedure TZipper.ZipFile(const aFileToBeZipped: RawByteString);
+begin
+  ZipFiles([aFileToBeZipped]);
+end;
+
+procedure TZipper.ZipFile(const AZipFileName, aFileToBeZipped: RawByteString);
+begin
+  FileName:=aZipFileName;
+  ZipFile(aFileToBeZipped);
+end;
+
 
 Procedure TZipper.SetBufSize(Value : LongWord);
 
@@ -1991,11 +2033,34 @@ begin
   FFileName:=Value;
 end;
 
-Procedure TZipper.ZipFiles(AFileName : RawByteString; FileList : TStrings);
+Procedure TZipper.ZipFiles(Const AZipFileName : RawByteString; FileList : TStrings);
 
 begin
-  FFileName:=AFileName;
+  FFileName:=AZipFileName;
   ZipFiles(FileList);
+end;
+
+procedure TZipper.ZipFiles(const AZipFileName: RawByteString; const FileList: array of RawbyteString);
+
+begin
+  FileName:=aZipFileName;
+  ZipFiles(FileList);
+end;
+
+procedure TZipper.ZipFiles(const aFileList: array of RawbyteString);
+Var
+  L : TStringList;
+  S : RawByteString;
+begin
+  L:=TStringList.Create;
+  try
+    L.Capacity:=Length(aFileList);
+    for S in aFileList do
+      L.Add(S);
+    ZipFiles(L);
+  finally
+    L.Free;
+  end;
 end;
 
 procedure TZipper.ZipFiles(FileList: TStrings);
@@ -2004,9 +2069,9 @@ begin
   ZipAllFiles;
 end;
 
-procedure TZipper.ZipFiles(AFileName: RawByteString; Entries: TZipFileEntries);
+procedure TZipper.ZipFiles(const AZipFileName: RawByteString; Entries: TZipFileEntries);
 begin
-  FFileName:=AFileName;
+  FFileName:=AZipFileName;
   ZipFiles(Entries);
 end;
 
@@ -2014,6 +2079,36 @@ procedure TZipper.ZipFiles(Entries: TZipFileEntries);
 begin
   FEntries.Assign(Entries);
   ZipAllFiles;
+end;
+
+class procedure TZipper.Zip(const AZipFileName: RawByteString; const aFileToBeZipped: RawByteString);
+begin
+  With Self.Create do
+    try
+      ZipFile(aZipFileName,aFileToBeZipped);
+    finally
+      Free;
+    end;
+end;
+
+class procedure TZipper.Zip(const AZipFileName: RawByteString; aFileList: array of RawByteString);
+begin
+  With Self.Create do
+    try
+      ZipFiles(aZipFileName,aFileList);
+    finally
+      Free;
+    end;
+end;
+
+class procedure TZipper.Zip(const AZipFileName: RawByteString; aFileList: TStrings);
+begin
+  With Self.Create do
+    try
+      ZipFiles(aZipFileName,aFileList);
+    finally
+      Free;
+    end;
 end;
 
 Procedure TZipper.DoEndOfFile;
@@ -2190,7 +2285,7 @@ end;
 
 procedure TUnZipper.ReadZipHeader(Item: TFullZipFileEntry; out AMethod: Word);
 Var
-  S : String;
+  S : RawByteString;
   U : UTF8String;
   D : TDateTime;
   ExtraFieldHdr: Extensible_Data_Field_Header_Type;
@@ -2210,6 +2305,8 @@ Begin
       Item.FBitFlags:=Bit_Flag;
       SetLength(S,Filename_Length);
       FZipStream.ReadBuffer(S[1],Filename_Length);
+      if Bit_Flag and EFS_LANGUAGE_ENCODING_FLAG <> 0 then
+        SetCodePage(S, CP_UTF8, False);
       Item.ArchiveFileName:=S;
       Item.DiskFileName:=S;
       SavePos:=FZipStream.Position; //after filename, before extra fields
@@ -2312,7 +2409,7 @@ var
           AEndHdr := SwapECD(AEndHdr);
           {$ENDIF}
           if (AEndHdr.Signature = END_OF_CENTRAL_DIR_SIGNATURE) and
-             (I + SizeOf(AEndHdr) + AEndHdr.ZipFile_Comment_Length = BufSize) then
+             (I + SizeOf(AEndHdr) + AEndHdr.ZipFile_Comment_Length <= BufSize) then
           begin
             AEndHdrPos := FZipStream.Size - BufSize + I;
             FZipStream.Seek(AEndHdrPos + SizeOf(AEndHdr), soBeginning);
@@ -2421,7 +2518,7 @@ Var
   Zip64Field: Zip64_Extended_Info_Field_Type;
   NewNode   : TFullZipFileEntry;
   D : TDateTime;
-  S : String;
+  S : RawByteString;
   U : UTF8String;
   // infozip unicode path
   Infozip_unicode_path_ver : byte; // always 1
@@ -2476,6 +2573,8 @@ Begin
       NewNode.FBitFlags:=Bit_Flag;
       SetLength(S,Filename_Length);
       FZipStream.ReadBuffer(S[1],Filename_Length);
+      if Bit_Flag and EFS_LANGUAGE_ENCODING_FLAG <> 0 then
+        SetCodePage(S, CP_UTF8, False);
       SavePos:=FZipStream.Position; //After fixed part of central directory...
       // and the filename; before any extra field(s)
       NewNode.ArchiveFileName:=S;
@@ -2720,7 +2819,7 @@ Begin
       end
     else if Item.IsDirectory then
       begin
-        if (NOT Flat) then CreateDir(OutputFileName);
+        if (NOT Flat) then ForceDirectories(OutputFileName);
       end
     else
       begin
@@ -2832,24 +2931,104 @@ begin
     end;
 end;
 
-procedure TUnZipper.UnZipFiles(AFileName: RawByteString; FileList: TStrings);
-
+procedure TUnZipper.UnZipFile(const aExtractFileName: RawByteString);
 begin
-  FFileName:=AFileName;
-  UNzipFiles(FileList);
+  UnzipFile(FFileName, aExtractFileName);
 end;
 
-procedure TUnZipper.UnZipFiles(FileList: TStrings);
+procedure TUnZipper.UnZipFile(const AZipFileName, aExtractFileName: RawByteString);
+var
+  L: TStrings;
 begin
-  FFiles.Assign(FileList);
+  FFileName := AZipFileName;
+  L := TStringList.Create;
+  try
+    L.Add(aExtractFileName);
+    UnzipFiles(L);
+  finally
+    L.Free;
+  end;
+end;
+
+procedure TUnZipper.UnZipFiles(const AZipFileName: RawByteString; FileList: TStrings);
+
+begin
+  FFileName:=AZipFileName;
+  UnZipFiles(FileList);
+end;
+
+procedure TUnZipper.UnZipFiles(const AZipFileName: RawByteString; aFileList: array of RawBytestring);
+
+Var
+  L : TStringList;
+  S : RawByteString;
+
+begin
+  L:=TStringList.Create;
+  try
+    L.Capacity:=Length(aFileList);
+    for S in aFileList do
+      L.Add(S);
+    UnZipFiles(aZipFileName,L);
+  finally
+    L.Free;
+  end;
+end;
+
+procedure TUnZipper.UnZipFiles(aFileList: TStrings);
+begin
+  FFiles.Assign(aFileList);
   UnZipAllFiles;
 end;
 
-procedure TUnZipper.UnZipAllFiles(AFileName: RawByteString);
+procedure TUnZipper.UnZipAllFiles(const AZipFileName: RawByteString);
 
 begin
-  FFileName:=AFileName;
+  FFileName:=AZipFileName;
   UnZipAllFiles;
+end;
+
+class procedure TUnZipper.Unzip(const AZipFileName: RawByteString);
+
+begin
+  With Self.Create do
+    try
+      FileName:=aZipFileName;
+      UnZipAllFiles;
+    finally
+      Free;
+    end;
+end;
+
+class procedure TUnZipper.Unzip(const AZipFileName: RawByteString; aExtractFileName: RawByteString);
+
+begin
+  With Self.Create do
+    try
+      UnZipFile(aZipFileName,aExtractFileName);
+    finally
+      Free;
+    end;
+end;
+
+class procedure TUnZipper.Unzip(const AZipFileName: RawByteString; aFileList: array of RawByteString);
+begin
+  With Self.Create do
+    try
+      UnZipFiles(aZipFileName,aFileList);
+    finally
+      Free;
+    end;
+end;
+
+class procedure TUnZipper.Unzip(const AZipFileName: RawByteString; aFileList: TStrings);
+begin
+  With Self.Create do
+    try
+      UnZipFiles(aZipFileName,aFileList);
+    finally
+      Free;
+    end;
 end;
 
 procedure TUnZipper.DoEndOfFile;

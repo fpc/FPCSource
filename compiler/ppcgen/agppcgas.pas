@@ -58,7 +58,7 @@ unit agppcgas;
       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
      protected
       function sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string; override;
-      procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;secflags:TSectionFlags=SF_None;secprogbits:TSectionProgbits=SPB_None); override;
+      procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;secflags:TSectionFlags=[];secprogbits:TSectionProgbits=SPB_None); override;
       procedure WriteAsmList; override;
       procedure WriteExtraHeader; override;
       procedure WriteExtraFooter; override;
@@ -112,7 +112,7 @@ unit agppcgas;
                    not assigned(symbol) then
                   internalerror(2011122701);
                 if asminfo^.dollarsign<>'$' then
-                  getreferencestring:=ReplaceForbiddenAsmSymbolChars(symbol.name)+'('+gas_regname(NR_RTOC)+')'
+                  getreferencestring:=ApplyAsmSymbolRestrictions(symbol.name)+'('+gas_regname(NR_RTOC)+')'
                 else
                   getreferencestring:=symbol.name+'('+gas_regname(NR_RTOC)+')';
                 exit;
@@ -128,9 +128,9 @@ unit agppcgas;
                   begin
                     if asminfo^.dollarsign<>'$' then
                       begin
-                        s:=s+ReplaceForbiddenAsmSymbolChars(symbol.name);
+                        s:=s+ApplyAsmSymbolRestrictions(symbol.name);
                         if assigned(relsymbol) then
-                          s:=s+'-'+ReplaceForbiddenAsmSymbolChars(relsymbol.name)
+                          s:=s+'-'+ApplyAsmSymbolRestrictions(relsymbol.name)
                       end
                     else
                       begin
@@ -206,7 +206,7 @@ unit agppcgas;
               internalerror(200402267);
             hs:=o.ref^.symbol.name;
             if asminfo^.dollarsign<>'$' then
-              hs:=ReplaceForbiddenAsmSymbolChars(hs);
+              hs:=ApplyAsmSymbolRestrictions(hs);
             if o.ref^.offset>0 then
               hs:=hs+'+'+tostr(o.ref^.offset)
             else
@@ -236,7 +236,7 @@ unit agppcgas;
             begin
               hs:=o.ref^.symbol.name;
               if asminfo^.dollarsign<>'$' then
-                hs:=ReplaceForbiddenAsmSymbolChars(hs);
+                hs:=ApplyAsmSymbolRestrictions(hs);
               if o.ref^.offset>0 then
                hs:=hs+'+'+tostr(o.ref^.offset)
               else
@@ -487,7 +487,7 @@ unit agppcgas;
       end;
 
     procedure TPPCAIXAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;
-      secflags:TSectionFlags=SF_None;secprogbits:TSectionProgbits=SPB_None);
+      secflags:TSectionFlags=[];secprogbits:TSectionProgbits=SPB_None);
 
       begin
         secalign:=max_alignment[atype];
@@ -497,7 +497,6 @@ unit agppcgas;
     procedure TPPCAIXAssembler.WriteAsmList;
       var
         cur_sectype : TAsmSectionType;
-        cur_list : TAsmList;
         hal : tasmlisttype;
         hp : tai;
         max_al : longint;
@@ -647,6 +646,7 @@ unit agppcgas;
          supported_targets : [system_powerpc_linux,system_powerpc_netbsd,system_powerpc_openbsd,system_powerpc_MorphOS,system_powerpc_Amiga,system_powerpc64_linux,system_powerpc_embedded,system_powerpc64_embedded];
          flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign: '$';
        );
@@ -665,6 +665,7 @@ unit agppcgas;
          supported_targets : [system_powerpc_morphos];
          flags : [af_needar];
          labelprefix : '.L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign: '$';
        );
@@ -679,6 +680,7 @@ unit agppcgas;
          supported_targets : [system_powerpc_darwin,system_powerpc64_darwin];
          flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
          labelprefix : 'L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign : '$';
        );
@@ -702,6 +704,7 @@ unit agppcgas;
          supported_targets : [system_powerpc_aix,system_powerpc64_aix];
          flags : [af_needar,af_smartlink_sections,af_stabs_use_function_absolute_addresses];
          labelprefix : 'L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign : '.'
        );
@@ -724,19 +727,21 @@ unit agppcgas;
          supported_targets : [system_powerpc_aix,system_powerpc64_aix];
          flags : [af_needar,af_smartlink_sections,af_stabs_use_function_absolute_addresses];
          labelprefix : 'L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign : '.'
        );
 
     as_ppc_clang_darwin_info : tasminfo =
        (
-         id     : as_clang;
+         id     : as_clang_asdarwin;
          idtxt  : 'CLANG';
          asmbin : 'clang';
-         asmcmd : '-c -o $OBJ $EXTRAOPT -arch $ARCH $DARWINVERSION -x assembler $ASM';
-         supported_targets : [system_powerpc_macos, system_powerpc_darwin, system_powerpc64_darwin];
-         flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+         asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
+         supported_targets : [system_powerpc_macosclassic, system_powerpc_darwin, system_powerpc64_darwin];
+         flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm];
          labelprefix : 'L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign: '$';
        );

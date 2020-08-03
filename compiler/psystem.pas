@@ -111,6 +111,8 @@ implementation
         systemunit.insert(csyssym.create('Insert',in_insert_x_y_z));
         systemunit.insert(csyssym.create('Delete',in_delete_x_y_z));
         systemunit.insert(csyssym.create('GetTypeKind',in_gettypekind_x));
+        systemunit.insert(csyssym.create('IsManagedType',in_ismanagedtype_x));
+        systemunit.insert(csyssym.create('IsConstValue',in_isconstvalue_x));
         systemunit.insert(csyssym.create('fpc_eh_return_data_regno', in_const_eh_return_data_regno));
         systemunit.insert(cconstsym.create_ord('False',constord,0,pasbool1type));
         systemunit.insert(cconstsym.create_ord('True',constord,1,pasbool1type));
@@ -224,7 +226,7 @@ implementation
 
         function addtype(const s:string;def:tdef):ttypesym;
         begin
-          result:=ctypesym.create(s,def,true);
+          result:=ctypesym.create(s,def);
           systemunit.insert(result);
         end;
 
@@ -242,7 +244,9 @@ implementation
               s64floattype:=cfloatdef.create(s64real,true);
               s80floattype:=cfloatdef.create(s80real,true);
               sc80floattype:=cfloatdef.create(sc80real,true);
-            end else begin
+            end
+          else
+            begin
               s32floattype:=nil;
               s64floattype:=nil;
               s80floattype:=nil;
@@ -353,6 +357,13 @@ implementation
         sc80floattype:=cfloatdef.create(sc80real,true);
         s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif avr}
+{$ifdef z80}
+        s32floattype:=cfloatdef.create(s32real,true);
+        s64floattype:=cfloatdef.create(s64real,true);
+        s80floattype:=cfloatdef.create(s80real,true);
+        sc80floattype:=cfloatdef.create(sc80real,true);
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
+{$endif z80}
 {$ifdef mips}
         create_fpu_types;
         s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
@@ -373,6 +384,10 @@ implementation
         create_fpu_types;
         s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif wasm}
+{$ifdef xtensa}
+        create_fpu_types;
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
+{$endif xtensa}
         set_default_int_types;
         { some other definitions }
         charpointertype:=cpointerdef.create(cansichartype);
@@ -400,6 +415,21 @@ implementation
         wordfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u16inttype,x86pt_far);
         longintfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(s32inttype,x86pt_far);
   {$endif i8086}
+        x86_m64type:=carraydef.create(0,1,s32inttype);
+        x86_m128type:=carraydef.create(0,3,s32inttype);
+        x86_m128dtype:=carraydef.create(0,1,s32inttype);
+        x86_m128itype:=carraydef.create(0,3,s32inttype);
+        x86_m256type:=carraydef.create(0,7,s32inttype);
+        x86_m256dtype:=carraydef.create(0,3,s32inttype);
+        x86_m256itype:=carraydef.create(0,7,s32inttype);
+
+        tarraydef(x86_m64type).elementdef:=s32floattype;
+        tarraydef(x86_m128type).elementdef:=s32floattype;
+        tarraydef(x86_m128dtype).elementdef:=s64floattype;
+        tarraydef(x86_m128itype).elementdef:=s32floattype;
+        tarraydef(x86_m256type).elementdef:=s32floattype;
+        tarraydef(x86_m256dtype).elementdef:=s64floattype;
+        tarraydef(x86_m256itype).elementdef:=s32floattype;
 {$endif x86}
         set_default_ptr_types;
         openchararraytype:=carraydef.create_openarray;
@@ -464,6 +494,13 @@ implementation
         addtype('FarPointer',voidfarpointertype);
         addtype('HugePointer',voidhugepointertype);
   {$endif i8086}
+        addtype('__m64',x86_m64type);
+        addtype('__m128', x86_m128type);
+        addtype('__m128d',x86_m128dtype);
+        addtype('__m128i',x86_m128itype);
+        addtype('__m256', x86_m256type);
+        addtype('__m256d',x86_m256dtype);
+        addtype('__m256i',x86_m256itype);
 {$endif x86}
         addtype('ShortString',cshortstringtype);
 {$ifdef support_longstring}
@@ -546,6 +583,10 @@ implementation
         addtype('$qwordbool',bool64type);
 {$ifdef llvm}
         addtype('$llvmbool1',llvmbool1type);
+        llvm_metadatatype:=cpointerdef.create(voidtype);
+        { if this gets renamed, also adjust agllvm so it still writes the identifier of this type as "metadata" }
+        addtype('$metadata',llvm_metadatatype);
+        addtype('LLVMMetadata',llvm_metadatatype);
 {$endif llvm}
         addtype('$char_pointer',charpointertype);
         addtype('$widechar_pointer',widecharpointertype);
@@ -568,6 +609,13 @@ implementation
         addtype('$word_farpointer',wordfarpointertype);
         addtype('$longint_farpointer',longintfarpointertype);
   {$endif i8086}
+        addtype('$__m64',  x86_m64type);
+        addtype('$__m128', x86_m128type);
+        addtype('$__m128d',x86_m128dtype);
+        addtype('$__m128i',x86_m128itype);
+        addtype('$__m256', x86_m256type);
+        addtype('$__m256d',x86_m256dtype);
+        addtype('$__m256i',x86_m256itype);
 {$endif x86}
         addtype('$openchararray',openchararraytype);
         addtype('$file',cfiletype);
@@ -593,19 +641,19 @@ implementation
             { can't use addtype for pvmt because the rtti of the pointed
               type is not available. The rtti for pvmt will be written implicitly
               by thev tblarray below }
-            systemunit.insert(ctypesym.create('$pvmt',pvmttype,true));
-            addfield(hrecst,cfieldvarsym.create('$length',vs_value,sizesinttype,[],true));
-            addfield(hrecst,cfieldvarsym.create('$mlength',vs_value,sizesinttype,[],true));
-            addfield(hrecst,cfieldvarsym.create('$parent',vs_value,pvmttype,[],true));
+            systemunit.insert(ctypesym.create('$pvmt',pvmttype));
+            addfield(hrecst,cfieldvarsym.create('$length',vs_value,sizesinttype,[]));
+            addfield(hrecst,cfieldvarsym.create('$mlength',vs_value,sizesinttype,[]));
+            addfield(hrecst,cfieldvarsym.create('$parent',vs_value,pvmttype,[]));
             { it seems vmttype is used both for TP objects and Delphi classes,
               so the next entry could either be the first virtual method (vm1)
               (object) or the class name (class). We can't easily create separate
               vtable formats for both, as gdb is hard coded to search for
               __vtbl_ptr_type in all cases (JM) }
-            addfield(hrecst,cfieldvarsym.create('$vm1_or_classname',vs_value,cpointerdef.create(cshortstringtype),[],true));
+            addfield(hrecst,cfieldvarsym.create('$vm1_or_classname',vs_value,cpointerdef.create(cshortstringtype),[]));
             vmtarraytype:=carraydef.create(0,0,s32inttype);
             tarraydef(vmtarraytype).elementdef:=voidpointertype;
-            addfield(hrecst,cfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[],true));
+            addfield(hrecst,cfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]));
             addtype('$__vtbl_ptr_type',vmttype);
             vmtarraytype:=carraydef.create(0,1,s32inttype);
             tarraydef(vmtarraytype).elementdef:=pvmttype;
@@ -613,21 +661,16 @@ implementation
           end;
         { Add a type for methodpointers }
         hrecst:=trecordsymtable.create('',1,current_settings.alignment.recordalignmin);
-        addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[],true));
-        addfield(hrecst,cfieldvarsym.create('$self',vs_value,voidpointertype,[],true));
+        addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
+        addfield(hrecst,cfieldvarsym.create('$self',vs_value,voidpointertype,[]));
         methodpointertype:=crecorddef.create('',hrecst);
         addtype('$methodpointer',methodpointertype);
         { Add a type for nested proc pointers }
         hrecst:=trecordsymtable.create('',1,current_settings.alignment.recordalignmin);
-        addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[],true));
-        addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[],true));
+        addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
+        addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[]));
         nestedprocpointertype:=crecorddef.create('',hrecst);
         addtype('$nestedprocpointer',nestedprocpointertype);
-{$ifdef llvm}
-        llvm_metadatatype:=cpointerdef.create(voidtype);
-        { if this gets renamed, also adjust agllvm so it still writes the identifier of this type as "metadata" }
-        addtype('$metadata',llvm_metadatatype);
-{$endif}
         symtablestack.pop(systemunit);
       end;
 
@@ -725,9 +768,17 @@ implementation
         loadtype('word_farpointer',wordfarpointertype);
         loadtype('longint_farpointer',longintfarpointertype);
   {$endif i8086}
+        loadtype('__m64',  x86_m64type);
+        loadtype('__m128', x86_m128type);
+        loadtype('__m128d',x86_m128dtype);
+        loadtype('__m128i',x86_m128itype);
+        loadtype('__m256', x86_m256type);
+        loadtype('__m256d',x86_m256dtype);
+        loadtype('__m256i',x86_m256itype);
 {$endif x86}
 {$ifdef llvm}
         loadtype('llvmbool1',llvmbool1type);
+        loadtype('metadata',llvm_metadatatype);
 {$endif llvm}
         loadtype('file',cfiletype);
         if not(target_info.system in systems_managed_vm) then
@@ -743,9 +794,6 @@ implementation
           end;
         loadtype('methodpointer',methodpointertype);
         loadtype('nestedprocpointer',nestedprocpointertype);
-{$ifdef llvm}
-        loadtype('metadata',llvm_metadatatype);
-{$endif}
         loadtype('HRESULT',hresultdef);
         loadtype('TTYPEKIND',typekindtype);
         set_default_int_types;

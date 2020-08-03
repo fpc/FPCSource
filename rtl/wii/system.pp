@@ -98,39 +98,15 @@ begin
   // Boo!
 end;
 
-
-
 {*****************************************************************************
                              ParamStr/Randomize
 *****************************************************************************}
-const
-  QRAN_SHIFT  = 15;
-  QRAN_MASK   = ((1 shl QRAN_SHIFT) - 1);
-  QRAN_MAX    = QRAN_MASK;
-  QRAN_A      = 1664525;
-  QRAN_C      = 1013904223;
 
 { set randseed to a new pseudo random value }
 procedure randomize;
 begin
 
 end;
-
-function random(): integer; 
-begin	
-	RandSeed := QRAN_A * RandSeed + QRAN_C;
-	random := (RandSeed shr 16) and QRAN_MAX;
-end;
-
-function random(value: integer): integer; 
-var
-  a: integer;
-begin	
-	RandSeed := QRAN_A * RandSeed + QRAN_C;
-	a := (RandSeed shr 16) and QRAN_MAX;
-  random := (a * value) shr 15;
-end;
-
 
 
 Function ParamCount: Longint;

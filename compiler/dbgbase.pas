@@ -103,7 +103,8 @@ implementation
 
     uses
       cutils,
-      verbose;
+      verbose,
+      cgbase;
 
 
     constructor TDebugInfo.Create;
@@ -430,7 +431,8 @@ implementation
           localvarsym :
             appendsym_localvar(list,tlocalvarsym(sym));
           paravarsym :
-            appendsym_paravar(list,tparavarsym(sym));
+            if tparavarsym(sym).localloc.loc<>LOC_VOID then
+              appendsym_paravar(list,tparavarsym(sym));
           constsym :
             appendsym_const(list,tconstsym(sym));
           typesym :

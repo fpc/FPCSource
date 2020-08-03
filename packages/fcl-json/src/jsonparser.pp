@@ -82,6 +82,26 @@ begin
   end;
 end;
 
+procedure DefJSONStringParserHandler(Const S : TJSONStringType; const AUseUTF8: Boolean; out
+  Data: TJSONData);
+
+Var
+  P : TJSONParser;
+  AOptions: TJSONOptions;
+
+begin
+  Data:=Nil;
+  AOptions:=[];
+  if AUseUTF8 then
+    Include(AOptions,joUTF8);
+  P:=TJSONParser.Create(S,AOptions);
+  try
+    Data:=P.Parse;
+  finally
+    P.Free;
+  end;
+end;
+
 procedure TJSONParser.Pop(aType: TJSONType);
 
 begin
@@ -109,7 +129,8 @@ begin
   // Add to existing structural type
   if (FStruct is TJSONObject) then
     begin
-    TJSONObject(FStruct).Add(FKey,AValue);
+    if (Not (joIgnoreDuplicates in options)) or  (TJSONObject(FStruct).IndexOfName(FKey)=-1) then
+      TJSONObject(FStruct).Add(FKey,AValue);
     FKey:='';
     end
   else if (FStruct is TJSONArray) then
@@ -224,6 +245,8 @@ Procedure InitJSONHandler;
 begin
   if GetJSONParserHandler=Nil then
     SetJSONParserHandler(@DefJSONParserHandler);
+  if GetJSONStringParserHandler=Nil then
+    SetJSONStringParserHandler(@DefJSONStringParserHandler);
 end;
 
 Procedure DoneJSONHandler;
@@ -231,6 +254,8 @@ Procedure DoneJSONHandler;
 begin
   if GetJSONParserHandler=@DefJSONParserHandler then
     SetJSONParserHandler(Nil);
+  if GetJSONStringParserHandler=@DefJSONStringParserHandler then
+    SetJSONStringParserHandler(Nil);
 end;
 
 initialization

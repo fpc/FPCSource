@@ -83,7 +83,8 @@ unit cpupara;
       begin
         { d0 and d1 are considered volatile }
         Result:=VOLATILE_INTREGISTERS;
-        if target_info.system in [system_m68k_palmos] then
+        if (target_info.system in [system_m68k_palmos]) or
+           ((target_info.system in [system_m68k_atari]) and (calloption in [pocall_syscall])) then
           include(result,RS_D2);
       end;
 
@@ -92,7 +93,8 @@ unit cpupara;
       begin
         { a0 and a1 are considered volatile }
         Result:=VOLATILE_ADDRESSREGISTERS;
-        if target_info.system in [system_m68k_palmos] then
+        if (target_info.system in [system_m68k_palmos]) or
+           ((target_info.system in [system_m68k_atari]) and (calloption in [pocall_syscall])) then
           include(result,RS_A2);
       end;
 
@@ -180,6 +182,8 @@ unit cpupara;
           procvardef :
             { Handling of methods must match that of records }
             result:=false;
+           else
+             ;
         end;
       end;
 
@@ -195,6 +199,8 @@ unit cpupara;
                 result:=false;
                 exit;
               end;
+          else
+            ;
         end;
         result:=inherited ret_in_param(def,pd);
       end;
@@ -518,7 +524,7 @@ unit cpupara;
                             paraloc^.size:=paracgsize;
                             paraloc^.def:=paradef;
                             paraloc^.loc:=LOC_FPUREGISTER;
-                            paraloc^.register:=newreg(R_FPUREGISTER,floatparasupregs[floatparareg],R_SUBWHOLE);
+                            paraloc^.register:=newreg(R_FPUREGISTER,floatparasupregs[floatparareg],R_SUBNONE);
                             inc(floatparareg);
                           end;
                       end
@@ -638,6 +644,8 @@ unit cpupara;
                         break;
                       dec(i);
                     end;
+                  else
+                    ;
                 end;
               end;
           end;

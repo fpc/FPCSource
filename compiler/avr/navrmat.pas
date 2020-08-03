@@ -34,7 +34,9 @@ interface
       end;
 
       tavrshlshrnode = class(tcgshlshrnode)
+        function pass_1: tnode;override;
         procedure second_integer;override;
+        procedure second_64bit;override;
       end;
 
 implementation
@@ -46,7 +48,7 @@ implementation
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
       cgbase,cgobj,hlcgobj,cgutils,
-      pass_2,procinfo,
+      pass_1,pass_2,procinfo,
       ncon,
       cpubase,
       ncgutil,cgcpu;
@@ -108,7 +110,7 @@ implementation
                  LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE :
                    begin
                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CPI,left.location.register,0));
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,GetDefaultZeroReg,left.location.register));
 
                      tmpreg:=left.location.register;
                      for i:=2 to tcgsize2size[left.location.size] do
@@ -117,7 +119,7 @@ implementation
                            tmpreg:=left.location.registerhi
                          else
                            tmpreg:=cg.GetNextReg(tmpreg);
-                         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,NR_R1,tmpreg));
+                         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,GetDefaultZeroReg,tmpreg));
                        end;
                      location_reset(location,LOC_FLAGS,OS_NO);
                      location.resflags:=F_EQ;
@@ -126,6 +128,28 @@ implementation
                    internalerror(2003042401);
                end;
           end;
+      end;
+
+
+{*****************************************************************************
+                             TAVRSHLSHRNODE
+*****************************************************************************}
+
+    function tavrshlshrnode.pass_1 : tnode;
+      begin
+        { the avr code generator can handle 64 bit shifts by constants directly }
+        if is_constintnode(right) and is_64bit(resultdef) then
+          begin
+            result:=nil;
+            firstpass(left);
+            firstpass(right);
+            if codegenerror then
+              exit;
+
+            expectloc:=LOC_REGISTER;
+          end
+        else
+          Result:=inherited pass_1;
       end;
 
 
@@ -152,7 +176,13 @@ implementation
           (left.location.size<>opsize) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
         location_reset(location,LOC_REGISTER,opsize);
-        location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+        if is_64bit(resultdef) then
+          begin
+            location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            location.registerhi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+          end
+        else
+          location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
         { shifting by a constant directly coded: }
         if (right.nodetype=ordconstn) then
@@ -164,8 +194,12 @@ implementation
                shiftval:=tordconstnode(right).value.uvalue and 31
              else
                shiftval:=tordconstnode(right).value.uvalue and 63;
-             hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,opdef,
-               shiftval,left.location.register,location.register);
+             if is_64bit(resultdef) then
+               cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
+                 shiftval,left.location.register64,location.register64)
+             else
+               hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,opdef,
+                 shiftval,left.location.register,location.register);
           end
         else
           begin
@@ -184,6 +218,13 @@ implementation
             hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,opdef,resultdef,location.register,hcountreg);
             location.register:=hcountreg;
           end;
+      end;
+
+
+    procedure tavrshlshrnode.second_64bit;
+      begin
+        second_integer;
+        // inherited second_64bit;
       end;
 
 begin

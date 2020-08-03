@@ -20,7 +20,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='3.3.1';
     P.SourcePath.Add('src');
-    P.OSes:=[darwin,iphonesim];
+    P.OSes:=[darwin,iphonesim,ios];
 
     T:=P.Targets.AddUnit('iosxlocale.pp');
     T:=P.Targets.AddUnit('iosxwstr.pp');

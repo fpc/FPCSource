@@ -56,6 +56,18 @@ type
 
   TTestOptimizations = class(TCustomTestOptimizations)
   published
+    // unit optimization: aliasglobals
+    procedure TestOptAliasGlobals_Program;
+    procedure TestOptAliasGlobals_Unit; // ToDo
+    // ToDo: external var, const, class
+    // ToDo: RTTI
+    // ToDo: typeinfo(var), typeinfo(type)
+    // ToDo: resourcestring
+    // ToDo: Global EnumType, EnumValue, EnumType.Value, unit.EnumType.Value
+    // ToDo: Nested EnumType: EnumValue, EnumType.Value, unit.aType.EnumType.Value, aType.EnumType.Value, Instance.EnumType.Value
+    // ToDo: Instance.RecordType, Instance.RecordType.ClassVar
+    // ToDo: ClassVarRecord
+
     // Whole Program Optimization
     procedure TestWPO_OmitLocalVar;
     procedure TestWPO_OmitLocalProc;
@@ -186,6 +198,157 @@ begin
 end;
 
 { TTestOptimizations }
+
+procedure TTestOptimizations.TestOptAliasGlobals_Program;
+begin
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'const',
+    '  cWidth = 17;',
+    'type',
+    '  TBird = class',
+    '  public',
+    '    class var c: word;',
+    '    class function Run(w: word): word; virtual; abstract;',
+    '  end;',
+    '  TRec = record',
+    '    x: word;',
+    '  end;',
+    'var b: TBird;',
+    '']),
+  LinesToStr([
+    '']));
+
+  StartProgram(true,[supTObject]);
+  Add([
+  '{$optimization AliasGlobals}',
+  'uses unita;',
+  'type',
+  '  TEagle = class(TBird)',
+  '    class function Run(w: word = 5): word; override;',
+  '  end;',
+  'class function TEagle.Run(w: word): word;',
+  'begin',
+  'end;',
+  'var',
+  '  e: TEagle;',
+  '  r: TRec;',
+  'begin',
+  '  e:=TEagle.Create;',
+  '  b:=TBird.Create;',
+  '  e.c:=e.c+1;',
+  '  r.x:=TBird.c;',
+  '  r.x:=b.c;',
+  '  r.x:=e.Run;',
+  '  r.x:=e.Run();',
+  '  r.x:=e.Run(4);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestOptAliasGlobals_Program',
+    LinesToStr([
+    'var $lmr = pas.UnitA;',
+    'var $ltr = $lmr.TBird;',
+    'var $ltr1 = $lmr.TRec;',
+    'rtl.createClass($mod, "TEagle", $ltr, function () {',
+    '  this.Run = function (w) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.e = null;',
+    'this.r = $ltr1.$new();',
+    '']),
+    LinesToStr([
+    '$mod.e = $mod.TEagle.$create("Create");',
+    '$lmr.b = $ltr.$create("Create");',
+    '$ltr.c = $mod.e.c + 1;',
+    '$mod.r.x = $ltr.c;',
+    '$mod.r.x = $lmr.b.c;',
+    '$mod.r.x = $mod.e.$class.Run(5);',
+    '$mod.r.x = $mod.e.$class.Run(5);',
+    '$mod.r.x = $mod.e.$class.Run(4);',
+    '']));
+end;
+
+procedure TTestOptimizations.TestOptAliasGlobals_Unit;
+begin
+  exit;
+
+  AddModuleWithIntfImplSrc('UnitA.pas',
+  LinesToStr([
+    'const',
+    '  cWidth = 17;',
+    'type',
+    '  TBird = class',
+    '  public',
+    '    class var Span: word;',
+    '    class procedure Fly(w: word); virtual; abstract;',
+    '  end;',
+    '  TRecA = record',
+    '    x: word;',
+    '  end;',
+    'var Bird: TBird;',
+    '']),
+  LinesToStr([
+    '']));
+  AddModuleWithIntfImplSrc('UnitB.pas',
+  LinesToStr([
+    'const',
+    '  cHeight = 23;',
+    'type',
+    '  TAnt = class',
+    '  public',
+    '    class var Legs: word;',
+    '    class procedure Run(w: word); virtual; abstract;',
+    '  end;',
+    '  TRecB = record',
+    '    y: word;',
+    '  end;',
+    'var Ant: TAnt;',
+    '']),
+  LinesToStr([
+    '']));
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$optimization AliasGlobals}',
+  'interface',
+  'uses unita;',
+  'type',
+  '  TEagle = class(TBird)',
+  '    class var EagleRec: TRecA;',
+  '    class procedure Fly(w: word = 5); override;',
+  '  end;',
+  'implementation',
+  'uses unitb;',
+  'type',
+  '  TRedAnt = class(TAnt)',
+  '    class var RedAntRecA: TRecA;',
+  '    class var RedAntRecB: TRecB;',
+  '    class procedure Run(w: word = 6); override;',
+  '  end;',
+  'class procedure TEagle.Fly(w: word);',
+  'begin',
+  'end;',
+  'class procedure TRedAnt.Run(w: word);',
+  'begin',
+  'end;',
+  'var',
+  '  Eagle: TEagle;',
+  '  RedAnt: TRedAnt;',
+  'initialization',
+  '  Eagle:=TEagle.Create;',
+  '  RedAnt:=TRedAnt.Create;',
+  '  Bird:=TBird.Create;',
+  '  Ant:=TAnt.Create;',
+  '  TRedAnt.RedAntRecA.x:=TRedAnt.RedAntRecB.y;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestOptAliasGlobals_Unit',
+    LinesToStr([
+    '']),
+    LinesToStr([
+    '']));
+end;
 
 procedure TTestOptimizations.TestWPO_OmitLocalVar;
 begin

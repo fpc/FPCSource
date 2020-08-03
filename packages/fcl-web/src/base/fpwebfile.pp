@@ -1,5 +1,20 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2019 by the Free Pascal development team
+
+    Classes to implement a file serving mechanism.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 {$mode objfpc}
 {$h+}
+
 unit fpwebfile;
 
 interface
@@ -7,7 +22,12 @@ interface
 uses SysUtils, Classes, httpdefs, fphttp, httproute;
 
 Type
+
+  { TFPCustomFileModule }
+
   TFPCustomFileModule = Class(TCustomHTTPModule)
+  private
+    FCacheControlMaxAge: Integer;
   Protected
     // Determine filename frome request.
     Function GetRequestFileName(Const ARequest : TRequest) : String; virtual;
@@ -17,8 +37,11 @@ Type
     Function AllowFile(Const AFileName : String) : Boolean; virtual;
     // Actually Send file to client.
     Procedure SendFile(Const AFileName : String; AResponse : TResponse); virtual;
+  Public
+    Constructor CreateNew(AOwner: TComponent; CreateMode: Integer); override; overload;
     // Overrides TCustomHTTPModule to implement file serving.
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
+    Property CacheControlMaxAge : Integer Read FCacheControlMaxAge Write FCacheControlMaxAge;
   end;
   TFPCustomFileModuleClass = Class of TFPCustomFileModule;
 
@@ -30,9 +53,11 @@ Type
     FRequestedFileName,
     FMappedFileName : String;
     class procedure HandleSimpleFileRequest(ARequest: TRequest; AResponse: TResponse); static;
+  Protected
     Function AllowFile(Const AFileName : String) : Boolean; override;
     Function MapFileName(Const AFileName : String) : String; override;
     Function GetRequestFileName(Const ARequest : TRequest) : String; override;
+  Public
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
   Public
   Class var
@@ -51,6 +76,7 @@ Var
   DefaultFileModuleClass : TFPCustomFileModuleClass = TFPCustomFileModule;
   // Setting this will load mime types from that file.
   MimeTypesFile : string;
+  DefaultCacheControlMaxAge : Integer = 0;
 
 // use this to map locations (relative to BaseURL of the application) to physical directories.
 // More than one location can be registered. Directory must exist, location must not have / or \
@@ -232,6 +258,8 @@ begin
   AResponse.ContentType:=MimeTypes.GetMimeType(ExtractFileExt(AFileName));
   If (AResponse.ContentType='') then
     AResponse.ContentType:='Application/octet-stream';
+  if CacheControlMaxAge>0 then
+    aResponse.CacheControl:=Format('max-age=%d',[CacheControlMaxAge]);
   F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
   try
     AResponse.ContentLength:=F.Size;
@@ -241,6 +269,12 @@ begin
   finally
     F.Free;
   end;
+end;
+
+constructor TFPCustomFileModule.CreateNew(AOwner: TComponent; CreateMode: Integer);
+begin
+  inherited CreateNew(aOwner,CreateMode);
+  CacheControlMaxAge:=DefaultCacheControlMaxAge;
 end;
 
 

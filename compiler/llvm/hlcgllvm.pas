@@ -39,7 +39,9 @@ uses
     thlcgllvm = class(thlcgobj)
       constructor create;
 
+      procedure a_load_reg_cgpara(list: TAsmList; size: tdef; r: tregister; const cgpara: TCGPara); override;
       procedure a_load_ref_cgpara(list: TAsmList; size: tdef; const r: treference; const cgpara: TCGPara); override;
+      procedure a_load_undefined_cgpara(list: TAsmList; size: tdef; const cgpara: TCGPara); override;
       procedure a_load_const_cgpara(list: TAsmList; tosize: tdef; a: tcgint; const cgpara: TCGPara); override;
      protected
        procedure a_load_ref_cgpara_init_src(list: TAsmList; const para: tcgpara; const initialref: treference; var refsize: tdef; out newref: treference);
@@ -95,6 +97,9 @@ uses
       procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister); override;
       procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference); override;
       procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister); override;
+     protected
+      procedure gen_fpconstrained_intrinsic(list: TAsmList; const intrinsic: TIDString; fromsize, tosize: tdef; fromreg, toreg: tregister; roundingmode: boolean);
+     public
 
       procedure gen_proc_symbol(list: TAsmList); override;
       procedure handle_external_proc(list: TAsmList; pd: tprocdef; const importname: TSymStr); override;
@@ -164,7 +169,7 @@ implementation
     verbose,cutils,globals,fmodule,constexp,systems,
     defutil,llvmdef,llvmsym,
     aasmtai,aasmcpu,
-    aasmllvm,llvmbase,llvminfo,tgllvm,
+    aasmllvm,aasmllvmmetadata,llvmbase,llvminfo,tgllvm,
     symtable,symllvm,
     paramgr,
     pass_2,procinfo,llvmpi,cpuinfo,cgobj,cgllvm,cghlcpu,
@@ -186,6 +191,18 @@ implementation
   constructor thlcgllvm.create;
     begin
       inherited
+    end;
+
+
+  procedure thlcgllvm.a_load_reg_cgpara(list: TAsmList; size: tdef; r: tregister; const cgpara: TCGPara);
+    begin
+      if size<>llvm_metadatatype then
+        begin
+          inherited;
+          exit;
+        end;
+      { overwrite with the reference to the metadata (stored in the register's supreg) }
+      cgpara.location^.register:=r;
     end;
 
 
@@ -272,7 +289,6 @@ implementation
                    OS_F128:
                      a_loadmm_ref_reg(list,location^.def,location^.def,tmpref,location^.register,mms_movescalar);
                    OS_M8..OS_M128,
-                   OS_MS8..OS_MS128,
                    OS_32..OS_128,
                    { OS_NO is for records of non-power-of-two sizes that have to
                      be passed in MM registers -> never scalar floats }
@@ -290,6 +306,16 @@ implementation
           location:=location^.next;
           inc(paralocidx);
         end;
+    end;
+
+
+  procedure thlcgllvm.a_load_undefined_cgpara(list: TAsmList; size: tdef; const cgpara: TCGPara);
+    var
+      hreg: tregister;
+    begin
+      hreg:=getregisterfordef(list,size);
+      list.concat(taillvm.op_reg_size_undef(la_bitcast,hreg,size));
+      a_load_reg_cgpara(list,size,hreg,cgpara);
     end;
 
 
@@ -526,15 +552,24 @@ implementation
       end;
     { the Pascal level may expect a different returndef compared to the
       declared one }
-    if not assigned(forceresdef) then
-      hlretdef:=pd.returndef
+    if pd.generate_safecall_wrapper then
+      begin
+        hlretdef:=ossinttype;
+        llvmretdef:=ossinttype;
+      end
     else
-      hlretdef:=forceresdef;
-    { llvm will always expect the original return def }
-    if not paramanager.ret_in_param(hlretdef, pd) then
-      llvmretdef:=llvmgetcgparadef(pd.funcretloc[callerside], true, callerside)
-    else
-      llvmretdef:=voidtype;
+      begin
+        if not assigned(forceresdef) then
+          hlretdef:=pd.returndef
+        else
+          hlretdef:=forceresdef;
+        { llvm will always expect the original return def }
+        if not paramanager.ret_in_param(hlretdef, pd) or
+           pd.generate_safecall_wrapper then
+          llvmretdef:=llvmgetcgparadef(pd.funcretloc[callerside], true, callerside)
+        else
+          llvmretdef:=voidtype;
+      end;
     if not is_void(llvmretdef) then
       res:=getregisterfordef(list, llvmretdef)
     else
@@ -543,7 +578,7 @@ implementation
     { if this is a complex procvar, get the non-tmethod-like equivalent }
     if (pd.typ=procvardef) and
        not pd.is_addressonly then
-      pd:=tprocvardef(cprocvardef.getreusableprocaddr(pd));
+      pd:=tprocvardef(cprocvardef.getreusableprocaddr(pd,pc_address_only));
   end;
 
 
@@ -601,6 +636,8 @@ implementation
     var
       fromsize: tdef;
     begin
+      if tosize=llvm_metadatatype then
+        internalerror(2019122804);
       if tosize.size<=ptrsinttype.size then
         fromsize:=ptrsinttype
       else
@@ -646,6 +683,9 @@ implementation
       hreg2: tregister;
       tmpsize: tdef;
     begin
+      if (fromsize=llvm_metadatatype) or
+         (tosize=llvm_metadatatype) then
+        internalerror(2019122802);
       sref:=make_simple_ref(list,ref,tosize);
       hreg:=register;
       (* typecast the pointer to the value instead of the value itself if
@@ -666,6 +706,7 @@ implementation
                 pass via a temp in that case
               }
               if (fromsize.typ in [arraydef,recorddef]) or
+                 (is_set(fromsize) and not is_smallset(fromsize)) or
                  (tosize.size in [3,5,6,7]) then
                 begin
                   { store struct/array-in-register to memory }
@@ -715,6 +756,9 @@ implementation
       tmpreg: tregister;
       tmpintdef: tdef;
     begin
+      if (fromsize=llvm_metadatatype) or
+         (tosize=llvm_metadatatype) then
+        internalerror(2019122801);
       op:=llvmconvop(fromsize,tosize,true);
       { converting from pointer to something else and vice versa is only
         possible via an intermediate pass to integer. Same for "something else"
@@ -742,6 +786,16 @@ implementation
         else
           ;
       end;
+      { inttoptr performs zero extension -> avoid inc(ptr,longint(-1)) from
+        increasing ptr by 4GB on a 64bit platform }
+      if (op=la_inttoptr) and
+         (fromsize.size<tosize.size) then
+        begin
+          tmpreg:=getintregister(list,fromsize);
+          a_load_reg_reg(list,fromsize,ptrsinttype,reg1,tmpreg);
+          reg1:=tmpreg;
+          fromsize:=ptrsinttype;
+        end;
       { reg2 = bitcast fromsize reg1 to tosize }
       list.concat(taillvm.op_reg_size_reg_size(op,reg2,fromsize,reg1,tosize));
     end;
@@ -849,6 +903,9 @@ implementation
       sref: treference;
       hreg: tregister;
     begin
+      if (fromsize=llvm_metadatatype) or
+         (tosize=llvm_metadatatype) then
+        internalerror(2019122803);
       sref:=make_simple_ref(list,ref,fromsize);
       { "named register"? }
       if sref.refaddr=addr_full then
@@ -856,7 +913,9 @@ implementation
       else
         begin
           if ((fromsize.typ in [arraydef,recorddef]) or
-              (tosize.typ in [arraydef,recorddef])) and
+              (tosize.typ in [arraydef,recorddef]) or
+              (is_set(fromsize) and not is_smallset(fromsize)) or
+              (is_set(tosize) and not is_smallset(tosize))) and
              (fromsize<>tosize) then
             begin
               if handle_agg_load_ref_anyreg(list,fromsize,tosize,sref,register,nil) then
@@ -1166,19 +1225,19 @@ implementation
       sizepara.init;
       alignpara.init;
       volatilepara.init;
-      paramanager.getintparaloc(list,pd,1,destpara);
-      paramanager.getintparaloc(list,pd,2,sourcepara);
-      paramanager.getintparaloc(list,pd,3,sizepara);
+      paramanager.getcgtempparaloc(list,pd,1,destpara);
+      paramanager.getcgtempparaloc(list,pd,2,sourcepara);
+      paramanager.getcgtempparaloc(list,pd,3,sizepara);
       if indivalign then
         begin
-          paramanager.getintparaloc(list,pd,4,volatilepara);
+          paramanager.getcgtempparaloc(list,pd,4,volatilepara);
           destpara.Alignment:=-dest.alignment;
           sourcepara.Alignment:=-source.alignment;
         end
       else
         begin
-          paramanager.getintparaloc(list,pd,4,alignpara);
-          paramanager.getintparaloc(list,pd,5,volatilepara);
+          paramanager.getcgtempparaloc(list,pd,4,alignpara);
+          paramanager.getcgtempparaloc(list,pd,5,volatilepara);
           maxalign:=newalignment(max(source.alignment,dest.alignment),min(source.alignment,dest.alignment));
           a_load_const_cgpara(list,u32inttype,maxalign,alignpara);
         end;
@@ -1288,10 +1347,68 @@ implementation
   procedure thlcgllvm.a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister);
     var
       op: tllvmop;
+      intrinsic: TIDString;
     begin
       op:=llvmconvop(fromsize,tosize,true);
-      { reg2 = bitcast fromllsize reg1 to tollsize }
-      list.concat(taillvm.op_reg_size_reg_size(op,reg2,fromsize,reg1,tosize));
+      if (cs_opt_fastmath in current_settings.optimizerswitches) or
+         not(llvmflag_constrained_fptrunc_fpext in llvmversion_properties[current_settings.llvmversion]) or
+         not(op in [la_fptrunc,la_fpext]) then
+        list.concat(taillvm.op_reg_size_reg_size(op,reg2,fromsize,reg1,tosize))
+      else
+        begin
+          if op=la_fptrunc then
+            intrinsic:='llvm_experimental_constrained_fptrunc'
+          else
+            intrinsic:='llvm_experimental_constrained_fpext';
+          gen_fpconstrained_intrinsic(list,
+            intrinsic+llvmfloatintrinsicsuffix(tfloatdef(tosize))+llvmfloatintrinsicsuffix(tfloatdef(fromsize)),
+            fromsize,tosize,reg1,reg2,op=la_fptrunc);
+        end;
+    end;
+
+
+  procedure thlcgllvm.gen_fpconstrained_intrinsic(list: TAsmList; const intrinsic: TIDString; fromsize, tosize: tdef; fromreg, toreg: tregister; roundingmode: boolean);
+    var
+      exceptmode: ansistring;
+      frompara, roundpara, exceptpara, respara: tcgpara;
+      tmploc: tlocation;
+      pd: tprocdef;
+    begin
+      frompara.init;
+      if roundingmode then
+        roundpara.init;
+      exceptpara.init;
+      pd:=search_system_proc(intrinsic);
+
+      paramanager.getcgtempparaloc(list,pd,1,frompara);
+      if roundingmode then
+        begin
+          paramanager.getcgtempparaloc(list,pd,2,roundpara);
+          paramanager.getcgtempparaloc(list,pd,3,exceptpara);
+        end
+      else
+        paramanager.getcgtempparaloc(list,pd,2,exceptpara);
+
+      location_reset(tmploc,frompara.location^.loc,def_cgsize(fromsize));
+      tmploc.register:=fromreg;
+      gen_load_loc_cgpara(list,fromsize,tmploc,frompara);
+      if roundingmode then
+        a_load_reg_cgpara(list,llvm_metadatatype,tllvmmetadata.getstringreg('round.dynamic'),roundpara);
+      exceptmode:=llvm_constrainedexceptmodestring;
+      a_load_reg_cgpara(list,llvm_metadatatype,tllvmmetadata.getstringreg(exceptmode),exceptpara);
+      if roundingmode then
+        respara:=g_call_system_proc(list,pd,[@frompara,@roundpara,@exceptpara],nil)
+      else
+        respara:=g_call_system_proc(list,pd,[@frompara,@exceptpara],nil);
+
+      location_reset(tmploc,respara.location^.loc,def_cgsize(tosize));
+      tmploc.register:=toreg;
+      gen_load_cgpara_loc(list,tosize,respara,tmploc,false);
+      frompara.done;
+      if roundingmode then
+        roundpara.done;
+      exceptpara.done;
+      respara.resetiftemp;
     end;
 
 
@@ -1354,10 +1471,11 @@ implementation
       retpara:=get_call_result_cgpara(current_procinfo.procdef,nil);
       retpara.check_simple_location;
       retdef:=retpara.location^.def;
-      if is_void(retdef) or
-         { don't check retdef here, it is e.g. a pshortstring in case it's
-           shortstring that's returned in a parameter }
-         paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
+      if (is_void(retdef) or
+          { don't check retdef here, it is e.g. a pshortstring in case it's
+            shortstring that's returned in a parameter }
+          paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef)) and
+         not current_procinfo.procdef.generate_safecall_wrapper then
         list.concat(taillvm.op_size(la_ret,voidtype))
       else
         begin
@@ -1371,7 +1489,8 @@ implementation
                   in the code generator -> remove any explicit extensions here }
                 retreg:=retpara.location^.register;
                 if (current_procinfo.procdef.returndef.typ in [orddef,enumdef]) and
-                   (retdef.typ in [orddef,enumdef]) then
+                   (retdef.typ in [orddef,enumdef]) and
+                   not current_procinfo.procdef.generate_safecall_wrapper then
                   begin
                     if (current_procinfo.procdef.returndef.size<retpara.location^.def.size) then
                       begin
@@ -1951,8 +2070,9 @@ implementation
       hreg: tregister;
       rettemp: treference;
     begin
-      if not is_void(hlretdef) and
-         not paramanager.ret_in_param(hlretdef, pd) then
+      if (not is_void(hlretdef) and
+          not paramanager.ret_in_param(hlretdef, pd)) or
+         pd.generate_safecall_wrapper then
         begin
           { should already be a copy, because it currently describes the llvm
             return location }

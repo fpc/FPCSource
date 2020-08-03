@@ -27,7 +27,7 @@ interface
 uses
   {$IFDEF Pas2js}
     {$IFDEF NodeJS}
-    JS, NodeJSFS,
+    JS, node.fs,
     {$ENDIF}
   {$ENDIF}
   Classes, SysUtils,
@@ -228,6 +228,7 @@ type
     FOnReadFile: TPas2jsReadFileEvent;
     FOnWriteFile: TPas2jsWriteFileEvent;
     FResetStamp: TChangeStamp;
+    FResourcePaths: TStringList;
     FUnitPaths: TStringList;
     FUnitPathsFromCmdLine: integer;
     FPCUPaths: TStringList;
@@ -257,6 +258,7 @@ type
     function FindCustomJSFileName(const aFilename: string): String; override;
     function FindUnitJSFileName(const aUnitFilename: string): String; override;
     function FindUnitFileName(const aUnitname, InFilename, ModuleDir: string; out IsForeign: boolean): String; override;
+    function FindResourceFileName(const aFilename, ModuleDir: string): String; override;
     function FindIncludeFileName(const aFilename, ModuleDir: string): String; override;
     function AddIncludePaths(const Paths: string; FromCmdLine: boolean; out ErrorMsg: string): boolean;
     function AddUnitPaths(const Paths: string; FromCmdLine: boolean; out ErrorMsg: string): boolean;
@@ -279,12 +281,14 @@ type
     function ExpandExecutable(const Filename: string): string; override;
     function HandleOptionPaths(C: Char; aValue: String; FromCmdLine: Boolean): String; override;
     Function AddForeignUnitPath(const aValue: String; FromCmdLine: Boolean): String; override;
-    function TryCreateRelativePath(const Filename, BaseDirectory: String; UsePointDirectory: boolean; out RelPath: String): Boolean; override;
+    function TryCreateRelativePath(const Filename, BaseDirectory: String;
+      UsePointDirectory, AlwaysRequireSharedBaseFolder: boolean; out RelPath: String): Boolean; override;
   Protected
     property DirectoryCache: TPas2jsCachedDirectories read FDirectoryCache;
   public
     property BaseDirectory: string read FBaseDirectory write SetBaseDirectory; // includes trailing pathdelim
     property ForeignUnitPaths: TStringList read FForeignUnitPaths;
+    property ResourcePaths : TStringList read FResourcePaths;
     property ForeignUnitPathsFromCmdLine: integer read FForeignUnitPathsFromCmdLine;
     property IncludePaths: TStringList read FIncludePaths;
     property IncludePathsFromCmdLine: integer read FIncludePathsFromCmdLine;
@@ -905,13 +909,25 @@ end;
 function TPas2jsCachedDirectories.DirectoryExists(Filename: string): boolean;
 var
   Info: TFileInfo;
+  Dir: TPas2jsCachedDirectory;
 begin
   Info.Filename:=Filename;
   if not GetFileInfo(Info) then exit(false);
   if Info.Dir<>nil then
     Result:=(Info.Dir.FileAttr(Info.ShortFilename) and faDirectory)>0
   else
-    Result:={$IFDEF pas2js}NodeJSFS{$ELSE}SysUtils{$ENDIF}.DirectoryExists(Info.Filename);
+    begin
+    Dir:=GetDirectory(Filename,true,false);
+    if Dir<>nil then
+      Result:=Dir.Count>0
+    else
+      begin
+      Filename:=ChompPathDelim(ResolveDots(Filename));
+      if not FilenameIsAbsolute(Filename) then
+        Filename:=WorkingDirectory+Filename;
+      Result:={$IFDEF pas2js}Node.FS{$ELSE}SysUtils{$ENDIF}.DirectoryExists(Filename);
+      end;
+    end;
 end;
 
 function TPas2jsCachedDirectories.FileExists(Filename: string): boolean;
@@ -923,7 +939,7 @@ begin
   if Info.Dir<>nil then
     Result:=Info.Dir.IndexOfFile(Info.ShortFilename)>=0
   else
-    Result:={$IFDEF pas2js}NodeJSFS{$ELSE}SysUtils{$ENDIF}.FileExists(Info.Filename);
+    Result:={$IFDEF pas2js}Node.FS{$ELSE}SysUtils{$ENDIF}.FileExists(Info.Filename);
 end;
 
 function TPas2jsCachedDirectories.FileExistsI(var Filename: string): integer;
@@ -936,7 +952,7 @@ begin
   if not GetFileInfo(Info) then exit;
   if Info.Dir=nil then
   begin
-    if {$IFDEF pas2js}NodeJSFS{$ELSE}SysUtils{$ENDIF}.FileExists(Info.Filename) then
+    if {$IFDEF pas2js}Node.FS{$ELSE}SysUtils{$ENDIF}.FileExists(Info.Filename) then
       Result:=1;
   end
   else
@@ -1440,6 +1456,7 @@ begin
   FIncludePaths:=TStringList.Create;
   FForeignUnitPaths:=TStringList.Create;
   FUnitPaths:=TStringList.Create;
+  FResourcePaths:=TStringList.Create;
   FFiles:=TPasAnalyzerKeySet.Create(
     {$IFDEF Pas2js}
     @Pas2jsCachedFileToKeyName,@PtrFilenameToKeyName
@@ -1486,8 +1503,9 @@ procedure TPas2jsFilesCache.WriteFoldersAndSearchPaths;
   procedure WriteFolder(aName, Folder: string);
   begin
     if Folder='' then exit;
+    Folder:=ChompPathDelim(Folder);
     Log.LogMsgIgnoreFilter(nUsingPath,[aName,Folder]);
-    if not DirectoryExists(ChompPathDelim(Folder)) then
+    if not DirectoryExists(Folder) then
       Log.LogMsgIgnoreFilter(nFolderNotFound,[aName,QuoteStr(Folder)]);
   end;
 
@@ -1806,11 +1824,12 @@ begin
   AddSrcUnitPaths(aValue,FromCmdLine,Result);
 end;
 
-function TPas2jsFilesCache.TryCreateRelativePath(const Filename, BaseDirectory: String;
-  UsePointDirectory: boolean; out RelPath: String): Boolean;
+function TPas2jsFilesCache.TryCreateRelativePath(const Filename,
+  BaseDirectory: String; UsePointDirectory,
+  AlwaysRequireSharedBaseFolder: boolean; out RelPath: String): Boolean;
 begin
   Result:=Pas2jsFileUtils.TryCreateRelativePath(Filename, BaseDirectory,
-    UsePointDirectory, true, RelPath);
+    UsePointDirectory, AlwaysRequireSharedBaseFolder, RelPath);
 end;
 
 function TPas2jsFilesCache.FindIncludeFileName(const aFilename,
@@ -1955,6 +1974,50 @@ begin
     // finally search in unit paths
     for i:=0 to UnitPaths.Count-1 do
       if SearchInDir(UnitPaths[i],Result) then exit;
+  finally
+    SearchedDirs.Free;
+  end;
+
+  Result:='';
+end;
+
+function TPas2jsFilesCache.FindResourceFileName(const aFilename, ModuleDir: string): String;
+
+var
+  SearchedDirs: TStringList;
+
+  function SearchInDir(Dir: string; var Filename: string): boolean;
+  // search in Dir for pp, pas, p times given case, lower case, upper case
+  begin
+    Dir:=IncludeTrailingPathDelimiter(Dir);
+    if IndexOfFile(SearchedDirs,Dir)>=0 then exit(false);
+    SearchedDirs.Add(Dir);
+    if SearchLowUpCase(Filename) then exit(true);
+    Result:=false;
+  end;
+
+var
+  i: Integer;
+
+begin
+  //writeln('TPas2jsFilesCache.FindUnitFileName "',aUnitname,'" ModuleDir="',ModuleDir,'"');
+  Result:='';
+  SearchedDirs:=TStringList.Create;
+  try
+    Result:=SetDirSeparators(aFilename);
+
+    // First search in ModuleDir
+    if SearchInDir(ModuleDir,Result) then
+      exit;
+
+    // Then in resource paths
+    for i:=0 to ResourcePaths.Count-1 do
+      if SearchInDir(ResourcePaths[i],Result) then
+        exit;
+    // Not sure
+    // finally search in unit paths
+    // for i:=0 to UnitPaths.Count-1 do
+    //  if SearchInDir(UnitPaths[i],Result) then exit;
   finally
     SearchedDirs.Free;
   end;

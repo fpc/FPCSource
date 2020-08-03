@@ -93,8 +93,6 @@ implementation
          procedure genOrdConstNodeDiv;
          const
              negops : array[boolean] of tasmop = (A_NEG, A_NEGO);
-         var
-             divreg : tregister;
          begin
              if (tordconstnode(right).value = 0) then begin
                  internalerror(2005061701);
@@ -250,7 +248,7 @@ implementation
          secondpass(left);
          secondpass(right);
 
-         if is_64bitint(left.resultdef) then
+         if is_64bit(left.resultdef) then
            begin
              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
                left.resultdef,left.resultdef,true);

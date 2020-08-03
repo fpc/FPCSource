@@ -6068,7 +6068,7 @@ Const
      PPREVENTMEDIAREMOVAL = ^PREVENT_MEDIA_REMOVAL;
 
      {PRINTDLG = record conflicts with PrintDlg function }
-     TPRINTDLG = packed record
+     TPRINTDLG = {$ifndef win64}packed {$endif}record
           lStructSize : DWORD;
           hwndOwner : HWND;
           hDevMode : HGLOBAL;
@@ -7363,7 +7363,7 @@ Const
           idCommand : longint;
           fsState : BYTE;
           fsStyle : BYTE;
-{$ifdef _WIN64}
+{$ifdef WIN64}
           bReserved : array[0..5] of BYTE;
 {$else}
           bReserved : array[0..1] of BYTE;
@@ -8592,7 +8592,7 @@ const
   IMAGE_ROM_OPTIONAL_HDR_MAGIC  = $107;
 
 type
-{$ifdef _WIN64}
+{$ifdef WIN64}
   IMAGE_OPTIONAL_HEADER = IMAGE_OPTIONAL_HEADER64;
   PIMAGE_OPTIONAL_HEADER = PIMAGE_OPTIONAL_HEADER64;
 {$else}
@@ -8636,7 +8636,7 @@ type
   TImageRomHeaders = IMAGE_ROM_HEADERS;
   PImageRomHeaders = PIMAGE_ROM_HEADERS;
 
-{$ifdef _WIN64}
+{$ifdef WIN64}
   IMAGE_NT_HEADERS = IMAGE_NT_HEADERS64;
   PIMAGE_NT_HEADERS = PIMAGE_NT_HEADERS64;
 {$else}
@@ -8804,7 +8804,7 @@ type
        end;
      PIMAGE_LOAD_CONFIG_DIRECTORY64 = ^IMAGE_LOAD_CONFIG_DIRECTORY64;
      TIMAGE_LOAD_CONFIG_DIRECTORY64 = IMAGE_LOAD_CONFIG_DIRECTORY64;
-{$ifdef _WIN64}
+{$ifdef WIN64}
      IMAGE_LOAD_CONFIG_DIRECTORY = IMAGE_LOAD_CONFIG_DIRECTORY64;
      TIMAGE_LOAD_CONFIG_DIRECTORY = TIMAGE_LOAD_CONFIG_DIRECTORY64;
      PIMAGE_LOAD_CONFIG_DIRECTORY = PIMAGE_LOAD_CONFIG_DIRECTORY64;
@@ -8813,6 +8813,48 @@ type
      TIMAGE_LOAD_CONFIG_DIRECTORY = TIMAGE_LOAD_CONFIG_DIRECTORY32;
      PIMAGE_LOAD_CONFIG_DIRECTORY = PIMAGE_LOAD_CONFIG_DIRECTORY32;
 {$endif}
+
+     MOUSEINPUT = record
+       dx        : LONG;
+       dy        : LONG;
+       MouseData : DWORD;
+       dwFlags   : DWORD;
+       Time      : DWORD;
+       ExtraInfo : ULONG_PTR;
+     end;
+     TMOUSEINPUT  = MOUSEINPUT;
+     PMOUSEINPUT  = ^MOUSEINPUT;
+     LPMOUSEINPUT = PMOUSEINPUT;
+
+     KEYBDINPUT = record
+       wVk       : WORD;
+       wScan     : WORD;
+       dwFlags   : DWORD;
+       Time      : DWORD;
+       ExtraInfo : ULONG_PTR;
+     end;
+     TKEYBDINPUT  = KEYBDINPUT;
+     PKEYBDINPUT  = ^KEYBDINPUT;
+     LPKEYBDINPUT = PKEYBDINPUT;
+
+     HARDWAREINPUT = record
+       uMsg     : DWORD;
+       wParamL  : WORD;
+       wParamH  : WORD;
+     end;
+     THARDWAREINPUT  = HARDWAREINPUT;
+     PHARDWAREINPUT  = ^HARDWAREINPUT;
+     LPHARDWAREINPUT = PHARDWAREINPUT;
+
+     TINPUT = record
+       _Type : DWORD;
+       case integer of
+         1 : (mi : MOUSEINPUT);
+         2 : (ki : KEYBDINPUT);
+         3 : (hi : HARDWAREINPUT);
+     end;
+     PINPUT = ^TINPUT;
+     LPINPUT = PINPUT;
 
 {$push}
 {$packrecords 4}

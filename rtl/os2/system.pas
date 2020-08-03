@@ -492,7 +492,7 @@ begin
    case Report^.Exception_Num of
     Xcpt_Integer_Divide_By_Zero,
     Xcpt_Float_Divide_By_Zero:
-      Err := 200;
+      Err := 208;
     Xcpt_Array_Bounds_Exceeded:
      begin
       Err := 201;

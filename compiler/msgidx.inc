@@ -462,6 +462,10 @@ const
   parser_e_only_static_members_via_object_type=03349;
   parser_e_callthrough_varargs=03350;
   parser_e_unbound_attribute=03351;
+  parser_e_enumeration_out_of_range=03352;
+  parser_w_enumeration_out_of_range=03353;
+  parser_e_method_for_type_in_other_unit=03354;
+  parser_e_generic_constraints_not_allowed_here=03355;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -578,6 +582,9 @@ const
   type_e_function_reference_kind=04123;
   type_e_seg_procvardef_wrong_memory_model=04124;
   type_w_empty_constant_range_set=04125;
+  type_e_cblock_callconv=04126;
+  type_e_forward_interface_type_does_not_match=04127;
+  type_e_generic_const_type_not_allowed=04128;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -701,6 +708,8 @@ const
   cg_n_no_inline=06058;
   cg_e_case_missing_value=06059;
   cg_w_case_incomplete=06060;
+  cg_w_cannot_compile_subroutine=06061;
+  cg_w_interrupt_does_not_save_registers=06062;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
   asmr_e_none_label_contain_at=07002;
@@ -873,6 +882,8 @@ const
   asmw_f_data_segment_too_large=08031;
   asmw_e_instruction_not_supported_by_cpu=08032;
   asmw_e_brxx_out_of_range=08033;
+  asmw_e_illegal_use_of_rip=08034;
+  asmw_e_seh_invalid_data_size=08035;
   exec_w_source_os_redefined=09000;
   exec_i_assembling_pipe=09001;
   exec_d_cant_create_asmfile=09002;
@@ -937,6 +948,8 @@ const
   link_e_comdat_size_differs=09218;
   link_e_comdat_content_differs=09219;
   link_e_comdat_selection_differs=09220;
+  link_e_undefined_symbol_in_obj=09221;
+  link_e_undefined_symbol=09222;
   unit_t_unitsearch=10000;
   unit_t_ppu_loading=10001;
   unit_u_ppu_name=10002;
@@ -1113,9 +1126,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 83577;
+  MsgTxtSize = 85622;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,106,352,126,99,61,143,34,221,68,
+    28,106,356,129,99,63,143,36,223,68,
     62,20,30,1,1,1,1,1,1,1
   );

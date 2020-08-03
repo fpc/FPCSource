@@ -97,8 +97,10 @@ Software IEC/IEEE floating-point types.
 -------------------------------------------------------------------------------
 }
 TYPE
+{$ifndef FPC_SYSTEM_HAS_float32}
   float32 = longword;
 {$define FPC_SYSTEM_HAS_float32}
+{$endif ndef FPC_SYSTEM_HAS_float32}
   { we use here a record in the function header because
     the record allows bitwise conversion to single }
   float32rec = record
@@ -123,57 +125,61 @@ TYPE
   sbits64 = int64;
 
 {$ifdef ENDIAN_LITTLE}
+{$ifndef FPC_SYSTEM_HAS_float64}
   float64 = record
     case byte of
-      1: (low,high : bits32);
       // force the record to be aligned like a double
       // else *_to_double will fail for cpus like sparc
       // and avoid expensive unpacking/packing operations
-      2: (dummy : double);
+      1: (dummy : double);
+      2: (low,high : bits32);
   end;
+{$endif ndef FPC_SYSTEM_HAS_float64}
 
   floatx80 = record
     case byte of
-      1: (low : qword;high : word);
       // force the record to be aligned like a double
       // else *_to_double will fail for cpus like sparc
       // and avoid expensive unpacking/packing operations
-      2: (dummy : extended);
+      1: (dummy : extended);
+      2: (low : qword;high : word);
   end;
 
   float128 = record
     case byte of
-      1: (low,high : qword);
       // force the record to be aligned like a double
       // else *_to_double will fail for cpus like sparc
       // and avoid expensive unpacking/packing operations
-      2: (dummy : qword);
+      1: (dummy : qword);
+      2: (low,high : qword);
   end;
 {$else}
+{$ifndef FPC_SYSTEM_HAS_float64}
   float64 = record
       case byte of
-        1: (high,low : bits32);
         // force the record to be aligned like a double
         // else *_to_double will fail for cpus like sparc
-        2: (dummy : double);
+        1: (dummy : double);
+        2: (high,low : bits32);
   end;
+{$endif ndef FPC_SYSTEM_HAS_float64}
 
   floatx80 = record
     case byte of
-      1: (high : word;low : qword);
       // force the record to be aligned like a double
       // else *_to_double will fail for cpus like sparc
       // and avoid expensive unpacking/packing operations
-      2: (dummy : qword);
+      1: (dummy : qword);
+      2: (high : word;low : qword);
   end;
 
   float128 = record
     case byte of
-      1: (high : qword;low : qword);
       // force the record to be aligned like a double
       // else *_to_double will fail for cpus like sparc
       // and avoid expensive unpacking/packing operations
-      2: (dummy : qword);
+      1: (dummy : qword);
+      2: (high : qword;low : qword);
   end;
 {$endif}
 

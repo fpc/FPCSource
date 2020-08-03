@@ -40,7 +40,7 @@ interface
       TLinkerInfo=record
         ExeCmd,
         DllCmd,
-        ExtDbgCmd     : array[1..3] of string;
+        ExtDbgCmd     : array[1..3] of ansistring;
         ResName       : string[100];
         ScriptName    : string[100];
         ExtraOptions  : TCmdStr;
@@ -78,6 +78,8 @@ interface
        end;
 
       TExternalLinker = class(TLinker)
+      protected
+         Function WriteSymbolOrderFile: TCmdStr;
       public
          Info : TLinkerInfo;
          Constructor Create;override;
@@ -87,6 +89,8 @@ interface
          Function  DoExec(const command:TCmdStr; para:TCmdStr;showinfo,useshell:boolean):boolean;
          procedure SetDefaultInfo;virtual;
          Function  MakeStaticLibrary:boolean;override;
+
+         Function UniqueName(const str:TCmdStr): TCmdStr;
        end;
 
       TBooleanArray = array [1..1024] of boolean;
@@ -130,6 +134,8 @@ interface
          function GetCodeSize(aExeOutput: TExeOutput): QWord;virtual;
          function GetDataSize(aExeOutput: TExeOutput): QWord;virtual;
          function GetBssSize(aExeOutput: TExeOutput): QWord;virtual;
+         function ExecutableFilename:String;virtual;
+         function SharedLibFilename:String;virtual;
       public
          IsSharedLibrary : boolean;
          UseStabs : boolean;
@@ -376,7 +382,6 @@ Implementation
         i,j  : longint;
         ImportLibrary : TImportLibrary;
         ImportSymbol  : TImportSymbol;
-        cmdstritem: TCmdStrListItem;
       begin
         with hp do
          begin
@@ -643,6 +648,30 @@ Implementation
                               TEXTERNALLINKER
 *****************************************************************************}
 
+    Function TExternalLinker.WriteSymbolOrderFile: TCmdStr;
+      var
+        item: TCmdStrListItem;
+        symfile: TScript;
+      begin
+        result:='';
+        { only for darwin for now; can also enable for other platforms when using
+          the LLVM linker }
+        if (OrderedSymbols.Empty) or
+           not(tf_supports_symbolorderfile in target_info.flags) then
+          exit;
+        symfile:=TScript.Create(outputexedir+'symbol_order.fpc');
+        item:=TCmdStrListItem(OrderedSymbols.First);
+        while assigned(item) do
+          begin
+            symfile.add(item.str);
+            item:=TCmdStrListItem(item.next);
+          end;
+        symfile.WriteToDisk;
+        result:=symfile.fn;
+        symfile.Free;
+      end;
+
+
     Constructor TExternalLinker.Create;
       begin
         inherited Create;
@@ -655,16 +684,8 @@ Implementation
           end
         else
           begin
-            if GetProcessID>0 then
-              begin
-                Info.ResName:='link'+tostr(GetProcessID)+'.res';
-                Info.ScriptName:='script'+tostr(GetProcessID)+'.res';
-              end
-            else
-              begin
-                Info.ResName:='link.res';
-                Info.ScriptName:='script.res';
-              end;
+            Info.ResName:=UniqueName('link')+'.res';
+            Info.ScriptName:=UniqueName('script')+'.res';
           end;
         { set the linker specific defaults }
         SetDefaultInfo;
@@ -848,7 +869,8 @@ Implementation
 
 
         scripted_ar:=(target_ar.id=ar_gnu_ar_scripted) or
-                     (target_ar.id=ar_watcom_wlib_omf_scripted);
+                     (target_ar.id=ar_watcom_wlib_omf_scripted) or
+                     (target_ar.id=ar_sdcc_sdar_scripted);
 
         if scripted_ar then
           begin
@@ -857,7 +879,7 @@ Implementation
             Assign(script, scriptfile);
             Rewrite(script);
             try
-              if (target_ar.id=ar_gnu_ar_scripted) then
+              if (target_ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
                 writeln(script, 'CREATE ' + current_module.staticlibfilename)
               else { wlib case }
                 writeln(script,'-q -fo -c -b '+
@@ -865,13 +887,13 @@ Implementation
               current := TCmdStrListItem(SmartLinkOFiles.First);
               while current <> nil do
                 begin
-                  if (target_ar.id=ar_gnu_ar_scripted) then
+                  if (target_ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
                   writeln(script, 'ADDMOD ' + current.str)
                   else
                     writeln(script,'+' + current.str);
                   current := TCmdStrListItem(current.next);
                 end;
-              if (target_ar.id=ar_gnu_ar_scripted) then
+              if (target_ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
                 begin
                   writeln(script, 'SAVE');
                   writeln(script, 'END');
@@ -940,6 +962,18 @@ Implementation
             AsmRes.AddDeleteDirCommand(smartpath);
           end;
         MakeStaticLibrary:=success;
+      end;
+
+    function TExternalLinker.UniqueName(const str: TCmdStr): TCmdStr;
+      const
+        pid: SizeUInt = 0;
+      begin
+        if pid=0 then
+          pid:=GetProcessID;
+        if pid>0 then
+          result:=str+tostr(pid)
+        else
+          result:=str;
       end;
 
 
@@ -1492,7 +1526,7 @@ Implementation
       label
         myexit;
       var
-        bsssize : aword;
+        bsssize : qword;
         dbgname : TCmdStr;
       begin
         result:=false;
@@ -1598,10 +1632,22 @@ Implementation
       end;
 
 
+    function TInternalLinker.ExecutableFilename:String;
+      begin
+        result:=current_module.exefilename;
+      end;
+
+
+    function TInternalLinker.SharedLibFilename:String;
+      begin
+        result:=current_module.sharedlibfilename;
+      end;
+
+
     function TInternalLinker.MakeExecutable:boolean;
       begin
         IsSharedLibrary:=false;
-        result:=RunLinkScript(current_module.exefilename);
+        result:=RunLinkScript(ExecutableFilename);
 {$ifdef hasUnix}
         fpchmod(current_module.exefilename,493);
 {$endif hasUnix}
@@ -1611,7 +1657,7 @@ Implementation
     function TInternalLinker.MakeSharedLibrary:boolean;
       begin
         IsSharedLibrary:=true;
-        result:=RunLinkScript(current_module.sharedlibfilename);
+        result:=RunLinkScript(SharedLibFilename);
       end;
 
 
@@ -1711,6 +1757,23 @@ Implementation
             arfinishcmd : ''
           );
 
+      ar_sdcc_sdar_info : tarinfo =
+          ( id          : ar_sdcc_sdar;
+          addfilecmd  : '';
+          arfirstcmd  : '';
+          arcmd       : 'sdar qS $LIB $FILES';
+          arfinishcmd : 'sdar s $LIB'
+          );
+
+      ar_sdcc_sdar_scripted_info : tarinfo =
+          (
+            id    : ar_sdcc_sdar_scripted;
+            addfilecmd  : '';
+            arfirstcmd  : '';
+            arcmd : 'sdar -M < $SCRIPT';
+            arfinishcmd : ''
+          );
+
 
 initialization
   RegisterAr(ar_gnu_ar_info);
@@ -1718,4 +1781,6 @@ initialization
   RegisterAr(ar_gnu_gar_info);
   RegisterAr(ar_watcom_wlib_omf_info);
   RegisterAr(ar_watcom_wlib_omf_scripted_info);
+  RegisterAr(ar_sdcc_sdar_info);
+  RegisterAr(ar_sdcc_sdar_scripted_info);
 end.

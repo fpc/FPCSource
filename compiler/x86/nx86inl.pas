@@ -78,6 +78,7 @@ interface
           procedure second_fma;override;
           procedure second_frac_real;override;
           procedure second_int_real;override;
+          procedure second_high;override;
        private
           procedure load_fpu_location(lnode: tnode);
        end;
@@ -87,7 +88,7 @@ implementation
     uses
       systems,
       globtype,globals,
-      verbose,compinnr,
+      verbose,compinnr,fmodule,
       defutil,
       aasmbase,aasmdata,aasmcpu,
       symconst,symtype,symdef,symcpu,
@@ -95,7 +96,7 @@ implementation
       htypechk,
       cgbase,pass_1,pass_2,
       cpuinfo,cpubase,nutils,
-      ncal,ncgutil,nld,
+      ncal,ncgutil,nld,ncon,
       tgobj,
       cga,cgutils,cgx86,cgobj,hlcgobj;
 
@@ -150,6 +151,8 @@ implementation
 {$else i8086}
              resultdef:=s32inttype;
 {$endif i8086}
+           { include automatically generated code }
+           {$i x86mmtype.inc}
            else
              Result:=inherited pass_typecheck_cpu;
          end;
@@ -176,6 +179,8 @@ implementation
            in_x86_cli,
            in_x86_sti:
              expectloc:=LOC_VOID;
+           { include automatically generated code }
+           {$i x86mmfirst.inc}
            else
              Result:=inherited first_cpu;
          end;
@@ -410,6 +415,11 @@ implementation
 
      procedure tx86inlinenode.pass_generate_code_cpu;
 
+       var
+         paraarray : array[1..4] of tnode;
+         i : integer;
+         op: TAsmOp;
+
        procedure inport(dreg:TRegister;dsize:topsize;dtype:tdef);
          var
            portnumber: tnode;
@@ -441,6 +451,7 @@ implementation
              end;
          end;
 
+
        procedure outport(dreg:TRegister;dsize:topsize;dtype:tdef);
          var
            portnumber, portdata: tnode;
@@ -465,6 +476,7 @@ implementation
            hlcg.ungetcpuregister(current_asmdata.CurrAsmList,dreg);
          end;
 
+
        procedure get_segreg(segreg:tregister);
          begin
            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
@@ -472,7 +484,82 @@ implementation
            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOV,TCGSize2OpSize[def_cgsize(resultdef)],segreg,location.register));
          end;
 
+
+      function GetConstInt(n: tnode): longint;
+        begin
+          Result:=0;
+          if is_constintnode(n) then
+            result:=tordconstnode(n).value.svalue
+          else
+            Message(type_e_constant_expr_expected);
+        end;
+
+
+      procedure GetParameters(count: longint);
+        var
+          i: longint;
+          p: tnode;
+        begin
+          if (count=1) and
+             (not (left is tcallparanode)) then
+            paraarray[1]:=left
+          else
+            begin
+              p:=left;
+              for i := count downto 1 do
+                begin
+                  paraarray[i]:=tcallparanode(p).paravalue;
+                  p:=tcallparanode(p).nextpara;
+                end;
+            end;
+        end;
+
+      procedure location_force_mmxreg(list:TAsmList;var l: tlocation;maybeconst:boolean);
+        var
+          reg : tregister;
+        begin
+          if (l.loc<>LOC_MMXREGISTER)  and
+             ((l.loc<>LOC_CMMXREGISTER) or (not maybeconst)) then
+            begin
+              reg:=tcgx86(cg).getmmxregister(list);
+              cg.a_loadmm_loc_reg(list,OS_M64,l,reg,nil);
+              location_freetemp(list,l);
+              location_reset(l,LOC_MMXREGISTER,OS_M64);
+              l.register:=reg;
+            end;
+        end;
+
+      procedure location_make_ref(var loc: tlocation);
+        var
+          hloc: tlocation;
+        begin
+          case loc.loc of
+            LOC_CREGISTER,
+            LOC_REGISTER:
+              begin
+                location_reset_ref(hloc, LOC_REFERENCE, OS_32, 1, []);
+                hloc.reference.base:=loc.register;
+
+                loc:=hloc;
+              end;
+            LOC_CREFERENCE,
+            LOC_REFERENCE:
+              begin
+              end;
+          else
+            begin
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,loc,u32inttype,u32inttype,false);
+
+              location_reset_ref(hloc, LOC_REFERENCE, OS_32, 1, []);
+              hloc.reference.base:=loc.register;
+
+              loc:=hloc;
+            end;
+          end;
+        end;
+
        begin
+         FillChar(paraarray,sizeof(paraarray),0);
          case inlinenumber of
            in_x86_inportb:
              inport(NR_AL,S_B,u8inttype);
@@ -502,6 +589,7 @@ implementation
              get_segreg(NR_FS);
            in_x86_get_gs:
              get_segreg(NR_GS);
+           {$i x86mmsecond.inc}
            else
              inherited pass_generate_code_cpu;
          end;
@@ -557,8 +645,16 @@ implementation
 
 
      procedure tx86inlinenode.second_abs_real;
+
+       function needs_indirect:boolean; inline;
+         begin
+           result:=(tf_supports_packages in target_info.flags) and
+                     (target_info.system in systems_indirect_var_imports);
+         end;
+
        var
          href : treference;
+         sym : tasmsymbol;
        begin
          if use_vectorfpu(resultdef) then
            begin
@@ -575,7 +671,9 @@ implementation
              case tfloatdef(resultdef).floattype of
                s32real:
                  begin
-                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol(target_info.cprefix+'FPC_ABSMASK_SINGLE',AT_DATA),0,4,[]);
+                   sym:=current_asmdata.RefAsmSymbol(target_info.cprefix+'FPC_ABSMASK_SINGLE',AT_DATA,needs_indirect);
+                   reference_reset_symbol(href,sym,0,4,[]);
+                   current_module.add_extern_asmsym(sym);
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
                    if UseAVX then
                      current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_reg(
@@ -585,7 +683,9 @@ implementation
                  end;
                s64real:
                  begin
-                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol(target_info.cprefix+'FPC_ABSMASK_DOUBLE',AT_DATA),0,4,[]);
+                   sym:=current_asmdata.RefAsmSymbol(target_info.cprefix+'FPC_ABSMASK_DOUBLE',AT_DATA,needs_indirect);
+                   reference_reset_symbol(href,sym,0,4,[]);
+                   current_module.add_extern_asmsym(sym);
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
                    if UseAVX then
                      current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_reg(
@@ -1011,6 +1111,12 @@ implementation
           emit_reg_reg(A_POPCNT,TCGSize2OpSize[opsize],left.location.register,location.register)
         else
           emit_ref_reg(A_POPCNT,TCGSize2OpSize[opsize],left.location.reference,location.register);
+
+        if resultdef.size=1 then
+          begin
+            location.size:=OS_8;
+            location.register:=cg.makeregsize(current_asmdata.CurrAsmList,location.register,location.size);
+          end;
       end;
 
 
@@ -1257,6 +1363,42 @@ implementation
           end
         else
           internalerror(2017052107);
+      end;
+
+
+    procedure tx86inlinenode.second_high;
+      var
+        donelab: tasmlabel;
+        hregister : tregister;
+        href : treference;
+      begin
+        secondpass(left);
+        if not(is_dynamic_array(left.resultdef)) then
+          Internalerror(2019122801);
+        { length in dynamic arrays is at offset -sizeof(pint) }
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        current_asmdata.getjumplabel(donelab);
+        { by subtracting 1 here, we get the -1 into the register we need if the dyn. array is nil and the carry
+          flag is set in this case, so we can jump depending on it
+
+          when loading the actual high value, we have to take care later of the decreased value
+
+          do not use the cgs, as they might emit dec instead of a sub instruction, however with dec the trick
+          we are using is not working as dec does not touch the carry flag }
+        current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_SUB,TCGSize2OpSize[def_cgsize(left.resultdef)],1,left.location.register));
+        { volatility of the dyn. array refers to the volatility of the
+          string pointer, not of the string data }
+        cg.a_jmp_flags(current_asmdata.CurrAsmList,F_C,donelab);
+        hlcg.reference_reset_base(href,left.resultdef,left.location.register,-ossinttype.size+1,ctempposinvalid,ossinttype.alignment,[]);
+        { if the string pointer is nil, the length is 0 -> reuse the register
+          that originally held the string pointer for the length, so that we
+          can keep the original nil/0 as length in that case }
+        hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,def_cgsize(resultdef));
+        hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,ossinttype,resultdef,href,hregister);
+
+        cg.a_label(current_asmdata.CurrAsmList,donelab);
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        location.register:=hregister;
       end;
 
 end.

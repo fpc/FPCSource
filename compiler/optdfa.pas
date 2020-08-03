@@ -332,7 +332,9 @@ unit optdfa;
                   begin
                     { if yes, then we should warn }
                     { !!!!!! }
-                  end;
+                  end
+                else
+                  Include(tfornode(node).loopflags,lnf_dont_mind_loopvar_on_exit);
 
                 { first update the dummy node }
 
@@ -602,6 +604,10 @@ unit optdfa;
       if the tree has been changed without updating dfa }
     procedure TDFABuilder.resetdfainfo(node : tnode);
       begin
+        nodemap.Free;
+        nodemap:=nil;
+        resultnode.Free;
+        resultnode:=nil;
         foreachnodestatic(pm_postprocess,node,@ResetDFA,nil);
       end;
 

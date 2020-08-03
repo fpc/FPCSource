@@ -20,7 +20,7 @@ var
 
 function SysLoadLibraryU(const Name : UnicodeString) : TlibHandle;
 begin
-  Result:=LoadLibrary(LPCSTR(AnsiString(Name)));
+  Result:=WinLoadLibrary(LPCSTR(AnsiString(Name)));
   if Result<=HINSTANCE_ERROR then
   begin
     LastLoadLibraryError:=Result;
@@ -30,7 +30,7 @@ end;
 
 function SysLoadLibraryA(const Name: RawByteString) : TLibHandle;
 begin
-  Result:=LoadLibrary(LPCSTR(Name));
+  Result:=WinLoadLibrary(LPCSTR(Name));
   if Result<=HINSTANCE_ERROR then
   begin
     LastLoadLibraryError:=Result;
@@ -40,20 +40,20 @@ end;
 
 function SysGetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : FarPointer;
 begin
-  Result:=GetProcAddress(Lib,LPCSTR(ProcName));
+  Result:=WinGetProcAddress(Lib,LPCSTR(ProcName));
 end;
 
 {$push}
 {$warn 4056 off}
 function SysGetProcedureAddressOrdinal(Lib : TLibHandle; Ordinal : TOrdinalEntry) : FarPointer;
 begin
-  Result:=GetProcAddress(Lib,LPCSTR(Ordinal));
+  Result:=WinGetProcAddress(Lib,LPCSTR(Ordinal));
 end;
 {$pop}
 
 function SysUnloadLibrary(Lib : TLibHandle) : Boolean;
 begin
-  FreeLibrary(Lib);
+  WinFreeLibrary(Lib);
   Result:=true;
 end;
 

@@ -33,6 +33,7 @@ type
   private
     FOptions : TJSONOptions;
     procedure CallNoHandlerStream;
+    procedure DoDuplicate;
     procedure DoTestError(S: String; Options : TJSONOptions = DefaultOpts);
     procedure DoTestFloat(F: TJSONFloat); overload;
     procedure DoTestFloat(F: TJSONFloat; S: String); overload;
@@ -69,6 +70,14 @@ type
     Procedure TestNoHandlerError;
     Procedure TestHandlerResult;
     Procedure TestHandlerResultStream;
+    Procedure TestEmptyLine;
+    Procedure TestStartEmptyLine;
+    Procedure TestObjectEmptyLine;
+    Procedure TestCommentLine;
+    Procedure TestFirstLineComment;
+    Procedure TestMultiLineComment;
+    Procedure TestIgnoreDuplicates;
+    Procedure TestNoIgnoreDuplicates;
   end;
 
 implementation
@@ -341,7 +350,6 @@ end;
 
 procedure TTestParser.TestObjectError;
 begin
-
   DoTestError('{ "name" : value }',[joUTF8]);
 end;
 
@@ -490,15 +498,19 @@ procedure TTestParser.TestNoHandlerError;
 
 Var
   H : TJSONParserHandler;
+  HS : TJSONStringParserHandler;
 
 begin
   H:=GetJSONParserHandler;
+  HS:=GetJSONStringParserHandler;
   try
     AssertSame('SetJSONParserHandler returns previous handler',H,SetJSONParserHandler(Nil));
+    AssertSame('SetJSONStringParserHandler returns previous handler',HS,SetJSONStringParserHandler(Nil));
     AssertException('No handler raises exception',EJSON,@CallNoHandler);
     AssertException('No handler raises exception',EJSON,@CallNoHandlerStream);
   finally
     SetJSONParserHandler(H);
+    SetJSONStringParserHandler(HS);
   end;
 end;
 
@@ -533,6 +545,224 @@ begin
   finally
     S.Free;
   end;
+end;
+
+procedure TTestParser.TestEmptyLine;
+// Bug report 36037
+Const MyJSON =
+'  {'+sLineBreak+
+'  "pylib__linux" : "libpython3.7m.so.1.0",'+sLineBreak+
+'  "ui_toolbar_theme": "default_24x24",'+sLineBreak+
+'  "ui_toolbar_show" : true,'+sLineBreak+
+'  "font_name__linux" : "DejaVu Sans Mono",'+sLineBreak+
+'  "font_size__linux" : 10,'+sLineBreak+
+'    "ui_listbox_fuzzy": false,'+sLineBreak+
+'    "ui_max_size_lexer": 5,'+sLineBreak+
+'    "find_separate_form": false,'+sLineBreak+sLineBreak+
+'}';
+  var
+    J : TJSONData;
+begin
+  With TJSONParser.Create(MyJSON,[joUTF8,joIgnoreTrailingComma]) do
+  Try
+    J:=Parse;
+    J.Free;
+  Finally
+    Free;
+  end;
+end;
+
+procedure TTestParser.TestStartEmptyLine;
+
+// Bug ID 37352: case 1
+
+const
+  ENDLINE = #$0d#$0a;
+
+Const
+  MyJSON = ENDLINE+
+    '{'+ENDLINE+
+      '"version":100,'+ENDLINE+
+//      '//comment'+ENDLINE+
+      '"value":200'+ENDLINE+
+    '}'+ENDLINE;
+
+var
+  J : TJSONData;
+
+begin
+  With TJSONParser.Create(MyJSON,[joComments]) do
+    Try
+      J:=Parse;
+      J.Free;
+    Finally
+      Free;
+    end;
+end;
+
+procedure TTestParser.TestObjectEmptyLine;
+
+// Bug ID 37352: case 2
+
+const
+  ENDLINE = #$0d#$0a;
+
+
+Const
+  MyJSON = '{'+ENDLINE+
+        ''+ENDLINE+
+        '"version":100, //comment'+ENDLINE+
+        '"value":200'+ENDLINE+
+      '}'+ENDLINE;
+var
+  J : TJSONData;
+
+begin
+  With TJSONParser.Create(MyJSON,[joComments]) do
+    Try
+      J:=Parse;
+      J.Free;
+    Finally
+      Free;
+    end;
+end;
+
+procedure TTestParser.TestCommentLine;
+
+// Bug ID 37352: case 3
+
+const
+  ENDLINE = #$0d#$0a;
+
+
+Const
+  MyJSON =
+        ENDLINE+
+            '{'+ENDLINE+
+              '"version":100, //comment'+ENDLINE+
+              '"value":200'+ENDLINE+
+            '}'+ENDLINE;
+
+var
+  J : TJSONData;
+
+begin
+  With TJSONParser.Create(MyJSON,[joComments]) do
+    Try
+      J:=Parse;
+      J.Free;
+    Finally
+      Free;
+    end;
+end;
+
+procedure TTestParser.TestFirstLineComment;
+
+// New case
+const
+  ENDLINE = #$0d#$0a;
+
+
+Const
+  MyJSON =
+        '//comment1'+ENDLINE+
+              '{'+ENDLINE+
+              '"version":100, //comment2'+ENDLINE+
+              '"value":200'+ENDLINE+
+            '}'+ENDLINE;
+
+var
+  J : TJSONData;
+
+begin
+  With TJSONParser.Create(MyJSON,[joComments]) do
+    Try
+      J:=Parse;
+      J.Free;
+    Finally
+      Free;
+    end;
+
+end;
+
+procedure TTestParser.TestMultiLineComment;
+
+// Issue  37367
+
+const
+  ENDLINE = #$0d#$0a;
+
+
+Const
+  MyJSON =
+        '/* long comment'+ENDLINE+
+        ''+ENDLINE+
+        '  error'+ENDLINE+
+        '*/'+ENDLINE+
+        '{'+ENDLINE+
+        '  "version":100, //coment2 without comment2 works well '+ENDLINE+
+        '  "valor":200   /*comment 3'+ENDLINE+
+        '    line 2'+ENDLINE+
+        '   */'+ENDLINE+
+        '}'+ENDLINE;
+
+var
+  J : TJSONData;
+
+begin
+  With TJSONParser.Create(MyJSON,[joComments]) do
+    Try
+      J:=Parse;
+      J.Free;
+    Finally
+      Free;
+    end;
+end;
+
+procedure TTestParser.TestIgnoreDuplicates;
+
+Const
+  MyJSON =
+        '{ "a":100, "b": 20, "a":300} ';
+
+var
+  J : TJSONData;
+
+begin
+  With TJSONParser.Create(MyJSON,[joIgnoreDuplicates]) do
+    Try
+      J:=Parse;
+      AssertEquals('Correct class',TJSONObject,J.ClassType);
+      AssertEquals('Correct value',100,TJSONObject(J).Get('a',0));
+      J.Free;
+    Finally
+      Free;
+    end;
+end;
+
+procedure TTestParser.DoDuplicate;
+
+Const
+  MyJSON =
+        '{ "a":100, "b": 20, "a":300} ';
+
+var
+  J : TJSONData;
+
+begin
+  With TJSONParser.Create(MyJSON,[]) do
+    Try
+      J:=Parse;
+      J.Free;
+    Finally
+      Free;
+    end;
+end;
+
+procedure TTestParser.TestNoIgnoreDuplicates;
+
+begin
+  AssertException('No duplicates allowed',EJSON,@DoDuplicate);
 end;
 
 procedure TTestParser.DoTestError(S : String; Options : TJSONOptions = DefaultOpts);

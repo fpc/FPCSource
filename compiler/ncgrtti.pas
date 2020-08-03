@@ -90,7 +90,7 @@ implementation
        globals,verbose,systems,
        node,ncal,ncon,
        fmodule, procinfo,
-       symtable,
+       symtable,symutil,
        aasmtai,aasmdata,
        defutil,
        paramgr
@@ -599,8 +599,7 @@ implementation
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
-            if (tsym(sym).typ=fieldvarsym) and
-               not(sp_static in tsym(sym).symoptions) and
+            if is_normal_fieldvarsym(sym) and
                (
                 (rt=fullrtti) or
                 tfieldvarsym(sym).vardef.needs_inittable
@@ -638,8 +637,7 @@ implementation
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
-            if (tsym(sym).typ=fieldvarsym) and
-               not(sp_static in tsym(sym).symoptions) and
+            if is_normal_fieldvarsym(sym) and
                (
                 (rt=fullrtti) or
                 tfieldvarsym(sym).vardef.needs_inittable
@@ -783,6 +781,7 @@ implementation
                tcb.emit_tai(Tai_const.Create_int_codeptr(unsetvalue),codeptruinttype);
                typvalue:=3;
              end
+           { also for accessing class fields }
            else if propaccesslist.firstsym^.sym.typ=fieldvarsym then
              begin
                 address:=0;
@@ -1386,7 +1385,7 @@ implementation
                     internalerror(201603021)
                   else
                     tcb.emit_tai(Tai_const.Createname(procdef.mangledname,AT_FUNCTION,0),
-                      cprocvardef.getreusableprocaddr(procdef));
+                      cprocvardef.getreusableprocaddr(procdef,pc_address_only));
                 end;
             end;
 
@@ -1861,7 +1860,7 @@ implementation
       end;
 
     var
-      count,i,len: word;
+      count,i: word;
       attr : trtti_attribute;
       tbltcb : ttai_typedconstbuilder;
       tbllab : tasmlabel;

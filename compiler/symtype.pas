@@ -55,6 +55,9 @@ interface
         protected
          { whether this def is already registered in the unit's def list }
          function registered : boolean;
+         { initialize the defid field; only call from a constructor as it threats
+           0 as an invalid value! }
+         procedure init_defid;
         public
          typesym    : tsym;  { which type the definition was generated this def }
          { stabs debugging }
@@ -94,7 +97,7 @@ interface
          procedure ChangeOwner(st:TSymtable);
          function getreusablesymtab: tsymtable;
          procedure register_created_object_type;virtual;
-         function  get_top_level_symtable: tsymtable;
+         function  get_top_level_symtable(skipprocdefs: boolean): tsymtable;
          { only valid for registered defs and defs for which a unique id string
            has been requested; otherwise, first call register_def }
          function  deflist_index: longint;
@@ -273,6 +276,13 @@ implementation
       end;
 
 
+    procedure tdef.init_defid;
+      begin
+        if defid=0 then
+          defid:=defid_not_registered;
+      end;
+
+
     constructor tdef.create(dt:tdeftyp);
       begin
          inherited create;
@@ -282,7 +292,7 @@ implementation
          defoptions:=[];
          dbg_state:=dbg_state_unused;
          stab_number:=0;
-         defid:=defid_not_registered;
+         init_defid;
       end;
 
 
@@ -432,11 +442,12 @@ implementation
       end;
 
 
-    function tdef.get_top_level_symtable: tsymtable;
+    function tdef.get_top_level_symtable(skipprocdefs: boolean): tsymtable;
       begin
         result:=owner;
         while assigned(result) and
-              assigned(result.defowner) do
+              assigned(result.defowner) and
+              (skipprocdefs or (result.symtabletype in [ObjectSymtable,recordsymtable])) do
           result:=tdef(result.defowner).owner;
       end;
 

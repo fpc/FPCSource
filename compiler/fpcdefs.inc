@@ -7,17 +7,14 @@
 
 { This reduces the memory requirements a lot }
 {$PACKENUM 1}
-{$ifndef FPC_BIG_ENDIAN}
-{ $define USE_PACKSET1}
-{$endif}
-
-{$ifdef USE_PACKSET1}
 {$PACKSET 1}
-{$endif USE_PACKSET1}
 
 { We don't use exceptions, so turn off the implicit
   exceptions in the constructors }
 {$IMPLICITEXCEPTIONS OFF}
+
+{ We don't want C operators to be used inside the compiler }
+{$COPERATORS OFF}
 
 { This define enables codepage-aware compiler messages handling. Turning it on
   forces code page conversion from the codepage, specified in the .msg file to
@@ -42,7 +39,7 @@
 { This fake CPU is used to allow incorporation of globtype unit
   into utils/ppudump without any CPU specific code PM }
 {$ifdef generic_cpu}
-  {$define cpu32bit}
+  {$define #cpu32bit}
   {$define cpu32bitaddr}
   {$define cpu32bitalu}
   {$define cpuflags}
@@ -154,6 +151,7 @@
   {$define cpumm}
   {$define cpurox}
   {$define cpurefshaveindexreg}
+  {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
 {$endif powerpc}
 
@@ -166,6 +164,7 @@
   {$define cpurox}
   {$define cpurefshaveindexreg}
   {$define cpuno32bitops}
+  {$define SUPPORT_SAFECALL}
 {$endif powerpc64}
 
 {$ifdef arm}
@@ -243,6 +242,10 @@
   {$endif mips}
 {$endif mipsel}
 
+{$ifdef mips64el}
+  {$define mips}
+  {$define mips64}
+{$endif mipsel}
 
 {$ifdef mips}
   {$ifndef mips64}
@@ -250,7 +253,9 @@
     {$define cpu32bitalu}
     {$define cpu32bitaddr}
   {$else}
-    {$error mips64 not yet supported}
+    {$define cpu64bit}
+    {$define cpu64bitalu}
+    {$define cpu64bitaddr}
   {$endif}
   {$define cpuflags} { Flags are emulated }
   {$define cputargethasfixedstack}
@@ -296,6 +301,23 @@
   {$define cpurequiresproperalignment}
 {$endif riscv32}
 
+{$ifdef z80}
+  {$define cpu8bit}
+  {$define cpu16bitaddr}
+  {$define cpu8bitalu}
+  {$define cpufpemu}
+  {$define cpuflags}
+  {$define cpunofpu}
+  {$define cpunodefaultint}
+  {$define cpuneedsdivhelper}
+  {$define cpuneedsmulhelper}
+  {$define cpucapabilities}
+{$endif z80}
+
+{$IFDEF MACOS}
+{$DEFINE USE_FAKE_SYSUTILS}
+{$ENDIF MACOS}
+
 {$ifdef riscv64}
   {$define riscv}
   {$define cpu64bit}
@@ -308,6 +330,19 @@
   {$define cpucapabilities}
   {$define cpurequiresproperalignment}
 {$endif riscv64}
+
+{$ifdef xtensa}
+  {$define cpu32bit}
+  {$define cpu32bitaddr}
+  {$define cpu32bitalu}
+  {$define cpufpemu}
+  {$define cpuflags} { xtensa has a boolean extension }
+  {$define cputargethasfixedstack}
+  {$define cpuneedsmulhelper}
+  {$define cpuneedsdivhelper}
+  {$define cpucapabilities}
+  {$define cpurequiresproperalignment}
+{$endif xtensa}
 
 { Stabs is not officially supported on 64 bit targets by gdb, except on Mac OS X
   (but there we don't support it)
@@ -322,6 +357,11 @@
 {$ifndef FPC_SOFT_FPUX80}
 {$error Cross-compiling from systems without support for an 80 bit extended floating point type to i386 is not yet supported at this time }
 {$endif}
+{$endif}
+
+{ when compiling with an LLVM-based compiler, default to LLVM unless -dNOLLVM is specified }
+{$if defined(CPULLVM) and not defined(NOLLVM)}
+{$define LLVM}
 {$endif}
 
 { llvm backends partially use other backends for parameter info calculation,

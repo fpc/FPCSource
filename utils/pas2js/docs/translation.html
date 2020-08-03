@@ -77,6 +77,7 @@
     <a href="#externalclassancestor">External class as ancestor</a><br>
     <a href="#jsvalue">The JSValue type</a><br>
     <a href="#bracketaccessor">Accessing JS object properties with the bracket accessor</a><br>
+    <a href="#async">Async/AWait</a><br>
     <a href="#rtti">RTTI - Run Time Type Information</a><br>
     <a href="#compilerdirectives">Compiler directives</a><br>
     <a href="#othersupportedelements">Other supported Pascal elements</a><br>
@@ -133,6 +134,7 @@ Put + after a boolean switch option to enable it, - to disable it
     -iV   : Write short compiler version
     -iW   : Write full compiler version
     -ic   : Write list of supported JS processors usable by -P&lt;x&gt;
+    -im   : Write list of supported modeswitches usable by -M&lt;x&gt;
     -io   : Write list of supported optimizations usable by -Oo&lt;x&gt;
     -it   : Write list of supported targets usable by -T&lt;x&gt;
     -iJ   : Write list of supported JavaScript identifiers -JoRTL-&lt;x&gt;
@@ -179,8 +181,11 @@ Put + after a boolean switch option to enable it, - to disable it
                   postprocessors in succession.
    -Ju&lt;x&gt; : Add &lt;x&gt; to foreign unit paths. Foreign units are not compiled.
   -l      : Write logo
-  -MDelphi: Delphi 7 compatibility mode
-  -MObjFPC: FPC's Object Pascal compatibility mode (default)
+  -M&lt;x&gt;  : Set language mode or enable/disable a modeswitch
+    -MDelphi: Delphi 7 compatibility mode
+    -MObjFPC: FPC's Object Pascal compatibility mode (default)
+    Each mode (as listed above) enables its default set of modeswitches.
+    Other modeswitches are disabled and need to be enabled one by another.
   -NS&lt;x&gt;  : obsolete: add &lt;x&gt; to namespaces. Same as -FN&lt;x&gt;
   -n      : Do not read the default config files
   -o&lt;x&gt;   : Change main JavaScript file to &lt;x&gt;, "." means stdout
@@ -196,11 +201,12 @@ Put + after a boolean switch option to enable it, - to disable it
     -Pecmascript5  : default
     -Pecmascript6
   -S&lt;x&gt;   : Syntax options. &lt;x&gt; is a combination of the following letters:
+    2     : Same as -Mobjfpc (default)
     a     : Turn on assertions
     c     : Support operators like C (*=,+=,/= and -=)
     d     : Same as -Mdelphi
     m     : Enables macro replacements
-    2     : Same as -Mobjfpc (default)
+    j     : Allows typed constants to be writeable (default)
   -SI&lt;x&gt;   : Set interface style to &lt;x&gt;
     -SIcom   : COM, reference counted interface (default)
     -SIcorba : CORBA interface
@@ -2173,8 +2179,15 @@ function(){
 rtl = {
   ...
   createCallback: function(scope, fn){
-    var cb = function(){
-      return scope[fn].apply(scope,arguments);
+    var cb;
+    if (typeof(fn)==='string'){
+      cb = function(){
+        return scope[fn].apply(scope,arguments);
+      };
+    } else {
+      cb = function(){
+        return fn.apply(scope,arguments);
+      };
     };
     cb.scope = scope;
     cb.fn = fn;
@@ -2190,9 +2203,18 @@ rtl = {
     <ul>
     <li>You can assign a nested procedure to procedure variable.
     You don't need and you must not add the FPC "<i>is nested</i>" modifier.</li>
-    <li>A procedural typed declared as 'reference to' accepts in pas2js procedures,
+    <li>In pas2js a procedural typed declared as <i>'reference to'</i> accepts procedures,
     local procedures and methods. Delphi only supports capturing procedures and methods.
     FPC 3.0.4 does not support reference-to.</li>
+    <li>In pas2js the calling convention <i>safecall</i> has a special meaning:<br>
+    Assigning a procedure/method, uses <i>rtl.createSafeCallback</i> instead of
+    <i>createCallback</i>, enclosing a call in a <i>try..catch</i> block. When
+    an exception is thrown by JS, it is caught and delegated to
+    <i>rtl.handleUncaughtException(err)</i>.<br>
+    For example:<br>
+    <i>aButtonElement.OnClick:=@DoClick;</i> uses <i>rtl.createSafeCallback</i><br>
+    <i>aButtonElement.OnClick:=SomeElement.OnClick;</i> does not.<br>
+    </li>
     </ul>
     </div>
 
@@ -2278,7 +2300,7 @@ End.
 
     <div class="section">
     <h2 id="dispatch">Dispatch messages</h2>
-    The procedure modifier <b>message</b> and the <b>Dispatch</b> works
+    The procedure modifier <b>message</b> and the <b>Dispatch</b> method works
     similar to FPC/Delphi, as it expects a record of a specific format and
     <b><i>TObject.Dispatch</i></b> calls the corresponding method with that
     message number or string.<br>
@@ -2506,7 +2528,10 @@ function(){
     <div class="section">
     <h2 id="varargs">The procedure modifier varargs</h2>
     Appending the <b>varargs</b> modifier to a procedure allows to pass arbitrary
-    more parameters to a function. To access these non typed arguments use
+    more parameters to a function. By default these parameters are untyped, i.e.
+    any type fits. Alternatively you can use <b>varargs of aType</b> to allow
+    only specific types.<br>
+    To access these arguments use
     either <i>JSArguments</i> from unit JS or an <i>asm..end</i> block.
     <table class="sample">
       <tbody>
@@ -2691,10 +2716,15 @@ function(){
     An external class is not a TObject and has none of its methods.<br>
     All members are external. If you omit the <i>external</i> modifier the
     external name is the member name. Keep in mind that JS is case sensitive.<br>
-    Destructors are not allowed.<br>
-    Constructors are only allowed with the name <i>New</i> and a call
-    translates to <i>new ExtClass(params)</i>.
     Properties work the same as with Pascal classes, i.e. are replaced by Getter/Setter.<br>
+    Destructors are not allowed.<br>
+    Constructors are supported in four ways:
+    <ul>
+      <li><i>constructor New</i> is translated to <i>new ExtClass(params)</i>.</li>
+      <li><i>constructor New; external name ''GlobalFunc''</i> is translated to <i>new GlobalFunc(params)</i>.</li>
+      <li><i>constructor SomeName; external name </i>'{}'</i> is translated to <i>{}</i>.</li>
+      <li>Otherwise it is translated to <i>new ExtClass.FuncName(params)</i>.</li>
+    </ul>
 
     <table class="sample">
       <tbody>
@@ -2762,16 +2792,18 @@ End.
       <li>You can typecast function addresses and function references to JS
       function, e.g. <i>TJSFunction(@SomeProc)</i>, <i>TJSFunction(OnClick)</i>.
       Keep in mind that typecasting a method address creates a function wrapper
-      to bind the Self argument.</li>
+      to bind the Self argument, except when typecasting to <i>TJSFunction</i>
+      (pas2js 1.5+).</li>
     </ul>
     </div>
 
     <div class="section">
     <h2 id="externalclassancestor">External class as ancestor</h2>
-    A Pascal class can descend from an external class.<br>
+    A Pascal class can descend from an external class - a JS object or function.<br>
     The methods <i>AfterConstruction</i> and <i>BeforeDestruction</i>
     are called if they exist.<br>
-    New instances are created by default with <i>Object.create(ancestorclass)</i>.<br>
+    New instances of a JS Object descendant are created by default with <i>Object.create(ancestorclass)</i>.<br>
+    New instances of a JS Function descendant are created by default with <i>new DescendantFunc()</i>.<br>
     You can override this, by providing a<br>
     <b>class function NewInstance(fnname: string; const paramsarray): TPasClass; virtual;</b>.
     This method is called to create a new instance and before calling the constructor.
@@ -2786,19 +2818,22 @@ End.
         </tr>
         <tr>
           <td>
-<pre>Program MyModule;
+<pre>
+// Example for descending a Pascal class from a JS Object
+Program MyModule;
 {$modeswitch externalclass}
 type
   TExtA = class external name 'ExtA'
   end;
   TMyB = class(TExtA)
   protected
+    // optional: override default allocation
     class function NewInstance(fnname: string; const paramarray): TMyB; virtual;
   end;
 class function TMyB.NewInstance(fnname: string; const paramarray): TMyB;
 Begin
   asm
-  Result = Object.create(ExtA);
+  Result = Object.create(ExtA); // that is what the rtl does
   end;
 End;
 
@@ -2821,6 +2856,62 @@ End.
     };
   });
   $mod.$main = function () {
+  };
+});
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>
+// Example for descending a Pascal class from a JS Function
+Program MyModule;
+{$modeswitch externalclass}
+uses JS;
+type
+  TExternalFunc = class external name 'ExternalFunc'(TJSFunction)
+    constructor New(a: word);
+  end;
+  TMyFunc = class(TExternalFunc)
+    constructor Create(b: word);
+  end;
+constructor TMyFunc.Create(b: word);
+Begin
+  inherited New(b+1); // optional: call inherited constructor function
+End;
+
+var
+  f: TMyFunc;
+Begin
+  f:=TMyFunc.Create(3);
+  writeln(jsInstanceOf(f,TExternalFunc)); // writes true, instanceof operator works as expected
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",["System","js"],function () {
+  var $mod = this;
+  rtl.createClassExt($mod, "TMyFunc", ExternalFunc, "", function () {
+    this.$init = function () {
+    };
+    this.$final = function () {
+    };
+    this.Create$2 = function (b) {
+      this.$ancestorfunc(b+1);
+    };
+  });
+  this.f = null;
+  $mod.$main = function () {
+    f = $mod.TMyFunc.$create("Create$2",[3]);
+    pas.System.Writeln(pas.JS.jsInstanceOf(f,ExternalFunc));
   };
 });
 </pre>
@@ -2958,7 +3049,92 @@ End.
     If <i>o</i> is <i>nil</i> it will give a JS error.<br>
     Local types (i.e. inside a procedure) do not have typeinfo.<br>
     Open array parameters are not yet supported.<br>
-    Note that FPC <i>typeinfo(aClassVar)<i> returns the compiletime type, so it works on <i>nil</i>.<br>
+    Note that FPC <i>typeinfo(aClassVar)</i> returns the compiletime type, so it works on <i>nil</i>.<br>
+    </div>
+
+    <div class="section">
+    <h2 id="async">Async/AWait</h2>
+    Pas2js supports the JS operators async and await to simplify the use of Promise.
+    The await operator corresponds to three intrinsic Pas2js functions:
+    <ul>
+    <li><i>function await(AsyncFunctionWithResultT): T;</i>  // implicit promise</li>
+    <li><i>function await(aType; p: TJSPromise): aType;</i>  // explicit promise requires the resolved type</li>
+    <li><i>function await(const Expr: T): T;</i>  // implicit promise</li>
+    </ul>
+    The await function can only be used inside a procedure with the async modifier.<br>
+    Example for the explicit promise:
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Program MyModule;
+
+uses JS, Web;
+
+function ResolveAfter2Seconds: TJSPromise;
+begin
+  Result:=TJSPromise.new(procedure(resolve, reject : TJSPromiseResolver)
+    begin
+    window.setTimeout(procedure
+      begin
+      resolve('resolved');
+      end,
+      2000); // wait 2 seconds
+    end);
+end;
+
+procedure AsyncCall; async;
+var s: string;
+begin
+  writeln('calling');
+  s := await(string,resolveAfter2Seconds()); // does not check if result is really a string
+  writeln(s); // expected output: 'resolved'
+end;
+
+begin
+  AsyncCall;
+end.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",["System","JS","Web"],function () {
+  "use strict";
+  var $mod = this;
+  this.ResolveAfter2Seconds = function () {
+    var Result = null;
+    Result = new Promise(function (resolve, reject) {
+      window.setTimeout(function () {
+        resolve("resolved");
+      },2000);
+    });
+    return Result;
+  };
+  this.AsyncCall = async function () {
+    var s = "";
+    pas.System.Writeln("calling");
+    s = await $mod.ResolveAfter2Seconds();
+    pas.System.Writeln(s);
+  };
+  $mod.$main = function () {
+    $mod.AsyncCall();
+  };
+});
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    Notes:
+    <ul>
+      <li>The await function does only compile time checks, no runtime checks.</li>
+      <li>Inside an async function/procedure you can pass a <i>TJSPromise</i> to the <i>exit()</i> function. For example:<br>
+        <i>exit(aPromise);</i><br>
+        <i>exit(inherited);</i></li>
+    </ul>
     </div>
 
 
@@ -3009,6 +3185,7 @@ End.
     <li>{$mode delphi} or {$mode objfpc}: Same as -Mdelphi or -Mobjfpc, but only for this unit. You can use units of both modes in a program. If present must be at the top of the unit, or after the module name.</li>
     <li>{$modeswitch externalclass}: allow declaring external classes</li>
     <li>{$modeswitch arrayoperators}: allow + operator to concatenate arrays, default in mode delphi</li>
+    <li>{$modeswitch OmitRTTI}: treat published sections as public</li>
     <li>{$macro on|off} enables macro replacements. Only macros with a value are replaced. Macros are never replaced inside directives.</li>
     <li>{$I filename} or {$include filename} - insert include file</li>
     <li>{$I %param%}:
@@ -3072,6 +3249,8 @@ End.
         <li>Check type casts, e.g. <i>TBird(AnObject)</i> becomes <i>AnObject as TBird</i></li>
       </ul>
     </li>
+    <li>{$DispatchField Msg}: enable checking <i>message number</i> methods for record field name "Msg"</li>
+    <li>{$DispatchStrField MsgStr}: enable checking <i>message string</i> methods for record field name "Msg"</li>
     </ul>
     Defines:
     <ul>

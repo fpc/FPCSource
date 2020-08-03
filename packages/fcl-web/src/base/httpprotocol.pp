@@ -87,6 +87,7 @@ Const
   SCookiePath     = ' Path=%s';
   SCookieSecure   = ' Secure';
   SCookieHttpOnly = ' HttpOnly';
+  SCookieSameSite = ' SameSite';
 
   HTTPMonths: array[1..12] of string[3] = (
     'Jan', 'Feb', 'Mar', 'Apr',
@@ -158,6 +159,7 @@ var
 
 begin
   L:=Length(Astr);
+  Result:='';
   SetLength(Result,L);
   If (L=0) then
     exit;
@@ -213,6 +215,7 @@ var
 
 begin
   L:=Length(AStr);
+  Result:='';
   SetLength(Result,L*3); // Worst case scenario
   if (L=0) then
     exit;

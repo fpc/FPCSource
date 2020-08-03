@@ -170,6 +170,7 @@ type
     _WHILE,
     _WRITE,
     _ADDREF,
+    _CBLOCK,
     _DISPID,
     _DIVIDE,
     _DOWNTO,
@@ -343,10 +344,10 @@ const
 
   { Warning these stay be ordered !! }
   operator_levels:array[Toperator_precedence] of set of NOTOKEN..last_operator=
-      ([_LT,_LTE,_GT,_GTE,_EQ,_NE,_OP_IN],
+      ([_LT,_LTE,_GT,_GTE,_EQ,_NE,_OP_IN,_OP_IS],
        [_PLUS,_MINUS,_OP_OR,_PIPE,_OP_XOR],
        [_CARET,_SYMDIF,_STARSTAR,_STAR,_SLASH,
-        _OP_AS,_OP_IS,_OP_AND,_AMPERSAND,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR],
+        _OP_AS,_OP_AND,_AMPERSAND,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR],
        [_STARSTAR] );
 
 type
@@ -511,6 +512,7 @@ const
       (str:'WHILE'         ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'WRITE'         ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'ADDREF'        ;special:false;keyword:[m_none];op:NOTOKEN),
+      (str:'CBLOCK'        ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'DISPID'        ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'DIVIDE'        ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'DOWNTO'        ;special:false;keyword:alllanguagemodes;op:NOTOKEN),

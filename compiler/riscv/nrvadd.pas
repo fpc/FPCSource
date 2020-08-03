@@ -69,7 +69,7 @@ implementation
 {$ifopt Q+}
   {$define AVOID_OVERFLOW}
   const
-     low_value = {$ifdef CPUALU64} low(int64) {$else} low(longint) {$endif};
+     low_value = {$ifdef CPU64BITALU} low(int64) {$else} low(longint) {$endif};
 {$endif}
 
     procedure trvaddnode.Cmp(signed: boolean);
@@ -287,6 +287,8 @@ implementation
           Result:=inherited pass_1;
 
         if expectloc=LOC_FLAGS then
+          expectloc:=LOC_REGISTER;
+        if (expectloc=LOC_JUMP) and (nodetype in [equaln, unequaln, ltn, lten, gtn, gten]) then
           expectloc:=LOC_REGISTER;
       end;
 

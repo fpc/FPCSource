@@ -82,6 +82,9 @@ begin
       Result:=Result or DEBUG_ONLY_THIS_PROCESS;
     if poDefaultErrorMode in Options Then
       Result:=Result or CREATE_DEFAULT_ERROR_MODE;
+    if poDetached in Options Then
+      Result:=Result or DETACHED_PROCESS;
+
     result:=result or PriorityConstants[FProcessPriority];
     end;
 end;

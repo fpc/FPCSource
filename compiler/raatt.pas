@@ -346,6 +346,23 @@ unit raatt;
                end;
            end;
 {$endif riscv}
+{$ifdef xtensa}
+           {
+             Xtensa can have multiple postfixes
+             MULA.DD.LL.LDDEC
+             or postfixes with numbers
+             RSR.CCOMPARE2
+           }
+           case c of
+             '.':
+               begin
+                 repeat
+                   actasmpattern:=actasmpattern+c;
+                   c:=current_scanner.asmgetchar;
+                 until not(c in ['a'..'z','A'..'Z', '0'..'9', '.']);
+               end;
+           end;
+{$endif xtensa}
            { Opcode ? }
            If is_asmopcode(upper(actasmpattern)) then
             Begin
@@ -1254,7 +1271,7 @@ unit raatt;
                Consume(AS_ID);
                Consume(AS_COMMA);
                symofs:=BuildConstExpression(false,false);
-               curList.concat(Tai_datablock.Create(commname,symofs,carraydef.getreusable(u8inttype,symofs)));
+               curList.concat(Tai_datablock.Create(commname,symofs,carraydef.getreusable(u8inttype,symofs),AT_DATA));
                if actasmtoken<>AS_SEPARATOR then
                 Consume(AS_SEPARATOR);
              end;
@@ -1266,7 +1283,7 @@ unit raatt;
                Consume(AS_ID);
                Consume(AS_COMMA);
                symofs:=BuildConstExpression(false,false);
-               curList.concat(Tai_datablock.Create_global(commname,symofs,carraydef.getreusable(u8inttype,symofs)));
+               curList.concat(Tai_datablock.Create_global(commname,symofs,carraydef.getreusable(u8inttype,symofs),AT_DATA));
                if actasmtoken<>AS_SEPARATOR then
                 Consume(AS_SEPARATOR);
              end;
@@ -1316,7 +1333,7 @@ unit raatt;
              begin
                Consume(AS_SECTION);
                sectionname:=actasmpattern;
-               secflags:=SF_None;
+               secflags:=[];
                secprogbits:=SPB_None;
                Consume(AS_STRING);
                if actasmtoken=AS_COMMA then
@@ -1326,13 +1343,13 @@ unit raatt;
                      begin
                        case actasmpattern of
                          'a':
-                           secflags:=SF_A;
+                           Include(secflags,SF_A);
                          'w':
-                           secflags:=SF_W;
+                           Include(secflags,SF_W);
                          'x':
-                           secflags:=SF_X;
+                           Include(secflags,SF_X);
                          '':
-                           secflags:=SF_None;
+                           ;
                          else
                            Message(asmr_e_syntax_error);
                        end;
@@ -1350,6 +1367,8 @@ unit raatt;
                                        secprogbits:=SPB_PROGBITS;
                                      'NOBITS':
                                        secprogbits:=SPB_NOBITS;
+                                     'NOTE':
+                                       secprogbits:=SPB_NOTE;
                                      else
                                        Message(asmr_e_syntax_error);
                                    end;

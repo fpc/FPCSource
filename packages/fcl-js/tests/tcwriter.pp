@@ -157,6 +157,7 @@ type
     Procedure TestStatementListOneStatementCompact;
     Procedure TestStatementListTwoStatements;
     Procedure TestStatementListTwoStatementsCompact;
+    Procedure TestStatementListTree4;
     Procedure TestStatementListFor;
     Procedure TestEmptyFunctionDef;
     Procedure TestEmptyFunctionDefCompact;
@@ -166,6 +167,7 @@ type
     Procedure TestFunctionDefBody1Compact;
     Procedure TestFunctionDefBody2;
     Procedure TestFunctionDefBody2Compact;
+    Procedure TestFunctionDefAsync;
     Procedure TestTryCatch;
     Procedure TestTryCatchCompact;
     Procedure TestTryFinally;
@@ -192,6 +194,7 @@ type
     Procedure TestUnaryDelete;
     Procedure TestUnaryVoid;
     Procedure TestUnaryTypeOf;
+    Procedure TestUnaryAwait;
     Procedure TestPrefixPlusPLus;
     Procedure TestPrefixMinusMinus;
     Procedure TestUnaryMinus;
@@ -344,6 +347,11 @@ end;
 procedure TTestExpressionWriter.TestUnaryTypeOf;
 begin
   TestUnary('typeof expresssion',TJSUnaryTypeOfExpression,'typeof a');
+end;
+
+procedure TTestExpressionWriter.TestUnaryAwait;
+begin
+  TestUnary('await expresssion',TJSAwaitExpression,'await a');
 end;
 
 procedure TTestExpressionWriter.TestPrefixPlusPLus;
@@ -1696,6 +1704,29 @@ begin
   AssertWrite('Statement list','{a=b; a=b}',S);
 end;
 
+procedure TTestStatementWriter.TestStatementListTree4;
+var
+  S1, S11, S12: TJSStatementList;
+begin
+  Writer.Options:=[woUseUTF8];
+  S1:=TJSStatementList.Create(0,0);
+  S11:=TJSStatementList.Create(0,0);
+  S1.A:=S11;
+  S12:=TJSStatementList.Create(0,0);
+  S1.B:=S12;
+  S11.A:=CreateAssignment(nil);
+  S11.B:=CreateAssignment(nil);
+  S12.A:=CreateAssignment(nil);
+  S12.B:=CreateAssignment(nil);
+  AssertWrite('Statement list',
+     '{'+sLineBreak
+    +'a = b;'+sLineBreak
+    +'a = b;'+sLineBreak
+    +'a = b;'+sLineBreak
+    +'a = b;'+sLineBreak
+    +'}',S1);
+end;
+
 procedure TTestStatementWriter.TestStatementListFor;
 Var
   S : TJSStatementList;
@@ -1876,6 +1907,21 @@ begin
   L.B:=R;
   FD.AFunction.Body.A:=L;
   AssertWrite('Function, 2 statements, compact','function a(b) {b=b*10; return b}',FD);
+end;
+
+procedure TTestStatementWriter.TestFunctionDefAsync;
+
+Var
+  FD : TJSFunctionDeclarationStatement;
+
+begin
+  FD:=TJSFunctionDeclarationStatement.Create(0,0);
+  FD.AFunction:=TJSFuncDef.Create;
+  FD.AFunction.IsAsync:=true;
+  FD.AFunction.Name:='a';
+  AssertWrite('Async function',
+     'async function a() {'+sLineBreak
+    +'}',FD);
 end;
 
 procedure TTestStatementWriter.TestTryCatch;

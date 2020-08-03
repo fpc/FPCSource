@@ -140,6 +140,17 @@ begin
     end;
 end;
 
+procedure add_ide_comandlineoptions();
+begin
+  AddCustomFpmakeCommandlineOption('CompilerTarget','Target CPU for the IDE''s compiler');
+  AddCustomFpmakeCommandlineOption('NoGDB','If value=1 or ''Y'', no GDB support');
+  AddCustomFpmakeCommandlineOption('NoGDBMI','If value=1 or ''Y'', explicitly disable GDB/MI option');
+  AddCustomFpmakeCommandlineOption('GDBMI','If value=1 or ''Y'', builds IDE with GDB/MI support (no need for LibGDB)');
+  AddCustomFpmakeCommandlineOption('NoIDE','If value=1 or ''Y'', the IDE will be skipped');
+  AddCustomFpmakeCommandlineOption('IDE','If value=1 or ''Y'', the IDE will be build for each target');
+  AddCustomFpmakeCommandlineOption('LLVM','If value=1 or ''Y'', the Compiler codegenerator will use LLVM');
+end;
+
 procedure add_ide(const ADirectory: string);
 
 Var
@@ -148,14 +159,15 @@ Var
   CompilerTarget : TCpu;
   CompilerDir,
   s: string;
+  llvm: boolean;
 
 begin
-  AddCustomFpmakeCommandlineOption('CompilerTarget','Target CPU for the IDE''s compiler');
-  AddCustomFpmakeCommandlineOption('NoGDB','If value=1 or ''Y'', no GDB support');
-  AddCustomFpmakeCommandlineOption('NOGDBMI','If value=1 or ''Y'', explicitly disable GDB/MI option');
-  AddCustomFpmakeCommandlineOption('GDBMI','If value=1 or ''Y'', builds IDE with GDB/MI support (no need for LibGDB)');
   With Installer do
     begin
+    s := GetCustomFpmakeCommandlineOptionValue('NoIDE');
+    if (s='1') or (s='Y') then
+      Exit;
+
     s := GetCustomFpmakeCommandlineOptionValue('NoGDB');
     if (s='1') or (s='Y') then
      NoGDBOption := true;
@@ -175,6 +187,11 @@ begin
       CompilerTarget:=StringToCPU(s)
     else
       CompilerTarget:=Defaults.CPU;
+    s:=GetCustomFpmakeCommandlineOptionValue('LLVM');
+    if (s='1') or (s='Y') then
+      llvm:=true
+    else
+      llvm:=false;
     { Only try to build natively }
     { or for cross-compile if the resulting executable
       does not depend on C libs }
@@ -193,6 +210,12 @@ begin
 {$ifdef ALLPACKAGES}
         P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
+
+        s :=GetCustomFpmakeCommandlineOptionValue('IDE');
+        if (s='1') or (s='Y') then
+          P.OSes := AllOSes
+        else
+          P.OSes := AllOSes-[darwin];
 
         P.Dependencies.Add('rtl-extra');
         P.Dependencies.Add('fv');
@@ -245,6 +268,12 @@ begin
         if CompilerTarget = mipsel then
           P.Options.Add('-Fu'+CompilerDir+'/mips');
 
+        if llvm then
+          begin
+            P.Options.Add('-Fu'+CompilerDir+'/llvm');
+            P.Options.Add('-Fi'+CompilerDir+'/llvm');
+          end;
+
         { powerpc64-aix compiled IDE needs -CTsmalltoc option }
         if (Defaults.OS=aix) and (Defaults.CPU=powerpc64) then
         P.Options.Add('-CTsmalltoc');
@@ -289,8 +318,8 @@ begin
         with P.Sources do
         begin
         AddDoc('readme.ide');
-        AddSrc('readme.txt');
-        AddSrc('todo.txt');
+        AddSrc('README.txt');
+        AddSrc('TODO.txt');
         AddSrc('fp.ans');
         AddSrcFiles('*.tdf',P.Directory);
         AddSrcFiles('*.pas',P.Directory,true);
@@ -319,6 +348,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
+  add_ide_comandlineoptions();
   add_ide('');
   Installer.Run;
 end.

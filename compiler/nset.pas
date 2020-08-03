@@ -424,8 +424,9 @@ implementation
          { both types must be compatible }
          if compare_defs(left.resultdef,right.resultdef,left.nodetype)=te_incompatible then
            IncompatibleTypes(left.resultdef,right.resultdef);
-         { Check if only when its a constant set }
-         if (left.nodetype=ordconstn) and (right.nodetype=ordconstn) then
+         { check if only when its a constant set and
+           ignore range nodes which are generic parameter derived }
+         if not (nf_generic_para in flags) and (left.nodetype=ordconstn) and (right.nodetype=ordconstn) then
           begin
             { upper limit must be greater or equal than lower limit }
             if (tordconstnode(left).value>tordconstnode(right).value) and
@@ -919,8 +920,32 @@ implementation
            end;
            result:=cifnode.create(left,node_thenblock,node_elseblock);
            left:=nil;
+           exit;
          end;
-      end;
+       { convert single case branch into if-statement }
+       if (flabels^.greater=nil) and (flabels^.less=nil) then
+         if flabels^.label_type=ltOrdinal then
+           begin
+             if flabels^._low=flabels^._high then
+               begin
+                 result:=cifnode.create_internal(
+                   caddnode.create_internal(equaln,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false)),
+                   pcaseblock(blocks[flabels^.blockid])^.statement,elseblock);
+               end
+             else
+               begin
+                 result:=cifnode.create_internal(
+                   caddnode.create_internal(andn,
+                     caddnode.create_internal(gten,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false)),
+                     caddnode.create_internal(lten,left.getcopy,cordconstnode.create(flabels^._high,left.resultdef,false))
+                   ),
+                   pcaseblock(blocks[flabels^.blockid])^.statement,elseblock);
+               end;
+             elseblock:=nil;
+             pcaseblock(blocks[flabels^.blockid])^.statement:=nil;
+             exit;
+           end;
+        end;
 
 
     function tcasenode.simplify(forinline:boolean):tnode;
@@ -1056,7 +1081,7 @@ implementation
           end;
         if assigned(elseblock) then
           begin
-            WriteLn(T, PrintNodeIndention, '<block id="else">');;
+            WriteLn(T, PrintNodeIndention, '<block id="else">');
             PrintNodeIndent;
             XMLPrintNode(T, ElseBlock);
             PrintNodeUnindent;

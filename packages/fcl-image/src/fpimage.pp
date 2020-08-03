@@ -664,22 +664,22 @@ type
 
 const
   HtmlColorNameToFPColorMap: array[THtmlColorName] of TFPColor = (
-    (red: $ff; green: $ff; blue: $ff; alpha: alphaOpaque), //hcnWhite
-    (red: $c0; green: $c0; blue: $c0; alpha: alphaOpaque), //hcnSilver
-    (red: $80; green: $80; blue: $80; alpha: alphaOpaque), //hcnGray
-    (red: $00; green: $00; blue: $00; alpha: alphaOpaque), //hcnBlack
-    (red: $ff; green: $00; blue: $00; alpha: alphaOpaque), //hcnRed
-    (red: $80; green: $00; blue: $00; alpha: alphaOpaque), //hcnMaroon
-    (red: $ff; green: $ff; blue: $00; alpha: alphaOpaque), //hcnYellow
-    (red: $80; green: $80; blue: $00; alpha: alphaOpaque), //hcnOlive
-    (red: $00; green: $ff; blue: $00; alpha: alphaOpaque), //hcnLime
-    (red: $00; green: $80; blue: $00; alpha: alphaOpaque), //hcnGreen
-    (red: $00; green: $ff; blue: $ff; alpha: alphaOpaque), //hcnAqua
-    (red: $00; green: $80; blue: $80; alpha: alphaOpaque), //hcnTeal
-    (red: $00; green: $00; blue: $ff; alpha: alphaOpaque), //hcnBlue
-    (red: $00; green: $00; blue: $80; alpha: alphaOpaque), //hcnNavy
-    (red: $ff; green: $00; blue: $ff; alpha: alphaOpaque), //hcnFuchsia
-    (red: $80; green: $00; blue: $80; alpha: alphaOpaque)  //hcnPurple
+    (red: $ff or $ff shl 8; green: $ff or $ff shl 8; blue: $ff or $ff shl 8; alpha: alphaOpaque), //hcnWhite
+    (red: $c0 or $c0 shl 8; green: $c0 or $c0 shl 8; blue: $c0 or $c0 shl 8; alpha: alphaOpaque), //hcnSilver
+    (red: $80 or $80 shl 8; green: $80 or $80 shl 8; blue: $80 or $80 shl 8; alpha: alphaOpaque), //hcnGray
+    (red: $00;              green: $00;              blue: $00;              alpha: alphaOpaque), //hcnBlack
+    (red: $ff or $ff shl 8; green: $00;              blue: $00;              alpha: alphaOpaque), //hcnRed
+    (red: $80 or $80 shl 8; green: $00;              blue: $00;              alpha: alphaOpaque), //hcnMaroon
+    (red: $ff or $ff shl 8; green: $ff or $ff shl 8; blue: $00;              alpha: alphaOpaque), //hcnYellow
+    (red: $80 or $80 shl 8; green: $80 or $80 shl 8; blue: $00;              alpha: alphaOpaque), //hcnOlive
+    (red: $00;              green: $ff or $ff shl 8; blue: $00;              alpha: alphaOpaque), //hcnLime
+    (red: $00;              green: $80 or $80 shl 8; blue: $00;              alpha: alphaOpaque), //hcnGreen
+    (red: $00;              green: $ff or $ff shl 8; blue: $ff or $ff shl 8; alpha: alphaOpaque), //hcnAqua
+    (red: $00;              green: $80 or $80 shl 8; blue: $80 or $80 shl 8; alpha: alphaOpaque), //hcnTeal
+    (red: $00;              green: $00;              blue: $ff or $ff shl 8; alpha: alphaOpaque), //hcnBlue
+    (red: $00;              green: $00;              blue: $80 or $80 shl 8; alpha: alphaOpaque), //hcnNavy
+    (red: $ff or $ff shl 8; green: $00;              blue: $ff or $ff shl 8; alpha: alphaOpaque), //hcnFuchsia
+    (red: $80 or $80 shl 8; green: $00;              blue: $80 or $80 shl 8; alpha: alphaOpaque)  //hcnPurple
   );
 
 function TryStrToHtmlColorName(const S: String; out AName: THtmlColorName): Boolean;

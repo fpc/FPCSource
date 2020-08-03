@@ -2276,11 +2276,13 @@ const
 procedure unimplementedunicodestring;
   begin
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+{$ifndef HAS_WIDESTRINGMANAGER}
     If IsConsole then
       begin
       Writeln(StdErr,SNoUnicodestrings);
       Writeln(StdErr,SRecompileWithUnicodestrings);
       end;
+{$endif HAS_WIDESTRINGMANAGER}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
     HandleErrorAddrFrameInd(234{RuntimeErrorExitCodes[reCodesetConversion]},get_pc_addr,get_frame);
   end;
@@ -2353,13 +2355,13 @@ procedure initunicodestringmanager;
     widestringmanager.Ansi2UnicodeMoveProc:=@DefaultAnsi2UnicodeMove;
     widestringmanager.UpperUnicodeStringProc:=@StubUnicodeCase;
     widestringmanager.LowerUnicodeStringProc:=@StubUnicodeCase;
+    widestringmanager.GetStandardCodePageProc:=@DefaultGetStandardCodePage;
 {$endif HAS_WIDESTRINGMANAGER}
     widestringmanager.CompareWideStringProc:=@StubCompareWideString;
 //    widestringmanager.CompareTextWideStringProc:=@StubCompareWideString;
     widestringmanager.CompareUnicodeStringProc:=@StubCompareUnicodeString;
     widestringmanager.CharLengthPCharProc:=@DefaultCharLengthPChar;
     widestringmanager.CodePointLengthProc:=@DefaultCodePointLength;
-    widestringmanager.GetStandardCodePageProc:=@DefaultGetStandardCodePage;
   end;
 {$endif FPC_HAS_BUILTIN_WIDESTR_MANAGER}
 

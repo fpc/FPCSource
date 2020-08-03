@@ -35,6 +35,7 @@ interface
         function first_sqrt_real: tnode; override;
         function first_round_real: tnode; override;
         function first_trunc_real: tnode; override;
+        function first_fma : tnode; override;
         procedure second_abs_real; override;
         procedure second_sqr_real; override;
         procedure second_sqrt_real; override;
@@ -42,6 +43,7 @@ interface
         procedure second_round_real; override;
         procedure second_trunc_real; override;
         procedure second_get_frame; override;
+        procedure second_fma; override;
       private
         procedure load_fpu_location;
       end;
@@ -53,6 +55,7 @@ implementation
       globtype,verbose,globals,
       cpuinfo, defutil,symdef,aasmdata,aasmcpu,
       cgbase,cgutils,pass_1,pass_2,
+      ncal,
       cpubase,ncgutil,cgobj,cgcpu, hlcgobj;
 
 {*****************************************************************************
@@ -104,10 +107,22 @@ implementation
       end;
 
 
+     function taarch64inlinenode.first_fma : tnode;
+       begin
+         if ((is_double(resultdef)) or (is_single(resultdef))) then
+           begin
+             expectloc:=LOC_MMREGISTER;
+             Result:=nil;
+           end
+         else
+           Result:=inherited first_fma;
+       end;
+
     procedure taarch64inlinenode.second_abs_real;
       begin
         load_fpu_location;
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FABS,location.register,left.location.register));
+        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
@@ -115,6 +130,7 @@ implementation
       begin
         load_fpu_location;
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FMUL,location.register,left.location.register,left.location.register));
+        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
@@ -122,6 +138,7 @@ implementation
       begin
         load_fpu_location;
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT,location.register,left.location.register));
+        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
@@ -154,6 +171,7 @@ implementation
         { convert to signed integer rounding towards zero (there's no "round to
           integer using current rounding mode") }
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCVTZS,location.register,hreg));
+        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
@@ -177,6 +195,82 @@ implementation
           are the same, but not on AArch64. }
         location.register:=NR_FRAME_POINTER_REG;
       end;
+
+
+    procedure taarch64inlinenode.second_fma;
+      const
+        op : array[false..true,false..true] of TAsmOp =
+          { positive product }
+          (
+           { positive third operand }
+           (A_FMADD,
+           { negative third operand }
+            A_FNMSUB),
+           { negative product }
+            { positive third operand }
+            (A_FMSUB,
+             A_FNMADD)
+           );
+
+      var
+        paraarray : array[1..3] of tnode;
+        i : integer;
+        negop3,
+        negproduct : boolean;
+      begin
+        negop3:=false;
+        negproduct:=false;
+        paraarray[1]:=tcallparanode(tcallparanode(tcallparanode(parameters).nextpara).nextpara).paravalue;
+        paraarray[2]:=tcallparanode(tcallparanode(parameters).nextpara).paravalue;
+        paraarray[3]:=tcallparanode(parameters).paravalue;
+
+        { check if a neg. node can be removed
+          this is possible because changing the sign of
+          a floating point number does not affect its absolute
+          value in any way
+        }
+        if paraarray[1].nodetype=unaryminusn then
+          begin
+            paraarray[1]:=tunarynode(paraarray[1]).left;
+            { do not release the unused unary minus node, it is kept and release together with the other nodes,
+              only no code is generated for it }
+            negproduct:=not(negproduct);
+          end;
+
+        if paraarray[2].nodetype=unaryminusn then
+          begin
+            paraarray[2]:=tunarynode(paraarray[2]).left;
+            { do not release the unused unary minus node, it is kept and release together with the other nodes,
+              only no code is generated for it }
+            negproduct:=not(negproduct);
+          end;
+
+        if paraarray[3].nodetype=unaryminusn then
+          begin
+            paraarray[3]:=tunarynode(paraarray[3]).left;
+            { do not release the unused unary minus node, it is kept and release together with the other nodes,
+              only no code is generated for it }
+            negop3:=true;
+          end;
+
+         for i:=1 to 3 do
+          secondpass(paraarray[i]);
+
+        { no memory operand is allowed }
+        for i:=1 to 3 do
+          begin
+            if not(paraarray[i].location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
+              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
+          end;
+
+        location_reset(location,LOC_MMREGISTER,paraarray[1].location.size);
+        location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_reg(op[negproduct,negop3],
+          location.register,paraarray[1].location.register,paraarray[2].location.register,paraarray[3].location.register));
+        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
+      end;
+
 
 begin
   cinlinenode:=taarch64inlinenode;

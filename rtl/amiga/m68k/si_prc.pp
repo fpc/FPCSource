@@ -21,6 +21,7 @@ implementation
 
 var
   AOS_ExecBase: Pointer; public name '_ExecBase';
+  AOS_DosBase: Pointer; external name '_DOSBase';
   realExecBase: Pointer absolute $4;
   StkLen: LongInt; external name '__stklen';
   sysinit_jmpbuf: jmp_buf;
@@ -29,9 +30,38 @@ var
 { the definitions in there need AOS_Execbase }
 {$include execd.inc}
 {$include execf.inc}
+{$include timerd.inc}
+{$include doslibd.inc}
+{$include doslibf.inc}
+
+{$if defined(AMIGA_V1_0_ONLY) or defined(AMIGA_V1_2_ONLY)}
+{$define AMIGA_LEGACY}
+{$include legacyexech.inc}
+{$endif}
+
+{$ifdef AMIGA_LEGACY}
+var
+  args: pointer; public name '__fpc_args';
+  arglen: dword; public name '__fpc_arglen';
+{$endif}
 
 var
   sst: TStackSwapStruct;
+
+const
+{$if defined(AMIGA_V1_0_ONLY)}
+  NEEDS_NEWER_OS = 'This program needs newer OS.'+LineEnding;
+{$else}
+{$if defined(AMIGA_V1_2_ONLY)}
+  NEEDS_NEWER_OS = 'This program needs OS 1.2 or newer.'+LineEnding;
+{$else}
+{$if defined(AMIGA_V2_0_ONLY)}
+  NEEDS_NEWER_OS = 'This program needs OS 2.04 or newer.'+LineEnding;
+{$else}
+  NEEDS_NEWER_OS = 'This program needs OS 3.0 or newer.'+LineEnding;
+{$endif}
+{$endif}
+{$endif}
 
 procedure PascalMain; external name 'PASCALMAIN';
 
@@ -42,9 +72,26 @@ var
   newStack: Pointer;
   task: PTask;
 begin
+{$IFDEF AMIGA_LEGACY}
+  asm
+    move.l d0, arglen
+    move.l a0, args
+  end;
+{$ENDIF}
   AOS_ExecBase:=realExecBase;
-  newStack:=nil;
 
+  if PLibrary(AOS_ExecBase)^.lib_Version < AMIGA_OS_MINVERSION then
+    begin
+      AOS_DOSBase:=OpenLibrary('dos.library',0);
+      if AOS_DOSBase <> nil then
+        begin
+          dosWrite(dosOutput,PChar(NEEDS_NEWER_OS),length(NEEDS_NEWER_OS));
+          CloseLibrary(AOS_DOSBase);
+        end;
+      exit(20);
+    end;
+
+  newStack:=nil;
   task:=FindTask(nil);
   if (task^.tc_SPUpper-task^.tc_SPLower < StkLen) then
     begin

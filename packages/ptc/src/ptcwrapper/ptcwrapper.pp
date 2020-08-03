@@ -1,6 +1,6 @@
 {
     Free Pascal PTCPas framebuffer library threaded wrapper
-    Copyright (C) 2010, 2011, 2012, 2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2010, 2011, 2012, 2013, 2019 Nikolay Nikolov (nickysn@users.sourceforge.net)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -87,6 +87,13 @@ type
     Result: TPTCModeList;
   end;
 
+  TPTCWrapperMoveMouseToRequest = record
+    X, Y: Integer;
+
+    Processed: Boolean;
+    Result: Boolean;
+  end;
+
   TPTCWrapperThread = class(TThread)
   private
     FConsole: IPTCConsole;
@@ -109,6 +116,7 @@ type
     FCloseRequest: TPTCWrapperCloseRequest;
     FOptionRequest: TPTCWrapperOptionRequest;
     FGetModesRequest: TPTCWrapperGetModesRequest;
+    FMoveMouseToRequest: TPTCWrapperMoveMouseToRequest;
   protected
     procedure Execute; override;
   public
@@ -136,6 +144,8 @@ type
     function NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
     function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent;
 
+    function MoveMouseTo(AX, AY: Integer): Boolean;
+
     property IsOpen: Boolean read FOpen;
   end;
 
@@ -160,6 +170,7 @@ begin
   FCloseRequest.Processed := True;
   FOptionRequest.Processed := True;
   FGetModesRequest.Processed := True;
+  FMoveMouseToRequest.Processed := True;
 
   FSurfaceCriticalSection := TCriticalSection.Create;
 
@@ -256,6 +267,12 @@ procedure TPTCWrapperThread.Execute;
     begin
       FGetModesRequest.Result := FConsole.Modes;
       FGetModesRequest.Processed := True;
+    end;
+
+    if not FMoveMouseToRequest.Processed then
+    begin
+      FMoveMouseToRequest.Result := FConsole.MoveMouseTo(FMoveMouseToRequest.X, FMoveMouseToRequest.Y);
+      FMoveMouseToRequest.Processed := True;
     end;
   end;
 
@@ -521,6 +538,26 @@ begin
     Result := FEventQueue.PeekEvent(AEventMask);
     FSurfaceCriticalSection.Release;
   until (not AWait) or (Result <> nil);
+end;
+
+function TPTCWrapperThread.MoveMouseTo(AX, AY: Integer): Boolean;
+begin
+  FSurfaceCriticalSection.Acquire;
+  try
+    with FMoveMouseToRequest do
+    begin
+      X := AX;
+      Y := AY;
+      Processed := False;
+    end;
+  finally
+    FSurfaceCriticalSection.Release;
+  end;
+
+  repeat
+    ThreadSwitch;
+  until FMoveMouseToRequest.Processed;
+  Result := FMoveMouseToRequest.Result;
 end;
 
 end.

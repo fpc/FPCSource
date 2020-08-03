@@ -14,6 +14,10 @@
 
  **********************************************************************}
 
+{$if not(defined(VER3_0)) and defined(linux)}
+  {$define FPC_SYSTEM_STACKALIGNMENT16}
+{$endif not(defined(VER3_0)) and defined(linux)}
+
 {****************************************************************************
                                Primitives
 ****************************************************************************}
@@ -63,13 +67,13 @@ procedure fpc_cpuinit;
   end;
 
 {$ifndef darwin}
-function fpc_geteipasebx : pointer; [public, alias: 'fpc_geteipasebx'];assembler; nostackframe;
+procedure fpc_geteipasebx; [public, alias: 'fpc_geteipasebx'];assembler; nostackframe;
 asm
   movl    (%esp),%ebx
 end;
 
 
-function fpc_geteipasecx : pointer; [public, alias: 'fpc_geteipasecx'];assembler; nostackframe;
+procedure fpc_geteipasecx; [public, alias: 'fpc_geteipasecx'];assembler; nostackframe;
 asm
   movl    (%esp),%ecx
 end;
@@ -1441,7 +1445,15 @@ asm
         je      .Lj3596
 .Lj3620:
         movl    %esi,%eax
+        { freemem is not an assembler leaf function like fpc_geteipasebx and cpudeclocked, so it
+          needs to be called with proper stack alignment }
+{$ifdef FPC_SYSTEM_STACKALIGNMENT16}
+        leal    -8(%esp),%esp
+{$endif FPC_SYSTEM_STACKALIGNMENT16}
         call    FPC_FREEMEM
+{$ifdef FPC_SYSTEM_STACKALIGNMENT16}
+        leal    8(%esp),%esp
+{$endif FPC_SYSTEM_STACKALIGNMENT16}
 .Lj3596:
         popl    %esi
 .Lquit:
@@ -1467,7 +1479,13 @@ asm
         je      .Lj4038
 // [441] result:=fpc_truely_ansistr_unique(s);
         movl    %edx,%eax
+{$ifdef FPC_SYSTEM_STACKALIGNMENT16}
+        leal    -12(%esp),%esp
+{$endif FPC_SYSTEM_STACKALIGNMENT16}
         call    fpc_truely_ansistr_unique
+{$ifdef FPC_SYSTEM_STACKALIGNMENT16}
+        leal    12(%esp),%esp
+{$endif FPC_SYSTEM_STACKALIGNMENT16}
 .Lj4038:
 .Lj4031:
 // [442] end;

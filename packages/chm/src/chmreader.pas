@@ -115,6 +115,7 @@ type
     procedure ReadCommonData;
     function  ReadStringsEntry(APosition: DWord): String;
     function  ReadStringsEntryFromStream ( strm:TStream ) : String;
+    { Return LocalUrl string from #URLSTR }
     function  ReadURLSTR(APosition: DWord): String;
     function  CheckCommonStreams: Boolean;
     procedure ReadWindows(mem:TMemoryStream);
@@ -489,8 +490,8 @@ begin
   fURLTBLStream.ReadDWord; // unknown
   fURLTBLStream.ReadDWord; // TOPIC index #
   fURLSTRStream.Position := LEtoN(fURLTBLStream.ReadDWord);
-  fURLSTRStream.ReadDWord;
-  fURLSTRStream.ReadDWord;
+  fURLSTRStream.ReadDWord; // URL
+  fURLSTRStream.ReadDWord; // FrameName
   if fURLSTRStream.Position < fURLSTRStream.Size-1 then
     Result := PChar(fURLSTRStream.Memory+fURLSTRStream.Position);
 end;

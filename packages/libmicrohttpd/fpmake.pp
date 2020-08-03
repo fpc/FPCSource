@@ -25,7 +25,7 @@ begin
     P.Description := 'Event and threaded based micro-http server library interface';
     P.NeedLibC:= true;
     P.Dependencies.Add('rtl-extra');
-    P.OSes := [android,freebsd,linux,netbsd,openbsd,win32,win64];
+    P.OSes := AllUnixOSes + [win32,win64];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 

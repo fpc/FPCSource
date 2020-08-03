@@ -309,6 +309,77 @@ unit i_win;
             llvmdatalayout : 'todo';
           );
 
+       system_aarch64_win64_info : tsysteminfo =
+          (
+            system       : system_aarch64_win64;
+            name         : 'Win64 for Aarch64';
+            shortname    : 'Win64';
+            flags        : [tf_files_case_aware,tf_has_dllscanner,
+                            tf_smartlink_sections,
+                            tf_winlikewidestring,tf_no_pic_supported,
+                            tf_dwarf_only_local_labels,
+                            tf_no_generic_stackcheck,tf_has_winlike_resources,
+                            tf_safecall_exceptions,tf_no_backquote_support,tf_supports_hidden_symbols];
+            cpu          : cpu_aarch64;
+            unit_env     : 'WIN64UNITS';
+            extradefines : 'MSWINDOWS;WINDOWS';
+            exeext       : '.exe';
+            defext       : '.def';
+            scriptext    : '.bat';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.obj';
+            sharedlibext : '.dll';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : '';
+            sharedClibext : '.dll';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : '';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #13#10;
+            dirsep       : '\';
+            assem        : as_clang_gas;
+            assemextern  : as_clang_gas;
+            link         : ld_int_windows;
+            linkextern   : ld_windows;
+            ar           : ar_gnu_ar;
+            res          : res_gnu_windres;
+            dbg          : dbg_dwarf2;
+            script       : script_dos;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 8;
+                loopalign       : 4;
+                jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
+                constalignmin   : 0;
+                constalignmax   : 16;
+                varalignmin     : 0;
+                varalignmax     : 16;
+                localalignmin   : 4;
+                localalignmax   : 16;
+                recordalignmin  : 0;
+                recordalignmax  : 16;
+                maxCrecordalign : 16
+              );
+            first_parm_offset : 16;
+            stacksize    : 16*1024*1024;
+            stackalign   : 16;
+            abi          : abi_default;
+            llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-n32:64-S128'
+          );
+
 
   implementation
 
@@ -337,4 +408,10 @@ initialization
     set_source_info(system_arm_wince_info);
   {$endif WINCE}
 {$endif CPUARM}
+
+{$ifdef CPUAARCH64}
+  {$ifdef WIN64}
+    set_source_info(system_aarch64_win64_info);
+  {$endif WIN64}
+{$endif CPUAARCH64}
 end.

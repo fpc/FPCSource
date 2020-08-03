@@ -128,6 +128,7 @@ implementation
 //            flags : [af_outputbinary,af_smartlink_sections];
          flags : [af_outputbinary,af_supports_dwarf];
          labelprefix : '.L';
+         labelmaxlen : -1;
          comment : '';
          dollarsign: '$';
        );

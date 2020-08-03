@@ -733,7 +733,7 @@ implementation
                 pd:=tprocdef(AImplIntf.procdefs[i]);
                 hs:=CreateWrapperName(_Class,AImplIntf,i,pd);
                 { create reference }
-                datatcb.emit_tai(Tai_const.Createname(hs,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(pd));
+                datatcb.emit_tai(Tai_const.Createname(hs,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(pd,pc_address_only));
               end;
            end
         else
@@ -966,8 +966,6 @@ implementation
          hs : string;
 {$endif vtentry}
       begin
-        if not assigned(_class.VMTEntries) then
-          exit;
         for i:=0 to _class.VMTEntries.Count-1 do
          begin
            vmtentry:=pvmtentry(_class.vmtentries[i]);
@@ -982,7 +980,7 @@ implementation
                procname:='FPC_ABSTRACTERROR';
                generate_abstract_stub(current_asmdata.AsmLists[al_procedures],vmtpd);
              end
-           else if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and RedirectToEmpty(vmtpd) then
+           else if (cs_opt_remove_empty_proc in current_settings.optimizerswitches) and RedirectToEmpty(vmtpd) then
              begin
                procname:='FPC_EMPTYMETHOD';
                if current_module.globalsymtable<>systemunit then
@@ -994,7 +992,7 @@ implementation
                if current_module.moduleid<>vmtpd.owner.moduleid then
                  current_module.addimportedsym(vmtpd.procsym);
              end;
-           tcb.emit_tai(Tai_const.Createname(procname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(vmtpd));
+           tcb.emit_tai(Tai_const.Createname(procname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(vmtpd,pc_address_only));
 {$ifdef vtentry}
            hs:='VTENTRY'+'_'+_class.vmt_mangledname+'$$'+tostr(_class.vmtmethodoffset(i) div sizeof(pint));
            current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0,voidpointerdef));
@@ -1249,7 +1247,7 @@ implementation
                     wrapperpd:=create_procdef_alias(pd,tmps,tmps,
                       current_module.localsymtable,_class,
                       tsk_interface_wrapper,wrapperinfo);
-                    include(wrapperpd.procoptions,po_noreturn);
+                    include(wrapperpd.implprocoptions,pio_thunk);
 {$else cpuhighleveltarget}
                     oldfileposinfo:=current_filepos;
                     if pd.owner.iscurrentunit then

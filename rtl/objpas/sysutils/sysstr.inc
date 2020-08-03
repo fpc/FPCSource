@@ -919,6 +919,46 @@ begin
   result:=IntToHex(Int64(Value),Digits);
 end;
 
+function IntToHex(Value: Int8): string;
+begin
+  Result:=IntToHex(Value, 2*SizeOf(Int8));
+end;
+
+function IntToHex(Value: UInt8): string;
+begin
+  Result:=IntToHex(Value, 2*SizeOf(UInt8));
+end;
+
+function IntToHex(Value: Int16): string;
+begin
+  Result:=IntToHex(Value, 2*SizeOf(Int16));
+end;
+
+function IntToHex(Value: UInt16): string;
+begin
+  Result:=IntToHex(Value, 2*SizeOf(UInt16));
+end;
+
+function IntToHex(Value: Int32): string;
+begin
+  Result:=IntToHex(Value, 2*SizeOf(Int32));
+end;
+
+function IntToHex(Value: UInt32): string;
+begin
+  Result:=IntToHex(Value, 2*SizeOf(UInt32));
+end;
+
+function IntToHex(Value: Int64): string;
+begin
+  Result:=IntToHex(Value, 2*SizeOf(Int64));
+end;
+
+function IntToHex(Value: UInt64): string;
+begin
+  Result:=IntToHex(Value, 2*SizeOf(UInt64));
+end;
+
 function TryStrToInt(const s: string; out i : Longint) : boolean;
 var Error : word;
 begin
@@ -979,6 +1019,16 @@ begin
   TryStrToDWord:=Error=0
 end;
 
+function StrToUInt(const s: string): Cardinal;
+begin
+  StrToUInt:=StrToDWord(s);
+end;
+
+function TryStrToUInt(const s: string; out C: Cardinal): Boolean;
+begin
+  TryStrToUInt:=TryStrToDWord(s, C);
+end;
+
 function TryStrToQWord(const s: string; Out Q: QWord): boolean;
 var Error : word;
 begin
@@ -1009,6 +1059,11 @@ var Error: word;
 begin
   Val(S, result, Error);
   if Error <> 0 then result := Default;
+end;
+
+function StrToUIntDef(const S: string; Default: Cardinal): Cardinal;
+begin
+  Result:=StrToDWordDef(S, Default);
 end;
 
 {   StrToInt64Def converts the string S to an int64 value,
@@ -1213,7 +1268,18 @@ Begin
   P:=Pos(FormatSettings.DecimalSeparator,S);
   If (P<>0) Then
     S[P] := '.';
-  Val(trim(S),Value,E);
+  try
+    Val(trim(S),Value,E);
+  { on x87, a floating point exception may be pending in case of an invalid
+    input value -> trigger it now }
+{$if defined(cpui386) or (defined(cpux86_64) and not(defined(win64))) or defined(cpui8086)}
+    asm
+      fwait
+    end;
+{$endif}
+  except
+    E:=1;
+  end;
   Result:=(E=0);
 End;
 
@@ -1273,7 +1339,7 @@ Begin
     end;
   { on x87, a floating point exception may be pending in case of an invalid
     input value -> trigger it now }
-{$ifdef cpux86}
+{$if defined(cpui386) or (defined(cpux86_64) and not(defined(win64))) or defined(cpui8086)}
     asm
       fwait
     end;

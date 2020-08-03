@@ -105,6 +105,9 @@ implementation
              paranr:=paranr_result_leftright
            else
 {$endif}
+           if is_managed_type(pd.returndef) then
+             paranr:=paranr_result_managed
+           else
              paranr:=paranr_result;
            { Generate result variable accessing function result }
            vs:=cparavarsym.create('$result',paranr,vs_var,pd.returndef,[vo_is_funcret,vo_is_hidden_para]);
@@ -153,7 +156,6 @@ implementation
               begin
                 vs:=cparavarsym.create('$parentfp',paranr,vs_value
                       ,parentfpvoidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
-                vs.varregable:=vr_none;
               end
             else
               begin
@@ -300,14 +302,14 @@ implementation
         sl       : tpropaccesslist;
         hs       : string;
       begin
+        storepos:=current_tokenpos;
+        current_tokenpos:=pd.fileinfo;
+
         { The result from constructors and destructors can't be accessed directly }
         if not(pd.proctypeoption in [potype_constructor,potype_destructor]) and
            not is_void(pd.returndef) and
            (not(po_assembler in pd.procoptions) or paramanager.asm_result_var(pd.returndef,pd)) then
          begin
-           storepos:=current_tokenpos;
-           current_tokenpos:=pd.fileinfo;
-
            { We need to insert a varsym for the result in the localst
              when it is returning in a register }
            { we also need to do this for a generic procdef as we didn't allow
@@ -316,7 +318,7 @@ implementation
            if (df_generic in pd.defoptions) or
                not paramanager.ret_in_param(pd.returndef,pd) then
             begin
-              vs:=clocalvarsym.create('$result',vs_value,pd.returndef,[vo_is_funcret],true);
+              vs:=clocalvarsym.create('$result',vs_value,pd.returndef,[vo_is_funcret]);
               pd.localst.insert(vs);
               pd.funcretsym:=vs;
             end;
@@ -348,8 +350,26 @@ implementation
               tlocalsymtable(pd.localst).insert(aliasvs);
             end;
 
-           current_tokenpos:=storepos;
          end;
+
+        if pd.generate_safecall_wrapper then
+          begin
+            { vo_is_funcret is necessary so the local only gets freed after we loaded its
+              value into the return register }
+            vs:=clocalvarsym.create('$safecallresult',vs_value,search_system_type('HRESULT').typedef,[vo_is_funcret]);
+            { do not put this variable in a register. The register which will be bound
+              to this symbol will not be allocated automatically. Which means it will
+              be re-used wich breaks the code. Besides this it is questionable if it is
+              an optimization if one of the registers is kept allocated during the complete
+              function, without ever using it.
+              (It would be better to re-write the safecall-support in such a way that this
+              variable it not needed at all, but that the HRESULT is set when the method
+              is finalized) }
+            vs.varregable:=vr_none;
+            pd.localst.insert(vs);
+          end;
+
+        current_tokenpos:=storepos;
       end;
 
 
@@ -610,34 +630,64 @@ implementation
       function check_generic_parameters(fwpd,currpd:tprocdef):boolean;
         var
           i : longint;
-          fwtype,
-          currtype : ttypesym;
+          fwsym,
+          currsym : tsym;
+          currtype : ttypesym absolute currsym;
+          fileinfo : tfileposinfo;
         begin
           result:=true;
           if fwpd.genericparas.count<>currpd.genericparas.count then
             internalerror(2018090101);
           for i:=0 to fwpd.genericparas.count-1 do
             begin
-              fwtype:=ttypesym(fwpd.genericparas[i]);
-              currtype:=ttypesym(currpd.genericparas[i]);
-              if fwtype.name<>currtype.name then
+              fwsym:=tsym(fwpd.genericparas[i]);
+              currsym:=tsym(currpd.genericparas[i]);
+              if fwsym.name<>currsym.name then
                 begin
-                  messagepos1(currtype.fileinfo,sym_e_generic_type_param_mismatch,currtype.realname);
-                  messagepos1(fwtype.fileinfo,sym_e_generic_type_param_decl,fwtype.realname);
+                  messagepos1(currsym.fileinfo,sym_e_generic_type_param_mismatch,currsym.realname);
+                  messagepos1(fwsym.fileinfo,sym_e_generic_type_param_decl,fwsym.realname);
                   result:=false;
+                end;
+              if (fwpd.interfacedef or assigned(fwpd.struct)) and
+                 (
+                   ((currsym.typ=typesym) and (df_genconstraint in currtype.typedef.defoptions)) or
+                   (currsym.typ=constsym)
+                 ) then
+                begin
+                  if currsym.typ=constsym then
+                    fileinfo:=currsym.fileinfo
+                  else
+                    fileinfo:=tstoreddef(currtype.typedef).genconstraintdata.fileinfo;
+                  messagepos(fileinfo,parser_e_generic_constraints_not_allowed_here);
+                  result:=false;
+                end;
+              if not fwpd.interfacedef and not assigned(fwpd.struct) and
+                 (fwsym.typ=constsym) then
+                begin
+                  { without modeswitch RepeatForward we need to check here
+                    if the type of the constants match }
+                  if (currsym.typ<>constsym) or not equal_defs(tconstsym(fwsym).constdef,tconstsym(currsym).constdef) then
+                    begin
+                      messagepos1(currpd.fileinfo,parser_e_header_dont_match_forward,currpd.fullprocname(false));
+                      result:=false;
+                    end;
                 end;
             end;
         end;
 
 
-      function equal_generic_procdefs(fwpd,currpd:tprocdef):boolean;
+      function equal_generic_procdefs(fwpd,currpd:tprocdef;out sameparas,sameret:boolean):boolean;
         var
           i : longint;
-          fwtype,
-          currtype : ttypesym;
-          foundretdef : boolean;
+          fwsym,
+          currsym : tsym;
+          currtype : ttypesym absolute currsym;
+          convdummy: tconverttype;
+          pddummy: tprocdef;
         begin
           result:=false;
+          sameparas:=false;
+          sameret:=false;
           if fwpd.genericparas.count<>currpd.genericparas.count then
             exit;
           { comparing generic declarations is a bit more cumbersome as the
@@ -646,38 +696,65 @@ implementation
             - proc declared in interface of unit (or in class/record/object)
               and defined in implementation; here the fwpd might contain
               constraints while currpd must only contain undefineddefs
-            - forward declaration in implementation }
-          foundretdef:=false;
+            - forward declaration in implementation: here constraints must be
+              repeated }
           for i:=0 to fwpd.genericparas.count-1 do
             begin
-              fwtype:=ttypesym(fwpd.genericparas[i]);
-              currtype:=ttypesym(currpd.genericparas[i]);
-              { if the type in the currpd isn't a pure undefineddef, then we can
-                stop right there }
-              if (currtype.typedef.typ<>undefineddef) or (df_genconstraint in currtype.typedef.defoptions) then
+              fwsym:=tsym(fwpd.genericparas[i]);
+              currsym:=tsym(currpd.genericparas[i]);
+              { if the type in the currpd isn't a pure undefineddef (thus there
+                are constraints and the fwpd was declared in the interface, then
+                we can stop right there }
+              if fwpd.interfacedef and
+                 (
+                   (currsym.typ=constsym) or
+                   ((currsym.typ=typesym) and
+                     (
+                       (currtype.typedef.typ<>undefineddef) or
+                       (df_genconstraint in currtype.typedef.defoptions)
+                     )
+                   )
+                 )then
                 exit;
-              if not foundretdef then
+              if not fwpd.interfacedef then
                 begin
-                  { if the returndef is the same as this parameter's def then this
-                    needs to be the case for both procdefs }
-                  foundretdef:=fwpd.returndef=fwtype.typedef;
-                  if foundretdef xor (currpd.returndef=currtype.typedef) then
+                  if (fwsym.typ=constsym) and (currsym.typ=constsym) then
+                    begin
+                      { check whether the constant type for forward functions match }
+                      if not equal_defs(tconstsym(fwsym).constdef,tconstsym(currsym).constdef) then
+                        exit;
+                    end
+                  else if (fwsym.typ=constsym) then
+                    { if the forward sym is a constant, the implementation needs to be one
+                      as well }
                     exit;
                 end;
             end;
           if compare_paras(fwpd.paras,currpd.paras,cp_none,[cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv,cpo_generic])<>te_exact then
             exit;
-          if not foundretdef then
-            begin
-              if (df_specialization in tstoreddef(fwpd.returndef).defoptions) and (df_specialization in tstoreddef(currpd.returndef).defoptions) then
-                { for specializations we're happy with equal defs instead of exactly the same defs }
-                result:=equal_defs(fwpd.returndef,currpd.returndef)
-              else
-                { the returndef isn't a type parameter, so compare as usual }
-                result:=compare_defs(fwpd.returndef,currpd.returndef,nothingn)=te_exact;
-            end
+          sameparas:=true;
+          if (df_specialization in tstoreddef(fwpd.returndef).defoptions) and (df_specialization in tstoreddef(currpd.returndef).defoptions) then
+            { for specializations we're happy with equal defs instead of exactly the same defs }
+            result:=equal_defs(fwpd.returndef,currpd.returndef)
           else
-            result:=true;
+            begin
+              { strictly compare defs using compare_defs_ext, but allow
+                non exactly equal undefineddefs }
+              convdummy:=tc_none;
+              pddummy:=nil;
+              result:=(compare_defs_ext(fwpd.returndef,currpd.returndef,nothingn,convdummy,pddummy,[cdo_allow_variant,cdo_strict_undefined_check])=te_exact) or
+                        equal_genfunc_paradefs(fwpd.returndef,currpd.returndef,fwpd.parast,currpd.parast);
+            end;
+          { the result variable is only set depending on the return type, so we
+            can simply use "result" }
+          sameret:=result;
+        end;
+
+      function equal_signature(fwpd,currpd:tprocdef;out sameparas,sameret:boolean):boolean;
+        begin
+          sameparas:=compare_paras(fwpd.paras,currpd.paras,cp_none,[cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv])=te_exact;
+          sameret:=compare_defs(fwpd.returndef,currpd.returndef,nothingn)=te_exact;
+          result:=sameparas and sameret;
         end;
 
       {
@@ -695,11 +772,27 @@ implementation
         i       : longint;
         po_comp : tprocoptions;
         paracompopt: tcompare_paras_options;
+        sameparasfound,
+        gensameparas,
+        gensameret,
+        sameparas,
+        sameret,
         forwardfound : boolean;
         symentry: TSymEntry;
         item : tlinkedlistitem;
       begin
         forwardfound:=false;
+
+        if assigned(currpd.struct) and
+           (currpd.struct.symtable.moduleid<>current_module.moduleid) and
+           not (df_specialization in currpd.defoptions) then
+          begin
+            result:=false;
+            exit;
+          end;
+
+        sameparasfound:=false;
+        fwpd:=nil;
 
         { check overloaded functions if the same function already exists }
         for i:=0 to tprocsym(currpd.procsym).ProcdefList.Count-1 do
@@ -717,6 +810,11 @@ implementation
            if fwpd.procsym<>currpd.procsym then
              continue;
 
+           gensameparas:=false;
+           gensameret:=false;
+           sameparas:=false;
+           sameret:=false;
+
            { check the parameters, for delphi/tp it is possible to
              leave the parameters away in the implementation (forwarddef=false).
              But for an overload declared function this is not allowed }
@@ -730,7 +828,7 @@ implementation
               (
                 fwpd.is_generic and
                 currpd.is_generic and
-                equal_generic_procdefs(fwpd,currpd)
+                equal_generic_procdefs(fwpd,currpd,gensameparas,gensameret)
               ) or
               { check arguments, we need to check only the user visible parameters. The hidden parameters
                 can be in a different location because of the calling convention, eg. L-R vs. R-L order (PFV)
@@ -739,8 +837,9 @@ implementation
                 values should be reported as mismatches (since you can't overload based on different default
                 parameter values) }
               (
-               (compare_paras(fwpd.paras,currpd.paras,cp_none,[cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv])=te_exact) and
-               (compare_defs(fwpd.returndef,currpd.returndef,nothingn)=te_exact)
+                not fwpd.is_generic and
+                not currpd.is_generic and
+                equal_signature(fwpd,currpd,sameparas,sameret)
               ) then
              begin
                { Check if we've found the forwarddef, if found then
@@ -817,7 +916,7 @@ implementation
                          (
                            fwpd.is_generic and
                            currpd.is_generic and
-                           not equal_generic_procdefs(fwpd,currpd)
+                           not equal_generic_procdefs(fwpd,currpd,sameparas,sameret)
                          ) or
                          (
                            (
@@ -1044,7 +1143,31 @@ implementation
                   end;
                end;
             end; { equal arguments }
+
+           { we found a match with the same parameter signature, but mismatching
+             return types; complain about that, but only once we've checked for
+             a forward to improve error recovery }
+           if (sameparas and not sameret and
+               { ensure that specifiers are the same as well }
+               (compare_paras(fwpd.paras,currpd.paras,cp_all,[cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv])=te_exact)
+               ) or (gensameparas and not gensameret) then
+             sameparasfound:=true;
          end;
+
+        if sameparasfound and
+            not (currpd.proctypeoption=potype_operator) and
+            (
+              { allow overloads with different result types for external java
+                classes as Java supports covariant return types when implementing
+                interfaces and e.g. AbstractStringBuilder uses that }
+              not assigned(currpd.struct) or
+              not is_java_class_or_interface(currpd.struct) or
+              not (oo_is_external in tobjectdef(currpd.struct).objectoptions)
+            ) then
+          begin
+            MessagePos(currpd.fileinfo,parser_e_overloaded_have_same_parameters);
+            tprocsym(currpd.procsym).write_parameter_lists(currpd);
+          end;
 
         { if we didn't reuse a forwarddef then we add the procdef to the overloaded
           list }
@@ -1104,7 +1227,7 @@ implementation
         pnestedvarsdef:=cpointerdef.getreusable(nestedvarsdef);
         if not(po_assembler in pd.procoptions) then
           begin
-            nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[],true);
+            nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[]);
             include(nestedvars.symoptions,sp_internal);
             pd.localst.insert(nestedvars);
             pd.parentfpstruct:=nestedvars;

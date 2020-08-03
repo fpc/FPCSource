@@ -36,6 +36,10 @@ unit aoptcpu;
       TAsmOpSet = set of TAsmOp;
 
       TCpuAsmOptimizer = class(TAsmOptimizer)
+        { Converts a conditional jump into an unconditional jump.  Only call this
+          procedure on an instruction that you already know is a conditional jump }
+        procedure MakeUnconditional(p: taicpu); override;
+
         function RegModifiedByInstruction(Reg: TRegister; p1: tai): boolean; override;
         function GetNextInstructionUsingReg(Current: tai;
           var Next: tai; reg: TRegister): Boolean;
@@ -145,6 +149,28 @@ unit aoptcpu;
     begin
     end;
 {$endif DEBUG_AOPTCPU}
+
+
+  { Converts a conditional jump into an unconditional jump.  Only call this
+    procedure on an instruction that you already know is a conditional jump }
+  procedure TCpuAsmOptimizer.MakeUnconditional(p: taicpu);
+    var
+      idx, topidx: Byte;
+    begin
+      inherited MakeUnconditional(p);
+
+      topidx := p.ops-1;
+      if topidx = 0 then
+        Exit;
+
+      { Move destination address into first register, then delete the rest }
+      p.loadoper(0, p.oper[topidx]^);
+      for idx := topidx downto 1 do
+        p.freeop(idx);
+      p.ops := 1;
+      p.opercnt := 1;
+
+    end;
 
 
  function TCpuAsmOptimizer.InstructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean;
@@ -340,6 +366,7 @@ unit aoptcpu;
         Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next)));
       if result then
         begin
+          AllocRegBetween(taicpu(p).oper[1]^.reg,p,next,UsedRegs);
           next.oper[1]^.ref^.base:=taicpu(p).oper[1]^.reg;
           DebugMsg('Peephole: Move removed 4',p);
           asml.remove(p);
@@ -734,7 +761,7 @@ unit aoptcpu;
     var
       p: tai;
       l: longint;
-      hp1,hp2,hp3: tai;
+      hp1,hp2,hp3,hp4: tai;
       condition: tasmcond;
       condreg: tregister;
     begin
@@ -812,7 +839,7 @@ unit aoptcpu;
                                         <several movs 2>
                                     yyy:
                                   }
-                                  { hp2 points to jmp yyy }
+                                  { hp2 points to b yyy }
                                   hp2:=hp1;
                                   { skip hp1 to xxx }
                                   GetNextInstruction(hp1, hp1);
@@ -827,15 +854,20 @@ unit aoptcpu;
                                     FindLabel(tasmlabel(taicpu(p).oper[taicpu(p).ops-1]^.ref^.symbol),hp1) then
                                     begin
                                       l:=0;
-                                      { skip hp1 to <several moves 2> }
-                                      GetNextInstruction(hp1, hp1);
+                                      hp4:=hp1;
+                                      { hp4 points to label xxx }
+                                      GetNextInstruction(hp4, hp1);
+                                      { hp1 points to <several moves 2> }
                                       while CanBeCMOV(hp1,condreg) do
                                         begin
                                           inc(l);
                                           GetNextInstruction(hp1, hp1);
                                         end;
+                                      if l=0 then
+                                        hp1:=hp4;
                                       { hp1 points to yyy: }
-                                      if assigned(hp1) and (l<=3) and
+                                      if assigned(hp1) and
+                                        (l<=3) and
                                         FindLabel(tasmlabel(taicpu(hp2).oper[taicpu(hp2).ops-1]^.ref^.symbol),hp1) then
                                         begin
                                           condition:=inverse_cond(taicpu(p).condition);
@@ -847,12 +879,9 @@ unit aoptcpu;
                                               ChangeToCMOV(taicpu(hp1),condition,condreg);
                                               GetNextInstruction(hp1,hp1);
                                             end;
-                                          { hp2 is still at b yyy }
-                                          GetNextInstruction(hp2,hp1);
-                                          { hp2 is now at xxx: }
                                           condition:=inverse_cond(condition);
-                                          GetNextInstruction(hp1,hp1);
-                                          { hp1 is now at <several movs 2> }
+                                          GetNextInstruction(hp4, hp1);
+                                          { hp1 points to <several moves 2> }
                                           while CanBeCMOV(hp1,condreg) do
                                             begin
                                               ChangeToCMOV(taicpu(hp1),condition,condreg);
@@ -864,6 +893,8 @@ unit aoptcpu;
                                           asml.remove(hp3);
                                           hp3.free;
                                           { remove jmp }
+                                          if (p=hp2) then
+                                            GetNextInstruction(hp2,p);
                                           tasmlabel(taicpu(hp2).oper[taicpu(hp2).ops-1]^.ref^.symbol).decrefs;
                                           RemoveDelaySlot(hp2);
                                           asml.remove(hp2);

@@ -56,6 +56,7 @@ Type
     Function Install : Boolean; virtual;
     Function UnInstall: boolean; virtual;
     Function HandleCustomCode(ACode : DWord) : Boolean; Virtual;
+    procedure DoThreadTerminate(Sender: TObject);virtual;
   Public
     Procedure CheckControlMessages(Wait : Boolean);
     Procedure LogMessage(const Msg : String);
@@ -372,7 +373,7 @@ Type
     procedure InstallDaemons;
     procedure RunDaemons;
     procedure UnInstallDaemons;
-    procedure ShowHelp;
+    procedure ShowHelp; virtual;
     procedure CreateForm(InstanceClass: TComponentClass; var Reference); virtual;
     Property  OnRun : TNotifyEvent Read FOnRun Write FOnRun;
     Property EventLog : TEventLog Read GetEventLog;
@@ -450,7 +451,7 @@ Var
 Procedure StartLog;
 
 begin
-{$ifdef win32}
+{$if defined(win32) or defined(win64)}
   Assign(FL,'c:\service.log');
 {$else}
   Assign(FL,'/tmp/service.log');
@@ -694,7 +695,12 @@ begin
   Result:=False
 end;
 
-Procedure TCustomDaemon.CheckControlMessages(Wait : Boolean);
+procedure TCustomDaemon.DoThreadTerminate(Sender: TObject);
+begin
+  Self.FThread := NIL;
+end;
+
+procedure TCustomDaemon.CheckControlMessages(Wait: Boolean);
 
 begin
   If Assigned(FThread) then

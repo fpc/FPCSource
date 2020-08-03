@@ -104,7 +104,7 @@ begin
   if ss <> StrHelloWorld then
     Halt(25);
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-  aStrm.Position := Align(PtrUInt(aStrm.Position), PtrInt(@TAlignDummy(nil^).s)));
+  aStrm.Position := Align(PtrUInt(aStrm.Position), PtrInt(@TAlignDummy(nil^).s));
 {$endif}
   if aStrm.Read(s, SizeOf(Single)) <> SizeOf(Single) then
     Halt(26);
@@ -190,6 +190,7 @@ begin
     strm.SetSize(ae.ArgLen);
     Move(ae.ArgData^, strm.Memory^, ae.ArgLen);
     CheckProcs[i](strm);
+    strm.Free;
   end;
   Writeln('ok');
 end.

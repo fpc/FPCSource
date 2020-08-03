@@ -29,7 +29,7 @@ interface
        cclasses,
        globtype,globals,
        node,
-       symconst,symtype,symdef;
+       symconst,symtype,symdef,symbase;
 
      type
        { if acp is cp_all the var const or nothing are considered equal }
@@ -166,6 +166,11 @@ interface
     {              and JLObject                                                }
     { - objectdef: if it inherits from otherdef or they are equal              }
     function def_is_related(curdef,otherdef:tdef):boolean;
+
+    { Checks whether two defs for parameters or result types of a generic }
+    { routine can be considered as equal. Requires the symtables of the   }
+    { procdefs the parameters defs shall belong to.                       }
+    function equal_genfunc_paradefs(fwdef,currdef:tdef;fwpdst,currpdst:tsymtable):boolean;
 
 
 implementation
@@ -345,9 +350,13 @@ implementation
                        internalerror(2012091302);
                      symfrom:=ttypesym(tstoreddef(def_from).genericparas[i]);
                      symto:=ttypesym(tstoreddef(def_to).genericparas[i]);
-                     if not (symfrom.typ=typesym) or not (symto.typ=typesym) then
+                     if not (symfrom.typ in [typesym,constsym]) or not (symto.typ in [typesym,constsym]) then
                        internalerror(2012121401);
-                     if not equal_defs(ttypesym(symfrom).typedef,ttypesym(symto).typedef) then
+                     if symto.typ<>symfrom.typ then
+                       diff:=true
+                     else if (symfrom.typ=constsym) and (symto.typ=constsym) and not equal_constsym(tconstsym(symfrom),tconstsym(symto),true) then
+                       diff:=true
+                     else if not equal_defs(ttypesym(symfrom).typedef,ttypesym(symto).typedef) then
                        diff:=true;
                      if diff then
                        break;
@@ -831,7 +840,14 @@ implementation
                          { the orddef < currency (then it will get convert l3, }
                          { and conversion to float is favoured)                }
                          doconv:=tc_int_2_real;
-                         eq:=te_convert_l2;
+                         if is_extended(def_to) then
+                           eq:=te_convert_l2
+                         else if is_double(def_to) then
+                           eq:=te_convert_l3
+                         else if is_single(def_to) then
+                           eq:=te_convert_l4
+                         else
+                           eq:=te_convert_l2;
                        end;
                    end;
                  floatdef :
@@ -852,7 +868,12 @@ implementation
                              { do we lose precision? }
                              if (def_to.size<def_from.size) or
                                (is_currency(def_from) and (tfloatdef(def_to).floattype in [s32real,s64real])) then
-                               eq:=te_convert_l2
+                               begin
+                                 if is_currency(def_from) and (tfloatdef(def_to).floattype=s32real) then
+                                   eq:=te_convert_l3
+                                 else
+                                   eq:=te_convert_l2
+                               end
                              else
                                eq:=te_convert_l1;
                            end;
@@ -1228,6 +1249,17 @@ implementation
                               doconv:=tc_variant_2_dynarray;
                               eq:=te_convert_l1;
                            end;
+                      end;
+                    setdef :
+                      begin
+                        { special case: an empty set constant is compatible as
+                          well }
+                        if not assigned(tsetdef(def_from).elementdef)
+                            and (fromtreetype=setconstn) then
+                          begin
+                            doconv:=tc_arrayconstructor_2_dynarray;
+                            eq:=te_convert_l1;
+                          end;
                       end;
                     else
                       ;
@@ -1656,7 +1688,8 @@ implementation
                       { to procedure variables                                  }
                       if (m_pointer_2_procedure in current_settings.modeswitches) and
                          is_void(tpointerdef(def_from).pointeddef) and
-                         tprocvardef(def_to).is_addressonly then
+                         tprocvardef(def_to).is_addressonly and
+                         tprocvardef(def_to).compatible_with_pointerdef_size(tpointerdef(def_from)) then
                        begin
                          doconv:=tc_equal;
                          eq:=te_convert_l1;
@@ -2069,23 +2102,6 @@ implementation
       var
         currpara1,
         currpara2 : tparavarsym;
-
-        function equal_genfunc_paradefs(def1,def2:tdef):boolean;
-          begin
-            result:=false;
-            if (sp_generic_para in def1.typesym.symoptions) and
-                (sp_generic_para in def2.typesym.symoptions) and
-                (def1.owner=currpara1.owner) and
-                (def2.owner=currpara2.owner) then
-              begin
-                { the forward declaration may have constraints }
-                if not (df_genconstraint in def2.defoptions) and (def2.typ=undefineddef) and
-                    ((def1.typ=undefineddef) or (df_genconstraint in def1.defoptions)) then
-                  result:=true;
-              end
-          end;
-
-      var
         eq,lowesteq : tequaltype;
         hpd       : tprocdef;
         convtype  : tconverttype;
@@ -2226,7 +2242,7 @@ implementation
                     end
                   else if (cpo_generic in cpoptions) then
                     begin
-                      if equal_genfunc_paradefs(currpara1.vardef,currpara2.vardef) then
+                      if equal_genfunc_paradefs(currpara1.vardef,currpara2.vardef,currpara1.owner,currpara2.owner) then
                         eq:=te_exact
                       else
                         exit;
@@ -2240,7 +2256,7 @@ implementation
                   if is_open_array(currpara1.vardef) and
                       is_open_array(currpara2.vardef) then
                     begin
-                      if equal_genfunc_paradefs(tarraydef(currpara1.vardef).elementdef,tarraydef(currpara2.vardef).elementdef) then
+                      if equal_genfunc_paradefs(tarraydef(currpara1.vardef).elementdef,tarraydef(currpara2.vardef).elementdef,currpara1.owner,currpara2.owner) then
                         eq:=te_exact;
                     end
                   else
@@ -2343,6 +2359,7 @@ implementation
                 (global procedures can be converted into nested procvars)
              d) if def1 is a nested procedure, then def2 has to be a nested
                 procvar and def1 has to have the po_delphi_nested_cc option
+                or does not use parentfp
              e) if def1 is a procvar, def1 and def2 both have to be nested or
                 non-nested (we don't allow assignments from non-nested to
                 nested procvars to make sure that we can still implement
@@ -2580,6 +2597,22 @@ implementation
           else
             result:=false;
         end;
+      end;
+
+
+    function equal_genfunc_paradefs(fwdef,currdef:tdef;fwpdst,currpdst:tsymtable): boolean;
+      begin
+        result:=false;
+        if (sp_generic_para in fwdef.typesym.symoptions) and
+            (sp_generic_para in currdef.typesym.symoptions) and
+            (fwdef.owner=fwpdst) and
+            (currdef.owner=currpdst) then
+          begin
+            { the forward declaration may have constraints }
+            if not (df_genconstraint in currdef.defoptions) and (currdef.typ=undefineddef) and
+                ((fwdef.typ=undefineddef) or (df_genconstraint in fwdef.defoptions)) then
+              result:=true;
+          end
       end;
 
 end.

@@ -217,7 +217,7 @@ interface
                   tmpreg1:=cg.GetNextReg(tmpreg1);
               end;
 
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,NR_R1));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,GetDefaultZeroReg));
 
             location_reset(location,LOC_FLAGS,OS_NO);
             location.resflags:=getresflags(unsigned);
@@ -229,13 +229,18 @@ interface
           begin
             { decrease register pressure on registers >= r16 }
             if (right.location.value and $ff)=0 then
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,NR_R1))
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,GetDefaultZeroReg))
             else
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CPI,left.location.register,right.location.value and $ff))
+              begin
+                cg.getcpuregister(current_asmdata.CurrAsmList,NR_R26);
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LDI,NR_R26,right.location.value and $ff));
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,NR_R26));
+                cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R26);
+              end;
           end
         { on the left side, we allow only a constant if it is 0 }
         else if (left.location.loc=LOC_CONSTANT) and (left.location.value=0) then
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,NR_R1,right.location.register))
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,GetDefaultZeroReg,right.location.register))
         else
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,right.location.register));
 
@@ -262,7 +267,7 @@ interface
               begin
                 { just use R1? }
                 if ((right.location.value64 shr ((i-1)*8)) and $ff)=0 then
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,NR_R1))
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,GetDefaultZeroReg))
                 else
                   begin
                     tmpreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
@@ -272,7 +277,7 @@ interface
               end
             { above it is checked, if left=0, then a constant is allowed }
             else if (left.location.loc=LOC_CONSTANT) and (left.location.value=0) then
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,NR_R1,tmpreg2))
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,GetDefaultZeroReg,tmpreg2))
             else
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
           end;

@@ -119,7 +119,6 @@ uses
     type
       { Number of registers used for indexing in tables }
       tregisterindex=0..{$i rjvmnor.inc}-1;
-      totherregisterset = set of tregisterindex;
 
     const
       { Available Superregisters }

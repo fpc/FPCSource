@@ -766,8 +766,7 @@ Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt{$ifdef FPC_H
 }
 Var
   Temp : Pointer;
-  lens, lena,
-  movelen : SizeInt;
+  lens, lena : SizeInt;
 begin
   if (l>0) then
     begin
@@ -798,13 +797,14 @@ begin
           { Reallocation is needed... }
           Temp:=NewAnsiString(L);
           PAnsiRec(Pointer(Temp)-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
-          { also move terminating null }
-          lens:=succ(length(s));
-          if l<lens then
-            movelen:=l
+          lens:=length(s);
+          if l<=lens then
+            lens:=l
           else
-            movelen:=lens;
-          Move(Pointer(S)^,Temp^,movelen);
+            { Also copy a trailing implicit #0 of the original string
+              to the new larger string }
+            Inc(lens);
+          Move(Pointer(S)^,Temp^,lens);
           fpc_ansistr_decr_ref(Pointer(s));
           Pointer(S):=Temp;
         end;

@@ -866,6 +866,7 @@ implementation
             A_NEG,
             A_VABS,A_VADD,A_VCVT,A_VDIV,A_VLDR,A_VMOV,A_VMUL,A_VNEG,A_VSQRT,A_VSUB,
             A_VEOR,
+            A_VMRS,A_VMSR,
             A_MRS,A_MSR:
               if opnr=0 then
                 result:=operand_write
@@ -901,7 +902,9 @@ implementation
                 result := operand_read;
             //Thumb2
             A_LSL, A_LSR, A_ROR, A_ASR, A_SDIV, A_UDIV, A_MOVW, A_MOVT, A_MLS, A_BFI,
-            A_SMMLA,A_SMMLS:
+            A_QADD,
+            A_PKHTB,A_PKHBT,
+            A_SMMLA,A_SMMLS,A_SMUAD,A_SMUSD:
               if opnr in [0] then
                 result:=operand_write
               else
@@ -920,7 +923,10 @@ implementation
             A_STREX:
               result:=operand_write;
             else
-              internalerror(200403151);
+              begin
+                writeln(opcode);
+                internalerror(200403151);
+              end;
           end;
       end;
 
@@ -1160,8 +1166,8 @@ implementation
                                             begin
                                               if (hp2.typ=ait_const) and (tai_const(hp2).sym=tai_const(hp).sym)
                                                 and (tai_const(hp2).value=tai_const(hp).value) and (tai(hp2.previous).typ=ait_label) and
-                                                { gottpoff symbols are PC relative, so we cannot reuse them }
-                                                (tai_const(hp2).consttype<>aitconst_gottpoff) then
+                                                { gottpoff and tlsgd symbols are PC relative, so we cannot reuse them }
+                                                (not(tai_const(hp2).consttype in [aitconst_gottpoff,aitconst_tlsgd,aitconst_tlsdesc])) then
                                                 begin
                                                   with taicpu(curtai).oper[curop]^.ref^ do
                                                     begin
@@ -2228,6 +2234,7 @@ implementation
             { fpu_vfpv3_d16  } IF_VFPv2 or IF_VFPv3,
             { fpu_fpv4_s16   } IF_NONE,
             { fpu_vfpv4      } IF_VFPv2 or IF_VFPv3 or IF_VFPv4,
+            { fpu_vfpv4      } IF_VFPv2 or IF_VFPv3 or IF_VFPv4,
             { fpu_neon_vfpv4 } IF_VFPv2 or IF_VFPv3 or IF_VFPv4 or IF_NEON
           );
       begin
@@ -3051,13 +3058,23 @@ implementation
                 begin
                   currsym:=objdata.symbolref(oper[0]^.ref^.symbol);
 
-                  bytes:=bytes or (((oper[0]^.ref^.offset-8) shr 2) and $ffffff);
+                  { tlscall is not relative so ignore the offset }
+                  if oper[0]^.ref^.refaddr<>addr_tlscall then
+                    bytes:=bytes or (((oper[0]^.ref^.offset-8) shr 2) and $ffffff);
 
                   if (opcode<>A_BL) or (condition<>C_None) then
                     objdata.writereloc(aint(bytes),4,currsym,RELOC_RELATIVE_24)
                   else
-                    objdata.writereloc(aint(bytes),4,currsym,RELOC_RELATIVE_CALL);
-
+                    case oper[0]^.ref^.refaddr of
+                      addr_pic:
+                        objdata.writereloc(aint(bytes),4,currsym,RELOC_ARM_CALL);
+                      addr_full:
+                        objdata.writereloc(aint(bytes),4,currsym,RELOC_RELATIVE_CALL);
+                      addr_tlscall:
+                        objdata.writereloc(aint(bytes),4,currsym,RELOC_TLS_CALL);
+                      else
+                        Internalerror(2019092903);
+                    end;
                   exit;
                 end;
             end;

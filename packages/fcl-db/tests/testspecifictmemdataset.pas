@@ -5,6 +5,7 @@ unit TestSpecificTMemDataSet;
 }
 
 {$mode objfpc}{$H+}
+{$codepage UTF8}
 
 interface
 
@@ -25,6 +26,7 @@ type
     procedure TestFileName;
     procedure TestCopyFromDataset; //is copied dataset identical to original?
     procedure TestCopyFromDatasetMoved; //move record then copy. Is copy identical? Has record position changed?
+    Procedure TestLocateUTF8;
   end;
 
 implementation
@@ -126,6 +128,43 @@ begin
   CheckFieldDatasetValues(memds2);
   NewID:=memds1.FieldByName('ID').AsInteger;
   CheckEquals(CurrentID,NewID,'Mismatch between ID field contents - the record has moved.');
+end;
+
+procedure TTestSpecificTMemDataset.TestLocateUTF8;
+Var
+  MemDataset1: TMemDataset;
+  S : UTF8String;
+begin
+  MemDataset1:=TMemDataset.Create(Nil);
+  With MemDataset1 do
+    try
+    FieldDefs.Add('first',ftString,40,0,true,False,1,cp_UTF8);
+    FieldDefs.Add('second',ftString,40,0,true,False,2,cp_ACP);
+    CreateTable;
+    Active:=True;
+    Append;
+    Fields[0].AsUTF8String:='♯abcd';
+    Fields[1].AsString:='native';
+    Post;
+    Append;
+    Fields[0].AsUTF8String:='défaut';
+    Fields[1].AsString:='morenative';
+    Post;
+    First;
+    While not eof do
+      begin
+      S:=fields[0].AsUTF8String;
+      Writeln(S);
+      next;
+      end;
+    First;
+    AssertTrue('UTF8 1 ok',Locate('first','♯abcd',[]));
+    AssertTrue('UTF8 2 ok',Locate('first','défaut',[]));
+    AssertTrue('ANSI 1 ok',Locate('second','native',[]));
+    AssertTrue('ANSI 1 ok',Locate('second','morenative',[]));
+  finally
+    Free;
+  end;
 end;
 
 

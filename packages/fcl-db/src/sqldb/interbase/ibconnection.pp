@@ -26,16 +26,23 @@ type
     ServerVersionString : string;  //Complete version string, including name, platform
   end;
 
+  TStatusVector = array [0..19] of ISC_STATUS;
+
+  { EIBDatabaseError }
+
   EIBDatabaseError = class(ESQLDatabaseError)
-    public
-      property GDSErrorCode: integer read ErrorCode; deprecated 'Please use ErrorCode instead of GDSErrorCode'; // Nov 2014
+  private
+    FStatusVector: TStatusVector;
+  public
+    Property StatusVector: TStatusVector Read FStatusVector Write FStatusVector;
+    property GDSErrorCode: integer read ErrorCode; deprecated 'Please use ErrorCode instead of GDSErrorCode'; // Nov 2014
   end;
 
   { TIBCursor }
 
   TIBCursor = Class(TSQLCursor)
     protected
-    Status               : array [0..19] of ISC_STATUS;
+    Status               : TStatusVector;
     TransactionHandle    : pointer;
     StatementHandle      : pointer;
     SQLDA                : PXSQLDA;
@@ -48,7 +55,7 @@ type
     protected
     TransactionHandle   : pointer;
     TPB                 : string;                // Transaction parameter buffer
-    Status              : array [0..19] of ISC_STATUS;
+    Status              : TStatusVector;
   end;
 
   { TIBConnection }
@@ -57,12 +64,12 @@ type
   private
     FCheckTransactionParams: Boolean;
     FDatabaseHandle        : pointer;
-    FStatus                : array [0..19] of ISC_STATUS;
+    FStatus                : TStatusVector;
     FDatabaseInfo          : TDatabaseInfo;
     FDialect               : integer;
     FBlobSegmentSize       : word; //required for backward compatibilty; not used
     FUseConnectionCharSetIfNone: Boolean;
-
+    FWireCompression       : Boolean;
     procedure ConnectFB;
 
     procedure AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
@@ -134,6 +141,7 @@ type
     property OnLogin;
     Property Port stored false;
     Property UseConnectionCharSetIfNone : Boolean Read FUseConnectionCharSetIfNone Write FUseConnectionCharSetIfNone;
+    property WireCompression: Boolean read FWireCompression write FWireCompression default False;
   end;
   
   { TIBConnectionDef }
@@ -158,16 +166,17 @@ const
   SQL_BOOLEAN_FIREBIRD = 32764;
   INVALID_DATA = -1;
 
-
 procedure TIBConnection.CheckError(ProcName : string; Status : PISC_STATUS);
 var
-  ErrorCode : longint;
+  i,ErrorCode : longint;
   Msg, SQLState : string;
   Buf : array [0..1023] of char;
+  aStatusVector: TStatusVector;
+  Exc : EIBDatabaseError;
 
 begin
   if ((Status[0] = 1) and (Status[1] <> 0)) then
-  begin
+    begin
     ErrorCode := Status[1];
 {$IFDEF LinkDynamically}
     if assigned(fb_sqlstate) then // >= Firebird 2.5
@@ -176,11 +185,16 @@ begin
       SQLState := StrPas(Buf);
     end;
 {$ENDIF}
+    { get a local copy of status vector }
+    for i := 0 to 19 do
+      aStatusVector[i] := Status[i];
     Msg := '';
     while isc_interprete(Buf, @Status) > 0 do
       Msg := Msg + LineEnding + ' -' + StrPas(Buf);
-    raise EIBDatabaseError.CreateFmt('%s : %s', [ProcName,Msg], Self, ErrorCode, SQLState);
-  end;
+    Exc:=EIBDatabaseError.CreateFmt('%s : %s', [ProcName,Msg], Self, ErrorCode, SQLState);
+    Exc.StatusVector:=aStatusVector;
+    raise Exc;
+    end;
 end;
 
 
@@ -188,9 +202,10 @@ constructor TIBConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams, sqEscapeRepeat, sqSupportReturning];
+  FConnOptions := FConnOptions + [sqSupportParams, sqEscapeRepeat, sqSupportReturning, sqSequences];
   FBlobSegmentSize := 65535; //Shows we're using the maximum segment size
   FDialect := INVALID_DATA;
+  FWireCompression := False;
   ResetDatabaseInfo;
 end;
 
@@ -611,6 +626,9 @@ end;
 
 
 procedure TIBConnection.ConnectFB;
+const
+  isc_dpb_config = 87;
+  CStr_WireCompression = 'WireCompression=true';
 var
   ADatabaseName: String;
   DPB: string;
@@ -628,6 +646,9 @@ begin
      DPB := DPB + chr(isc_dpb_sql_role_name) + chr(Length(Role)) + Role;
   if Length(CharSet) > 0 then
     DPB := DPB + Chr(isc_dpb_lc_ctype) + Chr(Length(CharSet)) + CharSet;
+  if WireCompression or (SameText(Params.values['WireCompression'],'true')) then
+    DPB := DPB + Chr(isc_dpb_config) + Chr(Length(CStr_WireCompression)) +
+           CStr_WireCompression;
 
   FDatabaseHandle := nil;
   HN:=HostName;
@@ -1434,6 +1455,13 @@ begin
       {$ELSE}
       PISC_TIMESTAMP(CurrBuff)^.timestamp_date := Trunc(PTime) + IBDateOffset;
       PISC_TIMESTAMP(CurrBuff)^.timestamp_time := Round(abs(Frac(PTime)) * IBTimeFractionsPerDay);
+      if PISC_TIMESTAMP(CurrBuff)^.timestamp_time = IBTimeFractionsPerDay then
+        begin
+        // If PTime is for example 0.99999999999999667, the time-portion of the
+        // TDateTime is rounded into a whole day. Firebird does not accept that.
+        inc(PISC_TIMESTAMP(CurrBuff)^.timestamp_date);
+        PISC_TIMESTAMP(CurrBuff)^.timestamp_time := 0;
+        end;
       {$ENDIF}
       end
   else

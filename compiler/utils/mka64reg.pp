@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by Peter Vreman and Florian Klaempfl
 
-    Convert spreg.dat to several .inc files for usage with
+    Convert a64reg.dat to several .inc files for usage with
     the Free pascal compiler
 
     See the file COPYING.FPC, included in this distribution,
@@ -14,16 +14,16 @@
  **********************************************************************}
 {$mode objfpc}
 
-program mkspreg;
+program mka64reg;
 
 const Version = '1.00';
-      max_regcount = 254;
+      max_regcount = 1000;
 
 var s : string;
     i : longint;
     line : longint;
-    regcount:byte;
-    regcount_bsstart:byte;
+    regcount:word;
+    regcount_bsstart:word;
     names,
     regtypes,
     subtypes,
@@ -32,7 +32,7 @@ var s : string;
     stdnames,
     stabs,dwarf : array[0..max_regcount-1] of string[63];
     regnumber_index,
-    std_regname_index : array[0..max_regcount-1] of byte;
+    std_regname_index : array[0..max_regcount-1] of word;
 
 function tostr(l : longint) : string;
 
@@ -88,7 +88,7 @@ end;
 
 procedure build_regnum_index;
 
-var h,i,j,p,t:byte;
+var h,i,j,p,t:word;
 
 begin
   {Build the registernumber2regindex index.
@@ -119,7 +119,7 @@ end;
 
 procedure build_std_regname_index;
 
-var h,i,j,p,t:byte;
+var h,i,j,p,t:word;
 
 begin
   {Build the registernumber2regindex index.

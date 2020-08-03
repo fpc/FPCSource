@@ -1979,8 +1979,8 @@ begin
         +',TU_SVNCOMPILERREVISION AS Compiler_rev'
         +',TU_SVNPACKAGESREVISION AS Packages_rev'
         +',TO_ID,TC_ID,TV_ID'
-        +' FROM TESTRESULTS '
-        +' LEFT JOIN TESTRUN ON  (TR_TESTRUN_FK=TU_ID)'
+        +' FROM TESTRUN '
+        +' LEFT JOIN TESTRESULTS ON  (TR_TESTRUN_FK=TU_ID)'
         +' LEFT JOIN TESTOS ON  (TU_OS_FK=TO_ID)'
         +' LEFT JOIN TESTCPU ON  (TU_CPU_FK=TC_ID)'
         +' LEFT JOIN TESTVERSION ON  (TU_VERSION_FK=TV_ID)';
@@ -2076,7 +2076,7 @@ begin
       else
         S:=SS;
 
-      S:=S+' ORDER BY TR_ID DESC';
+      S:=S+' ORDER BY TU_ID DESC';
       if FDATE=0 then
         S:=S+' LIMIT '+IntToStr(FLimit)
       else

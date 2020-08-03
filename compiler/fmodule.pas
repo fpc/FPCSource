@@ -133,6 +133,7 @@ interface
         moduleflags   : tmoduleflags; { ppu flags that do not need to be known by just reading the ppu header }
         islibrary     : boolean;  { if it is a library (win32 dll) }
         IsPackage     : boolean;
+        change_endian : boolean;  { if the unit is loaded on a system with a different endianess than it was compiled on }
         moduleid      : longint;
         unitmap       : punitmap; { mapping of all used units }
         unitmapsize   : longint;  { number of units in the map }
@@ -153,6 +154,7 @@ interface
         llvmcompilerusedsyms : TFPObjectList; { a list of asmsymbols and their defs that need to be added to llvm.compiler.used (so they're not removed by llvm optimisation passes) }
         llvminitprocs,
         llvmfiniprocs : TFPList;
+        llvmmetadatastrings: TFPHashList; { metadata strings (mapping string -> superregister) }
 {$endif llvm}
         ansistrdef    : tobject; { an ansistring def redefined for the current module }
         wpoinfo       : tunitwpoinfobase; { whole program optimization-related information that is generated during the current run for this unit }
@@ -605,6 +607,7 @@ implementation
         llvmcompilerusedsyms:=TFPObjectList.Create(true);
         llvminitprocs:=TFPList.Create;
         llvmfiniprocs:=TFPList.Create;
+        llvmmetadatastrings:=TFPHashList.Create;
 {$endif llvm}
         ansistrdef:=nil;
         wpoinfo:=nil;
@@ -632,6 +635,7 @@ implementation
         is_unit:=_is_unit;
         islibrary:=false;
         ispackage:=false;
+        change_endian:=false;
         is_dbginfo_written:=false;
         mode_switch_allowed:= true;
         moduleoptions:=[];
@@ -738,6 +742,7 @@ implementation
         llvmcompilerusedsyms.free;
         llvminitprocs.free;
         llvmfiniprocs.free;
+        llvmmetadatastrings.free;
 {$endif llvm}
         ansistrdef:=nil;
         wpoinfo.free;
@@ -816,6 +821,8 @@ implementation
         llvminitprocs:=TFPList.Create;
         llvmfiniprocs.free;
         llvmfiniprocs:=TFPList.Create;
+        llvmmetadatastrings.free;
+        llvmmetadatastrings:=TFPHashList.Create;
 {$endif llvm}
         wpoinfo.free;
         wpoinfo:=nil;
@@ -860,14 +867,14 @@ implementation
         resourcefiles.Free;
         resourcefiles:=TCmdStrList.Create;
         linkorderedsymbols.Free;
-        linkorderedsymbols:=TCmdStrList.Create;;
+        linkorderedsymbols:=TCmdStrList.Create;
         pendingspecializations.free;
         pendingspecializations:=tfphashobjectlist.create(false);
         if assigned(waitingforunit) and
           (waitingforunit.count<>0) then
           internalerror(2016070501);
         waitingforunit.free;
-        waitingforunit:=tfpobjectlist.create(false);;
+        waitingforunit:=tfpobjectlist.create(false);
         linkunitofiles.Free;
         linkunitofiles:=TLinkContainer.Create;
         linkunitstaticlibs.Free;

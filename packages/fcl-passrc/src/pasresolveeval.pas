@@ -71,7 +71,7 @@ unit PasResolveEval;
 interface
 
 uses
-  Sysutils, Math, PasTree, PScanner;
+  Sysutils, Classes, Math, PasTree, PScanner;
 
 // message numbers
 const
@@ -106,7 +106,7 @@ const
   nTypesAreNotRelatedXY = 3029;
   nAbstractMethodsCannotBeCalledDirectly = 3030;
   nMissingParameterX = 3031;
-  nCannotAccessThisMemberFromAX = 3032;
+  nInstanceMemberXInaccessible = 3032;
   nInOperatorExpectsSetElementButGot = 3033;
   nWrongNumberOfParametersForTypeCast = 3034;
   nIllegalTypeConversionTo = 3035;
@@ -193,13 +193,20 @@ const
   nConstraintXSpecifiedMoreThanOnce = 3127;
   nConstraintXAndConstraintYCannotBeTogether = 3128;
   nXIsNotAValidConstraint = 3129;
-  nWrongNumberOfParametersForGenericType = 3130;
+  nWrongNumberOfParametersForGenericX = 3130;
   nGenericsWithoutSpecializationAsType = 3131;
   nDeclOfXDiffersFromPrevAtY = 3132;
   nTypeParamXIsMissingConstraintY = 3133;
   nTypeParamXIsNotCompatibleWithY = 3134;
   nTypeParamXMustSupportIntfY = 3135;
   nTypeParamsNotAllowedOnX = 3136;
+  nXMethodsCannotHaveTypeParams = 3137;
+  nImplMustNotRepeatConstraints = 3138;
+  nCouldNotInferTypeArgXForMethodY = 3139;
+  nInferredTypeXFromDiffArgsMismatchFromMethodY = 3140;
+  nParamOfThisTypeCannotHaveDefVal = 3141;
+  nClassTypesAreNotRelatedXY = 3142;
+  nDirectiveXNotAllowedHere = 3143;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -245,7 +252,7 @@ resourcestring
   sTypesAreNotRelatedXY = 'Types are not related: "%s" and "%s"';
   sAbstractMethodsCannotBeCalledDirectly = 'Abstract methods cannot be called directly';
   sMissingParameterX = 'Missing parameter %s';
-  sCannotAccessThisMemberFromAX = 'Cannot access this member from a %s';
+  sInstanceMemberXInaccessible = 'Instance member "%s" inaccessible here';
   sInOperatorExpectsSetElementButGot = 'the in-operator expects a set element, but got %s';
   sWrongNumberOfParametersForTypeCast = 'wrong number of parameters for type cast to %s';
   sIllegalTypeConversionTo = 'Illegal type conversion: "%s" to "%s"';
@@ -340,13 +347,20 @@ resourcestring
   sConstraintXSpecifiedMoreThanOnce = 'Constraint "%s" specified more than once';
   sConstraintXAndConstraintYCannotBeTogether = '"%s" constraint and "%s" constraint cannot be specified together';
   sXIsNotAValidConstraint = '"%s" is not a valid constraint';
-  sWrongNumberOfParametersForGenericType = 'wrong number of parameters for generic type %s';
+  sWrongNumberOfParametersForGenericX = 'wrong number of parameters for generic %s';
   sGenericsWithoutSpecializationAsType = 'Generics without specialization cannot be used as a type for a %s';
   sDeclOfXDiffersFromPrevAtY = 'Declaration of "%s" differs from previous declaration at %s';
   sTypeParamXIsMissingConstraintY = 'Type parameter "%s" is missing constraint "%s"';
   sTypeParamXIsNotCompatibleWithY = 'Type parameter "%s" is not compatible with type "%s"';
   sTypeParamXMustSupportIntfY = 'Type parameter "%s" must support interface "%s"';
   sTypeParamsNotAllowedOnX = 'Type parameters not allowed on %s';
+  sXMethodsCannotHaveTypeParams = '%s methods cannot have type parameters';
+  sImplMustNotRepeatConstraints = 'Implementations must not repeat constraints';
+  sCouldNotInferTypeArgXForMethodY = 'Could not infer generic type argument "%s" for method "%s"';
+  sInferredTypeXFromDiffArgsMismatchFromMethodY = 'Inferred type "%s" from different arguments mismatch for method "%s"';
+  sParamOfThisTypeCannotHaveDefVal = 'Parameters of this type cannot have default values';
+  sClassTypesAreNotRelatedXY = 'Class types "%s" and "%s" are not related';
+  sDirectiveXNotAllowedHere = 'Directive "%s" not allowed here';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
@@ -787,9 +801,12 @@ function CodePointToUnicodeString(u: longword): UnicodeString;
 
 function GetObjName(o: TObject): string;
 function GetObjPath(o: TObject): string;
-function GetTypeParamCommas(Cnt: integer): string;
+function GetGenericParamCommas(Cnt: integer): string;
+function GetElementNameAndParams(El: TPasElement; MaxLvl: integer = 3): string;
+function GetTypeParamNames(Templates: TFPList; MaxLvl: integer = 3): string;
 function dbgs(const Flags: TResEvalFlags): string; overload;
 function dbgs(v: TResEvalValue): string; overload;
+function LastPos(c: char; const s: string): sizeint;
 
 implementation
 
@@ -1018,7 +1035,7 @@ begin
       GenType:=TPasGenericType(o);
       if (GenType.GenericTemplateTypes<>nil)
           and (GenType.GenericTemplateTypes.Count>0) then
-        Result:=Result+GetTypeParamCommas(GenType.GenericTemplateTypes.Count);
+        Result:=Result+GetGenericParamCommas(GenType.GenericTemplateTypes.Count);
       end;
     Result:=Result+':'+o.ClassName;
     end
@@ -1044,7 +1061,7 @@ begin
         GenType:=TPasGenericType(El);
         if (GenType.GenericTemplateTypes<>nil)
             and (GenType.GenericTemplateTypes.Count>0) then
-          Result:=GetTypeParamCommas(GenType.GenericTemplateTypes.Count)+Result;
+          Result:=GetGenericParamCommas(GenType.GenericTemplateTypes.Count)+Result;
         end;
       if El.Name<>'' then
         begin
@@ -1062,12 +1079,46 @@ begin
     Result:=GetObjName(o);
 end;
 
-function GetTypeParamCommas(Cnt: integer): string;
+function GetGenericParamCommas(Cnt: integer): string;
 begin
   if Cnt<=0 then
     Result:=''
   else
     Result:='<'+StringOfChar(',',Cnt-1)+'>';
+end;
+
+function GetElementNameAndParams(El: TPasElement; MaxLvl: integer): string;
+begin
+  if El=nil then
+    exit('(nil)');
+  Result:=El.Name;
+  if El is TPasGenericType then
+    Result:=Result+GetTypeParamNames(TPasGenericType(El).GenericTemplateTypes,MaxLvl-1);
+end;
+
+function GetTypeParamNames(Templates: TFPList; MaxLvl: integer): string;
+var
+  i: Integer;
+  El: TPasElement;
+begin
+  if (Templates=nil) or (Templates.Count=0) then
+    exit('');
+  if MaxLvl<=0 then
+    exit('...');
+  Result:='<';
+  for i:=0 to Templates.Count-1 do
+    begin
+    if i>0 then
+      Result:=Result+',';
+    El:=TPasElement(Templates[i]);
+    if El.Name<>'' then
+      Result:=Result+GetElementNameAndParams(El,MaxLvl-1)
+    else if El is TPasArrayType then
+      Result:=Result+'array...'
+    else
+      Result:=Result+'...';
+    end;
+  Result:=Result+'>';
 end;
 
 function dbgs(const Flags: TResEvalFlags): string;
@@ -1092,6 +1143,15 @@ begin
     Result:='nil'
   else
     Result:=v.AsDebugString;
+end;
+
+function LastPos(c: char; const s: string): sizeint;
+var
+  i: SizeInt;
+begin
+  for i:=length(s) downto 1 do
+    if s[i]=c then exit(i);
+  Result:=-1;
 end;
 
 { TResEvalExternal }

@@ -25,7 +25,7 @@ begin
     P.Description := 'Free Pascal documentation generation utility.';
     P.NeedLibC:= false;
 
-    P.OSes:=AllOSes-[embedded,msdos,win16,go32v2,nativent,macos,palmos,atari];
+    P.OSes:=AllOSes-[embedded,msdos,win16,go32v2,nativent,macosclassic,palmos,atari];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -34,7 +34,7 @@ begin
     P.Dependencies.Add('fcl-passrc');
     P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('chm');
-    P.Dependencies.Add('univint',[darwin,iphonesim]);
+    P.Dependencies.Add('univint',[darwin,iphonesim,ios]);
 
     P.Directory:=ADirectory;
     P.Version:='3.3.1';

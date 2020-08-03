@@ -31,6 +31,7 @@ procedure fpc_cpuinit;{$ifdef SYSTEMINLINE}inline;{$endif}
   end;
 
 
+{$if not(defined(CPUAVR_16_REGS)) and defined(CPUAVR_HAS_MOVW)}
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE']; assembler; nostackframe;
 asm
@@ -70,7 +71,7 @@ asm
   pop r29
   pop r28
 end;
-
+{$endif not(defined(CPUAVR_16_REGS)) and defined(CPUAVR_HAS_MOVW)}
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:SizeInt;value:byte);
