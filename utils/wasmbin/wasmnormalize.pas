@@ -193,6 +193,26 @@ begin
   end;
 end;
 
+procedure NormalizeTableLimit(m: TWasmModule);
+var
+  i       : integer;
+  elCount : integer;
+  t       : TWasmTable;
+begin
+  elCount:=0;
+  for i:=0 to m.ElementCount-1 do
+    inc(elCount, m.GetElement(i).funcCount );
+
+  for i:=0 to m.TableCount-1 do begin
+    t := m.GetTable(i);
+    if (t.min=0) and (t.max=0) then begin
+      t.min := elCount;
+      t.max := elCount;
+      Break;
+    end;
+  end;
+end;
+
 procedure NormalizeElems(m: TWasmModule);
 var
   i : integer;
@@ -220,6 +240,7 @@ begin
   NormalizeTable(m);
   NormalizeElems(m);
   NormalizeImport(m, fnIdx);
+  NormalizeTableLimit(m);
 
   for i:=0 to m.FuncCount-1 do begin
     f:=m.GetFunc(i);
