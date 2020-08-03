@@ -6,6 +6,19 @@ uses
   Classes, SysUtils, wasmbin, wasmbincode;
 
 type
+  TLinkBind = (lbUndefined = 0
+               ,lbWeak
+               ,lbLocal
+               ,lbForHost
+               );
+
+  TLinkInfo = record
+    Name        : string;
+    Binding     : TLinkBind;
+    isHidden    : Boolean;
+    isUndefined : Boolean;
+    NoStrip     : Boolean;
+  end;
 
   { TWasmParam }
 
@@ -28,6 +41,9 @@ type
   public
     typeNum : Integer; // if Idx < 0 then type is declared from typeDef
     typeIdx : string;  // if typeID='' then type is declared from typeDef
+
+    // linking information
+    LinkInfo : TLinkInfo;
     constructor Create;
     destructor Destroy; override;
     function AddResult(tp: byte = 0): TWasmParam;

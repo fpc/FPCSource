@@ -61,6 +61,7 @@ type
     count : integer;
     procedure Push(const AName, AValue: string);
     procedure Clear;
+    procedure ToLinkInfo(var AInfo: TLinkInfo);
   end;
 
 const
@@ -426,6 +427,29 @@ end;
 procedure TAsmSymList.Clear;
 begin
   count:=0;
+end;
+
+procedure TAsmSymList.ToLinkInfo(var AInfo: TLinkInfo);
+var
+  i : integer;
+begin
+  for i:=0 to count-1 do begin
+    if syms[i].name = '.name' then
+      AInfo.Name := syms[i].value
+    else if syms[i].name = '.weak' then
+      AInfo.Binding := lbWeak
+    else if syms[i].name = '.local' then
+      AInfo.Binding := lbLocal
+    else if syms[i].name = '.hidden' then
+      Ainfo.isHidden := true
+    else if syms[i].name = '.undef' then
+      AInfo.isUndefined := true
+    else if syms[i].name = '.strong' then
+      AInfo.NoStrip := true
+    else if syms[i].name = '.forhost' then
+      AInfo.Binding := lbForHost;
+  end;
+
 end;
 
 { EParserError }
