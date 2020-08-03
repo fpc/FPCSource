@@ -461,15 +461,35 @@ begin
   end;
 end;
 
+
 procedure TBinWriter.WriteInstList(list: TWasmInstrList; ofsAddition: LongWord);
 var
   i  : integer;
   ci : TWasmInstr;
+  u32  : LongWord;
+  i32  : LongWord;
+  err  : integer;
+
 begin
   for i:=0 to list.Count-1 do begin
     ci :=list[i];
     dst.WriteByte(ci.code);
     case INST_FLAGS[ci.code].Param of
+      ipi32: begin
+        Val(ci.operandText, u32, err);
+        if err = 0 then begin
+          WriteU32(dst, u32);
+        end else begin
+          Val(ci.operandText, i32, err);
+          if err = 0 then WriteU32(dst, i32);
+        end;
+      end;
+
+      ipi64,     // signed Leb of maximum 8 bytes
+      ipf32,     // float point single
+      ipf64,     // float point double
+
+
       ipLeb:
         if INST_RELOC_FLAGS[ci.code].doReloc then begin
           AddReloc(INST_RELOC_FLAGS[ci.code].relocType, dst.Position+ofsAddition, ci.operandNum);

@@ -629,7 +629,7 @@ begin
 
       INST_CALL:
       begin
-        if (ci.operandIdx<>'') and (     ci.operandNum<0) then
+        if (ci.operandIdx<>'') and (ci.operandNum<0) then
           ci.operandNum:=FindFunc(m,ci.operandIdx);
       end;
     end;
