@@ -196,8 +196,15 @@ end;
 procedure NormalizeElems(m: TWasmModule);
 var
   i : integer;
+  e : TWasmElement;
+  l : TWasmInstrList;
 begin
+  //todo: resolve offsets
   for i:=0 to m.ElementCount-1 do begin
+    e := m.GetElement(i);
+    l := e.AddOffset;
+    if (l.Count=0) then l.AddInstr(INST_i32_const).operandText:='0';
+    NormalizeInst( m, nil, l);
   end;
 end;
 
@@ -211,6 +218,7 @@ var
 begin
   fnIdx := 0;
   NormalizeTable(m);
+  NormalizeElems(m);
   NormalizeImport(m, fnIdx);
 
   for i:=0 to m.FuncCount-1 do begin

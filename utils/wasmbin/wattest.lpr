@@ -3,7 +3,8 @@ program wattest;
 {$mode objfpc}{$H+}
 
 uses
-  SysUtils, Classes, watparser, watscanner, wasmmodule, wasmbinwriter;
+  SysUtils, Classes, watparser, watscanner, wasmmodule, wasmbinwriter,
+  wasmnormalize;
 
 procedure Traverse(p: TWatScanner);
 begin
