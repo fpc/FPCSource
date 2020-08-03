@@ -20,6 +20,11 @@ type
     NoStrip     : Boolean;
   end;
 
+  TExportInfo = record
+    isExport : Boolean;
+    name     : string;
+  end;
+
   { TWasmParam }
 
   TWasmParam = class(TObject)
@@ -114,16 +119,30 @@ type
     constructor Create;
   end;
 
+  { TWasmImport }
+
+  TWasmImport = class(TObject)
+    LinkInfo : TLinkInfo;
+    module   : string;
+    name     : string;
+    fn       : TWasmFunc;
+    function AddFunc: TWasmFunc;
+  end;
+
   { TWasmModule }
 
   TWasmModule = class(TObject)
   private
+    imports : TList;
     types   : TList;
     funcs   : TList;
     exp     : TList;
   public
     constructor Create;
     destructor Destroy; override;
+
+    function AddImport: TWasmImport;
+    function ImportCount: Integer;
 
     function AddFunc: TWasmFunc;
     function GetFunc(i: integer): TWasmFunc;
@@ -203,6 +222,14 @@ begin
   for i:=0 to l.Count-1 do
     TObject(l[i]).Free;
   l.Clear;
+end;
+
+{ TWasmImport }
+
+function TWasmImport.AddFunc: TWasmFunc;
+begin
+  if not Assigned(fn) then fn:= TWasmFunc.Create;
+  Result:=fn;
 end;
 
 { TWasmExport }
@@ -371,10 +398,13 @@ begin
   types := TList.Create;
   funcs := TList.Create;
   exp := TList.Create;
+  imports := TList.Create;
 end;
 
 destructor TWasmModule.Destroy;
 begin
+  ClearList(imports);
+  imports.Free;
   ClearList(exp);
   exp.Free;
   ClearList(types);
@@ -382,6 +412,17 @@ begin
   ClearList(funcs);
   funcs.Free;
   inherited Destroy;
+end;
+
+function TWasmModule.AddImport: TWasmImport;
+begin
+  Result:=TWasmImport.Create;
+  imports.Add(Result);
+end;
+
+function TWasmModule.ImportCount: Integer;
+begin
+  Result:=imports.Count;
 end;
 
 function TWasmModule.AddFunc: TWasmFunc;
