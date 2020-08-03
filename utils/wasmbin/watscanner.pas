@@ -21,7 +21,7 @@ type
      wef32, wef64,
      weType,
      weImport, weGlobal, weTable, weMemory, weLocal, weExport,
-     weElem, weData, weOffset
+     weElem, weData, weOffset, weAlign
    );
 
   // used only for weNumber

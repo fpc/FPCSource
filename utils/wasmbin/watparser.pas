@@ -30,7 +30,7 @@ const
      'f32', 'f64',
      'type',
      'import', 'global', 'table', 'memory', 'local', 'export',
-     'elem', 'data', 'offset'
+     'elem', 'data', 'offset','align'
      );
 
   WasmTypeTokens = [wei32, wei64, wef32, wef64];

@@ -207,7 +207,7 @@ const
 type
   TInstParamType = (ipNone,
     ipLeb,      // label index or function index
-    ip2Leb,     // memory arguments, ask for offset + align
+    ipOfsAlign, // memory arguments, ask for offset + align
     ipi32,      // signed Leb of maximum 4 bytes
     ipi64,      // signed Leb of maximum 8 bytes
     ipf32,      // float point single
@@ -267,29 +267,29 @@ const
    ,(valid: false; Param: ipNone)     // 25
    ,(valid: false; Param: ipNone)     // 26
    ,(valid: false; Param: ipNone)     // 27
-   ,(valid: true;  Param: ip2Leb)     // 28  i32.load
-   ,(valid: true;  Param: ip2Leb)     // 29  i64_load
-   ,(valid: true;  Param: ip2Leb)     // 2A  f32_load
-   ,(valid: true;  Param: ip2Leb)     // 2B  f64_load
-   ,(valid: true;  Param: ip2Leb)     // 2C  i32_load8_s
-   ,(valid: true;  Param: ip2Leb)     // 2D  i32_load8_u
-   ,(valid: true;  Param: ip2Leb)     // 2E  i32_load16_s
-   ,(valid: true;  Param: ip2Leb)     // 2F  i32_load16_u
-   ,(valid: true;  Param: ip2Leb)     // 30  i64_load8_s
-   ,(valid: true;  Param: ip2Leb)     // 31  i64_load8_u
-   ,(valid: true;  Param: ip2Leb)     // 32  i64_load16_s
-   ,(valid: true;  Param: ip2Leb)     // 33  i64_load16_u
-   ,(valid: true;  Param: ip2Leb)     // 34  i64.load32_s
-   ,(valid: true;  Param: ip2Leb)     // 35  i64.load32_u
-   ,(valid: true;  Param: ip2Leb)     // 36  i32_store
-   ,(valid: true;  Param: ip2Leb)     // 37  i64_store
-   ,(valid: true;  Param: ip2Leb)     // 38  f32_store
-   ,(valid: true;  Param: ip2Leb)     // 39  f64_store
-   ,(valid: true;  Param: ip2Leb)     // 3A  i32_store8
-   ,(valid: true;  Param: ip2Leb)     // 3B  i32_store16
-   ,(valid: true;  Param: ip2Leb)     // 3C  i64_store8
-   ,(valid: true;  Param: ip2Leb)     // 3D  i64_store16
-   ,(valid: true;  Param: ip2Leb)     // 3E  i64_store32
+   ,(valid: true;  Param: ipOfsAlign)     // 28  i32.load
+   ,(valid: true;  Param: ipOfsAlign)     // 29  i64_load
+   ,(valid: true;  Param: ipOfsAlign)     // 2A  f32_load
+   ,(valid: true;  Param: ipOfsAlign)     // 2B  f64_load
+   ,(valid: true;  Param: ipOfsAlign)     // 2C  i32_load8_s
+   ,(valid: true;  Param: ipOfsAlign)     // 2D  i32_load8_u
+   ,(valid: true;  Param: ipOfsAlign)     // 2E  i32_load16_s
+   ,(valid: true;  Param: ipOfsAlign)     // 2F  i32_load16_u
+   ,(valid: true;  Param: ipOfsAlign)     // 30  i64_load8_s
+   ,(valid: true;  Param: ipOfsAlign)     // 31  i64_load8_u
+   ,(valid: true;  Param: ipOfsAlign)     // 32  i64_load16_s
+   ,(valid: true;  Param: ipOfsAlign)     // 33  i64_load16_u
+   ,(valid: true;  Param: ipOfsAlign)     // 34  i64.load32_s
+   ,(valid: true;  Param: ipOfsAlign)     // 35  i64.load32_u
+   ,(valid: true;  Param: ipOfsAlign)     // 36  i32_store
+   ,(valid: true;  Param: ipOfsAlign)     // 37  i64_store
+   ,(valid: true;  Param: ipOfsAlign)     // 38  f32_store
+   ,(valid: true;  Param: ipOfsAlign)     // 39  f64_store
+   ,(valid: true;  Param: ipOfsAlign)     // 3A  i32_store8
+   ,(valid: true;  Param: ipOfsAlign)     // 3B  i32_store16
+   ,(valid: true;  Param: ipOfsAlign)     // 3C  i64_store8
+   ,(valid: true;  Param: ipOfsAlign)     // 3D  i64_store16
+   ,(valid: true;  Param: ipOfsAlign)     // 3E  i64_store32
    ,(valid: true;  Param: ipNone)     // 3F  memory_size
    ,(valid: true;  Param: ipNone)     // 40  memory_grow
    ,(valid: true;  Param: ipi32OrFunc)// 41  i32_const
@@ -447,7 +447,7 @@ begin
       case INST_FLAGS[cd].Param of
         ipLeb:
           ReadU(st);
-        ip2Leb: begin
+        ipOfsAlign: begin
           ReadU(st);
           ReadU(st);
         end;
