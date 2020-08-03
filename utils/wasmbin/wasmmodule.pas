@@ -127,7 +127,7 @@ type
 
   TWasmFunc = class(TObject)
   public
-    locals   :  TList;
+    locals   : TList;
     LinkInfo : TLinkInfo;
     id       : string;
     idNum    : Integer;     // reference number (after Normalization)
@@ -268,6 +268,7 @@ type
 function WasmBasTypeToChar(b: byte): Char;
 function WasmFuncTypeDescr(t: TWasmFuncType): string;
 
+function FindGlobal(m: TWasmModule; const globIdx: string): integer;
 function FindFunc(m: TWasmModule; const funcIdx: string): integer;
 function FindParam(l: TList; const idx: string): Integer;
 
@@ -896,7 +897,7 @@ begin
       Result:=i;
       Exit;
     end;
-  Result:=i;
+  Result:=-1;
 end;
 
 // finding functions by funcIdx
@@ -917,6 +918,27 @@ begin
   for i:=0 to m.FuncCount-1 do
     if m.GetFunc(i).id = funcIdx then begin
       Result:=m.GetFunc(i).idNum;
+      Exit;
+    end;
+end;
+
+function FindGlobal(m: TWasmModule; const globIdx: string): integer;
+var
+  i  : integer;
+  im : TWasmImport;
+begin
+  Result:=-1;
+  {for i:=0 to m.ImportCount-1 do begin
+    im:=m.GetImport(i);
+    if Assigned(im.fn) and (im.fn.id = funcIdx) then begin
+      Result:=im.fn.idNum;
+      Exit;
+    end;
+  end;}
+
+  for i:=0 to m.GlobalCount-1 do
+    if m.GetGlobal(i).id.id = globIdx then begin
+      Result:=m.GetGlobal(i).id.idNum;
       Exit;
     end;
 end;
