@@ -124,11 +124,11 @@ const
   INST_f32_max        = $97;
   INST_f32_copysign   = $98;
   INST_f64_abs        = $99;
-  INST_f64_neg        = $99;
-  INST_f64_ceil       = $99;
-  INST_f64_floor      = $9a;
-  INST_f64_trunc      = $9b;
-  INST_f64_nearest    = $9c;
+  INST_f64_neg        = $9a;
+  INST_f64_ceil       = $9b;
+  INST_f64_floor      = $9c;
+  INST_f64_trunc      = $9d;
+  INST_f64_nearest    = $9e;
   INST_f64_sqrt       = $9f;
   INST_f64_add        = $a0;
   INST_f64_sub        = $a1;
