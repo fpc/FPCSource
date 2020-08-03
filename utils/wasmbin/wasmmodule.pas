@@ -952,7 +952,9 @@ end;
 
 // Normalizing instruction list, popuplating index reference ($index)
 // with the actual numbers. (params, locals, globals, memory, functions index)
-procedure NormalizeInst(m: TWasmModule; f: TWasmFunc; l: TWasmInstrList; checkEnd: boolean = true);
+//
+// pass "f" as nil, if instruction list doesn't belong to a function
+function NormalizeInst(m: TWasmModule; f: TWasmFunc; l: TWasmInstrList; checkEnd: boolean = true): Boolean;
 var
   i   : integer;
   j   : integer;
@@ -961,6 +963,7 @@ var
 const
   ValidResTypes = [VALTYPE_NONE,VALTYPE_I32,VALTYPE_I64,VALTYPE_F32,VALTYPE_F64];
 begin
+  Result := true;
   endNeed := 1;
   for i:=0 to l.Count-1 do begin
     ci:=l[i];
@@ -975,6 +978,11 @@ begin
     case ci.code of
       INST_local_get, INST_local_set, INST_local_tee:
       begin
+        if not Assigned(f) then begin
+          Result:=false;
+          Exit;
+        end;
+
         if (ci.operandIdx<>'') and (ci.operandNum<0) then begin
           j:=FindParam(f.functype.params, ci.operandIdx);
           if j<0 then begin
@@ -1053,6 +1061,9 @@ begin
 
     inc(fnIdx);
   end;
+
+  for i:=0 to m.GlobalCount-1 do
+    NormalizeInst(m, nil, m.GetGlobal(i).StartValue);
 
   // normalizing function body
   for i:=0 to m.FuncCount-1 do begin
