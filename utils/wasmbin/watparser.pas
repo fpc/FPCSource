@@ -494,12 +494,51 @@ begin
   sc.Next;
 end;
 
+// parseIdOffset - should only be used for elems declareted at module leve
+// if elems declared in a table, parseIdOffset should be set to false
+procedure ParseElem(sc: TWatScanner; dst: TWasmElement; parseIdOffset: Boolean);
+var
+  vid : TWasmId;
+begin
+  if sc.token = weElem then sc.Next;
+
+  if parseIdOffset then begin
+    if sc.token<>weIdent then
+      ErrorExpectButFound(sc, 'identifier');
+
+    dst.tableIdx := sc.resInt32;
+    sc.Next;
+
+    if (sc.token = weOpenBrace) then begin
+      ParseInstrList(sc, dst.AddOffset);
+      ConsumeToken(sc, weCloseBrace);
+    end;
+  end;
+
+  while sc.token in [weIdent, weNumber] do begin
+    ParseId(sc, vid);
+    dst.AddFuncId(vid);
+  end;
+  ConsumeToken(sc, weCloseBrace);
+end;
+
 procedure ParseTable(sc: TWatScanner; dst: TWasmTable);
 begin
-  sc.Next;
-  ParseId(sc, dst.id);
+  if sc.token = weTable then sc.Next;
+
+  // table ident can be missing? If missing, then it's zero
+  if (sc.token in [weIdent, weNumber]) then
+    ParseId(sc, dst.id);
+
   ConsumeToken(sc, weFuncRef);
   dst.elemsType := elem_type;
+
+  // consuming elements
+  if (sc.token = weOpenBrace) then begin
+    sc.Next;
+    ParseElem(sc, dst.AddElem, false);
+  end;
+
   ConsumeToken(sc, weCloseBrace);
 end;
 

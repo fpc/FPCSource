@@ -137,6 +137,8 @@ type
     funcCount : Integer;
     funcs     : array of TWasmId;
     function AddFunc(idx: integer): integer;
+    function AddFuncId(const idx: TWasmID): integer;
+    function AddOffset: TWasmInstrList;
     constructor Create;
     destructor Destroy; override;
   end;
@@ -168,6 +170,9 @@ type
     elemsType : Byte; // type of elements
     min       : LongWord;
     max       : LongWord;
+    elem      : TWasmElement;
+    function AddElem: TWasmElement;
+    destructor Destroy; override;
   end;
 
   { TWasmData }
@@ -321,6 +326,21 @@ begin
   l.Clear;
 end;
 
+{ TWasmTable }
+
+function TWasmTable.AddElem: TWasmElement;
+begin
+  if not Assigned(elem) then
+    elem:= TWasmElement.Create;
+  Result := elem;
+end;
+
+destructor TWasmTable.Destroy;
+begin
+  elem.Free;
+  inherited Destroy;
+end;
+
 { TWasmData }
 
 function TWasmData.StartOffset: TWasmInstrList;
@@ -339,14 +359,29 @@ end;
 { TWasmElement }
 
 function TWasmElement.AddFunc(idx: integer): integer;
+var
+  w : TWasmId;
+begin
+  w.id:='';
+  w.idNum:=idx;
+  AddFuncId(w);
+end;
+
+function TWasmElement.AddFuncId(const idx: TWasmID): integer;
 begin
   if funcCount = length(funcs) then begin
     if funcCount=0 then SetLength(funcs, 4)
     else SetLength(funcs, funcCount*2);
   end;
   Result:=funcCount;
-  funcs[funcCount].idNum :=idx;
+  funcs[funcCount] := idx;
   inc(funcCount);
+end;
+
+function TWasmElement.AddOffset: TWasmInstrList;
+begin
+  if not Assigned(offset) then offset:=TWasmInstrList.Create;
+  Result := offset;
 end;
 
 constructor TWasmElement.Create;
