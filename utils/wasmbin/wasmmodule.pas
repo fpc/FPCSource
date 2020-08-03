@@ -950,6 +950,19 @@ begin
   end;
 end;
 
+
+// searching back in the labels stack.
+// returning the "number" of steps to jump back to the label
+function GetJumpLabelIndex(const JumpToLbl: string; LblStack: TStrings): Integer;
+var
+  i : integer;
+begin
+  i:=LblStack.Count-1;
+  while (i>=0) and (LblStack[i]<>JumpToLbl) do
+    dec(i);
+  Result := LblStack.Count-i-1;
+end;
+
 // Normalizing instruction list, popuplating index reference ($index)
 // with the actual numbers. (params, locals, globals, memory, functions index)
 //
@@ -961,7 +974,6 @@ var
   ci  : TWasmInstr;
   endNeed : Integer;
   lbl     : TStringList;
-  li      : Integer;
 const
   ValidResTypes = [VALTYPE_NONE,VALTYPE_I32,VALTYPE_I64,VALTYPE_F32,VALTYPE_F64];
 begin
@@ -1011,13 +1023,15 @@ begin
             ci.insttype.typeNum:=RegisterFuncType(m, ci.insttype);
         end;
 
-        INST_br, INST_br_if: begin
-          if ci.operandIdx<>'' then begin
-            li:=lbl.Count-1;
-            while (li>=0) and (lbl[li]<>ci.operandIdx) do
-              dec(li);
-            ci.operandNum:=(lbl.Count-1)-li;
-          end;
+        INST_br, INST_br_if, INST_br_table: begin
+
+          if ci.code = INST_br_table then
+            for j:=0 to ci.vecTableCount-1 do
+              if ci.vecTable[j].id <> '' then
+                ci.vecTable[j].idNum:=GetJumpLabelIndex(ci.vecTable[j].id, lbl);
+
+          if ci.operandIdx<>'' then
+            ci.operandNum:=GetJumpLabelIndex(ci.operandIdx, lbl);
         end;
 
         INST_END: begin
