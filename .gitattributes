@@ -18990,6 +18990,7 @@ utils/wasmbin/testscan/inst_const_i32.wat svneol=native#text/plain
 utils/wasmbin/testscan/inst_const_i32_neg.wat svneol=native#text/plain
 utils/wasmbin/testscan/inst_const_i64.wat svneol=native#text/plain
 utils/wasmbin/testscan/inst_const_i64_neg.wat svneol=native#text/plain
+utils/wasmbin/testscan/inst_const_i64_pos.wat svneol=native#text/plain
 utils/wasmbin/wasmbin.pas svneol=native#text/plain
 utils/wasmbin/wasmbincode.pas svneol=native#text/plain
 utils/wasmbin/wasmbindebug.pas svneol=native#text/plain
