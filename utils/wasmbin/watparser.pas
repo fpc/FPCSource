@@ -347,6 +347,35 @@ begin
   ConsumeToken(sc, weCloseBrace);
 end;
 
+procedure ParseData(sc: TWatScanner; dst: TWasmData);
+var
+  l : integer;
+begin
+  if sc.token=weData then sc.Next;
+
+  //id (if not exists, should be zero)
+  if sc.token in [weIdent, weNumber] then
+    ParseId(sc, dst.id);
+
+  // offset (if not exist, should be zero)
+  if (sc.token = weOpenBrace) then begin
+    sc.Next;
+    ParseInstrList(sc, dst.StartOffset);
+    ConsumeToken(sc, weCloseBrace);
+  end;
+
+  // data (if not exist, then blank)
+  if sc.token = weString then begin
+    l := length(sc.resText);
+    SetLength(dst.databuf, l);
+    if l>0 then
+      Move(sc.resText[1], dst.databuf[0], l);
+    sc.Next;
+  end;
+
+  ConsumeToken(sc, weCloseBrace);
+end;
+
 procedure ParseMemory(sc: TWatScanner; dst: TWasmMemory);
 begin
   if sc.token=weMemory then sc.Next;
@@ -476,7 +505,6 @@ begin
         end;
         weMemory:
         begin
-          writeln('trying to parse memory');
           m:=dst.AddMemory;
           symlist.ToLinkInfo(f.LinkInfo);
           symlist.Clear;
@@ -485,6 +513,10 @@ begin
         weExport:
         begin
           ParseExport(sc, dst.AddExport);
+          symlist.Clear;
+        end;
+        weData:begin
+          ParseData(sc, dst.AddData);
           symlist.Clear;
         end;
       else
