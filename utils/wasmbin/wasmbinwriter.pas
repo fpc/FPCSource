@@ -461,34 +461,60 @@ begin
   end;
 end;
 
+function WriteI32Operand(dst: TStream; const operand: string): Boolean;
+var
+  err : integer;
+  i32 : integer;
+  u32 : LongWord;
+begin
+  Val(operand, i32, err);
+  if err = 0 then
+    u32 := LongWord(i32)
+  else
+    Val(operand, u32, err);
+
+  Result := (err = 0);
+  if Result then WriteU32(dst, u32);
+end;
+
+function WriteI64Operand(dst: TStream; const operand: string): Boolean;
+var
+  err : integer;
+  i64 : Int64;
+  u64 : UInt64;
+begin
+  Val(operand, i64, err);
+  if err = 0 then begin
+    WriteS64(dst, i64);
+    Result := true;
+    //Exit;
+    //u64 := UInt64(i64)
+  end else begin
+    Val(operand, u64, err);
+    if Result then WriteU64(dst, u64);
+  end;
+  Result := (err = 0);
+end;
+
 
 procedure TBinWriter.WriteInstList(list: TWasmInstrList; ofsAddition: LongWord);
 var
   i  : integer;
   ci : TWasmInstr;
-  u32  : LongWord;
-  i32  : LongWord;
-  err  : integer;
-
 begin
   for i:=0 to list.Count-1 do begin
     ci :=list[i];
     dst.WriteByte(ci.code);
     case INST_FLAGS[ci.code].Param of
       ipi32: begin
-        Val(ci.operandText, i32, err);
-        if err = 0 then
-          u32 := LongWord(i32)
-        else
-          Val(ci.operandText, u32, err);
-
-        if err = 0 then
-          WriteU32(dst, u32);
+        WriteI32Operand(dst, ci.operandText);
       end;
 
-      ipi64,     // signed Leb of maximum 8 bytes
-      ipf32,     // float point single
-      ipf64,     // float point double
+      ipi64: begin     // signed Leb of maximum 8 bytes
+        WriteI64Operand(dst, ci.operandText);
+      end;
+      //ipf32,     // float point single
+      //ipf64,     // float point double
 
 
       ipLeb:
