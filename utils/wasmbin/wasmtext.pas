@@ -450,6 +450,8 @@ begin
     else if t = 'set_local' then inst := INST_local_set
     else if t = 'set_global' then inst := INST_global_set
     else Result := false;
+  't':
+    if t = 'tee_local' then inst := INST_local_tee;
   'u':
     if t ='unreachable' then inst := inst_unreachable
     else Result := false;
