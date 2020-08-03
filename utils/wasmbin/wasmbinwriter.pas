@@ -27,7 +27,6 @@ type
     // the list of relocations per module
     reloc      : array of TRelocationEntry;
     relocCount : integer;
-    recOfs     : int64;
 
     procedure AddReloc(relocType: byte; ofs: int64; index: UInt32);
 
@@ -35,7 +34,7 @@ type
     procedure SectionBegin(secId: byte; out secRec: TSectionRec; secsize: longWord=0);
     function SectionEnd(var secRec: TSectionRec): Boolean;
 
-    procedure WriteInstList(list: TWasmInstrList);
+    procedure WriteInstList(list: TWasmInstrList; ofsAddition: LongWord);
 
     procedure WriteFuncTypeSect(m: TWasmModule);
     procedure WriteFuncSect(m: TWasmModule);
@@ -111,6 +110,7 @@ begin
   bw := TBinWriter.Create;
   try
     bw.keepLeb128:=true;
+    bw.writeReloc:=true;
     Normalize(m);
     Result := bw.Write(m, dst);
   finally
@@ -127,7 +127,7 @@ begin
     else SetLength(reloc, relocCount*2);
   end;
   reloc[relocCount].reltype:=relocType;
-  reloc[relocCount].offset:=ofs+recOfs;
+  reloc[relocCount].offset:=ofs;
   reloc[relocCount].index:=index;
   inc(relocType);
 end;
@@ -145,6 +145,8 @@ begin
     Result:=false;
     Exit;
   end;
+  keepLeb128:=keepLeb128 or writeReloc; // use 128, if relocation has been requested
+
   dst:=adst;
   org:=adst;
 
@@ -258,6 +260,7 @@ var
   mem   : TMemoryStream;
   la    : TLocalInfoArray;
   f     : TWasmFunc;
+  dofs  : Int64;
 begin
   SectionBegin(SECT_CODE, sc);
 
@@ -270,6 +273,7 @@ begin
       GetLocalInfo(f, la);
 
       mem.Position:=0;
+      dofs:=dst.Position;
       pushStream(mem);
 
       WriteU32(dst, length(la));
@@ -277,7 +281,7 @@ begin
         WriteU32(dst, la[i].count);
         dst.WriteByte(la[i].tp);
       end;
-      WriteInstList(f.instr);
+      WriteInstList(f.instr, LongWord(dofs-sc.datapos));
       popStream;
 
       sz:=mem.Position;
@@ -292,7 +296,7 @@ begin
   SectionEnd(sc);
 end;
 
-procedure TBinWriter.WriteInstList(list: TWasmInstrList);
+procedure TBinWriter.WriteInstList(list: TWasmInstrList; ofsAddition: Longword);
 var
   i  : integer;
   ci : TWasmInstr;
@@ -302,8 +306,10 @@ begin
     dst.WriteByte(ci.code);
     case INST_FLAGS[ci.code].Param of
       ipLeb:
-        if INST_RELOC_FLAGS[ci.code].doReloc then
+        if INST_RELOC_FLAGS[ci.code].doReloc then begin
+          AddReloc(INST_RELOC_FLAGS[ci.code].relocType, dst.Position+ofsAddition, ci.operandNum);
           WriteRelocU32(ci.operandNum)
+        end
         else
           WriteU32(dst, ci.operandNum);
     end;
