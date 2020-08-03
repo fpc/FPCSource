@@ -613,9 +613,11 @@ var
   u32 : LongWord;
 begin
   Val(operand, i32, err);
-  if err = 0 then
-    u32 := LongWord(i32)
-  else
+  if err = 0 then begin
+    WriteS( dst, i32, sizeof(i32));
+    Result := true;
+    Exit;
+  end else
     Val(operand, u32, err);
 
   Result := (err = 0);
