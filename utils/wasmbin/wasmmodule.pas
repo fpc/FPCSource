@@ -171,7 +171,7 @@ type
   { TWasmElement }
 
   TWasmElement = class(TObject)
-    tableIdx  : Integer;
+    tableId   : TWasmId;
     offset    : TWasmInstrList; // offset expression
     funcCount : Integer;
     funcs     : array of TWasmId;
