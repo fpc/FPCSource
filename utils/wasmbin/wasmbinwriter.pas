@@ -25,9 +25,9 @@ type
     strm : TList;
 
     // the list of relocations per module
+    writeSec   : Byte;
     reloc      : array of TRelocationEntry;
     relocCount : integer;
-
     procedure AddReloc(relocType: byte; ofs: int64; index: UInt32);
 
     procedure WriteRelocU32(u: longword);
@@ -130,10 +130,11 @@ begin
     if relocCount=0 then SetLength(reloc, 16)
     else SetLength(reloc, relocCount*2);
   end;
+  reloc[relocCount].sec:=writeSec;
   reloc[relocCount].reltype:=relocType;
   reloc[relocCount].offset:=ofs;
   reloc[relocCount].index:=index;
-  inc(relocType);
+  inc(relocCount);
 end;
 
 procedure TBinWriter.WriteRelocU32(u: longword);
@@ -165,17 +166,30 @@ begin
   l:=NtoLE(Wasm_Version1);
   dst.Write(l, sizeof(l));
 
+  writeSec:=0;
   // 01 function type section
-  WriteFuncTypeSect(m);
+  if m.TypesCount>0 then begin
+    WriteFuncTypeSect(m);
+    inc(writeSec);
+  end;
 
   // 03 function section
-  WriteFuncSect(m);
+  if m.FuncCount>0 then begin
+    WriteFuncSect(m);
+    inc(writeSec);
+  end;
 
   // 07 export section
-  WriteExportSect(m);
+  if m.ExportCount>0 then begin
+    WriteExportSect(m);
+    inc(writeSec);
+  end;
 
   // 10 code section
-  WriteCodeSect(m);
+  if m.FuncCount>0 then begin
+    WriteCodeSect(m);
+    inc(writeSec);
+  end;
 
   if writeReloc then begin
     WriteLinkingSect(m);
@@ -331,8 +345,37 @@ begin
 end;
 
 procedure TBinWriter.WriteRelocSect(m: TWasmModule);
+var
+  i  : integer;
+  j  : integer;
+  si : Byte;
+  cnt: integer;
+  sc : TSectionRec;
 begin
+  si:=0;
+  i:=0;
 
+  while (si<writeSec) and (i<relocCount) do begin
+    if reloc[i].sec=si then begin
+      SectionBegin(SECT_CUSTOM, sc);
+      WriteString(SectionNamePfx_Reloc+'Code');
+      j:=i;
+      cnt:=0;
+      while (i<relocCount) and (reloc[i].sec=si) do begin
+        inc(cnt);
+        inc(i);
+      end;
+      WriteU32(dst, reloc[j].sec);
+      WriteU32(dst, cnt);
+      for j:=j to i-1 do begin
+        dst.WriteByte(reloc[j].reltype);
+        WriteU32(dst, reloc[j].offset);
+        WriteU32(dst, reloc[j].index);
+      end;
+      SectionEnd(sc);
+    end;
+    inc(si);
+  end;
 end;
 
 procedure TBinWriter.WriteInstList(list: TWasmInstrList; ofsAddition: LongWord);

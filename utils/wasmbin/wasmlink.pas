@@ -18,6 +18,7 @@ type
   end;
 
   TRelocationEntry = record
+    sec     : Uint8;  // section to be relocated at
     reltype : UInt8;  // the relocation type (see R_WASM constants)
     offset  : UInt32; // offset of the value to rewrite
     index   : Uint32; // the index of the symbol used (or, for R_WASM_TYPE_INDEX_LEB relocations, the index of the type)
