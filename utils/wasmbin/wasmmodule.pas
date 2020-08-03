@@ -37,11 +37,16 @@ type
     function isExplicitRef: Boolean;
   end;
 
+  { TWasmInstr }
+
   TWasmInstr = class(TObject)
     code        : byte;
     operandIdx  : string;
     operandNum  : integer;
     operandText : string;
+    insttype : TWasmFuncType; // used by call_indirect only
+    function addInstType: TWasmFuncType;
+    destructor Destroy; override;
   end;
 
   { TWasmInstrList }
@@ -115,6 +120,20 @@ begin
   for i:=0 to l.Count-1 do
     TObject(l[i]).Free;
   l.Clear;
+end;
+
+{ TWasmInstr }
+
+function TWasmInstr.addInstType: TWasmFuncType;
+begin
+  if insttype=nil then insttype := TWasmFuncType.Create;
+  result:=insttype;
+end;
+
+destructor TWasmInstr.Destroy;
+begin
+  insttype.Free;
+  inherited Destroy;
 end;
 
 { TWasmInstrList }
