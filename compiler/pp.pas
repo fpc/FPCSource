@@ -40,6 +40,7 @@ program pp;
   RISCV64             generate a compiler for the RiscV64 architecture
   SPARC               generate a compiler for SPARC
   SPARC64             generate a compiler for SPARC64
+  WASM                generate a compiler for WebAssembly
   X86_64              generate a compiler for the AMD x86-64 architecture
 
   -----------------------------------------------------------------
