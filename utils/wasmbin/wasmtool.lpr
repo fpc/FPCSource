@@ -12,11 +12,12 @@ uses
   wasmtoolutils;
 
 const
-  ACT_EXPORTRENAME = 'exportrename';
-  ACT_SYMBOLFLAG   = 'symbolflag';
-  ACT_SYMBOLAUTO   = 'symbolauto';
+  ACT_EXPORTRENAME   = 'exportrename';
+  ACT_SYMBOLFLAG     = 'symbolflag';
+  ACT_SYMBOLAUTO     = 'symbolauto';
+  ACT_WEAK           = 'weak';
 
-  VERSION = '1.0';
+  VERSION = '1.1';
 
 procedure PrintHelp;
 begin
@@ -27,13 +28,18 @@ begin
   writeln('options:');
   writeln('  --exportrename @inputfile - renaming export names');
   writeln('  --symbolflag   @inputfile - update symbol flags as specified in input');
-  writeln('  --symbolauto              - update symbol by the use');
-  writeln('  --verbose - enabling verbose mode');
+  writeln('  --symbolauto              - update symbol by the use ');
+  writeln('    --weak %name%           - specify symbol names for global variables to be marked weak reference');
 end;
 
 type
 
   { TToolActions }
+
+  // it's assumed that the wasmtool will be instructed
+  // to take mulitple actions on the same file.
+  // thus every action is recorded as TToolActions
+  // Those are created during the parameters parsing
 
   TToolActions = class(TObject)
     action   : string; // action to take place
@@ -53,7 +59,9 @@ end;
 procedure ProcessParams(acts: TList; const inputFn: string; doVerbose: Boolean);
 var
   i  : integer;
+  j  : integer;
   ta : TToolActions;
+  wk : TStringList;
 begin
   for i:=0 to acts.Count-1 do begin
     ta := TToolActions(acts[i]);
@@ -66,8 +74,14 @@ begin
       ExportRename(inputFn, ta.paramsFn, doVerbose);
     end else if ta.action = ACT_SYMBOLFLAG then begin
       ChangeSymbolFlag(inputFn, ta.paramsFn);
-    end else if ta.action = ACT_SYMBOLAUTO then begin
-      PredictSymbolsFromLink(inputFn, doVerbose);
+    end else if (ta.action = ACT_SYMBOLAUTO) then begin
+      wk := TStringList.Create;
+      for j:=0 to acts.Count-1 do begin
+        if TToolActions(acts[j]).action = ACT_WEAK then
+          wk.Add( TToolActions(acts[j]).paramsFn );
+      end;
+      PredictSymbolsFromLink(inputFn, wk, doVerbose);
+      wk.free;
     end;
   end;
 end;

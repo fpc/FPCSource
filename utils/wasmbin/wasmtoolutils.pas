@@ -9,7 +9,7 @@ uses
 
 function ChangeSymbolFlagStream(st: TStream; syms: TStrings): Boolean;
 procedure ChangeSymbolFlag(const fn, symfn: string);
-function PredictSymbolsFromLink(const wasmfn: string; doVerbose: Boolean = false): Boolean;
+function PredictSymbolsFromLink(const wasmfn: string; weakList: TStrings; doVerbose: Boolean = false): Boolean;
 
 procedure MatchExportNameToSymName(const x: TExportSection; const l: TLinkingSection; dst: TStrings);
 function ExportRenameSym(var x: TExportSection; syms: TStrings): Integer;
@@ -68,7 +68,9 @@ procedure MatchExportNameToSymFlag(
   const c: TCodeSection;
   const e: TElementSection;
   const x: TExportSection;
-  var l: TLinkingSection; doVerbose: Boolean);
+  var l: TLinkingSection;
+  weakList: TStrings; // do known set of globals weak
+  doVerbose: Boolean);
 type
   TFuncType = (ftImpl = 0, ftIntf, ftStub, ftExport);
 
@@ -155,13 +157,19 @@ begin
         writeln;
       end;
       //if l.symbols[i].symindex>mx then mx := ;
+    end else if (l.symbols[i].kind = SYMTAB_GLOBAL) and Assigned(weakList) then begin
+      if l.symbols[i].hasSymName and (weakList.IndexOf(l.symbols[i].symname)>=0) then begin
+        if doVerbose then
+          writeln('weakining: ',l.symbols[i].symname);
+        l.symbols[i].flags := l.symbols[i].flags or WASM_SYM_BINDING_WEAK or WASM_SYM_VISIBILITY_HIDDEN;
+      end;
     end;
   end;
 
 
 end;
 
-function PredictSymbolsFromLink(const wasmfn: string; doVerbose: Boolean = false): Boolean;
+function PredictSymbolsFromLink(const wasmfn: string; weakList: TStrings; doVerbose: Boolean = false): Boolean;
 var
   st : TFileStream;
   dw : LongWord;
@@ -246,7 +254,7 @@ begin
 
     if Result then begin
       if doVerbose then writeln('detecting symbols');
-      MatchExportNameToSymFlag(imp, c, e, x, l, doVerbose);
+      MatchExportNameToSymFlag(imp, c, e, x, l, weakList, doVerbose);
       mem:=TMemoryStream.Create;
       mem2:=TMemoryStream.Create;
       try
