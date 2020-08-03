@@ -196,9 +196,43 @@ begin
   sc.Next;
 end;
 
+procedure ParseFuncParamResult(sc: TWatScanner; dst: TWasmFuncType);
+var
+  tk  : TWatToken;
+  nm  : integer;
+  id  : string;
+  p   : TWasmParam;
+begin
+  tk := sc.token;
+  if tk = weType then begin
+    if not ParseNumOfId(sc, nm, id) then begin
+      writeln('failed type');
+      Exit;
+    end;
+    if nm>=0 then dst.typeNum:=nm
+    else dst.typeIdx:=id;
+    ConsumeAnyOpenToken(sc, tk);
+  end;
+
+  while tk = weParam do begin
+    p:=dst.AddParam;
+    sc.Next;
+    ParseParam(sc, p.id, p.tp);
+    ConsumeAnyOpenToken(sc, tk);
+  end;
+
+  while tk = weResult do begin
+    p:=dst.AddResult;
+    sc.Next;
+    ParseParam(sc, p.id, p.tp, false);
+    ConsumeAnyOpenToken(sc, tk);
+  end;
+end;
+
 procedure ParseInstrList(sc: TWatScanner; dst: TWasmInstrList);
 var
   ci  : TWasmInstr;
+  ft  : TWasmFuncType;
 begin
   while sc.token=weInstr do begin
     ci := dst.AddInstr(sc.instrCode);
@@ -217,6 +251,14 @@ begin
         sc.Next;
       end;
 
+      ipCallType:
+      begin
+        //writeln('token type=',sc.token);
+        ConsumeToken(sc, weOpenBrace);
+        ft := ci.addInstType;
+        ParseFuncParamResult(sc, ft);
+      end;
+
       //ip2Leb,  // memory arguments, ask for offset + align
       //ipTable,   // a complex structure... used for br_table only
       //ipResType  // result type used for blocks, such as If, block or loop
@@ -226,12 +268,11 @@ begin
 
 end;
 
+
 procedure ParseFunc(sc: TWatScanner; dst: TWasmFunc);
 var
-  nm : integer;
-  id : string;
-  p  : TWasmParam;
   tk  : TWatToken;
+  p   : TWasmParam;
 begin
   if sc.token=weFunc then sc.Next;
 
@@ -242,26 +283,8 @@ begin
 
   ConsumeAnyOpenToken(sc, tk);
 
-  if tk = weType then begin
-    if not ParseNumOfId(sc, nm, id) then Exit;
-    if nm>=0 then dst.functype.typeNum:=nm
-    else dst.functype.typeIdx:=id;
-    ConsumeAnyOpenToken(sc, tk);
-  end;
-
-  while tk = weParam do begin
-    p:=dst.functype.AddParam;
-    sc.Next;
-    ParseParam(sc, p.id, p.tp);
-    ConsumeAnyOpenToken(sc, tk);
-  end;
-
-  while tk = weResult do begin
-    p:=dst.functype.AddResult;
-    sc.Next;
-    ParseParam(sc, p.id, p.tp, false);
-    ConsumeAnyOpenToken(sc, tk);
-  end;
+  if tk in [weType, weParam, weResult] then
+    ParseFuncParamResult(sc, dst.functype);
 
   while tk = weLocal do begin
     p:=dst.AddLocal;
@@ -350,17 +373,7 @@ end;
 
 function ParseId(sc: TWatScanner; var id: TWasmId): boolean;
 begin
-  if sc.token = weNumber then begin
-    id.idNum := sc.resInt32;
-    id.id := '';
-    Result := true;
-  end else if sc.token = weIdent then begin
-    id.id := sc.resText;
-    id.idNum := -1;
-    Result := true;
-  end else
-    Result := false;
-  if Result then sc.Next;
+  Result := ParseNumOfId(sc, id.idNum, id.id);
 end;
 
 procedure ParseTable(sc: TWatScanner; dst: TWasmTable);

@@ -213,7 +213,8 @@ type
     ipf32,     // float point single
     ipf64,     // float point double
     ipTable,   // a complex structure... used for br_table only
-    ipResType  // result type used for blocks, such as If, block or loop
+    ipResType, // result type used for blocks, such as If, block or loop
+    ipCallType // used for call_indirect
   );
   TInstFlag = record
     valid : Boolean;
@@ -239,7 +240,7 @@ const
    ,(valid: true;  Param: ipTable)    // 0E  br_table
    ,(valid: true;  Param: ipNone)     // 0F  return
    ,(valid: true;  Param: ipLeb)      // 10  call
-   ,(valid: true;  Param: ipLeb)      // 11  call_indirect
+   ,(valid: true;  Param: ipCallType) // 11  call_indirect
    ,(valid: false; Param: ipNone)     // 12
    ,(valid: false; Param: ipNone)     // 13
    ,(valid: false; Param: ipNone)     // 14

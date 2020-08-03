@@ -667,10 +667,16 @@ begin
         end;
       end;
 
-      INST_CALL:
+      INST_call:
       begin
         if (ci.operandIdx<>'') and (ci.operandNum<0) then
           ci.operandNum:=FindFunc(m,ci.operandIdx);
+      end;
+
+      INST_call_indirect:
+      begin
+        if Assigned(ci.insttype) and (ci.insttype.typeNum<0) then
+          ci.insttype.typeNum:=RegisterFuncType(m, ci.insttype);
       end;
     end;
   end;
