@@ -669,6 +669,7 @@ end;
 procedure TBinWriter.WriteInstList(list: TWasmInstrList; ofsAddition: LongWord);
 var
   i   : integer;
+  j   : integer;
   ci  : TWasmInstr;
   idx : integer;
   rt  : Byte;
@@ -723,6 +724,13 @@ begin
           WriteU32(dst, LongWord(-1)); // this is an error.
 
         // table index reference
+        WriteU32(dst, ci.operandNum);
+      end;
+
+      ipJumpVec: begin
+        writeU32(dst, ci.vecTableCount);
+        for j:=0 to ci.vecTableCount-1 do
+          WriteU32(dst, ci.vecTable[j].idNum);
         WriteU32(dst, ci.operandNum);
       end;
 
