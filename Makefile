@@ -395,6 +395,9 @@ endif
 ifeq ($(CPU_TARGET),riscv64)
 PPSUF=rv64
 endif
+ifeq ($(CPU_TARGET),wasm)
+PPSUF=wasm
+endif
 ifdef CROSSCOMPILE
 ifneq ($(CPU_TARGET),jvm)
 PPPRE=ppcross

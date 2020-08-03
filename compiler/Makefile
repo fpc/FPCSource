@@ -332,7 +332,7 @@ endif
 override PACKAGE_NAME=compiler
 override PACKAGE_VERSION=3.3.1
 unexport FPC_VERSION FPC_COMPILERINFO
-CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64 riscv32 riscv64
+CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64 riscv32 riscv64 wasm
 ALLTARGETS=$(CYCLETARGETS)
 ifdef POWERPC
 PPC_TARGET=powerpc
@@ -493,6 +493,9 @@ endif
 ifeq ($(CPC_TARGET),riscv64)
 CPUSUF=rv64
 endif
+ifeq ($(CPC_TARGET),wasm)
+CPUSUF=wasm
+endif
 NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg
 SVNVERSION:=$(firstword $(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH))))
@@ -573,6 +576,9 @@ override LOCALOPT+=-Furiscv
 endif
 ifeq ($(PPC_TARGET),riscv64)
 override LOCALOPT+=-Furiscv
+endif
+ifeq ($(PPC_TARGET),wasm)
+override LOCALOPT+=-dNOOPT
 endif
 OPTWPOCOLLECT=-OWdevirtcalls,optvmts -FW$(BASEDIR)/pp1.wpo
 OPTWPOPERFORM=-Owdevirtcalls,optvmts -Fw$(BASEDIR)/pp1.wpo
@@ -4344,8 +4350,8 @@ endif
 ifdef TEMPWPONAME2PREFIX
 	$(MAKE) g$(TEMPWPONAME2) COMPILERTEMPNAME=$(TEMPWPONAME2)
 endif
-PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 mips mipsel avr jvm i8086 aarch64 sparc64 riscv32 riscv64
-PPC_SUFFIXES=386 68k ppc sparc arm armeb x64 ppc64 mips mipsel avr jvm 8086 a64 sparc64 rv32 rv64
+PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 mips mipsel avr jvm i8086 aarch64 sparc64 riscv32 riscv64 wasm
+PPC_SUFFIXES=386 68k ppc sparc arm armeb x64 ppc64 mips mipsel avr jvm 8086 a64 sparc64 rv32 rv64 wasm
 INSTALL_TARGETS=$(addsuffix _exe_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 SYMLINKINSTALL_TARGETS=$(addsuffix _symlink_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 .PHONY: $(PPC_TARGETS) $(INSTALL_TARGETS)$(SYMLINKINSTALL_TARGETS)
