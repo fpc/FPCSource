@@ -45,7 +45,11 @@ procedure ParseCSSValues(const s: String; css: TStrings);
 procedure GetCssAbsBoundsRect(Css: TStrings; var r: TRect);
 function CssValInt(const s: String; Def: integer): Integer;
 
-function ScanNumberC(const buf: string; var idx: Integer; var numberText: string): Boolean;
+type
+  TCNumberFormat = (nfError, nfInteger, nfHex, nfFloat);
+
+function ScanNumberC(const buf: string; var idx: Integer;
+  var numberText: string): TCNumberFormat;
 
 implementation
 
@@ -233,11 +237,13 @@ begin
   Result:=Copy(s, i, index-i);
 end;
 
-function ScanNumberC(const buf: string; var idx: Integer; var numberText: string): Boolean;
+function ScanNumberC(const buf: string; var idx: Integer; var numberText: string): TCNumberFormat;
 var
   ch  : char;
+  sec : string;
 begin
-  Result := false;
+  Result := nfError;
+
   if buf[idx] in SignChars then begin
     ch:=buf[idx];
     inc(idx);
@@ -247,14 +253,23 @@ begin
   if (idx<length(buf)) and (buf[idx]='0') and (buf[idx+1]='x') then begin
     inc(idx,2);
     numberText:='0x'+ScanWhile(buf, idx, HexChars);
-  end else
+    Result := nfHex;
+  end else begin
     numberText:=ScanWhile(buf, idx, NumericChars);
+    if ((idx<=length(buf)) and (buf[idx]='.')) then begin
+      inc(idx);
+      sec := ScanWhile(buf, idx, NumericChars);
+      if (sec = '') then Exit;
+      numberText:=NumberText+'.'+sec;
+      Result := nfFloat;
+    end else
+      Result := nfInteger;
+  end;
 
   if (ch<>#0) then begin
     if (numberText = '') then Exit;
     numberText:=ch+numberText;
   end;
-  Result := true;
 end;
 
 end.

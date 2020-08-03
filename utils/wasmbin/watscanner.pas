@@ -24,6 +24,14 @@ type
      weElem, weData, weOffset
    );
 
+  // used only for weNumber
+  TWatNumberFormat = (
+     wnfNo,      // other than number
+     wnfInteger, // 00
+     wnfHex,     // 0xABC
+     wnfFloat    // 0.000
+  );
+
   { TWatScanner }
 
   TWatScanner = class(TObject)
@@ -37,6 +45,7 @@ type
     instrCode : byte;
     ofs       : integer;
     token     : TWatToken;
+    numformat : TWatNumberFormat;
     resText   : string;
     asmCmd    : string;
 
@@ -200,7 +209,9 @@ function TWatScanner.Next: Boolean;
 var
   cmt : string;
   done: boolean;
+  fmt : TCNumberFormat;
 begin
+  numformat := wnfNo;
   Result := idx<=length(buf);
   if not Result then Exit;
 
@@ -240,11 +251,19 @@ begin
         token:=weIdent;
         resText:=ScanWhile(buf, idx, IdBody);
       end else if buf[idx] in SignNumericChars then begin
-        if not ScanNumberC(buf, idx, resText) then begin
+        fmt := ScanNumberC(buf, idx, resText);
+        if fmt = nfError then begin
           token := weError;
           Exit;
         end else
           token:=weNumber;
+        case fmt of
+          nfFloat: numformat := wnfFloat;
+          nfHex: numformat := wnfHex;
+        else
+          numformat := wnfInteger;
+        end;
+
       end else if buf[idx] in AlphaNumChars then begin
         resText:=ScanWhile(buf, idx, GrammarChars);
         GetGrammar(resText, token, instrCode);
