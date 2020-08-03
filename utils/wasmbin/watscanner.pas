@@ -21,7 +21,7 @@ type
      wef32, wef64,
      weType,
      weImport, weGlobal, weTable, weMemory, weLocal, weExport,
-     weElem, weData, weOffset, weAlign
+     weElem, weData, weOffset, weAlign, weEqual
    );
 
   // used only for weNumber
@@ -245,6 +245,9 @@ begin
         inc(idx);
       end else if buf[idx]=')' then begin
         token:=weCloseBrace;
+        inc(idx);
+      end else if buf[idx]='=' then begin
+        token:=weEqual;
         inc(idx);
       end else if buf[idx]='"' then begin
         token:=weString;
