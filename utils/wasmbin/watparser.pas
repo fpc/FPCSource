@@ -348,13 +348,24 @@ begin
 
   ConsumeAnyOpenToken(sc, tk);
 
-  if tk in [weType, weParam, weResult] then
+  if tk in [weType, weParam, weResult] then begin
     ParseTypeUse(sc, dst.functype, true);
+    ConsumeAnyOpenToken(sc, tk);
+  end;
 
   while tk = weLocal do begin
     p:=dst.AddLocal;
     sc.Next;
-    ParseParam(sc, p.id, p.tp);
+    ParseParam(sc, p.id, p.tp, true, false);
+    if p.id = '' then begin
+      while sc.token in WasmTypeTokens do begin
+        p:=dst.AddLocal;
+        TokenTypeToValType(sc.token, p.tp);
+        sc.Next;
+      end;
+    end;
+    if sc.token=weCloseBrace then sc.Next;
+
     ConsumeAnyOpenToken(sc, tk);
   end;
 
