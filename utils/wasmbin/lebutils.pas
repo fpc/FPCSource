@@ -21,6 +21,8 @@
 
 unit lebutils;
 
+{$mode objfpc}{$H+}
+
 interface
 
 uses
