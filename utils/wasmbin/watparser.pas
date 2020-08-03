@@ -490,11 +490,20 @@ procedure ParseMemory(sc: TWatScanner; dst: TWasmMemory);
 begin
   if sc.token=weMemory then sc.Next;
 
-  if sc.token in [weIdent, weNumber] then
+  if sc.token in [weIdent] then
     ParseId(sc, dst.id);
 
-  // todo: parsing of ImportInfo
-  // todo: parsing of ExportInfo
+  // todo: parsing of Import / Export
+
+  if sc.token in [weNumber] then begin
+    dst.min := sc.resInt32(0);
+    sc.Next;
+  end;
+
+  if sc.token in [weNumber] then begin
+    dst.max := sc.resInt32(0);
+    sc.Next;
+  end;
 
   ConsumeToken(sc, weCloseBrace);
 end;
