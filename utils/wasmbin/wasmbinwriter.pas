@@ -571,6 +571,30 @@ begin
 end;
 
 
+procedure WriteF32Operand(dst: TStream; const txt: string);
+var
+  f   : single;
+  err : integer;
+begin
+  //todo: float point parsing!
+  f:=0;
+  Val(txt, f, err);
+  // valid or not, it still should write out the value
+  dst.Write(f, sizeof(f));
+end;
+
+procedure WriteF64Operand(dst: TStream; const txt: string);
+var
+  f   : double;
+  err : integer;
+begin
+  //todo: float point parsing!
+  f:=0;
+  Val(txt, f, err);
+  dst.Write(f, sizeof(f));
+end;
+
+
 procedure TBinWriter.WriteInstList(list: TWasmInstrList; ofsAddition: LongWord);
 var
   i   : integer;
@@ -596,6 +620,9 @@ begin
       ipi64: begin     // signed Leb of maximum 8 bytes
         WriteI64Operand(dst, ci.operandText);
       end;
+
+      ipf32: WriteF32Operand(dst, ci.operandText);
+      ipf64: WriteF64Operand(dst, ci.operandText);
 
       ipi32OrFunc: begin
         if ci.hasRelocIdx then
