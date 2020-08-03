@@ -192,16 +192,6 @@ type
     constructor Create;
   end;
 
-  { TWasmImport }
-
-  TWasmImport = class(TObject)
-    LinkInfo : TLinkInfo;
-    module   : string;
-    name     : string;
-    fn       : TWasmFunc;
-    function AddFunc: TWasmFunc;
-  end;
-
   { TWasmTable }
 
   TWasmTable = class(TObject)
@@ -233,6 +223,23 @@ type
     max   : LongWord; // limit
     LinkInfo   : TLinkInfo;
     exportInfo : TExportInfo;
+  end;
+
+  { TWasmImport }
+
+  TWasmImport = class(TObject)
+    LinkInfo : TLinkInfo;
+    module   : string;
+    name     : string;
+    fn       : TWasmFunc;
+    mem      : TWasmMemory;
+    glob     : TWasmGlobal;
+    table    : TWasmTable;
+    destructor Destroy; override;
+    function AddFunc: TWasmFunc;
+    function AddMemory: TWasmMemory;
+    function AddGlobal: TWasmGlobal;
+    function AddTable: TWasmTable;
   end;
 
   { TWasmModule }
@@ -490,10 +497,40 @@ end;
 
 { TWasmImport }
 
+destructor TWasmImport.Destroy;
+begin
+  mem.Free;
+  fn.Free;
+  glob.Free;
+  table.Free;
+  inherited Destroy;
+end;
+
 function TWasmImport.AddFunc: TWasmFunc;
 begin
   if not Assigned(fn) then fn:= TWasmFunc.Create;
   Result:=fn;
+end;
+
+function TWasmImport.AddMemory: TWasmMemory;
+begin
+  if not Assigned(mem) then
+    mem := TWasmMemory.Create;
+  Result := mem;
+end;
+
+function TWasmImport.AddGlobal: TWasmGlobal;
+begin
+  if not Assigned(glob) then
+    glob := TWasmGlobal.Create;
+  Result := glob;
+end;
+
+function TWasmImport.AddTable: TWasmTable;
+begin
+  if not Assigned(table) then
+    table := TWasmTable.Create;
+  Result := table;
 end;
 
 { TWasmExport }

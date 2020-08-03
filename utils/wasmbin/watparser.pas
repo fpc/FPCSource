@@ -578,36 +578,6 @@ begin
   ConsumeToken(sc, weCloseBrace);
 end;
 
-
-procedure ParseImport(sc: TWatScanner; dst: TWasmImport);
-var
-  tk      : TWatToken;
-begin
-  if sc.token=weImport then
-    sc.Next;
-
-  if sc.token<>weString then
-    ErrorExpectButFound(sc, 'string');
-  dst.module := sc.resWasmString;
-  sc.Next;
-
-  if sc.token<>weString then
-    ErrorExpectButFound(sc, 'string');
-  dst.name := sc.resWasmString;
-  sc.Next;
-
-  ConsumeAnyOpenToken(sc, tk);
-  case tk of
-    weAsmSymbol: ;
-    weFunc: begin
-      ParseFunc(sc, dst.AddFunc);
-    end;
-  else
-    ErrorExpectButFound(sc, 'importdesc', TokenStr[sc.token]);
-  end;
-  ConsumeToken(sc, weCloseBrace);
-end;
-
 procedure ConsumeAsmSym(sc: TWatScanner; dst: TAsmSymList);
 begin
   dst.Push(sc.asmCmd, sc.resText);
@@ -661,6 +631,45 @@ begin
 
   ConsumeToken(sc, weCloseBrace);
 end;
+
+procedure ParseImport(sc: TWatScanner; dst: TWasmImport);
+var
+  tk      : TWatToken;
+begin
+  if sc.token=weImport then
+    sc.Next;
+
+  if sc.token<>weString then
+    ErrorExpectButFound(sc, 'string');
+  dst.module := sc.resWasmString;
+  sc.Next;
+
+  if sc.token<>weString then
+    ErrorExpectButFound(sc, 'string');
+  dst.name := sc.resWasmString;
+  sc.Next;
+
+  ConsumeAnyOpenToken(sc, tk);
+  case tk of
+    weAsmSymbol: ;
+    weFunc: begin
+      ParseFunc(sc, dst.AddFunc);
+    end;
+    weMemory: begin
+      ParseMemory(sc, dst.AddMemory);
+    end;
+    weTable: begin
+      ParseTable(sc, dst.AddTable);
+    end;
+    weGlobal: begin
+      ParseGlobal(sc, dst.AddGlobal);
+    end;
+  else
+    ErrorExpectButFound(sc, 'importdesc', TokenStr[sc.token]);
+  end;
+  ConsumeToken(sc, weCloseBrace);
+end;
+
 
 procedure ParseModuleInt(sc: TWatScanner; dst: TWasmModule);
 var
