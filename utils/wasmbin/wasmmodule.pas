@@ -21,6 +21,8 @@
 
 unit wasmmodule;
 
+{$mode objfpc}{$H+}
+
 interface
 
 uses
