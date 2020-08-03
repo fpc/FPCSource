@@ -160,8 +160,6 @@ type
     idNum    : Integer;     // reference number (after Normalization)
     instr    : TWasmInstrList;
     functype : TWasmFuncType;
-
-    codeRefCount : Integer; // number of times the function was referenced from the code
     constructor Create;
     destructor Destroy; override;
     function AddLocal: TWasmParam;
