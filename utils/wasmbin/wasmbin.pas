@@ -94,6 +94,7 @@ function ValTypeToStr(id: integer): string;
 // the name consists of
 //    size - in butes Leb128
 //    bytes - in utf8 format
+function ReadName(st: TStream): string;
 function GetName(sr: TStream): string;
 
 // reads
@@ -141,13 +142,18 @@ begin
 
 end;
 
-function GetName(sr: TStream): string;
+function ReadName(st: TStream): string;
 var
   ln : LongWord;
 begin
-  ln := ReadU(sr);
+  ln := ReadU(st);
   SetLength(result, ln);
-  if ln>0 then sr.Read(result[1], ln);
+  if ln>0 then st.Read(result[1], ln);
+end;
+
+function GetName(sr: TStream): string;
+begin
+  Result := ReadName(sr);
 end;
 
 function GetU32(sr: TStream): UInt32;

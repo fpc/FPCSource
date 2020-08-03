@@ -5,7 +5,7 @@ unit wasmlink;
 interface
 
 uses
-  Classes, SysUtils, lebutils;
+  Classes, SysUtils, lebutils, wasmbin;
 
 const
   SectionName_Linking = 'linking';
@@ -67,9 +67,27 @@ const
 
 type
   TSymInfo = record
-    symkind : UInt8;
+    kind    : UInt8;
     flags   : UInt32;
+
+    hasSymIndex : Boolean; // always true for Kind non Data
+                           // for Data it's true for defined symbols (see flags);
+    symindex   : UInt32; // either symbol or data symbol offset
+    hasSymName : Boolean;
+    symname    : string;
+    dataofs    : integer; // only if Kind is Data and hasSymIndex = true;
+    datasize   : integer;
+
   end;
+
+// The symbol type. One of:
+const
+  SYMTAB_FUNCTION = 0;
+  SYMTAB_DATA     = 1;
+  SYMTAB_GLOBAL   = 2;
+  SYMTAB_SECTION  = 3;
+  SYMTAB_EVENT    = 4;
+  SYMTAB_TABLE    = 5;
 
 //  The current set of valid flags for symbols are:
 const
@@ -96,6 +114,7 @@ const
   // this must match whether the symbol is an import or is defined;
   // for data symbols, determines whether a segment is specified.
   WASM_SYM_UNDEFINED         = $10;
+  WASM_SYM_IMPORTED          = WASM_SYM_UNDEFINED;
 
   // The symbol is intended to be exported from the wasm module to the host
   // environment. This differs from the visibility flags in that it effects
@@ -113,17 +132,21 @@ const
 
 function ReadMetaData(st: TStream; out m:TLinkingMetadata): Boolean;
 function ReadLinkSubSect(st: TStream; out m: TLinkinSubSection): Boolean;
+function ReadSymInfo(st: TStream; out m: TSymInfo): Boolean;
 
 // dumps linking information. Note: that the name of the "Linking" section
 // must have already been read
 procedure DumpLinking(st: TStream; secsize: integer);
+
+function SubSecTypeToStr(b: Byte): string;
+function SymKindToStr(b: Byte): string;
 
 implementation
 
 function ReadMetaData(st: TStream; out m:TLinkingMetadata): Boolean;
 begin
   FillChar(m, sizeof(m), 0);
-  m.version := ReadU(st);
+  m.version := st.ReadByte;
   Result:=true;
 end;
 
@@ -132,7 +155,36 @@ begin
   FillChar(m, sizeof(m), 0);
   m.sectype := ReadU(st);
   m.length := ReadU(st);
-  Result:=true;
+  Result := true;
+end;
+
+function ReadSymInfo(st: TStream; out m: TSymInfo): Boolean;
+begin
+  FillChar(m, sizeof(m), 0);
+  m.kind := st.ReadByte;
+  m.flags := ReadU(st);
+
+  if m.kind = SYMTAB_DATA then begin
+    m.hasSymName := true; // always exist
+    m.symname := ReadName(st);
+
+    m.hasSymIndex := (m.flags and WASM_SYM_UNDEFINED)=0;
+    if m.hasSymIndex then begin
+      m.symindex := ReadU(st);
+      m.dataofs := ReadU(st);
+      m.datasize := ReadU(st);
+    end;
+
+  end else begin
+    m.hasSymIndex := true; // always exists
+    m.symindex := ReadU(st);
+
+    m.hasSymName := ((m.flags and WASM_SYM_IMPORTED) = 0) or ((m.flags and WASM_SYM_EXPLICIT_NAME) > 0); // imported
+    if m.hasSymName then
+      m.symname:=ReadName(st);
+  end;
+
+  Result := true;
 end;
 
 procedure DumpLinking(st: TStream; secsize: integer);
@@ -140,14 +192,57 @@ var
   mt  : TLinkingMetadata;
   en  : Int64;
   sub : TLinkinSubSection;
+  cnt : LongWord;
+  nx  : Int64;
+  i   : integer;
+  si  : TSymInfo;
 begin
   en := st.Position+secsize;
   ReadMetadata(st, mt);
   writeln('version: ', mt.version);
   while st.Position<en do begin
     ReadLinkSubSect(st, sub);
-    writeln(sub.sectype);
-    st.Position:=st.Position+sub.length;
+    nx := st.Position+sub.length;
+
+    writeln('subsec=',SubSecTypeToStr(sub.sectype),' ',sub.sectype);
+    cnt := ReadU(st);
+    writeln('- symbol table [count=', cnt,']');
+    for i:=0 to cnt-1 do begin
+      write('  - ',i,' ');
+      ReadSymInfo(st, si);
+      write(SymKindToStr(si.kind),' ',IntToHex(si.flags,8));
+      if si.hasSymName then write(' ',si.symname);
+      writeln;
+      //writeln(si.symname);
+    end;
+
+    st.Position:=nx;
+  end;
+end;
+
+function SubSecTypeToStr(b: Byte): string;
+begin
+  case b of
+    WASM_SEGMENT_INFO: Result := 'WASM_SEGMENT_INFO';
+    WASM_INIT_FUNCS:   Result := 'WASM_INIT_FUNCS';
+    WASM_COMDAT_INFO:  Result := 'WASM_COMDAT_INFO';
+    WASM_SYMBOL_TABLE: Result := 'WASM_SYMBOL_TABLE';
+  else
+    Result := Format('UNKNOWN %d',[b]);
+  end;
+end;
+
+function SymKindToStr(b: Byte): string;
+begin
+  case b of
+    SYMTAB_FUNCTION: Result := 'F';
+    SYMTAB_DATA:     Result := 'D';
+    SYMTAB_GLOBAL:   Result := 'G';
+    SYMTAB_SECTION:  Result := 'S';
+    SYMTAB_EVENT:    Result := 'E';
+    SYMTAB_TABLE:    Result := 'T';
+  else
+    Result := 'U'+IntToStR(b);
   end;
 end;
 
