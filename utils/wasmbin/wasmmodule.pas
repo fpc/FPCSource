@@ -173,7 +173,11 @@ type
   { TWasmData }
 
   TWasmData = class(TObject)
-    id   : TWasmData;
+    id       : TWasmId;
+    offset   : TWasmInstrList;
+    databuf  : array of byte;
+    function StartOffset: TWasmInstrList;
+    destructor Destroy; override;
   end;
 
   { TWasmMemory }
@@ -315,6 +319,21 @@ begin
   for i:=0 to l.Count-1 do
     TObject(l[i]).Free;
   l.Clear;
+end;
+
+{ TWasmData }
+
+function TWasmData.StartOffset: TWasmInstrList;
+begin
+  if not Assigned(offset) then
+    offset := TWasmInstrList.Create;
+  Result:=offset;
+end;
+
+destructor TWasmData.Destroy;
+begin
+  if Assigned(offset) then offset.Free;
+  inherited Destroy;
 end;
 
 { TWasmElement }
