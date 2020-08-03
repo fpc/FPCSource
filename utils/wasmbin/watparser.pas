@@ -228,20 +228,20 @@ begin
 
   if tk = weType then begin
     if not ParseNumOfId(sc, nm, id) then Exit;
-    if nm>=0 then dst.typeIdx:=nm
-    else dst.typeId:=id;
+    if nm>=0 then dst.functype.typeNum:=nm
+    else dst.functype.typeIdx:=id;
     ConsumeAnyOpenToken(sc, tk);
   end;
 
   while tk = weParam do begin
-    p:=dst.GetInlineType.AddParam;
+    p:=dst.functype.AddParam;
     sc.Next;
     ParseParam(sc, p.id, p.tp);
     ConsumeAnyOpenToken(sc, tk);
   end;
 
   while tk = weResult do begin
-    p:=dst.GetInlineType.AddResult;
+    p:=dst.functype.AddResult;
     sc.Next;
     ParseParam(sc, p.id, p.tp, false);
     ConsumeAnyOpenToken(sc, tk);

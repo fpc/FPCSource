@@ -13,11 +13,17 @@ type
 
   { TWasmType }
 
-  TWasmType = class(TObject)
+  // function signature
+
+  { TWasmFuncType }
+
+  TWasmFuncType = class(TObject)
   private
     params  : TList;
     results : TList;
   public
+    typeNum : Integer; // if Idx < 0 then type is declared from typeDef
+    typeIdx : string;  // if typeID='' then type is declared from typeDef
     constructor Create;
     destructor Destroy; override;
     function AddResult(tp: byte = 0): TWasmParam;
@@ -27,6 +33,8 @@ type
     function GetResult: TWasmParam;  overload;
     function ResultCount: Integer;
     function ParamCount: Integer;
+
+    function isExplicitRef: Boolean;
   end;
 
   TWasmInstr = class(TObject)
@@ -54,16 +62,13 @@ type
 
   TWasmFunc = class(TObject)
   private
-    finlineType: TWasmType;
     locals:  TList;
   public
     id : string;
-    typeIdx : Integer; // if Idx < 0 then type is declared from typeDef
-    typeId  : string;  // if tpyeID='' then type is declared from typeDef
-    instr   : TWasmInstrList;
+    instr    : TWasmInstrList;
+    functype : TWasmFuncType;
     constructor Create;
     destructor Destroy; override;
-    function GetInlineType: TWasmType;
     function AddLocal: TWasmParam;
     function LocalsCount: integer;
   end;
@@ -92,8 +97,8 @@ type
     function GetFunc(i: integer): TWasmFunc;
     function FuncCount: integer;
 
-    function AddType: TWasmType;
-    function GetTypes(i: integer): TWasmType;
+    function AddType: TWasmFuncType;
+    function GetTypes(i: integer): TWasmFuncType;
     function TypesCount: integer;
 
     function AddExport: TWasmExport;
@@ -147,16 +152,17 @@ begin
   Result:=items.Count;
 end;
 
-{ TWasmType }
+{ TWasmFuncType }
 
-constructor TWasmType.Create;
+constructor TWasmFuncType.Create;
 begin
   inherited Create;
+  typeNum:=-1;
   params:=Tlist.Create;
   results:=Tlist.Create;
 end;
 
-destructor TWasmType.Destroy;
+destructor TWasmFuncType.Destroy;
 begin
   ClearList(params);
   ClearList(results);
@@ -165,14 +171,14 @@ begin
   inherited Destroy;
 end;
 
-function TWasmType.AddResult(tp: byte): TWasmParam;
+function TWasmFuncType.AddResult(tp: byte): TWasmParam;
 begin
   Result:=TWasmParam.Create;
   Result.tp:=tp;
   results.Add(Result);
 end;
 
-function TWasmType.AddParam(tp: byte; const id: string): TWasmParam;
+function TWasmFuncType.AddParam(tp: byte; const id: string): TWasmParam;
 begin
   Result:=TWasmParam.Create;
   Result.tp:=tp;
@@ -180,7 +186,7 @@ begin
   params.Add(Result);
 end;
 
-function TWasmType.GetParam(i: integer): TWasmParam;
+function TWasmFuncType.GetParam(i: integer): TWasmParam;
 begin
   if (i>=0) and (i<params.Count) then
     Result:=TWasmParam(params[i])
@@ -188,7 +194,7 @@ begin
     Result:=nil;
 end;
 
-function TWasmType.GetResult(i: integer): TWasmParam;
+function TWasmFuncType.GetResult(i: integer): TWasmParam;
 begin
   if (i>=0) and (i<results.Count) then
     Result:=TWasmParam(results[i])
@@ -196,19 +202,24 @@ begin
     Result:=nil;
 end;
 
-function TWasmType.GetResult: TWasmParam;
+function TWasmFuncType.GetResult: TWasmParam;
 begin
   Result:=GetResult(0);
 end;
 
-function TWasmType.ResultCount: Integer;
+function TWasmFuncType.ResultCount: Integer;
 begin
   Result:=results.Count;
 end;
 
-function TWasmType.ParamCount: Integer;
+function TWasmFuncType.ParamCount: Integer;
 begin
   Result:=params.Count;
+end;
+
+function TWasmFuncType.isExplicitRef: Boolean;
+begin
+  Result:=(typeIdx<>'') or (typeNum>=0);
 end;
 
 { TWasmModule }
@@ -238,9 +249,9 @@ begin
   funcs.Add(Result);
 end;
 
-function TWasmModule.AddType: TWasmType;
+function TWasmModule.AddType: TWasmFuncType;
 begin
-  Result:=TWasmType.Create;
+  Result:=TWasmFuncType.Create;
   types.Add(Result);
 end;
 
@@ -257,10 +268,10 @@ begin
   Result:=funcs.Count;
 end;
 
-function TWasmModule.GetTypes(i: integer): TWasmType;
+function TWasmModule.GetTypes(i: integer): TWasmFuncType;
 begin
   if (i>=0) and (i<types.Count) then
-    Result:=TWasmType(types[i])
+    Result:=TWasmFuncType(types[i])
   else
     Result:=nil;
 end;
@@ -294,24 +305,18 @@ end;
 constructor TWasmFunc.Create;
 begin
   inherited;
-  typeIdx:=-1;
   locals:=TList.Create;
   instr:=TWasmInstrList.Create;
+  functype:=TWasmFuncType.Create;
 end;
 
 destructor TWasmFunc.Destroy;
 begin
   ClearList(locals);
   locals.Free;
-  finlineType.Free;
+  functype.Free;
   instr.Free;
   inherited Destroy;
-end;
-
-function TWasmFunc.GetInlineType: TWasmType;
-begin
-  if not Assigned(fInlineType) then finlineType:=TWasmType.Create;
-  Result:=finlineType;
 end;
 
 function TWasmFunc.AddLocal: TWasmParam;
