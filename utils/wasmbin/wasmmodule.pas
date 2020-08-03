@@ -1050,11 +1050,16 @@ begin
     f.idNum := fnIdx;
 
     NormalizeFuncType(m, f.functype);
+
+    inc(fnIdx);
+  end;
+
+  // normalizing function body
+  for i:=0 to m.FuncCount-1 do begin
+    f:=m.GetFunc(i);
     // finding the reference in functions
     // populating "nums" where string "index" is used
     NormalizeInst(m, f, f.instr);
-
-    inc(fnIdx);
   end;
 
   // normalizing exports
