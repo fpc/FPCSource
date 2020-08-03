@@ -23,6 +23,8 @@ unit wasmlink;
 // The unit covers the WebAssembly static linking convention
 // as described at https://github.com/WebAssembly/tool-conventions/blob/master/Linking.md
 
+{$mode objfpc}{$H+}
+
 interface
 
 uses
