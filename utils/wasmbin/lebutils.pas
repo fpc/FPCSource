@@ -8,14 +8,8 @@ uses
 function ReadU(src: TStream): UInt64;
 function ReadS(src: TStream; bits: Integer): Int64;
 
-procedure WriteU8 (src: TStream; vl: UInt8);
-procedure WriteU16(src: TStream; vl: UInt16);
-procedure WriteU32(src: TStream; vl: UInt32);
-procedure WriteU64(src: TStream; vl: UInt64);
-procedure WriteS8 (src: TStream; vl: Int8);
-procedure WriteS16(src: TStream; vl: Int16);
-procedure WriteS32(src: TStream; vl: Int32);
-procedure WriteS64(src: TStream; vl: Int64);
+procedure WriteU(src: TStream; vl: UInt64; bits: integer; fixedSize: Boolean = false);
+procedure WriteS(src: TStream; vl: Int64; bits: integer);
 
 implementation
 
@@ -30,7 +24,9 @@ begin
     b := src.ReadByte;
     Result := Result or ((b and $7f) shl sh);
     if (b and $80)>0 then inc(sh, 7)
-    else break;
+    else begin
+      break;
+    end;
   end;
 end;
 
@@ -39,53 +35,73 @@ var
   b  : byte;
   sh : Integer;
 begin
-  result := 0;
+  Result := 0;
   sh := 0;
   repeat
     b := src.ReadByte;
-    result := Result or ((b and $77) shl sh);
+    Result := Result or ((b and $7F) shl sh);
     inc(sh, 7);
   until ((b and $80) = 0);
 
   // sign bit of byte is second high order bit (0x40)
   if (sh < bits) and ((b and $40) > 0) then
     // sign extend
-    result :=  result or ( (not 0) shl sh);
+    result := result or ( (not 0) shl sh);
 end;
 
-procedure WriteU8(src: TStream; vl: UInt8);
+procedure WriteU(src: TStream; vl: UInt64; bits: integer; fixedSize: Boolean = false);
+var
+  b: byte;
 begin
+  if (bits < 0) then bits := sizeof(vl)*8;
 
+  repeat
+    b := (vl and $7f);
+    vl := vl shr 7;
+
+    if bits >0 then begin
+      dec(bits,7);
+      if bits<0 then bits := 0;
+    end;
+
+    if (vl <> 0) or (fixedSize and (bits > 0)) then
+      b := b or $80;
+
+    src.WriteByte(b);
+  until ((vl=0) and not fixedSize) or (bits = 0)
 end;
 
-procedure WriteU16(src: TStream; vl: UInt16);
+procedure WriteS(src: TStream; vl: Int64; bits: integer);
+var
+  more     : Boolean;
+  negative : Boolean;
+  b : byte;
 begin
+  negative := vl < 0;
 
-end;
+  more := true;
+  negative := (vl < 0);
 
-procedure WriteU32(src: TStream; vl: UInt32);
-begin
+  if (bits < 0) then bits := sizeof(vl);
 
-end;
+  while more do begin
+    b := (vl and $7f);
+    vl := vl shr 7;
 
-procedure WriteU64(src: TStream; vl: UInt64);
-begin
-end;
+    { the following is only necessary if the implementation of >>= uses a
+       logical shift rather than an arithmetic shift for a signed left operand }
+    if (negative) then
+      vl := vl or ((not 0) shl (bits - 7)); // sign extend
 
-procedure WriteS8 (src: TStream; vl: Int8);
-begin
-end;
-
-procedure WriteS16(src: TStream; vl: Int16);
-begin
-end;
-
-procedure WriteS32(src: TStream; vl: Int32);
-begin
-end;
-
-procedure WriteS64(src: TStream; vl: Int64);
-begin
+    { sign bit of byte is second high order bit (0x40) }
+    if ((vl = 0) and (b and $40 = 0))
+      or ((vl = -1) and (b and $40 <> 0))
+    then
+      more := false
+    else
+      b := b or $80;
+    src.WriteByte(b);
+  end;
 end;
 
 end.
