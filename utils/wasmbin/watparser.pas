@@ -201,8 +201,8 @@ var
   ci  : TWasmInstr;
 begin
   while sc.token=weInstr do begin
-    sc.Next;
     ci := dst.AddInstr(sc.instrCode);
+    sc.Next;
     case INST_FLAGS[ci.code].Param of
       ipNone:; // do nothing
 
@@ -214,6 +214,7 @@ begin
         if sc.token<>weNumber then
           ErrorExpectButFound(sc, 'number');
         ci.operandText := sc.resText;
+        sc.Next;
       end;
 
       //ip2Leb,  // memory arguments, ask for offset + align
@@ -311,6 +312,36 @@ begin
   ConsumeToken(sc, weCloseBrace);
 end;
 
+
+procedure ParseImport(sc: TWatScanner; dst: TWasmImport);
+var
+  tk      : TWatToken;
+begin
+  if sc.token=weImport then
+    sc.Next;
+
+  if sc.token<>weString then
+    ErrorExpectButFound(sc, 'string');
+  dst.module := sc.resWasmString;
+  sc.Next;
+
+  if sc.token<>weString then
+    ErrorExpectButFound(sc, 'string');
+  dst.name := sc.resWasmString;
+  sc.Next;
+
+  ConsumeAnyOpenToken(sc, tk);
+  case tk of
+    weAsmSymbol: ;
+    weFunc: begin
+      ParseFunc(sc, dst.AddFunc);
+    end;
+  else
+    ErrorExpectButFound(sc, 'importdesc', TokenStr[sc.token]);
+  end;
+  ConsumeToken(sc, weCloseBrace);
+end;
+
 procedure ConsumeAsmSym(sc: TWatScanner; dst: TAsmSymList);
 begin
   dst.Push(sc.asmCmd, sc.resText);
@@ -319,9 +350,10 @@ end;
 
 procedure ParseModuleInt(sc: TWatScanner; dst: TWasmModule);
 var
-  tk : TWatToken;
+  tk      : TWatToken;
   symlist : TAsmSymList;
-  f : TWasmFunc;
+  f       : TWasmFunc;
+  imp     : TWasmImport;
 begin
   if not ConsumeOpenToken(sc, weModule) then
     ErrorExpectButFound(sc, 'module');
@@ -334,6 +366,12 @@ begin
       case tk of
         weAsmSymbol:
           ConsumeAsmSym(sc, symlist);
+        weImport: begin
+          imp:=dst.AddImport;
+          symlist.ToLinkInfo(imp.LinkInfo);
+          ParseImport(sc, imp);
+          symlist.Clear;
+        end;
         weFunc: begin
           f:=dst.AddFunc;
           symlist.ToLinkInfo(f.LinkInfo);
