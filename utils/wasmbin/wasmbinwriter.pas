@@ -692,6 +692,8 @@ var
   sc : TSectionRec;
   i  : integer;
   im : TWasmImport;
+const
+  isMutableFlag : array [boolean] of byte = (global_const, global_mut);
 begin
   SectionBegin(SECT_IMPORT, sc);
 
@@ -704,6 +706,17 @@ begin
     if Assigned(im.fn) then begin
       dst.WriteByte(IMPDESC_FUNC);
       WriteU32(dst, im.fn.functype.typeNum);
+    end else if Assigned(im.mem) then begin
+      dst.WriteByte(IMPDESC_MEM);
+      WriteLimit(dst, im.mem.min, im.mem.max)
+    end else if Assigned(im.table) then begin
+      dst.WriteByte(IMPDESC_TABLE);
+      dst.WriteByte(im.table.elemsType);
+      WriteLimit(dst, im.table.min, im.table.max);
+    end else if Assigned(im.glob) then begin
+      dst.WriteByte(IMPDESC_GLOBAL);
+      dst.WriteByte(im.glob.tp);
+      dst.WriteByte(isMutableFlag[im.glob.isMutable]);
     end;
   end;
   SectionEnd(sc);

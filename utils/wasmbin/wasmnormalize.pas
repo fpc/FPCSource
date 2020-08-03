@@ -222,6 +222,8 @@ begin
     de := m.AddElement;
     de.tableId.idNum := t.id.idNum;
 
+    if t.elemsType = 0 then t.elemsType := ELEMTYPE_FUNC;
+
     de.funcCount:=se.funcCount;
     if se.funcCount>0 then begin
       SetLength(de.funcs, de.funcCount);
