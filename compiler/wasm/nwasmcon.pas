@@ -365,19 +365,17 @@ implementation
           setconsttype:=sct_construct;
         result:=nil;
         case setconsttype of
-(*
-          sct_constsymbol:
-            begin
-              { normally a codegen pass routine, but we have to insert a typed
-                const in case the set constant does not exist yet, and that
-                should happen in pass_1 (especially since it involves creating
-                new nodes, which may even have to be tacked on to this code in
-                case it's the unit initialization code) }
-              handlevarsetconst;
-              { no smallsets }
-              expectloc:=LOC_CREFERENCE;
-            end;
-*)
+          //sct_constsymbol:
+          //  begin
+          //    { normally a codegen pass routine, but we have to insert a typed
+          //      const in case the set constant does not exist yet, and that
+          //      should happen in pass_1 (especially since it involves creating
+          //      new nodes, which may even have to be tacked on to this code in
+          //      case it's the unit initialization code) }
+          //    handlevarsetconst;
+          //    { no smallsets }
+          //    expectloc:=LOC_CREFERENCE;
+          //  end;
           sct_notransform:
             begin
               result:=inherited pass_1;

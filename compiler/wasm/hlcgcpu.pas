@@ -2512,27 +2512,26 @@ implementation
             Internalerror(2019083004); // no support for symbol table calls
             opc:=a_call_indirect; // todo: need a reference to a (funccall) table
 
-            {case tobjectdef(pd.owner.defowner).objecttype of
-
-              odt_javaclass:
-                begin
-                  if (po_classmethod in pd.procoptions) or
-                     (pd.proctypeoption=potype_operator) then
-                    opc:=a_invokestatic
-                  else if (pd.visibility=vis_strictprivate) or
-                     (pd.proctypeoption=potype_constructor) or
-                     inheritedcall then
-                    opc:=a_invokespecial
-                  else
-                    opc:=a_invokevirtual;
-                end;
-              odt_interfacejava:
-                { static interface methods are not allowed }
-                opc:=a_invokeinterface;
-              else
-                internalerror(2010122601);
-            end;
-            }
+            //case tobjectdef(pd.owner.defowner).objecttype of
+            //
+            //  odt_javaclass:
+            //    begin
+            //      if (po_classmethod in pd.procoptions) or
+            //         (pd.proctypeoption=potype_operator) then
+            //        opc:=a_invokestatic
+            //      else if (pd.visibility=vis_strictprivate) or
+            //         (pd.proctypeoption=potype_constructor) or
+            //         inheritedcall then
+            //        opc:=a_invokespecial
+            //      else
+            //        opc:=a_invokevirtual;
+            //    end;
+            //  odt_interfacejava:
+            //    { static interface methods are not allowed }
+            //    opc:=a_invokeinterface;
+            //  else
+            //    internalerror(2010122601);
+            //end;
           end;
         recordsymtable:
           begin
