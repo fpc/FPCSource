@@ -5,7 +5,7 @@ unit watparser;
 interface
 
 uses
-  SysUtils, Classes, wasmtext, wasmmodule, wasmbin, watscanner;
+  SysUtils, Classes, wasmtext, wasmmodule, watscanner, wasmbincode, wasmbin;
 
 type
   TParseResult = record
@@ -17,7 +17,7 @@ type
 
 const
   TokenStr : array[TWatToken] of string = (
-     'uknown', 'end of file', 'error',
+     'uknown', 'error',
      'index',
      'string', 'number', '(', ')',
      'linksymbol',
@@ -57,11 +57,6 @@ begin
   raise EParserError.Create(errMsg, sc.ofs);
 end;
 
-procedure ErrorUnexpected(sc: TWatScanner; const tokenstr: string = '');
-begin
-  ParseError(sc, 'unexpected '+tokenstr);
-end;
-
 procedure ErrorExpectButFound(sc: TWatScanner; const expected: string; const butfound: string  =''); overload;
 var
   r : string;
@@ -79,12 +74,18 @@ end;
 procedure ConsumeAnyOpenToken(sc: TWatScanner; out tk: TWatToken;
   out hadOpenBrace: Boolean); overload;
 begin
-  sc.Next;
   hadOpenBrace := sc.token = weOpenBrace;
   if hadOpenBrace then sc.Next;
   tk:=sc.token;
 end;
 
+procedure ConsumeAnyOpenToken(sc: TWatScanner); overload;
+var
+  tk: TWatToken;
+  op: Boolean;
+begin
+  ConsumeAnyOpenToken(sc, tk, op);
+end;
 
 procedure ConsumeAnyOpenToken(sc: TWatScanner; out tk: TWatToken); overload;
 var
@@ -124,7 +125,7 @@ begin
   end;
 
   case sc.token of
-    weNumber: num:=sc.GetInt32;
+    weNumber: num:=sc.resInt32;
     weIdent: id:=sc.resText;
   else
     ErrorExpectButFound(sc, 'index', TokenStr[sc.token]);
@@ -167,6 +168,48 @@ begin
     ConsumeToken(sc, weCloseBrace);
 end;
 
+procedure ParseNumOrIdx(sc: TWatScanner; out num: integer; out idx: string);
+begin
+  if sc.token = weIdent then begin
+    idx := sc.resText;
+    num := -1;
+  end else if sc.token = weNumber then begin
+    idx := '';
+    num := sc.resInt32;
+  end else
+    ErrorExpectButFound(sc, 'number');
+  sc.Next;
+end;
+
+procedure ParseInstrList(sc: TWatScanner; dst: TWasmInstrList);
+var
+  ci  : TWasmInstr;
+begin
+  while sc.token=weInstr do begin
+    sc.Next;
+    ci := dst.AddInstr(sc.instrCode);
+    case INST_FLAGS[ci.code].Param of
+      ipNone:; // do nothing
+
+      ipLeb:
+        ParseNumOrIdx(sc, ci.operandNum, ci.operandIdx);
+
+      ipi32,ipi64,ipf32,ipf64:
+      begin
+        if sc.token<>weNumber then
+          ErrorExpectButFound(sc, 'number');
+        ci.operandText := sc.resText;
+      end;
+
+      //ip2Leb,  // memory arguments, ask for offset + align
+      //ipTable,   // a complex structure... used for br_table only
+      //ipResType  // result type used for blocks, such as If, block or loop
+
+    end;
+  end;
+
+end;
+
 procedure ParseFunc(sc: TWatScanner; dst: TWasmFunc);
 var
   nm : integer;
@@ -175,77 +218,105 @@ var
   tk  : TWatToken;
 begin
   if sc.token=weFunc then sc.Next;
-  repeat
-    if sc.token=weIdent then begin
-      dst.id:=sc.resText;
-      sc.Next;
-    end;
 
-    ConsumeAnyOpenToken(sc, tk);
-
-    if tk = weType then begin
-      if not ParseNumOfId(sc, nm, id) then Exit;
-      if nm>=0 then dst.typeIdx:=nm
-      else dst.typeId:=id;
-      ConsumeAnyOpenToken(sc, tk);
-    end;
-
-    while tk = weParam do begin
-      p:=dst.GetInlineType.AddParam;
-      sc.Next;
-      ParseParam(sc, p.id, p.tp);
-      ConsumeAnyOpenToken(sc, tk);
-    end;
-
-    while tk = weResult do begin
-      p:=dst.GetInlineType.AddResult;
-      sc.Next;
-      ParseParam(sc, p.id, p.tp, false);
-      ConsumeAnyOpenToken(sc, tk);
-    end;
-
-    while tk = weLocal do begin
-      p:=dst.AddLocal;
-      sc.Next;
-      ParseParam(sc, p.id, p.tp);
-      ConsumeAnyOpenToken(sc, tk);
-    end;
-
-    if not (tk in [weInstr, weCloseBrace]) then
-      ErrorExpectButFound(sc, 'identifier');
-
-    while tk<>weCloseBrace do begin
-      ConsumeToken(sc, weInstr);
-    end;
-
-  until sc.token=weCloseBrace;
-  sc.Next;
-end;
-
-function ParseModuleInt(sc: TWatScanner; dst: TWasmModule): Boolean;
-begin
-  if not ConsumeOpenToken(sc, weModule) then begin
-    ErrorExpectButFound(sc, 'module');
-    Exit;
+  if sc.token=weIdent then begin
+    dst.id:=sc.resText;
+    sc.Next;
   end;
 
-  repeat
+  ConsumeAnyOpenToken(sc, tk);
+
+  if tk = weType then begin
+    if not ParseNumOfId(sc, nm, id) then Exit;
+    if nm>=0 then dst.typeIdx:=nm
+    else dst.typeId:=id;
+    ConsumeAnyOpenToken(sc, tk);
+  end;
+
+  while tk = weParam do begin
+    p:=dst.GetInlineType.AddParam;
     sc.Next;
-    if sc.token=weOpenBrace then begin
-      sc.Next;
+    ParseParam(sc, p.id, p.tp);
+    ConsumeAnyOpenToken(sc, tk);
+  end;
 
-      if sc.token = weFunc then begin
+  while tk = weResult do begin
+    p:=dst.GetInlineType.AddResult;
+    sc.Next;
+    ParseParam(sc, p.id, p.tp, false);
+    ConsumeAnyOpenToken(sc, tk);
+  end;
+
+  while tk = weLocal do begin
+    p:=dst.AddLocal;
+    sc.Next;
+    ParseParam(sc, p.id, p.tp);
+    ConsumeAnyOpenToken(sc, tk);
+  end;
+
+  if not (sc.token in [weInstr, weCloseBrace]) then
+    ErrorExpectButFound(sc, 'identifier');
+
+  ParseInstrList(sc, dst.instr);
+  ConsumeToken(sc, weCloseBrace);
+end;
+
+procedure ParseExport(sc: TWatScanner; dst: TWasmExport);
+begin
+  if sc.token=weExport then
+    sc.Next;
+
+  if sc.token<>weString then
+    ErrorExpectButFound(sc, 'string');
+
+  dst.name := sc.resText;
+  sc.Next;
+
+  ConsumeAnyOpenToken(sc);
+  case sc.token of
+    weFunc:  dst.exportType:=EXPDESC_FUNC;
+    weTable: dst.exportType:=EXPDESC_TABLE;
+    weMemory: dst.exportType:=EXPDESC_MEM;
+    weGlobal: dst.exportType:=EXPDESC_GLOBAL;
+  else
+    ErrorExpectButFound(sc, 'func');
+  end;
+
+  sc.Next;
+  case sc.token of
+    weNumber:
+      dst.exportNum := sc.resInt32;
+    weIdent:
+      dst.exportIdx := sc.resText;
+  else
+    ErrorExpectButFound(sc, 'index');
+  end;
+  sc.Next;
+  ConsumeToken(sc, weCloseBrace);
+  ConsumeToken(sc, weCloseBrace);
+end;
+
+procedure ParseModuleInt(sc: TWatScanner; dst: TWasmModule);
+var
+  tk : TWatToken;
+begin
+  if not ConsumeOpenToken(sc, weModule) then
+    ErrorExpectButFound(sc, 'module');
+
+  sc.Next;
+  ConsumeAnyOpenToken(sc, tk);
+  while tk <> weCloseBrace do begin
+    case tk of
+      weFunc:
         ParseFunc(sc, dst.AddFunc);
-      end;
-
-    end else if sc.token<>weCloseBrace then begin
-      ErrorUnexpected(sc, TokenStr[sc.token]);
-      Result := false;
-      exit;
+      weExport:
+        ParseExport(sc, dst.AddExport);
+    else
+      ErrorExpectButFound(sc, 'func', TokenStr[sc.token]);
     end;
-
-  until sc.token=weCloseBrace;
-  Result := true;
+    ConsumeAnyOpenToken(sc, tk);
+  end;
+  ConsumeToken(sc, weCloseBrace);
 end;
 
 function ParseModule(sc: TWatScanner; dst: TWasmModule; var errMsg: string): Boolean;

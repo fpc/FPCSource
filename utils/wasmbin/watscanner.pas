@@ -41,7 +41,7 @@ type
     procedure SetSource(const abuf: string);
     function Next: Boolean;
 
-    function GetInt32: Integer;
+    function resInt32(const def: integer=-1): Integer;
   end;
 
 const
@@ -241,12 +241,12 @@ begin
     resText := Copy(buf, ofs, idx-ofs);
 end;
 
-function TWatScanner.GetInt32: Integer;
+function TWatScanner.resInt32(const def: integer=-1): Integer;
 var
   err: integer;
 begin
   Val(resText, Result, err);
-  if err<>0 then Result:=0;
+  if err<>0 then Result:=def;
 end;
 
 
