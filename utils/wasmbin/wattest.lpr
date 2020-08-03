@@ -31,7 +31,7 @@ begin
   end;
 end;
 
-procedure Run(const fn: string);
+procedure Run(const fn: string; const doTraverse: Boolean);
 var
   st : TFileStream;
   s  : string;
@@ -45,7 +45,10 @@ begin
     SetLength(s, st.Size);
     if length(s)>0 then st.Read(s[1], length(s));
     p.SetSource(s);
-    //Traverse(p);
+    if doTraverse then begin
+      Traverse(p);
+      Exit;
+    end;
     m := TWasmModule.Create;
     try
       if not ParseModule(p, m, err) then
@@ -62,19 +65,40 @@ begin
 end;
 
 var
-  fn : string;
+  gFn      : string;
+  gCommand : string = '';
+
+procedure ParseParams;
+var
+  i : integer;
+  s : string;
 begin
-  if ParamCount=0 then begin
+  i:=1;
+  while i<=ParamCount do begin
+    s := ParamStr(i);
+    if (s<>'') and (s[1]='-') then
+      gCommand:=AnsiLowerCase(s)
+    else
+      gFn := s;
+    inc(i);
+  end;
+end;
+
+begin
+  ParseParams;
+  if (gFn='') then begin
     writeln('please sepcify the input .wat file');
+    writeln('other use:');
+    writeln(' -compile  %inpfn%');
+    writeln(' -traverse %inpfn%');
     exit;
   end;
-  fn:=ParamStr(1);
-  if not FileExists(fn) then begin
-    writeln('file doesn''t exist: ', fn);
+  if not FileExists(gFn) then begin
+    writeln('file doesn''t exist: ', gFn);
     exit;
   end;
   try
-    Run(fn);
+    Run(gFn, gCommand = '-traverse');
   except
     on e: exception do
       writeln(e.message);
