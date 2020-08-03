@@ -229,7 +229,7 @@ const
    ,(doReloc: false; relocType: $FF)  // 3F  memory_size
    ,(doReloc: false; relocType: $FF)  // 40  memory_grow
 
-   ,(doReloc: true;  relocType: R_WASM_FUNCTION_INDEX_LEB)  // 41  i32_const // TODO: special case for function address
+   ,(doReloc: true;  relocType: R_WASM_TABLE_INDEX_SLEB)  // 41  i32_const // TODO: special case for function address
 
    ,(doReloc: false; relocType: $FF)  // 42  i64_const
    ,(doReloc: false; relocType: $FF)  // 43  f32_const
