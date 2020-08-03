@@ -1730,12 +1730,30 @@ unit cgcpu;
                 end;
               OS_16:
                 begin
+                  { Preload the ref base to reduce spilling }
+                  if (tmpref.base<>NR_NO) and
+                     (tmpref.index<>NR_NO) and
+                     (getsupreg(tmpref.base)>=first_int_imreg) then
+                    begin
+                      tmpreg:=getaddressregister(list);
+                      a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.base,tmpreg);
+                      tmpref.base:=tmpreg;
+                    end;
                   list.concat(taicpu.op_reg_ref(A_MOV, S_W, reg, tmpref));
                   inc(tmpref.offset, 2);
                   list.concat(taicpu.op_const_ref(A_MOV, S_W, 0, tmpref));
                 end;
               OS_32,OS_S32:
                 begin
+                  { Preload the ref base to reduce spilling }
+                  if (tmpref.base<>NR_NO) and
+                     (tmpref.index<>NR_NO) and
+                     (getsupreg(tmpref.base)>=first_int_imreg) then
+                    begin
+                      tmpreg:=getaddressregister(list);
+                      a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.base,tmpreg);
+                      tmpref.base:=tmpreg;
+                    end;
                   list.concat(taicpu.op_reg_ref(A_MOV, S_W, reg, tmpref));
                   inc(tmpref.offset, 2);
                   list.concat(taicpu.op_reg_ref(A_MOV, S_W, GetNextReg(reg), tmpref));
@@ -1762,6 +1780,7 @@ unit cgcpu;
 
       var
         tmpref  : treference;
+        tmpreg  : tregister;
       begin
         tmpref:=ref;
         make_simple_ref(list,tmpref,isdirect);
@@ -1857,6 +1876,15 @@ unit cgcpu;
                 end;
               OS_32,OS_S32:
                 begin
+                  { Preload the ref base to reduce spilling }
+                  if (tmpref.base<>NR_NO) and
+                     (tmpref.index<>NR_NO) and
+                     (getsupreg(tmpref.base)>=first_int_imreg) then
+                    begin
+                      tmpreg:=getaddressregister(list);
+                      a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.base,tmpreg);
+                      tmpref.base:=tmpreg;
+                    end;
                   list.concat(taicpu.op_ref_reg(A_MOV, S_W, tmpref, reg));
                   inc(tmpref.offset, 2);
                   list.concat(taicpu.op_ref_reg(A_MOV, S_W, tmpref, GetNextReg(reg)));
