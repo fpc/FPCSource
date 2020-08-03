@@ -348,6 +348,29 @@ begin
   sc.Next;
 end;
 
+function ParseId(sc: TWatScanner; var id: TWasmId): boolean;
+begin
+  if sc.token = weNumber then begin
+    id.idNum := sc.resInt32;
+    id.id := '';
+    Result := true;
+  end else if sc.token = weIdent then begin
+    id.id := sc.resText;
+    id.idNum := -1;
+    Result := true;
+  end else
+    Result := false;
+  if Result then sc.Next;
+end;
+
+procedure ParseTable(sc: TWatScanner; dst: TWasmTable);
+begin
+  sc.Next;
+  ParseId(sc, dst.id);
+  ConsumeToken(sc, weFuncRef);
+  ConsumeToken(sc, weCloseBrace);
+end;
+
 procedure ParseModuleInt(sc: TWatScanner; dst: TWasmModule);
 var
   tk      : TWatToken;
@@ -371,6 +394,9 @@ begin
           symlist.ToLinkInfo(imp.LinkInfo);
           ParseImport(sc, imp);
           symlist.Clear;
+        end;
+        weTable: begin
+          ParseTable(sc, dst.AddTable)
         end;
         weFunc: begin
           f:=dst.AddFunc;

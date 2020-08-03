@@ -130,6 +130,19 @@ type
     function AddFunc: TWasmFunc;
   end;
 
+  { TWasmId }
+
+  TWasmId = record
+    idNum : integer;
+    id    : string;
+  end;
+
+  { TWasmTable }
+
+  TWasmTable = class(TObject)
+    id    : TWasmId;
+  end;
+
   { TWasmModule }
 
   TWasmModule = class(TObject)
@@ -138,9 +151,14 @@ type
     types   : TList;
     funcs   : TList;
     exp     : TList;
+    tables  : TList;
   public
     constructor Create;
     destructor Destroy; override;
+
+    function AddTable: TWasmTable;
+    function GetTable(i: integer): TWasmTable;
+    function TableCount: Integer;
 
     function AddImport: TWasmImport;
     function GetImport(i: integer): TWasmImport;
@@ -401,10 +419,13 @@ begin
   funcs := TList.Create;
   exp := TList.Create;
   imports := TList.Create;
+  tables := TList.Create;
 end;
 
 destructor TWasmModule.Destroy;
 begin
+  ClearList(tables);
+  tables.Free;
   ClearList(imports);
   imports.Free;
   ClearList(exp);
@@ -414,6 +435,25 @@ begin
   ClearList(funcs);
   funcs.Free;
   inherited Destroy;
+end;
+
+function TWasmModule.AddTable: TWasmTable;
+begin
+  Result:=TWasmTable.Create;
+  tables.Add(Result);
+end;
+
+function TWasmModule.GetTable(i: integer): TWasmTable;
+begin
+  if (i>=0) and (i<tables.Count) then
+    Result:=TWasmTable(tables[i])
+  else
+    Result:=nil;
+end;
+
+function TWasmModule.TableCount: Integer;
+begin
+  Result:=tables.Count;
 end;
 
 function TWasmModule.AddImport: TWasmImport;
