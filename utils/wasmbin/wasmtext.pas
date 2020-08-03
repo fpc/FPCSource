@@ -246,10 +246,15 @@ begin
     else if t = 'f32.max'             then inst := inst_f32_max
     else if t = 'f32.copysign'        then inst := inst_f32_copysign
     else if t = 'f32.convert_i32_s'   then inst := inst_f32_convert_i32_s
+    else if t = 'f32.convert_s/i32'   then inst := inst_f32_convert_i32_s
     else if t = 'f32.convert_i32_u'   then inst := inst_f32_convert_i32_u
+    else if t = 'f32.convert_u/i32'   then inst := inst_f32_convert_i32_u
     else if t = 'f32.convert_i64_s'   then inst := inst_f32_convert_i64_s
+    else if t = 'f32.convert_s/i64'   then inst := inst_f32_convert_i64_s
     else if t = 'f32.convert_i64_u'   then inst := inst_f32_convert_i64_u
+    else if t = 'f32.convert_u/i64'   then inst := inst_f32_convert_i64_u
     else if t = 'f32.demote_f64'      then inst := inst_f32_demote_f64
+    else if t = 'f32.demote/f64'      then inst := inst_f32_demote_f64
     else if t = 'f32.reinterpret_i32' then inst := inst_f32_reinterpret_i32
     else if t = 'f32.reinterpret/i32' then inst := inst_f32_reinterpret_i32
     else Result := false;
@@ -279,10 +284,15 @@ begin
     else if t = 'f64.max'             then inst := inst_f64_max
     else if t = 'f64.copysign'        then inst := inst_f64_copysign
     else if t = 'f64.convert_i32_s'   then inst := inst_f64_convert_i32_s
+    else if t = 'f64.convert_s/i32'   then inst := inst_f64_convert_i32_s
     else if t = 'f64.convert_i32_u'   then inst := inst_f64_convert_i32_u
+    else if t = 'f64.convert_u/i32'   then inst := inst_f64_convert_i32_u
     else if t = 'f64.convert_i64_s'   then inst := inst_f64_convert_i64_s
+    else if t = 'f64.convert_s/i64'   then inst := inst_f64_convert_i64_s
     else if t = 'f64.convert_i64_u'   then inst := inst_f64_convert_i64_u
+    else if t = 'f64.convert_u/i64'   then inst := inst_f64_convert_i64_u
     else if t = 'f64.promote_f32'     then inst := inst_f64_promote_f32
+    else if t = 'f64.promote/f32'     then inst := inst_f64_promote_f32
     else if t = 'f64.reinterpret_i64' then inst := inst_f64_reinterpret_i64
     else if t = 'f64.reinterpret/i64' then inst := inst_f64_reinterpret_i64
     else Result := false;
@@ -334,10 +344,15 @@ begin
     else if t = 'i32.rotl'            then inst := inst_i32_rotl
     else if t = 'i32.rotr'            then inst := inst_i32_rotr
     else if t = 'i32.wrap_i64'        then inst := inst_i32_wrap_i64
+    else if t = 'i32.wrap/i64'        then inst := inst_i32_wrap_i64
     else if t = 'i32.trunc_f32_s'     then inst := inst_i32_trunc_f32_s
+    else if t = 'i32.trunc_s/f32'     then inst := inst_i32_trunc_f32_s
     else if t = 'i32.trunc_f32_u'     then inst := inst_i32_trunc_f32_u
+    else if t = 'i32.trunc_u/f32'     then inst := inst_i32_trunc_f32_u
     else if t = 'i32.trunc_f64_s'     then inst := inst_i32_trunc_f64_s
+    else if t = 'i32.trunc_s/f64'     then inst := inst_i32_trunc_f64_s
     else if t = 'i32.trunc_f64_u'     then inst := inst_i32_trunc_f64_u
+    else if t = 'i32.trunc_u/f64'     then inst := inst_i32_trunc_f64_u
     else if t = 'i32.reinterpret_f32' then inst := inst_i32_reinterpret_f32
     else if t = 'i32.reinterpret/f32' then inst := inst_i32_reinterpret_f32
     else Result := false;
@@ -383,11 +398,17 @@ begin
     else if t = 'i64.rotl'            then inst := inst_i64_rotl
     else if t = 'i64.rotr'            then inst := inst_i64_rotr
     else if t = 'i64.extend_i32_s'    then inst := inst_i64_extend_i32_s
+    else if t = 'i64.extend_s/i32'    then inst := inst_i64_extend_i32_s
     else if t = 'i64.extend_i32_u'    then inst := inst_i64_extend_i32_u
+    else if t = 'i64.extend_u/i32'    then inst := inst_i64_extend_i32_u
     else if t = 'i64.trunc_f32_s'     then inst := inst_i64_trunc_f32_s
+    else if t = 'i64.trunc_s/f32'     then inst := inst_i64_trunc_f32_s
     else if t = 'i64.trunc_f32_u'     then inst := inst_i64_trunc_f32_u
+    else if t = 'i64.trunc_u/f32'     then inst := inst_i64_trunc_f32_u
     else if t = 'i64.trunc_f64_s'     then inst := inst_i64_trunc_f64_s
+    else if t = 'i64.trunc_s/f64'     then inst := inst_i64_trunc_f64_s
     else if t = 'i64.trunc_f64_u'     then inst := inst_i64_trunc_f64_u
+    else if t = 'i64.trunc_u/f64'     then inst := inst_i64_trunc_f64_u
     else if t = 'i64.load'            then inst := inst_i64_load
     else if t = 'i64.reinterpret_f64' then inst := inst_i64_reinterpret_f64
     else if t = 'i64.reinterpret/f64' then inst := inst_i64_reinterpret_f64
