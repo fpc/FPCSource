@@ -17,6 +17,7 @@ const
   WhiteSpaceChars = SpaceChars;
   SpaceEolnChars = EoLnChars+SpaceChars;
   NumericChars   = ['0'..'9'];
+  HexChars       = ['0'..'9','a'..'f','A'..'F'];
   SignChars      = ['+','-'];
   SignNumericChars = NumericChars + SignChars;
   AlphabetChars  = ['a'..'z','A'..'Z'];
@@ -43,6 +44,8 @@ procedure OffsetToLinePos(const t: AnsiString; Offset: Integer; var P: TPoint);
 procedure ParseCSSValues(const s: String; css: TStrings);
 procedure GetCssAbsBoundsRect(Css: TStrings; var r: TRect);
 function CssValInt(const s: String; Def: integer): Integer;
+
+function ScanNumberC(const buf: string; var idx: Integer; var numberText: string): Boolean;
 
 implementation
 
@@ -228,6 +231,30 @@ begin
       inc(index);
   end;
   Result:=Copy(s, i, index-i);
+end;
+
+function ScanNumberC(const buf: string; var idx: Integer; var numberText: string): Boolean;
+var
+  ch  : char;
+begin
+  Result := false;
+  if buf[idx] in SignChars then begin
+    ch:=buf[idx];
+    inc(idx);
+  end else
+    ch := #0;
+
+  if (idx<length(buf)) and (buf[idx]='0') and (buf[idx+1]='x') then begin
+    inc(idx,2);
+    numberText:='0x'+ScanWhile(buf, idx, HexChars);
+  end else
+    numberText:=ScanWhile(buf, idx, NumericChars);
+
+  if (ch<>#0) then begin
+    if (numberText = '') then Exit;
+    numberText:=ch+numberText;
+  end;
+  Result := true;
 end;
 
 end.
