@@ -27,6 +27,24 @@ const
   WasmId = #0'asm';
   WasmId_Int = $6D736100;
 
+type
+  TLimit = record
+    limitType : byte;
+    min       : UInt32;
+    max       : UInt32;
+  end;
+  TMemoryType = TLimit;
+
+  TTableType = record
+    elemType : Byte;   // see "elem_type"
+    limits   : TLimit;
+  end;
+
+  TGlobalType = record
+    valtype  : Byte;   // see "valtype_" consts
+    mut      : Byte;   // see "global_" consts
+  end;
+
 const
   SECT_CUSTOM   = 0;	// custom section
   SECT_TYPE     = 1;	// type section
@@ -87,10 +105,40 @@ type
   end;
 
 const
+  IMPDESC_FUNC   = $00;
+  IMPDESC_TABLE  = $01;
+  IMPDESC_MEM    = $02;
+  IMPDESC_GLOBAL = $03;
+
+type
+  TImportEntry = record
+    module   : string;
+    name     : string;
+    case desc: byte of
+    IMPDESC_FUNC : (
+      fnType : UInt32;
+    );
+    IMPDESC_TABLE: (
+      tblType  : TTableType;
+    );
+    IMPDESC_TABLE: (
+      memType  : TMemoryType;
+    );
+    IMPDESC_GLOBAL: (
+      glbType  : TGlobalType;
+    );
+  end;
+
+  TImportSection = record
+    entries : array of TImportEntry;
+  end;
+
+const
   EXPDESC_FUNC   = $00;
   EXPDESC_TABLE  = $01;
   EXPDESC_MEM    = $02;
   EXPDESC_GLOBAL = $03;
+
 
 type
   TExportEntry = record
@@ -146,11 +194,39 @@ procedure WriteExport(const ex: TExportSection; dst: TStream);
 function isWasmStream(st: TStream): Boolean;
 function isWasmFile(const fn: string): Boolean;
 
-
 procedure ReadElementEntry(st: TStream; var en: TElementEntry);
 procedure ReadElementSection(st: TStream; var sc: TelementSection);
 
+procedure ReadLimit(st: TStream; var lm: TLimit);
+procedure ReadTableType(st: TStream; var tb: TTableType);
+procedure ReadGlobalType(st: TStream; var gb: TGlobalType);
+
+function ReadImportEntry(st: TStream; var imp: TImportEntry): Boolean;
+function ReadImportSection(st: TStream; var imp: TImportSection): Boolean;
+
 implementation
+
+procedure ReadLimit(st: TStream; var lm: TLimit);
+begin
+  lm.limitType := st.ReadByte;
+  lm.min := ReadU(st);
+  if lm.limitType <> limit_min_inf then
+    lm.max := ReadU(st)
+  else
+    lm.max := 0;
+end;
+
+procedure ReadTableType(st: TStream; var tb: TTableType);
+begin
+  tb.elemType := st.ReadByte;
+  ReadLimit(st, tb.limits);
+end;
+
+procedure ReadGlobalType(st: TStream; var gb: TGlobalType);
+begin
+  gb.valtype := st.ReadByte;
+  gb.mut := st.ReadByte;
+end;
 
 function ValTypeToStr(id: integer): string;
 begin
@@ -340,6 +416,38 @@ begin
   SetLength(sc.entries, cnt);
   for i:=0 to cnt-1 do
     ReadElementEntry(st, sc.entries[i]);
+end;
+
+function ReadImportEntry(st: TStream; var imp: TImportEntry): Boolean;
+begin
+  Result := true;
+  imp.module := ReadName(st);
+  imp.name := ReadName(st);
+  imp.desc := st.ReadByte;
+  case imp.desc of
+    IMPDESC_FUNC :  imp.fnType := ReadU(st);
+    IMPDESC_TABLE:  ReadTableType(st, imp.tblType);
+    IMPDESC_MEM:    ReadLimit(st, imp.memType);
+    IMPDESC_GLOBAL: ReadGlobalType(st, imp.glbType);
+  else
+    Result := false;
+  end;
+end;
+
+function ReadImportSection(st: TStream; var imp: TImportSection): Boolean;
+var
+  cnt : integer;
+  i   : integer;
+begin
+  cnt := ReadU(st);
+  SetLength(imp.entries, cnt);
+  Result := true;
+  if cnt>0 then
+    for i:=0 to cnt-1 do
+      if not ReadImportEntry(st, imp.entries[i]) then begin
+        Result := false;
+        break;
+      end;
 end;
 
 end.
