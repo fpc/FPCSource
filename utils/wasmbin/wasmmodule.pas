@@ -170,19 +170,41 @@ type
     max       : LongWord;
   end;
 
+  { TWasmData }
+
+  TWasmData = class(TObject)
+    id   : TWasmData;
+  end;
+
+  { TWasmMemory }
+
+  TWasmMemory = class(TObject)
+    id    : TWasmId;
+    min   : LongWord;
+    max   : LongWord; // limit
+    LinkInfo   : TLinkInfo;
+    exportInfo : TExportInfo;
+  end;
+
   { TWasmModule }
 
   TWasmModule = class(TObject)
   private
+    memes   : TList;
     imports : TList;
     types   : TList;
     funcs   : TList;
     exp     : TList;
     tables  : TList;
     elems   : TList;
+    data    : TList;
   public
     constructor Create;
     destructor Destroy; override;
+
+    function AddMemory: TWasmMemory;
+    function GetMemory(i: integer): TWasmMemory;
+    function MemoryCount: Integer;
 
     function AddTable: TWasmTable;
     function GetTable(i: integer): TWasmTable;
@@ -207,6 +229,10 @@ type
     function AddElement: TWasmElement;
     function GetElement(i: integer): TWasmElement;
     function ElementCount: Integer;
+
+    function AddData: TWasmData;
+    function GetData(i: integer): TWasmData;
+    function DataCount: Integer;
   end;
 
 // making binary friendly. finding proper "nums" for each symbol "index"
@@ -500,10 +526,16 @@ begin
   imports := TList.Create;
   tables := TList.Create;
   elems := TList.Create;
+  memes := TList.Create;
+  data := TList.Create;
 end;
 
 destructor TWasmModule.Destroy;
 begin
+  ClearList(data);
+  data.Free;
+  ClearList(memes);
+  memes.Free;
   ClearList(elems);
   elems.Free;
   ClearList(tables);
@@ -517,6 +549,25 @@ begin
   ClearList(funcs);
   funcs.Free;
   inherited Destroy;
+end;
+
+function TWasmModule.AddMemory: TWasmMemory;
+begin
+  Result:=TWasmMemory.Create;
+  memes.Add(result);
+end;
+
+function TWasmModule.GetMemory(i: integer): TWasmMemory;
+begin
+  if (i>=0) and (i<memes.Count) then
+    Result:=TWasmMemory(memes[i])
+  else
+    Result:=nil;
+end;
+
+function TWasmModule.MemoryCount: Integer;
+begin
+  Result:=memes.Count;
 end;
 
 function TWasmModule.AddTable: TWasmTable;
@@ -631,6 +682,25 @@ end;
 function TWasmModule.ElementCount: Integer;
 begin
   Result := elems.Count;
+end;
+
+function TWasmModule.AddData: TWasmData;
+begin
+  Result:=TWasmData.Create;
+  data.Add(Result);
+end;
+
+function TWasmModule.GetData(i: integer): TWasmData;
+begin
+  if (i>=0) and (i<data.Count) then
+    Result:=TWasmData(data[i])
+  else
+    Result:=nil;
+end;
+
+function TWasmModule.DataCount: Integer;
+begin
+  Result:=data.Count;
 end;
 
 { TWasmFunc }
