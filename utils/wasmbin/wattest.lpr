@@ -3,7 +3,7 @@ program wattest;
 {$mode objfpc}{$H+}
 
 uses
-  SysUtils, Classes, watparser;
+  SysUtils, Classes, watparser, watscanner, wasmmodule;
 
 procedure Traverse(p: TWatScanner);
 begin
@@ -24,6 +24,8 @@ var
   st : TFileStream;
   s  : string;
   p  : TWatScanner;
+  m  : TWasmModule;
+  err : string;
 begin
   st := TFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
   p := TWatScanner.Create;
@@ -31,7 +33,11 @@ begin
     SetLength(s, st.Size);
     if length(s)>0 then st.Read(s[1], length(s));
     p.SetSource(s);
-    Traverse(p);
+    //Traverse(p);
+    m := TWasmModule.Create;
+    if not ParseModule(p, m, err) then
+      writeln('Error: ', err);
+
   finally
     p.Free;
     st.Free;
