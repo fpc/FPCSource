@@ -593,13 +593,9 @@ begin
   if sc.token = weElem then sc.Next;
 
   if parseIdOffset then begin
-    if sc.token<>weIdent then
-      ErrorExpectButFound(sc, 'identifier');
-
-    dst.tableIdx := sc.resInt32;
-    sc.Next;
-
+    ParseId(sc, dst.tableId);
     if (sc.token = weOpenBrace) then begin
+      sc.Next;
       ParseInstrList(sc, dst.AddOffset);
       ConsumeToken(sc, weCloseBrace);
     end;
@@ -679,6 +675,7 @@ var
   imp     : TWasmImport;
   m       : TWasmMemory;
   g       : TWasmGlobal;
+  e       : TWasmElement;
 begin
   if not ConsumeOpenToken(sc, weModule) then
     ErrorExpectButFound(sc, 'module');
@@ -731,6 +728,11 @@ begin
           symlist.ToLinkInfo(g.LinkInfo);
           symlist.Clear;
           ParseGlobal(sc, g);
+        end;
+        weElem: begin
+          e:=dst.AddElement;
+          symlist.Clear;
+          ParseElem(sc, e, true);
         end;
       else
         ErrorExpectButFound(sc, 'func', TokenStr[sc.token]);
