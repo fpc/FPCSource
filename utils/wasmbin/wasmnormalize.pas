@@ -96,6 +96,19 @@ begin
           end;
         end;
 
+        INST_global_get, INST_global_set:
+        begin
+          if not Assigned(f) then begin
+            Result:=false;
+            Exit;
+          end;
+
+          if (ci.operandIdx<>'') and (ci.operandNum<0) then begin
+            j:=FindGlobal(m, ci.operandIdx);
+            ci.operandNum:=j;
+          end;
+        end;
+
         INST_call:
         begin
           if (ci.operandIdx<>'') and (ci.operandNum<0) then
@@ -164,6 +177,14 @@ begin
       inc(fnIdx);
     end;
   end;
+end;
+
+procedure NormalizeGlobals(m: TWasmModule);
+var
+  i : integer;
+begin
+  for i:=0 to m.GlobalCount-1 do
+    m.GetGlobal(i).id.idNum:=i;
 end;
 
 procedure NormalizeTable(m: TWasmModule);
@@ -241,6 +262,7 @@ var
   fnIdx : Integer;
 begin
   fnIdx := 0;
+  NormalizeGlobals(m);
   NormalizeTable(m);
   NormalizeElems(m);
   NormalizeImport(m, fnIdx);
