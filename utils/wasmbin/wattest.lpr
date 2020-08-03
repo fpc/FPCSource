@@ -19,20 +19,20 @@ begin
   end;
 end;
 
-procedure WriteBin(const fndst: string; m: TWasmModule);
+procedure WriteBin(const fndst: string; m: TWasmModule; WriteReloc: Boolean);
 var
   f : TFileStream;
 begin
   f := TFileStream.Create(fndst, fmCreate);
   try
     Normalize(m);
-    WriteModule(m, f, true, true);
+    WriteModule(m, f, WriteReloc, WriteReloc);
   finally
     f.Free;
   end;
 end;
 
-procedure Run(const fn: string; const doTraverse: Boolean);
+procedure Run(const fn: string; const doTraverse: Boolean; doReloc: Boolean);
 var
   st : TFileStream;
   s  : string;
@@ -55,7 +55,7 @@ begin
       if not ParseModule(p, m, err) then
         writeln('Error: ', err)
       else
-        WriteBin( ChangeFileExt(fn,'.wasm'), m);
+        WriteBin( ChangeFileExt(fn,'.wasm'), m, doReloc);
     finally
       m.Free;
     end;
@@ -68,18 +68,24 @@ end;
 var
   gFn      : string;
   gCommand : string = '';
+  gReloc   : Boolean = true;
+  gCatch   : Boolean = false;
 
 procedure ParseParams;
 var
   i : integer;
   s : string;
+  ls : string;
 begin
   i:=1;
   while i<=ParamCount do begin
     s := ParamStr(i);
-    if (s<>'') and (s[1]='-') then
-      gCommand:=AnsiLowerCase(s)
-    else
+    if (s<>'') and (s[1]='-') then begin
+      ls := AnsiLowerCase(s);
+      if ls = '-noreloc' then gReloc := false
+      else if ls = '-catch' then gCatch := true
+      else gCommand:=ls;
+    end else
       gFn := s;
     inc(i);
   end;
@@ -91,6 +97,7 @@ begin
     writeln('please sepcify the input .wat file');
     writeln('other use:');
     writeln(' -compile  %inpfn%');
+    writeln('   -noreloc - prevents relocation information from being written');
     writeln(' -traverse %inpfn%');
     exit;
   end;
@@ -98,11 +105,16 @@ begin
     writeln('file doesn''t exist: ', gFn);
     exit;
   end;
-  try
-    Run(gFn, gCommand = '-traverse');
-  except
-    on e: exception do
-      writeln(e.message);
-  end;
+
+  if gCatch then
+    try
+      Run(gFn, gCommand = '-traverse', gReloc);
+    except
+      on e: exception do
+        writeln(e.message);
+    end
+  else
+    Run(gFn, gCommand = '-traverse', gReloc);
+
 end.
 
