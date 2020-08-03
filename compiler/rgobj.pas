@@ -293,6 +293,9 @@ unit rgobj;
         function get_live_start(reg : tsuperregister) : tai;
         procedure set_live_end(reg : tsuperregister;t : tai);
         function get_live_end(reg : tsuperregister) : tai;
+{$ifdef DEBUG_SPILLCOALESCE}
+        procedure write_spill_stats;
+{$endif DEBUG_SPILLCOALESCE}
        public
 {$ifdef EXTDEBUG}
         procedure writegraph(loopidx:longint);
@@ -614,8 +617,13 @@ unit rgobj;
         insert_regalloc_info_all(list);
         ibitmap:=tinterferencebitmap.create;
         generate_interference_graph(list,headertai);
+{$ifdef DEBUG_SPILLCOALESCE}
+        if maxreg>first_imaginary then
+          writeln(current_procinfo.procdef.mangledname, ': register allocation [',regtype,']');
+{$endif DEBUG_SPILLCOALESCE}
 {$ifdef DEBUG_REGALLOC}
-        writegraph(rtindex);
+        if maxreg>first_imaginary then
+          writegraph(rtindex);
 {$endif DEBUG_REGALLOC}
         inc(rtindex);
         { Don't do the real allocation when -sr is passed }
@@ -647,12 +655,7 @@ unit rgobj;
         translate_registers(list);
 
 {$ifdef DEBUG_SPILLCOALESCE}
-        spillingcounter:=0;
-        for i:=0 to High(spillinfo) do
-          if spillinfo[i].spilled then
-            inc(spillingcounter);
-        if spillingcounter>0 then
-          writeln(current_procinfo.procdef.mangledname, ': spilled regs: ',spillingcounter);
+        write_spill_stats;
 {$endif DEBUG_SPILLCOALESCE}
 
         { we need the translation table for debugging info and verbose assembler output,
@@ -2802,6 +2805,52 @@ unit rgobj;
           with certain physical registers. }
         add_cpu_interferences(instr);
       end;
+
+
+{$ifdef DEBUG_SPILLCOALESCE}
+    procedure trgobj.write_spill_stats;
+
+      { This procedure outputs spilling statistincs.
+        If no spilling has occurred, no output is provided.
+        NUM is the number of spilled registers.
+        EFF is efficiency of the spilling which is based on
+            weight and usage count of registers. Range 0-100%.
+            0% means all imaginary registers have been spilled.
+            100% means no imaginary registers have been spilled
+            (no output in this case).
+            Higher value is better.
+      }
+      var
+        i,spillingcounter,max_weight:longint;
+        all_weight,spill_weight,d: double;
+      begin
+        max_weight:=1;
+        for i:=0 to high(spillinfo) do
+          with reginfo[i] do
+            if weight>max_weight then
+              max_weight:=weight;
+
+        spillingcounter:=0;
+        spill_weight:=0;
+        all_weight:=0;
+        for i:=0 to high(spillinfo) do
+          with reginfo[i] do
+            begin
+              d:=weight/max_weight*count_uses;
+              all_weight:=all_weight+d;
+              if spillinfo[i].spilled then
+                begin
+                  inc(spillingcounter);
+                  spill_weight:=spill_weight+d;
+                end;
+            end;
+        if spillingcounter>0 then
+          begin
+            d:=(1.0-spill_weight/all_weight)*100.0;
+            writeln(current_procinfo.procdef.mangledname,' [',regtype,']: spill stats: NUM: ',spillingcounter, ', EFF: ',d:4:1,'%');
+          end;
+      end;
+{$endif DEBUG_SPILLCOALESCE}
 
 end.
 
