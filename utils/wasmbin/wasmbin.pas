@@ -79,8 +79,7 @@ type
 
   TCodeEntry = record
     locals    : array of TCodeLocalEntry;
-    instCount : integer;
-    instr     : array of TCodeInstr;
+    instBuf   : array of byte;
   end;
 
   TCodeSection = record
@@ -123,6 +122,8 @@ procedure ReadCodeEntry(src: TStream; var en: TCodeEntry);
 // reads the code entry into TCodeEntry structure
 procedure ReadCodeSection(src: TStream; var sc: TCodeSection);
 
+function isUnreachable(const cd: TCodeEntry): Boolean;
+
 
 procedure ReadExportEntry(src: TStream; var ex: TExportEntry);
 // reads the export entry
@@ -131,6 +132,9 @@ procedure WriteExport(const ex: TExportSection; dst: TStream);
 
 function isWasmStream(st: TStream): Boolean;
 function isWasmFile(const fn: string): Boolean;
+
+const
+  INST_TRAP = $00;
 
 implementation
 
@@ -201,8 +205,10 @@ var
   //pos : int64;
   cnt : Integer;
   i   : integer;
+  eofs : Int64;
 begin
   sz := ReadU(src);
+  eofs := src.Position+sz;
 
   cnt := ReadU(src);
   SetLength(en.locals, cnt);
@@ -210,7 +216,9 @@ begin
     en.locals[i].count := ReadU(src);
     en.locals[i].valtyp := src.ReadByte;
   end;
-
+  SetLength(en.instBuf, eofs-src.Position);
+  if (length(en.instBuf)>0) then
+    src.Read(en.instBuf[0], length(en.instBuf));
 
 end;
 
@@ -223,6 +231,11 @@ begin
   SetLength(sc.entries, cnt);
   for i:= 0 to cnt-1 do
     ReadCodeEntry(src, sc.entries[i]);
+end;
+
+function isUnreachable(const cd: TCodeEntry): Boolean;
+begin
+  Result:=(length(cd.instBuf)>0) and (cd.instBuf[0]=INST_TRAP);
 end;
 
 procedure ReadExportEntry(src: TStream; var ex: TExportEntry);

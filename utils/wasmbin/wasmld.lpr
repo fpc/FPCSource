@@ -138,6 +138,22 @@ begin
   end;
 end;
 
+procedure ParseCode(st: TStream);
+var
+  cnt : integer;
+  cs  : TCodeSection;
+  i : integer;
+begin
+  ReadCodeSection(st, cs);
+  writeln('code=',length(cs.entries));
+  for i:=0 to length(cs.entries)-1 do begin
+    writelN('code[', i,'] ', isUnreachable(cs.entries[i]));
+    writeln(' locals= ', length(cs.entries[i].locals));
+    writeln(' code  = ', length(cs.entries[i].instBuf));
+    writeln(' inst  = ', IntToHex(cs.entries[i].instBuf[0],2),' ',IntToHex(cs.entries[i].instBuf[1],2));
+  end;
+end;
+
 function ProcessSections(st, dst: TStream; syms: TStrings): Boolean;
 var
   dw  : LongWord;
@@ -162,7 +178,9 @@ begin
 
     ps := st.Position+sc.size;
 
-    if sc.id = SECT_EXPORT then begin
+    if sc.id=SECT_CODE then begin
+      ParseCode(st);
+    (*end else if sc.id = SECT_EXPORT then begin
       ReadExport(st, x);
       RenameExport(x, syms);
 
@@ -185,6 +203,7 @@ begin
 
       dst.CopyFrom(st, st.Size-st.Position);
       break; // done
+      *)
     end;
     {if sc.id=0 then begin
       nm := GetName(st);
@@ -222,10 +241,12 @@ begin
       syms.LoadFromFile(symfn);
 
     ProcessSections(fs, dst, syms);
-    fs.Position:=0;
-    dst.Position:=0;
-    fs.CopyFrom(dst, dst.Size);
-    fs.Size:=dst.Size;
+    if dst.Size>0 then begin
+      fs.Position:=0;
+      dst.Position:=0;
+      fs.CopyFrom(dst, dst.Size);
+      fs.Size:=dst.Size;
+    end;
 
   finally
     dst.Free;
