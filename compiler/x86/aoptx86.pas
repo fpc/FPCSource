@@ -2816,7 +2816,10 @@ unit aoptx86;
             exit;
           end;
 
-        if MatchInstruction(hp1,A_LEA,[S_L{$ifdef x86_64},S_Q{$endif x86_64}]) then
+        if MatchInstruction(hp1,A_LEA,[S_L{$ifdef x86_64},S_Q{$endif x86_64}]) and
+          { If the flags register is in use, don't change the instruction to an
+            ADD otherwise this will scramble the flags. [Kit] }
+          not RegInUsedRegs(NR_DEFAULTFLAGS, UsedRegs) then
           begin
             if MatchOpType(Taicpu(p),top_ref,top_reg) and
                ((MatchReference(Taicpu(hp1).oper[0]^.ref^,Taicpu(hp1).oper[1]^.reg,Taicpu(p).oper[1]^.reg) and
@@ -3174,6 +3177,9 @@ unit aoptx86;
                 (taicpu(p).oper[1]^.reg<>NR_STACK_POINTER_REG) or
                 (cs_opt_size in current_settings.optimizerswitches)
               ) and
+              { If the flags register is in use, don't change the instruction
+                to an ADD otherwise this will scramble the flags. [Kit] }
+              not RegInUsedRegs(NR_DEFAULTFLAGS, UsedRegs) and
               ConvertLEA(taicpu(p)) then
               begin
                 Result:=true;
@@ -5370,7 +5376,12 @@ unit aoptx86;
             (taicpu(hp1).opcode <> A_LEA) or
             { If the LEA instruction can be converted into an arithmetic instruction,
               it may be possible to then fold it. }
-            ConvertLEA(taicpu(hp1))
+            (
+              { If the flags register is in use, don't change the instruction
+                to an ADD otherwise this will scramble the flags. [Kit] }
+              not RegInUsedRegs(NR_DEFAULTFLAGS, UsedRegs) and
+              ConvertLEA(taicpu(hp1))
+            )
           ) and
           IsFoldableArithOp(taicpu(hp1),taicpu(p).oper[1]^.reg) and
           GetNextInstruction(hp1,hp2) and
