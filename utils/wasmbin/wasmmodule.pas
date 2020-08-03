@@ -183,6 +183,8 @@ procedure Normalize(m: TWasmModule);
 function WasmBasTypeToChar(b: byte): Char;
 function WasmFuncTypeDescr(t: TWasmFuncType): string;
 
+function FindFunc(m: TWasmModule; const funcIdx: string): integer;
+
 implementation
 
 // returing a basic wasm basic type to a character

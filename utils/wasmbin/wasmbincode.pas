@@ -206,15 +206,19 @@ const
 
 type
   TInstParamType = (ipNone,
-    ipLeb,   // label index or function index
-    ip2Leb,  // memory arguments, ask for offset + align
-    ipi32,     // signed Leb of maximum 4 bytes
-    ipi64,     // signed Leb of maximum 8 bytes
-    ipf32,     // float point single
-    ipf64,     // float point double
-    ipTable,   // a complex structure... used for br_table only
-    ipResType, // result type used for blocks, such as If, block or loop
-    ipCallType // used for call_indirect
+    ipLeb,      // label index or function index
+    ip2Leb,     // memory arguments, ask for offset + align
+    ipi32,      // signed Leb of maximum 4 bytes
+    ipi64,      // signed Leb of maximum 8 bytes
+    ipf32,      // float point single
+    ipf64,      // float point double
+    ipTable,    // a complex structure... used for br_table only
+    ipResType,  // result type used for blocks, such as If, block or loop
+    ipCallType, // used for call_indirect
+    ipi32OrFunc // use for i32.const. Either a numeric OR function id is accepted.
+                // numeric is used as an actually value.
+                // function Id will be replaced with a reference number to the function
+                // and relocation information would be generated
   );
   TInstFlag = record
     valid : Boolean;
@@ -288,7 +292,7 @@ const
    ,(valid: true;  Param: ip2Leb)     // 3E  i64_store32
    ,(valid: true;  Param: ipNone)     // 3F  memory_size
    ,(valid: true;  Param: ipNone)     // 40  memory_grow
-   ,(valid: true;  Param: ipi32)      // 41  i32_const
+   ,(valid: true;  Param: ipi32OrFunc)// 41  i32_const
    ,(valid: true;  Param: ipi64)      // 42  i64_const
    ,(valid: true;  Param: ipf32)      // 43  f32_const
    ,(valid: true;  Param: ipf64)      // 44  f64_const

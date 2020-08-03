@@ -501,6 +501,7 @@ procedure TBinWriter.WriteInstList(list: TWasmInstrList; ofsAddition: LongWord);
 var
   i  : integer;
   ci : TWasmInstr;
+  idx : integer;
 begin
   for i:=0 to list.Count-1 do begin
     ci :=list[i];
@@ -512,6 +513,16 @@ begin
 
       ipi64: begin     // signed Leb of maximum 8 bytes
         WriteI64Operand(dst, ci.operandText);
+      end;
+
+      ipi32OrFunc: begin
+        if (ci.operandText<>'') and (ci.operandText[1]='$') then begin
+          idx := FindFunc(module, ci.operandText);
+          AddReloc(INST_RELOC_FLAGS[ci.code].relocType, dst.Position+ofsAddition, idx);
+          //todo: there's no need
+          WriteU32(dst, LongWord(idx));
+        end else
+          WriteI32Operand(dst, ci.operandText);
       end;
       //ipf32,     // float point single
       //ipf64,     // float point double

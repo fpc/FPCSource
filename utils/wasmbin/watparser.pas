@@ -231,15 +231,18 @@ begin
   while sc.token=weInstr do begin
     ci := dst.AddInstr(sc.instrCode);
     sc.Next;
+
     case INST_FLAGS[ci.code].Param of
       ipNone:; // do nothing
 
       ipLeb:
         ParseNumOrIdx(sc, ci.operandNum, ci.operandIdx);
 
-      ipi32,ipi64,ipf32,ipf64:
+      ipi32,ipi64,ipf32,ipf64,ipi32OrFunc:
       begin
-        if sc.token<>weNumber then
+        if (INST_FLAGS[ci.code].Param = ipi32OrFunc) and (sc.token = weIdent) then
+          ci.operandText := sc.resText
+        else if sc.token<>weNumber then
           ErrorExpectButFound(sc, 'number');
         ci.operandText := sc.resText;
         sc.Next;
