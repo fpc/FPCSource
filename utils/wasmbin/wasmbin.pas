@@ -5,7 +5,7 @@ unit wasmbin;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, lebutils;
 
 const
   valtype_i32   = $7f;
@@ -90,6 +90,20 @@ type
 function SectionIdToStr(id: integer): string;
 function ValTypeToStr(id: integer): string;
 
+// reads the name from the input stream
+// the name consists of
+//    size - in butes Leb128
+//    bytes - in utf8 format
+function GetName(sr: TStream): string;
+
+// reads
+function GetU32(sr: TStream): UInt32;
+
+// reads the code entry into TCodeEntry structure
+procedure ReadCodeEntry(src: TStream; var en: TCodeEntry);
+// reads the code entry into TCodeEntry structure
+procedure ReadCodeSection(src: TStream; var sc: TCodeSection);
+
 implementation
 
 function ValTypeToStr(id: integer): string;
@@ -125,6 +139,50 @@ begin
     Result := 'sect_unknown'+Result;
   end;
 
+end;
+
+function GetName(sr: TStream): string;
+var
+  ln : LongWord;
+begin
+  ln := ReadU(sr);
+  SetLength(result, ln);
+  if ln>0 then sr.Read(result[1], ln);
+end;
+
+function GetU32(sr: TStream): UInt32;
+begin
+  Result := UInt32(ReadU(sr));
+end;
+
+procedure ReadCodeEntry(src: TStream; var en: TCodeEntry);
+var
+  sz  : integer; // size in bytes
+  //pos : int64;
+  cnt : Integer;
+  i   : integer;
+begin
+  sz := ReadU(src);
+
+  cnt := ReadU(src);
+  SetLength(en.locals, cnt);
+  for i:=0 to cnt-1 do begin
+    en.locals[i].count := ReadU(src);
+    en.locals[i].valtyp := src.ReadByte;
+  end;
+
+
+end;
+
+procedure ReadCodeSection(src: TStream; var sc: TCodeSection);
+var
+  cnt : integer;
+  i   : integer;
+begin
+  cnt := ReadU(src);
+  SetLength(sc.entries, cnt);
+  for i:= 0 to cnt-1 do
+    ReadCodeEntry(src, sc.entries[i]);
 end;
 
 end.

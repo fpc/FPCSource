@@ -7,7 +7,7 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   { you can add units after this }
-  Classes, SysUtils, wasmbin, lebutils, wasmbindebug;
+  Classes, SysUtils, wasmbin, lebutils, wasmbindebug, wasmlink;
 
 function ReadStream(st: TStream): Boolean;
 var
@@ -15,6 +15,7 @@ var
   ofs : int64;
   sc  : TSection;
   ps  : int64;
+  nm  : string;
 begin
   dw := st.ReadDWord;
   Result := dw = WasmId_Int;
@@ -31,11 +32,17 @@ begin
     writeln(ofs,': id=', sc.id,'(', SectionIdToStr(sc.id),') sz=', sc.size);
 
     ps := st.Position+sc.size;
-    if sc.id= 1 then DumpTypes(st);
+    if sc.id=0 then begin
+      nm := GetName(st);
+      writeln(nm);
+      if nm = SectionName_Linking then
+        DumpLinking(st, sc.size - (st.Position - ofs));
+    end;
+    //if sc.id= 1 then DumpTypes(st);
 
     if st.Position <> ps then
     begin
-      writeln('adjust stream targ=',ps,' actual: ', st.position);
+      //writeln('adjust stream targ=',ps,' actual: ', st.position);
       st.Position := ps;
     end;
   end;
