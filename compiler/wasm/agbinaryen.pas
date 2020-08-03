@@ -593,6 +593,7 @@ implementation
          supported_targets : [system_wasm_wasm32];
          flags : [];
          labelprefix : 'L';
+         labelmaxlen : -1;
          comment : ';; ';
          dollarsign : '$';
        );

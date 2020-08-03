@@ -992,6 +992,7 @@ compiler/wasm/rwasmstd.inc svneol=native#text/plain
 compiler/wasm/rwasmsup.inc svneol=native#text/plain
 compiler/wasm/symcpu.pas svneol=native#text/plain
 compiler/wasm/tgcpu.pas svneol=native#text/plain
+compiler/wasm/tripletcpu.pas svneol=native#text/plain
 compiler/wasm/wasmdef.pas svneol=native#text/plain
 compiler/wasm/wasmreg.dat svneol=native#text/plain
 compiler/widestr.pas svneol=native#text/plain
