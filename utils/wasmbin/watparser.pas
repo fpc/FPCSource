@@ -216,7 +216,21 @@ begin
   while tk = weParam do begin
     p:=dst.AddParam;
     sc.Next;
-    ParseParam(sc, p.id, p.tp);
+
+    ParseParam(sc, p.id, p.tp, true, false);
+
+    // Text format specification:
+    // Abbreviations
+    // Multiple anonymous parameters or results may be combined into a single declaration
+    if (p.id = '') and (sc.token in [wei32, wei64, wef32, wef64]) then begin
+      while (sc.token in [wei32, wei64, wef32, wef64]) do begin
+        p:=dst.AddParam;
+        TokenTypeToValType(sc.token, p.tp);
+        sc.Next;
+      end;
+    end;
+    ConsumeToken(sc, weCloseBrace);
+
     ConsumeAnyOpenToken(sc, tk);
   end;
 
