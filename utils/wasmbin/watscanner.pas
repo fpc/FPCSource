@@ -192,13 +192,12 @@ begin
     Result := idx<=length(buf);
     if not Result then Exit;
     ofs:=idx;
-    has2chars := idx<length(buf);
-    if has2chars then begin
-      if (buf[idx]=';') and (buf[idx+1]=';') then begin
+    if (idx<length(buf)) and (buf[idx] in [';','(']) and (buf[idx+1]=';') then begin
+      if (buf[idx]=';') then begin
         // comment until the end of the line
         cmt := ScanTo(buf, idx, EoLnChars);
         ScanWhile(buf, idx, EoLnChars);
-      end else if (buf[idx]='(') and (buf[idx+1]=';') then
+      end else
         // comment until the ;)
         cmt := ScanToSubstr(buf, idx, ';)');
 
@@ -207,9 +206,7 @@ begin
         done:=true;
       end else
         DoComment(cmt);
-    end;
-
-    if not done then begin
+    end else begin
       done:=true;
       if buf[idx] = '(' then begin
         token:=weOpenBrace;

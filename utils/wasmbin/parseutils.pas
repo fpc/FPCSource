@@ -222,7 +222,8 @@ begin
     if isSubStrMatch(s, index, substr) then begin
       inc(index, length(substr));
       Break;
-    end;
+    end else
+      inc(index);
   end;
   Result:=Copy(s, i, index-i);
 end;
