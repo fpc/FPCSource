@@ -27,6 +27,19 @@ The desired flag is a string (or a character) that should consists of the follow
 * L - WASM_SYM_BINDING_LOCAL
  
 * D - removes flag WASM_SYM_BINDING_LOCAL
-    
-    --symbolauto
-The flags for each symbol updated and  is determined based of the symbol use:
+
+Multiple characters can be specified per flag.
+     
+     --symbolauto
+
+The flags for each symbol updated and is determined based of the symbol use:
+if a function is a stub function (the only code is "unreachable"), the status given
+ "weak" (it's a reference function elsewhere)                                      
+
+if a function is located in the function table, then the status given is           
+ "hidden" (do not add to the final linked executable)                              
+
+if a function is not located in the function table, the status given is:           
+ "hidden"+"local" (local means the function can be used only in this object file)  
+ 
+Imported and exported functions are left unmodified.
