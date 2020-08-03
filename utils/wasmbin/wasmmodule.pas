@@ -79,6 +79,8 @@ type
     id : string;
     instr    : TWasmInstrList;
     functype : TWasmFuncType;
+
+    hasSym   : Boolean;
     constructor Create;
     destructor Destroy; override;
     function AddLocal: TWasmParam;

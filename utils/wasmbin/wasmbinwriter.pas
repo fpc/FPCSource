@@ -16,6 +16,11 @@ type
     endofdata : int64;
   end;
 
+  TSymbolObject = class(TObject)
+    syminfo : TSymInfo;
+    next    : TSymbolObject;
+  end;
+
   { TBinWriter }
 
   TBinWriter = class
@@ -24,10 +29,17 @@ type
     org  : TStream;
     strm : TList;
 
+    module : TWasmModule;
+
     // the list of relocations per module
     writeSec   : Byte;
     reloc      : array of TRelocationEntry;
     relocCount : integer;
+
+    symHead    : TSymbolObject;
+    symTail    : TSymbolObject;
+    symCount   : Integer;
+    function AddSymbolObject: TSymbolObject;
     procedure AddReloc(relocType: byte; ofs: int64; index: UInt32);
 
     procedure WriteRelocU32(u: longword);
@@ -37,13 +49,13 @@ type
 
     procedure WriteInstList(list: TWasmInstrList; ofsAddition: LongWord);
 
-    procedure WriteFuncTypeSect(m: TWasmModule);
-    procedure WriteFuncSect(m: TWasmModule);
-    procedure WriteExportSect(m: TWasmModule);
-    procedure WriteCodeSect(m: TWasmModule);
+    procedure WriteFuncTypeSect;
+    procedure WriteFuncSect;
+    procedure WriteExportSect;
+    procedure WriteCodeSect;
 
-    procedure WriteLinkingSect(m: TWasmModule);
-    procedure WriteRelocSect(m: TWasmModule);
+    procedure WriteLinkingSect;
+    procedure WriteRelocSect;
 
     procedure pushStream(st: TStream);
     function popStream: TStream;
@@ -124,17 +136,53 @@ end;
 
 { TBinWriter }
 
+function TBinWriter.AddSymbolObject: TSymbolObject;
+var
+  so : TSymbolObject;
+begin
+  so := TSymbolObject.Create;
+  if not Assigned(symHead) then symHead:=so;
+  if Assigned(symTail) then symTail.Next:=so;
+  symTail:=so;
+  inc(symCount);
+  Result:=so;
+end;
+
 procedure TBinWriter.AddReloc(relocType: byte; ofs: int64; index: UInt32);
+var
+  i : integer;
+  f : TWasmFunc;
+  so : TSymbolObject;
 begin
   if relocCount=length(reloc) then begin
     if relocCount=0 then SetLength(reloc, 16)
     else SetLength(reloc, relocCount*2);
   end;
-  reloc[relocCount].sec:=writeSec;
-  reloc[relocCount].reltype:=relocType;
-  reloc[relocCount].offset:=ofs;
-  reloc[relocCount].index:=index;
+  i:=relocCount;
+  reloc[i].sec:=writeSec;
+  reloc[i].reltype:=relocType;
+  reloc[i].offset:=ofs;
+  reloc[i].index:=index;
   inc(relocCount);
+
+  case relocType of
+    R_WASM_FUNCTION_INDEX_LEB:
+    begin
+      // ok, so this is function.
+      // the function MUST HAVE a symbol information available
+      // if it doesn't have a symbol then "wasm-objdump" would fail to read it
+      f:=module.GetFunc(index);
+      if not f.hasSym then begin
+        so:=AddSymbolObject;
+        so.syminfo.kind:=SYMTAB_FUNCTION;
+        so.syminfo.flags:=0; // WASM_SYM_EXPLICIT_NAME or WASM_SYM_BINDING_LOCAL;
+        so.syminfo.symname:=f.id;
+        so.syminfo.symindex:=index;
+        so.syminfo.hasSymIndex:=true;
+        f.hasSym:=true;
+      end;
+    end;
+  end;
 end;
 
 procedure TBinWriter.WriteRelocU32(u: longword);
@@ -159,6 +207,7 @@ begin
   end;
   keepLeb128:=keepLeb128 or writeReloc; // use 128, if relocation has been requested
 
+  module:=m;
   dst:=adst;
   org:=adst;
 
@@ -169,31 +218,31 @@ begin
   writeSec:=0;
   // 01 function type section
   if m.TypesCount>0 then begin
-    WriteFuncTypeSect(m);
+    WriteFuncTypeSect;
     inc(writeSec);
   end;
 
   // 03 function section
   if m.FuncCount>0 then begin
-    WriteFuncSect(m);
+    WriteFuncSect;
     inc(writeSec);
   end;
 
   // 07 export section
   if m.ExportCount>0 then begin
-    WriteExportSect(m);
+    WriteExportSect;
     inc(writeSec);
   end;
 
   // 10 code section
   if m.FuncCount>0 then begin
-    WriteCodeSect(m);
+    WriteCodeSect;
     inc(writeSec);
   end;
 
   if writeReloc then begin
-    WriteLinkingSect(m);
-    WriteRelocSect(m)
+    WriteLinkingSect;
+    WriteRelocSect;
   end;
 
   Result:=true;
@@ -221,7 +270,7 @@ begin
   Result := true;
 end;
 
-procedure TBinWriter.WriteFuncTypeSect(m: TWasmModule);
+procedure TBinWriter.WriteFuncTypeSect;
 var
   sc : TSectionRec;
   i  : integer;
@@ -230,9 +279,9 @@ var
 begin
   SectionBegin(SECT_TYPE, sc);
 
-  WriteU32(dst, m.TypesCount);
-  for i:=0 to m.TypesCount-1 do begin
-    tp:=m.GetType(i);
+  WriteU32(dst, module.TypesCount);
+  for i:=0 to module.TypesCount-1 do begin
+    tp:=module.GetType(i);
     dst.WriteByte(func_type);
 
     WriteU32(dst, tp.ParamCount);
@@ -246,23 +295,23 @@ begin
   SectionEnd(sc);
 end;
 
-procedure TBinWriter.WriteFuncSect(m: TWasmModule);
+procedure TBinWriter.WriteFuncSect;
 var
   sc : TSectionRec;
   i  : integer;
 begin
   SectionBegin(SECT_FUNCTION, sc);
 
-  WriteU32(dst, m.FuncCount);
-  for i:=0 to m.FuncCount-1 do
+  WriteU32(dst, module.FuncCount);
+  for i:=0 to module.FuncCount-1 do
     // wat2test doesn't write the function section as relocatable
     // WriteRelocU32(m.GetFunc(i).functype.typeNum);
-    WriteU32(dst, m.GetFunc(i).functype.typeNum);
+    WriteU32(dst, module.GetFunc(i).functype.typeNum);
 
   SectionEnd(sc);
 end;
 
-procedure TBinWriter.WriteExportSect(m: TWasmModule);
+procedure TBinWriter.WriteExportSect;
 var
   sc : TSectionRec;
   i  : integer;
@@ -270,9 +319,9 @@ var
 begin
   SectionBegin(SECT_EXPORT, sc);
 
-  WriteU32(dst, m.ExportCount);
-  for i:=0 to m.ExportCount-1 do begin
-    x:=m.GetExport(i);
+  WriteU32(dst, module.ExportCount);
+  for i:=0 to module.ExportCount-1 do begin
+    x:=module.GetExport(i);
     WriteU32(dst, length(x.name));
     if length(x.name)>0 then
       dst.Write(x.name[1], length(x.name));
@@ -287,7 +336,7 @@ begin
 end;
 
 
-procedure TBinWriter.WriteCodeSect(m: TWasmModule);
+procedure TBinWriter.WriteCodeSect;
 var
   sc    : TSectionRec;
   i, j  : integer;
@@ -296,19 +345,20 @@ var
   la    : TLocalInfoArray;
   f     : TWasmFunc;
   dofs  : Int64;
+  p     : Int64;
 begin
   SectionBegin(SECT_CODE, sc);
 
   mem:=TMemoryStream.Create;
   try
-    WriteU32(dst, m.FuncCount);
-    for i :=0 to m.FuncCount-1 do begin
-      f:=m.GetFunc(i);
+    WriteU32(dst, module.FuncCount);
+    for i :=0 to module.FuncCount-1 do begin
+      f:=module.GetFunc(i);
 
       GetLocalInfo(f, la);
 
       mem.Position:=0;
-      dofs:=dst.Position;
+      dofs:=dst.Position+5; // "la" will be written after, 5 is for the writeSize. +5 is for WriteRelocU32(sz)
       pushStream(mem);
 
       WriteU32(dst, length(la));
@@ -331,20 +381,49 @@ begin
   SectionEnd(sc);
 end;
 
-procedure TBinWriter.WriteLinkingSect(m: TWasmModule);
+procedure TBinWriter.WriteLinkingSect;
 var
   sc : TSectionRec;
+  mem : TMemoryStream;
+  so  : TSymbolObject;
 begin
   SectionBegin(SECT_CUSTOM, sc);
   WriteString(SectionName_Linking);
 
   WriteU32(dst, LINKING_VERSION);
+  if symCount>0 then begin
+    dst.WriteByte(WASM_SYMBOL_TABLE);
+    mem := TMemoryStream.Create;
+    try
+      pushStream(mem);
+      //WriteU32(dst, symCount);
+      WriteRelocU32(symCount);
+      so:=symHead;
+      while Assigned(so) do begin
+        dst.WriteByte(so.syminfo.kind);
+        WriteU32(dst, so.syminfo.flags);
+        WriteU32(dst, so.syminfo.symindex);
+        //if ((so.syminfo.flags and WASM_SYM_EXPLICIT_NAME)>0) then begin
+          WriteU32(dst, length(so.syminfo.symname));
+          dst.Write(so.syminfo.symname[1], length(so.syminfo.symname));
+        //end;
+        so:=so.next;
+      end;
+      popStream;
+
+      mem.Position:=0;
+      WriteU32(dst, mem.Size);
+      dst.CopyFrom(mem, mem.size);
+    finally
+      mem.Free;
+    end;
+  end;
   // todo: fill out subsections
 
   SectionEnd(sc);
 end;
 
-procedure TBinWriter.WriteRelocSect(m: TWasmModule);
+procedure TBinWriter.WriteRelocSect;
 var
   i  : integer;
   j  : integer;
