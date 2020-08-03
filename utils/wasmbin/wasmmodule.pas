@@ -18,6 +18,8 @@ type
     params : TList;
     results : TList;
   public
+    constructor Create;
+    destructor Destroy; override;
     function AddResult(tp: byte = 0): TWasmParam;
     function AddParam(tp: byte = 0; const id: string = ''): TWasmParam;
     function GetParam(i: integer): TWasmParam;
@@ -75,6 +77,22 @@ begin
 end;
 
 { TWasmType }
+
+constructor TWasmType.Create;
+begin
+  inherited Create;
+  params:=Tlist.Create;
+  results:=Tlist.Create;
+end;
+
+destructor TWasmType.Destroy;
+begin
+  ClearList(params);
+  ClearList(results);
+  params.free;
+  results.free;
+  inherited Destroy;
+end;
 
 function TWasmType.AddResult(tp: byte): TWasmParam;
 begin
