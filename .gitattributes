@@ -18981,6 +18981,7 @@ utils/wasmbin/parseutils.pas svneol=native#text/plain
 utils/wasmbin/testscan/asmsym1.wat svneol=native#text/plain
 utils/wasmbin/testscan/asmsym2.wat svneol=native#text/plain
 utils/wasmbin/testscan/asmsym3.wat svneol=native#text/plain
+utils/wasmbin/testscan/import1.wat svneol=native#text/plain
 utils/wasmbin/wasmbin.pas svneol=native#text/plain
 utils/wasmbin/wasmbincode.pas svneol=native#text/plain
 utils/wasmbin/wasmbindebug.pas svneol=native#text/plain
