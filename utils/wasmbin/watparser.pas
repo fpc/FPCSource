@@ -33,6 +33,8 @@ const
      'elem', 'data', 'offset'
      );
 
+  WasmTypeTokens = [wei32, wei64, wef32, wef64];
+
 //function ConsumeToken(sc: TWatScanner; tk: TWatToken): Boolean;
 function ParseModule(sc: TWatScanner; dst: TWasmModule; var errMsg: string): Boolean; overload;
 function ParseModule(sc: TWatScanner; dst: TWasmModule; out err: TParseResult): Boolean; overload;
@@ -381,6 +383,41 @@ begin
   ConsumeToken(sc, weCloseBrace);
 end;
 
+procedure ParseGlobal(sc: TWatScanner; dst: TWasmGlobal);
+var
+  allowValue: Boolean;
+begin
+  if sc.token = weGlobal then sc.Next;
+
+  allowValue := true;
+  // parsing id
+  if (sc.token in [weIdent, weNumber]) then ParseId(sc, dst.id);
+
+  // import or export
+  if (sc.token=weOpenBrace) then begin
+    sc.Next;
+    if sc.token=weImport then begin
+      // import
+      allowValue := false;
+    end else if sc.token=weExport then begin
+     // export
+    end else
+      ErrorExpectButFound(sc, 'import or export')
+  end;
+
+  if sc.token in WasmTypeTokens then begin
+    TokenTypeToValType(sc.token, dst.tp);
+    sc.Next;
+  end;
+
+  if allowValue and (sc.token = weOpenBrace) then begin
+    sc.Next;
+    ParseInstrList(sc, dst.StartValue);
+    ConsumeToken(sc, weCloseBrace);
+  end;
+  ConsumeToken(sc, weCloseBrace);
+end;
+
 procedure ParseData(sc: TWatScanner; dst: TWasmData);
 var
   l : integer;
@@ -549,6 +586,7 @@ var
   f       : TWasmFunc;
   imp     : TWasmImport;
   m       : TWasmMemory;
+  g       : TWasmGlobal;
 begin
   if not ConsumeOpenToken(sc, weModule) then
     ErrorExpectButFound(sc, 'module');
@@ -595,6 +633,12 @@ begin
         weType: begin
           symlist.Clear;
           ParseTypeDef(sc, dst.AddType);
+        end;
+        weGlobal: begin
+          g:=dst.AddGlobal;
+          symlist.ToLinkInfo(g.LinkInfo);
+          symlist.Clear;
+          ParseGlobal(sc, g);
         end;
       else
         ErrorExpectButFound(sc, 'func', TokenStr[sc.token]);

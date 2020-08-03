@@ -116,7 +116,8 @@ type
     id    : TWasmId;
     tp    : byte; // byte;
     value : TWasmInstrList;
-    LinkInfo : TLinkInfo;
+    LinkInfo   : TLinkInfo;
+    ExportInfo : TExportInfo;
     function StartValue: TWasmInstrList;
     destructor Destroy; override;
   end;
