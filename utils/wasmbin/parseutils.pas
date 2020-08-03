@@ -17,6 +17,8 @@ const
   WhiteSpaceChars = SpaceChars;
   SpaceEolnChars = EoLnChars+SpaceChars;
   NumericChars   = ['0'..'9'];
+  SignChars      = ['+','-'];
+  SignNumericChars = NumericChars + SignChars;
   AlphabetChars  = ['a'..'z','A'..'Z'];
   AlphaNumChars  = AlphabetChars+NumericChars;
 
