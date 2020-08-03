@@ -445,12 +445,22 @@ var
   la    : TLocalInfoArray;
   f     : TWasmFunc;
   dofs  : Int64;
-  p     : Int64;
+  main  : TMemoryStream;
 begin
-  SectionBegin(SECT_CODE, sc);
+  //  for the use of leb128, the header can be written ahead of the body
+  //  as the size of the section would always take 5 bytes.
+  //  for not forcing leb128, the size of the body must be known ahead of time
 
+  if keepLeb128 then begin
+    SectionBegin(SECT_CODE, sc);
+    dofs := dst.Position;
+  end else
+    dofs := 0; // we don't really care. dofs only matters for relocation+keepLeb128
+
+  main:=TMemoryStream.Create;
   mem:=TMemoryStream.Create;
   try
+    pushStream(main);
     WriteU32(dst, module.FuncCount);
     for i :=0 to module.FuncCount-1 do begin
       f:=module.GetFunc(i);
@@ -458,7 +468,7 @@ begin
       GetLocalInfo(f, la);
 
       mem.Position:=0;
-      dofs:=dst.Position+5; // "la" will be written after, 5 is for the writeSize. +5 is for WriteRelocU32(sz)
+      dofs := dofs + main.Position + 5; // "la" will be written after, 5 is for the writeSize. +5 is for WriteRelocU32(sz)
       pushStream(mem);
 
       WriteU32(dst, length(la));
@@ -475,9 +485,19 @@ begin
       WriteRelocU32(sz);
       dst.CopyFrom(mem, sz);
     end;
+    popStream;
+
+    if not keepLeb128 then
+      SectionBegin(SECT_CODE, sc, main.Size);
+
+    main.Position:=0;
+    dst.CopyFrom(main, main.Size);
   finally
     mem.Free;
+    main.Free;
   end;
+
+
   SectionEnd(sc);
 end;
 
