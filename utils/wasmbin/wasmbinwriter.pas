@@ -736,6 +736,9 @@ begin
 
       ipResType:
         dst.WriteByte(byte(ci.operandNum));
+
+      ipZero:
+        dst.WriteByte(0);
     end;
   end;
 end;

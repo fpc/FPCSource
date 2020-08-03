@@ -206,19 +206,20 @@ const
 
 type
   TInstParamType = (ipNone,
-    ipLeb,      // label index or function index
-    ipOfsAlign, // memory arguments, ask for offset + align
-    ipi32,      // signed Leb of maximum 4 bytes
-    ipi64,      // signed Leb of maximum 8 bytes
-    ipf32,      // float point single
-    ipf64,      // float point double
-    ipJumpVec,  // an array of jump labels used for br_table only
-    ipResType,  // result type used for blocks, such as If, block or loop
-    ipCallType, // used for call_indirect
-    ipi32OrFunc // use for i32.const. Either a numeric OR function id is accepted.
-                // numeric is used as an actually value.
-                // function Id will be replaced with a reference number to the function
-                // and relocation information would be generated
+    ipLeb,       // label index or function index
+    ipOfsAlign,  // memory arguments, ask for offset + align
+    ipi32,       // signed Leb of maximum 4 bytes
+    ipi64,       // signed Leb of maximum 8 bytes
+    ipf32,       // float point single
+    ipf64,       // float point double
+    ipJumpVec,   // an array of jump labels used for br_table only
+    ipResType,   // result type used for blocks, such as If, block or loop
+    ipCallType,  // used for call_indirect
+    ipi32OrFunc, // use for i32.const. Either a numeric OR function id is accepted.
+                 // numeric is used as an actually value.
+                 // function Id will be replaced with a reference number to the function
+                 // and relocation information would be generated
+    ipZero       // followed by a single byte zero
   );
   TInstFlag = record
     valid : Boolean;
@@ -290,8 +291,8 @@ const
    ,(valid: true;  Param: ipOfsAlign)     // 3C  i64_store8
    ,(valid: true;  Param: ipOfsAlign)     // 3D  i64_store16
    ,(valid: true;  Param: ipOfsAlign)     // 3E  i64_store32
-   ,(valid: true;  Param: ipNone)     // 3F  memory_size
-   ,(valid: true;  Param: ipNone)     // 40  memory_grow
+   ,(valid: true;  Param: ipZero)     // 3F  memory_size
+   ,(valid: true;  Param: ipZero)     // 40  memory_grow
    ,(valid: true;  Param: ipi32OrFunc)// 41  i32_const
    ,(valid: true;  Param: ipi64)      // 42  i64_const
    ,(valid: true;  Param: ipf32)      // 43  f32_const
