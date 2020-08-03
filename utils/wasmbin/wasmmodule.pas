@@ -781,7 +781,7 @@ begin
     if INST_FLAGS[ci.code].Param = ipResType then
     begin
       inc(endNeed);
-      if not byte(ci.operandNum) in ValidResTypes then
+      if not (byte(ci.operandNum) in ValidResTypes) then
         ci.operandNum := VALTYPE_NONE;
     end;
 
