@@ -514,7 +514,7 @@ begin
   WriteU32(dst, module.ElementCount);
   for i:=0 to module.ElementCount-1 do begin
     el := module.GetElement(i);
-    WriteU32(dst, el.tableIdx);
+    WriteU32(dst, el.tableId.idNum);
     WriteInstList(el.offset, sc.datapos);
     WriteU32(dst, el.funcCount);
 

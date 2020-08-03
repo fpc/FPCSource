@@ -220,7 +220,7 @@ begin
     if not Assigned(t.elem) then continue;
     se:=t.elem;
     de := m.AddElement;
-    de.tableIdx := t.id.idNum;
+    de.tableId.idNum := t.id.idNum;
 
     de.funcCount:=se.funcCount;
     if se.funcCount>0 then begin
