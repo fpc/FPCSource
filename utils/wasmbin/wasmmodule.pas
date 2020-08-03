@@ -93,6 +93,9 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure SetReloc(ARelocType: byte; ARelocIndex: Integer);
+
+    property offsetText : string read operandText write operandText;
+    property alignText  : string read operandText2 write operandText2;
   end;
 
   { TWasmInstrList }
