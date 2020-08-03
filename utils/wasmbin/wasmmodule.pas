@@ -3,7 +3,7 @@ unit wasmmodule;
 interface
 
 uses
-  Classes, SysUtils, wasmbin, wasmbincode;
+  Classes, SysUtils, wasmbin, wasmbincode, wasmlink;
 
 type
   TLinkBind = (lbUndefined = 0
@@ -70,10 +70,15 @@ type
     operandIdx  : string;
     operandNum  : integer;    // for call_indirect this is table index
     operandText : string;
-    insttype : TWasmFuncType; // used by call_indirect only
+    insttype    : TWasmFuncType; // used by call_indirect only
+
+    hasRelocIdx : Boolean;
+    relocIdx    : integer;
+    relocType   : Byte;
     function addInstType: TWasmFuncType;
     constructor Create;
     destructor Destroy; override;
+    procedure SetReloc(ARelocType: byte; ARelocIndex: Integer);
   end;
 
   { TWasmInstrList }
@@ -108,6 +113,17 @@ type
     function AddLocal: TWasmParam;
     function GetLocal(i: integer): TWasmParam;
     function LocalsCount: integer;
+  end;
+
+  { TWasmElement }
+
+  TWasmElement = class(TObject)
+    tableIdx  : Integer;
+    offset    : Integer;
+    funcCount : Integer;
+    funcs     : array of LongWord;
+    function AddFunc(idx: integer): integer;
+    constructor Create;
   end;
 
   { TWasmExport }
@@ -155,6 +171,7 @@ type
     funcs   : TList;
     exp     : TList;
     tables  : TList;
+    elems   : TList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -178,6 +195,10 @@ type
     function AddExport: TWasmExport;
     function GetExport(i: integer): TWasmExport;
     function ExportCount: integer;
+
+    function AddElement: TWasmElement;
+    function GetElement(i: integer): TWasmElement;
+    function ElementCount: Integer;
   end;
 
 // making binary friendly. finding proper "nums" for each symbol "index"
@@ -187,6 +208,9 @@ function WasmBasTypeToChar(b: byte): Char;
 function WasmFuncTypeDescr(t: TWasmFuncType): string;
 
 function FindFunc(m: TWasmModule; const funcIdx: string): integer;
+// tries to register a function in the module
+function RegisterFuncIdxInElem(m: TWasmModule; const func: Integer): integer;
+function RegisterFuncInElem(m: TWasmModule; const funcId: string): integer;
 
 implementation
 
@@ -249,6 +273,24 @@ begin
   l.Clear;
 end;
 
+{ TWasmElement }
+
+function TWasmElement.AddFunc(idx: integer): Integer;
+begin
+  if funcCount = length(funcs) then begin
+    if funcCount=0 then SetLength(funcs, 4)
+    else SetLength(funcs, funcCount*2);
+  end;
+  Result:=funcCount;
+  funcs[funcCount]:=idx;
+  inc(funcCount);
+end;
+
+constructor TWasmElement.Create;
+begin
+  offset:=-1;
+end;
+
 { TWasmImport }
 
 function TWasmImport.AddFunc: TWasmFunc;
@@ -289,6 +331,13 @@ destructor TWasmInstr.Destroy;
 begin
   insttype.Free;
   inherited Destroy;
+end;
+
+procedure TWasmInstr.SetReloc(ARelocType: byte; ARelocIndex: Integer);
+begin
+  hasRelocIdx := true;
+  relocType := ARelocType;
+  relocIdx := ARelocIndex;
 end;
 
 { TWasmInstrList }
@@ -425,10 +474,13 @@ begin
   exp := TList.Create;
   imports := TList.Create;
   tables := TList.Create;
+  elems := TList.Create;
 end;
 
 destructor TWasmModule.Destroy;
 begin
+  ClearList(elems);
+  elems.Free;
   ClearList(tables);
   tables.Free;
   ClearList(imports);
@@ -535,6 +587,25 @@ end;
 function TWasmModule.ExportCount: integer;
 begin
   Result:=exp.Count;
+end;
+
+function TWasmModule.AddElement: TWasmElement;
+begin
+  Result:=TWasmElement.Create;
+  elems.add(Result);
+end;
+
+function TWasmModule.GetElement(i: integer): TWasmElement;
+begin
+  if (i>=0) and (i<elems.Count) then
+    Result:=TWasmElement(elems[i])
+  else
+    Result:=nil;
+end;
+
+function TWasmModule.ElementCount: Integer;
+begin
+  Result := elems.Count;
 end;
 
 { TWasmFunc }
@@ -648,6 +719,31 @@ begin
     end;
 end;
 
+procedure PopulateRelocData(module: TWasmModule; ci: TWasmInstr);
+var
+  idx : integer;
+begin
+  case INST_FLAGS[ci.code].Param of
+    ipi32OrFunc:
+      if (ci.operandText<>'') and (ci.operandText[1]='$') then begin
+        //if not ci.hasRelocIdx then
+        idx := RegisterfuncInElem(module, ci.operandText);
+        //AddReloc(rt, dst.Position+ofsAddition, idx);
+        ci.operandNum := idx;
+        ci.SetReloc(INST_RELOC_FLAGS[ci.code].relocType, idx);
+      end;
+
+    ipLeb:
+       if (INST_RELOC_FLAGS[ci.code].doReloc) then begin
+         ci.SetReloc(INST_RELOC_FLAGS[ci.code].relocType, ci.operandNum);
+       end;
+
+    ipCallType:
+      if Assigned(ci.insttype) then
+        ci.SetReloc(INST_RELOC_FLAGS[ci.code].relocType, ci.insttype.typeNum);
+  end;
+end;
+
 // Normalizing instruction list, popuplating index reference ($index)
 // with the actual numbers. (params, locals, globals, memory, functions index)
 procedure NormalizeInst(m: TWasmModule; f: TWasmFunc; l: TWasmInstrList; checkEnd: boolean = true);
@@ -683,6 +779,8 @@ begin
           ci.insttype.typeNum:=RegisterFuncType(m, ci.insttype);
       end;
     end;
+
+    PopulateRelocData(m, ci);
   end;
 
   // adding end instruction
@@ -749,6 +847,44 @@ begin
             x.exportNum := FindFunc(m, x.exportIdx);
       end;
   end;
+end;
+
+function RegisterFuncIdxInElem(m: TWasmModule; const func: Integer): integer;
+var
+  el : TWasmElement;
+  i  : Integer;
+const
+  NON_ZEROFFSET = 1; // being compliant with Linking convention
+  // The output table elements shall begin at a non-zero offset within
+  // the table, so that a call_indirect 0 instruction is guaranteed to fail.
+  // Finally, when processing table relocations for symbols which
+  // have neither an import nor a definition (namely, weakly-undefined
+  // function symbols), the value 0 is written out as the value of the relocation.
+begin
+  if m.ElementCount=0 then begin
+    el := m.AddElement;
+    el.offset := NON_ZEROFFSET;
+  end else
+    el := m.GetElement(0);
+  Result:=-1;
+  for i:=0 to el.funcCount-1 do begin
+    if el.funcs[i] = func then
+      Result:=i;
+  end;
+  if Result<0 then
+    Result := el.AddFunc(func);
+  writeln('result=',result,' for ',func);
+end;
+
+function RegisterFuncInElem(m: TWasmModule; const funcId: string): integer;
+var
+  fnidx : integer;
+begin
+  fnidx := FindFunc(m, funcId);
+  if fnidx>=0 then
+    Result := RegisterFuncIdxInElem(m, fnidx)
+  else
+    Result := -1;
 end;
 
 end.
