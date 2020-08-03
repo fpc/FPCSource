@@ -12,6 +12,7 @@ procedure ChangeSymbolFlag(const fn, symfn: string);
 
 function ExportRenameSym(var x: TExportSection; syms: TStrings): Integer;
 function ExportRenameProcess(st, dst: TStream; syms: TStrings; doVerbose: Boolean): Boolean;
+function ExportNameGather(const wasmfile: string; syms: TStrings; doVerbose: Boolean = false): Boolean;
 procedure ExportRename(const fn, symfn: string; doVerbose: Boolean);
 
 implementation
@@ -135,6 +136,85 @@ begin
   end;
 end;
 
+// match between exported function names and symbol names
+procedure MatchExportNameToSymName(const x: TExportSection; const l: TLinkingSection;  dst: TStrings);
+var
+  expname : string;
+  i,j     : integer;
+begin
+  for i:=0 to length(x.entries)-1 do begin
+    // gathering only function names for now
+    if x.entries[i].desc <> EXPDESC_FUNC then continue;
+    expname := x.entries[i].name;
+    for j:=0 to length(l.symbols)-1 do begin
+      if (l.symbols[j].kind = SYMTAB_FUNCTION)
+        and (l.symbols[j].symindex = x.entries[i].index)
+        and (l.symbols[j].hasSymName)
+      then
+        dst.Values[ l.symbols[j].symname ] := expname;
+    end;
+  end;
+
+end;
+
+function ExportNameGather(const wasmfile: string; syms: TStrings; doVerbose: Boolean = false): Boolean;
+var
+  dw  : LongWord;
+  ofs : int64;
+  sc  : TSection;
+  ps  : int64;
+  mem : TMemoryStream;
+  cnt : integer;
+  st  : TFileStream;
+  nm  : string;
+  x   : TExportSection;
+  foundExport: Boolean;
+  l   : TLinkingSection;
+  foundLink: Boolean;
+begin
+  st := TFileStream.Create(wasmfile, fmOpenRead or fmShareDenyNone);
+  try
+    dw := st.ReadDWord;
+    Result := dw = WasmId_Int;
+    if not Result then begin
+      Exit;
+    end;
+    dw := st.ReadDWord;
+
+    foundExport:=false;
+    foundLink:=false;
+    while st.Position<st.Size do begin
+      ofs := st.Position;
+      sc.id := st.ReadByte;
+      sc.Size := ReadU(st);
+
+      ps := st.Position+sc.size;
+
+      if sc.id = SECT_EXPORT then begin
+        if doVerbose then writeln(' export section found');
+        ReadExport(st, x);
+        cnt := ExportRenameSym(x, syms);
+        foundExport:=true;
+      end else if sc.id = SECT_CUSTOM then begin
+        nm := ReadName(st);
+        if nm = SectionName_Linking then begin
+          foundLink := true;
+          ReadLinkingSection(st, sc.size, l);
+        end;
+      end;
+
+      if st.Position <> ps then
+        st.Position := ps;
+    end;
+
+    Result := foundLink and foundExport;
+    if Result then
+      MatchExportNameToSymName(x, l, syms);
+  finally
+    st.Free;
+  end;
+end;
+
 procedure ExportRename(const fn, symfn: string; doVerbose: Boolean);
 var
   fs    : TFileStream;
@@ -149,7 +229,11 @@ begin
     if (symfn <> '') and fileExists(symfn) then
     begin
       if doVerbose then writeln('reading symbols: ', symfn);
-      syms.LoadFromFile(symfn);
+
+      if isWasmFile(symfn) then
+        ExportNameGather(symfn, syms, doVerbose)
+      else
+        syms.LoadFromFile(symfn);
       if doVerbose then write(syms.Text);
     end;
 

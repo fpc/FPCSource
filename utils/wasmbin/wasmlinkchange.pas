@@ -56,7 +56,7 @@ procedure ProcessLinkingSection(st: TStream; syms: TStrings);
 var
   mt  : TLinkingMetadata;
   //en  : Int64;
-  sub : TLinkinSubSection;
+  sub : TLinkingSubSection;
   cnt : LongWord;
   nx  : Int64;
   i   : integer;

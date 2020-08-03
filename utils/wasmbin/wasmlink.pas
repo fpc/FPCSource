@@ -47,7 +47,7 @@ type
     version : UInt32; // the version of linking metadata contained in this section. Currently: 2
   end;
 
-  TLinkinSubSection = record
+  TLinkingSubSection = record
     sectype : UInt8;   // code identifying type of subsection
     length  : UInt32;  // size of this subsection in bytes
   end;
@@ -131,7 +131,7 @@ const
   WASM_SYM_NO_STRIP          = $80;
 
 function ReadMetaData(st: TStream; out m:TLinkingMetadata): Boolean;
-function ReadLinkSubSect(st: TStream; out m: TLinkinSubSection): Boolean;
+function ReadLinkSubSect(st: TStream; out m: TLinkingSubSection): Boolean;
 function ReadSymInfo(st: TStream; out m: TSymInfo): Boolean;
 
 procedure WriteSymInfo(st: TStream; const m: TSymInfo);
@@ -143,6 +143,16 @@ procedure DumpLinking(st: TStream; secsize: integer);
 function SubSecTypeToStr(b: Byte): string;
 function SymKindToStr(b: Byte): string;
 
+type
+  TLinkingSection = record
+    metadata: TLinkingMetadata;
+    symbols : array of TSymInfo;
+  end;
+
+// the stream should be set at the beggining of the section
+// after name and size values
+procedure ReadLinkingSection(st: TStream; size: integer; var sc: TLinkingSection);
+
 implementation
 
 function ReadMetaData(st: TStream; out m:TLinkingMetadata): Boolean;
@@ -152,7 +162,7 @@ begin
   Result:=true;
 end;
 
-function ReadLinkSubSect(st: TStream; out m: TLinkinSubSection): Boolean;
+function ReadLinkSubSect(st: TStream; out m: TLinkingSubSection): Boolean;
 begin
   FillChar(m, sizeof(m), 0);
   m.sectype := ReadU(st);
@@ -213,7 +223,7 @@ procedure DumpLinking(st: TStream; secsize: integer);
 var
   mt  : TLinkingMetadata;
   en  : Int64;
-  sub : TLinkinSubSection;
+  sub : TLinkingSubSection;
   cnt : LongWord;
   nx  : Int64;
   i   : integer;
@@ -268,5 +278,30 @@ begin
   end;
 end;
 
+procedure ReadLinkingSection(st: TStream; size: integer; var sc: TLinkingSection);
+var
+  eofs : int64;
+  sub  : TLinkingSubSection;
+  cnt  : integer;
+  i    : integer;
+  nx   : int64;
+begin
+  eofs := st.Position+size;
+  ReadMetadata(st, sc.metadata);
+  while st.Position < eofs do begin
+    ReadLinkSubSect(st, sub);
+    nx := st.Position+sub.length;
+    case sub.sectype of
+      //todo: others!
+      WASM_SYMBOL_TABLE: begin
+        cnt := ReadU(st);
+        SetLength(sc.symbols, cnt);
+        for i:=0 to cnt-1 do
+          ReadSymInfo(st, sc.symbols[i]);
+      end;
+    end;
+    st.Position:=nx;
+  end;
+end;
 
 end.

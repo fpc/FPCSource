@@ -87,7 +87,13 @@ type
     entries : array of TCodeEntry;
   end;
 
+const
+  EXPDESC_FUNC   = $00;
+  EXPDESC_TABLE  = $01;
+  EXPDESC_MEM    = $02;
+  EXPDESC_GLOBAL = $03;
 
+type
   TExportEntry = record
     name    : string;
     desc    : byte;
@@ -122,6 +128,9 @@ procedure ReadExportEntry(src: TStream; var ex: TExportEntry);
 // reads the export entry
 procedure ReadExport(src: TStream; var ex: TExportSection);
 procedure WriteExport(const ex: TExportSection; dst: TStream);
+
+function isWasmStream(st: TStream): Boolean;
+function isWasmFile(const fn: string): Boolean;
 
 implementation
 
@@ -243,6 +252,38 @@ begin
     WriteName(dst, ex.entries[i].name);
     dst.WriteByte(ex.entries[i].desc);
     WriteU32(dst, ex.entries[i].index);
+  end;
+end;
+
+function isWasmStream(st: TStream): Boolean;
+var
+  pos : Int64;
+begin
+  try
+    pos:=st.Position;
+    try
+      Result := st.ReadDWord = WasmId_Int;
+    finally
+      st.Position:=pos;
+    end;
+  except
+    Result:=false;
+  end;
+end;
+
+function isWasmFile(const fn: string): Boolean;
+var
+  fs: TFileStream;
+begin
+  try
+    fs:=TFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
+    try
+      Result:=isWasmStream(fs);
+    finally
+      fs.Free;
+    end;
+  except
+    Result := false;
   end;
 end;
 
