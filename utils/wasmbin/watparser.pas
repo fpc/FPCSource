@@ -20,7 +20,7 @@ const
      'uknown', 'error',
      'index',
      'string', 'number', '(', ')',
-     'linksymbol',
+     'assembler symbol',
 
      'instruction',
      'func',
@@ -47,6 +47,20 @@ type
   EParserError = class(Exception)
     offset : integer;
     constructor Create(const amsg: string; aofs: integer);
+  end;
+
+  TAsmSym = record
+    name  : string;
+    value : string;
+  end;
+
+  { TAsmSymList }
+
+  TAsmSymList = class(TObject)
+    syms  : array of TAsmSym;
+    count : integer;
+    procedure Push(const AName, AValue: string);
+    procedure Clear;
   end;
 
 const
@@ -296,27 +310,46 @@ begin
   ConsumeToken(sc, weCloseBrace);
 end;
 
+procedure ConsumeAsmSym(sc: TWatScanner; dst: TAsmSymList);
+begin
+  dst.Push(sc.asmCmd, sc.resText);
+  sc.Next;
+end;
+
 procedure ParseModuleInt(sc: TWatScanner; dst: TWasmModule);
 var
   tk : TWatToken;
+  symlist : TAsmSymList;
 begin
   if not ConsumeOpenToken(sc, weModule) then
     ErrorExpectButFound(sc, 'module');
 
-  sc.Next;
-  ConsumeAnyOpenToken(sc, tk);
-  while tk <> weCloseBrace do begin
-    case tk of
-      weFunc:
-        ParseFunc(sc, dst.AddFunc);
-      weExport:
-        ParseExport(sc, dst.AddExport);
-    else
-      ErrorExpectButFound(sc, 'func', TokenStr[sc.token]);
-    end;
+  symlist := TAsmSymList.Create;
+  try
+    sc.Next;
     ConsumeAnyOpenToken(sc, tk);
+    while tk <> weCloseBrace do begin
+      case tk of
+        weAsmSymbol:
+          ConsumeAsmSym(sc, symlist);
+        weFunc: begin
+          ParseFunc(sc, dst.AddFunc);
+          symlist.Clear;
+        end;
+        weExport:
+        begin
+          ParseExport(sc, dst.AddExport);
+          symlist.Clear;
+        end;
+      else
+        ErrorExpectButFound(sc, 'func', TokenStr[sc.token]);
+      end;
+      ConsumeAnyOpenToken(sc, tk);
+    end;
+    ConsumeToken(sc, weCloseBrace);
+  finally
+    symlist.Free;
   end;
-  ConsumeToken(sc, weCloseBrace);
 end;
 
 function ParseModule(sc: TWatScanner; dst: TWasmModule; var errMsg: string): Boolean;
@@ -367,6 +400,32 @@ begin
       Result:=false;
     end;
   end;
+end;
+
+{ TAsmSymList }
+
+procedure TAsmSymList.Push(const AName, AValue: string);
+var
+  i : integer;
+begin
+  for i:=0 to count-1 do
+    if syms[i].name = Aname then begin
+      syms[i].value := AValue;
+      Exit;
+    end;
+
+  if count=length(syms) then begin
+    if count=0 then SetLength(syms, 4)
+    else SetLength(syms, count*2);
+  end;
+  syms[count].name:=AName;
+  syms[count].value:=Avalue;
+  inc(count);
+end;
+
+procedure TAsmSymList.Clear;
+begin
+  count:=0;
 end;
 
 { EParserError }
