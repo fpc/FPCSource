@@ -629,6 +629,23 @@ unit rgobj;
         { Don't do the real allocation when -sr is passed }
         if (cs_no_regalloc in current_settings.globalswitches) then
           exit;
+        { Spill registers which interfere with all usable real registers.
+          It is pointless to keep them for further processing. Also it may
+          cause endless spilling.
+
+          This can happen when compiling for very constrained CPUs such as
+          i8086 where indexed memory access instructions allow only
+          few registers as arguments and additionally the calling convention
+          provides no general purpose volatile registers.
+        }
+        for i:=first_imaginary to maxreg-1 do
+          if reginfo[i].real_reg_interferences>=usable_registers_cnt then
+            spillednodes.add(i);
+        if spillednodes.length<>0 then
+          begin
+            spill_registers(list,headertai);
+            spillednodes.clear;
+          end;
         {Do register allocation.}
         spillingcounter:=0;
         repeat
