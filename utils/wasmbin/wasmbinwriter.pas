@@ -624,6 +624,21 @@ begin
   if Result then WriteU32(dst, u32);
 end;
 
+procedure WriteAlign(dst: TStream; const operand: string);
+var
+  m : Integer;
+begin
+  m := 0;
+  if (length(operand)=1) then
+    case operand[1] of
+      '1': m := 0;
+      '2': m := 1;
+      '4': m := 2;
+      '8': m := 3;
+    end;
+  WriteU32(dst, m);
+end;
+
 function WriteI64Operand(dst: TStream; const operand: string): Boolean;
 var
   err : integer;
@@ -675,6 +690,8 @@ var
   ci  : TWasmInstr;
   idx : integer;
   rt  : Byte;
+  mm  : Integer;
+  err : Integer;
 begin
   for i:=0 to list.Count-1 do begin
     ci :=list[i];
@@ -741,6 +758,13 @@ begin
 
       ipZero:
         dst.WriteByte(0);
+
+      ipOfsAlign: begin
+        // align
+        WriteAlign(dst, ci.alignText);
+        // offset
+        WriteI32Operand(dst, ci.offsetText);
+      end;
     end;
   end;
 end;
