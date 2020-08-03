@@ -1,6 +1,6 @@
 (module
   ;;.local
-  ;;.undef
+  ;;.weak
   (func $anycall (param $i i32)
     unreachable
   )
