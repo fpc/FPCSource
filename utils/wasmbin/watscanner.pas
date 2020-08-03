@@ -38,6 +38,7 @@ type
     ofs       : integer;
     token     : TWatToken;
     resText   : string;
+    asmCmd    : string;
     procedure SetSource(const abuf: string);
     function Next: Boolean;
 
@@ -148,8 +149,26 @@ begin
 end;
 
 function TWatScanner.CommentIsSymbol(const cmt: string): Boolean;
+var
+  i: integer;
+  t: string;
+  v: string;
 begin
+  writeln('comment: "',cmt,'"');
   Result := false;
+  if (Pos(';;',cmt)<>1) then Exit;
+  i:=3;
+  ScanWhile(cmt, i, SpaceChars);
+  if (i>length(cmt)) or (cmt[i]<>'.') then Exit;
+
+  inc(i);
+  t := AnsiLowerCase(ScanTo(cmt, i, SpaceChars));
+  ScanWhile(cmt, i, SpaceChars);
+  v := ScanTo(cmt, i, SpaceChars);
+
+  asmCmd := t;
+  resText := v;
+  Result := true;
 end;
 
 procedure TWatScanner.SetSource(const abuf: string);
