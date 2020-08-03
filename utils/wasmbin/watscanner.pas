@@ -240,13 +240,13 @@ begin
       end else if buf[idx] = IdStart then begin
         token:=weIdent;
         resText:=ScanWhile(buf, idx, IdBody);
+      end else if buf[idx] in NumericChars then begin
+        token:=weNumber;
+        resText:=ScanWhile(buf, idx, NumericChars);
       end else if buf[idx] in AlphaNumChars then begin
         resText:=ScanWhile(buf, idx, GrammarChars);
         GetGrammar(resText, token, instrCode);
         done:=true;
-      end else if buf[idx] in NumericChars then begin
-        token:=weNumber;
-        resText:=ScanWhile(buf, idx, NumericChars);
       end else begin
         token:=weError;
         inc(idx);
