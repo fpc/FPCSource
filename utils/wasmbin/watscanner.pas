@@ -28,7 +28,7 @@ type
 
   TWatScanner = class(TObject)
   protected
-    procedure DoComment(const cmt: string);
+    procedure DoComment(ofs: Integer; const cmt: string); virtual;
     function CommentIsSymbol(const cmt: string): Boolean;
   public
     buf       : string;
@@ -142,7 +142,7 @@ end;
 
 { TWatScanner }
 
-procedure TWatScanner.DoComment(const cmt: string);
+procedure TWatScanner.DoComment(ofs: Integer; const cmt: string);
 begin
 
 end;
@@ -205,7 +205,7 @@ begin
         token:=weAsmSymbol;
         done:=true;
       end else
-        DoComment(cmt);
+        DoComment(ofs, cmt);
     end else begin
       done:=true;
       if buf[idx] = '(' then begin
