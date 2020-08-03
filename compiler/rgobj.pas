@@ -690,7 +690,8 @@ unit rgobj;
             if adjlist=nil then
               new(adjlist,init);
             adjlist^.add(v);
-            if v<first_imaginary then
+            if (v<first_imaginary) and
+               (v in usable_register_set) then
               inc(real_reg_interferences);
           end;
       end;
