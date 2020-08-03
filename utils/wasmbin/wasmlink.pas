@@ -152,6 +152,7 @@ type
 // the stream should be set at the beggining of the section
 // after name and size values
 procedure ReadLinkingSection(st: TStream; size: integer; var sc: TLinkingSection);
+procedure WriteLinkingSection(st: TStream; const sc: TLinkingSection);
 
 implementation
 
@@ -165,7 +166,7 @@ end;
 function ReadLinkSubSect(st: TStream; out m: TLinkingSubSection): Boolean;
 begin
   FillChar(m, sizeof(m), 0);
-  m.sectype := ReadU(st);
+  m.sectype := st.ReadByte; //ReadU(st);
   m.length := ReadU(st);
   Result := true;
 end;
@@ -302,6 +303,31 @@ begin
     end;
     st.Position:=nx;
   end;
+end;
+
+procedure WriteLinkingSection(st: TStream; const sc: TLinkingSection);
+var
+  mem : TMemoryStream;
+  i   : integer;
+begin
+  st.WriteByte(sc.metadata.version);
+
+  mem:=TMemoryStream.Create;
+  try
+    WriteU32(mem, length(sc.symbols));
+    for i:=0 to length(sc.symbols)-1 do
+      WriteSymInfo(mem, sc.symbols[i]);
+
+    st.WriteByte(WASM_SYMBOL_TABLE);
+    WriteU32(st, mem.Size);
+
+    mem.Position:=0;
+    st.CopyFrom(mem, mem.Size);
+  finally
+    mem.Free;
+  end;
+
+  // todo: other sub setions are possible
 end;
 
 end.
