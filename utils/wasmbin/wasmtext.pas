@@ -25,6 +25,8 @@ interface
 
 // WebAssembly Wabt text utilities
 
+{$mode objfpc}{$H+}
+
 uses
  wasmbincode;
 
