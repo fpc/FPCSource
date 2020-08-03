@@ -14,6 +14,7 @@ uses
 const
   ACT_EXPORTRENAME = 'exportrename';
   ACT_SYMBOLFLAG   = 'symbolflag';
+  ACT_SYMBOLAUTO   = 'symbolauto';
 
   VERSION = '1.0';
 
@@ -25,7 +26,8 @@ begin
   writeln;
   writeln('options:');
   writeln('  --exportrename @inputfile - renaming export names');
-  writeln('  --symbolflag   @inputfile - update symbol use flags');
+  writeln('  --symbolflag   @inputfile - update symbol flags as specified in input');
+  writeln('  --symbolauto              - update symbol by the use');
   writeln('  --verbose - enabling verbose mode');
 end;
 
@@ -64,6 +66,8 @@ begin
       ExportRename(inputFn, ta.paramsFn, doVerbose);
     end else if ta.action = ACT_SYMBOLFLAG then begin
       ChangeSymbolFlag(inputFn, ta.paramsFn);
+    end else if ta.action = ACT_SYMBOLAUTO then begin
+      PredictSymbolsFromLink(inputFn, doVerbose);
     end;
   end;
 end;
@@ -95,6 +99,8 @@ begin
       ls := Copy(ls, 3, length(ls)-2);
       if (ls = 'verbose') then
         verbose := true
+      else if (ls = ACT_SYMBOLAUTO) then
+        acts.Add( TToolActions.Create(ls, ''))
       else begin
         if i<=ParamCount then begin
           fn:=ParamStr(i);

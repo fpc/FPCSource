@@ -9,6 +9,7 @@ uses
 
 function ChangeSymbolFlagStream(st: TStream; syms: TStrings): Boolean;
 procedure ChangeSymbolFlag(const fn, symfn: string);
+function PredictSymbolsFromLink(const wasmfn: string; doVerbose: Boolean = false): Boolean;
 
 procedure MatchExportNameToSymName(const x: TExportSection; const l: TLinkingSection; dst: TStrings);
 function ExportRenameSym(var x: TExportSection; syms: TStrings): Integer;
@@ -63,41 +64,141 @@ end;
 // if a function is not located in the function table, the status given is:
 //  "hidden"+"local" (local means the function can be used only in this object file)
 procedure MatchExportNameToSymFlag(
-  x: TExportSection;
-  l: TLinkingSection;
-  e: TElementSection;
-  syms : TStrings)
+  const imp: TImportSection;
+  const c: TCodeSection;
+  const e: TElementSection;
+  const x: TExportSection;
+  var l: TLinkingSection; doVerbose: Boolean);
+type
+  TFuncType = (ftImpl = 0, ftIntf, ftStub, ftExport);
+
+  TFuncInfo = record
+    hasSymbol : Boolean;
+    fnType    :  TFuncType;
+  end;
+
+var
+  i  : integer;
+  j  : integer;
+  idx : integer;
+  fn : array of TFuncInfo;
+  codeofs: integer;
 begin
+  idx := -1;
+  for i:=0 to length(l.symbols)-1 do
+    if l.symbols[i].kind = SYMTAB_FUNCTION then begin
+      writeln(i,' fun idx: ', l.symbols[i].symindex);
+      if l.symbols[i].symindex>idx then begin
+        idx:= l.symbols[i].symindex;
+      end;
+    end;
+
+  SetLength(fn, idx+1);
+  for i:=0 to length(l.symbols)-1 do
+    if l.symbols[i].kind = SYMTAB_FUNCTION then begin
+      idx := l.symbols[i].symindex;
+      fn[idx].hasSymbol:=true;
+    end;
+
+  for i:=0 to length(e.entries)-1 do
+    for j:=0 to length(e.entries[i].funcs)-1 do begin
+      idx := e.entries[i].funcs[j];
+      fn[idx].fnType:=ftIntf;
+    end;
+
+  codeofs:=0;
+  for i:=0 to length(imp.entries)-1 do
+    if imp.entries[i].desc = IMPDESC_FUNC then
+      inc(codeofs);
+
+  for i:=codeofs to length(fn)-1 do begin
+    if not fn[i].hasSymbol then begin
+      Continue;
+    end;
+
+    if (fn[i].fnType=ftImpl) and (isUnreachable(c.entries[i-codeofs])) then begin
+      fn[i].fnType:=ftStub;
+    end;
+  end;
+
+  for i:=0 to length(x.entries)-1 do begin
+    if x.entries[i].desc = EXPDESC_FUNC then begin
+      idx := x.entries[i].index;
+      if fn[idx].fnType<>ftStub then
+        fn[idx].fnType:=ftExport;
+    end;
+  end;
+
+  for i:=0 to length(l.symbols)-1 do begin
+    if l.symbols[i].kind = SYMTAB_FUNCTION then begin
+      j := l.symbols[i].symindex;
+
+      if j>=codeofs then // not imported
+        case fn[j].fnType of
+          ftImpl:
+            l.symbols[i].flags := l.symbols[i].flags or WASM_SYM_VISIBILITY_HIDDEN or WASM_SYM_BINDING_LOCAL;
+          ftIntf:
+            l.symbols[i].flags := l.symbols[i].flags or WASM_SYM_VISIBILITY_HIDDEN;
+          ftStub:
+            l.symbols[i].flags := l.symbols[i].flags or WASM_SYM_BINDING_WEAK or WASM_SYM_VISIBILITY_HIDDEN;
+          ftExport:
+            //l.symbols[i].flags := l.symbols[i].flags or WASM_SYM_VISIBILITY_HIDDEN or WASM_SYM_BINDING_WEAK;
+            ;
+        end;
+
+      if DoVerbose then begin
+        write('func ');
+        if l.symbols[i].hasSymName then
+          write(l.symbols[i].symname)
+        else
+          write('#',j);
+        write(' ', fn[j].fnType);
+        writeln;
+      end;
+      //if l.symbols[i].symindex>mx then mx := ;
+    end;
+  end;
+
+
 end;
 
-function PredictSymbolsFromLink(const wasmfn: string; syms: TStrings; doVerbose: Boolean = false): Boolean;
+function PredictSymbolsFromLink(const wasmfn: string; doVerbose: Boolean = false): Boolean;
 var
   st : TFileStream;
   dw : LongWord;
-  foundExport  : Boolean;
+  foundCode    : Boolean;
   foundElement : Boolean;
   foundLink    : Boolean;
+  foundExport  : Boolean;
+  foundImport  : Boolean;
   ofs : Int64;
   ps  : Int64;
   sc  : TSection;
-  x   : TExportSection;
+  c   : TCodeSection;
+  imp : TImportSection;
   l   : TLinkingSection;
   e   : TElementSection;
-  cnt : Integer;
+  x   : TExportSection;
   nm  : string;
+  lofs : Int64;
+  lsize : Int64;
+  mem   : TMemoryStream;
+  mem2  : TMemoryStream;
 begin
-  st := TFileStream.Create(wasmfn, fmOpenRead or fmShareDenyNone);
+  st := TFileStream.Create(wasmfn, fmOpenReadWrite or fmShareDenyNone);
   try
     dw := st.ReadDWord;
     Result := dw = WasmId_Int;
-    if not Result then begin
-      Exit;
-    end;
+    if not Result then Exit;
+
     dw := st.ReadDWord;
 
-    foundElement:=false;
-    foundExport:=false;
-    foundLink:=false;
+    foundElement := false;
+    foundCode := false;
+    foundLink := false;
+    foundExport := false;
+    foundImport := false;
+    Result := false;
     while st.Position<st.Size do begin
       ofs := st.Position;
       sc.id := st.ReadByte;
@@ -105,26 +206,76 @@ begin
 
       ps := st.Position+sc.size;
 
-      if sc.id = SECT_EXPORT then begin
-        if doVerbose then writeln(' export section found');
-        ReadExport(st, x);
-        cnt := ExportRenameSym(x, syms);
-        foundExport:=true;
-      end else if sc.id = SECT_CUSTOM then begin
-        nm := ReadName(st);
-        if nm = SectionName_Linking then begin
-          foundLink := true;
-          ReadLinkingSection(st, sc.size, l);
+      case sc.id of
+        SECT_IMPORT: begin
+          ReadImportSection(st, imp);
+          foundImport := true;
+        end;
+        SECT_EXPORT: begin
+          ReadExport(st, x);
+          foundExport := true;
+        end;
+        SECT_ELEMENT: begin
+          ReadElementSection(st, e);
+          foundElement := true;
+        end;
+        SECT_CODE: begin
+          ReadCodeSection(st, c);
+          foundCode := true;
+        end;
+        SECT_CUSTOM: begin
+          nm := ReadName(st);
+          if nm = SectionName_Linking then begin
+            lofs:=ofs;
+            ReadLinkingSection(st, sc.size, l);
+            foundLink := true;
+            lsize := ps-lofs;
+          end;
         end;
       end;
 
-      if st.Position <> ps then
+      if st.Position <> ps then begin
         st.Position := ps;
+      end;
+
+      Result := foundLink and foundCode and foundElement;
+      if Result then break;
     end;
 
-    Result := foundLink and foundExport;
-    if Result then
-      MatchExportNameToSymFlag(x, l, syms);
+    if not foundExport then SetLength(x.entries,0);
+    if not foundImport then SetLength(imp.entries, 0);
+
+    if Result then begin
+      if doVerbose then writeln('detecting symbols');
+      MatchExportNameToSymFlag(imp, c, e, x, l, doVerbose);
+      mem:=TMemoryStream.Create;
+      mem2:=TMemoryStream.Create;
+      try
+        st.Position:=lofs+lsize;
+        mem2.CopyFrom(st, st.Size - st.Position);
+
+        st.Position:=lofs;
+        WriteName(mem, SectionName_Linking);
+        WriteLinkingSection(mem, l);
+
+        st.WriteByte(SECT_CUSTOM);
+        if doVerbose then writeln('section size: ', mem.Size);
+        WriteU32(st, mem.Size);
+
+        mem.Position:=0;
+        if doVerbose then writeln('copying from mem');
+        st.CopyFrom(mem, mem.Size);
+        mem2.Position:=0;
+        if doVerbose then writeln('copying from mem2');
+        st.CopyFrom(mem2, mem2.Size);
+        st.Size:=st.Position;
+      finally
+        mem.Free;
+        mem2.Free;
+      end;
+      if doVerbose then writeln('written: ', st.Position-lofs,' bytes');
+    end else
+      writeln('failed. section find status. Likning: ', foundLink,'; Code: ', foundCode,'; Element: ', foundElement);
   finally
     st.Free;
   end;
@@ -139,13 +290,9 @@ begin
   fs := TFileStream.Create(fn, fmOpenReadWrite or fmShareDenyNone);
   try
     if (symfn<>'') then begin
-      if not isWasmFile(symfn) then
-        ReadSymbolsConf(symfn, syms)
-      else begin
-        PredictSymbolsFromLink(symfn, syms);
-      end;
+      ReadSymbolsConf(symfn, syms);
+      ChangeSymbolFlagStream(fs, syms);
     end;
-    ChangeSymbolFlagStream(fs, syms);
   finally
     fs.Free;
     syms.Free;
