@@ -960,60 +960,81 @@ var
   j   : integer;
   ci  : TWasmInstr;
   endNeed : Integer;
+  lbl     : TStringList;
+  li      : Integer;
 const
   ValidResTypes = [VALTYPE_NONE,VALTYPE_I32,VALTYPE_I64,VALTYPE_F32,VALTYPE_F64];
 begin
   Result := true;
   endNeed := 1;
-  for i:=0 to l.Count-1 do begin
-    ci:=l[i];
+  lbl := TStringList.Create;
+  try
+    for i:=0 to l.Count-1 do begin
+      ci:=l[i];
 
-    if INST_FLAGS[ci.code].Param = ipResType then
-    begin
-      inc(endNeed);
-      if not (byte(ci.operandNum) in ValidResTypes) then
-        ci.operandNum := VALTYPE_NONE;
-    end;
-
-    case ci.code of
-      INST_local_get, INST_local_set, INST_local_tee:
+      if INST_FLAGS[ci.code].Param = ipResType then
       begin
-        if not Assigned(f) then begin
-          Result:=false;
-          Exit;
-        end;
+        inc(endNeed);
+        if not (byte(ci.operandNum) in ValidResTypes) then
+          ci.operandNum := VALTYPE_NONE;
 
-        if (ci.operandIdx<>'') and (ci.operandNum<0) then begin
-          j:=FindParam(f.functype.params, ci.operandIdx);
-          if j<0 then begin
-            j:=FindParam(f.locals, ci.operandIdx);
-            if j>=0 then inc(j, f.functype.ParamCount);
+        lbl.Add(ci.jumplabel);
+      end;
+
+      case ci.code of
+        INST_local_get, INST_local_set, INST_local_tee:
+        begin
+          if not Assigned(f) then begin
+            Result:=false;
+            Exit;
           end;
-          ci.operandNum:=j;
+
+          if (ci.operandIdx<>'') and (ci.operandNum<0) then begin
+            j:=FindParam(f.functype.params, ci.operandIdx);
+            if j<0 then begin
+              j:=FindParam(f.locals, ci.operandIdx);
+              if j>=0 then inc(j, f.functype.ParamCount);
+            end;
+            ci.operandNum:=j;
+          end;
+        end;
+
+        INST_call:
+        begin
+          if (ci.operandIdx<>'') and (ci.operandNum<0) then
+            ci.operandNum:=FindFunc(m,ci.operandIdx);
+        end;
+
+        INST_call_indirect:
+        begin
+          if Assigned(ci.insttype) and (ci.insttype.typeNum<0) then
+            ci.insttype.typeNum:=RegisterFuncType(m, ci.insttype);
+        end;
+
+        INST_br, INST_br_if: begin
+          if ci.operandIdx<>'' then begin
+            li:=lbl.Count-1;
+            while (li>=0) and (lbl[li]<>ci.operandIdx) do
+              dec(li);
+            ci.operandNum:=(lbl.Count-1)-li;
+          end;
+        end;
+
+        INST_END: begin
+          dec(endNeed);
+          if lbl.Count>0 then lbl.Delete(lbl.Count-1);
         end;
       end;
 
-      INST_call:
-      begin
-        if (ci.operandIdx<>'') and (ci.operandNum<0) then
-          ci.operandNum:=FindFunc(m,ci.operandIdx);
-      end;
-
-      INST_call_indirect:
-      begin
-        if Assigned(ci.insttype) and (ci.insttype.typeNum<0) then
-          ci.insttype.typeNum:=RegisterFuncType(m, ci.insttype);
-      end;
-
-      INST_END: dec(endNeed);
+      PopulateRelocData(m, ci);
     end;
 
-    PopulateRelocData(m, ci);
+    // adding end instruction
+    if checkEnd and (endNeed>0) then
+      l.AddInstr(INST_END);
+  finally
+    lbl.Free;
   end;
-
-  // adding end instruction
-  if checkEnd and (endNeed>0) then
-    l.AddInstr(INST_END);
 end;
 
 
