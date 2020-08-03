@@ -406,6 +406,7 @@ begin
   if (sc.token = weOpenBrace) then begin
     sc.Next;
     ParseTypeUse(sc, dst, false);
+    ConsumeToken(sc, weCloseBrace);
   end;
 
   ConsumeToken(sc, weCloseBrace);
