@@ -212,7 +212,7 @@ type
     ipi64,      // signed Leb of maximum 8 bytes
     ipf32,      // float point single
     ipf64,      // float point double
-    ipTable,    // a complex structure... used for br_table only
+    ipJumpVec,  // an array of jump labels used for br_table only
     ipResType,  // result type used for blocks, such as If, block or loop
     ipCallType, // used for call_indirect
     ipi32OrFunc // use for i32.const. Either a numeric OR function id is accepted.
@@ -241,7 +241,7 @@ const
    ,(valid: true;  Param: ipNone)     // 0B  end
    ,(valid: true;  Param: ipLeb)      // 0C  br
    ,(valid: true;  Param: ipLeb)      // 0D  br_if
-   ,(valid: true;  Param: ipTable)    // 0E  br_table
+   ,(valid: true;  Param: ipJumpVec)  // 0E  br_table
    ,(valid: true;  Param: ipNone)     // 0F  return
    ,(valid: true;  Param: ipLeb)      // 10  call
    ,(valid: true;  Param: ipCallType) // 11  call_indirect
@@ -451,7 +451,7 @@ begin
           ReadU(st);
           ReadU(st);
         end;
-        ipTable: begin  // not implemented :(
+        ipJumpVec: begin  // not implemented :(
           Result:=-2;
           Exit;
         end;
