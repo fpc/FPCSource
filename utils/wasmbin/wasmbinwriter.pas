@@ -5,7 +5,8 @@ unit wasmbinwriter;
 interface
 
 uses
-  Classes, SysUtils, wasmmodule, wasmbin, lebutils, wasmbincode
+  Classes, SysUtils,
+  wasmmodule, wasmbin, lebutils, wasmbincode
   ,wasmlink;
 
 type
@@ -658,28 +659,193 @@ begin
   Result := (err = 0);
 end;
 
+type
+  THexStr = record
+    num   : QWord;
+    frac  : QWord;
+    exp   : integer;
+    isNeg : Boolean;
+  end;
+
+function HexFloatStrToHexStr(const t: string; out hexStr: THexStr): Boolean;
+var
+  i : integer;
+  j : integer;
+  err : Integer;
+const
+  HexChars = ['0'..'9','a'..'f','A'..'F'];
+begin
+  hexStr.isNeg:=false;
+  hexStr.num:=0;
+  hexStr.frac:=0;
+  hexStr.exp:=0;
+  if (t='') then begin
+    Result:=true;
+    Exit;
+  end;
+
+  i:=1;
+  hexStr.isNeg:=t[i]='-';
+  if (hexStr.isNeg) then inc(i);
+  inc(i,2); // skipping '0x'
+
+  j:=i;
+  while (i<=length(t)) and (t[i] in HexChars) do inc(i);
+  Val('$'+Copy(t, j, i-j), hexStr.num, err);
+  Result:=err=0;
+  if not Result then Exit;
+
+  if (t[i]='.') then begin
+    inc(i);
+    j:=i;
+    while (i<=length(t)) and (t[i] in HexChars) do inc(i);
+    Val('$'+Copy(t, j, i-j), hexStr.frac, err);
+    Result:=err=0;
+    if not Result then Exit;
+  end;
+
+  Result := (i<=length(t)) and (t[i] = 'p') or (t[i]='P');
+  inc(i);
+  Val(Copy(t, i, length(t)), hexStr.exp, err);
+  Result:=err=0;
+end;
+
+function HexFracToSingle(const num, frac: QWord; exp: Integer; isNeg: Boolean): Single;
+var
+  x      : QWord;
+  nm     : QWord;
+  adjexp : integer;
+  sr     : TSingleRec;
+begin
+  nm := num;
+  x := frac;
+  adjexp := -1;
+  while (nm > 0) do begin
+    x:=(x shr 1) or ((nm and 1) shl 23);
+    nm := nm shr 1;
+    inc(adjexp);
+  end;
+  sr.Exp:=127 + exp + adjexp;
+  sr.Frac:=x;
+  sr.Sign:=isNeg;
+  Result := sr.Value;
+end;
+
+function HexFloatStrToSingle(const hexstr: string): Single;
+var
+  st : THexStr;
+begin
+  HexFloatStrToHexStr(hexstr, st);
+  Result:=HexFracToSingle(st.num, st.frac, st.exp, st.isNeg);
+end;
+
+function HexFracToDouble(const num, frac: QWord; exp: Integer; neg: Boolean): Double;
+var
+  x      : QWord;
+  nm     : QWord;
+  adjexp : integer;
+  sr     : TDoubleRec;
+begin
+  nm := num;
+  x := frac;
+  adjexp := 0;
+  while (nm > 1) do begin
+    x:=(x shr 1) or ((nm and 1) shl 52);
+    nm := nm shr 1;
+    inc(adjexp);
+  end;
+  sr.Exp:=1023 + exp + adjexp;
+  sr.Frac:=x;
+  sr.Sign:=neg;
+  Result := sr.Value;
+end;
+
+function HexFloatStrToDouble(const hexstr: string): double;
+var
+  st : THexStr;
+begin
+  HexFloatStrToHexStr(hexstr, st);
+  Result:=HexFracToDouble(st.num, st.frac, st.exp, st.isNeg);
+end;
 
 procedure WriteF32Operand(dst: TStream; const txt: string);
 var
   f   : single;
   err : integer;
+  l   : LongWord;
+  i   : Integer;
+  hx  : string;
+  hl  : LongWord;
+  p   : Integer;
+  ft  : string;
+const
+  BINARY_INF    = $7f800000;
+  BINARY_NEGINF = $ff800000;
+  BINARY_NEGMAN = $00400000;
 begin
-  //todo: float point parsing!
-  f:=0;
-  Val(txt, f, err);
-  // valid or not, it still should write out the value
-  dst.Write(f, sizeof(f));
+  // val() doesn't handle "nan" in wasm compatible
+  // any "nan" is always returned as "negative nan" (in Wasm terms)
+  // "inf" works just fine
+  if (Pos('nan', txt)>0) then begin
+    if txt[1]='-' then l := NtoLE(BINARY_NEGINF)
+    else l := NtoLE(BINARY_INF);
+
+    i:=Pos(':', txt);
+    if i>0 then begin
+      hx := '$'+Copy(txt, i+3, length(txt)); // skipping '0x'
+      Val(hx, hl, err);
+    end else
+      hl:=BINARY_NEGMAN; // nan
+    l:=l or hl;
+    dst.Write(l, sizeof(l));
+  end else begin
+    f:=0;
+    err:=0;
+    if (Pos('0x', txt)>0) then
+      f := HexFloatStrToSingle(txt)
+    else
+      Val(txt, f, err);
+
+    dst.Write(f, sizeof(f));
+  end;
 end;
 
 procedure WriteF64Operand(dst: TStream; const txt: string);
 var
   f   : double;
   err : integer;
+  l   : QWord;
+  i   : Integer;
+  hx  : string;
+  hl  : QWord;
+const
+  BINARY_INF    = QWord($7ff0000000000000);
+  BINARY_NEGINF = QWord($fff0000000000000);
+  BINARY_NEGMAN = QWord($0008000000000000);
 begin
-  //todo: float point parsing!
-  f:=0;
-  Val(txt, f, err);
-  dst.Write(f, sizeof(f));
+  if (Pos('nan', txt)>0) then begin
+    if txt[1]='-' then l := NtoLE(BINARY_NEGINF)
+    else l := NtoLE(BINARY_INF);
+
+    i:=Pos(':', txt);
+    if i>0 then begin
+      hx := '$'+Copy(txt, i+3, length(txt)); // skipping '0x'
+      Val(hx, hl, err);
+    end else
+      hl:=BINARY_NEGMAN; // nan
+    l:=l or hl;
+    dst.Write(l, sizeof(l));
+  end else begin
+    f:=0;
+    if (Pos('0x', txt)>0) then
+    begin
+      writeln('txt=',txt);
+      f := HexFloatStrToDouble(txt)
+    end
+    else
+      Val(txt, f, err);
+    dst.Write(f, sizeof(f));
+  end;
 end;
 
 
@@ -690,8 +856,6 @@ var
   ci  : TWasmInstr;
   idx : integer;
   rt  : Byte;
-  mm  : Integer;
-  err : Integer;
 begin
   for i:=0 to list.Count-1 do begin
     ci :=list[i];
