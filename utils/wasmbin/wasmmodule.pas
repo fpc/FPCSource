@@ -109,6 +109,18 @@ type
     property Item[i: integer]: TWasmInstr read GetItem; default;
   end;
 
+  { TWasmGlobal }
+
+  TWasmGlobal = class(TObject)
+  public
+    id    : TWasmId;
+    tp    : byte; // byte;
+    value : TWasmInstrList;
+    LinkInfo : TLinkInfo;
+    function StartValue: TWasmInstrList;
+    destructor Destroy; override;
+  end;
+
   { TWasmFunc }
 
   TWasmFunc = class(TObject)
@@ -199,6 +211,7 @@ type
 
   TWasmModule = class(TObject)
   private
+    globals : TList;
     memes   : TList;
     imports : TList;
     types   : TList;
@@ -242,6 +255,10 @@ type
     function AddData: TWasmData;
     function GetData(i: integer): TWasmData;
     function DataCount: Integer;
+
+    function AddGlobal: TWasmGlobal;
+    function GetGlobal(i: integer): TWasmGlobal;
+    function GlobalCount: Integer;
   end;
 
 // making binary friendly. finding proper "nums" for each symbol "index"
@@ -326,6 +343,21 @@ begin
   l.Clear;
 end;
 
+{ TWasmGlobal }
+
+function TWasmGlobal.StartValue: TWasmInstrList;
+begin
+  if not Assigned(value) then
+    value:=TWasmInstrList.Create;
+  Result:=value;
+end;
+
+destructor TWasmGlobal.Destroy;
+begin
+  value.Free;
+  inherited Destroy;
+end;
+
 { TWasmTable }
 
 function TWasmTable.AddElem: TWasmElement;
@@ -364,7 +396,7 @@ var
 begin
   w.id:='';
   w.idNum:=idx;
-  AddFuncId(w);
+  Result := AddFuncId(w);
 end;
 
 function TWasmElement.AddFuncId(const idx: TWasmID): integer;
@@ -574,6 +606,7 @@ end;
 constructor TWasmModule.Create;
 begin
   inherited Create;
+  globals := TList.Create;
   types := TList.Create;
   funcs := TList.Create;
   exp := TList.Create;
@@ -602,6 +635,8 @@ begin
   types.Free;
   ClearList(funcs);
   funcs.Free;
+  ClearList(globals);
+  globals.Free;
   inherited Destroy;
 end;
 
@@ -755,6 +790,25 @@ end;
 function TWasmModule.DataCount: Integer;
 begin
   Result:=data.Count;
+end;
+
+function TWasmModule.AddGlobal: TWasmGlobal;
+begin
+  Result:=TWasmGlobal.Create;
+  globals.Add(Result);
+end;
+
+function TWasmModule.GetGlobal(i: integer): TWasmGlobal;
+begin
+  if (i>=0) and (i<globals.Count) then
+    Result:=TWasmGlobal(globals[i])
+  else
+    Result:=nil;
+end;
+
+function TWasmModule.GlobalCount: Integer;
+begin
+  Result:=globals.Count;
 end;
 
 { TWasmFunc }
