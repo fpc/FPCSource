@@ -77,7 +77,8 @@ type
     operandIdx  : string;
     operandNum  : integer;    // for "call_indirect" this is table index
                               // for "if", "loop", "block" - it's type
-    operandText : string;
+    operandText : string;     // it's "offset" for load operations
+    operandText2: string;     // it's "align" for load operations
     insttype    : TWasmFuncType; // used by call_indirect only
 
     jumplabel   : string;   // the label is used only for "loop", "block" and "if"

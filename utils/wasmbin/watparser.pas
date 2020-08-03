@@ -30,7 +30,7 @@ const
      'f32', 'f64',
      'type',
      'import', 'global', 'table', 'memory', 'local', 'export',
-     'elem', 'data', 'offset','align'
+     'elem', 'data', 'offset','align','='
      );
 
   WasmTypeTokens = [wei32, wei64, wef32, wef64];
@@ -260,6 +260,23 @@ begin
 
       ipLeb:
         ParseNumOrIdx(sc, ci.operandNum, ci.operandIdx);
+
+      ipOfsAlign: begin
+        if sc.token = weOffset then begin
+          sc.Next;
+          ConsumeToken(sc, weEqual);
+          if sc.token<>weNumber then ErrorExpectButFound(sc, 'number');
+          ci.operandText := sc.resText;
+          sc.Next;
+        end;
+        if sc.token = weAlign then begin
+          sc.Next;
+          ConsumeToken(sc, weEqual);
+          if sc.token<>weNumber then ErrorExpectButFound(sc, 'number');
+          ci.operandText2 := sc.resText;
+          sc.Next;
+        end;
+      end;
 
       ipi32,ipi64,ipf32,ipf64,ipi32OrFunc:
       begin
