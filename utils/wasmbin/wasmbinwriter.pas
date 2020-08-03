@@ -52,6 +52,7 @@ type
     procedure WriteImportSect;
     procedure WriteFuncTypeSect;
     procedure WriteTableSect;
+    procedure WriteMemorySect;
     procedure WriteFuncSect;
     procedure WriteExportSect;
     procedure WriteCodeSect;
@@ -254,6 +255,12 @@ begin
     inc(writeSec);
   end;
 
+  // 05 memory section
+  if m.MemoryCount>0 then begin
+    WriteMemorySect;
+    inc(writeSec);
+  end;
+
   // 07 export section
   if m.ExportCount>0 then begin
     WriteExportSect;
@@ -341,6 +348,23 @@ begin
     dst.WriteByte(t.elemsType);
     WriteLimit(dst, t.min, t.max);
   end;
+  SectionEnd(sc);
+end;
+
+procedure TBinWriter.WriteMemorySect;
+var
+  sc : TSectionRec;
+  i  : integer;
+  m  : TWasmMemory;
+begin
+  SectionBegin(SECT_MEMORY, sc);
+
+  WriteU32(dst, module.MemoryCount);
+  for i:=0 to module.MemoryCount-1 do begin
+    m := module.GetMemory(i);
+    WriteLimit(dst, m.min, m.max);
+  end;
+
   SectionEnd(sc);
 end;
 
