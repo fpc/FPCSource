@@ -25,7 +25,7 @@ begin
   writeln;
   writeln('options:');
   writeln('  --exportrename @inputfile - renaming export names');
-  writeln('  --symbolflag   @inputfile');
+  writeln('  --symbolflag   @inputfile - update symbol use flags');
   writeln('  --verbose - enabling verbose mode');
 end;
 

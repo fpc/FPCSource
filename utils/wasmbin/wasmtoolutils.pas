@@ -55,6 +55,81 @@ begin
   end;
 end;
 
+// Assumption is made, there's only 1 table in the file!
+// if a function is a stub function (the only code is "unreachable"), the status given
+//  "weak" (it's a reference function elsewhere)
+// if a function is located in the function table, then the status given is
+//  "hidden" (do not add to the final linked executable)
+// if a function is not located in the function table, the status given is:
+//  "hidden"+"local" (local means the function can be used only in this object file)
+procedure MatchExportNameToSymFlag(
+  x: TExportSection;
+  l: TLinkingSection;
+  e: TElementSection;
+  syms : TStrings)
+begin
+end;
+
+function PredictSymbolsFromLink(const wasmfn: string; syms: TStrings; doVerbose: Boolean = false): Boolean;
+var
+  st : TFileStream;
+  dw : LongWord;
+  foundExport  : Boolean;
+  foundElement : Boolean;
+  foundLink    : Boolean;
+  ofs : Int64;
+  ps  : Int64;
+  sc  : TSection;
+  x   : TExportSection;
+  l   : TLinkingSection;
+  e   : TElementSection;
+  cnt : Integer;
+  nm  : string;
+begin
+  st := TFileStream.Create(wasmfn, fmOpenRead or fmShareDenyNone);
+  try
+    dw := st.ReadDWord;
+    Result := dw = WasmId_Int;
+    if not Result then begin
+      Exit;
+    end;
+    dw := st.ReadDWord;
+
+    foundElement:=false;
+    foundExport:=false;
+    foundLink:=false;
+    while st.Position<st.Size do begin
+      ofs := st.Position;
+      sc.id := st.ReadByte;
+      sc.Size := ReadU(st);
+
+      ps := st.Position+sc.size;
+
+      if sc.id = SECT_EXPORT then begin
+        if doVerbose then writeln(' export section found');
+        ReadExport(st, x);
+        cnt := ExportRenameSym(x, syms);
+        foundExport:=true;
+      end else if sc.id = SECT_CUSTOM then begin
+        nm := ReadName(st);
+        if nm = SectionName_Linking then begin
+          foundLink := true;
+          ReadLinkingSection(st, sc.size, l);
+        end;
+      end;
+
+      if st.Position <> ps then
+        st.Position := ps;
+    end;
+
+    Result := foundLink and foundExport;
+    if Result then
+      MatchExportNameToSymFlag(x, l, syms);
+  finally
+    st.Free;
+  end;
+end;
+
 procedure ChangeSymbolFlag(const fn, symfn: string);
 var
   fs :TFileStream;
@@ -63,8 +138,13 @@ begin
   syms:=TStringList.Create;
   fs := TFileStream.Create(fn, fmOpenReadWrite or fmShareDenyNone);
   try
-    if (symfn<>'') then
-      ReadSymbolsConf(symfn, syms);
+    if (symfn<>'') then begin
+      if not isWasmFile(symfn) then
+        ReadSymbolsConf(symfn, syms)
+      else begin
+        PredictSymbolsFromLink(symfn, syms);
+      end;
+    end;
     ChangeSymbolFlagStream(fs, syms);
   finally
     fs.Free;

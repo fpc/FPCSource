@@ -154,6 +154,25 @@ begin
   end;
 end;
 
+procedure ParseTable(st: TStream);
+begin
+end;
+
+procedure ParseElems(st: TStream);
+var
+  s : TElementSection;
+  i : integer;
+  j : integer;
+begin
+  ReadElementSection(st, s);
+  writelN('entries = ', length(s.entries));
+  for i:=0 to length(s.entries)-1 do begin
+    writeln('  ',i,' functions = ', length(s.entries[i].funcs));
+    for j:=0 to length(s.entries[i].funcs) - 1 do
+      writeln('    ',s.entries[i].funcs[j]);
+  end;
+end;
+
 function ProcessSections(st, dst: TStream; syms: TStrings): Boolean;
 var
   dw  : LongWord;
@@ -178,7 +197,11 @@ begin
 
     ps := st.Position+sc.size;
 
-    if sc.id=SECT_CODE then begin
+    if sc.id=SECT_ELEMENT then begin
+      ParseElems(st);
+    end else if sc.id=SECT_TABLE then begin
+      ParseTable(st);
+    end else if sc.id=SECT_CODE then begin
       ParseCode(st);
     (*end else if sc.id = SECT_EXPORT then begin
       ReadExport(st, x);

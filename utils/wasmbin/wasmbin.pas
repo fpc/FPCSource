@@ -5,7 +5,7 @@ unit wasmbin;
 interface
 
 uses
-  Classes, SysUtils, lebutils;
+  Classes, SysUtils, lebutils, wasmbincode;
 
 const
   valtype_i32   = $7f;
@@ -103,6 +103,20 @@ type
     entries : array of TExportEntry;
   end;
 
+const
+  ELEMTYPE_FUNC = $70;
+
+type
+  TElementEntry = record
+    table : Uint32;
+    expr  : array of byte;   // instructions
+    funcs : array of UInt32;
+  end;
+
+  TElementSection = record
+    entries : array of TElementEntry;
+  end;
+
 function SectionIdToStr(id: integer): string;
 function ValTypeToStr(id: integer): string;
 
@@ -124,7 +138,6 @@ procedure ReadCodeSection(src: TStream; var sc: TCodeSection);
 
 function isUnreachable(const cd: TCodeEntry): Boolean;
 
-
 procedure ReadExportEntry(src: TStream; var ex: TExportEntry);
 // reads the export entry
 procedure ReadExport(src: TStream; var ex: TExportSection);
@@ -133,8 +146,9 @@ procedure WriteExport(const ex: TExportSection; dst: TStream);
 function isWasmStream(st: TStream): Boolean;
 function isWasmFile(const fn: string): Boolean;
 
-const
-  INST_TRAP = $00;
+
+procedure ReadElementEntry(st: TStream; var en: TElementEntry);
+procedure ReadElementSection(st: TStream; var sc: TelementSection);
 
 implementation
 
@@ -298,6 +312,34 @@ begin
   except
     Result := false;
   end;
+end;
+
+procedure ReadElementEntry(st: TStream; var en: TElementEntry);
+var
+  ln : integer;
+  i  : integer;
+begin
+  en.table := ReadU(st);
+  ln:=InstLen(st);
+  if ln<0 then Exit;
+  SetLength(en.expr, ln);
+  if ln>0 then st.Read(en.expr[0], ln);
+
+  ln:=ReadU(st);
+  SetLength(en.funcs, ln);
+  for i:=0 to ln-1 do
+    en.funcs[i]:=ReadU(st);
+end;
+
+procedure ReadElementSection(st: TStream; var sc: TelementSection);
+var
+  cnt : integer;
+  i   : integer;
+begin
+  cnt := ReadU(st);
+  SetLength(sc.entries, cnt);
+  for i:=0 to cnt-1 do
+    ReadElementEntry(st, sc.entries[i]);
 end;
 
 end.
