@@ -21,6 +21,8 @@
 
 unit wasmlinkchange;
 
+{$mode objfpc}{$H+}
+
 interface
 
 uses Classes, SysUtils, wasmlink, wasmbin, lebutils;

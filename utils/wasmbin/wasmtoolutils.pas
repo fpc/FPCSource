@@ -21,6 +21,8 @@
 
 unit wasmtoolutils;
 
+{$mode objfpc}{$H+}
+
 interface
 
 uses
