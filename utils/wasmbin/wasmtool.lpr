@@ -11,13 +11,17 @@ uses
   wasmbindebug, wasmlink, wasmlinkchange,
   wasmtoolutils;
 
+const
+  ACT_EXPORTRENAME = 'exprotrename';
+  ACT_SYMBOLFLAG   = 'symbolflag';
+
 procedure PrintHelp;
 begin
   writeln('wasmtool [options] .wasm file...');
   writeln();
   writeln('options:');
   writeln('  --exportrename @inputfile');
-  writeln('  --symbolflag @inputfile');
+  writeln('  --symbolflag   @inputfile');
 end;
 
 type
@@ -26,13 +30,22 @@ type
 
   TToolActions = class(TObject)
     action   : string; // action to take place
-    inputFn  : string; // input file name
+    paramsFn : string; // input file name
     constructor Create(const aaction, afilename: string);
   end;
 
 procedure ProcessParams(acts: TList; const inputFn: string);
+var
+  i  : integer;
+  ta : TToolActions;
 begin
-
+  for i:=0 to acts.Count-1 do begin
+    ta := TToolActions(acts[i]);
+    if ta.action = ACT_EXPORTRENAME then begin
+      ExportRename(inputFn, ta.paramsFn);
+    end else if ta.action = ACT_SYMBOLFLAG then begin
+    end;
+  end;
 end;
 
 var
@@ -82,15 +95,22 @@ begin
     Exit;
   end;
 
-  ParseParams;
-  acts := TList.Create;
   try
     ParseParams;
-    ProcessParams(acts, inputFn);
-  finally
-    for i:=0 to acts.Count-1 do
-      TObject(acts[i]).Free;
-    acts.Free;
+    acts := TList.Create;
+    try
+      ParseParams;
+      ProcessParams(acts, inputFn);
+    finally
+      for i:=0 to acts.Count-1 do
+        TObject(acts[i]).Free;
+      acts.Free;
+    end;
+  except
+    on e:exception do begin
+      writeln('error: ', e.Message);
+      ExitCode:=1;
+    end;
   end;
 end.
 
