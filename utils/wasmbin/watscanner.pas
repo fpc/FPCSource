@@ -39,6 +39,8 @@ type
     token     : TWatToken;
     resText   : string;
     asmCmd    : string;
+
+    skipAsmSym : Boolean;
     procedure SetSource(const abuf: string);
     function Next: Boolean;
 
@@ -219,7 +221,7 @@ begin
         // comment until the ;)
         cmt := ScanToSubstr(buf, idx, ';)');
 
-      if CommentIsSymbol(cmt) then begin
+      if not skipAsmSym and CommentIsSymbol(cmt) then begin
         token:=weAsmSymbol;
         done:=true;
       end else
