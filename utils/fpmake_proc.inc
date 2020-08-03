@@ -38,3 +38,5 @@
 
 {$include pas2js/fpmake.pp}
 
+{$include wasmbin/fpmake.pp}
+
