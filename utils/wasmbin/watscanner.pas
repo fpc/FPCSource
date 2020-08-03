@@ -29,7 +29,8 @@ type
      wnfNo,      // other than number
      wnfInteger, // 00
      wnfHex,     // 0xABC
-     wnfFloat    // 0.000
+     wnfFloat,   // 0.000
+     wnfFloatHex // 0x000.bced
   );
 
   { TWatScanner }
@@ -266,6 +267,7 @@ begin
           token:=weNumber;
         case fmt of
           nfFloat: numformat := wnfFloat;
+          nfFloatHex: numFormat := wnfFloatHex;
           nfHex: numformat := wnfHex;
         else
           numformat := wnfInteger;
