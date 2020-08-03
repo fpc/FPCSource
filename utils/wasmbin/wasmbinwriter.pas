@@ -491,7 +491,7 @@ begin
     //u64 := UInt64(i64)
   end else begin
     Val(operand, u64, err);
-    if Result then WriteU64(dst, u64);
+    if Result then WriteS64(dst, Int64(u64));
   end;
   Result := (err = 0);
 end;
