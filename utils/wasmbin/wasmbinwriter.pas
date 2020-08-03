@@ -53,6 +53,7 @@ type
     procedure WriteFuncTypeSect;
     procedure WriteTableSect;
     procedure WriteMemorySect;
+    procedure WriteGlobalSect;
     procedure WriteFuncSect;
     procedure WriteExportSect;
     procedure WriteCodeSect;
@@ -261,6 +262,12 @@ begin
     inc(writeSec);
   end;
 
+  // 06 globals section
+  if m.GlobalCount>0 then begin
+    WriteGlobalSect;
+    inc(writeSec);
+  end;
+
   // 07 export section
   if m.ExportCount>0 then begin
     WriteExportSect;
@@ -363,6 +370,26 @@ begin
   for i:=0 to module.MemoryCount-1 do begin
     m := module.GetMemory(i);
     WriteLimit(dst, m.min, m.max);
+  end;
+
+  SectionEnd(sc);
+end;
+
+procedure TBinWriter.WriteGlobalSect;
+var
+  sc : TSectionRec;
+  i  : integer;
+  g  : TWasmGlobal;
+begin
+  SectionBegin(SECT_GLOBAL, sc);
+
+  WriteU32(dst, module.GlobalCount);
+  for i:=0 to module.GlobalCount-1 do begin
+    g := module.GetGlobal(i);
+    dst.WriteByte(g.tp);
+    if g.isMutable then dst.WriteByte(1)
+    else dst.WriteByte(0);
+    WriteInstList(g.StartValue, sc.datapos);
   end;
 
   SectionEnd(sc);
