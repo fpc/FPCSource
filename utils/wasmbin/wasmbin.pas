@@ -26,6 +26,9 @@ const
 const
   WasmId = #0'asm';
   WasmId_Int = $6D736100;
+  Wasm_Version1 = 1;
+var
+  WasmId_Buf  : array [0..3] of char = (#0, 'a','s','m');
 
 type
   TLimit = record

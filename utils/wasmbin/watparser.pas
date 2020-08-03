@@ -269,7 +269,7 @@ begin
   if sc.token<>weString then
     ErrorExpectButFound(sc, 'string');
 
-  dst.name := sc.resText;
+  dst.name := sc.resWasmString;
   sc.Next;
 
   ConsumeAnyOpenToken(sc);

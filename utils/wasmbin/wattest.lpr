@@ -3,7 +3,7 @@ program wattest;
 {$mode objfpc}{$H+}
 
 uses
-  SysUtils, Classes, watparser, watscanner, wasmmodule;
+  SysUtils, Classes, watparser, watscanner, wasmmodule, wasmbinwriter;
 
 procedure Traverse(p: TWatScanner);
 begin
@@ -16,6 +16,18 @@ begin
       break;
     end;
     writeln;
+  end;
+end;
+
+procedure WriteBin(const fndst: string; m: TWasmModule);
+var
+  f : TFileStream;
+begin
+  f := TFileStream.Create(fndst, fmCreate);
+  try
+    WriteModule(m, f);
+  finally
+    f.Free;
   end;
 end;
 
@@ -35,9 +47,14 @@ begin
     p.SetSource(s);
     //Traverse(p);
     m := TWasmModule.Create;
-    if not ParseModule(p, m, err) then
-      writeln('Error: ', err);
-
+    try
+      if not ParseModule(p, m, err) then
+        writeln('Error: ', err)
+      else
+        WriteBin( ChangeFileExt(fn,'.wasm'), m);
+    finally
+      m.Free;
+    end;
   finally
     p.Free;
     st.Free;
@@ -56,6 +73,11 @@ begin
     writeln('file doesn''t exist: ', fn);
     exit;
   end;
-  Run(fn);
+  try
+    Run(fn);
+  except
+    on e: exception do
+      writeln(e.message);
+  end;
 end.
 

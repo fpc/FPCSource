@@ -42,6 +42,7 @@ type
     function Next: Boolean;
 
     function resInt32(const def: integer=-1): Integer;
+    function resWasmString: string;
   end;
 
 const
@@ -247,6 +248,38 @@ var
 begin
   Val(resText, Result, err);
   if err<>0 then Result:=def;
+end;
+
+function TWatScanner.resWasmString: string;
+var
+  i : integer;
+  j : integer;
+begin
+  if token<>weString then begin
+    Result:='';
+    Exit;
+  end;
+  Result:=Copy(resText, 2, length(resText)-2);
+  if Result='' then Exit;
+
+  i:=1;
+  j:=1;
+  while i<=length(Result) do begin
+    if Result[i]='\' then begin
+      inc(i);
+      if i<=length(Result) then
+        case Result[i] of
+          'r': Result[j]:=#13;
+          'n': Result[j]:=#10;
+          '\': Result[j]:='\';
+          '"': Result[j]:='"';
+        end;
+    end else
+      if (j<i) then Result[j]:=Result[i];
+    inc(j);
+    inc(i);
+  end;
+  SetLength(Result, j-1);
 end;
 
 

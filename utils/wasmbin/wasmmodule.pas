@@ -3,12 +3,16 @@ unit wasmmodule;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, wasmbin;
 
 type
+
+  { TWasmParam }
+
   TWasmParam = class(TObject)
     id : string;
     tp : byte;
+    procedure CopyTo(d: TWasmParam);
   end;
 
   { TWasmType }
@@ -34,7 +38,9 @@ type
     function ResultCount: Integer;
     function ParamCount: Integer;
 
-    function isExplicitRef: Boolean;
+    function isNumOrIdx: Boolean;
+
+    procedure CopyTo(t: TWasmFuncType);
   end;
 
   { TWasmInstr }
@@ -85,6 +91,7 @@ type
     exportType : byte;
     exportNum  : integer;
     exportIdx  : string;
+    constructor Create;
   end;
 
   { TWasmModule }
@@ -103,7 +110,7 @@ type
     function FuncCount: integer;
 
     function AddType: TWasmFuncType;
-    function GetTypes(i: integer): TWasmFuncType;
+    function GetType(i: integer): TWasmFuncType;
     function TypesCount: integer;
 
     function AddExport: TWasmExport;
@@ -111,7 +118,54 @@ type
     function ExportCount: integer;
   end;
 
+// making binary friendly. finding proper "nums" for each symbol "index"
+// used or implicit type declartions
+procedure Normalize(m: TWasmModule);
+//function RegisterFuncType(m: TWasmModule; funcType: TFuncType): integer;
+function WasmBasTypeToChar(b: byte): Char;
+function WasmFuncTypeDescr(t: TWasmFuncType): string;
+
 implementation
+
+function WasmBasTypeToChar(b: byte): Char;
+begin
+  case b of
+    valtype_i32: Result:='i';
+    valtype_i64: Result:='I';
+    valtype_f32: Result:='f';
+    valtype_f64: Result:='F';
+  else
+    Result:='.';
+  end;
+end;
+
+function WasmFuncTypeDescr(t: TWasmFuncType): string;
+var
+  cnt   : integer;
+  i : integer;
+  j : integer;
+begin
+  cnt:=t.ParamCount;
+  if t.Resultcount>0 then inc(cnt, t.ResultCount+1);
+  SetLength(Result, cnt);
+  if cnt=0 then Exit;
+
+  j:=1;
+  for i:=0 to t.ParamCount-1 do begin
+    Result[j]:=WasmBasTypeToChar(t.GetParam(i).tp);
+    inc(j);
+  end;
+
+  if t.ResultCount=0 then Exit;
+
+  Result[j]:=':';
+  inc(j);
+  for i:=0 to t.ResultCount-1 do begin
+    Result[j]:=WasmBasTypeToChar(t.GetResult(i).tp);
+    inc(j);
+  end;
+end;
+
 
 procedure ClearList(l: TList);
 var
@@ -120,6 +174,21 @@ begin
   for i:=0 to l.Count-1 do
     TObject(l[i]).Free;
   l.Clear;
+end;
+
+{ TWasmExport }
+
+constructor TWasmExport.Create;
+begin
+  inherited Create;
+  exportNum:=-1;
+end;
+
+{ TWasmParam }
+
+procedure TWasmParam.CopyTo(d: TWasmParam);
+begin
+  d.tp:=tp;
 end;
 
 { TWasmInstr }
@@ -236,9 +305,28 @@ begin
   Result:=params.Count;
 end;
 
-function TWasmFuncType.isExplicitRef: Boolean;
+function TWasmFuncType.isNumOrIdx: Boolean;
 begin
   Result:=(typeIdx<>'') or (typeNum>=0);
+end;
+
+procedure TWasmFuncType.CopyTo(t: TWasmFuncType);
+var
+  i : integer;
+  s : TWasmParam;
+  d : TWasmParam;
+begin
+  for i:=0 to ParamCount-1 do begin
+    d := t.AddParam;
+    s := GetParam(i);
+    s.CopyTo(d);
+  end;
+
+  for i:=0 to ResultCount-1 do begin
+    d := t.AddResult;
+    s := GetResult(i);
+    s.CopyTo(d);
+  end;
 end;
 
 { TWasmModule }
@@ -287,7 +375,7 @@ begin
   Result:=funcs.Count;
 end;
 
-function TWasmModule.GetTypes(i: integer): TWasmFuncType;
+function TWasmModule.GetType(i: integer): TWasmFuncType;
 begin
   if (i>=0) and (i<types.Count) then
     Result:=TWasmFuncType(types[i])
@@ -347,6 +435,76 @@ end;
 function TWasmFunc.LocalsCount: integer;
 begin
   result:=locals.Count;
+end;
+
+
+function RegisterFuncType(m: TWasmModule; funcType: TWasmFuncType): integer;
+var
+  i   : integer;
+  trg : string;
+  d   : string;
+begin
+  trg := WasmFuncTypeDescr(funcType);
+  for i:=0 to m.TypesCount-1 do begin
+    d := WasmFuncTypeDescr(m.GetType(i));
+    if trg = d then begin
+      Result:= i;
+      Exit;
+    end;
+  end;
+  Result:=m.TypesCount;
+  funcType.CopyTo(m.AddType);
+end;
+
+function FindFunc(m: TWasmModule; const funcIdx: string): integer;
+var
+  i : integer;
+begin
+  Result:=-1;
+  for i:=0 to m.FuncCount-1 do
+    if m.GetFunc(i).id = funcIdx then begin
+      Result:=i;
+      Exit;
+    end;
+end;
+
+function FindFuncType(m: TWasmModule; const typeIdx: string): integer;
+var
+  i : integer;
+begin
+  Result:=-1;
+  for i:=0 to m.TypesCount-1 do
+    if m.GetType(i).typeIdx = typeIdx then begin
+      Result:=i;
+      Exit;
+    end;
+end;
+
+procedure Normalize(m: TWasmModule);
+var
+  i : integer;
+  f : TWasmFunc;
+  x : TWasmExport;
+begin
+  for i:=0 to m.FuncCount-1 do begin
+    f:=m.GetFunc(i);
+    if f.functype.isNumOrIdx then begin
+      if f.functype.typeIdx<>'' then
+        f.functype.typeNum:=FindFuncType(m, f.functype.typeIdx);
+    end else
+      f.functype.typeNum:=RegisterFuncType(m, f.functype)
+  end;
+
+  // normalizing exports
+  for i:=0 to m.ExportCount-1 do begin
+    x:=m.GetExport(i);
+    if x.exportNum<0 then
+      case x.exportType of
+        EXPDESC_FUNC:
+          if x.exportIdx<>'' then
+            x.exportNum := FindFunc(m, x.exportIdx);
+      end;
+  end;
 end;
 
 end.
