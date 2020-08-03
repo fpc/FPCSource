@@ -443,11 +443,7 @@ begin
   for i:=0 to module.ElementCount-1 do begin
     el := module.GetElement(i);
     WriteU32(dst, el.tableIdx);
-
-    dst.WriteByte(INST_i32_const);
-    WriteU32(dst, el.offset);
-    dst.WriteByte(INST_END);
-
+    WriteInstList(el.offset, sc.datapos);
     WriteU32(dst, el.funcCount);
 
     if writeReloc then begin

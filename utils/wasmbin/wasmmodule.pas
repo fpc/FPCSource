@@ -126,11 +126,12 @@ type
 
   TWasmElement = class(TObject)
     tableIdx  : Integer;
-    offset    : Integer;
+    offset    : TWasmInstrList; // offset expression
     funcCount : Integer;
     funcs     : array of TWasmId;
     function AddFunc(idx: integer): integer;
     constructor Create;
+    destructor Destroy; override;
   end;
 
   { TWasmExport }
@@ -277,7 +278,7 @@ end;
 
 { TWasmElement }
 
-function TWasmElement.AddFunc(idx: integer): Integer;
+function TWasmElement.AddFunc(idx: integer): integer;
 begin
   if funcCount = length(funcs) then begin
     if funcCount=0 then SetLength(funcs, 4)
@@ -290,7 +291,14 @@ end;
 
 constructor TWasmElement.Create;
 begin
-  offset:=-1;
+  inherited Create;
+  offset := TWasmInstrList.Create;
+end;
+
+destructor TWasmElement.Destroy;
+begin
+  offset.Free;
+  inherited Destroy;
 end;
 
 { TWasmImport }
@@ -862,10 +870,12 @@ const
   // Finally, when processing table relocations for symbols which
   // have neither an import nor a definition (namely, weakly-undefined
   // function symbols), the value 0 is written out as the value of the relocation.
+  NON_ZEROFFSET_STR = '1';
 begin
   if m.ElementCount=0 then begin
     el := m.AddElement;
-    el.offset := NON_ZEROFFSET;
+    el.offset.AddInstr(INST_i32_const).operandText:=NON_ZEROFFSET_STR;
+    el.offset.AddInstr(INST_END);
   end else
     el := m.GetElement(0);
   Result:=-1;
@@ -875,7 +885,7 @@ begin
   end;
   if Result<0 then
     Result := el.AddFunc(func);
-  Result := Result + el.offset;
+  Result := Result + NON_ZEROFFSET; // todo: THIS IS WRONG
 end;
 
 function RegisterFuncInElem(m: TWasmModule; const funcId: string): integer;
