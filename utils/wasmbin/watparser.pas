@@ -347,6 +347,19 @@ begin
   ConsumeToken(sc, weCloseBrace);
 end;
 
+procedure ParseMemory(sc: TWatScanner; dst: TWasmMemory);
+begin
+  if sc.token=weMemory then sc.Next;
+
+  if sc.token in [weIdent, weNumber] then
+    ParseId(sc, dst.id);
+
+  // todo: parsing of ImportInfo
+  // todo: parsing of ExportInfo
+
+  ConsumeToken(sc, weCloseBrace);
+end;
+
 procedure ParseExport(sc: TWatScanner; dst: TWasmExport);
 begin
   if sc.token=weExport then
@@ -433,6 +446,7 @@ var
   symlist : TAsmSymList;
   f       : TWasmFunc;
   imp     : TWasmImport;
+  m       : TWasmMemory;
 begin
   if not ConsumeOpenToken(sc, weModule) then
     ErrorExpectButFound(sc, 'module');
@@ -457,8 +471,16 @@ begin
         weFunc: begin
           f:=dst.AddFunc;
           symlist.ToLinkInfo(f.LinkInfo);
-          ParseFunc(sc, f);
           symlist.Clear;
+          ParseFunc(sc, f);
+        end;
+        weMemory:
+        begin
+          writeln('trying to parse memory');
+          m:=dst.AddMemory;
+          symlist.ToLinkInfo(f.LinkInfo);
+          symlist.Clear;
+          ParseMemory(sc, m);
         end;
         weExport:
         begin
