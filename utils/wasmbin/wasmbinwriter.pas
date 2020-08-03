@@ -520,7 +520,7 @@ begin
           idx := FindFunc(module, ci.operandText);
           AddReloc(INST_RELOC_FLAGS[ci.code].relocType, dst.Position+ofsAddition, idx);
           //todo: there's no need
-          WriteU32(dst, LongWord(idx));
+          WriteRelocU32(LongWord(idx));
         end else
           WriteI32Operand(dst, ci.operandText);
       end;
@@ -529,12 +529,30 @@ begin
 
 
       ipLeb:
+      begin
         if INST_RELOC_FLAGS[ci.code].doReloc then begin
           AddReloc(INST_RELOC_FLAGS[ci.code].relocType, dst.Position+ofsAddition, ci.operandNum);
           WriteRelocU32(ci.operandNum)
         end
         else
           WriteU32(dst, ci.operandNum);
+      end;
+
+      ipCallType:
+      begin
+        if Assigned(ci.insttype) then begin
+          if INST_RELOC_FLAGS[ci.code].doReloc then begin
+            AddReloc(INST_RELOC_FLAGS[ci.code].relocType, dst.Position+ofsAddition, ci.insttype.typeNum);
+            WriteRelocU32(ci.insttype.typeNum);
+          end
+          else
+            WriteU32(dst, ci.insttype.typeNum);
+        end else
+          WriteU32(dst, LongWord(-1)); // this is an error.
+
+        // table index reference
+        WriteU32(dst, ci.operandNum);
+      end;
     end;
   end;
 end;

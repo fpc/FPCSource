@@ -68,7 +68,7 @@ type
   TWasmInstr = class(TObject)
     code        : byte;
     operandIdx  : string;
-    operandNum  : integer;
+    operandNum  : integer;    // for call_indirect this is table index
     operandText : string;
     insttype : TWasmFuncType; // used by call_indirect only
     function addInstType: TWasmFuncType;
@@ -655,11 +655,10 @@ var
 begin
   for i:=0 to l.Count-1 do begin
     ci:=l[i];
-    if ci.operandNum>=0 then Continue;
     case ci.code of
       INST_local_get, INST_local_set, INST_local_tee:
       begin
-        if ci.operandIdx<>'' then begin
+        if (ci.operandIdx<>'') and (ci.operandNum<0) then begin
           j:=FindParam(f.functype.params, ci.operandIdx);
           if j<0 then begin
             j:=FindParam(f.locals, ci.operandIdx);

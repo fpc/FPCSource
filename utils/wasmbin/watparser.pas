@@ -250,10 +250,13 @@ begin
 
       ipCallType:
       begin
-        //writeln('token type=',sc.token);
+        // call_indirect operator consists of 2 parameters
+        //  1 - type call
+        //  2 - table reference index. Which should always be zero.
         ConsumeToken(sc, weOpenBrace);
         ft := ci.addInstType;
         ParseFuncParamResult(sc, ft);
+        ci.operandNum := 0; // table reference index
       end;
 
       //ip2Leb,  // memory arguments, ask for offset + align
