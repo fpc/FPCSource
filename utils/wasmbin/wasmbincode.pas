@@ -232,7 +232,7 @@ const
    ,(valid: true;  Param: ipResType)  // 02 block
    ,(valid: true;  Param: ipResType)  // 03 lock
    ,(valid: true;  Param: ipResType)  // 04 if
-   ,(valid: true;  Param: ipResType)  // 05
+   ,(valid: true;  Param: ipNone)     // 05 else
    ,(valid: false; Param: ipNone)     // 06
    ,(valid: false; Param: ipNone)     // 07
    ,(valid: false; Param: ipNone)     // 08
