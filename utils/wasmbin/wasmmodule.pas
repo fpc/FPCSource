@@ -96,7 +96,7 @@ type
     instr    : TWasmInstrList;
     functype : TWasmFuncType;
 
-    hasSym   : Boolean;
+    codeRefCount : Integer; // number of times the function was referenced from the code
     constructor Create;
     destructor Destroy; override;
     function AddLocal: TWasmParam;

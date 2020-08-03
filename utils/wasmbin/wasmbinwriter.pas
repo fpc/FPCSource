@@ -176,15 +176,7 @@ begin
       // the function MUST HAVE a symbol information available
       // if it doesn't have a symbol then "wasm-objdump" would fail to read it
       f:=module.GetFunc(index);
-      if not f.hasSym then begin
-        so:=AddSymbolObject;
-        so.syminfo.kind:=SYMTAB_FUNCTION;
-        so.syminfo.flags:=0; // WASM_SYM_EXPLICIT_NAME or WASM_SYM_BINDING_LOCAL;
-        so.syminfo.symname:=f.id;
-        so.syminfo.symindex:=index;
-        so.syminfo.hasSymIndex:=true;
-        f.hasSym:=true;
-      end;
+      inc(f.codeRefCount);
     end;
   end;
 end;
@@ -550,7 +542,8 @@ var
 begin
   for i:=0 to m.FuncCount-1 do begin
     f := m.GetFunc(i);
-    if isFuncLinkSym(f.LinkInfo) then begin
+    if isFuncLinkSym(f.LinkInfo) or (f.codeRefCount>0) then begin
+      if f.LinkInfo.Name ='' then f.LinkInfo.Name := f.id;
       so:=AddSymbolObject;
       LinkInfoToBin(f.linkInfo, so.syminfo, SYMTAB_FUNCTION, i);
     end;
