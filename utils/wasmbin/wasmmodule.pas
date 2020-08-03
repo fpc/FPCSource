@@ -770,9 +770,15 @@ var
   i   : integer;
   j   : integer;
   ci  : TWasmInstr;
+  endNeed : Integer;
 begin
+  endNeed := 1;
   for i:=0 to l.Count-1 do begin
     ci:=l[i];
+
+    if INST_FLAGS[ci.code].Param = ipResType then
+      inc(endNeed);
+
     case ci.code of
       INST_local_get, INST_local_set, INST_local_tee:
       begin
@@ -797,13 +803,15 @@ begin
         if Assigned(ci.insttype) and (ci.insttype.typeNum<0) then
           ci.insttype.typeNum:=RegisterFuncType(m, ci.insttype);
       end;
+
+      INST_END: dec(endNeed);
     end;
 
     PopulateRelocData(m, ci);
   end;
 
   // adding end instruction
-  if checkEnd and (l.Count>0) and (l[l.Count-1].code<>INST_END) then
+  if checkEnd and (endNeed>0) then
     l.AddInstr(INST_END);
 end;
 
