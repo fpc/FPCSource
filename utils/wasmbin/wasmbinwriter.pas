@@ -473,8 +473,8 @@ begin
 
       WriteU32(dst, length(la));
       for j:=0 to length(la)-1 do begin
-        WriteU32(dst, la[i].count);
-        dst.WriteByte(la[i].tp);
+        WriteU32(dst, la[j].count);
+        dst.WriteByte(la[j].tp);
       end;
       WriteInstList(f.instr, LongWord(dofs-sc.datapos));
       popStream;
