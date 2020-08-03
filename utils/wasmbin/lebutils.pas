@@ -80,24 +80,15 @@ end;
 procedure WriteS(src: TStream; vl: Int64; bits: integer);
 var
   more     : Boolean;
-  negative : Boolean;
   b : byte;
 begin
-  negative := vl < 0;
-
   more := true;
-  negative := (vl < 0);
 
   if (bits < 0) then bits := sizeof(vl);
 
   while more do begin
     b := (vl and $7f);
-    vl := vl shr 7;
-
-    { the following is only necessary if the implementation of >>= uses a
-       logical shift rather than an arithmetic shift for a signed left operand }
-    if (negative) then
-      vl := vl or ((not 0) shl (bits - 7)); // sign extend
+    vl := SarInt64(vl, 7);
 
     { sign bit of byte is second high order bit (0x40) }
     if ((vl = 0) and (b and $40 = 0))
