@@ -213,6 +213,7 @@ var
   cmt : string;
   done: boolean;
   fmt : TCNumberFormat;
+  si  : integer;
 begin
   numformat := wnfNo;
   Result := idx<=length(buf);
@@ -269,10 +270,27 @@ begin
         else
           numformat := wnfInteger;
         end;
-
       end else if buf[idx] in GrammarChars then begin
+        si := idx;
         resText:=ScanWhile(buf, idx, GrammarChars);
-        GetGrammar(resText, token, instrCode);
+
+        // second try for  the number
+        if (resText = 'nan') or (resText = 'inf') then begin
+          idx := si;
+          fmt := ScanNumberC(buf, idx, resText);
+          if fmt = nfError then begin
+            token := weError;
+            Exit;
+          end else
+            token:=weNumber;
+          case fmt of
+            nfFloat: numformat := wnfFloat;
+            nfHex: numformat := wnfHex;
+          else
+            numformat := wnfInteger;
+          end;
+        end else
+          GetGrammar(resText, token, instrCode);
         done:=true;
       end else begin
         token:=weError;

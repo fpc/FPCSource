@@ -23,6 +23,7 @@ const
   AlphabetChars  = ['a'..'z','A'..'Z'];
   AlphaNumChars  = AlphabetChars+NumericChars;
 
+function ScanWhileWithFirst(const s: AnsiString; var index: Integer; const first, body: TCharSet): AnsiString;
 function ScanWhile(const s: AnsiString; var index: Integer; const ch: TCharSet): AnsiString;
 function ScanTo(const s: AnsiString; var index: Integer; const ch: TCharSet): AnsiString;
 function SkipToEoln(const s: AnsiString; var index: Integer): AnsiString;
@@ -46,8 +47,9 @@ procedure GetCssAbsBoundsRect(Css: TStrings; var r: TRect);
 function CssValInt(const s: String; Def: integer): Integer;
 
 type
-  TCNumberFormat = (nfError, nfInteger, nfHex, nfFloat);
+  TCNumberFormat = (nfError, nfInteger, nfHex, nfFloat, nfFloatHex);
 
+// if buf contains "nan" or "inf" it's also recognized as float numbers
 function ScanNumberC(const buf: string; var idx: Integer;
   var numberText: string): TCNumberFormat;
 
@@ -107,6 +109,22 @@ begin
     end;
   Result := Copy(s, index, length(s) - index + 1);
   index := length(s) + 1;
+end;
+
+function ScanWhileWithFirst(const s: AnsiString; var index: Integer; const first, body: TCharSet): AnsiString;
+var
+  i : Integer;
+begin
+  Result := '';
+  if (index <= 0) or (index > length(s)) then Exit;
+
+  i:=index;
+  if not (s[i] in first) then Exit;
+
+  inc(i);
+  while (i<=length(s)) and (s[i] in body) do inc(i);
+  Result := Copy(s, index, i-index);
+  index:=i;
 end;
 
 function ScanTo(const s: AnsiString; var index: Integer; const ch: TCharSet): AnsiString;
@@ -237,10 +255,73 @@ begin
   Result:=Copy(s, i, index-i);
 end;
 
+function ScanHexNumber(const buf: string; var idx: Integer; var numberText: string): TCNumberFormat;
+var
+  xp : char;
+  s : string;
+begin
+  Result := nfError;
+  if (idx=length(buf)) or (buf[idx]<>'0') or (buf[idx+1]<>'x') then Exit;
+  inc(idx, 2);
+  numberText := ScanWhile(buf, idx, HexChars);
+  if numberText = '' then Exit;
+
+  numberText := '0x'+numberText;
+  if ((idx<=length(buf)) and (buf[idx] in ['.','p','P'])) then begin
+    if buf[idx]='.' then begin
+      s := ScanWhileWithFirst(buf, idx, ['.']+HexChars, HexChars);
+      if s = '' then Exit; // should not be empty
+      numberText := numberText + s;
+    end;
+
+    if buf[idx] in ['p','P'] then begin
+      // hexal exponenta is numeric, not hexidemical
+      xp := buf[idx];
+      inc(idx);
+      s := ScanWhileWithFirst(buf, idx, SignNumericChars, NumericChars);
+      if s = '' then Exit;
+      numberText := numberText + xp+s;
+    end;
+    Result := nfFloathex
+  end else
+    Result := nfHex;
+end;
+
+function ScanNumeric(const buf: string; var idx: integer; var numberText: string): TCNumberFormat;
+var
+  mnt : string;
+  exp : string;
+  xp  : char;
+begin
+  Result := nfError;
+  numberText:=ScanWhile(buf, idx, NumericChars);
+
+  if ((idx<=length(buf)) and (buf[idx] in ['.','e','E'])) then begin
+
+    //  mantissa (or fractional part) can be empty
+    mnt := ScanWhileWithFirst(buf, idx, ['.']+NumericChars, NumericChars);
+
+    if (buf[idx] in ['e','E']) then begin
+      xp:=buf[idx];
+      inc(idx);
+      exp := ScanWhileWithFirst(buf, idx, SignNumericChars, NumericChars);
+      // exponent cannot be empty, if "e" is present
+      if exp='' then Exit;
+      exp := xp+exp;
+    end else
+      exp := '';
+
+    numberText:=NumberText+mnt+exp;
+    Result := nfFloat;
+  end else if numberText<>'' then
+    Result := nfInteger;
+end;
+
+
 function ScanNumberC(const buf: string; var idx: Integer; var numberText: string): TCNumberFormat;
 var
   ch  : char;
-  sec : string;
+  sub : string;
 begin
   Result := nfError;
 
@@ -250,21 +331,29 @@ begin
   end else
     ch := #0;
 
-  if (idx<length(buf)) and (buf[idx]='0') and (buf[idx+1]='x') then begin
-    inc(idx,2);
-    numberText:='0x'+ScanWhile(buf, idx, HexChars);
-    Result := nfHex;
-  end else begin
-    numberText:=ScanWhile(buf, idx, NumericChars);
-    if ((idx<=length(buf)) and (buf[idx]='.')) then begin
+  if (idx+2<=length(buf)) and ((buf[idx]='i') and (buf[idx+1]='n') and (buf[idx+2]='f')) then begin
+    numberText:='inf';
+    inc(idx, 3);
+    Result := nfFloat;
+  end else if (idx+2<=length(buf)) and ((buf[idx]='n') and (buf[idx+1]='a') and (buf[idx+2]='n')) then begin
+    numberText:='nan';
+    inc(idx, 3);
+    if (idx < length(buf)) and (buf[idx]=':') then begin
+      writelN('att');
       inc(idx);
-      sec := ScanWhile(buf, idx, NumericChars);
-      if (sec = '') then Exit;
-      numberText:=NumberText+'.'+sec;
-      Result := nfFloat;
-    end else
-      Result := nfInteger;
-  end;
+      sub := '';
+      if (ScanNumberC(buf, idx, sub) in [nfHex, nfInteger]) then
+        numberText:=numberText+':'+sub
+      else
+        Exit; // error
+    end;
+    Result := nfFloat;
+  end else if (idx<length(buf)) and (buf[idx]='0') and (buf[idx+1]='x') then begin
+    Result := ScanHexNumber(buf, idx, numberText)
+  end else
+    Result := ScanNumeric(buf, idx, numberText);
+
+  if Result = nfError then Exit;
 
   if (ch<>#0) then begin
     if (numberText = '') then Exit;
