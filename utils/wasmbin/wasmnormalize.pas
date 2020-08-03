@@ -48,6 +48,15 @@ begin
   Result := LblStack.Count-i-1;
 end;
 
+procedure NormalizeOfsAlign(ci: TWasmInstr);
+const
+  ALIGN_STR : array [0..3] of string = ('1','2','4','8');
+begin
+  if (ci.offsetText = '') then ci.offsetText := '0';
+  if (ci.alignText = '') then
+    ci.alignText := ALIGN_STR[INST_FLAGS[ci.code].align];
+end;
+
 // Normalizing instruction list, popuplating index reference ($index)
 // with the actual numbers. (params, locals, globals, memory, functions index)
 //
@@ -69,13 +78,17 @@ begin
     for i:=0 to l.Count-1 do begin
       ci:=l[i];
 
-      if INST_FLAGS[ci.code].Param = ipResType then
-      begin
-        inc(endNeed);
-        if not (byte(ci.operandNum) in ValidResTypes) then
-          ci.operandNum := VALTYPE_NONE;
+      case INST_FLAGS[ci.code].Param of
+        ipResType:
+        begin
+          inc(endNeed);
+          if not (byte(ci.operandNum) in ValidResTypes) then
+            ci.operandNum := VALTYPE_NONE;
 
-        lbl.Add(ci.jumplabel);
+          lbl.Add(ci.jumplabel);
+        end;
+        ipOfsAlign:
+          NormalizeOfsAlign( ci );
       end;
 
       case ci.code of
