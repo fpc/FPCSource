@@ -476,13 +476,14 @@ begin
     dst.WriteByte(ci.code);
     case INST_FLAGS[ci.code].Param of
       ipi32: begin
-        Val(ci.operandText, u32, err);
-        if err = 0 then begin
+        Val(ci.operandText, i32, err);
+        if err = 0 then
+          u32 := LongWord(i32)
+        else
+          Val(ci.operandText, u32, err);
+
+        if err = 0 then
           WriteU32(dst, u32);
-        end else begin
-          Val(ci.operandText, i32, err);
-          if err = 0 then WriteU32(dst, i32);
-        end;
       end;
 
       ipi64,     // signed Leb of maximum 8 bytes
