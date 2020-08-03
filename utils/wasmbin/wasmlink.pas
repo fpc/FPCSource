@@ -67,16 +67,16 @@ const
 
 type
   TSymInfo = record
-    kind    : UInt8;
-    flags   : UInt32;
+    kind        : UInt8;
+    flags       : UInt32;
 
     hasSymIndex : Boolean; // always true for Kind non Data
                            // for Data it's true for defined symbols (see flags);
-    symindex   : UInt32; // either symbol or data symbol offset
-    hasSymName : Boolean;
-    symname    : string;
-    dataofs    : integer; // only if Kind is Data and hasSymIndex = true;
-    datasize   : integer;
+    symindex    : UInt32;  // either symbol or data symbol offset
+    hasSymName  : Boolean;
+    symname     : string;
+    dataofs     : integer; // only if Kind is Data and hasSymIndex = true;
+    datasize    : integer;
 
   end;
 
@@ -134,6 +134,8 @@ function ReadMetaData(st: TStream; out m:TLinkingMetadata): Boolean;
 function ReadLinkSubSect(st: TStream; out m: TLinkinSubSection): Boolean;
 function ReadSymInfo(st: TStream; out m: TSymInfo): Boolean;
 
+procedure WriteSymInfo(st: TStream; const m: TSymInfo);
+
 // dumps linking information. Note: that the name of the "Linking" section
 // must have already been read
 procedure DumpLinking(st: TStream; secsize: integer);
@@ -185,6 +187,26 @@ begin
   end;
 
   Result := true;
+end;
+
+procedure WriteSymInfo(st: TStream; const m: TSymInfo);
+begin
+  st.WriteByte(m.kind);
+  WriteU32(st, m.flags);
+
+  if m.kind = SYMTAB_DATA then begin
+    WriteName(st, m.symname);
+    if (m.flags and WASM_SYM_UNDEFINED)=0 then begin
+      WriteU32(st, m.symindex);
+      WriteU32(st, m.dataofs);
+      WriteU32(st, m.datasize);
+    end;
+
+  end else begin
+    WriteU32(st, m.symindex);
+    if ((m.flags and WASM_SYM_IMPORTED) = 0) or ((m.flags and WASM_SYM_EXPLICIT_NAME) > 0) then
+      WriteName(st, m.symname);
+  end;
 end;
 
 procedure DumpLinking(st: TStream; secsize: integer);

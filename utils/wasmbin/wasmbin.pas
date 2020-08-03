@@ -95,6 +95,7 @@ function ValTypeToStr(id: integer): string;
 //    size - in butes Leb128
 //    bytes - in utf8 format
 function ReadName(st: TStream): string;
+procedure WriteName(st: TStream; const str: string);
 function GetName(sr: TStream): string;
 
 // reads
@@ -149,6 +150,13 @@ begin
   ln := ReadU(st);
   SetLength(result, ln);
   if ln>0 then st.Read(result[1], ln);
+end;
+
+procedure WriteName(st: TStream; const str: string);
+begin
+  WriteU32(st, length(str));
+  if length(str)>0 then
+    st.Write(str[1], length(str));
 end;
 
 function GetName(sr: TStream): string;
