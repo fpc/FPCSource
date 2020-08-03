@@ -325,8 +325,23 @@ unit cg64f32;
             reg.reglo:=reg.reghi;
             reg.reghi:=tmpreg;
           end;
-        cg.a_load_reg_ref(list,OS_32,OS_32,reg.reglo,ref);
         tmpref := ref;
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+        { Preload base and index to a separate temp register for 8 & 16 bit CPUs 
+          to reduce spilling and produce a better code. }
+        if (tmpref.base<>NR_NO) and (getsupreg(tmpref.base)>=first_int_imreg) then
+          begin
+            tmpreg:=cg.getaddressregister(list);
+            cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.base,tmpreg);
+            tmpref.base:=tmpreg;
+            if tmpref.index<>NR_NO then
+              begin
+                cg.a_op_reg_reg(list,OP_ADD,OS_ADDR,tmpref.index,tmpref.base);
+                tmpref.index:=NR_NO;
+              end;
+          end;
+{$endif}
+        cg.a_load_reg_ref(list,OS_32,OS_32,reg.reglo,tmpref);
         inc(tmpref.offset,4);
         cg.a_load_reg_ref(list,OS_32,OS_32,reg.reghi,tmpref);
       end;
@@ -357,6 +372,21 @@ unit cg64f32;
             reg.reghi := tmpreg;
           end;
         tmpref := ref;
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+        { Preload base and index to a separate temp register for 8 & 16 bit CPUs 
+          to reduce spilling and produce a better code. }
+        if (tmpref.base<>NR_NO) and (getsupreg(tmpref.base)>=first_int_imreg) then
+          begin
+            tmpreg:=cg.getaddressregister(list);
+            cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.base,tmpreg);
+            tmpref.base:=tmpreg;
+            if tmpref.index<>NR_NO then
+              begin
+                cg.a_op_reg_reg(list,OP_ADD,OS_ADDR,tmpref.index,tmpref.base);
+                tmpref.index:=NR_NO;
+              end;
+          end;
+{$endif}
         if (tmpref.base=reg.reglo) then
          begin
            tmpreg:=cg.getaddressregister(list);
