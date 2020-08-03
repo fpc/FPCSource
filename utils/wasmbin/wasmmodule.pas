@@ -208,7 +208,9 @@ function WasmBasTypeToChar(b: byte): Char;
 function WasmFuncTypeDescr(t: TWasmFuncType): string;
 
 function FindFunc(m: TWasmModule; const funcIdx: string): integer;
+
 // tries to register a function in the module
+// the returned value is the offset of the element within the TABLE.
 function RegisterFuncIdxInElem(m: TWasmModule; const func: Integer): integer;
 function RegisterFuncInElem(m: TWasmModule; const funcId: string): integer;
 
@@ -873,7 +875,7 @@ begin
   end;
   if Result<0 then
     Result := el.AddFunc(func);
-  writeln('result=',result,' for ',func);
+  Result := Result + el.offset;
 end;
 
 function RegisterFuncInElem(m: TWasmModule; const funcId: string): integer;

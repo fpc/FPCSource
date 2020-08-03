@@ -55,6 +55,7 @@ type
     procedure WriteFuncSect;
     procedure WriteExportSect;
     procedure WriteCodeSect;
+    procedure WriteElemSect;
 
     procedure WriteLinkingSect;
     procedure WriteRelocSect;
@@ -173,7 +174,7 @@ procedure TBinWriter.AddReloc(relocType: byte; ofs: int64; index: UInt32);
 var
   i : integer;
   f : TWasmFunc;
-  so : TSymbolObject;
+  //so : TSymbolObject;
 begin
   if relocCount=length(reloc) then begin
     if relocCount=0 then SetLength(reloc, 16)
@@ -256,6 +257,12 @@ begin
   // 07 export section
   if m.ExportCount>0 then begin
     WriteExportSect;
+    inc(writeSec);
+  end;
+
+  // 09 - element sections
+  if m.ElementCount>0 then begin
+    WriteElemSect;
     inc(writeSec);
   end;
 
@@ -423,6 +430,39 @@ begin
   SectionEnd(sc);
 end;
 
+procedure TBinWriter.WriteElemSect;
+var
+  sc : TSectionRec;
+  el : TWasmElement;
+  i  : Integer;
+  j  : Integer;
+begin
+  SectionBegin(SECT_ELEMENT, sc);
+
+  WriteU32(dst, module.ElementCount);
+  for i:=0 to module.ElementCount-1 do begin
+    el := module.GetElement(i);
+    WriteU32(dst, el.tableIdx);
+
+    dst.WriteByte(INST_i32_const);
+    WriteU32(dst, el.offset);
+    dst.WriteByte(INST_END);
+
+    WriteU32(dst, el.funcCount);
+
+    if writeReloc then begin
+      for j:=0 to el.funcCount-1 do begin
+        AddReloc(R_WASM_FUNCTION_INDEX_LEB, dst.Position - sc.datapos, el.funcs[j]);
+        WriteRelocU32(el.funcs[j]);
+      end;
+    end else
+      for j:=0 to el.funcCount-1 do
+        WriteU32(dst, el.funcs[j]);
+  end;
+
+  SectionEnd(sc);
+end;
+
 procedure TBinWriter.WriteLinkingSect;
 var
   sc : TSectionRec;
@@ -537,13 +577,21 @@ end;
 
 procedure TBinWriter.WriteInstList(list: TWasmInstrList; ofsAddition: LongWord);
 var
-  i  : integer;
-  ci : TWasmInstr;
+  i   : integer;
+  ci  : TWasmInstr;
   idx : integer;
+  rt  : Byte;
 begin
   for i:=0 to list.Count-1 do begin
     ci :=list[i];
     dst.WriteByte(ci.code);
+
+    if ci.hasRelocIdx then begin
+      idx := ci.relocIdx;
+      rt := ci.relocType;
+      AddReloc(rt, dst.Position+ofsAddition, LongWord(idx));
+    end;
+
     case INST_FLAGS[ci.code].Param of
       ipi32: begin
         WriteI32Operand(dst, ci.operandText);
@@ -554,24 +602,19 @@ begin
       end;
 
       ipi32OrFunc: begin
-        if (ci.operandText<>'') and (ci.operandText[1]='$') then begin
-          idx := FindFunc(module, ci.operandText);
-          AddReloc(INST_RELOC_FLAGS[ci.code].relocType, dst.Position+ofsAddition, idx);
-          //todo: there's no need
-          WriteRelocU32(LongWord(idx));
-        end else
+        if ci.hasRelocIdx then
+          // should have been populated with Normalize
+          WriteRelocU32(LongWord(ci.operandNum))
+        else
           WriteI32Operand(dst, ci.operandText);
       end;
       //ipf32,     // float point single
       //ipf64,     // float point double
 
-
       ipLeb:
       begin
-        if INST_RELOC_FLAGS[ci.code].doReloc then begin
-          AddReloc(INST_RELOC_FLAGS[ci.code].relocType, dst.Position+ofsAddition, ci.operandNum);
+        if ci.hasRelocIdx then
           WriteRelocU32(ci.operandNum)
-        end
         else
           WriteU32(dst, ci.operandNum);
       end;
@@ -579,12 +622,9 @@ begin
       ipCallType:
       begin
         if Assigned(ci.insttype) then begin
-          if INST_RELOC_FLAGS[ci.code].doReloc then begin
-            AddReloc(INST_RELOC_FLAGS[ci.code].relocType, dst.Position+ofsAddition, ci.insttype.typeNum);
-            WriteRelocU32(ci.insttype.typeNum);
-          end
-          else
-            WriteU32(dst, ci.insttype.typeNum);
+          if ci.hasRelocIdx
+            then WriteRelocU32(ci.insttype.typeNum)
+            else WriteU32(dst, ci.insttype.typeNum);
         end else
           WriteU32(dst, LongWord(-1)); // this is an error.
 
