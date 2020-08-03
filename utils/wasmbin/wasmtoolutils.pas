@@ -10,6 +10,7 @@ uses
 function ChangeSymbolFlagStream(st: TStream; syms: TStrings): Boolean;
 procedure ChangeSymbolFlag(const fn, symfn: string);
 
+procedure MatchExportNameToSymName(const x: TExportSection; const l: TLinkingSection; dst: TStrings);
 function ExportRenameSym(var x: TExportSection; syms: TStrings): Integer;
 function ExportRenameProcess(st, dst: TStream; syms: TStrings; doVerbose: Boolean): Boolean;
 function ExportNameGather(const wasmfile: string; syms: TStrings; doVerbose: Boolean = false): Boolean;

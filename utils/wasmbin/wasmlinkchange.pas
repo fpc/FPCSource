@@ -6,8 +6,13 @@ uses Classes, SysUtils, wasmlink, wasmbin, lebutils;
 
 type
   TSymbolType = (
-    st_Nochange, st_Hidden, st_Weak
+    st_Nochange,
+    st_Local,     // 'L'
+    st_Weak,      // 'W'
+    st_VisHidden, // 'H' visibility-local
+    st_VisDefault // 'D' visibility default (not-hidden)
   );
+  TSymbolTypes = set of TSymbolType;
 
   TSymbolConfigure = class(TObject)
     symname  : string;
@@ -39,10 +44,25 @@ begin
     Result:=st_Nochange
   else
   case upCase(s[1]) of
-    'H','L': Result:=st_Hidden;
+    'L': Result:=st_Local;
+    'H': Result:=st_VisHidden;
     'W': Result:=st_Weak;
+    'D': Result:=st_VisDefault;
   else
     Result:=st_Nochange;
+  end;
+end;
+
+function StrToSymTypes(const s: string): TSymbolTypes;
+var
+  i: integer;
+  tt : TSymbolType;
+begin
+  Result := [];
+  for i:=1 to length(s) do begin
+    tt := StrToSymType(s[i]);
+    if tt <> st_Nochange then
+      Include(Result, tt);
   end;
 end;
 
@@ -64,6 +84,7 @@ var
   ofs : Int64;
   v   : string;
   tt  : TSymbolType;
+  tts : TSymbolTypes;
   fl  : LongWord;
 begin
   //en := st.Position+secsize;
@@ -87,14 +108,22 @@ begin
 
       if si.hasSymName then begin
         v := syms.Values[si.symname];
-        tt := StrToSymType(v);
-
         fl := si.flags;
-        case tt of
-          st_Hidden:
-            si.flags := (si.flags or WASM_SYM_BINDING_LOCAL) and (not WASM_SYM_BINDING_WEAK) and (not WASM_SYM_UNDEFINED);
-          st_Weak:
-            si.flags := (si.flags or WASM_SYM_BINDING_WEAK) and (not WASM_SYM_BINDING_LOCAL)
+
+        tts := StrToSymTypes(v);
+        for tt:=Low(TSymbolType) to High(TSymbolType) do begin
+          if not (tt in tts) then continue;
+          writeln(tt);
+          case tt of
+            st_Local:
+              si.flags := (si.flags or WASM_SYM_BINDING_LOCAL) and (not WASM_SYM_BINDING_WEAK) and (not WASM_SYM_UNDEFINED);
+            st_VisDefault:
+              si.flags := (si.flags and not WASM_SYM_VISIBILITY_HIDDEN);
+            st_VisHidden:
+              si.flags := (si.flags or WASM_SYM_VISIBILITY_HIDDEN);
+            st_Weak:
+              si.flags := (si.flags or WASM_SYM_BINDING_WEAK) and (not WASM_SYM_BINDING_LOCAL)
+          end;
         end;
 
         if fl <> si.flags then begin
