@@ -86,7 +86,7 @@ procedure main_stub; assembler; nostackframe;
 
     { start the program }
     xorq    %rbp,%rbp
-    call    PASCALMAIN
+    call    PASCALMAIN@PLT
 {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
     hlt
   end;
@@ -162,7 +162,7 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
 
     { Call the user's main function, and exit with its value.
      But let the libc call main.    }
-    call libc_start_main
+    call libc_start_main@PLT
 
     hlt                     { Crash if somehow `exit' does return.  }
   end;
