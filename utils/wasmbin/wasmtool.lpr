@@ -15,10 +15,14 @@ const
   ACT_EXPORTRENAME = 'exportrename';
   ACT_SYMBOLFLAG   = 'symbolflag';
 
+  VERSION = '1.0';
+
 procedure PrintHelp;
 begin
   writeln('wasmtool [options] .wasm file...');
   writeln();
+  writeln('version: ',VERSION);
+  writeln;
   writeln('options:');
   writeln('  --exportrename @inputfile');
   writeln('  --symbolflag   @inputfile');
