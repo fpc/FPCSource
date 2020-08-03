@@ -21,6 +21,8 @@
 
 unit wasmnormalize;
 
+{$mode objfpc}{$H+}
+
 interface
 
 uses
