@@ -222,204 +222,205 @@ type
     ipZero       // followed by a single byte zero
   );
   TInstFlag = record
-    valid : Boolean;
-    Param : TInstParamType;
+    valid  : Boolean;
+    Param  : TInstParamType;
+    align  : Byte; // used for memory operations only
   end;
 
 const
   INST_FLAGS : array [MIN_INST..MAX_INST] of TInstFlag = (
-    (valid: true;  Param: ipNone)     // 00 trap (unreachable)
-   ,(valid: true;  Param: ipNone)     // 01 nop
-   ,(valid: true;  Param: ipResType)  // 02 block
-   ,(valid: true;  Param: ipResType)  // 03 lock
-   ,(valid: true;  Param: ipResType)  // 04 if
-   ,(valid: true;  Param: ipNone)     // 05 else
-   ,(valid: false; Param: ipNone)     // 06
-   ,(valid: false; Param: ipNone)     // 07
-   ,(valid: false; Param: ipNone)     // 08
-   ,(valid: false; Param: ipNone)     // 09
-   ,(valid: false; Param: ipNone)     // 0A
-   ,(valid: true;  Param: ipNone)     // 0B  end
-   ,(valid: true;  Param: ipLeb)      // 0C  br
-   ,(valid: true;  Param: ipLeb)      // 0D  br_if
-   ,(valid: true;  Param: ipJumpVec)  // 0E  br_table
-   ,(valid: true;  Param: ipNone)     // 0F  return
-   ,(valid: true;  Param: ipLeb)      // 10  call
-   ,(valid: true;  Param: ipCallType) // 11  call_indirect
-   ,(valid: false; Param: ipNone)     // 12
-   ,(valid: false; Param: ipNone)     // 13
-   ,(valid: false; Param: ipNone)     // 14
-   ,(valid: false; Param: ipNone)     // 15
-   ,(valid: false; Param: ipNone)     // 16
-   ,(valid: false; Param: ipNone)     // 17
-   ,(valid: false; Param: ipNone)     // 18
-   ,(valid: false; Param: ipNone)     // 19
-   ,(valid: true;  Param: ipNone)     // 1A drop
-   ,(valid: true;  Param: ipNone)     // 1B select
-   ,(valid: false; Param: ipNone)     // 1C
-   ,(valid: false; Param: ipNone)     // 1D
-   ,(valid: false; Param: ipNone)     // 1E
-   ,(valid: false; Param: ipNone)     // 1F
-   ,(valid: true;  Param: ipLeb)      // 20  local.get
-   ,(valid: true;  Param: ipLeb)      // 21  local.set
-   ,(valid: true;  Param: ipLeb)      // 22  local.tee
-   ,(valid: true;  Param: ipLeb)      // 23  global.get
-   ,(valid: true;  Param: ipLeb)      // 24  global.set
-   ,(valid: false; Param: ipNone)     // 25
-   ,(valid: false; Param: ipNone)     // 26
-   ,(valid: false; Param: ipNone)     // 27
-   ,(valid: true;  Param: ipOfsAlign)     // 28  i32.load
-   ,(valid: true;  Param: ipOfsAlign)     // 29  i64_load
-   ,(valid: true;  Param: ipOfsAlign)     // 2A  f32_load
-   ,(valid: true;  Param: ipOfsAlign)     // 2B  f64_load
-   ,(valid: true;  Param: ipOfsAlign)     // 2C  i32_load8_s
-   ,(valid: true;  Param: ipOfsAlign)     // 2D  i32_load8_u
-   ,(valid: true;  Param: ipOfsAlign)     // 2E  i32_load16_s
-   ,(valid: true;  Param: ipOfsAlign)     // 2F  i32_load16_u
-   ,(valid: true;  Param: ipOfsAlign)     // 30  i64_load8_s
-   ,(valid: true;  Param: ipOfsAlign)     // 31  i64_load8_u
-   ,(valid: true;  Param: ipOfsAlign)     // 32  i64_load16_s
-   ,(valid: true;  Param: ipOfsAlign)     // 33  i64_load16_u
-   ,(valid: true;  Param: ipOfsAlign)     // 34  i64.load32_s
-   ,(valid: true;  Param: ipOfsAlign)     // 35  i64.load32_u
-   ,(valid: true;  Param: ipOfsAlign)     // 36  i32_store
-   ,(valid: true;  Param: ipOfsAlign)     // 37  i64_store
-   ,(valid: true;  Param: ipOfsAlign)     // 38  f32_store
-   ,(valid: true;  Param: ipOfsAlign)     // 39  f64_store
-   ,(valid: true;  Param: ipOfsAlign)     // 3A  i32_store8
-   ,(valid: true;  Param: ipOfsAlign)     // 3B  i32_store16
-   ,(valid: true;  Param: ipOfsAlign)     // 3C  i64_store8
-   ,(valid: true;  Param: ipOfsAlign)     // 3D  i64_store16
-   ,(valid: true;  Param: ipOfsAlign)     // 3E  i64_store32
-   ,(valid: true;  Param: ipZero)     // 3F  memory_size
-   ,(valid: true;  Param: ipZero)     // 40  memory_grow
-   ,(valid: true;  Param: ipi32OrFunc)// 41  i32_const
-   ,(valid: true;  Param: ipi64)      // 42  i64_const
-   ,(valid: true;  Param: ipf32)      // 43  f32_const
-   ,(valid: true;  Param: ipf64)      // 44  f64_const
-   ,(valid: true;  Param: ipNone)     // 45  i32_eqz
-   ,(valid: true;  Param: ipNone)     // 46  i32_eq
-   ,(valid: true;  Param: ipNone)     // 47  i32_ne
-   ,(valid: true;  Param: ipNone)     // 48  i32_lt_s
-   ,(valid: true;  Param: ipNone)     // 49  i32_lt_u
-   ,(valid: true;  Param: ipNone)     // 4A  i32_gt_s
-   ,(valid: true;  Param: ipNone)     // 4B  i32_gt_u
-   ,(valid: true;  Param: ipNone)     // 4C  i32_le_s
-   ,(valid: true;  Param: ipNone)     // 4D  i32_le_u
-   ,(valid: true;  Param: ipNone)     // 4E  i32_ge_s
-   ,(valid: true;  Param: ipNone)     // 4F  i32_ge_u
-   ,(valid: true;  Param: ipNone)     // 50  i64_eqz
-   ,(valid: true;  Param: ipNone)     // 51  i64_eq
-   ,(valid: true;  Param: ipNone)     // 52  i64_ne
-   ,(valid: true;  Param: ipNone)     // 53  i64_lt_s
-   ,(valid: true;  Param: ipNone)     // 54  i64_lt_u
-   ,(valid: true;  Param: ipNone)     // 55  i64_gt_s
-   ,(valid: true;  Param: ipNone)     // 56  i64_gt_u
-   ,(valid: true;  Param: ipNone)     // 57  i64_le_s
-   ,(valid: true;  Param: ipNone)     // 58  i64_le_u
-   ,(valid: true;  Param: ipNone)     // 59  i64_ge_s
-   ,(valid: true;  Param: ipNone)     // 5A  i64_ge_u
-   ,(valid: true;  Param: ipNone)     // 5B  f32_eq
-   ,(valid: true;  Param: ipNone)     // 5C  f32_ne
-   ,(valid: true;  Param: ipNone)     // 5D  f32_lt
-   ,(valid: true;  Param: ipNone)     // 5E  f32_gt
-   ,(valid: true;  Param: ipNone)     // 5F  f32_le
-   ,(valid: true;  Param: ipNone)     // 60  f32_ge
-   ,(valid: true;  Param: ipNone)     // 61  f64_eq
-   ,(valid: true;  Param: ipNone)     // 62  f64_ne
-   ,(valid: true;  Param: ipNone)     // 63  f64_lt
-   ,(valid: true;  Param: ipNone)     // 64  f64_gt
-   ,(valid: true;  Param: ipNone)     // 65  f64_le
-   ,(valid: true;  Param: ipNone)     // 66  f64_ge
-   ,(valid: true;  Param: ipNone)     // 67  i32_clz
-   ,(valid: true;  Param: ipNone)     // 68  i32_ctz
-   ,(valid: true;  Param: ipNone)     // 69  i32_popcnt
-   ,(valid: true;  Param: ipNone)     // 6A  i32_add
-   ,(valid: true;  Param: ipNone)     // 6B  i32_sub
-   ,(valid: true;  Param: ipNone)     // 6C  i32_mul
-   ,(valid: true;  Param: ipNone)     // 6D  i32_div_s
-   ,(valid: true;  Param: ipNone)     // 6E  i32_div_u
-   ,(valid: true;  Param: ipNone)     // 6F  i32_rem_s
-   ,(valid: true;  Param: ipNone)     // 70  i32_rem_u
-   ,(valid: true;  Param: ipNone)     // 71  i32_and
-   ,(valid: true;  Param: ipNone)     // 72  i32_or
-   ,(valid: true;  Param: ipNone)     // 73  i32_xor
-   ,(valid: true;  Param: ipNone)     // 74  i32_shl
-   ,(valid: true;  Param: ipNone)     // 75  i32_shr_s
-   ,(valid: true;  Param: ipNone)     // 76  i32_shr_u
-   ,(valid: true;  Param: ipNone)     // 77  i32_rotl
-   ,(valid: true;  Param: ipNone)     // 78  i32_rotr
-   ,(valid: true;  Param: ipNone)     // 79  i64_clz
-   ,(valid: true;  Param: ipNone)     // 7A  i64_ctz
-   ,(valid: true;  Param: ipNone)     // 7B  i64_popcnt
-   ,(valid: true;  Param: ipNone)     // 7C  i64_add
-   ,(valid: true;  Param: ipNone)     // 7D  i64_sub
-   ,(valid: true;  Param: ipNone)     // 7E  i64_mul
-   ,(valid: true;  Param: ipNone)     // 7F  i64_div_s
-   ,(valid: true;  Param: ipNone)     // 80  i64_div_u
-   ,(valid: true;  Param: ipNone)     // 81  i64_rem_s
-   ,(valid: true;  Param: ipNone)     // 82  i64_rem_u
-   ,(valid: true;  Param: ipNone)     // 83  i64_and
-   ,(valid: true;  Param: ipNone)     // 84  i64_or
-   ,(valid: true;  Param: ipNone)     // 85  i64_xor
-   ,(valid: true;  Param: ipNone)     // 86  i64_shl
-   ,(valid: true;  Param: ipNone)     // 87  i64_shr_s
-   ,(valid: true;  Param: ipNone)     // 88  i64_shr_u
-   ,(valid: true;  Param: ipNone)     // 89  i64_rotl
-   ,(valid: true;  Param: ipNone)     // 8A  i64_rotr
-   ,(valid: true;  Param: ipNone)     // 8B  f32_abs
-   ,(valid: true;  Param: ipNone)     // 8C  f32_neg
-   ,(valid: true;  Param: ipNone)     // 8D  f32_ceil
-   ,(valid: true;  Param: ipNone)     // 8E  f32_floor
-   ,(valid: true;  Param: ipNone)     // 8F  f32_trunc
-   ,(valid: true;  Param: ipNone)     // 90  f32_nearest
-   ,(valid: true;  Param: ipNone)     // 91  f32_sqrt
-   ,(valid: true;  Param: ipNone)     // 92  f32_add
-   ,(valid: true;  Param: ipNone)     // 93  f32_sub
-   ,(valid: true;  Param: ipNone)     // 94  f32_mul
-   ,(valid: true;  Param: ipNone)     // 95  f32_div
-   ,(valid: true;  Param: ipNone)     // 96  f32_min
-   ,(valid: true;  Param: ipNone)     // 97  f32_max
-   ,(valid: true;  Param: ipNone)     // 98  f32_copysign
-   ,(valid: true;  Param: ipNone)     // 99  f64_abs
-   ,(valid: true;  Param: ipNone)     // 9A  f64_neg
-   ,(valid: true;  Param: ipNone)     // 9B  f64_ceil
-   ,(valid: true;  Param: ipNone)     // 9C  f64_floor
-   ,(valid: true;  Param: ipNone)     // 9D  f64_trunc
-   ,(valid: true;  Param: ipNone)     // 9E  f64_nearest
-   ,(valid: true;  Param: ipNone)     // 9F  f64_sqrt
-   ,(valid: true;  Param: ipNone)     // A0  f64_add
-   ,(valid: true;  Param: ipNone)     // A1  f64_sub
-   ,(valid: true;  Param: ipNone)     // A2  f64_mul
-   ,(valid: true;  Param: ipNone)     // A3  f64_div
-   ,(valid: true;  Param: ipNone)     // A4  f64_min
-   ,(valid: true;  Param: ipNone)     // A5  f64_max
-   ,(valid: true;  Param: ipNone)     // A6  f64_copysign
-   ,(valid: true;  Param: ipNone)     // A7  i32_wrap_i64
-   ,(valid: true;  Param: ipNone)     // A8  i32_trunc_f32_s
-   ,(valid: true;  Param: ipNone)     // A9  i32_trunc_f32_u
-   ,(valid: true;  Param: ipNone)     // AA  i32_trunc_f64_s
-   ,(valid: true;  Param: ipNone)     // AB  i32_trunc_f64_u
-   ,(valid: true;  Param: ipNone)     // AC  i64_extend_i32_s
-   ,(valid: true;  Param: ipNone)     // AD  i64_extend_i32_u
-   ,(valid: true;  Param: ipNone)     // AE  i64_trunc_f32_s
-   ,(valid: true;  Param: ipNone)     // AF  i64_trunc_f32_u
-   ,(valid: true;  Param: ipNone)     // B0  i64_trunc_f64_s
-   ,(valid: true;  Param: ipNone)     // B1  i64_trunc_f64_u
-   ,(valid: true;  Param: ipNone)     // B2  f32_convert_i32_s
-   ,(valid: true;  Param: ipNone)     // B3  f32_convert_i32_u
-   ,(valid: true;  Param: ipNone)     // B4  f32_convert_i64_s
-   ,(valid: true;  Param: ipNone)     // B5  f32_convert_i64_u
-   ,(valid: true;  Param: ipNone)     // B6  f32_demote_f64
-   ,(valid: true;  Param: ipNone)     // B7  f64_convert_i32_s
-   ,(valid: true;  Param: ipNone)     // B8  f64_convert_i32_u
-   ,(valid: true;  Param: ipNone)     // B9  f64_convert_i64_s
-   ,(valid: true;  Param: ipNone)     // BA  f64_convert_i64_u
-   ,(valid: true;  Param: ipNone)     // BB  f64_promote_f32
-   ,(valid: true;  Param: ipNone)     // BC  i32_reinterpret_f32
-   ,(valid: true;  Param: ipNone)     // BD  i64_reinterpret_f64
-   ,(valid: true;  Param: ipNone)     // BE  f32_reinterpret_i32
-   ,(valid: true;  Param: ipNone)     // BF  f64_reinterpret_i64
+    (valid: true;  Param: ipNone;      align: 0)  // 00 trap (unreachable)
+   ,(valid: true;  Param: ipNone;      align: 0)  // 01 nop
+   ,(valid: true;  Param: ipResType;   align: 0)  // 02 block
+   ,(valid: true;  Param: ipResType;   align: 0)  // 03 lock
+   ,(valid: true;  Param: ipResType;   align: 0)  // 04 if
+   ,(valid: true;  Param: ipNone;      align: 0)  // 05 else
+   ,(valid: false; Param: ipNone;      align: 0)  // 06
+   ,(valid: false; Param: ipNone;      align: 0)  // 07
+   ,(valid: false; Param: ipNone;      align: 0)  // 08
+   ,(valid: false; Param: ipNone;      align: 0)  // 09
+   ,(valid: false; Param: ipNone;      align: 0)  // 0A
+   ,(valid: true;  Param: ipNone;      align: 0)  // 0B  end
+   ,(valid: true;  Param: ipLeb;       align: 0)  // 0C  br
+   ,(valid: true;  Param: ipLeb;       align: 0)  // 0D  br_if
+   ,(valid: true;  Param: ipJumpVec;   align: 0)  // 0E  br_table
+   ,(valid: true;  Param: ipNone;      align: 0)  // 0F  return
+   ,(valid: true;  Param: ipLeb;       align: 0)  // 10  call
+   ,(valid: true;  Param: ipCallType;  align: 0)  // 11  call_indirect
+   ,(valid: false; Param: ipNone;      align: 0)  // 12
+   ,(valid: false; Param: ipNone;      align: 0)  // 13
+   ,(valid: false; Param: ipNone;      align: 0)  // 14
+   ,(valid: false; Param: ipNone;      align: 0)  // 15
+   ,(valid: false; Param: ipNone;      align: 0)  // 16
+   ,(valid: false; Param: ipNone;      align: 0)  // 17
+   ,(valid: false; Param: ipNone;      align: 0)  // 18
+   ,(valid: false; Param: ipNone;      align: 0)  // 19
+   ,(valid: true;  Param: ipNone;      align: 0)  // 1A drop
+   ,(valid: true;  Param: ipNone;      align: 0)  // 1B select
+   ,(valid: false; Param: ipNone;      align: 0)  // 1C
+   ,(valid: false; Param: ipNone;      align: 0)  // 1D
+   ,(valid: false; Param: ipNone;      align: 0)  // 1E
+   ,(valid: false; Param: ipNone;      align: 0)  // 1F
+   ,(valid: true;  Param: ipLeb;       align: 0)  // 20  local.get
+   ,(valid: true;  Param: ipLeb;       align: 0)  // 21  local.set
+   ,(valid: true;  Param: ipLeb;       align: 0)  // 22  local.tee
+   ,(valid: true;  Param: ipLeb;       align: 0)  // 23  global.get
+   ,(valid: true;  Param: ipLeb;       align: 0)  // 24  global.set
+   ,(valid: false; Param: ipNone;      align: 0)  // 25
+   ,(valid: false; Param: ipNone;      align: 0)  // 26
+   ,(valid: false; Param: ipNone;      align: 0)  // 27
+   ,(valid: true;  Param: ipOfsAlign;  align: 2)  // 28  i32.load
+   ,(valid: true;  Param: ipOfsAlign;  align: 3)  // 29  i64_load
+   ,(valid: true;  Param: ipOfsAlign;  align: 2)  // 2A  f32_load
+   ,(valid: true;  Param: ipOfsAlign;  align: 3)  // 2B  f64_load
+   ,(valid: true;  Param: ipOfsAlign;  align: 0)  // 2C  i32_load8_s
+   ,(valid: true;  Param: ipOfsAlign;  align: 0)  // 2D  i32_load8_u
+   ,(valid: true;  Param: ipOfsAlign;  align: 1)  // 2E  i32_load16_s
+   ,(valid: true;  Param: ipOfsAlign;  align: 1)  // 2F  i32_load16_u
+   ,(valid: true;  Param: ipOfsAlign;  align: 0)  // 30  i64_load8_s
+   ,(valid: true;  Param: ipOfsAlign;  align: 0)  // 31  i64_load8_u
+   ,(valid: true;  Param: ipOfsAlign;  align: 1)  // 32  i64_load16_s
+   ,(valid: true;  Param: ipOfsAlign;  align: 1)  // 33  i64_load16_u
+   ,(valid: true;  Param: ipOfsAlign;  align: 2)  // 34  i64.load32_s
+   ,(valid: true;  Param: ipOfsAlign;  align: 2)  // 35  i64.load32_u
+   ,(valid: true;  Param: ipOfsAlign;  align: 2)  // 36  i32_store
+   ,(valid: true;  Param: ipOfsAlign;  align: 3)  // 37  i64_store
+   ,(valid: true;  Param: ipOfsAlign;  align: 2)  // 38  f32_store
+   ,(valid: true;  Param: ipOfsAlign;  align: 3)  // 39  f64_store
+   ,(valid: true;  Param: ipOfsAlign;  align: 0)  // 3A  i32_store8
+   ,(valid: true;  Param: ipOfsAlign;  align: 1)  // 3B  i32_store16
+   ,(valid: true;  Param: ipOfsAlign;  align: 0)  // 3C  i64_store8
+   ,(valid: true;  Param: ipOfsAlign;  align: 1)  // 3D  i64_store16
+   ,(valid: true;  Param: ipOfsAlign;  align: 2)  // 3E  i64_store32
+   ,(valid: true;  Param: ipZero;      align: 0)  // 3F  memory_size
+   ,(valid: true;  Param: ipZero;      align: 0)  // 40  memory_grow
+   ,(valid: true;  Param: ipi32OrFunc; align: 0)  // 41  i32_const
+   ,(valid: true;  Param: ipi64;       align: 0)  // 42  i64_const
+   ,(valid: true;  Param: ipf32;       align: 0)  // 43  f32_const
+   ,(valid: true;  Param: ipf64;       align: 0)  // 44  f64_const
+   ,(valid: true;  Param: ipNone;      align: 0)  // 45  i32_eqz
+   ,(valid: true;  Param: ipNone;      align: 0)  // 46  i32_eq
+   ,(valid: true;  Param: ipNone;      align: 0)  // 47  i32_ne
+   ,(valid: true;  Param: ipNone;      align: 0)  // 48  i32_lt_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // 49  i32_lt_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // 4A  i32_gt_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // 4B  i32_gt_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // 4C  i32_le_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // 4D  i32_le_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // 4E  i32_ge_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // 4F  i32_ge_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // 50  i64_eqz
+   ,(valid: true;  Param: ipNone;      align: 0)  // 51  i64_eq
+   ,(valid: true;  Param: ipNone;      align: 0)  // 52  i64_ne
+   ,(valid: true;  Param: ipNone;      align: 0)  // 53  i64_lt_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // 54  i64_lt_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // 55  i64_gt_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // 56  i64_gt_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // 57  i64_le_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // 58  i64_le_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // 59  i64_ge_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // 5A  i64_ge_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // 5B  f32_eq
+   ,(valid: true;  Param: ipNone;      align: 0)  // 5C  f32_ne
+   ,(valid: true;  Param: ipNone;      align: 0)  // 5D  f32_lt
+   ,(valid: true;  Param: ipNone;      align: 0)  // 5E  f32_gt
+   ,(valid: true;  Param: ipNone;      align: 0)  // 5F  f32_le
+   ,(valid: true;  Param: ipNone;      align: 0)  // 60  f32_ge
+   ,(valid: true;  Param: ipNone;      align: 0)  // 61  f64_eq
+   ,(valid: true;  Param: ipNone;      align: 0)  // 62  f64_ne
+   ,(valid: true;  Param: ipNone;      align: 0)  // 63  f64_lt
+   ,(valid: true;  Param: ipNone;      align: 0)  // 64  f64_gt
+   ,(valid: true;  Param: ipNone;      align: 0)  // 65  f64_le
+   ,(valid: true;  Param: ipNone;      align: 0)  // 66  f64_ge
+   ,(valid: true;  Param: ipNone;      align: 0)  // 67  i32_clz
+   ,(valid: true;  Param: ipNone;      align: 0)  // 68  i32_ctz
+   ,(valid: true;  Param: ipNone;      align: 0)  // 69  i32_popcnt
+   ,(valid: true;  Param: ipNone;      align: 0)  // 6A  i32_add
+   ,(valid: true;  Param: ipNone;      align: 0)  // 6B  i32_sub
+   ,(valid: true;  Param: ipNone;      align: 0)  // 6C  i32_mul
+   ,(valid: true;  Param: ipNone;      align: 0)  // 6D  i32_div_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // 6E  i32_div_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // 6F  i32_rem_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // 70  i32_rem_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // 71  i32_and
+   ,(valid: true;  Param: ipNone;      align: 0)  // 72  i32_or
+   ,(valid: true;  Param: ipNone;      align: 0)  // 73  i32_xor
+   ,(valid: true;  Param: ipNone;      align: 0)  // 74  i32_shl
+   ,(valid: true;  Param: ipNone;      align: 0)  // 75  i32_shr_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // 76  i32_shr_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // 77  i32_rotl
+   ,(valid: true;  Param: ipNone;      align: 0)  // 78  i32_rotr
+   ,(valid: true;  Param: ipNone;      align: 0)  // 79  i64_clz
+   ,(valid: true;  Param: ipNone;      align: 0)  // 7A  i64_ctz
+   ,(valid: true;  Param: ipNone;      align: 0)  // 7B  i64_popcnt
+   ,(valid: true;  Param: ipNone;      align: 0)  // 7C  i64_add
+   ,(valid: true;  Param: ipNone;      align: 0)  // 7D  i64_sub
+   ,(valid: true;  Param: ipNone;      align: 0)  // 7E  i64_mul
+   ,(valid: true;  Param: ipNone;      align: 0)  // 7F  i64_div_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // 80  i64_div_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // 81  i64_rem_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // 82  i64_rem_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // 83  i64_and
+   ,(valid: true;  Param: ipNone;      align: 0)  // 84  i64_or
+   ,(valid: true;  Param: ipNone;      align: 0)  // 85  i64_xor
+   ,(valid: true;  Param: ipNone;      align: 0)  // 86  i64_shl
+   ,(valid: true;  Param: ipNone;      align: 0)  // 87  i64_shr_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // 88  i64_shr_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // 89  i64_rotl
+   ,(valid: true;  Param: ipNone;      align: 0)  // 8A  i64_rotr
+   ,(valid: true;  Param: ipNone;      align: 0)  // 8B  f32_abs
+   ,(valid: true;  Param: ipNone;      align: 0)  // 8C  f32_neg
+   ,(valid: true;  Param: ipNone;      align: 0)  // 8D  f32_ceil
+   ,(valid: true;  Param: ipNone;      align: 0)  // 8E  f32_floor
+   ,(valid: true;  Param: ipNone;      align: 0)  // 8F  f32_trunc
+   ,(valid: true;  Param: ipNone;      align: 0)  // 90  f32_nearest
+   ,(valid: true;  Param: ipNone;      align: 0)  // 91  f32_sqrt
+   ,(valid: true;  Param: ipNone;      align: 0)  // 92  f32_add
+   ,(valid: true;  Param: ipNone;      align: 0)  // 93  f32_sub
+   ,(valid: true;  Param: ipNone;      align: 0)  // 94  f32_mul
+   ,(valid: true;  Param: ipNone;      align: 0)  // 95  f32_div
+   ,(valid: true;  Param: ipNone;      align: 0)  // 96  f32_min
+   ,(valid: true;  Param: ipNone;      align: 0)  // 97  f32_max
+   ,(valid: true;  Param: ipNone;      align: 0)  // 98  f32_copysign
+   ,(valid: true;  Param: ipNone;      align: 0)  // 99  f64_abs
+   ,(valid: true;  Param: ipNone;      align: 0)  // 9A  f64_neg
+   ,(valid: true;  Param: ipNone;      align: 0)  // 9B  f64_ceil
+   ,(valid: true;  Param: ipNone;      align: 0)  // 9C  f64_floor
+   ,(valid: true;  Param: ipNone;      align: 0)  // 9D  f64_trunc
+   ,(valid: true;  Param: ipNone;      align: 0)  // 9E  f64_nearest
+   ,(valid: true;  Param: ipNone;      align: 0)  // 9F  f64_sqrt
+   ,(valid: true;  Param: ipNone;      align: 0)  // A0  f64_add
+   ,(valid: true;  Param: ipNone;      align: 0)  // A1  f64_sub
+   ,(valid: true;  Param: ipNone;      align: 0)  // A2  f64_mul
+   ,(valid: true;  Param: ipNone;      align: 0)  // A3  f64_div
+   ,(valid: true;  Param: ipNone;      align: 0)  // A4  f64_min
+   ,(valid: true;  Param: ipNone;      align: 0)  // A5  f64_max
+   ,(valid: true;  Param: ipNone;      align: 0)  // A6  f64_copysign
+   ,(valid: true;  Param: ipNone;      align: 0)  // A7  i32_wrap_i64
+   ,(valid: true;  Param: ipNone;      align: 0)  // A8  i32_trunc_f32_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // A9  i32_trunc_f32_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // AA  i32_trunc_f64_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // AB  i32_trunc_f64_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // AC  i64_extend_i32_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // AD  i64_extend_i32_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // AE  i64_trunc_f32_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // AF  i64_trunc_f32_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // B0  i64_trunc_f64_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // B1  i64_trunc_f64_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // B2  f32_convert_i32_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // B3  f32_convert_i32_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // B4  f32_convert_i64_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // B5  f32_convert_i64_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // B6  f32_demote_f64
+   ,(valid: true;  Param: ipNone;      align: 0)  // B7  f64_convert_i32_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // B8  f64_convert_i32_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // B9  f64_convert_i64_s
+   ,(valid: true;  Param: ipNone;      align: 0)  // BA  f64_convert_i64_u
+   ,(valid: true;  Param: ipNone;      align: 0)  // BB  f64_promote_f32
+   ,(valid: true;  Param: ipNone;      align: 0)  // BC  i32_reinterpret_f32
+   ,(valid: true;  Param: ipNone;      align: 0)  // BD  i64_reinterpret_f64
+   ,(valid: true;  Param: ipNone;      align: 0)  // BE  f32_reinterpret_i32
+   ,(valid: true;  Param: ipNone;      align: 0)  // BF  f64_reinterpret_i64
   );
 
 function InstLen(st: TStream; endOfInst: Byte = INST_END): Integer;
