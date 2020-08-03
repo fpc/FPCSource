@@ -771,13 +771,19 @@ var
   j   : integer;
   ci  : TWasmInstr;
   endNeed : Integer;
+const
+  ValidResTypes = [VALTYPE_NONE,VALTYPE_I32,VALTYPE_I64,VALTYPE_F32,VALTYPE_F64];
 begin
   endNeed := 1;
   for i:=0 to l.Count-1 do begin
     ci:=l[i];
 
     if INST_FLAGS[ci.code].Param = ipResType then
+    begin
       inc(endNeed);
+      if not byte(ci.operandNum) in ValidResTypes then
+        ci.operandNum := VALTYPE_NONE;
+    end;
 
     case ci.code of
       INST_local_get, INST_local_set, INST_local_tee:
