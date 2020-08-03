@@ -165,18 +165,31 @@ begin
     fn.typeNum:=RegisterFuncType(m, fn);
 end;
 
-procedure NormalizeImport(m: TWasmModule; var fnIdx: Integer);
+procedure NormalizeImport(m: TWasmModule; out fnIdx: Integer;
+  out memIdx: Integer; out globIdx: Integer; out tblIdx : Integer);
 var
   i  : integer;
   im : TWasmImport;
 begin
   fnIdx := 0;
+  memIdx := 0;
+  globIdx := 0;
+  tblIdx := 0;
   for i:=0 to m.ImportCount-1 do begin
     im := m.GetImport(i);
     if Assigned(im.fn) then begin
       im.fn.idNum:=fnIdx;
       NormalizeFuncType(m, im.fn.functype);
       inc(fnIdx);
+    end else if Assigned(im.mem) then begin
+      im.mem.id.idNum := memIdx;
+      inc(memIdx);
+    end else if Assigned(im.glob) then begin
+      im.glob.id.idNum := globIdx;
+      inc(globIdx);
+    end else if Assigned(im.table) then begin
+      im.table.id.idNum := tblIdx;
+      inc(tblIdx);
     end;
   end;
 end;
@@ -258,16 +271,20 @@ end;
 // normalizing reference
 procedure Normalize(m: TWasmModule);
 var
-  i     : integer;
-  f     : TWasmFunc;
-  x     : TWasmExport;
-  fnIdx : Integer;
+  i       : integer;
+  f       : TWasmFunc;
+  x       : TWasmExport;
+  fnIdx   : Integer;
+  memIdx  : Integer;
+  globIdx : Integer;
+  tblIdx  : Integer;
+  g       : TWasmGlobal;
 begin
   fnIdx := 0;
   NormalizeGlobals(m);
   NormalizeTable(m);
   NormalizeElems(m);
-  NormalizeImport(m, fnIdx);
+  NormalizeImport(m, fnIdx, memIdx, globIdx, tblIdx);
   NormalizeTableLimit(m);
 
   for i:=0 to m.FuncCount-1 do begin
@@ -280,7 +297,12 @@ begin
   end;
 
   for i:=0 to m.GlobalCount-1 do
-    NormalizeInst(m, nil, m.GetGlobal(i).StartValue);
+  begin
+    g := m.GetGlobal(i);
+    g.id.idNum := globIdx;
+    inc(globIdx);
+    NormalizeInst(m, nil, g.StartValue);
+  end;
 
   // normalizing function body
   for i:=0 to m.FuncCount-1 do begin
