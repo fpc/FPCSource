@@ -43,7 +43,6 @@ type
     typeIdx : string;  // if typeID='' then type is declared from typeDef
 
     // linking information
-    LinkInfo : TLinkInfo;
     constructor Create;
     destructor Destroy; override;
     function AddResult(tp: byte = 0): TWasmParam;
@@ -92,7 +91,8 @@ type
   private
     locals:  TList;
   public
-    id : string;
+    LinkInfo : TLinkInfo;
+    id       : string;
     instr    : TWasmInstrList;
     functype : TWasmFuncType;
 
