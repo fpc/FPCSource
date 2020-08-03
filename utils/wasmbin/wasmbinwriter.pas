@@ -291,11 +291,11 @@ begin
 
     WriteU32(dst, tp.ParamCount);
     for j:=0 to tp.ParamCount-1 do
-      dst.WriteByte(tp.GetParam(i).tp);
+      dst.WriteByte(tp.GetParam(j).tp);
 
     WriteU32(dst, tp.ResultCount);
     for j:=0 to tp.ResultCount-1 do
-      dst.WriteByte(tp.GetResult(i).tp);
+      dst.WriteByte(tp.GetResult(j).tp);
   end;
   SectionEnd(sc);
 end;
