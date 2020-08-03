@@ -263,6 +263,11 @@ begin
       //ipTable,   // a complex structure... used for br_table only
       ipResType:  // result type used for blocks, such as If, block or loop
       begin
+        if sc.token = weIdent then begin
+          ci.jumplabel := sc.resText;
+          sc.Next;
+        end;
+
         if (sc.token = weOpenBrace) then begin
           ConsumeToken(sc, weOpenBrace);
           ConsumeToken(sc, weResult);

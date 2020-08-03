@@ -80,6 +80,8 @@ type
     operandText : string;
     insttype    : TWasmFuncType; // used by call_indirect only
 
+    jumplabel   : string;   // the label is used only for "loop", "block" and "if"
+
     hasRelocIdx : Boolean;
     relocIdx    : integer;
     relocType   : Byte;
