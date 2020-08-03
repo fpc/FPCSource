@@ -31,6 +31,7 @@ type
     procedure AddReloc(relocType: byte; ofs: int64; index: UInt32);
 
     procedure WriteRelocU32(u: longword);
+    procedure WriteString(const s: string);
     procedure SectionBegin(secId: byte; out secRec: TSectionRec; secsize: longWord=0);
     function SectionEnd(var secRec: TSectionRec): Boolean;
 
@@ -40,6 +41,9 @@ type
     procedure WriteFuncSect(m: TWasmModule);
     procedure WriteExportSect(m: TWasmModule);
     procedure WriteCodeSect(m: TWasmModule);
+
+    procedure WriteLinkingSect(m: TWasmModule);
+    procedure WriteRelocSect(m: TWasmModule);
 
     procedure pushStream(st: TStream);
     function popStream: TStream;
@@ -137,6 +141,13 @@ begin
   WriteU(dst, u, sizeof(u)*8, keepLeb128);
 end;
 
+procedure TBinWriter.WriteString(const s: string);
+begin
+  WriteU32(dst, length(s));
+  if length(s)>0 then
+    dst.Write(s[1], length(s));
+end;
+
 function TBinWriter.Write(m: TWasmModule; adst: TStream): Boolean;
 var
   l : Longword;
@@ -165,6 +176,11 @@ begin
 
   // 10 code section
   WriteCodeSect(m);
+
+  if writeReloc then begin
+    WriteLinkingSect(m);
+    WriteRelocSect(m)
+  end;
 
   Result:=true;
 end;
@@ -225,7 +241,9 @@ begin
 
   WriteU32(dst, m.FuncCount);
   for i:=0 to m.FuncCount-1 do
-    WriteRelocU32(m.GetFunc(i).functype.typeNum);
+    // wat2test doesn't write the function section as relocatable
+    // WriteRelocU32(m.GetFunc(i).functype.typeNum);
+    WriteU32(dst, m.GetFunc(i).functype.typeNum);
 
   SectionEnd(sc);
 end;
@@ -245,7 +263,10 @@ begin
     if length(x.name)>0 then
       dst.Write(x.name[1], length(x.name));
     dst.WriteByte(x.exportType);
-    WriteRelocU32(x.exportNum);
+
+    //wat2wasm doesn't write relocate the information
+    //WriteRelocU32(x.exportNum);
+    WriteU32(dst, x.exportNum);
   end;
 
   SectionEnd(sc);
@@ -296,7 +317,25 @@ begin
   SectionEnd(sc);
 end;
 
-procedure TBinWriter.WriteInstList(list: TWasmInstrList; ofsAddition: Longword);
+procedure TBinWriter.WriteLinkingSect(m: TWasmModule);
+var
+  sc : TSectionRec;
+begin
+  SectionBegin(SECT_CUSTOM, sc);
+  WriteString(SectionName_Linking);
+
+  WriteU32(dst, LINKING_VERSION);
+  // todo: fill out subsections
+
+  SectionEnd(sc);
+end;
+
+procedure TBinWriter.WriteRelocSect(m: TWasmModule);
+begin
+
+end;
+
+procedure TBinWriter.WriteInstList(list: TWasmInstrList; ofsAddition: LongWord);
 var
   i  : integer;
   ci : TWasmInstr;
