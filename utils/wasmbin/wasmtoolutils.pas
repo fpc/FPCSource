@@ -87,7 +87,6 @@ begin
   idx := -1;
   for i:=0 to length(l.symbols)-1 do
     if l.symbols[i].kind = SYMTAB_FUNCTION then begin
-      writeln(i,' fun idx: ', l.symbols[i].symindex);
       if l.symbols[i].symindex>idx then begin
         idx:= l.symbols[i].symindex;
       end;
@@ -341,7 +340,6 @@ begin
       if doVerbose then writeln(' export section found');
       ReadExport(st, x);
       cnt := ExportRenameSym(x, syms);
-      writeln(' renamings: ', cnt);
 
       st.Position:=0;
       dst.CopyFrom(st, ofs);
