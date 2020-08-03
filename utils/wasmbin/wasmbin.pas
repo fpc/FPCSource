@@ -28,18 +28,18 @@ const
   WasmId_Int = $6D736100;
 
 const
-  sect_custom   = 0;	// custom section
-  sect_type     = 1;	// type section
-  sect_import   = 2;	// import section
-  sect_function = 3;	// function section
-  sect_table    = 4;	// table section
-  sect_memory   = 5;	// memory section
-  sect_global   = 6;	// global section
-  sect_export   = 7;	// export section
-  sect_start    = 8;	// start section
-  sect_element  = 9;	// element section
-  sect_code     = 10;	// code section
-  sect_data     = 11;	// data section
+  SECT_CUSTOM   = 0;	// custom section
+  SECT_TYPE     = 1;	// type section
+  SECT_IMPORT   = 2;	// import section
+  SECT_FUNCTION = 3;	// function section
+  SECT_TABLE    = 4;	// table section
+  SECT_MEMORY   = 5;	// memory section
+  SECT_GLOBAL   = 6;	// global section
+  SECT_EXPORT   = 7;	// export section
+  SECT_START    = 8;	// start section
+  SECT_ELEMENT  = 9;	// element section
+  SECT_CODE     = 10;	// code section
+  SECT_DATA     = 11;	// data section
 
 type
   TSection = packed record
@@ -87,6 +87,17 @@ type
     entries : array of TCodeEntry;
   end;
 
+
+  TExportEntry = record
+    name    : string;
+    desc    : byte;
+    index   : UInt32;
+  end;
+
+  TExportSection = record
+    entries : array of TExportEntry;
+  end;
+
 function SectionIdToStr(id: integer): string;
 function ValTypeToStr(id: integer): string;
 
@@ -105,6 +116,12 @@ function GetU32(sr: TStream): UInt32;
 procedure ReadCodeEntry(src: TStream; var en: TCodeEntry);
 // reads the code entry into TCodeEntry structure
 procedure ReadCodeSection(src: TStream; var sc: TCodeSection);
+
+
+procedure ReadExportEntry(src: TStream; var ex: TExportEntry);
+// reads the export entry
+procedure ReadExport(src: TStream; var ex: TExportSection);
+procedure WriteExport(const ex: TExportSection; dst: TStream);
 
 implementation
 
@@ -197,6 +214,36 @@ begin
   SetLength(sc.entries, cnt);
   for i:= 0 to cnt-1 do
     ReadCodeEntry(src, sc.entries[i]);
+end;
+
+procedure ReadExportEntry(src: TStream; var ex: TExportEntry);
+begin
+  ex.name := ReadName(src);
+  ex.desc := src.ReadByte;
+  ex.index := ReadU(src);
+end;
+
+procedure ReadExport(src: TStream; var ex: TExportSection);
+var
+  cnt : integer;
+  i   : integer;
+begin
+  cnt := ReadU(src);
+  SetLength(ex.entries, cnt);
+  for i:=0 to cnt-1 do
+    ReadExportEntry(src, ex.entries[i]);
+end;
+
+procedure WriteExport(const ex: TExportSection; dst: TStream);
+var
+  i : integer;
+begin
+  WriteU32(dst, length(ex.entries));
+  for i:=0 to length(ex.entries)-1 do begin
+    WriteName(dst, ex.entries[i].name);
+    dst.WriteByte(ex.entries[i].desc);
+    WriteU32(dst, ex.entries[i].index);
+  end;
 end;
 
 end.
