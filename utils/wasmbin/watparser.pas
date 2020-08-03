@@ -195,7 +195,9 @@ begin
   sc.Next;
 end;
 
-procedure ParseFuncParamResult(sc: TWatScanner; dst: TWasmFuncType);
+// lookForRefId (if true) parses for the case of (type 0)
+// (if false) just looks for (param i32) (result i32)
+procedure ParseTypeUse(sc: TWatScanner; dst: TWasmFuncType; lookForRefId: Boolean);
 var
   tk  : TWatToken;
   nm  : integer;
@@ -203,7 +205,7 @@ var
   p   : TWasmParam;
 begin
   tk := sc.token;
-  if tk = weType then begin
+  if lookForRefId and (tk = weType) then begin
     sc.Next;
     if not ParseNumOfId(sc, nm, id) then
       Exit;
@@ -274,7 +276,7 @@ begin
         //  2 - table reference index. Which should always be zero.
         ConsumeToken(sc, weOpenBrace);
         ft := ci.addInstType;
-        ParseFuncParamResult(sc, ft);
+        ParseTypeUse(sc, ft, true);
         ci.operandNum := 0; // table reference index
       end;
 
@@ -345,7 +347,7 @@ begin
   ConsumeAnyOpenToken(sc, tk);
 
   if tk in [weType, weParam, weResult] then
-    ParseFuncParamResult(sc, dst.functype);
+    ParseTypeUse(sc, dst.functype, true);
 
   while tk = weLocal do begin
     p:=dst.AddLocal;
@@ -358,6 +360,24 @@ begin
     ErrorExpectButFound(sc, 'identifier');
 
   ParseInstrList(sc, dst.instr);
+  ConsumeToken(sc, weCloseBrace);
+end;
+
+procedure ParseTypeDef(sc: TWatScanner; dst: TWasmFuncType);
+begin
+  if sc.token=weType then sc.Next;
+
+  if (sc.token in [weNumber, weIdent]) then
+    ParseNumOfId(sc, dst.typeNum, dst.typeIdx);
+
+  ConsumeToken(sc, weOpenBrace);
+  ConsumeToken(sc, weFunc);
+
+  if (sc.token = weOpenBrace) then begin
+    sc.Next;
+    ParseTypeUse(sc, dst, false);
+  end;
+
   ConsumeToken(sc, weCloseBrace);
 end;
 
@@ -532,6 +552,10 @@ begin
         weData:begin
           ParseData(sc, dst.AddData);
           symlist.Clear;
+        end;
+        weType: begin
+          symlist.Clear;
+          ParseTypeDef(sc, dst.AddType);
         end;
       else
         ErrorExpectButFound(sc, 'func', TokenStr[sc.token]);
