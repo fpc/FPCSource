@@ -856,7 +856,6 @@ var
   f   : TWasmFunc;
   so  : TSymbolObject;
 begin
-  writeln('preparing symlinks');
   for i:=0 to m.FuncCount-1 do begin
     f := m.GetFunc(i);
     if isFuncLinkSym(f.LinkInfo) or (f.codeRefCount>0) then begin
@@ -865,7 +864,6 @@ begin
       LinkInfoToBin(f.linkInfo, so.syminfo, SYMTAB_FUNCTION, f.idNum);
     end;
   end;
-  writeln('done');
 end;
 
 end.
