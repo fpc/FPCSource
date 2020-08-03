@@ -106,6 +106,7 @@ begin
   case txt[1] of
     'a':
       if txt='anyfunc' then entity:=weFuncRef
+      else if txt = 'align' then entity:=weAlign
       else if TextToInst(txt, instByte) then entity:=weInstr;
     'd':
       if txt=KEY_DATA then entity:=weData
