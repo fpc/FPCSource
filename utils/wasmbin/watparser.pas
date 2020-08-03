@@ -261,7 +261,24 @@ begin
 
       //ip2Leb,  // memory arguments, ask for offset + align
       //ipTable,   // a complex structure... used for br_table only
-      //ipResType  // result type used for blocks, such as If, block or loop
+      ipResType:  // result type used for blocks, such as If, block or loop
+      begin
+        if (sc.token = weOpenBrace) then begin
+          ConsumeToken(sc, weOpenBrace);
+          ConsumeToken(sc, weResult);
+          case sc.token of
+            wei32: ci.operandNum := valtype_i32;
+            wei64: ci.operandNum := valtype_i64;
+            wef32: ci.operandNum := valtype_f32;
+            wef64: ci.operandNum := valtype_f64;
+          else
+            ErrorExpectButFound(sc, 'i32');
+          end;
+          sc.Next;
+          ConsumeToken(sc, weCloseBrace);
+        end else
+          ci.operandNum := block_type; // no value type
+      end;
 
     end;
   end;
