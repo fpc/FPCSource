@@ -133,12 +133,6 @@ function ParseNumOfId(sc: TWatScanner; out num: integer; out id: string): Boolea
 begin
   num:=-1;
   id:='';
-  Result := sc.Next;
-  if not Result then begin
-    ErrorUnexpectedEof(sc);
-    Exit;
-  end;
-
   case sc.token of
     weNumber: num:=sc.resInt32;
     weIdent: id:=sc.resText;
@@ -205,10 +199,10 @@ var
 begin
   tk := sc.token;
   if tk = weType then begin
-    if not ParseNumOfId(sc, nm, id) then begin
-      writeln('failed type');
+    sc.Next;
+    if not ParseNumOfId(sc, nm, id) then
       Exit;
-    end;
+
     if nm>=0 then dst.typeNum:=nm
     else dst.typeIdx:=id;
     ConsumeAnyOpenToken(sc, tk);
