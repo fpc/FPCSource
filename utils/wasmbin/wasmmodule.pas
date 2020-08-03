@@ -215,6 +215,14 @@ function FindFunc(m: TWasmModule; const funcIdx: string): integer;
 function RegisterFuncIdxInElem(m: TWasmModule; const func: Integer): integer;
 function RegisterFuncInElem(m: TWasmModule; const funcId: string): integer;
 
+// tries to get a constant value from instruction list
+// right now, it only pulls the first i32_const expression and tries
+// to get the value out of it.
+// todo: it should be more sophistacated
+//
+// returns false, if instruction "l" is invalid, or no i32 instruction
+function InstrGetConsti32Value(l: TWasmInstrList; var vl: Integer): Boolean;
+
 implementation
 
 // returing a basic wasm basic type to a character
@@ -863,6 +871,7 @@ function RegisterFuncIdxInElem(m: TWasmModule; const func: Integer): integer;
 var
   el : TWasmElement;
   i  : Integer;
+  ofs : Integer;
 const
   NON_ZEROFFSET = 1; // being compliant with Linking convention
   // The output table elements shall begin at a non-zero offset within
@@ -878,6 +887,9 @@ begin
     el.offset.AddInstr(INST_END);
   end else
     el := m.GetElement(0);
+
+  if not InstrGetConsti32Value(el.offset, ofs) then ofs := 0;
+
   Result:=-1;
   for i:=0 to el.funcCount-1 do begin
     if el.funcs[i].idNum = func then
@@ -885,7 +897,8 @@ begin
   end;
   if Result<0 then
     Result := el.AddFunc(func);
-  Result := Result + NON_ZEROFFSET; // todo: THIS IS WRONG
+
+  Result := Result + ofs;
 end;
 
 function RegisterFuncInElem(m: TWasmModule; const funcId: string): integer;
@@ -897,6 +910,18 @@ begin
     Result := RegisterFuncIdxInElem(m, fnidx)
   else
     Result := -1;
+end;
+
+function InstrGetConsti32Value(l: TWasmInstrList; var vl: Integer): Boolean;
+var
+  err : integer;
+begin
+  //todo: it must be more complicated than that
+  Result:=Assigned(l) and (l.Count>0) and (l.Item[0].code = INST_i32_const);
+  if not Result then Exit;
+
+  Val(l.Item[0].operandText, vl, err);
+  Result := err = 0;
 end;
 
 end.
