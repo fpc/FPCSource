@@ -10,6 +10,9 @@ function ReadS(src: TStream; bits: Integer): Int64;
 
 procedure WriteU(src: TStream; vl: UInt64; bits: integer; fixedSize: Boolean = false);
 procedure WriteS(src: TStream; vl: Int64; bits: integer);
+procedure WriteU32(src: TStream; vl: UInt32);
+procedure WriteU16(src: TStream; vl: UInt16);
+procedure WriteU8(src: TStream; vl: UInt8);
 
 implementation
 
@@ -102,6 +105,21 @@ begin
       b := b or $80;
     src.WriteByte(b);
   end;
+end;
+
+procedure WriteU32(src: TStream; vl: UInt32);
+begin
+  WriteU(src, vl, sizeof(vl)*8);
+end;
+
+procedure WriteU16(src: TStream; vl: UInt16);
+begin
+  WriteU(src, vl, sizeof(vl)*8);
+end;
+
+procedure WriteU8(src: TStream; vl: UInt8);
+begin
+  WriteU(src, vl, sizeof(vl)*8);
 end;
 
 end.
