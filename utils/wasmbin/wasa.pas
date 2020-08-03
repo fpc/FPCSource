@@ -83,8 +83,11 @@ begin
     inc(i);
   end;
 
-  if (p.SrcFile<>'') and (p.DstObjFile = '') then
-    p.DstObjFile := ChangeFileExt(p.SrcFile, '.wasm')
+  if (p.SrcFile<>'') then begin
+    p.SrcFile := ExpandFileName(p.SrcFile);
+    if (p.DstObjFile = '') then
+      p.DstObjFile := ChangeFileExt(p.SrcFile, '.wasm')
+  end;
 end;
 
 var
