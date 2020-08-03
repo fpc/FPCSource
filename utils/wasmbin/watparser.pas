@@ -39,6 +39,9 @@ const
 function ParseModule(sc: TWatScanner; dst: TWasmModule; var errMsg: string): Boolean; overload;
 function ParseModule(sc: TWatScanner; dst: TWasmModule; out err: TParseResult): Boolean; overload;
 
+// castType can be otNotused, if no explicit type cast is expected
+function ParseOperand(sc: TWatScanner; var op: TWasmInstrOperand; castType: TWasmInstrOperandType): Boolean;
+
 implementation
 
 type
@@ -246,10 +249,37 @@ begin
   end;
 end;
 
+function IntToAlign(aint: Integer): integer;
+begin
+  Result:=0;
+  aint := aint shr 1;
+  while aint>0 do begin
+    aint := aint shr 1;
+    inc(Result);
+  end;
+end;
+
 procedure ParseInstrList(sc: TWatScanner; dst: TWasmInstrList);
 var
   ci  : TWasmInstr;
   ft  : TWasmFuncType;
+const
+  ParamTypeToOpType : array [TInstParamType] of TWasmInstrOperandType = (
+      otNotused, // ipNone
+      otUInt32,  // ipLeb,        // label index or function index
+      otUInt32,  // ipOfsAlign,   // memory arguments, ask for offset + align
+      otSInt32,  // ipi32,        // signed Leb of maximum 4 bytes
+      otNotused,  // ipi64,        // signed Leb of maximum 8 bytes
+      otUInt32,  // ipu32,        // signed Leb of maximum 4 bytes
+      otNotused,  // ipu64,        // signed Leb of maximum 8 bytes
+      otFloat32,  // ipf32,       // float point single
+      otFloat64,  // ipf64,       // float point double
+      otNotused,  // ipJumpVec,   // an array of jump labels used for br_table only
+      otNotused,  // ipResType,   // result type used for blocks, such as If, block or loop
+      otNotused,  // ipCallType,  // used for call_indirect
+      otNotused,  // ipi32OrFunc, // use for i32.const. Either a numeric OR function id is accepted.
+      otUInt32    // ipZero       // followed by a single byte zero
+  );
 begin
   while sc.token=weInstr do begin
     ci := dst.AddInstr(sc.instrCode);
@@ -266,25 +296,30 @@ begin
           sc.Next;
           ConsumeToken(sc, weEqual);
           if sc.token<>weNumber then ErrorExpectButFound(sc, 'number');
-          ci.operandText := sc.resText;
+          //todo: fail on invalid value
+          OperandSetInt32(ci.operand1, sc.resInt32(0));
           sc.Next;
         end;
+
         if sc.token = weAlign then begin
           sc.Next;
           ConsumeToken(sc, weEqual);
           if sc.token<>weNumber then ErrorExpectButFound(sc, 'number');
-          ci.operandText2 := sc.resText;
+          OperandSetInt32(ci.operand2, IntToAlign(sc.resInt32(0)));
           sc.Next;
-        end;
+        end else
+          OperandSetInt32(ci.operand2, INST_FLAGS[ci.code].align);
       end;
 
-      ipi32,ipi64,ipf32,ipf64,ipi32OrFunc:
+      ipi32,ipi64,ipu32,ipu64,ipf32,ipf64,ipi32OrFunc:
       begin
         if (INST_FLAGS[ci.code].Param = ipi32OrFunc) and (sc.token = weIdent) then
-          ci.operandText := sc.resText
-        else if sc.token<>weNumber then
+          OperandSetText(ci.operand1, sc.resText)
+        else if sc.token<>weNumber then begin
           ErrorExpectButFound(sc, 'number');
-        ci.operandText := sc.resText;
+          Exit;
+        end else
+          ParseOperand(sc, ci.operand1, ParamTypeToOpType[INST_FLAGS[ci.code].Param]);
         sc.Next;
       end;
 
@@ -803,6 +838,246 @@ constructor EParserError.Create(const amsg: string; aofs: integer);
 begin
   inherited Create(amsg);
   offset:=aofs;
+end;
+
+const
+  INT64MASK = $FFFFFFFF00000000;
+  maxInt64  = 9223372036854775807;
+
+function Int64ToOperand(v: Int64; var op: TWasmInstrOperand; castType: TWasmInstrOperandType): Boolean;
+begin
+  Result := true;
+  case castType of
+    otNotused:
+      if (v and INT64MASK = 0) then begin
+        if (v<0) or (v < maxLongint) then begin
+          op.tp := otSInt32;
+          op.s32 := v;
+        end else begin
+          op.tp := otUInt32;
+          op.u32 := v;
+        end
+      end else begin
+        op.tp := otSInt64;
+        op.s64 := v;
+      end;
+
+    otSInt32:
+    begin
+      Result := (v and INT64MASK = 0);
+      if not Result then Exit;
+      op.tp := otSInt32;
+      op.s32 := v;
+    end;
+
+    otUInt32:
+    begin
+      Result := (v and INT64MASK = 0) and (v>=0);
+      if not Result then Exit;
+      op.tp := otUInt32;
+      op.u32 := v;
+    end;
+
+    otSInt64: begin
+      op.tp := otSInt32;
+      op.s64 := v;
+    end;
+
+    otUInt64: begin
+      Result := (v>=0);
+      op.tp := otUInt64;
+      op.u64 := v;
+    end;
+
+    otFloat32: begin
+      op.tp := otFloat32;
+      op.f32 := v;
+    end;
+
+    otFloat64: begin
+      op.tp := otFloat64;
+      op.f64 := v;
+    end;
+  end
+end;
+
+function UInt64ToOperand(v: UInt64; var op: TWasmInstrOperand; castType: TWasmInstrOperandType): Boolean;
+begin
+  Result := true;
+  case castType of
+    otNotused:
+      if (v and INT64MASK = 0) then begin
+        if (v < maxLongint) then begin
+          op.tp := otSInt32;
+          op.s32 := v;
+        end else begin
+          op.tp := otUInt32;
+          op.u32 := v;
+        end
+      end else begin
+        if v < maxInt64 then begin
+          op.tp := otSInt64;
+          op.s64 := v;
+        end else begin
+          op.tp := otUInt64;
+          op.u64 := v;
+        end;
+      end;
+
+    otSInt32:
+    begin
+      Result := (v and INT64MASK = 0) and (v < maxLongint);
+      if not Result then Exit;
+      op.tp := otSInt32;
+      op.s32 := v;
+    end;
+
+    otUInt32:
+    begin
+      Result := (v and INT64MASK = 0);
+      if not Result then Exit;
+      op.tp := otUInt32;
+      op.u32 := v;
+    end;
+
+    otSInt64: begin
+      Result := (v <= maxInt64);
+      if not Result then Exit;
+      op.tp := otSInt32;
+      op.s64 := v;
+    end;
+
+    otUInt64: begin
+      op.tp := otUInt64;
+      op.u64 := v;
+    end;
+
+    otFloat32: begin
+      op.tp := otFloat32;
+      op.f32 := v;
+    end;
+
+    otFloat64: begin
+      op.tp := otFloat64;
+      op.f64 := v;
+    end;
+  end
+end;
+
+function TextToFloat32(const txt: string; var vl: Single): Boolean;
+var
+  err : integer;
+  l   : LongWord;
+  i   : Integer;
+  hx  : string;
+  hl  : LongWord;
+const
+  BINARY_INF    = $7f800000;
+  BINARY_NEGINF = $ff800000;
+  BINARY_NEGMAN = $00400000;
+begin
+  // val() doesn't handle "nan" in wasm compatible
+  // any "nan" is always returned as "negative nan" (in Wasm terms)
+  // "inf" works just fine
+  Result := true;
+  if (Pos('nan', txt)>0) then begin
+    if txt[1]='-' then l := NtoLE(BINARY_NEGINF)
+    else l := NtoLE(BINARY_INF);
+
+    i:=Pos(':', txt);
+    if i>0 then begin
+      hx := '$'+Copy(txt, i+3, length(txt)); // skipping '0x'
+      Val(hx, hl, err);
+    end else
+      hl:=BINARY_NEGMAN; // nan
+    l:=l or hl;
+    vl := PSingle(@l)^;
+  end else begin
+    vl:=0;
+    err:=0;
+    if (Pos('0x', txt)>0) then
+      vl := HexFloatStrToSingle(txt)
+    else begin
+      Val(txt, vl, err);
+      Result := err = 0;
+    end;
+  end;
+end;
+
+function TextToFloat64(const txt: string; var vl: Double): Boolean;
+var
+  err : integer;
+  l   : QWord;
+  i   : Integer;
+  hx  : string;
+  hl  : QWord;
+const
+  BINARY_INF    = QWord($7ff0000000000000);
+  BINARY_NEGINF = QWord($fff0000000000000);
+  BINARY_NEGMAN = QWord($0008000000000000);
+begin
+  Result := true;
+  if (Pos('nan', txt)>0) then begin
+    if txt[1]='-' then l := NtoLE(BINARY_NEGINF)
+    else l := NtoLE(BINARY_INF);
+
+    i:=Pos(':', txt);
+    if i>0 then begin
+      hx := '$'+Copy(txt, i+3, length(txt)); // skipping '0x'
+      Val(hx, hl, err);
+    end else
+      hl:=BINARY_NEGMAN; // nan
+    l:=l or hl;
+    vl := PDouble(@l)^;
+  end else begin
+    vl:=0;
+    if (Pos('0x', txt)>0) then
+      vl := HexFloatStrToDouble(txt)
+    else begin
+      Val(txt, vl, err);
+      Result := err = 0;
+    end;
+  end;
+end;
+
+function ParseOperand(sc: TWatScanner; var op: TWasmInstrOperand; castType: TWasmInstrOperandType): Boolean;
+var
+  i64 : Int64;
+  u64 : UInt64;
+  err : Integer;
+begin
+  Result := Assigned(sc);
+  if not Result then Exit;
+
+  if (castType = otText) or (sc.token <> weNumber) then begin
+    OperandSetText(op, sc.resText);
+    Exit;
+  end;
+
+  case sc.numformat of
+    wnfInteger, wnfHex: begin
+      val(sc.resText, i64, err);
+      if err = 0 then
+        Result := Int64ToOperand(i64, op, castType)
+      else begin
+        Val(sc.resText, u64, err);
+        Result := err = 0;
+        if Result then
+          Result := UInt64ToOperand(u64, op, castType);
+      end;
+    end;
+    wnfFloat, wnfFloatHex: begin   // 0.000
+      Result := castType in [otNotused, otFloat32, otFloat64];
+      if not Result then Exit;
+      if castType = otFloat32 then begin
+        op.tp := otFloat32;
+        TextToFloat32(sc.resText, op.f32);
+      end else begin
+        op.tp := otFloat64;
+        TextToFloat64(sc.resText, op.f64);
+      end;
+    end;
+  end;
 end;
 
 end.

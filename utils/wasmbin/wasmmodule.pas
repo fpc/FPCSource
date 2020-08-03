@@ -69,16 +69,39 @@ type
     procedure CopyTo(t: TWasmFuncType);
   end;
 
+
+  TWasmInstrOperandType = (
+     otNotused,
+     otText,
+     otSInt32,
+     otUInt32,
+     otSInt64,
+     otUInt64,
+     otFloat32,
+     otFloat64
+  );
+
+  TWasmInstrOperand = record
+     textVal : string;
+     case tp : TWasmInstrOperandType of
+       otSInt32: (s32: Int32);
+       otUInt32: (u32: UInt32);
+       otSInt64: (s64: Int64);
+       otUInt64: (u64: UInt64);
+       otFloat32: (f32: single);
+       otFloat64: (f64: double);
+  end;
+
   { TWasmInstr }
 
   TWasmInstr = class(TObject)
     code        : byte;
     operandIdx  : string;
-    operandNum  : integer;    // for "call_indirect" this is table index
-                              // for "if", "loop", "block" - it's type
-    operandText : string;     // it's "offset" for load operations
-    operandText2: string;     // it's "align" for load operations
-    insttype    : TWasmFuncType; // used by call_indirect only
+    operandNum  : integer;            // for "call_indirect" this is table index
+                                      // for "if", "loop", "block" - it's type
+    operand1    : TWasmInstrOperand;  // it's "offset" for load operations
+    operand2    : TWasmInstrOperand;  // it's "align" for load operations
+    insttype    : TWasmFuncType;      // used by call_indirect only
 
     jumplabel   : string;   // the label is used only for "loop", "block" and "if"
 
@@ -94,8 +117,8 @@ type
     destructor Destroy; override;
     procedure SetReloc(ARelocType: byte; ARelocIndex: Integer);
 
-    property offsetText : string read operandText write operandText;
-    property alignText  : string read operandText2 write operandText2;
+    property offsetText : TWasmInstrOperand read operand1 write operand1;
+    property alignText  : TWasmInstrOperand read operand2 write operand2;
   end;
 
   { TWasmInstrList }
@@ -292,7 +315,28 @@ function RegisterFuncType(m: TWasmModule; funcType: TWasmFuncType): integer;
 // returns false, if instruction "l" is invalid, or no i32 instruction
 function InstrGetConsti32Value(l: TWasmInstrList; var vl: Integer): Boolean;
 
+procedure OperandSetType(var op: TWasmInstrOperand; tp: TWasmInstrOperandType); inline;
+procedure OperandSetInt32(var op: TWasmInstrOperand; i32: Int32); inline;
+procedure OperandSetText(var op: TWasmInstrOperand; const txt: string); inline;
+
 implementation
+
+procedure OperandSetType(var op: TWasmInstrOperand; tp: TWasmInstrOperandType); inline;
+begin
+  if op.tp<>tp then op.tp:=tp;
+end;
+
+procedure OperandSetInt32(var op: TWasmInstrOperand; i32: Int32);
+begin
+  OperandSetType(op, otSInt32);
+  op.s32:=i32;
+end;
+
+procedure OperandSetText(var op: TWasmInstrOperand; const txt: string); inline;
+begin
+  OperandSetType(op, otText);
+  op.textVal := txt;
+end;
 
 // returing a basic wasm basic type to a character
 // i32 = i
@@ -975,7 +1019,7 @@ const
 begin
   if m.ElementCount=0 then begin
     el := m.AddElement;
-    el.offset.AddInstr(INST_i32_const).operandText:=NON_ZEROFFSET_STR;
+    OperandSetInt32( el.offset.AddInstr(INST_i32_const).operand1, NON_ZEROFFSET);
     el.offset.AddInstr(INST_END);
   end else
     el := m.GetElement(0);
@@ -1012,8 +1056,7 @@ begin
   Result:=Assigned(l) and (l.Count>0) and (l.Item[0].code = INST_i32_const);
   if not Result then Exit;
 
-  Val(l.Item[0].operandText, vl, err);
-  Result := err = 0;
+  vl := l.Item[0].operand1.s32; // todo: check the type
 end;
 
 end.

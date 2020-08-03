@@ -16,9 +16,9 @@ var
 begin
   case INST_FLAGS[ci.code].Param of
     ipi32OrFunc:
-      if (ci.operandText<>'') and (ci.operandText[1]='$') then begin
+      if (ci.operand1.textVal<>'') and (ci.operand1.textVal[1]='$') then begin
         //if not ci.hasRelocIdx then
-        idx := RegisterfuncInElem(module, ci.operandText);
+        idx := RegisterfuncInElem(module, ci.operand1.textVal);
         //AddReloc(rt, dst.Position+ofsAddition, idx);
         ci.operandNum := idx;
         ci.SetReloc(INST_RELOC_FLAGS[ci.code].relocType, idx);
@@ -46,15 +46,6 @@ begin
   while (i>=0) and (LblStack[i]<>JumpToLbl) do
     dec(i);
   Result := LblStack.Count-i-1;
-end;
-
-procedure NormalizeOfsAlign(ci: TWasmInstr);
-const
-  ALIGN_STR : array [0..3] of string = ('1','2','4','8');
-begin
-  if (ci.offsetText = '') then ci.offsetText := '0';
-  if (ci.alignText = '') then
-    ci.alignText := ALIGN_STR[INST_FLAGS[ci.code].align];
 end;
 
 // Normalizing instruction list, popuplating index reference ($index)
@@ -87,8 +78,6 @@ begin
 
           lbl.Add(ci.jumplabel);
         end;
-        ipOfsAlign:
-          NormalizeOfsAlign( ci );
       end;
 
       case ci.code of
@@ -261,7 +250,7 @@ begin
   for i:=0 to m.ElementCount-1 do begin
     e := m.GetElement(i);
     l := e.AddOffset;
-    if (l.Count=0) then l.AddInstr(INST_i32_const).operandText:='0';
+    if (l.Count=0) then l.AddInstr(INST_i32_const).operand1.s32:=0;
     NormalizeInst( m, nil, l);
   end;
 end;

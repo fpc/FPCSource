@@ -607,248 +607,6 @@ begin
   end;
 end;
 
-function WriteI32Operand(dst: TStream; const operand: string): Boolean;
-var
-  err : integer;
-  i32 : integer;
-  u32 : LongWord;
-begin
-  Val(operand, i32, err);
-  if err = 0 then begin
-    WriteS( dst, i32, sizeof(i32));
-    Result := true;
-    Exit;
-  end else
-    Val(operand, u32, err);
-
-  Result := (err = 0);
-  if Result then WriteU32(dst, u32);
-end;
-
-procedure WriteAlign(dst: TStream; const operand: string);
-var
-  m : Integer;
-begin
-  m := 0;
-  if (length(operand)=1) then
-    case operand[1] of
-      '1': m := 0;
-      '2': m := 1;
-      '4': m := 2;
-      '8': m := 3;
-    end;
-  WriteU32(dst, m);
-end;
-
-function WriteI64Operand(dst: TStream; const operand: string): Boolean;
-var
-  err : integer;
-  i64 : Int64;
-  u64 : UInt64;
-begin
-  Val(operand, i64, err);
-  if err = 0 then begin
-    WriteS64(dst, i64);
-    Result := true;
-    //Exit;
-    //u64 := UInt64(i64)
-  end else begin
-    Val(operand, u64, err);
-    if Result then WriteS64(dst, Int64(u64));
-  end;
-  Result := (err = 0);
-end;
-
-type
-  THexStr = record
-    num   : QWord;
-    frac  : QWord;
-    exp   : integer;
-    isNeg : Boolean;
-  end;
-
-function HexFloatStrToHexStr(const t: string; out hexStr: THexStr): Boolean;
-var
-  i : integer;
-  j : integer;
-  err : Integer;
-const
-  HexChars = ['0'..'9','a'..'f','A'..'F'];
-begin
-  hexStr.isNeg:=false;
-  hexStr.num:=0;
-  hexStr.frac:=0;
-  hexStr.exp:=0;
-  if (t='') then begin
-    Result:=true;
-    Exit;
-  end;
-
-  i:=1;
-  hexStr.isNeg:=t[i]='-';
-  if (hexStr.isNeg) then inc(i);
-  inc(i,2); // skipping '0x'
-
-  j:=i;
-  while (i<=length(t)) and (t[i] in HexChars) do inc(i);
-  Val('$'+Copy(t, j, i-j), hexStr.num, err);
-  Result:=err=0;
-  if not Result then Exit;
-
-  if (t[i]='.') then begin
-    inc(i);
-    j:=i;
-    while (i<=length(t)) and (t[i] in HexChars) do inc(i);
-    Val('$'+Copy(t, j, i-j), hexStr.frac, err);
-    Result:=err=0;
-    if not Result then Exit;
-  end;
-
-  Result := (i<=length(t)) and (t[i] = 'p') or (t[i]='P');
-  inc(i);
-  Val(Copy(t, i, length(t)), hexStr.exp, err);
-  Result:=err=0;
-end;
-
-function HexFracToSingle(const num, frac: QWord; exp: Integer; isNeg: Boolean): Single;
-var
-  x      : QWord;
-  nm     : QWord;
-  adjexp : integer;
-  sr     : TSingleRec;
-begin
-  nm := num;
-  x := frac;
-  adjexp := -1;
-  while (nm > 0) do begin
-    x:=(x shr 1) or ((nm and 1) shl 23);
-    nm := nm shr 1;
-    inc(adjexp);
-  end;
-  sr.Exp:=127 + exp + adjexp;
-  sr.Frac:=x;
-  sr.Sign:=isNeg;
-  Result := sr.Value;
-end;
-
-function HexFloatStrToSingle(const hexstr: string): Single;
-var
-  st : THexStr;
-begin
-  HexFloatStrToHexStr(hexstr, st);
-  Result:=HexFracToSingle(st.num, st.frac, st.exp, st.isNeg);
-end;
-
-function HexFracToDouble(const num, frac: QWord; exp: Integer; neg: Boolean): Double;
-var
-  x      : QWord;
-  nm     : QWord;
-  adjexp : integer;
-  sr     : TDoubleRec;
-begin
-  nm := num;
-  x := frac;
-  adjexp := 0;
-  while (nm > 1) do begin
-    x:=(x shr 1) or ((nm and 1) shl 52);
-    nm := nm shr 1;
-    inc(adjexp);
-  end;
-  sr.Exp:=1023 + exp + adjexp;
-  sr.Frac:=x;
-  sr.Sign:=neg;
-  Result := sr.Value;
-end;
-
-function HexFloatStrToDouble(const hexstr: string): double;
-var
-  st : THexStr;
-begin
-  HexFloatStrToHexStr(hexstr, st);
-  Result:=HexFracToDouble(st.num, st.frac, st.exp, st.isNeg);
-end;
-
-procedure WriteF32Operand(dst: TStream; const txt: string);
-var
-  f   : single;
-  err : integer;
-  l   : LongWord;
-  i   : Integer;
-  hx  : string;
-  hl  : LongWord;
-  p   : Integer;
-  ft  : string;
-const
-  BINARY_INF    = $7f800000;
-  BINARY_NEGINF = $ff800000;
-  BINARY_NEGMAN = $00400000;
-begin
-  // val() doesn't handle "nan" in wasm compatible
-  // any "nan" is always returned as "negative nan" (in Wasm terms)
-  // "inf" works just fine
-  if (Pos('nan', txt)>0) then begin
-    if txt[1]='-' then l := NtoLE(BINARY_NEGINF)
-    else l := NtoLE(BINARY_INF);
-
-    i:=Pos(':', txt);
-    if i>0 then begin
-      hx := '$'+Copy(txt, i+3, length(txt)); // skipping '0x'
-      Val(hx, hl, err);
-    end else
-      hl:=BINARY_NEGMAN; // nan
-    l:=l or hl;
-    dst.Write(l, sizeof(l));
-  end else begin
-    f:=0;
-    err:=0;
-    if (Pos('0x', txt)>0) then
-      f := HexFloatStrToSingle(txt)
-    else
-      Val(txt, f, err);
-
-    dst.Write(f, sizeof(f));
-  end;
-end;
-
-procedure WriteF64Operand(dst: TStream; const txt: string);
-var
-  f   : double;
-  err : integer;
-  l   : QWord;
-  i   : Integer;
-  hx  : string;
-  hl  : QWord;
-const
-  BINARY_INF    = QWord($7ff0000000000000);
-  BINARY_NEGINF = QWord($fff0000000000000);
-  BINARY_NEGMAN = QWord($0008000000000000);
-begin
-  if (Pos('nan', txt)>0) then begin
-    if txt[1]='-' then l := NtoLE(BINARY_NEGINF)
-    else l := NtoLE(BINARY_INF);
-
-    i:=Pos(':', txt);
-    if i>0 then begin
-      hx := '$'+Copy(txt, i+3, length(txt)); // skipping '0x'
-      Val(hx, hl, err);
-    end else
-      hl:=BINARY_NEGMAN; // nan
-    l:=l or hl;
-    dst.Write(l, sizeof(l));
-  end else begin
-    f:=0;
-    if (Pos('0x', txt)>0) then
-    begin
-      writeln('txt=',txt);
-      f := HexFloatStrToDouble(txt)
-    end
-    else
-      Val(txt, f, err);
-    dst.Write(f, sizeof(f));
-  end;
-end;
-
-
 procedure TBinWriter.WriteInstList(list: TWasmInstrList; ofsAddition: LongWord);
 var
   i   : integer;
@@ -868,23 +626,19 @@ begin
     end;
 
     case INST_FLAGS[ci.code].Param of
-      ipi32: begin
-        WriteI32Operand(dst, ci.operandText);
-      end;
-
-      ipi64: begin     // signed Leb of maximum 8 bytes
-        WriteI64Operand(dst, ci.operandText);
-      end;
-
-      ipf32: WriteF32Operand(dst, ci.operandText);
-      ipf64: WriteF64Operand(dst, ci.operandText);
+      ipi32: WriteS(dst, ci.operand1.s32, sizeof(ci.operand1.s32));
+      ipi64: WriteS64(dst, ci.operand1.s64);
+      ipu32: WriteU32(dst, ci.operand1.u32);
+      ipu64: WriteS64(dst, Int64(ci.operand1.u64));
+      ipf32: dst.Write(ci.operand1.f32, sizeof(ci.operand1.f32));
+      ipf64: dst.Write(ci.operand1.f64, sizeof(ci.operand1.f64));
 
       ipi32OrFunc: begin
         if ci.hasRelocIdx then
           // should have been populated with Normalize
-          WriteRelocU32(LongWord(ci.operandNum))
+          WriteRelocU32(LongWord(ci.operand1.u32)) // todo!
         else
-          WriteI32Operand(dst, ci.operandText);
+          WriteS(dst, ci.operand1.s32, sizeof(ci.operand1.s32));
       end;
       //ipf32,     // float point single
       //ipf64,     // float point double
@@ -925,9 +679,9 @@ begin
 
       ipOfsAlign: begin
         // align
-        WriteAlign(dst, ci.alignText);
+        WriteU32(dst, ci.operand2.u32);
         // offset
-        WriteI32Operand(dst, ci.offsetText);
+        WriteU32(dst, ci.operand1.u32);
       end;
     end;
   end;

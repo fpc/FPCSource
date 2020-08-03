@@ -210,6 +210,8 @@ type
     ipOfsAlign,  // memory arguments, ask for offset + align
     ipi32,       // signed Leb of maximum 4 bytes
     ipi64,       // signed Leb of maximum 8 bytes
+    ipu32,       // unsigned Leb of maximum 4 bytes
+    ipu64,       // unsigned Leb of maximum 8 bytes
     ipf32,       // float point single
     ipf64,       // float point double
     ipJumpVec,   // an array of jump labels used for br_table only

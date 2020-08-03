@@ -33,6 +33,13 @@ type
      wnfFloatHex // 0x000.bced
   );
 
+  THexStr = record
+    num   : QWord;
+    frac  : QWord;
+    exp   : integer;
+    isNeg : Boolean;
+  end;
+
   { TWatScanner }
 
   TWatScanner = class(TObject)
@@ -96,6 +103,12 @@ const
   KEY_OFFSET = 'offset';
 
 function ScanString(const buf: string; var idx: integer): string;
+
+function HexFloatStrToHexStr(const t: string; out hexStr: THexStr): Boolean;
+function HexFracToSingle(const num, frac: QWord; exp: Integer; isNeg: Boolean): Single;
+function HexFloatStrToSingle(const hexstr: string): Single;
+function HexFracToDouble(const num, frac: QWord; exp: Integer; neg: Boolean): Double;
+function HexFloatStrToDouble(const hexstr: string): double;
 
 implementation
 
@@ -217,6 +230,7 @@ var
   si  : integer;
 begin
   numformat := wnfNo;
+
   Result := idx<=length(buf);
   if not Result then Exit;
 
@@ -347,5 +361,105 @@ begin
 end;
 
 
+function HexFloatStrToHexStr(const t: string; out hexStr: THexStr): Boolean;
+var
+  i : integer;
+  j : integer;
+  err : Integer;
+const
+  HexChars = ['0'..'9','a'..'f','A'..'F'];
+begin
+  hexStr.isNeg:=false;
+  hexStr.num:=0;
+  hexStr.frac:=0;
+  hexStr.exp:=0;
+  if (t='') then begin
+    Result:=true;
+    Exit;
+  end;
+
+  i:=1;
+  hexStr.isNeg:=t[i]='-';
+  if (hexStr.isNeg) then inc(i);
+  inc(i,2); // skipping '0x'
+
+  j:=i;
+  while (i<=length(t)) and (t[i] in HexChars) do inc(i);
+  Val('$'+Copy(t, j, i-j), hexStr.num, err);
+  Result:=err=0;
+  if not Result then Exit;
+
+  if (t[i]='.') then begin
+    inc(i);
+    j:=i;
+    while (i<=length(t)) and (t[i] in HexChars) do inc(i);
+    Val('$'+Copy(t, j, i-j), hexStr.frac, err);
+    Result:=err=0;
+    if not Result then Exit;
+  end;
+
+  Result := (i<=length(t)) and (t[i] = 'p') or (t[i]='P');
+  inc(i);
+  Val(Copy(t, i, length(t)), hexStr.exp, err);
+  Result:=err=0;
+end;
+
+function HexFracToSingle(const num, frac: QWord; exp: Integer; isNeg: Boolean): Single;
+var
+  x      : QWord;
+  nm     : QWord;
+  adjexp : integer;
+  sr     : TSingleRec;
+begin
+  nm := num;
+  x := frac;
+  adjexp := -1;
+  while (nm > 0) do begin
+    x:=(x shr 1) or ((nm and 1) shl 23);
+    nm := nm shr 1;
+    inc(adjexp);
+  end;
+  sr.Exp:=127 + exp + adjexp;
+  sr.Frac:=x;
+  sr.Sign:=isNeg;
+  Result := sr.Value;
+end;
+
+function HexFloatStrToSingle(const hexstr: string): Single;
+var
+  st : THexStr;
+begin
+  HexFloatStrToHexStr(hexstr, st);
+  Result:=HexFracToSingle(st.num, st.frac, st.exp, st.isNeg);
+end;
+
+function HexFracToDouble(const num, frac: QWord; exp: Integer; neg: Boolean): Double;
+var
+  x      : QWord;
+  nm     : QWord;
+  adjexp : integer;
+  sr     : TDoubleRec;
+begin
+  nm := num;
+  x := frac;
+  adjexp := 0;
+  while (nm > 1) do begin
+    x:=(x shr 1) or ((nm and 1) shl 52);
+    nm := nm shr 1;
+    inc(adjexp);
+  end;
+  sr.Exp:=1023 + exp + adjexp;
+  sr.Frac:=x;
+  sr.Sign:=neg;
+  Result := sr.Value;
+end;
+
+function HexFloatStrToDouble(const hexstr: string): double;
+var
+  st : THexStr;
+begin
+  HexFloatStrToHexStr(hexstr, st);
+  Result:=HexFracToDouble(st.num, st.frac, st.exp, st.isNeg);
+end;
 
 end.
