@@ -226,11 +226,11 @@ unit rgobj;
       strict protected
         { Highest register allocated until now.}
         reginfo           : PReginfo;
+        usable_registers_cnt : word;
       private
         int_live_range_direction: TRADirection;
         { First imaginary register.}
         first_imaginary   : Tsuperregister;
-        usable_registers_cnt : word;
         usable_registers  : array[0..maxcpuregister] of tsuperregister;
         usable_register_set : tcpuregisterset;
         ibitmap           : Tinterferencebitmap;
