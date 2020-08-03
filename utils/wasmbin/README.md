@@ -4,7 +4,10 @@ Collection of WebAssembly binary utils
 ## wasmtool
 wasmtool is an utility that allows to modify wasm binary linking information. wat2wasm util is capable of generating binaries with relocation information. However the symbol flags are setup in the manner that final binaries cannot be linked by wasm-ld utility. (i.e. non setting weak symbols).
 
-### options
+### command
+
+#### exportrename
+
     --exportrename inputfile
 The option allow to change the export name. The reasoning for that is wasm-ld behavior of renaming the export from the declared name to the symbol name. 
 
@@ -12,6 +15,8 @@ The input file can be either a text file, containing a list of oldname new name 
 
     OldExportName=NewExportName
 or the input file can point to an object file. The object file's export section is parsed for the desired export names. 
+
+#### symbolflag
 
     --symbolflag inputfile
 The action allows to modify flags for the specified symbols.
@@ -30,6 +35,8 @@ The desired flag is a string (or a character) that should consists of the follow
 
 Multiple characters can be specified per flag.
      
+#### symbolauto
+
      --symbolauto
 
 The flags for each symbol updated and is determined based of the symbol use:
