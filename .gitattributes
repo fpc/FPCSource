@@ -18983,3 +18983,6 @@ utils/wasmbin/wasmld.lpi svneol=native#text/plain
 utils/wasmbin/wasmld.lpr svneol=native#text/plain
 utils/wasmbin/wasmlink.pas svneol=native#text/plain
 utils/wasmbin/wasmlinkchange.pas svneol=native#text/plain
+utils/wasmbin/wasmtool.lpi svneol=native#text/plain
+utils/wasmbin/wasmtool.lpr svneol=native#text/plain
+utils/wasmbin/wasmtoolutils.pas svneol=native#text/plain
