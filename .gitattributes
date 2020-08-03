@@ -18987,3 +18987,4 @@ utils/wasmbin/wasmlinkchange.pas svneol=native#text/plain
 utils/wasmbin/wasmtool.lpi svneol=native#text/plain
 utils/wasmbin/wasmtool.lpr svneol=native#text/plain
 utils/wasmbin/wasmtoolutils.pas svneol=native#text/plain
+utils/wasmbin/watparser.pas svneol=native#text/plain
