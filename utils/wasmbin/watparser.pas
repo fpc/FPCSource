@@ -321,6 +321,7 @@ procedure ParseModuleInt(sc: TWatScanner; dst: TWasmModule);
 var
   tk : TWatToken;
   symlist : TAsmSymList;
+  f : TWasmFunc;
 begin
   if not ConsumeOpenToken(sc, weModule) then
     ErrorExpectButFound(sc, 'module');
@@ -334,7 +335,9 @@ begin
         weAsmSymbol:
           ConsumeAsmSym(sc, symlist);
         weFunc: begin
-          ParseFunc(sc, dst.AddFunc);
+          f:=dst.AddFunc;
+          symlist.ToLinkInfo(f.LinkInfo);
+          ParseFunc(sc, f);
           symlist.Clear;
         end;
         weExport:
@@ -434,22 +437,21 @@ var
   i : integer;
 begin
   for i:=0 to count-1 do begin
-    if syms[i].name = '.name' then
+    if syms[i].name = 'name' then
       AInfo.Name := syms[i].value
-    else if syms[i].name = '.weak' then
+    else if syms[i].name = 'weak' then
       AInfo.Binding := lbWeak
-    else if syms[i].name = '.local' then
+    else if syms[i].name = 'local' then
       AInfo.Binding := lbLocal
-    else if syms[i].name = '.hidden' then
+    else if syms[i].name = 'hidden' then
       Ainfo.isHidden := true
-    else if syms[i].name = '.undef' then
+    else if syms[i].name = 'undef' then
       AInfo.isUndefined := true
-    else if syms[i].name = '.strong' then
+    else if syms[i].name = 'nostrip'  then
       AInfo.NoStrip := true
-    else if syms[i].name = '.forhost' then
+    else if syms[i].name = 'forhost' then
       AInfo.Binding := lbForHost;
   end;
-
 end;
 
 { EParserError }

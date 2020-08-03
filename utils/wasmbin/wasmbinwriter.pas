@@ -59,6 +59,8 @@ type
 
     procedure pushStream(st: TStream);
     function popStream: TStream;
+
+    procedure PrepareLinkSym(m: TWasmModule);
   public
     keepLeb128 : Boolean; // keep leb128 at 4 offset relocatable
     writeReloc : Boolean; // writting relocation (linking) information
@@ -67,7 +69,9 @@ type
     function Write(m: TWasmModule; adst: TStream): Boolean;
   end;
 
-function WriteModule(m: TWasmModule; dst: TStream): Boolean;
+function WriteModule(m: TWasmModule; dst: TStream;
+  awriteLEB128: Boolean = false;
+  awriteReloc: Boolean = false): Boolean;
 
 type
   TLocalsInfo = record
@@ -119,15 +123,15 @@ begin
   SetLength(loc, j);
 end;
 
-function WriteModule(m: TWasmModule; dst: TStream): Boolean;
+function WriteModule(m: TWasmModule; dst: TStream;
+  awriteLEB128, awriteReloc: Boolean): Boolean;
 var
   bw : TBinWriter;
 begin
   bw := TBinWriter.Create;
   try
-    bw.keepLeb128:=true;
-    bw.writeReloc:=true;
-    Normalize(m);
+    bw.keepLeb128:=awriteLEB128;
+    bw.writeReloc:=awriteReloc;
     Result := bw.Write(m, dst);
   finally
     bw.Free;
@@ -241,6 +245,7 @@ begin
   end;
 
   if writeReloc then begin
+    PrepareLinkSym(m);
     WriteLinkingSect;
     WriteRelocSect;
   end;
@@ -508,6 +513,49 @@ begin
   inherited Destroy;
 end;
 
+function isFuncLinkSym(const l: TLinkInfo): boolean;
+begin
+  Result:=(l.Binding<>lbUndefined)
+    or l.isHidden
+    or l.isUndefined
+    or l.NoStrip;
+end;
+
+procedure LinkInfoToBin(const src: TLinkInfo; var dst: TSymInfo; ASymTab: byte; aofs: longword);
+begin
+  dst.kind := ASymTab;
+  dst.flags := 0;
+  case src.Binding of
+    lbWeak: dst.flags := dst.flags or WASM_SYM_BINDING_WEAK;
+    lbLocal: dst.flags := dst.flags or WASM_SYM_BINDING_LOCAL;
+    lbForHost: dst.flags := dst.flags or WASM_SYM_EXPORTED;
+  end;
+  if src.isHidden then dst.flags := dst.flags or WASM_SYM_VISIBILITY_HIDDEN;
+  if src.isUndefined then dst.flags := dst.flags or  WASM_SYM_UNDEFINED;
+  if src.NoStrip then dst.flags := dst.flags or WASM_SYM_NO_STRIP;
+  dst.symindex := aofs;
+  dst.hasSymIndex := ASymTab<>SYMTAB_DATA;
+  dst.hasSymName := src.Name<>'';
+  if (dst.hasSymName) then begin
+    dst.flags := dst.flags or WASM_SYM_EXPLICIT_NAME;
+    dst.symname := src.Name;
+  end;
+end;
+
+procedure TBinWriter.PrepareLinkSym(m: TWasmModule);
+var
+  i   : integer;
+  f   : TWasmFunc;
+  so  : TSymbolObject;
+begin
+  for i:=0 to m.FuncCount-1 do begin
+    f := m.GetFunc(i);
+    if isFuncLinkSym(f.LinkInfo) then begin
+      so:=AddSymbolObject;
+      LinkInfoToBin(f.linkInfo, so.syminfo, SYMTAB_FUNCTION, i);
+    end;
+  end;
+end;
 
 end.
 
