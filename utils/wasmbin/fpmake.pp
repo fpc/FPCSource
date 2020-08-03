@@ -31,6 +31,7 @@ begin
       P.OSes := P.OSes - [java,android];
     P.Dependencies.Add('fcl-base');
     PT:=P.Targets.AddProgram('wasa.pas');
+    PT:=P.Targets.AddProgram('wasmtool.lpr');
     end;
 end;
 
