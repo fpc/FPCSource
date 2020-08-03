@@ -114,9 +114,10 @@ type
 
   TWasmGlobal = class(TObject)
   public
-    id    : TWasmId;
-    tp    : byte; // byte;
-    value : TWasmInstrList;
+    id         : TWasmId;
+    tp         : byte;    // byte;
+    isMutable  : Boolean; // is mutable
+    value      : TWasmInstrList;
     LinkInfo   : TLinkInfo;
     ExportInfo : TExportInfo;
     function StartValue: TWasmInstrList;

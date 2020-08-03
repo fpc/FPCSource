@@ -429,14 +429,24 @@ begin
       allowValue := false;
     end else if sc.token=weExport then begin
      // export
-    end else
-      ErrorExpectButFound(sc, 'import or export')
+    end;
   end;
 
-  if sc.token in WasmTypeTokens then begin
-    TokenTypeToValType(sc.token, dst.tp);
+  // parsing type. Global can be mutable type (mut i32)
+
+  if (sc.token=weOpenBrace) then sc.Next;
+  if sc.token = weMut then begin
+    dst.isMutable := true;
     sc.Next;
   end;
+
+  if (sc.token in WasmTypeTokens) then begin
+    TokenTypeToValType(sc.token, dst.tp);
+    sc.Next;
+  end else
+    ErrorExpectButFound(sc, 'type');
+
+  if dst.isMutable then ConsumeToken(sc, weCloseBrace);
 
   if allowValue and (sc.token = weOpenBrace) then begin
     sc.Next;
