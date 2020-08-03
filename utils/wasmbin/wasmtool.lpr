@@ -24,7 +24,7 @@ begin
   writeln('version: ',VERSION);
   writeln;
   writeln('options:');
-  writeln('  --exportrename @inputfile');
+  writeln('  --exportrename @inputfile - renaming export names');
   writeln('  --symbolflag   @inputfile');
   writeln('  --verbose - enabling verbose mode');
 end;
