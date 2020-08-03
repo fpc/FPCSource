@@ -65,7 +65,9 @@ const
                 ,'+' ,'-' ,'.' ,'/' ,':' ,'<' ,'='
                 ,'>' ,'?' ,'@' ,'\' ,'^' ,'_' ,'`'
                 ,'|' ,'~'];
-  GrammarChars  = AlphaNumChars+['.','_'];
+  GrammarChars  = AlphaNumChars+['.','_'
+                    ,'/' // some old instructions are like that: "f32.reinterpret/i32"
+                  ];
 
 procedure GetGrammar(const txt: string; out entity: TWatToken; out instByte: byte);
 
@@ -264,7 +266,7 @@ begin
           numformat := wnfInteger;
         end;
 
-      end else if buf[idx] in AlphaNumChars then begin
+      end else if buf[idx] in GrammarChars then begin
         resText:=ScanWhile(buf, idx, GrammarChars);
         GetGrammar(resText, token, instrCode);
         done:=true;

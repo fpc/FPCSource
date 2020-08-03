@@ -251,6 +251,7 @@ begin
     else if t = 'f32.convert_i64_u'   then inst := inst_f32_convert_i64_u
     else if t = 'f32.demote_f64'      then inst := inst_f32_demote_f64
     else if t = 'f32.reinterpret_i32' then inst := inst_f32_reinterpret_i32
+    else if t = 'f32.reinterpret/i32' then inst := inst_f32_reinterpret_i32
     else Result := false;
 
   end else if (t[2]='6') and (t[3]='4') then begin
@@ -283,6 +284,7 @@ begin
     else if t = 'f64.convert_i64_u'   then inst := inst_f64_convert_i64_u
     else if t = 'f64.promote_f32'     then inst := inst_f64_promote_f32
     else if t = 'f64.reinterpret_i64' then inst := inst_f64_reinterpret_i64
+    else if t = 'f64.reinterpret/i64' then inst := inst_f64_reinterpret_i64
     else Result := false;
   end;
 end;
@@ -337,6 +339,7 @@ begin
     else if t = 'i32.trunc_f64_s'     then inst := inst_i32_trunc_f64_s
     else if t = 'i32.trunc_f64_u'     then inst := inst_i32_trunc_f64_u
     else if t = 'i32.reinterpret_f32' then inst := inst_i32_reinterpret_f32
+    else if t = 'i32.reinterpret/f32' then inst := inst_i32_reinterpret_f32
     else Result := false;
   end else if (t[2]='6') and (t[3]='4') then begin
          if t = 'i64.load8_s'         then inst := inst_i64_load8_s
@@ -387,6 +390,7 @@ begin
     else if t = 'i64.trunc_f64_u'     then inst := inst_i64_trunc_f64_u
     else if t = 'i64.load'            then inst := inst_i64_load
     else if t = 'i64.reinterpret_f64' then inst := inst_i64_reinterpret_f64
+    else if t = 'i64.reinterpret/f64' then inst := inst_i64_reinterpret_f64
     else Result := false;
   end else
     Result := false;
