@@ -654,6 +654,9 @@ begin
         // table index reference
         WriteU32(dst, ci.operandNum);
       end;
+
+      ipResType:
+        dst.WriteByte(byte(ci.operandNum));
     end;
   end;
 end;
