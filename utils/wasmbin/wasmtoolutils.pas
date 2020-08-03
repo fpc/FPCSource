@@ -10,9 +10,9 @@ uses
 function ChangeSymbolFlagStream(st: TStream; syms: TStrings): Boolean;
 procedure ChangeSymbolFlag(const fn, symfn: string);
 
-procedure ExportRenameSym(var x: TExportSection; syms: TStrings);
-function ExportRenameProcess(st, dst: TStream; syms: TStrings): Boolean;
-procedure ExportRename(const fn, symfn: string);
+function ExportRenameSym(var x: TExportSection; syms: TStrings): Integer;
+function ExportRenameProcess(st, dst: TStream; syms: TStrings; doVerbose: Boolean): Boolean;
+procedure ExportRename(const fn, symfn: string; doVerbose: Boolean);
 
 implementation
 
@@ -70,19 +70,22 @@ begin
   end;
 end;
 
-procedure ExportRenameSym(var x: TExportSection; syms: TStrings);
+function ExportRenameSym(var x: TExportSection; syms: TStrings): integer;
 var
   i : integer;
   v : string;
 begin
+  Result := 0;
   for i:=0 to length(x.entries)-1 do begin
     v := syms.Values[x.entries[i].name];
-    if v <> '' then
+    if v <> '' then begin
       x.entries[i].name := v;
+      inc(Result);
+    end;
   end;
 end;
 
-function ExportRenameProcess(st, dst: TStream; syms: TStrings): Boolean;
+function ExportRenameProcess(st, dst: TStream; syms: TStrings; doVerbose: Boolean): Boolean;
 var
   dw  : LongWord;
   ofs : int64;
@@ -90,6 +93,7 @@ var
   ps  : int64;
   x   : TExportSection;
   mem : TMemoryStream;
+  cnt : integer;
 begin
   dw := st.ReadDWord;
   Result := dw = WasmId_Int;
@@ -105,8 +109,10 @@ begin
     ps := st.Position+sc.size;
 
     if sc.id = SECT_EXPORT then begin
+      if doVerbose then writeln(' export section found');
       ReadExport(st, x);
-      ExportRenameSym(x, syms);
+      cnt := ExportRenameSym(x, syms);
+      writeln(' renamings: ', cnt);
 
       st.Position:=0;
       dst.CopyFrom(st, ofs);
@@ -129,21 +135,25 @@ begin
   end;
 end;
 
-procedure ExportRename(const fn, symfn: string);
+procedure ExportRename(const fn, symfn: string; doVerbose: Boolean);
 var
   fs    : TFileStream;
   syms  : TStringList;
   dst   : TMemoryStream;
 begin
+  if doVerbose then writeln('Export symbols renaming');
   syms:=TStringList.Create;
   fs := TFileStream.Create(fn, fmOpenReadWrite or fmShareDenyNone);
   dst := TMemoryStream.Create;
   try
     if (symfn <> '') and fileExists(symfn) then
+    begin
+      if doVerbose then writeln('reading symbols: ', symfn);
       syms.LoadFromFile(symfn);
+      if doVerbose then write(syms.Text);
+    end;
 
-    writeln('ExportRenameProcess');
-    ExportRenameProcess(fs, dst, syms);
+    ExportRenameProcess(fs, dst, syms, doVerbose);
 
     fs.Position:=0;
     dst.Position:=0;
