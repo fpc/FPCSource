@@ -6,6 +6,8 @@ wasmtool is an utility that allows to modify wasm binary linking information. wa
 
 ### command
 
+Only one command should be specified per call
+
 #### exportrename
 
     --exportrename inputfile
