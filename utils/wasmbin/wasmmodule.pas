@@ -75,7 +75,8 @@ type
   TWasmInstr = class(TObject)
     code        : byte;
     operandIdx  : string;
-    operandNum  : integer;    // for call_indirect this is table index
+    operandNum  : integer;    // for "call_indirect" this is table index
+                              // for "if", "loop", "block" - it's type
     operandText : string;
     insttype    : TWasmFuncType; // used by call_indirect only
 
