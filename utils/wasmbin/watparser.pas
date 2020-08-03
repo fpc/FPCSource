@@ -37,6 +37,8 @@ const
 function ParseModule(sc: TWatScanner; dst: TWasmModule; var errMsg: string): Boolean; overload;
 function ParseModule(sc: TWatScanner; dst: TWasmModule; out err: TParseResult): Boolean; overload;
 
+implementation
+
 type
   // used to stop the recursive parsing
 
@@ -46,8 +48,6 @@ type
     offset : integer;
     constructor Create(const amsg: string; aofs: integer);
   end;
-
-implementation
 
 const
   WAT_DEFTYPES='iN or fN';
