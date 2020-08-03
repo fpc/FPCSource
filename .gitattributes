@@ -18978,6 +18978,7 @@ utils/usubst.pp svneol=native#text/plain
 utils/wasmbin/README.md svneol=native#text/plain
 utils/wasmbin/lebutils.pas svneol=native#text/plain
 utils/wasmbin/wasmbin.pas svneol=native#text/plain
+utils/wasmbin/wasmbincode.pas svneol=native#text/plain
 utils/wasmbin/wasmbindebug.pas svneol=native#text/plain
 utils/wasmbin/wasmld.lpi svneol=native#text/plain
 utils/wasmbin/wasmld.lpr svneol=native#text/plain
