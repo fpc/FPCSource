@@ -47,10 +47,9 @@ type
   { TWasmFuncType }
 
   TWasmFuncType = class(TObject)
-  private
+  public
     params  : TList;
     results : TList;
-  public
     typeNum : Integer; // if Idx < 0 then type is declared from typeDef
     typeIdx : string;  // if typeID='' then type is declared from typeDef
 
@@ -127,9 +126,8 @@ type
   { TWasmFunc }
 
   TWasmFunc = class(TObject)
-  private
-    locals:  TList;
   public
+    locals   :  TList;
     LinkInfo : TLinkInfo;
     id       : string;
     idNum    : Integer;     // reference number (after Normalization)
@@ -187,6 +185,7 @@ type
     max       : LongWord;
     elem      : TWasmElement;
     function AddElem: TWasmElement;
+    procedure RemoveElem;
     destructor Destroy; override;
   end;
 
@@ -266,16 +265,20 @@ type
 
 // making binary friendly. finding proper "nums" for each symbol "index"
 // used or implicit type declartions
-procedure Normalize(m: TWasmModule);
 function WasmBasTypeToChar(b: byte): Char;
 function WasmFuncTypeDescr(t: TWasmFuncType): string;
 
 function FindFunc(m: TWasmModule; const funcIdx: string): integer;
+function FindParam(l: TList; const idx: string): Integer;
+
+function FindFuncType(m: TWasmModule; const typeIdx: string): integer;
 
 // tries to register a function in the module
 // the returned value is the offset of the element within the TABLE.
 function RegisterFuncIdxInElem(m: TWasmModule; const func: Integer): integer;
 function RegisterFuncInElem(m: TWasmModule; const funcId: string): integer;
+
+function RegisterFuncType(m: TWasmModule; funcType: TWasmFuncType): integer;
 
 // tries to get a constant value from instruction list
 // right now, it only pulls the first i32_const expression and tries
@@ -370,9 +373,15 @@ begin
   Result := elem;
 end;
 
-destructor TWasmTable.Destroy;
+procedure TWasmTable.RemoveElem;
 begin
   elem.Free;
+  elem:=nil;
+end;
+
+destructor TWasmTable.Destroy;
+begin
+  RemoveElem;
   inherited Destroy;
 end;
 
@@ -923,201 +932,6 @@ begin
       Result:=i;
       Exit;
     end;
-end;
-
-procedure PopulateRelocData(module: TWasmModule; ci: TWasmInstr);
-var
-  idx : integer;
-begin
-  case INST_FLAGS[ci.code].Param of
-    ipi32OrFunc:
-      if (ci.operandText<>'') and (ci.operandText[1]='$') then begin
-        //if not ci.hasRelocIdx then
-        idx := RegisterfuncInElem(module, ci.operandText);
-        //AddReloc(rt, dst.Position+ofsAddition, idx);
-        ci.operandNum := idx;
-        ci.SetReloc(INST_RELOC_FLAGS[ci.code].relocType, idx);
-      end;
-
-    ipLeb:
-       if (INST_RELOC_FLAGS[ci.code].doReloc) then begin
-         ci.SetReloc(INST_RELOC_FLAGS[ci.code].relocType, ci.operandNum);
-       end;
-
-    ipCallType:
-      if Assigned(ci.insttype) then
-        ci.SetReloc(INST_RELOC_FLAGS[ci.code].relocType, ci.insttype.typeNum);
-  end;
-end;
-
-
-// searching back in the labels stack.
-// returning the "number" of steps to jump back to the label
-function GetJumpLabelIndex(const JumpToLbl: string; LblStack: TStrings): Integer;
-var
-  i : integer;
-begin
-  i:=LblStack.Count-1;
-  while (i>=0) and (LblStack[i]<>JumpToLbl) do
-    dec(i);
-  Result := LblStack.Count-i-1;
-end;
-
-// Normalizing instruction list, popuplating index reference ($index)
-// with the actual numbers. (params, locals, globals, memory, functions index)
-//
-// pass "f" as nil, if instruction list doesn't belong to a function
-function NormalizeInst(m: TWasmModule; f: TWasmFunc; l: TWasmInstrList; checkEnd: boolean = true): Boolean;
-var
-  i   : integer;
-  j   : integer;
-  ci  : TWasmInstr;
-  endNeed : Integer;
-  lbl     : TStringList;
-const
-  ValidResTypes = [VALTYPE_NONE,VALTYPE_I32,VALTYPE_I64,VALTYPE_F32,VALTYPE_F64];
-begin
-  Result := true;
-  endNeed := 1;
-  lbl := TStringList.Create;
-  try
-    for i:=0 to l.Count-1 do begin
-      ci:=l[i];
-
-      if INST_FLAGS[ci.code].Param = ipResType then
-      begin
-        inc(endNeed);
-        if not (byte(ci.operandNum) in ValidResTypes) then
-          ci.operandNum := VALTYPE_NONE;
-
-        lbl.Add(ci.jumplabel);
-      end;
-
-      case ci.code of
-        INST_local_get, INST_local_set, INST_local_tee:
-        begin
-          if not Assigned(f) then begin
-            Result:=false;
-            Exit;
-          end;
-
-          if (ci.operandIdx<>'') and (ci.operandNum<0) then begin
-            j:=FindParam(f.functype.params, ci.operandIdx);
-            if j<0 then begin
-              j:=FindParam(f.locals, ci.operandIdx);
-              if j>=0 then inc(j, f.functype.ParamCount);
-            end;
-            ci.operandNum:=j;
-          end;
-        end;
-
-        INST_call:
-        begin
-          if (ci.operandIdx<>'') and (ci.operandNum<0) then
-            ci.operandNum:=FindFunc(m,ci.operandIdx);
-        end;
-
-        INST_call_indirect:
-        begin
-          if Assigned(ci.insttype) and (ci.insttype.typeNum<0) then
-            ci.insttype.typeNum:=RegisterFuncType(m, ci.insttype);
-        end;
-
-        INST_br, INST_br_if, INST_br_table: begin
-
-          if ci.code = INST_br_table then
-            for j:=0 to ci.vecTableCount-1 do
-              if ci.vecTable[j].id <> '' then
-                ci.vecTable[j].idNum:=GetJumpLabelIndex(ci.vecTable[j].id, lbl);
-
-          if ci.operandIdx<>'' then
-            ci.operandNum:=GetJumpLabelIndex(ci.operandIdx, lbl);
-        end;
-
-        INST_END: begin
-          dec(endNeed);
-          if lbl.Count>0 then lbl.Delete(lbl.Count-1);
-        end;
-      end;
-
-      PopulateRelocData(m, ci);
-    end;
-
-    // adding end instruction
-    if checkEnd and (endNeed>0) then
-      l.AddInstr(INST_END);
-  finally
-    lbl.Free;
-  end;
-end;
-
-
-procedure NormalizeFuncType(m: TWasmModule; fn : TWasmFuncType);
-begin
-  if fn.isNumOrIdx then begin
-    if fn.typeIdx<>'' then
-      fn.typeNum:=FindFuncType(m, fn.typeIdx);
-  end else
-    fn.typeNum:=RegisterFuncType(m, fn);
-end;
-
-procedure NormalizeImport(m: TWasmModule; var fnIdx: Integer);
-var
-  i  : integer;
-  im : TWasmImport;
-begin
-  fnIdx := 0;
-  for i:=0 to m.ImportCount-1 do begin
-    im := m.GetImport(i);
-    if Assigned(im.fn) then begin
-      im.fn.idNum:=fnIdx;
-      NormalizeFuncType(m, im.fn.functype);
-      inc(fnIdx);
-    end;
-  end;
-end;
-
-// normalizing reference
-procedure Normalize(m: TWasmModule);
-var
-  i     : integer;
-  f     : TWasmFunc;
-  x     : TWasmExport;
-  fnIdx : Integer;
-begin
-  fnIdx := 0;
-  NormalizeImport(m, fnIdx);
-
-  for i:=0 to m.FuncCount-1 do begin
-    f:=m.GetFunc(i);
-    f.idNum := fnIdx;
-
-    NormalizeFuncType(m, f.functype);
-
-    inc(fnIdx);
-  end;
-
-  for i:=0 to m.GlobalCount-1 do
-    NormalizeInst(m, nil, m.GetGlobal(i).StartValue);
-
-  // normalizing function body
-  for i:=0 to m.FuncCount-1 do begin
-    f:=m.GetFunc(i);
-    // finding the reference in functions
-    // populating "nums" where string "index" is used
-    NormalizeInst(m, f, f.instr);
-  end;
-
-  // normalizing exports
-  for i:=0 to m.ExportCount-1 do begin
-    x:=m.GetExport(i);
-    if x.exportNum<0 then
-      case x.exportType of
-        EXPDESC_FUNC:
-          if x.exportIdx<>'' then
-            x.exportNum := FindFunc(m, x.exportIdx);
-      end;
-  end;
 end;
 
 function RegisterFuncIdxInElem(m: TWasmModule; const func: Integer): integer;
