@@ -23,6 +23,8 @@ unit wasmbincode;
 // WebAssembly instructions information
 // http://webassembly.github.io/spec/core/binary/instructions.html
 
+{$mode objfpc}{$H+}
+
 interface
 
 uses
