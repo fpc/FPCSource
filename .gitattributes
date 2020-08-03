@@ -18990,3 +18990,5 @@ utils/wasmbin/wasmtool.lpi svneol=native#text/plain
 utils/wasmbin/wasmtool.lpr svneol=native#text/plain
 utils/wasmbin/wasmtoolutils.pas svneol=native#text/plain
 utils/wasmbin/watparser.pas svneol=native#text/plain
+utils/wasmbin/wattest.lpi svneol=native#text/plain
+utils/wasmbin/wattest.lpr svneol=native#text/plain
