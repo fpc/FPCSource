@@ -5,7 +5,7 @@ unit wasmbinwriter;
 interface
 
 uses
-  Classes, SysUtils,
+  Classes, SysUtils, AVL_Tree,
   wasmmodule, wasmbin, lebutils, wasmbincode
   ,wasmlink;
 
@@ -18,8 +18,10 @@ type
   end;
 
   TSymbolObject = class(TObject)
+    idx     : Integer;
     syminfo : TSymInfo;
     next    : TSymbolObject;
+    wasmObj : TObject;
   end;
 
   { TBinWriter }
@@ -39,9 +41,11 @@ type
 
     symHead    : TSymbolObject;
     symTail    : TSymbolObject;
+    syms       : TAVLTree;
     symCount   : Integer;
-    function AddSymbolObject: TSymbolObject;
-    procedure AddReloc(relocType: byte; ofs: int64; index: UInt32);
+    function AddSymbolObject(obj: TObject): TSymbolObject;
+    procedure AddRelocWithIndex(relocType: byte; secOfs: int64; index: UInt32);
+    procedure AddRelocToObj(relocType: byte; secOfs: int64; wasmObj: TObject);
 
     procedure WriteRelocU32(u: longword);
     procedure WriteString(const s: string);
@@ -60,13 +64,12 @@ type
     procedure WriteCodeSect;
     procedure WriteElemSect;
 
+    procedure PrepareLinkSym(m: TWasmModule);
     procedure WriteLinkingSect;
     procedure WriteRelocSect;
 
     procedure pushStream(st: TStream);
     function popStream: TStream;
-
-    procedure PrepareLinkSym(m: TWasmModule);
   public
     keepLeb128 : Boolean; // keep leb128 at 4 offset relocatable
     writeReloc : Boolean; // writting relocation (linking) information
@@ -92,6 +95,31 @@ procedure GetLocalInfo(func: TWasmFunc; out loc: TLocalInfoArray);
 procedure WriteLimit(dst: TStream; amin, amax: LongWord);
 
 implementation
+
+
+function ComparePtrUInt(p1,p2: PtrUInt): Integer; inline;
+begin
+  if p1<p2 then Result:=-1
+  else if p1=p2 then Result:=0
+  else Result:=1;
+end;
+
+function CompareSymObjs(Item1, Item2: Pointer): Integer;
+var
+  s1, s2: TSymbolObject;
+begin
+  s1:=TSymbolObject(Item1);
+  s2:=TSymbolObject(Item2);
+  Result:=ComparePtrUInt(PtrUInt(s1.wasmObj), PtrUInt(s2.wasmObj));
+end;
+
+function CompareWasmToSymObj(Item1, Item2: Pointer): Integer;
+var
+  s2: TSymbolObject;
+begin
+  s2:=TSymbolObject(Item2);
+  Result:=ComparePtrUInt(PtrUInt(Item1), PtrUInt(s2.wasmObj));
+end;
 
 procedure WriteLimit(dst: TStream; amin, amax: LongWord);
 begin
@@ -161,19 +189,47 @@ end;
 
 { TBinWriter }
 
-function TBinWriter.AddSymbolObject: TSymbolObject;
+function GetLinkName(const linkInfo: TLinkInfo; const id: string): string;
+begin
+  if linkInfo.Name<>'' then Result:=linkInfo.Name
+  else Result:=id;
+end;
+
+function TBinWriter.AddSymbolObject(obj: TObject): TSymbolObject;
 var
   so : TSymbolObject;
+  t  : TAVLTreeNode;
 begin
+  t := syms.FindKey(obj, @CompareWasmToSymObj);
+  if Assigned(t) then begin
+    Result:=TSymbolObject(t.Data);
+    Exit;
+  end;
   so := TSymbolObject.Create;
   if not Assigned(symHead) then symHead:=so;
   if Assigned(symTail) then symTail.Next:=so;
+  so.idx:=symCount;
+  so.wasmObj:=obj;
   symTail:=so;
   inc(symCount);
   Result:=so;
+
+  if (obj is TWasmFunc) then begin
+    so.syminfo.kind:=SYMTAB_FUNCTION;
+    so.syminfo.symindex:=TWasmFunc(obj).idNum;
+  end else if (obj is TWasmGlobal) then begin
+    so.syminfo.kind:=SYMTAB_GLOBAL;
+    so.syminfo.symindex:=TWasmGlobal(obj).id.idNum;
+    so.syminfo.symname:=GetLinkName(TWasmGlobal(obj).LinkInfo, TWasmGlobal(obj).id.id);  //todo: use symbolic name
+  end else if (obj is TWasmTable) then begin
+    so.syminfo.kind:=SYMTAB_TABLE;
+    so.syminfo.symindex:=TWasmTable(obj).id.idNum;
+  end;
+
+  syms.Add(so);
 end;
 
-procedure TBinWriter.AddReloc(relocType: byte; ofs: int64; index: UInt32);
+procedure TBinWriter.AddRelocWithIndex(relocType: byte; secOfs: int64; index: UInt32);
 var
   i : integer;
   f : TWasmFunc;
@@ -186,7 +242,7 @@ begin
   i:=relocCount;
   reloc[i].sec:=writeSec;
   reloc[i].reltype:=relocType;
-  reloc[i].offset:=ofs;
+  reloc[i].offset:=secOfs;
   reloc[i].index:=index;
   inc(relocCount);
 
@@ -200,6 +256,16 @@ begin
       inc(f.codeRefCount);
     end;
   end;
+end;
+
+procedure TBinWriter.AddRelocToObj(relocType: byte; secOfs: int64; wasmObj: TObject);
+var
+  idx : integer;
+begin
+  if not Assigned(wasmObj) then Exit;
+
+  idx:=AddSymbolObject(wasmObj).idx;
+  AddRelocWithIndex(relocType, secOfs, idx);
 end;
 
 procedure TBinWriter.WriteRelocU32(u: longword);
@@ -520,7 +586,8 @@ begin
 
     if writeReloc then begin
       for j:=0 to el.funcCount-1 do begin
-        AddReloc(R_WASM_FUNCTION_INDEX_LEB, dst.Position - sc.datapos, el.funcs[j].idNum);
+        AddRelocToObj(R_WASM_FUNCTION_INDEX_LEB, dst.Position - sc.datapos,
+          GetFuncByNum(module, el.funcs[j].idNum));
         WriteRelocU32(el.funcs[j].idNum);
       end;
     end else
@@ -620,9 +687,8 @@ begin
     dst.WriteByte(ci.code);
 
     if ci.hasRelocIdx then begin
-      idx := ci.relocIdx;
       rt := ci.relocType;
-      AddReloc(rt, dst.Position+ofsAddition, LongWord(idx));
+      AddRelocToObj(rt, dst.Position+ofsAddition, ci.relocObj);
     end;
 
     case INST_FLAGS[ci.code].Param of
@@ -745,10 +811,12 @@ constructor TBinWriter.Create;
 begin
   inherited Create;
   strm:=TList.Create;
+  syms:=TAVLTree.Create(@CompareSymObjs);
 end;
 
 destructor TBinWriter.Destroy;
 begin
+  syms.Free;
   strm.Free;
   inherited Destroy;
 end;
@@ -761,7 +829,7 @@ begin
     or l.NoStrip;
 end;
 
-procedure LinkInfoToBin(const src: TLinkInfo; var dst: TSymInfo; ASymTab: byte; aofs: longword);
+procedure LinkInfoToBin(const src: TLinkInfo; var dst: TSymInfo; ASymTab: byte; objFnIdx: longword);
 begin
   dst.kind := ASymTab;
   dst.flags := 0;
@@ -773,7 +841,7 @@ begin
   if src.isHidden then dst.flags := dst.flags or WASM_SYM_VISIBILITY_HIDDEN;
   if src.isUndefined then dst.flags := dst.flags or  WASM_SYM_UNDEFINED;
   if src.NoStrip then dst.flags := dst.flags or WASM_SYM_NO_STRIP;
-  dst.symindex := aofs;
+  dst.symindex := objFnIdx;
   dst.hasSymIndex := ASymTab<>SYMTAB_DATA;
   dst.hasSymName := src.Name<>'';
   if (dst.hasSymName) then begin
@@ -788,14 +856,16 @@ var
   f   : TWasmFunc;
   so  : TSymbolObject;
 begin
+  writeln('preparing symlinks');
   for i:=0 to m.FuncCount-1 do begin
     f := m.GetFunc(i);
     if isFuncLinkSym(f.LinkInfo) or (f.codeRefCount>0) then begin
       if f.LinkInfo.Name ='' then f.LinkInfo.Name := f.id;
-      so:=AddSymbolObject;
+      so:=AddSymbolObject(f);
       LinkInfoToBin(f.linkInfo, so.syminfo, SYMTAB_FUNCTION, f.idNum);
     end;
   end;
+  writeln('done');
 end;
 
 end.

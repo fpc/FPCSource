@@ -13,25 +13,35 @@ implementation
 procedure PopulateRelocData(module: TWasmModule; ci: TWasmInstr);
 var
   idx : integer;
+  obj : TObject;
 begin
   case INST_FLAGS[ci.code].Param of
     ipi32OrFunc:
       if (ci.operand1.textVal<>'') and (ci.operand1.textVal[1]='$') then begin
         //if not ci.hasRelocIdx then
-        idx := RegisterfuncInElem(module, ci.operand1.textVal);
+        idx := RegisterFuncInElem(module, ci.operand1.textVal);
+        obj := GetFuncByNum(module, idx);
         //AddReloc(rt, dst.Position+ofsAddition, idx);
         ci.operandNum := idx;
-        ci.SetReloc(INST_RELOC_FLAGS[ci.code].relocType, idx);
+        ci.SetReloc(INST_RELOC_FLAGS[ci.code].relocType, obj);
       end;
 
     ipLeb:
        if (INST_RELOC_FLAGS[ci.code].doReloc) then begin
-         ci.SetReloc(INST_RELOC_FLAGS[ci.code].relocType, ci.operandNum);
+         case INST_RELOC_FLAGS[ci.code].relocType of
+           R_WASM_GLOBAL_INDEX_LEB:
+             ci.SetReloc(INST_RELOC_FLAGS[ci.code].relocType, GetGlobalByNum(module, ci.operandNum));
+
+           R_WASM_MEMORY_ADDR_LEB :
+             ci.SetReloc(INST_RELOC_FLAGS[ci.code].relocType, GetMemByNum(module, ci.operandNum));
+         end;
        end;
 
     ipCallType:
       if Assigned(ci.insttype) then
-        ci.SetReloc(INST_RELOC_FLAGS[ci.code].relocType, ci.insttype.typeNum);
+      begin
+        ci.SetReloc(INST_RELOC_FLAGS[ci.code].relocType, ci.insttype);
+      end;
   end;
 end;
 

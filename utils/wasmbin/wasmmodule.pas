@@ -106,8 +106,9 @@ type
     jumplabel   : string;   // the label is used only for "loop", "block" and "if"
 
     hasRelocIdx : Boolean;
-    relocIdx    : integer;
+    //relocIdx    : integer;
     relocType   : Byte;
+    relocObj    : TObject; //
 
     vecTableCount : Integer;
     vecTable      : array of TWasmId;
@@ -115,7 +116,7 @@ type
     function addInstType: TWasmFuncType;
     constructor Create;
     destructor Destroy; override;
-    procedure SetReloc(ARelocType: byte; ARelocIndex: Integer);
+    procedure SetReloc(ARelocType: byte; ARelocObj: TObject);
 
     property offsetText : TWasmInstrOperand read operand1 write operand1;
     property alignText  : TWasmInstrOperand read operand2 write operand2;
@@ -325,6 +326,12 @@ function InstrGetConsti32Value(l: TWasmInstrList; var vl: Integer): Boolean;
 procedure OperandSetType(var op: TWasmInstrOperand; tp: TWasmInstrOperandType); inline;
 procedure OperandSetInt32(var op: TWasmInstrOperand; i32: Int32); inline;
 procedure OperandSetText(var op: TWasmInstrOperand; const txt: string); inline;
+
+// should be used after normalization
+// todo: what about imported functions?
+function GetFuncByNum(m: TWasmModule; const idNum: Integer): TWasmFunc;
+function GetGlobalByNum(m: TWasmModule; const idNum: Integer): TWasmGlobal;
+function GetMemByNum(m: TWasmModule; const idNum: Integer): TWasmMemory;
 
 implementation
 
@@ -567,11 +574,11 @@ begin
   inherited Destroy;
 end;
 
-procedure TWasmInstr.SetReloc(ARelocType: byte; ARelocIndex: Integer);
+procedure TWasmInstr.SetReloc(ARelocType: byte; ARelocObj: TObject);
 begin
   hasRelocIdx := true;
   relocType := ARelocType;
-  relocIdx := ARelocIndex;
+  relocObj := ARelocObj;
 end;
 
 { TWasmInstrList }
@@ -1025,6 +1032,42 @@ begin
       Result:=m.GetGlobal(i).id.idNum;
       Exit;
     end;
+end;
+
+function GetFuncByNum(m: TWasmMOdule; const idNum: Integer): TWasmFunc;
+var
+  i : integer;
+begin
+  for i:=0 to m.FuncCount-1 do begin
+    Result := m.GetFunc(i);
+    if Assigned(Result) and (Result.idNum = idNum) then
+      Exit;
+  end;
+  Result:=nil;
+end;
+
+function GetGlobalByNum(m: TWasmModule; const idNum: Integer): TWasmGlobal;
+var
+  i : integer;
+begin
+  for i:=0 to m.GlobalCount-1 do begin
+    Result := m.GetGlobal(i);
+    if Assigned(Result) and (Result.id.idNum = idNum) then
+      Exit;
+  end;
+  Result:=nil;
+end;
+
+function GetMemByNum(m: TWasmModule; const idNum: Integer): TWasmMemory;
+var
+  i : integer;
+begin
+  for i:=0 to m.MemoryCount-1 do begin
+    Result := m.GetMemory(i);
+    if Assigned(Result) and (Result.id.idNum = idNum) then
+      Exit;
+  end;
+  Result:=nil;
 end;
 
 // only looking up for the by the type index name
