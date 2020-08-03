@@ -253,10 +253,13 @@ begin
   end;
 end;
 
+// For each element on the module, funcId is replaced with the proper IdNum
+// it should only be called after all functions have their IDs resolved
 procedure NormalizeElems(m: TWasmModule);
 var
   i : integer;
   e : TWasmElement;
+  j : integer;
   l : TWasmInstrList;
 begin
   //todo: resolve offsets
@@ -265,6 +268,9 @@ begin
     l := e.AddOffset;
     if (l.Count=0) then l.AddInstr(INST_i32_const).operand1.s32:=0;
     NormalizeInst( m, nil, l);
+    for j := 0 to e.funcCount-1 do
+      if e.funcs[j].idNum<0 then
+        e.funcs[j].idNum := FindFunc(m, e.funcs[j].id);
   end;
 end;
 
@@ -283,7 +289,6 @@ begin
   fnIdx := 0;
   NormalizeGlobals(m);
   NormalizeTable(m);
-  NormalizeElems(m);
   NormalizeImport(m, fnIdx, memIdx, globIdx, tblIdx);
   NormalizeTableLimit(m);
 
@@ -295,6 +300,7 @@ begin
 
     inc(fnIdx);
   end;
+  NormalizeElems(m);
 
   for i:=0 to m.GlobalCount-1 do
   begin
