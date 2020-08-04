@@ -1,5 +1,5 @@
 {
-    Implementation of mathematical routines for x86_64
+    Implementation of mathematical routines for AArch64
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2005 by the Free Pascal development team

@@ -187,6 +187,7 @@ implementation
         location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
         location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG,location.register,left.location.register));
+        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 begin

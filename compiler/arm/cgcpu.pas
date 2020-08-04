@@ -61,6 +61,8 @@ unit cgcpu;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
 
+        procedure g_check_for_fpu_exception(list : TAsmList; force,clear : boolean); override;
+
         procedure a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const paraloc : TCGPara);override;
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
@@ -1712,6 +1714,33 @@ unit cgcpu;
        end;
 
 
+    procedure tbasecgarm.g_check_for_fpu_exception(list: TAsmList;force,clear : boolean);
+      var
+        r : TRegister;
+        ai: taicpu;
+        l: TAsmLabel;
+      begin
+        if ((cs_check_fpu_exceptions in current_settings.localswitches) and
+            (force or current_procinfo.FPUExceptionCheckNeeded)) then
+          begin
+            r:=getintregister(list,OS_INT);
+            list.concat(taicpu.op_reg_reg(A_FMRX,r,NR_FPSCR));
+            list.concat(setoppostfix(taicpu.op_reg_reg_const(A_AND,r,r,$9f),PF_S));
+            current_asmdata.getjumplabel(l);
+            ai:=taicpu.op_sym(A_B,l);
+            ai.is_jmp:=true;
+            ai.condition:=C_EQ;
+            list.concat(ai);
+            alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_THROWFPUEXCEPTION',false);
+            dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+            a_label(list,l);
+            if clear then
+              current_procinfo.FPUExceptionCheckNeeded:=false;
+          end;
+      end;
+
+
     {  comparison operations }
     procedure tbasecgarm.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
       l : tasmlabel);
@@ -3017,6 +3046,7 @@ unit cgcpu;
           A_VMOV:
             add_move_instruction(instr);
         end;
+        maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -3078,6 +3108,7 @@ unit cgcpu;
 
         if (tmpmmreg<>reg) then
           a_loadmm_reg_reg(list,fromsize,tosize,tmpmmreg,reg,shuffle);
+        maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -3139,6 +3170,7 @@ unit cgcpu;
           begin
              handle_load_store(list,A_VSTR,PF_None,tmpmmreg,ref);
           end;
+        maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -3154,6 +3186,7 @@ unit cgcpu;
            not shufflescalar(shuffle) then
           internalerror(2009112516);
         list.concat(taicpu.op_reg_reg(A_VMOV,mmreg,intreg));
+        maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -3169,6 +3202,7 @@ unit cgcpu;
            not shufflescalar(shuffle) then
           internalerror(2009112514);
         list.concat(taicpu.op_reg_reg(A_VMOV,intreg,mmreg));
+        maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -3287,6 +3321,7 @@ unit cgcpu;
         if (mmsize<>OS_F64) then
           internalerror(2009112405);
         list.concat(taicpu.op_reg_reg_reg(A_VMOV,mmreg,intreg.reglo,intreg.reghi));
+        cg.maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -3297,6 +3332,7 @@ unit cgcpu;
         if (mmsize<>OS_F64) then
           internalerror(2009112406);
         list.concat(taicpu.op_reg_reg_reg(A_VMOV,intreg.reglo,intreg.reghi,mmreg));
+        cg.maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -5103,6 +5139,7 @@ unit cgcpu;
             instr:=setoppostfix(taicpu.op_reg_reg(A_VMOV,reg2,reg1), PF_F32);
             list.Concat(instr);
             add_move_instruction(instr);
+            maybe_check_for_fpu_exception(list);
           end
         else if (fromsize=OS_F64) and
           (tosize=OS_F64) then
@@ -5128,6 +5165,7 @@ unit cgcpu;
     procedure tthumb2cgarm.a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference; shuffle: pmmshuffle);
       begin
         handle_load_store(list,A_VSTR,PF_None,reg,ref);
+        maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -5145,7 +5183,10 @@ unit cgcpu;
       begin
         if //(shuffle=nil) and
           (fromsize=OS_F32) then
-          list.Concat(taicpu.op_reg_reg(A_VMOV,intreg,mmreg))
+          begin
+            list.Concat(taicpu.op_reg_reg(A_VMOV,intreg,mmreg));
+            maybe_check_for_fpu_exception(list);
+          end
         else
           internalerror(2012100814);
       end;

@@ -433,6 +433,7 @@ implementation
 
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VNEG,
                 location.register,left.location.register), pf));
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end;
           fpu_fpv4_s16:
             begin
@@ -442,6 +443,7 @@ implementation
                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VNEG,
                 location.register,left.location.register), PF_F32));
+              cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end;
           fpu_soft:
             begin

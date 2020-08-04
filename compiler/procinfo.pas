@@ -134,6 +134,10 @@ unit procinfo;
             Requires different entry code for some targets. }
           ConstructorCallingConstructor: boolean;
 
+          { true, if an FPU instruction has been generated which could raise an exception and where the flags
+            need to be checked explicitly like on RISC-V or certain ARM architectures }
+          FPUExceptionCheckNeeded : Boolean;
+
           constructor create(aparent:tprocinfo);virtual;
           destructor destroy;override;
 

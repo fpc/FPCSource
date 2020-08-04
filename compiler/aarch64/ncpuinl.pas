@@ -108,6 +108,7 @@ implementation
       begin
         load_fpu_location;
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FABS,location.register,left.location.register));
+        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
@@ -115,6 +116,7 @@ implementation
       begin
         load_fpu_location;
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FMUL,location.register,left.location.register,left.location.register));
+        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
@@ -122,6 +124,7 @@ implementation
       begin
         load_fpu_location;
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT,location.register,left.location.register));
+        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 
@@ -155,6 +158,7 @@ implementation
         { convert to signed integer rounding towards zero (there's no "round to
           integer using current rounding mode") }
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCVTZS,location.register,hreg));
+        cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
       end;
 
 

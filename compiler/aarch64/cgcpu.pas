@@ -100,6 +100,7 @@ interface
         procedure g_concatcopy_move(list: TAsmList; const source, dest: treference; len: tcgint);
         procedure g_concatcopy(list: TAsmList; const source, dest: treference; len: tcgint);override;
         procedure g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: tcgint);override;
+        procedure g_check_for_fpu_exception(list: TAsmList; force, clear: boolean);override;
        private
         function save_regs(list: TAsmList; rt: tregistertype; lowsr, highsr: tsuperregister; sub: tsubregister): longint;
         procedure load_regs(list: TAsmList; rt: tregistertype; lowsr, highsr: tsuperregister; sub: tsubregister);
@@ -989,6 +990,7 @@ implementation
             instr:=taicpu.op_reg_reg(A_FCVT,reg2,reg1);
           end;
         list.Concat(instr);
+        maybe_check_for_fpu_exception(list);
       end;
 
 
@@ -2211,6 +2213,40 @@ implementation
         InternalError(2013020102);
       end;
 
+
+    procedure tcgaarch64.g_check_for_fpu_exception(list: TAsmList;force,clear : boolean);
+      var
+        r : TRegister;
+        ai: taicpu;
+        l1,l2: TAsmLabel;
+      begin
+        { so far, we assume all flavours of AArch64 need explicit floating point exception checking }
+        if ((cs_check_fpu_exceptions in current_settings.localswitches) and
+            (force or current_procinfo.FPUExceptionCheckNeeded)) then
+          begin
+            r:=getintregister(list,OS_INT);
+            list.concat(taicpu.op_reg_reg(A_MRS,r,NR_FPSR));
+            list.concat(taicpu.op_reg_const(A_TST,r,$1f));
+            current_asmdata.getjumplabel(l1);
+            current_asmdata.getjumplabel(l2);
+            ai:=taicpu.op_sym(A_B,l1);
+            ai.is_jmp:=true;
+            ai.condition:=C_NE;
+            list.concat(ai);
+            list.concat(taicpu.op_reg_const(A_TST,r,$80));
+            ai:=taicpu.op_sym(A_B,l2);
+            ai.is_jmp:=true;
+            ai.condition:=C_EQ;
+            list.concat(ai);
+            a_label(list,l1);
+            alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+            cg.a_call_name(list,'FPC_THROWFPUEXCEPTION',false);
+            dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+            a_label(list,l2);
+            if clear then
+              current_procinfo.FPUExceptionCheckNeeded:=false;
+          end;
+      end;
 
 
     procedure create_codegen;

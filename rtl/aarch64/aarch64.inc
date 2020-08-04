@@ -57,13 +57,79 @@ procedure setfpsr(val: dword); nostackframe; assembler;
   end;
 
 
+const
+  FPSR_IOC = 1;
+  FPSR_DZC = 1 shl 1;
+  FPSR_OFC = 1 shl 2;
+  FPSR_UFC = 1 shl 3;
+  FPSR_IXC = 1 shl 4;
+  FPSR_IDC = 1 shl 7;
+  FPSR_EXCEPTIONS = FPSR_IOC or FPSR_DZC or FPSR_OFC or FPSR_UFC or FPSR_IXC or FPSR_IDC;
+
+
+procedure RaisePendingExceptions;
+  var
+    fpsr : dword;
+    f: TFPUException;
+  begin
+    fpsr:=getfpsr;
+    if (fpsr and FPSR_DZC) <> 0 then
+      float_raise(exZeroDivide);
+    if (fpsr and FPSR_OFC) <> 0 then
+      float_raise(exOverflow);
+    if (fpsr and FPSR_UFC) <> 0 then
+      float_raise(exUnderflow);
+    if (fpsr and FPSR_IOC) <> 0 then
+      float_raise(exInvalidOp);
+    if (fpsr and FPSR_IXC) <> 0 then
+      float_raise(exPrecision);
+    if (fpsr and FPSR_IDC) <> 0 then
+      float_raise(exDenormalized);
+    { now the soft float exceptions }
+    for f in softfloat_exception_flags do
+      float_raise(f);
+  end;
+
+
+{ as so far no AArch64 flavour which supports hard floating point exceptions, we use solely
+  the softfloat_exception_mask for masking as the masking flags are RAZ and WI if floating point
+  exceptions are not supported }
+procedure fpc_throwfpuexception;[public,alias:'FPC_THROWFPUEXCEPTION'];
+  var
+    fpsr : dword;
+    f: TFPUException;
+  begin
+    { at this point, we know already, that an exception will be risen }
+    fpsr:=getfpsr;
+
+    { check, if the exception is masked }
+    if ((fpsr and FPSR_DZC) <> 0) and (exZeroDivide in softfloat_exception_mask) then
+      fpsr:=fpsr and not(FPSR_DZC);
+    if ((fpsr and FPSR_OFC) <> 0) and (exOverflow in softfloat_exception_mask) then
+      fpsr:=fpsr and not(FPSR_OFC);
+    if ((fpsr and FPSR_UFC) <> 0) and (exUnderflow in softfloat_exception_mask) then
+      fpsr:=fpsr and not(FPSR_UFC);
+    if ((fpsr and FPSR_IOC) <> 0) and (exInvalidOp in softfloat_exception_mask) then
+      fpsr:=fpsr and not(FPSR_IOC);
+    if ((fpsr and FPSR_IXC) <> 0) and (exPrecision in softfloat_exception_mask) then
+      fpsr:=fpsr and not(FPSR_IXC);
+    if ((fpsr and FPSR_IDC) <> 0) and (exDenormalized in softfloat_exception_mask) then
+      fpsr:=fpsr and not(FPSR_IDC);
+    setfpsr(fpsr);
+    if (fpsr and FPSR_EXCEPTIONS)<>0 then
+      RaisePendingExceptions;
+  end;
+
+
 procedure fpc_enable_fpu_exceptions;
   begin
     { clear all "exception happened" flags we care about}
     setfpsr(getfpsr and not(fpu_exception_mask shr fpu_exception_mask_to_status_mask_shift));
     { enable invalid operations and division by zero exceptions. }
-    setfpcr(getfpcr or fpu_exception_mask);
+    setfpcr((getfpcr and not(fpu_exception_mask)));
+    softfloat_exception_mask:=[exPrecision,exUnderflow,exInvalidOp];
   end;
+
 
 procedure fpc_cpuinit;
   begin
