@@ -302,7 +302,7 @@ begin
       FileResolver.AddIncludePath(S);
     // Scanner
     Scanner := TPascalScanner.Create(FileResolver);
-    Scanner.Options:=[po_AsmWhole,po_KeepClassForward];
+    Scanner.Options:=[po_AsmWhole,po_KeepClassForward,po_ExtConstWithoutExpr];
     SCanner.LogEvents:=SE.ScannerLogEvents;
     SCanner.OnLog:=SE.Onlog;
     For S in FDefines do
@@ -312,7 +312,7 @@ begin
     Parser:=TPasParser.Create(Scanner, FileResolver, SE);
     Parser.LogEvents:=SE.ParserLogEvents;
     Parser.OnLog:=SE.Onlog;
-    Parser.Options:=Parser.Options+[po_AsmWhole,po_delphi,po_KeepClassForward];
+    Parser.Options:=Parser.Options+[po_AsmWhole,po_delphi,po_KeepClassForward,po_ExtConstWithoutExpr,po_AsyncProcs];
     Parser.ParseMain(Result);
   finally
     Parser.Free;
