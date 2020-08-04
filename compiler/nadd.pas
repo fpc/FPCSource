@@ -1443,7 +1443,7 @@ implementation
                           { full boolean evaluation is only useful if the nodes are not too complex and if no flags/jumps must be converted,
                             further, we need to know the expectloc }
                           if (node_complexity(right)<=2) and
-                            not(left.expectloc in [LOC_JUMP,LOC_INVALID]) and not(right.expectloc in [LOC_JUMP,LOC_INVALID]) then
+                            not(left.expectloc in [LOC_FLAGS,LOC_JUMP,LOC_INVALID]) and not(right.expectloc in [LOC_FLAGS,LOC_JUMP,LOC_INVALID]) then
                             begin
                               { we need to copy the whole tree to force another pass_1 }
                               include(localswitches,cs_full_boolean_eval);

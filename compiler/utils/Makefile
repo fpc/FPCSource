@@ -1784,6 +1784,13 @@ CROSSGCCOPT=-m32
 endif
 endif
 endif
+ifeq ($(CPU_TARGET),powerpc)
+ifeq ($(BINUTILSPREFIX),)
+GCCLIBDIR:=$(shell dirname `gcc -m32 -print-libgcc-file-name`)
+else
+CROSSGCCOPT=-m32
+endif
+endif
 ifeq ($(CPU_TARGET),powerpc64)
 ifeq ($(BINUTILSPREFIX),)
 GCCLIBDIR:=$(shell dirname `gcc -m64 -print-libgcc-file-name`)

@@ -2970,9 +2970,11 @@ implementation
 
               in_sizeof_x:
                 begin
-                  { the constant evaluation of in_sizeof_x happens in pexpr where possible }
+                  { the constant evaluation of in_sizeof_x happens in pexpr where possible,
+                    though for generics it can reach here as well }
                   set_varstate(left,vs_read,[]);
                   if (left.resultdef.typ<>undefineddef) and
+                      assigned(current_procinfo) and
                       paramanager.push_high_param(vs_value,left.resultdef,current_procinfo.procdef.proccalloption) then
                    begin
                      { this should be an open array or array of const, both of
