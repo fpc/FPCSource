@@ -862,7 +862,7 @@ Unit raz80asm;
                     dest.opr:=tmplocal;
                   end;
                 else
-                  internalerror(2018030701);
+                  internalerror(2018030711);
               end;
             end;
           OPR_LOCAL:
@@ -900,11 +900,11 @@ Unit raz80asm;
                 OPR_LOCAL:
                   Message(asmr_e_no_local_or_para_allowed);
                 else
-                  internalerror(2018030703);
+                  internalerror(2018030713);
               end;
             end;
           else
-            internalerror(2018030702);
+            internalerror(2018030712);
         end;
       end;
 
