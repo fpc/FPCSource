@@ -599,6 +599,10 @@ unit cpupara;
                begin
                   paraloc^.size:=paracgsize;
                   paraloc^.loc:=LOC_REFERENCE;
+                  if assigned(hfabasedef) then
+                    paraloc^.def:=carraydef.getreusable_no_free(hfabasedef,paralen div hfabasedef.size)
+                  else
+                    paraloc^.def:=paradef;
 
                   { the current stack offset may not be properly aligned in
                     case we're on Darwin and have allocated a non-variadic argument
