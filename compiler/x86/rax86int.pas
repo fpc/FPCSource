@@ -1142,7 +1142,7 @@ Unit Rax86int;
                       SetSegmentOverride(dest,segreg);
                   end;
                 else
-                  internalerror(2018030701);
+                  internalerror(2018030704);
               end;
             end;
           OPR_LOCAL:
@@ -1223,7 +1223,7 @@ Unit Rax86int;
               oper.opr.localsegment:=seg;
             end;
           else
-            internalerror(2018030703);
+            internalerror(2018030705);
         end;
       end;
 
