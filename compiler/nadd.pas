@@ -2225,7 +2225,11 @@ implementation
                    This is compatible with the code below for other unsigned types (PFV) }
                  if is_signed(left.resultdef) or
                     is_signed(right.resultdef) or
-                    (nodetype=subn) then
+                    ((nodetype=subn)
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                     and not (m_tp7 in current_settings.modeswitches)
+{$endif}
+                    ) then
                    begin
                      if nodetype<>subn then
                        CGMessage(type_h_mixed_signed_unsigned);
