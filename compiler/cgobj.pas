@@ -1242,7 +1242,7 @@ implementation
                 caller side and needs to be stored with those bytes at the
                 start of the reference -> don't shift right }
               else if (paraloc.shiftval<0)
-{$ifndef MIPS}
+{$ifdef LIMIT_NEG_SHIFTVALUES}
 {$ifdef CPU64BITALU}
                       and ((-paraloc.shiftval) in [56{for byte},48{for two bytes},32{for four bytes}])
 {$else}
