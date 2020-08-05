@@ -893,7 +893,7 @@ var rtl = {
     }
     var dimmax = stack.length-1;
     var depth = 0;
-    var lastlen = stack[dimmax].dim;
+    var lastlen = 0;
     var item = null;
     var a = null;
     var src = arr;
