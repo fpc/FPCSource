@@ -37,7 +37,7 @@ uses
 
 function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
   begin
-    result:='wasm';
+    result:='wasm32';
   end;
 
 
