@@ -18,7 +18,7 @@ begin
     P.Dependencies.Add('fcl-json');
 
     P.ShortName:='js2p';
-    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
