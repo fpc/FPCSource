@@ -12095,6 +12095,7 @@ rtl/unix/unxdeclh.inc svneol=native#text/plain
 rtl/unix/unxovl.inc svneol=native#text/plain
 rtl/unix/unxovlh.inc svneol=native#text/plain
 rtl/unix/x86.pp svneol=native#text/plain
+rtl/wasi/system.pp svneol=native#text/plain
 rtl/watcom/Makefile svneol=native#text/plain
 rtl/watcom/Makefile.fpc svneol=native#text/plain
 rtl/watcom/classes.pp svneol=native#text/plain
