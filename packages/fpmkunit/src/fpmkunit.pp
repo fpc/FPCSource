@@ -1257,7 +1257,7 @@ Type
     Procedure Clean(APackage : TPackage; ACPU:TCPU; AOS : TOS);
     Procedure CompileDependencies(APackage : TPackage);
     function CheckDependencies(APackage : TPackage; ErrorOnFailure: boolean): TCheckDependencyResult;
-    Function  CheckExternalPackage(Const APackageName : String; ErrorOnFailure: boolean):TPackage;
+    Function  CheckExternalPackage(Const APackageName, ForPackageName : String; ErrorOnFailure: boolean):TPackage;
     procedure CreateOutputDir(APackage: TPackage);
     // Packages commands
     Procedure Compile(Packages : TPackages);
@@ -1666,7 +1666,7 @@ ResourceString
   SErrNoDictionaryValue = 'The item "%s" in the dictionary is not a value';
   SErrNoDictionaryFunc  = 'The item "%s" in the dictionary is not a function';
   SErrInvalidFPCInfo    = 'Compiler returns invalid information, check if fpc -iV works';
-  SErrDependencyNotFound = 'Could not find unit directory for dependency package "%s"';
+  SErrDependencyNotFound = 'Could not find unit directory for dependency package "%s" required for package "%s"';
   SErrAlreadyInitialized = 'Installer can only be initialized once';
   SErrInvalidState      = 'Invalid state for target %s';
   SErrCouldNotCompile   = 'Could not compile target %s from package %s';
@@ -7260,7 +7260,7 @@ begin
 end;
 
 
-function TBuildEngine.CheckExternalPackage(Const APackageName : String; ErrorOnFailure: boolean):TPackage;
+function TBuildEngine.CheckExternalPackage(Const APackageName, ForPackageName : String; ErrorOnFailure: boolean):TPackage;
 var
   S : String;
   F : String;
@@ -7294,7 +7294,7 @@ begin
       CompileDependencies(Result);
     end
   else if ErrorOnFailure then
-    Error(SErrDependencyNotFound,[APackageName]);
+    Error(SErrDependencyNotFound,[APackageName,ForPackageName]);
 end;
 
 
@@ -7327,7 +7327,7 @@ begin
             end
           else
             begin
-              D.Target:=CheckExternalPackage(D.Value, true);
+              D.Target:=CheckExternalPackage(D.Value, APackage.Name, true);
               P:=TPackage(D.Target);
             end;
           if (D.RequireChecksum<>$ffffffff) and (D.RequireChecksum<>0) and
@@ -7369,7 +7369,7 @@ begin
             end
           else
             begin
-              D.Target:=CheckExternalPackage(D.Value, ErrorOnFailure);
+              D.Target:=CheckExternalPackage(D.Value, APackage.Name, ErrorOnFailure);
               P:=TPackage(D.Target);
             end;
           if (D.RequireChecksum<>$ffffffff) and
