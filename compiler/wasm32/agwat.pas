@@ -1082,7 +1082,7 @@ implementation
          idtxt  : 'Wabt';
          asmbin : 'wasa';
          asmcmd : '-r --no-canonicalize-leb128s -o $OBJ $EXTRAOPT $ASM';
-         supported_targets : [system_wasm32_wasm];
+         supported_targets : [system_wasm32_wasm,system_wasm32_wasi];
          flags : [];
          labelprefix : 'L';
          labelmaxlen : -1;
