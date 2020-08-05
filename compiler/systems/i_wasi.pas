@@ -44,7 +44,7 @@ unit i_wasi;
           (
             system       : system_wasm32_wasi;
             name         : 'WebAssembly';
-            shortname    : 'Wasm';
+            shortname    : 'Wasi';
             flags        : [tf_files_case_sensitive,tf_no_generic_stackcheck,
                             { avoid the creation of threadvar tables }
                             tf_section_threadvars];
