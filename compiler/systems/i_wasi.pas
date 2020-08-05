@@ -75,8 +75,8 @@ unit i_wasi;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_wasm_wabt;
-            assemextern  : as_wasm_binaryen;
+            assem        : as_wasm32_wabt;
+            assemextern  : as_wasm32_binaryen;
             link         : ld_wasi;
             linkextern   : ld_wasi; // there's no linker, only object files for WASM
             ar           : ar_none;

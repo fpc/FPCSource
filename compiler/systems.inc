@@ -254,7 +254,7 @@
              ,as_solaris_as
              ,as_m68k_vasm
              ,as_m68k_as_aout
-             ,as_wasm_binaryen
+             ,as_wasm32_binaryen
              ,as_powerpc_gas_legacy    { for systems with very old GAS versions only, which don't support eg. named sections }
              ,as_clang_llvm
              ,as_clang_gas             { machine code assembler in gas style assembled by clang }
@@ -262,7 +262,7 @@
              ,as_sdcc_sdasz80
              ,as_z80_vasm
              ,as_z80_rel
-             ,as_wasm_wabt
+             ,as_wasm32_wabt
        );
 
        tlink = (ld_none,

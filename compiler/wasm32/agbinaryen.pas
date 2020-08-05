@@ -586,7 +586,7 @@ implementation
   const
     as_wasm_binaryen_info : tasminfo =
        (
-         id     : as_wasm_binaryen;
+         id     : as_wasm32_binaryen;
          idtxt  : 'Binaryen';
          asmbin : 'wasm-as';
          asmcmd : '$ASM $EXTRAOPT';
