@@ -43,7 +43,7 @@ unit i_wasi;
         system_wasi_info : tsysteminfo =
           (
             system       : system_wasm32_wasi;
-            name         : 'WebAssembly';
+            name         : 'The WebAssembly System Interface (WASI)';
             shortname    : 'Wasi';
             flags        : [tf_files_case_sensitive,tf_no_generic_stackcheck,
                             { avoid the creation of threadvar tables }
