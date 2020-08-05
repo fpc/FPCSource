@@ -159,8 +159,8 @@ end;
 
 initialization
   RegisterTarget(system_wasm_info);
-  RegisterImport(system_wasm_wasm32, timportlibwasm);
-  RegisterExport(system_wasm_wasm32, texportlibwasm);
+  RegisterImport(system_wasm32_wasm, timportlibwasm);
+  RegisterExport(system_wasm32_wasm, texportlibwasm);
   RegisterLinker(ld_wasm, tlinkerwasm);
 
 end.

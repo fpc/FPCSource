@@ -590,7 +590,7 @@ implementation
          idtxt  : 'Binaryen';
          asmbin : 'wasm-as';
          asmcmd : '$ASM $EXTRAOPT';
-         supported_targets : [system_wasm_wasm32];
+         supported_targets : [system_wasm32_wasm];
          flags : [];
          labelprefix : 'L';
          labelmaxlen : -1;
